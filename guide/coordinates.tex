@@ -98,9 +98,12 @@ axes will coincide, and $\phi$ and $\psi$ will both be zero.
 \label{s:phase_space_coords}
 
 \bmad uses the canonical phase space coordinates 
-$(x, p_x, y, p_y, z, p_z)$. $x$, $y$, and $z$ are the
-coordinates with respect to the reference particle as explained in
-Section~\ref{s:ref}. $p_x$ and $p_y$ are the normalized momenta
+\Begineq
+  (x, p_x, y, p_y, -c\Delta t, p_z)
+\Endeq
+$x$ and $y$ are the coordinates with respect to the reference particle
+as explained in Section~\ref{s:ref}. $p_x$ and $p_y$ are the
+normalized momenta
 \begin{align}
   p_x = &\frac{P_x}{P_0} \\
   p_y = &\frac{P_y}{P_0}
@@ -109,18 +112,14 @@ where $P_x$ and $P_y$ are respectively the momentum components along the $x$ and
 $y$ axes, and $P_0$ is the reference (sometimes called the
 design) momentum. The longitudinal canonical momentum $p_z$ is given by
 \begin{equation}
-  p_z = \frac{\Delta E}{E_0}
+  p_z = \frac{\Delta E}{c \, P_0} \equiv \frac{E - E_0}{c \, P_0}
 \end{equation}
-where $E_0$ is the reference energy (energy here always refers to the 
-total energy) and $\Delta E = E - E_0$ is the
-deviation of the particle's energy from the reference energy. \mad\ uses
-a slightly different coordinate system where $(z, p_z)$ is
-replaced by $(-c\Delta t, p_t)$. $\Delta t$ is the time
-difference for a particle to pass a point relative to the reference
-particle and $p_t \equiv \Delta E / P_0 c$. For highly relativistic
-particles the two coordinate systems are identical. For
-non-relativistic particles, \bmad\ is not to be trusted in any
-case. \bmad\ generally uses the small angle (paraxial) approximation
+where $E_0$ is the reference energy (energy here always refers to the
+total energy). The $\Delta t$ term in the phase space coordinates is
+the time difference for a particle to pass a point relative to the
+reference particle. These coordinates are the same as \mad.
+
+\bmad generally uses the small angle (paraxial) approximation
 where it is assumed that $p_x, p_y \ll 1$. With this approximation, the
 relationship, between the canonical momenta and the slopes $x' \equiv dx/ds$
 and $y' \equiv dy/ds$ is
@@ -128,12 +127,21 @@ and $y' \equiv dy/ds$ is
   x' &\approx \frac{p_x - a_x}{1 + p_z} (1 + g x) \\
   y' &\approx \frac{p_y - a_y}{1 + p_z} (1 + g x) 
 \end{align}
-$\Bf a = q \, A / c \, P_0$ is the normalized vector potential,
-$g = 1/\rho$ is the curvature function with $\rho$ being the radius
-of curvature of the reference orbit and it has been assumed that the 
-bending is in the $x$--$z$ plane.
+$\Bf a = q \, A / c \, P_0$ is the normalized vector potential, $g =
+1/\rho$ is the curvature function with $\rho$ being the radius of
+curvature of the reference orbit and it has been assumed that the
+bending is in the $x$--$z$ plane. In the small angle approximation the
+relation between the local reference system coordinate $z$ and
+$c\Delta t$ is
+\Begineq
+    z = \beta c \Delta t 
+\Endeq
+where $\beta = v/c$ with $v$ being the velocity of the particle.  For
+ultra--relativistic particles $z = -\Delta t$ so in this case the
+canonical coordinates can be referred to as $(x, p_x, y, p_y, z,
+p_z)$.
 
 For those programmers using the PTC software package directly (ignore
-this if you don't know what I'm talking about) \'Etienne Forest uses a still
-different coordinate system where $(z, p_z)$ is replaced by
-$(\Delta E/P_0 c, c \Delta t)$
+this if you don't know what I'm talking about) \'Etienne Forest uses a 
+different coordinate system where $(-c\Delta t, p_z)$ is replaced by
+$(p_z, c \Delta t)$

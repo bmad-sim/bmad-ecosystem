@@ -1,12 +1,16 @@
 \chapter{Tracking and Transfer Matrix Calculation Methods}
 
 Typically, there are several ways to do tracking and transfer matrix
-calculations for a given element type within \bmad. What method is used
-is selected on an element--by--element basis using
-an element's \vn{tracking_method} and \vn{mat6_calc_method} attributes 
-(mat6 refers to the size of the 6 by 6 transfer matrices). By supplying
-the appropriate routines a programmer can extend \bmad\ to do customized 
-tracking.
+calculations for a given element type within \bmad. What method is
+used is selected on an element--by--element basis using an element's
+\vn{tracking_method} and \vn{mat6_calc_method} attributes (mat6 refers
+to the size of the 6 by 6 transfer matrices). By supplying the
+appropriate routines a programmer can extend \bmad\ to do customized
+tracking. In general \bmad assumes that particles are
+ultra--relativistic. The methods that do not make this assumption are:
+\vn{Boris}, \vn{Adaptive_Boris}, \vn{Symp_Lie_Ptc}, \vn{Symp_map}, and \vn{Taylor}
+
+If this is not the case 
 
 %----------------------------------------------------------------------------
 \section{tracking\_method Switches}
@@ -39,7 +43,7 @@ This should be nearly symplectic but slow.
 Second order Boris Integration\cite{b:boris}. Like \vn{Runge_Kutta},
 \vn{Boris} does tracking by integrating the equation of
 motion. \vn{Boris} handles both electric and magnetic fields and does
-not assume that the particle is relativistic. \vn{Boris} preserves
+not assume that the particle is ultra--relativistic. \vn{Boris} preserves
 conserved quantities more accurately than \vn{Runge_Kutta}.
 
 \item[\vn{Bmad\_Standard}]

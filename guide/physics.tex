@@ -622,15 +622,17 @@ $a$ and $b$ normal modes are:
     I_{5a} &=& \oint ds \, G^3 \, \calh_a \\
     I_{5b} &=& \oint ds \, G^3 \, \calh_b
   \Endeqs
-where $\calh$ is 
+where $\calh_a$ is 
   \Begineq
-    \calh = \gamma \, \eta^2 + 2 \, \alpha \, \eta \, \eta' + 
-      \beta \eta'^2 
+    \calh_a = \gamma_a \, \eta_a^2 + 2 \, \alpha_a \, \eta_a \, \eta_a' + 
+      \beta_a \eta_a'^2 
   \Endeq
-Here $\bfeta\two_a = (\eta_{ax}, \eta_{ay})$, and $\bfeta\two_b = (\eta_{bx},
-\eta_{by})$ are the dispersion vectors for the $a$ and $b$ modes
-respectively. The position dependence of the curvature
-function is:
+with a similar equation for $\calh_b$. Here $\bfeta\two_a =
+(\eta_{ax}, \eta_{ay})$, and $\bfeta\two_b = (\eta_{bx}, \eta_{by})$
+are the dispersion vectors for the $a$ and $b$ modes respectively in
+$x--y$ space (these 2--vectors are not to be confused with the
+dispersion 4--vectors used in the previous section). The position
+dependence of the curvature function is:
   \Begineqs
     G_x(x,y) = G_{x} + x \, k_1 + y \, s_1 \\
     G_y(x,y) = G_{y} + x \, s_1 - y \, k_1 
@@ -651,7 +653,7 @@ edge of the edge field.
 Using this in \Eq{g2gkg} and integrating over the edge field gives the contribution
 to $I_4$ from a non--zero $e_1$ as
   \Begineq
-    I_{4z} = -\tan(e_1) G^2 \,
+    I_{4z} = -\tan(e_1) \, G^2
     \left( \cos(\theta) \, \eta_x + \sin(\theta) \, \eta_y \right)
     \label{iegct}
   \Endeq
@@ -673,7 +675,7 @@ where $L$ is the storage ring circumferance. The energy loss per turn is
   \Begineq
     U_0 = \frac{2 \, r_e E_0^4}{3 \, mc^2} I_2
   \Endeq
-whee $E_0$ is the nominal energy and $r_e$ is the classical electron
+where $E_0$ is the nominal energy and $r_e$ is the classical electron
 radius (electrons are assumed here but the formulas are easily
 generalized).
 
@@ -691,18 +693,18 @@ Since
 Robinson's theorem, $J_a + J_b + J_z = 4$, is satisfied.
 Alternatively, the exponential damping coefficients per turn are
   \Begineqs
-    \alpha_a = \frac{U_0 * J_a}{2 E_0} \CRNO
-    \alpha_b = \frac{U_0 * J_b}{2 E_0} \\
-    \alpha_z = \frac{U_0 * J_z}{2 E_0} 
+    \alpha_a = \frac{U_0 \, J_a}{2 E_0} \CRNO
+    \alpha_b = \frac{U_0 \, J_b}{2 E_0} \\
+    \alpha_z = \frac{U_0 \, J_z}{2 E_0} 
   \Endeqs
 The energy spread is given by
   \Begineq
     \sigma_{pz}^2 = \left( \frac{\sigma_E}{E_0} \right)^2 = 
-    C_q \gamma^2 \frac{I_3}{2I_2 + I_{4z}}
+    C_q \gamma_0^2 \frac{I_3}{2I_2 + I_{4z}}
   \Endeq
-where
+where $\gamma_0$ is the usual energy factor and 
   \Begineq
-    C_q = \frac{55}{32 \, \sqrt{3}} \frac{\hbar}{mc} = 
+    C_q = \frac{55}{32 \, \sqrt{3}} \, \frac{\hbar}{mc} = 
     3.84 \times 10^{-13} \, \mbox{meter}
   \Endeq
 If the synchrotron frequency is not too large the bunch length is given by
@@ -710,27 +712,21 @@ If the synchrotron frequency is not too large the bunch length is given by
     \sigma_z = \frac{I_1}{M(6,5)} \, \sigma_{pz}
   \Endeq
 where $M(6,5)$ is the $(6,5)$ element for the 1--turn transfer matrix
-for the storage ring. Finally the emittances are given by
-  \Begineq
-    \epsilon_a = C_q \, \gamma^2 \frac{I_{5a}}{I_2 - I_{4a}}
-    \epsilon_b = C_q \, \gamma^2 \frac{I_{5b}}{I_2 - I_{4b}}
-  \Endeq
+of the storage ring. Finally the emittances are given by
+  \Begineqs
+    \epsilon_a \AND= C_q \, \gamma_0^2 \frac{I_{5a}}{I_2 - I_{4a}} \CRNO
+    \epsilon_b \AND= C_q \, \gamma_0^2 \frac{I_{5b}}{I_2 - I_{4b}}
+  \Endeqs
 
 For a linac radiation integrals are still of interest if there are
 bends but in this case the appropriate energy factors must be included
-to take account the changing energy in the line. $I_1$ is not altered
-but the other integrals become
+to take account the changing energy in the line. $I_1$ is not altered and
+the $I_4$ integrals are not relavent. The other integrals become
   \Begineqs
-    L_2 &=& \oint ds \, G^2 \, \gamma^4 \\
-    L_3 &=& \oint ds \, G^3 \, \gamma^7 \\
-    L_{4a} &=& \oint ds \, \left[ G^2 \, \Bf G \cdot \bfeta\two_a + 
-         \nabla G^2 \cdot \bfeta\two_a \right] \, \gamma^4 \\
-    L_{4b} &=& \oint ds \, \left[ G^2 \, \Bf G \cdot \bfeta\two_b + 
-         \nabla G^2 \cdot \bfeta\two_b \right] \, \gamma^4 \\
-    L_{4z} &=& \oint ds \, \left[ G^2 \, \Bf G \cdot \bfeta\two + 
-         \nabla G^2 \cdot \bfeta\two \right] \, \gamma^4 \\
-    L_{5a} &=& \oint ds \, G^3 \, \calh_a \, \gamma^6 \\
-    L_{5b} &=& \oint ds \, G^3 \, \calh_b \, \gamma^6
+    L_2 &=& \oint ds \, G^2 \, \gamma_0^4 \\
+    L_3 &=& \oint ds \, G^3 \, \gamma_0^7 \\
+    L_{5a} &=& \oint ds \, G^3 \, \calh_a \, \gamma_0^6 \\
+    L_{5b} &=& \oint ds \, G^3 \, \calh_b \, \gamma_0^6
   \Endeqs
 In terms of these integrals the energy loss through the linac is
   \Begineq
@@ -739,12 +735,14 @@ In terms of these integrals the energy loss through the linac is
 The energy spread assuming $\sigma_E$ is zero at the start and neglecting
 any dampling is
   \Begineq
-    \sigma_E^2 = \frac{3}{2} \, C_q \, r_e \, \left( m c^2 \right)^2 \, L_3
+    \sigma_E^2 = \frac{2}{3} \, C_q \, r_e \, \left( m c^2 \right)^2 \, L_3
   \Endeq
 and, again neglecting any initial beam width, the transverse beam size
 at the end of the linac is
-  \Begineq
-    \epsilon_a = \frac{3}{2} \, C_q \, r_e \, 
-    \left( m c^2 \right)^2 \frac{L_{5a}}(E_f}
-  \Endeq
-Where $E_f$ is the final energy
+  \Begineqs
+    \epsilon_a \AND= \frac{2}{3} \, C_q \, r_e \, 
+    \frac{L_{5a}}{\gamma_f} \CRNO
+    \epsilon_b \AND= \frac{2}{3} \, C_q \, r_e \, 
+    \frac{L_{5b}}{\gamma_f} 
+  \Endeqs
+Where $\gamma_f$ is the final gamma
