@@ -4,24 +4,32 @@ use File::Find;
 
 $found_one = 0;
 
-if(-d "./bmad")
-{$bmad_dir="./bmad";}
-elsif(-d "../bmad")
-{$bmad_dir="../bmad";}
+if (-d "./bmad")
+  {$bmad_dir="./bmad";}
+elsif (-d "../bmad")
+  {$bmad_dir="../bmad";}
+elsif (-d "../../bmad")
+  {$bmad_dir="../../bmad";}
 else
-{$bmad_dir=$ENV{"CESR_CVSSRC"}."/bmad";}
-if(-d "./cesr_utils")
-{$cesr_utils_dir="./cesr_utils";}
-elsif(-d "../cesr_utils")
-{$cesr_utils_dir="../cesr_utils";}
+  {$bmad_dir=$ENV{"CESR_CVSSRC"}."/bmad";}
+
+if (-d "./cesr_utils")
+  {$cesr_utils_dir="./cesr_utils";}
+elsif (-d "../cesr_utils")
+  {$cesr_utils_dir="../cesr_utils";}
+elsif (-d "../../cesr_utils")
+  {$cesr_utils_dir="../../cesr_utils";}
 else
-{$cesr_utils_dir=$ENV{"CESR_CVSSRC"}."/cesr_utils";}
-if(-d "./dcslib")
-{$dcslib_dir="./dcslib";}
-elsif(-d "../dcslib")
-{$dcslib_dir="../dcslib";}
+  {$cesr_utils_dir=$ENV{"CESR_CVSSRC"}."/cesr_utils";}
+
+if (-d "./dcslib")
+  {$dcslib_dir="./dcslib";}
+elsif (-d "../dcslib")
+  {$dcslib_dir="../dcslib";}
+elsif (-d "../../dcslib")
+  {$dcslib_dir="../../dcslib";}
 else
-{$dcslib_dir=$ENV{"CESR_CVSSRC"}."/dcslib";}
+  {$dcslib_dir=$ENV{"CESR_CVSSRC"}."/dcslib";}
  
 find(\&searchit, $bmad_dir);
 find(\&searchit, $dcslib_dir);
