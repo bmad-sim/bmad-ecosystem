@@ -76,6 +76,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   logical, optional :: make_mats6, digested_read_ok
   logical parsing, delim_found, matched_delim, arg_list_found, doit
   logical file_end, found, err_flag, finished
+  logical detected_expand_lattice_cmd
 
 ! see if digested file is open and current. If so read in and return.
 ! Note: The name of the digested file depends upon the real precision.
@@ -149,15 +150,10 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   if (bmad_status%type_out) &
        call out_io (s_info$, r_name, 'Creating new digested file...')
 
-  bp_com%n_files = 0
   bp_com%error_flag = .false.                 ! set to true on an error
-  call file_stack('init', in_file, finished)   ! init stack
-  call file_stack('push', in_file, finished)   ! open file on stack
+  call file_stack('push', in_file, finished)  ! open file on stack
   if (.not. bmad_status%ok) return
-  bp_com%parser_debug = .false.
   iseq_tot = 0                            ! number of sequences encountered
-  bp_com%ivar_tot = 0                     ! number of variables encountered
-  call init_bmad_parser_common
 
   call init_ele (in_ring%ele_(0))
   in_ring%ele_(0)%name = 'BEGINNING'     ! Beginning element
@@ -180,6 +176,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   param_ele%value(lattice_type$) = circular_lattice$  ! Default
 
   ring%n_control_max = 0
+  detected_expand_lattice_cmd = .false.
 
 !-----------------------------------------------------------
 ! main parsing loop
@@ -292,13 +289,20 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       cycle parsing_loop
     endif
 
+! EXPAND_LATTICE command
+
+    if (word_1(:ix_word) == 'EXPAND_LATTICE') then
+      detected_expand_lattice_cmd = .true.
+      exit parsing_loop
+    endif
+
 ! RETURN or END_FILE command
 
     if (word_1(:ix_word) == 'RETURN' .or.  &
                                     word_1(:ix_word) == 'END_FILE') then
       call file_stack ('pop', ' ', finished)
       if (.not. bmad_status%ok) return
-      if (finished) exit ! break loop
+      if (finished) exit parsing_loop ! break loop
       cycle parsing_loop
     endif
 
@@ -1024,6 +1028,8 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! store the random number seed used for this lattice
 
   call ran_seed_get (ring%param%ran_seed)
+
+  if (detected_expand_lattice_cmd) call bmad_parser2 ('FROM: BMAD_PARSER', ring)
 
 !-------------------------------------------------------------------------
 ! write out if debug is on

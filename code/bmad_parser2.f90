@@ -59,13 +59,8 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
   bmad_status%ok = .true.
   bp_com%parser_name = 'BMAD_PARSER2'
-  bp_com%n_files = 0
-  bp_com%error_flag = .false.                  ! set to true on an error
-  call file_stack('init', in_file, finished)    ! open file on stack
-  call file_stack('push', in_file, finished)    ! open file on stack
+  call file_stack('push', in_file, finished)   ! open file on stack
   if (.not. bmad_status%ok) return
-  bp_com%parser_debug = .false.
-  call init_bmad_parser_common
 
   n_max => ring%n_ele_max
   n_max_old = n_max
@@ -73,13 +68,6 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   last_con = 0
 
   call allocate_pring (ring, pring)
-  pring%ele(:)%ref_name = blank
-  pring%ele(:)%ref_pt  = center$
-  pring%ele(:)%ele_pt  = center$
-  pring%ele(:)%s       = 0
-  pring%ele(:)%common_lord = .false.
-
-  ring%ele_(:)%ixx = 0
 
   beam_ele%name = 'BEAM'              ! fake beam element
   beam_ele%key = def_beam$            ! "definition of beam"
@@ -421,42 +409,6 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   if (doit) call ring_make_mat6(ring, -1, orbit_)  ! make transport matrices
   call s_calc (ring)                       ! calc loginitudinal distances
   call ring_geometry (ring)                ! ring layout
-
-!-------------------------------------------------------------------------
-! write out if debug is on
-
-  if (bp_com%parser_debug) then
-
-    print *
-    print *, '----------------------------------------'
-    print *, 'Number of Elements in the Regular Ring:', ring%n_ele_use
-    do i = 1, ring%n_ele_use
-      print *, '-------------'
-      print *, 'Ele #', i
-      call type_ele (ring%ele_(i), .false., 0, .false., 0, .true., ring)
-    enddo
-
-    print *
-    print *, '----------------------------------------'
-    print *, 'Control elements: ', ring%n_ele_max - ring%n_ele_use
-    do i = ring%n_ele_use+1, ring%n_ele_max
-      print *, '-------------'
-      print *, 'Ele #', i
-      call type_ele (ring%ele_(i), .false., 0, .false., 0, .true., ring)
-    enddo
-
-
-    print *
-    print *, '----------------------------------------'
-    print *, 'Ring Used: ', ring%name
-    print *, 'Number of ring elements:', ring%n_ele_use
-    print *, 'List:                               Key      Length         S'
-    do i = 1, ring%n_ele_use
-      print '(3x, i3, 2a, 3x, a, 2f10.2)', i, ') ', ring%ele_(i)%name,  &
-        key_name(ring%ele_(i)%key), ring%ele_(i)%value(l$), ring%ele_(i)%s
-    enddo
-
-  endif
 
 !-----------------------------------------------------------------------------
 ! error check
