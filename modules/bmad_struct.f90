@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.20  2002/11/01 15:39:03  dcs
+!*** empty log message ***
+!
 !Revision 1.19  2002/10/29 17:07:28  dcs
 !*** empty log message ***
 !
@@ -479,13 +482,13 @@ module bmad_struct
   integer, parameter :: runge_kutta$ = 3 
   integer, parameter :: linear$ = 4, tracking$ = 5, symp_map$ = 6
   integer, parameter :: wiedemann$ = 9, symp_lie_bmad$ = 10, none$ = 11
-  integer, parameter :: boris$ = 12, adaptive_boris$ = 13
+  integer, parameter :: boris$ = 12, adaptive_boris$ = 13, order_2$ = 14
 
-  character*16, parameter :: calc_method_name(0:13) = (/ &
+  character*16, parameter :: calc_method_name(0:14) = (/ &
       "GARBAGE!      ", "BMAD_Standard ", "Symp_Lie_PTC  ", "Runge_Kutta   ", &
       "Linear        ", "Tracking      ", "Symp_Map      ", "Custom        ", &
       "Taylor        ", "Wiedemann     ", "Symp_Lie_BMAD ", "None          ", &
-      "Boris         ", "Adaptive_Boris" /)
+      "Boris         ", "Adaptive_Boris", "Order_2       " /)
 
   integer, parameter :: map_type$ = 1, periodic_type$ = 2
   character*16, parameter :: sub_key_name(0:2) = (/ &
