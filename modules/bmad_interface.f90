@@ -14,7 +14,7 @@ use nrutil, only: reallocate
 !---------------------------------------------------------
 
 interface
-  subroutine aperture_info (lattice, orbit, ix_lost, plane_lost)
+  subroutine lost_particle_info (lattice, orbit, ix_lost, plane_lost)
     use bmad_struct, only: ring_struct, coord_struct
     implicit none
     type (ring_struct) lattice
