@@ -31,9 +31,11 @@ subroutine track1_taylor (start, ele, param, end)
 !
 
   if (.not. associated(ele%taylor(1)%term)) then
-    print *, 'WARNING FROM TRACK1_TAYLOR: TAYLOR SERIES NOT PRESENT FOR: ', &
+    if (bmad_status%type_out) then
+      print *, 'WARNING FROM TRACK1_TAYLOR: TAYLOR SERIES NOT PRESENT FOR: ', &
                                                                       ele%name
-    print *, '        I WILL MAKE A TAYLOR SERIES AROUND THE GIVEN ORBIT...'
+      print *, '        I WILL MAKE A TAYLOR SERIES AROUND THE GIVEN ORBIT...'
+    endif
     call ele_to_taylor(ele, param, start)
   endif
 
