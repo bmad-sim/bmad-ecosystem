@@ -17,7 +17,6 @@
 !------------------------------------------------------------------------
 
 &tao_design_lattice
-!  design_lattice_file = "~dcs/new_lib/bmad/lat/bmad_6wig_lum_20030915_v1.lat"
   design_lattice_file = "/home/dcs/new_lib/bmad/lat/bmad_6wig_lum_20030915_v1.lat"
 /
 
