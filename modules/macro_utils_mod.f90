@@ -1,22 +1,23 @@
 module macro_utils_mod
 
 use bmad
+use macroparticle_mod
 
-type bunch_param_struct
+type macro_bunch_param_struct
   real(rp) beta, alpha, gamma
   real(rp) sigma, p_sigma
   real(rp) emitt ! normalized emittance
 endtype
 
-type bunch_params_struct
-  type (bunch_param_struct) :: x, y
+type macro_bunch_params_struct
+  type (macro_bunch_param_struct) :: x, y
   real(rp) dpz_dz, z_sigma, p_z_sigma
   type (coord_struct) :: centroid
   real(rp) :: charge ! bunch charge NOT including lost particles
 endtype
 
-type beam_params_struct
-  type (bunch_params_struct), pointer :: bunch(:) => null()
+type macro_beam_params_struct
+  type (macro_bunch_params_struct), pointer :: bunch(:) => null()
 endtype
 
 contains
@@ -25,16 +26,16 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine calc_bunch_params (bunch, ele, params)
+! Subroutine calc_macro_bunch_params (bunch, ele, params)
 !
 ! Finds all the bunch parameters defined in bunch_params_struct
 !
 ! Input:
-!  bunch      -- bunch_struct
+!  bunch      -- macro_bunch_struct
 !  ele        -- ele_struct: element to find parameters at
 !
 ! Output:
-!  params     -- bunch_params_struct
+!  params     -- macro_bunch_params_struct
 !                 %x%alpha; %x%beta; %x%gamma
 !                 %x%sigma; %x%p_sigma
 !                 %x%emitt
@@ -46,18 +47,18 @@ contains
 !
 !-
 
-Subroutine calc_bunch_params (bunch, ele, params)
+Subroutine calc_macro_bunch_params (bunch, ele, params)
 
 implicit none
 
-type (bunch_struct) bunch
+type (macro_bunch_struct) bunch
 type (ele_struct) ele
-type (bunch_params_struct) params
+type (macro_bunch_params_struct) params
 
-call calc_bunch_centroid (bunch, params)
-call calc_bunch_twiss_and_emittance (bunch, ele, params, .false.)
-call calc_bunch_sigma (bunch, params, .false.)
-call calc_bunch_dpz_dz (bunch, params, .false.)
+call calc_macro_bunch_centroid (bunch, params)
+call calc_macro_bunch_twiss_and_emittance (bunch, ele, params, .false.)
+call calc_macro_bunch_sigma (bunch, params, .false.)
+call calc_macro_bunch_dpz_dz (bunch, params, .false.)
 
 end subroutine
 
@@ -65,24 +66,24 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine calc_bunch_twiss_and_emittance (bunch, ele, params, calc_centroid)
+! Subroutine calc_macro_bunch_twiss_and_emittance (bunch, ele, params, calc_centroid)
 ! 
 ! Subroutine to calculate normalized x and y emittance and twiss
 ! parameters of a bunch at element ele. If calc_centroid if false then the
 ! centroid will not be calculated. If calc_centroid is true then the bunch
-! centroid and charge will calculated with calc_bunch_centroid.
+! centroid and charge will calculated with calc_macro_bunch_centroid.
 ! The default is calc_centroid = .true.
 !
 ! Modules needed:
 !   use macro_utils_mod
 !
 ! Input:
-!   bunch         -- bunch_struct: bunch for which emittance should be calculated.
+!   bunch         -- macro_bunch_struct: bunch for which emittance should be calculated.
 !   ele           -- ele_struct: Element at which to calculate emittance.
 !   calc_centroid -- (optional) Logical: calculate the bunch centroid and charge?
 !
 ! Output:   
-!   params  -- bunch_params_struct
+!   params  -- macro_bunch_params_struct
 !               %x%alpha; %x%beta; %x%gamma
 !               %x%emitt
 !               %y%alpha; %y%beta; %y%gamma
@@ -91,13 +92,13 @@ end subroutine
 !               %charge (optional)
 !-
 
-subroutine calc_bunch_twiss_and_emittance (bunch, ele, params, calc_centroid)
+subroutine calc_macro_bunch_twiss_and_emittance (bunch, ele, params, calc_centroid)
 
 implicit none
 
-type (bunch_struct), target :: bunch
+type (macro_bunch_struct), target :: bunch
 type(ele_struct) :: ele
-type (bunch_params_struct) :: params
+type (macro_bunch_params_struct) :: params
 type (macro_struct), pointer :: macro(:), mp
 logical, optional :: calc_centroid
 
@@ -108,6 +109,7 @@ real(rp) charge, avg_energy
 real(rp) x, xp, s11, s12, s22, s66, x_eta, x_etap
 real(rp) y, yp, s33, s34, s44, y_eta, y_etap
 real(rp) zp, s16, s26, s36, s46
+real(rp) v_mat(4,4), v_inv_mat(4,4), orb(4), sigma_a(4,4)
 
 ! initialize 
 
@@ -122,6 +124,13 @@ real(rp) zp, s16, s26, s36, s46
   y_eta        = ele%y%eta
   y_etap       = ele%y%etap
   
+  ! testing....
+  x_eta        = ele%x%eta_lab
+  x_etap       = ele%x%etap_lab
+  y_eta        = ele%y%eta_lab
+  y_etap       = ele%y%etap_lab
+  ! testing...
+      
   avg_x2       = 0
   avg_xxp      = 0
   avg_xp2      = 0
@@ -132,9 +141,9 @@ real(rp) zp, s16, s26, s36, s46
   ! first calculate average x/x'and y/y' of bunch weighted by charge
   
   if (present(calc_centroid)) then
-    if (calc_centroid) call calc_bunch_centroid (bunch, params)
+    if (calc_centroid) call calc_macro_bunch_centroid (bunch, params)
   else
-    call calc_bunch_centroid (bunch, params)
+    call calc_macro_bunch_centroid (bunch, params)
   endif
 
   if (params%charge == 0) then
@@ -179,11 +188,42 @@ real(rp) zp, s16, s26, s36, s46
       s36 = mp%sigma(s36$)
       s46 = mp%sigma(s46$)
   
+      ! testing...
+!     call make_v_mats (ele, v_mat, v_inv_mat)
+!     
+!     call mp_sigma_to_mat (mp%sigma, sigma_a)
+!     sigma_a = matmul (transpose(v_mat), matmul (sigma_a, v_mat))
+
+!     s11 = sigma_a(1,1)
+!     s12 = sigma_a(1,2) 
+!     s22 = sigma_a(2,2) 
+!     s33 = sigma_a(3,3) 
+!     s34 = sigma_a(3,4) 
+!     s44 = sigma_a(4,4) 
+!     s66 = mp%sigma(s66$)
+!     s16 = x_eta * s66
+!     s26 = x_etap* s66
+!     s36 = y_eta * s66
+!     s46 = y_etap* s66
+
+      ! testing...
+      
       x  = mp%r%vec(1) - bunch_x  - x_eta *  zp
       xp = mp%r%vec(2) - bunch_xp - x_etap * zp
       y  = mp%r%vec(3) - bunch_y  - y_eta *  zp
       yp = mp%r%vec(4) - bunch_yp - y_etap * zp
   
+      
+      ! testing....
+!     orb = mp%r%vec(1:4) - (/ bunch_x, bunch_xp, bunch_y, bunch_yp /)
+!     orb = matmul(v_inv_mat,orb)
+!     x  = orb(1) - zp*x_eta
+!     xp = orb(2) - zp*x_etap
+!     y  = orb(3) - zp*y_eta
+!     yp = orb(4) - zp*y_etap
+      ! testing....
+
+      
       avg_x2  = avg_x2 + charge * &
                (s11 + x_eta**2 * s66 + x**2 - 2 * s16*x_eta)
       avg_xp2 = avg_xp2+ charge * &
@@ -209,8 +249,8 @@ real(rp) zp, s16, s26, s36, s46
   avg_yyp = avg_yyp / params%charge
   avg_energy = avg_energy / params%charge
   
-  params%x%emitt = (avg_energy/m_electron) * sqrt(avg_x2*avg_xp2 - avg_xxp**2)
-  params%y%emitt = (avg_energy/m_electron) * sqrt(avg_y2*avg_yp2 - avg_yyp**2)
+  params%x%emitt = sqrt(avg_x2*avg_xp2 - avg_xxp**2)
+  params%y%emitt = sqrt(avg_y2*avg_yp2 - avg_yyp**2)
 
   params%x%beta  = avg_x2   / params%x%emitt
   params%x%gamma = avg_xp2  / params%x%emitt
@@ -220,32 +260,36 @@ real(rp) zp, s16, s26, s36, s46
   params%y%gamma = avg_yp2  / params%y%emitt
   params%y%alpha = -avg_yyp / params%y%emitt
     
+  ! now normalize the emittance
+  params%x%emitt = (avg_energy/m_electron) * params%x%emitt
+  params%y%emitt = (avg_energy/m_electron) * params%y%emitt
+
 end subroutine
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine calc_bunch_centroid (bunch, params)
+! Subroutine calc_macro_bunch_centroid (bunch, params)
 !
 ! Finds the bunch centroid and charge, keeping track of lost macroparticles
 !
 ! Input:
-!  bunch         -- bunch_struct
+!  bunch         -- macro_bunch_struct
 !
 ! Output:
-!  params      -- bunch_params_struct
+!  params      -- macro_bunch_params_struct
 !                  %centorid  -- bunch centroid
 !                  %charge    -- bunch charge excluding lost macroparticles
 !  
 !-
 
-subroutine calc_bunch_centroid (bunch, params)
+subroutine calc_macro_bunch_centroid (bunch, params)
 
 implicit none
 
-type (bunch_struct), target :: bunch
-type (bunch_params_struct) :: params
+type (macro_bunch_struct), target :: bunch
+type (macro_bunch_params_struct) :: params
 type (macro_struct), pointer :: macro(:)
 type (coord_struct) :: centroid
 
@@ -273,25 +317,25 @@ integer i, j
     params%centroid%vec = centroid%vec / tot_charge
   endif
 
-end subroutine calc_bunch_centroid
+end subroutine calc_macro_bunch_centroid
   
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine calc_bunch_sigma (bunch, params, calc_centroid)
+! Subroutine calc_macro_bunch_sigma (bunch, params, calc_centroid)
 !
 ! Finds the bunch sigmas. If calc_centroid if false then the
 ! centroid will not be calculated. If calc_centorid is true then the bunch
-! centroid and charge will calculated with calc_bunch_centroid.
+! centroid and charge will calculated with calc_macro_bunch_centroid.
 ! The default is calc_centroid = .true.
 
 !
 ! Input:
-!  bunch        -- bunch_struct
+!  bunch        -- macro_bunch_struct
 !
 ! Output:
-!  params       -- bunch_params_struct
+!  params       -- macro_bunch_params_struct
 !                  %x%sigma; %x%p_sigma
 !                  %y%sigma; %y%p_sigma
 !                  %z%sigma; %z%p_sigma
@@ -300,12 +344,12 @@ end subroutine calc_bunch_centroid
 !
 !-
 
-subroutine calc_bunch_sigma (bunch, params, calc_centroid)
+subroutine calc_macro_bunch_sigma (bunch, params, calc_centroid)
 
 implicit none
 
-type (bunch_struct), target :: bunch
-type (bunch_params_struct) :: params
+type (macro_bunch_struct), target :: bunch
+type (macro_bunch_params_struct) :: params
 logical, optional :: calc_centroid
 
 type (macro_struct), pointer :: macro(:)
@@ -319,9 +363,9 @@ integer, parameter :: s_plane(6) = (/ s11$, s22$, s33$, s44$, s55$, s66$ /)
   var2 = 0
  
   if (present(calc_centroid)) then
-    if (calc_centroid) call calc_bunch_centroid (bunch, params)
+    if (calc_centroid) call calc_macro_bunch_centroid (bunch, params)
   else
-    call calc_bunch_centroid (bunch, params)
+    call calc_macro_bunch_centroid (bunch, params)
   endif
 
   if (params%charge .eq. 0) then
@@ -362,32 +406,32 @@ integer, parameter :: s_plane(6) = (/ s11$, s22$, s33$, s44$, s55$, s66$ /)
   params%z_sigma   = sqrt((var1(5) + var2(5))/params%charge)
   params%p_z_sigma = sqrt((var1(6) + var2(6))/params%charge)
   
-end subroutine calc_bunch_sigma
+end subroutine calc_macro_bunch_sigma
  
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine calc_bunch_dpz_dz (bunch, params, calc_centroid)
+! Subroutine calc_macro_bunch_dpz_dz (bunch, params, calc_centroid)
 !
 ! Finds the energy-Z correlation for a bunch. If calc_centorid is true then
-! the bunch centroid and charge will calculated with calc_bunch_centroid.
+! the bunch centroid and charge will calculated with calc_macro_bunch_centroid.
 ! The default is calc_centroid = .true.
 
 !
 ! Input:
-!  bunch        -- bunch_struct
+!  bunch        -- macro_bunch_struct
 !
-! Output        -- bunch_params_struct
+! Output        -- macro_bunch_params_struct
 !
 !-
 
-subroutine calc_bunch_dpz_dz (bunch, params, calc_centroid)
+subroutine calc_macro_bunch_dpz_dz (bunch, params, calc_centroid)
 
 implicit none
   
-type (bunch_struct), target :: bunch
-type (bunch_params_struct) :: params
+type (macro_bunch_struct), target :: bunch
+type (macro_bunch_params_struct) :: params
 logical, optional :: calc_centroid
 
 type (macro_struct), pointer :: macro(:)
@@ -396,9 +440,9 @@ real(rp) z, zp, ave_zz, ave_zzp
 integer*4 i
 
   if (present(calc_centroid)) then
-    if (calc_centroid) call calc_bunch_centroid (bunch, params)
+    if (calc_centroid) call calc_macro_bunch_centroid (bunch, params)
   else
-    call calc_bunch_centroid (bunch, params)
+    call calc_macro_bunch_centroid (bunch, params)
   endif
 
   if (params%charge .eq. 0) then
@@ -428,6 +472,6 @@ integer*4 i
   ave_zz = ave_zz / bunch%charge
   params%dpz_dz = ave_zzp / ave_zz
   
-end subroutine calc_bunch_dpz_dz
+end subroutine calc_macro_bunch_dpz_dz
 
 end module

@@ -842,20 +842,20 @@ Subroutine to write a Bmad taylor map in a nice format to a character array.
 
 \begin{description}
 
-\item[calc\_bunch\_centroid (bunch, params)] \Newline
+\item[calc\_macro\_bunch\_centroid (bunch, params)] \Newline
 Subroutine to calculate bunch centroid and total charge excluding lost
 macroparticles.
 
-\item[calc\_bunch\_dpz\_dz (bunch, params, calc\_centroid)] \Newline
+\item[calc\_macro\_bunch\_dpz\_dz (bunch, params, calc\_centroid)] \Newline
 Subroutine to calculate bunch energy-Z correlation.
 
-\item[calc\_bunch\_params (bunch, ele, params)] \Newline
+\item[calc\_macro\_bunch\_params (bunch, ele, params)] \Newline
 Subroutine to calculate various beam characteristics from a bunch.
 
-\item[calc\_bunch\_sigma (bunch, params, calc\_centroid)] \Newline
+\item[calc\_macro\_bunch\_sigma (bunch, params, calc\_centroid)] \Newline
 Subrouine to calculate bunch sigmas.
 
-\item[calc\_bunch\_twiss\_and\_emittance (bunch, ele, params, calc\_centroid)] \Newline 
+\item[calc\_macro\_bunch\_twiss\_and\_emittance (bunch, ele, params, calc\_centroid)] \Newline 
 Subroutine to calculate the beam twiss parameters and normalized emittances of a bunch.
 
 \item[init\_macro\_distribution (beam, init, canonical\_out)] \Newline 
@@ -878,13 +878,13 @@ Subroutine to convert macroparticle coords from
 Subroutine to convert macroparticle coords from 
 (x, x', y, y', z, E) to (x, px, y, py, z, pz).
 
-\item[reallocate\_beam (beam, n\_bunch, n\_slice, n\_macro)] \Newline 
+\item[reallocate\_macro\_beam (beam, n\_bunch, n\_slice, n\_macro)] \Newline 
 Subroutine to reallocate memory within a beam\_struct.
 
-\item[track1\_beam (start, ele, param, end] \Newline
+\item[track1\_macro\_beam (start, ele, param, end] \Newline
 Subroutine to track a beam of macroparticles through an element.
 
-\item[track\_beam (ring, beam, ix1, ix2)] \Newline 
+\item[track\_macro\_beam (ring, beam, ix1, ix2)] \Newline 
 Subroutine to track a beam of macroparticles from the end of
 ring%ele\_(ix1) Through to the end of ring%ele\_(ix2).
 

@@ -549,19 +549,19 @@ module bmad_struct
     logical :: lost = .false.  ! Has the particle been lost in tracking?
   end type
 
-  type slice_struct
+  type macro_slice_struct
     type (macro_struct), pointer :: macro(:) => null()
     real(rp) charge   ! total charge in a slice (Coul).
   end type
 
-  type bunch_struct
-    type (slice_struct), pointer :: slice(:) => null()
+  type macro_bunch_struct
+    type (macro_slice_struct), pointer :: slice(:) => null()
     real(rp) charge   ! total charge in a bunch (Coul).
     real(rp) s_center ! longitudinal center of bunch (m).
   end type
 
-  type beam_struct
-    type (bunch_struct), pointer :: bunch(:) => null()
+  type macro_beam_struct
+    type (macro_bunch_struct), pointer :: bunch(:) => null()
   end type
 
   integer, parameter :: s11$ = 1, s12$ = 2, s13$ = 3, s14$ =  4, s15$ =  5

@@ -35,7 +35,7 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track_beam (ring, beam, ix1, ix2)
+! Subroutine track_macro_beam (ring, beam, ix1, ix2)
 !
 ! Subroutine to track a beam of macroparticles from the end of
 ! ring%ele_(ix1) Through to the end of ring%ele_(ix2).
@@ -55,12 +55,12 @@ contains
 !   beam   -- Beam_struct: Beam at end of element ix2.
 !-
 
-subroutine track_beam (ring, beam, ix1, ix2)
+subroutine track_macro_beam (ring, beam, ix1, ix2)
 
   implicit none
 
   type (ring_struct) :: ring
-  type (beam_struct) :: beam
+  type (macro_beam_struct) :: beam
 
   integer, optional, intent(in) :: ix1, ix2
   integer i, j, i1, i2
@@ -75,16 +75,16 @@ subroutine track_beam (ring, beam, ix1, ix2)
 ! Loop over all elements in the lattice
 
   do i = i1+1, i2
-    call track1_beam (beam, ring%ele_(i), ring%param, beam)
+    call track1_macro_beam (beam, ring%ele_(i), ring%param, beam)
   enddo
 
-end subroutine
+end subroutine track_macro_beam
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_beam (beam_start, ele, param, beam_end)
+! Subroutine track1_macro_beam (beam_start, ele, param, beam_end)
 !
 ! Subroutine to track a beam of macroparticles through a single element.
 !
@@ -103,12 +103,12 @@ end subroutine
 !   beam_end    -- Beam_struct: ending beam position.
 !-
 
-subroutine track1_beam (beam_start, ele, param, beam_end)
+subroutine track1_macro_beam (beam_start, ele, param, beam_end)
 
   implicit none
 
-  type (beam_struct) beam_start
-  type (beam_struct), target :: beam_end
+  type (macro_beam_struct) beam_start
+  type (macro_beam_struct), target :: beam_end
   type (macro_struct), pointer :: macro
   type (ele_struct) ele
   type (param_struct) param
@@ -127,16 +127,16 @@ subroutine track1_beam (beam_start, ele, param, beam_end)
 ! loop over all bunches in a beam
 
   do i = 1, size(beam_start%bunch)
-    call track1_bunch (beam_start%bunch(i), ele, param, beam_end%bunch(i))
+    call track1_macro_bunch (beam_start%bunch(i), ele, param, beam_end%bunch(i))
   enddo
 
-end subroutine track1_beam
+end subroutine track1_macro_beam
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
+! Subroutine track1_macro_bunch (bunch_start, ele, param, bunch_end)
 !
 ! Subroutine to track a bunch of macroparticles through an element.
 !
@@ -152,11 +152,11 @@ end subroutine track1_beam
 !   bunch_end -- Bunch_struct: Ending bunch position.
 !-
 
-Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
+Subroutine track1_macro_bunch (bunch_start, ele, param, bunch_end)
 
   implicit none
 
-  type (bunch_struct) bunch_start, bunch_end
+  type (macro_bunch_struct) bunch_start, bunch_end
   type (ele_struct) ele
   type (ele_struct), save :: rf_ele
   type (param_struct) param
@@ -203,7 +203,7 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
 ! param%charge is used with e_loss$ when there is
 
   call order_macroparticles_in_z (bunch_start)
-  call grad_loss_sr_wake_calc (bunch_start, ele) 
+  call grad_loss_macro_sr_wake_calc (bunch_start, ele) 
 
 ! Track half way through. 
 ! This includes the short-range longitudinal wakefields
@@ -218,11 +218,11 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
 ! Put in the short-range transverse wakefields
 
   rf_ele%value(l$) = ele%value(l$)  ! restore the correct length for the moment
-  call track1_sr_trans_wake (bunch_end, rf_ele)
+  call track1_macro_sr_trans_wake (bunch_end, rf_ele)
 
 ! Put in the long-range wakes
 
-  call track1_lr_wake (bunch_end, rf_ele)
+  call track1_macro_lr_wake (bunch_end, rf_ele)
 
 ! Track the last half of the lcavity. 
 ! This includes the short-range longitudinal wakes.
@@ -256,24 +256,24 @@ subroutine recalc_charge
 
 end subroutine
 
-end subroutine
+end subroutine track1_macro_bunch
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine grad_loss_sr_wake_calc (bunch, ele)
+! Subroutine grad_loss_macro_sr_wake_calc (bunch, ele)
 !
 ! Subroutine to put in the longitudinal component of the
 ! short range wake fields. 
 ! This routine is not really meant  for general use.
 !-
 
-subroutine grad_loss_sr_wake_calc (bunch, ele)
+subroutine grad_loss_macro_sr_wake_calc (bunch, ele)
 
   implicit none
 
-  type (bunch_struct), target :: bunch
+  type (macro_bunch_struct), target :: bunch
   type (ele_struct) ele
   type (macro_struct), pointer :: macro(:), macro2(:)
 
@@ -389,17 +389,17 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_lr_wake (bunch, ele)
+! Subroutine track1_macro_lr_wake (bunch, ele)
 !
 ! Subroutine to put in the long-range wakes for macroparticle tracking.
 ! This routine is not really meant  for general use.
 !-
 
-subroutine track1_lr_wake (bunch, ele)
+subroutine track1_macro_lr_wake (bunch, ele)
 
   implicit none
 
-  type (bunch_struct), target :: bunch
+  type (macro_bunch_struct), target :: bunch
   type (ele_struct) ele
   type (macro_struct), pointer :: macro
 
@@ -437,18 +437,18 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_sr_trans_wake (bunch, ele)
+! Subroutine track1_macro_sr_trans_wake (bunch, ele)
 !
 ! Subroutine to put in the transverse component of the
 ! short range wake fields. 
 ! This routine is not really meant  for general use.
 !-
 
-subroutine track1_sr_trans_wake (bunch, ele)
+subroutine track1_macro_sr_trans_wake (bunch, ele)
 
   implicit none
 
-  type (bunch_struct), target :: bunch
+  type (macro_bunch_struct), target :: bunch
   type (ele_struct) ele
   type (macro_struct), pointer :: macro(:), macro2(:)
 
@@ -706,7 +706,7 @@ Subroutine order_macroparticles_in_z (bunch)
 
   implicit none
 
-  type (bunch_struct), target :: bunch
+  type (macro_bunch_struct), target :: bunch
   type (macro_struct), pointer :: macro(:)
   type (macro_struct) temp
   integer i, k, nm
@@ -1019,9 +1019,9 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine reallocate_beam (beam, n_bunch, n_slice, n_macro)
+! Subroutine reallocate_macro_beam (beam, n_bunch, n_slice, n_macro)
 ! 
-! Subroutine to reallocate memory within a beam_struct.
+! Subroutine to reallocate memory within a macro_beam_struct.
 !
 ! Modules needed:
 !   use macroparticle_mod
@@ -1035,11 +1035,11 @@ end subroutine
 !   beam -- Beam_struct: Allocated beam_struct structure.
 !-
 
-subroutine reallocate_beam (beam, n_bunch, n_slice, n_macro)
+subroutine reallocate_macro_beam (beam, n_bunch, n_slice, n_macro)
 
   implicit none
 
-  type (beam_struct) beam
+  type (macro_beam_struct) beam
 
   integer i, j
   integer n_bunch, n_slice, n_macro
@@ -1129,10 +1129,10 @@ subroutine init_macro_distribution (beam, init, ele, &
 
   implicit none
 
-  type (beam_struct), target ::  beam
+  type (macro_beam_struct), target ::  beam
   type (ele_struct) ele
   type (macro_init_struct), intent(in) :: init
-  type (bunch_struct), pointer :: bunch
+  type (macro_bunch_struct), pointer :: bunch
   type (macro_struct), pointer :: macro
 
   real(rp) z_fudge, e_fudge, z_rel, dz, e_rel, ex, ey, dE_E, z, E0, del_e
@@ -1145,7 +1145,7 @@ subroutine init_macro_distribution (beam, init, ele, &
 
 ! Reallocate if needed 
 
-  call reallocate_beam (beam, init%n_bunch, init%n_slice, init%n_macro)
+  call reallocate_macro_beam (beam, init%n_bunch, init%n_slice, init%n_macro)
 
 ! Initalize distribution of 1st bunch
 ! z_fudge and e_fudge are used so that the total charge adds up to the 

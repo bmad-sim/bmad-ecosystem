@@ -263,12 +263,12 @@ LIAR's notation the LIAR phase space coordinates are
 To convert between \bmad and LIAR coordinates there are two routines
 called \vn{mp_to_angle_coords} and \vn{mp_to_canonical_coords}.
 
-macroparticles are grouped into slices, a number of slices make up a
+Macroparticles are grouped into slices, a number of slices make up a
 bunch, and a number of bunches make up a beam. Initialization of a
-\vn{beam_struct} structure can be done via the
+\vn{macro_beam_struct} structure can be done via the
 \vn{init_macro_distribution} which implements the LIAR initialization
 algorithm (See \sref{s:macro}). Once a beam is initialized,
-tracking can be performed using \vn{track_beam}. An example program is
+tracking can be performed using \vn{track_macro_beam}. An example program is
 shown in figure~\ref{f:macro_program}. 
 
 The equal sign in the assigments
@@ -282,7 +282,7 @@ is overloaded by the routines \vn{beam_equal_beam}, \vn{bunch_equal_bunch} and
 and \vn{slice1} do not point to the same memory locations as the pointers of 
 \vn{beam2}, \vn{bunch2} and \vn{slice2}.
 
-the \vn{init} variable (line 11) holds the information to initialize
+The \vn{init} variable (line 11) holds the information to initialize
 the macroparticle distribution. The values of the components in the
 \vn{init} variable are set using a namelist read (line 24). An example
 of an input file that can be used to set \vn{init} is shown in
@@ -291,11 +291,16 @@ the beam to be the reference energy at the start of the linac so this
 does not have to be set in the input file.  The
 \vn{init_macro_distribution} routine (line 27) initializes the
 \vn{beam} variable. The \vn{beam} variable is a container that holds
-the macroparticles that make up the beam. The \vn{track_beam} routine
+the macroparticles that make up the beam. The \vn{track_macro_beam} routine
 tracks these macroparticles through to the end of the linac. If it is
-desired to track only through part of the linac then \vn{track_beam}
-has optional arguments that allow this. lines 30 through 41 print out
+desired to track only through part of the linac then \vn{track_macro_beam}
+has optional arguments that allow this. If it is desired to only track through 1
+element (similarly to \vn{track1}) then the subroutine \vn{track1_beam} is also
+available. Lines 30 through 41 print out
 some horizontal parameters from the position at the end of the linac.
+
+The subroutine \vn{calc_macro_bunch_params} will fine the bunch centroid, emittances,
+sigmas, twiss parameters and energy-Z correlation.
 
 \begin{figure}
 \begin{listing}{1}
@@ -307,9 +312,10 @@ program macroparticle_test
   implicit none
 
   type (ring_struct) lattice
-  type (beam_struct) beam
+  type (macro_beam_struct) beam
   type (macroparticle_struct) mp
   type (macro_init_struct) init
+  tyep (macro_bunch_params_struct) params
 
   integer i, j, k, n
 
@@ -326,7 +332,7 @@ program macroparticle_test
   close (1)
 
   call init_macro_distribution (beam, init, .true.)
-  call track_beam (lattice, beam)
+  call track_macro_beam (lattice, beam)
 
   print *
   print '(13x, a)', "x          x'    sig(1,1)    sig(1,2)    sig(2,2)"
@@ -340,6 +346,12 @@ program macroparticle_test
       enddo
     enddo
   enddo
+
+  call calc_macro_bunch_params (beam%bunch(1), lattice%ele_(lattice%n_ele_use), &
+                                params)
+
+  print *
+  print '(a, e12.4)', "Normalized y emittance at end of lattice: ", params%y%emitt
 
 end program
 \end{listing}
