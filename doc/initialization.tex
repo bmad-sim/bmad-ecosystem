@@ -513,7 +513,7 @@ will search for all quadrupole elements in the lattice.
 
 
 %-----------------------------------------------------------------
-\section{Initializing Data}
+\section{Initializing Data and Constraints}
 \label{s:init_data} 
 
 Data is initialized using the \vn{tao_d2_data} namelist block whose format is
@@ -587,11 +587,12 @@ For example:
 \end{example}
 Alternatively one can specify a datum in a single line. For example:
 \begin{example}
+  !         name   data_      ele_      ele2_    merit_   meas_    weight good_
+  !                  type       name      name     type     value           user
   \&tao_d1_data
-  ...
-  data( 1) = ' '  'beta:x'  'Q09_1'  'Q16_1'    'max'    30   0.1   T
-  data( 2) = ' '  'beta:y'  'Q09_1'  'Q16_1'    'max'    30   0.1   T
-  data( 3) = ' '  'floor:x' 'end_arc' ' '       'target'  3   0.01  T       
+  data( 1) = ' '   'beta:x'   'Q09_1'   'Q16_1'  'max'      30      0.1     T
+  data( 2) = ' '   'beta:y'   'Q09_1'   'Q16_1'  'max'      30      0.1     T
+  data( 3) = ' '   'floor:x'  'end'     ' '      'target'    3      0.01    T       
   ...
   /
 \end{example}
@@ -857,6 +858,7 @@ namelists should be placed directly after their respective
     curve(i)%symbol       = <qp_symbol_struct>
     curve(i)%symbol_every = <integer>       ! plot symbol every # datums
     curve(i)%convert      = <Logical>
+    curve(i)%ele2_name    = "<element_name>" ! reference element.
   /
 \end{example}
 For example:
