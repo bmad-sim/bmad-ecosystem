@@ -16,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/03/18 20:33:04  dcs
+!%total_length calc subtracts off %ele_(0)%s
+!
 !Revision 1.6  2003/03/08 01:31:22  dcs
 !Allow fixing initial s position
 !
@@ -51,7 +54,7 @@ subroutine s_calc (ring)
     ring%ele_(n)%s = ss
   enddo
 
-  ring%param%total_length = ss
+  ring%param%total_length = ss - ring%ele_(0)%s
 
 ! now get fill in the positions of the super_lords
 
