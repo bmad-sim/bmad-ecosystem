@@ -990,7 +990,6 @@ end subroutine
 !     voltage$ = e_field$ * gap$ 
 !
 ! LCAVITY:    
-!     e_loss$  = ele%wake%sr(0)%long/2 if ele%wake%sr exists
 !     delta_e$ = gradient$ * L$ 
 !
 ! RFCAVITY:   
@@ -1114,9 +1113,6 @@ subroutine attribute_bookkeeper (ele, param)
 ! Lcavity
 
   case (lcavity$)
-    if (associated (ele%wake)) then
-      if (associated (ele%wake%sr)) ele%value(e_loss$) = ele%wake%sr(0)%long / 2
-    endif
     ele%value(delta_e$) = ele%value(gradient$) * ele%value(L$) 
     
 
