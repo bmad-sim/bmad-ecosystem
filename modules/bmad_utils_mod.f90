@@ -59,7 +59,7 @@ subroutine energy_to_kinetic (energy, particle, &
 
   if (particle == positron$ .or. particle == electron$) then
     mc2 = m_electron
-  elseif (particle == proton$ .or. antiproton$) then
+  elseif (particle == proton$ .or. particle == antiproton$) then
     mc2 = m_proton
   else
     print *, 'ERROR IN ENERGY_TO_KINETIC: UNKNOWN PARTICLE TYPE:', particle
