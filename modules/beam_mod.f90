@@ -704,6 +704,13 @@ end subroutine
 ! as specified. Coupling in the element ele is incorporated into the
 ! distribution
 !
+! If using a random distribution with a small number of pazrticles statistical
+! error create a beam distribution off from what is specified in beam_init.
+! Therefore, the random particle distributions are created until one with a and
+! b mode emittances within 1% of the beam_init specification is created. Only
+! the a and b mode emittances are checked for agrrement with the beam_init
+! specification.
+!
 ! Make sure: dpz_dz < mode%sigE_E / mode%sig_z
 !
 ! Modules needed:
@@ -717,10 +724,9 @@ end subroutine
 !   renormalize -- Logical: If True then distribution is rescaled to
 !                   the desired centroid (to take care of
 !                   possible statistical errors in distribution).
-!   rendom_dist -- Logical: If True then a random gaussian distribution will be
+!   random_dist -- Logical: If True then a random gaussian distribution will be
 !                  used. Otherwise the inverse error function will be used to get 
-!                  an ordered distribution
-!
+!                  an ordered distribution.
 !
 ! Output:
 !   beam        -- beam_struct
@@ -1019,7 +1025,7 @@ subroutine calc_bunch_params (bunch, ele, params)
   type (bunch_struct), intent(in) :: bunch
   type (ele_struct), intent(in) :: ele
   type (bunch_params_struct) params
-  type (coord_struct), automatic :: a_mode(size(bunch%particle))
+  type (coord_struct), allocatable, save :: a_mode(:)
 
   real(rp) exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d
   real(rp) avg_energy 
@@ -1086,6 +1092,12 @@ subroutine calc_bunch_params (bunch, ele, params)
   
   ! take out coupling
   call make_v_mats (ele, v_mat, v_inv_mat)
+
+  if (.not. allocated(a_mode)) allocate (a_mode(size(bunch%particle)))
+  if (size(a_mode) .ne. size(bunch%particle)) then
+    deallocate(a_mode)
+    allocate(a_mode(size(bunch%particle)))
+  endif
   do i = 1, size(a_mode)
     a_mode(i)%vec(1:4) = matmul(v_inv_mat, bunch%particle(i)%r%vec(1:4))
   enddo 
