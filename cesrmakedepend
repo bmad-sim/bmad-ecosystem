@@ -35,7 +35,7 @@ sub convert_to_cesr {
             print d_file "$prefix$tgt$suffix: $dep\n";
         }
         else {
-            die "\nunexpected dependency format from compiler: $dependency\n";
+            die "\nUnexpected dependency format from compiler: $dependency\n";
         }
     }
     close (d_file);
@@ -67,7 +67,12 @@ sub setup_commands {
         $cesrdep_args="@includes -PRE'$prefix' -SUF'$suffix' -f$out_file $local_mods -MP'$mod_out_dir' $cpp $src_file";
 #       $cesrdep_args=~s/\$/\\\$/g;
 #MAP        $command=~s/\$/\\\$/g;
-        $command=$command."; \$CESR_UTIL/cesrdepend ".$cesrdep_args;
+	if ($ENV{"BMAD_DIST"} eq "TRUE") {
+	    $command=$command."; \$BMAD_UTIL/cesrdepend ".$cesrdep_args;
+	}
+	else {
+	    $command=$command."; \$CESR_UTIL/cesrdepend ".$cesrdep_args;
+	}
     }
 }
 
