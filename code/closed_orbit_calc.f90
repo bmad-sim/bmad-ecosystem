@@ -148,6 +148,19 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction)
       call track_many (ring, closed_orb, n_ele, 0, -1)
     endif
 
+    if (i == i_max .or. ring%param%lost) then
+      if (bmad_status%type_out) then
+        if (ring%param%lost) then
+          print *, 'ERROR IN CLOSED_ORBIT_CALC: ORBIT DIVERGING TO INFINITY!'
+        else
+          print *, 'ERROR IN CLOSED_ORBIT_CALC: NONLINEAR ORBIT NOT CONVERGING!'
+        endif
+      endif
+      if (bmad_status%exit_on_error) call err_exit
+      bmad_status%ok = .false.
+      exit
+    endif
+
     del_orb%vec(1:n) = end%vec(1:n) - start%vec(1:n)
     del_co%vec(1:n) = matmul(mat2(1:n,1:n), del_orb%vec(1:n)) 
     amp_co = sum(abs(start%vec(1:n)))
@@ -165,13 +178,6 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction)
     endif
 
     amp_del_old = amp_del
-
-    if (i == i_max) then
-      if (bmad_status%type_out) print *,  &
-          'ERROR IN CLOSED_ORBIT_CALC: NONLINEAR ORBIT NOT CONVERGING!'
-      if (bmad_status%exit_on_error) call err_exit
-      bmad_status%ok = .false.
-    endif
 
   enddo
 
