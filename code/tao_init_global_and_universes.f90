@@ -150,6 +150,10 @@ subroutine init_universe (u)
 
   n = u%design%n_ele_max
   allocate (u%model_orb(0:n), u%design_orb(0:n), u%base_orb(0:n))
+
+!For linacs, specify initial conditions
+  u%design_orb(0)%vec = 0.0
+  
   call twiss_and_track (u%design, u%design_orb)
   u%model  = u%design; u%model_orb  = u%design_orb
   u%base = u%design; u%base_orb = u%design_orb
