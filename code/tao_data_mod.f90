@@ -44,7 +44,7 @@ character(20) :: r_name = 'tao_load_data_array'
   if (ix_ele .eq. 0) call tao_data_coupling_init (u) 
   
   ! find which datums to evaluate here
-  if (.not. associated(u%ix_data)) return
+  if (.not. associated(u%ix_data(ix_ele)%ix_datum)) return
   
   ix_data => u%ix_data(ix_ele)
   do i = 1, size(ix_data%ix_datum)
