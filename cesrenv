@@ -46,11 +46,10 @@ setenv CESR_CONFIG	$CESR_LIB/config
 setenv CESR_CVSSRC	$CESR_LIB/cvssrc
 setenv CESR_EXE			$CESR_LIB/bin
 setenv CESR_GMAKE   $CESR_LIB/Gmake
-setenv CESR_INC     $CESR_LIB/include
 setenv CESR_MOD     $CESR_LIB/modules
 setenv CESR_RUN			$CESR_LIB/run
 setenv CESR_UTIL    $CESR_LIB/util
-
+setenv CESR_INC     $CESR_CVSSRC/include
 #
 #------  CESR constants  ------
 #
@@ -67,6 +66,9 @@ setenv BMAD_LAYOUT	$CESR_CONFIG/bmad/layout
 # $Id$
 #
 # $Log$
+# Revision 1.7  2003/05/22 20:51:07  palmer
+# Update for global CESR include directory to live within the cvssrc area.
+#
 # Revision 1.6  2003/05/22 17:12:09  palmer
 # Fix variable expansion problem for csh/tcsh type shells.
 #
