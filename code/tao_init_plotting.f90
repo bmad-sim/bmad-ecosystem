@@ -99,7 +99,6 @@ do
   plot%name = ' '
   plot%who%name  = ' '                               ! set default
   plot%who(1) = tao_plot_who_struct('model', +1)     ! set default
-  plot%convert = .false.                             ! set default
   plot%x_axis_type = 'index'
   plot%x = init_axis
   plot%independent_graphs = .false.
@@ -113,7 +112,6 @@ do
   plt%x           = plot%x
   plt%x_divisions = plt%x%major_div
   plt%who         = plot%who
-  plt%convert     = plot%convert
   plt%x_axis_type = plot%x_axis_type
   plt%independent_graphs = plot%independent_graphs
 
@@ -132,6 +130,7 @@ do
     graph%y2%draw_numbers = .false.
     graph%ix_universe = i
     curve(:)%units_factor = 1
+    curve(:)%convert = .false.                             ! set default
     curve(:)%symbol_every = 1
     curve(:)%ix_universe = 0
     curve(:)%draw_line = .true.
@@ -184,6 +183,7 @@ do
       crv%use_y2            = curve(j)%use_y2
       crv%symbol            = curve(j)%symbol
       crv%line              = curve(j)%line
+      crv%convert           = curve(j)%convert
     enddo
   enddo
 enddo

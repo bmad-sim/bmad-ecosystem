@@ -73,6 +73,7 @@ type tao_curve_input
   logical use_y2
   type (qp_line_struct) line
   type (qp_symbol_struct) symbol
+  logical convert  
 end type
 
 type tao_graph_input
@@ -92,7 +93,6 @@ type tao_plot_input
   type (tao_plot_who_struct) who(10)
   type (qp_axis_struct) x
   character(16) x_axis_type
-  logical convert  
   integer n_graph
   logical independent_graphs
 end type

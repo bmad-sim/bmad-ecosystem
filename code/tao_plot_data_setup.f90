@@ -158,7 +158,7 @@ plot_loop: do i = 1, size(s%plot_page%plot)
                    plot%who(m)%sign * pack(value, mask = d1_ptr%d%useit_plot)
         enddo
 
-        if (plot%convert) curve%y_symb = curve%y_symb * &
+        if (curve%convert) curve%y_symb = curve%y_symb * &
                            pack(d1_ptr%d%conversion_factor, d1_ptr%d%useit_plot)
 
 

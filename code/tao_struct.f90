@@ -74,6 +74,7 @@ type tao_curve_struct
   logical use_y2               ! Use y2 axis?
   logical draw_line            ! draw a line through the data points?
   logical limited              ! True if at least one data point past limit.
+  logical convert              ! Eg: covert coupling to cbar?
 end type
 
 ! A graph is a collection of overlayed curves with associated graph title, etc.
@@ -123,7 +124,6 @@ type tao_plot_struct
   logical independent_graphs      ! Graph y-axis scales independent when using the scale cmd?
   logical visible                 ! To draw or not to draw.
   logical valid                   ! valid if all curve y_dat computed OK.
-  logical convert                 ! Eg: covert coupling to cbar?
 end type
 
 ! The plot_page defines the whole plotting window. 

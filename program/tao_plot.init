@@ -205,7 +205,6 @@ Templates define the basics of, say, how to display an orbit.
   plot%x%label = ' '
 	plot%x_axis_type = 'index'
   plot%n_graph = 3
-	plot%convert = .true.
 /
 
 &tao_template_graph
@@ -222,6 +221,7 @@ Templates define the basics of, say, how to display an orbit.
   curve(1)%data_source = 'data_array'
   curve(1)%data_type   = 'coupling:22a'
   curve(1)%units_factor = 1
+  curve(1)%convert = .true.
 /
 
 &tao_template_graph
@@ -238,6 +238,7 @@ Templates define the basics of, say, how to display an orbit.
   curve(1)%data_source = 'data_array'
   curve(1)%data_type   = 'coupling:12a'
   curve(1)%units_factor = 1
+  curve(1)%convert = .true.
 /
 
 &tao_template_graph
@@ -254,4 +255,5 @@ Templates define the basics of, say, how to display an orbit.
   curve(1)%data_source = 'data_array'
   curve(1)%data_type   = 'coupling:11b'
   curve(1)%units_factor = 1
+  curve(1)%convert = .true.
 /

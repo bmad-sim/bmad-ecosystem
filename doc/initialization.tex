@@ -416,13 +416,9 @@ Template plots are defined using namelists with a name of
 \begin{example}
   \&tao_template_plot
     plot%name        = "<plot_name>"
-    plot%type        = "<plot_type>"
     plot%who(i)      = "<who_to_plot>", <sign>
-    plot%box_layout  = <ix>, <iy>
     plot%x           = <qp_axis_struct>
     plot%x_axis_type = "<x_axis_type>"   ! "index" or "s". Default is "index".
-    plot%convert     = <Logical>
-    plot%box_layout  = <ix_b>, <iy_b>
     plot%ix_universe = <number>
     plot%n_graph     = <n_graphs>
     plot%independent_graphs = <logical>
@@ -432,10 +428,8 @@ For example:
 \begin{example}
   \&tao_template_plot
     plot%name        = "orbit"
-    plot%type        = "data"
     plot%who(1)      = "model", +1
     plot%who(2)      = "design", -1
-    plot%box_layout  = 1, 2                ! break page into boxes.
     plot%x%min       =   0
     plot%x%max       = 100
     plot%x%major_div = 10
@@ -457,24 +451,7 @@ components are
 \end{example}
 
 \vn{plot%name} is the name that is used with \tao commands to identify
-the plot.  \vn{plot%type} is the type of plot. \tao knows about the
-following types:
-\begin{example}
-  data       ! Data plots.
-  lat_layout ! Schematic showing placement of the lattice elements.
-  key_table  ! Key binding table for single mode.
-\end{example}
-
-For \vn{plot%type = "data"} the \vn{plot%class} defines what class of
-data is being plotting.  \tao knows about the following classes:
-\begin{example}
-  beta      ! Beta Twiss parameter.
-  phase     ! Betatron phase.
-  orbit     ! Orbit.
-  eta       ! Dispersion.
-  cbar      ! Cbar coupling matrix.
-  coupling  ! Coupling measurements.
-\end{example}
+the plot.  
 
 \vn{plot%who(i)} sets what is being plotted. Possibilities are:
 \begin{example}
@@ -486,15 +463,9 @@ data is being plotting.  \tao knows about the following classes:
 \end{example}
 The default is to plot \vn{model - design}. 
 
-\vn{plot%box_layout} sets the layout of the boxes in the plot
-region. For a definition of what a box is see the Quick Plot
-documentation in the \bmad reference manual. In the above example the
-region is divided into two vertically stacked boxes. \vn{plot%x}
-defines the horizontal axis for all the graphs contained in the
+\vn{plot%x} defines the horizontal axis for all the graphs contained in the
 plot. See the Quick Plot documentation for the definition of the
-\vn{qp_axis_struct}. \vn{plot%convert} is a logical that is only used
-with \vn{plot%class = "coupling"} and tells \tao to convert the
-coupling data into cbar data before plotting.
+\vn{qp_axis_struct}. 
 
 \vn{n_graph} sets the number of graphs associated with the plot and
 each one needs a \vn{tao_template_graph} namelist to define it. These
@@ -505,7 +476,8 @@ namelists should be placed directly after their respective
   \&tao_template_graph
     graph_index           = <number>
     graph%name            = "<name>"
-    graph%this_box        = <ix>, <iy>
+    graph%type            = "<graph_type>"
+    graph%box             = <ix>, <iy>, <ix_tot>, <iy_tot>
     graph%title           = "<label>''
     graph%margin          =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
     graph%y               = <qp_axis_struct>
@@ -520,6 +492,7 @@ namelists should be placed directly after their respective
     curve(i)%line         = <qp_line_struct>
     curve(i)%symbol       = <qp_symbol_struct>
     curve(i)%symbol_every = <integer>
+    curve(i)%convert      = <Logical>
   /
 \end{example}
 For example:
@@ -527,7 +500,8 @@ For example:
   \&tao_template_graph
     graph_index        = 1
     graph%name         = "x"
-    graph%this_box     = 1, 2
+    graph%type         = "data"
+    graph%box          = 1, 1, 1, 2
     graph%title        = "Horizontal Orbit (mm)"
     graph%margin       =  60, 200, 30, 30, "POINTS"
     graph%y%label      = "X"
@@ -540,6 +514,24 @@ For example:
     curve(1)%use_y2  = .false.
   /
 \end{example}
+
+\vn{graph%type} is the type of graph. \tao knows about the
+following types:
+\begin{example}
+  data       ! Data plots.
+  lat_layout ! Schematic showing placement of the lattice elements.
+  key_table  ! Key binding table for single mode.
+\end{example}
+
+\vn{graph%box} sets the layout of the box which the \vn{graph} is
+placed in. For a definition of what a box is see the Quick Plot
+documentation in the \bmad reference manual. In the above example the
+graph divides the region into two vertically stacked boxes and places
+itself into the bottom one. 
+
+\vn{curve%convert} is a logical that is only used
+with \vn{curve%data_name} = "coupling"} and tells \tao to convert the
+coupling data into cbar data before plotting.
 
 %-----------------------------------------------------------------
 \subsection{Lattice Layout}
