@@ -46,13 +46,6 @@ sub searchit {
   $str = @ARGV[0];
   $str =~ s/\*/\\w\*/g;  # replace "*" by "\w*"
 
-# See if the file name matches.
-
-  if (/^$str\.f90$/) {
-    $found_one = 1;
-    print "$File::Find::name\n";
-  }
-
 # If in the modules directory then look in the file for a match.
 
   if ($file =~ /\.f90$/i) {
@@ -109,6 +102,15 @@ sub searchit {
     close (F_IN);
   }
   
+# See if the file name matches.
+
+  if (/^$str\.f90$/ && $found_in_file == 0) {
+    $found_one = 1;
+    print "$File::Find::name\n";
+  }
+
+#
+
   $_ = $file;
 
 }
