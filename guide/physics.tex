@@ -218,6 +218,39 @@ A symplectic matrix $\Bf F$ is now optained by inverting \eq{vsimi}
 \Endeq
 
 %-----------------------------------------------------------------
+\section{Wigglers}
+\label{s:wiggler_phys}
+
+\Begineq
+  B(x,y,z) = \sum_i B_i(x, y, z; C, k_x, k_y, k_z, phi_z)
+\Endeq 
+each term $B_i$ is specified in the input file using 5 numbers: 
+\begin{example}
+  term(i) = {coef, kx, ky, kz, phi_z} 
+\end{example}
+If $\vn{ky}^2 = \vn{kx}^2 + \vn{kz}^2$ then the field due to the term is: 
+\begin{alignat}{4}
+  B_x &= -&C &\dfrac{k_x}{k_y} & \sin(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
+  B_y &=  &C &                 & \cos(\kxx) \cosh(\kyy) \cos(\ksss) \CRNEG
+  B_s &= -&C &\dfrac{k_s}{k_y} & \cos(\kxx) \sinh(\kyy) \sin(\ksss) \CRneg
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_s^2$ .} &&&  \label{f1}
+\end{alignat}
+The second form is
+\begin{alignat}{4}
+  B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
+  B_y &=  &C &                 & \cosh(\kxx) \cosh(\kyy) \cos(\ksss) \CRNEG
+  B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sinh(\kyy) \sin(\ksss) \CRneg
+  & \makebox[1pt][l]{with $k_y^2 = k_s^2 - k_x^2$ ,} &&&  \label{f2}
+\end{alignat}
+and the third form is
+\begin{alignat}{4}
+  B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sin(\kyy) \cos(\ksss) \CRNEG
+  B_y &=  &C &                 & \cosh(\kxx) \cos(\kyy) \cos(\ksss) \CRNEG
+  B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sin(\kyy) \sin(\ksss) \CRneg
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_s^2$ .} &&& \label{f3}
+\end{alignat}
+
+%-----------------------------------------------------------------
 \section{Radiation Damping and Excitation}
 \label{s:radiation}
 

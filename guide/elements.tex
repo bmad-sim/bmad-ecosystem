@@ -255,11 +255,6 @@ Dependent attributes:
 An \vn{Ecollimator} is a drift with elliptic collimation.
 A \vn{Rcollimator} is a drift with rectangular collimation.
 The aperture is considered to be at the end edge of the element.
-\begin{figure}
-  \centering
-  \includegraphics{apertures.psfig}
-  \caption{Apertures for ecollimator and rcollimator elements}
-\end{figure}
 
 \toffset
 \begin{center}
@@ -482,8 +477,8 @@ Tracking through an \vn{LCavity} is modeled using the equations developed by Ros
 and Serafini\cite{b:rosenzweig}. The varias attributes are
 \begin{example}
   gradient     ! Accelerating gradient in V/m
-  phi0         ! Phase (in radians/2$pi$) of the reference particle with respect to the RF. 
-               !  pho0 = 0 is on crest.
+  phi0         ! Phase (in radians/2$pi$) of the reference particle with 
+               !   respect to the RF. phi0 = 0 is on crest.
   e_loss       ! Loss parameter for short range wakefields in V/Coulomb.
   sr_wake_file ! Short range wake field definition file.
   lr_wake_file ! Long range wake field definition file.
@@ -995,45 +990,16 @@ A \vn{Wiggler} is a periodic array of alternating bends.
 \end{center}
 \toffset
 
-There are two types of wigglers. Those that that are described using a magnetic field map and those that are described assuming a periodic field by specifying the maximum field and number of poles. For the "map" type wigglers the field is given by a sum of terms: 
-\Begineq
-  B(x,y,z) = \sum_i B_i(x, y, z; C, k_x, k_y, k_z, phi_z)
-\Endeq 
-each term $B_i$ is specified in the input file using 5 numbers: 
-\begin{example}
-  term(i) = {coef, kx, ky, kz, phi_z} 
-\end{example}
-If $\vn{ky}^2 = \vn{kx}^2 + \vn{kz}^2$ then the field due to the term is: 
-\begin{alignat}{4}
-  B_x &= -&C &\dfrac{k_x}{k_y} & \sin(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
-  B_y &=  &C &                 & \cos(\kxx) \cosh(\kyy) \cos(\ksss) \CRNEG
-  B_s &= -&C &\dfrac{k_s}{k_y} & \cos(\kxx) \sinh(\kyy) \sin(\ksss) \CRneg
-  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_s^2$ .} &&&  \label{f1}
-\end{alignat}
-The second form is
-\begin{alignat}{4}
-  B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
-  B_y &=  &C &                 & \cosh(\kxx) \cosh(\kyy) \cos(\ksss) \CRNEG
-  B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sinh(\kyy) \sin(\ksss) \CRneg
-  & \makebox[1pt][l]{with $k_y^2 = k_s^2 - k_x^2$ ,} &&&  \label{f2}
-\end{alignat}
-and the third form is
-\begin{alignat}{4}
-  B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sin(\kyy) \cos(\ksss) \CRNEG
-  B_y &=  &C &                 & \cosh(\kxx) \cos(\kyy) \cos(\ksss) \CRNEG
-  B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sin(\kyy) \sin(\ksss) \CRneg
-  & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_s^2$ .} &&& \label{f3}
-\end{alignat}
-
+There are two types of wigglers. Those that that are described using a
+magnetic field map (``map type'') and those that are described assuming a periodic
+field (``periodic type''). The periodic type is defined by specifying 
+\vn{b_max} and \vn{n_pole}. For the "map" type wigglers the field is given 
+by a sum of terms as outlined in Section~\ref{s:wiggler_phys}.
 
 For the "periodic" type wigglers the attributes are: 
 \begin{example}	
-  \vn{b_max} is the maximum magnetic field (in T) on the wiggler centerline. 
-  \vn{n_pole} is the number of poles. The period is then L / (2 * N_POLE). 
- There is an attribute K1 (that is calculated from B_MAX) which is the vertical focusing strength of the wiggler (a wiggler does not have any focusing in the horizontal). 
- \vn{rho_bend} is the the bending radius at maximum field strength B_MAX. This is calculated by BMAD and is not an input parameter. 
-*	The multipole attributes B2, B4, B6, and B8 are multipole attributes are for the individual poles. Since the strength of the poles alternate in sign this means that these attributes are not the same as the integrated multipole attributes of the other elements. 
-*	The tracking is designed so that, without multipole components, a particle entering at the origin (x=x'=y=y'=0) leaves at the origin. 
+  \vn{b_max}  ! Maximum magnetic field (in T) on the wiggler centerline. 
+  \vn{n_pole} ! The number of poles. The period is then L / (2 * N_POLE). 
 \end{example}
 
 \vskip0.05in \noindent
@@ -1048,7 +1014,8 @@ Example:
 Dependent attributes:
 \begin{example}
   beam\_energy  ! See section \ref{s:beam}
-  rho
+  K1            ! Vertical focusing strength of the wiggler 
+  rho           ! The bending radius at maximum field strength B_MAX. 
 \end{example}
 \noindent
 
