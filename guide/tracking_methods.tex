@@ -4,16 +4,16 @@
 \section{Tracking Methods}
 
 \begin{description}
-\item[\vn{Adaptive\_Boris}]
-<dd> Second order Boris integration with adaptive step size control.
-This is symplectic but slow.
+\item[Adaptive\_Boris]
+Second order Boris integration with adaptive step size control.
+This should be nearly symplectic but slow.
 
-\item[\vn{Boris}]
+\item[Boris]
 Second order Boris Integration. Like Runge-Kutta Boris does tracking by
 integrating the equation of motion. The difference is that Boris integration
 is symplectic.
 
-\item[\vn{Bmad\_Standard}]
+\item[Bmad\_Standard]
 This is meant to be quick and dirty (ie if it is not symplectic
 who cares). Appropriate when you are only interested in single turn stuff
 (that is, not long term tracking). It
@@ -21,32 +21,31 @@ does an exact calculation through sector bends using thin quads at either end
 for non-sector focusing. Sextupoles and octupoles are tracked using a single
 kick-drift-kick integration.
 
-\item[\vn{Custom}]
-This method will call a routine track1\_custom which can be supplied by
-the user. The default track1\_custom supplied with the BMAD release does
-Runge Kutta tracking. See the
-<a href='bmad/prog\_guide.html'>BMAD Programmers Guide</a> for more details.
+\item[Custom]
+This method will call a routine \vn{track1_custom} which can be supplied by
+the user. The default \vn{track1_custom} supplied with the BMAD release does
+Runge Kutta tracking. See the Programmer's Guide for more details.
 
-\item[\vn{Linear}]
+\item[Linear]
 Linear just uses the 0th order vector with the 1st order 6x6 transfer
-matrix for an element. Very simple.
-Depending upon how the transfer matrix was generated this might or might not
-be symplectic.
+matrix for an element. Very simple.  Depending upon how the transfer
+matrix was generated this might or might not be symplectic.
 
-\item[\vn{Runge\_Kutta}]
-This uses a 4th order Runge Kutta integration algorithm with
-adaptive step size control.
-This is essentially ODEINT adopted from Numerical Recipes. This
-may be slow but it should be accurate. This method is non-symplectic.
+\item[Runge\_Kutta]
+This uses a 4th order Runge Kutta integration algorithm with adaptive
+step size control.  This is essentially ODEINT adopted from Numerical
+Recipes. This may be slow but it should be accurate. This method is
+non-symplectic.
 
-\item[\vn{Symp\_Lie\_BMAD}]
+\item[Symp\_Lie\_BMAD]
 Symplectic tracking using a Hamiltonian with Lie operation techniques.
-This is similar to Symp\_Lie\_PTC (see below) except this uses a BMAD routine.
-The difference between this and Symp\_Lie\_PTC is that PTC tries do do things
-correctly while BMAD goes for speed by making approximations like the small
-angle approximation, etc. Right now only implemented for Wigglers.
+This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
+BMAD routine.  The difference between this and \vn{Symp_Lie_PTC} is
+that PTC tries do do things correctly while BMAD goes for speed by
+making approximations like the small angle approximation, etc. Right
+now only implemented for Wigglers.
 
-\item[\vn{Symp\_Lie\_PTC}]
+\item[Symp\_Lie\_PTC]
 Symplectic tracking using a Hamiltonian with Lie operation techniques.
 This uses Etienne's PTC software for the calculation. This method is
 symplectic but can be slow. See below for additional switches that affect this
@@ -54,12 +53,12 @@ calculation. This method can only be used on elements that have a Hamiltonian.
 Quadrupoles, Solenoids, and most other element types have Hamiltonians. A
 Hybrid element is an  example where there is no Hamiltonian.
 
-\item[\vn{Symp\_Map}]
+\item[Symp\_Map]
 This uses an implicit (partially inverted) Taylor map.
 Since the map is implicit a Newton search method must be used. This will slow
 things down from the Taylor method but this is guaranteed symplectic.
 
-\item[\vn{Taylor}]
+\item[Taylor]
 This uses a Taylor map generated from Etienne's PTC package. Generating
 the map may take time but once you have it it should be very fast. One
 possible problem with using a Taylor series is that you have to worry about
@@ -67,7 +66,7 @@ the accuracy if you do tracking at points that are far from the point about
 which the series was made. This method is non-symplectic. See below for
 additional switches that affect this calculation.
 
-\item[\vn{Wiedemann}]
+\item[Wiedemann]
 This is Wiedemann's hard edge model of a wiggler.
 
 \end{description}
