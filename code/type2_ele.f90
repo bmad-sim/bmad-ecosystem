@@ -228,7 +228,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
 
 ! Encode methods, etc.
 
-  write (li(nl+1), *)
+  write (li(nl+1), *) ' '
   nl = nl + 1
 
   if (attribute_index(ele, 'TRACKING_METHOD') /= 0) then

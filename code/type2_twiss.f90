@@ -59,7 +59,7 @@ subroutine type2_twiss (ele, frequency_units, lines, n_lines)
      return
     endif    
 
-    write (lines(1), *)
+    write (lines(1), *) ' '
     write (lines(2), '(10x, a)')  &
             'Beta     Alpha     Gamma       Phi        Eta       Etap'
     lines(3) = trim(str) // '        (m)        (-)'
