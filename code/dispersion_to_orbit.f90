@@ -27,6 +27,8 @@
 !                 disp_orb%vec(6) = 1.
 !-
 
+#include "CESR_platform.inc"
+
 Subroutine dispersion_to_orbit (ele, disp_orb)
 
   use bmad_struct
@@ -41,7 +43,8 @@ Subroutine dispersion_to_orbit (ele, disp_orb)
   
 !
 
-  disp_orb%vec = (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0, 1.0 /)
+  disp_orb%vec = (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, &
+                                                       0.0_rdef, 1.0_rdef /)
 
   if (all(ele%c_mat == 0)) return
 
