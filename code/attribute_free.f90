@@ -151,9 +151,40 @@ recursive subroutine check_this_attribute_free (ele2, ix_attrib)
       if (ix_attrib == k3$) free = .false.
     case (solenoid$)
       if (ix_attrib == ks$) free = .false.
+    case (sol_quad$)
+      if (ix_attrib == ks$) free = .false.
+      if (ix_attrib == k1$) free = .false.
     case (sbend$)
       if (ix_attrib == g$) free = .false.
+    case (hkicker$, vkicker$)
+      if (ix_attrib == kick$) free = .false.
     end select
+
+    if (ix_attrib == hkick$) free = .false.
+    if (ix_attrib == vkick$) free = .false.
+
+  else
+    select case (ele2%key)
+    case (quadrupole$)
+      if (ix_attrib == b_gradient$) free = .false.
+    case (sextupole$)
+      if (ix_attrib == b_gradient$) free = .false.
+    case (octupole$)
+      if (ix_attrib == b_gradient$) free = .false.
+    case (solenoid$)
+      if (ix_attrib == b_field$) free = .false.
+    case (sol_quad$)
+      if (ix_attrib == b_field$) free = .false.
+      if (ix_attrib == b_gradient$) free = .false.
+    case (sbend$)
+      if (ix_attrib == b_field$) free = .false.
+    case (hkicker$, vkicker$)
+      if (ix_attrib == bl_kick$) free = .false.
+    end select
+
+    if (ix_attrib == bl_hkick$) free = .false.
+    if (ix_attrib == bl_vkick$) free = .false.
+
   endif
 
   if (.not. free) then
