@@ -386,141 +386,6 @@ the changes in $p_x$ and $p_y$
 \end{align}
 
 %-----------------------------------------------------------------
-\section{Macroparticles}
-\label{s:macro}
-\index{Macroparticles|textbf}
-
-A macroparticle\cite{b:transport_appendix} is a bundle of particles
-whose distribution is assumed to be Gaussian in shape. A macroparticle
-is represented by a centroid position $\bfrbar$ and a $6 \times 6$
-$\bfsigma$ matrix which defines the shape of the macroparticle in
-phase space. $\sigma_i = \sqrt{\bfsigma(i,i)}$ is the RMS sigma for the $i$\Th
-phase space coordinate. For example $\sigma_z = \sqrt{\bfsigma(5,5)}$.
-
-$\bfsigma$ is a real, non-negative symmetric matrix. The equation that
-defines the ellipsoid at a distance of $n$--sigma from the centroid is
-\Begineq
-  (\bfr - \bfrbar)^t \bfsigma\inv (\bfr - \bfrbar) = n
-\Endeq
-where the $t$ superscript denotes the transpose. Given the sigma matrix
-at some point $s = s_1$, the sigma matrix at a different point $s_2$ is
-\Begineq
-  \bfsigma_2 = \Bf M_{21} \, \bfsigma_1 \, \Bf M_{21}^t
-\Endeq
-where $\Bf M_{21}$ is the Jacobian of the transport map between points
-$s_1$ and $s_2$.
-
-A relativistic charged particle bunch is modeled by dividing it longitudinally
-into a series
-of slices. Each slice is made up of a number of macroparticles. It is assumed
-that the range of the longitudinal positions of the macroparticles of a given
-slice do not overlap the ranges of the other slices. 
-
-\bmad has a routine to initialize macroparticles to mirror the initial
-distribution as set--up by the LIAR program\cite{b:liar}. The
-initialization is as follows: The center of a
-slice will be at a longitudinal position $z_j$ given by
-\Begineq
-  z_j = z_b + \frac{(n_s - 2 \, j + 1) \, \sigma_z \, N_{\sigma z}}{n_s}
-\Endeq
-where $z_b$ the overall offset of the bunch, 
-$n_s$ is the number of slices, $j = 1, \ldots,
-n_s$ is the index of the slice, $\sigma_z$ is the RMS bunch length,
-and $N_{\sigma z}$ is the number of $\sigma_z$ the slices go out
-to. The width $dz_s$ of each slice is
-\Begineq
-    dz_s = \frac{2 \, \sigma_z \, N_{\sigma z}}{n_s}
-\Endeq
-The charge associated with each slice is, within a constant factor,
-the charge contained within the region between $z_j - dz_s/2$ and $z_j
-+ dz_s/2$ assuming a Gaussian distribution.  The charge of all the
-slices are multiplied by a factor so that the total charge of the
-slices is equal to the input bunch charge.
-
-The initialization of the macroparticles within a slice gives all the
-macroparticles the same centroid position except with differing
-centroid energies. 
-The sigma matrix is the same for all macroparticles and is
-determined by the input Twiss parameters:
-\begin{align}
-  \bfsigma(1,1) &= \epsilon_x \, \beta_x \CRNEG
-  \bfsigma(1,2) &= -\epsilon_x \alpha_x  \CRNEG
-  \bfsigma(2,2) &= \epsilon_x \, \gamma_x = 
-      \epsilon_x \, (1 + \alpha_x^2) / \beta_x \CRNEG
-  \bfsigma(3,3) &= \epsilon_y \, \beta_y \\
-  \bfsigma(3,4) &= -\epsilon_y \alpha_y \CRNEG
-  \bfsigma(3,4) &= \epsilon_y \, \gamma_y = 
-      \epsilon_y \, (1 + \alpha_y^2) / \beta_y \CRNEG
-  \bfsigma(i,j) &= 0 \quad \mbox{otherwise} \nonumber
-\end{align}
-The centroid energy of the $k$\Th macroparticle is
-\Begineq
-  E_k = E_b + \frac{(n_{mp} - 2 \, k + 1) \, \sigma_E \, N_{\sigma E}}{n_{mp}}
-\Endeq
-where $E_b$ is the central energy of the bunch, $n_{mp}$ is the number
-of macroparticles per slice, $\sigma_E$ is the energy sigma, and
-$N_{\sigma E}$ is the number of sigmas in energy that the range of
-macroparticle energies cover. The charge of each macroparticle is,
-within a constant factor, the charge contained within the energy
-region $E_k - dE_{mp}/2$ to $E_k + dE_{mp}/2$ assuming a Gaussian
-distribution where the energy width $dE_{mp}$ is
-\Begineq
-  dE_{mp} = \frac{2 \, \sigma_E \, N_{\sigma E}}{n_{mp}}
-\Endeq
-The charge of all the macroparticles is adjusted by a constant factor
-so that the total charge of the macroparticles within a slice is equal
-to the charge associated with the slice.
-
-
-
-%-----------------------------------------------------------------
-\section{Wakefields}
-\label{s:wakefields}
-\index{Wakefields}
-
-Wakefield modeling follows the LIAR program\cite{b:liar}. Wakefields
-are applied in the center of LINAC accelerating cavities
-(\vn{LCavity}). Wakefield effects are divided into short--range
-(within a bunch) and long--range (between bunches).
-
-Only the dipole component of the short--range wakefield are
-modeled. The short--range longitudinal wakefield component for 
-the $i$\Th macroparticle is computed from the equation
-\Begineq
-  dE_i = \frac{L \, \Wl(0)}{2} |Q_i| +
-                  \sum_{j \ne i} \frac{L \, \tWl(dz_{ij})}{2} |Q_j|
-\Endeq
-where $L$ is the cavity length, $dz_{ij}$ is the longitudinal distance between 
-the $i$\Th and $j$\Th macroparticles,
-$\Wl$ is the short--range longitudinal wakefield function, and $\tWl$ is 
-a modified wakefield function 
-\Begineq
-  \tWl(dz) = 
-  \begin{cases}
-    \Wl(0) \cdot \frac{dz + \sigma_{zij}}{2\sigma_{zij}} & 
-                                    -\sigma_{zij} < dz < \sigma_{zij} \\
-    \Wl(dz)                                            & \text{otherwise}
-  \end{cases}
-\Endeq
-$\tWl$ is used instead of $\Wl$ to avoid simulation artifacts 
-is due to the discontinuity of $\Wl$ at $dz = 0$. 
-$\sigma_{zij}$ is the combined macroparticle length
-\Begineq
-  \sigma_{zij} = \sigma_{zi} + \sigma_{zj} + \sigma_{z0}
-\Endeq
-where $\sigma_{zi}$ and $\sigma_{zj}$ are the longitudinal sizes for
-the $i$\Th and $j$\Th particles respectively, and $\sigma_{z0}$ is a
-small fudge factor needed when $\sigma_{zi} = \sigma_{zj} = 0$.
-
-The transverse kick $dp_x(i)$ for the $i$\Th macroparticle due to the 
-dipole short--range transverse wakefield is modeled with the equation
-\Begineq
-  dp_x(i) = \frac{\sum_j |Q_j| \, x_j \, L \, \Wt(dz_{ij})}{P_0}
-\Endeq
-with a similar equation for $dp_y(i)$. $\Wt$ is the transverse short--range
-wake function.
-
-%-----------------------------------------------------------------
 \section{Coupling and Normal Modes}
 \label{s:coupling}
 \index{Coupling}
@@ -649,6 +514,180 @@ dispersion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
     {\bfeta_a} = \bfV\inv \, {\bfeta_x}
     . \label{etaavx}
   \Endeq 
+
+%-----------------------------------------------------------------
+\section{Macroparticles}
+\label{s:macro}
+\index{Macroparticles|textbf}
+
+A macroparticle\cite{b:transport_appendix} is a bundle of particles
+whose distribution is assumed to be Gaussian in shape. A macroparticle
+is represented by a centroid position $\bfrbar$ and a $6 \times 6$
+$\bfsig$ matrix which defines the shape of the macroparticle in
+phase space. $\sigma_i = \sqrt{\bfsig(i,i)}$ is the RMS sigma for the $i$\Th
+phase space coordinate. For example $\sigma_z = \sqrt{\bfsig(5,5)}$.
+
+$\bfsig$ is a real, non-negative symmetric matrix. The equation that
+defines the ellipsoid at a distance of $n$--sigma from the centroid is
+\Begineq
+  (\bfr - \bfrbar)^t \bfsig\inv (\bfr - \bfrbar) = n
+\Endeq
+where the $t$ superscript denotes the transpose. Given the sigma matrix
+at some point $s = s_1$, the sigma matrix at a different point $s_2$ is
+\Begineq
+  \bfsig_2 = \Bf M_{21} \, \bfsig_1 \, \Bf M_{21}^t
+\Endeq
+where $\Bf M_{21}$ is the Jacobian of the transport map between points
+$s_1$ and $s_2$.
+
+The Twiss parameters can be calculated from the sigma matrix. The
+dispersion is given by
+\begin{align}
+  \bfsig(1,6) &= \eta_x \, \bfsig(6,6) \CRNO
+  \bfsig(2,6) &= \eta'_x \, \bfsig(6,6) \\
+  \bfsig(3,6) &= \eta_y \, \bfsig(6,6) \CRNO
+  \bfsig(4,6) &= \eta'_y \, \bfsig(6,6) \nonumber
+\end{align}
+Ignoring coupling for now the betatron part of the sigma matrix can be
+obtained from the linear equations of motion. For example, using
+\Begineq
+  x = \sqrt{2 \, \beta_x \, \epsilon_x} \cos \phi_x + \eta_x \, p_z
+\Endeq
+Solving for the first term on the RHS, squaring and averaging over all
+particles gives
+\Begineq
+  \beta_x \, \epsilon_x = \bfsig(1,1) - \frac{\bfsig^2(1,6)}{\bfsig(6,6)}
+\Endeq
+It is thus convienient to define the betatron part of the sigma martix
+\Begineq
+  \bfsigb(i,j) \equiv \bfsig(i,j) - \frac{\bfsig(i,6) \, \bfsig(j,6)}{\bfsig(6,6)}
+\Endeq
+and in terms of the betatron part the emittance is
+\Begineq
+  \epsilon_x^2 = \bfsig(1,1) \, \bfsig(2,2) - \bfsig^2(1,2)
+\Endeq
+and the twiss parameters are
+\Begineq
+  \epsilon_x 
+  \begin{pmatrix}
+    \beta_x   & -\alpha_x \\
+    -\alpha_x & \gamma_x
+  \end{pmatrix} = 
+  \begin{pmatrix}
+    \bfsigb(1,1) & \bfsigb(1,2) \\
+    \bfsigb(1,2) & \bfsigb(2,2) 
+  \end{pmatrix}
+\Endeq
+
+For tracking a relativistic charged particle bunch is modeled by dividing it
+longitudinally into a series of slices. Each slice is made up of a
+number of macroparticles. It is assumed that the range of the
+longitudinal positions of the macroparticles of a given slice do not
+overlap the ranges of the other slices.
+
+\bmad has a routine to initialize macroparticles to mirror the initial
+distribution as set--up by the LIAR program\cite{b:liar}. The
+initialization is as follows: The center of a
+slice will be at a longitudinal position $z_j$ given by
+\Begineq
+  z_j = z_b + \frac{(n_s - 2 \, j + 1) \, \sigma_z \, N_{\sigma z}}{n_s}
+\Endeq
+where $z_b$ the overall offset of the bunch, 
+$n_s$ is the number of slices, $j = 1, \ldots,
+n_s$ is the index of the slice, $\sigma_z$ is the RMS bunch length,
+and $N_{\sigma z}$ is the number of $\sigma_z$ the slices go out
+to. The width $dz_s$ of each slice is
+\Begineq
+    dz_s = \frac{2 \, \sigma_z \, N_{\sigma z}}{n_s}
+\Endeq
+The charge associated with each slice is, within a constant factor,
+the charge contained within the region between $z_j - dz_s/2$ and $z_j
++ dz_s/2$ assuming a Gaussian distribution.  The charge of all the
+slices are multiplied by a factor so that the total charge of the
+slices is equal to the input bunch charge.
+
+The initialization of the macroparticles within a slice gives all the
+macroparticles the same centroid position except with differing
+centroid energies. 
+The sigma matrix is the same for all macroparticles and is
+determined by the input Twiss parameters:
+\begin{align}
+  \bfsig(1,1) &= \epsilon_x \, \beta_x \CRNEG
+  \bfsig(1,2) &= -\epsilon_x \alpha_x  \CRNEG
+  \bfsig(2,2) &= \epsilon_x \, \gamma_x = 
+      \epsilon_x \, (1 + \alpha_x^2) / \beta_x \CRNEG
+  \bfsig(3,3) &= \epsilon_y \, \beta_y \\
+  \bfsig(3,4) &= -\epsilon_y \alpha_y \CRNEG
+  \bfsig(3,4) &= \epsilon_y \, \gamma_y = 
+      \epsilon_y \, (1 + \alpha_y^2) / \beta_y \CRNEG
+  \bfsig(i,j) &= 0 \quad \mbox{otherwise} \nonumber
+\end{align}
+The centroid energy of the $k$\Th macroparticle is
+\Begineq
+  E_k = E_b + \frac{(n_{mp} - 2 \, k + 1) \, \sigma_E \, N_{\sigma E}}{n_{mp}}
+\Endeq
+where $E_b$ is the central energy of the bunch, $n_{mp}$ is the number
+of macroparticles per slice, $\sigma_E$ is the energy sigma, and
+$N_{\sigma E}$ is the number of sigmas in energy that the range of
+macroparticle energies cover. The charge of each macroparticle is,
+within a constant factor, the charge contained within the energy
+region $E_k - dE_{mp}/2$ to $E_k + dE_{mp}/2$ assuming a Gaussian
+distribution where the energy width $dE_{mp}$ is
+\Begineq
+  dE_{mp} = \frac{2 \, \sigma_E \, N_{\sigma E}}{n_{mp}}
+\Endeq
+The charge of all the macroparticles is adjusted by a constant factor
+so that the total charge of the macroparticles within a slice is equal
+to the charge associated with the slice.
+
+
+
+%-----------------------------------------------------------------
+\section{Wakefields}
+\label{s:wakefields}
+\index{Wakefields}
+
+Wakefield modeling follows the LIAR program\cite{b:liar}. Wakefields
+are applied in the center of LINAC accelerating cavities
+(\vn{LCavity}). Wakefield effects are divided into short--range
+(within a bunch) and long--range (between bunches).
+
+Only the dipole component of the short--range wakefield are
+modeled. The short--range longitudinal wakefield component for 
+the $i$\Th macroparticle is computed from the equation
+\Begineq
+  dE_i = \frac{L \, \Wl(0)}{2} |Q_i| +
+                  \sum_{j \ne i} \frac{L \, \tWl(dz_{ij})}{2} |Q_j|
+\Endeq
+where $L$ is the cavity length, $dz_{ij}$ is the longitudinal distance between 
+the $i$\Th and $j$\Th macroparticles,
+$\Wl$ is the short--range longitudinal wakefield function, and $\tWl$ is 
+a modified wakefield function 
+\Begineq
+  \tWl(dz) = 
+  \begin{cases}
+    \Wl(0) \cdot \frac{dz + \sigma_{zij}}{2\sigma_{zij}} & 
+                                    -\sigma_{zij} < dz < \sigma_{zij} \\
+    \Wl(dz)                                            & \text{otherwise}
+  \end{cases}
+\Endeq
+$\tWl$ is used instead of $\Wl$ to avoid simulation artifacts 
+is due to the discontinuity of $\Wl$ at $dz = 0$. 
+$\sigma_{zij}$ is the combined macroparticle length
+\Begineq
+  \sigma_{zij} = \sigma_{zi} + \sigma_{zj} + \sigma_{z0}
+\Endeq
+where $\sigma_{zi}$ and $\sigma_{zj}$ are the longitudinal sizes for
+the $i$\Th and $j$\Th particles respectively, and $\sigma_{z0}$ is a
+small fudge factor needed when $\sigma_{zi} = \sigma_{zj} = 0$.
+
+The transverse kick $dp_x(i)$ for the $i$\Th macroparticle due to the 
+dipole short--range transverse wakefield is modeled with the equation
+\Begineq
+  dp_x(i) = \frac{\sum_j |Q_j| \, x_j \, L \, \Wt(dz_{ij})}{P_0}
+\Endeq
+with a similar equation for $dp_y(i)$. $\Wt$ is the transverse short--range
+wake function.
 
 %-----------------------------------------------------------------
 \section{Synchrotron Integrals}
