@@ -34,6 +34,7 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
 
   use bmad_struct
   use bmad_interface
+  use bookkeeper_mod, only: attribute_bookkeeper
 
   implicit none
 
