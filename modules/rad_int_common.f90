@@ -55,8 +55,6 @@ module rad_int_common
     real(rp), allocatable :: n_steps(:)      ! number of qromb steps needed
     real(rp) :: int_tot(7)
     type (ring_struct), pointer :: ring
-    type (ele_struct), pointer :: ele0, ele
-    type (ele_struct) runt
     type (coord_struct), pointer :: orb0, orb1
     type (track_struct) :: track(0:6)
     type (coord_struct) d_orb
@@ -73,7 +71,7 @@ contains
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine qromb_rad_int(do_int, ir)
+! Subroutine qromb_rad_int(ele0, ele, do_int, ir)
 !
 ! Function to do integration using Romberg's method on the 7 radiation 
 ! integrals.
@@ -81,13 +79,16 @@ contains
 ! See the Num. Rec. book for further details
 !-
 
-subroutine qromb_rad_int (do_int, ir)
+subroutine qromb_rad_int (ele0, ele, do_int, ir)
 
   use precision_def
   use nrtype
   use nr, only: polint
 
   implicit none
+
+  type (ele_struct) ele0, ele
+  type (ele_struct) runt
 
   integer, parameter :: jmax = 14
   integer j, j0, n, n_pts, ir
@@ -114,11 +115,11 @@ subroutine qromb_rad_int (do_int, ir)
   ri(:)%sum(0) = 0
   rad_int = 0
   
-  ll = ric%ele%value(l$)
+  ll = ele%value(l$)
 
-  call transfer_ele(ric%ele, ric%runt)  ! faster then ele = ele
-  if (ric%runt%tracking_method  == taylor$) ric%runt%tracking_method  = bmad_standard$
-  if (ric%runt%mat6_calc_method == taylor$) ric%runt%mat6_calc_method = bmad_standard$
+  call transfer_ele(ele, runt)  ! faster then ele = ele
+  if (runt%tracking_method  == taylor$) runt%tracking_method  = bmad_standard$
+  if (runt%mat6_calc_method == taylor$) runt%mat6_calc_method = bmad_standard$
 
 
 ! loop until integrals converge
@@ -143,7 +144,7 @@ subroutine qromb_rad_int (do_int, ir)
 
     do n = 1, n_pts
       s_pos = s0 + (n-1) * ds
-      call propagate_part_way (s_pos, j, n)
+      call propagate_part_way (ele0, ele, runt, s_pos, j, n)
       i_sum(1) = i_sum(1) + ric%g_x * (ric%eta_a(1) + ric%eta_b(1)) + &
                             ric%g_y * (ric%eta_a(3) + ric%eta_b(3))
       i_sum(2) = i_sum(2) + ric%g2
@@ -155,13 +156,13 @@ subroutine qromb_rad_int (do_int, ir)
                 ric%g2 * (ric%g_x * ric%eta_b(1) + ric%g_y * ric%eta_b(3)) + &
                          (ric%dg2_x * ric%eta_b(1) + ric%dg2_y * ric%eta_b(3))
       i_sum(6) = i_sum(6) + &
-                    ric%g2 * ric%g * (ric%runt%x%gamma * ric%runt%x%eta**2 + &
-                    2 * ric%runt%x%alpha * ric%runt%x%eta * ric%runt%x%etap + &
-                    ric%runt%x%beta * ric%runt%x%etap**2)
+                    ric%g2 * ric%g * (runt%x%gamma * runt%x%eta**2 + &
+                    2 * runt%x%alpha * runt%x%eta * runt%x%etap + &
+                    runt%x%beta * runt%x%etap**2)
       i_sum(7) = i_sum(7) + &
-                    ric%g2 * ric%g * (ric%runt%y%gamma * ric%runt%y%eta**2 + &
-                    2 * ric%runt%y%alpha * ric%runt%y%eta * ric%runt%y%etap + &
-                    ric%runt%y%beta * ric%runt%y%etap**2)
+                    ric%g2 * ric%g * (runt%y%gamma * runt%y%eta**2 + &
+                    2 * runt%y%alpha * runt%y%eta * runt%y%etap + &
+                    runt%y%beta * runt%y%etap**2)
     enddo
 
     ri(:)%sum(j) = (ri(:)%sum(j-1) + ds * i_sum(:)) / 2
@@ -169,7 +170,7 @@ subroutine qromb_rad_int (do_int, ir)
 ! back to qromb
 
     if (j < 3) cycle
-    if (ric%ele%key == wiggler$ .and. j < 4) cycle
+    if (ele%key == wiggler$ .and. j < 4) cycle
 
     j0 = max(j-4, 1)
 
@@ -213,7 +214,7 @@ subroutine qromb_rad_int (do_int, ir)
 ! should not be here
 
   print *, 'QROMB_RAD_INT: Note: Radiation Integral is not converging', d_max
-  print *, '     For element: ', ric%ele%name
+  print *, '     For element: ', ele%name
 
 end subroutine
 
@@ -289,11 +290,13 @@ end subroutine
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 
-subroutine propagate_part_way (s, j_loop, n_pt)
+subroutine propagate_part_way (ele0, ele, runt, s, j_loop, n_pt)
 
   implicit none
 
   type (coord_struct) orb, orb_0
+  type (ele_struct) ele0, ele
+  type (ele_struct) runt
 
   real(rp) s, v(4,4), v_inv(4,4), s1, s2, error, f0, f1
 
@@ -301,7 +304,7 @@ subroutine propagate_part_way (s, j_loop, n_pt)
 
 ! exact calc
 
-  if (ric%ele%exact_rad_int_calc) then
+  if (ele%exact_rad_int_calc) then
 
     do i = 0, 6
       n1 = lbound(ric%track(i)%pt, 1)
@@ -319,51 +322,51 @@ subroutine propagate_part_way (s, j_loop, n_pt)
 
       if (i == 0) then
         orb_0 = orb
-        call calc_g_params (s, orb)
+        call calc_g_params (ele, s, orb)
       else
-        ric%runt%mat6(1:6, i) = (orb%vec - orb_0%vec) / ric%d_orb%vec(i)
+        runt%mat6(1:6, i) = (orb%vec - orb_0%vec) / ric%d_orb%vec(i)
       endif
     enddo
 
-    call mat_symp_check (ric%runt%mat6, error)
-    call mat_symplectify (ric%runt%mat6, ric%runt%mat6)
+    call mat_symp_check (runt%mat6, error)
+    call mat_symplectify (runt%mat6, runt%mat6)
 
-    call twiss_propagate1 (ric%ele0, ric%runt)
+    call twiss_propagate1 (ele0, runt)
 
-    call make_v_mats (ric%runt, v, v_inv)
+    call make_v_mats (runt, v, v_inv)
 
     ric%eta_a = &
-          matmul(v, (/ ric%runt%x%eta, ric%runt%x%etap, 0.0_rp, 0.0_rp /))
+          matmul(v, (/ runt%x%eta, runt%x%etap, 0.0_rp, 0.0_rp /))
     ric%eta_b = &
-          matmul(v, (/ 0.0_rp, 0.0_rp, ric%runt%y%eta, ric%runt%y%etap /))
+          matmul(v, (/ 0.0_rp, 0.0_rp, runt%y%eta, runt%y%etap /))
 
     return
   endif
 
 ! non-exact wiggler calc
 
-  if (ric%ele%key == wiggler$ .and. ric%ele%sub_key == map_type$) then
+  if (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
 
-    f0 = (ric%ele%value(l$) - s) / ric%ele%value(l$)
-    f1 = s / ric%ele%value(l$)
+    f0 = (ele%value(l$) - s) / ele%value(l$)
+    f1 = s / ele%value(l$)
 
     orb%vec = ric%orb0%vec * f0 + ric%orb1%vec * f1
-    call calc_g_params (s, orb)
+    call calc_g_params (ele, s, orb)
 
     ric%eta_a = ric%eta_a0 * f0 + ric%eta_a1 * f1
     ric%eta_b = ric%eta_b0 * f0 + ric%eta_b1 * f1
 
-    ric%runt%x%beta  = ric%ele0%x%beta  * f0 + ric%ele%x%beta  * f1
-    ric%runt%x%alpha = ric%ele0%x%alpha * f0 + ric%ele%x%alpha * f1
-    ric%runt%x%gamma = ric%ele0%x%gamma * f0 + ric%ele%x%gamma * f1
-    ric%runt%x%eta   = ric%ele0%x%eta   * f0 + ric%ele%x%eta   * f1
-    ric%runt%x%etap  = ric%ele0%x%etap  * f0 + ric%ele%x%etap  * f1
+    runt%x%beta  = ele0%x%beta  * f0 + ele%x%beta  * f1
+    runt%x%alpha = ele0%x%alpha * f0 + ele%x%alpha * f1
+    runt%x%gamma = ele0%x%gamma * f0 + ele%x%gamma * f1
+    runt%x%eta   = ele0%x%eta   * f0 + ele%x%eta   * f1
+    runt%x%etap  = ele0%x%etap  * f0 + ele%x%etap  * f1
 
-    ric%runt%y%beta  = ric%ele0%y%beta  * f0 + ric%ele%y%beta  * f1
-    ric%runt%y%alpha = ric%ele0%y%alpha * f0 + ric%ele%y%alpha * f1
-    ric%runt%y%gamma = ric%ele0%y%gamma * f0 + ric%ele%y%gamma * f1
-    ric%runt%y%eta   = ric%ele0%y%eta   * f0 + ric%ele%y%eta   * f1
-    ric%runt%y%etap  = ric%ele0%y%etap  * f0 + ric%ele%y%etap  * f1
+    runt%y%beta  = ele0%y%beta  * f0 + ele%y%beta  * f1
+    runt%y%alpha = ele0%y%alpha * f0 + ele%y%alpha * f1
+    runt%y%gamma = ele0%y%gamma * f0 + ele%y%gamma * f1
+    runt%y%eta   = ele0%y%eta   * f0 + ele%y%eta   * f1
+    runt%y%etap  = ele0%y%etap  * f0 + ele%y%etap  * f1
 
     return
   endif
@@ -371,37 +374,37 @@ subroutine propagate_part_way (s, j_loop, n_pt)
 ! non-exact calc
 
   if (j_loop == 1 .and. n_pt == 1) then  ! s = 0
-    ric%runt%x       = ric%ele0%x
-    ric%runt%y       = ric%ele0%y
-    ric%runt%c_mat   = ric%ele0%c_mat
-    ric%runt%gamma_c = ric%ele0%gamma_c
+    runt%x       = ele0%x
+    runt%y       = ele0%y
+    runt%c_mat   = ele0%c_mat
+    runt%gamma_c = ele0%gamma_c
     orb = ric%orb0
   elseif (j_loop == 1 .and. n_pt == 2) then  ! s = l$
-    ric%runt%x       = ric%ele%x
-    ric%runt%y       = ric%ele%y
-    ric%runt%c_mat   = ric%ele%c_mat
-    ric%runt%gamma_c = ric%ele%gamma_c
+    runt%x       = ele%x
+    runt%y       = ele%y
+    runt%c_mat   = ele%c_mat
+    runt%gamma_c = ele%gamma_c
     orb = ric%orb1
   else
     if (ric%use_cache .and. (j_loop == 2 .or. j_loop == 3)) then
       n = j_loop + n_pt - 2
-      ric%runt%mat6 = ric%cache_ele%qb(n)%mat6
+      runt%mat6 = ric%cache_ele%qb(n)%mat6
       orb = ric%cache_ele%qb(n)%orb
     else
-      ric%runt%value(l$) = s
-      if (ric%ele%key == sbend$) ric%runt%value(e2$) = 0
-      call track1 (ric%orb0, ric%runt, ric%ring%param, orb)
-      call make_mat6 (ric%runt, ric%ring%param, ric%orb0, orb, .true.)
+      runt%value(l$) = s
+      if (ele%key == sbend$) runt%value(e2$) = 0
+      call track1 (ric%orb0, runt, ric%ring%param, orb)
+      call make_mat6 (runt, ric%ring%param, ric%orb0, orb, .true.)
     endif
-    call twiss_propagate1 (ric%ele0, ric%runt)
+    call twiss_propagate1 (ele0, runt)
   endif
 
-  call make_v_mats (ric%runt, v, v_inv)
+  call make_v_mats (runt, v, v_inv)
 
   ric%eta_a = &
-      matmul(v, (/ ric%runt%x%eta, ric%runt%x%etap, 0.0_rp,   0.0_rp    /))
+      matmul(v, (/ runt%x%eta, runt%x%etap, 0.0_rp,   0.0_rp    /))
   ric%eta_b = &
-      matmul(v, (/ 0.0_rp,   0.0_rp,    ric%runt%y%eta, ric%runt%y%etap /))
+      matmul(v, (/ 0.0_rp,   0.0_rp,    runt%y%eta, runt%y%etap /))
 
   ric%g_x = ric%g_x0 + orb%vec(1) * ric%k1 + orb%vec(3) * ric%s1
   ric%g_y = ric%g_y0 - orb%vec(3) * ric%k1 + orb%vec(1) * ric%s1
@@ -418,12 +421,13 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine calc_g_params (s, orb)
+subroutine calc_g_params (ele, s, orb)
 
   implicit none
 
   type (coord_struct) orb
   type (wig_cache_struct) v0, v1
+  type (ele_struct) ele
 
   real(rp) dk(3,3), s, ds
   real(rp) kick_0(6), f0, f1
@@ -452,7 +456,7 @@ subroutine calc_g_params (s, orb)
 
 ! Standard non-cache calc.
 
-  call derivs_bmad (ric%ele, ric%ring%param, s, orb%vec, kick_0, dk)
+  call derivs_bmad (ele, ric%ring%param, s, orb%vec, kick_0, dk)
 
   ric%g_x = -kick_0(2)
   ric%g_y = -kick_0(4)
