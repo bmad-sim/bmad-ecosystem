@@ -141,7 +141,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
       h2 = ele%const(0) + &
                   dot_product(start%vec-ele%const(7:12), ele%const(1:6))
     elseif (ele%sub_key == periodic_type$) then
-      h2 = ele%value(k1$)
+      h2 = abs(ele%value(k1$))
     endif
 
   end select
