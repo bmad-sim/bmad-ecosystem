@@ -464,23 +464,35 @@ module bmad_struct
          "GARBAGE!     ", "GARBAGE!     ", "GARBAGE!     ", "GARBAGE!     ", "GARBAGE!     ", &
          "GARBAGE!     ", "GARBAGE!     ", "RBend        " /)
 
-!
+! The linac_mode_struct is basically the synchrotron integrals with the
+! energy factors thrown in. Useful for linacs.
 
   type amode_struct
-    real(rp) emittance
-    real(rp) synch_int(4:5)
-    real(rp) j_damp               ! damping partition number
-    real(rp) alpha_damp           ! damping per turn
-    real(rp) chrom                ! Chromaticity
-    real(rp) tune                 ! "Fractional" tune in radians
+    real(rp) emittance        ! Beam emittance
+    real(rp) synch_int(4:5)   ! Synchrotron integrals
+    real(rp) j_damp           ! damping partition number
+    real(rp) alpha_damp       ! damping per turn
+    real(rp) chrom            ! Chromaticity
+    real(rp) tune             ! "Fractional" tune in radians
+  end type
+
+  type linac_mode_struct
+    real(rp) sig_E1       ! Energy spread after 1 pass (eV)
+    real(rp) i2_E4        ! Integral: g^2 * gamma^4
+    real(rp) i3_E7        ! Integral: g^3 * gamma^7
+    real(rp) i4a_E4       ! Integral: (g^2 + 2K1) * G * eta_a * gamma^4
+    real(rp) i4b_E4       ! Integral: (g^2 + 2K1) * G * eta_b * gamma^4
+    real(rp) i5a_E5       ! Integral: (g^3 * H_a) * gamma^5
+    real(rp) i5b_E5       ! Integral: (g^3 * H_b) * gamma^5
   end type
 
   type modes_struct
-    real(rp) synch_int(3)
-    real(rp) sig_e
-    real(rp) sig_z
-    real(rp) e_loss
+    real(rp) synch_int(3)  ! Synchrotron integrals I1, I2, and I3
+    real(rp) sigE_E        ! SigmaE/E
+    real(rp) sig_z         ! Sigma_Z
+    real(rp) e_loss        ! Energy loss / turn (eV)
     type (amode_struct)  a, b, z
+    type (linac_mode_struct) lin
   end type
 
   integer, parameter :: bends$ = 201

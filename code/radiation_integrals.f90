@@ -40,7 +40,7 @@
 !   mode -- Modes_struct: Parameters for the ("horizontal like") a-mode,
 !                              ("vertical like") b-mode, and the z-mode
 !     %synch_int(1:3) -- Synchrotron integrals.
-!     %sig_e          -- Sigma_E/E energy spread
+!     %sigE_E         -- Sigma_E/E energy spread
 !     %sig_z          -- Bunch Length
 !     %e_loss         -- Energy loss in eV per turn
 !     %a, %b, %z      -- Amode_struct: Substructure
@@ -48,6 +48,14 @@
 !       %synch_int(4:5) -- Synchrotron integrals
 !       %j_damp         -- Damping partition factor
 !       %alpha_damp     -- Exponential damping coefficient per turn
+!     %lin            -- Linac version of the integrals.
+!       %sig_E1         -- Energy spread after 1 pass (eV)
+!       %i2_E4          -- Integral: g^2 * gamma^4
+!       %i3_E7          -- Integral: g^3 * gamma^7
+!       %i4a_E4         -- Integral: (g^2 + 2K1) * G * eta_a * gamma^4
+!       %i4b_E4         -- Integral: (g^2 + 2K1) * G * eta_b * gamma^4
+!       %i5a_E5         -- Integral: (g^3 * H_a) * gamma^5
+!       %i5b_E5         -- Integral: (g^3 * H_b) * gamma^5
 !   ix_cache -- Integer, optional: Cache pointer. If ix_cache = 0 at input then
 !                   ix_cache is set to a unique number. Otherwise ix_cache 
 !                   is not changed.
@@ -89,8 +97,8 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
   real(rp), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
   real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
-  real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll
-  real(rp) v(4,4), v_inv(4,4), f0, f1, s
+  real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, c
+  real(rp) v(4,4), v_inv(4,4), f0, f1, s, mc2, gamma, gamma4, gamma5
 
   integer, optional :: ix_cache
   integer i, j, k, ix, ir, key
@@ -410,7 +418,37 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
   enddo
 
 !---------------------------------------------------------------------
-! now put everything together
+! Now put everything together...
+! Linac radiation integrals:
+
+  mc2 = mass_of (ring%param%particle)
+
+  mode%lin%sig_E1 = 0
+  mode%lin%i2_E4  = 0
+  mode%lin%i3_E7  = 0
+  mode%lin%i4a_E4 = 0
+  mode%lin%i4b_E4 = 0
+  mode%lin%i5a_E5 = 0
+  mode%lin%i5b_E5 = 0
+
+  do i = 1, ring%n_ele_ring
+    gamma = ring%ele_(i)%value(beam_energy$) / mc2
+    gamma4 = gamma**4
+    gamma5 = gamma4 * gamma
+    mode%lin%i2_E4  = mode%lin%i2_E4  + ric%i2_(i) * gamma4
+    mode%lin%i3_E7  = mode%lin%i3_E7  + ric%i3_(i) * gamma5 * gamma**2
+    mode%lin%i4a_E4 = mode%lin%i4a_E4 + ric%i4a_(i) * gamma4
+    mode%lin%i4b_E4 = mode%lin%i4b_E4 + ric%i4b_(i) * gamma4
+    mode%lin%i5a_E5 = mode%lin%i5a_E5 + ric%i5a_(i) * gamma5
+    mode%lin%i5b_E5 = mode%lin%i5b_E5 + ric%i5b_(i) * gamma5
+  enddo
+
+  c = 55 * r_e * h_bar_planck * c_light / &
+                               (24 * e_charge * sqrt(3.0) * mc2)
+
+  mode%lin%sig_E1 = sqrt (c * mode%lin%i3_E7)
+
+! Normal integrals
 
   i1   = ric%int_tot(1)
   i2   = ric%int_tot(2)
@@ -424,7 +462,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
   energy = ring%param%beam_energy
   gamma2_factor = (energy * 1956.95e-9)**2
-  energy_loss = 1e9 * c_gam * (1e-9 * energy)**4 * i2 / pi
+  energy_loss = 1e9 * c_gam * (1e-9 * mc2)**4 * mode%lin%i2_E4 / pi
 
   mode%synch_int(1) = i1
   mode%synch_int(2) = i2
@@ -447,7 +485,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
     mode%z%j_damp = 2 + i4z / i2
 
     arg = (c_q * i3 * gamma2_factor / (2*i2 + i4z))
-    mode%sig_e = sqrt(max(0.0_rp, arg))
+    mode%sigE_E = sqrt(max(0.0_rp, arg))
 
   endif
 
@@ -458,12 +496,12 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
   mode%e_loss = energy_loss
 
   if (abs(m65) > 0) then
-    mode%sig_z = sqrt(i1/abs(m65)) * mode%sig_e
+    mode%sig_z = sqrt(i1/abs(m65)) * mode%sigE_E
   else
     mode%sig_z = 0.
   endif
 
-  mode%z%emittance = mode%sig_z * mode%sig_e
+  mode%z%emittance = mode%sig_z * mode%sigE_E
 
   sr_com = sr_com_save
 

@@ -78,7 +78,7 @@ subroutine init_LRBBI(ring, oppos_ring, LRBBI_ele, ix_LRBBI, ix_oppos)
 
   call radiation_integrals(ring, orbit_, mode)
 
-  e_spread = mode%sig_E
+  e_spread = mode%sigE_E
   sigma_z = mode%sig_z
   emit_x = mode%a%emittance !a=horizontal-like. Use %b% for vertical-like.
   emit_y = emit_x * 0.01

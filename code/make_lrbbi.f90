@@ -88,7 +88,7 @@ subroutine MAKE_LRBBI(master_ring_oppos, ring, ix_LRBBI, master_ix_LRBBI_oppos)
     enddo
   enddo
 
-  e_spread = mode_oppos%sig_E
+  e_spread = mode_oppos%sigE_E
   sigma_z = mode_oppos%sig_z
 
   emit_x = mode_oppos%a%emittance

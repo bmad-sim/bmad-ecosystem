@@ -24,7 +24,7 @@
 !     MODE -- Modes_struct: Parameters for the ("horizontal like") a-mode,
 !                              ("vertical like") b-mode, and the z-mode
 !       %SYNCH_INT(1:3) -- Synchrotron integrals.
-!       %SIG_E          -- Sigma_E/E energy spread
+!       %sigE_E         -- Sigma_E/E energy spread
 !       %SIG_Z          -- Bunch Length
 !       %E_LOSS         -- Energy loss in eV per turn
 !       %A, %B, %Z      -- Amode_struct: Substructure
@@ -348,7 +348,7 @@ subroutine emitt_calc (ring, what, mode)
     mode%z%j_damp = 2 + i4z / i2
 
     arg = (c_q * i3 * gamma2_factor / (2*i2 + i4z))
-    if(arg > 0.) mode%sig_e = sqrt(c_q * i3 * gamma2_factor / (2*i2 + i4z))
+    if(arg > 0.) mode%sigE_E = sqrt(c_q * i3 * gamma2_factor / (2*i2 + i4z))
 
   endif
 
@@ -359,7 +359,7 @@ subroutine emitt_calc (ring, what, mode)
   mode%e_loss = energy_loss
 
   if(abs(m65) > 0. ) then
-    mode%sig_z = sqrt( mode%synch_int(1)/abs(m65) ) * mode%sig_e
+    mode%sig_z = sqrt( mode%synch_int(1)/abs(m65) ) * mode%sigE_E
   else
     mode%sig_z = 0.
   endif
