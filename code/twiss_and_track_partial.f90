@@ -85,7 +85,7 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
     if (ele%mat6_calc_method == taylor$) ele%mat6_calc_method = symp_lie_bmad$
   endif
 
-  ele%num_steps = ele%num_steps * del_s / l_orig
+  ele%num_steps = min(nint(ele%num_steps * del_s / l_orig), 1)
 
   if (present(start)) then
     c0 = start
