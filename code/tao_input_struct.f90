@@ -21,7 +21,7 @@ end type
 
 type tao_data_input
   character(16) :: name
-  character(16) :: type
+  character(16) :: data_type
   character(16) :: ele_name
   character(16) :: ele2_name
   character(16) :: merit_type

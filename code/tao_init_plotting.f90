@@ -108,6 +108,7 @@ do
   plt%type        = plot%type
   plt%box_layout  = plot%box_layout
   plt%x           = plot%x
+  plt%x_divisions = plt%x%major_div
   plt%who         = plot%who
   plt%convert     = plot%convert
   plt%x_axis_type = plot%x_axis_type

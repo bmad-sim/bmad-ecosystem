@@ -111,7 +111,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
     do k = 1, n_d1_data
       default_weight = 0      ! set default
       data(:)%name       = ' '
-      data(:)%type       = ' '
+      data(:)%data_type  = ' '
       data(:)%merit_type = ' '
       data(:)%ele_name   = ' '
       data(:)%ele2_name  = ' '
@@ -435,8 +435,8 @@ else
 endif
 
 u%data(n1:n2)%data_value = data(ix1:ix2)%data_value
-u%data(n1:n2)%type = data(ix1:ix2)%type
-where (u%data(n1:n2)%type == ' ') u%data(n1:n2)%type = &
+u%data(n1:n2)%data_type = data(ix1:ix2)%data_type
+where (u%data(n1:n2)%data_type == ' ') u%data(n1:n2)%data_type = &
                             trim(d2_data%name) // ':' // d1_data%name
 
 

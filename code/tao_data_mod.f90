@@ -112,7 +112,7 @@ ix1 = datum%ix_ele
 ix2 = datum%ix_ele2
 ele => lattice%ele_(ix1)
 
-select case (datum%type)
+select case (datum%data_type)
 
 case ('orbit:x')
   call load_it (orb(:)%vec(1))
@@ -175,7 +175,7 @@ case ('s_length')
 
 
 case default
-  call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%type)
+  call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
   return
 
 end select
@@ -218,7 +218,7 @@ else
     ix_m = maxloc (abs(vec(ix1:ix2)), 1)
   case default
     call out_io (s_abort$, r_name, 'BAD MERIT_TYPE: ' // datum%merit_type, &
-                                   'FOR DATUM: ' // datum%type)
+                                   'FOR DATUM: ' // datum%data_type)
     call err_exit
   end select
 endif

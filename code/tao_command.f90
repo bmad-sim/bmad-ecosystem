@@ -329,7 +329,7 @@ subroutine tao_command (command_line, err)
     else
       call to_real (cmd_word(2), value1, err); if (err) return
       call to_real (cmd_word(3), value2, err); if (err) return
-      call tao_x_scale_cmd (value1, value2, err)
+      call tao_x_scale_cmd (cmd_word(1), value1, value2, err)
     endif
 
 !--------------------------------

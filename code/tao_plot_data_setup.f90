@@ -24,7 +24,7 @@ type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_data_struct) datum
 type (ele_struct), pointer :: ele
 
-real(rp) f, x1, x2, y_val
+real(rp) f, x1, x2, y_val, eps
 real(rp), pointer :: value(:)
 
 integer i, ii, j, k, m, n_dat, i_uni, ie
@@ -107,12 +107,13 @@ plot_loop: do i = 1, size(s%plot_page%plot)
         endif
 
         d1_ptr%d%good_plot = .true.
+        eps = 1e-4 * (plot%x%max - plot%x%min)
         if (plot%x_axis_type == 'index') then
-          where (d1_ptr%d%ix_d1 < plot%x%min) d1_ptr%d%good_plot = .false.
-          where (d1_ptr%d%ix_d1 > plot%x%max) d1_ptr%d%good_plot = .false.
+          where (d1_ptr%d%ix_d1 < plot%x%min-eps) d1_ptr%d%good_plot = .false.
+          where (d1_ptr%d%ix_d1 > plot%x%max+eps) d1_ptr%d%good_plot = .false.
         else
-          where (d1_ptr%d%s < plot%x%min) d1_ptr%d%good_plot = .false.
-          where (d1_ptr%d%s > plot%x%max) d1_ptr%d%good_plot = .false.
+          where (d1_ptr%d%s < plot%x%min-eps) d1_ptr%d%good_plot = .false.
+          where (d1_ptr%d%s > plot%x%max+eps) d1_ptr%d%good_plot = .false.
         endif
 
         call tao_useit_plot_calc (plot, d1_ptr%d) ! make sure %useit_plot up-to-date
@@ -166,8 +167,9 @@ plot_loop: do i = 1, size(s%plot_page%plot)
 
       case ('lat_layout')
  
+       eps = 1e-4 * (plot%x%max - plot%x%min)
        u%base%ele_(:)%logic = (u%base%ele_(:)%ix_pointer > 0) .and. &
-            (u%base%ele_(:)%s >= plot%x%min) .and. (u%base%ele_(:)%s <= plot%x%max)
+            (u%base%ele_(:)%s >= plot%x%min-eps) .and. (u%base%ele_(:)%s <= plot%x%max+eps)
         n_dat = count (u%base%ele_(:)%logic)
 
         call reallocate_integer (curve%ix_symb, n_dat)
@@ -187,7 +189,7 @@ plot_loop: do i = 1, size(s%plot_page%plot)
         curve%y_symb = 0
         datum%ix_ele2 = -1
         datum%merit_type = 'target'
-        datum%type = curve%data_type
+        datum%data_type = curve%data_type
 
         do ie = 1, n_dat
           datum%ix_ele = curve%ix_symb(ie)

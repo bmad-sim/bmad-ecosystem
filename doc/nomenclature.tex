@@ -4,15 +4,15 @@
 %------------------------------------------------------------------------
 \section{The Known Universe}
 
-The stuff \tao knows about can be divided into 5 categories: 
+The information that \tao knows about can be divided into 5 categories: 
 \begin{example}
-  lattice   -- Machine layout and component strengths.
+  lattice   -- Machine layout and component strengths, and the beam orbit.
   data      -- For example: orbit, dispersion, coupling etc.
   variables -- For example: steerings, quad strengths, etc.
   plotting  -- How do display stuff.
   global    -- Miscellaneous global parameters.
 \end{example}
-The \vn{lattice} and \vn{data} stuff are grouped into what is called a
+The \vn{lattice} and \vn{data} information are grouped into what is called a
 \vn{universe}. The entire collection of \vn{lattice}, \vn{data},
 \vn{variables}, \vn{plotting}, and \vn{global} information is called
 the \vn{super_universe} and is the sum of what \tao knows about.
@@ -20,25 +20,24 @@ the \vn{super_universe} and is the sum of what \tao knows about.
 %------------------------------------------------------------------------
 \subsection{Lattices}
 
-
 A \vn{lattice} defines the placement of elements in a machine, their
-strengths, and the orbit of a beam through them. Each \vn{universe}
+strengths, and a beam orbit through them. Each \vn{universe}
 has actually three lattices:
+  \vspace*{-3ex}
   \begin{description}
-  \item[Model Lattice]
-The strengths or placement of the elements in the \vn{model} lattice
-can be varied to see what happens. In particular, things like orbit
-correction involve varying things until the \vn{data} as calculated
-from the \vn{model} match the \vn{data} as actually measured.
-  \item[Design Lattice] 
+  \item[Design Lattice] \Newline 
 The \vn{design} lattice is the particular lattice that one wants the
-machine to conform to. The strengths of the elements in the \vn{design}
-is fixed.
-  \item[Base Lattice]
-It is sometimes
-convenient to designate a reference lattice so that changes in the
-\vn{model} from the reference point can be looked at.  This reference lattice
-is called the \vn{base}.
+machine to conform to. The \vn{design} lattice is fixed. Nothing is
+alowed to vary in it.
+  \item[Model Lattice] \Newline
+All \tao commands to vary lattice variables vary quantities in the
+\vn{model} lattice. In particular, things like orbit correction
+involve varying \vn{model} variables until the \vn{data} as calculated
+from the \vn{model} match the \vn{data} as actually measured.
+  \item[Base Lattice] \Newline
+It is sometimes convenient to designate a reference lattice so that
+changes in the \vn{model} from the reference point can be looked at.
+This reference lattice is called the \vn{base}.
   \end{description}
 
 The \vn{model}, \vn{design}, \vn{base} lattices along with any
@@ -49,8 +48,7 @@ a collider machine. This can be convenient if there are, say, steering
 elements in common and it is needed to simultaneously correct the
 orbit in both rings. Another example is in a machine where orbits have
 been measured under different conditions of, say, beam energy, and it
-is desired to fit all the data simultaneously to try to find, say,
-rolls in the bends.
+is desired to fit all the data simultaneously. 
 
 %------------------------------------------------------------------------
 \subsection{Data}
@@ -58,37 +56,38 @@ rolls in the bends.
 Blocks of like data are associated with what are called \vn{d1_data}
 structures and sets of \vn{d1_data} structures are collected into what
 are called \vn{d2_data} structures. For example, a \vn{d1_data}
-structure is typically associated with the horizontal data and another
-\vn{d1_data} structure is typically associated with the vertical orbit
-data. These two structures are then collected into a \vn{d2_data}
-structure representing all orbit data. The \vn{d1_data} and
-\vn{d2_data} structures are defined in the \tao initialization file
-(cf.~Chapter~\ref{c:init}).  When issuing \tao commands one can
-specify all the data associated with a \vn{d2_data} structure using
-the \vn{d2_data} structure's \vn{name}.  For example the name
-\vn{orbit} specifies the orbit data. To specify the data associated
-with a \vn{d1_data} structure use the format \vn{d2_name:d1_name}
-where \vn{d1_name} is the name of the \vn{d1_data} structure. For
-example, if the \vn{d1_data} structure's name for the horizontal orbit
-data is \vn{x} then in \tao commands you refer to it by the name
-\vn{orbit:x}. Sometimes there is only one \vn{d1_data} structure for a
-given \vn{d2_data} structure. In this case the data can be referred to
-simply by useing the \vn{d2_data}'s name.
+structure is typically associated with the horizontal orbit data and
+another \vn{d1_data} structure is typically associated with the
+vertical orbit data. These two structures can then be collected into a
+\vn{d2_data} structure representing all orbit data. The \vn{d1_data}
+and \vn{d2_data} structures are defined in the \tao initialization
+file (cf.~Chapter~\ref{c:init}).  When issuing \tao commands, all the
+data associated with a \vn{d2_data} structure is specified using the
+\vn{d2_data} structure's \vn{name}.  The data associated with a
+\vn{d1_data} structure is specified using the format
+\vn{d2_name:d1_name}. For example, If a \vn{d2_data} structure has the
+name ``\vn{orbit}'', and one of its \vn{d1_data} structures has the name
+``\vn{x}'', then in \tao commands you refer to the data in this
+\vn{d1_data} structure by the name ``\vn{orbit:x}''. Sometimes there is
+only one \vn{d1_data} structure for a given \vn{d2_data} structure. In
+this case the data can be referred to simply by useing the
+\vn{d2_data}'s name.
 
 Each data point (for example, the horizontal orbit at some
 detector) has a number of quantities associated with it:
+  \vspace*{-3ex}
   \begin{description}
-  \item[Measured Data] 
+  \item[Measured Data] \Newline 
 The data obtained from some measurement. This is generally referred to
 as just \vn{data}. When doing lattice design the \vn{data} corresponds to
-a constraint (see below).
-  \item[Reference Data] 
-Reference data obtained from some measurement.
-  \item[Model Data]
+a constraint (See the chapter on optimization for more details).
+  \item[Reference Data] \Newline
+Reference data obtained from some reference measurement.
+  \item[Model Data] \Newline
 The data as calculated from the \vn{model} lattice.
-  \item[Design Data]
+  \item[Design Data] \Newline
 The data as calculated from the \vn{design} lattice.
-  \item[Base Data]
+  \item[Base Data] \Newline
 The data as calculated from the \vn{base} lattice.
   \end{description}
 
@@ -97,22 +96,23 @@ The data as calculated from the \vn{base} lattice.
 
 Blocks of variables are associated with what is called a
 \vn{v1_var} structure and each of these structures has a \vn{name}
-with which to refer to them in \tao commands. Typically a given variable 
-controlls a single attribute of one element in a \vn{model} lattice
-of a single universe. However, variables can be configured to simultaneously
+with which to refer to them in \tao commands. A given variable may
+control a single attribute of one element in a \vn{model} lattice
+of a single universe or variables can be configured to simultaneously
 control multiple attributes across multiple universes.
 
 Each individual variable has a number of values associated with it:
+  \vspace*{-3ex}
   \begin{description}
-  \item[Measured Value] 
+  \item[Measured Value] \Newline
 The Value as obtained at the time of the \vn{data} measurement.
-  \item[Reference Value] 
+  \item[Reference Value] \Newline
 The Value as obtained at the time of the \vn{reference} data  measurement.
-  \item[Model Value]
+  \item[Model Value] \Newline
 The value as given in the \vn{model} lattice.
-  \item[Design Value]
+  \item[Design Value] \Newline
 The value as given in the \vn{design} lattice.
-  \item[Base Value]
+  \item[Base Value] \Newline
 The value as given in the \vn{base} lattice.
   \end{description}
 
@@ -120,19 +120,21 @@ The value as given in the \vn{base} lattice.
 \section{Plotting}
 
 Some definitions:
+  \vspace*{-3ex}
 \begin{description}
-\item[Curve]
+\item[Curve] \Newline
 A \vn{curve} is a set of (x,y) points to be plotted.
-\item[Graph]
+\item[Graph] \Newline
 A \vn{graph} consists of horizontal and vertical axes along with a set
 of \vn{curve}s that are plotted within the graph. 
-\item[Plot]
+\item[Plot] \Newline
 A \vn{plot} is essentially a collection of \vn{graphs}.
-\item[Page]
+\item[Page] \Newline
 The \vn{page} refers to the x--window where graphics are displayed or the 
 corresponding printed graphics page.
-\item[Region]
-The \vn{page} is divided up into a number of \vn{region}s. 
+\item[Region] \Newline
+The \vn{page} is divided up into a number of rectangles called
+\vn{regions}. \vn{Regions} may overlap.
 \end{description}
 
 \begin{figure}
@@ -145,10 +147,10 @@ is associated with a region using the \vn{place} command.}
 \end{figure}
 
 The plot initialization file (cf.~Chapter~\ref{c:init}) defines a set
-of \vn{template} plots. A \vn{template} defines what class of data is
-plotted (orbit, coupling, etc.), how many \vn{graphs} there are, what
-the scales are for the \vn{graph} axes, how the \vn{graph}s are laid
-out, etc.  The plot initialization file also defines a set of
+of \vn{template} plots. A \vn{template} defines what type of data is
+to be plotted (orbit, coupling, etc.), how many \vn{graphs} there are,
+what the scales are for the \vn{graph} axes, how the \vn{graph}s are
+laid out, etc.  The plot initialization file also defines a set of
 \vn{region}s within the \vn{page}.  Using the \vn{place} command one
 can assign a particular template to a particular region for plotting.
 The relationship between \vn{region}, \vn{plot}, \vn{graph}, and
@@ -184,7 +186,7 @@ Sometimes it is convenient to be able to vary variables using single key strokes
 without having to type a carriage return.
 With \tao this is possible using what is called \vn{single mode}. This is distinct from
 \vn{line mode} where commands to \tao are typed at the command line with a carriage 
-return signaling the end of the command. As explained in the initialization chapter
+return signaling the end of the command. As explained in the initialization chapter,
 \vn{single mode} uses a special initialization file.
 
 The \vn{single mode} initialization file associates variables with certain keyboard keys

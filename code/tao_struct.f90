@@ -116,6 +116,7 @@ type tao_plot_struct
   type (tao_graph_struct), pointer :: graph(:) => null() ! individual graphs of a plot
   type (tao_plot_hook) hook       ! Custom stuff. Defined in tao_hook.f90
   type (qp_axis_struct) x         ! X-axis parameters.
+  real(rp) x_divisions            ! Nominal number of x-axis divisions.
   character(16) x_axis_type       ! 'index', 's'
   integer box_layout(2)           ! Defines which box the plot is put in.
   logical visible                 ! To draw or not to draw.
@@ -167,8 +168,8 @@ type tao_data_struct
   character(16) name        ! Datum name. Eg: "X Orbit @ Det 10"
   character(16) ele_name    ! Name of the element in the Lattice corresponding to the datum.
   character(16) ele2_name   ! Name lattice element when there is a range 
-  character(16) :: type = ' ' ! Type of data ("orbit:x", etc.)
-  character(16) merit_type  ! 'target', 'max', 'min'
+  character(16) data_type   ! Type of data: "orbit:x", etc.
+  character(16) merit_type  ! Type of constraint: 'target', 'max', 'min', etc.
   integer ix_ele            ! Index of the element in the lattice element array.
   integer ix_ele2           ! Index of lattice elment when there is a range.
   integer ix_ele_merit      ! Index of lattice elment where merit is evaluated.

@@ -162,7 +162,7 @@ case ('data')
       nl=nl+1; write(lines(nl), amt)  '%Name:              ', d_ptr%name
       nl=nl+1; write(lines(nl), amt)  '%Ele_name:          ', d_ptr%ele_name
       nl=nl+1; write(lines(nl), amt)  '%Ele2_name:         ', d_ptr%ele2_name
-      nl=nl+1; write(lines(nl), amt)  '%Type:              ', d_ptr%type
+      nl=nl+1; write(lines(nl), amt)  '%Data_type:         ', d_ptr%data_type
       nl=nl+1; write(lines(nl), imt)  '%Ix_ele:            ', d_ptr%ix_ele
       nl=nl+1; write(lines(nl), imt)  '%Ix_ele2:           ', d_ptr%ix_ele2
       nl=nl+1; write(lines(nl), imt)  '%Ix_ele_merit:      ', d_ptr%ix_ele_merit

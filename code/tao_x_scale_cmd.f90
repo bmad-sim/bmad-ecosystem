@@ -59,39 +59,45 @@ subroutine scale_plot (plot)
 
 type (tao_plot_struct) plot
 integer j, k, n
+real(rp) x1, x2
 
 ! auto scale
 
 if (x_max == x_min) then
+
+  plot%x%min = -1e20
+  plot%x%max = 1e20
+  call tao_plot_data_setup 
+
   if (plot%x_axis_type == "index") then
-    plot%x%min =  1e20
-    plot%x%max = -1e20
+    x1 =  1e20
+    x2 = -1e20
     do j = 1, size(plot%graph)
       do k = 1, size(plot%graph(j)%curve)
         n = size(plot%graph(j)%curve(k)%x_symb)
-        plot%x%min = min (plot%x%min, plot%graph(j)%curve(k)%x_symb(1))
-        plot%x%max = max (plot%x%max, plot%graph(j)%curve(k)%x_symb(n))
+        x1 = min (x1, plot%graph(j)%curve(k)%x_symb(1))
+        x2 = max (x2, plot%graph(j)%curve(k)%x_symb(n))
       enddo
     enddo
+
   elseif (plot%type == "s") then
-    plot%x%min = 0
-    plot%x%max = maxval (s%u(:)%model%param%total_length)
+    x1 = 0
+    x2 = maxval (s%u(:)%model%param%total_length)
   endif
 
-!
+! not auto scale
 
 else
-  plot%x%min = x_min
-  plot%x%max = x_max
+  x1 = x_min
+  x2 = x_max
 endif
 
+! calculate divisions and places
+
+call qp_calc_and_set_axis ('X', x1, x2, &
+          nint(0.8 * plot%x_divisions), nint(1.4 * plot%x_divisions), 'GENERAL')
+call qp_get_axis ('X', plot%x%min, plot%x%max, plot%x%major_div, plot%x%places)
 
 end subroutine
 
 end subroutine 
-
-
-
-
-
-
