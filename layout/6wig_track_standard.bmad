@@ -1,0 +1,13 @@
+wig1_14e[tracking_method] = wiedemann
+wig2_14e[tracking_method] = wiedemann
+wig_15e[tracking_method] = wiedemann
+wig1_18e[tracking_method] = wiedemann
+wig2_18e[tracking_method] = wiedemann
+wig3_18e[tracking_method] = wiedemann
+
+wig1_14e[mat6_calc_method] = bmad_standard
+wig2_14e[mat6_calc_method] = bmad_standard
+wig_15e[mat6_calc_method] = bmad_standard
+wig1_18e[mat6_calc_method] = bmad_standard
+wig2_18e[mat6_calc_method] = bmad_standard
+wig3_18e[mat6_calc_method] = bmad_standard
