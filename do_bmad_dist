@@ -1,0 +1,242 @@
+#!/bin/sh
+#
+################################################################
+#
+# do_bmad_dist
+#
+# On LEPP computers, prepares a BMAD distribution.  This includes 
+# checkout of latest sources from the repository, creation of a 
+# source tarball for distribution, local build of the distribution.
+#
+# usage : do_bmad_dist [options] [var defs] <lib_tag> <pkg_tag> [<SGL/DBL>]
+#         arguments:
+#          <SGL/DBL>      specify double or single precision
+#                         (default is DBL)
+#
+#         flags:
+#          -build_only    if you want to forgo the checkout and
+#                         creation of necessary dirs, add 
+#                         -build_only flag.  In this case, 
+#          -dump          Dump the configuration information for this 
+#                         script
+#
+#         variables:
+#           BMAD=<directory>    Specify a directory for the distribution
+#
+# examples: do_bmad_dist BMAD=/home/cesrulib/cesr_libs/bmad_dist_2003 
+#           do_release -build_only cesr_yyyy_mmdd_d DBL
+#
+################################################################
+
+################################################################
+# Set up some internal functions
+################################################################
+
+# Script help function
+myprint_help () {
+#       Print help info
+    echo ""
+    echo "Usage is:  do_release [options] [var. defs] [<precision>]"
+    echo ""
+    echo "Inputs:"
+    echo "<precision>         SGL or DBL (optional) [default is DBL]"
+    echo "Options:"
+    echo "-build_only         if you want to forgo the checkout and"
+    echo "                    creation of necessary dirs, add "
+    echo "                    -build_only flag.  In this case, BMAD"
+    echo "                    must contain the full name of the"
+    echo "                    corresponding distribution"
+    echo "-dump               Dump the configuration information for"
+    echo "                    this script"
+    echo ""
+    echo "Variable definitions:"
+    echo "BMAD=<distribution tag>  Specify a custom tag for the release"
+    echo ""
+}
+
+# Variable Parsing Function
+var_parse () {
+    VAR=`echo ${arg} | cut -d = -f 1`
+    VAL=`echo ${arg} | cut -d = -f 2`
+}
+
+# Generate Unique Release Names
+get_release_name () {
+    FULL_DNAME=${BUILD_DIR}/${DNAME}
+
+#   Determine whether an index tag is needed to 
+#   insure a unique release name
+    if ( [ -e ${FULL_DNAME} ] ) then
+        UNIQ_TAG=0
+        TEST_NAME=${FULL_DNAME}
+
+        while ( [ -e ${TEST_NAME} ] ); do
+            UNIQ_TAG=`expr ${UNIQ_TAG} + 1`
+            TEST_NAME=${FULL_DNAME}_${UNIQ_TAG}
+        done
+
+        DNAME=${DNAME}_${UNIQ_TAG}
+        FULL_DNAME=${BUILD_DIR}/${DNAME}
+    fi
+
+    DLOG=${DNAME}.log
+    FULL_DLOG=${BUILD_DIR}/log/${DLOG}
+}
+
+################################################################
+# Main script starts here
+################################################################
+
+#Initializations
+BUILD_DIR=/home/cesrulib/distribution
+PREC="DBL"
+BMAD_TAG="bmad_dist"
+DO_CHECKOUT="do_checkout"
+DO_BUILD="do_build"
+DO_DUMP=0
+
+use_cesr_bin=/home/cesrulib/bin
+
+# Get inputs
+n_args=$#
+
+iarg=0
+arg_list=""
+while ( [ ${iarg} -lt ${n_args} ] ) ; do 
+    iarg=`expr $iarg + 1`
+    arg=$1
+
+    arg_list="${arg_list} ${arg}"
+
+#   Interpret the arguments
+    if ( [ "$arg" = "DBL" -o "$arg" = "dbl" ] ) then
+        PREC="DBL"
+    elif ( [ "$arg" = "SGL" -o "$arg" = "sgl" ] ) then
+        PREC="SGL"
+    elif ( [ "$arg" = "-build_only" ] ) then
+        DO_CHECKOUT="no_checkout"
+    elif ( [ "$arg" = "-dump" ] ) then
+        DO_DUMP=1
+    else
+        var_parse
+        echo "$VAR = $VAL"
+        if   ( [ "$VAR" = "BMAD" ] ) then
+            BMAD="$VAL"
+        elif ( [ "$VAR" = "CESR_BIN" ] ) then
+            use_cesr_bin="$VAL"
+        else
+            myprint_help
+            exit 1
+        fi
+    fi
+
+#   Shift to the next input argument
+    shift
+
+done
+echo "do_bmad_dist - called with the following arguments:  "
+echo "${arg_list}" 
+echo ""
+
+
+# Get the operating system and the machine type
+PLATFORM_TAG="`uname -s`_`uname -m`"
+
+
+# Set up the yyyy_mmdd tag
+DATE_TAG=`date +"%Y_%m%d"`
+
+
+# Set up the precision tag
+if ( [ "${PREC}" = "DBL" ] ) then
+    PREC_TAG="d"
+elif ( [ "${PREC}" = "SGL" ] ) then
+    PREC_TAG="s"
+fi
+CESR_PREC="_${PREC}"
+
+
+# Generate the BMAD distribution name
+if ( [ $DO_CHECKOUT = "do_checkout" ] ) then
+    DNAME="${BMAD_TAG}_${DATE_TAG}_${PREC_TAG}"
+    get_release_name
+    DIST_NAME=${DNAME}
+    FULL_DIST_NAME=${FULL_DNAME}
+    FULL_DIST_LOG=${FULL_DLOG}
+else
+    DIST_NAME=""
+    FULL_DIST_NAME=${BMAD}
+fi		
+
+
+# Set the CESR bin directory for picking up scripts
+BIN_DIR=${use_cesr_bin}
+BMADENV=${BIN_DIR}/bmadenv
+
+
+# Export the environment for the BMAD distribution
+BMAD_=${FULL_DIST_NAME}; . ${BIN_DIR}/cesrdefs
+
+
+# Dump the configuration information if requested
+if ( [ $DO_DUMP -eq 1 ] ) then
+    echo "BUILD_DIR         = ${BUILD_DIR}"
+    echo "PREC              = ${PREC}"
+    echo "BMAD_TAG          = ${BMAD_TAG}"
+    echo "DO_CHECKOUT       = ${DO_CHECKOUT}"
+    echo "PLATFORM_TAG      = ${PLATFORM_TAG}"
+    echo ""
+    echo "bin Directory     = ${BIN_DIR}"
+    echo ""
+    echo "DIST_NAME         = ${DIST_NAME}"
+    echo "FULL_DIST_NAME    = ${FULL_DIST_NAME}"
+    echo "FULL_DIST_LOG     = ${FULL_DIST_LOG}"
+fi
+
+
+# Print the BMAD distribution environment variables
+echo ""
+echo "BMAD Environment:  "
+printenv | grep BMAD_
+echo ""
+
+
+# Checkout the BMAD Distribution
+co_dist_status=0
+if ( [ ${DO_CHECKOUT} = "do_checkout" ] ) then
+    echo "`date`: Checking out BMAD distribution..."
+    gmake -f ${BIN_DIR}/M.distribution CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} INHIBIT_BUILD="TRUE" > ${FULL_DIST_LOG} 2>&1
+    co_dist_status=$?
+fi
+
+
+# Report checkout status
+if ( [ $co_dist_status -eq 0 ] ) then
+    if ( [ ${DO_CHECKOUT} = "do_checkout" ] ) then
+        echo "`date`: Checkout phase completed successfully!"
+    else
+        echo "`date`: No checkout required!"
+    fi
+else
+    echo "`date`: Checkout failed [STATUS = $co_dist_status]!"
+    echo "Aborting!"
+    exit 1
+fi
+
+
+# Build the BMAD Distribution
+build_dist_status=0
+echo "`date`: Building release..."
+gmake -f ${BIN_DIR}/M.distribution CESR_PRECISION=${CESR_PREC} >> ${FULL_DIST_LOG} 2>&1
+build_dist_status=$?
+echo "`date`: BMAD Distribution build complete;  Status = ${build_dist_status}"
+
+
+# Report success or failure
+if ( [ ${build_dist_status} -eq 0 ] ) then
+    echo "`date`: Installation completed successfully!"
+else
+    echo "`date`: Installation completed with errors!"
+fi
+
+exit
