@@ -26,6 +26,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2001/10/12 20:53:35  rwh24
+!DCS changes and two files added
+!
 !Revision 1.4  2001/10/08 17:18:14  rwh24
 !DCS changes to f90 files.
 !Bug fixes to c file.
@@ -38,8 +41,6 @@
 !
 
 #include "CESR_platform.inc"
-
-
 
 subroutine bmad_to_cesr (ring, cesr)
 
@@ -54,18 +55,6 @@ subroutine bmad_to_cesr (ring, cesr)
   character*16 hsteer_name(0:120), vsteer_name(0:99)
 
   integer j, i, vnumbr
-
-  logical phase_iii 
-
-! find out if this is a phase_iii lattice
-
-  phase_iii = .false.
-  do i = ring%n_ele_ring+1, ring%n_ele_max
-    if (ring%ele_(i)%name(1:5) == 'SCIR_') then
-      phase_iii = .true.
-      exit
-    endif
-  end do
 
 ! load names
 
@@ -160,39 +149,32 @@ subroutine bmad_to_cesr (ring, cesr)
 
 ! phase_iii
 
-  if (phase_iii) then
+  cesr%v_steer_(111)%name = 'SC_V01W'
+  cesr%v_steer_(112)%name = 'SC_V02W'
+  cesr%v_steer_(113)%name = 'SC_V02E'
+  cesr%v_steer_(114)%name = 'SC_V01E'
 
-    cesr%v_steer_(101)%name = 'SCIR_V01W'
-    cesr%v_steer_(102)%name = 'SCIR_V02W'
-    cesr%v_steer_(103)%name = 'SCIR_V02E'
-    cesr%v_steer_(104)%name = 'SCIR_V01E'
+  cesr%skew_quad_(111)%name = 'SC_SK_Q01W'
+  cesr%skew_quad_(112)%name = 'SC_SK_Q02W'
+  cesr%skew_quad_(113)%name = 'SC_SK_Q02E'
+  cesr%skew_quad_(114)%name = 'SC_SK_Q01E'
 
-    do i = 1, 5                          
-      write (cesr%scir_cam_rho_(i)%name,   '(a, i1, a)') 'SCIR_CAM_', i, 'W'
-      write (cesr%scir_cam_rho_(i+5)%name, '(a, i1, a)') 'SCIR_CAM_', i, 'E'
-    enddo
+  cesr%quad_(111)%name = 'SC_Q01W'
+  cesr%quad_(112)%name = 'SC_Q02W'
+  cesr%quad_(113)%name = 'SC_Q02E'
+  cesr%quad_(114)%name = 'SC_Q01E'
 
-    cesr%scir_tilt_(scir_tilt_w$)%name    = 'SCIR_TILT_W'
-    cesr%scir_tilt_(scir_tilt_e$)%name    = 'SCIR_TILT_E'
-    cesr%scir_tilt_(scir_tilt_sk_w$)%name = 'SCIR_TILT_SK_W'
-    cesr%scir_tilt_(scir_tilt_sk_e$)%name = 'SCIR_TILT_SK_E'
+  do i = 1, 5                          
+    write (cesr%scir_cam_rho_(i)%name,   '(a, i1, a)') 'SC_CAM_', i, 'W'
+    write (cesr%scir_cam_rho_(i+5)%name, '(a, i1, a)') 'SC_CAM_', i, 'E'
+  enddo
 
-    cesr%skew_quad_( 1)%name = 'DUMMY'
-    cesr%skew_quad_( 2)%name = 'SK_Q03W1'
-    cesr%skew_quad_( 3)%name = 'SK_Q03W2'
-    cesr%skew_quad_(96)%name = 'SK_Q03E2'
-    cesr%skew_quad_(97)%name = 'SK_Q03E1'
-    cesr%skew_quad_(98)%name = 'DUMMY'
+  cesr%scir_tilt_(scir_tilt_w$)%name    = 'SC_TILT_W'
+  cesr%scir_tilt_(scir_tilt_e$)%name    = 'SC_TILT_E'
+  cesr%scir_tilt_(scir_tilt_sk_w$)%name = 'SC_TILT_SK_W'
+  cesr%scir_tilt_(scir_tilt_sk_e$)%name = 'SC_TILT_SK_E'
 
-    cesr%skew_quad_(101)%name = 'SK_Q01W'
-    cesr%skew_quad_(102)%name = 'SK_Q02W'
-    cesr%skew_quad_(103)%name = 'SK_Q02E'
-    cesr%skew_quad_(104)%name = 'SK_Q01E'
-
-    cesr%skew_sex_(11)%name = 'SK_SEX_02E'
-
-  endif
-
+  cesr%skew_sex_(11)%name = 'SK_SEX_02E'
 
 !-------------------------------------------------------------
 ! Load elements from RING to CESR
@@ -205,7 +187,7 @@ subroutine bmad_to_cesr (ring, cesr)
 
     if (ele%key == quadrupole$) then
 
-      if (ele%name(1:1) == 'Q') then
+      if (ele%name(1:1) == 'Q' .or. ele%name(1:4) == 'SC_Q') then
         do j = 0, 120
           if (ele%name == cesr%quad_(j)%name) then
             cesr%ix_cesr(i) = j
@@ -214,7 +196,7 @@ subroutine bmad_to_cesr (ring, cesr)
           endif
         enddo
 
-      elseif (ele%name(:2) == 'SK') then
+      elseif (ele%name(:2) == 'SK' .or. ele%name(1:5) == 'SC_SK') then
         do j = 0, 120
           if (ele%name == cesr%skew_quad_(j)%name) then
             cesr%ix_cesr(i) = j
@@ -322,7 +304,7 @@ subroutine bmad_to_cesr (ring, cesr)
           endif
         enddo
 
-      elseif (ele%name(1:6) == 'SCIR_V') then
+      elseif (ele%name(1:4) == 'SC_V') then
         do j = 101, size(cesr%v_steer_)
           if (ele%name == cesr%v_steer_(j)%name) then
             call insert_info (cesr%v_steer_(j), ele, i)
@@ -330,7 +312,7 @@ subroutine bmad_to_cesr (ring, cesr)
           endif
         enddo     
 
-      elseif (ele%name(1:8) == 'SCIR_CAM') then
+      elseif (ele%name(1:6) == 'SC_CAM') then
         do j = 1, size(cesr%scir_cam_rho_)
           if (ele%name == cesr%scir_cam_rho_(j)%name) then
             call insert_info (cesr%scir_cam_rho_(j), ele, i)
@@ -338,7 +320,7 @@ subroutine bmad_to_cesr (ring, cesr)
           endif
         enddo
 
-      elseif (ele%name(1:9) == 'SCIR_TILT') then
+      elseif (ele%name(1:7) == 'SC_TILT') then
         do j = 1, size(cesr%scir_tilt_)
           if (ele%name == cesr%scir_tilt_(j)%name) then
             call insert_info (cesr%scir_tilt_(j), ele, i)
@@ -382,6 +364,12 @@ subroutine bmad_to_cesr (ring, cesr)
            
 !-------------------------------------------------------------------
 ! check that we have loaded everything...
+! do not check Q01 and Q02's
+
+  if (cesr%quad_( 1)%ix_ring == 0) cesr%quad_( 1)%name = 'DUMMY'
+  if (cesr%quad_( 2)%ix_ring == 0) cesr%quad_( 2)%name = 'DUMMY'
+  if (cesr%quad_(97)%ix_ring == 0) cesr%quad_(97)%name = 'DUMMY'
+  if (cesr%quad_(98)%ix_ring == 0) cesr%quad_(98)%name = 'DUMMY'
 
   call bmad_to_cesr_err_type (cesr%quad_,        'QUADRUPOLE')
   call bmad_to_cesr_err_type (cesr%sep_,         'SEPARATOR')
@@ -410,8 +398,8 @@ subroutine bmad_to_cesr_err_type (cesr_ele, str)
                                   cesr_ele(i)%name(:5) /= 'DUMMY') then
       bmad_status%ok = .false.
       if (bmad_status%type_out) then
-        type *, 'WARNING FROM BMAD_TO_CESR. ELEMENT NOT LOADED INTO'
-        type *, '        CESR STRUCT. ', str, ': ', cesr_ele(i)%name
+        type *, 'WARNING FROM BMAD_TO_CESR. ELEMENT: ', cesr_ele(i)%name
+        type *, '        NOT LOADED INTO CESR STRUCT: ', str
       endif
     endif
   enddo

@@ -1,64 +1,70 @@
 !+
-! Subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_twiss, 
+! Subroutine type2_ele (ele, type_zero_attrib, type_mat6, twiss_out, 
 !                                           type_control, ring, lines, n_lines)
 !
 ! Subroutine to put information on an element in a string array. 
-! See also the subroutine type_ele.
+! See also the subroutine: type_ele.
 !
 ! Modules needed:
 !   use bmad_struct
 !   use bmad_interface
 !
 ! Input:
-!   ELE              -- Ele_struct: Element
-!   TYPE_ZERO_ATTRIB -- Logical: If true then type all attributes even if the
-!                            attribute value is 0 (except for multipoles).
-!   TYPE_MAT6        -- Integer:
-!                          TYPE_MAT6 = 0   => Do not type ELE%MAT6
-!                          TYPE_MAT6 = 4   => Type 4X4 XY submatrix
-!                          TYPE_MAT6 = 6   => Type full 6x6 matrix
-!   TYPE_TWISS       -- Logical: If true then type the twiss parameters
-!                          at the end of the element.
-!   TYPE_CONTROL     -- Logical: If true then type control status.
-!   RING             -- Ring_struct: Needed for control typeout.
-!
-! Output
-!   LINES(*)         -- Character*(*): Character array to hold the output.
-!   N_LINES          -- Number of lines used
+!   ele          -- Ele_struct: Element
+!   type_zero_attrib  
+!                -- Logical: If true then type all attributes even if the
+!                   attribute value is 0 (except for multipoles).
+!   type_mat6    -- Integer:
+!                      type_mat6 = 0   => Do not type ELE%MAT6
+!                      type_mat6 = 4   => Type 4X4 XY submatrix
+!                      type_mat6 = 6   => Type full 6x6 matrix
+!   twiss_out    -- Integer: Type the Twiss parameters at
+!                   the end of the element?
+!                       = 0  => Do not type the Twiss parameters
+!                       = radians$  => Type Twiss, use radians for phi.
+!                       = degrees$  => Type Twiss, use degrees for phi.
+!                       = cycles$   => Type Twiss, use cycles (1 = 2pi) units.
+!   type_control -- Logical: If true then type control status.
+!   ring         -- Ring_struct: Needed for control typeout.
+!              
+! Output       
+!   lines(:)     -- Character*(*): Character array to hold the output.
+!   n_lines      -- Number of lines used
 !-
-
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/12 20:53:35  rwh24
+!DCS changes and two files added
+!
 !Revision 1.2  2001/09/27 18:32:01  rwh24
 !UNIX compatibility updates
 !
 
 #include "CESR_platform.inc"
 
-
-
-subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_twiss,  &
+subroutine type2_ele (ele, type_zero_attrib, type_mat6, twiss_out,  &
                                           type_control, ring, lines, n_lines)
 
   use bmad_struct
-  use bmad_interface      
+  use bmad_interface
 
   implicit none
 
   type (ele_struct)  ele
   type (ring_struct)  ring
 
-  integer i, j, n, type_mat6, ix, iv, ic, ct, n_lines, nl, i_max
+  integer i, j, n, twiss_out, type_mat6, ix, iv, ic, ct, n_lines
+  integer nl, nl2, i_max
 
   real coef, value(n_attrib_maxx), value2(n_attrib_maxx)
   real a(0:n_pole_maxx), b(0:n_pole_maxx)
   real knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 
   character*16 a_name, name, null_type / ' ' /
-  character*(*) lines(*)
-  character fmt*80, val_str*12
+  character*(*) lines(:)
+  character val_str*12, str*80
 
-  logical type_twiss, type_control, type_zero_attrib
+  logical type_control, type_zero_attrib
 
 ! Encode element name and type
 
@@ -238,18 +244,11 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_twiss,  &
     endif
   endif
 
-! Encode twiss info
+! Encode Twiss info
 
-  if (type_twiss) then
-    fmt = '(a, f11.4, 2f10.3, f10.4, 2f11.4)'
-    write (lines(nl+1), *)
-    write (lines(nl+2), '(10x, a)')  &
-            'Beta     Alpha     Gamma       Phi        Eta       Etap'
-    write (lines(nl+3), fmt) ' X:', ele%x%beta,  &
-                 ele%x%alpha, ele%x%gamma, ele%x%phi, ele%x%eta, ele%x%etap
-    write (lines(nl+4), fmt) ' Y:', ele%y%beta,  &
-                 ele%y%alpha, ele%y%gamma, ele%y%phi, ele%y%eta, ele%y%etap
-    nl = nl + 4
+  if (twiss_out > 0) then
+    call type2_twiss (ele, twiss_out, lines(nl+1:), nl2)
+    nl = nl + nl2
   endif
 
 ! Encode mat6 info

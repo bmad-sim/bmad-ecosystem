@@ -42,6 +42,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2001/10/12 20:53:35  rwh24
+!DCS changes and two files added
+!
 !Revision 1.3  2001/10/02 18:49:11  rwh24
 !More compatibility updates; also added many explicit variable declarations.
 !
@@ -50,7 +53,6 @@
 !
 
 #include "CESR_platform.inc"
-
 
 subroutine bmad_to_db (ring, db)
 
@@ -101,6 +103,9 @@ subroutine bmad_to_db_main (ring, db)
   call db_init_it (db%csr_qadd_cur, lbound(db%csr_qadd_cur, 1), &
           'CSR QADD CUR',    k1$,    db%node, cesr%quad_(101:nq100), 101)
 
+  call db_init_it (db%scir_quadcur, lbound(db%scir_quadcur, 1), &
+          'SCIR QUADCUR',    k1$,    db%node, cesr%quad_(111:114), 111)
+
   call db_init_it (db%csr_horz_cur, lbound(db%csr_horz_cur, 1), &
           'CSR HORZ CUR', hkick$, db%node, cesr%h_steer_(1:98), 1)
 
@@ -125,23 +130,14 @@ subroutine bmad_to_db_main (ring, db)
   call db_init_it (db%csr_sqewquad, lbound(db%csr_sqewquad, 1), &
           'CSR SQEWQUAD',    k1$,    db%node, cesr%skew_quad_(1:98), 1)
                            
+  call db_init_it (db%scir_skqucur, lbound(db%scir_skqucur, 1), &
+          'SCIR SKQUCUR',    k1$,    db%node, cesr%skew_quad_(111:114), 111)
+                           
   call db_init_it (db%csr_sqewsext, lbound(db%csr_sqewsext, 1), &
           'CSR SQEWSEXT',    k2$,    db%node, cesr%skew_sex_(1:4), 1)
 
-! for phase_iii
-
-  cesr_ele(1:4) = (/ cesr%quad_(1), cesr%quad_(2), & 
-                        cesr%quad_(97), cesr%quad_(98) /)
-  call db_init_it (db%scir_quadcur, 1, &
-          'SCIR QUADCUR',   k1$,    db%node, cesr_ele(1:4), 1)
-  db%scir_quadcur(3)%ix_cesrv = 97
-  db%scir_quadcur(4)%ix_cesrv = 98
-
   call db_init_it (db%scir_vertcur, lbound(db%scir_vertcur, 1), &
-          'SCIR VERTCUR', vkick$, db%node, cesr%v_steer_(101:104), 101)
-
-  call db_init_it (db%scir_skqucur, lbound(db%scir_skqucur, 1), &
-          'SCIR SKQUCUR',   k1$,    db%node, cesr%skew_quad_(101:104), 101)
+          'SCIR VERTCUR', vkick$, db%node, cesr%v_steer_(111:114), 111)
 
   call db_init_it (db%scir_sksxcur, lbound(db%scir_sksxcur, 1), &
           'SCIR SKSXCUR',   k1$,    db%node, cesr%skew_sex_(11:11), 11)
@@ -188,7 +184,7 @@ subroutine bmad_to_db_main (ring, db)
   db%csr_horz_cur(:)%dvar_dcu = -1.0e-6 * h_stren(1:98) / gev  
   db%csr_hbnd_cur(:)%dvar_dcu = -1.0e-6 * h_stren(101:106) / gev  
   db%csr_vert_cur(:)%dvar_dcu =  1.0e-6 * v_stren(1:98) / gev  
-  db%scir_vertcur(:)%dvar_dcu =  1.0e-6 * v_stren(101:104) / gev  
+  db%scir_vertcur(:)%dvar_dcu =  1.0e-6 * v_stren(111:114) / gev  
 
 ! separator calibration
 
@@ -229,28 +225,25 @@ subroutine bmad_to_db_main (ring, db)
 
   call get_ele_theory (ring, db%csr_sqewsext) 
   call get_ele_theory (ring, db%scir_sksxcur) 
-                           
+
 ! quad calibrations 
 
   call ring_to_quad_calib (ring, cesr, k_theory, k_base, len_quad, &
                               cu_per_k_gev, quad_tilt, dk_gev_dcu, cu_theory)
 
-  call non_db_set (db%quad_cur, cesr%quad_, k1$, 0)
-  db%quad_cur(1:98) = db%csr_quad_cur 
-  db%quad_cur(101:nq100) = db%csr_qadd_cur
+  call non_db_set (db%quad, cesr%quad_, k1$, 0)
+  db%quad(1:98) = db%csr_quad_cur 
+  db%quad(101:nq100) = db%csr_qadd_cur
+  db%quad(111:114) = db%scir_quadcur(:)
 
-  db%quad_cur(:)%var_theory = k_theory
-  db%quad_cur(:)%dvar_dcu = dk_gev_dcu / gev
-  db%quad_cur(:)%var_0 = db%quad_cur(:)%var_theory - &
-                                       cu_theory * db%quad_cur(:)%dvar_dcu
+  db%quad(:)%var_theory = k_theory
+  db%quad(:)%dvar_dcu = dk_gev_dcu / gev
+  db%quad(:)%var_0 = db%quad(:)%var_theory - &
+                                       cu_theory * db%quad(:)%dvar_dcu
 
-  db%csr_quad_cur = db%quad_cur(1:98)
-  db%csr_qadd_cur = db%quad_cur(101:nq100)
-  db%scir_quadcur = (/ db%quad_cur(1), db%quad_cur(2), &
-                             db%quad_cur(97), db%quad_cur(98) /) 
-
-  db%quad_tilt(:)%var_theory = quad_tilt(0:99) * pi / 180
-  db%qadd_tilt(:)%var_theory = quad_tilt(101:nq100) * pi / 180
+  db%csr_quad_cur = db%quad(1:98)
+  db%csr_qadd_cur = db%quad(101:nq100)
+  db%scir_quadcur = db%quad(111:114)
 
 ! Things not part of the CESR DB
 
@@ -258,8 +251,6 @@ subroutine bmad_to_db_main (ring, db)
   call non_db_set (db%wiggler, cesr%wig_, k1$, 1)
   call non_db_set (db%scir_cam_rho, cesr%scir_cam_rho_, rho$, 1)
   call non_db_set (db%scir_tilt, cesr%scir_tilt_, rho$, 1)
-  call non_db_set (db%quad_tilt, cesr%quad_(0:99), tilt$, 0)
-  call non_db_set (db%qadd_tilt, cesr%quad_(101:nq100), tilt$, 101)
 
 end subroutine
 

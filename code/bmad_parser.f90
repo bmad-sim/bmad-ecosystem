@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2001/10/12 20:53:34  rwh24
+!DCS changes and two files added
+!
 !Revision 1.4  2001/10/05 18:23:57  rwh24
 !Bug Fixes
 !
@@ -80,6 +83,7 @@ subroutine bmad_parser (in_file, ring)
   character*16 name_(n_ele_maxx)
   character delim*1, word_1*40, call_file*200
   character digested_file*200
+  character full_name*200
   character*200 path, basename
 
   real angle
@@ -635,7 +639,10 @@ subroutine bmad_parser (in_file, ring)
   ring%n_ele_max          = n_ele_ring
   ring%param%aperture_limit_on = .true.
   ring%n_ele_symm         = 0                     ! no symmetry point
-  ring%input_file_name    = in_file               ! save input file
+  inquire (file = in_file, name = full_name)      !! full input file_name
+  ix = index(full_name, ';')
+  if (ix /= 0) full_name = full_name(:ix-1)
+  ring%input_file_name    = full_name             ! save input file
   call set_symmetry (ring%param%symmetry, ring)   ! set ring.n_ele_use
   ring%ele_(0)%name = 'BEGINNING'                 ! Just a name
 

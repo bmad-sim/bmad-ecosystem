@@ -24,15 +24,17 @@
 !
 !-
 
+
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/12 20:53:35  rwh24
+!DCS changes and two files added
+!
 !Revision 1.2  2001/09/27 18:32:01  rwh24
 !UNIX compatibility updates
 !
 
 #include "CESR_platform.inc"
-
-
 
 subroutine type_ele (ele, type_zero_attrib, type_mat6, type_twiss,  &
                                                        type_control, ring)
@@ -49,8 +51,13 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_twiss,  &
 
 !
 
-call type2_ele (ele, type_zero_attrib, type_mat6, type_twiss,  &
+  if (type_twiss) then
+    call type2_ele (ele, type_zero_attrib, type_mat6, radians$, &
                                           type_control, ring, lines, n_lines)
+  else
+    call type2_ele (ele, type_zero_attrib, type_mat6, 0, &
+                                          type_control, ring, lines, n_lines)
+  endif
 
   do i = 1, n_lines
     print '(1x, a)', trim(lines(i))
