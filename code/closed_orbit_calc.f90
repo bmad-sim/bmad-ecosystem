@@ -1,7 +1,7 @@
 !+                           
 ! Subroutine closed_orbit_calc (ring, closed_orb, i_dim)
 !
-! Subroutine to calculate the closed orbit at the beginning of the ring.
+! Subroutine to calculate the closed orbit for a circular machine.
 ! Closed_orbit_calc uses the 1-turn transfer matrix to converge upon a  
 ! solution. closed_orb(0) is used as an initial guess to the closed orbit.
 !
@@ -17,14 +17,15 @@
 !   use bmad
 !
 ! Input:
-!   ring          -- Ring_struct: Ring to track through.
-!   closed_orb(0) -- Coord_struct, allocatable: Initial Guess.
-!     %vec(6)          This is used as the energy around which the closed orbit
+!   ring           -- Ring_struct: Ring to track through.
+!   closed_orb(0:) -- Coord_struct, allocatable: closed_orb(0) is the 
+!                      initial guess. closed_orb(0)%vec(6) is used
+!                      as the energy around which the closed orbit
 !                      is calculated if i_dim = 4.   
-!   i_dim         -- Integer: Dimensions to use
-!                   = 4  Transverse closed orbit at constant energy 
+!   i_dim          -- Integer: Dimensions to use
+!                    = 4  Transverse closed orbit at constant energy 
 !                        (dE/E = closed_orb(0)%vec(6))
-!                   = 6  Full closed orbit for 6x6 matrix.
+!                    = 6  Full closed orbit for 6x6 matrix.
 !   bmad_status -- Bmad status common block
 !     %exit_on_error -- If True then subroutine will terminate program
 !                         if the orbit does not converge.
@@ -32,8 +33,9 @@
 !                         a warning message if the orbit does not converge.
 !
 ! Output:
-!   closed_orb(:) -- Coord_struct, allocatable: Closed orbit.
-!   bmad_status   -- Bmad status common block
+!   closed_orb(0:) -- Coord_struct, allocatable: Closed orbit. closed_orb(i)
+!                      is the orbit at the exit end of the ith element.
+!   bmad_status    -- Bmad status common block
 !     %ok          -- Set False if orbit does not converge, True otherwise.
 !-
 

@@ -1,10 +1,8 @@
 !+
 ! Subroutine twiss_at_start (ring)
 !
-! Subroutine to calculate the twiss parameters at the start of the ring
-! Note: This subroutine calculates ring%ele%mat6 under the condition that
-! the RF is off. That is, that the longitudinal motion is "decoupled"
-! from the transverse.
+! Subroutine to calculate, for a circular machine, the closed 1-turn 
+! solution for the Twiss parameters at the start of the ring.
 !
 ! Modules needed:
 !   use bmad
@@ -18,8 +16,8 @@
 ! Output:
 !   ring
 !     %param%t1_no_RF --  Note: Only the linear part is computed.
-!     %ele_(0)%x      -- X Twiss parameters at the start of the ring.
-!     %ele_(0)%y      -- Y Twiss parameters at the start of the ring.
+!     %ele_(0)%x      -- "a" mode Twiss parameters at the start of the ring.
+!     %ele_(0)%y      -- "b" mode Twiss parameters at the start of the ring.
 !     %ele_(0)%c_mat  -- Coupling matrix.
 !     %x%tune         -- Fractional part of the tune in radians
 !     %y%tune         -- Fractional part of the tune in radians
