@@ -1,5 +1,5 @@
 !+
-! Subroutine SPLIT_RING (RING, S_SPLIT, IX_SPLIT, SPLIT_DONE)
+! Subroutine split_ring (ring, s_split, ix_split, split_done)
 !
 ! Subroutine to split a ring at a point. Subroutine will not split the ring
 ! if the split would create a "runt" element with length less than 10um
@@ -11,17 +11,20 @@
 !   use bmad
 !
 ! Input:
-!     RING    -- Ring_struct: Original ring structure.
-!     S_SPLIT -- Real(rdef): longitudinal distance at which ring is to be split.
+!     ring    -- Ring_struct: Original ring structure.
+!     s_split -- Real(rdef): Position at which ring is to be split.
 !
 ! Output:
-!     RING       -- Ring_struct: Modified ring structure.
-!     IX_SPLIT   -- Integer: Index of element just before the split.
-!     SPLIT_DONE -- Logical: .true. if ring was split
+!     ring       -- Ring_struct: Modified ring structure.
+!     ix_split   -- Integer: Index of element just before the split.
+!     split_done -- Logical: True if ring was split.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/03/18 20:34:09  dcs
+!Updated Documentation.
+!
 !Revision 1.6  2003/01/27 14:40:43  dcs
 !bmad_version = 56
 !
@@ -31,12 +34,8 @@
 !Revision 1.4  2002/01/08 21:44:43  dcs
 !Aligned with VMS version  -- DCS
 !
-!Revision 1.3  2001/11/29 19:39:54  helms
-!Updates from DCS including (*) -> (:)
-!
 !Revision 1.2  2001/09/27 18:31:58  rwh24
 !UNIX compatibility updates
-!
 
 #include "CESR_platform.inc"
 
@@ -56,18 +55,19 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 
   integer i, j, k, ix, ix1, ix_del, ix1_del, ix2_del, ixx1
   integer ix_split, ix_lord, ixc, ix_attrib, ix_super_lord
-  integer icon, ix2, inc
+  integer icon, ix2, inc, nr
 
   logical split_done
 
-! check for s_split out of bounds
+! Check for s_split out of bounds.
 
-  if (s_split < 0 .or. s_split > ring%param%total_length) then
-    type *, 'ERROR IN SPLIT_RING: S_SPLIT NOT VALID: ', s_split
+  nr = ring%n_ele_ring
+  if (s_split < ring%ele_(0)%s .or. s_split > ring%ele_(nr)%s) then
+    type *, 'ERROR IN SPLIT_RING: POSITION OF SPLIT NOT WITHIN RING: ', s_split
     call err_exit
   endif
 
-! find where to split
+! Find where to split.
 
   do ix_split = 0, ring%n_ele_ring   
     if (abs(ring%ele_(ix_split)%s - s_split) < 1.0e-5) then
@@ -91,8 +91,9 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
     call err_exit
   endif
 
-! insert a new element
-! note: ring.control_().ix_ele pointers to ix_split will now point to ix_split+1
+! Insert a new element.
+! Note: Any ring.control_()%ix_ele pointing to ix_split will now 
+!  point to ix_split+1.
 
   ele%value(l$) = 0       ! so no s recalc with insert_element
   call insert_element (ring, ele, ix_split)
