@@ -182,6 +182,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   call init_ele (in_ring%ele_(0))
   in_ring%ele_(0)%name = 'BEGINNING'     ! Beginning element
   in_ring%ele_(0)%key = init_ele$
+  call mat_make_unit (in_ring%ele_(0)%mat6)
 
   n_max => in_ring%n_ele_max
   n_max = 0                              ! Number of elements encountered
