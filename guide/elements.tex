@@ -56,19 +56,13 @@ The list of element classes known to \bmad is shown in Table~\ref{t:elements}.
 \tt 
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  a$n$, b$n$ multipoles  & \ref{s:multip}  & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   &                            &                 \HH
+  a$n$, b$n$ multipoles  & \ref{s:multip}  & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
 \end{tabular}
 \end{center}
 \toffset
-
-Attributes specific to an \vn{AB_Multipole} element are:
-\index{Lrad}
-\begin{example}
-  lrad = Real     ! Fictitious length for synch radiation calculations.
-\end{example}
 
 An \vn{AB_Multipole} is a thin multipole lens up to 20th order. The only
 difference between this and a \vn{Multipole} is the input format. 
@@ -77,9 +71,11 @@ and \vn{b$n$}, $n$ is in the range 0 through 20.
 
 \index{x_pitch}
 \index{y_pitch}
-\vn{lrad} is a fictitious length that is used for synchrotron radiation
-computations but does not affect any tracking or transfer map calculations. 
-The \vn{x_pitch} and \vn{y_pitch} attributes are not used in tracking.
+The length \vn{l} is a fictitious length that is used for synchrotron
+radiation computations and affects the longitudinal position of the
+next element but does not affect any tracking or transfer map
+calculations.  The \vn{x_pitch} and \vn{y_pitch} attributes are not
+used in tracking.
 
 Like a \mad \vn{multipole}, An \vn{AB_Multipole} will affect the
 reference orbit if there is a dipole component. 
@@ -421,10 +417,9 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  symplectify            & \ref{s:symp}    & offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & offsets, pitches, and tilt & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
-  Description strings    & \ref{s:string}  &                            &                 \HH 
 \end{tabular}
 \end{center}
 \toffset
@@ -998,19 +993,15 @@ Example:
 \end{center}
 \toffset
 
-Attributes specific to an \vn{AB_Multipole} element are:
-\index{Lrad}
-\begin{example}
-  lrad = Real     ! Fictitious length for synch radiation calculations.
-\end{example}
-
 A \vn{Multipole} is a thin multipole lens up to 20th order. The only
 difference between this and an \vn{AB_Multipole} is the input format. See the 
 Magnetic fields section \ref{s:multip} for more details.
 
-\index{Lrad}
-\vn{lrad} is a fictitious length that is used for synchrotron radiation
-computations but does not affect any tracking or transfer map calculations. 
+\index{L}
+The length \vn{l} is a fictitious length that is used for synchrotron
+radiation computations and affects the longitudinal position of the
+next element but does not affect any tracking or transfer map
+calculations.
 
 Like a \mad \vn{multipole}, A \bmad \vn{Multipole} will affect the
 reference orbit if there is a dipole component. 
