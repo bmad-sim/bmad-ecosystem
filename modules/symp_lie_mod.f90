@@ -80,7 +80,7 @@ contains
 subroutine track_it (start, real_track, local_calc_mat6)
 
   type (coord_struct) start
-  logical real_track, local_calc_mat6
+  logical real_track, local_calc_mat6, err
 
 ! init
 
@@ -91,6 +91,7 @@ subroutine track_it (start, real_track, local_calc_mat6)
   rel_E3 = rel_E**3
 
   end = start
+  err = .false.
 
 ! element offset 
 
@@ -133,24 +134,11 @@ subroutine track_it (start, real_track, local_calc_mat6)
     endif
 
     call update_wig_coefs (local_calc_mat6)
-    call update_wig_y_terms
+    call update_wig_y_terms (err); if (err) return
 
 ! loop over all steps
 
     do i = 1, ele%num_steps
-
-! check for overflow
-
-      if (maxval(abs(ele%wig_term(:)%kx * end%vec(1))) > 30 .or. &
-                  maxval(abs(ele%wig_term(:)%ky * end%vec(3))) > 30) then
-        print *, 'ERROR IN SYMP_LIE_BMAD: ', &
-                                     'FLOATING OVERFLOW IN WIGGLER TRACKING.'
-        print *, '      PARTICLE WILL BE TAGGED AS LOST.'
-        param%lost = .true.
-        end%vec(1) = 2 * bmad_com%max_aperture_limit
-        end%vec(3) = 2 * bmad_com%max_aperture_limit
-        return
-      endif
 
 ! s half step
 
@@ -162,10 +150,10 @@ subroutine track_it (start, real_track, local_calc_mat6)
 
 ! Drift_2 = (P_y - a_y)**2 / (2 * (1 + dE))
 
-      call update_wig_x_s_terms
+      call update_wig_x_s_terms (err); if (err) return
       call apply_wig_exp_int_ay (-1, local_calc_mat6)
       call apply_p_y (local_calc_mat6)
-      call update_wig_y_terms
+      call update_wig_y_terms (err); if (err) return
       call apply_wig_exp_int_ay (+1, local_calc_mat6)
 
 ! Kick = a_z
@@ -182,7 +170,7 @@ subroutine track_it (start, real_track, local_calc_mat6)
 
       call apply_wig_exp_int_ay (-1, local_calc_mat6)
       call apply_p_y (local_calc_mat6)
-      call update_wig_y_terms
+      call update_wig_y_terms (err); if (err) return
       call apply_wig_exp_int_ay (+1, local_calc_mat6)
 
 ! Drift_1
@@ -269,6 +257,25 @@ subroutine track_it (start, real_track, local_calc_mat6)
   endif
 
   if (real_track) call offset_particle (ele, param, end, unset$, set_canonical = .false.)
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+subroutine err_set (err)
+
+  logical err
+
+!
+
+  print *, 'ERROR IN SYMP_LIE_BMAD: FLOATING OVERFLOW IN WIGGLER TRACKING.'
+  print *, '      PARTICLE WILL BE TAGGED AS LOST.'
+  param%lost = .true.
+  end%vec(1) = 2 * bmad_com%max_aperture_limit
+  end%vec(3) = 2 * bmad_com%max_aperture_limit
+  err = .true.
 
 end subroutine
 
@@ -470,9 +477,10 @@ end subroutine
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine update_wig_y_terms
+subroutine update_wig_y_terms (err)
 
   real(rp) kyy
+  logical err
 
   do j = 1, size(ele%wig_term)
     wt => ele%wig_term(j)
@@ -484,6 +492,10 @@ subroutine update_wig_y_terms
       tm(j)%c1_ky2 = end%vec(3)**2 / 2
       if (wt%type == hyper_x$) tm(j)%c1_ky2 = -tm(j)%c1_ky2 
     elseif (wt%type == hyper_y$ .or. wt%type == hyper_xy$) then
+      if (abs(kyy) > 30) then
+        call err_set (err)
+        return
+      endif
       tm(j)%c_y = cosh(kyy)
       tm(j)%s_y = sinh(kyy)
       tm(j)%s_y_ky = tm(j)%s_y / wt%ky
@@ -502,9 +514,12 @@ end subroutine
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine update_wig_x_s_terms
+subroutine update_wig_x_s_terms (err)
 
   real(rp) kxx, kzz
+  logical err
+
+!
 
   do j = 1, size(ele%wig_term)
     wt => ele%wig_term(j)
@@ -515,6 +530,10 @@ subroutine update_wig_x_s_terms
       tm(j)%s_x = kxx
       tm(j)%s_x_kx = end%vec(1)
     elseif (wt%type == hyper_x$ .or. wt%type == hyper_xy$) then
+      if (abs(kxx) > 30) then
+        call err_set (err)
+        return
+      endif
       tm(j)%c_x = cosh(kxx)
       tm(j)%s_x = sinh(kxx)
       tm(j)%s_x_kx = tm(j)%s_x / wt%kx
