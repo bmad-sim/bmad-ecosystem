@@ -82,7 +82,7 @@ subroutine do_vsp_eles (ring, i_vsep, ix_, ele_type)
   implicit none
 
   type (ring_struct)  ring
-  type (control_struct)  con_(1)
+  type (control_struct)  contl(1)
 
   integer i_vsep, ix_(3), ele_type, i, i_con
 
@@ -97,9 +97,9 @@ subroutine do_vsp_eles (ring, i_vsep, ix_, ele_type)
 
   ring%ele_(i_vsep)%type = ' '
 
-  con_(1)%ix_attrib = vkick$
-  con_(1)%coef = 1.0
-  con_(1)%ix_slave = i_vsep
+  contl(1)%ix_attrib = vkick$
+  contl(1)%coef = 1.0
+  contl(1)%ix_slave = i_vsep
   vkick = ring%ele_(i_vsep)%value(vkick$)
 
   do i = 1, 3
@@ -109,9 +109,9 @@ subroutine do_vsp_eles (ring, i_vsep, ix_, ele_type)
     write (ring%ele_(i_con)%type, '(a, i4)') 'CSR VSP VOLT', ix_(i)
 
     if (ele_type == group$) then
-      call create_group (ring, i_con, 1, con_)
+      call create_group (ring, i_con, contl(1:1))
     elseif (ele_type == overlay$) then
-      call create_overlay (ring, i_con, vkick$, 1, con_)
+      call create_overlay (ring, i_con, 'VKICK', contl(1:1))
       if (i == 2 .or. i == 3) ring%ele_(i_con)%value(vkick$) = vkick / 2
     else
       print *, 'ERROR IN CREATE_VSP_VOLT_ELEMENTS: BAD ELE_TYPE: ', ele_type

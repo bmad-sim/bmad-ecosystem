@@ -37,11 +37,8 @@ subroutine db_group_to_bmad_group (group_name, group_num, i_biggrp, &
   type (control_struct) con_(100)
   type (db_struct) db
 
-  integer n_con, k, j, n, nn, ix
-  integer group_num, ix_ele, i_biggrp
-
+  integer n_con, group_num, ix_ele, i_biggrp, ix
   character*12 group_name
-                                                
   logical ok, type_err
 
 !                                          
@@ -64,7 +61,7 @@ subroutine db_group_to_bmad_group (group_name, group_num, i_biggrp, &
     ring%ele_(ix_ele)%name(ix:ix) = '_'
   enddo
 
-  call create_group (ring, ix_ele, n_con, con_)
+  call create_group (ring, ix_ele, con_(1:n_con))
 
 end subroutine
                                                              

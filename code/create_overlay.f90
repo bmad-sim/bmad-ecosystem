@@ -1,5 +1,5 @@
 !+
-! Subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
+! Subroutine create_overlay (ring, ix_overlay, attrib_name, contl)
 !
 ! Subroutine to add the controller information to slave elements of
 ! an overlay_lord.
@@ -8,15 +8,14 @@
 !   use bmad
 !
 ! Input:
-!   ring       -- Ring_struct: Ring to modify.
-!   ix_overlay -- Integer: Index of overlay element.
-!   ix_value   -- Integer: Index of variable in RING%ELE_(IX_OVERLAY)%VALUE()
-!                       that will be varied.
-!   n_slave    -- Integer: Number of slaves
-!   con_(:)    -- Control_struct: control info. 1 element for each slave.
-!     %ix_slave  -- Index of element to control
-!     %ix_attrib -- Index of attribute controlled
-!     %coef      -- Coefficient
+!   ring        -- Ring_struct: Ring to modify.
+!   ix_overlay  -- Integer: Index of overlay element.
+!   attrib_name -- Character(16): Name of attribute in the overlay that is
+!                     to be varied.
+!   contl(:)      -- Control_struct: control info. 1 element for each slave.
+!     %ix_slave   -- Index of element to control
+!     %ix_attrib  -- Index of attribute controlled
+!     %coef       -- Coefficient
 !
 ! Output:
 !   ring    -- Ring_struct: Modified ring.
@@ -24,26 +23,25 @@
 ! Note: Use NEW_CONTROL to get an index for the overlay element
 !
 ! Example:
-!   call new_control (ring, ix_ele)        ! get IX_ELE index
-!   ring%ele_(ix_ele)%name = 'OVERLAY1'    ! overlay name
-!   ring%ele_(ix_ele)%value(k1$) = 0       ! start at zero
-!   n_control = 2                          ! control 2 elements
+!   call new_control (ring, ix_ovr)      ! get index of overlay in ring%ele_
+!   ring%ele_(ix_ovr)%name = 'OVERLAY1'  ! overlay name
+!   ring%ele_(ix_ovr)%value(k1$) = 0.1   ! starting value
 !
-!   con_(1)%ix_slave = 10   ! RING%ELE_(10) is, say, a quadrupole.
-!   con_(1)%ix_attrib = k1$ ! The overlay controls the quadrupole strength.
-!   con_(1)%coef = 0.1      ! A change in the overlay value of 1 produces
-!                           !    a change of 0.1 in k1 of element 10.
+!   contl(1)%ix_slave = 10   ! RING%ELE_(10) is, say, a quadrupole.
+!   contl(1)%ix_attrib = k1$ ! The overlay controls the quadrupole strength.
+!   contl(1)%coef = 0.1      ! A change in the overlay value of 1 produces
+!                            !    a change of 0.1 in k1 of element 10.
 !
-!   con_(2)%ix_slave = 790  ! RING%ELE_(790) is, say, a sextupole.
-!   con_(2)%ix_attrib = k2$ ! The overlay controls the sextupole strength.
-!   con_(2)%coef = -0.1     ! make changes antisymmetric.
+!   contl(2)%ix_slave = 790  ! RING%ELE_(790) is, say, a sextupole.
+!   contl(2)%ix_attrib = k2$ ! The overlay controls the sextupole strength.
+!   contl(2)%coef = -0.1     ! make changes antisymmetric.
 !
-!   call create_overlay (ring, ix_ele, k1$, 2, con_)  ! create the overlay
+!   call create_overlay (ring, ix_ovr, 'K1', contl(1:2))  ! create the overlay
 !-
 
 #include "CESR_platform.inc"
 
-subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
+subroutine create_overlay (ring, ix_overlay, attrib_name, contl)
 
   use bmad_struct
   use bmad_interface
@@ -53,14 +51,18 @@ subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
 
   type (ring_struct), target :: ring
   type (ele_struct), pointer :: slave, lord
-  type (control_struct)  con_(:)
+  type (control_struct)  contl(:)
 
   integer i, j, ix, ix2, ixc, ix_overlay, n_con2
-  integer ix_slave, n_slave, ix_value, slave_type, idel
+  integer ix_slave, n_slave, ix_attrib, slave_type, idel
+
+  character(*) attrib_name
+  character(16) at_name
 
 ! Mark element as an overlay lord
 
   lord => ring%ele_(ix_overlay)
+  n_slave = size (contl)
 
   ix = ring%n_control_max
   n_con2 = ix + n_slave
@@ -68,17 +70,26 @@ subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
                       ring%control_ => reallocate (ring%control_, n_con2+500)
 
   do j = 1, n_slave
-    ring%control_(ix+j) = con_(j)
+    ring%control_(ix+j) = contl(j)
     ring%control_(ix+j)%ix_lord = ix_overlay
   enddo
 
-  lord%ix_value = ix_value
   lord%n_slave = n_slave
   lord%ix1_slave = ix + 1
   lord%ix2_slave = ix + n_slave
   lord%control_type = overlay_lord$
   lord%key = overlay$
   ring%n_control_max = n_con2
+
+  call str_upcase (at_name, attrib_name)
+  ix_attrib =  attribute_index (lord, at_name)
+  if (ix_attrib == 0) then
+    print *, 'ERROR IN CREATE_OVERLAY: BAD ATTRIBUTE_NAME: ', attrib_name
+    print *, '      TRYING TO CREATE OVERLAY: ', lord%name
+    call err_exit
+  endif
+  lord%attribute_name = at_name
+  lord%ix_value = ix_attrib
 
 ! Loop over all slaves
 ! Free elements convert to overlay slaves.

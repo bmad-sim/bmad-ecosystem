@@ -94,6 +94,11 @@ function attribute_index (ele, name) result (at_index)
       enddo
     enddo
 
+    if (name16 == 'CURRENT') then
+      at_index = current$
+      return
+    endif
+
 ! else only search this type of element
 
   elseif (key > 0 .and. key <= n_key) then
