@@ -139,42 +139,42 @@ The heart of the plotting is in the subroutine \vn{plot_it} beginning
 on line 18. The namelist read on line 28 shows how both parameters and
 data can be stored in the same file so that a plotting program can be
 automatically told what the appropriate plot labels are. The
-\vn{qp_draw_text} call on line 35 draws the title above the two graphs.
+\vnr{qp_draw_text} call on line 35 draws the title above the two graphs.
 
-The \vn{qp_read_data} routine on line 29 will skip any ``header''
+The \vnr{qp_read_data} routine on line 29 will skip any ``header''
 lines (lines that do not begin with something that looks like a
-number). In this instance \vn{qp_read_data} will read the first, third
+number). In this instance \vnr{qp_read_data} will read the first, third
 forth and fifth data columns and put them into the \vn{x}, \vn{y},
 \vn{z}, and \vn{t} arrays.
 
-\vn{qp_set_page_border}, \vn{qp_set_box}, and \vn{qp_set_margin} sets
+\vnr{qp_set_page_border}, \vnr{qp_set_box}, and \vnr{qp_set_margin} sets
 where the graph is going to be placed (see below for more details).
-\vn{qp_set_box(1, 1, 2, 1)} on line 38 tells \quickplot to put the
-first graph in the left box of a 2 box grid. The \vn{qp_set_margin} on
+\vnr{qp_set_box(1, 1, 2, 1)} on line 38 tells \quickplot to put the
+first graph in the left box of a 2 box grid. The \vnr{qp_set_margin} on
 line 34 sets the margins between the box and the graph axes.
 
-\vn{qp_calc_and_set_axis} on lines 39 and 40 are used to scale the
+\vnr{qp_calc_and_set_axis} on lines 39 and 40 are used to scale the
 axes. \vn{"ZERO_AT_END"} ensures that the $x$--axis starts (or stops)
-at zero.  \vn{qp_calc_and_axis_axis} is told to restrict the number of
+at zero.  \vnr{qp_calc_and_axis_axis} is told to restrict the number of
 major divisions to be between 4 and 8. For the horizontal axis, as can be
 seen in Figure~\ref{f:plot_out}, it chooses 5 divisions.
 
 After drawing the first data curve (the solid curve) in the left
-graph, the routines \vn{qp_set_symbol_attrib} and
-\vn{qp_set_line_attrib} are called on lines 44 and 45 to plot the next
+graph, the routines \vnr{qp_set_symbol_attrib} and
+\vnr{qp_set_line_attrib} are called on lines 44 and 45 to plot the next
 data curve in blue with a dashed line style. By default this curve
 goes where the last one did: in the left graph. To keep the setting of
 the line and symbol attributes from affecting other plots the routines
-\vn{qp_save_state} and \vn{qp_restore_state} on lines 43 and 47 are
-used. \vn{qp_save_state} saves the current attributes in a attribute
-stack. \vn{qp_restore_state} restores the saved attributes from the
-attribute stack. \vn{qp_draw_data} on line 46 is similar to
-\vn{qp_draw_graph} except only the data is drawn. Not the axes and
+\vnr{qp_save_state} and \vnr{qp_restore_state} on lines 43 and 47 are
+used. \vnr{qp_save_state} saves the current attributes in a attribute
+stack. \vnr{qp_restore_state} restores the saved attributes from the
+attribute stack. \vnr{qp_draw_data} on line 46 is similar to
+\vnr{qp_draw_graph} except only the data is drawn. Not the axes and
 associated labels.
 
 Lines 50 through 57 draw the third curve in the right hand graph.
 Line 55 labels the \vn{y2} (right hand) axis. The syntax of the
-string arguments of \vn{qp_draw_graph} in lines 41 and 56/57 comes
+string arguments of \vnr{qp_draw_graph} in lines 41 and 56/57 comes
 from PGPLOT and allows special symbols along with subscripts and
 superscripts.
 
@@ -209,13 +209,13 @@ will be clipped (if clipping is turned on) and the WINDOW defines the
 plot area. I'm not sure why PGPLOT makes a distinction, but VIEWPORT and
 WINDOW are always the same region.
 
-\vn{qp_open_page} determines the size of the \vn{page} if it is
+\vnr{qp_open_page} determines the size of the \vn{page} if it is
 settable (like for X--windows). The page is divided up into a grid of
 boxes. For example, in Figure~\ref{f:plot_coords}, the grid is 1 box
 wide by 3 boxes tall. The border between the grid of boxes and the
-edges of the page are set by \vn{qp_set_page_border}.  The box that
-the graph falls into is set by \vn{qp_set_box}. The default is to have
-no margins with 1 box covering the entire page. The \vn{qp_set_margin}
+edges of the page are set by \vnr{qp_set_page_border}.  The box that
+the graph falls into is set by \vnr{qp_set_box}. The default is to have
+no margins with 1 box covering the entire page. The \vnr{qp_set_margin}
 routine sets the distance between the box edges and the axes.
 
 
@@ -226,7 +226,7 @@ routine sets the distance between the box edges and the axes.
 
 Typically there is an optional \vn{units} argument for \quickplot routines that
 have length and/or position arguments. For example, using \vn{getf} one can
-see that the arguments for \vn{qp_draw_rectangle} are
+see that the arguments for \vnr{qp_draw_rectangle} are
 \begin{example}
   Subroutine qp_draw_rectangle (x1, x2, y1, y2, units, color, width, style, clip)
 \end{example}
@@ -271,7 +271,7 @@ If the \vn{corner} is specified then the \vn{ref_object} must appear also.
  \item 
 Everything must be in upper case.
  \item 
-For some routines (\vn{qp_set_margin}, etc.) only a relative distance
+For some routines (\vnr{qp_set_margin}, etc.) only a relative distance
 is needed. In this case the \vn{ref_object/corner} part, if present,
 is ignored.
  \item 
@@ -280,7 +280,7 @@ present the default units will be used. There are actually two
 defaults: The draw default is used for drawing text, symbols, or whatever.
 The set default is used for setting margins, and other lengths.
 Initially the draw default is \vn{DATA/GRAPH/LB} and the set
-default is \vn{INCH/PAGE/LB}. use \vn{qp_set_default} to change this.
+default is \vn{INCH/PAGE/LB}. use \vnr{qp_set_default} to change this.
 \end{itemize}
 Examples:
 \begin{example}
@@ -302,16 +302,16 @@ respectively as shown in Figure~\ref{f:plot_coords}. Normally the
 \vn{X2} axis mirrors the \vn{X} axis and the \vn{Y2} axis mirrors the
 \vn{Y} axis in that the tick marks and axis numbering for the \vn{X2}
 and \vn{Y2} axes are the same as the \vn{X} and \vn{Y} axes
-respectively. \vn{qp_set_axis} can be used to disable mirroring. For example:
+respectively. \vnr{qp_set_axis} can be used to disable mirroring. For example:
 \begin{example}
   call qp_set_axis ("Y2", mirror = .false.)  ! y2-axis now independent of y.
 \end{example}
-\vn{qp_set_axis} can also be used to set \vn{Y2} axis parameters (axis
+\vnr{qp_set_axis} can also be used to set \vn{Y2} axis parameters (axis
 minimum, maximum, etc.). 
 
 Note that the default is for the \vn{X2} and \vn{Y2} axis numbering
 not to be shown. To enable or disable axis numbering again use
-\vn{qp_set_axis}. For example:
+\vnr{qp_set_axis}. For example:
 \begin{example}
   call qp_set_axis ("Y2", draw_numbers = .true.)  ! draw y2 axis numbers
 \end{example}
@@ -465,7 +465,7 @@ PGPLOT defines a text background index:
 \index{Quick_Plot!structures}
 
 \quickplot uses several structures to hold data. The structure that
-defines a line is called a \vn{qp_line_struct} and is shown in
+defines a line is called a \vni{qp_line_struct} and is shown in
 Figure~\ref{f:qp_line_struct}. 
 \begin{figure}[htb]
 \centering
@@ -476,11 +476,11 @@ Figure~\ref{f:qp_line_struct}.
     integer style   ! Line style. Default = solid\$
   end type
 \end{verbatim}
-\caption{Definition of the \vn{qp\_line\_struct}.}
+\caption{Definition of the \vni{qp\_line\_struct}.}
 \label{f:qp_line_struct}
 \end{figure}
 
-The \vn{qp_symbol_struct} defines how symbols are drawn and is shown
+The \vni{qp_symbol_struct} defines how symbols are drawn and is shown
 in Figure~\ref{f:qp_sym_struct}.
 \begin{figure}[htb]
 \centering
@@ -493,11 +493,11 @@ in Figure~\ref{f:qp_sym_struct}.
     integer  line_width  ! Default = 1
   end type
 \end{verbatim}
-\caption{Definition of the \vn{qp\_sym\_struct}.}
+\caption{Definition of the \vni{qp\_sym\_struct}.}
 \label{f:qp_sym_struct}
 \end{figure}
 
-The \vn{qp_axis_struct} defines how axes are drawn and is shown
+The \vni{qp_axis_struct} defines how axes are drawn and is shown
 in Figure~\ref{f:qp_axis_struct}.
 \begin{figure}[htb]
 \centering
@@ -521,6 +521,6 @@ in Figure~\ref{f:qp_axis_struct}.
     logical draw_numbers      ! Draw the numbering?
   end type
 \end{verbatim}
-\caption{Definition of the \vn{qp\_axis\_struct}.}
+\caption{Definition of the \vni{qp\_axis\_struct}.}
 \label{f:qp_axis_struct}
 \end{figure}

@@ -61,7 +61,7 @@ Fortran90, the Art of Parallel Scientific Computing''\cite{b:nr}.
 The first book explains how the subroutines work and the second book
 explains what the argument lists for the Fortran90 version of the
 subroutines are. You do need both books if you want to use Numerical
-Recipes.  For \bmad this library has been modified to handle both
+Recipes. For \bmad this library has been modified to handle both
 single or double precision reals as needed in the other libraries (See
 \sref{s:precision}).
 
@@ -87,6 +87,11 @@ XSIF is a library from SLAC to read in XSIF format files. See
 \bmad routine to use this library is \vn{xsif_parser}.
 
 \end{description}
+
+The \bmad distribution also contains the \tao library. \tao is a program 
+which uses \bmad as the simulation engine and is meant as a general 
+purpose tool for simulating accelerators. See the \tao documentation, which 
+can be obtained from the \bmad web page, for more information.
 
 %-----------------------------------------------------------------------------
 \section{Getf and Listf}
@@ -176,13 +181,12 @@ For example, the \vn{listf *locator*} command would produce
 \end{example}
 
 The way \vn{getf} and \vn{listf} work is that they search a list of
-directories to find the \bmad, \vn{dcslib}, and \vn{cesr_utils}
+directories to find the \vn{bmad}, \vn{dcslib}, \vn{cesr_utils}, and \vn{tao}
 libraries. Currently the libraries in the \bmad distribution that were
 not developed at Cornell are not searched. This is primarily due to
 the fact that, to save time, \vn{getf} and \vn{listf} make assumptions
-about file layout that the other libraries violate. In the future, if
-there is a demand for it, other libraries may be added to the search
-paths.
+about how documentation is arranged in a file and the non--Cornell libraries 
+do not follow this format.
 
 %-----------------------------------------------------------------------
 \section{Precision}
@@ -219,7 +223,7 @@ constant. For example
 Note that \vn{2_rp} is different from \vn{2.0_rp}. \vn{2_rp} is an
 integer of kind \vn{rp}, not a real.
 
-Independent of the setting of \vn{rp} the parameters \vn{sp} and
+Independent of the setting of \vn{rp}, the parameters \vn{sp} and
 \vn{dp} are defined to give single and double precision numbers
 respectively.
 
