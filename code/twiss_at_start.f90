@@ -47,7 +47,7 @@ subroutine twiss_at_start (ring)
 
   type (ring_struct)  ring
 
-  real(rp) eta_vec(4), t0_4(4,4), mat6(6,6)
+  real(rp) eta_vec(4), t0_4(4,4), mat6(6,6), error
   real(rp), save :: flip_mat(4,4), t_e(4,4), t_w_inv(4,4)
 
   integer i, j, n
@@ -80,6 +80,8 @@ subroutine twiss_at_start (ring)
     if (debug) then
       print *, '!------------------------------------', n
       call type_ele (ring%ele_(n), .false., 0, .false., 0, .false., ring)
+      call mat_symp_check (t0_4, error)
+      print *, 'Symplectic Check:', error
       do i = 1, 4
         print '(4f11.4, 5x, f11.4)', (t0_4(i, j), j = 1, 4), eta_vec(i)
       enddo

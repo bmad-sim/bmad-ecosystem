@@ -199,6 +199,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(patch$, y_offset$)   = 'Y_OFFSET'
     attrib_array(patch$, z_offset$)   = 'Z_OFFSET'
     attrib_array(patch$, dE_offset$)  = 'DE_OFFSET'
+    attrib_array(patch$, tilt$)       = 'TILT'
 
 
     attrib_array(rbend$, l$)          = 'L'

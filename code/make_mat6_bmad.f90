@@ -48,7 +48,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   real(rp) t5_11, t5_12, t5_22, t5_33, t5_34, t5_44, t5_14, t5_23
   real(rp) t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
   real(rp) t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
-  real(rp) lcs, lc2s2, error, rho, px, py, pz, k, L
+  real(rp) lcs, lc2s2, error, rho, px, py, pz, k, L, k_gradient
   real(rp) cos_phi, gradient, e_start, e_end, e_ratio
   real(rp) alpha, sin_a, cos_a, f, phase, E, pxy2, dE0
 
@@ -130,6 +130,13 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(5,1) =  ele%value(x_pitch$)
     mat6(5,3) =  ele%value(y_pitch$)
 
+    if (ele%value(tilt$) /= 0) then
+      cos_a = cos(ele%value(tilt$)) ; sin_a = sin(ele%value(tilt$))
+      mat6(1,1) =  cos_a ; mat6(2,2) =  cos_a
+      mat6(1,3) =  sin_a ; mat6(2,4) =  sin_a
+      mat6(3,1) = -sin_a ; mat6(4,2) = -sin_a
+      mat6(3,3) =  cos_a ; mat6(4,4) =  cos_a
+    endif
 
 !--------------------------------------------------------
 ! sbend
@@ -401,16 +408,29 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(6,5) = -ele%value(gradient$) * ele%value(l$) * f * sin(phase)
 
     cos_phi = cos(phase)
-    gradient = ele%value(gradient$) * cos_phi - ele%value(k_loss$) * &
-                                                           abs(param%charge)
-    e_start = ele%value(energy_start$) * (1 + c0%vec(6))
-    e_end = e_start + gradient * ele%value(l$)
-    e_ratio = e_end / e_start
+    gradient = ele%value(gradient$) * cos_phi
+    k_gradient = -ele%value(k_loss$) * abs(param%charge) 
 
-    if (gradient == 0) then
+    if (bmad_com%emulate_liar_bug) then
+      gradient = gradient + k_gradient
+      k_gradient = 0
+    endif
+
+    if (gradient == 0 .and. k_gradient == 0) then
       call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
       goto 8000  ! put in mulipole ends if needed
     endif
+
+! entrence kick
+
+    e_start = ele%value(energy_start$) * (1 + c0%vec(6))
+    k1 = -gradient / (2 * e_start)
+
+! body 
+
+    e_start = e_start + (k_gradient * ele%value(l$))/2
+    e_end = e_start + gradient * ele%value(l$)
+    e_ratio = e_end / e_start
 
     if (bmad_com%use_dimad_lcavity) then  ! use dimad formula
       r11 = 1
@@ -428,8 +448,11 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       r22 =  cos_a * e_start / e_end
     endif
 
-    k1 = -gradient / (2 * e_start)
+! exit kick
+
     k2 = +gradient / (2 * e_end)
+
+! put everything together
 
     mat6(1,1) = r11 + r12*k1
     mat6(1,2) = r12 

@@ -67,9 +67,9 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 
   integer j_in, i_out, ix_out(:), i, k, n
   integer n_ele, j, ix, ic, o_key, n_con, n_ic
-  integer, allocatable, save :: ic_(:)
+  integer, allocatable, save :: ic_(:), out_symmetry
 
-  logical init_hybrid_needed, remove_markers, keep_ele(:), out_symmetry
+  logical init_hybrid_needed, remove_markers, keep_ele(:)
   logical z_decoupled, do_taylor
   logical, optional :: use_taylor
 

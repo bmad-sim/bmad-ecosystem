@@ -1,5 +1,5 @@
 !+
-! subroutine MAKE_LRBBI(master_ring_oppos, ring, ix_LRBBI, master_ix_LRBBI)
+! subroutine MAKE_LRBBI(master_ring_oppos, ring, ix_LRBBI, master_ix_LRBBI_oppos)
 !
 ! This subroutine takes rings with markers for LRBBI's (like those created
 !   in MARK_LRBBI) and turns the marked locations into LRBBI elements. The
@@ -17,11 +17,10 @@
 !   ix_LRBBI(:,:)        -- Real(rp): First index (i) is the index of the ring
 !                           (i.e., bunch), second index (j) is the index of a
 !                           beam-beam element's position in ring(i).
-!   master_ix_LRBBI(:,:) -- Real(rp): First index (i) is the index of the
+!   master_ix_LRBBI_oppos(:,:) -- Real(rp): First index (i) is the index of the
 !                           ring, second index (j) is the index of a beam-beam
-!                           element (seen by the ith bunch) in the master_ring
-!                           and master_ring_oppos. This index is used to
-!                           calculate sigmas and offsets.
+!                           element (seen by the ith bunch) in the master_ring_oppos.
+!                           This index is used to calculate sigmas and offsets.
 !
 ! Output:
 !   ring(:)              -- Ring struct: Ring for each bunch with
@@ -40,7 +39,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine MAKE_LRBBI(master_ring_oppos, ring, ix_LRBBI, master_ix_LRBBI)
+subroutine MAKE_LRBBI(master_ring_oppos, ring, ix_LRBBI, master_ix_LRBBI_oppos)
 
   use bmad_struct
   use bmad_interface                     
@@ -59,7 +58,7 @@ subroutine MAKE_LRBBI(master_ring_oppos, ring, ix_LRBBI, master_ix_LRBBI)
 
   integer :: i,j
   integer, dimension(:,:) :: ix_LRBBI
-  integer, dimension(:,:) :: master_ix_LRBBI
+  integer, dimension(:,:) :: master_ix_LRBBI_oppos
   
 ! init
 
@@ -94,7 +93,6 @@ subroutine MAKE_LRBBI(master_ring_oppos, ring, ix_LRBBI, master_ix_LRBBI)
 
   emit_x = mode_oppos%a%emittance
   emit_y = emit_x * 0.01
-
   do j = 1, master_ring_oppos%n_ele_ring
     beta_x = master_ring_oppos%ele_(j)%x%beta
     beta_y = master_ring_oppos%ele_(j)%y%beta
@@ -108,15 +106,15 @@ subroutine MAKE_LRBBI(master_ring_oppos, ring, ix_LRBBI, master_ix_LRBBI)
 
     do j = 1, size(ix_LRBBI, 2)
       if (ix_lrbbi(i,j) == 0) cycle
-      ring(i)%ele_(ix_lrbbi(i,j))%value(sig_x$) = sigma_x(master_ix_LRBBI(i,j))
-      ring(i)%ele_(ix_lrbbi(i,j))%value(sig_y$) = sigma_y(master_ix_LRBBI(i,j))
+      ring(i)%ele_(ix_lrbbi(i,j))%value(sig_x$) = sigma_x(master_ix_LRBBI_oppos(i,j))
+      ring(i)%ele_(ix_lrbbi(i,j))%value(sig_y$) = sigma_y(master_ix_LRBBI_oppos(i,j))
       ring(i)%ele_(ix_lrbbi(i,j))%value(sig_z$) = sigma_z
     enddo
      
     do j = 1, size(ix_LRBBI, 2)
       if (ix_lrbbi(i,j) == 0) cycle
-      ring(i)%ele_(ix_lrbbi(i,j))%value(x_offset$) = orbit_oppos_(master_ix_lrbbi(i,j))%vec(1)
-      ring(i)%ele_(ix_lrbbi(i,j))%value(y_offset$) = orbit_oppos_(master_ix_lrbbi(i,j))%vec(3)
+      ring(i)%ele_(ix_lrbbi(i,j))%value(x_offset$) = orbit_oppos_(master_ix_lrbbi_oppos(i,j))%vec(1)
+      ring(i)%ele_(ix_lrbbi(i,j))%value(y_offset$) = orbit_oppos_(master_ix_lrbbi_oppos(i,j))%vec(3)
     enddo
         
   enddo

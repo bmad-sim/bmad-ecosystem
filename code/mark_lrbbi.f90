@@ -122,15 +122,15 @@ subroutine MARK_LRBBI(master_ring, master_ring_oppos, ring, crossings)
      master_ix_ele = master_ix_split + 1
      crossings(j,5) = master_ix_ele
 
-     if (split_done_2 == .true.) then
+     if (split_done_2) then
         call insert_element(master_ring, insert_ele, master_ix_ele)
      endif
 
-     if (split_done_1 == .true.) then
+     if (split_done_1) then
         call insert_element(master_ring_oppos, insert_ele, master_ix_ele)
      endif
 
-     if (split_done_3 == .true.) then
+     if (split_done_3) then
         call insert_element(ring(ring_index), insert_ele, ix_ele)
      endif
 

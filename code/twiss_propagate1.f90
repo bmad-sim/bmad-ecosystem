@@ -210,7 +210,7 @@ subroutine twiss_decoupled_propagate (ele1, ele2)
   if (del_phi < 0 .and. ele2%value(l$) >= 0) del_phi = del_phi + twopi
   if (del_phi > 0 .and. ele2%value(l$) < 0) del_phi = del_phi - twopi
 
-  if (ele2%mode_flip == ele1%mode_flip) then
+  if (ele2%mode_flip .eqv. ele1%mode_flip) then
     ele2%x%beta = b2
     ele2%x%alpha = a2
     ele2%x%gamma = g2
@@ -246,7 +246,7 @@ subroutine twiss_decoupled_propagate (ele1, ele2)
   if (del_phi < 0 .and. ele2%value(l$) >= 0) del_phi = del_phi + twopi
   if (del_phi > 0 .and. ele2%value(l$) < 0) del_phi = del_phi - twopi
 
-  if (ele2%mode_flip == ele1%mode_flip) then
+  if (ele2%mode_flip .eqv. ele1%mode_flip) then
     ele2%y%beta = b2
     ele2%y%alpha = a2
     ele2%y%gamma = g2

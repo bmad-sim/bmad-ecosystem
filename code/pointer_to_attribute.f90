@@ -62,15 +62,17 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
   if (ele%key == init_ele$) then
     select case (attrib_name)
     case ('X_POSITION')
-      ptr_attrib => ele%x_position
+      ptr_attrib => ele%position%x
     case ('Y_POSITION')
-      ptr_attrib => ele%y_position
+      ptr_attrib => ele%position%y
     case ('Z_POSITION')
-      ptr_attrib => ele%z_position
+      ptr_attrib => ele%position%z
     case ('THETA_POSITION')
-      ptr_attrib => ele%theta_position
+      ptr_attrib => ele%position%theta
     case ('PHI_POSITION')
-      ptr_attrib => ele%phi_position
+      ptr_attrib => ele%position%phi
+    case ('PSI_POSITION')
+      ptr_attrib => ele%position%psi
     case ('BETA_X')
       ptr_attrib => ele%x%beta
     case ('ALPHA_X')

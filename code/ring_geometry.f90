@@ -37,60 +37,146 @@ subroutine ring_geometry (ring)
   type (ring_struct)  ring
   type (ele_struct)  ele
 
-  integer i
+  integer i, key
 
-  real(8) theta_tot, x_pos, y_pos, chord_len, angle, leng
-  real(8) z_pos
+  real(8) chord_len, angle, leng, old_theta, rho
+  real(8) s_ang, c_ang, s_the, c_the, s_phi, c_phi, s_psi, c_psi
+  real(8) pos(3), theta, phi, psi
+  real(8) w_mat(3,3), s_mat(3,3), r_mat(3)
+  real(8) :: twopi_8 = 2 * 3.14159265358979
+
+! init
+! old_theta is used to tell if we have to reconstruct the w_mat
+
+  pos(1) = ring%ele_(0)%position%x
+  pos(2) = ring%ele_(0)%position%y
+  pos(3) = ring%ele_(0)%position%z
+  theta = ring%ele_(0)%position%theta
+  phi   = ring%ele_(0)%position%phi
+  psi   = ring%ele_(0)%position%psi
+
+  old_theta = 100  ! garbage number
 
 !
 
-  theta_tot = ring%ele_(0)%theta_position
-  x_pos = ring%ele_(0)%x_position
-  y_pos = ring%ele_(0)%y_position
-  z_pos = ring%ele_(0)%z_position
-
   do i = 1, ring%n_ele_ring
 
-    if (ele%key == patch$) then
-      print *, 'ERROR IN RING_GEOMETRY: PATCH NOT YET IMPLEMENTED!'
-      call err_exit      
-      cycle
-    endif
-
     ele = ring%ele_(i)
-    leng = dble(ele%value(l$))
+    leng = ele%value(l$)
+    key = ele%key
+    if (key == sbend$ .and. (leng == 0 .or. ele%value(g$) == 0)) key = drift$
 
-    if (ele%key == sbend$ .or. ele%key == rbend$) then
-      angle = dble(ele%value(l$)) * dble(ele%value(g$))
 
-      if (angle == 0) then
-        chord_len = 0
-      else
-        chord_len = 2 * leng * sin(angle/2) / angle
+! General case
+
+    if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
+                    (key == sbend$ .and. ele%value(tilt$) /= 0)) then
+
+      if (old_theta /= theta) then
+        s_the = sin(theta); c_the = cos(theta)
+        s_phi = sin(phi);   c_phi = cos(phi)
+        s_psi = sin(psi);   c_psi = cos(psi)
+        w_mat(1,1) =  c_the * c_psi - s_the * s_phi * s_psi
+        w_mat(1,2) = -c_the * s_psi - s_the * s_phi * c_psi
+        w_mat(1,3) =  s_the * c_phi
+        w_mat(2,1) =  c_phi * s_psi
+        w_mat(2,2) =  c_phi * c_psi
+        w_mat(2,3) =  s_phi 
+        w_mat(3,1) = -s_the * c_psi - c_the * s_phi * s_psi
+        w_mat(3,2) =  s_the * s_psi - c_the * s_phi * c_psi 
+        w_mat(3,3) =  c_the * c_phi
       endif
 
-      if (abs(modulo(ele%value(tilt$), twopi) - pi) < 1e-6) then
-        angle = -angle
-      elseif (ele%value(tilt$) /= 0) then
-        print *, 'ERROR IN RING_GEOMETRY: NON-PLAINER GEOMETRY NOT YET IMPLEMENTED!'
-        print *, '      FOR BEND: ', ele%name
-        print *, '      WITH TILT: ', ele%value(tilt$)
+!
+
+      select case (key)
+
+      case (sbend$)
+        angle = leng * dble(ele%value(g$))
+        rho = 1.0_8 / ele%value(g$)
+        s_ang = sin(angle); c_ang = cos(angle)
+        r_mat = (/ rho * (c_ang - 1), 0.0_8, rho * s_ang /)
+        s_mat(1,:) = (/ c_ang, 0.0_8, -s_ang /)
+        s_mat(2,:) = (/ 0.0_8, 1.0_8,  0.0_8 /)
+        s_mat(3,:) = (/ s_ang, 0.0_8,  c_ang /) 
+        pos = pos + matmul(w_mat, r_mat)
+        w_mat = matmul (w_mat, s_mat)
+
+      case (patch$)
+
+        angle = ele%value(x_pitch$)            ! x_pitch is negative MAD yrot
+        if (angle /= 0) then
+          s_ang = sin(angle); c_ang = cos(angle)
+          s_mat(1,:) = (/  c_ang, 0.0_8, s_ang /)
+          s_mat(2,:) = (/  0.0_8, 1.0_8, 0.0_8 /)
+          s_mat(3,:) = (/ -s_ang, 0.0_8, c_ang /) 
+          w_mat = matmul(w_mat, s_mat)
+        endif
+     
+        angle = ele%value(y_pitch$)            ! 
+        if (angle /= 0) then
+          s_ang = sin(angle); c_ang = cos(angle)
+          s_mat(1,:) = (/ 1.0_8,  0.0_8, 0.0_8 /)
+          s_mat(2,:) = (/ 0.0_8,  c_ang, s_ang /)
+          s_mat(3,:) = (/ 0.0_8, -s_ang, c_ang /) 
+          w_mat = matmul(w_mat, s_mat)
+        endif
+
+        angle = ele%value(tilt$)
+        if (angle /= 0) then
+          s_ang = sin(angle); c_ang = cos(angle)
+          s_mat(1,:) = (/ c_ang, -s_ang, 0.0_8 /)
+          s_mat(2,:) = (/ s_ang,  c_ang, 0.0_8 /)
+          s_mat(3,:) = (/ 0.0_8,  0.0_8, 1.0_8 /) 
+          w_mat = matmul(w_mat, s_mat)
+        endif
+
+        r_mat = (/ ele%value(x_offset$), ele%value(y_offset$), &
+                                                    ele%value(z_offset$) /)
+        pos = pos + matmul(w_mat, r_mat)
+
+      case default
+        pos = pos + w_mat(:,3) * leng
+
+      end select
+
+      if (key == sbend$ .or. key == patch$) then
+        theta = atan2 (w_mat(1,3), w_mat(3,3))
+        theta = theta - twopi_8 * &
+                       nint((theta - ring%ele_(i-1)%position%theta) / twopi_8)
+        phi = atan2 (w_mat(2,3), sqrt(w_mat(1,3)**2 + w_mat(3,3)**2))
+        psi = atan2 (w_mat(2,1), w_mat(2,2))
       endif
+
+      old_theta = theta
+
+! Simple case where the local reference frame stays in the horizontal plane.
 
     else
-      angle = 0.0D0
-      chord_len = leng
+
+      if (key == sbend$) then
+        angle = leng * dble(ele%value(g$))
+        chord_len = 2 * leng * sin(angle/2) / angle
+      else
+        angle = 0.0D0
+        chord_len = leng
+      endif
+
+      theta = theta - angle / 2
+      pos(1) = pos(1) + chord_len * sin(theta)
+      pos(3) = pos(3) + chord_len * cos(theta)
+      theta = theta - angle / 2
+
     endif
 
-    theta_tot = theta_tot - angle / 2
-    x_pos = x_pos + chord_len * sin(theta_tot)
-    z_pos = z_pos + chord_len * cos(theta_tot)
-    theta_tot = theta_tot - angle / 2
+!
 
-    ring%ele_(i)%theta_position = theta_tot
-    ring%ele_(i)%x_position = x_pos
-    ring%ele_(i)%y_position = 0
-    ring%ele_(i)%z_position = z_pos
+    ring%ele_(i)%position%x = pos(1)
+    ring%ele_(i)%position%y = pos(2)
+    ring%ele_(i)%position%z = pos(3)
+    ring%ele_(i)%position%theta = theta
+    ring%ele_(i)%position%phi   = phi
+    ring%ele_(i)%position%psi   = psi
 
   enddo
 

@@ -44,8 +44,9 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   implicit none
 
   type (ring_struct), target :: ring, in_ring
-  type (seq_struct), save, target :: this_seq(400)
+  type (seq_struct), save, target :: sequence_(1000)
   type (seq_struct), pointer :: seq, seq2
+  type (seq_ele_struct), target :: this_s_ele
   type (seq_ele_struct), pointer :: s_ele
   type (parser_ring_struct) pring
   type (seq_stack_struct) stack(20)
@@ -60,12 +61,12 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   integer i_lev, i_key, ic, ix_lord
   integer iseq, n_ele_ring, temp_maxx
   integer ix_super, digested_version, key, ct
-  integer ix1, ix2, iv, n_arg
+  integer ix1, ix2, iv, n_arg, iseq_tot
   integer ivar, ixx, j_lord, n_slave
   integer, pointer :: n_max
 
   character*(*) in_file
-  character(16) word_2, name, a_name, dummy_name(20)
+  character(16) word_2, name, a_name
   character(1) delim*1
   character(200) path, basename, full_name, digested_file
   character(40) this_name, word_1
@@ -146,10 +147,6 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   call init_ring (in_ring, 1000)
   call allocate_pring (in_ring, pring)
 
-  do i = 1, size(this_seq(:))
-    nullify (this_seq(i)%arg, this_seq(i)%ele)
-  enddo
-
   bmad_status%ok = .true.
   if (bmad_status%type_out) &
                         print *, 'BMAD_PARSER: Creating new digested file...'
@@ -160,7 +157,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   call file_stack('push', in_file, finished)   ! open file on stack
   if (.not. bmad_status%ok) return
   bp_com%parser_debug = .false.
-  bp_com%iseq_tot = 0                     ! number of sequences encountered
+  iseq_tot = 0                            ! number of sequences encountered
   bp_com%ivar_tot = 0                     ! number of variables encountered
   call init_bmad_parser_common
 
@@ -199,7 +196,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! get a line from the input file and parse out the first word
 
     call load_parse_line ('normal', 1, file_end)  ! load an input line
-    call get_next_word (word_1, ix_word, ':(,)=', delim, delim_found, .true.)
+    call get_next_word (word_1, ix_word, ':(,)= ', delim, delim_found, .true.)
     if (file_end) then
       word_1 = 'END_FILE'
       ix_word = 8
@@ -212,6 +209,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
     if (word_1(:ix_word) == 'PARSER_DEBUG') then
       bp_com%parser_debug = .true.
       bp_com%debug_line = bp_com%parse_line
+      call str_upcase (bp_com%debug_line, bp_com%debug_line)
       print *, 'FOUND IN FILE: "PARSER_DEBUG". DEBUG IS NOW ON'
       cycle parsing_loop
     endif
@@ -384,28 +382,15 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! if a "(" delimitor then we are looking at a replacement line.
 
     if (delim == '(') then
-      n_arg = 0
-      do
-        call get_next_word (word_2, ix_word, '(): =,', &
+      call get_sequence_args (word_1, sequence_(iseq_tot+1)%arg, &
+                                                       delim, err_flag)
+      if (err_flag) cycle parsing_loop
+      arg_list_found = .true.
+      call get_next_word (word_2, ix_word, '(): =,', &
                                                  delim, delim_found, .true.)
-        if (ix_word == 0 .or. delim == '( :=') then
-          call warning ('BAD ARGUMENT LIST FOR: ', word_1)
-          cycle parsing_loop
-        endif
-        n_arg = n_arg + 1
-        dummy_name(n_arg) = word_2
-        if (delim == ')') then
-          call get_next_word (word_2, ix_word, '(): =,', &
-                                                 delim, delim_found, .true.)
-          if (word_2 /= ' ') call warning &
+      if (word_2 /= ' ') call warning &
                   ('":" NOT FOUND AFTER REPLACEMENT LINE ARGUMENT LIST. ' // &
                   'FOUND: ' // word_2, 'FOR LINE: ' // word_1)
-          exit
-        endif
-      enddo
-      allocate (this_seq(bp_com%iseq_tot+1)%arg(n_arg))
-      this_seq(bp_com%iseq_tot+1)%arg(:)%dummy_name = dummy_name(1:n_arg)
-      arg_list_found = .true.
     else
       arg_list_found = .false.
     endif
@@ -437,21 +422,21 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! if line or list
 
     if (word_2(:ix_word) == 'LINE' .or. word_2(:ix_word) == 'LIST') then
-      bp_com%iseq_tot = bp_com%iseq_tot + 1
-      if (bp_com%iseq_tot > size(this_seq)-1) then
+      iseq_tot = iseq_tot + 1
+      if (iseq_tot > size(sequence_)-1) then
         print *, 'ERROR IN BMAD_PARSER: NEED TO INCREASE LINE ARRAY!'
         call err_exit
       endif
-      this_seq(bp_com%iseq_tot)%name = word_1
+      sequence_(iseq_tot)%name = word_1
 
       if (delim /= '=') call warning ('EXPECTING: "=" BUT GOT: ' // delim)
       if (word_2(:ix_word) == 'LINE') then
-        this_seq(bp_com%iseq_tot)%type = line$
-        if (arg_list_found) this_seq(bp_com%iseq_tot)%type = replacement_line$
+        sequence_(iseq_tot)%type = line$
+        if (arg_list_found) sequence_(iseq_tot)%type = replacement_line$
       else
-        this_seq(bp_com%iseq_tot)%type = list$
+        sequence_(iseq_tot)%type = list$
       endif
-      call seq_expand1 (this_seq, bp_com%iseq_tot, .true., in_ring)
+      call seq_expand1 (sequence_, iseq_tot, in_ring, .true.)
 
 ! if not line or list then must be an element
 
@@ -553,16 +538,16 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! sort elements and lists and check for duplicates
 
   allocate (in_indexx(n_max))
-  allocate (seq_indexx(bp_com%iseq_tot))
+  allocate (seq_indexx(iseq_tot))
 
-  call indexx (this_seq(1:bp_com%iseq_tot)%name, seq_indexx(1:bp_com%iseq_tot))
+  call indexx (sequence_(1:iseq_tot)%name, seq_indexx(1:iseq_tot))
   call indexx (in_ring%ele_(1:n_max)%name, in_indexx(1:n_max))
 
-  do i = 1, bp_com%iseq_tot-1
+  do i = 1, iseq_tot-1
     ix1 = seq_indexx(i)
     ix2 = seq_indexx(i+1)
-    if (this_seq(ix1)%name == this_seq(ix2)%name) call warning  &
-                      ('DUPLICATE LINE NAME ' // this_seq(ix1)%name)
+    if (sequence_(ix1)%name == sequence_(ix2)%name) call warning  &
+                      ('DUPLICATE LINE NAME ' // sequence_(ix1)%name)
   enddo
 
   do i = 1, n_max-1
@@ -574,13 +559,13 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
   i = 1; j = 1
   do
-    if (i > bp_com%iseq_tot) exit
+    if (i > iseq_tot) exit
     if (j > n_max) exit
     ix1 = seq_indexx(i)
     ix2 = in_indexx(j)
-    if (this_seq(ix1)%name == in_ring%ele_(ix2)%name) call warning  &
-          ('LINE AND ELEMENT HAVE THE SAME NAME: ' // this_seq(i)%name)
-    if (this_seq(ix1)%name < in_ring%ele_(ix2)%name) then
+    if (sequence_(ix1)%name == in_ring%ele_(ix2)%name) call warning  &
+          ('LINE AND ELEMENT HAVE THE SAME NAME: ' // sequence_(ix1)%name)
+    if (sequence_(ix1)%name < in_ring%ele_(ix2)%name) then
       i = i + 1
     else
       j = j + 1
@@ -592,21 +577,21 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   if (ring%name == blank) call error_exit &
             ('NO "USE" STATEMENT FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
 
-  call find_indexx (ring%name, this_seq(:)%name, &
-                                    seq_indexx, bp_com%iseq_tot, i_use)
+  call find_indexx (ring%name, sequence_(:)%name, &
+                                    seq_indexx, iseq_tot, i_use)
   if (i_use == 0) call error_exit &
       ('CANNOT FIND DEFINITION OF LINE IN "USE" STATEMENT: ' // ring%name, ' ')
 
-  if (this_seq(i_use)%type /= line$) call error_exit  &
+  if (sequence_(i_use)%type /= line$) call error_exit  &
                       ('NAME IN "USE" STATEMENT IS NOT A LINE!', ' ')
 
 ! Now to expand the lines and lists to find the elements to use.
 ! First go through the lines and lists and index everything.
 
-  do k = 1, bp_com%iseq_tot
-    do i = 1, size(this_seq(k)%ele(:))
+  do k = 1, iseq_tot
+    do i = 1, size(sequence_(k)%ele(:))
 
-      s_ele => this_seq(k)%ele(i)
+      s_ele => sequence_(k)%ele(i)
 
       ix = index(s_ele%name, '\')   ! '
       if (ix /= 0) then
@@ -615,28 +600,25 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
         name = s_ele%name
       endif
   
-      if (s_ele%ix_arg > 0) cycle  ! dummy arg
+      if (s_ele%ix_arg > 0) then   ! dummy arg
+        s_ele%type = element$
+        cycle
+      endif
 
       call find_indexx (name, in_ring%ele_(1:)%name, in_indexx, n_max, j)
       if (j == 0) then  ! if not an element it must be a sequence
-        call find_indexx (name, this_seq(:)%name, seq_indexx, bp_com%iseq_tot, j)
+        call find_indexx (name, sequence_(:)%name, seq_indexx, iseq_tot, j)
         if (j == 0) then  ! if not a sequence then I don't know what it is
-          call warning ('NOT A DEFINED ELEMENT, LINE, OR LIST: ' // &
-                 s_ele%name, 'IN THE LINE/LIST: ' // this_seq(k)%name, &
-                 seq = this_seq(k))
-          s_ele%ix_array = 1
+          s_ele%ix_array = -1
           s_ele%type = element$
         else
           s_ele%ix_array = j
-          s_ele%type = this_seq(j)%type
-          if (this_seq(k)%type == list$) call warning ('LIST: ' // & 
-                  this_seq(k)%name, 'CONTAINS A NON-ELEMENT: ' // s_ele%name, &
-                  seq = this_seq(k))
+          s_ele%type = sequence_(j)%type
         endif
         if (s_ele%type == list$ .and. s_ele%reflect) call warning ( &
                           'A REFLECTION WITH A LIST IS NOT ALLOWED IN: '  &
-                          // this_seq(k)%name, 'FOR LIST: ' // s_ele%name, &
-                          seq = this_seq(k))
+                          // sequence_(k)%name, 'FOR LIST: ' // s_ele%name, &
+                          seq = sequence_(k))
 
       else    ! if an element...
         s_ele%ix_array = j
@@ -651,16 +633,19 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! init stack
 
   i_lev = 1                          ! level on the stack
+  seq => sequence_(i_use)
+
   stack(1)%ix_seq  = i_use           ! which sequence to use for the ring
   stack(1)%ix_ele  =  1              ! we start at the beginning
   stack(1)%reflect = +1              ! and move forward
-
-  seq => this_seq(i_use)
+  stack(1)%rep_count = seq%ele(1)%rep_count
 
   n_ele_ring = 0
            
   allocate (name_(in_ring%n_ele_maxx))
   allocate (ix_ring(in_ring%n_ele_maxx))
+  ix_ring = -1
+  sequence_(:)%ix = 1  ! Init. Used for replacement list index
 
 ! expand line
 
@@ -669,9 +654,40 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
     s_ele => seq%ele(stack(i_lev)%ix_ele)
 
+    ix = s_ele%ix_arg
+    if (ix /= 0) then  ! it is a dummy argument.
+      name = seq%arg(ix)%actual_name
+      s_ele => this_s_ele
+      s_ele%name = name
+      call find_indexx (name, in_ring%ele_(1:)%name, in_indexx, n_max, j)
+      if (j == 0) then  ! if not an element it must be a sequence
+        call find_indexx (name, sequence_(:)%name, seq_indexx, iseq_tot, j)
+        if (j == 0) then  ! if not a sequence then I don't know what it is
+          call warning ('CANNOT FIND DEFINITION FOR: ' // name, &
+                          'IN LINE: ' // seq%name, seq)
+          call err_exit
+        endif
+        s_ele%ix_array = j
+        s_ele%type = sequence_(j)%type
+      else
+        s_ele%ix_array = j 
+        s_ele%type = element$
+      endif
+      
+    endif
+
+    stack(i_lev)%rep_count = stack(i_lev)%rep_count - 1
+    if (stack(i_lev)%rep_count == 0) then
+      call increment_pointer (stack(i_lev)%ix_ele, stack(i_lev)%reflect)
+      ix = stack(i_lev)%ix_ele
+      if (ix > 0 .and. ix <= size(seq%ele)) &
+                            stack(i_lev)%rep_count = seq%ele(ix)%rep_count
+    endif
+
 ! if an element
 
-    if (s_ele%type == element$) then
+    select case (s_ele%type)
+    case (element$) 
       if (n_ele_ring+1 > size(ix_ring)) then
         n = 1.5*n_ele_ring
         call reallocate_integer (ix_ring, n)
@@ -679,12 +695,14 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       endif
       call pushit (ix_ring, n_ele_ring, s_ele%ix_array)
       name_(n_ele_ring) = s_ele%name
-      call increment_pointer (stack(i_lev)%ix_ele, stack(i_lev)%reflect)
+
+      if (s_ele%ix_array < 1) call warning('NOT A DEFINED ELEMENT: ' // &
+                          s_ele%name, 'IN THE LINE/LIST: ' // seq%name, seq)
 
 ! if a list
 
-    elseif (s_ele%type == list$) then
-      seq2 => this_seq(s_ele%ix_array)
+    case (list$) 
+      seq2 => sequence_(s_ele%ix_array)
       j = seq2%ix
       if (n_ele_ring+1 > size(ix_ring)) then
         n = 1.5*n_ele_ring
@@ -695,30 +713,51 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       name_(n_ele_ring) = seq2%ele(j)%name
       seq2%ix = seq2%ix + 1
       if (seq2%ix > size(seq2%ele(:))) seq2%ix = 1
-      call increment_pointer (stack(i_lev)%ix_ele, stack(i_lev)%reflect)
 
 ! if a line:
 !     a) move pointer on current level past line element
 !     b) go to the next higher level
 !     c) initialize pointers for the higher level to use the line
 
-    elseif (s_ele%type == line$) then
-      call increment_pointer (stack(i_lev)%ix_ele, stack(i_lev)%reflect)
+    case (line$, replacement_line$)
       i_lev = i_lev + 1
-      seq => this_seq(s_ele%ix_array)
+      if (s_ele%type == replacement_line$) then
+        seq2 => sequence_(s_ele%ix_array)
+        if (size(seq2%arg) /= size(s_ele%arg)) then
+          call warning ('WRONG NUMBER OF ARGUMENTS FORREPLACEMENT LINE: ' // &
+              s_ele%name, 'WHEN USED IN LINE: ' // seq%name, seq)
+          call err_exit
+        endif
+        arg_loop: do i = 1, size(seq2%arg)
+          seq2%arg(i)%actual_name = s_ele%arg(i)%actual_name
+          if (associated(seq%arg)) then
+            do j = 1, size(seq%arg)
+              if (seq2%arg(i)%actual_name == seq%arg(j)%dummy_name) then
+                seq2%arg(i)%actual_name = seq%arg(j)%actual_name
+                seq2%arg(i)%ix_array = seq%arg(j)%ix_array
+                cycle arg_loop
+              endif
+            enddo
+          endif
+          name = seq2%arg(i)%actual_name
+        enddo arg_loop
+      endif
+      seq => sequence_(s_ele%ix_array)
       stack(i_lev)%ix_seq = s_ele%ix_array
       stack(i_lev)%reflect = stack(i_lev-1)%reflect
       if (s_ele%reflect) stack(i_lev)%reflect = -stack(i_lev)%reflect
       if (stack(i_lev)%reflect == 1) then
-        stack(i_lev)%ix_ele = 1
+        ix = 1
       else
-        stack(i_lev)%ix_ele = size(seq%ele(:))
+        ix = size(seq%ele(:))
       endif
+      stack(i_lev)%ix_ele = ix
+      stack(i_lev)%rep_count = seq%ele(ix)%rep_count
 
-    else
+    case default
       call warning ('INTERNAL SEQUENCE ERROR!')
 
-    endif
+    end select
 
 ! if we have got to the end of the current line then pop the stack back to
 ! the next lower level.
@@ -729,7 +768,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
                         stack(i_lev)%ix_ele > size(seq%ele(:))) then
         i_lev = i_lev - 1
         if (i_lev == 0) exit line_expansion
-        seq => this_seq(stack(i_lev)%ix_seq)
+        seq => sequence_(stack(i_lev)%ix_seq)
       else
         exit
       endif
@@ -981,17 +1020,18 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
     if (index(bp_com%debug_line, 'SEQ') /= 0) then
       print *
       print *, '----------------------------------------'
-      print *, 'Number of Lines/Lists defined:', bp_com%iseq_tot
-      do i = 1, bp_com%iseq_tot
+      print *, 'Number of Lines/Lists defined:', iseq_tot
+      do i = 1, iseq_tot
         print *
         print *, 'Sequence #', i
-        print *, 'Name: ', this_seq(i)%name
-        print *, 'Type:', this_seq(i)%type
-        print *, 'Number of elements:', size(this_seq(i)%ele)
+        print *, 'Name: ', sequence_(i)%name
+        print *, 'Type:', sequence_(i)%type
+        print *, 'Number of elements:', size(sequence_(i)%ele)
         print *, 'List:'
-        do j = 1, size(this_seq(i)%ele(:))
-          print '(4x, a, l3, i3)', this_seq(i)%ele(j)%name, &
-              this_seq(i)%ele(j)%reflect, this_seq(i)%ele(j)%ix_arg
+        do j = 1, size(sequence_(i)%ele(:))
+          print '(4x, a, l3, 2i3)', sequence_(i)%ele(j)%name, &
+              sequence_(i)%ele(j)%reflect, sequence_(i)%ele(j)%rep_count, &
+              sequence_(i)%ele(j)%ix_arg
         enddo
       enddo
     endif
@@ -1043,9 +1083,15 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
     endif
   enddo
 
-  do i = 1, size(this_seq(:))
-    if (associated (this_seq(i)%arg)) deallocate(this_seq(i)%arg)
-    if (associated (this_seq(i)%ele)) deallocate(this_seq(i)%ele)
+  do i = 1, size(sequence_(:))
+    if (associated (sequence_(i)%arg)) deallocate(sequence_(i)%arg)
+    if (associated (sequence_(i)%ele)) then
+      do j = 1, size(sequence_(i)%ele)
+        if (associated (sequence_(i)%ele(j)%arg)) &
+                                        deallocate(sequence_(i)%ele(j)%arg)
+      enddo
+      deallocate(sequence_(i)%ele)
+    endif
   enddo
 
   if (associated (in_ring%ele_))     call deallocate_ring_pointers (in_ring)

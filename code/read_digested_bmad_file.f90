@@ -1,10 +1,10 @@
 !+
-! Subroutine READ_DIGESTED_BMAD_FILE (IN_FILE_NAME, RING, VERSION)
+! Subroutine read_digested_bmad_file (digested_name, ring, version)
 !
 ! Subroutine to read in a digested file. The subroutine will check that
 ! the version of the digested file is up to date and that the digested file
 ! is current with respect to the original BMAD files that were used. [See
-! WRITE_DIGESTED_BMAD_FILE.F77]
+! write_digested_bmad_file]
 !
 ! Note: This subroutine also reads in the common structures for BMAD_PARSER2
 !
@@ -12,18 +12,18 @@
 !   use bmad
 !
 ! Input:
-!     IN_FILE_NAME -- Character*(*): Name of the digested file
+!   digested_name -- Character*(*): Name of the digested file
 !
 ! Output:
-!     RING      -- Ring_struct: Output structure
-!     VERSION   -- Integer: Version number of RING.
-!     STATUS    -- Common block status structure
-!       .OK       -- Set .false. if read failure.
+!   ring      -- Ring_struct: Output structure
+!   version   -- Integer: Version number of RING.
+!   status    -- Common block status structure
+!     %ok       -- Set .false. if read failure.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine read_digested_bmad_file (in_file_name, ring, version)
+subroutine read_digested_bmad_file (digested_name, ring, version)
 
   use bmad_struct
   use bmad_interface
@@ -38,8 +38,9 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
   integer ix_srf, ix_sr, ix_lrf, ix_lr
   integer stat_b(12), stat, ierr, idate_old
 
-  character*(*) in_file_name
-  character*200 fname(3)
+  character(*) digested_name
+  character(200) fname(3)
+  character(200), allocatable :: file_names(:)
 
   logical found_it
 
@@ -49,24 +50,29 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
   call deallocate_ring_pointers (ring)
 
 ! read the digested file
+! version 65 can be read even though it is not the current version
 
   d_unit = lunget()
   bmad_status%ok = .true.
   ring%n_ele_ring = 0
 
-  open (unit = d_unit, file = in_file_name, status = 'old',  &
+  open (unit = d_unit, file = digested_name, status = 'old',  &
                      form = 'unformatted', action = 'READ', err = 9000)
 
   read (d_unit, err = 9100) n_files, version
 
   if (version < bmad_inc_version$) then
 !    if (bmad_status%type_out) print '(1x, a, i4, a, i4)',  &
-     if (bmad_status%type_out) print *,  &
+    if (bmad_status%type_out) print *,  &
            'READ_DIGESTED_BMAD_FILE: DIGESTED FILE VERSION OUT OF DATE',  &
             version, ' <', bmad_inc_version$
-    close (d_unit)
-    bmad_status%ok = .false.
-    return
+    if (version == 65) then 
+      allocate (file_names(n_files))
+    else
+      close (d_unit)
+      bmad_status%ok = .false.
+      return
+    endif
   endif
 
   if (version > bmad_inc_version$) then
@@ -88,6 +94,7 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
 
   do i = 1, n_files
     read (d_unit, err = 9100) fname(1), idate_old
+    if (version == 65) file_names(i) = fname(1)
     ix = index(fname(1), ';')
     stat_b = 0
     if (ix > 0) then    ! has VMS version number
@@ -130,12 +137,13 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
   do i = 0, ring%n_ele_max
 
     ele => ring%ele_(i)
-    read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+    if (version == 65) then
+      read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
                               ix_srf, ix_sr, ix_lrf, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
             ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
-            ele%c_mat, ele%gamma_c, ele%s, ele%x_position, ele%y_position, &
-            ele%z_position, ele%theta_position, ele%phi_position, ele%key, &
+            ele%c_mat, ele%gamma_c, ele%s, ele%position%x, ele%position%y, &
+            ele%position%z, ele%position%theta, ele%position%phi, ele%key, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
             ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
@@ -144,6 +152,23 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
             ele%taylor_order, ele%symplectify, ele%mode_flip, &
             ele%multipoles_on, ele%exact_rad_int_calc, ele%Field_master, &
             ele%logic, ele%internal_logic
+      ele%position%psi = 0
+      if (ele%key == wiggler$) ele%value(z_patch$) = -ele%value(z_patch$)
+    else
+      read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+                              ix_srf, ix_sr, ix_lrf, ix_lr, &
+            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
+            ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%position, &
+            ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
+            ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+            ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+            ele%iyy, ele%mat6_calc_method, ele%tracking_method, &
+            ele%num_steps, ele%integration_order, ele%ptc_kind, &
+            ele%taylor_order, ele%symplectify, ele%mode_flip, &
+            ele%multipoles_on, ele%exact_rad_int_calc, ele%Field_master, &
+            ele%logic, ele%internal_logic
+    endif
 
     if (ix_wig /= 0) then
       allocate (ele%wig_term(ix_wig))
@@ -214,6 +239,14 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
   enddo
 
   close (d_unit)
+
+! update for version 65
+
+  if (version == 65) then
+    call write_digested_bmad_file (digested_name, ring, n_files, file_names)
+    deallocate (file_names)
+  endif
+
   return
 
 !------------------

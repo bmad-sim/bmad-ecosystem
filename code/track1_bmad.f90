@@ -48,7 +48,7 @@ subroutine track1_bmad (start, ele, param, end)
   real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
   real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
   real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
-  real(rp) ave_x_vel2, ave_y_vel2, dE_E, dE
+  real(rp) ave_x_vel2, ave_y_vel2, dE_E, dE, k_gradient
   real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio
   real(rp) alpha, sin_a, cos_a, f, z_ave, r11, r12, r21, r22
   real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2
@@ -79,33 +79,40 @@ subroutine track1_bmad (start, ele, param, end)
 
   select case (key)
 
+!-----------------------------------------------
 ! marker
 
   case (marker$)
 
     return
 
+!-----------------------------------------------
 ! drift
 
   case (drift$, rcollimator$, ecollimator$, monitor$, instrument$) 
 
     call track_a_drift (end%vec, length)
 
+!-----------------------------------------------
 ! patch
 
   case (patch$)
 
     dE_E = 1 + end%vec(6)
-    end%vec(1) = end%vec(1) - ele%value(x_offset$)
+
     end%vec(2) = end%vec(2) - ele%value(x_pitch$) * dE_E
-    end%vec(3) = end%vec(3) - ele%value(y_offset$)
     end%vec(4) = end%vec(4) - ele%value(y_pitch$) * dE_E
-    end%vec(5) = end%vec(5) - ele%value(z_offset$) + &
-                              ele%value(x_pitch$) * end%vec(1) + &
+    end%vec(5) = end%vec(5) + ele%value(x_pitch$) * end%vec(1) + &
                               ele%value(y_pitch$) * end%vec(3) 
+
+    if (ele%value(tilt$) /= 0) call tilt_coords (ele%value(tilt$), end%vec, set$)
+
+    end%vec(1) = end%vec(1) - ele%value(x_offset$)
+    end%vec(3) = end%vec(3) - ele%value(y_offset$)
+    end%vec(5) = end%vec(5) - ele%value(z_offset$)
     end%vec(6) = end%vec(6) - ele%value(dE_offset$)
 
-
+!-----------------------------------------------
 ! kicker, separator
 
   case (elseparator$, kicker$, hkicker$, vkicker$) 
@@ -123,6 +130,7 @@ subroutine track1_bmad (start, ele, param, end)
     call offset_particle (ele, param, end, unset$)  
     call end_z_calc
 
+!-----------------------------------------------
 ! beambeam
                           
   case (beambeam$)
@@ -163,6 +171,7 @@ subroutine track1_bmad (start, ele, param, end)
     call offset_particle (ele, param, end, unset$)  
     call end_z_calc
 
+!-----------------------------------------------
 ! octupole
 ! The octupole is treated as a thin lens with a position dependent kick
 ! at the beginning and the end
@@ -189,6 +198,7 @@ subroutine track1_bmad (start, ele, param, end)
     call offset_particle (ele, param, end, unset$)  
     call end_z_calc
 
+!-----------------------------------------------
 ! quadrupole
 
   case (quadrupole$)
@@ -204,6 +214,7 @@ subroutine track1_bmad (start, ele, param, end)
     call offset_particle (ele, param, end, unset$)  
     call end_z_calc
 
+!-----------------------------------------------
 ! sbend
 ! A non-zero roll has a zeroth order effect that must be included
 
@@ -211,6 +222,7 @@ subroutine track1_bmad (start, ele, param, end)
 
     call track_a_bend (end, ele, param, end)
 
+!-----------------------------------------------
 ! rfcavity
 
   case (rfcavity$)
@@ -256,12 +268,15 @@ subroutine track1_bmad (start, ele, param, end)
          
     call offset_particle (ele, param, end, unset$, set_canonical = .false.)
 
+!-----------------------------------------------
 ! linac rf cavity
 ! assumes the particle is ultra-relativistic.
 ! This uses the formalism from:
 !       J. Rosenzweig and L. Serafini
 !       Phys Rev E, Vol. 49, p. 1599, (1994)
 ! with b_0 = b_-1 = 1
+!
+! k_loss is handled by putting 1/2 at the beginning and 1/2 at the end.
 
   case (lcavity$)
 
@@ -273,11 +288,15 @@ subroutine track1_bmad (start, ele, param, end)
     phase = twopi * (ele%value(phi0$) + &
                         end%vec(5) * ele%value(rf_frequency$) / c_light)
     cos_phi = cos(phase)
-    gradient = ele%value(gradient$) * cos_phi - ele%value(k_loss$) * &
-                                                           abs(param%charge) 
-    e_start = ele%value(energy_start$) * (1 + end%vec(6))
-    e_end = e_start + gradient * ele%value(l$)
-    e_ratio = e_end / e_start
+    gradient = ele%value(gradient$) * cos_phi
+    k_gradient = -ele%value(k_loss$) * abs(param%charge) 
+
+    if (bmad_com%emulate_liar_bug) then
+      gradient = gradient + k_gradient
+      k_gradient = 0
+    endif
+
+    e_start = ele%value(energy_start$) * (1 + end%vec(6)) 
 
     if (e_ratio < 0) then
       if (bmad_status%type_out) print *, &
@@ -292,9 +311,17 @@ subroutine track1_bmad (start, ele, param, end)
 
     call offset_particle (ele, param, end, set$)
 
-    k1 = -gradient / (2 * e_start)            ! entrence kick
+! entrence kick
+
+    k1 = -gradient / (2 * e_start)            
     end%vec(2) = end%vec(2) + k1 * end%vec(1)
     end%vec(4) = end%vec(4) + k1 * end%vec(3)
+
+! track body
+
+    e_start = e_start + (k_gradient * ele%value(l$))/2
+    e_end = e_start + gradient * ele%value(l$)
+    e_ratio = e_end / e_start
 
     if (bmad_com%use_dimad_lcavity) then  ! use dimad formula
       r11 = 1
@@ -320,14 +347,21 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(3) = r11 * y_pos + r12 * end%vec(4)
     end%vec(4) = r21 * y_pos + r22 * end%vec(4)
 
-    k2 = gradient / (2 * e_end)              ! exit kick
+    e_end = e_end + (k_gradient * ele%value(l$))/2
+
+! exit kick
+
+    k2 = gradient / (2 * e_end) 
     end%vec(2) = end%vec(2) + k2 * end%vec(1)
     end%vec(4) = end%vec(4) + k2 * end%vec(3)
+
+! cleanup
 
     end%vec(6) = (e_end - ele%value(beam_energy$)) / ele%value(beam_energy$) 
     call offset_particle (ele, param, end, unset$)
     call end_z_calc
 
+!-----------------------------------------------
 ! sextupole
 ! The sextupole is treated as a drift with position dependent kick
 ! at the beginning and the end
@@ -347,6 +381,7 @@ subroutine track1_bmad (start, ele, param, end)
     call offset_particle (ele, param, end, unset$)
     call end_z_calc
 
+!-----------------------------------------------
 ! solenoid
 
   case (solenoid$)
@@ -360,6 +395,7 @@ subroutine track1_bmad (start, ele, param, end)
     call offset_particle (ele, param, end, unset$)
     call end_z_calc
 
+!-----------------------------------------------
 ! sol_quad
 
   case (sol_quad$)
@@ -375,6 +411,7 @@ subroutine track1_bmad (start, ele, param, end)
     call offset_particle (ele, param, end, unset$)
     call end_z_calc
 
+!-----------------------------------------------
 ! wiggler:
 
   case (wiggler$)
@@ -396,6 +433,7 @@ subroutine track1_bmad (start, ele, param, end)
     call offset_particle (ele, param, end, unset$, set_multipoles=.false.)
     call end_z_calc
 
+!-----------------------------------------------
 ! multipole
 
   case (multipole$, ab_multipole$) 
@@ -411,6 +449,7 @@ subroutine track1_bmad (start, ele, param, end)
     call offset_particle (ele, param, end, unset$, &
                   set_canonical = .false., set_tilt = .false.)
 
+!-----------------------------------------------
 ! accel_sol
 ! look at former routine in track1_mod:track_a_accel_sol ()
 
@@ -419,6 +458,7 @@ subroutine track1_bmad (start, ele, param, end)
     print *, 'ERROR: ACCEL_SOL MUST BE RESUSITATED!' 
     call err_exit
 
+!-----------------------------------------------
 ! unknown
 
   case default
