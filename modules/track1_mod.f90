@@ -226,7 +226,13 @@ subroutine track_a_bend (start, ele, param, end)
   Dy  = sqrt(rel_E2 - py**2)
 
   px_t = px*ct + (Dxy - b1*(rho+x))*st
-  dpx_t = -px*st/rho + (Dxy - b1*(rho+x))*ct/rho
+  dpx_t = -px*st/rho + (dxy - b1*(rho+x))*ct/rho
+
+  if (abs(px) > Dy .or. abs(px_t) > Dy) then
+    param%lost = .true.
+    return
+  endif    
+
   factor = (asin(px/Dy) - asin(px_t/Dy)) / b1
 
   end%vec(1) = (sqrt(rel_E2 - px_t**2 -py**2) - rho*dpx_t - rho*b1) / b1
