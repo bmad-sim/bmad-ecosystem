@@ -1,0 +1,45 @@
+#---- cesrdef ----
+#
+# Define cesr specific environment variables;
+# to be used by csh-like shells: csh,tcsh.
+# (Sh, ksh, bash should use cesrdefs)
+#
+# Shamelessly stolen from the CLEO cleodef script 
+# M. Palmer
+#
+# Usage in .login:
+#   source /home/cesrulib/bin/cesrdef
+# or switch to other versions of libraries and constants: 
+#   setenv CESRLIB devel; source /usr/local/bin/cesrdef
+# or define aliases in .cshrc, e.g.:
+#   alias cesrdef "source /home/cesrulib/bin/cesrdef" 
+#   alias current "setenv CESRLIB current ; cesrdef"
+#   alias devel   "setenv CESRLIB devel ; cesrdef"
+#-------------------------------------
+# Promote all shell variables to environment variables via setenv
+# instead of set. (CRN 4/5/94)
+#
+#	Root names
+#
+if ( $?CONST   == 0 ) setenv CONST   /home/cesrulib/constants
+if ( $?CESR_   == 0 ) setenv CESR_   /home/cesrulib/cesr_libs
+#
+#	Switchable version
+#
+if ( $?CESRLIB       == 0 ) setenv CESRLIB current
+#
+if (   $?CESRENV == 0 ) setenv CESRENV /home/cesrulib/bin/cesrenv
+if ( -f $CESRENV )  then
+	source $CESRENV
+else
+	echo File $CESRENV not found.
+endif
+
+#
+# $Id$
+#
+# $Log$
+# Revision 1.1  2001/09/29 18:18:14  palmer
+# Environment variable utilities for CESR libraries on Unix.
+#
+#

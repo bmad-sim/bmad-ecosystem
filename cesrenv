@@ -1,0 +1,55 @@
+#########################################################
+#
+# Set CESR library environment variables for the new Unix 
+# code port library scheme.  Closely follows the cleoenv 
+# and cleo3_env examples from CLEO.
+#
+# Mark Palmer  Sept. 29, 2001
+#
+#########################################################
+
+#
+#------  CESR libraries  ------
+#
+setenv CESR_CURRENT $CESR_/current
+setenv CESR_DEVEL   $CESR_/devel
+
+#
+#-- CESR Unix documentation --
+#
+setenv CESR_DOC $CESR_/doc
+
+#
+#----  CESR_LIB subtrees  ----
+#
+setenv CESR_LIB $CESR_/$CESRLIB
+#
+setenv CESR_EXE			$CESR_LIB/bin
+setenv CESR_RUN			$CESR_LIB/run
+setenv CESR_CONFIG	$CESR_LIB/config
+setenv CESR_CVSSRC	$CESR_LIB/cvssrc
+setenv CESR_INC     $CESR_LIB/include
+setenv CESR_MOD     $CESR_LIB/modules
+setenv CESR_GMAKE   $CESR_LIB/Gmake
+setenv CESR_CVSROOT $CESR_LIB/cvsroot
+
+#
+#------  CESR constants  ------
+#
+setenv CESR_CONST $CONST
+
+#
+#-- BMAD configuration files --
+#
+setenv BMAD_LAT			$CESR_CONFIG/bmad/lat
+setenv BMAD_LAYOUT	$CESR_CONFIG/bmad/layout
+
+
+#
+# $Id$
+#
+# $Log$
+# Revision 1.1  2001/09/29 18:18:15  palmer
+# Environment variable utilities for CESR libraries on Unix.
+#
+#
