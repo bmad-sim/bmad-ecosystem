@@ -12,7 +12,7 @@
 !
 ! Output:
 !   ring
-!     %ele_(i)%position --  floor_position_struct: Floor position.
+!     %ele_(i)%floor --  floor_position_struct: Floor position.
 !       %x                -- X position at end of element
 !       %y                -- Y position at end of element
 !       %z                -- Z position at end of element
@@ -48,12 +48,12 @@ subroutine ring_geometry (ring)
 ! init
 ! old_theta is used to tell if we have to reconstruct the w_mat
 
-  pos(1) = ring%ele_(0)%position%x
-  pos(2) = ring%ele_(0)%position%y
-  pos(3) = ring%ele_(0)%position%z
-  theta = ring%ele_(0)%position%theta
-  phi   = ring%ele_(0)%position%phi
-  psi   = ring%ele_(0)%position%psi
+  pos(1) = ring%ele_(0)%floor%x
+  pos(2) = ring%ele_(0)%floor%y
+  pos(3) = ring%ele_(0)%floor%z
+  theta = ring%ele_(0)%floor%theta
+  phi   = ring%ele_(0)%floor%phi
+  psi   = ring%ele_(0)%floor%psi
 
   old_theta = 100  ! garbage number
 
@@ -178,7 +178,7 @@ subroutine ring_geometry (ring)
       if (key == sbend$ .or. key == patch$ .or. key == multipole$) then
         theta = atan2 (w_mat(1,3), w_mat(3,3))
         theta = theta - twopi_8 * &
-                       nint((theta - ring%ele_(i-1)%position%theta) / twopi_8)
+                       nint((theta - ring%ele_(i-1)%floor%theta) / twopi_8)
         phi = atan2 (w_mat(2,3), sqrt(w_mat(1,3)**2 + w_mat(3,3)**2))
         psi = atan2 (w_mat(2,1), w_mat(2,2))
       endif
@@ -210,12 +210,12 @@ subroutine ring_geometry (ring)
 
 !
 
-    ring%ele_(i)%position%x = pos(1)
-    ring%ele_(i)%position%y = pos(2)
-    ring%ele_(i)%position%z = pos(3)
-    ring%ele_(i)%position%theta = theta
-    ring%ele_(i)%position%phi   = phi
-    ring%ele_(i)%position%psi   = psi
+    ring%ele_(i)%floor%x = pos(1)
+    ring%ele_(i)%floor%y = pos(2)
+    ring%ele_(i)%floor%z = pos(3)
+    ring%ele_(i)%floor%theta = theta
+    ring%ele_(i)%floor%phi   = phi
+    ring%ele_(i)%floor%psi   = psi
 
   enddo
 

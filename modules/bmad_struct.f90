@@ -87,7 +87,7 @@ module bmad_struct
     character(16) alias             ! Another name
     character(16) attribute_name    ! Used by overlays
     type (twiss_struct)  x,y,z       ! Twiss parameters at end of element
-    type (floor_position_struct) position
+    type (floor_position_struct) floor  ! Global floor position at end of ele.
     real(rp) value(n_attrib_maxx)    ! attribute values
     real(rp) gen0(6)                 ! constant part of the genfield map
     real(rp) vec0(6)                 ! 0th order transport vector

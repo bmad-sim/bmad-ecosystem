@@ -74,18 +74,18 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
 
   ele => ring%ele_(0) 
 
-  if (ele%position%x /= 0) &
-        write (iu, *) 'beginning[x_position] = ', trim(str(ele%position%x))
-  if (ele%position%y /= 0) &
-        write (iu, *) 'beginning[y_position] = ', trim(str(ele%position%y))
-  if (ele%position%z /= 0) &
-        write (iu, *) 'beginning[z_position] = ', trim(str(ele%position%z))
-  if (ele%position%theta /= 0) &
-    write (iu, *) 'beginning[theta_position] = ', trim(str(ele%position%theta))
-  if (ele%position%phi /= 0) &
-        write (iu, *) 'beginning[phi_position] = ', trim(str(ele%position%phi))
-  if (ele%position%psi /= 0) &
-        write (iu, *) 'beginning[psi_position] = ', trim(str(ele%position%psi))
+  if (ele%floor%x /= 0) &
+        write (iu, *) 'beginning[x_position] = ', trim(str(ele%floor%x))
+  if (ele%floor%y /= 0) &
+        write (iu, *) 'beginning[y_position] = ', trim(str(ele%floor%y))
+  if (ele%floor%z /= 0) &
+        write (iu, *) 'beginning[z_position] = ', trim(str(ele%floor%z))
+  if (ele%floor%theta /= 0) &
+    write (iu, *) 'beginning[theta_position] = ', trim(str(ele%floor%theta))
+  if (ele%floor%phi /= 0) &
+        write (iu, *) 'beginning[phi_position] = ', trim(str(ele%floor%phi))
+  if (ele%floor%psi /= 0) &
+        write (iu, *) 'beginning[psi_position] = ', trim(str(ele%floor%psi))
 
   if (ring%param%lattice_type /= circular_lattice$) then
     write (iu, *)

@@ -738,12 +738,12 @@ subroutine init_ele (ele)
   ele%ix_pointer = 0
   ele%s = 0
 
-  ele%position%x = 0
-  ele%position%y = 0
-  ele%position%z = 0
-  ele%position%theta = 0
-  ele%position%phi   = 0
-  ele%position%psi   = 0
+  ele%floor%x = 0
+  ele%floor%y = 0
+  ele%floor%z = 0
+  ele%floor%theta = 0
+  ele%floor%phi   = 0
+  ele%floor%psi   = 0
 
   ele%mat6_calc_method = bmad_standard$
   ele%tracking_method  = bmad_standard$

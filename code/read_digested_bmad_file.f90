@@ -157,7 +157,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
                               ix_srf, ix_sr, ix_lrf, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
             ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
-            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%position, &
+            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
             ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
@@ -171,7 +171,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
                               ix_srf, ix_sr, ix_lrf, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
             ele%y, ele%z, ele%value(1:40), ele%gen0, ele%vec0, ele%mat6, &
-            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%position, &
+            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
             ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
