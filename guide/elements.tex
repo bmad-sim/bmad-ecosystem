@@ -505,6 +505,27 @@ Dependent attributes:
   delta\_e      ! = gradiant * L
 \end{example}
 
+The input file name for the short--range wakefields is specified using the 
+\vn{sr_wake_file} attribute. The file gives both longitudinal and transverse wakes in 
+tabular form. Comment header lines may be included by starting a line
+with an exclamation mark (!) or by leaving the line blank. 
+An example input file is:
+\begin{example}
+!    z[m]       Wz[V/C/m]   Wt[V/C/m^2]
+
+ 0.00000E+00  1.61125E+15   0.00000E+00     1 
+ 1.00000E-05  1.44516E+15   1.30560E+15     2 
+ 2.00000E-05  1.38148E+15   2.50665E+15     3 
+ ... etc ...
+ 1.97000E-03  3.49958E+14   7.95507E+16   198 
+ 1.98000E-03  3.48606E+14   7.97253E+16   199 
+ 1.99000E-03  3.47263E+14   7.98989E+16   200 
+\end{example}
+The first column is the longitudinal distance $z$. $z$ must start at 0 and must increment by
+the a constant amount from row to row. The second column is the longitudinal wake function in
+$V/C/m$. The third colum is the transverse wake in $V/C/m^2$. Any additional columns are ignored.
+
+
 %-----------------------------------------------------------------
 \section{Marker}
 \label{s:mark}

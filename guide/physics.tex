@@ -329,10 +329,11 @@ A macroparticle\cite{b:transport_appendix} is a bundle of particles
 whose distribution is assumed to be Gaussian in shape. A macroparticle
 is represented by a centroid position $\bfrbar$ and a $6 \times 6$
 $\bfsigma$ matrix which defines the shape of the macroparticle in
-phase space.
+phase space. $\sigma_i = \sqrt{\bfsigma(i,i)}$ is the RMS sigma for the $i$\Th
+phase space coordinate. In particular $\sigma_z = \sqrt{\bfsigma(5,5)}$.
 
 $\bfsigma$ is a real, non-negative symmetric matrix. The equation that
-defines the ellipsoid at a distance of $n\sigma$ from the centroid is
+defines the ellipsoid at a distance of $n$--sigma from the centroid is
 \Begineq
   (\bfr - \bfrbar)^t \bfsigma\inv (\bfr - \bfrbar) = n
 \Endeq
@@ -343,6 +344,16 @@ as some point $s_1$ the sigma matrix at a different point $s_2$ is
 \Endeq
 where $\Bf M_{21}$ is the Jacobian of the transport map between points
 $s_1$ and $s_2$.
+
+A relativistic charged particle bunch is modeled by dividing it longitudinally
+into a series
+of slices. Each slice is made up of a number of macroparticles. It is assumed
+that the longitudinal position of the macroparticles of a slice are roughly the
+same with no overlap in $z$ between slices. 
+
+If the initial distribution of slices and macroparticles is set--up to 
+mirror the Liar program\cite{b:liar} then the slices within a bunch
+will be placed 
 
 %-----------------------------------------------------------------
 \section{Wakefields}
@@ -356,10 +367,44 @@ are applied in the center of LINAC accelerating cavities
 (\vn{LCavity}). Wakefield effects are divided into short--range
 (within a bunch) and long--range (between bunches).
 
-Only the dipole component of the Short--range wakefield are
+Only the dipole component of the short--range wakefield are
 modeled. Quadrupole wakefields can be implemented upon request.
-The short--range longitudinal wakefield component
+The short--range longitudinal wakefield component for the $i$\Th macroparticle 
+is computed from the equation
+\Begineq
+  dE_i = \frac{L \, \Wl(0)}{2} |Q_i| +
+                  \sum_{j \ne i} \frac{L \, \tWl(dz_{ij})}{2} |Q_j|
+\Endeq
+where $L$ is the cavity length, $dz_{ij}$ is the longitudinal distance between 
+the $i$\Th and $j$\Th macroparticles,
+$\Wl$ is the short--range longitudinal wakefield function, and $\tWl$ is 
+a modified wakefield function 
+\Begineq
+  \tWl(dz) = 
+  \begin{cases}
+    \Wl(0) \cdot \frac{dz + \sigma_{zij}}{2\sigma_{zij}} & 
+                                    -\sigma_{zij} < dz < \sigma_{zij} \\
+    \Wl(dz)                                            & \text{otherwise}
+  \end{cases}
+\Endeq
+$\tWl$ is used instead of $\Wl$ to avoid simulation artifacts which happen
+when macroparticles 
+are close longitudinally and is due to the discontinutiy of $\Wl$ at $dz = 0$. 
+$\sigma_{zij}$ is the combined macroparticle length
+\Begineq
+  \sigma_{zij} = \sigma_{zi} + \sigma_{zj} + \sigma_{z0}
+\Endeq
+where $\sigma_{zi}$ and $\sigma_{zj}$ are the longitudinal sizes for the $i$\Th and
+$j$\Th particles respectively, and $\sigma_{z0} is a small fudge factor needed when
+$\sigma_{zi} = \sigma_{zj} = 0$.
 
+The transverse kick $dx'_i$ for the $i$\Th macroparticle due to the 
+dipole short--range transverse wakefield is modeled with the equation
+\Begineq
+  dx'_i = \sum_j |Q_j| \, x_j \, L \Wt(dz_{ij})
+\Endeq
+with a similar equation for $dy'_i$. $\Wt$ is the transverse short--range
+wake function.
 
 %-----------------------------------------------------------------
 \section{Coupling and Normal Modes}

@@ -79,10 +79,12 @@ programs. For example, say you have read in a lattice, changed
 some parameters in the \tn{ring_struct}, and now you want to do some
 analysis on this modified \tn{ring_struct} using a different program. The 
 answer is to have the first program create a digested file
-\begin{verbatim}
+\begin{example}
   call write_digested_bmad_file ('digested_file_of_mine', ring)
-\end{verbatim}
+\end{example}
 and then read the digested file in with the second program
-\begin{verbatim}
+\begin{example}
   call read_digested_bmad_file ('digested_file_of_mine', ring)
-\end{verbatim}
+\end{example}
+An alternative to writing a digested file is to write a lattice file
+using \vn{write_bmad_lattice_file}
