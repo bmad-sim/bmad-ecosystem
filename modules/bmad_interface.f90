@@ -83,12 +83,13 @@ module bmad_interface
   end interface
 
   interface
-    subroutine bmad_to_db (ring, db)
+    subroutine bmad_to_db (ring, db, calib_date)
       use bmad_struct
       use cesr_mod
       implicit none
       type (ring_struct) ring
       type (db_struct) db
+      character(*), optional :: calib_date
     end subroutine
   end interface
 

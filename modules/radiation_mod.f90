@@ -57,7 +57,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
 
   real(rp), save :: z_start
   real(rp) s_len, h, h2, h3, h_x, h_y, f, this_ran
-  real(rp) x_ave, y_ave, gamma, dE_p, h_bar, fluct_const, fact_d, fact_f
+  real(rp) x_ave, y_ave, gamma_0, dE_p, h_bar, fluct_const, fact_d, fact_f
 
   integer direc
 
@@ -67,9 +67,9 @@ subroutine track1_radiation (start, ele, param, end, edge)
 ! Init
 
   if (init_needed) then
-    h_bar = h_bar_planck * c_light**2 / e_charge  ! h_bar in eV*sec
+    h_bar = h_bar_planck / e_charge  ! h_bar in eV*sec
     fluct_const = 55 * r_e * h_bar * c_light / &
-                               (24 * sqrt(3.0) * m_electron**6)
+                               (24 * sqrt(3.0) * m_electron)
     init_needed = .false.
   endif
 
@@ -147,17 +147,19 @@ subroutine track1_radiation (start, ele, param, end, edge)
   end select
 
 ! Apply the radiation kicks
+! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light
+! where xi is a random number with sigma = 1.
 
-  gamma = param%beam_energy / m_electron
+  gamma_0 = param%beam_energy / m_electron
 
   fact_d = 0
-  if (sr_com%damping_on) fact_d = 2 * r_e * gamma**3 * h2 * s_len / 3
+  if (sr_com%damping_on) fact_d = 2 * r_e * gamma_0**3 * h2 * s_len / 3
 
   fact_f = 0
   if (sr_com%fluctuations_on) then
     h3 = sqrt(h2)**3
     call gauss_ran (this_ran)
-    fact_f = sqrt(fluct_const * s_len * gamma**5 * h3) * this_ran
+    fact_f = sqrt(fluct_const * s_len * gamma_0**5 * h3) * this_ran
   endif
 
   dE_p = (1 + start%vec(6)) * (fact_d + fact_f) * sr_com%scale 
