@@ -1,210 +1,207 @@
-#!/bin/sh
-#-----------------------------------------------------------------
-# Script to check Fortran 90 dependencies in CESR code
+#!/usr/bin/perl
+#-*-perl-*-
 #
-# Useage:
-#
-#   cesrdepend [-I<directory>... -MOD"<list>"... -MP<directory>] <filename>
-# 
-# Control Flags:
-#   
-#   -I<directory>      specifies a directory to search for a 
-#                      Fortran module or include file.  This 
-#                      flag can be used multiple times.
-#   -MOD"a b c"        specifies that modules a, b, and c are 
-#                      to be searched for locally.  This flag 
-#                      can be used multiple times.
-#   -MP<directory>     specifies the local compiled module output 
-#                      directory.  Only one instance of this flag
-#                      is expected.
-#   -PRE<prefix>       dependency target prefix
-#   -SUF<suffix>       dependency target suffix
-#   -f<file>           Output file
-#
-#   NOTE:  the order of the control flags is unimportant
-#
-# M. Palmer   7/25/00
-#
-# Modifications:
-#
-# MAP -  7/28/00 - Switch over to using the new depend_parse.awk
-#
-# MAP - 10/02/01 - Major upgrade to allow for search paths
-#
-# MAP - 10/06/01 - Direct output to file specified with -f option
-#                  or to a file with name "depend" if no file 
-#                  specified.  This makes the functionality 
-#                  more consistent with makedepend.  Also, no 
-#                  longer generate dependency line for targets 
-#                  that have none.
-# 
-#-----------------------------------------------------------------
-#
-# $Id$
-#
-# $Log$
-# Revision 1.3  2001/10/23 21:44:41  palmer
-# Get rid of debugging messages.
-#
-# Revision 1.2  2001/10/05 02:41:42  palmer
-# Update internal path to the fort_depend.awk script.
-#
-# Revision 1.1  2001/10/04 17:21:48  palmer
-# New scripts for doing CESR fortran 90 dependencies.
-#
-#
-
-#-----------------------------------------------------------------
-# Get the input count
-#-----------------------------------------------------------------
-num_arg=$#
+# this program checks dependencies of individual fortan files when
+# called from the makefile.
 
 
-#-----------------------------------------------------------------
-# Initializations
-#-----------------------------------------------------------------
-arg_cnt=0
-FILE_LIST=""
-SEARCH_PATH="."
-LOCAL_MODS=""
-LOCAL_MPATH="."
-TARGET_PRE=""
-TARGET_SUF="d"
-OUT_DEPEND="depend"
+
+($search_dirs, $local_mods, $mod_out_dir, $prefix, $suffix, $d_file, $f_file)
+    =parse_args(\@ARGV);
+($needed_incs, $needed_mods, $mods_to_create)
+    =get_used_module_names($f_file, $d_file);
+if(@{$needed_mods} || @{$needed_incs})
+ {
+  ($final_module_list, $final_inc_list)
+    =find_mods($needed_mods, $search_dirs, $mod_out_dir, $local_mods, $needed_incs);
+  $mods_to_create=finalize_mods_to_create($mods_to_create, $mod_out_dir);
+  print_d_file($prefix, $f_file, $suffix, $d_file, $mods_to_create, $final_module_list, $final_inc_list);
+ }
+
+sub print_empty_d_file
+ {
+  $d_file=$_[0];
+  open(F_out, ">$d_file");
+  print F_out ("# DO NOT DELETE\n");
+  print "no dependencies to record: $d_file\n"
+ }
+
+sub print_d_file
+ {
+  $prefix            =$_[0];
+  $f_file            =$_[1];
+  $suffix            =$_[2];
+  $d_file            =$_[3];
+  $mods_to_create    =$_[4];
+  $final_module_list =$_[5];
+  $final_inc_list    =$_[6];
+  $mods_to_create_var="";
+  $final_module_var  ="";
+  $final_inc_var     ="";
+
+  foreach $mod (@{$mods_to_create})
+   {$mods_to_create_var="$mods_to_create_var $mod";}
+  foreach $mod (@{$final_module_list})
+   {$final_module_var="$final_module_var $mod.mod";}
+  $f_file=~/(\w+)\.\w{1,3}$/;
+  $f_file=$1;
+  open(F_out, ">$d_file");
+  print F_out ("# DO NOT DELETE\n\n");
+  foreach $inc (@{$final_inc_list})
+   {print F_out ("$prefix$f_file$suffix: $inc\n");}    
+  if($final_module_var)
+   {print F_out ("$prefix$f_file$suffix$mods_to_create_var: $final_module_var\n");} 
+#  print F_out ("\t\@echo reading dependencies from $d_file\n");
+  close(F_out);
+ }
+
+sub finalize_mods_to_create
+ {
+  $mods_to_create=$_[0];
+  $mod_out_dir   =$_[1];
+  foreach $mod (@{$mods_to_create})
+   {push(@mods_to_create2,"$mod_out_dir/$mod.mod");}
+  return \@mods_to_create2;
+ }
 
 
-#-----------------------------------------------------------------
-# Set up some variables
-#-----------------------------------------------------------------
-CPP=/usr/bin/cpp
-CPP_FLAGS="-C"
-BIN_DIR=${CESR_UTIL}
+sub find_mods
+ {
+  @final_inc_list   =();
+  @final_module_list=();
+  $needed_mods      =$_[0];
+  $search_dirs      =$_[1];
+  $mod_out_dir      =$_[2];
+  $local_mods       =$_[3];
+  $needed_incs      =$_[4];
+  push(@{$needed_mods}, @{$needed_incs});
+  MOD: foreach $mod (@ {$needed_mods})
+   {
+    foreach $local_mod (@ {$local_mods})
+     {
+      if("$mod.mod" eq $local_mod)
+       {
+        push(@final_module_list,"$mod_out_dir/$mod");        
+        next MOD;
+       }
+     }
+    foreach $dir (@ {$search_dirs})
+     {
+			$norm_dir=$dir;
+			$norm_dir=~s/\/[\w_]+\/\.\.//g;
+      if(`find $dir -name $mod.mod -print 2>temp.out`)
+       {
+        push(@final_module_list,"$dir/$mod");
+        next MOD;
+       }
+      elsif(`find $dir -name $mod -print 2>temp.out`)
+       {
+        push(@final_inc_list,"$norm_dir/$mod");
+        next MOD;
+       }
+     }
+    if($mod=~/\.inc$/)
+     {push(@final_inc_list, "$mod_out_dir/$mod");}
+    else
+     {push(@final_module_list, "$mod_out_dir/$mod");}
+    print STDERR "warning: can't find $mod, assuming local.\n";
+   }
+  `rm -fr temp.out`;
+  return (\@final_module_list, \@final_inc_list);
+ }
 
 
-#-----------------------------------------------------------------
-# Loop over all arguments and sort by type
-#-----------------------------------------------------------------
-while ( [ ${arg_cnt} -lt ${num_arg} ] ); do
-
-		arg=$1
-		arg_cnt=`expr ${arg_cnt} + 1`
-		shift
-
-#   Parse control flags and inputs
-		ival=`echo ${arg} | awk '/-I/{printf("1")};/-MOD/{printf("2")};/-MP/{printf("3")};/-PRE/{printf("4")};/-SUF/{printf("5")};/-f/{printf("6")}'`
-
-#   Prevent sending an empty variable to "test" and generate internal lists
-		ival="_${ival}_"
-		if ( [ ${ival} = "__" ] ) then
-		  FILE_LIST="${FILE_LIST} ${arg}"
-		elif ( [ ${ival} = "_1_" ] ) then
-			val=`echo ${arg} | awk '// {printf("%s",substr($0,3))}'`
-			SEARCH_PATH="${SEARCH_PATH} ${val}"
-      CPP_FLAGS="${CPP_FLAGS} ${arg}"
-		elif ( [ ${ival} = "_2_" ] ) then
-		  val=`echo ${arg} | awk '// {printf("%s",substr($0,5))}'`
-			LOCAL_MODS="${LOCAL_MODS} ${val}"
-		elif ( [ ${ival} = "_3_" ] ) then
-		  val=`echo ${arg} | awk '// {printf("%s",substr($0,4))}'`
-			LOCAL_MPATH="${val}"
-		elif ( [ ${ival} = "_4_" ] ) then
-		  val=`echo ${arg} | awk '// {printf("%s",substr($0,5))}'`
-			TARGET_PRE="${val}"
-		elif ( [ ${ival} = "_5_" ] ) then
-		  val=`echo ${arg} | awk '// {printf("%s",substr($0,5))}'`
-			TARGET_SUF="${val}"
-		elif ( [ ${ival} = "_6_" ] ) then
-		  val=`echo ${arg} | awk '// {printf("%s",substr($0,3))}'`
-			OUT_DEPEND="${val}"
-
-		fi
-
-done
-
-# Some debugging dumps
-#echo "FILE_LIST  :  ${FILE_LIST}"   >&2
-#echo "SEARCH_PATH:  ${SEARCH_PATH}" >&2
-#echo "LOCAL_MODS :  ${LOCAL_MODS}"  >&2
-#echo "LOCAL_MPATH:  ${LOCAL_MPATH}" >&2
-#echo "TARGET_PRE :   ${TARGET_PRE}" >&2
-#echo "TARGET_SUF :   ${TARGET_SUF}" >&2
-
-
-#-----------------------------------------------------------------
-# Generate the dependency lists
-#-----------------------------------------------------------------
-for file in ${FILE_LIST}; do
-
-  fname=`basename ${file}`  
-  fbase=`echo ${fname} | sed s/\.f90// | sed s/\.f77// | sed s/\.for// | sed s/\.F// `
+sub get_used_module_names
+ {
+  $f_filename     =$_[0];
+  $d_file         =$_[1];
+  @needed_incs    =();
+  @mods_to_create =();
+  @needed_mods    =();
+  @grep_out_inc   =`grep -whi "#include" $f_filename`; 
+  @grep_out_mod   =`grep -whi "module" $f_filename | grep -vi " END "`;
+  @grep_out_use   =`grep -whi "use" $f_filename`;
+  foreach $line (@grep_out_inc)
+   {
+    if(($line=~/(.*?)#include\s"(\S+?)"/i) && (!($1=~/!/)))
+     {push(@needed_incs,$2) unless ($seen{$2}++);}
+   }
+  foreach $line (@grep_out_mod)
+   {
+    if(($line=~/^\s*module\s(\S+)/i) && ($1!~/PROCEDURE/i))
+     {push(@mods_to_create,lc($1)) unless ($seen{lc($1)}++);}
+   }
+  foreach $line (@grep_out_use)
+   { 
+    while($line)
+     {
+      if(($line=~/^(\s*?)\buse\s+([\w_]+)[\s;,](.+)/i) || ($line=~/^(\s*?)\buse\s+([\w_]+)$/i))
+       {
+        push(@needed_mods,lc($2)) unless ($seen{lc($2)}++);
+        $line=$3;
+       }
+      else
+       {$line=0;}
+     }
+   }
+  $needed_mods_length=@needed_mods;
+  $needed_incs_length=@needed_incs;
+  if((!$needed_mods_length)&&(!$needed_incs_length))
+   {
+    print_empty_d_file($d_file);
+    return (0,0);
+   }
+  return (\@needed_incs, \@needed_mods, \@mods_to_create);
+ }
   
-	target="${TARGET_PRE}${fbase}${TARGET_SUF}:"
 
-	dep_list=`${CPP} ${CPP_FLAGS} ${file} | awk -f ${BIN_DIR}/fort_depend.awk`
 
-  full_dep_list=""
+sub parse_args
+ {
+  $arguments    =$_[0];
+  @Is           =();
+  @MOD          =();
+  @makedep_args =();
+  foreach $argument (@{$arguments})
+   {
+    if($argument=~/^-I(.+)/)
+     {
+      push(@Is,$1);
+      push(@makedep_args," -I\"$1\"");
+     }
+    elsif($argument=~/^-MOD(.+)/)
+     {push(@MOD,(split /\s/,$1));}
+    elsif($argument=~/^-MP(.+)/)
+     {$MP=$1;}
+    elsif($argument=~/^-PRE(.+)/)
+     {
+      $PRE=$1;
+      push(@makedep_args," -p\"$1\"");   
+     }
+    elsif($argument=~/^-SUF(.+)/)
+     {
+      $SUF=$1;
+      push(@makedep_args," -o\"$1\"");
+     }
+    elsif($argument=~/^-f(.+)/)
+     {
+      $f=$1;
+      push(@makedep_args," -f\"$1\"");
+     }
+    else
+     {
+      $f_filename=$argument;
+      push(@makedep_args," \"$argument\"");
+     }#=~/(\w+)\.\w{1,3}$/;}
+   }
+  if(!($f))
+	 {$f="depend";}
+  `makedepend @makedep_args`;
+  return (\@Is, \@MOD, $MP, $PRE, $SUF, $f, $f_filename);
+ }
 
-# Don't do anything if there are no dependcies to record
-# Creating a target with no dependencies will result in that 
-# target always being remade.
-  check_empty="_${dep_list}_"
-#  echo "Checking:  ${check_empty}" >&2
-  if ( [ "${check_empty}" != "_ _" ] ) then
 
-#    echo "Found dependencies for ${file}" >&2
-  	for dep in ${dep_list}; do
-	  	found=0
-			for mod in ${LOCAL_MODS}; do 
-			  if ( [ ${dep} = ${mod} ] ) then
-  			  found=1
-          full_dep_list="${full_dep_list} ${LOCAL_MPATH}/${dep}"
-				  break
-        fi
-      done
 
-      if ( [ ${found} -eq 0 ] ) then
-	  	  for dir in ${SEARCH_PATH}; do
-		  	  full_dep=${dir}/${dep}
-			  	if ( [ -e ${full_dep} ] ) then
-				  	found=1
-  					full_dep_list="${full_dep_list} ${full_dep}"
-	  				break
-		  		fi
-  			done
-	  	fi
 
-	  	if ( [ ${found} -eq 0 ] ) then
-
-		    is_mod=`echo ${dep} | awk '/\.mod/ {printf("1")}'`
-			  is_mod="_${is_mod}_"
-			  if ( [ ${is_mod} = "_1_" ] ) then
-
-#         Assign dependency of unfound modules to the local module directory
-				  full_dep_list="${full_dep_list} ${LOCAL_MPATH}/${dep}"
-
-			  else
-
-#         Declare a warning if can't find an include file
-				  echo "Cannot find ${dep} in:" >&2
-				  for dir in ${SEARCH_PATH}; do
-				    echo "  ${dir}">&2
-				  done
-
-			  fi
-		  fi
-
-    done
-
-    echo "${target} ${full_dep_list}" >> ${OUT_DEPEND}
-
-  fi
-
-#		echo " " >> ${OUT_DEPEND}
-  
-#  fi
-
-done
-
-exit
 
 
