@@ -236,10 +236,11 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   bmad_taylor(:) -- Taylor_struct: New structure.
+!   bmad_taylor(:) -- Taylor_struct: Taylor to be deallocated. It is OK
+!                       if bmad_taylor has already been deallocated.
 !
 ! Output:
-!   bmad_taylor(:) -- Taylor_struct: deallocated structure.
+!   bmad_taylor(:) -- Taylor_struct: deallocated Taylor structure.
 !-
 
 subroutine kill_taylor (bmad_taylor)
