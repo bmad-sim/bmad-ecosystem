@@ -397,11 +397,11 @@ module bmad_struct
 ! lattice logical names
 
   integer, parameter :: linac_lattice$ = 10
-  integer, parameter :: linear_lattice$ = 11
+!!  integer, parameter :: linear_lattice$ = 11
   integer, parameter :: circular_lattice$ = 12
 
   character(16) :: lattice_type(10:12) = &
-        (/ 'LINAC_LATTICE   ', 'LINEAR_LATTICE  ', 'CIRCULAR_LATTICE' /)
+        (/ 'LINAC_LATTICE   ', 'GARBAGE!        ', 'CIRCULAR_LATTICE' /)
 
 ! logicals for MAKE_HYBIRD_RING
 

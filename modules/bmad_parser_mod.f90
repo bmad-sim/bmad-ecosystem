@@ -1988,10 +1988,11 @@ subroutine init_bmad_parser_common
   
   integer nn, nt, i
   
-!
+! 
 
-  nn = 21  ! number of "constant" variables
-  bp_com%ivar_init = nn + ubound(calc_method_name, 1)
+  nn = 20  ! number of "constant" variables
+  bp_com%ivar_init = nn + ubound(calc_method_name, 1) + &
+                                             ubound(aperture_at_name, 1)
   bp_com%ivar_tot = bp_com%ivar_init
 
   nt = bp_com%ivar_tot
@@ -2039,11 +2040,11 @@ subroutine init_bmad_parser_common
   bp_com%var_name(14)  = 'LINAC_LATTICE'
   bp_com%var_value(14) = linac_lattice$
 
-  bp_com%var_name(15)  = 'LINEAR_LATTICE'
-  bp_com%var_value(15) = linear_lattice$
+  bp_com%var_name(15)  = 'CIRCULAR_LATTICE'
+  bp_com%var_value(15) = circular_lattice$
 
-  bp_com%var_name(16)  = 'CIRCULAR_LATTICE'
-  bp_com%var_value(16) = circular_lattice$
+  bp_com%var_name(16)  = 'R_E'
+  bp_com%var_value(16) = r_e
 
   bp_com%var_name(17)  = 'PROTON'
   bp_com%var_value(17) = proton$
@@ -2057,21 +2058,19 @@ subroutine init_bmad_parser_common
   bp_com%var_name(20)  = 'M_PROTON'
   bp_com%var_value(20) = m_proton
 
-  bp_com%var_name(21)  = 'R_E'
-  bp_com%var_value(21) = r_e
-
   do i = 1, ubound(calc_method_name, 1)
-    call str_upcase (bp_com%var_name(nn+i), calc_method_name(i))
-    bp_com%var_value(nn+i) = i
+    nn = nn + 1
+    call str_upcase (bp_com%var_name(nn), calc_method_name(i))
+    bp_com%var_value(nn) = i
   enddo
 
   do i = 1, ubound(aperture_at_name, 1)
-    call str_upcase (bp_com%var_name(nn+i), aperture_at_name(i))
-    bp_com%var_value(nn+i) = i
+    nn = nn + 1
+    call str_upcase (bp_com%var_name(nn), aperture_at_name(i))
+    bp_com%var_value(nn) = i
   enddo
 
-  nn = bp_com%ivar_tot
-  call indexx (bp_com%var_name(1:nn), bp_com%var_indexx(1:nn))
+  call indexx (bp_com%var_name(1:nt), bp_com%var_indexx(1:nt))
 
 end subroutine
 
