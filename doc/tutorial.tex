@@ -633,7 +633,7 @@ compiled without compiling an executable. Here is where this comes in handy. Sin
 the standard \tao subroutines have already been made into libraries, all you
 need to do is compile and link your custom routines.
 
-There are 8 ``hook'' files located in the \cmd{ROOT/tao/hook} directory. These are
+There are 9 ``hook'' files located in the \cmd{ROOT/tao/hook} directory. These are
 the files you can customize. There are two options here. 
 \begin{enumerate}
   \item Change the files directly in \cmd{ROOT/tao/hook}, adding any extra file you
@@ -646,7 +646,8 @@ routines to the main \tao library.
 \end{enumerate}
 Option~\ref{cust_option_two} is HIGHLY recommended because it keeps the \tao
 distribution tree undisturbed and reserves the possibility to create multiple
-custom \tao programs using the same vanilla \tao library.
+custom \tao programs using the same vanilla \tao library. This option is used in
+the following example.
 
 %----------------------------------------------------------------
 \section{An Example}
@@ -676,10 +677,17 @@ Now with your favorite text editor change the following lines in your Makefile
 \end{example}
 to
 \begin{example}
-  LIB\_SRC\_DIRS := ../tao/code ./
+  LIB\_SRC\_DIRS := ../tao/code
   OBJ\_SRC\_DIRS := ./
 \end{example}
-and the following line
+This tells gmake to use the tao library (\cmd{../tao/code}) and then to compile
+all of the hook files, including the main program file (\cmd{my_tao_cl.f90}) in
+to object files. Code in object files always overide similarly named code in
+libraries so this allows for your local hook files to overide the dummy hook
+files in the \tao library. The only downside to this method is it clutters your
+\cmd{my_tao} directory with object files.
+
+There are two more lines to alte. change
 \begin{example}
   MAIN\_FILE :=
 \end{example}
@@ -687,7 +695,7 @@ to
 \begin{example}
   MAIN\_FILE := ./my\_tao_cl.f90
 \end{example}
-And finally,
+and finally,
 \begin{example}
   MAKEFILE := M.tao
 \end{example}
@@ -708,16 +716,12 @@ Place the following code in \vn{tao_hook_load_data_array.f90} (in the
 %\begin{example}
 \begin{verbatim}
   case ('emittance:x') 
-    ix1 = datum%ix_ele
-    ele => lattice%ele_(ix1)
 
     datum_value =  ( ele%x%gamma * orb(ix1)%vec(1)**2 + &
 		     2 * ele%x%alpha * orb(ix1)%vec(1) * orb(ix1)%vec(2) + &
 		     ele%x%beta * orb(ix1)%vec(2)**2)
     
   case ('emittance:y')
-    ix1 = datum%ix_ele
-    ele => lattice%ele_(ix1)
 
     datum_value = ( ele%y%gamma * orb(ix1)%vec(3)**2 + &
 		     2 * ele%y%alpha * orb(ix1)%vec(3) * orb(ix1)%vec(4) + &
@@ -837,5 +841,5 @@ includes dispersion and coupling.
 \end{figure}
 
 This example just illustrates one of the customizations you can perform on \tao.
-Part III Programmer's Guide lays out all of the hook files and provides pointers
+Part III, Programmer's Guide lays out all of the hook files and provides pointers
 for various customizations.

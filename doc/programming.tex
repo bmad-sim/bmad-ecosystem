@@ -1,26 +1,27 @@
 %-----------------------------------------------------------------
 %\chapter{Introduction}
-%\label{c:intro} 
+%\label{c:prog_intro} 
 
 \tao has been designed to be ready extensible with a minimum of
-effort.  The process is as follows: For the purposes of this
+effort. The tutorial providesa simple example of a custom data type. Here each
+the hook routines are explained and pointers are given for writing code. 
+
+\chapter{Creating a Custom Version of \tao}
+\label{c:prog_intro} 
+
+The process is summarized as follows: For the purposes of this
 discussion assume that the directory that you are developing \tao in
 is called \vn{ROOT}. 
 \begin{enumerate}
 \item 
 The first step is to checkout from CVS (or download a
 copy) of \tao. You will now have \tao in
-\vn{ROOT}/tao. The library source code will be sitting in \vn{ROOT/tao/code}
-and the vanilla \tao program is in \vn{ROOT/tao/program/tao_cl.f90}
+\vn{ROOT/tao}. The library source code will be sitting in \vn{ROOT/tao/code}
+and the vanilla \tao program is \vn{ROOT/tao/program/tao_cl.f90}
 \item 
 From the \vn{ROOT}/tao area build the \tao library using the
-\vn{gmake} command.
-\item
-If you want to play around with the vanilla \tao program you can make it
-from the \vn{ROOT}/tao directory using the \vn{gmake -f M.tao} command.
-\item
-There are some test input files in \vn{ROOT/tao/program} so if you run
-\tao from this directory you can play around with \tao.
+\vn{gmake} command. This will create a \tao library that includes dummy hook
+routines and structures. When creating custom hooks these are overiden.
 \item
 To extend \tao you will want to make a new
 directory, say, called \vn{ROOT/my_tao}. In this directory you write
@@ -30,6 +31,20 @@ the necessary routines to extend \tao. You will also need a standard \vn{Makefil
 You can compile and link your routines with the \tao routines using
 \vn{gmake} in \vn{ROOT/my_tao}.
 \end{enumerate}
+
+The tutorial in Part I of this manual gave an example of how to carry out the
+above steps. This is repeated below but in greater detail.
+
+\section{Creating the \tao Library and a Custom \tao Directory}
+After obtaining the \tao distribution the \tao library is created by typing 
+\cmd{gmake} in the \cmd{ROOT/tao} directory. This will create two libraries
+called \cmd{libtao.a} and \cmd{libtao_g.a} where the second is a debug version
+in the directory \cmd{ROOT/lib}. If you then type \cmd{gmake -f M.tao} then
+"vanilla" \tao will be compiled called \cmd{tao} and \cmd{tao_g} and placed in
+\cmd{ROOT/bin}
+
+
+\section{Modifying the Hook Routines and Structures}
 
 The golden rule when writing routines to extend \tao is that you are
 only allowed to replace routines or redefine structures that have the
@@ -51,8 +66,8 @@ information on these structures see the \bmad Reference Manual. Note
 that the hook--structures are defined in a file \vn{tao_hook_mod.f90}.
 
 %-----------------------------------------------------------------
-%\section{Plotting}
-%\label{s:plotting} 
+\chapter{Plotting}
+\label{s:prog_plotting} 
 
 Plotting is based upon the \vn{quick_plot} subroutines which are
 documented in the \bmad reference manual and you should review this
