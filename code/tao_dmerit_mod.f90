@@ -29,8 +29,9 @@ implicit none
 type (tao_universe_struct), pointer :: u
 
 real(rp) model_value, merit_value
-integer i, j, k
+integer i, j, k, jj
 integer n_data, n_var, nd, nv
+integer s_var_size, current_s_var_point
 character(20) :: r_name = 'tao_dmodel_dvar_calc'
 logical reinit, force_calc
 
@@ -75,14 +76,25 @@ do j = 1, size(s%var)
 enddo
 
 if (.not. reinit) return
-call out_io (s_info$, r_name, 'Remaking dModel_dVar derivative matrix...') 
+call out_io (s_info$, r_name, 'Remaking dModel_dVar derivative matrix.') 
+call out_io (s_blank$, r_name, 'This may take a while...') 
+call out_io (s_blank$, r_name, ' ') 
 
 ! Calculate matrices
 
 merit_value = tao_merit ()
 s%var%old_value = s%var%delta
 
-do j = 1, size(s%var)
+s_var_size = size(s%var)
+jj = 10
+
+do j = 1, s_var_size
+
+! let user see progress
+  if (modulo(j * 10, s_var_size) .eq. 0) then
+    call out_io (s_blank$, r_name, " \i3\% done...", jj)
+    jj = jj + 10
+  endif
 
   if (.not. s%var(j)%useit_opt) cycle
   nv = s%var(j)%ix_dvar
@@ -104,7 +116,6 @@ do j = 1, size(s%var)
   enddo
 
   call tao_set_var_model_value (s%var(j), model_value)
-
 enddo
 
 end subroutine

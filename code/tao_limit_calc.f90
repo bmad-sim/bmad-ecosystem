@@ -29,13 +29,13 @@ character(80) line
 
 logical limited
 
+limited = .false.
+
 ! If the %correction_value is out of bounds then set the model_value so the
 ! target value is within bounds.
 
 if (.not. s%global%var_limits_on) return
 call tao_var_target_calc ()
-
-limited = .false.
 
 do j = 1, size(s%var)
 

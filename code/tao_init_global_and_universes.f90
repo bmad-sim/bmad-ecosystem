@@ -336,7 +336,8 @@ u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)  ! point back to the parent
 if (index(data(0)%name, 'COUNT:') /= 0) then
   counting = .true.
   call form_count_name (data(0)%name(7:), num_hashes, count_name1, count_name2)
-else
+! if using SAME: then use the specified d1_data to count datums below...
+elseif (index(data(0)%ele_name, 'SAME:') .eq. 0) then
   counting = .false.
   n1 = u%n_data_used + 1
   n2 = u%n_data_used + ix_max_data - ix_min_data + 1
@@ -406,7 +407,14 @@ elseif (index(data(0)%ele_name, 'SAME:') /= 0) then
     call out_io (s_abort$, r_name, 'CANNOT MATCH "SAME:" NAME: ' // name)
     call err_exit
   endif
+  n1 = u%n_data_used + 1
   n2 = n1 + size(d1_ptr%d) - 1
+  u%n_data_used = n2
+  if (n2 > size(u%data)) then
+    call out_io (s_abort$, r_name, &
+                'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
+    call err_exit
+  endif
   u%data(n1:n2)%data_type  = ' '
   u%data(n1:n2)%ele_name   = d1_ptr%d%ele_name
   u%data(n1:n2)%ix_ele     = d1_ptr%d%ix_ele
