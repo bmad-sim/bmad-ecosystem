@@ -539,38 +539,40 @@ subroutine track_taylor (start, bmad_taylor, end)
 
   implicit none
   
-  type (taylor_struct), intent(in) :: bmad_taylor(6)
-  real(rp), intent(in) :: start(6)
-  real(rp), intent(out) :: end(6)
-  
+  type (taylor_struct), intent(in) :: bmad_taylor(:)
+
+  real(rp), intent(in) :: start(:)
+  real(rp), intent(out) :: end(:)
+  real(rp) s0(6)
   real(rp) delta
   real(rp), allocatable, save :: expn(:, :)
 
-  integer i, j, k, ie, e_max
+  integer i, j, k, ie, e_max, i_max
   
 ! size cash matrix
 
   e_max = 0
+  i_max = size(bmad_taylor)
 
-  do i = 1, 6
+  do i = 1, i_max
     do j = 1, size(bmad_taylor(i)%term)
       e_max = max (e_max, maxval(bmad_taylor(i)%term(j)%exp)) 
     enddo
   enddo
 
   if (.not. allocated(expn)) then
-    allocate (expn(6, e_max))
+    allocate (expn(i_max, e_max))
   else
     if (ubound(expn, 2) < e_max) then
       deallocate (expn)
-      allocate (expn(6, e_max))
+      allocate (expn(i_max, e_max))
     endif
   endif
 
 ! fill cash matrix
 
   expn = 0
-  do i = 1, 6
+  do i = 1, i_max
     do j = 1, e_max
       if (start(i) == 0) cycle
       expn(i, j) = start(i) ** j
@@ -579,14 +581,16 @@ subroutine track_taylor (start, bmad_taylor, end)
 
 ! compute taylor map
 
+  s0 = start  ! in case start and end are the same in memory.
   end = 0
-  do i = 1, 6
+
+  do i = 1, i_max
     j_loop: do j = 1, size(bmad_taylor(i)%term)
       delta =  bmad_taylor(i)%term(j)%coef
       do k = 1, 6
         ie = bmad_taylor(i)%term(j)%exp(k) 
         if (ie == 0) cycle
-        if (start(k) == 0) cycle j_loop  ! delta = 0 in this case 
+        if (s0(k) == 0) cycle j_loop  ! delta = 0 in this case 
         delta = delta * expn(k, ie)
       enddo
       end(i) = end(i) + delta

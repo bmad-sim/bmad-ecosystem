@@ -128,12 +128,17 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
 !--------------------------------------------------------
 ! sbend
+! if k1 /= 0 then just use the MAD 2nd order map.
 
   case (sbend$)
 
+    if (ele%value(k1$) /= 0) then
+      call make_mat6_mad (ele, param, c0, c1)
+      return
+    endif
+
     e1 = ele%value(e1$)
     e2 = ele%value(e2$)
-    k1 = ele%value(k1$)
     g = ele%value(g$) + ele%value(delta_g$)
 
     call offset_particle (ele, param, c00, set$, set_canonical = .false.)
@@ -148,102 +153,54 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       return
     endif
 
-! end matrices
-
-! body, k1 = 0
+! Body
 ! Used: Eqs (12.18) from Etienne Forest: Beam Dynamics.
 
-    select case (k1 == 0)
-    case (.true.)
+    g_tot = ele%value(g$) + ele%value(delta_g$)
+    b1 = g_tot
+    angle = ele%value(angle$)
+    rho = 1 / ele%value(g$)
+    dE = c0%vec(6)
+    rel_E  = 1 + dE
+    rel_E2 = rel_E**2
 
-      g_tot = ele%value(g$) + ele%value(delta_g$)
-      b1 = g_tot
-      angle = ele%value(angle$)
-      rho = 1 / ele%value(g$)
-      dE = c0%vec(6)
-      rel_E  = 1 + dE
-      rel_E2 = rel_E**2
+    ct = cos(angle)
+    st = sin(angle)
 
-      ct = cos(angle)
-      st = sin(angle)
-
-      x  = c00%vec(1)
-      px = c00%vec(2)
-      y  = c00%vec(3)
-      py = c00%vec(4)
-      z  = c00%vec(5)
-      pz = c00%vec(6)
+    x  = c00%vec(1)
+    px = c00%vec(2)
+    y  = c00%vec(3)
+    py = c00%vec(4)
+    z  = c00%vec(5)
+    pz = c00%vec(6)
  
-      Dxy = sqrt(rel_E2 - px**2 - py**2)
-      Dy  = sqrt(rel_E2 - py**2)
+    Dxy = sqrt(rel_E2 - px**2 - py**2)
+    Dy  = sqrt(rel_E2 - py**2)
 
-      px_t = px*ct + (Dxy - b1*(rho+x))*st
-      Dxy_t = sqrt(rel_E2 - px_t**2 - py**2)
-      dpx_t = -px*st/rho + (Dxy - b1*(rho+x))*ct/rho
-      factor = (angle + asin(px/Dy) - asin(px_t/Dy)) / b1
-      df_dpy = px/(Dxy*Dy**2) - px_t/(Dxy_t*Dy**2) + st/(Dxy*Dxy_t)
-      df_dE = rel_E * (-px/(Dxy*Dy**2) - st/(Dxy*Dxy_t) + px_t/(Dxy_t*Dy**2))
+    px_t = px*ct + (Dxy - b1*(rho+x))*st
+    Dxy_t = sqrt(rel_E2 - px_t**2 - py**2)
+    dpx_t = -px*st/rho + (Dxy - b1*(rho+x))*ct/rho
+    factor = (angle + asin(px/Dy) - asin(px_t/Dy)) / b1
+    df_dpy = px/(Dxy*Dy**2) - px_t/(Dxy_t*Dy**2) + st/(Dxy*Dxy_t)
+    df_dE = rel_E * (-px/(Dxy*Dy**2) - st/(Dxy*Dxy_t) + px_t/(Dxy_t*Dy**2))
 
-      mat6(1,1) = px_t * st / Dxy_t + ct
-      mat6(1,2) = -px_t * (ct - px*st/Dxy) / (b1 * Dxy_t) + st/b1 + px*ct/(b1*Dxy)
-      mat6(1,4) = (-py + px_t*py*st/Dxy) / (b1 * Dxy_t) + py*ct/(b1*Dxy)
-      mat6(1,6) = (rel_E - px_t*rel_E*st/Dxy) / (b1 * Dxy_t) - rel_E*ct/(b1*Dxy)
-      mat6(2,1) = -b1 * st
-      mat6(2,2) = ct - px * st / Dxy
-      mat6(2,4) = -py * st / Dxy
-      mat6(2,6) = rel_E * st / Dxy
-      mat6(3,1) = py * st / Dxy_t
-      mat6(3,2) = py * (1/ Dxy - ct/Dxy_t + px*st/(Dxy*Dxy_t)) / b1
-      mat6(3,3) = 1
-      mat6(3,4) = factor + py**2 * df_dpy / b1
-      mat6(3,6) = py * df_dE / b1
-      mat6(5,1) = -rel_E * st / Dxy_t
-      mat6(5,2) = -rel_E * (1/Dxy + -ct/Dxy_t + px*st/(Dxy*Dxy_t)) / b1
-      mat6(5,4) = -rel_E * py * df_dpy / b1
-      mat6(5,6) = -factor - rel_E * df_dE / b1
-      
-! body, k1 /= 0
-
-    case (.false.)
-
-      k1 = k1 / rel_E
-      kc = (g/rel_E)**2 + k1
-
-      call quad_mat2_calc (-kc, length, mat6(1:2,1:2))
-      call quad_mat2_calc (k1, length, mat6(3:4,3:4))
-
-      phi = sqrt(abs(kc)) * length
-      if (kc < 0.0) then
-        mat6(1,6) = (1 - cosh(phi)) * g / kc
-        mat6(2,6) = sinh(phi) * g / sqrt(-kc)
-        mat6(5,6) = (phi - sinh(phi)) * g**2 / abs(kc)**1.5
-      else
-        mat6(1,6) = (1 - cos(phi)) * g / kc
-        mat6(2,6) = sin(phi) * g/ sqrt(kc)
-        mat6(5,6) = (sin(phi) - phi) * g**2 / kc**1.5
-      endif
-
-! Above correct for (x, x', y, y') coord system. 
-! Actually we have (x, p_x, y, p_y) so transform.
-
-      mat6(1,6) = mat6(1,6) / rel_E - mat6(1,2) * c00%vec(2) / rel_E**2
-      mat6(2,6) = rel_E * mat6(2,6) 
-      mat6(3,6) = -c00%vec(4) * (mat6(5,6) + length)
-
-      mat6(1,2) = mat6(1,2) / rel_E
-      mat6(2,1) = mat6(2,1) * rel_E
-
-      mat6(3,4) = mat6(3,4) / rel_E
-      mat6(4,3) = mat6(4,3) * rel_E
-
-!
-
-      mat6(5,1) = mat6(1,6) * mat6(2,1) - mat6(2,6) * mat6(1,1) 
-      mat6(5,2) = mat6(1,6) * mat6(2,2) - mat6(2,6) * mat6(1,2)
-  
-      mat6(5,4) = -c00%vec(4) * (mat6(5,6) + length)
-
-    end select
+    mat6(1,1) = px_t * st / Dxy_t + ct
+    mat6(1,2) = -px_t * (ct - px*st/Dxy) / (b1 * Dxy_t) + st/b1 + px*ct/(b1*Dxy)
+    mat6(1,4) = (-py + px_t*py*st/Dxy) / (b1 * Dxy_t) + py*ct/(b1*Dxy)
+    mat6(1,6) = (rel_E - px_t*rel_E*st/Dxy) / (b1 * Dxy_t) - rel_E*ct/(b1*Dxy)
+    mat6(2,1) = -b1 * st
+    mat6(2,2) = ct - px * st / Dxy
+    mat6(2,4) = -py * st / Dxy
+    mat6(2,6) = rel_E * st / Dxy
+    mat6(3,1) = py * st / Dxy_t
+    mat6(3,2) = py * (1/ Dxy - ct/Dxy_t + px*st/(Dxy*Dxy_t)) / b1
+    mat6(3,3) = 1
+    mat6(3,4) = factor + py**2 * df_dpy / b1
+    mat6(3,6) = py * df_dE / b1
+    mat6(5,1) = -rel_E * st / Dxy_t
+    mat6(5,2) = -rel_E * (1/Dxy + -ct/Dxy_t + px*st/(Dxy*Dxy_t)) / b1
+    mat6(5,4) = -rel_E * py * df_dpy / b1
+    mat6(5,6) = -factor - rel_E * df_dE / b1
 
     if (e1 /= 0) then
       arg = tan(e1) * g

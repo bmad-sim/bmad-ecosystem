@@ -10,7 +10,8 @@ module track1_mod
 
   use bmad_struct
   use bmad_interface
-  use make_mat6_mod  
+  use make_mat6_mod
+  use mad_mod
 
 contains
 
@@ -148,7 +149,7 @@ subroutine track_a_bend (start, ele, param, end)
 
   real(rp) b1, angle, ct, st, x, px, y, py, z, pz, dpx_t, phi
   real(rp) rel_E, rel_E2, Dxy, Dy, px_t, factor, rho, fact, g0, dg
-  real(rp) length, g_tot, dE, del, f, k1, kc, mat2(2,2), mat_i6(6)
+  real(rp) length, g_tot, dE, del, f, kc, mat2(2,2), mat_i6(6)
 
 ! simple case
 
@@ -160,7 +161,14 @@ subroutine track_a_bend (start, ele, param, end)
     return
   endif
 
-!
+! with k1 == 0 use the MAD 2nd order map.
+
+  if (ele%value(k1$) /= 0) then
+    call track1_mad (start, ele, param, end)
+    return
+  endif
+
+!-----------------------------------------------------------------------
 
   end = start
   call offset_particle (ele, param, end, set$, set_canonical = .false.)
@@ -178,85 +186,33 @@ subroutine track_a_bend (start, ele, param, end)
 
   call track_bend_edge (end, ele%value(e1$), g_tot, .true.)
 
-!-----------------------------------------------------------------------
 ! Track through main body...
+! Use Eqs (12.18) from Etienne Forest: Beam Dynamics.
 
-  k1 = ele%value(k1$)
-  select case (k1 == 0)
+  ct = cos(angle)
+  st = sin(angle)
 
-! For k1 == 0 then use Eqs (12.18) from Etienne Forest: Beam Dynamics.
-
-  case (.true.)  ! k1 == 0
-
-    ct = cos(angle)
-    st = sin(angle)
-
-    x  = end%vec(1)
-    px = end%vec(2)
-    y  = end%vec(3)
-    py = end%vec(4)
-    z  = end%vec(5)
-    pz = end%vec(6)
+  x  = end%vec(1)
+  px = end%vec(2)
+  y  = end%vec(3)
+  py = end%vec(4)
+  z  = end%vec(5)
+  pz = end%vec(6)
  
-    Dxy = sqrt(rel_E2 - px**2 - py**2)
-    Dy  = sqrt(rel_E2 - py**2)
+  Dxy = sqrt(rel_E2 - px**2 - py**2)
+  Dy  = sqrt(rel_E2 - py**2)
 
-    px_t = px*ct + (Dxy - b1*(rho+x))*st
-    dpx_t = -px*st/rho + (Dxy - b1*(rho+x))*ct/rho
-    factor = (asin(px/Dy) - asin(px_t/Dy)) / b1
+  px_t = px*ct + (Dxy - b1*(rho+x))*st
+  dpx_t = -px*st/rho + (Dxy - b1*(rho+x))*ct/rho
+  factor = (asin(px/Dy) - asin(px_t/Dy)) / b1
 
-    end%vec(1) = (sqrt(rel_E2 - px_t**2 -py**2) - rho*dpx_t - rho*b1) / b1
-    end%vec(2) = px_t
-    end%vec(3) = y + py * (angle/b1 + factor)
-    end%vec(4) = py
-    end%vec(5) = end%vec(5) + length * (dg - g0*dE) / g_tot - rel_E * factor
-    end%vec(6) = pz
+  end%vec(1) = (sqrt(rel_E2 - px_t**2 -py**2) - rho*dpx_t - rho*b1) / b1
+  end%vec(2) = px_t
+  end%vec(3) = y + py * (angle/b1 + factor)
+  end%vec(4) = py
+  end%vec(5) = end%vec(5) + length * (dg - g0*dE) / g_tot - rel_E * factor
+  end%vec(6) = pz
 
-!  If k1 /= 0 then just use the 1st order transfer matrix.
-
-  case (.false.)
-
-    end%vec(2) = end%vec(2) / rel_E  ! convert px to x'
-    end%vec(4) = end%vec(4) / rel_E  ! convert py to y'
-
-    k1 = k1 / rel_E
-    kc = g_tot**2 + k1
-    start2 = end  ! Save coords after entrence face
-
-    call quad_mat2_calc (-kc, length, mat2)
-    end%vec(1:2) = matmul (mat2, end%vec(1:2))
-
-    call quad_mat2_calc (k1, length, mat2)
-    end%vec(3:4) = matmul (mat2, end%vec(3:4))
-
-    phi = sqrt(abs(kc)) * length
-    if (kc < 0) then
-      mat_i6(1) = (1 - cosh(phi)) * g_tot / kc
-      mat_i6(2) = sinh(phi) * g_tot / sqrt(-kc)
-      mat_i6(5) = (phi - sinh(phi)) * g_tot**2 / abs(kc)**1.5
-    else
-      mat_i6(1) = (1 - cos(phi)) * g_tot / kc
-      mat_i6(2) = sin(phi) * g_tot / sqrt(kc)
-      mat_i6(5) = (sin(phi) - phi) * g_tot**2 / kc**1.5
-    endif
-
-    end%vec(1) = end%vec(1) + mat_i6(1) * dE
-    end%vec(2) = end%vec(2) + mat_i6(2) * dE
-    end%vec(5) = end%vec(5) + mat_i6(5) * dE
-
-    fact = start2%vec(4) * (mat_i6(5) + length)
-
-    end%vec(5) = end%vec(5) - &
-                    mat_i6(2) * start2%vec(1) - mat_i6(1) * start2%vec(2) + &
-                    fact * start2%vec(4) / 2
-    end%vec(3) = end%vec(3) + fact * dE
-
-    end%vec(2) = end%vec(2) * rel_E
-    end%vec(4) = end%vec(4) * rel_E
-
-  end select
-  
-!------------------------------------------------------------------------
 ! Track through the exit face. Treat as thin lens.
 
   call track_bend_edge (end, ele%value(e2$), g_tot, .false.)

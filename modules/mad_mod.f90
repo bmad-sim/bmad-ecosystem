@@ -13,12 +13,12 @@ module mad_mod
   use bmad_interface
 
   type energy_struct
-    real(rp) total
-    real(rp) beta     ! normalized velocity: v/c
-    real(rp) gamma    ! relativistic factor: 1/sqrt(1-beta^2)
-    real(rp) kinetic  ! kinetic energy
-    real(rp) p0c      ! particle momentum
-    integer particle  !
+    real(rp) total 
+    real(rp) beta         ! normalized velocity: v/c
+    real(rp) gamma        ! relativistic factor: 1/sqrt(1-beta^2)
+    real(rp) kinetic      ! kinetic energy
+    real(rp) p0c          ! particle momentum
+    integer particle      ! particle species
   end type
 
   type mad_map2_struct
@@ -37,14 +37,17 @@ contains
 ! Subroutine make_mat6_mad (ele, param, map, c0, c1)
 !
 ! Subroutine to make the 6x6 transfer matrix for an element from the 
-! 2nd order transport map.
+! 2nd order MAD transport map. The map is stored in ele%taylor.
+! If the map exists then it is simply used to calculate ele%mat6. 
+! If ele%taylor doesn't exist it calculated.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   ele    -- Ele_struct: Element with transfer matrix
+!   ele    -- Ele_struct: Element with transfer matrix.
 !   param  -- Param_struct: Lattice parameters.
+!     %particle -- particle species.
 !   map    -- mad_map2_struct: 2nd order map.
 !   c0     -- Coord_struct: Coordinates at the beginning of element.
 !
@@ -61,29 +64,20 @@ subroutine make_mat6_mad (ele, param, c0, c1)
 
   type (ele_struct) ele
   type (param_struct) param
-  type (energy_struct), save :: energy
   type (mad_map2_struct) map
   type (coord_struct) c0, c1
 
-  integer k
+! If ele%taylor does not exist then make it.
 
-! energy calc
-
-
-
-!
-
-  if (all(map%r == 0)) call make_mad_map (ele, energy, map)
-
-  call mad_track1 (c0, map, c1)
-
-  ele%mat6 = map%r 
-
-  if (any(c0%vec /= 0)) then
-    do k = 1, 6
-      ele%mat6(:,k) = ele%mat6(:,k) + 2 * matmul(map%t(:,:,k), c0%vec(:))
-    enddo
+  if (.not. associated(ele%taylor(1)%term)) then
+    call make_mad_map (ele, param%particle, map)
+    call mad_map_to_taylor (map, ele%taylor)
   endif
+
+! make the trasfer map.
+
+  call taylor_to_mat6 (ele%taylor, c0%vec, ele%mat6)
+  call track_taylor (c0%vec, ele%taylor, c1%vec)
 
 end subroutine
 
@@ -91,7 +85,7 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine make_mad_map (ele, energy, map)
+! Subroutine make_mad_map (ele, particle, map)
 !
 ! Subroutine to make a 2nd order transport map a la MAD.
 !
@@ -99,20 +93,29 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   ele    -- Ele_struct: Element
-!   energy -- Energy_struct: Particle energy structure.
+!   ele      -- Ele_struct: Element
+!   particle -- Integer: Particle species.
 !
 ! Output:
 !   map -- Mad_map2_struct: Structure holding the transfer map.
 !-
 
-subroutine make_mad_map (ele, energy, map) 
+subroutine make_mad_map (ele, particle, map) 
 
   implicit none
 
   type (ele_struct) ele
   type (energy_struct) energy
   type (mad_map2_struct) map
+
+  integer particle
+
+! energy structure
+
+    energy%total = ele%value(beam_energy$)
+    energy%particle = particle
+    call energy_to_kinetic (energy%total, energy%particle, energy%gamma, &
+                                    energy%kinetic, energy%beta, energy%p0c)
 
 ! choose element key
 
@@ -1830,14 +1833,12 @@ subroutine track1_mad (start, ele, param, end)
 
 !
 
-  if (all(map%r == 0)) then
-    call make_mad_map (ele, energy, map)
+  if (.not. associated(ele%taylor(1)%term)) then
+    call make_mad_map (ele, param%particle, map)
     call mad_map_to_taylor (map, ele%taylor)
-  else
-    call taylor_to_mad_map (ele%taylor, map)
   endif
 
-  call mad_track1 (start, map, end)
+  call track_taylor (start%vec, ele%taylor, end%vec)
 
 end subroutine
 
@@ -1868,9 +1869,9 @@ subroutine mad_map_to_taylor (map, taylor)
 
 ! count terms and allocate
 
-  nt = 0
-
   do i = 1, 6
+
+    nt = 0
 
     if (map%k(i) /= 0) nt = nt + 1
     do j = 1, 6
@@ -1897,9 +1898,9 @@ subroutine mad_map_to_taylor (map, taylor)
 
 ! transfer map to taylor
 
-  nt = 0
-
   do i = 1, 6
+
+    nt = 0
 
     if (map%k(i) /= 0) then
       nt = nt + 1
