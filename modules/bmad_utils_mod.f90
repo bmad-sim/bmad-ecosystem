@@ -200,7 +200,6 @@ subroutine transfer_ring_parameters (ring_in, ring_out)
   ring_out%param =                ring_in%param
   ring_out%version =              ring_in%version
   ring_out%n_ele_ring =           ring_in%n_ele_ring
-  ring_out%n_ele_symm =           ring_in%n_ele_symm
   ring_out%n_ele_use =            ring_in%n_ele_use
   ring_out%n_ele_max =            ring_in%n_ele_max
   ring_out%n_control_max =        ring_in%n_control_max

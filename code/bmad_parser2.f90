@@ -94,7 +94,6 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   param_ele%name = 'PARAMETER'
   param_ele%key = def_parameter$
   param_ele%value(lattice_type$) = ring%param%lattice_type
-  param_ele%value(symmetry$)     = ring%param%symmetry
   param_ele%value(beam_energy$)  = ring%param%beam_energy
   param_ele%value(taylor_order$) = ring%input_taylor_order
 
@@ -405,7 +404,6 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   ring%param%n_part      = beam_ele%value(n_part$)
 
   ring%param%lattice_type = nint(param_ele%value(lattice_type$))
-  ring%param%symmetry     = nint(param_ele%value(symmetry$))
   ring%input_taylor_order = nint(param_ele%value(taylor_order$))
 
   if (beam_ele%value(energy_gev$) /= 0) then

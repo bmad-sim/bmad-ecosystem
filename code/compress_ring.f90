@@ -61,7 +61,6 @@ subroutine compress_ring (ring, ok)
   enddo
 
   ring%n_ele_max = i2
-  if (ring%n_ele_symm > 0) ring%n_ele_symm = ix_(ring%n_ele_symm)
 
 ! renumber ring%control_()%ix_ele  
 

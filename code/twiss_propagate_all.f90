@@ -45,7 +45,6 @@ subroutine twiss_propagate_all (ring)
   n_use = ring%n_ele_use
 
   temp_type_out = bmad_status%type_out
-  if (ring%param%symmetry == mobius_symmetry$) bmad_status%type_out = .false.
   bmad_status%ok = .true.
 
   do n = 1, n_use

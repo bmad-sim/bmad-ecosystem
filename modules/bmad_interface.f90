@@ -848,15 +848,6 @@ module bmad_interface
   end interface
 
   interface
-    subroutine set_symmetry (symmetry, ring)
-      use bmad_struct
-      implicit none
-      type (ring_struct) ring
-      integer symmetry
-    end subroutine
-  end interface
-
-  interface
     subroutine set_taylor_order (order, override_flag)
       use bmad_struct
       implicit none

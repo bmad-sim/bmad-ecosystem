@@ -1925,7 +1925,7 @@ subroutine init_bmad_parser_common
   
 !
 
-  nn = 22
+  nn = 21
   bp_com%ivar_init = nn + ubound(calc_method_name, 1)
   bp_com%ivar_tot = bp_com%ivar_init
 
@@ -1958,8 +1958,8 @@ subroutine init_bmad_parser_common
   bp_com%var_(9)%name = 'ELECTRON'
   bp_com%var_(9)%value = electron$
 
-  bp_com%var_(10)%name = 'MOBIUS'
-  bp_com%var_(10)%value = mobius_symmetry$
+  bp_com%var_(10)%name = 'R_P'
+  bp_com%var_(10)%value = r_p
 
   bp_com%var_(11)%name = 'E_CHARGE'
   bp_com%var_(11)%value = e_charge
@@ -1993,9 +1993,6 @@ subroutine init_bmad_parser_common
 
   bp_com%var_(21)%name = 'R_E'
   bp_com%var_(21)%value = r_e
-
-  bp_com%var_(22)%name = 'R_P'
-  bp_com%var_(22)%value = r_p
 
   do i = 1, ubound(calc_method_name, 1)
     call str_upcase (bp_com%var_(nn+i)%name, calc_method_name(i))

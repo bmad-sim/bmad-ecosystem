@@ -18,10 +18,6 @@
 ! Output:
 !   ring
 !     %param%t1_mat4  --  Note: Only the linear part is computed.
-!                          Matrix Type           ring%param%symmetry
-!                          --------              -----------
-!                          1-turn   (see note)   none$
-!                          1/2-turn (see note)   ew_anti_symmetric$
 !     %ele_(0)%x     -- X Twiss parameters at the start of the ring.
 !     %ele_(0)%y     -- Y Twiss parameters at the start of the ring.
 !     %ele_(0)%c_mat -- Coupling matrix.
@@ -95,16 +91,6 @@ subroutine twiss_at_start (ring)
   mat6(1:4,1:4) = t0_4
 
   call mat6_dispersion (mat6, eta_vec) ! dispersion to %mat6
-
-! if symmetry then propagate through the east side
-
-  if (ring%param%symmetry == ew_antisymmetry$) then
-    call mat_symp_conj (t0_4, t_w_inv)
-    t_e = matmul (matmul (flip_mat, t_w_inv), flip_mat)
-    mat6(1:4,1:4) = matmul (t_e, t0_4)
-    eta_vec = (/ 0.0_rp, 2*eta_vec(2), 0.0_rp, 2*eta_vec(4) /)
-    mat6(1:4, 6) = matmul(t_e, eta_vec)
-  endif
 
 ! compute twiss parameters
 

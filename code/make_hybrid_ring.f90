@@ -30,7 +30,6 @@
 !                        are removed from RING_OUT. In this case IX_OUT
 !                        points to the element before the marker
 !   ring_out       -- Ring_struct: Ring with hybrid elements.
-!     %param%symmetry -- Integer: See bmad_struct for logical values.
 !   use_taylor     -- Logical, optional: If present and True then the
 !                        hybrid elements will have a taylor series 
 !                        instead of a simple linear matrix. If an element to
@@ -65,7 +64,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 
   real(rp) e_vec(4)
 
-  integer j_in, i_out, ix_out(:), i, k, n, out_symmetry
+  integer j_in, i_out, ix_out(:), i, k, n
   integer n_ele, j, ix, ic, o_key, n_con, n_ic
   integer, allocatable, save :: ic_(:)
 
@@ -95,18 +94,10 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
   r_out%ele_(0) = r_in%ele_(0)     !
   init_hybrid_needed = .true.         ! we need to init out ring element
 
-  if (r_out%param%symmetry /= ew_antisymmetry$) then       ! normal
-    n_ele = r_in%n_ele_ring
-    if (n_ele == 0) then
-      print *, 'ERROR IN MAKE_HYBRID_RING: RING_IN.N_ELE_RING = 0!'
-      call err_exit
-    endif
-  else                                                 ! use only 1/2 ring
-    n_ele = r_in%n_ele_symm
-    if (n_ele == 0) then
-      print *, 'ERROR IN MAKE_HYBRID_RING: RING_IN.N_ELE_SYMM = 0!'
-      call err_exit
-    endif
+  n_ele = r_in%n_ele_ring
+  if (n_ele == 0) then
+    print *, 'ERROR IN MAKE_HYBRID_RING: RING_IN%N_ELE_RING = 0!'
+    call err_exit
   endif
 
 ! loop over all in ring elements
@@ -248,22 +239,9 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
   if (ele_out%key == hybrid$ .and. z_decoupled)  &
                           call mat6_dispersion (ele_out%mat6, e_vec)
 
-  out_symmetry = r_out%param%symmetry   ! save symmetry
   call transfer_ring_parameters (r_in, r_out)
   r_out%n_ele_ring = i_out
-  r_out%param%symmetry = out_symmetry
-
-  if (r_out%param%symmetry /= ew_antisymmetry$) then       ! normal
-    r_out%n_ele_use = i_out
-    if (r_in%n_ele_symm /= 0) then
-      r_out%n_ele_symm = ix_out(r_in%n_ele_symm)
-    else
-      r_out%n_ele_symm = 0
-    endif
-  else
-    r_out%n_ele_symm = i_out
-    r_out%n_ele_use = i_out
-  endif
+  r_out%n_ele_use = i_out
 
 ! put control elements in
 
@@ -280,9 +258,6 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
   r_out%n_ele_max = i_out
 
 ! update control pointers
-! if symmetry is EW_ANTISYMMETRY$ then ignore fact that controllers may
-! control non-existant elements in the east.
-
 
   n_con = 0
   n_ic = 0
@@ -302,13 +277,6 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
       ic_(j) = k
       ix = r_in%control_(j)%ix_slave
       if (ix_out(ix) == 0) then
-        if (r_out%param%symmetry /= ew_antisymmetry$ .or.  &
-                         ix <= n_ele .or. ix > r_in%n_ele_ring) then
-          print '(a, /, 2a, /, 2a)',  &
-      ' WARNING IN MAKE_HYBRID_RING: SLAVE ELEMENT LIST NOT COMPLETE.',  &
-      '         FOR LORD ELEMENT: ', ele_out%name,  &
-      '         CANNOT FIND: ', r_in%ele_(ix)%name
-        endif
         r_out%control_(k)%ix_lord = i_out
         r_out%control_(k)%ix_slave = r_out%n_ele_maxx     ! point to dummy ele
         r_out%control_(k)%ix_attrib = -1

@@ -67,9 +67,6 @@ subroutine insert_element (ring, insert_ele, insert_index)
     print *, '        ELEMENT: ', insert_ele%name
   endif
 
-  if (insert_index <= ring%n_ele_symm)  &
-                                     ring%n_ele_symm = ring%n_ele_symm + 1
-
   if (insert_ele%value(l$) /= 0) call s_calc(ring)
 
 end

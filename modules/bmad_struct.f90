@@ -181,7 +181,7 @@ module bmad_struct
     real(rp) t1_mat6(6,6)       ! Full 1-turn 6x6 matrix
     real(rp) t1_mat4(4,4)       ! Transverse 1-turn 4x4 matrix (RF off).
     integer particle            ! +1 = positrons, -1 = electrons
-    integer symmetry            ! symmetry of the ring (e/w symm, etc.)
+    integer iy                  ! Not currently used.
     integer ix_lost             ! If lost at what element?
     integer lattice_type        ! linac_lattice$, etc...
     integer ixx                 ! Integer for general use
@@ -215,7 +215,6 @@ module bmad_struct
     type (param_struct) param        ! Parameters
     integer version                  ! Version number
     integer n_ele_ring               ! Number of regular ring elements
-    integer n_ele_symm               ! Symmetry point for rings w/ symmetry
     integer n_ele_use                ! number of elements used
     integer n_ele_max                ! Index of last element used
     integer n_ele_maxx               ! Index of last element allocated
@@ -413,12 +412,8 @@ module bmad_struct
   real(rp), parameter :: mass_of(-2:2) = (/ m_proton, m_electron, 0.0_rp, &
                                             m_electron, m_proton /)
 
-! SYMMETRY etc., logical names
+! lattice logical names
 
-  integer, parameter :: no_symmetry$ = 0
-  integer, parameter :: mobius_symmetry$ = 2
-  integer, parameter :: ew_antisymmetry$ = -1  ! coupling elements are antisymmetric
-  integer, parameter :: ew_symmetry$ = 3
   integer, parameter :: linac_lattice$ = 10
   integer, parameter :: linear_lattice$ = 11
   integer, parameter :: circular_lattice$ = 12

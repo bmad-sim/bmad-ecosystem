@@ -27,9 +27,7 @@
 !                        successfully read. False otherwise.
 !         
 ! Defaults:
-!   ring%n_ele_symm              = 0
 !   ring%param%particle          = positron$
-!   ring%param%symmetry          = no_symmetry$
 !   ring%param%lattice_type      = circular_lattice$
 !   ring%param%aperture_limit_on = .true.
 !-
@@ -185,7 +183,6 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   param_ele%name = 'PARAMETER'    ! For parameters 
   param_ele%key = def_parameter$
   param_ele%value(lattice_type$) = circular_lattice$  ! Default
-  param_ele%value(symmetry$)     = no_symmetry$       ! Default
 
   ring%n_control_max = 0
 
@@ -819,17 +816,15 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   ring%n_ele_use          = n_ele_ring
   ring%n_ele_max          = n_ele_ring
   ring%param%aperture_limit_on  = .true.
-  ring%n_ele_symm         = 0                     ! no symmetry point
   ring%n_ic_max           = 0                     
   ring%n_control_max      = 0    
-  call set_symmetry (ring%param%symmetry, ring)   ! set ring.n_ele_use
+  ring%n_ele_use          = ring%n_ele_ring
 
   ring%ele_(0) = in_ring%ele_(0)    ! Beginning element
 
 ! New way of doing things
 
   ring%param%lattice_type = nint(param_ele%value(lattice_type$))
-  ring%param%symmetry = nint(param_ele%value(symmetry$))
 
   if (nint(param_ele%value(taylor_order$)) /= 0) &
             ring%input_taylor_order = nint(param_ele%value(taylor_order$))
@@ -837,8 +832,6 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! old way of doing things
 
   do i = 1, bp_com%ivar_tot
-    if (bp_com%var_(i)%name == 'SYMMETRY') &
-                          ring%param%symmetry = nint(bp_com%var_(i)%value)
     if (bp_com%var_(i)%name == 'LATTICE_TYPE')  &
                           ring%param%lattice_type = nint(bp_com%var_(i)%value)
     if (bp_com%var_(i)%name == 'TAYLOR_ORDER') &

@@ -128,7 +128,6 @@ function attribute_name (ele, ix_att) result (at_name)
 
     attrib_array(def_parameter$, beam_energy$)  = 'BEAM_ENERGY'
     attrib_array(def_parameter$, lattice_type$) = 'LATTICE_TYPE'
-    attrib_array(def_parameter$, symmetry$)     = 'SYMMETRY'
     attrib_array(def_parameter$, taylor_order$) = 'TAYLOR_ORDER'
 
     attrib_array(taylor$, symplectify$) = 'SYMPLECTIFY'

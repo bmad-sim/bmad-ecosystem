@@ -35,7 +35,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   
   integer d_unit, lunget, n_files, version, i, j, k, ix
   integer ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t(6)
-  integer ix_srf, ix_sr, ix_lrf, ix_lr
+  integer ix_srf, ix_sr, ix_lrf, ix_lr, i_garbage
   integer stat_b(12), stat, ierr, idate_old
 
   character(*) digested_name
@@ -125,7 +125,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   read (d_unit, err = 9100)  &   
           ring%name, ring%lattice, ring%input_file_name, ring%title, &
           ring%x, ring%y, ring%z, ring%param, ring%version, ring%n_ele_ring, &
-          ring%n_ele_symm, ring%n_ele_use, ring%n_ele_max, &
+          i_garbage, ring%n_ele_use, ring%n_ele_max, &
           ring%n_control_max, ring%n_ic_max, ring%input_taylor_order
 
   call allocate_ring_ele_(ring, ring%n_ele_max+100)

@@ -129,51 +129,13 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
   endif
 
 !---------------------------------------------------------------------
-! with e/w symmetry
-
-  if (ring%param%symmetry == ew_antisymmetry$) then
-
-    call track_all (ring, orbit_)
-
-     do i = 1, ring%n_ele_use
-       if (ring%ele_(i)%key == elseparator$) then ! set kicks as in east
-         if (ring%ele_(i)%type(1:4) == 'ANTI') then
-           ring%ele_(i)%value(hkick$) = -ring%ele_(i)%value(hkick$)
-           ring%ele_(i)%value(vkick$) = -ring%ele_(i)%value(vkick$)
-         endif
-       endif ! separators
-     end do
-
-     call track_all (ring, orbit_end_e_)
-
-     do i = 1, ring%n_ele_use  ! set separator kicks back to values in west
-       if (ring%ele_(i)%key == elseparator$) then
-         if (ring%ele_(i)%type(1:4) == 'ANTI') then
-           ring%ele_(i)%value(hkick$) = -ring%ele_(i)%value(hkick$)
-           ring%ele_(i)%value(vkick$) = -ring%ele_(i)%value(vkick$)
-         endif
-       endif ! separators
-     end do
-
-! symmetric ring then
-!       X = (Mat*S_Mat-S_Mat*Mat)^-1 * (S_mat * orbit_w - orbit_e)
-
-    orbit_(n_ele)%vec(2) = -orbit_(n_ele)%vec(2)
-    orbit_(n_ele)%vec(4) = -orbit_(n_ele)%vec(4)
-    orbit_end%vec = orbit_(n_ele)%vec - orbit_end_e_(n_ele)%vec
-
-    mat(1:n,1:n) = matmul(t1(1:n,1:n), s_mat(1:n,1:n)) - &
-                                    matmul (s_mat(1:n,1:n), t1(1:n,1:n))
-                   
 !----------------------------------------------------------------------
-! No symmetry: X = (Mat-1)^-1 * orbit_end
+! X = (Mat-1)^-1 * orbit_end
 
-  else
-    call track_all (ring, orbit_)
-    orbit_end = orbit_(n_ele)
-    call mat_make_unit (mat(1:n,1:n))
-    mat(1:n,1:n) = mat(1:n,1:n) - t1(1:n,1:n)
-  endif
+  call track_all (ring, orbit_)
+  orbit_end = orbit_(n_ele)
+  call mat_make_unit (mat(1:n,1:n))
+  mat(1:n,1:n) = mat(1:n,1:n) - t1(1:n,1:n)
 
 !----------------------------------------------------------------------
 ! Now find closed orbit at start
@@ -185,9 +147,8 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
 !--------------------------------------------------------------------------
 ! Because of nonlinearities we may need to iterate to find the solution
-!  But iteration makes no sense in the case of ew_antisymmetry
          
-  if (iterate .and. ring%param%symmetry /= ew_antisymmetry$) then
+  if (iterate) then
                                                    
     do i = 1, 100
 
