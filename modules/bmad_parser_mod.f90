@@ -57,9 +57,9 @@ module bmad_parser_mod
 
   type parser_ele_struct
     character(16) ref_name
-    character(16), pointer :: name_(:)
-    character(16), pointer :: attrib_name_(:)
-    real(rp), pointer :: coef_(:)
+    character(16), pointer :: name_(:) => null()
+    character(16), pointer :: attrib_name_(:) => null()
+    real(rp), pointer :: coef_(:) => null()
     integer ix_count
     integer ele_pt, ref_pt
     logical common_lord
@@ -68,7 +68,7 @@ module bmad_parser_mod
   end type
 
   type parser_ring_struct
-    type (parser_ele_struct), pointer :: ele(:)
+    type (parser_ele_struct), pointer :: ele(:) => null()
   end type
 
 ! component_struct

@@ -76,11 +76,13 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
   last_con = 0
 
+  call allocate_pring (ring, pring)
   pring%ele(:)%ref_name = blank
   pring%ele(:)%ref_pt  = center$
   pring%ele(:)%ele_pt  = center$
   pring%ele(:)%s       = 0
   pring%ele(:)%common_lord = .false.
+
   ring%ele_(:)%ixx = 0
 
   beam_ele%name = 'BEAM'              ! fake beam element
@@ -289,7 +291,11 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
     else
 
       n_max = n_max + 1
-      if (n_max > ring%n_ele_maxx) call allocate_ring_ele_( ring )
+      if (n_max > ring%n_ele_maxx) then
+        call allocate_ring_ele_(ring)
+        call allocate_pring (ring, pring)
+      endif
+
       ring%ele_(n_max)%name = word_1
       last_con = last_con + 1     ! next free slot
       ring%ele_(n_max)%ixx = last_con
@@ -411,6 +417,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 ! Transfer the new elements to a safe_place
 
   ele_num = n_max - n_max_old
+  allocate (r_temp%ele_(1:ele_num))
   r_temp%ele_(1:ele_num) = ring%ele_(n_max_old+1:n_max)
   n_max = n_max_old
 
@@ -495,5 +502,19 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   endif
 
   call check_ring_controls (ring, .true.)
+
+  do i = lbound(pring%ele, 1) , ubound(pring%ele, 1)
+    if (associated (pring%ele(i)%name_)) then
+      deallocate(pring%ele(i)%name_)
+      deallocate(pring%ele(i)%attrib_name_)
+      deallocate(pring%ele(i)%coef_)
+    endif
+  enddo
+
+  if (associated (pring%ele))        deallocate (pring%ele)
+
+  do i = 1, size(r_temp%ele_)
+    call deallocate_ele_pointers (r_temp%ele_(i))
+  enddo
 
 end subroutine
