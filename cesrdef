@@ -17,17 +17,31 @@
 #   alias devel   "setenv CESRLIB devel ; source /home/cesrulib/bin/cesrdef"
 #-------------------------------------
 #
-#	Root names
+# Specify CESR Librarian bin area
 #
-if ( $?CONST    == 0 ) setenv CONST    /home/cesrulib/constants
-if ( $?CESR_    == 0 ) setenv CESR_    /home/cesrulib/cesr_libs
-if ( $?PACKAGES == 0 ) setenv PACKAGES /home/cesrulib/cesr_libs/packages
-if ( $?CERN     == 0 ) setenv CERN     /nfs/cern
+if ( $?CESRLIB_BASE == 0 ) set CESRLIB_BASE=/home/cesrulib
+if ( $?CESRLIB_BIN  == 0 ) set CESRLIB_BIN=${CESRLIB_BASE}/bin
+
+#
+# Get platform/OS tags
+#
+set PLATFORM_TAG="`uname -s`_`uname -p`"
+
 #
 #	Switchable version
 #
-if ( $?CESRLIB    == 0 ) setenv CESRLIB current
-if ( $?CERN_LEVEL == 0 ) setenv CERN_LEVEL pro
+if ( $?CESRLIB    == 0 ) setenv CESRLIB     current
+if ( $?CERN_LEVEL == 0 ) setenv CERN_LEVEL  pro
+
+#
+#	Root names
+#
+if ( $?CONST    == 0 ) setenv CONST     /home/cesrulib/constants
+if ( $?CESR_    == 0 ) setenv CESR_     ${CESR_BASE}/cesr_libs
+if ( $?CERN     == 0 ) setenv CERN      /nfs/cern
+
+#
+# Source the CESR environment script
 #
 if ( $?CESRENV    == 0 ) setenv CESRENV /home/cesrulib/bin/cesrenv
 if ( -f $CESRENV )  then
@@ -37,9 +51,24 @@ else
 endif
 
 #
+#-----  Add CESR Librarian bin area to user's PATH if not already present ----
+#
+set PATH_LIST=`echo ${PATH} | sed s/:/\ /g`
+set found=0
+foreach dir (${PATH_LIST})
+  if ( "${dir}" == "${CESRLIB_BIN}" ) set found=1
+end
+if ( $found == 0 ) setenv PATH ${PATH}:${CESRLIB_BIN}
+
+
+#
 # $Id$
 #
 # $Log$
+# Revision 1.5  2003/09/08 15:14:47  cesrulib
+# Updates for automatic platform dependence and synchronized release/packages
+# areas.
+#
 # Revision 1.4  2003/05/27 15:18:19  palmer
 # Add CERN variable definitions.
 #

@@ -10,38 +10,72 @@
 # Usage in .profile:
 #   . /home/cesrulib/bin/cesrdefs
 # or switch to other versions of libraries and constants:
-#   CESRLIB=current; CONST=/tem/constants; PACKAGES=/tem/packages; . /home/cesrulib/bin/cesrdefs
+#   CESRLIB=current; CONST=/tem/constants; PACKAGES=packages; . /home/cesrulib/bin/cesrdefs
 # or define aliases in .profile, e.g.:
 #   alias cesrdefs ". /home/cesrulib/bin/cesrdefs"
 #   alias devel="CESRLIB=devel; . /home/cesrulib/bin/cesrdefs"
 #   alias current="CESRLIB=current; . /home/cesrulib/bin/cesrdefs"
 #
 #-------------------------------------
-#       Root names
 #
-CONST=${CONST-/home/cesrulib/constants}
-CESR_=${CESR_-/home/cesrulib/cesr_libs}
-PACKAGES=${PACKAGES-/home/cesrulib/cesr_libs/packages}
-CERN=${CERN-/nfs/cern}
+# Set CESR Librarian base areas
+#
+CESRLIB_BASE=${CESRLIB_BASE-/home/cesrulib}
+CESRLIB_BIN=${CESRLIB_BIN-${CESRLIB_BASE}/bin}
+
+#
+# Get platform/OS tags
+#
+PLATFORM_TAG="`uname -s`_`uname -m`"
+
 #
 #       Switchable version
 #
 CESRLIB=${CESRLIB-current}
+CERN_LEVEL=${CERN_LEVEL-pro}
+
 #
-CESRENV=${CESRENV-/home/cesrulib/bin/cesrenv}
+#       Root names
+#
+CONST=${CONST-${CESRLIB_BASE}/constants}
+CESR_=${CESR_-${CESRLIB_BASE}/cesr_libs}
+CERN=${CERN-/nfs/cern}
+
+#
+# Export the CESR environment variable structure
+#
+CESRENV=${CESRENV-${CESRLIB_BIN}/cesrenv}
 #
 if [ -f $CESRENV ]
 then
-	eval `grep '^setenv' $CESRENV | while read cmd nam val ; 
-	        do echo "$nam=$val ; export $nam ;"; done`
+  eval `grep '^setenv' $CESRENV | while read cmd nam val ; 
+    do echo "$nam=$val ; export $nam ;"; done`
 else
-	echo File $CESRENV not found.
+  echo File $CESRENV not found.
+fi
+
+#
+#-----  Add cesrulib bin area to user's PATH  ----
+#
+PATH_LIST=`echo $PATH | sed s/:/\ /g`
+found=0
+for dir in ${PATH_LIST}; do
+  if ( [ "${dir}" = "${CESRLIB_BIN}" ] ) then 
+    found=1
+  fi
+done
+if ( [ ${found} -eq 0 ] ) then
+  export PATH=${PATH}:${CESRLIB_BIN}
 fi
 
 #
 # $Id$
 #
 # $Log$
+# Revision 1.5  2003/09/08 15:17:58  cesrulib
+# Updates for automatic platform dependence and synchronized release/packages
+# areas.
+#
 # Revision 1.4  2003/05/27 15:21:45  palmer
 # Add CERN variable definitions.
 #

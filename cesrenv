@@ -9,43 +9,31 @@
 #########################################################
 
 #
-#-----  Add cesrulib bin area to user's PATH  ----
-#
-
-setenv PATH ${PATH}:/home/cesrulib/bin
-
-#
 #-----  CERN Libraries  -----
 # Set CERN stuff up here even though it may already be  
 # done by the standard LEPP login scripts
 #
-setenv CERN_ROOT $CERN/$CERN_LEVEL
+# NOTE:  /nfs/cern automount point is ALWAYS set up for 
+#        the specific platform (ie, OSF1/Linux/Solaris)
+#        on LEPP machines so this script does NOT need 
+#        to handle any ${CERN} platform dependence.
 #
-setenv CERNLIB  $CERN_ROOT/lib
-setenv CERNSRC  $CERN_ROOT/src
-
+setenv CERN_ROOT    $CERN/$CERN_LEVEL
 #
-#-----  Outside packages  -----
-#
-setenv CESR_PKG $PACKAGES
-setenv PKG_LIB  $CESR_PKG/lib
-setenv PKG_MOD  $CESR_PKG/modules
-setenv PKG_INC  $CESR_PKG/include
-
-setenv PGPLOT_DIR   $CESR_PKG/PGPLOT
-setenv PGPLOT_FONTS $CESR_PKG/PGPLOT
-
+setenv CERNLIB      $CERN_ROOT/lib
+setenv CERNSRC      $CERN_ROOT/src
 
 #
 #------  CESR libraries  ------
 #
-setenv CESR_CURRENT $CESR_/current
-setenv CESR_DEVEL   $CESR_/devel
+setenv CESR_BASE    $CESR_/$PLATFORM_TAG
+setenv CESR_CURRENT $CESR_BASE/current
+setenv CESR_DEVEL   $CESR_BASE/devel
 
 #
 #-- CESR Unix documentation --
 #
-setenv CESR_DOC $CESR_/doc
+setenv CESR_DOC     $CESR_/doc
 
 #
 #---  CESR CVS Repository  ---
@@ -54,32 +42,47 @@ setenv CESR_CVSROOT $CESR_/cvsroot
 #
 #----  CESR_LIB subtrees  ----
 #
-setenv CESR_LIB $CESR_/$CESRLIB
+setenv CESR_LIB     $CESR_BASE/$CESRLIB
 #
-setenv CESR_CONFIG	$CESR_LIB/config
-setenv CESR_CVSSRC	$CESR_LIB/cvssrc
-setenv CESR_EXE			$CESR_LIB/bin
+setenv CESR_CONFIG  $CESR_LIB/config
+setenv CESR_CVSSRC  $CESR_LIB/cvssrc
+setenv CESR_EXE     $CESR_LIB/bin
 setenv CESR_GMAKE   $CESR_LIB/Gmake
 setenv CESR_MOD     $CESR_LIB/modules
-setenv CESR_RUN			$CESR_LIB/run
+setenv CESR_RUN     $CESR_LIB/run
 setenv CESR_UTIL    $CESR_LIB/util
 setenv CESR_INC     $CESR_CVSSRC/include
+setenv CESR_PKG     $CESR_LIB/packages
+
+#
+#-----  Outside packages  -----
+#
+setenv PKG_LIB      $CESR_PKG/lib
+setenv PKG_MOD      $CESR_PKG/modules
+setenv PKG_INC      $CESR_PKG/include
+
+setenv PGPLOT_DIR   $CESR_PKG/PGPLOT
+setenv PGPLOT_FONTS $CESR_PKG/PGPLOT
+
 #
 #------  CESR constants  ------
 #
-setenv CESR_CONST $CONST
+setenv CESR_CONST   $CONST
 
 #
 #-- BMAD configuration files --
 #
-setenv BMAD_LAT			$CESR_CONFIG/bmad/lat
-setenv BMAD_LAYOUT	$CESR_CONFIG/bmad/layout
-
+setenv BMAD_LAT     $CESR_CONFIG/bmad/lat
+setenv BMAD_LAYOUT  $CESR_CONFIG/bmad/layout
 
 #
 # $Id$
 #
 # $Log$
+# Revision 1.10  2003/09/08 15:17:59  cesrulib
+# Updates for automatic platform dependence and synchronized release/packages
+# areas.
+#
 # Revision 1.9  2003/06/17 16:42:27  palmer
 # Add default PGPLOT environment variables.
 #
