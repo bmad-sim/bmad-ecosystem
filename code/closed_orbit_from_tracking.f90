@@ -40,6 +40,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/11/06 06:48:31  dcs
+!Changed arg array
+!
 !Revision 1.6  2002/07/16 20:44:00  dcs
 !*** empty log message ***
 !
@@ -65,7 +68,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
   implicit none
 
   type (ring_struct) ring
-  type (coord_struct), intent(inout) :: closed_orb_(0:n_ele_maxx)
+  type (coord_struct), intent(inout) :: closed_orb_(0:)
   type (coord_struct) :: orb_(0:n_ele_maxx), start(100), end(100)
   type (coord_struct), optional :: init_guess
 

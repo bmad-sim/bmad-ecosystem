@@ -18,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/11/06 06:48:32  dcs
+!Changed arg array
+!
 !Revision 1.6  2002/06/13 14:54:31  dcs
 !Interfaced with FPP/PTC
 !
@@ -52,7 +55,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   integer d_unit, lunget, n_files, i, j, k, ix_w, ix_d, ix_m, ix_t(6)
   integer stat_b(12), stat, ierr
 
-  character*(*) digested_name, file_names(*)
+  character*(*) digested_name, file_names(:)
   character*200 fname
 
   external stat

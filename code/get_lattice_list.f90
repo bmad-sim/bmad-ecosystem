@@ -15,6 +15,9 @@
 ! $Id$
 !
 ! $Log$
+! Revision 1.5  2002/11/06 06:48:31  dcs
+! Changed arg array
+!
 ! Revision 1.4  2002/02/23 20:32:16  dcs
 ! Double/Single Real toggle added
 !
@@ -33,7 +36,7 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
 
   character*(*) directory
   character*200 directory2
-  character*40 lat_list(*)
+  character*40 lat_list(:)
 
 !
 

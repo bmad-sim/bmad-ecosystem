@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/11/06 06:48:32  dcs
+!Changed arg array
+!
 !Revision 1.6  2002/08/20 20:34:55  dcs
 !symp_lie_bmad / symp_lie_ptc added
 !
@@ -62,7 +65,7 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
   implicit none
 
   type (ring_struct), intent(inout) :: ring
-  type (coord_struct), intent(in) :: closed_orb_(0:n_ele_maxx), d_orb
+  type (coord_struct), intent(in) :: closed_orb_(0:), d_orb
   real(rdef), intent(out) :: error
 
   type multi_orb_struct

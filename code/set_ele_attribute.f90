@@ -34,6 +34,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/11/06 06:48:32  dcs
+!Changed arg array
+!
 !Revision 1.2  2002/07/16 20:44:01  dcs
 !*** empty log message ***
 !
@@ -58,7 +61,7 @@ subroutine set_ele_attribute (ring, i_ele, attrib_name, &
   implicit none
 
   type (ring_struct) :: ring
-  type (coord_struct), optional :: orbit_(0:n_ele_maxx)
+  type (coord_struct), optional :: orbit_(0:)
 
   real(rdef) attrib_value
 

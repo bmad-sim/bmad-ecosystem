@@ -30,6 +30,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2002/11/06 06:48:31  dcs
+!Changed arg array
+!
 !Revision 1.7  2002/09/14 19:45:24  dcs
 !*** empty log message ***
 !
@@ -59,7 +62,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
     
   type (ring_struct), target :: ring, r_temp
   type (ele_struct)  beam_ele, ele
-  type (coord_struct), optional :: orbit_(0:n_ele_maxx)
+  type (coord_struct), optional :: orbit_(0:)
   type (parser_ring_struct) pring
 
   integer ix_word, ick, i, j, k, ix, ixe, ix_lord
