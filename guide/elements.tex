@@ -1061,7 +1061,7 @@ Example:
   tilt = Real        & \ref{s:offset} &  x\_pitch   = Real  & \ref{s:offset} & y\_limit = Real             & \ref{s:limit} \\ \hline
   de\_offset = Real  &                &  y\_pitch   = Real  & \ref{s:offset} & aperture = Real             & \ref{s:limit} \\ \hline
   beam\_energy$^*$   & \ref{s:energy} &  is\_on = Logical   & \ref{s:is_on}  & aperture\_at = Switch       & \ref{s:limit} \\ \hline
-  p0c$^*$            & \ref{s:energy} &                     &                &                             &               \\ \hline
+  p0c$^*$            & \ref{s:energy} &  l                  &                &                             &               \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
 \end{center}
@@ -1073,6 +1073,13 @@ A \vn{Patch} offsets the reference orbit. This is a generalization of
 \vn{x_offset} offsets the reference orbit after the \vn{patch} in the
 positive $x$--direction relative to the reference orbit before the
 \vn{patch}.
+
+The \vn{l} length attribute is used to set the longitudinal $s$
+distance between the previous and next elements and a program can, for
+example, use \vn{l} to compute the time it takes to go through the
+element. Otherwise, the value of \vn{l} is not used tracking or
+transfer matrix calculations.
+
 Example:
 \begin{example}
   pt: patch, x\_offset = 3.2
@@ -1267,7 +1274,7 @@ Example:
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   $\{ \tt \mbox{out:}\,  coef, \, e1 \, e2 \, e3 \, e4 \, e5 \, e6 \}$ 
-                              &              & type = String    & \ref{s:string} & x\_limit = Real       & \ref{s:limit} \\ \hline  
+  l                           &              & type = String    & \ref{s:string} & x\_limit = Real       & \ref{s:limit} \\ \hline
   tracking\_method = Switch   & \ref{s:tkm}  & alias = String   & \ref{s:string} & y\_limit = Real       & \ref{s:limit} \\ \hline
   mat6\_calc\_method = Switch & \ref{s:xfer} & descrip = String & \ref{s:string} & aperture = Real       & \ref{s:limit} \\ \hline
   symplectify = Logical       & \ref{s:symp} & beam\_energy$^*$ & \ref{s:energy} & is\_on = Logical      & \ref{s:is_on} \\ \hline
@@ -1310,6 +1317,11 @@ that is identical except for \vn{coef}. For example
   tt: Taylor, \{1:  0.0   1, 0, 0, 0, 0, 0\} 
 \end{example}
 This will override the default \vn{\{1: 1.0, 1 0 0 0 0 0\}} term.
+
+The \vn{l} length attribute is not in any map calculation. \vn{l} can
+be used to set the longitudinal $s$ distance between the previous and
+next elements and a program can, for example, use \vn{l} to compute
+the time it takes to go through the element.
 
 Example \vn{Taylor} element definition:
 \begin{example}
