@@ -55,13 +55,13 @@ module bmad_struct
 ! Wakefield structs...
 ! Each sr_wake_struct represents a point on the wake vs. z curve.
 
-  type sr1_wake_struct     ! Short-Range Wake struct
+  type sr1_wake_struct    ! Tabular short-Range Wake struct
     real(rp) z            ! Distance behind the leading particle
     real(rp) long         ! Longitudinal wake in V/C/m
     real(rp) trans        ! Transverse wake in V/C/m^2
   end type
 
-  type sr2_wake_struct   ! Long-Range Wake struct 
+  type sr2_wake_struct  ! Psudo-mode short-Range Wake struct 
     real(rp) amp        ! Amplitude
     real(rp) damp       ! Dampling factor.
     real(rp) freq       ! Frequency in Hz

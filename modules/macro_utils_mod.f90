@@ -213,7 +213,7 @@ subroutine find_expectations (bunch, plane, exp_x2, exp_p_x2, exp_x_p_x, &
   type (macro_struct), pointer :: macro(:)
   real(rp), intent(out) ::  exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d
   real(rp) ::  var_x2, var_p_x2, var_x_p_x, var_x_d, var_px_d
-  real(rp), avg_x, avg_p_x, eta, etap
+  real(rp) avg_x, avg_p_x, eta, etap
   real(rp), automatic, dimension(size(bunch%slice(1)%macro)) :: x, p_x, d
   integer p11, p22, p12, p16, p26
   

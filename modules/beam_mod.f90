@@ -197,6 +197,8 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
   bunch_end%s_center = bunch_start%s_center
   bunch_end%charge   = bunch_start%charge
 
+  call order_particles_in_z (bunch_start)  ! needed for wakefield calc.
+
 !------------------------------------------------
 ! Without wakefields just track through
 
