@@ -503,6 +503,8 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
 
 ! last
 
+  call s_calc (ring)
+  call ring_geometry (ring)
   if (logic_option (.true., make_mats6)) call ring_make_mat6 (ring, -1)
   err_flag = .false.
 
