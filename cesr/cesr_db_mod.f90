@@ -2,6 +2,7 @@ module cesr_db_mod
 
   use cesr_basic_mod
   use group_struct
+  use cesr_quad_mod
 
 !---------------------------------------------------------------------------
 ! DB_STRUCT:                       
