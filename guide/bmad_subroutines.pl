@@ -5,6 +5,11 @@ use File::Find;
 #---------------------------------------------------------
 # List of subroutines too low level to be mentioned
 
+$tex_hash{"modulo2_sp"} = "modulo2_mod.f90";
+$tex_hash{"modulo2_int"} = "modulo2_mod.f90";
+$tex_hash{"modulo2_dp"} = "modulo2_mod.f90";
+$tex_hash{"read_this_wake"} = "bmad_parser_mod.f90";
+$tex_hash{"bsq_kick"} = "symp_lie_mod.f90";
 $tex_hash{"taylor_coef1"} = "bmad_taylor_mod.f90";
 $tex_hash{"taylor_coef2"} = "bmad_taylor_mod.f90";
 $tex_hash{"add_this_clone"} = "bmad_parser_mod.f90";

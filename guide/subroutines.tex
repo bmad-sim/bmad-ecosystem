@@ -1703,13 +1703,9 @@ Subroutine to return the seed used for the random number generator.
 Subroutine to return a random number uniformly distributed in the 
 interval [0, 1]. This routine uses the same algorithm as ran from
 
-\item[modulo2\_real (x, amp)] \Newline 
-Function to return
-modulo2\_real = x + 2 * n * amp
-
-\item[modulo2\_int (x, amp)] \Newline 
-Function to return
-modulo2\_int = x + 2 * n * amp
+\item[modulo2 (x, amp)] \Newline 
+Function to return y = x + 2 * n * amp, n is an integer, such that y is 
+in the interval [-amp, amp].
 
 \item[reallocate\_string (str, l\_str, n)] \Newline 
 Function to reallocate a string array.
