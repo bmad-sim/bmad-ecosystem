@@ -1,5 +1,5 @@
 !+
-! Subroutine check_attrib_free (ele, ix_attrib, ring, err_flag, err_print_flag)
+! Subroutine check_attrib_free (ele, ix_attrib, ring, free, err_print_flag)
 !
 ! Subroutine to check if an attribute is free to vary.
 !
@@ -18,16 +18,16 @@
 !   ix_attrib       -- Integer: Index to the attribute in ele%value() array.
 !   ring            -- Ring_struct: Ring structure.
 !   err_print_flag  -- Logical, optional: If present and False then supress
-!                       printing of an error message on error.
+!                       printing of an error message if attribute is not free.
 !
 ! Output:
-!   err_flag   -- Logical: Set True if attribtute not found or attriubte
+!   free   -- Logical: Set True if attribtute not found or attriubte
 !                     cannot be changed directly.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine check_attrib_free (ele, ix_attrib, ring, err_flag, err_print_flag)
+subroutine check_attrib_free (ele, ix_attrib, ring, free, err_print_flag)
 
   use bmad_struct
   use bmad_interface, except => check_attrib_free
@@ -39,12 +39,12 @@ subroutine check_attrib_free (ele, ix_attrib, ring, err_flag, err_print_flag)
 
   integer ix_attrib, i, ir, ix
 
-  logical err_flag, do_print
+  logical free, do_print
   logical, optional :: err_print_flag
 
 ! init
 
-  err_flag = .true.
+  free = .true.
 
   do_print = .true.
   if (present(err_print_flag)) do_print = err_print_flag
@@ -94,26 +94,26 @@ subroutine check_attrib_free (ele, ix_attrib, ring, err_flag, err_print_flag)
 
 ! Everything OK so far
 
-  err_flag = .false.
+  free = .false.
 
 ! check if it is a dependent variable.
 
   select case (ele%key)
   case (sbend$)
-    if (any(ix_attrib == (/ angle$, l_chord$, rho$ /))) err_flag = .true.
+    if (any(ix_attrib == (/ angle$, l_chord$, rho$ /))) free = .true.
   case (rfcavity$)
-    if (ix_attrib == rf_frequency$ .and. ele%value(harmon$) /= 0) err_flag = .true.
+    if (ix_attrib == rf_frequency$ .and. ele%value(harmon$) /= 0) free = .true.
   case (beambeam$)
-    if (ix_attrib == bbi_const$) err_flag = .true.
+    if (ix_attrib == bbi_const$) free = .true.
   case (wiggler$)
-    if (ix_attrib == k1$ .or. ix_attrib == rho$) err_flag = .true. 
+    if (ix_attrib == k1$ .or. ix_attrib == rho$) free = .true. 
   case (lcavity$)
-    if (ix_attrib == delta_e$) err_flag = .true.
+    if (ix_attrib == delta_e$) free = .true.
   case (elseparator$)
-    if (ix_attrib == e_field$ .or. ix_attrib == voltage$) err_flag = .true.
+    if (ix_attrib == e_field$ .or. ix_attrib == voltage$) free = .true.
   end select
 
-  if (err_flag .and. do_print) then
+  if (free .and. do_print) then
     print '((1x, a))', &
             'ERROR IN CHECK_ATTRIB_FREE. THE ATTRIBUTE: ' // &
                                              attribute_name(ele, ix_attrib), &
@@ -128,19 +128,19 @@ subroutine check_attrib_free (ele, ix_attrib, ring, err_flag, err_print_flag)
   if (ele%field_master) then
     select case (ele%key)
     case (quadrupole$)
-      if (ix_attrib == k1$) err_flag = .true.
+      if (ix_attrib == k1$) free = .true.
     case (sextupole$)
-      if (ix_attrib == k2$) err_flag = .true.
+      if (ix_attrib == k2$) free = .true.
     case (octupole$)
-      if (ix_attrib == k3$) err_flag = .true.
+      if (ix_attrib == k3$) free = .true.
     case (solenoid$)
-      if (ix_attrib == ks$) err_flag = .true.
+      if (ix_attrib == ks$) free = .true.
     case (sbend$)
-      if (ix_attrib == g$) err_flag = .true.
+      if (ix_attrib == g$) free = .true.
     end select
   endif
 
-  if (err_flag .and. do_print) then
+  if (free .and. do_print) then
     print '((1x, a))', &
             'ERROR IN CHECK_ATTRIB_FREE. THE ATTRIBUTE: ' // &
                                              attribute_name(ele, ix_attrib), &
