@@ -220,8 +220,9 @@ Subroutine to make the 6 x 6 transfer matrix from the twiss parameters.
 Subroutine to analyze 1-turn tracking data to find the 1-turn transfer matrix 
 and the closed orbit offset.
 
-\item[one\_turn\_matrix (ring, mat6)] \Newline
-Subroutine to calculate the full 6X6 1 turn matrix! 
+\item[transfer\_matrix\_calc (ring, rf_on, mat6, ix1, ix2)] \Newline
+Subroutine to calculate the transfer matrix between two elements. If
+ix1 and ix2 are not present the full 1--turn matrix is calculated.
 
 \item[one\_turn\_mat\_at\_ele (ele, phi\_a, phi\_b, mat4)] \Newline
 Subroutine to form the 4x4 1-turn coupled matrix with the reference point 

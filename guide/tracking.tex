@@ -19,43 +19,38 @@ For single particle tracking the starting point is the
     real(rp) vec(6)   ! (x, p_x, y, p_y, z, p_z)
   end type
 \end{example}
-shown
 The \vn{coord_struct} defines the phase
 space vector of the particle at a certain longitudinal location.
 
 To get an orbit, that is, the particle position at every element in a
-lattice, you will need an array of \vn{coord_struct}'s. Since the
+lattice, you will need an array of \vn{coord_struct}s. Since the
 number of elements in the lattice is not known in advance the array
 must be declared to be allocatable.
-\begin{verbatim}
-  type (coord_struct), allocatable :: coords(:)
-\end{verbatim}
-You cannot, in general, use a pointer to an array since most \bmad
-subroutines expect an allocatable array and Fortran does not allow you
-to mix and match. An example of how to do multi-turn tracking is
+\begin{example}
+  type (coord_struct), allocatable :: orbit(:)
+\end{example}
+An example of how to do multi-turn tracking (assuming a circular lattice) is
 \begin{example}
   type (ring_struct) lattice             ! lattice to track through
-  type (coord_struct), allocatable :: coord(:)
+  type (coord_struct), allocatable :: orbit(:)
   ...
   call bmad_parser ('this_lattice', lattice)
   ...
-  call reallocate_coords (coord, lattice%n_ele_max)
-  coords(0)%vec = (/ 0.01, 0.2, 0.3, 0.4, 0.0, 0.0 /) ! initialization
+  call reallocate_coords (orbit, lattice%n_ele_max)
+  orbits(0)%vec = (/ 0.01, 0.2, 0.3, 0.4, 0.0, 0.0 /) ! initialization
   do i = 1, n_turns
-    call track_all (lattice, coord)
-    coords(0) = coords(lattice%n_ele_use)
+    call track_all (lattice, orbit)
+    orbit(0) = orbit(lattice%n_ele_use)
   end do
 \end{example}
-\vn{track_all} takes \vn{coord(0)} and tracks through the lattice from
-the 1\St\ element through the $n$\Th\ where $n =$
-\vn{lattice%n_ele_use}.  Each \vn{coord(i)} is associated with the
-corresponding \vn{lattice%ele_(i)} element and is the particle position
-at the exit end of the i\Th\ element. \vn{reallocate_coords} simply
-does an allocation. Its advantage over just allocating directly is
-that it checks if the allocation is needed and if not then it does
-nothing. Since \vn{track_all}, like many \bmad routines, will
-reallocate if needed, only one call to \vn{reallocate_coords} is
-needed initially even if there are repeated calls to \vn{track_all}.
+\vn{orbit(n)} holds the particle's position at the exit end of the
+$n$\Th element. With \vn{ring%n_ele_max} elements in the lattice
+(\sref{s:ring_ele}) the \vn{orbit(:)} array needs to be made this
+large. The call to \vn{reallocate_coords} does this allocation. Since
+\vn{ring%ele_(0)} is essentually a marker element \vn{orbit(0)} is the
+orbit at the start of the lattice.  \vn{track_all} takes \vn{orbit(0)}
+and tracks through the list of lattice elements until it gets to the
+last trackable element \vn{lattice%n_ele_use} (\sref{s:ring_ele}).
 
 If you are writing a routine where the \vn{coord_struct} array is
 local (not passed as an argument to the routine) then you have to
@@ -78,27 +73,27 @@ element in the lattice. The routine \vnr{track_all} calls \vn{track1}
 in a loop over all elements to track through the entire
 lattice. Alternatively the routine \vnr{track_many} can be used to
 track through a selective number of elements or to track backwards
-(See Section~\ref{s:reverse_track}). The routines to track through a
-lattice are listed in Section~\ref{r:track}.
+(See \sref{s:reverse_track}). The routines used for tracking
+and closed orbit calculations are listed in Section~\ref{r:track}.
 
 \index{Param_struct!lost}
 \index{Param_struct!ix_lost}
 \index{Tracking!example}
-The \vn{track_all} routine serves as a good
-example. \vn{track_all} tracks a particle through a lattice from
+The \vn{track_all} routine serves as a good example of how tracking
+works. \vn{track_all} tracks a particle through a lattice from
 beginning to end. Its code, condensed slightly, is shown in
 Figure~\ref{f:track_all}.  The \vn{reallocate_coord} call (line~13) is
-done in case the number of elements in the lattice has
-changed. \vn{orbit(n)} holds the particle's position at the exit end
-of the $n$\Th element. The call to \vn{track1} (line~18) tracks through one
-element from the exit end of the $n-1$\St\ element to the exit end of
-the $n$\Th particle. \vn{lattice%param%lost} is a logical that signals
-the calling routine whether a particle has been lost.  This generally
+done in case the number of elements in the lattice has changed. The
+call to \vn{track1} (line~18) tracks through one element from the exit
+end of the $n-1$\St\ element to the exit end of the $n$\Th
+particle. \vn{lattice%param%lost} is a logical that signals the
+calling routine whether a particle has been lost.  This generally
 happens when the particle's position is larger then the aperture. When
 a particle is lost \vn{lattice%param%ix_lost} is used to record in
 what element the loss occured.
 
 \begin{figure}[htb]
+\begin{centering}
 \small
 \begin{listing}{1}
   subroutine track_all (lattice, orbit)
@@ -127,6 +122,7 @@ what element the loss occured.
   end subroutine
 \end{listing}
 \caption{Condensed track\_all code.}
+\end{centering}
 \label{f:track_all}
 \end{figure}
 
@@ -139,7 +135,12 @@ For a circular lattice the closed orbit may be calculated using
 forward direction which is acceptable unless the particle you are
 trying to simulate is traveling in the reverse direction and there is
 radiation damping on. In this case you must tell
-\vn{closed_orbit_calc} to do backward tracking.
+\vn{closed_orbit_calc} to do backward tracking. This routine works by
+iteratively converging on the closed orbit using the 1--turn matrix to
+calculate the next guess. On rare occasions if the nonlinearities are
+strong enough, this can fail to converge. An alternative routine is
+\vn{closed_orbit_from_tracking} which tries to do things in a more
+robust way but with a large speed penelty.
 
 %----------------------------------------------------------------
 \section{Apertures}
@@ -148,7 +149,7 @@ radiation damping on. In this case you must tell
 \index{Param_struct!aperture_limit_on}
 \index{Bmad_com_struct!max_aperture_limit}
 The logical \vn{lattice%param%aperture_limit_on} determines if element
-apertures (See Section~\ref{s:limit}) are used to determine if a
+apertures (See \sref{s:limit}) are used to determine if a
 particle has been lost in tracking.  The default
 \vn{lattice%param%aperture_limit_on} is True.  Even if this is False
 there is a ``hard'' aperture limit set by
@@ -182,17 +183,11 @@ element). To sort this out and to determine in what plane the particle
 is lost in use the routine \vnr{lost_particle_info}.
 
 %----------------------------------------------------------------
-\section {Miscellaneous Notes}
-
-\index{Ele_struct!%mat6}
-Except for \vntm{Linear} tracking, none of the \bmad tracking routines
-make use of the \vn{ele%mat6} transfer matrix. The reverse, however,
-is not true.  The transfer matrix routines (\vn{lattice_make_mat6}, etc.)
-will do tracking.
+\section {Tracking Methods}
 
 \index{Ele_struct!%tracking_method}
 For each element the method of tracking may be set either via the
-input lattice file (see section~\ref{s:tkm}) or directly in the
+input lattice file (see \sref{s:tkm}) or directly in the
 program by setting the \vn{%tracking_method} attribute of an element
 \begin{verbatim}
   type (ele_struct) ele
@@ -203,6 +198,12 @@ To form the corresponding parameter to a given tracking method just
 put ``\$'' after the name. For example, the \vn{bmad_standard}
 tracking method is specified by the \vn{bmad_standard\$}
 parameter.
+
+\index{Ele_struct!%mat6}
+It should be noted that except for \vntm{Linear} tracking, none of the
+\bmad tracking routines make use of the \vn{ele%mat6} transfer
+matrix. The reverse, however, is not true.  The transfer matrix
+routines (\vn{lattice_make_mat6}, etc.)  will do tracking.
 
 \index{Synchrotron radiation!calculating}
 \bmad simulates radiation damping and excitation by applying a kick
@@ -248,7 +249,7 @@ To convert \vn{%sigma(:)} into an actual matrix use the
 
 \index{LIAR}
 \bmad uses canonical phase space
-coordinates(See Section~\ref{s:phase_space_coords}). The LIAR program uses
+coordinates(See \sref{s:phase_space_coords}). The LIAR program uses
 ``angle'' phase space coordinates
 \begin{equation}
   (x, x', y, y', -z, E)
@@ -266,7 +267,7 @@ macroparticles are grouped into slices, a number of slices make up a
 bunch, and a number of bunches make up a beam. Initialization of a
 \vn{beam_struct} structure can be done via the
 \vn{init_macro_distribution} which implements the LIAR initialization
-algorithm (See Section~\ref{s:macro}). Once a beam is initialized,
+algorithm (See \sref{s:macro}). Once a beam is initialized,
 tracking can be performed using \vn{track_beam}. An example program is
 shown in figure~\ref{f:macro_program}. 
 
@@ -284,7 +285,6 @@ tracks these macroparticles through to the end of the linac. If it is
 desired to track only through part of the linac then \vn{track_beam}
 has optional arguments that allow this. lines 30 through 41 print out
 some horizontal parameters from the position at the end of the linac.
-
 
 \begin{figure}
 \begin{listing}{1}
@@ -360,6 +360,8 @@ end program
 \label{f:beam_init}
 \end{figure}
 
+\break
+
 %----------------------------------------------------------------
 \section{Reverse Tracking}
 \label{s:reverse_track}
@@ -381,3 +383,10 @@ and unreversed lattices is
   (x, p_x, y, p_y, z, p_z) -> (x, -p_x, y, -p_y, -z, p_z)
 \Endeq
 See the \vn{ring_reverse} routine for more details.
+
+Generally tracking backwards is simply the reverse of tracking
+forwards (time reversal symmetry). That is, if you start at some
+place, track forward for some distance and then track back to the
+starting place the ending orbit will be equal to the starting
+orbing. However, it should always be kept in mind that radiation
+damping or excitation breaks this symmetry.
