@@ -147,8 +147,14 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
 
 ! Charge and center
 
-  bunch_end%charge   = bunch_start%charge
+  do i = 1, size(bunch_start%slice)
+    bunch_start%slice(i)%charge = sum (bunch_start%slice(i)%macro(:)%charge, &
+                                 mask = bunch_start%slice(i)%macro(:)%lost)
+  enddo
+  bunch_start%charge = sum (bunch_start%slice(:)%charge)
+
   bunch_end%s_center = bunch_start%s_center
+  bunch_end%charge   = bunch_start%charge
   do i = 1, size(bunch_start%slice)
     bunch_end%slice(i)%charge = bunch_start%slice(i)%charge
   enddo
