@@ -12,7 +12,7 @@ you need to do custom analysis is write the subroutines pertinent to your
 project. However beginners are advised to start with
 ``out of the box'' \tao while getting to know the program. This tutorial starts
 here and will then show you
-how to customize \tao for your speciffic purposes.
+how to customize \tao for your specific purposes.
 
 \subsection{Getting and Compiling \tao}
 \label{s:get_and_compile}
@@ -441,18 +441,25 @@ the model lattice to reflect the change so all the bookkeeping is done for you.
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
-\section{Running the optimizer}
+\section{Running the Optimizer}
 \label{s:optimizer}
 
 There are two non-linear optimizers included with \tao: Levenburg - Marquardt,
-or `lm', and
-Differential Evolution, or `de'. This example will use the 
+or `\vn{lm}', and
+Differential Evolution, or `\vn{de}'. This example will use the 
 Levenburg - Marquardt optimizer which first uses steepest decent to zero in on
 the region containing the minimun then uses the inverse-Hessian to converge on
 the minimum. See Numerical Recipes in Fortran (or C) book for a detailed
-explaination. There's no need to know the details in order to use the
+explaination. There's no need to know the details in order to use either
 optimizer. Once you set up the problem \tao has the proper wrapper routines to
 do the optimization.
+
+Basically, the `\vn{lm}' is typically faster since it uses a dmerit matrix to find
+the data deritatives versus each variable before starting the optimization process.
+However it assumes the second derivative is fairly smooth, so for very complex function 
+spaces the `\vn{de}' may work better. But becuase `\vn{lm}' typically converges much faster
+(for function it can handle) it is recommended to try this one first and only use `\vn{de}'
+if this one fails. 
 
 \subsection{Fix a Messed Up lattice}
 \label{ss:fix_it}
@@ -516,12 +523,12 @@ Whoops! we want to use the Levenburg - Marquardt optimizer so
   sho opt
 \end{example}
 
-Now we're ready to run or ``flatten'' the model to the `measured' data.
+Now we're ready to run the optimizer or ``fit'' the model to the `measured' data.
 \begin{example}
-  flatten
+  run
 \end{example}
 You see the optimizer going through its cycles and it did it! The model is now
-``flattened.'' We can see what changes where done to the quadrupoles by typing
+``fitted.'' We can see what changes where done to the quadrupoles by typing
 \begin{example}
   sho var quad\_k1
 \end{example}
@@ -549,7 +556,7 @@ variables ranges.
   change var quad\_k1 67 -0.005
   scale
   use var quad\_k1 8:12 20:25 65:70
-  flatten
+  run
   sho var quad\_k1 8:12 20:25 65:70
 \end{example}
 Different quadrupoles than the ones we initially changed were still adjusted
@@ -558,9 +565,9 @@ by the optimizer. But the end result is still very close to the design lattice.
 \subsection{Lattice Design}
 \label{ss:lattice_design}
 
-you may wish to constrain beam
-parameters instead of ``flattening'' to data. For example, you could not want
-the beta function to exceed a value in a certain part of the machine. \tao will
+You may wish to constrain beam
+parameters instead of ``fitting'' to data. For example, you could not want
+the beta function not to exceed a value in a certain part of the machine. \tao will
 also perform this type of optimization.
 
 \fbox{this subsection is yet to be completed!} 
@@ -680,12 +687,16 @@ to
   LIB\_SRC\_DIRS := ../tao/code
   OBJ\_SRC\_DIRS := ./
 \end{example}
-This tells gmake to use the tao library (\cmd{../tao/code}) and then to compile
+This tells gmake to use the tao library that has already been create (from 
+\cmd{../tao/code} but the actual library is located at \cmd{../lib/libtao.a})
+ and then to compile
 all of the hook files, including the main program file (\cmd{my_tao_cl.f90}) in
-to object files. Code in object files always overide similarly named code in
+to object files (everything in \cmd{./}, the current directory).
+ Routines and declarations in object files always overide similarly named code in
 libraries so this allows for your local hook files to overide the dummy hook
 files in the \tao library. The only downside to this method is it clutters your
-\cmd{my_tao} directory with object files.
+\cmd{my_tao} directory with object files. You can always remove these object files
+with \cmd{gmake clean}.
 
 There are two more lines to alte. change
 \begin{example}
@@ -814,14 +825,17 @@ file
   /
 \end{example}
 
-We are now ready to compile and then run the program.
+We are now ready to compile and then run the program. The \tao library should have
+already been created (in section~\ref{s:get_and_compile}) so all you need to do is
 \begin{example}
   cd ROOT/my_tao
   gmake
   ../bin/my_tao_cl
 \end{example}
+Notice that the name of the custom \tao program is \cmd{my_tao_cl}. If you run 
+`\cmd{tao}' then you will run ``vanilla'' \tao.
 
-Now after initialization type
+After your custom \tao initializes type
 \begin{example}
   place bottom emittance
   scale

@@ -24,8 +24,8 @@ varied to minimize \vn{M}. The second term in the merit function
 prevents degeneracies (or near degeneracies) in the problem which
 would allow \tao to find solutions where \vn{data_model} matches
 \vn{data_measured} with the \vn{var_model} having ``unphysical''
-values (values far from \vn{var_meas}. The weights $w_i$ and $w_j$
-need to be set depending upon how accurate the measred data is
+values (values far from \vn{var_meas}). The weights $w_i$ and $w_j$
+need to be set depending upon how accurate the measured data is
 relative to how accurate the calibrations for measuring the
 \vn{var_meas} values are. With the second term in the merit function
 the number of constraints (number of terms in the merit function) is
@@ -148,8 +148,9 @@ The general form of the data merit terms $D_i$ is
     \end{cases}
 \Endeq
 The \vn{Non-zero Condition} needed for a non--zero $C_i$ is dependent
-upon the \vn{merit_type} of the datum. There are five constraint
-types as given in Table~\ref{t:con_type}.
+upon the \vn{merit_type} of the datum. There are five \vn{merit_type} constraint
+types as given in Table~\ref{t:con_type}.  The default \vn{merit_type} for
+data is \vn{target}.
 \begin{table}[h]
 \centering
 {\tt
@@ -267,6 +268,7 @@ A \vn{limit} \vn{merit_type} has the form
     0                               & \mbox{Otherwise}
     \end{cases}
 \Endeq
+The default \vn{merit_type} for a variable is \vn{limit}.
 
 Note: when doing lattice design \vn{opt_with_ref} and
 \vn{opt_with_base} are both set to \vn{False} and the \vn{target} and

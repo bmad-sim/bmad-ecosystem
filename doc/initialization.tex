@@ -69,7 +69,8 @@ namelist has the form
     design_lattice_file(i) = "<lattice_file>", \{"<parser>"\}
   /
 \end{example}
-\vn{<lattice_file>} is the name of an input lattice file and
+where \vn{i} refers to the universe index, \vn{<lattice_file>} is the name of an input 
+lattice file and
 \vn{<parser>} is the name of the parser to use. Possible choices for
 \vn{<parser>} are:
 \begin{example}
@@ -107,7 +108,7 @@ Example:
     n_d2_data_max = 6
     n_data_max    = 2000
     n_var_max     = 2000
-    global%optimizer = 'lm'  ! Set the default optimizer.
+    global%optimizer = "lm"  ! Set the default optimizer.
   /
 \end{example}
 \vn{n_d2_data_max} and \vn{n_v1_var_max} are the maximum number of
@@ -115,6 +116,57 @@ Example:
 maximum number of datums needed and \vn{n_var_max} is the maximum
 total number variables used. For a list of \vn{global} elements see
 the description of the \vn{set} command in Chapter~\ref{c:command}.
+
+%-----------------------------------------------------------------
+\section{Initializing Macroparticles}
+\label{s:macros}
+
+A macroparticle beam is initialized in the \vn{tao_beam_init} namelist block.
+The syntax is as follows:
+\begin{example}
+  \&tao_beam_init
+    sr_wakes_on             = <ligical>   ! turn on short range wakes
+                                          ! default = F
+    lr_wakes_on             = <logical>   ! turn on long range wakes
+                                          ! default = F
+    wake_file(i)            = <file_name> ! File name for wake data, if needed
+    macro_init(i)%x%beta    = <number> 
+    macro_init(i)%x%alpha   = <number>
+    macro_init(i)%x%emit    = <number> 
+    macro_init(i)%y%beta    = <number> 
+    macro_init(i)%y%alpha   = <number>
+    macro_init(i)%y%emit    = <number> 
+    macro_init(i)%center    = <number>*6 ! Bunch center offset relative to
+                                         ! reference particle (BMAD coords)
+    macro_init(i)%sig_e     = <number>   ! e_sigma in eV
+    macro_init(i)%sig_z     = <number>   ! Z sigma in m
+    macro_init(i)%sig_e_cut = <number>   ! Energy cut in sigmas
+    macro_init(i)%sig_z_cut = <number>   ! Z cut in sigmas
+    macro_init(
+    macro_init(i)%n_bunch   = <integer>  ! Number of bunches
+    macro_init(i)%n_slice   = <integer>  ! Number of slices per bunch
+    macro_init(i)%n_macro   = <integer>  ! Number of macroparticles per slice
+    macro_init(i)%n_part    = <number>   ! Number of particles per bunch
+  /
+\end{example}
+where \vn{i} refers to the universe index. See \bmad documentation on what the
+\vn{macro_init} parameters refer to. Wakefields can only be turned on or off for all
+universes and not for each universe individually. \vn{wake_file} is the file containing the
+wakefield data. If a wakefield file is not needed then do not specify a file.
+
+The default is single particle tracking. To turn on macroparticle tracking the
+\vn{global%track_type} perameter must be set to 'macro.' This can be placed in
+the \vn{tao_params} namelist above, for example,
+\begin{example}
+  \&tao_params
+    n_v1_var_max  = 5
+    n_d2_data_max = 6
+    n_data_max    = 2000
+    n_var_max     = 2000
+    global%optimizer = "lm"  ! Set the default optimizer.
+    global%track_type = 'macro'
+  /
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Initializing Variables}
@@ -128,10 +180,15 @@ format for this is
     default_universe   = "<integer>"         ! Universe variables belong in.
     default_attribute  = "<attribute_name>"  ! Attribute to control.
     default_weight     = <number>            ! Merit_function weight.
+                                             ! default = 0.0
     default_step       = <number>            ! Small step value.
+                                             ! default = 0.0
     default_merit_type = <merit_type_name>   ! Sets how the merit is calculated.
+                                             ! default = 'limit'
     default_low_lim    = <number>            ! Lower variable value limit. 
+                                             ! default = -1e30
     default_high_lim   = <number>            ! Upper variable value limit. 
+                                             ! default =  1e30
     ix_min_var         = <integer>           ! Minimum array index.
     ix_max_var         = <integer>           ! Maximum array index.
     var(i)%name        = "<var_name>"        ! Individual variable name.
@@ -313,6 +370,7 @@ there must be a \vn{tao_d1_data} namelist which has the form:
     d1_data%name       = "<d1_name>"    ! d1_data name.
     default_data_type  = <type_name>    ! Eg: orbit:x, beam_energy, etc...
     default_weight     = <number>       ! Merit function weight.
+                                        ! default = 0.0
     ix_min_data        = <integer>      ! Minimum array index.
     ix_max_data        = <integer>      ! Maximum array index.
     data(j)%name       = "<data_name>"  ! Data names.
@@ -494,10 +552,10 @@ The plot area is divided up into rectangular regions where plots may
 be placed (what defines a plot is discussed below).
 \vn{region(i)%name} is the name of a region and my be any character
 string. \vn{l_x1}, and \vn{l_x2} define the location of the left and
-right edges of the region as a percentage of the plot area width
+right edges of the region as a fraction of the plot area width
 starting from the left edge of the plot area.  \vn{l_y1} and \vn{l_y2}
 define the location of the bottom and top edges of the region as a
-percentage of the height of the plot area with respect to the plot
+fraction of the height of the plot area with respect to the plot
 area's bottom edge. Thus, in the above example, region 1 extends from
 the left border of the plot area (\vn{region(1)%l_x1} = 0) to the
 right border (\vn{region(1)%l_x2} = 0) and vertically from the center
@@ -561,7 +619,9 @@ components are
 \vn{plot%name} is the name that is used with \tao commands to identify
 the plot.  
 
-\vn{plot%who(i)} sets what is being plotted. Possibilities are:
+\vn{plot%who(i)} sets what is plotted by default. For example, if 
+\vn{plot%who(i) = model - design} then by default this plot show the \vn{model}
+value minus the \vn{design} value for every data point. Possibilities are:
 \begin{example}
   model     ! model values.
   design    ! design values.
@@ -569,11 +629,7 @@ the plot.
   meas      ! data values.
   ref       ! reference data values.
 \end{example}
-The default is to plot \vn{model}. 
-
-\vn{plot%x} defines the horizontal axis for all the graphs contained in the
-plot. See the Quick Plot documentation for the definition of the
-\vn{qp_axis_struct}. 
+If nothing is specified, the default is to plot \vn{model}. 
 
 \vn{n_graph} sets the number of graphs associated with the plot and
 each one needs a \vn{tao_template_graph} namelist to define it. These
@@ -591,10 +647,10 @@ namelists should be placed directly after their respective
     graph%y               = <qp_axis_struct>
     graph%y2              = <qp_axis_struct>
     graph%n_curve         = <number_of_curves>
-    curve(i)%data_name    = "<data_name>"
-    curve(i)%data_source  = "<source_name>"
+    curve(i)%data_type    = "<data_type>"
+    curve(i)%data_source  = "<source_name>" !source for the data curve points
     curve(i)%units_factor = <factor>
-    curve(i)%use_y2       = <logical>
+    curve(i)%use_y2       = <logical> (not currently inplemented)
     curve(i)%draw_line    = <logical>
     curve(i)%ix_universe  = <universe_number>
     curve(i)%line         = <qp_line_struct>
@@ -606,27 +662,28 @@ namelists should be placed directly after their respective
 For example:
 \begin{example}
   \&tao_template_graph
-    graph_index        = 1
-    graph%name         = "x"
-    graph%type         = "data"
-    graph%box          = 1, 1, 1, 2
-    graph%title        = "Horizontal Orbit (mm)"
-    graph%margin       =  60, 200, 30, 30, "POINTS"
-    graph%y%label      = "X"
-    graph%y%max        =  4
-    graph%y%min        = -4
-    graph%y%major_div  = 4
-    graph%n_curve      = 1
-    curve(1)%data_name  = "orbit:x"
-    curve(1)%units_factor = 100
-    curve(1)%use_y2  = .false.
+    graph_index           = 1
+    graph%name            = "x"
+    graph%type            = "data"
+    graph%box             = 1, 1, 1, 2
+    graph%title           = "Horizontal Orbit (mm)"
+    graph%margin          =  60, 200, 30, 30, "POINTS"
+    graph%y%label         = "X"
+    graph%y%max           =  4
+    graph%y%min           = -4
+    graph%y%major_div     = 4
+    graph%n_curve         = 1
+    curve(1)%data_source  = 'data_array'
+    curve(1)%data_type    = "orbit:x"
+    curve(1)%units_factor = 1000
+    curve(1)%use_y2       = .false.
   /
 \end{example}
 
 \vn{graph%type} is the type of graph. \tao knows about the
 following types:
 \begin{example}
-  data       ! Data plots.
+  data       ! Data plots (default) 
   lat_layout ! Schematic showing placement of the lattice elements.
   key_table  ! Key binding table for single mode.
 \end{example}
@@ -636,6 +693,19 @@ placed in. For a definition of what a box is see the Quick Plot
 documentation in the \bmad reference manual. In the above example the
 graph divides the region into two vertically stacked boxes and places
 itself into the bottom one. 
+
+The \vn{curve} structure is used to define the number and types of 
+curves to plot in each graph. \vn{data_source} is the type of information
+is the source of the data points. There are the following types of 
+data sources:
+\begin{example}
+  data_source   ! d1_data is the source of the curve points
+  lat_layout    ! the lattice layout is the source
+\end{example}
+\vn{data_type} corresponds to the \vn{d1_data type}. This is what points to
+curve to the proper data thus, there needs to be a
+corresponding data type defined in the data initialization file. 
+
 
 \vn{curve%convert} is a logical that is only used
 with \vn{curve%data_name} = "coupling" and tells \tao to convert the

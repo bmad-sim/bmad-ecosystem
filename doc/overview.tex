@@ -7,15 +7,17 @@
 The information that \tao knows about can be divided into 5 categories: 
 \begin{example}
   lattice   -- Machine layout and component strengths, and the beam orbit.
-  data      -- Anything that can be measured. For example: orbit data, dispersion data, etc.
-  variables -- Anything that can be varied. For example: quad strengths, etc.
-  plotting  -- How to display data and other stuff.
+  data      -- Anything that can be measured. 
+               For example: orbit data, dispersion data, etc.
+  variables -- Anything that will typically be varied or used with the optimizer. 
+               For example: quad strengths, etc.
+  plotting  -- Display data and other stuff.
   global    -- Miscellaneous global parameters.
 \end{example}
 The \vn{lattice} and \vn{data} information are grouped into what is called a
-\vn{universe}. The entire collection of \vn{lattice}, \vn{data},
+\vn{universe}. The entire collection of \vn{lattices}, \vn{data},
 \vn{variables}, \vn{plotting}, and \vn{global} information is called
-the \vn{super_universe} and is the sum of what \tao knows about.
+the \vn{super_universe} and is the sum of everyhing \tao knows.
 
 %------------------------------------------------------------------------
 \section{Lattices}
@@ -69,7 +71,7 @@ name ``\vn{orbit}'', and one of its \vn{d1_data} structures has the name
 ``\vn{x}'', then in \tao commands you refer to the data in this
 \vn{d1_data} structure by the name ``\vn{orbit:x}''. Sometimes there is
 only one \vn{d1_data} structure for a given \vn{d2_data} structure. In
-this case the data can be referred to simply by useing the
+this case the data can be referred to simply by using the
 \vn{d2_data} structures's name.
 
 Each data point (for example, the horizontal orbit at some
@@ -77,9 +79,9 @@ detector) has a number of quantities associated with it:
   \vspace*{-3ex}
   \begin{description}
   \item[Measured Data] \Newline 
-The data as obtained from some measurement.
+The data as obtained from some measurement. This is what is used when running the optimizer.
 When doing lattice design the measured \vn{data} corresponds to
-a constraint (See the chapter on optimization for more details).
+a constraint (See chapter~\ref{c:opti} on optimization for more details).
   \item[Reference Data] \Newline
 Reference data obtained from some reference measurement. For example,
 a measurement before some variable is varied could be designated as
@@ -105,7 +107,9 @@ Blocks of variables are associated with what is called a
 with which to refer to them in \tao commands. A given variable may
 control a single attribute of one element in a \vn{model} lattice
 of a single universe or variables can be configured to simultaneously
-control multiple attributes across multiple universes.
+control an element attribute across multiple universes. Any one variable 
+cannot control more than one attribute of one element. However, a variable
+may control an overlay or group element, which in turn controls numerous elements.
 
 Each individual variable has a number of values associated with it:
   \vspace*{-3ex}
@@ -162,7 +166,8 @@ of \vn{template plots}. A \vn{template} defines what type of data is
 to be plotted (orbit, coupling, etc.), how many \vn{graphs} there are,
 what the scales are for the \vn{graph} axes, how the \vn{graph}s are
 laid out, etc.  The plot initialization file also defines a set of
-\vn{region}s within the \vn{page}.  Using the \vn{place} command  
+\vn{region}s within the \vn{page}. Any \vn{template plot} can be placed in any region.
+ Using the \vn{place} command  
 (see Chapter~\ref{c:command} for a full descriptions of all commands) one
 can assign a particular \vn{template plot} to a particular region for plotting.
 The relationship between \vn{region}, \vn{plot}, \vn{graph}, and
@@ -181,24 +186,29 @@ placed in the \vn{top} region and the phase \vn{template plot} was
 placed in the \vn{bottom} region. The horizontal axis numbering is by
 detector \vn{index}.  Displayed plots are referred to by the
 \vn{region} name (\vn{top} and \vn{bottom} in this case). Individual
-graphs are are referred to using the nomenclature
+graphs are referred to using the nomenclature
 \vn{region:graph}. Thus, in this example, the horizontal orbit graph
-would be reffered to as \vn{top:x}.  Using the \vn{plot} command one
+would be referred to as \vn{top:x}.  Using the \vn{plot} command one
 can then specify \vn{who} is plotted. \vn{who} refers to
 \vn{measured}, \vn{reference}, \vn{model}, \vn{base}, and/or
 \vn{design} data.  Notice that the same \vn{template plot} can be
 assigned to different \vn{regions} and the plots in different
 \vn{regions} can have different scales for their axes or different
 \vn{who}. In the example in Figure~\ref{f:plot_page1}, \vn{who} for the
-\vn{top} plot is \vn{model} and for the \vn{bottom} graph it is
+\vn{top} plot is \vn{model} and for the \vn{bottom} plot it is
 \vn{model-design}.
 
 The \vn{use}, \vn{veto}, \vn{restore}, and \vn{clip} commands are used
 to display or not to display individual data points. These are the
 same commands that control what data is used in fitting the model to
-the data in the optimization process (see Chapter~\ref{c:opti}. The
+the data in the optimization process (see Chapter~\ref{c:opti}). The
 general rule is that data that is vetoed for display is also vetoed
 for fitting.
+
+The \vn{x-axis} and \vn{x-scale} commands are used to set the axis type and
+scale for each graph. the axis type can be either \vn{index} or \vn{s} which
+corresponds to the data index number and longitudinal poisition in the lattice
+(from element 0) respectively.
 
 Figure~\ref{f:plot_page2} shows another example of a plot \vn{page}.
 In this case the \vn{page} was generated by again defining two
@@ -252,6 +262,15 @@ certain keyboard keys so that when these keys are pressed the value of
 the variable is varied. This association between variables and keys is
 called a \vn{key table}.
 
+%------------------------------------------------------------------------
+\section{Tracking Types}
+
+The are two types of tracking implemented in \tap: single particle tracking 
+macroparticle tracking. Single particle tracking is just that, the tracking 
+of a single particle through the lattice. Macroparticle tracking takes a beam distribution
+and tracks the centroids and sigmas of the ``macro-particles'' through the lattice.
+Single particle tracking is by default. See the initialization section for details on
+setting up macroparticle tracking.
 
 %------------------------------------------------------------------------
 \section{Lattice Calculation}
@@ -269,12 +288,18 @@ affected by commands such as \vn{use, veto,} and \vn{restore} and any changes in
 status of elements in the ring (e.g. if any elements have been turned off). 
   \item If changes have been made to the lattice (e.g. variables changed) the
 \vn{model} orbit, linear transfer matrices and twiss parameters are recalculated. 
-The linear transfer matrices and twiss parameters are found about the tracked
-orbit. The orbit tracking is performed using the tracking method defined for
-each element. See the \bmad Reference manual for details on tracking and finding
+For single particle tracking the linear transfer matrices and twiss parameters are 
+found about the tracked
+orbit. For macroparticle tracking the linear transfer matrices and twiss parameters are 
+found about the beam centroid orbit. 
+Tracking is performed using the tracking method defined for
+each element (i.e. Bmad Standard, Symplectic Lie, etc...). See the \bmad 
+Reference manual for details on tracking and finding
 the linear transfer matrices and twiss parameters.
   \item The \vn{model} data is recalculated from the \vn{model} orbit, linear
-transfer matrices and twiss parameters. Any custom calculations and data
+transfer matrices, twiss parameters, macroparticle beam information and global
+lattice parameters.
+ Any custom calculations and data
 transfers are performed before the standard \tao data is recalculated.
   \item The contributions to the merit function from the variables and data are
 computed.
