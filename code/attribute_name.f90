@@ -1,0 +1,284 @@
+!+
+! Function attribute_name (ele, index)
+!
+! Function to return the name of an attribute for a particular type of 
+! BMAD element. 
+!
+! Modules Needed:
+!   use bmad_struct
+!   use bmad_interface
+!
+! Input:
+!   ele   -- Ele_struct: Integer: Key name of element type (e.g. SBEND$, etc.)
+!   index -- Integer: Index of attribute (e.g. ANGLE$)
+!
+! Output:
+!   attribute_name -- Character*16: Name of attribute.
+!
+! Example:
+!   ele%key = sbend$
+!   name = attribute_name (ele, angle$)
+! Result:
+!   name -> 'ANGLE'
+!-
+
+
+character*16 function attribute_name (ele, index)
+
+  use bmad_struct
+
+  implicit none
+
+  type (ele_struct) ele
+
+  integer i, j, key, index
+
+  character*16 attrib_array(n_key, n_attrib_special_maxx)
+
+  logical init_needed / .true. /
+
+!---------------------------------------------------------------------
+! Init
+
+  if (init_needed) then
+
+    attrib_array = null_name
+
+    do i = 1, n_key
+                                    
+      if (i == def_beam$) cycle
+
+      attrib_array(i, type$)     = 'TYPE'
+      attrib_array(i, alias$)    = 'ALIAS'
+
+      if (i == group$) cycle
+      if (i == define_energy$) cycle
+      if (i == overlay$) cycle
+
+      attrib_array(i, x_limit$)  = 'X_LIMIT'
+      attrib_array(i, y_limit$)  = 'Y_LIMIT'
+
+      attrib_array(i, hkick$)  = 'HKICK'
+      attrib_array(i, vkick$)  = 'VKICK'
+
+      if (i == marker$) cycle
+
+      attrib_array(i, x_offset$) = 'X_OFFSET'
+      attrib_array(i, y_offset$) = 'Y_OFFSET'
+
+      if (i == multipole$ .or. i == ab_multipole$) cycle
+
+      attrib_array(i, x_pitch$)   = 'X_PITCH'
+      attrib_array(i, y_pitch$)   = 'Y_PITCH'
+
+    enddo
+
+!
+
+    do i = 1, n_key
+      select case (i)
+      case (elseparator$, kicker$, octupole$, quadrupole$, sbend$, rbend$, &
+             sextupole$, solenoid$, sol_quad$, ab_multipole$)
+        attrib_array(i, a0$) = 'A0'
+        attrib_array(i, b0$) = 'B0'
+        attrib_array(i, a1$) = 'A1'
+        attrib_array(i, b1$) = 'B1'
+        attrib_array(i, a2$) = 'A2'
+        attrib_array(i, b2$) = 'B2'
+        attrib_array(i, a3$) = 'A3'
+        attrib_array(i, b3$) = 'B3'
+        attrib_array(i, a4$) = 'A4'
+        attrib_array(i, b4$) = 'B4'
+        attrib_array(i, a5$) = 'A5'
+        attrib_array(i, b5$) = 'B5'
+        attrib_array(i, a6$) = 'A6'
+        attrib_array(i, b6$) = 'B6'
+        attrib_array(i, a7$) = 'A7'
+        attrib_array(i, b7$) = 'B7'
+        attrib_array(i, a8$) = 'A8'
+        attrib_array(i, b8$) = 'B8'
+        attrib_array(i, a9$) = 'A9'
+        attrib_array(i, b9$) = 'B9'
+        attrib_array(i, radius$) = 'RADIUS'
+      end select
+
+    enddo
+
+
+    attrib_array(group$, command$)        = 'COMMAND'
+    attrib_array(group$, old_command$)    = 'OLD_COMMAND'
+    attrib_array(group$, coef$)           = 'COEF'
+    attrib_array(group$, s$)              = 'S'
+    attrib_array(group$, start_edge$)     = 'START_EDGE'
+    attrib_array(group$, end_edge$)       = 'END_EDGE'
+    attrib_array(group$, accordian_edge$) = 'ACCORDIAN_EDGE'
+
+    attrib_array(drift$, l$) = 'L'
+
+    attrib_array(sbend$, l$)     = 'L'
+    attrib_array(sbend$, angle$) = 'ANGLE'
+    attrib_array(sbend$, e1$)    = 'E1'
+    attrib_array(sbend$, e2$)    = 'E2'
+    attrib_array(sbend$, k1$)    = 'K1'
+    attrib_array(sbend$, rho$)   = 'RHO'
+    attrib_array(sbend$, tilt$)  = 'TILT'
+    attrib_array(sbend$, roll$)  = 'ROLL'
+
+    attrib_array(rbend$, l$)     = 'L'
+    attrib_array(rbend$, angle$) = 'ANGLE'
+    attrib_array(rbend$, e1$)    = 'E1'
+    attrib_array(rbend$, e2$)    = 'E2'
+    attrib_array(rbend$, k1$)    = 'K1'
+    attrib_array(rbend$, rho$)   = 'RHO'
+    attrib_array(rbend$, tilt$)  = 'TILT'
+    attrib_array(rbend$, roll$)  = 'ROLL'
+
+    attrib_array(quadrupole$, l$)    = 'L'
+    attrib_array(quadrupole$, tilt$) = 'TILT'
+    attrib_array(quadrupole$, k1$)   = 'K1'
+
+    attrib_array(sextupole$, l$)     = 'L'
+    attrib_array(sextupole$, tilt$)  = 'TILT'
+    attrib_array(sextupole$, k2$)    = 'K2'
+
+    attrib_array(octupole$, l$)      = 'L'
+    attrib_array(octupole$, tilt$)   = 'TILT'
+    attrib_array(octupole$, k3$)     = 'K3'
+
+    attrib_array(solenoid$, l$)  = 'L'
+    attrib_array(solenoid$, ks$) = 'KS'
+
+    attrib_array(rfcavity$, l$)             = 'L'
+    attrib_array(rfcavity$, volt$)          = 'VOLT'
+    attrib_array(rfcavity$, rf_wavelength$) = 'RF_WAVELENGTH'
+    attrib_array(rfcavity$, lag$)           = 'LAG'
+    attrib_array(rfcavity$, harmon$)        = 'HARMON'
+
+    attrib_array(elseparator$, l$)   = 'L'
+    attrib_array(elseparator$, gap$) = 'GAP'
+
+    attrib_array(beambeam$, sig_x$)      = 'SIG_X'
+    attrib_array(beambeam$, sig_y$)      = 'SIG_Y'
+    attrib_array(beambeam$, sig_z$)      = 'SIG_Z'
+    attrib_array(beambeam$, bbi_const$) = 'BBI_CONSTANT'
+    attrib_array(beambeam$, charge$)    = 'CHARGE'
+    attrib_array(beambeam$, n_slice$)   = 'N_SLICE'
+
+    attrib_array(wiggler$, l$)      = 'L'
+    attrib_array(wiggler$, k1$)     = 'K1'
+    attrib_array(wiggler$, b_max$)  = 'B_MAX'
+    attrib_array(wiggler$, rho$)    = 'RHO'
+    attrib_array(wiggler$, n_pole$) = 'N_POLE'
+    attrib_array(wiggler$, tilt$)   = 'TILT'
+    attrib_array(wiggler$, bp2$)    = 'BP2'
+    attrib_array(wiggler$, bp4$)    = 'BP4'
+    attrib_array(wiggler$, bp6$)    = 'BP6'
+    attrib_array(wiggler$, bp8$)    = 'BP8'
+    attrib_array(wiggler$, radius$) = 'RADIUS'
+!    attrib_array(wiggler$, ap2$)    = 'AP2'
+!    attrib_array(wiggler$, ap4$)    = 'AP4'
+!    attrib_array(wiggler$, ap6$)    = 'AP6'
+!    attrib_array(wiggler$, ap8$)    = 'AP8'
+
+
+    attrib_array(sol_quad$, l$)    = 'L'
+    attrib_array(sol_quad$, k1$)   = 'K1'
+    attrib_array(sol_quad$, ks$)   = 'KS'
+    attrib_array(sol_quad$, tilt$) = 'TILT'
+
+    attrib_array(kicker$, l$)          = 'L'
+    attrib_array(kicker$, h_displace$) = 'H_DISPLACE'
+    attrib_array(kicker$, v_displace$) = 'V_DISPLACE'
+
+    attrib_array(def_beam$, particle$) = 'PARTICLE'
+    attrib_array(def_beam$, energy$)   = 'ENERGY'
+    attrib_array(def_beam$, n_part$)    = 'N_PART'
+
+    attrib_array(multipole$, tilt$) = 'TILT'
+    attrib_array(multipole$, k0l$) = 'K0L'
+    attrib_array(multipole$, k1l$) = 'K1L'
+    attrib_array(multipole$, k2l$) = 'K2L'
+    attrib_array(multipole$, k3l$) = 'K3L'
+    attrib_array(multipole$, k4l$) = 'K4L'
+    attrib_array(multipole$, k5l$) = 'K5L'
+    attrib_array(multipole$, k6l$) = 'K6L'
+    attrib_array(multipole$, k7l$) = 'K7L'
+    attrib_array(multipole$, k8l$) = 'K8L'
+    attrib_array(multipole$, k9l$) = 'K9L'
+    attrib_array(multipole$, t0$)  = 'T0'
+    attrib_array(multipole$, t1$)  = 'T1'
+    attrib_array(multipole$, t2$)  = 'T2'
+    attrib_array(multipole$, t3$)  = 'T3'
+    attrib_array(multipole$, t4$)  = 'T4'
+    attrib_array(multipole$, t5$)  = 'T5'
+    attrib_array(multipole$, t6$)  = 'T6'
+    attrib_array(multipole$, t7$)  = 'T7'
+    attrib_array(multipole$, t8$)  = 'T8'
+    attrib_array(multipole$, t9$)  = 'T9'
+    attrib_array(multipole$, radius$)   = 'RADIUS'
+
+    attrib_array(ab_multipole$, tilt$) = 'TILT'
+
+    attrib_array(coil$, l$) = 'L'
+
+    attrib_array(loop$, l$)        = 'L'
+    attrib_array(loop$, current$)  = 'CURRENT'
+    attrib_array(loop$, radius$)   = 'RADIUS'
+    attrib_array(loop$, diameter$) = 'DIAMETER'
+    attrib_array(loop$, r2$)       = 'RADIUS_SQUARED'
+    attrib_array(loop$, ri$)       = 'RADIUS_CURRENT'
+    attrib_array(loop$, r2i$)      = 'R2_CURRENT'
+
+    attrib_array(accel_sol$, l$)     = 'L'
+    attrib_array(accel_sol$, volt$)  = 'VOLT'
+    attrib_array(accel_sol$, lag$)   = 'LAG'
+    attrib_array(accel_sol$, rf_wavelength$) = 'RF_WAVELENGTH'
+    attrib_array(accel_sol$, b_z$)   = 'B_Z'
+    attrib_array(accel_sol$, b_x1$)  = 'B_X1'
+    attrib_array(accel_sol$, b_y1$)  = 'B_Y1'
+    attrib_array(accel_sol$, s_st1$) = 'S_ST1'
+    attrib_array(accel_sol$, l_st1$) = 'L_ST1'
+    attrib_array(accel_sol$, b_x2$)  = 'B_X2'
+    attrib_array(accel_sol$, b_y2$)  = 'B_Y2'
+    attrib_array(accel_sol$, s_st2$) = 'S_ST2'
+    attrib_array(accel_sol$, l_st2$) = 'L_ST2'
+    attrib_array(accel_sol$, x_beg_limit$) = 'X_BEG_LIMIT'
+    attrib_array(accel_sol$, y_beg_limit$) = 'Y_BEG_LIMIT'
+
+    attrib_array(define_energy$, new_energy$) = 'NEW_ENERGY'
+                 
+    attrib_array(custom$, l$) = 'L'
+    attrib_array(custom$,  val1$) =  'VAL1'
+    attrib_array(custom$,  val2$) =  'VAL2'
+    attrib_array(custom$,  val3$) =  'VAL3'
+    attrib_array(custom$,  val4$) =  'VAL4'
+    attrib_array(custom$,  val5$) =  'VAL5'
+    attrib_array(custom$,  val6$) =  'VAL6'
+    attrib_array(custom$,  val7$) =  'VAL7'
+    attrib_array(custom$,  val8$) =  'VAL8'
+    attrib_array(custom$,  val9$) =  'VAL9'
+    attrib_array(custom$, val10$) = 'VAL10'
+    attrib_array(custom$, val11$) = 'VAL11'
+    attrib_array(custom$, val12$) = 'VAL12'
+    attrib_array(custom$, val13$) = 'VAL13'
+    attrib_array(custom$, val14$) = 'VAL14'
+    attrib_array(custom$, val15$) = 'VAL15'
+    attrib_array(custom$, val16$) = 'VAL16'
+
+    init_needed = .false.
+
+  endif
+
+!--------------------------------------------------------------------
+! Main part of subroutine
+
+  key = ele%key
+
+  if (key <= 0 .or. key > n_key .or.  &
+            index <= 0 .or. index > n_attrib_special_maxx) then
+    attribute_name = '?? BAD KEY/INDEX'
+  else
+    attribute_name = attrib_array(key, index)
+  endif                       
+
+end function
