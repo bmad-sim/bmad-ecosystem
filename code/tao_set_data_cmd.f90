@@ -75,11 +75,14 @@ subroutine set_this_data (data, can_list)
 
 type (tao_data_struct), target :: data(:)
 
-real(rp), pointer :: c_ptr(:)
+real(rp), pointer :: r_ptr(:)
 real(rp) value
 
 integer n_set, n1, n2, ix, ios
 
+character(1) using
+
+logical, pointer :: l_ptr(:)
 logical, allocatable :: set_it(:), good(:)
 logical multiply, divide, can_list
 
@@ -107,11 +110,17 @@ set_it = set_it .and. data(:)%exists
 
 select case (component)
 case ('weight')
-  c_ptr => data(:)%weight
+  r_ptr => data(:)%weight
+  using = 'r'
 case ('meas')
-  c_ptr => data(:)%meas_value
+  r_ptr => data(:)%meas_value
+  using = 'r'
 case ('ref')
-  c_ptr => data(:)%ref_value
+  r_ptr => data(:)%ref_value
+  using = 'r'
+case ('good_user')
+  l_ptr => data(:)%good_user
+  using = 'l'
 case default
   call out_io (s_error$, r_name, 'UNKNOWN COMPONENT NAME: ' // component)
   return
@@ -121,21 +130,33 @@ end select
 
 select case (set_value)
 case ('meas')
-  where (set_it) c_ptr = data(:)%meas_value
+  call check_using (using, 'r', err); if (err) return
+  where (set_it) r_ptr = data(:)%meas_value
   good = data(:)%good_data
 case ('ref')
-  where (set_it) c_ptr = data(:)%ref_value
+  call check_using (using, 'r', err); if (err) return
+  where (set_it) r_ptr = data(:)%ref_value
   good = data(:)%good_ref
 case ('model')
-  where (set_it) c_ptr = data(:)%model_value
+  call check_using (using, 'r', err); if (err) return
+  where (set_it) r_ptr = data(:)%model_value
   good = data(:)%exists
 case ('base')
-  where (set_it) c_ptr = data(:)%base_value
+  call check_using (using, 'r', err); if (err) return
+  where (set_it) r_ptr = data(:)%base_value
   good = data(:)%exists
 case ('design')
-  where (set_it) c_ptr = data(:)%design_value
+  call check_using (using, 'r', err); if (err) return
+  where (set_it) r_ptr = data(:)%design_value
   good = data(:)%exists
+case ('f', 'F')
+  call check_using (using, 'l', err); if (err) return
+  where (set_it) l_ptr = .false.
+case ('t', 'T')
+  call check_using (using, 'l', err); if (err) return
+  where (set_it) l_ptr = .true.
 case default
+  call check_using (using, 'r', err); if (err) return
   multiply = .false.
   divide = .false.
   ix = 1
@@ -153,11 +174,11 @@ case default
     return
   endif
   if (multiply) then
-    where (set_it) c_ptr = c_ptr * value
+    where (set_it) r_ptr = r_ptr * value
   elseif (divide) then
-    where (set_it) c_ptr = c_ptr / value
+    where (set_it) r_ptr = r_ptr / value
   else
-    where (set_it) c_ptr = value
+    where (set_it) r_ptr = value
   endif
   good = data(:)%exists
 end select
@@ -177,5 +198,21 @@ err = .false.
 deallocate (set_it)
 
 end subroutine 
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+subroutine check_using (using, should_be_using, err)
+character(1) using, should_be_using
+logical err
+
+err = .false.
+if (using /= should_be_using) then
+  err = .true.
+  call out_io (s_error$, r_name, 'VARIABLE COMPONENT/SET_VALUE TYPE MISMATCH.')
+endif
+
+end subroutine
 
 end subroutine

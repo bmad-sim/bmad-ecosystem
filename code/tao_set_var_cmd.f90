@@ -47,11 +47,14 @@ subroutine set_this_var (var, can_list)
 
 type (tao_var_struct), target :: var(:)
 
-real(rp), pointer :: c_ptr
+real(rp), pointer :: r_ptr
 real(rp) value
 
 integer n_set, n1, n2, iv, ix, ios
 
+character(1) using
+
+logical, pointer :: l_ptr
 logical, allocatable :: set_it(:)
 logical multiply, divide, can_list
 
@@ -84,32 +87,55 @@ do iv = 1, size(var)
 
   select case (component)
   case ('weight')
-    c_ptr => var(iv)%weight
+    r_ptr => var(iv)%weight
+    using = 'r'
   case ('step')
-    c_ptr => var(iv)%step
+    r_ptr => var(iv)%step
+    using = 'r'
   case ('model')
-    c_ptr => var(iv)%model_value
+    r_ptr => var(iv)%model_value
+    using = 'r'
   case ('base')
-    c_ptr => var(iv)%base_value
+    r_ptr => var(iv)%base_value
+    using = 'r'
+  case ('good_user')
+    l_ptr => var(iv)%good_user
+    using = 'l'
+  case ('good_var')
+    l_ptr => var(iv)%good_var
+    using = 'l'
   case default
     err = .true.
     call out_io (s_error$, r_name, 'UNKNOWN COMPONENT NAME: ' // component)
+    return
   end select
 
 ! select value and set.
 
   select case (set_value)
   case ('meas')
-    c_ptr = var(iv)%meas_value
+    call check_using (using, 'r', err); if (err) return
+    r_ptr = var(iv)%meas_value
   case ('ref')
-    c_ptr = var(iv)%ref_value
+    call check_using (using, 'r', err); if (err) return
+    r_ptr = var(iv)%ref_value
   case ('model')
-    c_ptr = var(iv)%model_value
+    call check_using (using, 'r', err); if (err) return
+    r_ptr = var(iv)%model_value
   case ('base')
-    c_ptr = var(iv)%base_value
+    call check_using (using, 'r', err); if (err) return
+    r_ptr = var(iv)%base_value
   case ('design')
-    c_ptr = var(iv)%design_value
+    call check_using (using, 'r', err); if (err) return
+    r_ptr = var(iv)%design_value
+  case ('f', 'F')
+    call check_using (using, 'l', err); if (err) return
+    l_ptr = .false.
+  case ('t', 'T')
+    call check_using (using, 'l', err); if (err) return
+    l_ptr = .true.
   case default
+    call check_using (using, 'r', err); if (err) return
     multiply = .false.
     divide = .false.
     ix = 1
@@ -127,11 +153,11 @@ do iv = 1, size(var)
       return
     endif
     if (multiply) then
-      c_ptr = c_ptr * value
+      r_ptr = r_ptr * value
     elseif (divide) then
-      c_ptr = c_ptr / value
+      r_ptr = r_ptr / value
     else
-      c_ptr = value
+      r_ptr = value
     endif
   end select
 
@@ -142,6 +168,22 @@ enddo
 deallocate (set_it)
 
 end subroutine 
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+subroutine check_using (using, should_be_using, err)
+character(1) using, should_be_using
+logical err
+
+err = .false.
+if (using /= should_be_using) then
+  err = .true.
+  call out_io (s_error$, r_name, 'VARIABLE COMPONENT/SET_VALUE TYPE MISMATCH.')
+endif
+
+end subroutine
 
 end subroutine
 

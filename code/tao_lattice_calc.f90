@@ -19,6 +19,11 @@ implicit none
 
 integer i
 
+! make sure useit is up-to-date
+
+call tao_set_var_useit_opt
+call tao_set_data_useit_opt
+
 ! Closed orbit and Twiss calculation.
 
 do i = 1, size(s%u)

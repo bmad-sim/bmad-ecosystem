@@ -502,7 +502,7 @@ case ('var')
 
     write(lines(1), '(2a)') 'Variable name:   ', v1_ptr%name
     lines(2) = ' '
-    line1 = '       Name            Data         Model        Design'
+    line1 = '       Name            Data         Model        Design  Useit_opt'
     write (lines(3), *) line1
     nl = 3
     do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
@@ -513,9 +513,9 @@ case ('var')
           exit
         endif
         nl = nl + 1
-        write(lines(nl), '(i6, 2x, a7, 3es14.4)') i, &
+        write(lines(nl), '(i6, 2x, a7, 3es14.4, 7x, l)') i, &
                  v1_ptr%v(i)%name, v1_ptr%v(i)%meas_value, &
-                 v1_ptr%v(i)%model_value, v1_ptr%v(i)%design_value
+                 v1_ptr%v(i)%model_value, v1_ptr%v(i)%design_value, v1_ptr%v(i)%useit_opt
       endif
     enddo
     nl=nl+1

@@ -118,6 +118,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
       data(:)%ele2_name  = ' '
       data(:)%meas_value = 0
       data(:)%weight     = 0
+      data(:)%good_data  = .false.
       read (iu, nml = tao_d1_data, err = 9150)
       if (ix_d1_data /= k) then
         write (line, '(a, 2i4)') 'IX_D1_DATA MISMATCH:', k, ix_d1_data
@@ -324,8 +325,6 @@ logical, allocatable :: found_one(:)
 
 !
 
-if (d1_data%name == ' ') return
-
 u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)  ! point back to the parent
 
 ! are we counting elements and forming data names?
@@ -415,9 +414,11 @@ elseif (index(data(0)%ele_name, 'SAME:') /= 0) then
   u%data(n1:n2)%exists    = d1_ptr%d%exists
 
 else
-  u%data(n1:n2)%ele_name = data(ix1:ix2)%ele_name
+  u%data(n1:n2)%ele_name  = data(ix1:ix2)%ele_name
+  u%data(n1:n2)%ele2_name = data(ix1:ix2)%ele2_name
   do j = n1, n2
     if (u%data(j)%ele_name == ' ') cycle
+    call str_upcase (u%data(j)%ele_name, u%data(j)%ele_name)
     call element_locator (u%data(j)%ele_name, u%design, ix)
     if (ix < 0) then
       call out_io (s_abort$, r_name, 'ELEMENT NOT LOCATED: ' // &
@@ -428,6 +429,7 @@ else
     u%data(j)%exists = .true.
 
     if (u%data(j)%ele2_name == ' ') cycle
+    call str_upcase (u%data(j)%ele2_name, u%data(j)%ele2_name)
     call element_locator (u%data(j)%ele2_name, u%design, ix)
     if (ix < 0) then
       call out_io (s_abort$, r_name, 'ELEMENT2 NOT LOCATED: ' // &
@@ -440,7 +442,9 @@ else
 endif
 
 u%data(n1:n2)%meas_value = data(ix1:ix2)%meas_value
-u%data(n1:n2)%data_type = data(ix1:ix2)%data_type
+u%data(n1:n2)%data_type  = data(ix1:ix2)%data_type
+u%data(n1:n2)%merit_type = data(ix1:ix2)%merit_type
+u%data(n1:n2)%good_data  = data(ix1:ix2)%good_data
 where (u%data(n1:n2)%data_type == ' ') u%data(n1:n2)%data_type = &
                             trim(d2_data%name) // ':' // d1_data%name
 

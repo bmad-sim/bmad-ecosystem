@@ -17,6 +17,7 @@ subroutine tao_de_optimizer ()
 
 use tao_mod
 use opti_mod
+use tao_single_mod
 
 implicit none
 
@@ -56,6 +57,8 @@ write (line, *) 'Merit start:', merit_start
 call out_io (s_blank$, r_name, line)
 write (line, *) 'Merit end:', merit_end
 call out_io (s_blank$, r_name, line)
+
+call tao_var_write (s%global%opt_var_out_file_name, .true.)
 
 end subroutine
 

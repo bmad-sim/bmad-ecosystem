@@ -27,6 +27,7 @@ type tao_data_input
   character(16) :: merit_type
   real(rp) :: meas_value
   real(rp) :: weight
+  logical :: good_data
 end type
 
 !-------------------------------------------------------------

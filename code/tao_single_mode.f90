@@ -280,7 +280,7 @@ subroutine tao_single_mode (char)
 ! /w: Output to default file.
 
     case ('w')
-      call tao_var_write ('tao#.manual', .true.)
+      call tao_var_write (s%global%var_out_file_name, .true.)
 
 ! /x: Scale horizontal axis
 
@@ -361,6 +361,7 @@ contains
 
 subroutine scale_it_all (ix_plot, factor, a_min, a_max)
 
+  type (tao_plot_struct), pointer :: plot
   type (tao_graph_struct), pointer :: graph
 
   real(rdef) factor
@@ -377,12 +378,13 @@ subroutine scale_it_all (ix_plot, factor, a_min, a_max)
   endif
 
   do i = 1, size(s%plot_page%plot)
-    do j = 1, size(s%plot_page%plot(i)%graph)
-      graph => s%plot_page%plot(i)%graph(j) 
-      name = trim(s%plot_page%plot(i)%name) // ':' // graph%name
+    plot => s%plot_page%plot(i)
+    if (.not. associated (plot%graph)) cycle
+    do j = 1, size(plot%graph)
+      graph => plot%graph(j) 
       graph%y2%max = graph%y2%max * factor 
       graph%y2%min = graph%y2%min * factor 
-      call tao_scale_cmd (name, graph%y%min * factor, graph%y%max * factor)
+      call tao_scale_graph (graph, graph%y%min * factor, graph%y%max * factor)
     enddo
   enddo
 

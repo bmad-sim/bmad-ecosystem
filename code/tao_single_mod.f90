@@ -39,7 +39,7 @@ do i = 1, size(s%u)
     
   do j = 1, size(s%var)
     if (.not. s%var(j)%exists) cycle
-    if (.not. any (s%var(j)%this(:)%ix_uni == iu)) cycle
+    if (.not. any (s%var(j)%this(:)%ix_uni == i)) cycle
     write (iu, '(4a, g14.8)')  trim(s%var(j)%ele_name), &
               '[', trim(s%var(j)%attrib_name), '] = ', s%var(j)%model_value
   enddo
@@ -157,7 +157,7 @@ real(rp) value
 real(rp), allocatable :: merit(:)
 
 integer i, j, iunit, nc, ir, n_max
-integer ir1, ir2
+integer ir1, ir2, iu, ie
 integer, allocatable :: ixm(:)
 
 character(*) form
@@ -171,14 +171,13 @@ type constraint_struct
   real(rp) target_value
   real(rp) actual_value
   real(rp) merit
-  integer plane
 end type
 
 type (constraint_struct), allocatable :: con(:)
 
 !
 
-fmt  = '(i3, 1x, a9, 1x, a1, 2x, a10, 1x, a9, 1pe10.2, 1pe12.3, e10.2, 2x, a8)'
+fmt  = '(i3, 1x, a9, 2x, a10, 1x, a9, 1pe10.2, 1pe12.3, e10.2, 2x, a8)'
 top_merit(:)%valid  = .false.; top_merit(:)%name  = ' '
 
 nc = count (s%var(:)%useit_opt)
@@ -187,10 +186,48 @@ do i = 1, size(s%u)
 enddo
 allocate (con(nc), ixm(nc))
 
+nc = 0
+do i = 1, size(s%var(:))
+  if (.not. s%var(i)%useit_opt) cycle
+  nc = nc + 1
+  con(nc)%name = s%var(i)%name
+  iu = s%var(i)%this(1)%ix_uni
+  con(nc)%loc1 = s%u(iu)%model%ele_(s%var(i)%this(1)%ix_ele)%name
+  con(nc)%loc2 = ' '
+  if (abs(s%var(i)%model_value - s%var(i)%high_lim) < &
+      abs(s%var(i)%model_value - s%var(i)%low_lim)) then
+    con(nc)%target_value = s%var(i)%high_lim
+  else
+    con(nc)%target_value = s%var(i)%low_lim
+  endif
+  con(nc)%actual_value = s%var(i)%model_value
+  con(nc)%merit = s%var(i)%merit
+  con(nc)%max_loc = ' '
+enddo
+
 do i = 1, size(s%u)
   do j = 1, size(s%u(i)%data)
     if (.not. s%u(i)%data(j)%useit_opt) cycle
     nc = nc + 1
+    con(nc)%name = s%u(i)%data(j)%data_type
+    if (size(s%u) > 1) write (con(nc)%name, '(2a, i1)') &
+                                          con(nc)%name, ';', i
+    con(nc)%loc1 = s%u(i)%model%ele_(s%u(i)%data(j)%ix_ele)%name
+    ie = s%u(i)%data(j)%ix_ele2
+    if (ie < 0) then
+      con(nc)%loc2 = ' '
+    else
+      con(nc)%loc2 = s%u(i)%model%ele_(ie)%name
+    endif
+    ie = s%u(i)%data(j)%ix_ele_merit
+    if (ie < 0) then
+      con(nc)%max_loc = ' '
+    else
+      con(nc)%max_loc = s%u(i)%model%ele_(ie)%name
+    endif
+    con(nc)%target_value = s%u(i)%data(j)%meas_value
+    con(nc)%actual_value = s%u(i)%data(j)%model_value
+    con(nc)%merit = s%u(i)%data(j)%merit
   enddo
 enddo
 
@@ -220,11 +257,11 @@ endif
 
 if (iunit == 0) then
   print *
-  print *,         'Constrnt Plane  Where1' //  &
+  print *,         'Constrnt      Where1' //  &
                      '     Where2     Target     Value      Merit     Max'
 else
   write (iunit, *)
-  write (iunit, *) 'Constrnt Plane  Where1' //  &
+  write (iunit, *) 'Constrnt      Where1' //  &
                      '     Where2     Target     Value      Merit     Max'
 endif
 
@@ -235,11 +272,11 @@ do j = 1, n_max
   i = ixm(j)
   if (iunit == 0) then
     print fmt, i, con(i)%name, &
-            con(i)%plane, con(i)%loc1, con(i)%loc2, con(i)%target_value, &
+            con(i)%loc1, con(i)%loc2, con(i)%target_value, &
             con(i)%actual_value, con(i)%merit, con(i)%max_loc
   else
     write (iunit, fmt) i, con(i)%name, &
-            con(i)%plane, con(i)%loc1, con(i)%loc2, con(i)%target_value, &
+            con(i)%loc1, con(i)%loc2, con(i)%target_value, &
             con(i)%actual_value, con(i)%merit, con(i)%max_loc
   endif
 

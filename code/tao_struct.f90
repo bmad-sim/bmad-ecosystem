@@ -333,6 +333,8 @@ type tao_global_struct
   character(16) :: valid_plot_who(10) 
   character(40) :: print_command = 'awprint'
   character(80) :: tao_single_mode_file = 'tao_single.in'
+  character(80) :: var_out_file_name = 'var#.out'
+  character(80) :: opt_var_out_file_name = 'opt_var#.out'
 end type
 
 !-----------------------------------------------------------------------

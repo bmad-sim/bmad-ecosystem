@@ -125,14 +125,16 @@ do k = s%global%ix_key_bank+1, s%global%ix_key_bank+10
   j_att = max(j_att, len_trim(s%var(ix_var)%attrib_name))
 enddo
 
-write (str, '(3x, a, <j_ele-2>x, a, <j_att-2>x, a)') 'ix  Name',  &
-           'Attrib',  'Value   Value0    Delta  Universe'
+write (fmt, '(a, i5, a, i2, a)') &
+                        '(3x, a, ', j_ele-2, 'x, a, ', j_att-2, 'x, a)'
+write (str, fmt) 'ix  Name', 'Attrib', &
+                              'Value   Value0    Delta  Uni useit_opt'
 y = 10 * dy_key + 5.0
 call qp_draw_text (str, 5.0_rp, y, 'POINTS/PAGE', &
                              height = dy_key-1.0_rp, uniform_spacing = .true.)
   
 write (fmt, '(a, i2.2, a, i2.2, a)') &
-                   '(a, i2, 2x, a', j_ele, ', 2x, a', j_att, ', 3f9.4, 2x, a)'
+        '(a, i2, 2x, a', j_ele, ', 2x, a', j_att, ', 3f9.4, 2x, a, 3x, l)'
 
 do i = 1, 10
   k = i + s%global%ix_key_bank
@@ -148,7 +150,7 @@ do i = 1, 10
     write (str, fmt) str3, j, s%var(ix_var)%ele_name, &
       s%var(ix_var)%attrib_name, s%var(ix_var)%model_value, &
       s%key(k)%val0/norm, s%key(k)%delta/norm, &
-      trim(tao_var_uni_string(s%var(ix_var)))
+      trim(tao_var_uni_string(s%var(ix_var))), s%var(ix_var)%useit_opt
   endif
 
   y = (10-i) * dy_key + 5

@@ -263,11 +263,13 @@ there must be a \vn{tao_d1_data} namelist which has the form:
     ix_min_data        = <integer>      ! Minimum array index.
     ix_max_data        = <integer>      ! Maximum array index.
     data(j)%name       = "<data_name>"  ! Data names.
-    data(j)%type       = "<type_name>"  ! Eg: "orbit:x", etc.
+    data(j)%data_type  = "<type_name>"  ! Eg: "orbit:x", etc.
     data(j)%ele_name   = "<ele_name>"   ! Lattice element names.
     data(j)%ele2_name  = "<ele2_name>"  ! Lattice element names.
-    data(j)%weight     = "<weight>"     ! Merit function weight.
     data(j)%merit_type = "<merit_type>" ! Sets how the merit is calculated.
+    data(j)%meas_value = "<number>"     ! Datum "measured" value
+    data(j)%weight     = "<weight>"     ! Merit function weight.
+    data(j)%good_data  = Logical        ! Valid for optimization and plotting?
   /
 \end{example}
 For example:
@@ -280,9 +282,20 @@ For example:
     ix_max_data       = 99
     data(0:)%name     = "0W",      " ", "2W", ...
     data(0:)%ele_name = "DET_00W", " ", "DET_02W", ...
-
   /
 \end{example}
+Alternatively one can specify a datum in a single line. For example:
+\begin{example}
+  \&tao_d1_data
+  ...
+  data( 1) = ' '  'beta:x'  'Q09_1'  'Q16_1'    'max'    30   0.1   T
+  data( 2) = ' '  'beta:y'  'Q09_1'  'Q16_1'    'max'    30   0.1   T
+  data( 3) = ' '  'floor:x' 'end_arc' ' '       'target'  3   0.01  T       
+  ...
+  /
+\end{example}
+
+
 \vn{ix_min_data} and \vn{ix_max_data} give the bounds for the
 \vn{data(i)} structure array that is associated with the \vn{d1_data}
 structure. \vn{data(:)%name} gives the names of the data points and
@@ -313,7 +326,6 @@ Table~\ref{t:cons}
 \vn{data(:)%weight} gives the weight coefficient for a variable in the
 merit function. If not present then the default weight of
 \vn{default_weight} is used.
-
 
 %-----------------------------------------------------------------
 \section{Initializing Plotting}

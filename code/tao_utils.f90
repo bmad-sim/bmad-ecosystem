@@ -467,8 +467,11 @@ enddo
 ! Except if there is only 1 d2_pointer%d1 then point to that.
 
 if (d1_name == ' ') then
-  if (size(d2_pointer%d1) == 1 .and. present(d1_ptr)) d1_ptr => d2_pointer%d1(1) 
-  return
+  if (size(d2_pointer%d1) == 1 .and. present(d1_ptr)) then
+    d1_ptr => d2_pointer%d1(1) 
+  else
+    return
+  endif
 endif
 
 ! strip off all whitespace
