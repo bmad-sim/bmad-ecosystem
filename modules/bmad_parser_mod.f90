@@ -1444,22 +1444,24 @@ subroutine type_get (ele, ix_type, delim, delim_found)
 !
 
   call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
-  ix = index(bp_com%parse_line(2:), '"')
 
-  if (bp_com%parse_line(1:1) /= '"' .or. ix == 0) then
-    call warning ('MISSING DOUBLE QUOTE MARK (") FOR TYPE = "attribute"',  &
+  if (bp_com%parse_line(1:1) == '"') then
+    bp_com%parse_line = bp_com%parse_line(2:)
+    ix = index(bp_com%parse_line, '"')
+    if (ix == 0) then
+      call warning ('MISSING DOUBLE QUOTE MARK (") FOR TYPE = "attribute"',  &
                           'FOR ELEMENT: ' // ele%name)
-    if (ix /= 0) then
-      bp_com%parse_line = bp_com%parse_line(ix+2:)
-    elseif (bp_com%parse_line(1:1) == '"') then
-      bp_com%parse_line = bp_com%parse_line(2:)
+      type_name = ' '
+    else
+      type_name = bp_com%parse_line(1:ix-1)
+      bp_com%parse_line = bp_com%parse_line(ix+1:)
+      call get_next_word (word, ix_word, ',=', delim, delim_found, .true.)
+      if (ix_word /= 0) call warning (  &
+                'EXTRA CHARACTERS FOUND AFTER TYPE ATTRIBUTE: ' // word,  &
+                'FOR ELEMENT: ' // ele%name)
     endif
-  endif
-
-  if (ix == 1) then
-    type_name = ' '
   else
-    type_name = bp_com%parse_line(2:ix)
+    call get_next_word (type_name, ix_word, ',= ', delim, delim_found, .true.)
   endif
 
   select case (ix_type)
@@ -1484,12 +1486,6 @@ subroutine type_get (ele, ix_type, delim, delim_found)
     print *, 'INTERNAL ERROR IN TYPE_GET: I NEED HELP!'
     call err_exit
   end select
-
-  bp_com%parse_line = bp_com%parse_line(ix+2:)
-  call get_next_word (word, ix_word, ',=', delim, delim_found, .true.)
-  if (ix_word /= 0) call warning (  &
-                'EXTRA CHARACTERS FOUND AFTER TYPE ATTRIBUTE: ' // word,  &
-                'FOR ELEMENT: ' // ele%name)
 
 end subroutine
 
@@ -2749,6 +2745,7 @@ Subroutine allocate_pring (ring, pring)
 
   else
     allocate (pring%ele(0:ring%n_ele_maxx))
+    n_now = -1
   endif
 
 ! %ixx is used as a pointer from the in_ring%ele_ array to the pring%ele array

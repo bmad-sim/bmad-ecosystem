@@ -44,6 +44,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   implicit none
 
   type (ring_struct), target :: ring, in_ring
+  type (ele_struct) this_ele
   type (seq_struct), save, target :: sequence_(1000)
   type (seq_struct), pointer :: seq, seq2
   type (seq_ele_struct), target :: this_s_ele
@@ -244,9 +245,16 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! TITLE command
 
     if (word_1(:ix_word) == 'TITLE') then
-      if (delim_found) call warning ('EXTRA STUFF FOUND AFTER "TITLE"')
-      read (bp_com%f_unit, '(a)') ring%title
-      bp_com%i_line = bp_com%i_line + 1
+      if (delim_found) then
+        if (delim /= " " .and. delim /= ",") call warning &
+                            ('BAD DELIMITOR IN "TITLE" COMMAND')
+        call type_get (this_ele, descrip$, delim, delim_found)
+        ring%title = this_ele%descrip
+        deallocate (this_ele%descrip)
+      else
+        read (bp_com%f_unit, '(a)') ring%title
+        bp_com%i_line = bp_com%i_line + 1
+      endif
       cycle parsing_loop
     endif
 
@@ -495,6 +503,15 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       if (key == custom$) then
         in_ring%ele_(n_max)%mat6_calc_method = custom$
         in_ring%ele_(n_max)%tracking_method = custom$
+      endif
+
+      if (key == taylor$) then   ! start with unit matrix
+        call add_taylor_term (in_ring%ele_(n_max), 1, 1.0_rp, (/ 1, 0, 0, 0, 0, 0 /)) 
+        call add_taylor_term (in_ring%ele_(n_max), 2, 1.0_rp, (/ 0, 1, 0, 0, 0, 0 /)) 
+        call add_taylor_term (in_ring%ele_(n_max), 3, 1.0_rp, (/ 0, 0, 1, 0, 0, 0 /)) 
+        call add_taylor_term (in_ring%ele_(n_max), 4, 1.0_rp, (/ 0, 0, 0, 1, 0, 0 /)) 
+        call add_taylor_term (in_ring%ele_(n_max), 5, 1.0_rp, (/ 0, 0, 0, 0, 1, 0 /)) 
+        call add_taylor_term (in_ring%ele_(n_max), 6, 1.0_rp, (/ 0, 0, 0, 0, 0, 1 /)) 
       endif
 
       if (key == overlay$ .or. key == group$) then
