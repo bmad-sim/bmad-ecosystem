@@ -17,6 +17,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.2  2001/10/05 04:08:45  palmer
+# Bug fixes.
+#
 # Revision 1.1  2001/10/05 02:43:28  palmer
 # Install the Makefile for the BMAD library.
 #
@@ -75,22 +78,6 @@ endif
 
 
 #------------------------------------------------
-# Set up production versus debug compilation
-#------------------------------------------------
-ifneq (,$(findstring $(DEBUG),yY))
-  LIBRARY     := $(locallib)/lib$(LIBNAME)_g.a
-  MOD_OUT_DIR := $(localmod)_g
-  FFLAGS      += -g
-  CCFLAGS     += -g
-else
-  LIBRARY       := $(locallib)/lib$(LIBNAME).a
-  MOD_OUT_DIR   := $(localmod)
-  LIBRARY_G     := $(locallib)/lib$(LIBNAME)_g.a
-  MOD_OUT_DIR_G := $(localmod)_g
-endif
-
-
-#------------------------------------------------
 # Set up some standard definitions
 #------------------------------------------------
 SHELL := /bin/sh
@@ -114,6 +101,22 @@ CESRDEP := $(CESR_UTIL)/cesrdepend
 FFLAGS := -c -u -v -module $(MOD_OUT_DIR)
 CFLAGS := -c -check
 LFLAGS := -Wl,-m -non_shared
+
+
+#------------------------------------------------
+# Set up production versus debug compilation
+#------------------------------------------------
+ifneq (,$(findstring $(DEBUG),yY))
+  LIBRARY     := $(locallib)/lib$(LIBNAME)_g.a
+  MOD_OUT_DIR := $(localmod)_g
+  FFLAGS      += -g
+  CCFLAGS     += -g
+else
+  LIBRARY       := $(locallib)/lib$(LIBNAME).a
+  MOD_OUT_DIR   := $(localmod)
+  LIBRARY_G     := $(locallib)/lib$(LIBNAME)_g.a
+  MOD_OUT_DIR_G := $(localmod)_g
+endif
 
 
 #------------------------------------------------
