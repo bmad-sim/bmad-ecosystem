@@ -107,6 +107,8 @@ subroutine twiss_at_start (ring)
                                   ring%param%stable, ring%param%growth_rate)
   ring%x%tune = ring%ele_(0)%x%phi
   ring%y%tune = ring%ele_(0)%y%phi
+  ring%ele_(0)%x%phi = 0
+  ring%ele_(0)%y%phi = 0
 
 end subroutine
 
