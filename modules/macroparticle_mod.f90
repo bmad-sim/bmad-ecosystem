@@ -9,7 +9,7 @@ module macroparticle_mod
 
   type macro_init_struct
     type (macro_init_twiss_struct) x, y
-    real(rp) E_0       ! Nominal Energy (eV).
+    real(rp) E_0       ! Average beam Energy (eV).
     real(rp) center(6) ! Bench center offset relative to reference particle.
     real(rp) n_part    ! Number of particles per bunch.
     real(rp) ds_bunch  ! Distance between bunches.
@@ -20,7 +20,7 @@ module macroparticle_mod
     integer n_bunch    ! Number of bunches.
     integer n_slice    ! Number of slices per bunch.
     integer n_macro    ! Number of macroparticles per slice.
-  endtype
+  end type
 
   type macro_struct
     type (coord_struct) r   ! Center of the macroparticle
@@ -377,7 +377,7 @@ subroutine track1_sr_trans_wake (bunch, ele)
   type (ele_struct) ele
   type (macro_struct), pointer :: macro(:), macro2(:)
 
-  real(rp) x_ave, y_ave, z_ave, charge, z0, ch_j
+  real(rp) x_ave, y_ave, z_ave, charge
   real(rp) f1, f2, z, dE, E_rel, fact, dz_wake
 
   integer i, j, k, ix, i0, i1, ix0, ix1, iw, n_wake
@@ -405,12 +405,13 @@ subroutine track1_sr_trans_wake (bunch, ele)
     z_ave = 0
 
     do j = 1, size(macro)
-      ch_j = abs(macro(j)%charge)
-      z0 = macro(j)%r%vec(5)
       x_ave = x_ave + (macro(j)%charge * macro(j)%r%vec(1)) / charge
       y_ave = y_ave + (macro(j)%charge * macro(j)%r%vec(3)) / charge
       z_ave = z_ave + (macro(j)%charge * macro(j)%r%vec(5)) / charge
     enddo
+
+    x_ave = x_ave - ele%value(x_offset_tot$)
+    y_ave = y_ave - ele%value(y_offset_tot$)
 
 ! Now apply the wakefields to the other slices.
 ! Use linear interpolation.
@@ -991,7 +992,7 @@ end subroutine
 !   use macroparticle_mod
 !
 ! Input:
-!   init          -- macroparticle_init_struct: Structure holding the 
+!   init          -- macro_init_struct: Structure holding the 
 !                     parameters of the initial distribution. See the 
 !                     definition of the structure for more details.
 !   canonical_out -- Logical: If True then convert to canonical coords.
