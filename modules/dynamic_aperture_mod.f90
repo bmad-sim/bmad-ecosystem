@@ -103,8 +103,16 @@ subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
   test_loop: do
 
     orbit_(0) = orb0
-    orbit_(0)%vec(1) = orbit_(0)%vec(1) + x1
-    orbit_(0)%vec(3) = orbit_(0)%vec(3) + y1
+    orbit_(0)%vec(1) = orbit_(0)%vec(1) + x1 
+    orbit_(0)%vec(3) = orbit_(0)%vec(3) + y1 
+
+
+! Include correction for nonzero dispersion at IP   29 Sep 04 jac
+! Make sure eta values have been calculated
+    call twiss_at_start(ring)
+
+    orbit_(0)%vec(1) = orbit_(0)%vec(1) + orbit_(0)%vec(6)*ring%ele_(0)%x%eta
+    orbit_(0)%vec(3) = orbit_(0)%vec(3) + orbit_(0)%vec(6)*ring%ele_(0)%y%eta
 
 ! track n_turns
 
