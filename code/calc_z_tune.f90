@@ -11,8 +11,8 @@
 !
 ! Output:
 !   ring -- Ring_struct
-!     %z%tune         -- Synchrotron tune (radians)
-!     %param%t1_mat6  -- 6x6 1-turn matrix.
+!     %z%tune            -- Synchrotron tune (radians)
+!     %param%t1_with_RF  -- 6x6 1-turn matrix.
 !-
 
 #include "CESR_platform.inc"
@@ -33,8 +33,8 @@ subroutine calc_z_tune ( ring)
   integer i
 !
 
-  call one_turn_matrix (ring, a)
-  ring%param%t1_mat6 = a
+  call one_turn_matrix (ring, .true., a)
+  ring%param%t1_with_RF = a
 
   cos_z = (a(5,5) + a(6,6)) / (2 * (a(5,5)*a(6,6) - a(5,6)*a(6,5)))
 

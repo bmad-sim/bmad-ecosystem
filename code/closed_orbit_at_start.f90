@@ -19,8 +19,8 @@
 ! always be set True unless you *know* you have a linear lattice and you
 ! need to save time.
 !
-! Note: This routine uses the 1-turn matrix ring%param%t1_mat4 or 
-! ring%param%t1_mat6 in the computations. If you have changed conditions 
+! Note: This routine uses the 1-turn matrix ring%param%t1_no_RF or 
+! ring%param%t1_with_RF in the computations. If you have changed conditions 
 ! significantly enough you might want to force a remake of the 1-turn matrices
 ! by calling clear_ring_1turn_mats.
 !
@@ -86,14 +86,14 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
   n = i_dim
 
   if (i_dim == 4) then
-    if (all(ring%param%t1_mat4 == 0)) &
-                        call one_turn_matrix (ring, ring%param%t1_mat4)
-    t1(1:4,1:4) = ring%param%t1_mat4
+    if (all(ring%param%t1_no_RF == 0)) &
+                    call one_turn_matrix (ring, .false., ring%param%t1_no_RF)
+    t1 = ring%param%t1_no_RF
 
   elseif (i_dim == 6) then
-    if (all(ring%param%t1_mat6 == 0)) &
-                        call one_turn_matrix (ring, ring%param%t1_mat6)
-    t1 = ring%param%t1_mat6
+    if (all(ring%param%t1_with_RF == 0)) &
+                    call one_turn_matrix (ring, .true., ring%param%t1_with_RF)
+    t1 = ring%param%t1_with_RF
 
     if (t1(6,5) == 0) then
       print *, 'ERROR IN CLOSED_ORBIT_AT_START: CANNOT DO FULL 6-DIMENSIONAL'
@@ -159,8 +159,8 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
       amp_co = sum(abs(co%vec(1:n)))
       amp_del = sum(abs(del_co%vec(1:n)))
-                                            
-      if (amp_del < amp_co*1.0e-5 + 1.0e-8) exit
+
+      if (amp_del < amp_co * bmad_com%rel_tollerance + bmad_com%abs_tollerance) exit
 
     enddo
                               

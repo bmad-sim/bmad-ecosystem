@@ -614,11 +614,12 @@ module bmad_interface
   end interface
 
   interface
-    subroutine one_turn_matrix (ring, mat6)
+    subroutine one_turn_matrix (ring, rf_on, mat6)
       use bmad_struct
       implicit none
       type (ring_struct) ring
-      real(rp) mat6(:,:)
+      logical, intent(in) :: rf_on
+      real(rp), intent(out) :: mat6(:,:)
     end subroutine
   end interface
 

@@ -33,7 +33,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   integer, intent(in), optional :: n_files
   integer d_unit, i, j, k, n_file
   integer ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t(6)
-  integer stat_b(12), stat, ierr, i_garbage
+  integer stat_b(12), stat, ierr
   integer ix_srf, ix_sr, ix_lrf, ix_lr
 
   character(*) digested_name
@@ -64,11 +64,10 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
 ! write the ring structure to the digested file. We do this in pieces
 ! since the whole structure is too big to write in 1 statement.
 
-  i_garbage = 0  ! place marker
   write (d_unit) &
           ring%name, ring%lattice, ring%input_file_name, ring%title, &
           ring%x, ring%y, ring%z, ring%param, ring%version, ring%n_ele_ring, &
-          i_garbage, ring%n_ele_use, ring%n_ele_max, &
+          ring%n_ele_use, ring%n_ele_max, &
           ring%n_control_max, ring%n_ic_max, ring%input_taylor_order
   
   do i = 0, ring%n_ele_max

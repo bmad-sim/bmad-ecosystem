@@ -387,8 +387,8 @@ end function
 ! Subroutine clear_ring_1turn_mats (ring)
 !
 ! Subroutine to clear the 1-turn matrices in the ring structure:
-!   ring%param%t1_mat4
-!   ring%param%t1_mat6
+!   ring%param%t1_no_RF
+!   ring%param%t1_with_RF
 ! This will force any routine dependent upon these to do a remake.
 !
 ! Modules needed:
@@ -404,8 +404,8 @@ subroutine clear_ring_1turn_mats (ring)
 
   type (ring_struct) ring
 
-  ring%param%t1_mat4 = 0
-  ring%param%t1_mat6 = 0
+  ring%param%t1_no_RF = 0
+  ring%param%t1_with_RF = 0
 
 end subroutine
 

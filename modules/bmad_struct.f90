@@ -17,7 +17,7 @@ module bmad_struct
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 
-  integer, parameter :: bmad_inc_version$ = 69
+  integer, parameter :: bmad_inc_version$ = 70
 
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -150,7 +150,7 @@ module bmad_struct
 ! struct for element to element control
 
   type control_struct
-    real(rp) coef                ! control coefficient
+    real(rp) coef                  ! control coefficient
     integer ix_lord                ! index to lord element
     integer ix_slave               ! index to slave element
     integer ix_attrib              ! index of attribute controlled
@@ -164,8 +164,8 @@ module bmad_struct
     real(rp) charge             ! Charge of a bunch (used by LCavities).
     real(rp) total_length       ! total_length of ring
     real(rp) growth_rate        ! growth rate/turn if not stable
-    real(rp) t1_mat6(6,6)       ! Full 1-turn 6x6 matrix
-    real(rp) t1_mat4(4,4)       ! Transverse 1-turn 4x4 matrix (RF off).
+    real(rp) t1_with_RF(6,6)    ! Full 1-turn matrix with RF on.
+    real(rp) t1_no_RF(6,6)      ! Full 1-turn matrix with RF off.
     integer particle            ! +1 = positrons, -1 = electrons
     integer iy                  ! Not currently used.
     integer ix_lost             ! If lost at what element?
@@ -545,10 +545,17 @@ module bmad_struct
 !   ring%param%aperture_limit_on = False.
 
   type bmad_com_struct
-    real(rp) :: d_orb(6)  ! for the make_mat6_tracking routine
+    real(rp) :: d_orb(6) = 1e-5  ! for the make_mat6_tracking routine
     real(rp) :: beam_energy = 0
     real(rp) :: max_aperture_limit = 1e3    
     real(rp) :: k_loss = 0                   ! Internal var for LCavities.
+#if defined(CESR_F90_DOUBLE)
+    real(rp) :: rel_tollerance = 1e-5
+    real(rp) :: abs_tollerance = 1e-8
+#else
+    real(rp) :: rel_tollerance = 1e-3
+    real(rp) :: abs_tollerance = 1e-6
+#endif
     integer :: taylor_order = 3              ! 3rd order is default
     integer :: taylor_order_ptc = 0          ! 0 -> not yet set 
     logical :: taylor_order_set = .false.    ! Used by set_taylor_order

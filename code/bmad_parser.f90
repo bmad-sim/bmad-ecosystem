@@ -167,8 +167,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   in_ring%ele_(0)%key = init_ele$
 
   call mat_make_unit (in_ring%ele_(0)%mat6)
-  in_ring%param%t1_mat6 = 0
-  in_ring%param%t1_mat4 = 0
+  call clear_ring_1turn_mats (in_ring)
 
   n_max => in_ring%n_ele_max
   n_max = 0                              ! Number of elements encountered

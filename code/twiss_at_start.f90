@@ -17,13 +17,13 @@
 !
 ! Output:
 !   ring
-!     %param%t1_mat4  --  Note: Only the linear part is computed.
-!     %ele_(0)%x     -- X Twiss parameters at the start of the ring.
-!     %ele_(0)%y     -- Y Twiss parameters at the start of the ring.
-!     %ele_(0)%c_mat -- Coupling matrix.
-!     %x%tune        -- Fractional part of the tune in radians
-!     %y%tune        -- Fractional part of the tune in radians
-!     %param%stable  -- Set true or false.
+!     %param%t1_no_RF --  Note: Only the linear part is computed.
+!     %ele_(0)%x      -- X Twiss parameters at the start of the ring.
+!     %ele_(0)%y      -- Y Twiss parameters at the start of the ring.
+!     %ele_(0)%c_mat  -- Coupling matrix.
+!     %x%tune         -- Fractional part of the tune in radians
+!     %y%tune         -- Fractional part of the tune in radians
+!     %param%stable   -- Set true or false.
 !     %param%growth_rate -- unstable growth rate (= 0 if stable)
 ! 
 !   bmad_status  -- BMAD Common block status structure
@@ -84,13 +84,13 @@ subroutine twiss_at_start (ring)
     endif
   enddo
 
-! put 1-turn matrix into ring%param%t1_mat4
+! put 1-turn matrix into ring%param%t1_no_RF
 
-  ring%param%t1_mat4 = t0_4
   call mat_make_unit (mat6)
   mat6(1:4,1:4) = t0_4
 
   call mat6_dispersion (mat6, eta_vec) ! dispersion to %mat6
+  ring%param%t1_no_RF = mat6
 
 ! compute twiss parameters
 

@@ -5,8 +5,8 @@
 ! Closed_orbit_calc uses the 1-turn transfer matrix to converge upon a  
 ! solution. closed_orb(0) is used as an initial guess to the closed orbit.
 !
-! Note: This routine uses the 1-turn matrix ring%param%t1_mat4 or 
-! ring%param%t1_mat6 in the computations. If you have changed conditions 
+! Note: This routine uses the 1-turn matrix ring%param%t1_no_RF or 
+! ring%param%t1_with_RF in the computations. If you have changed conditions 
 ! significantly enough you might want to force a remake of the 1-turn matrices
 ! by calling clear_ring_1turn_mats.
 !
@@ -68,15 +68,15 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
   n = i_dim
 
   if (i_dim == 4) then
-    if (all(ring%param%t1_mat4 == 0)) &
-                        call one_turn_matrix (ring, ring%param%t1_mat4)
-    t1(1:4,1:4) = ring%param%t1_mat4
+    if (all(ring%param%t1_no_RF == 0)) &
+                    call one_turn_matrix (ring, .false., ring%param%t1_no_RF)
+    t1 = ring%param%t1_no_RF
     closed_orb(0)%vec(5) = 0
 
   elseif (i_dim == 6) then
-    if (all(ring%param%t1_mat6 == 0)) &
-                        call one_turn_matrix (ring, ring%param%t1_mat6)
-    t1 = ring%param%t1_mat6
+    if (all(ring%param%t1_with_RF == 0)) &
+                    call one_turn_matrix (ring, .true., ring%param%t1_with_RF)
+    t1 = ring%param%t1_with_RF
 
     if (t1(6,5) == 0) then
       print *, 'ERROR IN CLOSED_ORBIT_CALC: CANNOT DO FULL 6-DIMENSIONAL'
@@ -115,6 +115,14 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
   i_max = 100  
   do i = 1, i_max
 
+    if (mod(i, 10) == 0) then  ! remake every 10th turn.
+      call ring_make_mat6 (ring, -1, closed_orb)
+      call one_turn_matrix (ring, .true., t1)
+      call mat_make_unit (mat(1:n,1:n))
+      mat(1:n,1:n) = mat(1:n,1:n) - t1(1:n,1:n)
+      call mat_inverse(mat(1:n,1:n), mat2(1:n,1:n))
+    endif
+
     call track_all (ring, closed_orb)
 
     del_orb%vec(1:n) = closed_orb(n_ele)%vec(1:n) - closed_orb(0)%vec(1:n)
@@ -123,7 +131,7 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
     amp_co = sum(abs(closed_orb(0)%vec(1:n)))
     amp_del = sum(abs(del_co%vec(1:n)))
                                             
-    if (amp_del < amp_co*1.0e-5 + 1.0e-8) exit
+    if (amp_del < amp_co * bmad_com%rel_tollerance + bmad_com%abs_tollerance) exit
 
     closed_orb(0)%vec(1:n) = closed_orb(0)%vec(1:n) + del_co%vec(1:n)
             

@@ -1,23 +1,25 @@
 !+         
-! Subroutine one_turn_matrix (ring, t1)
+! Subroutine one_turn_matrix (ring, rf_on, t1)
 !
-! Subroutine to calculate the full 6X6 1 turn matrix
+! Subroutine to calculate the full 6X6 1 turn matrix from the individual
+! element tranfer matrices.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
 !   ring     -- Ring_struct: Ring
+!     %ele_(:)%mat6  -- Transfer matrices to use.
+!   rf_on    -- Logical: False is what is needed to be able to calculate the
+!                 Twiss parameters.
 !
 ! Output:
-!    t1(n,n) -- Real(rp): 1-turn matrix.
-!                   n = 4  -> Transverse matrix esentually with RF off.
-!                   n = 6  -> Full 6x6 matrix.
+!    t1(6,6) -- Real(rp): 1-turn matrix.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine one_turn_matrix (ring, t1)
+subroutine one_turn_matrix (ring, rf_on, t1)
 
   use bmad_struct
   use bmad_interface
@@ -26,28 +28,26 @@ subroutine one_turn_matrix (ring, t1)
 
   type (ring_struct)  ring
 
-  real(rp) t1(:,:)
+  real(rp), intent(out) :: t1(:,:)
+  real(rp) rf_mat(6,6)
+
+  logical, intent(in) :: rf_on
   integer i
 
 !
 
-  if (size(t1,1) == 4 .and. size(t1,2) == 4) then
-    t1 = ring%ele_(1)%mat6(1:4,1:4)
-    do i=2,ring%n_ele_ring
-      t1 = matmul (ring%ele_(i)%mat6(1:4,1:4), t1)
-    end do
+  call mat_make_unit (t1)
 
-  elseif (size(t1,1) == 6 .and. size(t1,2) == 6) then
-    t1 = ring%ele_(1)%mat6
-    do i=2,ring%n_ele_ring                
+  do i=1, ring%n_ele_ring
+    if (ring%ele_(i)%key == rfcavity$ .and. .not. rf_on) then
+      rf_mat = ring%ele_(i)%mat6
+      rf_mat(6,5) = 0  ! turn rf off
+      t1 = matmul (rf_mat, t1)
+    else
       t1 = matmul (ring%ele_(i)%mat6, t1)
-    end do
+    endif
+  end do
 
-  else
-    print *, 'ERROR IN ONE_TURN_MATRIX: MATRIX HAS THE WRONG SIZE:', &
-                                                    size(t1,1), size(t1,2) 
-    call err_exit
-  endif
 
 end subroutine
                                           

@@ -47,7 +47,6 @@ subroutine make_mat6_tracking (ele, param, c0, c1)
   call track1 (c0, ele, param, c1)
 
   del_orb = bmad_com%d_orb
-  where (bmad_com%d_orb == 0) del_orb = 1e-5
 
   if (bmad_com%mat6_track_symmetric) then
     do i = 1, 6
