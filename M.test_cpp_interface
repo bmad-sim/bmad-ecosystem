@@ -16,6 +16,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.2  2004/12/08 16:29:39  dcs
+# Revised by Mark Palmer.
+#
 # Revision 1.1  2004/11/04 16:19:30  dcs
 # Test job for bmad to C++ interface.
 #
@@ -184,8 +187,8 @@ LOCAL_LFLAGS   := -pg
 #                           packages)
 #        5) CERN_LIB area  (CERN libraries)
 #--------------------------------------------------------------
-LOCAL_LIBS := bmad
-CESR_LIBS  := dcslib recipes_f-90_LEPP cesr_utils 
+LOCAL_LIBS := 
+CESR_LIBS  := bmad dcslib recipes_f-90_LEPP cesr_utils 
 PKG_LIBS   := forest
 CERN_LIBS  :=
 SYS_LIBS   := 
