@@ -339,6 +339,10 @@ subroutine get_attribute (how, ele, ring, pring, &
     if (ele%y%beta /= 0) ele%y%gamma = (1 + ele%y%alpha**2) / ele%y%beta
     ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + &
                                               ele%c_mat(1,2)*ele%c_mat(2,1))
+    ele%x%eta_lab  = ele%x%eta
+    ele%x%etap_lab = ele%x%etap
+    ele%y%eta_lab  = ele%y%eta
+    ele%y%etap_lab = ele%y%etap
     return
   endif
 
