@@ -1,6 +1,6 @@
 !+
 ! Subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, 
-!                                             twiss_out, type_control, ring)
+!                                             twiss_out, type_control, lattice)
 !
 ! Subroutine to type out information on an element. 
 ! See also the subroutine type2_ele.
@@ -26,14 +26,14 @@
 !                       = degrees$  => Type Twiss, phi in degrees.
 !                       = cycles$   => Type Twiss, phi in radians/2pi.
 !   type_control   -- Logical, optional: If true then type control status.
-!   ring           -- Ring_struct, optional: Needed for control typeout.
-!
+!                       Default is False if lattice is not present. Otherwise True.
+!   lattice           -- Ring_struct, optional: Needed for control typeout.
 !-
 
 #include "CESR_platform.inc"
 
 subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor,  &
-                                         twiss_out, type_control, ring)
+                                         twiss_out, type_control, lattice)
 
   use bmad_struct
   use bmad_interface, except => type_ele
@@ -41,7 +41,7 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor,  &
   implicit none
 
   type (ele_struct)  ele
-  type (ring_struct), optional :: ring
+  type (ring_struct), optional :: lattice
 
   integer n_lines, i
   integer, optional :: type_mat6, twiss_out
@@ -55,7 +55,7 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor,  &
   nullify (lines)
 
   call type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
-                                  type_taylor, twiss_out, type_control, ring)
+                                  type_taylor, twiss_out, type_control, lattice)
 
   do i = 1, n_lines
     print '(1x, a)', trim(lines(i))

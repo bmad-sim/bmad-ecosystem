@@ -2294,7 +2294,7 @@ subroutine add_this_multipass (ring, ixm)
   call new_control (ring, ix_lord)
   lord => ring%ele_(ix_lord)
 
-  lord = ring%ele_(ixm(1))  ! Set equal to first slave.
+  lord = ring%ele_(ixm(1))  ! Set attributes equal to first slave.
   lord%control_type = multipass_lord$
   lord%n_slave = n_multipass
   call adjust_control_struct (ring, ix_lord)
@@ -2315,7 +2315,7 @@ subroutine add_this_multipass (ring, ixm)
     slave%n_lord = 1
     write (slave%name, '(2a, i1)') trim(slave%name), '\', i   ! '
     call adjust_control_struct (ring, ix_slave)
-    slave%control_type = multipass_slave$
+    if (slave%control_type /= super_lord$) slave%control_type = multipass_slave$
     ixic = slave%ic1_lord
     ring%ic_(ixic) = ixc
   enddo
@@ -2367,74 +2367,21 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine compute_super_lord_s (ele, ring, pring)
-
-  implicit none
-
-  type (ring_struct)   ring
-  type (ele_struct)    ele
-  type (parser_ring_struct) pring
-
-  integer ic, k
-  logical found
-
-! compute position of super_lord element
-! simple case
-
-  ic = ele%ixx
-
-  if (ring%n_ele_max < ring%n_ele_use) then
-    call warning ('N_ELE_MAX LESS THAN n_ele_use!')
-    call err_exit
-  endif
-
-  if (pring%ele(ic)%ref_name == blank) then
-    call compute2_super_lord_s (ring, 0, ele, pring%ele(ic))
-    return
-  endif
-
-! search
-
-  found = .false.
-
-  do k = 1, ring%n_ele_max
-    if (pring%ele(ic)%ref_name == ring%ele_(k)%name) then
-      if (found) then
-        call warning ('MULTIPLE NAME MATCHES FOR' //  &
-                  ' REFERENCE OF SUPERIMPOSE: ' // ele%name)
-        return
-      else
-        call compute2_super_lord_s (ring, k, ele, pring%ele(ic))
-        found = .true.
-      endif
-    endif
-  enddo
-
-  if (.not. found) call warning ('UNKNOWN REFERENCE ELEMENT: ' //  &
-        pring%ele(ic)%ref_name, 'FOR SUPERIMPOSE ELEMENT: ' // ele%name)
-
-end subroutine
-                                    
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! This subroutine is used by bmad_parser and bmad_parser2.
-! This subroutine is not intended for general use.
-!-
-
 subroutine add_all_superimpose (ring, ele_in, pele)
 
   implicit none
 
-  type (ring_struct)  ring
-  type (ele_struct)  ele, ele_in, ele2, this_ele
+  type (ring_struct), target :: ring
+  type (ele_struct)  ele, ele_in, ele2
+  type (ele_struct), pointer :: this_ele
   type (parser_ele_struct) pele
 
   integer ix, i, j, it, nic, nn, i_sup, i_ele, ic
   integer n_inserted, n_con
+  integer, allocatable :: ixs(:)
 
-  character(16) matched_name(200)
+  character(16) matched_name(200), num, name
+  character(16), allocatable :: multi_name(:)
 
   logical match_wild, have_inserted
 
@@ -2448,7 +2395,7 @@ subroutine add_all_superimpose (ring, ele_in, pele)
 ! If no refrence point then superposition is simple
 
   if (pele%ref_name == blank) then
-    call compute2_super_lord_s (ring, 0, ele2, pele)
+    call compute_super_lord_s (ring, 0, ele2, pele)
     call add_superimpose (ring, ele2, i_sup)
     return
   endif
@@ -2464,7 +2411,7 @@ subroutine add_all_superimpose (ring, ele_in, pele)
 
       if (ring%ele_(i_ele)%control_type /= free$)  &
                                    call control_bookkeeper (ring, i_ele)
-      this_ele = ring%ele_(i_ele)
+      this_ele => ring%ele_(i_ele)
       ic = this_ele%control_type
        
       if (ic == group_lord$ .or. ic == super_slave$) cycle
@@ -2477,15 +2424,51 @@ subroutine add_all_superimpose (ring, ele_in, pele)
           if (this_ele%name == matched_name(i)) cycle ele_loop
         enddo
        
-        ring%ele_(i_ele)%internal_logic = .true.
-        call compute2_super_lord_s (ring, i_ele, ele2, pele)
-        call string_trim(ele%name, ele%name, ix)
-        ele2%name = ele%name(:ix)            
-        call add_superimpose (ring, ele2, i_sup)
+        this_ele%internal_logic = .true.
 
-        do i = i_ele, ring%n_ele_use
-          ring%ele_(i)%s = ring%ele_(i-1)%s + ring%ele_(i)%value(l$)
-        enddo
+        ! If superimposing on a multipass_lord then the superposition
+        ! must be done at all multipass locations
+
+        if (this_ele%control_type == multipass_lord$) then
+          allocate (ixs(this_ele%n_slave), multi_name(this_ele%n_slave))
+          ixs = ring%control_(this_ele%ix1_slave:this_ele%ix2_slave)%ix_slave
+          call string_trim(ele%name, ele%name, ix)
+          ele2%name = ele%name(:ix)
+
+          ! Put in the superposition at the multipass locations.
+          ! Since elements get shuffled around:
+          !  a) Loop over ixs in reverse order.
+          !  b) Tag the superimposed elements with a dummy name
+          !     to identify them later.
+
+          do i = size(ixs), 1, -1  ! reverse order in decreasing s
+            call compute_super_lord_s (ring, ixs(i), ele2, pele)
+            call add_superimpose (ring, ele2, i_sup)
+            ring%ele_(i_sup)%name = 'dummy name'
+          enddo
+          ! add a multipass_lord to control everything
+          j = 0
+          do i = 1, ring%n_ele_max
+            if (ring%ele_(i)%name == 'dummy name') then
+              ring%ele_(i)%name = ele%name
+              j = j + 1
+              ixs(j) = i
+            endif
+          enddo
+          call add_this_multipass (ring, ixs)    
+          deallocate (ixs, multi_name)
+          ele2%name = ele%name
+
+        ! not superimposing on a multipass_lord 
+
+        else
+          call compute_super_lord_s (ring, i_ele, ele2, pele)
+          call string_trim(ele%name, ele%name, ix)
+          ele2%name = ele%name(:ix)            
+          call add_superimpose (ring, ele2, i_sup)
+        endif
+
+        call s_calc (ring)
 
         n_inserted = n_inserted + 1
         matched_name(n_inserted) = ele2%name
@@ -2579,7 +2562,7 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine compute2_super_lord_s (ring, i_ref, ele, pele)
+subroutine compute_super_lord_s (ring, i_ref, ele, pele)
 
   implicit none
 
@@ -2600,7 +2583,7 @@ subroutine compute2_super_lord_s (ring, i_ref, ele, pele)
   elseif (pele%ele_pt == center$) then
     ele%s = ele%s + ele%value(l$) / 2
   elseif (pele%ele_pt /= end$) then
-    print *, 'ERROR IN COMPUTE2_SUPER_LORD_S: CONTROL #1 INTERNAL ERROR!'
+    print *, 'ERROR IN COMPUTE_SUPER_LORD_S: CONTROL #1 INTERNAL ERROR!'
     call err_exit
   endif
 

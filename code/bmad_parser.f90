@@ -611,8 +611,8 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
       s_ele => sequence_(k)%ele(i)
       name = s_ele%name
 
-      ix = index(name, '\')   ! ' 
-      if (ix /= 0) name = name(:ix-1) ! strip off everything after \
+!      ix = index(name, '\')   ! ' 
+!      if (ix /= 0) name = name(:ix-1) ! strip off everything after \
   
       if (s_ele%ix_arg > 0) then   ! dummy arg
         s_ele%type = element$

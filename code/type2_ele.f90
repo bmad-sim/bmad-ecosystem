@@ -1,6 +1,6 @@
 !+
 ! Subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, 
-!                               type_mat6, type_taylor, twiss_out, type_control, ring)
+!                    type_mat6, type_taylor, twiss_out, type_control, lattice)
 !
 ! Subroutine to put information on an element in a string array. 
 ! See also the subroutine: type_ele.
@@ -26,8 +26,8 @@
 !                       = degrees$  => Type Twiss, phi in degrees.
 !                       = cycles$   => Type Twiss, phi in radians/2pi.
 !   type_control   -- Logical, optional: If true then type control status.
-!                       Default is False.
-!   ring           -- Ring_struct, optional: Needed for control typeout.
+!                       Default is False if lattice is not present. Otherwise True.
+!   lattice           -- Ring_struct, optional: Needed for control typeout.
 !              
 ! Output       
 !   lines(:)     -- Character(80), pointer: Character array to hold the 
@@ -40,7 +40,7 @@
 #include "CESR_platform.inc"
 
 subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
-                        type_mat6, type_taylor, twiss_out, type_control, ring)
+                        type_mat6, type_taylor, twiss_out, type_control, lattice)
 
   use bmad_struct
   use bmad_interface, except => type2_ele
@@ -49,7 +49,7 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
   implicit none
 
   type (ele_struct), target, intent(in) :: ele
-  type (ring_struct), optional, intent(in) :: ring
+  type (ring_struct), optional, intent(in) :: lattice
   type (wig_term_struct), pointer :: term
 
   integer, optional, intent(in) :: type_mat6, twiss_out
@@ -161,7 +161,7 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
 
       if (associated(ele%a)) then
         particle = +1
-        if (present(ring)) particle = ring%param%particle
+        if (present(lattice)) particle = lattice%param%particle
 
         if (ele%key == multipole$) then
           call multipole_ele_to_kt (ele, particle, a,  b,  .false.)
@@ -289,9 +289,9 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
 ! For slaves who are overlay_lords then the attribute_name is obtained by
 !   looking at the overlay_lord's 1st slave (slave of slave of the input ele).
 
-  if (logic_option(.false., type_control)) then
+  if (logic_option(present(lattice), type_control)) then
 
-    if (.not. present (ring)) then
+    if (.not. present (lattice)) then
       print *, 'ERROR IN TYPE2_ELE: TYPE_CONTROL IS TRUE BUT NO LATTICE PRESENT.'
       call err_exit
     endif
@@ -312,24 +312,27 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
           '    Name             Lat_index  Attribute       Coefficient'
         nl = nl + 2
         do i = ele%ix1_slave, ele%ix2_slave
-          j = ring%control_(i)%ix_slave
-          iv = ring%control_(i)%ix_attrib
-          coef = ring%control_(i)%coef
-          if (ct == super_lord$ .or. ct == i_beam_lord$) then
+          j = lattice%control_(i)%ix_slave
+          iv = lattice%control_(i)%ix_attrib
+          coef = lattice%control_(i)%coef
+          select case (ct)
+          case (super_lord$, i_beam_lord$, multipass_lord$) 
             a_name = '--------'
-          elseif (ring%ele_(j)%control_type == overlay_lord$) then
-            if (iv == ring%ele_(j)%ix_value) then
-              ix = ring%control_(ring%ele_(j)%ix1_slave)%ix_slave
-              a_name = attribute_name(ring%ele_(ix), iv)
+          case default
+            if (lattice%ele_(j)%control_type == overlay_lord$) then
+              if (iv == lattice%ele_(j)%ix_value) then
+                ix = lattice%control_(lattice%ele_(j)%ix1_slave)%ix_slave
+                a_name = attribute_name(lattice%ele_(ix), iv)
+              else
+                a_name = '** BAD POINTER! **'
+              endif            
             else
-              a_name = '** BAD POINTER! **'
-            endif            
-          else
-            a_name = attribute_name(ring%ele_(j), iv)
-          endif
+              a_name = attribute_name(lattice%ele_(j), iv)
+            endif
+          end select
           nl = nl + 1
           write (li(nl), '(5x, a, i10, 2x, a16, 1p, e11.3, 1p, e12.3)') &
-                                ring%ele_(j)%name, j, a_name, coef
+                                lattice%ele_(j)%name, j, a_name, coef
         enddo
       endif
 
@@ -339,27 +342,27 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
   '    Name             Lat_index  Attribute       Coefficient       Value'
         nl = nl + 2
         do i = ele%ic1_lord, ele%ic2_lord
-          ic = ring%ic_(i)
-          j = ring%control_(ic)%ix_lord
-          coef = ring%control_(ic)%coef
+          ic = lattice%ic_(i)
+          j = lattice%control_(ic)%ix_lord
+          coef = lattice%control_(ic)%coef
           ct = ele%control_type
-          if (ct == super_slave$ .or. &
-                            ring%ele_(j)%control_type == i_beam_lord$) then
+          if (ct == super_slave$ .or. ct == multipass_lord$ .or. &
+                            lattice%ele_(j)%control_type == i_beam_lord$) then
             a_name = '--------'
             val_str = '    --------'
           else
-            iv = ring%control_(ic)%ix_attrib
+            iv = lattice%control_(ic)%ix_attrib
             a_name = attribute_name(ele, iv)
-            ix = ring%ele_(j)%ix_value
+            ix = lattice%ele_(j)%ix_value
             if (ix == 0) then
               val_str = '  GARBAGE!'
             else
-              write (val_str, '(1p, e12.3)') ring%ele_(j)%value(ix)
+              write (val_str, '(1p, e12.3)') lattice%ele_(j)%value(ix)
             endif
           endif
           nl = nl + 1  
           write (li(nl), '(5x, a, i10, 2x, a16, 1p, e11.3, a12)') &
-                             ring%ele_(j)%name, j, a_name, coef, val_str
+                             lattice%ele_(j)%name, j, a_name, coef, val_str
         enddo
       endif
 

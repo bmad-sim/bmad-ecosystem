@@ -66,6 +66,7 @@ subroutine compute_element_energy (lattice)
 ! Put energy in the lord elements. 
 
   do i = lattice%n_ele_use+1, lattice%n_ele_max
+
     ele => lattice%ele_(i)
     do
       ix = ele%ix2_slave
@@ -75,6 +76,14 @@ subroutine compute_element_energy (lattice)
     enddo
     lattice%ele_(i)%value(p0c$) = ele%value(p0c$)
     lattice%ele_(i)%value(beam_energy$) = ele%value(beam_energy$)
+
+    ele => lattice%ele_(i)
+    if (ele%key == lcavity$ .or. ele%key == custom$) then
+      ix = ele%ix1_slave
+      j = lattice%control_(ix)%ix_slave
+      ele%value(energy_start$) = lattice%ele_(j)%value(energy_start$)
+    endif
+
   enddo
 
 end subroutine

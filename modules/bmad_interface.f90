@@ -1057,11 +1057,11 @@ end interface
 
 interface
   subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
-                                    twiss_type, type_control, ring)
+                                    twiss_type, type_control, lattice)
     use bmad_struct, only: ring_struct, ele_struct
     implicit none
     type (ele_struct) ele
-    type (ring_struct), optional :: ring
+    type (ring_struct), optional :: lattice
     logical, optional :: type_zero_attrib
     integer, optional :: type_mat6
     integer, optional :: twiss_type
@@ -1080,11 +1080,11 @@ end interface
  
 interface
   subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
-                      type_mat6, type_taylor, twiss_type, type_control, ring)
+                      type_mat6, type_taylor, twiss_type, type_control, lattice)
     use bmad_struct, only: ring_struct, ele_struct
     implicit none
     type (ele_struct), target, intent(in) :: ele
-    type (ring_struct), optional, intent(in) :: ring
+    type (ring_struct), optional, intent(in) :: lattice
     integer, optional, intent(in) :: type_mat6
     integer, intent(out) :: n_lines
     integer, optional, intent(in) :: twiss_type

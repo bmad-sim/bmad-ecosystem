@@ -221,11 +221,13 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(hkicker$, tilt$)       = 'TILT'
     attrib_array(hkicker$, kick$)       = 'KICK'
     attrib_array(hkicker$, field_calc$) = 'FIELD_CALC'
+    attrib_array(hkicker$, b_field$)    = 'B_FIELD'
 
     attrib_array(vkicker$, l$)          = 'L'
     attrib_array(vkicker$, tilt$)       = 'TILT'
     attrib_array(vkicker$, kick$)       = 'KICK'
     attrib_array(vkicker$, field_calc$) = 'FIELD_CALC'
+    attrib_array(vkicker$, b_field$)    = 'B_FIELD'
 
     attrib_array(kicker$, l$)           = 'L'
     attrib_array(kicker$, hkick$)       = 'HKICK'
