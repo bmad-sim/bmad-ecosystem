@@ -1,37 +1,21 @@
 !+
-! Subroutine SET_SYMMETRY (SYMMETRY, RING)
+! Subroutine set_symmetry (symmetry, ring)
 !
 ! Subroutine to set the symmetry of a ring.
+! This is not used much now.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!     SYMMETRY  -- Integer: symmetry to set to
+!   symmetry -- Integer: symmetry to set to.
 !
 ! Output:
-!     RING      -- Ring_struct: RING.PARAM.SYMMETRY and RING.N_ELE_USE get
+!   ring     -- Ring_struct: ring%param%symmetry and ring%n_ele_use get
 !                  set accordingly
 !-
 
-!$Id$
-!$Log$
-!Revision 1.5  2003/05/02 15:44:02  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.4  2003/01/27 14:40:43  dcs
-!bmad_version = 56
-!
-!Revision 1.3  2002/02/23 20:32:24  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:57  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
-
 
 subroutine set_symmetry (symmetry, ring)
 
