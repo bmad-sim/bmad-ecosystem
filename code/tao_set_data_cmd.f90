@@ -1,12 +1,12 @@
 !+
-! Subroutine tao_set_data_cmd (s, do_all_universes, class, component, set_value, list)
+! Subroutine tao_set_data_cmd (s, do_all_universes, name, component, set_value, list)
 !
 ! Routine to set data values.
 !
 ! Input:
 !   s                -- Tao_super_universe_struct
 !   do_all_universes -- Logical: Apply set to all universes?
-!   class            -- Character(*): Which data class to set.
+!   name            -- Character(*): Which data name to set.
 !   component        -- Character(*): Which component to set.
 !   set_value        -- Character(*): What value to set it to.
 !   list             -- Character(*): If not blank then gives which indexes to apply to.
@@ -15,7 +15,7 @@
 !   s        -- tao_super_universe_struct
 !-
 
-subroutine tao_set_data_cmd (s, class, component, set_value, list)
+subroutine tao_set_data_cmd (s, name, component, set_value, list)
 
 use tao_mod
 use quick_plot
@@ -26,7 +26,7 @@ type (tao_super_universe_struct) s
 
 integer i
 
-character(*) class, component, set_value, list
+character(*) name, component, set_value, list
 character(20) :: r_name = 'tao_set_data_cmd'
 
 logical err
@@ -52,10 +52,10 @@ integer j
 
 ! Find the data to set
 
-if (class == 'all') then
+if (name == 'all') then
   call set_this_data (u%data, .false.)
 else
-  call tao_find_data(err, u, class, d2_ptr, d1_ptr)  
+  call tao_find_data(err, u, name, d2_ptr, d1_ptr)  
   if (err) return
   if (associated(d1_ptr)) then
     call set_this_data (d1_ptr%d, .true.)

@@ -1,18 +1,18 @@
 !+
-! subroutine tao_use_var (s, action, var_class, locations)
+! subroutine tao_use_var (s, action, var_name, locations)
 !
 ! Veto, restore or use specified datums. range syntax: 1:34 46 58:78
 !
 ! Input:
-!   s		  -- tao_super_universe_struct
-!   var_class     -- charatcer(*): the selected variable class
-!   locations     -- character(*): the index location expression
+!   s		      -- tao_super_universe_struct
+!   var_name  -- charatcer(*): the selected variable name
+!   locations -- character(*): the index location expression
 !
 ! Output:
 !   s		  -- tao_super_universe_struct
 !-
 
-subroutine tao_use_var (s, action, var_class, locations)
+subroutine tao_use_var (s, action, var_name, locations)
 
 use tao_mod
 
@@ -20,7 +20,7 @@ implicit none
 
 type (tao_super_universe_struct) :: s
 character(*)                     :: action
-character(*)                     :: var_class
+character(*)                     :: var_name
 character(*)                     :: locations
 
 type (tao_v1_var_struct), pointer :: v1_ptr
@@ -36,11 +36,11 @@ character(200) line
 logical do_all_universes
 logical err
 
-! find data class and sub_class
+! find data name and sub_name
 
 call match_word (action, name$%use_veto_restore, which)
 
-call tao_find_var (s, err, var_class, v1_ptr)
+call tao_find_var (s, err, var_name, v1_ptr)
 if (err) return
 
 ! find locations

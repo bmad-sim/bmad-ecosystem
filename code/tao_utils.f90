@@ -231,7 +231,7 @@ nu = size(s%u)
 do i = 1, nu
   do j = 1, size(s%u(i)%data)
     if (.not. s%u(i)%data(j)%useit_opt) cycle
-    name = trim(s%u(i)%data(j)%d1%d2%class) // ':' // s%u(i)%data(j)%d1%sub_class
+    name = s%u(i)%data(j)%class
     if (nu > 1) write (name, '(2a, i1)') trim(name), '/', j
     call tao_to_top10 (top_merit, s%u(i)%data(j)%merit, name, &
                                                 s%u(i)%data(j)%ix_d1, 'max')
@@ -241,7 +241,7 @@ enddo
 
 do j = 1, size(s%var)
   if (.not. s%var(j)%useit_opt) cycle
-  name = s%var(j)%v1%class
+  name = s%var(j)%v1%name
   call tao_to_top10 (top_merit, s%var(j)%merit, name, s%var(j)%ix_v1, 'max')
   call tao_to_top10 (top_dmerit, s%var(j)%dmerit_dvar, name, &
                                                       s%var(j)%ix_v1, 'max')
@@ -576,14 +576,14 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_find_data (err, u, data_class, d2_ptr, d1_ptr, &
+! Subroutine tao_find_data (err, u, data_name, d2_ptr, d1_ptr, &
 !                                                     		data_number, d_ptr)
 !
 ! Routine to set data pointers to the correct data.
 !
 ! Input:
 !   u		          -- tao_universe_struct
-!   data_class    -- character(*): the data class type. Eg: "orbit:x"
+!   data_name    -- character(*): the data name type. Eg: "orbit:x"
 !   data_number   -- character(*), optional: the data point index.
 !                     If data_number = 'null' then d_ptr will be nullified.
 !
@@ -594,7 +594,7 @@ end subroutine
 !   d_ptr   -- tao_data_struct, optional: pointer to the data point
 !-
 
-subroutine tao_find_data (err, u, data_class, d2_ptr, d1_ptr, &
+subroutine tao_find_data (err, u, data_name, d2_ptr, d1_ptr, &
                                                      			data_number, d_ptr)
 
 implicit none
@@ -606,10 +606,10 @@ type (tao_data_struct), pointer, optional    :: d_ptr
 type (tao_d2_data_struct), pointer :: d2_pointer
 type (tao_d1_data_struct), pointer :: d1_pointer
 
-character(*)                                :: data_class
+character(*)                                :: data_name
 character(*), optional                      :: data_number
 character(20) :: r_name = 'TAO_FIND_DATA'
-character(16) name, class, sub_class
+character(16) name, d2_name, d1_name
 
 integer :: data_num, ios
 integer i, ix, ix_plane
@@ -624,72 +624,78 @@ if (present(d2_ptr)) nullify(d2_ptr)
 if (present(d1_ptr)) nullify(d1_ptr)
 if (present(d_ptr)) nullify(d_ptr)
 
-ix = index(data_class, ':')
+ix = index(data_name, ':')
 if (ix == 0) then
-  class = data_class
-  sub_class = ' '
+  name = data_name
+  d1_name = ' '
 else
-  class = data_class(1:ix-1)
-  sub_class = data_class(ix+1:)
+  name = data_name(1:ix-1)
+  d1_name = data_name(ix+1:)
 endif
 
 ! Point to the correct d2 data type 
 
-  call string_trim (class, name, ix) ! Strip off all whitespace
+call string_trim (name, name, ix) ! Strip off all whitespace
 
-  do i = 1, size(u%d2_data)
-    if (name == u%d2_data(i)%class) then
-      d2_pointer => u%d2_data(i) 
-      if (present(d2_ptr)) d2_ptr => d2_pointer
-      exit
-    endif
-    if (i == size(u%d2_data)) then
-      call out_io (s_error$, r_name, "Couldn't find data class")
-      err = .true.
-      return
-    endif
-  enddo
+do i = 1, size(u%d2_data)
+  if (name == u%d2_data(i)%name) then
+    d2_pointer => u%d2_data(i) 
+    if (present(d2_ptr)) d2_ptr => d2_pointer
+    exit
+  endif
+  if (i == size(u%d2_data)) then
+    call out_io (s_error$, r_name, "Couldn't find data name")
+    err = .true.
+    return
+  endif
+enddo
 
-  if (sub_class == ' ') return
+! If d1_name == ' ' nothing more to be done.
+! Except if there is only 1 d2_pointer%d1 then point to that.
+
+if (d1_name == ' ') then
+  if (size(d2_pointer%d1) == 1 .and. present(d1_ptr)) d1_ptr => d2_pointer%d1(1) 
+  return
+endif
 
 ! strip off all whitespace
 
-  call string_trim (sub_class, name, ix)
+call string_trim (d1_name, name, ix)
   
 ! point to the correct d1 data type
 
-  do i = 1, size(d2_pointer%d1)
-    if (sub_class == d2_pointer%d1(i)%sub_class) then
-      d1_pointer => d2_pointer%d1(i)
-      if (present(d1_ptr)) d1_ptr => d1_pointer
-      exit
-    endif
-    if (i .eq. size(d2_pointer%d1)) then
-      call out_io (s_error$, r_name, &
-                      "COULDN'T FIND DATA SUB_CLASS: " // sub_class)
-      err = .true.
-      return	
-    endif
-  enddo
+do i = 1, size(d2_pointer%d1)
+  if (d1_name == d2_pointer%d1(i)%name) then
+    d1_pointer => d2_pointer%d1(i)
+    if (present(d1_ptr)) d1_ptr => d1_pointer
+    exit
+  endif
+  if (i .eq. size(d2_pointer%d1)) then
+    call out_io (s_error$, r_name, &
+                     "COULDN'T FIND DATA D1_NAME: " // d1_name)
+    err = .true.
+    return	
+  endif
+enddo
 
 ! point to data point
 
-  if (.not. present(data_number)) return
-  if (data_number == 'null') return
+if (.not. present(data_number)) return
+if (data_number == 'null') return
 
-  read (data_number, '(i)', iostat = ios) data_num
-  if (ios /= 0) then
-    call out_io (s_error$, r_name, "BAD DATA_NUMBER: " // data_number)
-    err = .true.
-    return	
-  endif
-  if (data_num < lbound(d1_ptr%d, 1) .or. data_num > ubound(d1_ptr%d, 1)) then
-    call out_io (s_error$, r_name, "DATA_NUMBER OUT OF RANGE: " // data_number)
-    err = .true.
-    return	
-  endif
+read (data_number, '(i)', iostat = ios) data_num
+if (ios /= 0) then
+  call out_io (s_error$, r_name, "BAD DATA_NUMBER: " // data_number)
+  err = .true.
+  return	
+endif
+if (data_num < lbound(d1_ptr%d, 1) .or. data_num > ubound(d1_ptr%d, 1)) then
+  call out_io (s_error$, r_name, "DATA_NUMBER OUT OF RANGE: " // data_number)
+  err = .true.
+  return	
+endif
 
-  if (present(d_ptr)) d_ptr => d1_pointer%d(data_num)
+if (present(d_ptr)) d_ptr => d1_pointer%d(data_num)
 
 end subroutine tao_find_data
 
@@ -697,13 +703,13 @@ end subroutine tao_find_data
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine: tao_find_var
+! Subroutine: tao_find_var (s, err, var_name, v1_ptr, var_number, v_ptr)
 !
 ! find a v1 variable type, and variable data then point to it
 !
 !Input:
 ! u		-- tao_universe_struct
-! var_class     -- character(*): the variable class type
+! var_name     -- character(*): the v1_var name
 ! var_number    -- integer: (optional) the variable data point.
 !                     If var_number = 'null' then d_ptr will be nullified.
 !
@@ -713,7 +719,7 @@ end subroutine tao_find_data
 ! v_ptr:        -- tao_var_struct: (optional) pointer to the variable data point
 !-
 
-subroutine tao_find_var (s, err, var_class, v1_ptr, var_number, v_ptr)
+subroutine tao_find_var (s, err, var_name, v1_ptr, var_number, v_ptr)
 
 implicit none
 
@@ -723,10 +729,10 @@ type (tao_v1_var_struct), pointer, optional  :: v1_ptr
 type (tao_v1_var_struct), pointer :: v1
 type (tao_var_struct), pointer, optional     :: v_ptr
 
-character(*)                                 :: var_class
+character(*)                                 :: var_name
 character(*), optional                       :: var_number
 character(20) :: r_name = 'tao_find_var'
-character(32) v_class
+character(32) v_name
 
 integer i, ix, n_var, ios
 
@@ -737,24 +743,24 @@ err = .false.
 if (present(v1_ptr)) nullify (v1_ptr)
 if (present(v_ptr)) nullify (v_ptr)
 
-call string_trim(var_class, v_class, ix)
+call string_trim(var_name, v_name, ix)
 if (ix == 0) then
   err = .true.
-  call out_io (s_error$, r_name, 'VARIABLE CLASS NAME IS BLANK')
+  call out_io (s_error$, r_name, 'VARIABLE NAME NAME IS BLANK')
   return
 endif
 
 ! Point to the correct v1 data type 
 
   do i = 1, size(s%v1_var)
-    if (v_class == s%v1_var(i)%class) then
+    if (v_name == s%v1_var(i)%name) then
       v1 => s%v1_var(i) 
       if (present(v1_ptr)) v1_ptr => s%v1_var(i) 
       exit
     endif
     if (i .eq. size(s%v1_var)) then
       call out_io (s_error$, r_name, &
-                        "COULD NOT FIND VARIABLE CLASS: " // v_class)
+                        "COULD NOT FIND VARIABLE NAME: " // v_name)
       err = .true.
       return
     endif

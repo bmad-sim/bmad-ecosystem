@@ -1,6 +1,7 @@
 module tao_cmd_history_mod
 
 use output_mod
+use tao_common
 
 type cmd_history_struct  ! record the command history
   character(100) cmd     ! the command
@@ -132,7 +133,6 @@ if (index('-+0123456789', string(1:1)) /= 0) then  ! number
   endif
 
   if (ix < 1) ix = ix + size(history)
-  call out_io (s_blank$, r_name, history(ix)%cmd)
 
 !
 
@@ -141,10 +141,7 @@ else
   ix = ix_history
   do
 
-    if (index(history(ix)%cmd, trim(string)) == 1) then
-      call out_io (s_blank$, r_name, history(ix)%cmd)
-      exit
-    endif
+    if (index(history(ix)%cmd, trim(string)) == 1) exit
 
     ix = ix - 1
     if (ix < 1) ix = ix + size(history)
@@ -158,7 +155,10 @@ else
 
 endif
 
-!
+! put the command in the common area so it can be used next.
+
+tao_com%cmd = history(ix)%cmd
+tao_com%use_cmd_here = .true.
 
 err = .false.
 

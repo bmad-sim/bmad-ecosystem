@@ -68,7 +68,7 @@ end type
 
 type tao_curve_struct
   character(16) :: data_source             ! "lat_layout", "data_array"
-  character(16) :: data_class = ' '        ! "orbit:x", etc.
+  character(16) :: data_name = ' '         ! "orbit:x", etc.
   real(rp), pointer :: x_line(:) => null() ! coords for drawing a curve
   real(rp), pointer :: y_line(:) => null()
   real(rp), pointer :: x_symb(:) => null() ! coords for drawing the symbols
@@ -171,16 +171,16 @@ end type
 !                  = %exists & %good_dat & %good_user & %good_opt & %good_ref (otherwise)
 
 type tao_data_struct
-  character(32) name        ! Datum name. Eg: "X Orbit @ Det 10"
-  character(16) alias       ! Short Alternative name.
+  character(16) name        ! Datum name. Eg: "X Orbit @ Det 10"
   character(16) ele_name    ! Name of the element in the Lattice corresponding to the datum.
   character(16) ele_name2   ! Name lattice element when there is a range 
+  character(16) :: class = ' ' ! Used with constraint data
+  character(16) merit_type  ! 'target', 'max', 'min'
   integer ix_ele            ! Index of the element in the lattice element array.
   integer ix_ele2           ! Index of lattice elment when there is a range.
   integer ix_d1             ! Index number of this datum.
   integer ix_data           ! Index of this datum in the u%data(:) array of data_structs.
   integer ix_dModel         ! Row number in the dModel_dVar derivative matrix.
-  character(16) constraint_type  ! 'TARGET', 'MIN', 'MAX', etc.
   real(rp) data_value       ! Measured datum value. 
   real(rp) ref_value        ! Measured datum value from the reference data set.
   real(rp) model_value      ! Datum value as calculated from the model.
@@ -192,7 +192,6 @@ type tao_data_struct
   real(rp) weight           ! Weight for the merit function term
   real(rp) merit            ! Merit function term value: weight * delta^2
   real(rp) conversion_factor ! Typically used to convert coupling to cbar
-  character(16) merit_type  ! 'target', 'max', 'min'
   logical exists            ! See above
   logical good_data         ! See above
   logical good_ref          ! See above
@@ -209,7 +208,7 @@ end type tao_data_struct
 !   the u%data array. 
 
 type tao_d1_data_struct
-  character(16) sub_class    ! Eg: "X", etc.
+  character(16) name        ! Eg: "X", etc.
   integer ix_data           ! index of the 0th element in u%data.
   type (tao_d1_data_hook) hook  ! Custom stuff. Defined in tao_hook.f90
   type (tao_d2_data_struct), pointer :: d2 => null() ! ptr to parent d2_data
@@ -225,7 +224,7 @@ end type
 !                  touching the other logicals.
 
 type tao_d2_data_struct
-  character(16) :: class = ' '    ! Eg: "orbit".
+  character(16) name              ! Name to be used with commands.
   character(200) data_file_name   ! Data file name .
   character(200) ref_file_name    ! Reference file name.
   character(20) data_date         ! Data measurement date.
@@ -302,7 +301,7 @@ end type tao_var_struct
 ! %good_opt   -- Convenient way to veto all variables of a class.
 
 type tao_v1_var_struct
-  character(16) :: class = ' ' ! Eg: "quad_k1"
+  character(16) :: name = ' '  ! Eg: "quad_k1"
   integer ix_var0              ! Index of the 0th element in u%var
   type (tao_v1_var_hook) hook  ! Custom stuff. Defined in tao_hook.f90
   type (tao_var_struct), pointer :: v(:) => null() 

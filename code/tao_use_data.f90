@@ -1,23 +1,23 @@
 !+
-! subroutine tao_use_data (s, do_all_universes, action, data_class, locations)
+! subroutine tao_use_data (s, do_all_universes, action, data_name, locations)
 !
 ! Veto, restore or use specified datums. range syntax is just like
 !    indexing in fortran: 1:34, 46, 58:78
 !
 ! Input:
-!   s		  -- tao_super_universe_struct
+!   s		             -- tao_super_universe_struct
 !   do_all_universes -- Logical: Apply to all universes?
 !                         if not just use s%u(s%global%u_view)
 !   action	         -- character(*): veto, use or restore
-!   data_class       -- charatcer(*): the selected data class
-!   data_sub_class    -- character(*): the selected data sub_class
+!   data_name        -- charatcer(*): the selected data name
+!   data_name        -- character(*): the selected data name
 !   locations        -- character(*): the index location expression
 !
 ! Output:
 !   s		  -- tao_super_universe_struct
 !-
 
-subroutine tao_use_data (s, do_all_universes, action, data_class, locations)
+subroutine tao_use_data (s, do_all_universes, action, data_name, locations)
 
 use tao_mod
 
@@ -25,7 +25,7 @@ implicit none
 
 type (tao_super_universe_struct) :: s
 character(*)                :: action
-character(*)                :: data_class
+character(*)                :: data_name
 character(*)                :: locations
 
 type (tao_d2_data_struct), pointer :: d2_ptr
@@ -63,9 +63,9 @@ subroutine use_data (u)
 
 type (tao_universe_struct) u
 
-! find data class and sub_class
+! find data name and name
 
-call tao_find_data (err, u, data_class, d2_ptr, d1_ptr)
+call tao_find_data (err, u, data_name, d2_ptr, d1_ptr)
 if (err) return
 
 ! find locations

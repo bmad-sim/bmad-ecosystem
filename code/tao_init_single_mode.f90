@@ -117,7 +117,7 @@ subroutine tao_init_single_mode (s, single_mode_file)
   nn = s%n_v1_var_used + 1
   s%n_v1_var_used = nn
   call tao_point_v1_to_var (s%v1_var(nn)%v, s%var(n1:n2), 1, n1)
-  s%v1_var(nn)%class = 'key'
+  s%v1_var(nn)%name = 'key'
   s%v1_var(nn)%good_opt = .true.
 
 end subroutine

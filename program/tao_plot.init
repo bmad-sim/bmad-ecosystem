@@ -43,7 +43,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_class  = 'orbit:x'
+  curve(1)%data_name   = 'orbit:x'
   curve(1)%units_factor = 100
 /
 
@@ -59,7 +59,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_class = 'orbit:y'
+  curve(1)%data_name   = 'orbit:y'
   curve(1)%units_factor = 100
 /
 
@@ -89,7 +89,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_class = 'phase:x'
+  curve(1)%data_name = 'phase:x'
   curve(1)%units_factor = 57.29578
 /
 
@@ -105,7 +105,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_class = 'phase:y'
+  curve(1)%data_name = 'phase:y'
   curve(1)%units_factor = 57.29578
 /
 
@@ -135,7 +135,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_class = 'beta:x'
+  curve(1)%data_name   = 'beta:x'
   curve(1)%units_factor = 1
 /
 
@@ -151,7 +151,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_class = 'beta:y'
+  curve(1)%data_name   = 'beta:y'
   curve(1)%units_factor = 1
 /
 
@@ -181,7 +181,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_class = 'eta:x'
+  curve(1)%data_name   = 'eta:x'
   curve(1)%units_factor = 1
 /
 
@@ -197,7 +197,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_class = 'eta:y'
+  curve(1)%data_name = 'eta:y'
   curve(1)%units_factor = 1
 /
 
@@ -228,7 +228,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_class = 'coupling:22'
+  curve(1)%data_name   = 'coupling:22'
   curve(1)%units_factor = 1
 /
 
@@ -244,7 +244,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_class = 'coupling:12a'
+  curve(1)%data_name   = 'coupling:12a'
   curve(1)%units_factor = 1
 /
 
@@ -260,6 +260,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_class = 'coupling:11'
+  curve(1)%data_name   = 'coupling:11'
   curve(1)%units_factor = 1
 /

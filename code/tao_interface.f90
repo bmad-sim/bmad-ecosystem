@@ -306,12 +306,12 @@ interface
 end interface
  
 interface
-  subroutine tao_use_data (s, action, data_class, range)
+  subroutine tao_use_data (s, action, data_name, range)
     use tao_struct, only: tao_super_universe_struct
     implicit none
     type (tao_super_universe_struct) :: s
     character(*)                :: action
-    character(*)                :: data_class
+    character(*)                :: data_name
     character(*)                :: range
   end subroutine
 end interface
@@ -333,12 +333,12 @@ interface
 end interface
 
 interface
-  subroutine tao_use_var (s, action, var_class, range)
+  subroutine tao_use_var (s, action, var_name, range)
     use tao_struct, only: tao_super_universe_struct
     implicit none
     type (tao_super_universe_struct) :: s
     character(*)                :: action
-    character(*)                :: var_class
+    character(*)                :: var_name
     character(*)                :: range
   end subroutine
 end interface
@@ -414,10 +414,11 @@ interface
 end interface
 
 interface
-  subroutine tao_hook_load_data_array (s, found)
-    use tao_struct, only: tao_super_universe_struct
+  subroutine tao_hook_load_data_array (s, data, found)
+    use tao_struct, only: tao_super_universe_struct, tao_data_struct
     implicit none
     type (tao_super_universe_struct) s
+    type (tao_data_struct) data
     logical found
   end subroutine
 end interface

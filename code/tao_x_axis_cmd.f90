@@ -72,7 +72,7 @@ if (what == 's') then
   maxx = s%u(iu)%model%param%total_length
 elseif (what == 'index') then
   call tao_find_data (err, s%u(iu), &
-               plot%graph(1)%curve(1)%data_class, d1_ptr = d1_ptr)
+               plot%graph(1)%curve(1)%data_name, d1_ptr = d1_ptr)
   if (err) return
   minn = lbound(d1_ptr%d, 1)
   maxx = ubound(d1_ptr%d, 1)

@@ -12,12 +12,12 @@ use tao_mod
 ! data input structures
 
 type tao_d2_data_input
-  character(16) class           ! class of data
-  integer universe              ! universe where data sits. 0 -> all universes
+  character(16) name           ! name of data
+  integer universe             ! universe where data sits. 0 -> all universes
 end type
 
 type tao_d1_data_input
-  character(16) sub_class        ! type of data
+  character(16) name           ! type of data
 end type
 
 type tao_data_input
@@ -32,7 +32,7 @@ end type
 ! variable input structures
 
 type tao_v1_var_input
-  character(16) class           ! type of variable
+  character(16) name           ! type of variable
   character(16) attribute       ! attribute to vary
   character(16) universe        ! universe variable is: Integer, "all", "common"
 end type
@@ -63,7 +63,7 @@ end type
 
 type tao_curve_input
   character(16) data_source
-  character(16) data_class
+  character(16) data_name
   real(rp) units_factor
   integer symbol_every
   integer ix_universe

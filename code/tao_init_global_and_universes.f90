@@ -91,7 +91,7 @@ subroutine tao_init_global_and_universes (s, data_and_var_file)
   call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
 
   do
-    d1_data(:)%sub_class = ' '      ! set default
+    d1_data(:)%name = ' '      ! set default
     data(:)%default_weight = 0.0      ! set default
     do i = lbound(d1_data, 1), ubound(d1_data, 1)
       data(i)%weight = 0.0        ! set default
@@ -99,7 +99,7 @@ subroutine tao_init_global_and_universes (s, data_and_var_file)
     read (iu, nml = tao_data, iostat = ios, err = 9100)
     if (ios < 0) exit         ! exit on end-of-file
     call out_io (s_blank$, r_name, &
-                      'Init: Read tao_data namelist: ' // d2_data%class)
+                      'Init: Read tao_data namelist: ' // d2_data%name)
     n = d2_data%universe      ! universe to use 
     if (n == 0) then          ! 0 => use all universes
       do i = 1, size(s%u)
@@ -115,7 +115,7 @@ subroutine tao_init_global_and_universes (s, data_and_var_file)
   rewind (iu)
 
   do
-    v1_var%class = " "         ! set default
+    v1_var%name = " "         ! set default
     var%default_weight = 0     ! set default
     var%default_step = 0       ! set default
     var%weight = 0         ! set default
@@ -123,7 +123,7 @@ subroutine tao_init_global_and_universes (s, data_and_var_file)
     read (iu, nml = tao_var, iostat = ios, err = 9200)
     if (ios < 0) exit         ! exit on end-of-file
     call out_io (s_blank$, r_name, &
-                        'Init: Read tao_var namelist: ' // v1_var%class)
+                        'Init: Read tao_var namelist: ' // v1_var%name)
 
     if (v1_var%universe == 'all') then
       do i = 1, size(s%u)
@@ -136,7 +136,7 @@ subroutine tao_init_global_and_universes (s, data_and_var_file)
       if (ios /= 0) then
         call out_io (s_fatal$, r_name, &
               'CANNOT READ UNIVERSE INDEX: ' // v1_var%universe, &
-              'FOR VARIABLE: ' // v1_var%class)
+              'FOR VARIABLE: ' // v1_var%name)
         call err_exit
       endif
       call var_stuffit (n, nu(n), v1_var, var)
@@ -234,16 +234,16 @@ logical, allocatable :: found_one(:)
     call err_exit
   endif
 
-  u%d2_data(nn)%class = d2_data%class 
+  u%d2_data(nn)%name = d2_data%name 
 
 ! allocate memory for the u%d1_data structures
 
-  nd1 = count(d1_data(:)%sub_class /= ' ') 
+  nd1 = count(d1_data(:)%name /= ' ') 
   allocate(u%d2_data(nn)%d1(nd1))
 
   do i = 1, nd1
 
-    if (d1_data(i)%sub_class == ' ') exit
+    if (d1_data(i)%name == ' ') exit
 
     u%d2_data(nn)%d1(i)%d2 => u%d2_data(nn)  ! point back to the parent
 
@@ -275,7 +275,7 @@ logical, allocatable :: found_one(:)
       endif
     endif
 
-    u%d2_data(nn)%d1(i)%sub_class = d1_data(i)%sub_class  ! stuff in the data
+    u%d2_data(nn)%d1(i)%name = d1_data(i)%name  ! stuff in the data
 
 ! now check if we are searching for elements or repeating elements
 ! and record the element names in the data structs
@@ -342,6 +342,8 @@ logical, allocatable :: found_one(:)
         u%data(j)%exists = .true.
       enddo
     endif
+
+    u%data(n1:n2)%class = trim(d2_data%name) // ':' // d1_data(i)%name
 
 ! Create data names
     if (index(data(i)%name(0), 'COUNT:') /= 0) then
@@ -413,9 +415,9 @@ subroutine var_stuffit (ix_u, nu, v1_var, var)
   
 ! stuff in the data
 
-  s%v1_var(nn)%class = v1_var%class
+  s%v1_var(nn)%name = v1_var%name
 
-  if (v1_var%class == ' ') return
+  if (v1_var%name == ' ') return
   n1 = s%n_var_used + 1
   n2 = s%n_var_used + var%ix_max - var%ix_min + 1
   ix1 = var%ix_min
@@ -467,7 +469,7 @@ subroutine var_stuffit_common (v1_var, var)
 
 ! stuff in the data
 
-  if (v1_var%class == ' ') return
+  if (v1_var%name == ' ') return
 
   s%n_v1_var_used = s%n_v1_var_used + 1
   nn = s%n_v1_var_used

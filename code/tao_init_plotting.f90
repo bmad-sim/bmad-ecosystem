@@ -142,7 +142,8 @@ do
     allocate (grph%curve(graph%n_curve))
     do j = 1, graph%n_curve
       crv => grph%curve(j)
-      crv%data_class        = curve(j)%data_class
+      crv%data_source       = curve(j)%data_source
+      crv%data_name         = curve(j)%data_name
       crv%units_factor      = curve(j)%units_factor
       crv%symbol_every      = curve(j)%symbol_every
       crv%ix_universe       = curve(j)%ix_universe

@@ -45,6 +45,15 @@ if (s%global%single_mode) then
   return
 endif
 
+! If recalling a command from the cmd history stack...
+
+if (tao_com%use_cmd_here) then
+  cmd_line = tao_com%cmd
+  call alias_translate (cmd_line, err)
+  tao_com%use_cmd_here = .false.
+  return
+endif
+
 ! If a command file is open then read a line from the file.
 
 if (s%global%lun_command_file /= 0) then

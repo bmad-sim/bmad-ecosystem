@@ -48,7 +48,7 @@ plot_loop: do i = 1, size(s%plot_page%plot)
 
       i_uni = s%global%u_view  ! universe where the data comes from
       if (curve%ix_universe /= 0) i_uni = curve%ix_universe 
-      call tao_find_data (err, s%u(i_uni), curve%data_class, d2_ptr, d1_ptr)
+      call tao_find_data (err, s%u(i_uni), curve%data_name, d2_ptr, d1_ptr)
       if (err) cycle
       call tao_useit_plot_calc (plot, d1_ptr%d) ! make sure %useit_plot up-to-date
       n_dat = count (d1_ptr%d%useit_plot)       ! count the number of data points
@@ -89,7 +89,7 @@ plot_loop: do i = 1, size(s%plot_page%plot)
       curve%y_symb = curve%y_symb * curve%units_factor
       if (plot%convert) curve%y_symb = curve%y_symb * &
                          pack(d1_ptr%d%conversion_factor, d1_ptr%d%useit_plot)
-      if (curve%data_class(1:6) == 'phase:' .and. n_dat /= 0) then
+      if (curve%data_name(1:6) == 'phase:' .and. n_dat /= 0) then
          f = sum(curve%y_symb) / n_dat
          curve%y_symb = curve%y_symb - f
       endif 
@@ -199,7 +199,7 @@ call twiss_and_track_at_s (lat, s_pos, ele, orb, here)
 
 err = .false.
 
-select case (curve%data_class)
+select case (curve%data_name)
 case ('orbit:x')
   y = y + who%sign * here%vec(1)
 case ('orbit:y')
@@ -229,7 +229,7 @@ case ('cbar:22')
   call c_to_cbar (ele, cbar)
   y = y + who%sign * cbar(2,2)
 case default
-  call out_io (s_fatal$, r_name, 'DO NOT KNOW ABOUT THIS DATA_CLASS: ' // curve%data_class)
+  call out_io (s_fatal$, r_name, 'DO NOT KNOW ABOUT THIS DATA_name: ' // curve%data_name)
   err = .true.
 end select
 

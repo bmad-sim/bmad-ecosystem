@@ -16,12 +16,13 @@ implicit none
 
 type (tao_super_universe_struct), target :: s
 type (tao_universe_struct), pointer :: u
-type (tao_d1_data_struct), pointer :: d1
 type (ele_struct), pointer :: ele
+type (tao_data_struct), pointer :: data
 
 real(rp) cbar(2,2), f
-integer i, j, k, m
+integer i, j, k, m, ix
 character(20) :: r_name = 'tao_load_data_array'
+character(16) prefix, postfix
 logical found
 
 ! loop over all universes 
@@ -30,111 +31,106 @@ do i = 1, size(s%u)
 
   u => s%u(i)
 
-! loop over all d2_data structs
+! loop over all data structs
 
-! do nothing if no d2_data
-  if (.not. associated (u%d2_data)) return
-
-  do j = 1, size(u%d2_data)
+  do j = 1, size(u%data)
   
-    call tao_hook_load_data_array (s, found)
+    data => u%data(j)
+    if (.not. data%exists) cycle
+    call tao_hook_load_data_array (s, data, found)
     if (found) cycle
+    ele => u%model%ele_(data%ix_ele)
 
 ! loop over all data 
 
-    do k = 1, size(u%d2_data(j)%d1)
-      d1 => u%d2_data(j)%d1(k)
+    ix = index(data%class, ':')
+    if (ix == 0) then
+      prefix = data%class
+      postfix = ' '
+    else
+      prefix = data%class(:ix-1)
+      postfix = data%class(ix+1:)
+    endif
 
-      select case (u%d2_data(j)%class)
+    select case (prefix)
 
-      case ('orbit')
-        if (d1%sub_class == 'x') then
-          where (d1%d%exists) d1%d(:)%model_value = u%model_orb(d1%d(:)%ix_ele)%vec(1)
-        elseif (d1%sub_class == 'y') then
-          where (d1%d%exists) d1%d(:)%model_value = u%model_orb(d1%d(:)%ix_ele)%vec(3)
-        else
-          call sub_class_error
-        endif
+    case ('orbit')
+      if (postfix == 'x') then
+        data%model_value = u%model_orb(data%ix_ele)%vec(1)
+      elseif (postfix == 'y') then
+        data%model_value = u%model_orb(data%ix_ele)%vec(3)
+      else
+        call name_error
+      endif
 
-      case ('phase')
-        if (d1%sub_class == 'x') then
-          where (d1%d%exists) d1%d(:)%model_value = u%model%ele_(d1%d(:)%ix_ele)%x%phi
-        elseif (d1%sub_class == 'y') then
-          where (d1%d%exists) d1%d(:)%model_value = u%model%ele_(d1%d(:)%ix_ele)%y%phi
-        else
-          call sub_class_error
-        endif
+    case ('phase')
+      if (postfix == 'x') then
+        data%model_value = ele%x%phi
+      elseif (postfix == 'y') then
+        data%model_value = ele%y%phi
+      else
+        call name_error
+      endif
 
-      case ('beta')
-        if (d1%sub_class == 'x') then
-          where (d1%d%exists) d1%d(:)%model_value = u%model%ele_(d1%d(:)%ix_ele)%x%beta
-        elseif (d1%sub_class == 'y') then
-          where (d1%d%exists) d1%d(:)%model_value = u%model%ele_(d1%d(:)%ix_ele)%y%beta
-        else
-          call sub_class_error
-        endif
+    case ('beta')
+      if (postfix == 'x') then
+        data%model_value = ele%x%beta
+      elseif (postfix == 'y') then
+        data%model_value = ele%y%beta
+      else
+        call name_error
+      endif
 
-      case ('coupling')
-        do m = lbound(d1%d, 1), ubound(d1%d, 1)
-          if (.not. d1%d(m)%exists) cycle
-          ele => u%model%ele_(d1%d(m)%ix_ele)
-          call c_to_cbar (ele, cbar)
-          if (d1%sub_class == '11') then
-            f = sqrt(ele%x%beta/ele%y%beta) / ele%gamma_c
-            d1%d(m)%model_value = cbar(1,1) * f
-            d1%d(m)%conversion_factor = 1 / f
-          elseif (d1%sub_class == '12a') then
-            f = sqrt(ele%y%beta/ele%x%beta) / ele%gamma_c
-            d1%d(m)%model_value = cbar(1,2) * f
-            d1%d(m)%conversion_factor = 1 / f
-          elseif (d1%sub_class == '12b') then
-            f = sqrt(ele%x%beta/ele%y%beta) / ele%gamma_c
-            d1%d(m)%model_value = cbar(1,2) * f
-            d1%d(m)%conversion_factor = 1 / f
-          elseif (d1%sub_class == '22') then
-            f = sqrt(ele%y%beta/ele%x%beta) / ele%gamma_c
-            d1%d(m)%model_value = cbar(2,2) * f
-            d1%d(m)%conversion_factor = 1 / f
-          else
-            call sub_class_error
-          endif
-        enddo
+    case ('coupling')
+      call c_to_cbar (ele, cbar)
+      if (postfix == '11') then
+        f = sqrt(ele%x%beta/ele%y%beta) / ele%gamma_c
+        data%model_value = cbar(1,1) * f
+        data%conversion_factor = 1 / f
+      elseif (postfix == '12a') then
+        f = sqrt(ele%y%beta/ele%x%beta) / ele%gamma_c
+        data%model_value = cbar(1,2) * f
+        data%conversion_factor = 1 / f
+      elseif (postfix == '12b') then
+        f = sqrt(ele%x%beta/ele%y%beta) / ele%gamma_c
+        data%model_value = cbar(1,2) * f
+        data%conversion_factor = 1 / f
+      elseif (postfix == '22') then
+        f = sqrt(ele%y%beta/ele%x%beta) / ele%gamma_c
+        data%model_value = cbar(2,2) * f
+        data%conversion_factor = 1 / f
+      else
+        call name_error
+      endif
 
-      case ('cbar')
-        do m = lbound(d1%d, 1), ubound(d1%d, 1)
-          if (.not. d1%d(m)%exists) cycle
-          ele => u%model%ele_(d1%d(m)%ix_ele)
-          call c_to_cbar (ele, cbar)
-          if (d1%sub_class == '11') then
-            d1%d(m)%model_value = cbar(1,1)
-          elseif (d1%sub_class == '12') then
-            d1%d(m)%model_value = cbar(1,2)
-          elseif (d1%sub_class == '21') then
-            d1%d(m)%model_value = cbar(1,2)
-          elseif (d1%sub_class == '22') then
-            d1%d(m)%model_value = cbar(2,2)
-          else
-            call sub_class_error
-          endif
-        enddo
+    case ('cbar')
+      call c_to_cbar (ele, cbar)
+      if (postfix == '11') then
+        data%model_value = cbar(1,1)
+      elseif (postfix == '12') then
+        data%model_value = cbar(1,2)
+      elseif (postfix == '21') then
+        data%model_value = cbar(1,2)
+      elseif (postfix == '22') then
+        data%model_value = cbar(2,2)
+      else
+        call name_error
+      endif
 
-      case ('eta')
-        if (d1%sub_class == 'x') then
-          where (d1%d%exists) d1%d(:)%model_value = u%model%ele_(d1%d(:)%ix_ele)%x%beta
-        elseif (d1%sub_class == 'y') then
-          where (d1%d%exists) d1%d(:)%model_value = u%model%ele_(d1%d(:)%ix_ele)%y%beta
-        else
-          call sub_class_error
-        endif
+    case ('eta')
+      if (postfix == 'x') then
+        data%model_value = ele%x%beta
+      elseif (postfix == 'y') then
+        data%model_value = ele%y%beta
+      else
+        call name_error
+      endif
 
-      case default
-        call out_io (s_error$, r_name, &
-                                  'UNKNOWN DATA TYPE: ' // u%d2_data(j)%class)
-        return
+    case default
+      call out_io (s_error$, r_name, 'UNKNOWN DATA TYPE: ' // data%class)
+      return
 
-      end select
-
-    enddo
+    end select
 
   enddo
 
@@ -143,10 +139,9 @@ enddo
 !----------------------------------------------------------------------------
 contains
 
-subroutine sub_class_error
+subroutine name_error
 
-  call out_io (s_error$, r_name, 'BAD DATA SUB_TYPE: ' // d1%sub_class, &
-                                      'FOR DATA TYPE: ' // u%d2_data(j)%class)
+  call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // u%data%class)
 
 end subroutine
 

@@ -18,7 +18,9 @@ type tao_common_struct
   logical opti_init        ! init needed?
   logical opti_at_limit    ! Variable at limit?
   character(40) cmd_arg(9) ! Command file arguments.
+  character(100) cmd
   integer :: n_alias = 0
+  logical :: use_cmd_here  = .false. ! Used for the cmd history stack
 end type
 
 

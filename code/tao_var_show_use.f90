@@ -23,7 +23,7 @@ character(200) line
 
 call location_encode (line, v1_var%v%useit_opt, &
                           v1_var%v%exists, lbound(v1_var%v,1))
-write (line, '(2x, a, 2a)') v1_var%class, "Using: " // line(1:170)
+write (line, '(2x, a, 2a)') v1_var%name, "Using: " // line(1:170)
 call out_io (s_blank$, r_name, line)
 
 end subroutine tao_var_show_use

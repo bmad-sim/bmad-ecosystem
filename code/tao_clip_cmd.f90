@@ -102,7 +102,7 @@ do i = 1, size(graph%curve)
     if (this_min <= curve%y_symb(j) .and. curve%y_symb(j) <= this_max) cycle
     iu = curve%ix_universe 
     if (iu == 0) iu = s%global%u_view
-    call tao_find_data (err, s%u(iu), curve%data_class, d1_ptr = d1_ptr)
+    call tao_find_data (err, s%u(iu), curve%data_name, d1_ptr = d1_ptr)
     if (err) return
     d1_ptr%d(curve%ix_symb(j))%good_user = .false.  ! and clip it
   enddo
