@@ -208,6 +208,9 @@ Subroutine to check the symplecticity of a square matrix
 Subroutine to find the symplectic eigen--modes of the one turn 4x4 coupled 
 transfer matrix T0. 
 
+\item[match\_ele\_to\_mat6 (ele, mat6, vec0)] \Newline 
+Subroutine to make the 6 x 6 transfer matrix from the twiss parameters.
+
 \item[multi\_turn\_tracking\_to\_mat (track, i\_dim, mat1, track0, chi)] \Newline
 Subroutine to analyze 1-turn tracking data to find the 1-turn transfer matrix 
 and the closed orbit offset.
@@ -225,8 +228,12 @@ Subroutine to make the 6x6 linear transfer matrix for an element
 \item[taylor\_to\_mat6 (a\_taylor, c0, mat6, c1)] \Newline
 Subroutine to calculate the linear (Jacobian) matrix about some trajectory from a Taylor map. 
 
-\item[transfer\_mat\_from\_twiss (twiss1, twiss2, mat)] \Newline
+\item[transfer\_mat2\_from\_twiss (twiss1, twiss2, mat)] \Newline
 Subroutine to make a 2 x 2 transfer matrix from the Twiss parameters at the end points. 
+
+\item[transfer\_mat\_from\_twiss (ele1, ele2, m)] \Newline 
+Subroutine to make a 6 x 6 transfer matrix from the twiss parameters
+at the beginning and end of the element.
 
 \item[twiss\_from\_mat2 (mat, det, twiss, stat, tol, type\_out)] \Newline
 Subroutine to extract the Twiss parameters from the one-turn 2x2 matrix 
@@ -240,7 +247,7 @@ Subroutine to form the 2x2 1-turn transfer matrix from the Twiss parameters.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Routines called by MAKE\_MAT6}
+\section{Routines called by make\_mat6}
 \label{r:mat6}
 
 \begin{description}
@@ -883,20 +890,23 @@ Subroutine to adjust the control structure of a ring so that
 extra control elements can be added. 
 
 \item[allocate\_ring\_ele\_(ring, des\_size)] \Newline 
-     Subroutine to allocate or re-allocate the ring%ele\_(:) pointer in a ring.
+Subroutine to allocate or re-allocate the ring%ele\_(:) pointer in a ring.
 
 \item[control\_bookkeeper (ring, ix\_ele)] \Newline
 Subroutine to calculate the combined strength of the attributes for
 controlled elements.
 
+\item[control\_lord\_bookkeeper (ring)] \Newline 
+Subroutine to transfer attibute information from lord to slave elements.
+
 \item[deallocate\_ring\_pointers (ring)] \Newline 
-     Subroutine to deallocate the pointers in a ring.
+Subroutine to deallocate the pointers in a ring.
 
 \item[init\_ele (ele)] \Newline
 Subroutine to initialize an element. 
 
 \item[init\_ring (ring, n)] \Newline 
-     Subroutine to initialize a Bmad ring.
+Subroutine to initialize a Bmad ring.
 
 \item[reallocate\_coord (coord\_, n\_coord)] \Newline 
 Subroutine to reallocate an allocatable  coord\_struct array to at least:
@@ -1048,6 +1058,10 @@ Subroutine to calculate the attributes of overlay slave elements.
 \item[orbit\_to\_dispersion (orb\_diff, ele)] \Newline
 Subroutine to take an orbit vector difference and calculate the dispersion. 
 
+\item[superimpose\_key (key1, key2) result (key12)] \Newline 
+Function to decide what the element key (key12) should be when
+an element with key1 is superimpsed upon with an element.
+
 \item[twiss\_decoupled\_propagate (ele1, ele2)] \Newline
 Subroutine to propagate the Twiss parameters from end of ele1 to end of ele2. 
 
@@ -1192,31 +1206,11 @@ Subroutine to return the calibration constants for the CESR quads.
 \item[closed\_orbit\_at\_start (ring, co, i\_dim, iterate)] \Newline
 Subroutine to calculate the closed orbit at the beginning of the ring. 
 
-\item[make\_mat627 (ele, param, direction, mat627)] \Newline
-Subroutine to make the 6x27 2nd order transfer matrix for an element. 
-
 \item[mat\_unit (mat, size, psize)] \Newline 
 Routine to create a unit matrix.
 
-\item[ring\_make\_mat627 (ring, ix\_ele, direction, mats627)] \Newline
-Subroutine to make the 6x27 2nd order matrices for long term tracking. 
-Used by, for example, TRACK\_LONG. 
-
-\item[track1\_627 (start, ele, param, mat627, end)] \Newline
-Particle tracking through a single element. Uses the 2nd order 6x27 transport 
-matrices whenever possible. 
-
 \item[set\_on (key, ring, on\_switch, orb\_)] \Newline
 Subroutine to turn on or off a set of elements (quadrupoles, rfcavities, etc.) in a ring. 
-
-\item[sol\_quad\_mat627\_calc (ks, k1, length, mat627)] \Newline
-Subroutine to calculate the transfer matrix for a combination solenoid/quadrupole element. 
-
-\item[track\_long (ring, orbit\_, ix\_start, direction, mats627)] \Newline
-Subroutine to track for 1-turn. 
-
-\item[twiss\_and\_track\_body (ele1, ele2, param, del\_s, ele3, start, end)] \Newline
-Subroutine to propagate partially through ELE2 the Twiss parameters and the orbit. 
 
 \item[twiss\_at\_s (ring, s, ele)] \Newline
 Obsolete. Use twiss\_and\_track\_at\_s instead. 
@@ -1438,7 +1432,7 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
 \item[qp\_get\_layout\_attrib (who, x1, x2, y1, y2, units)] \Newline 
      Subroutine to get the attributes of the layout.
 
-\item[text\_len (text)] \Newline 
+\item[qp\_text\_len (text)] \Newline 
      Function to find the length of a text string.
 
 \end{description}
@@ -1572,8 +1566,11 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
 Subroutine to compute the normalized kick due to the beam-beam
 interaction using the normalized position for input.
 
-\item[gauss\_ran (harvest)] \Newline 
+\item[ran\_gauss (harvest)] \Newline 
 Subroutine to return a Gaussian distributed random number with unit sigma.
+
+\item[ran\_seed (seed)] \Newline 
+Subroutine to seed the random number generator. 
 
 \item[modulo2\_real (x, amp)] \Newline 
 Function to return
@@ -1594,6 +1591,18 @@ Function to reallocate a rea;
 
 \item[reallocate\_logical (logic, n)] \Newline 
 Function to reallocate a string array.
+
+\item[reassociate\_string (str, l\_str, n)] \Newline 
+Function to reassociate an array of strings.
+
+\item[reassociate\_integer (inte, n)] \Newline 
+Function to reassociate an array of integers.
+
+\item[reassociate\_real (re, n)] \Newline 
+Function to reassociate an array of reals.
+
+\item[reassociate\_logical (logic, n)] \Newline 
+Function to reassociate a string array.
 
 \item[skip\_header (unit\_, error\_flag)] \Newline 
 Subroutine to find the first line of data in a file. 

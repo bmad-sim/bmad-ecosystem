@@ -48,7 +48,6 @@ $tex_hash{"seq_expand1"} = "bmad_parser_mod.f90";
 $tex_hash{"qromb_rad_int"} = "rad_int_common.f90";
 $tex_hash{"derivs_bmad"} = "runge_kutta_mod.f90";
 $tex_hash{"init_bmad_parser_common"} = "bmad_parser_mod.f90";
-$tex_hash{"transfer_track"} = "rad_int_common.f90";
 $tex_hash{"bbi_slice_calc"} = "make_mat6_mod.f90";
 $tex_hash{"rkqs_bmad"} = "runge_kutta_mod.f90";
 $tex_hash{"from_action"} = "convert_coords.f90";
@@ -71,7 +70,6 @@ $tex_hash{"zero_ave"} = "twiss_at_element.f90";
 $tex_hash{"a_y__dx"} = "symp_lie_mod.f90";
 $tex_hash{"a_y__dy"} = "symp_lie_mod.f90";
 $tex_hash{"to_action"} = "convert_coords.f90";
-$tex_hash{"update_x_s_terms"} = "symp_lie_mod.f90";
 $tex_hash{"delete_last_chars"} = "add_superimpose.f90";
 $tex_hash{"a_y"} = "symp_lie_mod.f90";
 $tex_hash{"bbi_kick_matrix"} = "make_mat6_bmad.f90";
@@ -94,18 +92,15 @@ $tex_hash{"multi_turn_func"} = "multi_turn_tracking_to_mat.f90";
 $tex_hash{"evaluate_value"} = "bmad_parser_mod.f90";
 $tex_hash{"dint_a_y_dx__dx"} = "symp_lie_mod.f90";
 $tex_hash{"track_period"} = "track1_wiedemann_wiggler.f90";
-$tex_hash{"update_y_terms"} = "symp_lie_mod.f90";
 $tex_hash{"dint_a_y_dx__dy"} = "symp_lie_mod.f90";
 $tex_hash{"reallocate_bp_com_var"} = "bmad_parser_mod.f90";
 $tex_hash{"error_exit"} = "bmad_parser_mod.f90";
-$tex_hash{"track1_order2"} = "mat627_mod.f90";
 $tex_hash{"delete_double_slash"} = "add_superimpose.f90";
 $tex_hash{"do_vsp_eles"} = "create_vsp_volt_elements.f90";
 $tex_hash{"word_to_value"} = "bmad_parser_mod.f90";
 $tex_hash{"compute2_super_lord_s"} = "bmad_parser_mod.f90";
 $tex_hash{"twiss_ave"} = "twiss_at_element.f90";
 $tex_hash{"get_ele_theory"} = "bmad_to_db.f90";
-$tex_hash{"update_coefs"} = "symp_lie_mod.f90";
 $tex_hash{"makeup_overlay_slave"} = "bookkeeper_mod.f90";
 $tex_hash{"da_z_dy__dx"} = "symp_lie_mod.f90";
 $tex_hash{"da_z_dy__dy"} = "symp_lie_mod.f90";
@@ -181,9 +176,20 @@ $tex_hash{"spawn_command"} =           "spawn_command.f90";
 $tex_hash{"to_node_name"} =            "to_node_name.f90";
 $tex_hash{"file_get_open"} =           "file_get_open.f90";
 $tex_hash{"match_word_exact"} =        "match_word_exact.f90";
-$tex_hash{"date_and_time_stamp"} =     "date_and_time_stamp.f90";
 $tex_hash{"file_directorizer"} =       "file_directorizer.f90";
 $tex_hash{"make_legal_comment"} =      "make_legal_comment.f90";
+$tex_hash{"ran_gauss_vector"} = "random_mod.f90";
+$tex_hash{"ran_gauss_scaler"} = "random_mod.f90";
+$tex_hash{"plot_it"} = "plot_example.f90";
+$tex_hash{"update_wig_coefs"} = "symp_lie_mod.f90";
+$tex_hash{"compute_slave_aperture"} = "bookkeeper_mod.f90";
+$tex_hash{"update_wig_y_terms"} = "symp_lie_mod.f90";
+$tex_hash{"update_wig_x_s_terms"} = "symp_lie_mod.f90";
+$tex_hash{"bsq_drift1"} = "symp_lie_mod.f90";
+$tex_hash{"bsq_drift2"} = "symp_lie_mod.f90";
+$tex_hash{"zero_this_track"} = "track_many.f90";
+$tex_hash{"apply_p_x"} = "symp_lie_mod.f90";
+$tex_hash{"apply_p_y"} = "symp_lie_mod.f90";
 
 
 #---------------------------------------------------------
@@ -256,7 +262,7 @@ sub searchit {
   while (<F_IN>) {
     $now = $_;
 
-    if (/^ *interface$/i || /^ *interface /i) {    # skip interface blocks
+    if (/^ *interface *$/i) {    # skip interface blocks
       while (<F_IN>) {
         if (/^ *end interface/i) {last;}
       }
@@ -284,10 +290,10 @@ sub searchit {
           if (! ($l2 =~ /^\! *[\n]$/)) {$l2 =~ s/^\! //; print "$l2"; $temp = <F_IN>;}
           $l2 = <F_IN>; 
           $l2 =~ s/_/\\_/g;      # "_"   -->  "\_"
-          if (! ($l2 =~ /^\! *[\n]$/)) {$l2 =~ s/^\! //; print "     $l2";}
+          if (! ($l2 =~ /^\! *[\n]$/)) {$l2 =~ s/^\! //; print "$l2";}
           $l2 = <F_IN>; 
           $l2 =~ s/_/\\_/g;      # "_"   -->  "\_"
-          if (! ($l2 =~ /^\! *[\n]$/)) {$l2 =~ s/^\! //; print "     $l2";}
+          if (! ($l2 =~ /^\! *[\n]$/)) {$l2 =~ s/^\! //; print "$l2";}
         }
       }
     }
@@ -295,7 +301,8 @@ sub searchit {
 # Look for "subroutine ..." to get name list.
 
     if (/^ *subroutine /i || /^ *recursive subroutine /i || 
-            /^ *function /i || /^ *real\(rp\) *function /i || /^ *elemental subroutine /i) {
+        /^ *function /i   || /^ *real\(rp\) *function /i || 
+        /^ *elemental subroutine /i || /^ *interface /i) {
       $name = $';              # strip off "subroutine
       $name =~ s/ *\(.*//;     # strip off " (..."
       $name =~ s/ +$//;        # strip off trailing blank if no arg list
