@@ -22,6 +22,7 @@
 #                         script
 #          -tagr          cesr release tagging
 #          -tagp          packages release tagging
+#          -lnx           Build a cesr(packages) release on linux platform as well 
 #         variables:
 #           TAG=<release_tag>   Specify a custom tag for the release
 #           PKG=<packages_name> Specify a specific packages release
@@ -70,6 +71,7 @@ myprint_help () {
     echo "                    this script"
     echo "-tagr               cesr release tagging"
     echo "-tagp               packages release tagging"
+    echo "-lnx     Build a cesr(packages) release on Linux platform as well"
     echo ""
     echo "Variable definitions:"
     echo "TAG=<release_tag>   Specify a custom tag for the release"
@@ -81,6 +83,7 @@ myprint_help () {
     echo "UTIL=<util_dir>     Specify a custom CESR_UTIL  directory"
     echo "BIN=<bin_dir>       Specify a custom CESR_BIN   directory"
     echo ""
+    echo "PATH =  $PATH "
 }
 
 # Generate Unique Release Names
@@ -127,6 +130,9 @@ DO_TAG_RELEASE=0
 DO_TAG_PACKAGES=0
 REL=""
 PKG=""
+LNX=0
+LNX_HOST=lnx6166.lns.cornell.edu
+CURRENT_HOST="`uname -n`"
 
 # Get inputs
 arg_list=""
@@ -140,7 +146,8 @@ do arg_list="${arg_list} ${i}";
      "-build_only")DO_CHECKOUT="no_checkout";;
      "-dump"    ) DO_DUMP=1 ;;
      "-tagr"    ) DO_TAG_RELEASE=1;;
-     "-tagp"    ) DO_TAG_PACKAGES=1;; 
+     "-tagp"    ) DO_TAG_PACKAGES=1;;
+     "-lnx"     ) LNX=1;; 
      TAG=*      ) REL_TAG=`echo $i|cut -d= -f2`;;
      PKG=*      ) PKG=`echo $i|cut -d= -f2`;;
      REL=*      ) REL=`echo $i|cut -d= -f2`;;
@@ -243,6 +250,10 @@ if ( [ $DO_DUMP -eq 1 ] ) then
     echo "FULL_PKG_LOG      = ${FULL_PKG_LOG}"
     echo "DO_TAG_RELEASE    = ${DO_TAG_RELEASE}"
     echo "DO_TAG_PACKAGES   = ${DO_TAG_PACKAGES}"
+    echo "LNX               = ${LNX}"
+    echo "LNX_HOST          = ${LNX_HOST}"
+    echo "CURRENT_HOST      = ${CURRENT_HOST}"
+    echo "PATH              = $PATH "
 fi
 
 # Print the CESR environment variables
@@ -333,9 +344,42 @@ else
     echo "Aborting!"
     exit 1
 fi
+###################################################
+# Call do_release on Linux platform
+###################################################
+# LNX_FILE_STATUS : 1  -- do_release called on Linux
+#                   0  -- successfully completed on Linux
+#                   2  -- completed with errors on Linux
+# 
+LNX_FILE_STATUS=$HOME/bin/lnx.status
+if ( [ $LNX -eq 1 ] ) then
+  echo "1">$LNX_FILE_STATUS
+  if ( [ $DO_REL -eq 1 -a $DO_PKG -eq 0 ] ) then
+    LNX_LOG="bin/${REL_NAME}_Linux_release.log"
+    krsh -x $LNX_HOST ". .bash_profile; bin/do_release -cesr -build_only -dump REL=$REL_NAME PKG=$PKG_NAME $PREC >$LNX_LOG 2>&1 &"&  
+    start_status=$?
+    echo "Building release started on Linux. See file $LNX_LOG "  
+  elif ( [ $DO_REL -eq 1 -a $DO_PKG -eq 1 ] ) then
+    LNX_LOG="bin/${REL_NAME}_Linux_release_pkg.log"
+    krsh -x $LNX_HOST ". .bash_profile; bin/do_release -cesr -pkg -build_only -dump REL=$REL_NAME PKG=$PKG_NAME $PREC >$LNX_LOG 2>&1 &" &
+    start_status=$?
+    echo "Building release and packages started on Linux. See file $LNX_LOG "
+  elif ( [ $DO_REL -eq 0 -a $DO_PKG -eq 1 ] ) then
+    LNX_LOG="bin/${PKG_NAME}_Linux.log"
+    krsh -x $LNX_HOST  ". .bash_profile; bin/do_release  -pkg -build_only -dump  PKG=$PKG_NAME $PREC > $LNX_LOG 2>&1 &" &
+    start_status=$?
+    echo "Building packages started on Linux. See file $LNX_LOG "
+  fi
+  if ( [ $start_status -ne 0 ] ) then
+    echo " do_release on Linux failed. start_status: $start_status "
+    exit 5
+  fi
+fi
 
-################################
+   
+###################################################
 # Build the PACKAGES RELEASE
+###################################################
 build_pkg_status=0
 if ( [ $DO_PKG -eq 1 ] ) then
     echo "`date`: Installing packages..."
@@ -343,7 +387,7 @@ if ( [ $DO_PKG -eq 1 ] ) then
     build_pkg_status=$?
     echo "`date`: PACKAGES build complete;  Status = ${build_pkg_status}"
 fi
-##############################
+###########################################
 # Build the CESR RELEASE
 build_rel_status=0
 if ( [ $DO_REL -eq 1 ] ) then
@@ -353,33 +397,87 @@ if ( [ $DO_REL -eq 1 ] ) then
     echo "`date`: CESR build complete;  Status = ${build_rel_status}"
 fi
 
-###############################################################
-# do tagging after successful building CESR RELEASE or PACKAGES
-###############################################################
-if ( [ ${build_pkg_status} -eq 0 -a ${build_rel_status} -eq 0 ] ) then
-    echo "`date`: Installation completed successfully!";
-    if ( [ $DO_TAG_RELEASE -eq 1 ] ) then
-       echo " Tagging with tag ${REL_NAME}";
-       gmake -f ${BIN_DIR}/M.release TAGS_NAME=${REL_NAME}  add_tag_release;
-       if ( [ $? -ne 0 ] ) then 
-               echo " Tagging failed. Code $? ";
-               exit 7
-       fi
-       Mail -s "Release(packages) have been tagged" $USER <$NAME_BODY_EMAIL_FILE  $TAG_EMAIL_ADDRESS
-       rm $NAME_BODY_EMAIL_FILE 
-    fi
-    if ( [ $DO_TAG_PACKAGES -eq 1 ] ) then
-       echo "Tagging packages with name ${PKG_NAME}"; 
-       gmake -f ${BIN_DIR}/M.release  FULL_PKG_DIR=${FULL_PKG_NAME} TAGS_NAME=${PKG_NAME} add_tag_packages;
-       if ( [ $? -ne 0 ] ) then 
-               echo " Tagging failed. Code $? ";
-               exit 7
-       fi
-       Mail -s "Release(packages) have been tagged" $USER <$NAME_BODY_EMAIL_FILE  $TAG_EMAIL_ADDRESS
-       rm $NAME_BODY_EMAIL_FILE   
-    fi
-    else
-    echo "`date`: Installation completed with errors!"
+
+##############################################################
+# waiting for do_release to finish on Linux 
+#  waiting time = xxx01 * 10 in seconds
+#  in each 10 seconds it checks for LNX_FILE_STATUS
+#
+if ( [ $LNX_HOST != $CURRENT_HOST -a $LNX -eq 1 ] ) then
+    xxx01=600
+    while ( [ $xxx01 -gt 0 ] ) 
+    do
+      `sleep 10`;
+      lnxstatus="`cat $LNX_FILE_STATUS`";
+      if ( [ $lnxstatus -ne 1 ] ) then
+         xxx01=0 
+      else
+         xxx01=" `expr $xxx01 - 1`"    
+      fi
+    done
 fi
 
+###############################################################
+# Final messages after  building CESR RELEASE or PACKAGES
+# tagging after successful building CESR RELEASE or PACKAGES
+###############################################################
+if ( [ $LNX -eq 1 ] ) then
+ if ( [ ${build_pkg_status} -eq 0 -a ${build_rel_status} -eq 0 -a $lnxstatus -eq 0 ] ) then
+     echo "`date`: Installation completed successfully on Linux and ${PLATFORM_TAG} !";
+     if ( [ $DO_TAG_RELEASE -eq 1 ] ) then
+        echo " Tagging with tag ${REL_NAME}";
+        gmake -f ${BIN_DIR}/M.release TAGS_NAME=${REL_NAME}  add_tag_release;
+        if ( [ $? -ne 0 ] ) then 
+                echo " Tagging failed. Code $? ";
+                exit 7
+        fi
+        Mail -s "Release(packages) have been tagged" $USER <$NAME_BODY_EMAIL_FILE  $TAG_EMAIL_ADDRESS
+        rm $NAME_BODY_EMAIL_FILE 
+     fi
+     if ( [ $DO_TAG_PACKAGES -eq 1 ] ) then
+        echo "Tagging packages with name ${PKG_NAME}"; 
+        gmake -f ${BIN_DIR}/M.release  FULL_PKG_DIR=${FULL_PKG_NAME} TAGS_NAME=${PKG_NAME} add_tag_packages;
+        if ( [ $? -ne 0 ] ) then 
+                echo " Tagging failed. Code $? ";
+                exit 7
+        fi
+        Mail -s "Release(packages) have been tagged" $USER <$NAME_BODY_EMAIL_FILE  $TAG_EMAIL_ADDRESS
+        rm $NAME_BODY_EMAIL_FILE   
+     fi
+     else
+     echo "`date`: Installation completed with errors!"
+ fi
+else
+ if ( [ ${build_pkg_status} -eq 0 -a ${build_rel_status} -eq 0 ] ) then
+     echo "`date`: Installation completed successfully on ${PLATFORM_TAG} !";
+     if ( [ $LNX_HOST = $CURRENT_HOST ] ) then 
+        echo "0">$LNX_FILE_STATUS
+     fi   
+     if ( [ $DO_TAG_RELEASE -eq 1 ] ) then
+        echo " Tagging with tag ${REL_NAME}";
+        gmake -f ${BIN_DIR}/M.release TAGS_NAME=${REL_NAME}  add_tag_release;
+        if ( [ $? -ne 0 ] ) then 
+                echo " Tagging failed. Code $? ";
+                exit 7
+        fi
+        Mail -s "Release(packages) have been tagged" $USER <$NAME_BODY_EMAIL_FILE  $TAG_EMAIL_ADDRESS
+        rm $NAME_BODY_EMAIL_FILE 
+     fi
+     if ( [ $DO_TAG_PACKAGES -eq 1 ] ) then
+        echo "Tagging packages with name ${PKG_NAME}"; 
+        gmake -f ${BIN_DIR}/M.release  FULL_PKG_DIR=${FULL_PKG_NAME} TAGS_NAME=${PKG_NAME} add_tag_packages;
+        if ( [ $? -ne 0 ] ) then 
+                echo " Tagging failed. Code $? ";
+                exit 7
+        fi
+        Mail -s "Release(packages) have been tagged" $USER <$NAME_BODY_EMAIL_FILE  $TAG_EMAIL_ADDRESS
+        rm $NAME_BODY_EMAIL_FILE   
+     fi
+     else
+     echo "`date`: Installation completed with errors!"
+     if ( [ $LNX_HOST = $CURRENT_HOST ] ) then 
+        echo "2">$LNX_FILE_STATUS
+     fi 
+ fi
+fi
 exit
