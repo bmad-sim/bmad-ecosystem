@@ -18,7 +18,7 @@ use tao_mod
 implicit none
 
 type (tao_plot_struct), pointer :: plot
-
+type (tao_plot_who_struct), automatic :: p_who(size(s%template_plot(1)%who))
 integer i, j
 integer ix, ix_line, ix_cmd, which, n_word
 
@@ -31,40 +31,42 @@ logical err
 ! Check the who.
 
 err = .true.
+p_who%name = ' '
 
 do i = 1, size(who)
-  if (who(i)(1:1) /= '+' .and. who(i)(1:1) /= '-') then
-    call out_io (s_error$, r_name, 'NO +/- SIGN: ' // who(i))
+
+  call string_trim (who(i)(2:), p_who(i)%name, j)
+
+  if (.not. any(p_who(i)%name == s%global%valid_plot_who)) then
+    call out_io (s_error$, r_name, 'BAD "WHO": ' // who(i))
     return
   endif
 
-  if (.not. any(who(i)(2:) == s%global%valid_plot_who)) then
-    call out_io (s_error$, r_name, 'BAD "WHO": ' // who(i)(2:))
+  select case (who(i)(1:1))
+  case ('+')
+    p_who(i)%sign = +1
+  case ('-')
+    p_who(i)%sign = -1
+  case default
+    call out_io (s_error$, r_name, 'NO +/- SIGN: ' // who(i))
     return
-  endif
+  end select
 
 enddo
 
 ! Find plot for the region given by "where"
 
-call tao_find_plot (err, s%plot_page%plot, 'BY_REGION', where, plot)
-if (err) return
+if (where == 'all') then
+  do i = 1, size(s%plot_page%plot)
+    s%plot_page%plot(i)%who = p_who
+  enddo
+else
+  call tao_find_plot (err, s%plot_page%plot, 'BY_REGION', where, plot)
+  if (err) return
+  plot%who = p_who
+endif
 
-! set the who
-
-plot%who(:)%name = ' '  ! default
-
-do i = 1, size(who)
-
-  if (who(i)(1:1) == '+') then
-    plot%who(i)%sign = +1
-  elseif (who(i)(1:1) == '-') then
-    plot%who(i)%sign = -1
-  endif
-
-  call string_trim (who(i)(2:), plot%who(i)%name, j)
- 
-enddo
+err = .false.
 
 end subroutine 
 

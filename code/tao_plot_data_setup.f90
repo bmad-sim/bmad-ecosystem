@@ -181,7 +181,7 @@ plot_loop: do i = 1, size(s%plot_page%plot)
         if (plot%x_axis_type == 'index') then
           curve%x_symb = curve%ix_symb
         elseif (plot%x_axis_type == 's') then
-          curve%x_symb = u%model%ele_(d1_ptr%d(curve%ix_symb)%ix_ele)%s
+          curve%x_symb = u%model%ele_(curve%ix_symb)%s
         endif
 
 ! calculate the y-axis data point values.
@@ -330,10 +330,18 @@ case ('beta:x')
   y = y + who%sign * ele%x%beta
 case ('beta:y')
   y = y + who%sign * ele%y%beta
+case ('alpha:x')
+  y = y + who%sign * ele%x%alpha
+case ('alpha:y')
+  y = y + who%sign * ele%y%alpha
 case ('eta:x')
   y = y + who%sign * ele%x%eta
 case ('eta:y')
   y = y + who%sign * ele%y%eta
+case ('etap:x')
+  y = y + who%sign * ele%x%etap
+case ('etap:y')
+  y = y + who%sign * ele%y%etap
 case ('cbar:11')
   call c_to_cbar (ele, cbar)
   y = y + who%sign * cbar(1,1)

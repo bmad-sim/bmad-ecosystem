@@ -126,7 +126,7 @@ do k = s%global%ix_key_bank+1, s%global%ix_key_bank+10
 enddo
 
 write (str, '(3x, a, <j_ele-2>x, a, <j_att-2>x, a)') 'ix  Name',  &
-           'Attrib',  'Value   Value0    Delta  Ring#'
+           'Attrib',  'Value   Value0    Delta  Universe'
 y = 10 * dy_key + 5.0
 call qp_draw_text (str, 5.0_rp, y, 'POINTS/PAGE', &
                              height = dy_key-1.0_rp, uniform_spacing = .true.)

@@ -268,6 +268,10 @@ subroutine init_universe (u)
     u%data(:)%ele2_name  = ' '
     u%data(:)%ix_ele2    = -1
   endif
+
+! This is needed to keep the totalview debugger happy.
+
+  allocate (u%dmodel_dvar(1,1))
   
 end subroutine init_universe
 

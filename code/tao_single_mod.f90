@@ -74,7 +74,7 @@ character(20) var_name
 
 do i = 1, size(s%var)
     if (.not. s%var(i)%exists) cycle
-    var_name = trim(s%var(i)%ele_name) // tao_var_uni_string(s%var(i))
+    var_name = trim(s%var(i)%ele_name) // ':' // tao_var_uni_string(s%var(i))
     print '(4a, g14.8)', trim(var_name), '[', &
               trim(s%var(i)%attrib_name), '] = ', s%var(i)%model_value
 enddo
@@ -98,7 +98,7 @@ character(20) var_name
 do j = 1, size(s%key)
     i = s%key(j)%ix_var 
     if (.not. s%var(i)%exists) cycle
-    var_name = trim(s%var(i)%ele_name) // tao_var_uni_string(s%var(i))
+    var_name = trim(s%var(i)%ele_name) // ':' // tao_var_uni_string(s%var(i))
     print '(4a, g14.8)', trim(var_name), '[', &
               trim(s%var(i)%attrib_name), '] = ', s%var(i)%model_value
 enddo
@@ -119,7 +119,7 @@ integer i
 
 !
 
-str = ':'
+str = ' '
 do i = 1, size (var%this)
   write (str, '(a, i1)') trim(str), var%this(i)%ix_uni
 enddo

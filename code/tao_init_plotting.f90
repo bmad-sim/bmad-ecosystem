@@ -30,9 +30,10 @@ type (tao_plot_page_input) plot_page
 type (tao_plot_region_struct) region(n_region_maxx)
 type (tao_curve_input) curve(n_curve_maxx)
 type (tao_place_input) place(10)
+type (tao_ele_shape_struct) shape(20)
 type (qp_symbol_struct) default_symbol
 type (qp_line_struct) default_line
-type (tao_ele_shape_struct) shape(20)
+type (qp_axis_struct) init_axis
 
 integer iu, i, j, ip, n, ng, ios
 integer graph_index
@@ -95,9 +96,9 @@ do
   plot%name = ' '
   plot%who%name  = ' '                               ! set default
   plot%who(1) = tao_plot_who_struct('model', +1)     ! set default
-  plot%who(2) = tao_plot_who_struct('design', -1)    ! set default
   plot%convert = .false.                             ! set default
   plot%x_axis_type = 'index'
+  plot%x = init_axis
   read (iu, nml = tao_template_plot, iostat = ios, err = 9100)  
   if (ios /= 0) exit                                 ! exit on end of file.
   call out_io (s_blank$, r_name, &
@@ -115,8 +116,11 @@ do
   ng = plot%n_graph
   allocate (plt%graph(ng))
   do i = 1, ng
-    graph_index = 0
+    graph_index = 0                 ! setup defaults
+    graph%y  = init_axis
+    graph%y2 = init_axis
     graph%y2%draw_numbers = .false.
+    curve(:)%units_factor = 1
     curve(:)%symbol_every = 1
     curve(:)%ix_universe = 0
     curve(:)%draw_line = .true.
