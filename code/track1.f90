@@ -2,20 +2,20 @@
 ! Subroutine track1 (start, ele, param, end)
 !
 ! Particle tracking through a single element. 
-! This routine is simply chooses what method to track through.
+! Optionally synchrotron radiation and space charge kicks can included.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!   start  -- Coord_struct: Starting position
-!   ele    -- Ele_struct: Element
+!   start  -- Coord_struct: Starting position.
+!   ele    -- Ele_struct: Element to track through.
 !   param  -- Param_struct:
-!     %aperture_limit_on -- If True then a particle may be lost by going outside
+!     %aperture_limit_on -- If True check if particle is lost by going outside
 !                of the element aperture. 
 !
 ! Output:
-!   end   -- Coord_struct: End position
+!   end   -- Coord_struct: End position.
 !   param
 !     %lost -- Set True If the particle cannot make it through an element.
 !                Set False otherwise.
@@ -32,6 +32,7 @@ subroutine track1 (start, ele, param, end)
   use bmad, except => track1
   use mad_mod, only: track1_mad
   use boris_mod, only: track1_boris, track1_adaptive_boris
+  use space_charge_mod
 
   implicit none
 
@@ -60,7 +61,8 @@ subroutine track1 (start, ele, param, end)
 
 ! Radiation damping and/or fluctuations for the 1st half of the element.
 
-  if ((sr_com%damping_on .or. sr_com%fluctuations_on) .and. ele%is_on) then
+  if ((bmad_com%radiation_damping_on .or. &
+              bmad_com%radiation_fluctuations_on) .and. ele%is_on) then
     call track1_radiation (start, ele, param, orb, start_edge$) 
   else
     orb = start
@@ -117,9 +119,14 @@ subroutine track1 (start, ele, param, end)
 
 ! Radiation damping and/or fluctuations for the last half of the element
 
-  if ((sr_com%damping_on .or. sr_com%fluctuations_on) .and. ele%is_on) then
+  if ((bmad_com%radiation_damping_on .or. &
+                    bmad_com%radiation_fluctuations_on) .and. ele%is_on) then
     call track1_radiation (end, ele, param, end, end_edge$) 
   endif
+
+! space charge
+
+  if (bmad_com%space_charge_on) call track1_space_charge (end, ele, param, end)
 
 ! check for particles outside aperture
 
