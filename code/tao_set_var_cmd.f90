@@ -82,7 +82,8 @@ integer n_set, n1, n2, iv, ix, ios
 logical, allocatable :: set_it(:)
 logical multiply, divide, can_list
 
-! parse the list of var to set
+! parse the list of vars to set.
+! The result is the set_it(:) array.
 
 n1 = var(1)%ix_v
 n2 = n1 + size(var) - 1
@@ -98,13 +99,13 @@ else
   call location_decode (list, set_it, n1, n_set)
 endif
 
-! loop over all vars
+! loop over all vars and do the sets.
 
 do iv = 1, size(var)
 
-  ix = iv + n1 - 1
+  ix = var(iv)%ix_v  ! input index.
   if (.not. set_it(ix)) cycle
-  if (.not. var(ix)%exists) cycle
+  if (.not. var(iv)%exists) cycle
 
 ! select component
 

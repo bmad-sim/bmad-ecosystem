@@ -152,11 +152,14 @@ subroutine init_universe (u)
   allocate (u%model_orb(0:n), u%design_orb(0:n), u%base_orb(0:n))
 
 !For linacs, specify initial conditions
+
   u%design_orb(0)%vec = 0.0
   
   call twiss_and_track (u%design, u%design_orb)
   u%model  = u%design; u%model_orb  = u%design_orb
   u%base = u%design; u%base_orb = u%design_orb
+
+! allocate and set defaults
 
   if (n_d2_data_max .ne. 0) then
     allocate (u%d2_data(n_d2_data_max))
@@ -181,7 +184,8 @@ subroutine init_universe (u)
     allocate (u%var(n_var_max))
     u%var(:)%exists    = .false.
     u%var(:)%good_var  = .true.
-    u%var(:)%good_user = .true.
+    u%var(:)%good_user = .false.
+    u%var(:)%merit_type = 'target'
   endif
 
 end subroutine init_universe
@@ -226,7 +230,7 @@ logical, allocatable :: found_one(:)
   nd1 = count(d1_data(:)%sub_class /= ' ') 
   allocate(u%d2_data(nn)%d1(nd1))
 
-  do i = 1, size(d1_data)
+  do i = 1, nd1
 
     if (d1_data(i)%sub_class == ' ') exit
 
@@ -240,9 +244,9 @@ logical, allocatable :: found_one(:)
       call string_trim (count_name1, count_name1, ix)
       ix = index (count_name1, '#')
       if (ix .eq. 0) then
-	call out_io (s_abort$, r_name, "WHEN USING 'SAME:' MUST HAVE '#' &
-			WILDCARD IN NAME")
-	call err_exit
+      call out_io (s_abort$, r_name, "WHEN USING 'SAME:' MUST HAVE '#' &
+                  WILDCARD IN NAME")
+      call err_exit
       endif
       count_name2 = count_name1(ix+1:)
       count_name1 = count_name1(:ix-1) 
@@ -272,9 +276,9 @@ logical, allocatable :: found_one(:)
       found_one = .false.
       do j = 1, u%design%n_ele_max
         if (match_wild(u%design%ele_(j)%name, search_string)) &
-	  found_one(j) = .true.
-	  !keep track of element index in lattice
-	  u%design%ele_(j)%ix_pointer = j
+        found_one(j) = .true.
+        !keep track of element index in lattice
+        u%design%ele_(j)%ix_pointer = j
       enddo
       !finish finding data array limits
       if (counting) then
@@ -294,14 +298,14 @@ logical, allocatable :: found_one(:)
       do j = 1, size(found_one)
         if (found_one(j)) then
           if (jj .gt. n2) then
-	    call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
-	    call err_exit
-	  endif
-          u%data(jj)%ele_name = u%design%ele_(j)%name
-          u%data(jj)%ix_ele   = j
-          u%data(jj)%exists   = .true.
-	  jj = jj + 1
-	endif
+          call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
+          call err_exit
+        endif
+        u%data(jj)%ele_name = u%design%ele_(j)%name
+        u%data(jj)%ix_ele   = j
+        u%data(jj)%exists   = .true.
+        jj = jj + 1
+      endif
       enddo
     elseif (index(data(i)%ele_name(0), 'SAME:') .ne. 0) then
       call string_trim (data(i)%ele_name(0)(6:), name, ix)
@@ -333,13 +337,14 @@ logical, allocatable :: found_one(:)
       jj = ix1
       do j = n1, n2
         if (jj .gt. ix2) then
-	  call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
-	  call err_exit
-	endif
+          call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
+          call err_exit
+        endif
         write (ix_char, '(I)') jj
-        u%data(j)%name = count_name1 // ix_char // count_name2
-	jj = jj + 1
+        u%data(j)%name = trim(count_name1) // trim(ix_char) // count_name2
+      jj = jj + 1
       enddo
+
     elseif (index(data(i)%name(0), 'SAME:') .ne. 0) then
       call string_trim (data(i)%name(0)(6:), name, ix)
       call tao_find_data (err, u, name, d1_ptr = d1_ptr)
@@ -353,10 +358,11 @@ logical, allocatable :: found_one(:)
     endif
 
     if (ix2-ix1 .le. size(data(i)%weight) .and. .not. counting) &
-    	u%data(n1:n2)%weight   = data(i)%weight(ix1:ix2)
+          u%data(n1:n2)%weight   = data(i)%weight(ix1:ix2)
 
 ! now for some family guidance...
 ! point the children to the grandchildren in the big data array
+
     call tao_point_d1_to_data (u%d2_data(nn)%d1(i)%d, &
                                       u%data(n1:n2), data(i)%ix_min, n1)
 
@@ -368,9 +374,10 @@ logical, allocatable :: found_one(:)
     enddo
 
 ! point the children back to the mother    
-    u%d2_data(nn)%d1(i)%d2 => u%d2_data(nn)
 
+    u%d2_data(nn)%d1(i)%d2 => u%d2_data(nn)
     if (allocated(found_one)) deallocate (found_one)
+
   enddo
   
   
@@ -449,9 +456,9 @@ end subroutine
 !
 ! used for arbitrary variable pointer indexing
 !
-! ip 	-- tao_var_struct: the pointer
-! ii: 	-- tao_var_struct: the variable
-! n:  	-- integer: starting index for the pointer
+! ip       -- tao_var_struct: the pointer
+! ii:       -- tao_var_struct: the variable
+! n:        -- integer: starting index for the pointer
 !-
 
 subroutine tao_point_v1_to_var (ip, ii, n, n_var)
@@ -481,9 +488,9 @@ end subroutine
 !
 ! Routine used for arbitrary data pointer indexing
 !
-! ip	 -- tao_data_struct: the pointer
-! ii 	 -- tao_data_struct: the data
-! n  	 -- integer: starting index for the pointer
+! ip     -- tao_data_struct: the pointer
+! ii     -- tao_data_struct: the data
+! n      -- integer: starting index for the pointer
 ! n_data -- integer: starting index for the next data point in the big data array
 !-
 

@@ -55,15 +55,16 @@ page => s%plot_page
 page%size = plot_page%size
 page%border = plot_page%border
 
-!set default font size
-call qp_set_text_attrib ("MAIN_TITLE",  height = plot_page%text_height) 
-call qp_set_text_attrib ("GRAPH_TITLE",  height = plot_page%text_height) 
-call qp_set_text_attrib ("AXIS_LABEL",  height = plot_page%text_height) 
-
 ! Open a plot window
 
 call qp_open_page ('X', page%id_window, page%size(1), page%size(2), 'POINTS')
 call qp_set_layout (page_border = page%border)
+
+!set default font size
+
+call qp_set_text_attrib ("MAIN_TITLE",  height = plot_page%text_height) 
+call qp_set_text_attrib ("GRAPH_TITLE",  height = plot_page%text_height) 
+call qp_set_text_attrib ("AXIS_LABEL",  height = plot_page%text_height) 
 
 ! allocate a s%plot_page%plot structure for each region defined and
 ! transfer the info from the input region structure.

@@ -38,8 +38,8 @@ if (s%global%parallel_vars) then
 
   n_var  = count(var(:)%useit_opt)
   call reallocate_real (var_value, n_var)
-  call reallocate_real (var_del, n_var)
-  call reallocate_real (var_data_value, n_var)
+  if (present(var_del))        call reallocate_real (var_del, n_var)
+  if (present(var_data_value)) call reallocate_real (var_data_value, n_var)
 
   j = 0
   do i = 1, size(var)
