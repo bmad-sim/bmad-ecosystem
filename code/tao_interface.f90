@@ -184,9 +184,10 @@ interface
 end interface
  
 interface
-  function tao_merit () result (this_merit)
+  function tao_merit (calc_lattice) result (this_merit)
     use precision_def
     implicit none
+    logical calc_lattice
     real(rp) this_merit
   end function
 end interface

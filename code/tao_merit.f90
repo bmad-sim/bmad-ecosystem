@@ -1,15 +1,16 @@
 !+
-! function tao_merit () result (this_merit)
+! function tao_merit (calc_lattice) result (this_merit)
 ! 
 ! function to calculate the merit.
 !
 ! Input:
+!   calc_lattice -- Logical: recalc lattice
 !
 ! Output:
 !   this_merit -- Real(rp): Merit value.
 !-
 
-function tao_merit () result (this_merit)
+function tao_merit (calc_lattice) result (this_merit)
 
 use tao_mod
 
@@ -22,11 +23,11 @@ type (tao_d1_data_struct), pointer :: d1
 real(rp) this_merit, ave, value
 
 integer i, j, n
-logical err
+logical calc_lattice, err
 
 ! make sure all calculations are up to date.
 
-call tao_lattice_calc ()
+if (calc_lattice) call tao_lattice_calc ()
 
 !----------------------------------------
 ! Merit contribution from the variables.

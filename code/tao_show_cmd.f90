@@ -240,7 +240,7 @@ case ('data')
                                        max_lines_char // " matches.")
           exit
         endif
-        nl=nl+1; write(lines(nl), '(5x, a, i3, a, i3)') d2_ptr%d1(i)%name, &
+        nl=nl+1; write(lines(nl), '(5x, a, i5, a, i5)') d2_ptr%d1(i)%name, &
                   lbound(d2_ptr%d1(i)%d, 1), ':', ubound(d2_ptr%d1(i)%d, 1)
       enddo
     endif

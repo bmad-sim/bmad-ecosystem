@@ -46,7 +46,7 @@ character(20) :: r_name = 'tao_top10_print'
 ! tao_merit also calculates the contrribution of the individual
 ! variables and data to the merit function.
 
-merit = tao_merit()
+merit = tao_merit(.false.)
 call tao_dmerit_calc ()
 
 ! top_merit stores the top contributors to the merit function.

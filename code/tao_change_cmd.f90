@@ -45,7 +45,7 @@ logical err, absolute_num, rel_to_design
 !-------------------------------------------------
 
 call to_number;  if (err) return
-old_merit = tao_merit()
+old_merit = tao_merit(.false.)
 
 ! If changing a variable...
 
@@ -128,7 +128,7 @@ end select
 !---------------------------------------------------
 ! print results
 
-new_merit = tao_merit()
+new_merit = tao_merit(.true.)
 delta = new_value - old_value
 if (max(abs(old_value), abs(new_value), abs(design_value)) > 100) then
   fmt = '(5x, 2(a, f12.0), f12.0)'

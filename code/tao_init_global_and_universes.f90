@@ -398,6 +398,7 @@ elseif (index(data(0)%ele_name, 'SAME:') /= 0) then
     call err_exit
   endif
   n2 = n1 + size(d1_ptr%d) - 1
+  u%data(n1:n2)%data_type  = ' '
   u%data(n1:n2)%ele_name   = d1_ptr%d%ele_name
   u%data(n1:n2)%ix_ele     = d1_ptr%d%ix_ele
   u%data(n1:n2)%ele2_name  = d1_ptr%d%ele2_name
@@ -405,7 +406,6 @@ elseif (index(data(0)%ele_name, 'SAME:') /= 0) then
   u%data(n1:n2)%exists     = d1_ptr%d%exists
  
   u%data(n1:n2)%meas_value = d1_ptr%d%meas_value
-  u%data(n1:n2)%data_type  = d1_ptr%d%data_type
   u%data(n1:n2)%merit_type = d1_ptr%d%merit_type
   u%data(n1:n2)%good_data  = d1_ptr%d%good_data
   u%data(n1:n2)%weight     = d1_ptr%d%weight

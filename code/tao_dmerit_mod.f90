@@ -22,7 +22,7 @@ contains
 !    %u(:)%dModel_dVar(:,:)  -- Derivative matrix
 !-
 
-subroutine tao_dModel_dvar_calc (force_calc)
+subroutine tao_dmodel_dvar_calc (force_calc)
 
 implicit none
 
@@ -79,7 +79,7 @@ call out_io (s_info$, r_name, 'Remaking dModel_dVar derivative matrix...')
 
 ! Calculate matrices
 
-merit_value = tao_merit ()
+merit_value = tao_merit (.true.)
 s%var%old_value = s%var%delta
 
 do j = 1, size(s%var)
@@ -92,7 +92,7 @@ do j = 1, size(s%var)
   endif
   model_value = s%var(j)%model_value
   call tao_set_var_model_value (s%var(j), model_value + s%var(j)%step)
-  merit_value = tao_merit ()
+  merit_value = tao_merit (.true.)
 
   do i = 1, size(s%u)
     u => s%u(i)

@@ -120,7 +120,7 @@ type (constraint_struct), allocatable :: con(:)
 
 !
 
-this_merit = tao_merit()
+this_merit = tao_merit(.false.)
 fmt  = '(i3, 1x, a9, 2x, a10, 1x, a9, 1pe10.2, 1pe12.3, e10.2, 2x, a8)'
 top_merit(:)%valid  = .false.; top_merit(:)%name  = ' '
 
