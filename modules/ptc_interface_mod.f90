@@ -1778,7 +1778,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
     ptc_key%list%delta_e = 0
 
   case (elseparator$)
-    ptc_key%magnet = 'kicker'
+    ptc_key%magnet = 'elseparator'
     hk = ele%value(hkick$) / len
     vk = ele%value(vkick$) / len
     if (hk == 0 .and. vk == 0) then
@@ -1791,7 +1791,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
       ptc_key%tiltd = -atan2 (hk, vk) + ele%value(tilt_tot$)
     endif
     ptc_key%list%volt = 1e-6 * ele%value(beam_energy$) * sqrt(hk**2 + vk**2)
-    call multipole_ele_to_ab (ele, param%particle, an0, bn0, .false.) 
+    call multipole_ele_to_ab (ele, +1, an0, bn0, .false.) 
     if (any(an0 /= 0) .or. any(bn0 /= 0)) then
       print *, 'ERROR IN ELE_TO_FIBRE: ', &
                        'MULTIPOLES IN AN ELSEPARATOR NOT SUPPORTED IN A FIBRE.'
