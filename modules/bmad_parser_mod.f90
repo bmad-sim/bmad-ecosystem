@@ -2757,7 +2757,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_add_lord (in_ring, n1, n2, pring, ring)
+! Subroutine parser_add_lord (in_ring, n2, pring, ring)
 !
 ! Subroutine to add overlay, group, and i_beam lords.
 ! For overlays and groups: If multiple elements have the same name then 
@@ -2767,7 +2767,7 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_add_lord (in_ring, n1, n2, pring, ring)
+subroutine parser_add_lord (in_ring, n2, pring, ring)
 
   implicit none
 
@@ -2776,7 +2776,7 @@ subroutine parser_add_lord (in_ring, n1, n2, pring, ring)
   type (parser_ring_struct) pring
   type (control_struct), pointer, save :: cs_(:) => null()
 
-  integer ixx, i, ic, n, n1, n2, k, k2, ix, j, ie, ij, ix1
+  integer ixx, i, ic, n, n2, k, k2, ix, j, ie, ij, ix1
   integer ix_lord, ix_slave(1000)
   integer, allocatable, save :: r_indexx(:)
 
@@ -2787,7 +2787,7 @@ subroutine parser_add_lord (in_ring, n1, n2, pring, ring)
 
 ! setup
 
-  n = ring%n_ele_max + n2 - n1 + 1000
+  n = ring%n_ele_max + n2 + 1000
 
   allocate (r_indexx(n))
   allocate (name_(n))
@@ -2799,7 +2799,7 @@ subroutine parser_add_lord (in_ring, n1, n2, pring, ring)
 
 ! loop over elements
 
-  main_loop: do n = n1, n2
+  main_loop: do n = 1, n2
 
     ele => in_ring%ele_(n)
 
@@ -2813,7 +2813,9 @@ subroutine parser_add_lord (in_ring, n1, n2, pring, ring)
       ring%ele_(ix_lord) = ele
       ixx = ele%ixx
 
-! find where the slave elements are
+! find where the slave elements are. 
+! If slave element is not in ring but is in in_ring then the slave has not been 
+! used in the lattice list. In this case do not add the lord to the lattice.
 
       j = 0 ! number of slaves found
 
@@ -2821,9 +2823,11 @@ subroutine parser_add_lord (in_ring, n1, n2, pring, ring)
 
         name = pring%ele(ixx)%name_(i)
         call find_indexx (name, name_, r_indexx, ix1, k, k2)
-        if (k == 0) then
-          call warning ('CANNOT FIND SLAVE FOR: ' // ele%name, &
-                        'CANNOT FIND: '// name)
+        if (k == 0) then  ! not in ring
+          if (all(in_ring%ele_(1:n2)%name /= name)) then ! Not in in_ring.
+            call warning ('CANNOT FIND SLAVE FOR: ' // ele%name, &
+                          'CANNOT FIND: '// name)
+          endif
           cycle
         endif
 
