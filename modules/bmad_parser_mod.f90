@@ -1060,7 +1060,7 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
     if (split) then
       word0 = word(:ix_word) // delim
       ix0 = ix_word + 1
-      call get_next_word (word, ix_word, '+-*/()^', delim, delim_found)
+      call get_next_word (word, ix_word, '+-*/()^,:}', delim, delim_found)
       word = word0(:ix0) // word
       ix_word = ix_word + ix0
     endif
@@ -1136,7 +1136,7 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
 
         i_op = i - 1
 
-        call get_next_word (word, ix_word, '+-*/()^', delim, delim_found)
+        call get_next_word (word, ix_word, '+-*/()^,:}', delim, delim_found)
         if (ix_word /= 0) then
           call warning ('UNEXPECTED CHARACTERS ON RHS AFTER ")"',  &
                                                     'FOR: ' // err_str)
