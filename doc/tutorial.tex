@@ -1,110 +1,19 @@
-%\documentclass{book}
-\documentclass{report}
 
 
-\usepackage{graphicx}
-\usepackage{moreverb}
-\usepackage{amsmath}
-\usepackage{alltt}
-\usepackage{rotating}
-\usepackage{subfigure}
-\usepackage{toc}
-\usepackage{xspace}
-
-\input{macros.tex}
-
-\setlength{\textwidth}{6.25in}
-\setlength{\oddsidemargin}{0.25in}
-\setlength{\evensidemargin}{0.00in}
-\setlength{\textheight}{8.5in}
-\setlength{\topmargin}{0in}
-
-\begin{document}
+\chapter{``Vanilla'' \tao}
+\label{c:vanilla_tao}
 
 %----------------------------------------------------------------
-% Cover Page
-
-\thispagestyle{empty}
-
-\begin{flushright}
-\large
-  Revision: 0.1.5 \\
-  13 June, 2004 \\
-\end{flushright}
-
-\vfill
-
-{
-\begin{center}
-{\Huge \sf\bf The} \\
-\vskip 0.1in
-\includegraphics[width=10cm]{tao.psfig} \\
-\vskip 0.1in
-{\Huge \sf\bf Tutorial} \\
-\vskip 0.1in
-{\normalsize \sf\bf by Jeffrey C. Smith} \\
-\end{center}
-}
-
-\vskip 1in
-\begin{center}
-{\Huge \bf *** ROUGH DRAFT ***}
-\end{center}
-\vfill
-\break
-%----------------------------------------------------------------
-%Introduction
-
-{
-\setlength{\parskip}{\dPar}
-\setlength{\parindent}{0ex}
-
-\section*{Tao: The Tool for Accelerator Optics}
-
-The \tao program was developed
-to reduce the time needed to develop working programs. \tao is a
-machine independent program that implements the essential ingredients
-needed to solve simulation problems. To make the
-connection, \tao uses configuration input files that can be tailored to
-specific machines. Additionally, \tao has been built
-to be easily customizable so that extending \tao to solve new and
-different problems is relatively straight forward.
-
-More information can be found at the \bmad web site at
-\begin{example}
-  http://www.lepp.cornell.edu/~dcs/bmad
-\end{example}
-
-Tutorials are always difficult to write. Please send any recommendations 
-for imporvement or notices of out-right errors to:
-\begin{example}
-  Jeff Smith <js344@cornell.edu>
-\end{example}
-}
-
-%----------------------------------------------------------------
-\tableofcontents
-\listoffigures
-%% \listoftables
-
-\setlength{\parskip}{\dPar}
-\setlength{\parindent}{0ex}
-
-\part{``Vanilla'' \tao}
-\label{p:vanilla_tao}
-
-%----------------------------------------------------------------
-\chapter{Before we start}
-\label{c:before_beginning}
+\section{Before we start}
+\label{s:before_beginning}
 
 \tao is readily customizable. All the bookkeeping has already been done and all
 you need to do custom analysis is write the subroutines perinent to your
 project. However beginners are advised to start with
 ``out of the box'' \tao while getting to know the program. This tutorial will
-guide you through the basic features of this ``vanilla'' \tao and then show you
 how to customize \tao for your speciffic purposes.
 
-\section{Getting and Compiling \tao}
+\subsection{Getting and Compiling \tao}
 
 \tao is available in the \cesr CVS area. To checkout a copy type `\cmd{cvs co
 tao'} in the directory from where you want to run \tao. If you don't have \cesr
@@ -134,11 +43,11 @@ how to do this.
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
-\chapter{In the Beginning...}
-\label{c:beginning}
+\section{In the Beginning...}
+\label{s:beginning}
 
 %----------------------------------------------------------------
-\section{There was the the user}
+\subsection{There was the the user}
 
 Part~\ref{p:vanilla_tao} assumes you are already familiar with basic particle beam
 dynamics and its formalism. There are several books that introduce the topics
@@ -180,7 +89,7 @@ needing to dredge through the entire reference manual. Full command syntax
 or greater detail on any topic can be found in the referencereferenc  manual.
 
 %----------------------------------------------------------------
-\section{Then there was the Super-universe}
+\subsection{Then there was the Super-universe}
 
 Everything known to \tao is placed in an area called the
 \textit{super-universe}. Within the \textit{super-universe} lies one or more
@@ -189,7 +98,7 @@ to do analysis on multiple machines or multiple configurations of a single
 machine at the same time. A \textit{super-universe} consists of the following
 parts:
 
-\subsection{A typical universe}
+\subsubsection{A typical universe}
 A universe contains a \bmad lattice plus whatever data one wishes to study
 within this lattice (i.e. twiss parameters, orbit, phase \&etc...) . Actually,
 there are three lattices within each universe: the \textbf{design
@@ -210,7 +119,7 @@ value would be placed here. This data area is also refered to as the constraint 
 optimization. The reference data is for looking at changes in the data with
 respect to a reference.
 
-\subsection{Variables}
+\subsubsection{Variables}
 
 Variables control attributes of elements in the model lattice of one or more
 universes. So, a given variable may control a single attribute of one element
@@ -219,14 +128,14 @@ your model lattice. You can also change your model lattice by directly changing
 and lattice element parameter. However, if you plan on doing any optimization then 
 you will need to use the variables.
 
-\subsection{Key Bindings}
+\subsubsection{Key Bindings}
 
 Key bindings are used in \textit{single mode} where each key
 stroke is interpreted without the user having to press the carriage control key.
 Each group of keys is bound to a different variable and pressing these keys will
 allow you to rapidly change your lattice optics.
 
-\subsection{Other stuff in the Super-universe}
+\subsubsection{Other stuff in the Super-universe}
 
 The super-universe also contains information pertaining to global environment variables and
 plotting. No need to go into the details here. The \tao reference manual will
@@ -234,8 +143,8 @@ tell you all about this.
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
-\chapter{Initializing \tao}
-\label{c:initializing}
+\section{Initializing \tao}
+\label{s:initializing}
 
 Initialization occurs at startup. There are \emph{four} files used to initialize \tao.
   \vspace*{-3ex}
@@ -269,11 +178,11 @@ entered and plotting output may be different for custom versions.}
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
-\chapter{Getting information from \tao}
-\label{c:get_info}
+\section{Getting information from \tao}
+\label{s:get_info}
 
 %----------------------------------------------------------------
-\section{The Plotting Window}
+\subsection{The Plotting Window}
 
 When \tao first starts up you will see a plot window and a command prompt. 
 Figure~\ref{f:plot_begin} shows what you will see in the plot window. In the top
@@ -385,7 +294,7 @@ with \cmd{all}.
 \end{figure}
 
 %----------------------------------------------------------------
-\section{The \cmd{Show} Command}
+\subsection{The \cmd{Show} Command}
 
 Anything in the super-universe can be displayed using the \cmd{show} command. To
 get a list of the data elements currently defined in \tao type
@@ -443,11 +352,11 @@ where \vn{<command_name>} is the command you want help with.
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
-\chapter{Modifying the Lattice}
-\label{c:modify_lattice}
+\section{Modifying the Lattice}
+\label{s:modify_lattice}
 
-\section{Changing a Variable}
-\label{s:put_it_back}
+\subsection{Changing a Variable}
+\label{ss:put_it_back}
 
 Let's change a variable and see what happens to the lattice. We are going to
 change a quadrupole strength so we should plot the change in beta and phase.
@@ -474,8 +383,8 @@ value. So, to change this quadrupole k1 to -0.348 type
   change var quad\_k1 5 @-0.348
 \end{example}
 
-\section{Putting things back where we found them}
-\label{s:put_it_back}
+\subsection{Putting things back where you found them}
+\label{ss:put_it_back}
 
 Let's put this quadrupole back where we found it. We can also modify the quadrupole
 by modifying the element directly by typing
@@ -503,8 +412,8 @@ the model lattice to reflect the change so all the bookkeeping is done for you.
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
-\chapter{Running the optimizer}
-\label{c:optimizer}
+\section{Running the optimizer}
+\label{s:optimizer}
 
 There are two non-linear optimizers included with \tao: Levenburg - Marquardt,
 or `lm', and
@@ -516,8 +425,8 @@ explaination. There's no need to know the details in order to use the
 optimizer. Once you set up the problem \tao has the proper wrapper routines to
 do the optimization.
 
-\section{Fix a Messed Up lattice}
-\label{s:fix_it}
+\subsection{Fix a Messed Up lattice}
+\label{ss:fix_it}
 
 Let's mess the lattice up a little and see if the optimizer can ``fix'' the
 lattice. First transfer the ``correct'' lattice to the \vn{meas} data area.
@@ -550,6 +459,7 @@ defined by
     \bigl[ \var\_\model(j) - \var\_\meas(j) \bigr]^2
   \label{m1}
 \Endeq
+where $w\_i$ and $w\_j$ are the weights given to each component.
 The optimizer tries to minimize the merit function by makiing the model look
 like the data. We see that the beta function is affecting the merit function the most. Since we
 are looking at beta and phase let's only use that data in the optimization.
@@ -582,17 +492,20 @@ You see the optimizer going through its cycles and it did it! The model is now
 \begin{example}
   sho var quad\_k1
 \end{example}
-The optimizer didn't find the ``design'' lattice but changed more quadrupoles
-than just 10, 21 anf 67. This isn't suprising. The optimizer finds the minimun
+The optimizer cam very close to finding the ``design'' lattice. However, it changed 
+more quadrupoles
+than just 10, 21 and 67. This isn't suprising. The optimizer finds the minimun
 of the merit function and there are potentially many minimums, or a degeneracy.
  It does it's best
 not to get stuck in a local minimum and as we can see by the plotted data, the
-minimum found is very close to the design lattice optics. A good hint before we
-even ran the optimizer is the output of \cmd{show optimizer}. The top 3
-derivative were not the quadrupoles we adjusted.
+minimum found is very close -- virtually identical -- to the design lattice optics. 
+A good hint as to what variables will be adjusted is the output of \cmd{show optimizer}. 
+The top 3
+derivatives were not the quadrupoles we adjusted. Nevertheless, the final result
+was a darn near perfect match!
 
-\section{Now Not Using all of the Variables}
-\label{s:fix_it}
+\subsection{Now Not Using all of the Variables}
+\label{ss:fix_it}
 
 Alternatively, we could have used only a subsection of the quadrupole. Say we
 know approximately which quadrupoles should be adjusted. So specify these
@@ -606,14 +519,23 @@ variables ranges.
   flatten
   sho var quad\_k1 8:12 20:25 65:70
 \end{example}
-Different quadrupoles than the ones we initially adjusted were still ``fixed''
-with the optimizer. This further emphasizes the degeneracy in minimizing the
-merit function.
+Different quadrupoles than the ones we initially changed were still adjusted
+by the optimizer. But the end result is still very close to the design lattice.
+
+\subsection{Lattice Design}
+\label{ss:lattice_design}
+
+you may wish to constrain beam
+parameters instead of ``flattening'' to data. For example, you could not want
+the beta function to exceed a value in a certain part of the machine. \tao will
+also perform this type of optimization.
+
+\fbox{this subsection is yet to be completed!} 
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
-\chapter{Single Mode}
-\label{c:single_mode}
+\section{Single Mode}
+\label{s:single_mode}
 
 Single mode utilizes a simple single character interface between the neural 
 network present in your brain and the \tao model lattice. By simply typing
@@ -635,13 +557,13 @@ inefficient and time consuming for complex parameter spaces.
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
-\chapter{Where to go from here}
-\label{c:where_to_go}
+\section{Where to go from here}
+\label{s:where_to_go}
 
 You now have an understanding of the basic abilities of \tao. After this
-tutorial, Part I of the \tao Reference Manual should be legible and useful.
-The Reference Manual will provide the details of everything mentioned in Part I
-of this tutorial. It goes into detail of setting up your own initialization
+tutorial, Part II of the \tao Manual should be legible and useful.
+The Reference Guide will provide the details of everything mentioned this tutorial. 
+It goes into detail of setting up your own initialization
 files and how to use the optimizer. It also includes a complete command
 reference with command syntax.
 
@@ -654,11 +576,11 @@ fancy!
 %----------------------------------------------------------------
 %----------------------------------------------------------------
 %----------------------------------------------------------------
-\part{Customizing \tao}
-\label{p:custom_tao}
+\chapter{Customizing \tao}
+\label{c:custom_tao}
 
 %----------------------------------------------------------------
-\chapter{It's all a matter of Hooks}
+\section{It's all a matter of Hooks}
 
 The golden rule when extending \tao is that you are only allowed to replace
 routines or redefine structures that have the name ``hook'' in them. 
@@ -674,8 +596,7 @@ by various people.
 
 \fbox{this section is yet to be completed!} 
 
-\chapter{An Example}
+\section{An Example}
 
 \fbox{this section is yet to be completed!} 
 
-\end{document}
