@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/10/21 20:29:53  dcs
+!Init all elements
+!
 !Revision 1.6  2002/09/14 19:45:24  dcs
 !*** empty log message ***
 !
@@ -61,7 +64,15 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
 
   logical found_it
 
-!
+! init all elements in ring
+
+  call init_ele (ring%ele_init)  ! init pointers
+
+  do i = 0, n_ele_maxx
+    call init_ele (ring%ele_(i))
+  enddo
+
+! read the digested file
 
   d_unit = lunget()
   bmad_status%ok = .true.
@@ -175,8 +186,6 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
     enddo
     
   enddo
-
-  call init_ele (ring%ele_init)  ! init pointers
 
 !
 
