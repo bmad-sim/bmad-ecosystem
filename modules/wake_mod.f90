@@ -174,8 +174,8 @@ end subroutine
 !
 ! Input:
 !   ele      -- Ele_struct: Element with wakes.
-!   leader   -- Coord_struct: Coordinates of the leading particle
-!   charge   -- Real(rp): Charge of leader particle.
+!   leader   -- Coord_struct: Coordinates of the leading particle.
+!   charge   -- Real(rp): Charge of leader particle (in Coul).
 !   follower -- Coord_struct: Starting coords of particle to kick.
 !
 ! Output:
@@ -204,12 +204,12 @@ f1 = 1 - f2
 
 fact = (ele%wake%sr1(iw)%trans*f1 + ele%wake%sr1(iw+1)%trans*f2) * &
                               charge * ele%value(l$) / ele%value(p0c$)
-follower%vec(2) = follower%vec(2) - fact * charge * leader%vec(1)
-follower%vec(4) = follower%vec(4) - fact * charge * leader%vec(3)
+follower%vec(2) = follower%vec(2) - fact * leader%vec(1)
+follower%vec(4) = follower%vec(4) - fact * leader%vec(3)
 
 fact = (ele%wake%sr1(iw)%long*f1 + ele%wake%sr1(iw+1)%long*f2) * &
                               charge * ele%value(l$) / ele%value(p0c$)
-follower%vec(6) = follower%vec(6) - fact * charge
+follower%vec(6) = follower%vec(6) - fact 
 
 end subroutine
 
