@@ -424,7 +424,7 @@ subroutine track1_bmad (start, ele, param, end)
 
 !-----------------------------------------------
 ! wiggler:
-! Only map_type wigglers are handled here.
+! Only periodic type wigglers are handled here.
 ! In the horizontal plane the tracking looks like a drift.
 ! The tracking in the vertical plane is:
 !   1) 1/2 the octupole kick at the entrance face.
