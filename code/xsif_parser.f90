@@ -165,6 +165,8 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
           ele%sub_key = rbend$
         endif
 
+        ele%value(g$) = ele%value(angle$) / ele%value(l$)
+
       case (mad_quad)
         call add_ele (quadrupole$)
         ele%value(l$)        = pdata(dat_indx)
