@@ -158,14 +158,14 @@ at zero.  \vn{qp_calc_and_axis_axis} is told to restrict the number of
 major divisions to be between 4 and 8. For the horizontal axis, as can be
 seen in Figure~\ref{f:plot_out}, it chooses 5 divisions.
 
-After drawing the first data curve (solid curve) in the left graph,
-\vn{qp_set_symbol_attrib} and \vn{qp_set_line_attrib} on lines 44 and
-45 are used to plot the next data curve in blue with a dashed line
-style. By default this curve goes where the last one did: in the left
-graph. To keep the setting of the line and symbol attributes from
-affecting other plots the routines \vn{qp_save_state} and
-\vn{qp_restore_state} on lines 43 and 47 are used. \vn{qp_save_state}
-saves the current attributes in a attribute
+After drawing the first data curve (the solid curve) in the left
+graph, the routines \vn{qp_set_symbol_attrib} and
+\vn{qp_set_line_attrib} are called on lines 44 and 45 to plot the next
+data curve in blue with a dashed line style. By default this curve
+goes where the last one did: in the left graph. To keep the setting of
+the line and symbol attributes from affecting other plots the routines
+\vn{qp_save_state} and \vn{qp_restore_state} on lines 43 and 47 are
+used. \vn{qp_save_state} saves the current attributes in a attribute
 stack. \vn{qp_restore_state} restores the saved attributes from the
 attribute stack. \vn{qp_draw_data} on line 46 is similar to
 \vn{qp_draw_graph} except only the data is drawn. Not the axes and
