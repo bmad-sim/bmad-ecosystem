@@ -126,6 +126,7 @@ the new routines should be explicitly listed in the linking list.
 %-----------------------------------------------------------------------------
 \section{Custom Field Calculations}
 \label{s:custom_field}
+\index{Fields (electric and magnetic)!custom calculation} 
 
 Custom Electric and Magnetic field calculations are used with
 \vntm{Runge_Kutta} and \vntm{Boris} tracking (See \sref{s:integ}).  To
@@ -134,4 +135,10 @@ of an element must be set to \vn{custom\$}. This can be done either
 through the lattice input file or within a program. Additionally a
 routine \vn{em_field_custom} must be linked with any program using the
 custom calculations.
+
+%-----------------------------------------------------------------------------
+\section{Nonlinear Optimization}
+\label{s:opti}
+\index{Optimizers}
+
 

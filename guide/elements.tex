@@ -812,36 +812,34 @@ file is:
   -1.990E-03  3.47263E+14   7.98989E+16   200
      END_SECTION
 
-  ! Longitudinal wake
-  !   Amp         damp        freq     phase
-  ! [V/C/m]      [1/sec]      [Hz]
-    3.23e14      1.23e3     3.62e3     0.123
-    .. etc ..
-     END_SECTION
 
-  ! Transverse wake
-  !    Amp         damp        freq     phase
-  ! [V/C/m^2]     [1/sec]      [Hz]
-     4.23e14      2.23e3     5.62e3     0.789
+  ! Pseudo Wake modes:
+  !                      Amp       damp          k      phase
+  ! Longitudinal:      [V/C/m]     [1/m]      [1/m]     [rad]  
+  ! Transverse:      [V/C/m^2]     [1/m]      [1/m]     [rad]  
+
+  &short_range_modes
+    longitudinal(1) = 3.23e14     1.23e3     3.62e3     0.123
+    longitudinal(2) = 6.95e13     5.02e2     1.90e3    -1.503
+    .. etc ..
+    transverse(1) =   4.23e14     2.23e3     5.62e3     0.789
+    transverse(2) =   8.40e13     5.94e2     1.92e3     1.455
      .. etc ..
-     END_SECTION
-  &sr2_param
-    z_sr2_max = 1.3e-3
+    z_max = -1.3e-3
   /
 \end{example}
-The file is divided into three sections with lines containing the word
-\vn{END_SECTION} marking the division between sections.  Wakes can be
-specified via a table of wake versus longitudinal position $z$ and/or
-using a set of ``pseudo'' modes (\sref{s:wakefields}). The first
-section gives the wake vs $z$ table, the second section gives the
-longitudinal monopole pseudo modes, and the third section gives the
-transverse dipole pseudo modes.  The cutoff $z_{\rm{cut}}$ below which
-the wake vs. $z$ table is used is simply the last $z$ value of the
-first section. If pseudo modes are not to be used simply provide the
-first section only. If a wake vs $z$ table is not to be used simply
-leave the first section blank. The last piece of the file is the
-maximum longitudinal distance \vn{z_sr2_max} over which the pseudo
-modes are valid.
+The file is divided into two sections with a line containing the word
+\vn{END_SECTION} marking the division between the sections.  Wakes can
+be specified via a table of wake versus longitudinal position $z$
+and/or using a set of ``pseudo'' modes (\sref{s:wakefields}). The
+first section gives the wake vs $z$ table, and the second section
+gives the longitudinal monopole and transverse dipole pseudo modes.
+The range of the table is from $0$ to $z_{cut}$ where $z_{cut}$ is the
+$z$ value in the last line of the table. If the longitudinal distance
+$dz$ between two particles is within the range of the table then the
+table will be used to calculate the wake kick for this pair. If $dz$
+is larger than $z_{cut}$ the pseudo modes will be used. The pseudo
+modes are valid from $z_{cut}$ to \vn{z_max}. 
 
 In the first section with the table of wake vs. $z$, the first column
 is the longitudinal distance $z$. $z$ must start at 0 and must

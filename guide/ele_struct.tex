@@ -208,6 +208,15 @@ to be safe, when elment attributes are changed,
 call \vnf{attribute_bookkeeper}. If the element is part of a \vn{Ring_struct}
 (as it is in most cases), the routine \vnf{control_bookkeeper} (which calls
 \vn{attribute_bookkeeper}) should be called instead.
+The routine \vnr{check_attrib_free} will check if an attribute is free to vary.
+\begin{example}
+  type (ring_struct) lat
+  integer ix_ele
+  ...
+  call element_locator ('Q10W', lat, ix_ele)   ! look for a quadrupole
+  call check_attrib_free (lat%ele_(ix_ele), k1$, lat, err_flag, .false.)
+  if (err_flag) print *, 'Cannot vary: Q10W k1'
+\end{example}
 
 In designing a program that will let a user input what
 attribute to vary, the routine \vn{pointer_to_attribute} 
@@ -215,7 +224,7 @@ is a covienient way to obtain from the user input a pointer
 that points to the approbriate attribute.
 For example:
 \begin{example}
-  type (ring_struct) ring
+  type (ring_struct) lat
   character(16) attrib_name, ele_name
   real(rp), pointer :: attrib_ptr
   real(rp) set_value
@@ -228,9 +237,9 @@ For example:
   accept '(a)', attrib_name
   write (*, '(a)', advance = 'no') ' Value to set attribute at: '
   accept *, set_value
-  do ie = 1, ring%n_ele_max
-    if (ring%ele_(ie)%name == ele_name) then
-      call pointer_to_attribute (ring%ele_(ie), attrib_name, &
+  do ie = 1, lat%n_ele_max
+    if (lat%ele_(ie)%name == ele_name) then
+      call pointer_to_attribute (lat%ele_(ie), attrib_name, &
                             .false., attrib_ptr, ix_attrib, err_flag)
       if (err_flag) exit      ! Do nothing on an error
       attrib_ptr = set_value  ! Set the attribute
@@ -356,7 +365,7 @@ calculations.  Wakefields are stored in the \vnes{%wake} struct:
     type (sr2_wake_struct), pointer :: sr2_long(:) => null()
     type (sr2_wake_struct), pointer :: sr2_trans(:) => null()
     type (lr_wake_struct), pointer :: lr(:) => null()
-    real(rp) :: z_cut_sr = 0    ! cutoff between sr1 and sr2
+    real(rp) :: z_sr2_max = 0   
   end type
 \end{example}
 Since \vn{%wake} is a pointer its association status must be tested
@@ -413,14 +422,8 @@ set to zero and as each particle passes through the cavity the
 contribution to the wake due to the particle is calculated and added
 the components.
 
-\vn{%wake%z_cut_sr} is the cutoff between where the tabular and
-psudo--mode forms of the wake are applied. If the longitudinal
-distance between two particles is smaller in magnitude then
-\vn{%wake%z_cut_sr} then the tabular wake is applied. Otherwise the
-psudo--mode wake is applied. \vnr{bmad_parser} will automatically set
-\vn{%wake%z_cut_sr} to the value of \vn{%wake%sr1(n)%z} where \vn{n}
-is the last element in the array (largest in magnitude z value).
-
+\vn{%wake%z_sr2_max} is the maximum $z$ value beyound which the pseudo
+mode representation is not valid. This is set in the input lattice file.
 
 The \vn{%wake%lr} array stores the long--range wake modes. The
 structure definition is:
