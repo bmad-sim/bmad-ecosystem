@@ -16,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.10  2003/03/18 20:36:44  dcs
+!%num_steps for a slave now proportional to length
+!
 !Revision 1.9  2003/03/14 21:19:17  dcs
 !Split bend bug fixed
 !
@@ -306,6 +309,7 @@ subroutine makeup_super_slave (ring, ix_slave)
     value(l$) = slave%value(l$)                 ! do not change slave length
     value(hkick$) = lord%value(hkick$) * coef
     value(vkick$) = lord%value(vkick$) * coef
+    slave%num_steps = lord%num_steps * coef + 1
     if (slave%key == rfcavity$) value(volt$) = lord%value(volt$) * coef
     if (ix_con /= lord%ix2_slave) then   ! if not at end of the lord domain
       value(x_limit$) = 0
