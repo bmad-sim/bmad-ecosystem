@@ -674,17 +674,21 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine READ_BUTNS_FILE (butns_num, butns, db, read_ok, type_err)
+! Subroutine READ_BUTNS_FILE (butns_num, nonlinear_calc, butns, db, 
+!                                                         read_ok, type_err)
 !
-! Subroutine to read in the information in a BUTNS.nnnnn file.
+! Subroutine to read the raw information from a BUTNS.nnnnn file and convert
+! it to orbit x-y positions.
 !
 ! Modules Needed:
 !   use bmad_struct
 !   use bmad_interface
 !
 ! Input:
-!   butns_num -- Integer: Number in BUTNS.nnnnn file name.
-!   type_err  -- Logical: If True then open error message will be printed.
+!   butns_num      -- Integer: Number in BUTNS.nnnnn file name.
+!   nonlinear_calc -- Logical: Calculate orbit using Rich Helms nonlinear 
+!                       routines? Recomendation: True.
+!   type_err       -- Logical: If True then open error message will be printed.
 !                         If False then open error message will be supressed.
 !
 ! Output:
@@ -719,7 +723,8 @@ end subroutine
 ! even be approximately the same).
 !-
 
-subroutine read_butns_file (butns_num, butns, db, read_ok, type_err)
+subroutine read_butns_file (butns_num, nonlinear_calc, butns, db, &
+                                                          read_ok, type_err)
 
   implicit none
 
@@ -734,7 +739,7 @@ subroutine read_butns_file (butns_num, butns, db, read_ok, type_err)
 
   character line_in*130, file_in*40
 
-  logical read_ok, type_err, err_flag, is_ok(120)
+  logical nonlinear_calc, read_ok, type_err, err_flag, is_ok(120)
 
 ! init comments
 
@@ -849,7 +854,12 @@ subroutine read_butns_file (butns_num, butns, db, read_ok, type_err)
 ! read in the raw data
 
   call butfilget (raw, file_in, rdummy, det_type)      ! read in raw data
-  call butcon (raw, 1, 100, y_orbit, x_orbit)
+  if (nonlinear_calc) then
+    call nonlin_butcon (raw, 1, 100, y_orbit, x_orbit)
+  else
+    call butcon (raw, 1, 100, y_orbit, x_orbit)
+  endif
+
   is_ok = .false.
   call det_ok (raw, 1, 100, det_type, is_ok)
 
