@@ -3,6 +3,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.15  2002/11/06 06:49:40  dcs
+!modified arrays in some arg lists.
+!
 !Revision 1.14  2002/10/29 17:07:28  dcs
 !*** empty log message ***
 !
@@ -158,7 +161,7 @@ module bmad_interface
       implicit none
       character*(*) in_file
       type (ring_struct) ring
-      type (coord_struct), optional :: orbit_(0:n_ele_maxx)
+      type (coord_struct), optional :: orbit_(0:)
       logical, optional :: make_mats6
     end subroutine
   end interface
@@ -301,7 +304,7 @@ module bmad_interface
                                                  eps_rel, eps_abs, init_guess)
      use bmad_struct
      type (ring_struct) ring
-     type (coord_struct) closed_orb_(0:n_ele_maxx)
+     type (coord_struct) closed_orb_(0:)
      type (coord_struct), optional :: init_guess
      real(rdef), intent(in) :: eps_rel(:), eps_abs(:)
      integer i_dim
@@ -518,7 +521,7 @@ module bmad_interface
       implicit none
       integer num_lats
       character*(*) directory
-      character*40 lat_list(*)
+      character*40 lat_list(:)
     end subroutine
   end interface
 
@@ -729,7 +732,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct) ring
-      type (coord_struct) orb_(0:n_ele_maxx)
+      type (coord_struct) orb_(0:)
       integer ir
     end subroutine
   end interface
@@ -1063,7 +1066,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct) ring
-      type (coord_struct), optional :: coord_(0:n_ele_maxx)
+      type (coord_struct), optional :: coord_(0:)
       integer ix_ele
     end subroutine
   end interface
@@ -1074,7 +1077,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct) :: ring
-      type (coord_struct), optional :: orbit_(0:n_ele_maxx)
+      type (coord_struct), optional :: orbit_(0:)
       real(rdef) attrib_value
       integer i_ele
       character*(*) attrib_name
@@ -1493,7 +1496,7 @@ module bmad_interface
     subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
       use bmad_struct
       type (ring_struct), intent(inout) :: ring
-      type (coord_struct), intent(in) :: closed_orb_(0:n_ele_maxx)
+      type (coord_struct), intent(in) :: closed_orb_(0:)
       type (coord_struct), intent(in) :: d_orb
       real(rdef), intent(out) :: error
     end subroutine
@@ -1611,7 +1614,7 @@ module bmad_interface
       type (ring_struct), intent(in) :: ring
       integer n_files
       character*(*) digested_name
-      character*(*) file_names(*)
+      character*(*) file_names(:)
     end subroutine
   end interface
 
