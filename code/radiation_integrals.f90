@@ -54,8 +54,8 @@
 !       %i3_E7          -- Integral: g^3 * gamma^7
 !       %i4a_E4         -- Integral: (g^2 + 2K1) * G * eta_a * gamma^4
 !       %i4b_E4         -- Integral: (g^2 + 2K1) * G * eta_b * gamma^4
-!       %i5a_E5         -- Integral: (g^3 * H_a) * gamma^5
-!       %i5b_E5         -- Integral: (g^3 * H_b) * gamma^5
+!       %i5a_E6         -- Integral: (g^3 * H_a) * gamma^6
+!       %i5b_E6         -- Integral: (g^3 * H_b) * gamma^6
 !   ix_cache -- Integer, optional: Cache pointer. If ix_cache = 0 at input then
 !                   ix_cache is set to a unique number. Otherwise ix_cache 
 !                   is not changed.
@@ -98,7 +98,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
   real(rp), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
   real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
   real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, c
-  real(rp) v(4,4), v_inv(4,4), f0, f1, s, mc2, gamma, gamma4, gamma5
+  real(rp) v(4,4), v_inv(4,4), f0, f1, s, mc2, gamma, gamma4, gamma6
 
   integer, optional :: ix_cache
   integer i, j, k, ix, ir, key
@@ -428,19 +428,19 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
   mode%lin%i3_E7  = 0
   mode%lin%i4a_E4 = 0
   mode%lin%i4b_E4 = 0
-  mode%lin%i5a_E5 = 0
-  mode%lin%i5b_E5 = 0
+  mode%lin%i5a_E6 = 0
+  mode%lin%i5b_E6 = 0
 
   do i = 1, ring%n_ele_ring
     gamma = ring%ele_(i)%value(beam_energy$) / mc2
     gamma4 = gamma**4
-    gamma5 = gamma4 * gamma
+    gamma6 = gamma4 * gamma**2
     mode%lin%i2_E4  = mode%lin%i2_E4  + ric%i2_(i) * gamma4
-    mode%lin%i3_E7  = mode%lin%i3_E7  + ric%i3_(i) * gamma5 * gamma**2
+    mode%lin%i3_E7  = mode%lin%i3_E7  + ric%i3_(i) * gamma6 * gamma
     mode%lin%i4a_E4 = mode%lin%i4a_E4 + ric%i4a_(i) * gamma4
     mode%lin%i4b_E4 = mode%lin%i4b_E4 + ric%i4b_(i) * gamma4
-    mode%lin%i5a_E5 = mode%lin%i5a_E5 + ric%i5a_(i) * gamma5
-    mode%lin%i5b_E5 = mode%lin%i5b_E5 + ric%i5b_(i) * gamma5
+    mode%lin%i5a_E6 = mode%lin%i5a_E6 + ric%i5a_(i) * gamma6
+    mode%lin%i5b_E6 = mode%lin%i5b_E6 + ric%i5b_(i) * gamma6
   enddo
 
   c = 55 * r_e * (h_bar_planck * c_light) / &

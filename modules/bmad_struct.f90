@@ -482,8 +482,8 @@ module bmad_struct
     real(rp) i3_E7        ! Integral: g^3 * gamma^7
     real(rp) i4a_E4       ! Integral: (g^2 + 2K1) * G * eta_a * gamma^4
     real(rp) i4b_E4       ! Integral: (g^2 + 2K1) * G * eta_b * gamma^4
-    real(rp) i5a_E5       ! Integral: (g^3 * H_a) * gamma^5
-    real(rp) i5b_E5       ! Integral: (g^3 * H_b) * gamma^5
+    real(rp) i5a_E6       ! Integral: (g^3 * H_a) * gamma^6
+    real(rp) i5b_E6       ! Integral: (g^3 * H_b) * gamma^6
   end type
 
   type modes_struct
