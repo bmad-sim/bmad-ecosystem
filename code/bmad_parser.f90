@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.14  2002/11/17 01:01:58  dcs
+!*** empty log message ***
+!
 !Revision 1.13  2002/11/16 16:13:54  dcs
 !overlay/group change and make_mat6 bug fix
 !
@@ -90,7 +93,6 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   type (seq_stack_struct) stack(20)
   type (ele_struct), save, pointer :: ele, old_ele(:) => null()
   type (control_struct), pointer :: cs_(:) => null()
-  type (coord_struct) co_(0:n_ele_maxx)
 
   integer ix_word, i_use, i, j, k, n, ix, ixr, ixs, i_ring, it
   integer i_lev, i_key, ic, ix_lord
@@ -925,7 +927,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
   doit = .true.
   if (present(make_mats6)) doit = make_mats6
-  if (doit) call ring_make_mat6(ring, -1, co_)      ! make 6x6 transport matrices
+  if (doit) call ring_make_mat6(ring, -1)      ! make 6x6 transport matrices
 
 !-------------------------------------------------------------------------
 ! write out if debug is on
