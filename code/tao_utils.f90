@@ -376,7 +376,7 @@ type (tao_data_struct) data(:)
 !
 
 data%useit_plot = data%exists .and. data%good_user .and. data%good_plot
-if (any(plot%who%name == 'data')) data%useit_plot = data%useit_plot .and. data%good_data
+if (any(plot%who%name == 'meas')) data%useit_plot = data%useit_plot .and. data%good_data
 if (any(plot%who%name == 'ref'))  data%useit_plot = data%useit_plot .and. data%good_ref
 
 end subroutine
@@ -626,7 +626,7 @@ integer i, j
 
 do j = 1, size(s%var)
   var => s%var(j)
-  var%correction_value = var%data_value + (var%design_value - var%model_value)
+  var%correction_value = var%meas_value + (var%design_value - var%model_value)
 enddo
 
 end subroutine

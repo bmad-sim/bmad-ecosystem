@@ -50,7 +50,7 @@ type tao_title_struct
 end type
 
 type tao_plot_who_struct     ! Who to plot
-  character(16) name         ! Eg: 'data', 'ref', 'model', etc.
+  character(16) name         ! Eg: 'meas', 'ref', 'model', etc.
   integer sign               ! +1 or -1
 end type
 
@@ -178,7 +178,7 @@ type tao_data_struct
   integer ix_d1             ! Index number of this datum.
   integer ix_data           ! Index of this datum in the u%data(:) array of data_structs.
   integer ix_dModel         ! Row number in the dModel_dVar derivative matrix.
-  real(rp) data_value       ! Measured datum value. 
+  real(rp) meas_value       ! Measured datum value. 
   real(rp) ref_value        ! Measured datum value from the reference data set.
   real(rp) model_value      ! Datum value as calculated from the model.
   real(rp) design_value     ! What the datum value is in the design lattice.
@@ -274,7 +274,7 @@ type tao_var_struct
   real(rp) base_value      ! Model value.
   real(rp) design_value     ! Design value from the design lattice.
   real(rp) old_value        ! The model_value at some previous time.
-  real(rp) data_value       ! The value when the data measurement was taken.
+  real(rp) meas_value       ! The value when the data measurement was taken.
   real(rp) ref_value        ! Value when the reference measurement was taken.
   real(rp) correction_value ! Value determined by a fit to correct the lattice.
   real(rp) high_lim         ! High limit for the model_value.

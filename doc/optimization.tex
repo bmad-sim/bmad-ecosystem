@@ -1,56 +1,64 @@
 \chapter{Optimization}
 \label{c:opti}
 
-
 %------------------------------------------------------------------------
 \section{Lattice Corrections}
 
 Examples of lattice corrections include flattening the orbit and
 adjusting quadrupoles to correct the measured betatron phase. The
 general idea is to vary an appropriate set of \vn{variables} with the
-aim of minimizing a merit function \vn{M} that is a measure of how well the
-model data fits the measured data
+aim of minimizing a merit function \vn{M} that is a measure of how
+well \vn{data_model}, the data as calculated from the \vn{model} fits
+\vn{data_meas}, the measured data
 \Begineq
-  {\cal M} = \sum_{\data:i} w_i 
+  {\cal M} \equiv \sum_{i} w_i \,
     (\data\_\model(i) -  \data\_\meas(i))^2 + 
-  \sum_{\var:j} w_j 
+  \sum_{j} w_j \,
     (\var\_\model(j) - \var\_\meas(j))^2
   \label{m1}
 \Endeq
-\vn{data_model} is data as calculated from the model and
-\vn{data_meas} is the actual measured data. \vn{var_model} is the
-value of a variable in the \vn{model} and \vn{var_meas} is the value
-as measured at the time the data was taken. The second term in the
-merit function helps prevent degeneracies, or near degeneracies,
-allowing \tao to find solutions where \vn{data_model} matches
+\vn{var_model} is the value of a variable in the \vn{model} and
+\vn{var_meas} is the value as measured at the time the data was taken
+and the sum \vn{j} runs over all variables that are allowed to be
+varied to minimize \vn{M}. The second term in the merit function
+prevents degeneracies (or near degeneracies) in the problem which
+would allow \tao to find solutions where \vn{data_model} matches
 \vn{data_measured} with the \vn{var_model} having ``unphysical''
-values. The weights \vn{w_i} and \vn{w_j} need to be set depending
-upon how accurate the data is and how accurate the calibrations for
-measuring the \vn{var_measured} values are. With the second term in
-the merit function the number of constraints (number of terms in the
-merit function) is always larger than the number of variables so
-degeneracies can never appear. The algorithm used for minimizing
-\vn{M} is called an \vn{optimizer} and the \vn{run} command is used to
-invoke a, \vn{optimizer}.
+values (values far from \vn{var_meas}. The weights $w_i$ and $w_j$
+need to be set depending upon how accurate the measred data is
+relative to how accurate the calibrations for measuring the
+\vn{var_meas} values are. With the second term in the merit function
+the number of constraints (number of terms in the merit function) is
+always larger than the number of variables and degeneracies can never
+occur. 
 
-presumably, once a ``fit'' has been made, by varying the appropriate
-\vn{variables} in the \vn{model} to minimize the merit function, the
-model values of the \vn{variables} are the true values that existed
-when the measurement is taken. Thus, if \vn{M} is reasonably small we 
-believe:
+The algorithm used to vary the \vn{var_model} variables to minimize
+\vn{M} is called an \vn{optimizer}. In \vn{command line mode} the
+\vn{run} command is used to invoke an \vn{optimizer}. In \vn{single
+mode} the \vn{g} key starts an optimizer and the \vn{.} key stops it.
+Running an optimizer is also called ``fitting'' since one is tring to
+get the \vn{data_model} to be equal to the \vn{data_meas}. With orbits
+this is also called ``flattening'' since one generally wants to end up
+with an orbit that is on--axis.
+
+In a correction one wants to change the machine variables so that the
+measured data corresponds to the design values \vn{data_design}. Thus
+the change in the data that one wants is
 \begin{example}
-  var_model = var_actual
+  data_change = data_design - data_meas
 \end{example}
-What is wanted is to have the \vn{variable} values equal to the
-design. Therefore, to correct the lattice, the \vn{variables} need to
-be changed by
+Once a fit has been made, and presuming that the \vn{data_model} is
+resonably close to the \vn{data_meas} this data change within the
+\vn{model} lattice can be accomplished by changing the variables by
 \begin{example}
-  var_change = var_final  - var_start
-             = var_design - var_model
+  var_change = var_design - var_model
 \end{example}
-In other words
+This assumes the system is linear. For many situations this is true
+since typically \vn{var_change} is ``small''. Since the variables have a measrued value of 
+
+
 \begin{example}
-  var_final = var_start + (var_design - var_model)
+  var_final = var_meas + (var_design - var_model)
 \end{example}
 Notice that the fitting process is independent of the \vn{design}
 lattice. It is only when calculating the corrections to the
@@ -61,10 +69,10 @@ absolute value of the data. For example, when closing an orbit bump
 knob what is important is the difference in orbits before and
 after the bump knob is varied. In this case the merit function becomes
 \begin{alignat}{1}
-  {\cal M} = &\sum_{\data:i} w_i 
+  {\cal M} = &\sum_{i} w_i \,
     \left[ (\data\_\model(i) - \data\_\design(i)) - 
       (\data\_\meas(i) - \data\_\reference(i)) \right]^2 + \CRNO
-  &\sum_{\var:j} w_j 
+  &\sum_{j} w_j \,
     \left[ (\var\_\model(j) - \var\_\design(j)) -
      (\var\_\meas(i) - \var\_\reference(i)) \right]^2 
   \label{m2}

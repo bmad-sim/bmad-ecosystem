@@ -29,7 +29,7 @@ real(rp), allocatable, save :: x(:), y(:), sig(:), a(:)
 real(rp), allocatable, save :: covar(:,:), alpha(:,:)
 real(rp), allocatable, save :: y_fit(:)
 real(rp), allocatable, save :: dy_da(:, :)
-real(rp), allocatable, save :: var_value(:), weight(:), var_data_value(:)
+real(rp), allocatable, save :: var_value(:), weight(:), var_meas_value(:)
 real(rp) a_lambda, chi_sq, merit0
 
 integer i, j, k
@@ -45,7 +45,7 @@ character(80) line
 
 a_lambda = -1
 
-call tao_get_vars (var_value, var_weight = weight, var_data_value = var_data_value)
+call tao_get_vars (var_value, var_weight = weight, var_meas_value = var_meas_value)
 n_var = size(var_value)
 
 n_data = n_var
@@ -62,7 +62,7 @@ mask_a = .true.
 ! init a and y arrays
 
 a(1:n_var) = var_value
-y(1:n_var) = var_data_value
+y(1:n_var) = var_meas_value
 sig(1:n_var) = 1e10  ! something large
 where (weight /= 0) sig(1:n_var) = sqrt(1/weight)
 

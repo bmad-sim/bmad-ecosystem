@@ -43,7 +43,7 @@ do j = 1, size(s%var)
 
   select case (var%merit_type)
   case ('target')
-    var%delta = var%model_value - var%data_value
+    var%delta = var%model_value - var%meas_value
   case ('limit')
     if (var%model_value > var%high_lim) then
       var%delta = var%model_value - var%high_lim
@@ -72,15 +72,15 @@ do i = 1, size(s%u)
 
   if (s%global%opt_with_ref .and. s%global%opt_with_base) then
     where (data%useit_opt) data%delta = data%model_value - &
-            data%data_value + data%ref_value - data%base_value
+            data%meas_value + data%ref_value - data%base_value
   elseif (s%global%opt_with_ref) then
     where (data%useit_opt) data%delta = data%model_value - &
-            data%data_value + data%ref_value - data%design_value
+            data%meas_value + data%ref_value - data%design_value
   elseif (s%global%opt_with_base) then
     where (data%useit_opt) data%delta = data%model_value - &
-                                data%data_value - data%base_value
+                                data%meas_value - data%base_value
   else
-    where (data%useit_opt) data%delta = data%model_value - data%data_value 
+    where (data%useit_opt) data%delta = data%model_value - data%meas_value 
   endif
 
 ! For phase data, since there is an arbitrary overall phase,

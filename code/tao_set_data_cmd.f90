@@ -108,8 +108,8 @@ set_it = set_it .and. data(:)%exists
 select case (component)
 case ('weight')
   c_ptr => data(:)%weight
-case ('data')
-  c_ptr => data(:)%data_value
+case ('meas')
+  c_ptr => data(:)%meas_value
 case ('ref')
   c_ptr => data(:)%ref_value
 case default
@@ -120,8 +120,8 @@ end select
 ! select value and set.
 
 select case (set_value)
-case ('data')
-  where (set_it) c_ptr = data(:)%data_value
+case ('meas')
+  where (set_it) c_ptr = data(:)%meas_value
   good = data(:)%good_data
 case ('ref')
   where (set_it) c_ptr = data(:)%ref_value
@@ -165,7 +165,7 @@ end select
 ! set good
 
 select case (component)
-case ('data')
+case ('meas')
   where (set_it) data(:)%good_data = good
 case ('ref')
   where (set_it) data(:)%good_ref = good

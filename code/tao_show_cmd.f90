@@ -169,7 +169,7 @@ case ('data')
       nl=nl+1; write(lines(nl), imt)  '%Ix_dModel:         ', d_ptr%ix_dModel
       nl=nl+1; write(lines(nl), imt)  '%Ix_d1:             ', d_ptr%ix_d1
       nl=nl+1; write(lines(nl), imt)  '%Ix_data:           ', d_ptr%ix_data
-      nl=nl+1; write(lines(nl), fmt)  '%Data_value:        ', d_ptr%data_value
+      nl=nl+1; write(lines(nl), fmt)  '%meas_value:        ', d_ptr%meas_value
       nl=nl+1; write(lines(nl), fmt)  '%Ref_value:         ', d_ptr%ref_value
       nl=nl+1; write(lines(nl), fmt)  '%Model_value:       ', d_ptr%model_value
       nl=nl+1; write(lines(nl), fmt)  '%base_value:        ', d_ptr%base_value
@@ -209,7 +209,7 @@ case ('data')
         if (d1_ptr%d(i)%exists) then
           nl=nl+1
           write(lines(nl), '(i, 2x, a7, 3es14.4)') i, &
-                 d1_ptr%d(i)%name, d1_ptr%d(i)%data_value, &
+                 d1_ptr%d(i)%name, d1_ptr%d(i)%meas_value, &
                  d1_ptr%d(i)%model_value, d1_ptr%d(i)%design_value
         endif
       enddo
@@ -478,7 +478,7 @@ case ('var')
 
     nl=nl+1; write(lines(nl), fmt)  '%Design_value:   ', v_ptr%design_value
     nl=nl+1; write(lines(nl), fmt)  '%Old_value:      ', v_ptr%old_value        
-    nl=nl+1; write(lines(nl), fmt)  '%Data_value:     ', v_ptr%data_value       
+    nl=nl+1; write(lines(nl), fmt)  '%meas_value:     ', v_ptr%meas_value       
     nl=nl+1; write(lines(nl), fmt)  '%Ref_value:      ', v_ptr%ref_value        
     nl=nl+1; write(lines(nl), fmt)  '%correction_alue:', v_ptr%correction_value     
     nl=nl+1; write(lines(nl), fmt)  '%High_lim:       ', v_ptr%high_lim   
@@ -514,7 +514,7 @@ case ('var')
         endif
         nl = nl + 1
         write(lines(nl), '(i6, 2x, a7, 3es14.4)') i, &
-                 v1_ptr%v(i)%name, v1_ptr%v(i)%data_value, &
+                 v1_ptr%v(i)%name, v1_ptr%v(i)%meas_value, &
                  v1_ptr%v(i)%model_value, v1_ptr%v(i)%design_value
       endif
     enddo

@@ -59,7 +59,8 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 ! Init lattaces
 ! read global structure from tao_params namelist
 
-  global%valid_plot_who(1:5) =  (/ 'model ', 'base  ', 'ref   ', 'design', 'data  ' /)
+  global%valid_plot_who(1:5) = &
+                (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  ' /)
   call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
   call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
   read (iu, nml = tao_params)
@@ -115,7 +116,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
       data(:)%merit_type = ' '
       data(:)%ele_name   = ' '
       data(:)%ele2_name  = ' '
-      data(:)%data_value = 0
+      data(:)%meas_value = 0
       data(:)%weight     = 0
       read (iu, nml = tao_d1_data, err = 9150)
       if (ix_d1_data /= k) then
@@ -438,7 +439,7 @@ else
   enddo
 endif
 
-u%data(n1:n2)%data_value = data(ix1:ix2)%data_value
+u%data(n1:n2)%meas_value = data(ix1:ix2)%meas_value
 u%data(n1:n2)%data_type = data(ix1:ix2)%data_type
 where (u%data(n1:n2)%data_type == ' ') u%data(n1:n2)%data_type = &
                             trim(d2_data%name) // ':' // d1_data%name

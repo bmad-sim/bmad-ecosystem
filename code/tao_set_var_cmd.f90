@@ -99,8 +99,8 @@ do iv = 1, size(var)
 ! select value and set.
 
   select case (set_value)
-  case ('data')
-    c_ptr = var(iv)%data_value
+  case ('meas')
+    c_ptr = var(iv)%meas_value
   case ('ref')
     c_ptr = var(iv)%ref_value
   case ('model')

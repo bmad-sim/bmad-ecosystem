@@ -147,8 +147,8 @@ plot_loop: do i = 1, size(s%plot_page%plot)
             value => d1_ptr%d%design_value
           case ('ref')     
             value => d1_ptr%d%ref_value
-          case ('data')    
-            value => d1_ptr%d%data_value
+          case ('meas')    
+            value => d1_ptr%d%meas_value
           case default
             call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // plot%who(m)%name)
             plot%valid = .false.

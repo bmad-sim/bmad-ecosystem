@@ -135,13 +135,13 @@ interface
 end interface
  
 interface
-  subroutine tao_get_vars (var_value, var_del, var_weight, var_data_value)
+  subroutine tao_get_vars (var_value, var_del, var_weight, var_meas_value)
     use precision_def
     implicit none
     real(rp), allocatable :: var_value(:)
     real(rp), allocatable, optional :: var_del(:)
     real(rp), allocatable, optional :: var_weight(:)
-    real(rp), allocatable, optional :: var_data_value(:)
+    real(rp), allocatable, optional :: var_meas_value(:)
   end subroutine
 end interface
  

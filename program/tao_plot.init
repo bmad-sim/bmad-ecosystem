@@ -75,6 +75,8 @@ Templates define the basics of, say, how to display an orbit.
   plot%x%label = ' '
 	plot%x_axis_type = 'index'
   plot%n_graph = 2
+	plot%who(1) = 'model', +1
+	plot%who(2) = 'design', -1
 /
 
 &tao_template_graph
