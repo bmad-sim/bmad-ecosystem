@@ -823,7 +823,7 @@ subroutine file_stack (how, file_name_in, finished)
 
     open (bp_com%current_file%f_unit, file = file_name,  &
                                  status = 'OLD', action = 'READ', iostat = ios)
-    if (ios /= 0) then
+    if (ios /= 0 .or. .not. found_it) then
       print *, 'ERROR IN ', trim(bp_com%parser_name)
       print *, '      UNABLE TO OPEN FILE: ', trim(file_name)
       if (file_name_in /= file_name)  print *, &
