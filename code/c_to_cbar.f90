@@ -8,6 +8,9 @@
 !
 ! Input:
 !   ele -- Ele_struct: Element with C matrix and Twiss parameters.
+!     %c_mat(2,2) -- C matrix.
+!     %x          -- a-mode Twiss parameters
+!     %y          -- b-mode Twiss parameters
 !
 ! Output:
 !   cbar_mat(2,2) -- Real(rp): Cbar matrix.
