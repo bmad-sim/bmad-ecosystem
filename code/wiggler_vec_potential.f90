@@ -18,7 +18,7 @@
 !   vec_pot(3) -- Real(rdef): Normalized vector potential
 !-
 
-subroutine wiggerl_vec_potential (ele, energy, here, vec_pot)
+subroutine wiggler_vec_potential (ele, energy, here, vec_pot)
 
   use bmad_struct
 
@@ -58,9 +58,12 @@ subroutine wiggerl_vec_potential (ele, energy, here, vec_pot)
       if (t%type == hyper_y$) then
         c_x = cos(t%kx * x)
         s_x = sin(t%kx * x)
+      elseif (t%type == hyper_x$ .or. t%type == hyper_xy$) then
+        c_x = cosh(t%kx * x)
+        s_x = sinh(t%kx * x)
       else
-        c_x =  cosh(t%kx * x)
-        s_x = -sinh(t%kx * x)
+        type *, 'ERROR IN WIGGLER_VEC_POTENTIAL: UNKNOWN TERM TYPE!'
+        call err_exit
       endif
 
       if (t%type == hyper_y$ .or. t%type == hyper_xy$) then
@@ -76,9 +79,8 @@ subroutine wiggerl_vec_potential (ele, energy, here, vec_pot)
 
       coef = ele%value(polarity$) * t%coef
 
-      vec_pot(1) = vec_pot(1) + -coef  * (t%kx / t%ky) * s_x * s_y * c_z
-      vec_pot(2) = vec_pot(2) +  coef  *                 c_x * c_y * c_z
-      vec_pot(3) = vec_pot(3) + -coef  * (t%kz / t%ky) * c_x * s_y * s_z
+      vec_pot(2) = vec_pot(2) - coef  * (t%kz / (t%kx * t%ky)) * s_x * s_y * s_z
+      vec_pot(3) = vec_pot(3) - coef  * (1 / t%kx)             * s_x * c_y * c_z
     enddo
 
 
