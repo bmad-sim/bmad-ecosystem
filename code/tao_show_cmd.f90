@@ -422,6 +422,9 @@ case ('optimizer')
     call tao_var_show_use (s%v1_var(j))
   enddo
 
+  nl=nl+1; lines(nl) = ' '
+  nl=nl+1; write (lines(nl), amt) 'optimizer:        ', s%global%optimizer
+  call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
 ! plots

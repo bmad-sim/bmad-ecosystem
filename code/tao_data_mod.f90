@@ -134,6 +134,11 @@ case ('beta:x')
 case ('beta:y')
   call load_it (lattice%ele_(:)%y%beta)
 
+case ('alpha:x')
+  call load_it (lattice%ele_(:)%x%alpha)
+case ('alpha:y')
+  call load_it (lattice%ele_(:)%y%alpha)
+
 case ('eta:x')
   call load_it (lattice%ele_(:)%x%eta)
 case ('eta:y')

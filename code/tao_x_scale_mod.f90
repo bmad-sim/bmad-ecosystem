@@ -49,7 +49,8 @@ if (len_trim(where) == 0 .or. where == 'all') then
     plot => s%plot_page%plot(j)
     if (.not. plot%visible) cycle
     call tao_x_scale_plot (plot, x_min, x_max)
-    if (plot%x_axis_type == 's') then
+    if (plot%x_axis_type == 's' .and. &
+              any (plot%graph(:)%type /= 'lat_layout')) then
       if (im == 0) im = j
       if (plot%x%max < s%plot_page%plot(im)%x%max) im = j
     endif
@@ -89,6 +90,7 @@ type (tao_plot_struct) plot
 integer j, k, n
 real(rp) x_min, x_max
 real(rp) x1, x2
+logical curve_here
 
 ! Check if the thing exists
 
@@ -98,20 +100,25 @@ if (.not. associated (plot%graph)) return
 
 if (x_max == x_min) then
 
-  plot%x%min = -1e20
+  plot%x%min = -1e20     ! to setup all data
   plot%x%max = 1e20
   call tao_plot_data_setup 
 
   if (plot%x_axis_type == "index") then
     x1 =  1e20
     x2 = -1e20
+    curve_here = .false.
     do j = 1, size(plot%graph)
+      if (plot%graph(j)%type == 'key_table') cycle
       do k = 1, size(plot%graph(j)%curve)
+        curve_here = .true.
         n = size(plot%graph(j)%curve(k)%x_symb)
         x1 = min (x1, plot%graph(j)%curve(k)%x_symb(1))
         x2 = max (x2, plot%graph(j)%curve(k)%x_symb(n))
       enddo
     enddo
+
+    if (.not. curve_here) return
 
   elseif (plot%x_axis_type == "s") then
     x1 = 0
