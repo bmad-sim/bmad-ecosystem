@@ -2,8 +2,11 @@
 ! Subroutine ring_geometry (ring)
 !
 ! Subroutine to calculate the physical placement of all the elements in a ring.
-! That is, the layout on the floor. Note: At present this routine assumes no 
-! vertical bends.
+! That is, the layout on the floor. 
+! This is the same as the MAD convention. See the MAD manual for more details.
+!
+! Note: At present this routine assumes no  vertical bends. That is, 
+! y_position is always 0 and the ring in in the X-Z plane.
 !
 ! Modules Needed:
 !   use bmad
@@ -12,18 +15,21 @@
 !   ring -- ring_struct: The ring
 !
 ! Output:
-!     ring
-!       %ele_(i)
-!         %x_position        -- X position at end of element
-!         %y_position        -- Y position at end of element
-!         %z_position        -- Z position at end of element
-!         %theta_position    -- Orientation angle at end of element in X-Y
+!   ring
+!     %ele_(i)
+!       %x_position        -- X position at end of element
+!       %y_position        -- Y position at end of element
+!       %z_position        -- Z position at end of element
+!       %theta_position    -- Orientation angle at end of element in X-Z plane
 !
 ! Note: The starting point is taken to be the position in RING%ELE_(0)
 !-
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/11/26 21:26:33  dcs
+!Switch XYZ to MAD convention.
+!
 !Revision 1.6  2002/08/20 20:34:53  dcs
 !symp_lie_bmad / symp_lie_ptc added
 !
@@ -52,8 +58,8 @@ subroutine ring_geometry (ring)
 
   integer i
 
-  real*8 theta_tot, x_pos, y_pos, chord_len, angle, leng
-  real*8 z_pos
+  real(8) theta_tot, x_pos, y_pos, chord_len, angle, leng
+  real(8) z_pos
 
 !
 
@@ -95,14 +101,14 @@ subroutine ring_geometry (ring)
       chord_len = leng
     endif
 
-    theta_tot = theta_tot + angle / 2
-    x_pos = x_pos + chord_len * cos(theta_tot)
-    y_pos = y_pos + chord_len * sin(theta_tot)
-    theta_tot = theta_tot + angle / 2
+    theta_tot = theta_tot - angle / 2
+    x_pos = x_pos + chord_len * sin(theta_tot)
+    z_pos = z_pos + chord_len * cos(theta_tot)
+    theta_tot = theta_tot - angle / 2
 
     ring%ele_(i)%theta_position = theta_tot
     ring%ele_(i)%x_position = x_pos
-    ring%ele_(i)%y_position = y_pos
+    ring%ele_(i)%z_position = z_pos
 
   enddo
 
