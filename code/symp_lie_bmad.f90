@@ -243,16 +243,17 @@ contains
 
 subroutine update_coefs
 
-  real(rdef) factor
+  real(rdef) factor, coef
 
   factor = c_light / param%beam_energy
 
   do j = 1, size(ele%wig_term)
     wt => ele%wig_term(j)
-    tm(j)%a_y%coef     = -factor * wt%coef * wt%kz          ! / (wt%kx * wt%ky)
-    tm(j)%dint_a_y_dx%coef = -factor * wt%coef * wt%kz      ! / wt%ky**2
-    tm(j)%da_z_dx%coef = -factor * wt%coef 
-    tm(j)%da_z_dy%coef = -factor * wt%coef * wt%ky          ! / wt%kx
+    coef = factor * wt%coef * ele%value(polarity$)
+    tm(j)%a_y%coef         = -coef * wt%kz      ! / (wt%kx * wt%ky)
+    tm(j)%dint_a_y_dx%coef = -coef * wt%kz      ! / wt%ky**2
+    tm(j)%da_z_dx%coef     = -coef 
+    tm(j)%da_z_dy%coef     = -coef * wt%ky      ! / wt%kx
     if (wt%type == hyper_x$) then
       tm(j)%da_z_dy%coef     = -tm(j)%da_z_dy%coef
       tm(j)%dint_a_y_dx%coef = -tm(j)%dint_a_y_dx%coef 

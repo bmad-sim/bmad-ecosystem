@@ -104,6 +104,7 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
               allocate (ele%taylor(k)%term(size(ring%ele_(ie)%taylor(k)%term)))
               ele%taylor(k)%term = ring%ele_(ie)%taylor(k)%term
             enddo
+            ele%taylor_order = ring%ele_(ie)%taylor_order
             exit
           enddo
         endif

@@ -1465,7 +1465,7 @@ subroutine verify_valid_name (name, ix_name, key_check)
   ix = ix_name
   if (ix1 > 0) ix = ix1
 
-  if (present(key_check) .and. name(:ix) /= 'BEAM') then
+  if (present(key_check) .and. name(:ix) /= 'BEAM' .and. ix <= 16) then
     if (key_check) then
       do i = 1, n_key
         if (name(:ix) == key_name(i)(:ix)) then
