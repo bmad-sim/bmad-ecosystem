@@ -1249,6 +1249,9 @@ logical calc_emittance
   u%beam%beam_init = beam_init
   u%design_orb(0)%vec = beam_init%center
 
+  ! No initialization for a circular lattice
+  if (u%design%param%lattice_type .eq. circular_lattice$) return
+  
   ! This is just to get things allocated
   call init_beam_distribution (u%design%ele_(0), beam_init, u%beam%beam, .true., .true.)
   if (u%coupling%coupled) &
