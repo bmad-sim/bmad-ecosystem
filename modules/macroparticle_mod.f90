@@ -14,7 +14,7 @@ type macro_init_struct
   real(rp) n_part      ! Number of particles per bunch.
   real(rp) ds_bunch    ! Distance between bunches.
   real(rp) sig_z       ! Z sigma in m.
-  real(rp) sig_e       ! e_sigma in eV.
+  real(rp) sig_e       ! e_sigma in dE/E.
   real(rp) sig_e_cut   ! Energy cut in sigmas.
   real(rp) sig_z_cut   ! Z cut in sigmas.
   integer n_bunch      ! Number of bunches.
@@ -827,6 +827,9 @@ end subroutine
 ! to
 !     (x, px, y, py, z, pz)
 !
+! Note: the reverse routine is called:
+!   mp_to_angle_coords (mp, energy0)
+!
 ! Modules needed:
 !   use macroparticle_mod
 !
@@ -894,6 +897,9 @@ end subroutine
 !     (x, px, y, py, z, pz)
 ! to
 !     (x, x', y, y', z, E)
+!
+! Note: the reverse routine is called:
+!   mp_to_canonical_coords (mp, energy0)
 !
 ! Modules needed:
 !   use macroparticle_mod
@@ -1072,8 +1078,8 @@ subroutine init_macro_distribution (beam, init, ele, &
   type (bunch_struct), pointer :: bunch
   type (macro_struct), pointer :: macro
 
-  real(rp) z_fudge, e_fudge, z_rel, dz, e_rel, ex, ey, dE, z, E0, del_e
-  real(rp) mat4(4,4), v_mat(4,4), v_inv_mat(4,4), r(4)
+  real(rp) z_fudge, e_fudge, z_rel, dz, e_rel, ex, ey, dE_E, z, E0, del_e
+  real(rp) mat4(4,4), v_mat(4,4), v_inv_mat(4,4), r(4), E_center
 
   integer i, j, k
 
@@ -1091,12 +1097,13 @@ subroutine init_macro_distribution (beam, init, ele, &
   z_fudge = 2 * gauss_int(init%sig_z_cut)
   e_fudge = 2 * gauss_int(init%sig_e_cut)
   E0 = ele%value(beam_energy$)
+  E_center =  E0 * (1 + init%center(6))
 
   bunch => beam%bunch(1)
   bunch%charge = init%n_part * e_charge
 
-  ex = init%x%norm_emit * m_electron / E0
-  ey = init%y%norm_emit * m_electron / E0
+  ex = init%x%norm_emit * m_electron / E_center
+  ey = init%y%norm_emit * m_electron / E_center
 
   do j = 1, init%n_slice
     dz = init%sig_z_cut / init%n_slice
@@ -1110,12 +1117,12 @@ subroutine init_macro_distribution (beam, init, ele, &
       e_rel = (2*k - 1 - init%n_macro) * del_e
       macro%charge = bunch%slice(j)%charge * &
                            (gauss_int(e_rel+del_e) - gauss_int(e_rel-del_e)) / e_fudge
-      macro%r%vec = init%center
       z = init%center(5) + init%sig_z * z_rel 
+      dE_E = init%center(6) + init%dPz_dz * z + e_rel * init%sig_e
+      macro%r%vec = init%center
       macro%r%vec(5) = init%center(5) + init%sig_z * z_rel 
-      dE = init%center(6) + init%dPz_dz * z * E0 + e_rel * init%sig_e
-      macro%r%vec(6) = E0 + dE
-      r = (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /) * (dE / E0)
+      macro%r%vec(6) = 1 + dE_E
+      r = (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /) * dE_E
       ele%x%gamma = (1+ele%x%alpha**2) / ele%x%beta
       ele%y%gamma = (1+ele%y%alpha**2) / ele%y%beta
       macro%sigma = 0
@@ -1132,8 +1139,8 @@ subroutine init_macro_distribution (beam, init, ele, &
         call mat_to_mp_sigma (mat4, macro%sigma)
       endif
       macro%lost = .false.
-      if (canonical_out) &
-              call mp_to_canonical_coords (macro, E0)
+      if (.not. canonical_out) &
+              call mp_to_angle_coords (macro, E0)
     enddo
   enddo
 
