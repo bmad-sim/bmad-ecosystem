@@ -37,7 +37,7 @@ subroutine track1_bmad (start, ele, param, end)
   type (param_struct), intent(inout) :: param
 
   real(rp) k1, k2, k2l, k3l, length, phase
-  real(rp) e2, sig_x, sig_y, kx, ky, coef
+  real(rp) e2, sig_x, sig_y, kx, ky, coef, bbi_const
   real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
   real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
   real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
@@ -129,10 +129,13 @@ subroutine track1_bmad (start, ele, param, end)
   case (beambeam$)
 
     if (ele%value(charge$) == 0 .or. param%n_part == 0) return
-    call offset_particle (ele, param, end, set$)
 
     sig_x0 = ele%value(sig_x$)
     sig_y0 = ele%value(sig_y$)
+    if (sig_x0 == 0 .or. sig_y0 == 0) return
+
+    call offset_particle (ele, param, end, set$)
+
     n_slice = max(1, nint(ele%value(n_slice$)))
     call bbi_slice_calc (n_slice, ele%value(sig_z$), z_slice)
     s_pos = 0    ! end at the ip
@@ -153,6 +156,8 @@ subroutine track1_bmad (start, ele, param, end)
 
       call bbi_kick (end%vec(1)/sig_x, end%vec(3)/sig_y, sig_y/sig_x,  &
                                                                   kx, ky)
+      bbi_const = -param%n_part * m_electron * ele%value(charge$) * r_e /  &
+                      (2 * pi * ele%value(beam_energy$) * (sig_x + sig_y))
       coef = ele%value(bbi_const$) / (n_slice * rel_E)
       end%vec(2) = end%vec(2) + kx * coef
       end%vec(4) = end%vec(4) + ky * coef

@@ -9,24 +9,25 @@
 !   use bmad
 !
 ! Input:
-!   ele          -- Ele_struct: Element
-!   type_zero_attrib  
-!                -- Logical: If true then type all attributes even if the
-!                   attribute value is 0 (except for multipoles).
-!   type_mat6    -- Integer:
-!                      type_mat6 = 0   => Do not type ELE%MAT6
-!                      type_mat6 = 4   => Type 4X4 XY submatrix
-!                      type_mat6 = 6   => Type full 6x6 matrix
-!   type_taylor  -- Logical: Type out taylor series?
-!                   if ele%taylor is not allocated then this is ignored.
-!   twiss_out    -- Integer: Type the Twiss parameters at
-!                   the end of the element?
-!                       = 0  => Do not type the Twiss parameters
-!                       = radians$  => Type Twiss, use radians for phi.
-!                       = degrees$  => Type Twiss, use degrees for phi.
-!                       = cycles$   => Type Twiss, use cycles (1 = 2pi) units.
-!   type_control -- Logical: If true then type control status.
-!   ring         -- Ring_struct, optional: Needed for control typeout.
+!   ele              -- Ele_struct: Element
+!   type_zero_attrib -- Logical, optional: If False then surpress printing of
+!                          attributes whose value is 0. Default is False.
+!   type_mat6      -- Integer, optional:
+!                         = 0   => Do not type ele%mat6
+!                         = 4   => Type 4X4 xy submatrix
+!                         = 6   => Type full 6x6 matrix (Default)
+!   type_taylor    -- Logical, optional: Type out taylor series?
+!                       if ele%taylor is not allocated then this is ignored.
+!                       Default is False.
+!   twiss_out      -- Integer, optional: Print the Twiss parameters at the 
+!                         element end?
+!                       = 0         => Do not type the Twiss parameters
+!                       = radians$  => Type Twiss, phi in radians (Default).
+!                       = degrees$  => Type Twiss, phi in degrees.
+!                       = cycles$   => Type Twiss, phi in radians/2pi.
+!   type_control   -- Logical, optional: If true then type control status.
+!                       Default is False.
+!   ring           -- Ring_struct, optional: Needed for control typeout.
 !              
 ! Output       
 !   lines(:)     -- Character(80), pointer: Character array to hold the 
@@ -38,8 +39,8 @@
 
 #include "CESR_platform.inc"
 
-subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
-                               twiss_out, type_control, lines, n_lines, ring)
+subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
+                        type_mat6, type_taylor, twiss_out, type_control, ring)
 
   use bmad_struct
   use bmad_interface, except => type2_ele
@@ -51,7 +52,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
   type (ring_struct), optional, intent(in) :: ring
   type (wig_term_struct), pointer :: term
 
-  integer, intent(in) :: type_mat6, twiss_out
+  integer, optional, intent(in) :: type_mat6, twiss_out
   integer, intent(out) :: n_lines
   integer i, j, n, ix, iv, ic, ct, nl2
   integer nl, nt, n_max, particle
@@ -67,8 +68,9 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
   character(12) val_str
   character(2) str_i
 
-  logical, intent(in) :: type_taylor
-  logical, intent(in) :: type_control, type_zero_attrib
+  logical, optional, intent(in) :: type_taylor
+  logical, optional, intent(in) :: type_control, type_zero_attrib
+  logical type_zero
 
 ! init
 
@@ -83,6 +85,8 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
     pos_tot(x_pitch$)  = x_pitch_tot$
     pos_tot(y_pitch$)  = y_pitch_tot$
   endif
+
+  type_zero = logic_option(.false., type_zero_attrib)
 
 ! Encode element name and type
 
@@ -122,7 +126,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
       write (li(nl), *) 'Sub Key: ', sub_key_name(ele%sub_key)
     endif
 
-    if (.not. type_zero_attrib) then
+    if (.not. type_zero) then
       nl = nl + 1
       write (li(nl), *) 'Attribute values [Only non-zero values shown]:'
     endif
@@ -138,13 +142,13 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
         if (attribute_name(ele, i) == null_name) cycle
         ix = pos_tot(i)
         if (ix == 0) then
-          if (ele%value(i) == 0 .and. .not. type_zero_attrib) cycle
+          if (ele%value(i) == 0 .and. .not. type_zero) cycle
           nl = nl + 1
           write (li(nl), '(i6, 3x, 2a, 1pe15.7)')  i, &
                         attribute_name(ele, i), ' =', ele%value(i)
         else
           if (ele%value(i) == 0 .and. ele%value(ix) == 0 .and. &
-                                                 .not. type_zero_attrib) cycle
+                                                 .not. type_zero) cycle
           nl = nl + 1
           write (li(nl), '(i6, 3x, 2a, 1pe15.7, 4x, a, e15.7)')  i, &
                         attribute_name(ele, i), ' =', ele%value(i), &
@@ -285,7 +289,12 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
 ! For slaves who are overlay_lords then the attribute_name is obtained by
 !   looking at the overlay_lord's 1st slave (slave of slave of the input ele).
 
-  if (type_control) then
+  if (logic_option(.false., type_control)) then
+
+    if (.not. present (ring)) then
+      print *, 'ERROR IN TYPE2_ELE: TYPE_CONTROL IS TRUE BUT NO LATTICE PRESENT.'
+      call err_exit
+    endif
 
     nl = nl + 1
     write (li(nl), *) ' '
@@ -359,14 +368,12 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
 
 ! Encode Twiss info
 
-  if (twiss_out > 0) then
-    call type2_twiss (ele, twiss_out, li(nl+1:), nl2)
-    nl = nl + nl2
-  endif
+  call type2_twiss (ele, li(nl+1:), nl2, twiss_out)
+  nl = nl + nl2
 
 ! Encode mat6 info
 
-  n = type_mat6
+  n = integer_option (6, type_mat6)
 
   if (n /= 0) then
     nl = nl + 1
@@ -387,7 +394,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
 
 ! Encode taylor series
 
-  if (type_taylor .and. associated(ele%taylor(1)%term)) then
+  if (logic_option(.false., type_taylor) .and. associated(ele%taylor(1)%term)) then
     write (li(nl+1), *)
     nl = nl + 1
     call type2_taylors (ele%taylor, li2, nt)

@@ -80,8 +80,7 @@ subroutine twiss_at_start (ring)
     t0_4 = matmul (ring%ele_(n)%mat6(1:4,1:4), t0_4)
     if (debug) then
       write (iu, *) '!------------------------------------', n
-      call type2_ele (ring%ele_(n), &
-                  .false., 0, .false., 0, .false., lines, n_lines)
+      call type2_ele (ring%ele_(n), lines, n_lines, .false., 0, .false., 0)
       do i = 1, n_lines
         write (iu, *) lines(i)
       enddo

@@ -74,7 +74,7 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
     return
   endif
 
-! The only real(rp) complication comes with a dipole where we have to negate
+! The only real complication comes with a dipole where we have to negate
 ! the focusing of the exit face (we never get to the exit face since we are
 ! only partially tracking through).
 
@@ -98,8 +98,6 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   end select
 
   ele%num_steps = max(nint(ele%num_steps * del_s / l_orig), 1)
-
-  call attribute_bookkeeper (ele, param)
 
   call track1 (c0, ele, param, c1)
 

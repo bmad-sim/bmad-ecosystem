@@ -10,8 +10,8 @@
 ! Input:
 !   ele          -- Ele_struct: Element containing the Twiss parameters.
 !   frequency_units 
-!                -- Integer: Units for phi:
-!                       = radians$  => Type Twiss, use radians for phi.
+!                -- Integer, optional: Units for phi:
+!                       = radians$  => Type Twiss, use radians for phi (Default).
 !                       = degrees$  => Type Twiss, use degrees for phi.
 !                       = cycles$   => Type Twiss, use cycles (1 = 2pi) units.
 !-
@@ -27,13 +27,14 @@ subroutine type_twiss (ele, frequency_units)
 
   type (ele_struct)  ele
 
-  integer frequency_units, n, n_lines
+  integer, optional :: frequency_units
+  integer n, n_lines
 
   character(80) lines(5)
 
 !
 
-  call type2_twiss (ele, frequency_units, lines, n_lines)
+  call type2_twiss (ele, lines, n_lines, frequency_units)
 
   do n = 1, n_lines
     print *, trim(lines(n))

@@ -161,7 +161,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 ! Used: Eqs (12.18) from Etienne Forest: Beam Dynamics.
 
     b1 = g_tot
-    angle = ele%value(angle$)
+    angle = ele%value(g$) * length
     dE = c0%vec(6)
     rel_E  = 1 + dE
     rel_E2 = rel_E**2
@@ -585,7 +585,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 ! factor of 2 in orb%vec(5) since relative motion of the two beams is 2*c_light
 
     if (n_slice == 1) then
-      call bbi_kick_matrix (ele, c00, 0.0_rp, mat6)
+      call bbi_kick_matrix (ele, param, c00, 0.0_rp, mat6)
     else
       call bbi_slice_calc (n_slice, ele%value(sig_z$), z_slice)
 
@@ -603,7 +603,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
         if (i == n_slice + 1) exit
         orb%vec(1) = c00%vec(1) + s_pos * orb%vec(2)
         orb%vec(3) = c00%vec(3) + s_pos * orb%vec(4)
-        call bbi_kick_matrix (ele, orb, s_pos, kmat6)
+        call bbi_kick_matrix (ele, param, orb, s_pos, kmat6)
         mat4(2,1:4) = mat4(2,1:4) + kmat6(2,1) * mat4(1,1:4) + &
                                     kmat6(2,3) * mat4(3,1:4)
         mat4(4,1:4) = mat4(4,1:4) + kmat6(4,1) * mat4(1,1:4) + &
@@ -846,7 +846,7 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 
-subroutine bbi_kick_matrix (ele, orb, s_pos, mat6)
+subroutine bbi_kick_matrix (ele, param, orb, s_pos, mat6)
 
   use bmad_struct
   use bmad_interface, except => bbi_kick_matrix
@@ -855,14 +855,19 @@ subroutine bbi_kick_matrix (ele, orb, s_pos, mat6)
 
   type (ele_struct)  ele
   type (coord_struct)  orb
+  type (param_struct) param
 
   real(rp) x_pos, y_pos, del, sig_x, sig_y, coef, garbage, s_pos
-  real(rp) ratio, k0_x, k1_x, k0_y, k1_y, mat6(6,6), beta
+  real(rp) ratio, k0_x, k1_x, k0_y, k1_y, mat6(6,6), beta, bbi_const
 
 !
 
+  call mat_make_unit (mat6)
+
   sig_x = ele%value(sig_x$)
   sig_y = ele%value(sig_y$)
+
+  if (sig_x == 0 .or. sig_y == 0) return
 
   if (s_pos /= 0 .and. ele%x%beta /= 0) then
     beta = ele%x%beta - 2 * ele%x%alpha * s_pos + ele%x%gamma * s_pos**2
@@ -870,7 +875,6 @@ subroutine bbi_kick_matrix (ele, orb, s_pos, mat6)
     beta = ele%y%beta - 2 * ele%y%alpha * s_pos + ele%y%gamma * s_pos**2
     sig_y = sig_y * sqrt(beta / ele%y%beta)
   endif
-
 
   x_pos = orb%vec(1) / sig_x  ! this has offset in it
   y_pos = orb%vec(3) / sig_y
@@ -882,10 +886,12 @@ subroutine bbi_kick_matrix (ele, orb, s_pos, mat6)
   call bbi_kick (x_pos+del, y_pos, ratio, k1_x, garbage)
   call bbi_kick (x_pos, y_pos+del, ratio, garbage, k1_y)
 
-  coef = ele%value(bbi_const$) / (1 + orb%vec(6))
+  bbi_const = -param%n_part * m_electron * ele%value(charge$) * r_e /  &
+                      (2 * pi * ele%value(beam_energy$) * (sig_x + sig_y))
 
-  call mat_make_unit (mat6)
-  mat6(2,1) = coef * (k1_x - k0_x) / (ele%value(n_slice$) * del * sig_x)
-  mat6(4,3) = coef * (k1_y - k0_y) / (ele%value(n_slice$) * del * sig_y)
+  coef = bbi_const / (ele%value(n_slice$) * del * (1 + orb%vec(6)))
+
+  mat6(2,1) = coef * (k1_x - k0_x) / sig_x
+  mat6(4,3) = coef * (k1_y - k0_y) / sig_y
 
 end subroutine

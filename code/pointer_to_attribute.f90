@@ -3,7 +3,7 @@
 !                            ptr_attrib, ix_attrib, err_flag, err_print_flag)
 !
 ! Returns a pointer to an attribute of an element with name attrib_name.
-! Note: use check_attrib_free to see if the attribute may be
+! Note: use attribute_free to see if the attribute may be
 !   varied independently.
 !
 ! Modules needed:

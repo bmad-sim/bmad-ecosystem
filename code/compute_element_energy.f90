@@ -54,7 +54,7 @@ subroutine compute_element_energy (lattice)
       endif
 
     elseif (ele%key == custom$) then
-      beam_energy = beam_energy + ele%value(delta_e$)
+      beam_energy = beam_energy + ele%value(gradient$) * ele%value(l$)
       call energy_to_kinetic (beam_energy, lattice%param%particle, p0c = p0c)
     endif
 
