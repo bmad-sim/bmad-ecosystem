@@ -120,8 +120,8 @@ subroutine setup_space_charge_calc (calc_on, lattice, mode, closed_orb)
                      2 * c11 * c12 * b%alpha + c12**2 * b%gamma) + &
                      (a%eta_lab * mode%sigE_E)**2
 
-    xy_ave = g * (a_emit * (c22 * a%beta + c12 * a%alpha) + &
-                  b_emit * (c11 * b%beta - c12 * b%alpha)) + &
+    xy_ave = g * (a_emit * (-c22 * a%beta - c12 * a%alpha) + &
+                  b_emit * ( c11 * b%beta - c12 * b%alpha)) + &
                    a%eta_lab * b%eta_lab * mode%sigE_E**2
 
     yy_ave = g2 * b_emit * b%beta + a_emit * (c22**2 * a%beta + &
@@ -219,7 +219,7 @@ subroutine track1_space_charge (start, ele, param, end)
 ! Transform the kick back to the lab coords and apply.
 
   kx = kx_rot * v%cos_phi - ky_rot * v%sin_phi
-  ky = kx_rot * v%sin_phi - ky_rot * v%cos_phi
+  ky = kx_rot * v%sin_phi + ky_rot * v%cos_phi
 
   kick_const = v%kick_const * exp(-0.5 * (end%vec(5)/v%sig_z)**2) 
 
