@@ -146,7 +146,7 @@ subroutine type2_taylors (bmad_taylor, lines, n_lines)
     n_lines = 2
     allocate (lines(n_lines))
     lines(1) = '---------------------------------------------------'
-    lines(2) = 'Taylor Series Does Not Exist.' 
+    lines(2) = 'A Taylor Map Does Not Exist.' 
     return
   endif
 
