@@ -34,3 +34,19 @@
 
 \newcommand{\Th}{$^{th}$}
 
+\newenvironment{example}
+  {\vspace{-1.5ex} \begin{alltt}}
+  {\end{alltt} \vspace{-1.5ex}}
+
+\newenvironment{Example}{\vspace{-1.5ex} \begin{alltt}}{\end{alltt}}
+
+\newenvironment{Itemize}
+  {\begin{list}{$\bullet$}
+    {\addtolength{\topsep}{-1.5ex} \addtolength{\itemsep}{-1ex}}
+  }
+  {\end{list} \vspace*{1ex}}
+
+\newcommand{\Section}[1]{\section{#1}\indent\vspace{-3ex}}
+
+\newcommand{\SECTION}[1]{\section*{#1}\indent\vspace{-3ex}}
+

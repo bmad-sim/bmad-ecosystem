@@ -42,34 +42,40 @@ The following functions are recognized by \bmad:
 
 Literal constants can be entered with or without a decimal point. An
 exponent is marked with the letter E. Example
-\begin{verbatim}
+\begin{example}
   1, 10.35, 5E3, 314.159E-2
-\end{verbatim}
-
+\end{example}
 Symbolic constants can be defined using the syntax
-\begin{verbatim}
+\begin{example}
   parameter_name = expression
-\end{verbatim}
+\end{example}
 and to be compatable with MAD the syntax
-\begin{verbatim}
+\begin{example}
   parameter_name := expression
-\end{verbatim}
+\end{example}
 is also accepted. Example:
-\begin{verbatim}
+\begin{example}
   my_const = sqrt(10.3) * pi^3
   abc      = my_const * 23
-\end{verbatim}
+\end{example}
 Unlike MAD, \bmad\ uses immediate substitution so that all constants
 in an expression must have been previously defined. For example the
 following is not valid:
-\begin{verbatim}
+\begin{example}
   abc      = my_const * 23   ! No: my_const not yet defined.
   my_const = sqrt(10.3) * pi^3
-\end{verbatim}
-here the value of \vn{my_const} is not known when the line ``\vn{abc}
+\end{example}
+here the value of \vn{my\_const} is not known when the line ``\vn{abc}
 = $\ldots$'' is parsed and so \vn{abc} can not be calculated. Once
 defined, symbolic constants cannot be redefined. For example:
-\begin{verbatim}
+\begin{example}
   my_const = 1
   my_const = 2  ! No: my_const cannot be redefined.
-\end{verbatim}
+\end{example}
+
+
+\section{Lattice Elements}
+
+The syntax for defining a lattice element follows MAD:
+\begin{example}
+\end{example}
