@@ -24,6 +24,9 @@
  $Id$
 
  $Log$
+ Revision 1.3  2002/01/11 17:39:37  palmer
+ Avoid module clashes on VMS with the symbol match_wild
+
  Revision 1.2  2001/10/08 17:18:14  rwh24
  DCS changes to f90 files.
  Bug fixes to c file.
@@ -42,7 +45,7 @@
 
 void trim(char *str, int len);
 void pad_to_length(char *str, int len);
-int match_wild(const char *pattern, const char *str);
+int c_match_wild(const char *pattern, const char *str);
 
 int get_lattice_list_unix_(char *lat_list, int *num_lats, char *directory,
 		long int list_len, long int dir_len)
@@ -65,7 +68,7 @@ int get_lattice_list_unix_(char *lat_list, int *num_lats, char *directory,
   *lat_list=NULL;
   for (dp = readdir(dir_pointer); dp != NULL; dp = readdir(dir_pointer)) {
     strcpy(tmp, dp->d_name);
-    if (match_wild(mask, tmp)) {
+    if (c_match_wild(mask, tmp)) {
       pad_to_length(tmp, list_len);
       strcat(lat_list, tmp);
       (*num_lats)++;
@@ -99,7 +102,7 @@ void pad_to_length(char *str, int len)
 
 
 /* Check for wildcard match (could be improved) */
-int match_wild(const char *pattern, const char *str)
+int c_match_wild(const char *pattern, const char *str)
 {
   char c;
   const char *s;
@@ -118,7 +121,7 @@ int match_wild(const char *pattern, const char *str)
         return 1;
       s=str;
       while (*s) {
-        if (*s == *pattern && match_wild(pattern, s))
+        if (*s == *pattern && c_match_wild(pattern, s))
           return 1;
         ++s;
       }
