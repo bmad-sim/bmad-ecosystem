@@ -581,6 +581,7 @@ subroutine reallocate_coord (coord_, n_coord)
   type (coord_struct) start
 
   integer, intent(in) :: n_coord
+  integer i
 
 !
 
@@ -590,10 +591,16 @@ subroutine reallocate_coord (coord_, n_coord)
       deallocate (coord_)
       allocate (coord_(0:n_coord))
       coord_(0) = start
+      do i = 1, n_coord
+        coord_(i)%vec = 0
+      enddo
     endif
   else
     allocate (coord_(0:n_coord))
     coord_(0)%vec = 0
+    do i = 1, n_coord
+      coord_(i)%vec = 0
+    enddo
   endif
 
 end subroutine
