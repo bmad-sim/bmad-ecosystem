@@ -69,5 +69,16 @@ dummy routines, if called, will print an error message and stop the
 program. To make the linker preferentially link in new custom routines
 the new routines should be explicitly listed in the linking list.
 
+%-----------------------------------------------------------------------------
+\section{Custom Field Calculations}
+\label{s:custom_field}
+
+Custom Electric and Magnetic field calculations are used with
+\vn{Runge_Kutta} and \vn{Boris} tracking (See \S\ref{s:integ}).  To
+implement custom field calculations the \vn{ele%field_calc} component
+of an element must be set to \vn{custom\$}. This can be done either
+through the lattice input file or within a program. Additionally a
+routine \vn{em_field_custom} must be linked with any program using the
+custom calculations.
 
 

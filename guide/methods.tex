@@ -36,9 +36,11 @@ Second order Boris integration\cite{b:boris} with adaptive step size control.
 This should be nearly symplectic but slow.
 
 \item[\vn{Boris}]
-Second order Boris Integration. Like \vn{Runge_Kutta}, \vn{Boris} does
-tracking by integrating the equation of motion. The difference is that
-Boris integration is symplectic.
+Second order Boris Integration\cite{b:boris}. Like \vn{Runge_Kutta},
+\vn{Boris} does tracking by integrating the equation of
+motion. \vn{Boris} handles both electric and magnetic fields and does
+not assume that the particle is relativistic. \vn{Boris} preserves
+conserved quantities more accurately than \vn{Runge_Kutta}.
 
 \item[\vn{Bmad\_Standard}]
 Uses formulas for tracking. The emphasis here is on speed and not
