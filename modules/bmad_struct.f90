@@ -19,7 +19,7 @@ module bmad_struct
 ! INCREASE THE VERSION NUMBER !
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-  integer, parameter :: bmad_inc_version$ = 74
+  integer, parameter :: bmad_inc_version$ = 75
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -52,7 +52,8 @@ module bmad_struct
     integer type      ! hyper_y$, hyper_xy$, or hyper_x$
   end type
 
-! Wakefield structs
+! Wakefield structs...
+! Each sr_wake_struct represents a point on the wake vs. z curve.
 
   type sr_wake_struct     ! Short-Range Wake struct
     real(rp) z            ! Distance behind the leading particle
@@ -60,10 +61,13 @@ module bmad_struct
     real(rp) trans        ! Transverse wake in V/C/m^2
   end type
 
-  type lr_wake_struct   ! Long-Range Wake struct (transverse only)
-    real(rp) freq       ! frequency in Hz
-    real(rp) kick       ! Strength in V/C/m^2
-    integer  i_cell     ! Index of the cell the mode is in.
+! Each lr_wake_struct represents a different mode.
+! A non-zero freq_spread attribute value will make freq_in different from freq.
+
+  type lr_wake_struct   ! Long-Range Wake struct (transverse dipole only)
+    real(rp) freq       ! Frequency in Hz
+    real(rp) freq_in    ! Input frequency in Hz
+    real(rp) R_over_Q   ! Strength in V/C/m^2
     real(rp) Q          ! Quality factor
   end type
 
@@ -167,6 +171,7 @@ module bmad_struct
     integer end_lost_at         ! entrance_end$ or exit_end$
     integer lattice_type        ! linear_lattice$, etc...
     integer ixx                 ! Integer for general use
+    integer ran_seed            ! Random number seed used.
     logical stable              ! is closed ring stable?
     logical aperture_limit_on   ! use apertures in tracking?
     logical lost                ! for use in tracking
@@ -289,7 +294,7 @@ module bmad_struct
   integer, parameter :: rho$=12, s_center$=12
   integer, parameter :: hgap$=13, energy_start$=13
   integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14
-  integer, parameter :: roll$=15, quad_tilt$=15
+  integer, parameter :: roll$=15, quad_tilt$=15, freq_spread$=15
   integer, parameter :: l_original$=16, l_chord$=16, bend_tilt$=16
   integer, parameter :: l_start$=17, h1$=17, x_quad$=17
   integer, parameter :: l_end$=18, h2$=18, y_quad$=18

@@ -1582,119 +1582,11 @@ subroutine type_get (ele, ix_type, delim, delim_found)
   case (lr_wake_file$) 
     if (.not. associated(ele%wake)) allocate (ele%wake)
     ele%wake%lr_file = type_name
-    print *, 'ERROR: LR_WAKES NOT YET IMPLEMENTED!'
-    call err_exit
     call read_lr_wake (ele)
   case default
     print *, 'INTERNAL ERROR IN TYPE_GET: I NEED HELP!'
     call err_exit
   end select
-
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine read_sr_wake (ele)
-!
-! Subroutine to read in a wake field from an external file.
-! This subroutine is used by bmad_parser and bmad_parser2.
-!
-! Input:
-!   ele -- Ele_struct: Element
-!     %wake%sr_file -- Name of wake field file
-!
-! Output:
-!   ele -- Ele_struct: Element with wake information.
-!     %wake%sr(:) -- Short-range wake potential.
-!-
-        
-subroutine read_sr_wake (ele)
-
-  implicit none
-
-  type (ele_struct) ele
-  type (sr_wake_struct), allocatable :: sr(:), sr2(:)
-  real(rp) dz
-  integer i, j, ix, iu, ios
-
-  character(200) file_name, line
-
-  logical found_it
-
-! open file
-
-  iu = lunget()
-  bp_com%dirs(2) = bp_com%calling_file%dir
-  call find_file (ele%wake%sr_file, found_it, file_name, bp_com%dirs)
-  open (iu, file = file_name, status = 'OLD', action = 'READ', iostat = ios)
-  if (ios /= 0) then
-    call warning ('CANNOT OPEN WAKE FILE: ' // ele%wake%sr_file, &
-                            'FOR LCAVITY: ' // ele%name)
-    return
-  endif
-
-! read
-
-  allocate (sr(0:500))
-
-  i = -1
-
-  do
-    read (iu, '(a)', iostat = ios) line
-    if (ios < 0) exit  ! end-of-file
-    if (ios > 0) then
-      call warning ('ERROR READING WAKE FILE: ' // ele%wake%sr_file, &
-                            'FOR LCAVITY: ' // ele%name)
-      return
-    endif
-    call string_trim (line, line, ix)
-    if (line(1:1) == '!') cycle  ! skip comments.
-    if (ix == 0) cycle          ! skip blank lines.
-
-    if (i == ubound(sr, 1)) then
-      allocate (sr2(0:i))
-      sr2 = sr
-      deallocate (sr)
-      allocate (sr(0:i+500))
-      sr(0:i) = sr2
-      deallocate(sr2)
-    endif
-
-    i = i + 1
-    read (line, *, iostat = ios) sr(i)%z, sr(i)%long, sr(i)%trans
-
-    if (ios /= 0) then
-      call warning ('ERROR PARSING WAKE FILE: ' // ele%wake%sr_file, &
-                           'CANNOT READ LINE: ' // line)
-      return
-    endif
-
-  enddo
-
-  close (iu)
-  if (associated(ele%wake%sr)) deallocate (ele%wake%sr)
-  allocate (ele%wake%sr(0:i))
-  ele%wake%sr = sr(0:i)
-
-! err check
-
-  if (ele%wake%sr(0)%z /= 0) then
-    call warning ('WAKEFIELDS DO NOT START AT Z = 0!', &
-                                    'IN FILE: ' // ele%wake%sr_file)
-    return
-  endif
-
-  dz = ele%wake%sr(i)%z / i
-  do j = 1, i
-    if (abs(ele%wake%sr(j)%z - dz * j) > 1e-4 * dz) then
-      write (line, '(a, i5)') &
-                      'WAKEFIELD POINTS DO NOT HAVE UNIFORM DZ FOR POINT:', j
-      call warning (line, 'IN FILE: ' // ele%wake%sr_file)
-      return
-    endif
-  enddo               
 
 end subroutine
 
@@ -1721,11 +1613,155 @@ subroutine read_lr_wake (ele)
   implicit none
 
   type (ele_struct) ele
+  real(rp) freq_in(500), r_over_q(500), q(500)
+  integer n_row
 
+! get data
+
+  call read_this_wake (ele%wake%lr_file, n_row, freq_in, r_over_q, q)
+
+  if (associated(ele%wake%lr)) deallocate (ele%wake%lr)
+  allocate (ele%wake%lr(0:n_row-1))
+  ele%wake%lr%freq_in   = freq_in(1:n_row)
+  ele%wake%lr%freq      = freq_in(1:n_row)
+  ele%wake%lr%r_over_q  = r_over_q(1:n_row)
+  ele%wake%lr%q         = q(1:n_row)
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine read_sr_wake (ele)
 !
+! Subroutine to read in a wake field from an external file.
+! This subroutine is used by bmad_parser and bmad_parser2.
+!
+! Input:
+!   ele -- Ele_struct: Element
+!     %wake%sr_file -- Name of wake field file
+!
+! Output:
+!   ele -- Ele_struct: Element with wake information.
+!     %wake%sr(:) -- Short-range wake potential.
+!-
+        
+subroutine read_sr_wake (ele)
 
-  print *, 'ERROR: READ_LR_WAKE NOT YET IMPLEMENTED!'
-  call err_exit
+  implicit none
+
+  type (ele_struct) ele
+
+  real(rp) z(500), long(500), trans(500)
+  real(rp) dz
+  integer n_row, n, j
+  character(80) line
+
+! get data
+
+  call read_this_wake (ele%wake%sr_file, n_row, z, long, trans)
+
+  if (associated(ele%wake%sr)) deallocate (ele%wake%sr)
+  allocate (ele%wake%sr(0:n_row-1))
+  ele%wake%sr%z     = z(1:n_row)
+  ele%wake%sr%long  = long(1:n_row)
+  ele%wake%sr%trans = trans(1:n_row)
+
+! err check
+
+  if (ele%wake%sr(0)%z /= 0) then
+    call warning ('WAKEFIELDS DO NOT START AT Z = 0!', &
+                                    'IN FILE: ' // ele%wake%sr_file)
+    return
+  endif
+
+  n = n_row - 1
+  dz = ele%wake%sr(n)%z / n
+
+  do j = 1, n
+    if (abs(ele%wake%sr(j)%z - dz * j) > 1e-4 * dz) then
+      write (line, '(a, i5)') &
+               'WAKEFIELD POINTS DO NOT HAVE UNIFORM DZ FOR POINT:', j
+      call warning (line, 'IN FILE: ' // ele%wake%sr_file)
+      return
+    endif
+  enddo               
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine read_this_wake (file, n_row, col1, col2, col3)
+!
+! Subroutine to read in a wake field from an external file.
+! This subroutine is used by bmad_parser and bmad_parser2.
+!
+! Input:
+!   file -- Character(*): Name of wake field file
+!
+! Output:
+!   n_row   -- Integer: Number of rows read.
+!   col1(:) -- Real(rp) :: column 1.
+!   col2(:) -- Real(rp) :: column 2.
+!   col3(:) -- Real(rp) :: column 3.
+!-
+        
+subroutine read_this_wake (file, n_row, col1, col2, col3)
+
+  implicit none
+
+  integer i, j, ix, iu, ios, n_row, n
+
+  character(*) file
+  character(200) file_name
+  character(80) line
+
+  real(rp) col1(:), col2(:), col3(:)
+
+  logical found_it
+
+! open file
+
+  iu = lunget()
+  bp_com%dirs(2) = bp_com%calling_file%dir
+  call find_file (file, found_it, file_name, bp_com%dirs)
+  open (iu, file = file_name, status = 'OLD', action = 'READ', iostat = ios)
+  if (ios /= 0) then
+    call warning ('CANNOT OPEN WAKE FILE: ' // file)
+    return
+  endif
+
+! read
+
+  i = 0
+
+  do
+    read (iu, '(a)', iostat = ios) line
+    if (ios < 0) exit  ! end-of-file
+    if (ios > 0) then
+      call warning ('ERROR READING WAKE FILE: ' // file_name)
+      return
+    endif
+    call string_trim (line, line, ix)
+    if (line(1:1) == '!') cycle  ! skip comments.
+    if (ix == 0) cycle          ! skip blank lines.
+
+    i = i + 1
+    n_row = i
+    read (line, *, iostat = ios) col1(i), col2(i), col3(i)
+
+    if (ios /= 0) then
+      call warning ('ERROR PARSING WAKE FILE: ' // file, &
+                                                 'CANNOT READ LINE: ' // line)
+      return
+    endif
+
+  enddo
+
+  close (iu)
 
 end subroutine
 

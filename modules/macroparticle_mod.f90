@@ -101,12 +101,10 @@ subroutine track_beam (ring, beam, ix1, ix2)
   i2 = ring%n_ele_use
   if (present(ix2)) i2 = ix2
 
-!
+! Loop over all elements in the lattice
 
   do i = i1+1, i2
-    do j = 1, size(beam%bunch)
-      call track1_bunch (beam%bunch(j), ring%ele_(i), ring%param, beam%bunch(j))
-    enddo
+    call track1_beam (beam, ring%ele_(i), ring%param, beam)
   enddo
 
 end subroutine
@@ -136,15 +134,76 @@ subroutine track1_beam (beam_start, ele, param, beam_end)
   implicit none
 
   type (beam_struct) beam_start
-  type (beam_struct) beam_end
+  type (beam_struct), target :: beam_end
+  type (macro_struct), pointer :: macro
   type (ele_struct) ele
   type (param_struct) param
 
-  integer i
+  real(rp), allocatable, save :: x_sin(:), x_cos(:), y_sin(:), y_cos(:), &
+                           f(:), f_exp(:), k_m(:)
+  real(rp) s_pos, ff, c, s
+  integer i, j, k, n, n_mode
 
-!
+! loop over all bunches in a beam
+! x_sin, x_cos are the in and out-of-phase components of the horizontal wake
+! y_sin, y_cos are the in and out-of-phase components of the vertical wake
+
+  n_mode = lr_wake_array_size(ele)
+  if (n_mode > 0) then
+    call reallocate_real (x_sin, n_mode)
+    call reallocate_real (x_cos, n_mode)
+    call reallocate_real (y_sin, n_mode)
+    call reallocate_real (y_cos, n_mode)
+    call reallocate_real (f, n_mode)
+    call reallocate_real (f_exp, n_mode)
+    call reallocate_real (k_m, n_mode)
+    x_sin = 0; x_cos = 0
+    y_sin = 0; y_cos = 0
+    k_m(1:n_mode) = twopi * ele%wake%lr%freq / c_light
+    f(1:n_mode) = ele%value(l$) * ele%wake%lr%r_over_q * (k_m(1:n_mode))**2 / 2
+    f_exp(1:n_mode) = k_m(1:n_mode) / (2 * ele%wake%lr%Q)
+  endif
+
+
   do i = 1, size(beam_start%bunch)
+
     call track1_bunch (beam_start%bunch(i), ele, param, beam_end%bunch(i))
+
+    ! add long-range wake kicks to this bunch
+
+    do n = 1, n_mode
+      do j = 1, size(beam_end%bunch(i)%slice)
+        do k = 1, size(beam_end%bunch(i)%slice(j)%macro)
+          macro => beam_end%bunch(i)%slice(j)%macro(k)
+          s_pos = (beam_end%bunch(i)%s_center + macro%r%vec(5))
+          ff = exp(s_pos * f_exp(n)) / &
+                            (ele%value(beam_energy$) * (1 + macro%r%vec(6)))
+          c = cos (-s_pos * k_m(n))
+          s = sin (-s_pos * k_m(n))
+          macro%r%vec(2) = macro%r%vec(2) + ff * (x_cos(n) * s - x_sin(n) * c)
+          macro%r%vec(4) = macro%r%vec(4) + ff * (y_cos(n) * s - y_sin(n) * c)
+        enddo
+      enddo
+    enddo
+
+    ! add to wake the contribution of this bunch
+
+    do n = 1, n_mode
+      do j = 1, size(beam_end%bunch(i)%slice)
+        do k = 1, size(beam_end%bunch(i)%slice(j)%macro)
+          macro => beam_end%bunch(i)%slice(j)%macro(k)
+          s_pos = (beam_end%bunch(i)%s_center + macro%r%vec(5))
+          ff = f(n) * macro%charge * exp(s_pos * f_exp(n))
+          c = cos (-s_pos * k_m(n))
+          s = sin (-s_pos * k_m(n))
+          x_sin(n) = x_sin(n) + macro%r%vec(1) * ff * s
+          x_cos(n) = x_cos(n) + macro%r%vec(1) * ff * c
+          y_sin(n) = y_sin(n) + macro%r%vec(3) * ff * s
+          y_cos(n) = y_cos(n) + macro%r%vec(3) * ff * c
+        enddo
+      enddo
+    enddo
+
   enddo
 
 end subroutine track1_beam

@@ -18,16 +18,17 @@ contains
 ! Subroutine control_bookkeeper (ring, ix_ele)
 !
 ! Subroutine to transfer attibute information from lord to slave elements.
-! If you want to do the bookkeeping for the entire ring use:
-!   control_lord_bookkeeper
+! Note: To do a complete bookkeeping job on a lattice use:
+!   lattice_bookkeeper
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
 !   ring   -- Ring_struct: Ring to be used
-!   ix_ele -- Integer: Index of element whose attribute values have been
-!               changed.
+!   ix_ele -- Integer, optional: Index of element whose attribute values 
+!               have been changed. If not present bookkeeping will be done 
+!               for all elements.
 !-
 
 subroutine control_bookkeeper (ring, ix_ele)
@@ -37,8 +38,32 @@ subroutine control_bookkeeper (ring, ix_ele)
   type (ring_struct), target :: ring
   type (ele_struct), pointer :: ele
 
-  integer ix_ele, i, j, ix, ix1, ix2
+  integer, optional :: ix_ele
+  integer i, j, ix, ix1, ix2
   integer ix_eles(300)
+
+! If we need to make up the entire ring then we need to do the lords first
+
+  if (present(ix_ele)) then
+    call this_bookkeeper (ix_ele)
+
+  else
+    do i = ring%n_ele_use+1, ring%n_ele_max
+      if (ring%ele_(i)%control_type /= group_lord$) call this_bookkeeper (i)
+    enddo
+
+    do i = ring%n_ele_use+1, ring%n_ele_max
+      if (ring%ele_(i)%control_type == group_lord$) call this_bookkeeper (i)
+    enddo
+
+  endif
+
+!--------------------------------------------------------------------------
+contains
+
+subroutine this_bookkeeper (ix_ele)
+
+  integer ix_ele
 
 ! Attribute bookkeeping
 
@@ -114,24 +139,27 @@ subroutine control_bookkeeper (ring, ix_ele)
 
 end subroutine
 
+end subroutine
+
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine control_lord_bookkeeper (ring)
+! Subroutine lattice_bookkeeper (ring)
 !
-! Subroutine to transfer attibute information from lord to slave elements.
-! If you want to do the bookkeeping a single element use:
-!   control_bookkeeper
+! Subroutine to do a complete bookkeeping job on a lattice.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   ring   -- Ring_struct: Lattice.
+!   ring   -- Ring_struct: Lattice needing bookkeeping.
+!
+! Output:
+!   ring   -- Ring_struct: Lattice with bookkeeping done.
 !-
 
-subroutine control_lord_bookkeeper (ring)
+subroutine lattice_bookkeeper (ring)
 
   implicit none
 
@@ -140,14 +168,10 @@ subroutine control_lord_bookkeeper (ring)
 
 !
 
-  do i = ring%n_ele_use+1, ring%n_ele_max
-    if (ring%ele_(i)%control_type /= group_lord$)  &
-                                 call control_bookkeeper (ring, i)
-  enddo
+  call control_bookkeeper (ring)
 
-  do i = ring%n_ele_use+1, ring%n_ele_max
-    if (ring%ele_(i)%control_type == group_lord$)  &
-                                 call control_bookkeeper (ring, i)
+  do i = 1, ring%n_ele_use
+    call attribute_bookkeeper (ring%ele_(i), ring%param)
   enddo
 
 end subroutine
