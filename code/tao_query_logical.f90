@@ -21,6 +21,7 @@ implicit none
 logical logic
 character(*) true_sym, false_sym, prompt
 character(40) ans, str
+character(80) line
 
 !
 
@@ -32,11 +33,10 @@ do
     str = false_sym
   endif
 
- write (*, '(1x, 9a)', advance = 'NO') trim(prompt), ' (', trim(true_sym), &
-     '/', trim(false_sym), ') <', trim(str), '> ' 
-!  print '(10a, $)', trim(prompt), ' (', trim(true_sym), &
-!      '/', trim(false_sym), ') <', trim(str), '> ' 
-  read  (*, '(a)') ans
+  line =  trim(prompt) // ' (' // trim(true_sym) // &
+             '/' // trim(false_sym) // ') <' // trim(str) // '> ' 
+
+  call tao_get_user_input (ans, line) 
 
   if (len_trim(ans) == 0) return
   if (ans == true_sym) then

@@ -1,16 +1,17 @@
 !+
-! Subroutine tao_get_user_input (cmd_line)
+! Subroutine tao_get_user_input (cmd_line, prompt_str)
 !
 ! Subroutine to get input from the terminal.
 !
 ! Input:
-!   s%global%prompt_string -- Prompt string.
+!   prompt_str -- Character(*), optional: Primpt string to print at terminal. If not
+!                   present then s%global%prompt_string will be used.
 !
 ! Output:
 !   cmd_line -- Character(*): Command line from the user.
 !-
 
-subroutine tao_get_user_input (cmd_line)
+subroutine tao_get_user_input (cmd_line, prompt_str)
 
 use tao_mod
 use tao_single_mod
@@ -22,6 +23,9 @@ implicit none
 integer i, ix
 
 character(*) :: cmd_line
+character(*), optional :: prompt_str
+character(80) prompt_string
+
 character(3) :: str(9) = (/ '[1]', '[2]', '[3]', '[4]', '[5]', &
                             '[6]', '[7]', '[8]', '[9]' /)
 character(40) tag
@@ -32,6 +36,9 @@ logical, save :: init_needed = .true.
 logical, save :: multi_commands_here = .false.
 
 ! Init single char input
+
+prompt_string = s%global%prompt_string
+if (present(prompt_str)) prompt_string = prompt_str
 
 if (init_needed) then
   call init_tty_char
@@ -80,7 +87,7 @@ if (tao_com%nest_level /= 0) then
                               cmd_line(ix+3:)
     enddo
     
-    write (*, '(3a)') trim(s%global%prompt_string), ': ', trim(cmd_line)
+    write (*, '(3a)') trim(prompt_string), ': ', trim(cmd_line)
     
     ! Check if in a do loop
     call do_loop()
@@ -100,12 +107,9 @@ endif
 
 ! Here if no command file is being used.
 
-!! print '(1x, 2a, $)', trim(s%global%prompt_string), '> '
-!! read (*, '(a)') cmd_line
-
 if (.not. multi_commands_here) then
   cmd_line = ' '
-  tag = trim(s%global%prompt_string) // '> ' // achar(0)
+  tag = trim(prompt_string) // '> ' // achar(0)
   call read_line (trim(tag), cmd_line)
 endif
 call alias_translate (cmd_line, err)
@@ -218,7 +222,7 @@ integer, save :: loop_line_count
     loop_line_count = 0
     do 
       read (tao_com%lun_command_file(tao_com%nest_level), '(a)', end = 9000) cmd_line
-      write (*, '(3a)') trim(s%global%prompt_string), ': ', trim(cmd_line)
+      write (*, '(3a)') trim(prompt_string), ': ', trim(cmd_line)
       call string_trim (cmd_line, cmd_line, ix)
       do_word = ' '
       if (ix .le. len(do_word)) &

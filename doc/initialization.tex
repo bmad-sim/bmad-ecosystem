@@ -93,13 +93,15 @@ defines where the lattice input files are. The \vn{tao_design_lattice}
 namelist has the form
 \begin{example}
   \&tao_design_lattice
+    taylor_order = <num>
     design_lattice_file(i) = "<lattice_file>", \{"<parser>"\}
   /
 \end{example}
-where \vn{i} refers to the universe index, \vn{<lattice_file>} is the name of an input 
-lattice file and
-\vn{<parser>} is the name of the parser to use. Possible choices for
-\vn{<parser>} are:
+\vn{taylor_order} is the order of the Taylor maps. This will override
+the Taylor order set in the lattice files. \vn{i} refers to the
+universe index, \vn{<lattice_file>} is the name of an input lattice
+file and \vn{<parser>} is the name of the parser to use. Possible
+choices for \vn{<parser>} are:
 \begin{example}
   bmad      ! For a standard bmad lattice file. This is the default.
   xsif      ! For an xsif lattice file.
