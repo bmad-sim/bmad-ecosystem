@@ -75,13 +75,22 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
 
   E_rel = (1 + coord%vec(6))
 
-! init
+! Bmad routines assume input canonical coords. 
+! The output of this routine must be what the calling subroutine thinks it
+!  is setting at.
+! Therefore: If bmad_com%canonical_coords = F, so that the input coords
+!   are not canonical, the sense of set_canon must be inverted to get 
+!   the right output
 
   if (present(set_canonical)) then
     set_canon = set_canonical
   else
     set_canon = .true.
   endif
+
+  if (.not. bmad_com%canonical_coords) set_canon = .not. set_canon
+
+!
 
   if (present(set_multipoles)) then
     set_multi = set_multipoles
