@@ -18,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/08/09 19:33:45  mjf7
+!Adding the save attribute to the ele variable, helps with an irradic memory leak when the subroutine call ele_equal_ele.    - mjf
+!
 !Revision 1.7  2003/07/09 01:38:18  dcs
 !new bmad with allocatable ring%ele_(:)
 !
@@ -47,7 +50,7 @@ subroutine quad_beta_ave (ring, ix_ele, beta_x_ave, beta_y_ave)
   implicit none
 
   type (ring_struct)  ring
-  type (ele_struct)  ele
+  type (ele_struct),save ::  ele
 
   integer ix_ele, ix
 
