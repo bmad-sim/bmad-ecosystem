@@ -39,7 +39,7 @@ subroutine tao_command (s, command_line)
         'quit      ', 'exit      ', 'show      ', 'plot      ', 'place     ', &
         'clip      ', 'scale     ', 'veto      ', 'use       ', 'restore   ', &
         'run       ', 'flatten   ', 'output    ', 'change    ', 'set       ', &
-        'call      ', 'view      ', 'alias     ', '          ', '          ' /)
+        'call      ', 'view      ', 'alias     ', 'help      ', '          ' /)
 
   logical quit_tao, err, do_all_universes
 
@@ -141,6 +141,13 @@ subroutine tao_command (s, command_line)
     call cmd_split (1, .true., err); if (err) return
     call tao_run_cmd (s, cmd_word(1))
 
+!--------------------------------
+! HELP
+
+  case ('help')
+
+    call cmd_split (1, .true., err); if (err) return
+    call tao_help (s, cmd_word(1))
 !--------------------------------
 ! OUTPUT
 

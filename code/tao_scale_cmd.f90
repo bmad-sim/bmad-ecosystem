@@ -2,7 +2,7 @@
 ! Subroutine tao_scale_cmd (s, where, y_min, y_max)
 !
 ! Routine to scale a plot. If y_min = y_max
-! Then then scales will be choisen to show all the data.
+! Then the scales will be chosen to show all the data.
 ! 
 ! Input:
 !   s     -- tao_super_universe_struct

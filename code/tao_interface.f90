@@ -426,6 +426,15 @@ interface
   end subroutine
 end interface
 
+interface
+  subroutine tao_help (s, help_what)
+    use tao_struct, only: tao_super_universe_struct
+    implicit none
+    type (tao_super_universe_struct) s
+    character(*) help_what
+  end subroutine
+end interface
+
 end module
 
 
