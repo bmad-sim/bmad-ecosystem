@@ -18,11 +18,13 @@
 subroutine tao_place_cmd (where, who)
 
 use tao_mod
+use quick_plot
 
 implicit none
 
 type (tao_plot_struct), pointer :: plot
 type (tao_plot_struct), pointer :: template
+type (qp_axis_struct), pointer :: ax
 
 integer i
 logical err
@@ -54,5 +56,21 @@ if (err) return
 
 call tao_plot_struct_transfer (template, plot, .true.)
 plot%visible = .true.
+
+! auto scale and calculate places
+
+if (plot%x%min == plot%x%max) then
+  call tao_x_scale_cmd (where, 0.0_rp, 0.0_rp)
+else
+  ax => plot%x
+  call qp_calc_axis_places (ax%min, ax%max, ax%major_div, ax%places)
+endif
+
+do i = 1, size (plot%graph)
+  ax => plot%graph(i)%y
+  call qp_calc_axis_places (ax%min, ax%max, ax%major_div, ax%places)
+  ax => plot%graph(i)%y2
+  call qp_calc_axis_places (ax%min, ax%max, ax%major_div, ax%places)
+enddo
 
 end subroutine

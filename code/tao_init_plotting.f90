@@ -120,6 +120,7 @@ do
     graph%y  = init_axis
     graph%y2 = init_axis
     graph%y2%draw_numbers = .false.
+    graph%ix_universe = i
     curve(:)%units_factor = 1
     curve(:)%symbol_every = 1
     curve(:)%ix_universe = 0
@@ -127,7 +128,12 @@ do
     curve(:)%use_y2 = .false.
     curve(:)%symbol = default_symbol
     curve(:)%line   = default_line
-
+    curve(2:7)%symbol%type = (/ times$, square$, plus$, triangle$, &
+                                  x_symbol$, diamond$ /)
+    curve(2:7)%symbol%color = (/ blue$, red$, green$, cyan$, magenta$, yellow$ /)
+    curve(2:7)%line%color = curve(2:7)%symbol%color
+    curve(2:7)%line%style = (/ dashed$, dotted$, dash_dot$, &
+                                                 dash_dot3$, solid$, dotted$ /)
     read (iu, nml = tao_template_graph, err = 9200)
     call out_io (s_blank$, r_name, &
                     'Init: Read tao_template_graph namelist: ' // graph%name)
@@ -143,7 +149,8 @@ do
     grph%margin     = graph%margin
     grph%y          = graph%y
     grph%y2         = graph%y2
-    allocate (grph%curve(graph%n_curve))
+    grph%ix_universe = graph%ix_universe
+    allocate (grph%curve(max(1, graph%n_curve)))
     do j = 1, graph%n_curve
       crv => grph%curve(j)
       crv%data_source       = curve(j)%data_source

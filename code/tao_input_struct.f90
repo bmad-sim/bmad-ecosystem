@@ -78,6 +78,7 @@ type tao_graph_input
   character(16) name
   character(80) title
   integer this_box(2)
+  integer ix_universe
   integer n_curve
   type (qp_rect_struct) margin
   type (qp_axis_struct) y

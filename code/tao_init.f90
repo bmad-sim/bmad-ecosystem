@@ -46,7 +46,6 @@ subroutine tao_init (init_file)
   call tao_hook_init_design_lattice (lattice_file) 
   call tao_init_global_and_universes (data_and_var_file)
   call tao_init_single_mode (single_mode_file)
-  if (s%global%plot_on) call tao_init_plotting (plot_file)
   call tao_hook_init ()
 
   call tao_lattice_calc ()
@@ -61,6 +60,7 @@ subroutine tao_init (init_file)
   call tao_set_var_useit_opt ()
 
   call tao_lattice_calc()      ! calculate Twiss parameters, closed orbit
+  if (s%global%plot_on) call tao_init_plotting (plot_file)
   call tao_plot_data_setup ()  ! transfer data to the plotting structures
   call tao_plot_out ()         ! Update the plotting window
 

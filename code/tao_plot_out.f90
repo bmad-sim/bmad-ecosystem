@@ -52,8 +52,8 @@ do i = 1, size(s%plot_page%plot)
 ! For a non-valid plot just print a message
 
   if (.not. plot%valid) then
-    call qp_draw_text ('Error In the Plot Calculation', 0.5_rp, 0.5_rp, '%/PAGE')
-
+    call qp_set_box (1, 1, 1, 1)
+    call qp_draw_text ('Error In the Plot Calculation', 0.1_rp, 0.5_rp, '%BOX')
     cycle
   endif
 
@@ -168,23 +168,22 @@ type (ele_struct), pointer :: ele
 
 real(rp) x1, x2, y, s_pos
 
-integer i, j, k, kk, ix, ix1, ix2, isu
-integer n_plot_tot, n_plot, icol, ix_var, ixv
+integer i, j, k, kk, ix, ix1, ix2, isu, ig
+integer icol, ix_var, ixv
 
 character(80) str
 
 !
 
-n_plot_tot = count (s%u(:)%draw_lat_layout)
-n_plot = n_plot_tot
 
-do isu = 1, size(s%u)
-
-  if (.not. s%u(isu)%draw_lat_layout) cycle
+do ig = 1, size(plot%graph)
+  graph => plot%graph(ig)
+  call qp_set_layout (x_axis = plot%x, margin = graph%margin)
+  isu = graph%ix_universe
   lat => s%u(isu)%model
 
-  call qp_set_box (1, n_plot, 1, n_plot_tot)
-  n_plot = n_plot - 1
+  graph_box = (/ graph%this_box, plot%box_layout /)
+  call qp_set_layout (box = graph_box, margin = graph%margin)
   call qp_set_axis ('Y', -70.0_rp, 30.0_rp, 1, 0)
   
   do i = 1, lat%n_ele_max

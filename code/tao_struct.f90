@@ -91,7 +91,8 @@ type tao_graph_struct
   type (tao_curve_struct), pointer :: curve(:) => null()
   type (tao_graph_hook) hook   ! Custom stuff. Defined in tao_hook.f90.
   logical clip                 ! clip plot at graph boundary.
-  integer this_box(2)        ! X-Y offset on the page from lower left.
+  integer this_box(2)          ! X-Y offset on the page from lower left.
+  integer ix_universe          ! Used for lat_layout plots.
 end type
 
 ! A region defines where to position a plot on the plot page
@@ -113,7 +114,8 @@ type tao_plot_struct
   character(16) :: type = ' '           ! "data", "lat_layout", "key_table"
   type (tao_plot_region_struct) region  ! Where on the plot page to put the plot
   type (tao_plot_who_struct) who(10)    ! Who to plot. Eg: Data - Design
-  type (tao_graph_struct), pointer :: graph(:) => null() ! individual graphs of a plot
+  type (tao_graph_struct), pointer :: graph(:) => null() 
+                                  ! individual graphs of a plot
   type (tao_plot_hook) hook       ! Custom stuff. Defined in tao_hook.f90
   type (qp_axis_struct) x         ! X-axis parameters.
   real(rp) x_divisions            ! Nominal number of x-axis divisions.
@@ -344,7 +346,6 @@ type tao_universe_struct
   real(rp), pointer :: dModel_dVar(:,:)                       ! Derivative matrix.
   integer n_d2_data_used
   integer n_data_used
-  logical draw_lat_layout             ! draw this layout?
 end type
 
 ! The super_universe is the structure that holds an array of universes.
