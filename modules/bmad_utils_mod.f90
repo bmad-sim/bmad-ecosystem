@@ -314,7 +314,7 @@ subroutine transfer_taylor (ring_in, ring_out, type_out)
     enddo
 
     ele_out%taylor_order = bmad_com%taylor_order
-    ele_out%taylor(it)%ref = ele_in%taylor(it)%ref
+    ele_out%taylor(:)%ref = ele_in%taylor(:)%ref
 
   enddo
 
