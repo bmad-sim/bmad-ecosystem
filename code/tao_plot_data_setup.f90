@@ -28,10 +28,12 @@ type (ele_struct), pointer :: ele
 real(rp) f, x1, x2, y_val, eps
 real(rp), pointer :: value(:)
 
-integer i, ii, j, k, m, n_dat, i_uni, ie
+integer i, ii, j, k, m, n_dat, i_uni, ie, jj
+integer ix_this, ix
 logical err, smoothing
 
 character(20) :: r_name = 'tao_plot_data_setup'
+character(12)  :: u_view_char
 
 ! Find which elements are to be drawn for a lattice layout.
 
@@ -67,7 +69,8 @@ plot_loop: do i = 1, size(s%plot_page%plot)
 
   if (.not. plot%visible) cycle  ! Don't worry about invisable graphs
 
-  if (plot%x_axis_type /= 'index' .and. plot%x_axis_type /= 's') then
+  if (plot%x_axis_type /= 'index' .and. plot%x_axis_type /= 's' .and. &
+      plot%x_axis_type /= 'ele_index') then
     call out_io (s_abort$, r_name, 'BAD X_AXIS_TYPE: ' // plot%x_axis_type)
     plot%valid = .false.
     cycle
@@ -85,7 +88,7 @@ plot_loop: do i = 1, size(s%plot_page%plot)
       curve => graph%curve(k)
 
       if (curve%data_source == 'lat_layout' .and. &
-                                       plot%x_axis_type == 'index') then
+            (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index')) then
         call out_io (s_error$, r_name, 'CURVE%DATA_SOURCE = "LAT_LAYOUT" ' // &
                         'AND PLOT%X_AXIS_TYPE = "INDEX" DO NOT GO TOGETHER.')
         plot%valid = .false.
@@ -112,7 +115,10 @@ plot_loop: do i = 1, size(s%plot_page%plot)
         if (plot%x_axis_type == 'index') then
           where (d1_ptr%d%ix_d1 < plot%x%min-eps) d1_ptr%d%good_plot = .false.
           where (d1_ptr%d%ix_d1 > plot%x%max+eps) d1_ptr%d%good_plot = .false.
-        else
+	elseif (plot%x_axis_type == 'ele_index') then
+          where (d1_ptr%d%ix_ele < plot%x%min-eps) d1_ptr%d%good_plot = .false.
+          where (d1_ptr%d%ix_ele > plot%x%max+eps) d1_ptr%d%good_plot = .false.
+        else ! s
           where (d1_ptr%d%s < plot%x%min-eps) d1_ptr%d%good_plot = .false.
           where (d1_ptr%d%s > plot%x%max+eps) d1_ptr%d%good_plot = .false.
         endif
@@ -128,8 +134,15 @@ plot_loop: do i = 1, size(s%plot_page%plot)
 
         if (plot%x_axis_type == 'index') then
           curve%x_symb = curve%ix_symb
+        elseif (plot%x_axis_type == 'ele_index') then
+          curve%x_symb = d1_ptr%d(curve%ix_symb)%ix_ele
         elseif (plot%x_axis_type == 's') then
           curve%x_symb = u%model%ele_(d1_ptr%d(curve%ix_symb)%ix_ele)%s
+	else
+	  call out_io (s_error$, r_name, &
+	               "Unknown axis type!")
+          plot%valid = .false.
+          cycle plot_loop
         endif
 
 ! calculate the y-axis data point values.
@@ -173,11 +186,29 @@ plot_loop: do i = 1, size(s%plot_page%plot)
           cycle plot_loop
         endif
 
+	! find which universe we're viewing
+	ix_this = -1
+	do jj = 1, size(v1_ptr%v(1)%this)
+	  if (v1_ptr%v(1)%this(jj)%ix_uni .eq. s%global%u_view) &
+	          ix_this = jj
+        enddo
+	if (ix_this .eq. -1) then
+	  call out_io (s_error$, r_name, &
+	       "This variable doesn't point to the currently displayed  universe.")
+          plot%valid = .false.
+          cycle plot_loop
+	endif
+	    
         v1_ptr%v%good_plot = .true.
         eps = 1e-4 * (plot%x%max - plot%x%min)
         if (plot%x_axis_type == 'index') then
           where (v1_ptr%v%ix_v1 < plot%x%min-eps) v1_ptr%v%good_plot = .false.
           where (v1_ptr%v%ix_v1 > plot%x%max+eps) v1_ptr%v%good_plot = .false.
+	elseif (plot%x_axis_type == 'ele_index') then
+	  do jj = lbound(v1_ptr%v, 1), ubound(v1_ptr%v,1)
+	    if (v1_ptr%v(jj)%this(ix_this)%ix_ele < plot%x%min-eps) v1_ptr%v%good_plot = .false.
+	    if (v1_ptr%v(jj)%this(ix_this)%ix_ele > plot%x%max+eps) v1_ptr%v%good_plot = .false.
+	  enddo
         else
           where (v1_ptr%v%s < plot%x%min-eps) v1_ptr%v%good_plot = .false.
           where (v1_ptr%v%s > plot%x%max+eps) v1_ptr%v%good_plot = .false.
@@ -194,11 +225,14 @@ plot_loop: do i = 1, size(s%plot_page%plot)
 
         if (plot%x_axis_type == 'index') then
           curve%x_symb = curve%ix_symb
+        elseif (plot%x_axis_type == 'ele_index') then
+	  do jj = lbound(curve%ix_symb,1), ubound(curve%ix_symb,1)
+            curve%x_symb(jj) = v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele
+	  enddo
         elseif (plot%x_axis_type == 's') then
-	  ! FIX ME!!! need to set up for different lattices in diff universes
-          !curve%x_symb = u%model%ele_(v1_ptr%v(curve%ix_symb)%this(1)%ix_ele)%s
-          plot%valid = .false.
-          cycle plot_loop
+	  do jj = lbound(curve%ix_symb,1), ubound(curve%ix_symb,1)
+            curve%x_symb(jj) = u%model%ele_(v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele)%s
+	  enddo
         endif
 
 ! calculate the y-axis data point values.
@@ -210,11 +244,19 @@ plot_loop: do i = 1, size(s%plot_page%plot)
           case (' ') 
             cycle
           case ('model') 
-            value => v1_ptr%v%model_value
-!            value => v1_ptr%v%this(s%global%u_view)%model_ptr
+	    ! set value to whatever it is in currently viewed universe
+	    do jj = lbound(v1_ptr%v,1), ubound(v1_ptr%v,1)
+	      if (associated(v1_ptr%v(jj)%this(ix_this)%model_ptr)) &
+                v1_ptr%v(jj)%plot_model_value = v1_ptr%v(jj)%this(ix_this)%model_ptr
+	    enddo
+	    value => v1_ptr%v%plot_model_value
           case ('base')  
-            value => v1_ptr%v%base_value
-!            value => v1_ptr%v%this(s%global%u_view)%base_ptr
+	    ! set value to whatever it is in currently viewed universe
+	    do jj = lbound(v1_ptr%v,1), ubound(v1_ptr%v,1)
+	      if (associated(v1_ptr%v(jj)%this(ix_this)%base_ptr)) &
+                v1_ptr%v(jj)%plot_base_value = v1_ptr%v(jj)%this(ix_this)%base_ptr
+	    enddo
+	    value => v1_ptr%v%plot_base_value
           case ('design')  
             value => v1_ptr%v%design_value
           case ('ref')     
@@ -251,6 +293,8 @@ plot_loop: do i = 1, size(s%plot_page%plot)
         curve%ix_symb = pack(u%base%ele_(:)%ix_pointer, mask = u%base%ele_(:)%logic)
 
         if (plot%x_axis_type == 'index') then
+          curve%x_symb = curve%ix_symb
+        elseif (plot%x_axis_type == 'ele_index') then
           curve%x_symb = curve%ix_symb
         elseif (plot%x_axis_type == 's') then
           curve%x_symb = u%model%ele_(curve%ix_symb)%s
@@ -306,13 +350,18 @@ plot_loop: do i = 1, size(s%plot_page%plot)
       endif 
 
 ! Calculate the points for drawing the curve through the symbols.
-! If the x-axis is by index then these points are the same as the symbol points.
-!  That is, for x-axis = index the line is piece-wise linear between the symbols.
+! If the x-axis is by index or ele_index then these points are the same as the symbol points.
+! That is, for x-axis = index or ele_index the line is piece-wise linear between the symbols.
 ! If the axis is by s-value then the line is a "smooth" curve with 400 points if
 ! plotting model, base or design data. It's the same as the symbol points
 ! otherwise.
 
       if (plot%x_axis_type == 'index') then
+        call reassociate_real (curve%y_line, n_dat) ! allocate space for the data
+        call reassociate_real (curve%x_line, n_dat) ! allocate space for the data
+        curve%x_line = curve%x_symb
+        curve%y_line = curve%y_symb
+      elseif (plot%x_axis_type == 'ele_index') then
         call reassociate_real (curve%y_line, n_dat) ! allocate space for the data
         call reassociate_real (curve%x_line, n_dat) ! allocate space for the data
         curve%x_line = curve%x_symb
@@ -383,11 +432,19 @@ plot_loop: do i = 1, size(s%plot_page%plot)
 ! attach x-axis type to title suffix
 
       if (plot%x_axis_type .eq. 'index') then
-	graph%title_suffix = trim(graph%title_suffix) // ' index '
+	graph%title_suffix = trim(graph%title_suffix) // ', X-axis: index, '
+      elseif (plot%x_axis_type .eq. 'ele_index') then
+	graph%title_suffix = trim(graph%title_suffix) // ', X-axis: ele_index, '
       elseif (plot%x_axis_type .eq. 's') then
-	graph%title_suffix = trim(graph%title_suffix) // ' s '
+	graph%title_suffix = trim(graph%title_suffix) // ', X-axis: s, '
       endif
 
+! attach universe number to title suffix
+
+      write (u_view_char, '(I)') s%global%u_view
+      call string_trim (u_view_char, u_view_char, ix)
+      graph%title_suffix = trim(graph%title_suffix) // ' Universe: ' // trim(u_view_char)
+      
     enddo
   enddo
 enddo plot_loop

@@ -28,7 +28,7 @@ logical err
 
 ! check what
 
-if (what /= "s" .and. what /= "index") then
+if (what /= "s" .and. what /= "index" .and. what /= "ele_index") then
   call out_io (s_error$, r_name, 'I DO NOT UNDERSTAND THIS: ' // what)
   return
 endif
@@ -72,6 +72,12 @@ if (what == 's') then
   minn = s%u(iu)%model%ele_(0)%s
   n = s%u(iu)%model%n_ele_use
   maxx = s%u(iu)%model%param%total_length
+elseif (what == 'ele_index') then
+  call tao_find_data (err, s%u(iu), &
+               plot%graph(1)%curve(1)%data_type, d1_ptr = d1_ptr)
+  if (err) return
+  minn = lbound(d1_ptr%d, 1)
+  maxx = ubound(d1_ptr%d, 1)
 elseif (what == 'index') then
   call tao_find_data (err, s%u(iu), &
                plot%graph(1)%curve(1)%data_type, d1_ptr = d1_ptr)

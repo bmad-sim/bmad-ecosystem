@@ -15,6 +15,7 @@
 subroutine tao_init_global_and_universes (data_and_var_file)
 
   use tao_mod
+  use tao_lattice_calc_mod
   use tao_input_struct
   use macroparticle_mod
   use bmad_parser_mod
@@ -29,6 +30,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   type (tao_global_struct) global
   type (tao_d1_data_struct), pointer :: d1_ptr
   type (macro_init_struct) macro_init(n_universe_maxx)
+  type (tao_coupled_uni_input) coupled(n_universe_maxx)
 
   real(rp) :: default_weight        ! default merit function weight
   real(rp) :: default_step          ! default "small" step size
@@ -56,6 +58,8 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 
 
   namelist / tao_params / global, n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
+  
+  namelist / tao_coupled_uni_init / coupled
   
   namelist / tao_beam_init / sr_wakes_on, lr_wakes_on, sr_wake_file, &
                             lr_wake_file, macro_init
@@ -93,6 +97,8 @@ subroutine tao_init_global_and_universes (data_and_var_file)
     call init_universe (s%u(i))
   enddo
 
+  if (associated(s%var)) deallocate (s%var)
+  if (associated(s%v1_var)) deallocate (s%v1_var)
   allocate (s%var(n_var_max))
   allocate (s%v1_var(n_v1_var_max))
 
@@ -105,6 +111,35 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   s%n_var_used = 0
   s%n_v1_var_used = 0       ! size of s%v1_var(:) array
 
+!-----------------------------------------------------------------------
+! Init coupled universes
+
+  call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
+  ! defaults
+  do i = 1, size(s%u)
+    s%u(i)%coupling%coupled = .false.
+    s%u(i)%coupling%match_to_design = .false.
+    s%u(i)%coupling%use_coupling_ele = .false.
+    s%u(i)%coupling%from_uni = -1
+    s%u(i)%coupling%from_uni_s = -1
+    s%u(i)%coupling%from_uni_ix_ele = -1
+    coupled(i)%from_universe = -1
+    coupled(i)%at_element = ' '
+    coupled(i)%at_s = -1
+    coupled(i)%match_to_design = .false.
+  enddo
+  read (iu, nml = tao_coupled_uni_init, iostat = ios)
+  close (iu)
+  if (ios .eq. 0) then
+    call out_io (s_blank$, r_name, 'Init: Read tao_coupled_uni_init namelist')
+    do i = 1, size(s%u)
+      call init_coupled_uni (s%u(i), coupled(i), i)
+    enddo
+  else
+    call out_io (s_blank$, r_name, "Init: No coupled universes initialization")
+  endif
+
+  
 !-----------------------------------------------------------------------
 ! Init macroparticles
 
@@ -127,13 +162,13 @@ subroutine tao_init_global_and_universes (data_and_var_file)
     do i = 1, size(s%u)
       call init_macro(s%u(i), macro_init(i), sr_wake_file(i), lr_wake_file(i))
     enddo
+  else
+    call out_io (s_blank$, r_name, "No macroparticle initialization")
   endif
 
 !-----------------------------------------------------------------------
 ! do initial twiss_and_track and equate model and base to design
-  do i = 1, size(s%u)
-    call init_lattices (s%u(i))
-  enddo
+  call init_lattices ()
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -296,11 +331,13 @@ subroutine init_universe (u)
 ! allocate and set defaults
 
   if (n_d2_data_max /= 0) then
+    if (associated(u%d2_data)) deallocate (u%d2_data)
     allocate (u%d2_data(n_d2_data_max))
     u%d2_data%name = ' '  ! blank name means it doesn't exist
   endif
 
   if (n_data_max /= 0) then
+    if (associated(u%data)) deallocate (u%data)
     allocate (u%data(n_data_max))
     u%data(:)%exists = .false.       ! set default
     u%data(:)%good_meas  = .false.   ! set default
@@ -316,6 +353,7 @@ subroutine init_universe (u)
 
 ! This is needed to keep the totalview debugger happy.
 
+  if (associated(u%dmodel_dvar)) deallocate (u%dmodel_dvar)
   allocate (u%dmodel_dvar(1,1))
   
 end subroutine init_universe
@@ -324,21 +362,29 @@ end subroutine init_universe
 !----------------------------------------------------------------
 ! contains
 
-subroutine init_lattices (u)
+subroutine init_lattices ()
 
-  type (tao_universe_struct) :: u
+  implicit none
 
-  n = u%design%n_ele_max
-  allocate (u%model_orb(0:n), u%design_orb(0:n), u%base_orb(0:n))
+  integer i
 
-! For linacs, specify initial conditions
-
-  u%design_orb(0)%vec = 0.0
-
+  do i = 1, size(s%u)
+    n = s%u(i)%design%n_ele_max
+    if (allocated(s%u(i)%model_orb)) deallocate (s%u(i)%model_orb)
+    if (allocated(s%u(i)%design_orb)) deallocate (s%u(i)%design_orb)
+    if (allocated(s%u(i)%base_orb)) deallocate (s%u(i)%base_orb)
+    allocate (s%u(i)%model_orb(0:n), s%u(i)%design_orb(0:n), s%u(i)%base_orb(0:n))
+    ! For linacs, specify initial conditions
+    s%u(i)%design_orb(0)%vec = 0.0
+  enddo
+    
   s%global%lattice_recalc = .true.
-  call tao_lattice_calc(u, u%design, u%design_orb)
-  u%model  = u%design; u%model_orb  = u%design_orb
-  u%base = u%design; u%base_orb = u%design_orb
+  call tao_lattice_calc(.true.)
+
+  do i = 1, size(s%u)
+    s%u(i)%model = s%u(i)%design; s%u(i)%model_orb = s%u(i)%design_orb
+    s%u(i)%base  = s%u(i)%design; s%u(i)%base_orb  = s%u(i)%design_orb
+  enddo
 
 end subroutine init_lattices
 
@@ -367,6 +413,7 @@ integer nn
 
 ! allocate memory for the u%d1_data structures
 
+  if (associated(u%d2_data(nn)%d1)) deallocate (u%d2_data(nn)%d1)
   allocate(u%d2_data(nn)%d1(n_d1_data))
 
 end subroutine
@@ -607,8 +654,12 @@ subroutine var_stuffit (ix_u_in)
       endif
     endif
      
+    if (associated(s_var%this)) deallocate (s_var%this)
     allocate (s_var%this(1))
-    if (s_var%ele_name == ' ') cycle
+    if (s_var%ele_name == ' ') then
+      s_var%exists = .false.
+      cycle
+    endif
     call tao_pointer_to_var_in_lattice (s_var, s_var%this(1), ix_u)
     s_var%model_value = s_var%this(1)%model_ptr
     s_var%design_value = s_var%model_value
@@ -638,8 +689,12 @@ subroutine var_stuffit_all_uni
   
   do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
     s_var => s%v1_var(n)%v(i)
+    if (associated(s_var%this)) deallocate (s_var%this)
     allocate (s_var%this(size(s%u)))
-    if (s_var%ele_name == ' ') cycle
+    if (s_var%ele_name == ' ') then
+      s_var%exists = .false.
+      cycle
+    endif
     do j = 1, size(s%u)
       u => s%u(j)
       call tao_pointer_to_var_in_lattice (s_var, s_var%this(j), j)
@@ -693,7 +748,7 @@ integer num_ele, ios, ixx1, ixx2
 	     "Cannot specify individual universes when searching for variables")
 	call err_exit
       else
-        write (iu, '(i)', iostat = ios) default_universe
+        read (default_universe, '(i)', iostat = ios) iu
 	if (ios .ne. 0) then
 	  call out_io (s_abort$, r_name, &
 	               "default_universe must be 'gang, clone or a number")
@@ -941,6 +996,86 @@ end subroutine find_elements
 !----------------------------------------------------------------
 ! contains
 !
+! Initialize universe coupling
+!
+
+subroutine init_coupled_uni (u, coupled, this_uni_index)
+
+implicit none
+
+type (tao_universe_struct) u
+type (tao_universe_struct), pointer ::  from_uni
+type (tao_coupled_uni_input) coupled
+integer this_uni_index
+
+character(16) ele_name
+
+integer j, ix
+
+  if (coupled%from_universe .eq. 0 .or. coupled%at_element .eq. "none") then
+    u%coupling%coupled = .false.
+    return
+  endif
+
+  if (coupled%from_universe .ge. this_uni_index) then
+    call out_io (s_abort$, r_name, &
+        "A universe can only inject into a universe with a greater universe index")
+    call err_exit
+  endif
+  
+  u%coupling%coupled = .true.
+  u%coupling%from_uni = coupled%from_universe
+  from_uni => s%u(coupled%from_universe)
+
+  call init_ele (u%coupling%coupling_ele)
+  u%coupling%coupling_ele%key = match$
+  u%coupling%match_to_design = coupled%match_to_design
+  if (u%coupling%match_to_design) u%coupling%use_coupling_ele = .true.
+	    
+  ! find extraction element
+  call string_trim (coupled%at_element, ele_name, ix)
+  if (ix .ne. 0) then
+    if (coupled%at_s .ne. -1) then
+      call out_io (s_error$, r_name, &
+              "INIT Coupling: cannot specify both an element and position!")
+      call out_io (s_blank$, r_name, &
+              "Will use element name.")
+    elseif (ele_name .eq. "end") then
+      u%coupling%from_uni_s  = from_uni%design%ele_(from_uni%design%n_ele_use)%s
+      u%coupling%from_uni_ix_ele = from_uni%design%n_ele_use
+    else
+      ! using element name 
+      ! find last element with name
+      do j = from_uni%design%n_ele_use, 0, -1
+        if (ele_name(1:ix) .eq. trim(from_uni%design%ele_(j)%name)) then
+          u%coupling%from_uni_s = from_uni%design%ele_(j)%s
+          u%coupling%from_uni_ix_ele = j
+          return
+        endif
+        if (j .eq. 0) then
+          call out_io (s_abort$, r_name, &
+                      "Couldn't find coupling element in universe \I\ ", &
+          	    coupled%from_universe)
+          call err_exit
+        endif
+      enddo
+    endif
+  else
+    ! using s position
+    if (s%global%track_type .eq. 'macro') then
+      call out_io (s_abort$, r_name, &
+       "Cannot specify arbitrary s position for coupling if tracking macroparticles")
+      call err_exit
+    endif
+    !FIX_ME: get ix_ele for element right before this s position
+    u%coupling%from_uni_s = coupled%at_s
+  endif
+
+end subroutine init_coupled_uni
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+! contains
+!
 ! Initialize the macroparticles. Determine which element to track beam to
 !
 
@@ -951,74 +1086,44 @@ implicit none
 type (tao_universe_struct) u
 type (macro_init_struct) macro_init
 character(*) sr_wake_file, lr_wake_file
-logical, automatic :: ele(0:u%design%n_ele_max)
 
 integer j, jj
 integer, pointer :: ix_lcav(:)
 
 !
+  if (u%design%param%lattice_type .eq. circular_lattice$) then
+    call out_io (s_blank$, r_name, &
+                 "This is a circular lattice.")
+    call out_io (s_blank$, r_name, &
+         "Twiss parameters and initial orbit will be found from the closed orbit.")
+    return
+  endif
+
   if (sr_wake_file .ne. 'none') then
     call elements_locator (lcavity$, u%design, ix_lcav)
-    do i=1,size(ix_lcav)
-       if (.not. associated(u%design%ele_(ix_lcav(i))%wake%sr_file)) &
-            allocate (u%design%ele_(ix_lcav(i))%wake%sr_file)
-       u%design%ele_(ix_lcav(i))%wake%sr_file = sr_wake_file
-       call read_sr_wake(u%design%ele_(ix_lcav(i)))
+    do j=1,size(ix_lcav)
+       if (.not. associated(u%design%ele_(ix_lcav(j))%wake%sr_file)) &
+            allocate (u%design%ele_(ix_lcav(j))%wake%sr_file)
+       u%design%ele_(ix_lcav(j))%wake%sr_file = sr_wake_file
+       call read_sr_wake(u%design%ele_(ix_lcav(j)))
     end do
+    deallocate(ix_lcav)
   endif
 
   if (lr_wake_file .ne. 'none') then
     call elements_locator (lcavity$, u%design, ix_lcav)
-    do i=1,size(ix_lcav)
-       if (.not. associated(u%design%ele_(ix_lcav(i))%wake%lr_file)) &
-            allocate (u%design%ele_(ix_lcav(i))%wake%lr_file)
-       u%design%ele_(ix_lcav(i))%wake%lr_file = lr_wake_file
-       call read_lr_wake(u%design%ele_(ix_lcav(i)))
+    do j=1,size(ix_lcav)
+       if (.not. associated(u%design%ele_(ix_lcav(j))%wake%lr_file)) &
+            allocate (u%design%ele_(ix_lcav(j))%wake%lr_file)
+       u%design%ele_(ix_lcav(j))%wake%lr_file = lr_wake_file
+       call read_lr_wake(u%design%ele_(ix_lcav(j)))
     end do
+    deallocate(ix_lcav)
   endif
-
-  deallocate(ix_lcav)
-
-  ele = .false.
 
   u%beam%macro_init = macro_init
   call init_macro_distribution (u%beam%beam, macro_init, .true.)
 
-! ! find elements to to track to
-! ! These will be the ones associated with any datum
-! forall (j = 1:u%n_data_used, .not.(ele(u%data(j)%ix_ele)))
-!   ele(u%data(j)%ix_ele) = .true.
-! endforall
-!   
-! !now include ix_ele2
-! do j = 1, u%n_data_used
-!   if (u%data(j)%ix_ele2 .ne. -1) then
-!     if ((ele(u%data(j)%ix_ele2))) ele(u%data(j)%ix_ele) = .true.
-!   endif
-! enddo
-
-! allocate (u%beam%to_ele(1:count(ele)))
-
-! ! get the element indexes, but only for regular ring elements
-! ! if a data type refers to a non regular element then not sure what to do
-! jj = 1
-! do j = 0, u%design%n_ele_use
-!   if (ele(j)) then
-!     u%beam%to_ele(jj) = j
-!     jj = jj + 1
-!   endif
-! enddo
-
-! if (jj-1 .ne. count(ele)) then
-!   call out_io (s_warn$, r_name, &
-!    "There appears to be non-regular element references in your data!" )
-!   call out_io (s_blank$, r_name, &
-!    "Macroparticles will not necessarily track to these elements")
-! endif
-  
-  ! For starters, always track through every element.
-  u%beam%track_all = .true.
-  
 end subroutine init_macro
   
 end subroutine tao_init_global_and_universes

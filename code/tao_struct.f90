@@ -6,7 +6,7 @@
 
 module tao_struct
 
-use bmad_struct, only: rp, ring_struct, coord_struct, radians$
+use bmad_struct, only: rp, ring_struct, coord_struct, radians$, ele_struct
 use quick_plot, only: qp_line_struct, qp_symbol_struct, qp_axis_struct, qp_rect_struct
 use macroparticle_mod, only: macro_init_struct, beam_struct
 use tao_parameters
@@ -277,6 +277,8 @@ type tao_var_struct
   real(rp) meas_value       ! The value when the data measurement was taken.
   real(rp) ref_value        ! Value when the reference measurement was taken.
   real(rp) correction_value ! Value determined by a fit to correct the lattice.
+  real(rp) plot_model_value ! the value being plotted (if plotting model)
+  real(rp) plot_base_value  ! the value being plotted (if plotting base)
   real(rp) high_lim         ! High limit for the model_value.
   real(rp) low_lim          ! Low limit for the model_value.
   real(rp) step             ! Sets what is a small step for varying this var.
@@ -348,14 +350,26 @@ type tao_global_struct
   character(80) :: opt_var_out_file = 'opt_var#.out'
 end type
 
+!------------------------------------------------------------------------
+! for coupling universes
+
+type tao_coupled_uni_struct
+  logical coupled   ! This universe us coupled from another
+  logical match_to_design ! match the design lattices
+  logical use_coupling_ele ! to use the coupling_ele
+  integer from_uni   ! The universe whose beam injects into this universe
+  integer from_uni_ix_ele ! element index where coupling occurs
+  real(rp) from_uni_s ! s position in from_uni where coupling occurs
+  type (ele_struct) :: coupling_ele ! element used to match universes
+  type (beam_struct) injecting_beam ! used for macroparticle injection
+end type
+
 !-----------------------------------------------------------------------
 ! Macroparticle structure
 
 type tao_beam_struct
   type (beam_struct) beam             ! macroparticle beam
   type (macro_init_struct) macro_init ! macro distribution at beginning of lat
-  integer, pointer :: to_ele(:)       ! index of elements to track to   
-  logical track_all                   ! track through every element
 end type
 
 !-----------------------------------------------------------------------
@@ -367,6 +381,7 @@ type tao_universe_struct
   type (tao_beam_struct) beam                      ! macroparticle beam 
   type (tao_d2_data_struct), pointer :: d2_data(:) => null()  ! The data types 
   type (tao_data_struct), pointer :: data(:) => null()        ! array of all data.
+  type (tao_coupled_uni_struct)   :: coupling      !used for coupled lattices
   real(rp), pointer :: dModel_dVar(:,:)                       ! Derivative matrix.
   integer n_d2_data_used
   integer n_data_used

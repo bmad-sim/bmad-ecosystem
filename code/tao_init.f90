@@ -11,6 +11,7 @@
 subroutine tao_init (init_file)
 
   use tao_mod
+  use tao_lattice_calc_mod
 
   implicit none
 

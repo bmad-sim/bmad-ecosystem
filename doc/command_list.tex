@@ -680,11 +680,14 @@ Format:
 \vn{X-Axis} sets what data is used for the horizontal
 axis. Possibilities for \vn{<axis_type>} are:
 \begin{example}
-  index    -- Use data index
-  s        -- Use longitudinal position.
+  index     -- Use data index
+  ele_index -- Use data element index
+  s         -- Use longitudinal position.
 \end{example}
 Note that \vn{index} only makes sense for data that has an index
-associated with it.
+associated with it. Also, if a data point has more that one element associated
+with it \vn{ele_index} will plot the first element index (\vn{ix_ele} not
+\vn{ix_ele2}).
 
 Examples:
 \begin{example}

@@ -24,7 +24,7 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
   character(*) tao_design_lattice_file
   character(200) complete_file_name
   character(40) :: r_name = 'tao_init_design_lattice'
-  integer i, iu, ios
+  integer i, iu, ios, version
 
   logical custom_init
 
@@ -56,6 +56,10 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
       call bmad_parser (design_lattice_file(i)%file, s%u(i)%design)
     case ('xsif')
       call xsif_parser (design_lattice_file(i)%file, s%u(i)%design)
+    case ('digested')
+      call out_io (s_blank$, r_name, &
+                  "Reading digested BMAD file " // trim(design_lattice_file(i)%file))
+      call read_digested_bmad_file (design_lattice_file(i)%file, s%u(i)%design, version)
     case default
       call out_io (s_abort$, r_name, 'PARSER NOT RECOGNIZED: ' // &
                                                 design_lattice_file(i)%parser)

@@ -12,6 +12,7 @@
 function tao_merit () result (this_merit)
 
 use tao_mod
+use tao_lattice_calc_mod
 
 implicit none
 

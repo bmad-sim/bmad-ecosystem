@@ -264,7 +264,7 @@ Templates define the basics of, say, how to display an orbit.
 &tao_template_plot
   plot%name = 'quad_k1'
   plot%x%min =   0
-  plot%x%max = 100
+  plot%x%max = 120
   plot%x%major_div = 10
   plot%x%label = ' '
   plot%x_axis_type = 'index'

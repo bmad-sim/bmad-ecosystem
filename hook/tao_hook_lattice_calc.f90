@@ -12,10 +12,15 @@
 ! is called. If you do custom tracking then somehow the lattice orbit and
 ! twiss parameters need to be updated or the standard TAO data types are liable to break! 
 !
-!  See tao/code/tao_lattice_calc.f90 for how the standard lattice calculation is
-! performed. All bookkeeping is performed in that routine so all you need to do
+!  See tao/code/tao_lattice_calc_mod.f90 for how the standard lattice calculation is
+! performed. All bookkeeping is performed in tao_lattice_calc so all you need to do
 ! here is the actual lattice calculation for whatever universe, lattice and
-! orbit is passed to it.
+! orbit is passed to it. 
+!
+!  However, if coupled lattices are used then the injection needs to be taken 
+! care of in here. Coupled lattice injection is complex so look through 
+! tao_lattice_calc_mod.f90 thoroughly, expecially if using macroparticles!
+! The routines in tao_lattice_calc_mod can be useful.
 !
 ! Input:
 !  universe   -- tao_universe_struct: universe to do calculation in
@@ -32,6 +37,7 @@
 subroutine tao_hook_lattice_calc (universe, lattice, orbit, used)
 
 use tao_mod
+use tao_lattice_calc_mod
 use tao_data_mod
 
 implicit none

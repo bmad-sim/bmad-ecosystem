@@ -108,7 +108,15 @@ initialization just calls \vn{bmad_parser} or \vn{xsif_parser}. If anything more
 complex needs to be done then do it here. This is also where any custom overlays
 or other elements would be inserted after the parsing is complete. But in
 general, anything placed here should, in principle, be something that can be
-placed in a lattice file.
+placed in a lattice file. 
+
+\textbf{This is the only routine that should insert elements in the ring}. This is
+beacuse the \tao data structures use the element index for each element
+associated with the datum. If all the element indexes shift then the data
+structures will break. If new elements need to be inserted then modify this
+routine and recompile. You can alternatively create a custom initialization file
+used by this rotuine
+that reads in any elements to be inserted.
 
 \subsection{tao\_hook\_init}
 
