@@ -70,27 +70,3 @@ constant. For example: {\it 2.0\_rp} is equivalent to {\it 2.0D0} if
 equivalent to {\it 2\_rp} which defines an integer (not a real) constant.
 
 
-\section{Helper programs}
-
-The {\it listf} command is used to locate routines and structures in
-the cesr\_utils, dcslib and \bmad\ libraries. The form of the command is
-\begin{verbatim}
-    listf <name>
-\end{verbatim}
-This searches for any routine or structure with the name
-<name>. <name> may contain the wild--cards ``*'' and ``\%'' where
-``*'' matches to any number of characters and ``\%'' matches to any
-single character. For example:
-\begin{verbatim}
-    listf ring_struct
-    listf twiss_at_%
-\end{verbatim}
-The second example will match to {\it twiss\_at\_s} but not {\sl
-twiss\_at\_start}.
-
-The {\it getf} command is like the {\it listf} command with the
-addition that the header comments that are in the source code files
-will be printed out for each routine match and the structure definition
-will be printed for each structure matched. The {\it getf} command is
-thus more verbose than the {\it listf} command.
-

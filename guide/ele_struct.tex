@@ -19,6 +19,7 @@ need to look at the preceding element in the \vn{ring\%ele\_(:)} array
 
 \begin{figure}[tb]
 \centering
+\small
 \begin{verbatim}
   type ele_struct
     character*16 name              ! name of element
@@ -68,7 +69,7 @@ need to look at the preceding element in the \vn{ring\%ele\_(:)} array
     logical mode_flip              ! Have the normal modes traded places?
     logical multipoles_on          ! For turning multipoles on/off
     logical exact_rad_int_calc     ! Exact radiation integral calculation?
-    logical B_field_master         ! Calculate K from the B_field?
+    logical field_master           ! Calculate K from the B_field?
     logical is_on                  ! For turning element on/off.
     logical internal_logic         ! For BMAD internal use only.
     logical logic                  ! For general use. Not used by BMAD.
@@ -81,8 +82,32 @@ need to look at the preceding element in the \vn{ring\%ele\_(:)} array
 \begin{figure}[tb]
 \centering
 \begin{verbatim}
+
+  type twiss_struct
+    real(rp) beta, alpha, gamma, phi, eta, etap
+    real(rp) mobius_beta, mobius_eta   ! Mobius effective beta and eta
+    real(rp) sigma
+  end type
+
+  type taylor_struct
+    real (rp) ref
+    type (taylor_term_struct), pointer :: term(:) => null()
+  end type
+
+  type taylor_term_struct
+    real(rp) :: coef
+    integer :: exp(6)
+  end type
+
+  type wig_term_struct
+    real(rp) coef
+    real(rp) kx, ky, kz
+    real(rp) phi_z
+    integer type      ! hyper_y$, hyper_xy$, or hyper_x$     $
+  end type
+
 \end{verbatim}
-\caption{Definition of the \elestruct.}
+\caption{Substructures of the \elestruct.}
 \label{f:subele_struct}
 \end{figure}
 
@@ -92,7 +117,7 @@ need to look at the preceding element in the \vn{ring\%ele\_(:)} array
 The \cn{name}, \cn{type}, \cn{alias}, and \cn{descrip} strings come directly
 from the input lattice file. For example an input file with:
 \begin{verbatim}
-    q00w: quadrupole, type = "this", alias = "that", descrip = "a long string"
+  q00w: quadrupole, type = "this", alias = "that", descrip = "a long string"
 \end{verbatim}
 gives an element with
 \begin{verbatim}

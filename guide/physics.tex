@@ -67,10 +67,10 @@ Assuming that the Reference Orbit is locally along a straight line
 (there are correction terms if the Reference Orbit is locally curved) the 
 Field up to $3^{rd}$ order is
 \begin{alignat}{4}
-  B_x &=        &B_1 y \, + \, &B_2 xy + 
-                                   & \frac{1}{6} B_3 (3x^2 y - y^3) + \ldots \\
-  B_y &= B_0 +  &B_1 x \, + \, & \frac{1}{2} B_2 (x^2 - y^2) + 
-                                   & \frac{1}{6} B_3 (x^3 - 3x y^2) + \ldots
+  B_x &=        &B_1 y \plus &B_2 xy \plus 
+                            & \frac{1}{6} B_3 (3x^2 y - y^3) \plus \ldots \\
+  B_y &= B_0 \plus  &B_1 x \plus & \frac{1}{2} B_2 (x^2 - y^2) \plus 
+                            & \frac{1}{6} B_3 (x^3 - 3x y^2) \plus \ldots
 \end{alignat}
 When specifying magnetic multipole components what is used is the
 normalized integrated multipole $K_nL$
@@ -85,11 +85,11 @@ of strength $B$. In terms of the kicks $\Delta p_x$ and $\Delta p_y$
 given a particle going through a multipole field is
 \begin{alignat}{4}
   \Delta p_x &= \frac{-c\, L \, B_y}{E_0} \\
-             &= -K_0L - &K_1L x + & \frac{1}{2} K_2L (y^2 - x^2) + 
-                                & \frac{1}{6} K_3L (3x y^2 - x^3) + \ldots \\
+             &= -K_0L \;-\; &K_1L x \plus & \frac{1}{2} K_2L (y^2 - x^2) \plus 
+             & \frac{1}{6} K_3L (3x y^2 - x^3) \plus \ldots \\
   \Delta p_y &= \frac{c\, L \, B_x}{E_0} \\
-             &=        &K_1L y + &K_2L xy + 
-                                & \frac{1}{6} K_3L (3x^2 y - y^3) + \ldots 
+             &=        &K_1L y \plus &K_2L xy \plus 
+             & \frac{1}{6} K_3L (3x^2 y - y^3) \plus \ldots 
 \end{alignat}
 Note that in particular a positive $K_1L$ quadrupole component gives
 hoizontal focusing and vertical defocusing. 
@@ -128,10 +128,11 @@ coordinates $\Bf r_{out}$
 \begin{equation}
   \Bf r_{out} = {\cal M} \Bf r_{in}
 \end{equation}
-{\cal M} is made up of 6 functions ${\cal M}_i$ mapping ${\cal R}^6
- \rightarrow {\cal R}$ Each of these functions can be expanded in a
-Taylor series. The corresponding Taylor Map is the collection of the 6
-Taylor series. 
+${\cal M}$ is made up of 6 functions ${\cal M}_i: {\cal R}^6
+ \rightarrow {\cal R}$ mapping to one of the $r_{out}$
+coordinates. Each of these functions can be expanded in a Taylor
+series. The Taylor Map corresponding to $\cal M$ is the collection of
+the 6 Taylor series.
 
 \section{Symplectisity}
 
