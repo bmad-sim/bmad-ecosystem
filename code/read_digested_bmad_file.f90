@@ -119,9 +119,8 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
   read (d_unit, err = 9100)  &   
           ring%name, ring%lattice, ring%input_file_name, ring%title, &
           ring%x, ring%y, ring%z, ring%param, ring%version, ring%n_ele_ring, &
-          ring%n_ele_symm, ring%n_ele_use, ring%n_ele_max, 
-          ring%n_control_array, ring%n_ic_array, ring%input_taylor_order, 
-          ring%ele_, ring%ele_init, ring%control_, ring%ic_  
+          ring%n_ele_symm, ring%n_ele_use, ring%n_ele_max, &
+          ring%n_control_array, ring%n_ic_array, ring%input_taylor_order
 
   if (ring%n_ele_max > n_ele_maxx) then
     print *, 'ERROR IN READ_DIGESTED_BMAD_FILE: NUMBER OF ELEMENTS:',  &

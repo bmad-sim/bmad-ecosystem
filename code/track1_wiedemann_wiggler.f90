@@ -138,7 +138,7 @@ contains
 subroutine track_period (i_pole, l_bend, rho_bend, l_drift, factor)
 
   type coord_struct8
-    real(8) vec
+    real(8) vec(6)
   end type
 
   type (coord_struct8) end8

@@ -193,10 +193,6 @@ subroutine transfer_ring_parameters (ring_in, ring_out)
   ring_out%n_control_array =      ring_in%n_control_array
   ring_out%n_ic_array =           ring_in%n_ic_array
   ring_out%input_taylor_order =   ring_in%input_taylor_order
-  ring_out%ele_ =                 ring_in%ele_
-  ring_out%ele_init =             ring_in%ele_init
-  ring_out%control_ =             ring_in%control_
-  ring_out%ic_ =                  ring_in%ic_
 
 end subroutine
 
