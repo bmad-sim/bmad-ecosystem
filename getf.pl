@@ -132,7 +132,7 @@ sub searchit {
         print $_;
         while (<F_IN>) {
           print $_;
-          if (/^ * end type/) {last;}
+          if (/^ *end type/) {last;}
         }
       }
     }
