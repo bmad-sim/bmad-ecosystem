@@ -13,25 +13,44 @@
 #print "\n\n\n";
 
 
-($search_dirs, $local_mods, $mod_out_dir, $prefix, $suffix, $d_file, $f_file)
+
+($search_dirs, $local_mods, $mod_out_dir, $prefix, $suffix, $d_file, $f_file, $cpp_flags)
     =parse_args(\@ARGV);
-if($f_file eq "modules/accelerator_interface.f90")
-{print "\n\n@{$local_mods}\n\n"}
+
+$the_file=get_cpp_out($search_dirs, $f_file, $cpp_flags);
+
 ($needed_incs, $needed_mods, $mods_to_create)
-    =get_used_module_names($f_file, $d_file);
+    =get_used_module_names($the_file, $d_file);
 if(@{$needed_mods} || @{$needed_incs})
  {
+
   ($final_module_list, $final_inc_list)
     =find_mods($needed_mods, $search_dirs, $mod_out_dir, $local_mods, $needed_incs);
+
   $mods_to_create=finalize_mods_to_create($mods_to_create, $mod_out_dir);
-  print_d_file($prefix, $f_file, $suffix, $d_file, $mods_to_create, $final_module_list, $final_inc_list);
+
+  print_d_file($prefix, $f_file, $suffix, $d_file, $mods_to_create, $final_module_list, $needed_incs);
+ }
+
+
+sub get_cpp_out
+ {
+  $cpp_options=" -C ";
+  $search_dirz=$_[0];
+  $f_file=$_[1];
+  $cpp_flags=$_[2];
+  $all_cpp_flags="$cpp_options $cpp_flags";
+	@search_dirs=();
+	foreach $dir (@{$search_dirz})
+	 {push(@search_dirs,"-I$dir");}
+	@the_file=split /\n/, `cpp $all_cpp_flags @search_dirs $f_file`;
+  return \@the_file;
  }
 
 sub print_empty_d_file
  {
   $d_file=$_[0];
-  open(F_out, ">$d_file");
-  print F_out ("# DO NOT DELETE\n");
+  open(F_out, ">>$d_file");
   print "no dependencies to record: $d_file\n"
  }
 
@@ -54,13 +73,11 @@ sub print_d_file
    {$final_module_var="$final_module_var $mod.mod";}
   $f_file=~/(\w+)\.\w{1,3}$/;
   $f_file=$1;
-  open(F_out, ">$d_file");
-  print F_out ("# DO NOT DELETE\n\n");
+  open(F_out, ">>$d_file");
   foreach $inc (@{$final_inc_list})
    {print F_out ("$prefix$f_file$suffix: $inc\n");}    
   if($final_module_var)
    {print F_out ("$prefix$f_file$suffix$mods_to_create_var: $final_module_var\n");} 
-#  print F_out ("\t\@echo reading dependencies from $d_file\n");
   close(F_out);
  }
 
@@ -83,7 +100,6 @@ sub find_mods
   $mod_out_dir      =$_[2];
   $local_mods       =$_[3];
   $needed_incs      =$_[4];
-  push(@{$needed_mods}, @{$needed_incs});
   MOD: foreach $mod (@ {$needed_mods})
    {
     foreach $local_mod (@ {$local_mods})
@@ -103,15 +119,8 @@ sub find_mods
         push(@final_module_list,"$dir/$mod");
         next MOD;
        }
-      elsif(`find $dir -name $mod -print 2>temp.out`)
-       {
-        push(@final_inc_list,"$norm_dir/$mod");
-        next MOD;
-       }
      }
-    if($mod=~/\.inc$/)
-     {push(@final_inc_list, "$mod_out_dir/$mod");}
-    else
+    if($mod!~/\.inc$/)
      {push(@final_module_list, "$mod_out_dir/$mod");}
     print STDERR "warning: can't find $mod, assuming local.\n";
    }
@@ -122,17 +131,23 @@ sub find_mods
 
 sub get_used_module_names
  {
-  $f_filename     =$_[0];
+  $file           =$_[0];
   $d_file         =$_[1];
   @needed_incs    =();
   @mods_to_create =();
   @needed_mods    =();
-  @grep_out_inc   =`grep -whi "#include" $f_filename`; 
-  @grep_out_mod   =`grep -whi "module" $f_filename | grep -vi " END "`;
-  @grep_out_use   =`grep -whi "use" $f_filename`;
+  @grep_out_inc_t =grep /include\s/i, @{$file};
+  @grep_out_inc   =grep !/#include/i, @grep_out_inc_t; 
+  @grep_out_mod_t =grep /module\s/i, @{$file};
+  @grep_out_mod   =grep !/end\s/i, @grep_out_mod_t;
+  @grep_out_use   =grep /\buse\s/i, @{$file};
   foreach $line (@grep_out_inc)
    {
-    if(($line=~/(.*?)#include\s"(\S+?)"/i) && (!($1=~/!/)))
+#we are currently assuming that the path in a fortran include statement is
+#full, requiring no searching
+#also, there is no recursive search for includes
+#let's find a fortran pre-compiler that will do all that!
+    if(($line=~/(.*?)include\s\'(\S+?)\'/i) && (!($1=~/!/)))
      {push(@needed_incs,$2) unless ($seen{$2}++);}
    }
   foreach $line (@grep_out_mod)
@@ -170,48 +185,26 @@ sub parse_args
   $arguments    =$_[0];
   @Is           =();
   @MOD          =();
-  @makedep_args =();
   foreach $argument (@{$arguments})
    {
     if($argument=~/^-I(.*)/)
-     {
-      push(@Is,$1);
-#      print "I: $argument\n";
-      push(@makedep_args," -I\"$1\"");
-     }
+     {push(@Is,$1);}
     elsif($argument=~/^-MOD(.*)/)
      {push(@MOD,(split /\s/,$1));}
     elsif($argument=~/^-MP(.*)/)
      {$MP=$1;}
     elsif($argument=~/^-PRE(.*)/)
-     {
-      $PRE=$1;
-#			print "PRE: $argument\n";
-      push(@makedep_args," -p\"$1\"");   
-     }
+     {$PRE=$1;}
     elsif($argument=~/^-SUF(.*)/)
-     {
-      $SUF=$1;
-#      print "SUF: $argument\n";
-      push(@makedep_args," -o\"$1\"");
-     }
+     {$SUF=$1;}
     elsif($argument=~/^-f(.*)/)
-     {
-      $f=$1;
-#      print "f: $argument\n";
-      push(@makedep_args," -f\"$1\"");
-     }
+     {$f=$1;}
+    elsif($argument=~/^-cpp(.*)/)
+		 {$cpp_flags=$1;}
     else
-     {
-      $f_filename=$argument;
-#      print "filename: $argument\n";
-      push(@makedep_args," \"$argument\"");
-     }#=~/(\w+)\.\w{1,3}$/;}
+     {$f_filename=$argument;}
    }
-  if(!($f))
-	 {$f="depend";}
-  `makedepend @makedep_args`;
-  return (\@Is, \@MOD, $MP, $PRE, $SUF, $f, $f_filename);
+  return (\@Is, \@MOD, $MP, $PRE, $SUF, $f, $f_filename, $cpp_flags);
  }
 
 
