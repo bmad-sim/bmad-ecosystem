@@ -34,6 +34,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/01/23 20:08:29  dcs
+!Bug fix
+!
 !Revision 1.5  2002/01/08 21:44:44  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -173,8 +176,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, twiss_out,  &
                                     calc_method_name(ele%tracking_method)
   write (lines(nl+3), '(2a)') ' Mat6_calc_method: ', &
                                     calc_method_name(ele%mat6_calc_method)
-  write (lines(nl+4), '(2a)') ' Num_steps: ', &
-                                    calc_method_name(ele%num_steps)
+  write (lines(nl+4), '(2a)') ' Num_steps: ', ele%num_steps 
   nl = nl + 4
 
 ! Encode lord info
