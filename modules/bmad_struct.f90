@@ -503,11 +503,11 @@ module bmad_struct
 ! status structure
 
   type bmad_status_struct
-    logical :: ok             = .true.
-    logical :: type_out       = .true.
-    logical :: sub_type_out   = .true.
-    logical :: exit_on_error  = .true.
-    integer :: status         = ok$
+    integer :: status         = ok$      ! Computation status 
+    logical :: ok             = .true.   ! Error flag
+    logical :: type_out       = .true.   ! Print error messages?
+    logical :: sub_type_out   = .true.   ! 
+    logical :: exit_on_error  = .true.   ! Exit program on error?
   end type
 
   type (bmad_status_struct), save :: bmad_status
