@@ -74,7 +74,7 @@ module bmad_struct
     real(rp) norm_cos   ! non-skew cos-like component of the wake
     real(rp) skew_sin   ! skew sin-like component of the wake
     real(rp) skew_cos   ! skew cos-like component of the wake
-    real(rp) z_ref      ! reference time in terms of z = -c*t
+    real(rp) s_ref      ! reference time in terms of s = -c*t
   end type
 
   type wake_struct
@@ -550,7 +550,7 @@ module bmad_struct
   type bmad_com_struct
     real(rp) :: d_orb(6) = 1e-5  ! for the make_mat6_tracking routine
     real(rp) :: max_aperture_limit = 1e3    
-    real(rp) :: k_loss = 0                   ! Internal var for LCavities.
+    real(rp) :: grad_loss_sr_wake = 0                   ! Internal var for LCavities.
 #if defined(CESR_F90_DOUBLE)
     real(rp) :: rel_tollerance = 1e-5
     real(rp) :: abs_tollerance = 1e-8

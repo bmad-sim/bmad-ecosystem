@@ -1645,7 +1645,7 @@ subroutine read_lr_wake (ele)
   ele%wake%lr%norm_cos  = 0
   ele%wake%lr%skew_sin  = 0
   ele%wake%lr%skew_cos  = 0
-  ele%wake%lr%z_ref     = 0
+  ele%wake%lr%s_ref     = 0
 
 end subroutine
 

@@ -423,7 +423,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 ! This means that the resulting matrix will NOT be symplectic.
 ! Since things are very complicated we simplify things by ignoring the
 !   off-axis corrections to mat6.
-! bmad_com%k_loss is an internal variable used with macroparticles.
+! bmad_com%grad_loss_sr_wake is an internal variable used with macroparticles.
 !   It should be zero otherwise.
 
   case (lcavity$)
@@ -435,8 +435,13 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     cos_phi = cos(phase)
     gradient = ele%value(gradient$) * cos_phi 
-    if (bmad_com%sr_wakes_on) gradient = gradient - bmad_com%k_loss - &
-                                    ele%value(e_loss$) * param%charge / length
+    if (bmad_com%sr_wakes_on) then
+      if (bmad_com%grad_loss_sr_wake /= 0) then  ! use grad_loss_sr_wake and ignore e_loss
+        gradient = gradient - bmad_com%grad_loss_sr_wake
+      else
+        gradient = gradient - ele%value(e_loss$) * param%charge / length
+      endif
+    endif
 
     if (gradient == 0) then
       call drift_mat6_calc (mat6, length, c0%vec, c1%vec)

@@ -276,8 +276,8 @@ subroutine track1_bmad (start, ele, param, end)
 !       J. Rosenzweig and L. Serafini
 !       Phys Rev E, Vol. 49, p. 1599, (1994)
 ! with b_0 = b_-1 = 1
-! bp_com%k_loss is an internal variable used with macroparticles.
-! It accounts for the short-range wakefields between macroparticles.
+! bp_com%grad_loss_sr_wake is an internal variable used with macroparticles.
+! It accounts for the longitudinal short-range wakefields between macroparticles.
 ! Without macroparticles it should be zero.
 
   case (lcavity$)
@@ -291,8 +291,13 @@ subroutine track1_bmad (start, ele, param, end)
                         end%vec(5) * ele%value(rf_frequency$) / c_light)
     cos_phi = cos(phase)
     gradient = ele%value(gradient$) * cos_phi 
-    if (bmad_com%sr_wakes_on) gradient = gradient - bmad_com%k_loss - &
-                                    ele%value(e_loss$) * param%charge / length
+    if (bmad_com%sr_wakes_on) then
+      if (bmad_com%grad_loss_sr_wake /= 0) then  ! use grad_loss_sr_wake and ignore e_loss
+        gradient = gradient - bmad_com%grad_loss_sr_wake
+      else
+        gradient = gradient - ele%value(e_loss$) * param%charge / length
+      endif
+    endif
 
     e_start = ele%value(energy_start$) * rel_E 
     e_end = e_start + gradient * ele%value(l$)

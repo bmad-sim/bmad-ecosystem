@@ -2,6 +2,7 @@ module macroparticle_mod
 
 use bmad_struct
 use bmad_interface
+use wake_mod
 
 type macro_init_twiss_struct
   real(rp) norm_emit
@@ -26,7 +27,7 @@ type macro_struct
   type (coord_struct) r   ! Center of the macroparticle
   real(rp) sigma(21)      ! Sigma matrix.
   real(rp) :: sig_z = 0   ! longitudinal macroparticle length (m).
-  real(rp) k_loss         ! loss factor (V/m). scratch variable for tracking.
+  real(rp) grad_loss_sr_wake         ! loss factor (V/m). scratch variable for tracking.
   real(rp) charge         ! charge in a macroparticle (Coul).
   logical :: lost = .false.  ! Has the particle been lost in tracking?
 end type
@@ -150,7 +151,7 @@ subroutine track1_beam (beam_start, ele, param, beam_end)
   if (n_mode > 0) then
     ele%wake%lr%norm_sin = 0; ele%wake%lr%norm_cos = 0
     ele%wake%lr%skew_sin = 0; ele%wake%lr%skew_cos = 0
-    ele%wake%lr%z_ref = 0
+    ele%wake%lr%s_ref = 0
   endif
 
 ! loop over all bunches in a beam
@@ -204,7 +205,7 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
 ! Without wakefields just track through
 
   if (ele%key /= lcavity$ .or. &
-        (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_waks_on) then
+            (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
     do i = 1, size(bunch_start%slice)
       do j = 1, size(bunch_start%slice(i)%macro)
         call track1_macroparticle (bunch_start%slice(i)%macro(j), &
@@ -216,29 +217,8 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
   endif
 
 !------------------------------------------------
-! For an lcavity without a wakefield file use the e_loss attribute 
-
-  if (sr_wake_array_size(ele) > 0) then
-    call order_macroparticles_in_z (bunch_start)
-    charge = param%charge
-    param%charge = 0
-    call sr_long_wake_calc (bunch_start, ele) ! calc %k_loss factors
-    do i = 1, size(bunch_start%slice)
-      do j = 1, size(bunch_start%slice(i)%macro)
-        bmad_com%k_loss = bunch_start%slice(i)%macro(j)%k_loss
-        call track1_macroparticle (bunch_start%slice(i)%macro(j), &
-                                      ele, param, bunch_end%slice(i)%macro(j))
-      enddo
-    enddo
-    param%charge = charge
-    bmad_com%k_loss = 0
-    call recalc_charge
-    return
-  endif
-
-!------------------------------------------------
-! This calculation is for an lcavity with full wakefields.
-! With wakefields put them in at the half way point.
+! This calculation is for an lcavity with wakefields.
+! Put the wakefield kicks at the half way point.
 
 ! rf_ele is half the cavity
 
@@ -246,18 +226,19 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
   rf_ele%value(l$) = ele%value(l$) / 2
   rf_ele%value(beam_energy$) = &
             (ele%value(energy_start$) + ele%value(beam_energy$)) / 2
+  rf_ele%value(p0c$) = &
+            (ele%value(p0c$) + ele%value(p0c$)) / 2
 
-  charge = param%charge
-  param%charge = 0
+! param%charge is used with e_loss$ when there is
 
-  call sr_long_wake_calc (bunch_start, ele) ! calc %k_loss factors
+  call order_macroparticles_in_z (bunch_start)
+  call grad_loss_sr_wake_calc (bunch_start, ele) 
 
 ! Track half way through. 
 ! This includes the short-range longitudinal wakefields
 
   do i = 1, size(bunch_start%slice)
     do j = 1, size(bunch_start%slice(i)%macro)
-      bmad_com%k_loss = bunch_start%slice(i)%macro(j)%k_loss
       call track1_macroparticle (bunch_start%slice(i)%macro(j), &
                                     rf_ele, param, bunch_end%slice(i)%macro(j))
     enddo
@@ -265,8 +246,12 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
 
 ! Put in the short-range transverse wakefields
 
-  rf_ele%value(l$) = ele%value(l$)
+  rf_ele%value(l$) = ele%value(l$)  ! restore the correct length for the moment
   call track1_sr_trans_wake (bunch_end, rf_ele)
+
+! Put in the long-range wakes
+
+  call track1_lr_wake (bunch_end, rf_ele)
 
 ! Track the last half of the lcavity. 
 ! This includes the short-range longitudinal wakes.
@@ -277,14 +262,11 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
 
   do i = 1, size(bunch_start%slice)
     do j = 1, size(bunch_start%slice(i)%macro)
-      bmad_com%k_loss = bunch_start%slice(i)%macro(j)%k_loss
       call track1_macroparticle (bunch_end%slice(i)%macro(j), &
                                     rf_ele, param, bunch_end%slice(i)%macro(j))
     enddo
   enddo
 
-  param%charge = charge
-  bmad_com%k_loss = 0
   call recalc_charge
 
 !--------------------------------------
@@ -309,14 +291,14 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine sr_long_wake_calc (bunch, ele)
+! Subroutine grad_loss_sr_wake_calc (bunch, ele)
 !
 ! Subroutine to put in the longitudinal component of the
 ! short range wake fields. 
 ! This routine is not really meant  for general use.
 !-
 
-subroutine sr_long_wake_calc (bunch, ele)
+subroutine grad_loss_sr_wake_calc (bunch, ele)
 
   implicit none
 
@@ -328,18 +310,26 @@ subroutine sr_long_wake_calc (bunch, ele)
   real(rp) f, f1, f2, z, dz_wake
 
   integer i, j, k, iw, nm, n_wake
-  character(20) :: r_name = 'sr_long_wake_calc'
+  character(24) :: r_name = 'grad_loss_sr_wake_calc'
+
 ! Init
 
-  call order_macroparticles_in_z (bunch)
-
-  n_wake = ubound(ele%wake%sr, 1)
-  dz_wake = ele%wake%sr(n_wake)%z / n_wake
-  sr02 = ele%wake%sr(0)%long / 2
+  n_wake = sr_wake_array_size (ele)
+    
+  if (n_wake == 0) then ! no wake file: just use e_loss$ factor
+    do i = 1, size(bunch%slice)
+      bunch%slice(i)%macro(:)%grad_loss_sr_wake = &
+                           ele%value(e_loss$) * bunch%charge / ele%value(l$)
+    enddo
+    return 
+  endif
 
   do i = 1, size(bunch%slice)
-    bunch%slice(i)%macro(:)%k_loss = 0
+    bunch%slice(i)%macro(:)%grad_loss_sr_wake = 0
   enddo
+
+  dz_wake = ele%wake%sr(n_wake)%z / n_wake
+  sr02 = ele%wake%sr(0)%long / 2
 
 ! Loop over all slices
 
@@ -356,7 +346,7 @@ subroutine sr_long_wake_calc (bunch, ele)
     if (macro(1)%r%vec(5) - macro(nm)%r%vec(5) < mp_com%sig_z_min/100) then
       z_ave = (macro(1)%r%vec(5) + macro(nm)%r%vec(5)) / 2
       do j = 1, nm
-        macro(j)%k_loss = macro(j)%k_loss + charge * sr02
+        macro(j)%grad_loss_sr_wake = macro(j)%grad_loss_sr_wake + charge * sr02
       enddo
 
 ! If not all the same position then we need to look at all pairs
@@ -368,7 +358,7 @@ subroutine sr_long_wake_calc (bunch, ele)
       do j = 1, nm
         if (macro(j)%lost) cycle
         ch_j = abs(macro(j)%charge)
-        macro(j)%k_loss = macro(j)%k_loss + ch_j * sr02
+        macro(j)%grad_loss_sr_wake = macro(j)%grad_loss_sr_wake + ch_j * sr02
         sig0 = macro(j)%sig_z + mp_com%sig_z_min
         z0 = macro(j)%r%vec(5)
         z_ave = z_ave + (z0 * ch_j) / charge
@@ -382,8 +372,8 @@ subroutine sr_long_wake_calc (bunch, ele)
           else
             f = (1 + dz / sig) / 2
           endif
-          macro(k)%k_loss = macro(k)%k_loss + f * ch_j * sr02
-          macro(j)%k_loss = macro(j)%k_loss + &
+          macro(k)%grad_loss_sr_wake = macro(k)%grad_loss_sr_wake + f * ch_j * sr02
+          macro(j)%grad_loss_sr_wake = macro(j)%grad_loss_sr_wake + &
                                    (1-f) * abs(macro(k)%charge) * sr02
         enddo
 
@@ -415,12 +405,60 @@ subroutine sr_long_wake_calc (bunch, ele)
         endif
         f2 = z/dz_wake - iw
         f1 = 1 - f2
-        macro2(k)%k_loss = macro2(k)%k_loss + charge * &
+        macro2(k)%grad_loss_sr_wake = macro2(k)%grad_loss_sr_wake + charge * &
                   (ele%wake%sr(iw)%long * f1 + ele%wake%sr(iw+1)%long * f2)
       enddo
     enddo
 
   enddo
+
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine track1_lr_wake (bunch, ele)
+!
+! Subroutine to put in the long-range wakes for macroparticle tracking.
+! This routine is not really meant  for general use.
+!-
+
+subroutine track1_lr_wake (bunch, ele)
+
+  implicit none
+
+  type (bunch_struct), target :: bunch
+  type (ele_struct) ele
+  type (macro_struct), pointer :: macro
+
+  integer n_mode, j, k
+
+! Check to see if we need to do any calc
+
+  n_mode = lr_wake_array_size(ele)
+  if (n_mode == 0 .or. .not. bmad_com%lr_wakes_on) return  
+
+! Give the macroparticles a kick
+
+  do j = 1, size(bunch%slice)
+    do k = 1, size(bunch%slice(j)%macro)
+      macro => bunch%slice(j)%macro(k)
+      if (macro%lost) cycle
+      call lr_wake_apply_kick (ele, bunch%s_center, macro%r)
+    enddo
+  enddo
+
+! Add the wakes left by this bunch to the existing wakes.
+
+  do j = 1, size(bunch%slice)
+    do k = 1, size(bunch%slice(j)%macro)
+      macro => bunch%slice(j)%macro(k)
+      if (macro%lost) cycle
+      call lr_wake_add_to (ele, bunch%s_center, macro%r, macro%charge)
+    enddo
+  enddo
+
 
 end subroutine
 
@@ -450,9 +488,11 @@ subroutine track1_sr_trans_wake (bunch, ele)
 
 ! Init
 
+  n_wake = ubound(ele%wake%sr, 1)
+  if (n_wake == 0 .or. .not. bmad_com%sr_wakes_on) return
+
   call order_macroparticles_in_z (bunch)
 
-  n_wake = ubound(ele%wake%sr, 1)
   dz_wake = ele%wake%sr(n_wake)%z / n_wake
 
 ! Loop over all slices
@@ -537,14 +577,17 @@ subroutine track1_macroparticle (start, ele, param, end)
 
   real(rp) l, l2, s(21), m4(4,4), s_mat4(4,4), s_mat6(6,6)
 
-  temp_ele = ele
-
 ! transfer z-order index, charge, etc
 
   end = start
   if (start%lost) return
 
   if (temp_ele%key == marker$) return
+
+! Init
+
+  temp_ele = ele
+  bmad_com%grad_loss_sr_wake = start%grad_loss_sr_wake
 
 ! Very simple cases
 
@@ -571,6 +614,8 @@ subroutine track1_macroparticle (start, ele, param, end)
     end%sigma(s34$) = s(s34$) +     l * s(s44$)  
     end%sigma(s35$) = s(s35$) +     l * s(s45$)
     end%sigma(s36$) = s(s36$) +     l * s(s46$)
+
+    bmad_com%grad_loss_sr_wake = 0
     return
 
   end select
@@ -614,7 +659,9 @@ subroutine track1_macroparticle (start, ele, param, end)
       call mat_to_mp_sigma (s_mat4, end%sigma)
     endif
 
+    bmad_com%grad_loss_sr_wake = 0
     return
+
   endif
 
 ! Full tracking. 
@@ -624,6 +671,8 @@ subroutine track1_macroparticle (start, ele, param, end)
     call mp_sigma_to_mat (start%sigma, s_mat6)
     s_mat6 = matmul(temp_ele%mat6, matmul(s_mat6, transpose(temp_ele%mat6)))
     call mat_to_mp_sigma (s_mat6, end%sigma)
+
+    bmad_com%grad_loss_sr_wake = 0
 
 ! Sig_z calc. Because of roundoff sigma(s55$) can be negative.
 
@@ -1357,63 +1406,3 @@ end function
 end subroutine
 
 end module
-
-
----------------------------------------------
-
-  real(rp), allocatable, save :: f(:), f_exp(:), k_m(:)
-  real(rp) s_pos, ff, c, s
-
-! x_sin, x_cos are the in and out-of-phase components of the horizontal wake
-! y_sin, y_cos are the in and out-of-phase components of the vertical wake
-
-  n_mode = lr_wake_array_size(ele)
-  if (n_mode > 0) then
-    call reallocate_real (f, n_mode)
-    call reallocate_real (f_exp, n_mode)
-    call reallocate_real (k_m, n_mode)
-    ele%wake%lr%norm_sin = 0; ele%wake%lr%norm_cos = 0
-    ele%wake%lr%skew_sin = 0; ele%wake%lr%skew_cos = 0
-    k_m(1:n_mode) = twopi * ele%wake%lr%freq / c_light
-    f(1:n_mode) = ele%value(l$) * ele%wake%lr%r_over_q * (k_m(1:n_mode))**2 / 2
-    f_exp(1:n_mode) = k_m(1:n_mode) / (2 * ele%wake%lr%Q)
-  endif
-
-    ! add long-range wake kicks to this bunch
-
-    do j = 1, size(beam_end%bunch(i)%slice)
-      do k = 1, size(beam_end%bunch(i)%slice(j)%macro)
-        macro => beam_end%bunch(i)%slice(j)%macro(k)
-        s_pos = (beam_end%bunch(i)%s_center + macro%r%vec(5))
-        call lr_wake_kick (ele, s_pos, macro%r)
-
-        ff = exp(s_pos * f_exp(n)) / &
-                            (ele%value(beam_energy$) * (1 + macro%r%vec(6)))
-        c = cos (-s_pos * k_m(n))
-        s = sin (-s_pos * k_m(n))
-        macro%r%vec(2) = macro%r%vec(2) + ff * (x_cos(n) * s - x_sin(n) * c)
-        macro%r%vec(4) = macro%r%vec(4) + ff * (y_cos(n) * s - y_sin(n) * c)
-
-        enddo
-      enddo
-    enddo
-
-    ! add to wake the contribution of this bunch
-
-    do j = 1, size(beam_end%bunch(i)%slice)
-      do k = 1, size(beam_end%bunch(i)%slice(j)%macro)
-        macro => beam_end%bunch(i)%slice(j)%macro(k)
-        s_pos = (beam_end%bunch(i)%s_center + macro%r%vec(5))
-        call add_to_lr_wake (ele, s_pos, macro%r)
-
-        ff = f(n) * macro%charge * exp(s_pos * f_exp(n))
-        c = cos (-s_pos * k_m(n))
-        s = sin (-s_pos * k_m(n))
-        x_sin(n) = x_sin(n) + macro%r%vec(1) * ff * s
-        x_cos(n) = x_cos(n) + macro%r%vec(1) * ff * c
-        y_sin(n) = y_sin(n) + macro%r%vec(3) * ff * s
-        y_cos(n) = y_cos(n) + macro%r%vec(3) * ff * c
-
-      enddo
-    enddo
-

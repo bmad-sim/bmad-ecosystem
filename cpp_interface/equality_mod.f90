@@ -173,7 +173,7 @@ is_eq = (f1%freq == f2%freq) .and. (f1%r_over_q == f2%r_over_q) .and. &
           (f1%freq_in == f2%freq_in) .and. (f1%Q == f2%Q) .and. &
           (f1%m == f2%m) .and. (f1%norm_sin == f2%norm_sin) .and. &
           (f1%norm_cos == f2%norm_cos) .and. (f1%skew_sin == f2%skew_sin) .and. &
-          (f1%skew_cos == f2%skew_cos) .and. (f1%z_ref == f2%z_ref)
+          (f1%skew_cos == f2%skew_cos) .and. (f1%s_ref == f2%s_ref)
 
 end function
 
@@ -338,7 +338,7 @@ logical is_eq
 
 is_eq = all(f1%d_orb == f2%d_orb) .and. &
       (f1%max_aperture_limit == f2%max_aperture_limit) .and. &
-      (f1%k_loss == f2%k_loss) .and. &
+      (f1%grad_loss_sr_wake == f2%grad_loss_sr_wake) .and. &
       (f1%rel_tollerance == f2%rel_tollerance) .and. &
       (f1%abs_tollerance == f2%abs_tollerance) .and. &
       (f1%taylor_order == f2%taylor_order) .and. &

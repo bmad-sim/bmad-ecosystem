@@ -410,6 +410,65 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
+! Subroutine ab_multipole_kick (a, b, n, coord, kx, ky)
+!
+! Subroutine to put in the kick due to an ab_multipole.
+!
+! Modules Needed:
+!   use bmad
+!                          
+! Input:
+!   a     -- Real(rp): Multipole skew component.
+!   b     -- Real(rp): Multipole normal component.
+!   n     -- Real(rp): Multipole order.
+!   coord -- Coord_struct:
+!
+! Output:
+!   kx -- Real(rp): X kick.
+!   ky -- Real(rp): Y kick.
+!-
+
+subroutine ab_multipole_kick (a, b, n, coord, kx, ky)
+
+  implicit none
+
+  type (coord_struct)  coord
+
+  real(rp) a, b, x, y
+  real(rp) kx, ky, f
+
+  integer n, m
+
+! simple case
+
+  kx = 0
+  ky = 0
+
+  if (a == 0 .and. b == 0) return
+
+! normal case
+
+  x = coord%vec(1)
+  y = coord%vec(3)
+
+  do m = 0, n, 2
+    f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
+    kx = kx + b * f
+    ky = ky - a * f
+  enddo
+
+  do m = 1, n, 2
+    f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
+    ky = kx + b * f
+    kx = kx + a * f
+  enddo
+
+end subroutine
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
 ! Subroutine multipole_init (ele)
 ! 
 ! Subroutine to initialize the multipole arrays within an element.

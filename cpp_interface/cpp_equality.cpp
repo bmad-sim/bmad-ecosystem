@@ -92,7 +92,7 @@ bool operator== (const C_lr_wake& x, const C_lr_wake& y) {
          (x.R_over_Q == y.R_over_Q) && (x.Q == y.Q) && (x.m == y.m) &&
          (x.norm_sin == y.norm_sin) && (x.norm_cos == y.norm_cos) && 
          (x.skew_sin == y.skew_sin) && (x.skew_cos == y.skew_cos) && 
-         (x.z_ref == y.z_ref);
+         (x.s_ref == y.s_ref);
 };
 
 bool operator== (const C_wake& x, const C_wake& y) {
@@ -144,7 +144,7 @@ bool operator== (const C_modes& x, const C_modes& y) {
 
 bool operator== (const C_bmad_com& x, const C_bmad_com& y) {
   return is_all_true(x.d_orb, y.d_orb) && 
-      (x.max_aperture_limit == y.max_aperture_limit) && (x.k_loss == y.k_loss) && 
+      (x.max_aperture_limit == y.max_aperture_limit) && (x.grad_loss_sr_wake == y.grad_loss_sr_wake) && 
       (x.rel_tollerance == y.rel_tollerance) && 
       (x.abs_tollerance == y.abs_tollerance) && 
       (x.taylor_order == y.taylor_order) && 

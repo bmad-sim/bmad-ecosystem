@@ -289,16 +289,16 @@ public:
   double norm_cos;
   double skew_sin;
   double skew_cos;
-  double z_ref;
+  double s_ref;
 
   C_lr_wake (double f, double f_in, double rq, double q, int mm,
-          double n_sin, double n_cos, double s_sin, double s_cos, double z) :
+          double n_sin, double n_cos, double s_sin, double s_cos, double s) :
       freq(f), freq_in(f_in), R_over_Q(rq), Q(q), m(mm), norm_sin(n_sin),
-      norm_cos(n_cos), skew_sin(s_sin), skew_cos(s_cos), z_ref(z){}
+      norm_cos(n_cos), skew_sin(s_sin), skew_cos(s_cos), s_ref(s){}
 
   C_lr_wake (double f = 0) :
       freq(f), freq_in(0), R_over_Q(0), Q(0), m(0), norm_sin(0), norm_cos(0),
-      skew_sin(0), skew_cos(0), z_ref(0) {}
+      skew_sin(0), skew_cos(0), s_ref(0) {}
 };    // End Class
 
 extern "C" void lr_wake_to_c_(lr_wake_struct*, C_lr_wake&);
@@ -531,7 +531,7 @@ class C_bmad_com {
 public:
   Real_Array d_orb;              // for the make_mat6_tracking routine
   double max_aperture_limit;   
-  double k_loss;                 // Internal var for LCavities.
+  double grad_loss_sr_wake;                 // Internal var for LCavities.
   double rel_tollerance; 
   double abs_tollerance; 
   int taylor_order;              // 3rd order is default
@@ -548,7 +548,7 @@ public:
   C_bmad_com (ReArr orb, double max_ap, double kl, double rel_t,
                         double abs_t, int to, int io, int steps, int cc,
                         int liar, int sr, int lr, int sym) :
-      d_orb(orb, 6), max_aperture_limit(max_ap), k_loss(kl), 
+      d_orb(orb, 6), max_aperture_limit(max_ap), grad_loss_sr_wake(kl), 
       rel_tollerance(rel_t), abs_tollerance(abs_t), taylor_order(to), 
       default_integ_order(io), default_num_steps(steps), canonical_coords(cc), 
       use_liar_lcavity(liar), sr_wakes_on(sr), lr_wakes_on(lr), 
@@ -557,7 +557,7 @@ public:
   C_bmad_com (Real_Array orb, double max_ap, double kl, double rel_t,
                         double abs_t, int to, int io, int steps, int cc,
                         int liar, int sr, int lr, int sym) :
-      d_orb(orb), max_aperture_limit(max_ap), k_loss(kl), 
+      d_orb(orb), max_aperture_limit(max_ap), grad_loss_sr_wake(kl), 
       rel_tollerance(rel_t), abs_tollerance(abs_t), taylor_order(to), 
       default_integ_order(io), default_num_steps(steps), canonical_coords(cc), 
       use_liar_lcavity(liar), sr_wakes_on(sr), lr_wakes_on(lr), 

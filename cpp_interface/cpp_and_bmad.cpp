@@ -268,14 +268,14 @@ extern "C" void lr_wake_to_f2_(lr_wake_struct*, Re&, Re&, Re&, Re&, Int&,
 
 extern "C" void lr_wake_to_f_(C_lr_wake& c, lr_wake_struct* f) {
   lr_wake_to_f2_(f, c.freq, c.freq_in, c.R_over_Q, c.Q, c.m, 
-                     c.norm_sin, c.norm_cos, c.skew_sin, c.skew_cos, c.z_ref);
+                     c.norm_sin, c.norm_cos, c.skew_sin, c.skew_cos, c.s_ref);
 }
 
 extern "C" void lr_wake_to_c2_(C_lr_wake& c, Re& freq, Re& freq_in, 
                   Re& R_over_Q, Re& Q, Int& m, Re& n_sin, Re& n_cos, 
-                  Re& s_sin, Re& s_cos, Re& z_ref) {
+                  Re& s_sin, Re& s_cos, Re& s_ref) {
   c = C_lr_wake(freq, freq_in, R_over_Q, Q, m, 
-                                  n_sin, n_cos, s_cos, s_sin, z_ref);
+                                  n_sin, n_cos, s_cos, s_sin, s_ref);
 }
 
 void operator>> (C_lr_wake& c, lr_wake_struct* f) {
@@ -306,7 +306,7 @@ extern "C" void wake_to_f_(C_wake& c, wake_struct* f) {
   for (int i = 0; i < n_lr; i++) {
     lr_wake_in_wake_to_f2_(f, i, c.lr[i].freq, c.lr[i].freq_in, 
         c.lr[i].R_over_Q, c.lr[i].Q, c.lr[i].m, c.lr[i].norm_sin, 
-        c.lr[i].norm_cos, c.lr[i].skew_sin, c.lr[i].skew_cos, c.lr[i].z_ref);
+        c.lr[i].norm_cos, c.lr[i].skew_sin, c.lr[i].skew_cos, c.lr[i].s_ref);
   }
 }
 
@@ -476,7 +476,7 @@ extern "C" void bmad_com_to_f2_(ReArr, Re&, Re&, Re&, Re&,
                           Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&);
 
 extern "C" void bmad_com_to_f_(C_bmad_com& c) {
-  bmad_com_to_f2_(&c.d_orb[0], c.max_aperture_limit, c.k_loss, 
+  bmad_com_to_f2_(&c.d_orb[0], c.max_aperture_limit, c.grad_loss_sr_wake, 
       c.rel_tollerance, c.abs_tollerance, c.taylor_order, 
       c.default_integ_order, c.default_num_steps, c.canonical_coords, 
       c.use_liar_lcavity, c.sr_wakes_on, c.lr_wakes_on, c.mat6_track_symmetric);

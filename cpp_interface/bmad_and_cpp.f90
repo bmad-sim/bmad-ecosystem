@@ -754,7 +754,7 @@ type (c_dummy_struct) c_lr_wake
 
 f => f_lr_wake
 call lr_wake_to_c2 (c_lr_wake, f%freq, f%freq_in, f%R_over_Q, f%q, f%m, &
-                     f%norm_sin, f%norm_cos, f%skew_sin, f%skew_cos, f%z_ref)
+                     f%norm_sin, f%norm_cos, f%skew_sin, f%skew_cos, f%s_ref)
 
 end subroutine
 
@@ -762,25 +762,25 @@ end subroutine
 !-----------------------------------------------------------------------------
 !+
 ! Subroutine lr_wake_to_f2 (f_lr_wake, freq, freq_in, r_over_q, q, m, &
-!                                     n_sin, n_cos, s_cos, s_sin, z_ref)
+!                                     n_sin, n_cos, s_cos, s_sin, s_ref)
 !
 ! Subroutine used by lr_wake_to_f to convert a C++ C_lr_wake into
 ! a Bmad lr_wake_struct. This routine is not for general use.
 !-
 
 subroutine lr_wake_to_f2 (f_lr_wake, freq, freq_in, r_over_q, q, m, &
-                                      n_sin, n_cos, s_cos, s_sin, z_ref)
+                                      n_sin, n_cos, s_cos, s_sin, s_ref)
 
 use bmad_and_cpp
 
 implicit none
 
 type (lr_wake_struct) f_lr_wake
-real(rp) freq, freq_in, r_over_q, q, n_sin, n_cos, s_cos, s_sin, z_ref
+real(rp) freq, freq_in, r_over_q, q, n_sin, n_cos, s_cos, s_sin, s_ref
 integer m
 
 f_lr_wake = lr_wake_struct(freq, freq_in, r_over_q, q, m, &
-                                       n_sin, n_cos, s_cos, s_sin, z_ref)
+                                       n_sin, n_cos, s_cos, s_sin, s_ref)
 
 end subroutine
 
@@ -827,7 +827,7 @@ enddo
 do i = 0, n_lr-1
   call lr_wake_in_wake_to_c2 (c_wake, i, f%lr(i)%freq, f%lr(i)%freq_in, &
            f%lr(i)%r_over_q, f%lr(i)%Q, f%lr(i)%m, f%lr(i)%norm_sin, &
-           f%lr(i)%norm_cos, f%lr(i)%skew_sin, f%lr(i)%skew_cos, f%lr(i)%z_ref)
+           f%lr(i)%norm_cos, f%lr(i)%skew_sin, f%lr(i)%skew_cos, f%lr(i)%s_ref)
 enddo 
 
 end subroutine
@@ -888,25 +888,25 @@ end subroutine
 !-----------------------------------------------------------------------------
 !+
 ! Subroutine lr_wake_in_wake_to_f2 (f_wake, it, freq, kick, i_cell, q, m, &
-!                                          n_sin, n_cos, s_cos, s_sin, z_ref)
+!                                          n_sin, n_cos, s_cos, s_sin, s_ref)
 !
 ! Subroutine used by wake_to_f to convert a C++ C_wake into
 ! a Bmad wake_struct. This routine is not for general use.
 !-
 
 subroutine lr_wake_in_wake_to_f2 (f_wake, it, freq, kick, i_cell, q, m, &
-                                          n_sin, n_cos, s_cos, s_sin, z_ref)
+                                          n_sin, n_cos, s_cos, s_sin, s_ref)
 
 use bmad_and_cpp
 
 implicit none
 
 type (wake_struct) f_wake
-real(rp) freq, kick, q, n_sin, n_cos, s_cos, s_sin, z_ref
+real(rp) freq, kick, q, n_sin, n_cos, s_cos, s_sin, s_ref
 integer it, i_cell, m
 
 f_wake%lr(it) = lr_wake_struct(freq, kick, i_cell, q, m, &
-                                     n_sin, n_cos, s_cos, s_sin, z_ref)
+                                     n_sin, n_cos, s_cos, s_sin, s_ref)
 
 end subroutine
 
@@ -1220,7 +1220,7 @@ type (bmad_com_struct) :: f
 type (c_dummy_struct) c_bmad_com
 
 f = bmad_com
-call bmad_com_to_c2 (c_bmad_com, f%d_orb, f%max_aperture_limit, f%k_loss, &
+call bmad_com_to_c2 (c_bmad_com, f%d_orb, f%max_aperture_limit, f%grad_loss_sr_wake, &
       f%rel_tollerance, f%abs_tollerance, f%taylor_order, &
       f%default_integ_order, f%default_num_steps, &
       c_logic(f%canonical_coords), c_logic(f%use_liar_lcavity), &

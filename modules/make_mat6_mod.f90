@@ -294,8 +294,18 @@ end subroutine
 !+
 ! Subroutine mat6_multipole (knl, tilt, c00, factor, mat6)
 !
-! Subroutine to add to mat6 the kick matrix from a multipole.
+! Subroutine to add to a transfer matrix the effect of a multipole kick.
 ! This routine is not meant for general use.
+!
+! Input:
+!   knl  -- Real(rp): Strength of multipole
+!   tilt -- Real(rp): Tilt of multipole
+!   c00  -- Coord_struct: coordinates of particle around which the
+!             multipole kick matrix is computed.
+!   mat6(6,6) -- Real(rp): Transfer matrix.
+!
+! Output:
+!   mat6(6,6) -- Real(rp): Transfer matrix with effect of a multiplole added.
 !-
 
 subroutine mat6_multipole (knl, tilt, c00, factor, mat6)
@@ -327,7 +337,7 @@ end subroutine
 !+
 ! Subroutine mat4_multipole (knl, tilt, n, c0, kick_mat)
 !
-! Subroutine to find the kick from a multipole.
+! Subroutine to find the kick matrix (Jacobian) due to a multipole.
 ! This routine is not meant for general use.
 !
 ! Input:
@@ -336,7 +346,7 @@ end subroutine
 !   tilt -- Real(rp): Tilt of multipole
 !
 ! Output:
-!   kick_mat(4,4) -- Real(rp): Kick matrix
+!   kick_mat(4,4) -- Real(rp): Kick matrix (Jacobian) at c0.
 !-
 
 
