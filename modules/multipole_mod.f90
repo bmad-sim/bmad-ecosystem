@@ -321,7 +321,7 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_kick (knl, tilt, n, coord)
+! Subroutine multipole_kick (knl, tilt, n, coord, ref_orb_offset)
 !
 ! Subroutine to put in the kick due to a multipole.
 !
@@ -335,6 +335,9 @@ end subroutine
 !   coord -- Coord_struct:
 !     %vec(1) -- X position.
 !     %vec(3) -- Y position.
+!   ref_orb_offset -- Logical, optional: If present and n = 0 then add the
+!                       'kicks' due to a change in the reference orbit
+!                       (same as one would do for a bend).
 !
 ! Output:
 !   coord -- Coord_struct: 
@@ -342,7 +345,7 @@ end subroutine
 !     %vec(4) -- Y kick.
 !-
 
-subroutine multipole_kick (knl, tilt, n, coord)
+subroutine multipole_kick (knl, tilt, n, coord, ref_orb_offset)
 
   implicit none
 
@@ -353,6 +356,8 @@ subroutine multipole_kick (knl, tilt, n, coord)
 
   integer n, m
 
+  logical, optional :: ref_orb_offset
+
 ! simple case
 
   if (knl == 0) return
@@ -360,6 +365,8 @@ subroutine multipole_kick (knl, tilt, n, coord)
 ! normal case
 
   if (tilt == 0) then
+    sin_ang = 0
+    cos_ang = 1
     x = coord%vec(1)
     y = coord%vec(3)
   else
@@ -386,6 +393,13 @@ subroutine multipole_kick (knl, tilt, n, coord)
   else
     coord%vec(2) = coord%vec(2) + x_vel * cos_ang - y_vel * sin_ang
     coord%vec(4) = coord%vec(4) + x_vel * sin_ang + y_vel * cos_ang
+  endif
+
+  if (n == 0 .and. present(ref_orb_offset)) then
+    coord%vec(2) = coord%vec(2) + knl * cos_ang * coord%vec(6)
+    coord%vec(4) = coord%vec(4) + knl * sin_ang * coord%vec(6)
+    coord%vec(5) = coord%vec(5) - knl * &
+                    (cos_ang * coord%vec(1) + sin_ang * coord%vec(3))
   endif
 
 end subroutine

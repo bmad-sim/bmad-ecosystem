@@ -684,9 +684,18 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 ! multipole
 
   case (multipole$, ab_multipole$)
+
     if (.not. ele%multipoles_on) return
+
     call multipole_ele_to_kt (ele, param%particle, knl, tilt, .true.)
     call mat6_multipole (knl, tilt, c0%vec, 1.0_rp, ele%mat6)
+
+    if (knl(0) /= 0) then
+      ele%mat6(2,6) = knl(0) * cos(tilt(0))
+      ele%mat6(4,6) = knl(0) * sin(tilt(0))
+      ele%mat6(5,1) = -ele%mat6(2,6)
+      ele%mat6(5,3) = -ele%mat6(4,6)
+    endif
 
 !--------------------------------------------------------
 ! accelerating solenoid with steerings

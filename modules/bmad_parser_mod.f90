@@ -509,6 +509,10 @@ subroutine get_attribute (how, ele, ring, pring, &
         call warning ('SORRY I''M NOT PROGRAMMED TO USE A "TILT" DEFAULT' // &
                 'FOR A: ' // key_name(ele%key), 'FOR: ' // ele%name)
       end select
+    elseif (word == 'FINT') then
+      ele%value(fint$) = 0.5
+    elseif (word == 'FINTX') then
+      ele%value(fintx$) = 0.5
     elseif (ele%key == multipole$) then
       if (i >= t0$) then
         ele%b(i-t0$) = pi / (2*(i-t0$) + 2)

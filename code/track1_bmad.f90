@@ -454,7 +454,7 @@ subroutine track1_bmad (start, ele, param, end)
 
     call multipole_ele_to_kt(ele, param%particle, knl, tilt, .false.)
     do n = 0, n_pole_maxx
-      call multipole_kick (knl(n), tilt(n), n, end)
+      call multipole_kick (knl(n), tilt(n), n, end, .true.)
     enddo
 
     call offset_particle (ele, param, end, unset$, &
