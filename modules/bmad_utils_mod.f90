@@ -3,6 +3,9 @@
 !
 ! Module for subroutines that use bmad_struct structures but do not
 ! call other routines in bmad_interface.
+!
+! ALSO: THESE ROUTINES DO NOT HAVE ACCESS TO THE OVERLOADED
+! ELE1 = ELE2 AND RING1 = RING2.
 !-
 
 #include "CESR_platform.inc"
@@ -463,10 +466,41 @@ end subroutine
 !   ele2 -- Ele_struct:
 !-
 
-elemental subroutine transfer_ele (ele1, ele2)
+subroutine transfer_ele (ele1, ele2)
 
   type (ele_struct), intent(in) :: ele1
   type (ele_struct), intent(out) :: ele2
+
+  ele2 = ele1
+
+end subroutine
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine transfer_eles (ele1, ele2)
+!
+! Subroutine to set ele2 = ele1. 
+! This is a plain transfer of information not using the overloaded equal.
+! Thus at the end ele2's pointers point to the same memory as ele1's.
+!
+! NOTE: Do not use this routine unless you know what you are doing!
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele1(:) -- Ele_struct:
+!
+! Output:
+!   ele2(:) -- Ele_struct:
+!-
+
+subroutine transfer_eles (ele1, ele2)
+
+  type (ele_struct), intent(in) :: ele1(:)
+  type (ele_struct), intent(out) :: ele2(:)
 
   ele2 = ele1
 
@@ -494,7 +528,7 @@ end subroutine
 !   ring2 -- ring_struct:
 !-
 
-elemental subroutine transfer_ring (ring1, ring2)
+subroutine transfer_ring (ring1, ring2)
 
   type (ring_struct), intent(in) :: ring1
   type (ring_struct), intent(out) :: ring2
@@ -818,10 +852,10 @@ subroutine allocate_ring_ele_ (ring, des_size)
   if (associated (ring%ele_)) then
     curr_n_ele = size (ring%ele_) - 1
     allocate (temp_ele_(0:curr_n_ele))
-    call transfer_ele (ring%ele_, temp_ele_)
+    call transfer_eles (ring%ele_, temp_ele_)
     deallocate (ring%ele_)
     allocate(ring%ele_(0:desired_size))
-    call transfer_ele (temp_ele_(0:curr_n_ele), ring%ele_(0:curr_n_ele))
+    call transfer_eles (temp_ele_(0:curr_n_ele), ring%ele_(0:curr_n_ele))
     deallocate (temp_ele_)
   else
     curr_n_ele = -1
