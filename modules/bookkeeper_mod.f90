@@ -1167,9 +1167,9 @@ end subroutine
 !                  [Key = quadrupole$, etc.]
 !   ring      -- Ring_struct: Ring structure holding the elements
 !   switch    -- Integer: 
-!                   on$          => Turn elements on.  Save initial state.
-!                   off$         => Turn elements off. Save initial state.
-!                   from_saved$  => Restore initial state.
+!                   on$        => Turn elements on.  Save initial on/off state.
+!                   off$       => Turn elements off. Save initial on/off state.
+!                   from_saved$  => Restore initial on/off state.
 !   orb_(0:)  -- Coord_struct, optional: Needed for ring_make_mat6
 !
 ! Output:
