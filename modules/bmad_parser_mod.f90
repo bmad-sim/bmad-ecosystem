@@ -126,8 +126,8 @@ module bmad_parser_mod
     character(16), pointer :: var_name(:) => null()    ! variable name
     real(rp), pointer :: var_value(:) => null()        ! variable value
     integer, pointer :: var_indexx(:) => null()        ! variable sort index
-    integer n_files                      ! Number of files opened
-    character(200) file_name_(50)        ! List of files all opened.
+    integer num_lat_files               ! Number of files opened
+    character(200) lat_file_names(50)   ! List of all files used to create lat
     character(280) parse_line
     character(140) input_line1          ! For debug messages
     character(140) input_line2          ! For debug messages
@@ -821,7 +821,7 @@ subroutine file_stack (how, file_name_in, finished)
     if (file_name_in == 'FROM: BMAD_PARSER') return 
 
     if (i_level == 0) then   ! if we are just starting out then init some vars.
-      bp_com%n_files = 0           ! total number of files opened
+      bp_com%num_lat_files = 0           ! total number of files opened
       bp_com%error_flag = .false.  ! set to true on an error
       bp_com%parser_debug = .false.
       call init_bmad_parser_common
@@ -855,8 +855,8 @@ subroutine file_stack (how, file_name_in, finished)
       return
     endif
 
-    bp_com%n_files = bp_com%n_files + 1 
-    inquire (file = file_name, name = bp_com%file_name_(bp_com%n_files))
+    bp_com%num_lat_files = bp_com%num_lat_files + 1 
+    inquire (file = file_name, name = bp_com%lat_file_names(bp_com%num_lat_files))
 
 
 ! "pop" means close the current file and pop its name off the stack
@@ -1555,18 +1555,21 @@ subroutine type_get (ele, ix_type, delim, delim_found)
   type (ele_struct)  ele
 
   integer ix, ix_word, ix_type
-  character word*16, delim*1, type_name*200
+  character(16)  word
+  character(1)   delim, str_end
+  character(200) type_name
   logical delim_found
 
 !
 
   call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
 
-  if (bp_com%parse_line(1:1) == '"') then
+  str_end = bp_com%parse_line(1:1)
+  if (str_end == '"' .or. str_end == "'") then
     bp_com%parse_line = bp_com%parse_line(2:)
-    ix = index(bp_com%parse_line, '"')
+    ix = index(bp_com%parse_line, str_end)
     if (ix == 0) then
-      call warning ('MISSING DOUBLE QUOTE MARK (") FOR TYPE = "attribute"',  &
+      call warning ('MISSING ENDING QUOTE MARK FOR TYPE = "attribute"',  &
                           'FOR ELEMENT: ' // ele%name)
       type_name = ' '
     else
@@ -1578,7 +1581,7 @@ subroutine type_get (ele, ix_type, delim, delim_found)
                 'FOR ELEMENT: ' // ele%name)
     endif
   else
-    call get_next_word (type_name, ix_word, ',= ', delim, delim_found, .true.)
+    call get_next_word (type_name, ix_word, ',= ', delim, delim_found, .false.)
   endif
 
   select case (ix_type)
@@ -1755,6 +1758,15 @@ subroutine read_this_wake (file, n_row, col1, col2, col3, col4)
     call warning ('CANNOT OPEN WAKE FILE: ' // file)
     return
   endif
+
+! If we have not read in this file before then add this to the list of files
+! that are used to create the lattice.
+
+  n = bp_com%num_lat_files
+  inquire (file = file_name, name = bp_com%lat_file_names(n+1))
+  if (all(bp_com%lat_file_names(n+1) /= bp_com%lat_file_names(1:n))) &
+                                                bp_com%num_lat_files = n + 1
+
 
 ! read
 
