@@ -549,7 +549,6 @@ subroutine taylor_to_genfield (bmad_taylor, gen_field, r0)
 
   do i = 1, 6
 
-    k0 = 0
     n = size(bmad_taylor(i)%term)
 
     do j = 1, size(bmad_taylor(i)%term)
@@ -557,14 +556,14 @@ subroutine taylor_to_genfield (bmad_taylor, gen_field, r0)
         n = n - 1
         r0(i) = bmad_taylor(i)%term(j)%coef
       endif
-      if (sum(bmad_taylor(i)%term(:)%exp) > bmad_com%taylor_order) n = n - 1
+      if (sum(bmad_taylor(i)%term(j)%exp) > bmad_com%taylor_order) n = n - 1
     enddo
 
     allocate (taylor_(i)%term(n))
 
     nn = 0
     do j = 1, size(bmad_taylor(i)%term)
-      ss = sum(bmad_taylor(i)%term(:)%exp) 
+      ss = sum(bmad_taylor(i)%term(j)%exp) 
       if (ss == 0 .or. ss > bmad_com%taylor_order) cycle
       nn = nn + 1
       taylor_(i)%term(nn) = bmad_taylor(i)%term(j)
