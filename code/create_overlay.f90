@@ -1,5 +1,5 @@
 !+
-! Subroutine CREATE_OVERLAY (RING, IX_OVERLAY, IX_VALUE, N_SLAVE, CON_)
+! Subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
 !
 ! Subroutine to add the controller information to slave elements of
 ! an overlay_lord.
@@ -8,41 +8,40 @@
 !   use bmad
 !
 ! Input:
-!     RING       -- Ring_struct: Ring to modify.
-!     IX_OVERLAY -- Integer: Index of overlay element.
-!     IX_VALUE   -- Integer: Index of variable in RING%ELE_(IX_OVERLAY)%VALUE()
+!   ring       -- Ring_struct: Ring to modify.
+!   ix_overlay -- Integer: Index of overlay element.
+!   ix_value   -- Integer: Index of variable in RING%ELE_(IX_OVERLAY)%VALUE()
 !                       that will be varied.
-!     N_SLAVE    -- Integer: Number of slaves
-!     CON_(:)    -- Control_struct: control info. 1 element for each slave.
-!       %IX_SLAVE  -- Index of element to control
-!       %IX_ATTRIB -- Index of attribute controlled
-!       %COEF      -- Coefficient
+!   n_slave    -- Integer: Number of slaves
+!   con_(:)    -- Control_struct: control info. 1 element for each slave.
+!     %ix_slave  -- Index of element to control
+!     %ix_attrib -- Index of attribute controlled
+!     %coef      -- Coefficient
 !
 ! Output:
-!     RING    -- Ring_struct: Modified ring.
+!   ring    -- Ring_struct: Modified ring.
 !
 ! Note: Use NEW_CONTROL to get an index for the overlay element
 !
 ! Example:
-!     call new_control (ring, ix_ele)        ! get IX_ELE index
-!     ring%ele_(ix_ele).name = 'OVERLAY1'    ! overlay name
-!     ring%ele_(ix_ele)%value(command$) = 0  ! start at zero
-!     n_control = 2                          ! control 2 elements
+!   call new_control (ring, ix_ele)        ! get IX_ELE index
+!   ring%ele_(ix_ele)%name = 'OVERLAY1'    ! overlay name
+!   ring%ele_(ix_ele)%value(command$) = 0  ! start at zero
+!   n_control = 2                          ! control 2 elements
 !
-!     con_(1)%ix_slave = 10   ! RING%ELE_(10) is Q01W say.
-!     con_(1)%ix_attrib = k1$ ! The overlay controls the quadrupole strength.
-!     con_(1)%coef = 0.1      ! A change in the overlay value of 1 produces
-!                             !    a change of 0.1 in k1 of element 10.
+!   con_(1)%ix_slave = 10   ! RING%ELE_(10) is Q01W say.
+!   con_(1)%ix_attrib = k1$ ! The overlay controls the quadrupole strength.
+!   con_(1)%coef = 0.1      ! A change in the overlay value of 1 produces
+!                           !    a change of 0.1 in k1 of element 10.
 !
-!     con_(2)%ix_slave = 790  ! RING%ELE_(790) is Q01E say.
-!     con_(2)%ix_attrib = k1$ ! The overlay controls the quadrupole strength.
-!     con_(2)%coef = 0.1      ! make changes antisymmetric.
+!   con_(2)%ix_slave = 790  ! RING%ELE_(790) is Q01E say.
+!   con_(2)%ix_attrib = k1$ ! The overlay controls the quadrupole strength.
+!   con_(2)%coef = 0.1      ! make changes antisymmetric.
 !
-!     call create_overlay (ring, ix_ele, k1$, 2, con_)  ! create the overlay
+!   call create_overlay (ring, ix_ele, k1$, 2, con_)  ! create the overlay
 !-
 
 #include "CESR_platform.inc"
-
 
 subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
 
