@@ -40,10 +40,10 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
   type (el_list) el
   type (param_struct) :: param
 
-  real(8) mis_rot(6), x_off, y_off
+  real(8) mis_rot(6)
 
   real(rdef) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
-  real(rdef) cos_t, sin_t, len, hk, vk
+  real(rdef) cos_t, sin_t, len, hk, vk, x_off, y_off
 
   integer i, n, metd_temp, nstd_temp, key, n_term
   integer, optional :: integ_order, steps
