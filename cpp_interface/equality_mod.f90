@@ -171,7 +171,7 @@ logical is_eq
 !
 
 is_eq = (f1%amp == f2%amp) .and. (f1%damp == f2%damp) .and. &
-        (f1%freq == f2%freq) .and. (f1%phi == f2%phi) .and. &
+        (f1%k == f2%k) .and. (f1%phi == f2%phi) .and. &
         (f1%norm_sin == f2%norm_sin) .and. (f1%norm_cos == f2%norm_cos) .and. &
         (f1%skew_sin == f2%skew_sin) .and. (f1%skew_cos == f2%skew_cos)
 

@@ -1639,7 +1639,7 @@ subroutine read_lr_wake (ele, lr_file_name)
 ! get data
 
   call find_this_file (iu, lr_file_name, full_file_name)
-  if (iu == 0) return
+  if (iu < 0) return
 
   ele%wake%lr_file = lr_file_name
   lr%freq = -1
@@ -1702,13 +1702,18 @@ subroutine read_sr_wake (ele, sr_file_name)
   implicit none
 
   type (ele_struct) ele
+  type (sr2_wake_struct) longitudinal(100), transverse(100)
 
-  real(rp) dz, c1(500), c2(500), c3(500), c4(500), z_sr2_max
-  integer n_row, n, j, iu, ios
+  real(rp) dz, col1(500), col2(500), col3(500), z_max
+  integer n_row, n, j, iu, ios, ix, i
+
   character(*) sr_file_name
   character(80) line
+  character(200) full_file_name
 
-  namelist / sr2_param / z_sr2_max
+  logical found_it
+
+  namelist / short_range_modes / z_max, longitudinal, transverse
 
 ! init
 
@@ -1724,118 +1729,8 @@ subroutine read_sr_wake (ele, sr_file_name)
 
   iu = 0
   ele%wake%sr_file = sr_file_name
-  call read_this_wake (iu, ele%wake%sr_file, n_row, c1, c2, c3)
-  if (iu == 0) return
-
-  allocate (ele%wake%sr1(0:n_row-1))
-  ele%wake%sr1%z     = c1(1:n_row)
-  ele%wake%sr1%long  = c2(1:n_row)
-  ele%wake%sr1%trans = c3(1:n_row)
-
-  ! err check
-
-  if (ele%wake%sr1(0)%z /= 0) then
-    call warning ('WAKEFIELDS DO NOT START AT Z = 0!', &
-                                    'IN FILE: ' // ele%wake%sr_file)
-    return
-  endif
-
-  n = n_row - 1
-  dz = ele%wake%sr1(n)%z / n
-
-  do j = 1, n
-    if (abs(ele%wake%sr1(j)%z - dz * j) > 1e-4 * dz) then
-      write (line, '(a, i5)') &
-               'WAKEFIELD POINTS DO NOT HAVE UNIFORM DZ FOR POINT:', j
-      call warning (line, 'IN FILE: ' // ele%wake%sr_file)
-      return
-    endif
-  enddo               
-
-  ! if dz > 0 (old style file) need to reverse sign.
-
-  if (dz > 0) ele%wake%sr1%z = -ele%wake%sr1%z
-
-  if (iu < 0) return  ! end of file reached
-
-! Get sr2_long data
-
-  call read_this_wake (iu, ele%wake%sr_file, n_row, c1, c2, c3, c4)
-  if (iu == 0) return
-
-  allocate (ele%wake%sr2_long(0:n_row-1))
-  ele%wake%sr2_long%amp   = c1(1:n_row)
-  ele%wake%sr2_long%damp  = c2(1:n_row)
-  ele%wake%sr2_long%freq  = c3(1:n_row)
-  ele%wake%sr2_long%phi   = c4(1:n_row)
-
+  call find_this_file (iu, sr_file_name, full_file_name)
   if (iu < 0) return
-
-! Get sr2_trans data
-
-  call read_this_wake (iu, ele%wake%sr_file, n_row, c1, c2, c3, c4)
-  if (iu == 0) return
-
-  allocate (ele%wake%sr2_trans(0:n_row-1))
-  ele%wake%sr2_trans%amp   = c1(1:n_row)
-  ele%wake%sr2_trans%damp  = c2(1:n_row)
-  ele%wake%sr2_trans%freq  = c3(1:n_row)
-  ele%wake%sr2_trans%phi   = c4(1:n_row)
-
-  if (iu < 0) return
-
-  read (iu, nml = sr2_param, iostat = ios)
-  if (ios /= 0) then
-    call warning ('CANNOT READ SR2_PARAM NAMELIST IN WAKE FILE: ' // &
-                                                        ele%wkae%sr_file)
-  ele%wake%z_sr2_max = z_sr2_max
-  close (iu)
-
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine read_this_wake (iu, file, n_row, col1, col2, col3, col4)
-!
-! Subroutine to read in a wake field from an external file.
-! This subroutine is used by bmad_parser and bmad_parser2.
-!
-! Input:
-!   iu   -- Integer: Open file unit. If zero open the file.
-!   file -- Character(*): Name of wake field file
-!
-! Output:
-!   iu      -- Integer: Open file unit. 
-!               If zero then there was an error. 
-!               If negative then end-of-file reached.
-!   n_row   -- Integer: Number of rows read.
-!   col1(:) -- Real(rp) :: Column 1.
-!   col2(:) -- Real(rp) :: Column 2.
-!   col3(:) -- Real(rp) :: Column 3.
-!   col4(:) -- Real(rp), optional :: Column 4 (if present).
-!-
-        
-subroutine read_this_wake (iu, file, n_row, col1, col2, col3, col4)
-
-  implicit none
-
-  integer i, j, ix, iu, ios, n_row, n
-
-  character(*) file
-  character(200), save :: full_file_name
-  character(80) line
-
-  real(rp) col1(:), col2(:), col3(:)
-  real(rp), optional :: col4(:)
-
-  logical found_it
-
-! read
-
-  call find_this_file (iu, file, full_file_name)
-  if (iu == 0) return
 
   i = 0
 
@@ -1858,20 +1753,84 @@ subroutine read_this_wake (iu, file, n_row, col1, col2, col3, col4)
     if (line(1:) == 'END_SECTION') exit
     i = i + 1
     n_row = i
-    if (present(col4)) then
-      read (line, *, iostat = ios) col1(i), col2(i), col3(i), col4(i)
-    else
-      read (line, *, iostat = ios) col1(i), col2(i), col3(i)
-    endif
+    read (line, *, iostat = ios) col1(i), col2(i), col3(i)
 
     if (ios /= 0) then
-      call warning ('ERROR PARSING WAKE FILE: ' // file, &
+      call warning ('ERROR PARSING WAKE FILE: ' // full_file_name, &
                                           'CANNOT READ LINE: ' // line)
       iu = 0
       return
     endif
 
   enddo
+
+  allocate (ele%wake%sr1(0:n_row-1))
+  ele%wake%sr1%z     = col1(1:n_row)
+  ele%wake%sr1%long  = col2(1:n_row)
+  ele%wake%sr1%trans = col3(1:n_row)
+
+  ! err check
+
+  if (n_row > 1) then
+    if (ele%wake%sr1(0)%z /= 0) then
+      call warning ('WAKEFIELDS DO NOT START AT Z = 0!', &
+                                    'IN FILE: ' // ele%wake%sr_file)
+      return
+    endif
+
+    n = n_row - 1
+    dz = ele%wake%sr1(n)%z / n
+
+    do j = 1, n
+      if (abs(ele%wake%sr1(j)%z - dz * j) > 1e-4 * dz) then
+        write (line, '(a, i5)') &
+                 'WAKEFIELD POINTS DO NOT HAVE UNIFORM DZ FOR POINT:', j
+        call warning (line, 'IN FILE: ' // ele%wake%sr_file)
+        return
+      endif
+    enddo               
+
+    ! if dz > 0 (old style file) need to reverse sign.
+
+    if (dz > 0) ele%wake%sr1%z = -ele%wake%sr1%z
+
+  endif
+
+  if (iu == 0) return  ! end of file reached
+
+! Get sr2_long data
+
+  longitudinal(:)%phi = real_garbage$
+  transverse(:)%phi = real_garbage$
+  z_max = real_garbage$
+
+  read (iu, nml = short_range_modes, iostat = ios)
+  close (1)
+  if (ios /= 0) then
+    call warning ('CANNOT READ SHORT_RANGE_MODES NAMELIST FROM FILE: ' & 
+                      // full_file_name, 'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+
+  n = count(longitudinal%phi /= real_garbage$)
+  allocate (ele%wake%sr2_long(n))
+  ele%wake%sr2_long = longitudinal(1:n)
+  if (any(longitudinal(1:n)%phi == real_garbage$)) call warning ( &
+      'JUMBLED INDEX FOR LONGITUDINAL SHORT_RANGE_MODES FROM FILE: ' &
+      // full_file_name, 'FOR ELEMENT: ' // ele%name)
+
+  n = count(transverse%phi /= real_garbage$)
+  allocate (ele%wake%sr2_trans(n))
+  ele%wake%sr2_trans = transverse(1:n)
+  if (any(transverse(1:n)%phi == real_garbage$)) call warning ( &
+      'JUMBLED INDEX FOR TRANSVERSE SHORT_RANGE_MODES FROM FILE: ' &
+      // full_file_name, 'FOR ELEMENT: ' // ele%name)
+
+
+  ele%wake%z_sr2_max = z_max
+  if (z_max == real_garbage$) call warning ( &
+      'Z_MAX NOT SET FOR SHORT_RANGE_MODES FROM FILE: ' &
+      // full_file_name, 'FOR ELEMENT: ' // ele%name)
 
 end subroutine
 
@@ -1889,7 +1848,7 @@ end subroutine
 !
 ! Output:
 !   iu             -- Integer: Open file unit. 
-!                       If zero then there was an error. 
+!                       If negative then there was an error. 
 !   full_file_name -- Character(*): Full name with directory spec.
 !-
 
@@ -1909,7 +1868,7 @@ call find_file (file, found_it, full_file_name, bp_com%dirs)
 open (iu, file = full_file_name, status = 'OLD', action = 'READ', iostat = ios)
 if (ios /= 0) then
   call warning ('CANNOT OPEN WAKE FILE: ' // file)
-  iu = 0
+  iu = -1
   return
 endif
 

@@ -90,7 +90,7 @@ bool operator== (const C_sr1_wake& x, const C_sr1_wake& y) {
 
 bool operator== (const C_sr2_wake& x, const C_sr2_wake& y) {
   return (x.amp == y.amp) && (x.damp == y.damp) && 
-         (x.freq == y.freq) && (x.phi == y.phi) && 
+         (x.k == y.k) && (x.phi == y.phi) && 
          (x.norm_sin == y.norm_sin) && (x.norm_cos == y.norm_cos) && 
          (x.skew_sin == y.skew_sin) && (x.skew_cos == y.skew_cos);
 };

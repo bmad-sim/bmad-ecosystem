@@ -284,21 +284,21 @@ class C_sr2_wake {
 public:
   double amp;         // Amplitude
   double damp;        // damping factor
-  double freq;        // Freq in Hz
-  double phi;         // Phase in radians/2pi
+  double k;           // k factor
+  double phi;         // Phase in radians
   double norm_sin;    // non-skew sin-like component of the wake
   double norm_cos;    // non-skew cos-like component of the wake
   double skew_sin;    // skew sin-like component of the wake
   double skew_cos;    // skew cos-like component of the wake
 
 
-  C_sr2_wake (double a, double d, double f, double p, double n_sin = 0, 
+  C_sr2_wake (double a, double d, double kk, double p, double n_sin = 0, 
                   double n_cos = 0, double s_sin = 0, double s_cos = 0) :
-      amp(a), damp(d), freq(f), phi(p), norm_sin(n_sin), 
+      amp(a), damp(d), k(kk), phi(p), norm_sin(n_sin), 
       norm_cos(n_cos), skew_sin(s_sin), skew_cos(s_cos) {}
 
   C_sr2_wake (double a = 0) :
-      amp(0), damp(0), freq(0), phi(0), norm_sin(0), norm_cos(0), 
+      amp(0), damp(0), k(0), phi(0), norm_sin(0), norm_cos(0), 
       skew_sin(0), skew_cos(0) {}
 
 };    // End Class

@@ -64,8 +64,8 @@ module bmad_struct
   type sr2_wake_struct  ! Psudo-mode short-Range Wake struct 
     real(rp) amp        ! Amplitude
     real(rp) damp       ! Dampling factor.
-    real(rp) freq       ! Frequency in Hz
-    real(rp) phi        ! Phase in radians/2pi
+    real(rp) k          ! k factor
+    real(rp) phi        ! Phase in radians
     real(rp) norm_sin   ! non-skew sin-like component of the wake
     real(rp) norm_cos   ! non-skew cos-like component of the wake
     real(rp) skew_sin   ! skew sin-like component of the wake

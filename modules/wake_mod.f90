@@ -241,7 +241,7 @@ type (sr2_wake_struct), pointer :: sr2_long
 type (coord_struct) orbit
 
 integer i
-real(rp) charge, k, f_exp, ff, c, s, kx, ky
+real(rp) charge, arg, ff, c, s, kx, ky
 
 ! Check if we have to do any calculations
 
@@ -255,12 +255,12 @@ do i = 1, size(ele%wake%sr2_long)
 
   sr2_long => ele%wake%sr2_long(i)
 
-  k = twopi * sr2_long%freq / c_light
-  f_exp = sr2_long%damp
-  ff = sr2_long%amp * exp(-orbit%vec(5) * f_exp) / ele%value(beam_energy$) 
+  ff = sr2_long%amp * exp(-orbit%vec(5) * sr2_long%damp) / &
+                                                  ele%value(beam_energy$) 
 
-  c = cos (orbit%vec(5) * k)
-  s = sin (orbit%vec(5) * k)
+  arg = orbit%vec(5) * sr2_long%k + sr2_long%phi
+  c = cos (arg)
+  s = sin (arg)
 
   call ab_multipole_kick (0.0_rp, ff, 0, orbit, kx, ky)
 
@@ -299,7 +299,7 @@ type (sr2_wake_struct), pointer :: sr2_trans
 type (coord_struct) orbit
 
 integer i
-real(rp) charge, k, f_exp, ff, c, s, kx, ky
+real(rp) charge, arg, ff, c, s, kx, ky
 
 ! Check if we have to do any calculations
 
@@ -313,12 +313,12 @@ do i = 1, size(ele%wake%sr2_trans)
 
   sr2_trans => ele%wake%sr2_trans(i)
 
-  k = twopi * sr2_trans%freq / c_light
-  f_exp = sr2_trans%damp
-  ff = sr2_trans%amp * exp(-orbit%vec(5) * f_exp) / ele%value(beam_energy$) 
+  ff = sr2_trans%amp * exp(-orbit%vec(5) * sr2_trans%damp) / &
+                                                     ele%value(beam_energy$) 
 
-  c = cos (orbit%vec(5) * k)
-  s = sin (orbit%vec(5) * k)
+  arg = orbit%vec(5) * sr2_trans%k + sr2_trans%phi
+  c = cos (arg)
+  s = sin (arg)
 
   call ab_multipole_kick (0.0_rp, ff, 1, orbit, kx, ky)
 
@@ -359,7 +359,7 @@ type (coord_struct) orbit
 type (sr2_wake_struct), pointer :: sr2_long
 
 integer i
-real(rp) k, f_exp, ff, c, s, w_norm, kx, ky, k_dum
+real(rp) arg, ff, c, s, w_norm
 
 ! Check if we have to do any calculations
 
@@ -372,17 +372,14 @@ do i = 1, size(ele%wake%sr2_long)
 
   sr2_long => ele%wake%sr2_long(i)
 
-  k = twopi * sr2_long%freq / c_light
-  f_exp = sr2_long%damp
-  ff = exp(orbit%vec(5) * f_exp)
+  ff = exp(orbit%vec(5) * sr2_long%damp)
 
-  c = cos (orbit%vec(5) * k)
-  s = sin (orbit%vec(5) * k)
+  arg = orbit%vec(5) * sr2_long%k 
+  c = cos (arg)
+  s = sin (arg)
 
   w_norm = sr2_long%norm_sin * ff * s + sr2_long%norm_cos * ff * c
-  call ab_multipole_kick (0.0_rp, w_norm, 0, orbit, kx, k_dum)
-
-  orbit%vec(6) = orbit%vec(6) - w_norm / 2
+  orbit%vec(6) = orbit%vec(6) - w_norm
 
 enddo
 
@@ -428,7 +425,7 @@ if (.not. associated(ele%wake)) return
 
 do i = 1, size(ele%wake%sr2_long)
   sr2_long => ele%wake%sr2_long(i)
-  orbit%vec(6) = orbit%vec(6) - charge * sr2_long%amp
+  orbit%vec(6) = orbit%vec(6) - charge * sr2_long%amp / 2
 enddo
 
 end subroutine
@@ -461,7 +458,7 @@ type (coord_struct) orbit
 type (sr2_wake_struct), pointer :: sr2_trans
 
 integer i
-real(rp) k, f_exp, ff, c, s, w_norm, w_skew, kx, ky, k_dum
+real(rp) arg, ff, c, s, w_norm, w_skew, kx, ky
 
 ! Check if we have to do any calculations
 
@@ -474,12 +471,11 @@ do i = 1, size(ele%wake%sr2_trans)
 
   sr2_trans => ele%wake%sr2_trans(i)
 
-  k = twopi * sr2_trans%freq / c_light
-  f_exp = sr2_trans%damp
-  ff = exp(orbit%vec(5) * f_exp)
+  ff = exp(orbit%vec(5) * sr2_trans%damp)
 
-  c = cos (orbit%vec(5) * k)
-  s = sin (orbit%vec(5) * k)
+  arg = orbit%vec(5) * sr2_trans%k 
+  c = cos (arg)
+  s = sin (arg)
 
   w_norm = sr2_trans%norm_sin * ff * s + sr2_trans%norm_cos * ff * c
   w_skew = sr2_trans%skew_sin * ff * s + sr2_trans%skew_cos * ff * c

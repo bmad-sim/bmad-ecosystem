@@ -753,7 +753,7 @@ type (sr2_wake_struct), pointer :: f
 type (c_dummy_struct) c_sr2_wake
 
 f => f_sr2_wake
-call sr2_wake_to_c2 (c_sr2_wake, f%amp, f%damp, f%freq, f%phi, &
+call sr2_wake_to_c2 (c_sr2_wake, f%amp, f%damp, f%k, f%phi, &
                           f%norm_sin, f%norm_cos, f%skew_sin, f%skew_cos)
 
 end subroutine
@@ -888,13 +888,13 @@ enddo
 
 do i = 1, n_sr2_long
   sr2 => f%sr2_long(i)
-  call sr2_long_wake_in_wake_to_c2 (c_wake, i, sr2%amp, sr2%damp, sr2%freq, &
+  call sr2_long_wake_in_wake_to_c2 (c_wake, i, sr2%amp, sr2%damp, sr2%k, &
                   sr2%phi, sr2%norm_sin, sr2%norm_cos, sr2%skew_sin, sr2%skew_cos)
 enddo
 
 do i = 1, n_sr2_trans
   sr2 => f%sr2_trans(i)
-  call sr2_trans_wake_in_wake_to_c2 (c_wake, i, sr2%amp, sr2%damp, sr2%freq, &
+  call sr2_trans_wake_in_wake_to_c2 (c_wake, i, sr2%amp, sr2%damp, sr2%k, &
                   sr2%phi, sr2%norm_sin, sr2%norm_cos, sr2%skew_sin, sr2%skew_cos)
 enddo
 

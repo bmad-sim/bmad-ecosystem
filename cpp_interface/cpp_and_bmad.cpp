@@ -266,13 +266,13 @@ void operator>> (sr1_wake_struct* f, C_sr1_wake& c) {
 extern "C" void sr2_wake_to_f2_(sr2_wake_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
 
 extern "C" void sr2_wake_to_f_(C_sr2_wake& c, sr2_wake_struct* f) {
-  sr2_wake_to_f2_(f, c.amp, c.damp, c.freq, c.phi,
+  sr2_wake_to_f2_(f, c.amp, c.damp, c.k, c.phi,
                           c.norm_sin, c.norm_cos, c.skew_sin, c.skew_cos);
 }
 
-extern "C" void sr2_wake_to_c2_(C_sr2_wake& c, Re& amp, Re& damp, Re& freq, Re& phi,
+extern "C" void sr2_wake_to_c2_(C_sr2_wake& c, Re& amp, Re& damp, Re& k, Re& phi,
                           Re& norm_sin, Re& norm_cos, Re& skew_sin, Re& skew_cos) {
-  c = C_sr2_wake(amp, damp, freq, phi, norm_sin, norm_cos, skew_sin, skew_cos);
+  c = C_sr2_wake(amp, damp, k, phi, norm_sin, norm_cos, skew_sin, skew_cos);
 }
 
 void operator>> (C_sr2_wake& c, sr2_wake_struct* f) {
@@ -332,12 +332,12 @@ extern "C" void wake_to_f_(C_wake& c, wake_struct* f) {
   }
   for (int i = 0; i < n_sr2_long; i++) {
     sr2_long_wake_in_wake_to_f2_(f, i+1, c.sr2_long[i].amp, c.sr2_long[i].damp, 
-        c.sr2_long[i].freq, c.sr2_long[i].phi, c.sr2_long[i].norm_sin, 
+        c.sr2_long[i].k, c.sr2_long[i].phi, c.sr2_long[i].norm_sin, 
         c.sr2_long[i].norm_cos, c.sr2_long[i].skew_sin, c.sr2_long[i].skew_cos);
   }
   for (int i = 0; i < n_sr2_trans; i++) {
     sr2_trans_wake_in_wake_to_f2_(f, i+1, c.sr2_trans[i].amp, c.sr2_trans[i].damp, 
-        c.sr2_trans[i].freq, c.sr2_trans[i].phi, c.sr2_trans[i].norm_sin, 
+        c.sr2_trans[i].k, c.sr2_trans[i].phi, c.sr2_trans[i].norm_sin, 
         c.sr2_trans[i].norm_cos, c.sr2_trans[i].skew_sin, c.sr2_trans[i].skew_cos);
   }
   for (int i = 0; i < n_lr; i++) {
