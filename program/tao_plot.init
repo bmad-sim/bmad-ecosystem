@@ -34,7 +34,7 @@ Templates define the basics of, say, how to display an orbit.
 	graph_index = 1
   graph%this_box = 1, 2
   graph%title = 'Horizontal Orbit (mm)'
-  graph%margin =  0.12, 0.1, 0.1, 0.12, '%BOX'
+  graph%margin =  0.12, 0.12, 0.12, 0.12, '%BOX'
   graph%y%label = 'X'
   graph%y%max =  4
   graph%y%min = -4
@@ -49,7 +49,7 @@ Templates define the basics of, say, how to display an orbit.
 	graph_index = 2
   graph%this_box = 1, 1
   graph%title = 'Vertical Orbit (mm)'
-  graph%margin =  0.12, 0.1, 0.1, 0.12, '%BOX'
+  graph%margin =  0.12, 0.12, 0.12, 0.12, '%BOX'
   graph%y%label = 'Y'
   graph%y%max =  4
   graph%y%min = -4
@@ -76,7 +76,7 @@ Templates define the basics of, say, how to display an orbit.
 	graph_index = 1
   graph%this_box = 1, 2
   graph%title = 'Horizontal Phase (deg)'
-  graph%margin =  0.12, 0.1, 0.1, 0.12, '%BOX'
+  graph%margin =  0.12, 0.12, 0.12, 0.12, '%BOX'
   graph%y%label = 'X'
   graph%y%max =  20
   graph%y%min = -20
@@ -91,7 +91,7 @@ Templates define the basics of, say, how to display an orbit.
 	graph_index = 2
   graph%this_box = 1, 1
   graph%title = 'Vertical Phase (deg)'
-  graph%margin =  0.12, 0.1, 0.1, 0.12, '%BOX'
+  graph%margin =  0.12, 0.12, 0.12, 0.12, '%BOX'
   graph%y%label = 'Y'
   graph%y%max =  20
   graph%y%min = -20
@@ -118,7 +118,7 @@ Templates define the basics of, say, how to display an orbit.
 	graph_index = 1
   graph%this_box = 1, 2
   graph%title = 'Horizontal Beta (m)'
-  graph%margin =  0.12, 0.1, 0.1, 0.12, '%BOX'
+  graph%margin =  0.12, 0.12, 0.12, 0.12, '%BOX'
   graph%y%label = 'X'
   graph%y%max =  20
   graph%y%min = -20
@@ -133,7 +133,7 @@ Templates define the basics of, say, how to display an orbit.
 	graph_index = 2
   graph%this_box = 1, 1
   graph%title = 'Vertical Beta (m)'
-  graph%margin =  0.12, 0.1, 0.1, 0.12, '%BOX'
+  graph%margin =  0.12, 0.12, 0.12, 0.12, '%BOX'
   graph%y%label = 'y'
   graph%y%max =  20
   graph%y%min = -20
@@ -160,7 +160,7 @@ Templates define the basics of, say, how to display an orbit.
 	graph_index = 1
   graph%this_box = 1, 2
   graph%title = 'Horizontal Eta (m)'
-  graph%margin =  0.12, 0.1, 0.1, 0.12, '%BOX'
+  graph%margin =  0.12, 0.12, 0.12, 0.12, '%BOX'
   graph%y%label = 'x'
   graph%y%max =  20
   graph%y%min = -20
@@ -175,7 +175,7 @@ Templates define the basics of, say, how to display an orbit.
 	graph_index = 2
   graph%this_box = 1, 1
   graph%title = 'Vertical Eta (m)'
-  graph%margin =  0.12, 0.1, 0.1, 0.12, '%BOX'
+  graph%margin =  0.12, 0.12, 0.12, 0.12, '%BOX'
   graph%y%label = 'Y'
   graph%y%max =  20
   graph%y%min = -20
@@ -203,7 +203,7 @@ Templates define the basics of, say, how to display an orbit.
 	graph_index = 1
   graph%this_box = 1, 3
   graph%title = 'Cbar22'
-  graph%margin =  0.12, 0.1, 0.1, 0.12, '%BOX'
+  graph%margin =  0.12, 0.12, 0.12, 0.12, '%BOX'
   graph%y%label = 'Cbar22'
   graph%y%max =  0.10
   graph%y%min = -0.10
@@ -218,7 +218,7 @@ Templates define the basics of, say, how to display an orbit.
 	graph_index = 2
   graph%this_box = 1, 2
   graph%title = 'Cbar12'
-  graph%margin =  0.12, 0.1, 0.1, 0.12, '%BOX'
+  graph%margin =  0.12, 0.12, 0.12, 0.12, '%BOX'
   graph%y%label = 'Cbar12'
   graph%y%max =  0.10
   graph%y%min = -0.10
@@ -233,7 +233,7 @@ Templates define the basics of, say, how to display an orbit.
 	graph_index = 3
   graph%this_box = 1, 1
   graph%title = 'Cbar11'
-  graph%margin =  0.12, 0.1, 0.1, 0.12, '%BOX'
+  graph%margin =  0.12, 0.12, 0.12, 0.12, '%BOX'
   graph%y%label = 'Cbar11'
   graph%y%max =  0.10
   graph%y%min = -0.10
