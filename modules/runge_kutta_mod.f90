@@ -39,7 +39,7 @@ contains
 !                                 s1, s2, rel_tol, abs_tol, h1, hmin)
 ! 
 ! Subroutine to do Runge Kutta tracking. This routine is adapted from Numerical
-! Recipes. See the NR book for more details.
+! Recipes.  See the NR book for more details.
 !
 ! Notice that this routine has an two tollerance arguments rel_tol and abs_tol.
 ! Odein only has 1. rel_tol (essentually equivalent to eps in odeint) 
