@@ -1,1 +1,75 @@
 \chapter{Syntax}
+
+\section{Lattice File Format}
+
+Input for \bmad\ is free format. A \bmad\ lattice input file consists
+of a sequence of statements. Normally a statement occupies a single
+line in the file. Several statements may be placed on the same line by
+inserting a semicolon (;) between them. A long statement can occupy
+multiple lines by putting an ampersand (\&) at the end of each line of
+the statement except for the last line of the statement. An
+exclamation mark (!) denotes a comment and the exclamation mark and
+everything else after the mark on the line are ignored.
+
+\section{Arithmetic Expressions}
+
+Arithmetic expressions can be used in a place where a real value is required.
+The standard operators are defined:
+\begin{description}
+\item[+] Addition
+\item[-] Subtraction
+\item[*] Multiplication
+\item[/] Division
+\item[\^] Exponentiation
+\end{description}
+
+The following functions are recognized by \bmad:
+\begin{description}
+\item[sqrt(x)] Square root 
+\item[log(x)]  Logarithm
+\item[exp(x)]  Exponential
+\item[sin(x)]  Sine
+\item[cos(x)]  Cosine
+\item[tan(x)]  Tangent
+\item[asin(x)] Arc sine
+\item[acos(x)] Arc cosine
+\item[atan(x)] Arc Tangant
+\item[abs(x)]  Absolute value
+\end{description}
+
+
+\section{Constants}
+
+Literal constants can be entered with or without a decimal point. An
+exponent is marked with the letter E. Example
+\begin{verbatim}
+  1, 10.35, 5E3, 314.159E-2
+\end{verbatim}
+
+Symbolic constants can be defined using the syntax
+\begin{verbatim}
+  parameter_name = expression
+\end{verbatim}
+and to be compatable with MAD the syntax
+\begin{verbatim}
+  parameter_name := expression
+\end{verbatim}
+is also accepted. Example:
+\begin{verbatim}
+  my_const = sqrt(10.3) * pi^3
+  abc      = my_const * 23
+\end{verbatim}
+Unlike MAD, \bmad\ uses immediate substitution so that all constants
+in an expression must have been previously defined. For example the
+following is not valid:
+\begin{verbatim}
+  abc      = my_const * 23   ! No: my_const not yet defined.
+  my_const = sqrt(10.3) * pi^3
+\end{verbatim}
+here the value of \vn{my_const} is not known when the line ``\vn{abc}
+= $\ldots$'' is parsed and so \vn{abc} can not be calculated. Once
+defined, symbolic constants cannot be redefined. For example:
+\begin{verbatim}
+  my_const = 1
+  my_const = 2  ! No: my_const cannot be redefined.
+\end{verbatim}

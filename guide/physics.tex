@@ -2,11 +2,10 @@
 
 \section{Units}
 
-BMAD uses SI (Syst\'eme International) units as shown in
+\bmad\ uses SI (Syst\'eme International) units as shown in
 Table~\ref{t:units}.  Note that MAD uses different units. For example,
 MAD's unit of Particle Energy is GeV not eV.
-
-\begin{table}
+\begin{table}[h]
 \centering
 \begin{tabular}{|l|l|} \hline
   {\em Quantity}     & {\em Units}     \\ \hline
@@ -20,15 +19,17 @@ MAD's unit of Particle Energy is GeV not eV.
   Particle Energy    &    eV           \\ 
   Voltage            &    Volts        \\ \hline
 \end{tabular}
-\caption{Physical Units used by BMAD.}
+\caption{Physical Units used by \bmad.}
 \label{t:units}
 \end{table}
 
 
 \section{Constants}
 
-BMAD defines comonally used constants as shown in Table~\ref{t:constants}.
-All symbols use straight SI units except for \vn{e\_mass} and \vn{p\_mass} which are provided for compatibility with MAD.
+\bmad\ defines commonally used physical and mathematical constants as
+shown in Table~\ref{t:constants}.  All symbols use straight SI units
+except for \vn{e\_mass} and \vn{p\_mass} which are provided for
+compatibility with MAD.
 
 \begin{table}
 \centering
@@ -49,7 +50,7 @@ All symbols use straight SI units except for \vn{e\_mass} and \vn{p\_mass} which
   e\_mass        & $0.51099906 \pow{-3}$  & GeV    & Electron mass     \\
   p\_mass        & $0.938271998$          & GeV    & Proton mass     \\ \hline
 \end{tabular}
-\caption{Physical Units used by BMAD.}
+\caption{Physical and Mathematical constants recognized by \bmad.}
 \label{t:constants}
 \end{table}
 
@@ -65,59 +66,92 @@ expanded in a Taylor Series
 \Endeq
 Assuming that the Reference Orbit is locally along a straight line
 (there are correction terms if the Reference Orbit is locally curved) the 
-Field up to $3^{rd}$ order is
-\begin{alignat}{4}
-  B_x &=        &B_1 y \plus &B_2 xy \plus 
-                            & \frac{1}{6} B_3 (3x^2 y - y^3) \plus \ldots \\
-  B_y &= B_0 \plus  &B_1 x \plus & \frac{1}{2} B_2 (x^2 - y^2) \plus 
-                            & \frac{1}{6} B_3 (x^3 - 3x y^2) \plus \ldots
+field up to $3^{rd}$ order is
+\begin{alignat}{5}
+  B_x &=           &&B_1 y \plus         &&B_2 \, xy       && \plus && \frac{1}{6} B_3 (3x^2 y - y^3) \plus \ldots \\
+  B_y &= B_0 \plus &&B_1 x + \frac{1}{2} &&B_2 (x^2 - y^2) && \plus && \frac{1}{6} B_3 (x^3 - 3x y^2) \plus \ldots
 \end{alignat}
 When specifying magnetic multipole components what is used is the
 normalized integrated multipole $K_nL$
 \Begineq
-  K_nL = \frac{c \, L \, B_n}{E_0}
+  K_nL = \frac{c \, L \, B_n}{P_0}
 \Endeq
 where $L \, B_n$ is the integrated multipole component over a length
-$L$ and $E_0$ is the nominal beam energy. Note that often you will see
-$E_0/c$ written as $B\rho$. This is just an old notation where $\rho$
+$L$ and $P_0$ is the nominal beam momentum. Note that often you will see
+$P_0$ written as $B\rho$. This is just an old notation where $\rho$
 is the bending radius of a particle with the nominal energy in a field
 of strength $B$. In terms of the kicks $\Delta p_x$ and $\Delta p_y$
 given a particle going through a multipole field is
-\begin{alignat}{4}
-  \Delta p_x &= \frac{-c\, L \, B_y}{E_0} \\
-             &= -K_0L \;-\; &K_1L x \plus & \frac{1}{2} K_2L (y^2 - x^2) \plus 
-             & \frac{1}{6} K_3L (3x y^2 - x^3) \plus \ldots \\
-  \Delta p_y &= \frac{c\, L \, B_x}{E_0} \\
-             &=        &K_1L y \plus &K_2L xy \plus 
-             & \frac{1}{6} K_3L (3x^2 y - y^3) \plus \ldots 
+\begin{alignat}{5}
+  \Delta p_x & = \frac{-L \, B_y}{P_0} \\
+             & = -K_0 L \;-\; 
+             && K_1 L \, x \plus 
+             \frac{1}{2} && K_2 L (y^2 - x^2) && \plus 
+             && \frac{1}{6} K_3 L (3x y^2 - x^3) \plus \ldots \nonumber \\
+  \Delta p_y & = \frac{L \, B_x}{P_0} \\
+             & =     
+             && K_1 L \, y \plus 
+             && K_2 L \, xy && \plus 
+             && \frac{1}{6} K_3L (3x^2 y - y^3) \plus \ldots \nonumber 
 \end{alignat}
 Note that in particular a positive $K_1L$ quadrupole component gives
 hoizontal focusing and vertical defocusing. 
 
 If the fields associated with a particular $B_n$ multipole component
 are rotated in the $(x, y)$ plane by an angle $\phi_n$ the magnetic
-field at a point $(x,y)$ can be expressed as
+field at a point $(x,y)$ can be expressed in complex notation as
 \Begineq
-  (B_y(x,y) + i B_x(x,y)) = 
+  B_y(x,y) + i B_x(x,y) = 
                 \frac{1}{n!} B_n e^{-i(n+1)\phi_n} \, e^{i n \theta} \, r^n 
 \Endeq
 where $(r, \theta)$ are the polar coordinates of the point $(x, y)$.
 
-Another representation of the magnetic field used by BMAD divides the
-fields into normal $b_n$ and skew $a_n$ components. In terms of these
-components the magnetic field is
+Another representation of the magnetic field used by \bmad\ divides
+the fields into normal $b_n$ and skew $a_n$ components In terms of
+these components the magnetic field is
 \Begineq
-  \frac{c \, L}{E_0} \, (B_y + i B_x) = (b_n + i a_n) \, (x + i y)^n
+  \frac{L}{P_0} \, (B_y + i B_x) = (b_n + i a_n) \, (x + i y)^n
 \Endeq
-The conversion between $a_n$,$b_n$ and $K_nL$,$\phi_n$ is
+The conversion between $a_n$, $b_n$ and $K_nL$, $\phi_n$ is
 \Begineq
-  b_n + i a_n = \frac{1}{n!} \, K_nL \, e^{-i(n+1)\phi_n)}
+  b_n + i a_n = \frac{1}{n!} \, K_nL \, e^{-i(n+1)\phi_n}
 \Endeq
 or
 \begin{align}
-  KnL &= n! \, \sqrt{a_n^2 + b_n^2} \\
+  K_n L &= n! \, \sqrt{a_n^2 + b_n^2} \\
   \tan[(n+1) \phi_n] &= \frac{-a_n}{b_n}
 \end{align}
+
+The $a_n$, and $b_n$ can have a measurement radius $r_0$ associated
+with them and in this case the $a_n$ and $b_n$ will be scalled
+according to the formula
+\begin{align}
+  a_n &\rightarrow a_n \cdot F \cdot \frac{r_0^{n_{ref}}}{r_0^n} \nonumber \\
+  b_n &\rightarrow b_n \cdot F \cdot \frac{r_0^{n_{ref}}}{r_0^n}
+\end{align}
+where $F$ and $n_{ref}$ depend upon what type of element the $a_n$ and
+$b_n$ are associated with and are given in table~\ref{t:ab}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|} \hline
+\tt
+  {\em Element} & $F$                                    & $n_{ref}$ \\ \hline
+  Kicker        & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
+  Hkicker       & Kick                                   & 0 \\
+  Vkicker       & Kick                                   & 0 \\
+  Rbend         & G * L                                  & 0 \\
+  Sbend         & G * L                                  & 0 \\
+  Elseparator   & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
+  Quadrupole    & K1 * L                                 & 1 \\
+  Solenoid      & KS * L                                 & 1 \\
+  Sol\_Quad     & K1 * L                                 & 1 \\
+  Sextupole     & K2 * L                                 & 2 \\
+  Octupole      & K3 * L                                 & 3 \\ \hline
+\end{tabular}
+\caption{Physical Units used by \bmad.}
+\label{t:ab}
+\end{table}
 
 \section{Taylor Maps}
 
@@ -134,10 +168,15 @@ coordinates. Each of these functions can be expanded in a Taylor
 series. The Taylor Map corresponding to $\cal M$ is the collection of
 the 6 Taylor series.
 
-\section{Symplectisity}
+\section{Symplecticity}
 
 \section{Radiation Damping and Excitation}
 
+\section{Wakefields}
 
+\section{Macro Particles}
 
-\section
+\section{Coupling and Normal Modes}
+
+\section{Tracking}
+
