@@ -38,12 +38,12 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
   integer xsif_unit, err_unit, std_out_unit, internal_unit
   integer i, ie, ierr, dat_indx, err_lcl, i_ele, indx, key
   integer ip0, n, it, ix, iep, id
-  integer xsif_io_setup, parchk
+  integer xsif_io_setup, parchk, ix1, ix2
 
   real(rp) k2, angle
 
   character(*) :: xsif_file
-  character(100) name, line
+  character(100) name1, name2, line
   character(200) full_name
 
   logical, optional :: make_mats6
@@ -378,20 +378,22 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
         ele%value(e_loss$)       = pdata(dat_indx+9) 
         ele%value(aperture$)     = pdata(dat_indx+12)
 
-        ix = nint(pdata(dat_indx+7))
-        if (ix /= 0) then
-          if (.not. associated(ele%wake%sr_file)) allocate (ele%wake%sr_file)
-          name = arr_to_str(lwake_file(ix)%fnam_ptr)
-          ele%wake%sr_file = name
-          call read_wake (ele%wake%sr, name, 'LONG')
+        ix1 = nint(pdata(dat_indx+7))
+        ix2 = nint(pdata(dat_indx+8))
+
+        if ((ix1 /= 0) .xor. (ix2 /= 0)) then
+          call xsif_error ( &
+            'LCAVITY DOES NOT HAVE BOTH L AND T WAKE FILES: ' // ele%name)
+          call err_exit
         endif
 
-        ix = nint(pdata(dat_indx+8))
-        if (ix /= 0) then
-          if (.not. associated(ele%wake%sr_file)) allocate (ele%wake%sr_file)
-          name = arr_to_str(twake_file(ix)%fnam_ptr)
-          ele%wake%sr_file(101:) = name
-          call read_wake (ele%wake%sr, name, 'TRANS')
+        if ((ix1 /= 0) .and. (ix2 /= 0)) then
+          allocate (ele%wake%sr_file)
+          name1 = arr_to_str(lwake_file(ix1)%fnam_ptr)
+          name2 = arr_to_str(twake_file(ix2)%fnam_ptr)
+          ele%wake%sr_file = trim(name1) // ' | ' // name2
+          call read_wake (ele%wake%sr, name1, 'LONG')
+          call read_wake (ele%wake%sr, name2, 'TRANS')
         endif
 
         ring%param%lattice_type = linear_lattice$
