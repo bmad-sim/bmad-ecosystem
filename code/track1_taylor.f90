@@ -30,8 +30,13 @@ subroutine track1_taylor (start, ele, param, end)
 
 !
 
-  if (.not. associated(ele%taylor(1)%term)) &
-                              call ele_to_taylor(ele, start, param)
+  if (.not. associated(ele%taylor(1)%term)) then
+    print *, 'WARNING FROM TRACK1_TAYLOR: TAYLOR SERIES NOT PRESENT FOR: ', &
+                                                                      ele%name
+    print *, '        I WILL MAKE A TAYLOR SERIES AROUND THE GIVEN ORBIT...'
+    call ele_to_taylor(ele, start, param)
+  endif
+
   call track_taylor (start%vec, ele%taylor, end%vec)
 
 end subroutine
