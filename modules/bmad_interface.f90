@@ -3,6 +3,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.19  2003/01/04 00:45:05  dcs
+!recursive modifications for update_hybrid_list and control_bookkeeper.
+!
 !Revision 1.18  2002/11/26 05:19:43  dcs
 !Modified for BEGINNING floor position entry.
 !
@@ -330,7 +333,7 @@ module bmad_interface
   end interface
 
   interface
-    recursive subroutine control_bookkeeper (ring, ix_ele)
+    subroutine control_bookkeeper (ring, ix_ele)
       use bmad_struct
       implicit none
       type (ring_struct) ring
@@ -1614,7 +1617,7 @@ module bmad_interface
   end interface
 
   interface
-    subroutine update_hybrid_list (ring, n_in, use_ele)
+    recursive subroutine update_hybrid_list (ring, n_in, use_ele)
       use bmad_struct
       implicit none
       type (ring_struct) ring
