@@ -1,0 +1,609 @@
+ CALL, FILE = BMAD_LAYOUT:wiggler_def_c_12wig.bmad
+ 
+ B01: SBEND, L = 6.574262, ANGLE = 0.074799746, E1=0.018699937, E2=0.018699937
+ B02: SBEND, L = 3.237903, ANGLE = 0.102289270 ! RHO =  31.65434
+ B03: RBEND, L = 2.945314, ANGLE = 0.020944245 ! RHO = 140.6264
+ B04: RBEND, L = 1.643524, ANGLE = 0.018699330 ! RHO =  87.8915
+ B06: RBEND, L = 3.287171, ANGLE = 0.037400530 ! RHO =  87.8915
+ B07: SBEND, L = 3.177222, ANGLE = 0.091254660 ! RHO =  34.81718
+ B08: SBEND, L = 6.575289, ANGLE = 0.112200220, E1=0.02805, E2=0.02805 ! 58.60
+ 
+IP_L0: MARKER 
+IP_L0_END: MARKER 
+Q00W: QUADRUPOLE, L =  0.184000 
+DET_00W: MARKER, ALIAS = "0W" 
+SC_Q01W: QUADRUPOLE, L =  0.661500, Type = "SCIR QUADCUR   1" 
+SC_SK_Q01W: QUADRUPOLE, L =  0.680000, SUPERIMPOSE, REF = SC_Q01W, &
+        TYPE = "SCIR SKQUCUR   1" 
+SC_Q02W: QUADRUPOLE, L =  0.661500, Type = "SCIR QUADCUR   2" 
+SC_SK_Q02W: QUADRUPOLE, L =  0.680000, SUPERIMPOSE, REF = SC_Q02W, &
+        TYPE = "SCIR SKQUCUR   2" 
+DET_01W: MARKER, ALIAS = "1W" 
+HVKICK_01W: KICKER, L =  0.172700 
+DET_02W: MARKER, ALIAS = "2W" 
+SK_Q02W: QUADRUPOLE, TILT = PI/4, L =  0.172700, Type = "CSR SQEWQUAD   2" 
+SK_Q03W: QUADRUPOLE, TILT = PI/4, L =  0.172700, Type = "CSR SQEWQUAD   3" 
+B03W:  B03 
+B03AW: B04 
+DET_03W: MARKER, ALIAS = "3W" 
+Q03W: QUADRUPOLE, L =  0.600000, Type = "CSR QUAD CUR   3" 
+B04W:  B02 
+SK_Q04W: QUADRUPOLE, TILT = PI/4, L =  0.152400, Type = "CSR SQEWQUAD   4" 
+Q04W: QUADRUPOLE, L =  0.600000, Type = "CSR QUAD CUR   4" 
+DET_04W: MARKER, ALIAS = "4W" 
+B05W:  B02 
+SK_Q05W: QUADRUPOLE, TILT = PI/4, L =  0.152400, Type = "CSR SQEWQUAD   5" 
+Q05W: QUADRUPOLE, L =  0.600000, Type = "CSR QUAD CUR   5" 
+DET_05W: MARKER, ALIAS = "5W" 
+B06W:  B02 
+SK_Q06W: QUADRUPOLE, TILT = PI/4, L =  0.152400, Type = "CSR SQEWQUAD   6" 
+DET_06W1: MARKER, ALIAS = "6W1" 
+Q06W: QUADRUPOLE, L =  0.600000, Type = "CSR QUAD CUR   6" 
+DET_06W: MARKER, ALIAS = "6W" 
+B07W:  B02 
+Q07W: QUADRUPOLE, L =  0.600000, Type = "CSR QUAD CUR   7" 
+DET_07W: MARKER, ALIAS = "7W" 
+VKICK_07W: KICKER, L =  0.127000 
+SK_Q07W: QUADRUPOLE, TILT = PI/4, L =  0.152000, Type = "CSR SQEWQUAD   7" 
+H_SEP_08W: ELSEPARATOR, L =  2.442000, Type = "CSR HSP VOLT   1" 
+Q08W: QUADRUPOLE, L =  0.600000, Type = "CSR QUAD CUR   8" 
+SEX_08W: SEXTUPOLE, L =  0.272000, Type = "CSR SEXT CUR   8" 
+DET_08W: MARKER, ALIAS = "8W" 
+RF_W1: RFCAVITY, L =  1.800000 
+RF_W2: RFCAVITY, L =  1.800000 
+DET_08AW: MARKER, ALIAS = "8AW" 
+VKICK_08WA: KICKER, L =  0.063500 
+Q08AW: QUADRUPOLE, L =  0.600000, Type = "CSR QADD CUR   7" 
+drift_WIG_W: WIGGLER, L =  3.000000 
+DET_09W: MARKER, ALIAS = "9W" 
+Q09W: QUADRUPOLE, L =  0.600000, Type = "CSR QUAD CUR   9" 
+ 
+ ! Drifts
+d001: drift, l =   0.429000
+d002: drift, l =   0.062250
+d003: drift, l =   0.161000
+d004: drift, l =   0.250500
+d005: drift, l =   1.192000
+d006: drift, l =   1.791868
+d007: drift, l =   0.815000
+d008: drift, l =   1.750300
+d009: drift, l =   0.103300
+d010: drift, l =   0.423383
+d011: drift, l =   0.377210
+d012: drift, l =   0.550070
+d013: drift, l =   0.059400
+d014: drift, l =   0.235380
+d015: drift, l =   0.237499
+d016: drift, l =   0.322400
+d017: drift, l =   0.162400
+d018: drift, l =   0.332750
+d019: drift, l =   0.215500
+d020: drift, l =   0.344400
+d021: drift, l =   0.170400
+d022: drift, l =   0.324751
+d023: drift, l =   0.221499
+d024: drift, l =   0.268000
+d025: drift, l =   0.070400
+d026: drift, l =   0.176400
+d027: drift, l =   0.318751
+d028: drift, l =   0.298009
+d029: drift, l =   0.098400
+d030: drift, l =   0.059000
+d031: drift, l =   1.105000
+d032: drift, l =   0.546000
+d033: drift, l =   0.493598
+d034: drift, l =   0.061400
+d035: drift, l =   0.292000
+d036: drift, l =   0.755430
+d037: drift, l =   1.199840
+d038: drift, l =   0.739930
+d039: drift, l =   0.003500
+d040: drift, l =   0.106400
+d041: drift, l =   0.183400
+d042: drift, l =   0.258982
+d043: drift, l =   0.098400
+d044: drift, l =   0.065400
+d045: drift, l =   1.534000
+d046: drift, l =   3.887170
+d047: drift, l =   0.064400
+d048: drift, l =   0.110000
+d049: drift, l =   0.426640
+d050: drift, l =   0.235970
+d051: drift, l =   0.190400
+d052: drift, l =   0.063400
+d053: drift, l =   0.268411
+d054: drift, l =   1.1233	!	0.157140
+d055: drift, l =   0.06015	!Old:	 .06015
+d056: drift, l =   0.604919	!	same
+d057: drift, l =   0.8944		!	0.623750-.36320
+!d058: drift, l =   0.0 	!	0.214479+.36320
+!d059: drift, l =   0.439640
+d060: drift, l =   .189253	!	0.157140+.0381
+d061: drift, l =   0.06215	!	0.068500
+d062: drift, l =   .617955	!	0.647445-.0381
+d063: drift, l =   .230825	!	0.170725
+d063a: drift, l =  .112625	!	 0.170725
+d064: drift, l =   1.6588	!	1.6588-.0381
+d065: drift, l =   .0641	!	0.065150
+!d066: drift, l =   0.026850
+d067: drift, l =   .157698	!	.158397+.0381
+d068: drift, l =   .381343	!	0.490563-.10922
+d068a: drift, l =  .281565	!	0.17218+.10922
+d069: drift, l =   0.0622
+d070: drift, l =   0.049300
+d071: drift, l =   .48954	!	0.49124
+d072: drift, l =   0.157140
+d073: drift, l =   0.06380
+d074: drift, l =   .04075		!	0.047450
+!d075: drift, l =   0.00	!	-0.006700
+d076: drift, l =   .246489	!	0.243640
+d077: drift, l =   0.157139
+d078: drift, l =   .0633	!	0.063300
+d079: drift, l =   .0502	!	0.050200
+d080: drift, l =   .48754	!	0.483940
+d081: drift, l =   0.157140
+d082: drift, l =   .0627	!	0.057600
+d083: drift, l =   .38141	!	0.419510-.0381
+d083a: drift, l =  0.127690
+d083b: drift, l =  0.127690
+d084: drift, l =   .28851	!	0.25041+.0381
+d085: drift, l =   0.062900
+d086: drift, l =   0.041500
+d087: drift, l =   0.496640
+d088: drift, l =   0.157140
+d089: drift, l =   0.066350
+d090: drift, l =   0.046150
+d091: drift, l =   0.488540
+d092: drift, l =   0.157140
+d093: drift, l =   0.063850
+d094: drift, l =   0.048650
+d095: drift, l =   0.488540
+d096: drift, l =   0.157140
+d097: drift, l =   0.066100
+d098: drift, l =   0.045600
+d099: drift, l =   0.489340
+d100: drift, l =   0.157140
+d101: drift, l =   0.065400
+d102: drift, l =   0.025200
+d103: drift, l =   0.554800
+d104: drift, l =   1.827141
+d105: drift, l =   0.157140
+d106: drift, l =   0.063550
+d107: drift, l =   0.048550
+d108: drift, l =   0.488940
+d109: drift, l =   0.157140
+d110: drift, l =   0.064900
+d111: drift, l =   0.047200
+d112: drift, l =   0.488940
+d113: drift, l =   0.157140
+d114: drift, l =   0.066900
+d115: drift, l =   0.023800
+d116: drift, l =   0.141300
+d117: drift, l =   0.364540
+d118: drift, l =   0.157140
+d119: drift, l =   0.067150
+d120: drift, l =   0.047950
+d121: drift, l =   0.485940
+d122: drift, l =   0.157140
+d123: drift, l =   0.065900
+d124: drift, l =   0.026700
+d125: drift, l =   0.143200
+d126: drift, l =   0.360741
+d127: drift, l =   0.157139
+d128: drift, l =   0.064650
+d129: drift, l =   0.026550
+d130: drift, l =   0.703200
+d131: drift, l =   0.478640
+d132: drift, l =   0.157140
+d133: drift, l =   0.064400
+d134: drift, l =   0.025800
+d135: drift, l =   0.735840
+d136: drift, l =   0.157140
+d137: drift, l =   0.066400
+d138: drift, l =   0.047200
+d139: drift, l =   0.487440
+d140: drift, l =   0.157140
+d141: drift, l =   0.061150
+d142: drift, l =   0.025250
+d143: drift, l =   0.739640
+d144: drift, l =   0.157140
+d145: drift, l =   0.064400
+d146: drift, l =   0.026800
+d147: drift, l =   3.070700
+d148: drift, l =   1.936100
+d149: drift, l =   0.036900
+d150: drift, l =   0.259400
+d151: drift, l =   0.157140
+d152: drift, l =   0.064150
+d153: drift, l =   0.031950
+d154: drift, l =   0.657401
+d155: drift, l =   1.713100
+d156: drift, l =   0.178400
+d157: drift, l =   0.425400
+d158: drift, l =   0.065150
+d159: drift, l =   0.025050
+d160: drift, l =   0.321340
+d161: drift, l =   0.157140
+d162: drift, l =   0.065400
+d163: drift, l =   0.045700
+d164: drift, l =   0.489940
+d165: drift, l =   0.157140
+d166: drift, l =   0.063400
+d167: drift, l =   0.026800
+d168: drift, l =   0.735840
+d169: drift, l =   0.157140
+d170: drift, l =   0.063400
+d171: drift, l =   0.048700
+d172: drift, l =   0.488940
+d173: drift, l =   0.157140
+d174: drift, l =   0.064900
+d175: drift, l =   0.047700
+d176: drift, l =   0.488440
+d177: drift, l =   0.157141
+d178: drift, l =   0.065400
+d179: drift, l =   0.046200
+d180: drift, l =   0.489440
+d181: drift, l =   0.157140
+d182: drift, l =   0.065900
+d183: drift, l =   0.023800
+d184: drift, l =   0.511340
+d185: drift, l =   0.157140
+d186: drift, l =   0.061400
+d187: drift, l =   0.030300
+d188: drift, l =   2.232072
+d189: drift, l =   0.449827
+d190: drift, l =   0.182599
+d191: drift, l =   0.063100
+d192: drift, l =   0.027100
+d193: drift, l =   0.853000
+d194: drift, l =   0.711810
+d195: drift, l =   0.982000
+d196: drift, l =   0.060400
+d197: drift, l =   0.064500
+d198: drift, l =   0.536540
+d199: drift, l =   0.182599
+d200: drift, l =   0.092500
+d201: drift, l =   1.233500
+d202: drift, l =   0.853800
+d203: drift, l =   0.134400
+d204: drift, l =   0.843240
+d205: drift, l =   0.501750
+d206: drift, l =   0.113747
+d207: drift, l =  -0.058000
+d208: drift, l =   0.480383
+d209: drift, l =   0.336671
+d210: drift, l =   0.189000
+d211: drift, l =   0.199320
+d212: drift, l =   0.126320
+d213: drift, l =   0.234222
+d214: drift, l =   0.048500
+d215: drift, l =   0.126500
+d216: drift, l =   0.038500
+d217: drift, l =   0.361958
+d218: drift, l =   0.260958
+d219: drift, l =   1.192000
+d220: drift, l =   0.129078
+d221: drift, l =   0.136054
+d222: drift, l =   1.179000
+d223: drift, l =   0.266958
+d224: drift, l =   0.307958
+d225: drift, l =   0.045500
+d226: drift, l =   0.123500
+d227: drift, l =   0.063500
+d228: drift, l =   0.269222
+d229: drift, l =   0.126320
+d230: drift, l =   0.190320
+d231: drift, l =   0.198000
+d232: drift, l =   0.336671
+d233: drift, l =   0.469383
+d234: drift, l =  -0.053800
+d235: drift, l =   0.120547
+d236: drift, l =   0.501750
+d237: drift, l =   0.846240
+d238: drift, l =   0.134400
+d239: drift, l =   0.853800
+d240: drift, l =   1.237301
+d241: drift, l =   0.088700
+d242: drift, l =   0.182600
+d243: drift, l =   0.537139
+d244: drift, l =   0.063900
+d245: drift, l =   0.071400
+d246: drift, l =   1.171000
+d247: drift, l =   0.525300
+d248: drift, l =   0.839610
+d249: drift, l =   0.026000
+d250: drift, l =   0.064100
+d251: drift, l =   0.182599
+d252: drift, l =   0.450737
+d253: drift, l =   2.223463
+d254: drift, l =   0.035400
+d255: drift, l =   0.064000
+d256: drift, l =   0.157140
+d257: drift, l =   0.502640
+d258: drift, l =   0.037400
+d259: drift, l =   0.061000
+d260: drift, l =   0.157140
+d261: drift, l =   0.488540
+d262: drift, l =   0.048700
+d263: drift, l =   0.063800
+d264: drift, l =   0.157140
+d265: drift, l =   0.488740
+d266: drift, l =   0.047400
+d267: drift, l =   0.064900
+d268: drift, l =   0.157140
+d269: drift, l =   0.488740
+d270: drift, l =   0.047000
+d271: drift, l =   0.065300
+d272: drift, l =   0.157140
+d273: drift, l =   0.363640
+d274: drift, l =   0.129000
+d275: drift, l =   0.042700
+d276: drift, l =   0.061700
+d277: drift, l =   0.157140
+d278: drift, l =   0.488440
+d279: drift, l =   0.048500
+d280: drift, l =   0.064100
+d281: drift, l =   0.157140
+d282: drift, l =   0.321640
+d283: drift, l =   0.026200
+d284: drift, l =   0.063700
+d285: drift, l =   0.322700
+d286: drift, l =   0.119000
+d287: drift, l =   1.587800
+d288: drift, l =   0.655531
+d289: drift, l =   0.036550
+d290: drift, l =   0.061550
+d291: drift, l =   0.157140
+d292: drift, l =   0.253500
+d293: drift, l =   0.042800
+d294: drift, l =   5.008300
+d295: drift, l =   0.025400
+d296: drift, l =   0.064300
+d297: drift, l =   0.157140
+d298: drift, l =   0.735140
+d299: drift, l =   0.029500
+d300: drift, l =   0.061400
+d301: drift, l =   0.157140
+d302: drift, l =   0.489040
+d303: drift, l =   0.047700
+d304: drift, l =   0.064300
+d305: drift, l =   0.157140
+d306: drift, l =   0.735140
+d307: drift, l =   0.025900
+d308: drift, l =   0.065000
+d309: drift, l =   0.157140
+d310: drift, l =   0.507040
+d311: drift, l =   0.674900
+d312: drift, l =   0.026700
+d313: drift, l =   0.064700
+d314: drift, l =   0.157140
+d315: drift, l =   0.358940
+d316: drift, l =   0.148600
+d317: drift, l =   0.024900
+d318: drift, l =   0.065000
+d319: drift, l =   0.157140
+d320: drift, l =   0.486440
+d321: drift, l =   0.050200
+d322: drift, l =   0.064400
+d323: drift, l =   0.157140
+d324: drift, l =   0.360940
+d325: drift, l =   0.145300
+d326: drift, l =   0.027700
+d327: drift, l =   0.063500
+d328: drift, l =   0.157140
+d329: drift, l =   0.486240
+d330: drift, l =   0.050600
+d331: drift, l =   0.064200
+d332: drift, l =   0.157140
+d333: drift, l =   0.487740
+d334: drift, l =   0.048200
+d335: drift, l =   0.065100
+d336: drift, l =   0.157140
+d337: drift, l =   1.856341
+d338: drift, l =   0.526000
+d339: drift, l =   0.028900
+d340: drift, l =   0.063600
+d341: drift, l =   0.157140
+d342: drift, l =   0.486940
+d343: drift, l =   0.050100
+d344: drift, l =   0.064000
+d345: drift, l =   0.157140
+d346: drift, l =   0.488540
+d347: drift, l =   0.045500
+d348: drift, l =   0.067000
+d349: drift, l =   0.157140
+d350: drift, l =   0.487040
+d351: drift, l =   0.046800
+d352: drift, l =   0.067200
+d353: drift, l =   0.157140
+d354: drift, l =   .49654	!	0.514640
+d355: drift, l =   .0415	!	0.023400
+d356: drift, l =   0.063000
+d357: drift, l =   0.250410
+d358: drift, l =   0.127690
+d359: drift, l =   0.127690
+d360: drift, l =   0.391310
+d361: drift, l =   0.028200
+d362: drift, l =   0.062700
+d363: drift, l =   0.157140
+d364: drift, l =   0.489340
+d365: drift, l =   0.044800
+d366: drift, l =   0.066900
+d367: drift, l =   0.157141
+d368: drift, l =   0.487239
+d369: drift, l =   0.050000
+d370: drift, l =   0.063800
+d371: drift, l =   0.157140
+d372: drift, l =   0.489540
+d373: drift, l =   0.049300
+d374: drift, l =   0.062200
+d375: drift, l =   0.172180
+d376: drift, l =   0.490563
+!d377: drift, l =   0.132197
+d378: drift, l =   .157698	!	0.026200+.0381
+d379: drift, l =   .0641	!	0.063400
+d380: drift, l =   1.6588	!	1.658800-.0381
+d381: drift, l =   .220155	!	0.170725
+d381a: drift, l =  .123295	!	0.170725
+d382: drift, l =   .604705	!	0.597595
+d383: drift, l =   .01325	!	0.049850-.0381
+d384: drift, l =   .06215	!	0.064350
+d385: drift, l =   .189253	!	0.157564+.0381
+d386: drift, l =   .604919	!	0.214479+.38745
+d387: drift, l =   .8944	!	0.648-.38745
+d388: drift, l =   .06015	!	0.063150
+d389: drift, l =   1.1233	!	0.157140
+d390: drift, l =   0.486841
+d391: drift, l =   0.049450
+d392: drift, l =   0.064750
+d393: drift, l =   0.157140
+d394: drift, l =   0.486840
+d395: drift, l =   0.050200
+d396: drift, l =   0.064000
+d397: drift, l =   5.105170
+d398: drift, l =   0.367500
+d399: drift, l =   0.063900
+d400: drift, l =   0.109400
+d401: drift, l =   1.645930
+d402: drift, l =   1.199400
+d403: drift, l =   1.279200
+d404: drift, l =   0.063000
+d405: drift, l =   0.180000
+d406: drift, l =   0.063800
+d407: drift, l =   0.064600
+d408: drift, l =   0.499400
+d409: drift, l =   0.404650
+d410: drift, l =   0.046000
+d411: drift, l =   0.030000
+d412: drift, l =   0.374000
+d413: drift, l =   0.230800
+d414: drift, l =   0.048000
+d415: drift, l =   0.216400
+d416: drift, l =   0.298010
+d417: drift, l =   0.495151
+d418: drift, l =   0.067400
+d419: drift, l =   0.238000
+d420: drift, l =   0.254501
+d421: drift, l =   0.495150
+d422: drift, l =   0.061400
+d423: drift, l =   0.275000
+d424: drift, l =   0.223501
+d425: drift, l =   0.495151
+d426: drift, l =   0.054100
+d427: drift, l =   0.239300
+d428: drift, l =   0.266500
+d429: drift, l =   0.235381
+d430: drift, l =   0.058900
+d431: drift, l =   0.550570
+d432: drift, l =   0.377210
+d433: drift, l =   0.422383
+d434: drift, l =   0.102300
+d435: drift, l =   1.752300
+d436: drift, l =   0.815000
+d437: drift, l =   1.791891
+d438: drift, l =   0.588000
+d439: drift, l =   0.532000
+d440: drift, l =   0.250500
+d441: drift, l =   0.161000
+d442: drift, l =   0.062250
+d443: drift, l =   0.429000
+ 
+ 
+ ! CESR Ring
+ 
+cesr: line = (IP_L0, d001, Q00W, d002, DET_00W, d003, SC_Q01W, d004, &
+ SC_Q02W, d005, DET_01W, d006, HVKICK_01W, d007, DET_02W, d008, SK_Q02W, &
+ d009, SK_Q03W, d010, B03W, d011, B03AW, d012, DET_03W, d013, Q03W, &
+ d014, B04W, d015, SK_Q04W, d016, Q04W, d017, DET_04W, d018, B05W, &
+ d019, SK_Q05W, d020, Q05W, d021, DET_05W, d022, B06W, d023, SK_Q06W, &
+ d024, DET_06W1, d025, Q06W, d026, DET_06W, d027, B07W, d028, Q07W, &
+ d029, DET_07W, d030, VKICK_07W, d031, SK_Q07W, d032, H_SEP_08W, d033, &
+ Q08W, d034, SEX_08W, d035, DET_08W, d036, RF_W1, d037, RF_W2, d038, &
+ DET_08AW, d039, VKICK_08WA, d040, Q08AW, d041, drift_WIG_W, d042, DET_09W, &
+ d043, Q09W)  
+ 
+ ! steering overlays
+ 
+H01W: overlay = {HVKICK_01W}, HKICK, Alias = "1W", Type = "CSR HORZ CUR   1" 
+V01W: overlay = {HVKICK_01W}, VKICK, Alias = "1W", Type = "CSR VERT CUR   1" 
+HB01: overlay = {B04W /0.5, B05W /0.5}, HKICK, Alias = "HB1", &
+        Type = "CSR HBND CUR   1" 
+H02W: overlay = {B03W}, HKICK, Alias = "2W", Type = "CSR HORZ CUR   2" 
+V02W: overlay = {SK_Q03W}, VKICK, Alias = "2W", Type = "CSR VERT CUR   2" 
+HB02: overlay = {B06W /0.5, B07W /0.5}, HKICK, Alias = "HB2", &
+        Type = "CSR HBND CUR   2" 
+H03W: overlay = {B03AW}, HKICK, Alias = "3W", Type = "CSR HORZ CUR   3" 
+H04W: overlay = {B04W}, HKICK, Alias = "4W", Type = "CSR HORZ CUR   4" 
+V04W: overlay = {SK_Q04W}, VKICK, Alias = "4W", Type = "CSR VERT CUR   4" 
+V05W: overlay = {SK_Q05W}, VKICK, Alias = "5W", Type = "CSR VERT CUR   5" 
+V06W: overlay = {SK_Q06W}, VKICK, Alias = "6W", Type = "CSR VERT CUR   6" 
+H07W: overlay = {SK_Q07W}, HKICK, Alias = "7W", Type = "CSR HORZ CUR   7" 
+V07W: overlay = {VKICK_07W}, VKICK, Alias = "7W", Type = "CSR VERT CUR   7" 
+V08W: overlay = {SEX_08W}, VKICK, Alias = "8W", Type = "CSR VERT CUR   8" 
+
+!----------------------------------------------------------------------------
+
+s_tee1 = 1.32700
+s_tee2 = 2.44095
+s_tee3 = 2.95742
+
+s_Q1 =    1.16700
+s_Q2 =    2.07900
+
+y_tee3 = 2.547925
+
+sqrt2 = 0.707107
+
+dx_drho1w = -sqrt2
+dx_drho2w =  sqrt2
+dx_drho3w = -sqrt2
+dx_drho4w =  sqrt2
+
+dy_drho1w =  sqrt2
+dy_drho2w =  sqrt2
+dy_drho3w =  sqrt2
+dy_drho4w =  sqrt2
+
+dx_drho1e = -sqrt2
+dx_drho2e =  sqrt2
+dx_drho3e = -sqrt2
+dx_drho4e =  sqrt2
+
+dy_drho1e =  sqrt2
+dy_drho2e =  sqrt2
+dy_drho3e =  sqrt2
+dy_drho4e =  sqrt2
+
+dS1 = 1 / (s_tee1 - s_tee2)  ! Slope when tee 1 moves unit distance
+dS2 = -dS1                   ! Slope when tee 2 moves unit distance
+
+dIntercept1 = s_tee2 / (s_tee2 - s_tee1)
+dIntercept2 = 1 - dIntercept1
+
+dQ1_T1 = dS1 * s_Q1 + dIntercept1
+dQ1_T2 = dS2 * s_Q1 + dIntercept2
+dQ2_T1 = dS1 * s_Q2 + dIntercept1
+dQ2_T2 = dS2 * s_Q2 + dIntercept2
+
+x_tee3_1 = (s_tee3 - s_tee2) / (s_tee1 - s_tee2)
+x_tee3_2 = 1 - x_tee3_1
+
+dT1 = x_tee3_1 / y_tee3  ! dT when tee 1 moves unit distance
+dT2 = x_tee3_2 / y_tee3
+dT3 = -1 / y_tee3
+
+!---------------------------------
+
+
+tilt_Q = 0.0785
+
+Q00W[tilt] =  tilt_Q
+
+SC_TILT_W: overlay = {SC_Q01W, SC_Q02W, SC_SK_Q01W, SC_SK_Q02W}, tilt = tilt_Q
+SC_TILT_SK_W: overlay = {SC_SK_Q01W, SC_SK_Q02W}, tilt = pi/4
+!--------------------------------------------------------------------------
+
+SC_V01W: overlay = {SC_Q01W}, vkick
+SC_V02W: overlay = {SC_Q02W}, vkick
+
+ end_file
