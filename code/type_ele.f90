@@ -28,8 +28,12 @@
 !   ring           -- Ring_struct, Optional: Needed for control typeout.
 !
 !-
+
 !$Id$
 !$Log$
+!Revision 1.7  2002/12/13 16:23:32  dcs
+!*** empty log message ***
+!
 !Revision 1.6  2002/06/13 14:54:31  dcs
 !Interfaced with FPP/PTC
 !

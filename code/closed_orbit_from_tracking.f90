@@ -40,17 +40,14 @@
 
 !$Id$
 !$Log$
-!Revision 1.9  2002/11/15 22:05:55  dcs
-!Added CESR_platform.inc
+!Revision 1.10  2002/12/13 16:23:32  dcs
+!*** empty log message ***
 !
 !Revision 1.8  2002/11/14 16:07:39  dcs
 !Fixed bug to overwrite closed_orb_(0)%vec(5) when i_dim = 4
 !
 !Revision 1.7  2002/11/06 06:48:31  dcs
 !Changed arg array
-!
-!Revision 1.6  2002/07/16 20:44:00  dcs
-!*** empty log message ***
 !
 !Revision 1.5  2002/06/13 14:54:23  dcs
 !Interfaced with FPP/PTC
@@ -65,7 +62,7 @@
 !UNIX compatibility updates
 !
 
-#include "CESR_platform.inc"
+#include "CESR_platform.inc" 
 
 subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
                                                  eps_rel, eps_abs, init_guess)
@@ -89,6 +86,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
   integer i_dim, i, i1, i2, j, k, jmax, n_ele, j0, jj, nd, nnd, msk(6)
 
   logical is_on(0:n_ele_maxx)
+  logical :: debug = .false.
 
 ! make a unit matrix
 
@@ -108,7 +106,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
       endif
     enddo
   elseif (nd /= 6) then
-    type *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: BAD "I_DIM":', nd
+    print *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: BAD "I_DIM":', nd
     call err_exit    
   endif
 
@@ -176,12 +174,12 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
     enddo
 
     call mat_det(start_mat(1:nnd,1:nnd), error, nnd, nnd)
-    type *, 'det:', error
+    if (debug) print *, 'det:', error
     call mat_inverse (start_mat(1:nnd,1:nnd), start_mat(1:nnd, 1:nnd))
     mat6 = matmul(end_mat(1:nnd,1:nnd), start_mat(1:nnd,1:nnd))
     call mat_symp_check (mat6(1:nnd,1:nnd), error)
-    type *, 'error:', error
-    type '(i4, a, 3p6f11.5)', j, ':', (closed_orb_(0)%vec(i), i = 1, nd)
+    if (debug) print *, 'error:', error
+    if (debug) print '(i4, a, 3p6f11.5)', j, ':', (closed_orb_(0)%vec(i), i = 1, nd)
 
     if (error < 0.1) then  ! if error is low use matrix
       mat6(1:nnd,1:nnd) = mat6_unit(1:nnd,1:nnd) - mat6(1:nnd,1:nnd)
@@ -206,9 +204,9 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 
   if (bmad_status%type_out) then
     if (j == jmax+1) then
-      type *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: ORBIT NOT CONVERGING!'
+      print *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: ORBIT NOT CONVERGING!'
     else
-      type *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: PROBLEM TRACKING ORBIT.'
+      print *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: PROBLEM TRACKING ORBIT.'
     endif
   endif
 

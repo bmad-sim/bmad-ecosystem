@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.19  2002/12/13 16:23:31  dcs
+!*** empty log message ***
+!
 !Revision 1.18  2002/12/06 01:53:02  dcs
 !Fix rho/g bug in bends
 !
@@ -366,7 +369,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
         endif
       enddo
 
-      call warning ('ATTRIBUTE REDEFINED FOR ELEMENT: ' // trim(this_name), &
+      call warning ('ATTRIBUTE REDEFINED FOR ELEMENT: ' // trim(name), &
                     'BUT I HAVE NOT SEEN THIS NAME BEFORE!')
       cycle parsing_loop
 
