@@ -102,7 +102,7 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
 ! compute DET_H and determine if we are in a stop band (MGB Eq. 14)
 
   trace_t0_diff = (t0_11(1,1) + t0_11(2,2)) - (t0_22(1,1) + t0_22(2,2))
-  call mat_det (H, det_H, 2, 2)
+  call mat_det (H, det_H)
   denom = trace_t0_diff**2 + 4.0 * det_H
 
   if (denom <= 0) then

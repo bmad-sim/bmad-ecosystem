@@ -213,7 +213,8 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine transfer_taylor (ring_in, ring_out, type_out, transfered_all)
+! Subroutine transfer_ring_taylors (ring_in, ring_out, 
+!                                              type_out, transfered_all)
 !
 ! Subroutine to transfer the taylor maps from the elements of one ring to
 ! the elements of another. The elements are matched between the rings so 
@@ -238,7 +239,7 @@ end subroutine
 !                 for all elements in ring_out that need one. False otherwise.
 !-
 
-subroutine transfer_taylor (ring_in, ring_out, type_out, transfered_all)
+subroutine transfer_ring_taylors (ring_in, ring_out, type_out, transfered_all)
 
   implicit none
 
@@ -258,7 +259,7 @@ subroutine transfer_taylor (ring_in, ring_out, type_out, transfered_all)
 
   if (ring_in%param%beam_energy /= ring_out%param%beam_energy) then
     if (type_out) then
-      print *, 'TRANSFER_TAYLOR: THE RING ENERGIES ARE DIFFERENT.'
+      print *, 'TRANSFER_RING_TAYLORS: THE RING ENERGIES ARE DIFFERENT.'
       print *, '    TAYLOR MAPS NOT TRANSFERED.'
     endif
     if (present(transfered_all)) transfered_all = .false.
@@ -277,6 +278,7 @@ subroutine transfer_taylor (ring_in, ring_out, type_out, transfered_all)
   enddo
 
 ! go through ring_out and match elements
+! if we have a match transfer the Taylor map.
 
   out_loop: do i = 1, ring_out%n_ele_max
 
@@ -285,33 +287,11 @@ subroutine transfer_taylor (ring_in, ring_out, type_out, transfered_all)
     do j = 1, n_in
 
       ele_in => ring_in%ele_(ix_in(j))
+
       if (equivalent_eles (ele_in, ele_out)) then
-
-! we have a match so transfer the Taylor map.
-
-        if (type_out) print *, 'TRANSFER_TAYLOR: ', &
+        if (type_out) print *, 'TRANSFER_RING_TAYLORS: ', &
              'Reusing Taylor from: ', trim(ele_in%name), '  to: ', ele_out%name
-
-        do it = 1, 6
-          ix = 0
-          do k = 1, size(ele_in%taylor(it)%term)
-           if (sum(ele_in%taylor(it)%term(k)%exp(:)) <= &
-                                      bmad_com%taylor_order) ix = ix + 1
-          enddo
-          allocate (ele_out%taylor(it)%term(ix))
-          ix = 0
-          do k = 1, size(ele_in%taylor(it)%term)
-           if (sum(ele_in%taylor(it)%term(k)%exp(:)) <= &
-                                      bmad_com%taylor_order) then
-              ix = ix + 1
-              ele_out%taylor(it)%term(ix) = ele_in%taylor(it)%term(k)
-            endif      
-          enddo
-        enddo
-
-        ele_out%taylor_order = bmad_com%taylor_order
-        ele_out%taylor(:)%ref = ele_in%taylor(:)%ref
-
+        call transfer_ele_taylor (ele_in, ele_out, bmad_com%taylor_order)
         cycle out_loop
       endif
 
@@ -319,11 +299,66 @@ subroutine transfer_taylor (ring_in, ring_out, type_out, transfered_all)
 
     if (ele_out%tracking_method == taylor$ .or. &
                     ele_out%mat6_calc_method == taylor$ .and. type_out) then
-      print *, 'TRANSFER_TAYLOR: NO TAYLOR FOR: ', ele_out%name
+      print *, 'TRANSFER_RING_TAYLORS: NO TAYLOR FOR: ', ele_out%name
       if (present(transfered_all)) transfered_all = .false.
     endif
 
   enddo out_loop
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine transfer_ele_taylor (ele_in, ele_out, taylor_order)
+!
+! Subroutine to transfer a Taylor map from one element to another.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele_in       -- Ele_struct: Element with the Taylor map.
+!   taylor_order -- Integer: Orderder to truncate the Taylor map.
+!
+! Output:
+!   ele_out      -- Ele_struct: Element receiving the Taylor map truncated to
+!                     order taylor_order.
+!-
+
+subroutine transfer_ele_taylor (ele_in, ele_out, taylor_order)
+
+  implicit none
+
+  type (ele_struct) ele_in, ele_out
+  integer, intent(in) :: taylor_order
+  integer it, ix, k 
+
+!
+
+  do it = 1, 6
+    ix = 0
+    do k = 1, size(ele_in%taylor(it)%term)
+     if (sum(ele_in%taylor(it)%term(k)%exp(:)) <= taylor_order) ix = ix + 1
+    enddo
+    if (.not. associated(ele_out%taylor(it)%term)) &
+                            allocate (ele_out%taylor(it)%term(ix))
+    if (size(ele_out%taylor(it)%term) /= ix) &
+                            allocate (ele_out%taylor(it)%term(ix))
+    ix = 0
+    do k = 1, size(ele_in%taylor(it)%term)
+     if (sum(ele_in%taylor(it)%term(k)%exp(:)) <= taylor_order) then
+        ix = ix + 1
+        ele_out%taylor(it)%term(ix) = ele_in%taylor(it)%term(k)
+      endif      
+    enddo
+  enddo
+
+  ele_out%taylor_order = taylor_order
+  ele_out%taylor(:)%ref = ele_in%taylor(:)%ref
+
+  if (ele_in%key == wiggler$) ele_out%value(z_patch$) = ele_in%value(z_patch$)
 
 end subroutine
 
@@ -407,7 +442,7 @@ function equivalent_eles (ele1, ele2) result (equiv)
 
   vmask = .true.
   if (ele1%key == wiggler$ .and. ele1%sub_key == map_type$) &
-                      vmask((/k1$, rho$, b_max$, z_patch$/)) = .false.
+              vmask((/k1$, rho$, b_max$, z_patch$, beam_energy$ /)) = .false.
   if (any(ele1%value /= ele2%value .and. vmask)) return
 
   if (ele1%num_steps /= ele2%num_steps) return

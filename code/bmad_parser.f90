@@ -932,25 +932,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       if (j == size(old_ele) + 1) cycle
 
       print *, 'BMAD_PARSER: Reusing Taylor for: ', old_ele(j)%name
-
-      do it = 1, 6
-        ix = 0
-        do k = 1, size(old_ele(j)%taylor(it)%term)
-         if (sum(old_ele(j)%taylor(it)%term(k)%exp(:)) <= &
-                                      bmad_com%taylor_order) ix = ix + 1
-        enddo
-        allocate (ele%taylor(it)%term(ix))
-        ix = 0
-        do k = 1, size(old_ele(j)%taylor(it)%term)
-         if (sum(old_ele(j)%taylor(it)%term(k)%exp(:)) <= &
-                                      bmad_com%taylor_order) then
-            ix = ix + 1
-            ele%taylor(it)%term(ix) = old_ele(j)%taylor(it)%term(k)
-          endif      
-        enddo
-      enddo
-      ele%taylor_order = bmad_com%taylor_order
-      ele%taylor(:)%ref = 0
+      call transfer_ele_taylor (old_ele(j), ele, bmad_com%taylor_order)
     enddo
 
     deallocate(old_ele)
@@ -964,7 +946,8 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
     print *, 'WARNING FROM BMAD_PARSER: BEAM_ENERGY IS 0!'
   elseif (ring%param%beam_energy /= 0 .and. &
                           ring%ele_(0)%value(beam_energy$) /= 0) then
-    print *, 'WARNING FROM BMAD_PARSER: BEAM_ENERGY AND BEGINNING[ENERGY] BOTH SET!'
+    print *, &
+        'WARNING FROM BMAD_PARSER: BEAM_ENERGY AND BEGINNING[ENERGY] BOTH SET!'
   endif
 
   doit = .true.

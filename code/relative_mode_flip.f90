@@ -18,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/08/15 22:16:53  dcs
+!mat_det argument change.
+!
 !Revision 1.5  2003/07/09 01:38:18  dcs
 !new bmad with allocatable ring%ele_(:)
 !
@@ -64,7 +67,7 @@ function relative_mode_flip (ele1, ele2) result (rel_mode)
 ! smallness of determinate is indicator whether the a-modes of ele1 and
 ! ele2 have nearly the same eigen planes
 
-  call mat_det (mat4, det_aa, 4, 4)
+  call mat_det (mat4, det_aa)
 
 ! fill bottom half of 4x4 matrix whith ele2 b-mode eigen axes
 
@@ -78,7 +81,7 @@ function relative_mode_flip (ele1, ele2) result (rel_mode)
 ! smallness of determinate is indicator of whether ele1 a-mode has nearly the
 ! same eigen plane with ele2 b-mode
 
-  call mat_det (mat4, det_ab, 4, 4)
+  call mat_det (mat4, det_ab)
 
 ! compare dets to see if relative mode flip
 

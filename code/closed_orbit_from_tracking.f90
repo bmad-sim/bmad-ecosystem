@@ -160,7 +160,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
                     start(jj)%vec(msk(1:nnd)) - start(j0)%vec(msk(1:nnd))
     enddo
 
-    call mat_det(start_mat(1:nnd,1:nnd), error, nnd, nnd)
+    call mat_det(start_mat(1:nnd,1:nnd), error)
     if (debug) print *, 'det:', error
     call mat_inverse (start_mat(1:nnd,1:nnd), start_mat(1:nnd, 1:nnd))
     mat6 = matmul(end_mat(1:nnd,1:nnd), start_mat(1:nnd,1:nnd))

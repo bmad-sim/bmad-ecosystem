@@ -94,12 +94,8 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
             if (present(coord_)) then
               if (any(coord_(i-1)%vec /= coord_(ie-1)%vec)) cycle
             endif
-            do k = 1, 6
-              deallocate (ele%taylor(k)%term, stat = istat)
-              allocate (ele%taylor(k)%term(size(ring%ele_(ie)%taylor(k)%term)))
-              ele%taylor(k)%term = ring%ele_(ie)%taylor(k)%term
-            enddo
-            ele%taylor_order = ring%ele_(ie)%taylor_order
+            call transfer_ele_taylor (ring%ele_(ie), ele, &
+                                                 ring%ele_(ie)%taylor_order)
             exit
           enddo
         endif

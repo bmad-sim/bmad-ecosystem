@@ -92,7 +92,7 @@ subroutine twiss_propagate1 (ele1, ele2)
 
     call mat_symp_conj (ele1%c_mat, c_conj_mat, 2, 2)
     mat2 = ele1%gamma_c * big_M - matmul(small_m, c_conj_mat)
-    call mat_det (mat2, det, 2, 2)
+    call mat_det (mat2, det)
 
 ! we demand that gamma_c > 0.3 (ie det > 0.1)
 ! try to make it so that there is no net mode flip here
@@ -114,7 +114,7 @@ subroutine twiss_propagate1 (ele1, ele2)
       if (bmad_status%type_out) print *, 'TWISS_PROPAGATE1: MODE_FLIPPED'
 
       mat2 = matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m
-      call mat_det (mat2, det, 2, 2)
+      call mat_det (mat2, det)
       if (det < 0) then
         print *, 'TWISS_PROPAGATE1: INTERNAL ERROR! (DUE TO ROUNDOFF?)'
       endif
@@ -137,7 +137,7 @@ subroutine twiss_propagate1 (ele1, ele2)
 ! linac rf matrices need to be renormalized.
 
   if (ele2%key == lcavity$) then
-    call mat_det (ele_temp%mat6, det, 4, 6)
+    call mat_det (ele_temp%mat6(1:4,1:4), det)
     ele_temp%mat6(1:4,1:4) = ele_temp%mat6(1:4,1:4) / (det**0.25)
   endif
 

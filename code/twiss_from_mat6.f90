@@ -28,6 +28,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/08/15 22:16:54  dcs
+!mat_det argument change.
+!
 !Revision 1.7  2003/07/09 01:38:23  dcs
 !new bmad with allocatable ring%ele_(:)
 !
@@ -106,7 +109,7 @@ subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
   if(ele%x%beta /= 0. .and. ele%y%beta /= 0.)then
     ele%mode_flip = .false.
     ele%c_mat = v(1:2,3:4)
-    call mat_det (ele%c_mat, det, 2, 2)
+    call mat_det (ele%c_mat, det)
     ele%gamma_c = sqrt(1-det)
   endif
 

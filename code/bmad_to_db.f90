@@ -165,7 +165,7 @@ subroutine bmad_to_db (ring, db, calib_date)
     call err_exit
   endif
 
-  call get_steering_strength (h_stren, v_stren, this_date)
+  call get_steering_calibrations (h_stren, v_stren, this_date)
   db%csr_horz_cur(:)%dvar_dcu = -1.0e-6 * h_stren(1:98) / gev  
   db%csr_hbnd_cur(:)%dvar_dcu = -1.0e-6 * h_stren(101:106) / gev  
   db%csr_vert_cur(:)%dvar_dcu =  1.0e-6 * v_stren(1:98) / gev  
