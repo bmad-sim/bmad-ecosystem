@@ -14,6 +14,7 @@
 !                  dk1(i) relates to ring%ele_(i). Those quads with a
 !                  positive dk1(i) will be varied as one group and the
 !                  quads with negative dk1(i) will be varied as another group.
+!   orb_(0)%vec(6) -- Coord_struct: Energy at which the tune is computed.
 !
 ! Output:
 !   ring      -- Ring_struct: Q_tuned ring
@@ -21,9 +22,7 @@
 !   ok        -- Logical: Set True if everything is ok. False otherwise.
 !-
 
-
 #include "CESR_platform.inc"
-
 
 subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
 
@@ -46,6 +45,11 @@ subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
 
 ! q_tune
 
+  call closed_orbit_at_start (ring, orb_(0), 4, .true.)
+  ok = bmad_status%ok
+  if (.not. ok) return
+  call track_all (ring, orb_)
+
   do i = 1, 10
 
     call ring_make_mat6 (ring, -1, orb_)
@@ -56,6 +60,8 @@ subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
 
     call twiss_propagate_all(ring)
     call closed_orbit_at_start (ring, orb_(0), 4, .true.)
+    ok = bmad_status%ok
+    if (.not. ok) return
     call track_all (ring, orb_)
 
     phi_x = ring%ele_(ring%n_ele_ring)%x%phi
@@ -107,6 +113,5 @@ subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
   print *, '      CURRENT TUNE:', phi_x/twopi, phi_y/twopi
   print *, '      SET TUNE:    ', phi_x_set/twopi, phi_y_set/twopi
   ok = .false.
-  call err_exit
 
 end subroutine
