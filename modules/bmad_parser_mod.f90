@@ -982,10 +982,11 @@ subroutine evaluate_value (err_str, value, &
   integer :: no_delim$ = 10
   integer :: sin$ = 11, cos$ = 12, tan$ = 13
   integer :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
+  integer :: log$ = 19, exp$ = 20
   integer :: numeric$ = 100
 
-  integer :: level(18) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-                            9, 9, 9, 9, 9, 9, 9, 9 /)
+  integer :: level(20) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9 /)
   character*1 op_name(9) / '+', '-', '*', '/', '(', ')', '^', '-', ' ' /
 
   integer op_(200), ix_word, i_delim, i2, ix0
@@ -1076,6 +1077,10 @@ subroutine evaluate_value (err_str, value, &
           call pushit (op_, i_op, abs$)
         elseif (word == 'SQRT') then
           call pushit (op_, i_op, sqrt$)
+        elseif (word == 'LOG') then
+          call pushit (op_, i_op, log$)
+        elseif (word == 'EXP') then
+          call pushit (op_, i_op, exp$)
         else
           call warning ('UNEXPECTED CHARACTERS ON RHS BEFORE "(": ' // word,  &
                                                   'FOR: ' // err_str)
@@ -1246,6 +1251,10 @@ subroutine evaluate_value (err_str, value, &
       stk(i2)%value = abs(stk(i2)%value)
     elseif (stk(i)%type == sqrt$) then
       stk(i2)%value = sqrt(stk(i2)%value)
+    elseif (stk(i)%type == log$) then
+      stk(i2)%value = log(stk(i2)%value)
+    elseif (stk(i)%type == exp$) then
+      stk(i2)%value = exp(stk(i2)%value)
     else
       call error_exit ('INTERNAL ERROR #02: GET HELP', ' ')
     endif

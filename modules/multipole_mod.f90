@@ -272,9 +272,7 @@ subroutine multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)
     elseif (ele%value(vkick$) == 0) then
       const = ele%value(hkick$)
     else
-      print *, 'ERROR IN MULTIPOLE_ELE_TO_AB: I CANNOT SCALE: ' // ele%name
-      print *, '  TO A REFERENCE SEPARATOR WITH HKICK AND VKICK *BOTH* NONZERO'
-      call err_exit
+      const = sqrt(ele%value(hkick$)**2 + ele%value(vkick$)**2)
     endif
     ref_exp = 0
 
