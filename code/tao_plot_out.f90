@@ -108,7 +108,7 @@ integer i, j, k, j_ele, j_att, ix_var
 real(rp) :: y, norm
 real(rp) :: dy_key = 12
 character(3) str3
-character(80) str, fmt
+character(80) str, fmt, str2
 
 !
 
@@ -144,10 +144,11 @@ do i = 1, 10
     write (str, '(a, i2)') str3, j
   else
     norm = s%key(k)%normalizer
+    str2 = tao_var_uni_string(s%var(ix_var))
     write (str, fmt) str3, j, s%var(ix_var)%ele_name, &
       s%var(ix_var)%attrib_name, s%var(ix_var)%model_value, &
       s%key(k)%val0/norm, s%key(k)%delta/norm, &
-      trim(tao_var_uni_string(s%var(ix_var))), s%var(ix_var)%useit_opt
+      trim(str2), s%var(ix_var)%useit_opt
   endif
 
   y = (10-i) * dy_key + 5
