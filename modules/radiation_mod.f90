@@ -143,6 +143,8 @@ subroutine track1_radiation (start, ele, param, end, edge)
     call err_exit
   endif
 
+  if (s_len < 0) s_len = 0
+
 ! Get the coords in the frame of reference of the element
 
   start2 = start
@@ -189,6 +191,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
                   dot_product(start2%vec(1:4)-ele%const(1:4), ele%const(11:14))
       g3 = ele%const(20) + &
                   dot_product(start2%vec(1:4)-ele%const(1:4), ele%const(21:24))
+      if (g3 < 0) g3 = 0
     elseif (ele%sub_key == periodic_type$) then
       g2 = abs(ele%value(k1$))
       g3 = 4 * sqrt(2*g2)**3 / (3 * pi)  
