@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.12  2002/08/08 19:46:37  dcs
+!ele%gen0 bug fix
+!
 !Revision 1.11  2002/08/07 18:01:35  dcs
 !Corrected ele%gen0 bug
 !
@@ -138,7 +141,7 @@ module bmad_struct
     character*16 attribute_name    ! Used by overlays
     type (twiss_struct)  x,y,z         ! Twiss parameters at end of element
     real(rdef) value(n_attrib_maxx)    ! attribute values
-    real(rdef) gen0                    ! constant part of the genfield map
+    real(rdef) gen0(6)                 ! constant part of the genfield map
     real(rdef) vec0(6)                 ! 0th order transport vector
     real(rdef) mat6(6,6)               ! 1st order transport matrix 
     real(rdef) c_mat(2,2)              ! 2x2 C coupling matrix
