@@ -38,6 +38,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.15  2003/03/04 16:03:30  dcs
+!VMS port
+!
 !Revision 1.14  2003/01/29 16:14:32  dcs
 !Linac RF bug fix and update.
 !
@@ -334,7 +337,11 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
             iv = ring%control_(ic)%ix_attrib
             a_name = attribute_name(ele, iv)
             ix = ring%ele_(j)%ix_value
-            write (val_str, '(1pe12.3)') ring%ele_(j)%value(ix)
+            if (ix == 0) then
+              val_str = '  GARBAGE!'
+            else
+              write (val_str, '(1pe12.3)') ring%ele_(j)%value(ix)
+            endif
           endif
           nl = nl + 1  
           write (li(nl), '(5x, a, i10, 2x, a16, 1pe11.3, a12)') &

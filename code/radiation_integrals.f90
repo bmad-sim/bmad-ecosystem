@@ -21,7 +21,7 @@
 !     %synch_int(1:3) -- Synchrotron integrals.
 !     %sig_e          -- Sigma_E/E energy spread
 !     %sig_z          -- Bunch Length
-!     %energy_loss    -- Energy loss in GeV per turn
+!     %e_loss         -- Energy loss in eV per turn
 !     %a, %b, %z      -- Amode_struct: Substructure
 !       %emittance      -- Emittance
 !       %synch_int(4:5) -- Synchrotron integrals
@@ -46,6 +46,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/03/04 16:03:29  dcs
+!VMS port
+!
 !Revision 1.6  2002/11/04 16:49:26  dcs
 !*** empty log message ***
 !
@@ -273,9 +276,9 @@ subroutine radiation_integrals (ring, orb_, mode)
 
   i4z = i4a + i4b
 
-  energy = ring%param%energy
-  gamma2_factor = (energy * 1956.95)**2
-  energy_loss = c_gam * energy**4 * i2 / pi
+  energy = ring%param%beam_energy
+  gamma2_factor = (energy * 1956.95e-9)**2
+  energy_loss = 1e9 * c_gam * (1e-9 * energy)**4 * i2 / pi
 
   mode%synch_int(1) = i1
   mode%synch_int(2) = i2
@@ -306,7 +309,7 @@ subroutine radiation_integrals (ring, orb_, mode)
   mode%b%alpha_damp = energy_loss * mode%b%j_damp / energy
   mode%z%alpha_damp = energy_loss * mode%z%j_damp / energy
 
-  mode%energy_loss = energy_loss
+  mode%e_loss = energy_loss
 
   if(abs(m65) > 0. ) then
     mode%sig_z = sqrt( mode%synch_int(1)/abs(m65) ) * mode%sig_e

@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.23  2003/03/04 16:03:27  dcs
+!VMS port
+!
 !Revision 1.22  2003/01/27 14:40:30  dcs
 !bmad_version = 56
 !
@@ -200,6 +203,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   bp_com%ivar_tot = 0                     ! number of variables encountered
   call init_bmad_parser_common
   ring%name = ' '
+  ring%lattice = ' '
 
   pring%ele(:)%ref_name = blank
   pring%ele(:)%ref_pt  = center$
@@ -209,7 +213,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
   call init_ele (in_ring%ele_(0))
   in_ring%ele_(0)%name = 'BEGINNING'     ! Beginning element
-  in_ring%ele_(0)%key = null_ele$
+  in_ring%ele_(0)%key = init_ele$
 
   n_max => in_ring%n_ele_max
   n_max = 0                              ! Number of elements encountered
@@ -848,34 +852,35 @@ subroutine bmad_parser (in_file, ring, make_mats6)
     ele%name = name_(i)
 
 ! Convert rbends to sbends and evaluate G if needed.
+! Needed is the length and either: angle, G, or rho.
 
     if (ele%key == sbend$ .or. ele%key == rbend$) then
 
       angle = ele%value(angle$) 
 
-      if (ele%value(g$) /= 0 .and. ele%value(rho$) /= 0) then
-        call warning ('BOTH G AND RHO SPECIFIED FOR BEND: ' // ele%name)
-      elseif (ele%value(g$) /= 0 .and. angle /= 0)  then
-        call warning ('BOTH G AND ANGLE SPECIFIED FOR BEND: ' // ele%name)
-      elseif (ele%value(rho$) /= 0 .and. angle /= 0)  then
-        call warning ('BOTH RHO AND ANGLE SPECIFIED FOR BEND: ' // ele%name)
-      endif
-
+      if (ele%value(g$) /= 0 .and. ele%value(rho$) /= 0) &
+            call warning ('BOTH G AND RHO SPECIFIED FOR BEND: ' // ele%name)
       if (ele%value(rho$) /= 0) ele%value(g$) = 1 / ele%value(rho$)
+
+      if (ele%value(g$) /= 0 .and. angle /= 0) call warning &
+            ('BOTH ANGLE AND G OR RHO SPECIFIED FOR BEND: ' // ele%name)
 
       if (ele%key == rbend$) then
         ele%value(l_chord$) = ele%value(l$)
+        
         if (angle /= 0) then
           ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
-        elseif (ele%value(g$) /= 0) then
-          ele%value(l$) = angle / ele%value(g$)
+        elseif (ele%value(g$) /= 0 .and. ele%value(l_chord$) == 0) then
+          angle = ele%value(g$) * ele%value(l_chord$) / 2
+          ele%value(l$) = ele%value(l_chord$) * asin(angle)/ angle
         endif
         ele%value(e1$) = ele%value(e1$) + angle / 2
         ele%value(e2$) = ele%value(e2$) + angle / 2
         ele%key = sbend$
       endif
 
-      if (angle /= 0) ele%value(g$) = angle / ele%value(l$) 
+      if (ele%value(angle$) /= 0) ele%value(g$) = &
+                                        ele%value(angle$) / ele%value(l$) 
 
       if (ele%value(hgapx$) == 0) ele%value(hgapx$) = ele%value(hgap$)
       if (ele%value(fintx$) == 0) ele%value(fintx$) = ele%value(fint$)

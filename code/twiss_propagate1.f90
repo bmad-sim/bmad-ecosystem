@@ -25,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/03/04 16:03:30  dcs
+!VMS port
+!
 !Revision 1.5  2003/01/27 14:40:47  dcs
 !bmad_version = 56
 !
@@ -146,7 +149,7 @@ subroutine twiss_propagate1 (ele1, ele2)
 ! linac rf matrices need to be renormalized.
 
   if (ele2%key == linac_rf_cavity$) then
-    call mat_det (ele_temp%mat6(1:4,1:4), det, 4, 6)
+    call mat_det (ele_temp%mat6, det, 4, 6)
     ele_temp%mat6(1:4,1:4) = ele_temp%mat6(1:4,1:4) / (det**0.25)
   endif
 

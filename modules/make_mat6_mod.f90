@@ -582,7 +582,7 @@ subroutine accel_sol_mat_calc (ls, c_m, c_e, gamma_old, gamma_new, b_x,  &
   if ((b_x /= 0.0) .or. (b_y /= 0.0)) then
     denom = c_e**2 + c_m**2
     if (denom > 2.e-6) then
-      coef = c_light / (e_mass * 1.e9) / denom
+      coef = c_light / m_electron / denom
       mat_st(1,1) = coef *  &
                     (c_m * ls - gamma_old * (c_e * onecosr_c_m + sinr))
       mat_st(1,2) = coef * (gamma_old * (cosr + c_e * sinr_c_m) - gamma_new)
@@ -591,7 +591,7 @@ subroutine accel_sol_mat_calc (ls, c_m, c_e, gamma_old, gamma_new, b_x,  &
       mat_st(2,2) = coef *  &
                    (gamma_old / gamma_new * (c_e * cosr - c_m * sinr) - c_e)
     else
-      coef = c_light / (e_mass * 1.e9)  &
+      coef = c_light / m_electron  &
         * sqrt((1 + coord(2)**2 + coord(4)**2) / (gamma_old**2 - 1))
       mat_st(1,1) = 0
       mat_st(1,2) = -coef * ls**2 / 2

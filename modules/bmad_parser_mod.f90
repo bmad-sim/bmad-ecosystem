@@ -127,13 +127,14 @@ subroutine get_attribute (how, ele, ring, pring, &
 
   type (ring_struct)  ring
   type (parser_ring_struct) pring
-  type (ele_struct)  ele, ele0
+  type (ele_struct), target ::  ele, ele0
   type (wig_term_struct), pointer :: wig_term(:)
 
   real(rdef) kx, ky, kz, tol, value, coef
+  real(rdef), pointer :: r_ptr
 
   integer i, ic, ix_word, how, ix_word1, ix_word2, ix_word3, ios, ix, i_out
-  integer expn(6)
+  integer expn(6), ix_attrib
 
   character*16 word, tilt_word / 'TILT' /, str_ix
   character delim*1, delim1*1, delim2*1, str*80, err_str*40, line*80
@@ -265,61 +266,30 @@ subroutine get_attribute (how, ele, ring, pring, &
 
 ! beginning element
 
-  if (ele%name == 'BEGINNING') then
+  if (ele%key == init_ele$) then
     call evaluate_value (trim(ele%name) // ' ' // word, value, &
                                       ring, delim, delim_found, err_flag) 
     if (err_flag) return
+    call pointer_to_attribute (ele, word, .false., r_ptr, ix_attrib, err_flag)
+    if (err_flag) then
+      bp_com%error_flag = .true.
+      return
+    endif
+
+    r_ptr = value
+    
     select case (word)
-    case ('X_POSITION') 
-      ele%x_position = value
-    case ('Y_POSITION') 
-      ele%y_position = value
-    case ('Z_POSITION') 
-      ele%z_position = value
-    case ('THETA_POSITION') 
-      ele%theta_position = value
-    case ('PHI_POSITION') 
-      ele%phi_position = value
     case ('BETA_X') 
-      ele%x%beta = value
       ele%x%gamma = (1 + ele%x%alpha**2) / ele%x%beta
     case ('ALPHA_X')
-      ele%x%alpha = value
       if (ele%x%beta /= 0) ele%x%gamma = (1 + ele%x%alpha**2) / ele%x%beta
-    case ('PHI_X')
-      ele%x%phi = value
-    case ('ETA_X')
-      ele%x%eta = value
-    case ('ETAP_X')
-      ele%x%etap = value
     case ('BETA_Y') 
-      ele%y%beta = value
       ele%y%gamma = (1 + ele%y%alpha**2) / ele%y%beta
     case ('ALPHA_Y')
-      ele%y%alpha = value
       if (ele%y%beta /= 0) ele%y%gamma = (1 + ele%y%alpha**2) / ele%y%beta
-    case ('PHI_Y')
-      ele%y%phi = value
-    case ('ETA_Y')
-      ele%y%eta = value
-    case ('ETAP_Y')
-      ele%y%etap = value
-    case ('C11')
-      ele%c_mat(1,1) = value
-      ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + ele%c_mat(1,2)*ele%c_mat(2,1))
-    case ('C12')
-      ele%c_mat(1,2) = value
-      ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + ele%c_mat(1,2)*ele%c_mat(2,1))
-    case ('C21')
-      ele%c_mat(2,1) = value
-      ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + ele%c_mat(1,2)*ele%c_mat(2,1))
-    case ('C22')
-      ele%c_mat(2,2) = value
-      ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + ele%c_mat(1,2)*ele%c_mat(2,1))
-    case ('ENERGY')
-      ele%value(energy$) = value
-    case default
-      call warning ('UNKNOWN "BEGINNING" ATTRIBUTE: ' // word)
+    case ('C11', 'C12', 'C21', 'C22')
+      ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + &
+                                              ele%c_mat(1,2)*ele%c_mat(2,1))
     end select
     return
   endif
@@ -562,6 +532,7 @@ subroutine get_attribute (how, ele, ring, pring, &
       ele%ptc_kind = nint(value)
     else
       ele%value(i) = value
+      if (i == b_field$) ele%b_field_master = .true.
     endif
   endif
 

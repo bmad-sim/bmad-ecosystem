@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.22  2003/03/04 16:03:40  dcs
+!VMS port
+!
 !Revision 1.21  2003/02/12 18:15:57  dcs
 !Added pointer to pointer_to_attrubute
 !
@@ -770,17 +773,30 @@ module bmad_interface
   end interface
 
   interface
-    Subroutine pointer_to_attribute (ring, i_ele, attrib_name, do_allocation, &
+    Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
                       ptr_attrib, ix_attrib, cannot_vary_flag, err_print_flag)
       use bmad_struct
       implicit none
-      type (ring_struct), target :: ring
+      type (ele_struct), target :: ele
       real(rdef), pointer :: ptr_attrib
       integer i_ele
       integer ix_attrib
       character*(*) attrib_name
       logical cannot_vary_flag
       logical do_allocation
+      logical, optional :: err_print_flag
+    end subroutine
+  end interface
+
+  interface
+    subroutine check_attrib_free (ele, ix_attrib, ring, &
+                                                  err_flag, err_print_flag)
+      use bmad_struct
+      implicit none
+      type (ring_struct) :: ring
+      type (ele_struct) :: ele
+      integer ix_attrib
+      logical err_flag
       logical, optional :: err_print_flag
     end subroutine
   end interface

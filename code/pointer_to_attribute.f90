@@ -1,13 +1,10 @@
 !+
-! Subroutine pointer_to_attribute (ring, i_ele, attrib_name, do_allocation,
+! Subroutine pointer_to_attribute (ele, attrib_name, do_allocation,
 !                            ptr_attrib, ix_attrib, err_flag, err_print_flag)
 !
 ! Returns a pointer to an attribute of an element with name attrib_name.
-! Also checks whether the attribute can be changed directly.
-!
-! Attributes that cannot be changed directly are super_slave attributes (since
-! these attributes are controlled by their super_lords) and attributes that
-! are controlled by an overlay_lord.
+! Note: use check_attrib_free to see if the attribute may be 
+!   varied independently.
 !
 ! Modules needed:
 !   use bmad
@@ -34,7 +31,7 @@
 
 #include "CESR_platform.inc"
 
-Subroutine pointer_to_attribute (ring, i_ele, attrib_name, do_allocation, &
+Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
                   ptr_attrib, ix_attrib, err_flag, err_print_flag)
 
   use bmad_struct
@@ -42,8 +39,7 @@ Subroutine pointer_to_attribute (ring, i_ele, attrib_name, do_allocation, &
 
   implicit none
 
-  type (ring_struct), target :: ring
-  type (ele_struct), pointer :: ele
+  type (ele_struct), target :: ele
 
   real(rdef), pointer :: ptr_attrib
 
@@ -51,7 +47,7 @@ Subroutine pointer_to_attribute (ring, i_ele, attrib_name, do_allocation, &
 
   character*(*) attrib_name
 
-  logical err_flag, do_allocation
+  logical err_flag, do_allocation, do_print
   logical, optional :: err_print_flag
 
 ! init check
@@ -59,15 +55,67 @@ Subroutine pointer_to_attribute (ring, i_ele, attrib_name, do_allocation, &
   err_flag = .true.
   nullify (ptr_attrib)
 
-  if (i_ele < 1 .or. i_ele > ring%n_ele_max) then
-    if (err_print_flag) print *, 'ERROR IN POINTER_TO_ATTRIBUTE: ', &
-                                       'ELEMENT INDEX OUT OF BOUNDS:', i_ele
+  do_print = .true.
+  if (present(err_print_flag)) do_print = err_print_flag
+
+! Init_ele is special in that its attributes go in special places.
+
+  if (ele%key == init_ele$) then
+    select case (attrib_name)
+    case ('X_POSITION') 
+      ptr_attrib => ele%x_position 
+    case ('Y_POSITION') 
+      ptr_attrib => ele%y_position 
+    case ('Z_POSITION') 
+      ptr_attrib => ele%z_position 
+    case ('THETA_POSITION') 
+      ptr_attrib => ele%theta_position 
+    case ('PHI_POSITION') 
+      ptr_attrib => ele%phi_position 
+    case ('BETA_X') 
+      ptr_attrib => ele%x%beta 
+    case ('ALPHA_X')
+      ptr_attrib => ele%x%alpha 
+    case ('PHI_X')
+      ptr_attrib => ele%x%phi 
+    case ('ETA_X')
+      ptr_attrib => ele%x%eta 
+    case ('ETAP_X')
+      ptr_attrib => ele%x%etap 
+    case ('BETA_Y') 
+      ptr_attrib => ele%y%beta 
+    case ('ALPHA_Y')
+      ptr_attrib => ele%y%alpha 
+    case ('PHI_Y')
+      ptr_attrib => ele%y%phi 
+    case ('ETA_Y')
+      ptr_attrib => ele%y%eta 
+    case ('ETAP_Y')
+      ptr_attrib => ele%y%etap 
+    case ('C11')
+      ptr_attrib => ele%c_mat(1,1) 
+    case ('C12')
+      ptr_attrib => ele%c_mat(1,2) 
+    case ('C21')
+      ptr_attrib => ele%c_mat(2,1) 
+    case ('C22')
+      ptr_attrib => ele%c_mat(2,2) 
+    case ('ENERGY')
+      ptr_attrib => ele%value(energy$) 
+    case default
+      if (do_print) then
+        print *, 'ERROR IN POINTER_TO_ATTRIBUTE: BAD ATTRIBTE NAME: ', &
+                                                               attrib_name
+        print *, '      FOR: ', trim(ele%name)
+        return
+      endif
+    end select
+    err_flag = .false.
     return
   endif
 
 ! Get attribute index
 
-  ele => ring%ele_(i_ele)
   ix_attrib = attribute_index (ele, attrib_name)
 
 ! multipole?
@@ -79,7 +127,7 @@ Subroutine pointer_to_attribute (ring, i_ele, attrib_name, do_allocation, &
         allocate(ele%a(0:n_pole_maxx), ele%b(0:n_pole_maxx))
         ele%a = 0; ele%b = 0
       else
-        if (err_print_flag) print *, 'ERROR IN POINTER_TO_ATTRIBUTE: ', &
+        if (do_print) print *, 'ERROR IN POINTER_TO_ATTRIBUTE: ', &
                             'MULTIPOLE NOT ALLOCATED FOR ELEMENT: ', ele%name
         return
       endif
@@ -92,7 +140,7 @@ Subroutine pointer_to_attribute (ring, i_ele, attrib_name, do_allocation, &
     endif
 
   elseif (ix_attrib < 1 .or. ix_attrib > n_attrib_maxx) then
-    if (err_print_flag) then
+    if (do_print) then
       print *, 'ERROR IN POINTER_TO_ATTRIBUTE: INVALID ATTRIBUTE: ', attrib_name
       print *, '      FOR THIS ELEMENT: ', ele%name
     endif
@@ -104,34 +152,6 @@ Subroutine pointer_to_attribute (ring, i_ele, attrib_name, do_allocation, &
     ptr_attrib => ele%value(ix_attrib)
   endif
 
-! check that attribute can be adjusted.
-
-  if (ele%control_type == super_slave$) then
-    if (err_print_flag) then
-      print *, 'ERROR IN POINTER_TO_ATTRIBUTE:'
-      print *, '      TRYING TO VARY AN ATTRIBUTE OF: ', ele%name
-      print *, '      WHICH IS A SUPER_SLAVE WILL NOT WORK.'
-      print *, '      VARY THE ATTRIBUTE OF ONE OF ITS SUPER_LORDS INSTEAD.'
-    endif
-    return
-  endif
-
-  do i = ele%ic1_lord, ele%ic2_lord
-    ix = ring%ic_(i)
-    ir = ring%control_(ix)%ix_lord
-    if (ring%ele_(ir)%control_type == overlay_lord$) then
-      if (ring%control_(ix)%ix_attrib == ix_attrib) then
-        if (err_print_flag) then
-          print '((1x, a))', &
-            'ERROR IN POINTER_TO_ATTRIBUTE. THE ATTRIBUTE: ' // attrib_name, &
-            '      OF ELEMENT: ' // ele%name, &
-            '      IS CONTROLLED BY THE OVERLAY_LORD: ' // ring%ele_(ir)%name, &
-            '      YOU CANNOT VARY THIS ATTRIBUTE DIRECTLY.'
-        endif
-        return
-      endif
-    endif
-  enddo
 
   err_flag = .false.
 

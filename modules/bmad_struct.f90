@@ -4,14 +4,14 @@
 
 !$Id$
 !$Log$
+!Revision 1.23  2003/03/04 16:03:41  dcs
+!VMS port
+!
 !Revision 1.22  2003/01/29 16:14:48  dcs
 !Linac RF bug fix and update.
 !
 !Revision 1.21  2003/01/27 14:41:01  dcs
 !bmad_version = 56
-!
-!Revision 1.20  2002/11/01 15:39:03  dcs
-!*** empty log message ***
 !
 !Revision 1.18  2002/10/23 14:45:21  dcs
 !Added Boris tracking.
@@ -83,7 +83,7 @@ module bmad_struct
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 
-  integer, parameter :: bmad_inc_version$ = 56
+  integer, parameter :: bmad_inc_version$ = 57
 
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -175,9 +175,11 @@ module bmad_struct
     integer taylor_order           ! Order of the taylor series.
     logical symplectify            ! Symplectify mat6 matrices.
     logical mode_flip              ! Have the normal modes traded places?
-    logical is_on                  ! For turning element on/off
     logical multipoles_on          ! For turning multipoles on/off
     logical exact_rad_int_calc     ! Exact radiation integral calculation?
+    logical B_field_master         ! Calculate K from the B_field?
+    logical is_on                  ! For turning element on/off.
+                                   !  Must be last element in ele_struct.
   end type
 
   type control_struct
@@ -263,9 +265,9 @@ module bmad_struct
   integer, parameter :: multipole$ = 19, accel_sol$ = 20
   integer, parameter :: def_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23
   integer, parameter :: patch$ = 24, linac_rf_cavity$ = 25, def_parameter$ = 26
-  integer, parameter :: null_ele$ = 27
+  integer, parameter :: null_ele$ = 27, init_ele$ = 28
 
-  integer, parameter :: n_key = 27
+  integer, parameter :: n_key = 28
 
   character*16 :: key_name(n_key+1) = (/ &
   'DRIFT          ', 'SBEND          ', 'QUADRUPOLE     ', 'GROUP          ', &
@@ -274,11 +276,15 @@ module bmad_struct
   'SOL_QUAD       ', 'MARKER         ', 'KICKER         ', 'HYBRID         ', &
   'OCTUPOLE       ', 'RBEND          ', 'MULTIPOLE      ', 'ACCEL_SOL      ', &
   'DEF BEAM       ', 'AB_MULTIPOLE   ', 'SOLENOID       ', 'PATCH          ', &
-  'LINAC_RF_CAVITY', 'DEF PARAMETER  ', 'NULL_ELEMENT   ', '               ' /)
+  'LINAC_RF_CAVITY', 'DEF PARAMETER  ', 'NULL_ELEMENT   ', 'INIT_ELEMENT   ', &
+  '               ' /)
 
 ! Attribute name logical definitions
 ! Note: The following attributes must have unique number assignments:
 !     L$, TILT$, X_PITCH$ and higher
+
+  integer, parameter :: lattice_type$ = 1, symmetry$ = 2, taylor_order$ = 3
+  integer, parameter :: beam_energy$ = 4 
 
   integer, parameter :: x_beg_limit$=2, y_beg_limit$=3, b_x2$=4, &
           b_y2$=5, l_st2$=9, b_z$=10, l_st1$=11, s_st2$=12, s_st1$=13, &
@@ -288,8 +294,12 @@ module bmad_struct
           val6$=8, val7$=9, val8$=10, val9$=11, val10$=12, val11$=13, &
           val12$=14
 
-  integer, parameter :: lattice_type$ = 1, symmetry$ = 2, taylor_order$ = 3
-  integer, parameter :: beam_energy$ = 4 
+!  integer, parameter :: x_position$ = 2, y_position$ = 3, z_position$ = 4, &
+!          theta_position$ = 5, phi_position$ = 6, psi_position$ = 7, &
+!          beta_x$ = 8, beta_y$ = 9, alpha_x$ = 10, alpha_y$ = 11, &
+!          eta_x$ = 12, eta_y$ = 13, etap_x$ = 14, etap_y$ = 15, &
+!          phase_x$ = 16, phase_y$ = 17, &
+!          c11$ = 18, c12$ = 19, c21$ = 20, c22$ = 21
 
   integer, parameter :: l$=1
   integer, parameter :: tilt$=2, command$=2
@@ -324,6 +334,7 @@ module bmad_struct
   integer, parameter :: energy$=31  ! formally new_energy$
   integer, parameter :: rel_tol$ = 32
   integer, parameter :: abs_tol$ = 33
+  integer, parameter :: B_field$ = 34
 
   integer, parameter :: type$ = 35   ! this is 1 greater than n_attrib_maxx
   integer, parameter :: alias$ = 36 
@@ -406,8 +417,8 @@ module bmad_struct
        (/ 'ANTIPROTON', 'ELECTRON  ', '??? ', 'POSITRON  ', 'PROTON    ' /)
 
   integer, parameter :: charge_of(-2:2) = (/ -1, -1, 0, 1, 1 /)
-  real(rdef), parameter :: mass_of(-2:2) = (/ 0.938279, 0.511003e-3, 0.0, &
-                                              0.511003e-3, 0.938279 /)
+  real(rdef), parameter :: mass_of(-2:2) = (/ 0.938279e9, 0.511003e6, 0.0, &
+                                              0.511003e9, 0.938279e9 /)
 
 ! SYMMETRY etc., logical names
 
@@ -482,7 +493,7 @@ module bmad_struct
     real(rdef) synch_int(3)
     real(rdef) sig_e
     real(rdef) sig_z
-    real(rdef) energy_loss
+    real(rdef) e_loss
     type (amode_struct)  a, b, z
   end type
 
@@ -694,27 +705,6 @@ module bmad_struct
   end type
 
 !------------------------------------------------------------------------------
-! Misc stuff
-
-! This if for making digested files.
-! Note: The dummy_ele_struct must be larger in size (bytes) then the ele_struct
-
-  type dummy_ele_struct
-    integer(rdef) dummy(250)
-  end type
-
-  type ele_digested_struct
-    union
-      map
-        type (dummy_ele_struct) digested
-      end map
-      map
-        type (ele_struct) ele
-      end map
-    end union
-  end type
-  
-!------------------------------------------------------------------------------
 ! common stuff
 
 ! multi_turn_func_common is for multi_turn_tracking_to_mat
@@ -724,7 +714,7 @@ module bmad_struct
 
   type bmad_com_struct
     type (coord_struct) :: d_orb  ! for the transfer_mat_from_tracking routine
-    real(rdef) :: energy = 0
+    real(rdef) :: beam_energy = 0
     integer :: taylor_order = 3            ! 3rd order is default
     integer :: taylor_order_ptc = 0        ! 0 -> not yet set 
     logical :: taylor_order_set = .false.  ! Used by set_taylor_order

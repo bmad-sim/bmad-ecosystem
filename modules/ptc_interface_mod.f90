@@ -208,10 +208,14 @@ subroutine ring_to_layout (ring, ptc_layout)
 
 ! transfer energy, etc.
 
-!  ptc_layout%energy = ring%param%energy
-!  call energy_to_kinetic (ptc_layout%energy, ring%param%particle, &
-!                             ptc_layout%kinetic, ptc_layout%beta0, &
-!                             ptc_layout%p0c, ptc_layout%brho)
+!  ptc_layout%energy = 1e-9 * ring%param%beam_energy
+!  call energy_to_kinetic (ring_param%beam_energy, ring%param%particle, &
+!                                                 kinetic, beta0, p0c, brho)
+!  ptc_layout%kinetic = kinetic
+!  ptc_layout%beta0, = beta0
+!  ptc_layout%p0c = p0c
+!  ptc_layout%brho = brho
+!  
 !  ptc_layout%circumference = 0
 
 
@@ -296,40 +300,40 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   energy   -- Real*8: Energy of the particle.
+!   energy   -- Real(rdef): Energy of the particle.
 !   particle -- Integer: Type of particle. positron$, etc.
 !
 ! Output:
-!   gamma   -- Real*8, optional: Gamma factor.
-!   kinetic -- Real*8, optional: Kinetic energy
-!   beta    -- Real*8, optional: velocity / c_light
-!   p0c     -- Real*8, optional: Particle momentum
-!   brho    -- Real*8, optional: Nominal B_field*rho_bend
+!   gamma   -- Real(rdef), optional: Gamma factor.
+!   kinetic -- Real(rdef), optional: Kinetic energy
+!   beta    -- Real(rdef), optional: velocity / c_light
+!   p0c     -- Real(rdef), optional: Particle momentum
+!   brho    -- Real(rdef), optional: Nominal B_field*rho_bend
 !-
 
 subroutine energy_to_kinetic (energy, particle, gamma, kinetic, beta, p0c, brho)
 
   implicit none
 
-  real*8, intent(in) :: energy
-  real*8, intent(out), optional :: kinetic, beta, p0c, brho, gamma
-  real*8 p0c_, mc2
+  real(rdef), intent(in) :: energy
+  real(rdef), intent(out), optional :: kinetic, beta, p0c, brho, gamma
+  real(rdef) p0c_, mc2
 
   integer, intent(in) :: particle
 
 !
 
   if (particle == positron$ .or. particle == electron$) then
-    mc2 = e_mass
+    mc2 = m_electron
   else
-    mc2 = p_mass
+    mc2 = m_proton
   endif
 
-  p0c_    = sqrt(energy**2 - mc2**2)
+  p0c_ = sqrt(energy**2 - mc2**2)
   if (present(p0c))     p0c     = sqrt(energy**2 - mc2**2)
   if (present(beta))    beta    = p0c_ / energy  
   if (present(kinetic)) kinetic = energy - mc2
-  if (present(brho))    brho    = p0c_ * 1d9 / c_light
+  if (present(brho))    brho    = p0c_ / c_light
   if (present(gamma))   gamma   = energy / mc2
 
 end subroutine
@@ -503,7 +507,7 @@ end subroutine
 !
 ! Input:
 !   param        -- Param_struct, optional: BMAD parameters:
-!     %energy      -- Energy.
+!     %beam_energy -- Energy.
 !     %particle    -- Type of particle.
 !   taylor_order -- Integer, optional: Maximum order of the taylor polynomials.
 !   integ_order  -- Integer, optional: Default Order for the drift-kick-drift 
@@ -568,12 +572,12 @@ subroutine set_ptc (param, taylor_order, integ_&
   endif
 
   if (present(param)) then
-    if (bmad_com%energy /= param%energy .or. &
+    if (bmad_com%beam_energy /= param%beam_energy .or. &
                         present(integ_order) .or. present(num_steps)) then
-      this_energy = param%energy
+      this_energy = 1e-9 * param%beam_energy
       call set_mad (energy = this_energy, method = this_method, &
                                                        step = this_steps)
-      bmad_com%energy  = param%energy
+      bmad_com%beam_energy  = param%beam_energy
     endif
   endif
 
@@ -1402,7 +1406,7 @@ end subroutine
 !   orb0  -- Coord_struct, optional: Starting coords around which the Taylor series 
 !              is evaluated.
 !   param -- Param_struct, optional: 
-!     %energy -- Needed for wigglers.
+!     %beam_energy -- Needed for wigglers.
 !
 ! Output:
 !   ele -- Element_struct:
@@ -1652,7 +1656,7 @@ end subroutine
 ! Input:
 !   ele    -- Ele_struct: BMAD element.
 !   param       -- param_struct: 
-!     %energy     -- Beam energy (for wigglers).
+!     %beam_energy     -- Beam energy (for wigglers).
 !   integ_order -- Integer, optional: Order for the 
 !                    sympletic integrator. Possibilities are: 2, 4, or 6
 !                    Overrides ele%integration_order.
@@ -1763,7 +1767,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
     else
       el%tilt = -atan2 (ele%value(hkick$), ele%value(vkick$))
     endif
-    el%volt = (1e3 * param%energy / len) * &
+    el%volt = (1e-6 * param%beam_energy / len) * &
                    sqrt(ele%value(hkick$)**2 + ele%value(vkick$)**2)
     call multipole_ele_to_ab (ele, param%particle, an0, bn0, .false.) 
     if (any(an0 /= 0) .or. any(bn0 /= 0)) then
@@ -1871,8 +1875,8 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
     n_term = size(ele%wig_term)
     call init_wig_pointers (fiber%mag%u2%w, n_term)   
 
-    fiber%mag%u2%w%a(1:n_term) = 0.2997925 * &
-            ele%value(polarity$) * ele%wig_term%coef / param%energy
+    fiber%mag%u2%w%a(1:n_term) = c_light * &
+            ele%value(polarity$) * ele%wig_term%coef / param%beam_energy
     fiber%mag%u2%w%k(1,1:n_term)  = ele%wig_term%kx
     fiber%mag%u2%w%k(2,1:n_term)  = ele%wig_term%ky
     fiber%mag%u2%w%k(3,1:n_term)  = ele%wig_term%kz

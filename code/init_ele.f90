@@ -13,6 +13,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2003/03/04 16:03:28  dcs
+!VMS port
+!
 !Revision 1.8  2003/01/27 14:40:35  dcs
 !bmad_version = 56
 !
@@ -85,6 +88,8 @@ subroutine init_ele (ele)
   ele%multipoles_on = .true.
   ele%symplectify = .false.
   ele%exact_rad_int_calc = .false.
+
+  ele%B_field_master = .false.
 
   call deallocate_ele_pointers (ele)
 

@@ -49,6 +49,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/03/04 16:03:29  dcs
+!VMS port
+!
 !Revision 1.5  2003/01/27 14:40:42  dcs
 !bmad_version = 56
 !
@@ -85,7 +88,7 @@ subroutine quad_calib (lattice, k_theory, k_base,  &
   call lattice_to_bmad_file_name (lattice, latfil)
   call bmad_parser(latfil, ring)
   call bmad_to_cesr(ring, CESR)
-  energy = ring%param%energy
+  energy = 1e-9 * ring%param%beam_energy
 
 
   k_theory(0:120) = 0

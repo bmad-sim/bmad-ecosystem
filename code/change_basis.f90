@@ -35,6 +35,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/03/04 16:03:28  dcs
+!VMS port
+!
 !Revision 1.6  2003/01/27 14:40:31  dcs
 !bmad_version = 56
 !
@@ -71,7 +74,7 @@ subroutine change_basis (coord, ref_energy, ref_z, to_cart, time_disp)
   saved%y%pos = coord%y%pos
 
   if (to_cart) then
-    rvar = (e_mass / (ref_energy * (coord%z%vel+1)))**2
+    rvar = (m_electron / (ref_energy * (coord%z%vel+1)))**2
     if (rvar <= 0.001) then
       saved%z%vel = c_light / sqrt(1 + coord%x%vel**2 + coord%y%vel**2)  &
         * (1 - rvar/2)
@@ -91,7 +94,7 @@ subroutine change_basis (coord, ref_energy, ref_z, to_cart, time_disp)
 !         Prevent sqrt(negative number) due to rounding errors.  Set such
 !         particles to have gamma = 1000 (approximately).
     if (beta2 >= 0.999999) beta2 = 0.999999
-    saved%z%vel = e_mass / (ref_energy * sqrt(1 - beta2)) - 1
+    saved%z%vel = m_electron / (ref_energy * sqrt(1 - beta2)) - 1
 !         Convert z from an absolute position to a relative position:
     saved%z%pos = - coord%z%vel * time_disp
   endif

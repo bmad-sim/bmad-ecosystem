@@ -18,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.10  2003/03/04 16:03:30  dcs
+!VMS port
+!
 !Revision 1.9  2003/01/27 14:40:48  dcs
 !bmad_version = 56
 !
@@ -54,13 +57,24 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
 
   implicit none
 
+  type ele_digested_struct
+    union
+      map
+        integer(rdef) dummy(1000)
+      end map
+      map
+        type (ele_struct) ele
+      end map
+    end union
+  end type
+  
   type (ring_struct), target, intent(in) :: ring
   type (ele_digested_struct) :: u_ele
   type (ele_struct), pointer :: ele
   type (taylor_struct), pointer :: tt(:)
   
   integer d_unit, lunget, n_files, i, j, k, ix_w, ix_d, ix_m, ix_t(6)
-  integer stat_b(12), stat, ierr
+  integer stat_b(12), stat, ierr, i_write
 
   character(*) digested_name
   character(*), optional :: file_names(:)
@@ -68,11 +82,29 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
 
   external stat
 
+! Find out minimum size to write
+
+  u_ele%dummy = 0
+  u_ele%ele%is_on = .true.
+  do i = 1, size(u_ele%dummy)
+    if (u_ele%dummy(i) /= 0) exit
+    if (i == size(u_ele%dummy)) then
+      print *, 'ERROR IN WRITE_DIGESTED_BMAD_FILE: END OF ELE_STRUCT NOT FOUND!'
+      call err_exit
+    endif
+  enddo
+
+  i_write = i + 4
+  print *, 'WRITE_DIGESTED_BMAD_FILE: Ele_struct size is:', i_write
+
 ! write input file names to the digested file
 
   d_unit = lunget()
   open (unit = d_unit, file = digested_name, form = 'unformatted', err = 9000)
+
   write (d_unit, err = 9010) n_files, bmad_inc_version$
+  write (d_unit, err = 9010) i_write
+
   do j = 1, n_files
     fname = file_names(j)
     stat_b = 0
@@ -104,7 +136,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
       if (associated(tt(1)%term))   ix_t = (/ (size(tt(j)%term), j = 1, 6) /)
     endif
 
-    write (d_unit) u_ele%digested, ix_w, ix_d, ix_m, ix_t
+    write (d_unit) ix_w, ix_d, ix_m, ix_t, u_ele%dummy(1:i_write)
     do j = 1, ix_w
       write (d_unit) ele%wig_term(j)
     enddo

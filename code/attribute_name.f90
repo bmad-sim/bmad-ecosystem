@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.13  2003/03/04 16:03:27  dcs
+!VMS port
+!
 !Revision 1.12  2003/01/29 16:14:31  dcs
 !Linac RF bug fix and update.
 !
@@ -71,15 +74,16 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
 
     do i = 1, n_key
                                     
-      if (i == def_beam$) cycle
+      if (i == def_beam$)      cycle
       if (i == def_parameter$) cycle
 
       attrib_array(i, type$)     = 'TYPE'
       attrib_array(i, alias$)    = 'ALIAS'
       attrib_array(i, descrip$)  = 'DESCRIP'
 
-      if (i == group$)         cycle
-      if (i == overlay$)       cycle
+      if (i == init_ele$) cycle
+      if (i == group$)    cycle
+      if (i == overlay$)  cycle
 
       attrib_array(i, x_limit$)  = 'X_LIMIT'
       attrib_array(i, y_limit$)  = 'Y_LIMIT'
@@ -87,7 +91,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, energy$)   = 'ENERGY'
 
       if (i == taylor$) cycle
-      if (i == patch$) cycle
+      if (i == patch$)  cycle
 
       attrib_array(i, hkick$)  = 'HKICK'
       attrib_array(i, vkick$)  = 'VKICK'
@@ -173,6 +177,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(sbend$, fintx$)      = 'FINTX'
     attrib_array(sbend$, rho$)        = 'RHO'
     attrib_array(sbend$, l_chord$)    = 'L_CHORD'
+    attrib_array(sbend$, b_field$)    = 'B_FIELD'
 
     attrib_array(patch$, x_pitch$)    = 'X_PITCH'
     attrib_array(patch$, y_pitch$)    = 'Y_PITCH'
@@ -197,21 +202,26 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(rbend$, fintx$)      = 'FINTX'
     attrib_array(rbend$, rho$)        = 'RHO'
     attrib_array(rbend$, l_chord$)    = 'L_CHORD'
+    attrib_array(rbend$, b_field$)    = 'B_FIELD'
 
-    attrib_array(quadrupole$, l$)    = 'L'
-    attrib_array(quadrupole$, tilt$) = 'TILT'
-    attrib_array(quadrupole$, k1$)   = 'K1'
+    attrib_array(quadrupole$, l$)       = 'L'
+    attrib_array(quadrupole$, tilt$)    = 'TILT'
+    attrib_array(quadrupole$, k1$)      = 'K1'
+    attrib_array(quadrupole$, b_field$) = 'B_FIELD'
 
-    attrib_array(sextupole$, l$)     = 'L'
-    attrib_array(sextupole$, tilt$)  = 'TILT'
-    attrib_array(sextupole$, k2$)    = 'K2'
+    attrib_array(sextupole$, l$)       = 'L'
+    attrib_array(sextupole$, tilt$)    = 'TILT'
+    attrib_array(sextupole$, k2$)      = 'K2'
+    attrib_array(sextupole$, b_field$) = 'B_FIELD'
 
-    attrib_array(octupole$, l$)      = 'L'
-    attrib_array(octupole$, tilt$)   = 'TILT'
-    attrib_array(octupole$, k3$)     = 'K3'
+    attrib_array(octupole$, l$)       = 'L'
+    attrib_array(octupole$, tilt$)    = 'TILT'
+    attrib_array(octupole$, k3$)      = 'K3'
+    attrib_array(octupole$, b_field$) = 'B_FIELD'
 
-    attrib_array(solenoid$, l$)      = 'L'
-    attrib_array(solenoid$, ks$)     = 'KS'
+    attrib_array(solenoid$, l$)       = 'L'
+    attrib_array(solenoid$, ks$)      = 'KS'
+    attrib_array(solenoid$, b_field$) = 'B_FIELD'
 
     attrib_array(rfcavity$, l$)             = 'L'
     attrib_array(rfcavity$, volt$)          = 'VOLT'

@@ -42,6 +42,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.10  2003/03/04 16:03:28  dcs
+!VMS port
+!
 !Revision 1.9  2003/01/27 14:40:30  dcs
 !bmad_version = 56
 !
@@ -189,7 +192,7 @@ subroutine bmad_to_db_main (ring, db)
 ! get calibrations...
 ! steerings
 
-  gev = ring%param%energy
+  gev = 1e-9 * ring%param%beam_energy
   if (gev == 0) then
     type *, 'ERROR IN BMAD_TO_DB: BEAM ENERGY IS ZERO!'
     call err_exit

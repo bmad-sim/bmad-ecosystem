@@ -23,20 +23,14 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2003/03/04 16:03:29  dcs
+!VMS port
+!
 !Revision 1.8  2003/01/27 14:40:42  dcs
 !bmad_version = 56
 !
-!Revision 1.7  2002/10/21 20:29:53  dcs
-!Init all elements
-!
-!Revision 1.6  2002/09/14 19:45:24  dcs
-!*** empty log message ***
-!
 !Revision 1.5  2002/07/31 14:32:41  dcs
 !Modified so moved digested file handled correctly.
-!
-!Revision 1.4  2002/06/13 14:54:28  dcs
-!Interfaced with FPP/PTC
 !
 !Revision 1.3  2002/02/23 20:32:23  dcs
 !Double/Single Real toggle added
@@ -55,12 +49,23 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
 
   implicit none
 
+  type ele_digested_struct
+    union
+      map
+        integer(rdef) dummy(1000)
+      end map
+      map
+        type (ele_struct) ele
+      end map
+    end union
+  end type
+  
   type (ring_struct), target, intent(out) :: ring
   type (ele_struct), pointer :: ele
   type (ele_digested_struct) :: u_ele
   
   integer d_unit, lunget, n_files, version, i, j, k, ix
-  integer ix_w, ix_d, ix_m, ix_t(6)
+  integer ix_w, ix_d, ix_m, ix_t(6), i_write
   integer stat_b(12), stat, ierr, idate_old
 
   character*(*) in_file_name
@@ -113,6 +118,8 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
 ! if the digested file is out of date then we still read in the file since
 ! we can possibly reuse the taylor series.
 
+  read (d_unit, err = 9100) i_write
+
   do i = 1, n_files
     read (d_unit, err = 9100) fname(1), idate_old
     ix = index(fname(1), ';')
@@ -156,7 +163,7 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
 
   do i = 0, ring%n_ele_max
 
-    read (d_unit, err = 9100) u_ele%digested, ix_w, ix_d, ix_m, ix_t
+    read (d_unit, err = 9100) ix_w, ix_d, ix_m, ix_t, u_ele%dummy(1:i_write) 
     u_ele%ele%pointer_init = 0              ! signal that pointers have garbage
     call deallocate_ele_pointers (u_ele%ele)  ! and deallocate 
 

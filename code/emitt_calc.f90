@@ -26,7 +26,7 @@
 !       %SYNCH_INT(1:3) -- Synchrotron integrals.
 !       %SIG_E          -- Sigma_E/E energy spread
 !       %SIG_Z          -- Bunch Length
-!       %ENERGY_LOSS    -- Energy loss in GeV per turn
+!       %E_LOSS         -- Energy loss in eV per turn
 !       %A, %B, %Z      -- Amode_struct: Substructure
 !         %EMITTANCE      -- Emittance
 !         %SYNCH_INT(4:5) -- Synchrotron integrals
@@ -311,9 +311,9 @@ subroutine emitt_calc (ring, what, mode)
 !---------------------------------------------------------------------
 ! now put everything together
 
-  energy = ring%param%energy
-  gamma2_factor = (energy * 1956.95)**2
-  energy_loss = c_gam * energy**4 * i2 / pi
+  energy = ring%param%beam_energy
+  gamma2_factor = (energy * 1956.95e-9)**2
+  energy_loss = 1e9 * c_gam * (1e-9 * energy)**4 * i2 / pi
 
   mode%synch_int(1) = i1
   mode%synch_int(2) = i2
@@ -336,7 +336,7 @@ subroutine emitt_calc (ring, what, mode)
     mode%z%j_damp = 2 + i4z / i2
 
     arg = (c_q * i3 * gamma2_factor / (2*i2 + i4z))
-    if(arg > 0.)mode%sig_e = sqrt(c_q * i3 * gamma2_factor / (2*i2 + i4z))
+    if(arg > 0.) mode%sig_e = sqrt(c_q * i3 * gamma2_factor / (2*i2 + i4z))
 
   endif
 
@@ -344,7 +344,7 @@ subroutine emitt_calc (ring, what, mode)
   mode%b%alpha_damp = energy_loss * mode%b%j_damp / energy
   mode%z%alpha_damp = energy_loss * mode%z%j_damp / energy
 
-  mode%energy_loss = energy_loss
+  mode%e_loss = energy_loss
 
   if(abs(m65) > 0. ) then
     mode%sig_z = sqrt( mode%synch_int(1)/abs(m65) ) * mode%sig_e

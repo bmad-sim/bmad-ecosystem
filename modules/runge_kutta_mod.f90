@@ -14,7 +14,7 @@ module runge_kutta_mod
 
   type (runge_kutta_com_struct) rk_com
 
-  integer, parameter :: b_field$ = 1, kick_field$ = 2
+  integer, parameter :: kick_field$ = 2   ! b_field$ is defined in bmad_struct
 
   interface 
     subroutine field_rk_custom (ele, param, s, orb, field, field_type)
@@ -359,7 +359,7 @@ subroutine derivs_bmad (ele, param, s, r, dr_ds)
     dvel_y = vel_s * field(1) - vel_x * field(3)
     dvel_s = vel_x * field(2) - vel_y * field(1)
 
-    f = c_light / (1e9 * param%energy * (1 + r(6)))
+    f = c_light / (param%beam_energy * (1 + r(6)))
 
     dr_ds(1) = r(2)
     dr_ds(2) = f * (dvel_x * vel_s - vel_x * dvel_s) / vel_s**3

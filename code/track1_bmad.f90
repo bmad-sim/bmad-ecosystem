@@ -213,8 +213,8 @@ subroutine track1_bmad (start, ele, param, end)
 
     if (ele%value(volt$) /= 0) then
       phase = ele%value(phase_0$) + twopi * z_ave / ele%value(rf_wavelength$)
-      end%z%vel = end%z%vel + ele%value(volt$) * sin (phase) / &
-                                                       (1e9 * param%energy)
+      end%z%vel = end%z%vel + &
+                         ele%value(volt$) * sin (phase) / param%beam_energy
     endif
          
     call offset_particle (ele, param, end, unset$)

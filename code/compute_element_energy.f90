@@ -4,17 +4,16 @@
 ! Subroutine to compute the energy of the reference particle for each 
 ! element in a ring structure.
 ! This routine is for linac lattices.
-! The energy at the start of the "ring" is set to ring%param%energy.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
 !   ring -- Ring_struct: Input ring.
+!     %ele_(0)%value(energy$) -- Energy at the start.
 !
 ! Output:
 !   ring -- Ring_struct
-!     %ele_(0)%value(energy$) -- Set to ring%param%energy.
 !     %ele_(:)%value(energy$) -- Energy at the end of the element.
 !-
 

@@ -34,6 +34,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/03/04 16:03:29  dcs
+!VMS port
+!
 !Revision 1.5  2003/02/12 18:15:45  dcs
 !Added pointer to pointer_to_attrubute
 !
@@ -77,8 +80,17 @@ subroutine set_ele_attribute (ring, i_ele, attrib_name, &
 
 ! error checks
 
-  call pointer_to_attribute (ring, i_ele, attrib_name, .true., &
+  if (i_ele < 1 .or. i_ele > ring%n_ele_max) then
+    print *, 'ERROR IN SET_ELE_ATTRIBUTE: ELEMENT INDEX OUT OF BOUNDS:', i_ele
+    err_flag = .true.
+    return
+  endif
+
+  call pointer_to_attribute (ring%ele_(i_ele), attrib_name, .true., &
                                              ptr_attrib, ix_attrib, err_flag)
+  if (err_flag) return
+
+  call check_attrib_free (ring%ele_(i_ele), ix_attrib, ring, err_flag)
   if (err_flag) return
 
 ! setting the attribute value is trivial

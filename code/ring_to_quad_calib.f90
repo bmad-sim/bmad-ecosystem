@@ -49,6 +49,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/03/04 16:03:29  dcs
+!VMS port
+!
 !Revision 1.4  2003/01/27 14:40:42  dcs
 !bmad_version = 56
 !
@@ -72,7 +75,7 @@ subroutine ring_to_quad_calib (ring, cesr, k_theory, k_base,  &
 
   record /cesr_struct/ cesr
   record /ring_struct/ ring
-  real(rdef) energy, k_theory(0:*), k_base(0:*), len_quad(0:*)
+  real(rdef) gev, k_theory(0:*), k_base(0:*), len_quad(0:*)
   real(rdef) cu_per_k_gev(0:*), dk_gev_dcu(0:*), quad_rot(0:*)
   integer cindex, rindex, cu_theory(0:*)
 
@@ -82,7 +85,7 @@ subroutine ring_to_quad_calib (ring, cesr, k_theory, k_base,  &
   enddo
 
 ! read lattice file
-  energy = ring%param%energy
+  gev = 1e-9 * ring%param%beam_energy
 
   do cindex = 0, 120
     rindex = cesr%quad_(cindex)%ix_ring
@@ -95,7 +98,7 @@ subroutine ring_to_quad_calib (ring, cesr, k_theory, k_base,  &
       
 ! convert k_theory to scalar computer units given the specified design energy
 
-  call k_to_quad_calib (k_theory, energy, cu_theory, k_base, dk_gev_dcu,  &
+  call k_to_quad_calib (k_theory, gev, cu_theory, k_base, dk_gev_dcu,  &
                                                                 cu_per_k_gev)
 
 end subroutine

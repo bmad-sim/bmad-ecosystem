@@ -389,7 +389,7 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
   charge = charge_of(param%particle)
   m2c2 = mass_of(param%particle)**2 / &
-                          (param%energy**2 - mass_of(param%particle)**2)
+                          (param%beam_energy**2 - mass_of(param%particle)**2)
 
   end = start
 
@@ -407,7 +407,7 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
   call em_field (ele, param, s+ds/2, end, field)
 
-  f = ds * charge * c_light / (2 * 1e9 * param%energy)
+  f = ds * charge * c_light / (2 * param%beam_energy)
 
   end%x%vel = end%x%vel - field%b(2) * f
   end%y%vel = end%y%vel + field%b(1) * f
@@ -419,7 +419,7 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
 ! 4) Push the momenta a full step using "R".
 
-  d2 = ds * charge * c_light / (2 * 1e9 * p_z * param%energy) 
+  d2 = ds * charge * c_light / (2 * p_z * param%beam_energy) 
 
   if (field%e(1) == 0 .and. field%e(2) == 0) then
     if (field%b(3) /= 0) then
@@ -661,7 +661,7 @@ subroutine em_field (ele, param, s_pos, here, field)
 
   case (quadrupole$) 
 
-    f = 1e9 * param%energy / c_light
+    f = param%beam_energy / c_light
 
     field%b(1) = y * ele%value(k1$) * f 
     field%b(2) = x * ele%value(k1$) * f 
@@ -670,7 +670,7 @@ subroutine em_field (ele, param, s_pos, here, field)
 
   case (sol_quad$)
 
-    f = 1e9 * param%energy / c_light
+    f = param%beam_energy / c_light
 
     field%b(1) = y * ele%value(k1$) * f 
     field%b(2) = x * ele%value(k1$) * f 
@@ -680,7 +680,7 @@ subroutine em_field (ele, param, s_pos, here, field)
 
   case (solenoid$)
 
-    f = 1e9 * param%energy / c_light
+    f = param%beam_energy / c_light
 
     field%b(3) = ele%value(ks$) * f
 

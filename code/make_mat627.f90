@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/03/04 16:03:28  dcs
+!VMS port
+!
 !Revision 1.6  2003/01/27 14:40:37  dcs
 !bmad_version = 56
 !
@@ -253,10 +256,10 @@ subroutine make_mat627 (ele, param, direction, mat627)
 
     call mat_unit (mat627, 6, 6)     ! make a unit matrix
 
-    if (param%energy == 0) then
+    if (param%beam_energy == 0) then
       k1 = 0
     else
-      k1 = -0.5 * (0.2997 * ele%value(b_max$) / param%energy)**2
+      k1 = -0.5 * (c_light * ele%value(b_max$) / param%beam_energy)**2
     endif
 
     mat627(1, 1) = 1

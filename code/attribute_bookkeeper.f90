@@ -3,17 +3,17 @@
 !
 ! Subroutine to make sure the attributes of an element are self-consistant.
 !
-!   BEAMBEAM:     bbi_const$ = param%n_part * e_mass * charge$ * r_e /
-!                                   (2 * pi * param%energy * (sig_x$ + sig_y$)
+!   BEAMBEAM:     bbi_const$ = param%n_part * m_electron * charge$ * r_e /
+!                           (2 * pi * param%beam_energy * (sig_x$ + sig_y$)
 !
 !   RFCAVITY:     rf_wavelength$ = param%total_length / harmon$
 !
 !   SBEND:        angle$   = L$ * G$
 !                 l_chord$ = 2 * sin(Angle$/2) / G$
-!                 rho$ = 1 / G$
+!                 rho$     = 1 / G$
 !
-!   WIGGLER:      k1$       = -0.5 * (0.2997 * b_max$ / param%energy)**2
-!                 rho$ = 3.3356 * param%energy / b_max$
+!   WIGGLER:      k1$  = -0.5 * (c_light * b_max$ / param%beam_energy)**2
+!                 rho$ = param%beam_energy / (c_light * b_max$)
 !
 !
 ! Modules needed:
@@ -29,23 +29,14 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2003/03/04 16:03:27  dcs
+!VMS port
+!
 !Revision 1.8  2003/01/27 14:40:29  dcs
 !bmad_version = 56
 !
-!Revision 1.7  2002/10/29 17:07:12  dcs
-!*** empty log message ***
-!
-!Revision 1.6  2002/07/16 20:44:00  dcs
-!*** empty log message ***
-!
-!Revision 1.5  2002/06/13 14:54:21  dcs
-!Interfaced with FPP/PTC
-!
 !Revision 1.4  2002/02/23 20:32:10  dcs
 !Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/23 16:52:52  dcs
-!*** empty log message ***
 !
 !Revision 1.1  2002/01/08 21:44:36  dcs
 !Aligned with VMS version  -- DCS
@@ -57,14 +48,45 @@ subroutine attribute_bookkeeper (ele, param)
 
   use bmad_struct
   use bmad_interface
+  use ptc_interface_mod
 
   implicit none
 
   type (ele_struct) ele
   type (param_struct) param
 
-  real(rdef) r
+  real(rdef) r, factor, p
   
+! b_field_master
+
+  if (ele%b_field_master) then
+
+    if (ele%value(energy$) == 0) then
+      factor = 0
+    else
+      call energy_to_kinetic (ele%value(energy$), param%particle, p0c = p)
+      factor = c_light / p
+    endif
+
+    select case (ele%key)
+    case (quadrupole$)
+      ele%value(k1$) = factor * ele%value(b_field$)
+    case (sextupole$)
+      ele%value(k2$) = factor * ele%value(b_field$)
+    case (octupole$)
+      ele%value(k3$) = factor * ele%value(b_field$)
+    case (solenoid$)
+      ele%value(ks$) = factor * ele%value(b_field$)
+    case (sbend$)
+      ele%value(g$) = factor * ele%value(b_field$)
+    case default
+      print *, 'ERROR IN ATTRIBUTE_BOOKKEEPER: ', &
+                      '"B_FIELD_MASTER" NOT IMPLEMENTED FOR: ', trim(ele%name)
+      call err_exit
+    end select
+
+  endif
+
 !
 
   select case (ele%key)
@@ -108,25 +130,26 @@ subroutine attribute_bookkeeper (ele, param)
       call exit
     endif
 
-    ele%value(bbi_const$) = -param%n_part * e_mass * ele%value(charge$) * &
-      r_e /  (2 * pi * param%energy * (ele%value(sig_x$) + ele%value(sig_y$)))
+    ele%value(bbi_const$) = &
+        -param%n_part * m_electron * ele%value(charge$) * r_e /  &
+        (2 * pi * param%beam_energy * (ele%value(sig_x$) + ele%value(sig_y$)))
 
 
 ! Wiggler
 
   case (wiggler$) 
 
-    if (param%energy == 0) then
+    if (param%beam_energy == 0) then
       ele%value(k1$) = 0
     else
       ele%value(k1$) = -0.5 * &
-                    (c_light * ele%value(b_max$) / (1e9 * param%energy))**2
+                    (c_light * ele%value(b_max$) / param%beam_energy)**2
     endif
 
     if (ele%value(b_max$) == 0) then
       ele%value(rho$) = 0
     else
-      ele%value(rho$) = 1e9 * param%energy / (c_light * ele%value(b_max$))
+      ele%value(rho$) = param%beam_energy / (c_light * ele%value(b_max$))
     endif
                        
   end select

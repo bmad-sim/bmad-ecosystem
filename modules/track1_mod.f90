@@ -333,7 +333,7 @@ subroutine track_a_accel_sol (start, ele, param, end)
 ! beta_b is the total speed in units of c_light (before entering the element)
 ! beta_s is the longitudinal speed in units of c_light
 
-  gamma_b = param%energy * (end%z%vel + 1) / e_mass
+  gamma_b = param%beam_energy * (end%z%vel + 1) / m_electron
   beta_b = sqrt(1 - 1 / gamma_b**2)
   gam_inv2_b = 1.0 / gamma_b**2
   if (gam_inv2_b <= 0.001) then
@@ -352,13 +352,13 @@ subroutine track_a_accel_sol (start, ele, param, end)
   if (ele%value(volt$) /= 0) then
     phase = twopi * ele%value(phase_0$) + end%z%pos  &
                       / (ele%value(rf_wavelength$) * beta_s)
-    en_gain = ele%value(volt$) * sin(twopi * phase) / 1.e9
-    if ((en_gain + gamma_b * e_mass) <= e_mass) then
+    en_gain = ele%value(volt$) * sin(twopi * phase)
+    if ((en_gain + gamma_b * m_electron) <= m_electron) then
       param%lost = .true.
       return
     else
-      end%z%vel = end%z%vel + en_gain / param%energy
-      c_e = en_gain / (e_mass * length)
+      end%z%vel = end%z%vel + en_gain / param%beam_energy
+      c_e = en_gain / (m_electron * length)
     endif
   else
     c_e = 0.0
@@ -366,7 +366,7 @@ subroutine track_a_accel_sol (start, ele, param, end)
 
 ! Beginning fringe
 
-  c_m = param%particle * c_light * ele%value(b_z$) / (e_mass * 1.e9)
+  c_m = param%particle * c_light * ele%value(b_z$) / m_electron
   call mat_unit(mat4, 4, 4)
   mat4(2,3) = c_m / 2 *  &
                   sqrt((1 + end%x%vel**2 + end%y%vel**2) / (gamma_b**2 - 1))
