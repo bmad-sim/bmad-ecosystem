@@ -8,100 +8,6 @@ takes a beam distribution and tracks the centroids and sigmas of
 ``macroparticles''. Discussion of macroparicle tracking will be
 deferred until the last section of this chapter.
 
-The routine \vnr{track1} is the routine that tracks through one
-element in the lattice. The routine \vnr{track_all} calls \vn{track1}
-in a loop over all elements to track through the entire
-lattice. Alternatively the routine \vnr{track_many} can be used to
-track through a selective number of elements or to track backwards
-(See Section~\ref{s:reverse_track}).
-
-%----------------------------------------------------------------
-\section{Track\_All Example}
-\index{Tracking!example}
-
-\index{Param_struct!lost}
-\index{Param_struct!ix_lost}
-The routines to track through a lattice are listed in
-Section~\ref{r:track}. The \vn{track_all} routine serves as a good
-example. \vn{track_all} tracks a particle through a lattice from
-beginning to end. Its code, condensed slightly, is shown below.
-\begin{example}
-  subroutine track_all (lattice, orbit)
-    use bmad_struct
-    use bmad_interface
-    implicit none
-    type (ring_struct)  lattice
-    type (coord_struct), allocatable :: orbit(:)
-    integer n
-
-  ! Init
-
-    lattice%param%lost = .false.
-    if (size(orbit) < lattice%n_ele_max+1) &
-                    call reallocate_coord (orbit, lattice%n_ele_max)
-
-  ! Track through the elements and check for lost particles.
-
-    do n = 1, lattice%n_ele_use
-      call track1 (orbit(n-1), lattice%ele_(n), lattice%param, orbit(n))
-      if (lattice%param%lost) then
-        lattice%param%ix_lost = n
-        return
-      endif
-    enddo
-  end subroutine
-\end{example}
-The \vn{reallocate_coord} call is done in case the number of elements
-in the lattice has changed. \vn{orbit(n)} holds the particle's
-position at the exit end of the $n$\Th element. The call to
-\vn{track1} tracks through one element from the exit end of the
-$n-1$\St\ element to the exit end of the $n$\Th
-particle. \vn{lattice%param%lost} is a logical that signals the
-calling routine whether a particle has been lost.  This generally
-happens when the particle's position is larger then the aperture. When
-a particle is lost \vn{lattice%param%ix_lost} is used to record in
-what element the loss occured.
-
-%----------------------------------------------------------------
-\section{Apertures}
-\index{Tracking!apertures}
-
-\index{Param_struct!aperture_limit_on}
-\index{Bmad_com_struct!max_aperture_limit}
-The logical \vn{lattice%param%aperture_limit_on} determines if element
-apertures (See Section~\ref{s:limit}) are used to determine if a
-particle has been lost in tracking.  The default
-\vn{lattice%param%aperture_limit_on} is True.  Even if this is False
-there is a ``hard'' aperture limit set by
-\vn{bmad_com%max_aperture_limit}. This hard limit is used to prevent
-floating point overflows. The default hard aperture limit is 1000
-meters. Additionally, even if a particle is within the hard limit,
-some routines will mark a particle as lost if the tracking calculation
-will result in an overflow.
-
-\index{Param_struct!end_lost_at}
-\index{Param_struct!lost}
-\index{Param_struct!ix_lost}
-\index{Element!entrance end}
-\index{Element!exit end}
-\vn{lattice%param%lost} is the logical to check to see if a particle has
-been lost. \vn{lattice%param%ix_lost} gives the index of the element
-at which a particle is lost and \vn{%param%end_lost_at} gives which
-end the particle was lost at. The possible values for
-\vn{lattice%param%end_lost_at} are:
-\begin{example}
-  entrance_end$
-  exit_end$
-\end{example}
-When tracking forward, if a particle is lost at the exit end of an
-element then the place where the orbit was outside the aperture is at
-\vn{orbit(ix)} where \vn{ix} is the index of the element where the
-particle is lost (given by \vn{lattice%param%ix_lost}). If the
-particle is lost at the entrance end then the appropriate index is one
-less (remember that \vn{orbit(i)} is the orbit at the exit end of an
-element). To sort this out and to determine in what plane the particle
-is lost in use the routine \vnr{lost_particle_info}.
-
 %----------------------------------------------------------------
 \section{The coord\_struct}
 \index{Coord_struct}
@@ -163,6 +69,117 @@ routine is called
   type (coord_struct), allocatable, save :: orb(:) 
 \end{example}
 Saving the \vn{coord_stuct} is faster but leaves memory tied up. 
+
+%----------------------------------------------------------------
+\section{Tracking Through the Elements}
+
+The routine \vnr{track1} is the routine that tracks through one
+element in the lattice. The routine \vnr{track_all} calls \vn{track1}
+in a loop over all elements to track through the entire
+lattice. Alternatively the routine \vnr{track_many} can be used to
+track through a selective number of elements or to track backwards
+(See Section~\ref{s:reverse_track}). The routines to track through a
+lattice are listed in Section~\ref{r:track}.
+
+\index{Param_struct!lost}
+\index{Param_struct!ix_lost}
+\index{Tracking!example}
+The \vn{track_all} routine serves as a good
+example. \vn{track_all} tracks a particle through a lattice from
+beginning to end. Its code, condensed slightly, is shown in
+Figure~\ref{f:track_all}.  The \vn{reallocate_coord} call (line~13) is
+done in case the number of elements in the lattice has
+changed. \vn{orbit(n)} holds the particle's position at the exit end
+of the $n$\Th element. The call to \vn{track1} (line~18) tracks through one
+element from the exit end of the $n-1$\St\ element to the exit end of
+the $n$\Th particle. \vn{lattice%param%lost} is a logical that signals
+the calling routine whether a particle has been lost.  This generally
+happens when the particle's position is larger then the aperture. When
+a particle is lost \vn{lattice%param%ix_lost} is used to record in
+what element the loss occured.
+
+\begin{figure}[htb]
+\small
+\begin{listing}{1}
+  subroutine track_all (lattice, orbit)
+    use bmad_struct
+    use bmad_interface
+    implicit none
+    type (ring_struct)  lattice
+    type (coord_struct), allocatable :: orbit(:)
+    integer n
+
+  ! Init
+
+    lattice%param%lost = .false.
+    if (size(orbit) < lattice%n_ele_max+1) &
+                    call reallocate_coord (orbit, lattice%n_ele_max)
+
+  ! Track through the elements and check for lost particles.
+
+    do n = 1, lattice%n_ele_use
+      call track1 (orbit(n-1), lattice%ele_(n), lattice%param, orbit(n))
+      if (lattice%param%lost) then
+        lattice%param%ix_lost = n
+        return
+      endif
+    enddo
+  end subroutine
+\end{listing}
+\caption{Condensed track\_all code.}
+\label{f:track_all}
+\end{figure}
+
+%----------------------------------------------------------------
+\section{Closed Orbit}
+\index{Closed orbit}
+
+For a circular lattice the closed orbit may be calculated using
+\vn{closed_orbit_calc}. By default this routine will track in the
+forward direction which is acceptable unless the particle you are
+trying to simulate is traveling in the reverse direction and there is
+radiation damping on. In this case you must tell
+\vn{closed_orbit_calc} to do backward tracking.
+
+%----------------------------------------------------------------
+\section{Apertures}
+\index{Tracking!apertures}
+
+\index{Param_struct!aperture_limit_on}
+\index{Bmad_com_struct!max_aperture_limit}
+The logical \vn{lattice%param%aperture_limit_on} determines if element
+apertures (See Section~\ref{s:limit}) are used to determine if a
+particle has been lost in tracking.  The default
+\vn{lattice%param%aperture_limit_on} is True.  Even if this is False
+there is a ``hard'' aperture limit set by
+\vn{bmad_com%max_aperture_limit}. This hard limit is used to prevent
+floating point overflows. The default hard aperture limit is 1000
+meters. Additionally, even if a particle is within the hard limit,
+some routines will mark a particle as lost if the tracking calculation
+will result in an overflow.
+
+\index{Param_struct!end_lost_at}
+\index{Param_struct!lost}
+\index{Param_struct!ix_lost}
+\index{Element!entrance end}
+\index{Element!exit end}
+\vn{lattice%param%lost} is the logical to check to see if a particle has
+been lost. \vn{lattice%param%ix_lost} gives the index of the element
+at which a particle is lost and \vn{%param%end_lost_at} gives which
+end the particle was lost at. The possible values for
+\vn{lattice%param%end_lost_at} are:
+\begin{example}
+  entrance_end$
+  exit_end$
+\end{example}
+When tracking forward, if a particle is lost at the exit end of an
+element then the place where the orbit was outside the aperture is at
+\vn{orbit(ix)} where \vn{ix} is the index of the element where the
+particle is lost (given by \vn{lattice%param%ix_lost}). If the
+particle is lost at the entrance end then the appropriate index is one
+less (remember that \vn{orbit(i)} is the orbit at the exit end of an
+element). To sort this out and to determine in what plane the particle
+is lost in use the routine \vnr{lost_particle_info}.
 
 %----------------------------------------------------------------
 \section {Miscellaneous Notes}
