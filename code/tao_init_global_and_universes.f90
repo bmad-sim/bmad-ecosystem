@@ -36,6 +36,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   integer n, n_universes, iostat, universe
   integer ix_min_var, ix_max_var, n_d1_data
   integer ix_min_data, ix_max_data, ix_d1_data
+  integer, parameter :: ele_name$ = 1, ele_key$ = 2
 
   character(*) data_and_var_file
   character(40) :: r_name = 'tao_init_global_and_universes'
@@ -354,10 +355,18 @@ u%d2_data(n_d2)%d1(i_d1)%name = d1_data%name  ! stuff in the data
 ! now check if we are searching for elements or repeating elements
 ! and record the element names in the data structs
     
-if (index(data(0)%ele_name, 'SEARCH:') /= 0) then
+if (index(data(0)%ele_name, 'SEARCH') .ne. 0) then
   allocate (found_one(u%design%n_ele_max))
-  call string_trim(data(0)%ele_name(8:), search_string, ix)
-  call find_elements (u, search_string, found_one)
+  if (index(data(0)%ele_name, 'SEARCH_KEY:') .ne. 0) then
+    call string_trim(data(0)%ele_name(12:), search_string, ix)
+    call find_elements (u, search_string, ele_key$, found_one)
+  elseif  (index(data(0)%ele_name, 'SEARCH:') .ne. 0) then
+    call string_trim(data(0)%ele_name(8:), search_string, ix)
+    call find_elements (u, search_string, ele_name$, found_one)
+  else
+    call out_io (s_abort$, r_name, 'Syntax Error in data(0)%ele_name SEARCH string')
+    call err_exit
+  endif
   ! finish finding data array limits
   if (counting) then
     n1 = u%n_data_used + 1
@@ -593,11 +602,19 @@ logical, allocatable :: found_one(:)
   if (index(var(0)%name, 'COUNT:') /= 0) then
     counting = .true.
     call form_count_name (var(0)%name(7:), num_hashes, count_name1, count_name2)
-    if (index(var(0)%ele_name, 'SEARCH:') /= 0) then
+    if (index(var(0)%ele_name, 'SEARCH') /= 0) then
       searching = .true.
       allocate (found_one(s%u(1)%design%n_ele_max))
-      call string_trim (var(0)%ele_name(8:), search_string, ix)
-      call find_elements (s%u(1), search_string, found_one)
+      if (index(var(0)%ele_name, 'SEARCH_KEY:') .ne. 0) then
+        call string_trim(var(0)%ele_name(12:), search_string, ix)
+        call find_elements (s%u(1), search_string, ele_key$, found_one)
+      elseif (index(var(0)%ele_name, 'SEARCH:') .ne. 0) then 
+        call string_trim(var(0)%ele_name(8:), search_string, ix)
+        call find_elements (s%u(1), search_string, ele_name$, found_one)
+      else
+	call out_io (s_abort$, r_name, 'Syntax Error in var(0)%ele_name SEARCH string')
+	call err_exit
+      endif
     else
       call out_io (s_abort$, r_name, 'If you are counting elements you should &
                                       also be searching for them')
@@ -711,20 +728,47 @@ end subroutine form_count_name
 ! contains
 !
 ! This searches the lattice for the specified element and flags found_one(:)
+!
+! Attribute can be either ele_name$ or ele_key$
 
-subroutine find_elements (u, search_string, found_one)
+subroutine find_elements (u, search_string, attribute, found_one)
 
 type (tao_universe_struct) :: u
 character(*) search_string
+integer attribute, key, found_key
 logical found_one(:)
 
 integer j
 
   found_one = .false.
-  do j = 1, u%design%n_ele_max
-    if (match_wild(u%design%ele_(j)%name, search_string)) &
-    found_one(j) = .true.
-  enddo
+  if (attribute .eq. ele_name$) then
+    do j = 1, u%design%n_ele_max
+      if (match_wild(u%design%ele_(j)%name, search_string)) &
+      found_one(j) = .true.
+    enddo
+  elseif (attribute .eq. ele_key$) then
+    found_key = 0
+    call upcase_string(search_string)
+    do j = 1, size(key_name)
+      if (key_name(j)(1:len(trim(search_string))) .eq. search_string) then
+!      if (index(key_name(j), trim(search_string)) .ne. 0) then
+	found_key = found_key + 1
+       	key = j
+      endif
+    enddo
+    if (found_key .ne. 1) then
+      call out_io (s_abort$, r_name, "Ambiguous or non-existant key name")
+      call err_exit
+    endif
+    do j = 1, u%design%n_ele_max
+      if (u%design%ele_(j)%key .eq. key) &
+      found_one(j) = .true.
+    enddo
+  else 
+    !bug in call to subroutine
+    call out_io (s_abort$, r_name, "Internal Error in find_elements!")
+    call err_exit
+  endif
 
 end subroutine find_elements
 

@@ -20,10 +20,10 @@ type tao_d1_data_input
 end type
 
 type tao_data_input
-  character(16) :: name
-  character(16) :: data_type
-  character(16) :: ele_name
-  character(16) :: ele2_name
+  character(32) :: name
+  character(32) :: data_type
+  character(32) :: ele_name
+  character(32) :: ele2_name
   character(16) :: merit_type
   real(rp) :: meas_value
   real(rp) :: weight
@@ -38,8 +38,8 @@ type tao_v1_var_input
 end type
 
 type tao_var_input
-  character(16) :: name
-  character(16) :: ele_name
+  character(32) :: name
+  character(32) :: ele_name
   character(16) attribute       ! attribute to vary
   character(16) universe
   real(rp) :: weight
