@@ -516,8 +516,19 @@ on--axis (\vn{b_max}) and the number of poles (\vn{n_pole}). This type
 of wiggler is considered to have infinitely wide poles so with
 \vn{bmad_standard} tracking and transfer matrix calculations the
 horizontal motion looks like a drift. The vertical motion is moddeled
-as a combination focusing quadrupole and focusing octupole with
-
+as a combination focusing quadrupole and focusing octupole
+giving a kick/cite{b:corbett}
+\Begineq
+  \frac{dp_y}{dy} = k_1 \left( y + \frac{2}{3} \, k_z^2 \, y^3 \right)
+\Endeq
+where
+\begin{alignat}{1}
+  k_1 &= \frac{-c \, b_{max}}{2 \, \left( P_0 \, (1 + p_z) \right)^2} \CRNO
+  k_z &= \frac{2 \, \pi}{\lambda} \\
+  \lambda &= \frac{2 \, l}{n_{pole}} \nonumber
+\end{alignat}
+with $k_1$ being the linear focusing constant, $\lambda$ the period,
+and $l$ the wiggler length.
 
 %-----------------------------------------------------------------
 \section{Synchrotron Radiation Damping and Excitation}
