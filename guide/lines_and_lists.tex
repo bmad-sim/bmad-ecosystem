@@ -1,4 +1,4 @@
-\chapter{Beam Lines and Replacement Lists}
+\chapter{Beam Lines, Replacement Lists, and Superposition}
 
 To \bmad\ a ``lattice'' is the sequence of physical elements that is to be studied.
 The lattice is constructed using what are know as Beam Lines and Replacement Lists.
@@ -11,7 +11,8 @@ the lattice to be analyzed by \bmad\ is selected by the \vn{use} statement. For 
 \begin{example}
   use, my_line
 \end{example}
-would pick the Line \vn{my_line} for analysis.
+would pick the Line \vn{my_line} for analysis. Note that the names of the elements in the
+lattice are always converted to upper case.
 
 %-----------------------------------------------------------------------------
 \section{Beam Lines without Arguments}
@@ -132,3 +133,89 @@ Unlike \mad\, members of a replacement list can only be simple elements without 
 \begin{example}
   list1: list = (2*a, b)  ! NO: No repetition count allowed.
 \end{example}
+
+%-----------------------------------------------------------------------------
+\section{Superposition}
+
+In practice the field at a particular point in the lattice may be due to more than one physical
+element. A common example is a quadrupole inside a solenoid. \bmad\ has a mechanism to handle some
+of these cases using what is called ``superposition''. A simple example shows how this works
+\begin{example}
+  q: quad, l = 10
+  d: drift, l = 4
+  s: solenoid, l = 6, superimpose, ref = q, ref_end
+  lat: line = (q, d)
+  use, lat
+\end{example}
+The \vn{superimpose} attribute of \vn{s} superimposes the \vn{s} solenoid over the 
+lattice \vn{(q, d)}. The placement of \vn{s} is such that the center of \vn{s} coinsides
+with the end of \vn{q} (more on how superimposed elments get placed later). Now if one looks
+at a list of lattice elements one would find:
+\begin{example}
+        Element   Key         Length
+  1)    q\\        Quadrupole  7
+  2)    q\\s       Sol_quad    3
+  3)    s\\1       Solenoid    3
+  4)    d\\        Drift       1
+\end{example}
+What \bmad\ has done is to split the original elements \vn{(q, d)} at the edges of \vn{s}.
+The first element \vn{q\\} is the part of \vn{q} that is outside of \vn{s}. Since this is only
+part of \vn{q} \bmad\ has put a \vn{\\} in the name so that there will be no confusion (\vn{\\}
+has no special meaning other than the fact that \bmad\ uses it for mangleing names). The next
+element, \vn{q\\s}, is the part of \vn{q} that is inside \vn{s}. \vn{q\\s} is a combination
+solenoid/quadrupole element as one could expect. \vn{s\\1} is the part of \vn{s}
+that is outside \vn{q} so this element is just a solenoid. Finally, \vn{d\\} is the rest of the 
+drift outside \vn{s}. 
+
+With the lattice broken up like this \bmad\ has constructed something that can be
+easily analyzed. However, the original elements \vn{q} and \vn{s} still exist within the lattice
+because of the following: The lattice is actually broken up into two parts. The first part, 
+are the elements that \bmad\ uses for any analysis (tracking, Twiss parameter calculations, etc.).
+In the example this first part is the 4 elements listed above. The second part is all those elements
+who have been cut up via superposition (along with group and overlay elements 
+discussed in chapter \ref{c:groups_and_overlays}). What is the purpose of this second list? \bmad\
+keeps a record of how superpositions were formed. Thus from a programming standpoint \bmad\ makes
+it simple if one, say, wants to change the \vn{k1} strength of \vn{q} to make the appropriate changes
+to the \vn{k1} strength of \vn{q\\} and \vn{q\\s}.
+
+It does not matter which element is superimposed. Thus, in the above example, \vn{s} could have 
+been put in the the Beam Line (with a drift before it) and \vn{q} could then have been superimposed on 
+top and the result would have been the same (except that the split elements could have a different
+name). However,
+superpositions are restriced in that \bmad\ may not have an appropriate element for the
+superimposed fields. For example, a solenoid can not be superimposed over an octupole. 
+If a zero length element, such as a marker, is superimposed with some other element (or vice versa)
+the element is just split in two. For example:
+\begin{example}
+  q: quad, l = 10
+  m: marker, superimpose, offset = 6
+  lat: line = (q)
+  use, lat
+\end{example}
+The resulting lattice (first part) would be
+\begin{example}
+        Element   Key           Length
+  1)    q\\1       Quadrupole    6
+  2)    m         Marker        0
+  3)    q\\2       Quadrupole    4
+\end{example}
+and the second part of the lattice would have the \vn{q} element.
+ 
+The placement of a superimposed element is determined by three factors: A point on the 
+superimposed element, a reference point in the lattice line, and an offset between the
+points. The attributes that determine these three quantities are:
+\begin{example}
+  ref = <element name in lattice>
+  offset = <length>      (default = 0)
+  ref_beginning
+  ref_center             (default)
+  ref_end
+  ele_beginning
+  ele_center             (default)
+  ele_end
+\end{example}
+\vn{ele_beginning} \vn{ele_center} \vn{ele_end} makes the point on the superimposed element 
+the beginning (``left'') edge, the center, or the end (``right'') edge respectively.
+If neither of these attributes are given the default is to use the element center.
+
+

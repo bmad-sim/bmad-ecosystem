@@ -11,27 +11,30 @@ Additionally, \bmad\ provides a number of element types that are not
 available in \mad.  A word of caution: In some cases where both \mad\
 and \bmad\ provide the same element type, there will be an overlap of 
 the attributes available but the two sets of attributes will not be the same.
-The list of element types known to \bmad\ is shown in Table~\ref{tab:elements}
+The list of element types known to \bmad\ is shown in Table~\ref{tab:elements}.
+In
 \begin{table}[h]
-\centering
+{\centering
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\it Element} & {\it Section}  & {\it Element} & {\it Section} \\ \hline
-  ab\_multipole & \ref{s:ab_m}   &  octupole     & \ref{s:oct}   \\ \hline
-  beambeam      & \ref{s:bbi}    &  overlay      & \ref{s:over}  \\ \hline
-  custom        & \ref{s:custom} &  patch        & \ref{s:patch} \\ \hline
-  drift         & \ref{s:drift}  &  quadrupole   & \ref{s:quad}  \\ \hline
-  ecollimator   & \ref{s:ecol}   &  rbend        & \ref{s:rbend} \\ \hline
-  elseparator   & \ref{s:elsep}  &  rcollimator  & \ref{s:rcol}  \\ \hline
-  group         & \ref{s:group}  &  rfcavity     & \ref{s:rfcav} \\ \hline
-  hkicker       & \ref{s:hk}     &  sbend        & \ref{s:sbend} \\ \hline
-  instument     & \ref{s:inst}   &  sextupole    & \ref{s:sex}   \\ \hline
-  kicker        & \ref{s:k}      &  solenoid     & \ref{s:sol}   \\ \hline
-  lcavity       & \ref{s:lcav}   &  sol\_quad    & \ref{s:sq}    \\ \hline
-  marker        & \ref{s:mark}   &  taylor       & \ref{s:tay}   \\ \hline
-  monitor       & \ref{s:mon}    &  vkicker      & \ref{s:vk}    \\ \hline
-  multipole     & \ref{s:m}      &  wiggler      & \ref{s:wig}   \\ \hline
-\end{tabular}}
+  {\it Element} & {\it Section}     & {\it Element} & {\it Section} \\ \hline
+  ab\_multipole & \ref{s:ab_m}      &  octupole     & \ref{s:oct}   \\ \hline
+  accel\_sol    & \ref{s:accel_sol} &  overlay      & \ref{s:over}  \\ \hline
+  beambeam      & \ref{s:bbi}       &  patch        & \ref{s:patch} \\ \hline
+  custom        & \ref{s:custom}    &  quadrupole   & \ref{s:quad}  \\ \hline
+  drift         & \ref{s:drift}     &  rbend        & \ref{s:rbend} \\ \hline
+  ecollimator   & \ref{s:col}       &  rcollimator  & \ref{s:col}   \\ \hline
+  elseparator   & \ref{s:elsep}     &  rfcavity     & \ref{s:rfcav} \\ \hline
+  group         & \ref{s:group}     &  sbend        & \ref{s:sbend} \\ \hline
+  hkicker       & \ref{s:kicker}    &  sextupole    & \ref{s:sex}   \\ \hline
+  instument     & \ref{s:mon}       &  solenoid     & \ref{s:sol}   \\ \hline
+  kicker        & \ref{s:kicker}    &  sol\_quad    & \ref{s:sq}    \\ \hline
+  lcavity       & \ref{s:lcav}      &  taylor       & \ref{s:tay}   \\ \hline
+  marker        & \ref{s:mark}      &  vkicker      & \ref{s:kicker}\\ \hline
+  monitor       & \ref{s:mon}       &  wiggler      & \ref{s:wig}   \\ \hline
+  multipole     & \ref{s:m}         &               &               \\ \hline  
+\end{tabular}
+}}
 \caption{\bmad\ elements.}
 \label{tab:elements}\center
 \end{table}
@@ -44,81 +47,184 @@ The list of element types known to \bmad\ is shown in Table~\ref{tab:elements}
 \label{s:ab_m}
 
 An \vn{AB_Multipole} is a thin multipole lens up to 20th order. The only
-difference between this and a \vn{Multipole} is the input format. 
+difference between this and a \vn{Multipole} is the input format. See the 
+Magnetic fields section \ref{s:fields} for more details.
 
 \begin{table}[h]
-\centering {
-\begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute} & {\sl See Section}  & {\sl Attribute} & {\sl See Section} \\ \hline
-  tilt         = Real & \ref{s:offset} &  type               = String  & \ref{s:string} \\ \hline
-  x\_offset    = Real & \ref{s:offset} &  alias              = String  & \ref{s:string} \\ \hline
-  y\_offset    = Real & \ref{s:offset} &  descrip            = String  & \ref{s:string} \\ \hline
-  s\_offset    = Real & \ref{s:offset} &  mat6\_calc\_method = Switch  & \ref{s:track}  \\ \hline
-  x\_limit     = Real & \ref{s:limit}  &  tracking\_method   = Switch  & \ref{s:track}  \\ \hline
-  y\_limit     = Real & \ref{s:limit}  &  is\_on             = Logical & \ref{s:is_on}  \\ \hline
-  aperture     = Real & \ref{s:limit}  &  a$n$, b$n$         = Real    & \ref{s:ab}     \\ \hline  
-  beam\_energy = Real & \ref{s:energy} &                               &                \\ \hline
-\end{tabular}}
+{\centering 
+{\tt
+\begin{tabular}{|l|l||l|l||l|l|} \hline
+  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  a$n$, b$n$ = Real  &  \ref{s:ab}     &  type = String                & \ref{s:string} & x\_limit = Real  & \ref{s:limit} \\ \hline
+  tilt       = Real  &  \ref{s:offset} &  alias = String               & \ref{s:string} & y\_limit = Real  & \ref{s:limit} \\ \hline
+  x\_offset  = Real  &  \ref{s:offset} &  descrip = String             & \ref{s:string} & aperture = Real  & \ref{s:limit} \\ \hline
+  y\_offset  = Real  &  \ref{s:offset} &  mat6\_calc\_method = Switch  & \ref{s:track}  & is\_on = Logical & \ref{s:is_on} \\ \hline
+  s\_offset  = Real  &  \ref{s:offset} &  tracking\_method = Switch    & \ref{s:track}  &                  &               \\ \hline
+\end{tabular}
+}}
 \end{table}
 
-Possible transfer matrix and tracking methods are:
+\noindent
+Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
+\vskip 0.01in
 \begin{example}
-  mat6\_calc\_method: 
-              bmad\_standard  (default) 
-  tracking\_method:
-              bmad\_standard  (default)
+   bmad\_standard  (default) 
 \end{example}
 
+\vskip0.2in \noindent
 Example:
 \begin{example}
   abc: ab_multipole, a2 = 0.034e-2, b3 = 5.7e-4
 \end{example}
 
+\vskip0.1in \noindent
+Dependent attributes:
+\begin{example}
+  beam\_energy  ! See section \ref{s:energy}
+\end{example}
+
+%-----------------------------------------------------------------
+\section{Accel\_Sol}
+\label{s:accel_sol}
+
+An \vn{Accel_Sol} element is a combination LINAC RF accelerating
+section with a solenoid on top of it. For historical reasons this
+element is not currently available but could be revived if there is
+any demand for it.
+
 %-----------------------------------------------------------------
 \section{BeamBeam}
 \label{s:bbi}
 
-A \vn{BeamBeam} element simulates an interaction with an opposing beam traveling in
-the opposite direction (a Beam--Beam Interaction). 
+A \vn{BeamBeam} element simulates an interaction with an opposing
+(``strong'') beam traveling in the opposite direction (a
+``weak--strong beam--beam Interaction''). The strong beam is assumed
+to be Gaussian in shape.
 
 \begin{table}[h]
-\centering {
-\begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute} & {\sl See Section}  & {\sl Attribute} & {\sl See Section} \\ \hline
-  tilt         = Real & \ref{s:offset} &  type               = String  & \ref{s:string} \\ \hline
-  x\_offset    = Real & \ref{s:offset} &  alias              = String  & \ref{s:string} \\ \hline
-  y\_offset    = Real & \ref{s:offset} &  descrip            = String  & \ref{s:string} \\ \hline
-  s\_offset    = Real & \ref{s:offset} &  mat6\_calc\_method = Switch  & \ref{s:track}  \\ \hline
-  x\_limit     = Real & \ref{s:limit}  &  tracking\_method   = Switch  & \ref{s:track}  \\ \hline
-  y\_limit     = Real & \ref{s:limit}  &  is\_on             = Logical & \ref{s:is_on}  \\ \hline
-  aperture     = Real & \ref{s:limit}  &  a$n$, b$n$         = Real    & \ref{s:ab}     \\ \hline  
-  beam\_energy = Real & \ref{s:energy} &  radius             = Real    & \ref{s:ab}     \\ \hline
-\end{tabular}}
+{\centering {
+\begin{tabular}{|l|l||l|l||l|l|} \hline
+  {\sl Attribute} & {\sl Section}  & {\sl Attribute} & {\sl Section} & {\sl Attribute} & {\sl Section} \\ \hline
+  sig\_x   = Real       &                 &  type = String                & \ref{s:string} & tilt = Real        &  \ref{s:offset}  \\ \hline
+  sig\_y   = Real       &                 &  alias = String               & \ref{s:string} & x\_offset  = Real  &  \ref{s:offset}  \\ \hline
+  sig\_z   = Real       &                 &  descrip = String             & \ref{s:string} & y\_offset  = Real  &  \ref{s:offset}  \\ \hline
+  charge   = Real       &                 &  mat6\_calc\_method = Switch  & \ref{s:method} & s\_offset  = Real  &  \ref{s:offset}  \\ \hline
+  n\_slice = Integer    &                 &  tracking\_method = Switch    & \ref{s:method} & x\_pitch = Real    &  \ref{s:offset}  \\ \hline
+  symplectify = Logical & \ref{s:symp}    &  x\_limit = Real              & \ref{s:limit}  & y\_pitch = Real    &  \ref{s:offset}  \\ \hline
+  is\_on = Logical      & \ref{s:is_on}   &  y\_limit = Real              & \ref{s:limit}  &                    &                  \\ \hline
+                        &                 &  aperture = Real              & \ref{s:limit}  &                    &                  \\ \hline
+\end{tabular}
+}}
 \end{table}
 
+The magnitude of the strong beam's charge is set by the \vn{beam}
+command (see \ref{s:beam}).  The sign of the strong beam's charge is
+set by the \vn{charge} attribute.  Thus if \vn{charge} = -1 then the
+strong beam has the opposite charge. This is the default.
+
+\vn{sig_x}, \vn{sig_y}, \vn{sig_z} are the strong beam sigmas. 
 In \bmad, \vn{x_offset} and \vn{y_offset} are used to offset the
-\vn{beambeam} element instead of the \mad\ standard attributes
+\vn{BeamBeam} element instead of the \mad\ standard attributes
 \vn{xma} and \vn{yma}.
-\begin{itemize}
-\item For a crossing angle use \vn{x_pitch} and \vn{y_pitch} (This is the full crossing angle,
-not the half-angle).
-\item \vn{n_slice} is the number of equal charge chunks which the strong beam is sliced.
-      Default is \vn{n_slice} = 1.
-\item For slicing, you need a non-zero \vn{sig_z}.
-\item \vn{charge}=-1: Opposite beam has the opposite charge (default).
-\item \vn{charge}=+1: Opposite beam has the same charge.   
-\end{itemize}
+
+\vn{x_pitch} and \vn{y_pitch} gives the beam--beam interaction a
+crossing angle. This is the full crossing angle, not the half-angle.
+
+The strong beam is divided up into \vn{n_slice} equal charge (not
+equal thickness) slices. The default for \vn{n_slice} is 1.
+Propagation through the strong beam involves a kick at the charge
+center of each slice with drifts inbetween the kicks. The kicks are
+calculated using the standard Bassetti--Erskine formula.  Even though
+the strong beam can have a finite \vn{sig_z} the length of the element
+is always considered to be zero. The longitudinal $s$--position of the
+\vn{BeamBeam} element is at the spot where the reference particle's
+position coinsides with the center of the strong bunch. For example,
+with \vn{n_slice} = 2 the calculation would proceed as follows:
+\begin{example}
+  0) Start with the reference particle at the center of the strong bunch.
+  1) Propagate (drift) backwards to the center of the first slice.
+  2) Apply the beam--beam kick due to the first slice.
+  3) Propagate (drift) forwards to the center of the second slice.
+  4) Apply the beam--beam kick due to the second slice.
+  5) Propagate (drift) backwards to end up with the reference particle
+     at the center of the strong bunch.
+\end{example}
+
+\vskip0.2in \noindent
+Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
+\vskip 0.01in
+\begin{example}
+   bmad\_standard  (default) 
+\end{example}
+
+\vskip0.2in \noindent
+Example:
+\begin{example}
+  bbi: beambeam, sig\_x = 3e-3, sig\_y = 3e-4, x\_offset = 0.05
+\end{example}
+
+\vskip0.2in \noindent
+Dependent attributes:
+\begin{example}
+  beam\_energy  ! See section \ref{s:energy}
+  bbi\_constant 
+\end{example}
+\vn{bbi_constant} = $N \, m_e \, r_e / (2 \, \pi \, \gamma \, (\sigma_x + \sigma_y))$ 
+is a measure of the beam--beam interaction strungth. For example,
+in the linear region near $x = y = 0$ the horizontal component of the
+beam--beam kick is approximately 
+$k_x = -4\, \pi \, x \, \mbox{bbi\_constant} / \sigma_x$ and the
+horizontal beam--beam tune shift is 
+$dQ_x = \mbox{bbi\_constant} \, \beta_x / \sigma_x$.
 
 %-----------------------------------------------------------------
 \section{Custom}
 \label{s:custom}
 
-A \vn{Custom} element is an element whose properites are defined outside of
-the \bmad\ subroutine library. That is, to use a custom element some programmer
-must write the appropriate custom routines which are then linked with the \bmad\
-subroutines into a program. \bmad\ will call the custom routines at the appropriate
-time to do tracking and transfer matrix calculations. See the programmer who wrote
-the custom routines for more details!
+A \vn{Custom} element is an element whose properites are defined
+outside of the standard \bmad\ subroutine library. That is, to use a
+custom element some programmer must write the appropriate custom
+routines which are then linked with the \bmad\ subroutines into a
+program. \bmad\ will call the custom routines at the appropriate time
+to do tracking and transfer matrix calculations. See the programmer
+who wrote the custom routines for more details!
+
+\begin{table}[h]
+{\centering {
+\begin{tabular}{|l|l||l|l||l|l|} \hline
+  {\sl Attribute} & {\sl Section}  & {\sl Attribute} & {\sl Section} & {\sl Attribute} & {\sl Section} \\ \hline
+  l        = Real       & \ref{s:l}       &  type = String                & \ref{s:string} & tilt = Real        &  \ref{s:offset}  \\ \hline
+  val$n$, $n$ = 1 - 12 = Real &           &  alias = String               & \ref{s:string} & y\_offset  = Real  &  \ref{s:offset}  \\ \hline
+  rel\_tol = Real       & \ref{s:tol}     &  descrip = String             & \ref{s:string} & s\_offset  = Real  &  \ref{s:offset}  \\ \hline
+  abs\_tol = Real       & \ref{s:tol}     &  mat6\_calc\_method = Switch  & \ref{s:method} & x\_offset  = Real  &  \ref{s:offset}  \\ \hline
+  num\_steps = Integer  & \ref{s:tol}     &  tracking\_method = Switch    & \ref{s:method} & x\_pitch = Real    &  \ref{s:offset}  \\ \hline
+  symplectify = Logical & \ref{s:symp}    &  x\_limit = Real              & \ref{s:limit}  & y\_pitch = Real    &  \ref{s:offset}  \\ \hline
+  is\_on = Logical      & \ref{s:is_on}   &  y\_limit = Real              & \ref{s:limit}  & integration\_ord   &  \ref{s:ord}     \\ \hline
+                        &                 &  aperture = Real              & \ref{s:limit}  &                    &                  \\ \hline
+\end{tabular}
+}}
+\end{table}
+
+\vskip0.2in \noindent
+Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
+\vskip 0.01in
+\begin{example}
+  custom  (default)
+  runge\_kutta
+  boris
+\end{example}
+
+\vskip0.2in \noindent
+Example:
+\begin{example}
+  c1: custom, l = 3, v4 = 5.6, v12 = 0.9, num_steps = 12, tracking_method = boris
+\end{example}
+
+\vskip0.2in \noindent
+Dependent attributes:
+\begin{example}
+  beam\_energy  ! See section \ref{s:energy}
+\end{example}
 
 
 %-----------------------------------------------------------------
@@ -127,46 +233,152 @@ the custom routines for more details!
 
 A \vn{Drift} element is just a space free and clear.
 
-%-----------------------------------------------------------------
-\section{Ecollimator}
-\label{s:ecol}
+\begin{table}[h]
+{\centering {
+\begin{tabular}{|l|l||l|l||l|l|} \hline
+  {\sl Attribute} & {\sl Section}  & {\sl Attribute} & {\sl Section} & {\sl Attribute} & {\sl Section} \\ \hline
+  l        = Real       & \ref{s:l}       &  type = String                & \ref{s:string} & tilt = Real        &  \ref{s:offset}  \\ \hline
+                        &                 &  alias = String               & \ref{s:string} & y\_offset  = Real  &  \ref{s:offset}  \\ \hline
+  rel\_tol = Real       & \ref{s:tol}     &  descrip = String             & \ref{s:string} & s\_offset  = Real  &  \ref{s:offset}  \\ \hline
+  abs\_tol = Real       & \ref{s:tol}     &  mat6\_calc\_method = Switch  & \ref{s:method} & x\_offset  = Real  &  \ref{s:offset}  \\ \hline
+  num\_steps = Integer  & \ref{s:tol}     &  tracking\_method = Switch    & \ref{s:method} & x\_pitch = Real    &  \ref{s:offset}  \\ \hline
+  symplectify = Logical & \ref{s:symp}    &  x\_limit = Real              & \ref{s:limit}  & y\_pitch = Real    &  \ref{s:offset}  \\ \hline
+  integration\_ord = Integer & \ref{s:int}&  y\_limit = Real              & \ref{s:limit}  &                    &                  \\ \hline
+                        &                 &  aperture = Real              & \ref{s:limit}  &                    &                  \\ \hline
+\end{tabular}
+}}
+\end{table}
 
-An \vn{Ecollimator} is drift with elliptic (as opposed to rectangular)
-collimation. See also \vn{Rcollimator}
+\vskip0.2in \noindent
+Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
+\vskip 0.01in
+\begin{example}
+  bmad\_standard
+  symp\_lie\_ptc
+  taylor
+\end{example}
+
+\vskip0.2in \noindent
+Example:
+\begin{example}
+  d21: drift, l = 4.5
+\end{example}
+
+\vskip0.2in \noindent
+Dependent attributes:
+\begin{example}
+  beam\_energy  ! See section \ref{s:energy}
+\end{example}
+
 
 %-----------------------------------------------------------------
-\section{ElSeperator}
+\section{Ecollimator and Rcollimator}
+\label{s:col}
+
+An \vn{Ecollimator} is a drift with elliptic collimation.
+An \vn{Rcollimator} is a drift with rectangular collimation.
+
+\begin{table}[h]
+{\centering {
+\begin{tabular}{|l|l||l|l||l|l|} \hline
+  {\sl Attribute} & {\sl Section}  & {\sl Attribute} & {\sl Section} & {\sl Attribute} & {\sl Section} \\ \hline
+  l        = Real       & \ref{s:l}       &  type = String                & \ref{s:string} & tilt = Real        &  \ref{s:offset}  \\ \hline
+                        &                 &  alias = String               & \ref{s:string} & y\_offset  = Real  &  \ref{s:offset}  \\ \hline
+  rel\_tol = Real       & \ref{s:tol}     &  descrip = String             & \ref{s:string} & s\_offset  = Real  &  \ref{s:offset}  \\ \hline
+  abs\_tol = Real       & \ref{s:tol}     &  mat6\_calc\_method = Switch  & \ref{s:method} & x\_offset  = Real  &  \ref{s:offset}  \\ \hline
+  num\_steps = Integer  & \ref{s:tol}     &  tracking\_method = Switch    & \ref{s:method} & x\_pitch = Real    &  \ref{s:offset}  \\ \hline
+  symplectify = Logical & \ref{s:symp}    &  x\_limit = Real              & \ref{s:limit}  & y\_pitch = Real    &  \ref{s:offset}  \\ \hline
+  integration\_ord = Integer & \ref{s:int}&  y\_limit = Real              & \ref{s:limit}  &                    &                  \\ \hline
+                        &                 &  aperture = Real              & \ref{s:limit}  &                    &                  \\ \hline
+\end{tabular}
+}}
+\end{table}
+
+\vskip0.2in \noindent
+Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
+\vskip 0.01in
+\begin{example}
+  bmad\_standard
+  symp\_lie\_ptc
+  taylor
+\end{example}
+
+\vskip0.2in \noindent
+Example:
+\begin{example}
+  d21: ecollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2
+\end{example}
+
+\vskip0.2in \noindent
+Dependent attributes:
+\begin{example}
+  beam\_energy  ! See section \ref{s:energy}
+\end{example}
+
+
+%-----------------------------------------------------------------
+\section{Elseperator}
 \label{s:elsep}
 
-A \vn{ElSeperator} is an electric separator.
+A \vn{ElSeperator} is an electrostatic separator.
 
-For an \vn{elseparator}, the kick is determined by \vn{hkick} and
-\vn{vkick}. The \vn{gap} for an \vn{elseparator} is used to compute
+\begin{table}[h]
+{\centering {
+\begin{tabular}{|l|l||l|l||l|l|} \hline
+  {\sl Attribute} & {\sl Section}  & {\sl Attribute} & {\sl Section} & {\sl Attribute} & {\sl Section} \\ \hline
+  l        = Real       & \ref{s:l}       & type = String                & \ref{s:string} & tilt = Real        &  \ref{s:offset}  \\ \hline
+  hkick    = Real       & \ref{s:kick}    & alias = String               & \ref{s:string} & y\_offset  = Real  &  \ref{s:offset}  \\ \hline
+  vkick    = Real       & \ref{s:kick}    & descrip = String             & \ref{s:string} & s\_offset  = Real  &  \ref{s:offset}  \\ \hline
+  gap      = Real       &                 & mat6\_calc\_method = Switch  & \ref{s:method} & x\_offset  = Real  &  \ref{s:offset}  \\ \hline
+  tilt     = Real       & \ref{s:tilt}    & tracking\_method = Switch    & \ref{s:method} & x\_pitch = Real    &  \ref{s:offset}  \\ \hline
+  rel\_tol = Real       & \ref{s:tol}     & x\_limit = Real              & \ref{s:limit}  & y\_pitch = Real    &  \ref{s:offset}  \\ \hline
+  abs\_tol = Real       & \ref{s:tol}     & y\_limit = Real              & \ref{s:limit}  & a$n$, b$n$         &  \ref{s:ab}      \\ \hline
+  num\_steps = Integer  & \ref{s:tol}     & aperture = Real              & \ref{s:limit}  & radius             &  \ref{s:ab}      \\ \hline
+  integration\_ord = Integer & \ref{s:int}& symplectify = Logical        & \ref{s:symp}   &                    &                  \\ \hline
+\end{tabular}
+}}
+\end{table}
+
+For an \vn{Elseparator}, the kick is determined by \vn{hkick} and
+\vn{vkick}. The \vn{gap} for an \vn{Elseparator} is used to compute
 the electric field for a given kick. The voltage is a dependent
 attribute determined by:
 \begin{example}
   Voltage (V) = kick * E [ev] * gap [m] / L [m] 
 \end{example}
 
-%-----------------------------------------------------------------
-\section{Group}
-\label{s:group}
 
-A \vn{Group} does not represent a physical element. Rather a
-\vn{Group} element's purpose is to control the attributes of other elements.
-This is akin to controls in a Control Room. See ...
+\vskip0.2in \noindent
+Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
+\vskip 0.01in
+\begin{example}
+  bmad\_standard
+  symp\_lie\_ptc
+  taylor
+\end{example}
+
+\vskip0.2in \noindent
+Example:
+\begin{example}
+  h_sep: elsep, l = 4.5, hkick = 0.003, gap = 0.11
+\end{example}
+
+\vskip0.2in \noindent
+Dependent attributes:
+\begin{example}
+  beam\_energy  ! See section \ref{s:energy}
+  ??? voltage ???
+\end{example}
 
 %-----------------------------------------------------------------
-\section{Hkicker}
-\label{s:hk}
+\section{Hkicker, Vkicker, and Kicker}
+\label{s:kicker}
+
+A \vn{Hkicker} is a horizontal bend. 
 
 %-----------------------------------------------------------------
 \section{Instrument}
 \label{s:inst}
-
-%-----------------------------------------------------------------
-\section{Kicker}
-\label{s:k}
 
 %-----------------------------------------------------------------
 \section{Lcavity}
@@ -205,10 +417,6 @@ This is akin to controls in a Control Room. See ...
 \label{s:rbend}
 
 %-----------------------------------------------------------------
-\section{Rcollimator}
-\label{s:rcol}
-
-%-----------------------------------------------------------------
 \section{Rfcavity}
 \label{s:rfcav}
 
@@ -233,10 +441,9 @@ This is akin to controls in a Control Room. See ...
 \label{s:tay}
 
 %-----------------------------------------------------------------
-\section{Vkicker}
-\label{s:vk}
-
-%-----------------------------------------------------------------
 \section{Wiggler} 
 \label{s:wig}
 
+A \vn{Group} does not represent a physical element. Rather a
+\vn{Group} element's purpose is to control the attributes of other elements.
+This is akin to a knob in the control room.
