@@ -23,7 +23,7 @@ while (<FILE1>){
     if ( $_ =~ /^(?:\s*\t*)module(?:\s+\t*)(\w+).*/i ){
         $x=$1;
         if ($x !~ /procedure/i){
-        print "$OUT_DIR/$x.mod: $filename\n";
+        print "$OUT_DIR/\L$x\E.mod: $filename\n";
         print "\t$RULE\n";
     }
     }
