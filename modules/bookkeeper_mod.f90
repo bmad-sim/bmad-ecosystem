@@ -615,7 +615,8 @@ end subroutine
 !+
 ! Subroutine attribute_bookkeeper (ele, param)
 !
-! Subroutine to make sure the attributes of an element are self-consistant.
+! Subroutine to recalculate the dependent attributes of an element.
+! If the attributes have changed then any Taylor Maps will be killed.
 !
 !   BEAMBEAM:     bbi_const$ = param%n_part * m_electron * charge$ * r_e /
 !                           (2 * pi * param%beam_energy * (sig_x$ + sig_y$)
@@ -650,7 +651,8 @@ subroutine attribute_bookkeeper (ele, param)
   type (ele_struct) ele
   type (param_struct) param
 
-  real(rp) r, factor, p
+  real(rp) r, factor, check_sum
+  real(rp), save :: old_energy = 0, p
   
 ! field_master
 
@@ -659,8 +661,10 @@ subroutine attribute_bookkeeper (ele, param)
     if (ele%value(energy$) == 0) then
       factor = 0
     else
-      call energy_to_kinetic (ele%value(energy$), param%particle, p0c = p)
+      if (old_energy /= ele%value(energy$)) &
+           call energy_to_kinetic (ele%value(energy$), param%particle, p0c = p)
       factor = c_light / p
+      old_energy = ele%value(energy$)
     endif
 
     select case (ele%key)
@@ -680,9 +684,33 @@ subroutine attribute_bookkeeper (ele, param)
       call err_exit
     end select
 
+  else
+
+    if (ele%value(energy$) == 0) then
+      factor = 0
+    else
+      if (old_energy /= ele%value(energy$)) &
+           call energy_to_kinetic (ele%value(energy$), param%particle, p0c = p)
+      factor = p / c_light
+      old_energy = ele%value(energy$)
+    endif
+
+    select case (ele%key)
+    case (quadrupole$)
+       ele%value(B_gradient$) = factor * ele%value(k1$)
+    case (sextupole$)
+       ele%value(B_gradient$) = factor * ele%value(k2$)
+    case (octupole$)
+       ele%value(B_gradient$) = factor * ele%value(k3$)
+    case (solenoid$)
+       ele%value(B_field$) = factor * ele%value(ks$)
+    case (sbend$)
+       ele%value(B_field$) = factor * ele%value(g$)
+    end select
+
   endif
 
-!
+! Dependent attribute bookkeeping.
 
   select case (ele%key)
 
@@ -752,11 +780,65 @@ subroutine attribute_bookkeeper (ele, param)
     else
       ele%value(rho$) = param%beam_energy / (c_light * ele%value(b_max$))
     endif
-                       
+
   end select
 
+! We need to kill the Taylor Map, etc. if things have changed.
+! calculate a check sum to see if things have changed.
+! ele%value(check_sum$) == 0 means that the check_sum has never been 
+! computed so in this case do not kill the Taylor Map
+
+  select case (ele%key)
+
+  case (wiggler$)
+    if (ele%sub_key == periodic_type$) return
+    check_sum = ele%value(polarity$)
+
+  case (quadrupole$)
+    check_sum = ele%value(k1$) 
+
+  case (sol_quad$)
+    check_sum = ele%value(ks$) + ele%value(k1$)
+
+  case (solenoid$)
+    check_sum = ele%value(ks$)
+
+  case (sbend$)
+    check_sum = ele%value(g$) + ele%value(delta_g$) + ele%value(e1$) + &
+        ele%value(e2$)
+
+  case (sextupole$)
+    check_sum = ele%value(k2$) + ele%value(tilt$)
+
+  case (octupole$)
+    check_sum = ele%value(k3$) + ele%value(tilt$)
+
+  case (rfcavity$)
+    check_sum = ele%value(volt$) + ele%value(phi0$)
+
+  case default
+    return
+
+  end select
+
+  check_sum = check_sum + ele%value(l$) + ele%value(x_offset$) + &
+        ele%value(y_offset$) + ele%value(x_pitch$) + ele%value(y_pitch$) + &
+        ele%num_steps + ele%value(s_offset$)
+
+  if (ele%value(check_sum$) /= check_sum) then
+
+    if (ele%value(check_sum$) == 0) then
+      ele%value(check_sum$) = check_sum
+      return
+    endif
+
+    ele%value(check_sum$) = check_sum
+    if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
+    if (associated(ele%gen_field)) call kill_gen_field(ele%gen_field)
+    if (ele%key == wiggler$) ele%value(z_patch$) = 0
+
+  endif
+
 end subroutine
-
-
 
 end module

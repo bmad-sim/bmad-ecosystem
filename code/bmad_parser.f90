@@ -159,7 +159,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   call file_stack('init', in_file, finished)   ! init stack
   call file_stack('push', in_file, finished)   ! open file on stack
   if (.not. bmad_status%ok) return
-  call load_parse_line ('init', 0, file_end) ! initialize subroutine
+  bp_com%parser_debug = .false.
   bp_com%iseq_tot = 0                     ! number of sequences encountered
   bp_com%ivar_tot = 0                     ! number of variables encountered
   call init_bmad_parser_common
@@ -205,6 +205,23 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       ix_word = 8
     else
       call verify_valid_name(word_1, ix_word)
+    endif
+
+! PARSER_DEBUG
+
+    if (word_1(:ix_word) == 'PARSER_DEBUG') then
+      bp_com%parser_debug = .true.
+      bp_com%debug_line = bp_com%parse_line
+      print *, 'FOUND IN FILE: "PARSER_DEBUG". DEBUG IS NOW ON'
+      cycle parsing_loop
+    endif
+
+! NO_DIGESTED
+
+    if (word_1(:ix_word) == 'NO_DIGESTED') then
+      bp_com%write_digested = .false.
+      print *, 'FOUND IN FILE: "NO_DIGESTED". NO DIGESTED FILE WILL BE CREATED'
+      cycle parsing_loop
     endif
 
 ! DEBUG_MARKER is used to be able to easily set a break within the debugger
@@ -942,8 +959,12 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
 !
 
-  if (ring%param%beam_energy == 0 .and. ring%ele_(0)%value(energy$) == 0) &
-                    print *, 'WARNING FROM BMAD_PARSER: BEAM_ENERGY IS 0!'
+  if (ring%param%beam_energy == 0 .and. ring%ele_(0)%value(energy$) == 0) then
+    print *, 'WARNING FROM BMAD_PARSER: BEAM_ENERGY IS 0!'
+  elseif (ring%param%beam_energy /= 0 .and. &
+                                        ring%ele_(0)%value(energy$) /= 0) then
+    print *, 'WARNING FROM BMAD_PARSER: BEAM_ENERGY AND BEGINNING[ENERGY] BOTH SET!'
+  endif
 
   doit = .true.
   if (present(make_mats6)) doit = make_mats6

@@ -1438,6 +1438,31 @@ subroutine ele_to_taylor (ele, param, orb0)
 
   if (associated (ele%gen_field)) call kill_gen_field (ele%gen_field)
 
+! take out z_patch for wigglers.
+
+  if (ele%key == wiggler$) then
+    if (all(x == 0)) then
+      do i = 1, size(ele%taylor(5)%term)
+        if (all(ele%taylor(5)%term(i)%exp == 0)) then
+          ele%value(z_patch$) = -ele%taylor(5)%term(i)%coef
+          ele%taylor(5)%term(i)%coef = 0
+          return
+        endif
+      enddo
+
+    else
+      do i = 1, size(ele%taylor(5)%term)
+        if (all(ele%taylor(5)%term(i)%exp == 0)) then
+          ele%value(z_patch$) = ele%taylor(5)%term(i)%coef
+          ele%taylor(5)%term(i)%coef = ele%taylor(5)%term(i)%coef + &
+                                                       ele%value(z_patch$)
+          return
+        endif
+      enddo
+
+    endif
+  endif
+
 end subroutine
 
 !------------------------------------------------------------------------

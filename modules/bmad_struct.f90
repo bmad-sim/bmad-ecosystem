@@ -308,7 +308,7 @@ module bmad_struct
   integer, parameter :: x_offset$=23
   integer, parameter :: y_offset$=24
   integer, parameter :: s_offset$=25, z_offset$ = 25
-  integer, parameter :: dE_offset$ = 26
+  integer, parameter :: dE_offset$ = 26, check_sum$ = 26
   integer, parameter :: x_limit$=27
   integer, parameter :: y_limit$=28
   integer, parameter :: aperture$=29

@@ -837,32 +837,9 @@ subroutine load_parse_line (how, ix_cmd, file_end)
 
   logical :: cmd_pending = .false., file_end
 
-
 !
 
   file_end = .false.
-
-! init
-
-  if (how == 'init') then
-    bp_com%parser_debug = .false.
-    read (bp_com%f_unit, '(a)', end = 9000) line
-    if (index(line, '!PARSER_DEBUG') /= 0) then
-      bp_com%parser_debug = .true.
-      bp_com%debug_line = line
-      print *, 'FOUND IN FILE: "!PARSER_DEBUG". DEBUG IS NOW ON'
-    elseif (index(line, '!NO_DIGESTED') /= 0) then
-      bp_com%write_digested = .false.
-      print *, 'FOUND IN FILE: "!NO_DIGESTED". NO DIGESTED FILE WILL BE CREATED'
-    endif
-    rewind (unit = bp_com%f_unit)
-    return
-  endif
-
-  if (how /= 'normal' .and. how /= 'continue') call error_exit  &
-                                     ('INTERNAL ERROR #4: CALL HELP', ' ')
-
-!
 
 1000    continue
     if (cmd_pending) then
@@ -876,9 +853,11 @@ subroutine load_parse_line (how, ix_cmd, file_end)
     if (how == 'continue') then
       bp_com%input_line1 = bp_com%input_line2
       bp_com%input_line2 = line
-    else
+    elseif (how == 'normal') then
       bp_com%input_line1 = ' '
       bp_com%input_line2 = line
+    else
+      call error_exit ('INTERNAL ERROR #4: CALL HELP', ' ')    
     endif
 
 ! strip off comments

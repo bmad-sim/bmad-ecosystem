@@ -261,6 +261,7 @@ subroutine transfer_taylor (ring_in, ring_out, type_out)
 
 ! Find the taylor series in the first ring.
 
+  n_in = 0
   do i = 1, ring_in%n_ele_max
     if (associated(ring_in%ele_(i)%taylor(1)%term)) then
       if (bmad_com%taylor_order > ring_in%ele_(i)%taylor_order) cycle

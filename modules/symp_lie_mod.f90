@@ -253,6 +253,15 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 
     enddo
 
+! z_patch
+
+  if (all(start%vec == 0)) then
+    ele%value(z_patch$) = -end%vec(5)
+    end%vec(5) = 0
+  else
+    end%vec(5) = end%vec(5) + ele%value(z_patch$)
+  endif
+
 !----------------------------------------------------------------------------
 ! unknown element
 

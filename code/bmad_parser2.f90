@@ -68,7 +68,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   call file_stack('init', in_file, finished)    ! open file on stack
   call file_stack('push', in_file, finished)    ! open file on stack
   if (.not. bmad_status%ok) return
-  call load_parse_line ('init', 0, file_end) ! initialize subroutine
+  bp_com%parser_debug = .false.
   call init_bmad_parser_common
 
   n_max => ring%n_ele_max
@@ -112,6 +112,23 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
       ix_word = 8
     else
       call verify_valid_name(word_1, ix_word)
+    endif
+
+! PARSER_DEBUG
+
+    if (word_1(:ix_word) == 'PARSER_DEBUG') then
+      bp_com%parser_debug = .true.
+      bp_com%debug_line = bp_com%parse_line
+      print *, 'FOUND IN FILE: "PARSER_DEBUG". DEBUG IS NOW ON'
+      cycle parsing_loop
+    endif
+
+! NO_DIGESTED
+
+    if (word_1(:ix_word) == 'NO_DIGESTED') then
+      bp_com%write_digested = .false.
+      print *, 'FOUND IN FILE: "NO_DIGESTED". NO DIGESTED FILE WILL BE CREATED'
+      cycle parsing_loop
     endif
 
 ! CALL command

@@ -72,16 +72,11 @@ subroutine set_ele_attribute (ring, i_ele, attrib_name, &
   call check_attrib_free (ring%ele_(i_ele), ix_attrib, ring, err_flag)
   if (err_flag) return
 
-! setting the attribute value is trivial
+! Setting the attribute value is trivial
 
   ptr_attrib = attrib_value
 
 ! bookkeeping
-
-  if (associated(ring%ele_(i_ele)%taylor(1)%term)) &
-                              call kill_taylor(ring%ele_(i_ele)%taylor)
-  if (associated(ring%ele_(i_ele)%gen_field)) &
-                              call kill_gen_field (ring%ele_(i_ele)%gen_field)
 
   if (make_mat6_flag) then
     call ring_make_mat6 (ring, i_ele, orbit_)
