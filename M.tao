@@ -158,7 +158,7 @@ LOCAL_LFLAGS   :=
 LOCAL_LIBS := tao
 CESR_LIBS  := bmad dcslib recipes_f-90_LEPP xsif cesr_utils 
 PKG_LIBS   := forest pgplot
-SYS_LIBS   := readline curses cxx X11
+SYS_LIBS   := readline curses 
 CERN_LIBS  :=
 
 
