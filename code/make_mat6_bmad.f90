@@ -198,7 +198,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(3,4) = factor + py**2 * df_dpy / b1
     mat6(3,6) = py * df_dE / b1
     mat6(5,1) = -rel_E * st / Dxy_t
-    mat6(5,2) = -rel_E * (1/Dxy + -ct/Dxy_t + px*st/(Dxy*Dxy_t)) / b1
+    mat6(5,2) = -rel_E * (1/Dxy - ct/Dxy_t + px*st/(Dxy*Dxy_t)) / b1
     mat6(5,4) = -rel_E * py * df_dpy / b1
     mat6(5,6) = -factor - rel_E * df_dE / b1
 
