@@ -324,13 +324,16 @@ subroutine sr_long_wake_calc (bunch, ele)
 
     endif
 
-! now apply the wakefields to the other slices.
+! Now apply the wakefields to the other slices.
+! Use linear interpolation.
+! If z is larger than the array size then use a linear extrapolation.
 
     do j = i+1, size(bunch%slice)
       macro2 => bunch%slice(j)%macro
       do k = 1, size(macro2)
         z = z_ave - macro2(k)%r%vec(5)
         iw = z / dz_wake
+        iw = min (iw, n_wake-1)
         if (z < 0) then
           print *, 'ERROR IN SR_LONG_WAKE_CALC: MACROPARTICLE Z POSITION HAS'
           print *, '      SHIFTED ACROSS A SLICE BOUNDARY.'
@@ -401,13 +404,16 @@ subroutine track1_sr_trans_wake (bunch, ele)
       z_ave = z_ave + (macro(j)%charge * macro(j)%r%vec(5)) / charge
     enddo
 
-! now apply the wakefields to the other slices.
+! Now apply the wakefields to the other slices.
+! Use linear interpolation.
+! If z is larger than the array size then use a linear extrapolation.
 
     do j = i+1, size(bunch%slice)
       macro2 => bunch%slice(j)%macro
       do k = 1, size(macro2)
-        z = z_ave - macro2(k)%r%vec(5)
-        iw = z / dz_wake
+        z = z_ave - macro2(k)%r%vec(5)  ! distance from slice to particle
+        iw = z / dz_wake                ! Index of wake array
+        iw = min(n_wake-1, iw)    ! effectively do an extrapolation.
         f2 = z/dz_wake - iw
         f1 = 1 - f2
         fact = (ele%wake%sr(iw)%trans*f1 + ele%wake%sr(iw+1)%trans*f2) * &
