@@ -109,8 +109,11 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       if (present(digested_read_ok)) digested_read_ok = .true.
       return
     else
-      if (bmad_status%type_out) &
-                  print *, 'BMAD_PARSER: Taylor_order has changed.'
+      if (bmad_status%type_out) then
+        print *, 'BMAD_PARSER: Taylor_order has changed.'
+        print *, '    Taylor_order in digested file:', ring%input_taylor_order
+        print *, '    Taylor_order now:             ', bmad_com%taylor_order
+      endif
       if (ring%input_taylor_order > bmad_com%taylor_order) &
                                            bp_com%write_digested = .false.
     endif
@@ -778,10 +781,11 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
     ring%param%beam_energy  = 1d9 * ring%param%energy
   endif
 
-!
+! 
 
   if (ring%input_taylor_order /= 0) &
-                  call set_taylor_order (ring%input_taylor_order, .false.)
+              call set_taylor_order (ring%input_taylor_order, .false.)
+
 
   if (n_ele_ring > n_ele_maxx) then
     print *, 'ERROR IN BMAD_PARSER: NUMBER OF ELEMENTS EXCEEDS ELEMENT ARRAY'
@@ -884,6 +888,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   call s_calc (ring)                       ! calc longitudinal distances
   call ring_geometry (ring)                ! ring layout
   call set_ptc (ring%param)
+  ring%input_taylor_order = bmad_com%taylor_order
 
 ! Reuse the old taylor series if they exist
 ! and the old taylor series has the same attributes.
