@@ -422,6 +422,9 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
       ele%value(s_offset$) = pdata(id+2)
     endif
 
+    ele%value(x_limit$) = ele%value(aperture$)
+    ele%value(y_limit$) = ele%value(aperture$)
+
   enddo
 
 ! beam and beta0
