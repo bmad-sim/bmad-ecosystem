@@ -793,11 +793,13 @@ Note: The transfer matrix for an \vn{Lcavity} with finite
 \vn{gradient} is never symplectic.
 
 \index{Wakefields!in Lcavity}
-The input file name for the short--range wakefields is specified using
-the \vn{sr_wake_file} attribute. The file gives both monopole
-longitudinal and dipole transverse wakes. Comment
-lines may be included by starting a line with an exclamation
-mark (!). Blank lines are also ignored.  An example input file is:
+The formulas used to compute the wakefield are given in
+\sref{s:wakefields}.  The input file name for the short--range
+wakefields is specified using the \vn{sr_wake_file} attribute. The
+file gives both monopole longitudinal and dipole transverse
+wakes. Comment lines may be included by starting a line with an
+exclamation mark (!). Blank lines are also ignored.  An example input
+file is:
 \begin{example}
   !    z           Wz             Wt
   !   [m]       [V/C/m]       [V/C/m^2]
@@ -851,8 +853,6 @@ like quadrupole k1 strengths and bend strengths are referenced to the
 reference energy, The value of \vn{e_loss} will affect the results even with
 a short--range wakefield file.
 
-
-
 The input file name for the long--range wakefields is specified using
 the \vn{lr_wake_file} attribute. The file gives the transverse dipole
 wake by specifying the frequency (in Hz), R/Q (in
@@ -870,8 +870,7 @@ index. An example input file is:
     lr(2) = 1.6991e9   11.21    5.0e4     1     0.15
   /
 \end{example}
-The formula used to compute the wakefield is given in
-\sref{s:wakefields}. The opt
+If no polarization angle is given the mode is taken to be unpolarized.
 
 \vn{freq_spread} is used to randomly spread out the mode frequencies
 among different cavities. The spread is Gaussian in shape with an RMS
