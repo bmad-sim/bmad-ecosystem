@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.18  2002/12/06 01:53:02  dcs
+!Fix rho/g bug in bends
+!
 !Revision 1.17  2002/12/03 18:48:29  dcs
 !*** empty log message ***
 !
@@ -805,6 +808,14 @@ subroutine bmad_parser (in_file, ring, make_mats6)
                                         ele%value(g_design$) = ele%value(g$)
       if (ele%value(g_design$) /= 0 .and. ele%value(g$) == 0) &
                                         ele%value(g$) = ele%value(g_design$)
+
+      if (ele%value(rho$) /= 0 .and. ele%value(g_design$) /= 0) &
+        call warning ('BOTH G AND RHO SPECIFIED FOR BEND: ' // ele%name)
+
+      if (ele%value(rho$) /= 0) then
+        ele%value(g_design$) = 1 / ele%value(rho$)
+        ele%value(g$) = 1 / ele%value(rho$)
+      endif
 
       angle = ele%value(angle$) 
 
