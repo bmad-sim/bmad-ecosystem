@@ -1064,7 +1064,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
 ! make matrices for entire ring
 
-  do i = ring%n_ele_use+1, ring%n_ele_max
+  do i = 1, ring%n_ele_max
     call control_bookkeeper (ring, i)      ! need this for ring_geometry
   enddo
 

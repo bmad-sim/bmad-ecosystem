@@ -114,21 +114,25 @@ subroutine ring_geometry (ring)
           s_ang = sin(angle); c_ang = cos(angle)
           r_mat = 0
         endif
+
         s_mat(1,:) = (/ c_ang,  0.0_dp, -s_ang /)
         s_mat(2,:) = (/ 0.0_dp, 1.0_dp,  0.0_dp /)
         s_mat(3,:) = (/ s_ang,  0.0_dp,  c_ang /) 
-        pos = pos + matmul(w_mat, r_mat)
 
         if (tlt /= 0) then
           s_ang = sin(tlt); c_ang = cos(tlt)
           t_mat(1,:) = (/ c_ang,  -s_ang,  0.0_dp /)
           t_mat(2,:) = (/ s_ang,   c_ang,  0.0_dp /)
           t_mat(3,:) = (/ 0.0_dp,  0.0_dp, 1.0_dp /)
+
+          r_mat = matmul (t_mat, r_mat)
+
           s_mat = matmul (t_mat, s_mat)
           t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
           s_mat = matmul (s_mat, t_mat)
         endif
 
+        pos = pos + matmul(w_mat, r_mat)
         w_mat = matmul (w_mat, s_mat)
 
 ! patch
