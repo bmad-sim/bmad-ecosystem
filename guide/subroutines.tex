@@ -304,22 +304,30 @@ tilted in (x, Px, y, Py) with respect to the old reference frame.
 Subroutine to check if an orbit is outside the aperture. 
 
 \item[closed\_orbit\_calc (ring, closed\_orb, i\_dim)] \Newline 
-     Subroutine to calculate the closed orbit at the beginning of the ring.
+Subroutine to calculate the closed orbit at the beginning of the ring.
 
-\item[closed\_orbit\_from\_tracking (ring, closed\_orb\_, i\_dim, eps\_rel, eps\_abs, init\_guess)] \Newline
+\item[closed\_orbit\_from\_tracking (ring, closed\_orb\_, i\_dim, 
+eps\_rel, eps\_abs, init\_guess)] \Newline
 Subroutine to find the closed orbit via tracking. 
 
 \item[dynamic\_aperture (ring, track\_input, aperture)] \Newline
 Subroutine to determine the dynamic aperture of a lattice via tracking. 
 
-\item[multi\_turn\_tracking\_analysis (track, i\_dim, track0, ele, stable, growth\_rate, chi)] \Newline
-Subroutine to analyze multi-turn tracking data to get the Twiss parameters etc. 
+\item[lost\_particle\_info (lattice, orbit, ix\_lost, plane\_lost)] \Newline 
+Subroutine to show where in an orbit a particle hit an aperture and was lost.
 
-\item[multi\_turn\_tracking\_to\_mat (track, i\_dim, mat1, track0, chi)] \Newline
+\item[multi\_turn\_tracking\_analysis (track, i\_dim, track0, ele, 
+stable, growth\_rate, chi)] \Newline
+Subroutine to analyze multi-turn tracking data to get the Twiss
+parameters etc.
+
+\item[multi\_turn\_tracking\_to\_mat (track, i\_dim, 
+mat1, track0, chi)] \Newline
 Subroutine to analyze 1-turn tracking data to find the 1-turn transfer
 matrix and the closed orbit offset.
 
-\item[\protect\parbox{6in}{offset\_particle (ele, param, coord, set, set\_canonical, \\
+\item[\protect\parbox{6in}{offset\_particle (ele, param, coord, set, 
+set\_canonical, \\
 \hspace*{2in} set\_tilt, set\_multipoles, set\_hvkicks, s\_pos)}] \Newline
 Subroutine to effectively offset an element by instead offsetting 
 the particle position to correspond to the local element coordinates. 

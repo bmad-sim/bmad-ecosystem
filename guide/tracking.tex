@@ -1,60 +1,108 @@
 \chapter{Tracking}
-\label{s:tm}
+\label{c:tracking}
 \index{Tracking}
 
-\bmad can do two types of tracking. One type uses a single particle 
+\bmad can do two types of tracking. One type uses a single particle
 and tracks its coordinates throughout the lattice. The other type
 takes a beam distribution and tracks the centroids and sigmas of
-``macro particles''.  
+``macroparticles''. Discussion of macroparicle tracking will be
+deferred until the last section of this chapter.
+
+The routine \vnr{track1} is the routine that tracks through one
+element in the lattice. The routine \vnr{track_all} calls \vn{track1}
+in a loop over all elements to track through the entire
+lattice. Alternatively the routine \vnr{track_many} can be used to
+track through a selective number of elements or to track backwards
+(See Section~\ref{s:reverse_track}).
 
 %----------------------------------------------------------------
 \section{Track\_All Example}
 \index{Tracking!example}
 
+\index{Param_struct!lost}
+\index{Param_struct!ix_lost}
 The routines to track through a lattice are listed in
 Section~\ref{r:track}. The \vn{track_all} routine serves as a good
 example. \vn{track_all} tracks a particle through a lattice from
 beginning to end. Its code, condensed slightly, is shown below.
 \begin{example}
-  subroutine track_all (ring, orbit_)
+  subroutine track_all (lattice, orbit)
     use bmad_struct
     use bmad_interface
     implicit none
-    type (ring_struct)  ring
-    type (coord_struct), allocatable :: orbit_(:)
+    type (ring_struct)  lattice
+    type (coord_struct), allocatable :: orbit(:)
     integer n
 
   ! Init
 
-    ring%param%lost = .false.
-    if (size(orbit_) < ring%n_ele_max+1) &
-                    call reallocate_coord (orbit_, ring%n_ele_max)
+    lattice%param%lost = .false.
+    if (size(orbit) < lattice%n_ele_max+1) &
+                    call reallocate_coord (orbit, lattice%n_ele_max)
 
   ! Track through the elements and check for lost particles.
 
-    do n = 1, ring%n_ele_use
-      call track1 (orbit_(n-1), ring%ele_(n), ring%param, orbit_(n))
-      if (ring%param%lost) then
-        ring%param%ix_lost = n
+    do n = 1, lattice%n_ele_use
+      call track1 (orbit(n-1), lattice%ele_(n), lattice%param, orbit(n))
+      if (lattice%param%lost) then
+        lattice%param%ix_lost = n
         return
       endif
     enddo
   end subroutine
 \end{example}
 The \vn{reallocate_coord} call is done in case the number of elements
-in the lattice has changed. \vn{orbit_(n)} holds the particle's
+in the lattice has changed. \vn{orbit(n)} holds the particle's
 position at the exit end of the $n$\Th element. The call to
 \vn{track1} tracks through one element from the exit end of the
 $n-1$\St\ element to the exit end of the $n$\Th
-particle. \vn{ring%param%lost} is a logical that signals the calling
-routine whether a particle has been lost.  This happens when the
-particle's position is larger then the aperture (See
-Section~\ref{s:limit}.) or, because of a large orbit, \vn{track1}
-cannot track through the element. An example of this happens in a bend
-where, say, a particle with a large energy offset will have a
-trajectory that doesn't intersect the exit face.  When a particle is
-lost \vn{ring%param%ix_lost} is used to record in what element the
-loss occured.
+particle. \vn{lattice%param%lost} is a logical that signals the
+calling routine whether a particle has been lost.  This generally
+happens when the particle's position is larger then the aperture. When
+a particle is lost \vn{lattice%param%ix_lost} is used to record in
+what element the loss occured.
+
+%----------------------------------------------------------------
+\section{Apertures}
+\index{Tracking!apertures}
+
+\index{Param_struct!aperture_limit_on}
+The logical \vn{lattice%param%aperture_limit_on} determines if
+element apertures given by \vn{lattice%ele_(:)%value(x_limit\$)} and
+\vn{lattice%ele_(:)%value(y_limit\$)} (See
+Section~\ref{s:limit}) are used to determine if a particle has been
+lost in tracking. A value of zero for either of these limits means
+that the aperture is infinite in that plane.  The default is for
+\vn{lattice%param%aperture_limit_on} to be True.  Even if
+\vn{lattice%param%aperture_limit_on} is False there is a ``hard''
+aperture limit set by \vn{bmad_com%max_aperture_limit}.  This hard
+limit is used to prevent floating point overflows. The default hard
+aperture limit is 1000 meters. Additionally, even if a particle is
+within the hard limit, some routines will mark a particle as lost if
+the tracking calculation will result in an overflow.
+
+\index{Param_struct!end_lost_at}
+\index{Param_struct!lost}
+\index{Param_struct!ix_lost}
+\index{Element !entrance end}
+\index{Element !exit end}
+\vn{lattice%param%lost} is the logical to check to see if a particle has
+been lost. \vn{lattice%param%ix_lost} gives the index of the element
+at which a particle is lost and \vn{%param%end_lost_at} gives which
+end the particle was lost at. The possible values for
+\vn{lattice%param%end_lost_at} are:
+\begin{example}
+  entrance_end$
+  exit_end$
+\end{example}
+When tracking forward, if a particle is lost at the exit end of an
+element then the place where the orbit was outside the aperture is at
+\vn{orbit(ix)} where \vn{ix} is the index of the element where the
+particle is lost (given by \vn{lattice%param%ix_lost}). If the
+particle is lost at the entrance end then the appropriate index is one
+less (remember that \vn{orbit(i)} is the orbit at the exit end of an
+element). To sort this out and to determine in what plane the particle
+is lost in use the routine \vnr{lost_particle_info}.
 
 %----------------------------------------------------------------
 \section{The coord\_struct}
@@ -82,22 +130,22 @@ You cannot, in general, use a pointer to an array since most \bmad
 subroutines expect an allocatable array and Fortran does not allow you
 to mix and match. An example of how to do multi-turn tracking is
 \begin{example}
-  type (ring_struct) ring             ! lattice to track through
+  type (ring_struct) lattice             ! lattice to track through
   type (coord_struct), allocatable :: coord(:)
   ...
-  call bmad_parser ('this_lattice', ring)
+  call bmad_parser ('this_lattice', lattice)
   ...
-  call reallocate_coords (coord, ring%n_ele_max)
+  call reallocate_coords (coord, lattice%n_ele_max)
   coords(0)%vec = (/ 0.01, 0.2, 0.3, 0.4, 0.0, 0.0 /) ! initialization
   do i = 1, n_turns
-    call track_all (ring, coord)
-    coords(0) = coords(ring%n_ele_use)
+    call track_all (lattice, coord)
+    coords(0) = coords(lattice%n_ele_use)
   end do
 \end{example}
 \vn{track_all} takes \vn{coord(0)} and tracks through the lattice from
 the 1\St\ element through the $n$\Th\ where $n =$
-\vn{ring%n_ele_use}.  Each \vn{coord(i)} is associated with the
-corresponding \vn{ring%ele_(i)} element and is the particle position
+\vn{lattice%n_ele_use}.  Each \vn{coord(i)} is associated with the
+corresponding \vn{lattice%ele_(i)} element and is the particle position
 at the exit end of the i\Th\ element. \vn{reallocate_coords} simply
 does an allocation. Its advantage over just allocating directly is
 that it checks if the allocation is needed and if not then it does
@@ -124,7 +172,7 @@ Saving the \vn{coord_stuct} is faster but leaves memory tied up.
 \index{Ele_struct!%mat6}
 Except for \vntm{Linear} tracking, none of the \bmad tracking routines
 make use of the \vn{ele%mat6} transfer matrix. The reverse, however,
-is not true.  The transfer matrix routines (\vn{ring_make_mat6}, etc.)
+is not true.  The transfer matrix routines (\vn{lattice_make_mat6}, etc.)
 will do tracking.
 
 \index{Ele_struct!%tracking_method}
@@ -232,7 +280,7 @@ program macroparticle_test
 
   implicit none
 
-  type (ring_struct) ring
+  type (ring_struct) lattice
   type (beam_struct) beam
   type (macroparticle_struct) mp
   type (macro_init_struct) init
@@ -244,15 +292,15 @@ program macroparticle_test
 !
 
   bmad_com%use_liar_lcavity = .true.
-  call bmad_parser ('test.bmad', ring)
+  call bmad_parser ('test.bmad', lattice)
 
   open (1, file = 'test.init', status = 'old')
-  init%E_0 = ring%ele_(0)%value(beam_energy$)
+  init%E_0 = lattice%ele_(0)%value(beam_energy$)
   read (1, nml = beam_init)
   close (1)
 
   call init_macro_distribution (beam, init, .true.)
-  call track_beam (ring, beam)
+  call track_beam (lattice, beam)
 
   print *
   print '(13x, a)', "x          x'    sig(1,1)    sig(1,2)    sig(2,2)"
@@ -260,7 +308,7 @@ program macroparticle_test
     do j = 1, size(beam%bunch(i)%slice)
       do k = 1, size(beam%bunch(i)%slice(j)%macro)
         mp = beam%bunch(i)%slice(j)%macro(k)
-        call mp_to_angle_coords (mp, ring%ele_(n)%value(beam_energy$))
+        call mp_to_angle_coords (mp, lattice%ele_(n)%value(beam_energy$))
         print '(3i2, 1p, 5e12.4)', i, j, k, mp%r%vec(1), mp%r%vec(2), &
                   mp%sigma(s11$), mp%sigma(s12$), mp%sigma(s22$)
       enddo
@@ -299,6 +347,7 @@ end program
 
 %----------------------------------------------------------------
 \section{Reverse Tracking}
+\label{s:reverse_track}
 \index{Tracking!reverse}
 
 There are two ways to do reverse tracking in which the particle goes

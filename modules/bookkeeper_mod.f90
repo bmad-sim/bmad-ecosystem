@@ -40,10 +40,11 @@ subroutine control_bookkeeper (ring, ix_ele)
   integer ix_ele, i, j, ix, ix1, ix2
   integer ix_eles(300)
 
-! attribute bookkeeping
+! Attribute bookkeeping
 
   call attribute_bookkeeper (ring%ele_(ix_ele), ring%param)
-  if (ring%ele_(ix_ele)%n_slave == 0) return  ! nothing more to do
+  if (ring%ele_(ix_ele)%n_slave == 0 .and. &
+            ring%ele_(ix_ele)%n_lord == 0) return  ! nothing more to do
 
 ! Make a list of elements to update.
 ! we do not need to update free elements of group lords.

@@ -237,6 +237,9 @@ An \vn{aperture} attribute supersedes
 any \vn{x_limit} and \vn{y_limit} values and sets \vn{x_limit} and
 \vn{y_limit} equal to the value of \vn{aperture}.
 
+\index{Element !entrance end}
+\index{Element !exit end}
+\index{Tracking!apertures}
 By default the aperture is evaluated at the exit face only of the
 element. This can be changed by setting the \vn{aperture_at} attribute.
 Possible settings for \vn{aperture_at} are:
@@ -245,6 +248,10 @@ Possible settings for \vn{aperture_at} are:
   exit_end  ! default
   both_ends
 \end{example}
+Note that the entrance and exit ends of an element are independent of
+which direction particles are tracked through an element. Thus if a
+particle is tracked backwards it enters an element at the ``exit end''
+and exits at the ``entrance end''.
 
 Example:
 \begin{example}
