@@ -44,7 +44,7 @@ sub searchit {
 
   $file = $_;
   $str = @ARGV[0];
-  $str =~ s/\*/\.\*/g;  # replace "*" by ".*"
+  $str =~ s/\*/\\w\*/g;  # replace "*" by "\w*"
 
 # See if the file name matches.
 
