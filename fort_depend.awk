@@ -20,6 +20,18 @@
 #              properly.  makedepend would do this properly if all   #
 #              include files were handled by #include                #
 ######################################################################
+#
+# $Id$
+#
+# $Log$
+# Revision 1.3  2001/12/22 01:47:21  cesrulib
+# Encountered a possible bug with IGNORECASE setting in awk.  Not all
+# use statements were being parsed for modules to use.  Have now enforced
+# explicit checking of all possible uppercase and lowercase combinations
+# when writing use.
+#
+#
+######################################################################
 
 BEGIN{
 # Initializations
@@ -33,16 +45,16 @@ BEGIN{
 	IGNORECASE = 1;
 
 # DEBUG flag
-DEBUG = 0;
+DEBUG = 1;
 }
 
 ############################
 # Look for "use" statments #
 ############################
-/use/ {
+/USE/ || /use/ || /Use/ || /USe/ || /uSe/ || /uSE/ || /usE/ {
 
 	if (DEBUG == 1) printf("In use block:  %s\n",$0);
-
+  if (DEBUG == 1) printf("Input line is:  %d\n",FNR);
 # Strip comments from the directive line
 	stripcomments($0);
 	
