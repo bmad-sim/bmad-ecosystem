@@ -58,7 +58,7 @@ call out_io (s_blank$, r_name, line)
 write (line, *) 'Merit end:', merit_end
 call out_io (s_blank$, r_name, line)
 
-call tao_var_write (s%global%opt_var_out_file_name, .true.)
+call tao_var_write (s%global%opt_var_out_file, .true.)
 
 end subroutine
 

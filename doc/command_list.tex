@@ -19,11 +19,12 @@ is shown in Table~\ref{t:commands}
   clip     & \ref{s:clip}     &  scale       & \ref{s:scale}   \\ \hline
   exit     & \ref{s:exit}     &  show        & \ref{s:show}    \\ \hline
   flatten  & \ref{s:flatten}  &  single-mode & \ref{s:sing}    \\ \hline
-  history  & \ref{s:history}  &  use         & \ref{s:use}     \\ \hline
-  output   & \ref{s:output}   &  veto        & \ref{s:veto}    \\ \hline
-  place    & \ref{s:place}    &  view        & \ref{s:view}    \\ \hline
-  plot     & \ref{s:plot}     &  x-axis      & \ref{s:x-axis}  \\ \hline
-  quit     & \ref{s:quit}     &  x-scale     & \ref{s:x-scale} \\ \hline
+  help     & \ref{s:help}     &  use         & \ref{s:use}     \\ \hline
+  history  & \ref{s:history}  &  veto        & \ref{s:veto}    \\ \hline
+  output   & \ref{s:output}   &  view        & \ref{s:view}    \\ \hline
+  place    & \ref{s:place}    &  x-axis      & \ref{s:x-axis}  \\ \hline
+  plot     & \ref{s:plot}     &  x-scale     & \ref{s:x-scale} \\ \hline
+  quit     & \ref{s:quit}     &              &                 \\ \hline
 \end{tabular}
 }
 \caption{Table of \bmad\ elements.}
@@ -33,7 +34,7 @@ is shown in Table~\ref{t:commands}
 \vfil
 \break
 
-%------------------------------------------------------------------------
+%% alias --------------------------------------------------------------
 \section{Alias}
 \label{s:alias}
 
@@ -64,7 +65,7 @@ In the above example ``xyzzy'' is the alias for the string ``plot [1]
 model''.  When the command xyzzy is used ``top'' is substituted
 for ``[1]'' in the string.
 
-%------------------------------------------------------------------------
+%% call --------------------------------------------------------------
 \section{Call}
 \label{s:call}
 
@@ -89,7 +90,7 @@ In the above example the argument ``abc'' is substituted for any
 ``[1]'' appearing the the file and ``def'' is substituted for any
 ``[2]''.
 
-%------------------------------------------------------------------------
+%% change --------------------------------------------------------------
 \section{Change}
 \label{s:change}
 
@@ -134,7 +135,7 @@ Examples:
 \end{example}
 
 
-%------------------------------------------------------------------------
+%% clip --------------------------------------------------------------
 \section{Clip}
 \label{s:clip}
 
@@ -143,16 +144,17 @@ Format:
   clip \{<where> <limit1> <limit2>\}
 \end{example}
 
-\vskip 0.2in \vn{clip} vetoes data points for plotting and
-optimizing. The points vetoed are those points whose $y$ values are
-outside a certain range defined by \vn{<limit1>} \vn{<limit2>}. If
-neither \vn{<limit1>} nor \vn{<limit2>} is present then the clip range
-is taken to be outside the graph minimum and maximum $y$--axis
-values. If only \vn{<limit1>} is present then the clip range is
-outside the range from -\vn{<limit1>} to +\vn{<limit1>}. If both are
-present than the range is from \vn{<limit1>} to \vn{<limit2>}.  The
-graphs that are clipped is determined by the \vn{<where>} switch.  If
-\vn{<where>} is not present all graphs are scaled.
+\vskip 0.2in 
+\vn{clip} vetoes data points for plotting and optimizing. The points
+vetoed are those points whose $y$ values are outside a certain range
+defined by \vn{<limit1>} \vn{<limit2>}. If neither \vn{<limit1>} nor
+\vn{<limit2>} is present then the clip range is taken to be outside
+the graph minimum and maximum $y$--axis values. If only \vn{<limit1>}
+is present then the clip range is outside the range from
+-\vn{<limit1>} to +\vn{<limit1>}. If both are present than the range
+is from \vn{<limit1>} to \vn{<limit2>}.  The graphs that are clipped
+is determined by the \vn{<where>} switch.  If \vn{<where>} is not
+present all graphs are scaled.
 
 Examples
 \begin{example}
@@ -160,7 +162,7 @@ Examples
   clip bottom       ! clip the graphs in the bottom region
 \end{example}
 
-%------------------------------------------------------------------------
+%% exit --------------------------------------------------------------
 \section{Exit}
 \label{s:exit}
 
@@ -172,7 +174,7 @@ Format:
 \vskip 0.2in
 \vn{Exit} exits the program. Same as \vn{Quit}.
 
-%------------------------------------------------------------------------
+%% flatten --------------------------------------------------------------
 \section{Flatten}
 \label{s:flatten}
 
@@ -185,7 +187,25 @@ Format:
 \vn{Flatten} runs the optimizer to minimize the merit function. This is the 
 same as \vn{run}. See the \vn{run} command for more details.
 
-%------------------------------------------------------------------------
+%% help --------------------------------------------------------------
+\section{Help}
+\label{s:help}
+
+Format:
+\begin{example}
+  help <command>
+\end{example}
+
+\vskip 0.2in 
+\vn{Help} gives help on \tao commands. The environmental
+variable TAO_DIR must be defined so \tao can find any help files.
+
+Examples:
+\begin{example}
+  help run   ! Gives help on the run command
+\end{example}
+
+%% history --------------------------------------------------------------
 \section{History}
 \label{s:history}
 
@@ -206,7 +226,7 @@ Examples
   history set  ! Reinvoke last set command.  
 \end{example}
 
-%------------------------------------------------------------------------
+%% output --------------------------------------------------------------
 \section{Output}
 \label{s:output}
 
@@ -219,7 +239,7 @@ Format:
 \vskip 0.2in
 \vn{Output} creates a PostScript file of the plot window. 
 
-%------------------------------------------------------------------------
+%% place --------------------------------------------------------------
 \section{Place}
 \label{s:place}
 
@@ -229,11 +249,12 @@ Format:
   place <region> none
 \end{example}
 
-\vskip 0.2in The \vn{place} command is used to associate a
-\vn{<template>} plot with a \vn{<region>} and thus create a visible
-plot in that region. To erase a plot from a region use the \vn{none}
-switch. Notice that by using multiple \vn{place} commands a
-\vn{template} can be associated with more than one region. 
+\vskip 0.2in 
+The \vn{place} command is used to associate a \vn{<template>} plot
+with a \vn{<region>} and thus create a visible plot in that region. To
+erase a plot from a region use the \vn{none} switch. Notice that by
+using multiple \vn{place} commands a \vn{template} can be associated
+with more than one region.
 
 Examples:
 \begin{example}
@@ -241,7 +262,7 @@ Examples:
   place top none   ! erase any plots in the top region
 \end{example}
 
-%------------------------------------------------------------------------
+%% plot --------------------------------------------------------------
 \section{Plot}
 \label{s:plot}
 
@@ -250,7 +271,8 @@ Format:
   plot <region> <who>
 \end{example}
 
-\vskip 0.2in The \vn{plot} command is used to determine who is plotted
+\vskip 0.2in 
+The \vn{plot} command is used to determine who is plotted
 in the graphs of a given region. Use a ``-'' for baselines. 
 
 Examples:
@@ -259,7 +281,7 @@ Examples:
   plot top data - model + design - ref 
 \end{example}
 
-%------------------------------------------------------------------------
+%% quit --------------------------------------------------------------
 \section{Quit}
 \label{s:quit}
 
@@ -271,7 +293,7 @@ Format:
 \vskip 0.2in
 \vn{Quit} exits the program. Same as \vn{exit}.
 
-%------------------------------------------------------------------------
+%% restore --------------------------------------------------------------
 \section{Restore}
 \label{s:restore}
 
@@ -294,7 +316,7 @@ Examples:
 \end{example}
 
 
-%------------------------------------------------------------------------
+%% run --------------------------------------------------------------
 \section{Run}
 \label{s:run}
 
@@ -303,10 +325,10 @@ Format:
   run \{<optimizer>\}
 \end{example}
 
-\vskip 0.2in The \vn{run} command runs an optimizer. If
-\vn{<optimizer>} is not given then the default optimizer is used. To
-stop the optimizer before it is finished press the period ``.'' key.
-Valid optimizers are:
+\vskip 0.2in 
+The \vn{run} command runs an optimizer. If \vn{<optimizer>} is not
+given then the default optimizer is used. To stop the optimizer before
+it is finished press the period ``.'' key.  Valid optimizers are:
 \begin{example}
   lm            ! Levenburg-Marquardt
   de            ! Differential Evolution
@@ -318,7 +340,7 @@ Examples:
   run de
 \end{example}
 
-%------------------------------------------------------------------------
+%% set --------------------------------------------------------------
 \section{Set}
 \label{s:set}
 
@@ -382,7 +404,7 @@ Examples:
   set var quad\_k1 weight = 0.1 ! set quad\_k1 weights. 
 \end{example}
 
-%------------------------------------------------------------------------
+%% scale --------------------------------------------------------------
 \section{Scale}
 \label{s:scale}
 
@@ -391,14 +413,15 @@ Format:
   scale \{<where> <value1> <value2>\}
 \end{example}
 
-\vskip 0.2in \vn{scale} adjusts the vertical scale of graphs. If
-neither \vn{<value1>} nor \vn{<value2>} is present then the scale is
-adjusted so that all the data points are within the graph region.  If
-only \vn{<value1>} is present then the scale is taken to be from
+\vskip 0.2in 
+\vn{scale} adjusts the vertical scale of graphs. If neither
+\vn{<value1>} nor \vn{<value2>} is present then the scale is adjusted
+so that all the data points are within the graph region.  If only
+\vn{<value1>} is present then the scale is taken to be from
 -\vn{<value1>} to +\vn{<value1>}. If both are present than the scale
-is from \vn{<value1>} to \vn{<value2>}.  The graphs that are scaled
-is determined by the \vn{<where>} switch. If \vn{<where>} is not
-present  or \vn{<where>} is ``all'' then all graphs are scaled. 
+is from \vn{<value1>} to \vn{<value2>}.  The graphs that are scaled is
+determined by the \vn{<where>} switch. If \vn{<where>} is not present
+or \vn{<where>} is ``all'' then all graphs are scaled.
 
 Examples:
 \begin{example}
@@ -408,7 +431,7 @@ Examples:
 \end{example}
 
 
-%------------------------------------------------------------------------
+%% show --------------------------------------------------------------
 \section{Show}
 \label{s:show}
 
@@ -469,7 +492,7 @@ Examples:
   show ele 105         ! show element #105 in the lattice
 \end{example}
 
-%------------------------------------------------------------------------
+%% single-mode --------------------------------------------------------------
 \section{Single-mode}
 \label{s:sing}
 
@@ -481,7 +504,7 @@ Format:
 \vskip 0.2in 
 This command puts \tao into \vn{single mode}. 
 
-%------------------------------------------------------------------------
+%% use --------------------------------------------------------------
 \section{Use}
 \label{s:use}
 
@@ -491,9 +514,10 @@ Format:
   use var <var_name> <locations>
 \end{example}
 
-\vskip 0.2in The \vn{use} command unvetoes data or variables and sets
-a veto for the rest of the data. See also the \vn{restore} and
-\vn{veto} commands.
+\vskip 0.2in 
+The \vn{use} command unvetoes data or variables and sets a veto for
+the rest of the data. See also the \vn{restore} and \vn{veto}
+commands.
 
 Examples:
 \begin{example}
@@ -503,7 +527,7 @@ Examples:
 \end{example}
 
 
-%------------------------------------------------------------------------
+%% veto --------------------------------------------------------------
 \section{Veto}
 \label{s:veto}
 
@@ -513,8 +537,9 @@ Format:
   veto var <var_name> <locations>
 \end{example}
 
-\vskip 0.2in The \vn{veto} command vetoes data or variables. See also
-the \vn{restore} and \vn{use} commands.
+\vskip 0.2in 
+The \vn{veto} command vetoes data or variables. See also the
+\vn{restore} and \vn{use} commands.
 
 Examples:
 \begin{example}
@@ -523,7 +548,7 @@ Examples:
   veto var quad_k1 67          ! veto variable
 \end{example}
 
-%------------------------------------------------------------------------
+%% view --------------------------------------------------------------
 \section{View}
 \label{s:view}
 
@@ -532,16 +557,17 @@ Format:
   view <number>
 \end{example}
 
-\vskip 0.2in The \vn{view} command changes which universe data is
-taken from from plotting.  This also sets the default universe that
-commands are applied to in the absence of a star prefix.  
+\vskip 0.2in 
+The \vn{view} command changes which universe data is taken from from
+plotting.  This also sets the default universe that commands are
+applied to in the absence of a star prefix.
 
 Examples:
 \begin{example}
   view 2   ! Make universe #2 the default.
 \end{example}
 
-%------------------------------------------------------------------------
+%% x-axis --------------------------------------------------------------
 \section{X-Axis}
 \label{s:x-axis}
 
@@ -550,7 +576,8 @@ Format:
   x-axis <where> <axis_type> ! Sets horizontal data type
 \end{example}
 
-\vskip 0.2in \vn{X-Axis} sets what data is used for the horizontal
+\vskip 0.2in 
+\vn{X-Axis} sets what data is used for the horizontal
 axis. Possibilities for \vn{<axis_type>} are:
 \begin{example}
   index    -- Use data index
@@ -565,7 +592,7 @@ Examples:
   x-axis top index
 \end{example}
 
-%------------------------------------------------------------------------
+%% x-scale --------------------------------------------------------------
 \section{X-Scale}
 \label{s:x-scale}
 
@@ -574,13 +601,14 @@ Format:
   x-scale <where> \{<bound1>\} \{<bound2>\}  ! sets horizontal axis bounds.
 \end{example}
 
-\vskip 0.2in \vn{x-scale} sets the lower and upper bounds for the
-horizontal axis.  If both \vn{<bound1>} and \vn{<bound2>} are present
-then \vn{<bound1>} is taken to be the lower (left) bound and
-\vn{<bound2>} is the upper (right) bound. If only \vn{<bound1>} is
-present then the bounds will be from -\vn{<bound1>} to
-\vn{<bound1>}. If neither is present then autoscale will be invoked to
-give the largest bounds comensurate with the data.
+\vskip 0.2in 
+\vn{x-scale} sets the lower and upper bounds for the horizontal axis.
+If both \vn{<bound1>} and \vn{<bound2>} are present then \vn{<bound1>}
+is taken to be the lower (left) bound and \vn{<bound2>} is the upper
+(right) bound. If only \vn{<bound1>} is present then the bounds will
+be from -\vn{<bound1>} to \vn{<bound1>}. If neither is present then
+autoscale will be invoked to give the largest bounds comensurate with
+the data.
 
 Example:
 \begin{example}

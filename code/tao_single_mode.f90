@@ -274,7 +274,7 @@ subroutine tao_single_mode (char)
 ! /w: Output to default file.
 
     case ('w')
-      call tao_var_write (s%global%var_out_file_name, .true.)
+      call tao_var_write (s%global%var_out_file, .true.)
 
 ! /x: Scale horizontal axis
 
