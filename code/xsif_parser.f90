@@ -36,7 +36,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
 
   integer xsif_unit, err_unit, std_out_unit, internal_unit
   integer i, ie, ierr, dat_indx, err_lcl, i_ele, indx, key
-  integer ip0, n, it, ix
+  integer ip0, n, it, ix, iep, id
   integer xsif_io_setup, parchk
 
   real(rp) k2, angle
@@ -269,6 +269,14 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
         ele%value(kick$)  = pdata(dat_indx+1)
         ele%value(tilt$)  = pdata(dat_indx+2)
         
+      case (mad_kickmad)
+        call add_ele (kicker$)
+        ele%value(l$)     = pdata(dat_indx)
+        ele%value(hkick$)  = pdata(dat_indx+1)
+        ele%value(vkick$)  = pdata(dat_indx+2)
+        ele%value(tilt$)  = pdata(dat_indx+3)
+  
+
       case (mad_moni, mad_hmon, mad_vmon)
         call add_ele (monitor$)
         ele%value(l$)     = pdata(dat_indx)
@@ -386,6 +394,17 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
         call err_exit
 
     end select
+
+    iep = errptr(ie)
+    if (iep /= 0) then
+      id = iedat(iep, 1)
+      ele%value(y_pitch$)  = -pdata(id+3)   ! phi
+      ele%value(x_pitch$)  =  pdata(id+4)   ! theta
+      ele%value(tilt$)     =  pdata(id+5)   ! psi
+      ele%value(x_offset$) = pdata(id)   + ele%value(l$) * ele%value(x_pitch$) / 2
+      ele%value(y_offset$) = pdata(id+1) + ele%value(l$) * ele%value(y_pitch$) / 2
+      ele%value(s_offset$) = pdata(id+2)
+    endif
 
   enddo
 
