@@ -10,11 +10,11 @@
 # Usage in .login:
 #   source /home/cesrulib/bin/cesrdef
 # or switch to other versions of libraries and constants: 
-#   setenv CESRLIB devel; source /usr/local/bin/cesrdef
+#   setenv CESRLIB devel; source /home/cesrulib/bin/cesrdef
 # or define aliases in .cshrc, e.g.:
 #   alias cesrdef "source /home/cesrulib/bin/cesrdef" 
-#   alias current "setenv CESRLIB current ; cesrdef"
-#   alias devel   "setenv CESRLIB devel ; cesrdef"
+#   alias current "setenv CESRLIB current ; source /home/cesrulib/bin/cesrdef"
+#   alias devel   "setenv CESRLIB devel ; source /home/cesrulib/bin/cesrdef"
 #-------------------------------------
 # Promote all shell variables to environment variables via setenv
 # instead of set. (CRN 4/5/94)
@@ -40,6 +40,11 @@ endif
 # $Id$
 #
 # $Log$
+# Revision 1.3  2003/05/21 12:33:17  palmer
+# Add PKG_INC environment variable.
+# Fix miscellaneous comments.
+# Automatically append /home/cesrulib/bin to user's PATH environment variable.
+#
 # Revision 1.2  2001/10/04 20:35:21  palmer
 # Add environment variables for paths to the external packages area.
 #

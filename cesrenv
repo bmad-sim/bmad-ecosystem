@@ -9,11 +9,17 @@
 #########################################################
 
 #
+#-----  Add cesrulib bin area to user's PATH  ----
+#
+setenv PATH $PATH:/home/cesrulib/bin
+
+#
 #-----  Outside packages  -----
 #
 setenv CESR_PKG $PACKAGES
 setenv PKG_LIB  $CESR_PKG/lib
 setenv PKG_MOD  $CESR_PKG/modules
+setenv PKG_INC  $CESR_PKG/include
 
 #
 #------  CESR libraries  ------
@@ -60,6 +66,11 @@ setenv BMAD_LAYOUT	$CESR_CONFIG/bmad/layout
 # $Id$
 #
 # $Log$
+# Revision 1.5  2003/05/21 12:33:18  palmer
+# Add PKG_INC environment variable.
+# Fix miscellaneous comments.
+# Automatically append /home/cesrulib/bin to user's PATH environment variable.
+#
 # Revision 1.4  2001/10/04 20:35:22  palmer
 # Add environment variables for paths to the external packages area.
 #

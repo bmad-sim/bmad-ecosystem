@@ -10,11 +10,11 @@
 # Usage in .profile:
 #   . /home/cesrulib/bin/cesrdefs
 # or switch to other versions of libraries and constants:
-#   CESRLIB=current; CONST=/tem/constants; PACKAGES=/tem/packages; . cesrdefs
+#   CESRLIB=current; CONST=/tem/constants; PACKAGES=/tem/packages; . /home/cesrulib/bin/cesrdefs
 # or define aliases in .profile, e.g.:
 #   alias cesrdefs ". /home/cesrulib/bin/cesrdefs"
-#   alias devel="CESRLIB=devel; cesrdefs"
-#   alias current="CESRLIB=current; cesrdefs"
+#   alias devel="CESRLIB=devel; . /home/cesrulib/bin/cesrdefs"
+#   alias current="CESRLIB=current; . /home/cesrulib/bin/cesrdefs"
 #
 #-------------------------------------
 #       Root names
@@ -41,6 +41,11 @@ fi
 # $Id$
 #
 # $Log$
+# Revision 1.3  2003/05/21 12:33:17  palmer
+# Add PKG_INC environment variable.
+# Fix miscellaneous comments.
+# Automatically append /home/cesrulib/bin to user's PATH environment variable.
+#
 # Revision 1.2  2001/10/04 20:35:21  palmer
 # Add environment variables for paths to the external packages area.
 #
