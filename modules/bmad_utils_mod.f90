@@ -245,7 +245,6 @@ subroutine transfer_taylor (ring_in, ring_out, type_out)
   integer n_in, ix_in(ring_in%n_ele_maxx)
  
   logical, intent(in)  :: type_out
-  logical vmask(n_attrib_maxx)  
 
 ! check global parameters
 
@@ -273,58 +272,40 @@ subroutine transfer_taylor (ring_in, ring_out, type_out)
 
     ele_out => ring_out%ele_(i)
 
-    vmask = .true.
-    if (ele_out%key == wiggler$) vmask((/k1$, rho$, b_max$/)) = .false.
-
     do j = 1, n_in
-      ele_in => ring_in%ele_(ix_in(j))
-      if (ele_in%key /= ele_out%key) cycle
-      if (ele_in%name /= ele_out%name) cycle
-      if (any(ele_in%value /= ele_out%value .and. vmask)) cycle
-      if (ele_in%num_steps /= ele_out%num_steps) cycle
-      if (ele_in%integration_order /= ele_out%integration_order) cycle
-      if (associated(ele_in%wig_term) .and. associated(ele_out%wig_term)) then
-        if (size(ele_in%wig_term) /= size(ele_out%wig_term)) cycle
-        do it = 1, size(ele_in%wig_term)
-          if (ele_in%wig_term(it)%coef /= ele_out%wig_term(it)%coef) cycle
-          if (ele_in%wig_term(it)%kx /= ele_out%wig_term(it)%kx) cycle
-          if (ele_in%wig_term(it)%ky /= ele_out%wig_term(it)%ky) cycle
-          if (ele_in%wig_term(it)%kz /= ele_out%wig_term(it)%kz) cycle
-          if (ele_in%wig_term(it)%phi_z /= ele_out%wig_term(it)%phi_z) cycle
-        enddo
-      elseif (associated(ele_in%wig_term) .xor. &
-                                          associated(ele_out%wig_term)) then
-        cycle
-      endif
-      exit
-    enddo
 
-    if (j == n_in + 1) cycle
+      ele_in => ring_in%ele_(ix_in(j))
+      if (equivalent_eles (ele_in, ele_out)) then
 
 ! we have a match so transfer the Taylor map.
 
-    if (type_out) print *, &
+        if (type_out) print *, &
                     'TRANSFER_TAYLOR: Reusing Taylor for: ', ele_in%name
 
-    do it = 1, 6
-      ix = 0
-      do k = 1, size(ele_in%taylor(it)%term)
-       if (sum(ele_in%taylor(it)%term(k)%exp(:)) <= &
+        do it = 1, 6
+          ix = 0
+          do k = 1, size(ele_in%taylor(it)%term)
+           if (sum(ele_in%taylor(it)%term(k)%exp(:)) <= &
                                       bmad_com%taylor_order) ix = ix + 1
-      enddo
-      allocate (ele_out%taylor(it)%term(ix))
-      ix = 0
-      do k = 1, size(ele_in%taylor(it)%term)
-       if (sum(ele_in%taylor(it)%term(k)%exp(:)) <= &
+          enddo
+          allocate (ele_out%taylor(it)%term(ix))
+          ix = 0
+          do k = 1, size(ele_in%taylor(it)%term)
+           if (sum(ele_in%taylor(it)%term(k)%exp(:)) <= &
                                       bmad_com%taylor_order) then
-          ix = ix + 1
-          ele_out%taylor(it)%term(ix) = ele_in%taylor(it)%term(k)
-        endif      
-      enddo
-    enddo
+              ix = ix + 1
+              ele_out%taylor(it)%term(ix) = ele_in%taylor(it)%term(k)
+            endif      
+          enddo
+        enddo
 
-    ele_out%taylor_order = bmad_com%taylor_order
-    ele_out%taylor(:)%ref = ele_in%taylor(:)%ref
+        ele_out%taylor_order = bmad_com%taylor_order
+        ele_out%taylor(:)%ref = ele_in%taylor(:)%ref
+
+        exit
+      endif
+
+    enddo
 
   enddo
 
@@ -365,6 +346,70 @@ subroutine init_ring (ring, n)
   allocate (ring%ic_(1000))
 
 end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+ 
+! Function equivalent_eles (ele1, ele2) result (equiv)
+!
+! Subroutine to see if to elements are equivalent in terms of attributes so
+! that their Taylor Maps would be the same.
+! Two elements can be equivalent even if the names are different.
+!
+! Modules needed:
+!   use bmad
+!
+! Input: 
+!   ele1 -- Ele_struct: 
+!   ele2 -- Ele_struct:
+!
+! Output:
+!   equiv -- logical: True if elements are equivalent.
+!-
+
+function equivalent_eles (ele1, ele2) result (equiv)
+
+  implicit none
+
+  type (ele_struct), intent(in) :: ele1, ele2
+
+  integer it
+
+  logical equiv
+  logical vmask(n_attrib_maxx)
+
+!
+
+  equiv = .false.
+
+  if (ele1%key /= ele2%key) return
+  if (ele1%sub_key /= ele2%sub_key) return
+
+  vmask = .true.
+  if (ele1%key == wiggler$ .and. ele1%sub_key == map_type$) &
+                      vmask((/k1$, rho$, b_max$, z_patch$/)) = .false.
+  if (any(ele1%value /= ele2%value .and. vmask)) return
+
+  if (ele1%num_steps /= ele2%num_steps) return
+  if (ele1%integration_order /= ele2%integration_order) return
+
+  if (associated(ele1%wig_term) .neqv. associated(ele2%wig_term)) return
+  if (associated(ele1%wig_term)) then
+    if (size(ele1%wig_term) /= size(ele2%wig_term)) return
+    do it = 1, size(ele1%wig_term)
+      if (ele1%wig_term(it)%coef  /= ele2%wig_term(it)%coef)  cycle
+      if (ele1%wig_term(it)%kx    /= ele2%wig_term(it)%kx)    cycle
+      if (ele1%wig_term(it)%ky    /= ele2%wig_term(it)%ky)    cycle
+      if (ele1%wig_term(it)%kz    /= ele2%wig_term(it)%kz)    cycle
+      if (ele1%wig_term(it)%phi_z /= ele2%wig_term(it)%phi_z) cycle
+    enddo
+  endif
+
+  equiv = .true.
+
+
+end function
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

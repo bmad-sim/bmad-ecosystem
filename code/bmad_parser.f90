@@ -76,7 +76,6 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   logical, optional :: make_mats6, digested_read_ok
   logical parsing, delim_found, matched_delim, arg_list_found, doit
   logical file_end, found, err_flag, finished, save_taylor
-  logical vmask(n_attrib_maxx)
   logical, save :: init_needed = .true.
 
 ! see if digested file is open and current. If so read in and return.
@@ -906,30 +905,10 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       ele => ring%ele_(i)
       call attribute_bookkeeper (ele, ring%param) ! so value arrays are equal
 
-      vmask = .true.
-      if (ele%key == wiggler$) vmask((/k1$, rho$, b_max$/)) = .false.
       do j = 1, size(old_ele)
-        if (old_ele(j)%key /= ele%key) cycle
-        if (old_ele(j)%name /= ele%name) cycle
-        if (any(old_ele(j)%value /= ele%value .and. vmask)) cycle
-        if (old_ele(j)%num_steps /= ele%num_steps) cycle
-        if (old_ele(j)%integration_order /= ele%integration_order) cycle
-        if (associated(old_ele(j)%wig_term) .and. &
-                                               associated(ele%wig_term)) then
-          if (size(old_ele(j)%wig_term) /= size(ele%wig_term)) cycle
-          do it = 1, size(old_ele(j)%wig_term)
-            if (old_ele(j)%wig_term(it)%coef /= ele%wig_term(it)%coef) cycle
-            if (old_ele(j)%wig_term(it)%kx /= ele%wig_term(it)%kx) cycle
-            if (old_ele(j)%wig_term(it)%ky /= ele%wig_term(it)%ky) cycle
-            if (old_ele(j)%wig_term(it)%kz /= ele%wig_term(it)%kz) cycle
-            if (old_ele(j)%wig_term(it)%phi_z /= ele%wig_term(it)%phi_z) cycle
-          enddo
-        elseif (associated(old_ele(j)%wig_term) .xor. &
-                                            associated(ele%wig_term)) then
-          cycle
-        endif
         if (any(old_ele(j)%taylor(:)%ref /= 0)) cycle
         if (bmad_com%taylor_order > old_ele(j)%taylor_order) cycle
+        if (.not. equivalent_eles (old_ele(j), ele)) cycle
         exit
       enddo
 

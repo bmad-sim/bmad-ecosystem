@@ -29,6 +29,7 @@
 recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
 
   use bmad_struct
+  use bmad_utils_mod
   use bmad_interface, only: make_mat6
   use bookkeeper_mod, only: control_bookkeeper
 
@@ -147,39 +148,5 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
         call ring_make_mat6 (ring, i)
      endif
   enddo
-
-!----------------------------------------------------------------
-contains
-
-function equivalent_eles(ele1, ele2) result (equiv)
-
-  type (ele_struct) ele1, ele2
-  logical equiv
-  integer it
-
-!
-
-  equiv = .false.
-
-  if (any(ele1%value /= ele2%value)) return
-  if (associated(ele1%wig_term) .xor. associated(ele2%wig_term)) return
-  if (ele1%num_steps /= ele2%num_steps) return
-  if (ele1%integration_order /= ele2%integration_order) return
-
-  if (associated(ele1%wig_term)) then
-    if (size(ele1%wig_term) /= size(ele2%wig_term)) return
-    do it = 1, size(ele1%wig_term)
-      if (ele1%wig_term(it)%coef /= ele2%wig_term(it)%coef) return
-      if (ele1%wig_term(it)%kx /= ele2%wig_term(it)%kx) return
-      if (ele1%wig_term(it)%ky /= ele2%wig_term(it)%ky) return
-      if (ele1%wig_term(it)%kz /= ele2%wig_term(it)%kz) return
-      if (ele1%wig_term(it)%phi_z /= ele2%wig_term(it)%phi_z) return
-    enddo
-  endif
-
-  equiv = .true.
-
-end function
-
 
 end subroutine
