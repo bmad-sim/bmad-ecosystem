@@ -1,6 +1,13 @@
 \documentclass{book}
 \usepackage{graphicx}
+\usepackage{amsmath}
 \input{macros.tex}
+
+\setlength{\textwidth}{6in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0.54in}
+\setlength{\textheight}{8.5in}
+\setlength{\topmargin}{0in}
 
 %----------------------------------------------------------------
 
@@ -12,25 +19,24 @@
 \maketitle
 
 %----------------------------------------------------------------
-\include{overview.tex}
-\include{introduction.tex}
+\include{overview}
+\include{introduction}
 %----------------------------------------------------------------
 \tableofcontents
 \listoffigures
 \listoftables
 
 %----------------------------------------------------------------
-\part{Conventions and Physics}
+\part{Physics and Conventions}
 %----------------------------------------------------------------
-\include{conventions.tex}
-
+\include{coordinates}
+\include{physics}
 
 %----------------------------------------------------------------
 \part{Language Reference}
 %----------------------------------------------------------------
-\include{syntax.tex}
-\include{arathmetic_expressions.tex}
-\chapter{Physical Units and Constants}
+\include{syntax}
+\include{arithmetic_expressions}
 \chapter{Parameters}
 \chapter{Elements}
 \chapter{Element Sequencing}
@@ -44,11 +50,10 @@
 \part{Programmer's Guide}
 %----------------------------------------------------------------
 \include{bmad_distribution}
-%% \chapter{The \bmad Module Hierarchy}
 \include{ele_struct}
 \include{ring_struct}
 \include{coord_struct}
-\include{reading_and_writing_lattices.tex}
+\include{reading_and_writing_lattices}
 \include{tracking}
 \chapter{Transfer Matrices}
 \chapter{Twiss Parameters}

@@ -1,18 +1,29 @@
-\newcommand{\ringstruct}{{\bf ring\_struct}}
-\newcommand{\elestruct}{{\bf ele\_struct}}
-\newcommand{\coordstruct}{{\bf coord\_struct}}
-\newcommand{\ringequalring}{{\bf ring\_equal\_ring}}
-\newcommand{\bmadparser}{{\bf bmad\_parser}}
-\newcommand{\genfield}{{\bf gen\_field}}
+\newcommand{\Begineq}{\begin{equation}}
+\newcommand{\Endeq}{\end{equation}}
+
+\newcommand{\pow}[1]{\cdot 10^{#1}}
+\newcommand{\Bf}[1]{{\bf #1}}
 
 \newcommand{\bmad}{{\bf BMAD}}
 \newcommand{\rp}{{\bf rp}}
 \newcommand{\rdef}{{\bf rdef}}
 
-\newcommand{\ele}[2]{{\sl \%ele\_(#1)}}
-\newcommand{\nelemaxx}{{\sl \%n\_ele\_maxx}}
-\newcommand{\nelesymm}{{\sl \%n\_ele\_symm}}
-\newcommand{\neleuse}{{\sl \%n\_ele\_use}}
-\newcommand{\nelering}{{\sl \%n\_ele\_ring}}
-\newcommand{\nelemax}{{\sl \%n\_ele\_max}}
-\newcommand{\pointerinit}{{\sl \%pointer\_init}}                 
+\newcommand{\sn}[1]{{\sl #1}}    % For subroutine names
+\newcommand{\vn}[1]{{\sl #1}}    % For variable names
+\newcommand{\cn}[1]{{\vn \%#1}}  % For component names
+\newcommand{\tn}[1]{{\bf #1}}    % For Type (structure) names
+
+\newcommand{\ringequalring}{\sn{ring\_equal\_ring}}
+\newcommand{\bmadparser}{\sn{bmad\_parser}}
+
+\newcommand{\ele}[2]{\vn{ele\_(#1)}}
+\newcommand{\nelemaxx}{\vn{n\_ele\_maxx}}
+\newcommand{\nelesymm}{\vn{n\_ele\_symm}}
+\newcommand{\neleuse}{\vn{n\_ele\_use}}
+\newcommand{\nelering}{\vn{n\_ele\_ring}}
+\newcommand{\nelemax}{\vn{n\_ele\_max}}
+
+\newcommand{\ringstruct}{\tn{ring\_struct}}
+\newcommand{\elestruct}{\tn{ele\_struct}}
+\newcommand{\coordstruct}{\tn{coord\_struct}}
+\newcommand{\genfield}{\tn{gen\_field}}
