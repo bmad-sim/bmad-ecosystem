@@ -24,6 +24,9 @@
  $Id$
 
  $Log$
+ Revision 1.5  2004/01/13 20:03:46  cesrulib
+ Eliminate cast problem for gcc compiler.
+
  Revision 1.4  2002/02/23 20:32:16  dcs
  Double/Single Real toggle added
 
@@ -68,7 +71,7 @@ int get_lattice_list_unix_(char *lat_list, int *num_lats, char *directory,
   }
 
   *num_lats=0;
-  *lat_list=NULL;
+  *lat_list='\0';
   for (dp = readdir(dir_pointer); dp != NULL; dp = readdir(dir_pointer)) {
     strcpy(tmp, dp->d_name);
     if (c_match_wild(mask, tmp)) {
@@ -89,7 +92,7 @@ void trim(char *str, int len)
 
   for (i=0; i<len; i++) {
     if (isspace(str[i])) {
-      str[i]=NULL;
+      str[i]='\0';
       break;
     }
   }
