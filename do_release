@@ -20,7 +20,8 @@
 #                         of the release
 #          -dump          Dump the configuration information for this 
 #                         script
-#
+#          -tagr          cesr release tagging
+#          -tagp          packages release tagging
 #         variables:
 #           TAG=<release_tag>   Specify a custom tag for the release
 #           PKG=<packages_name> Specify a specific packages release
@@ -36,9 +37,13 @@
 #           BIN=<bin_dir>       Specify a custom CESR_BIN directory
 #                               Expects FULL path.
 #
-# examples: do_release PKG=packages_2003_0728_d DBL 
-#           do_release -build_only cesr_yyyy_mmdd_d DBL
+# examples: do_release -cesr PKG=packages_2003_0728_d DBL 
+#           do_release -cesr -build_only cesr_yyyy_mmdd_d DBL
 #
+#           do_release -tagr REL=cesr_2003_0728_d DBL 
+#                        #  tagging only #
+#           do_release -cesr -tagr PKG=packages_2003_0728_d DBL
+#                        #building  release then tagging#
 ################################################################
 
 ################################################################
@@ -63,6 +68,8 @@ myprint_help () {
     echo "                    name of the corresponding release"
     echo "-dump               Dump the configuration information for"
     echo "                    this script"
+    echo "-tagr               cesr release tagging"
+    echo "-tagp               packages release tagging"
     echo ""
     echo "Variable definitions:"
     echo "TAG=<release_tag>   Specify a custom tag for the release"
@@ -74,12 +81,6 @@ myprint_help () {
     echo "UTIL=<util_dir>     Specify a custom CESR_UTIL  directory"
     echo "BIN=<bin_dir>       Specify a custom CESR_BIN   directory"
     echo ""
-}
-
-# Variable Parsing Function
-var_parse () {
-    VAR=`echo ${arg} | cut -d = -f 1`
-    VAL=`echo ${arg} | cut -d = -f 2`
 }
 
 # Generate Unique Release Names
@@ -121,64 +122,41 @@ DO_BUILD="do_build"
 DO_DUMP=0
 GMAKE_OVERRIDE=0
 UTIL_OVERRIDE=0
-
 use_cesr_bin=/home/cesrulib/bin
+DO_TAG_RELEASE=0
+DO_TAG_PACKAGES=0
+REL=""
+PKG=""
 
 # Get inputs
-n_args=$#
-
-iarg=0
 arg_list=""
-while ( [ ${iarg} -lt ${n_args} ] ) ; do 
-    iarg=`expr $iarg + 1`
-    arg=$1
-
-    arg_list="${arg_list} ${arg}"
-
-#   Interpret the arguments
-    if ( [ "$arg" = "DBL" -o "$arg" = "dbl" ] ) then
-        PREC="DBL"
-    elif ( [ "$arg" = "SGL" -o "$arg" = "sgl" ] ) then
-        PREC="SGL"
-    elif ( [ "$arg" = "-cesr" ] ) then
-        DO_REL=1
-    elif ( [ "$arg" = "-pkg" ] ) then
-        DO_PKG=1
-    elif ( [ "$arg" = "-build_only" ] ) then
-        DO_CHECKOUT="no_checkout"
-    elif ( [ "$arg" = "-dump" ] ) then
-        DO_DUMP=1
-    else
-        var_parse
-        echo "$VAR = $VAL"
-        if   ( [ "$VAR" = "TAG" ] ) then
-            REL_TAG="$VAL"
-        elif ( [ "$VAR" = "PKG" ] ) then
-            PKG="$VAL"
-        elif ( [ "$VAR" = "REL" ] ) then
-            REL="$VAL"
-        elif ( [ "$VAR" = "CESR_GMAKE" ] ) then
-            use_cesr_gmake="$VAL"
-            GMAKE_OVERRIDE=1
-        elif ( [ "$VAR" = "CESR_UTIL" ] ) then
-            use_cesr_util="$VAL"
-            UTIL_OVERRIDE=1
-        elif ( [ "$VAR" = "CESR_BIN" ] ) then
-            use_cesr_bin="$VAL"
-        else
-            myprint_help
-            exit 1
-        fi
-    fi
-
-#   Shift to the next input argument
-    shift
-
+for i 
+do arg_list="${arg_list} ${i}";
+   case $i in
+     "DBL"|"dbl") PREC="DBL";;
+     "SGL"|"sgl") PREC="SGL";;
+     "-cesr"    ) DO_REL=1  ;;
+     "-pkg"     ) DO_PKG=1  ;;
+     "-build_only")DO_CHECKOUT="no_checkout";;
+     "-dump"    ) DO_DUMP=1 ;;
+     "-tagr"    ) DO_TAG_RELEASE=1;;
+     "-tagp"    ) DO_TAG_PACKAGES=1;; 
+     TAG=*      ) REL_TAG=`echo $i|cut -d= -f2`;;
+     PKG=*      ) PKG=`echo $i|cut -d= -f2`;;
+     REL=*      ) REL=`echo $i|cut -d= -f2`;;
+     CESR_GMAKE=*)use_cesr_gmake=`echo $i|cut -d= -f2`;
+                  GMAKE_OVERRIDE=1;;
+     CESR_UTIL=*)use_cesr_util=`echo $i|cut -d= -f2`;
+                 UTIL_OVERRIDE=1;;
+     CESR_BIN=*)use_cesr_bin=`echo $i|cut -d= -f2`;;
+     *) myprint_help;
+        exit 1;;
+   esac
 done
 echo "do_release - called with the following arguments:  "
 echo "${arg_list}" 
 echo ""
-
+   
 # Get the operating system and the machine type
 PLATFORM_TAG="`uname -s`_`uname -m`"
 
@@ -186,22 +164,22 @@ PLATFORM_TAG="`uname -s`_`uname -m`"
 DATE_TAG=`date +"%Y_%m%d"`
 
 # Set up the precision tag
-if ( [ "${PREC}" = "DBL" ] ) then
-    PREC_TAG="d"
-elif ( [ "${PREC}" = "SGL" ] ) then
-    PREC_TAG="s"
-fi
+case $PREC in
+   "DBL")PREC_TAG="d";;
+   "SGL")PREC_TAG="s";;
+esac 
 CESR_PREC="_${PREC}"
 
 # Generate the CESR release name
-if ( [ $DO_REL -eq 1 ] && [ $DO_CHECKOUT = "do_checkout" ] ) then
+if ( [ $DO_REL -eq 1 -a $DO_CHECKOUT = "do_checkout" ] ) then
     RNAME="${REL_TAG}_${DATE_TAG}_${PREC_TAG}"
     get_release_name
     REL_NAME=${RNAME}
     FULL_REL_NAME=${FULL_RNAME}
     FULL_REL_LOG=${FULL_RLOG}
-elif ( [ $DO_REL -eq 1 ] ) then
+elif ( [ ${REL} != "" ] ) then
     REL_NAME=${REL}
+    FULL_REL_NAME=${BUILD_DIR}/${PLATFORM_TAG}/${REL_NAME}
     FULL_REL_LOG=${BUILD_DIR}/log/${PLATFORM_TAG}/${REL}.log
 else
     REL_NAME=""
@@ -214,12 +192,13 @@ if ( [ $DO_PKG -eq 1 ] && [ $DO_CHECKOUT = "do_checkout" ] ) then
     PKG_NAME=${RNAME}
     FULL_PKG_NAME=${FULL_RNAME}
     FULL_PKG_LOG=${FULL_RLOG}
-elif ( [ $DO_PKG -eq 1 ] ) then
+elif ( [ ${PKG} != "" ] ) then
     PKG_NAME=${PKG}
+    FULL_PKG_NAME=${BUILD_DIR}/${PLATFORM_TAG}/${PKG_NAME}
     FULL_PKG_LOG=${BUILD_DIR}/log/${PLATFORM_TAG}/${PKG}.log
 else
     PKG_NAME=${PKG}
-fi		
+fi
 
 
 # Set the CESR bin directory for picking up scripts
@@ -262,6 +241,8 @@ if ( [ $DO_DUMP -eq 1 ] ) then
     echo "PKG_NAME          = ${PKG_NAME}"
     echo "FULL_PKG_NAME     = ${FULL_PKG_NAME}"
     echo "FULL_PKG_LOG      = ${FULL_PKG_LOG}"
+    echo "DO_TAG_RELEASE    = ${DO_TAG_RELEASE}"
+    echo "DO_TAG_PACKAGES   = ${DO_TAG_PACKAGES}"
 fi
 
 # Print the CESR environment variables
@@ -271,15 +252,67 @@ printenv | grep CESR_
 printenv | grep PKG_
 echo ""
 
+##########################################################
+#create the body of  e-mail  ( taggin cesr release or packages release)
+##########################################################
+if ( [ $DO_TAG_RELEASE -eq 1  -o  $DO_TAG_PACKAGES -eq 1 ] ) then 
+     TAG_EMAIL_ADDRESS="smirvi@mail.lepp.cornell.edu"
+     NAME_BODY_EMAIL_FILE=tmp_file_${PLATFORM_TAG}
+     if ( [ $DO_TAG_RELEASE -eq 1 ] ) then
+       echo "TAG: ${REL_NAME}">$NAME_BODY_EMAIL_FILE
+       echo " ">>$NAME_BODY_EMAIL_FILE
+       echo "has been assigned to sources in ">>$NAME_BODY_EMAIL_FILE
+       echo " ">>$NAME_BODY_EMAIL_FILE
+       echo "${FULL_REL_NAME}">>$NAME_BODY_EMAIL_FILE
+       echo " and ">>$NAME_BODY_EMAIL_FILE
+       echo "${FULL_PKG_NAME}>>$NAME_BODY_EMAIL_FILE
+     else
+       echo "TAG: ${PKG_NAME}">$NAME_BODY_EMAIL_FILE
+       echo " ">>$NAME_BODY_EMAIL_FILE
+       echo "has been assigned to sources in ">>$NAME_BODY_EMAIL_FILE
+       echo " ">>$NAME_BODY_EMAIL_FILE
+       echo "${FULL_PKG_NAME}">>$NAME_BODY_EMAIL_FILE
+     fi
+fi
+
+ 
+#############    do tagging only ############################
+if ( [ $DO_TAG_RELEASE -eq 1 -a ${DO_REL} -eq 0 ] ) then
+      echo " Tagging with tag ${REL_NAME}";
+      gmake -f ${BIN_DIR}/M.release TAGS_NAME=${REL_NAME}  add_tag_release;
+      if ( [ $? -ne 0 ] ) then 
+               echo " Tagging failed. Code $? ";
+               exit 7
+      fi
+      Mail -s "Release(packages) have been tagged" $USER <$NAME_BODY_EMAIL_FILE  $TAG_EMAIL_ADDRESS
+      rm $NAME_BODY_EMAIL_FILE 
+      exit
+fi
+
+if ( [ $DO_TAG_PACKAGES -eq 1 -a ${DO_PKG} -eq 0 ] ) then
+      echo "Tagging packages with name ${PKG_NAME}"; 
+      gmake -f ${BIN_DIR}/M.release  FULL_PKG_DIR=${FULL_PKG_NAME} TAGS_NAME=${PKG_NAME} add_tag_packages;
+      if ( [ $? -ne 0 ] ) then 
+               echo " Tagging failed. Code $? ";
+               exit 7
+      fi
+      Mail -s "Release(packages) have been tagged" $USER <$NAME_BODY_EMAIL_FILE  $TAG_EMAIL_ADDRESS
+      rm $NAME_BODY_EMAIL_FILE 
+      exit
+fi 
+
+#######################################################
 # Checkout the PACKAGES RELEASE
+#######################################################
 co_pkg_status=0
 if ( [ $DO_PKG -eq 1 ] && [ ${DO_CHECKOUT} = "do_checkout" ] ) then
     echo "`date`: Checking out packages..."
     gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_PKG=${DO_PKG} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BUILD="" > ${FULL_PKG_LOG} 2>&1
     co_pkg_status=$?
 fi
-
+####################################################
 # Checkout the CESR RELEASE
+####################################################
 co_rel_status=0
 if ( [ $DO_REL -eq 1 ] && [ ${DO_CHECKOUT} = "do_checkout" ] ) then
     echo "`date`: Checking out CESR release..."
@@ -299,7 +332,7 @@ else
     exit 1
 fi
 
-
+################################
 # Build the PACKAGES RELEASE
 build_pkg_status=0
 if ( [ $DO_PKG -eq 1 ] ) then
@@ -308,7 +341,7 @@ if ( [ $DO_PKG -eq 1 ] ) then
     build_pkg_status=$?
     echo "`date`: PACKAGES build complete;  Status = ${build_pkg_status}"
 fi
-
+##############################
 # Build the CESR RELEASE
 build_rel_status=0
 if ( [ $DO_REL -eq 1 ] ) then
@@ -318,9 +351,32 @@ if ( [ $DO_REL -eq 1 ] ) then
     echo "`date`: CESR build complete;  Status = ${build_rel_status}"
 fi
 
+###############################################################
+# do tagging after successful building CESR RELEASE or PACKAGES
+###############################################################
 if ( [ ${build_pkg_status} -eq 0 -a ${build_rel_status} -eq 0 ] ) then
-    echo "`date`: Installation completed successfully!"
-else
+    echo "`date`: Installation completed successfully!";
+    if ( [ $DO_TAG_RELEASE -eq 1 ] ) then
+       echo " Tagging with tag ${REL_NAME}";
+       gmake -f ${BIN_DIR}/M.release TAGS_NAME=${REL_NAME}  add_tag_release;
+       if ( [ $? -ne 0 ] ) then 
+               echo " Tagging failed. Code $? ";
+               exit 7
+       fi
+       Mail -s "Release(packages) have been tagged" $USER <$NAME_BODY_EMAIL_FILE  $TAG_EMAIL_ADDRESS
+       rm $NAME_BODY_EMAIL_FILE 
+    fi
+    if ( [ $DO_TAG_PACKAGES -eq 1 ] ) then
+       echo "Tagging packages with name ${PKG_NAME}"; 
+       gmake -f ${BIN_DIR}/M.release  FULL_PKG_DIR=${FULL_PKG_NAME} TAGS_NAME=${PKG_NAME} add_tag_packages;
+       if ( [ $? -ne 0 ] ) then 
+               echo " Tagging failed. Code $? ";
+               exit 7
+       fi
+       Mail -s "Release(packages) have been tagged" $USER <$NAME_BODY_EMAIL_FILE  $TAG_EMAIL_ADDRESS
+       rm $NAME_BODY_EMAIL_FILE   
+    fi
+    else
     echo "`date`: Installation completed with errors!"
 fi
 
