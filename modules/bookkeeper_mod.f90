@@ -173,7 +173,7 @@ Subroutine adjust_super_lord_s_position (ring, ix_lord)
 
   real(rp) s_start, s_start2, s_end
 
-  character(20) :: r_name = 'adjust_super_lord_s_position'
+  character(40) :: r_name = 'adjust_super_lord_s_position'
 
 !
 
@@ -284,7 +284,7 @@ subroutine makeup_super_slave (ring, ix_slave)
 
   real(rp) tilt, k_x, k_y, x_kick, y_kick, ks, k1, coef
   real(rp) x_o, y_o, x_p, y_p, s_slave, s_del, k2, k3
-  real(rp) sin_n, cos_n, x_off, y_off, a(0:n_pole_maxx), b(0:n_pole_maxx)
+  real(rp) sin_n, cos_n, a(0:n_pole_maxx), b(0:n_pole_maxx)
   real(rp) knl(0:n_pole_maxx), t(0:n_pole_maxx), value(n_attrib_maxx)
   real(rp) a_tot(0:n_pole_maxx), b_tot(0:n_pole_maxx)
   real(rp) sum_1, sum_2, sum_3, sum_4, ks_sum, ks_xp_sum, ks_xo_sum
@@ -455,10 +455,10 @@ subroutine makeup_super_slave (ring, ix_slave)
     lord => ring%ele_(ix)
 
     if (lord%control_type /= super_lord$) then
-      call out_io (s_abort$, r_name, (/ &
+      call out_io (s_abort$, r_name, &
             "SUPER_SLAVE HAS A CONTROL ELEMENT THAT IS NOT A SUPER_LORD", &
             'SLAVE: ' //  slave%name // '  \i\ ', &
-            'LORD:  ' //  lord%name  // '  \i\ ' /), i_array = (/ ix_slave, ix /) )
+            'LORD:  ' //  lord%name  // '  \i\ ', i_array = (/ ix_slave, ix /) )
       call err_exit
     endif
 
@@ -916,9 +916,9 @@ subroutine attribute_bookkeeper (ele, param)
   type (ele_struct) ele
   type (param_struct) param
 
-  real(rp) r, factor, check_sum
+  real(rp) factor, check_sum
   
-  character(20) ::  r_name='attribute_bookkeeper'
+  character(20) ::  r_name = 'attribute_bookkeeper'
 
 ! Transfer tilt to tilt_tot, etc.
 
@@ -1170,7 +1170,7 @@ subroutine transfer_ring_taylors (ring_in, ring_out, type_out, transfered_all)
   type (ring_struct), target, intent(inout) :: ring_out
   type (ele_struct), pointer :: ele_in, ele_out
 
-  integer i, j, k, it, ix
+  integer i, j
   integer n_in, ix_in(ring_in%n_ele_maxx)
  
   logical, intent(in)  :: type_out

@@ -107,9 +107,6 @@ subroutine sol_quad_mat6_calc (ks_in, k1_in, s_len, m, orb, dz_coef)
   real(rp) m(6,6)
   real(rp) orb(6)
 
-  integer i, j
-  integer order
-
   real(rp) ks2, s, c, snh, csh, rel_E, ks_in, k1_in
   real(rp) darg1, alpha, alpha2, beta, beta2, f, q, r, a, b
   real(rp) df, dalpha2, dalpha, dbeta2, dbeta, darg
@@ -427,13 +424,9 @@ subroutine bbi_slice_calc (n_slice, sig_z, z_slice)
 
   implicit none
 
-  integer i, n_slice, n_slice_old / 0 /
-
-  real(rp) sig_z, z_slice(:), y, z_norm(100)
-
-!  external probability_funct
-
-  save z_norm
+  integer :: i, n_slice, n_slice_old = 0 
+  real(rp) sig_z, z_slice(:), y
+  real(rp), save :: z_norm(100)
 
 !
 

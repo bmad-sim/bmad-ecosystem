@@ -91,11 +91,8 @@ subroutine multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)
 
   type (ele_struct)  ele
 
-  real(rp) knl(0:), tilt(0:), signn, a_n, b_n
-  real(rp) value(n_attrib_maxx), a(0:n_pole_maxx), b(0:n_pole_maxx)
-
-  integer n, particle, n_fact
-
+  real(rp) knl(0:), tilt(0:), a(0:n_pole_maxx), b(0:n_pole_maxx)
+  integer particle
   logical use_ele_tilt
 
 !

@@ -161,12 +161,10 @@ subroutine track_a_bend (start, ele, param, end)
   type (coord_struct), intent(out) :: end
   type (ele_struct),   intent(inout)  :: ele
   type (param_struct), intent(inout) :: param
-  type (coord_struct) start2
 
-  real(rp) b1, angle, ct, st, x, px, y, py, z, pz, dpx_t, phi
-  real(rp) rel_E, rel_E2, Dxy, Dy, px_t, factor, rho, fact, g0, dg
-  real(rp) length, g_tot, dE, del, f, kc, mat2(2,2), mat_i6(6)
-  real(rp) re_xy
+  real(rp) b1, angle, ct, st, x, px, y, py, z, pz, dpx_t
+  real(rp) rel_E, rel_E2, Dxy, Dy, px_t, factor, rho, g0, dg
+  real(rp) length, g_tot, dE, re_xy
 
 ! simple case
 
@@ -261,7 +259,7 @@ subroutine track_bend_edge (orb, ele, start_edge, reverse, kx, ky)
   type (ele_struct) ele
   type (coord_struct) orb
   real(rp), optional :: kx, ky
-  real(rp) e, g, del, f
+  real(rp) e, g, del
   logical start_edge, reverse
 
 ! Track through the entrence face. Treat as thin lens.

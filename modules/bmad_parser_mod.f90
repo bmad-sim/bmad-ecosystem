@@ -177,7 +177,7 @@ subroutine get_attribute (how, ele, ring, pring, &
   real(rp) kx, ky, kz, tol, value, coef
   real(rp), pointer :: r_ptr
 
-  integer i, ic, ix_word, how, ix_word1, ix_word2, ix_word3, ios, ix, i_out
+  integer i, ic, ix_word, how, ix_word1, ix_word2, ios, ix, i_out
   integer expn(6), ix_attrib
 
   character(16) :: word, tilt_word = 'TILT', str_ix
@@ -757,7 +757,7 @@ subroutine get_next_word (word, ix_word, delim_list, &
 
   character*(*) word, delim_list, delim
                            
-  logical delim_found, file_end, to_upper
+  logical delim_found, file_end
   logical, optional :: upper_case_word
 
 ! check for continuation character and if found then load more characters
@@ -880,7 +880,7 @@ subroutine load_parse_line (how, ix_cmd, file_end)
 
   implicit none
 
-  integer ix_cmd, ix, ios
+  integer ix_cmd, ix
 
   character*(*) how
   character*140 line, pending_line
@@ -1037,7 +1037,7 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
   character(40) word, word0
 
   logical delim_found, split, ran_function_pending
-  logical err_flag, op_found
+  logical err_flag
 
 ! The general idea is to rewrite the expression on a stack in reverse polish.
 ! Reverse polish means that the operand goes last so that 2 * 3 is writen 
@@ -1493,7 +1493,7 @@ subroutine parser_add_variable (word, ring)
   type (ring_struct) ring
   character(*) word
   character(1) delim
-  integer i, ivar, n, ixm, ixm2
+  integer i, ivar, ixm, ixm2
   logical delim_found, err_flag
 
 !
@@ -1839,16 +1839,14 @@ subroutine verify_valid_name (name, ix_name)
 
   implicit none
 
-  integer i, ix_name, len, ix, ix1, ix2
+  integer i, ix_name, ix1, ix2
 
-  character*(*) name
-  character*27 letters / '\ABCDEFGHIJKLMNOPQRSTUVWXYZ' / 
-  character*40   valid_chars / 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]' /
-  character*1 tab
+  character(*) name
+  character(27) :: letters = '\ABCDEFGHIJKLMNOPQRSTUVWXYZ' 
+  character(40) :: valid_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]'
+  character(1), parameter :: tab = achar(9)
 
   logical OK
-
-  parameter (tab = char(9))
 
 ! check for blank spaces
 
@@ -1985,7 +1983,6 @@ subroutine warning (what1, what2, seq)
 
   implicit none
 
-  integer ix
   character*(*) what1
   character*(*), optional :: what2
   type (seq_struct), optional :: seq
@@ -2229,11 +2226,11 @@ subroutine add_all_superimpose (ring, ele_in, pele)
   type (parser_ele_struct) pele
 
   integer ix, i, j, it, nic, nn, i_sup, i_ele, ic
-  integer n_inserted, ix_lord, n_con
+  integer n_inserted, n_con
 
   character(16) matched_name(200)
 
-  logical match_wild, have_inserted, create_new
+  logical match_wild, have_inserted
 
 ! init
 
@@ -2602,7 +2599,7 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
   type (seq_ele_struct), pointer :: this_ele
   type (ring_struct) ring
 
-  integer ix_ele, iseq_tot, ix_word, ix, i, j, n, ios, i_rl
+  integer ix_ele, iseq_tot, ix_word, ix, i, n
   integer, save :: ix_internal = 0
 
   real(rp) rcount
@@ -2842,14 +2839,12 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
   type (parser_ring_struct) pring
   type (control_struct), pointer, save :: cs_(:) => null()
 
-  integer ixx, i, ic, n, n2, k, k2, ix, j, ie, ij, ix1, ns, ixs
+  integer ixx, i, ic, n, n2, k, k2, ix, j, ie, ix1, ns, ixs
   integer ix_lord, ix_slave(1000), k_slave, k_slave_original
   integer, allocatable, save :: r_indexx(:)
 
   character(16), allocatable :: name_(:)
   character(16) name, name1, slave_name, attrib_name
-
-  logical delete
 
 ! setup
 ! in_ring has the lords that are to be added to ring.

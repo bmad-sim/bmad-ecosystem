@@ -194,7 +194,7 @@ end subroutine
 
 subroutine ring_to_layout (ring, ptc_layout)
 
-  use s_fibre_bundle, only: ring_l, append
+  use s_fibre_bundle, only: ring_l, append, lp
   use mad_like, only: set_up
 
   implicit none
@@ -203,26 +203,11 @@ subroutine ring_to_layout (ring, ptc_layout)
   type (layout), intent(inout) :: ptc_layout
   type (fibre), pointer :: fib
 
-  real(8) energy, kinetic, beta0, p0c, brho
-
   integer i
 
 ! setup
 
   call set_up (ptc_layout)
-
-! transfer energy, etc.
-
-!  ptc_layout%energy = 1e-9 * ring%param%beam_energy
-!  call energy_to_kinetic (ring_param%beam_energy, ring%param%particle, &
-!                                                 kinetic, beta0, p0c, brho)
-!  ptc_layout%kinetic = kinetic
-!  ptc_layout%beta0, = beta0
-!  ptc_layout%p0c = p0c
-!  ptc_layout%brho = brho
-!  
-!  ptc_layout%circumference = 0
-
 
 ! transfer elements.
 
@@ -237,7 +222,7 @@ subroutine ring_to_layout (ring, ptc_layout)
 
   if (ring%param%lattice_type == circular_lattice$) then
     ptc_layout%closed = .true.
-    call ring_l (ptc_layout, .true.)
+    call ring_l (ptc_layout, .true._lp)
   else
     ptc_layout%closed = .false.
   endif
@@ -462,14 +447,14 @@ subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
                                     num_steps, no_cavity, exact_calc, exact_misalign) 
 
   use mad_like, only: make_states, exact_model, always_exactmis, &
-                assignment(=), set_mad, nocavity, default, operator(+), &
-                berz, init, set_madx
+                assignment(=), nocavity, default, operator(+), &
+                berz, init, set_madx, lp
 
   implicit none
 
   integer, optional :: integ_order, particle, num_steps, taylor_order
   integer this_method, this_steps
-  integer nd2, npara
+  integer nd2
 
   real(rp), optional :: beam_energy
   real(rp), save :: old_beam_energy = 0
@@ -487,9 +472,9 @@ subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
 
   if (init_needed .and. params_present) then
     if (particle == positron$ .or. particle == electron$) then
-      call make_states(.true.)
+      call make_states(.true._lp)
     else
-      call make_states(.false.)
+      call make_states(.false._lp)
     endif
     EXACT_MODEL = .false.
     ALWAYS_EXACTMIS = .true.
@@ -1197,7 +1182,7 @@ subroutine taylor_inverse (taylor_in, taylor_inv)
   type (damap) da
 
   real(rp) c0(6)
-  real(8) c8(6)
+  real(dp) c8(6)
 
 ! set the taylor order in PTC if not already done so
 
@@ -1269,14 +1254,13 @@ end subroutine
 
 subroutine concat_taylor (taylor1, taylor2, taylor3)
 
-  use s_fitting, only: assignment(=), kill, damap
+  use s_fitting, only: assignment(=), kill
 
   implicit none
 
   type (taylor_struct) :: taylor1(:), taylor2(:)
   type (taylor_struct) :: taylor3(:)
   type (real_8) y1(6), y2(6), y3(6)
-  type (damap) da1, da2, da3
 
 ! set the taylor order in PTC if not already done so
 
@@ -1566,7 +1550,7 @@ subroutine sort_universal_terms (ut_in, ut_sorted)
   type (universal_taylor) :: ut_sorted
 
   integer, allocatable :: ix_(:), ord_(:)
-  integer i, j, n, nv, expn(6)
+  integer i, n, nv, expn(6)
 
 ! init
 
@@ -1695,16 +1679,15 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
   type (keywords) ptc_key
   type (param_struct) :: param
 
-  real(8) mis_rot(6)
-  real(8) omega(3), basis(3,3), angle(3)
+  real(dp) mis_rot(6)
+  real(dp) omega(3), basis(3,3), angle(3)
 
   real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
   real(rp) cos_t, sin_t, len, hk, vk, x_off, y_off
 
-  integer i, n, metd_temp, nstd_temp, key, n_term, exception
+  integer n, key, n_term, exception
   integer, optional :: integ_order, steps
 
-  character name*16
   logical kick_here
 
 !
@@ -1720,7 +1703,9 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 
   ptc_key%tiltd = ele%value(tilt_tot$)
   ptc_key%nstep = ele%num_steps
+  if (present(steps)) ptc_key%nstep = steps
   ptc_key%method = ele%integration_ord  
+  if (present(integ_order)) ptc_key%method = integ_order
 
 !
 

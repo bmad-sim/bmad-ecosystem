@@ -178,9 +178,7 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
   type (param_struct) param
 
   real(rp) charge
-  integer i, j, ix
-
-  logical sr_wake_on
+  integer i, j
 
 ! Charge and center
 
@@ -299,9 +297,9 @@ subroutine sr_long_wake_calc (bunch, ele)
   type (macro_struct), pointer :: macro(:), macro2(:)
 
   real(rp) z_ave, charge, z0, sr02, ch_j, sig0, sig, dz
-  real(rp) f, f1, f2, z, dE, E_rel, fact, dz_wake
+  real(rp) f, f1, f2, z, dz_wake
 
-  integer i, j, k, ix, iw, nm, n_wake
+  integer i, j, k, iw, nm, n_wake
 
 ! Init
 
@@ -412,9 +410,9 @@ subroutine track1_sr_trans_wake (bunch, ele)
   type (macro_struct), pointer :: macro(:), macro2(:)
 
   real(rp) x_ave, y_ave, z_ave, charge
-  real(rp) f1, f2, z, dE, E_rel, fact, dz_wake
+  real(rp) f1, f2, z, fact, dz_wake
 
-  integer i, j, k, ix, i0, i1, ix0, ix1, iw, n_wake
+  integer i, j, k, iw, n_wake
 
 ! Init
 

@@ -44,7 +44,7 @@ subroutine track_a_accel_sol (start, ele, param, end)
 
   implicit none
 
-  type (coord_struct)  start, end, c0
+  type (coord_struct)  start, end
   type (ele_struct)  ele
   type (param_struct)  param
 

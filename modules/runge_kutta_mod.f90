@@ -68,13 +68,12 @@ subroutine odeint_bmad (start, ele, param, end, &
   type (track_struct) track
 
   real(rp), intent(in) :: s1, s2, rel_tol, abs_tol, h1, h_min
-
   real(rp), parameter :: tiny = 1.0e-30_rp
   real(rp) :: h, h_did, h_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N
   real(rp) :: dr_ds(6), r(6), r_scal(6)
 
   integer, parameter :: max_step = 10000
-  integer :: n_step, n_pts_save_max
+  integer :: n_step
 
 ! init
 

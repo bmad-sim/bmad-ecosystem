@@ -85,7 +85,7 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine wiggler_vec_potential (ele, energy, here, vec_pot)
+! Subroutine wiggler_vec_potential (ele, here, vec_pot)
 !
 ! Subroutine to calculate the normalized vector potential at 
 ! a point for a wiggler. The normalized potental a_norm is defined by:
@@ -97,20 +97,18 @@ end subroutine
 !
 ! Input:
 !   ele     -- Ele_struct: wiggler element.
-!   energy  -- Real(rp): Particle energy.
 !   here    -- Coord_struct: Coordinates for calculating the vector pot.
 !
 ! Output:
 !   vec_pot(3) -- Real(rp): Normalized vector potential
 !-
 
-subroutine wiggler_vec_potential (ele, energy, here, vec_pot)
+subroutine wiggler_vec_potential (ele, here, vec_pot)
 
   implicit none
 
   type (ele_struct), target, intent(in) :: ele
   type (coord_struct), intent(in) :: here
-  real(rp), intent(in) :: energy
   real(rp), intent(out) :: vec_pot(3)
 
   type (wig_term_struct), pointer :: t
@@ -618,7 +616,6 @@ subroutine deallocate_ele_pointers (ele, nullify_only)
   implicit none
 
   type (ele_struct) ele
-  integer ix
   logical, optional, intent(in) :: nullify_only
 
 ! nullify only
@@ -878,7 +875,7 @@ subroutine deallocate_ring_pointers (ring)
   implicit none
 
   type (ring_struct) ring
-  integer i, ix
+  integer i
 
 !
 

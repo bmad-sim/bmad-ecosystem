@@ -80,7 +80,7 @@ subroutine track1_adaptive_boris (start, ele, param, end, track, s_start, s_end)
   type (track_struct) :: track
 
   real(rp), optional, intent(in) :: s_start, s_end
-  real(rp) :: ds, ds_did, ds_next, s, s_sav, rel_tol, abs_tol, sqrt_N
+  real(rp) :: ds, s, s_sav, rel_tol, abs_tol, sqrt_N
   real(rp), parameter :: err_5 = 0.0324, safety = 0.9
   real(rp) :: s1, s2, scale_orb, err_max, ds_temp, rel_tol_N, abs_tol_N
 
@@ -473,7 +473,7 @@ subroutine boris_energy_correction (ele, param, here)
   type (coord_struct) :: here
 
   real(rp) p0, p1
-  character(24) :: r_name = 'boris_energy_correction'
+!  character(24) :: r_name = 'boris_energy_correction'
 
 !
 

@@ -94,7 +94,7 @@ subroutine qromb_rad_int (do_int, ir)
 
   real(rp) :: eps_int, eps_sum
   real(rp) :: ll, ds, s0, s_pos, dint, d0, d_max
-  real(rp) i_sum(7), rad_int(7), int_tot(7)
+  real(rp) i_sum(7), rad_int(7)
 
   logical do_int(7), complete
 
@@ -245,7 +245,7 @@ subroutine bracket_index (s_arr, i_min, s, ix)
   integer i_min, i_max
   real(rp) s_arr(i_min:), s
 
-  integer i, ix, n1, n2, n3
+  integer ix, n1, n2, n3
 
 !
 

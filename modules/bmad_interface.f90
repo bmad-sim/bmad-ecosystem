@@ -203,7 +203,6 @@ interface
     type (ring_struct) ring
     type (control_struct) con_(:)
     integer ix_ele
-    integer n_slave
   end subroutine
 end interface
 
@@ -323,7 +322,6 @@ interface
     use bmad_struct, only: ring_struct, ele_struct
     implicit none
     type (ring_struct) ring
-	type (ring_struct) oppos_ring
     type (ele_struct) insert_ele
     integer insert_index
   end subroutine
@@ -377,7 +375,6 @@ interface
     use bmad_struct, only: ring_struct
     implicit none
     type (ring_struct), dimension(:) :: ring
-    type (ring_struct) :: master_ring
     type (ring_struct) :: master_ring_oppos
     integer, dimension(:,:) :: ix_LRBBI
     integer, dimension(:,:) :: master_ix_LRBBI
@@ -604,7 +601,6 @@ interface
     implicit none
     type (ele_struct), target :: ele
     real(rp), pointer :: ptr_attrib
-    integer i_ele
     integer ix_attrib
     character(*) attrib_name
     logical cannot_vary_flag
@@ -772,7 +768,7 @@ end interface
 
 interface
   subroutine track_all (ring, orbit_)
-    use bmad_struct, only: ring_struct, rp, coord_struct
+    use bmad_struct, only: ring_struct, coord_struct
     implicit none
     type (ring_struct) ring
     type (coord_struct), allocatable :: orbit_(:)
@@ -888,7 +884,6 @@ interface
     type (coord_struct) end
     type (param_struct) param
     type (ele_struct) ele
-    logical is_lost
   end subroutine
 end interface
 

@@ -136,14 +136,13 @@ subroutine bmad_to_db (ring, db, calib_date)
 
   type (ring_struct) ring
   type (db_struct) db
-  type (cesr_element_struct) :: cesr_ele(4)
   type (cesr_struct) cesr
 
   real h_stren(120), v_stren(120), gev, cu_per_k_gev(0:120)
   real k_theory(0:120), k_base(0:120), len_quad(0:120)
   real quad_tilt(0:120), dk_gev_dcu(0:120)
 
-  integer n1, i, ix, ios, cu_theory(0:120), nq100
+  integer i, ix, ios, cu_theory(0:120), nq100
 
   character(*), optional :: calib_date
   character(16) type_str
@@ -330,7 +329,7 @@ subroutine db_init_it (node, n1, node_name, ix_attrib, node_array, &
 
   implicit none
 
-  integer ix_attrib, n1, i, vnumbr, ix, iv, ix_(200)
+  integer ix_attrib, n1, i, vnumbr, iv, ix_(200)
 
   type (db_element_struct), target :: node(n1:)
   type (db_node_struct) :: node_array(:)
@@ -592,7 +591,7 @@ subroutine db_group_to_bmad_group (group_name, group_num, &
   type (control_struct) con_(100)
   type (db_struct) db
 
-  integer n_con, group_num, ix_ele, biggrp_set, ix, csr_set
+  integer n_con, group_num, ix_ele, biggrp_set, ix, ixs(1), csr_set
   character*12 group_name
   logical ok, type_err
 
@@ -605,7 +604,7 @@ subroutine db_group_to_bmad_group (group_name, group_num, &
   if (.not. ok) return
   call new_control (ring, ix_ele)
 
-  call vstget (group_name, group_num, group_num, ring%ele_(ix_ele)%name, ix)
+  call vstget (group_name, group_num, group_num, ring%ele_(ix_ele:ix_ele)%name, ixs)
 
   write (ring%ele_(ix_ele)%type, '(a, i4)') group_name, group_num
 
@@ -775,7 +774,7 @@ subroutine read_butns_file (butns_num, butns, db, read_ok, type_err)
     if (ix /= 0) exit
     ix = index(line_in, 'TURN=')
     if (ix /= 0) then
-      read (line_in(ix+5:), '(i)', iostat = ios) butns%turn
+      read (line_in(ix+5:), *, iostat = ios) butns%turn
       if (ios /= 0) then
         print *, 'ERROR IN READ_BUTNS_FILE: ERROR READING TURN NUMBER.'
         print *, '      IN FILE: ', trim(file_in)

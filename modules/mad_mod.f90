@@ -154,7 +154,7 @@ subroutine make_mad_map (ele, particle, map)
 
 ! offsets and multipoles
 
-  call mad_add_offsets_and_multipoles (ele, energy, map)
+  call mad_add_offsets_and_multipoles (ele, map)
 
 end subroutine
 
@@ -162,7 +162,7 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine mad_add_offsets_and_multipoles (ele, energy, map)
+! Subroutine mad_add_offsets_and_multipoles (ele, map)
 !
 ! Subroutine to add in the effect of element offsets and/or multipoles
 ! on the 2nd order transport map for the element.
@@ -178,12 +178,11 @@ end subroutine
 !   map -- mad_map_struct: Structure holding the transfer map.
 !-
 
-subroutine mad_add_offsets_and_multipoles (ele, energy, map)
+subroutine mad_add_offsets_and_multipoles (ele, map)
 
   implicit none
 
   type (ele_struct), target :: ele
-  type (energy_struct) energy
   type (mad_map_struct) map
   type (mad_map_struct) map2
 
@@ -237,7 +236,6 @@ subroutine mad_add_offsets_and_multipoles (ele, energy, map)
   if (associated(ele%a)) then
     print *, "ERROR IN MAD_MOD: YOUR MOTHER DOESN'T WORK HERE! CLEAN UP THIS MESS!"
     call err_exit
-!    call multipole_ele_to_ab (ele, energy%particle, a, b, .true.)
     map2%k(2) = map2%k(2) - ele%b(0) / 2
     map2%k(4) = map2%k(4) + ele%a(0) / 2
     map2%r(2,1) = -ele%b(1) / 2
@@ -266,7 +264,6 @@ subroutine mad_add_offsets_and_multipoles (ele, energy, map)
   if (associated(ele%a)) then
     print *, "ERROR IN MAD_MOD: YOUR MOTHER DOESN'T WORK HERE! CLEAN UP THIS MESS!"
     call err_exit
-!    call multipole_ele_to_ab (ele, energy%particle, a, b, .true.)
     map2%k(2) = map2%k(2) - ele%b(0) / 2
     map2%k(4) = map2%k(4) + ele%a(0) / 2
     map2%r(2,1) = -ele%b(1) / 2
@@ -345,7 +342,7 @@ Subroutine mad_drift (ele, energy, map)
   type (mad_map_struct), target :: map
 
   real(rp) el, beta, gamma, f
-  real(rp), pointer :: ek(:), re(:,:), te(:,:,:)
+  real(rp), pointer :: re(:,:), te(:,:,:)
 
 ! Init
 
@@ -355,7 +352,6 @@ Subroutine mad_drift (ele, energy, map)
   beta = energy%beta
   gamma = energy%gamma
   
-  ek => map%k
   re => map%r
   te => map%t
 
@@ -406,7 +402,7 @@ Subroutine mad_elsep (ele, energy, map)
   type (energy_struct) energy            
   type (mad_map_struct), target :: map
 
-  real(rp) el, beta, gamma, fact, efield, charge, pc
+  real(rp) el, beta, gamma, fact
   real(rp) ekick, ekl, ch, sh, sy, dy, tilt
        
   real(rp), pointer :: ek(:), re(:,:), te(:,:,:)
@@ -542,7 +538,7 @@ subroutine mad_sextupole (ele, energy, map)
   real(rp) el, beta, gamma
   real(rp) skl, s1, s2, s3, s4
 
-  real(rp), pointer :: ek(:), re(:,:), te(:,:,:)
+  real(rp), pointer :: re(:,:), te(:,:,:)
 
 ! Init
 
@@ -552,7 +548,6 @@ subroutine mad_sextupole (ele, energy, map)
   beta = energy%beta
   gamma = energy%gamma
   
-  ek => map%k
   re => map%r
   te => map%t
 
@@ -701,7 +696,7 @@ subroutine mad_sbend_fringe (ele, energy, into, map)
   type (energy_struct) energy
   type (mad_map_struct), target ::  map
 
-  real(rp), pointer :: ek(:), re(:,:), te(:,:,:)
+  real(rp), pointer :: re(:,:), te(:,:,:)
   real(rp) h, he, hh, edge, tanedg, secedg, psip, sk1
 
   logical into
@@ -711,7 +706,6 @@ subroutine mad_sbend_fringe (ele, energy, into, map)
 
   call make_unit_mad_map (map)
 
-  ek => map%k
   re => map%r
   te => map%t
 
@@ -1082,7 +1076,7 @@ subroutine mad_quadrupole (ele, energy, map)
   real(rp) el, beta, gamma
   real(rp) sk1, qk, qkl, qkl2, cx, sx, cy, sy, biby4
 
-  real(rp), pointer :: ek(:), re(:,:), te(:,:,:)
+  real(rp), pointer :: re(:,:), te(:,:,:)
 
 ! Init
 
@@ -1094,7 +1088,6 @@ subroutine mad_quadrupole (ele, energy, map)
   beta = energy%beta
   gamma = energy%gamma
   
-  ek => map%k
   re => map%r
   te => map%t
 
@@ -1255,7 +1248,7 @@ subroutine mad_solenoid (ele, energy, map)
   real(rp) el, beta, gamma, temp
   real(rp) sk, skl, co, si, sibk, sks
 
-  real(rp), pointer :: ek(:), re(:,:), te(:,:,:)
+  real(rp), pointer :: re(:,:), te(:,:,:)
 
 ! Init
 
@@ -1264,8 +1257,7 @@ subroutine mad_solenoid (ele, energy, map)
   el = ele%value(l$)
   beta = energy%beta
   gamma = energy%gamma
-  
-  ek => map%k
+
   re => map%r
   te => map%t
 
@@ -1369,7 +1361,7 @@ subroutine mad_sol_quad (ele, energy, map)
   type (energy_struct) energy
   type (mad_map_struct), target :: map
 
-  real(rp), pointer :: ek(:), re(:,:), te(:,:,:)
+  real(rp), pointer :: re(:,:), te(:,:,:)
 
   real(rp) ks, k1, s_len
   real(rp) ks2, s, c, snh, csh
@@ -1395,8 +1387,7 @@ subroutine mad_sol_quad (ele, energy, map)
   s_len = ele%value(l$)
   k1 = ele%value(k1$)
   ks = ele%value(ks$)
-  
-  ek => map%k
+
   re => map%r
   te => map%t
 
@@ -1960,7 +1951,7 @@ subroutine taylor_to_mad_map (taylor, map)
   type (taylor_struct)  :: taylor(:)
   type (taylor_term_Struct) tt
 
-  integer i, j, k, n, nt, sm
+  integer i, j, k, n, sm
 
 !
 

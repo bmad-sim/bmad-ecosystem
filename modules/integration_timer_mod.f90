@@ -1,7 +1,6 @@
 module integration_timer_mod
 
   use ptc_interface_mod
-  use s_status
 
   private get_taylor, diff, term_diff  
 
@@ -76,6 +75,8 @@ end subroutine
 !----------------------------------------------------------------------
 
 subroutine integration_timer_fibre (a_fibre, orbit, orbit_max, tol_dp)
+
+  use s_status, only: assignment(=)
 
   implicit none
 
@@ -153,6 +154,8 @@ end subroutine
 
 subroutine get_taylor (ns, ut, a_fibre, y, orbit)
 
+  use s_status, only: default, assignment(=)
+
   implicit none
 
   type (universal_taylor) ut(6)
@@ -186,13 +189,16 @@ end subroutine
 
 function diff (ut1, ut2, max_orbit) result (dif)
 
+  use s_status, only: assignment(=)
+
+  implicit none
+
   type (universal_taylor) ut1(6), ut2(6), ut11, ut22
 
-  real(dp) dif, del
+  real(dp) dif
   real(dp) max_orbit(:)
   
-  integer i, n1, n2, k, ord1, ord2, expn(6)
-
+  integer i, n1, n2, ord1, ord2, expn(6)
 
 !
 
@@ -256,8 +262,9 @@ subroutine term_diff (dif, coef, expn, max_orbit)
   implicit none
 
   real(dp) dif, coef, max_orbit(:), del
+  integer expn(6), k
 
-  integer j, k, expn(6)
+!
 
   del = coef
   do k = 1, 6

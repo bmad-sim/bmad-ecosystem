@@ -61,8 +61,8 @@ subroutine ring_to_quad_calib (ring, cesr, k_theory, k_base,  &
 
   implicit none
 
-  record /cesr_struct/ cesr
-  record /ring_struct/ ring
+  type (cesr_struct) cesr
+  type (ring_struct) ring
   real gev, k_theory(0:*), k_base(0:*), len_quad(0:*)
   real cu_per_k_gev(0:*), dk_gev_dcu(0:*), quad_rot(0:*)
   integer cindex, rindex, cu_theory(0:*)
@@ -104,7 +104,7 @@ end subroutine
 !   use cesr_mod
 !
 ! Input:
-!     char*(*)  LATTICE        -- lattice name
+!     character(*)  LATTICE        -- lattice name
 !
 ! Output:
 !     real  K_THEORY(0:120)     -- Theory K of quad_i,
@@ -151,7 +151,8 @@ subroutine quad_calib (lattice, k_theory, k_base,  &
 
   type (cesr_struct)  cesr
   type (ring_struct)  ring
-  character lattice*(*), latfil*50, bmad_lat*40
+  character(*) lattice
+  character(60) latfil
   real energy, k_theory(0:*), k_base(0:*), len_quad(0:*)
   real cu_per_k_gev(0:*), dk_gev_dcu(0:*), quad_rot(0:*)
   integer ix, rindex, cu_theory(0:*)

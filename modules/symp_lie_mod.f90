@@ -50,7 +50,7 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track)
   type (save_computations_struct), allocatable, save :: tm(:)
 
   type (ele_struct), target :: ele
-  type (coord_struct) :: start, end, orb, start0
+  type (coord_struct) :: start, end, start0
   type (param_struct)  param
   type (wig_term_struct), pointer :: wt
   type (track_struct) track
@@ -60,7 +60,7 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track)
   real(rp), pointer :: mat6(:,:)
   real(rp), parameter :: z0 = 0, z1 = 1
 
-  integer i, j, n
+  integer i, j
 
   logical calc_mat6
 

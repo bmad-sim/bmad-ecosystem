@@ -54,13 +54,12 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
   integer i, j, stat
 
   real(rp) t0(4,4), unit4(4,4), U(4,4), V(4,4), V_inv(4,4)
-  real(rp) temp4(4,4), tol, error
   real(rp) Ubar(4,4), Vbar(4,4), G(4,4), G_inv(4,4)
   real(rp) t0_11(2,2), t0_12(2,2), t0_21(2,2), t0_22(2,2)
   real(rp) c(2,2), c_conj(2,2), H(2,2), temp2(2,2)
   real(rp) g1(2,2), g2(2,2), g1_inv(2,2), g2_inv(2,2)
   real(rp) gamma, det_H, det,  trace_t0_diff, denom
-  real(rp) scaler
+  real(rp) scaler, tol, error
 
   logical type_out
 

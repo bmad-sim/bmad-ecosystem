@@ -34,9 +34,9 @@ module cesr_basic_mod
   end type
 
   type cesr_element_struct 
-    character*16 name              ! bmad name
+    character(16) name              ! bmad name
     type (b_struct)  x, y          ! beta's and positions
-    character*12 db_node_name
+    character(12) db_node_name
     integer ix_db                  ! element index for data base node
     integer ix_ring                ! index to element in ring structure
   end type
@@ -85,9 +85,9 @@ module cesr_basic_mod
   endtype
 
   type butns_struct
-    character*40 lattice
-    character*20 date
-    character*72 comment(5)
+    character(40) lattice
+    character(20) date
+    character(72) comment(5)
     type (detector_struct) det(0:120)
     integer save_set
     integer file_num
@@ -135,10 +135,11 @@ subroutine bmad_to_cesr (ring, cesr)
   type (cesr_struct)  cesr
   type (ele_struct)  ele
 
-  character cc1*1, cc2*2, cc4*4
-  character*16 hsteer_name(0:120), vsteer_name(0:99)
+  character(2) cc2
+  character(4) cc4
+  character(16) hsteer_name(0:120), vsteer_name(0:99)
 
-  integer j, i, vnumbr
+  integer j, i
 
 ! load names
 
@@ -474,7 +475,7 @@ subroutine bmad_to_cesr_err_type (cesr_ele, str)
 
   type (cesr_element_struct) :: cesr_ele(:)
   integer i
-  character*(*) str
+  character(*) str
 
 !
 
@@ -530,19 +531,19 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   current_lat -- Character*40: Name of current lattice (will be stared in
+!   current_lat -- Character(40): Name of current lattice (will be stared in
 !                       the list presented to the user).
 !                       Use CALL GETLAT (CURRENT_LAT) to get the current name.
 !                       Set CURRENT_LAT = ' ' if you do not want to use this
 !                       feature.
 !                       NOTE: You must be connected to the mpm to use GETLAT.
-!   choice      -- Character*(*): [Optional] If present then this will be
+!   choice      -- Character(*): [Optional] If present then this will be
 !                       used as input instead of querying the user.
 !
 ! Output:
-!   lattice  -- Character*40: Lattice name choisen. If a file name is given
+!   lattice  -- Character(40): Lattice name choisen. If a file name is given
 !                    and RING is not present then LATTICE = ""
-!   lat_file -- Character*(*): Name of the lattice file. Typically:
+!   lat_file -- Character(*): Name of the lattice file. Typically:
 !                    lat_file = 'U:[CESR.BMAD.LAT]BMAD_' // lattice // .LAT
 !   ring     -- Ring_struct: OPTIONAL. If present then BMAD_PARSER is called
 !               to load the RING structure.
@@ -557,9 +558,9 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
   type (ring_struct), optional :: ring
 
   character(len=*), optional :: choice
-  character*(*) lat_file
-  character*40 lattice, current_lat, lat_list(100)
-  character*80 line
+  character(*) lat_file
+  character(40) lattice, current_lat, lat_list(100)
+  character(80) line
    
   integer i, num_lats, i_lat, ix, ios
 
@@ -600,9 +601,9 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
       print *
       print *, 'You can enter a Lattice number or a full file name.'
       if (i_lat == 0) then
-        print '(a, $)', ' Choice: '
+        write (*, '(a)', advance = 'no') ' Choice: '
       else
-        print '(a, i3, a, $)', ' Choice: <CR =', i_lat, '> '
+        write (*, '(a, i3, a)', advance = 'no') ' Choice: <CR =', i_lat, '> '
       endif
       read (*, '(a)') line
     endif
@@ -703,10 +704,11 @@ subroutine create_vsp_volt_elements (ring, ele_type)
 
   type (ring_struct)  ring
 
-  integer ele_type, ix_west(3) / 1, 3, 4 /, ix_east(3) / 2, 5, 6 /
+  integer ele_type
+  integer :: ix_west(3) = (/ 1, 3, 4 /), ix_east(3) = (/ 2, 5, 6 /)
   integer i
 
-  character*16 vsep_west / 'V_SEP_48W' /, vsep_east / 'V_SEP_48E' /
+  character(16) :: vsep_west = 'V_SEP_48W', vsep_east = 'V_SEP_48E'
 
   logical found_west
 

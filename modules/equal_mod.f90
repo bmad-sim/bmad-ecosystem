@@ -290,9 +290,8 @@ subroutine ring_equal_ring (ring_out, ring_in)
 
   type (ring_struct), intent(inout) :: ring_out
   type (ring_struct), intent(in) :: ring_in
-  type (ele_struct), allocatable :: temp_ele(:)
 
-  integer i, n, n_old, n_wanted
+  integer i, n
 
 ! If ring_in has not been properly initialized then assume there is 
 ! a problem somewhere

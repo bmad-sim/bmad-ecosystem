@@ -48,7 +48,7 @@ subroutine mat_inverse (mat, mat_inv)
   integer, allocatable, save :: indx(:)
   real(rp) d
 
-  integer n, i, j
+  integer n, i
 
 !
 
@@ -260,8 +260,6 @@ subroutine mat6_dispersion (mat6, e_vec)
   real(rp), intent(in) :: e_vec(:)
 
   real(rp) e2_vec(4)
-
-  integer i
 
 !
 

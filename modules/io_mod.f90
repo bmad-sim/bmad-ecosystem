@@ -43,7 +43,7 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
   character(16) name
   character(16), allocatable :: names(:)
  
-  integer i, j, k, ix, iu, ios, ixs, ix1, ix2, ic1, ic2
+  integer i, j, k, ix, iu, ios, ixs, ix1
   integer unit(6), ix_names, ix_match
 
   logical slave_here, unit_found, write_term, match_found
@@ -76,7 +76,7 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
                       trim(str(ring%ele_(0)%value(beam_energy$)))
   write (iu, *) 'beam, particle = ', particle_name(ring%param%particle)
   if (ring%param%n_part /= 0) &
-          write (iu, *) 'beam, n_part = ', particle_name(ring%param%n_part)
+          write (iu, *) 'beam, n_part = ', ring%param%n_part
 
   ele => ring%ele_(0) 
 

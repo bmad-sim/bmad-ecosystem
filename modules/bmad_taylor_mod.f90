@@ -312,7 +312,7 @@ subroutine kill_taylor (bmad_taylor)
 
   type (taylor_struct) bmad_taylor(:)
 
-  integer i, ix
+  integer i
 
 !
 
@@ -362,7 +362,7 @@ subroutine sort_taylor_terms (taylor_in, taylor_sorted)
   
   integer, allocatable :: ord_(:), ix_(:)
 
-  integer i, j, n, expn(6)
+  integer i, n, expn(6)
 
 ! init
 

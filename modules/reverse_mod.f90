@@ -125,8 +125,6 @@ end subroutine
 
 subroutine reverse_ele (ele)
 
-  use ptc_interface_mod, only: kill
-
   implicit none
 
   type (ele_struct) ele

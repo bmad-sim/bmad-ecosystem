@@ -19,13 +19,11 @@ module dynamic_aperture_mod
     real(rp) accuracy
   end type
 
-
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-
 contains
 
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
 !+
 ! Subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
 !
@@ -72,11 +70,9 @@ subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
   type (aperture_struct)  aperture
   type (track_input_struct)  track_input
 
-  integer it, i, turn_lost, ixr, ie_max
+  integer it, turn_lost, ixr
 
-  real(rp) eps_rel(4), eps_abs(4)
-  real(rp) e_init, theta_xy                                   
-  real(rp) x0, x1, x2, y0, y1, y2
+  real(rp) theta_xy, x0, x1, x2, y0, y1, y2
 
   logical aperture_bracketed
 
