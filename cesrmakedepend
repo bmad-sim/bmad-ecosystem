@@ -24,19 +24,15 @@ sub convert_to_cesr {
     open(d_file,">$out_file");
     foreach $dependency (@dependencies) {
         chomp $dependency;
-
-# NOTE:  Insure that f90 modules with different names than source 
-#        file are dependent on source file by including $src_base 
-#        in dependency list.
         if(($dependency=~/^(.+?)\.o\s*?:\s+(.+?)[\s\/\\]*?$/)) {
             $tgt=basename($1);
-            print d_file "$prefix$tgt$suffix: $src_base $2\n";
+            print d_file "$prefix$tgt$suffix: $2\n";
         }
         elsif(($dependency=~/\s*?(.+?)[\s\\]*?$/)) {
             $dep=$1;
             $out_file=~/\.depend\/(.+?)\.d/;
             $tgt=basename($1);
-            print d_file "$prefix$tgt$suffix: $src_base $dep\n";
+            print d_file "$prefix$tgt$suffix: $dep\n";
         }
         else {
             die "\nUnexpected dependency format from compiler: $dependency\n";
@@ -112,7 +108,6 @@ sub get_args {
         } 
         elsif($arg!~/^-/) {
             $src_file=$arg;
-            $src_base=basename($src_file);
         }
     }
     $cplusplus=0;
