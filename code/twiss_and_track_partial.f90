@@ -69,6 +69,7 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
         end%vec = 0
       endif
     endif
+    return
   endif
 
 ! The only real(rp) complication comes with a dipole where we have to negate
