@@ -208,8 +208,8 @@ subroutine track1_space_charge (start, ele, param, end)
 
 ! Rotate into frame where beam is not tilted.
 
-  x = end%vec(1) - v%closed_orb%vec(1)
-  y = end%vec(3) - v%closed_orb%vec(3)
+  x = end%vec(2) - v%closed_orb%vec(2)
+  y = end%vec(4) - v%closed_orb%vec(4)
 
   x_rel =  (x * v%cos_phi + y * v%sin_phi) / v%sig_x
   y_rel = (-x * v%sin_phi + y * v%cos_phi) / v%sig_y
@@ -223,8 +223,8 @@ subroutine track1_space_charge (start, ele, param, end)
 
   kick_const = v%kick_const * exp(-(end%vec(5)/v%sig_z)**2) 
 
-  end%vec(1) = end%vec(1) + kick_const * kx
-  end%vec(3) = end%vec(3) + kick_const * ky
+  end%vec(2) = end%vec(2) + kick_const * kx
+  end%vec(4) = end%vec(4) + kick_const * ky
 
 end subroutine
 
