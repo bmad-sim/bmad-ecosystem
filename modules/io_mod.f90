@@ -802,7 +802,7 @@ subroutine bmad_to_mad (mad_file, ring, ix_start, ix_end)
         'dy =', ele%y%eta, ', dpy = ', ele%y%etap
   endif
 
-  type *, 'Written: ', trim(mad_file)
+  print *, 'Written: ', trim(mad_file)
 
 !-----------------------------------------------------------------------------
 contains
@@ -1009,8 +1009,8 @@ subroutine element_out (ele)
 
   case default
 
-    type *, 'ERROR: UNKNOWN ELEMENT: ', key_name(ele%key), ele%key
-    type *, '       CONVERTING TO MARKER'
+    print *, 'ERROR: UNKNOWN ELEMENT: ', key_name(ele%key), ele%key
+    print *, '       CONVERTING TO MARKER'
 
     line = trim(name) // ': marker'
 
@@ -1055,7 +1055,7 @@ subroutine value_to_line (line, value, str, fmt, typ)
   elseif (typ == 'I') then
     write (line, fmt2) trim(line), ', ', trim(str), ' =', nint(value)
   else
-    type *, 'ERROR IN VALUE_TO_LINE. BAD "TYP": ', typ 
+    print *, 'ERROR IN VALUE_TO_LINE. BAD "TYP": ', typ 
     call err_exit
   endif
 end subroutine

@@ -1759,7 +1759,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
   real(dp) omega(3), basis(3,3), angle(3)
 
   real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
-  real(rp) cos_t, sin_t, leng, hk, vk, x_off, y_off
+  real(rp) cos_t, sin_t, leng, hk, vk, x_off, y_off, x_pitch, y_pitch
 
   integer n, key, n_term, exception
   integer, optional :: integ_order, steps
@@ -1964,19 +1964,23 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 
   x_off = ele%value(x_offset_tot$)
   y_off = ele%value(y_offset_tot$)
+  x_pitch = ele%value(x_pitch_tot$)
+  y_pitch = ele%value(y_pitch_tot$)
 
-  mis_rot = (/ x_off, y_off, 0.0_rp, &
-              -ele%value(y_pitch_tot$), -ele%value(x_pitch_tot$),  0.0_rp /)
+  if (x_off /= 0 .or. y_off /= 0 .or. x_pitch /= 0 .or. y_pitch /= 0) then
 
-  angle = 0
-  angle(3) = -fiber%mag%p%tiltd
+    mis_rot = (/ x_off, y_off, 0.0_rp, -y_pitch, -x_pitch,  0.0_rp /)
 
-  omega = fiber%chart%f%o
-  basis = fiber%chart%f%mid
+    angle = 0
+    angle(3) = -fiber%mag%p%tiltd
 
-  call geo_rot(basis, angle, 1, basis)                 ! PTC call
-  call misalign_fibre (fiber, mis_rot, omega, basis)   ! PTC call
+    omega = fiber%chart%f%o
+    basis = fiber%chart%f%mid
 
+    call geo_rot(basis, angle, 1, basis)                 ! PTC call
+    call misalign_fibre (fiber, mis_rot, omega, basis)   ! PTC call
+
+  endif
 
 end subroutine
 
