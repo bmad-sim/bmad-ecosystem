@@ -1,5 +1,5 @@
 !+
-! Subroutine radiation_integrals (ring, orb_, mode, ix_cash)
+! Subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 !
 ! Subroutine to calculate the synchrotron radiation integrals along with the
 ! emittance, and energy spread.
@@ -8,22 +8,22 @@
 ! unstable. That is, you have a negative damping partition number.
 !
 ! The calculation can spend a significant amount of time calculating the
-! integrals through any wigglers. To speed up this calculation the ix_cash
+! integrals through any wigglers. To speed up this calculation the ix_cache
 ! argument can be used to stash values for the bending radius, etc. through a
 ! wiggler so that repeated calls to radiation_integrals consume less time. 
 ! [If radiation_integrals is going to be called only once then do not use this
 ! feature. It will actually slow things down in this case.] 
-! To use cashing: 
-!   1) First call radiation_integrals with ix_cash set to 0. 
-!      radiation_integrals will cash values needed to compute the integrals 
-!      for the wigglers and assign ix_cash a unique number that is used to 
-!      point to the cash. 
+! To use caching: 
+!   1) First call radiation_integrals with ix_cache set to 0. 
+!      radiation_integrals will cache values needed to compute the integrals 
+!      for the wigglers and assign ix_cache a unique number that is used to 
+!      point to the cache. 
 !   2) Subsequent calls to radiation_integrals should just pass the value of 
-!      ix_cash that has been assigned.
-! A new cash, with a unique value for ix_cash, is created each time 
-! radiation_integrals is called with ix_cash = 0. To release the memory
-! associated with a cash call release_rad_int_cash(ix_cash).
-! Note: The validity of the cash is dependent upon the orbit being (more or 
+!      ix_cache that has been assigned.
+! A new cache, with a unique value for ix_cache, is created each time 
+! radiation_integrals is called with ix_cache = 0. To release the memory
+! associated with a cache call release_rad_int_cache(ix_cache).
+! Note: The validity of the cache is dependent upon the orbit being (more or 
 ! less) constant but is independent of the Twiss parameters.
 !
 ! Modules needed:
@@ -33,9 +33,9 @@
 !   ring      -- Ring_struct: Ring to use. The calculation assumes that 
 !                    the Twiss parameters have been calculated.
 !   orb_(0:)  -- Coord_struct: Closed orbit.
-!   ix_cash   -- Integer, optional: Cash pointer.
-!                              == 0 --> Create a new cash.
-!                              /= 0 --> Use the corresponding cash. 
+!   ix_cache   -- Integer, optional: Cache pointer.
+!                              == 0 --> Create a new cache.
+!                              /= 0 --> Use the corresponding cache. 
 ! Output:
 !   mode -- Modes_struct: Parameters for the ("horizontal like") a-mode,
 !                              ("vertical like") b-mode, and the z-mode
@@ -48,8 +48,8 @@
 !       %synch_int(4:5) -- Synchrotron integrals
 !       %j_damp         -- Damping partition factor
 !       %alpha_damp     -- Exponential damping coefficient per turn
-!   ix_cash -- Integer, optional: Cash pointer. If ix_cash = 0 at input then
-!                   ix_cash is set to a unique number. Otherwise ix_cash 
+!   ix_cache -- Integer, optional: Cache pointer. If ix_cache = 0 at input then
+!                   ix_cache is set to a unique number. Otherwise ix_cache 
 !                   is not changed.
 !                  
 !
@@ -71,7 +71,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine radiation_integrals (ring, orb_, mode, ix_cash)
+subroutine radiation_integrals (ring, orb_, mode, ix_cache)
                      
   use precision_def
   use nr
@@ -84,14 +84,14 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cash)
   type (coord_struct), target :: orb_(0:), start, end
   type (modes_struct) mode
   type (synch_rad_com) sr_com_save
-  type (rad_int_cash_struct), pointer :: cash
+  type (rad_int_cache_struct), pointer :: cache
 
   real(rp), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
   real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
   real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll
   real(rp) v(4,4), v_inv(4,4), f0, f1, s
 
-  integer, optional :: ix_cash
+  integer, optional :: ix_cache
   integer i, j, k, ix, ir, key
 
   logical do_alloc
@@ -137,21 +137,21 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cash)
 
   m65 = 0
 
-! Cashing
+! Caching
 
-  if (present(ix_cash)) then
+  if (present(ix_cache)) then
 
-    if (ix_cash == 0) then
-      do i = 1, size(ric%cash)
-        if (ric%cash(i)%set) cycle
-        ric%cash(i)%set = .true.
-        ix_cash = i
-        cash => ric%cash(i)
+    if (ix_cache == 0) then
+      do i = 1, size(ric%cache)
+        if (ric%cache(i)%set) cycle
+        ric%cache(i)%set = .true.
+        ix_cache = i
+        cache => ric%cache(i)
         exit
       enddo
 
-      if (ix_cash == 0) then
-        print *, 'ERROR IN RADIATION_INTEGRALS: CASH OUT OF MEMORY!'
+      if (ix_cache == 0) then
+        print *, 'ERROR IN RADIATION_INTEGRALS: CACHE OUT OF MEMORY!'
         call err_exit
       endif
 
@@ -161,7 +161,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cash)
         if (ric%ele%key /= wiggler$ .or. ric%ele%sub_key /= map_type$) cycle
         j = j + 1
       enddo
-      allocate (cash%ele(j))
+      allocate (cache%ele(j))
 
       j = 0
       do i = 1, ring%n_ele_ring
@@ -169,33 +169,33 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cash)
         if (ric%ele%key /= wiggler$ .or. ric%ele%sub_key /= map_type$) cycle
         j = j + 1
         ric%ele%ixx = j
-        cash%ele(j)%ix_ele = i
-        cash%ele(j)%ds = ric%ele%value(l$) / ric%ele%num_steps
-        allocate (cash%ele(j)%v(0:ric%ele%num_steps))
+        cache%ele(j)%ix_ele = i
+        cache%ele(j)%ds = ric%ele%value(l$) / ric%ele%num_steps
+        allocate (cache%ele(j)%v(0:ric%ele%num_steps))
         do k = 0, ric%ele%num_steps
-          s = k * cash%ele(j)%ds
+          s = k * cache%ele(j)%ds
           f0 = (ric%ele%value(l$) - s) / ric%ele%value(l$)
           f1 = s / ric%ele%value(l$)
           start%vec = orb_(i-1)%vec * f0 + orb_(i)%vec * f1
           call calc_g_params (s, start)
-          cash%ele(j)%v(k)%g     = ric%g
-          cash%ele(j)%v(k)%g2    = ric%g2
-          cash%ele(j)%v(k)%g_x   = ric%g_x
-          cash%ele(j)%v(k)%g_y   = ric%g_y
-          cash%ele(j)%v(k)%dg2_x = ric%dg2_x
-          cash%ele(j)%v(k)%dg2_y = ric%dg2_y
+          cache%ele(j)%v(k)%g     = ric%g
+          cache%ele(j)%v(k)%g2    = ric%g2
+          cache%ele(j)%v(k)%g_x   = ric%g_x
+          cache%ele(j)%v(k)%g_y   = ric%g_y
+          cache%ele(j)%v(k)%dg2_x = ric%dg2_x
+          cache%ele(j)%v(k)%dg2_y = ric%dg2_y
         enddo
       enddo
       
     else
-      cash => ric%cash(ix_cash)
+      cache => ric%cache(ix_cache)
 
     endif
 
-    ric%use_cash = .true.
+    ric%use_cache = .true.
 
   else
-    ric%use_cash = .false.
+    ric%use_cache = .false.
 
   endif
 
@@ -373,7 +373,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cash)
     i5a  = sum(ric%i5a_(1:ring%n_ele_use))
     i5b  = sum(ric%i5b_(1:ring%n_ele_use))
 
-    if (ric%use_cash) ric%cash_ele => cash%ele(ric%ele%ixx)
+    if (ric%use_cache) ric%cache_ele => cache%ele(ric%ele%ixx)
 
     ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rp, ll, i1, 'I1')
     ric%i2_(ir)  =   qromb_rad_int (eval_i2,  0.0_rp, ll, i2, 'I2')

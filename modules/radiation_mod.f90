@@ -22,38 +22,38 @@ contains
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine release_rad_int_cash (ix_cash)
+! Subroutine release_rad_int_cache (ix_cache)
 !
-! Subroutine to release the memory associated with cashing wiggler values.
+! Subroutine to release the memory associated with caching wiggler values.
 ! See the radiation_integrals routine for further details.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   ix_cash -- Integer: Cash number.
+!   ix_cache -- Integer: Cache number.
 !
 ! Output:
-!   ix_cash -- Integer: Cash number set to 0,
+!   ix_cache -- Integer: Cache number set to 0,
 !-
 
-subroutine release_rad_int_cash (ix_cash)
+subroutine release_rad_int_cache (ix_cache)
 
   use rad_int_common
 
   implicit none
 
-  integer i, ix_cash
+  integer i, ix_cache
 
 !
 
-  do i = 1, size(ric%cash(ix_cash)%ele)
-    deallocate (ric%cash(ix_cash)%ele(i)%v)
+  do i = 1, size(ric%cache(ix_cache)%ele)
+    deallocate (ric%cache(ix_cache)%ele(i)%v)
   enddo
 
-  deallocate (ric%cash(ix_cash)%ele)
+  deallocate (ric%cache(ix_cache)%ele)
 
-  ix_cash = 0
+  ix_cache = 0
 
 end subroutine
 

@@ -518,7 +518,7 @@ module bmad_struct
 ! %taylor_order_ptc is what ptc has been set to.
 ! %taylor_order is what the user wants.
 ! The reason why there are two taylor_orders is that the Taylor order of PTC
-!   cannot be set until the energy is set so BMAD must sometimes cash the 
+!   cannot be set until the energy is set so BMAD must sometimes cache the 
 !   taylor order until the energy is known.
 ! %max_aperture_limit is used when no limit is specified or when 
 !   ring%param%aperture_limit_on = False.

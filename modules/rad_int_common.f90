@@ -12,24 +12,24 @@ module rad_int_common
   use ptc_interface_mod
   use runge_kutta_mod
 
-! The "cash" is for saving values for g, etc through a wiggler to speed
+! The "cache" is for saving values for g, etc through a wiggler to speed
 ! up the calculation
 
-  type g_cash_struct
+  type g_cache_struct
     real(rp) g
     real(rp) g2
     real(rp) g_x, g_y
     real(rp) dg2_x, dg2_y
   end type
 
-  type ele_cash_struct
-    type (g_cash_struct), allocatable :: v(:)
+  type ele_cache_struct
+    type (g_cache_struct), allocatable :: v(:)
     real(rp) ds
     integer ix_ele
   end type
 
-  type rad_int_cash_struct
-    type (ele_cash_struct), allocatable :: ele(:)
+  type rad_int_cache_struct
+    type (ele_cache_struct), allocatable :: ele(:)
     logical :: set = .false.
   end type
 
@@ -52,9 +52,9 @@ module rad_int_common
     type (coord_struct), pointer :: orb0, orb1
     type (runge_kutta_com_struct) :: rk_track(0:6)
     type (coord_struct) d_orb
-    type (rad_int_cash_struct) cash(10)
-    type (ele_cash_struct), pointer :: cash_ele
-    logical use_cash
+    type (rad_int_cache_struct) cache(10)
+    type (ele_cache_struct), pointer :: cache_ele
+    logical use_cache
   end type
 
   type (rad_int_common_struct), target, save :: ric
@@ -528,24 +528,24 @@ subroutine calc_g_params (s, orb)
   implicit none
 
   type (coord_struct) orb
-  type (g_cash_struct) v0, v1
+  type (g_cache_struct) v0, v1
 
   real(rp) dk(3,3), s, ds
   real(rp) kick_0(6), f0, f1
 
   integer i0, i1
 
-! Using the cash is faster if we have one.
+! Using the cache is faster if we have one.
 
-  if (ric%use_cash) then
-    ds = ric%cash_ele%ds
+  if (ric%use_cache) then
+    ds = ric%cache_ele%ds
     i0 = int(s/ds)
     i1 = i0 + 1
-    if (i1 > size(ric%cash_ele%v)) i1 = i0
+    if (i1 > size(ric%cache_ele%v)) i1 = i0
     f1 = (s - ds*i0) / ds 
     f0 = 1 - f1
-    v0 = ric%cash_ele%v(i0)
-    v1 = ric%cash_ele%v(i1)
+    v0 = ric%cache_ele%v(i0)
+    v1 = ric%cache_ele%v(i1)
     ric%g      = f0 * v0%g     + f1 * v1%g
     ric%g2     = f0 * v0%g2    + f1 * v1%g2
     ric%g_x    = f0 * v0%g_x   + f1 * v1%g_x
@@ -555,7 +555,7 @@ subroutine calc_g_params (s, orb)
     return
   endif
 
-! Standard non-cash calc.
+! Standard non-cache calc.
 
   call derivs_bmad (ric%ele, ric%ring%param, s, orb%vec, kick_0, dk)
 
