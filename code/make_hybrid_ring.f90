@@ -4,8 +4,18 @@
 !
 ! Subroutine to concatinate together the elements in a ring to make
 ! a ring with fewer elements. This is used to speed up computation times.
-! The concatinated elements in the new ring are known as hybrid elements
+! The concatinated elements in the new ring are known as hybrid elements.
 !
+! Note: For hybrid elements ring_out%ele_(i)%tracking_method and 
+! ring_out%ele_(i)%mat6_calc_method are set as follows:
+!
+!   use_taylor    tracking_method     mat6_calc_method
+!   ----------    ---------------     ----------------  
+!   False         linear$             none$
+!   True          taylor$             taylor$
+!
+! Note: For use_taylor = .false. You need to have made the 
+! ring_in%ele_()%mat6 matrices before you call this routine.
 !
 ! Modules needed:
 !   use bmad
@@ -36,13 +46,13 @@
 !             -- Integer array. Ix_out(i) is the index for ring_in%ele_(i) 
 !                of the corresponding element in ring_out%ele(). 
 !                ix_out(i) set to 0 if ring_in%ele_(i) is concatenated.
-!
-! Note: You need to have made the ring_in%ele_()%mat6 matrices before you
-!       call this routine.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.8  2002/08/05 20:04:16  dcs
+!Updated Documentation.
+!
 !Revision 1.7  2002/07/16 20:44:01  dcs
 !*** empty log message ***
 !
