@@ -4,182 +4,231 @@
 # install_lib - script to install a new cesr library 
 #               release on Unix
 #
-# useage : install_lib <lib_name> <vms?>
-#          <vms?>   if you want to copy the libraries for use on vms
-#                   add VMS argument
+# usage : install_lib <lib_name> <vms[opt]> <no_checkout[opt]>
+#          <vms>          if you want to copy the libraries for 
+#                         use on vms add VMS argument
+#          <no_checkout>  if you want to forgo the checkout and
+#                         creation of necessary dirs, add 
+#                         no_checkout argument
 #
 # example: install_lib cesr_yyyy_mmdd
 #          install_lib cesr_yyyy_mmdd VMS
 #
-# author : M. Skup 2003/2/18
+#
+# the routine names are very descriptive...
+# the build order list is the last routine in this file
 #
 #-------------------------------------------------------
 #
 # $Id$
 #
 # $Log$
-# Revision 1.1  2003/06/18 21:56:41  cesrulib
-# install scripts
+# Revision 1.2  2003/07/29 17:32:49  cesrulib
+# divide up into routines, many bugs fixed
 #
 #
 #-------------------------------------------------------
 
-#get the build order for build_order.pm
-#@INC=(@INC,'/home/cesrulib/devel/port/release_script');
-#use build_order qw(%ordered_list);
 use FileHandle;
 
-#set up default variables
-$lib_name=$ARGV[0];
-if($ARGV[1] && ($ARGV[1] eq "VMS"))
- {$copy_vms=1;}
-else
- {$copy_vms=0;}
-$master_dir="/home/cesrulib/cesr_libs";
-$lib_dir="$master_dir/$lib_name";
-$log_dir="$lib_dir/log/Build";
-$source_dir="$lib_dir/cvssrc";
-$local_lib="$lib_dir/lib";
-$local_mod="$lib_dir/modules";
-$local_config="$lib_dir/config";
-$local_inc="$lib_dir/include";
-$GMAKE_VARS=
- "OBJ_OUT_DIR=\"$local_lib\"".
- " LOCAL_MODS=\"$local_mod\"".
- " localconfig=\"$local_config\"".
- " LOCAL_INCS=\"$local_inc ./include $lib_dir/cfortran/include $source_dir/c_utils/include\"".
- " MOD_OUT_DIR=\"$local_mod\"".
- " locallib=\"$local_lib\"";
-$GMAKE_VARS_BMADZ_EXE=$GMAKE_VARS." EXE=\"../../bin/bmadz\"";
-$GMAKE_ENVVARS=
- " CESR_UTIL=/home/cesrulib/cesr_libs/$lib_name/util".
- " CESR_GMAKE=/home/cesrulib/cesr_libs/$lib_name/Gmake".
- " CESR_MOD=/home/cesrulib/cesr_libs/$lib_name/modules".
- " CESR_CVSSRC=/home/cesrulib/cesr_libs/$lib_name/cvssrc".
- " CESR_RUN=/home/cesrulib/cesr_libs/$lib_name/run".
- " CESR_LIB=/home/cesrulib/cesr_libs/$lib_name".
- " CESR_EXE=/home/cesrulib/cesr_libs/$lib_name/bin".
- " CESR_CONFIG=/home/cesrulib/cesr_libs/$lib_name/config".
- " CESR_INC=/home/cesrulib/cesr_libs/$lib_name/cvssrc/include";
-
-@sub_dirs=("bin","config","lib","modules","run","log");
-@checkout=("Gmake","cvssrc","util");
-
-
-#single or double?
-$precision_set=0;
-while(!$precision_set)
- {
-  print "what precision? (_DBL/_SGL)\n";
-  $precision=readline(STDIN);
-  if($precision eq "_DBL\n")
-   {
-    $prec="CESR_PRECISION=\"_DBL\"";
-    $precision_set=1;
-   }
-  elsif($precision eq "_SGL\n")
-   {
-    $prec="CESR_PRECISION=\"_SGL\"";
-    $precision_set=1;
-   }
- }
-
-
-
+examineArgs();
+isThisLinux();
+setupConstants();
+whatPrecision();
 
 open(STDOUT, ">./buildlog_$lib_name");
 open(STDERR, ">&STDOUT");
-
+  
 autoflush STDOUT 1;
 autoflush STDERR 1;
 
-print "\n$prec\n\n";
-
-#set up & print CESR environment variables
-@envvars=split /\s/, $GMAKE_ENVVARS;
-
-
-print "\nCESR Environment Variables:\n\n";
-foreach $var (@envvars)
- {print "$var\n";} 
-print `env | grep PKG_`;
-print `env | grep BMAD_`;
-print "\n";
-
-#create necessary dirs
-if(-d $lib_dir)
- {die "Directory already exists: $lib_dir";}
-print "Creating: $lib_dir\n";
-mkdir($lib_dir);
-foreach $dir (@sub_dirs)
+printEnvVars();
+if($do_checkout)
  {
-  print "Creating: $lib_dir/$dir\n";
-  mkdir("$lib_dir/$dir");
+  createDirs();
+  checkout();
  }
-print "Creating: $log_dir\n";
-mkdir($log_dir);
-chmod(0777,"$log_dir");
-
-#cvs checkout
-chdir($lib_dir);
-foreach $cvs_mod (@checkout)
- {
-  print "\nChecking out a copy of: $cvs_mod\n";
-  print `cvs -d $ENV{CESR_CVSROOT} checkout $cvs_mod`;
- }
-
-
-#transport to VMS
 if($copy_vms)
+ {copy4vms();}
+whatDoIBuild();
+buildIt();
+close(STDOUT);
+close(STDERR);
+print "\nCESR Library $lib_name has been installed\n";
+`cp ./buildlog_$lib_name /home/cesrulib/cesr_libs/log/Build/log_$lib_name`;
+
+sub examineArgs
+ {
+  $do_checkout=1;
+  $copy_vms=0;
+  $lib_name="";
+  foreach $arg (@ARGV)
+	 {
+		if($arg=~/no_checkout/i)
+		 {$do_checkout=0;}
+    if($arg=~/vms/i)
+		 {$copy_vms=1;}
+    if($arg=~/cesr/i)
+		 {$lib_name=$arg;}
+   }
+  if($lib_name eq "")
+   {die "\ndidn't catch the library name...\n";}
+ }
+
+sub isThisLinux
+ {
+  @sys=`uname`;
+  if($sys[0]=~/inux/)
+   {$lnx="_lnx";}
+  else
+   {$lnx="";}
+ }
+  
+sub setupConstants
+ {
+  $master_dir="/home/cesrulib/cesr_libs";
+  $lib_dir="$master_dir/$lib_name";
+  $log_dir="$lib_dir/log/Build";
+  $source_dir="$lib_dir/cvssrc";
+  $local_lib="$lib_dir/lib";
+  $local_bin="$lib_dir/bin";
+  $local_mod="$lib_dir/modules";
+  $local_config="$lib_dir/config";
+  $local_inc="$lib_dir/include";
+  $GMAKE_VARS=
+   "OBJ_OUT_DIR=\"$local_lib\"".
+   " LOCAL_MODS=\"$local_mod\"".
+   " localconfig=\"$local_config\"".
+   " MOD_OUT_DIR=\"$local_mod\"".
+   " locallib=\"$local_lib\"".
+   " localbin=\"$local_bin\"";
+  if($lnx=~/lnx/)
+	 {
+		$GMAKE_VARS=$GMAKE_VARS." EXTRA_FFLAGS=\"\" EXTRA_CFLAGS=\"\"";
+   }
+  #$GMAKE_ENVVARS=
+  # " CESR_UTIL=/home/cesrulib/cesr_libs/$lib_name/util".
+  # " CESR_GMAKE=/home/palmer/cesr/cesr_bpm/new_release/Gmake".
+  # " CESR_MOD=/home/cesrulib/cesr_libs/$lib_name/modules".
+  # " CESR_CVSSRC=/home/cesrulib/cesr_libs/$lib_name/cvssrc".
+  # " CESR_RUN=/home/cesrulib/cesr_libs/$lib_name/run".
+  # " CESR_PKG=/home/cesrulib/cesr_libs/packages".
+  # " CESR_LIB=/home/cesrulib/cesr_libs/$lib_name".
+  # " CESR_EXE=/home/cesrulib/cesr_libs/$lib_name/bin".
+  # " CESR_CONFIG=/home/cesrulib/cesr_libs/$lib_name/config".
+  # " CESR_INC=/home/cesrulib/cesr_libs/$lib_name/cvssrc/include";
+  
+  @sub_dirs=("bin","config","lib","modules","run","log");
+  @checkout=("Gmake","cvssrc","util");
+ }  
+
+#single or double?
+sub whatPrecision
+ {
+  $precision_set=0;
+  while(!$precision_set)
+   {
+  	print "what precision? (_DBL/_SGL)\n";
+  	$precision=readline(STDIN);
+  	if($precision eq "_DBL\n")
+  	 {
+  		$prec="CESR_PRECISION=\"_DBL\"";
+  		$precision_set=1;
+  	 }
+  	elsif($precision eq "_SGL\n")
+  	 {
+  		$prec="CESR_PRECISION=\"_SGL\"";
+  		$precision_set=1;
+  	 }
+   }
+ }  
+
+sub printEnvVars
+ {
+  print "\n$prec\n\n"; 
+  print "\nCESR Environment Variables:\n\n";
+  print `env | grep CESR`; 
+  print `env | grep PKG_`;
+  print `env | grep BMAD_`;
+  print "\n";
+ }
+  
+#create necessary dirs
+
+sub createDirs
+ {
+  if(-d $lib_dir)
+   {die "Directory already exists: $lib_dir";}
+  print "Creating: $lib_dir\n";
+  mkdir($lib_dir);
+  foreach $dir (@sub_dirs)
+   {
+  	print "Creating: $lib_dir/$dir\n";
+  	mkdir("$lib_dir/$dir");
+   }
+  print "Creating: $log_dir\n";
+  mkdir($log_dir);
+  chmod(0777,"$log_dir");
+ }
+  
+#cvs checkout
+sub checkout
+ {
+  chdir($lib_dir);
+  foreach $cvs_mod (@checkout)
+   {
+  	print "\nChecking out a copy of: $cvs_mod\n";
+  	print `cvs -d $ENV{CESR_CVSROOT} checkout $cvs_mod`;
+   }
+ }  
+
+sub copy4vms
  {
   $vms_lib_dir="$lib_dir"."_vms";
   print "\nmoving to vms: vms_lib_dir->$vms_lib_dir";
   `cp -pr $lib_dir $vms_lib_dir`;
-  #`/home/cesrulib/bin/vms_move $lib_dir_vms`;
  }
+  
 
-
-#what do i build?
-chdir($source_dir);
-print "\nlooking for libraries...\n";
-opendir(src_dir, ".");
-@build_list= (grep { $_ ne '.' and $_ ne '..' and $_ ne 'CVS' and $_ ne 'include'} readdir(src_dir));
-@build_list=sort build_order_sort @build_list;
-print "\nBUILD ORDER: @build_list\n";
-closedir(src_dir);
-
-
-#build it!
-foreach $lib (@build_list)
+sub whatDoIBuild
  {
-  print "\n\nbuilding $lib\n";
-  chdir("$source_dir/$lib");
-  $log_file="$log_dir"."/"."$lib"."_gmake.log";
-  if((-e "Makefile")||(-e "makefile"))
+  chdir($source_dir);
+  print "\nlooking for libraries...\n";
+  opendir(src_dir, ".");
+  @build_list= (grep { $_ ne '.' and $_ ne '..' and $_ ne 'CVS' and $_ ne 'include'} readdir(src_dir));
+  @build_list=sort build_order_sort @build_list;
+  print "\nBUILD ORDER: @build_list\n";
+  closedir(src_dir);
+ }  
+
+
+
+sub buildIt
+ {
+  foreach $lib (@build_list)
    {
-    if(($lib eq "bmadz") && (system "gmake $prec $GMAKE_VARS $GMAKE_ENVVARS"))
-		 {print "BUILD FAILURE for: bmadz\n\n";}
-    elsif($lib eq "bmadz" && (system "gmake -f M.bmadz $prec $GMAKE_VARS_BMADZ_EXE $GMAKE_ENVVARS"))
-		 {print "BUILD FAILURE for: bmadz\n\n";}
-    elsif($lib eq "bmadz")
-		 {print "BUILD SUCCESS for: bmadz\n\n";}
-    if(($lib ne "bmadz") && (system "gmake $prec $GMAKE_VARS $GMAKE_ENVVARS"))
-     {print "BUILD FAILURE for: $lib\n\n";}
-    elsif($lib ne "bmadz")
-     {print "BUILD SUCCESS for: $lib\n\n";}
+  	print "\n\nbuilding $lib\n";
+  	chdir("$source_dir/$lib");
+  	if((-e "Makefile")||(-e "makefile"))
+  	 {
+  		system "gmake dump";
+  		print "\n\ngmake $prec $GMAKE_VARS\n\n";
+  		if(system "gmake $prec $GMAKE_VARS")
+  		 {print "BUILD FAILURE for: $lib\n\n";}
+  		else
+  		 {
+        if((-e "M.$lib$lnx") && (system "gmake -f M.$lib$lnx $prec EXE=../../bin/$lib"))
+         {print "BUILD FAILURE for: $lib\n\n";}
+        else 
+				 {print "BUILD SUCCESS for: $lib\n\n";}
+		   }
+  	 }
+  	else
+  	 {print "\n$lib is missing a makefile.\n\n";}
    }
-  else
-   {print "\n$lib is missing a makefile.\n\n";}
  }
 
-print "\nCESR Library $lib_name has been installed\n";
-close(STDOUT);
-close(STDERR);
-`cp stdout_$lib_name /home/cesrulib/cesr_libs/$lib_name/log/Build/build_stdout`;
-`cp stderr_$lib_name /home/cesrulib/cesr_libs/$lib_name/log/Build/build_stderr`;
 
-
-#build order sort subroutine
 sub build_order_sort
  {
   %build_order=(
