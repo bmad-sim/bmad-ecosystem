@@ -76,8 +76,9 @@ subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
 
 ! xsif_cmd_loop parses the file.
 
-  if (present(use_line)) call xuse2 (use_line)
   ierr = xsif_cmd_loop ( ) 
+
+  if (present(use_line)) call xuse2 (use_line)
 
   if (ierr /= 0) then
     call xsif_error ( 'UNABLE TO PARSE LATTICE')
