@@ -1,0 +1,40 @@
+\chapter{Etienne's FPP/PTC}
+\label{c:etienne}
+
+Etienne Forest has written what is actually two software libraries:
+FPP and PTC. The software and a manual can be obtained at
+\begin{example} 
+    <http://bc1.lbl.gov/CBP_pages/educational/TPSA_DA/Introduction.html>
+\end{example}
+
+FPP stands for ``Fully Polymorphic Package.'' What this library does
+is implement Taylor maps (aka Truncated Power Series Algebra or TPSA)
+and Lie algebraic operations. Thus in FPP you can define a Hamiltonian
+and then generate the Taylor map for this Hamiltonian. FPP is very
+general. It can work with an arbitrary number of dimensions.  FPP,
+however, is a purely mathematical package in the sense that it knows
+nothing about accelerator physics. That is, it does not know about
+bends, quadrupoles or any other kind of element, it has no conception
+of a lattice (a string of elements), it doen't know anything about
+Twiss parameters, etc.
+
+This is where PTC (Polymorphic Tracking Code) comes in PTC. PTC
+implements the high energy physics stuff and uses FPP as the engine to
+do the Lie algebraic calculations.  PTC is a very general package and
+\bmad\ only makes use of a small part of its features. Essentially
+the part that \bmad\ uses is the part that creates Taylor maps and
+does symplectic integration. Not used is, for example, the
+calculational part that does normal form analysis Twiss parameters
+(\bmad\ does its own), beam envelope tracking, etc. PTC also has the
+ability, which \bmad\ does not take advantage of, to define ``knobs''
+which means that the Taylor map can be a function of the phase space
+coordinates plus other variables (for example the strength of a
+quadrupole). The list goes on.
+
+
+Of fundamental importance in
+the calculations is
+
+
+
+
