@@ -2092,33 +2092,33 @@ inches taking into account the text\_scale.
 
 \index{Routine!amoeba}
 \item[amoeba(p, y, ftol, func, iter)] \Newline
-downhill simplex method of Neider and Mead. 
+Downhill simplex method of Neider and Mead. Numerical Recipes routine.
 
 \index{Routine!frprmn}
 \item[frprmn (p, ftol, iter, fret)] \Newline
-Fletcher--Reeves minimization.
+Fletcher--Reeves minimization. Numerical Recipes routine.
 
 \index{Routine!mrqmin}
 \item[mrqmin (x, y, sig, a, maska, covar, alpha, chisq, funcs, alamda)] \Newline
-Levenburg--Marquardt minimization.
+Levenburg--Marquardt minimization. Numerical Recipes routine.
 
 \index{Routine!opti_lmdif}
 \item[opti\_lmdif (vec, n, merit, eps) result(this\_opti)] \Newline 
-     Function which tries to get the merit function(s) as close to zero as possible
-     by changing the values in vec. Multiple merit functions can be used.
+Function which tries to get the merit function(s) as close to zero as possible
+by changing the values in vec. Multiple merit functions can be used.
 
 \index{Routine!initial_lmdif}  
 \item[initial\_lmdif] \Newline 
-     Subroutine that clears out previous saved values of the optimizer.
+Subroutine that clears out previous saved values of the optimizer.
 
 \index{Routine!suggest_lmdif}
 \item[suggest\_lmdif (xv,fv,eps,itermx,iend,reset\_flag)] \Newline 
-     Reverse communication subroutine. 
+Reverse communication subroutine. 
 
 \index{Routine!opti_de}
 \item[opti\_de (v\_best, generations, population, merit\_func, v0, v\_del)] \Newline 
-     Differential Evolution for Optimal Control Problems.
-     This optimizer is based upon the work of Storn and Price. 
+Differential Evolution for Optimal Control Problems.
+This optimizer is based upon the work of Storn and Price. 
 
 \end{description}
 
