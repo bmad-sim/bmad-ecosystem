@@ -388,7 +388,7 @@ the changes in $p_x$ and $p_y$
 %-----------------------------------------------------------------
 \section{Coupling and Normal Modes}
 \label{s:coupling}
-\index{Coupling}
+\index{Normal Mode!Coupling}
 
 The coupling formalism used by \bmad\ is taken from the paper of Sagan
 and Rubin\cite{b:coupling}. The main equations are reproduced here.  A
@@ -408,6 +408,8 @@ where $\bfV$ is symplectic, and $\bfU$ is of the form
     \end{pmatrix}
     . \label{ua00b}
   \Endeq
+\index{Normal Mode!a--mode}
+\index{Normal Mode!b--mode}
 Since $\bfU$ is uncoupled the standard Twiss analysis can be
 performed on the matrices $\bfA$ and $\bfB$. The normal modes
 are labeled $a$ and $b$ and if the one--turn matrix $\bfT$ is
@@ -577,6 +579,13 @@ and the Twiss parameters are
     \bfsigb(1,1) & \bfsigb(1,2) \\
     \bfsigb(1,2) & \bfsigb(2,2) 
   \end{pmatrix}
+\Endeq
+
+If there is coupling the transformation between the $4\times 4$
+transverse normal mode sigma matrix $\bfsig_a$ and the $4\times 4$
+laboratory matrix $\bfsig_x$ is
+\Begineq
+  \bfsig_x = \bfV \, \bfsig_a \bfV^t
 \Endeq
 
 For tracking a relativistic charged particle bunch is modeled by dividing it

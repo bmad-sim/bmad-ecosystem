@@ -91,16 +91,14 @@ integer to the appropriate string. For example
   print *, 'This element: ', key_name(ele%key) ! Prints, for example, 'WIGGLER'
 \end{example}
 The call to \vn{init_ele} is needed for any \vn{ele_struct} defined
-outside of a \vn{ring_struct} structure. The \vn{ele_struct}
-components of a \vn{ring_stuct} variable will get automatically
-initalized.
+outside of a \vn{ring_struct} structure.
 
 \index{Ele_struct!%sub_key}
 \index{Element!Wiggler}
 \index{Element!Rbend}
 \index{Element!Sbend}
-The \vn{%sub_key} is only used for \vne{Wiggler} and \vne{Rbend} and
-\vne{Sbend} elements. For \vn{Wiggler} elements is either set to
+The \vn{%sub_key} component is only used for \vne{Wiggler} and \vne{Rbend} and
+\vne{Sbend} elements. For \vn{Wiggler} elements, \vn{%sub_key} is either set to
 \begin{example}
   map_type$ or
   periodic_type$
@@ -120,15 +118,19 @@ whatever is appropriate.
 \index{Ele_struct!global coordinates}
 \index{Coordinates!global!in ele_struct}
 
-There are a class of components of the \vn{ele_struct} whose values 
-vary along the length of the element. In such a case the value of the 
-component will be the value at the exit edge of the element. The 
-components are:
+For variables like the Twiss parameters that vary along the length of an
+element the rule is that the value stored in the \vn{ele_struct} is
+the value at the exit end of the element. Such variables are:
+\index{Ele_struct!%s}
+\index{Ele_struct!%gamma_c}
+\index{Ele_struct!%c_mat}
+\index{Ele_struct!%x}
 \begin{example}
   type (twiss_struct)  x, y, z          ! Twiss parameters
   type (floor_position_struct) position ! Floor position
   real(rp) c_mat(2,2)                   ! Coupling c matrix
   real(rp) gamma_c                      ! Coupling parameter
+  real(rp) s                            ! Longitudinal positon
 \end{example}
 To get the Twiss parameters, floor (global) position, etc.\ for the beginning
 of the element you need to look at the preceding element in the
@@ -139,10 +141,11 @@ of the element you need to look at the preceding element in the
 To get the parameters at a position within an element you can use the
 routines \vn{twiss_and_track_at_s} or \vn{twiss_and_track_partial}.
 
-The \vn{%x}, \vn{%y}, and \vn{%z} components are themselves
+\index{Normal Mode!in Ele_struct}
+The \vn{%x}, \vn{%y}, and \vn{%z} components are
 \vn{twiss_struct} structures that hold the Twiss parameters for the
-$a$, $b$ and $z$ modes respectively. Yes it is known that the labeling
-is misleading. Unfortunately it is a bit entrenched now. The definition of
+$a$, $b$ and $z$ modes respectively. [Yes it is known that the labeling
+is misleading. Unfortunately it is a bit entrenched now.] The definition of
 the \vn{twiss_struct} structure is
 \index{Ele_struct!twiss_struct substruct}
 \begin{example}
@@ -152,13 +155,19 @@ the \vn{twiss_struct} structure is
     real(rp) sigma
   end type 
 \end{example} 
-The $a$ mode is the ``nearly horizontal'' mode and the $b$ mode is the
-``nearly vertical'' mode. Remember: The Twiss parameters are
-associated with the normal modes. With coupling there is no Twiss
-parameter associated solely with the horizontal axis.  \vn{eta} and
-\vn{etap} are also the normal mode dispersion and dispersion derivative.
+\vn{eta} and \vn{etap} are also the normal mode dispersion and dispersion derivative.
 The true horizontal and vertical dispersions are given by \vn{eta_lab}
-and \vn{etap_lab}.
+and \vn{etap_lab}. The relationship between the normal mode and lab dispersions 
+is given by \Eq{etaavx}.
+
+\vn{%c_mat} is the coupling \vn{C} matrix given by \Eq{vgicc1} and \vn{%gamma_c}
+is the $\gamma$ factor in \Eq{vgicc1}. There are several routines to manipulate
+the coupling factors. For example:
+\begin{example}
+  C_to_Cbar(ele, cbar_mat)             ! Form Cbar(2,2) matrix
+  Make_V_Mats(ele, v_mat, v_inv_mat)   ! Form V matrices.
+\end{example}
+See Section~\ref{r:mat} for a complete listing of such routines.
 
 %--------------------------------------------------------------------------
 \section{Attribute Values: Dependent and Otherwise}
@@ -166,37 +175,46 @@ and \vn{etap_lab}.
 \index{Ele_struct!attribute values}
 
 Most of the real valued attributes of an element are held in the
-\vn{%value(:)} array. For example, the value of the \vn{k1} attribute
+\vne{%value(:)} array. For example, the value of the \vn{k1} attribute
 for a quadrupole element is stored in \vn{%value(k1\$)} where
 \vn{k1\$} is an integer parameter. In general to get the correct index
 in \vn{%value(:)} for a given attribute just add a ``\$" as a
 suffix. To convert from an attribute name to its index in the
 \vn{%value} array use the \vn{attribute_index} routine.  To go back
 from an index in the \vn{%value} array to a name use the
-\vn{attribute_name} routine
+\vn{attribute_name} routine. Example:
 \begin{example}
   type (ele_struct) ele
   ele%key = quadrupole$  ! Set element to be a quadrupole
   print *, 'Index for Quad K1:  ', attribute_index(ele, 'K1') ! prints: `4' (= k1\$)
-  print *, 'Name for Quad k1\$: ', attrbute_name (ele, k1\$)   ! prints: `K1' 
+  print *, 'Name for Quad k1\$: ', attrbute_name (ele, k1\$)    ! prints: `K1' 
 \end{example}
-The list of attributes in the \vn{%value(:)} array for a given element
+The list of attributes for a given element
 type is given in the writeup for the different element in
-Chapter~\ref{c:elements}. The real valued attribute that are {\em not}
-found in the \vn{%value(:)} array are
-\begin{example}
-  an, bn                                  ! ab_multipole components
-  knl tn                                  ! multipole components
-  \{out: coef, e1, e2, e3, e4, e5, e6\}     ! taylor term for a Taylor element
-  term(i) = Wig_term                      ! Wiggler term
-\end{example}
+Chapter~\ref{c:elements}. 
+
+Certain real valued attributes are {\em not}
+found in the \vn{%value(:)} array. For example, multipole components
+are stored in the \vne{%a(:)} and \vne{%b(:)} arrays. The full list
+of attributes not in \vn{%value(:)} is:
+\begin{tabular}{l|l} \hline
+  {\em Attribute} & {\em Component in Ele\_struct} \\ \hline
+  a$n$, b$n$      & \%a(:), \%b(:)     \\ \hline
+  k$n$l, T$n$     & \%a(:), \%b(:)     \\ \hline
+  Taylor term     & \%taylor(:)        \\ \hline
+  wakes           & \%wake             \\ \hline
+  wiggler terms   & \%wig\_term(:)      \\ \hline
+\end{tabular}
 
 \vn{attribute_bookkeeper} is the routine that makes sure that the
 dependent variables (See Section~\ref{s:depend}) of an element are
 keep up--to--date. \vn{attribute_bookkeeper} is called behind the
-scenes when \vn{make_mat6} is called to make transfer matrices. The
-general rule is that, to be safe, when elment attributes are changed,
-call \vn{attribute_bookkeeper}.
+scenes when \vnf{make_mat6} is called to make transfer matrices and when
+\vnf{track1} is called to track through an element. As a general rule,
+to be safe, when elment attributes are changed,
+call \vnf{attribute_bookkeeper}. If the element is part of a \vn{Ring_struct}
+(as it is in most cases), the routine \vnf{control_bookkeeper} (which calls
+\vn{attribute_bookkeeper}) should be called instead.
 
 In designing a program that will let a user input what
 attribute to vary, the routine \vn{pointer_to_attribute} 
