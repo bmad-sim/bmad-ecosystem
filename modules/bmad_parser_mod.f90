@@ -264,7 +264,7 @@ subroutine get_attribute (how, ele, ring, pring, &
 
 ! beginning element
 
-  if (ele%name = 'BEGINNING') then
+  if (ele%name == 'BEGINNING') then
     call evaluate_value (trim(ele%name) // ' ' // word, value, &
                                       ring, delim, delim_found, err_flag) 
     if (err_flag) return
@@ -282,6 +282,8 @@ subroutine get_attribute (how, ele, ring, pring, &
     case default
       call warning ('UNKNOWN "BEGINNING" ATTRIBUTE: ' // word)
     end select
+    return
+  endif
 
 ! if not an overlay then see if it is an ordinary attribute.
 ! if not an ordinary attribute then might be a superimpose switch
