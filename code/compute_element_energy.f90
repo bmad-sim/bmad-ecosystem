@@ -36,37 +36,26 @@ subroutine compute_element_energy (ring)
   beam_energy = ring%ele_(0)%value(beam_energy$)
   call energy_to_kinetic (beam_energy, ring%param%particle, p0c = p0c)
 
-! compute element energy if a linear_lattice
+! propagate the energy through the lattice
 
-  if (ring%param%lattice_type == linear_lattice$) then
+  do i = 1, ring%n_ele_use
 
-    do i = 1, ring%n_ele_use
-
-      if (ring%ele_(i)%key == lcavity$ .and. ring%ele_(i)%is_on) then
-        ring%ele_(i)%value(energy_start$) = beam_energy
-        beam_energy = beam_energy + ring%ele_(i)%value(gradient$) * &
+    if (ring%ele_(i)%key == lcavity$ .and. ring%ele_(i)%is_on) then
+      ring%ele_(i)%value(energy_start$) = beam_energy
+      beam_energy = beam_energy + ring%ele_(i)%value(gradient$) * &
             ring%ele_(i)%value(l$) * cos(twopi*ring%ele_(i)%value(phi0$)) 
-        if (bmad_com%sr_wakes_on) beam_energy = beam_energy - &
+      if (bmad_com%sr_wakes_on) beam_energy = beam_energy - &
                             ring%ele_(i)%value(e_loss$) * ring%param%charge
-        call energy_to_kinetic (beam_energy, ring%param%particle, p0c = p0c)
+      call energy_to_kinetic (beam_energy, ring%param%particle, p0c = p0c)
 
-      elseif (ring%ele_(i)%key == custom$) then
-        beam_energy = beam_energy + ring%ele_(i)%value(delta_e$)
-        call energy_to_kinetic (beam_energy, ring%param%particle, p0c = p0c)
-      endif
+    elseif (ring%ele_(i)%key == custom$) then
+      beam_energy = beam_energy + ring%ele_(i)%value(delta_e$)
+      call energy_to_kinetic (beam_energy, ring%param%particle, p0c = p0c)
+    endif
 
-      ring%ele_(i)%value(beam_energy$) = beam_energy
-      ring%ele_(i)%value(p0c$) = p0c
+    ring%ele_(i)%value(beam_energy$) = beam_energy
+    ring%ele_(i)%value(p0c$) = p0c
 
-    enddo
-
-! Otherwise everyone gets the same beam_energy
-
-  else
-
-    ring%ele_(:)%value(beam_energy$) = beam_energy
-    ring%ele_(:)%value(p0c$)         = p0c
-
-  endif
+  enddo
 
 end subroutine
