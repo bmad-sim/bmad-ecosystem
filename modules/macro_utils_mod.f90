@@ -422,12 +422,12 @@ integer*4 i
 
     ave_zzp = ave_zzp + sum(macro%charge*(macro%sigma(s56$) + &
          	            (macro%r%vec(5) - params%centroid%vec(5)) * &
-                             macro%r%vec(6) - params%centroid%vec(6)), &
+                            (macro%r%vec(6) - params%centroid%vec(6))), &
     	                    mask = .not. macro%lost)
          
     ave_zz = ave_zz + sum(macro%charge*(macro%sigma(s55$) + &
             	          (macro%r%vec(5) - params%centroid%vec(5)) * &
-                           macro%r%vec(5) - params%centroid%vec(5)), &
+                          (macro%r%vec(5) - params%centroid%vec(5))), &
 		          mask = .not. macro%lost)
 	     
 !    end do
