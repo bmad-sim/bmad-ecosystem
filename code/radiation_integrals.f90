@@ -151,6 +151,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
   m65 = 0
 
+!---------------------------------------------------------------------
 ! Caching
 
   ric%use_cache = .false.
@@ -245,10 +246,16 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
     ric%orb0 => orb_(ir-1)
     ric%orb1 => orb_(ir)
 
+    if (key == rfcavity$) m65 = m65 + ric%ele%mat6(6,5)
+
     ll = ric%ele%value(l$)
     if (ll == 0) cycle
 
     key = ric%ele%key
+
+! If there is a non-zero hick$ or vkick$ attribute assume that the kick
+! is distributed evenly over the element. The element will then contribute
+! to the integrals like a bend.
 
     if (ric%ele%value(hkick$) /= 0 .or. ric%ele%value(vkick$) /= 0) then
       c2%vec = 0
@@ -262,8 +269,6 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
       ric%g_x0 = 0
       ric%g_y0 = 0
     endif
-
-    if (key == rfcavity$) m65 = m65 + ric%ele%mat6(6,5)
 
 ! custom
 
@@ -292,7 +297,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
       cycle
 
-    endif
+    endif    ! ric%ele%exact_rad_int_calc
 
 ! new style wigglers get handled later.
 
@@ -324,7 +329,8 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
     endif
 
-!
+! Only possibilities left are quad, sol_quad and sbend elements, or there
+! is a non-zero bend angle.
 
     if (ric%g_x0 == 0 .and. ric%g_y0 == 0 .and. &
           key /= quadrupole$ .and. key /= sol_quad$ .and. key /= sbend$) cycle
