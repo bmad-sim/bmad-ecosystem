@@ -1372,8 +1372,9 @@ subroutine ele_to_taylor (ele, param, orb0)
   implicit none
   
   type (ele_struct), intent(inout) :: ele
-  type (param_struct), intent(in) :: param
+  type (param_struct) :: param
   type (coord_struct), optional, intent(in) :: orb0
+  type (coord_struct) start0, end0
 
   type (fibre), pointer, save :: a_fibre
   type (real_8) y(6), y2(6)
@@ -1441,6 +1442,12 @@ subroutine ele_to_taylor (ele, param, orb0)
 ! on axis particle gets.
 
   if (ele%key == wiggler$) then
+
+    if (ele%value(z_patch$) == 0 .and. .not. all(x == 0)) then
+      start0%vec = 0
+      call track1_symp_lie_ptc (start0, ele, param, end0) ! calc z_patch$
+    endif
+
     do i = 1, size(ele%taylor(5)%term)
       if (all(ele%taylor(5)%term(i)%exp == 0)) then
         if (all(x == 0)) then    ! an on-axis particle defines the z_patch
@@ -1453,6 +1460,7 @@ subroutine ele_to_taylor (ele, param, orb0)
         return
       endif
     enddo
+
   endif
 
 end subroutine
