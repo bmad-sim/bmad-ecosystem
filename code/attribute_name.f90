@@ -198,12 +198,14 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(monitor$, y_offset$) = 'Y_OFFSET'
     attrib_array(monitor$, x_pitch$)  = 'X_PITCH'
     attrib_array(monitor$, y_pitch$)  = 'Y_PITCH'
+    attrib_array(monitor$, tilt$)     = 'TILT'
 
     attrib_array(instrument$, l$) = 'L'
     attrib_array(instrument$, x_offset$) = 'X_OFFSET'
     attrib_array(instrument$, y_offset$) = 'Y_OFFSET'
     attrib_array(instrument$, x_pitch$)  = 'X_PITCH'
     attrib_array(instrument$, y_pitch$)  = 'Y_PITCH'
+    attrib_array(instrument$, tilt$)     = 'TILT'
 
     attrib_array(marker$, x_offset$) = 'X_OFFSET'
     attrib_array(marker$, y_offset$) = 'Y_OFFSET'
