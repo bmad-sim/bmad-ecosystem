@@ -3,6 +3,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.12  2002/08/20 20:35:06  dcs
+!symp_lie_bmad / symp_lie_ptc added
+!
 !Revision 1.11  2002/07/26 15:19:44  dcs
 !New subroutines
 !
@@ -91,24 +94,6 @@ module bmad_interface
     subroutine concat_taylor (taylor1, taylor2, taylor_out)
       use bmad_struct
       type (taylor_struct) taylor1(:), taylor2(:), taylor_out(:)
-    end subroutine
-  end interface
-
-  interface
-    subroutine accel_sol_mat_calc (ls, c_m, c_e, gamma_old, gamma_new, b_x,  &
-        b_y, coord, mat4, vec_st)
-      use bmad_struct
-      implicit none
-      type (coord_struct) coord
-      real(rdef) ls
-      real(rdef) c_m
-      real(rdef) c_e
-      real(rdef) gamma_old
-      real(rdef) gamma_new
-      real(rdef) b_x
-      real(rdef) b_y
-      real(rdef) mat4(4,4)
-      real(rdef) vec_st(4)
     end subroutine
   end interface
 
@@ -685,71 +670,71 @@ module bmad_interface
   end interface
  
   interface
-    subroutine make_mat6 (ele, param, c0, c1)
+    subroutine make_mat6 (ele, param, start, end)
       use bmad_struct
       implicit none
       type (ele_struct) ele
-      type (coord_struct), optional :: c0, c1
+      type (coord_struct), optional :: start, end
       type (param_struct) param
     end subroutine
   end interface
 
   interface
-    subroutine make_mat6_custom (ele, param, c0, c1)
+    subroutine make_mat6_custom (ele, param, start, end)
       use bmad_struct
       implicit none
       type (ele_struct) ele
-      type (coord_struct) :: c0, c1
+      type (coord_struct) :: start, end
       type (param_struct) param
     end subroutine
   end interface
 
   interface
-    subroutine make_mat6_taylor (ele, param, c0, c1)
+    subroutine make_mat6_taylor (ele, param, start, end)
       use bmad_struct
       implicit none
       type (ele_struct) ele
-      type (coord_struct) :: c0, c1
+      type (coord_struct) :: start, end
       type (param_struct) param
     end subroutine
   end interface
 
   interface
-    subroutine make_mat6_bmad (ele, param, c0, c1)
+    subroutine make_mat6_bmad (ele, param, start, end)
       use bmad_struct
       implicit none
       type (ele_struct) ele
-      type (coord_struct) :: c0, c1
+      type (coord_struct) :: start, end
       type (param_struct) param
     end subroutine
   end interface
 
   interface
-    subroutine make_mat6_runge_kutta (ele, param, c0, c1)
+    subroutine make_mat6_runge_kutta (ele, param, start, end)
       use bmad_struct
       implicit none
       type (ele_struct) ele
-      type (coord_struct) :: c0, c1
+      type (coord_struct) :: start, end
       type (param_struct) param
     end subroutine
   end interface
 
   interface
-    subroutine make_mat6_symp_lie (ele, param, c0, c1)
+    subroutine make_mat6_symp_lie_ptc (ele, param, start, end)
       use bmad_struct
       implicit none
       type (ele_struct) ele
-      type (coord_struct) :: c0, c1
+      type (coord_struct) :: start, end
       type (param_struct) param
     end subroutine
   end interface
 
   interface
-    subroutine make_mat6_tracking (ele, param, c0, c1)
+    subroutine make_mat6_tracking (ele, param, start, end)
       use bmad_struct
       implicit none
       type (ele_struct) ele
-      type (coord_struct) :: c0, c1
+      type (coord_struct) :: start, end
       type (param_struct) param
     end subroutine
   end interface
@@ -1220,12 +1205,24 @@ module bmad_interface
   end interface
 
   interface
-    subroutine taylor_to_mat6 (bmad_taylor, c0, mat6, c1)
+    subroutine symp_lie_bmad (ele, param, start, end, make_mat6)
+      use bmad_struct
+      implicit none
+      type (coord_struct) :: start
+      type (coord_struct) :: end
+      type (ele_struct) :: ele
+      type (param_struct) :: param
+      logical make_mat6
+    end subroutine
+  end interface
+
+  interface
+    subroutine taylor_to_mat6 (bmad_taylor, start, mat6, end)
       use bmad_struct
       implicit none
       type (taylor_struct), target, intent(in) :: bmad_taylor(6)
-      type (coord_struct), intent(in) :: c0
-      type (coord_struct), intent(out) :: c1
+      type (coord_struct), intent(in) :: start
+      type (coord_struct), intent(out) :: end
       real(rdef), intent(out) :: mat6(6,6)
     end subroutine
   end interface
@@ -1256,18 +1253,6 @@ module bmad_interface
       implicit none
       type (ring_struct) ring
       type (coord_struct) orbit_(0:)
-    end subroutine
-  end interface
-
-  interface
-    subroutine track_bend (start, ele, param, end)
-      use bmad_struct
-      implicit none
-      type (coord_struct) start
-      type (coord_struct) end
-      type (ele_struct) ele
-      type (param_struct) param
-      logical is_lost
     end subroutine
   end interface
 
@@ -1404,7 +1389,7 @@ module bmad_interface
   end interface
 
   interface
-    subroutine track1_symp_lie (start, ele, param, end)
+    subroutine track1_symp_lie_ptc (start, ele, param, end)
       use bmad_struct
       implicit none
       type (coord_struct), intent(in) :: start

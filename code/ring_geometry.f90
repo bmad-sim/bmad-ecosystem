@@ -24,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/08/20 20:34:53  dcs
+!symp_lie_bmad / symp_lie_ptc added
+!
 !Revision 1.5  2002/06/13 14:54:28  dcs
 !Interfaced with FPP/PTC
 !
@@ -61,6 +64,12 @@ subroutine ring_geometry (ring)
 
   do i = 1, ring%n_ele_ring
 
+    if (ele%key == patch$) then
+      print *, 'ERROR IN RING_GEOMETRY: PATCH NOT YET IMPLEMENTED!'
+      call err_exit      
+      cycle
+    endif
+
     ele = ring%ele_(i)
     leng = dble(ele%value(l$))
 
@@ -97,5 +106,4 @@ subroutine ring_geometry (ring)
 
   enddo
 
-  return
-  end
+end subroutine

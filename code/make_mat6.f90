@@ -1,5 +1,5 @@
 !+
-! Subroutine make_mat6 (ele, param, c0, c1)
+! Subroutine make_mat6 (ele, param, start, end)
 !
 ! Subroutine to make the 6x6 transfer matrix for an element. 
 !
@@ -9,27 +9,27 @@
 ! Input:
 !   ele    -- Ele_struct: Element
 !   param  -- Param_struct: Parameters are needed for some elements.
-!   c0     -- Coord_struct, optional: Coordinates at the beginning of element. 
-!               If not present then effectively c0 = 0.
+!   start  -- Coord_struct, optional: Coordinates at the beginning of element. 
+!               If not present then effectively start = 0.
 !
 ! Output:
 !   ele    -- Ele_struct: Element
 !     %mat6  -- Real(rdef): 6x6 transfer matrix.
-!   c1     -- Coord_struct, optional: Coordinates at the end of element.
+!   end    -- Coord_struct, optional: Coordinates at the end of element.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine make_mat6 (ele, param, c0, c1)
+subroutine make_mat6 (ele, param, start, end)
 
   use bmad
 
   implicit none
 
   type (ele_struct), target :: ele
-  type (coord_struct), optional :: c0, c1
+  type (coord_struct), optional :: start, end
   type (param_struct)  param
-  type (coord_struct) c00, c11
+  type (coord_struct) a_start, a_end
 
   integer mat6_calc_method
 
@@ -43,31 +43,34 @@ subroutine make_mat6 (ele, param, c0, c1)
 
 !
 
-  if (present(c0)) then
-    c00 = c0
+  if (present(start)) then
+    a_start = start
   else
-    c00%vec = 0
+    a_start%vec = 0
   endif
 
   select case (mat6_calc_method)
 
   case (taylor$)
-    call make_mat6_taylor (ele, param, c00, c11)
+    call make_mat6_taylor (ele, param, a_start, a_end)
 
   case (runge_kutta$)
-    call make_mat6_runge_kutta (ele, param, c00, c11)
+    call make_mat6_runge_kutta (ele, param, a_start, a_end)
 
   case (custom$) 
-    call make_mat6_custom (ele, param, c00, c11)
+    call make_mat6_custom (ele, param, a_start, a_end)
 
   case (bmad_standard$)
-    call make_mat6_bmad (ele, param, c00, c11)
+    call make_mat6_bmad (ele, param, a_start, a_end)
 
-  case (symp_lie$)
-    call make_mat6_symp_lie (ele, param, c00, c11)
+  case (symp_lie_ptc$)
+    call make_mat6_symp_lie_ptc (ele, param, a_start, a_end)
+
+  case (symp_lie_bmad$)
+    call symp_lie_bmad (ele, param, start, end, .true.)
 
   case (tracking$)
-    call make_mat6_tracking (ele, param, c00, c11)
+    call make_mat6_tracking (ele, param, a_start, a_end)
 
   case (none$)
     return
@@ -84,8 +87,8 @@ subroutine make_mat6 (ele, param, c0, c1)
 
 ! make the 0th order transfer vector
 
-  ele%vec0 = c11%vec - matmul(ele%mat6, c00%vec)
-  if (present (c1)) c1 = c11
+  ele%vec0 = a_end%vec - matmul(ele%mat6, a_start%vec)
+  if (present (end)) end = a_end
 
 end subroutine
 

@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.13  2002/08/20 20:35:06  dcs
+!symp_lie_bmad / symp_lie_ptc added
+!
 !Revision 1.12  2002/08/08 19:46:37  dcs
 !ele%gen0 bug fix
 !
@@ -67,7 +70,7 @@ module bmad_struct
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 !
-  integer, parameter :: bmad_inc_version$ = 54
+  integer, parameter :: bmad_inc_version$ = 55
 !
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -266,9 +269,9 @@ module bmad_struct
   integer, parameter :: hybrid$ = 16, octupole$ = 17, rbend$ = 18
   integer, parameter :: multipole$ = 19, accel_sol$ = 20
   integer, parameter :: def_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23
-  integer, parameter :: null_ele$ = 24
+  integer, parameter :: patch$ = 24, null_ele$ = 25
 
-  integer, parameter :: n_key = 24    
+  integer, parameter :: n_key = 25
 
   character*16 :: key_name(n_key+1) = (/ &
       'DRIFT        ', 'SBEND        ', 'QUADRUPOLE   ', 'GROUP        ', &
@@ -276,8 +279,8 @@ module bmad_struct
       'RFCAVITY     ', 'ELSEPARATOR  ', 'BEAMBEAM     ', 'WIGGLER      ', &
       'SOL_QUAD     ', 'MARKER       ', 'KICKER       ', 'HYBRID       ', &
       'OCTUPOLE     ', 'RBEND        ', 'MULTIPOLE    ', 'ACCEL_SOL    ', &
-      'DEF_BEAM     ', 'AB_MULTIPOLE ', 'SOLENOID     ', 'NULL_ELEMENT ', &
-      '             ' /)
+      'DEF_BEAM     ', 'AB_MULTIPOLE ', 'SOLENOID     ', 'PATCH        ', &
+      'NULL_ELEMENT ', '             ' /)
 
 ! Attribute name logical definitions
 ! Note: The following attributes must have unique number assignments:
@@ -301,7 +304,7 @@ module bmad_struct
   integer, parameter :: lag$=8, e2$=8, charge$=8, gap$=8
   integer, parameter :: n_slice$=9, l_chord$=9
   integer, parameter :: fint$=10, polarity$ = 10
-  integer, parameter :: fintx$=11
+  integer, parameter :: fintx$=11, z_patch$ = 11
   integer, parameter :: rho$ = 12
   integer, parameter :: hgap$=13
   integer, parameter :: coef$=14, current$=14, hgapx$=14
@@ -315,14 +318,15 @@ module bmad_struct
   integer, parameter :: vkick$=22
   integer, parameter :: x_offset$=23
   integer, parameter :: y_offset$=24
-  integer, parameter :: s_offset$=25
-  integer, parameter :: x_limit$=26
-  integer, parameter :: y_limit$=27
-  integer, parameter :: aperture$=28 
-  integer, parameter :: radius$=29
-  integer, parameter :: energy$=30  ! formally new_energy$
-  integer, parameter :: rel_tol$ = 31
-  integer, parameter :: abs_tol$ = 32
+  integer, parameter :: s_offset$=25, z_offset$ = 25
+  integer, parameter :: dE_offset$ = 26
+  integer, parameter :: x_limit$=27
+  integer, parameter :: y_limit$=28
+  integer, parameter :: aperture$=29
+  integer, parameter :: radius$=30
+  integer, parameter :: energy$=31  ! formally new_energy$
+  integer, parameter :: rel_tol$ = 32
+  integer, parameter :: abs_tol$ = 33
 
   integer, parameter :: type$ = 35   ! this is 1 greater than n_attrib_maxx
   integer, parameter :: alias$ = 36 
@@ -402,14 +406,15 @@ module bmad_struct
 
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
 
-  integer, parameter :: bmad_standard$ = 1, symp_lie$ = 2, runge_kutta$ = 3 
+  integer, parameter :: bmad_standard$ = 1, symp_lie_ptc$ = 2
+  integer, parameter :: runge_kutta$ = 3 
   integer, parameter :: linear$ = 4, tracking$ = 5, symp_map$ = 6
-  integer, parameter :: wiedemann$ = 9, none$ = 10
+  integer, parameter :: wiedemann$ = 9, symp_lie_bmad$ = 10, none$ = 11
 
-  character*16, parameter :: calc_method_name(0:10) = (/ &
-      "GARBAGE!     ", "BMAD_Standard", "Symp_Lie     ", "Runge_Kutta  ", &
+  character*16, parameter :: calc_method_name(0:11) = (/ &
+      "GARBAGE!     ", "BMAD_Standard", "Symp_Lie_PTC ", "Runge_Kutta  ", &
       "Linear       ", "Tracking     ", "Symp_Map     ", "Custom       ", &
-      "Taylor       ", "Wiedemann    ", "None         " /)
+      "Taylor       ", "Wiedemann    ", "Symp_Lie_BMAD", "None         " /)
 
   integer, parameter :: map_type$ = 1, periodic_type$ = 2
   character*16, parameter :: sub_key_name(0:2) = (/ &

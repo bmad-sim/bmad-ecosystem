@@ -5,6 +5,12 @@
 ! This routine is NOT ment for long term tracking since it does not get 
 ! all the 2nd order terms for the longitudinal motion.
 !
+! It is assumed that HKICK and VKICK are the kicks in the horizontal
+! and vertical kicks irregardless of the value for TILT.
+!
+! Note: track1_bmad *never* relies on ele%mat6 for tracking excect for 
+! hybrid elements.
+!
 ! Modules Needed:
 !   use bmad
 !
@@ -12,24 +18,9 @@
 !   start  -- Coord_struct: Starting position
 !   ele    -- Ele_struct: Element
 !   param  -- Param_struct:
-!     %aperture_limit_on -- If .true. then %LOST will be set if the
-!                 particle is outsile the aperture.
 !
 ! Output:
 !   end   -- Coord_struct: End position
-!   param
-!     %lost -- Set .true. If the particle is outside the aperture and
-!                %aperture_limit_on is set. Also: %lost is set .true. if
-!                the particle does not make it through a bend irregardless
-!                of the the setting of %aperture_limit_on.
-!
-! Notes:
-!
-! It is assumed that HKICK and VKICK are the kicks in the horizontal
-! and vertical kicks irregardless of the value for TILT.
-!
-! TRACK1_BMAD *never* relies on ELE%MAT6 for tracking excect for 
-! hybrid elements.
 !-
 
 #include "CESR_platform.inc"
@@ -53,7 +44,7 @@ subroutine track1_bmad (start, ele, param, end)
   real(rdef) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
   real(rdef) ks, sig_x0, sig_y0, beta, mat6(6,6)
   real(rdef) z_slice(100), s_pos, s_pos_old, vec0(6)
-  real(rdef) ave_x_vel2, ave_y_vel2
+  real(rdef) ave_x_vel2, ave_y_vel2, rel_E
 
   integer i, j, n, n_slice, key
 
@@ -90,10 +81,15 @@ subroutine track1_bmad (start, ele, param, end)
 
   case (drift$) 
 
-    call offset_particle (ele, param, end, set$)
-    end%vec(1) = end%vec(1) + length * end%vec(2)
-    end%vec(3) = end%vec(3) + length * end%vec(4)
-    call offset_particle (ele, param, end, unset$)
+    call track_a_drift (end%vec, length)
+    return
+
+! patch
+
+  case (patch$)
+
+    print *, 'ERROR IN TRACK1_BMAD: PATCH ELEMENT NOT YET IMPLEMENTED!'
+    call err_exit
 
 ! kicker, separator
 
@@ -194,7 +190,7 @@ subroutine track1_bmad (start, ele, param, end)
 
   case (sbend$)
 
-    call track_bend (end, ele, param, end)
+    call track_a_bend (end, ele, param, end)
     return ! do not do z-calc at end of this routine
 
 ! rfcavity
@@ -292,10 +288,11 @@ subroutine track1_bmad (start, ele, param, end)
                   set_canonical = .false., set_tilt = .false.)
 
 ! accel_sol
+! look at former routine in track1_mod:track_a_accel_sol ()
 
   case (accel_sol$)
 
-    print *, 'ERROR: ACCEL_SOL MUST BE RESUSITATED!' ! call track1_accel_sol ()
+    print *, 'ERROR: ACCEL_SOL MUST BE RESUSITATED!' 
     call err_exit
 
 ! unknown

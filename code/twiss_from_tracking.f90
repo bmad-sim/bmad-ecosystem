@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/08/20 20:34:55  dcs
+!symp_lie_bmad / symp_lie_ptc added
+!
 !Revision 1.5  2002/07/16 21:33:58  dcs
 !*** empty log message ***
 !
@@ -117,7 +120,7 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
 ! mat  is the transfer matrix from the start to the end of element #j
 ! mat1 is the transfer matrix through element #j
 
-  call make_mat_unit (mat0, 6, 6)  
+  call mat_unit (mat0, 6, 6)  
 
   do j = 1, n_ele
 

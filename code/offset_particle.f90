@@ -42,6 +42,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/08/20 20:34:53  dcs
+!symp_lie_bmad / symp_lie_ptc added
+!
 !Revision 1.3  2002/06/13 14:54:28  dcs
 !Interfaced with FPP/PTC
 !
@@ -112,10 +115,8 @@ subroutine offset_particle (ele, param, coord, set, &
 
 ! Set s_offset
 
-    if (ele%value(s_offset$) /= 0) then
-      coord%x%pos = coord%x%pos + ele%value(s_offset$) * coord%x%vel / E_rel
-      coord%y%pos = coord%y%pos + ele%value(s_offset$) * coord%y%vel / E_rel
-    endif
+    if (ele%value(s_offset$) /= 0) &
+                      call track_a_drift (coord%vec, ele%value(s_offset$))
 
 ! Set: Offset and pitch
 
@@ -262,10 +263,8 @@ subroutine offset_particle (ele, param, coord, set, &
       endif
     endif
 
-    if (ele%value(s_offset$) /= 0) then
-      coord%x%pos = coord%x%pos - ele%value(s_offset$) * coord%x%vel / E_rel
-      coord%y%pos = coord%y%pos - ele%value(s_offset$) * coord%y%vel / E_rel
-    endif
+    if (ele%value(s_offset$) /= 0) &
+                      call track_a_drift (coord%vec, -ele%value(s_offset$))
 
   endif
 

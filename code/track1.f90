@@ -11,8 +11,8 @@
 !   start  -- Coord_struct: Starting position
 !   ele    -- Ele_struct: Element
 !   param  -- Param_struct:
-!     %aperture_limit_on -- If .true. then %LOST will be set if the
-!                 particle is outsile the aperture.
+!     %aperture_limit_on -- If .true. then param%lost will be set if the
+!                 particle is outside the aperture.
 !
 ! Output:
 !   end   -- Coord_struct: End position
@@ -41,8 +41,6 @@ subroutine track1 (start, ele, param, end)
   type (ele_struct),   intent(inout)  :: ele
   type (param_struct), intent(inout) :: param
 
-  real(rdef) x_lim, y_lim
-
   integer tracking_method
 
 ! bmad_standard handles the case when the element is turned off.
@@ -70,8 +68,11 @@ subroutine track1 (start, ele, param, end)
   case (symp_map$) 
     call track1_symp_map (start, ele, param, end)
 
-  case (symp_lie$) 
-    call track1_symp_lie (start, ele, param, end)
+  case (symp_lie_bmad$) 
+    call symp_lie_bmad (ele, param, start, end, .false.)
+
+  case (symp_lie_ptc$) 
+    call track1_symp_lie_ptc (start, ele, param, end)
 
   case (wiedemann$) 
     call track1_wiedemann_wiggler (start, ele, param, end)
@@ -84,16 +85,6 @@ subroutine track1 (start, ele, param, end)
 
 ! check for particles outside aperture
 
-  if (param%aperture_limit_on) then
-
-    x_lim = ele%value(x_limit$)
-    if (x_lim <= 0) x_lim = 1e10
-    if (abs(end%x%pos) > x_lim) param%lost = .true.
-
-    y_lim = ele%value(y_limit$)
-    if (y_lim <= 0) y_lim = 1e10
-    if (abs(end%y%pos) > y_lim) param%lost = .true.
-
-  endif
+  call check_aperture_limit (end, ele, param)
 
 end subroutine

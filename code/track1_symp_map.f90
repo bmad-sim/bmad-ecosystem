@@ -4,6 +4,9 @@
 ! Particle tracking through a single element using a partially inverted taylor
 ! map (In PTC/FPP this is called a genfield). 
 !
+! Note: It is assumed that HKICK and VKICK are the kicks in the horizontal
+! and vertical kicks irregardless of the value for TILT.
+!
 ! Modules Needed:
 !   use bmad
 !
@@ -11,21 +14,9 @@
 !   start  -- Coord_struct: Starting position
 !   ele    -- Ele_struct: Element
 !   param  -- Param_struct:
-!     %aperture_limit_on -- If .true. then %LOST will be set if the
-!                 particle is outsile the aperture.
 !
 ! Output:
 !   end   -- Coord_struct: End position
-!   param
-!     %lost -- Set .true. If the particle is outside the aperture and
-!                %aperture_limit_on is set. Also: %lost is set .true. if
-!                the particle does not make it through a bend irregardless
-!                of the the setting of %aperture_limit_on.
-!
-! Notes:
-!
-! It is assumed that HKICK and VKICK are the kicks in the horizontal
-! and vertical kicks irregardless of the value for TILT.
 !-
 
 #include "CESR_platform.inc"

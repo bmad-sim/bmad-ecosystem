@@ -1,5 +1,5 @@
 !+
-! Subroutine make_mat6_symp_lie (ele, param, c0, c1)
+! Subroutine make_mat6_symp_lie_ptc (ele, param, c0, c1)
 !
 ! Subroutine to make the 6x6 transfer matrix for an element. 
 !
@@ -19,7 +19,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine make_mat6_symp_lie (ele, param, c0, c1)
+subroutine make_mat6_symp_lie_ptc (ele, param, c0, c1)
 
   use bmad
 

@@ -55,15 +55,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
   length = ele%value(l$)
   mat6 => ele%mat6
-  mat6 = 0
-  forall (i = 1:6) mat6(i,i) = 1
 
   call track1 (c0, ele, param, c1)
-
-!--------------------------------------------------------
-! marker
-
-  if (ele%key == marker$) return
 
 !--------------------------------------------------------
 ! drift or element is off or
@@ -76,8 +69,14 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
     call drift_mat6_calc (mat6, length, orb%vec)
 
     goto 8000   ! put in multipole ends if needed
-
+  else
+    call mat_make_unit (mat6)
   endif
+
+!--------------------------------------------------------
+! marker
+
+  if (ele%key == marker$) return
 
 !--------------------------------------------------------
 ! Put in offsets, etc.
@@ -404,7 +403,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
       s_pos = 0          ! start at IP
       orb%x%vel = c00%x%vel - ele%value(x_pitch$)
       orb%y%vel = c00%y%vel - ele%value(y_pitch$)
-      call mat_unit (mat4, 4, 4)
+      call mat_make_unit (mat4)
 
       do i = 1, n_slice + 1
         s_pos_old = s_pos  ! current position
@@ -431,7 +430,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
   case (wiggler$) 
 
-    call mat_unit (mat6, 6, 6)     ! make a unit matrix
+    call mat_make_unit (mat6)     ! make a unit matrix
 
     k1 = ele%value(k1$) / (1 + c00%z%vel)**2
   
@@ -526,7 +525,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
       call exit
     endif
 
-    call mat_unit (mat6, 6, 6)     ! make a unit matrix
+    call mat_make_unit (mat6)     ! make a unit matrix
     if (ele%value(volt$) /= 0) then
       if (ele%value(rf_wavelength$) == 0) then
         type *, 'ERROR IN MAKE_MAT6_BMAD: RF IS ON BUT "RF_WAVELENGTH" NOT SET',  &
@@ -545,7 +544,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
     gamma_old = param%energy * (c00%z%vel + 1) / e_mass
     gamma_new = gamma_old + c_e * length
     call accel_sol_mat_calc (length, c_m, c_e, gamma_old, gamma_new, &
-                                        0.0_rdef, 0.0_rdef, c00, mat4, vec_st)
+                                    0.0_rdef, 0.0_rdef, c00%vec, mat4, vec_st)
     mat4 = mat6(1:4,1:4)
 
 !--------------------------------------------------------
@@ -643,7 +642,7 @@ subroutine bbi_kick_matrix (ele, orb, s_pos, mat6)
 
   coef = ele%value(bbi_const$) / (1 + orb%z%vel)
 
-  call mat_unit(mat6, 6, 6)
+  call mat_make_unit (mat6)
   mat6(2,1) = coef * (k1_x - k0_x) / (ele%value(n_slice$) * del * sig_x)
   mat6(4,3) = coef * (k1_y - k0_y) / (ele%value(n_slice$) * del * sig_y)
 

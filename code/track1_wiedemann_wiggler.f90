@@ -4,6 +4,10 @@
 ! Subroutine to track through the body of a wiggler. This routine is
 ! used by track1.
 !
+! For wiggler tracking use the "hard edge" model of Wiedemann, 
+! "Part. Acc. Ph. II", pg. 65. Note that in Wiedemann fig 2.8, l_h is 
+! mistakenly drawn as being the full pole width (it is the half pole width).
+!
 ! Modules Needed:
 !   use bmad
 !
@@ -14,13 +18,6 @@
 !
 ! Output:
 !   end    -- Coord_struct: End position
-!   param  -- Param_struct:
-!     %lost  -- Logical: Set T or F depending upon whether the particle
-!               reaches the exit face.
-!
-! For wiggler tracking use the "hard edge" model of Wiedemann, 
-! "Part. Acc. Ph. II", pg. 65. Note that in Wiedemann fig 2.8, l_h is 
-! mistakenly drawn as being the full pole width (it is the half pole width).
 !-
 
 

@@ -12,20 +12,17 @@
 !   start  -- Coord_struct: Starting position
 !   ele    -- Ele_struct: Element
 !   param  -- Param_struct:
-!     %aperture_limit_on -- If .true. then %lost will be set if the
-!                 particle is outsile the aperture.
 !
 ! Output:
 !   end   -- Coord_struct: End position
 !   param
-!     %lost -- Set .true. If the particle is outside the aperture and
-!                %aperture_limit_on is set. Also: %LOST is set .true. if
-!                the particle does not make it through a bend irregardless
-!                of the the setting of %aperture_limit_on.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.2  2002/08/20 20:34:54  dcs
+!symp_lie_bmad / symp_lie_ptc added
+!
 !Revision 1.1  2002/06/13 15:07:22  dcs
 !Merged with FPP/PTC
 !

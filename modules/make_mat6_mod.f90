@@ -1,9 +1,10 @@
-module make_mat6_mod
-
 #include "CESR_platform.inc"
+
+module make_mat6_mod
 
   use dcslib_struct
   use dcslib_interface
+  use physical_constants
 
 contains
 
@@ -406,10 +407,45 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
+!+
+! Subroutine mat6_add_tilt_at_end (mat6, tilt)
+!
+! Subroutine to add a tilt matrix to a transfer matrix
+!     mat6 -> tilt_mat * mat6
+!-
+
+subroutine mat6_add_tilt_at_end (mat6, tilt)
+
+  implicit none
+
+  real(rdef) tilt, mat6(6,6), mm(6,6)
+  real(rdef) c, s
+
+  if (tilt == 0) return
+
+  c = cos(tilt)
+  s = sin(tilt)
+
+  mm(1,1:6) = c * mat6(1,1:6) - s * mat6(3,1:6)
+  mm(2,1:6) = c * mat6(2,1:6) - s * mat6(4,1:6)
+  mm(3,1:6) = c * mat6(3,1:6) + s * mat6(1,1:6)
+  mm(4,1:6) = c * mat6(4,1:6) + s * mat6(2,1:6)
+  mm(5,1:6) =     mat6(5,1:6)
+  mm(6,1:6) =     mat6(6,1:6)
+
+  mat6 = mm
+
+end subroutine
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
 !+      
 ! Subroutine tilt_mat6 (mat6, tilt)
 !
-! Subroutine to tilt a 6x6 matrix.
+! Subroutine to transform a 6x6 transfer matrix to a new reference frame
+! that is tilted in (x, Px, y, Py) with respect to the old reference frame.
+!     mat6 -> tilt_mat * mat6 * tilt_mat_inverse
 !-
 
 subroutine tilt_mat6 (mat6, tilt)
@@ -417,7 +453,7 @@ subroutine tilt_mat6 (mat6, tilt)
   implicit none
 
   real(rdef) tilt, mat6(6,6), mm(6,6)
-  real(rdef) c, s, c2, cs, s2
+  real(rdef) c, s
 
 !
 
@@ -433,12 +469,12 @@ subroutine tilt_mat6 (mat6, tilt)
   mm(5,1:6) =     mat6(5,1:6)
   mm(6,1:6) =     mat6(6,1:6)
 
-  mat6(1:6,1) = c * mm(1:6,1) - s * mm(1:6,3)
-  mat6(1:6,2) = c * mm(1:6,2) - s * mm(1:6,4)
-  mat6(1:6,3) = c * mm(1:6,3) + s * mm(1:6,1)
-  mat6(1:6,4) = c * mm(1:6,4) + s * mm(1:6,2)
-  mat6(1:6,5) =     mm(1:6,5)
-  mat6(1:6,6) =     mm(1:6,6)
+  mat6(1:6,1) = mm(1:6,1) * c - mm(1:6,3) * s
+  mat6(1:6,2) = mm(1:6,2) * c - mm(1:6,4) * s
+  mat6(1:6,3) = mm(1:6,3) * c + mm(1:6,1) * s
+  mat6(1:6,4) = mm(1:6,4) * c + mm(1:6,2) * s
+  mat6(1:6,5) = mm(1:6,5)
+  mat6(1:6,6) = mm(1:6,6)
                      
 end subroutine
 
@@ -496,22 +532,155 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
+!+
+! Subroutine ACCEL_SOL_MAT_CALC (LS, C_M, C_E, GAMMA_OLD, GAMMA_NEW, B_X, B_Y,
+!   COORD, MAT4, VEC_ST)
+!
+!   Subroutine to calculate the 4x4 transfer matrix (excluding steerings) for a
+! segment of an accelerating solenoid.  A vector is also calculated for the
+! steerings.
+! -- Created by Daniel Fromowitz, September 1999.
+!
+! Input:
+!     LS        -- Real(rdef): length of the segment
+!     C_M       -- Real(rdef): constant proportional to the longitudinal magnetic
+!                         field
+!     C_E       -- Real(rdef): constant proportional to the electric field
+!     GAMMA_OLD -- Real(rdef): Lorentz factor at beginning of segment
+!     GAMMA_NEW -- Real(rdef): Lorentz factor at end of segment
+!     B_X       -- Real(rdef): Horizontal field of transverse steering
+!     B_Y       -- Real(rdef): Vertical field of transverse steering
+!     COORD(6)  -- Real(rdef): Starting position
+!
+! Output:
+!     MAT4(4,4) -- Real(rdef): 4x4 transfer matrix excluding steerings
+!     VEC_ST(4) -- Real(rdef): Vector due to steerings (assuming positrons)
+!-
+
+!$Id$
+!$Log$
+!Revision 1.3  2002/08/20 20:35:07  dcs
+!symp_lie_bmad / symp_lie_ptc added
+!
+!Revision 1.3  2002/02/23 20:32:09  dcs
+!Double/Single Real toggle added
+!
+!Revision 1.2  2001/09/27 18:31:47  rwh24
+!UNIX compatibility updates
+!
+
+subroutine accel_sol_mat_calc (ls, c_m, c_e, gamma_old, gamma_new, b_x,  &
+                                                     b_y, coord, mat4, vec_st)
+
+  implicit none
+
+  
+  real(rdef) ls, c_m, c_e, gamma_old, gamma_new, b_x, b_y, mat4(4,4), vec_st(4)
+  real(rdef) coef, cosr, sinr, denom, ratio, ratio_c_m, sinr_c_m, onecosr_c_m
+  real(rdef) mat_st(4,2), coord(6)
+  integer i
+
+  if (abs(c_e) > 0.001) then
+    ratio_c_m = log(gamma_new / gamma_old) / c_e
+    ratio = c_m * ratio_c_m
+  else
+    ratio_c_m = ls / gamma_old * (1 - c_e * ls / (2 * gamma_old))
+    ratio = c_m * ratio_c_m
+  endif
+  if (abs(c_m) > 0.001) then
+    sinr_c_m = sin(ratio) / c_m
+    onecosr_c_m = (1 - cos(ratio)) / c_m
+  else
+    sinr_c_m = ratio_c_m
+    onecosr_c_m = c_m * ratio_c_m**2 / 2
+  endif
+  sinr = sin(ratio)
+  cosr = cos(ratio)
+
+  mat4(1,1) = 1
+  mat4(1,2) = gamma_old * sinr_c_m
+  mat4(1,3) = 0
+  mat4(1,4) = gamma_old * onecosr_c_m
+  mat4(2,1) = 0
+  mat4(2,2) = cos(ratio) * gamma_old / gamma_new
+  mat4(2,3) = 0
+  mat4(2,4) = sin(ratio) * gamma_old / gamma_new
+  mat4(3,1) = 0
+  mat4(3,2) = -mat4(1,4)
+  mat4(3,3) = 1
+  mat4(3,4) = mat4(1,2)
+  mat4(4,1) = 0
+  mat4(4,2) = -mat4(2,4)
+  mat4(4,3) = 0
+  mat4(4,4) = mat4(2,2)
+
+!     Steerings:
+
+  if ((b_x /= 0.0) .or. (b_y /= 0.0)) then
+    denom = c_e**2 + c_m**2
+    if (denom > 2.e-6) then
+      coef = c_light / (e_mass * 1.e9) / denom
+      mat_st(1,1) = coef *  &
+                    (c_m * ls - gamma_old * (c_e * onecosr_c_m + sinr))
+      mat_st(1,2) = coef * (gamma_old * (cosr + c_e * sinr_c_m) - gamma_new)
+      mat_st(2,1) = coef *  &
+                   (c_m - gamma_old / gamma_new * (c_e * sinr + c_m * cosr))
+      mat_st(2,2) = coef *  &
+                   (gamma_old / gamma_new * (c_e * cosr - c_m * sinr) - c_e)
+    else
+      coef = c_light / (e_mass * 1.e9)  &
+        * sqrt((1 + coord(2)**2 + coord(4)**2) / (gamma_old**2 - 1))
+      mat_st(1,1) = 0
+      mat_st(1,2) = -coef * ls**2 / 2
+      mat_st(2,1) = 0
+      mat_st(2,2) = -coef * ls
+    endif
+    mat_st(3,1) = -mat_st(1,2)
+    mat_st(3,2) =  mat_st(1,1)
+    mat_st(4,1) = -mat_st(2,2)
+    mat_st(4,2) =  mat_st(2,1)
+    do i = 1, 4
+      vec_st(i) = mat_st(i,1) * b_x + mat_st(i,2) * b_y
+    enddo
+  else
+    do i = 1, 4
+      vec_st(i) = 0
+    enddo
+  endif
+
+end subroutine
+
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine drift_mat6_calc (mat6, length, orb)
+!-
 
 subroutine drift_mat6_calc (mat6, length, orb)
 
   implicit none
 
-  real(rdef) orb(6)
-  real(rdef) mat6(6,6), length
+  real(rdef) orb(:)
+  real(rdef) mat6(:,:), length, rel_E, len_E
 
 !
 
-  mat6(1,2) = length
-  mat6(3,4) = length
-  mat6(1,6) = -orb(2) * length
-  mat6(3,6) = -orb(4) * length
-  mat6(5,2) = -orb(2) * length
-  mat6(5,4) = -orb(4) * length
+  call mat_make_unit(mat6)
+
+  if (length == 0) return
+
+  rel_E = 1 + orb(6)
+  len_E = length / rel_E**2
+
+  mat6(1,2) = length / rel_E
+  mat6(3,4) = length / rel_E
+  mat6(1,6) = -orb(2) * len_E
+  mat6(3,6) = -orb(4) * len_E
+  mat6(5,2) = -orb(2) * len_E
+  mat6(5,4) = -orb(4) * len_E
+  mat6(5,6) = (orb(2)**2 + orb(4)**2) * len_E / rel_E
 
 end subroutine
 

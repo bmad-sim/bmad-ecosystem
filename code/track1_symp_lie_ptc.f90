@@ -1,8 +1,9 @@
 !+
-! Subroutine track1_symp_lie (start, ele, param, end)
+! Subroutine track1_symp_lie_ptc (start, ele, param, end)
 !
 ! Particle tracking through a single element using a hamiltonian
-! and a symplectic integrator.
+! and a symplectic integrator. This uses Etienne's PTC code. For a 
+! "native" BMAD version see track1_symnp_lie_bmad.
 !
 ! Modules Needed:
 !   use bmad
@@ -11,26 +12,14 @@
 !   start  -- Coord_struct: Starting position
 !   ele    -- Ele_struct: Element
 !   param  -- Param_struct:
-!     %aperture_limit_on -- If .true. then %LOST will be set if the
-!                 particle is outsile the aperture.
 !
 ! Output:
 !   end   -- Coord_struct: End position
-!   param
-!     %lost -- Set .true. If the particle is outside the aperture and
-!                %aperture_limit_on is set. Also: %lost is set .true. if
-!                the particle does not make it through a bend irregardless
-!                of the the setting of %aperture_limit_on.
-!
-! Notes:
-!
-! It is assumed that HKICK and VKICK are the kicks in the horizontal
-! and vertical kicks irregardless of the value for TILT.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine track1_symp_lie (start, ele, param, end)
+subroutine track1_symp_lie_ptc (start, ele, param, end)
 
   use accelerator
 
@@ -45,7 +34,8 @@ subroutine track1_symp_lie (start, ele, param, end)
   real*8 re(6)
   integer charge
 
-!
+! Construct a PTC fibre out of the ele element.
+! A fibre is PTC's structure analogous to BMAD's ele_struct.  
 
   call alloc_fibre (fibre_ele)
   call ele_to_fibre (ele, fibre_ele, param)
@@ -55,11 +45,13 @@ subroutine track1_symp_lie (start, ele, param, end)
   else
     charge = -1
   endif
-  
-  call vec_bmad_to_ptc (start%vec, re)
+
+! call the PTC routines to track through the fibre.
+
+  call vec_bmad_to_ptc (start%vec, re)  ! convert BMAD coords to PTC coords
   call track (fibre_ele, re, DEFAULT, charge)
   call vec_ptc_to_bmad (re, end%vec)
 
-  call kill(fibre_ele)
+  call kill(fibre_ele)  ! clean up allocated memory.
 
 end subroutine

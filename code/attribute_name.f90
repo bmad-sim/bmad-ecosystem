@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/08/20 20:34:52  dcs
+!symp_lie_bmad / symp_lie_ptc added
+!
 !Revision 1.6  2002/07/16 20:44:00  dcs
 !*** empty log message ***
 !
@@ -78,6 +81,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, aperture$) = 'APERTURE'
 
       if (i == taylor$) cycle
+      if (i == patch$) cycle
 
       attrib_array(i, hkick$)  = 'HKICK'
       attrib_array(i, vkick$)  = 'VKICK'
@@ -144,6 +148,14 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(sbend$, fintx$)      = 'FINTX'
     attrib_array(sbend$, rho$)   = 'RHO'
 
+    attrib_array(patch$, x_pitch$)    = 'X_PITCH'
+    attrib_array(patch$, y_pitch$)    = 'Y_PITCH'
+    attrib_array(patch$, x_offset$)   = 'X_OFFSET'
+    attrib_array(patch$, y_offset$)   = 'Y_OFFSET'
+    attrib_array(patch$, z_offset$)   = 'Z_OFFSET'
+    attrib_array(patch$, dE_offset$)  = 'DE_OFFSET'
+
+
     attrib_array(rbend$, l$)          = 'L'
     attrib_array(rbend$, angle$)      = 'ANGLE'
     attrib_array(rbend$, e1$)         = 'E1'
@@ -193,12 +205,13 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(wiggler$, l$)        = 'L'
     attrib_array(wiggler$, k1$)       = 'K1'
     attrib_array(wiggler$, b_max$)    = 'B_MAX'
-    attrib_array(wiggler$, rho$) = 'RHO'
+    attrib_array(wiggler$, rho$)      = 'RHO'
     attrib_array(wiggler$, n_pole$)   = 'N_POLE'
     attrib_array(wiggler$, tilt$)     = 'TILT'
     attrib_array(wiggler$, radius$)   = 'RADIUS'
     attrib_array(wiggler$, term$)     = 'TERM'
     attrib_array(wiggler$, polarity$) = 'POLARITY'
+    attrib_array(wiggler$, z_patch$)  = 'Z_PATCH'
 
     attrib_array(sol_quad$, l$)    = 'L'
     attrib_array(sol_quad$, k1$)   = 'K1'
