@@ -931,7 +931,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
          if (sum(old_ele(j)%taylor(it)%term(k)%exp(:)) <= &
                                       bmad_com%taylor_order) then
             ix = ix + 1
-            ele%taylor(it)%term(ix) = old_ele(j)%taylor(it)%term(ix)
+            ele%taylor(it)%term(ix) = old_ele(j)%taylor(it)%term(k)
           endif      
         enddo
       enddo
