@@ -99,13 +99,13 @@ bending radius of a particle with the reference energy in a field of
 strength $B$. The kicks $\Delta p_x$ and $\Delta p_y$ that a
 particle experiences going through a multipole field is
 \begin{alignat}{5}
-  \Delta p_x & = \frac{-q \, L \, B_y}{P_0} \\
+  \Delta p_x & = \frac{-q \, L \, B_y}{P_0} \label{pqlbp1} \\
              & = -K_0 L \;-\; 
              && K_1 L \, x \plus 
              \frac{1}{2} && K_2 L (y^2 - x^2) && \plus 
              && \frac{1}{6} K_3 L (3x y^2 - x^3) \plus \ldots 
              \nonumber \\
-  \Delta p_y & = \frac{q \, L \, B_x}{P_0} \\
+  \Delta p_y & = \frac{q \, L \, B_x}{P_0} \label{pqlbp2} \\
              & =     
              && K_1 L \, y \plus 
              && K_2 L \, xy && \plus 
@@ -127,19 +127,20 @@ horizontal focusing and vertical defocusing. The general form is
 \index{Multipole!KnL, Tn|textbf}
 So far only the normal components of the field have been
 considered. If the fields associated with a particular $B_n$ multipole
-component are rotated in the $(x, y)$ plane by an angle $\theta_n$ the
+component are rotated in the $(x, y)$ plane by an angle $\theta_n$, the
 magnetic field at a point $(x,y)$ can be expressed in complex notation
 as
 \Begineq
   B_y(x,y) + i B_x(x,y) = 
-                \frac{1}{n!} B_n e^{-i(n+1)\theta_n} \, e^{i n \theta} \, r^n 
+    \frac{1}{n!} B_n e^{-i(n+1)\theta_n} \, e^{i n \theta} \, r^n 
+  \label{bib1nb}
 \Endeq
 where $(r, \theta)$ are the polar coordinates of the point $(x, y)$.
 
 \index{Multipole!an, bn|textbf}
 Another representation of the magnetic field used by \bmad divides
 the fields into normal $b_n$ and skew $a_n$ components. In terms of
-these components the magnetic field for the $n$\Th\ component is
+these components the magnetic field for the $n$\Th\ order multipole is
 \Begineq
   \frac{q \, L}{P_0} \, (B_y + i B_x) = (b_n + i a_n) \, (x + i y)^n
 \Endeq
@@ -219,7 +220,7 @@ non-multipole elements.
 %-----------------------------------------------------------------
 \section{Taylor Maps}
 \label{s:taylor_phys}
-\index{Transfer map!Taylor|textbf}
+\index{Taylor map|textbf}
 
 A transport map ${\cal M}: {\cal R}^6 \rightarrow {\cal R}^6$ through
 an element or a section of a lattice is a function that maps the
@@ -234,6 +235,7 @@ coordinates. These functions can be expanded in a Taylor
 series and truncated at some order. Each Taylor series is in the form
 \Begineq
   r_i(\Out) = \sum_{j = 1}^N \, C_{ij} \, \prod_{k = 1}^6 \, r_k^{e_{ijk}}(\In)
+  \label{rcr}
 \Endeq
 Where the $C_{ij}$ are coefficients and the $e_{ijk}$ are integer exponents.
 The order of the map is
@@ -253,7 +255,7 @@ like this:
    ---------------------------------------------------
       2:     -0.185000000000  0  0  0  0  0  0        0       0.000000000
       2:      1.300000000000  0  1  0  0  0  0        1
-      2:      3.800000000000  2  0  0  0  0  0        2
+      2:      3.800000000000  2  0  0  0  0  1        3
    ---------------------------------------------------
       3:      1.000000000000  0  0  1  0  0  0        1       0.100000000
       3:      1.600000000000  0  0  0  1  0  0        1
@@ -269,21 +271,27 @@ like this:
    ---------------------------------------------------
       6:      1.000000000000  0  0  0  0  0  1        1       0.000000000
 \end{example}
-The Taylor map has 6 Taylor series, one each output phase space coordinate.
-In this example, the second Taylor series when expressed as a formula would
-read:
+Each line in the example represents a single taylor term. The Taylor
+terms are grouped into 6 Taylor series, one each output phase space
+coordinate.  The first column in the example, labeled ``out'',
+(corresponding to the $i$ index in \Eq{rcr}) indicates the Taylor
+series: $1 = x(out)$, $2 = p_x(out)$, etc. The 6 exponent columns give
+the $e_{ijk}$ of \Eq{rcr}. In this example, the second Taylor series
+(\vn{out} = 2), when expressed as a formula, would read:
 \Begineq
-  p_x(out) = -0.185 + 1.3 \, p_x(in) + 3.8 \, x^2(in)
+  p_x(out) = -0.185 + 1.3 \, p_x(in) + 3.8 \, x^2(in) \, p_z(in)
 \Endeq
 
-\index{Transfer map!Taylor!reference coordinates}
-The reference column in the above example shows the coordinates around
-which the Taylor map is calculated. In this case the reference
+\index{Taylor map!reference coordinates}
+The reference column in the above example shows the input coordinates around
+which the Taylor map is calculated. In this case, the reference
 coordinates where 
 \Begineq
-  (x, p_x, y, p_y, z, p_z) = (0.2, 0, 0.1, 0, 0, 0, 0)
+  (x, p_x, y, p_y, z, p_z)_{ref} = (0.2, 0, 0.1, 0, 0, 0, 0)
 \Endeq
-For example, suppose that the exact map through an element looks like
+The choice of the reference point will affect the values of the
+coefficients of the Taylor map. For example, suppose that the exact
+map through an element looks like
 \Begineq
   x(out) = A \, \sin(k \, x(in))
 \Endeq
@@ -293,14 +301,135 @@ Then a Taylor map to 1\St order is
 \Endeq
 where
 \begin{align}
-  c_0 &= A \, \sin(k \, x_{\mbox{ref}}) \CRNO 
-  c_1 &= A \, k \, \cos(k \, x_{\mbox{ref}})
+  c_1 &= A \, k \, \cos(k \, x_{\mbox{ref}}) \\
+  c_0 &= A \, \sin(k \, x_{\mbox{ref}}) - c_1 \, x_{\mbox{ref}} \nonumber
 \end{align}
-Thus the choice of the reference point will affect the values of the
-coefficients of the Taylor map but once the coefficient values are
-determined the reference point does not play any role when the Taylor
-map is evaluated to determine the output coordinates as a function of
-the input coordinates.
+Notice that once the coefficient values are determined the reference
+point does not play any role when the Taylor map is evaluated to
+determine the output coordinates as a function of the input
+coordinates.
+
+\index{Taylor map!feed-down}
+Of importance in working with Taylor maps is the concept of
+\vn{feed-down}.  This is best explained with an example. To keep the
+example simple we will limit the discussion to one phase space
+dimension so that the Taylor maps are a single Taylor series. Take the
+map $M_1$ from point 0 to point 1 to be
+\Begineq
+  M_1: x_1 = x_0 + 2
+  \label{xx2}
+\Endeq
+and the map $M_2$ from point 1 to point 2 to be
+\Begineq
+  M_2: x_2 = x_1^2 + 3 \, x_1
+  \label{xx3x}
+\Endeq
+Then concatenating the maps to form the map $M_3$ from point 0 to point 2
+gives
+\Begineq
+  M_3: x_2 = (x_0 + 2)^2 + 3 (x_0 + 2) = x_0^2 + 7 \, x_0 + 10
+  \label{xx23x2}
+\Endeq
+However if we are evaluating our maps to only 1\St order the map $M_2$
+becomes
+\Begineq
+  M_2: x_2 = 3 \, x_1
+\Endeq
+and concatenating the maps now gives
+\Begineq
+  M_3: x_2 = 3 (x_0 + 2) = 3 \, x_0 + 6
+  \label{x3x23}
+\Endeq
+Comparing this to \Eq{xx23x2} shows that by neglecting the 2\Nd order
+term in \Eq{xx3x} leads to 0\Th and 1\St order errors in
+\Eq{x3x23}. These errors can be traced to the finite 0\Th order term in
+\Eq{xx2}. This is the principal of feed--down: Given $M_3$ which is a map
+produced from the concatenation of two other maps, $M_1$, and $M_2$
+\Begineq
+  M_3 = M_2(M_1)
+\Endeq
+Then if $M_1$ and $M_2$ are correct to n\Th order, $M_3$ will also be
+correct to n\Th order as long as $M_1$ has no constant (0\Th order)
+term. [Notice that a constant term in $M_2$ does not affect the
+argument.]  What happens if we know there are constant terms in our
+maps? One possibility is to go to a coordinate system where the
+constant terms vanish. In the above example that would mean using the
+coordinate $\widetilde x_0$ at point 0 given by
+\Begineq
+  \widetilde x_0 = x_0 + 2
+\Endeq
+\index{Symplectic integration}
+The other possibility is to use symplectic integration. By its nature,
+symplectic integration never has problems with feed--down.
+
+The subject of symplectic integration is too large to be covered in
+this guide. The reader is referred to the book ``Beam Dynamics: A New
+Attitude and Framework'' by Etienne Forest\cite{b:forest}. A brief
+synopsis: Symplectic integration uses as input 1) The Hamiltonian that
+defines the equations of motion, and 2) a Taylor map $M_1$ from point 0 to
+point 1. Symplectic integration from point 1 to point 2 produces a
+Taylor map $M_3$ from point 0 to point 2. Symplectic integration can
+produce maps to arbitrary order. In any practical application the
+order $n$ of the final map is specified and in the integration
+procedure all terms of order higher than $n$ are ignored. If one is
+just interested in knowing the final coordinates of a particle at
+point 2 given the initial coordinates at point 1 then $M_1$ is just
+the constant map
+\Begineq
+  M_1: x_1 = c_i
+\Endeq
+where $c_i$ is the initial starting point. The order of the
+integration is set to 0 so that all non--constant terms are
+ignored. The final map is also just a constant map
+\Begineq
+  M_3: x_2 = c_f
+\Endeq
+If the map from point 1 to point 2 is desired then the map $M_1$ is
+just set to the identity map
+\Begineq
+  M_1: x_1 = x_0
+\Endeq
+In general it is impossible to exactly integrate any non--linear
+system. In practice, the symplectic integration is achieved by slicing
+the interval between point 1 and point 2 into a number of (generally
+equally spaced) slices. The integration is performed, slice step by
+slice step. This is analogous to integrating a function by evaluating
+the function at a number of points. Using more slices gives better
+results but slows down the calculation. The speed and accuracy of the
+calculation is determined by the number of slices and the \vn{order}
+of the integrator. The concept of integrator order can best be
+understood by analogy by considering the trapezoidal rule for
+integrating a function of one variable:
+\Begineq
+  \int_{y_a}^{y_b} f(y) \, dy = 
+  h \left[ \frac{1}{2} f(y_a) + \frac{1}{2} f(y_b) \right] +
+  o(h^3 \, f^{(2)})
+\Endeq
+In the formula $h = y_b - y_a$ is the slice width. $0(h^3 \, f^{(2)})$
+means that the error of the trapezoidal rule scales as the second
+derivative of $f$. Since the error scales as $f^{(2)}$ this is an
+example of a second order integrator. To integrate a function between
+points $y_1$ and $y_N$ we slice the interval at points $y_2 \ldots y_{N-1}$
+and apply the trapezoidal rule to each interval. Examples of higher
+order integrators can be found, for example, in Numerical
+Recipes\cite{b:nr}. The concept of integrator order in symplectic
+integration is analogous. 
+
+The optimum number of slices is determined by the smallest number that
+gives an acceptable error. Integrators of higher order will generally
+need a smaller number of slices to achieve a given accuracy. However,
+since integrators of higher order take more time per slice step, and
+since it is computation time and not number of slices which is
+important, only a measurement of error and calculation time as a
+function of slice number and integrator order will unambiguously give
+the optimum integrator order and slice width.  In doing a timing test
+it must be remembered that since the magnitude of any non-linearities
+will depend upon position, the integration error will be dependent
+upon the starting map $M_1$. For example, \bmad has integrators of
+order 2, 4, and 6. To test them, timing tests were performed for some
+wiggler elements (which have strong nonlinearities) and it was found
+that the 2\Nd order integrator gave the fastest computation time for a
+given accuracy.
 
 %-----------------------------------------------------------------
 \section{Symplectification}
@@ -535,7 +664,7 @@ with
     , \label{g1b0a} 
   \Endeq
 with a similar equation for $\Bf G_b$. With this definition, the corresponding
-$\BAR\bfA$ and $\BAR\bfB$ (cf.~\Eq{ua00b} are just rotation matrices.
+$\BAR\bfA$ and $\BAR\bfB$ (cf.~\Eq{ua00b}) are just rotation matrices.
 The relationship between $\bfT$ and $\BAR\bfU$ is 
   \Begineq
     \bfT = \bfG\inv \, \BAR\bfV \, \BAR\bfU \, \BAR\bfV\inv \, \bfG
@@ -723,7 +852,7 @@ Only the transverse dipole and longitudinal monopole components of the
 short--range wakefield are modeled. The longitudinal monopole energy
 kick $dE$ for the $i$\Th macroparticle is computed from the equation
 \Begineq
-  dp_z(i) = \frac{-e \, L}{v \, P_0} \, \left(
+  \Delta p_z(i) = \frac{-e \, L}{v \, P_0} \, \left(
         \frac{1}{2}\WlS(0) \,  |q_i| +
         \sum_{j \ne i} \tWl(dz_{ij}) \, |q_j| \right)
   \label{delvp}
@@ -751,41 +880,41 @@ where $\sigma_{zi}$ and $\sigma_{zj}$ are the longitudinal sizes for
 the $i$\Th and $j$\Th particles respectively, and $\sigma_{z0}$ is a
 small fudge factor needed when $\sigma_{zi} = \sigma_{zj} = 0$.
 
-The transverse kick $dp_x(i)$ for the $i$\Th macroparticle due to the 
+The transverse kick $\Delta p_x(i)$ for the $i$\Th macroparticle due to the 
 dipole short--range transverse wakefield is modeled with the equation
 \Begineq
-  dp_x(i) = \frac{e \, L \, \sum_j |q_j| \, x_j \, \WtS(dz_{ij})}
+  \Delta p_x(i) = \frac{e \, L \, \sum_j |q_j| \, x_j \, \WtS(dz_{ij})}
                  {v \, P_0}
   \label{pelqxw}
 \Endeq
-There is a similar equation for $dp_y(i)$. $\WtS$
+There is a similar equation for $\Delta p_y(i)$. $\WtS$
 is the transverse short--range wake function.
 
 The wakefield functions $\WlS$ and $\WlS$ can be specified in a \bmad
-lattice file using a table of wake vs $z$ or by using ``psudo'' modes
+lattice file using a table of wake vs $z$ or by using ``pseudo'' modes
 where
 \Begineq
   W(z) = \sum_i A_i \, e^{d_i z} \, \sin (k_i \, z + \phi_i)
   \label{wadzk}
 \Endeq
-The set of mode parameters $(A_i, d_i, k_i, \phi_i)$ are choisen to fit
-the calculated wake poential. The advantage of the mode approach is that
+The set of mode parameters $(A_i, d_i, k_i, \phi_i)$ are chosen to fit
+the calculated wake potential. The advantage of the mode approach is that
 the calculation time scales as the number of particles $N$ while the
 calculation based upon a table scales as $N^2$. The disadvantage is that
-initially there is an extra step in that a fit to the wake p[otential must
-be preformed to generate the mode parameter values. Furthermore, since the
+initially there is an extra step in that a fit to the wake potential must
+be performed to generate the mode parameter values. Furthermore, since the
 transverse wake typically has a form that looks something like $\sqrt{-z}$ 
 for small $z$ (small here means small in magnitude, $z$ is always negative)
-a set of psudo modes may not fit the wake function well at small $z$. 
-\bmad implements a hybrid scheme where for small $z$ below some cuttoff
-$z_{\rm{cut}}$ the wake vs $z$ table is used and for larger $z$ the psudo
+a set of pseudo modes may not fit the wake function well at small $z$. 
+\bmad implements a hybrid scheme where for small $z$ below some cutoff
+$z_{\rm{cut}}$ the wake vs $z$ table is used and for larger $z$ the pseudo
 modes are used.
 
 
 %-----------------------------
 \subsection{Long--Range Wakes}
 
-Following, Chao\cite{b:chao} Long--range wakefields are characterized
+Following Chao\cite{b:chao}, The long--range wakefields are characterized
 by a set of cavity modes. The wake function $W$ for a mode is given by
 \Begineq
   W(z) = \frac{c}{2} \, \left( \frac{R}{Q} \right) \,\,
@@ -795,34 +924,133 @@ where the wake number $k$ is related to the mode frequency $\omega$ by
 \Begineq
   k = \omega / c
 \Endeq
-Note that $z$ is negative for trailing particles so $W(z)$ is a
+Here $z$ is the distance behind the particle generating the wake. $z$
+is negative for all particles affected by the wake so $W(z)$ is a
 decaying exponential as expected.
 
 Assuming that the macroparticle generating the wake is offset a
-distance $a$ along the $x$--axis, A trailing macroparticle will see a kick
+distance $r_w$ along the $x$--axis, A trailing macroparticle will see a kick
 \begin{align}
-  d{\Bf p}_\perp(i) &= 
-  \frac{-e \, I_m \, W_m(z) \, m \, r^{m-1} \, \left( 
-  {\bf\hat r} \cos m\theta - {\bf\hat\theta} \sin m\theta \right)}
-  {v \, P_0}  \\
-  dp_z &= \frac{-e \, I_m \, W'(z) \, r^m \, \cos m\theta}{v \, P_0}
+  \Delta {\Bf p}_\perp &= 
+    -C \, I_m \, W_m(z) \, m \, r^{m-1} \, \left( 
+    {\bf\hat r} \cos m\theta - {\bf\hat\theta} \sin m\theta \right) \\
+  &= -C \, I_m \, W_m(z) \, m \, r^{m-1} \, \left( 
+    {\bf\hat x} \cos [(m-1) \theta] - 
+    {\bf\hat y} \sin [(m-1)\theta] \right) \CRNO
+  \Delta p_z &= -C \, I_m \, W'_m(z) \, r^m \, \cos m\theta
 \end{align}
-where $m$ is the order of the mode and
+where $m$ is the order of the mode,
 \Begineq
-  I_m = q \, a^m
+  C = \frac{e}{v \, P_0}
 \Endeq
-The form of the transverse kick $d{\bf p}_\perp$ is the same as for a
-multipole of order $m$.
+ and
+\Begineq
+  I_m = q_w \, r_w^m
+\Endeq
+with $q_w$ being the charge on the particle. Generalizing the above, a
+macroparticle at $(r_w, \theta_w)$ will generate a wake
+\begin{align}
+  -\Delta p_x + i\Delta p_y &= C \, I_m \, 
+    m \, r^{m-1} \, e^{-i m \theta_w} \, e^{i (m-1) \theta} 
+    \label{ppcimr} \\
+  \Delta p_z &= C \, I_m \, W'(z) \, r^m \, \cos [m(\theta - \theta_w)]
+    \label{pciwr}
+\end{align}
+Comparing \Eq{ppcimr} to \eq{bib1nb} and using the relationship between
+kick and field as given by \eq{pqlbp1} and \eq{pqlbp2} shows that
+the form of the wakefield transverse kick is the same as for a
+multipole of order $n = m - 1$. 
+
+The wakefield felt by a particle is due to the wakefields generated by
+all the particles ahead of it. If the wakefield kicks are computed by
+summing over all leading particle, trailing particle pairs then the
+computation will scale as $N^2$ where $N$ is the number of
+particles. This quickly becomes computationally exorbitant. A better
+solution is to keep track of the wakes in a cavity. When a particle
+comes through, the wake it generates is simply added to the existing
+wake. This computation scales as $N$ and makes simulations with large
+number of particles practical. 
+
+To add wakes together, the wakes must be decomposed into its
+components.  Spatially there are normal and skew components and
+temporally there are sin and cosine components. This gives 4
+components which will be labeled $a_{\cos}$, $a_{\sin}$, $b_{\cos}$,
+and $b_{\sin}$. For a mode of order $m$, a particle passing through at
+a distance $z_w$ with respect to the reference particle will produce
+wake components
+\begin{alignat}{2}
+  a_{\cos} &=  &\frac{c}{2} \, \left( \frac{R}{Q} \right) \,
+    e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \sin(m \theta_w) \CRNO
+  a_{\sin} &= -&\frac{c}{2} \, \left( \frac{R}{Q} \right) \,
+    e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \sin(m \theta_w) 
+    \label{ac2rq} \\
+  b_{\cos} &= -&\frac{c}{2} \, \left( \frac{R}{Q} \right) \,
+    e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \cos(m \theta_w) \CRNO
+  b_{\sin} &=  &\frac{c}{2} \, \left( \frac{R}{Q} \right) \,
+    e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \cos(m \theta_w) \nonumber
+\end{alignat}
+These are added to the existing wake components. To calculate the kick
+due to wake the normal and skew components are added together
+\begin{align}
+  a &= e^{k z/ 2 Q} \, \left( 
+    a_{\cos} \, \cos (k \, z) + a_{\sin} \, \sin (k \, z) \right) 
+    \label{akz2q} \\
+  b &= e^{k z/ 2 Q} \, \left(
+    b_{\cos} \, \cos (k \, z) + b_{\sin} \, \sin (k \, z) \right) \nonumber 
+\end{align}
+Here $z$ is the distance of the particle with respect the
+reference particle. In analogy to \Eq{ppcimr} and \eq{pciwr} the kick
+is
+\begin{align}
+  -\Delta p_x + i\Delta p_y &= C \, 
+    m \, (b + i a) \, r^{m-1} \, e^{i (m-1) \theta} 
+    \label{ppcmbar} \\
+  \Delta p_z &= C \, r^m \, \left( 
+    (b' + i a') e^{i m\theta} + (b' - i a') e^{-i m\theta} \right)
+\end{align}
+where $a' \equiv da/dz$ and $b' \equiv db/dz$.
+
+The above equations were developed assuming cylindrical symmetry. With
+cylindrical symmetry the cavity modes are actually a pair of
+degenerate modes. When symmetry is broken the modes no longer have the
+same frequency. In this case one has to consider a mode's polarization
+angle $\phi$. Equations \eq{akz2q} and \eq{ppcmbar} are unchanged and
+in place of \Eq{ac2rq}, the contribution of a particle to a mode is
+\begin{alignat}{2}
+  a_{\cos} &=  &\frac{c}{2} \, \left( \frac{R}{Q} \right) \,
+    e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \left[ 
+    \sin(m \theta_w) \, \sin^2(m \phi) + 
+    \cos(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
+    \CRNO
+  a_{\sin} &= -&\frac{c}{2} \, \left( \frac{R}{Q} \right) \,
+    e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \left[
+    \sin(m \theta_w) \, \sin^2(m \phi) + 
+    \cos(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
+    \\
+  b_{\cos} &= -&\frac{c}{2} \, \left( \frac{R}{Q} \right) \,
+    e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \left[
+    \cos(m \theta_w) \, \cos^2(m \phi) + 
+    \sin(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
+    \CRNO
+  b_{\sin} &=  &\frac{c}{2} \, \left( \frac{R}{Q} \right) \,
+    e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \left[
+    \cos(m \theta_w) \, \cos^2(m \phi) + 
+    \sin(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
+    \nonumber
+\end{alignat}
 
 Each mode is characterized by an $R/Q$, $Q$, $\omega$, and $m$. Notice
 that $R/Q$ is defined so that it includes the cavity length. Thus the
 long--range wake equations, as opposed to the short--range ones, do
 not have any explicit dependence on $L$. 
 
-To make life more interesting differnt people define $R/Q$
+To make life more interesting different people define $R/Q$
 differently. A common practice is to define an $R/Q$ ``at the beam
 pipe radius''. In this case the above equations must be modified to
 include factors of the beam pipe radius.
+
+
+
 
 %-----------------------------------------------------------------
 \section{Synchrotron Integrals}

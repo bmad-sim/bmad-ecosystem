@@ -319,6 +319,9 @@ would represent a horizontal steering.
 
 \index{Ecollimator}
 \index{Rcollimator}
+\index{X_limit}
+\index{Y_limit}
+\index{X_offset}
 \vn{x_limit}, \vn{y_limit} specify the half--width of the aperture of
 an element as shown in figure~\ref{f:limit}. Notice that an \vn{Ecollimator}
 has a elliptical aperture while a \vn{Rcollimator} and all other elements
@@ -376,10 +379,10 @@ is applicable to \vn{Boris}, \vntm{Symp_Lie_Bmad}, and
 
 \index{Integration_ord}
 \index{Num_steps}
-\vn{integration_ord} is the order of the integration formula for 
+\vn{integrator_order} is the order of the integration formula for 
 \vn{Symp_Lie_PTC}. Possible values are
 \begin{example}
-  integration_ord = 2 (default), 4, or 6
+  integrator_order = 2 (default), 4, or 6
 \end{example}
 Essentially, an integration order of $n$ means that the error in an 
 integration step scales as $dz^{n+1}$ where $dz$ is the slice thickness.

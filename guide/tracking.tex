@@ -211,6 +211,66 @@ just before and after each element. To turn on radiation damping
 and/or excitation use the \vnr{setup_radiation_tracking} routine.
 
 %----------------------------------------------------------------
+\section{Taylor Maps}
+\label{s:taylor_track}
+\index{Taylor Map}
+
+A list of routines for manipulating Taylor maps is given
+in~\sref{r:taylor}. The order of the Taylor maps is set in the lattice
+file using the \vn{parameter} statement (\sref{s:param}). In a program
+this can be overridden using the routine \vnr{set_taylor_order}. The
+routine \vnr{taylor_coef} can be used to get the coefficient of any
+given term.
+
+\index{Tracking method!Symp_Lie_Bmad}
+\index{Tracking method!Symp_Lie_PTC}
+\index{Tracking method!Symp_Map}
+\index{Tracking method!Taylor}
+\index{Taylor!deallocating}
+Transfer Taylor maps for an element are generated as needed when the
+\vn{ele%tracking_method} or \vn{ele%mat6_calc_method} is set to
+\vn{Symp_Lie_Bmad}, \vn{Symp_Lie_PTC}, \vn{Symp_Map}, or
+\vn{Taylor}. Since generating a map can take an appreciable time,
+\bmad follows the rule that once generated, these maps are never
+regenerated unless an element attribute is changed.  To generate a
+Taylor map within an element irregardless of the
+\vn{ele%tracking_method} or \vn{ele%mat6_calc_method} settings use the
+routine \vnr{ele_to_taylor}. This routine will kill any old Taylor map
+before making any new one. To kill a Taylor map (which frees up the
+memory it takes up) use the routine \vnr{kill_taylor}.
+
+To concatinate the Taylor maps in a set of elements the routine
+\vnr{concat_taylor} can be used
+\begin{example}
+  type (ring_struct) lat          ! lattice
+  type (taylor_struct) taylor(6)  ! taylor map
+  ...
+  call taylor_make_unit (taylor)  ! Make a unit map
+  do i = i1+1, i2
+    call concat_taylor (taylor, lat%ele_(i)%taylor, taylor)
+  enddo
+\end{example}
+The above example forms the transfer Taylor map starting at the end of
+element \vn{i1} to the end of element \vn{i2}. Note: This example
+assumes that all the elements have a Taylor map. The problem with
+concatinating maps is that if there is a constant term in the map
+``feed down'' can make the result inaccurate (\sref{s:taylor_phys}. To
+get around this one can ``track'' a taylor map through an element
+using symplectic integration.
+\begin{example}
+  type (ring_struct) lat          ! lattice
+  type (taylor_struct) taylor(6)  ! taylor map
+  ...
+  call taylor_make_unit (taylor)  ! Make a unit map
+  do i = i1+1, i2
+    call call taylor_propagate1 (taylor, lat%ele_(i), lat%param)
+  enddo
+\end{example}
+Symplectic integration is typically much slower than concatination.
+The number of slices used for the integration is given by
+\vn{%ele%num_steps}. The order of the integrator
+
+%----------------------------------------------------------------
 \section{Macroparticle Tracking}
 \index{Macroparticles!tracking}
 \index{Tracking!Macroparticles}

@@ -359,7 +359,7 @@ function equivalent_eles (ele1, ele2) result (equiv)
   if (any(ele1%value /= ele2%value .and. vmask)) return
 
   if (ele1%num_steps /= ele2%num_steps) return
-  if (ele1%integration_ord /= ele2%integration_ord) return
+  if (ele1%integrator_order /= ele2%integrator_order) return
 
   if (associated(ele1%wig_term) .neqv. associated(ele2%wig_term)) return
   if (associated(ele1%wig_term)) then
@@ -752,7 +752,7 @@ subroutine init_ele (ele)
   ele%tracking_method  = bmad_standard$
   ele%field_calc       = bmad_standard$
   ele%num_steps        = bmad_com%default_num_steps
-  ele%integration_ord  = bmad_com%default_integ_order
+  ele%integrator_order  = bmad_com%default_integ_order
   ele%ptc_kind = 0
 
   ele%is_on = .true.

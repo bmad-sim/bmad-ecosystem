@@ -103,7 +103,7 @@ subroutine taylor_equal_taylor (taylor1, taylor2)
   taylor1%ref = taylor2%ref
 
   if (associated(taylor2%term)) then
-    call init_taylor (taylor1, size(taylor2%term))
+    call init_taylor_series (taylor1, size(taylor2%term))
     taylor1%term = taylor2%term
   else
     if (associated (taylor1%term)) deallocate (taylor1%term)
@@ -364,9 +364,44 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine init_taylor (bmad_taylor, n_term)
+! Subroutine taylor_make_unit (bmad_taylor)
 !
-! Subroutine to initialize a Bmad Taylor map.
+! Subroutine to make the unit Taylor map:
+!       r(out) = Map * r(in) = r(in)
+!
+! Modules needed:
+!   use bmad
+!
+! Output:
+!   bmad_taylor(6) -- Taylor_struct: Unit Taylor map .
+!-
+
+subroutine taylor_make_unit (bmad_taylor)
+
+  implicit none
+
+  type (taylor_struct) bmad_taylor(:)
+  integer i
+
+  do i = 1, size(bmad_taylor)
+    call init_taylor_series (bmad_taylor(i), 1)
+    bmad_taylor(i)%term(1)%coef = 1.0
+    bmad_taylor(i)%term(1)%exp = 0
+    bmad_taylor(i)%term(1)%exp(i) = 1
+    bmad_taylor(i)%ref = 0
+  enddo
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine init_taylor_series (bmad_taylor, n_term)
+!
+! Subroutine to initialize a Bmad Taylor series (6 of these series make
+! a Taylor map). Note: This routine does not zero the structure. The calling
+! routine is responsible for setting all values.
 !
 ! Modules needed:
 !   use bmad
@@ -374,13 +409,13 @@ end subroutine
 ! Input:
 !   bmad_taylor -- Taylor_struct: Old structure.
 !   n_term      -- Integer: Number of terms to allocate. 
-!                   0 => %term pointer will be disaccociated.
+!                   0 => %term pointer will be disassociated.
 !
 ! Output:
 !   bmad_taylor -- Taylor_struct: Initalized structure.
 !-
 
-subroutine init_taylor (bmad_taylor, n_term)
+subroutine init_taylor_series (bmad_taylor, n_term)
 
   implicit none
 

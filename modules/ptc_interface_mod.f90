@@ -1434,7 +1434,7 @@ end subroutine
 !
 ! Input:
 !   ele   -- Element_struct: 
-!     %integration_ord  -- Order for the symplectic integrator: 2, 4, or 6.
+!     %integrator_order  -- Order for the symplectic integrator: 2, 4, or 6.
 !     %num_steps          -- Number of integrater steps.
 !   orb0  -- Coord_struct, optional: Starting coords around which the Taylor series 
 !              is evaluated.
@@ -1721,7 +1721,7 @@ end subroutine
 !     %beam_energy     -- Beam energy (for wigglers).
 !   integ_order -- Integer, optional: Order for the 
 !                    sympletic integrator. Possibilities are: 2, 4, or 6
-!                    Overrides ele%integration_ord.
+!                    Overrides ele%integrator_order.
 !                    default = 2 (if not set with set_ptc).
 !   steps       -- Integer, optional: Number of integration steps.
 !                    Overrides ele%num_steps.
@@ -1771,7 +1771,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
   ptc_key%tiltd = ele%value(tilt_tot$)
   ptc_key%nstep = ele%num_steps
   if (present(steps)) ptc_key%nstep = steps
-  ptc_key%method = ele%integration_ord  
+  ptc_key%method = ele%integrator_order  
   if (present(integ_order)) ptc_key%method = integ_order
 
 !

@@ -159,7 +159,6 @@ subroutine track1_macro_beam (beam_start, ele, param, beam_end)
   if (associated(ele%wake)) then
     ele%wake%lr%norm_sin = 0; ele%wake%lr%norm_cos = 0
     ele%wake%lr%skew_sin = 0; ele%wake%lr%skew_cos = 0
-    ele%wake%lr%s_ref = 0
   endif
 
 ! loop over all bunches in a beam

@@ -24,7 +24,7 @@ general interest.
  	Tracking Routines called by \vn{track1} & \ref{r:track1}     \\ \hline
  	Low Level Tracking Routines             & \ref{r:low_track}  \\ \hline
  	Particle Coordinate Stuff               & \ref{r:coord}      \\ \hline
- 	Ring Geometry                           & \ref{r:geom}       \\ \hline
+ 	Lattice Geometry                        & \ref{r:geom}       \\ \hline
  	Interface to PTC                        & \ref{r:ptc}        \\ \hline
   \cpp interface                          & \ref{r:cpp}        \\ \hline
   Mad Tracking Routines                   & \ref{r:mad}        \\ \hline
@@ -51,6 +51,7 @@ general interest.
 %------------------------------------------------------------------------
 \section{Reading/Writing Lattice Files} 
 \label{r:read}
+\index{Lattice files!reading and writing routines}
 
 \begin{description}
 
@@ -105,6 +106,7 @@ Subroutine to get the names of the lattices of the form: directory/bmad\_*.lat
 %------------------------------------------------------------------------
 \section{Twiss etc}
 \label{r:twiss}
+\index{Twiss!list of routines}
 
 \begin{description}
 
@@ -193,6 +195,7 @@ Subroutine to form the 2x2 1-turn transfer matrix from the Twiss parameters.
 %------------------------------------------------------------------------
 \section{Matrices}
 \label{r:mat}
+\index{Matrix!list of routines}
 
 \begin{description}
 
@@ -400,6 +403,7 @@ tilted in (x, Px, y, Py) with respect to the old reference frame.
 %------------------------------------------------------------------------
 \section{Tracking, Closed Orbit}
 \label{r:track}    
+\index{Tracking!list of routines}
 
 \begin{description}
 
@@ -585,6 +589,7 @@ Particle tracking through a bend element.
 %------------------------------------------------------------------------
 \section{Particle Coordinate Stuff}
 \label{r:coord}    
+\index{Coordinates!list of routines}
 
 \begin{description}
 
@@ -600,8 +605,9 @@ Subroutine to type out a coordinate.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Ring Geometry}
+\section{Lattice Geometry}
 \label{r:geom}     
+\index{Coordinates!global!list of routines}
 
 \begin{description}
 
@@ -619,6 +625,7 @@ Subroutine to calculate the longitudinal distance S for the elements in a ring.
 %------------------------------------------------------------------------
 \section{Interface to PTC}
 \label{r:ptc}      
+\index{PTC/FPP!list of routines}
 
 \begin{description}
 
@@ -723,7 +730,7 @@ Subroutine to convert from PTC to Bmad coordinates.
 %------------------------------------------------------------------------
 \section{C++ Interface}
 \label{r:cpp}      
-\index{C++ interface!routines}
+\index{C++ interface!list of routines}
 
 \begin{description}
 
@@ -950,6 +957,7 @@ Subroutine to convert a Bmad wig\_term\_struct to a C++ C\_wig\_term.
 %------------------------------------------------------------------------
 \section{Taylor Map Routines}
 \label{r:taylor}   
+\index{Taylor Map!list of routines}
 
 \begin{description}
 
@@ -967,8 +975,8 @@ Subroutine to see if to elements are equivalent in terms of attributes so
 that their Taylor Maps would be the same. 
 
 \index{Routine!init_taylor}
-\item[init\_taylor (bmad\_taylor)] \Newline
-Subroutine to initialize (nullify) a Bmad Taylor map. 
+\item[init\_taylor\_series (bmad\_taylor, n\_term)] \Newline
+Subroutine to initialize a Bmad Taylor series. 
 
 \index{Routine!kill_taylor}
 \item[kill\_taylor (bmad\_taylor)] \Newline
@@ -985,23 +993,31 @@ Subroutine to set the taylor order.
 
 \index{Routine!sort_taylor_terms}
 \item[sort\_taylor\_terms (taylor\_in, taylor\_sorted)] \Newline
-Subroutine to sort the taylor terms from "lowest" to "highest" of a Taylor series. 
+Subroutine to sort the taylor terms from "lowest" to "highest" of a
+Taylor series.
 
 \index{Routine!taylor_coef}
 \item[taylor\_coef (bmad\_taylor, exp)] \Newline 
-Function to return the coefficient for a particular taylor term from a Taylor Series.
+Function to return the coefficient for a particular taylor term from a
+Taylor Series.
 
 \index{Routine!taylor_equal_taylor}
 \item[taylor\_equal\_taylor (taylor1, taylor2)] \Newline
-Subroutine to transfer the values from one taylor map to another: Taylor1 $\le$ Taylor2 
+Subroutine to transfer the values from one taylor map to another:
+Taylor1 $\le$ Taylor2
 
 \index{Routine!taylors_equal_taylors}
 \item[taylors\_equal\_taylors (taylor1, taylor2)] \Newline 
 Subroutine to transfer the values from one taylor map to another.
 
+\index{Routine!taylor_make_unit}
+\item[taylor\_make\_unit (bmad\_taylor)] \Newline
+Subroutine to make the unit Taylor map
+
 \index{Routine!taylor_to_mat6}
 \item[taylor\_to\_mat6 (a\_taylor, c0, mat6, c1)] \Newline
-Subroutine to calculate the linear (Jacobian) matrix about some trajectory from a Taylor map. 
+Subroutine to calculate the linear (Jacobian) matrix about some
+trajectory from a Taylor map.
 
 \index{Routine!taylor_inverse}
 \item[taylor\_inverse (taylor\_in, taylor\_inv)] \Newline
@@ -1039,6 +1055,7 @@ Subroutine to write a Bmad taylor map in a nice format to a character array.
 %------------------------------------------------------------------------
 \section{Macroparticle Routines}
 \label{r:macro}    
+\index{Macroparticle!list of routines}
 
 \begin{description}
 
@@ -1369,6 +1386,7 @@ the elements of another.
 %------------------------------------------------------------------------
 \section{Helper Routines: Multipoles}
 \label{r:multi}    
+\index{Multipole!list of routines}
 
 \begin{description}
 
@@ -1685,7 +1703,7 @@ Subroutine to return the calibration constants for the CESR quads.
 %------------------------------------------------------------------------
 \section{Quick Plot Routines}
 \label{r:qp}      
-
+\index{Quick Plot!list of routines}
 
 %--------------------------------------
 \subsection{Page Routines}

@@ -68,8 +68,7 @@ The list of element classes known to \bmad is shown in Table~\ref{t:elements}.
 \toffset
 
 An \vn{AB_Multipole} is a thin multipole lens up to 20th order. The only
-difference between this and a \vn{Multipole} is the input format. See
-section \ref{s:multip} for more details. For \vn{a$n$}
+difference between this and a \vn{Multipole} is the input format. See~\sref{s:multip} for more details. For \vn{a$n$}
 and \vn{b$n$}, $n$ is in the range 0 through 20.
 
 \index{Lrad}
@@ -129,7 +128,7 @@ Bassetti--Erskine complex error function formula\cite{b:talman}
 beam. \vn{n_part} is set using the \vn{parameter} command
 (\sref{s:param}) and is thus common to all \vn{BeamBeam} elements.  To
 vary the number of particles in an individual \vn{BeamBeam} element use the
-\vn{charge} attribute. The defaut is \vn{charge} = -1 which indicates
+\vn{charge} attribute. The default is \vn{charge} = -1 which indicates
 that the strong beam has the opposite charge of the weak beam.
 
 \index{Sig_x}
@@ -169,7 +168,7 @@ with \vn{n_slice} = 2 the calculation would proceed as follows:
      at the center of the strong bunch.
 \end{example}
 
-\index{Bbi_constant}
+\index{BBI_constant}
 \vn{bbi_constant}: $ C_{bbi} = 
 N \, m_e \, r_e / (2 \, \pi \, \gamma \, (\sigma_x + \sigma_y))$ 
 is a measure of the beam--beam interaction strength. For example,
@@ -825,20 +824,20 @@ mark (!). Blank lines are also ignored.  An example input file is:
      .. etc ..
 \end{example}
 The file is divided into three sections with lines containing the word
-\vn{END_SETCION} marking the division between sections.
+\vn{END_SECTION} marking the division between sections.
 Wakes can be specified via a table of wake versus longitudinal position $z$ 
-and/or using a set of ``psudo'' modes (\sref{s:wakefields}). The first section
+and/or using a set of ``pseudo'' modes (\sref{s:wakefields}). The first section
 gives the wake vs $z$ table, the second section gives the longitudinal monopole
-psudo modes, and the third section gives the transverse dipole psudo modes.
+pseudo modes, and the third section gives the transverse dipole pseudo modes.
 The cutoff $z_{\rm{cut}}$ below which the wake vs. $z$ table is used is simply
-the last $z$ value of the first section. If psudo modes are not to be used simply
+the last $z$ value of the first section. If pseudo modes are not to be used simply
 provide the first section only. If a wake vs $z$ table is not to be used simply
 leave the first section blank.
 
 In the fits section with the table of wake vs. $z$,
 the first column is the longitudinal distance $z$. $z$ must start at 0
 and must increment by the a constant amount from row to row. $z$ is negative
-since the wake extends behind a particle. To be backward compatable with
+since the wake extends behind a particle. To be backward compatible with
 the Liar program, \bmad accepts positive $z$ and will internally convert
 to negative $z$. The
 second column is the longitudinal wake function in $V/C/m$. The third
@@ -857,19 +856,22 @@ a short--range wakefield file.
 The input file name for the long--range wakefields is specified using
 the \vn{lr_wake_file} attribute. The file gives the transverse dipole
 wake by specifying the frequency (in Hz), R/Q (in
-$\Omega$/meter$^{2m}$), Q, and m (order number) for each cavity mode.
-Comment header lines may be included by starting a line with an
-exclamation mark (!) or by leaving the line blank.  An example input
-file is:
+$\Omega$/meter$^{2m}$), Q, and m (order number), and optionally the
+poarization angle (in radians/2pi) for each cavity mode. The input
+uses Fortran90 namelist syntax: The data begins with the string
+\vn{\&long_range_modes} and ends with a \vn{/}. Everything outside is
+ignored. Each mode is labeled \vn{lr(i)} where \vn{i} is the mode
+index. An example input file is:
 \begin{example}
-  ! Freq       R/Q      Q       m
-  ! [Hz]  [Ohm/m^(2m)]
-
-  1.6506e9    0.76    7.0e4     1
-  1.6991e9   11.21    5.0e4     1
+              Freq       R/Q      Q       m  Polarization_Angle
+              [Hz]  [Ohm/m^(2m)]             [Radians/2pi]
+  &long_range_modes
+    lr(1) = 1.6506e9    0.76    7.0e4     1
+    lr(2) = 1.6991e9   11.21    5.0e4     1     0.15
+  /
 \end{example}
 The formula used to compute the wakefield is given in
-\sref{s:wakefields}. 
+\sref{s:wakefields}. The opt
 
 \vn{freq_spread} is used to randomly spread out the mode frequencies
 among different cavities. The spread is Gaussian in shape with an RMS

@@ -322,21 +322,23 @@ public:
   double freq_in;    // freq in input file. strength in V/C/m^2
   double R_over_Q;   // wake strength.
   double Q;          // Quality factor
-  int m;             // Order number (1 = dipole, etc.)
+  double angle;      // Polarization angle
   double norm_sin;
   double norm_cos;
   double skew_sin;
   double skew_cos;
-  double s_ref;
+  int m;             // Order number (1 = dipole, etc.)
+  bool polarized;
 
-  C_lr_wake (double f, double f_in, double rq, double q, int mm,
-          double n_sin, double n_cos, double s_sin, double s_cos, double s) :
-      freq(f), freq_in(f_in), R_over_Q(rq), Q(q), m(mm), norm_sin(n_sin),
-      norm_cos(n_cos), skew_sin(s_sin), skew_cos(s_cos), s_ref(s){}
+  C_lr_wake (double f, double f_in, double rq, double q, double ang,
+          double n_sin, double n_cos, double s_sin, double s_cos, 
+          int mm, bool pol) :
+      freq(f), freq_in(f_in), R_over_Q(rq), Q(q), angle(ang), norm_sin(n_sin),
+      norm_cos(n_cos), skew_sin(s_sin), skew_cos(s_cos), m(mm), polarized(pol){}
 
   C_lr_wake (double f = 0) :
-      freq(f), freq_in(0), R_over_Q(0), Q(0), m(0), norm_sin(0), norm_cos(0),
-      skew_sin(0), skew_cos(0), s_ref(0) {}
+      freq(f), freq_in(0), R_over_Q(0), Q(0), angle(0), norm_sin(0), norm_cos(0),
+      skew_sin(0), skew_cos(0), m(0), polarized(0){}
 };    // End Class
 
 extern "C" void lr_wake_to_c_(lr_wake_struct*, C_lr_wake&);
@@ -690,7 +692,7 @@ public:
   int tracking_method;          // bmad_standard$, taylor$, etc.
   int field_calc;               // Used with Boris, Runge-Kutta integrators.
   int num_steps;                // number of slices for DA_maps
-  int integration_ord;          // For Etiennes' PTC: 2, 4, or 6.
+  int integrator_order;         // For Etiennes' PTC: 2, 4, or 6.
   int ptc_kind;                 // For setting the ptc kind type.
   int taylor_order;             // Order of the taylor series.
   int aperture_at;              // Where aperture is applied. exit_end$, ...

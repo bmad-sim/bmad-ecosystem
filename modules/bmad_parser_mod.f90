@@ -601,8 +601,8 @@ subroutine get_attribute (how, ele, ring, pring, &
       ele%tracking_method = nint(value)
     elseif (i == num_steps$) then
       ele%num_steps = nint(value)
-    elseif (i == integration_ord$) then
-      ele%integration_ord = nint(value)
+    elseif (i == integrator_order$) then
+      ele%integrator_order = nint(value)
     elseif (i == ptc_kind$) then
       ele%ptc_kind = nint(value)
     elseif (i == aperture_at$) then
@@ -1608,10 +1608,21 @@ subroutine read_lr_wake (ele, lr_file_name)
 
   implicit none
 
+  type lr_wake_input_struct
+    real(rp) freq         ! Actual Frequency in Hz.
+    real(rp) R_over_Q     ! Strength in V/C/m^2.
+    real(rp) Q            ! Quality factor.
+    integer m             ! Order (1 = dipole, 2 = quad, etc.)
+    real(rp) angle        ! polarization angle (radians/2pi).
+  end type
+
   type (ele_struct) ele
-  real(rp) c1(500), c2(500), c3(500), c4(500)
-  integer n_row, m(500), iu
+  type (lr_wake_input_struct) lr(500)
+  integer n_row, iu, i, j, ios
   character(*) lr_file_name
+  character(200) full_file_name
+
+  namelist / long_range_modes / lr
 
 ! Init
 
@@ -1623,22 +1634,42 @@ subroutine read_lr_wake (ele, lr_file_name)
 
 ! get data
 
-  iu = 0
-  ele%wake%lr_file = lr_file_name
-  call read_this_wake (iu, ele%wake%lr_file, n_row, c1, c2, c3, c4)
-  if (iu > 0) close (iu)
+  call find_this_file (iu, lr_file_name, full_file_name)
+  if (iu == 0) return
 
+  ele%wake%lr_file = lr_file_name
+  lr%freq = -1
+  lr%angle = real_garbage$
+  read (iu, nml = long_range_modes, iostat = ios)
+  close (1)
+  if (ios /= 0) then
+    call warning ('CANNOT READ LONG_RANGE_MODES NAMELIST FROM FILE: ' & 
+                      // full_file_name, 'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+
+  n_row = count(lr%freq /= -1)
   allocate (ele%wake%lr(n_row))
-  ele%wake%lr%freq_in   = c1(1:n_row)
-  ele%wake%lr%freq      = c1(1:n_row)
-  ele%wake%lr%r_over_q  = c2(1:n_row)
-  ele%wake%lr%q         = c3(1:n_row)
-  ele%wake%lr%m         = nint(c4(1:n_row))
-  ele%wake%lr%norm_sin  = 0
-  ele%wake%lr%norm_cos  = 0
-  ele%wake%lr%skew_sin  = 0
-  ele%wake%lr%skew_cos  = 0
-  ele%wake%lr%s_ref     = 0
+  j = 0
+  do i = 1, size(lr)
+    if (lr(i)%freq == -1) cycle
+    j = j + 1
+    ele%wake%lr(j)%freq_in   = lr(i)%freq
+    ele%wake%lr(j)%freq      = lr(i)%freq
+    ele%wake%lr(j)%r_over_q  = lr(i)%r_over_q
+    ele%wake%lr(j)%q         = lr(i)%q
+    ele%wake%lr(j)%m         = lr(i)%m
+    ele%wake%lr(j)%norm_sin  = 0
+    ele%wake%lr(j)%norm_cos  = 0
+    ele%wake%lr(j)%skew_sin  = 0
+    ele%wake%lr(j)%skew_cos  = 0
+    ele%wake%lr(j)%angle     = 0
+	  ele%wake%lr(j)%polarized = .false.
+    if (lr(i)%angle /= real_garbage$) then
+      ele%wake%lr(j)%angle     = lr(i)%angle
+	    ele%wake%lr(j)%polarized = .true.
+    endif
+  enddo
 
 end subroutine
 
@@ -1780,7 +1811,7 @@ subroutine read_this_wake (iu, file, n_row, col1, col2, col3, col4)
   integer i, j, ix, iu, ios, n_row, n
 
   character(*) file
-  character(200) file_name
+  character(200), save :: full_file_name
   character(80) line
 
   real(rp) col1(:), col2(:), col3(:)
@@ -1788,29 +1819,10 @@ subroutine read_this_wake (iu, file, n_row, col1, col2, col3, col4)
 
   logical found_it
 
-! open file
-
-  if (iu == 0) then
-    iu = lunget()
-    bp_com%dirs(2) = bp_com%calling_file%dir
-    call find_file (file, found_it, file_name, bp_com%dirs)
-    open (iu, file = file_name, status = 'OLD', action = 'READ', iostat = ios)
-    if (ios /= 0) then
-      call warning ('CANNOT OPEN WAKE FILE: ' // file)
-      iu = 0
-      return
-    endif
-
-    ! If we have not read in this file before then add this to the list of files
-    ! that are used to create the lattice.
-
-    n = bp_com%num_lat_files
-    inquire (file = file_name, name = bp_com%lat_file_names(n+1))
-    if (all(bp_com%lat_file_names(n+1) /= bp_com%lat_file_names(1:n))) &
-                                                bp_com%num_lat_files = n + 1
-  endif
-
 ! read
+
+  call find_this_file (iu, file, full_file_name)
+  if (iu == 0) return
 
   i = 0
 
@@ -1822,7 +1834,7 @@ subroutine read_this_wake (iu, file, n_row, col1, col2, col3, col4)
       return
     endif
     if (ios > 0) then
-      call warning ('ERROR READING WAKE FILE: ' // file_name)
+      call warning ('ERROR READING WAKE FILE: ' // full_file_name)
       iu = 0
       return
     endif
@@ -1854,7 +1866,59 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine GET_OVERLAY_GROUP_NAMES (ELE, RING, PRING, DELIM, DELIM_FOUND)
+! Subroutine find_this_file (iu, file, full_file_name)
+!
+! Subroutine to open a file.
+! This subroutine is used by bmad_parser and bmad_parser2.
+!
+! Input:
+!   iu   -- Integer: Open file unit. If zero open the file.
+!   file -- Character(*): Name of wake field file
+!
+! Output:
+!   iu      -- Integer: Open file unit. 
+!               If zero then there was an error. 
+!               If negative then end-of-file reached.
+!   full_file_name -- Character(*): Full name with directory spec.
+!-
+
+subroutine find_this_file (iu, file, full_file_name)
+
+implicit none
+
+character(*) file, full_file_name
+integer iu, ios, n
+logical found_it
+
+! open file
+
+if (iu == 0) then
+  iu = lunget()
+  bp_com%dirs(2) = bp_com%calling_file%dir
+  call find_file (file, found_it, full_file_name, bp_com%dirs)
+  open (iu, file = full_file_name, status = 'OLD', action = 'READ', iostat = ios)
+  if (ios /= 0) then
+    call warning ('CANNOT OPEN WAKE FILE: ' // file)
+    iu = 0
+    return
+  endif
+
+  ! If we have not read in this file before then add this to the list of files
+  ! that are used to create the lattice.
+
+  n = bp_com%num_lat_files
+  inquire (file = full_file_name, name = bp_com%lat_file_names(n+1))
+  if (all(bp_com%lat_file_names(n+1) /= bp_com%lat_file_names(1:n))) &
+                                                bp_com%num_lat_files = n + 1
+endif
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.

@@ -73,19 +73,20 @@ module bmad_struct
   end type
 
 ! Each lr_wake_struct represents a different mode.
-! A non-zero freq_spread attribute value will make freq_in different from freq.
+! A non-zero freq_spread attribute value will make freq different from freq_in.
 
-  type lr_wake_struct   ! Long-Range Wake struct 
-    real(rp) freq       ! Actual Frequency in Hz
-    real(rp) freq_in    ! Input frequency in Hz
-    real(rp) R_over_Q   ! Strength in V/C/m^2
-    real(rp) Q          ! Quality factor
-    integer m           ! Order (1 = dipole, 2 = quad, etc.)
-    real(rp) norm_sin   ! non-skew sin-like component of the wake
-    real(rp) norm_cos   ! non-skew cos-like component of the wake
-    real(rp) skew_sin   ! skew sin-like component of the wake
-    real(rp) skew_cos   ! skew cos-like component of the wake
-    real(rp) s_ref      ! reference time in terms of s = -c*t
+  type lr_wake_struct     ! Long-Range Wake struct.
+    real(rp) freq         ! Actual Frequency in Hz.
+    real(rp) freq_in      ! Input frequency in Hz.
+    real(rp) R_over_Q     ! Strength in V/C/m^2.
+    real(rp) Q            ! Quality factor.
+    real(rp) angle        ! polarization angle (radians/2pi).
+    real(rp) norm_sin     ! non-skew sin-like component of the wake.
+    real(rp) norm_cos     ! non-skew cos-like component of the wake.
+    real(rp) skew_sin     ! skew sin-like component of the wake.
+    real(rp) skew_cos     ! skew cos-like component of the wake.
+    integer m             ! Order (1 = dipole, 2 = quad, etc.)
+    logical polarized     ! Polaraized mode?
   end type
 
 ! Note: Bmad routines observe the following rule: 
@@ -156,7 +157,7 @@ module bmad_struct
     integer tracking_method        ! bmad_standard$, taylor$, etc.
     integer field_calc             ! Used with Boris, Runge-Kutta integrators.
     integer num_steps              ! number of slices for DA_maps
-    integer integration_ord        ! For Etiennes' PTC: 2, 4, or 6.
+    integer integrator_order        ! For Etiennes' PTC: 2, 4, or 6.
     integer ptc_kind               ! For setting the ptc kind type.
     integer taylor_order           ! Order of the taylor series.
     integer aperture_at            ! Where aperture is applied. exit_end$, ...
@@ -353,7 +354,7 @@ module bmad_struct
   integer, parameter :: mat6_calc_method$ = 47
   integer, parameter :: tracking_method$  = 48
   integer, parameter :: num_steps$ = 49
-  integer, parameter :: integration_ord$ = 50
+  integer, parameter :: integrator_order$ = 50
   integer, parameter :: term$ = 51
   integer, parameter :: ptc_kind$ = 52
   integer, parameter :: symplectify$ = 53
@@ -426,7 +427,8 @@ module bmad_struct
 ! garbage$ is, for example, for subroutines that want to communicate to
 ! the calling program that a variable has not been set properly.
 
-  integer, parameter :: garbage$ = -9876
+  integer, parameter :: int_garbage$ = -9876
+  real(rp), parameter :: real_garbage$ = -9876.5
 
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
 

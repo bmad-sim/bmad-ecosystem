@@ -127,10 +127,10 @@ sr2_wake_in  = sr2_wake_struct (21.0_rp, 22.0_rp, 23.0_rp, 24.0_rp, 25.0_rp, &
 sr2_wake_out = sr2_wake_struct (31.0_rp, 32.0_rp, 33.0_rp, 34.0_rp, 35.0_rp, &
                                                      36.0_rp, 37.0_rp, 38.0_rp)
 
-lr_wake_in  = lr_wake_struct(1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp, 5, &
-                             6.0_rp, 7.0_rp, 8.0_rp, 9.0_rp, 10.0_rp)
+lr_wake_in  = lr_wake_struct(1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp, 5.0_rp, &
+                             6.0_rp, 7.0_rp, 8.0_rp, 9.0_rp, 10, .true.)
 lr_wake_out = lr_wake_struct(10.0_rp, 9.0_rp, 8.0_rp, 7.0_rp, 6, 5.0_rp, &
-                              4.0_rp, 3.0_rp, 2.0_rp, 1.0_rp)
+                              4.0_rp, 3.0_rp, 2.0_rp, 1, .false.)
 
 allocate (wake_in%sr1(0:1), wake_in%sr2_long(2), wake_in%sr2_trans(0), wake_in%lr(1))
 allocate (wake_out%sr1(0), wake_out%sr2_long(0), wake_out%sr2_trans(2), wake_out%lr(2))
@@ -149,10 +149,10 @@ wake_out%lr_file = "xyzzy"
 wake_out%z_cut_sr = 101
 wake_out%sr2_trans(1) = sr2_wake_in
 wake_out%sr2_trans(2) = sr2_wake_out
-wake_out%lr(1) = lr_wake_struct (-1.0_rp, -2.0_rp, -3.0_rp, -4.0_rp, 5, &
-                                  -6.0_rp, -7.0_rp, -8.0_rp, -9.0_rp, -10.0_rp)
-wake_out%lr(2) = lr_wake_struct (-11.0_rp, -12.0_rp, -13.0_rp, -14.0_rp, -15, &
-                                -16.0_rp, -17.0_rp, -18.0_rp, -19.0_rp, -20.0_rp)
+wake_out%lr(1) = lr_wake_struct (-1.0_rp, -2.0_rp, -3.0_rp, -4.0_rp, -5.0_rp, &
+                          -6.0_rp, -7.0_rp, -8.0_rp, -9.0_rp, 10, .true.)
+wake_out%lr(2) = lr_wake_struct (-11.0_rp, -12.0_rp, -13.0_rp, -14.0_rp, -15.0_rp, &
+                                -16.0_rp, -17.0_rp, -18.0_rp, -19.0_rp, 20, .false.)
 
 control_in  = control_struct(1.0_rp, 2, 3, 4)
 control_out = control_struct(4.0_rp, 3, 2, 1)
@@ -216,7 +216,7 @@ ele_in%mat6_calc_method = 67
 ele_in%tracking_method = 68
 ele_in%field_calc = 69
 ele_in%num_steps = 70
-ele_in%integration_ord = 71
+ele_in%integrator_order = 71
 ele_in%ptc_kind = 72
 ele_in%taylor_order = 73
 ele_in%aperture_at = 74
