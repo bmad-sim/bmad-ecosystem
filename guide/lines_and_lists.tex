@@ -1,0 +1,41 @@
+\chapter{Beam Lines and Lists}
+
+An input lattice to \bmad\ is a sequence of physical elements which
+will be called a beam line. Beam lines are defined by using two
+constructs called lines and lists. This is very similar to \mad lines
+and lists. There can be mulitiple beam lines and lists defined in a
+lattice file and lines and lists can be nested inside other beam
+lines. The particular beam line that defines the lattice to be used by
+\bmad\ is selected by the \vn{use} statement. For example
+\begin{example}
+  use, my_line
+\end{example}
+would pick the line \vn{my_line}.
+
+\section{Beam Lines}
+A beam line without arguments (beam lines with arguments will be
+discussed below) has the format
+\begin{example}
+  label: LINE = (member1, member2, ...)
+\end{example}
+where \vn{member1}, etc. are either elements, or other beam lines or lists.
+Example:
+\begin{example}
+  this: line = (a, b, c, a)
+  use, this
+\end{example}
+The \vn{use} command defines the lattice to be the sequence \vn{a, b, c, a}.
+
+Lines can be nested within lines:
+\begin{example}
+  a: line = (a1, a2)
+  b: line = (b1, a)
+  c: line = (b, c1, a)
+  use, c
+\end{example}
+This results in the lattice being
+\begin{example}
+  c = (b1, a1, a2, c1, a1, a2)
+\end{example}
+
+For lines

@@ -38,6 +38,9 @@ The list of element types known to \bmad\ is shown in Table~\ref{tab:elements}
 \label{tab:elements}\center
 \end{table}
 
+\vfil
+\break
+
 %-----------------------------------------------------------------
 \section{AB\_Multipole}
 \label{s:ab_m}
@@ -48,7 +51,7 @@ difference between this and a \vn{Multipole} is the input format.
 \begin{table}[h]
 \centering {
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Description}  & {\sl Attribute} & {\sl description} \\ \hline
+  {\sl Attribute} & {\sl Description}  & {\sl Attribute} & {\sl Description} \\ \hline
   tilt         = Real & \ref{s:offset} &  type               = String  & \ref{s:string} \\ \hline
   x\_offset    = Real & \ref{s:offset} &  alias              = String  & \ref{s:string} \\ \hline
   y\_offset    = Real & \ref{s:offset} &  descrip            = String  & \ref{s:string} \\ \hline
@@ -191,8 +194,47 @@ attribute determined by:
 \label{s:wig}
 
 %-----------------------------------------------------------------
-\section{Offsets and Tilts}
+\section{Type, Alias and Descrip Attributes}
+\label{s:string}
+
+\vn{Type}, \vn{Alias}, and \vn{Descrip} are labels to be attached 
+to an element. \bmad\ does not directly use these labels. \vn{Type}
+and \vn{Alias} can be up to 16 characters in length and \vn{Descrip}
+can be up to 200 characters in length. The attribute strings should be
+enclosed in double quotation marks ("). The attribute strings may
+contain blanks. If the attribute string does not contain a blank then
+the quotation marks may be omitted. In this case the first comma (,)
+or the end of the line marks the end of the string. Example:
+\begin{example}
+  Q00W: Quad, type = "My Type", alias = Who_knows, &
+                                        descrip = "Only the shadow knows"
+\end{example}
+
+%-----------------------------------------------------------------
+\section{Mat6\_calc\_method and Tracking\_method switches}
+\label{s:track}
+
+
+%-----------------------------------------------------------------
+\section{Offsets and Tilt Attrubutes}
+\label{s:offset}
 
 \vn{x_offset}, \vn{y_offset}, \vn{s_offset} offset an element from the reference orbit.
 \vn{tilt} rotates.
+
+%-----------------------------------------------------------------
+\section{Aperture and Limit Attributes}
+\label{s:limit}
+
+%-----------------------------------------------------------------
+\section{Energy Attribute}
+\label{s:energy}
+
+%-----------------------------------------------------------------
+\section{Is\_on Attribute}
+\label{s:is_on}
+
+%-----------------------------------------------------------------
+\section{An, Bn and Radius attributes}
+\label{s:ab}
 
