@@ -9,6 +9,9 @@
 ! For example if ix1 = 900 and ix2 = 10 then the t_mat is the map from
 ! element 900 to the lattice end plus from 0 through 10.
 !
+! Note: If a taylor map does not exist for an element this routine will 
+! make one and store it in the element.
+!
 ! Modules Needed:
 !   use bmad
 !
@@ -30,7 +33,7 @@ subroutine transfer_map_calc (lat, t_map, ix1, ix2)
   use bmad_struct
   use bmad_interface, except => transfer_map_calc
   use cesr_utils, only: integer_option
-  use ptc_interface_mod, only: concat_taylor
+  use ptc_interface_mod, only: concat_taylor, ele_to_taylor
 
   implicit none
 
@@ -43,8 +46,8 @@ subroutine transfer_map_calc (lat, t_map, ix1, ix2)
 
 !
 
-  i1 = integer_option(ix1, 0) 
-  i2 = integer_option(ix2, lat%n_ele_use) 
+  i1 = integer_option(0, ix1) 
+  i2 = integer_option(lat%n_ele_use, ix2) 
 
   if (associated(lat%ele_(i1)%taylor(1)%term)) then
     t_map = lat%ele_(i1)%taylor
@@ -71,12 +74,11 @@ contains
 
 subroutine add_on_to_t_map
 
-  if (associated(lat%ele_(i)%taylor(1)%term)) then
-    call concat_taylor (t_map, lat%ele_(i)%taylor, t_map)
-  else
-    call mat6_to_taylor (lat%ele_(i)%mat6, lat%ele_(i)%vec0, taylor2)
-    call concat_taylor (t_map, taylor2, t_map)
+  if (.not. associated(lat%ele_(i)%taylor(1)%term)) then
+    call ele_to_taylor (lat%ele_(i), lat%param)
   endif
+
+  call concat_taylor (t_map, lat%ele_(i)%taylor, t_map)
 
 end subroutine
 
