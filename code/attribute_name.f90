@@ -58,7 +58,6 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
       if (i == group$)    cycle
       if (i == overlay$)  cycle
 
-      attrib_array(i, is_on$)       = 'IS_ON'
       attrib_array(i, x_limit$)     = 'X_LIMIT'
       attrib_array(i, y_limit$)     = 'Y_LIMIT'
       attrib_array(i, aperture$)    = 'APERTURE'
@@ -66,10 +65,11 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, mat6_calc_method$)  = 'MAT6_CALC_METHOD'
       attrib_array(i, tracking_method$)   = 'TRACKING_METHOD'
 
-      if (i == patch$)        cycle
       if (i == marker$)       cycle
-      if (i == hkicker$)      cycle
-      if (i == vkicker$)      cycle
+
+      attrib_array(i, is_on$)       = 'IS_ON'
+
+      if (i == patch$)        cycle
       if (i == beambeam$)     cycle
       if (i == hom$)          cycle
       if (i == matrix$)       cycle
@@ -84,14 +84,13 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, rel_tol$)           = 'REL_TOL'
       attrib_array(i, abs_tol$)           = 'ABS_TOL'
 
-      if (i == custom$) cycle
-      if (i == drift$)      cycle
-
-      attrib_array(i, hkick$)  = 'HKICK'
-      attrib_array(i, vkick$)  = 'VKICK'
-
-      if (i == monitor$)    cycle
-      if (i == instrument$) cycle
+      if (i == hkicker$)      cycle
+      if (i == vkicker$)      cycle
+      if (i == custom$)       cycle
+      if (i == drift$)        cycle
+      if (i == monitor$)      cycle
+      if (i == instrument$)   cycle
+      if (i == kicker$)       cycle
 
       attrib_array(i, x_offset$) = 'X_OFFSET'
       attrib_array(i, y_offset$) = 'Y_OFFSET'
@@ -99,6 +98,9 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
 
       if (i == rcollimator$) cycle
       if (i == ecollimator$) cycle
+
+      attrib_array(i, hkick$)  = 'HKICK'
+      attrib_array(i, vkick$)  = 'VKICK'
 
       attrib_array(i, x_pitch$)   = 'X_PITCH'
       attrib_array(i, y_pitch$)   = 'Y_PITCH'
@@ -121,15 +123,15 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
                                        'B6 ', 'B7 ', 'B8 ', 'B9 ', 'B10', &
                                        'B11', 'B12', 'B13', 'B14', 'B15', &
                                        'B16', 'B17', 'B18', 'B19', 'B20' /)
-        if (i /= ab_multipole$) attrib_array(i, radius$) = 'RADIUS'
       end select
-
     enddo
 
     attrib_array(def_parameter$, beam_energy$)  = 'BEAM_ENERGY'
     attrib_array(def_parameter$, lattice_type$) = 'LATTICE_TYPE'
     attrib_array(def_parameter$, symmetry$)     = 'SYMMETRY'
     attrib_array(def_parameter$, taylor_order$) = 'TAYLOR_ORDER'
+
+    attrib_array(taylor$, symplectify$) = 'SYMPLECTIFY'
 
     attrib_array(matrix$, l$)             = 'L'
     attrib_array(matrix$, beta_x0$)       = 'BETA_X0'
@@ -148,7 +150,6 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(lcavity$, phi0$)          = 'PHI0'
     attrib_array(lcavity$, gradient$)      = 'GRADIENT'
     attrib_array(lcavity$, rf_frequency$)  = 'RF_FREQUENCY'
-    attrib_array(lcavity$, rf_wavelength$) = 'RF_WAVELENGTH'
     attrib_array(lcavity$, e_loss$)        = 'E_LOSS'
     attrib_array(lcavity$, delta_e$)       = 'DELTA_E'
     attrib_array(lcavity$, sr_wake_file$)  = 'SR_WAKE_FILE'
@@ -179,6 +180,15 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(vkicker$, tilt$)  = 'TILT'
     attrib_array(vkicker$, kick$)  = 'KICK'
 
+    attrib_array(kicker$, l$)           = 'L'
+    attrib_array(kicker$, hkick$)       = 'HKICK'
+    attrib_array(kicker$, vkick$)       = 'VKICK'
+    attrib_array(kicker$, tilt$)        = 'TILT'
+    attrib_array(kicker$, h_displace$)  = 'H_DISPLACE'
+    attrib_array(kicker$, v_displace$)  = 'V_DISPLACE'
+    attrib_array(kicker$, radius$)      = 'RADIUS'
+
+
     attrib_array(sbend$, l$)          = 'L'
     attrib_array(sbend$, angle$)      = 'ANGLE'
     attrib_array(sbend$, e1$)         = 'E1'
@@ -195,6 +205,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(sbend$, rho$)        = 'RHO'
     attrib_array(sbend$, l_chord$)    = 'L_CHORD'
     attrib_array(sbend$, b_field$)    = 'B_FIELD'
+    attrib_array(sbend$, radius$)     = 'RADIUS'
 
     attrib_array(patch$, x_pitch$)    = 'X_PITCH'
     attrib_array(patch$, y_pitch$)    = 'Y_PITCH'
@@ -221,25 +232,30 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(rbend$, rho$)        = 'RHO'
     attrib_array(rbend$, l_chord$)    = 'L_CHORD'
     attrib_array(rbend$, b_field$)    = 'B_FIELD'
+    attrib_array(rbend$, radius$)     = 'RADIUS'
 
-    attrib_array(quadrupole$, l$)       = 'L'
-    attrib_array(quadrupole$, tilt$)    = 'TILT'
-    attrib_array(quadrupole$, k1$)      = 'K1'
+    attrib_array(quadrupole$, l$)          = 'L'
+    attrib_array(quadrupole$, tilt$)       = 'TILT'
+    attrib_array(quadrupole$, k1$)         = 'K1'
     attrib_array(quadrupole$, B_gradient$) = 'B_GRADIENT'
+    attrib_array(quadrupole$, radius$)     = 'RADIUS'
 
-    attrib_array(sextupole$, l$)       = 'L'
-    attrib_array(sextupole$, tilt$)    = 'TILT'
-    attrib_array(sextupole$, k2$)      = 'K2'
+    attrib_array(sextupole$, l$)          = 'L'
+    attrib_array(sextupole$, tilt$)       = 'TILT'
+    attrib_array(sextupole$, k2$)         = 'K2'
     attrib_array(sextupole$, B_gradient$) = 'B_GRADIENT'
+    attrib_array(sextupole$, radius$)     = 'RADIUS'
 
-    attrib_array(octupole$, l$)       = 'L'
-    attrib_array(octupole$, tilt$)    = 'TILT'
-    attrib_array(octupole$, k3$)      = 'K3'
+    attrib_array(octupole$, l$)          = 'L'
+    attrib_array(octupole$, tilt$)       = 'TILT'
+    attrib_array(octupole$, k3$)         = 'K3'
     attrib_array(octupole$, B_gradient$) = 'B_GRADIENT'
+    attrib_array(octupole$, radius$)     = 'RADIUS'
 
     attrib_array(solenoid$, l$)       = 'L'
     attrib_array(solenoid$, ks$)      = 'KS'
     attrib_array(solenoid$, b_field$) = 'B_FIELD'
+    attrib_array(solenoid$, radius$)  = 'RADIUS'
 
     attrib_array(rfcavity$, l$)             = 'L'
     attrib_array(rfcavity$, volt$)          = 'VOLT'
@@ -247,8 +263,12 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(rfcavity$, phi0$)          = 'PHI0'
     attrib_array(rfcavity$, harmon$)        = 'HARMON'
 
-    attrib_array(elseparator$, l$)      = 'L'
-    attrib_array(elseparator$, gap$)    = 'GAP'
+    attrib_array(elseparator$, l$)        = 'L'
+    attrib_array(elseparator$, gap$)      = 'GAP'
+    attrib_array(elseparator$, e_field$)  = 'E_FIELD'
+    attrib_array(elseparator$, volt$)     = 'VOLT'
+    attrib_array(elseparator$, tilt$)     = 'TILT'
+    attrib_array(elseparator$, radius$)   = 'RADIUS'
 
     attrib_array(beambeam$, sig_x$)       = 'SIG_X'
     attrib_array(beambeam$, sig_y$)       = 'SIG_Y'
@@ -274,15 +294,13 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(wiggler$, term$)     = 'TERM'
     attrib_array(wiggler$, polarity$) = 'POLARITY'
     attrib_array(wiggler$, z_patch$)  = 'Z_PATCH'
+    attrib_array(wiggler$, radius$)   = 'RADIUS'
 
-    attrib_array(sol_quad$, l$)    = 'L'
-    attrib_array(sol_quad$, k1$)   = 'K1'
-    attrib_array(sol_quad$, ks$)   = 'KS'
-    attrib_array(sol_quad$, tilt$) = 'TILT'
-
-    attrib_array(kicker$, l$)           = 'L'
-    attrib_array(kicker$, h_displace$)  = 'H_DISPLACE'
-    attrib_array(kicker$, v_displace$)  = 'V_DISPLACE'
+    attrib_array(sol_quad$, l$)      = 'L'
+    attrib_array(sol_quad$, k1$)     = 'K1'
+    attrib_array(sol_quad$, ks$)     = 'KS'
+    attrib_array(sol_quad$, tilt$)   = 'TILT'
+    attrib_array(sol_quad$, radius$) = 'RADIUS'
 
     attrib_array(def_beam$, particle$)   = 'PARTICLE'
     attrib_array(def_beam$, energy_gev$) = 'ENERGY'
@@ -299,7 +317,6 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
                                    'T6 ', 'T7 ', 'T8 ', 'T9 ', 'T10', &
                                    'T11', 'T12', 'T13', 'T14', 'T15', &
                                    'T16', 'T17', 'T18', 'T19', 'T20' /)
-    attrib_array(multipole$, radius$)   = 'RADIUS'
     attrib_array(multipole$, x_offset$) = 'X_OFFSET'
     attrib_array(multipole$, y_offset$) = 'Y_OFFSET'
     attrib_array(multipole$, s_offset$) = 'S_OFFSET'

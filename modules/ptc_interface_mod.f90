@@ -1746,7 +1746,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
         hk = -hk
         vk = -vk
       endif
-      el%tilt = -atan2 (hk, vk)
+      el%tilt = -atan2 (hk, vk) + ele%value(tilt$)
     endif
     el%volt = 1e-6 * param%beam_energy * sqrt(hk**2 + vk**2)
     call multipole_ele_to_ab (ele, param%particle, an0, bn0, .false.) 

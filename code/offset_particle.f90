@@ -68,7 +68,7 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
   logical, intent(in) :: set
   logical, optional, intent(in) :: set_canonical, set_tilt, set_multipoles
   logical, optional, intent(in) :: set_hvkicks
-  logical set_canon, set_multi, set_hv, set_t
+  logical set_canon, set_multi, set_hv, set_t, set_hv1, set_hv2
 
 !---------------------------------------------------------------         
 ! E_rel               
@@ -90,9 +90,23 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
   endif
 
   if (present(set_hvkicks)) then
-    set_hv = set_hvkicks
+    set_hv = set_hvkicks .and. ele%is_on
   else
-    set_hv = .true.
+    set_hv = ele%is_on
+  endif
+
+  if (set_hv) then
+    select case (ele%key)
+    case (elseparator$, kicker$, hkicker$, vkicker$)
+      set_hv1 = .false.
+      set_hv2 = .true.
+    case default
+      set_hv1 = .true.
+      set_hv2 = .false.
+    end select
+  else
+    set_hv1 = .false.
+    set_hv2 = .false.
   endif
 
   if (present(set_tilt)) then
@@ -128,25 +142,14 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
       coord%vec(4) = coord%vec(4) - ele%value(y_pitch$) * E_rel
     endif
 
-! Set: HV kicks.
+! Set: HV kicks for quads, etc.
 ! HV kicks must come after s_offset but before any tilts are applied.
 ! Note: Change in %vel is NOT dependent upon energy since we are using
 ! canonical momentum.
 
-    if (set_hv) then
-      if (ele%is_on) then
-        if (ele%key == elseparator$ .and. param%particle < 0) then
-          coord%vec(2) = coord%vec(2) - ele%value(hkick$) / 2
-          coord%vec(4) = coord%vec(4) - ele%value(vkick$) / 2
-        elseif (ele%key == hkicker$) then
-          coord%vec(2) = coord%vec(2) + ele%value(kick$) / 2
-        elseif (ele%key == vkicker$) then
-          coord%vec(4) = coord%vec(4) + ele%value(kick$) / 2
-        else
-          coord%vec(2) = coord%vec(2) + ele%value(hkick$) / 2
-          coord%vec(4) = coord%vec(4) + ele%value(vkick$) / 2
-        endif
-      endif
+    if (set_hv1) then
+      coord%vec(2) = coord%vec(2) + ele%value(hkick$) / 2
+      coord%vec(4) = coord%vec(4) + ele%value(vkick$) / 2
     endif
 
 ! Set: Multipoles
@@ -183,6 +186,22 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
 
     endif
 
+! Set: HV kicks for kickers and separators
+
+    if (set_hv2) then
+      if (ele%key == elseparator$ .and. param%particle < 0) then
+        coord%vec(2) = coord%vec(2) - ele%value(hkick$) / 2
+        coord%vec(4) = coord%vec(4) - ele%value(vkick$) / 2
+      elseif (ele%key == hkicker$) then
+        coord%vec(2) = coord%vec(2) + ele%value(kick$) / 2
+      elseif (ele%key == vkicker$) then
+        coord%vec(4) = coord%vec(4) + ele%value(kick$) / 2
+      else
+        coord%vec(2) = coord%vec(2) + ele%value(hkick$) / 2
+        coord%vec(4) = coord%vec(4) + ele%value(vkick$) / 2
+      endif
+    endif
+
 ! Set: P_x, P_y -> x', y' 
 
     if (set_canon .and. coord%vec(6) /= 0) then
@@ -200,6 +219,22 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
     if (set_canon .and. coord%vec(6) /= 0) then
       coord%vec(2) = coord%vec(2) * E_rel
       coord%vec(4) = coord%vec(4) * E_rel
+    endif
+
+! Unset: HV kicks for kickers and separators
+
+    if (set_hv2) then
+      if (ele%key == elseparator$ .and. param%particle < 0) then
+        coord%vec(2) = coord%vec(2) - ele%value(hkick$) / 2
+        coord%vec(4) = coord%vec(4) - ele%value(vkick$) / 2
+      elseif (ele%key == hkicker$) then
+        coord%vec(2) = coord%vec(2) + ele%value(kick$) / 2
+      elseif (ele%key == vkicker$) then
+        coord%vec(4) = coord%vec(4) + ele%value(kick$) / 2
+      else
+        coord%vec(2) = coord%vec(2) + ele%value(hkick$) / 2
+        coord%vec(4) = coord%vec(4) + ele%value(vkick$) / 2
+      endif
     endif
 
 ! Unset: Tilt
@@ -226,25 +261,14 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
       enddo
     endif
 
-! unset: HV kicks.
+! UnSet: HV kicks for quads, etc.
 ! HV kicks must come after s_offset but before any tilts are applied.
 ! Note: Change in %vel is NOT dependent upon energy since we are using
 ! canonical momentum.
 
-    if (set_hv) then
-      if (ele%is_on) then
-        if (ele%key == elseparator$ .and. param%particle < 0) then
-          coord%vec(2) = coord%vec(2) - ele%value(hkick$) / 2
-          coord%vec(4) = coord%vec(4) - ele%value(vkick$) / 2
-        elseif (ele%key == hkicker$) then
-          coord%vec(2) = coord%vec(2) + ele%value(kick$) / 2
-        elseif (ele%key == vkicker$) then
-          coord%vec(4) = coord%vec(4) + ele%value(kick$) / 2
-        else
-          coord%vec(2) = coord%vec(2) + ele%value(hkick$) / 2
-          coord%vec(4) = coord%vec(4) + ele%value(vkick$) / 2
-        endif
-      endif
+    if (set_hv1) then
+      coord%vec(2) = coord%vec(2) + ele%value(hkick$) / 2
+      coord%vec(4) = coord%vec(4) + ele%value(vkick$) / 2
     endif
 
 ! Unset: Offset and pitch

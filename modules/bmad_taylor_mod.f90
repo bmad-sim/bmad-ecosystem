@@ -544,10 +544,40 @@ subroutine track_taylor (start, bmad_taylor, end)
   real(rp), intent(out) :: end(6)
   
   real(rp) delta
+  real(rp), allocatable, save :: expn(:, :)
+
+  integer i, j, k, ie, e_max
   
-  integer i, j, k, ie
-  
-!
+! size cash matrix
+
+  e_max = 0
+
+  do i = 1, 6
+    do j = 1, size(bmad_taylor(i)%term)
+      e_max = max (e_max, maxval(bmad_taylor(i)%term(j)%exp)) 
+    enddo
+  enddo
+
+  if (.not. allocated(expn)) then
+    allocate (expn(6, e_max))
+  else
+    if (ubound(expn, 2) < e_max) then
+      deallocate (expn)
+      allocate (expn(6, e_max))
+    endif
+  endif
+
+! fill cash matrix
+
+  expn = 0
+  do i = 1, 6
+    do j = 1, e_max
+      if (start(i) == 0) cycle
+      expn(i, j) = start(i) ** j
+    enddo
+  enddo
+
+! compute taylor map
 
   end = 0
   do i = 1, 6
@@ -557,7 +587,7 @@ subroutine track_taylor (start, bmad_taylor, end)
         ie = bmad_taylor(i)%term(j)%exp(k) 
         if (ie == 0) cycle
         if (start(k) == 0) cycle j_loop  ! delta = 0 in this case 
-        delta = delta * start(k) ** ie
+        delta = delta * expn(k, ie)
       enddo
       end(i) = end(i) + delta
     enddo j_loop

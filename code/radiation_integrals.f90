@@ -82,7 +82,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
   type (ring_struct), target :: ring
   type (ele_struct) runt
-  type (coord_struct), target :: orb_(0:), start, end
+  type (coord_struct), target :: orb_(0:), start, end, c2
   type (modes_struct) mode
   type (synch_rad_com) sr_com_save
   type (rad_int_cache_struct), pointer :: cache
@@ -242,8 +242,18 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
     key = ric%ele%key
 
-    ric%g_x0 = -ric%ele%value(hkick$) / ll
-    ric%g_y0 = -ric%ele%value(vkick$) / ll
+    if (ric%ele%value(hkick$) /= 0 .or. ric%ele%value(vkick$) /= 0) then
+      c2%vec = 0
+      call offset_particle (ric%ele, ring%param, c2, set$, &
+                          set_canonical = .false., set_multipoles = .false.)
+      call offset_particle (ric%ele, ring%param, c2, unset$, &
+                          set_canonical = .false., set_multipoles = .false.)
+      ric%g_x0 = -c2%vec(2) / ll
+      ric%g_y0 = -c2%vec(4) / ll
+    else
+      ric%g_x0 = 0
+      ric%g_y0 = 0
+    endif
 
     if (key == rfcavity$) m65 = m65 + ric%ele%mat6(6,5)
 

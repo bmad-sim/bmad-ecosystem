@@ -59,7 +59,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 
   type (ring_struct), target :: r_in, r_out
   type (coord_struct), optional, volatile :: orb0_(0:)
-  type (coord_struct) c0, c1
+  type (coord_struct) c0, c1, c2
   type (ele_struct), pointer :: ele_in, ele_out
   type (real_8) y8(6)
 
@@ -201,8 +201,16 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 
         ele_out%s = ele_in%s
         ele_out%value(l$) = ele_out%value(l$) + ele_in%value(l$)
-        ele_out%value(hkick$) = ele_out%value(hkick$) + ele_in%value(hkick$)
-        ele_out%value(vkick$) = ele_out%value(vkick$) + ele_in%value(vkick$)
+        if (ele_in%value(hkick$) /= 0 .or. ele_in%value(vkick$) /= 0) then
+          c2%vec = 0
+          call offset_particle (ele_in, r_in%param, c2, set$, &
+                          set_canonical = .false., set_multipoles = .false.)
+          call offset_particle (ele_in, r_in%param, c2, unset$, &
+                          set_canonical = .false., set_multipoles = .false.)
+          ele_out%value(hkick$) = ele_out%value(hkick$) + c2%vec(2)
+          ele_out%value(vkick$) = ele_out%value(vkick$) + c2%vec(4)
+        endif
+
         ele_out%value(x_limit$) = ele_in%value(x_limit$)
         ele_out%value(y_limit$) = ele_in%value(y_limit$)
 

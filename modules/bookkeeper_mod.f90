@@ -620,21 +620,30 @@ end subroutine
 !
 ! Subroutine to recalculate the dependent attributes of an element.
 ! If the attributes have changed then any Taylor Maps will be killed.
-!
-!   BEAMBEAM:   bbi_const$ = param%n_part * m_electron * charge$ * r_e /
+! 
+! BEAMBEAM:   
+!     bbi_const$ = param%n_part * m_electron * charge$ * r_e /
 !                           (2 * pi * param%beam_energy * (sig_x$ + sig_y$)
 !
-!   RFCAVITY:   rf_wavelength$ = param%total_length / harmon$
+! ELSEPARATOR:
+!     e_field$ = sqrt(hkick$**2 + vkick$**2) * param%beam_energy / l$
+!     volt$ = e_field$ * gap$ 
 !
-!   SBEND:      angle$   = L$ * G$
-!               l_chord$ = 2 * sin(Angle$/2) / G$
-!               rho$     = 1 / G$
+! LCAVITY:    
+!     e_loss$  = ele%wake%sr(0)%long/2 if ele%wake%sr exists
+!     delta_e$ = gradient$ * L$ 
 !
-!   WIGGLER:    k1$  = -0.5 * (c_light * b_max$ / param%beam_energy)**2
-!               rho$ = param%beam_energy / (c_light * b_max$)
+! RFCAVITY:   
+!     rf_wavelength$ = param%total_length / harmon$
 !
-!   LCAVITY:    e_loss$  = ele%wake%sr(0)%long/2 if ele%wake%sr exists
-!               delta_e$ = gradient$ * L$ 
+! SBEND:      
+!     angle$   = L$ * G$
+!     l_chord$ = 2 * sin(Angle$/2) / G$
+!     rho$     = 1 / G$
+!
+! WIGGLER:    
+!     k1$  = -0.5 * (c_light * b_max$ / param%beam_energy)**2
+!     rho$ = param%beam_energy / (c_light * b_max$)
 !
 ! Modules needed:
 !   use bmad
@@ -768,6 +777,19 @@ subroutine attribute_bookkeeper (ele, param)
     ele%value(bbi_const$) = &
         -param%n_part * m_electron * ele%value(charge$) * r_e /  &
         (2 * pi * param%beam_energy * (ele%value(sig_x$) + ele%value(sig_y$)))
+
+! Elseparator
+
+  case (elseparator$)
+
+    if (ele%value(l$) == 0 .or. ele%value(gap$) == 0) then
+      ele%value(e_field$) = 0
+      ele%value(volt$) = 0
+    else
+      ele%value(e_field$) = sqrt(ele%value(hkick$)**2 + ele%value(vkick$)**2) * &
+                                                   param%beam_energy / ele%value(l$)
+      ele%value(volt$) = ele%value(e_field$) * ele%value(gap$) 
+    endif
 
 
 ! Wiggler
