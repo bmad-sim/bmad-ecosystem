@@ -831,26 +831,39 @@ contains
 
 subroutine transfer_this (s_1, s_2)
 
-  real(rp) s_1, s_2, s_now, s_end, ds
-  integer ix_ele
   type (ele_struct), save :: ele
+
+  real(rp) s_1, s_2, s_now, s_end, ds
+  real(rp), save :: ds_old = -1
+
+  integer ix_ele
+  integer, save :: ix_ele_old = -1
+
+  logical kill_it
 
 !
 
   call tao_ele_at_s (lat, s_1, ix_ele)
-  ele = lat%ele_(ix_ele)
+
+  if (ix_ele /= ix_ele_old) ele = lat%ele_(ix_ele)
   s_now = s_1
+  kill_it = .false.
 
   do
     s_end = min(s_2, ele%s)
-    ds = s_end - s_now
-    ele%value(l$) = ds
     if (ele%key == sbend$) then
       if (s_now /= lat%ele_(ix_ele-1)%s) ele%value(e1$) = 0
       if (s_end /= ele%s) ele%value(e2$) = 0
+      if (s_now == lat%ele_(ix_ele-1)%s) kill_it = .true.
+      if (s_end == ele%s) kill_it = .true.
     endif
 
-    call kill_taylor (ele%taylor)
+    ds = s_end - s_now
+    ele%value(l$) = ds
+
+    if (ds /= ds_old .or. ix_ele /= ix_ele_old) kill_it = .true.
+
+    if (kill_it) call kill_taylor (ele%taylor)
 
     if (integrate_this) then
       call taylor_propagate1 (t_map, ele, lat%param)
@@ -862,7 +875,12 @@ subroutine transfer_this (s_1, s_2)
       call concat_taylor (t_map, ele%taylor, t_map)
     endif
 
-    if (s_end == s_2) return
+    if (s_end == s_2) then
+      ix_ele_old = ix_ele
+      ds_old = ds
+      return
+    endif
+
     s_now = s_end
     ix_ele = ix_ele + 1
     ele = lat%ele_(ix_ele)
@@ -917,7 +935,6 @@ subroutine tao_mat6_calc_at_s (lat, mat6, s1, s2, one_turn, unit_start)
   implicit none
 
   type (ring_struct) lat
-  type (ele_struct), save :: ele
 
   real(rp) mat6(:,:)
   real(rp), intent(in), optional :: s1, s2
@@ -953,6 +970,7 @@ contains
 
 subroutine transfer_this (s_1, s_2)
 
+  type (ele_struct), save :: ele
   real(rp) s_1, s_2, s_end, s_now, ds
   integer ix_ele
 
