@@ -98,7 +98,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
   type (coord_struct) start2
 
   real(rp), save :: z_start
-  real(rp) s_len, h, h2, h3, h_x, h_y, f, this_ran
+  real(rp) s_len, g, g2, g3, g_x, g_y, f, this_ran
   real(rp) x_ave, y_ave, gamma_0, dE_p, h_bar, fluct_const, fact_d, fact_f
 
   integer direc
@@ -155,43 +155,43 @@ subroutine track1_radiation (start, ele, param, end, edge)
   case (quadrupole$, sol_quad$)
     x_ave = start2%vec(1) + direc * start2%vec(2) * ele%value(l$) / 4
     y_ave = start2%vec(3) + direc * start2%vec(4) * ele%value(l$) / 4
-    h_x =  ele%value(k1$) * x_ave
-    h_y = -ele%value(k1$) * y_ave
-    h2 = h_x**2 + h_y**2
-    if (sr_com%fluctuations_on) h3 = sqrt(h2)**3
+    g_x =  ele%value(k1$) * x_ave
+    g_y = -ele%value(k1$) * y_ave
+    g2 = g_x**2 + g_y**2
+    if (sr_com%fluctuations_on) g3 = sqrt(g2)**3
 
   case (sextupole$)
-    h = ele%value(k2$) * (start2%vec(1)**2 + start2%vec(3)**2)
-    h2 = h**2
-    if (sr_com%fluctuations_on) h3 = h2 * abs(h)
+    g = ele%value(k2$) * (start2%vec(1)**2 + start2%vec(3)**2)
+    g2 = g**2
+    if (sr_com%fluctuations_on) g3 = g2 * abs(g)
 
   case (octupole$)
-    h2 = ele%value(k3$)**2 * (start2%vec(1)**2 + start2%vec(3)**2)**3
-    if (sr_com%fluctuations_on) h3 = sqrt(h2)**3
+    g2 = ele%value(k3$)**2 * (start2%vec(1)**2 + start2%vec(3)**2)**3
+    if (sr_com%fluctuations_on) g3 = sqrt(g2)**3
 
   case (sbend$)
     if (ele%value(k1$) == 0) then
-      h = ele%value(g$) + ele%value(delta_g$)
-      h2 = h**2 
-      if (sr_com%fluctuations_on) h3 = h2 * abs(h)
+      g = ele%value(g$) + ele%value(delta_g$)
+      g2 = g**2 
+      if (sr_com%fluctuations_on) g3 = g2 * abs(g)
     else
       x_ave = start2%vec(1) + direc * start2%vec(2) * ele%value(l$) / 4
       y_ave = start2%vec(3) + direc * start2%vec(4) * ele%value(l$) / 4
-      h_x = ele%value(g$) + ele%value(delta_g$) + ele%value(k1$) * x_ave
-      h_y = ele%value(k1$) * y_ave
-      h2 = h_x**2 + h_y**2
-      if (sr_com%fluctuations_on) h3 = sqrt(h2)**3
+      g_x = ele%value(g$) + ele%value(delta_g$) + ele%value(k1$) * x_ave
+      g_y = ele%value(k1$) * y_ave
+      g2 = g_x**2 + g_y**2
+      if (sr_com%fluctuations_on) g3 = sqrt(g2)**3
     endif
 
   case (wiggler$)
     if (ele%sub_key == map_type$) then
-      h2 = ele%const(10) + &
-                  dot_product(start%vec-ele%const(1:6), ele%const(11:16))
-      h3 = ele%const(20) + &
-                  dot_product(start%vec-ele%const(1:6), ele%const(21:26))
+      g2 = ele%const(10) + &
+                  dot_product(start2%vec(1:4)-ele%const(1:4), ele%const(11:14))
+      g3 = ele%const(20) + &
+                  dot_product(start2%vec(1:4)-ele%const(1:4), ele%const(21:24))
     elseif (ele%sub_key == periodic_type$) then
-      h2 = abs(ele%value(k1$))
-      h3 = 4 * sqrt(2*h2)**3 / (3 * pi)  
+      g2 = abs(ele%value(k1$))
+      g3 = 4 * sqrt(2*g2)**3 / (3 * pi)  
     endif
 
   end select
@@ -203,12 +203,12 @@ subroutine track1_radiation (start, ele, param, end, edge)
   gamma_0 = param%beam_energy / m_electron
 
   fact_d = 0
-  if (sr_com%damping_on) fact_d = 2 * r_e * gamma_0**3 * h2 * s_len / 3
+  if (sr_com%damping_on) fact_d = 2 * r_e * gamma_0**3 * g2 * s_len / 3
 
   fact_f = 0
   if (sr_com%fluctuations_on) then
     call gauss_ran (this_ran)
-    fact_f = sqrt(fluct_const * s_len * gamma_0**5 * h3) * this_ran
+    fact_f = sqrt(fluct_const * s_len * gamma_0**5 * g3) * this_ran
   endif
 
   dE_p = (1 + start%vec(6)) * (fact_d + fact_f) * sr_com%scale 
@@ -219,8 +219,8 @@ subroutine track1_radiation (start, ele, param, end, edge)
   end%vec(6) = end%vec(6)  - dE_p * (1 + end%vec(6))
 
   if (sr_com%i_calc_on) then
-    sr_com%i2 = sr_com%i2 + h2 * s_len
-    sr_com%i3 = sr_com%i3 + h3 * s_len
+    sr_com%i2 = sr_com%i2 + g2 * s_len
+    sr_com%i3 = sr_com%i3 + g3 * s_len
   endif
 
 end subroutine
@@ -263,10 +263,10 @@ subroutine setup_radiation_tracking (ring, closed_orb, &
 
   type (ring_struct), target :: ring
   type (coord_struct), intent(in) :: closed_orb(0:)
-  type (coord_struct) start, end
+  type (coord_struct) start0, start1, start, end
 
   real(rp), save :: del_orb(6) = (/ 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-5 /)
-  real(rp) h2, h3
+  real(rp) g2, g3
 
   integer i, j
 
@@ -277,38 +277,54 @@ subroutine setup_radiation_tracking (ring, closed_orb, &
   if (present(fluctuations_on)) sr_com%fluctuations_on = fluctuations_on
   if (present(damping_on))      sr_com%damping_on      = damping_on
 
-! compute wiggler parameters
+! Compute for a map_type wiggler the change in g2 and g3 
+!   with respect to transverse orbit for an on-energy particle..
+! This is done with (x, x', y, y') to take out the energy dependence.
+! start0 is in local coords                    
+! start1 is lab coords with vec(6) = dE/E = 0 
 
   do i = 1, ring%n_ele_ring
+
     if (ring%ele_(i)%key /= wiggler$) cycle
-    if (ring%ele_(i)%sub_key == map_type$) then
-      track_com%save_track = .true.
-      if (.not. associated(ring%ele_(i)%const)) allocate (ring%ele_(i)%const(1:26))
-      ring%ele_(i)%const(1:6) = closed_orb(i)%vec
-      call symp_lie_bmad (ring%ele_(i), ring%param, closed_orb(i), end, .false.)
-      call calc_h (ring%ele_(i)%const(10), ring%ele_(i)%const(20))
-      do j = 1, 6
-        start = closed_orb(i)
-        start%vec(j) = start%vec(j) + del_orb(j)
-        call symp_lie_bmad (ring%ele_(i), ring%param, start, end, .false.)
-        call calc_h (h2, h3)
-        ring%ele_(i)%const(j+10) = (h2 - ring%ele_(i)%const(10)) / del_orb(j)
-        ring%ele_(i)%const(j+20) = (h3 - ring%ele_(i)%const(20)) / del_orb(j)
-      enddo
-    endif
+    if (ring%ele_(i)%sub_key /= map_type$) cycle
+
+    track_com%save_track = .true.
+
+    start0 = closed_orb(i-1)
+    call offset_particle (ring%ele_(i), ring%param, start0, set$)
+
+    start1 = closed_orb(i-1)
+    start1%vec(2) = start0%vec(2)
+    start1%vec(4) = start0%vec(4)
+    start1%vec(6) = 0
+
+    if (.not. associated(ring%ele_(i)%const)) allocate (ring%ele_(i)%const(1:26))
+    ring%ele_(i)%const(1:6) = start0%vec  ! Local coords
+    call symp_lie_bmad (ring%ele_(i), ring%param, start1, end, .false.)
+    call calc_g (ring%ele_(i)%const(10), ring%ele_(i)%const(20))
+
+    do j = 1, 4
+      start = start1
+      start%vec(j) = start%vec(j) + del_orb(j)
+      call symp_lie_bmad (ring%ele_(i), ring%param, start, end, .false.)
+      call calc_g (g2, g3)
+      ring%ele_(i)%const(j+10) = (g2 - ring%ele_(i)%const(10)) / del_orb(j)
+      ring%ele_(i)%const(j+20) = (g3 - ring%ele_(i)%const(20)) / del_orb(j)
+    enddo
+
   enddo
 
 !-------------------------------------------------------
 contains
 
-subroutine calc_h (h2, h3)
+subroutine calc_g (g2, g3)
 
-  real(rp) h2, h3, k2, k3, kick(6)
+  real(rp) g2, g3, k2, k3, kick(6)
   integer j
 
-! h2 is the average kick^2 over the element.
+! g2 is the average kick^2 over the element.
 
-  h2 = 0; h3 = 0
+  g2 = 0; g3 = 0
 
   do j = 0, ubound(track_com%s, 1) 
 
@@ -323,13 +339,13 @@ subroutine calc_h (h2, h3)
       k3 = k3 / 2
     endif
 
-    h2 = h2 + k2
-    h3 = h3 + k3
+    g2 = g2 + k2
+    g3 = g3 + k3
 
   enddo
 
-  h2 = h2 / ubound(track_com%s, 1) 
-  h3 = h3 / ubound(track_com%s, 1) 
+  g2 = g2 / ubound(track_com%s, 1) 
+  g3 = g3 / ubound(track_com%s, 1) 
 
 end subroutine
 
