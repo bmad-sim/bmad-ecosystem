@@ -12,11 +12,11 @@
 
 module bmad_utils_mod
 
-  use bmad_struct
+use bmad_struct
 
-  interface reallocate
-    module procedure reallocate_control_
-  end interface
+interface reallocate
+  module procedure reallocate_control
+end interface
 
 contains
 
@@ -557,36 +557,37 @@ end subroutine
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Fuunction reallocate_control_(control_, n) result (new_control_)
+! Fuunction reallocate_control(control, n) result (new_control)
 !
-! Function to reallocate the ring%control_(:) array.
+! Function to reallocate the ring%control(:) array.
 ! This data in the array will be saved.
 ! 
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   control_(:) -- Control_struct, pointer: Control Array
-!   n           -- Integer: Array size for control_(:)
+!   control(:) -- Control_struct, pointer: Control Array
+!   n           -- Integer: Array size for control(:)
 !
 ! Output:
-!   new_control_(:) -- Control_struct, pointer: Allocated array.
+!   new_control(:) -- Control_struct, pointer: Allocated array.
 !-
 
-function reallocate_control_(control_, n) result (new_control_)
+function reallocate_control(control, n) result (new_control)
 
   implicit none
 
-  type (control_struct), pointer :: control_(:), new_control_(:)
+  type (control_struct), pointer :: control(:), new_control(:)
   integer, intent(in) :: n
   integer nn
 
 !
 
-  allocate (new_control_(n))
-  if (associated(control_)) then
-    nn = min(n, size(control_))
-    new_control_(1:nn) = control_(1:nn)
+  allocate (new_control(n))
+  if (associated(control)) then
+    nn = min(n, size(control))
+    new_control(1:nn) = control(1:nn)
+    deallocate (control)
   endif
 
 end function
