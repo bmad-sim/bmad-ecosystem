@@ -1,10 +1,13 @@
 !+
 ! Subroutine ring_make_mat6 (ring, ix_ele, coord)
 !
-! Subroutine to make the first order transfer map:
+! Subroutine to make the first order transfer map for an element:
 !   r_out = M * r_in + vec0
 ! M is the 6x6 linear transfer matrix (Jacobian) about the 
 ! reference orbit coord.
+!
+! If the element ring%ele_(ix_ele) is a lord element then the martices of 
+! all the slave elements will be recomputed.
 !
 ! The routine will also call control_bookkeeper to make sure that all
 ! lord/slave dependencies are correct.
