@@ -8,13 +8,12 @@
 !   P. H. Stolz et al., Physical Review Special Topics.
 !   5, 094001 (2002).
 !
-! The variables in Boris tracking are:
-!     (x, p_x/p_0, y, p_y/p_0, s-c*t, dE/(c*P_0))
-! At high energy s-c*t = z which is the distance of the particle from the 
-! reference particle. 
-! Also at high energy c*P_0 = v*E_0/C = E_0 so that dE/(c*P_0) = dE/E.
+! When comparing the paper to this module remember that the paper uses a
+! coordinate system:
+!   (x, P_x, y, P_y, ct, U)
+! While the Bmad coordinate system is:
+!   (x, P_x/P_0, y, P_y/P_0, s-beta*c*t, dP/P_0)
 !-
-
 
 #include "CESR_platform.inc"      
 
@@ -360,28 +359,29 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
   type (em_field_struct) :: field
 
   real(rp), intent(in) :: s, ds
-  real(rp) :: f, p_z, d2, alpha, dxv, dyv, ds2_f, charge
-  real(rp) :: r(3,3), w(3), ex, ey, ex2, ey2, exy, bz, bz2, m2c2
+  real(rp) :: f, p_z, d2, alpha, dxv, dyv, ds2_f, charge, U_rel, p_rel
+  real(rp) :: r(3,3), w(3), ex, ey, ex2, ey2, exy, bz, bz2, m_rel
 
-! m2c2 = (m*c^2 / (c*P_0))^2,  c*P_0 = sqrt(E^2 - E_0^2)
+!
 
   charge = charge_of(param%particle)
-  m2c2 = mass_of(param%particle)**2 / &
-                          (ele%value(beam_energy$)**2 - mass_of(param%particle)**2)
+  m_rel = mass_of(param%particle) / ele%value(p0c$)
 
   end = start
 
 ! 1) Push the position 1/2 step
 
-  p_z = sqrt((1 + end%vec(6))**2 - end%vec(2)**2 - end%vec(4)**2 - m2c2)
+  p_rel = 1 + end%vec(6)
+  p_z = sqrt(p_rel**2 - end%vec(2)**2 - end%vec(4)**2)
   ds2_f = ds / (2 * p_z)
+  U_rel = sqrt (p_rel**2 + m_rel**2)
+  beta = p_rel / U_rel  ! particle velocity: v/c
 
   end%vec(1) = end%vec(1) + ds2_f * end%vec(2) 
   end%vec(3) = end%vec(3) + ds2_f * end%vec(4)
-  end%vec(5) = end%vec(5) + ds2_f * (p_z - (1 + end%vec(6))) 
+  end%vec(5) = end%vec(5) + ds2_f * (p_z - p_rel) 
 
-! 2) Evaluate the fields .
-! 3) Push the momenta a 1/2 step using only "b".
+! 2) Evaluate the fields.
 
   call em_field (ele, param, s+ds/2, end, field)
   if (field%type /= em_field$) then
@@ -390,19 +390,19 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
     call err_exit
   endif
 
-  f = ds * charge * c_light / (2 * ele%value(beam_energy$))
+! 3) Push the momenta a 1/2 step using only the "b" term.
+
+  f = ds * charge * c_light / (2 * ele%value(p0c$))
 
   end%vec(2) = end%vec(2) - field%b(2) * f
   end%vec(4) = end%vec(4) + field%b(1) * f
+  U_rel = U_rel + field%e(3) * f / c_light
+  p_rel = sqrt (U_rel**2 - m_rel**2)
+  p_z = sqrt(p_rel**2 - end%vec(2)**2 - end%vec(4)**2)
 
-  if (field%e(3) /= 0) then
-    end%vec(6) = end%vec(6) + field%e(3) * f / c_light
-    p_z = sqrt((1 + end%vec(6))**2 - end%vec(2)**2 - end%vec(4)**2 - m2c2)
-  endif
+! 4) Push the momenta a full step using the "R" matrix.
 
-! 4) Push the momenta a full step using "R".
-
-  d2 = ds * charge * c_light / (2 * p_z * ele%value(beam_energy$)) 
+  d2 = ds * charge * c_light / (2 * p_z * ele%value(p0c$)) 
 
   if (field%e(1) == 0 .and. field%e(2) == 0) then
     if (field%b(3) /= 0) then
@@ -423,27 +423,27 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
     r(2,1:3) = (/ -bz + d2*exy,     d2 * (ey2 - bz2), ey - d2*bz*ex    /)
     r(3,1:3) = (/ ex - d2*bz*ey,    ey + d2*bz*ex,    d2 * (ex2 + ey2) /)
 
-    w = end%vec(2:6:2)
-    w(3) = w(3) + 1
+    w = (/ end%vec(2), end%vec(4), U_rel /)
     w = w + alpha * matmul(r, w)
-    w(3) = w(3) - 1
-    end%vec(2:6:2) = w
+    end%vec(2:4:2) = w(1:2); U_rel = w(3)
   endif
 
-! 5) Push the momenta a 1/2 step using only "b"
+! 5) Push the momenta a 1/2 step using only the "b" term.
 
   end%vec(2) = end%vec(2) - field%b(2) * f
   end%vec(4) = end%vec(4) + field%b(1) * f
-  end%vec(6) = end%vec(6) + field%e(3) * f / c_light
+  U_rel = U_rel + field%e(3) * f / c_light
+  p_rel = sqrt (U_rel**2 - m_rel**2)
 
-! 6) Push the position a 1/2 step.
+! 6) Push the position 1/2 step.
 
-  p_z = sqrt((1 + end%vec(6))**2 - end%vec(2)**2 - end%vec(4)**2 - m2c2)
+  p_z = sqrt(p_rel**2 - end%vec(2)**2 - end%vec(4)**2)
   ds2_f = ds / (2 * p_z)
 
   end%vec(1) = end%vec(1) + ds2_f * end%vec(2) 
   end%vec(3) = end%vec(3) + ds2_f * end%vec(4)
-  end%vec(5) = end%vec(5) + ds2_f * (p_z - (1 + end%vec(6))) 
+  end%vec(5) = end%vec(5) + ds2_f * (p_z - p_rel) 
+  end%vec(6) = p_rel - 1
 
 end subroutine
 
@@ -483,14 +483,14 @@ subroutine boris_energy_correction (ele, param, here)
     call energy_to_kinetic (ele%value(beam_energy$), param%particle, p0c = p1)
     here%vec(2) = here%vec(2) * p0 / p1
     here%vec(4) = here%vec(4) * p0 / p1
-    here%vec(6) = here%vec(6) * ele%value(energy_start$) / ele%value(beam_energy$)
+    here%vec(6) = ((1 + here%vec(6)) * p0 - p1) / p1
 
   case (custom$)
     call energy_to_kinetic (ele%value(beam_energy$)-ele%value(delta_e$), param%particle, p0c = p0)
     call energy_to_kinetic (ele%value(beam_energy$), param%particle, p0c = p1)
     here%vec(2) = here%vec(2) * p0 / p1
     here%vec(4) = here%vec(4) * p0 / p1
-    here%vec(6) = here%vec(6) * ele%value(energy_start$) / ele%value(beam_energy$)
+    here%vec(6) = ((1 + here%vec(6)) * p0 - p1) / p1
 
   end select
 
