@@ -29,7 +29,7 @@ subroutine insert_LRBBI (ring, oppos_ring, cross_positions, ix_LRBBI)
 
   type (ring_struct)  ring
   type (ring_struct) oppos_ring
-  type (ele_struct), dimension(:), allocatable ::  insert_ele
+  type (ele_struct), pointer ::  insert_ele(:)
 
   real(rp), dimension(:), intent(inout) :: cross_positions
   integer, dimension(:), intent(inout) :: ix_LRBBI

@@ -820,7 +820,7 @@ subroutine allocate_ring_ele_ (ring, des_size)
   type (ring_struct) ring
   integer, optional :: des_size
 
-  type (ele_struct), allocatable :: temp_ele_(:)
+  type (ele_struct), pointer :: temp_ele(:)
   integer curr_n_ele, desired_size, i
 
 ! get new size
@@ -834,12 +834,12 @@ subroutine allocate_ring_ele_ (ring, des_size)
 
   if (associated (ring%ele_)) then
     curr_n_ele = size (ring%ele_) - 1
-    allocate (temp_ele_(0:curr_n_ele))
-    call transfer_eles (ring%ele_, temp_ele_)
+    allocate (temp_ele(0:curr_n_ele))
+    call transfer_eles (ring%ele_, temp_ele)
     deallocate (ring%ele_)
     allocate(ring%ele_(0:desired_size))
-    call transfer_eles (temp_ele_(0:curr_n_ele), ring%ele_(0:curr_n_ele))
-    deallocate (temp_ele_)
+    call transfer_eles (temp_ele(0:curr_n_ele), ring%ele_(0:curr_n_ele))
+    deallocate (temp_ele)
   else
     curr_n_ele = -1
     allocate(ring%ele_(0:desired_size))
