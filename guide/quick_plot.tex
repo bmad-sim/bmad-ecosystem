@@ -195,7 +195,8 @@ superscripts.
   BOX   -- The area of the page that a graph is placed into.
   GRAPH -- The actual plotting area within the bounds of the axes.
 \end{example}
-In case you need to refer to the PGPLOT routines the correspondence between this and PGPLOT is:
+In case you need to refer to the PGPLOT routines the correspondence
+between this and PGPLOT is:
 \begin{example}
   QUICK_PLOT    PGPLOT
   ----------    ------
@@ -205,16 +206,17 @@ In case you need to refer to the PGPLOT routines the correspondence between this
 \end{example}
 Essentially the VIEWPORT is the region outside of which lines and symbols
 will be clipped (if clipping is turned on) and the WINDOW defines the
-plot area. I'm not sure why PGPLOT makes a distinction but VIEWPORT and
-WINDOW always are the same region.
+plot area. I'm not sure why PGPLOT makes a distinction, but VIEWPORT and
+WINDOW are always the same region.
 
-\vn{qp_open_page} determines the size of the \vn{page} if it is settable (like for
-X--windows). The page is divided up into a grid of boxes. For example, 
-in Figure~\ref{f:plot_coords}, the grid is 1 box wide by 3 boxes tall. The border
-between the grid of boxes and the edges of the page are set by \vn{qp_set_page_border}.
-The box that the graph falls into is set by \vn{qp_set_box}. The default is to
-have no margins with 1 box covering the entire page. The \vn{qp_set_margin} routine
-sets the distance between the box edges and the axes.
+\vn{qp_open_page} determines the size of the \vn{page} if it is
+settable (like for X--windows). The page is divided up into a grid of
+boxes. For example, in Figure~\ref{f:plot_coords}, the grid is 1 box
+wide by 3 boxes tall. The border between the grid of boxes and the
+edges of the page are set by \vn{qp_set_page_border}.  The box that
+the graph falls into is set by \vn{qp_set_box}. The default is to have
+no margins with 1 box covering the entire page. The \vn{qp_set_margin}
+routine sets the distance between the box edges and the axes.
 
 
 %----------------------------------------------------------------------------
@@ -313,6 +315,12 @@ not to be shown. To enable or disable axis numbering again use
 \begin{example}
   call qp_set_axis ("Y2", draw_numbers = .true.)  ! draw y2 axis numbers
 \end{example}
+
+%----------------------------------------------------------------------------
+\section{Text}
+\label{s:text}
+
+
 
 %----------------------------------------------------------------------------
 \section{Styles}
@@ -516,5 +524,3 @@ in Figure~\ref{f:qp_axis_struct}.
 \caption{Definition of the \vn{qp\_axis\_struct}.}
 \label{f:qp_axis_struct}
 \end{figure}
-
-

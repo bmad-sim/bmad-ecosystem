@@ -950,7 +950,7 @@ interface
 end interface
 
 interface
-  subroutine twiss_at_element (ring, ix_ele, start, end, average)
+  recursive subroutine twiss_at_element (ring, ix_ele, start, end, average)
     use bmad_struct, only: ring_struct, ele_struct
     implicit none
     type (ring_struct), target :: ring
