@@ -21,7 +21,7 @@ Table~\ref{t:units}.  Note that \mad\ uses different units. For example,
   Particle Energy    &    eV             \\ 
   Voltage            &    Volts          \\ \hline
 \end{tabular}
-\caption{Physical Units used by \bmad.}
+\caption{Physical units used by \bmad.}
 \label{t:units}
 \end{table}
 
@@ -54,7 +54,7 @@ compatibility with \mad.
   e\_mass        & $0.51099906 \pow{-3}$  & GeV    & Electron mass     \\
   p\_mass        & $0.938271998$          & GeV    & Proton mass     \\ \hline
 \end{tabular}
-\caption{Physical and Mathematical constants recognized by \bmad.}
+\caption{Physical and mathematical constants recognized by \bmad.}
 \label{t:constants}
 \end{table}
 
@@ -273,7 +273,7 @@ techniques can be use to construct Taylor maps to arbitrary order.
 
 Emission of synchrotron radiation by a particle can be decomposed into
 two parts. The deterministic average radiaion emitted produces damping
-while the stochastic fuluctuating part produces excitation\cite{jowett}.
+while the stochastic fuluctuating part produces excitation\cite{b:jowett}.
 
 The treatment of radiation damping by \bmad\ esentially follows MAD.
 The average change in energy $\Delta E$ of a particle going through a
@@ -286,7 +286,7 @@ where
   k_d \equiv \frac{2 \, r_e}{3} \, \gamma_0^3, \, \ave{g^2} \, L_p \,  (1 + p_z)
 \Endeq
 $r_e$ is the classical electron radius, $L_p$ is the actual path
-length, $\gamma_0$ is the energy factor of an on-energy particle, $g$
+length, $\gamma_0$ is the energy factor of an on-energy particle, $1/g$
 is the bending radius of an on--energy particle, and $\ave{g^2}$ is an
 average of $g^2$ over the actual path.
 
@@ -306,14 +306,14 @@ The change in $p_z$ can be written as
 \Begineq
   \Delta p_z = -k_E \, (1 + p_z)
 \Endeq
-\where
+where
 \Begineq
   k_E = k_d + k_f
 \Endeq
 Since the radiation is emitted in the forward direction the angles
 $x'$ and $y'$ are invariant which leads to the following equations for
 the changes in $p_x$ and $p_y$
-\begein{align}
+\begin{align}
   \Delta p_x = &-k_E \, p_x \\
   \Delta p_y = &-k_E \, p_y
 \end{align}
