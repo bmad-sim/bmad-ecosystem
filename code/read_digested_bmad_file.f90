@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/01/27 14:40:42  dcs
+!bmad_version = 56
+!
 !Revision 1.7  2002/10/21 20:29:53  dcs
 !Init all elements
 !
@@ -47,7 +50,8 @@
 
 subroutine read_digested_bmad_file (in_file_name, ring, version)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

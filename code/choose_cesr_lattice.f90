@@ -28,6 +28,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2003/01/27 14:40:31  dcs
+!bmad_version = 56
+!
 !Revision 1.8  2002/02/23 20:32:12  dcs
 !Double/Single Real toggle added
 !
@@ -56,7 +59,8 @@
                
 subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
   use cesr_utils
 
   implicit none
@@ -70,7 +74,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
    
   integer i, num_lats, i_lat, ix, ios
 
-  logical is_there, ask_for_lat, default
+  logical is_there, ask_for_lat, default_flag
 
 !                   
 
@@ -118,16 +122,16 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
     line = line(:ix)
 
     if (ix == 0 .or. (ix == 1 .and. line == '*')) then
-      default = .true.
+      default_flag = .true.
       do i_lat = 1, num_lats
         if (lat_list(i_lat) == current_lat) exit
       enddo
     else
-      default = .false.
+      default_flag = .false.
       read (line, *, iostat = ios) i_lat
     endif
 
-    if (default .or. (ios == 0 .and. index('0123456789', line(1:1)) /= 0)) then
+    if (default_flag .or. (ios == 0 .and. index('0123456789', line(1:1)) /= 0)) then
       if (i_lat < 1 .or. i_lat > num_lats) then
         type *, 'ERROR: WHICH LATTICE? TRY AGAIN...'
         ask_for_lat = .true.

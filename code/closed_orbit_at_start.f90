@@ -46,6 +46,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/01/27 14:40:31  dcs
+!bmad_version = 56
+!
 !Revision 1.5  2002/02/23 20:32:13  dcs
 !Double/Single Real toggle added
 !
@@ -62,10 +65,10 @@
 #include "CESR_platform.inc"
 
 
-
 subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

@@ -21,7 +21,8 @@
 
 subroutine track1_linear (start, ele, param, end)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

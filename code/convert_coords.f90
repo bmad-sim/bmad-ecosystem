@@ -38,6 +38,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2003/01/27 14:40:32  dcs
+!bmad_version = 56
+!
 !Revision 1.3  2002/02/23 20:32:13  dcs
 !Double/Single Real toggle added
 !
@@ -50,7 +53,8 @@
 
 subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

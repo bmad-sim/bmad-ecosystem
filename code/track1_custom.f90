@@ -20,6 +20,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2003/01/27 14:40:44  dcs
+!bmad_version = 56
+!
 !Revision 1.2  2002/08/20 20:34:54  dcs
 !symp_lie_bmad / symp_lie_ptc added
 !
@@ -34,7 +37,8 @@
 
 subroutine track1_custom (start, ele, param, end)
 
-  use bmad
+  use runge_kutta_mod
+  use bmad_interface
 
   implicit none
 

@@ -23,20 +23,11 @@
 
 !$Id$
 !$Log$
-!Revision 1.10  2002/10/29 17:07:12  dcs
-!*** empty log message ***
-!
-!Revision 1.9  2002/10/21 16:00:11  dcs
-!*** empty log message ***
-!
-!Revision 1.8  2002/09/14 19:45:23  dcs
-!*** empty log message ***
+!Revision 1.11  2003/01/27 14:40:29  dcs
+!bmad_version = 56
 !
 !Revision 1.7  2002/08/20 20:34:52  dcs
 !symp_lie_bmad / symp_lie_ptc added
-!
-!Revision 1.6  2002/07/16 20:44:00  dcs
-!*** empty log message ***
 !
 !Revision 1.5  2002/06/13 14:54:21  dcs
 !Interfaced with FPP/PTC
@@ -78,6 +69,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     do i = 1, n_key
                                     
       if (i == def_beam$) cycle
+      if (i == def_parameter$) cycle
 
       attrib_array(i, type$)     = 'TYPE'
       attrib_array(i, alias$)    = 'ALIAS'
@@ -89,6 +81,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, x_limit$)  = 'X_LIMIT'
       attrib_array(i, y_limit$)  = 'Y_LIMIT'
       attrib_array(i, aperture$) = 'APERTURE'
+      attrib_array(i, energy$)   = 'ENERGY'
 
       if (i == taylor$) cycle
       if (i == patch$) cycle
@@ -101,7 +94,6 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, x_offset$) = 'X_OFFSET'
       attrib_array(i, y_offset$) = 'Y_OFFSET'
       attrib_array(i, s_offset$) = 'S_OFFSET'
-      attrib_array(i, energy$) = 'ENERGY'
 
       attrib_array(i, mat6_calc_method$)  = 'MAT6_CALC_METHOD'
       attrib_array(i, tracking_method$)   = 'TRACKING_METHOD'
@@ -141,6 +133,17 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
 
     enddo
 
+    attrib_array(def_parameter$, beam_energy$)  = 'BEAM_ENERGY'
+    attrib_array(def_parameter$, lattice_type$) = 'LATTICE_TYPE'
+    attrib_array(def_parameter$, symmetry$)     = 'SYMMETRY'
+    attrib_array(def_parameter$, taylor_order$) = 'TAYLOR_ORDER'
+
+    attrib_array(linac_rf_cavity$, l$)             = 'L'
+    attrib_array(linac_rf_cavity$, energy_start$)  = 'ENERGY_START'
+    attrib_array(linac_rf_cavity$, phase_0$)       = 'PHASE_0'
+    attrib_array(linac_rf_cavity$, gradiant$)      = 'GRADIANT'
+    attrib_array(linac_rf_cavity$, rf_frequency$)  = 'RF_FREQUENCY'
+    attrib_array(linac_rf_cavity$, rf_wavelength$) = 'RF_WAVELENGTH'
 
     attrib_array(group$, command$)        = 'COMMAND'
     attrib_array(group$, old_command$)    = 'OLD_COMMAND'
@@ -158,7 +161,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(sbend$, e2$)         = 'E2'
     attrib_array(sbend$, k1$)         = 'K1'
     attrib_array(sbend$, g$)          = 'G'
-    attrib_array(sbend$, g_design$)   = 'G_DESIGN'
+    attrib_array(sbend$, delta_g$)    = 'DELTA_G'
     attrib_array(sbend$, tilt$)       = 'TILT'
     attrib_array(sbend$, roll$)       = 'ROLL'
     attrib_array(sbend$, hgap$)       = 'HGAP'
@@ -181,7 +184,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(rbend$, e2$)         = 'E2'
     attrib_array(rbend$, k1$)         = 'K1'
     attrib_array(rbend$, g$)          = 'G'
-    attrib_array(rbend$, g_design$)   = 'G_DESIGN'
+    attrib_array(rbend$, delta_g$)    = 'DELTA_G'
     attrib_array(rbend$, tilt$)       = 'TILT'
     attrib_array(rbend$, roll$)       = 'ROLL'
     attrib_array(rbend$, hgap$)       = 'HGAP'

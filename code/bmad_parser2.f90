@@ -30,14 +30,14 @@
 
 !$Id$
 !$Log$
+!Revision 1.15  2003/01/27 14:40:30  dcs
+!bmad_version = 56
+!
 !Revision 1.14  2003/01/08 15:50:16  dcs
 !Fixed bug in an error message.
 !
 !Revision 1.13  2002/12/17 04:28:36  dcs
 !parser bug fix with "ele[b] = c" redefs and multiple ele elements.
-!
-!Revision 1.12  2002/12/03 18:48:30  dcs
-!*** empty log message ***
 !
 !Revision 1.11  2002/11/27 04:04:06  dcs
 !Correct bug
@@ -50,12 +50,6 @@
 !
 !Revision 1.8  2002/11/06 06:48:31  dcs
 !Changed arg array
-!
-!Revision 1.7  2002/09/14 19:45:24  dcs
-!*** empty log message ***
-!
-!Revision 1.6  2002/07/16 20:44:00  dcs
-!*** empty log message ***
 !
 !Revision 1.5  2002/06/13 14:54:22  dcs
 !Interfaced with FPP/PTC
@@ -125,9 +119,16 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
   beam_ele%name = 'BEAM'              ! fake beam element
   beam_ele%key = def_beam$            ! "definition of beam"
-  beam_ele%value(particle$) = ring%param%particle  ! default
-  beam_ele%value(energy$)   = ring%param%energy
+  beam_ele%value(particle$) = ring%param%particle 
+  beam_ele%value(energy$)   = 0
   beam_ele%value(n_part$)   = ring%param%n_part
+
+  param_ele%name = 'PARAMETER'
+  param_ele%key = def_parameter$
+  param_ele%value(lattice_type$) = ring%param%lattice_type
+  param_ele%value(symmetry$)     = ring%param%symmetry
+  param_ele%value(beam_energy$)  = ring%param%beam_energy
+  param_ele%value(taylor_order$) = ring%input_taylor_order
 
 !-----------------------------------------------------------
 ! main parsing loop
@@ -354,13 +355,13 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 ! if none of the above then we have an error
 
       if (i == n_max) then
-        do i = 1, n_key-1
+        do i = 1, n_key
           if (word_2(:ix_word) == key_name(i)(:ix_word)) then
             ring%ele_(n_max)%key = i
             exit
           endif
         enddo
-        if (i == n_key) then
+        if (i == n_key+1) then
           call warning ('KEY NAME NOT RECOGNIZED: ' // word_2,  &
                        'FOR ELEMENT: ' // ring%ele_(n_max)%name)
           ring%ele_(n_max)%key = 1       ! dummy value
@@ -441,9 +442,20 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
 !---------------------------------------------------------------
 
-  ring%param%particle = nint(beam_ele%value(particle$))
-  ring%param%energy   = beam_ele%value(energy$)
-  ring%param%n_part    = beam_ele%value(n_part$)
+  ring%param%particle    = nint(beam_ele%value(particle$))
+  ring%param%n_part      = beam_ele%value(n_part$)
+
+  ring%param%lattice_type = nint(param_ele%value(lattice_type$))
+  ring%param%symmetry     = nint(param_ele%value(symmetry$))
+  ring%input_taylor_order = nint(param_ele%value(taylor_order$))
+
+  if (beam_ele%value(energy$) /= 0) then
+    ring%param%beam_energy = beam_ele%value(energy$) * 1e9
+    ring%param%energy      = beam_ele%value(energy$)
+  else
+    ring%param%beam_energy = param_ele%value(beam_energy$)
+    ring%param%energy      = param_ele%value(beam_energy$) * 1e-9
+  endif
 
 ! Transfer the new elements to a safe_place
 
@@ -480,6 +492,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
 ! make matrices for entire ring
 
+  call compute_element_energy (ring)
   doit = .true.
   if (present(make_mats6)) doit = make_mats6
   if (doit) call ring_make_mat6(ring, -1, orbit_)  ! make transport matrices

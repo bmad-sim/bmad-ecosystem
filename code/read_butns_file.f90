@@ -47,7 +47,8 @@
 
 subroutine read_butns_file (butns_num, butns, db, read_ok, type_err)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

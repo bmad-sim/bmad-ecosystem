@@ -27,7 +27,10 @@
 
 subroutine track1_bmad (start, ele, param, end)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
+  use track1_mod
+  use multipole_mod
 
   implicit none
 
@@ -45,6 +48,8 @@ subroutine track1_bmad (start, ele, param, end)
   real(rdef) ks, sig_x0, sig_y0, beta, mat6(6,6)
   real(rdef) z_slice(100), s_pos, s_pos_old, vec0(6)
   real(rdef) ave_x_vel2, ave_y_vel2, rel_E
+  real(rdef) x_pos, y_pos, cos_phi, gradiant, e_start, e_end, e_ratio
+  real(rdef) alpha, sin_a, cos_a, f, z_ave
 
   integer i, j, n, n_slice, key
 
@@ -202,12 +207,67 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(1) = end%vec(1) + length * end%vec(2) 
     end%vec(3) = end%vec(3) + length * end%vec(4) 
 
+    z_ave = end%z%pos - length * &
+      (start%x%vel**2 + end%x%vel**2 + start%x%vel * end%x%vel + &
+       start%y%vel**2 + end%y%vel**2 + start%y%vel * end%y%vel) / 12
+
     if (ele%value(volt$) /= 0) then
-      phase = ele%value(lag$) + end%z%pos / ele%value(rf_wavelength$)
+      phase = ele%value(lag$) + z_ave / ele%value(rf_wavelength$)
       end%z%vel = end%z%vel + ele%value(volt$) * sin (twopi * phase) / &
                                                        (1e9 * param%energy)
     endif
          
+    call offset_particle (ele, param, end, unset$)
+
+! linac rf cavity
+! assumes the particle is ultra-relativistic.
+! This uses the formalism from:
+!       J. Rosenzweig and L. Serafini
+!       Phys Rev E, Vol. 49, p. 1599, (1994)
+! with b_0 = b_-1 = 1
+
+  case (linac_rf_cavity$)
+
+    if (ele%value(energy_start$) == 0) then
+      print *, 'ERROR IN TRACK1_BMAD: REFERENCE BEAM ENERGY IS 0 FOR A LINAC_RF_CAVITY!'
+      call err_exit
+    endif
+
+    phase = twopi * end%z%pos * ele%value(rf_frequency$) / c_light
+    cos_phi = cos(phase)
+    gradiant = ele%value(gradiant$) * cos_phi
+    e_start = ele%value(energy_start$) * (1 + end%z%vel)
+    e_end = e_start + gradiant * ele%value(l$)
+    e_ratio = e_end / e_start
+    alpha = log(e_ratio) / (2 * sqrt_2 * cos_phi)
+    cos_a = cos(alpha)
+    sin_a = sin(alpha)
+
+    if (gradiant == 0) then
+      call track_a_drift (end%vec, length)
+      return
+    endif
+
+    call offset_particle (ele, param, end, set$)
+
+    f = gradiant / (2 * e_start)            ! entrence kick
+    end%x%vel = end%x%vel - f * end%x%pos
+    end%y%vel = end%y%vel - f * end%y%pos
+
+    f = gradiant / (2 * sqrt_2 * cos_phi)
+    x_pos = end%x%pos
+    y_pos = end%y%pos
+    end%x%pos =  cos_a * end%x%pos         + sin_a * end%x%vel * e_start / f
+    end%x%vel = -sin_a * x_pos * f / e_end + cos_a * end%x%vel * e_start / e_end
+    end%y%pos =  cos_a * end%y%pos         + sin_a * end%y%vel * e_start / f
+    end%y%vel = -sin_a * y_pos * f / e_end + cos_a * end%y%vel * e_start / e_end
+
+    f = gradiant / (2 * e_end)              ! exit kick
+    end%x%vel = end%x%vel + f * end%x%pos
+    end%y%vel = end%y%vel + f * end%y%pos
+
+    end%z%vel = (e_end - ele%value(energy$)) / ele%value(energy$) 
+
     call offset_particle (ele, param, end, unset$)
 
 ! sextupole
@@ -306,20 +366,14 @@ subroutine track1_bmad (start, ele, param, end)
   end select
 
 !--------------------------------------------------------------
-! Very crude calculation for change in longitudinal position
+! Rough calculation for change in longitudinal position using:
+!      dz = -L * (<p_x^2> + <p_y^2>)/ 2 
+! where <...> means average.
+! The formula below assumes a linear change in velocity between 
+! the beginning and the end:
 
-  if (start%x%vel*end%x%vel > 0) then  ! if same sign
-    ave_x_vel2 = (start%x%vel**2 + end%x%vel**2) / 2
-  else
-    ave_x_vel2 = (start%x%vel**2 + end%x%vel**2) / 4
-  endif
-      
-  if (start%y%vel*end%y%vel > 0) then  ! if same sign
-    ave_y_vel2 = (start%y%vel**2 + end%y%vel**2) / 2
-  else
-    ave_y_vel2 = (start%y%vel**2 + end%y%vel**2) / 4
-  endif
-
-  end%z%pos = end%z%pos - length * (ave_x_vel2 + ave_y_vel2) / 2
+  end%z%pos = end%z%pos - length * &
+      (start%x%vel**2 + end%x%vel**2 + start%x%vel * end%x%vel + &
+       start%y%vel**2 + end%y%vel**2 + start%y%vel * end%y%vel) / 6
 
 end subroutine

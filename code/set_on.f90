@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/01/27 14:40:43  dcs
+!bmad_version = 56
+!
 !Revision 1.5  2002/07/16 20:44:01  dcs
 !*** empty log message ***
 !
@@ -41,7 +44,8 @@
                                     
 subroutine set_on (key, ring, on_switch, orb_)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

@@ -19,7 +19,7 @@
 
 subroutine track1_taylor (start, ele, param, end)
 
-  use bmad
+  use ptc_interface_mod
 
   implicit none
 
@@ -32,6 +32,6 @@ subroutine track1_taylor (start, ele, param, end)
 
   if (.not. associated(ele%taylor(1)%term)) &
                               call ele_to_taylor(ele, start, param)
-  call track_taylor (start, ele%taylor, end)
+  call track_taylor (start%vec, ele%taylor, end%vec)
 
 end subroutine

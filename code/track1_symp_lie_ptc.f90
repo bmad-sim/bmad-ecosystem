@@ -21,7 +21,7 @@
 
 subroutine track1_symp_lie_ptc (start, ele, param, end)
 
-  use accelerator
+  use ptc_interface_mod
 
   implicit none
 
@@ -49,7 +49,7 @@ subroutine track1_symp_lie_ptc (start, ele, param, end)
 ! call the PTC routines to track through the fibre.
 
   call vec_bmad_to_ptc (start%vec, re)  ! convert BMAD coords to PTC coords
-  call track (fibre_ele, re, DEFAULT, charge)
+  call ptc_track (fibre_ele, re, DEFAULT, charge)  ! "track" in PTC
   call vec_ptc_to_bmad (re, end%vec)
 
   call kill(fibre_ele)  ! clean up allocated memory.

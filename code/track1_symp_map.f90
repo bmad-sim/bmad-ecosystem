@@ -23,7 +23,7 @@
 
 subroutine track1_symp_map (start, ele, param, end)
 
-  use accelerator
+  use ptc_interface_mod
 
   implicit none
 

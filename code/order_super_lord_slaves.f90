@@ -16,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/01/27 14:40:41  dcs
+!bmad_version = 56
+!
 !Revision 1.4  2002/02/23 20:32:22  dcs
 !Double/Single Real toggle added
 !
@@ -31,7 +34,8 @@
 
 subroutine order_super_lord_slaves (ring, ix_lord)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
   use nr
 
   implicit none

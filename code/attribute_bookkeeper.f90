@@ -8,9 +8,9 @@
 !
 !   RFCAVITY:     rf_wavelength$ = param%total_length / harmon$
 !
-!   SBEND:        angle$   = length$ * G_design$
-!                 l_chord$ = 2 * sin(angle$/2) / G_design$
-!                 rho = 1 / G_design
+!   SBEND:        angle$   = L$ * G$
+!                 l_chord$ = 2 * sin(Angle$/2) / G$
+!                 rho$ = 1 / G$
 !
 !   WIGGLER:      k1$       = -0.5 * (0.2997 * b_max$ / param%energy)**2
 !                 rho$ = 3.3356 * param%energy / b_max$
@@ -29,6 +29,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/01/27 14:40:29  dcs
+!bmad_version = 56
+!
 !Revision 1.7  2002/10/29 17:07:12  dcs
 !*** empty log message ***
 !
@@ -69,13 +72,13 @@ subroutine attribute_bookkeeper (ele, param)
 ! Bends
 
   case (sbend$)
-    ele%value(angle$) = ele%value(l$) * ele%value(g_design$)
-    if (ele%value(l$) == 0 .or. ele%value(g_design$) == 0) then
+    ele%value(angle$) = ele%value(l$) * ele%value(g$)
+    if (ele%value(l$) == 0 .or. ele%value(g$) == 0) then
       ele%value(l_chord$) = 0
     else
-      ele%value(l_chord$) = 2 * sin(ele%value(angle$)/2) / ele%value(g_design$)
+      ele%value(l_chord$) = 2 * sin(ele%value(angle$)/2) / ele%value(g$)
     endif
-    if (ele%value(g_design$) == 0) then
+    if (ele%value(g$) == 0) then
       ele%value(rho$) = 0
     else
       ele%value(rho$) = 1 / ele%value(g$)

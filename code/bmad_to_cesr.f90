@@ -25,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/01/27 14:40:30  dcs
+!bmad_version = 56
+!
 !Revision 1.7  2002/02/23 20:32:11  dcs
 !Double/Single Real toggle added
 !
@@ -49,7 +52,8 @@
 
 subroutine bmad_to_cesr (ring, cesr)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 
@@ -418,7 +422,8 @@ end subroutine
 
 subroutine insert_info (cesr_ele, ele, i_ele)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
   
   implicit none
 

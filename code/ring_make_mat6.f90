@@ -24,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/01/27 14:40:42  dcs
+!bmad_version = 56
+!
 !Revision 1.7  2002/11/17 01:01:43  dcs
 !compiler bug fix
 !
@@ -60,6 +63,21 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
 
   integer i, j, k, ie, ix_ele, i1, i2, i3, ix1, ix2, ix3
   integer ix_taylor(100), n_taylor, istat
+
+
+!
+
+  if (ring%param%lattice_type == linac_lattice$)  call compute_element_energy (ring)
+
+! Check Energy
+
+  if (abs(ring%param%beam_energy-1d9*ring%param%energy) > &
+                                             1e-5*ring%param%beam_energy) then
+    print *, 'ERROR IN RING_MAKE_MAT6:'
+    print *, '      RING%PARAM%ENERGY AND RING%PARAM%BEAM_ENERGY DO NOT MATCH'
+    print *, '      ', ring%param%energy, ring%param%beam_energy 
+    call err_exit
+  endif
 
 ! Error check
 

@@ -24,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.2  2003/01/27 14:40:37  dcs
+!bmad_version = 56
+!
 !Revision 1.1  2002/06/13 15:07:20  dcs
 !Merged with FPP/PTC
 !
@@ -36,7 +39,8 @@
 
 subroutine make_mat6_custom (ele, param, c0, c1)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

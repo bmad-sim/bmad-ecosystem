@@ -26,6 +26,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/01/27 14:40:31  dcs
+!bmad_version = 56
+!
 !Revision 1.4  2002/02/23 20:32:12  dcs
 !Double/Single Real toggle added
 !
@@ -42,7 +45,8 @@
 Subroutine check_ele_attribute_set (ring, i_ele, attrib_name, &
                                       ix_attrib, err_flag, err_print_flag)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

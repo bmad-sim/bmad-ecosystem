@@ -38,6 +38,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/01/27 14:40:46  dcs
+!bmad_version = 56
+!
 !Revision 1.5  2002/06/13 14:54:31  dcs
 !Interfaced with FPP/PTC
 !
@@ -56,7 +59,8 @@
 
 subroutine twiss_at_start (ring)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

@@ -120,36 +120,6 @@ end subroutine
 !              reaches the exit face.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.3  2002/11/05 18:06:29  dcs
-!Minor Mods
-!
-!Revision 1.2  2002/09/05 14:01:07  dcs
-!*** empty log message ***
-!
-!Revision 1.1  2002/08/20 20:37:06  dcs
-!Added symp_lie_bmad / symp_lie_ptc switches.
-!
-!Revision 1.8  2002/08/05 22:01:33  dcs
-!Bug fix to k1 /= 0 stuff
-!
-!Revision 1.7  2002/08/05 20:04:59  dcs
-!Bug fix for sbends calling make_mat6.
-!
-!Revision 1.5  2002/06/13 14:54:29  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.4  2002/02/23 20:32:26  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/08 21:44:44  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.2  2001/09/27 18:31:59  rwh24
-!UNIX compatibility updates
-!
-
 subroutine track_a_bend (start, ele, param, end)
 
   implicit none
@@ -166,8 +136,8 @@ subroutine track_a_bend (start, ele, param, end)
 
 ! some init
 
-  g0 = ele%value(g_design$) 
-  g =  ele%value(g$) / (1 + start%z%vel)
+  g0 = ele%value(g$) 
+  g =  (ele%value(g$) + ele%value(delta_g$)) / (1 + start%z%vel)
 
   end = start
   call offset_particle (ele, param, end, set$)
@@ -179,8 +149,8 @@ subroutine track_a_bend (start, ele, param, end)
     return
   endif
 
-  r0 = 1/ g0
-  r = 1/ g
+  r0 = 1 / g0
+  r  = 1 / g
  
   theta0 = ele%value(l$) * g0
 

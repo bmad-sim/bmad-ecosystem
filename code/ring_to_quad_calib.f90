@@ -49,6 +49,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2003/01/27 14:40:42  dcs
+!bmad_version = 56
+!
 !Revision 1.3  2002/02/23 20:32:24  dcs
 !Double/Single Real toggle added
 !
@@ -62,7 +65,9 @@
 subroutine ring_to_quad_calib (ring, cesr, k_theory, k_base,  &
                  len_quad, cu_per_k_gev, quad_rot, dk_gev_dcu, cu_theory)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
+
   implicit none
 
   record /cesr_struct/ cesr

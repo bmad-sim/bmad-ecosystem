@@ -34,6 +34,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2003/01/27 14:40:42  dcs
+!bmad_version = 56
+!
 !Revision 1.3  2002/11/06 06:48:32  dcs
 !Changed arg array
 !
@@ -56,7 +59,8 @@
 subroutine set_ele_attribute (ring, i_ele, attrib_name, &
                                 attrib_value, err_flag, make_mat6_flag, orbit_)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

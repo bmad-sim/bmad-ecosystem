@@ -27,6 +27,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/01/27 14:40:46  dcs
+!bmad_version = 56
+!
 !Revision 1.4  2002/06/13 14:54:30  dcs
 !Interfaced with FPP/PTC
 !
@@ -43,7 +46,8 @@
 subroutine twiss_and_track_body (ele1, ele2, param, del_s, ele3, &
                                                                start, end)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

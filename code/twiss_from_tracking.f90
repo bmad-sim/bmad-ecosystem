@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/01/27 14:40:46  dcs
+!bmad_version = 56
+!
 !Revision 1.7  2002/11/06 06:48:32  dcs
 !Changed arg array
 !
@@ -60,7 +63,8 @@
 
 subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

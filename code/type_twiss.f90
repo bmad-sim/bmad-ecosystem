@@ -17,6 +17,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.3  2003/01/27 14:40:48  dcs
+!bmad_version = 56
+!
 !Revision 1.2  2002/02/23 20:32:30  dcs
 !Double/Single Real toggle added
 !
@@ -29,7 +32,8 @@
 
 subroutine type_twiss (ele, frequency_units)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

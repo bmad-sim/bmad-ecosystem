@@ -22,6 +22,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/01/27 14:40:43  dcs
+!bmad_version = 56
+!
 !Revision 1.5  2002/02/23 20:32:25  dcs
 !Double/Single Real toggle added
 !
@@ -39,7 +42,8 @@
 
 subroutine split_ring (ring, s_split, ix_split, split_done)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

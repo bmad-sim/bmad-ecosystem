@@ -7,8 +7,8 @@
 
 !$Id$
 !$Log$
-!Revision 1.6  2002/07/16 20:44:19  dcs
-!*** empty log message ***
+!Revision 1.7  2003/01/27 14:41:01  dcs
+!bmad_version = 56
 !
 !Revision 1.5  2002/06/13 14:55:00  dcs
 !Interfaced with FPP/PTC
@@ -26,10 +26,9 @@
 
 #include "CESR_platform.inc"
 
-
 module rad_int_common               
 
-  use bmad
+  use ptc_interface_mod
   use runge_kutta_mod
 
 ! i1_(:), etc. are for diagnostics

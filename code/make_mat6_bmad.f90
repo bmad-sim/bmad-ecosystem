@@ -47,7 +47,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   real(rdef) t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
   real(rdef) t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
   real(rdef) lcs, lc2s2, error, rho
-
+  real(rdef) cos_phi, gradiant, e_start, e_end, e_ratio
+  real(rdef) alpha, sin_a, cos_a, f, phase
   integer i, n, n_slice, n_pole, key
 
 !--------------------------------------------------------
@@ -117,19 +118,20 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
     e1 = ele%value(e1$)
     e2 = ele%value(e2$)
     k1 = ele%value(k1$)
+    g = ele%value(g$) + ele%value(delta_g$)
 
     if (length == 0) return
 
-    if (ele%value(g$) == 0) then
+    if (g == 0) then
       call drift_mat6_calc (mat6, length, c0%vec)
       return
     endif
 
-    angle = length * ele%value(g$)
+    angle = length * g
     e1 = e1 + c0t%x%vel / rel_E
     e2 = e2 - c1t%x%vel / rel_E
     angle = angle + (c0t%x%vel - c1t%x%vel) / rel_E
-    g = ele%value(g$) / rel_E
+    g = g / rel_E
     length = angle / g
     k1 = k1 / rel_E
 
@@ -375,6 +377,51 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
                     mat6(5,2) * mat6(4,1) - mat6(5,1) * mat6(4,2)
 
 !--------------------------------------------------------
+! linac rf cavity
+!
+! There is a problem in that we do NOT have good canonical coordinates since
+!   the energy of the reference particle is changing.
+! This means that the resulting matrix will NOT be symplectic.
+! Since this matrix has limited value we simplify things by ignoring most 
+!   off-axis and off-energy corrections to mat6.
+
+  case (linac_rf_cavity$)
+
+    f = twopi * ele%value(rf_frequency$) / c_light
+    mat6(6,5) = -ele%value(gradiant$) * ele%value(l$) * f * sin(f * c0%z%pos)
+
+    phase = f * c0%z%pos
+    cos_phi = cos(phase)
+    gradiant = ele%value(gradiant$) * cos_phi
+    e_start = ele%value(energy_start$) * (1 + c0%z%vel)
+    e_end = e_start + gradiant * ele%value(l$)
+    e_ratio = e_end / e_start
+    alpha = log(e_ratio) / (2 * sqrt_2 * cos_phi)
+    cos_a = cos(alpha)
+    sin_a = sin(alpha)
+
+    if (gradiant == 0) then
+      call drift_mat6_calc (mat6, length, orb%vec)
+      goto 8000  ! put in mulipole ends if needed
+    endif
+
+    f = gradiant / 2 * sqrt_2 * cos_phi   ! body matrix
+    mat6(1,1) =  cos_a
+    mat6(1,2) =  sin_a * e_start / f
+    mat6(2,1) = -sin_a * f / e_end
+    mat6(2,2) =  cos_a * e_start / e_end
+
+    f = gradiant / (2 * e_start)          ! entrence kick
+    mat6(1,1) = mat6(1,1) - f * mat6(1,2)
+    mat6(2,1) = mat6(2,1) - f * mat6(2,2)
+
+    f = gradiant / (2 * e_end)            ! exit kick
+    mat6(2,1) = mat6(2,1) + f * mat6(1,1)
+    mat6(2,2) = mat6(2,2) + f * mat6(1,2)
+
+    mat6(3:4,3:4) = mat6(1:2,1:2)
+
+!--------------------------------------------------------
 ! rf cavity
 ! this is not quite correct.
 
@@ -386,7 +433,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
         call err_exit
       else
         mat6(6,5) = ele%value(volt$) * cos(twopi*ele%value(lag$)) *  &
-                   twopi / ele%value(rf_wavelength$) /param%energy / 1.e9
+                   twopi / ele%value(rf_wavelength$) /param%beam_energy
       endif
     endif
 
@@ -574,15 +621,15 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
         call err_exit
       else
         mat6(6,5) = ele%value(volt$) * cos(twopi*ele%value(lag$)) *  &
-                      twopi / ele%value(rf_wavelength$) /param%energy / 1.e9
+                      twopi / ele%value(rf_wavelength$) /param%beam_energy
         c_e = ele%value(volt$) * sin(twopi * ele%value(lag$))  &
-              / (e_mass * 1.e9 * length)
+              / (m_electron * length)
       endif
     else
       c_e = 0.0
     endif
-    c_m = param%particle * c_light * ele%value(b_z$) / (e_mass * 1.e9)
-    gamma_old = param%energy * rel_E / e_mass
+    c_m = param%particle * c_light * ele%value(b_z$) / m_electron
+    gamma_old = param%beam_energy * rel_E / m_electron
     gamma_new = gamma_old + c_e * length
     call accel_sol_mat_calc (length, c_m, c_e, gamma_old, gamma_new, &
                                     0.0_rdef, 0.0_rdef, c0t%vec, mat4, vec_st)
@@ -649,7 +696,8 @@ end subroutine
 
 subroutine bbi_kick_matrix (ele, orb, s_pos, mat6)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

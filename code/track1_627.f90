@@ -25,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/01/27 14:40:44  dcs
+!bmad_version = 56
+!
 !Revision 1.4  2002/02/23 20:32:26  dcs
 !Double/Single Real toggle added
 !
@@ -39,7 +42,8 @@
 
 subroutine track1_627 (start, ele, param, mat627, end)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

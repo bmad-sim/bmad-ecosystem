@@ -43,6 +43,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/01/27 14:40:32  dcs
+!bmad_version = 56
+!
 !Revision 1.4  2002/02/23 20:32:14  dcs
 !Double/Single Real toggle added
 !
@@ -59,7 +62,8 @@
 
 subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

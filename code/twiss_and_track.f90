@@ -27,6 +27,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/01/27 14:40:45  dcs
+!bmad_version = 56
+!
 !Revision 1.6  2002/12/13 17:09:40  dcs
 !Modified to do non-closed lattices.
 !
@@ -47,7 +50,8 @@
 
 subroutine twiss_and_track (ring, orb)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

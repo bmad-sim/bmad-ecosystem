@@ -48,6 +48,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/01/27 14:40:45  dcs
+!bmad_version = 56
+!
 !Revision 1.7  2003/01/02 16:19:40  dcs
 !*** empty log message ***
 !
@@ -65,7 +68,8 @@
 
 subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

@@ -46,14 +46,11 @@
 
 !$Id$
 !$Log$
-!Revision 1.7  2002/12/03 18:48:30  dcs
-!*** empty log message ***
+!Revision 1.8  2003/01/27 14:40:41  dcs
+!bmad_version = 56
 !
 !Revision 1.6  2002/11/07 17:10:04  dcs
 !Bug_fix
-!
-!Revision 1.5  2002/10/29 17:07:14  dcs
-!*** empty log message ***
 !
 !Revision 1.4  2002/08/20 20:34:53  dcs
 !symp_lie_bmad / symp_lie_ptc added
@@ -73,7 +70,9 @@
 subroutine offset_particle (ele, param, coord, set, set_canonical, &
                               set_tilt, set_multipoles, set_hvkicks, s_pos)
 
-  use bmad
+  use bmad_interface
+  use multipole_mod
+  use track1_mod
 
   implicit none
 

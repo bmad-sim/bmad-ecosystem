@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.22  2003/01/27 14:40:30  dcs
+!bmad_version = 56
+!
 !Revision 1.21  2003/01/08 15:50:15  dcs
 !Fixed bug in an error message.
 !
@@ -149,7 +152,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
 ! save all elements that have a taylor series
 
-  old_energy = ring%param%energy
+  old_energy = ring%param%beam_energy
 
   ix = 0
   do i = 1, ring%n_ele_max
@@ -198,9 +201,6 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   call init_bmad_parser_common
   ring%name = ' '
 
-  n_max => in_ring%n_ele_max
-  n_max = 0                         ! number of elements encountered
-
   pring%ele(:)%ref_name = blank
   pring%ele(:)%ref_pt  = center$
   pring%ele(:)%ele_pt  = center$
@@ -208,12 +208,22 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   pring%ele(:)%common_lord = .false.
 
   call init_ele (in_ring%ele_(0))
-  in_ring%ele_(0)%name = 'BEGINNING'            ! Beginning element
+  in_ring%ele_(0)%name = 'BEGINNING'     ! Beginning element
+  in_ring%ele_(0)%key = null_ele$
+
+  n_max => in_ring%n_ele_max
+  n_max = 0                              ! Number of elements encountered
 
   call init_ele (beam_ele)
   beam_ele%name = 'BEAM'                 ! fake beam element
   beam_ele%key = def_beam$               ! "definition of beam"
   beam_ele%value(particle$) = positron$  ! default
+
+  call init_ele (param_ele)
+  param_ele%name = 'PARAMETER'    ! For parameters 
+  param_ele%key = def_parameter$
+  param_ele%value(lattice_type$) = circular_lattice$  ! Default
+  param_ele%value(symmetry$)     = no_symmetry$       ! Default
 
 ! %ixx is used as a pointer from the in_ring%ele_ array to the pring%ele array
 
@@ -310,7 +320,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
         call warning ('"LATTICE" NOT FOLLOWED BY ":"')
       else
         if (delim == ':' .and. bp_com%parse_line(1:1) == '=') &
-                        bp_com%parse_line = bp_com%parse_line(2:)  ! trim off '='
+                      bp_com%parse_line = bp_com%parse_line(2:)  ! trim off '='
         call get_next_word (ring%lattice, ix_word, ',', &
                                                    delim, delim_found, .true.)
       endif
@@ -346,8 +356,15 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
     if (matched_delim .and. ix /= 0) then
       name = word_1(:ix-1)  
-      do i = 0, n_max
-        if (in_ring%ele_(i)%name == name) then
+      do i = 0, n_max+1
+
+        if (i == n_max+1) then
+          ele => param_ele
+        else
+          ele => in_ring%ele_(i)
+        endif
+
+        if (ele%name == name) then
           ix = index(word_1, '[')
           this_name = word_1(ix+1:)    ! name of attribute
           ix = index(this_name, ']')
@@ -358,11 +375,12 @@ subroutine bmad_parser (in_file, ring, make_mats6)
           else
             parse_line_save = bp_com%parse_line
           endif
-          call get_attribute (redef$, in_ring%ele_(i), in_ring, pring, &
+          call get_attribute (redef$, ele, in_ring, pring, &
                                              delim, delim_found, err_flag)
           if (delim_found) call warning ('BAD DELIMITER: ' // delim)
           found = .true.
         endif
+
       enddo
 
       if (.not. found) call warning ('ELEMENT NOT FOUND: ' // name)
@@ -487,7 +505,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
 ! check for valid element key name
 
-      do i = 1, n_key-1
+      do i = 1, n_key
         if (word_2(:ix_word) == key_name(i)(:ix_word)) then
           in_ring%ele_(n_max)%key = i
           exit
@@ -497,7 +515,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 ! check if element is part of a element class
 ! if none of the above then we have an error
 
-      if (i == n_key) then
+      if (i == n_key+1) then
         do i = 1, n_max-1
           if (word_2 == in_ring%ele_(i)%name) then
             in_ring%ele_(n_max) = in_ring%ele_(i)
@@ -754,10 +772,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   ring%version            = bmad_inc_version$
   ring%input_file_name    = full_name             ! save input file
   ring%param%particle     = nint(beam_ele%value(particle$))
-  ring%param%energy       = beam_ele%value(energy$)
   ring%param%n_part       = beam_ele%value(n_part$)
-  ring%param%symmetry     = no_symmetry$
-  ring%param%lattice_type = circular_lattice$
   ring%n_ele_ring         = n_ele_ring
   ring%n_ele_use          = n_ele_ring
   ring%n_ele_max          = n_ele_ring
@@ -765,25 +780,59 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   ring%n_ele_symm         = 0                     ! no symmetry point
   ring%n_ic_array         = 0                     
   ring%n_control_array    = 0    
-  ring%input_taylor_order = 0
   call set_symmetry (ring%param%symmetry, ring)   ! set ring.n_ele_use
 
   ring%ele_(0) = in_ring%ele_(0)    ! Beginning element
   call init_ele (ring%ele_init)
 
+! old way of doing things
+
   do i = 1, bp_com%ivar_tot
-    if (var_(i)%name == 'SYMMETRY') ring%param%symmetry = var_(i)%value
+    if (var_(i)%name == 'SYMMETRY') ring%param%symmetry = nint(var_(i)%value)
     if (var_(i)%name == 'LATTICE_TYPE')  &
-                              ring%param%lattice_type = var_(i)%value
-    if (var_(i)%name == 'TAYLOR_ORDER') then
-      ring%input_taylor_order = nint(var_(i)%value)
-      call set_taylor_order (ring%input_taylor_order, .false.)
-    endif
+                              ring%param%lattice_type = nint(var_(i)%value)
+    if (var_(i)%name == 'TAYLOR_ORDER') &
+                              ring%input_taylor_order = nint(var_(i)%value)
   enddo
+
+! New way of doing things
+
+  if (nint(param_ele%value(lattice_type$)) /= circular_lattice$) &
+            ring%param%lattice_type = nint(param_ele%value(lattice_type$))
+
+  if (nint(param_ele%value(symmetry$)) /= no_symmetry$) &
+            ring%param%symmetry = nint(param_ele%value(symmetry$))
+
+  if (nint(param_ele%value(taylor_order$)) /= 0) &
+            ring%input_taylor_order = nint(param_ele%value(taylor_order$))
+
+  ring%param%beam_energy  = param_ele%value(beam_energy$)
+  ring%param%energy       = beam_ele%value(energy$)
+
+  if (ring%param%beam_energy /= 0 .and. ring%param%energy /= 0) call warning &
+         ('BOTH "BEAM, ENERGY" AND "PARAMETER[BEAM_ENERGY]" CONSTRUCTS USED!')
+
+  if (ring%param%beam_energy /= 0) then
+    ring%param%energy  = 1d-9 * ring%param%beam_energy
+  else
+    ring%param%beam_energy  = 1d9 * ring%param%energy
+  endif
+
+!
+
+  if (ring%input_taylor_order /= 0) &
+                  call set_taylor_order (ring%input_taylor_order, .false.)
 
   if (n_ele_ring > n_ele_maxx) then
     print *, 'ERROR IN BMAD_PARSER: NUMBER OF ELEMENTS EXCEEDS ELEMENT ARRAY'
     print *, '       SIZE THE RING STRUCTURE:', n_ele_ring, n_ele_maxx
+    call err_exit
+  endif
+
+  if (any(in_ring%ele_(:)%key == linac_rf_cavity$) .and. &
+                          ring%param%lattice_type /= linac_lattice$) then
+    print *, 'ERROR IN BMAD_PARSER: THERE IS A LINAC_RF_CAVITY BUT THE'
+    print *, '      LATTICE_TYPE IS NOT SET TO LINAC_LATTICE!'
     call err_exit
   endif
 
@@ -798,43 +847,35 @@ subroutine bmad_parser (in_file, ring, make_mats6)
     ele = in_ring%ele_(ix_ring(i)) 
     ele%name = name_(i)
 
-! Convert rbends to sbends
+! Convert rbends to sbends and evaluate G if needed.
 
     if (ele%key == sbend$ .or. ele%key == rbend$) then
 
-      if (ele%value(g$) /= 0 .and. ele%value(g_design$) == 0) &
-                                        ele%value(g_design$) = ele%value(g$)
-      if (ele%value(g_design$) /= 0 .and. ele%value(g$) == 0) &
-                                        ele%value(g$) = ele%value(g_design$)
+      angle = ele%value(angle$) 
 
-      if (ele%value(rho$) /= 0 .and. ele%value(g_design$) /= 0) &
+      if (ele%value(g$) /= 0 .and. ele%value(rho$) /= 0) then
         call warning ('BOTH G AND RHO SPECIFIED FOR BEND: ' // ele%name)
-
-      if (ele%value(rho$) /= 0) then
-        ele%value(g_design$) = 1 / ele%value(rho$)
-        ele%value(g$) = 1 / ele%value(rho$)
+      elseif (ele%value(g$) /= 0 .and. angle /= 0)  then
+        call warning ('BOTH G AND ANGLE SPECIFIED FOR BEND: ' // ele%name)
+      elseif (ele%value(rho$) /= 0 .and. angle /= 0)  then
+        call warning ('BOTH RHO AND ANGLE SPECIFIED FOR BEND: ' // ele%name)
       endif
 
-      angle = ele%value(angle$) 
+      if (ele%value(rho$) /= 0) ele%value(g$) = 1 / ele%value(rho$)
 
       if (ele%key == rbend$) then
         ele%value(l_chord$) = ele%value(l$)
         if (angle /= 0) then
           ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
-        elseif (ele%value(g_design$) /= 0) then
-          ele%value(l$) = angle / ele%value(g_design$)
+        elseif (ele%value(g$) /= 0) then
+          ele%value(l$) = angle / ele%value(g$)
         endif
         ele%value(e1$) = ele%value(e1$) + angle / 2
         ele%value(e2$) = ele%value(e2$) + angle / 2
         ele%key = sbend$
       endif
 
-      if (ele%value(g$) == 0 .and. angle /= 0) then
-        ele%value(g$)        = angle / ele%value(l$) 
-        ele%value(g_design$) = ele%value(g$)
-      elseif (ele%value(g_design$) /= 0 .and. angle /= 0)  then
-        call warning ('BOTH G AND ANGLE SPECIFIED FOR BEND: ' // ele%name)
-      endif
+      if (angle /= 0) ele%value(g$) = angle / ele%value(l$) 
 
       if (ele%value(hgapx$) == 0) ele%value(hgapx$) = ele%value(hgap$)
       if (ele%value(fintx$) == 0) ele%value(fintx$) = ele%value(fint$)
@@ -886,7 +927,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
     do i = 1, ring%n_ele_max
 
-      if (old_energy /= ring%param%energy) exit
+      if (old_energy /= ring%param%beam_energy) exit
       
       ele => ring%ele_(i)
       call attribute_bookkeeper (ele, ring%param) ! so value arrays are equal
@@ -947,6 +988,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
   doit = .true.
   if (present(make_mats6)) doit = make_mats6
+  call compute_element_energy (ring)
   if (doit) call ring_make_mat6(ring, -1)      ! make 6x6 transport matrices
 
 !-------------------------------------------------------------------------
@@ -1035,8 +1077,6 @@ subroutine bmad_parser (in_file, ring, make_mats6)
     if (associated (seq_(i)%arg)) deallocate(seq_(i)%arg)
     if (associated (seq_(i)%ele)) deallocate(seq_(i)%ele)
   enddo
-
-
 
 ! error check
 

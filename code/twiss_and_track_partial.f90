@@ -26,6 +26,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/01/27 14:40:46  dcs
+!bmad_version = 56
+!
 !Revision 1.5  2003/01/02 16:19:40  dcs
 !*** empty log message ***
 !
@@ -45,7 +48,8 @@
 subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
                                                                start, end)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

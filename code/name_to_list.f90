@@ -27,6 +27,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/01/27 14:40:41  dcs
+!bmad_version = 56
+!
 !Revision 1.6  2002/07/16 21:33:58  dcs
 !*** empty log message ***
 !
@@ -47,8 +50,9 @@
 
 subroutine name_to_list (ring, ele_names, use_ele)
 
-  use bmad
-  use cesr_utils
+  use bmad_struct
+  use bmad_interface
+
   implicit none
 
   type (ring_struct)  ring

@@ -35,6 +35,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/01/27 14:40:31  dcs
+!bmad_version = 56
+!
 !Revision 1.5  2002/06/13 14:54:23  dcs
 !Interfaced with FPP/PTC
 !
@@ -53,7 +56,8 @@
 
 subroutine change_basis (coord, ref_energy, ref_z, to_cart, time_disp)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

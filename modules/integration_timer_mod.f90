@@ -1,7 +1,6 @@
 module integration_timer_mod
 
-  use accelerator_struct
-  use accelerator_interface
+  use ptc_interface_mod
 
   private get_taylor, diff, term_diff  
 
@@ -172,7 +171,7 @@ subroutine get_taylor (ns, ut, a_fibre, y, orbit)
   call real_8_init (y)
 
   y = orbit
-  call track (a_fibre, y, default, +1)
+  call ptc_track (a_fibre, y, default, +1)  ! "track" in PTC
   
   do iz = 1, 6
     if (associated(ut(iz)%c)) ut(iz) = -1

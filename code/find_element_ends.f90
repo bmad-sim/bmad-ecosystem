@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/01/27 14:40:34  dcs
+!bmad_version = 56
+!
 !Revision 1.4  2002/02/23 20:32:15  dcs
 !Double/Single Real toggle added
 !
@@ -38,7 +41,8 @@
 
 subroutine find_element_ends (ring, ix_ele, ix_start, ix_end)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
   use nr, only: indexx
 
   implicit none

@@ -80,6 +80,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2003/01/27 14:40:32  dcs
+!bmad_version = 56
+!
 !Revision 1.8  2002/10/21 16:00:11  dcs
 !*** empty log message ***
 !
@@ -105,7 +108,8 @@
 
 subroutine create_group (ring, ix_ele, n_control, control_)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

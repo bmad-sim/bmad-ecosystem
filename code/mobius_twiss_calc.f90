@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2003/01/27 14:40:39  dcs
+!bmad_version = 56
+!
 !Revision 1.3  2002/02/23 20:32:19  dcs
 !Double/Single Real toggle added
 !
@@ -36,7 +39,9 @@
 
 subroutine mobius_twiss_calc (ele, v_mat)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
+
   implicit none
 
   type (ele_struct)  ele

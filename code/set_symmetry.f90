@@ -16,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2003/01/27 14:40:43  dcs
+!bmad_version = 56
+!
 !Revision 1.3  2002/02/23 20:32:24  dcs
 !Double/Single Real toggle added
 !
@@ -29,7 +32,9 @@
 
 subroutine set_symmetry (symmetry, ring)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
+
   implicit none
 
   type (ring_struct)  ring

@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/01/27 14:40:39  dcs
+!bmad_version = 56
+!
 !Revision 1.4  2002/06/13 14:54:26  dcs
 !Interfaced with FPP/PTC
 !
@@ -38,7 +41,8 @@
 
 subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, track0, chi)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
   use nr
 
   implicit none

@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2003/01/27 14:40:44  dcs
+!bmad_version = 56
+!
 !Revision 1.3  2002/06/13 14:54:29  dcs
 !Interfaced with FPP/PTC
 !
@@ -59,8 +62,8 @@
 
 subroutine track1_runge_kutta (start, ele, param, end)
 
-  use bmad
   use runge_kutta_mod
+  use bmad_interface
 
   implicit none
 

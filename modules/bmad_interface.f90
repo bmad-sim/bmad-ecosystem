@@ -1,8 +1,12 @@
 !+
 ! This file defines the interfaces for the BMAD subroutines
 !-
+
 !$Id$
 !$Log$
+!Revision 1.20  2003/01/27 14:41:00  dcs
+!bmad_version = 56
+!
 !Revision 1.19  2003/01/04 00:45:05  dcs
 !recursive modifications for update_hybrid_list and control_bookkeeper.
 !
@@ -12,14 +16,8 @@
 !Revision 1.17  2002/11/16 16:14:17  dcs
 !overlay/group change and make_mat6 bug fix
 !
-!Revision 1.16  2002/11/07 17:10:21  dcs
-!*** empty log message ***
-!
 !Revision 1.15  2002/11/06 06:49:40  dcs
 !modified arrays in some arg lists.
-!
-!Revision 1.14  2002/10/29 17:07:28  dcs
-!*** empty log message ***
 !
 !Revision 1.13  2002/08/23 20:20:23  dcs
 !Modified for VMS port
@@ -32,12 +30,6 @@
 !
 !Revision 1.10  2002/07/25 19:58:10  dcs
 !New subroutines added
-!
-!Revision 1.9  2002/07/23 17:16:31  dcs
-!*** empty log message ***
-!
-!Revision 1.8  2002/07/16 20:44:19  dcs
-!*** empty log message ***
 !
 !Revision 1.7  2002/06/13 14:54:59  dcs
 !Interfaced with FPP/PTC
@@ -62,59 +54,16 @@
 
 module bmad_interface
 
-  interface assignment (=)
+  use matrix_mod
+  use bmad_utils_mod
+  use equal_mod
 
-    subroutine equal_ele_ele (ele1, ele2)
-      use bmad_struct
-      implicit none
-      type (ele_struct), intent(out) :: ele1
-      type (ele_struct), intent(in) :: ele2
-    end subroutine
-
-    subroutine equal_ring_ring (ring1, ring2)
-      use bmad_struct
-      implicit none
-      type (ring_struct), intent(out) :: ring1
-      type (ring_struct), intent(in) :: ring2
-    end subroutine
-
-    subroutine equal_coord_coord (coord1, coord2)
-      use bmad_struct
-      implicit none
-      type (coord_struct), intent(out) :: coord1
-      type (coord_struct), intent(in) :: coord2
-    end subroutine
-
-  end interface
-
-
-!-------------------
+!---------------------------------------------------------
 
   interface
-    subroutine init_taylor (bmad_taylor)
+    subroutine compute_element_energy (ring)
       use bmad_struct
-      type (taylor_struct) bmad_taylor(:)
-    end subroutine
-  end interface
-
-  interface
-    subroutine kill_taylor (bmad_taylor)
-      use bmad_struct
-      type (taylor_struct) bmad_taylor(:)
-    end subroutine
-  end interface
-
-  interface
-    subroutine kill_gen_field (gen_field)
-      use bmad_struct
-      type (genfield), pointer :: gen_field
-    end subroutine
-  end interface
-
-  interface
-    subroutine concat_taylor (taylor1, taylor2, taylor_out)
-      use bmad_struct
-      type (taylor_struct) taylor1(:), taylor2(:), taylor_out(:)
+      type (ring_struct) ring
     end subroutine
   end interface
 
@@ -454,16 +403,6 @@ module bmad_interface
   end interface
 
   interface
-    subroutine ele_to_taylor (ele, orb0, param)
-      use bmad_struct
-      implicit none
-      type (ele_struct), intent(inout) :: ele
-      type (coord_struct), optional, intent(in) :: orb0
-      type (param_struct), optional, intent(in) :: param
-    end subroutine
-  end interface
-
-  interface
     subroutine element_locator (ele_name, ring, ix_ele)
       use bmad_struct
       implicit none
@@ -494,17 +433,6 @@ module bmad_interface
   end interface
 
   interface
-    real(rdef) function field_interpolate_3d (position, field_mesh, &
-                                                         deltas, position0)
-      use precision_def
-      implicit none
-      real(rdef), intent(in) :: position(3), deltas(3)
-      real(rdef), intent(in) :: field_mesh(:,:,:)
-      real(rdef), intent(in), optional :: position0(3)
-    end function
-  end interface
-
-  interface
     subroutine find_element_ends (ring, ix_ele, ix_start, ix_end)
       use bmad_struct
       implicit none
@@ -512,18 +440,6 @@ module bmad_interface
       integer ix_ele
       integer ix_start
       integer ix_end
-    end subroutine
-  end interface
-
-  interface
-    subroutine fitpoly(coe, x, y, order, samples)
-      use precision_def
-      implicit none
-      integer order
-      integer samples
-      real(rdef) coe(0:)
-      real(rdef) x(:)
-      real(rdef) y(:)
     end subroutine
   end interface
 
@@ -614,16 +530,6 @@ module bmad_interface
       type (ele_struct) ele
       real(rdef) g_mat(4,4)
       real(rdef) g_inv_mat(4,4)
-    end subroutine
-  end interface
-
-  interface
-    subroutine make_g2_mats (twiss, g2_mat, g2_inv_mat)
-      use bmad_struct
-      implicit none
-      type (twiss_struct) twiss
-      real(rdef) g2_mat(2,2)
-      real(rdef) g2_inv_mat(2,2)
     end subroutine
   end interface
 
@@ -757,120 +663,11 @@ module bmad_interface
   end interface
 
   interface
-    subroutine mat6_dispersion (mat6, e_vec)
-      use bmad_struct
-      implicit none
-      real(rdef), intent(inout) :: mat6(6,6)
-      real(rdef), intent(in) :: e_vec(:)
-    end subroutine
-  end interface    
-
-  interface
-    subroutine mat_inverse (mat, mat_inv)
-      use precision_def
-      implicit none
-      real(rdef), intent(in)  :: mat(:,:)
-      real(rdef), intent(out) :: mat_inv(:,:)
-    end subroutine
-  end interface
-
-  interface
-    subroutine mat_symp_check (mat, error)
-      use precision_def
-      implicit none
-      real(rdef), intent(in) :: mat(:,:)
-      real(rdef) error
-    end subroutine
-  end interface
-
-  interface
-    subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
-                                                 twiss1, twiss2, type_out)
-      use bmad_struct
-      implicit none
-      type (twiss_struct) twiss1, twiss2
-      real(rdef) t0(4,4), U(4,4), V(4,4), tol
-      real(rdef) Ubar(4,4), Vbar(4,4), G(4,4)
-      integer stat
-      logical type_out
-    end subroutine
-  end interface
-
-  interface
-    subroutine mat_symplectify (mat_in, mat_symp)
-      use precision_def
-      real(rdef), intent(in)  :: mat_in(:,:)
-      real(rdef), intent(out) :: mat_symp(:,:)
-    end subroutine
-  end interface
-
-  interface
     subroutine mobius_twiss_calc (ele, v_mat)
       use bmad_struct
       implicit none
       type (ele_struct) ele
       real(rdef) v_mat(4,4)
-    end subroutine
-  end interface
-
-  interface
-    subroutine multipole_ab_to_kt (an, bn, knl, tn)
-      use bmad_struct
-      implicit none
-      real(rdef) an(0:), bn(0:)
-      real(rdef) knl(0:), tn(0:)
-    end subroutine
-  end interface
-
-  interface
-    function c_multi (n, m) result (c_out)
-      use precision_def
-      implicit none
-      real(rdef) c_out
-      integer, intent(in) :: n, m
-    end function
-  end interface
-
-  interface
-    subroutine multipole_ele_to_ab (ele, particle, a, b, use_tilt)
-      use bmad_struct
-      type (ele_struct) ele
-      integer particle
-      real(rdef) a(0:), b(0:)
-      real(rdef) value(n_attrib_maxx)
-      logical use_tilt
-    end subroutine
-  end interface
-
-  interface  
-    subroutine multipole_kick (knl, tilt, n, coord)
-      use bmad_struct
-      implicit none
-      type (coord_struct) coord
-      real(rdef) knl
-      real(rdef) tilt
-      integer n
-    end subroutine
-  end interface
-
-  interface
-    subroutine multipole_kt_to_ab (knl, tn, an, bn)
-      use bmad_struct
-      implicit none
-      real(rdef) an(0:), bn(0:)
-      real(rdef) knl(0:), tn(0:)
-    end subroutine
-  end interface
-
-  interface
-    subroutine multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)
-      use bmad_struct
-      implicit none
-      type (ele_struct) ele
-      real(rdef) knl(0:)
-      real(rdef) tilt(0:)
-      logical use_ele_tilt
-      integer particle
     end subroutine
   end interface
 
@@ -1119,20 +916,6 @@ module bmad_interface
     end subroutine
   end interface
 
- interface
-    subroutine set_ptc (param, taylor_order, integ_order, &
-                                      num_steps, no_cavity, exact_calc)
-      use bmad_struct
-      implicit none
-      type (param_struct), optional :: param
-      integer, optional :: taylor_order
-      integer, optional :: integ_order
-      integer, optional :: num_steps
-      logical, optional :: no_cavity
-      logical, optional :: exact_calc
-    end subroutine
-  end interface
-
   interface
     subroutine set_symmetry (symmetry, ring)
       use bmad_struct
@@ -1173,15 +956,6 @@ module bmad_interface
   end interface
 
   interface
-    subroutine sort_taylor_terms (taylor_in, taylor_sorted)
-      use bmad_struct
-      implicit none
-      type (taylor_struct), intent(in)  :: taylor_in
-      type (taylor_struct) :: taylor_sorted
-    end subroutine
-  end interface
-
-  interface
     subroutine split_ring (ring, s_split, ix_split, split_done)
       use bmad_struct
       implicit none
@@ -1201,27 +975,6 @@ module bmad_interface
       type (ele_struct) :: ele
       type (param_struct) :: param
       logical make_mat6
-    end subroutine
-  end interface
-
-  interface
-    subroutine taylor_to_mat6 (bmad_taylor, start, mat6, end)
-      use bmad_struct
-      implicit none
-      type (taylor_struct), target, intent(in) :: bmad_taylor(6)
-      type (coord_struct), intent(in) :: start
-      type (coord_struct), intent(out) :: end
-      real(rdef), intent(out) :: mat6(6,6)
-    end subroutine
-  end interface
-
-  interface 
-    subroutine taylor_propagate1 (bmad_taylor, ele, param)
-      use bmad_struct
-      implicit none
-      type (taylor_struct) bmad_taylor(:)
-      type (ele_struct) ele
-      type (param_struct) param
     end subroutine
   end interface
 
@@ -1269,16 +1022,6 @@ module bmad_interface
   end interface
 
   interface
-    subroutine track_taylor (start, bmad_taylor, end)
-      use bmad_struct
-      implicit none
-      type (taylor_struct), intent(in) :: bmad_taylor(6)
-      type (coord_struct), intent(in) :: start
-      type (coord_struct), intent(out) :: end
-    end subroutine
-  end interface
-
-  interface
     subroutine transfer_ele_pointers (ele1, ele2)
       use bmad_struct
       implicit none
@@ -1297,16 +1040,6 @@ module bmad_interface
       type (coord_struct), optional, intent(out) :: end
       type (coord_struct), optional :: d_orb
       real(rdef), optional, intent(out) :: error
-    end subroutine
-  end interface
-
-  interface
-    subroutine transfer_mat_from_twiss (twiss1, twiss2, mat)
-      use bmad_struct
-      implicit none
-      type (twiss_struct) twiss1
-      type (twiss_struct) twiss2
-      real(rdef) mat(2,2)
     end subroutine
   end interface
 
@@ -1576,24 +1309,6 @@ module bmad_interface
   end interface
 
   interface
-    subroutine type_taylors (bmad_taylor)
-      use bmad_struct
-      implicit none
-      type (taylor_struct) bmad_taylor(:)
-    end subroutine
-  end interface
-
-  interface
-    subroutine type2_taylors (bmad_taylor, lines, n_lines)
-      use bmad_struct
-      implicit none
-      type (taylor_struct), intent(in) :: bmad_taylor(6)
-      integer, intent(out) :: n_lines
-      character*80, pointer :: lines(:)
-    end subroutine
-  end interface
-
-  interface
     subroutine type2_twiss (ele, frequency_units, lines, n_lines)
       use bmad_struct
       implicit none
@@ -1674,29 +1389,6 @@ module bmad_interface
       type (ele_struct) ele
       type (param_struct) param
       real(rdef) mat627(6,27)
-    end subroutine
-  end interface
-
-  interface
-    subroutine twiss_from_mat2 (mat, det, twiss, stat, tol, type_out)
-      use bmad_struct
-      implicit none
-      type (twiss_struct) twiss
-      integer psize
-      integer stat
-      real(rdef) mat(:, :)
-      real(rdef) det
-      real(rdef) tol
-      logical type_out
-    end subroutine
-  end interface
-
-  interface
-    subroutine twiss_to_1_turn_mat (twiss, phi, mat2)
-      use bmad_struct
-      type (twiss_struct) twiss
-      real(rdef) phi
-      real(rdef) mat2(2,2)
     end subroutine
   end interface
 

@@ -4,23 +4,14 @@
 
 !$Id$
 !$Log$
-!Revision 1.20  2002/11/01 15:39:03  dcs
-!*** empty log message ***
+!Revision 1.21  2003/01/27 14:41:01  dcs
+!bmad_version = 56
 !
-!Revision 1.19  2002/10/29 17:07:28  dcs
+!Revision 1.20  2002/11/01 15:39:03  dcs
 !*** empty log message ***
 !
 !Revision 1.18  2002/10/23 14:45:21  dcs
 !Added Boris tracking.
-!
-!Revision 1.17  2002/10/21 16:00:20  dcs
-!*** empty log message ***
-!
-!Revision 1.16  2002/09/14 19:45:31  dcs
-!*** empty log message ***
-!
-!Revision 1.15  2002/09/05 14:01:06  dcs
-!*** empty log message ***
 !
 !Revision 1.14  2002/08/23 20:20:23  dcs
 !Modified for VMS port
@@ -33,9 +24,6 @@
 !
 !Revision 1.11  2002/08/07 18:01:35  dcs
 !Corrected ele%gen0 bug
-!
-!Revision 1.10  2002/07/16 20:44:19  dcs
-!*** empty log message ***
 !
 !Revision 1.9  2002/06/13 14:54:59  dcs
 !Interfaced with FPP/PTC
@@ -67,12 +55,10 @@
 
 module bmad_struct
 
-  use dcslib
-  use precision_def
-  use physical_constants
-  use tpsalie_analysis, pi_fpp => pi, twopi_fpp => twopi, var_ptc => var, &
-                        is_fpp => is, first_time_fpp => first_time, &
-                        table_fpp => table
+  use twiss_mod
+  use bmad_taylor_mod
+
+  use tpsalie_analysis, only: genfield
 
 ! The "regular" elements are in positions: 1 to RING.N_ELE_RING
 ! regular elements are:
@@ -93,9 +79,9 @@ module bmad_struct
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
-!
-  integer, parameter :: bmad_inc_version$ = 55
-!
+
+  integer, parameter :: bmad_inc_version$ = 56
+
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
 !-------------------------------------------------------------------------
@@ -108,7 +94,6 @@ module bmad_struct
 
   integer, parameter :: n_ele_maxx = 2200
   integer, parameter :: n_control_maxx = 5000
-  integer, parameter :: n_pole_maxx = 20  ! maximum multipole order
 
 ! structure for a particle's coordinates
 
@@ -127,9 +112,7 @@ module bmad_struct
     endunion
   end type
 
-! Pointer structs for the ele_struc
-! Note: the taylor_struct uses the bmad standard (x, p_x, y, p_y, z, p_z) 
-! the universal_taylor in Etienne's PTC uses (x, p_x, y, p_y, p_z, -c*t)
+!
 
   integer,parameter :: hyper_y$ = 1, hyper_xy$ = 2, hyper_x$ = 3
   character*8, parameter :: wig_term_type_name(0:3) = (/ &
@@ -142,24 +125,7 @@ module bmad_struct
     integer type      ! hyper_y$, hyper_xy$, or hyper_x$
   end type
 
-  type taylor_term_struct
-    real(rdef) :: coef
-    integer :: exp(6)  
-  end type
-
-! structure for Taylor series.
-! %ref is the reference point about which the taylor expansion was made
-
-  type taylor_struct
-    real (rdef) ref             
-    type (taylor_term_struct), pointer :: term(:)
-  end type
-
-  type twiss_struct
-    real(rdef) beta, alpha, gamma, phi, eta, etap
-    real(rdef) mobius_beta, mobius_eta   ! Mobius effective beta and eta
-    real(rdef) sigma
-  end type
+!
 
   type ele_struct
     character*16 name              ! name of element
@@ -221,7 +187,8 @@ module bmad_struct
 ! parameter and mode structures
 
   type param_struct
-    real(rdef) energy             ! beam energy in GeV.
+    real(rdef) energy             ! USE BEAM_ENERGY INSTEAD ! energy in GeV.
+    real(rdef) beam_energy        ! beam energy in eV
     real(rdef) n_part             ! Number of particles in a bunch
     real(rdef) total_length       ! total_length of ring
     real(rdef) growth_rate        ! growth rate/turn if not stable
@@ -282,7 +249,6 @@ module bmad_struct
                               (/ "X  ", "P_x", "Y  ", "P_y", "Z  ", "P_z" /)
 
 ! KEY value definitions
-! Note: Null_element must be the last element in the list.
 ! Note: overlay$ == overlay_lord$ 
 
   integer, parameter :: drift$ = 1, sbend$ = 2, quadrupole$ = 3, group$ = 4
@@ -293,18 +259,19 @@ module bmad_struct
   integer, parameter :: hybrid$ = 16, octupole$ = 17, rbend$ = 18
   integer, parameter :: multipole$ = 19, accel_sol$ = 20
   integer, parameter :: def_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23
-  integer, parameter :: patch$ = 24, null_ele$ = 25
+  integer, parameter :: patch$ = 24, linac_rf_cavity$ = 25, def_parameter$ = 26
+  integer, parameter :: null_ele$ = 27
 
-  integer, parameter :: n_key = 25
+  integer, parameter :: n_key = 27
 
   character*16 :: key_name(n_key+1) = (/ &
-      'DRIFT        ', 'SBEND        ', 'QUADRUPOLE   ', 'GROUP        ', &
-      'SEXTUPOLE    ', 'OVERLAY      ', 'CUSTOM       ', 'TAYLOR       ', &
-      'RFCAVITY     ', 'ELSEPARATOR  ', 'BEAMBEAM     ', 'WIGGLER      ', &
-      'SOL_QUAD     ', 'MARKER       ', 'KICKER       ', 'HYBRID       ', &
-      'OCTUPOLE     ', 'RBEND        ', 'MULTIPOLE    ', 'ACCEL_SOL    ', &
-      'DEF_BEAM     ', 'AB_MULTIPOLE ', 'SOLENOID     ', 'PATCH        ', &
-      'NULL_ELEMENT ', '             ' /)
+  'DRIFT          ', 'SBEND          ', 'QUADRUPOLE     ', 'GROUP          ', &
+  'SEXTUPOLE      ', 'OVERLAY        ', 'CUSTOM         ', 'TAYLOR         ', &
+  'RFCAVITY       ', 'ELSEPARATOR    ', 'BEAMBEAM       ', 'WIGGLER        ', &
+  'SOL_QUAD       ', 'MARKER         ', 'KICKER         ', 'HYBRID         ', &
+  'OCTUPOLE       ', 'RBEND          ', 'MULTIPOLE      ', 'ACCEL_SOL      ', &
+  'DEF BEAM       ', 'AB_MULTIPOLE   ', 'SOLENOID       ', 'PATCH          ', &
+  'LINAC_RF_CAVITY', 'DEF PARAMETER  ', 'NULL_ELEMENT   ', '               ' /)
 
 ! Attribute name logical definitions
 ! Note: The following attributes must have unique number assignments:
@@ -318,19 +285,22 @@ module bmad_struct
           val6$=8, val7$=9, val8$=10, val9$=11, val10$=12, val11$=13, &
           val12$=14
 
+  integer, parameter :: lattice_type$ = 1, symmetry$ = 2, taylor_order$ = 3
+  integer, parameter :: beam_energy$ = 4 
+
   integer, parameter :: l$=1
   integer, parameter :: tilt$=2, command$=2
   integer, parameter :: old_command$=3, angle$=3
   integer, parameter :: k1$=4, sig_x$=4, harmon$=4, h_displace$=4
-  integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, g_design$=5
-  integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, g$=6
+  integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, g$=5
+  integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, delta_g$=6
   integer, parameter :: ks$=7, volt$=7, e1$=7, n_pole$=7, bbi_const$=7
   integer, parameter :: lag$=8, e2$=8, charge$=8, gap$=8
-  integer, parameter :: n_slice$=9, l_chord$=9
-  integer, parameter :: fint$=10, polarity$ = 10
-  integer, parameter :: fintx$=11, z_patch$ = 11
+  integer, parameter :: n_slice$=9, l_chord$=9, l_pole$=9, rf_frequency$=9
+  integer, parameter :: fint$=10, polarity$ = 10, gradiant$=10
+  integer, parameter :: fintx$=11, z_patch$ = 11, phase_0$=11
   integer, parameter :: rho$ = 12
-  integer, parameter :: hgap$=13
+  integer, parameter :: hgap$=13, energy_start$=13
   integer, parameter :: coef$=14, current$=14, hgapx$=14
   integer, parameter :: roll$=15
   integer, parameter :: l_original$ = 16
@@ -516,16 +486,6 @@ module bmad_struct
   integer, parameter :: bends$ = 201
   integer, parameter :: wigglers$ = 202
   integer, parameter :: all$ = 203
-
-! other
-
-  integer, parameter :: ok$              = 1
-  integer, parameter :: in_stop_band$    = 2
-  integer, parameter :: non_symplectic$  = 3
-  integer, parameter :: unstable$        = 4
-
-  character*16 :: status_name(5) = (/     'OK            ', &
-      'IN_STOP_BAND  ', 'NON_SYMPLECTIC', 'UNSTABLE      ', '              ' /)
 
 ! common flags
 ! status structure

@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/01/27 14:40:37  dcs
+!bmad_version = 56
+!
 !Revision 1.5  2002/12/03 18:48:30  dcs
 !*** empty log message ***
 !
@@ -41,7 +44,8 @@
 
 subroutine make_mat627 (ele, param, direction, mat627)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
   
   implicit none
 
@@ -331,7 +335,8 @@ end subroutine
 
 subroutine sol_quad_mat627_calc (ks, k1, s_len, m)
 
-  use bmad
+  use dcslib
+  use bmad_struct
 
   implicit none
 

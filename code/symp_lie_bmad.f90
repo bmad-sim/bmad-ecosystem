@@ -24,7 +24,9 @@
 
 subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
+  use make_mat6_mod
 
   implicit none
 

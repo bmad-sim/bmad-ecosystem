@@ -493,24 +493,3 @@ subroutine field_rk_standard (ele, param, s_pos, here, field, field_type)
 end subroutine
 
 end module
-
-!   rel_eps    -- Real: % Error tollerance. A good value would be, say, 1e-5.
-!   abs_eps    -- Real: absolute error. A good value would be, say, 1e-8.
-!   del_s_step -- Real: Initial guess for a step size.
-!   del_s_min  -- Real: Minimum step size (can be zero).
-!   func_type  -- Character*(*): Descripter for field_rk function:
-!                   = 'B_FIELD'     -> field_rk returns the B field (Tesla).
-!                   = 'KICK_FIELD'  -> field_rk returns the kicks.
-!   param      -- Param_struct: [Optional] Beam parameters.
-!                 [Needed if func_type = 'B_FIELD']
-!     %enegy     -- Energy in GeV
-!     %particle  -- Particle type [positron$, or electron$]
-!
-! Output:
-!   end        -- Coord_struct: Ending coords.
-!     %z%pos     = s_len - path_length where s_len = s_end-s_start.
-!                  Thus for a wiggler, where the "zero" orbit path_length
-!                  is not s_len, there needs to be a correction term:
-!                    end%z%pos = end%z%pos + zero_orbit_path_length - s_len
-!
-!

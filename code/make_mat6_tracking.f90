@@ -22,7 +22,8 @@
 
 subroutine make_mat6_tracking (ele, param, c0, c1)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

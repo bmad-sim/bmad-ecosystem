@@ -17,6 +17,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2003/01/27 14:40:37  dcs
+!bmad_version = 56
+!
 !Revision 1.3  2002/02/23 20:32:18  dcs
 !Double/Single Real toggle added
 !
@@ -29,7 +32,8 @@
 
 subroutine make_g_mats (ele, g_mat, g_inv_mat)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

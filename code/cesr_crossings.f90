@@ -41,6 +41,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/01/27 14:40:31  dcs
+!bmad_version = 56
+!
 !Revision 1.4  2002/02/23 20:32:12  dcs
 !Double/Single Real toggle added
 !
@@ -57,7 +60,8 @@
 subroutine cesr_crossings(i_train, j_car, species, n_trains_tot, n_cars, &
                                  cross_positions, n_car_spacing, train_spacing)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

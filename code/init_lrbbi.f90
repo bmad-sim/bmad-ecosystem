@@ -30,6 +30,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2003/01/27 14:40:35  dcs
+!bmad_version = 56
+!
 !Revision 1.3  2002/02/23 20:32:16  dcs
 !Double/Single Real toggle added
 !
@@ -42,7 +45,8 @@
 
 subroutine init_LRBBI(ring, oppos_ring, LRBBI_ele, ix_LRBBI, ix_oppos)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
   
   implicit none
 

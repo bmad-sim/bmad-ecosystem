@@ -27,6 +27,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.10  2003/01/27 14:40:42  dcs
+!bmad_version = 56
+!
 !Revision 1.9  2002/12/03 18:48:30  dcs
 !*** empty log message ***
 !
@@ -56,7 +59,9 @@
 
 subroutine ring_geometry (ring)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
+
   implicit none
 
   type (ring_struct)  ring
@@ -86,7 +91,7 @@ subroutine ring_geometry (ring)
     leng = dble(ele%value(l$))
 
     if (ele%key == sbend$ .or. ele%key == rbend$) then
-      angle = dble(ele%value(l$)) * dble(ele%value(g_design$))
+      angle = dble(ele%value(l$)) * dble(ele%value(g$))
 
       if (angle == 0) then
         chord_len = 0

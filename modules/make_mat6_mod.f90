@@ -2,9 +2,9 @@
 
 module make_mat6_mod
 
-  use dcslib_struct
-  use dcslib_interface
+  use dcslib
   use physical_constants
+  use bmad_utils_mod
 
 contains
 
@@ -269,7 +269,7 @@ subroutine mat4_multipole (knl, tilt, n, c0, kick_mat)
 
   implicit none
 
-  real(rdef) c0(6), c_multi
+  real(rdef) c0(6)
   real(rdef) x_pos, y_pos, x, y, knl, tilt
   real(rdef) sin_ang, cos_ang, mat(2,2), rot(2,2)
   real(rdef) kick_mat(4,4)
@@ -340,29 +340,6 @@ subroutine mat4_multipole (knl, tilt, n, c0, kick_mat)
   kick_mat(4,3) = mat(2,2)
 
 end subroutine
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-
-function mexp (x, m)
-
-  implicit none
-
-  real(rdef) x, mexp
-  integer m
-
-!
-
-  if (m < 0) then
-    mexp = 0
-  elseif (m == 0) then
-    mexp = 1
-  else
-    mexp = x**m
-  endif
-
-end function
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -554,24 +531,6 @@ end subroutine
 !     MAT4(4,4) -- Real(rdef): 4x4 transfer matrix excluding steerings
 !     VEC_ST(4) -- Real(rdef): Vector due to steerings (assuming positrons)
 !-
-
-!$Id$
-!$Log$
-!Revision 1.5  2002/11/05 18:06:28  dcs
-!Minor Mods
-!
-!Revision 1.4  2002/10/29 17:07:28  dcs
-!*** empty log message ***
-!
-!Revision 1.3  2002/08/20 20:35:07  dcs
-!symp_lie_bmad / symp_lie_ptc added
-!
-!Revision 1.3  2002/02/23 20:32:09  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:47  rwh24
-!UNIX compatibility updates
-!
 
 subroutine accel_sol_mat_calc (ls, c_m, c_e, gamma_old, gamma_new, b_x,  &
                                                      b_y, coord, mat4, vec_st)

@@ -20,6 +20,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/01/27 14:40:29  dcs
+!bmad_version = 56
+!
 !Revision 1.5  2002/10/29 17:07:11  dcs
 !*** empty log message ***
 !
@@ -294,7 +297,8 @@ end subroutine
 
 integer function superimpose_key (key1, key2)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

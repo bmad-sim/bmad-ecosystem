@@ -2,13 +2,11 @@
 
 module bmad
 
-  use bmad_struct
-  use bmad_interface
   use runge_kutta_mod
-  use make_mat6_mod
   use track1_mod
-  use dcslib
   use boris_mod
   use reverse_mod
+  use integration_timer_mod
+  use dynamic_aperture_mod
 
 end module

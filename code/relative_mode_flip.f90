@@ -18,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2003/01/27 14:40:42  dcs
+!bmad_version = 56
+!
 !Revision 1.3  2002/02/23 20:32:23  dcs
 !Double/Single Real toggle added
 !
@@ -31,7 +34,8 @@
 
 function relative_mode_flip (ele1, ele2) result (rel_mode)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

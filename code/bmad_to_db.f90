@@ -42,6 +42,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2003/01/27 14:40:30  dcs
+!bmad_version = 56
+!
 !Revision 1.8  2002/09/14 19:45:24  dcs
 !*** empty log message ***
 !
@@ -64,11 +67,11 @@
 !UNIX compatibility updates
 !
 
-#include "CESR_platform.inc"
 
 subroutine bmad_to_db (ring, db)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 
@@ -82,8 +85,6 @@ subroutine bmad_to_db (ring, db)
 contains
 
 subroutine bmad_to_db_main (ring, db)
-
-  use bmad                           
 
   implicit none
 
@@ -274,8 +275,6 @@ end subroutine
 subroutine db_init_it (node, n1, node_name, ix_attrib, node_array, &
                                                       cesr_ele, ix0_cesrv)
 
-  use bmad
-
   implicit none
 
   integer ix_attrib, n1, i, vnumbr, ix, iv, ix_(200)
@@ -356,8 +355,6 @@ end subroutine db_init_it
                             
 subroutine get_ele_theory (ring, db_ele)
                                                                
-  use bmad
-
   implicit none
 
   type (db_element_struct) :: db_ele(:)
@@ -381,8 +378,6 @@ end subroutine get_ele_theory
 ! contains
 
 subroutine non_db_set (db_ele, cesr_ele, ix_attrib, ix0_cesrv)
-
-  use bmad
 
   implicit none
 

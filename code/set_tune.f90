@@ -24,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/01/27 14:40:43  dcs
+!bmad_version = 56
+!
 !Revision 1.4  2002/07/16 20:44:02  dcs
 !*** empty log message ***
 !
@@ -39,7 +42,8 @@
 
 subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

@@ -4,6 +4,7 @@ module reverse_mod
 
   use bmad_struct
   use bmad_interface
+  use ptc_interface_mod, only: taylor_inverse
 
 contains
 
@@ -25,6 +26,9 @@ contains
 ! in one ring the corrisponding coordinates in the other is:
 !     (x, P_x, y, P_y, z, P_z) -> (x, -P_x, y, -P_y, -z, P_z)
 !
+! Note: The Twiss parameters will not be correct for the reversed ring.
+! You will need to compute them.
+!
 ! Modules needed:
 !   use bmad
 !
@@ -44,7 +48,7 @@ subroutine ring_reverse (ring_in, ring_rev)
   type (ele_struct), pointer :: ele
   type (control_struct), pointer :: con
 
-  integer i, i1, i2, nr, ix_con(n_control_maxx)
+  integer i, n, i1, i2, nr, ix_con(n_control_maxx)
 
 ! transfer
 
@@ -82,7 +86,8 @@ subroutine ring_reverse (ring_in, ring_rev)
     endif
   enddo
 
-  ring_rev%ic_(:) = ix_con(ring_rev%ic_(:))
+  n = ring_rev%n_ic_array
+  ring_rev%ic_(1:n) = ix_con(ring_rev%ic_(1:n))
 
   call check_ring_controls (ring_rev, .true.)
 
@@ -90,7 +95,7 @@ end subroutine
 
 !--------------------------------------------------------------------------
 !+
-! Subroutine ele_reverse (ele)
+! Subroutine reverse_ele (ele)
 !
 ! Subroutine to "reverse" an element for backward tracking.
 !
@@ -110,7 +115,9 @@ end subroutine
 !   ele -- Ele_struct: Reversed element.
 !-
 
-subroutine ele_reverse (ele)
+subroutine reverse_ele (ele)
+
+  implicit none
 
   type (ele_struct) ele
 
@@ -118,7 +125,7 @@ subroutine ele_reverse (ele)
 
   real(rdef) tempp
 
-! flip longitudinal attributes
+! Flip longitudinal attributes
 
   ele%value(x_pitch$) = -ele%value(x_pitch$)
   ele%value(y_pitch$) = -ele%value(y_pitch$)
@@ -134,6 +141,19 @@ subroutine ele_reverse (ele)
   case (sbend$)
     tempp = ele%value(e1$)
     ele%value(e1$) = ele%value(e2$)
+    ele%value(e2$) = tempp
+
+! For wigglers:
+!       phi -> -phi -  k_z * Length
+! This transforms:
+!       (B_x, B_y, B_z) -> (B_x, B_y, -B_z)
+
+  case (wiggler$)
+    if (associated(ele%wig_term)) then
+      do i = 1, size(ele%wig_term)
+        ele%wig_term(i)%phi_z = -ele%wig_term(i)%phi_z - ele%wig_term(i)%kz * ele%value(l$)
+      enddo
+    endif
 
   end select
 

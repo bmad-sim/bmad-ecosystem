@@ -18,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2003/01/27 14:40:48  dcs
+!bmad_version = 56
+!
 !Revision 1.8  2002/11/07 17:10:04  dcs
 !Bug_fix
 !
@@ -46,7 +49,8 @@
 subroutine write_digested_bmad_file (digested_name, ring,  &
                                                   n_files, file_names)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

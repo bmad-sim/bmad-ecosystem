@@ -31,6 +31,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/01/27 14:40:32  dcs
+!bmad_version = 56
+!
 !Revision 1.6  2002/06/13 14:54:25  dcs
 !Interfaced with FPP/PTC
 !
@@ -53,7 +56,8 @@
 subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, ring, db, &
                                               con_, n_con, ok, type_err)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
   use group_struct
 
   implicit none

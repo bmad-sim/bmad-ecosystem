@@ -5,7 +5,7 @@ module bmad_parser_mod
 
 ! This is for bmad_parser and bmad_parser2
 
-  use bmad
+  use ptc_interface_mod
 
 ! structure for a decleared variable
 
@@ -109,7 +109,7 @@ module bmad_parser_mod
 
   type (bp_com_struct)  bp_com
   type (parser_var_struct)  var_(ivar_maxx)
-  type (ele_struct), target :: beam_ele
+  type (ele_struct), target :: beam_ele, param_ele
 
   character*16 :: blank = ' '
 

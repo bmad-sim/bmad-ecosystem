@@ -34,6 +34,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2003/01/27 14:40:39  dcs
+!bmad_version = 56
+!
 !Revision 1.3  2002/02/23 20:32:20  dcs
 !Double/Single Real toggle added
 !
@@ -47,7 +50,8 @@
 subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
                                                  stable, growth_rate, chi)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

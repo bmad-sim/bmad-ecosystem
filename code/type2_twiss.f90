@@ -21,6 +21,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.3  2003/01/27 14:40:47  dcs
+!bmad_version = 56
+!
 !Revision 1.2  2002/02/23 20:32:29  dcs
 !Double/Single Real toggle added
 !
@@ -33,7 +36,8 @@
 
 subroutine type2_twiss (ele, frequency_units, lines, n_lines)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

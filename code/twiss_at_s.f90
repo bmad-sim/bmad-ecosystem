@@ -17,6 +17,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2003/01/27 14:40:46  dcs
+!bmad_version = 56
+!
 !Revision 1.3  2002/02/23 20:32:28  dcs
 !Double/Single Real toggle added
 !
@@ -29,7 +32,8 @@
 
 subroutine twiss_at_s (ring, s, ele)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

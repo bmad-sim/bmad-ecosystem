@@ -13,6 +13,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/01/27 14:40:35  dcs
+!bmad_version = 56
+!
 !Revision 1.7  2002/12/04 07:46:23  dcs
 !Init Twiss also
 !
@@ -36,7 +39,8 @@
 
 subroutine init_ele (ele)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

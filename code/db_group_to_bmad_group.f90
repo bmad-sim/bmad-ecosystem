@@ -26,6 +26,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2003/01/27 14:40:33  dcs
+!bmad_version = 56
+!
 !Revision 1.3  2002/02/23 20:32:14  dcs
 !Double/Single Real toggle added
 !
@@ -39,7 +42,8 @@
 subroutine db_group_to_bmad_group (group_name, group_num, i_biggrp, &
                                        ring, db, ix_ele, ok, type_err)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none              
 

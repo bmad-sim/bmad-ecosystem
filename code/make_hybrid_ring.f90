@@ -50,6 +50,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2003/01/27 14:40:37  dcs
+!bmad_version = 56
+!
 !Revision 1.8  2002/08/05 20:04:16  dcs
 !Updated Documentation.
 !
@@ -78,7 +81,7 @@
 subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
                                        r_out, ix_out, use_taylor, orb0_)
 
-  use accelerator
+  use ptc_interface_mod
 
   implicit none
 
@@ -343,48 +346,5 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
   r_out%ele_init = r_in%ele_init
 
   call check_ring_controls (r_out, .false.)
-
-end subroutine
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine mat6_dispersion (mat6, e_vec)
-!
-! Subroutine to put the dispersion into ELE.MAT6 given the eta vector E_VEC
-!
-! Input:
-!   E_VEC(4) -- Real(rdef): eta vector
-!
-! Output:
-!   mat6(6,6) -- Real(rdef): Matrix with 4x4 x-y submatrix already made.
-!-
-
-
-
-subroutine mat6_dispersion (mat6, e_vec)
-
-  use bmad
-
-  implicit none
-
-  real(rdef), intent(inout) :: mat6(6,6)
-  real(rdef), intent(in) :: e_vec(:)
-
-  real(rdef) e2_vec(4)
-
-  integer i
-
-!
-
-  mat6(1:4, 6) = e_vec(1:4)
-
-  e2_vec(1) = -e_vec(2)
-  e2_vec(2) =  e_vec(1)
-  e2_vec(3) = -e_vec(4)
-  e2_vec(4) =  e_vec(3)
-
-  mat6(5,1:4) = matmul (e2_vec, mat6(1:4,1:4))
 
 end subroutine

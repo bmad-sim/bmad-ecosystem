@@ -45,6 +45,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/01/27 14:40:45  dcs
+!bmad_version = 56
+!
 !Revision 1.4  2002/12/17 04:28:37  dcs
 !parser bug fix with "ele[b] = c" redefs and multiple ele elements.
 !
@@ -60,7 +63,8 @@
 
 subroutine track_long (ring, orbit_, ix_start, direction, mats627)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

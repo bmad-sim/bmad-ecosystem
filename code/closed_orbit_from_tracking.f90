@@ -40,6 +40,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.11  2003/01/27 14:40:32  dcs
+!bmad_version = 56
+!
 !Revision 1.10  2002/12/13 16:23:32  dcs
 !*** empty log message ***
 !
@@ -67,7 +70,8 @@
 subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
                                                  eps_rel, eps_abs, init_guess)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

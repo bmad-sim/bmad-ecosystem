@@ -13,6 +13,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/01/27 14:40:31  dcs
+!bmad_version = 56
+!
 !Revision 1.6  2002/11/04 16:48:58  dcs
 !Null_ele$ add
 !
@@ -34,7 +37,8 @@
 
 subroutine check_ring_controls (ring, exit_on_error)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
        
@@ -45,6 +49,22 @@ subroutine check_ring_controls (ring, exit_on_error)
   integer n_count, ix1, ix2, ii
 
   logical exit_on_error, found_err, good_control(10,10)
+
+! check energy
+
+  if (abs(ring%param%beam_energy-1d9*ring%param%energy) > &
+                                             1e-5*ring%param%beam_energy) then
+    print *, 'ERROR IN CHECK_RING_CONTROLS:'
+    print *, '      RING%PARAM%ENERGY AND RING%PARAM%BEAM_ENERGY DO NOT MATCH'
+    print *, '      ', ring%param%energy, ring%param%beam_energy 
+    call err_exit
+  endif
+
+  if (any(ring%ele_(:)%key == linac_rf_cavity$) .and. &
+                          ring%param%lattice_type /= linac_lattice$) then
+    print *, 'ERROR IN CHECK_RING_CONTROLS: THERE IS A LINAC_RF_CAVITY BUT THE'
+    print *, '      LATTICE_TYPE IS NOT SET TO LINAC_LATTICE!'
+  endif
 
 !
 
@@ -71,7 +91,7 @@ subroutine check_ring_controls (ring, exit_on_error)
     if (i_t > ring%n_ele_ring) then
       if (t_type == free$ .or. t_type == super_slave$ .or. &
           t_type == overlay_slave$) then
-        print *, 'ERROR IN CHECK_CONTROL: ELEMENT: ', ele%name
+        print *, 'ERROR IN CHECK_RING_CONTROLS: ELEMENT: ', ele%name
         print *, '      WHICH IS A: ', control_name(t_type)
         print *, '      IS *NOT* IN THE REGULAR PART OF RING LIST AT', i_t
         found_err = .true.
@@ -79,7 +99,7 @@ subroutine check_ring_controls (ring, exit_on_error)
     else                                                         
       if (t_type == super_lord$ .or. t_type == overlay_lord$ .or. &
           t_type == group_lord$) then
-        print *, 'ERROR IN CHECK_CONTROL: ELEMENT: ', ele%name
+        print *, 'ERROR IN CHECK_RING_CONTROLS: ELEMENT: ', ele%name
         print *, '      WHICH IS A: ', control_name(t_type)
         print *, '      IS IN THE REGULAR PART OF RING LIST AT', i_t
         found_err = .true.
@@ -88,13 +108,13 @@ subroutine check_ring_controls (ring, exit_on_error)
 
     if (.not. any( (/ free$, super_slave$, overlay_slave$, &
                     super_lord$, overlay_lord$, group_lord$ /) == t_type)) then
-      print *, 'ERROR IN CHECK_CONTROL: ELEMENT: ', ele%name
+      print *, 'ERROR IN CHECK_RING_CONTROLS: ELEMENT: ', ele%name
       print *, '      HAS UNKNOWN CONTROL INDEX: ', t_type
       found_err = .true.
     endif
 
     if (ele%n_slave /= ele%ix2_slave - ele%ix1_slave + 1) then
-      print *, 'ERROR IN CHECK_CONTROL: LORD: ', ele%name, i_t
+      print *, 'ERROR IN CHECK_RING_CONTROLS: LORD: ', ele%name, i_t
       print *, '      HAS SLAVE NUMBER MISMATCH:', &
                                   ele%n_slave, ele%ix1_slave, ele%ix2_slave
       found_err = .true.
@@ -102,7 +122,7 @@ subroutine check_ring_controls (ring, exit_on_error)
     endif
 
     if (ele%n_lord /= ele%ic2_lord - ele%ic1_lord + 1) then
-      print *, 'ERROR IN CHECK_CONTROL: SLAVE: ', ele%name, i_t
+      print *, 'ERROR IN CHECK_RING_CONTROLS: SLAVE: ', ele%name, i_t
       print *, '      HAS LORD NUMBER MISMATCH:', &
                                   ele%n_lord, ele%ic1_lord, ele%ic2_lord
       found_err = .true.
@@ -110,13 +130,13 @@ subroutine check_ring_controls (ring, exit_on_error)
     endif
 
     if (t_type == overlay_slave$ .and. ele%n_lord == 0) then
-      print *, 'ERROR IN CHECK_CONTROL: OVERLAY_SLAVE: ', ele%name, i_t
+      print *, 'ERROR IN CHECK_RING_CONTROLS: OVERLAY_SLAVE: ', ele%name, i_t
       print *, '      DOES HAS ZERO LORDS'
       found_err = .true.
     endif
 
     if (t_type == super_slave$ .and. ele%n_lord == 0) then
-      print *, 'ERROR IN CHECK_CONTROL: OVERLAY_SLAVE: ', ele%name, i_t
+      print *, 'ERROR IN CHECK_RING_CONTROLS: OVERLAY_SLAVE: ', ele%name, i_t
       print *, '      DOES HAS ZERO LORDS'
       found_err = .true.
     endif
@@ -139,7 +159,7 @@ subroutine check_ring_controls (ring, exit_on_error)
             if (ring%ele_(ii)%value(l$) /= 0) goto 9000   ! error
           enddo
         else
-          print *, 'ERROR IN CHECK_CONTROL: DUPLICATE SUPER_SLAVES: ', &
+          print *, 'ERROR IN CHECK_RING_CONTROLS: DUPLICATE SUPER_SLAVES: ', &
                                                       ring%ele_(ix1)%name, ii
           print *, '      FOR SUPER_SLAVE: ', ele%name, i_t
           found_err = .true.
@@ -260,7 +280,7 @@ subroutine check_ring_controls (ring, exit_on_error)
 
 9000 continue
 
-  print *, 'ERROR IN CHECK_CONTROL: SUPER_SLAVES: ', &
+  print *, 'ERROR IN CHECK_RING_CONTROLS: SUPER_SLAVES: ', &
                                 ring%ele_(ix1)%name, ring%ele_(ix2)%name
   print *, '      NOT IN CORRECT ORDER FOR SUPER_LORD: ', ele%name, i_t
 

@@ -3,7 +3,7 @@
 !
 ! Subroutine to compress the ele_(*) and control_(*) arrays to remove
 ! elements no longer used. Note: to mark an element for removal use:
-!     ring%ele_(i)%key = null_ele$
+!     ring%ele_(i)%key = -1
 !
 ! Modules Needed:
 !   use bmad
@@ -18,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2003/01/27 14:40:32  dcs
+!bmad_version = 56
+!
 !Revision 1.3  2002/02/23 20:32:13  dcs
 !Double/Single Real toggle added
 !
@@ -30,7 +33,8 @@
 
 subroutine compress_ring (ring, ok)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
                            
@@ -50,7 +54,7 @@ subroutine compress_ring (ring, ok)
 
   i2 = 0
   do i = 1, ring%n_ele_max
-    if (ring%ele_(i)%key == null_ele$) then
+    if (ring%ele_(i)%key == -1) then
       ix_(i) = garbage$
     else
       i2 = i2 + 1

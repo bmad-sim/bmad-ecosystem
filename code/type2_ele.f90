@@ -38,8 +38,8 @@
 
 !$Id$
 !$Log$
-!Revision 1.12  2002/09/14 19:45:25  dcs
-!*** empty log message ***
+!Revision 1.13  2003/01/27 14:40:47  dcs
+!bmad_version = 56
 !
 !Revision 1.11  2002/08/23 20:19:02  dcs
 !Update Documentation.
@@ -77,7 +77,9 @@
 subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
                                twiss_out, type_control, lines, n_lines, ring)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
+  use multipole_mod
 
   implicit none
 
@@ -154,7 +156,6 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
 
     else
       do i = 1, n_attrib_maxx
-        if (i == energy$) cycle   ! energy not yet implemented.
         if (i == aperture$) cycle ! aperture not yet implemented
         if (attribute_name(ele, i) /= null_name) then
           if (ele%value(i) /= 0 .or. type_zero_attrib) then

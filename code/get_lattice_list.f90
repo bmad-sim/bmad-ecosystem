@@ -11,10 +11,14 @@
 !   lat_list(*) -- Character*40: List of lattice names.
 !   num_lats    -- Integer: Number of lattices found.
 !-
+
 !
 ! $Id$
 !
 ! $Log$
+! Revision 1.6  2003/01/27 14:40:35  dcs
+! bmad_version = 56
+!
 ! Revision 1.5  2002/11/06 06:48:31  dcs
 ! Changed arg array
 !
@@ -23,8 +27,7 @@
 !
 ! Revision 1.3  2002/01/11 15:57:28  cesrulib
 ! Add missing include file.
-!
-!
+
 #include "CESR_platform.inc"
 
 subroutine get_lattice_list (lat_list, num_lats, directory)

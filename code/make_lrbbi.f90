@@ -42,6 +42,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/01/27 14:40:37  dcs
+!bmad_version = 56
+!
 !Revision 1.4  2002/02/23 20:32:18  dcs
 !Double/Single Real toggle added
 !
@@ -58,7 +61,8 @@
 subroutine MAKE_LRBBI(master_ring, master_ring_oppos, ring, &
 													ix_LRBBI, master_ix_LRBBI)
 
-  use bmad                      
+  use bmad_struct
+  use bmad_interface                     
 
   implicit none
 

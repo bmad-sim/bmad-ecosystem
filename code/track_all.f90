@@ -25,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/01/27 14:40:45  dcs
+!bmad_version = 56
+!
 !Revision 1.5  2002/07/16 20:44:02  dcs
 !*** empty log message ***
 !
@@ -44,7 +47,9 @@
 
 subroutine track_all (ring, orbit_)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
+
   implicit none
 
   type (ring_struct)  ring

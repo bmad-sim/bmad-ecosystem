@@ -16,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/01/27 14:40:32  dcs
+!bmad_version = 56
+!
 !Revision 1.7  2002/06/13 14:54:24  dcs
 !Interfaced with FPP/PTC
 !
@@ -39,7 +42,9 @@
 
 subroutine control_bookkeeper (ring, ix_ele)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
+  use multipole_mod
 
   implicit none
 

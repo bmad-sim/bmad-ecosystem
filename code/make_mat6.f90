@@ -22,7 +22,9 @@
 
 subroutine make_mat6 (ele, param, start, end)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
+  use make_mat6_mod
 
   implicit none
 

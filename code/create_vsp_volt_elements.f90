@@ -26,6 +26,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/01/27 14:40:32  dcs
+!bmad_version = 56
+!
 !Revision 1.5  2002/02/23 20:32:14  dcs
 !Double/Single Real toggle added
 !
@@ -45,7 +48,8 @@
 
 subroutine create_vsp_volt_elements (ring, ele_type)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

@@ -28,6 +28,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/01/27 14:40:45  dcs
+!bmad_version = 56
+!
 !Revision 1.4  2002/06/13 14:54:30  dcs
 !Interfaced with FPP/PTC
 !
@@ -43,7 +46,8 @@
 
 subroutine transfer_mat_from_tracking (ele, param, start, d_orb, end, error)  
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

@@ -22,7 +22,8 @@
 
 subroutine elements_locator (key, ring, indx)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
   
   implicit none
 

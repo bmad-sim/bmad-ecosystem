@@ -25,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/01/27 14:40:47  dcs
+!bmad_version = 56
+!
 !Revision 1.4  2002/06/13 14:54:31  dcs
 !Interfaced with FPP/PTC
 !
@@ -41,7 +44,9 @@
 
 subroutine twiss_propagate1 (ele1, ele2)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
+
   implicit none
   type (ele_struct)  ele1, ele2, ele_temp
 
@@ -68,12 +73,6 @@ subroutine twiss_propagate1 (ele1, ele2)
     ele2%c_mat = ele1%c_mat
     return
   endif
-
-!! custom elements are even easier
-!!  if (ele2%key == custom$) then
-!!    call custom_twiss_propagate1 (ele1, ele2)
-!!    return
-!!  endif
 
 !---------------------------------------------------------------------
 ! if transfer matrix is not coupled...
@@ -143,6 +142,14 @@ subroutine twiss_propagate1 (ele1, ele2)
 
   endif
 
+!----------------------------------------------------
+! linac rf matrices need to be renormalized.
+
+  if (ele2%key == linac_rf_cavity$) then
+    call mat_det (ele_temp%mat6(1:4,1:4), det, 4, 6)
+    ele_temp%mat6(1:4,1:4) = ele_temp%mat6(1:4,1:4) / (det**0.25)
+  endif
+
 !---------------------------------------------------------------------
 ! calculate components in transfer matrix for dispersion calc
 ! effective_mat6(i,6) = V_2^-1(i,j) * ele2.mat6(j,6)
@@ -168,8 +175,7 @@ subroutine twiss_propagate1 (ele1, ele2)
 
   call mobius_twiss_calc (ele2, v_mat)
 
-  return
-  end
+end subroutine
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -183,7 +189,9 @@ subroutine twiss_propagate1 (ele1, ele2)
 
 subroutine twiss_decoupled_propagate (ele1, ele2)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
+
   implicit none
 
   type (ele_struct)  ele1, ele2

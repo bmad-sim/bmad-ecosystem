@@ -16,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2003/01/27 14:40:35  dcs
+!bmad_version = 56
+!
 !Revision 1.8  2002/02/23 20:32:16  dcs
 !Double/Single Real toggle added
 !
@@ -51,8 +54,6 @@ subroutine get_lattice_list_vms (lat_list, num_lats, directory)
 
   use cesr_utils
 
-#ifdef CESR_VMS
-
   implicit none
 
   character*(*) directory
@@ -64,8 +65,10 @@ subroutine get_lattice_list_vms (lat_list, num_lats, directory)
 
   character*40 match_file
 
-include '($ssdef)'
-include '($rmsdef)'
+#ifdef CESR_VMS
+
+  include '($ssdef)'
+  include '($rmsdef)'
 
 ! get twiss file names for matching files 
 
@@ -94,6 +97,7 @@ include '($rmsdef)'
 
   type *, 'GET_LATTICE_LIST: INTERNAL ERROR!'
   call err_exit
+
 #endif
 
 end subroutine
