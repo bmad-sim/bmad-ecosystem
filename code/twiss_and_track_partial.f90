@@ -1,52 +1,30 @@
 !+
-! Subroutine TWISS_AND_TRACK_PARTIAL (ELE1, ELE2, PARAM, DEL_S, ELE3, &
-!                                                                  START, END)
+! Subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
+!                                                                  start, end)
 !
 ! Subroutine to propagate partially through ELE2 the twiss parameters and the
-! orbit. See also TWISS_AND_TRACK_BODY.
+! orbit. See also twiss_and_track_body and twiss_and_track_at_s.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!     ELE1    -- Ele_struct: Structure holding the starting Twiss parameters.
-!     ELE2    -- Ele_struct: Element to partially track through.
-!     DEL_S   -- Real(rdef): length to propagate.
-!     PARAM   -- Param_struct:
-!     START   -- Coord_struct (OPTIONAL): Starting position
-!                  If not present then START is taken to be 0.
-!     END     -- Coord_struct (OPTIONAL): End position at DEL_S.
+!   ele1    -- Ele_struct: Structure holding the starting Twiss parameters.
+!   ele2    -- Ele_struct: Element to partially track through.
+!   del_s   -- Real(rdef): length to propagate.
+!   param   -- Param_struct:
+!   start   -- Coord_struct, optional: Starting position
+!                If not present then START is taken to be 0.
+!   end     -- Coord_struct, optional: End position at DEL_S.
 !
 ! Output:
-!     ELE3 -- Ele_struct (OPTIONAL): Structure for the Twiss results at DEL_S.
-!       %X             -- X Twiss parameters
-!       %Y             -- Y Twiss parametser
-!       %VALUE(L$)     -- Set to DEL_S
+!   ele3 -- Ele_struct, optional: Structure for the Twiss results at DEL_S.
+!     %x             -- X Twiss parameters
+!     %y             -- Y Twiss parametser
+!     %value(l$)     -- Set to DEL_S
 !-
 
-!$Id$
-!$Log$
-!Revision 1.7  2003/06/04 17:55:56  dcs
-!Eliminated x%pos, x%vel, etc. from coord_struct.
-!
-!Revision 1.6  2003/01/27 14:40:46  dcs
-!bmad_version = 56
-!
-!Revision 1.5  2003/01/02 16:19:40  dcs
-!*** empty log message ***
-!
-!Revision 1.4  2002/06/13 14:54:30  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.3  2002/02/23 20:32:28  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:32:00  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
                                                                start, end)
@@ -62,7 +40,7 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   type (coord_struct) c0, c1
   type (param_struct) param
 
-  real(rdef) del_s, del
+  real(rp) del_s, del
                     
 ! The only real(rdef) complication comes with a dipole where we have to negate
 ! the focusing of the exit face (we never get to the exit face since we are

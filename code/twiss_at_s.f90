@@ -1,6 +1,10 @@
 !+
 ! Subroutine twiss_at_s (ring, s, ele)
 ! 
+!------------------------------------------------------------------
+! THIS ROUTINE IS OBSOLETE. PLEASE USE TWISS_AND_TRACK_AT_S INSTEAD.
+!------------------------------------------------------------------
+!
 ! Subroutine to return the twiss parameters at a specific longitudinal 
 ! position.
 !
