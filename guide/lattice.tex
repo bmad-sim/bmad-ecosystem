@@ -14,7 +14,8 @@ The \bmad software library comes with routines to read in (parse) a
 lattice definition files. There are two input formats that
 \bmad understands: The \bmad standard format and
 XSIF\cite{b:xsif}. XSIF stands for ``Extended Standard Input Format.''
-XSIF is essentially a subset of the MAD input format. Documentation
+XSIF is essentially a subset of the MAD input format. XSIF
+Documentation
 can be found at:
 \begin{example}
   http://www-project.slac.stanford.edu/
@@ -27,15 +28,11 @@ terms of the linear matrix) are not unity by default. Thus
 \begin{example}
   m: matrix
 \end{example}
-will give a zero linear matrix.
+will give a matrix with all elements being zero.
 
-Throughout this manual if the lattice input format is mentioned it
-will always pertain to the \bmad standard format unless explicitly
-stated otherwise.
-
-%---------------------------------------------------------------------------
-\section{File Syntax}
-\index{Lattice files!statement syntax}
+Throughout this manual, unless explicitly
+stated otherwise, the lattice format under discussion
+will always pertain to the \bmad standard format.
 
 \index{MAD!lattice format}
 The syntax that a \bmad standard lattice file must conform to is
@@ -47,24 +44,38 @@ etc.).  Interacting with the user to determine what actions a program
 should take is left to the program and is not part of \bmad (although
 \bmad, of course, provides the routines to perform many
 calculations). A program is not required to use the \bmad parser
-routine but if it does the following chapters describes how to
+routine but if it does the following chapters describe how to
 construct a valid lattice file.
 
-Input for \bmad is free format. A \bmad lattice input file consists
+%---------------------------------------------------------------------------
+\section{File Example and Syntax}
+\index{Lattice files!statement syntax}
+
+The following example shows how an input file can look like
+\begin{example}
+  ! This is a comment
+  parameter[beam_energy] = 5e9                   ! Parameter definition
+  pa1 = sin(3.47 * pi / c_light)                 ! Constant definition
+  bend1: sbend, type = "arc bend", l = 2.3, &    ! An element definition
+      g = 2*pa1, tracking_method = bmad_standard
+  bend2: bend1, l = 3.4                          ! Another element def
+  bend2[g] = 1 / 37.5                            ! Redefining an attribute
+  ln1: line = (ele1, ele2, ele3)                 ! A line definition
+  ln2: line = (ln1, ele4, ele5)                  ! Lines can contain lines
+  arg_ln(a, b) = (ele1, a, ele2, b)              ! A line with arguments.
+  use, ln2                                       ! Which line to use for the lattice
+\end{example}
+
+A \bmad standard lattice file is free format. A \bmad lattice file consists
 of a sequence of statements. Normally a statement occupies a single
 line in the file. Several statements may be placed on the same line by
 inserting a semicolon (;) between them. A long statement can occupy
 multiple lines by putting an ampersand (\&) at the end of each line of
 a statement except for the last line of the statement. An
 exclamation mark (!) denotes a comment and the exclamation mark and
-everything after the exclamation mark on the line are ignored. Example:
-\begin{example}
-  ! This is a comment
-  q0: quad, l = 0.6, &     ! Continued to the next line
-            k1 = 1.4, tilt = pi/3
-\end{example}
-\bmad is case insensitive. Everything is converted to uppercase except
-strings.
+everything after the exclamation mark on the line are ignored. 
+\bmad is case insensitive. All names are converted to uppercase except
+strings (\sref{s:var_types}).
 
 %----------------------------------------------------------------------------
 \section{Digested Files}
@@ -184,6 +195,7 @@ set. For example
 
 %---------------------------------------------------------------------------
 \section{Variable Types}
+\label{s:var_types}
 \index{Arithmetic expressions!variables}
 
 \index{Logicals|textbf}

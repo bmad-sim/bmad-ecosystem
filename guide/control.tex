@@ -285,6 +285,11 @@ Superposition may be done with any element except \vn{drift},
 and \vn{Group}, \vn{Overlay}, and \vn{I_Beam} control elements.
 Additionally, \vn{Superpose} may not be used with \vn{close}.
 
+If the lattice is circular (\sref{s:param}) then a superimposed lattice 
+that extends beyound either end of the lattice will be wrapped around. For 
+linear lattices the lattice will be expanded in length to accomodate 
+such an element.
+
 %-----------------------------------------------------------------------------
 \section{Multipass}
 \label{s:multipass}

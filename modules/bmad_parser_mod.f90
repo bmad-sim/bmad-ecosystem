@@ -2575,7 +2575,7 @@ subroutine compute_super_lord_s (ring, i_ref, ele, pele)
 
   real(rp) s_ref_begin, s_ref_end
 
-!
+! Find the reference point on the element being superimposed.
 
   ele%s = pele%s
 
@@ -2588,7 +2588,7 @@ subroutine compute_super_lord_s (ring, i_ref, ele, pele)
     call err_exit
   endif
 
-!
+! Find the refernce point in the lattice.
 
   ct = ring%ele_(i_ref)%control_type
   if (ct == overlay_lord$ .or. ct == i_beam_lord$) then
@@ -2608,6 +2608,8 @@ subroutine compute_super_lord_s (ring, i_ref, ele, pele)
     s_ref_end = ring%ele_(i_ref)%s
   endif
 
+! Now compute the s position at the end of the element and put it in ele%s.
+
   if (pele%ref_pt == begin$) then
     ele%s = ele%s + s_ref_begin
   elseif (pele%ref_pt == center$) then
@@ -2619,12 +2621,15 @@ subroutine compute_super_lord_s (ring, i_ref, ele, pele)
     call err_exit
   endif
 
-!
+! For circular lattices a superimpose can wrap around the beginning or 
+! the end of the lattice.
 
-  if (ele%s > ring%ele_(ring%n_ele_use)%s) then
-    ele%s = ele%s - ring%param%total_length
-  elseif (ele%s < 0) then
-    ele%s = ele%s + ring%param%total_length
+  if (ring%param%lattice_type == circular_lattice$) then
+    if (ele%s > ring%ele_(ring%n_ele_use)%s) then
+      ele%s = ele%s - ring%param%total_length
+    elseif (ele%s < 0) then
+      ele%s = ele%s + ring%param%total_length
+    endif
   endif
 
 end subroutine

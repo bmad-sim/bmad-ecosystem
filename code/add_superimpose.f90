@@ -30,17 +30,19 @@ subroutine add_superimpose (ring, super_ele, ix_super)
   implicit none
 
   type (ring_struct)  ring
-  type (ele_struct)  super_ele, sup_ele, slave_ele
+  type (ele_struct)  super_ele, sup_ele, slave_ele, drift
   type (control_struct)  sup_con(100)
 
-  real(rp) s1, s2, length, s0
+  real(rp) s1, s2, length, s1_lat, s2_lat
 
   integer j, jj, k, ix, n, i2, ic, n_con
   integer ix1_split, ix2_split, ix_super, ix_super_con
   integer ix_slave, ixn, ixc, superimpose_key, ix_slave_name
 
-  character(20) fmt
   logical setup_lord, split1_done, split2_done
+
+  character(20) fmt
+  character(20) :: r_name = "add_superimpose"
 
 !-------------------------------------------------------------------------
 ! We need a copy of super_ele since the actual argument may be in the ring
@@ -49,12 +51,29 @@ subroutine add_superimpose (ring, super_ele, ix_super)
   sup_ele = super_ele
   ix_slave_name = 0
 
+  call init_ele (drift)
+  drift%key = drift$
+
 ! s1 is the left edge of the superimpose.
+! s2 is the right edge of the superimpose.
+! For a ring a superimpose can wrap around the ends of the lattice.
 
-  s0 = ring%ele_(0)%s   ! normally this is zero.
+  s1_lat = ring%ele_(0)%s               ! normally this is zero.
+  s2_lat = ring%ele_(ring%n_ele_use)%s
+
   s1 = sup_ele%s - sup_ele%value(l$)
-  if (s1 < s0) s1 = s1 + ring%param%total_length
+  s2 = sup_ele%s                 
 
+  if (s1 < s1_lat .and. ring%param%lattice_type == circular_lattice$) &
+                                      s1 = s1 + ring%param%total_length
+
+  if (s2 < s1_lat .or. s1 > s2_lat) then
+    call out_io (s_abort$, r_name, 'SUPERIMPOSE POSITION BEYOUND END OF LATTICE')
+    call out_io (s_blank$, r_name, 'LEFT EDGE: \F10.1\ ', s1)
+    call out_io (s_blank$, r_name, 'RIGHT EDGE:\F10.1\ ', s2)
+    call err_exit
+  endif
+ 
 !-------------------------------------------------------------------------
 ! if element has zero length then just insert it in the regular ring list
 
@@ -70,21 +89,51 @@ subroutine add_superimpose (ring, super_ele, ix_super)
 ! Split ring at begining and end of the superimpose.
 ! the correct order of splitting is important since we are creating elements
 ! so that the numbering of the elments after the split changes.
-! SPLIT_RING adds "\1" and "\2" to the names of the split elements.
-! For aesthetic reasons remove the last digit of the names
 
-  s2 = sup_ele%s                 
   if (s2 < s1) then   ! if superimpose wraps around 0 ...
     call split_ring (ring, s2, ix2_split, split2_done)
     if (split2_done) call delete_last_chars (ix2_split)
     call split_ring (ring, s1, ix1_split, split1_done)
     if (split1_done) call delete_last_chars (ix1_split)
+
   else                ! no wrap case
-    call split_ring (ring, s1, ix1_split, split1_done)
-    if (split1_done) call delete_last_chars (ix1_split)
-    call split_ring (ring, s2, ix2_split, split2_done)
-    if (split2_done) call delete_last_chars (ix2_split)
+    if (s1 < s1_lat) then  ! superimpose off end case
+      if (ring%ele_(1)%key /= drift$) then
+        length = s1_lat - s1
+        drift%value(l$) = length
+        call insert_element (ring, drift, 1)
+        s1 = s1_lat
+        s2 = s2 + length
+        s2_lat = s2_lat + length
+      endif
+      ix1_split = 0
+    else
+      call split_ring (ring, s1, ix1_split, split1_done)
+      if (split1_done) call delete_last_chars (ix1_split)
+    endif
+
+    if (s2 > s2_lat) then  ! superimpose off end case
+      if (ring%ele_(ring%n_ele_use)%key /= drift$) then
+        drift%value(l$) = s2 - s2_lat
+        call insert_element (ring, drift, ring%n_ele_use + 1)
+        s2_lat = s2
+      endif
+      ix2_split = ring%n_ele_use
+    else
+      call split_ring (ring, s2, ix2_split, split2_done)
+      if (split2_done) call delete_last_chars (ix2_split)
+    endif
+
+    if (s1 < s1_lat) ring%ele_(1)%value(l$) = ring%ele_(1)%s - s1
+    if (s2 > s2_lat) then
+      n = ring%n_ele_use
+      ring%ele_(n)%value(l$) = s2 - ring%ele_(n-1)%s
+    endif
+
   endif
+
+! SPLIT_RING adds "\1" and "\2" to the names of the split elements.
+! For aesthetic reasons remove the last digit of the names.
 
   call delete_double_slash (ix1_split)
   call delete_double_slash (ix1_split+1)
@@ -121,9 +170,11 @@ subroutine add_superimpose (ring, super_ele, ix_super)
   do 
 
     ix_slave = ix_slave + 1
+    if (ix_slave == ix2_split + 1) exit
+
     if (ix_slave == ring%n_ele_use + 1) ix_slave = 1
     slave_ele = ring%ele_(ix_slave)
-    if (slave_ele%value(l$) == 0) goto 8000     ! skip rest of loop
+    if (slave_ele%value(l$) == 0) cycle
 
 ! Do we need to set up a super lord to control this slave element?
 
@@ -175,9 +226,7 @@ subroutine add_superimpose (ring, super_ele, ix_super)
 
     if (slave_ele%key == drift$) then
       ix_slave_name = ix_slave_name + 1
-      n = log10(1.001*ix_slave_name) + 1
-      write (fmt, '(a, i1, a)') '(2a, i', n, ')'
-      write (ring%ele_(ix_slave)%name, fmt) &
+      write (ring%ele_(ix_slave)%name, '(2a, i0)') &
                                    trim(sup_ele%name), '\', ix_slave_name
     else
       ring%ele_(ix_slave)%name = trim(ring%ele_(ix_slave)%name) //  &
@@ -205,9 +254,6 @@ subroutine add_superimpose (ring, super_ele, ix_super)
       print *, '      SUPERIMPOSED UPON: ', slave_ele%name
       call err_exit                    
     endif
-
-8000    continue
-    if (ix_slave == ix2_split) exit
 
   enddo
 
@@ -240,6 +286,7 @@ subroutine add_superimpose (ring, super_ele, ix_super)
 
 ! order slave elements in the super_lord list to be in the correct order
 
+  call s_calc (ring)  ! just in case superimpose extended before beginning of lattice.
   call order_super_lord_slaves (ring, ix_super)
 
 !------------------------------------------------------------------------------

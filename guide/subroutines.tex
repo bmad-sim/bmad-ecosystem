@@ -30,6 +30,7 @@ general interest.
   Mad Tracking Routines                   & \ref{r:mad}        \\ \hline
  	Taylor Maps                             & \ref{r:taylor}     \\ \hline
   Macroparticle                           & \ref{r:macro}      \\ \hline
+  Wake Fields                             & \ref{r:wake}       \\ \hline
  	Long Range Beam--Beam Interaction       & \ref{r:lrbbi}      \\ \hline
  	Helper Routines: Informational          & \ref{r:info}       \\ \hline
  	Helper Routines: Elemental              & \ref{r:elem}       \\ \hline
@@ -365,21 +366,9 @@ tracking 7 particle with different starting conditions.
 \item[drift\_mat6\_calc (mat6, length, start, end)] \Newline
 Subroutine to calculate a drift transfer matrix with a possible kick. 
 
-\index{Routine!init_lr_wake}
-\item[init\_lr\_wake (lr\_wake, n\_term)] \Newline 
-Subroutine to initialize a lr\_wake array.
-
-\index{Routine!init_sr_wake}
-\item[init\_sr\_wake (sr\_wake, n\_term)] \Newline 
-Subroutine to initialize a sr\_wake array.
-
 \index{Routine!init_wake}
 \item[init\_wake (wake, n\_sr, n\_lr)] \Newline 
 Subroutine to initialize a wake struct.
-
-\index{Routine!lr_wake_array_size}
-\item[lr\_wake\_array\_size (ele) result (array\_size)] \Newline 
-Function to return the size of ele%wake%lr.
 
 \index{Routine!mat6_dispersion}
 \item[mat6\_dispersion (mat6, e\_vec)] \Newline
@@ -388,10 +377,6 @@ Subroutine to put the dispersion into ELE%MAT6 given the dispersionvector E\_VEC
 \index{Routine!sol_quad_mat6_calc}
 \item[sol\_quad\_mat6\_calc (ks, k1, length, mat6, orb)] \Newline
 Subroutine to calculate the transfer matrix for a combination solenoid/quadrupole element. 
-
-\index{Routine!sr_wake_array_size}
-\item[sr\_wake\_array\_size (ele) result (array\_size)] \Newline 
-Function to return the size of ele%wake%sr.
 
 \index{Routine!tilt_mat6}
 \item[tilt\_mat6 (mat6, tilt)] \Newline
@@ -812,9 +797,13 @@ Subroutine to convert a Bmad param\_struct to a C++ C\_param.
 \item[ring\_to\_c (f\_ring, c\_ring)] \Newline 
 Subroutine to convert a Bmad ring\_struct to a C++ C\_ring.
 
-\index{Routine!sr_wake_to_c}
-\item[sr\_wake\_to\_c (f\_sr\_wake, c\_sr\_wake)] \Newline 
-Subroutine to convert a Bmad sr\_wake\_struct to a C++ C\_sr\_wake.
+\index{Routine!sr1_wake_to_c}
+\item[sr1\_wake\_to\_c (f\_sr1\_wake, c\_sr\_wake)] \Newline 
+Subroutine to convert a Bmad sr1\_wake\_struct to a C++ C\_sr1\_wake.
+
+\index{Routine!sr2_wake_to_c}
+\item[sr2\_wake\_to\_c (f\_sr2\_wake, c\_sr\_wake)] \Newline 
+Subroutine to convert a Bmad sr2\_wake\_struct to a C++ C\_sr2\_wake.
 
 \index{Routine!twiss_to_c}
 \item[twiss\_to\_c (f\_twiss, c\_twiss)] \Newline 
@@ -1059,26 +1048,9 @@ Subroutine to write a Bmad taylor map in a nice format to a character array.
 
 \begin{description}
 
-\index{Routine!calc_macro_bunch_centroid}
-\item[calc\_macro\_bunch\_centroid (bunch, params)] \Newline
-Subroutine to calculate bunch centroid and total charge excluding lost
-macroparticles.
-
-\index{Routine!calc_macro_bunch_dpz_dz}
-\item[calc\_macro\_bunch\_dpz\_dz (bunch, params, calc\_centroid)] \Newline
-Subroutine to calculate bunch energy-Z correlation.
-
 \index{Routine!calc_macro_bunch_params}
 \item[calc\_macro\_bunch\_params (bunch, ele, params)] \Newline
 Subroutine to calculate various beam characteristics from a bunch.
-
-\index{Routine!calc_macro_bunch_sigma}
-\item[calc\_macro\_bunch\_sigma (bunch, params, calc\_centroid)] \Newline
-Subrouine to calculate bunch sigmas.
-
-\index{Routine!calc_macro_bunch_twiss_and_emittance}
-\item[calc\_macro\_bunch\_twiss\_and\_emittance (bunch, ele, params, calc\_centroid)] \Newline 
-Subroutine to calculate the beam twiss parameters and normalized emittances of a bunch.
 
 \index{Routine!init_macro_distribution}
 \item[init\_macro\_distribution (beam, init, canonical\_out)] \Newline 
@@ -1122,6 +1094,45 @@ ring%ele\_(ix1) Through to the end of ring%ele\_(ix2).
 \item[track1\_macroparticle (start, ele, param, end)] \Newline 
 Subroutine to track a macroparticle through an element.
 
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Wake Fields}
+\label{r:wake}    
+\index{Wake fields!list of routines}
+
+\begin{description}
+
+\index{Routine!lr_wake_apply_kick}
+\item[lr\_wake\_apply\_kick (ele, s\_ref, orbit)] \Newline 
+Subroutine to apply the long-range wake kick to a particle.
+
+\index{Routine!sr1_apply_kick}
+\item[sr1\_apply\_kick (ele, leader, charge, follower)] \Newline 
+Subroutine to put in the kick for the short-range wakes.
+
+\index{Routine!sr2_long_wake_add_to}
+\item[sr2\_long\_wake\_add\_to (ele, orbit, charge)] \Newline 
+Subroutine to add to the existing short-range wake the contribution from
+a passing (macro)particle.
+
+\index{Routine!sr2_long_wake_apply_kick}
+\item[sr2\_long\_wake\_apply\_kick (ele, orbit)] \Newline 
+Subroutine to put in the kick for the short-range wakes.
+
+\index{Routine!sr2_long_self_wake_apply_kick}
+\item[sr2\_long\_self\_wake\_apply\_kick (ele, charge, orbit)] \Newline 
+Subroutine to put in the kick for the short-range wakes
+
+\index{Routine!sr2_trans_wake_add_to}
+\item[sr2\_trans\_wake\_add\_to (ele, orbit, charge)] \Newline 
+Subroutine to add to the existing short-range wake the contribution from
+a passing (macro)particle.
+
+\index{Routine!sr2_trans_wake_apply_kick}
+\item[sr2\_trans\_wake\_apply\_kick (ele, orbit)] \Newline 
+Subroutine to put in the kick for the short-range wakes
 
 \end{description}
 
@@ -1575,11 +1586,6 @@ This routine takes care of the pointers in ring1.
 Subroutine that is used to set one ring array equal to another. 
 This routine takes care of the pointers in ring1(:). 
 
-\index{Routine!slice_equal_slice}
-\item[slice\_equal\_slice (slice1, slice2)] \Newline
-Subroutine that is used to set one macroparticle slice to another. This routine
-takes care of the pointers in slice1.
-
 \index{Routine!taylor_equal_real_8}
 \item[taylor\_equal\_real\_8 (bmad\_taylor, y8)] \Newline
 Subroutine to overload "=" in expressions bmad\_taylor = real\_8 (PTC) 
@@ -1912,8 +1918,8 @@ Subroutine to return the calibration constants for the CESR quads.
 
 \index{Routine!qp_set_margin}
 \item[qp\_set\_margin (x1\_marg, x2\_marg, y1\_marg, y2\_marg, units)] \Newline 
-     Subroutine to set up the margins from the sides of the box (see QP\_SET\_BOX)
-     to the edges of the actual graph.
+Subroutine to set up the margins from the sides of the box (see QP\_SET\_BOX)
+to the edges of the actual graph.
 
 \index{Routine!qp_set_pgplot_color}
 \item[qp\_set\_pgplot\_color (ix\_color) ] \Newline 
@@ -1927,6 +1933,10 @@ Subroutine to return the calibration constants for the CESR quads.
 \index{Routine!qp_set_clip}
 \item[qp\_set\_clip (clip)] \Newline 
      Subroutine to set the default clipping state.
+
+\index{Routine!qp_set_qp_parameters}
+\item[qp\_set\_qp\_parameters (text\_scale)] \Newline 
+Subroutine to set various quick\_plot parameters.
 
 \index{Routine!qp_subset_box}
 \item[qp\_subset\_box (ix, iy, ix\_tot, iy\_tot, x\_marg, y\_marg)] \Newline 
@@ -1970,6 +1980,10 @@ Subroutine to return the calibration constants for the CESR quads.
 \item[qp\_get\_layout\_attrib (who, x1, x2, y1, y2, units)] \Newline 
      Subroutine to get the attributes of the layout.
 
+\index{Routine!qp_get_qp_parameters}
+\item[qp\_get\_qp\_parameters (text\_scale)] \Newline 
+Subroutine to get various quick\_plot parameters.
+
 \index{Routine!qp_text_len}
 \item[qp\_text\_len (text)] \Newline 
      Function to find the length of a text string.
@@ -1990,6 +2004,11 @@ Subroutine to return the calibration constants for the CESR quads.
 \item[qp\_from\_inch\_abs (x\_inch, y\_inch, x, y, units)] \Newline 
      Subroutine to convert to absolute position (x, y) from inches referenced
      to the Left Bottom corner of the page
+
+\index{Routine!qp_text_height_to_inches}
+\item[qp\_text\_height\_to\_inches(height\_pt) result (height\_inch)] \Newline 
+Function to convert from a text height in points to a text height in
+inches taking into account the text\_scale.
 
 \index{Routine!qp_to_datum_abs}
 \item[qp\_to\_datum\_abs (x, y, x\_dat, y\_dat, units)] \Newline 
