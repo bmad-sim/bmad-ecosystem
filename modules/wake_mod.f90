@@ -35,7 +35,7 @@ type (coord_struct) orbit
 type (lr_wake_struct), pointer :: lr
 
 integer i, n_mode
-real(rp) s_ref, ds, k, f, f_exp, ff, c, s, w_norm, w_skew, kx, ky
+real(rp) s_ref, ds, k, f_exp, ff, c, s, w_norm, w_skew, kx, ky
 
 ! Check if we have to do any calculations
 
@@ -50,9 +50,8 @@ do i = 1, n_mode
   ds = (s_ref + orbit%vec(5)) - lr%s_ref  ! Note: ds < 0
 
   k = twopi * lr%freq / c_light
-  f = ele%value(l$) * lr%r_over_q * (k**2 / 2)
   f_exp = k / (2 * lr%Q)
-  ff = f * exp(ds * f_exp) / ele%value(beam_energy$) 
+  ff = exp(ds * f_exp) / ele%value(beam_energy$) 
 
   c = cos (ds * k)
   s = sin (ds * k)
@@ -114,7 +113,7 @@ type (coord_struct) orbit
 type (lr_wake_struct), pointer :: lr
 
 integer i, n_mode
-real(rp) charge, s_ref, ds, k, f, f_exp, ff, c, s, kx, ky
+real(rp) charge, s_ref, ds, k, f_exp, ff, c, s, kx, ky
 
 ! Check if we have to do any calculations
 
@@ -130,12 +129,12 @@ do i = 1, n_mode
 
   k = twopi * lr%freq / c_light
   f_exp = k / (2 * lr%Q)
-  ff = exp(ds * f_exp)
+  ff = lr%r_over_q * (c_light / 2) * exp(ds * f_exp)
 
   c = cos (ds * k)
   s = sin (ds * k)
 
-  call ab_multipole_kick (0.0_rp, -1.0_rp, lr%m, orbit, kx, ky)
+  call ab_multipole_kick (0.0_rp, -ff, lr%m, orbit, kx, ky)
 
   lr%norm_sin = lr%norm_sin + charge * kx * c
   lr%norm_cos = lr%norm_cos - charge * kx * s

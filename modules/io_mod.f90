@@ -796,9 +796,9 @@ subroutine bmad_to_mad (mad_file, ring, ix_start, ix_end)
         'TWISS, betx =', ele%x%beta, ', bety =', ele%y%beta, ', &'
     write (iu, '(5x, 3(a, es12.5))') &
         'alfx =', ele%x%alpha, ', alfy =', ele%y%alpha, ', &'
-    write (iu, '(5x, 3(a, es12.5)))') &
+    write (iu, '(5x, 3(a, es12.5))') &
         'dx =', ele%x%eta, ', dpx = ', ele%x%etap, ', &'
-    write (iu, '(5x, 3(a, es12.5)))') &
+    write (iu, '(5x, 3(a, es12.5))') &
         'dy =', ele%y%eta, ', dpy = ', ele%y%etap
   endif
 
@@ -809,7 +809,7 @@ contains
 
 subroutine element_out (ele)
 
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
   integer i
   real(rp), pointer :: val(:)
 
