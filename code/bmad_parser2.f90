@@ -238,20 +238,19 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
     elseif (matched_delim) then
 
-      found = .false.
       do i = 1, bp_com%ivar_tot-1
         if (word_1 == bp_com%var_(i)%name) then
-          ivar = i
-          found = .true.
+          call warning ('VARIABLES ARE NOT ALLOWED TO BE REDEFINED: ' &
+                                                                  // word_1)
+          call evaluate_value (word_1, bp_com%var_(i)%value, ring, &
+                                                  delim, delim_found, err_flag)
+          cycle parsing_loop
         endif
       enddo
 
-      if (.not. found) then
-        bp_com%ivar_tot = bp_com%ivar_tot + 1
-        if (bp_com%ivar_tot > size(bp_com%var_)) call reallocate_bp_com_var()
-        ivar = bp_com%ivar_tot
-      endif
-
+      bp_com%ivar_tot = bp_com%ivar_tot + 1
+      if (bp_com%ivar_tot > size(bp_com%var_)) call reallocate_bp_com_var()
+      ivar = bp_com%ivar_tot
       bp_com%var_(ivar)%name = word_1
       call evaluate_value (bp_com%var_(ivar)%name, bp_com%var_(ivar)%value, &
                                     ring, delim, delim_found, err_flag)
