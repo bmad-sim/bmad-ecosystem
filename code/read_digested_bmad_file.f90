@@ -15,10 +15,10 @@
 !   digested_name -- Character(*): Name of the digested file
 !
 ! Output:
-!   ring      -- Ring_struct: Output structure
-!   version   -- Integer: Version number of RING.
-!   status    -- Common block status structure
-!     %ok       -- Set .false. if read failure.
+!   ring        -- Ring_struct: Output structure
+!   version     -- Integer: Version number of RING.
+!   bmad_status -- Bmad_status_struct: Common block status structure.
+!     %ok           -- Set .false. if read failure.
 !-
 
 #include "CESR_platform.inc"
