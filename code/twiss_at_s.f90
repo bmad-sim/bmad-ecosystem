@@ -9,29 +9,14 @@
 !
 ! Input:
 !   ring -- Ring_struct: Ring holding the lattice.
-!   s    -- Real(rdef): Longitudinal position.
+!   s    -- Real(rdef): Longitudinal position. If s is negative the
+!            the position is taken to be ring%param%total_length - s.
 !
 ! Output:
 !   ele -- Ele_struct: Element structure holding the twiss_parameters.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.5  2003/05/02 15:44:04  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.4  2003/01/27 14:40:46  dcs
-!bmad_version = 56
-!
-!Revision 1.3  2002/02/23 20:32:28  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:32:00  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine twiss_at_s (ring, s, ele)
 
@@ -43,26 +28,33 @@ subroutine twiss_at_s (ring, s, ele)
   type (ring_struct) :: ring
   type (ele_struct) :: ele
 
-  real(rdef) s
+  real(rp) s, s_use
 
   integer i
 
+! For negative s use ring%param%total_length - s
+! Actually take into account that the ring may start from some non-zero s.
+
+  s_use = s
+  if (s < ring%ele_(0)%s) s_use = ring%param%total_length - s
+
 ! error_check
 
-  if (s < 0 .or. s > ring%param%total_length) then
+  i = ring%n_ele_ring
+  if (s_use < ring%ele_(0)%s .or. s > ring%ele_(i)%s) then
     print *, 'ERROR IN TWISS_AT_S: S POSITION OUT OF BOUNDS.', s
     call err_exit
   endif
 
-!
+! Propagate to position
 
   do i = 1, ring%n_ele_ring
-    if (abs(ring%ele_(i)%s - s) < 1e-5) then
+    if (abs(ring%ele_(i)%s - s_use) < 1e-5) then
       ele = ring%ele_(i)
       return
-    elseif (ring%ele_(i)%s > s) then
+    elseif (ring%ele_(i)%s > s_use) then
       call twiss_and_track_partial (ring%ele_(i-1), ring%ele_(i), &
-                                         ring%param, s-ring%ele_(i-1)%s, ele)
+                                     ring%param, s_use-ring%ele_(i-1)%s, ele)
       return
     endif
   enddo
