@@ -860,6 +860,8 @@ subroutine transfer_this (s_1, s_2)
 
     ds = s_end - s_now
     ele%value(l$) = ds
+    if (lat%ele_(ix_ele)%value(l$) /= 0) ele%num_steps = &
+                  1 + 0.999 * lat%ele_(ix_ele)%num_steps * ds / lat%ele_(ix_ele)%value(l$)
 
     if (ds /= ds_old .or. ix_ele /= ix_ele_old) kill_it = .true.
 
