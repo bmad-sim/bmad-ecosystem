@@ -326,7 +326,9 @@ end subroutine
 !+
 ! Subroutine clear_ring_1turn_mats (ring)
 !
-! Subroutine to clear the 1-turn matrices in the ring structure.
+! Subroutine to clear the 1-turn matrices in the ring structure:
+!   ring%param%t1_mat4
+!   ring%param%t1_mat6
 ! This will force any routine dependent upon these to do a remake.
 !
 ! Modules needed:
