@@ -4,13 +4,13 @@
 \section{Lattice Files and Digested Files}
 
 The \bmad\ software library comes with a routine to read in (parse) a
-lattice definition file. The syntax that a lattice file must conform to is
-modeled after the lattice input format of the \mad\ program.
-Essentially, a \bmad\ lattice file is similar to a \mad\ lattice file except that
-a \bmad\ file has no ``action'' commands (commands tell the program
-to calculate the
-Twiss parameters, etc.). Interacting with the user to determine what
-actions a program should take is left to the program and is not part of
+lattice definition file. The syntax that a lattice file must conform
+to is modeled after the lattice input format of the \mad\ program.
+Essentially, a \bmad\ lattice file is similar to a \mad\ lattice file
+except that a \bmad\ file has no ``action'' commands (commands tell
+the program to calculate the Twiss parameters, etc.). Interacting with
+the user to determine what actions a program should take is left to
+the program and is not part of
 \bmad\ (although \bmad\, of course, provides the routines to do many
 calculations). A program is not required to use the \bmad\
 parser routine but if it does the following chapters describes how to
@@ -52,9 +52,10 @@ everything after the exclamation mark on the line are ignored. Example:
 \begin{example}
   ! This is a comment
   q0: quad, l = 0.6, &     ! Continued to the next line
-        k1 = 1.4, tilt = pi/3
+            k1 = 1.4, tilt = pi/3
 \end{example}
-\bmad\ is case insensitive. Everything is converted to uppercase except strings.
+\bmad\ is case insensitive. Everything is converted to uppercase except
+strings.
 
 %---------------------------------------------------------------------------
 \section{Variable Types}
@@ -84,9 +85,12 @@ Unlike everything else, strings are not converted to uppercase.
 
 Switches are variables that take discrete values. For example:
 \begin{example}
-  beam, particle = positron                    ! paricle is a switch
-  q01w: quad, tracking\_method = bmad\_standard  ! tracking\_method is a switch
+  beam, particle = positron                    
+  q01w: quad, tracking\_method = bmad\_standard 
 \end{example}
+The name ``switch'' can refer to the variable (for example,
+\vn{tracking_method}) or to a value that it can take (for example,
+\vn{bmad_standard}). The name ``method'' is used interchangable with switch.
 
 %---------------------------------------------------------------------------
 \section{Arithmetic Expressions}

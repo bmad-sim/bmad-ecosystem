@@ -3,78 +3,86 @@
 Typically there are several ways to do tracking and transfer matrix
 calculations for a given element type within \bmad. What method is used
 is selected on an element--by--element basis using
-an elements \vn{tracking_method} and \vn{mat6_calc_method} attributes 
-(mat6 refers to the size of the 6 by 6 transfer matricies). By supplying
+an element's \vn{tracking_method} and \vn{mat6_calc_method} attributes 
+(mat6 refers to the size of the 6 by 6 transfer matrices). By supplying
 the appropriate routines a programmer can extend \bmad\ to do customized 
 tracking.
 
 %----------------------------------------------------------------------------
-\section{Tracking\_method Switches}
+\section{tracking\_method Switches}
 \label{s:tkm}
 
-Adaptive step size control used with the \vn{Adaptive_Boris} and
-\vn{Runge_Kutta} integrators means that instead of taking fixed step sizes
-the integrator chooses the proper step size so that the error in the
-tracking is below the maximum alowable error set by \vn{rel_tol} and
-\vn{abs_tol} tolerances. The advantage of step size control is that
-the integrator is smarter about using a smaller step size when needed
-but making larger stepswhen it can. The disadvantage is that a step is
-more computationally intensive since the error in a step is estimated by
-repeating a step using two mini steps.
+Below are listed the methods for the \vn{tracking_method}
+attribute with an expanation of what the different methods do. A
+table giving which mehods are available with which element types is give
+in Table~\ref{t:track_methods}. 
+
+A note on terminology: Adaptive step size control used with the
+\vn{Adaptive_Boris} and \vn{Runge_Kutta} integrators means that 
+instead of taking fixed step sizes the integrator chooses the proper
+step size so that the error in the tracking is below the maximum
+allowable error set by \vn{rel_tol} and \vn{abs_tol} tolerances. The
+advantage of step size control is that the integrator uses a smaller
+step size when needed (the fields are rapidly varying), but makes
+larger steps when it can. The disadvantage is that a step is more
+computationally intensive since the error in a step is estimated by
+repeating a step using two mini steps. If the fields are rather
+uniform and you know what a good step size you can save time by using
+a fixed step size.
 
 \begin{description}
-\item[Adaptive\_Boris]
+\item[\vn{Adaptive\_Boris}]
 Second order Boris integration\cite{b:boris} with adaptive step size control.
 This should be nearly symplectic but slow.
 
-\item[Boris]
-Second order Boris Integration. Like \vn{Runge_Kutta} \vn{Boris} does
+\item[\vn{Boris}]
+Second order Boris Integration. Like \vn{Runge_Kutta}, \vn{Boris} does
 tracking by integrating the equation of motion. The difference is that
 Boris integration is symplectic.
 
-\item[Bmad\_Standard]
-Uses formulas for tracking. The emphesis here is on speed and not
+\item[\vn{Bmad\_Standard}]
+Uses formulas for tracking. The emphasis here is on speed and not
 symplecticity. Appropriate when you are interested in single turn
 stuff. May be appropriate for long term tracking depending upon how
 many turns are tracked and what kind of elements are involved. 
 
-\item[Custom]
+\item[\vn{Custom}]
 This method will call a routine \vn{track1_custom} which must be
 supplied by the programmer implementing the custom tracking. The
 default \vn{track1_custom} supplied with the \bmad\ release will print
-an error message if it is called which indicates a program linking
-problem.
+an error message and stop the program if it is called which probably
+indicates a program linking problem.
 
-\item[Linear]
+\item[\vn{Linear}]
 Linear just uses the 0th order vector with the 1st order 6x6 transfer
 matrix for an element. Very simple.  Depending upon how the transfer
-matrix was generated this might or might not be symplectic.
+matrix was generated this may or may not be symplectic.
 
-\item[Runge\_Kutta]
+\item[\vn{Runge\_Kutta}]
 This uses a 4th order Runge Kutta integration algorithm with adaptive
-step size control.  This is essentially ODEINT adopted from Numerical
-Recipes\cite{b:nr}. This may be slow but it should be accurate. This
-method is non-symplectic.
+step size control.  This is essentially the \vn{ODEINT} subroutine
+from Numerical Recipes\cite{b:nr}. This may be slow but it should be
+accurate. This method is non-symplectic.
 
-\item[Symp\_Lie\_Bmad]
+\item[\vn{Symp\_Lie\_Bmad}]
 Symplectic tracking using a Hamiltonian with Lie operation techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
-\bmad\ routine.  The difference between this and \vn{Symp_Lie_PTC} is
-\vn{Symp_Lie_Bmad} is about a factor of 10 faster but \vn{Symp_lie_Bmad} is
+\bmad\ routine. \vn{Symp_Lie_Bmad} is about a factor of 10 faster 
+then \vn{Symp_Lie_PTC}. However, \vn{Symp_lie_Bmad} is
 currently only implemented for Wigglers.
 
-\item[Symp\_Lie\_PTC]
+\item[\vn{Symp\_Lie\_PTC}]
 Symplectic tracking using a Hamiltonian with Lie operator techniques.
 This uses Etienne's PTC software for the calculation. This method is
 symplectic but can be slow.
 
-\item[Symp\_Map]
-This uses an implicit (partially inverted) Taylor map. The calculation
+\item[\vn{Symp\_Map}]
+This uses an partially inverted, implicit Taylor map. The calculation
 uses Etienne's PTC software.  Since the map is implicit, a Newton
 search method must be used. This will slow things down from the Taylor
 method but this is guaranteed symplectic.
 
-\item[Taylor]
+\item[\vn{Taylor}]
 This uses a Taylor map generated from Etienne's PTC
 package. Generating the map may take time but once you have it it
 should be very fast. One possible problem with using a Taylor map is
@@ -82,8 +90,18 @@ that you have to worry about the accuracy if you do tracking at points
 that are far from the expansion point about which the map was
 made. This method is non-symplectic away from the expansion point. 
 
-\item[Wiedemann]
-This is Wiedemann's hard edge model of a wiggler \cite{wiedemann}.
+\item[\vn{Wiedemann}]
+This is Wiedemann's hard edge model of a wiggler
+\cite{wiedemann}. This model divides a wiggler pole into a constant 
+bend rectangular section with drifts at either end. The total length
+of the model pole matches the actual pole length of the element. The
+strength of the bend and the lengths of the bend and drifts are
+adjusted so that the vertical focusing and horizontal deflection are
+the same in the modal as with a model assuming a sinusoidally varying
+field. \bmad\ arguments this model by assuming that the horizontal
+deflection varies as the $\sinh$ with vertical offset.  Since
+Wiedemann's model does not include longitudinal fields it is not clear
+that it can be used for long term tracking.
 
 \end{description}
 
@@ -147,6 +165,11 @@ available method.}
 \section{mat6\_calc\_method Switches}
 \label{s:xfer}
 
+Below are listed the methods for the \vn{mat6_calc_method}
+attribute with an expanation of what the different methods do. A
+table giving which mehods are available with which element types is give
+in Table~\ref{t:mat6_methods}. 
+
 For methods that do not necessarily produce a symplectic matrix the
 \vn{symplectify} attribute of an element can be set to \vn{True} to
 solve the problem. See section~\ref{s:symp_method}. 
@@ -159,16 +182,17 @@ at is set by \vn{taylor_order} (this is a global variable). Like
 ordinary integration there are various formulas that one can use to do
 symplectic integration. In \bmad\ (or more precisely Etienne's PTC)
 you can use one of 3 methods. This is set by \vn{integration_ord}. 
-\vn{integration_ord} = n (n = 2, 4, or 6)
-means that the error scales as $dz^n$ where $dz$ is the integration step
-size. The step size dz is set by the length of the element and the
+\vn{integration_ord} = n where $n$ is allowed by Etienne's PTC software
+to be 2, 4, or 6. With an integration order of $n$
+the error in an integration step scales as $dz^n$ where $dz$ is 
+step size. The step size $dz$ is set by the length of the element and the
 value of \vn{num_steps}. Remember, as in ordinary integration, higher
-order does not necessarily imply higher accuracy.
+integration order does not necessarily imply higher accuracy.
 
 \begin{description}
 
 \item[\vn{Bmad\_Standard}]
-Uses formulas for the calculation. The emphesis here is on speed and not
+Uses formulas for the calculation. The emphasis here is on speed and not
 symplecticity. Appropriate when you are interested in single turn
 stuff. May be appropriate for long term tracking depending upon how
 many turns are tracked and what kind of elements are involved. 
@@ -176,15 +200,15 @@ many turns are tracked and what kind of elements are involved.
 \item[\vn{Custom}]
 This method will call a routine \vn{make_mat6_custom} which must be
 supplied by the programmer implementing the custom transfer matrix
-calculation. The default \vn{make_mat6_custom} supplied with the \bmad\
-release will print an error message if it is called which indicates a
-program linking problem.
+calculation. The default \vn{make_mat6_custom} supplied with the
+\bmad\ release will print an error message and stop the program if it
+is called which probably indicates a program linking problem.
 
 \item[\vn{Symp\_Lie\_Bmad}]
 A Symplectic calculation using a Hamiltonian with Lie operator techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
-\bmad\ routine.  The difference between this and \vn{Symp_Lie_PTC} is
-\vn{Symp_Lie_Bmad} is about a factor of 10 faster but \vn{Symp_lie_Bmad} is
+\bmad\ routine. \vn{Symp_Lie_Bmad} is about a factor of 10 faster 
+then \vn{Symp_Lie_PTC}. However, \vn{Symp_lie_Bmad} is
 currently only implemented for Wigglers.
 
 \item[\vn{Symp\_Lie\_PTC}]
