@@ -33,6 +33,9 @@ type (ele_struct) ele3
 
 real(rp) f_phi
 
+integer, parameter :: max_lines = 200 !maximum lines of output
+
+character(16) :: max_lines_char	
 character(24) :: data_class, var_class
 character(24)  :: plane, fmt, imt, lmt, amt
 character(*) :: word1, word2, word3, word4
@@ -46,7 +49,7 @@ character(24) :: show_names(8) = (/ &
         'data     ', 'var      ', 'global   ',  'alias    ', 'top10    ', &
         'optimizer', 'ele      ', 'lattice  ' /)
 
-character(200) lines(100)
+character(200) lines(max_lines)
 
 integer :: data_number, ix_plane
 integer nl, loc
@@ -54,6 +57,10 @@ integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index
 
 logical err, found, at_ends
 logical show_all, name_found
+
+!setup character string for max_lines
+write (max_lines_char, '(a)') max_lines
+
 
 ! The Show string data is stored in the 'lines' array
 ! and the number of entries is stored in nl
@@ -118,11 +125,18 @@ case ('alias')
 
 case ('data')
 
+  if (.not. associated (u%d2_data)) return 
+
 ! If just "show data" then show all classes
 
   if (show_word2 == ' ') then
     do i = 1, size(u%d2_data)
       if (u%d2_data(i)%class == ' ') cycle
+      if ((nl+1) .gt. max_lines) then
+	call out_io (s_warn$, r_name, "Found too many d2_datas! Listing first "// &
+	  		max_lines_char // " matches.")
+	exit
+      endif
       nl=nl+1; write (lines(nl), '(i4, 2x, a)') i, u%d2_data(i)%class
     enddo
     call out_io (s_blank$, r_name, lines(1:nl))
@@ -179,6 +193,11 @@ case ('data')
     write (lines(3), *) '        Name              Data         Model        Design'
     nl = 4
     do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
+      if ((nl+1) .gt. max_lines) then
+	call out_io (s_warn$, r_name, "Found too many datams! Listing first "//&
+	  		max_lines_char// " matches.")
+	exit
+      endif
       if (d1_ptr%d(i)%exists) then
         nl=nl+1
         write(lines(nl), '(i, 2x, a7, 3es14.4)') i, &
@@ -195,6 +214,11 @@ case ('data')
 
     write(lines(1), '(2a)') 'Data type:    ', d2_ptr%class
     do i = 1, size(d2_ptr%d1)
+      if ((nl+1) .gt. max_lines) then
+	call out_io (s_warn$, r_name, "Found too many d1_data! Listing first "//&
+	  		max_lines_char// " matches.")
+	exit
+      endif
       nl=nl+1; write(lines(nl), '(5x, a, i3, a, i3)') d2_ptr%d1(i)%sub_class, &
                 lbound(d2_ptr%d1(i)%d, 1), ':', ubound(d2_ptr%d1(i)%d, 1)
     enddo
@@ -215,6 +239,11 @@ case ('ele')
     nl = 1
     do loc = 1, u%model%n_ele_max
       if (match_wild(u%model%ele_(loc)%name, ele_name)) then
+	if ((nl+1) .gt. max_lines) then
+	  call out_io (s_warn$, r_name, "Found too many elements! Listing first "//&
+	  		max_lines_char// " matches.")
+	  exit
+	endif
         nl = nl + 1
         write (lines(nl), '(i8, 2x, a)') loc, u%model%ele_(loc)%name
         name_found = .true.
@@ -289,7 +318,7 @@ case ('lattice')
 
   call tao_locate_element (show_word3, u%model, ix1); if (ix1 < 0) return
   call tao_locate_element (show_word4, u%model, ix2); if (ix2 < 0) return
-   
+  
   if (ix1 > u%model%n_ele_ring) then
     ix = u%model%ele_(ix1)%ix1_slave
     ix1 = u%model%control_(ix)%ix_slave
@@ -300,6 +329,12 @@ case ('lattice')
     ix2 = u%model%control_(ix)%ix_slave
   endif
 
+  if ((ix2 - ix1 + 1) .gt. max_lines) then
+    call out_io (s_warn$, r_name, "Too many elements!")
+    call out_io (s_warn$, r_name, "Listing first " //&
+	  max_lines_char // " elements after element" // show_word3 )
+    ix2 = ix1 + max_lines - 1
+  endif
 
   if (.true.) then
     at_ends = .true.
@@ -382,12 +417,19 @@ case ('top10')
     
 case ('var')
 
+  if (.not. associated (u%v1_var)) return 
+
 ! If just "show var" then show all classes
 
   if (show_word2 == ' ') then
     do i = 1, size(u%v1_var)
       v1_ptr => u%v1_var(i)
       if (v1_ptr%class == ' ') cycle
+      if ((nl+1) .gt. max_lines) then
+	call out_io (s_warn$, r_name, "Found too many v1_vars! Listing first "//&
+	  		max_lines_char// " matches")
+	exit
+      endif
       nl = nl+1
       write (lines(nl), '(i4, 2x, 2a)') i, v1_ptr%class, v1_ptr%class
     enddo
@@ -452,6 +494,11 @@ case ('var')
     nl = 3
     do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
       if (v1_ptr%v(i)%exists) then
+        if ((nl+1) .gt. max_lines) then
+	  call out_io (s_warn$, r_name, "Found too many variable datams! Listing first "//&
+	  		max_lines_char// " matches.")
+	  exit
+        endif
         nl = nl + 1
         write(lines(nl), '(i, 2x, a7, 3es14.4)') i, &
                  v1_ptr%v(i)%name, v1_ptr%v(i)%data_value, &

@@ -23,6 +23,10 @@ logical good_opt
 !
 
 do i = 1, size(s%u)
+
+!return if no variables
+  if (.not. associated (s%u(i)%v1_var)) return 
+
   do j = 1, size(s%u(i)%v1_var)
     good_opt = s%u(i)%v1_var(j)%good_opt
     v => s%u(i)%v1_var(j)%v

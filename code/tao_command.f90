@@ -104,6 +104,7 @@ subroutine tao_command (s, command_line)
     call tao_change_cmd (s, do_all_universes, &
                       cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4))
 
+
 !--------------------------------
 ! CLIP
 
@@ -173,6 +174,11 @@ subroutine tao_command (s, command_line)
 ! PLOT
 
   case ('plot')
+
+    if (.not. s%global%plot_on) then
+      call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
+      return
+    endif
 
     call cmd_split (9, .false., err, '+-')
 
@@ -295,8 +301,8 @@ subroutine tao_command (s, command_line)
 ! standard calculations and plotting after a command.
 
   call tao_lattice_calc (s)         ! calculate Twiss parameters, closed orbit
-  call tao_plot_data_setup (s)      ! transfer data to the plotting structures
-  call tao_plot_out (s%plot_page)   ! Update the plotting window
+  if (s%global%plot_on) call tao_plot_data_setup (s)      ! transfer data to the plotting structures
+  if (s%global%plot_on) call tao_plot_out (s%plot_page)   ! Update the plotting window
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------

@@ -24,7 +24,7 @@ integer i
 ! Closed orbit and Twiss calculation.
 
 do i = 1, size(s%u)
-  call twiss_and_track (s%u(i)%model, s%u(I)%model_orb)
+  call twiss_and_track (s%u(i)%model, s%u(i)%model_orb)
 enddo
 
 ! Transfer info from %model to %data arrays.

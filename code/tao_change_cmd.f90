@@ -5,10 +5,11 @@
 !
 ! Input:
 !   s        -- tao_super_universe_struct
-!   who      -- Character(*): 'var', or 'ele'.
+!   who      -- Character(*): 'var', 'ele' or 'begin'
 !   name     -- Character(*): Name of variable or element.
 !   where    -- Character(*): For variable: Index of variable.
 !                             For element: Attribute name of element.
+!                             For begin: axis to change
 !   num_str  -- Character(*): Change in value. 
 !                                A '@' signifies a absolute set.
 !                                A 'd' signifies a set relative design.        
@@ -29,6 +30,7 @@ type (tao_super_universe_struct) :: s
 
 real(rp) change_number
 real(rp), pointer :: attrib_ptr, design_ptr
+real(rp) old_value, new_value, design_value
 
 integer i, ix_ele, ixa, ix
 
@@ -46,6 +48,7 @@ call to_number;  if (err) return
 if (do_all_universes) then
   do i = 1, size(s%u)
     call change_cmd (s%u(i))
+    if (err) return
   enddo
 else
   call change_cmd (s%u(s%global%u_view))
@@ -59,8 +62,6 @@ subroutine change_cmd (u)
 
 type (tao_universe_struct), target :: u
 type (tao_var_struct), pointer :: v_ptr
-
-real(rp) old_value, new_value, design_value
 
 character(16) ele_name
 character(40) fmt
@@ -111,25 +112,30 @@ case ('ele')
   call tao_locate_element (ele_name, u%model, ix_ele)
   if (ix_ele < 0) return
 
-  call pointer_to_attribute (u%design%ele_(ix_ele), where, .true., &
-                                                       attrib_ptr, ixa, err)
-  design_value = attrib_ptr
-
-  call pointer_to_attribute (u%model%ele_(ix_ele), where, .true., &
-                                                       attrib_ptr, ixa, err)
-  if (err) return
-
-  old_value = attrib_ptr
-
-  if (absolute_num) then
-    attrib_ptr = change_number
-  elseif (rel_to_design) then
-    attrib_ptr = design_value + change_number
-  else
-    attrib_ptr = attrib_ptr + change_number
-  endif
-
-  new_value = attrib_ptr
+  select case (where)
+  case ('x', 'x_p', 'y', 'y_p', 'z', 'z_p')
+    call change_orbit (u%design_orb(ix_ele), u%model_orb(ix_ele))
+  case default  
+    call pointer_to_attribute (u%design%ele_(ix_ele), where, .true., &
+                                                         attrib_ptr, ixa, err)
+    design_value = attrib_ptr
+ 
+    call pointer_to_attribute (u%model%ele_(ix_ele), where, .true., &
+                                                         attrib_ptr, ixa, err)
+    if (err) return
+ 
+    old_value = attrib_ptr
+ 
+    if (absolute_num) then
+      attrib_ptr = change_number
+    elseif (rel_to_design) then
+      attrib_ptr = design_value + change_number
+    else
+      attrib_ptr = attrib_ptr + change_number
+    endif
+ 
+    new_value = attrib_ptr
+  end select
 
 !
 
@@ -201,7 +207,65 @@ subroutine to_number
 
 end subroutine
 
-end subroutine 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+subroutine change_orbit (design_orb, model_orb)
+
+implicit none
+
+type (coord_struct), target :: design_orb, model_orb 
+
+real(rp), pointer :: design_ptr, model_ptr
+
+integer direction
+
+!check if this is a linear lattice
+
+!check if we are changin the beginning element
+
+!point to correct direction
+select case (where)
+  case ('x')
+    direction = 1
+  case ('x_p')
+    direction = 2
+  case ('y')
+    direction = 3
+  case ('y_p')
+    direction = 4
+  case ('z')
+    direction = 5
+  case ('z_p')
+    direction = 6
+  case default
+    err = .true.
+    return
+end select
+
+design_ptr => design_orb%vec(direction)
+model_ptr  => model_orb%vec(direction)
+
+!do the change
+design_value = design_ptr
+old_value  = model_ptr
+
+if (absolute_num) then
+  model_ptr = change_number
+elseif (rel_to_design) then
+  model_ptr = design_value + change_number
+else
+  model_ptr = model_ptr + change_number
+endif
+
+new_value = model_ptr
+
+err = .false.
+
+end subroutine change_orbit
+
+end subroutine tao_change_cmd
 
 
 

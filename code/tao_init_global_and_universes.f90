@@ -158,22 +158,31 @@ subroutine init_universe (u)
   u%model  = u%design; u%model_orb  = u%design_orb
   u%base = u%design; u%base_orb = u%design_orb
 
-  allocate (u%d2_data(n_d2_data_max))
-  allocate (u%v1_var(n_v1_var_max))
-  allocate (u%data(n_data_max))
-  allocate (u%var(n_var_max))
+  if (n_d2_data_max .ne. 0) then
+    allocate (u%d2_data(n_d2_data_max))
+    u%d2_data(:)%good_opt = .true.
+  endif
 
-  u%data(:)%exists = .false.       ! set default
-  u%data(:)%good_data  = .false.   ! set default
-  u%data(:)%good_ref   = .false.   ! set default
-  u%data(:)%good_user  = .true.    ! set default
-  u%data(:)%merit_type = 'target'  ! set default
-  u%d2_data(:)%good_opt = .true.
+  if (n_v1_var_max .ne. 0) then
+    allocate (u%v1_var(n_v1_var_max))
+    u%v1_var(:)%good_opt = .true.
+  endif
 
-  u%var(:)%exists    = .false.
-  u%var(:)%good_var  = .true.
-  u%var(:)%good_user = .true.
-  u%v1_var(:)%good_opt = .true.
+  if (n_data_max .ne. 0) then
+    allocate (u%data(n_data_max))
+    u%data(:)%exists = .false.       ! set default
+    u%data(:)%good_data  = .false.   ! set default
+    u%data(:)%good_ref   = .false.   ! set default
+    u%data(:)%good_user  = .true.    ! set default
+    u%data(:)%merit_type = 'target'  ! set default
+  endif
+  
+  if (n_var_max .ne. 0) then
+    allocate (u%var(n_var_max))
+    u%var(:)%exists    = .false.
+    u%var(:)%good_var  = .true.
+    u%var(:)%good_user = .true.
+  endif
 
 end subroutine init_universe
 

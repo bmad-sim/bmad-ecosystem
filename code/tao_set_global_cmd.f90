@@ -4,11 +4,12 @@
 ! Routine to set global variables
 ! 
 ! Input:
+!   who       -- Character(*): which global variable to set
 !   set_value -- Character(*): Value to set to.
 !
-!  Output:
+! Output:
 !   s         -- tao_super_universe_struct:
-!    %global    -- Global variables structure.
+!    %global  -- Global variables structure.
 !-
 
 subroutine tao_set_global_cmd (s, who, set_value)

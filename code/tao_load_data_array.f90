@@ -32,8 +32,11 @@ do i = 1, size(s%u)
 
 ! loop over all d2_data structs
 
-  do j = 1, size(u%d2_data)
+! do nothing if no d2_data
+  if (.not. associated (u%d2_data)) return
 
+  do j = 1, size(u%d2_data)
+  
     call tao_hook_load_data_array (s, found)
     if (found) cycle
 

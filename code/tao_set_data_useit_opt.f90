@@ -23,6 +23,10 @@ logical good_opt
 !
 
 do i = 1, size(s%u)
+
+!return if no data
+  if (.not. associated (s%u(i)%d2_data)) return 
+
   do j = 1, size(s%u(i)%d2_data)
     good_opt = s%u(i)%d2_data(j)%good_opt
     do k = 1, size(s%u(i)%d2_data(j)%d1)

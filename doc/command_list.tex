@@ -108,11 +108,20 @@ value is used:
   set_value = design_value + <number>
 \end{example}
 
+For \vn{change ele}, six additional
+\vn{<components>}s in addition to the element values are:
+\begin{example}
+  \{x, y, z\}           ! position 
+  \{x\_p, y\_p, z\_p\}  ! velocity
+\end{example}.
+These are only applicable for changing the BEGINNING orbit for a linear lattice.
+
 Examples:
 \begin{example}
   change ele s24e x_offset  0.1  ! Offset element by 0.1
   change ele q02w k1 d1.2e-2     ! set the k1 strength of q02w relative to the design
   change var steering 34 @1e-3  ! set the strength steering #34 to 0.001
+  change ele beginning x @0.001 ! set beggining x position to 1 mm
 \end{example}
 
 
@@ -318,14 +327,14 @@ Besides a numeric value \vn{<value>} can be:
 For \vn{set global} version of set possible 
 \vn{<components>}s that can be set are:
 \begin{example}
-  opt_with_ref  = T/F ! Use the reference data with optimization.
-  opt_with_base = T/F ! Use the base lattice with optimization.
+  opt\_with\_ref  = T/F ! Use the reference data with optimization.
+  opt\_with\_base = T/F ! Use the base lattice with optimization.
 \end{example}
 
 Examples:
 \begin{example}
   set data all ref = data       ! set all ref data = measured data.
-  *set var quad_k1 weight = 0.1 ! set quad_k1 weights. 
+  *set var quad\_k1 weight = 0.1 ! set quad\_k1 weights. 
 \end{example}
 
 %------------------------------------------------------------------------
