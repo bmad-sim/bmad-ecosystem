@@ -7,23 +7,19 @@
 #
 # usage : do_release [options] [var defs] <lib_tag> <pkg_tag> [<SGL/DBL>]
 #         arguments:
-#          <lib_tag>      base of release name (eg, cesr).  If 
-#                         the build_only flag is set, this must 
-#          <pkg_dir>      base directory name for the package release 
-#                         against which to build the CESR release 
 #          <SGL/DBL>      specify double or single precision
 #                         (default is DBL)
 #
 #         flags:
-#          -cesr          Build a cesr release (CANNOT be used 
-#                         with -pkg option)
-#          -pkg           Build a packages release (CANNOT be 
-#                         used with -pkg option)
+#          -cesr          Build a cesr release
+#          -pkg           Build a packages release 
 #          -build_only    if you want to forgo the checkout and
 #                         creation of necessary dirs, add 
 #                         -build_only flag.  In this case, 
 #                         <lib_tag> must contain the full name 
 #                         of the release
+#          -dump          Dump the configuration information for this 
+#                         script
 #
 #         variables:
 #           PKG=<packages_dir>  Specify a specific packages release
@@ -60,8 +56,10 @@ myprint_help () {
     echo "-build_only         if you want to forgo the checkout and"
     echo "                    creation of necessary dirs, add "
     echo "                    -build_only flag.  In this case, "
-    echo "                    <lib_tag> must contain the full name "
-    echo "                    of the release"
+    echo "                    REL and/or PKG must contain the full "
+    echo "                    name of the corresponding release"
+    echo "-dump               Dump the configuration information for"
+    echo "                    this script"
     echo ""
     echo "Variable definitions:"
     echo "TAG=<release_tag>   Specify a custom tag for the release"
@@ -107,12 +105,9 @@ get_release_name () {
 ################################################################
 # Main script starts here
 ################################################################
-echo "Entering do_release - called with the following arguments:  "
-echo "$0" | sed s/do_release//
-echo ""
 
 #Initializations
-BUILD_DIR="/home/cesrulib/cesr_libs"
+BUILD_DIR=/home/cesrulib/cesr_libs
 PREC="DBL"
 REL_TAG="cesr"
 PKG_TAG="packages"
@@ -124,15 +119,18 @@ DO_DUMP=0
 GMAKE_OVERRIDE=0
 UTIL_OVERRIDE=0
 
-use_cesr_bin=${BIN_DIR}
+use_cesr_bin=/home/cesrulib/bin
 
 # Get inputs
 n_args=$#
 
 iarg=0
+arg_list=""
 while ( [ ${iarg} -lt ${n_args} ] ) ; do 
     iarg=`expr $iarg + 1`
     arg=$1
+
+    arg_list="${arg_list} ${arg}"
 
 #   Interpret the arguments
     if ( [ "$arg" = "DBL" -o "$arg" = "dbl" ] ) then
@@ -174,6 +172,9 @@ while ( [ ${iarg} -lt ${n_args} ] ) ; do
     shift
 
 done
+echo "do_release - called with the following arguments:  "
+echo "${arg_list}" 
+echo ""
 
 # Get the operating system and the machine type
 PLATFORM_TAG="`uname -s`_`uname -m`"
@@ -231,7 +232,7 @@ if ( [ ${GMAKE_OVERRIDE} -eq 1 ] ) then
     export CESR_GMAKE
 fi
 
-if ( [ ${UTIL_OVERRIDE} -eq 1] ) then
+if ( [ ${UTIL_OVERRIDE} -eq 1 ] ) then
     CESR_UTIL=${use_cesr_util}
     export CESR_UTIL
 fi
@@ -261,28 +262,34 @@ if ( [ $DO_DUMP -eq 1 ] ) then
 fi
 
 # Print the CESR environment variables
+echo ""
+echo "CESR Environment:  "
 printenv | grep CESR_
 printenv | grep PKG_
-
+echo ""
 
 # Checkout the PACKAGES RELEASE
 co_pkg_status=0
-if ( [ $DO_PKG -eq 1 ] ) then
+if ( [ $DO_PKG -eq 1 ] && [ ${DO_CHECKOUT} = "do_checkout" ] ) then
     echo "`date`: Checking out packages..."
-    gmake -f ${CESR_BIN}/M.release PACKAGE_NAME=${PKG_NAME} DO_PKG=${DO_PKG} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BUILD="" > ${FULL_PKG_LOG} 2>&1
+    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_PKG=${DO_PKG} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BUILD="" > ${FULL_PKG_LOG} 2>&1
     co_pkg_status=$?
 fi
 
 # Checkout the CESR RELEASE
 co_rel_status=0
-if ( [ $DO_REL -eq 1 ] ) then
+if ( [ $DO_REL -eq 1 ] && [ ${DO_CHECKOUT} = "do_checkout" ] ) then
     echo "`date`: Checking out CESR release..."
-    gmake -f ${CESR_BIN}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BUILD="" > ${FULL_REL_LOG} 2>&1
+    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BUILD="" > ${FULL_REL_LOG} 2>&1
     co_rel_status=$?
 fi
 
 if ( [ $co_pkg_status -eq 0 ] && [ $co_rel_status -eq 0 ] ) then
-    echo "`date`:  Checkout phase completed successfully!"
+    if ( [ ${DO_CHECKOUT} = "do_checkout" ] ) then
+        echo "`date`:  Checkout phase completed successfully!"
+    else
+        echo "`date`:  No checkout required!"
+    fi
 else
     echo "`date`:  Checkout failed [PKG_STATUS=$build_pkg_status, REL_STATUS=$build_rel_status]!"
     echo "Aborting!"
@@ -294,16 +301,18 @@ fi
 build_pkg_status=0
 if ( [ $DO_PKG -eq 1 ] ) then
     echo "`date`: Installing packages..."
-    gmake -f ${CESR_BIN}/M.release PACKAGE_NAME=${PKG_NAME} DO_PKG=${DO_PKG} CESR_PRECISION=${CESR_PREC} CHECKOUT="" BUILD=${DO_BUILD} >> ${FULL_PKG_LOG} 2>&1
+    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_PKG=${DO_PKG} CESR_PRECISION=${CESR_PREC} CHECKOUT="" BUILD=${DO_BUILD} >> ${FULL_PKG_LOG} 2>&1
     build_pkg_status=$?
+    echo "`date`: PACKAGES build complete"
 fi
 
 # Build the CESR RELEASE
 build_rel_status=0
 if ( [ $DO_REL -eq 1 ] ) then
     echo "`date`: Installing release..."
-    gmake -f ${CESR_BIN}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT="" BUILD=${DO_BUILD} >> ${FULL_REL_LOG} 2>&1
+    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT="" BUILD=${DO_BUILD} >> ${FULL_REL_LOG} 2>&1
     build_rel_status=$?
+    echo "`date`: CESR build complete"
 fi
 
 if ( [ $build_pkg_status -eq 0 ] && [ $build_rel_status -eq 0 ] ) then
