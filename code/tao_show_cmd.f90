@@ -312,12 +312,20 @@ case ('ele')
 
 case ('global')
 
-  nl=nl+1; write (lines(nl), imt) 'n_universes: ', size(s%u)
-  nl=nl+1; write (lines(nl), imt) 'u_view:      ', s%global%u_view
-  nl=nl+1; write (lines(nl), amt) 'optimizer:     ', s%global%optimizer
-  nl=nl+1; write (lines(nl), lmt) 'var_limits_on: ', s%global%var_limits_on
-  nl=nl+1; write (lines(nl), lmt) 'opt_with_ref:  ', s%global%opt_with_ref 
-  nl=nl+1; write (lines(nl), lmt) 'opt_with_base: ', s%global%opt_with_base
+  nl=nl+1; write (lines(nl), imt) 'n_universes:      ', size(s%u)
+  nl=nl+1; write (lines(nl), imt) 'u_view:           ', s%global%u_view
+  nl=nl+1; write (lines(nl), imt) 'phase_units:      ', s%global%phase_units
+  nl=nl+1; write (lines(nl), imt) 'n_opti_cycles:    ', s%global%n_opti_cycles
+  nl=nl+1; write (lines(nl), amt) 'optimizer:        ', s%global%optimizer
+  nl=nl+1; write (lines(nl), amt) 'prompt_string:    ', s%global%prompt_string
+  nl=nl+1; write (lines(nl), amt) 'var_out_file:     ', s%global%var_out_file
+  nl=nl+1; write (lines(nl), amt) 'opt_var_out_file: ', s%global%opt_var_out_file
+  nl=nl+1; write (lines(nl), amt) 'print_command:    ', s%global%print_command
+  nl=nl+1; write (lines(nl), lmt) 'var_limits_on:    ', s%global%var_limits_on
+  nl=nl+1; write (lines(nl), lmt) 'opt_with_ref:     ', s%global%opt_with_ref 
+  nl=nl+1; write (lines(nl), lmt) 'opt_with_base:    ', s%global%opt_with_base
+  nl=nl+1; write (lines(nl), lmt) 'plot_on:          ', s%global%plot_on
+  nl=nl+1; write (lines(nl), lmt) 'var_limits_on:    ', s%global%var_limits_on
 
   call out_io (s_blank$, r_name, lines(1:nl))
 

@@ -96,6 +96,7 @@ namelist block named \vn{tao_params} The syntax of this block is:
     n_d2_data_max = <integer>   ! number of d2 data structures.
     n_data_max    = <integer>   ! Total number of data points
     n_var_max     = <integer>   ! Total number of variables.
+    global        = <tao_global_struct> ! global parameters
   /
 \end{example}
 Example:
@@ -105,12 +106,14 @@ Example:
     n_d2_data_max = 6
     n_data_max    = 2000
     n_var_max     = 2000
+    global%optimizer = 'lm'  ! Set the default optimizer.
   /
 \end{example}
-\vn{n_d2_data_max} and \vn{n_v1_var_max} are the maximum
-number of \vn{d2_data} and \vn{v1_var} structures
-needed. \vn{n_data_max} is the maximum number of datums needed and
-\vn{n_var_max} is the maximum total number variables used.
+\vn{n_d2_data_max} and \vn{n_v1_var_max} are the maximum number of
+\vn{d2_data} and \vn{v1_var} structures needed. \vn{n_data_max} is the
+maximum number of datums needed and \vn{n_var_max} is the maximum
+total number variables used. For a list of \vn{global} elements see
+the description of the \vn{set} command in Chapter~\ref{c:command}.
 
 %-----------------------------------------------------------------
 \section{Initializing Variables}

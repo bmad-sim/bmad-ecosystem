@@ -1,5 +1,5 @@
 \chapter{Tao Line Mode Commands}
-\label{c:commands}
+\label{c:command}
 
 This chapter gives a description of the commands that \tao knows about
 in \vn{line mode}. For a description of \vn{single mode} commands
@@ -198,7 +198,7 @@ Format:
 
 \vskip 0.2in 
 \vn{Help} gives help on \tao commands. The environmental
-variable TAO_DIR must be defined so \tao can find any help files.
+variable \vn{TAO_DIR} must be defined so \tao can find any help files.
 
 Examples:
 \begin{example}
@@ -346,8 +346,8 @@ Examples:
 
 Format:
 \begin{example}
-  set data <data_name> <component> = <value> \{<locations\}
-  set var <var_name> <component> = <value> \{<locations\}
+  set data <data_name> <component> = <value> \{<locations>\}
+  set var <var_name> <component> = <value> \{<locations>\}
   set global <component> = <value>
 \end{example}
 
@@ -391,11 +391,17 @@ Besides a numeric value \vn{<value>} can be:
   design      ! design lattice value
 \end{example}
 
-For \vn{set global} version of set possible 
-\vn{<components>}s that can be set are:
+For \vn{set global} the possible 
+\vn{<component>}s that can be set are:
 \begin{example}
-  opt\_with\_ref  = T/F ! Use the reference data with optimization.
-  opt\_with\_base = T/F ! Use the base lattice with optimization.
+  opt_with_ref      = T/F      ! Use the reference data with optimization.
+  opt_with_base     = T/F      ! Use the base lattice with optimization.
+  single_mode       = T/F      ! This only makes sense if set in the init file.
+  n_opti_cycles     = <number> ! Number of optimization cycles
+  phase_units       = <number> ! Set phase units output
+  prompt_string     = <string> ! Prompt string
+  var_out_file      = <name>   ! File name of the list of variables in Bmad format. 
+  opt_var_out_file  = <name>   ! File name for the optimizer generated file.
 \end{example}
 
 Examples:
