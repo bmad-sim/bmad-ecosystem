@@ -2,7 +2,7 @@
 \label{c:program_info}
 
 Routine calculations like tracking and Twiss parameter can be fairly
-simple useing \bmad\. To get the general feel for things before
+simple using \bmad\. To get the general feel for things before
 getting into the nitty--gritty details in subsequent chapters, this
 chapter analyzes a simple program.
 
@@ -135,7 +135,7 @@ routine \rn{twiss_at_start} (line 13) to multiply the transfer
 matrices of the individual elements together to form the 1--turn
 matrix from the start of the ring back to the start. From this matrix
 \rn{twiss_at_start} calculates the Twiss parameters at the start of
-the lattice and puts the infomation into the \vn{ring} variable. The
+the lattice and puts the information into the \vn{ring} variable. The
 next call, to \rn{twiss_propagate_all} (line 14), takes the starting
 Twiss parameters and, using the transfer matrices of the individual
 elements, calculates the Twiss parameters at all the elements. Again
@@ -201,7 +201,7 @@ details. Since the center of the \vn{CLEO_SOL} is a $s = 0$ half of it
 extends to negative $s$. In this situation \vn{bmad_parser} will wrap
 this half back and superimpose it on the elements at the end of the lattice
 list near $s = s_{lat}$ where $s_{lat}$ is the length of the lattice.
-As exaplined in Chapter~\ref{c:ring_struct} the
+As explained in Chapter~\ref{c:ring_struct} the
 lattice list that is used for tracking extends from \vn{ring%ele_(0)} through
 \vn{ring%ele_(n)} where \vn{n = ring%n_ele_ring}. The \vn{CLEO_SOL} element 
 is put in the section of \vn{ring%ele_(n)} with \vn{n >

@@ -80,7 +80,7 @@ Figure~\ref{f:param_struct}
   type param_struct
     real(rp) beam_energy        ! beam energy in eV
     real(rp) n_part             ! Particles/bunch (for BeamBeam elements).
-    real(rp) charge             ! MacroParticle charge (used by LCavities).
+    real(rp) charge             ! Macroparticle charge (used by LCavities).
     real(rp) total_length       ! total_length of ring
     real(rp) growth_rate        ! growth rate/turn if not stable
     real(rp) t1_mat6(6,6)       ! Full 1-turn 6x6 matrix
@@ -157,7 +157,7 @@ elements.  The following example prints the names and controlled
 attributes of the slaves of a particular lord element. If the lord is
 an \vn{overlay} or \vn{group} then \vn{%control_(:)%ix_attrib} and 
 \vn{%control_(:)%coef} give the attribute index of the controlled
-attriube andthe appropriate  coefficient 
+attribute and the appropriate  coefficient 
 \begin{example}
   type (ring_struct) ring
   ...

@@ -210,8 +210,8 @@ does not have to be set in the input file.  The
 \vn{init_macro_distribution} routine (line 27) initializes the
 \vn{beam} variable. The \vn{beam} variable is a container that holds
 the macroparticles that make up the beam. The \vn{track_beam} routine
-tracks these macroparticles thorugh to the end of the linac. If it is
-desired to track only thourgh part of the linac then \vn{track_beam}
+tracks these macroparticles through to the end of the linac. If it is
+desired to track only through part of the linac then \vn{track_beam}
 has optional arguments that allow this. lines 30 through 41 print out
 some horizontal parameters from the position at the end of the linac.
 
@@ -252,7 +252,7 @@ program macroparticle_test
   do i = 1, size(beam%bunch)
     do j = 1, size(beam%bunch(i)%slice)
       do k = 1, size(beam%bunch(i)%slice(j)%macro)
-        mp = beamm%bunch(i)%slice(j)%macro(k)
+        mp = beam%bunch(i)%slice(j)%macro(k)
         call mp_to_angle_coords (mp, ring%ele_(n)%value(beam_energy$))
         print '(3i2, 1p, 5e12.4)', i, j, k, mp%r%vec(1), mp%r%vec(2), &
                   mp%sigma(s11$), mp%sigma(s12$), mp%sigma(s22$)

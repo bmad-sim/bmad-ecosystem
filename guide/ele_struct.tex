@@ -52,7 +52,7 @@ attributes set in the lattice file and will not be discussed further.
 \end{figure}
 
 %--------------------------------------------------------------------------
-\section{Initalization and Element Key}
+\section{Initialization and Element Key}
 
 The \vn{%key} integer component gives the type of element (\vn{quadrupole},
 \vn{RFcavity}, etc.). In general to get the correct index for an element type
@@ -120,7 +120,7 @@ for a quadrupole element is stored in \vn{%value(k1\$)} where
 \vn{k1\$} is an integer parameter. In general to get the correct index
 in \vn{%value(:)} for a given attribute just add a ``\$" as a
 suffix. To convert from an attribute name to its index in the
-\vn{%value} array use the \vn{attriubte_index} routine.  To go back
+\vn{%value} array use the \vn{attribute_index} routine.  To go back
 from an index in the \vn{%value} array to a name use the
 \vn{attribute_name} routine
 \begin{example}

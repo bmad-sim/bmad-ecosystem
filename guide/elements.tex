@@ -19,22 +19,22 @@ The list of element types known to \bmad\ is shown in Table~\ref{tab:elements}.
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Element} & {\it Section}     & {\it Element} & {\it Section}    \\ \hline
-  AB\_Multipole & \ref{s:ab_m}      &  Octupole     & \ref{s:oct}      \\ \hline
-  Accel\_Sol    & \ref{s:accel_sol} &  Overlay      & \ref{s:overlay}  \\ \hline
-  BeamBeam      & \ref{s:bbi}       &  Patch        & \ref{s:patch}    \\ \hline
-  Custom        & \ref{s:custom}    &  Quadrupole   & \ref{s:quad}     \\ \hline
-  Drift         & \ref{s:drift}     &  Rbend        & \ref{s:bend}     \\ \hline
-  Ecollimator   & \ref{s:col}       &  Rcollimator  & \ref{s:col}      \\ \hline
-  ElSeparator   & \ref{s:elsep}     &  RFcavity     & \ref{s:rfcav}    \\ \hline
-  Group         & \ref{s:group}     &  Sbend        & \ref{s:bend}     \\ \hline
-  HKicker       & \ref{s:hvkicker}  &  Sextupole    & \ref{s:sex}      \\ \hline
-  Hybrid        & \ref{s:hybrid}    &  Solenoid     & \ref{s:sol}      \\ \hline
+  AB\_Multipole & \ref{s:ab_m}      &  Multipole    & \ref{s:mult}     \\ \hline
+  Accel\_Sol    & \ref{s:accel_sol} &  Octupole     & \ref{s:oct}      \\ \hline
+  BeamBeam      & \ref{s:bbi}       &  Overlay      & \ref{s:overlay}  \\ \hline
+  Custom        & \ref{s:custom}    &  Patch        & \ref{s:patch}    \\ \hline
+  Drift         & \ref{s:drift}     &  Quadrupole   & \ref{s:quad}     \\ \hline
+  Ecollimator   & \ref{s:col}       &  Rbend        & \ref{s:bend}     \\ \hline
+  ElSeparator   & \ref{s:elsep}     &  Rcollimator  & \ref{s:col}      \\ \hline
+  Group         & \ref{s:group}     &  RFcavity     & \ref{s:rfcav}    \\ \hline
+  HKicker       & \ref{s:hvkicker}  &  Sbend        & \ref{s:bend}     \\ \hline
+  Hybrid        & \ref{s:hybrid}    &  Sextupole    & \ref{s:sex}      \\ \hline
+  I\_Beam       & \ref{s:i_beam}    &  Solenoid     & \ref{s:sol}      \\ \hline
   Instrument    & \ref{s:monitor}   &  Sol\_Quad    & \ref{s:sq}       \\ \hline
   Kicker        & \ref{s:kicker}    &  Taylor       & \ref{s:tay}      \\ \hline
   LCavity       & \ref{s:lcav}      &  VKicker      & \ref{s:hvkicker} \\ \hline
   Marker        & \ref{s:mark}      &  Wiggler      & \ref{s:wig}      \\ \hline
   Monitor       & \ref{s:monitor}   &               &                  \\ \hline
-  Multipole     & \ref{s:mult}      &               &                  \\ \hline
 \end{tabular}
 }
 \caption{\bmad\ elements.}
@@ -376,6 +376,81 @@ other element together. \vn{Hybrid} elements are not part of the input
 lattice file but are created by a program, usually for speed purposes.
 
 %-----------------------------------------------------------------
+\section{I\_Beam}
+\label{s:i_beam}
+
+An \vn{I_Beam} is a support structure that orients the elements that
+are attached to it in space.
+
+\toffset
+\begin{center}
+\tt
+\begin{tabular}{|l|l||l|l||l|l|} \hline
+  {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
+  x\_offset  = Real     & \ref{s:offset}  &   x\_pitch  = Real     & \ref{s:offset}  &  type = String    & \ref{s:string}  \\ \hline
+  y\_offset  = Real     & \ref{s:offset}  &   y\_pitch  = Real     & \ref{s:offset}  &  alias = String   & \ref{s:string}  \\ \hline
+  s\_offset  = Real     & \ref{s:offset}  &   tilt      = Real     & \ref{s:offset}  &  descrip = String & \ref{s:string}  \\ \hline
+  i\_beam = List        &                 &                        &                 &                   &                 \\ \hline
+\end{tabular}
+\end{center}
+\toffset
+
+When an \vn{I_Beam} overlays an element, then that elements
+orientation attributes (\vn{x_offset}, etc.) give the orientation of
+the element with respect to the \vn{I_Beam}. An example will make this clear:
+\begin{example}
+  q1: quad, l = 10
+  q2: quad, l = 5, x_offset = 0.2, x_pitch = 0.01
+  ib: i_beam = \{q1, q2\}, x_pitch = 0.1, x_offset = 0.3
+  this_line: line = (q1, q2)
+  use, this
+\end{example}
+In this example \vn{ib} supports elements \vn{q1} and \vn{q2}. The
+center of \vn{ib} is at $s = 7.5$ (\vn{ib} starts at $s = 0$ which is
+the beginning of \vn{q1} and ends at $s = 15$ which is the end of
+\vn{q2}). Like other elements, pitch is calculated from the center of
+an \vn{I_Beam} element (see Sec.~\ref{s:offset}). The center of
+\vn{q2} is at $s = 12.5$ so the distance between the center of \vn{ib}
+and \vn{q2} is $ds = 5$. The pitch of \vn{ib} produces an offset at
+the center of \vn{q2} of $0.5 = 0.1 * 5$. This, added to the offsets
+of \vn{ib} and \vn{q2}, give the total offset of \vn{q2} to be $1.0 =
+0.5 + 0.3 + 0.2$. The total \vn{x_pitch} of \vn{q2} is $0.11 = 0.1 +
+0.01$.
+
+From the above example it can be seen that an \vn{I_Beam} looks similar to
+an overlay (see Sec.~\ref{s:overlay}). One difference is that an
+overlay has only a single value that can be varied. An \vn{I_Beam} has
+6.  Another difference is how the elements to be controlled are
+specified. For an \vn{I_Beam} the syntax is:
+\begin{example}
+  beam_name: I_BEAM = \{start_ele, ele1, ele2, ..., end_ele\}, ...
+\end{example}
+\vn{start_ele} and \vn{end_ele} define where the \vn{I_Beam} starts
+and ends. In the lattice list \vn{start_ele} must be before
+\vn{end_ele}. By default any element between these two elements that
+is not a drift becomes part of the \vn{I_Beam}. \vn{ele1}, \vn{ele2},
+etc. are used to exclude elements from becoming part of the
+\vn{I_Beam}.  Put a negative sign ``-'' before each element name that
+is to be excluded. For example:
+\begin{example}
+  q1: quad
+  q2: quad
+  s0: sextupole
+  s1: sextupole
+  ib: i_beam = \{q1, -s0, q2\}
+  this_line: line = (q1, s0, s1, q2, ..., q1, s0, s1, q2)
+  use, this
+\end{example}
+In this example \vn{s1} but not \vn{s0} would be controlled by
+\vn{ib}.  If there are more than one \vn{start_ele} and \vn{end_ele}
+pairs then multiple \vn{I_Beam} elements will be created. In the above
+example two \vn{I_Beam} elements will be created.
+
+Note to programmers: The total \vn{x_offset} of an element is stored
+in the component \vn{%value(x_offset_tot\$)}. Similarly the total
+\vn{tilt} is stored in \vn{%value(tilt_tot\$)}, etc.
+
+%-----------------------------------------------------------------
 \section{Instrument and Monitor}
 \label{s:monitor}
 
@@ -476,7 +551,7 @@ An \vn{LCavity} is a LINAC accelerating cavity.
 Tracking through an \vn{LCavity} is modeled using the equations
 developed by Rosenzweig and Serafini\cite{b:rosenzweig}. The
 attributes specific to an \vn{LCavity} are The dependent variable
-\vn{delta_e} attribute can be used in place of \vn{gradiant} in a
+\vn{delta_e} attribute can be used in place of \vn{gradient} in a
 primary lattice file as discussed in Section~\ref{s:dependent}.
 \begin{example}
   gradient     ! Accelerating gradient (V/m).
@@ -490,12 +565,14 @@ primary lattice file as discussed in Section~\ref{s:dependent}.
 
 The kick felt by a particle is 
 \begin{example}
-  dE = voltage * cos(twopi * (phi0 + z * rf_frequency / c_light))
-\end{example}
-This is consistant with MAD but not with LIAR which uses
-\begin{example}
   dE = voltage * cos(twopi * (phi0 - z * rf_frequency / c_light))
 \end{example}
+This is consistent with MAD and LIAR. Note: The MAD8 documentation 
+for an \vn{LCavity} gives essentially
+\begin{example}
+  dE = voltage * cos(twopi * (phi0 + z * rf_frequency / c_light))
+\end{example}
+This is incorrect.
 
 Note: The transfer matrix for an \vn{LCavity} with finite
 \vn{gradient} is never symplectic.
@@ -512,7 +589,7 @@ Dependent attributes:
   energy\_start
   beam\_energy  ! See section \ref{s:beam}
   e\_loss       ! Only a dependent var if a sr\_wake\_file is present.
-  delta\_e      ! = gradiant * L
+  delta\_e      ! = gradient * L
 \end{example}
 
 The input file name for the short--range wakefields is specified using the 
@@ -533,7 +610,7 @@ An example input file is:
 \end{example}
 The first column is the longitudinal distance $z$. $z$ must start at 0 and must increment by
 the a constant amount from row to row. The second column is the longitudinal wake function in
-$V/C/m$. The third colum is the transverse wake in $V/C/m^2$. Any additional columns are ignored.
+$V/C/m$. The third column is the transverse wake in $V/C/m^2$. Any additional columns are ignored.
 
 
 %-----------------------------------------------------------------
@@ -765,7 +842,7 @@ the two is the way the input attributes are interpreted.
 \end{center}
 \toffset
 
-Note that \vn{l} for a \vn{Rbend} is the chord length. Not tharc
+Note that \vn{l} for a \vn{Rbend} is the chord length. Not the arc
 length as it is for a \vn{Sbend}.
 
 After reading in a lattice, \bmad\ will internally convert all
@@ -831,7 +908,8 @@ MAD. The kick felt by a particle is
 \begin{example}
   dE = voltage * sin(twopi * (phi0 + z * rf_frequency / c_light))
 \end{example}
-If \vn{harmon} is non--zero then rf_frequency is a dependent attribute calculated by
+If \vn{harmon} is non--zero then \vn{rf_frequency} is a dependent
+attribute calculated by
 \begin{example}
   rf_frequency = harmon * c_light / L_lattice 
 \end{example}
