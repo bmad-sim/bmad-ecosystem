@@ -12,7 +12,9 @@
 !   ring -- Ring_struct: Ring to search through.
 !
 ! Output:
-!   indx(:) -- Integer, allocatable: Array of indexes of the elements found..
+!   indx(:) -- Integer, pointer: Array of indexes of the elements found.
+!              Note: This routine does not try to deallocate indx.
+!               It is up to you to deallocate indx if needed.
 !-
 
 #include "CESR_platform.inc"
@@ -26,7 +28,7 @@ subroutine elements_locator (key, ring, indx)
   type (ring_struct) ring
 
   integer key
-  integer, allocatable :: indx(:)
+  integer, pointer :: indx(:)
   integer i, ix
 
 !
@@ -34,7 +36,6 @@ subroutine elements_locator (key, ring, indx)
   ix = count(ring%ele_(:)%key == key .and. &
                                   ring%ele_(:)%control_type /= super_slave$)
 
-  if (allocated(indx)) deallocate(indx)
   allocate(indx(ix))
 
   ix = 0
