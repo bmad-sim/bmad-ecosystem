@@ -1,3 +1,17 @@
+#include "CESR_platform.inc"
+
+module symp_lie_mod
+
+  type (symp_lie_com_struct)
+    logical :: save_steps = .true.        ! save orbit?
+    real(rp), pointer :: s(:) => null()   ! s_distance
+    type(coord_struct), pointer :: orb(:) ! orbit
+  end type
+
+  type (sym_lie_com_struct), save :: sl_com
+
+contains
+
 !+
 ! Subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 !
@@ -19,8 +33,6 @@
 !     %mat6  -- 6x6 transfer matrix.
 !   end    -- Coord_struct: Coordinates at the end of element.
 !-
-
-#include "CESR_platform.inc"
 
 subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 
@@ -519,3 +531,6 @@ end function
 
 end subroutine
 
+
+
+end module

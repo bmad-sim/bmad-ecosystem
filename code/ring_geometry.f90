@@ -25,36 +25,6 @@
 ! Note: The starting point is taken to be the position in RING%ELE_(0)
 !-
 
-!$Id$
-!$Log$
-!Revision 1.10  2003/01/27 14:40:42  dcs
-!bmad_version = 56
-!
-!Revision 1.9  2002/12/03 18:48:30  dcs
-!*** empty log message ***
-!
-!Revision 1.8  2002/11/27 04:04:07  dcs
-!Correct bug
-!
-!Revision 1.7  2002/11/26 21:26:33  dcs
-!Switch XYZ to MAD convention.
-!
-!Revision 1.6  2002/08/20 20:34:53  dcs
-!symp_lie_bmad / symp_lie_ptc added
-!
-!Revision 1.5  2002/06/13 14:54:28  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.4  2002/02/23 20:32:23  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/08 21:44:42  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.2  2001/09/27 18:31:57  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 subroutine ring_geometry (ring)

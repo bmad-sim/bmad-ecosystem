@@ -58,10 +58,10 @@ subroutine radiation_integrals (ring, orb_, mode)
   type (coord_struct), target :: orb_(0:), start, end
   type (modes_struct) mode
 
-  real(rdef), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
-  real(rdef), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
-  real(rdef) theta, energy, gamma2_factor, energy_loss, arg, ll
-  real(rdef) v(4,4), v_inv(4,4)
+  real(rp), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
+  real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
+  real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll
+  real(rp) v(4,4), v_inv(4,4)
 
   integer i, ix, ir, key
 
@@ -124,15 +124,15 @@ subroutine radiation_integrals (ring, orb_, mode)
         call transfer_rk_track (rk_com, ric%rk_track(i))
       enddo
 
-      ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rdef, ll, i1, 'I1')
-      ric%i2_(ir)  =   qromb_rad_int (eval_i2,  0.0_rdef, ll, i2, 'I2')
-      ric%i3_(ir)  =   qromb_rad_int (eval_i3,  0.0_rdef, ll, i3, 'I3')
+      ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rp, ll, i1, 'I1')
+      ric%i2_(ir)  =   qromb_rad_int (eval_i2,  0.0_rp, ll, i2, 'I2')
+      ric%i3_(ir)  =   qromb_rad_int (eval_i3,  0.0_rp, ll, i3, 'I3')
       ric%i4a_(ir) = ric%i4a_(ir) + &
-                         qromb_rad_int (eval_i4a, 0.0_rdef, ll, i2, 'I4A')
+                         qromb_rad_int (eval_i4a, 0.0_rp, ll, i2, 'I4A')
       ric%i4b_(ir) = ric%i4b_(ir) + &
-                         qromb_rad_int (eval_i4b, 0.0_rdef, ll, i2, 'I4B')
-      ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a, 'I5A')
-      ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b, 'I5B')
+                         qromb_rad_int (eval_i4b, 0.0_rp, ll, i2, 'I4B')
+      ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rp, ll, i5a, 'I5A')
+      ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rp, ll, i5b, 'I5B')
 
       cycle
 
@@ -154,8 +154,8 @@ subroutine radiation_integrals (ring, orb_, mode)
       ric%g_y0 = 0
       ric%k1 = 0
       ric%s1 = 0
-      ric%i5a_(ir) = qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a, 'I5A')
-      ric%i5b_(ir) = qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b, 'I5B')
+      ric%i5a_(ir) = qromb_rad_int (eval_i5a, 0.0_rp, ll, i5a, 'I5A')
+      ric%i5b_(ir) = qromb_rad_int (eval_i5b, 0.0_rp, ll, i5b, 'I5B')
       cycle
     endif
 
@@ -193,7 +193,7 @@ subroutine radiation_integrals (ring, orb_, mode)
 ! edge effects for a bend. In this case we ignore any rolls.
 
     if (key == sbend$) then
-      call propagate_part_way(0.0_rdef)
+      call propagate_part_way(0.0_rp)
       ric%i4a_(ir) = -ric%eta_a(1) * ric%g2 * tan(ric%ele%value(e1$))
       ric%i4b_(ir) = -ric%eta_b(1) * ric%g2 * tan(ric%ele%value(e1$))
       call propagate_part_way(ll)
@@ -205,13 +205,13 @@ subroutine radiation_integrals (ring, orb_, mode)
 
 ! integrate
 
-    ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rdef, ll, i1, 'I1')
+    ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rp, ll, i1, 'I1')
     ric%i4a_(ir) = ric%i4a_(ir) + &
-                         qromb_rad_int (eval_i4a, 0.0_rdef, ll, i2, 'I4A')
+                         qromb_rad_int (eval_i4a, 0.0_rp, ll, i2, 'I4A')
     ric%i4b_(ir) = ric%i4b_(ir) + &
-                         qromb_rad_int (eval_i4b, 0.0_rdef, ll, i2, 'I4B')
-    ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a, 'I5A')
-    ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b, 'I5B')
+                         qromb_rad_int (eval_i4b, 0.0_rp, ll, i2, 'I4B')
+    ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rp, ll, i5a, 'I5A')
+    ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rp, ll, i5b, 'I5B')
 
   enddo
 
@@ -238,15 +238,15 @@ subroutine radiation_integrals (ring, orb_, mode)
 
     call make_v_mats (ric%ele0, v, v_inv)
     ric%eta_a0 = &
-          matmul(v, (/ ric%ele0%x%eta, ric%ele0%x%etap, 0.0_rdef, 0.0_rdef /))
+          matmul(v, (/ ric%ele0%x%eta, ric%ele0%x%etap, 0.0_rp, 0.0_rp /))
     ric%eta_b0 = &
-          matmul(v, (/ 0.0_rdef, 0.0_rdef, ric%ele0%y%eta, ric%ele0%y%etap /))
+          matmul(v, (/ 0.0_rp, 0.0_rp, ric%ele0%y%eta, ric%ele0%y%etap /))
 
     call make_v_mats (ric%ele, v, v_inv)
     ric%eta_a1 = &
-          matmul(v, (/ ric%ele%x%eta, ric%ele%x%etap, 0.0_rdef, 0.0_rdef /))
+          matmul(v, (/ ric%ele%x%eta, ric%ele%x%etap, 0.0_rp, 0.0_rp /))
     ric%eta_b1 = &
-          matmul(v, (/ 0.0_rdef, 0.0_rdef, ric%ele%y%eta, ric%ele%y%etap /))
+          matmul(v, (/ 0.0_rp, 0.0_rp, ric%ele%y%eta, ric%ele%y%etap /))
 
     i1   = sum(ric%i1_(1:ring%n_ele_use))
     i2   = sum(ric%i2_(1:ring%n_ele_use))
@@ -254,15 +254,15 @@ subroutine radiation_integrals (ring, orb_, mode)
     i5a  = sum(ric%i5a_(1:ring%n_ele_use))
     i5b  = sum(ric%i5b_(1:ring%n_ele_use))
 
-    ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rdef, ll, i1, 'I1')
-    ric%i2_(ir)  =   qromb_rad_int (eval_i2,  0.0_rdef, ll, i2, 'I2')
-    ric%i3_(ir)  =   qromb_rad_int (eval_i3,  0.0_rdef, ll, i3, 'I3')
+    ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rp, ll, i1, 'I1')
+    ric%i2_(ir)  =   qromb_rad_int (eval_i2,  0.0_rp, ll, i2, 'I2')
+    ric%i3_(ir)  =   qromb_rad_int (eval_i3,  0.0_rp, ll, i3, 'I3')
     ric%i4a_(ir) = ric%i4a_(ir) + &
-                         qromb_rad_int (eval_i4a, 0.0_rdef, ll, i2, 'I4A')
+                         qromb_rad_int (eval_i4a, 0.0_rp, ll, i2, 'I4A')
     ric%i4b_(ir) = ric%i4b_(ir) + &
-                         qromb_rad_int (eval_i4b, 0.0_rdef, ll, i2, 'I4B')
-    ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a, 'I5A')
-    ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b, 'I5B')
+                         qromb_rad_int (eval_i4b, 0.0_rp, ll, i2, 'I4B')
+    ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rp, ll, i5a, 'I5A')
+    ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rp, ll, i5b, 'I5B')
 
   enddo
 
@@ -304,7 +304,7 @@ subroutine radiation_integrals (ring, orb_, mode)
     mode%z%j_damp = 2 + i4z / i2
 
     arg = (c_q * i3 * gamma2_factor / (2*i2 + i4z))
-    mode%sig_e = sqrt(max(0.0_rdef, arg))
+    mode%sig_e = sqrt(max(0.0_rp, arg))
 
   endif
 

@@ -917,18 +917,6 @@ module bmad_interface
   end interface
 
   interface
-    subroutine symp_lie_bmad (ele, param, start, end, make_mat6)
-      use bmad_struct
-      implicit none
-      type (coord_struct) :: start
-      type (coord_struct) :: end
-      type (ele_struct), target :: ele
-      type (param_struct) :: param
-      logical make_mat6
-    end subroutine
-  end interface
-
-  interface
     subroutine tilt_coords (tilt_val, coord, set)
       use precision_def
       implicit none

@@ -25,6 +25,7 @@ subroutine make_mat6 (ele, param, start, end)
   use bmad_struct
   use bmad_interface
   use make_mat6_mod
+  use symp_lie_mod
   use bookkeeper_mod
 
   implicit none

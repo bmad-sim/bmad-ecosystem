@@ -10,5 +10,6 @@ module bmad
   use ptc_interface_mod
   use bookkeeper_mod
   use radiation_mod
+  use symp_lie_mod
 
 end module

@@ -44,33 +44,6 @@
 !     coord -- Coord_struct: Coordinates of particle.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.10  2003/06/04 17:55:54  dcs
-!Eliminated x%pos, x%vel, etc. from coord_struct.
-!
-!Revision 1.9  2003/04/24 17:26:22  dcs
-!Corrected l = 0 & pitch /= 0 bug.
-!
-!Revision 1.8  2003/01/27 14:40:41  dcs
-!bmad_version = 56
-!
-!Revision 1.6  2002/11/07 17:10:04  dcs
-!Bug_fix
-!
-!Revision 1.4  2002/08/20 20:34:53  dcs
-!symp_lie_bmad / symp_lie_ptc added
-!
-!Revision 1.3  2002/06/13 14:54:28  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.2  2002/02/23 20:32:21  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.1  2002/01/08 21:44:42  dcs
-!Aligned with VMS version  -- DCS
-!
-
 #include "CESR_platform.inc"
                                                               
 subroutine offset_particle (ele, param, coord, set, set_canonical, &
@@ -86,9 +59,9 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
   type (param_struct), intent(in) :: param
   type (coord_struct), intent(inout) :: coord
 
-  real(rdef), optional, intent(in) :: s_pos
-  real(rdef) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-  real(rdef) del_x_vel, del_y_vel, angle, s_here
+  real(rp), optional, intent(in) :: s_pos
+  real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+  real(rp) del_x_vel, del_y_vel, angle, s_here
 
   integer n
 

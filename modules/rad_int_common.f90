@@ -38,7 +38,8 @@ module rad_int_common
 
 contains
 
-function qromb_rad_int (func, a, b, sum, which_int) result (rad_int)
+function qromb_rad_int (func, a, b, sum, which_int, &
+                                      eps_int, eps_sum) result (rad_int)
 
   use precision_def
   use nrtype; use nrutil, only : nrerror
@@ -57,15 +58,22 @@ function qromb_rad_int (func, a, b, sum, which_int) result (rad_int)
   integer(i4b), parameter :: jmax = 14, k = 5, km = k-1
   integer(i4b) :: j
 
+  real(rp), intent(in), optional :: eps_int, eps_sum
   real(rdef), intent(in) :: a, b, sum
   real(rdef) :: rad_int
   real(rdef) :: dqromb
-  real(rdef), parameter :: eps = 1.0e-4_rdef, eps2 = 1.0e-6_rdef
+  real(rdef) :: eps_i, eps_s
   real(rdef) :: h(0:jmax), s(0:jmax)
 
   character*(*) which_int
 
 !
+
+  eps_i = 1e-4
+  if (present(eps_int)) eps_i = eps_int
+
+  eps_s = 1e-6
+  if (present(eps_sum)) eps_s = eps_sum
 
   h(0) = 4.0
   s(0) = 0.0
@@ -80,10 +88,10 @@ function qromb_rad_int (func, a, b, sum, which_int) result (rad_int)
 
     if (j >=  k) then
       call polint(h(j-km:j), s(j-km:j), 0.0_rdef, rad_int, dqromb)
-      if (abs(dqromb) <= eps * abs(rad_int) + eps2 * abs(sum)) return
+      if (abs(dqromb) <= eps_i * abs(rad_int) + eps_s * abs(sum)) return
     elseif (j >= 3) then
       call polint(h(1:j), s(1:j), 0.0_rdef, rad_int, dqromb)
-      if (abs(dqromb) <= eps * abs(rad_int) + eps2 * abs(sum)) return
+      if (abs(dqromb) <= eps_i * abs(rad_int) + eps_s * abs(sum)) return
     end if
 
   end do
