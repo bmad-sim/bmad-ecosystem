@@ -22,16 +22,19 @@
 #                         script
 #
 #         variables:
-#           PKG=<packages_dir>  Specify a specific packages release
 #           TAG=<release_tag>   Specify a custom tag for the release
-#           PKG=<packages_dir>  Specify a specific packages release
-#                               to build against
-#           REL=<release_dir>   Specify a specific CESR release
-#                               to build against
-#           GMAKE=<gmake_dir>   Specify a custom CESR_GMAKE directory
+#           PKG=<packages_name> Specify a specific packages release
+#                               to build against.  Expects only base 
+#                               directory name (NO path).
+#           REL=<release_name>  Specify a specific CESR release
+#                               to build against.  Expects only base 
+#                               directory name (NO path).
+#           GMAKE=<gmake_dir>   Specify a custom CESR_GMAKE directory.
+#                               Expects FULL path.
 #           UTIL=<util_dir>     Specify a custom CESR_UTIL  directory
-#                               to build against
+#                               to build against.  Expects FULL path.
 #           BIN=<bin_dir>       Specify a custom CESR_BIN directory
+#                               Expects FULL path.
 #
 # examples: do_release PKG=packages_2003_0728_d DBL 
 #           do_release -build_only cesr_yyyy_mmdd_d DBL
@@ -63,9 +66,9 @@ myprint_help () {
     echo ""
     echo "Variable definitions:"
     echo "TAG=<release_tag>   Specify a custom tag for the release"
-    echo "PKG=<packages_dir>  Specify a specific packages release"
+    echo "PKG=<packages_name> Specify a specific packages release"
     echo "                    to build against"
-    echo "REL=<release_dir>   Specify a specific CESR release"
+    echo "REL=<release_name>  Specify a specific CESR release"
     echo "                    to build against"
     echo "GMAKE=<gmake_dir>   Specify a custom CESR_GMAKE directory"
     echo "UTIL=<util_dir>     Specify a custom CESR_UTIL  directory"
@@ -286,12 +289,12 @@ fi
 
 if ( [ $co_pkg_status -eq 0 ] && [ $co_rel_status -eq 0 ] ) then
     if ( [ ${DO_CHECKOUT} = "do_checkout" ] ) then
-        echo "`date`:  Checkout phase completed successfully!"
+        echo "`date`: Checkout phase completed successfully!"
     else
-        echo "`date`:  No checkout required!"
+        echo "`date`: No checkout required!"
     fi
 else
-    echo "`date`:  Checkout failed [PKG_STATUS=$build_pkg_status, REL_STATUS=$build_rel_status]!"
+    echo "`date`: Checkout failed [PKG_STATUS=$build_pkg_status, REL_STATUS=$build_rel_status]!"
     echo "Aborting!"
     exit 1
 fi
@@ -316,12 +319,13 @@ if ( [ $DO_REL -eq 1 ] ) then
 fi
 
 if ( [ $build_pkg_status -eq 0 ] && [ $build_rel_status -eq 0 ] ) then
-    echo "`date`:  Installation completed successfully!"
+    echo "`date`: Installation completed successfully!"
 else
-    echo "`date`:  Installation completed with errors [PKG_STATUS=$build_pkg_status, REL_STATUS=$build_rel_status]!"
+    echo "`date`: Installation completed with errors [PKG_STATUS=$build_pkg_status, REL_STATUS=$build_rel_status]!"
 fi
 
 exit
+
 
 
 
