@@ -44,7 +44,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   implicit none
 
   type (ring_struct), target :: ring, in_ring
-  type (seq_struct), save, target :: this_seq(200)
+  type (seq_struct), save, target :: this_seq(400)
   type (seq_struct), pointer :: seq, seq2
   type (seq_ele_struct), pointer :: s_ele
   type (parser_ring_struct) pring
