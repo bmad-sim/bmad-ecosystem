@@ -312,7 +312,7 @@ subroutine ring_vec_equal_ring_vec (ring1, ring2)
 ! transfer
 
   do i = 1, size(ring1)
-    ring1(i) = ring2(i)
+    call ring_equal_ring (ring1(i), ring2(i))
   enddo
 
 end subroutine
