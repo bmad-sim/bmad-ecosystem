@@ -48,8 +48,8 @@ contains
 !   cross_positions(:) --  Real(rp): array of positions of parasitic 
 !                          crossings, where values are >=0 and < 1,
 !                          with both 0 and 1 being the south IP.
-!   ptrain(1:90)       --  Integer: Train associated with this crossing.
-!   pcar(1:90)         --  Integer: Car associated with this crossing.
+!   ptrain(1:900)       --  Integer: Train associated with this crossing.
+!   pcar(1:900)         --  Integer: Car associated with this crossing.
 !      
 !-
 
@@ -64,8 +64,8 @@ subroutine cesr_crossings(i_train, j_car, species, n_trains_tot, n_cars, &
   integer, intent(in) :: i_train, j_car, species, n_trains_tot, n_cars         
   integer, optional, intent(in) :: train_spacing(1:10)
   integer, optional, intent(in) :: n_car_spacing(1:10)
-  integer, optional, intent(out) :: ptrain(1:90)
-  integer, optional, intent(out) :: pcar(1:90)
+  integer, optional, intent(out) :: ptrain(1:900)
+  integer, optional, intent(out) :: pcar(1:900)
   integer :: i, j, k, p, pp, tnumber, bnumber, trlength, ierr            
   integer :: bunch_tot                                  
   real(rp) :: n_bucket
@@ -101,6 +101,9 @@ subroutine cesr_crossings(i_train, j_car, species, n_trains_tot, n_cars, &
     print*, "OPPOS_BUCKETS: ALLOCATION REQUEST DENIED."
     call err_exit
   endif
+
+     write(6,1100)n_car_spacing,train_spacing
+1100 format(' CESR_CROSSINGS called with n_car_spacing=',10i5,'   train_spacing=',10i5)
 
 ! If not otherwise specified, use 7 buckets between bunches and 140, 140, 147,
 ! repeating, buckets between trains.
@@ -230,14 +233,14 @@ subroutine cesr_crossings(i_train, j_car, species, n_trains_tot, n_cars, &
     do i = j, j+bunch_tot-1
      ib = mod ( i - j, n_cars ) + 1
      it = mod ( ( i - j ) / n_cars, n_trains_tot ) + 1
-     if ( i .gt. 90 ) then
-       print *,' CESR_CROSSINGS: WARNING. PCAR array size limit of 90 exceeded. i=',i
+     if ( i .gt. 900 ) then
+       print *,' CESR_CROSSINGS: WARNING. PCAR array size limit of 900 exceeded. i=',i
        cycle
      endif
      pcar ( i ) = ib
      ptrain ( i ) = it
 !     write(6,2000)i,it,ib,2562*cross_positions(i)
-2000 format(' CESR_CROSSINGS: i, train, bunch, cross_position= ',3i6,f8.1)
+2000 format(' CESR_CROSSINGS: i, train, bunch, cross_position= ',3i6,900f8.1)
     enddo
    enddo
   endif
@@ -329,9 +332,9 @@ subroutine LRBBI_crossings(n_bucket, oppos_buckets, cross_positions)
     cross_positions(j) = cross_positions(j)/bucket_tot                     
   enddo                                                                     
 
-!  print *
-!  print *,'Rtn LRBBI_crossings calculates cross_positions array:'
-!  write(6,'(5f7.1)')cross_positions*bucket_tot*2
+  print *
+  print *,'Rtn LRBBI_crossings calculates cross_positions array:'
+  write(6,'(5f7.1)')cross_positions*bucket_tot*2
 !  print *
 !  print *,'Rtn LRBBI_crossings uses array oppos_buckets:'
 !  write(6,'(5f7.1)')oppos_buckets
