@@ -72,7 +72,7 @@ subroutine twiss_propagate1 (ele1, ele2)
 
   if (all(ele2%mat6(1:2,3:4) == 0)) then
 
-    call mat_symp_conj (ele2%mat6(3:4,3:4), y_inv, 2, 2) ! conj == inverse
+    call mat_symp_conj (ele2%mat6(3:4,3:4), y_inv) ! conj == inverse
     mat2 = matmul (ele2%mat6(1:2,1:2), ele1%c_mat)
     ele2%c_mat = matmul (mat2, y_inv)
     ele2%gamma_c = ele1%gamma_c
@@ -90,7 +90,7 @@ subroutine twiss_propagate1 (ele1, ele2)
     big_N = ele2%mat6(3:4,3:4)
     small_n = ele2%mat6(3:4,1:2)
 
-    call mat_symp_conj (ele1%c_mat, c_conj_mat, 2, 2)
+    call mat_symp_conj (ele1%c_mat, c_conj_mat)
     mat2 = ele1%gamma_c * big_M - matmul(small_m, c_conj_mat)
     call mat_det (mat2, det)
 
@@ -103,7 +103,7 @@ subroutine twiss_propagate1 (ele1, ele2)
       ele_temp%mat6(1:2,1:2) = mat2 / ele2%gamma_c
       ele_temp%mat6(3:4,3:4) = &
             (ele1%gamma_c * big_N + matmul(small_n, ele1%c_mat)) / ele2%gamma_c
-      call mat_symp_conj (ele_temp%mat6(3:4,3:4), F_inv_mat, 2, 2)
+      call mat_symp_conj (ele_temp%mat6(3:4,3:4), F_inv_mat)
       ele2%c_mat = matmul(matmul(big_M, ele1%c_mat) + &
                                   ele1%gamma_c * small_m, F_inv_mat)
 
@@ -123,7 +123,7 @@ subroutine twiss_propagate1 (ele1, ele2)
             (ele1%gamma_c * small_n - matmul(big_N, c_conj_mat)) / ele2%gamma_c
       ele_temp%mat6(3:4,3:4) = mat2 / ele2%gamma_c
 
-      call mat_symp_conj (ele_temp%mat6(1:2,1:2), E_inv_mat, 2, 2)
+      call mat_symp_conj (ele_temp%mat6(1:2,1:2), E_inv_mat)
       ele2%c_mat = &
           matmul(ele1%gamma_c * big_M - matmul(small_m, c_conj_mat), E_inv_mat)
 

@@ -203,7 +203,7 @@ subroutine reverse_ele (ele)
 
 ! reverse mat6
 
-  call mat_symp_conj (ele%mat6, ele%mat6, 6, 6)
+  call mat_symp_conj (ele%mat6, ele%mat6)
   ele%vec0 = -matmul(ele%mat6, ele%vec0)
 
   ele%mat6(2,:) = -ele%mat6(2,:)

@@ -21,23 +21,7 @@
 !       ix_end = ix_ele
 !-
 
-!$Id$
-!$Log$
-!Revision 1.5  2003/01/27 14:40:34  dcs
-!bmad_version = 56
-!
-!Revision 1.4  2002/02/23 20:32:15  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/08 21:44:39  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.2  2001/09/27 18:31:51  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine find_element_ends (ring, ix_ele, ix_start, ix_end)
 

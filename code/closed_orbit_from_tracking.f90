@@ -65,7 +65,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 
   integer i_dim, i, i1, i2, j, k, jmax, n_ele, j0, jj, nd, nnd, msk(6)
 
-  logical :: debug = .false.
+  logical :: debug = .false., rf_on
 
 ! init
 
@@ -87,11 +87,23 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
   nd = i_dim
 
 ! Turn off RF voltage if i_dim == 4 (for constant delta_E)
+! Make sure RF is on if i_dim = 6
 
   if (nd == 2 .or. nd == 4) then
     ring%ele_(:)%internal_logic = ring%ele_(:)%is_on
     call set_on (rfcavity$, ring, .false.)
-  elseif (nd /= 6) then
+  elseif (nd == 6) then
+    rf_on = .false.
+    do i = 1, ring%n_ele_ring
+      if (ring%ele_(i)%key == rfcavity$ .and. &
+                        ring%ele_(i)%value(volt$) /= 0) rf_on = .true.
+    enddo
+    if (.not. rf_on) then
+      print *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: ', &
+                                      'RF IS NOT ON FOR 6-DIM TRACKING!'
+      call err_exit
+    endif
+  else
     print *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: BAD "I_DIM":', nd
     call err_exit    
   endif
@@ -160,8 +172,6 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
                     start(jj)%vec(msk(1:nnd)) - start(j0)%vec(msk(1:nnd))
     enddo
 
-    call mat_det(start_mat(1:nnd,1:nnd), error)
-    if (debug) print *, 'det:', error
     call mat_inverse (start_mat(1:nnd,1:nnd), start_mat(1:nnd, 1:nnd))
     mat6 = matmul(end_mat(1:nnd,1:nnd), start_mat(1:nnd,1:nnd))
     call mat_symp_check (mat6(1:nnd,1:nnd), error)

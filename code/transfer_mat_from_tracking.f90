@@ -26,26 +26,7 @@
 !               See mat_symp_check for more details.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.6  2003/07/09 01:38:22  dcs
-!new bmad with allocatable ring%ele_(:)
-!
-!Revision 1.5  2003/01/27 14:40:45  dcs
-!bmad_version = 56
-!
-!Revision 1.4  2002/06/13 14:54:30  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.3  2002/02/23 20:32:27  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:59  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine transfer_mat_from_tracking (ele, param, start, d_orb, end, error)  
 

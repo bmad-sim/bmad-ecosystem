@@ -97,7 +97,7 @@ subroutine twiss_at_start (ring)
 ! if symmetry then propagate through the east side
 
   if (ring%param%symmetry == ew_antisymmetry$) then
-    call mat_symp_conj (t0_4, t_w_inv, 4, 4)
+    call mat_symp_conj (t0_4, t_w_inv)
     t_e = matmul (matmul (flip_mat, t_w_inv), flip_mat)
     mat6(1:4,1:4) = matmul (t_e, t0_4)
     eta_vec = (/ 0.0_rp, 2*eta_vec(2), 0.0_rp, 2*eta_vec(4) /)

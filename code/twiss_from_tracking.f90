@@ -109,7 +109,7 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
       mat(1:6, i) = (mo(i)%orb(j)%vec - closed_orb_(j)%vec) / d_orb%vec(i)
     enddo
 
-    call mat_symp_conj (mat0, mat_inv, 6, 6)   ! symp_conj is the inverse
+    call mat_symp_conj (mat0, mat_inv)   ! symp_conj is the inverse
     mat1 = matmul (mat, mat_inv)
     call mat_symplectify (mat1, ring%ele_(j)%mat6)
     mat0 = matmul (ring%ele_(j)%mat6, mat0)

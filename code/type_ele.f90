@@ -29,29 +29,7 @@
 !
 !-
 
-!$Id$
-!$Log$
-!Revision 1.7  2002/12/13 16:23:32  dcs
-!*** empty log message ***
-!
-!Revision 1.6  2002/06/13 14:54:31  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.5  2002/02/23 20:32:30  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.4  2001/11/29 19:39:54  helms
-!Updates from DCS including (*) -> (:)
-!
-!Revision 1.3  2001/10/12 20:53:35  rwh24
-!DCS changes and two files added
-!
-!Revision 1.2  2001/09/27 18:32:01  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor,  &
                                          twiss_out, type_control, ring)

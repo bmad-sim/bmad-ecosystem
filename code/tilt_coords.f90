@@ -21,24 +21,6 @@
 !     been computed with a previous call with SET = .true.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.6  2003/07/09 01:38:20  dcs
-!new bmad with allocatable ring%ele_(:)
-!
-!Revision 1.5  2002/02/23 20:32:25  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.4  2002/01/08 21:44:43  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.3  2001/11/29 19:39:54  helms
-!Updates from DCS including (*) -> (:)
-!
-!Revision 1.2  2001/09/27 18:31:58  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 subroutine tilt_coords (tilt_val, coord, set)

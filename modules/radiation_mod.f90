@@ -116,32 +116,40 @@ subroutine track1_radiation (start, ele, param, end, edge)
     h_x =  ele%value(k1$) * x_ave
     h_y = -ele%value(k1$) * y_ave
     h2 = h_x**2 + h_y**2
+    if (sr_com%fluctuations_on) h3 = sqrt(h2)**3
 
   case (sextupole$)
     h = ele%value(k2$) * (start2%vec(1)**2 + start2%vec(3)**2)
     h2 = h**2
+    if (sr_com%fluctuations_on) h3 = h2*h
 
   case (octupole$)
     h2 = ele%value(k3$)**2 * (start2%vec(1)**2 + start2%vec(3)**2)**3
+    if (sr_com%fluctuations_on) h3 = sqrt(h2)**3
 
   case (sbend$)
     if (ele%value(k1$) == 0) then
       h = ele%value(g$) + ele%value(delta_g$)
       h2 = h**2 
+      if (sr_com%fluctuations_on) h3 = h2*h
     else
       x_ave = start2%vec(1) + direc * start2%vec(2) * ele%value(l$) / 4
       y_ave = start2%vec(3) + direc * start2%vec(4) * ele%value(l$) / 4
       h_x = ele%value(g$) + ele%value(delta_g$) + ele%value(k1$) * x_ave
       h_y = ele%value(k1$) * y_ave
       h2 = h_x**2 + h_y**2
+      if (sr_com%fluctuations_on) h3 = sqrt(h2)**3
     endif
 
   case (wiggler$)
     if (ele%sub_key == map_type$) then
-      h2 = ele%const(0) + &
-                  dot_product(start%vec-ele%const(7:12), ele%const(1:6))
+      h2 = ele%const(10) + &
+                  dot_product(start%vec-ele%const(1:6), ele%const(11:16))
+      h3 = ele%const(20) + &
+                  dot_product(start%vec-ele%const(1:6), ele%const(21:26))
     elseif (ele%sub_key == periodic_type$) then
       h2 = abs(ele%value(k1$))
+      h3 = sqrt(2*h2) / pi  
     endif
 
   end select
@@ -157,7 +165,6 @@ subroutine track1_radiation (start, ele, param, end, edge)
 
   fact_f = 0
   if (sr_com%fluctuations_on) then
-    h3 = sqrt(h2)**3
     call gauss_ran (this_ran)
     fact_f = sqrt(fluct_const * s_len * gamma_0**5 * h3) * this_ran
   endif
@@ -228,17 +235,19 @@ subroutine setup_radiation_tracking (ring, closed_orb, &
     if (ring%ele_(i)%key /= wiggler$) cycle
     if (ring%ele_(i)%sub_key == map_type$) then
       sl_com%save_orbit = .true.
-      if (.not. associated(ring%ele_(i)%const)) allocate (ring%ele_(i)%const(0:12))
-      ring%ele_(i)%const(7:12) = closed_orb(i)%vec
+      if (.not. associated(ring%ele_(i)%const)) allocate (ring%ele_(i)%const(1:26))
+      ring%ele_(i)%const(1:6) = closed_orb(i)%vec
       call symp_lie_bmad (ring%ele_(i), ring%param, closed_orb(i), end, .false.)
-      call calc_h2 (ring%ele_(i)%const(0))
+      call calc_h (ring%ele_(i)%const(10), ring%ele_(i)%const(20))
       do j = 1, 6
         start = closed_orb(i)
         start%vec(j) = start%vec(j) + del_orb(j)
         call symp_lie_bmad (ring%ele_(i), ring%param, start, end, .false.)
-        call calc_h2 (ring%ele_(i)%const(j))
-        ring%ele_(i)%const(j) = &
-              (ring%ele_(i)%const(j) - ring%ele_(i)%const(0)) / del_orb(j)
+        call calc_h (ring%ele_(i)%const(j+10), ring%ele_(i)%const(j+20))
+        ring%ele_(i)%const(j+10) = &
+              (ring%ele_(i)%const(j+10) - ring%ele_(i)%const(10)) / del_orb(j)
+        ring%ele_(i)%const(j+20) = &
+              (ring%ele_(i)%const(j+20) - ring%ele_(i)%const(20)) / del_orb(j)
       enddo
     endif
   enddo
@@ -246,23 +255,32 @@ subroutine setup_radiation_tracking (ring, closed_orb, &
 !-------------------------------------------------------
 contains
 
-subroutine calc_h2 (h2)
+subroutine calc_h (h2, h3)
 
-  real(rp) h2, kick(6)
-  integer kk
+  real(rp) h2, h3, k2, k3, kick(6)
+  integer i
 
-! h2 is the average over the element.
+! h2 is the average kick^2 over the element.
 
-  h2 = 0
-  do kk = 0, ubound(sl_com%s, 1) 
-    call derivs_bmad (ring%ele_(i), ring%param, sl_com%s(kk), &
-                                            sl_com%orb(kk)%vec, kick)
-    if (kk == 0 .or. kk == ubound(sl_com%s, 1)) then
-      h2 = h2 + (kick(2)**2 + kick(4)**2) / 2
-    else
-      h2 = h2 + (kick(2)**2 + kick(4)**2)
+  h2 = 0; h3 = 0
+
+  do i = 0, ubound(sl_com%s, 1) 
+    call derivs_bmad (ring%ele_(i), ring%param, sl_com%s(i), &
+                                            sl_com%orb(i)%vec, kick)
+
+    k2 = kick(2)**2 + kick(4)**2
+    k3 = sqrt(k2)**3
+
+    if (i == 0 .or. i == ubound(sl_com%s, 1)) then
+      k2 = k2 / 2
+      k3 = k3 / 2
     endif
+
+    h2 = h2 + k2
+    h3 = h3 + k3    
+
   enddo
+
 
   h2 = h2 / ubound(sl_com%s, 1) 
 

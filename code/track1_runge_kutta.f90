@@ -34,36 +34,6 @@
 !       %vec(1)     -- X position, etc.
 !- 
 
-!$Id$
-!$Log$
-!Revision 1.6  2003/07/09 01:38:21  dcs
-!new bmad with allocatable ring%ele_(:)
-!
-!Revision 1.5  2003/06/04 17:55:55  dcs
-!Eliminated x%pos, x%vel, etc. from coord_struct.
-!
-!Revision 1.4  2003/01/27 14:40:44  dcs
-!bmad_version = 56
-!
-!Revision 1.3  2002/06/13 14:54:29  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.6  2002/02/23 20:32:26  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.5  2002/02/01 16:03:07  dcs
-!*** empty log message ***
-!
-!Revision 1.4  2002/02/01 15:52:34  dcs
-!bmad_common%factor set for 'KICK_FIELD'
-!
-!Revision 1.3  2002/01/29 16:44:44  dcs
-!Fix comments
-!
-!Revision 1.2  2001/09/27 18:31:59  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 subroutine track1_runge_kutta (start, ele, param, end)

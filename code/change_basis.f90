@@ -1,5 +1,5 @@
 !+
-! Subroutine CHANGE_BASIS (COORD, REF_ENERGY, REF_Z, TO_CART, TIME_DISP)
+! Subroutine change_basis (coord, ref_energy, ref_z, to_cart, time_disp)
 !
 !   Subroutine to convert accelerator coordinates (x, x', y, y', z, z') to
 ! cartesian coordinates and time derivatives (x, x_dot, y, y_dot, z, z_dot) or
@@ -19,49 +19,22 @@
 !   use bmad
 !
 ! Input:
-!     COORD      -- Coord_struct: Coordinates of particle
-!     REF_ENERGY -- Real(rp): Reference energy of beam
-!     REF_Z      -- Real(rp): Reference longitudinal position of beam
-!     TO_CART    -- Logical: True if converting to cartesian coordinates
-!                            False if converting to accelerator coordinates
-!     If to_cart == .false.:
-!       TIME_DISP -- Real(rp): Time displacement of particle
+!   coord      -- Coord_struct: Coordinates of particle
+!   ref_energy -- Real(rp): Reference energy of beam
+!   ref_z      -- Real(rp): Reference longitudinal position of beam
+!   to_cart    -- Logical: True if converting to cartesian coordinates
+!                          False if converting to accelerator coordinates
+!   If to_cart == .false.:
+!     time_disp -- Real(rp): Time displacement of particle
 !
 ! Output:
-!     COORD  -- Coord_struct: Converted coordinates
-!     If to_cart == .true.:
-!       TIME_DISP -- Real(rp): Time displacement of particle
+!   coord  -- Coord_struct: Converted coordinates
+!   If to_cart == .true.:
+!     time_disp -- Real(rp): Time displacement of particle
 !-
 
-!$Id$
-!$Log$
-!Revision 1.9  2003/07/09 01:38:10  dcs
-!new bmad with allocatable ring%ele_(:)
-!
-!Revision 1.8  2003/06/04 17:55:53  dcs
-!Eliminated x%pos, x%vel, etc. from coord_struct.
-!
-!Revision 1.7  2003/03/04 16:03:28  dcs
-!VMS port
-!
-!Revision 1.6  2003/01/27 14:40:31  dcs
-!bmad_version = 56
-!
-!Revision 1.5  2002/06/13 14:54:23  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.4  2002/02/23 20:32:12  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/08 21:44:37  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.2  2001/09/27 18:31:49  rwh24
-!UNIX compatibility updates
-!
 
 #include "CESR_platform.inc"
-
 
 subroutine change_basis (coord, ref_energy, ref_z, to_cart, time_disp)
 
@@ -106,5 +79,4 @@ subroutine change_basis (coord, ref_energy, ref_z, to_cart, time_disp)
   endif
   coord = saved
 
-  return
-  end
+end subroutine

@@ -25,24 +25,6 @@
 ! Note: If use_ele(n_in) = .false. then no updating is done
 !-
 
-!$Id$
-!$Log$
-!Revision 1.6  2003/01/04 03:06:34  dcs
-!Bug Fix.
-!
-!Revision 1.5  2003/01/04 00:44:23  dcs
-!Eliminated fixed array and made subroutine recursive.
-!
-!Revision 1.4  2002/07/16 20:44:03  dcs
-!*** empty log message ***
-!
-!Revision 1.3  2002/02/23 20:32:30  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:32:01  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 recursive subroutine update_hybrid_list (ring, n_in, use_ele)

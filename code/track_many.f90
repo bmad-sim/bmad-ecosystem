@@ -46,36 +46,6 @@
 !                       are filled in.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.12  2003/07/09 01:38:22  dcs
-!new bmad with allocatable ring%ele_(:)
-!
-!Revision 1.11  2003/06/04 17:55:55  dcs
-!Eliminated x%pos, x%vel, etc. from coord_struct.
-!
-!Revision 1.10  2003/05/02 15:44:03  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.9  2003/03/06 17:47:40  dcs
-!Hiding PTC stuff.
-!
-!Revision 1.8  2003/01/27 14:40:45  dcs
-!bmad_version = 56
-!
-!Revision 1.7  2003/01/02 16:19:40  dcs
-!*** empty log message ***
-!
-!Revision 1.4  2002/06/13 14:54:29  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.3  2002/02/23 20:32:26  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:59  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 subroutine track_many (ring, orbit_, ix_start, ix_end, direction)

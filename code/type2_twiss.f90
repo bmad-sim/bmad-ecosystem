@@ -19,21 +19,6 @@
 !   lines(:)     -- Character*(*): Character array to hold the output.
 !   n_lines      -- Number of lines used
 !-
-!$Id$
-!$Log$
-!Revision 1.4  2003/07/09 01:38:24  dcs
-!new bmad with allocatable ring%ele_(:)
-!
-!Revision 1.3  2003/01/27 14:40:47  dcs
-!bmad_version = 56
-!
-!Revision 1.2  2002/02/23 20:32:29  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.1  2001/10/12 20:53:35  rwh24
-!DCS changes and two files added
-!
-!
 
 #include "CESR_platform.inc"
 

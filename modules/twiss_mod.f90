@@ -94,7 +94,7 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
 
 ! Construct H matrix (MGB eq 12)
 
-  call mat_symp_conj (t0_21, temp2, 2, 2)
+  call mat_symp_conj (t0_21, temp2)
   H = t0_12 + temp2
 
 
@@ -120,7 +120,7 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
 
   scaler = -sign(1.0_rp, trace_t0_diff) / (gamma * sqrt(denom))
   c = scaler * H
-  call mat_symp_conj (c, c_conj, 2, 2)
+  call mat_symp_conj (c, c_conj)
 
 ! Compute matrix V and inverse V_INV (MGB Eq. 10)
 
@@ -128,7 +128,7 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
   V(1:2,3:4) = c
   V(3:4,1:2) = -c_conj
 
-  call mat_symp_conj (V, V_inv, 4, 4)
+  call mat_symp_conj (V, V_inv)
 
 ! Compute uncoupled matrix U (MGB Eq. 10)
 
@@ -185,8 +185,8 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
   G(1:2,1:2) = g1
   G(3:4,3:4) = g2
 
-  call mat_symp_conj (g1, g1_inv, 2, 2)
-  call mat_symp_conj (g2, g2_inv, 2, 2)
+  call mat_symp_conj (g1, g1_inv)
+  call mat_symp_conj (g2, g2_inv)
 
   G_inv = 0
   G_inv(1:2,1:2) = g1_inv

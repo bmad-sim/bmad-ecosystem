@@ -25,29 +25,7 @@
 !       %value(l$)     -- Set to DEL_S
 !-
 
-!$Id$
-!$Log$
-!Revision 1.7  2003/07/09 01:38:23  dcs
-!new bmad with allocatable ring%ele_(:)
-!
-!Revision 1.6  2003/06/04 17:55:56  dcs
-!Eliminated x%pos, x%vel, etc. from coord_struct.
-!
-!Revision 1.5  2003/01/27 14:40:46  dcs
-!bmad_version = 56
-!
-!Revision 1.4  2002/06/13 14:54:30  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.3  2002/02/23 20:32:27  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:32:00  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine twiss_and_track_body (ele1, ele2, param, del_s, ele3, &
                                                                start, end)

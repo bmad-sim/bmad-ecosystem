@@ -1,5 +1,5 @@
 !+
-! Function RELATIVE_MODE_FLIP (ELE1, ELE2)
+! Function relative_mode_flip (ele1, ele2)
 !
 ! Function to see if the modes of ELE1 are flipped relative to ELE2.
 ! This is done by seeing which eigen planes are similar.
@@ -10,33 +10,13 @@
 !   use bmad
 !
 ! Input:
-!     ELE1, ELE2 -- Ele_struct: Elements to compare.
+!     ele1, ele2 -- Ele_struct: Elements to compare.
 !
 ! Output:
-!     RELATIVE_MODE_FLIP -- Logical: true if modes are relatively flipped.
+!     relative_mode_flip -- Logical: true if modes are relatively flipped.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.6  2003/08/15 22:16:53  dcs
-!mat_det argument change.
-!
-!Revision 1.5  2003/07/09 01:38:18  dcs
-!new bmad with allocatable ring%ele_(:)
-!
-!Revision 1.4  2003/01/27 14:40:42  dcs
-!bmad_version = 56
-!
-!Revision 1.3  2002/02/23 20:32:23  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:56  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
-
 
 function relative_mode_flip (ele1, ele2) result (rel_mode)
 
@@ -75,7 +55,7 @@ function relative_mode_flip (ele1, ele2) result (rel_mode)
   mat4(4,4) = ele2%gamma_c
   mat4(3,4) = 0
   mat4(4,3) = 0
-  call mat_symp_conj (ele2%c_mat, conj_mat, 2, 2)
+  call mat_symp_conj (ele2%c_mat, conj_mat)
   mat4(3:4,1:2) = -conj_mat
 
 ! smallness of determinate is indicator of whether ele1 a-mode has nearly the

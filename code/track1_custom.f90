@@ -18,21 +18,6 @@
 !   param
 !-
 
-!$Id$
-!$Log$
-!Revision 1.3  2003/01/27 14:40:44  dcs
-!bmad_version = 56
-!
-!Revision 1.2  2002/08/20 20:34:54  dcs
-!symp_lie_bmad / symp_lie_ptc added
-!
-!Revision 1.1  2002/06/13 15:07:22  dcs
-!Merged with FPP/PTC
-!
-!Revision 1.2  2001/09/27 18:31:50  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 subroutine track1_custom (start, ele, param, end)

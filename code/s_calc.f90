@@ -14,23 +14,6 @@
 !   ring -- Ring_struct:
 !-
 
-!$Id$
-!$Log$
-!Revision 1.7  2003/03/18 20:33:04  dcs
-!%total_length calc subtracts off %ele_(0)%s
-!
-!Revision 1.6  2003/03/08 01:31:22  dcs
-!Allow fixing initial s position
-!
-!Revision 1.4  2002/02/23 20:32:24  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/08 21:44:43  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.2  2001/09/27 18:31:57  rwh24
-!UNIX compatibility updates
-
 #include "CESR_platform.inc"
 
 subroutine s_calc (ring)

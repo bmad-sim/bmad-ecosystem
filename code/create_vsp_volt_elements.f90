@@ -1,5 +1,5 @@
 !+
-! Subroutine CREATE_VSP_VOLT_ELEMENTS (RING, ELE_TYPE)
+! Subroutine create_vsp_volt_elements (ring, ele_type)
 !
 ! Subroutine to create elements corresponding to the 6 data base elements
 ! in CSR VSP VOLT. For each vertical separator 3 controller (lord) elements are
@@ -15,42 +15,16 @@
 !   use bmad
 !
 ! Input:
-!     RING     -- Ring_struct: Ring to be modified
-!     ELE_TYPE -- Integer: Type of elements to make
+!   ring     -- Ring_struct: Ring to be modified
+!   ele_type -- Integer: Type of elements to make
 !                   = group$      ! make group controller elements
 !                   = overlay$    ! make overlay controller elements
 !
 ! Output:
-!     RING -- Ring_struct: Modified ring.
+!   ring -- Ring_struct: Modified ring.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.8  2003/07/09 01:38:12  dcs
-!new bmad with allocatable ring%ele_(:)
-!
-!Revision 1.7  2003/05/02 15:44:00  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.6  2003/01/27 14:40:32  dcs
-!bmad_version = 56
-!
-!Revision 1.5  2002/02/23 20:32:14  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.4  2002/01/08 21:44:38  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.3  2001/12/04 20:28:57  helms
-!Changes from DCS
-!
-!Revision 1.2  2001/09/27 18:31:50  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
-
 
 subroutine create_vsp_volt_elements (ring, ele_type)
 
@@ -94,15 +68,11 @@ subroutine create_vsp_volt_elements (ring, ele_type)
   if (bmad_status%exit_on_error) call err_exit
   bmad_status%ok = .false.
 
-  return
-
-  end
-
+end subroutine
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
-
 
 subroutine do_vsp_eles (ring, i_vsep, ix_, ele_type)
 
@@ -149,14 +119,3 @@ subroutine do_vsp_eles (ring, i_vsep, ix_, ele_type)
   enddo
 
 end subroutine
-
-
-
-
-
-
-
-
-
-
-

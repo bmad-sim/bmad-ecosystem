@@ -39,26 +39,7 @@
 !      
 !-
 
-!$Id$
-!$Log$
-!Revision 1.6  2003/07/09 01:38:10  dcs
-!new bmad with allocatable ring%ele_(:)
-!
-!Revision 1.5  2003/01/27 14:40:31  dcs
-!bmad_version = 56
-!
-!Revision 1.4  2002/02/23 20:32:12  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/08 21:44:37  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.2  2001/09/27 18:31:49  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine cesr_crossings(i_train, j_car, species, n_trains_tot, n_cars, &
                                  cross_positions, n_car_spacing, train_spacing)

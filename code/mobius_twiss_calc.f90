@@ -1,5 +1,5 @@
 !+
-! Subroutine MOBIUS_TWISS_CALC (ELE, V_MAT)
+! Subroutine mobius_twiss_calc (ele, v_mat)
 !
 ! Subroutine calculate the mobius betas and etas which are effective
 ! projections of beta and eta in the X and Y planes. This is used for highly
@@ -10,8 +10,8 @@
 !   use bmad
 !
 ! Input:
-!     ELE        -- Ele_struct: Element
-!     V_MAT(4,4) -- Real(rp): Normal mode to X-Y coords transformation
+!     ele        -- Ele_struct: Element
+!     v_mat(4,4) -- Real(rp): Normal mode to X-Y coords transformation
 !
 ! Output:
 !     ELE.X.MOBIUS_BETA -- Mobius betas
@@ -21,24 +21,7 @@
 !
 !-
 
-!$Id$
-!$Log$
-!Revision 1.5  2003/07/09 01:38:16  dcs
-!new bmad with allocatable ring%ele_(:)
-!
-!Revision 1.4  2003/01/27 14:40:39  dcs
-!bmad_version = 56
-!
-!Revision 1.3  2002/02/23 20:32:19  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:54  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
-
 
 subroutine mobius_twiss_calc (ele, v_mat)
 
@@ -83,5 +66,4 @@ subroutine mobius_twiss_calc (ele, v_mat)
   ele%x%mobius_eta = vec(1)
   ele%y%mobius_eta = vec(3)
 
-  return
-  end
+end subroutine

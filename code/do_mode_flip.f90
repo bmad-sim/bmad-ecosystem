@@ -17,30 +17,7 @@
 !            %ok      -- Set true if flip was done.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.7  2003/07/09 01:38:13  dcs
-!new bmad with allocatable ring%ele_(:)
-!
-!Revision 1.6  2003/05/02 15:44:00  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.5  2003/01/27 14:40:33  dcs
-!bmad_version = 56
-!
-!Revision 1.4  2002/02/23 20:32:14  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/08 21:44:38  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.2  2001/09/27 18:31:51  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
-
 
 subroutine do_mode_flip (ele, ele_flip)
 
@@ -72,7 +49,7 @@ subroutine do_mode_flip (ele, ele_flip)
 
   gamma_flip = sqrt(1 - ele%gamma_c**2)
 
-  call mat_symp_conj (ele%c_mat, c_conj, 2, 2)
+  call mat_symp_conj (ele%c_mat, c_conj)
   ele2%mat6(1:2,1:2) = -c_conj / gamma_flip
   ele2%mat6(3:4,3:4) = ele%c_mat/gamma_flip
 

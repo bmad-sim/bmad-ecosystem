@@ -20,23 +20,7 @@
 !   mat4(4,4) -- Real(rp): 1-Turn coupled matrix.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.5  2003/07/09 01:38:17  dcs
-!new bmad with allocatable ring%ele_(:)
-!
-!Revision 1.4  2003/01/27 14:40:41  dcs
-!bmad_version = 56
-!
-!Revision 1.3  2002/02/23 20:32:21  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:55  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine one_turn_mat_at_ele (ele, phi_a, phi_b, mat4)
 
@@ -53,7 +37,7 @@ subroutine one_turn_mat_at_ele (ele, phi_a, phi_b, mat4)
 
   call twiss_to_1_turn_mat (ele%x, phi_a, a)
   call twiss_to_1_turn_mat (ele%y, phi_b, b)
-  call mat_symp_conj (ele%c_mat, c_conj, 2, 2)
+  call mat_symp_conj (ele%c_mat, c_conj)
   c = ele%c_mat
   g = ele%gamma_c
 

@@ -14,41 +14,6 @@
 !   num_lats    -- Integer: Number of lattices found.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.10  2003/05/02 15:44:00  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.9  2003/01/27 14:40:35  dcs
-!bmad_version = 56
-!
-!Revision 1.8  2002/02/23 20:32:16  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.7  2002/01/11 21:16:00  dcs
-!Bug fix
-!
-!Revision 1.6  2002/01/11 16:58:20  dcs
-!Minor bug fix
-!
-!Revision 1.5  2002/01/11 16:32:13  cesrulib
-!Fixed typos
-!
-!Revision 1.4  2001/10/08 17:18:14  rwh24
-!DCS changes to f90 files.
-!Bug fixes to c file.
-!
-!Revision 1.3  2001/10/05 18:23:57  rwh24
-!Bug Fixes
-!
-!Revision 1.2  2001/10/02 18:49:12  rwh24
-!More compatibility updates; also added many explicit variable declarations.
-!
-!Revision 1.1  2001/09/27 18:33:14  rwh24
-!UNIX compatibility updates
-!
-!-
-
 #include "CESR_platform.inc"
 
 subroutine get_lattice_list_vms (lat_list, num_lats, directory)
@@ -104,11 +69,3 @@ subroutine get_lattice_list_vms (lat_list, num_lats, directory)
 #endif
 
 end subroutine
-
-
-
-
-
-
-
-

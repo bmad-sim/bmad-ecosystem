@@ -1,5 +1,5 @@
 !+
-! Subroutine CHOOSE_CESR_LATTICE (LATTICE, LAT_FILE, CURRENT_LAT, RING, CHOICE)
+! Subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
 !
 ! Subroutine to let the user choose a lattice. The subroutine will present a
 ! list to choose from.
@@ -8,57 +8,25 @@
 !   use bmad
 !
 ! Input:
-!   CURRENT_LAT -- Character*40: Name of current lattice (will be stared in
+!   current_lat -- Character*40: Name of current lattice (will be stared in
 !                       the list presented to the user).
 !                       Use CALL GETLAT (CURRENT_LAT) to get the current name.
 !                       Set CURRENT_LAT = ' ' if you do not want to use this
 !                       feature.
 !                       NOTE: You must be connected to the mpm to use GETLAT.
-!   CHOICE      -- Character*(*): [Optional] If present then this will be
+!   choice      -- Character*(*): [Optional] If present then this will be
 !                       used as input instead of querying the user.
 !
 ! Output:
-!   LATTICE  -- Character*40: Lattice name choisen. If a file name is given
+!   lattice  -- Character*40: Lattice name choisen. If a file name is given
 !                    and RING is not present then LATTICE = ""
-!   LAT_FILE -- Character*(*): Name of the lattice file. Typically:
+!   lat_file -- Character*(*): Name of the lattice file. Typically:
 !                    lat_file = 'U:[CESR.BMAD.LAT]BMAD_' // lattice // .LAT
-!   RING     -- Ring_struct: OPTIONAL. If present then BMAD_PARSER is called
+!   ring     -- Ring_struct: OPTIONAL. If present then BMAD_PARSER is called
 !               to load the RING structure.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.10  2003/05/02 15:43:59  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.9  2003/01/27 14:40:31  dcs
-!bmad_version = 56
-!
-!Revision 1.8  2002/02/23 20:32:12  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.7  2002/01/11 17:06:59  dcs
-!Fix Bug
-!
-!Revision 1.6  2002/01/08 21:44:38  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.5  2001/10/08 17:18:14  rwh24
-!DCS changes to f90 files.
-!Bug fixes to c file.
-!
-!Revision 1.4  2001/10/05 18:23:57  rwh24
-!Bug Fixes
-!
-!Revision 1.3  2001/10/02 18:49:11  rwh24
-!More compatibility updates; also added many explicit variable declarations.
-!
-!Revision 1.2  2001/09/27 18:31:49  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
                
 subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
 

@@ -36,26 +36,7 @@
 ! 2) phases are in radians
 !-
 
-!$Id$
-!$Log$
-!Revision 1.6  2003/07/09 01:38:12  dcs
-!new bmad with allocatable ring%ele_(:)
-!
-!Revision 1.5  2003/05/02 15:43:59  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.4  2003/01/27 14:40:32  dcs
-!bmad_version = 56
-!
-!Revision 1.3  2002/02/23 20:32:13  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:50  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)
 
@@ -178,24 +159,24 @@ subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)
 contains
 
 subroutine to_action (coord)
-    implicit none
-    real(rp) coord(2), j, phi
-    j = (coord(1)**2 + coord(2)**2) / 2
-    if (j == 0) then
-      phi = 0
-    else
-      phi = atan2 (-coord(2), coord(1))
-    endif
-    coord = (/ j, phi /)
-  end subroutine
+  implicit none
+  real(rp) coord(2), j, phi
+  j = (coord(1)**2 + coord(2)**2) / 2
+  if (j == 0) then
+    phi = 0
+  else
+    phi = atan2 (-coord(2), coord(1))
+  endif
+  coord = (/ j, phi /)
+end subroutine
 
 subroutine from_action (coord)
-    implicit none
-    real(rp) coord(2), x, xp
-    x  =  sqrt(2*coord(1)) * cos(coord(2))
-    xp = -sqrt(2*coord(1)) * sin(coord(2))
-    coord = (/ x, xp /)
-  end subroutine
+  implicit none
+  real(rp) coord(2), x, xp
+  x  =  sqrt(2*coord(1)) * cos(coord(2))
+  xp = -sqrt(2*coord(1)) * sin(coord(2))
+  coord = (/ x, xp /)
+end subroutine
 
 end subroutine
 

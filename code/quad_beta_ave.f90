@@ -7,38 +7,14 @@
 !   use bmad
 !
 ! Input:
-!     ring   -- Ring_struct: Ring structure
-!     ix_ele -- Integer: Index of quadrupole
+!   ring   -- Ring_struct: Ring structure
+!   ix_ele -- Integer: Index of quadrupole
 !
 ! Output:
-!     beta_x_ave, beta_y_ave -- Real(rp): Average betas in the quad.
+!   beta_x_ave, beta_y_ave -- Real(rp): Average betas in the quad.
 !
 ! NOTE: This subroutine is only valid if there is no local coupling
 !-
-
-!$Id$
-!$Log$
-!Revision 1.8  2003/08/09 19:33:45  mjf7
-!Adding the save attribute to the ele variable, helps with an irradic memory leak when the subroutine call ele_equal_ele.    - mjf
-!
-!Revision 1.7  2003/07/09 01:38:18  dcs
-!new bmad with allocatable ring%ele_(:)
-!
-!Revision 1.6  2003/05/02 15:44:01  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.5  2003/01/27 14:40:41  dcs
-!bmad_version = 56
-!
-!Revision 1.4  2002/06/13 14:54:28  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.3  2002/02/23 20:32:22  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:56  rwh24
-!UNIX compatibility updates
-!
 
 #include "CESR_platform.inc"
 

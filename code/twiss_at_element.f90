@@ -1,5 +1,5 @@
 !+
-! Subroutine TWISS_AT_ELEMENT (ring, ix_ele, start, end, average)
+! Subroutine twiss_at_element (ring, ix_ele, start, end, average)
 ! 
 ! Subroutine to return the twiss parameters at the beginning, 
 ! end or the average of an element
@@ -22,26 +22,7 @@
 ! this does not do a good job of calculating the average for some elements.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.6  2003/07/09 01:38:23  dcs
-!new bmad with allocatable ring%ele_(:)
-!
-!Revision 1.5  2003/05/02 15:44:03  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.4  2003/01/27 14:40:46  dcs
-!bmad_version = 56
-!
-!Revision 1.3  2002/02/23 20:32:28  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:32:00  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine twiss_at_element (ring, ix_ele, start, end, average)
 
