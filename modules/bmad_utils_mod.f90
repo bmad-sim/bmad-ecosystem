@@ -906,7 +906,7 @@ end subroutine
 ! Subroutine transfer_mat_from_twiss (ele1, ele2, m)
 !
 ! Subroutine to make a 6 x 6 transfer matrix from the twiss parameters
-! at the end points.
+! at two points.
 !
 ! Modules Needed:
 !   use bmad
@@ -972,6 +972,7 @@ end subroutine
 ! Subroutine match_ele_to_mat6 (ele, mat6, vec0)
 !
 ! Subroutine to make the 6 x 6 transfer matrix from the twiss parameters
+! at the entrance and exit ends of the element.
 !
 ! Modules Needed:
 !   use bmad
