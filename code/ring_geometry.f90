@@ -31,18 +31,20 @@ subroutine ring_geometry (ring)
 
   use bmad_struct
   use bmad_interface
+  use multipole_mod
 
   implicit none
 
-  type (ring_struct)  ring
-  type (ele_struct)  ele
+  type (ring_struct), target :: ring
+  type (ele_struct), pointer :: ele
 
   integer i, key
 
+  real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
   real(8) chord_len, angle, leng, old_theta, rho
   real(8) s_ang, c_ang, s_the, c_the, s_phi, c_phi, s_psi, c_psi
-  real(8) pos(3), theta, phi, psi
-  real(8) w_mat(3,3), s_mat(3,3), r_mat(3)
+  real(8) pos(3), theta, phi, psi, tlt
+  real(8) w_mat(3,3), s_mat(3,3), r_mat(3), t_mat(3,3)
   real(8) :: twopi_8 = 2 * 3.14159265358979
 
 ! init
@@ -61,16 +63,21 @@ subroutine ring_geometry (ring)
 
   do i = 1, ring%n_ele_ring
 
-    ele = ring%ele_(i)
+    ele => ring%ele_(i)
     leng = ele%value(l$)
     key = ele%key
     if (key == sbend$ .and. (leng == 0 .or. ele%value(g$) == 0)) key = drift$
 
+    if (key == ab_multipole$ .or. key == multipole$) then
+      call multipole_ele_to_kt (ele, ring%param%particle, knl, tilt, .true.)
+      key = multipole$
+    endif
 
-! General case
+! General case where layout is not in the horizontal plane
 
     if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
-                    (key == sbend$ .and. ele%value(tilt_tot$) /= 0)) then
+               (key == multipole$ .and. knl(0) /= 0 .and. tilt(0) /= 0) .or. &
+               (key == sbend$ .and. ele%value(tilt_tot$) /= 0)) then
 
       if (old_theta /= theta) then
         s_the = sin(theta); c_the = cos(theta)
@@ -91,16 +98,39 @@ subroutine ring_geometry (ring)
 
       select case (key)
 
-      case (sbend$)
-        angle = leng * dble(ele%value(g$))
-        rho = 1.0_8 / ele%value(g$)
-        s_ang = sin(angle); c_ang = cos(angle)
-        r_mat = (/ rho * (c_ang - 1), 0.0_8, rho * s_ang /)
+! sbend and multipole
+
+      case (sbend$, multipole$)
+        if (key == sbend$) then
+          angle = leng * dble(ele%value(g$))
+          tlt = ele%value(tilt_tot$)
+          rho = 1.0_8 / ele%value(g$)
+          s_ang = sin(angle); c_ang = cos(angle)
+          r_mat = (/ rho * (c_ang - 1), 0.0_8, rho * s_ang /)
+        else
+          angle = knl(0)
+          tlt = tilt(0)
+          s_ang = sin(angle); c_ang = cos(angle)
+          r_mat = 0
+        endif
         s_mat(1,:) = (/ c_ang, 0.0_8, -s_ang /)
         s_mat(2,:) = (/ 0.0_8, 1.0_8,  0.0_8 /)
         s_mat(3,:) = (/ s_ang, 0.0_8,  c_ang /) 
         pos = pos + matmul(w_mat, r_mat)
+
+        if (tlt /= 0) then
+          s_ang = sin(tlt); c_ang = cos(tlt)
+          t_mat(1,:) = (/ c_ang, -s_ang, 0.0_8 /)
+          t_mat(2,:) = (/ s_ang,  c_ang, 0.0_8 /)
+          t_mat(3,:) = (/ 0.0_8,  0.0_8, 1.0_8 /)
+          s_mat = matmul (t_mat, s_mat)
+          t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
+          s_mat = matmul (s_mat, t_mat)
+        endif
+
         w_mat = matmul (w_mat, s_mat)
+
+! patch
 
       case (patch$)
 
@@ -135,12 +165,16 @@ subroutine ring_geometry (ring)
                                                     ele%value(z_offset$) /)
         pos = pos + matmul(w_mat, r_mat)
 
+! everything else. Just a translation
+
       case default
         pos = pos + w_mat(:,3) * leng
 
       end select
 
-      if (key == sbend$ .or. key == patch$) then
+! if there has been a rotation calculate new theta, phi, and psi
+
+      if (key == sbend$ .or. key == patch$ .or. key == multipole$) then
         theta = atan2 (w_mat(1,3), w_mat(3,3))
         theta = theta - twopi_8 * &
                        nint((theta - ring%ele_(i-1)%position%theta) / twopi_8)
@@ -154,13 +188,17 @@ subroutine ring_geometry (ring)
 
     else
 
-      if (key == sbend$) then
+      select case (key)
+      case (sbend$)
         angle = leng * dble(ele%value(g$))
         chord_len = 2 * leng * sin(angle/2) / angle
-      else
-        angle = 0.0D0
+      case (multipole$)
+        angle = knl(0)
+        chord_len = 0
+      case default
+        angle = 0
         chord_len = leng
-      endif
+      end select
 
       theta = theta - angle / 2
       pos(1) = pos(1) + chord_len * sin(theta)
