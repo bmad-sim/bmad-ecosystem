@@ -1346,17 +1346,19 @@ Example \vn{Taylor} element definition:
 A \vn{Wiggler} is a periodic array of alternating bends.
 
 There are two types of wigglers. Those that that are described using a
-magnetic field map (``map type'') and those that are described assuming
-a periodic field (``periodic type''). The periodic type is defined by
-specifying \vn{b_max} and \vn{n_pole}. For the "map" type wigglers the
-field is given by a sum of terms as outlined in
-\sref{s:wiggler_phys}.
+magnetic field map (``map type'') and those that are described
+assuming a periodic field (``periodic type''). See
+\sref{s:wiggler_phys} for more details.
 
 For the "periodic" type wigglers the attributes are: 
 \begin{example}  
   \vn{b_max}  ! Maximum magnetic field (in T) on the wiggler centerline. 
   \vn{n_pole} ! The number of poles. The period is then L / (2 * N_POLE). 
 \end{example}
+This type of wiggler is considered to have infinitely wide poles so
+with \vn{bmad_standard} tracking and transfer matrix calculations the
+horizontal motion looks like a drift. The vertical motion is moddeled
+as a combination focusing quadrupole and focusing octupole. 
 
 Example:
 \begin{example}
@@ -1364,4 +1366,3 @@ Example:
   wig2: wiggler, l = 1.6, \&                       ! map type wiggler
            term(1) = \{ 0.03, 3.00, 4.00, 5.00, 0.63\}
 \end{example}
-
