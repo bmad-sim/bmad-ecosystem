@@ -87,22 +87,9 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 ! Note: c0t and c1t are the coords in the frame of reference where the element
 !       is upright (element frame of reference).
 
-  if (ele%value(x_offset$) /= 0 .or. ele%value(y_offset$) /= 0 .or. &
-      ele%value(s_offset$) /= 0 .or. ele%value(x_pitch$) /= 0 .or. &
-      ele%value(y_pitch$) /= 0) then
-    x_off = ele%value(x_offset$)
-    y_off = ele%value(y_offset$)
-    x_pit = ele%value(x_pitch$) * length / 2
-    y_pit = ele%value(y_pitch$) * length / 2
-    s_off = ele%value(s_offset$)
-    del_x = s_off * c0%x%vel / rel_E
-    del_y = s_off * c0%y%vel / rel_E
-
-    c00%vec = c0%vec - (/ x_off - x_pit*length/2 + del_x, x_pit, &
-             y_off - y_pit*length/2 + del_y, y_pit, 0.0_rdef, 0.0_rdef /)
-    c11%vec = c1%vec - (/ x_off + x_pit*length/2 - del_x, x_pit, &
-             y_off + y_pit*length/2 - del_y, y_pit, 0.0_rdef, 0.0_rdef /)
-  endif
+  call offset_particle (ele, param, c00, set$, set_canonical = .false.)
+  call offset_particle (ele, param, c11, set$, &
+                                set_canonical = .false., s_pos = length)
 
   c0t = c00
   c1t = c11
@@ -138,7 +125,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
       return
     endif
 
-    angle = ele%value(l$) * ele%value(g$)
+    angle = length * ele%value(g$)
     e1 = e1 + c0t%x%vel / rel_E
     e2 = e2 - c1t%x%vel / rel_E
     angle = angle + (c0t%x%vel - c1t%x%vel) / rel_E
@@ -570,7 +557,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
     if ((ele%value(s_st1$) < 0.) .or.  &
         (ele%value(s_st1$) + ele%value(l_st1$) > ele%value(s_st2$)) .or.  &
-        (ele%value(s_st2$) + ele%value(l_st2$) > ele%value(l$))) then
+        (ele%value(s_st2$) + ele%value(l_st2$) > length)) then
       type *, 'ERROR IN MAKE_MAT6_BMAD: STEERINGS MUST NOT OVERLAP AND MUST BE',  &
         ' CONTAINED WITHIN'
       type *, 'THE ACCEL_SOL ELEMENT!'

@@ -65,15 +65,6 @@ subroutine taylor_to_mat6 (a_taylor, c0, mat6, c1)
 
 ! c1 calc
 
-  c1%vec = 0
-
-  do i = 1, 6
-    do k = 1, size(a_taylor(i)%term)
-      if (all(a_taylor(i)%term(k)%exp == 0)) then
-        c1%vec(i) = a_taylor(i)%term(k)%coef
-        exit
-      endif
-    enddo
-  enddo
+  call track_taylor (c0, a_taylor, c1)
 
 end subroutine

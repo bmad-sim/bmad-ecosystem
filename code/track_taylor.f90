@@ -26,14 +26,12 @@ subroutine track_taylor (start, bmad_taylor, end)
   type (coord_struct), intent(in) :: start
   type (coord_struct), intent(out) :: end
   
-  real(rdef) vec_in(6), delta
+  real(rdef) delta
   
   integer i, j, k, ie
   
 !
 
-  vec_in = start%vec
-  
   end%vec = 0
   do i = 1, 6
     j_loop: do j = 1, size(bmad_taylor(i)%term)

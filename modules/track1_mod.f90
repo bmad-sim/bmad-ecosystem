@@ -122,6 +122,9 @@ end subroutine
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/11/05 18:06:29  dcs
+!Minor Mods
+!
 !Revision 1.2  2002/09/05 14:01:07  dcs
 !*** empty log message ***
 !
@@ -255,7 +258,7 @@ subroutine track_a_bend (start, ele, param, end)
     end%x%pos = x2
     end%x%vel = tan(atan(xp1) + theta0 - theta)
     end%y%pos = end%y%pos + end%y%vel * s_travel
-    end%z%pos = end%z%pos + ele%value(l$) - s_travel 
+    end%z%pos = end%z%pos + ele%value(l$) - s_travel * sqrt(1 + end%y%vel**2) 
 
 
 ! k1 /= 0
