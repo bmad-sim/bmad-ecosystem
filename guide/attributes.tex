@@ -18,52 +18,23 @@ are set by the \vn{parameter} statement (See
 \sref{s:param}). \vn{l_lattice} is calculated when the
 lattice is read in.
 
-\index{BBI_const}
-\index{Charge}
-\index{Sig_x}
-\index{Sig_y}
-\index{Beam_energy}
-\index{N_part}
-\index{E_field}
-\index{Voltage}
-\index{Hkick}
-\index{Vkick}
-\index{Gap}
-\index{L}
-\index{Beam_energy}
-\index{E_loss}
-\index{Delta_e}
-\index{Gradient}
-\index{L}
-\index{Rho}
-\index{Angle}
-\index{L_chord}
-\index{G}
-\index{L}
-\index{K1}
-\index{Rho}
-\index{B_max}
-\index{Beam_energy}
-\index{BeamBeam}
-\index{Elseparator}
-\index{Lcavity}
-\index{Rbend}
-\index{Sbend}
-\index{Wiggler}
+\index{BBI_const}\index{Charge}\index{Sig_x}\index{Sig_y}
+\index{Beam_energy}\index{N_part}\index{E_field}\index{Voltage}
+\index{Hkick}\index{Vkick}\index{Gap}\index{L}
+\index{Beam_energy}\index{E_loss}\index{Delta_e}\index{Gradient}
+\index{L}\index{Rho}\index{Angle}\index{L_chord}
+\index{G}\index{L}\index{K1}\index{Rho}
+\index{B_max}\index{Beam_energy}\index{BeamBeam}\index{Elseparator}
+\index{Lcavity}\index{Rbend}\index{Sbend}\index{Wiggler}
 \begin{table}[h]
 \centering {
 \begin{tabular}{|l|l|l|} \hline
-{\em Element}       & {\em Dependent Variables}  & {\em Independent Variables}  \\ \hline
- \vn{BeamBeam}     & \vn{bbi_const}           & 
-         \vn{charge}, \vn{sig_x}, \vn{sig_y}, \vn{beam_energy}, \vn{n_part} \\ \hline
- \vn{Elseparator}  & \vn{e_field}, \vn{voltage}   & 
-         \vn{hkick}, \vn{vkick}, \vn{gap}, \vn{l}, \vn{beam_energy}    \\ \hline
- \vn{Lcavity}      & \vn{e_loss}, \vn{delta_e}    & 
-         \vn{gradient}, \vn{l}                           \\ \hline
- \vn{Rbend}, \vn{Sbend} & \vn{rho}, \vn{angle}, \vn{l_chord} & 
-         \vn{g}, \vn{l}                                  \\ \hline
- \vn{Wiggler} (periodic type) & \vn{k1}, \vn{rho}             & 
-         \vn{b_max}, \vn{beam_energy}                    \\ \hline
+{\em Element}                 & {\em Dependent Variables}    & {\em Independent Variables}  \HH
+ \vn{BeamBeam}                & \vn{bbi_const}               & \vn{charge}, \vn{sig_x}, \vn{sig_y}, \vn{beam_energy}, \vn{n_part} \HH
+ \vn{Elseparator}             & \vn{e_field}, \vn{voltage}   & \vn{hkick}, \vn{vkick}, \vn{gap}, \vn{l}, \vn{beam_energy}    \HH
+ \vn{Lcavity}                 & \vn{e_loss}, \vn{delta_e}    & \vn{gradient}, \vn{l}                           \HH
+ \vn{Rbend}, \vn{Sbend} & \vn{rho}, \vn{angle}, \vn{l_chord} & \vn{g}, \vn{l}                                  \HH
+ \vn{Wiggler} (periodic type) & \vn{k1}, \vn{rho}            & \vn{b_max}, \vn{beam_energy}                    \HH
 \end{tabular}
 }
 \caption[Table of dependent variables.]{Table of dependent variables and 
@@ -72,14 +43,8 @@ they are calculated from.}
 \label{t:dependent}
 \end{table}
 
-\index{Lattice!expansion}
-\index{Harmon}
-\index{Delta_e}
-\index{Gradient}
-\index{Rho}
-\index{G}
-\index{Angle}
-\index{Rf_frequency}
+\index{Lattice!expansion}\index{Harmon}\index{Delta_e}\index{Gradient}
+\index{Rho}\index{G}\index{Angle}\index{Rf_frequency}
 No attempt should be made to set or vary within a program dependent
 attributes. It should be remarked that this is not an iron clad rule.
 If a program properly bypasses \bmad's attribute bookkeeping routine
@@ -90,56 +55,45 @@ variables is given in Table~\ref{t:dep_except}.  After reading in the
 lattice \bmad will set the appropriate independent variable based
 upon the value of the dependent variable. \vn{harmon} is the exception in 
 that it will never be set by the bookkeeping routine.
-\index{Lcavity}
-\index{Rbend}
-\index{Sbend}
-\index{RFcavity}
+\index{Lcavity}\index{Rbend}
+\index{Sbend}\index{RFcavity}
 \begin{table}[h]
 \centering {
 \begin{tabular}{|l|l|l|} \hline
-{\em Element}   & {\em Dependent Variable Set}  & 
-                      {\em Independent Variables Not Set} \\ \hline
-  \vn{Lcavity}            & \vn{delta_e}       & \vn{gradient}  \\ \hline
-  \vn{Rbend}, \vn{Sbend} & \vn{rho}           & \vn{g}         \\ \hline
-  \vn{Rbend}, \vn{Sbend}   & \vn{angle}         & \vn{g}         \\ \hline
-  \vn{RFcavity}           & \vn{rf_frequency}  & \vn{harmon}    \\ \hline
+{\em Element}            & {\em Dependent Variable Set}  &  {\em Independent Variables Not Set} \HH
+  \vn{Lcavity}           & \vn{delta_e}       & \vn{gradient}  \HH
+  \vn{Rbend}, \vn{Sbend} & \vn{rho}           & \vn{g}         \HH
+  \vn{Rbend}, \vn{Sbend} & \vn{angle}         & \vn{g}         \HH
+  \vn{RFcavity}          & \vn{rf_frequency}  & \vn{harmon}    \HH
 \end{tabular}
 }
 \caption {Dependent variables that can be set in a primary lattice file.}
 \label{t:dep_except}
 \end{table}
 
-\index{G}
-\index{B_field}
-\index{B_gradient}
-\index{Ks}
-\index{K1}
-\index{K2}
-\index{K3}
+\index{G}\index{B_field}
+\index{B_gradient}\index{Ks}
+\index{K1}\index{K2}\index{K3}
+\index{BL_kick}\index{BL_hkick}\index{BL_vkick}
 The normal attribute used to vary the strength of, say, a
 \vn{quadrupole} is \vn{k1}.  It is sometimes convenient to be able to
 vary the magnetic field strength directly instead. To do this \bmad has
 a rule that if the appropriate field attribute appears with non-zero value in the
 primary lattice file then it becomes a independent variable and the strength attribute
 becomes a dependent variable as tabulated in Table~\ref{t:dep_field}.
-\index{Sbend}
-\index{Rbend}
-\index{Solenoid}
-\index{Quadrupole}
-\index{Sol_Quad}
-\index{Sextupole}
-\index{Octupole}
+\index{Sbend}\index{Rbend}\index{Solenoid}\index{Quadrupole}
+\index{Sol_Quad}\index{Sextupole}\index{Octupole}
 \begin{table}[h]
 \centering {
 \begin{tabular}{|l|l|l|} \hline
-  {\em Element} & {\em Strength Attribute} & {\em Field Attribute} \\ \hline
-  \vn{Sbend}, \vn{Rbend}  &   \vn{g}      &  \vn{b_field}       \\ \hline
-  \vn{Solenoid}           &   \vn{ks}     &  \vn{b_field}       \\ \hline
-  \vn{Sol_quad}           &   \vn{ks}     &  \vn{b_field}       \\ \hline
-  \vn{Sol_quad}           &   \vn{k1}     &  \vn{b_gradient}    \\ \hline
-  \vn{Quadrupole}         &   \vn{k1}     &  \vn{b_gradient}    \\ \hline
-  \vn{Sextupole}          &   \vn{k2}     &  \vn{b_gradient}    \\ \hline
-  \vn{Octupole}           &   \vn{k3}     &  \vn{b_gradient}    \\ \hline
+  {\em Element} & {\em Strength Attribute} & {\em Field Attribute} \HH
+  \vn{Sbend}, \vn{Rbend}  &   \vn{g}      &  \vn{b_field}       \HH
+  \vn{Solenoid}           &   \vn{ks}     &  \vn{b_field}       \HH
+  \vn{Sol_quad}           &   \vn{ks}     &  \vn{b_field}       \HH
+  \vn{Sol_quad}           &   \vn{k1}     &  \vn{b_gradient}    \HH
+  \vn{Quadrupole}         &   \vn{k1}     &  \vn{b_gradient}    \HH
+  \vn{Sextupole}          &   \vn{k2}     &  \vn{b_gradient}    \HH
+  \vn{Octupole}           &   \vn{k3}     &  \vn{b_gradient}    \HH
 \end{tabular}
 }
 \caption {Field and Strength Attributes.}
