@@ -102,9 +102,6 @@ subroutine cesr_crossings(i_train, j_car, species, n_trains_tot, n_cars, &
     call err_exit
   endif
 
-     write(6,1100)n_car_spacing,train_spacing
-1100 format(' CESR_CROSSINGS called with n_car_spacing=',10i5,'   train_spacing=',10i5)
-
 ! If not otherwise specified, use 7 buckets between bunches and 140, 140, 147,
 ! repeating, buckets between trains.
 
