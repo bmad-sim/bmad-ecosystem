@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.24  2003/03/06 17:47:06  dcs
+!Bug fix.
+!
 !Revision 1.23  2003/03/04 16:03:27  dcs
 !VMS port
 !
@@ -125,7 +128,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   logical, optional :: make_mats6
   logical parsing, delim_found, matched_delim, arg_list_found, doit
   logical file_end, found, err_flag, finished, save_taylor
-  logical vmask(n_attrib_maxx)
+  logical vmask(n_attrib_maxx), do_init
   logical, save :: init_needed = .true.
 
 ! see if digested file is open and current. If so read in and return.
@@ -509,9 +512,13 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
 ! check for valid element key name
 
+      found = .false.  ! found a match?
+
       do i = 1, n_key
         if (word_2(:ix_word) == key_name(i)(:ix_word)) then
           in_ring%ele_(n_max)%key = i
+          found = .true.
+          do_init = .true.
           exit
         endif
       enddo
@@ -519,21 +526,22 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 ! check if element is part of a element class
 ! if none of the above then we have an error
 
-      if (i == n_key+1) then
+      if (.not. found) then
         do i = 1, n_max-1
           if (word_2 == in_ring%ele_(i)%name) then
             in_ring%ele_(n_max) = in_ring%ele_(i)
             in_ring%ele_(n_max)%name = word_1
+            do_init = .false.
+            found = .true.
             exit
           endif
         enddo
+      endif
 
-        if (i == n_max) then
-          call warning ('KEY NAME NOT RECOGNIZED: ' // word_2,  &
+      if (.not. found) then
+        call warning ('KEY NAME NOT RECOGNIZED: ' // word_2,  &
                        'FOR ELEMENT: ' // in_ring%ele_(n_max)%name)
-          cycle parsing_loop
-        endif
-
+        cycle parsing_loop
       endif
 
 ! Element definition.
@@ -543,12 +551,12 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
       key = in_ring%ele_(n_max)%key
 
-      if (key == wiggler$) then
+      if (key == wiggler$ .and. do_init) then
         in_ring%ele_(n_max)%sub_key = periodic_type$   ! default
         in_ring%ele_(n_max)%value(polarity$) = 1.0     ! default
       endif
 
-      if (key == taylor$) then
+      if (key == taylor$ .and. do_init) then
         in_ring%ele_(n_max)%tracking_method = taylor$  ! default
         in_ring%ele_(n_max)%mat6_calc_method = taylor$ ! default
         call add_taylor_term (in_ring%ele_(n_max), 1, 1.0_rdef, (/ 1, 0, 0, 0, 0, 0 /))
@@ -990,6 +998,11 @@ subroutine bmad_parser (in_file, ring, make_mats6)
     deallocate(old_ele)
 
   endif
+
+!
+
+  if (ring%param%beam_energy == 0) &
+                    print *, 'WARNING FROM BMAD_PARSER: BEAM_ENERGY IS 0!'
 
   doit = .true.
   if (present(make_mats6)) doit = make_mats6
