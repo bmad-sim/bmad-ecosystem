@@ -16,7 +16,7 @@ program tao_cl
 
 ! init
 
-  call tao_init ('tao.init')
+  call tao_init (s%global%default_init_file)
 
 ! loop over commands.
 
