@@ -117,7 +117,7 @@ design) momentum. The longitudinal canonical momentum $p_z$ is given by
 where $E_0$ is the reference energy (energy here always refers to the
 total energy). The $\Delta t$ term in the phase space coordinates is
 the time difference for a particle to pass a point relative to the
-reference particle. These coordinates are the same as \mad.
+reference particle. These coordinates are the same as used by \mad.
 
 \bmad generally uses the small angle (paraxial) approximation
 where it is assumed that $p_x, p_y \ll 1$. With this approximation, the
@@ -134,14 +134,14 @@ bending is in the $x$--$z$ plane. In the small angle approximation the
 relation between the local reference system coordinate $z$ and
 $c\Delta t$ is
 \Begineq
-    z = \beta c \Delta t 
+    z = -\beta c \Delta t 
 \Endeq
 where $\beta = v/c$ with $v$ being the velocity of the particle.  For
-ultra--relativistic particles $z = -\Delta t$ so in this case the
+ultra--relativistic particles $z = -c\Delta t$ so in this case the
 canonical coordinates can be referred to as $(x, p_x, y, p_y, z,
 p_z)$.
 
 For those programmers using the PTC software package directly (ignore
-this if you don't know what I'm talking about) \'Etienne Forest uses a 
-different coordinate system where $(-c\Delta t, p_z)$ is replaced by
-$(p_z, c \Delta t)$
+this if you don't know what I'm talking about) \'Etienne Forest uses,
+by default, a different coordinate system where $(-c\Delta t, p_z)$ is
+replaced by $(P-P_0/P_0, z)$. However, PTC also has the ability to switch to the coordinate system  $(p_z, c \Delta t)$.
