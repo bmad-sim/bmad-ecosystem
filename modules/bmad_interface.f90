@@ -208,10 +208,11 @@ interface
 end interface
 
 interface
-  subroutine create_i_beam (ring, ix_ele, ix_slave)
-    use bmad_struct, only: ring_struct
+  subroutine create_i_beam (ring, ix_ele, ix_slave, init_ele)
+    use bmad_struct, only: ring_struct, ele_struct
     implicit none
     type (ring_struct) ring
+    type (ele_struct), optional :: init_ele
     integer, intent(in) :: ix_ele
     integer, intent(in) :: ix_slave(:)
   end subroutine

@@ -337,14 +337,15 @@ subroutine makeup_super_slave (ring, ix_slave)
 
 ! s_del is the distance between lord and slave centers
 
-    if (value(x_pitch$) /= 0 .or. value(y_pitch$) /= 0) then
-      s_del = (slave%s - slave%value(l$)/2) - &
+    s_del = (slave%s - slave%value(l$)/2) - &
                   (lord%s + lord%value(s_offset$) - lord%value(l$)/2)
-      s_del = modulo2 (s_del, ring%param%total_length/2)
-      value(x_offset$) = value(x_offset$) + s_del * value(x_pitch$)
-      value(y_offset$) = value(y_offset$) + s_del * value(y_pitch$)
-    endif
-      
+    s_del = modulo2 (s_del, ring%param%total_length/2)
+    value(x_pitch$) = value(x_pitch_tot$)
+    value(y_pitch$) = value(y_pitch_tot$)
+    value(x_offset$) = value(x_offset_tot$) + s_del * value(x_pitch_tot$)
+    value(y_offset$) = value(y_offset_tot$) + s_del * value(y_pitch_tot$)
+    value(tilt$)         = value(tilt_tot$)
+
     slave%value = value
     slave%is_on = lord%is_on
     slave%mat6_calc_method = lord%mat6_calc_method
@@ -791,7 +792,7 @@ subroutine makeup_overlay_slave (ring, ix_ele)
 
   real(rp) value(n_attrib_maxx), coef, ds
   integer i, j, ix, iv, ix_ele, icom, ct
-  logical used(n_attrib_maxx), i_beam_here
+  logical used(n_attrib_maxx)
 
 !
                                
@@ -808,7 +809,7 @@ subroutine makeup_overlay_slave (ring, ix_ele)
 
   value = 0
   used = .false.
-  i_beam_here = .false.
+  ele%on_an_i_beam = .false.
 
   do i = ele%ic1_lord, ele%ic2_lord
     j = ring%ic_(i)
@@ -825,7 +826,7 @@ subroutine makeup_overlay_slave (ring, ix_ele)
       ele%value(x_pitch_tot$)  = ele%value(x_pitch$)  + i_beam%value(x_pitch$)
       ele%value(y_pitch_tot$)  = ele%value(y_pitch$)  + i_beam%value(y_pitch$)
       ele%value(tilt_tot$)     = ele%value(tilt$)     + i_beam%value(tilt$)
-      i_beam_here = .true.
+      ele%on_an_i_beam = .true.
       cycle
     endif
 
@@ -847,7 +848,7 @@ subroutine makeup_overlay_slave (ring, ix_ele)
 
 ! If no i_beam then simply transfer tilt to tilt_tot, etc.
 
-  if (.not. i_beam_here) then
+  if (.not. ele%on_an_i_beam) then
     ele%value(tilt_tot$)     = ele%value(tilt$)
     ele%value(x_offset_tot$) = ele%value(x_offset$)
     ele%value(y_offset_tot$) = ele%value(y_offset$)
@@ -915,9 +916,8 @@ subroutine attribute_bookkeeper (ele, param)
   real(rp) r, factor, check_sum
 
 ! Transfer tilt to tilt_tot, etc.
-! If ele is an overlay_slave then this is handled in makeup_overlay_slave.
 
-  if (ele%control_type /= overlay_slave$) then
+  if (.not. ele%on_an_i_beam) then
     ele%value(tilt_tot$)     = ele%value(tilt$)
     ele%value(x_offset_tot$) = ele%value(x_offset$)
     ele%value(y_offset_tot$) = ele%value(y_offset$)

@@ -179,13 +179,13 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
   s = s_pos
 
   offset = .false.
-  if (ele%value(x_offset$) /= 0 .or. ele%value(y_offset$) /= 0 .or. &
-       ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0) offset = .true.
+  if (ele%value(x_offset_tot$) /= 0 .or. ele%value(y_offset_tot$) /= 0 .or. &
+       ele%value(x_pitch_tot$) /= 0 .or. ele%value(y_pitch_tot$) /= 0) offset = .true.
 
   if (offset) then
     s_rel = s_pos - ele%value(l$) / 2  ! position relative to center.
-    x = x - ele%value(x_offset$) - ele%value(x_pitch$) * s_rel
-    y = y - ele%value(y_offset$) - ele%value(y_pitch$) * s_rel
+    x = x - ele%value(x_offset_tot$) - ele%value(x_pitch_tot$) * s_rel
+    y = y - ele%value(y_offset_tot$) - ele%value(y_pitch_tot$) * s_rel
   endif
 
   if (ele%value(tilt_tot$) /= 0) then
@@ -360,10 +360,10 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
   endif
 
   if (offset) then
-    field%B(1) = field%B(1) + ele%value(x_pitch$) * field%B(3)
-    field%B(2) = field%B(2) + ele%value(y_pitch$) * field%B(3)
-    field%E(1) = field%E(1) + ele%value(x_pitch$) * field%E(3)
-    field%E(2) = field%E(2) + ele%value(y_pitch$) * field%E(3)
+    field%B(1) = field%B(1) + ele%value(x_pitch_tot$) * field%B(3)
+    field%B(2) = field%B(2) + ele%value(y_pitch_tot$) * field%B(3)
+    field%E(1) = field%E(1) + ele%value(x_pitch_tot$) * field%E(3)
+    field%E(2) = field%E(2) + ele%value(y_pitch_tot$) * field%E(3)
   endif
 
 end subroutine

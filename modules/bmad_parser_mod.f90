@@ -2464,7 +2464,8 @@ end subroutine
 ! Input:
 !   name         -- Character(16): Name to match to.
 !   names(:)     -- Character(16): Array of names.
-!   an_indexx(:) -- Integer: Sorted index of names array.
+!   an_indexx(:) -- Integer: Sorted index for names(:) array.
+!                     names(an_indexx(i)) is in alphabetical order.
 !   n_max        -- Integer: Use only names(1:n_max) part of array.
 !
 ! Output:
@@ -2839,12 +2840,12 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
   type (parser_ring_struct) pring
   type (control_struct), pointer, save :: cs_(:) => null()
 
-  integer ixx, i, ic, n, n2, k, k2, ix, j, ie, ij, ix1, ns
-  integer ix_lord, ix_slave(1000)
+  integer ixx, i, ic, n, n2, k, k2, ix, j, ie, ij, ix1, ns, ixs
+  integer ix_lord, ix_slave(1000), k_slave, k_slave_original
   integer, allocatable, save :: r_indexx(:)
 
   character(16), allocatable :: name_(:)
-  character(16) name, name1, name2, attrib_name
+  character(16) name, name1, slave_name, attrib_name
 
   logical delete
 
@@ -2950,90 +2951,76 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
 
 !-----------------------------------------------------
 ! i_beam
+! Create an i_beam element for each element whose name matches the
+! first name in the slave list.
 
     case (i_beam_lord$) 
 
       ixx = lord%ixx
       name1 = pring%ele(ixx)%name_(1)
-      name2 = pring%ele(ixx)%name_(lord%n_slave)
 
-      call find_indexx (name1, name_, r_indexx, ix1, k, k2)
-      if (k == 0) then
-        call warning ('CANNOT FIND START ELEMENT FOR: ' // lord%name, &
+      call find_indexx (name1, name_, r_indexx, ix1, k_slave, k2)
+      if (k_slave == 0) then
+        call warning ('CANNOT FIND START ELEMENT FOR I_BEAM: ' // lord%name, &
                       'CANNOT FIND: '// name)
         cycle
       endif
+
+      if (k_slave > ring%n_ele_use) then ! must be a super_lord.
+        ix = ring%ele_(k)%ix1_slave
+        k_slave = ring%control_(ix)%ix_slave
+      endif
+
+      k_slave_original = k_slave
 
 ! Loop over all matches to the first name.
 
       do 
 
-        if (k > ring%n_ele_use) then ! must be a super_lord.
-          ix = ring%ele_(k)%ix1_slave
-          k = ring%control_(ix)%ix_slave
-        endif
+        ixs = 0       ! Index of slave element we are looking for
 
-        j = 0  ! number of slaves found
-        do 
-          if (ring%ele_(k)%control_type == super_slave$) then
-            do ic = ring%ele_(k)%ic1_lord, ring%ele_(k)%ic2_lord
-              ie = ring%control_(ic)%ix_lord
-              if (any(ix_slave(1:j) == ie)) cycle
-              j = j + 1
-              ix_slave(j) = ie
-              if (ring%ele_(ie)%name == name2) then
-                ix = ring%ele_(ie)%ix2_slave
-                if (k == ring%control_(ix)%ix_slave) exit
+        slave_loop: do            ! loop over all slaves
+          ixs = ixs + 1
+          if (ixs > lord%n_slave) exit
+          slave_name = pring%ele(ixx)%name_(ixs)
+
+          do  ! loop over all lattice elements
+            if (ring%ele_(k_slave)%control_type == super_slave$) then
+              do ic = ring%ele_(k_slave)%ic1_lord, ring%ele_(k_slave)%ic2_lord
+                ie = ring%control_(ic)%ix_lord
+                if (match_wild(ring%ele_(ie)%name, slave_name)) then
+                  ix_slave(ixs) = ie
+                  cycle slave_loop
+                endif
+              enddo
+            else
+              if (match_wild(ring%ele_(k_slave)%name, slave_name)) then
+                ix_slave(ixs) = k_slave
+                cycle slave_loop
               endif
-            enddo
-          else
-            if (ring%ele_(k)%key == drift$) cycle
-            j = j + 1
-            ix_slave(j) = k
-            if (ring%ele_(k)%name == name2) exit
-          endif
-          k = k + 1
-          if (j == 20 .or. k == ring%n_ele_use+1) then
-            call warning ('CANNOT FIND END ELEMENT FOR I_BEAM: ' // &
-                                          lord%name, 'CANNOT FIND: ' // name2)
-            cycle main_loop
-          endif
-        enddo
-
-! delete elements
-
-        do i = 2, lord%n_slave-1
-          name = pring%ele(ixx)%name_(i)
-          delete = .false.
-          if (name(1:1) == '-') then
-            name = name(2:)
-            delete = .true.
-          endif
-          do ij = 1, j
-            ix = ix_slave(ij)
-            if (name == ring%ele_(ix)%name) exit
-          enddo
-          if (ij == j + 1) then
-            call warning ('CANNOT FIND ELEMENT FOR I_BEAM: ' // &
-                                          lord%name, 'CANNOT FIND: ' // name)
-            exit
-          endif
-          if (delete) then
-            ix_slave(ij:j-1) = ix_slave(ij+1:j)
-            j = j - 1
-          endif
-        enddo
-
-        call new_control (ring, ix_lord)
-        ring%ele_(ix_lord) = lord
+            endif
+            k_slave = k_slave + 1  
+            if (k_slave == ring%n_ele_use + 1) k_slave = 1
+            if (k_slave == k_slave_original) then
+              call warning ('CANNOT FIND END ELEMENT FOR I_BEAM: ' // &
+                                     lord%name, 'CANNOT FIND: ' // slave_name)
+              cycle main_loop
+            endif
+          enddo 
+        enddo slave_loop
 
 ! create the i_beam element
 
-        call create_i_beam (ring, ix_lord, ix_slave(1:j))
+        call new_control (ring, ix_lord)
+        call create_i_beam (ring, ix_lord, ix_slave(1:lord%n_slave), lord)
 
         k2 = k2 + 1
-        k = r_indexx(k2)
-        if (ring%ele_(k)%name /= name1) exit
+        k_slave = r_indexx(k2)
+        if (ring%ele_(k_slave)%name /= name1) exit
+        if (k_slave > ring%n_ele_use) then ! must be a super_lord.
+          ix = ring%ele_(k_slave)%ix1_slave
+          k_slave = ring%control_(ix)%ix_slave
+        endif
 
       enddo 
 

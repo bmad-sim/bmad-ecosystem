@@ -148,6 +148,9 @@ subroutine reverse_ele (ele)
   ele%value(x_pitch$) = -ele%value(x_pitch$)
   ele%value(y_pitch$) = -ele%value(y_pitch$)
 
+  ele%value(x_pitch_tot$) = -ele%value(x_pitch_tot$)
+  ele%value(y_pitch_tot$) = -ele%value(y_pitch_tot$)
+
   select case (ele%key)
 
   case (solenoid$, sol_quad$)

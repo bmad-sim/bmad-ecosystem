@@ -194,9 +194,9 @@ subroutine mad_add_offsets_and_multipoles (ele, energy, map)
 
   val => ele%value
 
-  if (val(s_offset$) == 0 .and. val(x_offset$) == 0 .and. &
-      val(x_pitch$) == 0  .and. val(y_offset$) == 0 .and. &
-      val(y_pitch$) == 0 .and. .not. associated(ele%a) .and. &
+  if (val(s_offset_tot$) == 0 .and. val(x_offset_tot$) == 0 .and. &
+      val(x_pitch_tot$) == 0  .and. val(y_offset_tot$) == 0 .and. &
+      val(y_pitch_tot$) == 0 .and. .not. associated(ele%a) .and. &
       ((val(hkick$) == 0 .and. val(vkick$) == 0) .or. &
                                        ele%key == elseparator$)) return
 
@@ -206,21 +206,21 @@ subroutine mad_add_offsets_and_multipoles (ele, energy, map)
 
 ! Front side: s_offset
 
-  if (val(s_offset$) /= 0) then
-    map2%r(1,2) = val(s_offset$)
-    map2%r(3,4) = val(s_offset$)
+  if (val(s_offset_tot$) /= 0) then
+    map2%r(1,2) = val(s_offset_tot$)
+    map2%r(3,4) = val(s_offset_tot$)
   endif
 
 ! Front side: Offset and pitch
 
-  if (val(x_offset$) /= 0 .or. val(y_offset$) /= 0 .or. &
-                  val(x_pitch$) /= 0 .or. val(y_pitch$) /= 0) then
+  if (val(x_offset_tot$) /= 0 .or. val(y_offset_tot$) /= 0 .or. &
+                  val(x_pitch_tot$) /= 0 .or. val(y_pitch_tot$) /= 0) then
     call make_unit_mad_map (map2)
     s_here = -val(l$) / 2
-    map2%k(1) = - val(x_offset$) - val(x_pitch$) * s_here
-    map2%k(2) = - val(x_pitch$) 
-    map2%k(3) = - val(y_offset$) - val(y_pitch$) * s_here
-    map2%k(4) = - val(y_pitch$) 
+    map2%k(1) = - val(x_offset_tot$) - val(x_pitch_tot$) * s_here
+    map2%k(2) = - val(x_pitch_tot$) 
+    map2%k(3) = - val(y_offset_tot$) - val(y_pitch_tot$) * s_here
+    map2%k(4) = - val(y_pitch_tot$) 
   endif
 
 ! Front side: HV kicks.
@@ -293,21 +293,21 @@ subroutine mad_add_offsets_and_multipoles (ele, energy, map)
 
 ! Back side: Offset and pitch
 
-  if (val(x_offset$) /= 0 .or. val(y_offset$) /= 0 .or. &
-                  val(x_pitch$) /= 0 .or. val(y_pitch$) /= 0) then
+  if (val(x_offset_tot$) /= 0 .or. val(y_offset_tot$) /= 0 .or. &
+                  val(x_pitch_tot$) /= 0 .or. val(y_pitch_tot$) /= 0) then
     call make_unit_mad_map (map2)
     s_here = val(l$) / 2
-    map2%k(1) = - val(x_offset$) - val(x_pitch$) * s_here
-    map2%k(2) = - val(x_pitch$) 
-    map2%k(3) = - val(y_offset$) - val(y_pitch$) * s_here
-    map2%k(4) = - val(y_pitch$) 
+    map2%k(1) = - val(x_offset_tot$) - val(x_pitch_tot$) * s_here
+    map2%k(2) = - val(x_pitch_tot$) 
+    map2%k(3) = - val(y_offset_tot$) - val(y_pitch_tot$) * s_here
+    map2%k(4) = - val(y_pitch_tot$) 
   endif
 
 ! Back side: S_offset.
 
-  if (val(s_offset$) /= 0) then
-    map2%r(1,2) = -val(s_offset$)
-    map2%r(3,4) = -val(s_offset$)
+  if (val(s_offset_tot$) /= 0) then
+    map2%r(1,2) = -val(s_offset_tot$)
+    map2%r(3,4) = -val(s_offset_tot$)
   endif
 
 ! concat with map of body
@@ -602,7 +602,7 @@ subroutine mad_sextupole (ele, energy, map)
 
 ! Apply tilt.
 
-  if (ele%value(tilt$) .ne. 0.0) call mad_tmtilt(map, ele%value(tilt$))
+  if (ele%value(tilt_tot$) .ne. 0.0) call mad_tmtilt(map, ele%value(tilt_tot$))
 
 end subroutine
 
@@ -665,7 +665,7 @@ subroutine mad_sbend (ele, energy, map)
 
   if (roll /= 0) map%k = map%k + map_roll%k
 
-  if (ele%value(tilt$) .ne. 0.0) call mad_tmtilt(map, ele%value(tilt$))
+  if (ele%value(tilt_tot$) .ne. 0.0) call mad_tmtilt(map, ele%value(tilt_tot$))
 
 end subroutine
 
@@ -1167,7 +1167,7 @@ subroutine mad_quadrupole (ele, energy, map)
 
 ! Apply tilt.
 
-  if (ele%value(tilt$) .ne. 0.0) call mad_tmtilt(map, ele%value(tilt$))
+  if (ele%value(tilt_tot$) .ne. 0.0) call mad_tmtilt(map, ele%value(tilt_tot$))
 
 end subroutine
 

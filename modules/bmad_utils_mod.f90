@@ -756,6 +756,7 @@ subroutine init_ele (ele)
   ele%multipoles_on = .true.
   ele%symplectify = .false.
   ele%exact_rad_int_calc = .false.
+  ele%on_an_i_beam = .false.
 
   ele%field_master = .false.
   ele%aperture_at = exit_end$

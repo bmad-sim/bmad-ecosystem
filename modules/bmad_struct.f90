@@ -14,13 +14,13 @@ module bmad_struct
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-!
-! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 
-  integer, parameter :: bmad_inc_version$ = 73
-
+! IF YOU CHANGE THE RING_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST 
+! INCREASE THE VERSION NUMBER !
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
-!
+
+  integer, parameter :: bmad_inc_version$ = 74
+
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -75,11 +75,12 @@ module bmad_struct
     real(rp) theta, phi, psi    ! angular orientation
   end type
 
-! Ele_struct
-! REMEMBER: If this struct is changed you have to modify:
-!     read_digested_bmad_file
-!     write_digested_bmad_file
-!     init_ele (in bmad_utils_mod)
+! Ele_struct:
+! REMEMBER: If this struct is changed you have to:
+!     Increase bmad_inc_version by 1.
+!     Modify read_digested_bmad_file.
+!     Modify write_digested_bmad_file.
+!     Modify init_ele (in bmad_utils_mod).
 
   type ele_struct
     character(16) name              ! name of element
@@ -133,6 +134,7 @@ module bmad_struct
     logical is_on                  ! For turning element on/off.
     logical internal_logic         ! For Bmad internal use only.
     logical logic                  ! For general use. Not used by Bmad.
+    logical on_an_i_beam           ! Have an I_Beam overlay_lord?
   end type
 
 ! struct for element to element control
