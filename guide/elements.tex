@@ -4,16 +4,16 @@
 
 A lattice is made up of a collection of elements --- quadrupoles,
 bends, etc. This chapter discusses the various classes of elements
-available in \bmad\ except for \vn{group}s and \vn{overlay}s which are
+available in \bmad except for \vn{group}s and \vn{overlay}s which are
 discussed \cref{c:control}
 
 \index{MAD}
 Most element classes available in \mad\ are provided in \bmad.
-Additionally, \bmad\ provides a number of element classes that are not
+Additionally, \bmad provides a number of element classes that are not
 available in \mad.  A word of caution: In some cases where both \mad\
-and \bmad\ provide the same element class, there will be an overlap of 
+and \bmad provide the same element class, there will be an overlap of 
 the attributes available but the two sets of attributes will not be the same.
-The list of element classes known to \bmad\ is shown in Table~\ref{t:elements}.
+The list of element classes known to \bmad is shown in Table~\ref{t:elements}.
 
 \begin{table}[h]
 \centering
@@ -40,7 +40,7 @@ The list of element classes known to \bmad\ is shown in Table~\ref{t:elements}.
   
 \end{tabular}
 }
-\caption{Table of \bmad\ element classes.}
+\caption{Table of \bmad element classes.}
 \label{t:elements}\center
 \end{table}
 
@@ -122,10 +122,12 @@ is assumed to be Gaussian in shape. In the \vn{bmad_standard}
 calculation the beam--beam kick is computed using the
 Bassetti--Erskine complex error function formula\cite{b:talman}
 
-The magnitude of the strong beam's charge is set by the \vn{beam}
-command (see \ref{s:param}).  The sign of the strong beam's charge is
-set by the \vn{charge} attribute. If \vn{charge} = -1 the
-strong beam has the opposite charge. This is the default.
+\vn{n_part} is the nominal number of particles of the strong
+beam. \vn{n_part} is set using the \vn{parameter} command
+(\sref{s:param}) and is thus common to all \vn{BeamBeam} elements.  To
+vary the number of particles in an individual \vn{BeamBeam} element use the
+\vn{charge} attribute. The defaut is \vn{charge} = -1 which indicates
+that the strong beam has the opposite charge of the weak beam.
 
 \vn{sig_x}, \vn{sig_y}, \vn{sig_z} are the strong beam's sigmas. 
 \vn{x_offset} and \vn{y_offset} are used to offset the
@@ -291,7 +293,7 @@ the two is the way the \vn{l}, \vn{e1}, and \vn{e2} attributes are interpreted.
   \begin{description}
   \item[l]  
 For a \vn{Rbend} \vn{l} is the chord length and not the arc length as
-it is for a \vn{Sbend}.  After reading in a lattice, \bmad\ will
+it is for a \vn{Sbend}.  After reading in a lattice, \bmad will
 internally convert all \vn{Rbend}s into \vn{Sbend}s so internally
 \vn{l} will become the path length. The chord length will be stored in
 the \vn{l_chord} attribute.
@@ -338,7 +340,7 @@ a downward vertical ($-y$) bend.
 
 
 Note: \vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are
-specified for an element \bmad\ will calculate the appropriate value
+specified for an element \bmad will calculate the appropriate value
 for the third.  After reading in a lattice, \vn{angle} is considered a
 dependent variable.
 
@@ -401,10 +403,10 @@ Example:
 \toffset
 
 A \vn{Custom} element is an element whose properties are defined
-outside of the standard \bmad\ subroutine library. That is, to use a
+outside of the standard \bmad subroutine library. That is, to use a
 custom element some programmer must write the appropriate custom
-routines which are then linked with the \bmad\ subroutines into a
-program. \bmad\ will call the custom routines at the appropriate time
+routines which are then linked with the \bmad subroutines into a
+program. \bmad will call the custom routines at the appropriate time
 to do tracking, transfer matrix calculations, etc. See the programmer
 who wrote the custom routines for more details! See 
 section~\ref{s:custom_ele} on how to write custom routines.
@@ -604,19 +606,24 @@ the total tilt is stored in \vn{%value(tilt_tot\$)}, etc.
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & \S  & {\sl Attribute} & \S  & {\sl Attribute} & \S \\ \hline
-  l        = Real       & \ref{s:l}     & type = String    & \ref{s:string} & tracking\_method = Switch    & \ref{s:tkm}   \\ \hline
-  rel\_tol = Real       & \ref{s:integ} & alias = String   & \ref{s:string} & mat6\_calc\_method = Switch  & \ref{s:xfer}  \\ \hline
-  abs\_tol = Real       & \ref{s:integ} & descrip = String & \ref{s:string} & aperture\_at = Switch        & \ref{s:limit} \\ \hline
-  num\_steps = Integer  & \ref{s:integ} & x\_limit = Real  & \ref{s:limit}  & symplectify = Logical        & \ref{s:symp}  \\ \hline
-  beam\_energy$^*$      & \ref{s:energy}& y\_limit = Real  & \ref{s:limit}  & integration\_ord = Integer   & \ref{s:integ} \\ \hline
-  p0c$^*$               & \ref{s:energy}& aperture = Real  & \ref{s:limit}  & field\_calc = Switch         & \ref{s:integ} \\ \hline
+  l        = Real       & \ref{s:l}      & type = String    & \ref{s:string} & tracking\_method = Switch    & \ref{s:tkm}    \\ \hline
+  rel\_tol = Real       & \ref{s:integ}  & alias = String   & \ref{s:string} & mat6\_calc\_method = Switch  & \ref{s:xfer}   \\ \hline
+  abs\_tol = Real       & \ref{s:integ}  & descrip = String & \ref{s:string} & aperture\_at = Switch        & \ref{s:limit}  \\ \hline
+  num\_steps = Integer  & \ref{s:integ}  & x\_limit = Real  & \ref{s:limit}  & symplectify = Logical        & \ref{s:symp}   \\ \hline
+  x_offset = Real       & \ref{s:offset} & y\_limit = Real  & \ref{s:limit}  & integration\_ord = Integer   & \ref{s:integ}  \\ \hline
+  y_offset = Real       & \ref{s:offset} & aperture = Real  & \ref{s:limit}  & field\_calc = Switch         & \ref{s:integ}  \\ \hline
+  x_pitch  = Real       & \ref{s:offset} & is\_on = Logical & \ref{s:is_on}  & beam\_energy$^*$             & \ref{s:energy} \\ \hline 
+  y_pitch  = Real       & \ref{s:offset} &                  &                & p0c$^*$                      & \ref{s:energy} \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
 \end{center}
 \toffset
 
-\bmad\ treats \vn{Instrument} and \vn{Monitor} elements exactly like a
-drift.  Example:
+\bmad treats \vn{Instrument} and \vn{Monitor} elements exactly like a
+\vn{Drift}.  The \vn{offset} and \vn{pitch} attributes are not used by
+any \bmad routines. If these attributes are used by a program they are
+typically used to simulate such things as measurement offsets. The
+\vn{is_on} attribute is also not used by \bmad proper. Example:
 \begin{example}
   d21: instr, l = 4.5
 \end{example}
@@ -728,23 +735,51 @@ Note: The transfer matrix for an \vn{Lcavity} with finite
 \index{Wakefields!in Lcavity}
 The input file name for the short--range wakefields is specified using
 the \vn{sr_wake_file} attribute. The file gives both monopole
-longitudinal and dipole transverse wakes in tabular form. Comment
-header lines may be included by starting a line with an exclamation
-mark (!) or by leaving the line blank.  An example input file is:
+longitudinal and dipole transverse wakes. Comment
+lines may be included by starting a line with an exclamation
+mark (!). Blank lines are also ignored.  An example input file is:
 \begin{example}
-  !  -z             Wz             Wt
-  !  [m]        [V/C/m]       [V/C/m^2]
+  !    z           Wz             Wt
+  !   [m]       [V/C/m]       [V/C/m^2]
+   0.000E+00  1.61125E+15   0.00000E+00     1 
+  -1.000E-05  1.44516E+15   1.30560E+15     2 
+  -2.000E-05  1.38148E+15   2.50665E+15     3 
+  .. etc ..
+  -1.970E-03  3.49958E+14   7.95507E+16   198 
+  -1.980E-03  3.48606E+14   7.97253E+16   199  
+  -1.990E-03  3.47263E+14   7.98989E+16   200
+     END_SECTION
 
-  0.00000E+00  1.61125E+15   0.00000E+00     1 
-  1.00000E-05  1.44516E+15   1.30560E+15     2 
-  2.00000E-05  1.38148E+15   2.50665E+15     3 
-  ... etc ...
-  1.97000E-03  3.49958E+14   7.95507E+16   198 
-  1.98000E-03  3.48606E+14   7.97253E+16   199  
-  1.99000E-03  3.47263E+14   7.98989E+16   200 
+  ! Longitudinal wake
+  !   Amp         damp        freq     phase
+  ! [V/C/m]      [1/sec]      [Hz]
+    3.23e14      1.23e3     3.62e3     0.123
+    .. etc ..
+     END_SECTION
+
+  ! Transverse wake
+  !    Amp         damp        freq     phase
+  ! [V/C/m^2]     [1/sec]      [Hz]
+     4.23e14      2.23e3     5.62e3     0.789
+     .. etc ..
 \end{example}
-The first column is the longitudinal distance $z$. $z$ must start at 0
-and must increment by the a constant amount from row to row. The
+The file is divided into three sections with lines containing the word
+\vn{END_SETCION} marking the division between sections.
+Wakes can be specified via a table of wake versus longitudinal position $z$ 
+and/or using a set of ``psudo'' modes (\sref{s:wakefields}). The first section
+gives the wake vs $z$ table, the second section gives the longitudinal monopole
+psudo modes, and the third section gives the transverse dipole psudo modes.
+The cutoff $z_{\rm{cut}}$ below which the wake vs. $z$ table is used is simply
+the last $z$ value of the first section. If psudo modes are not to be used simply
+provide the first section only. If a wake vs $z$ table is not to be used simply
+leave the first section blank.
+
+In the fits section with the table of wake vs. $z$,
+the first column is the longitudinal distance $z$. $z$ must start at 0
+and must increment by the a constant amount from row to row. $z$ is negative
+since the wake extends behind a particle. To be backward compatable with
+the Liar program, \bmad accepts positive $z$ and will internally convert
+to negative $z$. The
 second column is the longitudinal wake function in $V/C/m$. The third
 column is the transverse wake in $V/C/m^2$. Any additional columns are
 ignored.  Wakefield formulas are to be found in \sref{s:wakefields}. 
@@ -755,6 +790,8 @@ the \vn{e_loss} attribute is ignored. However, even in this case, a finite
 like quadrupole k1 strengths and bend strengths are referenced to the 
 reference energy, The value of \vn{e_loss} will affect the results even with
 a short--range wakefield file.
+
+
 
 The input file name for the long--range wakefields is specified using
 the \vn{lr_wake_file} attribute. The file gives the transverse dipole
@@ -797,17 +834,21 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
-  tracking\_method = Switch    & \ref{s:tkm}   &  type = String      & \ref{s:string} & x\_limit = Real       & \ref{s:limit} \\ \hline 
-  mat6\_calc\_method = Switch  & \ref{s:xfer}  &  alias = String     & \ref{s:string} & y\_limit = Real       & \ref{s:limit} \\ \hline 
-  beam\_energy$^*$             & \ref{s:energy}&  descrip = String   & \ref{s:string} & aperture = Real       & \ref{s:limit} \\ \hline 
-  p0c$^*$                      & \ref{s:energy}&                     &                & aperture\_at = Switch & \ref{s:limit} \\ \hline
+  tracking\_method = Switch    & \ref{s:tkm}    &  type = String    & \ref{s:string} & x\_limit = Real       & \ref{s:limit}  \\ \hline 
+  mat6\_calc\_method = Switch  & \ref{s:xfer}   &  alias = String   & \ref{s:string} & y\_limit = Real       & \ref{s:limit}  \\ \hline 
+  x_offset = Real              & \ref{s:energy} &  descrip = String & \ref{s:string} & aperture = Real       & \ref{s:limit}  \\ \hline 
+  y_offset = Real              & \ref{s:energy} &  is\_on = Logical & \ref{s:is_on}  & aperture\_at = Switch & \ref{s:limit}  \\ \hline
+                               &                & p0c$^*$           & \ref{s:energy} & beam\_energy$^*$      & \ref{s:energy} \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
 \end{center}
 \toffset
 
-A \vn{Marker} is a zero length element meant to mark a position.
-Example:
+A \vn{Marker} is a zero length element meant to mark a position. The
+\vn{x_offset} and \vn{y_offset} attributes are not used by any \bmad
+routines. Typically if these attributes are used by a program they are
+used to simulate things like BPM offsets. The \vn{is_on} attribute is
+also not used by \bmad proper. Example:
 \begin{example}
   mm: mark, type = "BPM"
 \end{example}
@@ -831,17 +872,25 @@ Example:
   etap\_y0  = Real &               & etap\_y1  = Real &                & alias = String              & \ref{s:string} \\ \hline
   dphi\_x   = Real &               & beam\_energy$^*$ & \ref{s:energy} & descrip = String            & \ref{s:string} \\ \hline
   dphi\_y   = Real &               & p0c$^*$          & \ref{s:energy} & is\_on = Logical            & \ref{s:is_on}  \\ \hline
+  l         = Real & \ref{s:l}     &                  &                &                             &                \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
 \end{center}
 \toffset
 
-A \vn{Match} element is used to match the Twiss parameters between two points. That is, 
-the transfer map for a match element, which is just a linear matrix, is calculated such that
-if the Twiss parameters at the exit end of the element preceding the \vn{match} element are 
-given by \vn{beta_x0}, \vn{beta_y0}, etc., then the computed Twiss parameters at the exit
-end of the \vn{match} element will be \vn{beta_x1}, \vn{beta_y1}, etc. \vn{dphi_x} and \vn{dphi_y}
-are the phase advances in radians.
+A \vn{Match} element is used to match the Twiss parameters between two
+points. That is, the transfer map for a match element, which is just a
+linear matrix, is calculated such that if the Twiss parameters at the
+exit end of the element preceding the \vn{match} element are given by
+\vn{beta_x0}, \vn{beta_y0}, etc., then the computed Twiss parameters
+at the exit end of the \vn{match} element will be \vn{beta_x1},
+\vn{beta_y1}, etc. \vn{dphi_x} and \vn{dphi_y} are the phase advances
+in radians.
+
+The attribute \vn{l} is not used in the transfer matrix
+calculation. It is sometimes needed by a program for other
+computations. For example, to compute the time it takes to go through
+a match element.
 
 Example:
 \begin{example}

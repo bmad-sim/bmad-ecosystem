@@ -737,6 +737,26 @@ dipole short--range transverse wakefield is modeled with the equation
 There is a similar equation for $dp_y(i)$. $\WtS$
 is the transverse short--range wake function.
 
+The wakefield functions $\WlS$ and $\WlS$ can be specified in a \bmad
+lattice file using a table of wake vs $z$ or by using ``psudo'' modes
+where
+\Begineq
+  W(z) = \sum_i A_i \, e^{d_i z} \, \sin (k_i \, z + \phi_i)
+\Endeq
+The set of mode parameters $(A_i, d_i, k_i, \phi_i)$ are choisen to fit
+the calculated wake poential. The advantage of the mode approach is that
+the calculation time scales as the number of particles $N$ while the
+calculation based upon a table scales as $N^2$. The disadvantage is that
+initially there is an extra step in that a fit to the wake p[otential must
+be preformed to generate the mode parameter values. Furthermore, since the
+transverse wake typically has a form that looks something like $\sqrt{-z}$ 
+for small $z$ (small here means small in magnitude, $z$ is always negative)
+a set of psudo modes may not fit the wake function well at small $z$. 
+\bmad implements a hybrid scheme where for small $z$ below some cuttoff
+$z_{\rm{cut}}$ the wake vs $z$ table is used and for larger $z$ the psudo
+modes are used.
+
+
 %-----------------------------
 \subsection{Long--Range Wakes}
 
@@ -772,11 +792,7 @@ multipole of order $m$.
 Each mode is characterized by an $R/Q$, $Q$, $\omega$, and $m$. Notice
 that $R/Q$ is defined so that it includes the cavity length. Thus the
 long--range wake equations, as opposed to the short--range ones, do
-not have any explicit dependence on $L$. Also notice that there is an
-overall sign difference between how the long--range and short--range
-transverse wakes are defined (This is due to the fact that \bmad takes
-its short--range wake definition from LIAR and its long--range
-definition from Chao).
+not have any explicit dependence on $L$. 
 
 To make life more interesting differnt people define $R/Q$
 differently. A common practice is to define an $R/Q$ ``at the beam
