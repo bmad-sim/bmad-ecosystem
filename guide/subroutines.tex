@@ -737,11 +737,12 @@ Subroutine to convert accelerator coordinates (x, x', y, y', z, z') to
 Cartesian coordinates and time derivatives (x, x\_dot, y, y\_dot, z,
 z\_dot) or vice-versa.
 
-\item[create\_group (ring, ix\_ele, n\_control, control\_)] \Newline
+\item[create\_group (ring, ix\_ele, contrl)] \Newline
 Subroutine to create a group control element. 
 
-\item[create\_overlay (ring, ix\_overlay, ix\_value, n\_slave, con\_)] \Newline
-Subroutine to add the controller information to slave elements of an overlay\_lord. 
+\item[create\_overlay (ring, ix\_overlay, attrib\_name, , contl)] \Newline
+Subroutine to add the controller information to slave elements of an 
+overlay\_lord. 
 
 \item[compress\_ring (ring, ok)] \Newline
 Subroutine to compress the ele\_(*) and control\_(*) arrays to remove

@@ -129,7 +129,7 @@ or
 \end{align}
 
 When the $a_n$ and $b_n$ are associated with a physical element (as
-opposed to the $a_n$ and $b_n$ associated with an \vn{ab_multipole}),
+opposed to the $a_n$ and $b_n$ associated with an \vn{AB_Multipole}),
 a measurement radius $r_0$ and a scale factor $F$ are used to scale
 the $a_n$ and $b_n$ according to the formula
 \begin{align}
@@ -140,7 +140,12 @@ the $a_n$ and $b_n$ according to the formula
 \end{align}
 where $r_0$ is set by the \vn{radius} attribute of an element. $F$ and
 $n_\text{ref}$ are set automatically depending upon the type of
-element as shown in Table~\ref{t:ab}
+element as shown in Table~\ref{t:ab}.
+
+Note that the $n = 0$ component of an \vn{AB_Multipole} or \vn{Multipole}
+element rotates the reference orbit essentially acting as a zero length bend.
+This is not true for multipoles that are associated with 
+non-multipole elements.
 
 \begin{table}[h]
 \centering
