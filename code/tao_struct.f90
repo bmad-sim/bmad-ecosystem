@@ -35,12 +35,6 @@ type tao_keyboard_struct
   integer ix_var                           ! Index to variable array.
 end type
 
-type tao_io_struct
-  character(40) routine_name
-  character(40) severity
-  character(100), pointer :: lines(:) => null()
-end type
-
 !-----------------------------------------------------------------------
 ! Plot structures.
 
@@ -384,7 +378,7 @@ type tao_common_struct
 end type
 
 
-type (tao_super_universe_struct), save :: s
+type (tao_super_universe_struct), save, target :: s
 type (tao_common_struct), save :: tao_com
 
 end module

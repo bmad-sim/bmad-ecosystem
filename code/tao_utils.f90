@@ -107,7 +107,7 @@ implicit none
 
 integer n, i, n_var
 
-type (tao_v1_var_struct) v1
+type (tao_v1_var_struct), target :: v1
 type (tao_var_struct), target :: var(n:)
 
 v1%v => var

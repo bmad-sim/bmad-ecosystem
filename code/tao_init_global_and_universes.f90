@@ -159,6 +159,8 @@ subroutine tao_init_global_and_universes (data_and_var_file)
     var%step = 0           ! set default
     var%attribute = ' '
     var%universe = ' '
+    var%low_lim = default_low_lim
+    var%high_lim = default_high_lim
 
     read (iu, nml = tao_var, iostat = ios, err = 9200)
     if (ios < 0) exit         ! exit on end-of-file
@@ -336,8 +338,8 @@ if (index(data(0)%name, 'COUNT:') /= 0) then
   call string_trim (count_name1, count_name1, ix)
   ix = index (count_name1, '#')
   if (ix .eq. 0) then
-  call out_io (s_abort$, r_name, "WHEN USING 'SAME:' MUST HAVE '#' &
-                  WILDCARD IN NAME")
+  call out_io (s_abort$, r_name, &
+                  "WHEN USING 'SAME:' MUST HAVE '#' WILDCARD IN NAME")
   call err_exit
   endif
   count_name2 = count_name1(ix+1:)
@@ -612,10 +614,10 @@ subroutine var_stuffit_common
   where (s%var(n1:n2)%merit_type == ' ') s%var(n1:n2)%merit_type = default_merit_type
 
   s%var(n1:n2)%low_lim = var(ix1:ix2)%low_lim
-  where (s%var(n1:n2)%low_lim == ' ') s%var(n1:n2)%low_lim = default_low_lim
+  where (s%var(n1:n2)%low_lim == -1e30) s%var(n1:n2)%low_lim = default_low_lim
 
   s%var(n1:n2)%high_lim = var(ix1:ix2)%high_lim
-  where (s%var(n1:n2)%high_lim == ' ') s%var(n1:n2)%high_lim = default_high_lim
+  where (s%var(n1:n2)%high_lim == 1e30) s%var(n1:n2)%high_lim = default_high_lim
 
 end subroutine
 

@@ -28,7 +28,7 @@ subroutine tao_command (command_line, err)
   integer ix, ix_line, ix_cmd, which
   integer int1, int2
 
-  real(rp) value1, value2
+  real(rp) value1, value2, this_merit
 
   character(*) :: command_line
   character(140) cmd_line
@@ -357,7 +357,7 @@ subroutine cmd_end_calc
 
 ! Note: tao_merit calls tao_lattice_calc.
 
-  call tao_merit ()         
+  this_merit = tao_merit ()         
   call tao_plot_data_setup ()     ! transfer data to the plotting structures
   call tao_plot_out ()            ! Update the plotting window
 

@@ -16,14 +16,15 @@
 subroutine tao_de_optimizer ()
 
 use tao_mod
-use opti_mod
+use tao_var_mod
 use tao_single_mod
+use opti_mod
 
 implicit none
 
 type (tao_universe_struct), pointer :: u
 
-real(rp), allocatable, save :: var_vec(:), var_del(:)
+real(rp), allocatable, save :: var_vec(:), var_step(:)
 real(rp) merit_start, merit_end, merit
 
 integer i, n, gen, pop, n_var, population
@@ -37,7 +38,7 @@ tao_com%opti_init = .true.
 
 ! put the variable values into an array for the optimizer
 
-call tao_get_vars (var_vec, var_del = var_del)
+call tao_get_vars (var_vec, var_step = var_step)
 n_var = size(var_vec)
 
 population = max(5*n_var, 20)
@@ -46,7 +47,7 @@ merit_start = tao_merit ()
 ! run the optimizer
 
 merit = opti_de (var_vec, s%global%n_opti_cycles, population, &
-                                                    merit_wrapper, var_del)
+                                                    merit_wrapper, var_step)
 
 ! cleanup after the optimizer
 

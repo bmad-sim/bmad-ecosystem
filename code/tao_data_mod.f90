@@ -9,7 +9,7 @@ type this_coupling_struct
   logical calc_done
 end type
 
-type (this_coupling_struct), save, allocatable :: cc(:)
+type (this_coupling_struct), save, allocatable, target :: cc(:)
 
 contains
 

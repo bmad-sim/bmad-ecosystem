@@ -18,9 +18,10 @@
 subroutine tao_lm_optimizer ()
 
 use tao_mod
-use nr
 use tao_dmerit_mod
+use tao_var_mod
 use single_char_input_mod
+use nr
 
 implicit none
 
@@ -63,8 +64,8 @@ mask_a = .true.
 
 ! init a and y arrays
 
-a(1:n_var) = var_value
-y(1:n_var) = var_meas_value
+a = var_value
+y = 0
 sig(1:n_var) = 1e10  ! something large
 where (weight /= 0) sig(1:n_var) = sqrt(1/weight)
 
@@ -76,7 +77,6 @@ do j = 1, size(s%u)
   do i = 1, size(u%data)
     if (.not. u%data(i)%useit_opt) cycle
     k = k + 1
-    y(k) = 0
     if (u%data(i)%weight == 0) then
       sig(k) = 1e10
     else
@@ -95,7 +95,7 @@ do i = 1, s%global%n_opti_cycles
   if (i == s%global%n_opti_cycles) a_lambda = 0  ! tell mrqmin we are finished
   call mrqmin (x, y, sig, a, mask_a, covar, alpha, chi_sq, tao_mrq_func, a_lambda) 
   call tao_mrq_func (x, a, y_fit, dy_da)  ! put a -> model
-  write (line, '(i5, es14.4, es10.2)'), i, tao_merit(), a_lambda
+  write (line, '(i5, es14.4, es10.2)') i, tao_merit(), a_lambda
   call out_io (s_blank$, r_name, line)
 
 ! look for keyboard input to end optimization
@@ -127,6 +127,7 @@ end subroutine
 subroutine tao_mrq_func (x, a, y_fit, dy_da)
 
 use tao_mod
+use tao_var_mod
 
 implicit none
 
@@ -136,6 +137,7 @@ real(rp), intent(in) :: x(:), a(:)
 real(rp), intent(out) :: y_fit(:)
 real(rp), intent(out) :: dy_da(:, :)
 real(rp) merit0
+real(rp), allocatable :: var_delta(:)
 
 integer i, j, k, n, nn, im, iv, n_var
 
@@ -161,9 +163,13 @@ merit0 = tao_merit()
 
 dy_da = 0
 n_var = size(a)
-forall (k = 1:n_var) dy_da(k,k) = 1
 
-y_fit(1:n_var) = a
+call tao_get_vars (var_delta = var_delta)
+y_fit(1:n_var) = var_delta
+
+do k = 1, n_var
+  if (y_fit(k) /= 0) dy_da(k,k) = 1
+enddo
 
 k = n_var
 

@@ -77,17 +77,6 @@ interface
 end interface
  
 interface
-  subroutine tao_get_vars (var_value, var_del, var_weight, var_meas_value)
-    use precision_def
-    implicit none
-    real(rp), allocatable :: var_value(:)
-    real(rp), allocatable, optional :: var_del(:)
-    real(rp), allocatable, optional :: var_weight(:)
-    real(rp), allocatable, optional :: var_meas_value(:)
-  end subroutine
-end interface
- 
-interface
   subroutine tao_help (help_what)
     implicit none
     character(*) help_what
@@ -304,14 +293,6 @@ interface
   end subroutine
 end interface
 
-interface
-  subroutine tao_set_vars (var_vec)
-    use precision_def
-    implicit none
-    real(rp) var_vec(:)
-  end subroutine
-end interface
- 
 interface
   subroutine tao_show_cmd (show_word1, show_word2, show_word3, show_word4)
     implicit none

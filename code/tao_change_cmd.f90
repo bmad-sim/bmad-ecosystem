@@ -81,8 +81,8 @@ case ('ele')
   call string_trim (name, name, ix)
 
   if (ix .gt. 16) then
-    call out_io (s_error$, r_name, 'ELEMENT NAME CANNOT BE &
-  		GREATER THAN 16 CHARACTERS')
+    call out_io (s_error$, r_name, &
+                   'ELEMENT NAME CANNOT BE GREATER THAN 16 CHARACTERS')
     return
   endif
   
