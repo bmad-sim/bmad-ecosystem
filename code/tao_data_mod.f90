@@ -138,6 +138,11 @@ case ('eta:x')
 case ('eta:y')
   call load_it (lattice%ele_(:)%y%eta)
 
+case ('etap:x')
+  call load_it (lattice%ele_(:)%x%etap)
+case ('etap:y')
+  call load_it (lattice%ele_(:)%y%etap)
+
 case ('coupling:11')
   call load_it (cc%coupling11, cc%f_11, coupling_here = .true.)
 case ('coupling:12a')

@@ -71,9 +71,10 @@ do
   if (line(1:2) == '%%') return
 
   if (line(1:8) == '\section') cycle
-  if (line(1:6) == '\label') cycle
-  if (line(1:6) == '\begin') cycle
-  if (line(1:4) == '\end') cycle
+  if (line(1:6) == '\label')   cycle
+  if (line(1:6) == '\begin')   cycle
+  if (line(1:4) == '\end')     cycle
+  if (line(1:6) == '\vskip')   cycle
 
   call eliminate ("``", '"')
   call eliminate ("''", '"')
