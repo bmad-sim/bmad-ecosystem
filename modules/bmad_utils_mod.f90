@@ -308,7 +308,7 @@ subroutine transfer_taylor (ring_in, ring_out, type_out)
        if (sum(ele_in%taylor(it)%term(k)%exp(:)) <= &
                                       bmad_com%taylor_order) then
           ix = ix + 1
-          ele_out%taylor(it)%term(ix) = ele_in%taylor(it)%term(ix)
+          ele_out%taylor(it)%term(ix) = ele_in%taylor(it)%term(k)
         endif      
       enddo
     enddo
