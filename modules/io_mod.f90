@@ -41,7 +41,7 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
   character(4) last
   character(16) name
 
-  integer i, j, k, ix, lunget, iu, ios, ixs
+  integer i, j, k, ix, iu, ios, ixs
   integer unit(6)
 
   logical slave_here, unit_found, write_term

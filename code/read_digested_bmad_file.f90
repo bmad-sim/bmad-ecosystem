@@ -33,7 +33,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   type (ring_struct), target, intent(inout) :: ring
   type (ele_struct), pointer :: ele
   
-  integer d_unit, lunget, n_files, version, i, j, k, ix
+  integer d_unit, n_files, version, i, j, k, ix
   integer ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t(6)
   integer ix_srf, ix_sr, ix_lrf, ix_lr, i_garbage
   integer stat_b(12), stat, ierr, idate_old

@@ -6,7 +6,6 @@ module bmad_parser_mod
 
   use ptc_interface_mod
   use bookkeeper_mod
-  use cesr_utils
 
 ! structure for a decleared variable
 
@@ -1532,7 +1531,7 @@ subroutine read_sr_wake (ele)
   type (ele_struct) ele
   type (sr_wake_struct), allocatable :: sr(:), sr2(:)
   real(rp) dz
-  integer i, j, ix, lunget, iu, ios
+  integer i, j, ix, iu, ios
 
   character(200) file_name, line
 

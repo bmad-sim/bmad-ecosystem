@@ -55,7 +55,7 @@ subroutine read_butns_file (butns_num, butns, db, read_ok, type_err)
   type (butns_struct) butns
 
   integer vec(120), det_type(120)
-  integer i, ix, j, butns_num, iu, lunget, ios, raw(4, 120)
+  integer i, ix, j, butns_num, iu, ios, raw(4, 120)
   integer n_node, n_ele
 
   real(rp) x_orbit(120), y_orbit(120), rdummy

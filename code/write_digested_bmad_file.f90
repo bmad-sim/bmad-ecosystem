@@ -31,7 +31,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   type (taylor_struct), pointer :: tt(:)
   
   integer, intent(in), optional :: n_files
-  integer d_unit, lunget, i, j, k, n_file
+  integer d_unit, i, j, k, n_file
   integer ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t(6)
   integer stat_b(12), stat, ierr, i_garbage
   integer ix_srf, ix_sr, ix_lrf, ix_lr
