@@ -189,7 +189,7 @@ end subroutine
 
 subroutine do_loop
 
-integer indx, indx_start, indx_end ! for do loops
+integer, save :: indx, indx_start, indx_end ! for do loops
 
 character(6) do_word ! 'do' or 'enddo'
 character(10) indx_name ! do loop index name
