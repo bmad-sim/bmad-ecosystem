@@ -1,6 +1,6 @@
 !+
-! Subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, 
-!                               twiss_out, type_control, lines, n_lines, ring)
+! Subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, 
+!                               type_mat6, type_taylor, twiss_out, type_control, ring)
 !
 ! Subroutine to put information on an element in a string array. 
 ! See also the subroutine: type_ele.
