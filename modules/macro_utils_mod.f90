@@ -336,7 +336,21 @@ subroutine param_stuffit (param, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
   real(rp), intent(in) :: exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d
   real(rp) emitt
 
-  emitt = SQRT(exp_x2*exp_p_x2 - exp_x_p_x**2)
+  if (exp_x2*exp_p_x2 .lt. exp_x_p_x**2) then
+    emitt = 0.0
+    param%alpha = 0.0
+    param%beta  = 0.0
+    param%gamma = 0.0
+    param%eta   = 0.0
+    param%etap  = 0.0
+    param%norm_emitt = 0.0
+    param%sigma = 0.0
+    param%p_sigma = 0.0
+    param%dpx_dx = 0.0
+    return
+  else
+    emitt = SQRT(exp_x2*exp_p_x2 - exp_x_p_x**2)
+  endif
 
   param%alpha = exp_x_p_x / emitt
   param%beta  = exp_x2 / emitt
