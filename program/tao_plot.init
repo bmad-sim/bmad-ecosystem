@@ -20,12 +20,14 @@ the plot page) is broken up.
 Templates define the basics of, say, how to display an orbit.
 
 &tao_template_plot
-  plot%class = 'orbit'
+  plot%name = 'orbit'
+  plot%type = 'data'
   plot%box_layout = 1, 2                ! break page into boxes.
   plot%x%min =   0
   plot%x%max = 100
   plot%x%major_div = 10
   plot%x%label = ' '
+	plot%x_axis_type = 'index'
   plot%n_graph = 2
 /
 
@@ -40,7 +42,8 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -4
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%sub_class = 'x'
+  curve(1)%data_source = 'data_array'
+  curve(1)%data_class  = 'orbit:x'
   curve(1)%units_factor = 100
 /
 
@@ -55,19 +58,22 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -4
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%sub_class = 'y'
+  curve(1)%data_source = 'data_array'
+  curve(1)%data_class = 'orbit:y'
   curve(1)%units_factor = 100
 /
 
 !----------------------------------------------------------------
 
 &tao_template_plot
-  plot%class = 'phase'
+  plot%name = 'phase'
+  plot%type = 'data'
   plot%box_layout = 1, 2                ! break page into boxes.
   plot%x%min =   0
   plot%x%max = 100
   plot%x%major_div = 10
   plot%x%label = ' '
+	plot%x_axis_type = 'index'
   plot%n_graph = 2
 /
 
@@ -82,7 +88,8 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -20
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%sub_class = 'x'
+  curve(1)%data_source = 'data_array'
+  curve(1)%data_class = 'phase:x'
   curve(1)%units_factor = 57.29578
 /
 
@@ -97,19 +104,22 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -20
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%sub_class = 'y'
+  curve(1)%data_source = 'data_array'
+  curve(1)%data_class = 'phase:y'
   curve(1)%units_factor = 57.29578
 /
 
 !----------------------------------------------------------------
 
 &tao_template_plot
-  plot%class = 'beta'
+  plot%name = 'beta'
+  plot%type = 'data'
   plot%box_layout = 1, 2                ! break page into boxes.
   plot%x%min =   0
   plot%x%max = 100
   plot%x%major_div = 10
   plot%x%label = ' '
+	plot%x_axis_type = 'index'
   plot%n_graph = 2
 /
 
@@ -124,7 +134,8 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -20
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%sub_class = 'x'
+  curve(1)%data_source = 'data_array'
+  curve(1)%data_class = 'beta:x'
   curve(1)%units_factor = 1
 /
 
@@ -139,19 +150,22 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -20
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%sub_class = 'y'
+  curve(1)%data_source = 'data_array'
+  curve(1)%data_class = 'beta:y'
   curve(1)%units_factor = 1
 /
 
 !----------------------------------------------------------------
 
 &tao_template_plot
-  plot%class = 'eta'
+  plot%name = 'eta'
+  plot%type = 'data'
   plot%box_layout = 1, 2                ! break page into boxes.
   plot%x%min =   0
   plot%x%max = 100
   plot%x%major_div = 10
   plot%x%label = ' '
+	plot%x_axis_type = 'index'
   plot%n_graph = 2
 /
 
@@ -166,7 +180,8 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -20
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%sub_class = 'x'
+  curve(1)%data_source = 'data_array'
+  curve(1)%data_class = 'eta:x'
   curve(1)%units_factor = 1
 /
 
@@ -181,19 +196,22 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -20
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%sub_class = 'y'
+  curve(1)%data_source = 'data_array'
+  curve(1)%data_class = 'eta:y'
   curve(1)%units_factor = 1
 /
 
 !----------------------------------------------------------------
 
 &tao_template_plot
-  plot%class = 'coupling'
+  plot%name = 'coupling'
+  plot%type = 'data'
   plot%box_layout = 1, 3                ! break page into boxes.
   plot%x%min =   0
   plot%x%max = 100
   plot%x%major_div = 10
   plot%x%label = ' '
+	plot%x_axis_type = 'index'
   plot%n_graph = 3
 	plot%convert = .true.
 /
@@ -209,7 +227,8 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -0.10
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%sub_class = '22'
+  curve(1)%data_source = 'data_array'
+  curve(1)%data_class = 'coupling:22'
   curve(1)%units_factor = 1
 /
 
@@ -224,7 +243,8 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -0.10
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%sub_class = '12a'
+  curve(1)%data_source = 'data_array'
+  curve(1)%data_class = 'coupling:12a'
   curve(1)%units_factor = 1
 /
 
@@ -239,6 +259,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -0.10
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%sub_class = '11'
+  curve(1)%data_source = 'data_array'
+  curve(1)%data_class = 'coupling:11'
   curve(1)%units_factor = 1
 /

@@ -32,6 +32,9 @@ type (tao_plot_page_input) plot_page
 type (tao_plot_region_struct) region(n_region_maxx)
 type (tao_curve_input) curve(n_curve_maxx)
 type (tao_place_input) place(10)
+type (qp_symbol_struct) default_symbol
+type (qp_line_struct) default_line
+type (tao_ele_shape_struct) shape(20)
 
 integer iu, i, j, ip, n, ng, ios
 integer graph_index
@@ -39,9 +42,17 @@ integer graph_index
 character(200) namelist_file, plot_file
 character(20) :: r_name = 'tao_init_plotting'
 
+logical :: init_needed = .true.
+
 namelist / tao_plot_page / plot_page, region, place
 namelist / tao_template_plot / plot
 namelist / tao_template_graph / graph, graph_index, curve
+namelist / element_shapes / shape
+
+! See if this routine has been called before
+
+if (.not. init_needed) return
+init_needed = .false.
 
 ! Read in the plot page parameters
 
@@ -50,6 +61,7 @@ call tao_open_file ('TAO_INIT_DIR', plot_file, iu, namelist_file)
 place%region = ' '
 region%name = ' '       ! a region exists only if its name is not blank 
 read (iu, nml = tao_plot_page, err = 9000)
+call out_io (s_blank$, r_name, 'Init: Read tao_plot_page namelist')
 
 page => s%plot_page
 page%size = plot_page%size
@@ -81,27 +93,40 @@ enddo
 
 ip = 0   ! number of template plots
 do
+  plot%name = ' '
   plot%who%name  = ' '                               ! set default
   plot%who(1) = tao_plot_who_struct('model', +1)     ! set default
   plot%who(2) = tao_plot_who_struct('design', -1)    ! set default
   plot%convert = .false.                             ! set default
+  plot%x_axis_type = 'index'
   read (iu, nml = tao_template_plot, iostat = ios, err = 9100)  
   if (ios /= 0) exit                                 ! exit on end of file.
+  call out_io (s_blank$, r_name, &
+                  'Init: Read tao_template_plot namelist: ' // plot%name)
   ip = ip + 1
   plt => s%template_plot(ip)
-  plt%class      = plot%class
-  plt%box_layout = plot%box_layout
-  plt%x          = plot%x
-  plt%who        = plot%who
-  plt%convert    = plot%convert
+  plt%name        = plot%name
+  plt%type        = plot%type
+  plt%box_layout  = plot%box_layout
+  plt%x           = plot%x
+  plt%who         = plot%who
+  plt%convert     = plot%convert
+  plt%x_axis_type = plot%x_axis_type
   ng = plot%n_graph
   allocate (plt%graph(ng))
   do i = 1, ng
     graph_index = 0
+    graph%y2%draw_numbers = .false.
     curve(:)%symbol_every = 1
     curve(:)%ix_universe = 0
     curve(:)%draw_line = .true.
+    curve(:)%use_y2 = .false.
+    curve(:)%symbol = default_symbol
+    curve(:)%line   = default_line
+
     read (iu, nml = tao_template_graph, err = 9200)
+    call out_io (s_blank$, r_name, &
+                    'Init: Read tao_template_graph namelist: ' // graph%name)
     if (graph_index /= i) then
       call out_io (s_error$, r_name, &
                                   'BAD "GRAPH_INDEX" FOR: ' // graph%name)
@@ -113,17 +138,60 @@ do
     grph%title      = graph%title
     grph%margin     = graph%margin
     grph%y          = graph%y
+    grph%y2         = graph%y2
     allocate (grph%curve(graph%n_curve))
     do j = 1, graph%n_curve
       crv => grph%curve(j)
-      crv%sub_class          = curve(j)%sub_class
+      crv%data_class        = curve(j)%data_class
       crv%units_factor      = curve(j)%units_factor
       crv%symbol_every      = curve(j)%symbol_every
       crv%ix_universe       = curve(j)%ix_universe
       crv%draw_line         = curve(j)%draw_line
+      crv%use_y2            = curve(j)%use_y2
+      crv%symbol            = curve(j)%symbol
+      crv%line              = curve(j)%line
     enddo
   enddo
 enddo
+
+! read in shapes
+
+if (any(s%template_plot(:)%type == 'lat_layout')) then
+
+  rewind (1)
+  shape(:)%key_name = ' '
+  shape(:)%key = 0
+  read (1, nml = element_shapes, iostat = ios)
+
+  if (ios /= 0) then
+    call out_io (s_error$, r_name, 'ERROR READING ELE_SHAPE NAMELIST.')
+    call err_exit
+  endif
+
+  do i = 1, size(shape)
+    call str_upcase (shape(i)%key_name, shape(i)%key_name)
+    call str_upcase (shape(i)%ele_name, shape(i)%ele_name)
+    call str_upcase (shape(i)%shape,    shape(i)%shape)
+    call str_upcase (shape(i)%color,    shape(i)%color)
+
+    if (shape(i)%key_name == ' ') cycle
+
+    do j = 1, n_key
+      if (shape(i)%key_name == key_name(j)) then
+        shape(i)%key = j
+        exit
+      endif
+    enddo          
+
+    if (shape(i)%key == 0) then
+      print *, 'ERROR: CANNOT FIND KEY FOR: ', shape(i)%key_name
+      call err_exit
+    endif
+
+  enddo
+  s%plot_page%ele_shape = shape
+
+endif
 
 close (1)
 

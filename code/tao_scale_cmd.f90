@@ -102,9 +102,9 @@ integer i
 if (y_min == y_max) then
 
   do i = 1, size(graph%curve)
-    if (associated(graph%curve(i)%y_dat)) then
-      this_max = max(this_max, maxval(graph%curve(i)%y_dat))
-      this_min = min(this_min, minval(graph%curve(i)%y_dat))
+    if (associated(graph%curve(i)%y_symb)) then
+      this_max = max(this_max, maxval(graph%curve(i)%y_symb))
+      this_min = min(this_min, minval(graph%curve(i)%y_symb))
     endif
   enddo
 

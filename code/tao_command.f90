@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_command (s, command_line)
+! Subroutine tao_command (s, command_line, err)
 !
 ! Interface to all standard (non hook) tao commands. 
 ! This routine esentially breaks the command line into words
@@ -14,10 +14,11 @@
 !   s        -- tao_super_universe_struct
 !-
 
-subroutine tao_command (s, command_line)
+subroutine tao_command (s, command_line, err)
 
   use tao_mod
   use quick_plot
+  use tao_cmd_history_mod
 
   implicit none
 
@@ -35,13 +36,22 @@ subroutine tao_command (s, command_line)
   character(20) :: cmd_word(12)
  
   character(16) cmd_name
-  character(16) :: cmd_names(20) = (/  &
-        'quit      ', 'exit      ', 'show      ', 'plot      ', 'place     ', &
-        'clip      ', 'scale     ', 'veto      ', 'use       ', 'restore   ', &
-        'run       ', 'flatten   ', 'output    ', 'change    ', 'set       ', &
-        'call      ', 'view      ', 'alias     ', 'help      ', 'history   ' /)
+  character(16) :: cmd_names(25) = (/  &
+        'quit       ', 'exit       ', 'show       ', 'plot       ', 'place      ', &
+        'clip       ', 'scale      ', 'veto       ', 'use        ', 'restore    ', &
+        'run        ', 'flatten    ', 'output     ', 'change     ', 'set        ', &
+        'call       ', 'view       ', 'alias      ', 'help       ', 'history    ', &
+        'single_mode', '           ', 'x_scale    ', 'x_axis     ', 'derivative ' /)
 
   logical quit_tao, err, do_all_universes
+
+! Single character mode
+
+  if (s%global%single_mode) then
+    call tao_single_mode (s, command_line(1:1))
+    call cmd_end_calc
+    return
+  endif
 
 ! blank line => nothing to do
 
@@ -101,8 +111,7 @@ subroutine tao_command (s, command_line)
   case ('change')
 
     call cmd_split (4, .false., err)
-    call tao_change_cmd (s, do_all_universes, &
-                      cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4))
+    call tao_change_cmd (s, cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4))
 
 
 !--------------------------------
@@ -125,9 +134,18 @@ subroutine tao_command (s, command_line)
     endif
 
 !--------------------------------
+! DERIVATIVE
+
+  case ('derivative')
+
+    call tao_dmodel_dvar_calc(s)
+    call out_io (s_blank$, r_name, 'Derivative calculated')
+
+!--------------------------------
 ! EXIT/QUIT
 
   case ('exit', 'quit')
+
     quit_tao = .false.
     call tao_query_logical ('y', 'n', 'Quit?', quit_tao)
     if (.not. quit_tao) return
@@ -155,16 +173,16 @@ subroutine tao_command (s, command_line)
 
   case ('history')
 
-    call cmd_split (0, .true., err); if (err) return
-    call tao_history_cmd
+    call cmd_split (1, .true., err); if (err) return
+    call tao_history_cmd (cmd_word(1), err)
 
 !--------------------------------
 ! OUTPUT
 
   case ('output')
 
-    call cmd_split (2, .true., err); if (err) return
-    call tao_output_cmd (s, cmd_word(1), cmd_word(2))
+    call cmd_split (1, .true., err); if (err) return
+    call tao_output_cmd (s, cmd_word(1))
 
 !--------------------------------
 ! PLACE
@@ -218,8 +236,7 @@ subroutine tao_command (s, command_line)
     call match_word (cmd_word(1), name$%data_or_var, which)
     
     if (which .eq. data$) then
-      call tao_use_data (s, do_all_universes, &
-                                cmd_name, cmd_word(2), cmd_word(3))
+      call tao_use_data (s, cmd_name, cmd_word(2), cmd_word(3))
     elseif (which .eq. variable$) then
       call tao_use_var (s, cmd_name, cmd_word(2), cmd_word(3))
     else
@@ -244,10 +261,10 @@ subroutine tao_command (s, command_line)
 
     select case (cmd_word(1))
     case ('data')
-      call tao_set_data_cmd (s, do_all_universes, cmd_word(2), &
+      call tao_set_data_cmd (s, cmd_word(2), &
                               cmd_word(3), cmd_word(5), cmd_word(6)) 
     case ('var')
-      call tao_set_var_cmd (s, do_all_universes, cmd_word(2), &
+      call tao_set_var_cmd (s, cmd_word(2), &
                               cmd_word(3), cmd_word(5), cmd_word(6)) 
     case ('global')
       call tao_set_global_cmd (s, cmd_word(2), cmd_word(4))
@@ -288,13 +305,42 @@ subroutine tao_command (s, command_line)
     call tao_show_cmd (s, cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4))
 
 !--------------------------------
+! SINGLE_MODE
+
+  case ('single_mode')
+
+    s%global%single_mode = .true.
+
+!--------------------------------
 ! VIEW
 
   case ('view')
 
-  call cmd_split (1, .true., err); if (err) return
-  call to_int (cmd_word(1), int1, err); if (err) return
-  call tao_view_cmd (s, int1)
+    call cmd_split (2, .true., err); if (err) return
+    call to_int (cmd_word(1), int1, err); if (err) return
+    call tao_view_cmd (s, int1)
+
+!--------------------------------
+! X_AXIS
+
+  case ('x_axis')
+
+    call cmd_split (2, .true., err); if (err) return
+    call tao_x_axis_cmd (s, cmd_word(1), cmd_word(2))
+
+!--------------------------------
+! X_SCALE
+
+  case ('x_scale')
+
+    call cmd_split (3, .true., err); if (err) return
+    if (cmd_word(2) == ' ') then
+      call tao_x_scale_cmd (s, cmd_word(1), 0.0_rp, 0.0_rp, err)
+    else
+      call to_real (cmd_word(2), value1, err); if (err) return
+      call to_real (cmd_word(3), value2, err); if (err) return
+      call tao_x_scale_cmd (s, value1, value2, err)
+    endif
 
 !--------------------------------
 ! DEFAULT
@@ -306,16 +352,27 @@ subroutine tao_command (s, command_line)
 
   end select
 
-!------------------------------------------------------------------------------
-! standard calculations and plotting after a command.
-
-  call tao_merit (s)         ! calculate Twiss parameters, etc. as well as the merit function
-  if (s%global%plot_on) call tao_plot_data_setup (s)      ! transfer data to the plotting structures
-  if (s%global%plot_on) call tao_plot_out (s%plot_page)   ! Update the plotting window
+  call cmd_end_calc
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 contains
+
+! standard calculations and plotting after a command.
+
+subroutine cmd_end_calc
+
+! Note: tao_merit calls tao_lattice_calc.
+
+  call tao_merit (s)         
+  call tao_plot_data_setup (s)     ! transfer data to the plotting structures
+  call tao_plot_out (s)            ! Update the plotting window
+
+end subroutine
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+! contains
 
 ! This routine splits the command into words.
 !

@@ -64,12 +64,11 @@ interface
 end interface
  
 interface
-  subroutine tao_output_cmd (s, what, what2)
+  subroutine tao_output_cmd (s, what)
     use tao_struct, only: tao_super_universe_struct
     implicit none
     type (tao_super_universe_struct) :: s
     character(*) :: what
-    character(*) :: what2
   end subroutine
 end interface
  
@@ -94,31 +93,28 @@ interface
 end interface
  
 interface
-  subroutine tao_change_cmd (s, do_all_universes, who, name, where, num_str)
+  subroutine tao_change_cmd (s, who, name, where, num_str)
     use tao_struct, only: tao_super_universe_struct
     implicit none
     type (tao_super_universe_struct) :: s
-    logical do_all_universes
     character(*) :: who, name, where, num_str
   end subroutine
 end interface
  
 interface
-  subroutine tao_set_data_cmd (s, do_all_universes, who, component, set_value, list)
+  subroutine tao_set_data_cmd (s, who, component, set_value, list)
     use tao_struct, only: tao_super_universe_struct
     implicit none
     type (tao_super_universe_struct) :: s
-    logical do_all_universes
     character(*) who, component, set_value, list
   end subroutine
 end interface
  
 interface
-  subroutine tao_set_var_cmd (s, do_all_universes, who, component, set_value, list)
+  subroutine tao_set_var_cmd (s, who, component, set_value, list)
     use tao_struct, only: tao_super_universe_struct
     implicit none
     type (tao_super_universe_struct) :: s
-    logical do_all_universes
     character(*) who, component, set_value, list
   end subroutine
 end interface
@@ -133,11 +129,12 @@ interface
 end interface
  
 interface
-  subroutine tao_command (s, cmd_line)
+  subroutine tao_command (s, cmd_line, err)
     use tao_struct, only: tao_super_universe_struct
     implicit none
     type (tao_super_universe_struct) :: s
     character(*) :: cmd_line
+    logical err
   end subroutine
 end interface
  
@@ -244,10 +241,10 @@ interface
 end interface
  
 interface
-  subroutine tao_plot_out (plot_page)
-    use tao_struct, only: tao_plot_page_struct
+  subroutine tao_plot_out (s)
+    use tao_struct, only: tao_super_universe_struct
     implicit none
-    type (tao_plot_page_struct) plot_page
+    type (tao_super_universe_struct), target :: s
   end subroutine
 end interface
  
@@ -309,11 +306,10 @@ interface
 end interface
  
 interface
-  subroutine tao_use_data (s, do_all_universes, action, data_class, range)
+  subroutine tao_use_data (s, action, data_class, range)
     use tao_struct, only: tao_super_universe_struct
     implicit none
     type (tao_super_universe_struct) :: s
-    logical do_all_universes
     character(*)                :: action
     character(*)                :: data_class
     character(*)                :: range
@@ -393,11 +389,11 @@ interface
 end interface
 
 interface
-  subroutine tao_hook_init_design_lattice (s, tao_design_lattice_file)
+  subroutine tao_hook_init_design_lattice (s, lat_file)
     use tao_struct, only: tao_super_universe_struct
     implicit none
     type (tao_super_universe_struct) s
-    character(*) tao_design_lattice_file
+    character(*) lat_file
   end subroutine
 end interface
 

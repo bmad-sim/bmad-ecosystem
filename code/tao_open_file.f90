@@ -21,7 +21,7 @@ subroutine tao_open_file (logical_dir, file, iunit, file_name)
   implicit none
 
   character(*) logical_dir, file, file_name
-  character(20) :: r_name = 'init_tao'
+  character(20) :: r_name = 'tao_open_file'
 
   integer iunit, ios
 
@@ -32,7 +32,7 @@ subroutine tao_open_file (logical_dir, file, iunit, file_name)
   open (iunit, file = file_name, status = 'old', action = 'READ', &
                                                        iostat = ios)
   if (ios /= 0) then
-    file_name = trim(logical_dir) // ':' // file
+    call fullfilename (trim(logical_dir) // ':' // file, file_name)
     open (iunit, file = file_name, status = 'old', &
                                       action = 'READ', iostat = ios)
     if (ios /= 0) then

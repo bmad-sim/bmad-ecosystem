@@ -18,8 +18,9 @@ use tao_mod
 
 implicit none
 
-type (tao_plot_struct) plot_in, plot_out
+type (tao_plot_struct), target :: plot_in, plot_out
 type (tao_plot_region_struct) region
+type (tao_curve_struct), pointer :: c_in, c_out
 
 integer i, j, n
 logical preserve_region
@@ -31,9 +32,10 @@ if (associated(plot_out%graph)) then
   do i = 1, size(plot_out%graph)
     if (.not. associated(plot_out%graph(i)%curve)) cycle
     do j = 1, size(plot_out%graph(i)%curve)
-      if (.not. associated(plot_out%graph(i)%curve(j)%x_dat)) cycle
-      deallocate (plot_out%graph(i)%curve(j)%x_dat)
-      deallocate (plot_out%graph(i)%curve(j)%y_dat)
+      c_out => plot_out%graph(i)%curve(j)
+      if (.not. associated(c_out%x_symb)) cycle
+      deallocate (c_out%x_symb, c_out%y_symb, c_out%ix_symb)
+      deallocate (c_out%y_line, c_out%x_line)
     enddo
     deallocate (plot_out%graph(i)%curve)
   enddo
@@ -64,13 +66,19 @@ if (associated(plot_in%graph)) then
     allocate (plot_out%graph(i)%curve(size(plot_in%graph(i)%curve)))
 
     do j = 1, size(plot_out%graph(i)%curve)
-      plot_out%graph(i)%curve(j) = plot_in%graph(i)%curve(j)
-      if (.not. associated (plot_in%graph(i)%curve(j)%x_dat)) cycle
-      n = size(plot_in%graph(i)%curve(j)%x_dat)
-      allocate (plot_out%graph(i)%curve(j)%x_dat(n))
-      allocate (plot_out%graph(i)%curve(j)%y_dat(n))
-      plot_out%graph(i)%curve(j)%x_dat = plot_in%graph(i)%curve(j)%x_dat 
-      plot_out%graph(i)%curve(j)%y_dat = plot_in%graph(i)%curve(j)%y_dat 
+      c_in  => plot_in%graph(i)%curve(j)
+      c_out => plot_out%graph(i)%curve(j)
+      c_out = c_in
+      if (.not. associated (c_in%x_symb)) cycle
+      n = size(c_in%x_symb)
+      allocate (c_out%x_symb(n), c_out%y_symb(n), c_out%ix_symb(n))
+      c_out%x_symb  = c_in%x_symb 
+      c_out%y_symb  = c_in%y_symb 
+      c_out%ix_symb = c_in%ix_symb 
+      n = size(c_in%x_line)
+      allocate (c_out%x_line(n), c_out%y_line(n))
+      c_out%x_line  = c_in%x_line 
+      c_out%y_line  = c_in%y_line 
     enddo
 
   enddo

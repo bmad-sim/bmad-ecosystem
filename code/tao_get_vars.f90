@@ -29,55 +29,23 @@ real(rp), allocatable, optional :: var_del(:), var_weight(:), var_data_value(:)
 integer i, j, k
 integer n_var, n_data
 
-! parallel_vars means that all variables s%u(:)%var(j) of different universes
-! are in lock-step with each other.
+! 
 
-if (s%global%parallel_vars) then
-
-  var => s%u(1)%var
-
-  n_var  = count(var(:)%useit_opt)
+  n_var  = count(s%var(:)%useit_opt)
   call reallocate_real (var_value, n_var)
   if (present(var_del))        call reallocate_real (var_del, n_var)
   if (present(var_data_value)) call reallocate_real (var_data_value, n_var)
 
   j = 0
-  do i = 1, size(var)
-    if (.not. var(i)%useit_opt) cycle
+  do i = 1, size(s%var)
+    if (.not. s%var(i)%useit_opt) cycle
     j = j + 1
-    var_value(j) = var(i)%model_value
-    if (present(var_del))    var_del(j) = var(i)%step
-    if (present(var_weight)) var_weight(j) = var(i)%weight
-    if (present(var_data_value))   var_data_value(j) = var(i)%data_value
+    var_value(j) = s%var(i)%model_value
+    if (present(var_del))    var_del(j) = s%var(i)%step
+    if (present(var_weight)) var_weight(j) = s%var(i)%weight
+    if (present(var_data_value))   var_data_value(j) = s%var(i)%data_value
   enddo
 
-! Serial case where the variables of different universes are not correlated.
-
-else
-
-  n_var = 0
-  do i = 1, size(s%u(i)%var)
-    n_var = n_var + count(s%u(i)%var(:)%useit_opt)
-  enddo
-
-  call reallocate_real (var_value, n_var)
-  call reallocate_real (var_del, n_var)
-  call reallocate_real (var_data_value, n_var)
-
-  j = 0
-  do k = 1, size(s%u)
-    var => s%u(i)%var
-    do i = 1, size(var)
-      if (.not. var(i)%useit_opt) cycle
-      j = j + 1
-      var_value(j) = var(i)%model_value
-      if (present(var_del))    var_del(j) = var(i)%step
-      if (present(var_weight)) var_weight(j) = var(i)%weight
-      if (present(var_data_value))   var_data_value(j) = var(i)%data_value
-    enddo
-  enddo
-
-endif
 
 end subroutine
 

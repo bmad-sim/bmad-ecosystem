@@ -37,7 +37,7 @@ integer, parameter :: max_lines = 300   ! maximum lines of output
 character(16) :: max_lines_char = '300'   
 
 character(24) :: data_class, var_class
-character(24)  :: plane, fmt, imt, lmt, amt
+character(24)  :: plane, fmt, imt, lmt, amt, ffmt, iimt
 character(*) :: word1, word2, word3, word4
 character(40) :: show_word1, show_word2, show_word3, show_word4
 character(8) :: r_name = "tao_show_cmd"
@@ -50,6 +50,7 @@ character(24) :: show_names(8) = (/ &
         'optimizer', 'ele      ', 'lattice  ' /)
 
 character(200) lines(max_lines)
+character(100) line1, line2
 
 integer :: data_number, ix_plane
 integer nl, loc
@@ -66,10 +67,12 @@ err = .false.
 lines = " "
 nl = 0
 
-fmt = '(a, 1pe16.8)'
-imt = '(a, i8)'
-lmt = '(a, l)'
-amt = '(2a)'
+fmt  = '(a, es16.8)'
+ffmt = '(a, i1, a, es16.8)'
+imt  = '(a, i8)'
+iimt = '(a, i1, a, i8)'
+lmt  = '(a, l)'
+amt  = '(2a)'
 
 show_word1 = word1
 show_word2 = word2
@@ -157,7 +160,7 @@ case ('data')
     nl=nl+1; write(lines(nl), imt)  'Ix_ele:            ', d_ptr%ix_ele
     nl=nl+1; write(lines(nl), imt)  'Ix_ele2:           ', d_ptr%ix_ele2
     nl=nl+1; write(lines(nl), imt)  'Ix_dModel:         ', d_ptr%ix_dModel
-    nl=nl+1; write(lines(nl), imt)  'Ix_d:              ', d_ptr%ix_d
+    nl=nl+1; write(lines(nl), imt)  'Ix_d1:             ', d_ptr%ix_d1
     nl=nl+1; write(lines(nl), imt)  'Ix_data:           ', d_ptr%ix_data
     nl=nl+1; write(lines(nl), fmt)  'Data_value:        ', d_ptr%data_value
     nl=nl+1; write(lines(nl), fmt)  'Ref_value:         ', d_ptr%ref_value
@@ -186,7 +189,8 @@ case ('data')
     write(lines(1), '(2a)') 'Data type:    ', d2_ptr%class
     write(lines(2), '(2a)') 'Data sub_class:', d1_ptr%sub_class
     lines(3) = ' '
-    write (lines(3), *) '        Name              Data         Model        Design'
+    line1 = '        Name              Data         Model        Design'
+    write (lines(3), *) line1
     nl = 4
     do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
       if ((nl+1) .gt. max_lines) then
@@ -202,7 +206,7 @@ case ('data')
       endif
     enddo
     nl=nl+1
-    write (lines(nl), *) '        Name              Data         Model        Design'
+    write (lines(nl), *) line1
 
 ! else we must have a valid d2_ptr.
 
@@ -382,23 +386,10 @@ case ('optimizer')
   enddo
 
   call out_io (s_blank$, r_name, ' ', 'Variables Used:')
-  if (s%global%parallel_vars) then
-    u => s%u(1)
-    do j = 1, size(u%v1_var)
-      if (u%v1_var(j)%class == ' ') cycle
-      call tao_var_show_use (u%v1_var(j))
-    enddo
-  else
-    do i = 1, size(s%u)
-      u => s%u(i)
-      write (lines(1), '(a, i4)') 'Universe: ', i
-      call out_io (s_blank$, r_name, lines(1))
-      do j = 1, size(u%v1_var)
-        if (u%v1_var(j)%class == ' ') cycle
-        call tao_var_show_use (u%v1_var(j))
-      enddo
-    enddo
-  endif
+  do j = 1, size(s%v1_var)
+    if (s%v1_var(j)%class == ' ') cycle
+    call tao_var_show_use (s%v1_var(j))
+  enddo
 
 
 !----------------------------------------------------------------------
@@ -413,13 +404,13 @@ case ('top10')
     
 case ('var')
 
-  if (.not. associated (u%v1_var)) return 
+  if (.not. associated (s%v1_var)) return 
 
 ! If just "show var" then show all classes
 
   if (show_word2 == ' ') then
-    do i = 1, size(u%v1_var)
-      v1_ptr => u%v1_var(i)
+    do i = 1, size(s%v1_var)
+      v1_ptr => s%v1_var(i)
       if (v1_ptr%class == ' ') cycle
       if ((nl+1) .gt. max_lines) then
         call out_io (s_abort$, r_name, "Found too many v1_vars! Listing first "//&
@@ -436,7 +427,7 @@ case ('var')
 ! get pointers to the variables
 
   if (show_word3 == ' ') show_word3 = 'null'
-  call tao_find_var(err, u, show_word2, v1_ptr, show_word3, v_ptr) 
+  call tao_find_var(s, err, show_word2, v1_ptr, show_word3, v_ptr) 
   if (err) return
 
 ! v_ptr is valid then show the variable info.
@@ -447,27 +438,41 @@ case ('var')
     nl=nl+1; write(lines(nl), amt)  'Alias:         ', v_ptr%alias       
     nl=nl+1; write(lines(nl), amt)  'Ele_name:      ', v_ptr%ele_name    
     nl=nl+1; write(lines(nl), amt)  'Attrib_name:   ', v_ptr%attrib_name 
-    nl=nl+1; write(lines(nl), imt)  'Ix_ele:        ', v_ptr%ix_ele            
-    nl=nl+1; write(lines(nl), imt)  'Ix_v:          ', v_ptr%ix_v
     nl=nl+1; write(lines(nl), imt)  'Ix_var:        ', v_ptr%ix_var
     nl=nl+1; write(lines(nl), imt)  'Ix_dvar:       ', v_ptr%ix_dvar           
-    if (associated (v_ptr%model_value)) then
-      nl=nl+1; write(lines(nl), fmt)  'Model_value:   ', v_ptr%model_value
+    nl=nl+1; write(lines(nl), imt)  'Ix_v1:         ', v_ptr%ix_v1
+    nl=nl+1; write(lines(nl), fmt)  'Model_value:   ', v_ptr%model_value
+    nl=nl+1; write(lines(nl), fmt)  'Base_value:    ', v_ptr%base_value
+
+    if (.not. associated (v_ptr%this)) then
+      nl=nl+1; write(lines(nl), imt)  'this(:) -- Not associated!'
     else
-      nl=nl+1; write(lines(nl), fmt)  'Model_value:   <not associated>'
+      do i = 1, size(v_ptr%this)
+        nl=nl+1; write(lines(nl), iimt)  '%this(', i, ')%Ix_uni:        ', &
+                                                            v_ptr%this(i)%ix_uni
+        nl=nl+1; write(lines(nl), iimt)  '%this(', i, ')%Ix_ele:        ', v_ptr%this(i)%ix_ele
+        if (associated (v_ptr%this(i)%model_ptr)) then
+          nl=nl+1; write(lines(nl), ffmt)  '%this(', i, ')%Model_ptr:   ', &
+                                                            v_ptr%this(i)%model_ptr
+        else
+          nl=nl+1; write(lines(nl), ffmt)  '%this(', i, ')%Model_ptr:   <not associated>'
+        endif
+        if (associated (v_ptr%this(i)%base_ptr)) then
+          nl=nl+1; write(lines(nl), ffmt)  '%this(', i, ')%Base_ptr:    ', &
+                                                            v_ptr%this(i)%base_ptr
+        else
+          nl=nl+1; write(lines(nl), ffmt)  '%this(', i, ')%Base_ptr:    <not associated>'
+        endif
+      enddo
     endif
-    if (associated (v_ptr%base_value)) then
-      nl=nl+1; write(lines(nl), fmt)  'base_value:    ', v_ptr%base_value
-    else
-      nl=nl+1; write(lines(nl), fmt)  'base_value:    <not associated>'
-    endif
-    nl=nl+1; write(lines(nl), fmt)  'Design_value:  ', v_ptr%design_value     
+
+    nl=nl+1; write(lines(nl), fmt)  'Design_value:  ', v_ptr%design_value
     nl=nl+1; write(lines(nl), fmt)  'Old_value:     ', v_ptr%old_value        
     nl=nl+1; write(lines(nl), fmt)  'Data_value:    ', v_ptr%data_value       
     nl=nl+1; write(lines(nl), fmt)  'Ref_value:     ', v_ptr%ref_value        
     nl=nl+1; write(lines(nl), fmt)  'Target_value:  ', v_ptr%target_value     
-    nl=nl+1; write(lines(nl), fmt)  'High_lim_value:', v_ptr%high_lim_value   
-    nl=nl+1; write(lines(nl), fmt)  'Low_lim_value: ', v_ptr%low_lim_value    
+    nl=nl+1; write(lines(nl), fmt)  'High_lim:      ', v_ptr%high_lim   
+    nl=nl+1; write(lines(nl), fmt)  'Low_lim:       ', v_ptr%low_lim    
     nl=nl+1; write(lines(nl), fmt)  'Step:          ', v_ptr%step             
     nl=nl+1; write(lines(nl), fmt)  'Weight:        ', v_ptr%weight           
     nl=nl+1; write(lines(nl), fmt)  'Merit:         ', v_ptr%merit            
@@ -486,7 +491,8 @@ case ('var')
 
     write(lines(1), '(2a)') 'Variable class:   ', v1_ptr%class
     lines(2) = ' '
-    write (lines(3), *) '        Name              Data         Model        Design'
+    line1 = '       Name            Data         Model        Design'
+    write (lines(3), *) line1
     nl = 3
     do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
       if (v1_ptr%v(i)%exists) then
@@ -502,7 +508,7 @@ case ('var')
       endif
     enddo
     nl=nl+1
-    write (lines(nl), *) '        Name              Data         Model        Design'
+    write (lines(nl), *) line1
   endif
 
 ! print out results

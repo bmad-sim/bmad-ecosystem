@@ -17,7 +17,7 @@
 !------------------------------------------------------------------------
 
 &tao_design_lattice
-  design_lattice_file = "../../bmad/lat/bmad_6wig_lum_20030915_v1.lat"
+  design_lattice_file = "~dcs/new_lib/bmad/lat/bmad_6wig_lum_20030915_v1.lat"
 /
 
 
@@ -249,7 +249,7 @@ var%weight(:)    -- Real: Individual weights can be set to override v1_var%defau
 
 &tao_var
   v1_var%class  = "quad_k1"
-  v1_var%universe = 0
+  v1_var%universe = "all"
   v1_var%attribute = "k1"
   var%default_weight = 1e5
   var%default_step = 1e-4
@@ -286,7 +286,7 @@ var%weight(:)    -- Real: Individual weights can be set to override v1_var%defau
 
 &tao_var
   v1_var%class  = "h_steer"
-  v1_var%universe = 0
+  v1_var%universe = "all"
   v1_var%attribute = "hkick"
   var%default_weight = 1e3
   var%default_step = 1e-5
@@ -321,7 +321,7 @@ var%weight(:)    -- Real: Individual weights can be set to override v1_var%defau
 
 &tao_var
   v1_var%class  = "v_steer"
-  v1_var%universe = 0
+  v1_var%universe = "all"
   v1_var%attribute = "vkick"
   var%default_weight = 1e3
   var%default_step = 1e-5

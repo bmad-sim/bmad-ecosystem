@@ -26,6 +26,15 @@ character(20) :: r_name = 'tao_alias_cmd'
 
 integer i
 
+! print aliases?
+
+if (alias == ' ') then
+  do i = 1, tao_com%n_alias
+    call out_io (s_blank$, r_name, tao_com%alias(i)%name // tao_com%alias(i)%string)
+  enddo
+  return
+endif
+
 ! Check to see if alias already defined. If so just overwrite it.
 
 do i = 1, tao_com%n_alias

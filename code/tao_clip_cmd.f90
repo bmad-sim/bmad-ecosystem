@@ -80,7 +80,6 @@ type (tao_curve_struct), pointer :: curve
 
 real(rp) this_min, this_max
 integer i, j, iu
-character(40) class
 
 ! If y_min = y_max then clip to graph boundries.
 
@@ -98,15 +97,14 @@ endif
 
 do i = 1, size(graph%curve)
   curve => graph%curve(i)
-  if (.not. associated(curve%y_dat)) cycle
-  do j = 1, size(curve%y_dat)
-    if (this_min <= curve%y_dat(j) .and. curve%y_dat(j) <= this_max) cycle
+  if (.not. associated(curve%y_symb)) cycle
+  do j = 1, size(curve%y_symb)
+    if (this_min <= curve%y_symb(j) .and. curve%y_symb(j) <= this_max) cycle
     iu = curve%ix_universe 
     if (iu == 0) iu = s%global%u_view
-    class = trim(plot%class) // ':' // curve%sub_class
-    call tao_find_data (err, s%u(iu), class, d1_ptr = d1_ptr)
+    call tao_find_data (err, s%u(iu), curve%data_class, d1_ptr = d1_ptr)
     if (err) return
-    d1_ptr%d(curve%ix_data(j))%good_user = .false.  ! and clip it
+    d1_ptr%d(curve%ix_symb(j))%good_user = .false.  ! and clip it
   enddo
 enddo
 

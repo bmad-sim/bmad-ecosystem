@@ -14,6 +14,27 @@ use tao_hook_mod
 !-----------------------------------------------------------------------
 ! misc.
 
+  integer, parameter :: n_key_maxx = 200
+
+!----------------------------------------------------------------------
+
+type tao_ele_shape_struct    ! for the element layout plot
+  character(16) key_name     ! Element key name
+  character(16) ele_name     ! element name
+  character(16) shape        ! plot shape
+  character(16) color        ! plot color
+  integer dy_pix             ! plot vertical height 
+  Logical :: plot_name = .true.
+  integer key                ! Element key index to match to
+end type
+
+type tao_keyboard_struct
+  real(rp) val0                            ! Base value
+  real(rp) delta                           ! Change in value
+  real(rp) :: normalizer = 1.0
+  integer ix_var                           ! Index to variable array.
+end type
+
 type tao_io_struct
   character(40) routine_name
   character(40) severity
@@ -46,16 +67,20 @@ end type
 ! for example the horizontal orbit is one curve.
 
 type tao_curve_struct
-  character(16) :: sub_class = ' '  ! 'x', 'y', etc.
-  real(rp), pointer :: x_dat(:) => null()
-  real(rp), pointer :: y_dat(:) => null()
-  integer, pointer :: ix_data(:) => null() ! corresponding index in d1_data%d(:) array.
+  character(16) :: data_source             ! "lat_layout", "data_array"
+  character(16) :: data_class = ' '        ! "orbit:x", etc.
+  real(rp), pointer :: x_line(:) => null() ! coords for drawing a curve
+  real(rp), pointer :: y_line(:) => null()
+  real(rp), pointer :: x_symb(:) => null() ! coords for drawing the symbols
+  real(rp), pointer :: y_symb(:) => null()
+  integer, pointer :: ix_symb(:) => null() ! corresponding index in d1_data%d(:) array.
   real(rp) units_factor        ! conversion from internal to plotting units.
   type (qp_line_struct) line   ! Line attributes
   type (qp_symbol_struct) symbol ! Symbol attributes
   type (tao_curve_hook) hook   ! Custom stuff. Defined in tao_hook.f90.
-  integer symbol_every         ! symbol every how many points.
   integer ix_universe          ! universe to take the data from. 0 => use s%global%u_view
+  integer symbol_every         ! symbol every how many points.
+  logical use_y2               ! Use y2 axis?
   logical draw_line            ! draw a line through the data points?
   logical limited              ! True if at least one data point past limit.
 end type
@@ -70,6 +95,7 @@ type tao_graph_struct
   character(80) title_suffix 
   character(80) legend(n_legend_maxx) ! Array for holding descriptive information.
   type (qp_axis_struct) y      ! Y-axis attributes.
+  type (qp_axis_struct) y2     ! Y-axis attributes.
   type (qp_rect_struct) margin ! margin around the graph.
   type (tao_curve_struct), pointer :: curve(:) => null()
   type (tao_graph_hook) hook   ! Custom stuff. Defined in tao_hook.f90.
@@ -92,17 +118,18 @@ end type
 ! One for Cbar12, and one for Cbar22.
 
 type tao_plot_struct
-  character(16) :: class = ' '          ! "orbit", etc.
+  character(16) :: name = ' '           ! Identifying name
+  character(16) :: type = ' '           ! "data", "lat_layout", "key_table"
   type (tao_plot_region_struct) region  ! Where on the plot page to put the plot
   type (tao_plot_who_struct) who(10)    ! Who to plot. Eg: Data - Design
   type (tao_graph_struct), pointer :: graph(:) => null() ! individual graphs of a plot
   type (tao_plot_hook) hook       ! Custom stuff. Defined in tao_hook.f90
   type (qp_axis_struct) x         ! X-axis parameters.
-  integer box_layout(2)           ! Defines box layout on page.
-  integer ix_universe             ! universe where the data came from.
+  character(16) x_axis_type       ! 'index', 's'
+  integer box_layout(2)           ! Defines which box the plot is put in.
   logical visible                 ! To draw or not to draw.
   logical valid                   ! valid if all curve y_dat computed OK.
-  logical convert
+  logical convert                 ! Eg: covert coupling to cbar?
 end type
 
 ! The plot_page defines the whole plotting window. 
@@ -116,6 +143,7 @@ type tao_plot_page_struct
   type (tao_plot_struct), pointer :: plot(:) => null() ! Individual plots on a page. 
   type (tao_plot_page_hook) hook     ! Custom stuff. Defined in tao_hook.f90
   type (qp_rect_struct) border       ! Border around plots edge of page.
+  type (tao_ele_shape_struct) ele_shape(20)
   character(80) ps_scale             ! scaling when creating PS files.
   real(rp) size(2)                   ! width and height of window in pixels.
   integer id_window                  ! X window id number.
@@ -149,7 +177,7 @@ type tao_data_struct
   character(16) ele_name2   ! Name lattice element when there is a range 
   integer ix_ele            ! Index of the element in the lattice element array.
   integer ix_ele2           ! Index of lattice elment when there is a range.
-  integer ix_d              ! Index number of this datum.
+  integer ix_d1             ! Index number of this datum.
   integer ix_data           ! Index of this datum in the u%data(:) array of data_structs.
   integer ix_dModel         ! Row number in the dModel_dVar derivative matrix.
   character(16) constraint_type  ! 'TARGET', 'MIN', 'MAX', etc.
@@ -158,7 +186,7 @@ type tao_data_struct
   real(rp) model_value      ! Datum value as calculated from the model.
   real(rp) design_value     ! What the datum value is in the design lattice.
   real(rp) old_value        ! The model_value at some previous time.
-  real(rp) base_value     ! The value as calculated from the base model.
+  real(rp) base_value       ! The value as calculated from the base model.
   real(rp) fit_value        ! The value as calculated from a fitting procedure.
   real(rp) delta            ! Diff used to calculate the merit function term 
   real(rp) weight           ! Weight for the merit function term
@@ -230,24 +258,31 @@ end type
 ! %useit_plot -- Variable value to be plotted:
 !                  = %exists & %good_plot
 
+type tao_this_var_struct
+  integer ix_uni            ! universe index.
+  integer ix_ele            ! Index of element in the u%lattice%ele_(:) array.
+  real(rp), pointer :: model_ptr => null() ! Pointer to the model value.
+  real(rp), pointer :: base_ptr => null()  ! Pointer to the base value.
+end type  
+
 type tao_var_struct
   character(32) name        ! Variable name.
   character(16) alias       ! Short alias name.
   character(16) ele_name    ! Associated lattice element name.
   character(16) attrib_name ! Name of the attribute to vary.
-  integer ix_ele            ! Index of element in the u%lattice%ele_(:) array.
-  integer ix_v              ! Index of this var in the v1_data_struct%v array.
+  type (tao_this_var_struct), pointer :: this(:) => null()
+  integer ix_v1             ! Index of this var in the v1_var_struct%v array.
   integer ix_var            ! Index number of this var in the u%var array.
   integer ix_dvar           ! Column in the dData_dVar derivative matrix.
-  real(rp), pointer :: model_value => null() ! Pointer to the model value.
-  real(rp), pointer :: base_value => null()  ! Pointer to the base value.
+  real(rp) model_value      ! Model value.
+  real(rp) base_value      ! Model value.
   real(rp) design_value     ! Design value from the design lattice.
   real(rp) old_value        ! The model_value at some previous time.
   real(rp) data_value       ! The value when the data measurement was taken.
   real(rp) ref_value        ! Value when the reference measurement was taken.
   real(rp) target_value     ! After fit: Value to be put in machine.
-  real(rp) high_lim_value   ! High limit for the model_value.
-  real(rp) low_lim_value    ! Low limit for the model_value.
+  real(rp) high_lim         ! High limit for the model_value.
+  real(rp) low_lim          ! Low limit for the model_value.
   real(rp) step             ! Sets what is a small step for varying this var.
   real(rp) weight           ! Weight for the merit function term.
   real(rp) merit            ! Merit function Value = weight * delta^2.
@@ -264,11 +299,11 @@ end type tao_var_struct
 
 ! A v1_var_struct represents, say, all the quadrupole power supplies.
 ! The v1_var_struct has a pointer to a section in the u%var array. 
-! %good_opt   -- Convenient way to veto all variables.
+! %good_opt   -- Convenient way to veto all variables of a class.
 
 type tao_v1_var_struct
   character(16) :: class = ' ' ! Eg: "quad_k1"
-  integer ix_var               ! Index of the 0th element in u%var
+  integer ix_var0              ! Index of the 0th element in u%var
   type (tao_v1_var_hook) hook  ! Custom stuff. Defined in tao_hook.f90
   type (tao_var_struct), pointer :: v(:) => null() 
                                ! Pointer to the appropriate section in u%var.
@@ -285,6 +320,7 @@ type tao_global_struct
   integer :: n_opti_cycles = 10      ! number of optimization cycles
   integer :: lun_command_file = 0    ! unit number for a command file.
                                      !  0 -> no command file.
+  integer :: ix_key_bank = 0         ! For single mode.
   integer :: phase_units = radians$  ! Phase units on output.
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer = 'de'  ! optimizer to use.
@@ -293,9 +329,14 @@ type tao_global_struct
   logical :: plot_on = .true.        ! Do plotting?
   logical :: opt_with_ref = .false.  ! use reference data in optimization?
   logical :: opt_with_base = .false. ! use base data in optimization?
-  logical :: parallel_vars = .true.  ! variables in different universes 
-                                     !  optimized in parallel?
+  logical :: single_mode = .false.
+  logical :: optimizer_running 
+  logical :: init_opt_wrapper = .true.
+  logical :: label_lattice_elements = .true.     ! for lat_layout plots
+  logical :: label_keys = .true.
   character(16) :: valid_plot_who(10) 
+  character(40) :: print_command = 'awprint'
+  character(80) :: tao_single_mode_file = 'tao_single.in'
 end type
 
 !-----------------------------------------------------------------------
@@ -305,10 +346,9 @@ type tao_universe_struct
   type (ring_struct) model, design, base           ! lattice structures
   type (coord_struct), allocatable :: model_orb(:), design_orb(:), base_orb(:)
   type (tao_d2_data_struct), pointer :: d2_data(:) => null()  ! The data classes 
-  type (tao_v1_var_struct), pointer :: v1_var(:) => null()    ! The variable classes
   type (tao_data_struct), pointer :: data(:) => null()        ! array of all data.
-  type (tao_var_struct), pointer :: var(:) => null()          ! array of all variables.
   real(rp), pointer :: dModel_dVar(:,:)                       ! Derivative matrix.
+  logical draw_lat_layout             ! draw this layout?
 end type
 
 ! The super_universe is the structure that holds an array of universes.
@@ -318,7 +358,12 @@ type tao_super_universe_struct
   type (tao_global_struct) global                          ! global variables.
   type (tao_plot_struct) :: template_plot(n_template_maxx) ! Templates for the plots.
   type (tao_plot_page_struct) :: plot_page                 ! Defines the plot window.
+  type (tao_v1_var_struct), pointer :: v1_var(:) => null() ! The variable classes
+  type (tao_var_struct), pointer :: var(:) => null()       ! array of all variables.
   type (tao_universe_struct), pointer :: u(:) => null()    ! array of universes.
+  type (tao_keyboard_struct), pointer :: key(:)
+  integer n_var_used
+  integer n_v1_var_used
 end type
 
 end module                    

@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_change_cmd (s, do_all_universes, who, name, where, num_str)
+! Subroutine tao_change_cmd (s, who, name, where, num_str)
 !
 ! Routine to change a variable in the model lattice.
 !
@@ -19,16 +19,18 @@
 !    %u(s%global%u_view)%model -- model lattice where the variable lives.
 !-
 
-subroutine tao_change_cmd (s, do_all_universes, who, name, where, num_str)
+subroutine tao_change_cmd (s, who, name, where, num_str)
 
 use tao_mod
 use quick_plot
 
 implicit none
 
-type (tao_super_universe_struct) :: s
+type (tao_super_universe_struct), target :: s
+type (tao_universe_struct), pointer :: u
+type (tao_var_struct), pointer :: v_ptr
 
-real(rp) change_number
+real(rp) change_number, model_value
 real(rp), pointer :: attrib_ptr, design_ptr
 real(rp) old_value, new_value, design_value
 
@@ -37,44 +39,23 @@ integer i, ix_ele, ixa, ix
 character(*) who, name, where, num_str
 character(80) num
 character(20) :: r_name = 'tao_change_cmd'
-
-logical do_all_universes
-logical err, absolute_num, rel_to_design
-
-! init u pointer
-
-call to_number;  if (err) return
-
-if (do_all_universes) then
-  do i = 1, size(s%u)
-    call change_cmd (s%u(i))
-    if (err) return
-  enddo
-else
-  call change_cmd (s%u(s%global%u_view))
-endif
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-contains
-
-subroutine change_cmd (u)
-
-type (tao_universe_struct), target :: u
-type (tao_var_struct), pointer :: v_ptr
-
 character(16) ele_name
 character(40) fmt
 character(80) line(2)
 
+logical err, absolute_num, rel_to_design
+
 !-------------------------------------------------
+
+call to_number;  if (err) return
+
 ! If changing a variable...
 
 select case (who)
 
 case ('var')
 
-  call tao_find_var (err, u, name, var_number = where, v_ptr = v_ptr)
+  call tao_find_var (s, err, name, var_number = where, v_ptr = v_ptr)
   if (err) return
   if (.not. v_ptr%exists) then
     call out_io (s_error$, r_name, 'VARIABLE DOES NOT EXIST.')
@@ -84,11 +65,11 @@ case ('var')
   old_value = v_ptr%model_value
 
   if (absolute_num) then
-    v_ptr%model_value = change_number
+    call tao_set_var_model_value (s, v_ptr, change_number)
   elseif (rel_to_design) then
-    v_ptr%model_value = change_number + v_ptr%design_value
+    call tao_set_var_model_value (s, v_ptr, change_number + v_ptr%design_value)
   else
-    v_ptr%model_value = v_ptr%model_value + change_number
+    call tao_set_var_model_value (s, v_ptr, v_ptr%model_value + change_number)
   endif
 
   new_value = v_ptr%model_value
@@ -109,6 +90,7 @@ case ('ele')
   
   ele_name = name
   
+  u => s%u(s%global%u_view)
   call tao_locate_element (ele_name, u%model, ix_ele)
   if (ix_ele < 0) return
 
@@ -161,12 +143,9 @@ write (line(2), fmt) 'Relative to Design:', old_value-design_value, &
 
 call out_io (s_blank$, r_name, line)
 
-
-end subroutine
-
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
-! contains
+contains
 
 subroutine to_number
 

@@ -12,6 +12,68 @@ use bmad
 
 contains
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_point_v1_to_var (ip, ii, n, n_var)
+!
+! used for arbitrary variable pointer indexing
+!
+! ip       -- tao_var_struct: the pointer
+! ii:       -- tao_var_struct: the variable
+! n:        -- integer: starting index for the pointer
+!-
+
+subroutine tao_point_v1_to_var (ip, ii, n, n_var)
+
+implicit none
+
+integer n, i, n_var
+
+type (tao_var_struct), pointer :: ip(:)
+type (tao_var_struct), target :: ii(n:)
+
+ip => ii
+
+forall (i = lbound(ii, 1):ubound(ii, 1)) 
+  ii(i)%ix_v1 = i
+  ii(i)%ix_var = n_var + i - n
+end forall
+
+end subroutine 
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_point_d1_to_data (ip, ii, n, n_data)
+!
+! Routine used for arbitrary data pointer indexing
+!
+! ip     -- tao_data_struct: the pointer
+! ii     -- tao_data_struct: the data
+! n      -- integer: starting index for the pointer
+! n_data -- integer: starting index for the next data point in the big data array
+!-
+
+subroutine tao_point_d1_to_data (ip, ii, n, n_data)
+
+implicit none
+
+integer n, i, n0, n_data
+
+type (tao_data_struct), pointer :: ip(:)
+type (tao_data_struct), target :: ii(n:)
+
+ip => ii
+
+forall (i = lbound(ii, 1):ubound(ii, 1)) 
+  ii(i)%ix_d1 = i
+  ii(i)%ix_data = n_data + i - n
+end forall
+
+end subroutine 
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -71,45 +133,56 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_pointer_to_var_in_lattice (var, lattice, orbit, ptr, err)
+! Subroutine tao_pointer_to_var_in_lattice (s, var, this, ix_uni, err)
 ! 
 ! Routine to set a pointer to the appropriate variable in a lattice
 !
 ! Input:
 !   var       -- Tao_var_struct: Structure has the info of where to point.
-!   lattice   -- Ring_struct: lattice to set.
-!   orbit(0:) -- Coord_struct: Orbit.
 !
 ! Output:
-!   ptr   -- Real(rp), pointer: Pointer set to appropriate variable.
 !   err   -- Logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine tao_pointer_to_var_in_lattice (var, lattice, orbit, ptr, err)
+subroutine tao_pointer_to_var_in_lattice (s, var, this, ix_uni, err)
 
 implicit none
 
+type (tao_super_universe_struct), target :: s
 type (tao_var_struct) var
-type (ring_struct) lattice
-type (coord_struct) orbit(0:)
+type (tao_universe_struct), pointer :: u
+type (tao_this_var_struct) this
 
-real(rp), pointer :: ptr
-integer ix
-logical err
+integer ix, ie, ix_uni
+logical, optional :: err
+logical error
 character(30) :: r_name = 'tao_pointer_to_var_in_lattice'
 
 ! locate element
 
-call element_locator (var%ele_name, lattice, ix)
-if (ix < 0) then
+if (present(err)) err = .true.
+
+u => s%u(ix_uni)
+call element_locator (var%ele_name, u%model, ie)
+if (ie < 0) then
   call out_io (s_error$, r_name, 'ELEMENT NAME NOT FOUND: ' // var%ele_name)
-  err = .true.
-  return
+  if (present(err)) return
+  call err_exit
 endif
 
 ! locate attribute
 
-call pointer_to_attribute (lattice%ele_(ix), var%attrib_name, .true., ptr, ix, err)
+call pointer_to_attribute (u%model%ele_(ie), var%attrib_name, .true., this%model_ptr, ix, error)
+call pointer_to_attribute (u%base%ele_(ie),  var%attrib_name, .true., this%base_ptr,  ix, error)
+if (error) then
+  if (present(err)) return
+  call err_exit
+endif
+
+if (present(err)) err = .false.
+
+this%ix_ele = ie
+this%ix_uni = ix_uni
 
 end subroutine
 
@@ -161,25 +234,20 @@ do i = 1, nu
     name = trim(s%u(i)%data(j)%d1%d2%class) // ':' // s%u(i)%data(j)%d1%sub_class
     if (nu > 1) write (name, '(2a, i1)') trim(name), '/', j
     call tao_to_top10 (top_merit, s%u(i)%data(j)%merit, name, &
-                                                s%u(i)%data(j)%ix_d, 'max')
+                                                s%u(i)%data(j)%ix_d1, 'max')
   enddo
 enddo
 
 
-if (s%global%parallel_vars) then
-  do j = 1, size(s%u(1)%var)
-    if (.not. s%u(1)%var(j)%useit_opt) cycle
-    name = s%u(1)%var(j)%v1%class
-    call tao_to_top10 (top_merit, s%u(1)%var(j)%merit, name, s%u(1)%var(j)%ix_v, 'max')
-    call tao_to_top10 (top_dmerit, s%u(1)%var(j)%dmerit_dvar, name, &
-                                             s%u(1)%var(j)%ix_v, 'max')
-    delta = s%u(1)%var(j)%model_value - s%u(1)%var(j)%design_value
-    call tao_to_top10 (top_delta, delta, name, s%u(1)%var(j)%ix_v, 'max')
-  enddo
-else
-  call out_io (s_abort$, r_name, 'SERIES VARIABLES NOT YET IMPLEMENTED')
-  call err_exit
-endif
+do j = 1, size(s%var)
+  if (.not. s%var(j)%useit_opt) cycle
+  name = s%var(j)%v1%class
+  call tao_to_top10 (top_merit, s%var(j)%merit, name, s%var(j)%ix_v1, 'max')
+  call tao_to_top10 (top_dmerit, s%var(j)%dmerit_dvar, name, &
+                                                      s%var(j)%ix_v1, 'max')
+  delta = s%var(j)%model_value - s%var(j)%design_value
+  call tao_to_top10 (top_delta, delta, name, s%var(j)%ix_v1, 'max')
+enddo
 
 ! write results
 
@@ -293,7 +361,7 @@ end subroutine
 !
 ! Input:
 !   plots(:) -- Tao_plot_struct: Array of plots to look at.
-!     %class        -- Match name if by_who = "BY_TYPE"
+!     %name        -- Match name if by_who = "BY_TYPE"
 !     %region%name -- Match name if by_who = "BY_REGION"
 !   by_who   -- Character(*): Either: "BY_REGION" or "BY_TYPE".
 !   where    -- Character(*): Name to match to.
@@ -337,7 +405,7 @@ do i = 1, size(plots)
   if (by_who == 'BY_REGION') then
     if (plot_name == plots(i)%region%name) exit
   elseif (by_who == 'BY_TYPE') then
-    if (plot_name == plots(i)%class) exit
+    if (plot_name == plots(i)%name) exit
   else
     call out_io (s_error$, r_name, 'BAD "BY_WHO" ARGUMENT: ' // by_who)
   endif
@@ -394,6 +462,7 @@ implicit none
 type (tao_super_universe_struct), target :: s
 type (tao_universe_struct), pointer :: u
 
+real(rp) model_value
 integer i, j, m, n, k
 integer n_data, n_var
 character(20) :: r_name = 'tao_dmodel_dvar_calc'
@@ -407,7 +476,7 @@ do i = 1, size(s%u)
 
   u => s%u(i)
   n_data = count (u%data%useit_opt)
-  n_var = count (u%var%useit_opt)
+  n_var = count (s%var%useit_opt)
 
   if (.not. associated(u%dModel_dVar)) then
     allocate (u%dModel_dVar(n_data, n_var))
@@ -433,7 +502,7 @@ do i = 1, size(s%u)
 
   u => s%u(i)
   n_data = count (u%data%useit_opt)
-  n_var = count (u%var%useit_opt)
+  n_var = count (s%var%useit_opt)
 
   call tao_lattice_calc (s)
   m = 0
@@ -447,23 +516,25 @@ do i = 1, size(s%u)
 
 
   m = 0
-  do j = 1, size(u%var)
-    if (.not. u%var(j)%useit_opt) cycle
+  do j = 1, size(s%var)
+    if (.not. s%var(j)%useit_opt) cycle
     m = m + 1
-    u%var(j)%ix_dVar = m
-    if (u%var(j)%step == 0) then
-      call out_io (s_error$, r_name, 'VARIABLE STEP SIZE IS ZERO FOR: ' // u%var(j)%name)
+    s%var(j)%ix_dVar = m
+    if (s%var(j)%step == 0) then
+      call out_io (s_error$, r_name, 'VARIABLE STEP SIZE IS ZERO FOR: ' // s%var(j)%name)
       call err_exit
     endif
     call tao_lattice_calc (s)
-    u%var(j)%model_value = u%var(j)%model_value + u%var(j)%step
+    model_value = s%var(j)%model_value
+    call tao_set_var_model_value (s, s%var(j), model_value + s%var(j)%step)
     call tao_lattice_calc (s)
     n = 0
     do k = 1, size(u%data)
       if (u%data(k)%useit_opt) cycle
       n = n + 1
-      u%dModel_dVar(m,n) = (u%data(k)%delta - u%data(k)%old_value) / u%var(j)%step
+      u%dModel_dVar(m,n) = (u%data(k)%delta - u%data(k)%old_value) / s%var(j)%step
     enddo
+    call tao_set_var_model_value (s, s%var(j), model_value)
   enddo
 
 enddo
@@ -642,12 +713,12 @@ end subroutine tao_find_data
 ! v_ptr:        -- tao_var_struct: (optional) pointer to the variable data point
 !-
 
-subroutine tao_find_var (err, u, var_class, v1_ptr, var_number, v_ptr)
+subroutine tao_find_var (s, err, var_class, v1_ptr, var_number, v_ptr)
 
 implicit none
 
 logical err
-type (tao_universe_struct), target           :: u
+type (tao_super_universe_struct), target     :: s
 type (tao_v1_var_struct), pointer, optional  :: v1_ptr
 type (tao_v1_var_struct), pointer :: v1
 type (tao_var_struct), pointer, optional     :: v_ptr
@@ -675,13 +746,13 @@ endif
 
 ! Point to the correct v1 data type 
 
-  do i = 1, size(u%v1_var)
-    if (v_class == u%v1_var(i)%class) then
-      v1 => u%v1_var(i) 
-      if (present(v1_ptr)) v1_ptr => u%v1_var(i) 
+  do i = 1, size(s%v1_var)
+    if (v_class == s%v1_var(i)%class) then
+      v1 => s%v1_var(i) 
+      if (present(v1_ptr)) v1_ptr => s%v1_var(i) 
       exit
     endif
-    if (i .eq. size(u%v1_var)) then
+    if (i .eq. size(s%v1_var)) then
       call out_io (s_error$, r_name, &
                         "COULD NOT FIND VARIABLE CLASS: " // v_class)
       err = .true.
@@ -738,13 +809,32 @@ integer i, j
 
 !
 
-do i = 1, size(s%u)
-  do j = 1, size(s%u(i)%var)
+do j = 1, size(s%var)
+  var => s%var(j)
+  var%target_value = var%data_value + (var%design_value - var%model_value)
+enddo
 
-    var => s%u(i)%var(j)
-    var%target_value = var%data_value + (var%design_value - var%model_value)
+end subroutine
 
-  enddo
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+
+subroutine tao_set_var_model_value (s, var, value)
+
+implicit none
+
+type (tao_super_universe_struct) s
+type (tao_var_struct) var
+
+real(rp) value
+integer i
+
+!
+
+var%model_value = value
+do i = 1, size(var%this)
+  var%this(i)%model_ptr = value
 enddo
 
 end subroutine

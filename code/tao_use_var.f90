@@ -36,33 +36,12 @@ character(200) line
 logical do_all_universes
 logical err
 
-! decipher action
+! find data class and sub_class
 
 call match_word (action, name$%use_veto_restore, which)
 
-! Apply to all universes? 
-! With parallel vars yes.
-
-
-if (s%global%parallel_vars) then
-  do k = 1, size(s%u)
-    call use_var (s%u(k))
-  enddo
-else
-  call use_var (s%u(s%global%u_view))
-endif
-
-!------------------------------------------------------------------
-contains
-
-subroutine use_var (u)
-
-type (tao_universe_struct) u
-
-! find data class and sub_class
-
-  call tao_find_var (err, u, var_class, v1_ptr)
-  if (err) return
+call tao_find_var (s, err, var_class, v1_ptr)
+if (err) return
 
 ! find locations
 
@@ -95,7 +74,5 @@ end select
   call tao_var_show_use (v1_ptr)
 
   deallocate(action_logic)
-
-end subroutine
 
 end subroutine tao_use_var

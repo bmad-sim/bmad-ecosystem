@@ -37,34 +37,51 @@ included by using an exclamation mark ``!''.
 Note: string variables are case sensitive.
 
 %-----------------------------------------------------------------
-\section{Initializing Start}
+\section{Beginning Initialization}
 \label{s:init_global} 
 
 The initialization starts with an initialization file named \vn{tao.init}. 
 \vn{tao.init} needs to have a \vn{tao_start} namelist block with the following syntax:
 \begin{example}
   \&tao_start
-    lattice_file      = "<lat_file_name>"   ! Default = this file.
-    data_and_var_file = "<data_file_name>"  ! Default = this file.
-    plot_file         = "<plot_file_name>"  ! Default = this file.
-    n_universes       = <integer>           ! Number of universes. Default = 1.
+    lattice_file      = "<lat_file_name>"    ! Default = this file.
+    data_and_var_file = "<data_file_name>"   ! Default = this file.
+    plot_file         = "<plot_file_name>"   ! Default = this file.
+    single_mode_file  = "<single_mode_name>" ! Default = this file.
+    n_universes       = <integer>            ! Number of universes. Default = 1.
+    startup_single_mode = Logical            ! Default is False.
   /
 \end{example}
 \vn{n_universes} is the number of universes to be created. The \vn{data_and_var_file}
-and \vn{plot_file} files are described in the following sections.
-The \vn{lattice_file} is the
+\vn{single_mode_file}, and \vn{plot_file} files are described in the following sections.
+
+%-----------------------------------------------------------------
+\section{Lattice Initialization}
+\label{s:init_lat} 
+
+The \vn{lattice_file} variable in the \vn{tao_start} namelist is the
 name of the file with the \vn{tao_design_lattice} namelist that
 defines where the lattice input files are. The \vn{tao_design_lattice}
 namelist has the form
 \begin{example}
-  design_lattice_file = "<lattice_file>", "<parser>"
+  \&tao_design_lattice
+    design_lattice_file(i) = "<lattice_file>", \{"<parser>"\}
+  /
 \end{example}
 \vn{<lattice_file>} is the name of an input lattice file and
 \vn{<parser>} is the name of the parser to use. Possible choices for
 \vn{<parser>} are:
 \begin{example}
-  bmad    ! For a standard bmad lattice file.
+  bmad    ! For a standard bmad lattice file. This is the default.
   xsif    ! For an xsif lattice file.
+\end{example}
+
+Example:
+\begin{example}
+  \&tao_design_lattice
+    design_lattice_file(1) = "this.lat"          ! Default: Use the bmad parser 
+    design_lattice_file(2) = "that.lat", "xsif"  ! For universe \#2
+  /
 \end{example}
 
 %-----------------------------------------------------------------
@@ -158,22 +175,22 @@ will be generated for each universe.
 Data is initialized using the \vn{tao_data} namelist block whose format is
 \begin{example}
   \&tao_data
-    d2_data%class = "<class_name>"          ! d2_data name.
-    d2_data%universe = <integer>          ! Universe variables belong in.
-                                          !   0 => all universes (default).
-    d1_data(i)%sub_class = "<sub_name>"    ! d1_data Sub-class name.
-    data(i)%default_weight = <number>  ! Merit function weight.
-    data(i)%ix_min = <integer>         ! Minimum array index.
-    data(i)%ix_max = <integer>         ! Maximum array index.
-    data(i)%name(j) = "<data_name>"    ! Data names.
-    data(i)%ele_name(j) = "<ele_name>" ! Lattice element names.
-
+    d2_data%class = "<class_name>"      ! d2_data name.
+    d2_data%universe = <integer>        ! Universe variables belong in.
+                                        !   0 => all universes (default).
+    d1_data(i)%sub_class = "<sub_name>" ! d1_data Sub-class name.
+    data(i)%default_weight = <number>   ! Merit function weight.
+    data(i)%ix_min      = <integer>     ! Minimum array index.
+    data(i)%ix_max      = <integer>     ! Maximum array index.
+    data(i)%name(j)     = "<data_name>" ! Data names.
+    data(i)%ele_name(j) = "<ele_name>"  ! Lattice element names.
+    data(i)%weight(j)   = "<weight>"    ! Merit function weight.
   /
 \end{example}
 For example:
 \begin{example}
   \&tao_data
-    d2_data%class = "orbit" 
+    d2_data%class = "orbit"
     d2_data%universe = 0  ! apply to all universes
 
     d1_data(1)%sub_class = "x"  
@@ -268,8 +285,8 @@ For example:
     region(1)%location = 0.0, 1.0, 0.5, 1.0
     region(2)%name = "bottom"
     region(2)%location = 0.0, 1.0, 0.0, 0.5
-    place(1) = 'top', 'orbit'
-    place(2) = 'bottom', 'phase'
+    place(1) = "top", "orbit"
+    place(2) = "bottom", "phase"
   /
 \end{example}
 
@@ -300,6 +317,7 @@ likes.
 
 \vn{place(i)} determines the initial placement of plots.
 
+%-----------------------------------------------------------------
 \subsection{Templates}
 
 As shown in Figure~\ref{f:plot}, a ``plot'' is made up of a collection
@@ -315,38 +333,62 @@ Template plots are defined using namelists with a name of
 \vn{tao_template_graph}. The general syntax is:
 \begin{example}
   \&tao_template_plot
-    plot%class       = "name"
-    plot%who(i)     = "who_to_plot", sign
-    plot%box_layout = ix, iy
-    plot%x          = qp_axis_struct
-    plot%convert    = Logical
-    plot%box_layout = ix_b, iy_b
-    plot%n_graph    = n_graphs
+    plot%name        = "<plot_name>"
+    plot%type        = "<plot_type>"
+    plot%who(i)      = "<who_to_plot>", <sign>
+    plot%box_layout  = <ix>, <iy>
+    plot%x           = <qp_axis_struct>
+    plot%x_axis_type = "<x_axis_type>"   ! "index" or "s". Default is "index".
+    plot%convert     = <Logical>
+    plot%box_layout  = <ix_b>, <iy_b>
+    plot%n_graph     = <n_graphs>
   /
 \end{example}
 For example:
 \begin{example}
   \&tao_template_plot
-    plot%class        = "orbit"
+    plot%name        = "orbit"
+    plot%type        = "data"
     plot%who(1)      = "model", +1
     plot%who(2)      = "design", -1
     plot%box_layout  = 1, 2                ! break page into boxes.
     plot%x%min       =   0
     plot%x%max       = 100
     plot%x%major_div = 10
-    plot%x%label     = " "
+    plot%x%label     = "Index"
     plot%n_graph     = 2
   /
 \end{example}
 
-\vn{plot%class} defines what class of data is being plotting. \tao knows
-about the following classes:
+\vn{plot%x} sets the properties of the horizontal axis. For more information
+see the \vn{Quick Plot} documentation on the \vn{qp_axis_struct}. The major
+components are
 \begin{example}
-  beta      ! Beta Twiss parameter
-  phase     ! Betatron phase
-  orbit     ! Orbit
-  eta       ! Dispersion
-  cbar      ! Cbar coupling matrix
+  min        ! Left edge value.
+  max        ! Right edge value.
+  major_div  ! Number of major divisions. 
+             !  Number of major tick marks is one less.
+  minor_div  ! Number of minor divisions. 0 = auto choose.
+  label      ! Axis label.
+\end{example}
+
+\vn{plot%name} is the name that is used with \tao commands to identify
+the plot.  \vn{plot%type} is the type of plot. \tao knows about the
+following types:
+\begin{example}
+  data       ! Data plots.
+  lat_layout ! Schematic showing placement of the lattice elements.
+  key_table  ! Key binding table for single mode.
+\end{example}
+
+For \vn{plot%type = "data"} the \vn{plot%class} defines what class of
+data is being plotting.  \tao knows about the following classes:
+\begin{example}
+  beta      ! Beta Twiss parameter.
+  phase     ! Betatron phase.
+  orbit     ! Orbit.
+  eta       ! Dispersion.
+  cbar      ! Cbar coupling matrix.
   coupling  ! Coupling measurements.
 \end{example}
 
@@ -370,6 +412,27 @@ plot. See the Quick Plot documentation for the definition of the
 with \vn{plot%class = "coupling"} and tells \tao to convert the
 coupling data into cbar data before plotting.
 
+\vn{n_graph} sets the number of graphs associated with the plot and
+each one needs a \vn{tao_template_graph} namelist to define it. These
+namelists should be placed directly after their respective
+\vn{tao_teamplate_graph} namelists. The general format of the
+\vn{tao_template_graph} namelist is:
+\begin{example}
+  \&tao_template_graph
+  	graph%name            = "<name>"
+  	graph_index           = <number>
+    graph%this_box        = <ix>, <iy>
+    graph%title           = "<label>''
+    graph%margin          =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
+    graph%y               = <qp_axis_struct>
+    graph%y2              = <qp_axis_struct>
+    graph%n_curve         = <number_of_curves>
+    curve(1)%use_y2       = <logical>
+    curve(1)%data_class   = "<data_class>"
+    curve(1)%units_factor = <factor>
+    curve(1)%line         = <qp_line_struct>
+    curve(1)%symbol       = <qp_symbol_struct>
+  /
 For example:
 \begin{example}
   \&tao_template_graph
@@ -383,8 +446,104 @@ For example:
     graph%y%min        = -4
     graph%y%major_div  = 4
     graph%n_curve      = 1
-    curve(1)%sub_class  = "x"
+    curve(1)%data_class  = "orbit:x"
     curve(1)%units_factor = 100
+    curve(1)%use_y2  = .false.
   /
+\end{example}
+
+%-----------------------------------------------------------------
+\subsection{Lattice Layout}
+
+A lattice layout template plot may be defined that draws the lattice
+along a straight line with figures for the various elements elements.
+The \vn{tao_template_plot} needed to define a lattice layout looks like:
+\begin{example}
+  \&tao_template_plot
+    plot%name        = "<plot_name>"
+    plot%type        = "lat_layout"
+  /
+\end{example}
+In addition the shapes to be drawn for the various lattice elements need to
+be defined using an \vn{element_shapes} namelist whose syntax is:
+\begin{example}
+  \&element_shapes 
+    shape(i) = "<key>", "<name>", "<shape>", "<color>", 
+                                      "<v_size>", "<print_Label>"
+  /
+\end{example}
+For Example:                 
+\begin{example}
+  \&element_shapes
+    shape(1) = "Quadrupole", "Q*",      "Box",  "Red",      30,   T 
+    shape(2) = "Quadrupole", "*",       "XBox", "Red",      30,   F 
+    shape(3) = "SBend",      "*",       "Box",  "Blue",     15 
+    shape(4) = "Wiggler",    "*",       "XBox", "Green",    20 
+  /
+\end{example}
+
+A figure is drawn for each element in the lattice that matches a
+shape. A Match is made if the type of element matches the shape
+\vn{<key>} and the name of the element matches the shape
+\vn{<name>}. The wildcard ``*'' may be used to denote any number of
+characters. Thus, in the example above, \vn{shape(1)} will match to
+all quadrupoles whose name begins with ``Q'' and \vn{shape(2)} will
+match all quadrupoles. If an element matches more than one shape the
+first shape matched will be used. \vn{<shape>} is the shape of the
+figure drawn. Valid Shapes are:
+\begin{example
+  "BOX"           -- Rectangular box
+  "XBOX"          -- Rectangular box with an x through it.
+\end{example}
+
+\vn{<color>} is the color of the shape. Good colors to use are:
+\begin{example}
+  "BLACK"
+  "RED"
+  "ORANGE"
+  "MAGENTA"
+  "YELLOW"
+  "GREEN"
+  "CYAN"
+  "BLUE"
+  "PURPLE"
+\end{example}
+\vn{<v_size} is the vertical size of the shape in points (72 points =
+1 inch). Finally \vn{<print_label>} is a logical indicating whether
+the element name is to be printed underneath the figure.
+
+
+
+%-----------------------------------------------------------------
+\section{Initializing Single Mode}
+\label{s:init_single} 
+
+For single mode the bindings of variables to keys is defined with a
+\vn{key_bindings} namelist. The syntax is:
+\begin{example}
+  \&key_bindings
+    key(i) = <ele_name> <attrib_name> <delta> <universe> 
+               <small_step> <low_lim> <high_lim> <weight> <good_opt>
+  /
+\end{example}
+For example:
+\begin{example}
+  \&key_bindings
+  key(1) = "Q1"   "K1"    0.01 "U:0" 1e-5  -10  10  10  T
+  key(2) = "DRFT" "L"     0.1  "U:1" 1e-3    0   3   1  F
+  key(3) = "Q3"   "TILT"  0.01 "U:2" 1e-5   -1   1   3  T
+  /  
+\end{example}
+For the \vn{i}\Th key \vn{<ele_name>} is the name of a lattice element
+in universe \vn{<universe>} and \vn{<attrib_name>} is the attribute to
+be varied. If \vn{<unverse>} is ``0'' then the key will vary elements
+in all universes. \vn{<delta>} is the change in value when the
+appropriate key is depressed. \vn{<small_step>} establishes what a 
+``small'' variation of the variable is. \vn{<low_lim>} and \vn{<high_lim>}
+establish limits and if the value of the variable goes outside these
+limits then the contribution to the merit function is given by
+\begin{example}
+  merit = <weight> * (var_value - <high_lim>)^2  ! For var_value > <high_lim>
+  merit = <weight> * (<low_lim> - var_value)^2   ! Fro <low_lim> > var_value
 \end{example}
 

@@ -10,6 +10,7 @@ module tao_mod
   use tao_struct
   use tao_interface
   use tao_utils
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
 end module

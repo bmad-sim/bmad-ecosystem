@@ -35,39 +35,37 @@ call tao_lattice_calc (s)
 
 this_merit = 0
 
-do i = 1, size(s%u)
-  do j = 1, size(s%u(i)%var)
+do j = 1, size(s%var)
 
-    var => s%u(i)%var(j)
-    if (.not. var%useit_opt) cycle
+  var => s%var(j)
+  if (.not. var%useit_opt) cycle
 
-    if (s%global%opt_with_ref .and. s%global%opt_with_base) then
-      value = var%model_value - var%base_value + var%ref_value
-    elseif (s%global%opt_with_ref) then
-      value = var%model_value - var%design_value + var%ref_value
-    elseif (s%global%opt_with_base) then
-      value = var%model_value - var%base_value
-    else
-      value = var%model_value 
-    endif
+  if (s%global%opt_with_ref .and. s%global%opt_with_base) then
+    value = var%model_value - var%base_value + var%ref_value
+  elseif (s%global%opt_with_ref) then
+    value = var%model_value - var%design_value + var%ref_value
+  elseif (s%global%opt_with_base) then
+    value = var%model_value - var%base_value
+  else
+    value = var%model_value 
+  endif
     
-    var%merit = 0
-    select case (var%merit_type)
-    case ('target')
-      var%merit = var%weight * (value - var%data_value)**2
-    case ('limit')
-      if (var%model_value > var%high_lim_value) then
-        var%merit = var%weight * (value - var%high_lim_value)**2
-      elseif (var%model_value < var%low_lim_value) then
-        var%merit = var%weight * (value - var%low_lim_value)**2
-      endif
-    case default
-      call tao_hook_merit_var (s, i, j, var)
-    end select
+  var%merit = 0
+  select case (var%merit_type)
+  case ('target')
+    var%merit = var%weight * (value - var%data_value)**2
+  case ('limit')
+    if (var%model_value > var%high_lim) then
+      var%merit = var%weight * (value - var%high_lim)**2
+    elseif (var%model_value < var%low_lim) then
+      var%merit = var%weight * (value - var%low_lim)**2
+    endif
+  case default
+    call tao_hook_merit_var (s, i, j, var)
+  end select
 
-    this_merit = this_merit + var%merit
+  this_merit = this_merit + var%merit
 
-  enddo
 enddo
 
 !----------------------------------------

@@ -1,11 +1,10 @@
 !+
-! Subroutine tao_set_var_cmd (s, do_all_universes, class, component, set_value, list)
+! Subroutine tao_set_var_cmd (s, class, component, set_value, list)
 !
 ! Routine to set var values.
 !
 ! Input:
 !   s                -- Tao_super_universe_struct
-!   do_all_universes -- Logical: Apply set to all universes?
 !   class            -- Character(*): Which var class to set.
 !   component        -- Character(*): Which component to set.
 !   set_value        -- Character(*): What value to set it to.
@@ -15,7 +14,7 @@
 !   s        -- tao_super_universe_struct
 !-
 
-subroutine tao_set_var_cmd (s, do_all_universes, class, component, set_value, list)
+subroutine tao_set_var_cmd (s, class, component, set_value, list)
 
 use tao_mod
 use quick_plot
@@ -23,55 +22,32 @@ use quick_plot
 implicit none
 
 type (tao_super_universe_struct) s
+type (tao_v1_var_struct), pointer :: v1_ptr
 
-integer i
+integer i, j
 
 character(*) class, component, set_value, list
 character(20) :: r_name = 'tao_set_var_cmd'
 
-logical do_all_universes, err
+logical err
 
-!
+! Find the var to set
 
-if (do_all_universes) then
-  do i = 1, size(s%u)
-    call set_var (s%u(i))
-    if (err) return
-  enddo
+if (class == 'all') then
+  call set_this_var (s%var, .false.)
 else
-  call set_var (s%u(s%global%u_view))
+  call tao_find_var(s, err, class, v1_ptr)  
+  if (err) return
+  call set_this_var (v1_ptr%v, .true.)
 endif
+
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 contains
 
-subroutine set_var (u)
+subroutine set_this_var (var, can_list)
 
-type (tao_universe_struct), target :: u
-type (tao_v1_var_struct), pointer :: v1_ptr
-
-integer j
-
-! Find the var to set
-
-if (class == 'all') then
-  call set_this_var (u, u%var, .false.)
-else
-  call tao_find_var(err, u, class, v1_ptr)  
-  if (err) return
-  call set_this_var (u, v1_ptr%v, .true.)
-endif
-
-end subroutine
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! contains
-
-subroutine set_this_var (u, var, can_list)
-
-type (tao_universe_struct), target :: u
 type (tao_var_struct), target :: var(:)
 
 real(rp), pointer :: c_ptr
@@ -85,7 +61,7 @@ logical multiply, divide, can_list
 ! parse the list of vars to set.
 ! The result is the set_it(:) array.
 
-n1 = var(1)%ix_v
+n1 = var(1)%ix_v1
 n2 = n1 + size(var) - 1
 allocate (set_it(n1:n2))
 
@@ -103,7 +79,7 @@ endif
 
 do iv = 1, size(var)
 
-  ix = var(iv)%ix_v  ! input index.
+  ix = var(iv)%ix_v1  ! input index.
   if (.not. set_it(ix)) cycle
   if (.not. var(iv)%exists) cycle
 

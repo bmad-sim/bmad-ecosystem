@@ -15,7 +15,7 @@
 !   s        -- tao_super_universe_struct
 !-
 
-subroutine tao_set_data_cmd (s, do_all_universes, class, component, set_value, list)
+subroutine tao_set_data_cmd (s, class, component, set_value, list)
 
 use tao_mod
 use quick_plot
@@ -29,18 +29,14 @@ integer i
 character(*) class, component, set_value, list
 character(20) :: r_name = 'tao_set_data_cmd'
 
-logical do_all_universes, err
+logical err
 
 !
 
-if (do_all_universes) then
-  do i = 1, size(s%u)
-    call set_data (s%u(i))
-    if (err) return
-  enddo
-else
-  call set_data (s%u(s%global%u_view))
-endif
+do i = 1, size(s%u)
+  call set_data (s%u(i))
+  if (err) return
+enddo
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -95,7 +91,7 @@ logical multiply, divide, can_list
 
 err = .true.
 
-n1 = data(1)%ix_d
+n1 = data(1)%ix_d1
 n2 = n1 + size(data) - 1
 allocate (set_it(n1:n2), good(n1:n2))
 

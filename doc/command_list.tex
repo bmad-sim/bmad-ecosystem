@@ -1,8 +1,12 @@
-\chapter{Tao Commands}
+\chapter{Tao Line Mode Commands}
 \label{c:commands}
 
-Commands are case sensitive. The list of commands that \tao knows
-about is shown in Table~\ref{t:commands}
+This chapter gives a description of the commands that \tao knows about
+in \vn{line mode}. For a description of \vn{single mode} commands
+see Chapter~\ref{c:single}. To put \tao into \vn{single mode} use the
+\vn{single_mode} command.
+Commands are case sensitive. The list of commands 
+is shown in Table~\ref{t:commands}
 
 \begin{table}[h]
 \centering
@@ -37,20 +41,22 @@ just the one on view.
 
 Format: 
 \begin{example}
-  alias <alias_name> <string>
+  alias \{<alias_name> <string>\}
 \end{example}
 
 \vskip 0.2in
 
 \vn{Alias} is like Unix aliases and allows the defining of alias
-commands. When using an alias up to 9 arguments may be substituted in the
-\vn{<string>}. The i\Th argument is substituted in place of the sub-string
-``[i]''.
+commands. Using the \vn{alias} command without any arguments results
+in a printout of the aliases that have been defined. When using an
+alias up to 9 arguments may be substituted in the \vn{<string>}. The
+i\Th argument is substituted in place of the sub-string ``[i]''.
 
 Examples:
 \begin{example}
-    alias xyzzy plot [1] model - base 
-    xyzzy top 
+    alias xyzzy plot [1] model - base  ! Define xyzzy
+    alias                              ! Show all aliases
+    xyzzy top                          ! Use an alias
 \end{example}
 In the above example ``xyzzy'' is the alias for the string ``plot [1]
 model - base''.  When the command xyzzy is used ``top'' is substituted
@@ -423,6 +429,18 @@ Examples:
 \end{example}
 
 %------------------------------------------------------------------------
+\section{Single_mode}
+\label{s:singe_cmd}
+
+Format:
+\begin{example}
+  single_mode
+\end{example}
+
+\vskip 0.2in 
+This command puts \tao into \vn{single mode}. 
+
+%------------------------------------------------------------------------
 \section{Use}
 \label{s:use}
 
@@ -432,7 +450,8 @@ Format:
   use var <class> <locations>
 \end{example}
 
-\vskip 0.2in The \vn{use} command  unvetoes data or variables
+\vskip 0.2in 
+The \vn{use} command  unvetoes data or variables
 and sets a veto for the rest of the data.
 A ``*'' star in front means that the \vn{use} is applied
 to all universes and not just the one on view. See also the \vn{restore}
@@ -456,7 +475,8 @@ Format:
   veto var <class> <locations>
 \end{example}
 
-\vskip 0.2in The \vn{veto} command  vetoes data or variables.
+\vskip 0.2in 
+The \vn{veto} command  vetoes data or variables.
 A ``*'' star in front means that the \vn{veto} is applied
 to all universes and not just the one on view. See also the \vn{restore}
 and \vn{use} commands.

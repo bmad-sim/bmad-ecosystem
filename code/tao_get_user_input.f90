@@ -14,6 +14,8 @@ subroutine tao_get_user_input (s, cmd_line)
 
 use tao_mod
 use tao_common
+use tao_single_mod
+use single_char_input_mod
 
 implicit none
 
@@ -26,7 +28,22 @@ character(3) :: str(9) = (/ '[1]', '[2]', '[3]', '[4]', '[5]', &
                             '[6]', '[7]', '[8]', '[9]' /)
 character(40) tag
 
-logical err
+logical err, wait, flush
+logical, save :: init_needed = .true.
+
+! Init single char input
+
+if (init_needed) then
+  call init_tty_char
+  init_needed = .false.
+endif
+
+! If single character input wanted then...
+
+if (s%global%single_mode) then
+  call get_a_char (cmd_line(1:1), .true., (/ ' ' /))  ! ignore blanks
+  return
+endif
 
 ! If a command file is open then read a line from the file.
 
@@ -40,6 +57,7 @@ if (s%global%lun_command_file /= 0) then
   write (*, '(3a)') trim(s%global%prompt_string), ': ', trim(cmd_line)
   call alias_translate (cmd_line, err)
   return
+
   8000 continue
   close (s%global%lun_command_file)
   s%global%lun_command_file = 0 ! signal that the file has been closed
@@ -47,8 +65,8 @@ endif
 
 ! Here if no command file is being used.
 
-!!print '(1x, 2a, $)', trim(s%global%prompt_string), '> '
-!!read (*, '(a)') cmd_line
+!! print '(1x, 2a, $)', trim(s%global%prompt_string), '> '
+!! read (*, '(a)') cmd_line
 
 cmd_line = ' '
 tag = trim(s%global%prompt_string) // '> ' // achar(0)

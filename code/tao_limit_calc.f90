@@ -24,6 +24,7 @@ implicit none
 type (tao_super_universe_struct), target :: s
 type (tao_var_struct), pointer :: var
 
+real(rp) value
 integer i, j
 
 character(20) :: r_name = 'tao_limit_calc'
@@ -39,34 +40,32 @@ call tao_var_target_calc (s)
 
 limited = .false.
 
-do i = 1, size(s%u)
-  do j = 1, size(s%u(i)%var)
+do j = 1, size(s%var)
 
-    var => s%u(i)%var(j)
+  var => s%var(j)
 
-    if (var%target_value > var%high_lim_value) then
-      write (line, '(a, 1pe13.4)') &
-       'HAS TARGET VALUE GREATER THAN THE HIGH LIMIT OF: ', var%high_lim_value
-      call out_io (s_warn$, r_name, 'VARIABLE: ' // var%name, line, &
-        'RESETTING VARIABLE TO BE WITHIN BOUNDS & VETOING FROM OPTIMIZER LIST')
-      var%model_value = var%model_value - &
-                  1.00001 * (var%target_value - var%high_lim_value)
-      var%good_user = .false.
-      limited = .true.
-    endif
+  if (var%target_value > var%high_lim) then
+    write (line, '(a, 1pe13.4)') &
+     'HAS TARGET VALUE GREATER THAN THE HIGH LIMIT OF: ', var%high_lim
+    call out_io (s_warn$, r_name, 'VARIABLE: ' // var%name, line, &
+      'RESETTING VARIABLE TO BE WITHIN BOUNDS & VETOING FROM OPTIMIZER LIST')
+    value = var%model_value - 1.00001 * (var%target_value - var%high_lim)
+    call tao_set_var_model_value (s, var, value) 
+    var%good_user = .false.
+    limited = .true.
+  endif
 
-    if (var%target_value < var%low_lim_value) then
-      write (line, '(a, 1pe13.4)') &
-         'HAS TARGET VALUE LESS THAN THE LOW LIMIT OF: ', var%low_lim_value
-      call out_io (s_warn$, r_name, 'VARIABLE: ' // var%name, line, &
-        'RESETTING VARIABLE TO BE WITHIN BOUNDS & VETOING FROM OPTIMIZER LIST')
-      var%model_value = var%model_value + &
-                  1.00001 * (var%low_lim_value - var%target_value)
-      var%good_user = .false.
-      limited = .true.
-    endif
+  if (var%target_value < var%low_lim) then
+    write (line, '(a, 1pe13.4)') &
+       'HAS TARGET VALUE LESS THAN THE LOW LIMIT OF: ', var%low_lim
+    call out_io (s_warn$, r_name, 'VARIABLE: ' // var%name, line, &
+      'RESETTING VARIABLE TO BE WITHIN BOUNDS & VETOING FROM OPTIMIZER LIST')
+    value = var%model_value + 1.00001 * (var%low_lim - var%target_value)
+    call tao_set_var_model_value (s, var, value) 
+    var%good_user = .false.
+    limited = .true.
+  endif
 
-  enddo
 enddo
 
 end subroutine

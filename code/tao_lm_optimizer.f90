@@ -114,7 +114,7 @@ use tao_common
 
 implicit none
 
-type (tao_universe_struct), pointer :: u, u1
+type (tao_universe_struct), pointer :: u
 
 real(rp), intent(in) :: x(:), a(:)
 real(rp), intent(out) :: y_fit(:)
@@ -128,7 +128,6 @@ character(80) line
 
 ! transfer "a" array to model
 
-u1 => s_com%u(1)
 call tao_set_vars (s_com, a)
 
 ! if limited then set y_fit to something large so merit calc gives a large number.
@@ -160,10 +159,10 @@ do j = 1, size(s_com%u)
     y_fit(k) = u%data(i)%delta
     im = u%data(i)%ix_dModel
     nn = 0
-    do n = 1, size(u1%var)
-      if (.not. u1%var(n)%useit_opt) cycle
+    do n = 1, size(s_com%var)
+      if (.not. s_com%var(n)%useit_opt) cycle
       nn = nn + 1
-      iv = u1%var(n)%ix_dVar
+      iv = s_com%var(n)%ix_dVar
       dy_da(k, nn) = u%dModel_dVar(im, iv)
     enddo
   enddo

@@ -33,14 +33,12 @@ subroutine tao_init_global_and_universes (s, data_and_var_file)
 
   type n_uni_struct
     integer d2_data
-    integer v1_var
     integer data
-    integer var
   end type
   type (n_uni_struct), pointer :: nu(:)
 
   integer n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
-  integer n, n_universes
+  integer n, n_universes, iostat
 
   character(*) data_and_var_file
   character(40) :: r_name = 'TAO_INIT_GLOBAL_AND_UNIVERSES'
@@ -61,6 +59,7 @@ subroutine tao_init_global_and_universes (s, data_and_var_file)
   global%valid_plot_who(1:5) =  (/ 'model ', 'base  ', 'ref   ', 'design', 'data  ' /)
   call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
   read (iu, nml = tao_params)
+  call out_io (s_blank$, r_name, 'Init: Read tao_params namelist')
   close (iu)
 
   s%global = global  ! transfer global to s
@@ -68,13 +67,24 @@ subroutine tao_init_global_and_universes (s, data_and_var_file)
   n = size(s%u)
   allocate (nu(n))
   nu%d2_data = 0      ! size of s%u(i)%d2_data(:) array
-  nu%v1_var = 0       ! size of s%u(i)%v1_var(:) array
   nu%data = 0         ! size of s%u(i)%data(:) array
-  nu%var = 0          ! size of s%u(i)%var(:) array
 
   do i = 1, size(s%u)
     call init_universe (s%u(i))
   enddo
+
+  allocate (s%var(n_var_max))
+  allocate (s%v1_var(n_v1_var_max))
+
+  s%v1_var(:)%good_opt = .true.
+  s%var(:)%exists    = .false.
+  s%var(:)%good_var  = .true.
+  s%var(:)%good_user = .false.
+  s%var(:)%merit_type = 'target'
+
+  s%n_var_used = 0
+  s%n_v1_var_used = 0       ! size of s%v1_var(:) array
+
 
 ! Init data
 
@@ -88,6 +98,8 @@ subroutine tao_init_global_and_universes (s, data_and_var_file)
     enddo
     read (iu, nml = tao_data, iostat = ios, err = 9100)
     if (ios < 0) exit         ! exit on end-of-file
+    call out_io (s_blank$, r_name, &
+                      'Init: Read tao_data namelist: ' // d2_data%class)
     n = d2_data%universe      ! universe to use 
     if (n == 0) then          ! 0 => use all universes
       do i = 1, size(s%u)
@@ -110,14 +122,26 @@ subroutine tao_init_global_and_universes (s, data_and_var_file)
     var%step = 0           ! set default
     read (iu, nml = tao_var, iostat = ios, err = 9200)
     if (ios < 0) exit         ! exit on end-of-file
-    n = v1_var%universe       ! universe to use 
-    if (n == 0) then          ! 0 => use all universes
+    call out_io (s_blank$, r_name, &
+                        'Init: Read tao_var namelist: ' // v1_var%class)
+
+    if (v1_var%universe == 'all') then
       do i = 1, size(s%u)
-        call var_stuffit (s%u(i), nu(i), v1_var, var)
+        call var_stuffit (i, nu(i), v1_var, var)
       enddo
+    elseif (v1_var%universe == 'common') then
+      call var_stuffit_common (v1_var, var)
     else
-      call var_stuffit (s%u(n), nu(n), v1_var, var)
+      read (v1_var%universe, *, iostat = ios) n
+      if (ios /= 0) then
+        call out_io (s_fatal$, r_name, &
+              'CANNOT READ UNIVERSE INDEX: ' // v1_var%universe, &
+              'FOR VARIABLE: ' // v1_var%class)
+        call err_exit
+      endif
+      call var_stuffit (n, nu(n), v1_var, var)
     endif
+
   enddo
 
   close (iu)
@@ -161,17 +185,12 @@ subroutine init_universe (u)
 
 ! allocate and set defaults
 
-  if (n_d2_data_max .ne. 0) then
+  if (n_d2_data_max /= 0) then
     allocate (u%d2_data(n_d2_data_max))
     u%d2_data(:)%good_opt = .true.
   endif
 
-  if (n_v1_var_max .ne. 0) then
-    allocate (u%v1_var(n_v1_var_max))
-    u%v1_var(:)%good_opt = .true.
-  endif
-
-  if (n_data_max .ne. 0) then
+  if (n_data_max /= 0) then
     allocate (u%data(n_data_max))
     u%data(:)%exists = .false.       ! set default
     u%data(:)%good_data  = .false.   ! set default
@@ -180,14 +199,6 @@ subroutine init_universe (u)
     u%data(:)%merit_type = 'target'  ! set default
   endif
   
-  if (n_var_max .ne. 0) then
-    allocate (u%var(n_var_max))
-    u%var(:)%exists    = .false.
-    u%var(:)%good_var  = .true.
-    u%var(:)%good_user = .false.
-    u%var(:)%merit_type = 'target'
-  endif
-
 end subroutine init_universe
 
 !----------------------------------------------------------------
@@ -237,7 +248,7 @@ logical, allocatable :: found_one(:)
     u%d2_data(nn)%d1(i)%d2 => u%d2_data(nn)  ! point back to the parent
 
 ! are we counting elements and forming data names?
-    if (index(data(i)%name(0), 'COUNT:') .ne. 0) then
+    if (index(data(i)%name(0), 'COUNT:') /= 0) then
       counting = .true.
       count_name1 = data(i)%name(0)
       call string_trim (count_name1(7:), count_name1, ix)
@@ -269,7 +280,7 @@ logical, allocatable :: found_one(:)
 ! now check if we are searching for elements or repeating elements
 ! and record the element names in the data structs
     
-    if (index(data(i)%ele_name(0), 'SEARCH:') .ne. 0) then
+    if (index(data(i)%ele_name(0), 'SEARCH:') /= 0) then
       search_string = data(i)%ele_name(0)
       call string_trim (search_string(8:), search_string, ix)
       allocate (found_one(u%design%n_ele_max))
@@ -307,7 +318,7 @@ logical, allocatable :: found_one(:)
         jj = jj + 1
       endif
       enddo
-    elseif (index(data(i)%ele_name(0), 'SAME:') .ne. 0) then
+    elseif (index(data(i)%ele_name(0), 'SAME:') /= 0) then
       call string_trim (data(i)%ele_name(0)(6:), name, ix)
       call tao_find_data (err, u, name, d1_ptr = d1_ptr)
       if (err) then
@@ -333,7 +344,7 @@ logical, allocatable :: found_one(:)
     endif
 
 ! Create data names
-    if (index(data(i)%name(0), 'COUNT:') .ne. 0) then
+    if (index(data(i)%name(0), 'COUNT:') /= 0) then
       jj = ix1
       do j = n1, n2
         if (jj .gt. ix2) then
@@ -345,7 +356,7 @@ logical, allocatable :: found_one(:)
       jj = jj + 1
       enddo
 
-    elseif (index(data(i)%name(0), 'SAME:') .ne. 0) then
+    elseif (index(data(i)%name(0), 'SAME:') /= 0) then
       call string_trim (data(i)%name(0)(6:), name, ix)
       call tao_find_data (err, u, name, d1_ptr = d1_ptr)
       if (err) then
@@ -386,134 +397,122 @@ end subroutine data_stuffit
 !----------------------------------------------------------------
 ! contains
 
-subroutine var_stuffit (u, nu, v1_var, var)
+subroutine var_stuffit (ix_u, nu, v1_var, var)
 
-  type (tao_universe_struct), target :: u
   type (n_uni_struct) nu
+  type (tao_v1_var_input) v1_var
+  type (tao_var_input) var
+
+  integer i, j, nn, n1, n2, ix1, ix2, ix_u
+  logical err
+
+! count number of v1 entries
+
+  s%n_v1_var_used = s%n_v1_var_used + 1
+  nn = s%n_v1_var_used
+  
+! stuff in the data
+
+  s%v1_var(nn)%class = v1_var%class
+
+  if (v1_var%class == ' ') return
+  n1 = s%n_var_used + 1
+  n2 = s%n_var_used + var%ix_max - var%ix_min + 1
+  ix1 = var%ix_min
+  ix2 = var%ix_max
+
+  s%n_var_used = n2
+
+  s%var(n1:n2)%ele_name = var%ele_name(ix1:ix2)
+  s%var(n1:n2)%name = var%name(ix1:ix2)
+
+! now for some family guidance...
+! point the v1_var mother to the appropriate children in the big data array
+
+  call tao_point_v1_to_var (s%v1_var(nn)%v, s%var(n1:n2), var%ix_min, n1)
+
+  s%var(n1:n2)%attrib_name = v1_var%attribute
+  s%var(n1:n2)%weight = var%weight
+  where (s%var(n1:n2)%weight == 0) s%var(n1:n2)%weight = var%default_weight
+  s%var(n1:n2)%step = var%step
+  where (s%var(n1:n2)%step == 0) s%var(n1:n2)%step = var%default_step
+
+! point the children back to the mother
+
+  do i = n1, n2
+    s%var(i)%v1 => s%v1_var(nn)
+    allocate (s%var(i)%this(1))
+    if (s%var(i)%ele_name == ' ') cycle
+    call tao_pointer_to_var_in_lattice (s, s%var(i), s%var(i)%this(1), ix_u)
+    s%var(i)%model_value = s%var(i)%this(1)%model_ptr
+    s%var(i)%design_value = s%var(i)%model_value
+    s%var(i)%base_value = s%var(i)%this(1)%base_ptr
+    s%var(i)%exists = .true.
+  enddo
+
+end subroutine
+
+
+!----------------------------------------------------------------
+! contains
+
+subroutine var_stuffit_common (v1_var, var)
+
+  type (tao_universe_struct), pointer :: u
   type (tao_v1_var_input) v1_var
   type (tao_var_input) var
 
   integer i, j, nn, n1, n2, ix1, ix2
   logical err
 
-! count number of v1 entries
-
-  nu%v1_var = nu%v1_var + 1
-  nn = nu%v1_var
-  
 ! stuff in the data
 
-  u%v1_var(nn)%class = v1_var%class
-
   if (v1_var%class == ' ') return
-  n1 = nu%var + 1
-  n2 = nu%var + var%ix_max - var%ix_min + 1
+
+  s%n_v1_var_used = s%n_v1_var_used + 1
+  nn = s%n_v1_var_used
+
+  n1 = s%n_var_used + 1
+  n2 = s%n_var_used + var%ix_max - var%ix_min + 1
   ix1 = var%ix_min
   ix2 = var%ix_max
 
-  nu%var = n2
+  s%n_var_used = n2
 
-  u%var(n1:n2)%ele_name = var%ele_name(ix1:ix2)
-  u%var(n1:n2)%name = var%name(ix1:ix2)
+  s%var(n1:n2)%ele_name = var%ele_name(ix1:ix2)
+  s%var(n1:n2)%name = var%name(ix1:ix2)
 
 ! now for some family guidance...
 ! point the v1_var mother to the appropriate children in the big data array
 
-  call tao_point_v1_to_var (u%v1_var(nn)%v, u%var(n1:n2), var%ix_min, n1)
+  call tao_point_v1_to_var (s%v1_var(nn)%v, s%var(n1:n2), var%ix_min, n1)
 
-  u%var(n1:n2)%attrib_name = v1_var%attribute
-  u%var(n1:n2)%weight = var%weight
-  where (u%var(n1:n2)%weight == 0) u%var(n1:n2)%weight = var%default_weight
-  u%var(n1:n2)%step = var%step
-  where (u%var(n1:n2)%step == 0) u%var(n1:n2)%step = var%default_step
+  s%var(n1:n2)%attrib_name = v1_var%attribute
+  s%var(n1:n2)%weight = var%weight
+  where (s%var(n1:n2)%weight == 0) s%var(n1:n2)%weight = var%default_weight
+  s%var(n1:n2)%step = var%step
+  where (s%var(n1:n2)%step == 0) s%var(n1:n2)%step = var%default_step
 
 ! point the children back to the mother
 
   do i = n1, n2
-    u%var(i)%v1 => u%v1_var(nn)
-    if (u%var(i)%ele_name /= ' ') then
-      call tao_pointer_to_var_in_lattice (u%var(i), u%model, u%model_orb, &
-                                                        u%var(i)%model_value, err)
-      if (err) call err_exit
-      call tao_pointer_to_var_in_lattice (u%var(i), u%base, u%base_orb, &
-                                                        u%var(i)%base_value, err)
-      if (err) call err_exit
-      call element_locator (u%var(i)%ele_name, u%model, u%var(i)%ix_ele)
-      u%var(i)%design_value = u%var(i)%model_value
-      u%var(i)%exists = .true.
-    endif
+
+    allocate (s%var(i)%this(size(s%u)))
+    if (s%var(i)%ele_name == ' ') cycle
+    s%var(i)%v1 => s%v1_var(nn)
+
+    do j = 1, size(s%u)
+      u => s%u(j)
+      call tao_pointer_to_var_in_lattice (s, s%var(i), s%var(i)%this(j), j)
+      s%var(i)%exists = .true.
+    enddo
+
+    s%var(i)%model_value = s%var(i)%this(1)%model_ptr
+    s%var(i)%design_value = s%var(i)%this(1)%model_ptr
+    s%var(i)%base_value = s%var(i)%this(1)%base_ptr
+
   enddo
 
 end subroutine
 
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! contains
-!+
-! Subroutine tao_point_v1_to_var (ip, ii, n, n_var)
-!
-! used for arbitrary variable pointer indexing
-!
-! ip       -- tao_var_struct: the pointer
-! ii:       -- tao_var_struct: the variable
-! n:        -- integer: starting index for the pointer
-!-
-
-subroutine tao_point_v1_to_var (ip, ii, n, n_var)
-
-implicit none
-
-integer n, i, n_var
-
-type (tao_var_struct), pointer :: ip(:)
-type (tao_var_struct), target :: ii(n:)
-
-ip => ii
-
-forall (i = lbound(ii, 1):ubound(ii, 1)) 
-  ii(i)%ix_v = i
-  ii(i)%ix_var = n_var + i - n
-end forall
-
-end subroutine 
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! contains
-!+
-! Subroutine tao_point_d1_to_data (ip, ii, n, n_data)
-!
-! Routine used for arbitrary data pointer indexing
-!
-! ip     -- tao_data_struct: the pointer
-! ii     -- tao_data_struct: the data
-! n      -- integer: starting index for the pointer
-! n_data -- integer: starting index for the next data point in the big data array
-!-
-
-subroutine tao_point_d1_to_data (ip, ii, n, n_data)
-
-implicit none
-
-integer n, i, n0, n_data
-
-type (tao_data_struct), pointer :: ip(:)
-type (tao_data_struct), target :: ii(n:)
-
-ip => ii
-
-forall (i = lbound(ii, 1):ubound(ii, 1)) 
-  ii(i)%ix_d = i
-  ii(i)%ix_data = n_data + i - n
-end forall
-
-end subroutine 
-
 end subroutine
-
-
-
-

@@ -22,18 +22,14 @@ logical good_opt
 
 !
 
-do i = 1, size(s%u)
+! return if no variables
 
-!return if no variables
-  if (.not. associated (s%u(i)%v1_var)) return 
-
-  do j = 1, size(s%u(i)%v1_var)
-    good_opt = s%u(i)%v1_var(j)%good_opt
-    v => s%u(i)%v1_var(j)%v
-    if (.not. associated(v)) cycle
-    v(:)%useit_opt = good_opt .and. v(:)%exists .and. &
+do j = 1, size(s%v1_var)
+  good_opt = s%v1_var(j)%good_opt
+  v => s%v1_var(j)%v
+  if (.not. associated(v)) cycle
+  v(:)%useit_opt = good_opt .and. v(:)%exists .and. &
                         v(:)%good_user .and. v(:)%good_var
-  enddo
 enddo
 
 end subroutine tao_set_var_useit_opt

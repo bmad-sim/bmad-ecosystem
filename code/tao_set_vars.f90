@@ -28,33 +28,11 @@ integer i, j, k
 
 ! Transfer the values from var_vec to the variables of each universe.
 
-! parallel_vars means that all variables s%u(:)%var(j) of different universes
-! are in lock-step with each other.
-
-if (s%global%parallel_vars) then
-
   j = 0
-  do i = 1, size(s%u(1)%var)
-    if (.not. s%u(1)%var(i)%useit_opt) cycle
+  do i = 1, size(s%var)
+    if (.not. s%var(i)%useit_opt) cycle
     j = j + 1
-    do k = 1, size(s%u)
-      s%u(k)%var(i)%model_value = var_vec(j)
-    enddo
+    call tao_set_var_model_value (s, s%var(i), var_vec(j))
   enddo
-
-! Serial case where the variables of different universes are not correlated.
-
-else
-
-  j = 0
-  do k = 1, size(s%u)
-    do i = 1, size(s%u(k)%var)
-      if (.not. s%u(k)%var(i)%useit_opt) cycle
-      j = j + 1
-      s%u(k)%var(i)%model_value = var_vec(j)
-    enddo
-  enddo
-
-endif
 
 end subroutine

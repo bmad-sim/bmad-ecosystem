@@ -88,128 +88,18 @@ fit all the data simultaneously to try to find, say, rolls in the
 bends.
 
 %------------------------------------------------------------------------
-\section{Lattice Corrections}
+\section{Single Character Input}
 
-Examples of lattice corrections include flattening the orbit and
-adjusting quadrupoles to correct the measured betatron phase. The
-general idea is to vary an appropriate set of \vn{variables} with the
-aim of minimizing a merit function \vn{M} that is a measure of how well the
-model data fits the measured data
-\Begineq
-  {\cal M} = \sum_{\data:i} w_i 
-    (\data\_\model(i) -  \data\_\meas(i))^2 + 
-  \sum_{\var:j} w_j 
-    (\var\_\model(j) - \var\_\meas(j))^2
-  \label{m1}
-\Endeq
-\vn{data_model} is data as calculated from the model and
-\vn{data_meas} is the actual measured data. \vn{var_model} is the
-value of a variable in the \vn{model} and \vn{var_meas} is the value
-as measured at the time the data was taken. The second term in the
-merit function helps prevent degeneracies, or near degeneracies,
-allowing \tao to find solutions where \vn{data_model} matches
-\vn{data_measured} with the \vn{var_model} having ``unphysical''
-values. The weights \vn{w_i} and \vn{w_j} need to be set depending
-upon how accurate the data is and how accurate the calibrations for
-measuring the \vn{var_measured} values are. With the second term in
-the merit function the number of constraints (number of terms in the
-merit function) is always larger than the number of variables so
-degeneracies can never appear. The algorithm used for minimizing
-\vn{M} is called an \vn{optimizer} and the \vn{run} command is used to
-invoke a, \vn{optimizer}.
+Sometimes it is convenient to be able to vary variables using single key strokes
+without having to type a carriage return.
+With \tao this is possible using what is called \vn{single mode}. This is distinct from
+\vn{line mode} where commands to \tao are typed at the command line with a carriage 
+return signaling the end of the command. As explained in the initialization chapter
+\vn{single mode} uses a special initialization file.
 
-presumably, once a ``fit'' has been made, by varying the appropriate
-\vn{variables} in the \vn{model} to minimize the merit function, the
-model values of the \vn{variables} are the true values that existed
-when the measurement is taken. Thus, if \vn{M} is reasonably small we 
-believe:
-\begin{example}
-  var_model = var_actual
-\end{example}
-What is wanted is to have the \vn{variable} values equal to the
-design. Therefore, to correct the lattice, the \vn{variables} need to
-be changed by
-\begin{example}
-  var_change = var_final  - var_start
-             = var_design - var_model
-\end{example}
-In other words
-\begin{example}
-  var_final = var_start + (var_design - var_model)
-\end{example}
-Notice that the fitting process is independent of the \vn{design}
-lattice. It is only when calculating the corrections to the
-\vn{variables} that the \vn{design} lattice plays a roll. 
-
-Sometimes it is desired to fit to changes in data as opposed to the
-absolute value of the data. For example, when closing an orbit bump
-knob what is important is the difference in orbits before and
-after the bump knob is varied. In this case the merit function becomes
-\begin{alignat}{1}
-  {\cal M} = &\sum_{\data:i} w_i 
-    \left[ (\data\_\model(i) - \data\_\design(i)) - 
-      (\data\_\meas(i) - \data\_\reference(i)) \right]^2 + \CRNO
-  &\sum_{\var:j} w_j 
-    \left[ (\var\_\model(j) - \var\_\design(j)) -
-     (\var\_\meas(i) - \var\_\reference(i)) \right]^2 
-  \label{m2}
-\end{alignat}
-This merit function is acceptable if the reference data is taken with
-the machine reasonably near the design setup so that nonlinearities
-can be ignored. If this is not the case then the fitting becomes a two
-step process: The first step is to fit the \vn{model} to the \vn{reference}
-data using the merit function of \Eq{m1}. The \vn{base} lattice is then
-set equal to the \vn{model} lattice. The second
-step is to fit the model using the merit function
-\begin{alignat}{1}
-  {\cal M} = &\sum_{\data: i} w_i 
-    \left[ (\data\_\model(i) - \data\_\base(i)) - 
-      (\data\_\meas(i) - \data\_\reference(i)) \right]^2 + \CRNO
-  &\sum_{\var: j} w_j 
-    \left[ (\var\_\model(j) - \var\_\base(j)) -
-     (\var\_\meas(i) - \var\_\reference(i)) \right]^2 
-  \label{m3}
-\end{alignat}
-
-Control of what data and what variables are to be used in the fitting
-process is controlled by the \vn{use}, \vn{veto}, \vn{restore}, and
-\vn{clip} commands.
-
-%------------------------------------------------------------------------
-\section{Lattice Design}
-
-Lattice design is the process of calculating \vn{variable} strengths
-to meet a number of criteria (called constraints). For example, one
-constraint could be that the beta function in some part of the lattice
-not exceed a certain value. In this case we can proceed as was done
-for lattice correction and define a merit function to be minimized:
-\Begineq
-  {\cal M} = \sum_{\mbox{constraints} i} w_i \, C_i^2
-\Endeq
-\vn{C_i} is the constraint value which is dependent upon the \vn{class} of
-the constraint:
-\begin{description}
-\item[target]
-\Begineq
-  C = (\mbox{Model} - \mbox{Target})
-\Endeq
-\item[min]
-\Begineq
-  C = 
-    \begin{cases}
-    0                               & \mbox{Model} > \mbox{Target} \\
-    (\mbox{Model} - \mbox{Target})  & \mbox{Model} < \mbox{Target} 
-    \end{cases}
-\Endeq
-\item[max]
-\Begineq
-  C = 
-    \begin{cases}
-    (\mbox{Model} - \mbox{Target})  & \mbox{Model} > \mbox{Target} \\ 
-    0                               & \mbox{Model} < \mbox{Target}
-    \end{cases}
-\Endeq
-\end{description}
+The \vn{single mode} initialization file associates variables with certain keyboard keys
+so that when these keys are pressed the value of the variable is varied. This association
+between variables and keys is called a \vn{key table}.
 
 %------------------------------------------------------------------------
 \section{Plotting}
