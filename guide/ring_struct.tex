@@ -137,26 +137,76 @@ these matrices as input for calculations.
 
 
 %----------------------------------------------------------------------------
+\section{Finding Elements and Changing Their Value}
+\label{s:ring_ele_change}
+
+\bmad has two routines for searching for an element in a lattice:
+\begin{example}
+  \vnr{element_locator}((ele_name, ring, ix_ele) ! locate by name
+  \vnr{elements_locator}(key, ring, indx)        ! locate by key
+\end{example}
+\vn{element_locator} searches the \vn{ring%ele_(:)} array for an element 
+of the correct name. \vn{elements_locator} searches for all elements of a
+given key and returns an array of indexes.
+The heart of \vn{element_locator} is simplcity itself:
+\begin{example}
+  do ix_ele = 0, ring%n_ele_max
+    if (ring%ele_(ix_ele)%name == ele_name) return
+  enddo
+\end{example}
+
+Once an element or elements are identified in the lattice
+Changing an element attribute generally involves changing values in the 
+\vn{ring%ele_(i)%value(:)} array. This is done useing the 
+\vnr{set_ele_attribute} routine. For example:
+\begin{example}
+  type (ring_struct) lat
+  logical err_flag, make_xfer_mat
+  ...
+  call element_locator ('Q01W', lat, ix_ele)
+  call set_ele_attribute (lat, ix_ele, 'K1', 0.1_rp, err_flag, make_xfer_mat)
+\end{example}
+This example sets the \vn{K1} attribute of an element named \vn{Q01W}.
+\vn{set_ele_attribute} checks whether this element is actually free to be varied
+and sets the \vn{err_flag} logical accordingly. An element's attribute may not be
+freely varied if, for example, the attribute is controled via an \vnec{Overlay}.
+
+\index{Bmad_com_struct!auto_bookkeeper}
+There is a global variable \vn{bmad_com%auto_bookkeeper} that 
+controls whether bookkeeping routines are called by routines that do tracking
+and routines that calculate transfer matrices. 
+This is done to make sure that the control 
+and attribute information in a lattice is
+up--to--date. Since this bookkeeping needs only be done when element attributes
+are changed, this can lead to a significant waste of time. Setting 
+\vn{bmad_com%auto_bookkeeper} to \vn{.false.} turns off this
+automatic bookkeeping.
+As a result, if an attribute value is changed directly the appropriate bookkeeping
+routines need to be called:
+\begin{example}
+  type (ring_struct) lat
+  bmad_com%auto_bookkeeper = .false.
+  lat%ele_(ix_ele)%value(k1$) = 0.1
+  call control_bookkeeper (lat, ix_ele)
+\end{example}
+Alternatively, if multiple elements are modified, then \vn{lattice_bookkeeper} can be
+used to do bookkeeping for the entire lattice:
+\begin{example}
+  type (ring_struct) lat
+  ... set some attributes ...
+  call lattice_bookkeeper (lat)
+\end{example}
+
+%----------------------------------------------------------------------------
 \section{Elements Controlling Other Elements}
 \label{s:ring_control}
 
-Generally a programmer does not have to worry about how the lord
-elements in the \vn{%ele_(:)} array control other elements. The
-bookkeeping routine \vn{control_bookkeeper} takes care of that. This
-routine is automatically called when the transfer matrices for the
-elements are computed by \vn{ring_make_mat6}. If \vn{ring_make_mat6}
-is not called then \vn{control_bookkeeper} needs to be
-called. \vn{control_bookkeeper} will call \vn{attribute_bookkeeper} so
-the attribute bookkeeping will be taken care of too (see
-Section~\ref{s:depend}). Example:
-\begin{example}
-  type (ring_struct) lattice
-  ! ... 
-  lattice%ele_(i)%value(k1$) = k1_now   ! change an attribute
-  call control_bookkeeper (lattice, i)  ! do bookkeeping
-\end{example}
-If multiple elements are modified then the \vn{lattice_bookkeeper} will
-do bookkeeping for the entire lattice.
+Generally anyone using \bmad routines will not need to bother with
+the details of how elements control other elements (\sref{s:ring_ele_change}).
+It is always safer to use the bookkeeping routines provided by \bmad rather 
+than directly manipulating the control information. The following is thus
+meant for those unusual situations where knowledge of how \bmad implements
+control is needed.
 
 The element control information is stored in the \vn{%control_(:)} array, 
 Each element of this array is a \vn{control_struct} structure 

@@ -36,10 +36,12 @@ uniform and you know what a good step size is you can save time by using
 a fixed step size.
 
 \begin{description}
+\index{Tracking method!Adaptive_Boris}
 \item[\vn{Adaptive\_Boris}]
 Second order Boris integration\cite{b:boris} with adaptive step size control.
 This should be nearly symplectic but slow.
 
+\index{Tracking method!Boris}
 \item[\vn{Boris}]
 Second order Boris Integration\cite{b:boris}. Like \vn{Runge_Kutta},
 \vn{Boris} does tracking by integrating the equation of
@@ -47,12 +49,14 @@ motion. \vn{Boris} handles both electric and magnetic fields and does
 not assume that the particle is ultra--relativistic. \vn{Boris} preserves
 conserved quantities more accurately than \vn{Runge_Kutta}.
 
+\index{Tracking method!Bmad_Standard}
 \item[\vn{Bmad\_Standard}]
 Uses formulas for tracking. The emphasis here is on speed and not
 symplecticity. Appropriate when you are interested in single turn
 stuff. May be appropriate for long term tracking depending upon how
 many turns are tracked and what kind of elements are involved. 
 
+\index{Tracking method!Custom}
 \item[\vn{Custom}]
 This method will call a routine \vn{track1_custom} which must be
 supplied by the programmer implementing the custom tracking. The
@@ -60,20 +64,31 @@ default \vn{track1_custom} supplied with the \bmad\ release will print
 an error message and stop the program if it is called which probably
 indicates a program linking problem.
 
+\index{Tracking method!Linear}
 \item[\vn{Linear}]
 Linear just uses the 0th order vector with the 1st order 6x6 transfer
 matrix for an element. Very simple.  Depending upon how the transfer
 matrix was generated this may or may not be symplectic.
 
+\index{Tracking method!MAD}
 \item[\vn{MAD}]
 This uses the MAD 2nd order transfer map.
 
+\index{Tracking method!None}
+\item[\vn{None}]
+This prevents the transfer matrix from being recomputed.
+Using \vn{None} in the input file is generally not a good idea since
+it prevents the martix from being computed in the first place.
+Typically \vn{None} is used internally in a program to prevent recomputation.
+
+\index{Tracking method!Runge_Kutta}
 \item[\vn{Runge\_Kutta}]
 This uses a 4\Th\ order Runge Kutta integration algorithm with adaptive
 step size control.  This is essentially the \vn{ODEINT} subroutine
 from Numerical Recipes\cite{b:nr}. This may be slow but it should be
 accurate. This method is non-symplectic.
 
+\index{Tracking method!Symp_Lie_Bmad}
 \item[\vn{Symp\_Lie\_Bmad}]
 Symplectic tracking using a Hamiltonian with Lie operation techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
@@ -82,17 +97,20 @@ This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
 \vn{Symp_Lie_PTC}. However, \vn{Symp_lie_Bmad} is
 currently only implemented for Wigglers.
 
+\index{Tracking method!Symp_Lie_PTC}
 \item[\vn{Symp\_Lie\_PTC}]
 Symplectic tracking using a Hamiltonian with Lie operator techniques.
 This uses Etienne's PTC software for the calculation. This method is
 symplectic but can be slow.
 
+\index{Tracking method!Symp_Map}
 \item[\vn{Symp\_Map}]
 This uses a partially inverted, implicit Taylor map. The calculation
 uses Etienne's PTC software.  Since the map is implicit, a Newton
 search method must be used. This will slow things down from the Taylor
 method but this is guaranteed symplectic.
 
+\index{Tracking method!Taylor}
 \item[\vn{Taylor}]
 This uses a Taylor map generated from Etienne's PTC
 package. Generating the map may take time but once you have it it
@@ -101,6 +119,7 @@ that you have to worry about the accuracy if you do tracking at points
 that are far from the expansion point about which the map was
 made. This method is non-symplectic away from the expansion point. 
 
+\index{Tracking method!Wiedemann}
 \item[\vn{Wiedemann}]
 This is Wiedemann's hard edge model of a wiggler
 \cite{wiedemann}. This model divides a wiggler pole into a constant 
@@ -136,7 +155,7 @@ that it can be used for long term tracking.
 \begin{sideways}\vn{Taylor}\end{sideways} &
 \begin{sideways}\vn{Wiedemann}\end{sideways}
 \\ \hline
-%                               AB  BS   B   C   L   M  RK  SLB SLP SM   T   W
+%                               AB  BS   B   C   L   M   N  RK  SLB SLP SM   T   W
   \vn{ab_multipole}            &   & D &   & X & X &   &   &   & X & X & X &   \\ \hline 
   \vn{beambeam}                &   & D &   & X & X &   &   &   &   &   &   &   \\ \hline 
   \vn{bend_sol_quad}           &   &   &   &   &   &   &   & D &   &   &   &   \\ \hline 
@@ -227,6 +246,13 @@ is called which probably indicates a program linking problem.
 \item[\vn{MAD}]
 This uses the MAD 2nd transfer map.
 
+\index{Mat6_calc_method!None}
+\item[\vn{None}]
+This prevents the transfer matrix from being recomputed.
+Using \vn{None} in the input file is generally not a good idea since
+it prevents the martix from being computed in the first place.
+Typically \vn{None} is used internally in a program to prevent recomputation.
+
 \index{Mat6_calc_method!Symp_lie_Bmad}
 \item[\vn{Symp\_Lie\_Bmad}]
 A Symplectic calculation using a Hamiltonian with Lie operator techniques.
@@ -266,46 +292,47 @@ is that it is directly related to any tracking results.
 
 \begin{table}[th]
 \centering {
-\begin{tabular}{|l|c|c|c|c|c|c|c|} \hline
+\begin{tabular}{|l|c|c|c|c|c|c|c|c|} \hline
 \rule{0pt}{80pt} &
 \begin{sideways}\vn{Bmad_Standard}\end{sideways} &
 \begin{sideways}\vn{Custom}\end{sideways} &
 \begin{sideways}\vn{MAD}\end{sideways} &
+\begin{sideways}\vn{None}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_Bmad}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_PTC}\end{sideways} &
 \begin{sideways}\vn{Taylor}\end{sideways} &
 \begin{sideways}\vn{Tracking}\end{sideways}
 \\ \hline
-%                               BS   C   M  SLB SLP Tlr Trk 
-  \vn{ab_multipole}            & D & X &   &   & X & X &   \\ \hline 
-  \vn{beambeam}                & D & X &   &   &   &   & X \\ \hline 
-  \vn{bend_sol_quad}           &   &   &   & D &   &   & X \\ \hline 
-  \vn{custom}                  &   & D &   &   &   &   & X \\ \hline 
-  \vn{drift}                   & D & X & X &   & X & X & X \\ \hline 
-  \vn{ecollimator}             & D & X &   &   & X & X & X \\ \hline 
-  \vn{elseparator}             & D & X & X &   & X & X & X \\ \hline 
-  \vn{hkicker}                 & D & X &   &   & X & X & X \\ \hline 
-  \vn{instrument}              & D & X &   &   & X & X & X \\ \hline 
-  \vn{kicker}                  & D & X &   &   & X & X & X \\ \hline 
-  \vn{lcavity}                 & D & X &   &   &   &   & X \\ \hline 
-  \vn{marker}                  & D & X &   &   & X & X & X \\ \hline 
-  \vn{match}                   & D &   &   &   &   &   &   \\ \hline 
-  \vn{monitor}                 & D & X &   &   & X & X & X \\ \hline 
-  \vn{multipole}               & D & X &   &   & X & X &   \\ \hline 
-  \vn{octupole}                & D & X &   &   & X & X & X \\ \hline
-  \vn{patch}                   & D & X &   &   &   &   &   \\ \hline
-  \vn{quadrupole}              & D & X & X &   & X & X & X \\ \hline
-  \vn{rbend}                   & D & X & X &   & X & X & X \\ \hline
-  \vn{rcollimator}             & D & X &   &   & X & X & X \\ \hline
-  \vn{rfcavity}                & D & X & X &   & X & X & X \\ \hline
-  \vn{sbend}                   & D & X & X &   & X & X & X \\ \hline
-  \vn{sextupole}               & D & X & X &   & X & X & X \\ \hline
-  \vn{solenoid}                & D & X & X &   & X & X & X \\ \hline
-  \vn{sol_quad}                & D & X & X &   & X & X & X \\ \hline
-  \vn{taylor}                  & D & X &   &   &   &   &   \\ \hline
-  \vn{vkicker}                 & D & X &   &   & X & X & X \\ \hline
-  \vn{wiggler} (periodic type) & D & X &   &   &   &   & X \\ \hline
-  \vn{wiggler} (map type)      & D & X &   & X & X & X & X \\ \hline
+%                               BS   C   M   N  SLB SLP Tlr Trk 
+  \vn{ab_multipole}            & D & X &   & X &   & X & X &   \\ \hline 
+  \vn{beambeam}                & D & X &   & X &   &   &   & X \\ \hline 
+  \vn{bend_sol_quad}           &   &   &   & X & D &   &   & X \\ \hline 
+  \vn{custom}                  &   & D &   & X &   &   &   & X \\ \hline 
+  \vn{drift}                   & D & X & X & X &   & X & X & X \\ \hline 
+  \vn{ecollimator}             & D & X &   & X &   & X & X & X \\ \hline 
+  \vn{elseparator}             & D & X & X & X &   & X & X & X \\ \hline 
+  \vn{hkicker}                 & D & X &   & X &   & X & X & X \\ \hline 
+  \vn{instrument}              & D & X &   & X &   & X & X & X \\ \hline 
+  \vn{kicker}                  & D & X &   & X &   & X & X & X \\ \hline 
+  \vn{lcavity}                 & D & X &   & X &   &   &   & X \\ \hline 
+  \vn{marker}                  & D & X &   & X &   & X & X & X \\ \hline 
+  \vn{match}                   & D &   &   & X &   &   &   &   \\ \hline 
+  \vn{monitor}                 & D & X &   & X &   & X & X & X \\ \hline 
+  \vn{multipole}               & D & X &   & X &   & X & X &   \\ \hline 
+  \vn{octupole}                & D & X &   & X &   & X & X & X \\ \hline
+  \vn{patch}                   & D & X &   & X &   &   &   &   \\ \hline
+  \vn{quadrupole}              & D & X & X & X &   & X & X & X \\ \hline
+  \vn{rbend}                   & D & X & X & X &   & X & X & X \\ \hline
+  \vn{rcollimator}             & D & X &   & X &   & X & X & X \\ \hline
+  \vn{rfcavity}                & D & X & X & X &   & X & X & X \\ \hline
+  \vn{sbend}                   & D & X & X & X &   & X & X & X \\ \hline
+  \vn{sextupole}               & D & X & X & X &   & X & X & X \\ \hline
+  \vn{solenoid}                & D & X & X & X &   & X & X & X \\ \hline
+  \vn{sol_quad}                & D & X & X & X &   & X & X & X \\ \hline
+  \vn{taylor}                  & D & X &   & X &   &   &   &   \\ \hline
+  \vn{vkicker}                 & D & X &   & X &   & X & X & X \\ \hline
+  \vn{wiggler} (periodic type) & D & X &   & X &   &   &   & X \\ \hline
+  \vn{wiggler} (map type)      & D & X &   & X & X & X & X & X \\ \hline
 \end{tabular}
 }
 

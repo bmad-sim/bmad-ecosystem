@@ -70,13 +70,13 @@ compatibility with \MAD.
 Start with the assumption that the local magnetic field has no
 longitudinal component (obviously this assumption does not work with,
 say, a solenoid).  Following \MAD, the vertical magnetic field along
-the $y = 0$ axis is expanded in a Taylor series (This is not the most
-general form for the magnetic field. Essentially all of the skew
-components are ignored.)
+the $y = 0$ axis is expanded in a Taylor series
 \Begineq
   B_y(x, 0) = \sum_n B_n \, \frac{x^n}{n!}
 \Endeq
-Assuming that the
+This is not the most
+general form for the magnetic field. Essentially all of the skew
+components have been ignored here. Assuming that the
 reference orbit is locally straight (there are correction terms if the
 Reference Orbit is locally curved), the field up to $3^{rd}$ order is
 \begin{alignat}{5}
@@ -174,7 +174,7 @@ element rotates the reference orbit essentially acting as a zero length bend.
 This is not true for multipoles that are associated with 
 non-multipole elements.
 
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \begin{tabular}{|l|l|l|} \hline
 \tt
@@ -268,9 +268,13 @@ For example, suppose that the exact map through an element looks like
 \Endeq
 Then a Taylor map to 1\St order is
 \Begineq
-  x(out) = [A \, \sin(k \, x_{\mbox{ref}})] + 
-  [A \, k \, \cos(k \, x_{\mbox{ref}})] \, x(in)
+  x(out) = c_0 + c_1 \, x(in)
 \Endeq
+where
+\begin{align}
+  c_0 &= A \, \sin(k \, x_{\mbox{ref}}) \CRNO 
+  c_1 &= A \, k \, \cos(k \, x_{\mbox{ref}})
+\end{align}
 Thus the choice of the reference point will affect the values of the
 coefficients of the Taylor map but once the coefficient values are
 determined the reference point does not play any role when the Taylor

@@ -36,9 +36,14 @@ quadrupole). The list goes on.
 
 \bmad\ has been structured so that ``normally'' a programmer will not have
 to deal with PTC (in general when PTC is written it is meant PTC in
-conjunction with FPP) subroutines directly. If there is a need to
-call PTC then it must be kept in mind that PTC uses different
-longitudinal phase space coordinates.
+conjunction with FPP) subroutines directly. 
+
+%--------------------------------------------------------------------------
+\section{Phase Space}
+\label{s:etienne_space}
+\indexptc{phase space}
+
+PTC uses different longitudinal phase space coordinates compaired to \bmad.
 \bmad's phase space coordinates are
 \Begineq
   (x, p_x, y, p_y, z, p_z)
@@ -52,6 +57,11 @@ that translate between the two. Actually there are a number of
 conversion routines that translate between \bmad\ and PTC
 structures. See Section~\ref{r:ptc} for more details.
 
+%--------------------------------------------------------------------------
+\section{Initialization}
+\label{s:etienne_init}
+\indexptc{initialization}
+
 One important parameter in PTC is the order of the Taylor maps.
 By default \bmad\ will set this to 3. The order can be set within
 a lattice file using the \vn{parameter[taylor_order]} attribute.
@@ -63,6 +73,29 @@ must call \vn{set_ptc}. Note that resetting PTC to a different order
 reinitializes PTC's internal memory so one must be careful if one wants
 to change the order in mid program.
 
+%--------------------------------------------------------------------------
+\section{Taylor Maps}
+\label{s:etienne_taylor}
+\indexptc{Taylor Maps}
 
-
-
+FPP stores its \vnptc{real_8} Taylor maps in such a way that it is not easy to access them
+directly to look at the particular terms. To simplify life, Etienne has 
+implemented the \vnptc{universal_taylor}structure:
+\begin{example}
+  type universal_taylor
+    integer, pointer  :: n       ! Number of coeeficients
+    integer, pointer  :: nv      ! Number of variables
+    real(dp), pointer :: c(:)    ! Coefficients C(N)
+    integer, pointer  :: j(:,:)  ! Exponents of each coefficients J(N,NV)
+  end type
+\end{example}
+\bmad always sets \vn{nv} = 6. \bmad overloads the equal sign to call 
+routines to convert between Etienne's
+\vn{real_8} Taylor maps and \vn{universal_taylor}:
+\begin{example}
+  type (real_8) tlr(6)           ! Taylor map
+  type (universal_taylor) ut(6)  ! Taylor map
+  ...
+  tlr = ut                       ! Convert universal_taylor -> real_8
+  ut = tlr                       ! Convert real_8 -> universal_taylor
+\end{example}

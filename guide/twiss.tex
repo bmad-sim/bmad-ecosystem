@@ -11,10 +11,10 @@ The Twiss parameters for an element are stored in the
 \vn{ele_struct}. See Chapter~\ref{c:ele_struct} for more details.
 
 Before any Twiss parameters can be calculated the transfer matrices
-stored in the lattice elements must be computed. \vn{bmad_parser} does
+stored in the lattice elements must be computed. \vnr{bmad_parser} does
 this automatically about the zero orbit. If, to see nonlinear effects,
 a different orbit needs to be used for the reference, The routine
-\vn{ring_make_mat6} can be used. For example
+\vnr{ring_make_mat6} can be used. For example
 \begin{example}
   type (ring_struct) ring
   type (coord_struct), allocatable :: orbit(:)
@@ -40,21 +40,67 @@ in a program. For example
 \end{example}
 Note that \vn{%beta}, \vn{%alpha}, and \vn{%gamma} all must be specified.
 
-If the lattice is closed then \vn{twiss_at_start} may be used to
-calculate the self--consistent starting Twiss parameters. Once the
-starting Twiss parameters are set \vn{twiss_propagate_all} can be used
-to propagate the Twiss parameters to the rest of the elements. Example
+If the lattice is closed then \vnr{twiss_at_start} may be used to
+calculate the self--consistent starting Twiss parameters:
 \begin{example}
   type (ring_struct) ring
   call bmad_parser ('my_lattice', ring)
   call twiss_at_start (ring)
+\end{example}
+
+Once the
+starting Twiss parameters are set, \vnr{twiss_propagate_all} can be used
+to propagate the Twiss parameters to the rest of the elements
+\begin{example}
   call twiss_propagate_all (ring)
 \end{example}
+It is important to keep in mind that \vn{ring%ele_(i)%x%eta} is the $a$--mode
+dispersion, not the dispersion along the $x$--axis (\sref{s:ele_twiss}).
+
+
+%-----------------------------------------------------------------------------
+\section{Tune Calculation}
+\label{s:tune}
+\index{Tune Calculation}
+
+For a closed ring the tune is calculated via the routine \vnr{twiss_at_start}.
+This routine multiplies the transfer matricies of the elments together to form
+the one--turn transfer matrix. From this the routine extracts the initial Twiss
+parameters and the tune. The tune is placed in the variables
+\begin{example}
+  type (ring_struct) ring 
+  ring%x%tune     ! a-mode tune
+  ring%y%tune     ! b-mode tune
+\end{example}
+
+The routine \vnr{set_tune} To set the transverse tunes of a closed ring:
+\begin{example}
+  set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
+\end{example}
+\vn{set_tune} varies quadrupole strengths until the desired tunes are
+achieved. As input \vn{set_tune} takes an argument \vn{dk1(:)} which is an array
+that specifies the relative change to be make to the quadrupoles in the lattice.
+
+To set the longitudinal (synchrotron) tune the routine \vnr{set_z_tune} can be
+used. \vn{set_z_tune} works by varying rf cavity voltages until the desired tune
+is achieved.
+
+%-----------------------------------------------------------------------------
+\section{Chromaticity Calculation}
+\label{s:chrom}
+
+For a closed ring \vnr{chrom_calc} calculates the chromaticity by calculating
+the tune change with change in beam energy.
+
+\vnr{chrom_tune} sets the chromaticity by varying the sextupoles. This is a 
+very simple routine that simply devides the sextupoles into two families
+based upon the local beta functions at the sextupoles.
 
 %-----------------------------------------------------------------------------
 \section{Custom Elements}
 \label{s:custom_ele}
 \index{Twiss parameters!calculation with custom elements}
+
 There are up to six routines that must be written to implement a custom 
 element they are:
 \begin{example}
@@ -65,7 +111,7 @@ element they are:
    make_mat6_custom             ! only needed if make_mat6 is called.
    track1_custom                ! only needed if track1 is called.
 \end{example}
-use\vn{getf} for more details about the argument lists for these
+use \vn{getf} for more details about the argument lists for these
 routines.  The \bmad library has dummy routines of the same name to
 keep the linker happy when custom routines are not implemented. These
 dummy routines, if called, will print an error message and stop the
@@ -77,11 +123,10 @@ the new routines should be explicitly listed in the linking list.
 \label{s:custom_field}
 
 Custom Electric and Magnetic field calculations are used with
-\vntm{Runge_Kutta} and \vntm{Boris} tracking (See \S\ref{s:integ}).  To
+\vntm{Runge_Kutta} and \vntm{Boris} tracking (See \sref{s:integ}).  To
 implement custom field calculations the \vn{ele%field_calc} component
 of an element must be set to \vn{custom\$}. This can be done either
 through the lattice input file or within a program. Additionally a
 routine \vn{em_field_custom} must be linked with any program using the
 custom calculations.
-
 

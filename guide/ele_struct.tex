@@ -59,13 +59,7 @@ within an \vn{ele_struct}. All of these have a direct correspondence with
 the \vn{name}, \vn{type}, \vn{alias}, and \vn{descrip} element attributes in
 an input lattice file. The \vnr{bmad_parser} routine will convert 
 \vn{name}, \vn{type}, and \vn{alias} attributes to uppercase before loading them
-into an \vn{ele_struct}. \bmad has routines for searching for an element by \vn{name}
-in a lattice:
-\begin{example}
-  \vnr{element_locator}   ! locate one element by name
-  \vnr{elements_locator}  ! locate an array of elements by name
-\end{example}
-Other than these routines \bmad ignores these character arrays. 
+into an \vn{ele_struct}. \bmad generally ignores these character arrays. 
 Notice that \vn{%descrip} is a pointer so if you make use of it in a program 
 make sure that it is allocated before hand.
 
@@ -105,6 +99,7 @@ whatever is appropriate.
 
 %--------------------------------------------------------------------------
 \section{Twiss Parameters, etc.}
+\label{s:ele_twiss}
 \index{Ele_struct!Twiss}
 \index{Ele_struct!global coordinates}
 \index{Coordinates!global!in ele_struct}
@@ -302,7 +297,7 @@ corresponding to the coordinates at the enntrance of the element.
 This reference point is saved in \vn{%taylor(1:6)%ref}.  Once a Taylor map is
 made the reference point is not needed in subsequent
 calculations. However, The Taylor map itself will depend upon what
-reference point is chosen.
+reference point is chosen (\sref{s:taylor_phys}).
 
 
 %--------------------------------------------------------------------------

@@ -55,7 +55,7 @@ The list of element classes known to \bmad\ is shown in Table~\ref{t:elements}.
 \begin{center}
 \tt 
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   a$n$, b$n$ = Real  &  \ref{s:fields} &  type = String    & \ref{s:string} & tracking\_method = Switch    & \ref{s:tkm}   \\ \hline
   tilt       = Real  &  \ref{s:offset} &  alias = String   & \ref{s:string} & mat6\_calc\_method = Switch  & \ref{s:xfer}  \\ \hline
   x\_offset  = Real  &  \ref{s:offset} &  descrip = String & \ref{s:string} & x\_limit = Real              & \ref{s:limit} \\ \hline
@@ -101,7 +101,7 @@ any demand for it.
 \begin{center} 
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   sig\_x   = Real       &                 & type = String    & \ref{s:string} & tracking\_method = Switch    & \ref{s:tkm}    \\ \hline
   sig\_y   = Real       &                 & alias = String   & \ref{s:string} & mat6\_calc\_method = Switch  & \ref{s:xfer}   \\ \hline
   sig\_z   = Real       &                 & descrip = String & \ref{s:string} & x\_limit    = Real           & \ref{s:limit}  \\ \hline
@@ -178,7 +178,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S  & {\sl Attribute} & \S \\ \hline
   l        = Real      & \ref{s:l}      & type = String     & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}    \\ \hline
   g\DAG    = Real      &                & alias = String    & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}   \\ \hline
   ks                   &                & descrip = String  & \ref{s:string} & x\_offset  = Real           & \ref{s:offset} \\ \hline
@@ -248,7 +248,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S  & {\sl Attribute} & \S \\ \hline
   l        = Real      & \ref{s:l}      & type = String     & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}    \\ \hline
   g\DAG    = Real      &                & alias = String    & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}   \\ \hline
   delta\_g = Real      &                & descrip = String  & \ref{s:string} & x\_offset  = Real           & \ref{s:offset} \\ \hline
@@ -356,7 +356,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   l        = Real       & \ref{s:l}      & type = String    & \ref{s:string} & tracking\_method = Switch    & \ref{s:tkm}   \\ \hline
   num\_steps = Integer  & \ref{s:integ}  & alias = String   & \ref{s:string} & mat6\_calc\_method = Switch  & \ref{s:xfer}  \\ \hline
   rel\_tol = Real       & \ref{s:integ}  & descrip = String & \ref{s:string} & symplectify = Logical        & \ref{s:symp}  \\ \hline
@@ -385,7 +385,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S  & {\sl Attribute} & \S \\ \hline
   l        = Real           & \ref{s:l}      & type = String    & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
   val1,$\ldots$val12 = Real &                & alias = String   & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
   delta\_e   = Real         & \ref{s:offset} & descrip = String & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
@@ -425,7 +425,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   l        = Real       & \ref{s:l}     & type = String    & \ref{s:string} & tracking\_method = Switch    & \ref{s:tkm}   \\ \hline
                         &               & alias = String   & \ref{s:string} & mat6\_calc\_method = Switch  & \ref{s:xfer}  \\ \hline
   rel\_tol = Real       & \ref{s:integ} & descrip = String & \ref{s:string} &                              &               \\ \hline
@@ -452,7 +452,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   l        = Real    & \ref{s:l}      & type = String    & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}    \\ \hline
   hkick    = Real    & \ref{s:kick}   & alias = String   & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}   \\ \hline
   vkick    = Real    & \ref{s:kick}   & descrip = String & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ}  \\ \hline
@@ -494,7 +494,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} &  {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S & {\sl Attribute} & \S &  {\sl Attribute} & \S \\ \hline
   l        = Real       & \ref{s:l}       & type = String    & \ref{s:string} & tracking\_method = Switch    & \ref{s:tkm}   \\ \hline
   kick     = Real       & \ref{s:kick}    & alias = String   & \ref{s:string} & mat6\_calc\_method = Switch  & \ref{s:xfer}  \\ \hline
   tilt     = Real       & \ref{s:offset}  & descrip = String & \ref{s:string} & integration\_ord = Integer   & \ref{s:integ} \\ \hline
@@ -532,7 +532,7 @@ lattice file but are created by a program, usually for speed purposes.
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   x\_offset  = Real     & \ref{s:offset}  &   x\_pitch  = Real     & \ref{s:offset}  &  type = String    & \ref{s:string}  \\ \hline
   y\_offset  = Real     & \ref{s:offset}  &   y\_pitch  = Real     & \ref{s:offset}  &  alias = String   & \ref{s:string}  \\ \hline
   s\_offset  = Real     & \ref{s:offset}  &   tilt      = Real     & \ref{s:offset}  &  descrip = String & \ref{s:string}  \\ \hline
@@ -603,7 +603,7 @@ the total tilt is stored in \vn{%value(tilt_tot\$)}, etc.
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S  & {\sl Attribute} & \S \\ \hline
   l        = Real       & \ref{s:l}     & type = String    & \ref{s:string} & tracking\_method = Switch    & \ref{s:tkm}   \\ \hline
   rel\_tol = Real       & \ref{s:integ} & alias = String   & \ref{s:string} & mat6\_calc\_method = Switch  & \ref{s:xfer}  \\ \hline
   abs\_tol = Real       & \ref{s:integ} & descrip = String & \ref{s:string} & aperture\_at = Switch        & \ref{s:limit} \\ \hline
@@ -629,7 +629,7 @@ drift.  Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec}&  {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S & {\sl Attribute} & \S&  {\sl Attribute} & \S \\ \hline
   l        = Real       & \ref{s:l}       & type = String      & \ref{s:string} & tracking\_method = Switch    & \ref{s:tkm}    \\ \hline
   hkick    = Real       & \ref{s:kick}    & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch  & \ref{s:xfer}   \\ \hline
   vkick    = Real       & \ref{s:kick}    & descrip = String   & \ref{s:string} & integration\_ord = Integer   & \ref{s:integ}  \\ \hline
@@ -661,7 +661,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   l        = Real       & \ref{s:l}      & type = String     & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
   rf\_frequency = Real  &                & alias = String    & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
   gradient      = Real  &                & descrip = String  & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
@@ -796,7 +796,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   tracking\_method = Switch    & \ref{s:tkm}   &  type = String      & \ref{s:string} & x\_limit = Real       & \ref{s:limit} \\ \hline 
   mat6\_calc\_method = Switch  & \ref{s:xfer}  &  alias = String     & \ref{s:string} & y\_limit = Real       & \ref{s:limit} \\ \hline 
   beam\_energy$^*$             & \ref{s:energy}&  descrip = String   & \ref{s:string} & aperture = Real       & \ref{s:limit} \\ \hline 
@@ -820,7 +820,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   beta\_x0  = Real &               & beta\_x1  = Real &                & tracking\_method = Switch   & \ref{s:tkm}    \\ \hline
   alpha\_x0 = Real &               & alpha\_x1 = Real &                & mat6\_calc\_method = Switch & \ref{s:xfer}   \\ \hline
   eta\_x0   = Real &               & eta\_x1   = Real &                & x\_limit = Real             & \ref{s:limit}  \\ \hline
@@ -856,7 +856,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   K$n$L, T$n$ = Real &  \ref{s:fields} &  type = String       & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
   tilt       = Real  &  \ref{s:offset} &  alias = String      & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
   x\_offset  = Real  &  \ref{s:offset} &  descrip = String    & \ref{s:string} & x\_limit = Real             & \ref{s:limit} \\ \hline
@@ -890,7 +890,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   l        = Real        & \ref{s:l}      & type = String     & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}    \\ \hline
   k3\DAG   = Real        &                & alias = String    & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}   \\ \hline
   b\_gradient\DAG = Real &                & descrip = String  & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ}  \\ \hline
@@ -925,7 +925,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   x\_offset  = Real  & \ref{s:offset} &  type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
   y\_offset  = Real  & \ref{s:offset} &  alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
   z\_offset  = Real  & \ref{s:offset} &  descrip = String   & \ref{s:string} & x\_limit = Real             & \ref{s:limit} \\ \hline
@@ -956,7 +956,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   l        = Real        & \ref{s:l}      & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
   k1\DAG   = Real        &                & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
   b\_gradient\DAG = Real &                & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
@@ -989,7 +989,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   l        = Real     & \ref{s:l}      & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
   harmon   = Real     &                & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
   voltage  = Real     &                & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
@@ -1039,7 +1039,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   l        = Real        & \ref{s:l}      & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
   k2\DAG   = Real        &                & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
   b\_gradient\DAG = Real &                & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
@@ -1073,7 +1073,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   l        = Real        & \ref{s:l}      & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
   ks\DAG   = Real        &                & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
   b\_gradient\DAG = Real &                & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
@@ -1103,7 +1103,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   l        = Real     & \ref{s:l}      & type = String     & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
   ks\DAG   = Real     &                & alias = String    & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
   k1       = Real     &                & descrip = String  & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
@@ -1134,7 +1134,7 @@ Example:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   $\{ \tt \mbox{out:}\,  coef, \, e1 \, e2 \, e3 \, e4 \, e5 \, e6 \}$ 
                               &              & type = String    & \ref{s:string} & x\_limit = Real       & \ref{s:limit} \\ \hline  
   tracking\_method = Switch   & \ref{s:tkm}  & alias = String   & \ref{s:string} & y\_limit = Real       & \ref{s:limit} \\ \hline
@@ -1194,7 +1194,7 @@ Example \vn{Taylor} element definition:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
+  {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   l        = Real       & \ref{s:l}      & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
   b\_max   = Real       &                & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
   n\_pole  = Real       &                & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline

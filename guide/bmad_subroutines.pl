@@ -310,6 +310,8 @@ sub searchit {
 ##          print "$this  In list \n";
         } else {
           print "\nFile: $file\n";
+          $this =~ s/\s*\(.*//;
+          print "\\index\{Routine\!$this\}\n";
           $this =~ s/_/\\_/g;      # "_"   -->  "\_"
           print "\\item\[$this\] \\Newline \n";
           $l2 = <F_IN>; 

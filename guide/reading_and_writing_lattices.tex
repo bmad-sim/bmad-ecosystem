@@ -93,3 +93,19 @@ and then read the digested file in with the second program
 \end{example}
 An alternative to writing a digested file is to write a lattice file
 using \vn{write_bmad_lattice_file}
+
+%----------------------------------------------------------------------------
+\section{Writing MAD files}
+\index{Lattice files!MAD files}
+\index{MAD}
+
+\MAD--8 compatable lattice files can be created using the routine \vnr{bmad_to_mad}:
+\begin{example}
+  type (ring_struct) lat             ! lattice
+  ...
+  call bmad_to_mad ('lat.mad', lat)  ! create MAD file
+\end{example}
+
+Since \MAD has no concept of things such as \vn{overlay}s and \vn{group}s, such 
+information is lost in translation.
+
