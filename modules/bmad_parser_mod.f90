@@ -1232,7 +1232,7 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
 
     else
       if (ix_word == 0) then
-        call warning ('CONSTANT OR VARIABLE MISSING FOR: ' // err_str)
+        call warning ('CONSTANT OR VARIABLE MISSING IN EVALUATING: ' // err_str)
         err_flag = .true.
         return
       endif
@@ -1269,6 +1269,11 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
 
     do i = i_op, 1, -1
       if (eval_level(op_(i)) >= eval_level(i_delim)) then
+        if (op_(i) == l_parens$) then
+          call warning ('UNMATCHED "(" IN EVALUATING: ' // err_str)
+          err_flag = .true.
+          return
+        endif
         call pushit (stk%type, i_lev, op_(i))
       else
         exit
@@ -1290,7 +1295,7 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
 ! now go through the stack and perform the operations
 
   if (i_op /= 0) then
-    call warning ('UNMATCHED "(" ON RHS', 'FOR: ' // err_str)
+    call warning ('UNMATCHED "(" IN EVALUATING: ' // err_str)
     err_flag = .true.
     return
   endif
