@@ -222,7 +222,7 @@ end subroutine
 !
 ! Input:
 !   ele_in       -- Ele_struct: Element with the Taylor map.
-!   taylor_order -- Integer: Orderder to truncate the Taylor map.
+!   taylor_order -- Integer: Order to truncate the Taylor map at.
 !
 ! Output:
 !   ele_out      -- Ele_struct: Element receiving the Taylor map truncated to
