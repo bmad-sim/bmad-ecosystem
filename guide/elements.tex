@@ -39,9 +39,11 @@ The list of element types known to \bmad\ is shown in Table~\ref{tab:elements}
 \end{table}
 
 %-----------------------------------------------------------------
-\subsection{AB\_Multipole}
+\section{AB\_Multipole}
 \label{s:ab_m}
 
+An \vn{AB_Multipole} is a thin lens up to 20th order. The only
+difference between this and a \vn{Multipole} is the input format. 
 
 \begin{table}[h]
 \centering {
@@ -59,7 +61,7 @@ The list of element types known to \bmad\ is shown in Table~\ref{tab:elements}
 \end{table}
 
 %-----------------------------------------------------------------
-\subsection{BeamBeam}
+\section{BeamBeam}
 \label{s:bbi}
 
 
@@ -77,19 +79,19 @@ not the half-angle).
 \end{itemize}
 
 %-----------------------------------------------------------------
-\subsection{Custom}
+\section{Custom}
 \label{s:custom}
 
 %-----------------------------------------------------------------
-\subsection{Drift}
+\section{Drift}
 \label{s:drift}
 
 %-----------------------------------------------------------------
-\subsection{Ecollimator}
+\section{Ecollimator}
 \label{s:ecol}
 
 %-----------------------------------------------------------------
-\subsection{Elseperator}
+\section{Elseperator}
 \label{s:elsep}
 
 For an \vn{elseparator}, the kick is determined by \vn{hkick} and
@@ -101,92 +103,96 @@ attribute determined by:
 \end{example}
 
 %-----------------------------------------------------------------
-\subsection{Group}
+\section{Group}
 \label{s:group}
 
 %-----------------------------------------------------------------
-\subsection{Hkicker}
+\section{Hkicker}
 \label{s:hk}
 
 %-----------------------------------------------------------------
-\subsection{Instrument}
+\section{Instrument}
 \label{s:inst}
 
 %-----------------------------------------------------------------
-\subsection{Kicker}
+\section{Kicker}
 \label{s:k}
 
 %-----------------------------------------------------------------
-\subsection{Lcavity}
+\section{Lcavity}
 \label{s:lcav}
 
 %-----------------------------------------------------------------
-\subsection{Marker}
+\section{Marker}
 \label{s:mark}
 
 %-----------------------------------------------------------------
-\subsection{Monitor}
+\section{Monitor}
 \label{s:mon}
 
 %-----------------------------------------------------------------
-\subsection{Multipole}
+\section{Multipole}
 \label{s:m}
 
 %-----------------------------------------------------------------
-\subsection{Octupole}
+\section{Octupole}
 \label{s:oct}
 
 %-----------------------------------------------------------------
-\subsection{Overlay}
+\section{Overlay}
 \label{s:over}
 
 %-----------------------------------------------------------------
-\subsection{Patch}
+\section{Patch}
 \label{s:patch}
 
 %-----------------------------------------------------------------
-\subsection{Quadrupole}
+\section{Quadrupole}
 \label{s:quad}
 
 %-----------------------------------------------------------------
-\subsection{Rbend}
+\section{Rbend}
 \label{s:rbend}
 
 %-----------------------------------------------------------------
-\subsection{Rcollimator}
+\section{Rcollimator}
 \label{s:rcol}
 
 %-----------------------------------------------------------------
-\subsection{Rfcavity}
+\section{Rfcavity}
 \label{s:rfcav}
 
 %-----------------------------------------------------------------
-\subsection{Sbend}
+\section{Sbend}
 \label{s:sbend}
 
 %-----------------------------------------------------------------
-\subsection{Sextupole}
+\section{Sextupole}
 \label{s:sex}
 
 %-----------------------------------------------------------------
-\subsection{Solenoid}
+\section{Solenoid}
 \label{s:sol}
 
 %-----------------------------------------------------------------
-\subsection{Sol\_Quad}
+\section{Sol\_Quad}
 \label{s:sq}
 
 %-----------------------------------------------------------------
-\subsection{Taylor}
+\section{Taylor}
 \label{s:tay}
 
 %-----------------------------------------------------------------
-\subsection{Vkicker}
+\section{Vkicker}
 \label{s:vk}
 
 %-----------------------------------------------------------------
-\subsection{Wiggler} 
+\section{Wiggler} 
 \label{s:wig}
 
+%-----------------------------------------------------------------
+\section{Offsets and Tilts}
 
+\vn{x_offset}, \vn{y_offset}, \vn{s_offset} offset an element from the reference orbit.
+\vn{tilt} rotates.
 
