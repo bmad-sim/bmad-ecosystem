@@ -94,7 +94,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
   do i = 1, n_files
     read (d_unit, err = 9100) fname(1), idate_old
-    if (version == 66 .or. version = 67) file_names(i) = fname(1)  ! fake out
+    if (version == 66 .or. version == 67) file_names(i) = fname(1)  ! fake out
     ix = index(fname(1), ';')
     stat_b = 0
     if (ix > 0) then    ! has VMS version number
