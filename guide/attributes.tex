@@ -7,30 +7,63 @@
 \label{s:depend} 
 \index{Element attribute!dependent and independent}
 
+\index{Parameter!statement}
 For convenience, \bmad computes the values of some attributes based
 upon the values of other attributes. These dependent variables are
 listed in Table~\ref{t:dependent}. Also shown in
 Table~\ref{t:dependent} are the independent variables they are
 calculated from.  In the table \vn{n_part} and \vn{l_lattice} (lattice
 length) are lattice attributes, not element attributes. The first two
-are set by the \vns{parameter} statement (See
+are set by the \vn{parameter} statement (See
 Section~\ref{s:param}). \vn{l_lattice} is calculated when the
 lattice is read in.
 
+\index{BBI_const}
+\index{Charge}
+\index{Sig_x}
+\index{Sig_y}
+\index{Beam_energy}
+\index{N_part}
+\index{E_field}
+\index{Voltage}
+\index{Hkick}
+\index{Vkick}
+\index{Gap}
+\index{L}
+\index{Beam_energy}
+\index{E_loss}
+\index{Delta_e}
+\index{Gradient}
+\index{L}
+\index{Rho}
+\index{Angle}
+\index{L_chord}
+\index{G}
+\index{L}
+\index{K1}
+\index{Rho}
+\index{B_max}
+\index{Beam_energy}
+\index{BeamBeam}
+\index{Elseparator}
+\index{Lcavity}
+\index{Rbend}
+\index{Sbend}
+\index{Wiggler}
 \begin{table}[h]
 \centering {
 \begin{tabular}{|l|l|l|} \hline
 {\em Element}       & {\em Dependent Variables}  & {\em Independent Variables}  \\ \hline
- \vnec{BeamBeam}     & \vnea{bbi_const}           & 
-         \vnea{charge}, \vnea{sig_x}, \vnea{sig_y}, \vnea{beam_energy}, \vnea{n_part} \\ \hline
- \vnec{Elseparator}  & \vnea{e_field}, \vnea{voltage}   & 
-         \vnea{hkick}, \vnea{vkick}, \vnea{gap}, \vnea{l}, \vnea{beam_energy}    \\ \hline
- \vnec{Lcavity}      & \vnea{e_loss}, \vnea{delta_e}    & 
-         \vnea{gradient}, \vnea{l}                           \\ \hline
- \vnec{Rbend}, \vnec{Sbend} & \vnea{rho}, \vnea{angle}, \vnea{l_chord} & 
-         \vnea{g}, \vnea{l}                                  \\ \hline
- \vnec{Wiggler} (periodic type) & \vnea{k1}, \vnea{rho}             & 
-         \vnea{b_max}, \vnea{beam_energy}                    \\ \hline
+ \vn{BeamBeam}     & \vn{bbi_const}           & 
+         \vn{charge}, \vn{sig_x}, \vn{sig_y}, \vn{beam_energy}, \vn{n_part} \\ \hline
+ \vn{Elseparator}  & \vn{e_field}, \vn{voltage}   & 
+         \vn{hkick}, \vn{vkick}, \vn{gap}, \vn{l}, \vn{beam_energy}    \\ \hline
+ \vn{Lcavity}      & \vn{e_loss}, \vn{delta_e}    & 
+         \vn{gradient}, \vn{l}                           \\ \hline
+ \vn{Rbend}, \vn{Sbend} & \vn{rho}, \vn{angle}, \vn{l_chord} & 
+         \vn{g}, \vn{l}                                  \\ \hline
+ \vn{Wiggler} (periodic type) & \vn{k1}, \vn{rho}             & 
+         \vn{b_max}, \vn{beam_energy}                    \\ \hline
 \end{tabular}
 }
 \caption[Table of dependent variables.]{Table of dependent variables and 
@@ -40,6 +73,13 @@ they are calculated from.}
 \end{table}
 
 \index{Lattice!expansion}
+\index{Harmon}
+\index{Delta_e}
+\index{Gradient}
+\index{Rho}
+\index{G}
+\index{Angle}
+\index{Rf_frequency}
 No attempt should be made to set or vary within a program dependent
 attributes. It should be remarked that this is not an iron clad rule.
 If a program properly bypasses \bmad's attribute bookkeeping routine
@@ -48,38 +88,55 @@ setting of a select group of dependent variables if the appropriate
 independent is left unspecified.  The list of settable dependent
 variables is given in Table~\ref{t:dep_except}.  After reading in the
 lattice \bmad will set the appropriate independent variable based
-upon the value of the dependent variable. \vnea{harmon} is the exception in 
+upon the value of the dependent variable. \vn{harmon} is the exception in 
 that it will never be set by the bookkeeping routine.
+\index{Lcavity}
+\index{Rbend}
+\index{Sbend}
+\index{RFcavity}
 \begin{table}[h]
 \centering {
 \begin{tabular}{|l|l|l|} \hline
 {\em Element}   & {\em Dependent Variable Set}  & 
                       {\em Independent Variables Not Set} \\ \hline
-  \vnec{Lcavity}            & \vnea{delta_e}       & \vnea{gradient}  \\ \hline
-  \vnec{Rbend}, \vnec{Sbend} & \vnea{rho}           & \vnea{g}         \\ \hline
-  \vn{Rbend}, \vn{Sbend}   & \vnea{angle}         & \vnea{g}         \\ \hline
-  \vnec{RFcavity}           & \vnea{rf_frequency}  & \vnea{harmon}    \\ \hline
+  \vn{Lcavity}            & \vn{delta_e}       & \vn{gradient}  \\ \hline
+  \vn{Rbend}, \vn{Sbend} & \vn{rho}           & \vn{g}         \\ \hline
+  \vn{Rbend}, \vn{Sbend}   & \vn{angle}         & \vn{g}         \\ \hline
+  \vn{RFcavity}           & \vn{rf_frequency}  & \vn{harmon}    \\ \hline
 \end{tabular}
 }
 \caption {Dependent variables that can be set in a primary lattice file.}
 \label{t:dep_except}
 \end{table}
 
+\index{G}
+\index{B_field}
+\index{B_gradient}
+\index{Ks}
+\index{K1}
+\index{K2}
+\index{K3}
 The normal attribute used to vary the strength of, say, a
 \vn{quadrupole} is \vn{k1}.  It is sometimes convenient to be able to
 vary the magnetic field strength directly instead. To do this \bmad has
 a rule that if the appropriate field attribute appears with non-zero value in the
 primary lattice file then it becomes a independent variable and the strength attribute
 becomes a dependent variable as tabulated in Table~\ref{t:dep_field}.
+\index{Sbend}
+\index{Rbend}
+\index{Solenoid}
+\index{Quadrupole}
+\index{Sextupole}
+\index{Octupole}
 \begin{table}[h]
 \centering {
 \begin{tabular}{|l|l|l|} \hline
   {\em Element} & {\em Strength Attribute} & {\em Field Attribute} \\ \hline
-  \vnec{Sbend}, \vnec{Rbend} &   \vnea{g}      &  \vnea{b_field}       \\ \hline
-  \vnec{Solenoid}           &   \vnea{ks}     &  \vnea{b_field}       \\ \hline
-  \vnec{Quadrupole}         &   \vnea{k1}     &  \vnea{b_gradient}    \\ \hline
-  \vnec{Sextupole}          &   \vnea{k2}     &  \vnea{b_gradient}    \\ \hline
-  \vnec{Octupole}           &   \vnea{k3}     &  \vnea{b_gradient}    \\ \hline
+  \vn{Sbend}, \vn{Rbend} &   \vn{g}      &  \vn{b_field}       \\ \hline
+  \vn{Solenoid}           &   \vn{ks}     &  \vn{b_field}       \\ \hline
+  \vn{Quadrupole}         &   \vn{k1}     &  \vn{b_gradient}    \\ \hline
+  \vn{Sextupole}          &   \vn{k2}     &  \vn{b_gradient}    \\ \hline
+  \vn{Octupole}           &   \vn{k3}     &  \vn{b_gradient}    \\ \hline
 \end{tabular}
 }
 \caption {Field and Strength Attributes.}
@@ -89,9 +146,9 @@ becomes a dependent variable as tabulated in Table~\ref{t:dep_field}.
 %-----------------------------------------------------------------
 \section{Type, Alias and Descrip Attributes}
 \label{s:string}
-\index{Element attribute!type|textbf}
-\index{Element attribute!alias|textbf}
-\index{Element attribute!descrip|textbf}
+\index{Type|textbf}
+\index{Alias|textbf}
+\index{Descrip|textbf}
 
 \vn{type}, \vn{alias}, and \vn{descrip} are labels to be attached 
 to an element. \bmad routines do not use these labels except 
@@ -110,31 +167,39 @@ the end of the line marks the end of the string. Example:
 %-----------------------------------------------------------------
 \section{Beam\_Energy and P0C Attributes}
 \label{s:energy}
-\index{Statement!parameter}
+\index{Parameter!statement}
 
+\index{Beam_energy}
+\index{Energy_start}
+\index{Patch}
+\index{Lcavity}
 The \vn{beam_energy} attribute is the referency energy (in eV) for a
 particle at the end of an element.
 See~\sref{s:phase_space_coords}. This attribute is dependent and thus
 it cannot be set for an element directly in the lattice input
-file. The value of \vnea{beam_energy} for an element is calculated by
+file. The value of \vn{beam_energy} for an element is calculated by
 \bmad to be the same as the previous element except for \vn{Lcavity}
-and \vnec{Patch} elements. To set the \vn{beam_energy} at the start of
+and \vn{Patch} elements. To set the \vn{beam_energy} at the start of
 the lattice use the \vn{beginning} or \vn{parameter} statements.
 See~\sref{s:param}. Since the energy changes from the start to the end
-of an \vn{Lcavity}, An \vnec{Lcavity} has a \vnea{energy_start} attribute
+of an \vn{Lcavity}, An \vn{Lcavity} has a \vn{energy_start} attribute
 which is just the reference energy at the start of the element.
 
-The \vn{beam_energy} attribute give the total energy. The \vnea{p0c}
+\index{P0c}
+The \vn{beam_energy} attribute give the total energy. The \vn{p0c}
 attribute gives the reference momentum times the speed of light (in
 eV). For ultra--relativistic particles these two values are the same.
 
 %-----------------------------------------------------------------
 \section{Offset, Pitch, Tilt, and Roll Attributes}
 \label{s:offset}
-\index{Element attribute!offset|textbf}
-\index{Element attribute!pitch|textbf}
-\index{Element attribute!roll|textbf}
-\index{Element attribute!tilt|textbf}
+\index{X_offset|textbf}
+\index{Y_offset|textbf}
+\index{S_offset|textbf}
+\index{X_pitch|textbf}
+\index{Y_pitch|textbf}
+\index{Roll|textbf}
+\index{Tilt|textbf}
 
 There are up to 7 attributes that can offset a physical element
 from the reference orbit. They are
@@ -147,7 +212,8 @@ from the reference orbit. They are
   tilt
   roll
 \end{example}
-The exception here is the \vnec{Pitch} element which uses these
+\index{Pitch}
+The exception here is the \vn{Pitch} element which uses these
 attributes to modify the reference orbit itself.
 
 \vn{x_offset} translates an element in the local $x$--direction
@@ -157,15 +223,15 @@ $z$--directions respectively. For a bend it is assumed that
 the bend angle is small and the rotation of the local reference
 axes through the bend is ignored.
 
-The \vn{x_pitch} attribute rotates an element about the $y$--axis
-so that the exit face of the element is displaced in the 
-$+x$--direction as shown in figure~\ref{f:pitch}. Similarly
-the \vn{y_pitch} attribute rotates an element about the $x$--axis
-so that the exit face of the element is displaced in the 
-$+y$--direction. The rotations
-are about the center of the element which is in contrast to the 
-\vn{dtheta} and \vn{dphi} misalignments of \MAD which rotate
-around the entrance point. In terms of rotation angle
+The \vn{x_pitch} attribute rotates an element about the $y$--axis so
+that the exit face of the element is displaced in the $+x$--direction
+as shown in figure~\ref{f:pitch}. Similarly the \vn{y_pitch} attribute
+rotates an element about the $x$--axis so that the exit face of the
+element is displaced in the $+y$--direction. The rotations are about
+the center of the element which is in contrast to the \vn{dtheta} and
+\vn{dphi} misalignments of \mad which rotate around the entrance
+point. In terms of rotation angle
+\index{MAD!element rotation origin}
 \begin{example}
   x_pitch =  dtheta
   y_pitch = -dphi
@@ -219,15 +285,20 @@ is to give a vertical kick to the beam.
 %-----------------------------------------------------------------
 \section{Hkick, Vkick, and Kick Attributes}
 \label{s:kick}
-\index{Element attribute!hkick|textbf}
-\index{Element attribute!vkick|textbf}
-\index{Element attribute!kick|textbf}
+\index{Hkick|textbf}
+\index{Vkick|textbf}
+\index{Kick|textbf}
 
+\index{Hkicker}
+\index{Hkicker}
+\index{Vkicker}
+\index{Elseparator}
+\index{Kicker}
 \vn{kick}, \vn{hkick}, and \vn{vkick} attributes are the integrated
-kick of an element in radians. \vn{kick} is only used for \vnec{Hkicker}
+kick of an element in radians. \vn{kick} is only used for \vn{Hkicker}
 and \vn{Vkicker} elements. All other elements that can kick use 
 \vn{hkick} and \vn{vkick}. The \vn{tilt} attribute will only rotate
-a kick for \vnec{Hkicker}, \vnec{Vkicker}, \vnec{Elseparator} and \vnec{Kicker}
+a kick for \vn{Hkicker}, \vn{Vkicker}, \vn{Elseparator} and \vn{Kicker}
 elements. This rule was implemented so that, for example, the 
 \vn{hkick} attribute for a skew quadrupole
 would represent a horizontal steering.
@@ -235,9 +306,9 @@ would represent a horizontal steering.
 %-----------------------------------------------------------------
 \section{Aperture and Limit Attributes}
 \label{s:limit}
-\index{Element attribute!aperture|textbf}
-\index{Element attribute!limit|textbf}
-\index{Element attribute!aperture_at|textbf}
+\index{Aperture|textbf}
+\index{Limit|textbf}
+\index{Aperture_at|textbf}
 
 \begin{figure}
   \centering
@@ -246,9 +317,11 @@ would represent a horizontal steering.
   \label{f:limit}
 \end{figure}
 
+\index{Ecollimator}
+\index{Rcollimator}
 \vn{x_limit}, \vn{y_limit} specify the half--width of the aperture of
-an element as shown in figure~\ref{f:limit}. Notice that an \vnec{Ecollimator}
-has a elliptical aperture while a \vnec{Rcollimator} and all other elements
+an element as shown in figure~\ref{f:limit}. Notice that an \vn{Ecollimator}
+has a elliptical aperture while a \vn{Rcollimator} and all other elements
 have rectangular apertures. A zero \vn{x_limit} or
 \vn{y_limit} is interpreted as no aperture in the $x$ or $y$
 direction. \vn{x_offset} and \vn{y_offset} move the aperture but not
@@ -288,18 +361,22 @@ Example:
 \label{s:integ}
 \index{Transfer map}
 
+\index{Num_steps}
 One way to create a transfer map through an element is to divide the
 element up into slices and then to propagate the transfer map slice by
-slice.  There are several ways to do this integration. The \vntm{Boris} and
-\vntm{Runge_Kutta} methods integrate the equations of motion to give the
-0\Th order Taylor map which just represents a particle's orbit.  Symplectic
-integration\index{Symplectic!integration}
-using Lie algebraic techniques, on the other hand, can
-generate Taylor maps to any order.  The \vnea{num_steps} attribute determines
-the number of slices. This is applicable to \vn{Boris},
-\vntm{Symp_Lie_Bmad}, and \vntm{Symp_Lie_PTC} integration.
+slice.  There are several ways to do this integration. The
+\vntm{Boris} and \vntm{Runge_Kutta} methods integrate the equations of
+motion to give the 0\Th order Taylor map which just represents a
+particle's orbit.  Symplectic
+integration\index{Symplectic!integration} using Lie algebraic
+techniques, on the other hand, can generate Taylor maps to any order.
+The \vn{num_steps} attribute determines the number of slices. This
+is applicable to \vn{Boris}, \vntm{Symp_Lie_Bmad}, and
+\vntm{Symp_Lie_PTC} integration.
 
-\vnea{integration_ord} is the order of the integration formula for 
+\index{Integration_ord}
+\index{Num_steps}
+\vn{integration_ord} is the order of the integration formula for 
 \vn{Symp_Lie_PTC}. Possible values are
 \begin{example}
   integration_ord = 2 (default), 4, or 6
@@ -308,14 +385,17 @@ Essentially, an integration order of $n$ means that the error in an
 integration step scales as $dz^{n+1}$ where $dz$ is the slice thickness.
 For a given number of steps a higher order will give more accurate results
 but a higher order integrator will take more time per step. It turns out
-that for wigglers, after adjusting \vnea{num_steps} for a given accuracy, 
+that for wigglers, after adjusting \vn{num_steps} for a given accuracy, 
 the order 2 integrator is the fastest. This is not surprising given the
 highly nonlinear nature of a wiggler. Note that \vntm{Symp_Lie_Bmad} always
 uses a order 2 integrator.
 
+\index{Num_steps}
+\index{Rel_tol}
+\index{Abs_tol}
 \vntm{Adaptive_Boris} and \vntm{Runge_Kutta} use adaptive step
-control independent of \vnea{num_steps}. These methods use the \vnea{rel_tol} and
-\vnea{abs_tol} attributes to try to keep the estimated error of the integration
+control independent of \vn{num_steps}. These methods use the \vn{rel_tol} and
+\vn{abs_tol} attributes to try to keep the estimated error of the integration
 such that
 \begin{example}
   error < abs_tol + |orbit| * rel_tol
@@ -323,17 +403,19 @@ such that
 lowering the error bounds makes for greater accuracy (as long as round-off 
 doesn't hurt) but for slower tracking. 
 
+\index{Field_calc}
 \vntm{Boris}, \vntm{Adaptive_Boris}, and \vntm{Runge_Kutta} tracking all use
 as input the electric and magnetic fields of an element. How the EM fields
-are calculated is determined by the \vnea{field_calc} attribute for an element.
+are calculated is determined by the \vn{field_calc} attribute for an element.
 Possible values for \vn{field_calc} are:
 \begin{example}
   Bmad_Standard     ! This is the default
   Custom
 \end{example}
-\vnec{Custom} means that the field calculations are done outside of the
-\bmad software. A program doing \vnec{Custom} field calculations will
-need the appropriate custom routine. See \S\ref{s:custom_field} for more
+\index{Custom}
+\vn{Custom} means that the field calculations are done outside of the
+\bmad software. A program doing \vn{Custom} field calculations will
+need the appropriate custom routine. See \sref{s:custom_field} for more
 details.
 
 \vntm{Boris} (Both \vn{Boris} and \vntm{Adaptive_Boris}) tracking does not
@@ -353,15 +435,18 @@ the standard \bmad coordinates.
 \section{Length Attributes}
 \label{s:l}
 
-\vnea{l} is, for all elements except \vnec{Rbend}s, the path length 
-of the reference particle.
-Note that for \vnec{Wiggler}s this is not the same as the path length for
-a particle with the reference energy starting on the reference orbit.
+\index{L}
+\index{Rbend}
+\index{Wiggler}
+\vn{l} is, for all elements except \vn{Rbend}s, the path length of
+the reference particle.  Note that for \vn{Wiggler}s this is not the
+same as the path length for a particle with the reference energy
+starting on the reference orbit.
 
 %-----------------------------------------------------------------
 \section{Symplectify Attribute}
 \label{s:symp}
-\index{Element attribute!symplectify}
+\index{Symplectify}
 
 A linear transport matrix may be non--symplectic for a number of reasons.
 For example, the linear matrix that comes from expanding a Taylor Map
@@ -381,7 +466,8 @@ it defaults to true. Examples:
 \section{Is\_on Attribute}
 \label{s:is_on}
 
-The \vnea{is_on} attribute is used to turn an element off. Turning
+\index{Is_on}
+The \vn{is_on} attribute is used to turn an element off. Turning
 an element off essentially converts it into a drift. This is not
 generally used in a lattice file but a program can use the attribute
 for, say, calculating the Twiss parameters which needs to be done
@@ -391,3 +477,25 @@ with the RF cavities off. Example
   q1[is_on] = False
 \end{example}
 Note: \vn{is_on} does not affect any apertures that are set.
+
+%-----------------------------------------------------------------
+\section{Multipole Attributes: An, Bn, KnL, Tn}
+\label{s:multip}
+
+\index{Multipole!an, bn} 
+\index{Multipole!KnL, Tn} 
+\index{AB_Multipole}
+\index{Multipole}
+A \vn{Multipole} element specifies its multipole components using an
+Amplitude (\vn{KnL}) and a tilt (\vn{Tn}). All other elements that
+have multipole attributes specify the multipoles using normal
+(\vn{Bn}) and skew (\vn{An}) components. Here \vn{n} ranges from 0
+(dipole component) through 20. Example:
+\begin{example}
+  q1: quadrupole, b0 = 0.12, a20 = 1e7
+\end{example}
+
+Multipole formulas for are given in \sref{s:fields}.  Note that for
+\vn{Multipole} and \vn{AB_multipole} (but not any other element) a
+non-zero dipole component will affect the reference orbit (just like a
+normal dipole will).

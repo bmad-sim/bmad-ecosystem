@@ -20,19 +20,22 @@ elements and a hierarchy of \vn{lord} elements may be established.
 There are five types of lord elements: 
 \begin{Itemize}
 \item 
-\vnec{Group} lord elements are used to make variations in attributes. For example, to
+\index{Group}
+\vn{Group} lord elements are used to make variations in attributes. For example, to
 simulate the action of a control room knob that changes the beam tune
 in a storage ring, a \vn{Group} can be used to vary the strength of
 selected quads in a specified manner. \vn{Groups} are covered in \sref{s:group}.
 \item
-An \vnec{Overlay} lord is like a \vn{group} except that \vn{overlays}
+\index{Overlay}
+An \vn{Overlay} lord is like a \vn{group} except that \vn{overlays}
 set the value (not a change in) the attributes they
 control. \vn{Overlays} are covered in \sref{s:overlay}.
 \item
 A \vn{superposition} lord is created when elements are superimposed on
 top of other elements. This is covered in \sref{s:super}.
 \item
-\vnec{I_Beam} elements mimic the effect of a support girder. This is
+\index{I_Beam}
+\vn{I_Beam} elements mimic the effect of a support girder. This is
 covered in \sref{s:i_beam}.
 \item
 \index{Multipass}
@@ -99,7 +102,7 @@ type of attribute as the following example shows
 %-----------------------------------------------------------------------------
 \section{Group Elements}
 \label{s:group}
-\index{Element!Group}
+\index{Group}
  
 \vn{group} is like \vn{overlay} in that a \vn{group} element controls
 the attribute values of other ``slave'' elements.  A \vn{group}
@@ -292,7 +295,7 @@ multiple times. For example, an Energy Recovery Linac (ERL) will
 circulate the beam back through the LINAC part to retrieve the energy
 in the beam. In \bmad this situation can simulated using the
 \vn{multipass} attribute. A simple example shows how this works.
-\index{Statement!expand_lattice}
+\index{Expand_lattice!statement}
 \begin{example}
   A: lcavity
   linac_part: line[multipass] = (A, ...)

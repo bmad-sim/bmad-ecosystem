@@ -5,8 +5,10 @@
 \label{s:units}
 \index{Units|textbf}
 
-\bmad\ uses SI (Syst\'eme International) units as shown in
-Table~\ref{t:units}.  Note that \MAD uses different units. For example,
+\index{MAD!units}
+\index{Units!with MAD}
+\bmad uses SI (Syst\'eme International) units as shown in
+Table~\ref{t:units}.  Note that \mad uses different units. For example,
 \mad's unit of Particle Energy is GeV not eV.
 \begin{table}[ht]
 \centering
@@ -33,10 +35,11 @@ Table~\ref{t:units}.  Note that \MAD uses different units. For example,
 \label{s:constants}
 \index{Constants|textbf}
 
-\bmad\ defines commonly used physical and mathematical constants
+\index{MAD}
+\bmad defines commonly used physical and mathematical constants
 shown in Table~\ref{t:constants}.  All symbols use straight SI units
 except for \vn{e_mass} and \vn{p_mass} which are provided for
-compatibility with \MAD.
+compatibility with \mad.
 
 \begin{table}
 \centering
@@ -69,7 +72,7 @@ compatibility with \MAD.
 
 Start with the assumption that the local magnetic field has no
 longitudinal component (obviously this assumption does not work with,
-say, a solenoid).  Following \MAD, the vertical magnetic field along
+say, a solenoid).  Following \mad, the vertical magnetic field along
 the $y = 0$ axis is expanded in a Taylor series
 \Begineq
   B_y(x, 0) = \sum_n B_n \, \frac{x^n}{n!}
@@ -85,6 +88,7 @@ Reference Orbit is locally curved), the field up to $3^{rd}$ order is
 \end{alignat}
 The normalized integrated multipole $K_nL$ is used when specifying magnetic
 multipole components
+\index{Multipole!KnL, Tn|textbf}
 \Begineq
   K_nL \equiv \frac{q \, L \, B_n}{P_0}
 \Endeq
@@ -120,41 +124,45 @@ horizontal focusing and vertical defocusing. The general form is
              (-1)^{m} \, x^{n-2m-1} \, y^{2m+1}
 \end{align}
 
+\index{Multipole!KnL, Tn|textbf}
 So far only the normal components of the field have been
 considered. If the fields associated with a particular $B_n$ multipole
-component are rotated in the $(x, y)$ plane by an angle $\phi_n$ the
+component are rotated in the $(x, y)$ plane by an angle $\theta_n$ the
 magnetic field at a point $(x,y)$ can be expressed in complex notation
 as
 \Begineq
   B_y(x,y) + i B_x(x,y) = 
-                \frac{1}{n!} B_n e^{-i(n+1)\phi_n} \, e^{i n \theta} \, r^n 
+                \frac{1}{n!} B_n e^{-i(n+1)\theta_n} \, e^{i n \theta} \, r^n 
 \Endeq
 where $(r, \theta)$ are the polar coordinates of the point $(x, y)$.
 
-Another representation of the magnetic field used by \bmad\ divides
+\index{Multipole!an, bn|textbf}
+Another representation of the magnetic field used by \bmad divides
 the fields into normal $b_n$ and skew $a_n$ components. In terms of
 these components the magnetic field for the $n$\Th\ component is
 \Begineq
   \frac{q \, L}{P_0} \, (B_y + i B_x) = (b_n + i a_n) \, (x + i y)^n
 \Endeq
-The conversion between $(a_n, b_n)$ and $(K_nL, \phi_n)$ is
+The conversion between $(a_n, b_n)$ and $(K_nL, \theta_n)$ is
 \Begineq
-  b_n + i a_n = \frac{1}{n!} \, K_nL \, e^{-i(n+1)\phi_n}
+  b_n + i a_n = \frac{1}{n!} \, K_nL \, e^{-i(n+1)\theta_n}
 \Endeq
 or
 \begin{align}
   K_n L &= n! \, \sqrt{a_n^2 + b_n^2} \\
-  \tan[(n+1) \phi_n] &= \frac{-a_n}{b_n}
+  \tan[(n+1) \theta_n] &= \frac{-a_n}{b_n}
 \end{align}
 To convert a normal magnet (a magnet with no skew component) into a skew
 magnet (a magnet with no normal component) the magnet should be rotated
 about its longitudinal axis with a rotation angle of
 \Begineq
-  (n+1) \phi_n = \frac{\pi}{2}
+  (n+1) \theta_n = \frac{\pi}{2}
 \Endeq
 For example, a normal quadrupole rotated by $45^\circ$ becomes a
 skew quadrupole.
 
+\index{AB_Multipole}
+\index{Radius}
 When the $a_n$ and $b_n$ are associated with a physical element (as
 opposed to the $a_n$ and $b_n$ associated with an \vn{AB_Multipole} element),
 a measurement radius $r_0$ and a scale factor $F$ are used to scale
@@ -165,31 +173,44 @@ the $a_n$ and $b_n$ according to the formula
   b_n &\rightarrow 
         b_n \cdot F \cdot \frac{r_0^{n_\text{ref}}}{r_0^n}
 \end{align}
-where $r_0$ is set by the \vnea{radius} attribute of an element. $F$ and
+where $r_0$ is set by the \vn{radius} attribute of an element. $F$ and
 $n_\text{ref}$ are set automatically depending upon the type of
 element as shown in Table~\ref{t:ab}.
 
-Note that the $n = 0$ component of an \vnec{AB_Multipole} or \vnec{Multipole}
+\index{AB_Multipole}
+\index{Multipole}
+Note that the $n = 0$ component of an \vn{AB_Multipole} or \vn{Multipole}
 element rotates the reference orbit essentially acting as a zero length bend.
 This is not true for multipoles that are associated with 
 non-multipole elements.
 
+\index{Kicker}
+\index{Hkicker}
+\index{Vkicker}
+\index{Rbend}
+\index{Sbend}
+\index{Elseparator}
+\index{Quadrupole}
+\index{Solenoid}
+\index{Sol_Quad}
+\index{Sextupole}
+\index{Octupole}
 \begin{table}[ht]
 \centering
 \begin{tabular}{|l|l|l|} \hline
 \tt
   {\em Element} & $F$                              & $n_\text{ref}$ \\ \hline
-  \vnec{Kicker}      & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
-  \vnec{Hkicker}     & Kick                                   & 0 \\
-  \vnec{Vkicker}     & Kick                                   & 0 \\
-  \vnec{Rbend}       & G * L                                  & 0 \\
-  \vnec{Sbend}       & G * L                                  & 0 \\
-  \vnec{Elseparator} & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
-  \vnec{Quadrupole}  & K1 * L                                 & 1 \\
-  \vnec{Solenoid}    & KS * L                                 & 1 \\
-  \vnec{Sol_Quad}    & K1 * L                                 & 1 \\
-  \vnec{Sextupole}   & K2 * L                                 & 2 \\
-  \vnec{Octupole}    & K3 * L                                 & 3 \\ \hline
+  \vn{Kicker}      & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
+  \vn{Hkicker}     & Kick                                   & 0 \\
+  \vn{Vkicker}     & Kick                                   & 0 \\
+  \vn{Rbend}       & G * L                                  & 0 \\
+  \vn{Sbend}       & G * L                                  & 0 \\
+  \vn{Elseparator} & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
+  \vn{Quadrupole}  & K1 * L                                 & 1 \\
+  \vn{Solenoid}    & KS * L                                 & 1 \\
+  \vn{Sol_Quad}    & K1 * L                                 & 1 \\
+  \vn{Sextupole}   & K2 * L                                 & 2 \\
+  \vn{Octupole}    & K3 * L                                 & 3 \\ \hline
 \end{tabular}
 \caption{$F$ and $n_\text{ref}$ for various elements.}
 \label{t:ab}
@@ -324,10 +345,11 @@ A symplectic matrix $\Bf F$ is now obtained by inverting \eq{e:vsimi}
 \section{Wigglers}
 \label{s:wiggler_phys}
 
-As discussed in Section~\ref{s:wig}, \bmad \vnec{Wiggler} elements are split into 
-two classes: map type and periodic type.
- The map type \vn{Wigglers} are modeled using the method of Sagan, Crittenden, 
-and Rubin\cite{b:wiggler}. In this model the magnetic field is written as 
+\index{Wiggler}
+As discussed in Section~\ref{s:wiggler}, \bmad \vn{Wiggler} elements are
+split into two classes: map type and periodic type. The map type
+\vn{Wigglers} are modeled using the method of Sagan, Crittenden, and
+Rubin\cite{b:wiggler}. In this model the magnetic field is written as
 a sum of terms $B_i$
 \Begineq
   B(x,y,z) = \sum_i B_i(x, y, z; C, k_x, k_y, k_z, \phi_z)
@@ -360,7 +382,7 @@ are satisfied. Since the field is given by analytic equations, Lie algebraic
 techniques can be use to construct Taylor maps to arbitrary order.
 
 %-----------------------------------------------------------------
-\section{Radiation Damping and Excitation}
+\section{Synchrotron Radiation Damping and Excitation}
 \label{s:radiation}
 \index{Synchrotron radiation!damping and excitation|textbf}
 
@@ -368,7 +390,7 @@ Emission of synchrotron radiation by a particle can be decomposed into
 two parts. The deterministic average radiation emitted produces damping
 while the stochastic fluctuating part produces excitation\cite{b:jowett}.
 
-The treatment of radiation damping by \bmad\ essentially follows MAD.
+The treatment of radiation damping by \bmad essentially follows \mad.
 The average change in energy $\Delta E$ of a particle going through a
 section of magnet due to synchrotron radiation is
 \Begineq
@@ -425,7 +447,7 @@ will be dominated by coupling so this approximation is generally a good one.
 \label{s:coupling}
 \index{Normal Mode!Coupling}
 
-The coupling formalism used by \bmad\ is taken from the paper of Sagan
+The coupling formalism used by \bmad is taken from the paper of Sagan
 and Rubin\cite{b:coupling}. The main equations are reproduced here.  A
 one--turn map $\bfT(s)$ for the transverse two--dimensional phase space
 $\bfx = (x, x', y, y')$ starting and ending at some point $s$ can be
@@ -701,9 +723,10 @@ Only the transverse dipole and longitudinal monopole components of the
 short--range wakefield are modeled. The longitudinal monopole energy
 kick $dE$ for the $i$\Th macroparticle is computed from the equation
 \Begineq
-  dpz(i) = \frac{-e \, L}{v \, P_0} \, \left(
+  dp_z(i) = \frac{-e \, L}{v \, P_0} \, \left(
         \frac{1}{2}\WlS(0) \,  |q_i| +
         \sum_{j \ne i} \tWl(dz_{ij}) \, |q_j| \right)
+  \label{delvp}
 \Endeq
 where $v$ is the particle velocity, $e$ is the charge on an electron,
 $q$ is the macroparticle charge, $L$ is the cavity length, $dz_{ij}$
@@ -733,6 +756,7 @@ dipole short--range transverse wakefield is modeled with the equation
 \Begineq
   dp_x(i) = \frac{e \, L \, \sum_j |q_j| \, x_j \, \WtS(dz_{ij})}
                  {v \, P_0}
+  \label{pelqxw}
 \Endeq
 There is a similar equation for $dp_y(i)$. $\WtS$
 is the transverse short--range wake function.
@@ -742,6 +766,7 @@ lattice file using a table of wake vs $z$ or by using ``psudo'' modes
 where
 \Begineq
   W(z) = \sum_i A_i \, e^{d_i z} \, \sin (k_i \, z + \phi_i)
+  \label{wadzk}
 \Endeq
 The set of mode parameters $(A_i, d_i, k_i, \phi_i)$ are choisen to fit
 the calculated wake poential. The advantage of the mode approach is that

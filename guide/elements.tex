@@ -8,9 +8,9 @@ available in \bmad except for \vn{group}s and \vn{overlay}s which are
 discussed \cref{c:control}
 
 \index{MAD}
-Most element classes available in \mad\ are provided in \bmad.
+Most element classes available in \mad are provided in \bmad.
 Additionally, \bmad provides a number of element classes that are not
-available in \mad.  A word of caution: In some cases where both \mad\
+available in \mad.  A word of caution: In some cases where both \mad
 and \bmad provide the same element class, there will be an overlap of 
 the attributes available but the two sets of attributes will not be the same.
 The list of element classes known to \bmad is shown in Table~\ref{t:elements}.
@@ -35,7 +35,7 @@ The list of element classes known to \bmad is shown in Table~\ref{t:elements}.
   Instrument      & \ref{s:monitor}   &  Sol\_Quad    & \ref{s:sq}       \\ \hline
   Kicker          & \ref{s:kicker}    &  Taylor       & \ref{s:tay}      \\ \hline
   Lcavity         & \ref{s:lcav}      &  VKicker      & \ref{s:hvkicker} \\ \hline
-  Marker          & \ref{s:mark}      &  Wiggler      & \ref{s:wig}      \\ \hline
+  Marker          & \ref{s:mark}      &  Wiggler      & \ref{s:wiggler}  \\ \hline
   Match           & \ref{s:match}     &               &                  \\ \hline
   
 \end{tabular}
@@ -50,18 +50,18 @@ The list of element classes known to \bmad is shown in Table~\ref{t:elements}.
 %-----------------------------------------------------------------
 \section{AB\_Multipole}
 \label{s:ab_m}
-\index{Element class!AB_Multipole|textbf}
+\index{AB_Multipole|textbf}
 
 \begin{center}
 \tt 
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
-  a$n$, b$n$ = Real  &  \ref{s:fields} &  type = String    & \ref{s:string} & tracking\_method = Switch    & \ref{s:tkm}   \\ \hline
+  a$n$, b$n$ = Real  &  \ref{s:multip} &  type = String    & \ref{s:string} & tracking\_method = Switch    & \ref{s:tkm}   \\ \hline
   tilt       = Real  &  \ref{s:offset} &  alias = String   & \ref{s:string} & mat6\_calc\_method = Switch  & \ref{s:xfer}  \\ \hline
   x\_offset  = Real  &  \ref{s:offset} &  descrip = String & \ref{s:string} & x\_limit = Real              & \ref{s:limit} \\ \hline
   y\_offset  = Real  &  \ref{s:offset} &  is\_on = Logical & \ref{s:is_on}  & y\_limit = Real              & \ref{s:limit} \\ \hline
   s\_offset  = Real  &  \ref{s:offset} &  beam\_energy$^*$ & \ref{s:energy} & aperture = Real              & \ref{s:limit} \\ \hline
-  lrad       = Real  &  \ref{s:fields} &  p0c$^*$          & \ref{s:energy} & aperture\_at = Switch        & \ref{s:limit} \\ \hline
+  lrad       = Real  &  \ref{s:multip} &  p0c$^*$          & \ref{s:energy} & aperture\_at = Switch        & \ref{s:limit} \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
 \end{center}
@@ -69,13 +69,14 @@ The list of element classes known to \bmad is shown in Table~\ref{t:elements}.
 
 An \vn{AB_Multipole} is a thin multipole lens up to 20th order. The only
 difference between this and a \vn{Multipole} is the input format. See
-section \ref{s:fields} for more details. For \vn{a$n$}
+section \ref{s:multip} for more details. For \vn{a$n$}
 and \vn{b$n$}, $n$ is in the range 0 through 20.
 
+\index{Lrad}
 \vn{lrad} is a fictitious length that is used for synchrotron radiation
 computations but does not affect any tracking or transfer map calculations. 
 
-Like a \mad\ \vn{multipole}, An \vn{AB_Multipole} will affect the
+Like a \mad \vn{multipole}, An \vn{AB_Multipole} will affect the
 reference orbit if there is a dipole component. 
 
 Example:
@@ -86,7 +87,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Accel\_Sol}
 \label{s:accel_sol}
-\index{Element class!Accel_Sol|textbf}
+\index{Accel_Sol|textbf}
 
 An \vn{Accel_Sol} element is a combination LINAC RF accelerating
 section with a solenoid on top of it. For historical reasons this
@@ -96,7 +97,7 @@ any demand for it.
 %-----------------------------------------------------------------
 \section{BeamBeam}
 \label{s:bbi}
-\index{Element class!BeamBeam|textbf}
+\index{BeamBeam|textbf}
 
 \begin{center} 
 \tt
@@ -122,6 +123,8 @@ is assumed to be Gaussian in shape. In the \vn{bmad_standard}
 calculation the beam--beam kick is computed using the
 Bassetti--Erskine complex error function formula\cite{b:talman}
 
+\index{n_part!in BeamBeam element}
+\index{Charge}
 \vn{n_part} is the nominal number of particles of the strong
 beam. \vn{n_part} is set using the \vn{parameter} command
 (\sref{s:param}) and is thus common to all \vn{BeamBeam} elements.  To
@@ -129,14 +132,22 @@ vary the number of particles in an individual \vn{BeamBeam} element use the
 \vn{charge} attribute. The defaut is \vn{charge} = -1 which indicates
 that the strong beam has the opposite charge of the weak beam.
 
+\index{Sig_x}
+\index{Sig_y}
+\index{Sig_z}
+\index{X_offset}
+\index{Y_offset}
 \vn{sig_x}, \vn{sig_y}, \vn{sig_z} are the strong beam's sigmas. 
 \vn{x_offset} and \vn{y_offset} are used to offset the
-\vn{BeamBeam} element. Note that in \mad\ the attributes used to
+\vn{BeamBeam} element. Note that in \mad the attributes used to
 offset the strong beam are called \vn{xma} and \vn{yma}.
 
+\index{X_pitch}
+\index{Y_pitch}
 \vn{x_pitch} and \vn{y_pitch} gives the beam--beam interaction a
 crossing angle. This is the full crossing angle, not the half-angle.
 
+\index{N_slice}
 The strong beam is divided up into \vn{n_slice} equal charge (not equal
 thickness) slices. The default for \vn{n_slice} is 1. Propagation
 through the strong beam involves a kick at the charge center of each
@@ -158,6 +169,7 @@ with \vn{n_slice} = 2 the calculation would proceed as follows:
      at the center of the strong bunch.
 \end{example}
 
+\index{Bbi_constant}
 \vn{bbi_constant}: $ C_{bbi} = 
 N \, m_e \, r_e / (2 \, \pi \, \gamma \, (\sigma_x + \sigma_y))$ 
 is a measure of the beam--beam interaction strength. For example,
@@ -175,7 +187,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Bend\_Sol\_Quad}
 \label{s:bsq}
-\index{Element class!Bend_Sol_Quad|textbf}
+\index{Bend_Sol_Quad|textbf}
 
 \begin{center}
 \tt
@@ -189,8 +201,8 @@ Example:
   y\_quad              &                & x\_limit = Real   & \ref{s:limit}  & x\_pitch = Real             & \ref{s:offset} \\ \hline
   quad\_tilt           &                & y\_limit = Real   & \ref{s:limit}  & y\_pitch = Real             & \ref{s:offset} \\ \hline
   bend\_tilt           &                & aperture = Real   & \ref{s:limit}  & rel\_tol = Real             & \ref{s:integ}  \\ \hline
-  angle\DDAG = Real    & \ref{s:depend} & a$n$, b$n$ = Real & \ref{s:fields} & abs\_tol = Real             & \ref{s:integ}  \\ \hline
-  rho\DDAG = Real      & \ref{s:depend} & radius = Real     & \ref{s:fields} & num\_steps = Integer        & \ref{s:integ}  \\ \hline
+  angle\DDAG = Real    & \ref{s:depend} & a$n$, b$n$ = Real & \ref{s:multip} & abs\_tol = Real             & \ref{s:integ}  \\ \hline
+  rho\DDAG = Real      & \ref{s:depend} & radius = Real     & \ref{s:multip} & num\_steps = Integer        & \ref{s:integ}  \\ \hline
   tilt     = Real      & \ref{s:offset} & is\_on = Logical  & \ref{s:is_on}  & integration\_ord = Integer  & \ref{s:integ}  \\ \hline
   k1       = Real      &                & symplectify       & \ref{s:symp}   & field\_calc = Switch        & \ref{s:integ}  \\ \hline
   beam\_energy$^*$     & \ref{s:energy} & p0c$^*$           & \ref{s:energy} &                             &                \\ \hline
@@ -208,6 +220,10 @@ field is:
   \frac{q \, B_y}{P_0} &=  g_x + k_{1n} (x - x_q) + k_{1s} (y - y_q) - \frac{dks/ds}{2} \, y \CR
   \frac{q \, B_s}{P_0} &=  k_s + dks/ds                        \nonumber
 \end{alignat}
+\index{X_quad}
+\index{Y_quad}
+\index{Quad_tilt}
+\index{Tilt}
 The reference trajectory is along the solenoid centerline. The
 quadrupole field is offset from the solenoid by (\vn{x_quad},
 \vn{y_quad}). The quadrupole and bend have individual tilts
@@ -227,6 +243,7 @@ Dipole edge fields have not been implemented since it is not clear where
 the entrance and exit faces of the bend should be and how they are aligned
 with the solenoid.
 
+\index{Dks_ds}
 To simulate a real solenoid you will need at least three
 \vn{bend_sol_quad} elements: The middle element is the body of the
 solenoid with the linear solenoid strength \vn{dks_ds} = 0 and the two
@@ -244,8 +261,8 @@ Example:
 %-----------------------------------------------------------------
 \section{Bends: Rbend and Sbend}
 \label{s:bend}
-\index{Element class!Sbend|textbf}
-\index{Element class!Rbend|textbf}
+\index{Sbend|textbf}
+\index{Rbend|textbf}
 
 \begin{center}
 \tt
@@ -263,14 +280,16 @@ Example:
   tilt     = Real      & \ref{s:offset} & vkick    = Real   & \ref{s:kick}   & num\_steps = Integer        & \ref{s:integ}  \\ \hline
   roll     = Real      & \ref{s:offset} & fint     = Real   &                & integration\_ord = Integer  & \ref{s:integ}  \\ \hline
   k1       = Real      &                & fintx    = Real   &                & field\_calc = Switch        & \ref{s:integ}  \\ \hline
-  hgap     = Real      &                & radius   = Real   & \ref{s:fields} & symplectify                 & \ref{s:symp}   \\ \hline
-  hgapx    = Real      &                & a$n$, b$n$ = Real & \ref{s:fields} & is\_on = Logical            & \ref{s:is_on}  \\ \hline
+  hgap     = Real      &                & radius   = Real   & \ref{s:multip} & symplectify                 & \ref{s:symp}   \\ \hline
+  hgapx    = Real      &                & a$n$, b$n$ = Real & \ref{s:multip} & is\_on = Logical            & \ref{s:is_on}  \\ \hline
   beam\_energy$^*$     & \ref{s:energy} & p0c$^*$           & \ref{s:energy} & aperture\_at = Switch       & \ref{s:limit}  \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. \DAG May be a dependent. \DDAG Settable dependent. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
 \end{center}
 \toffset
 
+\index{E1}
+\index{E2}
 \vn{Rbend} and \vn{Sbend} are dipole bends. The difference between
 the two is the way the \vn{l}, \vn{e1}, and \vn{e2} attributes are interpreted.
 \begin{figure}
@@ -291,27 +310,38 @@ the two is the way the \vn{l}, \vn{e1}, and \vn{e2} attributes are interpreted.
 \end{figure}
 
   \begin{description}
-  \item[l]  
+  \item[l, l\_chord]  
+\index{L}
+\index{L_chord}
 For a \vn{Rbend} \vn{l} is the chord length and not the arc length as
 it is for a \vn{Sbend}.  After reading in a lattice, \bmad will
 internally convert all \vn{Rbend}s into \vn{Sbend}s so internally
 \vn{l} will become the path length. The chord length will be stored in
 the \vn{l_chord} attribute.
   \item[h1, h2]
+\index{H1}
+\index{H2}
 The attributes \vn{h1} and \vn{h2} are the curvature of the entrance
 and exit pole faces. They are present for compatibility with MAD but
 are not yet implemented in terms of tracking and other calculations.
   \item[e1, e2]
+\index{E1}
+\index{E2}
 the rotation angle of the entrance pole face is \vn{e1} and at the exit
 face it is \vn{e2}. An \vn{Sbend} with an \vn{e1} = \vn{e2} =
 \vn{angle}/2 is equivalent to an \vn{Rbend} with \vn{e1} = \vn{e2} =
 0.
   \item[angle]
+\index{Angle}
 The total design bend angle. A positive \vn{angle} represents a
 bend towards negative $x$ values (see Figure~\ref{f:local_coords}).
   \item[k1]
+\index{K1}
 The quadrupole strength.
   \item[g, delta\_g, rho]
+\index{G}
+\index{Rho}
+\index{Delta_g}
 The design bending radius which determines the reference coordinate
 system is \vn{rho} (see section~\ref{s:ref}).  \vn{g} = 1/\vn{rho} is
 the curvature function and is proportional to the design dipole
@@ -319,6 +349,8 @@ magnetic field. The true field strength is given by
 \vn{g}~+~\vn{delta_g} so changing \vn{delta_g} leaves the design orbit
 unchanged but varies a particle's orbit.
   \item[fint, fintx, hgap, hgapx]
+\index{Fint}
+\index{Fintx}
 The field integrals for the entrance and
 exit pole faces are give by \vn{fint} and \vn{fintx} respectively
 \Begineq
@@ -331,6 +363,7 @@ the half gaps at the entrance and exit faces. If \vn{fint} or
 \vn{fint} or \vn{fintx} is not present then the default value of 0 is
 used.
   \item[tilt]
+\index{Tilt}
 The roll angle about the longitudinal axis at the entrance face of the
 bend is given by \vn{tilt}.  \vn{tilt} = 0 bends the reference
 trajectory in the $-x$ direction.  If the \vn{tilt} attribute is given
@@ -352,8 +385,8 @@ Example:
 %-----------------------------------------------------------------
 \section{Collimators: Ecollimator and Rcollimator}
 \label{s:col}
-\index{Element class!Ecollimator|textbf}
-\index{Element class!Rcollimator|textbf}
+\index{Ecollimator|textbf}
+\index{Rcollimator|textbf}
 
 \begin{center}
 \tt
@@ -382,7 +415,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Custom}
 \label{s:custom}
-\index{Element class!Custom|textbf}
+\index{Custom|textbf}
 
 \begin{center}
 \tt
@@ -422,7 +455,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Drift}
 \label{s:drift}
-\index{Element class!Drift|textbf}
+\index{Drift|textbf}
 
 \begin{center}
 \tt
@@ -449,7 +482,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Elseparator}
 \label{s:elsep}
-\index{Element class!Elseparator|textbf}
+\index{Elseparator|textbf}
 
 \begin{center}
 \tt
@@ -463,8 +496,8 @@ Example:
   y\_offset  = Real  & \ref{s:offset} & y\_limit = Real  & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ}  \\ \hline
   s\_offset  = Real  & \ref{s:offset} & aperture = Real  & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ}  \\ \hline
   x\_pitch = Real    & \ref{s:offset} &                  &                & symplectify = Logical       & \ref{s:symp}   \\ \hline
-  y\_pitch = Real    & \ref{s:offset} & voltage$^*$      &                & a$n$, b$n$ = Real           & \ref{s:fields} \\ \hline
-  tilt     = Real    & \ref{s:offset} & e\_field$^*$     &                & radius = Real               & \ref{s:fields} \\ \hline
+  y\_pitch = Real    & \ref{s:offset} & voltage$^*$      &                & a$n$, b$n$ = Real           & \ref{s:multip} \\ \hline
+  tilt     = Real    & \ref{s:offset} & e\_field$^*$     &                & radius = Real               & \ref{s:multip} \\ \hline
   p0c$^*$            & \ref{s:energy} & beam\_energy$^*$ & \ref{s:energy} & aperture\_at = Switch       & \ref{s:limit}  \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
@@ -473,6 +506,9 @@ Example:
 
 A \vn{ElSeparator} is an electrostatic separator.
 
+\index{Hkick}
+\index{Vkick}
+\index{Gap}
 For an \vn{Elseparator}, the kick is determined by \vn{hkick} and
 \vn{vkick}. The \vn{gap} for an \vn{Elseparator} is used to compute
 the electric field for a given kick. The voltage is a dependent
@@ -490,8 +526,8 @@ Example:
 %-----------------------------------------------------------------
 \section{Hkicker and Vkicker}
 \label{s:hvkicker}
-\index{Element class!Hkicker|textbf}
-\index{Element class!Vkicker|textbf}
+\index{Hkicker|textbf}
+\index{Vkicker|textbf}
 
 \begin{center}
 \tt
@@ -509,6 +545,9 @@ Example:
 \end{center}
 \toffset
 
+\index{Kick}
+\index{Hkick}
+\index{Vkick}
 A \vn{Hkicker} is a horizontal bend and a \vn{Vkicker} is a vertical
 bend.  Note that \vn{Hkicker} and \vn{Vkicker} elements use the
 \vn{kick} attribute while a \vn{kicker} uses the \vn{hkick} and \vn{vkick} 
@@ -520,7 +559,7 @@ attributes. Example:
 %-----------------------------------------------------------------
 \section{Hybrid}
 \label{s:hybrid}
-\index{Element class!Hybrid|textbf}
+\index{Hybrid|textbf}
 
 A \vn{Hybrid} element is an element that is formed by concatenating
 other element together. \vn{Hybrid} elements are not part of the input
@@ -529,7 +568,7 @@ lattice file but are created by a program, usually for speed purposes.
 %-----------------------------------------------------------------
 \section{I\_Beam}
 \label{s:i_beam}
-\index{Element class!I_Beam|textbf}
+\index{I_Beam|textbf}
 
 \begin{center}
 \tt
@@ -546,6 +585,9 @@ lattice file but are created by a program, usually for speed purposes.
 An \vn{I_Beam} is a support structure that orients the elements that
 are attached to it in space.
 
+\index{X_offset}
+\index{Y_pitch}
+\index{Tilt}
 When an \vn{I_Beam} overlays an element, then that elements
 orientation attributes (\vn{x_offset}, \vn{y_pitch}, \vn{tilt}, etc.) 
 give the orientation of
@@ -557,6 +599,7 @@ the element with respect to the \vn{I_Beam}. An example will make this clear:
   this_line: line = (q1, q2)
   use, this
 \end{example}
+\index{Overlay}
 In this example \vn{ib} supports elements \vn{q1} and \vn{q2}. The
 center of \vn{ib} is at $s = 7.5$ (\vn{ib} starts at $s = 0$ which is
 the beginning of \vn{q1} and ends at $s = 15$ which is the end of
@@ -599,8 +642,8 @@ the total tilt is stored in \vn{%value(tilt_tot\$)}, etc.
 %-----------------------------------------------------------------
 \section{Instrument and Monitor}
 \label{s:monitor}
-\index{Element class!Instrument|textbf}
-\index{Element class!Monitor|textbf}
+\index{Instrument|textbf}
+\index{Monitor|textbf}
 
 \begin{center}
 \tt
@@ -613,17 +656,23 @@ the total tilt is stored in \vn{%value(tilt_tot\$)}, etc.
   x\_offset = Real      & \ref{s:offset} & y\_limit = Real  & \ref{s:limit}  & integration\_ord = Integer   & \ref{s:integ}  \\ \hline
   y\_offset = Real      & \ref{s:offset} & aperture = Real  & \ref{s:limit}  & field\_calc = Switch         & \ref{s:integ}  \\ \hline
   x\_pitch  = Real      & \ref{s:offset} & is\_on = Logical & \ref{s:is_on}  & beam\_energy$^*$             & \ref{s:energy} \\ \hline 
-  y\_pitch  = Real      & \ref{s:offset} &                  &                & p0c$^*$                      & \ref{s:energy} \\ \hline
+  y\_pitch  = Real      & \ref{s:offset} & tilt             & \ref{s:offset} & p0c$^*$                      & \ref{s:energy} \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
 \end{center}
 \toffset
 
+\index{X_offset}
+\index{Y_offset}
+\index{X_pitch}
+\index{Y_pitch}
+\index{Tilt}
 \bmad treats \vn{Instrument} and \vn{Monitor} elements exactly like a
-\vn{Drift}.  The \vn{offset} and \vn{pitch} attributes are not used by
-any \bmad routines. If these attributes are used by a program they are
-typically used to simulate such things as measurement offsets. The
-\vn{is_on} attribute is also not used by \bmad proper. Example:
+\vn{Drift}.  The \vn{offset}, \vn{pitch}, and \vn{tilt} attributes are
+not used by any \bmad routines. If these attributes are used by a
+program they are typically used to simulate such things as measurement
+offsets. The \vn{is_on} attribute is also not used by \bmad
+proper. Example:
 \begin{example}
   d21: instr, l = 4.5
 \end{example}
@@ -631,7 +680,7 @@ typically used to simulate such things as measurement offsets. The
 %-----------------------------------------------------------------
 \section{Kicker}
 \label{s:kicker}
-\index{Element class!Kicker|textbf}
+\index{Kicker|textbf}
 
 \begin{center}
 \tt
@@ -650,6 +699,10 @@ typically used to simulate such things as measurement offsets. The
 \end{center}
 \toffset
 
+\index{Hkick}
+\index{Vkick}
+\index{H_displace}
+\index{V_displace}
 A \vn{Kicker} can deflect a beam in both planes. Note that a
 \vn{Kicker} uses the \vn{hkick} and \vn{vkick} attributes while
 \vn{Hkicker} and \vn{Vkicker} elements use the \vn{kick} attribute. 
@@ -663,7 +716,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Lcavity}
 \label{s:lcav}
-\index{Element class!Lcavity|textbf}
+\index{Lcavity|textbf}
 
 \begin{center}
 \tt
@@ -690,6 +743,14 @@ An \vn{Lcavity} is a LINAC accelerating cavity.
 Tracking through an \vn{Lcavity} is modeled using the equations
 developed by Rosenzweig and Serafini\cite{b:rosenzweig}. The
 attributes specific to an \vn{Lcavity} are 
+\index{Gradient}
+\index{Phi0}
+\index{Dphi0}
+\index{E_loss}
+\index{Rf_frequency}
+\index{Delta_e}
+\index{Sr_wake_file}
+\index{Lr_wake_file}
 \begin{example}
   gradient     ! Accelerating gradient (V/m).
   phi0         ! Phase (radians/2\(\pi\)) of the reference particle with 
@@ -828,7 +889,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Marker}
 \label{s:mark}
-\index{Element class!Marker|textbf}
+\index{Marker|textbf}
 
 \begin{center}
 \tt
@@ -844,6 +905,9 @@ Example:
 \end{center}
 \toffset
 
+\index{X_offset}
+\index{Y_offset}
+\index{Is_on}
 A \vn{Marker} is a zero length element meant to mark a position. The
 \vn{x_offset} and \vn{y_offset} attributes are not used by any \bmad
 routines. Typically if these attributes are used by a program they are
@@ -856,7 +920,7 @@ also not used by \bmad proper. Example:
 %-----------------------------------------------------------------
 \section{Match}
 \label{s:match}
-\index{Element class!Match|textbf}
+\index{Match|textbf}
 
 \begin{center}
 \tt
@@ -878,6 +942,12 @@ also not used by \bmad proper. Example:
 \end{center}
 \toffset
 
+\index{Beta_x0}
+\index{Beta_y0}
+\index{Beta_x1}
+\index{Beta_y1}
+\index{Dphi_x}
+\index{Dphi_y}
 A \vn{Match} element is used to match the Twiss parameters between two
 points. That is, the transfer map for a match element, which is just a
 linear matrix, is calculated such that if the Twiss parameters at the
@@ -887,6 +957,7 @@ at the exit end of the \vn{match} element will be \vn{beta_x1},
 \vn{beta_y1}, etc. \vn{dphi_x} and \vn{dphi_y} are the phase advances
 in radians.
 
+\index{L}
 The attribute \vn{l} is not used in the transfer matrix
 calculation. It is sometimes needed by a program for other
 computations. For example, to compute the time it takes to go through
@@ -900,13 +971,14 @@ Example:
 %-----------------------------------------------------------------
 \section{Multipole}
 \label{s:mult}
-\index{Element class!Multipole|textbf}
+\index{Multipole|textbf}
 
+\index{Multipole!KnL, Tn}
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
-  K$n$L, T$n$ = Real &  \ref{s:fields} &  type = String       & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
+  K$n$L, T$n$ = Real &  \ref{s:multip} &  type = String       & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
   tilt       = Real  &  \ref{s:offset} &  alias = String      & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
   x\_offset  = Real  &  \ref{s:offset} &  descrip = String    & \ref{s:string} & x\_limit = Real             & \ref{s:limit} \\ \hline
   y\_offset  = Real  &  \ref{s:offset} &  is\_on = Logical    & \ref{s:is_on}  & y\_limit = Real             & \ref{s:limit} \\ \hline
@@ -919,12 +991,13 @@ Example:
 
 A \vn{Multipole} is a thin multipole lens up to 20th order. The only
 difference between this and an \vn{AB_Multipole} is the input format. See the 
-Magnetic fields section \ref{s:fields} for more details.
+Magnetic fields section \ref{s:multip} for more details.
 
+\index{Lrad}
 \vn{lrad} is a fictitious length that is used for synchrotron radiation
 computations but does not affect any tracking or transfer map calculations. 
 
-Like a \mad\ \vn{multipole}, A \bmad \vn{Multipole} will affect the
+Like a \mad \vn{multipole}, A \bmad \vn{Multipole} will affect the
 reference orbit if there is a dipole component. 
 Example:
 \begin{example}
@@ -934,7 +1007,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Octupole}
 \label{s:oct}
-\index{Element class!Octupole|textbf}
+\index{Octupole|textbf}
 
 \begin{center}
 \tt
@@ -947,7 +1020,7 @@ Example:
   y\_offset  = Real      & \ref{s:offset} & x\_limit = Real   & \ref{s:limit}  & rel\_tol = Real             & \ref{s:integ}  \\ \hline
   s\_offset  = Real      & \ref{s:offset} & y\_limit = Real   & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ}  \\ \hline
   x\_pitch = Real        & \ref{s:offset} & aperture = Real   & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ}  \\ \hline
-  y\_pitch = Real        & \ref{s:offset} & a$n$, b$n$ = Real & \ref{s:fields} & radius = Real               & \ref{s:fields} \\ \hline
+  y\_pitch = Real        & \ref{s:offset} & a$n$, b$n$ = Real & \ref{s:multip} & radius = Real               & \ref{s:multip} \\ \hline
   tilt                   & \ref{s:offset} & hkick    = Real   & \ref{s:kick}   & symplectify = Logical       & \ref{s:symp}   \\ \hline
   beam\_energy$^*$       & \ref{s:energy} & vkick    = Real   & \ref{s:kick}   & aperture\_at = Switch       & \ref{s:limit}  \\ \hline
   p0c$^*$                & \ref{s:energy} &                   &                &                             &                \\ \hline
@@ -959,6 +1032,7 @@ Example:
 An \vn{Octupole} has a cubic field dependence.
 The \vn{Bmad_Standard} calculation treats an octupole using a kick--drift--kick model.
 
+\index{Tilt}
 If the \vn{tilt} attribute is present without a value then a value of 
 $\pi/8$ is used.
 Example:
@@ -969,7 +1043,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Patch}
 \label{s:patch}
-\index{Element class!Patch|textbf}
+\index{Patch|textbf}
 
 \begin{center}
 \tt
@@ -987,6 +1061,7 @@ Example:
 \end{center}
 \toffset
 
+\index{X_offset}
 A \vn{Patch} offsets the reference orbit. This is a generalization of
 \mad's \vn{yrot} and \vn{srot} elements. For example, a positive
 \vn{x_offset} offsets the reference orbit after the \vn{patch} in the
@@ -1000,7 +1075,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Quadrupole}
 \label{s:quad}
-\index{Element class!Quadrupole|textbf}
+\index{Quadrupole|textbf}
 
 \begin{center}
 \tt
@@ -1013,8 +1088,8 @@ Example:
   x\_offset  = Real      & \ref{s:offset} & x\_limit = Real    & \ref{s:limit}  & rel\_tol = Real             & \ref{s:integ} \\ \hline
   y\_offset  = Real      & \ref{s:offset} & y\_limit = Real    & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
   s\_offset  = Real      & \ref{s:offset} & aperture = Real    & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
-  x\_pitch = Real        & \ref{s:offset} & hkick    = Real    & \ref{s:kick}   & a$n$, b$n$ = Real           & \ref{s:fields}\\ \hline
-  y\_pitch = Real        & \ref{s:offset} & vkick    = Real    & \ref{s:kick}   & radius = Real               & \ref{s:fields}\\ \hline
+  x\_pitch = Real        & \ref{s:offset} & hkick    = Real    & \ref{s:kick}   & a$n$, b$n$ = Real           & \ref{s:multip}\\ \hline
+  y\_pitch = Real        & \ref{s:offset} & vkick    = Real    & \ref{s:kick}   & radius = Real               & \ref{s:multip}\\ \hline
   tilt     = Real        & \ref{s:offset} & beam\_energy$^*$   & \ref{s:energy} & symplectify = Logical       & \ref{s:symp}  \\ \hline
                          &                & p0c$^*$            & \ref{s:energy} & aperture\_at = Switch       & \ref{s:limit} \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. \DAG May be a dependent attribute. See Chapter~\ref{c:attrib}} \\
@@ -1022,6 +1097,7 @@ Example:
 \end{center}
 \toffset
 
+\index{Tilt}
 A \vn{Quadrupole} has a linear field dependence.
 If the \vn{tilt} attribute is present without a value then a value of $\pi/4$
 is used.
@@ -1033,7 +1109,7 @@ Example:
 %-----------------------------------------------------------------
 \section{RFcavity}
 \label{s:rfcav}
-\index{Element class!RFcavity|textbf}
+\index{RFcavity|textbf}
 
 \begin{center}
 \tt
@@ -1083,7 +1159,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Sextupole}
 \label{s:sex}
-\index{Element class!Sextupole|textbf}
+\index{Sextupole|textbf}
 
 \begin{center}
 \tt
@@ -1097,8 +1173,8 @@ Example:
   s\_offset  = Real      & \ref{s:offset} & y\_limit = Real    & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
   x\_pitch = Real        & \ref{s:offset} & aperture = Real    & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
   y\_pitch = Real        & \ref{s:offset} & hkick    = Real    & \ref{s:kick}   & aperture\_at = Switch       & \ref{s:limit} \\ \hline
-  tilt     = Real        & \ref{s:offset} & vkick    = Real    & \ref{s:kick}   & radius = Real               & \ref{s:fields}\\ \hline
-  beam\_energy$^*$       & \ref{s:energy} & a$n$, b$n$ = Real  & \ref{s:fields} & symplectify = Logical       & \ref{s:symp}  \\ \hline
+  tilt     = Real        & \ref{s:offset} & vkick    = Real    & \ref{s:kick}   & radius = Real               & \ref{s:multip}\\ \hline
+  beam\_energy$^*$       & \ref{s:energy} & a$n$, b$n$ = Real  & \ref{s:multip} & symplectify = Logical       & \ref{s:symp}  \\ \hline
   p0c$^*$                & \ref{s:energy} &                    &                &                             &               \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. \DAG May be a dependent attribute. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
@@ -1117,7 +1193,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Solenoid}
 \label{s:sol}
-\index{Element class!Solenoid|textbf}
+\index{Solenoid|textbf}
 
 \begin{center}
 \tt
@@ -1131,8 +1207,8 @@ Example:
   s\_offset  = Real      & \ref{s:offset} & y\_limit = Real    & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
   x\_pitch   = Real      & \ref{s:offset} & aperture = Real    & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
   y\_pitch   = Real      & \ref{s:offset} & hkick    = Real    & \ref{s:kick}   & aperture\_at = Switch       & \ref{s:limit} \\ \hline
-  beam\_energy$^*$       & \ref{s:energy} & vkick    = Real    & \ref{s:kick}   & radius = Real               & \ref{s:fields}\\ \hline
-  p0c$^*$                & \ref{s:energy} & a$n$, b$n$ = Real  & \ref{s:fields} & symplectify = Logical       & \ref{s:symp}  \\ \hline
+  beam\_energy$^*$       & \ref{s:energy} & vkick    = Real    & \ref{s:kick}   & radius = Real               & \ref{s:multip}\\ \hline
+  p0c$^*$                & \ref{s:energy} & a$n$, b$n$ = Real  & \ref{s:multip} & symplectify = Logical       & \ref{s:symp}  \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. \DAG May be a dependent attribute. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
 \end{center}
@@ -1147,7 +1223,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Sol\_Quad}
 \label{s:sq}
-\index{Element class!Sol_Quad|textbf}
+\index{Sol_Quad|textbf}
 
 \begin{center}
 \tt
@@ -1160,8 +1236,8 @@ Example:
   x\_offset  = Real   & \ref{s:offset} & x\_limit = Real   & \ref{s:limit}  & rel\_tol = Real             & \ref{s:integ} \\ \hline
   y\_offset  = Real   & \ref{s:offset} & y\_limit = Real   & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
   s\_offset  = Real   & \ref{s:offset} & aperture = Real   & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
-  x\_pitch = Real     & \ref{s:offset} & hkick    = Real   & \ref{s:kick}   & a$n$, b$n$ = Real           & \ref{s:fields}\\ \hline
-  y\_pitch = Real     & \ref{s:offset} & vkick    = Real   & \ref{s:kick}   & radius = Real               & \ref{s:fields}\\ \hline
+  x\_pitch = Real     & \ref{s:offset} & hkick    = Real   & \ref{s:kick}   & a$n$, b$n$ = Real           & \ref{s:multip}\\ \hline
+  y\_pitch = Real     & \ref{s:offset} & vkick    = Real   & \ref{s:kick}   & radius = Real               & \ref{s:multip}\\ \hline
   tilt     = Real     & \ref{s:offset} & beam\_energy$^*$  & \ref{s:energy} & symplectify = Logical       & \ref{s:symp}  \\ \hline
                       &                & p0c$^*$           & \ref{s:energy} & aperture\_at = Switch       & \ref{s:limit} \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. \DAG May be a dependent attribute. See Chapter~\ref{c:attrib}} \\
@@ -1178,7 +1254,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Taylor}
 \label{s:tay}
-\index{Element class!Taylor|textbf}
+\index{Taylor|textbf}
 
 \begin{center}
 \tt
@@ -1195,7 +1271,7 @@ Example:
 \end{center}
 \toffset
 
-A \vn{Taylor} is a Taylor map. This can be used in place of the \mad\ 
+A \vn{Taylor} is a Taylor map. This can be used in place of the \mad 
 \vn{matrix} element.
 
 A term in a Taylor map is of the form
@@ -1237,8 +1313,8 @@ Example \vn{Taylor} element definition:
 
 %-----------------------------------------------------------------
 \section{Wiggler} 
-\label{s:wig}
-\index{Element class!Wiggler|textbf} 
+\label{s:wiggler}
+\index{Wiggler|textbf} 
 
 \begin{center}
 \tt
@@ -1251,8 +1327,8 @@ Example \vn{Taylor} element definition:
   polarity = Real       &                & y\_offset  = Real  & \ref{s:offset} & rel\_tol = Real             & \ref{s:integ} \\ \hline
   hkick    = Real       & \ref{s:kick}   & s\_offset  = Real  & \ref{s:offset} & abs\_tol = Real             & \ref{s:integ} \\ \hline
   vkick    = Real       & \ref{s:kick}   & x\_pitch = Real    & \ref{s:offset} & num\_steps = Integer        & \ref{s:integ} \\ \hline
-  x\_limit = Real       & \ref{s:limit}  & y\_pitch = Real    & \ref{s:offset} & a$n$, b$n$ = Real           & \ref{s:fields}\\ \hline
-  y\_limit = Real       & \ref{s:limit}  & tilt     = Real    & \ref{s:offset} & radius  = Real              & \ref{s:fields}\\ \hline
+  x\_limit = Real       & \ref{s:limit}  & y\_pitch = Real    & \ref{s:offset} & a$n$, b$n$ = Real           & \ref{s:multip}\\ \hline
+  y\_limit = Real       & \ref{s:limit}  & tilt     = Real    & \ref{s:offset} & radius  = Real              & \ref{s:multip}\\ \hline
   aperture = Real       & \ref{s:limit}  & is\_on = Logical   & \ref{s:is_on}  & symplectify = Logical       & \ref{s:symp}  \\ \hline
   beam\_energy$^*$      & \ref{s:energy} & k1$^*$             &                & rho$^*$                     &               \\ \hline
                         &                &                    &                & aperture\_at = Switch       & \ref{s:limit} \\ \hline

@@ -1,11 +1,12 @@
 \chapter{Beam Lines, and Replacement Lists}
 \label{c:sequence}
 
+\index{MAD}
 To \bmad a ``lattice''\index{Lattice} is the sequence of physical
 elements that is to be studied. The lattice is constructed in the
 input lattice file using what are know as Beam Lines and Replacement
 Lists. Beam Lines are further subdivided into Lines with and without
-replacement arguments. This essentially corresponds to the \MAD
+replacement arguments. This essentially corresponds to the \mad
 definition of Lines and Lists. There can be multiple Beam Lines and
 Replacement Lists defined in a lattice file and Lines and Lists can be
 nested inside other Lines and Lists. The particular Line that defines
@@ -115,7 +116,8 @@ case \vn(y, z), replaces the dummy arguments \vn{(DA1, DA2)} to give for
 \begin{example}
   (h, a, z, b, y, g)
 \end{example} 
-Unlike \MAD, Beam Line actual arguments can only be elements or Beam Lines. 
+\index{MAD}
+Unlike \mad, Beam Line actual arguments can only be elements or Beam Lines. 
 Thus the following is not allowed
 \begin{example}
   line2: line = (h, line1(2*y, z), g)   ! NO: 2*y NOT allowed as an argument.
@@ -148,7 +150,8 @@ lattice would be
 \begin{example}
   (z1, a, z2, b, z3, c, z4, a)
 \end{example}
-Unlike \MAD members of a replacement list can only be simple elements 
+\index{MAD}
+Unlike \mad members of a replacement list can only be simple elements 
 without reflection or repetition count and not other Lines or Lists. 
 For example the following is not allowed:
 \begin{example}

@@ -19,8 +19,9 @@ can be found at:
   http://www-project.slac.stanford.edu/
               lc/ilc/TechNotes/LCCNotes/PDF/LCC-0060%20rev.1.pdf
 \end{example}
+\index{MAD}
 One point that is not covered in the XSIF documentation is that for a
-\vn{MATRIX} element, unlike \MAD, the \vn{R$ii$} terms (the diagonal
+\vn{MATRIX} element, unlike \mad, the \vn{R$ii$} terms (the diagonal
 terms of the linear matrix) are not unity by default. Thus
 \begin{example}
   m: matrix
@@ -35,8 +36,9 @@ stated otherwise.
 \section{File Syntax}
 \index{Lattice files!statement syntax}
 
+\index{MAD!lattice format}
 The syntax that a \bmad standard lattice file must conform to is
-modeled after the lattice input format of the \MAD program.
+modeled after the lattice input format of the \mad program.
 Essentially, a \bmad lattice file is similar to a \mad lattice file
 except that a \bmad file has no ``action'' commands (action commands
 tell the program to calculate the Twiss parameters, do tracking,
@@ -123,7 +125,8 @@ details.
 %---------------------------------------------------------------------------
 \section{Lattice Elements}
 
-The syntax for defining a lattice element roughly follows \MAD:
+\index{MAD!lattice format}
+The syntax for defining a lattice element roughly follows \mad:
 \begin{example}
   label: keyword [, attributes]
 \end{example}
@@ -239,7 +242,8 @@ Symbolic constants can be defined using the syntax
 \begin{example}
   parameter_name = expression
 \end{example}
-Alternatively, to be compatible with \MAD, using ``:='' instead of ``='' is accepted
+\index{MAD!syntax compatibility with BMAD}
+Alternatively, to be compatible with \mad, using ``:='' instead of ``='' is accepted
 \begin{example}
   parameter_name := expression
 \end{example}
@@ -248,7 +252,8 @@ Examples:
   my_const = sqrt(10.3) * pi^3
   abc     := my_const * 23
 \end{example}
-Unlike \MAD, \bmad uses immediate substitution so that all constants
+\index{MAD!delayed substitution}
+Unlike \mad, \bmad uses immediate substitution so that all constants
 in an expression must have been previously defined. For example, the
 following is not valid:
 \begin{example}
@@ -285,7 +290,7 @@ The following intrinsic functions are recognized by \bmad: \hfil\break
   \vnif{ran_gauss}()  & Gaussian distributed random number \\
 \end{tabular}
 
-\index{Statement!parameter!ran_seed}
+\index{Ran_seed!parameter statement}
 \vn{ran_gauss} is a Gaussian distributed random number with unit RMS. 
 Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator. 
 To choose the seed set 
@@ -297,7 +302,7 @@ different sequences of random numbers will be generated each time a
 program is run.  The default behavior if \vn{parameter[ran_seed]} is
 not present is to use the system clock for the seed.
 
-\index{Statement!expand_lattice}
+\index{Expand_lattice!statement}
 If an element is used multiple times in a lattice, and if \vn{ran} or
 \vn{gauss_ran} is used to set an attribute value of this element, then
 to have all instances of the element have different attribute values

@@ -31,7 +31,6 @@
 
 \newcommand{\bmad}{{\sl Bmad}\xspace}
 \newcommand{\mad}{{\sl MAD}\xspace}
-\newcommand{\MAD}{{\sl MAD}\index{MAD}\xspace}
 \newcommand{\quickplot}{{\sl Quick Plot}\xspace}
 \newcommand{\cpp}{$C$\hskip-0.3ex\protect\raisebox{0.2ex}{\scriptsize ++}\xspace}
 \newcommand{\CPP}{$C$\hskip-0.3ex{\protect\raisebox{.3ex}{\large {+}+}}\xspace}
@@ -55,10 +54,7 @@
 \newcommand{\cs}{\ttcmd}           % For code source
 \newcommand{\rn}{\ttcmd}           % For Routine names
 \newcommand{\vne}{\ttcmdz{Element}}
-\newcommand{\vnec}{\ttcmdz{Element class}}
 \newcommand{\vnes}{\ttcmdz{Ele_struct}}
-\newcommand{\vnea}{\ttcmdz{Element attribute}}
-\newcommand{\vns}{\ttcmdz{Statement}}
 \newcommand{\vntm}{\ttcmdz{Tracking method}}
 \newcommand{\vnif}{\ttcmdz{Intrinsic functions}}
 \newcommand{\vnr}{\ttcmdz{Routine}}
@@ -77,6 +73,9 @@
 
 \newcommand\ttcmdz{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmdz}
 \newcommand\dottcmdz[2]{\texttt{#2}\endgroup\index{#1!#2}}
+
+\newcommand\ttcmdindx{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmdindx}
+\newcommand\dottcmdindx[1]{\texttt{#1}\endgroup\index{#1}}
 
 
 %\newcommand\ttverb{

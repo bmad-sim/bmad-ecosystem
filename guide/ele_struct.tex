@@ -28,10 +28,10 @@ generally hidden  by the \bmad bookkeeping routines.
     real(rp) c_mat(2,2)               ! 2x2 C coupling matrix
     real(rp) gamma_c                  ! gamma associated with C matrix
     real(rp) s                        ! longitudinal position at the end
-    real(rp), pointer :: a(:) => null()  ! skew multipole component
-    real(rp), pointer :: b(:) => null()  ! normal multipole component
-    type (taylor_struct) :: taylor(6) ! Taylor terms
-    type (wake_struct) wake           ! Wakefields
+    real(rp), pointer :: a(:) => null()           ! skew multipole component
+    real(rp), pointer :: b(:) => null()           ! normal multipole component
+    type (wake_struct), pointer :: wake => null() ! Wakefields
+    type (taylor_struct) :: taylor(6)             ! Taylor terms
     integer key                       ! key value
     integer sub_key                   ! For wigglers: map_type$, periodic_type$
     integer control_type              ! SUPER_SLAVE$, OVERLAY_LORD$, etc.
@@ -82,8 +82,11 @@ integer to the appropriate string. For example
 The call to \vn{init_ele} is needed for any \vn{ele_struct} defined
 outside of a \vn{ring_struct} structure.
 
-The \vnes{%sub_key} component is only used for \vnec{Wiggler} and \vnec{Rbend} and
-\vnec{Sbend} elements. For \vn{Wiggler} elements, \vnes{%sub_key} is either set to
+\index{Wiggler}
+\index{Rbend}
+\index{Sbend}
+The \vnes{%sub_key} component is only used for \vn{Wiggler} and \vn{Rbend} and
+\vn{Sbend} elements. For \vn{Wiggler} elements, \vnes{%sub_key} is either set to
 \begin{example}
   map_type$ or
   periodic_type$
@@ -238,6 +241,44 @@ whether it is the strength or field that is the
 independent variable. See Section~\ref{s:depend} for more details.
 
 %--------------------------------------------------------------------------
+\section{Positional Offsets}
+\index{X_offset}
+\index{Y_offset}
+\index{X_pitch}
+\index{Y_pitch}
+\index{Tilt}
+\index{X_offset_tot}
+\index{Y_offset_tot}
+\index{X_pitch_tot}
+\index{Y_pitch_tot}
+\index{Tilt_tot}
+
+The positional offsets for an element are stored in:
+\begin{example}
+  %value(x_offset\$)
+  %value(y_offset\$)
+  %value(x_pitch\$)
+  %value(y_pitch\$)
+  %value(tilt\$)
+\end{example}
+\index{I_Beam}
+If the element is supported by an \vn{I_Beam} then the \vn{I_Beam}
+offsets are added on and the total offset with respect to the
+reference coordinate system is stored in:
+\begin{example}
+  %value(x_offset_tot\$)
+  %value(y_offset_tot\$)
+  %value(x_pitch_tot\$)
+  %value(y_pitch_tot\$)
+  %value(tilt_tot\$)
+\end{example}
+
+The important point is that to vary the position of an individual
+element the values of \vn{%value(x_offset\$)}, etc. are changed and to
+read the position of an element a program should look at
+\vn{%value(x_offset_tot\$)}, etc.
+
+%--------------------------------------------------------------------------
 \section{Transfer Maps}
 \index{Ele_struct!transfer maps}
 \index{Transfer map!in ele_struct}
@@ -299,11 +340,115 @@ made the reference point is not needed in subsequent
 calculations. However, The Taylor map itself will depend upon what
 reference point is chosen (\sref{s:taylor_phys}).
 
+%--------------------------------------------------------------------------
+\section {Wakefields}
+\index{Wakefields!in ele_struct}
+
+See \sref{s:wakefields} for the equations used in wakefield
+calculations.  Wakefields are stored in the \vnes{%wake} struct:
+\begin{example}
+  type wake_struct
+    character(200) :: sr_file = ' '
+    character(200) :: lr_file = ' '
+    type (sr1_wake_struct), pointer :: sr1(:) => null()
+    type (sr2_wake_struct), pointer :: sr2_long(:) => null()
+    type (sr2_wake_struct), pointer :: sr2_trans(:) => null()
+    type (lr_wake_struct), pointer :: lr(:) => null()
+    real(rp) :: z_cut_sr = 0    ! cutoff between sr1 and sr2
+  end type
+\end{example}
+Since \vn{%wake} is a pointer its association status must be tested
+before any of its sub--components are accessed.
+\begin{example}
+  type (ele_struct) ele
+  ...
+  if (associated(ele%wake)) then
+    ...
+\end{example}
+
+\bmad observes the following rule: If \vn{%wake} is associated then it
+is assumed that all the sub--components (\vn{%wake%sr1}, etc.) are
+associated. This simplifies programming in that you do not have to
+test directly the association status of the sub--components.
+
+The short--range wake is parameterized using three arrays:
+\vn{%wake%sr1}, \vn{%wake%sr2_long}, and
+\vn{%wake%sr2_trans}. \vn{%wake%sr1} is the tabular form of the
+short--range wake (see~\sref{s:wiggler}). The structure definition
+for \vn{%wake%sr1} is
+\begin{example}
+  type sr1_wake_struct     ! Tabular short-Range Wake struct
+    real(rp) z             ! Distance behind the leading particle
+    real(rp) long          ! Longitudinal wake in V/C/m
+    real(rp) trans         ! Transverse wake in V/C/m^2
+  end type
+\end{example}
+All \vn{%wake%sr1(0:)%z} will be negative. Notice that the array lower
+bounds is zero since \vn{%wake%sr1(0)%z} = 0. Wakefield kicks are
+applied using \Eqs{delvp} and \eq{pelqxw}.
+
+\vn{%wake%sr2_long} gives
+the psudo--modes for the short--range longitudinal wake and
+\vn{%wake%sr2_trans} gives the psudo--modes for the short--range
+transverse wake. Their structure definitions are
+\begin{example}
+  type sr2_wake_struct  ! Psudo-mode short-Range Wake struct 
+    real(rp) amp        ! Amplitude
+    real(rp) damp       ! Dampling factor.
+    real(rp) freq       ! Frequency in Hz
+    real(rp) phi        ! Phase in radians/2pi
+    real(rp) norm_sin   ! non-skew sin-like component of the wake
+    real(rp) norm_cos   ! non-skew cos-like component of the wake
+    real(rp) skew_sin   ! skew sin-like component of the wake
+    real(rp) skew_cos   ! skew cos-like component of the wake
+  end type
+\end{example}
+The wakefield kick is calculated from \Eq{wadzk}.  \vn{%amp},
+\vn{%damp}, \vn{%freq}, and \vn{%phi} are the input parameters from
+the lattice file. the last four components (\vn{%norm_sin}, etc.)
+store the accumulated wake: Before the bunch passes through these are
+set to zero and as each particle passes through the cavity the
+contribution to the wake due to the particle is calculated and added
+the components.
+
+\vn{%wake%z_cut_sr} is the cutoff between where the tabular and
+psudo--mode forms of the wake are applied. If the longitudinal
+distance between two particles is smaller in magnitude then
+\vn{%wake%z_cut_sr} then the tabular wake is applied. Otherwise the
+psudo--mode wake is applied. \vnr{bmad_parser} will automatically set
+\vn{%wake%z_cut_sr} to the value of \vn{%wake%sr1(n)%z} where \vn{n}
+is the last element in the array (largest in magnitude z value).
+
+
+The \vn{%wake%lr} array stores the long--range wake modes. The
+structure definition is:
+\begin{example}
+  type lr_wake_struct   ! Long-Range Wake struct 
+    real(rp) freq       ! Actual Frequency in Hz
+    real(rp) freq_in    ! Input frequency in Hz
+    real(rp) R_over_Q   ! Strength in V/C/m^2
+    real(rp) Q          ! Quality factor
+    integer m           ! Order (1 = dipole, 2 = quad, etc.)
+    real(rp) norm_sin   ! non-skew sin-like component of the wake
+    real(rp) norm_cos   ! non-skew cos-like component of the wake
+    real(rp) skew_sin   ! skew sin-like component of the wake
+    real(rp) skew_cos   ! skew cos-like component of the wake
+    real(rp) s_ref      ! reference time in terms of s = -c*t
+  end type
+\end{example}
+\index{Freq_spread}
+This is similar to the \vn{sr2_wake_struct}. \vn{%freq_in} is the
+actual frequency in the input file. \vnr{bmad_parser} will set
+\vn{%freq} to \vn{%freq_in} except when the \vn{freq_spread} attribute
+is non-zero in which case \vn{bmad_parser} will vary \vn{%freq} as
+explained in \sref{s:lcav}.
 
 %--------------------------------------------------------------------------
 \section {Multipoles}
 \index{Ele_struct!multipoles}
 
+\index{Multipole!an, bn!in ele_struct}
+\index{Multipole!KnL, Tn!in ele_struct}
 The multipole components of an element (See setion~\ref{s:fields}) are
 stored in the pointers \vnes{%a(:)} and \vnes{%b(:)}. If \vn{%a} and
 \vn{%b} are allocated they always have a range \vn{%a(0:n_pole_maxx)}
@@ -317,6 +462,9 @@ Section~\ref{r:multi}.
 \section{General Use Components}
 \index{Ele_struct!components not used by Bmad}
 
+\index{Ele_struct!%r}
+\index{Ele_struct!%ix_pointer}
+\index{Ele_struct!%logic}
 There are three components of an \vn{ele_struct} that are gauranteed
 to never be used by any \bmad routine and so are available for use by
 someone writing a program. These components are

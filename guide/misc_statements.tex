@@ -5,15 +5,15 @@ This chapter deals with the statements not covered in the previous chapters.
 %-----------------------------------------------------------------------------
 \section{Parameter Statement}
 \label{s:param}
-\index{Statement!parameter|textbf}
+\index{Parameter statement|textbf}
 
 
-\index{Statement!parameter!lattice}
-\index{Statement!parameter!lattice_type}
-\index{Statement!parameter!taylor_order}
-\index{Statement!parameter!beam_energy}
-\index{Statement!parameter!ran_seed}
-\index{Statement!parameter!n_part}
+\index{Lattice!parameter statement}
+\index{Lattice_type!parameter statement}
+\index{Taylor_order!parameter statement}
+\index{Beam_energy!parameter statement}
+\index{Ran_seed!parameter statement}
+\index{N_part!parameter statement}
 The \vn{parameter} statement is used to set the \vn{lattice} name and other variables. 
 The variables that can be set by \vn{parameter} is
 \begin{example}
@@ -42,19 +42,20 @@ lattice.  Each element in a lattice has an individual reference
 The reference energy will only change between \vn{LCavity} or
 \vn{Patch} elements. The starting reference energy must always be set.
 
+\index{BeamBeam}
 The \vn{parameter[n_part]} is the number of particle in a bunch.
-it is used with \vne{BeamBeam} elements and is used to calculate the
+it is used with \vn{BeamBeam} elements and is used to calculate the
 change in energy through an \vn{Lcavity}. See~\sref{s:lcav} for more
 details.
 
-\index{Statement!lattice}
+\index{Lattice statement}
 The \vn{lattice} name is stored by \bmad for use by a program but it does
 not otherwise effect any \bmad routines. 
 Historically it is possible to set the lattice name using the syntax
 \begin{example}
   lattice = String   ! DO NOT USE THIS SYNTAX
 \end{example}
-This syntax is obsolete since a typographical error is not easily caught.
+This syntax is obsolete since a typographical error cannot be caught.
 
 \noindent
 Valid \vn{lattice_type} switches are
@@ -69,8 +70,8 @@ computed. Although \vn{circular_lattice} is the nominal default, If
 there are \vn{Lcavity} elements present, \vn{linear_lattice} will be used
 as the default.
 
-\index{Statement!taylor_order}
-\index{Statement!parameter!taylor_order}
+\index{Taylor_order statement}
+\index{Taylor_order!parameter statement}
 The Taylor order (\sref{s:taylor_phys}) is set by
 \vn{parameter[taylor_order]} and is the maximum order for a Taylor map.
 Historically it is possible to set the Taylor order using the syntax
@@ -81,18 +82,20 @@ This syntax is obsolete since a typographical error is not easily caught.
 
 %-----------------------------------------------------------------------------
 \section{Beam Statement}
-\index{Statement!beam|textbf}
+\index{Beam statement|textbf}
 
-\index{Statement!beam!energy}
-\index{Statement!beam!particle}
-\index{Statement!beam!n_part}
-The \vn{Beam} statement is provided for compatibility with \MAD. The syntax is
+\index{Energy!beam statement}
+\index{Particle!beam statement}
+\index{N_part!beam statement}
+\index{MAD}
+The \vn{Beam} statement is provided for compatibility with \mad. The syntax is
 \begin{example}
   beam, energy = GeV, particle = Switch, n_part = Real
 \end{example}
 For example
+\index{MAD}
 \begin{example}
-  beam, energy = 5.6  ! Note: Gev to be compatible with \MAD
+  beam, energy = 5.6  ! Note: Gev to be compatible with \mad
   beam, particle = electron, n_part = 1.6e10
 \end{example}
 Setting the reference energy using the \vn{energy} attribute is the same
@@ -105,7 +108,7 @@ switches are
 
 %-----------------------------------------------------------------------------
 \section{Title Statement}
-\index{Statement!title|textbf}
+\index{Title statement|textbf}
 
 The \vn{title} statement sets a title string which can be used by a program. 
 For consistency there are two possible syntaxes
@@ -125,7 +128,7 @@ For example
 
 %--------------------------------------------------------------------------
 \section{Call Statement}
-\index{Statement!call|textbf}
+\index{Call statement|textbf}
 
 It is frequently convenient to separate the lattice definition into
 several files.  Typically there might be a file (or files) that define
@@ -162,8 +165,8 @@ would be
 
 %--------------------------------------------------------------------------
 \section{Return and End\_File statements}
-\index{Statement!return}
-\index{Statement!end_file}
+\index{Return statement}
+\index{End_file statement}
 
 \vn{Return} and \vn{end_file} have identical effect and tell \bmad to
 ignore anything beyond the \vn{return} or \vn{end_file} statement in
@@ -171,20 +174,21 @@ the file.
 
 %--------------------------------------------------------------------------
 \section{Beginning Statement}
-\index{Statement!beginning|textbf}
+\label{s:beginning}
+\index{Beginning statement|textbf}
 
-\index{Statement!beginning!beta_x}
-\index{Statement!beginning!alpha_x}
-\index{Statement!beginning!phi_x}
-\index{Statement!beginning!eta_x}
-\index{Statement!beginning!etap_x}
-\index{Statement!beginning!beta_y}
-\index{Statement!beginning!alpha_y}
-\index{Statement!beginning!phi_y}
-\index{Statement!beginning!eta_y}
-\index{Statement!beginning!etap_y}
-\index{Statement!beginning!cij}
-\index{Statement!beginning!beam_energy}
+\index{Beta_x!initialization}
+\index{Alpha_x!initialization}
+\index{Phi_x!initialization}
+\index{Eta_x!initialization}
+\index{Etap_x!initialization}
+\index{Beta_y!initialization}
+\index{Alpha_y!initialization}
+\index{Phi_y!initialization}
+\index{Eta_y!initialization}
+\index{Etap_y!initialization}
+\index{Cij!initialization}
+\index{Beam_energy!initialization}
 For non--circular lattices the \vn{beginning} statement can be used to
 set the Twiss parameters and beam energy at the beginning of the ring
 \begin{example}
@@ -201,18 +205,18 @@ set the Twiss parameters and beam energy at the beginning of the ring
   beginning[cij]     = Real  ! C coupling matrix. i, j = {``1'', or ``2''} 
   beginning[beam_energy] = Real  ! Total energy in eV.
 \end{example}
-\index{Statement!parameter!beam_energy}
+\index{Beam_energy!initialization}
 The \vn{gamma_x}, \vn{gamma_y}, and \vn{gamma_c} (the coupling gamma factor) 
 will be kept consistent with the values set. If not set the default values are all zero. 
 \vn{beginning[energy]} and \vn{parameter[beam_energy]} are equivalent and one or the other
 may be set but not both.
 
-\index{Statement!beginning!x_position}
-\index{Statement!beginning!y_position}
-\index{Statement!beginning!z_position}
-\index{Statement!beginning!theta_position}
-\index{Statement!beginning!phi_position}
-\index{Statement!beginning!psi_position}
+\index{X_position!initialization}
+\index{Y_position!initialization}
+\index{Z_position!initialization}
+\index{Theta_position!initialization}
+\index{Phi_position!initialization}
+\index{Psi_position!initialization}
 For any lattice the \vn{beginning} statement can be used to set the starting floor position 
 (see~\ref{s:global}). The syntax is
 \begin{example}
@@ -228,7 +232,7 @@ For any lattice the \vn{beginning} statement can be used to set the starting flo
 \section{Expand\_lattice Statement}
 \label{s:lat_expand}
 \index{Lattice!expansion|textbf}
-\index{Statement!expand_lattice}
+\index{Expand_lattice statement}
 
 At some point in parsing a lattice file, the ordered sequence of
 elements that form a lattice must be constructed. This process is
@@ -258,8 +262,8 @@ slave may only be done after lattice expansion.
 
 %--------------------------------------------------------------------------
 \section{Debugging Statements}
-\index{Statement!parser_debug}
-\index{Statement!no_digested}
+\index{Parser_debug statement}
+\index{No_digested statement}
 \index{Lattice files!parser debugging}
 
 There are two statements, \vn{parser_debug} and \vn{no_digested},
