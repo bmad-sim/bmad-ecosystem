@@ -58,6 +58,9 @@ Linear just uses the 0th order vector with the 1st order 6x6 transfer
 matrix for an element. Very simple.  Depending upon how the transfer
 matrix was generated this may or may not be symplectic.
 
+\item[\vn{MAD}]
+This uses the MAD 2nd order transfer map.
+
 \item[\vn{Runge\_Kutta}]
 This uses a 4\Th\ order Runge Kutta integration algorithm with adaptive
 step size control.  This is essentially the \vn{ODEINT} subroutine
@@ -118,6 +121,7 @@ that it can be used for long term tracking.
 \begin{sideways}\vn{Boris}\end{sideways} &
 \begin{sideways}\vn{Custom}\end{sideways} &
 \begin{sideways}\vn{Linear}\end{sideways} &
+\begin{sideways}\vn{MAD}\end{sideways} &
 \begin{sideways}\vn{Runge_Kutta}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_Bmad}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_PTC}\end{sideways} &
@@ -125,34 +129,34 @@ that it can be used for long term tracking.
 \begin{sideways}\vn{Taylor}\end{sideways} &
 \begin{sideways}\vn{Wiedemann}\end{sideways}
 \\ \hline
-%                               AB  BS   B   C   L  RK  SLB SLP SM   T   W
-  \vn{ab_multipole}            &   & D &   & X & X &   &   & X & X & X &   \\ \hline 
-  \vn{beambeam}                &   & D &   & X & X &   &   &   &   &   &   \\ \hline 
-  \vn{custom}                  & X &   & X & D & X & X &   &   &   &   &   \\ \hline 
-  \vn{drift}                   & X & D & X & X & X & X &   & X & X & X &   \\ \hline 
-  \vn{ecollimator}             & X & D & X & X & X & X &   & X & X & X &   \\ \hline 
-  \vn{elseparator}             & X & D & X & X & X & X &   & X & X & X &   \\ \hline 
-  \vn{hkicker}                 & X & D & X & X & X & X &   & X & X & X &   \\ \hline 
-  \vn{instrument}              & X & D & X & X & X & X &   & X & X & X &   \\ \hline 
-  \vn{kicker}                  & X & D & X & X & X & X &   & X & X & X &   \\ \hline 
-  \vn{lcavity}                 &   & D &   & X & X &   &   &   &   &   &   \\ \hline 
-  \vn{marker}                  &   & D &   & X & X &   &   & X & X & X &   \\ \hline 
-  \vn{monitor}                 & X & D & X & X & X & X &   & X & X & X &   \\ \hline 
-  \vn{multipole}               &   & D &   & X & X &   &   & X & X & X &   \\ \hline 
-  \vn{octupole}                & X & D & X & X & X & X &   & X & X & X &   \\ \hline
-  \vn{patch}                   &   & D &   & X & X &   &   &   &   &   &   \\ \hline
-  \vn{quadrupole}              & X & D & X & X & X & X &   & X & X & X &   \\ \hline
-  \vn{rbend}                   & X & D & X & X & X & X &   & X & X & X &   \\ \hline
-  \vn{rcollimator}             & X & D & X & X & X & X &   & X & X & X &   \\ \hline
-  \vn{rfcavity}                &   & D &   & X & X &   &   & X & X & X &   \\ \hline
-  \vn{sbend}                   & X & D & X & X & X & X &   & X & X & X &   \\ \hline
-  \vn{sextupole}               & X & D & X & X & X & X &   & X & X & X &   \\ \hline
-  \vn{solenoid}                & X & D & X & X & X & X &   & X & X & X &   \\ \hline
-  \vn{sol_quad}                & X & D & X & X & X & X &   & X & X & X &   \\ \hline
-  \vn{taylor}                  &   & D &   & X & X &   &   &   &   &   &   \\ \hline
-  \vn{vkicker}                 & X & D & X & X & X & X &   & X & X & X &   \\ \hline
-  \vn{wiggler} (periodic type) &   & D &   & X & X &   &   &   &   &   & X \\ \hline
-  \vn{wiggler} (map type)      & X & D & X & X & X & X & X & X & X & X &   \\ \hline
+%                               AB  BS   B   C   L   M  RK  SLB SLP SM   T   W
+  \vn{ab_multipole}            &   & D &   & X & X &   &   &   & X & X & X &   \\ \hline 
+  \vn{beambeam}                &   & D &   & X & X &   &   &   &   &   &   &   \\ \hline 
+  \vn{custom}                  & X &   & X & D & X &   & X &   &   &   &   &   \\ \hline 
+  \vn{drift}                   & X & D & X & X & X & X & X &   & X & X & X &   \\ \hline 
+  \vn{ecollimator}             & X & D & X & X & X &   & X &   & X & X & X &   \\ \hline 
+  \vn{elseparator}             & X & D & X & X & X & X & X &   & X & X & X &   \\ \hline 
+  \vn{hkicker}                 & X & D & X & X & X &   & X &   & X & X & X &   \\ \hline 
+  \vn{instrument}              & X & D & X & X & X &   & X &   & X & X & X &   \\ \hline 
+  \vn{kicker}                  & X & D & X & X & X &   & X &   & X & X & X &   \\ \hline 
+  \vn{lcavity}                 &   & D &   & X & X &   &   &   &   &   &   &   \\ \hline 
+  \vn{marker}                  &   & D &   & X & X &   &   &   & X & X & X &   \\ \hline 
+  \vn{monitor}                 & X & D & X & X & X &   & X &   & X & X & X &   \\ \hline 
+  \vn{multipole}               &   & D &   & X & X &   &   &   & X & X & X &   \\ \hline 
+  \vn{octupole}                & X & D & X & X & X &   & X &   & X & X & X &   \\ \hline
+  \vn{patch}                   &   & D &   & X &   &   &   &   &   &   &   &   \\ \hline
+  \vn{quadrupole}              & X & D & X & X & X & X & X &   & X & X & X &   \\ \hline
+  \vn{rbend}                   & X & D & X & X & X & X & X &   & X & X & X &   \\ \hline
+  \vn{rcollimator}             & X & D & X & X & X &   & X &   & X & X & X &   \\ \hline
+  \vn{rfcavity}                &   & D &   & X & X & X &   &   & X & X & X &   \\ \hline
+  \vn{sbend}                   & X & D & X & X & X & X & X &   & X & X & X &   \\ \hline
+  \vn{sextupole}               & X & D & X & X & X & X & X &   & X & X & X &   \\ \hline
+  \vn{solenoid}                & X & D & X & X & X & X & X &   & X & X & X &   \\ \hline
+  \vn{sol_quad}                & X & D & X & X & X & X & X &   & X & X & X &   \\ \hline
+  \vn{taylor}                  &   & D &   & X & X &   &   &   &   &   &   &   \\ \hline
+  \vn{vkicker}                 & X & D & X & X & X &   & X &   & X & X & X &   \\ \hline
+  \vn{wiggler} (periodic type) &   & D &   & X & X &   &   &   &   &   &   & X \\ \hline
+  \vn{wiggler} (map type)      & X & D & X & X & X &   & X & X & X & X & X &   \\ \hline
 \end{tabular}
 }
 \caption[Table of available {\bf tracking\_method}\ switches for a
@@ -207,6 +211,9 @@ calculation. The default \vn{make_mat6_custom} supplied with the
 \bmad\ release will print an error message and stop the program if it
 is called which probably indicates a program linking problem.
 
+\item[\vn{MAD}]
+This uses the MAD 2nd transfer map.
+
 \item[\vn{Symp\_Lie\_Bmad}]
 A Symplectic calculation using a Hamiltonian with Lie operator techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
@@ -246,38 +253,39 @@ is that it is directly related to any tracking results.
 \rule{0pt}{80pt} &
 \begin{sideways}\vn{Bmad_Standard}\end{sideways} &
 \begin{sideways}\vn{Custom}\end{sideways} &
+\begin{sideways}\vn{MAD}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_Bmad}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_PTC}\end{sideways} &
 \begin{sideways}\vn{Taylor}\end{sideways}
 \\ \hline
-%                               BS   C  SLB SLP  T 
+%                               BS   C   M  SLB SLP  T 
   \vn{ab_multipole}            & D & X &   & X & X \\ \hline 
-  \vn{beambeam}                & D & X &   &   &   \\ \hline 
-  \vn{custom}                  &   & D &   &   &   \\ \hline 
-  \vn{drift}                   & D & X &   & X & X \\ \hline 
-  \vn{ecollimator}             & D & X &   & X & X \\ \hline 
-  \vn{elseparator}             & D & X &   & X & X \\ \hline 
-  \vn{hkicker}                 & D & X &   & X & X \\ \hline 
-  \vn{instrument}              & D & X &   & X & X \\ \hline 
-  \vn{kicker}                  & D & X &   & X & X \\ \hline 
-  \vn{lcavity}                 & D & X &   &   &   \\ \hline 
-  \vn{marker}                  & D & X &   & X & X \\ \hline 
-  \vn{monitor}                 & D & X &   & X & X \\ \hline 
-  \vn{multipole}               & D & X &   & X & X \\ \hline 
-  \vn{octupole}                & D & X &   & X & X \\ \hline
-  \vn{patch}                   & D & X &   &   &   \\ \hline
-  \vn{quadrupole}              & D & X &   & X & X \\ \hline
-  \vn{rbend}                   & D & X &   & X & X \\ \hline
-  \vn{rcollimator}             & D & X &   & X & X \\ \hline
-  \vn{rfcavity}                & D & X &   & X & X \\ \hline
-  \vn{sbend}                   & D & X &   & X & X \\ \hline
-  \vn{sextupole}               & D & X &   & X & X \\ \hline
-  \vn{solenoid}                & D & X &   & X & X \\ \hline
-  \vn{sol_quad}                & D & X &   & X & X \\ \hline
-  \vn{taylor}                  & D & X &   &   &   \\ \hline
-  \vn{vkicker}                 & D & X &   & X & X \\ \hline
-  \vn{wiggler} (periodic type) & D & X &   &   &   \\ \hline
-  \vn{wiggler} (map type)      & D & X & X & X & X \\ \hline
+  \vn{beambeam}                & D & X &   &   &   &   \\ \hline 
+  \vn{custom}                  &   & D &   &   &   &   \\ \hline 
+  \vn{drift}                   & D & X & X &   & X & X \\ \hline 
+  \vn{ecollimator}             & D & X &   &   & X & X \\ \hline 
+  \vn{elseparator}             & D & X & X &   & X & X \\ \hline 
+  \vn{hkicker}                 & D & X &   &   & X & X \\ \hline 
+  \vn{instrument}              & D & X &   &   & X & X \\ \hline 
+  \vn{kicker}                  & D & X &   &   & X & X \\ \hline 
+  \vn{lcavity}                 & D & X &   &   &   &   \\ \hline 
+  \vn{marker}                  & D & X &   &   & X & X \\ \hline 
+  \vn{monitor}                 & D & X &   &   & X & X \\ \hline 
+  \vn{multipole}               & D & X &   &   & X & X \\ \hline 
+  \vn{octupole}                & D & X &   &   & X & X \\ \hline
+  \vn{patch}                   & D & X &   &   &   &   \\ \hline
+  \vn{quadrupole}              & D & X & X &   & X & X \\ \hline
+  \vn{rbend}                   & D & X & X &   & X & X \\ \hline
+  \vn{rcollimator}             & D & X &   &   & X & X \\ \hline
+  \vn{rfcavity}                & D & X & X &   & X & X \\ \hline
+  \vn{sbend}                   & D & X & X &   & X & X \\ \hline
+  \vn{sextupole}               & D & X & X &   & X & X \\ \hline
+  \vn{solenoid}                & D & X & X &   & X & X \\ \hline
+  \vn{sol_quad}                & D & X & X &   & X & X \\ \hline
+  \vn{taylor}                  & D & X &   &   &   &   \\ \hline
+  \vn{vkicker}                 & D & X &   &   & X & X \\ \hline
+  \vn{wiggler} (periodic type) & D & X &   &   &   &   \\ \hline
+  \vn{wiggler} (map type)      & D & X &   & X & X & X \\ \hline
 \end{tabular}
 }
 
