@@ -1102,6 +1102,18 @@ module bmad_interface
   end interface
 
   interface
+    subroutine orbit_amplitude_calc (ele, orb, amp_a, amp_b, &
+                                              amp_na, amp_nb, particle)
+      use bmad_struct, only: ele_struct, coord_struct, rp
+      implicit none
+      type (ele_struct) ele
+      type (coord_struct) orb
+      integer, optional :: particle
+      real(rp), optional :: amp_a, amp_b, amp_na, amp_nb
+    end subroutine
+  end interface
+
+  interface
     subroutine set_design_linear (ring)
       use bmad_struct, only: ring_struct
       implicit none
