@@ -1,30 +1,33 @@
 !+
-! Subroutine TWISS_PROPAGATE1 (ELE1, ELE2)
+! Subroutine twiss_propagate1 (ele1, ele2)
 !
 ! Subroutine to propagate the twiss parameters from the end of ELE1 to
 ! the end of ELE2.
+!
+! Note: ele%x Twiss parameters are associated with the "A" mode and
+! the ele%y Twiss parameters are associated with the "B" mode.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!   ELE1        -- Ele_struct: Structure holding the starting Twiss parameters.
-!   ELE2        -- Ele_struct: Structure holding the transfer matrix.
-!   BMAD_STATUS -- Common block status structure
-!       %TYPE_OUT -- Logical: If .true. then will type a message if the
-!                    modes are flipped.
+!   ele1        -- Ele_struct: Structure holding the starting Twiss parameters.
+!   ele2        -- Ele_struct: Structure holding the transfer matrix.
+!   bmad_status -- Common block status structure:
+!       %type_out -- If True then will type a message if the modes are flipped.
+!       %exit_on_error -- If True then stop if there is an error.
 !
 ! Output:
-!   ELE2   -- Ele_struct: Structure for the ending Twiss parameters.
-!
-! Note:
-!
-! Note: ELE%X Twiss parameters are associated with the "A" mode and
-! the ELE%Y Twiss parameters are associated with the "B" mode.
+!   ele2   -- Ele_struct: Structure for the ending Twiss parameters.
+!   bmad_status -- Common block status structure:
+!       %ok         -- Set False if an input beta is zero
 !-
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/03/18 20:37:40  dcs
+!Added code for beta = 0 error.
+!
 !Revision 1.6  2003/03/04 16:03:30  dcs
 !VMS port
 !
@@ -43,8 +46,6 @@
 
 #include "CESR_platform.inc"
 
-
-
 subroutine twiss_propagate1 (ele1, ele2)
 
   use bmad_struct
@@ -60,8 +61,16 @@ subroutine twiss_propagate1 (ele1, ele2)
   real(rdef) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
   real(rdef) mat2(2,2), vec(4)
 
+!---------------------------------------------------------------------
 ! init
 ! ELE_TEMP needs the element length for the betatron phase calculation
+
+  if (ele1%x%beta == 0 .or. ele1%y%beta == 0) then
+    print *, 'ERROR IN TWISS_PROPAGATE1: ZERO BETA DETECTED.'
+    if (bmad_status%exit_on_error) call err_exit
+    bmad_status%ok = .false.
+    return
+  endif
 
   ele2%mode_flip = ele1%mode_flip          ! assume no flip
   ele_temp%value(l$) = ele2%value(l$)
