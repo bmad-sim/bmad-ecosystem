@@ -477,9 +477,6 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
   inquire (file = xsif_file, name = full_name) 
   ring%input_file_name = full_name    
 
-  call set_taylor_order (ring%input_taylor_order, .false.)
-  call set_ptc (ring%param)
-
   ring%name = ' '
   ring%lattice = ' '
 
@@ -493,6 +490,9 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
   ring%n_ic_max           = 0                     
   ring%n_control_max      = 0    
   ring%param%beam_energy = ring%ele_(0)%value(beam_energy$)
+
+  call set_taylor_order (ring%input_taylor_order, .false.)
+  call set_ptc (ring%param)
 
 ! Element cleanup
 
