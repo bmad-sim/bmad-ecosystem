@@ -80,7 +80,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   param_ele%value(lattice_type$) = ring%param%lattice_type
   param_ele%value(beam_energy$)  = 0
   param_ele%value(taylor_order$) = ring%input_taylor_order
-  param_ele%value(charge$)       = ring%param%charge
+  param_ele%value(n_part$)       = ring%param%n_part
 
 !-----------------------------------------------------------
 ! main parsing loop
@@ -370,8 +370,6 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   bp_com%input_line_meaningful = .false.
 
   ring%param%particle    = nint(beam_ele%value(particle$))
-  ring%param%n_part      = beam_ele%value(n_part$)
-  ring%param%charge      = param_ele%value(charge$)
   ring%param%lattice_type = nint(param_ele%value(lattice_type$))
   ring%input_taylor_order = nint(param_ele%value(taylor_order$))
 
@@ -379,6 +377,12 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
     ring%ele_(0)%value(beam_energy$) = beam_ele%value(energy_gev$) * 1e9
   elseif (param_ele%value(beam_energy$) /= 0) then
     ring%ele_(0)%value(beam_energy$) = param_ele%value(beam_energy$)
+  endif
+
+  if (ring%param%n_part /= param_ele%value(n_part$)) then
+    ring%param%n_part = param_ele%value(n_part$)
+  else
+    ring%param%n_part = beam_ele%value(n_part$)
   endif
 
 ! Transfer the new elements to a safe_place

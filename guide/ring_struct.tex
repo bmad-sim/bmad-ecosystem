@@ -88,7 +88,6 @@ Figure~\ref{f:param_struct}
 \begin{verbatim}
   type param_struct
     real(rp) n_part             ! Particles/bunch (for BeamBeam elements).
-    real(rp) charge             ! Macroparticle charge (used by LCavities).
     real(rp) total_length       ! total_length of lattice
     real(rp) growth_rate        ! growth rate/turn if not stable
     real(rp) t1_with_RF(6,6)    ! Full 1-turn 6x6 matrix
@@ -110,10 +109,8 @@ Figure~\ref{f:param_struct}
 \index{Param_struct!%n_part}
 \vn{%param%n_part} is the number of particles in a bunch and is used
 by \vnec{BeamBeam} element to determine the strength of the beambeam
-interaction. \vn{%param%charge} is the charge of a particle or
-macroparticle and is used by \vnec{Lcavity} elements for wakefield
-calculations. The two variables are independent and setting one will not
-affect the other. 
+interaction. \vn{%param%n_part} is also used by \vnec{Lcavity} elements for wakefield
+calculations. 
 
 \index{Param_struct!%lost}
 \index{Param_struct!%end_lost_at}

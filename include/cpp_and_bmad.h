@@ -378,7 +378,7 @@ class param_struct {};
 class C_param {
 public:
   double n_part;            // Particles/bunch (for BeamBeam elements).
-  double charge;            // Charge of a bunch (used by LCavities).
+  double garbage;           // Placeholder doing nothing.
   double total_length;      // total_length of ring
   double growth_rate;       // growth rate/turn if not stable
   Real_Matrix t1_with_RF;   // Full 1-turn matrix with RF on.
@@ -393,7 +393,7 @@ public:
   bool aperture_limit_on;   // use apertures in tracking?
   bool lost;                // for use in tracking
 
-  C_param () : n_part(0), charge(0), total_length(0), growth_rate(0),
+  C_param () : n_part(0), garbage(0), total_length(0), growth_rate(0),
       t1_with_RF(V6_array, 6), t1_no_RF(V6_array, 6), 
       particle(0), ix_lost(0), end_lost_at(0), lattice_type(0), ixx(0),
       ran_seed(0), stable(1), aperture_limit_on(1), lost(0) {}
@@ -401,7 +401,7 @@ public:
   C_param (double np, double ch, double tl, double gr, Real_Matrix t1w,
     Real_Matrix t1n, int pa, int il, int ela, int lt, int ix, 
     int st, int r_seed, int alo, int lo) :
-        n_part(np), charge(ch), total_length(tl), growth_rate(gr),
+        n_part(np), garbage(ch), total_length(tl), growth_rate(gr),
         t1_with_RF(t1w), t1_no_RF(t1n), particle(pa), 
         ix_lost(il), end_lost_at(ela), lattice_type(lt), ixx(ix),
         ran_seed(r_seed), stable(st), aperture_limit_on(alo), lost(lo) {}

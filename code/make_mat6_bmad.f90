@@ -439,7 +439,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       if (bmad_com%grad_loss_sr_wake /= 0) then  ! use grad_loss_sr_wake and ignore e_loss
         gradient = gradient - bmad_com%grad_loss_sr_wake
       else
-        gradient = gradient - ele%value(e_loss$) * param%charge / length
+        gradient = gradient - ele%value(e_loss$) * param%n_part * &
+                                                       e_charge / length
       endif
     endif
 

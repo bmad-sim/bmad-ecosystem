@@ -248,7 +248,7 @@ logical is_eq
 
 !
 
-is_eq = (f1%n_part == f2%n_part) .and. (f1%charge == f2%charge) .and. &
+is_eq = (f1%n_part == f2%n_part) .and. (f1%garbage == f2%garbage) .and. &
      (f1%total_length == f2%total_length) .and. &
      (f1%growth_rate == f2%growth_rate) .and. &
      all(f1%t1_with_RF == f2%t1_with_RF) .and. &

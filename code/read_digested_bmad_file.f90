@@ -161,7 +161,6 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
           ring%n_ele_ring, ring%n_ele_max, &
           ring%n_control_max, ring%n_ic_max, ring%input_taylor_order
     ring%param%n_part            = old_param%n_part
-    ring%param%charge            = old_param%charge
     ring%param%total_length      = old_param%total_length
     ring%param%growth_rate       = old_param%growth_rate
     ring%param%t1_with_RF(6,6)   = old_param%t1_with_RF(6,6)

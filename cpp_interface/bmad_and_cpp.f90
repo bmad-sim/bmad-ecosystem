@@ -990,7 +990,7 @@ type (c_dummy_struct) c_param
 
 f => f_param
 
-call param_to_c2 (c_param, f%n_part, f%charge, f%total_length, f%growth_rate, &
+call param_to_c2 (c_param, f%n_part, f%garbage, f%total_length, f%growth_rate, &
       mat2arr(f%t1_with_RF), mat2arr(f%t1_no_RF), &
       f%particle, f%ix_lost, f%end_lost_at, f%lattice_type, &
       f%ixx, f%ran_seed, c_logic(f%stable), c_logic(f%aperture_limit_on), c_logic(f%lost))
@@ -1000,7 +1000,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine param_to_f2 (f_param, n_part, charge, total_length, &
+! Subroutine param_to_f2 (f_param, n_part, garbage, total_length, &
 !      growth_rate, m1, m2, particle, ix_lost, end_lost_at, &
 !      lat_type, ixx, ran_seed, stable, ap_limit_on, lost)
 !
@@ -1008,7 +1008,7 @@ end subroutine
 ! a Bmad param_struct. This routine is not for general use.
 !-
 
-subroutine param_to_f2 (f_param, n_part, charge, total_length, &
+subroutine param_to_f2 (f_param, n_part, garbage, total_length, &
       growth_rate, m1, m2, particle, ix_lost, end_lost_at, &
       lat_type, ixx, ran_seed, stable, ap_limit_on, lost) 
 
@@ -1017,12 +1017,12 @@ use bmad_and_cpp
 implicit none
 
 type (param_struct) f_param
-real(rp) n_part, charge, total_length, growth_rate
+real(rp) n_part, garbage, total_length, growth_rate
 real(rp) m1(36), m2(36)
 integer particle, ix_lost, end_lost_at, lat_type, ixx, stable, &
         ap_limit_on, lost, ran_seed
 
-f_param = param_struct(0.0_rp, n_part, charge, total_length, growth_rate, &
+f_param = param_struct(0.0_rp, n_part, garbage, total_length, growth_rate, &
       arr2mat(m1, 6, 6), arr2mat(m2, 6, 6), particle, ix_lost, end_lost_at, &
       lat_type, ixx, ran_seed, f_logic(stable), f_logic(ap_limit_on), &
       f_logic(lost))

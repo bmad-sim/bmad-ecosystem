@@ -109,7 +109,7 @@ bool operator== (const C_control& x, const C_control& y) {
 }
 
 bool operator== (const C_param& x, const C_param& y) {
-  return (x.n_part == y.n_part) && (x.charge == y.charge) && 
+  return (x.n_part == y.n_part) && (x.garbage == y.garbage) && 
          (x.total_length == y.total_length) && 
          (x.growth_rate == y.growth_rate) &&
          is_all_true(x.t1_with_RF, y.t1_with_RF) && 

@@ -806,8 +806,6 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   ring%version            = bmad_inc_version$
   ring%input_file_name    = full_name             ! save input file
   ring%param%particle     = nint(beam_ele%value(particle$))
-  ring%param%n_part       = beam_ele%value(n_part$)
-  ring%param%charge       = param_ele%value(charge$)
   ring%n_ele_use          = n_ele_use
   ring%n_ele_ring         = n_ele_use
   ring%n_ele_max          = n_ele_use
@@ -816,6 +814,14 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   ring%n_control_max      = 0    
 
   ring%ele_(0) = in_ring%ele_(0)    ! Beginning element
+
+  if (beam_ele%value(n_part$) /= 0 .and. param_ele%value(n_part$) /= 0) then
+    call warning ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
+  elseif (beam_ele%value(n_part$) /= 0) then
+    ring%param%n_part = beam_ele%value(n_part$)
+  else
+    ring%param%n_part = param_ele%value(n_part$)
+  endif
 
 ! New way of doing things
 

@@ -165,9 +165,9 @@ module bmad_struct
 ! parameter and mode structures
 
   type param_struct
-    real(rp) garbage            ! Saved for future use.
+    real(rp) garbage2           ! Saved for future use.
     real(rp) n_part             ! Particles/bunch (for BeamBeam elements).
-    real(rp) charge             ! Charge of a bunch (used by LCavities).
+    real(rp) garbage            ! Saved for future use.
     real(rp) total_length       ! total_length of ring
     real(rp) growth_rate        ! growth rate/turn if not stable
     real(rp) t1_with_RF(6,6)    ! Full 1-turn matrix with RF on.

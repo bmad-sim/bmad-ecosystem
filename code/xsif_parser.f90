@@ -472,7 +472,6 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
     end select
 
     ring%param%n_part = pdata(dat_indx+14)
-!!    ring%param%charge = pdata(dat_indx+2) * e_charge
 
     if (pdata(dat_indx+3) /= 0) ele%value(beam_energy$) = &
                                                   pdata(dat_indx+3) * 1e9
@@ -491,7 +490,6 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
   ring%n_ele_max  = i_ele
 
   ring%version            = bmad_inc_version$
-  ring%param%charge       = 0
   ring%param%aperture_limit_on  = .true.
   ring%n_ic_max           = 0                     
   ring%n_control_max      = 0    

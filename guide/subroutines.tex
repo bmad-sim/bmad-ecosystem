@@ -40,12 +40,11 @@ general interest.
  	Overload Equal Sign Routines.           & \ref{r:equal}      \\ \hline
  	Linac Stuff (out of date)               & \ref{r:linac}      \\ \hline
  	CESR Specific                           & \ref{r:cesr}       \\ \hline
- 	Obsolete                                & \ref{r:obs}        \\ \hline \hline
   Quick Plot                              & \ref{r:qp}         \\ \hline
   Nonlinear Optimizers                    & \ref{r:opti}       \\ \hline
-  Matrix Routines in DCSLIB               & \ref{r:dcs_matrix} \\ \hline
   Miscellaneous DCSLIB Routines           & \ref{r:dcs_misc}   \\ \hline
-\end{tabular}
+ 	Obsolete                                & \ref{r:obs}        \\ \hline
+ 	\end{tabular}
 \end{center}
 \toffset
 
@@ -200,8 +199,18 @@ coords and vice versa.
 Subroutine to form a first order Taylor map from the 6x6 transfer matrix 
 and the 0th order transfer vector. 
 
+\item[mat\_det (mat, det)] \Newline 
+     Subroutine to take the determinant of a square matrix
+
 \item[mat\_inverse (mat, mat\_inv)] \Newline
 Suroutine to take the inverse of a square matrix. 
+
+\item[mat\_make\_unit (mat)] \Newline 
+     routine to create a unit matrix.
+
+\item[mat\_rotation (mat, angle, bet\_1, bet\_2, alph\_1, alph\_2)] \Newline 
+     Subroutine to construct a 2x2 rotation matrix for translation from
+     point 1 to point 2.
 
 \item[mat\_symplectify (mat\_in, mat\_symp)] \Newline
 Subroutine to form a symplectic matrix that is approimately equal to the input matrix. 
@@ -212,6 +221,9 @@ Subroutine to check the symplecticity of a square matrix
 \item[mat\_symp\_decouple (t0, tol, stat, u, v, ubar, vbar, g, twiss1, twiss2, type\_out)] \Newline
 Subroutine to find the symplectic eigen--modes of the one turn 4x4 coupled 
 transfer matrix T0. 
+
+\item[mat\_type (mat, nunit, header)] \Newline 
+     Subroutine to output matrices to the terminal or to a file
 
 \item[match\_ele\_to\_mat6 (ele, mat6, vec0)] \Newline 
 Subroutine to make the 6 x 6 transfer matrix from the twiss parameters.
@@ -830,17 +842,17 @@ Subroutine to write a Bmad taylor map in a nice format to a character array.
 
 \begin{description}
 
-\item[calc\_bunch\_centroid (bunch, params)] \NewLine
+\item[calc\_bunch\_centroid (bunch, params)] \Newline
 Subroutine to calculate bunch centroid and total charge excluding lost
 macroparticles.
 
-\item[calc\_bunch\_dpz\_dz (bunch, params, calc\_centroid)] \NewLine
+\item[calc\_bunch\_dpz\_dz (bunch, params, calc\_centroid)] \Newline
 Subroutine to calculate bunch energy-Z correlation.
 
-\item[calc\_bunch\_params (bunch, ele, params)] \NewLine
+\item[calc\_bunch\_params (bunch, ele, params)] \Newline
 Subroutine to calculate various beam characteristics from a bunch.
 
-\item[calc\_bunch\_sigma (bunch, params, calc\_centroid)] \NewLine
+\item[calc\_bunch\_sigma (bunch, params, calc\_centroid)] \Newline
 Subrouine to calculate bunch sigmas.
 
 \item[calc\_bunch\_twiss\_and\_emittance (bunch, ele, params, calc\_centroid)] \Newline 
@@ -1335,26 +1347,6 @@ Subroutine to return the calibration constants for the CESR quads.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Obsolete}
-\label{r:obs}      
-
-\begin{description}
-
-\item[closed\_orbit\_at\_start (ring, co, i\_dim, iterate)] \Newline
-Subroutine to calculate the closed orbit at the beginning of the ring. 
-
-\item[mat\_unit (mat, size, psize)] \Newline 
-Routine to create a unit matrix.
-
-\item[set\_on (key, ring, on\_switch, orb\_)] \Newline
-Subroutine to turn on or off a set of elements (quadrupoles, rfcavities, etc.) in a ring. 
-
-\item[twiss\_at\_s (ring, s, ele)] \Newline
-Obsolete. Use twiss\_and\_track\_at\_s instead. 
-
-\end{description}
-
-%------------------------------------------------------------------------
 \section{Quick Plot Routines}
 \label{r:qp}      
 
@@ -1670,27 +1662,6 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Matrix Routines in DCSLIB}
-\label{r:dcs_matrix}      
-
-\begin{description}
-
-\item[mat\_det (mat, det)] \Newline 
-     Subroutine to take the determinant of a square matrix
-
-\item[mat\_make\_unit (mat)] \Newline 
-     routine to create a unit matrix.
-
-\item[mat\_rotation (mat, angle, bet\_1, bet\_2, alph\_1, alph\_2)] \Newline 
-     Subroutine to construct a 2x2 rotation matrix for translation from
-     point 1 to point 2.
-
-\item[mat\_type (mat, nunit, header)] \Newline 
-     Subroutine to output matrices to the terminal or to a file
-
-\end{description}
-
-%------------------------------------------------------------------------
 \section{Miscellaneous DCSLIB Routines}
 \label{r:dcs_misc}      
 
@@ -1759,3 +1730,24 @@ This subroutine computes the semi-hermite cubic spline developed by akima
 Subroutine to evaluate a spline at a set of points.
 
 \end{description}
+
+%------------------------------------------------------------------------
+\section{Obsolete}
+\label{r:obs}      
+
+\begin{description}
+
+\item[closed\_orbit\_at\_start (ring, co, i\_dim, iterate)] \Newline
+Subroutine to calculate the closed orbit at the beginning of the ring. 
+
+\item[mat\_unit (mat, size, psize)] \Newline 
+Routine to create a unit matrix.
+
+\item[set\_on (key, ring, on\_switch, orb\_)] \Newline
+Subroutine to turn on or off a set of elements (quadrupoles, rfcavities, etc.) in a ring. 
+
+\item[twiss\_at\_s (ring, s, ele)] \Newline
+Obsolete. Use twiss\_and\_track\_at\_s instead. 
+
+\end{description}
+

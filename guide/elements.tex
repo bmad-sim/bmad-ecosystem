@@ -706,7 +706,8 @@ The dependent variable \vn{delta_e} attribute can be used in place of
 
 The kick felt by a particle is 
 \begin{example}
-  dE = gradient * L * cos(twopi * (phi - z * rf_frequency / c_light)) - e_loss * charge
+  dE = gradient * L * cos(twopi * (phi - z * rf_frequency / c_light)) - 
+                                                   e_loss * n_part * e_charge 
 \end{example}
 This is consistent with MAD and LIAR. Note: The MAD8 documentation 
 for an \vn{Lcavity} has a wrong sign. Essentially the MAD8 documentation gives
@@ -714,13 +715,13 @@ for an \vn{Lcavity} has a wrong sign. Essentially the MAD8 documentation gives
   dE = gradient * L * cos(twopi * (phi + z * rf_frequency / c_light)) ! WRONG
 \end{example}
 This is incorrect. The \vn{e_loss} attribute represents the energy loss due to 
-short--range wakefields. \vn{charge} is set using the \vn{parameter} statement 
-(\sref{s:param}) and represents the charge of a bunch. 
+short--range wakefields. \vn{n_part} is set using the \vn{parameter} statement 
+(\sref{s:param}) and represents the number of particles in a bunch. 
 
 The energy change of the reference particle is just the energy change for a 
 particle with $z = 0$. Thus
 \begin{example}
-  dE(reference) = gradient * L * cos(twopi * phi) - e_loss * charge
+  dE(reference) = gradient * L * cos(twopi * phi) - e_loss * n_part * e_charge
 \end{example}
 
 \index{Clone}
@@ -1228,7 +1229,7 @@ field is given by a sum of terms as outlined in
 Section~\ref{s:wiggler_phys}.
 
 For the "periodic" type wigglers the attributes are: 
-\begin{example}	
+\begin{example}  
   \vn{b_max}  ! Maximum magnetic field (in T) on the wiggler centerline. 
   \vn{n_pole} ! The number of poles. The period is then L / (2 * N_POLE). 
 \end{example}

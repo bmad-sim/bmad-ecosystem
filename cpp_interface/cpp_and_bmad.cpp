@@ -376,7 +376,7 @@ extern "C" void param_to_f_(C_param& c, param_struct* f) {
   double arr1[36], arr2[36];
   matrix_to_array (c.t1_with_RF, arr1);
   matrix_to_array (c.t1_no_RF, arr2);
-  param_to_f2_(f, c.n_part, c.charge, c.total_length, c.growth_rate,
+  param_to_f2_(f, c.n_part, c.garbage, c.total_length, c.growth_rate,
       arr1, arr2, c.particle, c.ix_lost, c.end_lost_at,
       c.lattice_type, c.ixx, c.ran_seed, c.stable, c.aperture_limit_on, c.lost);
 }
