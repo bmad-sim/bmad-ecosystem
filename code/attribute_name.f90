@@ -139,6 +139,7 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(def_beam$, n_part$)     = 'N_PART'
 
     attrib_array(taylor$, symplectify$) = 'SYMPLECTIFY'
+    attrib_array(taylor$, l$)           = 'L'
 
     attrib_array(match$, l$)             = 'L'
     attrib_array(match$, beta_x0$)       = 'BETA_X0'
@@ -268,6 +269,7 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(bend_sol_quad$, radius$)     = 'RADIUS'
     attrib_array(bend_sol_quad$, field_calc$) = 'FIELD_CALC'
 
+    attrib_array(patch$, l$)          = 'L'
     attrib_array(patch$, x_pitch$)    = 'X_PITCH'
     attrib_array(patch$, y_pitch$)    = 'Y_PITCH'
     attrib_array(patch$, x_offset$)   = 'X_OFFSET'
@@ -275,7 +277,6 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(patch$, z_offset$)   = 'Z_OFFSET'
     attrib_array(patch$, dE_offset$)  = 'DE_OFFSET'
     attrib_array(patch$, tilt$)       = 'TILT'
-
 
     attrib_array(rbend$, l$)          = 'L'
     attrib_array(rbend$, angle$)      = 'ANGLE'
