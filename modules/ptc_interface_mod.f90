@@ -1242,6 +1242,7 @@ subroutine taylor_inverse (taylor_in, taylor_inv)
 
   call kill (da)
   call kill (y)
+  call kill (yc)
   call kill_taylor (tlr)
 
 end subroutine
