@@ -48,7 +48,7 @@ subroutine twiss_at_start (ring)
   type (ring_struct)  ring
 
   real(rp) eta_vec(4), t0_4(4,4), mat6(6,6)
-  real(rp) flip_mat(4,4), t_e(4,4), t_w_inv(4,4)
+  real(rp), save :: flip_mat(4,4), t_e(4,4), t_w_inv(4,4)
 
   integer i, j, n
 
