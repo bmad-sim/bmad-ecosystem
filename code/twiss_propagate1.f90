@@ -217,7 +217,7 @@ subroutine twiss_decoupled_propagate (ele1, ele2)
   g2 =  (1 + a2**2) /b2
 
   del_phi = atan2(m12, m11*b1 - m12*a1)
-  if (del_phi < 0 .and. ele2%value(l$) >= 0) del_phi = del_phi + twopi
+  if (del_phi < 0 .and. ele2%value(l$) > 0) del_phi = del_phi + twopi
   if (del_phi > 0 .and. ele2%value(l$) < 0) del_phi = del_phi - twopi
 
   if (ele2%mode_flip .eqv. ele1%mode_flip) then
@@ -253,7 +253,7 @@ subroutine twiss_decoupled_propagate (ele1, ele2)
   g2 =  (1 + a2**2) /b2
 
   del_phi = atan2(m12, m11*b1 - m12*a1)
-  if (del_phi < 0 .and. ele2%value(l$) >= 0) del_phi = del_phi + twopi
+  if (del_phi < 0 .and. ele2%value(l$) > 0) del_phi = del_phi + twopi
   if (del_phi > 0 .and. ele2%value(l$) < 0) del_phi = del_phi - twopi
 
   if (ele2%mode_flip .eqv. ele1%mode_flip) then
