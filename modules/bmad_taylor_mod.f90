@@ -140,7 +140,17 @@ subroutine type2_taylors (bmad_taylor, lines, n_lines)
   character*80, pointer :: lines(:)
   character*40, fmt1, fmt2, fmt
 
-!
+! If not allocated then not much to do
+
+  if (.not. associated(bmad_taylor(1))) then
+    n_lines = 2
+    allocate (lines(n_lines))
+    lines(1) = '---------------------------------------------------'
+    lines(2) = 'Taylor Series Does Not Exist.' 
+    return
+  endif
+
+! Normal case
 
   deallocate (lines, stat = ix)
   n_lines = 8 + sum( (/ (size(bmad_taylor(i)%term), i = 1, 6) /) )
@@ -157,8 +167,7 @@ subroutine type2_taylors (bmad_taylor, lines, n_lines)
   fmt2 = '(i4, a, 1p, e20.11, 0p, 6i3, i9, f18.9)'
 
   do i = 1, 6
-    write (lines(nl+1), *) &
-                      '---------------------------------------------------'
+    lines(nl+1) = '---------------------------------------------------'
     nl = nl + 1
 
     nullify (tlr%term)
