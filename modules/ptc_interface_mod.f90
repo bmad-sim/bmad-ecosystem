@@ -441,10 +441,13 @@ end subroutine
 !                     Default = 2
 !   num_steps    -- Integer, optional: Default Number of integration steps.
 !                     Default = 1
-!   no_cavity    -- Logical, optional: RF Cavity exists? 
+!   no_cavity    -- Logical, optional: No RF Cavity exists? 
 !                     Default = False.
+!                     Corresponds to the nocavity option of the PTC init routine.
+!                     Do not set this unless you know what you are doing.
 !   exact_calc   -- logical, optional: Exact Model? 
 !                     Default = False.
+!                     See the PTC guide for more details.
 !-
 
 subroutine set_ptc (param, taylor_order, integ_order, &

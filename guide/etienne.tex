@@ -29,11 +29,36 @@ calculational part that does normal form analysis Twiss parameters
 ability, which \bmad\ does not take advantage of, to define ``knobs''
 which means that the Taylor map can be a function of the phase space
 coordinates plus other variables (for example the strength of a
-quadrupole). The list goes on.
+quadrupole). The list goes on. 
 
+\bmad\ has been structured so that ``normally'' a programmer will not have
+to deal with PTC (in general when PTC is writen it is meant PTC in
+conjunction with FPP) subroutines directly. If there is a need to
+call PTC then it must be kept in mind that PTC uses different
+longitudinal phase space coordinates.
+\bmad's phase space coordinates are
+\Begineq
+  (x, p_x, y, p_y, z, p_z)
+\Endeq
+PTC uses
+\Begineq
+  (x, p_x, y, p_y, p_z, ct \sim -z)
+\Endeq
+\vn{vec_bmad_to_ptc} and \vn{vec_ptc_to_bmad} are conversion routines
+that translate between the two. Actually there are a number of
+conversion routines that translate between \bmad\ and PTC
+structures. See Section~\ref{r:ptc} for more details.
 
-Of fundamental importance in
-the calculations is
+One important parameter in PTC is the order of the Taylor maps.
+By default \bmad\ will set this to 3. The order can be set within
+a lattice file using the \vn{parameter[taylor_order]} attribute.
+In a program the order can be set using \vn{set_ptc}. In fact
+\vn{set_ptc} must be called by a program before PTC can be used.
+\vn{bmad_parser} will do this when reading in a lattice file.
+That is, if a program does not use \vn{bmad_parser} then to use PTC it
+must call \vn{set_ptc}. Note that resetting PTC to a different order
+reinitializes PTC's internal memory so one must be careful if one wants
+to change the order in mid program.
 
 
 
