@@ -45,6 +45,7 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
   integer i_ele, ix_attrib, i, ir, ix
 
   character*(*) attrib_name
+  character(16) a_name
 
   logical err_flag, do_allocation, do_print
   logical, optional :: err_print_flag
@@ -59,8 +60,10 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
 
 ! Init_ele is special in that its attributes go in special places.
 
+  call str_upcase (a_name, attrib_name)
+
   if (ele%key == init_ele$) then
-    select case (attrib_name)
+    select case (a_name)
     case ('X_POSITION')
       ptr_attrib => ele%position%x
     case ('Y_POSITION')
@@ -108,7 +111,7 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
     case default
       if (do_print) then
         print *, 'ERROR IN POINTER_TO_ATTRIBUTE: BAD ATTRIBTE NAME: ', &
-                                                               attrib_name
+                                                               a_name
         print *, '      FOR: ', trim(ele%name)
         return
       endif
@@ -119,7 +122,7 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
 
 ! Get attribute index
 
-  ix_attrib = attribute_index (ele, attrib_name)
+  ix_attrib = attribute_index (ele, a_name)
 
 ! multipole?
 
@@ -144,7 +147,7 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
 
   elseif (ix_attrib < 1 .or. ix_attrib > n_attrib_maxx) then
     if (do_print) then
-      print *, 'ERROR IN POINTER_TO_ATTRIBUTE: INVALID ATTRIBUTE: ', attrib_name
+      print *, 'ERROR IN POINTER_TO_ATTRIBUTE: INVALID ATTRIBUTE: ', a_name
       print *, '      FOR THIS ELEMENT: ', ele%name
     endif
     return
