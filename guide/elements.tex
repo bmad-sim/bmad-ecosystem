@@ -610,10 +610,10 @@ the total tilt is stored in \vn{%value(tilt_tot\$)}, etc.
   rel\_tol = Real       & \ref{s:integ}  & alias = String   & \ref{s:string} & mat6\_calc\_method = Switch  & \ref{s:xfer}   \\ \hline
   abs\_tol = Real       & \ref{s:integ}  & descrip = String & \ref{s:string} & aperture\_at = Switch        & \ref{s:limit}  \\ \hline
   num\_steps = Integer  & \ref{s:integ}  & x\_limit = Real  & \ref{s:limit}  & symplectify = Logical        & \ref{s:symp}   \\ \hline
-  x_offset = Real       & \ref{s:offset} & y\_limit = Real  & \ref{s:limit}  & integration\_ord = Integer   & \ref{s:integ}  \\ \hline
-  y_offset = Real       & \ref{s:offset} & aperture = Real  & \ref{s:limit}  & field\_calc = Switch         & \ref{s:integ}  \\ \hline
-  x_pitch  = Real       & \ref{s:offset} & is\_on = Logical & \ref{s:is_on}  & beam\_energy$^*$             & \ref{s:energy} \\ \hline 
-  y_pitch  = Real       & \ref{s:offset} &                  &                & p0c$^*$                      & \ref{s:energy} \\ \hline
+  x\_offset = Real      & \ref{s:offset} & y\_limit = Real  & \ref{s:limit}  & integration\_ord = Integer   & \ref{s:integ}  \\ \hline
+  y\_offset = Real      & \ref{s:offset} & aperture = Real  & \ref{s:limit}  & field\_calc = Switch         & \ref{s:integ}  \\ \hline
+  x\_pitch  = Real      & \ref{s:offset} & is\_on = Logical & \ref{s:is_on}  & beam\_energy$^*$             & \ref{s:energy} \\ \hline 
+  y\_pitch  = Real      & \ref{s:offset} &                  &                & p0c$^*$                      & \ref{s:energy} \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
 \end{center}
@@ -836,8 +836,8 @@ Example:
   {\sl Attribute} & \S  & {\sl Attribute} & \S & {\sl Attribute} & \S \\ \hline
   tracking\_method = Switch    & \ref{s:tkm}    &  type = String    & \ref{s:string} & x\_limit = Real       & \ref{s:limit}  \\ \hline 
   mat6\_calc\_method = Switch  & \ref{s:xfer}   &  alias = String   & \ref{s:string} & y\_limit = Real       & \ref{s:limit}  \\ \hline 
-  x_offset = Real              & \ref{s:energy} &  descrip = String & \ref{s:string} & aperture = Real       & \ref{s:limit}  \\ \hline 
-  y_offset = Real              & \ref{s:energy} &  is\_on = Logical & \ref{s:is_on}  & aperture\_at = Switch & \ref{s:limit}  \\ \hline
+  x\_offset = Real             & \ref{s:energy} &  descrip = String & \ref{s:string} & aperture = Real       & \ref{s:limit}  \\ \hline 
+  y\_offset = Real             & \ref{s:energy} &  is\_on = Logical & \ref{s:is_on}  & aperture\_at = Switch & \ref{s:limit}  \\ \hline
                                &                & p0c$^*$           & \ref{s:energy} & beam\_energy$^*$      & \ref{s:energy} \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
