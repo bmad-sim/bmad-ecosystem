@@ -95,7 +95,7 @@ module bmad_parser_mod
 
 !
 
-  type pcom_struct
+  type bp_com_struct
     integer i_line, f_unit, n_files
     character*200 current_file_name, file_name_(20)
     character*280 parse_line
@@ -107,7 +107,7 @@ module bmad_parser_mod
 
 ! common stuff
 
-  type (pcom_struct)  pcom
+  type (bp_com_struct)  bp_com
   type (parser_var_struct)  var_(ivar_maxx)
 
   character*16 :: blank = ' '
@@ -149,7 +149,7 @@ subroutine get_attribute (how, ele, ring, pring, &
 
     call get_next_word (str, ix_word, '}', delim, delim_found, .true.)
     str = trim(str) // delim
-    pcom%parse_line = str // pcom%parse_line
+    bp_com%parse_line = str // bp_com%parse_line
 
     call get_next_word (word, ix_word, ',{}', delim, delim_found, .true.)
     if (delim /= '{' .or. ix_word /= 0) then
@@ -431,54 +431,6 @@ subroutine get_attribute (how, ele, ring, pring, &
 
   endif
 
-! multipole attribute
-
- if (i == a$ .or. i == b$ .or. i == kl$ .or. i == t$) then
-
-    err_flag = .true. ! assume the worst
-
-    if (delim /= '(') then   ! ) then
-      call warning ('MULTIPOLE TERM DOES NOT HAVE A "(" FOR: ' // ele%name)
-      return
-    endif
-
-    call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.) ! (
-    if (delim /= ')') then
-      call warning ('MULTIPOLE TERM DOES NOT HAVE A ")" FOR: ' // ele%name)
-      return
-    endif
-
-    read (word, *, iostat = ios) ix
-    if (ix < 0 .or. ix > n_pole_maxx .or. ios /= 0) then
-      call warning ('BAD NUMBER FOR A MULTIPOLE TERM FOR: ' // ele%name)
-      return
-    endif
-
-    write (str_ix, '(2a, i2, a)') trim(attribute_name(ele, i)), "(",  ix, ")"
-
-! chop "="
-
-    call get_next_word (word, ix_word1, ':,=()', delim1, delim_found, .true.)  
-     if (delim1 /= '=' .or. ix_word1 /= 0) then
-      call warning ('CONFUSED MULTIPOLE TERM FOR: ' // ele%name, str_ix)
-      return
-    endif
-
-    call evaluate_value (trim(ele%name) // ' ' // str_ix, value, &
-                                ring, delim, delim_found, err_flag)
-    if (err_flag) return
-
-    if (.not. associated(ele%a)) &
-                  allocate (ele%a(0:n_pole_maxx), ele%b(0:n_pole_maxx))
-    if (i == a$ .or. i == kl$) then
-      ele%a = value
-    else
-      ele%b = value
-    endif
-    return
-
-  endif
-
 ! check that next delim is a "=". If not check for a possible default value
 ! otherwise it is an error
 
@@ -510,6 +462,7 @@ subroutine get_attribute (how, ele, ring, pring, &
 
   if (i == type$ .or. i == alias$ .or. i == descrip$) then  
     call type_get (ele, i, delim, delim_found)
+
   elseif (i == symplectify$) then
     call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
     read (word, '(l)', iostat = ios) ele%symplectify
@@ -517,19 +470,30 @@ subroutine get_attribute (how, ele, ring, pring, &
       call warning ('BAD "SYMPLECTIFY" SWITCH FOR: ' // ele%name)
       return
     endif
-  else    ! normal attribute
+
+  else ! normal attribute
+
     call evaluate_value (trim(ele%name) // ' ' // word, value, &
                                       ring, delim, delim_found, err_flag)
     if (err_flag) return
-    if (i == mat6_calc_method$) then
+
+    if (i >= a0$) then  ! multipole attribute
+        if (.not. associated(ele%a)) &
+                  allocate (ele%a(0:n_pole_maxx), ele%b(0:n_pole_maxx))
+        if (i >= b0$) then
+          ele%b(i-b0$) = value
+        else
+          ele%a(i-a0$) = value
+        endif
+    elseif (i == mat6_calc_method$) then
       ele%mat6_calc_method = nint(value)
-    elseif (i == tracking_method$) then   
+    elseif (i == tracking_method$) then
       ele%tracking_method = nint(value)
-    elseif (i == num_steps$) then    
+    elseif (i == num_steps$) then
       ele%num_steps = nint(value)
-    elseif (i == integration_order$) then    
+    elseif (i == integration_order$) then
       ele%integration_order = nint(value)
-    elseif (i == ptc_kind$) then    
+    elseif (i == ptc_kind$) then
       ele%ptc_kind = nint(value)
     else
       ele%value(i) = value
@@ -632,16 +596,16 @@ subroutine get_next_word (word, ix_word, delim_list, &
 
 ! check for continuation character and if found then load more characters
 ! into the parse line.
-! after that get the first word in PCOM.PARSE_LINE
+! after that get the first word in BP_COM.PARSE_LINE
 
   do
-    ix_a = index(pcom%parse_line, '&')
+    ix_a = index(bp_com%parse_line, '&')
     if (ix_a == 0 .or. ix_a > 140) exit
     call load_parse_line('continue', ix_a, file_end)
   enddo
 
-  call word_read (pcom%parse_line, delim_list,  &
-                         word, ix_word, delim, delim_found, pcom%parse_line)
+  call word_read (bp_com%parse_line, delim_list,  &
+                         word, ix_word, delim, delim_found, bp_com%parse_line)
 
   if (upper_case_word) call str_upcase (word, word)
 
@@ -679,24 +643,24 @@ subroutine file_stack (how, file_name, finished)
       call err_exit
     endif
     stack_file_name_(i_level) = file_name
-    pcom%current_file_name = file_name
+    bp_com%current_file_name = file_name
     f_unit_(i_level) = lunget()
-    pcom%f_unit = f_unit_(i_level)
-    if (i_level /= 1) i_line_(i_level-1) = pcom%i_line
-    pcom%i_line = 0
-    open (unit = pcom%f_unit, file = pcom%current_file_name,  &
+    bp_com%f_unit = f_unit_(i_level)
+    if (i_level /= 1) i_line_(i_level-1) = bp_com%i_line
+    bp_com%i_line = 0
+    open (unit = bp_com%f_unit, file = bp_com%current_file_name,  &
                                      status = 'old', readonly, err = 9000)
-    pcom%n_files = pcom%n_files + 1
-    inquire (file = file_name, name = pcom%file_name_(pcom%n_files))
+    bp_com%n_files = bp_com%n_files + 1
+    inquire (file = file_name, name = bp_com%file_name_(bp_com%n_files))
   elseif (how == 'pop') then
-    close (unit = pcom%f_unit)
+    close (unit = bp_com%f_unit)
     i_level = i_level - 1
     if (i_level < 0) then
       call error_exit ('BAD "RETURN"', ' ')
     elseif (i_level > 0) then
-      pcom%current_file_name = stack_file_name_(i_level)
-      pcom%f_unit = f_unit_(i_level)
-      pcom%i_line = i_line_(i_level)
+      bp_com%current_file_name = stack_file_name_(i_level)
+      bp_com%f_unit = f_unit_(i_level)
+      bp_com%i_line = i_line_(i_level)
     else    ! i_level == 0
       finished = .true.
     endif
@@ -709,8 +673,8 @@ subroutine file_stack (how, file_name, finished)
 
 9000  continue
   if (bmad_status%type_out .or. bmad_status%exit_on_error) print *,  &
-      'ERROR IN ', trim(pcom%parser_name), ': UNABLE TO OPEN FILE: ', &
-                                       trim(pcom%current_file_name)
+      'ERROR IN ', trim(bp_com%parser_name), ': UNABLE TO OPEN FILE: ', &
+                                       trim(bp_com%current_file_name)
   if (bmad_status%exit_on_error) call err_exit
   bmad_status%ok = .false.
 
@@ -740,18 +704,18 @@ subroutine load_parse_line (how, ix_cmd, file_end)
 ! init
 
   if (how == 'init') then
-    pcom%parser_debug = .false.
-    pcom%no_digested = .false.
-    read (pcom%f_unit, '(a)') line
+    bp_com%parser_debug = .false.
+    bp_com%no_digested = .false.
+    read (bp_com%f_unit, '(a)') line
     if (index(line, '!PARSER_DEBUG')) then
-      pcom%parser_debug = .true.
-      pcom%debug_line = line
+      bp_com%parser_debug = .true.
+      bp_com%debug_line = line
       print *, 'FOUND IN FILE: "!PARSER_DEBUG". DEBUG IS NOW ON'
     elseif (index(line, '!NO_DIGESTED')) then
-      pcom%no_digested = .true.
+      bp_com%no_digested = .true.
       print *, 'FOUND IN FILE: "!NO_DIGESTED". NO DIGESTED FILE WILL BE CREATED'
     endif
-    rewind (unit = pcom%f_unit)
+    rewind (unit = bp_com%f_unit)
     return
   endif
 
@@ -765,8 +729,8 @@ subroutine load_parse_line (how, ix_cmd, file_end)
       line = pending_line
       cmd_pending = .false.
     else
-      read (pcom%f_unit, '(a)', end = 9000) line
-      pcom%i_line = pcom%i_line + 1
+      read (bp_com%f_unit, '(a)', end = 9000) line
+      bp_com%i_line = bp_com%i_line + 1
     endif
 
 ! strip off comments
@@ -799,13 +763,13 @@ subroutine load_parse_line (how, ix_cmd, file_end)
   call string_trim (line, line, ix)
   if (ix == 0 .and. how == 'normal') goto 1000
 
-  pcom%parse_line(ix_cmd:) = line
+  bp_com%parse_line(ix_cmd:) = line
 
   return
 
 9000  continue
   file_end = .true.
-  pcom%parse_line = ' '
+  bp_com%parse_line = ' '
 
 end subroutine
 
@@ -1125,7 +1089,7 @@ subroutine pushit (stack, i_lev, value)
   i_lev = i_lev + 1
 
   if (i_lev > size(stack)) then
-    print *, 'ERROR IN ', trim(pcom%parser_name), ': STACK OVERFLOW.'
+    print *, 'ERROR IN ', trim(bp_com%parser_name), ': STACK OVERFLOW.'
     print *, '      EXPERT HELP IS NEEDED!'
     call err_exit
   endif
@@ -1185,7 +1149,7 @@ subroutine word_to_value (word, ring, value)
     name = word(ix1+1:ix2-1)
 
     if (name == 'S') then
-      if (pcom%parser_name == 'BMAD_PARSER2') then
+      if (bp_com%parser_name == 'BMAD_PARSER2') then
         value = ring%ele_(i_ele)%s
       else
         call warning ('"S" ATTRIBUTE CAN ONLY BE USED WITH BMAD_PARSER2')
@@ -1201,7 +1165,7 @@ subroutine word_to_value (word, ring, value)
 
 ! None of the above? must be a variable
 
-  do i = 1, pcom%ivar_tot
+  do i = 1, bp_com%ivar_tot
     if (word == var_(i)%name) then
       value = var_(i)%value
       return
@@ -1232,23 +1196,23 @@ subroutine type_get (ele, ix_type, delim, delim_found)
 
 !
 
-  call string_trim(pcom%parse_line, pcom%parse_line, ix)
-  ix = index(pcom%parse_line(2:), '"')
+  call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
+  ix = index(bp_com%parse_line(2:), '"')
 
-  if (pcom%parse_line(1:1) /= '"' .or. ix == 0) then
+  if (bp_com%parse_line(1:1) /= '"' .or. ix == 0) then
     call warning ('MISSING DOUBLE QUOTE MARK (") FOR TYPE = "attribute"',  &
                           'FOR ELEMENT: ' // ele%name)
     if (ix /= 0) then
-      pcom%parse_line = pcom%parse_line(ix+2:)
-    elseif (pcom%parse_line(1:1) == '"') then
-      pcom%parse_line = pcom%parse_line(2:)
+      bp_com%parse_line = bp_com%parse_line(ix+2:)
+    elseif (bp_com%parse_line(1:1) == '"') then
+      bp_com%parse_line = bp_com%parse_line(2:)
     endif
   endif
 
   if (ix == 1) then
     type_name = ' '
   else
-    type_name = pcom%parse_line(2:ix)
+    type_name = bp_com%parse_line(2:ix)
   endif
 
   if (ix_type == type$) then
@@ -1261,7 +1225,7 @@ subroutine type_get (ele, ix_type, delim, delim_found)
     ele%descrip = type_name
   endif
 
-  pcom%parse_line = pcom%parse_line(ix+2:)
+  bp_com%parse_line = bp_com%parse_line(ix+2:)
   call get_next_word (word, ix_word, ',=', delim, delim_found, .true.)
   if (ix_word /= 0) call warning (  &
                 'EXTRA CHARACTERS FOUND AFTER TYPE ATTRIBUTE: ' // word,  &
@@ -1456,8 +1420,8 @@ subroutine error_exit (what1, what2)
   if (present(what2)) then
     if (what2 /= ' ') type '(22x, a)', what2
   endif
-  print *, '      IN FILE: ', pcom%current_file_name(:60)
-  print *, '      AT OR BEFORE LINE:', pcom%i_line
+  print *, '      IN FILE: ', bp_com%current_file_name(:60)
+  print *, '      AT OR BEFORE LINE:', bp_com%i_line
   call err_exit
 
 end subroutine
@@ -1476,16 +1440,16 @@ subroutine warning (what1, what2)
   character*(*) what1
   character*(*), optional :: what2
 
-! PCOM.ERROR_FLAG is a common logical used so program will stop at end of parsing
+! BP_COM.ERROR_FLAG is a common logical used so program will stop at end of parsing
 
   if (bmad_status%type_out) then
-    print *, 'ERROR IN ', trim(pcom%parser_name), ': ', what1
+    print *, 'ERROR IN ', trim(bp_com%parser_name), ': ', what1
     if (present(what2)) type '(22x, a)', what2
-    print *, '      IN FILE: ', pcom%current_file_name(:60)
-    print *, '      AT OR BEFORE LINE:', pcom%i_line
+    print *, '      IN FILE: ', bp_com%current_file_name(:60)
+    print *, '      AT OR BEFORE LINE:', bp_com%i_line
   endif
 
-  pcom%error_flag = .true.
+  bp_com%error_flag = .true.
   bmad_status%ok = .false.
 
 end subroutine
@@ -1564,8 +1528,8 @@ subroutine init_bmad_parser_common
     var_(nn+i)%value = i
   enddo
 
-  pcom%ivar_init = nn + ubound(calc_method_name, 1)
-  pcom%ivar_tot = pcom%ivar_init
+  bp_com%ivar_init = nn + ubound(calc_method_name, 1)
+  bp_com%ivar_tot = bp_com%ivar_init
 
 
 end subroutine
@@ -1937,7 +1901,7 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
 
     ix = index(word, '*')          ! E.g. word = '-3*LINE'
     if (ix /= 0) then
-      pcom%parse_line = word(:ix-1) // "," // pcom%parse_line
+      bp_com%parse_line = word(:ix-1) // "," // bp_com%parse_line
       call evaluate_value (trim(seq%name) // ' Repetition Count', rcount, &
                               ring, c_delim, c_delim_found, err_flag)
       count = nint(rcount)
@@ -1976,7 +1940,7 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
       ix_seq = ix_seq + 1
       seq_(ix_seq)%name = str
       seq_(ix_seq)%type = line$
-      pcom%parse_line = '(' // pcom%parse_line 
+      bp_com%parse_line = '(' // bp_com%parse_line 
       call seq_expand1 (seq_, ix_seq, .false., ring)
       call get_next_word(word, ix_word, ':=(),', delim, delim_found, .true.)
       if (word /= ' ') call warning &

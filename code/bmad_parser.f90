@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.12  2002/09/14 19:45:23  dcs
+!*** empty log message ***
+!
 !Revision 1.11  2002/07/31 14:32:41  dcs
 !Modified so moved digested file handled correctly.
 !
@@ -111,7 +114,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 ! see if digested file is open and current. If so read in and return.
 ! Note: The name of the digested file depends upon the real precision.
 
-  pcom%parser_name = 'BMAD_PARSER'  ! Used for error messages.
+  bp_com%parser_name = 'BMAD_PARSER'  ! Used for error messages.
 
   inquire (file = in_file, name = full_name)      ! full input file_name
   ix = index(full_name, ';')
@@ -173,14 +176,14 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   if (bmad_status%type_out) &
                         print *, 'BMAD_PARSER: Creating new digested file...'
 
-  pcom%n_files = 0
-  pcom%error_flag = .false.                 ! set to true on an error
+  bp_com%n_files = 0
+  bp_com%error_flag = .false.                 ! set to true on an error
   call file_stack('init', in_file, finished)   ! init stack
   call file_stack('push', in_file, finished)   ! open file on stack
   if (.not. bmad_status%ok) return
   call load_parse_line ('init', 0, file_end) ! initialize subroutine
-  pcom%iseq_tot = 0                     ! number of sequences encountered
-  pcom%ivar_tot = 0                     ! number of variables encountered
+  bp_com%iseq_tot = 0                     ! number of sequences encountered
+  bp_com%ivar_tot = 0                     ! number of variables encountered
   call init_bmad_parser_common
   ring%name = ' '
 
@@ -236,8 +239,8 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
     if (word_1(:ix_word) == 'TITLE') then
       if (delim_found) call warning ('EXTRA STUFF FOUND AFTER "TITLE"')
-      read (pcom%f_unit, '(a)') ring%title
-      pcom%i_line = pcom%i_line + 1
+      read (bp_com%f_unit, '(a)') ring%title
+      bp_com%i_line = bp_com%i_line + 1
       cycle parsing_loop
     endif
 
@@ -292,8 +295,8 @@ subroutine bmad_parser (in_file, ring, make_mats6)
       if (delim /= ':' .and. delim /= '=') then
         call warning ('"LATTICE" NOT FOLLOWED BY ":"')
       else
-        if (delim == ':' .and. pcom%parse_line(1:1) == '=') &
-                        pcom%parse_line = pcom%parse_line(2:)  ! trim off '='
+        if (delim == ':' .and. bp_com%parse_line(1:1) == '=') &
+                        bp_com%parse_line = bp_com%parse_line(2:)  ! trim off '='
         call get_next_word (ring%lattice, ix_word, ',', &
                                                    delim, delim_found, .true.)
       endif
@@ -315,9 +318,9 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 ! Note: "var := num" is old-style variable definition syntax.
 
     matched_delim = .false.
-    if (delim == ':' .and. pcom%parse_line(1:1) == '=') then  ! old style
+    if (delim == ':' .and. bp_com%parse_line(1:1) == '=') then  ! old style
       matched_delim = .true.
-      pcom%parse_line = pcom%parse_line(2:)      ! trim off "="
+      bp_com%parse_line = bp_com%parse_line(2:)      ! trim off "="
       ix = index(word_1, '[')
     elseif (delim == '=') then
       matched_delim = .true.
@@ -333,7 +336,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
           name = word_1(ix+1:)    ! name of attribute
           ix = index(name, ']')
           name = name(:ix-1)
-          pcom%parse_line = name // ' = ' // pcom%parse_line 
+          bp_com%parse_line = name // ' = ' // bp_com%parse_line 
           call get_attribute (redef$, in_ring%ele_(i), in_ring, pring, &
                                           delim, delim_found, err_flag)
           if (delim_found) call warning ('BAD DELIMITER: ' // delim)
@@ -350,7 +353,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
     elseif (matched_delim) then
 
       found = .false.
-      do i = 1, pcom%ivar_tot-1
+      do i = 1, bp_com%ivar_tot-1
         if (word_1 == var_(i)%name) then
           ivar = i
           found = .true.
@@ -358,9 +361,9 @@ subroutine bmad_parser (in_file, ring, make_mats6)
       enddo
 
       if (.not. found) then
-        pcom%ivar_tot = pcom%ivar_tot + 1
-        ivar = pcom%ivar_tot
-        if (pcom%ivar_tot > ivar_maxx) then
+        bp_com%ivar_tot = bp_com%ivar_tot + 1
+        ivar = bp_com%ivar_tot
+        if (bp_com%ivar_tot > ivar_maxx) then
           print *, 'ERROR IN BMAD_PARSER: NEED TO INCREASE IVAR_MAXX!'
           call err_exit
         endif
@@ -371,7 +374,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
       call evaluate_value (var_(ivar)%name, var_(ivar)%value, &
                                        in_ring, delim, delim_found, err_flag)
       if (delim /= ' ' .and. .not. err_flag) call warning  &
-                    ('EXTRA CHARACTERS ON RHS: ' // pcom%parse_line,  &
+                    ('EXTRA CHARACTERS ON RHS: ' // bp_com%parse_line,  &
                      'FOR VARIABLE: ' // var_(ivar)%name)
       cycle parsing_loop
 
@@ -399,8 +402,8 @@ subroutine bmad_parser (in_file, ring, make_mats6)
           exit
         endif
       enddo
-      allocate (seq_(pcom%iseq_tot+1)%arg(n_arg))
-      seq_(pcom%iseq_tot+1)%arg(:)%dummy_name = dummy_name(1:n_arg)
+      allocate (seq_(bp_com%iseq_tot+1)%arg(n_arg))
+      seq_(bp_com%iseq_tot+1)%arg(:)%dummy_name = dummy_name(1:n_arg)
       arg_list_found = .true.
     else
       arg_list_found = .false.
@@ -433,21 +436,21 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 ! if line or list
 
     if (word_2(:ix_word) == 'LINE' .or. word_2(:ix_word) == 'LIST') then
-      pcom%iseq_tot = pcom%iseq_tot + 1
-      if (pcom%iseq_tot > n_ele_maxx-1) then
+      bp_com%iseq_tot = bp_com%iseq_tot + 1
+      if (bp_com%iseq_tot > n_ele_maxx-1) then
         print *, 'ERROR IN BMAD_PARSER: NEED TO INCREASE LINE ARRAY!'
         call err_exit
       endif
-      seq_(pcom%iseq_tot)%name = word_1
+      seq_(bp_com%iseq_tot)%name = word_1
 
       if (delim /= '=') call warning ('EXPECTING: "=" BUT GOT: ' // delim)
       if (word_2(:ix_word) == 'LINE') then
-        seq_(pcom%iseq_tot)%type = line$
-        if (arg_list_found) seq_(pcom%iseq_tot)%type = replacement_line$
+        seq_(bp_com%iseq_tot)%type = line$
+        if (arg_list_found) seq_(bp_com%iseq_tot)%type = replacement_line$
       else
-        seq_(pcom%iseq_tot)%type = list$
+        seq_(bp_com%iseq_tot)%type = list$
       endif
-      call seq_expand1 (seq_, pcom%iseq_tot, .true., in_ring)
+      call seq_expand1 (seq_, bp_com%iseq_tot, .true., in_ring)
 
 ! if not line or list then must be an element
 
@@ -559,10 +562,10 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
 ! sort elements and lists and check for duplicates
 
-  call indexx (seq_(1:pcom%iseq_tot)%name, seq_indexx(1:pcom%iseq_tot))
+  call indexx (seq_(1:bp_com%iseq_tot)%name, seq_indexx(1:bp_com%iseq_tot))
   call indexx (in_ring%ele_(1:n_max)%name, in_indexx(1:n_max))
 
-  do i = 1, pcom%iseq_tot-1
+  do i = 1, bp_com%iseq_tot-1
     ix1 = seq_indexx(i)
     ix2 = seq_indexx(i+1)
     if (seq_(ix1)%name == seq_(ix2)%name) call warning  &
@@ -578,7 +581,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
   i = 1; j = 1
   do
-    if (i > pcom%iseq_tot) exit
+    if (i > bp_com%iseq_tot) exit
     if (j > n_max) exit
     ix1 = seq_indexx(i)
     ix2 = in_indexx(j)
@@ -596,7 +599,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   if (ring%name == blank) call error_exit &
             ('NO "USE" COMMAND FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
 
-  call find_indexx (ring%name, seq_(:)%name, seq_indexx, pcom%iseq_tot, i_use)
+  call find_indexx (ring%name, seq_(:)%name, seq_indexx, bp_com%iseq_tot, i_use)
 
   if (i_use == 0) call error_exit &
             ('CANNOT FIND DEFINITION FOR "USE" LINE: ' // ring%name, ' ')
@@ -607,7 +610,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 ! Now to expand the lines and lists to find the elements to use
 ! first go through the lines and lists and index everything
 
-  do k = 1, pcom%iseq_tot
+  do k = 1, bp_com%iseq_tot
     do i = 1, size(seq_(k)%ele(:))
 
       s_ele => seq_(k)%ele(i)
@@ -624,7 +627,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
       call find_indexx (name, in_ring%ele_(1:)%name, in_indexx, n_max, j)
 
       if (j == 0) then  ! if not an element it must be a sequence
-        call find_indexx (name, seq_(:)%name, seq_indexx, pcom%iseq_tot, j)
+        call find_indexx (name, seq_(:)%name, seq_indexx, bp_com%iseq_tot, j)
         if (j == 0) then  ! if not a sequence then I don't know what it is
           call warning  &
               ('NOT A DEFINED ELEMENT, LINE, OR LIST: ' // s_ele%name)
@@ -752,7 +755,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   call init_ele (ring%ele_init)
   ring%ele_(0)%name = 'BEGINNING'                 ! Just a name
 
-  do i = 1, pcom%ivar_tot
+  do i = 1, bp_com%ivar_tot
     if (var_(i)%name == 'SYMMETRY') ring%param%symmetry = var_(i)%value
     if (var_(i)%name == 'LATTICE_TYPE')  &
                               ring%param%lattice_type = var_(i)%value
@@ -983,25 +986,25 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 !-------------------------------------------------------------------------
 ! write out if debug is on
 
-  if (pcom%parser_debug) then
+  if (bp_com%parser_debug) then
     
-    if (index(pcom%debug_line, 'VAR') /= 0) then
+    if (index(bp_com%debug_line, 'VAR') /= 0) then
       print *
       print *, '----------------------------------------'
-      print *, 'Number of Variables:', pcom%ivar_tot - pcom%ivar_init
-      do i = pcom%ivar_init+1, pcom%ivar_tot
+      print *, 'Number of Variables:', bp_com%ivar_tot - bp_com%ivar_init
+      do i = bp_com%ivar_init+1, bp_com%ivar_tot
         print *
-        print *, 'Var #', i-pcom%ivar_tot
+        print *, 'Var #', i-bp_com%ivar_tot
         print *, 'Name: ', var_(i)%name
         print *, 'Value:', var_(i)%value
       enddo
     endif
 
-    if (index(pcom%debug_line, 'SEQ') /= 0) then
+    if (index(bp_com%debug_line, 'SEQ') /= 0) then
       print *
       print *, '----------------------------------------'
-      print *, 'Number of Lines/Lists defined:', pcom.iseq_tot
-      do i = 1, pcom.iseq_tot
+      print *, 'Number of Lines/Lists defined:', bp_com%iseq_tot
+      do i = 1, bp_com%iseq_tot
         print *
         print *, 'Sequence #', i
         print *, 'Name: ', seq_(i)%name
@@ -1015,7 +1018,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
       enddo
     endif
 
-    if (index(pcom%debug_line, 'SLAVE') /= 0) then
+    if (index(bp_com%debug_line, 'SLAVE') /= 0) then
       print *
       print *, '----------------------------------------'
       print *, 'Number of Elements in Regular Ring:', ring%n_ele_ring
@@ -1026,7 +1029,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
       enddo
     endif
 
-    if (index(pcom%debug_line, 'LORD') /= 0) then
+    if (index(bp_com%debug_line, 'LORD') /= 0) then
       print *
       print *, '----------------------------------------'
       print *, 'LORD elements: ', ring%n_ele_max - ring%n_ele_ring
@@ -1037,7 +1040,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
       enddo
     endif
 
-    if (index(pcom%debug_line, 'RING') /= 0) then  
+    if (index(bp_com%debug_line, 'RING') /= 0) then  
       print *
       print *, '----------------------------------------'
       print *, 'Ring Used: ', ring%name
@@ -1071,7 +1074,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
 ! error check
 
-  if (pcom%error_flag) then
+  if (bp_com%error_flag) then
     if (bmad_status%exit_on_error) then
       print *, 'BMAD_PARSER FINISHED. EXITING ON ERRORS'
       call exit
@@ -1085,8 +1088,8 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
 ! write to digested file
 
-  if (.not. pcom%no_digested .and. .not. pcom%parser_debug .and. &
+  if (.not. bp_com%no_digested .and. .not. bp_com%parser_debug .and. &
       digested_version <= bmad_inc_version$) call write_digested_bmad_file  &
-               (digested_file, ring, pcom%n_files, pcom%file_name_)
+               (digested_file, ring, bp_com%n_files, bp_com%file_name_)
 
 end subroutine

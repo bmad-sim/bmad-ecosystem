@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2002/09/14 19:45:23  dcs
+!*** empty log message ***
+!
 !Revision 1.7  2002/08/20 20:34:52  dcs
 !symp_lie_bmad / symp_lie_ptc added
 !
@@ -116,8 +119,16 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
       select case (i)
       case (elseparator$, kicker$, octupole$, quadrupole$, sbend$, rbend$, &
              sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$)
-        attrib_array(i, a$)      = 'A'
-        attrib_array(i, b$)      = 'B'
+        attrib_array(i, a0$:a20$) = (/ 'A0 ', &
+                                       'A1 ', 'A2 ', 'A3 ', 'A4 ', 'A5 ', & 
+                                       'A6 ', 'A7 ', 'A8 ', 'A9 ', 'A10', &
+                                       'A11', 'A12', 'A13', 'A14', 'A15', &
+                                       'A16', 'A17', 'A18', 'A19', 'A20' /)
+        attrib_array(i, b0$:b20$) = (/ 'B0 ', &
+                                       'B1 ', 'B2 ', 'B3 ', 'B4 ', 'B5 ', & 
+                                       'B6 ', 'B7 ', 'B8 ', 'B9 ', 'B10', &
+                                       'B11', 'B12', 'B13', 'B14', 'B15', &
+                                       'B16', 'B17', 'B18', 'B19', 'B20' /)
         attrib_array(i, radius$) = 'RADIUS'
       end select
 
@@ -227,8 +238,16 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(def_beam$, n_part$)    = 'N_PART'
 
     attrib_array(multipole$, tilt$)     = 'TILT'
-    attrib_array(multipole$, kl$  )     = 'KL'
-    attrib_array(multipole$, t$)        = 'T'
+    attrib_array(multipole$, k0l$:k20l$) = (/ 'K0L ', &
+                                   'K1L ', 'K2L ', 'K3L ', 'K4L ', 'K5L ', & 
+                                   'K6L ', 'K7L ', 'K8L ', 'K9L ', 'K10L', &
+                                   'K11L', 'K12L', 'K13L', 'K14L', 'K15L', &
+                                   'K16L', 'K17L', 'K18L', 'K19L', 'K20L' /)
+    attrib_array(multipole$, t0$:t20$) = (/ 'T0 ', &
+                                   'T1 ', 'T2 ', 'T3 ', 'T4 ', 'T5 ', & 
+                                   'T6 ', 'T7 ', 'T8 ', 'T9 ', 'T10', &
+                                   'T11', 'T12', 'T13', 'T14', 'T15', &
+                                   'T16', 'T17', 'T18', 'T19', 'T20' /)
     attrib_array(multipole$, radius$)   = 'RADIUS'
 
     attrib_array(ab_multipole$, tilt$)  = 'TILT'

@@ -30,6 +30,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/09/14 19:45:24  dcs
+!*** empty log message ***
+!
 !Revision 1.6  2002/07/16 20:44:00  dcs
 !*** empty log message ***
 !
@@ -75,9 +78,9 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
 ! init
 
-  pcom%parser_name = 'BMAD_PARSER2'
-  pcom%n_files = 0
-  pcom%error_flag = .false.                  ! set to true on an error
+  bp_com%parser_name = 'BMAD_PARSER2'
+  bp_com%n_files = 0
+  bp_com%error_flag = .false.                  ! set to true on an error
   call file_stack('init', in_file, finished)    ! open file on stack
   call file_stack('push', in_file, finished)    ! open file on stack
   if (.not. bmad_status%ok) return
@@ -173,11 +176,11 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 ! LATTICE command
 
     if (word_1(:ix_word) == 'LATTICE') then
-      if ((delim /= ':' .or. pcom%parse_line(1:1) /= '=') &
+      if ((delim /= ':' .or. bp_com%parse_line(1:1) /= '=') &
                                        .and. (delim /= '=')) then
         call warning ('"LATTICE" NOT FOLLOWED BY ":="', ' ')
       else
-        if (delim == ':') pcom%parse_line = pcom%parse_line(2:)  ! trim off '='
+        if (delim == ':') bp_com%parse_line = bp_com%parse_line(2:)  ! trim off '='
         call get_next_word (ring%lattice, ix_word, ',', &
                                             delim, delim_found, .true.)
       endif
@@ -202,9 +205,9 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 ! Note: "var := num" is old-style variable definition syntax.
 
     matched_delim = .false.
-    if (delim == ':' .and. pcom%parse_line(1:1) == '=') then  ! old style
+    if (delim == ':' .and. bp_com%parse_line(1:1) == '=') then  ! old style
       matched_delim = .true.
-      pcom%parse_line = pcom%parse_line(2:)      ! trim off "="
+      bp_com%parse_line = bp_com%parse_line(2:)      ! trim off "="
       ix = index(word_1, '[')
     elseif (delim == '=') then
       matched_delim = .true.
@@ -221,7 +224,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
           name = word_1(ix+1:)    ! name of attribute
           ix = index(name, ']')
           name = name(:ix-1)
-          pcom%parse_line = name // ' = ' // pcom%parse_line 
+          bp_com%parse_line = name // ' = ' // bp_com%parse_line 
           call get_attribute (redef$, ring%ele_(i), ring, pring, &
                                                delim, delim_found, err_flag)
           if (delim_found) call warning ('BAD DELIMITER: ' // delim, ' ')
@@ -238,7 +241,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
     elseif (matched_delim) then
 
       found = .false.
-      do i = 1, pcom%ivar_tot-1
+      do i = 1, bp_com%ivar_tot-1
         if (word_1 == var_(i)%name) then
           ivar = i
           found = .true.
@@ -246,9 +249,9 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
       enddo
 
       if (.not. found) then
-        pcom%ivar_tot = pcom%ivar_tot + 1
-        ivar = pcom%ivar_tot
-        if (pcom%ivar_tot > ivar_maxx) then
+        bp_com%ivar_tot = bp_com%ivar_tot + 1
+        ivar = bp_com%ivar_tot
+        if (bp_com%ivar_tot > ivar_maxx) then
           type *, 'ERROR IN BMAD_PARSER2: NEED TO INCREASE IVAR_MAXX!'
           call err_exit
         endif
@@ -258,7 +261,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
       call evaluate_value (var_(ivar)%name, var_(ivar)%value, &
                                     ring, delim, delim_found, err_flag)
       if (delim /= ' ' .and. .not. err_flag) call warning  &
-            ('EXTRA CHARACTERS ON RHS: ' // pcom%parse_line,  &
+            ('EXTRA CHARACTERS ON RHS: ' // bp_com%parse_line,  &
              'FOR VARIABLE: ' // var_(ivar)%name)
       cycle parsing_loop
 
@@ -527,7 +530,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 !-------------------------------------------------------------------------
 ! write out if debug is on
 
-  if (pcom%parser_debug) then
+  if (bp_com%parser_debug) then
 
     type *
     type *, '----------------------------------------'
@@ -563,7 +566,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 !-----------------------------------------------------------------------------
 ! error check
 
-  if (pcom%error_flag .and. bmad_status%exit_on_error) then
+  if (bp_com%error_flag .and. bmad_status%exit_on_error) then
     type *, 'BMAD_PARSER2 FINISHED. EXITING ON ERRORS'
     call exit
   endif

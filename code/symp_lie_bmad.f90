@@ -34,7 +34,7 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 
   type save_computations_struct
     type (save_coef_struct) a_y, dint_a_y_dx, da_z_dx, da_z_dy
-    real(rdef) c_x, s_x, c_y, s_y, c_z, s_z
+    real(rdef) c_x, s_x, c_y, s_y, c_z, s_z, s_x_kx, s_y_ky, c1_ky2
   end type
 
   type (save_computations_struct), allocatable, save :: tm(:)
@@ -84,8 +84,6 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
       if (allocated(tm)) deallocate(tm)
       allocate (tm(size(ele%wig_term)))
     endif
-
-    call offset_particle (ele, param, end, set$, set_canonical = .false.)
 
     ds = ele%value(l$) / ele%num_steps
     ds2 = ds / 2
@@ -238,10 +236,10 @@ subroutine update_coefs
 
   do j = 1, size(ele%wig_term)
     wt => ele%wig_term(j)
-    tm(j)%a_y%coef     = -factor * wt%coef * wt%kz / (wt%kx * wt%ky)
-    tm(j)%dint_a_y_dx%coef = -factor * wt%coef * wt%kz / wt%ky**2
+    tm(j)%a_y%coef     = -factor * wt%coef * wt%kz          ! / (wt%kx * wt%ky)
+    tm(j)%dint_a_y_dx%coef = -factor * wt%coef * wt%kz      ! / wt%ky**2
     tm(j)%da_z_dx%coef = -factor * wt%coef 
-    tm(j)%da_z_dy%coef = -factor * wt%coef * wt%ky / wt%kx
+    tm(j)%da_z_dy%coef = -factor * wt%coef * wt%ky          ! / wt%kx
     if (wt%type == hyper_x$) then
       tm(j)%da_z_dy%coef     = -tm(j)%da_z_dy%coef
       tm(j)%dint_a_y_dx%coef = -tm(j)%dint_a_y_dx%coef 
@@ -252,13 +250,13 @@ subroutine update_coefs
 
   do j = 1, size(ele%wig_term)
     wt => ele%wig_term(j)
-    tm(j)%a_y%dx_coef = tm(j)%a_y%coef * wt%kx
-    tm(j)%a_y%dy_coef = tm(j)%a_y%coef * wt%ky
+    tm(j)%a_y%dx_coef = tm(j)%a_y%coef
+    tm(j)%a_y%dy_coef = tm(j)%a_y%coef
     tm(j)%dint_a_y_dx%dx_coef = tm(j)%dint_a_y_dx%coef * wt%kx
-    tm(j)%dint_a_y_dx%dy_coef = tm(j)%dint_a_y_dx%coef * wt%ky
+    tm(j)%dint_a_y_dx%dy_coef = tm(j)%dint_a_y_dx%coef
     tm(j)%da_z_dx%dx_coef = tm(j)%da_z_dx%coef * wt%kx
     tm(j)%da_z_dx%dy_coef = tm(j)%da_z_dx%coef * wt%ky
-    tm(j)%da_z_dy%dx_coef = tm(j)%da_z_dy%coef * wt%kx
+    tm(j)%da_z_dy%dx_coef = tm(j)%da_z_dy%coef
     tm(j)%da_z_dy%dy_coef = tm(j)%da_z_dy%coef * wt%ky
     
     if (wt%type == hyper_y$) then
@@ -283,12 +281,22 @@ subroutine update_y_terms
   do j = 1, size(ele%wig_term)
     wt => ele%wig_term(j)
     kyy = wt%ky * end%y%pos
-    if (wt%type == hyper_y$ .or. wt%type == hyper_xy$) then
+    if (abs(kyy) < 1e-20) then
+      tm(j)%c_y = 1
+      tm(j)%s_y = kyy
+      tm(j)%s_y_ky = end%y%pos
+      tm(j)%c1_ky2 = end%y%pos**2 / 2
+      if (wt%type == hyper_x$) tm(j)%c1_ky2 = -tm(j)%c1_ky2 
+    elseif (wt%type == hyper_y$ .or. wt%type == hyper_xy$) then
       tm(j)%c_y = cosh(kyy)
       tm(j)%s_y = sinh(kyy)
+      tm(j)%s_y_ky = tm(j)%s_y / wt%ky
+      tm(j)%c1_ky2 = 2 * sinh(kyy/2)**2 / wt%ky**2
     else
       tm(j)%c_y = cos(kyy)
       tm(j)%s_y = sin(kyy)
+      tm(j)%s_y_ky = tm(j)%s_y / wt%ky
+      tm(j)%c1_ky2 = -2 * sin(kyy/2)**2 / wt%ky**2
     endif
   enddo
 
@@ -305,12 +313,18 @@ subroutine update_x_s_terms
     wt => ele%wig_term(j)
 
     kxx = wt%kx * end%x%pos
-    if (wt%type == hyper_x$ .or. wt%type == hyper_xy$) then
+    if (abs(kxx) < 1e-20) then
+      tm(j)%c_x = 1
+      tm(j)%s_x = kxx
+      tm(j)%s_x_kx = end%x%pos
+    elseif (wt%type == hyper_x$ .or. wt%type == hyper_xy$) then
       tm(j)%c_x = cosh(kxx)
       tm(j)%s_x = sinh(kxx)
+      tm(j)%s_x_kx = tm(j)%s_x / wt%kx
     else
       tm(j)%c_x = cos(kxx)
       tm(j)%s_x = sin(kxx)
+      tm(j)%s_x_kx = tm(j)%s_x / wt%kx
     endif
 
     kzz = wt%kz * s + wt%phi_z
@@ -330,7 +344,7 @@ function a_y() result (value)
 
   value = 0
   do j = 1, size(ele%wig_term)
-    value = value + tm(j)%a_y%coef * tm(j)%s_x * tm(j)%s_y * tm(j)%s_z
+    value = value + tm(j)%a_y%coef * tm(j)%s_x_kx * tm(j)%s_y_ky * tm(j)%s_z
   enddo
 
 end function
@@ -344,7 +358,7 @@ function dint_a_y_dx() result (value)
 
   value = 0
   do j = 1, size(ele%wig_term)
-    value = value + tm(j)%dint_a_y_dx%coef * tm(j)%c_x * (tm(j)%c_y - 1) * tm(j)%s_z
+    value = value + tm(j)%dint_a_y_dx%coef * tm(j)%c_x * tm(j)%c1_ky2 * tm(j)%s_z
   enddo
 
 end function
@@ -372,7 +386,7 @@ function da_z_dy() result (value)
 
   value = 0
   do j = 1, size(ele%wig_term)
-    value = value + tm(j)%da_z_dy%coef * tm(j)%s_x * tm(j)%s_y * tm(j)%c_z
+    value = value + tm(j)%da_z_dy%coef * tm(j)%s_x_kx * tm(j)%s_y * tm(j)%c_z
   enddo
 
 end function
@@ -386,7 +400,7 @@ function dint_a_y_dx__dx() result (value)
 
   value = 0
   do j = 1, size(ele%wig_term)
-    value = value + tm(j)%dint_a_y_dx%dx_coef * tm(j)%s_x * (tm(j)%c_y - 1) * tm(j)%s_z
+    value = value + tm(j)%dint_a_y_dx%dx_coef * tm(j)%s_x * tm(j)%c1_ky2 * tm(j)%s_z
   enddo
 
 end function
@@ -400,7 +414,7 @@ function dint_a_y_dx__dy() result (value)
 
   value = 0
   do j = 1, size(ele%wig_term)
-    value = value + tm(j)%dint_a_y_dx%dy_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%s_z
+    value = value + tm(j)%dint_a_y_dx%dy_coef * tm(j)%c_x * tm(j)%s_y_ky * tm(j)%s_z
   enddo
 
 end function
@@ -414,7 +428,7 @@ function a_y__dx() result (value)
 
   value = 0
   do j = 1, size(ele%wig_term)
-    value = value + tm(j)%a_y%dx_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%s_z
+    value = value + tm(j)%a_y%dx_coef * tm(j)%c_x * tm(j)%s_y_ky * tm(j)%s_z
   enddo
 
 end function
@@ -428,7 +442,7 @@ function a_y__dy() result (value)
 
   value = 0
   do j = 1, size(ele%wig_term)
-    value = value + tm(j)%a_y%dy_coef * tm(j)%s_x * tm(j)%c_y * tm(j)%s_z
+    value = value + tm(j)%a_y%dy_coef * tm(j)%s_x_kx * tm(j)%c_y * tm(j)%s_z
   enddo
 
 end function
@@ -484,7 +498,7 @@ function da_z_dy__dy() result (value)
 
   value = 0
   do j = 1, size(ele%wig_term)
-    value = value + tm(j)%da_z_dy%dy_coef * tm(j)%s_x * tm(j)%c_y * tm(j)%c_z
+    value = value + tm(j)%da_z_dy%dy_coef * tm(j)%s_x_kx * tm(j)%c_y * tm(j)%c_z
   enddo
 
 end function

@@ -1,10 +1,11 @@
 !+
-! Subroutine READ_BUTNS_FILE (butns_num, butns, db, ok, type_err)
+! Subroutine READ_BUTNS_FILE (butns_num, butns, db, read_ok, type_err)
 !
 ! Subroutine to read in the information in a BUTNS.nnnnn file.
 !
 ! Modules Needed:
-!   use bmad
+!   use bmad_struct
+!   use bmad_interface
 !
 ! Input:
 !   butns_num -- Integer: Number in BUTNS.nnnnn file name.
@@ -12,15 +13,15 @@
 !                         If False then open error message will be supressed.
 !
 ! Output:
-!   butns -- Butns_struct: Orbit information. 
+!   butns -- Butns_struct: Orbit information.
 !       %lattice    -- Character*40: Lattice name.
 !       %save_set   -- Integer: Save set number.
 !       %date       -- Character*20: Date orbit was taken
 !       %file_num   -- Integer: Equal to butns_num.
 !       %comment(5) -- Character*72: Comment.
 !       %det(0:99)%amp(4) -- Integer: raw button numbers.
-!       %det(0:99)%x_orb  -- Real(rdef): Horizontal orbit in meters.
-!       %det(0:99)%y_orb  -- Real(rdef): Horizontal orbit in meters.
+!       %det(0:99)%x_orb  -- Real: Horizontal orbit in meters.
+!       %det(0:99)%y_orb  -- Real: Horizontal orbit in meters.
 !   db    -- Db_struct: Structure holding the steering settings.
 !     %csr_horz_cur(i)%cu_now -- CU settings for CSR HORZ CUR
 !     %csr_hbnd_cur(i)%cu_now -- CU settings for CSR HBND CUR
@@ -31,47 +32,37 @@
 !     %scir_pos_stp(i)%cu_now -- CU settings for SCIR POS STP
 !     %scir_enc_cnt(i)%cu_now -- CU settings for SCIR ENC CNT
 !     %scir_pos_rd(i)%cu_now  -- CU settings for SCIR POS RD
-!   ok    -- Logical: Set True if butns file was successfuly parsed.
-!                                   
+!   read_ok -- Logical: Set True if butns file was successfuly parsed.
+!
 ! Note: orbit numbers are from 0 to 99
 !
-! Note: db%csr_hsp_volt is actually obtained from the node CSR HSP VVAL which 
+! Note: db%csr_hsp_volt is actually obtained from the node CSR HSP VVAL which
 ! records the actual voltage as opposed to the command. Since CSR HSP VVAL
 ! is a readback node the values put in db%csr_hsp_volt will not be exactly the
 ! actual commands (and if the separators have been turned off they will not
 ! even be approximately the same).
 !-
 
-!$Id$
-!$Log$
-!Revision 1.3  2002/02/23 20:32:22  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:56  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
-
-subroutine read_butns_file (butns_num, butns, db, ok, type_err)
+subroutine read_butns_file (butns_num, butns, db, read_ok, type_err)
 
   use bmad
-              
+
   implicit none
 
   type (db_struct) db
   type (butns_struct) butns
 
-  integer vec(120)
-  integer i, ix, j, butns_num, iu, lunget, ios, raw(4, 100)
+  integer vec(120), det_type(120), is_ok(120)
+  integer i, ix, j, butns_num, iu, lunget, ios, raw(4, 120)
   integer n_node, n_ele
 
-  real(rdef) x_orbit(100), y_orbit(100), rdummy
+  real(rdef) x_orbit(120), y_orbit(120), rdummy
 
   character line_in*130, file_in*40
 
-  logical ok, type_err
+  logical read_ok, type_err, err_flag
 
 ! init comments
 
@@ -79,12 +70,10 @@ subroutine read_butns_file (butns_num, butns, db, ok, type_err)
 
 ! compute filename
 
-  ok = .false.
-  write (file_in, '(a, i5.5)', iostat = ios) 'L_BUT:BUTNS.', butns_num
-  if (ios /= 0) then
-    type *, 'ERROR IN READ_BUTNS_FILE: ERROR CONVERTING ORBIT_NUN', butns_num
-    return
-  endif
+  read_ok = .false.
+
+  call form_file_name_with_number ('ORBIT', butns_num, file_in, err_flag)
+  if (err_flag) return
 
   butns%file_num = butns_num
 
@@ -169,27 +158,32 @@ subroutine read_butns_file (butns_num, butns, db, ok, type_err)
       type *, 'ERROR IN ORBIT_READ: UNKNOWN NODE IN ORBIT FILE: ', line_in(2:13)
       goto 1000
     endif
-            
+
   enddo
 
 ! close
 
   1000 continue
   close (unit = iu)
-                              
+
 ! read in the raw data
 
-  call butfilget (raw, file_in, rdummy)      ! read in raw data
+  call butfilget (raw, file_in, rdummy, det_type)      ! read in raw data
   call butcon (raw, 1, 100, y_orbit, x_orbit)
+  is_ok = .false.
+  call det_ok (raw, 1, 100, det_type, is_ok)
 
   do i = 1, 100
     j = i
-    if (i == 100) j = 0 
+    if (i == 100) j = 0
     butns%det(j)%amp = raw(1:4, i)
     butns%det(j)%x_orb = x_orbit(i) / 1000.0   ! convert to m
     butns%det(j)%y_orb = y_orbit(i) / 1000.0   ! convert to m
+    butns%det(j)%ok = is_ok(i)
   end do
 
-  ok = .true.  
+  read_ok = .true.
 
 end subroutine
+
+

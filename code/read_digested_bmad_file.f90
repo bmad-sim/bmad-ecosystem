@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/09/14 19:45:24  dcs
+!*** empty log message ***
+!
 !Revision 1.5  2002/07/31 14:32:41  dcs
 !Modified so moved digested file handled correctly.
 !
@@ -158,7 +161,7 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
     endif
 
     if (ix_m /= 0) then
-      allocate (ele%a(0:n_ele_maxx), ele%b(0:n_ele_maxx))
+      allocate (ele%a(0:n_pole_maxx), ele%b(0:n_pole_maxx))
       read (d_unit) ele%a, ele%b
     endif
     

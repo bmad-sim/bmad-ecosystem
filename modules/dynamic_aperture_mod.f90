@@ -165,7 +165,7 @@ subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
 
   ixr = ring%param%ix_lost
   if (ring%ele_(ixr)%value(x_limit$) /= 0 .and.  &
-                   orbit_(ixr)%x%pos > ring%ele_(ixr)%value(x_limit$)) then
+                abs(orbit_(ixr)%x%pos) > ring%ele_(ixr)%value(x_limit$)) then
     aperture%plane = x_plane$
   else
     aperture%plane = y_plane$

@@ -42,6 +42,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2002/09/14 19:45:24  dcs
+!*** empty log message ***
+!
 !Revision 1.7  2002/06/13 14:54:22  dcs
 !Interfaced with FPP/PTC
 !
@@ -260,8 +263,8 @@ subroutine bmad_to_db_main (ring, db)
 
   call non_db_set (db%detector, cesr%det_, 0, 0)
   call non_db_set (db%wiggler, cesr%wig_, b_max$, 1)
-  call non_db_set (db%scir_cam_rho, cesr%scir_cam_rho_, 0, 1)
-  call non_db_set (db%scir_tilt, cesr%scir_tilt_, 0, 1)
+  call non_db_set (db%scir_cam_rho, cesr%scir_cam_rho_, rho$, 1)
+  call non_db_set (db%scir_tilt, cesr%scir_tilt_, tilt$, 1)
 
 end subroutine
 

@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.16  2002/09/14 19:45:31  dcs
+!*** empty log message ***
+!
 !Revision 1.15  2002/09/05 14:01:06  dcs
 !*** empty log message ***
 !
@@ -348,13 +351,56 @@ module bmad_struct
   integer, parameter :: term$ = 44
   integer, parameter :: ptc_kind$ = 45
   integer, parameter :: symplectify$ = 46
-  integer, parameter :: a$ = 47
-  integer, parameter :: b$ = 48
-  integer, parameter :: kl$ = 49
-  integer, parameter :: t$ = 50  
-  integer, parameter :: descrip$ = 51   !! this is n_attrib_special_maxx  !!
+  integer, parameter :: descrip$ = 47   
 
-  integer, parameter :: n_attrib_special_maxx = 51
+! Warning: No other attribute parameters can have indexes larger than A0$.
+! That is: multipole arrays An, Bn, KnL, and Tn must have the largest indexes
+
+  integer, parameter :: a0$  = 50, k0l$  = 50
+  integer, parameter :: a1$  = 51, k1l$  = 51
+  integer, parameter :: a2$  = 52, k2l$  = 52
+  integer, parameter :: a3$  = 53, k3l$  = 53
+  integer, parameter :: a4$  = 54, k4l$  = 54
+  integer, parameter :: a5$  = 55, k5l$  = 55
+  integer, parameter :: a6$  = 56, k6l$  = 56
+  integer, parameter :: a7$  = 57, k7l$  = 57
+  integer, parameter :: a8$  = 58, k8l$  = 58
+  integer, parameter :: a9$  = 59, k9l$  = 59
+  integer, parameter :: a10$ = 60, k10l$ = 60
+  integer, parameter :: a11$ = 61, k11l$ = 61
+  integer, parameter :: a12$ = 62, k12l$ = 62
+  integer, parameter :: a13$ = 63, k13l$ = 63
+  integer, parameter :: a14$ = 64, k14l$ = 64
+  integer, parameter :: a15$ = 65, k15l$ = 65
+  integer, parameter :: a16$ = 66, k16l$ = 66
+  integer, parameter :: a17$ = 67, k17l$ = 67
+  integer, parameter :: a18$ = 68, k18l$ = 68
+  integer, parameter :: a19$ = 69, k19l$ = 69
+  integer, parameter :: a20$ = 70, k20l$ = 70
+
+  integer, parameter :: b0$  = 80, t0$  = 80
+  integer, parameter :: b1$  = 81, t1$  = 81
+  integer, parameter :: b2$  = 82, t2$  = 82
+  integer, parameter :: b3$  = 83, t3$  = 83
+  integer, parameter :: b4$  = 84, t4$  = 84
+  integer, parameter :: b5$  = 85, t5$  = 85
+  integer, parameter :: b6$  = 86, t6$  = 86
+  integer, parameter :: b7$  = 87, t7$  = 87
+  integer, parameter :: b8$  = 88, t8$  = 88
+  integer, parameter :: b9$  = 89, t9$  = 89
+  integer, parameter :: b10$ = 90, t10$ = 90
+  integer, parameter :: b11$ = 91, t11$ = 91
+  integer, parameter :: b12$ = 92, t12$ = 92
+  integer, parameter :: b13$ = 93, t13$ = 93
+  integer, parameter :: b14$ = 94, t14$ = 94
+  integer, parameter :: b15$ = 95, t15$ = 95
+  integer, parameter :: b16$ = 96, t16$ = 96
+  integer, parameter :: b17$ = 97, t17$ = 97
+  integer, parameter :: b18$ = 98, t18$ = 98
+  integer, parameter :: b19$ = 99, t19$ = 99
+  integer, parameter :: b20$ =100, t20$ =100 ! this is n_attrib_special_maxx 
+
+  integer, parameter :: n_attrib_special_maxx = 100
 
   integer, parameter :: particle$ = 1
   integer, parameter :: n_part$    = 3

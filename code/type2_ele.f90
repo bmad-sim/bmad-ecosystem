@@ -38,6 +38,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.12  2002/09/14 19:45:25  dcs
+!*** empty log message ***
+!
 !Revision 1.11  2002/08/23 20:19:02  dcs
 !Update Documentation.
 !
@@ -87,14 +90,16 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
   integer i, j, k, n, twiss_out, ix, iv, ic, ct, nl2
   integer nl, nt, n_max, i_max, particle
 
-  real(rdef) coef, value(n_attrib_maxx), value2(n_attrib_maxx)
+  real(rdef) coef
   real(rdef) a(0:n_pole_maxx), b(0:n_pole_maxx)
   real(rdef) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 
-  character*80, pointer :: lines(:)
-  character*80, pointer :: li(:), li2(:) 
-  character*16 a_name, name
-  character val_str*12, str*80
+  character(80), pointer :: lines(:)
+  character(80), pointer :: li(:), li2(:)
+  character(16) a_name, name
+  character(12) val_str
+  character(80) str
+  character(2) str_i
 
   logical, intent(in) :: type_taylor
   logical, intent(in) :: type_control, type_zero_attrib
@@ -173,25 +178,27 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
         endif
 
         do i = 0, n_pole_maxx
-          if (ele%value(i) /= 0 .or. value(i) /= 0 .or. value2(i) /= 0) then
-            if (ele%key == ab_multipole$) then
-              write (li(nl+1), '(5x, a, i2, 2(a, 1pe11.3))') &
-                   'a(', i, ') =', ele%a(i), '   W/Tilt:', a2(i)
-              write (li(nl+2), '(5x, a, i2, 2(a, 1pe11.3))') &
-                   'b(', i, ') =', ele%b(i), '   W/Tilt:', b2(i)
-            elseif (ele%key == multipole$) then
-              write (li(nl+1), '(5x, a, i2, 2(a, 1pe11.3))') &
-                   'kl(', i, ') =', ele%a(i), '   W/Tilt:', a2(i)
-              write (li(nl+2), '(5x, a, i2, 2(a, 1pe11.3))') &
-                   't(', i, ') =', ele%b(i), '   W/Tilt:', b2(i)
-            else
-              write (li(nl+1), '(5x, a, i2, 3(a, 1pe11.3))') 'a(', i, ') =', &
+          if (ele%a(i) == 0 .and. ele%b(i) == 0) cycle
+          write (str_i, '(i2)') i
+          call string_trim (str_i, str_i, ix)
+          if (ele%key == ab_multipole$) then
+            write (li(nl+1), '(5x, 2a, 2(a, 1pe11.3))') &
+                   'A', str_i, ' =', ele%a(i), '   W/Tilt:', a2(i)
+            write (li(nl+2), '(5x, 2a, 2(a, 1pe11.3))') &
+                   'B', str_i, ' =', ele%b(i), '   W/Tilt:', b2(i)
+          elseif (ele%key == multipole$) then
+            write (li(nl+1), '(5x, 2a, 2(a, 1pe11.3))') &
+                   'K', trim(str_i), 'L =', ele%a(i), '   W/Tilt:', a2(i)
+            write (li(nl+2), '(5x, 2a, 2(a, 1pe11.3))') &
+                   'T', trim(str_i), '  =', ele%b(i), '   W/Tilt:', b2(i)
+          else
+            write (li(nl+1), '(5x, 2a, 3(a, 1pe11.3))') 'A', str_i, ' =', &
                    ele%a(i), '   Scaled:', a(i), '   W/Tilt:', a2(i)
-              write (li(nl+2), '(5x, a, i2, 3(a, 1pe11.3))') 'b(', i, ') =', &
+            write (li(nl+2), '(5x, 2a, 3(a, 1pe11.3))') 'B', str_i, ' =', &
                    ele%b(i), '   Scaled:', b(i), '   W/Tilt:', b2(i)
-            endif
-            nl = nl + 2
           endif
+
+          nl = nl + 2
         enddo
 
       endif
