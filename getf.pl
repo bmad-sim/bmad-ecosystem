@@ -4,29 +4,29 @@ use File::Find;
 
 $found_one = 0;
 
-if (-d "./bmad")
+if (-d "./bmad/modules")
   {$bmad_dir="./bmad";}
-elsif (-d "../bmad")
+elsif (-d "../bmad/modules")
   {$bmad_dir="../bmad";}
-elsif (-d "../../bmad")
+elsif (-d "../../bmad/modules")
   {$bmad_dir="../../bmad";}
 else
   {$bmad_dir=$ENV{"CESR_CVSSRC"}."/bmad";}
 
-if (-d "./cesr_utils")
+if (-d "./cesr_utils/modules")
   {$cesr_utils_dir="./cesr_utils";}
-elsif (-d "../cesr_utils")
+elsif (-d "../cesr_utils/modules")
   {$cesr_utils_dir="../cesr_utils";}
-elsif (-d "../../cesr_utils")
+elsif (-d "../../cesr_utils/modules")
   {$cesr_utils_dir="../../cesr_utils";}
 else
   {$cesr_utils_dir=$ENV{"CESR_CVSSRC"}."/cesr_utils";}
 
-if (-d "./dcslib")
+if (-d "./dcslib/modules")
   {$dcslib_dir="./dcslib";}
-elsif (-d "../dcslib")
+elsif (-d "../dcslib/modules")
   {$dcslib_dir="../dcslib";}
-elsif (-d "../../dcslib")
+elsif (-d "../../dcslib/modules")
   {$dcslib_dir="../../dcslib";}
 else
   {$dcslib_dir=$ENV{"CESR_CVSSRC"}."/dcslib";}
@@ -49,11 +49,11 @@ elsif (-d "../../forest/basic")
 else
   {$forest_dir=$ENV{"CESR_PKG"}."/forest/basic";}
 
-if (-d "./tao")
+if (-d "./tao/code")
   {$tao_dir="./tao";}
-elsif (-d "../tao")
+elsif (-d "../tao/code")
   {$tao_dir="../tao";}
-elsif (-d "../../tao")
+elsif (-d "../../tao/code")
   {$tao_dir="../../tao";}
 else
   {$tao_dir=$ENV{"CESR_CVSSRC"}."/tao";}
