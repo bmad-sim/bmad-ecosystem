@@ -55,7 +55,7 @@ module cesr_db_mod
     type (db_element_struct) :: scir_quadcur(n_scir_quad_maxx)
     type (db_element_struct) :: scir_skqucur(n_scir_quad_maxx)
     type (db_element_struct) :: scir_vertcur(n_scir_quad_maxx)
-    type (db_element_struct) :: scir_sksxcur(1)
+    type (db_element_struct) :: ir_sksxcur(1)
     type (db_node_struct) :: node(15)  ! does not include stuff below
 ! in db but without corresponding BMAD element
     type (db_element_struct) :: scir_pos_stp(n_scir_cam_maxx)
@@ -199,8 +199,8 @@ subroutine bmad_to_db (ring, db, calib_date)
   call db_init_it (db%scir_vertcur, lbound(db%scir_vertcur, 1), &
           'SCIR VERTCUR', vkick$, db%node, cesr%v_steer_(111:114), 111)
 
-  call db_init_it (db%scir_sksxcur, lbound(db%scir_sksxcur, 1), &
-          'SCIR SKSXCUR',   k2$,    db%node, cesr%skew_sex_(11:11), 11)
+  call db_init_it (db%ir_sksxcur, lbound(db%ir_sksxcur, 1), &
+          'IR SKSXCUR  ',   k2$,    db%node, cesr%skew_sex_(11:11), 11)
 
 !-----------------------------------------------------------------------------
 ! find the separators
@@ -286,12 +286,12 @@ subroutine bmad_to_db (ring, db, calib_date)
 ! skew sextupole calibration
 
   call skew_sex_calib (db%csr_sqewsext(:)%dvar_dcu, &
-                                            db%scir_sksxcur(:)%dvar_dcu)
+                                            db%ir_sksxcur(:)%dvar_dcu)
   db%csr_sqewsext(:)%dvar_dcu = db%csr_sqewsext(:)%dvar_dcu / gev
-  db%scir_sksxcur(:)%dvar_dcu = db%scir_sksxcur(:)%dvar_dcu / gev
+  db%ir_sksxcur(:)%dvar_dcu = db%ir_sksxcur(:)%dvar_dcu / gev
 
   call get_ele_theory (ring, db%csr_sqewsext) 
-  call get_ele_theory (ring, db%scir_sksxcur) 
+  call get_ele_theory (ring, db%ir_sksxcur) 
 
 ! quad calibrations 
 
