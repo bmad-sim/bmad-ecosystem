@@ -1641,6 +1641,11 @@ subroutine read_lr_wake (ele)
   ele%wake%lr%r_over_q  = r_over_q(1:n_row)
   ele%wake%lr%q         = q(1:n_row)
   ele%wake%lr%m         = m(1:n_row)
+  ele%wake%lr%norm_sin  = 0
+  ele%wake%lr%norm_cos  = 0
+  ele%wake%lr%skew_sin  = 0
+  ele%wake%lr%skew_cos  = 0
+  ele%wake%lr%z_ref     = 0
 
 end subroutine
 
@@ -2170,6 +2175,78 @@ subroutine init_bmad_parser_common
   enddo
 
   call indexx (bp_com%var_name(1:nt), bp_com%var_indexx(1:nt))
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine add_this_clone (ring, clone_name)
+
+  implicit none
+
+  type (ring_struct) ring
+  type (ele_struct), pointer :: slave, lord
+
+  integer i, n_clone, ixs(100), ixc, ixic, ix_lord, ix_slave
+  character(16) clone_name
+
+! Count slaves.
+! If i > ring%n_ele_use we are looking at cloning a super_lord which should
+! not happen.
+
+  n_clone = 0
+
+  do i = 1, ring%n_ele_max
+    slave => ring%ele_(i)
+    if (slave%name /= clone_name) cycle
+    n_clone = n_clone+1
+    write (slave%name, '(2a, i1)') trim(slave%name), '\', n_clone   ! '
+    if (i > ring%n_ele_use) then
+      call warning ('INTERNAL ERROR: CONFUSED CLONE SETUP.', &
+                    'PLEASE GET EXPERT HELP!')
+      call err_exit
+    endif
+    if (slave%n_lord /= 0) then
+      call warning ('INTERNAL ERROR: CONFUSED CLONE SETUP2.', &
+                    'PLEASE GET EXPERT HELP!')
+      call err_exit
+    endif
+    ixs(n_clone) = i
+  enddo
+
+  if (n_clone == 0) return ! clone was not in lattice list
+
+! setup clone_lord
+
+  call new_control (ring, ix_lord)
+  lord => ring%ele_(ix_lord)
+
+  lord = ring%ele_(ixs(1))  ! Set equal to first slave.
+  lord%control_type = clone_lord$
+  lord%name = clone_name
+  lord%n_slave = n_clone
+  call adjust_control_struct (ring, ix_lord)
+
+! Setup bookkeeping between lord and slaves
+
+  do i = 1, n_clone
+    ix_slave = ixs(i)
+    ixc = i + lord%ix1_slave - 1
+    ring%control_(ixc)%ix_lord = ix_lord
+    ring%control_(ixc)%ix_slave = ix_slave
+    slave => ring%ele_(ix_slave)
+    slave%n_lord = 1
+    call adjust_control_struct (ring, ix_slave)
+    slave%control_type = clone_slave$
+    ixic = slave%ic1_lord
+    ring%ic_(ixic) = ixc
+  enddo
 
 end subroutine
 

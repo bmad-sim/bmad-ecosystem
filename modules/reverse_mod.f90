@@ -155,7 +155,8 @@ subroutine reverse_ele (ele)
     ele%value(ks$) = -ele%value(ks$)
 
   case (rfcavity$)
-    ele%value(phi0$) = -ele%value(phi0$)
+    ele%value(phi0$)  = -ele%value(phi0$)
+    ele%value(dphi0$) = -ele%value(dphi0$)
 
   case (sbend$)
     tempp = ele%value(e1$)

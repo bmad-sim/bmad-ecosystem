@@ -36,16 +36,19 @@ subroutine control_bookkeeper (ring, ix_ele)
   implicit none
 
   type (ring_struct), target :: ring
-  type (ele_struct), pointer :: ele
+  type (ele_struct), pointer :: lord, slave
 
   integer, optional :: ix_ele
-  integer i, j, ix, ix1, ix2
-  integer ix_eles(300)
+  integer i, j, ix, ix1, ix2, ix_lord
+  integer ix_slaves(300)
 
-! If we need to make up the entire ring then we need to do the lords first
+! If ix_ele is present we only do bookkeeping for this one element
 
   if (present(ix_ele)) then
     call this_bookkeeper (ix_ele)
+
+! Else we need to make up all the lords. 
+! The group lords must be done last since their slaves don't know about them.
 
   else
     do i = ring%n_ele_use+1, ring%n_ele_max
@@ -65,54 +68,66 @@ subroutine this_bookkeeper (ix_ele)
 
   integer ix_ele
 
-! Attribute bookkeeping
+! Attribute bookkeeping for this element
 
   call attribute_bookkeeper (ring%ele_(ix_ele), ring%param)
   if (ring%ele_(ix_ele)%n_slave == 0 .and. &
             ring%ele_(ix_ele)%n_lord == 0) return  ! nothing more to do
 
-! Make a list of elements to update.
+! Make a list of slave elements to update.
 ! we do not need to update free elements of group lords.
 
   ix1 = 0   ! index for processed elements
-  ix_eles(1) = ix_ele
+  ix_slaves(1) = ix_ele
   ix2 = 1   ! index for last element in list
 
   do
     ix1 = ix1 + 1
-    ele => ring%ele_(ix_eles(ix1))
-    do i = ele%ix1_slave, ele%ix2_slave
+    ix_lord = ix_slaves(ix1)
+    lord => ring%ele_(ix_lord)
+    do i = lord%ix1_slave, lord%ix2_slave
       ix = ring%control_(i)%ix_slave
-      if (ele%key == group_lord$ .and. ring%ele_(ix)%key == free$) cycle
-      if (ix == ix_eles(ix2)) cycle   ! do not use duplicates
+      if (lord%key == group_lord$ .and. ring%ele_(ix)%key == free$) cycle
+      if (ix == ix_slaves(ix2)) cycle   ! do not use duplicates
       ix2 = ix2 + 1
-      ix_eles(ix2) = ix
+      ix_slaves(ix2) = ix
     enddo
     if (ix1 == ix2) exit
   enddo
 
 ! First: Makup lords and group slaves.
-! If a super_lord has lords in turn then these lords must be overlay_lords. 
-! therefore treat the super_lord as an overlay_slave.
-! the same is true if an overlay lord has lords.
+! If an overlay_lord has lords above it then these lords must be overlay_lords.
+! Therefore treat the overlay_lord as an overlay_slave.
+! The same is true if a super_lord has lords except in this case the lord
+! may be a clone_lord.
 
   do j = 1, ix2
 
-    ix = ix_eles(j)
-    ele => ring%ele_(ix)
+    ix = ix_slaves(j)
+    slave => ring%ele_(ix)
 
-    if (ele%control_type == group_lord$) then
+    if (slave%control_type == group_lord$) then
       call makeup_group_slaves (ring, ix)
-      call attribute_bookkeeper (ring%ele_(ix), ring%param)
+      call attribute_bookkeeper (slave, ring%param)
 
-    elseif (ele%control_type == super_lord$ .and. ele%n_lord > 0) then
-      call adjust_super_lord_s_position (ring, ix)
-      call makeup_overlay_slave (ring, ix)
-      call attribute_bookkeeper (ring%ele_(ix), ring%param)
+    elseif (slave%control_type == super_lord$ .and. slave%n_lord > 0) then
+      i =  ring%ic_(slave%ic1_lord)
+      lord => ring%ele_(ring%control_(i)%ix_lord)
+      if (lord%control_type == clone_lord$) then
+        call makeup_clone_slave (ring, ix)
+      else
+        call adjust_super_lord_s_position (ring, ix)
+        call makeup_overlay_and_i_beam_slave (ring, ix)
+      endif
+      call attribute_bookkeeper (slave, ring%param)
 
-    elseif (ele%control_type == overlay_lord$ .and. ele%n_lord > 0) then
-      call makeup_overlay_slave (ring, ix)
-      call attribute_bookkeeper (ring%ele_(ix), ring%param)
+    elseif (slave%control_type == clone_lord$ .and. slave%n_lord > 0) then
+      call makeup_overlay_and_i_beam_slave (ring, ix)
+      call attribute_bookkeeper (slave, ring%param)
+
+    elseif (slave%control_type == overlay_lord$ .and. slave%n_lord > 0) then
+      call makeup_overlay_and_i_beam_slave (ring, ix)
+      call attribute_bookkeeper (slave, ring%param)
 
     endif
 
@@ -122,16 +137,20 @@ subroutine this_bookkeeper (ix_ele)
 
   do j = 1, ix2
 
-    ix = ix_eles(j)
-    ele => ring%ele_(ix)       
+    ix = ix_slaves(j)
+    slave => ring%ele_(ix)       
 
-    if (ele%control_type == super_slave$) then
+    if (slave%control_type == super_slave$) then
       call makeup_super_slave (ring, ix)
-      call attribute_bookkeeper (ring%ele_(ix), ring%param)
+      call attribute_bookkeeper (slave, ring%param)
 
-    elseif (ele%control_type == overlay_slave$) then
-      call makeup_overlay_slave (ring, ix)
-      call attribute_bookkeeper (ring%ele_(ix), ring%param)
+    elseif (slave%control_type == overlay_slave$) then
+      call makeup_overlay_and_i_beam_slave (ring, ix)
+      call attribute_bookkeeper (slave, ring%param)
+
+    elseif (slave%control_type == clone_slave$) then
+      call makeup_clone_slave (ring, ix)
+      call attribute_bookkeeper (slave, ring%param)
 
     endif
 
@@ -291,9 +310,67 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine makeup_clone_slave (ring, ix_slave)
+!
+! Subroutine to calcualte the attributes of clone slave elements.
+! This routine is not meant for general use.
+!-
+
+subroutine makeup_clone_slave (ring, ix_slave)
+
+  implicit none
+
+  type (ring_struct), target :: ring
+  type (ele_struct), pointer :: lord, slave
+
+  real(rp) s, val(n_attrib_maxx)
+  integer j, ix_slave
+
+!
+
+  slave => ring%ele_(ix_slave)
+  j =  ring%ic_(slave%ic1_lord)
+  lord => ring%ele_(ring%control_(j)%ix_lord)
+
+  val = slave%value
+
+  slave%value = lord%value
+  if (lord%key == lcavity$ .or. lord%key == rfcavity$) then
+    slave%value(dphi0$)        = val(dphi0$)
+    slave%value(energy_start$) = val(energy_start$)
+  endif
+
+  slave%value(beam_energy$) = val(beam_energy$)
+  slave%value(p0c$)         = val(p0c$)
+
+  if (associated (slave%a)) then
+    slave%a = lord%a
+    slave%b = lord%b
+  endif
+
+  if (associated (slave%r)) slave%r = lord%r
+  if (associated (slave%const)) slave%const = lord%const
+  if (associated (slave%wake)) then
+    if (associated (slave%wake%sr)) slave%wake%sr = lord%wake%sr
+    if (associated (slave%wake%lr)) slave%wake%lr = lord%wake%lr
+  endif
+
+  slave%mat6_calc_method = lord%mat6_calc_method
+  slave%tracking_method  = lord%tracking_method
+  slave%num_steps        = lord%num_steps      
+  slave%is_on            = lord%is_on
+  slave%aperture_at      = lord%aperture_at
+
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Subroutine makeup_super_slave (ring, ix_slave)
 !
-! Subroutine to calcualte the attributes of overlay slave elements
+! Subroutine to calcualte the attributes of superposition slave elements.
+! This routine is not meant for general use.
 !-
          
 subroutine makeup_super_slave (ring, ix_slave)
@@ -769,6 +846,11 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
+!+
+! Subroutine compute_slave_aperture (value, slave, lord, ix_con)
+!
+! This routine is not meant for general use.
+!-
 
 subroutine compute_slave_aperture (value, slave, lord, ix_con)
 
@@ -808,8 +890,13 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
+!+
+! Subroutine makeup_overlay_and_i_beam_slave (ring, ix_ele)
+!
+! This routine is not meant for general use.
+!-
 
-subroutine makeup_overlay_slave (ring, ix_ele)
+subroutine makeup_overlay_and_i_beam_slave (ring, ix_ele)
 
   implicit none
 
@@ -820,7 +907,7 @@ subroutine makeup_overlay_slave (ring, ix_ele)
   integer i, j, ix, iv, ix_ele, icom, ct
   logical used(n_attrib_maxx)
 
-  character(20) :: r_name = 'makeup_overlay_slave'
+  character(40) :: r_name = 'makeup_overlay_and_i_beam_slave'
 
 !
                                

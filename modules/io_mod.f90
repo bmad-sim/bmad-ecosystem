@@ -811,6 +811,7 @@ subroutine element_out (ele)
 
   type (ele_struct) ele
   integer i
+  real(rp), pointer :: val(:)
 
 ! replace element name containing "/" with "_"
 
@@ -832,6 +833,7 @@ subroutine element_out (ele)
 
   n_list = n_list + 1
   name_list(n_list) = ele%name
+  val => ele%value
 
 ! select key
 
@@ -841,37 +843,36 @@ subroutine element_out (ele)
 
   case (drift$)
 
-    write (line, '(a, es13.5)') trim(name) // ': drift, l =', ele%value(l$)
+    write (line, '(a, es13.5)') trim(name) // ': drift, l =', val(l$)
 ! beambeam
 
   case (beambeam$)
 
     line = trim(name) // ': beambeam'
-    call value_to_line (line, ele%value(sig_x$), 'sigx', 'es13.5', 'R')
-    call value_to_line (line, ele%value(sig_y$), 'sigy', 'es13.5', 'R')
-    call value_to_line (line, ele%value(x_offset$), 'xma', 'es13.5', 'R')
-    call value_to_line (line, ele%value(y_offset$), 'yma', 'es13.5', 'R')
-    call value_to_line (line, ele%value(charge$), 'charge', 'es13.5', 'R')
+    call value_to_line (line, val(sig_x$), 'sigx', 'es13.5', 'R')
+    call value_to_line (line, val(sig_y$), 'sigy', 'es13.5', 'R')
+    call value_to_line (line, val(x_offset$), 'xma', 'es13.5', 'R')
+    call value_to_line (line, val(y_offset$), 'yma', 'es13.5', 'R')
+    call value_to_line (line, val(charge$), 'charge', 'es13.5', 'R')
 
 ! elseparator
 
   case (elseparator$)
 
-    write (line, '(a, es13.5)') trim(name) // ': elseparator, l =', ele%value(l$)
-    hk = ele%value(hkick$)
-    vk = ele%value(vkick$)
+    write (line, '(a, es13.5)') trim(name) // ': elseparator, l =', val(l$)
+    hk = val(hkick$)
+    vk = val(vkick$)
 
     if (hk /= 0 .or. vk /= 0) then
 
       ix = len_trim(line) + 1
-      field = 1.0e3 * sqrt(hk**2 + vk**2) * ele%value(beam_energy$) /  &
-                                                                ele%value(l$)
+      field = 1.0e3 * sqrt(hk**2 + vk**2) * val(beam_energy$) / val(l$)
       write (line(ix:), '(a, es13.5)') ', e =', field
 
       if (ring%param%particle == positron$) then
-        tilt = -atan2(hk, vk) + ele%value(tilt$)
+        tilt = -atan2(hk, vk) + val(tilt$)
       else
-        tilt = -atan2(hk, vk) + ele%value(tilt$) + pi
+        tilt = -atan2(hk, vk) + val(tilt$) + pi
       endif
       ix = len_trim(line) + 1
       write (line(ix:), '(a, es13.5)') ', tilt =', tilt
@@ -882,11 +883,11 @@ subroutine element_out (ele)
 
   case (kicker$)
 
-    write (line, '(a, es13.5)') trim(name) // ': kicker, l =', ele%value(l$)
+    write (line, '(a, es13.5)') trim(name) // ': kicker, l =', val(l$)
 
-    call value_to_line (line, ele%value(hkick$), 'hkick', 'es13.5', 'R')
-    call value_to_line (line, ele%value(vkick$), 'vkick', 'es13.5', 'R')
-    call value_to_line (line, ele%value(tilt$), 'tilt', 'es13.5', 'R')
+    call value_to_line (line, val(hkick$), 'hkick', 'es13.5', 'R')
+    call value_to_line (line, val(vkick$), 'vkick', 'es13.5', 'R')
+    call value_to_line (line, val(tilt$), 'tilt', 'es13.5', 'R')
 
 ! marker
 
@@ -898,63 +899,63 @@ subroutine element_out (ele)
 
   case (octupole$)
 
-    write (line, '(a, es13.5)') trim(name) // ': octupole, l =', ele%value(l$)
+    write (line, '(a, es13.5)') trim(name) // ': octupole, l =', val(l$)
 
-    call value_to_line (line, ele%value(k3$), 'k3', 'es13.5', 'R')
-    call value_to_line (line, ele%value(tilt$), 'tilt', 'es13.5', 'R')
+    call value_to_line (line, val(k3$), 'k3', 'es13.5', 'R')
+    call value_to_line (line, val(tilt$), 'tilt', 'es13.5', 'R')
 
 ! quadrupole
 
   case (quadrupole$)
 
-    write (line, '(a, es13.5)') trim(name) // ': quad, l =', ele%value(l$)
-    call value_to_line (line, ele%value(k1$), 'k1', 'es13.5', 'R')
-    call value_to_line (line, ele%value(tilt$), 'tilt', 'es13.5', 'R')
+    write (line, '(a, es13.5)') trim(name) // ': quad, l =', val(l$)
+    call value_to_line (line, val(k1$), 'k1', 'es13.5', 'R')
+    call value_to_line (line, val(tilt$), 'tilt', 'es13.5', 'R')
 
 ! sbend
 
   case (sbend$)
 
-    write (line, '(a, es13.5)') trim(name) // ': sbend, l =', ele%value(l$)
+    write (line, '(a, es13.5)') trim(name) // ': sbend, l =', val(l$)
 
-    call value_to_line (line, ele%value(angle$), 'angle', 'es13.5', 'R')
-    call value_to_line (line, ele%value(e1$), 'e1', 'es13.5', 'R')
-    call value_to_line (line, ele%value(e2$), 'e2', 'es13.5', 'R')
-    call value_to_line (line, ele%value(k1$), 'k1', 'es13.5', 'R')
-    call value_to_line (line, ele%value(tilt$), 'tilt', 'es13.5', 'R')
+    call value_to_line (line, val(angle$), 'angle', 'es13.5', 'R')
+    call value_to_line (line, val(e1$), 'e1', 'es13.5', 'R')
+    call value_to_line (line, val(e2$), 'e2', 'es13.5', 'R')
+    call value_to_line (line, val(k1$), 'k1', 'es13.5', 'R')
+    call value_to_line (line, val(tilt$), 'tilt', 'es13.5', 'R')
 
 ! sextupole
 
   case (sextupole$)
 
-    write (line, '(a, es13.5)') trim(name) // ': sextupole, l =', ele%value(l$)
-    call value_to_line (line, ele%value(k2$), 'k2', 'es13.5', 'R')
-    call value_to_line (line, ele%value(tilt$), 'tilt', 'es13.5', 'R')
+    write (line, '(a, es13.5)') trim(name) // ': sextupole, l =', val(l$)
+    call value_to_line (line, val(k2$), 'k2', 'es13.5', 'R')
+    call value_to_line (line, val(tilt$), 'tilt', 'es13.5', 'R')
 
 ! rfcavity
 
   case (rfcavity$)
 
-    write (line, '(a, es13.5)') trim(name) // ': rfcavity, l =', ele%value(l$)
-    call value_to_line (line, ele%value(voltage$)/1E6, 'volt', 'es13.5', 'R')
-    call value_to_line (line, ele%value(phi0$), 'lag', 'es13.5', 'R')
-    call value_to_line (line, ele%value(harmon$), 'harmon', 'i8', 'I')
+    write (line, '(a, es13.5)') trim(name) // ': rfcavity, l =', val(l$)
+    call value_to_line (line, val(voltage$)/1E6, 'volt', 'es13.5', 'R')
+    call value_to_line (line, val(phi0$)+val(dphi0$), 'lag', 'es13.5', 'R')
+    call value_to_line (line, val(harmon$), 'harmon', 'i8', 'I')
 
 ! lcavity
 
   case (lcavity$)
 
-    write (line, '(a, es13.5)') trim(name) // ': lcavity, l =', ele%value(l$)
-    call value_to_line (line, ele%value(gradient$)*ele%value(l$)/1e6, 'deltae', 'f11.4', 'R')
-    call value_to_line (line, ele%value(rf_frequency$)/1e6, 'freq', 'es13.5', 'R')
-    call value_to_line (line, ele%value(phi0$), 'phi0', 'es13.5', 'R')
+    write (line, '(a, es13.5)') trim(name) // ': lcavity, l =', val(l$)
+    call value_to_line (line, val(gradient$)*val(l$)/1e6, 'deltae', 'f11.4', 'R')
+    call value_to_line (line, val(rf_frequency$)/1e6, 'freq', 'es13.5', 'R')
+    call value_to_line (line, val(phi0$)+val(dphi0$), 'phi0', 'es13.5', 'R')
 
 ! solenoid
 
   case (solenoid$)
 
-    write (line, '(a, es13.5)') trim(name) // ': solenoid, l =', ele%value(l$)
-    call value_to_line (line, ele%value(ks$), 'ks', 'es13.5', 'R')
+    write (line, '(a, es13.5)') trim(name) // ': solenoid, l =', val(l$)
+    call value_to_line (line, val(ks$), 'ks', 'es13.5', 'R')
 
 ! wiggler or solquad must be a matrix
 

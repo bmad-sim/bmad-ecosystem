@@ -1826,8 +1826,9 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
     ptc_key%magnet = 'rfcavity'
     ptc_key%list%volt = 1e-6 * ele%value(voltage$)
     ptc_key%list%freq0 = ele%value(rf_frequency$)
-    ptc_key%list%lag = twopi * ele%value(phi0$) + pi * ptc_key%list%freq0 * &
-        ele%value(l$) / c_light + c_%phase0  ! For (t, dE) use /(c_light*beta0)
+    ptc_key%list%lag = twopi * (ele%value(phi0$) + ele%value(dphi0$)) + &
+        pi * ptc_key%list%freq0 * ele%value(l$) / c_light + c_%phase0 
+        ! For (t, dE) use /(c_light*beta0)
     ptc_key%list%delta_e = 0
 
   case (elseparator$)

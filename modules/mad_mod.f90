@@ -1201,7 +1201,7 @@ subroutine mad_rfcavity (ele, energy, map)
 
   omega = charge * twopi / ele%value(rf_wavelength$)
   vrf   = ele%value(voltage$) * charge / energy%total
-  phirf = ele%value(phi0$) * twopi                   ! - omega * orbit(5)
+  phirf = (ele%value(phi0$) + ele%value(dphi0$)) * twopi   ! - omega * orbit(5)
 
   c0 =  vrf * sin(phirf)
   c1 =  vrf * cos(phirf) * omega

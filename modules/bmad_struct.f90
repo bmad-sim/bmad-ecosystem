@@ -64,12 +64,17 @@ module bmad_struct
 ! Each lr_wake_struct represents a different mode.
 ! A non-zero freq_spread attribute value will make freq_in different from freq.
 
-  type lr_wake_struct   ! Long-Range Wake struct (transverse dipole only)
-    real(rp) freq       ! Frequency in Hz
+  type lr_wake_struct   ! Long-Range Wake struct 
+    real(rp) freq       ! Actual Frequency in Hz
     real(rp) freq_in    ! Input frequency in Hz
     real(rp) R_over_Q   ! Strength in V/C/m^2
     real(rp) Q          ! Quality factor
-    integer m           ! order (1 = dipole, 2 = quad, etc.)
+    integer m           ! Order (1 = dipole, 2 = quad, etc.)
+    real(rp) norm_sin   ! non-skew sin-like component of the wake
+    real(rp) norm_cos   ! non-skew cos-like component of the wake
+    real(rp) skew_sin   ! skew sin-like component of the wake
+    real(rp) skew_cos   ! skew cos-like component of the wake
+    real(rp) z_ref      ! reference time in terms of z = -c*t
   end type
 
   type wake_struct
@@ -288,7 +293,7 @@ module bmad_struct
   integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, delta_g$=6
   integer, parameter :: dks_ds$=6, lrad$ = 6
   integer, parameter :: ks$=7, voltage$=7, n_pole$=7, bbi_const$=7
-  integer, parameter :: e1$=8, charge$=8, gap$=8
+  integer, parameter :: e1$=8, charge$=8, gap$=8, dphi0$=8
   integer, parameter :: n_slice$=9, e2$=9, l_pole$=9, rf_frequency$=9
   integer, parameter :: fint$=10, polarity$=10, gradient$=10
   integer, parameter :: fintx$=11, z_patch$=11, phi0$=11
