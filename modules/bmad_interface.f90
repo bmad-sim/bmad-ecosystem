@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/12 20:53:50  rwh24
+!DCS changes
+!
 !Revision 1.2  2001/09/27 18:32:13  rwh24
 !UNIX compatibility updates
 !
@@ -513,6 +516,14 @@ module bmad_interface
       real dk_gev_dcu(0:*)
       integer cu_theory(0:*)
     end subroutine
+  end interface
+
+  interface
+     subroutine lattice_to_bmad_file_name (lattice, bmad_file_name)
+       implicit none
+       character*(*) lattice
+       character*(*) bmad_file_name
+     end subroutine lattice_to_bmad_file_name
   end interface
 
   interface
@@ -1310,6 +1321,27 @@ module bmad_interface
       character*(*) lines(*)
     end subroutine
   end interface
+
+  interface
+     subroutine type_twiss (ele, frequency_units)
+       use bmad_struct
+       implicit none
+       type (ele_struct) ele
+       integer frequency_units
+     end subroutine type_twiss
+  end interface
+
+  interface
+     subroutine type2_twiss (ele, frequency_units, lines, n_lines)
+       use bmad_struct
+       implicit none
+       type (ele_struct) ele
+       integer frequency_units
+       integer n_lines
+       character*(*) lines(:)
+     end subroutine type2_twiss
+  end interface
+
 
   interface
     subroutine write_digested_bmad_file (digested_name, ring,  &

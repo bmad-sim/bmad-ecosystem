@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2001/10/12 20:53:50  rwh24
+!DCS changes
+!
 !Revision 1.3  2001/10/02 18:50:26  rwh24
 !Extended track_input_struct in bmad_struct.
 !Fixed qromb_rad_int definition in rad_int_common.
@@ -486,6 +489,13 @@ module bmad_struct
   integer, parameter :: scir_tilt_e$ = 3, scir_tilt_sk_e$ = 4
 
 !---------------------------------------------------------------------------
+! Units
+
+  integer, parameter :: radians$ = 1, degrees$ = 2, cycles$ = 3, kHz$ = 4
+  character*8 ::frequency_units_name(4) = (/ &
+            'Radians ', 'Degrees ', 'Cycles  ', 'kHz     ' /)
+
+!---------------------------------------------------------------------------
 ! DB_STRUCT:                       
 ! This structrue holds info on the correspondence between CESR data base
 ! elements and a BMAD ring. Use BMAD_TO_DB to initialize this structure.
@@ -543,9 +553,7 @@ module bmad_struct
     type (db_element_struct) :: scir_enc_cnt(n_scir_cam_maxx)
     type (db_element_struct) :: scir_pos_rd(3*n_scir_cam_maxx)
 ! non data base stuff
-    type (db_element_struct) :: quad_cur(0:120) ! combinded csr_quad_cur, etc.
-    type (db_element_struct) :: quad_tilt(0:99)
-    type (db_element_struct) :: qadd_tilt(1:n_qadd_maxx)
+    type (db_element_struct) :: quad(0:120) ! combinded csr_quad_cur, etc.
     type (db_element_struct) :: detector(0:99)
     type (db_element_struct) :: wiggler(1:n_wig_maxx)
     type (db_element_struct) :: scir_cam_rho(n_scir_cam_maxx)
