@@ -208,14 +208,14 @@ to be safe, when elment attributes are changed,
 call \vnf{attribute_bookkeeper}. If the element is part of a \vn{Ring_struct}
 (as it is in most cases), the routine \vnf{control_bookkeeper} (which calls
 \vn{attribute_bookkeeper}) should be called instead.
-The routine \vnr{check_attrib_free} will check if an attribute is free to vary.
+The function \vnr{attribute_free} will check if an attribute is free to vary.
 \begin{example}
   type (ring_struct) lat
   integer ix_ele
   ...
   call element_locator ('Q10W', lat, ix_ele)   ! look for a quadrupole
-  call check_attrib_free (lat%ele_(ix_ele), k1$, lat, err_flag, .false.)
-  if (err_flag) print *, 'Cannot vary: Q10W k1'
+  free = attribute_free (lat%ele_(ix_ele), k1$, lat, .false.)
+  if (.not. free) print *, 'Cannot vary: Q10W k1'
 \end{example}
 
 In designing a program that will let a user input what
