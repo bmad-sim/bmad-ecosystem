@@ -165,30 +165,32 @@ subroutine reverse_ele (ele)
 !   T = the input taylor series
 !   M = The map (x, P_x, y, P_y, z, P_z) -> (x, -P_x, y, -P_y, -z, P_z)
 
-  if (.not. associated(ele%taylor(1)%term)) return
+  if (associated(ele%taylor(1)%term)) then
 
-  call taylor_inverse (ele%taylor, ele%taylor)
+    call taylor_inverse (ele%taylor, ele%taylor)
 
 ! Apply M to the right
 
-  do i = 1, 6
-    do j = 1, size(ele%taylor(i)%term)
-      sum245 = ele%taylor(i)%term(j)%exp(2) + ele%taylor(i)%term(j)%exp(4) + &
-                                                ele%taylor(i)%term(j)%exp(5)
-      if (mod(sum245, 2) == 1) ele%taylor(i)%term(j)%coef = &
-                                                  -ele%taylor(i)%term(j)%coef
+    do i = 1, 6
+      do j = 1, size(ele%taylor(i)%term)
+        sum245 = ele%taylor(i)%term(j)%exp(2) + ele%taylor(i)%term(j)%exp(4) + &
+                                                  ele%taylor(i)%term(j)%exp(5)
+        if (mod(sum245, 2) == 1) ele%taylor(i)%term(j)%coef = &
+                                                    -ele%taylor(i)%term(j)%coef
+      end do
     end do
-  end do
 
 ! Apply M to the left
 
-  ele%taylor(2)%term(:)%coef = -ele%taylor(2)%term(:)%coef
-  ele%taylor(4)%term(:)%coef = -ele%taylor(4)%term(:)%coef
-  ele%taylor(5)%term(:)%coef = -ele%taylor(5)%term(:)%coef
+    ele%taylor(2)%term(:)%coef = -ele%taylor(2)%term(:)%coef
+    ele%taylor(4)%term(:)%coef = -ele%taylor(4)%term(:)%coef
+    ele%taylor(5)%term(:)%coef = -ele%taylor(5)%term(:)%coef
+
+  endif
 
 ! kill any gen_field
 
-if (associated(ele%gen_field)) call kill (ele%gen_field)
+  if (associated(ele%gen_field)) call kill (ele%gen_field)
 
 ! reverse mat6
 

@@ -51,7 +51,7 @@ subroutine check_aperture_limit (orb, ele, param)
   type (ele_struct),   intent(in)  :: ele
   type (param_struct), intent(inout) :: param
 
-  real(rdef) x_lim, y_lim
+  real(rp) x_lim, y_lim
 
 !
 
@@ -79,18 +79,18 @@ end subroutine
 !   use precision_def
 !
 ! Input:
-!   orb(6) -- Real(rdef): Orbit at start of the drift
-!   length -- Real(rdef): Length of drift.
+!   orb(6) -- Real(rp): Orbit at start of the drift
+!   length -- Real(rp): Length of drift.
 !
 ! Output:
-!   orb(6) -- Real(rdef): Orbit at end of the drift
+!   orb(6) -- Real(rp): Orbit at end of the drift
 !-
 
 subroutine track_a_drift (orb, length)
 
   implicit none
 
-  real(rdef) orb(6), length, rel_E
+  real(rp) orb(6), length, rel_E
 
   rel_E = 1 + orb(6)
 
@@ -106,19 +106,20 @@ end subroutine
 !+
 ! Subroutine track_a_bend (start, ele, param, end)
 !
-! Particle tracking through a bend element.
-! This subroutine assumes no k1 quadrupole component.
-! For e1 or e2 non-zero this subroutine treats the dipole edges as thin quads.
+! Particle tracking through a bend element. 
+! If the k1 quadrupole component is zero then the tracking through the body
+! is an exact (gometrical) calculation.
+! For e1 or e2 non-zero this subroutine treats the edges as thin quads.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!   start  -- Coord_struct: Starting position with x', y' (not cononical)
+!   start  -- Coord_struct: Starting position with x', y' (not cononical).
 !   ele    -- Ele_struct: Element
 !
 ! Output:
-!   end     -- Coord_struct: End position with x', y' (not cononical)
+!   end     -- Coord_struct: End position with x', y' (not cononical).
 !   is_lost -- Logical: Set T or F depending upon whether the particle 
 !              reaches the exit face.
 !-
@@ -130,12 +131,12 @@ subroutine track_a_bend (start, ele, param, end)
   type (coord_struct)  start, end, start2
   type (ele_struct)  ele
   type (param_struct) param
-                    
-  real*8 g0, g, r, r0, theta0, del, x1, xp1, zp, x_center, y_center
-  real*8 cos0, sin0, xc, ys, b, c, x2, x_exit, y_exit, theta, s_travel
-  real*8 cos1, sin1, radix
 
-  real(rdef) k1, kc, mat2(2,2), phi, mat_i6(6), dE, fact, length
+  real(8) g0, g, r, r0, theta0, del, x1, xp1, zp, x_center, y_center
+  real(8) cos0, sin0, xc, ys, b, c, x2, x_exit, y_exit, theta, s_travel
+  real(8) cos1, sin1, radix, f
+
+  real(rp) k1, kc, mat2(2,2), phi, mat_i6(6), dE, fact, length
 
 ! some init
 
@@ -157,11 +158,19 @@ subroutine track_a_bend (start, ele, param, end)
  
   theta0 = ele%value(l$) * g0
 
-! track through the entrence face. Treat as thin lens.
+! Track through the entrence face. Treat as thin lens.
+! The second order terms come from the Hamiltonian term:
+!       H = (g * sec^2(e1$) / 2) * p_x * y^2
+! (See the MAD8 Physics writeup)
 
   del = tan(ele%value(e1$)) * g
   end%x%vel = end%x%vel + del * end%x%pos
-  end%y%vel = end%y%vel - (del+end%x%vel*g) * end%y%pos
+  end%y%vel = end%y%vel - del * end%y%pos
+
+  f = g / (2 * cos(ele%value(e1$))**2)
+
+  end%x%pos = end%x%pos + f * end%y%pos**2
+  end%y%vel = end%y%vel - 2 * f * end%x%vel * end%y%pos
 
 !-----------------------------------------------------------------------
 ! Track through main body...
@@ -277,9 +286,14 @@ subroutine track_a_bend (start, ele, param, end)
 !------------------------------------------------------------------------
 ! Track through the exit face. Treat as thin lens.
 
+  f = g / (2 * cos(ele%value(e2$))**2)
+
+  end%x%pos = end%x%pos - f * end%y%pos**2
+  end%y%vel = end%y%vel + 2 * f * end%x%vel * end%y%pos
+
   del = tan(ele%value(e2$)) * g
   end%x%vel = end%x%vel + del * end%x%pos
-  end%y%vel = end%y%vel - (del-end%x%vel*g) * end%y%pos
+  end%y%vel = end%y%vel - del * end%y%pos
 
   call offset_particle (ele, param, end, unset$)
 
@@ -321,12 +335,12 @@ subroutine track_a_accel_sol (start, ele, param, end)
   type (ele_struct)  ele
   type (param_struct)  param
 
-  real(rdef) gamma_b, gamma_new, gamma_old, l_over_gamma, ll, ls(5), s_cumul
-  real(rdef) s_grand_cum, vec_st(4), x_beg_lim, y_beg_lim, x_lim, y_lim
-  real(rdef) x_lim_chng_rate, y_lim_chng_rate, phase, mat4(4,4), length
-  real(rdef) b_x(5), b_y(5), beta_b, beta_s, c_e, c_m, en_gain, gam_inv2_b
+  real(rp) gamma_b, gamma_new, gamma_old, l_over_gamma, ll, ls(5), s_cumul
+  real(rp) s_grand_cum, vec_st(4), x_beg_lim, y_beg_lim, x_lim, y_lim
+  real(rp) x_lim_chng_rate, y_lim_chng_rate, phase, mat4(4,4), length
+  real(rp) b_x(5), b_y(5), beta_b, beta_s, c_e, c_m, en_gain, gam_inv2_b
 
-  real(rdef), parameter :: beta_crit$ = 0.999
+  real(rp), parameter :: beta_crit$ = 0.999
 
   integer i, j
 
