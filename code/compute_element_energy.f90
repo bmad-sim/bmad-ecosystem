@@ -30,7 +30,7 @@ subroutine compute_element_energy (lattice)
   type (ele_struct), pointer :: ele, lord
   real(rp) beam_energy, p0c, phase
 
-  integer i, j, k
+  integer i, j, k, ix
 
 ! Init energy
 
@@ -61,27 +61,20 @@ subroutine compute_element_energy (lattice)
     ele%value(beam_energy$) = beam_energy
     ele%value(p0c$) = p0c
 
-! If the ele is a super slave put the energy values in the lords also
-! If the ele is also an lcavity then we want then energy at the end of
-! the cavity
+  enddo
 
-    if (ele%control_type == super_slave$) then
-      do j = ele%ic1_lord, ele%ic2_lord
-        k = lattice%ic_(j)
-        lord => lattice%ele_(lattice%control_(k)%ix_lord)
-        if (ele%key == lcavity$) then
-          if (k == lord%ix1_slave) then  ! beginning of cavity
-            lord%value(energy_start$) = ele%value(energy_start$)
-            cycle
-          elseif (k /= lord%ix2_slave) then
-            cycle
-          endif
-        endif
-        lord%value(beam_energy$) = beam_energy
-        lord%value(p0c$) = p0c
-      enddo
-    endif
+! Put energy in the lord elements. 
 
+  do i = lattice%n_ele_use+1, lattice%n_ele_max
+    ele => lattice%ele_(i)
+    do
+      ix = ele%ix2_slave
+      j = lattice%control_(ix)%ix_slave
+      ele => lattice%ele_(j)
+      if (j <= lattice%n_ele_use) exit
+    enddo
+    lattice%ele_(i)%value(p0c$) = ele%value(p0c$)
+    lattice%ele_(i)%value(beam_energy$) = ele%value(beam_energy$)
   enddo
 
 end subroutine

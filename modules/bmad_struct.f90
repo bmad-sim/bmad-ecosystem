@@ -19,7 +19,7 @@ module bmad_struct
 ! INCREASE THE VERSION NUMBER !
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-  integer, parameter :: bmad_inc_version$ = 76
+  integer, parameter :: bmad_inc_version$ = 77
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -27,7 +27,7 @@ module bmad_struct
 
 ! Size of ele%value(:) array
 
-  integer, parameter :: n_attrib_maxx = 41
+  integer, parameter :: n_attrib_maxx = 49
 
 ! coordinate def
 
@@ -325,53 +325,57 @@ module bmad_struct
   integer, parameter :: y_pitch$=20
   integer, parameter :: hkick$=21
   integer, parameter :: vkick$=22
-  integer, parameter :: x_offset$=23
-  integer, parameter :: y_offset$=24
-  integer, parameter :: s_offset$=25, z_offset$=25
-  integer, parameter :: dE_offset$=26, check_sum$=26
-  integer, parameter :: x_limit$=27
-  integer, parameter :: y_limit$=28
-  integer, parameter :: aperture$=29
-  integer, parameter :: radius$=30
-  integer, parameter :: beam_energy$=31
-  integer, parameter :: rel_tol$=32
-  integer, parameter :: abs_tol$=33
-  integer, parameter :: B_field$=34, B_gradient$=34, &
-                             E_field$=34, E_gradient$=34
-  integer, parameter :: tilt_tot$=35
-  integer, parameter :: x_pitch_tot$=36
-  integer, parameter :: y_pitch_tot$=37
-  integer, parameter :: x_offset_tot$=38
-  integer, parameter :: y_offset_tot$=39
-  integer, parameter :: s_offset_tot$=40
-  integer, parameter :: p0c$ = 41
+  integer, parameter :: hkick_B_field$=23  
+  integer, parameter :: vkick_B_field$=24
+  integer, parameter :: x_offset$=25
+  integer, parameter :: y_offset$=26
+  integer, parameter :: s_offset$=27, z_offset$=27
+  integer, parameter :: dE_offset$=28, check_sum$=28
+  integer, parameter :: x_limit$=29
+  integer, parameter :: y_limit$=30
+  integer, parameter :: aperture$=31
+  integer, parameter :: radius$=32
+  integer, parameter :: beam_energy$=33
+  integer, parameter :: rel_tol$=34
+  integer, parameter :: abs_tol$=35
+  integer, parameter :: B_field$=36, E_field$=36
+  integer, parameter :: B_gradient$=37, E_gradient$=37
+  integer, parameter :: tilt_tot$=38
+  integer, parameter :: x_pitch_tot$=39
+  integer, parameter :: y_pitch_tot$=40
+  integer, parameter :: x_offset_tot$=41
+  integer, parameter :: y_offset_tot$=42
+  integer, parameter :: s_offset_tot$=43
+  integer, parameter :: p0c$ = 44
 
-  integer, parameter :: alias$ = 42  ! this is 1 greater than n_attrib_maxx
-  integer, parameter :: start_edge$ = 43     
-  integer, parameter :: end_edge$ = 44     
-  integer, parameter :: accordion_edge$ = 45, sr_wake_file$ = 45 
-  integer, parameter :: symmetric_edge$ = 46, lr_wake_file$ = 46
-  integer, parameter :: mat6_calc_method$ = 47
-  integer, parameter :: tracking_method$  = 48
-  integer, parameter :: num_steps$ = 49
-  integer, parameter :: integrator_order$ = 50
-  integer, parameter :: term$ = 51
-  integer, parameter :: ptc_kind$ = 52
-  integer, parameter :: symplectify$ = 53
-  integer, parameter :: descrip$ = 54
-  integer, parameter :: is_on$ = 55
-  integer, parameter :: field_calc$ = 56
-  integer, parameter :: type$ = 57
-  integer, parameter :: aperture_at$ = 58
-  integer, parameter :: ran_seed$ = 59
+  integer, parameter :: sr_wake_file$ = 50 ! this is 1 + n_attrib_maxx
+  integer, parameter :: lr_wake_file$ = 51
+  integer, parameter :: alias$ = 52
+  integer, parameter :: start_edge$ = 53
+  integer, parameter :: end_edge$ = 54
+  integer, parameter :: accordion_edge$ = 55
+  integer, parameter :: symmetric_edge$ = 56
+  integer, parameter :: mat6_calc_method$ = 57
+  integer, parameter :: tracking_method$  = 58
+  integer, parameter :: num_steps$ = 59
+  integer, parameter :: integrator_order$ = 60
+  integer, parameter :: term$ = 61
+  integer, parameter :: ptc_kind$ = 62
+  integer, parameter :: symplectify$ = 63
+  integer, parameter :: descrip$ = 64
+  integer, parameter :: is_on$ = 65
+  integer, parameter :: field_calc$ = 66
+  integer, parameter :: type$ = 67
+  integer, parameter :: aperture_at$ = 68
+  integer, parameter :: ran_seed$ = 69
 
-  integer, parameter :: a0$  =  60, k0l$  =  60
-  integer, parameter :: a20$ =  80, k20l$ =  80
+  integer, parameter :: a0$  =  70, k0l$  =  70
+  integer, parameter :: a20$ =  90, k20l$ =  90
 
-  integer, parameter :: b0$  =  90, t0$  =  90
-  integer, parameter :: b20$ = 110, t20$ = 110 ! this is n_attrib_special_maxx 
+  integer, parameter :: b0$  = 100, t0$  = 100
+  integer, parameter :: b20$ = 120, t20$ = 120 ! this is n_attrib_special_maxx 
 
-  integer, parameter :: n_attrib_special_maxx = 110
+  integer, parameter :: n_attrib_special_maxx = 120
 
   character(16), parameter :: null_name = 'NULL' 
   character(16), parameter :: blank_name = ' '

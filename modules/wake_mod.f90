@@ -59,7 +59,7 @@ do i = 1, size(ele%wake%lr)
   k = twopi * lr%freq / c_light
   f_exp = k / (2 * lr%Q)
   ff = charge * lr%r_over_q * (c_light / 2) * exp(-ds * f_exp) / &
-                                                    ele%value(beam_energy$) 
+                                                    ele%value(p0c$) 
 
   c = cos (ds * k)
   s = sin (ds * k)
@@ -154,8 +154,8 @@ do i = 1, size(ele%wake%lr)
 
   call ab_multipole_kick (w_skew, w_norm, lr%m-1, orbit, kx, ky)
 
-  orbit%vec(2) = orbit%vec(2) + lr%m * kx
-  orbit%vec(4) = orbit%vec(4) + lr%m * ky
+  orbit%vec(2) = orbit%vec(2) - lr%m * kx
+  orbit%vec(4) = orbit%vec(4) - lr%m * ky
 
 enddo
 
@@ -194,7 +194,7 @@ integer iw, n_sr1
 
 !
 
-z = follower%vec(6) - leader%vec(6)
+z = follower%vec(5) - leader%vec(5)
 n_sr1 = size(ele%wake%sr1) - 1
 dz = ele%wake%sr1(n_sr1)%z / n_sr1
 
@@ -204,12 +204,12 @@ f1 = 1 - f2
 
 fact = (ele%wake%sr1(iw)%trans*f1 + ele%wake%sr1(iw+1)%trans*f2) * &
                               charge * ele%value(l$) / ele%value(p0c$)
-follower%vec(2) = follower%vec(2) + fact * charge * leader%vec(1)
-follower%vec(4) = follower%vec(4) + fact * charge * leader%vec(3)
+follower%vec(2) = follower%vec(2) - fact * charge * leader%vec(1)
+follower%vec(4) = follower%vec(4) - fact * charge * leader%vec(3)
 
 fact = (ele%wake%sr1(iw)%long*f1 + ele%wake%sr1(iw+1)%long*f2) * &
                               charge * ele%value(l$) / ele%value(p0c$)
-follower%vec(6) = follower%vec(6) + fact * charge / ele%value(p0c$)
+follower%vec(6) = follower%vec(6) - fact * charge
 
 end subroutine
 
@@ -245,7 +245,7 @@ real(rp) charge, arg, ff, c, s
 
 ! Check if we have to do any calculations
 
-if (.not. bmad_com%sr_wakes_on) return  
+if (.not. bmad_com%sr_wakes_on) return
 if (.not. associated(ele%wake)) return
 
 ! Add to wake
@@ -255,8 +255,8 @@ do i = 1, size(ele%wake%sr2_long)
 
   sr2_long => ele%wake%sr2_long(i)
 
-  ff = charge * sr2_long%amp * exp(-orbit%vec(5) * sr2_long%damp) / &
-                                                  ele%value(beam_energy$) 
+  ff = charge * sr2_long%amp * exp(-orbit%vec(5) * sr2_long%damp) * &
+                                          ele%value(l$) / ele%value(p0c$)
 
   arg = orbit%vec(5) * sr2_long%k + sr2_long%phi
   c = cos (arg)
@@ -364,7 +364,7 @@ if (.not. associated(ele%wake)) return
 do i = 1, size(ele%wake%sr2_long)
   sr2_long => ele%wake%sr2_long(i)
   orbit%vec(6) = orbit%vec(6) - charge * sin(sr2_long%phi) * &
-                             sr2_long%amp / (2 * ele%value(beam_energy$))
+                         sr2_long%amp * ele%value(l$) / (2 * ele%value(p0c$))
 enddo
 
 end subroutine
@@ -411,8 +411,8 @@ do i = 1, size(ele%wake%sr2_trans)
 
   sr2_trans => ele%wake%sr2_trans(i)
 
-  ff = charge * sr2_trans%amp * exp(-orbit%vec(5) * sr2_trans%damp) / &
-                                                     ele%value(beam_energy$) 
+  ff = charge * sr2_trans%amp * exp(-orbit%vec(5) * sr2_trans%damp) * &
+                                           ele%value(l$) / ele%value(p0c$)
 
   arg = orbit%vec(5) * sr2_trans%k + sr2_trans%phi
   c = cos (arg)

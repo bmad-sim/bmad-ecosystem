@@ -544,7 +544,8 @@ Example:
   abs\_tol = Real       & \ref{s:integ}   & y\_limit = Real  & \ref{s:limit}  & symplectify = Logical        & \ref{s:symp}  \\ \hline
   num\_steps = Integer  & \ref{s:integ}   & aperture = Real  & \ref{s:limit}  & is\_on = Logical             & \ref{s:is_on} \\ \hline
   beam\_energy$^*$      & \ref{s:energy}  & p0c$^*$          & \ref{s:energy} & aperture\_at = Switch        & \ref{s:limit} \\ \hline
-  \multicolumn{6}{l}{\small $^*$Dependent attribute. See Chapter~\ref{c:attrib}} \\
+  b\_field\DAG = Real   &                 &                  &                &                              &               \\ \hline
+  \multicolumn{6}{l}{\small $^*$Dependent attribute. \DAG May be a dependent attribute. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
 \end{center}
 \toffset
@@ -809,12 +810,12 @@ file is:
   !    z           Wz             Wt
   !   [m]       [V/C/m]       [V/C/m^2]
    0.000E+00  1.61125E+15   0.00000E+00     1 
-  -1.000E-05  1.44516E+15   1.30560E+15     2 
-  -2.000E-05  1.38148E+15   2.50665E+15     3 
+  -1.000E-05  1.44516E+15  -1.30560E+15     2 
+  -2.000E-05  1.38148E+15  -2.50665E+15     3 
   .. etc ..
-  -1.970E-03  3.49958E+14   7.95507E+16   198 
-  -1.980E-03  3.48606E+14   7.97253E+16   199  
-  -1.990E-03  3.47263E+14   7.98989E+16   200
+  -1.970E-03  3.49958E+14  -7.95507E+16   198 
+  -1.980E-03  3.48606E+14  -7.97253E+16   199  
+  -1.990E-03  3.47263E+14  -7.98989E+16   200
      END_SECTION
 
 
@@ -849,19 +850,17 @@ modes are valid from $z_{cut}$ to \vn{z_max}.
 In the first section with the table of wake vs. $z$, the first column
 is the longitudinal distance $z$. $z$ must start at 0 and must
 increment by the a constant amount from row to row. $z$ is negative
-since the wake extends behind a particle. To be backward compatible
-with the Liar program, \bmad accepts positive $z$ and will internally
-convert to negative $z$. The second column is the longitudinal wake
-function in $V/C/m$. The third column is the transverse wake in
-$V/C/m^2$. Any additional columns are ignored.  Wakefield formulas are
-to be found in \sref{s:wakefields}.  The wakefield file is only used
-with macroparticle tracking.  When the short--range wakefield file is
-used with macroparticle tracking the \vn{e_loss} attribute is
-ignored. However, even in this case, a finite \vn{e_loss} value will
-affect the reference energy. Since the quantities like quadrupole k1
-strengths and bend strengths are referenced to the reference energy,
-The value of \vn{e_loss} will affect the results even with a
-short--range wakefield file.
+since the wake extends behind a particle. The second column is the
+longitudinal wake function in $V/C/m$. The third column is the
+transverse wake in $V/C/m^2$. Any additional columns are ignored.
+Wakefield formulas are to be found in \sref{s:wakefields}.  The
+wakefield file is only used with macroparticle tracking.  When the
+short--range wakefield file is used with macroparticle tracking the
+\vn{e_loss} attribute is ignored. However, even in this case, a finite
+\vn{e_loss} value will affect the reference energy. Since the
+quantities like quadrupole k1 strengths and bend strengths are
+referenced to the reference energy, The value of \vn{e_loss} will
+affect the results even with a short--range wakefield file.
 
 The input file name for the long--range wakefields is specified using
 the \vn{lr_wake_file} attribute. The file gives the

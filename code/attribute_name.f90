@@ -106,6 +106,8 @@ function attribute_name (ele, ix_att) result (at_name)
 
       attrib_array(i, hkick$)  = 'HKICK'
       attrib_array(i, vkick$)  = 'VKICK'
+      attrib_array(i, hkick_b_field$) = 'HKICK_B_FIELD'
+      attrib_array(i, vkick_b_field$) = 'VKICK_B_FIELD'
 
     enddo
 
@@ -170,6 +172,7 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(i_beam$, tilt$)         = 'TILT'
 
     attrib_array(lcavity$, l$)             = 'L'
+    attrib_array(lcavity$, lrad$)          = 'LRAD'
     attrib_array(lcavity$, energy_start$)  = 'ENERGY_START'
     attrib_array(lcavity$, dphi0$)         = 'DPHI0'
     attrib_array(lcavity$, phi0$)          = 'PHI0'

@@ -1733,12 +1733,11 @@ subroutine read_sr_wake (ele, sr_file_name)
     read (iu, '(a)', iostat = ios) line
     if (ios < 0) then   ! end-of-file
       close (iu)
-      iu = -1
-      return
+      iu = 0
+      exit
     endif
     if (ios > 0) then
       call warning ('ERROR READING WAKE FILE: ' // full_file_name)
-      iu = 0
       return
     endif
     call string_trim (line, line, ix)
@@ -1753,7 +1752,6 @@ subroutine read_sr_wake (ele, sr_file_name)
     if (ios /= 0) then
       call warning ('ERROR PARSING WAKE FILE: ' // full_file_name, &
                                           'CANNOT READ LINE: ' // line)
-      iu = 0
       return
     endif
 
@@ -1777,7 +1775,7 @@ subroutine read_sr_wake (ele, sr_file_name)
     dz = ele%wake%sr1(n)%z / n
 
     do j = 1, n
-      if (abs(ele%wake%sr1(j)%z - dz * j) > 1e-4 * dz) then
+      if (abs(ele%wake%sr1(j)%z - dz * j) > 1e-4 * abs(dz)) then
         write (line, '(a, i5)') &
                  'WAKEFIELD POINTS DO NOT HAVE UNIFORM DZ FOR POINT:', j
         call warning (line, 'IN FILE: ' // ele%wake%sr_file)
@@ -1785,9 +1783,14 @@ subroutine read_sr_wake (ele, sr_file_name)
       endif
     enddo               
 
-    ! if dz > 0 (old style file) need to reverse sign.
+    ! if dz > 0 means that an old-style file is being used.
 
-    if (dz > 0) ele%wake%sr1%z = -ele%wake%sr1%z
+    if (dz > 0) call warning ( &
+            'SHORT-RANGE WAKEFIELD FILE TABLES NOW MUST HAVE Z < 0! ' // full_file_name, &
+            'REMEMBER THAT Wt NEEDS TO BE NEGATIVE ALSO!')
+
+    if (ele%wake%sr1(1)%trans > 0) call warning ( &
+             'POSITIVE Wt IN WAKEFIELD FILE INDICATES SIGN ERROR! ' // full_file_name)
 
   endif
 

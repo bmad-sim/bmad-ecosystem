@@ -1064,10 +1064,17 @@ subroutine attribute_bookkeeper (ele, param)
       ele%value(ks$) = factor * ele%value(B_field$)
     case (sbend$)
       ele%value(g$) = factor * ele%value(B_field$)
+    case (hkicker$)
+      ele%value(kick$) = factor * ele%value(B_field$)
+    case (vkicker$)
+      ele%value(kick$) = factor * ele%value(B_field$)
     case default
        call out_io(s_abort$,r_name,' "FIELD_MASTER" NOT IMPLEMENTED FOR: ' // trim(ele%name))
       call err_exit
     end select
+
+    ele%value(hkick$) = factor * ele%value(hkick_B_field$)
+    ele%value(vkick$) = factor * ele%value(vkick_B_field$)
 
   else
 
@@ -1088,7 +1095,14 @@ subroutine attribute_bookkeeper (ele, param)
       ele%value(B_field$) = factor * ele%value(ks$)
     case (sbend$)
       ele%value(B_field$) = factor * ele%value(g$)
+    case (hkicker$)
+      ele%value(B_field$) = factor * ele%value(kick$)
+    case (vkicker$) 
+      ele%value(B_field$) = factor * ele%value(kick$)
     end select
+
+    ele%value(hkick_B_field$) = factor * ele%value(hkick$)
+    ele%value(vkick_B_field$) = factor * ele%value(vkick$)
 
   endif
 

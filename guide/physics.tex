@@ -863,10 +863,8 @@ to the charge associated with the slice.
 %-----------------------------
 \subsection{Short--Range Wakes}
 
-Short--range Wakefield modeling is similar to the LIAR
-program\cite{b:liar}. Wakefields are applied in the center of LINAC
-accelerating cavities (\vn{LCavity}). Wakefield effects are divided
-into short--range (within a bunch) and long--range (between bunches).
+Wakefield effects are divided into short--range (within a bunch) and
+long--range (between bunches).
 
 Only the transverse dipole and longitudinal monopole components of the
 short--range wakefield are modeled. The longitudinal monopole energy
@@ -903,12 +901,13 @@ small fudge factor needed when $\sigma_{zi} = \sigma_{zj} = 0$.
 The transverse kick $\Delta p_x(i)$ for the $i$\Th macroparticle due to the 
 dipole short--range transverse wakefield is modeled with the equation
 \Begineq
-  \Delta p_x(i) = \frac{e \, L \, \sum_j |q_j| \, x_j \, \WtS(dz_{ij})}
+  \Delta p_x(i) = \frac{-e \, L \, \sum_j |q_j| \, x_j \, \WtS(dz_{ij})}
                  {v \, P_0}
   \label{pelqxw}
 \Endeq
-There is a similar equation for $\Delta p_y(i)$. $\WtS$
-is the transverse short--range wake function.
+There is a similar equation for $\Delta p_y(i)$. $\WtS$ is the
+transverse short--range wake function. Note that the LIAR
+program\cite{b:liar} uses an opposite sign here.
 
 The wakefield functions $\WlS$ and $\WlS$ can be specified in a \bmad
 lattice file using a table of wake vs $z$ or by using ``pseudo'' modes
