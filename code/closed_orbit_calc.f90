@@ -139,6 +139,7 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
       call mat_make_unit (mat(1:n,1:n))
       mat(1:n,1:n) = mat(1:n,1:n) - t1(1:n,1:n)
       call mat_inverse(mat(1:n,1:n), mat2(1:n,1:n))
+      amp_del_old = 1e20  ! something large
     endif
 
     amp_del_old = amp_del
