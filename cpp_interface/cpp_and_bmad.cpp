@@ -263,15 +263,19 @@ void operator>> (sr_wake_struct* f, C_sr_wake& c) {
 //---------------------------------------------------------------------------
 // lr_wake
 
-extern "C" void lr_wake_to_f2_(lr_wake_struct*, Re&, Re&, Re&, Re&, Int&);
+extern "C" void lr_wake_to_f2_(lr_wake_struct*, Re&, Re&, Re&, Re&, Int&,
+                                                 Re&, Re&, Re&, Re&, Re&);
 
 extern "C" void lr_wake_to_f_(C_lr_wake& c, lr_wake_struct* f) {
-  lr_wake_to_f2_(f, c.freq, c.freq_in, c.R_over_Q, c.Q, c.m);
+  lr_wake_to_f2_(f, c.freq, c.freq_in, c.R_over_Q, c.Q, c.m, 
+                     c.norm_sin, c.norm_cos, c.skew_sin, c.skew_cos, c.z_ref);
 }
 
 extern "C" void lr_wake_to_c2_(C_lr_wake& c, Re& freq, Re& freq_in, 
-                  Re& R_over_Q, Re& Q, Int& m) {
-  c = C_lr_wake(freq, freq_in, R_over_Q, Q, m);
+                  Re& R_over_Q, Re& Q, Int& m, Re& n_sin, Re& n_cos, 
+                  Re& s_sin, Re& s_cos, Re& z_ref) {
+  c = C_lr_wake(freq, freq_in, R_over_Q, Q, m, 
+                                  n_sin, n_cos, s_cos, s_sin, z_ref);
 }
 
 void operator>> (C_lr_wake& c, lr_wake_struct* f) {
@@ -287,7 +291,8 @@ void operator>> (lr_wake_struct* f, C_lr_wake& c) {
 
 extern "C" void wake_to_f2_(wake_struct*, Char, Int&, Char, Int&, Int&, Int&);
 extern "C" void sr_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&);
-extern "C" void lr_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Int&, Re&, Int&);
+extern "C" void lr_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Int&, Re&, Int&,
+                                       Re&, Re&, Re&, Re&, Re&);
 
 extern "C" void wake_to_f_(C_wake& c, wake_struct* f) {
   int n_lr = c.lr.size();
@@ -300,7 +305,8 @@ extern "C" void wake_to_f_(C_wake& c, wake_struct* f) {
   }
   for (int i = 0; i < n_lr; i++) {
     lr_wake_in_wake_to_f2_(f, i, c.lr[i].freq, c.lr[i].freq_in, 
-                  c.lr[i].R_over_Q, c.lr[i].Q, c.lr[i].m);
+        c.lr[i].R_over_Q, c.lr[i].Q, c.lr[i].m, c.lr[i].norm_sin, 
+        c.lr[i].norm_cos, c.lr[i].skew_sin, c.lr[i].skew_cos, c.lr[i].z_ref);
   }
 }
 
@@ -316,8 +322,8 @@ extern "C" void sr_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& z, Re& l, Re& t) 
 }
 
 extern "C" void lr_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& f, Re& k, 
-                      Int& i, Re& q, Int& m) {
-  c.lr[it] = C_lr_wake(f, k, i, q, m);
+                      Int& i, Re& q, Int& m, Re& ns, Re& nc, Re& ss, Re& sc, Re& z) {
+  c.lr[it] = C_lr_wake(f, k, i, q, m, ns, nc, ss, sc, z);
 }
 
 

@@ -89,7 +89,10 @@ bool operator== (const C_sr_wake& x, const C_sr_wake& y) {
 
 bool operator== (const C_lr_wake& x, const C_lr_wake& y) {
   return (x.freq == y.freq) && (x.freq_in == y.freq_in) && 
-         (x.R_over_Q == y.R_over_Q) && (x.Q == y.Q) && (x.m == y.m);
+         (x.R_over_Q == y.R_over_Q) && (x.Q == y.Q) && (x.m == y.m) &&
+         (x.norm_sin == y.norm_sin) && (x.norm_cos == y.norm_cos) && 
+         (x.skew_sin == y.skew_sin) && (x.skew_cos == y.skew_cos) && 
+         (x.z_ref == y.z_ref);
 };
 
 bool operator== (const C_wake& x, const C_wake& y) {
