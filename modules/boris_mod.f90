@@ -543,16 +543,12 @@ subroutine track_solenoid_edge (ele, param, set, orb)
 
   if (ele%key /= solenoid$ .and. ele%key /= sol_quad$) return
 
-  if (set == set$) then
-
+  if (set) then
     orb%vec(2) = orb%vec(2) + orb%vec(3) * ele%value(ks$) / 2
     orb%vec(4) = orb%vec(4) - orb%vec(1) * ele%value(ks$) / 2
-
   else
-
     orb%vec(2) = orb%vec(2) - orb%vec(3) * ele%value(ks$) / 2
     orb%vec(4) = orb%vec(4) + orb%vec(1) * ele%value(ks$) / 2
-
   endif
 
 end subroutine

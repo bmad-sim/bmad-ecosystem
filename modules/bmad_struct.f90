@@ -31,7 +31,7 @@ module bmad_struct
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 
-  integer, parameter :: bmad_inc_version$ = 65
+  integer, parameter :: bmad_inc_version$ = 66
 
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -95,17 +95,26 @@ module bmad_struct
     type (lr_wake_struct), pointer :: lr(:) => null()
   end type
 
+! Local reference frame position with respect to the global (floor) coordinates
+
+  type floor_position_struct
+    real(rp) x, y, z            ! offset from origin
+    real(rp) theta, phi, psi    ! angular orientation
+  end type
+
 ! Ele_struct
 ! REMEMBER: If this struct is changed you have to modify:
 !     read_digested_bmad_file
 !     write_digested_bmad_file
+!     init_ele (in bmad_utils_mod)
 
   type ele_struct
-    character*16 name              ! name of element
-    character*16 type              ! type name
-    character*16 alias             ! Another name
-    character*16 attribute_name    ! Used by overlays
+    character(16) name              ! name of element
+    character(16) type              ! type name
+    character(16) alias             ! Another name
+    character(16) attribute_name    ! Used by overlays
     type (twiss_struct)  x,y,z       ! Twiss parameters at end of element
+    type (floor_position_struct) position
     real(rp) value(n_attrib_maxx)    ! attribute values
     real(rp) gen0(6)                 ! constant part of the genfield map
     real(rp) vec0(6)                 ! 0th order transport vector
@@ -113,10 +122,6 @@ module bmad_struct
     real(rp) c_mat(2,2)              ! 2x2 C coupling matrix
     real(rp) gamma_c                 ! gamma associated with C matrix
     real(rp) s                       ! longitudinal position at the end
-    real(rp) x_position, y_position  ! Floor position of element
-    real(rp) z_position              ! Elevation of element
-    real(rp) theta_position          ! Floor orientation angle of element
-    real(rp) phi_position            ! Angle of attack
     real(rp), pointer :: r(:) => null()    ! For general use. Not used by BMAD.
     real(rp), pointer :: a(:) => null()              ! multipole
     real(rp), pointer :: b(:) => null()              ! multipoles
@@ -201,10 +206,10 @@ module bmad_struct
 !     transfer_ring_parameters
 
   type ring_struct
-    character*16 name                ! Name of ring given by USE statement
-    character*40 lattice             ! Lattice
-    character*80 input_file_name     ! Name of the lattice input file
-    character*80 title               ! General title
+    character(16) name                ! Name of ring given by USE statement
+    character(40) lattice             ! Lattice
+    character(80) input_file_name     ! Name of the lattice input file
+    character(80) title               ! General title
     type (mode_info_struct) x, y, z  ! Tunes, etc.
     type (param_struct) param        ! Parameters
     integer version                  ! Version number
@@ -224,7 +229,7 @@ module bmad_struct
 
 !
 
-  character*3, parameter :: coord_name(6) = &
+  character(3), parameter :: coord_name(6) = &
                               (/ "X  ", "P_x", "Y  ", "P_y", "Z  ", "P_z" /)
 
 ! KEY value definitions
@@ -246,7 +251,7 @@ module bmad_struct
 
   integer, parameter :: n_key = 36
 
-  character*16 :: key_name(n_key+1) = (/ &
+  character(16) :: key_name(n_key+1) = (/ &
     'DRIFT        ', 'SBEND        ', 'QUADRUPOLE   ', 'GROUP        ', &
     'SEXTUPOLE    ', 'OVERLAY      ', 'CUSTOM       ', 'TAYLOR       ', &
     'RFCAVITY     ', 'ELSEPARATOR  ', 'BEAMBEAM     ', 'WIGGLER      ', &
@@ -388,8 +393,8 @@ module bmad_struct
   integer, parameter :: particle$ = 1
   integer, parameter :: n_part$    = 3
 
-  character*16, parameter :: null_name = 'NULL' 
-  character*16, parameter :: blank_name = ' '
+  character(16), parameter :: null_name = 'NULL' 
+  character(16), parameter :: blank_name = ' '
 
 ! electron/positron
 
@@ -398,7 +403,7 @@ module bmad_struct
   integer, parameter :: electron$   = -1
   integer, parameter :: antiproton$ = -2
 
-  character*16 :: particle_name(-2:2) = (/ 'ANTIPROTON', &
+  character(16) :: particle_name(-2:2) = (/ 'ANTIPROTON', &
                   'ELECTRON  ', '???       ', 'POSITRON  ', 'PROTON    ' /)
 
   integer, parameter :: charge_of(-2:2) = (/ -1, -1, 0, 1, 1 /)
@@ -425,7 +430,7 @@ module bmad_struct
   integer, parameter :: free$ = 1, super_slave$ = 2, overlay_slave$ = 3
   integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 
-  character*16 :: control_name(7) = (/ &
+  character(16) :: control_name(7) = (/ &
             'FREE_ELEMENT   ', 'SUPER_SLAVE    ', 'OVERLAY_SLAVE  ', &
             'GROUP_LORD     ', 'SUPER_LORD     ', 'OVERLAY_LORD   ', &
             '               ' /)
@@ -535,6 +540,7 @@ module bmad_struct
     integer :: default_num_steps = 1
     logical :: init_needed = .true.
     logical :: use_dimad_lcavity = .false.  ! Dimad like tracking?
+    logical :: emulate_liar_bug = .false.   ! Liar Linac RF tracking is wrong.
   end type
   
   type (bmad_com_struct), save :: bmad_com

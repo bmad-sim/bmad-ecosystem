@@ -101,7 +101,7 @@ subroutine track1_bunch (bunch, ele, param)
 !------------------------------------------------
 ! For an lcavity without a wakefield file use the k_loss attribute 
 ! to calculate energy loss. The effective charge of a bunch is:
-!   2*sum[charge of previous bunches] + charge of this bunch
+!   2*sum[charge_of_previous_bunches] + charge_of_this_bunch
 
   if (.not. associated(ele%wake%sr)) then
     call order_macro_particles_in_z (bunch)
@@ -229,7 +229,6 @@ subroutine track1_sr_wakefield (bunch, ele)
     ix0 = ix1 + 1
 
   enddo
-
 
 end subroutine
 

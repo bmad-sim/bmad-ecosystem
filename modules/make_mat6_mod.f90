@@ -29,7 +29,7 @@ subroutine quad_mat_calc (k1, length, mat)
   sqrt_k = sqrt(abs(k1))
   arg = sqrt_k * length
 
-  if (arg < 1e-3) then
+  if (arg < 1e-10) then
     arg2 = k1 * length**2
     cx = 1 - arg2 / 2
     sx = (1 - arg2 / 6) * length
@@ -435,7 +435,7 @@ subroutine solenoid_mat_calc (ks, length, mat4)
 
   kss = ks / 2
 
-  if (abs(length * kss) < 1e-5) then
+  if (abs(length * kss) < 1e-10) then
     ll = length
     kl = kss * length 
     kl2 = kl**2

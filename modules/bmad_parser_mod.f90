@@ -16,31 +16,35 @@ module bmad_parser_mod
 
 ! structure for holding the contents of lines and lists (sequences)
 
-  type seq_ele_struct
-    character(16) name              ! name of element, subline, or sublist
-    integer type                   ! LINE$, LIST$, ELEMENT$
-    integer ix_array               ! if an element: pointer to ELE_ array
-                                   ! if a list: pointer to SEQ_ array
-    integer ix_arg                 ! for replacement lines
-    logical reflect                ! reflection of subline?
-  end type
-
   type replacement_arg_struct
     character(16) dummy_name
     character(16) actual_name
+    integer type
+    integer ix_array               ! pointer to ring%ele_ or sequence_ array
+  end type
+
+  type seq_ele_struct
+    character(16) name             ! name of element, subline, or sublist
+    type (replacement_arg_struct), pointer :: arg(:) => null()
+    integer type                   ! LINE$, REPLACEMENT_LINE$, LIST$, ELEMENT$
+    integer ix_array               ! if an element: pointer to ELE_ array
+                                   ! if a list: pointer to SEQ_ array
+    integer ix_arg                 ! index in arg list (for replacement lines)
+    integer rep_count              ! how many copies of an element
+    logical reflect                ! reflection of subline?
   end type
 
 ! Head structure for lines and lists (sequences)
 
   type seq_struct
-    character(16) name                  ! name of sequence
+    character(16) name                 ! name of sequence
+    type (seq_ele_struct), pointer :: ele(:) => null()
+    type (replacement_arg_struct), pointer :: arg(:) => null()
     integer type                       ! LINE$, REPLACEMENT_LINE$ or LIST$
     integer ix                         ! current index of element in %ELE
     integer indexx                     ! alphabetical order sorted index
-    type (seq_ele_struct), pointer :: ele(:)
-    type (replacement_arg_struct), pointer :: arg(:)
-    character(200) file_name           ! file where sequence is defined
-    integer ix_line                    ! line where sequence is defined
+    character(200) file_name      ! file where sequence is defined
+    integer ix_line               ! line number in filewhere sequence is defined
   end type
 
 ! stack structure
@@ -48,6 +52,7 @@ module bmad_parser_mod
   type seq_stack_struct
     integer ix_seq                ! index to seq_(:) array
     integer ix_ele                ! index to seq%ele(:) array
+    integer rep_count             ! repetition count
     integer reflect               ! reflection sequence?
   end type
 
@@ -106,7 +111,7 @@ module bmad_parser_mod
     character(16) parser_name
     character*72 debug_line
     logical parser_debug, write_digested, error_flag
-    integer iseq_tot, ivar_tot, ivar_init
+    integer ivar_tot, ivar_init
     logical input_line_meaningful
   end type
 
@@ -174,9 +179,9 @@ subroutine get_attribute (how, ele, ring, pring, &
       return
     endif
 
-    call get_next_word (word, ix_word, ',}', delim, delim_found, .true.)
+    call get_next_word (word, ix_word, ',:}', delim, delim_found, .true.)
     read (word, *, iostat = ios) i_out
-    if (delim /= ',' .or. ix_word == 0 .or. ios /= 0) then
+    if (delim /= ':' .or. ix_word == 0 .or. ios /= 0) then
       call warning ('BAD "OUT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name, &
                                                       'CANNOT PARSE: ' // str)
       return
@@ -492,15 +497,21 @@ subroutine get_attribute (how, ele, ring, pring, &
       else
         call warning ('SORRY I''M NOT PROGRAMMED TO USE A "TILT" DEFAULT' // &
                 'FOR A: ' // key_name(ele%key), 'FOR: ' // ele%name)
-        return
       endif
-      return
+    elseif (ele%key == multipole$) then
+      if (i >= t0$) then
+        ele%b(i-t0$) = pi / (2*(i-t0$) + 2)
+      else
+        call warning ('EXPECTING "=" AFTER MULTIPOLE ATTRIBUTE: ' // word,  &
+                         'FOR ELEMENT: ' // ele%name)
+        err_flag = .true.
+      endif
     else
       call warning ('EXPECTING "=" AFTER ATTRIBUTE: ' // word,  &
                          'FOR ELEMENT: ' // ele%name)
       err_flag = .true.
-      return
     endif
+    return
   endif
 
 ! get the value of the attribute.
@@ -2384,24 +2395,72 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
+! Subroutine get_sequence_args (seq_name, arg_list, delim, err_flag)
+!
+! Subroutine to get the argument list for a replacement_line or a list.
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine get_sequence_args (seq_name, arg_list, delim, err_flag)
+
+  implicit none
+
+  type (replacement_arg_struct), pointer :: arg_list(:)
+
+  integer n_arg, ix_word
+
+  character(*) seq_name
+  character(1) delim
+  character(16) dummy_name(20), word
+
+  logical delim_found, err_flag
+
+!
+
+  n_arg = 0
+  err_flag = .true.
+
+  do
+    call get_next_word (word, ix_word, '(): =,', delim, delim_found, .true.)
+    if (ix_word == 0 .or. delim == '( :=') then
+      call warning ('BAD ARGUMENT LIST FOR: ', seq_name)
+      return
+    endif
+    n_arg = n_arg + 1
+    dummy_name(n_arg) = word
+    if (delim == ')') exit
+  enddo
+
+  err_flag = .false.
+  allocate (arg_list(n_arg))
+  arg_list(:)%dummy_name = dummy_name(1:n_arg)
+  arg_list(:)%actual_name = dummy_name(1:n_arg)
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
 !
 ! Subroutine to expand a sequence.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
 
-recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
+recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
 
   implicit none
 
-  type (seq_struct), target :: seq_(:)
+  type (seq_struct), target :: sequence_(:)
   type (seq_struct), pointer :: seq
   type (seq_ele_struct), allocatable :: s_ele(:)
   type (seq_ele_struct), allocatable :: s_ele2(:)
   type (ring_struct) ring
 
-  integer ix_seq, ix_ele, ix_word, ix, count, i, j, n, ios, i_rl
+  integer ix_ele, iseq_tot, ix_word, ix, i, j, n, ios, i_rl
   integer, save :: ix_internal = 0
 
   real(rp) rcount
@@ -2409,20 +2468,19 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
   character*20 word
   character delim*1, str*16, name*16, c_delim*1
               
-  logical delim_found, top_level, replacement_line_here, c_delim_found
-  logical err_flag
+  logical delim_found, replacement_line_here, c_delim_found
+  logical err_flag, top_level
 
 ! init
 
   allocate (s_ele(ring%n_ele_maxx))
-
   s_ele%type = 0
   s_ele%ix_array = 0
   s_ele%ix_arg = 0
 
 ! save info on what file we are parsing for error messages.
 
-  seq => seq_(ix_seq)
+  seq => sequence_(iseq_tot)
   seq%file_name = bp_com%current_file_name 
   seq%ix_line = bp_com%i_line
 
@@ -2449,24 +2507,24 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
       bp_com%parse_line = word(:ix-1) // "," // bp_com%parse_line
       call evaluate_value (trim(seq%name) // ' Repetition Count', rcount, &
                               ring, c_delim, c_delim_found, err_flag)
-      count = nint(rcount)
+      s_ele(ix_ele)%rep_count = nint(rcount)
       if (err_flag) return
       s_ele(ix_ele)%name = word(ix+1:)
-      if (count < 0) then
+      if (s_ele(ix_ele)%rep_count < 0) then
         s_ele(ix_ele)%reflect = .true.
       else
         s_ele(ix_ele)%reflect = .false.
       endif
-      count = abs(count)
+      s_ele(ix_ele)%rep_count = abs(s_ele(ix_ele)%rep_count)
       ix_word = ix_word - ix
     elseif (word(1:1) == '-') then
       s_ele(ix_ele)%reflect = .true.
-      count = 1
+      s_ele(ix_ele)%rep_count = 1
       s_ele(ix_ele)%name = word(2:)
       ix_word = ix_word - 1
     else
       s_ele(ix_ele)%reflect = .false.
-      count = 1
+      s_ele(ix_ele)%rep_count = 1
       s_ele(ix_ele)%name = word
     endif
 
@@ -2477,16 +2535,22 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
     if (name /= ' ') call verify_valid_name (name, ix_word)
 
     replacement_line_here = .false.
+
     if (delim == '(') then ! subline or replacement line
-      if (name /= ' ') replacement_line_here = .true.
-      ix_internal = ix_internal + 1
-      write (str, '(a, i3.3)') '#Internal', ix_internal   ! unique name
-      s_ele(ix_ele)%name = str
-      ix_seq = ix_seq + 1
-      seq_(ix_seq)%name = str
-      seq_(ix_seq)%type = line$
-      bp_com%parse_line = '(' // bp_com%parse_line 
-      call seq_expand1 (seq_, ix_seq, .false., ring)
+      if (name == ' ') then
+        ix_internal = ix_internal + 1
+        write (str, '(a, i3.3)') '#Internal', ix_internal   ! unique name 
+        s_ele(ix_ele)%name = str
+        iseq_tot = iseq_tot + 1
+        sequence_(iseq_tot)%name = str
+        sequence_(iseq_tot)%type = line$
+        bp_com%parse_line = '(' // bp_com%parse_line
+        call seq_expand1 (sequence_, iseq_tot, ring, .false.)
+      else
+        replacement_line_here = .true.
+        call get_sequence_args (name, s_ele(ix_ele)%arg, delim, err_flag)
+        if (err_flag) return
+      endif
       call get_next_word(word, ix_word, ':=(),', delim, delim_found, .true.)
       if (word /= ' ') call warning &
                 ('NO COMMA AFTER SUBLINE OR REPLACEMENT LINE. FOUND: ' // &
@@ -2495,46 +2559,6 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
 
     if (s_ele(ix_ele)%name == ' ') call warning &
               ('SUB-ELEMENT NAME IS BLANK FOR LINE/LIST: ' // seq%name)
-
-! if a replacement line then switch the real list for the actual args.
-
-    if (replacement_line_here) then  ! replacement line 
-      do i_rl = 1, ix_seq
-        if (i_rl == ix_seq) then
-          call warning ('CANNOT FIND REPLACEMENT LINE DEFINITION FOR: ' &
-                          // name, 'WHICH APPEARS IN LINE: ' // seq%name)
-          return
-        endif
-        if (seq_(i_rl)%name == name) exit
-      enddo
-
-      if (seq_(i_rl)%type /= replacement_line$) then
-        call warning (trim(name) // ' IS USED AS A REPLACEMENT LINE IN: ' // &
-              seq%name, 'BUT IT IS NOT A REPLACEMENT LINE')
-        return
-      endif
-
-      if (size(seq_(i_rl)%arg) /= size(seq_(ix_seq)%ele)) then
-        call warning ('NUMBER OF ARGUMENTS IN REPLACEMENT LINE: ' &
-                // seq_(i_rl)%name, 'DOES NOT MATCH USE IN LINE: ' // seq%name)
-        return
-      endif
-
-      seq_(i_rl)%arg(:)%actual_name = seq_(ix_seq)%ele(:)%name
-      n = size(seq_(i_rl)%ele)
-      deallocate (seq_(ix_seq)%ele)
-      allocate (seq_(ix_seq)%ele(n))
-      do j = 1, n
-        ix = seq_(i_rl)%ele(j)%ix_arg
-        if (ix > 0) then
-          seq_(ix_seq)%ele(j)%name = seq_(i_rl)%arg(ix)%actual_name
-          seq_(ix_seq)%ele(j)%ix_arg = 0
-        else
-          seq_(ix_seq)%ele(j) = seq_(i_rl)%ele(j)
-        endif
-      enddo 
-
-   endif
 
 ! if a replacement line then look for element in argument list
 
@@ -2548,10 +2572,12 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
       enddo
     endif
 
-! if multiple repetition count then expand
+! 
 
     n = size(s_ele)
-    if (ix_ele+count > n) then
+    ix_ele = ix_ele + 1
+
+    if (ix_ele > n) then
       allocate (s_ele2(n))      
       s_ele2 = s_ele(1:n)
       deallocate (s_ele)
@@ -2560,17 +2586,10 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
       deallocate(s_ele2)
     endif
 
-    do i = 1, count-1
-      s_ele(ix_ele+i) = s_ele(ix_ele)
-    enddo
-
-    ix_ele = ix_ele + count
-
     if (delim == ')') exit
 
     if (delim /= ',') then
-      call warning  &
-               ('EXPECTING "," GOT: ' // delim, 'FOR LINE: ' // seq%name)
+      call warning ('EXPECTING "," GOT: ' // delim, 'FOR LINE: ' // seq%name)
       exit
     endif
            
@@ -2580,7 +2599,6 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
 
   if (top_level) then
     call get_next_word(word, ix_word, ':=() ', delim, delim_found, .true.)
-
     if (delim_found .or. ix_word /= 0) call warning  &
           ('EXTRA CHARACTERS AFTER CLOSING ")"',  'FOR LINE: ' // seq%name)
   endif
@@ -2589,9 +2607,10 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
 
   ix_ele = ix_ele - 1
   allocate (seq%ele(ix_ele))
-  seq%ele(:) = s_ele(1:ix_ele)
 
-  seq%ix = 1   ! Init. Used for replacement line index
+  do i = 1, ix_ele
+    seq%ele(i) = s_ele(i)
+  enddo
 
   deallocate (s_ele)
 
