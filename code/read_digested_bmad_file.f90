@@ -69,7 +69,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   v_now = (version == bmad_inc_version$)
 
   if (version < bmad_inc_version$) then
-    if (bmad_status%type_out) call out_io (s_dwarn$, r_name, &
+    if (bmad_status%type_out) call out_io (s_warn$, r_name, &
            (/ 'DIGESTED FILE VERSION OUT OF DATE \i4\ < \i4\ ' /),  &
             i_array = (/ bmad_inc_version$, version /) )
     if (v_old) then 
@@ -116,13 +116,13 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
     call simplify_path (fname(3), fname(3))
     if (.not. found_it .or. fname(1) /= fname(3) .or. &
                                              stat_b(10) /= idate_old) then
-      if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_dwarn$ ,r_name, &
+      if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$ ,r_name, &
               'NOTE: DIGESTED FILE OUT OF DATE.')
 
       bmad_status%ok = .false.
     endif
     if (i == 1 .and. fname(2) /= input_file_name) then
-      if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_dwarn$, r_name, &
+      if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$, r_name, &
                     ' NOTE: MOVED DIGESTED FILE.')
 
       bmad_status%ok = .false.
@@ -274,7 +274,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
 9000  continue
   if (bmad_status%type_out) then
-     call out_io (s_error$, r_name, 'DIGESTED FILE DOES NOT EXIST.')
+     call out_io (s_warn$, r_name, 'DIGESTED FILE DOES NOT EXIST.')
   endif
   close (d_unit)
   bmad_status%ok = .false.
