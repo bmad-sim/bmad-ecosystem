@@ -45,3 +45,8 @@
 
 \newcommand{\SECTION}[1]{\section*{#1}\indent\vspace{-3ex}}
 
+\newenvironment{ventry}[1]
+  {\begin{list}{}\renewcommand{\makelabel}[1]{\textsf{##1:}\hfil}
+    \settowidth{\labelwidth}{\textsf{#1:}}
+    \setlength{\leftmargin}{\labelwidth+\labelsep}}}
+  {\end{list}}

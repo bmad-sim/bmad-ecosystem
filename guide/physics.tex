@@ -8,16 +8,16 @@ MAD's unit of Particle Energy is GeV not eV.
 \begin{table}[h]
 \centering
 \begin{tabular}{|l|l|} \hline
-  {\em Quantity}     & {\em Units}     \\ \hline
-  Angles             &    radians      \\ 
-  Phase Angles (RF)  &    radians/2pi  \\ 
-  Frequency          &    Hz           \\ 
-  Current            &    Amps         \\ 
-  Kick               &    radians      \\ 
-  Length             &    meters       \\ 
-  Magnetic Field     &    Tesla        \\ 
-  Particle Energy    &    eV           \\ 
-  Voltage            &    Volts        \\ \hline
+  {\em Quantity}     & {\em Units}       \\ \hline
+  Angles             &    radians        \\ 
+  Phase Angles (RF)  &    radians/2$\pi$ \\ 
+  Frequency          &    Hz             \\ 
+  Current            &    Amps           \\ 
+  Kick               &    radians        \\ 
+  Length             &    meters         \\ 
+  Magnetic Field     &    Tesla          \\ 
+  Particle Energy    &    eV             \\ 
+  Voltage            &    Volts          \\ \hline
 \end{tabular}
 \caption{Physical Units used by \bmad.}
 \label{t:units}
@@ -122,21 +122,24 @@ or
   \tan[(n+1) \phi_n] &= \frac{-a_n}{b_n}
 \end{align}
 
-The $a_n$, and $b_n$ can have a measurement radius $r_0$ associated
-with them and in this case the $a_n$ and $b_n$ will be scalled
-according to the formula
+When the $a_n$, and $b_n$ are associated with a physical element (as
+opposed to the $a_n$ and $b_n$ associated with an \vn{ab_multipole}),
+a measurement radius $r_0$ and a scale factor
+$F$ are used to scale the $a_n$ and $b_n$ according to the formula
 \begin{align}
-  a_n &\rightarrow a_n \cdot F \cdot \frac{r_0^{n_{ref}}}{r_0^n} \nonumber \\
-  b_n &\rightarrow b_n \cdot F \cdot \frac{r_0^{n_{ref}}}{r_0^n}
+  a_n &\rightarrow 
+        a_n \cdot F \cdot \frac{r_0^{n_\text{ref}}}{r_0^n} \nonumber \\
+  b_n &\rightarrow 
+        b_n \cdot F \cdot \frac{r_0^{n_\text{ref}}}{r_0^n}
 \end{align}
-where $F$ and $n_{ref}$ depend upon what type of element the $a_n$ and
+where $F$ and $n_\text{ref}$ depend upon what type of element the $a_n$ and
 $b_n$ are associated with and are given in table~\ref{t:ab}
 
 \begin{table}[h]
 \centering
 \begin{tabular}{|l|l|l|} \hline
 \tt
-  {\em Element} & $F$                                    & $n_{ref}$ \\ \hline
+  {\em Element} & $F$                              & $n_\text{ref}$ \\ \hline
   Kicker        & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
   Hkicker       & Kick                                   & 0 \\
   Vkicker       & Kick                                   & 0 \\
@@ -149,7 +152,7 @@ $b_n$ are associated with and are given in table~\ref{t:ab}
   Sextupole     & K2 * L                                 & 2 \\
   Octupole      & K3 * L                                 & 3 \\ \hline
 \end{tabular}
-\caption{Physical Units used by \bmad.}
+\caption{$F$ and $n_{\text{ref} for various elements.}
 \label{t:ab}
 \end{table}
 
