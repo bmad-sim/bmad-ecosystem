@@ -34,7 +34,7 @@ module bmad_parser_mod
 
   type seq_struct
     character*16 name                  ! name of sequence
-    integer type                       ! LINE$, REPLACEMENT_LINE$ or LIST$
+    integer type                       ! LINE$, REPLACEMENT_LIST$ or LIST$
     integer ix                         ! current index of element in %ELE
     integer indexx                     ! alphabetical order sorted index
     type (seq_ele_struct), pointer :: ele(:)
@@ -82,7 +82,7 @@ module bmad_parser_mod
 !
 
   integer, parameter :: line$ = 1, list$ = 2, element$ = 3
-  integer, parameter :: replacement_line$ = 4
+  integer, parameter :: replacement_list$ = 4
 
   integer begin$, center$, end$
   parameter (begin$ = -1)
@@ -1946,7 +1946,7 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
   character*20 word
   character delim*1, str*16, name*16, c_delim*1
               
-  logical delim_found, top_level, replacement_line_here, c_delim_found
+  logical delim_found, top_level, replacement_list_here, c_delim_found
   logical err_flag
 
 ! first thing should be a "("
@@ -1994,15 +1994,15 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
       s_ele(ix_ele)%name = word
     endif
 
-! check for a subline or replacement line
-! if there is one then save as an internal sequence
+! Check for a subline or replacement list.
+! If there is one then save as an internal sequence.
 
     name = s_ele(ix_ele)%name
     if (name /= ' ') call verify_valid_name (name, ix_word)
 
-    replacement_line_here = .false.
+    replacement_list_here = .false.
     if (delim == '(') then ! subline or replacement line
-      if (name /= ' ') replacement_line_here = .true.
+      if (name /= ' ') replacement_list_here = .true.
       ix_internal = ix_internal + 1
       write (str, '(a, i3.3)') '#Internal', ix_internal   ! unique name
       s_ele(ix_ele)%name = str
@@ -2013,30 +2013,33 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
       call seq_expand1 (seq_, ix_seq, .false., ring)
       call get_next_word(word, ix_word, ':=(),', delim, delim_found, .true.)
       if (word /= ' ') call warning &
-                ('NO COMMA AFTER SUBLINE OR REPLACEMENT LINE. FOUND: ' // &
+                ('NO COMMA AFTER SUBLINE OR REPLACEMENT LIST. FOUND: ' // &
                  word, 'IN THE SEQUENCE: ' // seq%name)
     endif
 
-! if a replacement line then switch the real(rdef) list for the actual args.
+    if (s_ele(ix_ele)%name == ' ') call warning &
+              ('SUB-ELEMENT NAME IS BLANK FOR LINE/LIST: ' // seq%name)
 
-    if (replacement_line_here) then  ! replacement line 
+! if a replacement list then switch the real list for the actual args.
+
+    if (replacement_list_here) then  ! replacement line 
       do i_rl = 1, ix_seq
         if (i_rl == ix_seq) then
-          call warning ('CANNOT FIND REPLACEMENT LINE DEFINITION FOR: ' &
+          call warning ('CANNOT FIND REPLACEMENT LIST DEFINITION FOR: ' &
                           // name, 'WHICH APPEARS IN LINE: ' // seq%name)
           return
         endif
         if (seq_(i_rl)%name == name) exit
       enddo
 
-      if (seq_(i_rl)%type /= replacement_line$) then
-        call warning (trim(name) // ' IS USED AS A REPLACEMENT LINE IN: ' // &
-              seq%name, 'BUT IT IS NOT A REPLACEMENT LINE')
+      if (seq_(i_rl)%type /= replacement_list$) then
+        call warning (trim(name) // ' IS USED AS A REPLACEMENT LIST IN: ' // &
+              seq%name, 'BUT IT IS NOT A REPLACEMENT LIST')
         return
       endif
 
       if (size(seq_(i_rl)%arg) /= size(seq_(ix_seq)%ele)) then
-        call warning ('NUMBER OF ARGUMENTS IN REPLACEMENT LINE: ' &
+        call warning ('NUMBER OF ARGUMENTS IN REPLACEMENT LIST: ' &
                 // seq_(i_rl)%name, 'DOES NOT MATCH USE IN LINE: ' // seq%name)
         return
       endif
@@ -2056,10 +2059,10 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
 
    endif
 
-! if a replacement line then look for element in argument list
+! if a replacement list then look for element in argument list
 
     s_ele(ix_ele)%ix_arg = 0
-    if (seq%type == replacement_line$) then
+    if (seq%type == replacement_list$) then
       do i = 1, size(seq%arg)
         if (seq%arg(i)%dummy_name == s_ele(ix_ele)%name) then
           s_ele(ix_ele)%ix_arg = i

@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.26  2003/03/18 20:39:28  dcs
+!Better error handling messages.
+!
 !Revision 1.25  2003/03/08 01:30:56  dcs
 !Fixed wig1: wig2 bug
 !
@@ -101,7 +104,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   implicit none
 
   type (ring_struct), target :: ring, in_ring
-  type (seq_struct), target :: seq_(n_ele_maxx)
+  type (seq_struct), target :: this_seq(n_ele_maxx)
   type (seq_struct), pointer :: seq, seq2
   type (seq_ele_struct), pointer :: s_ele
   type (parser_ring_struct) pring
@@ -186,8 +189,8 @@ subroutine bmad_parser (in_file, ring, make_mats6)
     do i = lbound(pring%ele, 1) , ubound(pring%ele, 1)
       nullify (pring%ele(i)%name_)
     enddo
-    do i = 1, size(seq_(:))
-      nullify (seq_(i)%arg, seq_(i)%ele)
+    do i = 1, size(this_seq(:))
+      nullify (this_seq(i)%arg, this_seq(i)%ele)
     enddo
     init_needed = .false.
   endif
@@ -450,8 +453,8 @@ subroutine bmad_parser (in_file, ring, make_mats6)
           exit
         endif
       enddo
-      allocate (seq_(bp_com%iseq_tot+1)%arg(n_arg))
-      seq_(bp_com%iseq_tot+1)%arg(:)%dummy_name = dummy_name(1:n_arg)
+      allocate (this_seq(bp_com%iseq_tot+1)%arg(n_arg))
+      this_seq(bp_com%iseq_tot+1)%arg(:)%dummy_name = dummy_name(1:n_arg)
       arg_list_found = .true.
     else
       arg_list_found = .false.
@@ -489,16 +492,16 @@ subroutine bmad_parser (in_file, ring, make_mats6)
         print *, 'ERROR IN BMAD_PARSER: NEED TO INCREASE LINE ARRAY!'
         call err_exit
       endif
-      seq_(bp_com%iseq_tot)%name = word_1
+      this_seq(bp_com%iseq_tot)%name = word_1
 
       if (delim /= '=') call warning ('EXPECTING: "=" BUT GOT: ' // delim)
       if (word_2(:ix_word) == 'LINE') then
-        seq_(bp_com%iseq_tot)%type = line$
-        if (arg_list_found) seq_(bp_com%iseq_tot)%type = replacement_line$
+        this_seq(bp_com%iseq_tot)%type = line$
+        if (arg_list_found) this_seq(bp_com%iseq_tot)%type = replacement_list$
       else
-        seq_(bp_com%iseq_tot)%type = list$
+        this_seq(bp_com%iseq_tot)%type = list$
       endif
-      call seq_expand1 (seq_, bp_com%iseq_tot, .true., in_ring)
+      call seq_expand1 (this_seq, bp_com%iseq_tot, .true., in_ring)
 
 ! if not line or list then must be an element
 
@@ -613,14 +616,14 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
 ! sort elements and lists and check for duplicates
 
-  call indexx (seq_(1:bp_com%iseq_tot)%name, seq_indexx(1:bp_com%iseq_tot))
+  call indexx (this_seq(1:bp_com%iseq_tot)%name, seq_indexx(1:bp_com%iseq_tot))
   call indexx (in_ring%ele_(1:n_max)%name, in_indexx(1:n_max))
 
   do i = 1, bp_com%iseq_tot-1
     ix1 = seq_indexx(i)
     ix2 = seq_indexx(i+1)
-    if (seq_(ix1)%name == seq_(ix2)%name) call warning  &
-                      ('DUPLICATE LINE NAME ' // seq_(ix1)%name)
+    if (this_seq(ix1)%name == this_seq(ix2)%name) call warning  &
+                      ('DUPLICATE LINE NAME ' // this_seq(ix1)%name)
   enddo
 
   do i = 1, n_max-1
@@ -636,9 +639,9 @@ subroutine bmad_parser (in_file, ring, make_mats6)
     if (j > n_max) exit
     ix1 = seq_indexx(i)
     ix2 = in_indexx(j)
-    if (seq_(ix1)%name == in_ring%ele_(ix2)%name) call warning  &
-          ('LINE AND ELEMENT HAVE THE SAME NAME: ' // seq_(i)%name)
-    if (seq_(ix1)%name < in_ring%ele_(ix2)%name) then
+    if (this_seq(ix1)%name == in_ring%ele_(ix2)%name) call warning  &
+          ('LINE AND ELEMENT HAVE THE SAME NAME: ' // this_seq(i)%name)
+    if (this_seq(ix1)%name < in_ring%ele_(ix2)%name) then
       i = i + 1
     else
       j = j + 1
@@ -650,20 +653,21 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   if (ring%name == blank) call error_exit &
             ('NO "USE" COMMAND FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
 
-  call find_indexx (ring%name, seq_(:)%name, seq_indexx, bp_com%iseq_tot, i_use)
+  call find_indexx (ring%name, this_seq(:)%name, &
+                                    seq_indexx, bp_com%iseq_tot, i_use)
   if (i_use == 0) call error_exit &
             ('CANNOT FIND DEFINITION FOR "USE" LINE: ' // ring%name, ' ')
 
-  if (seq_(i_use)%type /= line$) call error_exit  &
+  if (this_seq(i_use)%type /= line$) call error_exit  &
                               ('NAME AFTER "USE" IS NOT A LINE!', ' ')
 
 ! Now to expand the lines and lists to find the elements to use
 ! first go through the lines and lists and index everything
 
   do k = 1, bp_com%iseq_tot
-    do i = 1, size(seq_(k)%ele(:))
+    do i = 1, size(this_seq(k)%ele(:))
 
-      s_ele => seq_(k)%ele(i)
+      s_ele => this_seq(k)%ele(i)
 
       ix = index(s_ele%name, '\')   ! '
       if (ix /= 0) then
@@ -676,21 +680,21 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
       call find_indexx (name, in_ring%ele_(1:)%name, in_indexx, n_max, j)
       if (j == 0) then  ! if not an element it must be a sequence
-        call find_indexx (name, seq_(:)%name, seq_indexx, bp_com%iseq_tot, j)
+        call find_indexx (name, this_seq(:)%name, seq_indexx, bp_com%iseq_tot, j)
         if (j == 0) then  ! if not a sequence then I don't know what it is
-          call warning  &
-              ('NOT A DEFINED ELEMENT, LINE, OR LIST: ' // s_ele%name)
+          call warning ('NOT A DEFINED ELEMENT, LINE, OR LIST: ' // &
+             s_ele%name, 'IN THE LINE/LIST: ' // this_seq(k)%name)
           s_ele%ix_array = 1
           s_ele%type = element$
         else
           s_ele%ix_array = j
-          s_ele%type = seq_(j)%type
-          if (seq_(k)%type == list$) call warning ('LIST: ' // seq_(k)%name,  &
-                         'CONTAINS A NON-ELEMENT: ' // s_ele%name)
+          s_ele%type = this_seq(j)%type
+          if (this_seq(k)%type == list$) call warning ('LIST: ' // & 
+                  this_seq(k)%name, 'CONTAINS A NON-ELEMENT: ' // s_ele%name)
         endif
         if (s_ele%type == list$ .and. s_ele%reflect) call warning ( &
                           'A REFLECTION WITH A LIST IS NOT ALLOWED IN: '  &
-                          // seq_(k)%name, 'FOR LIST: ' // s_ele%name)
+                          // this_seq(k)%name, 'FOR LIST: ' // s_ele%name)
 
       else    ! if an element...
         s_ele%ix_array = j
@@ -709,7 +713,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   stack(1)%ix_ele  =  1              ! we start at the beginning
   stack(1)%reflect = +1              ! and move forward
 
-  seq => seq_(i_use)
+  seq => this_seq(i_use)
 
   n_ele_ring = 0
              
@@ -730,7 +734,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 ! if a list
 
     elseif (s_ele%type == list$) then
-      seq2 => seq_(s_ele%ix_array)
+      seq2 => this_seq(s_ele%ix_array)
       j = seq2%ix
       call pushit (ix_ring, n_ele_ring, seq2%ele(j)%ix_array)
       name_(n_ele_ring) = s_ele%name
@@ -746,7 +750,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
     elseif (s_ele%type == line$) then
       call increment_pointer (stack(i_lev)%ix_ele, stack(i_lev)%reflect)
       i_lev = i_lev + 1
-      seq => seq_(s_ele%ix_array)
+      seq => this_seq(s_ele%ix_array)
       stack(i_lev)%ix_seq = s_ele%ix_array
       stack(i_lev)%reflect = stack(i_lev-1)%reflect
       if (s_ele%reflect) stack(i_lev)%reflect = -stack(i_lev)%reflect
@@ -770,7 +774,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
                         stack(i_lev)%ix_ele > size(seq%ele(:))) then
         i_lev = i_lev - 1
         if (i_lev == 0) exit line_expansion
-        seq => seq_(stack(i_lev)%ix_seq)
+        seq => this_seq(stack(i_lev)%ix_seq)
       else
         exit
       endif
@@ -1036,13 +1040,13 @@ subroutine bmad_parser (in_file, ring, make_mats6)
       do i = 1, bp_com%iseq_tot
         print *
         print *, 'Sequence #', i
-        print *, 'Name: ', seq_(i)%name
-        print *, 'Type:', seq_(i)%type
-        print *, 'Number of elements:', size(seq_(i)%ele)
+        print *, 'Name: ', this_seq(i)%name
+        print *, 'Type:', this_seq(i)%type
+        print *, 'Number of elements:', size(this_seq(i)%ele)
         print *, 'List:'
-        do j = 1, size(seq_(i)%ele(:))
-          print '(4x, a, l3, i3)', seq_(i)%ele(j)%name, &
-              seq_(i)%ele(j)%reflect, seq_(i)%ele(j)%ix_arg
+        do j = 1, size(this_seq(i)%ele(:))
+          print '(4x, a, l3, i3)', this_seq(i)%ele(j)%name, &
+              this_seq(i)%ele(j)%reflect, this_seq(i)%ele(j)%ix_arg
         enddo
       enddo
     endif
@@ -1094,9 +1098,9 @@ subroutine bmad_parser (in_file, ring, make_mats6)
     endif
   enddo
 
-  do i = 1, size(seq_(:))
-    if (associated (seq_(i)%arg)) deallocate(seq_(i)%arg)
-    if (associated (seq_(i)%ele)) deallocate(seq_(i)%ele)
+  do i = 1, size(this_seq(:))
+    if (associated (this_seq(i)%arg)) deallocate(this_seq(i)%arg)
+    if (associated (this_seq(i)%ele)) deallocate(this_seq(i)%ele)
   enddo
 
 ! error check
