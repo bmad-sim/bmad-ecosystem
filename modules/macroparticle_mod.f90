@@ -45,14 +45,14 @@ contains
 !
 ! Input:
 !   ring   -- Ring_struct: Lattice to track through.
-!   beam   -- Beam_struct: Beam at end of element ix1.
+!   beam   -- Macro_beam_struct: Beam at end of element ix1.
 !   ix1    -- Integer, optional: Index of starting element (this element 
 !               is NOT tracked through). Default is 0.
 !   ix2    -- Integer, optional: Index of ending element.
 !               Default is ring%n_ele_use.
 !
 ! Output:
-!   beam   -- Beam_struct: Beam at end of element ix2.
+!   beam   -- Macro_beam_struct: Beam at end of element ix2.
 !-
 
 subroutine track_macro_beam (ring, beam, ix1, ix2)
@@ -63,7 +63,7 @@ subroutine track_macro_beam (ring, beam, ix1, ix2)
   type (macro_beam_struct) :: beam
 
   integer, optional, intent(in) :: ix1, ix2
-  integer i, j, i1, i2
+  integer i, i1, i2
 
 ! Init
 
@@ -95,12 +95,12 @@ end subroutine track_macro_beam
 !   use macroparticle_mod
 !
 ! Input:
-!   beam_start  -- Beam_struct: starting beam position
+!   beam_start  -- Macro_beam_struct: starting beam position
 !   ele         -- Ele_struct: The element to track through.
 !   param       -- Param_struct: General parameters.
 !
 ! Output:
-!   beam_end    -- Beam_struct: ending beam position.
+!   beam_end    -- Macro_beam_struct: ending beam position.
 !-
 
 subroutine track1_macro_beam (beam_start, ele, param, beam_end)
@@ -109,7 +109,6 @@ subroutine track1_macro_beam (beam_start, ele, param, beam_end)
 
   type (macro_beam_struct) beam_start
   type (macro_beam_struct), target :: beam_end
-  type (macro_struct), pointer :: macro
   type (ele_struct) ele
   type (param_struct) param
 
@@ -144,7 +143,7 @@ end subroutine track1_macro_beam
 !   use macroparticle_mod
 !
 ! Input:
-!   bunch_start -- Bunch_struct: Starting bunch position.
+!   bunch_start -- Macro_bunch_struct: Starting bunch position.
 !   ele         -- Ele_struct: The element to track through.
 !   param       -- Param_struct: General parameters.
 !
@@ -688,13 +687,13 @@ end subroutine
 !   use macroparticle_mod
 !
 ! Input:
-!   bunch     -- Bunch_struct: collection of macroparticles.
+!   bunch     -- Macro_Bunch_struct: collection of macroparticles.
 !     %slice(i)  -- i^th slice.
 !       %macro(j)%r%vec(5) -- Longitudinal position of j^th macroparticle.
 !       %macro(j)%sig_z    -- Longitudinal sigma.
 !
 ! Output:
-!   bunch     -- Bunch_struct: collection of macroparticles.
+!   bunch     -- Macro_bunch_struct: collection of macroparticles.
 !     %slice(i)  -- i^th slice.
 !       %macro(j) -- Macroparticle ordered using %vec(5).
 !                   Order is from large z (head of slice) to small z.
@@ -1032,7 +1031,7 @@ end subroutine
 !   n_macro -- Integer: Number of macroparticles per slice.
 !
 ! Output:
-!   beam -- Beam_struct: Allocated beam_struct structure.
+!   beam -- Macro_beam_struct: Allocated beam_struct structure.
 !-
 
 subroutine reallocate_macro_beam (beam, n_bunch, n_slice, n_macro)
@@ -1119,7 +1118,7 @@ end subroutine
 !                       Use this for testing purposes. Default is False.
 !
 ! Output:
-!   beam -- beam_struct: Initialized Structure
+!   beam -- Macro_beam_struct: Initialized Structure
 !     %bunch(:) -- %bunch(1) is leading bunch.
 !       %slice(:) -- %slice(1) is leading slice in a bunch. 
 !-
