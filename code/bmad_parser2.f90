@@ -212,7 +212,8 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
     if (matched_delim .and. ix /= 0) then
       name = word_1(:ix-1)
       do i = 0, n_max
-        if (ring%ele_(i)%name == name) then
+        if (ring%ele_(i)%name == name .or. &
+                          key_name(ring%ele_(i)%key) == name) then
           ix = index(word_1, '[')
           this_name = word_1(ix+1:)    ! name of attribute
           ix = index(this_name, ']')

@@ -334,7 +334,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
           ele => in_ring%ele_(i)
         endif
 
-        if (ele%name == name) then
+        if (ele%name == name .or. key_name(ele%key) == name) then
           ix = index(word_1, '[')
           this_name = word_1(ix+1:)    ! name of attribute
           ix = index(this_name, ']')
