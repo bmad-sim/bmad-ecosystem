@@ -922,7 +922,7 @@ subroutine attribute_bookkeeper (ele, param)
 
 ! Transfer tilt to tilt_tot, etc.
 
-  if (.not. ele%on_an_i_beam) then
+  if (.not. ele%on_an_i_beam .and. ele%key /= match$) then
     ele%value(tilt_tot$)     = ele%value(tilt$)
     ele%value(x_offset_tot$) = ele%value(x_offset$)
     ele%value(y_offset_tot$) = ele%value(y_offset$)

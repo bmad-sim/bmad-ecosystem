@@ -1114,8 +1114,7 @@ subroutine init_macro_distribution (beam, init, ele, &
       macro%r%vec = init%center
       z = init%center(5) + init%sig_z * z_rel 
       macro%r%vec(5) = init%center(5) + init%sig_z * z_rel 
-      dE_E = (init%center(6) + init%dPz_dz * z + e_rel * init%sig_e) * &
-                                                         ele%value(beam_energy$) 
+      dE_E = (init%center(6) + init%dPz_dz * z + e_rel * init%sig_e) 
       macro%r%vec(6) = ele%value(beam_energy$) * (1+ dE_E)
       r = (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /) * dE_E
       ele%x%gamma = (1+ele%x%alpha**2) / ele%x%beta
