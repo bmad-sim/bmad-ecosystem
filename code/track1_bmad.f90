@@ -448,7 +448,7 @@ subroutine track1_bmad (start, ele, param, end)
 
     ! 1/2 of the octupole octopole kick at the entrance face.
 
-    end%vec(4) = end%vec(4) + k1 * k_z**2 * end%vec(3)**3 / 3
+    end%vec(4) = end%vec(4) + k1 * length * k_z**2 * end%vec(3)**3 / 3
 
     ! Quadrupole body
 
@@ -458,7 +458,7 @@ subroutine track1_bmad (start, ele, param, end)
 
     ! 1/2 of the octupole octopole kick at the exit face.
 
-    end%vec(4) = end%vec(4) + k1 * k_z**2 * end%vec(3)**3 / 3
+    end%vec(4) = end%vec(4) + k1 * length * k_z**2 * end%vec(3)**3 / 3
 
     call offset_particle (ele, param, end, unset$)
     call end_z_calc
