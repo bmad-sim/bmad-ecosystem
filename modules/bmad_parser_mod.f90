@@ -95,11 +95,13 @@ module bmad_parser_mod
   parameter (def$ = 1)
   parameter (redef$ = 2)
 
-!
+! 
 
   type bp_com_struct
     integer i_line, f_unit, n_files
-    character*200 current_file_name, file_name_(20)
+    character*200 file_name_(20)        ! List of files all opened.
+    character*200 current_file_name_in  ! Has possible logical directory
+    character*200 current_file_name     ! Full expanded name.
     character*280 parse_line
     character(16) parser_name
     character*72 debug_line
@@ -672,21 +674,22 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine file_stack (how, file_name, finished)
+! Subroutine file_stack (how, file_name_in, finished)
 !
 ! Subroutine to keep track of the files that are opened for reading.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
 
-subroutine file_stack (how, file_name, finished)
+subroutine file_stack (how, file_name_in, finished)
 
   implicit none
 
-  integer lunget, i_line_(10), f_unit_(10), i_level
+  integer, parameter :: f_maxx = 10
+  integer lunget, i_line_(f_maxx), f_unit_(f_maxx), i_level
 
-  character*(*) how, file_name
-  character*200 stack_file_name_(10)
+  character*(*) how, file_name_in
+  character*200 stack_file_name_in(f_maxx), stack_file_name(f_maxx), file_name
 
   logical finished
 
@@ -702,17 +705,20 @@ subroutine file_stack (how, file_name, finished)
 
   elseif (how == 'push') then
     i_level = i_level + 1
-    if (i_level > 10) then
+    if (i_level > f_maxx) then
       print *, 'ERROR: CALL NESTING GREATER THAN 10 LEVELS'
       call err_exit
     endif
-    stack_file_name_(i_level) = file_name
+    call fullfilename(file_name_in, file_name)
+    stack_file_name_in(i_level) = file_name_in
+    stack_file_name(i_level) = file_name
+    bp_com%current_file_name_in = file_name_in
     bp_com%current_file_name = file_name
     f_unit_(i_level) = lunget()
     bp_com%f_unit = f_unit_(i_level)
     if (i_level /= 1) i_line_(i_level-1) = bp_com%i_line
     bp_com%i_line = 0
-    open (unit = bp_com%f_unit, file = bp_com%current_file_name,  &
+    open (unit = bp_com%f_unit, file = file_name,  &
                                  status = 'OLD', action = 'READ', err = 9000)
     bp_com%n_files = bp_com%n_files + 1
     inquire (file = file_name, name = bp_com%file_name_(bp_com%n_files))
@@ -722,7 +728,8 @@ subroutine file_stack (how, file_name, finished)
     if (i_level < 0) then
       call error_exit ('BAD "RETURN"', ' ')
     elseif (i_level > 0) then
-      bp_com%current_file_name = stack_file_name_(i_level)
+      bp_com%current_file_name_in = stack_file_name_in(i_level)
+      bp_com%current_file_name = stack_file_name(i_level)
       bp_com%f_unit = f_unit_(i_level)
       bp_com%i_line = i_line_(i_level)
     else    ! i_level == 0
@@ -735,10 +742,13 @@ subroutine file_stack (how, file_name, finished)
 
   return
 
-9000  continue
-  if (bmad_status%type_out .or. bmad_status%exit_on_error) print *,  &
-      'ERROR IN ', trim(bp_com%parser_name), ': UNABLE TO OPEN FILE: ', &
-                                       trim(bp_com%current_file_name)
+!
+
+  9000  continue
+  print *, 'ERROR IN ', trim(bp_com%parser_name)
+  print *, '      UNABLE TO OPEN FILE: ', trim(file_name)
+  if (file_name_in /= file_name)  print *, &
+            '       THIS FROM THE LOGICAL FILE NAME: ', trim(file_name_in)
   if (bmad_status%exit_on_error) call err_exit
   bmad_status%ok = .false.
 
