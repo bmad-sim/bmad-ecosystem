@@ -48,7 +48,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   real(rp) t5_11, t5_12, t5_22, t5_33, t5_34, t5_44, t5_14, t5_23
   real(rp) t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
   real(rp) t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
-  real(rp) lcs, lc2s2, error, rho, px, py, pz, k, L, k_gradient
+  real(rp) lcs, lc2s2, error, rho, px, py, pz, k, L
   real(rp) cos_phi, gradient, e_start, e_end, e_ratio
   real(rp) alpha, sin_a, cos_a, f, phase, E, pxy2, dE0
 
@@ -400,6 +400,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 ! This means that the resulting matrix will NOT be symplectic.
 ! Since things are very complicated we simplify things by ignoring the
 !   off-axis corrections to mat6.
+! bmad_com%k_loss is an internal variable used with macroparticles.
+!   It should be zero otherwise.
 
   case (lcavity$)
 
@@ -408,31 +410,26 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(6,5) = -ele%value(gradient$) * ele%value(l$) * f * sin(phase)
 
     cos_phi = cos(phase)
-    gradient = ele%value(gradient$) * cos_phi
-    k_gradient = -ele%value(k_loss$) * abs(param%charge) 
+    gradient = ele%value(gradient$) * cos_phi 
+    if (bmad_com%sr_wakes_on) gradient = gradient - bmad_com%k_loss - &
+                                    ele%value(e_loss$) * param%charge / length
 
-    if (bmad_com%emulate_liar_bug) then
-      gradient = gradient + k_gradient
-      k_gradient = 0
-    endif
-
-    if (gradient == 0 .and. k_gradient == 0) then
+    if (gradient == 0) then
       call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
       goto 8000  ! put in mulipole ends if needed
     endif
 
+    e_start = ele%value(energy_start$) * (1 + c0%vec(6))
+    e_end = e_start + gradient * ele%value(l$)
+    e_ratio = e_end / e_start
+
 ! entrence kick
 
-    e_start = ele%value(energy_start$) * (1 + c0%vec(6))
     k1 = -gradient / (2 * e_start)
 
 ! body 
 
-    e_start = e_start + (k_gradient * ele%value(l$))/2
-    e_end = e_start + gradient * ele%value(l$)
-    e_ratio = e_end / e_start
-
-    if (bmad_com%use_dimad_lcavity) then  ! use dimad formula
+    if (bmad_com%use_liar_lcavity) then  ! use dimad formula
       r11 = 1
       r12 = e_start * log (e_ratio) / gradient
       r21 = 0

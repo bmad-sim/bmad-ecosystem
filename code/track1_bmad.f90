@@ -48,7 +48,7 @@ subroutine track1_bmad (start, ele, param, end)
   real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
   real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
   real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
-  real(rp) ave_x_vel2, ave_y_vel2, dE_E, dE, k_gradient
+  real(rp) ave_x_vel2, ave_y_vel2, dE_E, dE
   real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio
   real(rp) alpha, sin_a, cos_a, f, z_ave, r11, r12, r21, r22
   real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2
@@ -269,14 +269,14 @@ subroutine track1_bmad (start, ele, param, end)
     call offset_particle (ele, param, end, unset$, set_canonical = .false.)
 
 !-----------------------------------------------
-! linac rf cavity
-! assumes the particle is ultra-relativistic.
+! Linac rf cavity
+! Assumes the particle is ultra-relativistic.
 ! This uses the formalism from:
 !       J. Rosenzweig and L. Serafini
 !       Phys Rev E, Vol. 49, p. 1599, (1994)
 ! with b_0 = b_-1 = 1
-!
-! k_loss is handled by putting 1/2 at the beginning and 1/2 at the end.
+! bp_com%k_loss is an internal variable used with macroparticles.
+!   it should be zero otherwise.
 
   case (lcavity$)
 
@@ -288,15 +288,13 @@ subroutine track1_bmad (start, ele, param, end)
     phase = twopi * (ele%value(phi0$) + &
                         end%vec(5) * ele%value(rf_frequency$) / c_light)
     cos_phi = cos(phase)
-    gradient = ele%value(gradient$) * cos_phi
-    k_gradient = -ele%value(k_loss$) * abs(param%charge) 
-
-    if (bmad_com%emulate_liar_bug) then
-      gradient = gradient + k_gradient
-      k_gradient = 0
-    endif
+    gradient = ele%value(gradient$) * cos_phi 
+    if (bmad_com%sr_wakes_on) gradient = gradient - bmad_com%k_loss - &
+                                    ele%value(e_loss$) * param%charge / length
 
     e_start = ele%value(energy_start$) * (1 + end%vec(6)) 
+    e_end = e_start + gradient * ele%value(l$)
+    e_ratio = e_end / e_start
 
     if (e_ratio < 0) then
       if (bmad_status%type_out) print *, &
@@ -319,11 +317,7 @@ subroutine track1_bmad (start, ele, param, end)
 
 ! track body
 
-    e_start = e_start + (k_gradient * ele%value(l$))/2
-    e_end = e_start + gradient * ele%value(l$)
-    e_ratio = e_end / e_start
-
-    if (bmad_com%use_dimad_lcavity) then  ! use dimad formula
+    if (bmad_com%use_liar_lcavity) then  ! use liar formula
       r11 = 1
       r12 = e_start * log (e_ratio) / gradient
       r21 = 0
@@ -346,8 +340,6 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(2) = r21 * x_pos + r22 * end%vec(2)
     end%vec(3) = r11 * y_pos + r12 * end%vec(4)
     end%vec(4) = r21 * y_pos + r22 * end%vec(4)
-
-    e_end = e_end + (k_gradient * ele%value(l$))/2
 
 ! exit kick
 

@@ -1,7 +1,98 @@
 \chapter{Introduction to BMAD programming}
 
-\section{A First Program}
+\section{The BMAD Distribution}
 
+The \bmad\ software uses other software packages. \bmad, along with the packages it uses, 
+is bundled together to form what is called the \bmad\ distribution. The \bmad\ distribution
+also includes example lattice files and example programs. The \bmad\ distribution includes a custimized version of the Fortran90 version of Numerical Recipes\cite{nr}. It is the obligation of anyone who uses \bmad\ to make sure that they have the appropriate licance for Numerical Recipes. 
+
+Also included in the distribution is the PGPLOT plotting package developed by Tim Pearson of CalTech.
+PGPLOT is freely available for non-commercial use. PGPLOT is not public--domain software and is copyrighted by the California Institute of Technology further documentation can be found at
+\begin{example}
+    http://www.astro.caltech.edu/~tjp/pgplot
+\end{example}
+The advantage of PGPLOT is that it provides a set of device--independent routines making it very flexible and portable. To simplify the interface a set of wrapper subroutines call Quick_Plot are
+included in the \bmad\ distribution. This is discussed later.
+
+The other package used by \bmad\ is FPP/PTC written by Etienne Forest. This software can do 
+various differential and lie algebraic operations as well as truncated power series algebra. further
+documentation can be found at
+\begin{example}
+    http://bc1.lbl.gov/CBP_pages/educational/TPSA_DA/Introduction.html
+\end{example}
+
+%-----------------------------------------------------------------------------
+\section{Getf and Listf}
+
+As can be seen there is a lot going on behind the scenes even for this
+simple program.This shows that programming with \bmad\ can be both easy
+and hard. Easy in the sense that a lot can be done with just a few
+lines. The hard part comes about since there are many details that
+have to be keept in mind in order to make sure that the subroutines
+are calculating what you want them to calculate.
+
+To help with the details all \bmad\ subroutines have in their source (.f90)
+files a comment block that explains the arguments needed by the
+subroutines and explains what the subroutine does. To help quickly
+access these comments there are two perl scripts that are supplied
+with the \bmad\ distribution that are invloked with the commands
+\cmd{listf} and \cmd{getf}.
+
+The \cmd{listf} command is used to locate routines and structures.
+The form of the command is
+\begin{verbatim}
+    listf <name>
+\end{verbatim}
+This searches for any routine or structure with the name
+<name>. <name> may contain the wild--cards ``*'' and ``\%'' where
+``*'' matches to any number of characters and ``\%'' matches to any
+single character. For example:
+\begin{verbatim}
+    listf ring_struct
+    listf twiss_at_%
+\end{verbatim}
+The second example will match to \rn{twiss_at_s} but not
+\rn{twiss_at_start}.
+
+The \cmd{getf} command is like the \cmd{listf} command with the
+addition that the header comments that are in the source code files
+will be printed out for each routine match and the structure definition
+will be printed for each structure matched. The \cmd{getf} command is
+thus more verbose than the \cmd{listf} command.
+
+%-----------------------------------------------------------------------------
+\section{Porgramming Conventions}
+
+\bmad\ subroutines follow the following conventions:
+
+\begin{description}
+\item[\$ Denotes Parameter] A ``\$'' at the end of a name denotes an 
+integer parameter. For example, in the above example program, to check
+whether an element is a quadrupole one would write:
+\begin{verbatim}
+  if (ring%ele_(i)%key == quadrupole$) ...
+\end{verbatim}
+Checking the source code one would find in the module \tn{bmad_struct}
+\begin{verbatim}
+  integer, parameter :: drift$ = 1, sbend$ = 2, quadrupole$ = 3, group$ = 4
+\end{verbatim}
+One should always use the parameter name instead of the integer it represents.
+That is, one should never write
+\begin{verbatim}
+  if (ring%ele_(i)%key == 3) ...  ! DO NOT DO THIS!
+\end{verbatim}
+For one, using the name makes the code clearer but more importantly
+the exact value of the parmeters may at times be shuffled which would
+lead to disasterous results if the values themselves were coded into a
+program.
+
+\item[ Type names have a \_struct suffix]. For example: \tn{ring_struct}, 
+\tn{ele_struct}, etc.
+
+\end{description}
+
+%-----------------------------------------------------------------------------
+\section{A First Program}
 
 Let us start with a simple test program:
 \begin{verbatim}
@@ -48,71 +139,3 @@ denoting what type of element (quadrupole, wiggler, etc.) it is.
 element. \vn{ring%ele_(i)%x%beta} is the $a$--mode (nearly
 horizontal mode) beta.
 
-\section{Getf and Listf}
-
-As can be seen there is a lot going on behind the scenes even for this
-simple program.This shows that programming with \bmad\ can be both easy
-and hard. Easy in the sense that a lot can be done with just a few
-lines. The hard part comes about since there are many details that
-have to be keept in mind in order to make sure that the subroutines
-are calculating what you want them to calculate.
-
-To help with the details all \bmad\ subroutines have in their source (.f90)
-files a comment block that explains the arguments needed by the
-subroutines and explains what the subroutine does. To help quickly
-access these comments there are two perl scripts that are supplied
-with the \bmad\ distribution that are invloked with the commands
-\cmd{listf} and \cmd{getf}.
-
-The \cmd{listf} command is used to locate routines and structures.
-The form of the command is
-\begin{verbatim}
-    listf <name>
-\end{verbatim}
-This searches for any routine or structure with the name
-<name>. <name> may contain the wild--cards ``*'' and ``\%'' where
-``*'' matches to any number of characters and ``\%'' matches to any
-single character. For example:
-\begin{verbatim}
-    listf ring_struct
-    listf twiss_at_%
-\end{verbatim}
-The second example will match to \rn{twiss_at_s} but not
-\rn{twiss_at_start}.
-
-The \cmd{getf} command is like the \cmd{listf} command with the
-addition that the header comments that are in the source code files
-will be printed out for each routine match and the structure definition
-will be printed for each structure matched. The \cmd{getf} command is
-thus more verbose than the \cmd{listf} command.
-
-\section{Porgramming Conventions}
-
-\bmad\ subroutines follow the following conventions:
-
-\begin{description}
-\item[\$ Denotes Parameter] A ``\$'' at the end of a name denotes an 
-integer parameter. For example, in the above example program, to check
-whether an element is a quadrupole one would write:
-\begin{verbatim}
-  if (ring%ele_(i)%key == quadrupole$) ...
-\end{verbatim}
-Checking the source code one would find in the module \tn{bmad_struct}
-\begin{verbatim}
-  integer, parameter :: drift$ = 1, sbend$ = 2, quadrupole$ = 3, group$ = 4
-\end{verbatim}
-One should always use the parameter name instead of the integer it represents.
-That is, one should never write
-\begin{verbatim}
-  if (ring%ele_(i)%key == 3) ...  ! DO NOT DO THIS!
-\end{verbatim}
-For one, using the name makes the code clearer but more importantly
-the exact value of the parmeters may at times be shuffled which would
-lead to disasterous results if the values themselves were coded into a
-program.
-
-\item[ Type names have a \_struct suffix]. For example: \tn{ring_struct}, 
-\tn{ele_struct}, etc.
-
-
-\end{description}

@@ -6,7 +6,9 @@ module macro_particle_mod
   type macro_particle_struct
     type (coord_struct) r
     real(rp) sigma(21)
+    real(rp) k_loss
     real(rp) charge
+    real(rp) effective_charge ! effective charge for long sr wake calc
     integer :: iz = 0         ! index to ordering of particles in z.
   end type
 
@@ -26,9 +28,7 @@ module macro_particle_mod
   integer, parameter :: s55$ = 19, s56$ = 20, s66$ = 21
 
   type macro_particle_com_struct
-    real(rp) ::  dz_bin = 1e-4
-    logical :: sr_wakes_on = .true.
-    logical :: lr_wakes_on = .true.
+    real(rp) ::  dz_bin = 0.5 ! in units of the spacing between wakefield pts
   end type
 
   type (macro_particle_com_struct), save :: mp_com
@@ -83,6 +83,7 @@ subroutine track1_bunch (bunch, ele, param)
   type (ele_struct) ele, rf_ele
   type (param_struct) param
 
+  real(rp) charge
   integer i, ix
 
   logical sr_wake_on
@@ -90,8 +91,7 @@ subroutine track1_bunch (bunch, ele, param)
 !------------------------------------------------
 ! Without wakefields just track through
 
-  if (ele%key /= lcavity$ .or. .not. mp_com%sr_wakes_on) then
-    param%charge = 0
+  if (ele%key /= lcavity$ .or. .not. bmad_com%sr_wakes_on) then
     do i = 1, size(bunch%macro)
       call track1_macro_particle (bunch%macro(i), ele, param, bunch%macro(i))
     enddo
@@ -99,12 +99,13 @@ subroutine track1_bunch (bunch, ele, param)
   endif
 
 !------------------------------------------------
-! For an lcavity without a wakefield file use the k_loss attribute 
+! For an lcavity without a wakefield file use the e_loss attribute 
 ! to calculate energy loss. The effective charge of a bunch is:
 !   2*sum[charge_of_previous_bunches] + charge_of_this_bunch
 
   if (.not. associated(ele%wake%sr)) then
     call order_macro_particles_in_z (bunch)
+    charge = param%charge
     param%charge = 0
     do ix = 1, size(bunch%macro)
       i = bunch%macro(ix)%iz
@@ -112,6 +113,7 @@ subroutine track1_bunch (bunch, ele, param)
       call track1_macro_particle (bunch%macro(i), ele, param, bunch%macro(i))
       param%charge = param%charge + bunch%macro(i)%charge
     enddo
+    param%charge = charge
     return
   endif
 
@@ -125,15 +127,20 @@ subroutine track1_bunch (bunch, ele, param)
   rf_ele%value(beam_energy$) = &
             (ele%value(energy_start$) + ele%value(beam_energy$)) / 2
 
+  charge = param%charge
   param%charge = 0
+
+  call sr_long_wake_calc (bunch, ele)
+
   do i = 1, size(bunch%macro)
+    bmad_com%k_loss = bunch%macro(i)%k_loss
     call track1_macro_particle (bunch%macro(i), rf_ele, param, bunch%macro(i))
   enddo
 
 ! Put in the wakefields
 
   rf_ele%value(l$) = ele%value(l$)
-  call track1_sr_wakefield (bunch, rf_ele)
+  call track1_sr_trans_wake (bunch, rf_ele)
 
 ! Track the last half of the lcavity
 
@@ -143,7 +150,83 @@ subroutine track1_bunch (bunch, ele, param)
 
   param%charge = 0
   do i = 1, size(bunch%macro)
+    bmad_com%k_loss = bunch%macro(i)%k_loss
     call track1_macro_particle (bunch%macro(i), rf_ele, param, bunch%macro(i))
+  enddo
+
+  param%charge = charge
+  bmad_com%k_loss = 0
+
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+!-
+
+subroutine sr_long_wake_calc (bunch, ele)
+
+  implicit none
+
+  type (bunch_struct) bunch
+  type (ele_struct) ele
+
+  real(rp) z_ave, charge, z0
+  real(rp) f1, f2, z, dE, E_rel, fact, dz_wake
+
+  integer i, ix, i0, i1, ix0, ix1, iw, n_wake, n_macro
+
+! Init
+
+  call order_macro_particles_in_z (bunch)
+
+  n_wake = ubound(ele%wake%sr, 1)
+  dz_wake = ele%wake%sr(n_wake)%z / n_wake
+  n_macro = size(bunch%macro)
+
+  ix0 = 1
+  bunch%macro(:)%k_loss = 0
+
+! loop over all bins
+! ix0, ix1 give the range of the current bin
+
+  do
+
+    i0 = bunch%macro(ix0)%iz
+
+    z0 = bunch%macro(i0)%r%vec(5)
+
+    charge = 0
+    do ix = ix0, n_macro
+      i = bunch%macro(ix)%iz
+      if (bunch%macro(i)%r%vec(5) < z0 - mp_com%dz_bin * dz_wake) exit
+      charge = charge + bunch%macro(i)%charge 
+      z_ave = z_ave + bunch%macro(i)%charge * bunch%macro(i)%r%vec(5)
+      ix1 = ix 
+    enddo
+
+    do ix = ix0, ix1
+      i = bunch%macro(ix)%iz
+      bunch%macro(i)%k_loss = bunch%macro(i)%k_loss + &
+                                      abs(charge) * ele%wake%sr(0)%long / 2
+    enddo
+
+! now apply the wakefields to the other macro-particles.
+
+    do ix = ix1+1, n_macro
+      i = bunch%macro(ix)%iz
+      z = z_ave - bunch%macro(i)%r%vec(5)
+      iw = z / dz_wake
+      f2 = z/dz_wake - iw
+      f1 = 1 - f2
+      bunch%macro(i)%k_loss = bunch%macro(i)%k_loss + abs(charge) * &
+                  (ele%wake%sr(iw)%long * f1 + ele%wake%sr(iw+1)%long * f2)
+    enddo
+
+    if (ix1 == n_macro) return
+    ix0 = ix1 + 1
+
   enddo
 
 end subroutine
@@ -154,7 +237,7 @@ end subroutine
 !+
 !-
 
-subroutine track1_sr_wakefield (bunch, ele)
+subroutine track1_sr_trans_wake (bunch, ele)
 
   implicit none
 
@@ -177,7 +260,7 @@ subroutine track1_sr_wakefield (bunch, ele)
 ! loop over all bins
 ! ix0, ix1 give the range of the current bin
 
-  ix0 = 1   
+  ix0 = 1
 
   do
 
@@ -191,11 +274,11 @@ subroutine track1_sr_wakefield (bunch, ele)
     z_ave = 0
     do ix = ix0, n_macro
       i = bunch%macro(ix)%iz
-      if (bunch%macro(i)%r%vec(5) < z0 - mp_com%dz_bin) exit
+      if (bunch%macro(i)%r%vec(5) < z0 - mp_com%dz_bin * dz_wake) exit
       charge = charge + bunch%macro(i)%charge / 2
-      bunch%macro(i)%r%vec(6) = bunch%macro(i)%r%vec(6) - &
-          abs(charge) * ele%wake%sr(0)%long * ele%value(l$) / &
-          ele%value(beam_energy$)
+!      bunch%macro(i)%r%vec(6) = bunch%macro(i)%r%vec(6) - &
+!          abs(charge) * ele%wake%sr(0)%long * ele%value(l$) / &
+!          ele%value(beam_energy$)
       charge = charge + bunch%macro(i)%charge / 2
       x_ave = x_ave + bunch%macro(i)%charge * bunch%macro(i)%r%vec(1)
       y_ave = y_ave + bunch%macro(i)%charge * bunch%macro(i)%r%vec(3)
@@ -203,9 +286,11 @@ subroutine track1_sr_wakefield (bunch, ele)
       ix1 = ix 
     enddo
 
-    x_ave = x_ave / charge
-    y_ave = y_ave / charge
-    z_ave = z_ave / charge
+    if (charge /= 0) then
+      x_ave = x_ave / charge
+      y_ave = y_ave / charge
+      z_ave = z_ave / charge
+    endif
 
 ! now apply the wakefields to the other macro-particles.
 
@@ -216,16 +301,16 @@ subroutine track1_sr_wakefield (bunch, ele)
       f2 = z/dz_wake - iw
       f1 = 1 - f2
       fact = abs(charge) * ele%value(l$) 
-      dE = fact * (ele%wake%sr(iw)%long * f1 + ele%wake%sr(iw+1)%long * f2)
-      bunch%macro(i)%r%vec(6) = bunch%macro(i)%r%vec(6) - &
-                            dE / ele%value(beam_energy$)
-      E_rel = (1 + bunch%macro(i)%r%vec(6))
-      fact = fact * (ele%wake%sr(iw)%trans*f1 + ele%wake%sr(iw+1)%trans*f2)
-      bunch%macro(i)%r%vec(2) = bunch%macro(i)%r%vec(2) + fact * x_ave / E_rel
-      bunch%macro(i)%r%vec(4) = bunch%macro(i)%r%vec(4) + fact * y_ave / E_rel
+!      dE = fact * (ele%wake%sr(iw)%long * f1 + ele%wake%sr(iw+1)%long * f2)
+!      bunch%macro(i)%r%vec(6) = bunch%macro(i)%r%vec(6) - &
+!                                         dE / ele%value(beam_energy$)
+      fact = fact * (ele%wake%sr(iw)%trans*f1 + ele%wake%sr(iw+1)%trans*f2) / &
+                                                  ele%value(beam_energy$)
+      bunch%macro(i)%r%vec(2) = bunch%macro(i)%r%vec(2) + fact * x_ave 
+      bunch%macro(i)%r%vec(4) = bunch%macro(i)%r%vec(4) + fact * y_ave
     enddo
 
-    if (ix1 == n_macro) exit
+    if (ix1 == n_macro) return
     ix0 = ix1 + 1
 
   enddo

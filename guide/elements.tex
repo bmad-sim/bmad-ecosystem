@@ -9,7 +9,7 @@ various types of elements available in \bmad.
 Most element types available in \mad\ are provided in \bmad.
 Additionally, \bmad\ provides a number of element types that are not
 available in \mad.  A word of caution: In some cases where both \mad\
-and \bmad\ provide the the same element type, there will be an overlap of 
+and \bmad\ provide the same element type, there will be an overlap of 
 the attributes available but the two sets of attributes will not be the same.
 The list of element types known to \bmad\ is shown in Table~\ref{tab:elements}
 \begin{table}[h]
@@ -57,13 +57,17 @@ difference between this and a \vn{Multipole} is the input format.
   x\_limit     = Real & \ref{s:limit}  &  tracking\_method   = Switch  & \ref{s:track}  \\ \hline
   y\_limit     = Real & \ref{s:limit}  &  is\_on             = Logical & \ref{s:is_on}  \\ \hline
   aperture     = Real & \ref{s:limit}  &  a$n$, b$n$         = Real    & \ref{s:ab}     \\ \hline  
-  beam\_energy = Real & \ref{s:energy} &  radius             = Real    & \ref{s:ab}     \\ \hline
+  beam\_energy = Real & \ref{s:energy} &                               &                \\ \hline
 \end{tabular}}
 \end{table}
 
-\vn{mat6_calc_method = bmad_standard} is the only acceptable method.
-
-\vn{tracking_method = bmad_standard} is the only acceptable method.
+Possible methods are:
+\begin{example}
+  mat6\_calc\_method: 
+              bmad\_standard  (default) 
+  tracking\_method:
+              bmad\_standard  (default)
+\end{example}
 
 Example:
 \begin{example}

@@ -26,13 +26,13 @@ horizontal plane.
 In \bmad\ a lattice is comprised of a sequence of elements:
 Quadrupoles, bends, etc. Each element has an entrence point and an
 exit point and a reference curve between them. For a bend the
-reference curve is circular and for all other elements the reference
-curve is a straight line. The elements are assembled together so that
-the exit point of one element coinsides with the entrence point of the
-next with the reference curves forming a smooth arc with no kinks. The
-reference orbit is then just the sum of the reference curves. If not
-specified otherwise, the $s = 0$ position is just the enterence point
-of the first element.
+reference curve is a segment of a circular arc. For all other elements
+the reference curve is a straight line segment. The elements are assembled
+together so that the exit point of one element coinsides with the
+entrence point of the next with the reference curves forming a smooth
+arc with no kinks. The reference orbit is then just the sum of the
+reference curves. If not specified otherwise, the $s = 0$ position is
+just the enterence point of the first element.
 
 Notice that in a wiggler the reference orbit, which is a straight
 line, does {\em not} correspond to the orbit that any actual particle
@@ -42,10 +42,11 @@ example, by specifying offsets and pitches, the centerline of a
 quadrupole magnet may be arbitrarily oriented with respect to its
 reference curve (which is a line segment). Since the reference curve
 of an element is fixed to the reference curves of the preceding and
-following elements it is the physical magnet that moves and not the
-reference curve. Shifting a physical magnet with respect to its
-reference curve means that the reference curve does {\em not}
-correspond to the orbit that any actual particle could travel.
+following elements, setting a nonzero offset or pitch for an element
+moves the physical magnet and does not affect the reference
+curve. Shifting a physical magnet with respect to its reference curve
+generally means that the reference curve does {\em not} correspond to
+the orbit that any actual particle could travel.
 
 
 \section{Global Reference System}
@@ -62,7 +63,7 @@ of the three angles is:
 \item[$\theta$ Azimuth angle:] Angle in the $(X, Z)$ plane 
 between the $Z$--axis and the projection of the $z$--axis onto the
 $(X, Z)$ plane. A positive angle of $\theta = \pi/2$ corresponds to the
-projected $z$ axis pointing in the positive $X$ direction.
+projected $z$--axis pointing in the positive $X$ direction.
 \item[$\phi$ Pitch (elevation) angle:] Angle between the $z$--axis 
 and the $Y$--axis. A positive angle of $\phi = \pi/2$ corresponds to
 the $s$--axis pointing in the positive $Y$ direction.

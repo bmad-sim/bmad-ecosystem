@@ -24,7 +24,7 @@ subroutine compute_element_energy (ring)
 
   type (ring_struct) ring
 
-  real(rp) beam_energy, charge
+  real(rp) beam_energy
 
   integer i
 
@@ -35,19 +35,19 @@ subroutine compute_element_energy (ring)
     beam_energy = ring%ele_(0)%value(beam_energy$)
     ring%param%beam_energy = beam_energy
 
-    charge = ring%param%charge  ! save charge
-    ring%param%charge = 0
-
     do i = 1, ring%n_ele_ring
+
       if (ring%ele_(i)%key == lcavity$ .and. ring%ele_(i)%is_on) then
         ring%ele_(i)%value(energy_start$) = beam_energy
         beam_energy = beam_energy + ring%ele_(i)%value(gradient$) * &
-            ring%ele_(i)%value(l$) * cos(twopi*ring%ele_(i)%value(phi0$))
+            ring%ele_(i)%value(l$) * cos(twopi*ring%ele_(i)%value(phi0$)) 
+        if (bmad_com%sr_wakes_on) beam_energy = beam_energy - &
+                        ring%ele_(i)%value(e_loss$) * ring%param%charge
       endif
-      ring%ele_(i)%value(beam_energy$) = beam_energy
-    enddo
 
-    ring%param%charge = charge
+      ring%ele_(i)%value(beam_energy$) = beam_energy
+
+    enddo
 
     return
 

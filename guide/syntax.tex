@@ -9,11 +9,11 @@ inserting a semicolon (;) between them. A long statement can occupy
 multiple lines by putting an ampersand (\&) at the end of each line of
 the statement except for the last line of the statement. An
 exclamation mark (!) denotes a comment and the exclamation mark and
-everything after the exclamation mark on the line are ignored.
+everything after the exclamation mark on the line are ignored. Example:
 \begin{example}
   ! This is a comment
   q0: quad, l = 0.6, &     ! Continued to next line
-  k1 = 1.4, tilt = pi/3
+        k1 = 1.4, tilt = pi/3
 \end{example}
 
 \section{Arithmetic Expressions}
@@ -63,7 +63,7 @@ Examples:
   abc      = my_const * 23
 \end{example}
 Unlike \mad, \bmad\ uses immediate substitution so that all constants
-in an expression must have been previously defined. For example the
+in an expression must have been previously defined. For example, the
 following is not valid:
 \begin{example}
   abc      = my_const * 23      ! No: my_const needs to be defined first.
@@ -80,7 +80,8 @@ defined, symbolic constants cannot be redefined. For example:
 
 \section{Element attributes}
 
-Element attributes can be set or used in an algerbraic expression using the syntax
+Element attributes can be set or used in an algerbraic expression
+using the syntax
 \begin{example}
   element-name[attribute-name]
 \end{example}

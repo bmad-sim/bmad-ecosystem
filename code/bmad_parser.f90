@@ -619,7 +619,10 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
                           'A REFLECTION WITH A LIST IS NOT ALLOWED IN: '  &
                           // sequence_(k)%name, 'FOR LIST: ' // s_ele%name, &
                           seq = sequence_(k))
-
+        if (sequence_(k)%type == list$) &
+                call warning ('A REPLACEMENT LIST: ' // sequence_(k)%name, &
+                'HAS A NON-ELEMENT MEMBER: ' // s_ele%name)
+ 
       else    ! if an element...
         s_ele%ix_array = j
         s_ele%type = element$
@@ -788,6 +791,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   ring%input_file_name    = full_name             ! save input file
   ring%param%particle     = nint(beam_ele%value(particle$))
   ring%param%n_part       = beam_ele%value(n_part$)
+  ring%param%charge       = 0
   ring%n_ele_ring         = n_ele_ring
   ring%n_ele_use          = n_ele_ring
   ring%n_ele_max          = n_ele_ring
@@ -889,15 +893,9 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
     endif
 
-! Accept Use of E_loss or Delta_E for lcavities
+! Accept Use of Delta_E for lcavities
 
     if (ele%key == lcavity$) then
-      if (ele%value(e_loss$) /= 0) then
-        if (ele%value(k_loss$) /= 0) call warning &
-                ('BOTH E_LOSS AND K_LOSS NON-ZERO FOR A LCAVITY:', ele%name)
-        ele%value(k_loss$) = ele%value(e_loss$) / ele%value(l$)
-      endif
-
       if (ele%value(delta_e$) /= 0) then
         if (ele%value(gradient$) /= 0) call warning &
                 ('BOTH DELTA_E AND gradient NON-ZERO FOR A LCAVITY:', ele%name)

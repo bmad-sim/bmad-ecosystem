@@ -119,7 +119,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
                                        'B6 ', 'B7 ', 'B8 ', 'B9 ', 'B10', &
                                        'B11', 'B12', 'B13', 'B14', 'B15', &
                                        'B16', 'B17', 'B18', 'B19', 'B20' /)
-        attrib_array(i, radius$) = 'RADIUS'
+        if (i /= ab_multipole$) attrib_array(i, radius$) = 'RADIUS'
       end select
 
     enddo
@@ -147,7 +147,6 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(lcavity$, gradient$)      = 'GRADIENT'
     attrib_array(lcavity$, rf_frequency$)  = 'RF_FREQUENCY'
     attrib_array(lcavity$, rf_wavelength$) = 'RF_WAVELENGTH'
-    attrib_array(lcavity$, k_loss$)        = 'K_LOSS'
     attrib_array(lcavity$, e_loss$)        = 'E_LOSS'
     attrib_array(lcavity$, delta_e$)       = 'DELTA_E'
     attrib_array(lcavity$, sr_wake_file$)  = 'SR_WAKE_FILE'

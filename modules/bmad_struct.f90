@@ -174,7 +174,7 @@ module bmad_struct
   type param_struct
     real(rp) beam_energy        ! beam energy in eV
     real(rp) n_part             ! Number of particles in a bunch
-    real(rp) charge             ! Charge for linac RF k_loss calc.
+    real(rp) charge             ! Charge of a bunch (used by LCavities).
     real(rp) total_length       ! total_length of ring
     real(rp) growth_rate        ! growth rate/turn if not stable
     real(rp) t1_mat6(6,6)       ! Full 1-turn 6x6 matrix
@@ -291,7 +291,7 @@ module bmad_struct
 
   integer, parameter :: l$=1
   integer, parameter :: tilt$=2, command$=2
-  integer, parameter :: old_command$=3, angle$=3, k_loss$=3, kick$ = 3
+  integer, parameter :: old_command$=3, angle$=3, kick$=3
   integer, parameter :: k1$=4, sig_x$=4, harmon$=4, h_displace$=4, e_loss$=4
   integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, g$=5
   integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, delta_g$=6
@@ -532,6 +532,7 @@ module bmad_struct
     type (coord_struct) :: d_orb  ! for the transfer_mat_from_tracking routine
     real(rp) :: beam_energy = 0
     real(rp) :: max_aperture_limit = 1e3    
+    real(rp) :: k_loss = 0                   ! Internal var for LCavities.
     integer :: taylor_order = 3              ! 3rd order is default
     integer :: taylor_order_ptc = 0          ! 0 -> not yet set 
     logical :: taylor_order_set = .false.    ! Used by set_taylor_order
@@ -539,8 +540,9 @@ module bmad_struct
     integer :: default_integ_order = 2
     integer :: default_num_steps = 1
     logical :: init_needed = .true.
-    logical :: use_dimad_lcavity = .false.  ! Dimad like tracking?
-    logical :: emulate_liar_bug = .false.   ! Liar Linac RF tracking is wrong.
+    logical :: use_liar_lcavity = .false.    ! Liar like tracking?
+    logical :: sr_wakes_on = .true.
+    logical :: lr_wakes_on = .true.
   end type
   
   type (bmad_com_struct), save :: bmad_com

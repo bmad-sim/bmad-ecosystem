@@ -621,20 +621,20 @@ end subroutine
 ! Subroutine to recalculate the dependent attributes of an element.
 ! If the attributes have changed then any Taylor Maps will be killed.
 !
-!   BEAMBEAM:     bbi_const$ = param%n_part * m_electron * charge$ * r_e /
+!   BEAMBEAM:   bbi_const$ = param%n_part * m_electron * charge$ * r_e /
 !                           (2 * pi * param%beam_energy * (sig_x$ + sig_y$)
 !
-!   RFCAVITY:     rf_wavelength$ = param%total_length / harmon$
+!   RFCAVITY:   rf_wavelength$ = param%total_length / harmon$
 !
-!   SBEND:        angle$   = L$ * G$
-!                 l_chord$ = 2 * sin(Angle$/2) / G$
-!                 rho$     = 1 / G$
+!   SBEND:      angle$   = L$ * G$
+!               l_chord$ = 2 * sin(Angle$/2) / G$
+!               rho$     = 1 / G$
 !
-!   WIGGLER:      k1$  = -0.5 * (c_light * b_max$ / param%beam_energy)**2
-!                 rho$ = param%beam_energy / (c_light * b_max$)
+!   WIGGLER:    k1$  = -0.5 * (c_light * b_max$ / param%beam_energy)**2
+!               rho$ = param%beam_energy / (c_light * b_max$)
 !
-!   LCAVITY:      e_loss$  = k_loss$ * L$
-!                 delta_e$ = gradient$ * L$ 
+!   LCAVITY:    e_loss$  = ele%wake%sr(0)%long/2 if ele%wake%sr exists
+!               delta_e$ = gradient$ * L$ 
 !
 ! Modules needed:
 !   use bmad
@@ -737,7 +737,8 @@ subroutine attribute_bookkeeper (ele, param)
 ! Lcavity
 
   case (lcavity$)
-    ele%value(e_loss$)  = ele%value(k_loss$) * ele%value(L$)
+    if (associated (ele%wake%sr)) &
+                          ele%value(e_loss$) = ele%wake%sr(0)%long / 2
     ele%value(delta_e$) = ele%value(gradient$) * ele%value(L$) 
     
 
