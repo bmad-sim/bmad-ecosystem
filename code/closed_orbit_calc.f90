@@ -91,7 +91,8 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
     call err_exit
   endif
           
-! init
+! Init
+! Turn off RF voltage if i_dim == 4 (for constant delta_E)
 
   call mat_make_unit(s_mat(1:n,1:n))
   s_mat(2,2) = -1.0
@@ -99,12 +100,7 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
 
   n_ele = ring%n_ele_use
 
-! Turn off RF voltage if i_dim == 4 (for constant delta_E)
-
-  if (n == 4) then
-    ring%ele_(:)%internal_logic = ring%ele_(:)%is_on
-    call set_on_off (rfcavity$, ring, off$)
-  endif
+  if (n == 4) call set_on_off (rfcavity$, ring, off$)
 
 !----------------------------------------------------------------------
 ! d_orb = (T-1)^-1 * orbit_end

@@ -276,7 +276,8 @@ subroutine track1_bmad (start, ele, param, end)
 !       Phys Rev E, Vol. 49, p. 1599, (1994)
 ! with b_0 = b_-1 = 1
 ! bp_com%k_loss is an internal variable used with macroparticles.
-!   it should be zero otherwise.
+! It accounts for the short-range wakefields between macroparticles.
+! Without macroparticles it should be zero.
 
   case (lcavity$)
 

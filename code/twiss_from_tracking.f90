@@ -55,22 +55,16 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
   real(rp) mat(6,6), mat1(6,6), mat0(6,6), mat_inv(6,6), mat6_unit(6,6)
   integer i, j, n_ele
 
-!
+! Init
 
   do i=1,6
     call reallocate_coord (mo(i)%orb, ring%n_ele_max)
   enddo
 
-! make a unit matrix
-
   call mat_make_unit (mat6_unit)
-
   n_ele = ring%n_ele_max
 
-! Turn off RF voltage 
-
-  ring%ele_(:)%internal_logic = ring%ele_(:)%is_on
-  call set_on_off (rfcavity$, ring, off$)
+  call set_on_off (rfcavity$, ring, off$) ! Turn off RF voltage 
 
 ! track offset particles
 
