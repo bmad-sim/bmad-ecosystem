@@ -15,13 +15,6 @@ and \bmad\ provide the same element class, there will be an overlap of
 the attributes available but the two sets of attributes will not be the same.
 The list of element classes known to \bmad\ is shown in Table~\ref{t:elements}.
 
-\index{Clone}
-\index{Superimpose}
-Not shown in the following attribute tables are the \vn{superimpose}
-(\sref{s:super}) and \vn{clone} (\sref{s:clone}) attributes.
-These attributes instruct the lattice parser how to set up a lattice
-but are not retained by an element.
-
 \begin{table}[h]
 \centering
 {\tt
@@ -694,7 +687,7 @@ attributes specific to an \vn{Lcavity} are
   gradient     ! Accelerating gradient (V/m).
   phi0         ! Phase (radians/2\(\pi\)) of the reference particle with 
                !   respect to the RF. phi0 = 0 is on crest.
-  dphi0        ! Used to shift the phase with respect to a clone lord.
+  dphi0        ! Used to shift the phase with respect to a multipass lord.
   e_loss       ! Loss parameter for short range wakefields (V/Coulomb).
   rf_frequency ! Rf frequency (Hz).
   delta_e      ! Nominal change in energy of an on-crest particle
@@ -724,10 +717,10 @@ particle with $z = 0$. Thus
   dE(reference) = gradient * L * cos(twopi * phi) - e_loss * n_part * e_charge
 \end{example}
 
-\index{Clone}
+\index{Multipass}
 In the above equations \vn{phi} = \vn{phi0} + \vn{dphi0}. \vn{dphi0}
-is only to be used to shift the phase with respect to a \vn{clone}
-lord. See \sref{s:clone}.
+is only to be used to shift the phase with respect to a \vn{multipass}
+lord. See \sref{s:multipass}.
 
 Note: The transfer matrix for an \vn{Lcavity} with finite
 \vn{gradient} is never symplectic.
@@ -1021,10 +1014,10 @@ The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
 \begin{example}
   dE = voltage * sin(twopi * (phi + z * rf_frequency / c_light))
 \end{example}
-\index{Clone}
+\index{Multipass}
 Here \vn{phi} = \vn{phi0} + \vn{dphi0}. \vn{dphi0}
-is only to be used to shift the phase with respect to a \vn{clone}
-lord. See \sref{s:clone}.
+is only to be used to shift the phase with respect to a \vn{multipass}
+lord. See \sref{s:multipass}.
 
 If \vn{harmon} is non--zero then \vn{rf_frequency} is a dependent
 attribute calculated by

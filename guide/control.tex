@@ -35,8 +35,10 @@ top of other elements. This is covered in \sref{s:super}.
 \vnec{I_Beam} elements mimic the effect of a support girder. This is
 covered in \sref{s:i_beam}.
 \item
-\index{Clone}
-\vn{Clone} elements are used when the beam recirculates through the same element multiple times. This is covered in \sref{s:clone}.
+\index{Multipass}
+\vn{Multipass} elements are used when the beam recirculates through
+the same element multiple times. This is covered in
+\sref{s:multipass}.
 \end{Itemize}
 
 %-----------------------------------------------------------------------------
@@ -281,19 +283,20 @@ and \vn{Group}, \vn{Overlay}, and \vn{I_Beam} control elements.
 Additionally, \vn{Superpose} may not be used with \vn{close}.
 
 %-----------------------------------------------------------------------------
-\section{Clone}
-\label{s:clone}
-\index{Clone|textbf}
+\section{Multipass}
+\label{s:multipass}
+\index{Multipass|textbf}
 
 Some lattices have the beam recirculating through the same element
 multiple times. For example, an Energy Recovery Linac (ERL) will
 circulate the beam back through the LINAC part to retrieve the energy
 in the beam. In \bmad this situation can simulated using the
-\vn{clone} attribute. A simple example shows how this works.
+\vn{multipass} attribute. A simple example shows how this works.
 \index{Statement!expand_lattice}
 \begin{example}
-  A: lcavity, clone
-  my_line: line = (A, A)
+  A: lcavity
+  linac_part: line[multipass] = (A, ...)
+  my_line: line = (linac_part, ..., linac_part)
   use, my_line
   expand_lattice
   A\B2[dphi0] = 0.5
@@ -301,11 +304,11 @@ in the beam. In \bmad this situation can simulated using the
 The regular part of the lattice (the part that gets tracked through)
 consists of two slave elements
 \begin{example}
-  A\B1, A\B2
+  A\B1, ..., A\B2, ...
 \end{example}
-Since the two elements are derived from a \vn{clone} element they are
+Since the two elements are derived from a \vn{multipass} line they are
 given unique names by adding a \vn{{\B}n} suffix. In addition there is
-a lord element (that doesn't get tracked through) called \vn{a} in the
+a lord element (that doesn't get tracked through) called \vn{A} in the
 lord part of the lattice. Changes to attributes of the lord \vn{A}
 element will be passed to the slave elements by \bmad's bookkeeping
 routines. Assuming \vn{A\B1} is an accelerating cavity, to make

@@ -389,12 +389,12 @@ module bmad_struct
 
   integer, parameter :: free$ = 1, super_slave$ = 2, overlay_slave$ = 3
   integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
-  integer, parameter :: i_beam_lord$ = 7, clone_lord$ = 8, clone_slave$ = 9
+  integer, parameter :: i_beam_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
 
   character(16) :: control_name(10) = (/ &
             'FREE_ELEMENT   ', 'SUPER_SLAVE    ', 'OVERLAY_SLAVE  ', &
             'GROUP_LORD     ', 'SUPER_LORD     ', 'OVERLAY_LORD   ', &
-            'I_BEAM_LORD    ', 'CLONE_LORD     ', 'CLONE_SLAVE    ', &
+            'I_BEAM_LORD    ', 'MULTIPASS_LORD ', 'MULTIPASS_SLAVE', &
             '               ' /)
 
 ! plane list, etc

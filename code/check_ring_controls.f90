@@ -41,13 +41,13 @@ subroutine check_ring_controls (ring, exit_on_error)
 
   good_control = .false.
   good_control(group_lord$, (/ group_lord$, overlay_lord$, super_lord$, &
-                i_beam_lord$, free$, overlay_slave$, clone_lord$ /)) = .true.
+                i_beam_lord$, free$, overlay_slave$, multipass_lord$ /)) = .true.
   good_control(i_beam_lord$, (/ super_lord$, overlay_slave$, &
-                clone_lord$ /)) = .true.
+                multipass_lord$ /)) = .true.
   good_control(overlay_lord$, (/ overlay_lord$, &
-                i_beam_lord$, overlay_slave$, super_lord$, clone_lord$ /)) = .true.
+                i_beam_lord$, overlay_slave$, super_lord$, multipass_lord$ /)) = .true.
   good_control(super_lord$, (/ super_slave$ /)) = .true.
-  good_control(clone_lord$, (/ super_lord$, clone_slave$ /)) = .true.
+  good_control(multipass_lord$, (/ super_lord$, multipass_slave$ /)) = .true.
 
   found_err = .false.
              
@@ -64,7 +64,7 @@ subroutine check_ring_controls (ring, exit_on_error)
 
     if (i_t > ring%n_ele_use) then
       if (t_type == free$ .or. t_type == super_slave$ .or. &
-          t_type == overlay_slave$ .or. t_type == clone_slave$) then
+          t_type == overlay_slave$ .or. t_type == multipass_slave$) then
         print *, 'ERROR IN CHECK_RING_CONTROLS: ELEMENT: ', ele%name
         print *, '      WHICH IS A: ', control_name(t_type)
         print *, '      IS *NOT* IN THE REGULAR PART OF RING LIST AT', i_t
@@ -73,7 +73,7 @@ subroutine check_ring_controls (ring, exit_on_error)
     else                                                         
       if (t_type == super_lord$ .or. t_type == overlay_lord$ .or. &
           t_type == group_lord$ .or. t_type == i_beam_lord$ .or. &
-          t_type == clone_lord$) then
+          t_type == multipass_lord$) then
         print *, 'ERROR IN CHECK_RING_CONTROLS: ELEMENT: ', ele%name
         print *, '      WHICH IS A: ', control_name(t_type)
         print *, '      IS IN THE REGULAR PART OF RING LIST AT', i_t
@@ -82,8 +82,8 @@ subroutine check_ring_controls (ring, exit_on_error)
     endif
 
     if (.not. any( (/ free$, super_slave$, overlay_slave$, i_beam_lord$, &
-                      super_lord$, overlay_lord$, group_lord$, clone_lord$, &
-                      clone_slave$ /) == t_type)) then
+                      super_lord$, overlay_lord$, group_lord$, multipass_lord$, &
+                      multipass_slave$ /) == t_type)) then
       print *, 'ERROR IN CHECK_RING_CONTROLS: ELEMENT: ', ele%name
       print *, '      HAS UNKNOWN CONTROL INDEX: ', t_type
       found_err = .true.
@@ -143,16 +143,16 @@ subroutine check_ring_controls (ring, exit_on_error)
       enddo
     endif
 
-! The slaves of a clone_lord cannot be controlled by anything else
+! The slaves of a multipass_lord cannot be controlled by anything else
 
-    if (t_type == clone_lord$) then
+    if (t_type == multipass_lord$) then
       do i = ele%ix1_slave, ele%ix2_slave
         ii = ring%control_(i)%ix_slave
         if (ring%ele_(ii)%n_lord /= 1) then
-          print *, 'ERROR IN CHECK_RING_CONTROLS: SLAVE OF A CLONE_LORD: ', &
+          print *, 'ERROR IN CHECK_RING_CONTROLS: SLAVE OF A MULTIPASS_LORD: ', &
                                                           ring%ele_(ii)%name, ii
           print *, '      HAS MORE THAN ONE LORD.'
-          print *, '      FOR CLONE_LORD: ', ele%name, i_t
+          print *, '      FOR MULTIPASS_LORD: ', ele%name, i_t
           found_err = .true.
         endif
       enddo

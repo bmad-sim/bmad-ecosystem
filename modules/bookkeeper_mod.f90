@@ -99,7 +99,7 @@ subroutine this_bookkeeper (ix_ele)
 ! If an overlay_lord has lords above it then these lords must be overlay_lords.
 ! Therefore treat the overlay_lord as an overlay_slave.
 ! The same is true if a super_lord has lords except in this case the lord
-! may be a clone_lord.
+! may be a multipass_lord.
 
   do j = 1, ix2
 
@@ -113,15 +113,15 @@ subroutine this_bookkeeper (ix_ele)
     elseif (slave%control_type == super_lord$ .and. slave%n_lord > 0) then
       k =  ring%ic_(slave%ic1_lord)
       lord => ring%ele_(ring%control_(k)%ix_lord)
-      if (lord%control_type == clone_lord$) then
-        call makeup_clone_slave (ring, ix)
+      if (lord%control_type == multipass_lord$) then
+        call makeup_multipass_slave (ring, ix)
       else
         call adjust_super_lord_s_position (ring, ix)
         call makeup_overlay_and_i_beam_slave (ring, ix)
       endif
       call attribute_bookkeeper (slave, ring%param)
 
-    elseif (slave%control_type == clone_lord$ .and. slave%n_lord > 0) then
+    elseif (slave%control_type == multipass_lord$ .and. slave%n_lord > 0) then
       call makeup_overlay_and_i_beam_slave (ring, ix)
       call attribute_bookkeeper (slave, ring%param)
 
@@ -148,8 +148,8 @@ subroutine this_bookkeeper (ix_ele)
       call makeup_overlay_and_i_beam_slave (ring, ix)
       call attribute_bookkeeper (slave, ring%param)
 
-    elseif (slave%control_type == clone_slave$) then
-      call makeup_clone_slave (ring, ix)
+    elseif (slave%control_type == multipass_slave$) then
+      call makeup_multipass_slave (ring, ix)
       call attribute_bookkeeper (slave, ring%param)
 
     endif
@@ -311,13 +311,13 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_clone_slave (ring, ix_slave)
+! Subroutine makeup_multipass_slave (ring, ix_slave)
 !
-! Subroutine to calcualte the attributes of clone slave elements.
+! Subroutine to calcualte the attributes of multipass slave elements.
 ! This routine is not meant for general use.
 !-
 
-subroutine makeup_clone_slave (ring, ix_slave)
+subroutine makeup_multipass_slave (ring, ix_slave)
 
   implicit none
 

@@ -1,5 +1,5 @@
 !+
-! Subroutine xsif_parser (xsif_file, ring, make_mats6)
+! Subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
 !
 ! Subroutine to parse an XSIF (extended standard input format) lattice file.
 ! XSIF is used by, for example, LIAR.
@@ -13,6 +13,8 @@
 !   xsif_file  -- Character(*): Name of the xsif file.
 !   make_mats6 -- Logical, optional: Compute the 6x6 transport matrices for the
 !                   Elements? Default is True.
+!   use_line   -- Character(*), optional: If present then override the use 
+!                   statement in the lattice file and use use_line instead.
 !
 ! Output:
 !   ring         -- Ring_struct: Structure holding the lattice information.
@@ -21,7 +23,7 @@
 !     %ok            -- Set True if parsing is successful. False otherwise.
 !-
 
-subroutine xsif_parser (xsif_file, ring, make_mats6)
+subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
 
   use xsif_inout
   use xsif_interfaces
@@ -43,6 +45,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
   real(rp) k2, angle
 
   character(*) :: xsif_file
+  character(*), optional :: use_line
   character(100) name1, name2, line
   character(200) full_name
 
@@ -73,6 +76,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
 
 ! xsif_cmd_loop parses the file.
 
+  if (present(use_line)) call xuse2 (use_line)
   ierr = xsif_cmd_loop ( ) 
 
   if (ierr /= 0) then
@@ -514,6 +518,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
   call ring_geometry (ring)
   if (logic_option (.true., make_mats6)) call ring_make_mat6 (ring, -1)
   err_flag = .false.
+  call xsif_io_close
 
 !------------------------------------------------------------------------
 contains

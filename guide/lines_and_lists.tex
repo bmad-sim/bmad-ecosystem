@@ -86,11 +86,14 @@ Repetition count can be combined with reflection. For example
 \begin{example}
   (d, c, b, a, c, b, a, e)
 \end{example}
-Instead of the name of a Line, subline members can also be given as an explicit 
+Instead of the name of a line, subline members can also be given as an explicit 
 list using parentheses. For example, the previous example could be rewritten as
 \begin{example}
   line2: line = (d, -2*(a, b, c), e)
 \end{example}
+
+A line can have the \vn{multipass} attribute. This is covered in
+\sref{s:multipass}.
 
 %-----------------------------------------------------------------------------
 \section{Beam Lines with Replaceable Arguments}

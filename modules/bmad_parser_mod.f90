@@ -41,8 +41,13 @@ module bmad_parser_mod
     integer indexx                     ! alphabetical order sorted index
     character(200) file_name     ! file where sequence is defined
     integer ix_line              ! line number in filewhere sequence is defined
+    logical multipass
   end type
 
+  type used_seq_struct
+    character(16) name                 ! name of sequence
+    logical multipass
+  end type    
 
 ! A LIFO stack structure is used in the final evaluation of the line that is
 ! used to form a lattice
@@ -52,6 +57,7 @@ module bmad_parser_mod
     integer ix_ele                ! index to seq%ele(:) array
     integer rep_count             ! repetition count
     integer reflect               ! reflection sequence?
+    logical multipass
   end type
 
 ! A LIFO stack structure is used to hold the list of input lattice files
@@ -96,7 +102,6 @@ module bmad_parser_mod
     integer ele_pt, ref_pt
     integer indexx
     logical common_lord
-    logical clone
   end type
 
   type parser_ring_struct
@@ -187,7 +192,7 @@ subroutine get_attribute (how, ele, ring, pring, &
                 'SUPERIMPOSE  ', 'OFFSET       ', 'REFERENCE    ',  &
                 'ELE_BEGINNING', 'ELE_CENTER   ', 'ELE_END      ',  &
                 'REF_BEGINNING', 'REF_CENTER   ', 'REF_END      ', &
-                'COMMON_LORD  ', 'CLONE        ', '             ' /)
+                'COMMON_LORD  ', '             ', '             ' /)
 
   logical delim_found, err_flag
 
@@ -386,8 +391,6 @@ subroutine get_attribute (how, ele, ring, pring, &
                                       ring, delim, delim_found, err_flag)
       if (err_flag) return
       pring%ele(ic)%s = value
-    case ('CLONE')
-      pring%ele(ic)%clone = .true.
     case default
       print *, 'ERROR IN BMAD_PARSER: INTERNAL ERROR. PLEASE GET HELP!'
       call err_exit
@@ -2198,64 +2201,62 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine add_this_clone (ring, clone_name)
+subroutine add_this_multipass (ring, multipass_name)
 
   implicit none
 
   type (ring_struct) ring
   type (ele_struct), pointer :: slave, lord
 
-  integer i, n_clone, ixs(100), ixc, ixic, ix_lord, ix_slave
-  character(16) clone_name
+  integer i, n_multipass, ixs(100), ixc, ixic, ix_lord, ix_slave
+  character(*) multipass_name
 
 ! Count slaves.
 ! If i > ring%n_ele_use we are looking at cloning a super_lord which should
 ! not happen.
 
-  n_clone = 0
+  n_multipass = 0
 
   do i = 1, ring%n_ele_max
     slave => ring%ele_(i)
-    if (slave%name /= clone_name) cycle
-    n_clone = n_clone+1
-    write (slave%name, '(2a, i1)') trim(slave%name), '\', n_clone   ! '
+    if (slave%name /= multipass_name .or. slave%control_type /= garbage$) cycle
+    n_multipass = n_multipass+1
     if (i > ring%n_ele_use) then
-      call warning ('INTERNAL ERROR: CONFUSED CLONE SETUP.', &
+      call warning ('INTERNAL ERROR: CONFUSED MULTIPASS SETUP.', &
                     'PLEASE GET EXPERT HELP!')
       call err_exit
     endif
     if (slave%n_lord /= 0) then
-      call warning ('INTERNAL ERROR: CONFUSED CLONE SETUP2.', &
+      call warning ('INTERNAL ERROR: CONFUSED MULTIPASS SETUP2.', &
                     'PLEASE GET EXPERT HELP!')
       call err_exit
     endif
-    ixs(n_clone) = i
+    ixs(n_multipass) = i
   enddo
 
-  if (n_clone == 0) return ! clone was not in lattice list
-
-! setup clone_lord
+! setup multipass_lord
 
   call new_control (ring, ix_lord)
   lord => ring%ele_(ix_lord)
 
   lord = ring%ele_(ixs(1))  ! Set equal to first slave.
-  lord%control_type = clone_lord$
-  lord%name = clone_name
-  lord%n_slave = n_clone
+  lord%control_type = multipass_lord$
+  lord%name = multipass_name
+  lord%n_slave = n_multipass
   call adjust_control_struct (ring, ix_lord)
 
 ! Setup bookkeeping between lord and slaves
 
-  do i = 1, n_clone
+  do i = 1, n_multipass
     ix_slave = ixs(i)
     ixc = i + lord%ix1_slave - 1
     ring%control_(ixc)%ix_lord = ix_lord
     ring%control_(ixc)%ix_slave = ix_slave
     slave => ring%ele_(ix_slave)
     slave%n_lord = 1
+    write (slave%name, '(2a, i1)') trim(slave%name), '\', i   ! '
     call adjust_control_struct (ring, ix_slave)
-    slave%control_type = clone_slave$
+    slave%control_type = multipass_slave$
     ixic = slave%ic1_lord
     ring%ic_(ixic) = ixc
   enddo
@@ -2831,6 +2832,7 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
         sub_seq => sequence_(iseq_tot) 
         sub_seq%name = str
         sub_seq%type = seq%type
+        sub_seq%multipass = seq%multipass
         if (sub_seq%type == replacement_line$) then
           ix = size (seq%dummy_arg)
           allocate (sub_seq%dummy_arg(ix), &
@@ -2960,7 +2962,6 @@ Subroutine allocate_pring (ring, pring)
     pring%ele(i)%ele_pt  = center$
     pring%ele(i)%s       = 0
     pring%ele(i)%common_lord = .false.
-    pring%ele(i)%clone       = .false.
 
     ring%ele_(i)%ixx = i
   enddo

@@ -55,10 +55,11 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   type (parser_ring_struct) pring
   type (seq_stack_struct) stack(20)
   type (ele_struct), save, pointer :: ele, old_ele(:) => null()
+  type (used_seq_struct), allocatable ::  used_seq(:)
 
   integer, allocatable :: ix_ring(:)
   integer, allocatable :: seq_indexx(:), in_indexx(:)
-  character(16), allocatable ::  name_(:), in_name(:), seq_name(:)
+  character(16), allocatable ::  in_name(:), seq_name(:)
 
   integer ix_word, i_use, i, j, k, n, ix, i_lev
   integer n_ele_use, digested_version, key
@@ -80,7 +81,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   logical, optional :: make_mats6, digested_read_ok
   logical parsing, delim_found, matched_delim, arg_list_found, doit
   logical file_end, found, err_flag, finished
-  logical detected_expand_lattice_cmd
+  logical detected_expand_lattice_cmd, multipass
 
 ! see if digested file is open and current. If so read in and return.
 ! Note: The name of the digested file depends upon the real precision.
@@ -408,6 +409,14 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
     call get_next_word(word_2, ix_word, ':=,', delim, delim_found, .true.)
     if (ix_word == 0) call error_exit ('NO NAME FOUND AFTER: ' // word_1, ' ')
 
+    if (word_2 == 'LINE[MULTIPASS]') then
+      word_2 = 'LINE'
+      ix_word = 4
+      multipass = .true.
+    else
+      multipass = .false.
+    endif
+
     call verify_valid_name(word_2, ix_word)
 
 ! arg lists are only used with lines
@@ -426,7 +435,9 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
         print *, 'ERROR IN BMAD_PARSER: NEED TO INCREASE LINE ARRAY!'
         call err_exit
       endif
+
       sequence_(iseq_tot)%name = word_1
+      sequence_(iseq_tot)%multipass = multipass
 
       if (delim /= '=') call warning ('EXPECTING: "=" BUT GOT: ' // delim)
       if (word_2(:ix_word) == 'LINE') then
@@ -670,7 +681,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
   n_ele_use = 0
            
-  allocate (name_(ubound(in_ring%ele_, 1)))
+  allocate (used_seq(ubound(in_ring%ele_, 1)))
   allocate (ix_ring(ubound(in_ring%ele_, 1)))
   ix_ring = -1
   sequence_(:)%ix = 1  ! Init. Used for replacement list index
@@ -719,10 +730,12 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
       if (n_ele_use+1 > size(ix_ring)) then
         n = 1.5*n_ele_use
         call reallocate_integer (ix_ring, n)
-        call reallocate_string (name_, len(name_(1)), n)
+        call reallocate_string (used_seq%name, len(used_seq(1)%name), n)
+        call reallocate_logical (used_seq%multipass, n)
       endif
       call pushit (ix_ring, n_ele_use, s_ele%ix_array)
-      name_(n_ele_use) = s_ele%name
+      used_seq(n_ele_use)%name      = s_ele%name
+      used_seq(n_ele_use)%multipass = seq%multipass
 
       if (s_ele%ix_array < 1) call warning('NOT A DEFINED ELEMENT: ' // &
                           s_ele%name, 'IN THE LINE/LIST: ' // seq%name, seq)
@@ -735,10 +748,12 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
       if (n_ele_use+1 > size(ix_ring)) then
         n = 1.5*n_ele_use
         call reallocate_integer (ix_ring, n)
-        call reallocate_string (name_, len(name_(1)), n)
+        call reallocate_string (used_seq%name, len(used_seq(1)%name), n)
+        call reallocate_logical (used_seq%multipass, n)
       endif
       call pushit (ix_ring, n_ele_use, seq2%ele(j)%ix_array)
-      name_(n_ele_use) = seq2%ele(j)%name
+      used_seq(n_ele_use)%name      = seq2%ele(j)%name
+      used_seq(n_ele_use)%multipass = seq%multipass
       seq2%ix = seq2%ix + 1
       if (seq2%ix > size(seq2%ele(:))) seq2%ix = 1
 
@@ -868,7 +883,8 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
     ele => ring%ele_(i)
     ele = in_ring%ele_(ix_ring(i)) 
-    ele%name = name_(i)
+    ele%name = used_seq(i)%name
+    if (used_seq(i)%multipass) ele%control_type = garbage$  ! changed to multipass_slave later
 
     select case (ele%key)
 
@@ -962,12 +978,14 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
   call s_calc (ring)              ! calc longitudinal distances
 
-! First clone. This is important since the elements in the lattice get
+! First work on multipass. This is important since the elements in the lattice get
 ! renamed and if not done first would confuse any overlays, i_beams, etc.
 
-  do i = 1, n_max
-    if (.not. pring%ele(i)%clone) cycle
-    call add_this_clone (ring, in_ring%ele_(i)%name)
+  n = ring%n_ele_max
+  do i = 1, n
+    if (ring%ele_(i)%control_type == garbage$) then
+      call add_this_multipass (ring, ring%ele_(i)%name)
+    endif
   enddo
 
 ! Next superpositions
@@ -1176,7 +1194,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   if (allocated (ix_ring))           deallocate (ix_ring)
   if (allocated (seq_indexx))        deallocate (seq_indexx, seq_name)
   if (allocated (in_indexx))         deallocate (in_indexx, in_name)
-  if (allocated (name_))             deallocate (name_)
+  if (allocated (used_seq))          deallocate (used_seq)
   if (associated (in_ring%control_)) deallocate (in_ring%control_)
   if (associated (in_ring%ic_))      deallocate (in_ring%ic_)
 
