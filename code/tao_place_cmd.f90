@@ -23,9 +23,9 @@ use quick_plot
 
 implicit none
 
-type (tao_plot_struct), pointer :: plot
 type (tao_plot_struct), pointer :: template
 type (qp_axis_struct), pointer :: ax
+type (tao_plot_region_struct), pointer :: region
 
 integer i
 logical err
@@ -36,42 +36,42 @@ character(20) :: r_name = 'tao_place_cmd'
 ! Find the region where the plot is to be placed.
 ! The plot pointer will point to the plot associated with the region.
 
-call tao_find_plot (err, s%plot_page%plot, 'BY_REGION', where, plot)
+call tao_find_plot_by_region (err, where, region = region)
 if (err) return
 
 ! If who = 'non' then no plot is wanted here so just turn off
 ! plotting in the region
 
 if (who == 'none') then
-  plot%visible = .false.
+  region%visible = .false.
   return
 endif
 
 ! Find the template for the type of plot.
 
-call tao_find_plot (err, s%template_plot, 'BY_TYPE', who, template)
+call tao_find_template_plot (err, who, template)
 if (err) return
 
 ! transfer the plotting information from the template to the plot 
 ! representing the region
 
-call tao_plot_struct_transfer (template, plot, .true.)
-plot%visible = .true.
+call tao_plot_struct_transfer (template, region%plot)
+region%visible = .true.
 
 ! auto scale and calculate places
 
-if (plot%x%min == plot%x%max) then
+if (region%plot%x%min == region%plot%x%max) then
   call tao_x_scale_cmd (where, 0.0_rp, 0.0_rp, err)
 else
-  ax => plot%x
+  ax => region%plot%x
   call qp_calc_axis_places (ax%min, ax%max, ax%major_div, ax%places)
 endif
 
-if (associated (plot%graph)) then
-  do i = 1, size (plot%graph)
-    ax => plot%graph(i)%y
+if (associated (region%plot%graph)) then
+  do i = 1, size (region%plot%graph)
+    ax => region%plot%graph(i)%y
     call qp_calc_axis_places (ax%min, ax%max, ax%major_div, ax%places)
-    ax => plot%graph(i)%y2
+    ax => region%plot%graph(i)%y2
     call qp_calc_axis_places (ax%min, ax%max, ax%major_div, ax%places)
   enddo
 endif

@@ -27,7 +27,7 @@ type (tao_curve_struct), pointer :: crv
 type (tao_plot_input) plot
 type (tao_graph_input) graph
 type (tao_plot_page_input) plot_page
-type (tao_plot_region_struct) region(n_region_maxx)
+type (tao_region_input) region(n_region_maxx)
 type (tao_curve_input) curve(n_curve_maxx)
 type (tao_place_input) place(10)
 type (tao_ele_shape_struct) shape(20)
@@ -86,10 +86,11 @@ forall (i = 1:size(page%title), (page%title(i)%string .ne. ' ')) &
 ! transfer the info from the input region structure.
 
 n = count(region%name /= ' ')
-allocate (page%plot(n))
+allocate (page%region(n))
 
 do i = 1, n
-  page%plot(i)%region = region(i)
+  page%region(i)%name     = region(i)%name
+  page%region(i)%location = region(i)%location
 enddo
 
 ! Read in the plot templates and transfer the info to the 

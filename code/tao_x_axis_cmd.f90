@@ -36,9 +36,9 @@ endif
 ! If the where argument is blank then axis all graphs
 
 if (len_trim(where) == 0 .or. where == 'all') then
-  do j = 1, size(s%plot_page%plot)
-    plot => s%plot_page%plot(j)
-    if (.not. plot%visible) cycle
+  do j = 1, size(s%plot_page%region)
+    plot => s%plot_page%region(j)%plot
+    if (.not. s%plot_page%region(j)%visible) cycle
     call set_axis (plot)
   enddo
   return
@@ -46,7 +46,7 @@ endif
 
 ! locate the plot by the region name given by the where argument.
 
-call tao_find_plot (err, s%plot_page%plot, 'BY_REGION', where, plot, graph)
+call tao_find_plot_by_region (err, where, plot, graph)
 if (err) return
 call set_axis (plot)
 

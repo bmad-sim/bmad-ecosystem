@@ -274,11 +274,10 @@ interface
 end interface
  
 interface
-  subroutine tao_plot_struct_transfer (plot_in, plot_out, preserve_region)
+  subroutine tao_plot_struct_transfer (plot_in, plot_out)
     use tao_struct, only: tao_plot_struct
     type (tao_plot_struct) plot_in
     type (tao_plot_struct) plot_out
-    logical preserve_region
   end subroutine
 end interface
  

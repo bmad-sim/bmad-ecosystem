@@ -40,9 +40,9 @@ logical err
 ! If the where argument is blank or 'all' then scale all plots.
 
 if (len_trim(where) == 0 .or. where(1:3) == 'all') then
-  do j = 1, size(s%plot_page%plot)
-    plot => s%plot_page%plot(j)
-    if (.not. plot%visible) cycle
+  do j = 1, size(s%plot_page%region)
+    plot => s%plot_page%region(j)%plot
+    if (.not. s%plot_page%region(j)%visible) cycle
     call tao_scale_plot (plot, y_min, y_max)
   enddo
   return
@@ -52,7 +52,7 @@ endif
 ! If where has a ':' then we are dealing with just one graph of the plot.
 ! Otherwise we scale all the graphs of the plot.
 
-call tao_find_plot (err, s%plot_page%plot, 'BY_REGION', where, plot, graph)
+call tao_find_plot_by_region (err, where, plot, graph)
 if (err) return
 
 ix = index(where, ':')

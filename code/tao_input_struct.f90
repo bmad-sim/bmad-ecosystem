@@ -54,6 +54,11 @@ end type
 !-------------------------------------------------------------
 ! plot input structures
 
+type tao_region_input
+  character(16) name             ! Eg: 'top', 'bottom'.
+  real(rp) location(4)           ! location on page.
+end type
+
 type tao_place_input
   character(16) region
   character(16) plot

@@ -19,7 +19,7 @@ type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
 type (qp_rect_struct) border1, border2
 
-real(rp) region(4), dx, dy
+real(rp) location(4), dx, dy
 integer i, j, k
 character(16) :: r_name = 'tao_plot_out'
 
@@ -40,22 +40,22 @@ enddo
 
 ! loop over all plots
 
-do i = 1, size(s%plot_page%plot)
+do i = 1, size(s%plot_page%region)
 
-  plot => s%plot_page%plot(i)
-  if (.not. plot%visible) cycle
+  plot => s%plot_page%region(i)%plot
+  if (.not. s%plot_page%region(i)%visible) cycle
 
 ! set the s%plot_page border for this particular region
 
-  region = s%plot_page%plot(i)%region%location
+  location = s%plot_page%region(i)%location
   border1%units = '%PAGE'
   call qp_convert_rectangle_rel (s%plot_page%border, border1)
   dx = 1 - (border1%x2 - border1%x1)
   dy = 1 - (border1%y2 - border1%y1)
-  border2%x1 = border1%x1 + dx * region(1)
-  border2%x2 = border1%x2 + dx * (1 - region(2))
-  border2%y1 = border1%y1 + dy * region(3)
-  border2%y2 = border1%y2 + dy * (1 - region(4))
+  border2%x1 = border1%x1 + dx * location(1)
+  border2%x2 = border1%x2 + dx * (1 - location(2))
+  border2%y1 = border1%y1 + dy * location(3)
+  border2%y2 = border1%y2 + dy * (1 - location(4))
   border2%units = '%PAGE'
   call qp_set_layout (page_border = border2)
 

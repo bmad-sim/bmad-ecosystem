@@ -275,37 +275,36 @@ end subroutine tao_pointer_to_var_in_lattice
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_find_plot (err, plots, by_who, where, plot, graph)
+! Subroutine tao_find_plot_by_region (err, where, plot, graph, region)
 !
-! Routine to find a plot or graph by name.
-! A plot name is something like: where = "top"
+! Routine to find a plot using the region name.
+! Optionally find a graph of the plot.
+! A region name is something like: where = "top"
 ! A graph name is something like: where = "top:x"
 !
 ! Input:
-!   plots(:) -- Tao_plot_struct: Array of plots to look at.
-!     %name        -- Match name if by_who = "BY_TYPE"
-!     %region%name -- Match name if by_who = "BY_REGION"
-!   by_who   -- Character(*): Either: "BY_REGION" or "BY_TYPE".
 !   where    -- Character(*): Name to match to.
 !
 ! Output:
 !   plot     -- Tao_plot_struct, pointer, optional: Pointer to the appropriate plot.
 !   graph    -- Tao_graph_struct, pointer, optional: Pointer to the appropriate graph.
+!   region   -- Tao_plot_region_struct, pointer, optional: Region found.
 !-
 
-subroutine tao_find_plot (err, plots, by_who, where, plot, graph)
+subroutine tao_find_plot_by_region (err, where, plot, graph, region)
 
 implicit none
 
-type (tao_plot_struct), target :: plots(:)
+type (tao_plot_region_struct), pointer, optional :: region
 type (tao_plot_struct), pointer, optional :: plot
 type (tao_graph_struct), pointer, optional :: graph
+type (tao_plot_region_struct), pointer :: rgn
 
 integer i, j, ix
 
-character(*) by_who, where
+character(*) where
 character(16) plot_name, graph_name
-character(20) :: r_name = 'tao_find_plot'
+character(28) :: r_name = 'tao_find_plot_by_region'
 
 logical err
 
@@ -322,17 +321,12 @@ else
   graph_name = where(ix+1:)
 endif
 
-do i = 1, size(plots)
+do i = 1, size(s%plot_page%region)
 
-  if (by_who == 'BY_REGION') then
-    if (plot_name == plots(i)%region%name) exit
-  elseif (by_who == 'BY_TYPE') then
-    if (plot_name == plots(i)%name) exit
-  else
-    call out_io (s_error$, r_name, 'BAD "BY_WHO" ARGUMENT: ' // by_who)
-  endif
+  rgn => s%plot_page%region(i)
+  if (plot_name == rgn%name) exit
 
-  if (i == size(plots)) then
+  if (i == size(s%plot_page%region)) then
     call out_io (s_error$, r_name, 'PLOT LOCATION NOT FOUND: ' // plot_name)
     err = .true.
     return
@@ -340,7 +334,8 @@ do i = 1, size(plots)
 
 enddo
 
-if (present(plot)) plot => plots(i)
+if (present(region)) region => rgn
+if (present(plot)) plot => rgn%plot
 
 ! Find graph
 
@@ -350,14 +345,61 @@ if (graph_name == ' ')  then
   return
 endif
 
-do j = 1, size(plots(i)%graph)
-  graph => plots(i)%graph(j)
+do j = 1, size(rgn%plot%graph)
+  graph => rgn%plot%graph(j)
   if (graph_name == graph%name) return
 enddo
 
 call out_io (s_error$, r_name, 'GRAPH NOT FOUND: ' // where)
 err = .true.
 nullify(graph)
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_find_template_plot (err, where, plot)
+!
+! Routine to find a template plot using the template name.
+! A plot name is something like: where = "top"
+!
+! Input:
+!   where    -- Character(*): Name to match to.
+!
+! Output:
+!   plot     -- Tao_plot_struct, pointer: Pointer to the appropriate plot.
+!-
+
+subroutine tao_find_template_plot (err, where, plot)
+
+implicit none
+
+type (tao_plot_struct), pointer :: plot
+
+integer i, j, ix
+
+character(*) where
+character(28) :: r_name = 'tao_find_template_plot'
+
+logical err
+
+! Find plot
+
+err = .false.
+
+do i = 1, size(s%template_plot)
+
+  if (where == s%template_plot(i)%name) then
+    plot => s%template_plot(i)
+    return
+  endif
+
+enddo
+
+call out_io (s_error$, r_name, 'PLOT LOCATION NOT FOUND: ' // where)
+err = .true.
 
 end subroutine
 

@@ -18,6 +18,7 @@ use tao_mod
 implicit none
 
 type (tao_plot_struct), pointer :: plot
+type (tao_plot_region_struct), pointer :: region
 type (tao_plot_who_struct), automatic :: p_who(size(s%template_plot(1)%who))
 integer i, j
 integer ix, ix_line, ix_cmd, which, n_word
@@ -58,11 +59,11 @@ enddo
 ! Find plot for the region given by "where"
 
 if (where == 'all') then
-  do i = 1, size(s%plot_page%plot)
-    s%plot_page%plot(i)%who = p_who
+  do i = 1, size(s%plot_page%region)
+    s%plot_page%region(i)%plot%who = p_who
   enddo
 else
-  call tao_find_plot (err, s%plot_page%plot, 'BY_REGION', where, plot)
+  call tao_find_plot_by_region (err, where, plot)
   if (err) return
   plot%who = p_who
 endif

@@ -26,6 +26,7 @@ type (tao_data_struct), pointer :: d_ptr
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: v_ptr
 type (tao_plot_struct), pointer :: plot
+type (tao_plot_region_struct), pointer :: region
 type (coord_struct) orb
 
 type (ele_struct), pointer :: ele
@@ -506,6 +507,7 @@ case ('plots')
   nl=nl+1; lines(nl) = 'Template Plots: Graphs'
   do i = 1, size(s%template_plot)
     plot => s%template_plot(i)
+    if (plot%name == ' ') cycle
     nl=nl+1; write (lines(nl), '(4x, 2a)') trim(plot%name), ' :'
     if (associated(plot%graph)) then
       do j = 1, size(plot%graph)
@@ -514,10 +516,12 @@ case ('plots')
     endif
   enddo
 
-  nl=nl+1; lines(nl) = 'Plot Region <--> Template:' 
-  do i = 1, size(s%plot_page%plot)
-    plot => s%plot_page%plot(i)
-    nl=nl+1; lines(nl) = '   ' // plot%region%name // '<-->  ' // plot%name
+  nl=nl+1; lines(nl) = ' '
+  nl=nl+1; lines(nl) = '[Visible] Plot Region <--> Template:' 
+  do i = 1, size(s%plot_page%region)
+    region => s%plot_page%region(i)
+    nl=nl+1; write (lines(nl), '(3x l1, 10x, 3a)') region%visible, &
+                                    region%name, '<-->  ', region%plot%name
   enddo
 
   call out_io (s_blank$, r_name, lines(1:nl))

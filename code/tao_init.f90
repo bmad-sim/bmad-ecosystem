@@ -162,7 +162,7 @@ integer i, j, k, istat
     deallocate(s%template_plot(i)%graph, stat=istat)
   enddo
 
-  nullify(s%plot_page%plot)
+  nullify(s%plot_page%region)
 
 ! Universes 
   if (associated (s%u)) then

@@ -26,7 +26,7 @@ subroutine tao_x_scale_cmd (where, x_min, x_max, err)
 
 implicit none
 
-type (tao_plot_struct), pointer :: plot
+type (tao_plot_struct), pointer :: plot, plot2
 type (tao_graph_struct), pointer :: graph
 
 real(rp) x_min, x_max
@@ -45,25 +45,26 @@ logical err
 if (len_trim(where) == 0 .or. where == 'all') then
 
   im = 0
-  do j = 1, size(s%plot_page%plot)
-    plot => s%plot_page%plot(j)
-    if (.not. plot%visible) cycle
+  do j = 1, size(s%plot_page%region)
+    plot => s%plot_page%region(j)%plot
+    if (.not. s%plot_page%region(j)%visible) cycle
     call tao_x_scale_plot (plot, x_min, x_max)
     if (plot%x_axis_type == 's' .and. &
               any (plot%graph(:)%type /= 'lat_layout')) then
       if (im == 0) im = j
-      if (plot%x%max < s%plot_page%plot(im)%x%max) im = j
+      if (plot%x%max < s%plot_page%region(im)%plot%x%max) im = j
     endif
   enddo
 
   if (im /= 0) then
-    do j = 1, size(s%plot_page%plot)
-      plot => s%plot_page%plot(j)
-      if (.not. plot%visible) cycle
+    do j = 1, size(s%plot_page%region)
+      plot => s%plot_page%region(j)%plot
+      if (.not. s%plot_page%region(j)%visible) cycle
       if (plot%x_axis_type /= 's') cycle
-      plot%x%max = s%plot_page%plot(im)%x%max
-      plot%x%min = s%plot_page%plot(im)%x%min
-      plot%x%major_div = s%plot_page%plot(im)%x%major_div
+      plot2 => s%plot_page%region(im)%plot
+      plot%x%max = plot2%x%max
+      plot%x%min = plot2%x%min
+      plot%x%major_div = plot2%x%major_div
     enddo
   endif
 
@@ -74,7 +75,7 @@ endif
 ! If where has a ':' then we are dealing with just one graph of the plot.
 ! Otherwise we scale all the graphs of the plot.
 
-call tao_find_plot (err, s%plot_page%plot, 'BY_REGION', where, plot, graph)
+call tao_find_plot_by_region (err, where, plot, graph)
 if (err) return
 call tao_x_scale_plot (plot, x_min, x_max)
 

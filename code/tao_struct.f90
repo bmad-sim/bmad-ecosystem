@@ -102,23 +102,12 @@ type tao_graph_struct
   integer ix_universe          ! Used for lat_layout plots.
 end type
 
-! A region defines where to position a plot on the plot page
-! %location = (x1, x2, y1, y2) gives the plotting region in percent of the 
-!   part of the page inside the page_border with respect to the lower left corner.
-! Eg: %location = (0.0, 1.0, 0.5, 1.0) gives the top half of the page inside the border.
-
-type tao_plot_region_struct
-  character(16) name        ! Eg: 'top', 'bottom'.
-  real(rp) location(4)        
-end type
-
 ! A plot is collection of graphs.
 ! For example a plot could contain three graphs. One for Cbar11, 
 ! One for Cbar12, and one for Cbar22.
 
 type tao_plot_struct
   character(32) :: name = ' '           ! Identifying name
-  type (tao_plot_region_struct) region  ! Where on the plot page to put the plot
   type (tao_plot_who_struct) who(10)    ! Who to plot. Eg: Data - Design
   type (tao_graph_struct), pointer :: graph(:) => null() 
                                   ! individual graphs of a plot
@@ -127,19 +116,30 @@ type tao_plot_struct
   real(rp) x_divisions            ! Nominal number of x-axis divisions.
   character(16) x_axis_type       ! 'index', 'ele_index', 's'
   logical independent_graphs      ! Graph y-axis scales independent when using the scale cmd?
-  logical visible                 ! To draw or not to draw.
   logical valid                   ! valid if all curve y_dat computed OK.
 end type
 
+! A region defines a plot and where to position the plot on the plot page
+! %location = (x1, x2, y1, y2) gives the plotting region in percent of the 
+!   part of the page inside the page_border with respect to the lower left corner.
+! Eg: %location = (0.0, 1.0, 0.5, 1.0) gives the top half of the page inside the border.
+
+type tao_plot_region_struct
+  character(16) name             ! Eg: 'top', 'bottom'.
+  type (tao_plot_struct) plot    ! Plot associated with this region
+  real(rp) location(4)           ! location on page.
+  logical visible                ! To draw or not to draw.
+end type
+
 ! The plot_page defines the whole plotting window. 
-! The plot_page contains a collection of plots along with 
+! The plot_page contains a collection of regions along with 
 ! other info (border margins etc.).
 ! Note that the qp_com structure of quick_plot also is used to hold 
 ! plot page info.
 
 type tao_plot_page_struct               
-  type (tao_title_struct) title(2)            ! Titles at top of page.
-  type (tao_plot_struct), pointer :: plot(:) => null() ! Individual plots on a page. 
+  type (tao_title_struct) title(2)   ! Titles at top of page.
+  type (tao_plot_region_struct), pointer :: region(:) => null() 
   type (tao_plot_page_hook) hook     ! Custom stuff. Defined in tao_hook.f90
   type (qp_rect_struct) border       ! Border around plots edge of page.
   type (tao_ele_shape_struct) ele_shape(20)

@@ -3,7 +3,7 @@
 !
 ! Subroutine to set the data for plotting.
 ! Essentially transfer info from the s%u(:)%data arrays
-! to the s%plot_page%plot(:)%graph(:)%curve(:) arrays.
+! to the s%plot_page%region(:)%plot%graph(:)%curve(:) arrays.
 !
 ! Input/Output:
 !-
@@ -65,12 +65,12 @@ endif
 
 ! setup the plots
 
-plot_loop: do i = 1, size(s%plot_page%plot)
+plot_loop: do i = 1, size(s%plot_page%region)
 
-  plot => s%plot_page%plot(i)
+  plot => s%plot_page%region(i)%plot
   plot%valid = .true.   ! assume everything OK
 
-  if (.not. plot%visible) cycle  ! Don't worry about invisable graphs
+  if (.not. s%plot_page%region(i)%visible) cycle  ! Don't worry about invisable graphs
 
   if (plot%x_axis_type /= 'index' .and. plot%x_axis_type /= 's' .and. &
       plot%x_axis_type /= 'ele_index') then
