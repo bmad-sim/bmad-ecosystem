@@ -33,7 +33,7 @@ subroutine twiss_and_track_at_s (ring, s, ele, orb_, here)
   type (ring_struct) :: ring
   type (ele_struct) :: ele
   type (coord_struct), optional :: orb_(0:)
-  type (coord_struct) here
+  type (coord_struct), optional :: here
 
   real(rp) s, s_use
 

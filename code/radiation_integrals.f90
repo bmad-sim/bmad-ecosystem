@@ -308,9 +308,9 @@ subroutine radiation_integrals (ring, orb_, mode)
 
   endif
 
-  mode%a%alpha_damp = energy_loss * mode%a%j_damp / energy
-  mode%b%alpha_damp = energy_loss * mode%b%j_damp / energy
-  mode%z%alpha_damp = energy_loss * mode%z%j_damp / energy
+  mode%a%alpha_damp = energy_loss * mode%a%j_damp / (2 * energy)
+  mode%b%alpha_damp = energy_loss * mode%b%j_damp / (2 * energy)
+  mode%z%alpha_damp = energy_loss * mode%z%j_damp / (2 * energy)
 
   mode%e_loss = energy_loss
 
