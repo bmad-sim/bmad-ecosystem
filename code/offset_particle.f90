@@ -46,6 +46,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2003/04/24 17:26:22  dcs
+!Corrected l = 0 & pitch /= 0 bug.
+!
 !Revision 1.8  2003/01/27 14:40:41  dcs
 !bmad_version = 56
 !
@@ -136,22 +139,17 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
 
     if (ele%value(x_offset$) /= 0 .or. ele%value(y_offset$) /= 0 .or. &
               ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0) then
-      if (ele%value(l$) == 0) then
-        coord%x%pos = coord%x%pos - ele%value(x_offset$)
-        coord%y%pos = coord%y%pos - ele%value(y_offset$)
+      if (present(s_pos)) then
+        s_here = s_pos - ele%value(l$) / 2  ! position relative to center.
       else
-        if (present(s_pos)) then
-          s_here = s_pos - ele%value(l$) / 2  ! position relative to center.
-        else
-          s_here = -ele%value(l$) / 2
-        endif
-        coord%x%pos = coord%x%pos - ele%value(x_offset$) -  &
-                                       ele%value(x_pitch$) * s_here
-        coord%x%vel = coord%x%vel - ele%value(x_pitch$) * E_rel
-        coord%y%pos = coord%y%pos - ele%value(y_offset$) -  &
-                                         ele%value(y_pitch$) * s_here
-        coord%y%vel = coord%y%vel - ele%value(y_pitch$) * E_rel
+        s_here = -ele%value(l$) / 2
       endif
+      coord%x%pos = coord%x%pos - ele%value(x_offset$) -  &
+                                       ele%value(x_pitch$) * s_here
+      coord%x%vel = coord%x%vel - ele%value(x_pitch$) * E_rel
+      coord%y%pos = coord%y%pos - ele%value(y_offset$) -  &
+                                         ele%value(y_pitch$) * s_here
+      coord%y%vel = coord%y%vel - ele%value(y_pitch$) * E_rel
     endif
 
 ! Set: HV kicks.
@@ -269,22 +267,17 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
 
     if (ele%value(x_offset$) /= 0 .or. ele%value(y_offset$) /= 0 .or. &
               ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0) then
-      if (ele%key == multipole$ .or. ele%key == ab_multipole$) then
-        coord%x%pos = coord%x%pos + ele%value(x_offset$)
-        coord%y%pos = coord%y%pos + ele%value(y_offset$)
+      if (present(s_pos)) then
+        s_here = s_pos - ele%value(l$) / 2  ! position relative to center.
       else
-        if (present(s_pos)) then
-          s_here = s_pos - ele%value(l$) / 2  ! position relative to center.
-        else
-          s_here = ele%value(l$) / 2
-        endif
-        coord%x%pos = coord%x%pos + ele%value(x_offset$) + &
-                                       ele%value(x_pitch$) * s_here
-        coord%x%vel = coord%x%vel + ele%value(x_pitch$) * E_rel
-        coord%y%pos = coord%y%pos + ele%value(y_offset$) +  &
-                                         ele%value(y_pitch$) * s_here
-        coord%y%vel = coord%y%vel + ele%value(y_pitch$) * E_rel
+        s_here = ele%value(l$) / 2
       endif
+      coord%x%pos = coord%x%pos + ele%value(x_offset$) + &
+                                       ele%value(x_pitch$) * s_here
+      coord%x%vel = coord%x%vel + ele%value(x_pitch$) * E_rel
+      coord%y%pos = coord%y%pos + ele%value(y_offset$) +  &
+                                         ele%value(y_pitch$) * s_here
+      coord%y%vel = coord%y%vel + ele%value(y_pitch$) * E_rel
     endif
 
     if (ele%value(s_offset$) /= 0) &
