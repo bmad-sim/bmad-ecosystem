@@ -7,7 +7,7 @@ $! properly in the VMS version of GNU Make.
 $! 
 $! Usage:  @[cesrulib.com]vms_sources <mode> <dir> <variable_def>
 $!
-$!         <source_dest> =   OPN  start a new file
+$!                <mode> =   OPN  start a new file
 $!                           VAR  append a variable definition
 $!                           OLB  add sources being compiled into
 $!                                an object library
@@ -161,6 +161,14 @@ $   tag   = "C"+s_tag+" += "
 $   fwild = "*.c"
 $   GOSUB FIND_WILD
 $!
+$   tag   = "C"+s_tag+" += "
+$   fwild = "*.cc"
+$   GOSUB FIND_WILD
+$!
+$   tag   = "C"+s_tag+" += "
+$   fwild = "*.cpp"
+$   GOSUB FIND_WILD
+$!
 $ endif
 $ GOTO FINISH
 $!
@@ -214,7 +222,19 @@ $!
 $! $Id$
 $!
 $! $Log$
+$! Revision 1.2  2004/10/26 14:41:59  cesrulib
+$! vms-porting
+$!
 $! Revision 1.1  2002/01/09 16:29:58  cesrulib
 $! First pass at VMS library build infrastructure
 $!
 $!
+
+
+
+
+
+
+
+
+
