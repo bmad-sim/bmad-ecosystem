@@ -40,7 +40,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   real(rdef) s_pos, s_pos_old, z_slice(100)
   real(rdef) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
   real(rdef) r, c_e, c_m, gamma_old, gamma_new, vec_st(4)
-  real(rdef) sqrt_k, arg, kick2
+  real(rdef) sqrt_k, arg, kick2, rel_E
   real(rdef) cx, sx, cy, sy, k2l_2, k2l_3, k2l_4
   real(rdef) x_off, y_off, s_off, x_pit, y_pit, y_ave, k_z, del_x, del_y
   real(rdef) t5_11, t5_12, t5_22, t5_33, t5_34, t5_44, t5_14, t5_23
@@ -55,6 +55,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
   length = ele%value(l$)
   mat6 => ele%mat6
+  rel_E = 1 + c0%z%vel  ! E/E_0
 
   call track1 (c0, ele, param, c1)
 
@@ -84,7 +85,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 !--------------------------------------------------------
 ! Put in offsets, etc.
 ! Note: c0t and c1t are the coords in the frame of reference where the element
-!       is upright (tilted frame of reference).
+!       is upright (element frame of reference).
 
   if (ele%value(x_offset$) /= 0 .or. ele%value(y_offset$) /= 0 .or. &
       ele%value(s_offset$) /= 0 .or. ele%value(x_pitch$) /= 0 .or. &
@@ -94,8 +95,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
     x_pit = ele%value(x_pitch$) * length / 2
     y_pit = ele%value(y_pitch$) * length / 2
     s_off = ele%value(s_offset$)
-    del_x = s_off * c0%x%vel / (1 + c0%z%vel)
-    del_y = s_off * c0%y%vel / (1 + c0%z%vel)
+    del_x = s_off * c0%x%vel / rel_E
+    del_y = s_off * c0%y%vel / rel_E
 
     c00%vec = c0%vec - (/ x_off - x_pit*length/2 + del_x, x_pit, &
              y_off - y_pit*length/2 + del_y, y_pit, 0.0_rdef, 0.0_rdef /)
@@ -133,17 +134,17 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
     if (length == 0) return
 
     if (ele%value(g$) == 0) then
-      call drift_mat6_calc (mat6, length, orb%vec)
+      call drift_mat6_calc (mat6, length, c0%vec)
       return
     endif
 
     angle = ele%value(l$) * ele%value(g$)
-    e1 = e1 + c0t%x%vel
-    e2 = e2 - c1t%x%vel
-    angle = angle + c0t%x%vel - c1t%x%vel
-    g = ele%value(g$) / (1 + c0t%z%vel)
+    e1 = e1 + c0t%x%vel / rel_E
+    e2 = e2 - c1t%x%vel / rel_E
+    angle = angle + (c0t%x%vel - c1t%x%vel) / rel_E
+    g = ele%value(g$) / rel_E
     length = angle / g
-    k1 = k1 / (1 + c0t%z%vel)
+    k1 = k1 / rel_E
 
     kc = g**2 + k1
 
@@ -161,11 +162,25 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
       mat6(5,6) = (sin(phi) - phi) * g**2 / kc**1.5
     endif
 
-    mat6(5,1) = -mat6(2,6)
-    mat6(5,2) = -mat6(1,6)
+! Above correct for (x, x', y, y') coord system. 
+! Actually we have (x, p_x, y, p_y) so transform.
 
-    mat6(5,4) = -c0t%vec(4) * (mat6(5,6) + length)
+    mat6(1,6) = mat6(1,6) / rel_E - mat6(1,2) * c0t%x%vel / rel_E**2
+    mat6(2,6) = rel_E * mat6(2,6) 
     mat6(3,6) = -c0t%vec(4) * (mat6(5,6) + length)
+
+    mat6(1,2) = mat6(1,2) / rel_E
+    mat6(2,1) = mat6(2,1) * rel_E
+
+    mat6(3,4) = mat6(3,4) / rel_E
+    mat6(4,3) = mat6(4,3) * rel_E
+
+!
+
+    mat6(5,1) = mat6(1,6) * mat6(2,1) - mat6(2,6) * mat6(1,1) 
+    mat6(5,2) = mat6(1,6) * mat6(2,2) - mat6(2,6) * mat6(1,2)
+  
+    mat6(5,4) = -c0t%vec(4) * (mat6(5,6) + length)
 
     if (e1 /= 0) then
       arg = tan(e1) * g
@@ -189,16 +204,21 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   case (quadrupole$)
 
 
-    k1 = ele%value(k1$) / (1 + c0t%z%vel)
+    k1 = ele%value(k1$) / rel_E
 
     if (k1 == 0) then
-      mat6(1,2)  =  length
-      mat6(3,4)  =  length
-      return
+      call drift_mat6_calc (mat6, length, c0%vec)
+      goto 8000
     endif
 
     call quad_mat_calc (-k1, length, mat6(1:2,1:2))
     call quad_mat_calc ( k1, length, mat6(3:4,3:4))
+
+    mat6(1,2) = mat6(1,2) / rel_E
+    mat6(2,1) = mat6(2,1) * rel_E
+
+    mat6(3,4) = mat6(3,4) / rel_E
+    mat6(4,3) = mat6(4,3) * rel_E
 
 ! The mat6(i,6) terms are constructed so that mat6 is sympelctic
 
@@ -240,7 +260,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
   case (sextupole$)
 
-    k2l = ele%value(k2$) * length / (1 + c0t%z%vel)
+    k2l = ele%value(k2$) * length / rel_E
     call mat4_multipole (k2l/2, 0.0_rdef, 2, c0t%vec, kmat1)
     mat4 = kmat1
     mat4(1,1:4) = kmat1(1,1:4) + length * kmat1(2,1:4) ! kick * length
@@ -270,7 +290,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
   case (octupole$)
 
-    k3l = ele%value(k3$) * length / (1 + c0t%z%vel)
+    k3l = ele%value(k3$) * length / rel_E
     call mat4_multipole (k3l/2, 0.0_rdef, 3, c0t%vec, kmat1)
     mat4 = kmat1
     mat4(1,1:4) = kmat1(1,1:4) + length * kmat1(2,1:4) ! kick * length
@@ -299,9 +319,22 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
   case (solenoid$)
 
-    ks = ele%value(ks$) / (1 + c0t%z%vel)
+    ks = ele%value(ks$) / rel_E
 
     call solenoid_mat_calc (ks, length, mat6(1:4,1:4))
+
+    mat6(1,2) = mat6(1,2) / rel_E
+    mat6(1,4) = mat6(1,4) / rel_E
+
+    mat6(2,1) = mat6(2,1) * rel_E
+    mat6(2,3) = mat6(2,3) * rel_E
+
+    mat6(3,2) = mat6(3,2) / rel_E
+    mat6(3,4) = mat6(3,4) / rel_E
+
+    mat6(4,1) = mat6(4,1) * rel_E
+    mat6(4,3) = mat6(4,3) * rel_E
+
 
     c2 = mat6(1,1)
     s2 = mat6(1,4) * ks / 2
@@ -435,7 +468,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
     call mat_make_unit (mat6)     ! make a unit matrix
 
-    k1 = ele%value(k1$) / (1 + c0t%z%vel)**2
+    k1 = ele%value(k1$) / rel_E**2
 
 ! octuple correction to k1
 
@@ -495,10 +528,27 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
   case (sol_quad$)
 
-    ks = ele%value(ks$) / (1 + c0t%z%vel)
-    k1 = ele%value(k1$) / (1 + c0t%z%vel)
+    ks = ele%value(ks$) / rel_E
+    k1 = ele%value(k1$) / rel_E
 
     call sol_quad_mat6_calc (ks, k1, length, mat6, c0t%vec)
+
+    mat6(1,2) = mat6(1,2) / rel_E
+    mat6(1,4) = mat6(1,4) / rel_E
+
+    mat6(2,1) = mat6(2,1) * rel_E
+    mat6(2,3) = mat6(2,3) * rel_E
+
+    mat6(3,2) = mat6(3,2) / rel_E
+    mat6(3,4) = mat6(3,4) / rel_E
+
+    mat6(4,1) = mat6(4,1) * rel_E
+    mat6(4,3) = mat6(4,3) * rel_E
+
+    mat6(5,1) = -mat6(2,6)*mat6(1,1) + mat6(1,6)*mat6(2,1) - mat6(4,6)*mat6(3,1) + mat6(3,6)*mat6(4,1)
+    mat6(5,2) = -mat6(2,6)*mat6(1,2) + mat6(1,6)*mat6(2,2) - mat6(4,6)*mat6(3,2) + mat6(3,6)*mat6(4,2)
+    mat6(5,3) = -mat6(2,6)*mat6(1,3) + mat6(1,6)*mat6(2,3) - mat6(4,6)*mat6(3,3) + mat6(3,6)*mat6(4,3)
+    mat6(5,4) = -mat6(2,6)*mat6(1,4) + mat6(1,6)*mat6(2,4) - mat6(4,6)*mat6(3,4) + mat6(3,6)*mat6(4,4)
 
     if (ele%value(tilt$) /= 0) then
       call tilt_mat6 (mat6, ele%value(tilt$))
@@ -544,7 +594,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
       c_e = 0.0
     endif
     c_m = param%particle * c_light * ele%value(b_z$) / (e_mass * 1.e9)
-    gamma_old = param%energy * (c0t%z%vel + 1) / e_mass
+    gamma_old = param%energy * rel_E / e_mass
     gamma_new = gamma_old + c_e * length
     call accel_sol_mat_calc (length, c_m, c_e, gamma_old, gamma_new, &
                                     0.0_rdef, 0.0_rdef, c0t%vec, mat4, vec_st)
