@@ -20,6 +20,10 @@ setenv CESR_DEVEL   $CESR_/devel
 setenv CESR_DOC $CESR_/doc
 
 #
+#---  CESR CVS Repository  ---
+setenv CESR_CVSROOT $CESR_/cvsroot
+
+#
 #----  CESR_LIB subtrees  ----
 #
 setenv CESR_LIB $CESR_/$CESRLIB
@@ -31,7 +35,6 @@ setenv CESR_CVSSRC	$CESR_LIB/cvssrc
 setenv CESR_INC     $CESR_LIB/include
 setenv CESR_MOD     $CESR_LIB/modules
 setenv CESR_GMAKE   $CESR_LIB/Gmake
-setenv CESR_CVSROOT $CESR_LIB/cvsroot
 
 #
 #------  CESR constants  ------
@@ -49,6 +52,9 @@ setenv BMAD_LAYOUT	$CESR_CONFIG/bmad/layout
 # $Id$
 #
 # $Log$
+# Revision 1.2  2001/09/29 21:20:50  palmer
+# Fix path to CESR cvsroot area.
+#
 # Revision 1.1  2001/09/29 18:18:15  palmer
 # Environment variable utilities for CESR libraries on Unix.
 #
