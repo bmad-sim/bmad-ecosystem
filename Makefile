@@ -17,6 +17,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.7  2003/04/21 17:24:14  cesrulib
+# new makefile
+#
 # Revision 1.6  2002/06/13 14:53:29  dcs
 # Interfaced with FPP/PTC
 #
@@ -68,12 +71,12 @@
 # LOCAL_INCS      - Local directories to search for include files
 # LOCAL_MODS      - Local directories to search for F90 compiled module files
 #-----------------------------------------------------------------------------
-CODE_SRC_DIRS := ./code ./interface
-MOD_SRC_DIRS  := ./modules
-OBJ_SRC_DIRS  :=
+LIB_SRC_DIRS := ./code ./interface ./modules
 CONFIG_DIRS   := ./lat ./layout
 LOCAL_INCS    := ./include ../include
 LOCAL_MODS    := ../modules 
+
+#SRC_EXCLUDE := ele_to_fibre.f90
 
 #-----------------------------------------------------------------------------
 # "EXTRA" variables can be specified at the command line or hardwired here.  
