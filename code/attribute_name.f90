@@ -63,24 +63,27 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, y_limit$)     = 'Y_LIMIT'
       attrib_array(i, aperture$)    = 'APERTURE'
       attrib_array(i, beam_energy$) = 'BEAM_ENERGY'
+      attrib_array(i, mat6_calc_method$)  = 'MAT6_CALC_METHOD'
+      attrib_array(i, tracking_method$)   = 'TRACKING_METHOD'
 
-      if (i == taylor$)  cycle
       if (i == patch$)   cycle
-      if (i == hom$)     cycle
-      if (i == matrix$)  cycle
       if (i == marker$)  cycle
       if (i == hkicker$) cycle
       if (i == vkicker$) cycle
 
+      if (i == hom$)          cycle
+      if (i == matrix$)       cycle
+      if (i == multipole$)    cycle 
+      if (i == ab_multipole$) cycle
+      if (i == taylor$)       cycle
+
       attrib_array(i, hkick$)  = 'HKICK'
       attrib_array(i, vkick$)  = 'VKICK'
 
-      attrib_array(i, mat6_calc_method$)  = 'MAT6_CALC_METHOD'
-      attrib_array(i, tracking_method$)   = 'TRACKING_METHOD'
+      attrib_array(i, ptc_kind$)          = 'PTC_KIND'
       attrib_array(i, integration_order$) = 'INTEGRATION_ORDER'
       attrib_array(i, num_steps$)         = 'NUM_STEPS'
       attrib_array(i, symplectify$)       = 'SYMPLECTIFY'
-      attrib_array(i, ptc_kind$)          = 'PTC_KIND'
       attrib_array(i, rel_tol$) = 'REL_TOL'
       attrib_array(i, abs_tol$) = 'ABS_TOL'
 
@@ -94,7 +97,6 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
 
       if (i == rcollimator$) cycle
       if (i == ecollimator$) cycle
-      if (i == multipole$ .or. i == ab_multipole$) cycle
 
       attrib_array(i, x_pitch$)   = 'X_PITCH'
       attrib_array(i, y_pitch$)   = 'Y_PITCH'
@@ -287,8 +289,14 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
                                    'T11', 'T12', 'T13', 'T14', 'T15', &
                                    'T16', 'T17', 'T18', 'T19', 'T20' /)
     attrib_array(multipole$, radius$)   = 'RADIUS'
+    attrib_array(multipole$, x_offset$) = 'X_OFFSET'
+    attrib_array(multipole$, y_offset$) = 'Y_OFFSET'
+    attrib_array(multipole$, s_offset$) = 'S_OFFSET'
 
-    attrib_array(ab_multipole$, tilt$)  = 'TILT'
+    attrib_array(ab_multipole$, tilt$)     = 'TILT'
+    attrib_array(ab_multipole$, x_offset$) = 'X_OFFSET'
+    attrib_array(ab_multipole$, y_offset$) = 'Y_OFFSET'
+    attrib_array(ab_multipole$, s_offset$) = 'S_OFFSET'
 
     attrib_array(accel_sol$, l$)             = 'L'
     attrib_array(accel_sol$, volt$)          = 'VOLT'
@@ -343,10 +351,10 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     at_name = attrib_array(key, ix_att)
   endif
 
-  if (key == wiggler$ .and. ele%sub_key == map_type$) then
-    if (any (ix_att == (/ k1$, b_max$, rho$, n_pole$, radius$ /) )) &
-                                                    at_name = null_name
-  endif
+!  if (key == wiggler$ .and. ele%sub_key == map_type$) then
+!    if (any (ix_att == (/ k1$, b_max$, rho$, n_pole$, radius$ /) )) &
+!                                                    at_name = null_name
+!  endif
 
 end function
 
