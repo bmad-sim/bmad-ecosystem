@@ -30,6 +30,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   type (tao_var_input) var(n_var_minn:n_var_maxx)
   type (tao_global_struct) global
   type (tao_d1_data_struct), pointer :: d1_ptr
+  type (beam_init_struct) beam_init(n_universe_maxx)
   type (macro_init_struct) macro_init(n_universe_maxx)
   type (tao_coupled_uni_input) coupled(n_universe_maxx)
 
@@ -64,6 +65,9 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   namelist / tao_coupled_uni_init / coupled
   
   namelist / tao_beam_init / sr_wakes_on, lr_wakes_on, sr_wake_file, &
+                            lr_wake_file, calc_emittance, beam_init
+         
+  namelist / tao_macro_init / sr_wakes_on, lr_wakes_on, sr_wake_file, &
                             lr_wake_file, calc_emittance, macro_init
          
   namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe
@@ -146,45 +150,90 @@ subroutine tao_init_global_and_universes (data_and_var_file)
     call out_io (s_blank$, r_name, "Init: No coupled universes initialization")
   endif
 
-  
+!-----------------------------------------------------------------------
+! Init Beam
+
+  ! Do not initialize both beam and macro
+  if (trim(s%global%track_type) .eq. 'beam') then
+    call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
+    ! defaults
+    do i = 1, size(s%u)
+      beam_init(i)%a_norm_emitt  = 0.0
+      beam_init(i)%b_norm_emitt  = 0.0
+      beam_init(i)%dPz_dz = 0.0
+      beam_init(i)%center(:) = 0.0
+      beam_init(i)%n_part_real = 0.0
+      beam_init(i)%ds_bunch = 1
+      beam_init(i)%sig_z   = 0.0
+      beam_init(i)%sig_e   = 0.0
+      beam_init(i)%sig_e_cut = 1
+      beam_init(i)%sig_z_cut = 1
+      beam_init(i)%sig_trans_cut = 1
+      beam_init(i)%n_bunch = 1
+      beam_init(i)%n_part  = 1
+      ! by default, no wake data file needed
+      sr_wake_file(i) = 'none'
+      lr_wake_file(i) = 'none'
+      calc_emittance(i) = .false.
+    enddo
+    read (iu, nml = tao_beam_init, iostat = ios)
+    close (iu)
+    if (ios .eq. 0) then
+      call out_io (s_blank$, r_name, 'Init: Read tao_beam_init namelist')
+      bmad_com%sr_wakes_on = .false.
+      bmad_com%lr_wakes_on = .false.
+      if (sr_wakes_on) bmad_com%sr_wakes_on = .true.
+      if (lr_wakes_on) bmad_com%lr_wakes_on = .true.
+      do i = 1, size(s%u)
+        call init_beam(s%u(i), beam_init(i), sr_wake_file(i), lr_wake_file(i), &
+                              calc_emittance(i))
+      enddo
+    else
+      call out_io (s_fatal$, r_name, "tao_beam_init namelist error")
+      call err_exit
+    endif
+
 !-----------------------------------------------------------------------
 ! Init macroparticles
-
-  call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
-  ! defaults
-  do i = 1, size(s%u)
-    macro_init(i)%x%norm_emit  = 0.0
-    macro_init(i)%y%norm_emit  = 0.0
-    macro_init(i)%dPz_dz = 0.0
-    macro_init(i)%center(:) = 0.0
-    macro_init(i)%ds_bunch = 1
-    macro_init(i)%sig_z   = 10e-6
-    macro_init(i)%sig_e   = 10e-3
-    macro_init(i)%sig_e_cut = 3
-    macro_init(i)%sig_z_cut = 3
-    macro_init(i)%n_bunch = 1
-    macro_init(i)%n_slice = 1
-    macro_init(i)%n_macro = 1
-    macro_init(i)%n_part  = 1e10
-    ! by default, no wake data file needed
-    sr_wake_file(i) = 'none'
-    lr_wake_file(i) = 'none'
-    calc_emittance(i) = .false.
-  enddo
-  read (iu, nml = tao_beam_init, iostat = ios)
-  close (iu)
-  if (ios .eq. 0) then
-    call out_io (s_blank$, r_name, 'Init: Read tao_beam_init namelist')
-    bmad_com%sr_wakes_on = .false.
-    bmad_com%lr_wakes_on = .false.
-    if (sr_wakes_on) bmad_com%sr_wakes_on = .true.
-    if (lr_wakes_on) bmad_com%lr_wakes_on = .true.
+ 
+  elseif(trim(s%global%track_type) .eq. 'macro') then
+    call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
+    ! defaults
     do i = 1, size(s%u)
-      call init_macro(s%u(i), macro_init(i), sr_wake_file(i), lr_wake_file(i), &
-                            calc_emittance(i))
+      macro_init(i)%x%norm_emit  = 0.0
+      macro_init(i)%y%norm_emit  = 0.0
+      macro_init(i)%dPz_dz = 0.0
+      macro_init(i)%center(:) = 0.0
+      macro_init(i)%ds_bunch = 1
+      macro_init(i)%sig_z   = 10e-6
+      macro_init(i)%sig_e   = 10e-3
+      macro_init(i)%sig_e_cut = 3
+      macro_init(i)%sig_z_cut = 3
+      macro_init(i)%n_bunch = 1
+      macro_init(i)%n_slice = 1
+      macro_init(i)%n_macro = 1
+      macro_init(i)%n_part  = 1e10
+      ! by default, no wake data file needed
+      sr_wake_file(i) = 'none'
+      lr_wake_file(i) = 'none'
+      calc_emittance(i) = .false.
     enddo
-  else
-    call out_io (s_blank$, r_name, "No macroparticle initialization")
+    read (iu, nml = tao_macro_init, iostat = ios)
+    close (iu)
+    if (ios .eq. 0) then
+      call out_io (s_blank$, r_name, 'Init: Read tao_macro_init namelist')
+      bmad_com%sr_wakes_on = .false.
+      bmad_com%lr_wakes_on = .false.
+      if (sr_wakes_on) bmad_com%sr_wakes_on = .true.
+      if (lr_wakes_on) bmad_com%lr_wakes_on = .true.
+      do i = 1, size(s%u)
+        call init_macro(s%u(i), macro_init(i), sr_wake_file(i), lr_wake_file(i), &
+                              calc_emittance(i))
+      enddo
+    else
+      call out_io (s_fatal$, r_name, "tao_macro_init namelist error")
+      call err_exit
+    endif
   endif
 
 !-----------------------------------------------------------------------
@@ -1072,7 +1121,7 @@ implicit none
 
 type (tao_universe_struct) u
 type (tao_universe_struct), pointer ::  from_uni
-type (tao_coupled_uni_input) coupled
+type (tao_coupled_uni_input) coupled 
 integer this_uni_index
 
 character(16) ele_name
@@ -1139,9 +1188,9 @@ integer j, ix
       u%coupling%from_uni_ix_ele = coupled%at_ele_index
   else
     ! using s position
-    if (s%global%track_type .eq. 'macro') then
+    if (s%global%track_type .ne. 'single' ) then
       call out_io (s_abort$, r_name, &
-       "Cannot specify arbitrary s position for coupling if tracking macroparticles")
+       "Cannot specify arbitrary s position for coupling if not tracking a single particle")
       call err_exit
     endif
     !FIX_ME: get ix_ele for element right before this s position
@@ -1149,6 +1198,58 @@ integer j, ix
   endif
 
 end subroutine init_coupled_uni
+
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+! contains
+!
+! Initialize the beams. Determine which element to track beam to
+!
+
+subroutine init_beam (u, beam_init, sr_wake_file, lr_wake_file, calc_emittance)
+
+implicit none
+
+type (tao_universe_struct) u
+type (beam_init_struct) beam_init
+character(*) sr_wake_file, lr_wake_file
+logical calc_emittance
+
+!
+  if (s%global%track_type .eq. 'single' ) return
+  
+  if (u%design%param%lattice_type .eq. circular_lattice$) then
+    call out_io (s_blank$, r_name, "***")
+    call out_io (s_blank$, r_name, &
+                 "Beam tracking through a circular lattice.")
+    call out_io (s_blank$, r_name, &
+         "Twiss parameters and initial orbit will be found from the closed orbit.")
+    if (calc_emittance) then
+      call out_io (s_blank$, r_name, &
+                  "Emittance will be found using the radiation integrals.")
+    else 
+      call out_io (s_blank$, r_name, &
+                  "Emittance will be as set in tao_beam_init.")
+    endif
+    u%macro_beam%calc_emittance = calc_emittance
+    call out_io (s_blank$, r_name, "***")
+  elseif (calc_emittance) then
+    call out_io (s_blank$, r_name, "***")
+    call out_io (s_warn$, r_name, &
+                "Calc_emittance is only applicable to circular lattices!")
+    call out_io (s_blank$, r_name, "***")
+  endif
+  
+  call init_wakes (u, sr_wake_file, lr_wake_file)
+
+  u%beam%beam_init = beam_init
+  u%design_orb(0)%vec = beam_init%center
+
+  ! This is just to get things allocated
+  call init_beam_distribution (u%design%ele_(0), beam_init, u%beam%beam, .true.)
+
+end subroutine init_beam
+
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 ! contains
@@ -1165,12 +1266,6 @@ type (macro_init_struct) macro_init
 character(*) sr_wake_file, lr_wake_file
 logical calc_emittance
 
-integer j
-
-integer, pointer :: ix_lcav(:)
-
-logical long_time_post
-
 !
   if (s%global%track_type .eq. 'single') return
 
@@ -1185,7 +1280,7 @@ logical long_time_post
                   "Emittance will be found using the radiation integrals.")
     else 
       call out_io (s_blank$, r_name, &
-                  "Emittance will be as set in macro_init.")
+                  "Emittance will be as set in tao_macro_init.")
     endif
     u%macro_beam%calc_emittance = calc_emittance
     call out_io (s_blank$, r_name, "***")
@@ -1196,6 +1291,40 @@ logical long_time_post
     call out_io (s_blank$, r_name, "***")
   endif
   
+  call init_wakes (u, sr_wake_file, lr_wake_file)
+
+  u%macro_beam%macro_init = macro_init
+  u%design_orb(0)%vec = macro_init%center
+
+  ! This is just to get things allocated
+  call init_macro_distribution (u%macro_beam%beam, macro_init, u%design%ele_(0), .true.)
+
+  ! keep track of where macros are lost
+  if (associated (u%macro_beam%ix_lost)) deallocate (u%macro_beam%ix_lost)
+  allocate (u%macro_beam%ix_lost(macro_init%n_bunch, macro_init%n_slice, macro_init%n_macro))
+  u%macro_beam%ix_lost(:,:,:) = -1
+
+end subroutine init_macro
+
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+! contains
+! 
+! Initializes the wakes
+!
+
+subroutine init_wakes (u, sr_wake_file, lr_wake_file)
+
+implicit none
+
+type (tao_universe_struct) u
+character(*) sr_wake_file, lr_wake_file
+
+integer, pointer :: ix_lcav(:)
+integer j
+
+logical long_time_post
+
   ! only post long time to initialize message once.
   long_time_post = .true.
   
@@ -1234,18 +1363,7 @@ logical long_time_post
     deallocate(ix_lcav)
   endif
 
-  u%macro_beam%macro_init = macro_init
-  u%design_orb(0)%vec = macro_init%center
-
-  ! This is just to get things allocated
-  call init_macro_distribution (u%macro_beam%beam, macro_init, u%design%ele_(0), .true.)
-
-  ! keep track of where macros are lost
-  if (associated (u%macro_beam%ix_lost)) deallocate (u%macro_beam%ix_lost)
-  allocate (u%macro_beam%ix_lost(macro_init%n_bunch, macro_init%n_slice, macro_init%n_macro))
-  u%macro_beam%ix_lost(:,:,:) = -1
-
-end subroutine init_macro
+end subroutine init_wakes
 
 !----------------------------------------------------------------
 !----------------------------------------------------------------

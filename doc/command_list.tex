@@ -459,15 +459,26 @@ For \vn{set lattice} version of \vn{set} possible
 For \vn{set global} the possible 
 \vn{<component>}s that can be set are:
 \begin{example}
-  opt_with_ref      = T/F      ! Use the reference data with optimization.
-  opt_with_base     = T/F      ! Use the base lattice with optimization.
-  single_mode       = T/F      ! This only makes sense if set in the init file.
+  y_axis_plot_dmin  = <number> ! Minimum y_max-y_min allowed for a graph.
   n_opti_cycles     = <number> ! Number of optimization cycles
-  phase_units       = <number> ! Set phase units output
-  prompt_string     = <string> ! Prompt string
-  var_out_file      = <name>   ! File name of the list of variables in Bmad format. 
-  opt_var_out_file  = <name>   ! File name for the optimizer generated file.
-  derivative_recalc = T/F      ! Force recalc of derivative matrix before an optimizer run?
+  lun_command_file  = <number> ! unit number for a command file.
+                               !  0 -> no command file.
+  bunch_to_plot     = <number> ! View data for this bunch
+  prompt_string     = <string> ! Prompt String
+  optimizer         = <string> ! optimizer to use. 'de', 'lm' etc...
+  var_limits_on     = T/F      ! Respect the variable limits?
+  plot_on           = T/F      ! Update plot window?
+  opt_with_ref      = T/F      ! use reference data in optimization?
+  opt_with_base     = T/F      ! use base data in optimization?
+  label_lattice_elements = T/F ! For lat_layout plots
+  label_keys        = T/F      ! For lat_layout plots
+  derivative_recalc = T/F      ! Recalc before each optimizer run?
+  lattice_recalc    = T/F      ! recalculate the lattice?
+  use_real_bpms     = T/F      ! use offsets for monitor element model orbit data
+  print_command     = <string> ! Command used to print plot page
+  default_init_file = <string> ! When reinitializing use this init file
+  var_out_file      = <string> ! variable output data in this file
+  opt_var_out_file  = <string> ! optimizer output data in this file
 \end{example}
 \vskip 0.2in
 

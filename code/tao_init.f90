@@ -85,7 +85,7 @@ subroutine tao_init (init_file)
 contains
 !------------------------------------------------------------------------------
 ! every pointer and allocatable needs to be deallocated now before the universe
-! is reallocated. This doesn't first check if pointers are associated!
+! is reallocated.
 
 subroutine deallocate_everything ()
 
@@ -94,26 +94,31 @@ implicit none
 integer i, j, k, istat
 
 ! Variables  
-  do i = 1, size(s%v1_var)
-    nullify(s%v1_var(i)%v)
-  enddo
-  deallocate(s%v1_var, stat=istat)
-  
-  do i = lbound(s%var,1), ubound(s%var,1)
-    do j = 1, size(s%var(i)%this)
-      nullify(s%var(i)%this(j)%model_ptr)
-      nullify(s%var(i)%this(j)%base_ptr)
+  if (associated (s%v1_var)) then
+    do i = 1, size(s%v1_var)
+      nullify(s%v1_var(i)%v)
     enddo
-    nullify(s%var(i)%v1)
-    deallocate(s%var(i)%this, stat=istat)
-  enddo
-  deallocate(s%var, stat=istat)
+    deallocate(s%v1_var, stat=istat)
+  endif
+  
+  if (associated (s%var)) then
+    do i = lbound(s%var,1), ubound(s%var,1)
+      do j = 1, size(s%var(i)%this)
+        nullify(s%var(i)%this(j)%model_ptr)
+        nullify(s%var(i)%this(j)%base_ptr)
+      enddo
+      nullify(s%var(i)%v1)
+      deallocate(s%var(i)%this, stat=istat)
+    enddo
+    deallocate(s%var, stat=istat)
+  endif
  
 ! Keytable 
-  deallocate(s%key, stat=istat)
+  if (associated (s%key)) deallocate(s%key, stat=istat)
 
 ! plotting  
   do i = 1, size(s%template_plot)
+    if (.not. associated (s%template_plot(i)%graph)) cycle
     do j = 1, size(s%template_plot(i)%graph)
       do k = 1, size(s%template_plot(i)%graph(j)%curve)
         deallocate(s%template_plot(i)%graph(j)%curve(k)%x_line, stat=istat)
@@ -130,40 +135,42 @@ integer i, j, k, istat
   nullify(s%plot_page%plot)
 
 ! Universes 
-  do i = 1, size(s%u)
-    ! Orbits
-    deallocate(s%u(i)%model_orb, stat=istat)
-    deallocate(s%u(i)%design_orb, stat=istat)
-    deallocate(s%u(i)%base_orb, stat=istat)
-    
-    ! Beams
-    deallocate(s%u(i)%macro_beam%ix_lost, stat=istat)
- 
-    ! d2_data
-    do j = 1, size(s%u(i)%d2_data)
-      do k = 1, size(s%u(i)%d2_data(j)%d1)
-        nullify(s%u(i)%d2_data(j)%d1(k)%d2)
-        nullify(s%u(i)%d2_data(j)%d1(k)%d)
+  if (associated (s%u)) then
+    do i = 1, size(s%u)
+      ! Orbits
+      deallocate(s%u(i)%model_orb, stat=istat)
+      deallocate(s%u(i)%design_orb, stat=istat)
+      deallocate(s%u(i)%base_orb, stat=istat)
+      
+      ! Beams
+      deallocate(s%u(i)%macro_beam%ix_lost, stat=istat)
+  
+      ! d2_data
+      do j = 1, size(s%u(i)%d2_data)
+        do k = 1, size(s%u(i)%d2_data(j)%d1)
+          nullify(s%u(i)%d2_data(j)%d1(k)%d2)
+          nullify(s%u(i)%d2_data(j)%d1(k)%d)
+        enddo
+        deallocate(s%u(i)%d2_data(j)%d1, stat=istat)
       enddo
-      deallocate(s%u(i)%d2_data(j)%d1, stat=istat)
+      deallocate(s%u(i)%d2_data, stat=istat)
+ 
+ 
+      ! Data
+      do j = lbound(s%u(i)%data,1), ubound(s%u(i)%data,1)
+        nullify(s%u(i)%data(j)%d1)
+      enddo
+      deallocate(s%u(i)%data, stat=istat)
+ 
+      ! dModel_dVar
+      deallocate(s%u(i)%dmodel_dvar, stat=istat)
+ 
+      ! Lattices
+      call deallocate_lattice_internals(s%u(i)%model)
+      call deallocate_lattice_internals(s%u(i)%design)
+      call deallocate_lattice_internals(s%u(i)%base)
     enddo
-    deallocate(s%u(i)%d2_data, stat=istat)
-
-
-    ! Data
-    do j = lbound(s%u(i)%data,1), ubound(s%u(i)%data,1)
-      nullify(s%u(i)%data(j)%d1)
-    enddo
-    deallocate(s%u(i)%data, stat=istat)
-
-    ! dModel_dVar
-    deallocate(s%u(i)%dmodel_dvar, stat=istat)
-
-    ! Lattices
-    call deallocate_lattice_internals(s%u(i)%model)
-    call deallocate_lattice_internals(s%u(i)%design)
-    call deallocate_lattice_internals(s%u(i)%base)
-  enddo
+  endif
     
 end subroutine deallocate_everything
     

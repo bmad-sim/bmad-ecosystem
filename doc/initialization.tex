@@ -160,7 +160,7 @@ beginning of the second lattice.
 When using coupled lattices then statements in the lattice file for the lattice
 begin injected into that refer to the \vn{BEGINNING} element are only used when setting
 up the coupling element, otherwise the injected particle/beam is used to set up
-the \vn{BEGINNING} element. This goes for the \vn{tao_beam_init} namestruct in
+the \vn{BEGINNING} element. This goes for the \vn{tao_macro_init} namestruct in
 the initialization file also.
 
 If the coupling point is not the end of a lattice the standard lattice
@@ -184,10 +184,10 @@ Example:
 \section{Initializing Macroparticles}
 \label{s:macros}
 
-A macroparticle beam is initialized in the \vn{tao_beam_init} namelist block.
+A macroparticle beam is initialized in the \vn{tao_macro_init} namelist block.
 The syntax is as follows:
 \begin{example}
-  &tao_beam_init
+  &tao_macro_init
     sr_wakes_on             = <ligical>   ! turn on short range wakes
                                           ! default = F
     lr_wakes_on             = <logical>   ! turn on long range wakes

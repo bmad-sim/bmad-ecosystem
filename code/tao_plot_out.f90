@@ -60,9 +60,11 @@ do i = 1, size(s%plot_page%plot)
 ! For a non-valid plot just print a message
 
   if (.not. plot%valid) then
-    call qp_set_box (1, 1, 1, 1)
-    call qp_draw_text ('Error In the Plot Calculation', 0.1_rp, 0.5_rp, '%BOX')
-    cycle
+    if (.not. plot%graph(1)%type .eq. 'lat_layout') then
+      call qp_set_box (1, 1, 1, 1)
+      call qp_draw_text ('Error In The Plot Calculation', 0.1_rp, 0.5_rp, '%BOX')
+      cycle
+    endif
   endif
 
 ! loop over all the graphs of the plot and draw them.

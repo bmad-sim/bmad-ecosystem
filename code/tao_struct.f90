@@ -13,6 +13,7 @@ use bmad_struct, only: rp, ring_struct, coord_struct, radians$, ele_struct
 use quick_plot, only: qp_line_struct, qp_symbol_struct, qp_axis_struct, qp_rect_struct
 use macroparticle_mod, only: macro_init_struct, macro_beam_struct
 use macro_utils_mod, only: macro_bunch_params_struct
+use beam_mod, only: beam_init_struct, beam_struct, bunch_params_struct
 use tao_parameters
 use tao_hook_mod
 
@@ -114,7 +115,7 @@ end type
 ! One for Cbar12, and one for Cbar22.
 
 type tao_plot_struct
-  character(16) :: name = ' '           ! Identifying name
+  character(32) :: name = ' '           ! Identifying name
   type (tao_plot_region_struct) region  ! Where on the plot page to put the plot
   type (tao_plot_who_struct) who(10)    ! Who to plot. Eg: Data - Design
   type (tao_graph_struct), pointer :: graph(:) => null() 
@@ -169,10 +170,10 @@ end type
 !                  = %exists & %good_dat & %good_user & %good_opt & %good_ref (otherwise)
 
 type tao_data_struct
-  character(16) name        ! Datum name. Eg: "X Orbit @ Det 10"
+  character(32) name        ! Datum name. Eg: "X Orbit @ Det 10"
   character(16) ele_name    ! Name of the element in the Lattice corresponding to the datum.
   character(16) ele2_name   ! Name lattice element when there is a range 
-  character(16) data_type   ! Type of data: "orbit:x", etc.
+  character(32) data_type   ! Type of data: "orbit:x", etc.
   character(16) merit_type  ! Type of constraint: 'target', 'max', 'min', etc.
   integer ix_ele            ! Index of the element in the lattice element array.
   integer ix_ele2           ! Index of lattice elment when there is a range.
@@ -224,7 +225,7 @@ end type
 !   sequentially numbered.
 
 type tao_d2_data_struct
-  character(16) name              ! Name to be used with commands.
+  character(32) name              ! Name to be used with commands.
   character(200) data_file_name   ! Data file name .
   character(200) ref_file_name    ! Reference file name.
   character(20) data_date         ! Data measurement date.
@@ -329,8 +330,8 @@ type tao_global_struct
                                      !  0 -> no command file.
   integer :: ix_key_bank = 0         ! For single mode.
   integer :: phase_units = radians$  ! Phase units on output.
-  integer :: bunch_to_plot = 1       ! Which macroparticle bunch to plot
-  character(16) :: track_type = 'single' ! or macro 
+  integer :: bunch_to_plot = 1       ! Which bunch to plot
+  character(16) :: track_type = 'single' ! or 'beam' or 'macro' 
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer = 'de'  ! optimizer to use.
   type (tao_global_hook) hook        ! Custom stuff. Defined in tao_hook.f90
@@ -346,6 +347,7 @@ type tao_global_struct
   logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
   logical :: lattice_recalc = .true.         ! recalculate the lattice?
   logical :: init_plot_needed = .true.       ! reinitialize plotting?
+  logical :: use_real_bpms = .false. ! use offsets for monitor model orbits
   character(16) :: valid_plot_who(10)        ! model, base, ref etc...
   character(40) :: print_command = 'awprint'
   character(80) :: default_init_file = 'tao.init'
@@ -365,6 +367,7 @@ type tao_coupled_uni_struct
   integer from_uni_ix_ele ! element index where coupling occurs
   real(rp) from_uni_s ! s position in from_uni where coupling occurs
   type (ele_struct) :: coupling_ele ! element used to match universes
+  type (beam_struct) injecting_beam ! used for beam injection
   type (macro_beam_struct) injecting_macro_beam ! used for macroparticle injection
 end type
 
@@ -375,27 +378,19 @@ end type
 ! beforehand and just keep a log of where to evaluate.
 
   type tao_ix_data_struct
-    ! list of all d2_datas evaluated at this ele
+    ! list of all datums evaluated at this ele
     integer, pointer :: ix_datum(:)
   endtype
 
 !-----------------------------------------------------------------------
 ! Particle beam structures
 
-type tao_bunch_init_struct
-  integer dummy
-endtype
-
-type tao_bunch_struct
-  type (coord_struct), pointer :: particle(:)
-  integer, pointer :: lost(:)    ! particle lost at this element
-end type 
-  
 type tao_beam_struct
-  type (tao_bunch_struct), pointer :: bunch(:)
-  type (tao_bunch_init_struct) :: particles_init !particle distrubution
-                                                         ! at beginning of lattice
-! type (tao_bunch_params_struct) :: params
+  type (beam_struct) beam
+  type (beam_init_struct) :: beam_init ! beam distrubution
+                                       !  at beginning of lattice
+  type (bunch_params_struct) :: params
+  logical calc_emittance               ! for a ring calculate emittance
 end type
 
 !-----------------------------------------------------------------------

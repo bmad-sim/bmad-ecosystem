@@ -2,6 +2,7 @@ module tao_calc_params_mod
 
 use tao_mod
 use macro_utils_mod
+use beam_mod
 
 
 contains
@@ -40,11 +41,17 @@ integer ix_ele
 
   lat => u%model
 
-  ! single particle tracking
-  if (s%global%track_type .eq. "single") then
+  if (s%global%track_type .eq. "single" .or. &
+      u%model%param%lattice_type .eq. circular_lattice$) then
     call make_mat6 (lat%ele_(ix_ele), lat%param, u%model_orb(ix_ele-1), &
                     u%model_orb(ix_ele), .true.)
     call twiss_propagate1 (lat%ele_(ix_ele-1), lat%ele_(ix_ele))
+  elseif (s%global%track_type .eq. "beam") then
+    call make_mat6 (lat%ele_(ix_ele), lat%param, u%model_orb(ix_ele-1), &
+                    u%model_orb(ix_ele), .true.)
+    call twiss_propagate1 (lat%ele_(ix_ele-1), lat%ele_(ix_ele))
+    call calc_bunch_params (u%beam%beam%bunch(s%global%bunch_to_plot), &
+                                lat%ele_(ix_ele), u%beam%params)
   elseif (s%global%track_type .eq. "macro") then
     call make_mat6 (lat%ele_(ix_ele), lat%param, u%model_orb(ix_ele-1), &
                     u%model_orb(ix_ele), .true.)
