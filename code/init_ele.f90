@@ -13,6 +13,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/12/04 07:46:23  dcs
+!Init Twiss also
+!
 !Revision 1.6  2002/11/26 05:19:32  dcs
 !Modified for BEGINNING floor position entry.
 !
@@ -80,5 +83,26 @@ subroutine init_ele (ele)
   ele%exact_rad_int_calc = .false.
 
   call deallocate_ele_pointers (ele)
+
+! init Twiss
+
+  ele%c_mat = 0
+  ele%gamma_c = 1.0
+
+  ele%x%beta  = 0
+  ele%x%alpha = 0
+  ele%x%gamma = 0
+  ele%x%eta   = 0
+  ele%x%etap  = 0
+  ele%x%phi   = 0
+  ele%x%sigma = 0
+
+  ele%y%beta  = 0
+  ele%y%alpha = 0
+  ele%y%gamma = 0
+  ele%y%eta   = 0
+  ele%y%etap  = 0
+  ele%y%phi   = 0
+  ele%y%sigma = 0
 
 end subroutine
