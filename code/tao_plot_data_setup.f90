@@ -28,7 +28,7 @@ real(rp) f, x1, x2, y_val, eps
 real(rp), pointer :: value(:)
 
 integer i, ii, j, k, m, n_dat, i_uni, ie
-logical err
+logical err, smoothing
 
 character(20) :: r_name = 'tao_plot_data_setup'
 
@@ -236,7 +236,9 @@ plot_loop: do i = 1, size(s%plot_page%plot)
 ! Calculate the points for drawing the curve through the symbols.
 ! If the x-axis is by index then these points are the same as the symbol points.
 !  That is, for x-axis = index the line is piece-wise linear between the symbols.
-! If the axis is by s-value then the line is a "smooth" curve with 400 points
+! If the axis is by s-value then the line is a "smooth" curve with 400 points if
+! plotting model, base or design data. It's the same as the symbol points
+! otherwise.
 
       if (plot%x_axis_type == 'index') then
         call reassociate_real (curve%y_line, n_dat) ! allocate space for the data
@@ -244,37 +246,49 @@ plot_loop: do i = 1, size(s%plot_page%plot)
         curve%x_line = curve%x_symb
         curve%y_line = curve%y_symb
       elseif (plot%x_axis_type == 's') then
-        call reassociate_real (curve%y_line, 400) ! allocate space for the data
-        call reassociate_real (curve%x_line, 400) ! allocate space for the data
-        curve%y_line = 0
-        x1 = max (plot%x%min, u%model%ele_(0)%s)
-        x2 = min (plot%x%max, u%model%ele_(u%model%n_ele_use)%s)
-        do ii = 1, size(curve%x_line)
-          curve%x_line(ii) = x1 + (ii-1) * (x2-x1) / (size(curve%x_line)-1)
-          do m = 1, size(plot%who)
-            select case (plot%who(m)%name)
-            case (' ') 
-              cycle
-            case ('model')
-              call s_data_to_plot (u%model, u%model_orb,  & 
-                          curve%x_line(ii), plot%who(m), curve%y_line(ii), err)
-              if (err) cycle plot_loop
-            case ('base')  
-              call s_data_to_plot (u%base, u%base_orb, &
-                          curve%x_line(ii), plot%who(m), curve%y_line(ii), err)
-              if (err) cycle plot_loop
-            case ('design')  
-              call s_data_to_plot (u%design, u%design_orb, &
-                          curve%x_line(ii), plot%who(m), curve%y_line(ii), err)
-              if (err) cycle plot_loop
-            case default
-              call out_io (s_error$, r_name, &
-                              'BAD PLOT "WHO" WITH "S" X-AXIS: ' // plot%who(m)%name)
-              plot%valid = .false.
-              cycle plot_loop
-            end select
+        smoothing = .true.
+        forall (m = 1:size(plot%who), &
+	        (plot%who(m)%name .eq. 'meas' .or. plot%who(m)%name .eq. 'ref'))
+            smoothing = .false.
+	endforall
+	if (smoothing) then
+          call reassociate_real (curve%y_line, 400) ! allocate space for the data
+          call reassociate_real (curve%x_line, 400) ! allocate space for the data
+          curve%y_line = 0
+          x1 = max (plot%x%min, u%model%ele_(0)%s)
+          x2 = min (plot%x%max, u%model%ele_(u%model%n_ele_use)%s)
+          do ii = 1, size(curve%x_line)
+            curve%x_line(ii) = x1 + (ii-1) * (x2-x1) / (size(curve%x_line)-1)
+            do m = 1, size(plot%who)
+              select case (plot%who(m)%name)
+              case (' ') 
+                cycle
+              case ('model')
+                call s_data_to_plot (u%model, u%model_orb,  & 
+                            curve%x_line(ii), plot%who(m), curve%y_line(ii), err)
+                if (err) cycle plot_loop
+              case ('base')  
+                call s_data_to_plot (u%base, u%base_orb, &
+                            curve%x_line(ii), plot%who(m), curve%y_line(ii), err)
+                if (err) cycle plot_loop
+              case ('design')  
+                call s_data_to_plot (u%design, u%design_orb, &
+                            curve%x_line(ii), plot%who(m), curve%y_line(ii), err)
+                if (err) cycle plot_loop
+              case default
+                call out_io (s_error$, r_name, &
+                                'BAD PLOT "WHO" WITH "S" X-AXIS: ' // plot%who(m)%name)
+                plot%valid = .false.
+                cycle plot_loop
+              end select
+            enddo
           enddo
-        enddo
+	else
+          call reassociate_real (curve%y_line, n_dat) ! allocate space for the data
+          call reassociate_real (curve%x_line, n_dat) ! allocate space for the data
+          curve%x_line = curve%x_symb
+          curve%y_line = curve%y_symb
+	endif
         
       endif
 
@@ -291,7 +305,16 @@ plot_loop: do i = 1, size(s%plot_page%plot)
       enddo
 
       if (graph%title_suffix(2:2) == '+') graph%title_suffix = graph%title_suffix(4:)
+
       graph%title_suffix = '[' // trim(graph%title_suffix) // ']'
+
+! attach x-axis type to title suffix
+
+      if (plot%x_axis_type .eq. 'index') then
+	graph%title_suffix = trim(graph%title_suffix) // ' index '
+      elseif (plot%x_axis_type .eq. 's') then
+	graph%title_suffix = trim(graph%title_suffix) // ' s '
+      endif
 
     enddo
   enddo

@@ -398,7 +398,7 @@ if (index(data(0)%ele_name, 'SEARCH') .ne. 0) then
   enddo
   u%data(n1:n2)%meas_value = 0 
   u%data(n1:n2)%data_type  = default_data_type
-  u%data(n1:n2)%merit_type = 'target'  
+  u%data(n1:n2)%merit_type = default_merit_type 
   u%data(n1:n2)%good_data  = .false.
 
 elseif (index(data(0)%ele_name, 'SAME:') /= 0) then
