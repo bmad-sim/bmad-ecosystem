@@ -98,7 +98,8 @@ particle experiences going through a multipole field is
              & = -K_0 L \;-\; 
              && K_1 L \, x \plus 
              \frac{1}{2} && K_2 L (y^2 - x^2) && \plus 
-             && \frac{1}{6} K_3 L (3x y^2 - x^3) \plus \ldots \nonumber \\
+             && \frac{1}{6} K_3 L (3x y^2 - x^3) \plus \ldots 
+             \nonumber \\
   \Delta p_y & = \frac{q \, L \, B_x}{P_0} \\
              & =     
              && K_1 L \, y \plus 
@@ -106,7 +107,17 @@ particle experiences going through a multipole field is
              && \frac{1}{6} K_3L (3x^2 y - y^3) \plus \ldots \nonumber 
 \end{alignat}
 A positive $K_1L$ quadrupole component gives
-horizontal focusing and vertical defocusing. 
+horizontal focusing and vertical defocusing. The general form is
+\begin{align}
+  \Delta p_x &= \sum_{n = 0}^{\infty} \frac{K_n L}{n!} 
+             \sum_{m = 0}^{\lfloor \frac{n}{2} \rfloor}
+             \begin{pmatrix} n \cr 2m \end{pmatrix} \,
+             (-1)^{m+1} \, x^{n-2m} \, y^{2m} \\
+  \Delta p_y &= \sum_{n = 0}^{\infty} \frac{K_n L}{n!} 
+             \sum_{m = 0}^{\lfloor \frac{n-1}{2} \rfloor}
+             \begin{pmatrix} n \cr 2m+1 \end{pmatrix} \,
+             (-1)^{m} \, x^{n-2m-1} \, y^{2m+1}
+\end{align}
 
 So far only the normal components of the field have been
 considered. If the fields associated with a particular $B_n$ multipole
