@@ -46,7 +46,7 @@ set BMAD_BIN=${BMAD_}/bin
 #
 # Get platform/OS tags
 #
-set PLATFORM_TAG="`uname -s`_`uname -p`"
+set PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -p`"
 
 #
 # Source the BMAD environment script
@@ -73,6 +73,10 @@ if ( $found == 0 ) setenv PATH ${PATH}:${BMAD_BIN}
 # $Id$
 #
 # $Log$
+# Revision 1.5  2004/11/16 16:01:36  palmer
+# Update environment variable structure including support for Windows and
+# new naming conventions.
+#
 # Revision 1.4  2004/03/06 01:24:44  cesrulib
 # Fix bug when setting BMAD_ environment variable.
 #

@@ -47,19 +47,19 @@ BMAD_BIN=${BMAD_}/bin
 #
 # Get platform/OS tags
 #
-PLATFORM_TAG="`uname -s`_`uname -m`"
+PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -m`"
 
 #
 # Export the BMAD environment variable structure
 #
-BMADENV=${BMADENV-${BMAD_BIN}/bmadenv}
+BMADENV=${BMADENV:-${BMAD_BIN}/bmadenv}
 #
 if [ -f $BMADENV ]
 then
   eval `grep '^setenv' $BMADENV | while read cmd nam val ; 
     do echo "$nam=$val ; export $nam ;"; done`
 else
-  echo File $BMADENV not found.
+  echo "File $BMADENV not found."
 fi
 
 #
@@ -81,6 +81,10 @@ fi
 # $Id$
 #
 # $Log$
+# Revision 1.5  2004/11/16 16:01:37  palmer
+# Update environment variable structure including support for Windows and
+# new naming conventions.
+#
 # Revision 1.4  2004/11/15 19:42:52  palmer
 # Bug fix for compatibility when running on OSF1.
 #

@@ -19,6 +19,7 @@ setenv BMAD_        $BMAD_
 setenv BMAD_CONFIG  $BMAD_/config
 setenv BMAD_EXE     $BMAD_/bin
 setenv BMAD_GMAKE   $BMAD_/Gmake
+setenv BMAD_LIB     $BMAD_/lib
 setenv BMAD_MOD     $BMAD_/modules
 setenv BMAD_UTIL    $BMAD_/util
 setenv BMAD_INC     $BMAD_/include
@@ -44,6 +45,10 @@ setenv TOAD_DIR     $BMAD_/toad
 # $Id$
 #
 # $Log$
+# Revision 1.3  2004/11/16 16:01:37  palmer
+# Update environment variable structure including support for Windows and
+# new naming conventions.
+#
 # Revision 1.2  2004/02/13 23:15:42  palmer
 # Update with TOAD_DIR environment variable.
 #

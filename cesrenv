@@ -45,19 +45,20 @@ setenv CESR_DOC     $CESR_/doc
 setenv CESR_CVSROOT $CESR_/cvsroot
 
 #
-#----  CESR_LIB subtrees  ----
+#----  CESR_REL subtrees  ----
 #
-setenv CESR_LIB     $CESR_BASE/$CESRLIB
+setenv CESR_REL     $CESR_BASE/$CESRLIB
 #
-setenv CESR_CONFIG  $CESR_LIB/config
-setenv CESR_CVSSRC  $CESR_LIB/cvssrc
-setenv CESR_EXE     $CESR_LIB/bin
-setenv CESR_GMAKE   $CESR_LIB/Gmake
-setenv CESR_MOD     $CESR_LIB/modules
-setenv CESR_RUN     $CESR_LIB/run
-setenv CESR_UTIL    $CESR_LIB/util
+setenv CESR_CONFIG  $CESR_REL/config
+setenv CESR_CVSSRC  $CESR_REL/cvssrc
+setenv CESR_EXE     $CESR_REL/bin
+setenv CESR_GMAKE   $CESR_REL/Gmake
+setenv CESR_LIB     $CESR_REL/lib
+setenv CESR_MOD     $CESR_REL/modules
+setenv CESR_RUN     $CESR_REL/run
+setenv CESR_UTIL    $CESR_REL/util
 setenv CESR_INC     $CESR_CVSSRC/include
-setenv CESR_PKG     $CESR_LIB/packages
+setenv CESR_PKG     $CESR_REL/packages
 
 #
 #-----  Outside packages  -----
@@ -89,6 +90,10 @@ setenv TOAD_DIR     $CESR_CVSSRC/toad
 # $Id$
 #
 # $Log$
+# Revision 1.14  2004/11/16 16:01:38  palmer
+# Update environment variable structure including support for Windows and
+# new naming conventions.
+#
 # Revision 1.13  2004/02/13 23:15:42  palmer
 # Update with TOAD_DIR environment variable.
 #

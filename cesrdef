@@ -17,15 +17,21 @@
 #   alias devel   "setenv CESRLIB devel ; source /home/cesrulib/bin/cesrdef"
 #-------------------------------------
 #
-# Specify CESR Librarian bin area
-#
-if ( $?CESRLIB_BASE == 0 ) set CESRLIB_BASE=/home/cesrulib
-if ( $?CESRLIB_BIN  == 0 ) set CESRLIB_BIN=${CESRLIB_BASE}/bin
-
-#
 # Get platform/OS tags
 #
-set PLATFORM_TAG="`uname -s`_`uname -p`"
+set PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -p`"
+
+#
+# Specify CESR Librarian base areas
+# Presently have Unix/Linux and Cygwin versions
+#
+set BASE_DIR_DEF=/home/cesrulib
+if ( "${PLATFORM_TAG}" == "CYGWIN_NT_i686" ) then 
+  set BASE_DIR_DEF=//lns101/cesrulib
+endif
+
+if ( $?CESRLIB_BASE == 0 ) set CESRLIB_BASE=${BASE_DIR_DEF}
+if ( $?CESRLIB_BIN  == 0 ) set CESRLIB_BIN=${CESRLIB_BASE}/bin
 
 #
 #	Switchable version
@@ -36,15 +42,19 @@ if ( $?CERN_LEVEL == 0 ) setenv CERN_LEVEL  pro
 #
 #	Root names
 #
-if ( $?CONST    == 0 ) setenv CONST     /home/cesrulib/constants
+if ( $?CONST    == 0 ) setenv CONST     ${CESRLIB_BASE}/constants
 if ( $?CESR_    == 0 ) setenv CESR_     ${CESRLIB_BASE}/cesr_libs
 if ( $?CERN     == 0 ) setenv CERN      /nfs/cern
 
 #
-# Source the CESR environment script
+# Source the CESR environment script#
+# Now clear all override variables that, by default, use a 
+# derivative path from $CESRLIB_BASE.  This does NOT need 
+# to be done for the "version" variables
 #
-if ( $?CESRENV    == 0 ) setenv CESRENV /home/cesrulib/bin/cesrenv
-if ( -f $CESRENV )  then
+#
+if ( $?CESRENV  == 0 ) setenv CESRENV ${CESRLIB_BIN}/cesrenv
+if ( -f "$CESRENV" )  then
 	source $CESRENV
 else
 	echo File $CESRENV not found.
@@ -60,11 +70,44 @@ foreach dir (${PATH_LIST})
 end
 if ( $found == 0 ) setenv PATH ${PATH}:${CESRLIB_BIN}
 
+#
+# Add hook to support OLD style of environment variables
+# Clear variable when done
+#
+if ( $?CESR_ENV_OLD == 1 ) setenv CESR_LIB ${CESR_REL}
+unset    CESR_ENV_OLD
+unsetenv CESR_ENV_OLD
+
+#
+# Now clear all override environment variables that, by default, use a 
+# derivative path from $CESRLIB_BASE.  This does NOT need to be done 
+# for the "version" variables.  ALSO, clear all shell variables with 
+# names corresponding to the override environment variables to be safe 
+# (NOTE:  for variable substitutions in csh-like shells, shell variable 
+# assignments take precedence over environment variable assignments)
+#
+unset    CESRLIB_BASE
+unset    CESRLIB_BIN
+unset    CESRLIB
+unset    CERN_LEVEL
+unset    CONST
+unset    CESR_
+unset    CERN
+unset    CESRENV
+
+unsetenv CESRLIB_BIN
+unsetenv CONST
+unsetenv CESR_
+unsetenv CESRENV
 
 #
 # $Id$
 #
 # $Log$
+# Revision 1.7  2004/11/16 16:01:37  palmer
+# Update environment variable structure including support for Windows and
+# new naming conventions.
+#
 # Revision 1.6  2003/09/08 18:06:44  cesrulib
 # Bug fix - variable name typo.
 #
