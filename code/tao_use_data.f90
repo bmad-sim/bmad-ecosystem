@@ -1,42 +1,39 @@
 !+
-! subroutine tao_use_data (do_all_universes, action, data_name, locations)
+! subroutine tao_use_data (action, data_type, locations)
 !
 ! Veto, restore or use specified datums. range syntax is just like
 !    indexing in fortran: 1:34, 46, 58:78
 !
 ! Input:
-!   do_all_universes -- Logical: Apply to all universes?
-!                         if not just use s%u(s%global%u_view)
 !   action	         -- character(*): veto, use or restore
-!   data_name        -- charatcer(*): the selected data name
-!   data_name        -- character(*): the selected data name
+!   data_type        -- character(*): the selected data name
 !   locations        -- character(*): the index location expression
 !
 ! Output:
 !-
 
-subroutine tao_use_data (do_all_universes, action, data_name, locations)
+subroutine tao_use_data (action, data_type, locations)
 
 use tao_mod
 
 implicit none
 
-character(*)                :: action
-character(*)                :: data_name
-character(*)                :: locations
-
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
 
-logical do_all_universes
-logical, allocatable :: action_logic(:) !which elements do we take action on?
+character(*) :: action
+character(*) :: data_type
+character(*) :: locations
 
-integer which, i, iu, n1, n2
+logical, allocatable :: action_logic(:) !which elements do we take action on?
+logical, automatic :: picked(size(s%u))
 logical err
 
+integer which, i, iu, n1, n2, ix1, ix2
 integer err_num
 
 character(12) :: r_name = "tao_use_data"
+character(16) d_name
 character(200) line
 
 ! decipher action
@@ -45,56 +42,48 @@ call match_word (action, name$%use_veto_restore, which)
 
 ! loop over the universes to do.
 
-if (do_all_universes) then
-  do iu = 1, size(s%u)
-    call use_data (s%u(i))
-  enddo
-else
-  call use_data (s%u(s%global%u_view))
-endif
-
-!----------------------------------------------------------------
-contains
-
-subroutine use_data (u)
-
-type (tao_universe_struct) u
-
-! find data name and name
-
-call tao_find_data (err, u, data_name, d2_ptr, d1_ptr)
+call tao_pick_universe (data_type, d_name, picked, err)
 if (err) return
 
-! find locations
+do iu = 1, size(s%u)
 
-n1 = lbound(d2_ptr%d1(1)%d, 1)
-n2 = ubound(d2_ptr%d1(1)%d, 1)
-allocate(action_logic(n1:n2))
-call location_decode (locations, action_logic, n1, err_num) 
-if (err_num == -1) return
+  ! find data name and name
 
-! set d%good_user based on action and action_logic
+  if (.not. picked(iu)) cycle
+  call tao_find_data (err, s%u(iu), d_name, d2_ptr, d1_ptr)
+  if (err) return
 
-if (associated(d1_ptr)) then
-  call use (d1_ptr)
-else
-  do i = 1, size(d2_ptr%d1)
-    call use (d2_ptr%d1(i))
-    if (err) return
-  enddo
-endif
+  ! find locations
 
-! Optimizer bookkeeping and Print out changes.
+  n1 = lbound(d2_ptr%d1(1)%d, 1)
+  n2 = ubound(d2_ptr%d1(1)%d, 1)
+  allocate(action_logic(n1:n2))
+  call location_decode (locations, action_logic, n1, err_num) 
+  if (err_num == -1) return
 
-call tao_set_data_useit_opt()
-call tao_data_show_use (d2_ptr)
+  ! set d%good_user based on action and action_logic
 
-deallocate(action_logic)
+  if (associated(d1_ptr)) then
+    call use (d1_ptr)
+  else
+    do i = 1, size(d2_ptr%d1)
+      call use (d2_ptr%d1(i))
+      if (err) return
+    enddo
+  endif
 
-end subroutine
+  ! Optimizer bookkeeping and Print out changes.
+
+  call tao_set_data_useit_opt()
+  call tao_data_show_use (d2_ptr)
+
+  deallocate(action_logic)
+
+enddo
 
 !----------------------------------------------------------------
-! contains
+!----------------------------------------------------------------
+contains
 
 subroutine use (d1)
 

@@ -58,19 +58,21 @@ subroutine set_axis (plot)
 
 type (tao_plot_struct) plot
 type (tao_d1_data_struct), pointer :: d1_ptr
-integer iu
+integer iu, n
 real(rp) minn, maxx
 
 !
 
 iu = plot%graph(1)%curve(1)%ix_universe
+if (iu == 0) iu = s%global%u_view
 
 if (what == 's') then
-  minn = 0
+  minn = s%u(iu)%model%ele_(0)%s
+  n = s%u(iu)%model%n_ele_use
   maxx = s%u(iu)%model%param%total_length
 elseif (what == 'index') then
   call tao_find_data (err, s%u(iu), &
-               plot%graph(1)%curve(1)%data_name, d1_ptr = d1_ptr)
+               plot%graph(1)%curve(1)%data_type, d1_ptr = d1_ptr)
   if (err) return
   minn = lbound(d1_ptr%d, 1)
   maxx = ubound(d1_ptr%d, 1)

@@ -39,9 +39,9 @@ subroutine tao_command (command_line, err)
         'clip       ', 'scale      ', 'veto       ', 'use        ', 'restore    ', &
         'run        ', 'flatten    ', 'output     ', 'change     ', 'set        ', &
         'call       ', 'view       ', 'alias      ', 'help       ', 'history    ', &
-        'single_mode', '           ', 'x_scale    ', 'x_axis     ', 'derivative ' /)
+        'single-mode', '           ', 'x-scale    ', 'x-axis     ', 'derivative ' /)
 
-  logical quit_tao, err, do_all_universes
+  logical quit_tao, err
 
 ! Single character mode
 
@@ -55,14 +55,6 @@ subroutine tao_command (command_line, err)
 
   call string_trim (command_line, cmd_line, ix_line)
   if (ix_line == 0 .or. cmd_line(1:1) == '!') return
-
-! A '*' means apply to all universes.
-
-  do_all_universes = .false.
-  if (cmd_line(1:1) == '*') then
-    do_all_universes = .true.
-    call string_trim(cmd_line(2:), cmd_line, ix_line)
-  endif
 
 ! strip the command line of comments
 
@@ -303,9 +295,9 @@ subroutine tao_command (command_line, err)
     call tao_show_cmd (cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4))
 
 !--------------------------------
-! SINGLE_MODE
+! SINGLE-MODE
 
-  case ('single_mode')
+  case ('single-mode')
 
     s%global%single_mode = .true.
 
@@ -321,7 +313,7 @@ subroutine tao_command (command_line, err)
 !--------------------------------
 ! X_AXIS
 
-  case ('x_axis')
+  case ('x-axis')
 
     call cmd_split (2, .true., err); if (err) return
     call tao_x_axis_cmd (cmd_word(1), cmd_word(2))
@@ -329,7 +321,7 @@ subroutine tao_command (command_line, err)
 !--------------------------------
 ! X_SCALE
 
-  case ('x_scale')
+  case ('x-scale')
 
     call cmd_split (3, .true., err); if (err) return
     if (cmd_word(2) == ' ') then

@@ -33,6 +33,6 @@ call out_io (s_abort$, r_name, 'THIS ROUTINE SHOULD NOT HAVE BEEN CALLED')
 call out_io (s_abort$, r_name, 'MERIT_TYPE NOT RECOGNIZED FOR VAR: ' &
         // var%name, 'MERIT_TYPE: ' // var%merit_type)
 
-stop
+call err_exit
 
 end subroutine

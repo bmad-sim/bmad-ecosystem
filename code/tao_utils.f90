@@ -16,13 +16,89 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Subroutine tao_pick_universe (data_type_in, data_type_out, picked, err)
+!
+! Subroutine to pick what universe the data name is comming from.
+! If data_type_in ends in ";*" or ";0" choose all universes.
+! If data_type_in ends in ";n" then choose universe n.
+! If not then choose universe s%global%u_view.
+! data_type_out is data_type_in without any ";n"
+!
+! Input:
+!   data_type_in -- Character(*): data name.
+!
+! Output:
+!   data_type_out -- Character(*): data_type_in without any ";n" ending.
+!   picked(:)     -- Logica: Array showing picked universes.
+!   err           -- Logical: Set True if an error is detected.
+!-
+
+subroutine tao_pick_universe (data_type_in, data_type_out, picked, err)
+
+implicit none
+
+character(*) data_type_in, data_type_out
+character(20) :: r_name = 'tao_pick_universe'
+character(1) char
+
+integer ix, n
+
+logical picked(:)
+logical err
+
+! Init
+
+err = .false.
+picked = .false.
+
+! No ";" then simply choose s%global%u_view
+
+ix = index (data_type_in, ';')
+if (ix == 0) then
+  picked (s%global%u_view) = .true.
+  data_type_out = data_type_in
+  return
+endif
+
+! Here whn ";" is found...
+
+if (data_type_in(ix+2:) /= ' ') then
+  call out_io (s_error$, r_name, 'BAD DATA NAME: ' // data_type_in)
+  err = .true.
+  return
+endif
+
+char = data_type_in(ix+1:ix+1)
+
+if (char == '*' .or. char == '0') then
+  picked = .true.
+  data_type_out = data_type_in(:ix-1)
+  return
+endif
+
+n = index ('123456789', char)
+if (n /= 0) then
+  picked(n) = .true.
+  data_type_out = data_type_in(:ix-1)
+  return
+endif
+
+err = .true.
+call out_io (s_error$, r_name, 'BAD UNIVERSE ENCODING IN DATA NAME: ' // data_type_in)
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Subroutine tao_point_v1_to_var (ip, ii, n, n_var)
 !
 ! used for arbitrary variable pointer indexing
 !
 ! ip       -- tao_var_struct: the pointer
-! ii:       -- tao_var_struct: the variable
-! n:        -- integer: starting index for the pointer
+! ii:      -- tao_var_struct: the variable
+! n:       -- integer: starting index for the pointer
 !-
 
 subroutine tao_point_v1_to_var (ip, ii, n, n_var)
@@ -138,7 +214,7 @@ end subroutine
 ! Routine to set a pointer to the appropriate variable in a lattice
 !
 ! Input:
-!   var       -- Tao_var_struct: Structure has the info of where to point.
+!   var   -- Tao_var_struct: Structure has the info of where to point.
 !
 ! Output:
 !   err   -- Logical: Set True if there is an error. False otherwise.
@@ -299,7 +375,7 @@ type (tao_data_struct) data(:)
 
 !
 
-data%useit_plot = data%exists .and. data%good_user
+data%useit_plot = data%exists .and. data%good_user .and. data%good_plot
 if (any(plot%who%name == 'data')) data%useit_plot = data%useit_plot .and. data%good_data
 if (any(plot%who%name == 'ref'))  data%useit_plot = data%useit_plot .and. data%good_ref
 
@@ -309,26 +385,28 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_find_data (err, u, data_name, d2_ptr, d1_ptr, &
-!                                                     		data_number, d_ptr)
+! Subroutine tao_find_data (err, u, data_type, d2_ptr, d1_ptr, &
+!                                        data_number, d_ptr, print_err)
 !
 ! Routine to set data pointers to the correct data.
 !
 ! Input:
-!   u		          -- tao_universe_struct
-!   data_name    -- character(*): the data name type. Eg: "orbit:x"
-!   data_number   -- character(*), optional: the data point index.
+!   u            -- Tao_universe_struct
+!   data_type    -- Character(*): the data name type. Eg: "orbit:x"
+!   data_number  -- Character(*), optional: the data point index.
 !                     If data_number = 'null' then d_ptr will be nullified.
+!   print_err    -- Logical, optional: Print error message if data is 
+!                     not found? Default is True.
 !
 ! Output:
-!   err 		-- logical: err condition
-!   d2_ptr	-- tao_d2_data_struct, optional, pointer: to the d2 data
-!   d1_ptr 	-- tao_d1_data_struct, optional: pointer to the d1 data
+!   err     -- logical: err condition
+!   d2_ptr  -- tao_d2_data_struct, optional, pointer: to the d2 data
+!   d1_ptr  -- tao_d1_data_struct, optional: pointer to the d1 data
 !   d_ptr   -- tao_data_struct, optional: pointer to the data point
 !-
 
-subroutine tao_find_data (err, u, data_name, d2_ptr, d1_ptr, &
-                                                     			data_number, d_ptr)
+subroutine tao_find_data (err, u, data_type, d2_ptr, d1_ptr, &
+                                    data_number, d_ptr, print_err)
 
 implicit none
 
@@ -339,7 +417,7 @@ type (tao_data_struct), pointer, optional    :: d_ptr
 type (tao_d2_data_struct), pointer :: d2_pointer
 type (tao_d1_data_struct), pointer :: d1_pointer
 
-character(*)                                :: data_name
+character(*)                                :: data_type
 character(*), optional                      :: data_number
 character(20) :: r_name = 'TAO_FIND_DATA'
 character(16) name, d2_name, d1_name
@@ -348,6 +426,7 @@ integer :: data_num, ios
 integer i, ix, ix_plane
 
 logical err
+logical, optional :: print_err
 
 ! init
 
@@ -357,13 +436,13 @@ if (present(d2_ptr)) nullify(d2_ptr)
 if (present(d1_ptr)) nullify(d1_ptr)
 if (present(d_ptr)) nullify(d_ptr)
 
-ix = index(data_name, ':')
+ix = index(data_type, ':')
 if (ix == 0) then
-  name = data_name
+  name = data_type
   d1_name = ' '
 else
-  name = data_name(1:ix-1)
-  d1_name = data_name(ix+1:)
+  name = data_type(1:ix-1)
+  d1_name = data_type(ix+1:)
 endif
 
 ! Point to the correct d2 data type 
@@ -377,7 +456,8 @@ do i = 1, size(u%d2_data)
     exit
   endif
   if (i == size(u%d2_data)) then
-    call out_io (s_error$, r_name, "Couldn't find d2_data name: " // name)
+    if (logic_option (.true., print_err)) &
+          call out_io (s_error$, r_name, "Couldn't find d2_data name: " // name)
     err = .true.
     return
   endif
@@ -404,10 +484,10 @@ do i = 1, size(d2_pointer%d1)
     exit
   endif
   if (i .eq. size(d2_pointer%d1)) then
-    call out_io (s_error$, r_name, &
-                     "Couldn't find d1_data name: " // d1_name)
+     if (logic_option (.true., print_err)) call out_io (s_error$, r_name, &
+                                    "Couldn't find d1_data name: " // d1_name)
     err = .true.
-    return	
+    return  
   endif
 enddo
 
@@ -420,12 +500,12 @@ read (data_number, '(i)', iostat = ios) data_num
 if (ios /= 0) then
   call out_io (s_error$, r_name, "BAD DATA_NUMBER: " // data_number)
   err = .true.
-  return	
+  return  
 endif
 if (data_num < lbound(d1_ptr%d, 1) .or. data_num > ubound(d1_ptr%d, 1)) then
   call out_io (s_error$, r_name, "DATA NUMBER OUT OF RANGE: " // data_number)
   err = .true.
-  return	
+  return  
 endif
 
 if (present(d_ptr)) d_ptr => d1_pointer%d(data_num)
@@ -441,14 +521,14 @@ end subroutine tao_find_data
 ! find a v1 variable type, and variable data then point to it
 !
 !Input:
-! u		-- tao_universe_struct
+! u    -- tao_universe_struct
 ! var_name     -- character(*): the v1_var name
 ! var_number    -- integer: (optional) the variable data point.
 !                     If var_number = 'null' then d_ptr will be nullified.
 !
 !Output:
-! err		-- logical: err condition
-! v1_ptr:	-- tao_v1_var_struct: pointer to the v1 variable
+! err    -- logical: err condition
+! v1_ptr:  -- tao_v1_var_struct: pointer to the v1 variable
 ! v_ptr:        -- tao_var_struct: (optional) pointer to the variable data point
 !-
 
@@ -507,13 +587,13 @@ endif
   if (ios /= 0) then
     call out_io (s_error$, r_name, "BAD VAR_NUMBER: " // var_number)
     err = .true.
-    return	
+    return  
   endif
   if (n_var < lbound(v1%v, 1) .or. n_var > ubound(v1%v, 1)) then
     call out_io (s_error$, r_name, &
                                 "VAR_NUMBER OUT OF RANGE: " // var_number)
     err = .true.
-    return	
+    return  
   endif
 
   if (present(v_ptr)) v_ptr => v1%v(n_var)

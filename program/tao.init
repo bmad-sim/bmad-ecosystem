@@ -26,7 +26,7 @@
 
 &tao_d2_data
   d2_data%name = "orbit" 
-  d2_data%universe = 0  ! apply to all universes
+  universe = 0  ! apply to all universes
 	n_d1_data = 2
 /
 
@@ -88,7 +88,7 @@
 
 &tao_d2_data
   d2_data%name = "phase" 
-  d2_data%universe = 0  ! apply to all universes
+  universe = 0  ! apply to all universes
 	n_d1_data = 2
 /
 
@@ -117,7 +117,7 @@
 
 &tao_d2_data
   d2_data%name = "eta" 
-  d2_data%universe = 0  ! apply to all universes
+  universe = 0  ! apply to all universes
 	n_d1_data = 2
 /
 
@@ -145,7 +145,7 @@
 
 &tao_d2_data
   d2_data%name = "beta" 
-  d2_data%universe = 0  ! apply to all universes
+  universe = 0  ! apply to all universes
 	n_d1_data = 2
 /
 
@@ -173,7 +173,7 @@
 
 &tao_d2_data
   d2_data%name = "cbar"
-  d2_data%universe = 0  ! apply to all universes
+  universe = 0  ! apply to all universes
 	n_d1_data = 4
 /
 
@@ -221,7 +221,7 @@
 
 &tao_d2_data
   d2_data%name = "coupling" 
-  d2_data%universe = 0  ! apply to all universes
+  universe = 0  ! apply to all universes
 	n_d1_data = 4
 /
 

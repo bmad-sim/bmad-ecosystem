@@ -12,6 +12,7 @@
 subroutine tao_lattice_calc ()
 
 use tao_mod
+use tao_data_mod
 
 implicit none
 

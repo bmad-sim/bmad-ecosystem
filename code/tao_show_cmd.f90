@@ -34,7 +34,7 @@ real(rp) f_phi
 integer, parameter :: max_lines = 300   ! maximum lines of output
 character(16) :: max_lines_char = '300'   
 
-character(24) :: data_name, var_name
+character(24) :: var_name
 character(24)  :: plane, fmt, imt, lmt, amt, ffmt, iimt
 character(*) :: word1, word2, word3, word4
 character(40) :: show_word1, show_word2, show_word3, show_word4
@@ -52,10 +52,11 @@ character(100) line1, line2
 
 integer :: data_number, ix_plane
 integer nl, loc
-integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index
+integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju
 
 logical err, found, at_ends
 logical show_all, name_found
+logical, automatic :: picked(size(s%u))
 
 ! The Show string data is stored in the 'lines' array
 ! and the number of entries is stored in nl
@@ -122,107 +123,118 @@ case ('alias')
 
 case ('data')
 
-  if (.not. associated (u%d2_data)) return 
+  call tao_pick_universe (show_word2, show_word2, picked, err)
+  if (err) return
+
+  u_loop: do ju = 1, size(s%u)
+
+    if (.not. picked(ju)) cycle
+    if (.not. associated (s%u(ju)%d2_data)) return 
+    u => s%u(ju)
 
 ! If just "show data" then show all namees
 
-  if (show_word2 == ' ') then
-    do i = 1, size(u%d2_data)
-      if (u%d2_data(i)%name == ' ') cycle
-      if ((nl+1) .gt. max_lines) then
-        call out_io (s_abort$, r_name, "Found too many d2_datas! Listing first "// &
-                                      		max_lines_char // " matches.")
-	      exit
-      endif
-      nl=nl+1; write (lines(nl), '(i4, 2x, a)') i, u%d2_data(i)%name
-    enddo
-    call out_io (s_blank$, r_name, lines(1:nl))
-    return
-  endif
+    if (show_word2 == ' ') then
+      do i = 1, size(u%d2_data)
+        if (u%d2_data(i)%name == ' ') cycle
+        if ((nl+1) .gt. max_lines) then
+          call out_io (s_abort$, r_name, "Found too many d2_datas! Listing first "// &
+                                        		max_lines_char // " matches.")
+	        exit
+        endif
+        nl=nl+1; write (lines(nl), '(i4, 2x, a)') i, u%d2_data(i)%name
+      enddo
+      call out_io (s_blank$, r_name, lines(1:nl))
+      cycle u_loop
+    endif
 
 
 ! get pointers to the data
 
-  if (show_word3 == ' ') show_word3 = 'null'
-  call tao_find_data (err, u, show_word2, d2_ptr, d1_ptr, show_word3, d_ptr)
-  if (err) return
+    if (show_word3 == ' ') show_word3 = 'null'
+    call tao_find_data (err, u, show_word2, d2_ptr, d1_ptr, show_word3, d_ptr)
+    if (err) return
 
 ! If d_ptr points to something then show the datum info.
 
-  if (associated(d_ptr)) then
+    if (associated(d_ptr)) then
 
-    nl=nl+1; write(lines(nl), amt)  '%Name:              ', d_ptr%name
-    nl=nl+1; write(lines(nl), amt)  '%Ele_name:          ', d_ptr%ele_name
-    nl=nl+1; write(lines(nl), amt)  '%Ele2_name:         ', d_ptr%ele2_name
-    nl=nl+1; write(lines(nl), amt)  '%Type:              ', d_ptr%type
-    nl=nl+1; write(lines(nl), imt)  '%Ix_ele:            ', d_ptr%ix_ele
-    nl=nl+1; write(lines(nl), imt)  '%Ix_ele2:           ', d_ptr%ix_ele2
-    nl=nl+1; write(lines(nl), imt)  '%Ix_ele_merit:      ', d_ptr%ix_ele_merit
-    nl=nl+1; write(lines(nl), imt)  '%Ix_dModel:         ', d_ptr%ix_dModel
-    nl=nl+1; write(lines(nl), imt)  '%Ix_d1:             ', d_ptr%ix_d1
-    nl=nl+1; write(lines(nl), imt)  '%Ix_data:           ', d_ptr%ix_data
-    nl=nl+1; write(lines(nl), fmt)  '%Data_value:        ', d_ptr%data_value
-    nl=nl+1; write(lines(nl), fmt)  '%Ref_value:         ', d_ptr%ref_value
-    nl=nl+1; write(lines(nl), fmt)  '%Model_value:       ', d_ptr%model_value
-    nl=nl+1; write(lines(nl), fmt)  '%base_value:        ', d_ptr%base_value
-    nl=nl+1; write(lines(nl), fmt)  '%Delta:             ', d_ptr%delta
-    nl=nl+1; write(lines(nl), fmt)  '%Design_value:      ', d_ptr%design_value
-    nl=nl+1; write(lines(nl), fmt)  '%Old_value:         ', d_ptr%old_value
-    nl=nl+1; write(lines(nl), fmt)  '%Fit_value:         ', d_ptr%fit_value
-    nl=nl+1; write(lines(nl), fmt)  '%Merit:             ', d_ptr%merit
-    nl=nl+1; write(lines(nl), fmt)  '%Conversion_factor: ', d_ptr%conversion_factor
-    nl=nl+1; write(lines(nl), fmt)  '%Weight:            ', d_ptr%weight
-    nl=nl+1; write(lines(nl), amt)  '%Merit_type:        ', d_ptr%merit_type
-    nl=nl+1; write(lines(nl), lmt)  '%Exists:            ', d_ptr%exists
-    nl=nl+1; write(lines(nl), lmt)  '%Good_data:         ', d_ptr%good_data
-    nl=nl+1; write(lines(nl), lmt)  '%Good_ref:          ', d_ptr%good_ref
-    nl=nl+1; write(lines(nl), lmt)  '%Good_user:         ', d_ptr%good_user
-    nl=nl+1; write(lines(nl), lmt)  '%Good_opt:          ', d_ptr%good_opt
-    nl=nl+1; write(lines(nl), lmt)  '%Useit_plot:        ', d_ptr%useit_plot
-    nl=nl+1; write(lines(nl), lmt)  '%Useit_opt:         ', d_ptr%useit_opt
+      nl=nl+1; write(lines(nl), amt)  '%Name:              ', d_ptr%name
+      nl=nl+1; write(lines(nl), amt)  '%Ele_name:          ', d_ptr%ele_name
+      nl=nl+1; write(lines(nl), amt)  '%Ele2_name:         ', d_ptr%ele2_name
+      nl=nl+1; write(lines(nl), amt)  '%Type:              ', d_ptr%type
+      nl=nl+1; write(lines(nl), imt)  '%Ix_ele:            ', d_ptr%ix_ele
+      nl=nl+1; write(lines(nl), imt)  '%Ix_ele2:           ', d_ptr%ix_ele2
+      nl=nl+1; write(lines(nl), imt)  '%Ix_ele_merit:      ', d_ptr%ix_ele_merit
+      nl=nl+1; write(lines(nl), imt)  '%Ix_dModel:         ', d_ptr%ix_dModel
+      nl=nl+1; write(lines(nl), imt)  '%Ix_d1:             ', d_ptr%ix_d1
+      nl=nl+1; write(lines(nl), imt)  '%Ix_data:           ', d_ptr%ix_data
+      nl=nl+1; write(lines(nl), fmt)  '%Data_value:        ', d_ptr%data_value
+      nl=nl+1; write(lines(nl), fmt)  '%Ref_value:         ', d_ptr%ref_value
+      nl=nl+1; write(lines(nl), fmt)  '%Model_value:       ', d_ptr%model_value
+      nl=nl+1; write(lines(nl), fmt)  '%base_value:        ', d_ptr%base_value
+      nl=nl+1; write(lines(nl), fmt)  '%Delta:             ', d_ptr%delta
+      nl=nl+1; write(lines(nl), fmt)  '%Design_value:      ', d_ptr%design_value
+      nl=nl+1; write(lines(nl), fmt)  '%Old_value:         ', d_ptr%old_value
+      nl=nl+1; write(lines(nl), fmt)  '%Fit_value:         ', d_ptr%fit_value
+      nl=nl+1; write(lines(nl), fmt)  '%Merit:             ', d_ptr%merit
+      nl=nl+1; write(lines(nl), fmt)  '%Conversion_factor: ', d_ptr%conversion_factor
+      nl=nl+1; write(lines(nl), fmt)  '%S:                 ', d_ptr%s
+      nl=nl+1; write(lines(nl), fmt)  '%Weight:            ', d_ptr%weight
+      nl=nl+1; write(lines(nl), amt)  '%Merit_type:        ', d_ptr%merit_type
+      nl=nl+1; write(lines(nl), lmt)  '%Exists:            ', d_ptr%exists
+      nl=nl+1; write(lines(nl), lmt)  '%Good_data:         ', d_ptr%good_data
+      nl=nl+1; write(lines(nl), lmt)  '%Good_ref:          ', d_ptr%good_ref
+      nl=nl+1; write(lines(nl), lmt)  '%Good_user:         ', d_ptr%good_user
+      nl=nl+1; write(lines(nl), lmt)  '%Good_opt:          ', d_ptr%good_opt
+      nl=nl+1; write(lines(nl), lmt)  '%Good_plot:         ', d_ptr%good_plot
+      nl=nl+1; write(lines(nl), lmt)  '%Useit_plot:        ', d_ptr%useit_plot
+      nl=nl+1; write(lines(nl), lmt)  '%Useit_opt:         ', d_ptr%useit_opt
 
 ! Else show the d1_data info.
 
-  elseif (associated(d1_ptr)) then
+    elseif (associated(d1_ptr)) then
 
-    write(lines(1), '(2a)') 'Data name: ', trim(d2_ptr%name) // ':' // d1_ptr%name
-    lines(2) = ' '
-    line1 = '        Name              Data         Model        Design'
-    write (lines(3), *) line1
-    nl = 3
-    do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
-      if ((nl+1) .gt. max_lines) then
-      call out_io (s_abort$, r_name, "Found too many datams! Listing first "//&
-                    max_lines_char// " matches.")
-      exit
-      endif
-      if (d1_ptr%d(i)%exists) then
-        nl=nl+1
-        write(lines(nl), '(i, 2x, a7, 3es14.4)') i, &
-               d1_ptr%d(i)%name, d1_ptr%d(i)%data_value, &
-               d1_ptr%d(i)%model_value, d1_ptr%d(i)%design_value
-      endif
-    enddo
-    nl=nl+1
-    write (lines(nl), *) line1
+      write(lines(1), '(2a)') 'Data name: ', trim(d2_ptr%name) // ':' // d1_ptr%name
+      lines(2) = ' '
+      line1 = '        Name              Data         Model        Design'
+      write (lines(3), *) line1
+      nl = 3
+      do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
+        if ((nl+1) .gt. max_lines) then
+        call out_io (s_abort$, r_name, "Found too many datams! Listing first " // &
+                                   max_lines_char // " matches.")
+        exit
+        endif
+        if (d1_ptr%d(i)%exists) then
+          nl=nl+1
+          write(lines(nl), '(i, 2x, a7, 3es14.4)') i, &
+                 d1_ptr%d(i)%name, d1_ptr%d(i)%data_value, &
+                 d1_ptr%d(i)%model_value, d1_ptr%d(i)%design_value
+        endif
+      enddo
+      nl=nl+1
+      write (lines(nl), *) line1
 
 ! else we must have a valid d2_ptr.
 
-  else 
+    else 
 
-    write(lines(1), '(2a)') 'Data type:    ', d2_ptr%name
-    do i = 1, size(d2_ptr%d1)
-      if ((nl+1) .gt. max_lines) then
-      call out_io (s_abort$, r_name, "Found too many d1_data! Listing first "//&
-                    max_lines_char// " matches.")
-      exit
-      endif
-      nl=nl+1; write(lines(nl), '(5x, a, i3, a, i3)') d2_ptr%d1(i)%name, &
-                lbound(d2_ptr%d1(i)%d, 1), ':', ubound(d2_ptr%d1(i)%d, 1)
-    enddo
-  endif
+      write(lines(1), '(2a)') 'Data type:    ', d2_ptr%name
+      do i = 1, size(d2_ptr%d1)
+        if ((nl+1) .gt. max_lines) then
+        call out_io (s_abort$, r_name, "Found too many d1_data! Listing first " // &
+                                       max_lines_char // " matches.")
+        exit
+        endif
+        nl=nl+1; write(lines(nl), '(5x, a, i3, a, i3)') d2_ptr%d1(i)%name, &
+                  lbound(d2_ptr%d1(i)%d, 1), ':', ubound(d2_ptr%d1(i)%d, 1)
+      enddo
+    endif
 
-  call out_io (s_blank$, r_name, lines(1:nl))
+    call out_io (s_blank$, r_name, lines(1:nl))
+
+  enddo u_loop
 
 !----------------------------------------------------------------------
 ! ele

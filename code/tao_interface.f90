@@ -255,10 +255,10 @@ interface
 end interface
  
 interface
-  subroutine tao_use_data (action, data_name, range)
+  subroutine tao_use_data (action, data_type, range)
     implicit none
     character(*)                :: action
-    character(*)                :: data_name
+    character(*)                :: data_type
     character(*)                :: range
   end subroutine
 end interface
@@ -339,16 +339,14 @@ interface
 end interface
 
 interface
-  subroutine tao_load_data_array ()
-    implicit none
-  end subroutine
-end interface
-
-interface
-  subroutine tao_hook_load_data_array (data, found)
+  subroutine tao_hook_load_data_array (found, datum, lattice, orb, datum_value)
     use tao_struct, only: tao_data_struct
+    use bmad_struct, only: ring_struct, coord_struct, rp
     implicit none
-    type (tao_data_struct) data
+    type (tao_data_struct) datum
+    type (ring_struct) lattice
+    type (coord_struct) orb(0:)
+    real(rp) datum_value
     logical found
   end subroutine
 end interface

@@ -108,7 +108,7 @@ the constraint:
 \Begineq
   C = (\mbox{Model} - \mbox{Target})
 \Endeq
-\item[min]
+\item[min, abs\_min]
 \Begineq
   C = 
     \begin{cases}
@@ -116,7 +116,7 @@ the constraint:
     (\mbox{Model} - \mbox{Target})  & \mbox{Model} < \mbox{Target} 
     \end{cases}
 \Endeq
-\item[max]
+\item[max, abs\_max]
 \Begineq
   C = 
     \begin{cases}
@@ -130,7 +130,7 @@ the constraint:
 \section{Constraints}
 \label{s:cons}
 
-To start the optimization either set p%opimizer_on = T in the first section of
+To start the optimization either set \vn{p%opimizer_on} = T in the first section of
 the input file or type 'X' while in manual mode. '.' (a period) will get you
 out of auto mode back into manual mode. TOAD only checks once each loop to see
 what you have typed so there will be a delay between typing '.' and getting

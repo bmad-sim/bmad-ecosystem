@@ -1,14 +1,13 @@
 !+
-! Subroutine tao_set_data_cmd (do_all_universes, name, component, set_value, list)
+! Subroutine tao_set_data_cmd (name, component, set_value, list)
 !
 ! Routine to set data values.
 !
 ! Input:
-!   do_all_universes -- Logical: Apply set to all universes?
-!   name            -- Character(*): Which data name to set.
-!   component        -- Character(*): Which component to set.
-!   set_value        -- Character(*): What value to set it to.
-!   list             -- Character(*): If not blank then gives which indexes to apply to.
+!   name       -- Character(*): Which data name to set.
+!   component  -- Character(*): Which component to set.
+!   set_value  -- Character(*): What value to set it to.
+!   list       -- Character(*): If not blank then gives which indexes to apply to.
 !
 !  Output:
 !-

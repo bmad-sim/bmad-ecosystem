@@ -33,12 +33,12 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 
   integer ios, iu, i, j, k, ix, n_uni
   integer n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
-  integer n, n_universes, iostat
+  integer n, n_universes, iostat, universe
   integer ix_min_var, ix_max_var, n_d1_data
   integer ix_min_data, ix_max_data, ix_d1_data
 
   character(*) data_and_var_file
-  character(40) :: r_name = 'TAO_INIT_GLOBAL_AND_UNIVERSES'
+  character(40) :: r_name = 'tao_init_global_and_universes'
   character(200) file_name
   character(16) name,  default_universe
   character(16) default_merit_type, default_attribute
@@ -48,7 +48,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 
   namelist / tao_params / global, n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
          
-  namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type
+  namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe
   namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, &
                            ix_max_data, default_weight
   namelist / tao_var / v1_var, var, default_weight, default_step, &
@@ -61,6 +61,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 
   global%valid_plot_who(1:5) =  (/ 'model ', 'base  ', 'ref   ', 'design', 'data  ' /)
   call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
+  call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
   read (iu, nml = tao_params)
   call out_io (s_blank$, r_name, 'Init: Read tao_params namelist')
   close (iu)
@@ -75,6 +76,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   allocate (s%var(n_var_max))
   allocate (s%v1_var(n_v1_var_max))
 
+  s%v1_var%name = ' '  ! blank name means it doesn't (yet) exist
   s%var(:)%good_opt  = .true.
   s%var(:)%exists    = .false.
   s%var(:)%good_var  = .true.
@@ -90,14 +92,14 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 
   do 
     d2_data%name = ' '      ! set default
-    d2_data%universe = 0
+    universe = 0
     default_merit_type = 'target'
     read (iu, nml = tao_d2_data, iostat = ios, err = 9100)
     if (ios < 0) exit         ! exit on end-of-file
     call out_io (s_blank$, r_name, &
                       'Init: Read tao_d2_data namelist: ' // d2_data%name)
 
-    n_uni = d2_data%universe      ! universe to use 
+    n_uni = universe      ! universe to use 
     if (n_uni == 0) then
       do i = 1, size(s%u)
         call d2_data_stuffit (s%u(i))
@@ -107,10 +109,14 @@ subroutine tao_init_global_and_universes (data_and_var_file)
     endif
 
     do k = 1, n_d1_data
-      default_weight = 0.0      ! set default
-      data(:)%weight = 0.0        ! set default
-      data(:)%ele_name = ' '
-      data(:)%ele2_name = ' '
+      default_weight = 0      ! set default
+      data(:)%name       = ' '
+      data(:)%type       = ' '
+      data(:)%merit_type = ' '
+      data(:)%ele_name   = ' '
+      data(:)%ele2_name  = ' '
+      data(:)%data_value = 0
+      data(:)%weight     = 0
       read (iu, nml = tao_d1_data, err = 9150)
       if (ix_d1_data /= k) then
         write (line, '(a, 2i4)') 'IX_D1_DATA MISMATCH:', k, ix_d1_data
@@ -163,16 +169,10 @@ subroutine tao_init_global_and_universes (data_and_var_file)
                                                   default_universe = 'gang'
 
     if (default_universe == 'clone') then
-      ix = index (v1_var%name, '#')
-      if (ix == 0) then
-        call out_io (s_abort$, r_name, &
-                            'NO "#" IN V1_VAR NAME WITH UNIVERSE "CLONE"', &
-                            'FOR VARIABLE: ' // v1_var%name)
-        call err_exit
-      endif
       do i = 1, size(s%u)
         call var_stuffit_common
-        write (s%v1_var(s%n_v1_var_used)%name(ix:ix), '(i1)') i
+        write (s%v1_var(s%n_v1_var_used)%name, '(2a, i1)') &
+                                s%v1_var(s%n_v1_var_used)%name, ';', i
         call var_stuffit (i)
       enddo
 
@@ -252,6 +252,7 @@ subroutine init_universe (u)
 
   if (n_d2_data_max /= 0) then
     allocate (u%d2_data(n_d2_data_max))
+    u%d2_data%name = ' '  ! blank name means it doesn't exist
   endif
 
   if (n_data_max /= 0) then
@@ -365,7 +366,7 @@ if (index(data(0)%ele_name, 'SEARCH:') /= 0) then
     if (match_wild(u%design%ele_(j)%name, search_string)) &
     found_one(j) = .true.
     ! keep track of element index in lattice
-    u%design%ele_(j)%ix_pointer = j
+    !! u%design%ele_(j)%ix_pointer = j
   enddo
   ! finish finding data array limits
   if (counting) then
@@ -433,7 +434,11 @@ else
   enddo
 endif
 
-u%data(n1:n2)%type = trim(d2_data%name) // ':' // d1_data%name
+u%data(n1:n2)%data_value = data(ix1:ix2)%data_value
+u%data(n1:n2)%type = data(ix1:ix2)%type
+where (u%data(n1:n2)%type == ' ') u%data(n1:n2)%type = &
+                            trim(d2_data%name) // ':' // d1_data%name
+
 
 ! Create data names
 

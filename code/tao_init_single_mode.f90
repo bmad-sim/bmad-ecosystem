@@ -21,11 +21,12 @@ subroutine tao_init_single_mode (single_mode_file)
 
   type (tao_key_input) key(500)
 
-  integer ios, iu, i, j, n, n1, n2, nn, i_max, ix_u
+  integer ios, iu, i, j, n, n1, n2, nn, i_max, ix_u, ix
 
   character(*) single_mode_file
-  character(40) :: r_name = 'TAO_INIT_SINGLE_MODE'
+  character(40) :: r_name = 'tao_init_single_mode'
   character(200) file_name
+  character(16) name
 
   logical err
 
@@ -36,7 +37,7 @@ subroutine tao_init_single_mode (single_mode_file)
 ! nu(i) keeps track of the sizes of allocatable pointers in universe s%u(i).
 
   key%ele_name = ' '
-  key%lattice = '0'
+  key%universe = '0'
 
   call tao_open_file ('TAO_INIT_DIR', single_mode_file, iu, file_name)
   read (iu, nml = key_bindings, iostat = ios)
@@ -58,8 +59,8 @@ subroutine tao_init_single_mode (single_mode_file)
     i_max = i
     call str_upcase (key(i)%ele_name,    key(i)%ele_name)
     call str_upcase (key(i)%attrib_name, key(i)%attrib_name)
-    call str_upcase (key(i)%lattice,     key(i)%lattice)
-    if (key(i)%lattice(1:4) == 'LAT:') key(i)%lattice = key(i)%lattice(5:)
+    call str_upcase (key(i)%universe,     key(i)%universe)
+    if (key(i)%universe(1:2) == 'U:') key(i)%universe = key(i)%universe(3:)
   enddo key_loop
 
 !
@@ -72,8 +73,13 @@ subroutine tao_init_single_mode (single_mode_file)
   s%key(:)%ix_var = 0
 
   do i = 1, i_max
+
     if (key(i)%ele_name == ' ') cycle
+    write (name, *) i
+    call string_trim (name, name, ix)
     n = i + n1 - 1
+    s%var(n)%name        = 'key:' // name
+    s%var(n)%alias       = name
     s%var(n)%ele_name    = key(i)%ele_name
     s%var(n)%attrib_name = key(i)%attrib_name
     s%var(n)%weight      = key(i)%weight
@@ -81,11 +87,12 @@ subroutine tao_init_single_mode (single_mode_file)
     s%var(n)%high_lim    = key(i)%high_lim
     s%var(n)%low_lim     = key(i)%low_lim
     s%var(n)%good_user   = key(i)%good_opt
+    s%var(n)%merit_type  = 'limit'
     s%var(n)%exists      = .true.
 
-    read (key(i)%lattice, *, iostat = ios) ix_u
+    read (key(i)%universe, *, iostat = ios) ix_u
     if (ios /= 0) then
-      call out_io (s_abort$, r_name, 'BAD LATTICE INDEX FOR KEY: ' // key(i)%ele_name)
+      call out_io (s_abort$, r_name, 'BAD UNIVERSE INDEX FOR KEY: ' // key(i)%ele_name)
       call err_exit
     endif
 
@@ -103,6 +110,7 @@ subroutine tao_init_single_mode (single_mode_file)
     s%var(n)%design_value = s%var(n)%model_value
     s%var(n)%base_value = s%var(n)%this(1)%base_ptr
     s%var(n)%exists = .true.
+
 
     s%key(i)%val0 = s%var(n)%model_value
     s%key(i)%delta = key(i)%delta

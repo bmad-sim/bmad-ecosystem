@@ -181,15 +181,17 @@ lattice element lives in. If \vn{var(i)%universe} is not present
   "gang"     -- Multiple universe control (default).
   "clone"    -- Make a var array block for each universe.
 \end{example}
-With both \vn{"gang"} and \vn{"clone"} individual \vn{var(i)%universe} may 
-not be set in the namelist. \vn{"gang"} means that each variable will control
-the given attribute in each universe simultaneously. \vn{"clone"} means that
-an array of variables will be duplicated, one for each universe. To be able
-to specify a given variable the \vn{v1_var%name} must have the character
-\vn{"\#"} in it. For example, if \vn{v1_var%name} is \vn{quad\#} then the
-variable block name for the second universe will be \vn{quad1}. The default 
-if both \vn{default_universe} and all \vn{var(i)%universe} are not given is for
-\vn{default_universe} to be \vn{"gang"}
+With both \vn{"gang"} and \vn{"clone"} individual \vn{var(i)%universe}
+may not be set in the namelist. \vn{"gang"} means that each variable
+will control the given attribute in each universe
+simultaneously. \vn{"clone"} means that an array of variables will be
+duplicated, one for each universe.  To differentiate variables from
+different universes \vn{;n} will be appended to each \vn{v1_var%name}
+where \vn{n} is the universe number.  For example, if \vn{v1_var%name}
+is \vn{quad_k1} then the variable block name for the second universe will
+be \vn{quad_k1;2}. The default if both \vn{default_universe} and all
+\vn{var(i)%universe} are not given is for \vn{default_universe} to be
+\vn{"gang"}
 
 \vn{var(i)%weight} gives
 the weight coefficient for the contribution of a variable to the merit function. 
@@ -215,25 +217,53 @@ For details on \vn{limit} and \vn{target} constraints see the chapter on Optimiz
 \section{Initializing Data}
 \label{s:init_data} 
 
-Data is initialized using the \vn{tao_data} namelist block whose format is
+Data is initialized using the \vn{tao_d2_data} namelist block whose format is
 \begin{example}
   \&tao_d2_data
     d2_data%name       = "<d2_name>"    ! d2_data name.
-    d2_data%universe   = <integer>      ! Universe variables belong in.
+    universe   = <integer>      ! Universe variables belong in.
                                         !   0 => all universes (default).
     default_merit_type = "<merit_type>" ! Sets how the merit is calculated.
     n_d1_data          = <integer>      ! Number associated d1_data arrays.
   /
 \end{example}
+For example:
+For example:
+\begin{example}
+  \&tao_data
+    d2_data%name = "orbit"
+    universe = 0  ! apply to all universes
+    n_d1_data        = 2
+  /
+\end{example}
+A \vn{tao_d2_data} block is needed for each \vn{d2_data} structure
+defined. \vn{d2_data%name} gives the name of the structure.
+\vn{universe} gives the universe that the data is associated with. A
+value of zero means that a \vn{d2_data} structure is set up in each
+universe. \vn{default_merit_type} determines how the merit function
+terms are calculated for the individual datum points. Possibilities
+are:
+\begin{example}
+  target
+  max
+  min
+  abs_max
+  abs_min
+\end{example}
+See the chapter on optimization for more details.  
 
+\vn{n_d1_data} defines how many \vn{d1_data} structures are associated
+with the \vn{d2_data} staructure. For each \vn{n_d1_data} structure
+there must be a \vn{tao_d1_data} namelist which has the form:
 \begin{example}
   \&tao_d1_data
     ix_d1_data         = <integer>      ! d1_data index
-    d1_data%name       = "<d1_name>"    ! d1_data Sub-class name.
+    d1_data%name       = "<d1_name>"    ! d1_data name.
     default_weight     = <number>       ! Merit function weight.
     ix_min_data        = <integer>      ! Minimum array index.
     ix_max_data        = <integer>      ! Maximum array index.
     data(j)%name       = "<data_name>"  ! Data names.
+    data(j)%type       = "<type_name>"  ! Eg: "orbit:x", etc.
     data(j)%ele_name   = "<ele_name>"   ! Lattice element names.
     data(j)%ele2_name  = "<ele2_name>"  ! Lattice element names.
     data(j)%weight     = "<weight>"     ! Merit function weight.
@@ -241,13 +271,6 @@ Data is initialized using the \vn{tao_data} namelist block whose format is
   /
 \end{example}
 For example:
-\begin{example}
-  \&tao_data
-    d2_data%name = "orbit"
-    d2_data%universe = 0  ! apply to all universes
-  /
-\end{example}
-
 \begin{example}
   \&tao_d1_data
     ix_d1_data        = 1 
@@ -260,42 +283,6 @@ For example:
 
   /
 \end{example}
-
-\begin{example}
-  \&tao_d1_data
-    ix_d1_data         = 2
-    d1_data%name = "y"  
-    data%default_weight = 1e6
-    data%ix_min = 0 
-    data%ix_max = 99  
-    data(0)%name = "SAME: orbit:x"
-    data(0)%ele_name = "SAME: orbit:x"
-  /
-\end{example}
-
-A \vn{tao_data} block is needed for each \vn{d2_data} structure
-defined. \vn{d2_data%name} gives the class name of the
-structure. Certain \vn{d2_data} names are recognized by \tao. These are:
-\begin{example}
-  "orbit"       ! Orbit data
-  "phase"       ! Betatron phase data
-  "eta"         ! Dispersion data
-  "beta"        ! Beta data
-  "coupling"    ! Coupling (Ratio of shaking amplitudes) data
-  "cbar"        ! Cbar data
-\end{example}
-
-\vn{d2_data%universe} gives the universe that the data is
-associated with. A value of zero means that a \vn{d2_data} structure
-is set up in each universe. \vn{d1_data%name} gives the
-name for a \vn{d1_data} structure within the \vn{d2_data}
-structure. Certain \vn{d1_data} classes are recognized by \tao. These are:
-\begin{example}
-  "x" & "y"                   ! With "orbit", "phase", "eta", and "beta".
-  "11", "12a", "12b", & "21"  ! With "coupling".
-  "11", "12", "21", & "22"    ! With "cbar".
-\end{example}
-
 \vn{ix_min_data} and \vn{ix_max_data} give the bounds for the
 \vn{data(i)} structure array that is associated with the \vn{d1_data}
 structure. \vn{data(:)%name} gives the names of the data points and
@@ -304,8 +291,40 @@ with the data points.  If elements in the \vn{data} array do not exist
 the corresponding \vn{var%name} and \vn{data%ele_name} should be left
 blank. Lists of names can be reused using the syntax:
 \begin{example}
-  data(0)%name(0) = "SAME: <d1_data_name>"
-  data(0)%ele_name(0) = "SAME: <d1_data_name>"
+  data(0)%name(0) = "SAME: <d2_name:d1_name>"
+  data(0)%ele_name(0) = "SAME: <d2_name:d1_name>"
+\end{example}
+For example:
+\begin{example}
+  \&tao_d1_data
+    ix_d1_data         = 2
+    d1_data%name = "y"  
+    ...
+    data(0)%name = "SAME: orbit:x"
+    data(0)%ele_name = "SAME: orbit:x"
+  /
+\end{example}
+
+If \vn{data(j)%type} is not given then the \vn{d2_data} name and the
+\vn{d1_data} name are combined for each datum to form the datum's
+\vn{type}. Certain types are recognized by \tao. These are:
+\begin{example}
+  "orbit:x", "orbit:y"             ! Orbit 
+  "phase:x", "phase:y"             ! Betatron phase (relative) 
+  "beta:x",  "beta:y"              ! Beta function
+  "alpha:x", "alpha:y"             ! Alpha function
+  "eta:x",   "eta:y"               ! Dispersion 
+  "etap:x",  "etap:y"              ! Dispersion derivative
+  "cbar:11", "cbar:12",            ! Cbar coupling 
+     "cbar:21", "cbar:22"       
+  "coupling:11", "coupling:12a",   ! Raw coupling 
+     "coupling:12b", "coupling:22" 
+  "floor:x", "floor:y", "floor:z"  ! Floor position (relative)
+  "floor:theta"                    ! Floor angle (relative)
+  "s_length"                       ! longitudinal length (relative)
+  "i5"                             ! Radiation integral
+  "r56"                            ! Transfer matrix element (relative)
+  "t566"                           ! 2nd order Xfer element (relative)
 \end{example}
 
 \vn{data(:)%weight} gives the weight coefficient for a variable in the
@@ -483,26 +502,30 @@ namelists should be placed directly after their respective
 \vn{tao_template_graph} namelist is:
 \begin{example}
   \&tao_template_graph
-  	graph%name            = "<name>"
   	graph_index           = <number>
+  	graph%name            = "<name>"
     graph%this_box        = <ix>, <iy>
     graph%title           = "<label>''
     graph%margin          =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
     graph%y               = <qp_axis_struct>
     graph%y2              = <qp_axis_struct>
     graph%n_curve         = <number_of_curves>
-    curve(1)%use_y2       = <logical>
-    curve(1)%data_class   = "<data_class>"
-    curve(1)%units_factor = <factor>
-    curve(1)%line         = <qp_line_struct>
-    curve(1)%symbol       = <qp_symbol_struct>
+    curve(i)%data_name    = "<data_name>"
+    curve(i)%data_source  = "<source_name>"
+    curve(i)%units_factor = <factor>
+    curve(i)%use_y2       = <logical>
+    curve(i)%draw_line    = <logical>
+    curve(i)%ix_universe  = <universe_number>
+    curve(i)%line         = <qp_line_struct>
+    curve(i)%symbol       = <qp_symbol_struct>
+    curve(i)%symbol_every = <integer>
   /
 \end{example}
 For example:
 \begin{example}
   \&tao_template_graph
-  	graph%name         = "x"
   	graph_index        = 1
+  	graph%name         = "x"
     graph%this_box     = 1, 2
     graph%title        = "Horizontal Orbit (mm)"
     graph%margin       =  60, 200, 30, 30, "POINTS"
@@ -511,7 +534,7 @@ For example:
     graph%y%min        = -4
     graph%y%major_div  = 4
     graph%n_curve      = 1
-    curve(1)%data_class  = "orbit:x"
+    curve(1)%data_name  = "orbit:x"
     curve(1)%units_factor = 100
     curve(1)%use_y2  = .false.
   /

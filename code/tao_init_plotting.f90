@@ -37,7 +37,7 @@ type (tao_ele_shape_struct) shape(20)
 integer iu, i, j, ip, n, ng, ios
 integer graph_index
 
-character(200) namelist_file, plot_file
+character(200) file_name, plot_file
 character(20) :: r_name = 'tao_init_plotting'
 
 logical :: init_needed = .true.
@@ -54,7 +54,8 @@ init_needed = .false.
 
 ! Read in the plot page parameters
 
-call tao_open_file ('TAO_INIT_DIR', plot_file, iu, namelist_file)
+call tao_open_file ('TAO_INIT_DIR', plot_file, iu, file_name)
+call out_io (s_blank$, r_name, '*Init: Opening Plotting File: ' // file_name)
 
 place%region = ' '
 region%name = ' '       ! a region exists only if its name is not blank 
@@ -141,7 +142,7 @@ do
     do j = 1, graph%n_curve
       crv => grph%curve(j)
       crv%data_source       = curve(j)%data_source
-      crv%data_name         = curve(j)%data_name
+      crv%data_type         = curve(j)%data_type
       crv%units_factor      = curve(j)%units_factor
       crv%symbol_every      = curve(j)%symbol_every
       crv%ix_universe       = curve(j)%ix_universe
@@ -155,15 +156,17 @@ enddo
 
 ! read in shapes
 
+s%plot_page%ele_shape%key = 0
+
 if (any(s%template_plot(:)%type == 'lat_layout')) then
 
-  rewind (1)
+  rewind (iu)
   shape(:)%key_name = ' '
   shape(:)%key = 0
-  read (1, nml = element_shapes, iostat = ios)
+  read (iu, nml = element_shapes, iostat = ios)
 
   if (ios /= 0) then
-    call out_io (s_error$, r_name, 'ERROR READING ELE_SHAPE NAMELIST.')
+    call out_io (s_error$, r_name, 'ERROR READING ELE_SHAPE NAMELIST IN FILE.')
     call err_exit
   endif
 
@@ -208,7 +211,7 @@ return
 
 9000 continue
 call out_io (s_error$, r_name, &
-        'TAO_PLOT_PAGE NAMELIST READ ERROR.', 'IN FILE: ' // namelist_file)
+        'TAO_PLOT_PAGE NAMELIST READ ERROR.', 'IN FILE: ' // file_name)
 rewind (iu)
 do
   read (iu, nml = tao_plot_page)  ! force printing of error message
@@ -218,7 +221,7 @@ enddo
 
 9100 continue
 call out_io (s_error$, r_name, &
-        'TAO_TEMPLATE_PLOT NAMELIST READ ERROR.', 'IN FILE: ' // namelist_file)
+        'TAO_TEMPLATE_PLOT NAMELIST READ ERROR.', 'IN FILE: ' // file_name)
 rewind (iu)
 do
   read (iu, nml = tao_template_plot)  ! force printing of error message
@@ -228,7 +231,7 @@ enddo
 
 9200 continue
 call out_io (s_error$, r_name, &
-       'TAO_TEMPLATE_GRAPH NAMELIST READ ERROR.', 'IN FILE: ' // namelist_file)
+       'TAO_TEMPLATE_GRAPH NAMELIST READ ERROR.', 'IN FILE: ' // file_name)
 rewind (iu)
 do
   read (iu, nml = tao_template_graph)  ! force printing of error message

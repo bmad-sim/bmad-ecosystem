@@ -1,59 +1,59 @@
-\chapter{Introduction and Nomenclature}
+\chapter{Nomenclature}
 \label{c:nomenclature}
 
 %------------------------------------------------------------------------
 \section{The Known Universe}
 
-Some definitions:
-\begin{description}
-\item[Model Lattice]
-The \vn{model} of the lattice specifies how all the elements are laid
-out and what strengths the components have.
-\item[Design Lattice] 
-The \vn{design} lattice is the particular model lattice that one wants the
-machine to conform to.
-\item[Base Lattice]
+The stuff \tao knows about can be divided into 5 categories: 
+\begin{example}
+  lattice   -- Machine layout and component strengths.
+  data      -- For example: orbit, dispersion, coupling etc.
+  variables -- For example: steerings, quad strengths, etc.
+  plotting  -- How do display stuff.
+  global    -- Miscellaneous global parameters.
+\end{example}
+The \vn{lattice} and \vn{data} stuff are grouped into what is called a
+\vn{universe}. The entire collection of \vn{lattice}, \vn{data},
+\vn{variables}, \vn{plotting}, and \vn{global} information is called
+the \vn{super_universe} and is the sum of what \tao knows about.
+
+%------------------------------------------------------------------------
+\subsection{Lattices}
+
+
+A \vn{lattice} defines the placement of elements in a machine, their
+strengths, and the orbit of a beam through them. Each \vn{universe}
+has actually three lattices:
+  \begin{description}
+  \item[Model Lattice]
+The strengths or placement of the elements in the \vn{model} lattice
+can be varied to see what happens. In particular, things like orbit
+correction involve varying things until the \vn{data} as calculated
+from the \vn{model} match the \vn{data} as actually measured.
+  \item[Design Lattice] 
+The \vn{design} lattice is the particular lattice that one wants the
+machine to conform to. The strengths of the elements in the \vn{design}
+is fixed.
+  \item[Base Lattice]
 It is sometimes
-convenient to designate a reference model lattice so that changes in the
-\vn{model} from the reference point can be looked at.  This reference model
-is called \vn{base}.
-\item[Data] 
-Each data point (for example, the horizontal orbit at some
-detector) has a number of quantities associated with it:
-\begin{description}
-\item[Measured Data] 
-The data obtained from some measurement. This is generally referred to
-as just \vn{data}. When doing lattice design the \vn{data} corresponds to
-a constraint (see below).
-\item[Reference Data] 
-Reference data obtained from some measurement.
-\item[Model Data]
-The data as calculated from the \vn{model} lattice.
-\item[Design Data]
-The data as calculated from the \vn{design} lattice.
-\item[Base Data]
-The data as calculated from the \vn{base} lattice.
-\end{description}
-\item[Variable]
-Since certain variables in the \vn{model} get used often it is
-convenient to have lists of these variables that one can refer to. For
-example, it is typically convenient to have a list for the variables
-that correspond to the strengths of the horizontal steering elements
-used to correct the closed orbit.
-Each variable has a number of values associated with it:
-\begin{description}
-\item[Measured Value] 
-The Value as obtained at the time of the \vn{data} measurement.
-\item[Reference Value] 
-The Value as obtained at the time of the \vn{reference} data  measurement.
-\item[Model Value]
-The value as given in the \vn{model} lattice.
-\item[Design Value]
-The value as given in the \vn{design} lattice.
-\item[Base Value]
-The value as given in the \vn{base} lattice.
-\end{description}
-\end{description}
+convenient to designate a reference lattice so that changes in the
+\vn{model} from the reference point can be looked at.  This reference lattice
+is called the \vn{base}.
+  \end{description}
+
+The \vn{model}, \vn{design}, \vn{base} lattices along with any
+\vn{data} are bundled together to form what is called a
+\vn{universe}. \tao can simultaneously handle multiple universes. Why
+is this useful? It can be used, for example, to simulate both rings of
+a collider machine. This can be convenient if there are, say, steering
+elements in common and it is needed to simultaneously correct the
+orbit in both rings. Another example is in a machine where orbits have
+been measured under different conditions of, say, beam energy, and it
+is desired to fit all the data simultaneously to try to find, say,
+rolls in the bends.
+
+%------------------------------------------------------------------------
+\subsection{Data}
 
 Blocks of like data are associated with what are called \vn{d1_data}
 structures and sets of \vn{d1_data} structures are collected into what
@@ -64,26 +64,36 @@ data. These two structures are then collected into a \vn{d2_data}
 structure representing all orbit data. The \vn{d1_data} and
 \vn{d2_data} structures are defined in the \tao initialization file
 (cf.~Chapter~\ref{c:init}).  When issuing \tao commands one can
-specify all the data associated with a \vn{d2_data} structure using the
-\vn{d2_data} structure's \vn{name}.  For example the name \vn{orbit} specifies the
-orbit data. To specify the data associated with a \vn{d1_data}
-structure use the format \vn{d2_name:d1_name} where \vn{d1_name} is the
-name of the \vn{d1_data} structure. For example, if the \vn{d1_data} structure's name
-for the horizontal
-orbit data is \vn{x} then in \tao commands you refer to it by 
-the name \vn{orbit:x}.
+specify all the data associated with a \vn{d2_data} structure using
+the \vn{d2_data} structure's \vn{name}.  For example the name
+\vn{orbit} specifies the orbit data. To specify the data associated
+with a \vn{d1_data} structure use the format \vn{d2_name:d1_name}
+where \vn{d1_name} is the name of the \vn{d1_data} structure. For
+example, if the \vn{d1_data} structure's name for the horizontal orbit
+data is \vn{x} then in \tao commands you refer to it by the name
+\vn{orbit:x}. Sometimes there is only one \vn{d1_data} structure for a
+given \vn{d2_data} structure. In this case the data can be referred to
+simply by useing the \vn{d2_data}'s name.
 
-The \vn{model}, \vn{design}, \vn{base} lattices along with any
-\vn{data} are
-bundled together to form what is called a \vn{universe}. \tao can
-simultaneously handle multiple universes. Why is this useful? It can
-be used, for example, to simulate both rings of a collider
-machine. This can be convenient if there are, say, steering elements
-in common and it is needed to simultaneously correct the orbit in both
-rings. Another example is in a machine where orbits have been measured
-under different conditions of, say, beam energy, and it is desired to
-fit all the data simultaneously to try to find, say, rolls in the
-bends.
+Each data point (for example, the horizontal orbit at some
+detector) has a number of quantities associated with it:
+  \begin{description}
+  \item[Measured Data] 
+The data obtained from some measurement. This is generally referred to
+as just \vn{data}. When doing lattice design the \vn{data} corresponds to
+a constraint (see below).
+  \item[Reference Data] 
+Reference data obtained from some measurement.
+  \item[Model Data]
+The data as calculated from the \vn{model} lattice.
+  \item[Design Data]
+The data as calculated from the \vn{design} lattice.
+  \item[Base Data]
+The data as calculated from the \vn{base} lattice.
+  \end{description}
+
+%------------------------------------------------------------------------
+\subsection{Variables}
 
 Blocks of variables are associated with what is called a
 \vn{v1_var} structure and each of these structures has a \vn{name}
@@ -92,19 +102,19 @@ controlls a single attribute of one element in a \vn{model} lattice
 of a single universe. However, variables can be configured to simultaneously
 control multiple attributes across multiple universes.
 
-%------------------------------------------------------------------------
-\section{Single Character Input}
-
-Sometimes it is convenient to be able to vary variables using single key strokes
-without having to type a carriage return.
-With \tao this is possible using what is called \vn{single mode}. This is distinct from
-\vn{line mode} where commands to \tao are typed at the command line with a carriage 
-return signaling the end of the command. As explained in the initialization chapter
-\vn{single mode} uses a special initialization file.
-
-The \vn{single mode} initialization file associates variables with certain keyboard keys
-so that when these keys are pressed the value of the variable is varied. This association
-between variables and keys is called a \vn{key table}.
+Each individual variable has a number of values associated with it:
+  \begin{description}
+  \item[Measured Value] 
+The Value as obtained at the time of the \vn{data} measurement.
+  \item[Reference Value] 
+The Value as obtained at the time of the \vn{reference} data  measurement.
+  \item[Model Value]
+The value as given in the \vn{model} lattice.
+  \item[Design Value]
+The value as given in the \vn{design} lattice.
+  \item[Base Value]
+The value as given in the \vn{base} lattice.
+  \end{description}
 
 %------------------------------------------------------------------------
 \section{Plotting}
@@ -166,4 +176,18 @@ use the notation:
 For example, If a template has two graphs named \vn{x} and \vn{y} and
 this template is assigned to the \vn{top} region then the \vn{x} graph
 is referred to as \vn{top:x}. 
+
+%------------------------------------------------------------------------
+\section{Single Character Input}
+
+Sometimes it is convenient to be able to vary variables using single key strokes
+without having to type a carriage return.
+With \tao this is possible using what is called \vn{single mode}. This is distinct from
+\vn{line mode} where commands to \tao are typed at the command line with a carriage 
+return signaling the end of the command. As explained in the initialization chapter
+\vn{single mode} uses a special initialization file.
+
+The \vn{single mode} initialization file associates variables with certain keyboard keys
+so that when these keys are pressed the value of the variable is varied. This association
+between variables and keys is called a \vn{key table}.
 

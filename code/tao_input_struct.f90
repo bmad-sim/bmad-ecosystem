@@ -13,7 +13,6 @@ use tao_mod
 
 type tao_d2_data_input
   character(16) name           ! name of data
-  integer universe             ! universe where data sits. 0 -> all universes
 end type
 
 type tao_d1_data_input
@@ -22,9 +21,11 @@ end type
 
 type tao_data_input
   character(16) :: name
+  character(16) :: type
   character(16) :: ele_name
   character(16) :: ele2_name
   character(16) :: merit_type
+  real(rp) :: data_value
   real(rp) :: weight
 end type
 
@@ -63,7 +64,7 @@ end type
 
 type tao_curve_input
   character(16) data_source
-  character(16) data_name
+  character(16) data_type
   real(rp) units_factor
   integer symbol_every
   integer ix_universe
@@ -106,7 +107,7 @@ type tao_key_input
   character(16) ele_name
   character(16) attrib_name
   real(rp) delta
-  character(16) lattice
+  character(16) universe
   real(rp) small_step
   real(rp) low_lim
   real(rp) high_lim

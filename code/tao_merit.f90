@@ -86,7 +86,7 @@ do i = 1, size(s%u)
 ! For phase data, since there is an arbitrary overall phase,
 ! we choose to make the average delta zero.
 
-  call tao_find_data (err, s%u(i), 'phase:x', d1_ptr = d1)
+  call tao_find_data (err, s%u(i), 'phase:x', d1_ptr = d1, print_err = .false.)
   if (.not. err) then
     n = count(d1%d%useit_opt)
     if (n /= 0) then
@@ -95,7 +95,7 @@ do i = 1, size(s%u)
     endif
   endif
 
-  call tao_find_data (err, s%u(i), 'phase:y', d1_ptr = d1)
+  call tao_find_data (err, s%u(i), 'phase:y', d1_ptr = d1, print_err = .false.)
   if (.not. err) then
     n = count(d1%d%useit_opt)
     if (n /= 0) then

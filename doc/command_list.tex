@@ -13,24 +13,22 @@ is shown in Table~\ref{t:commands}
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Command} & {\it Section}  & {\it Command} & {\it Section} \\ \hline
-  alias    & \ref{s:alias}    &  quit    & \ref{s:quit}    \\ \hline
-  call     & \ref{s:call}     &  restore & \ref{s:restore} \\ \hline
-  change   & \ref{s:change}   &  run     & \ref{s:run}     \\ \hline
-  clip     & \ref{s:clip}     &  set     & \ref{s:set}     \\ \hline
-  exit     & \ref{s:exit}     &  scale   & \ref{s:scale}   \\ \hline
-  flatten  & \ref{s:flatten}  &  show    & \ref{s:show}    \\ \hline
-  output   & \ref{s:output}   &  use     & \ref{s:use}     \\ \hline
-  place    & \ref{s:place}    &  veto    & \ref{s:veto}    \\ \hline
-  plot     & \ref{s:plot}     &  view    & \ref{s:view}    \\ \hline
+  alias    & \ref{s:alias}    &  restore     & \ref{s:restore} \\ \hline
+  call     & \ref{s:call}     &  run         & \ref{s:run}     \\ \hline
+  change   & \ref{s:change}   &  set         & \ref{s:set}     \\ \hline
+  clip     & \ref{s:clip}     &  scale       & \ref{s:scale}   \\ \hline
+  exit     & \ref{s:exit}     &  show        & \ref{s:show}    \\ \hline
+  flatten  & \ref{s:flatten}  &  single-mode & \ref{s:sing}    \\ \hline
+  history  & \ref{s:history}  &  use         & \ref{s:use}     \\ \hline
+  output   & \ref{s:output}   &  veto        & \ref{s:veto}    \\ \hline
+  place    & \ref{s:place}    &  view        & \ref{s:view}    \\ \hline
+  plot     & \ref{s:plot}     &  x-axis      & \ref{s:x-axis}  \\ \hline
+  quit     & \ref{s:quit}     &  x-scale     & \ref{s:x-scale} \\ \hline
 \end{tabular}
 }
 \caption{Table of \bmad\ elements.}
 \label{t:commands}
 \end{table}
-
-Where noted, a ``*'' star can be put in front of a command. This
-signifies that the command is to be applied to all universes and not
-just the one on view.
 
 \vfil
 \break
@@ -107,8 +105,8 @@ Format:
 \begin{example}
   set_value = init_value + <number>
 \end{example}
-If "@" is prepended to \vn{<number>}  then just the value of \vn{<number>} is used
-to set the value
+If "@" is prepended to \vn{<number>} then just the value of
+\vn{<number>} is used to set the value
 \begin{example}
   set_value = <number>
 \end{example}
@@ -124,7 +122,8 @@ For \vn{change ele}, six additional
   \{x, y, z\}           ! position 
   \{x\_p, y\_p, z\_p\}  ! velocity
 \end{example}.
-These are only applicable for changing the BEGINNING orbit for a linear lattice.
+These are only applicable for changing the BEGINNING orbit for a
+linear lattice.
 
 Examples:
 \begin{example}
@@ -187,12 +186,34 @@ Format:
 same as \vn{run}. See the \vn{run} command for more details.
 
 %------------------------------------------------------------------------
+\section{History}
+\label{s:history}
+
+Format:
+\begin{example}
+  history           ! Print the command history.
+  history <number>  ! Reinvoke a command by number.
+  history <string>  ! Reinvoke last command that begins with <string>.
+\end{example}
+
+\vskip 0.2in
+Every \tao command entered is recorded in a ``history stack'' and
+these commands can be viewed and reinvoked as needed. 
+
+Examples
+\begin{example}
+  history 34   ! Reinvoke command number 34.
+  history set  ! Reinvoke last set command.  
+\end{example}
+
+%------------------------------------------------------------------------
 \section{Output}
 \label{s:output}
 
 Format:
 \begin{example}
-  output hard
+  output hard     ! print the plot window to a printer.
+  output ps       ! create a postscript file of the plot window.
 \end{example}
 
 \vskip 0.2in
@@ -256,8 +277,8 @@ Format:
 
 Format:
 \begin{example}
-  \{*\}restore data  <class> <locations>
-  restore var <class> <locations>
+  restore data  <data_name> <locations>
+  restore var <var_name> <locations>
 \end{example}
 
 \vskip 0.2in The \vn{restore} command cancels data or variable
@@ -267,8 +288,8 @@ and \vn{veto} commands.
 Examples:
 \begin{example}
   restore data orbit:x  23, 34:56 ! unveto orbit:x data.
-  *restore data orbit 34          ! unveto orbit data in all universes.
-  restore var quad_k1 67     ! unveto variable
+  restore data orbit;* 34         ! unveto orbit data in all universes.
+  restore var quad_k1 67          ! unveto variable
 \end{example}
 
 
@@ -289,16 +310,13 @@ Format:
 
 Format:
 \begin{example}
-  \{*\}set data <class> <component> = <value> \{<locations\}
-  \{*\}set var <class> <component> = <value> \{<locations\}
+  set data <data_name> <component> = <value> \{<locations\}
+  set var <var_name> <component> = <value> \{<locations\}
   set global <component> = <value>
 \end{example}
 
 \vskip 0.2in
-A ``*'' star in front means that the \vn{set} is applied
-to all universes and not just the one on view.
-
-To apply a set to all data or variable classes use "all"
+To apply a set to all data or variable classes use ``all''
 in place of \vn{<class>}.
 
 For the \vn{set data} version of \vn{set} possible 
@@ -344,7 +362,7 @@ For \vn{set global} version of set possible
 Examples:
 \begin{example}
   set data all ref = data       ! set all ref data = measured data.
-  *set var quad\_k1 weight = 0.1 ! set quad\_k1 weights. 
+  set var quad\_k1 weight = 0.1 ! set quad\_k1 weights. 
 \end{example}
 
 %------------------------------------------------------------------------
@@ -380,7 +398,7 @@ Examples:
 Format:
 \begin{example}
   show alias                     
-  show data \{<class> <number>\} 
+  show data \{<data_name> <number>\} 
   show ele <ele_name>
   show global
   show lattice <ele1_name> <ele2_name>
@@ -393,18 +411,20 @@ Format:
 \vn{Show} is used to display various information about the state of \tao.
 \begin{description}
 \item[show alias]
-Shows a list of defined aliases. See the \vn{alias} command for more details.
+Shows a list of defined aliases. See the \vn{alias} command for more
+details.
 \item[show data]
-Shows data information. If \vn{<class>} and \vn{<number>} are not present shown 
-is a list of d2\_data classes.
+Shows data information. If \vn{<data_name>} and \vn{<number>} are not
+present shown is a list of d2\_data names.
 \item[show ele]
-This shows information on lattice elements. \vn{<ele_name>} can contain wild--card
-characters ``\%'' and ``*''. ``\%'' matches to any single character and
-``*'' matches to any number of characters. If \vn{<ele_name>} contains a
-wild card then a list of elements that match the name are shown. If no wild--card
-is present then information about the element whose name matches \vn{<ele_name>}
-is shown. \vn{<ele_name>} is a number $n$ then the $n$\Th element in the lattice 
-list will be shown.
+This shows information on lattice elements. \vn{<ele_name>} can
+contain wild--card characters ``\%'' and ``*''. ``\%'' matches to any
+single character and ``*'' matches to any number of characters. If
+\vn{<ele_name>} contains a wild card then a list of elements that
+match the name are shown. If no wild--card is present then information
+about the element whose name matches \vn{<ele_name>} is
+shown. \vn{<ele_name>} is a number $n$ then the $n$\Th element in the
+lattice list will be shown.
 \item[show global]
 Shows global information.
 \item[show lattice]
@@ -418,8 +438,8 @@ Shows information pertinent to optimization: Data and variables used, etc.
 Shows top contributors to the merit function, dMerit/dVariable
 derivatives, and Largest changes in variable value.
 \item[show var]
-Shows variable information. If \vn{<class>} and \vn{<number>} are not present shown 
-is a list of v1\_var classes.
+Shows variable information. If \vn{<data_name>} and \vn{<number>} are
+not present shown is a list of v1\_var classes.
 \end{description}
 
 Examples:
@@ -427,18 +447,18 @@ Examples:
   show data
   show data orbit
   show data orbit:x 35
-  show ele q*          ! list all lattice elements with names beginning with "q".
+  show ele q*          ! list all elements with names beginning with "q".
   show ele q10w        ! show a particular lattice element
   show ele 105         ! show element #105 in the lattice
 \end{example}
 
 %------------------------------------------------------------------------
-\section{Single\_mode}
-\label{s:singe_cmd}
+\section{Single-mode}
+\label{s:sing}
 
 Format:
 \begin{example}
-  single_mode
+  single-mode
 \end{example}
 
 \vskip 0.2in 
@@ -450,21 +470,18 @@ This command puts \tao into \vn{single mode}.
 
 Format:
 \begin{example}
-  \{*\}use data  <class> <locations>
-  use var <class> <locations>
+  use data  <data_name> <locations>
+  use var <var_name> <locations>
 \end{example}
 
-\vskip 0.2in 
-The \vn{use} command  unvetoes data or variables
-and sets a veto for the rest of the data.
-A ``*'' star in front means that the \vn{use} is applied
-to all universes and not just the one on view. See also the \vn{restore}
-and \vn{veto} commands.
+\vskip 0.2in The \vn{use} command unvetoes data or variables and sets
+a veto for the rest of the data. See also the \vn{restore} and
+\vn{veto} commands.
 
 Examples:
 \begin{example}
   use data orbit:x  23, 34:56 ! use orbit:x data.
-  *use data orbit 34          ! use orbit data in all universes.
+  use data orbit;* 34         ! use orbit data in all universes.
   use var quad_k1 67          ! use variable
 \end{example}
 
@@ -475,21 +492,18 @@ Examples:
 
 Format:
 \begin{example}
-  \{*\}veto data  <class> <locations>
-  veto var <class> <locations>
+  veto data <data_name> <locations>
+  veto var <var_name> <locations>
 \end{example}
 
-\vskip 0.2in 
-The \vn{veto} command  vetoes data or variables.
-A ``*'' star in front means that the \vn{veto} is applied
-to all universes and not just the one on view. See also the \vn{restore}
-and \vn{use} commands.
+\vskip 0.2in The \vn{veto} command vetoes data or variables. See also
+the \vn{restore} and \vn{use} commands.
 
 Examples:
 \begin{example}
   veto data orbit:x  23, 34:56 ! veto orbit:x data.
-  *veto data orbit 34          ! veto orbit data in all universes.
-  veto var quad_k1 67     ! veto variable
+  veto data orbit;* 34         ! veto orbit data in all universes.
+  veto var quad_k1 67          ! veto variable
 \end{example}
 
 %------------------------------------------------------------------------
@@ -509,3 +523,51 @@ Examples:
 \begin{example}
   view 2   ! Make universe #2 the default.
 \end{example}
+
+%------------------------------------------------------------------------
+\section{X-Axis}
+\label{s:x-axis}
+
+Format:
+\begin{example}
+  x-axis <where> <axis_type> ! Sets horizontal data type
+\end{example}
+
+\vskip 0.2in \vn{X-Axis} sets what data is used for the horizontal
+axis. Possibilities for \vn{<axis_type>} are:
+\begin{example}
+  index    -- Use data index
+  s        -- Use longitudinal position.
+\end{example}
+Note that \vn{index} only makes sense for data that has an index
+associated with it.
+
+Examples:
+\begin{example}
+  x-axis all s
+  x-axis top index
+\end{example}
+
+%------------------------------------------------------------------------
+\section{X-Scale}
+\label{s:x-scale}
+
+Format:
+\begin{example}
+  x-scale <where> \{<bound1>\} \{<bound2>\}  ! sets horizontal axis bounds.
+\end{example}
+
+\vskip 0.2in \vn{x-scale} sets the lower and upper bounds for the
+horizontal axis.  If both \vn{<bound1>} and \vn{<bound2>} are present
+then \vn{<bound1>} is taken to be the lower (left) bound and
+\vn{<bound2>} is the upper (right) bound. If only \vn{<bound1>} is
+present then the bounds will be from -\vn{<bound1>} to
+\vn{<bound1>}. If neither is present then autoscale will be invoked to
+give the largest bounds comensurate with the data.
+
+Example:
+\begin{example}
+  x-scale       ! Autoscale axis.
+  x-axis 0 100  ! Axis scale to go from 0 to 100.
+\end{example}
+

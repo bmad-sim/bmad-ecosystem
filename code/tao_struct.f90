@@ -59,7 +59,7 @@ end type
 
 type tao_curve_struct
   character(16) :: data_source             ! "lat_layout", "data_array"
-  character(16) :: data_name = ' '         ! "orbit:x", etc.
+  character(16) :: data_type = ' '         ! "orbit:x", etc.
   real(rp), pointer :: x_line(:) => null() ! coords for drawing a curve
   real(rp), pointer :: y_line(:) => null()
   real(rp), pointer :: x_symb(:) => null() ! coords for drawing the symbols
@@ -186,11 +186,13 @@ type tao_data_struct
   real(rp) weight           ! Weight for the merit function term
   real(rp) merit            ! Merit function term value: weight * delta^2
   real(rp) conversion_factor ! Typically used to convert coupling to cbar
+  real(rp) s                ! longitudinal position of ele.
   logical exists            ! See above
   logical good_data         ! See above
   logical good_ref          ! See above
   logical good_user         ! See above
   logical good_opt          ! See above
+  logical good_plot         ! See above
   logical useit_plot        ! See above
   logical useit_opt         ! See above
   type (tao_data_hook) hook ! Custom stuff. Defined in tao_hook.f90
