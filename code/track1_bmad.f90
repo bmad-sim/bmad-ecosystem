@@ -48,7 +48,7 @@ subroutine track1_bmad (start, ele, param, end)
   real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
   real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6)
   real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
-  real(rp) ave_x_vel2, ave_y_vel2, rel_E
+  real(rp) ave_x_vel2, ave_y_vel2, dE_E
   real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio
   real(rp) alpha, sin_a, cos_a, f, z_ave
   real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2
@@ -94,8 +94,16 @@ subroutine track1_bmad (start, ele, param, end)
 
   case (patch$)
 
-    print *, 'ERROR IN TRACK1_BMAD: PATCH ELEMENT NOT YET IMPLEMENTED!'
-    call err_exit
+    dE_E = 1 + end%vec(6)
+    end%vec(1) = end%vec(1) - ele%value(x_offset$)
+    end%vec(2) = end%vec(2) - ele%value(x_pitch$) * dE_E
+    end%vec(3) = end%vec(3) - ele%value(y_offset$)
+    end%vec(4) = end%vec(4) - ele%value(y_pitch$) * dE_E
+    end%vec(5) = end%vec(5) - ele%value(z_offset$) + &
+                              ele%value(x_pitch$) * end%vec(1) + &
+                              ele%value(y_pitch$) * end%vec(3) 
+    end%vec(6) = end%vec(6) - ele%value(dE_offset$)
+
 
 ! kicker, separator
 
