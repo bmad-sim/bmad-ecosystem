@@ -1,3 +1,10 @@
+!+
+! Module bmad
+!
+! A "use bmad" statement will define the most common bmad structures needed 
+! by a program.
+!-
+
 #include "CESR_platform.inc"
 
 module bmad
@@ -10,6 +17,5 @@ module bmad
   use bookkeeper_mod
   use radiation_mod
   use symp_lie_mod
-  use io_mod
 
 end module

@@ -17,7 +17,7 @@ contains
 ! a ring_struct.
 !
 ! Modules needed:
-!   use bmad
+!   use io_mod
 !
 ! Input:
 !   lattice_name -- Character(*): Name of the lattice file
@@ -30,6 +30,7 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
 
   type (ring_struct), target :: ring
   type (ele_struct), pointer :: ele, slave
+  type (ele_struct) ele_init
   type (wig_term_struct) wt
   type (control_struct) ctl
   type (taylor_term_struct) tm
@@ -40,11 +41,16 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
   character(4000) line
   character(4) last
   character(16) name
-
+  character(16), allocatable :: names(:)
+ 
   integer i, j, k, ix, iu, ios, ixs, ix1, ix2, ic1, ic2
-  integer unit(6)
+  integer unit(6), ix_names, ix_match
 
-  logical slave_here, unit_found, write_term
+  logical slave_here, unit_found, write_term, match_found
+
+! Init
+
+  call init_ele (ele_init)
 
 ! Open the file
 
@@ -127,6 +133,8 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
 
   slave_here = .false.
   ixs = 0
+  ix_names = 0
+  allocate (names(ring%n_ele_max))
 
   ele_loop: do i = 1, ring%n_ele_max
 
@@ -153,6 +161,15 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
       write (iu, '(a, i3.3, 2a)') ' slave_drift_', ixs, ': drift, l = ', trim(str(s0))
       slave_here = .false.
     endif
+
+! Do not write anything for elements that have a duplicate name.
+
+    call find1_indexx (ele%name, names, ix_names, ix_match, match_found)
+    if (match_found) cycle
+
+    names(ix_match+1:ix_names+1) = names(ix_match:ix_names)
+    names(ix_match) = ele%name
+    ix_names = ix_names + 1
 
 ! Overlays and groups
 
@@ -197,23 +214,15 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
 ! I_beam
 
     if (ele%control_type == i_beam$) then
-      do j = 1, i-1
-        if (ele%name == ring%ele_(j)%name) cycle ele_loop
-      enddo
       write (line, '(2a)') trim(ele%name), ': i_beam = {'
-      ic1 = ele%ix1_slave
-      ix1 = ring%control_(ic1)%ix_slave
-      ic2 = ele%ix2_slave
-      ix2 = ring%control_(ic2)%ix_slave
-      write (line, '(3a)') trim(line), ring%ele_(ix1)%name, ','
-      j2_loop: do j = ix1+1, ix2-1
-        name = ring%ele_(j)%name
-        do k = ic1+1, ic2-1
-          if (name == ring%ele_(ring%control_(k)%ix_slave)%name) cycle j2_loop
-        enddo
-        write (line, '(4a)') trim(line), ' -', trim(name), ','
-      enddo j2_loop
-      write (line, '()') trim(line), ' ', trim(ring%ele_(ix2)%name), '}'
+      do j = ele%ix1_slave, ele%ix2_slave
+        ix1 = ring%control_(j)%ix_slave
+        if (j == ele%ix2_slave) then
+          write (line, '(3a)') trim(line), trim(ring%ele_(ix1)%name), '}'
+        else
+          write (line, '(3a)') trim(line), trim(ring%ele_(ix1)%name), ', '
+        endif
+      enddo
     else
       line = trim(ele%name) // ': ' // key_name(ele%key)
     endif
@@ -239,6 +248,14 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
 
       if (j == check_sum$ .and. ele%key /= patch$) cycle
       if (j == beam_energy$) cycle
+      if (j == p0c$) cycle
+      if (j == tilt_tot$) cycle
+      if (j == x_pitch_tot$) cycle
+      if (j == y_pitch_tot$) cycle
+      if (j == x_offset_tot$) cycle
+      if (j == y_offset_tot$) cycle
+      if (j == s_offset_tot$) cycle
+
 
       select case (ele%key)
       case (beambeam$)
@@ -280,13 +297,15 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
       line = trim(line) // ', ' // trim(attribute_name(ele, j)) // &
                                                   ' = ' // str(ele%value(j))
 
+      if (attribute_name(ele, j) == null_name) print *, 'Null: ', ele%name, j
+
     enddo
 
     if (ele%mat6_calc_method /= bmad_standard$) line = trim(line) // &
             ', mat6_calc_method = ' // calc_method_name(ele%mat6_calc_method)
     if (ele%tracking_method /= bmad_standard$) line = trim(line) // &
             ', tracking_method = ' // calc_method_name(ele%tracking_method)
-    if (ele%num_steps > 1) write (line, '(2a, i3)') trim(line), &
+    if (ele%num_steps /=ele_init%num_steps) write (line, '(2a, i3)') trim(line), &
             ', num_steps =', ele%num_steps
     if (ele%symplectify) line = trim(line) // ', symplectify'
     if (.not. ele%is_on) line = trim(line) // ', is_on = False'
@@ -316,10 +335,10 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
 
     if (associated(ele%a)) then
       do j = 0, ubound(ele%a, 1)
-        if (ele%a(j) /= 0) write (line, '(2a, i2.2, 2a)') &
-                    trim(line), ', a', j, ' = ', trim(str(ele%a(j)))
-        if (ele%b(j) /= 0) write (line, '(2a, i2.2, 2a)') &
-                    trim(line), ', b', j, ' = ', trim(str(ele%b(j)))
+        if (ele%a(j) /= 0) line = trim(line) // ', ' // &
+                trim(attribute_name(ele, j+a0$)) // ' = ' // str(ele%a(j))
+        if (ele%b(j) /= 0) line = trim(line) // ', ' // &
+                trim(attribute_name(ele, j+b0$)) // ' = ' // str(ele%b(j))
       enddo
     endif
     
@@ -366,7 +385,10 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
   write (iu, *)
   write (iu, *) 'use, main_line'
 
+! cleanup
+
   close(iu)
+  deallocate (names)
 
 end subroutine
 
@@ -436,6 +458,9 @@ function rchomp (rel, plc) result (out)
 end function
 
 !-------------------------------------------------------
+! Input:
+!   end_is_neigh -- Logical: If true then write out everything.
+!                     Otherwise wait for a full line of 76 characters or so.
 
 subroutine write_out (line, iu, end_is_neigh)
 
@@ -501,5 +526,89 @@ subroutine write_this (line2)
 end subroutine
 
 end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine find1_indexx (name, names, n_max, ix_match, match_found)
+!
+! Subroutine to find a matching name in a list of names sorted in increasing
+! alphabetical order.
+!
+! Input:
+!   name     -- Character(16): Name to match to.
+!   names(:) -- Character(16): Array of sorted names.
+!   n_max    -- Integer Only names(1:n_max) are used.   
+!
+! Output:
+!   ix_match  -- Integer: 
+!                  If a match is found then:
+!                      names(ix_match) = name
+!                      names(ix_match-1) /= name
+!                  If no match is found then:
+!                      names(ix_match) > name  ! ix_match may be > size(names)
+!                      names(ix_match-1) < name
+!   match_found -- Logical: Set True if a match is found. False otherwise
+!-
+
+subroutine find1_indexx (name, names, n_max, ix_match, match_found)
+
+  implicit none
+
+  integer ix1, ix2, ix3, n_max, ix_match
+
+  character(16) name, names(:)
+  character(16) this_name
+
+  logical match_found
+
+! simple case
+
+  match_found = .false.
+
+  if (n_max == 0) then
+    ix_match = 1
+    return
+  endif
+
+!
+
+  ix1 = 1
+  ix3 = n_max
+
+  do
+
+    ix2 = (ix1 + ix3) / 2 
+    this_name = names(ix2)
+
+    if (this_name == name) then
+      do ! if there are duplicate names in the list choose the first one
+        if (ix2 == 1) exit
+        if (names(ix2-1) /= this_name) exit
+        ix2 = ix2 - 1
+      enddo
+      ix_match = ix2
+      match_found = .true.
+      return
+    elseif (this_name < name) then
+      ix1 = ix2 + 1
+    else
+      ix3 = ix2 - 1
+    endif
+                       
+    if (ix1 > ix3) then
+      if (this_name < name) then
+        ix_match = ix2 + 1
+      else
+        ix_match = ix2
+      endif
+      return
+    endif
+
+  enddo
+
+end subroutine
+
 
 end module
