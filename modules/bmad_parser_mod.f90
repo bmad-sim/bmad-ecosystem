@@ -1869,6 +1869,25 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
+!+
+! Subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match)
+!
+! Subroutine to find a matching name in a list of names
+!
+! Input:
+!   name         -- Character(16): Name to match to.
+!   names(:)     -- Character(16): Array of names.
+!   an_indexx(:) -- Integer: Sorted index of names array.
+!   n_max        -- Integer: Use only names(1:n_max) part of array.
+!
+! Output:
+!   ix_match     -- Integer: If a match is found then:
+!                                 names(ix_match) = name
+!                     If no match is found then ix_match = 0.
+!   ix2_match    -- Integer, optional: If a match is found then
+!                                 an_indexx(ix2_match) = ix_match.
+!                     If no match is found then ix2_match = 0.
+!-
 
 subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match)
 
@@ -1912,6 +1931,7 @@ subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match)
                        
     if (ix1 > ix3) then
       ix_match = 0
+      if (present(ix2_match)) ix2_match = 0    
       return
     endif
 
