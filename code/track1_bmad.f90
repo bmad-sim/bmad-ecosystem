@@ -194,32 +194,8 @@ subroutine track1_bmad (start, ele, param, end)
 
   case (sbend$)
 
-
-    if (ele%value(k1$) /= 0) then
-      call offset_particle (ele, param, end, set$)
-      e1 = ele%value(e1$)
-      e2 = ele%value(e2$)
-      if (e1 /= 0) then
-        del = tan(e1) * ele%value(g$) / (1 + end%z%vel)
-        end%x%vel = end%x%vel + del * end%x%pos
-        end%y%vel = end%y%vel - del * end%y%pos
-      endif
-      bend%value(k1$)       = ele%value(k1$) / (1 + end%z%vel)
-      bend%value(g$)        = ele%value(g$)
-      bend%value(g_design$) = ele%value(g_design$)
-      bend%value(l$)        = ele%value(l$)
-      call make_mat6(bend, param, c0, c0)
-      end%vec = matmul(bend%mat6, end%vec)
-      if (e2 /= 0) then
-        del = tan(e2) * ele%value(g$) / (1 + end%z%vel)
-        end%x%vel = end%x%vel + del * end%x%pos
-        end%y%vel = end%y%vel - del * end%y%pos
-      endif
-      call offset_particle (ele, param, end, unset$)
-    else
-      call track_bend (end, ele, param, end)
-      if (param%lost) return
-    endif
+    call track_bend (end, ele, param, end)
+    return ! do not do z-calc at end of this routine
 
 ! rfcavity
 
@@ -335,20 +311,18 @@ subroutine track1_bmad (start, ele, param, end)
 !--------------------------------------------------------------
 ! Very crude calculation for change in longitudinal position
 
-  if (ele%key /= sbend$ .and. param%lattice_type /= linac_lattice$ ) then
-    if (start%x%vel*end%x%vel > 0) then  ! if same sign
-      ave_x_vel2 = (start%x%vel**2 + end%x%vel**2) / 2
-    else
-      ave_x_vel2 = (start%x%vel**2 + end%x%vel**2) / 4
-    endif
-      
-    if (start%y%vel*end%y%vel > 0) then  ! if same sign
-      ave_y_vel2 = (start%y%vel**2 + end%y%vel**2) / 2
-    else
-      ave_y_vel2 = (start%y%vel**2 + end%y%vel**2) / 4
-    endif
-
-    end%z%pos = end%z%pos - length * (ave_x_vel2 + ave_y_vel2) / 2
+  if (start%x%vel*end%x%vel > 0) then  ! if same sign
+    ave_x_vel2 = (start%x%vel**2 + end%x%vel**2) / 2
+  else
+    ave_x_vel2 = (start%x%vel**2 + end%x%vel**2) / 4
   endif
+      
+  if (start%y%vel*end%y%vel > 0) then  ! if same sign
+    ave_y_vel2 = (start%y%vel**2 + end%y%vel**2) / 2
+  else
+    ave_y_vel2 = (start%y%vel**2 + end%y%vel**2) / 4
+  endif
+
+  end%z%pos = end%z%pos - length * (ave_x_vel2 + ave_y_vel2) / 2
 
 end subroutine
