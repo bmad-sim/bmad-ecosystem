@@ -454,7 +454,7 @@ character(20) :: r_name = "tao_macro_data"
     d1_loop: do ii = 1, size(u%beam%macro_data%d2(i)%d1)
       d_loop: do iii = u%beam%macro_data%d2(i)%d1(ii)%i_save, size(u%beam%macro_data%d2(i)%d1(ii)%d)
 												
-	if (associated(u%beam%macro_data%d2(i)%d1(ii)%d(iii))) then
+	if (associated(u%beam%macro_data%d2(i)%d1(ii)%d)) then
 	  if (u%beam%macro_data%d2(i)%d1(ii)%d(iii)%ix_ele .eq. i_ele) then
             u%beam%macro_data%d2(i)%d1(ii)%i_save = iii
 					    
