@@ -60,7 +60,7 @@ The list of element types known to \bmad\ is shown in Table~\ref{t:elements}.
   x\_offset  = Real  &  \ref{s:offset} &  descrip = String & \ref{s:string} & x\_limit = Real              & \ref{s:limit} \\ \hline
   y\_offset  = Real  &  \ref{s:offset} &  is\_on = Logical & \ref{s:is_on}  & y\_limit = Real              & \ref{s:limit} \\ \hline
   s\_offset  = Real  &  \ref{s:offset} &  beam\_energy$^*$ & \ref{s:param}  & aperture = Real              & \ref{s:limit} \\ \hline
-                     &                 &                   &                & aperture\_at = Switch        & \ref{s:limit} \\ \hline
+  lrad       = Real  &  \ref{s:fields} &                   &                & aperture\_at = Switch        & \ref{s:limit} \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
 \end{center}
@@ -70,6 +70,9 @@ An \vn{AB_Multipole} is a thin multipole lens up to 20th order. The only
 difference between this and a \vn{Multipole} is the input format. See
 section \ref{s:fields} for more details. For \vn{a$n$}
 and \vn{b$n$}, $n$ is in the range 0 through 20.
+
+\vn{lrad} is a fictitious length that is used for synchrotron radiation
+computations but does not affect any tracking or transfer map calculations. 
 
 Like a \mad\ \vn{multipole}, An \vn{AB_Multipole} will affect the
 reference orbit if there is a dipole component. 
@@ -812,7 +815,7 @@ Example:
   x\_offset  = Real  &  \ref{s:offset} &  descrip = String    & \ref{s:string} & x\_limit = Real             & \ref{s:limit} \\ \hline
   y\_offset  = Real  &  \ref{s:offset} &  is\_on = Logical    & \ref{s:is_on}  & y\_limit = Real             & \ref{s:limit} \\ \hline
   s\_offset  = Real  &  \ref{s:offset} &  beam\_energy$^*$    & \ref{s:param}  & aperture = Real             & \ref{s:limit} \\ \hline
-                     &                 &                      &                & aperture\_at = Switch       & \ref{s:limit} \\ \hline
+  lrad       = Real  &                 &                      &                & aperture\_at = Switch       & \ref{s:limit} \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
 \end{center}
@@ -821,6 +824,9 @@ Example:
 A \vn{Multipole} is a thin multipole lens up to 20th order. The only
 difference between this and an \vn{AB_Multipole} is the input format. See the 
 Magnetic fields section \ref{s:fields} for more details.
+
+\vn{lrad} is a fictitious length that is used for synchrotron radiation
+computations but does not affect any tracking or transfer map calculations. 
 
 Like a \mad\ \vn{multipole}, A \bmad \vn{Multipole} will affect the
 reference orbit if there is a dipole component. 
