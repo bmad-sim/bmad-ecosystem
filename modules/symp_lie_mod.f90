@@ -56,6 +56,7 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track)
   type (track_struct) track
 
   real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6)
+  real(rp) g_x, g_y, k1_norm, k1_skew, x_q, y_q, ks_tot_2
   real(rp), pointer :: mat6(:,:)
   real(rp), parameter :: z0 = 0, z1 = 1
 
@@ -99,11 +100,27 @@ subroutine track_it (start, real_track, calc_mat6)
 
   if (real_track) call offset_particle (ele, param, end, set$, set_canonical = .false.)
 
+! init
+
+  ds = ele%value(l$) / ele%num_steps
+  ds2 = ds / 2
+
+  s = 0   ! longitudianl position
+
+  if (track%save_track) then
+    call allocate_saved_orbit (track, ele%num_steps)
+    track%pt(0)%s = 0
+    track%pt(0)%orb = start
+    track%n_pt = ele%num_steps
+    if (calc_mat6) track%pt(0)%mat6 = mat6
+  endif
+
 !------------------------------------------------------------------
 ! select the element
 
   select case (ele%key)
 
+!------------------------------------------------------------------
 ! Wiggler
 
   Case (wiggler$)
@@ -115,21 +132,8 @@ subroutine track_it (start, real_track, calc_mat6)
       allocate (tm(size(ele%wig_term)))
     endif
 
-    ds = ele%value(l$) / ele%num_steps
-    ds2 = ds / 2
-
-    s = 0   ! longitudianl position
-
-    call update_coefs
-    call update_y_terms
-
-    if (track%save_track) then
-      call allocate_saved_orbit (track, ele%num_steps)
-      track%pt(0)%s = 0
-      track%pt(0)%orb = start
-      track%n_pt = ele%num_steps
-      if (calc_mat6) track%pt(0)%mat6 = mat6
-    endif
+    call update_wig_coefs
+    call update_wig_y_terms
 
 ! loop over all steps
 
@@ -152,47 +156,15 @@ subroutine track_it (start, real_track, calc_mat6)
 
 ! Drift_1 = P_x^2 / (2 * (1 + dE))
 
-      end%vec(1) = end%vec(1) + ds2 * end%vec(2) / rel_E
-      end%vec(5) = end%vec(5) - ds2 * end%vec(2)**2 / (2*rel_E2)
-
-      if (calc_mat6) then
-        mat6(1,1:6) = mat6(1,1:6) + (ds2 / rel_E)          * mat6(2,1:6) - (ds2*end%vec(2)/rel_E2)    * mat6(6,1:6) 
-        mat6(5,1:6) = mat6(5,1:6) - (ds2*end%vec(2)/rel_E2) * mat6(2,1:6) + (ds2*end%vec(2)**2/rel_E3) * mat6(6,1:6)
-      endif
+      call apply_p_x
 
 ! Drift_2 = (P_y - a_y)**2 / (2 * (1 + dE))
 
-      call update_x_s_terms
-
-      end%vec(2) = end%vec(2) - dint_a_y_dx()
-      end%vec(4) = end%vec(4) - a_y()
-
-      if (calc_mat6) then
-        mat6(2,1:6) = mat6(2,1:6) - dint_a_y_dx__dx() * mat6(1,1:6) - dint_a_y_dx__dy() * mat6(3,1:6)
-        mat6(4,1:6) = mat6(4,1:6) - a_y__dx()         * mat6(1,1:6) - a_y__dy()         * mat6(3,1:6)
-      endif      
-
-!
-
-      end%vec(3) = end%vec(3) + ds2 * end%vec(4) / rel_E
-      end%vec(5) = end%vec(5) - ds2 * end%vec(4)**2 / (2*rel_E2)
-
-      if (calc_mat6) then
-        mat6(3,1:6) = mat6(3,1:6) + (ds2 / rel_E)          * mat6(4,1:6) - (ds2*end%vec(4)/rel_E2)    * mat6(6,1:6) 
-        mat6(5,1:6) = mat6(5,1:6) - (ds2*end%vec(4)/rel_E2) * mat6(4,1:6) + (ds2*end%vec(4)**2/rel_E3) * mat6(6,1:6)
-      endif      
-
-!
-
-      call update_y_terms
-
-      end%vec(2) = end%vec(2) + dint_a_y_dx()
-      end%vec(4) = end%vec(4) + a_y()
-
-      if (calc_mat6) then
-        mat6(2,1:6) = mat6(2,1:6) + dint_a_y_dx__dx() * mat6(1,1:6) + dint_a_y_dx__dy() * mat6(3,1:6)
-        mat6(4,1:6) = mat6(4,1:6) + a_y__dx()         * mat6(1,1:6) + a_y__dy()         * mat6(3,1:6)
-      endif      
+      call update_wig_x_s_terms
+      call apply_wig_exp_int_ay (-1)
+      call apply_p_y
+      call update_wig_y_terms
+      call apply_wig_exp_int_ay (+1)
 
 ! Kick = a_z
 
@@ -206,45 +178,14 @@ subroutine track_it (start, real_track, calc_mat6)
 
 ! Drift_2
 
-      end%vec(2) = end%vec(2) - dint_a_y_dx()
-      end%vec(4) = end%vec(4) - a_y()
-
-      if (calc_mat6) then
-        mat6(2,1:6) = mat6(2,1:6) - dint_a_y_dx__dx() * mat6(1,1:6) - dint_a_y_dx__dy() * mat6(3,1:6)
-        mat6(4,1:6) = mat6(4,1:6) - a_y__dx()         * mat6(1,1:6) - a_y__dy()         * mat6(3,1:6)
-      endif      
-
-!
-
-      end%vec(3) = end%vec(3) + ds2 * end%vec(4) / rel_E
-      end%vec(5) = end%vec(5) - ds2 * end%vec(4)**2 / (2*rel_E2)
-
-      if (calc_mat6) then
-        mat6(3,1:6) = mat6(3,1:6) + (ds2 / rel_E)          * mat6(4,1:6) - (ds2*end%vec(4)/rel_E2)    * mat6(6,1:6) 
-        mat6(5,1:6) = mat6(5,1:6) - (ds2*end%vec(4)/rel_E2) * mat6(4,1:6) + (ds2*end%vec(4)**2/rel_E3) * mat6(6,1:6)
-      endif      
-
-!
-
-      call update_y_terms
-
-      end%vec(2) = end%vec(2) + dint_a_y_dx()
-      end%vec(4) = end%vec(4) + a_y()
-
-      if (calc_mat6) then
-        mat6(2,1:6) = mat6(2,1:6) + dint_a_y_dx__dx() * mat6(1,1:6) + dint_a_y_dx__dy() * mat6(3,1:6)
-        mat6(4,1:6) = mat6(4,1:6) + a_y__dx()         * mat6(1,1:6) + a_y__dy()         * mat6(3,1:6)
-      endif      
+      call apply_wig_exp_int_ay (-1)
+      call apply_p_y
+      call update_wig_y_terms
+      call apply_wig_exp_int_ay (+1)
 
 ! Drift_1
 
-      end%vec(1) = end%vec(1) + ds2 * end%vec(2) / rel_E
-      end%vec(5) = end%vec(5) - ds2 * end%vec(2)**2 / (2*rel_E2)
-
-      if (calc_mat6) then
-        mat6(1,1:6) = mat6(1,1:6) + (ds2 / rel_E)          * mat6(2,1:6) - (ds2*end%vec(2)/rel_E2)    * mat6(6,1:6) 
-        mat6(5,1:6) = mat6(5,1:6) - (ds2*end%vec(2)/rel_E2) * mat6(2,1:6) + (ds2*end%vec(2)**2/rel_E3) * mat6(6,1:6)
-      endif      
+      call apply_p_x
 
 ! s half step
 
@@ -266,6 +207,42 @@ subroutine track_it (start, real_track, calc_mat6)
   else
     end%vec(5) = end%vec(5) - ele%value(z_patch$)
   endif
+
+!----------------------------------------------------------------------------
+! bend_sol_quad
+
+  case (bend_sol_quad$)
+
+    g_x = ele%value(g$) * cos (ele%value(bend_tilt$))
+    g_y = ele%value(g$) * sin (ele%value(bend_tilt$))
+    k1_norm = ele%value(k1$) * cos (2 * ele%value(quad_tilt$))
+    k1_skew = ele%value(k1$) * sin (2 * ele%value(quad_tilt$))
+    x_q = ele%value(x_quad$)
+    y_q = ele%value(y_quad$)
+
+! loop over all steps
+
+    do i = 1, ele%num_steps
+
+      s = s + ds2
+      ks_tot_2 = (ele%value(ks$) + ele%value(dks_ds$) * s) / 2
+
+      call bsq_drift1
+      call bsq_drift2
+      call bsq_kick
+      call bsq_drift2
+      call bsq_drift1
+
+      s = s + ds2
+      ks_tot_2 = (ele%value(ks$) + ele%value(dks_ds$) * s) / 2
+
+      if (track%save_track) then
+        track%pt(i)%s = s
+        track%pt(i)%orb = end
+        if (calc_mat6) track%pt(i)%mat6 = mat6
+      endif
+
+    enddo
 
 !----------------------------------------------------------------------------
 ! unknown element
@@ -294,9 +271,144 @@ subroutine track_it (start, real_track, calc_mat6)
 end subroutine
 
 !----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 ! contains
 
-subroutine update_coefs
+subroutine apply_p_x
+
+  end%vec(1) = end%vec(1) + ds2 * end%vec(2) / rel_E
+  end%vec(5) = end%vec(5) - ds2 * end%vec(2)**2 / (2*rel_E2)
+
+  if (calc_mat6) then
+    mat6(1,1:6) = mat6(1,1:6) + (ds2 / rel_E)           * mat6(2,1:6) - (ds2*end%vec(2)/rel_E2)    * mat6(6,1:6) 
+    mat6(5,1:6) = mat6(5,1:6) - (ds2*end%vec(2)/rel_E2) * mat6(2,1:6) + (ds2*end%vec(2)**2/rel_E3) * mat6(6,1:6)
+  endif
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+subroutine apply_p_y
+
+  end%vec(3) = end%vec(3) + ds2 * end%vec(4) / rel_E
+  end%vec(5) = end%vec(5) - ds2 * end%vec(4)**2 / (2*rel_E2)
+
+  if (calc_mat6) then
+    mat6(3,1:6) = mat6(3,1:6) + (ds2 / rel_E)           * mat6(4,1:6) - (ds2*end%vec(4)/rel_E2)    * mat6(6,1:6) 
+    mat6(5,1:6) = mat6(5,1:6) - (ds2*end%vec(4)/rel_E2) * mat6(4,1:6) + (ds2*end%vec(4)**2/rel_E3) * mat6(6,1:6)
+  endif      
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+subroutine bsq_drift1
+
+! Drift_1 = (P_x - a_x)**2 / (2 * (1 + dE))
+
+  end%vec(2) = end%vec(2) + end%vec(3) * ks_tot_2   !  vec(2) - a_x
+  end%vec(4) = end%vec(4) + end%vec(1) * ks_tot_2   !  vec(4) - dint_a_x_dy
+
+  if (calc_mat6) then
+    mat6(2,1:6) = mat6(2,1:6) + ks_tot_2 * mat6(3,1:6)
+    mat6(4,1:6) = mat6(4,1:6) + ks_tot_2 * mat6(1,1:6)
+  endif      
+
+!
+
+  call apply_p_x
+
+!
+
+  end%vec(2) = end%vec(2) - end%vec(3) * ks_tot_2   !  vec(2) + a_x
+  end%vec(4) = end%vec(4) - end%vec(1) * ks_tot_2   !  vec(4) + dint_a_x_dy
+
+  if (calc_mat6) then
+    mat6(2,1:6) = mat6(2,1:6) - ks_tot_2 * mat6(3,1:6)
+    mat6(4,1:6) = mat6(4,1:6) - ks_tot_2 * mat6(1,1:6)
+  endif  
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+subroutine bsq_drift2
+
+! Drift_2 = (P_y - a_y)**2 / (2 * (1 + dE))
+
+  end%vec(2) = end%vec(2) - end%vec(3) * ks_tot_2   !  vec(2) - dint_a_y_dx
+  end%vec(4) = end%vec(4) - end%vec(1) * ks_tot_2   !  vec(4) - a_y
+
+  if (calc_mat6) then
+    mat6(2,1:6) = mat6(2,1:6) - ks_tot_2 * mat6(3,1:6)
+    mat6(4,1:6) = mat6(4,1:6) - ks_tot_2 * mat6(1,1:6)
+  endif      
+
+!
+
+  call apply_p_y
+
+!
+
+  end%vec(2) = end%vec(2) + end%vec(3) * ks_tot_2   !  vec(2) + dint_a_y_dx
+  end%vec(4) = end%vec(4) + end%vec(1) * ks_tot_2   !  vec(4) + a_y
+
+  if (calc_mat6) then
+    mat6(2,1:6) = mat6(2,1:6) + ks_tot_2 * mat6(3,1:6)
+    mat6(4,1:6) = mat6(4,1:6) + ks_tot_2 * mat6(1,1:6)
+  endif  
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+subroutine bsq_kick
+
+  end%vec(2) = end%vec(2) + ds * &  ! da_z_dx
+                (k1_norm * (x_q - end%vec(1)) - k1_skew * end%vec(3) - g_x)    
+  end%vec(4) = end%vec(4) + ds * &  ! da_z_dy
+                (k1_norm * (end%vec(3) - y_q) - k1_skew * end%vec(1) - g_y)    
+
+  if (calc_mat6) then
+    mat6(2,1:6) = mat6(2,1:6) - ds * k1_norm * mat6(1,1:6) - ds * k1_skew * mat6(3,1:6)
+    mat6(4,1:6) = mat6(4,1:6) - ds * k1_skew * mat6(1,1:6) + ds * k1_norm * mat6(3,1:6)
+  endif 
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+subroutine apply_wig_exp_int_ay (sgn)
+
+  integer sgn
+
+  end%vec(2) = end%vec(2) + sgn * dint_a_y_dx()
+  end%vec(4) = end%vec(4) + sgn * a_y()
+
+  if (calc_mat6) then
+    mat6(2,1:6) = mat6(2,1:6) + sgn * &
+            (dint_a_y_dx__dx() * mat6(1,1:6) + dint_a_y_dx__dy() * mat6(3,1:6))
+    mat6(4,1:6) = mat6(4,1:6) + sgn * &
+            (a_y__dx()         * mat6(1,1:6) + a_y__dy()         * mat6(3,1:6))
+  endif      
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+subroutine update_wig_coefs
 
   real(rp) factor, coef
 
@@ -341,9 +453,10 @@ subroutine update_coefs
 end subroutine
 
 !----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 ! contains
 
-subroutine update_y_terms
+subroutine update_wig_y_terms
 
   real(rp) kyy
 
@@ -372,9 +485,10 @@ subroutine update_y_terms
 end subroutine
 
 !----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 ! contains
 
-subroutine update_x_s_terms
+subroutine update_wig_x_s_terms
 
   real(rp) kxx, kzz
 
@@ -405,6 +519,7 @@ subroutine update_x_s_terms
 end subroutine
 
 !----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 ! contains
 
 function a_y() result (value)
@@ -418,6 +533,7 @@ function a_y() result (value)
 
 end function
 
+!----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
@@ -433,6 +549,7 @@ function dint_a_y_dx() result (value)
 end function
 
 !----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 ! contains
 
 function da_z_dx() result (value)
@@ -446,6 +563,7 @@ function da_z_dx() result (value)
 
 end function
 
+!----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
@@ -461,6 +579,7 @@ function da_z_dy() result (value)
 end function
 
 !----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 ! contains
 
 function dint_a_y_dx__dx() result (value)
@@ -474,6 +593,7 @@ function dint_a_y_dx__dx() result (value)
 
 end function
 
+!----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
@@ -489,6 +609,7 @@ function dint_a_y_dx__dy() result (value)
 end function
 
 !----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 ! contains
 
 function a_y__dx() result (value)
@@ -502,6 +623,7 @@ function a_y__dx() result (value)
 
 end function
 
+!----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
@@ -517,6 +639,7 @@ function a_y__dy() result (value)
 end function
 
 !----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 ! contains
 
 function da_z_dx__dx() result (value)
@@ -530,6 +653,7 @@ function da_z_dx__dx() result (value)
 
 end function
 
+!----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
@@ -545,6 +669,7 @@ function da_z_dx__dy() result (value)
 end function
 
 !----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 ! contains
 
 function da_z_dy__dx() result (value)
@@ -558,6 +683,7 @@ function da_z_dy__dx() result (value)
 
 end function
 
+!----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 

@@ -466,17 +466,20 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
         cycle parsing_loop
       endif
 
-! Element definition.
-! we need to get the attribute values for the element.
-! For control elements RING%ELE_()%IXX temporarily points to
-! the PRING%ELE() array where storage for the control lists is
+! Element definition...
+! First: set defaults.
 
       key = in_ring%ele_(n_max)%key
 
-      if (key == custom$) then
+      if (key == custom$) then ! set defaults
         in_ring%ele_(n_max)%mat6_calc_method = custom$
         in_ring%ele_(n_max)%tracking_method  = custom$
         in_ring%ele_(n_max)%field_calc       = custom$
+      endif
+
+      if (key == bend_sol_quad$) then ! set defaults
+        in_ring%ele_(n_max)%mat6_calc_method = symp_lie_bmad$
+        in_ring%ele_(n_max)%tracking_method  = symp_lie_bmad$
       endif
 
       if (key == taylor$) then   ! start with unit matrix
@@ -509,6 +512,8 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
         endif
 
       endif
+
+! Second: We need to get the attribute values for the element.
 
       parsing = .true.
       do while (parsing)

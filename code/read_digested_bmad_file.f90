@@ -43,7 +43,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   character(200) fname(3), input_file_name
   character(200), allocatable :: file_names(:)
 
-  logical found_it, v70, v71, old, v_now
+  logical found_it, v70, v71, v72, v_old, v_now
 
 ! init all elements in ring
 
@@ -64,7 +64,8 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
   v70 = (version == 70)
   v71 = (version == 71)
-  old = v70 .or. v71
+  v72 = (version == 72)
+  v_old = v70 .or. v71 .or. v72
   v_now = (version == bmad_inc_version$)
 
   if (version < bmad_inc_version$) then
@@ -72,7 +73,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
     if (bmad_status%type_out) print *,  &
            'READ_DIGESTED_BMAD_FILE: DIGESTED FILE VERSION OUT OF DATE',  &
             version, ' <', bmad_inc_version$
-    if (old) then 
+    if (v_old) then 
       allocate (file_names(n_files))
       bmad_status%ok = .false.
     else
@@ -104,7 +105,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   do i = 1, n_files
     read (d_unit, err = 9100) fname(1), idate_old
     call simplify_path (fname(1), fname(1))
-    if (old) file_names(i) = fname(1)  ! fake out
+    if (v_old) file_names(i) = fname(1)  ! fake out
     ix = index(fname(1), ';')
     stat_b = 0
     if (ix > 0) then    ! has VMS version number
@@ -148,7 +149,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   do i = 0, ring%n_ele_max
 
     ele => ring%ele_(i)
-    if (v_now) then
+    if (v_now .or. v72) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
                               ix_srf, ix_sr, ix_lrf, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
@@ -192,6 +193,10 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
             ele%multipoles_on, ele%exact_rad_int_calc, ele%Field_master, &
             ele%logic, ele%internal_logic, ele%field_calc
       ix_r = 0
+    endif
+
+    if (v_old .and. (ele%key == sbend$ .or. ele%key == rbend$)) then
+      ele%value((/ 8, 9, 16 /)) = ele%value((/ 7, 8, 9 /))
     endif
 
     if (ix_wig /= 0) then

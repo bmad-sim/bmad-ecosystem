@@ -396,6 +396,8 @@ subroutine makeup_super_slave (ring, ix_slave)
 
   value = 0
   value(l$) = slave%value(l$)
+  value(beam_energy$) = slave%value(beam_energy$)
+  value(p0c$) = slave%value(p0c$)
   value(check_sum$) = slave%value(check_sum$) ! do not change the check_sum
 
   s_slave = slave%s - value(l$)/2  ! center of slave
@@ -507,13 +509,19 @@ subroutine makeup_super_slave (ring, ix_slave)
       sum_3 = sum_3 + cos_n * (x_o + x_p * s_del) + sin_n * (y_o + y_p * s_del)
       sum_4 = sum_4 + sin_n * (x_o + x_p * s_del) - cos_n * (y_o + y_p * s_del)
 
+! bend_sol_quad
+
+    case (bend_sol_quad$)
+      call out_io (s_abort$, r_name, &
+                 'CODING NOT YET IMPLEMENTED FOR A: ' // key_name(slave%key))
+      call err_exit
+
+
 ! default
 
     case default
-      print *, 'ERROR IN makeup_super_slave: CODING NOT YET IMPLEMENTED FOR A: ' &
-                                            // trim(key_name(slave%key))
-!      call out_io (s_abort$, r_name, &
-!                 'CODING NOT YET IMPLEMENTED FOR A: ' // key_name(slave%key))
+      call out_io (s_abort$, r_name, &
+                 'CODING NOT YET IMPLEMENTED FOR A: ' // key_name(slave%key))
       call err_exit
 
     end select
@@ -680,6 +688,13 @@ subroutine makeup_super_slave (ring, ix_slave)
     slave%value(x_pitch$)  = beta(2) + x_p_sol
     slave%value(y_offset$) = beta(3) + y_o_sol
     slave%value(y_pitch$)  = beta(4) + y_p_sol
+
+! bend_sol_quad
+
+  case (bend_sol_quad$)
+    call out_io (s_abort$, r_name, &
+                 'CODING NOT YET IMPLEMENTED FOR A: ' // key_name(slave%key))
+    call err_exit
 
   end select
 

@@ -17,7 +17,7 @@ module bmad_struct
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 
-  integer, parameter :: bmad_inc_version$ = 72
+  integer, parameter :: bmad_inc_version$ = 73
 
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -222,9 +222,9 @@ module bmad_struct
   integer, parameter :: null_ele$ = 27, init_ele$ = 28, hom$ = 29
   integer, parameter :: matrix$ = 30, monitor$ = 31, instrument$ = 32
   integer, parameter :: hkicker$ = 33, vkicker$ = 34, rcollimator$ = 35
-  integer, parameter :: ecollimator$ = 36, i_beam$ = 37
+  integer, parameter :: ecollimator$ = 36, i_beam$ = 37, bend_sol_quad$ = 38
 
-  integer, parameter :: n_key = 37
+  integer, parameter :: n_key = 38
 
   character(16) :: key_name(n_key+1) = (/ &
     'DRIFT        ', 'SBEND        ', 'QUADRUPOLE   ', 'GROUP        ', &
@@ -236,7 +236,7 @@ module bmad_struct
     'LCAVITY      ', 'DEF PARAMETER', 'NULL_ELEMENT ', 'INIT_ELEMENT ', &
     'HOM          ', 'MATRIX       ', 'MONITOR      ', 'INSTRUMENT   ', &
     'HKICKER      ', 'VKICKER      ', 'RCOLLIMATOR  ', 'ECOLLIMATOR  ', &
-    'I_BEAM       ', '             ' /)
+    'I_BEAM       ', 'BEND_SOL_QUAD', '             ' /)
 
 ! Attribute name logical definitions
 ! Note: The following attributes must have unique number assignments:
@@ -269,19 +269,19 @@ module bmad_struct
   integer, parameter :: old_command$=3, angle$=3, kick$=3
   integer, parameter :: k1$=4, sig_x$=4, harmon$=4, h_displace$=4, e_loss$=4
   integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, g$=5
-  integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, delta_g$=6
-  integer, parameter :: ks$=7, voltage$=7, e1$=7, n_pole$=7, bbi_const$=7
-  integer, parameter :: e2$=8, charge$=8, gap$=8
-  integer, parameter :: n_slice$=9, l_chord$=9, l_pole$=9, rf_frequency$=9
+  integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, delta_g$=6, dks_ds$=6
+  integer, parameter :: ks$=7, voltage$=7, n_pole$=7, bbi_const$=7
+  integer, parameter :: e1$=8, charge$=8, gap$=8
+  integer, parameter :: n_slice$=9, e2$=9, l_pole$=9, rf_frequency$=9
   integer, parameter :: fint$=10, polarity$=10, gradient$=10
   integer, parameter :: fintx$=11, z_patch$=11, phi0$=11
   integer, parameter :: rho$=12, s_center$=12
   integer, parameter :: hgap$=13, energy_start$=13
   integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14
-  integer, parameter :: roll$=15
-  integer, parameter :: l_original$=16
-  integer, parameter :: l_start$=17, h1$=17
-  integer, parameter :: l_end$=18, h2$=18
+  integer, parameter :: roll$=15, quad_tilt$=15
+  integer, parameter :: l_original$=16, l_chord$=16, bend_tilt$=16
+  integer, parameter :: l_start$=17, h1$=17, x_quad$=17
+  integer, parameter :: l_end$=18, h2$=18, y_quad$=18
   integer, parameter :: x_pitch$=19
   integer, parameter :: y_pitch$=20
   integer, parameter :: hkick$=21

@@ -274,39 +274,65 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
+!+
+! Function superimpose_key (key1, key2) result (key12)
+!
+! Function to decide what the element key (key12) should be when
+! an element with key1 is superimpsed upon with an element
+! with key2. 
+!
+! This function is not meant for general use.
+!-
 
-integer function superimpose_key (key1, key2)
+function superimpose_key (key1, key2) result (key12)
 
   use bmad_struct
   use bmad_interface
 
   implicit none
 
-  integer key1, key2
+  integer key1, key2, key12
 
 !
 
-  superimpose_key = -1
+  key12 = -1  ! Default if no superimpse possible
+
+  if (key1 == key2) then
+    key12 = key1
+    return
+  endif
 
   select case (key1)
   case (drift$)
-    superimpose_key = key2
+    key12 = key2
     return
+
   case (kicker$, rcollimator$, monitor$, instrument$)
-    superimpose_key = key2
+    key12 = key2
+
   case (quadrupole$,  solenoid$, sol_quad$) 
-    if (any (key2 == (/ quadrupole$,  solenoid$, sol_quad$ /))) &
-                                         superimpose_key = sol_quad$
+    select case (key2)
+    case (quadrupole$);    key12 = sol_quad$
+    case (solenoid$);      key12 = sol_quad$
+    case (sol_quad$);      key12 = sol_quad$
+    case (bend_sol_quad$); key12 = bend_sol_quad$
+    case (sbend$);         key12 = bend_sol_quad$
+    end select
+
+  case (bend_sol_quad$)
+    select case (key2)
+    case (quadrupole$);    key12 = bend_sol_quad$
+    case (solenoid$);      key12 = bend_sol_quad$
+    case (sol_quad$);      key12 = bend_sol_quad$
+    case (sbend$);         key12 = bend_sol_quad$
+    end select
   end select
+
+!
 
   select case (key2)
   case (drift$, kicker$, rcollimator$, monitor$, instrument$)
-    superimpose_key = key1
-  case (quadrupole$,  solenoid$, sol_quad$) 
-    if (any (key1 == (/ quadrupole$,  solenoid$, sol_quad$ /))) &
-                                         superimpose_key = sol_quad$
+    key12 = key1
   end select
-
-  if (key1 == key2) superimpose_key = key1
 
 end function

@@ -4,7 +4,7 @@ This chapter deals with the statements not covered in the previous chapters.
 
 %-----------------------------------------------------------------------------
 \section{Parameter Statement}
-\label{s:parameter}
+\label{s:param}
 
 The \vn{parameter} statement is used to set the \vn{lattice} name and other variables. 
 The variables that can be set by \vn{parameter} is
@@ -26,8 +26,9 @@ Examples
 
 The \vn{parameter[beam_energy]} is the reference energy at the start of the
 lattice.  Each element in a lattice has an individual reference
-energy. The reference energy will only change between \vn{LCavity} or
-\vn{Patch} elements. The reference energy must always be set.
+\vn{beam_energy} which is a dependent parameter. 
+The reference energy will only change between \vn{LCavity} or
+\vn{Patch} elements. The starting reference energy must always be set.
 
 The \vn{lattice} name is stored by \bmad\ for use by a program but it does
 not otherwise effect any \bmad\ routines. 
