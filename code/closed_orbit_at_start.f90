@@ -124,7 +124,10 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
 ! Turn off RF voltage if i_dim == 4 (for constant delta_E)
 
-  if (n == 4) call set_on_off (rfcavity$, ring, off$)
+  if (n == 4) then
+    call set_on_off (rfcavity$, ring, save_state$)
+    call set_on_off (rfcavity$, ring, off$)
+  endif
 
 !---------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -175,6 +178,6 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
 ! return rf cavities to original state
 
-  if (n == 4) call set_on_off (rfcavity$, ring, from_saved$)
+  if (n == 4) call set_on_off (rfcavity$, ring, restore_state$)
 
 end subroutine

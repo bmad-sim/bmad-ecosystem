@@ -696,10 +696,10 @@ end subroutine
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine init_ele (ELE)
+! Subroutine init_ele (ele)
 !
-! Subroutine to initialize a BMAD element. Element is initialized to be free
-! (not a lord or slave) and all %VALUES set to zero.
+! Subroutine to initialize a Bmad element. Element is initialized to be free
+! (not a lord or slave) and all %values set to zero.
 !
 ! Modules needed:
 !   use bmad
@@ -781,6 +781,10 @@ subroutine init_ele (ele)
   ele%y%etap  = 0
   ele%y%phi   = 0
   ele%y%sigma = 0
+
+! This is needed because of a compiler and/or totalview bug
+
+  allocate (ele%r(1,1))
 
 end subroutine
 

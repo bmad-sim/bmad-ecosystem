@@ -91,6 +91,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 ! Make sure RF is on if i_dim = 6
 
   if (nd == 2 .or. nd == 4) then
+    call set_on_off (rfcavity$, ring, save_state$)
     call set_on_off (rfcavity$, ring, off$)
   elseif (nd == 6) then
     rf_on = .false.
@@ -139,7 +140,8 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 
     if (all( abs(orb_diff(1:nd)) < abs_err(1:nd) + &
                                          rel_err(1:nd) * amp(1:nd) ) ) then
-      if (nd == 2 .or. nd == 4) call set_on_off (rfcavity$, ring, from_saved$)
+      if (nd == 2 .or. nd == 4) &
+                          call set_on_off (rfcavity$, ring, restore_state$)
       return
     endif
 

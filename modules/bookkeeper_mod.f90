@@ -6,7 +6,8 @@ module bookkeeper_mod
   use bmad_utils_mod
   use multipole_mod
 
-  integer, parameter :: off$ = 0, on$ = 1, from_saved$ = 2
+  integer, parameter :: off$ = 1, on$ = 2
+  integer, parameter :: save_state$ = 3, restore_state$ = 4
         
 contains
 
@@ -1163,14 +1164,16 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   key       -- Integer: Key name of elements to be turned on or off.
+!   key      -- Integer: Key name of elements to be turned on or off.
 !                  [Key = quadrupole$, etc.]
-!   ring      -- Ring_struct: Ring structure holding the elements
-!   switch    -- Integer: 
-!                   on$        => Turn elements on.  Save initial on/off state.
-!                   off$       => Turn elements off. Save initial on/off state.
-!                   from_saved$  => Restore initial on/off state.
-!   orb_(0:)  -- Coord_struct, optional: Needed for ring_make_mat6
+!   ring     -- Ring_struct: Ring structure holding the elements
+!   switch   -- Integer: 
+!                 on$            => Turn elements on.  
+!                 off$           => Turn elements off. 
+!                 save_state$    => Save present on/off state. 
+!                                     No turning on or off is done.
+!                 restore_state$ => Restore saved on/off state.
+!   orb_(0:) -- Coord_struct, optional: Needed for ring_make_mat6
 !
 ! Output:
 !   ring -- Ring_struct: Modified ring.
@@ -1199,13 +1202,14 @@ subroutine set_on_off (key, ring, switch, orb_)
 
     select case (switch)
     case (on$) 
-      ring%ele_(i)%internal_logic = ring%ele_(i)%is_on
       ring%ele_(i)%is_on = .true.
     case (off$)
-      ring%ele_(i)%internal_logic = ring%ele_(i)%is_on
       ring%ele_(i)%is_on = .false.
-    case (from_saved$)
+    case (save_state$)
       ring%ele_(i)%is_on = ring%ele_(i)%internal_logic
+    case (restore_state$)
+      ring%ele_(i)%internal_logic = ring%ele_(i)%is_on
+      return
     case default
       print *, 'ERROR IN SET_ON_OFF: BAD SWITCH:', switch
       call err_exit

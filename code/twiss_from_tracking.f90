@@ -70,7 +70,8 @@ subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb)
   call mat_make_unit (mat6_unit)
   n_ele = ring%n_ele_ring
 
-  call set_on_off (rfcavity$, ring, off$) ! Turn off RF voltage 
+  call set_on_off (rfcavity$, ring, save_state$)
+  call set_on_off (rfcavity$, ring, off$)
 
   delta(0) = 0
   delta(1:6) = bmad_com%d_orb(1:6)
@@ -126,6 +127,6 @@ subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb)
 ! And turn the RF back on.
 
   call twiss_propagate_all (ring)
-  call set_on_off (rfcavity$, ring, from_saved$)
+  call set_on_off (rfcavity$, ring, restore_state$)
 
 end subroutine

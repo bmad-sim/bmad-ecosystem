@@ -104,7 +104,10 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
 
   n_ele = ring%n_ele_use
 
-  if (n == 4) call set_on_off (rfcavity$, ring, off$)
+  if (n == 4) then
+    call set_on_off (rfcavity$, ring, save_state$)
+    call set_on_off (rfcavity$, ring, off$)
+  endif
 
 !----------------------------------------------------------------------
 ! d_orb = (T-1)^-1 * orbit_end
@@ -155,7 +158,7 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
 
 ! return rf cavities to original state
 
-  if (n == 4) call set_on_off (rfcavity$, ring, from_saved$)
+  if (n == 4) call set_on_off (rfcavity$, ring, restore_state$)
   sr_com%fluctuations_on = fluct_saved  ! restore state
 
 end subroutine
