@@ -39,13 +39,14 @@ module rad_int_common
     real(rp) g_x0, g_y0, k1, s1
     real(rp) eta_a(4), eta_b(4), eta_a0(4), eta_a1(4), eta_b0(4), eta_b1(4)
     real(rp) g, g2, g_x, g_y, dg2_x, dg2_y 
-    real(rp), pointer :: i1_(:) => null()
-    real(rp), pointer :: i2_(:) => null()
-    real(rp), pointer :: i3_(:) => null()
-    real(rp), pointer :: i4a_(:) => null()
-    real(rp), pointer :: i4b_(:) => null()
-    real(rp), pointer :: i5a_(:) => null()
-    real(rp), pointer :: i5b_(:) => null()
+    real(rp), allocatable :: i1_(:) 
+    real(rp), allocatable :: i2_(:) 
+    real(rp), allocatable :: i3_(:) 
+    real(rp), allocatable :: i4a_(:)
+    real(rp), allocatable :: i4b_(:)
+    real(rp), allocatable :: i5a_(:) 
+    real(rp), allocatable :: i5b_(:) 
+    real(rp) :: int_tot(7)
     type (ring_struct), pointer :: ring
     type (ele_struct), pointer :: ele0, ele
     type (ele_struct) runt
@@ -65,240 +66,140 @@ contains
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Function qromb_rad_int (func, a, b, sum, which_int, &
-!                                      eps_int, eps_sum) result (rad_int)
+! Subroutine qromb_rad_int(do_int, ir)
 !
-! Function to do integration using Romberg's method.
+! Function to do integration using Romberg's method on the 7 radiation 
+! integrals.
 ! This is a modified version of QROMB from Num. Rec.
 ! See the Num. Rec. book for further details
 !-
 
-function qromb_rad_int (func, a, b, sum, which_int, &
-                                      eps_int, eps_sum) result (rad_int)
+subroutine qromb_rad_int (do_int, ir)
 
   use precision_def
-  use nrtype; use nrutil, only : nrerror
-  use nr, only : polint,trapzd
+  use nrtype
+  use nr, only: polint
 
   implicit none
 
-  interface
-    function func(x)
-    use precision_def
-    real(rp), dimension(:), intent(in) :: x
-    real(rp), dimension(size(x)) :: func
-    end function func
-  end interface
+  integer, parameter :: jmax = 14
+  integer j, j0, n, n_pts, ir
 
-  integer(i4b), parameter :: jmax = 14, k = 5, km = k-1
-  integer(i4b) :: j
+  real(rp) :: eps_int, eps_sum
+  real(rp) :: ll, ds, s0, s_pos, dint, d0, d_max
+  real(rp) i_sum(7), rad_int(7), int_tot(7)
 
-  real(rp), intent(in), optional :: eps_int, eps_sum
-  real(rp), intent(in) :: a, b, sum
-  real(rp) :: rad_int
-  real(rp) :: dqromb
-  real(rp) :: eps_i, eps_s
-  real(rp) :: h(0:jmax), s(0:jmax)
+  logical do_int(7), complete
 
-  character*(*) which_int
+  type ri_struct
+    real(rp) h(0:jmax)
+    real(rp) sum(0:jmax)
+  end type
+
+  type (ri_struct) ri(7)
 
 !
 
-  eps_i = 1e-4
-  if (present(eps_int)) eps_i = eps_int
+  eps_int = 1e-4
+  eps_sum = 1e-6
 
-  eps_s = 1e-6
-  if (present(eps_sum)) eps_s = eps_sum
+  ri(:)%h(0) = 4.0
+  ri(:)%sum(0) = 0
+  rad_int = 0
+  
+  ll = ric%ele%value(l$)
 
-  h(0) = 4.0
-  s(0) = 0.0
+! loop until integrals converge
 
   do j = 1, jmax
 
-    s(j) = s(j-1)
-    h(j) = h(j-1) / 4
-    call trapzd(func, a, b, s(j), j)
+    ri(:)%h(j) = ri(:)%h(j-1) / 4
 
+! This is trapzd from Num. Rec.
+
+    if (j == 1) then
+      n_pts = 2
+      ds = ll
+      s0 = 0
+    else
+      n_pts = 2**(j-2)
+      ds = ll / n_pts
+      s0 = ds / 2
+    endif
+
+    i_sum = 0
+
+    do n = 1, n_pts
+      s_pos = s0 + (n-1) * ds
+      call propagate_part_way (s_pos)
+      i_sum(1) = i_sum(1) + ric%g_x * (ric%eta_a(1) + ric%eta_b(1)) + &
+                            ric%g_y * (ric%eta_a(3) + ric%eta_b(3))
+      i_sum(2) = i_sum(2) + ric%g2
+      i_sum(3) = i_sum(3) + ric%g2 * ric%g
+      i_sum(4) = i_sum(4) + &
+                ric%g2 * (ric%g_x * ric%eta_a(1) + ric%g_y * ric%eta_a(3)) + &
+                         (ric%dg2_x * ric%eta_a(1) + ric%dg2_y * ric%eta_a(3)) 
+      i_sum(5) = i_sum(5) + &
+                ric%g2 * (ric%g_x * ric%eta_b(1) + ric%g_y * ric%eta_b(3)) + &
+                         (ric%dg2_x * ric%eta_b(1) + ric%dg2_y * ric%eta_b(3))
+      i_sum(6) = i_sum(6) + &
+                    ric%g2 * ric%g * (ric%runt%x%gamma * ric%runt%x%eta**2 + &
+                    2 * ric%runt%x%alpha * ric%runt%x%eta * ric%runt%x%etap + &
+                    ric%runt%x%beta * ric%runt%x%etap**2)
+      i_sum(7) = i_sum(7) + &
+                    ric%g2 * ric%g * (ric%runt%y%gamma * ric%runt%y%eta**2 + &
+                    2 * ric%runt%y%alpha * ric%runt%y%eta * ric%runt%y%etap + &
+                    ric%runt%y%beta * ric%runt%y%etap**2)
+    enddo
+
+    ri(:)%sum(j) = (ri(:)%sum(j-1) + ds * i_sum(:)) / 2
+
+! back to qromb
+
+    if (j < 3) cycle
     if (ric%ele%key == wiggler$ .and. j < 4) cycle
 
-    if (j >=  k) then
-      call polint(h(j-km:j), s(j-km:j), 0.0_rp, rad_int, dqromb)
-      if (abs(dqromb) <= eps_i * abs(rad_int) + eps_s * abs(sum)) return
-    elseif (j >= 3) then
-      call polint(h(1:j), s(1:j), 0.0_rp, rad_int, dqromb)
-      if (abs(dqromb) <= eps_i * abs(rad_int) + eps_s * abs(sum)) return
-    end if
+    j0 = max(j-4, 1)
+
+    complete = .true.
+    d_max = 0
+
+    do n = 1, 7
+      if (.not. do_int(n)) cycle
+      call polint (ri(n)%h(j0:j), ri(n)%sum(j0:j), 0.0_rp, rad_int(n), dint)
+      d0 = eps_int * abs(rad_int(n)) + eps_sum * abs(ric%int_tot(n))
+      if (abs(dint) > d0)  complete = .false.
+      if (d0 /= 0) d_max = abs(dint) / d0
+    enddo
+
+    if (complete .or. j == jmax) then
+      ric%i1_(ir)  = ric%i1_(ir)  + rad_int(1)
+      ric%i2_(ir)  = ric%i2_(ir)  + rad_int(2)
+      ric%i3_(ir)  = ric%i3_(ir)  + rad_int(3)
+      ric%i4a_(ir) = ric%i4a_(ir) + rad_int(4)
+      ric%i4b_(ir) = ric%i4b_(ir) + rad_int(5)
+      ric%i5a_(ir) = ric%i5a_(ir) + rad_int(6)
+      ric%i5b_(ir) = ric%i5b_(ir) + rad_int(7)
+
+      ric%int_tot(1) = ric%int_tot(1) + ric%i1_(ir)
+      ric%int_tot(2) = ric%int_tot(2) + ric%i2_(ir)
+      ric%int_tot(3) = ric%int_tot(3) + ric%i3_(ir)
+      ric%int_tot(4) = ric%int_tot(4) + ric%i4a_(ir)
+      ric%int_tot(5) = ric%int_tot(5) + ric%i4b_(ir)
+      ric%int_tot(6) = ric%int_tot(6) + ric%i5a_(ir)
+      ric%int_tot(7) = ric%int_tot(7) + ric%i5b_(ir)
+    endif
+
+    if (complete) return
 
   end do
 
-  print *, &
-      'Warning in QROMB_RAD_INT: Radiation integral is not converging: ', &
-                                                            which_int
-  print '(a, 1p3e11.2)', '     Error:', dqromb, rad_int, sum
+! should not be here
+
+  print *, 'QROMB_RAD_INT: Note: Radiation Integral is not converging', d_max
   print *, '     For element: ', ric%ele%name
 
-end function qromb_rad_int
-
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-
-function  eval_i1 (s_vec)
-
-  implicit none
-
-  real(rp), intent(in) :: s_vec(:)
-  real(rp), dimension(size(s_vec)) :: eval_i1
-
-  integer i
-
-!                      
-                                         
-  do i = 1, size(s_vec)
-    call propagate_part_way (s_vec(i))
-    eval_i1(i) = ric%g_x * (ric%eta_a(1) + ric%eta_b(1)) + &
-                 ric%g_y * (ric%eta_a(3) + ric%eta_b(3))
-  enddo
-
-end function
-  
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-
-function  eval_i2 (s_vec)
-
-  implicit none
-
-  real(rp), intent(in) :: s_vec(:)
-  real(rp), dimension(size(s_vec)) :: eval_i2
-
-  integer i
-
-!                      
-                                         
-  do i = 1, size(s_vec)
-    call propagate_part_way (s_vec(i))
-    eval_i2(i) = ric%g2
-  enddo
-
-end function
-  
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-
-function  eval_i3 (s_vec)
-
-  implicit none
-
-  real(rp), intent(in) :: s_vec(:)
-  real(rp), dimension(size(s_vec)) :: eval_i3
-
-  integer i
-
-!                      
-                                         
-  do i = 1, size(s_vec)
-    call propagate_part_way (s_vec(i))
-    eval_i3(i) = ric%g2 * ric%g
-  enddo
-
-end function
-  
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-
-function  eval_i4a (s_vec)
-
-  implicit none
-
-  real(rp), intent(in) :: s_vec(:)
-  real(rp), dimension(size(s_vec)) :: eval_i4a
-
-  integer i
-
-!
-
-  do i = 1, size(s_vec)
-    call propagate_part_way (s_vec(i))
-    eval_i4a(i) = ric%g2 * (ric%g_x * ric%eta_a(1) + ric%g_y * ric%eta_a(3)) + &
-                           (ric%dg2_x * ric%eta_a(1) + ric%dg2_y * ric%eta_a(3))
-  enddo
-
-end function
-  
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-
-function  eval_i4b (s_vec)
-
-  implicit none
-
-  real(rp), intent(in) :: s_vec(:)
-  real(rp), dimension(size(s_vec)) :: eval_i4b
-
-  integer i
-
-!
-
-  do i = 1, size(s_vec)
-    call propagate_part_way (s_vec(i))
-    eval_i4b(i) = ric%g2 * (ric%g_x * ric%eta_b(1) + ric%g_y * ric%eta_b(3)) + &
-                           (ric%dg2_x * ric%eta_b(1) + ric%dg2_y * ric%eta_b(3))
-  enddo
-
-end function
-  
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-
-function  eval_i5a (s_vec)
-
-  implicit none
-
-  real(rp), intent(in) :: s_vec(:)
-  real(rp), dimension(size(s_vec)) :: eval_i5a
-
-!
-
-  integer i
-
-  do i = 1, size(s_vec)
-    call propagate_part_way (s_vec(i))
-    eval_i5a(i) = ric%g2 * ric%g * (ric%runt%x%gamma * ric%runt%x%eta**2 + &
-                    2 * ric%runt%x%alpha * ric%runt%x%eta * ric%runt%x%etap + &
-                    ric%runt%x%beta * ric%runt%x%etap**2)
-  enddo             
-
-end function
-
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-
-function  eval_i5b (s_vec)
-
-  implicit none
-
-  real(rp), intent(in) :: s_vec(:)
-  real(rp), dimension(size(s_vec)) :: eval_i5b
-
-  integer i
-
-!
-
-  do i = 1, size(s_vec)
-    call propagate_part_way (s_vec(i))
-    eval_i5b(i) = ric%g2 * ric%g * (ric%runt%y%gamma * ric%runt%y%eta**2 + &
-                    2 * ric%runt%y%alpha * ric%runt%y%eta * ric%runt%y%etap + &
-                    ric%runt%y%beta * ric%runt%y%etap**2)
-  enddo
-
-end function
+end subroutine
 
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
