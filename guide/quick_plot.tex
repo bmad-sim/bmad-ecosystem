@@ -6,20 +6,20 @@ The plotting package included in the \bmad distribution is PGPLOT
 One drawback of PGPLOT is that the arguments to
 PGPLOT's subroutines are not always conveniently structured. to remedy
 this a suite of wrapper routines have been developed which can be
-used to drive PGPLOT. This suite is called Quick Plot and lives in the
+used to drive PGPLOT. This suite is called \quickplot and lives in the
 \vn{dcslib} library which comes with the Bmad distribution. A quick
 reference guide can be seen online by using the command \vn{getf
-quick_plot}. For quick identification in a program, all Quick Plot
+quick_plot}. For quick identification in a program, all \quickplot
 subroutines start with a \vn{qp_} prefix. Also, by convention, all
 PGPLOT subroutines start with a \vn{pg} prefix.
 
-While Quick Plot covers most of the features of PGPLOT, Quick Plot is
+While \quickplot covers most of the features of PGPLOT, \quickplot is
 still a work in progress.  For example, contour plots have not yet
-been implemented in Quick Plot. If you see a feature that is lacking
-in Quick Plot please do not hesitate to make a request to
+been implemented in \quickplot. If you see a feature that is lacking
+in \quickplot please do not hesitate to make a request to
 \vn{dcs16@cornell.edu}.
 
-Note: PGPLOT uses single precision real(4) numbers while Quick Plot
+Note: PGPLOT uses single precision real(4) numbers while \quickplot
 uses real(rp) numbers.  If you use any PGPLOT subroutines directly be
 careful of this.
 
@@ -34,7 +34,7 @@ careful of this.
     character(1) ans
   
   ! Generate PS and X-windows plots.
-    call qp_open_page ('PS-L')  ! Tell Quick Plot to generate a PS file.
+    call qp_open_page ('PS-L')  ! Tell \quickplot to generate a PS file.
     call plot_it              ! Generate the plot
     call qp_close_page        ! quick_plot.ps is the file name
     call qp_open_page ('X', id, 600.0_rp, 470.0_rp, 'POINTS')
@@ -60,8 +60,8 @@ careful of this.
     close (1)
 
   ! Setup the margins and page border and draw the title
-    call qp_set_page_border (0.02_rp, 0.02_rp, 0.2_rp, 0.2_rp, '%PAGE')
-    call qp_set_margin (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
+    call qp_set_page_border (0.01_rp, 0.02_rp, 0.2_rp, 0.2_rp, '%PAGE')
+    call qp_set_margin (0.07_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
     call qp_draw_text (title, 0.5_rp, 0.85_rp, '%PAGE', 'CT') 
 
   ! draw the left graph
@@ -82,13 +82,14 @@ careful of this.
     call qp_set_graph_attrib (draw_grid = .false.)
     call qp_set_symbol_attrib (star5_filled$, height = 10.0_rp)
     call qp_set_axis ('Y', -0.1_rp, 0.1_rp, 4, 2)
+    call qp_set_axis ('Y2', label = 'Y2 axis')
     call qp_draw_graph (x, t, '\m1 \m2 \m3 \m4 \m5 \m6 \m7', '\fsLY\fn', &
-                                    draw_line = .false., symbol_every = 4)
+             title = 'That Darn Graph', draw_line = .false., symbol_every = 4)
     call qp_restore_state
   end subroutine
   end program
 \end{listing}
-\caption{Quick Plot example program.}
+\caption{\quickplot example program.}
 \label{f:plot_example}
 \end{figure}
 
@@ -104,11 +105,11 @@ careful of this.
 \section{An Example}
 \label{s:plot_example}
 
-An example of how Quick Plot can be used in a program is shown in
+An example of how \quickplot can be used in a program is shown in
 Figure~\ref{f:plot_example}. In the \bmad distribution a copy of this
 program is in the file
 \begin{example}
-  plot_example/plot_example.f90
+  dcslib/plot_example.f90
 \end{example}
 The \vn{plot_example.f90} program generates the figure shown in
 Figure~\ref{f:plot_out} from the input file named \vn{plot.dat}. The
@@ -125,7 +126,6 @@ first few lines of the data file are
      1    0.0001    0.0995    0.0101   -0.0127
      2    0.0004    0.0980    0.0203   -0.0130
      3    0.0009    0.0955    0.0304   -0.0132
-     4    0.0016    0.0921    0.0405   -0.0135
      ...
 \end{example}
 
@@ -148,7 +148,7 @@ forth and fifth data columns and put them into the \vn{x}, \vn{y},
 
 \vn{qp_set_page_border}, \vn{qp_set_box}, and \vn{qp_set_margin} sets
 where the graph is going to be placed (see below for more details).
-\vn{qp_set_box(1, 1, 2, 1)} on line 38 tells Quick Plot to put the
+\vn{qp_set_box(1, 1, 2, 1)} on line 38 tells \quickplot to put the
 first graph in the left box of a 2 box grid. The \vn{qp_set_margin} on
 line 34 sets the margins between the box and the graph axes.
 
@@ -171,10 +171,11 @@ attribute stack. \vn{qp_draw_data} on line 46 is similar to
 \vn{qp_draw_graph} except only the data is drawn. Not the axes and
 associated labels.
 
-Lines 50 through 56 draw the third graph in the right hand box.  The
-syntax of the string arguments of \vn{qp_draw_graph} in lines 41 and
-55/56 comes from PGPLOT and allows special symbols along with subscripts
-and superscripts.
+Lines 50 through 57 draw the third curve in the right hand graph.
+Line 55 labels the \vn{y2} (right hand) axis. The syntax of the
+string arguments of \vn{qp_draw_graph} in lines 41 and 56/57 comes
+from PGPLOT and allows special symbols along with subscripts and
+superscripts.
 
 %----------------------------------------------------------------------------
 \section{Plotting Coordinates}
@@ -187,7 +188,7 @@ and superscripts.
   \label{f:plot_coords}
 \end{figure}
 
-Quick Plot uses the following concepts as shown in Figure~\ref{f:plot_coords}
+\quickplot uses the following concepts as shown in Figure~\ref{f:plot_coords}
 \begin{example}
   PAGE  -- The entire drawing surface.
   BOX   -- The area of the page that a graph is placed into.
@@ -219,7 +220,7 @@ sets the distance between the box edges and the axes.
 \section{Length and Position Units}
 \label{s:plot_units}
 
-Typically there is an optional \vn{units} argument for Quick Plot routines that
+Typically there is an optional \vn{units} argument for \quickplot routines that
 have length and/or position arguments. For example, using \vn{getf} one can
 see that the arguments for \vn{qp_draw_rectangle} are
 \begin{example}
@@ -289,16 +290,39 @@ Examples:
 \end{example}
 
 %----------------------------------------------------------------------------
+\section{Y2 and X2 axes}
+\label{s:axes2}
+
+The top and right axes of a graph are known as \vn{X2} and \vn{Y2}
+respectively as shown in Figure~\ref{f:plot_coords}. Normally the
+\vn{X2} axis mirrors the \vn{X} axis and the \vn{Y2} axis mirrors the
+\vn{Y} axis in that the tick marks and axis numbering for the \vn{X2}
+and \vn{Y2} axes are the same as the \vn{X} and \vn{Y} axes
+respectively. \vn{qp_set_axis} can be used to disable mirroring. For example:
+\begin{example}
+  call qp_set_axis ('Y2', mirror = .false.)  ! y2-axis now independent of y.
+\end{example}
+\vn{qp_set_axis} can also be used to set \vn{Y2} axis parameters (axis
+minimum, maximum, etc.). 
+
+Note that the default is for the \vn{X2} and \vn{Y2} axis numbering
+not to be shown. To enable or disable axis numbering again use
+\vn{qp_set_axis}. For example:
+\begin{example}
+  call qp_set_axis ('Y2', draw_numbers = .true.)  ! draw y2 axis numbers
+\end{example}
+
+%----------------------------------------------------------------------------
 \section{Styles}
 \label{s:styles}
 
-Symbolic constants have been defined for Quick Plot subroutine
+Symbolic constants have been defined for \quickplot subroutine
 arguments that are used to choose various styles. As an example of
 this is in lines 44 and 45 of Figure~\ref{f:plot_example}. The
 numbers in the following are the PGPLOT equivalents.
 
 \noindent
-The Quick Plot line styles are:
+The \quickplot line styles are:
 \begin{example}
     1 -- solid\$                  Solid
     2 -- dashed\$                 Dashed
@@ -308,7 +332,7 @@ The Quick Plot line styles are:
 \end{example}
 
 \noindent
-The color styles in Quick Plot are:
+The color styles in \quickplot are:
 \begin{example}
     0 -- White\$   (actually the background color)
     1 -- Black\$   (actually the foreground color)
@@ -379,7 +403,7 @@ The PGPLOT list of symbols is:
 \end{example}
 Table~\ref{t:plot_syms} shows some of the symbols and there associated 
 numbers. Note: At constant height PGPLOT gives symbols of different size.
-To partially overcome this, Quick Plot scales some of the symbols to
+To partially overcome this, \quickplot scales some of the symbols to
 give a more uniform appearence. Table~\ref{t:plot_syms} was generated
 using a height of 40 via the call
 \begin{example}
@@ -430,8 +454,8 @@ PGPLOT defines a text background index:
 \section{Structures}
 \label{s:qp_structs}
 
-Quick Plot uses several structures to hold data. The structure that
-defines the ``state'' of Quick Plot is \vn{qp_state_struct} The
+\quickplot uses several structures to hold data. The structure that
+defines the ``state'' of \quickplot is \vn{qp_state_struct} The
 definition of \vn{qp_state_struct} is shown in
 Figure~\ref{f:qp_state_struct}. 
 
@@ -478,7 +502,7 @@ Figure~\ref{f:qp_state_struct}.
 The \vn{%plot} component of the \vn{qp_state_struct} holds information
 about the plot axes. The definition of the \vn{qp_plot_struct} is
 shown in Figure~\ref{f:qp_plot_struct}. \vn{%x} and \vn{%x2} are the
-left and right axes, and \vn{%y} and \vn{%y2} are the bottom and top
+bottom and top axes, and \vn{%y} and \vn{%y2} are the left and right
 axes respectively.
 
 
