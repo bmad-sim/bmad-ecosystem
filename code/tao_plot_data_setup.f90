@@ -347,7 +347,9 @@ plot_loop: do i = 1, size(s%plot_page%region)
             case ('design')  
               call tao_evaluate_a_datum (datum, u, u%design, u%design_orb, y_val, t_map)
             case default
-              call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // graph%who(m)%name)
+              call out_io (s_error$, r_name, &
+                          'BAD PLOT "WHO" FOR LAT_LAYOUT DATA_SOURCE: ' // graph%who(m)%name, &
+                          '    FOR DATA_TYPE: ' // curve%data_type)
               graph%valid = .false.
               cycle graph_loop
             end select

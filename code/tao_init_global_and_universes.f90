@@ -343,6 +343,11 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
     if (ios < 0) exit         ! exit on end-of-file
     call out_io (s_blank$, r_name, &
                         'Init: Read tao_var namelist: ' // v1_var%name)
+    call str_upcase (default_attribute, default_attribute)
+    do i = lbound(var, 1), ubound(var, 1)
+      call str_upcase (var(i)%attribute, var(i)%attribute)
+      call str_upcase (var(i)%ele_name, var(i)%ele_name)
+    enddo
 
     if (v1_var%name == ' ') cycle
 
@@ -967,6 +972,7 @@ integer num_ele, ios, ixx1, ixx2
     s%var(n1:n2)%name = var(ix1:ix2)%name
 
     s%var(n1:n2)%attrib_name = var(ix1:ix2)%attribute
+
     where (s%var(n1:n2)%attrib_name == ' ') s%var(n1:n2)%attrib_name = default_attribute
  
     s%var(n1:n2)%weight = var(ix1:ix2)%weight

@@ -227,51 +227,44 @@ case ('data')
 
       write(lines(1), '(2a)') 'Data name: ', trim(d2_ptr%name) // ':' // d1_ptr%name
       lines(2) = ' '
-      line1 = '        Name                       Data         Model        Design'
-      write (lines(3), *) line1
-      nl = 3
+      nl = 2
+
+      line1 = '                                                                  |   Useit'
+      line2 = '     Name                     Data         Model        Design    | Opt  Plot'
+      nl=nl+1; lines(nl) = line1
+      nl=nl+1; lines(nl) = line2
 
 ! if a range is specified, show the data range   
 
-      if (show_word3 .ne. ' ') then
-        allocate (show_here(lbound(d1_ptr%d,1):ubound(d1_ptr%d,1)))
+      allocate (show_here(lbound(d1_ptr%d,1):ubound(d1_ptr%d,1)))
+      if (show_word3 == ' ') then
+        show_here = .true.
+      else
         call location_decode (show_word3, show_here, lbound(d1_ptr%d,1), num_locations)
         if (num_locations .eq. -1) then
           call out_io (s_error$, r_name, "Syntax error in range list!")
           deallocate(show_here)
           return
         endif
-        do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
-          if (.not. (show_here(i) .and. d1_ptr%d(i)%exists)) cycle
-          if (nl+2 .gt. max_lines) then
-            call out_io (s_blank$, r_name, "Too many elements!")
-            call out_io (s_blank$, r_name, "Listing first \i5\ selected elements", max_lines-4)
-            exit
-          endif
-          nl=nl+1
-          write(lines(nl), '(i, 2x, a16, 3es14.4)') i, &
-                 d1_ptr%d(i)%name, d1_ptr%d(i)%meas_value, &
-                 d1_ptr%d(i)%model_value, d1_ptr%d(i)%design_value
-        enddo
-        nl=nl+1
-        write (lines(nl), *) line1
-        deallocate(show_here)
-      else  
-        do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
-          if (.not. d1_ptr%d(i)%exists) cycle
-          if (nl+2 .gt. max_lines) then
-            call out_io (s_blank$, r_name, "Too many elements!")
-            call out_io (s_blank$, r_name, "Listing first \i5\ elements", max_lines-4)
-            exit
-          endif
-          nl=nl+1
-          write(lines(nl), '(i, 2x, a16, 3es14.4)') i, &
-                 d1_ptr%d(i)%name, d1_ptr%d(i)%meas_value, &
-                 d1_ptr%d(i)%model_value, d1_ptr%d(i)%design_value
-        enddo
-        nl=nl+1
-        write (lines(nl), *) line1
       endif
+
+      do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
+        if (.not. (show_here(i) .and. d1_ptr%d(i)%exists)) cycle
+        if (nl+2 .gt. max_lines) then
+          call out_io (s_blank$, r_name, "Too many elements!")
+          call out_io (s_blank$, r_name, "Listing first \i5\ selected elements", max_lines-4)
+          exit
+        endif
+        nl=nl+1; write(lines(nl), '(i5, 2x, a16, 3es14.4, 2l6)') i, &
+                     d1_ptr%d(i)%name, d1_ptr%d(i)%meas_value, &
+                     d1_ptr%d(i)%model_value, d1_ptr%d(i)%design_value, &
+                     d1_ptr%d(i)%useit_opt, d1_ptr%d(i)%useit_plot
+      enddo
+
+      deallocate(show_here)
+
+      nl=nl+1; lines(nl) = line2
+      nl=nl+1; lines(nl) = line1
 
 ! else we must have a valid d2_ptr.
 

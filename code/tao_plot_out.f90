@@ -127,13 +127,16 @@ subroutine plot_key_table
 
 integer i, j, k, j_ele, j_att, ix_var
 real(rp) :: y, norm
-real(rp) :: dy_key = 12
+real(rp) :: dy_key, text_scale
 character(80) str, fmt, str2
 
 !
 
 j_ele = 4
 j_att = 5
+
+call qp_get_qp_parameters (text_scale = text_scale)
+dy_key = 12 * text_scale
 
 do k = s%global%ix_key_bank+1, s%global%ix_key_bank+10
   if (k > ubound(s%key, 1)) cycle
@@ -192,7 +195,7 @@ subroutine plot_lat_layout
 type (ring_struct), pointer :: lat
 type (ele_struct), pointer :: ele
 
-real(rp) x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top
+real(rp) x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top, height
 
 integer i, j, k, kk, ix, ix1, ix2, isu
 integer icol, ix_var, ixv, j_label
@@ -305,7 +308,9 @@ do i = 1, lat%n_ele_max
     j_label = j_label + 1
     if (j_label == s%global%n_lat_layout_label_rows) j_label = 0
     y_off = y_bottom + 12.0_rp * j_label 
-    call qp_draw_text (ele%name, ele%s-ele%value(l$)/2, y_off, justify = 'CB')
+    height = 0.8 * s%plot_page%text_height 
+    call qp_draw_text (ele%name, ele%s-ele%value(l$)/2, y_off, &
+                                        height = height, justify = 'CB')
   endif
 
   call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)

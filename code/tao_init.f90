@@ -75,6 +75,13 @@ subroutine tao_init (init_file)
       this => var_ptr%this(j)
       u => s%u(this%ix_uni)
       ix = attribute_index (u%model%ele_(this%ix_ele), var_ptr%attrib_name)
+      if (ix < 1) then
+        call out_io (s_abort$, r_name, &
+                'Error: Attribute not recognized: ' // var_ptr%attrib_name, &
+                '       For element: ' // u%model%ele_(this%ix_ele)%name, &
+                '       Which is a: ' // key_name(u%model%ele_(this%ix_ele)%key))
+        call err_exit
+      endif
       if (.not. attribute_free (u%model%ele_(this%ix_ele), ix, u%model)) then
         call out_io (s_abort$, r_name, &
                 'Error: Variable trying to control an attribute that is not free to vary.', &

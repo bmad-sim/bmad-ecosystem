@@ -72,8 +72,6 @@ Templates define the basics of, say, how to display an orbit.
   plot%x%label = ' '
   plot%x_axis_type = 'index'
   plot%n_graph = 2
-  plot%who(1) = 'model', +1
-  plot%who(2) = 'design', -1
 /
 
 &tao_template_graph
@@ -87,6 +85,8 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -20
   graph%y%major_div = 4
   graph%n_curve = 1
+  graph%who(1) = 'model', +1
+  graph%who(2) = 'design', -1
   curve(1)%data_source = 'data_array'
   curve(1)%data_type = 'phase:x'
   curve(1)%units_factor = 57.29578
@@ -103,6 +103,8 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -20
   graph%y%major_div = 4
   graph%n_curve = 1
+  graph%who(1) = 'model', +1
+  graph%who(2) = 'design', -1
   curve(1)%data_source = 'data_array'
   curve(1)%data_type = 'phase:y'
   curve(1)%units_factor = 57.29578

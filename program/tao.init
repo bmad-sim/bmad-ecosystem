@@ -312,7 +312,7 @@
 
 &tao_var
   v1_var%name  = "h_steer"
-  default_attribute = "hkick"
+  default_attribute = "HKICK"
   default_weight = 1e3
   default_step = 1e-5
   ix_min_var = 0

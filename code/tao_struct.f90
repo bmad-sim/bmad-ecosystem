@@ -148,6 +148,7 @@ type tao_plot_page_struct
   character(80) ps_scale             ! scaling when creating PS files.
   real(rp) size(2)                   ! width and height of window in pixels.
   real(rp) text_height
+  real(rp) :: text_scale = 1
   integer id_window                  ! X window id number.
 end type
 

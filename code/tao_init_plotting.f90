@@ -69,12 +69,15 @@ plot_page%title(:)%y = 0.990
 plot_page%title(1)%y = 0.996
 plot_page%title(2)%y = 0.97
 plot_page%title(:)%units = '%PAGE'
+plot_page%text_scale = 1
 read (iu, nml = tao_plot_page, err = 9000)
 call out_io (s_blank$, r_name, 'Init: Read tao_plot_page namelist')
 
 page => s%plot_page
 page%size = plot_page%size
 page%border = plot_page%border
+page%text_scale = plot_page%text_scale
+call qp_set_qp_parameters (text_scale = page%text_scale)
 
 ! title
 
@@ -149,8 +152,8 @@ do
                                   x_symbol$, diamond$ /)
     curve(2:7)%symbol%color = (/ blue$, red$, green$, cyan$, magenta$, yellow$ /)
     curve(2:7)%line%color = curve(2:7)%symbol%color
-    curve(2:7)%line%style = (/ dashed$, dotted$, dash_dot$, &
-                                                 dash_dot3$, solid$, dotted$ /)
+!    curve(2:7)%line%style = (/ dashed$, dotted$, dash_dot$, &
+!                                               dash_dot3$, solid$, dotted$ /)
     read (iu, nml = tao_template_graph, err = 9200)
     call out_io (s_blank$, r_name, &
                  'Init: Read tao_template_graph namelist: ' // graph%name)
