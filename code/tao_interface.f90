@@ -280,7 +280,22 @@ interface
     character(*) who, set_value
   end subroutine
 end interface
+
+interface
+  subroutine tao_set_lattice_cmd (universe, component, set_value)
+    implicit none
+    character(*) universe, component, set_value
+  end subroutine
+end interface
  
+interface
+  subroutine tao_set_plot_cmd (who, set_value1, set_value2)
+    implicit none
+    character(*) who, set_value1
+    character(*), optional :: set_value2
+  end subroutine
+end interface
+
 interface
   subroutine tao_set_var_cmd (who, component, set_value, list)
     implicit none

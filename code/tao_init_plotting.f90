@@ -64,7 +64,9 @@ plot_page%title(:)%draw_it = .false.
 plot_page%title(:)%string = ' '
 plot_page%title(:)%justify = 'CC'
 plot_page%title(:)%x = 0.50
-plot_page%title(:)%y = 0.995
+plot_page%title(:)%y = 0.990
+plot_page%title(1)%y = 0.996
+plot_page%title(2)%y = 0.994
 plot_page%title(:)%units = '%PAGE'
 read (iu, nml = tao_plot_page, err = 9000)
 call out_io (s_blank$, r_name, 'Init: Read tao_plot_page namelist')

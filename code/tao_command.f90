@@ -273,6 +273,7 @@ subroutine tao_command (command_line, err)
     if (((cmd_word(1) == 'data' .or. cmd_word(1) == 'var') .and. &
                   cmd_word(4) /= '=') .or. &
                   (cmd_word(1) == 'global' .and. cmd_word(3) /= '=') .or. &
+                  (cmd_word(1) == 'plot'   .and. cmd_word(3) /= '=') .or. &
 		  (cmd_word(1)(1:7) == 'lattice' .and. cmd_word(3) /= '=')) then
       call out_io (s_error$, r_name, 'SYNTAX PROBLEM. "=" NOT IN CORRECT PLACE.')
       return
@@ -291,6 +292,8 @@ subroutine tao_command (command_line, err)
                               cmd_word(2), cmd_word(4)) 
     case ('global')
       call tao_set_global_cmd (cmd_word(2), cmd_word(4))
+    case ('plot')
+      call tao_set_plot_cmd (cmd_word(2), cmd_word(4), cmd_word(5))
     case default
       call out_io (s_error$, r_name, 'NOT RECOGNIZED: ' // cmd_word(1))
     end select
