@@ -112,6 +112,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
       deallocate (ric%i4b_)
       deallocate (ric%i5a_)
       deallocate (ric%i5b_)
+      deallocate (ric%n_steps)
       do_alloc = .true.
     else
       do_alloc = .false.
@@ -128,6 +129,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
     allocate (ric%i4b_(ring%n_ele_max))
     allocate (ric%i5a_(ring%n_ele_max))
     allocate (ric%i5b_(ring%n_ele_max))
+    allocate (ric%n_steps(ring%n_ele_max))
   endif
 
   ric%ring => ring
@@ -135,7 +137,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
   ric%i1_ = 0;   ric%i2_ = 0;  ric%i3_ = 0
   ric%i4a_ = 0;  ric%i4b_ = 0
   ric%i5a_ = 0;  ric%i5b_ = 0
-  ric%int_tot = 0
+  ric%int_tot = 0; ric%n_steps = 0
 
   m65 = 0
 
