@@ -1,62 +1,62 @@
 module macroparticle_mod
 
-  use bmad_struct
-  use bmad_interface
+use bmad_struct
+use bmad_interface
 
-  type macro_init_twiss_struct
-    real(rp) beta, alpha, norm_emit
-  end type
+type macro_init_twiss_struct
+  real(rp) norm_emit
+end type
 
-  type macro_init_struct
-    type (macro_init_twiss_struct) x, y
-    real(rp) E_0       ! Average beam Energy (eV).
-    real(rp) center(6) ! Bench center offset relative to reference particle.
-    real(rp) n_part    ! Number of particles per bunch.
-    real(rp) ds_bunch  ! Distance between bunches.
-    real(rp) sig_z     ! Z sigma in m.
-    real(rp) sig_e     ! e_sigma in eV.
-    real(rp) sig_e_cut ! Energy cut in sigmas.
-    real(rp) sig_z_cut ! Z cut in sigmas.
-    integer n_bunch    ! Number of bunches.
-    integer n_slice    ! Number of slices per bunch.
-    integer n_macro    ! Number of macroparticles per slice.
-  end type
+type macro_init_struct
+  type (macro_init_twiss_struct) x, y
+  real(rp) :: dPz_dz = 0  ! Correlation of Pz with long position.
+  real(rp) :: center(6) = 0 ! Bench center offset relative to reference.
+  real(rp) n_part      ! Number of particles per bunch.
+  real(rp) ds_bunch    ! Distance between bunches.
+  real(rp) sig_z       ! Z sigma in m.
+  real(rp) sig_e       ! e_sigma in eV.
+  real(rp) sig_e_cut   ! Energy cut in sigmas.
+  real(rp) sig_z_cut   ! Z cut in sigmas.
+  integer n_bunch      ! Number of bunches.
+  integer n_slice      ! Number of slices per bunch.
+  integer n_macro      ! Number of macroparticles per slice.
+end type
 
-  type macro_struct
-    type (coord_struct) r   ! Center of the macroparticle
-    real(rp) sigma(21)      ! Sigma matrix.
-    real(rp) :: sig_z = 0   ! longitudinal macroparticle length (m).
-    real(rp) k_loss         ! loss factor (V/m). scratch variable for tracking.
-    real(rp) charge         ! charge in a macroparticle (Coul).
-    logical :: lost = .false.  ! Has the particle been lost in tracking?
-  end type
+type macro_struct
+  type (coord_struct) r   ! Center of the macroparticle
+  real(rp) sigma(21)      ! Sigma matrix.
+  real(rp) :: sig_z = 0   ! longitudinal macroparticle length (m).
+  real(rp) k_loss         ! loss factor (V/m). scratch variable for tracking.
+  real(rp) charge         ! charge in a macroparticle (Coul).
+  logical :: lost = .false.  ! Has the particle been lost in tracking?
+end type
 
-  type slice_struct
-    type (macro_struct), pointer :: macro(:) => null()
-    real(rp) charge   ! total charge in a slice (Coul).
-  end type
+type slice_struct
+  type (macro_struct), pointer :: macro(:) => null()
+  real(rp) charge   ! total charge in a slice (Coul).
+end type
 
-  type bunch_struct
-    type (slice_struct), pointer :: slice(:) => null()
-    real(rp) charge   ! total charge in a bunch (Coul).
-    real(rp) s_center ! longitudinal center of bunch (m).
-  end type
+type bunch_struct
+  type (slice_struct), pointer :: slice(:) => null()
+  real(rp) charge   ! total charge in a bunch (Coul).
+  real(rp) s_center ! longitudinal center of bunch (m).
+end type
 
-  type beam_struct
-    type (bunch_struct), pointer :: bunch(:) => null()
-  end type
+type beam_struct
+  type (bunch_struct), pointer :: bunch(:) => null()
+end type
 
-  integer, parameter :: s11$ = 1, s12$ = 2, s13$ = 3, s14$ =  4, s15$ =  5
-  integer, parameter :: s16$ = 6, s22$ = 7, s23$ = 8, s24$ = 9
-  integer, parameter :: s25$ = 10, s26$ = 11, s33$ = 12, s34$ = 13, s35$ = 14
-  integer, parameter :: s36$ = 15, s44$ = 16, s45$ = 17, s46$ = 18
-  integer, parameter :: s55$ = 19, s56$ = 20, s66$ = 21
+integer, parameter :: s11$ = 1, s12$ = 2, s13$ = 3, s14$ =  4, s15$ =  5
+integer, parameter :: s16$ = 6, s22$ = 7, s23$ = 8, s24$ = 9
+integer, parameter :: s25$ = 10, s26$ = 11, s33$ = 12, s34$ = 13, s35$ = 14
+integer, parameter :: s36$ = 15, s44$ = 16, s45$ = 17, s46$ = 18
+integer, parameter :: s55$ = 19, s56$ = 20, s66$ = 21
 
-  type macroparticle_com_struct
-    real(rp) ::  sig_z_min = 5e-6 ! min effective macroparticle length.
-  end type
+type macroparticle_com_struct
+  real(rp) ::  sig_z_min = 5e-6 ! min effective macroparticle length.
+end type
 
-  type (macroparticle_com_struct), save :: mp_com
+type (macroparticle_com_struct), save :: mp_com
 
 contains
 
@@ -1032,7 +1032,8 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_macro_distribution (beam, init, canonical_out, liar_gaussian)
+! Subroutine init_macro_distribution (beam, init, ele,
+!                                             canonical_out, liar_gaussian)
 !
 ! Subroutine to initialize a macroparticle distribution.
 ! This routine uses the LIAR algorithm. See the Bmad manual for more details.
@@ -1041,14 +1042,20 @@ end subroutine
 !   use macroparticle_mod
 !
 ! Input:
-!   init          -- macro_init_struct: Structure holding the 
-!                     parameters of the initial distribution. See the 
-!                     definition of the structure for more details.
+!   init          -- Macro_init_struct: Structure holding the 
+!                      parameters of the initial distribution. See the 
+!                      definition of the structure for more details.
+!   ele           -- Ele _struct: Structure with dispersion and Twiss parameters.
+!     %value(beam_energy$) -- Reference energy.
+!     %x%beta              -- Beta
+!     %x%alpha             -- Alpha
+!     %x%eta               -- Dispersion
+!     %c_mat(2,2)          -- Coupling matrix.
 !   canonical_out -- Logical: If True then convert to canonical coords.
 !   liar_gaussian -- Logical, optional: If true then use the liar algorithm
 !                       for calculating macroparticle charge values.
 !                       This is inaccurate at the few percent level.
-!                       Default is False.
+!                       Use this for testing purposes. Default is False.
 !
 ! Output:
 !   beam -- beam_struct: Initialized Structure
@@ -1056,18 +1063,25 @@ end subroutine
 !       %slice(:) -- %slice(1) is leading slice in a bunch. 
 !-
 
-subroutine init_macro_distribution (beam, init, canonical_out, liar_gaussian)
+subroutine init_macro_distribution (beam, init, ele, &
+                                                canonical_out, liar_gaussian)
 
   implicit none
 
   type (beam_struct), target ::  beam
+  type (ele_struct) ele
   type (macro_init_struct), intent(in) :: init
   type (bunch_struct), pointer :: bunch
+  type (macro_struct), pointer :: macro
 
-  real(rp) z_fudge, e_fudge, z0, dz, e0, de, ex, ey
+  real(rp) z_fudge, e_fudge, z_rel, dz, e_rel, de, ex, ey, dE_E, z
+  real(rp) mat4(4,4), v_mat(4,4), v_inv_mat(4,4), r(4)
+
   integer i, j, k
+
   logical, intent(in) :: canonical_out
   logical, optional, intent(in) :: liar_gaussian
+
 ! Reallocate if needed 
 
   call reallocate_beam (beam, init%n_bunch, init%n_slice, init%n_macro)
@@ -1082,36 +1096,46 @@ subroutine init_macro_distribution (beam, init, canonical_out, liar_gaussian)
   bunch => beam%bunch(1)
   bunch%charge = init%n_part * e_charge
 
-  ex = init%x%norm_emit * m_electron / init%E_0
-  ey = init%y%norm_emit * m_electron / init%E_0
+  ex = init%x%norm_emit * m_electron / ele%value(beam_energy$)
+  ey = init%y%norm_emit * m_electron / ele%value(beam_energy$)
 
   do j = 1, init%n_slice
-    z0 = (init%n_slice - 2*j + 1) * init%sig_z_cut / init%n_slice 
     dz = init%sig_z_cut / init%n_slice
+    z_rel = (init%n_slice - 2*j + 1) * dz
     bunch%slice(j)%charge = bunch%charge * &
-                            (gauss_int(z0+dz) - gauss_int(z0-dz)) / z_fudge
+                            (gauss_int(z_rel+dz) - gauss_int(z_rel-dz)) / z_fudge
 
     do k = 1, init%n_macro
-      e0 = (2*k - 1 - init%n_macro) * init%sig_e_cut / init%n_macro
+      macro => bunch%slice(j)%macro(k)
       de = init%sig_e_cut / init%n_macro
-      bunch%slice(j)%macro(k)%charge = bunch%slice(j)%charge * &
-                           (gauss_int(e0+de) - gauss_int(e0-de)) / e_fudge
-      bunch%slice(j)%macro(k)%r%vec = init%center
-      bunch%slice(j)%macro(k)%r%vec(5) = init%center(5) + init%sig_z * z0 
-      bunch%slice(j)%macro(k)%r%vec(6) = init%center(6) + &
-                                             init%sig_e * e0 + init%E_0
-      bunch%slice(j)%macro(k)%sigma = 0
-      bunch%slice(j)%macro(k)%sigma(s11$) =  ex * init%x%beta
-      bunch%slice(j)%macro(k)%sigma(s12$) = -ex * init%x%alpha
-      bunch%slice(j)%macro(k)%sigma(s22$) =  ex * (1+init%x%alpha**2) / &
-                                                                 init%x%beta
-      bunch%slice(j)%macro(k)%sigma(s33$) =  ey * init%y%beta
-      bunch%slice(j)%macro(k)%sigma(s34$) = -ey * init%y%alpha
-      bunch%slice(j)%macro(k)%sigma(s44$) =  ey * (1+init%y%alpha**2) / &
-                                                                 init%y%beta
-      bunch%slice(j)%macro(k)%lost = .false.
+      e_rel = (2*k - 1 - init%n_macro) * de
+      macro%charge = bunch%slice(j)%charge * &
+                           (gauss_int(e_rel+de) - gauss_int(e_rel-de)) / e_fudge
+      macro%r%vec = init%center
+      z = init%center(5) + init%sig_z * z_rel 
+      macro%r%vec(5) = init%center(5) + init%sig_z * z_rel 
+      dE_E = (init%center(6) + init%dPz_dz * z + e_rel * init%sig_e) * &
+                                                         ele%value(beam_energy$) 
+      macro%r%vec(6) = ele%value(beam_energy$) * (1+ dE_E)
+      r = (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /) * dE_E
+      ele%x%gamma = (1+ele%x%alpha**2) / ele%x%beta
+      ele%y%gamma = (1+ele%y%alpha**2) / ele%y%beta
+      macro%sigma = 0
+      macro%sigma(s11$) =  ex * ele%x%beta  + r(1)**2
+      macro%sigma(s12$) = -ex * ele%x%alpha + r(1) * r(2)
+      macro%sigma(s22$) =  ex * ele%x%gamma + r(2)**2 
+      macro%sigma(s33$) =  ey * ele%y%beta  + r(3)**2
+      macro%sigma(s34$) = -ey * ele%y%alpha + r(3) * r(4)
+      macro%sigma(s44$) =  ey * ele%y%gamma + r(4)**2
+      if (any(ele%c_mat /= 0)) then
+        call mp_sigma_to_mat (macro%sigma, mat4)
+        call make_v_mats (ele, v_mat, v_inv_mat)
+        mat4 = matmul (v_mat, matmul (mat4, transpose(v_mat)))
+        call mp_mat_to_sigma (mat4, macro%sigma)
+      endif
+      macro%lost = .false.
       if (canonical_out) &
-              call mp_to_canonical_coords (bunch%slice(j)%macro(k), init%E_0)
+              call mp_to_canonical_coords (macro, ele%value(beam_energy$))
     enddo
   enddo
 
