@@ -14,6 +14,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/01/11 16:32:13  cesrulib
+!Fixed typos
+!
 !Revision 1.4  2001/10/08 17:18:14  rwh24
 !DCS changes to f90 files.
 !Bug fixes to c file.
@@ -27,28 +30,29 @@
 !Revision 1.1  2001/09/27 18:33:14  rwh24
 !UNIX compatibility updates
 !
-
+!-
 #include "CESR_platform.inc"
 
 subroutine get_lattice_list_vms (lat_list, num_lats, directory)
 
-  character*(*) directory
-  character*40 lat_list(*)
-  integer num_lats
-
 !keep compiler happy
-#ifdef CESR_VMS
   use cesr_utils
 
+#ifdef CESR_VMS
+
   implicit none
+
+  character*(*) directory
+  character*40 lat_list(*)
+  character*80 lat_file
 
   integer num_lats, ios, context, ix, ixx, lib$find_file
   integer i, stat
 
   character*40 match_file
 
-#include '($ssdef)'
-#include '($rmsdef)'
+include '($ssdef)'
+include '($rmsdef)'
 
 ! get twiss file names for matching files 
 
