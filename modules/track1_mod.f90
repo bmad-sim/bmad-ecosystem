@@ -184,7 +184,7 @@ subroutine track_a_bend (start, ele, param, end)
   rel_E  = 1 + dE
   rel_E2 = rel_E**2
 
-  call track_bend_edge (end, ele%value(e1$), g_tot, .true.)
+  call track_bend_edge (end, ele, .true., .false.)
 
 ! Track through main body...
 ! Use Eqs (12.18) from Etienne Forest: Beam Dynamics.
@@ -215,7 +215,7 @@ subroutine track_a_bend (start, ele, param, end)
 
 ! Track through the exit face. Treat as thin lens.
 
-  call track_bend_edge (end, ele%value(e2$), g_tot, .false.)
+  call track_bend_edge (end, ele, .false., .false.)
 
   call offset_particle (ele, param, end, unset$, set_canonical = .false.)
 
@@ -225,41 +225,50 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track_bend_edge (orb, e, g, start_edge)
+! Subroutine track_bend_edge (orb, e, g, start_edge, reverse, kx, ky)
 !
 ! Subroutine to track through the edge field of a bend.
 ! This routine is not meant for general use.
 !-
 
-subroutine track_bend_edge (orb, e, g, start_edge)
+subroutine track_bend_edge (orb, ele, start_edge, reverse, kx, ky)
 
+  type (ele_struct) ele
   type (coord_struct) orb
+  real(rp), optional :: kx, ky
   real(rp) e, g, del, f
-  logical start_edge
+  logical start_edge, reverse
 
 ! Track through the entrence face. Treat as thin lens.
-! The second order terms come from the Hamiltonian term:
-!       H = (g * sec^2(e1$) / 2) * p_x * y^2
-! (See the MAD8 Physics writeup)
+
+  g = ele%value(g$) + ele%value(delta_g$)
+  if (reverse) g = -g
 
   if (start_edge) then
+    e = ele%value(e1$)
     del = tan(e) * g
+    if (present(kx)) kx = del 
     orb%vec(2) = orb%vec(2) + del * orb%vec(1)
+    if (ele%value(fint$) /= 0) del = tan(e - 2 * ele%value(fint$) * &
+                      abs(g) * ele%value(hgap$) *  (1 + sin(e)**2) / cos(e))
+    if (present(ky)) ky = -del
     orb%vec(4) = orb%vec(4) - del * orb%vec(3)
-
-!    f = g / (2 * (1 - e**2))
-!    orb%vec(1) = orb%vec(1) + f * orb%vec(3)**2
-!    orb%vec(4) = orb%vec(4) - 2 * f * orb%vec(2) * orb%vec(3)
 
   else
-!    f = g / (2 * (1 - e**2))
-!    orb%vec(1) = orb%vec(1) - f * orb%vec(3)**2
-!    orb%vec(4) = orb%vec(4) + 2 * f * orb%vec(2) * orb%vec(3)
-
+    e = ele%value(e2$)
     del = tan(e) * g
+    if (present(ky)) kx = del
     orb%vec(2) = orb%vec(2) + del * orb%vec(1)
+    if (ele%value(fintx$) /= 0) del = tan(e - 2 * ele%value(fintx$) * &
+                      abs(g) * ele%value(hgapx$) *  (1 + sin(e)**2) / cos(e))
+    if (present(ky)) ky = -del
     orb%vec(4) = orb%vec(4) - del * orb%vec(3)
 
+  endif
+
+  if (reverse) then
+    if (present(kx)) kx = -kx
+    if (present(ky)) ky = -ky
   endif
 
 end subroutine

@@ -29,7 +29,7 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
   implicit none
 
   type (ring_struct), target :: ring
-  type (ele_struct), pointer :: ele
+  type (ele_struct), pointer :: ele, slave
   type (wig_term_struct) wt
   type (control_struct) ctl
   type (taylor_term_struct) tm
@@ -41,7 +41,7 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
   character(4) last
   character(16) name
 
-  integer i, j, k, ix, iu, ios, ixs
+  integer i, j, k, ix, iu, ios, ixs, ix1, ix2, ic1, ic2
   integer unit(6)
 
   logical slave_here, unit_found, write_term
@@ -128,7 +128,7 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
   slave_here = .false.
   ixs = 0
 
-  do i = 1, ring%n_ele_max
+  ele_loop: do i = 1, ring%n_ele_max
 
     ele => ring%ele_(i)
 
@@ -162,19 +162,23 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
       else
         write (line, '(2a)') trim(ele%name), ': group = {'
       endif
-      do j = ele%ix1_slave, ele%ix2_slave
+      j_loop: do j = ele%ix1_slave, ele%ix2_slave
         ctl = ring%control_(j)
         ix = ctl%ix_slave
+        slave => ring%ele_(ix)
+        do k = ele%ix1_slave, j-1 ! do not use elements w/ duplicate names
+          if (ring%ele_(ring%control_(k)%ix_slave)%name == slave%name) exit j_loop
+        enddo
         if (j == ele%ix1_slave) then
-          write (line, '(3a)') trim(line), trim(ring%ele_(ix)%name)
+          write (line, '(3a)') trim(line), trim(slave%name)
         else
-          write (line, '(3a)') trim(line), ', ', trim(ring%ele_(ix)%name)
+          write (line, '(3a)') trim(line), ', ', trim(slave%name)
         endif
-        name = attribute_name(ring%ele_(ix), ctl%ix_attrib)  
+        name = attribute_name(slave, ctl%ix_attrib)  
         if (name /= ele%attribute_name) &
                 line = trim(line) // '[' // trim(name) // ']'
         if (ctl%coef /= 1) write (line, '(3a)') trim(line), '/', trim(str(ctl%coef))
-      enddo
+      enddo j_loop
       line = trim(line) // '}'
       if (ele%attribute_name == ' ') then
         line = trim(line) // ', command'
@@ -190,9 +194,32 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
       cycle
     endif
 
-!
+! I_beam
 
-    line = trim(ele%name) // ': ' // key_name(ele%key)
+    if (ele%control_type == i_beam$) then
+      do j = 1, i-1
+        if (ele%name == ring%ele_(j)%name) cycle ele_loop
+      enddo
+      write (line, '(2a)') trim(ele%name), ': i_beam = {'
+      ic1 = ele%ix1_slave
+      ix1 = ring%control_(ic1)%ix_slave
+      ic2 = ele%ix2_slave
+      ix2 = ring%control_(ic2)%ix_slave
+      write (line, '(3a)') trim(line), ring%ele_(ix1)%name, ','
+      j2_loop: do j = ix1+1, ix2-1
+        name = ring%ele_(j)%name
+        do k = ic1+1, ic2-1
+          if (name == ring%ele_(ring%control_(k)%ix_slave)%name) cycle j2_loop
+        enddo
+        write (line, '(4a)') trim(line), ' -', trim(name), ','
+      enddo j2_loop
+      write (line, '()') trim(line), ' ', trim(ring%ele_(ix2)%name), '}'
+    else
+      line = trim(ele%name) // ': ' // key_name(ele%key)
+    endif
+
+! other elements
+
     if (ele%type /= ' ') line = trim(line) // ', type = "' // trim(ele%type) // '"'
     if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
 
@@ -311,7 +338,7 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
       call write_out (line, iu, .true.)  
     endif
 
-  enddo
+  enddo ele_loop
 
 
 ! Lattice Layout

@@ -347,12 +347,24 @@ subroutine makeup_super_slave (ring, ix_slave)
 
     if (slave%key == sbend$) then
       if (ix_con == lord%ix1_slave) then   ! first slave bend
-        slave%value(e2$) = 0
+        slave%value(e2$)    = 0
+        slave%value(h2$)    = 0
+        slave%value(fintx$) = 0
+        slave%value(hgapx$) = 0
       elseif (ix_con == lord%ix2_slave) then 
-        slave%value(e1$) = 0
+        slave%value(e1$)    = 0
+        slave%value(h1$)    = 0
+        slave%value(fint$)  = 0
+        slave%value(hgap$)  = 0
       else
-        slave%value(e1$) = 0
-        slave%value(e2$) = 0
+        slave%value(e1$)    = 0
+        slave%value(h1$)    = 0
+        slave%value(fint$)  = 0
+        slave%value(hgap$)  = 0
+        slave%value(e2$)    = 0
+        slave%value(h2$)    = 0
+        slave%value(fintx$) = 0
+        slave%value(hgapx$) = 0
       endif
     endif                       
 

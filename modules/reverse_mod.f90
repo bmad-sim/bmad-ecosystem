@@ -152,6 +152,15 @@ subroutine reverse_ele (ele)
     tempp = ele%value(e1$)
     ele%value(e1$) = ele%value(e2$)
     ele%value(e2$) = tempp
+    tempp = ele%value(h1$)
+    ele%value(h1$) = ele%value(h2$)
+    ele%value(h2$) = tempp
+    tempp = ele%value(fint$)
+    ele%value(fint$)  = ele%value(fintx$)
+    ele%value(fintx$) = tempp 
+    tempp = ele%value(hgap$)
+    ele%value(hgap$)  = ele%value(hgapx$)
+    ele%value(hgapx$) = tempp 
 
 ! For wigglers:
 !       phi_z -> -phi_z -  k_z * Length

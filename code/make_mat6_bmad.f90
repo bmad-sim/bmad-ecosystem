@@ -53,7 +53,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   real(rp) cos_phi, gradient, e_start, e_end, e_ratio
   real(rp) alpha, sin_a, cos_a, f, phase, E, pxy2, dE0
   real(rp) g_tot, b1, rho, ct, st, x, px, y, py, z, pz, Dxy, Dy, px_t
-  real(rp) Dxy_t, dpx_t, df_dpy, df_dE
+  real(rp) Dxy_t, dpx_t, df_dpy, df_dE, kx_1, ky_1, kx_2, ky_2
 
   integer i, n, n_slice, n_pole, key
 
@@ -141,8 +141,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     call offset_particle (ele, param, c00, set$, set_canonical = .false.)
     call offset_particle (ele, param, c11, set$, set_canonical = .false., s_pos = length)
-    call track_bend_edge (c00, e1, g, .true.)
-    call track_bend_edge (c11, e2, -g, .false.)  ! -g --> track backwards
+    call track_bend_edge (c00, ele, .true., .false., kx_1, ky_1)
+    call track_bend_edge (c11, ele, .false., .true., kx_2, ky_2)  ! track backwards
 
     if (length == 0) return
 
