@@ -31,7 +31,6 @@ real(rp), pointer :: value(:)
 
 integer i, ii, j, k, m, n_dat, i_uni, ie, jj
 integer ix_this, ix
-integer :: n_smooth_pts = 401
 
 logical err, smooth_curve
 
@@ -379,7 +378,7 @@ plot_loop: do i = 1, size(s%plot_page%region)
 ! Calculate the points for drawing the curve through the symbols.
 ! If the x-axis is by index or ele_index then these points are the same as the symbol points.
 ! That is, for x-axis = index or ele_index the line is piece-wise linear between the symbols.
-! If the axis is by s-value then the line is a "smooth" curve with n_smooth_pts points if
+! If the axis is by s-value then the line is a "smooth" curve with n_curve_pts points if
 ! plotting model, base or design data. It's the same as the symbol points otherwise.
 ! Smoothing will only be performed if performing single particle tracking.
 
@@ -400,8 +399,8 @@ plot_loop: do i = 1, size(s%plot_page%region)
 	      s%global%track_type .ne. 'single') smooth_curve = .false.
         enddo
         if (smooth_curve) then
-          call reassociate_real (curve%y_line, n_smooth_pts) ! allocate data space
-          call reassociate_real (curve%x_line, n_smooth_pts) ! allocate data space
+          call reassociate_real (curve%y_line, s%global%n_curve_pts) ! allocate data space
+          call reassociate_real (curve%x_line, s%global%n_curve_pts) ! allocate data space
           curve%y_line = 0
           do m = 1, size(plot%who)
             select case (plot%who(m)%name)
