@@ -1074,11 +1074,11 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       enddo
     endif
 
-    if (index(bp_com%debug_line, 'RING') /= 0) then  
+    if (index(bp_com%debug_line, 'LATTICE') /= 0) then  
       print *
       print *, '----------------------------------------'
-      print *, 'Ring Used: ', ring%name
-      print *, 'Number of ring elements:', ring%n_ele_use
+      print *, 'Lattice Used: ', ring%name
+      print *, 'Number of lattice elements:', ring%n_ele_max
       print *, 'List:                               Key      Length         S'
       do i = 1, ring%n_ele_use
         print '(3x, i3, 2a, 3x, a, 2f10.2)', i, ') ', ring%ele_(i)%name,  &

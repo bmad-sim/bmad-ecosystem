@@ -174,7 +174,7 @@ the file.
 \index{Statement!beginning!eta_y}
 \index{Statement!beginning!etap_y}
 \index{Statement!beginning!cij}
-\index{Statement!beginning!energy}
+\index{Statement!beginning!beam_energy}
 For non--circular lattices the \vn{beginning} statement can be used to
 set the Twiss parameters and beam energy at the beginning of the ring
 \begin{example}
@@ -189,7 +189,7 @@ set the Twiss parameters and beam energy at the beginning of the ring
   beginning[eta_y]   = Real  ! "b" mode dispersion
   beginning[etap_y]  = Real  ! "b" mode dispersion derivative.
   beginning[cij]     = Real  ! C coupling matrix. i, j = {``1'', or ``2''} 
-  beginning[energy]  = Real  ! Total energy in eV.
+  beginning[beam_energy] = Real  ! Total energy in eV.
 \end{example}
 \index{Statement!parameter!beam_energy}
 The \vn{gamma_x}, \vn{gamma_y}, and \vn{gamma_c} (the coupling gamma factor) 
@@ -227,11 +227,12 @@ test lattices since it can generate a lot of output.  The syntax is
 \end{example}
 Valid switches are
 \begin{example}
-  var     ! print variable information
-  seq     ! print sequence information
-  slave   ! print full information on all regular elements
-  lord    ! print full information on all lord elements
-  ring    ! print a list of regular element names, positions, and lengths
+  var     ! print variable information.
+  seq     ! print sequence information.
+  slave   ! print full information on all regular elements.
+  lord    ! print full information on all lord elements.
+  lattice ! print a list of lattice element names, positions, and lengths.
+  ele <n1> <n2> ...  ! print full info on selected elements.
 \end{example}
 Example
 \begin{example}

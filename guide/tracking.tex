@@ -144,7 +144,7 @@ parameter.
 \index{Synchrotron radiation!calculating}
 \bmad simulates radiation damping and excitation by applying a kick
 just before and after each element. To turn on radiation damping
-and/or excitation use the \vn{setup_radiation_tracking} routine.
+and/or excitation use the \vnr{setup_radiation_tracking} routine.
 
 %----------------------------------------------------------------
 \section{Macroparticle Tracking}
@@ -297,3 +297,23 @@ end program
 \label{f:beam_init}
 \end{figure}
 
+%----------------------------------------------------------------
+\section{Reverse Tracking}
+\index{Tracking!reverse}
+
+There are two ways to do reverse tracking in which the particle goes
+in the direction of decreasing \vn{s}. The first way is to use the
+\vnr{track_many} routine. See the \vn{track_many} routine for more
+details. The advantage of using \vn{track_many} is that it is
+simple. The disadvantage is that it can slow things down some since
+each element goes through a reversal process every time it is tracked
+through. If a program is doing a lot of tracking the other option
+is to form a reversed lattice with the elements in the reverse order
+and track through that. The routine \vnr{ring_reverse} will do
+this. One must be somewhat careful since the reversed lattice uses a
+reversed coordinate system. The transformation between the reversed
+and unreversed lattices is
+\Begineq
+  (x, p_x, y, p_y, z, p_z) -> (x, -p_x, y, -p_y, -z, p_z)
+\Endeq
+See the \vn{ring_reverse} routine for more details.

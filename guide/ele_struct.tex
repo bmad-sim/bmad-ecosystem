@@ -4,15 +4,12 @@
 
 This chapter describes the \vn{ele_struct} which is the structure that
 holds all the information about an individual element: quadrupoles,
-separators, wigglers, etc. This structure is somewhat
-complicated. However, in practice, a lot of the complexity is
-generally hidden  by the \bmad bookkeeping routines.
-
+separators, wigglers, etc. 
 Part of the substructure of the \vn{ele_struct} is shown
 in figure~\ref{f:ele_struct} (use \vn{getf} to see the entire structure 
-definition). Some of the components of the \vn{ele_struct} like \vn{%name}, 
-\vn{%tracking_method}, etc.\ have an obvious correspondence with 
-attributes set in the lattice file and will not be discussed further.
+definition). This structure is somewhat
+complicated, however, in practice, a lot of the complexity is
+generally hidden  by the \bmad bookkeeping routines.
 
 \begin{figure}[htb]
 \centering
@@ -22,6 +19,7 @@ attributes set in the lattice file and will not be discussed further.
     character(16) name                ! name of element
     character(16) type                ! type name
     character(16) alias               ! Another name
+    character(200), pointer :: descrip => null()     ! For general use
     type (twiss_struct)  x, y, z      ! Twiss parameters at end of element
     type (floor_position_struct) position
     real(rp) value(n_attrib_maxx)     ! attribute values
@@ -54,12 +52,34 @@ attributes set in the lattice file and will not be discussed further.
 \end{figure}
 
 %--------------------------------------------------------------------------
+\section{String components}
+\index{Ele_struct!%name}
+\index{Ele_struct!%type}
+\index{Ele_struct!%alias}
+\index{Ele_struct!%descrip}
+
+\vn{%name}, \vn{%type}, \vn{%alias}, and \vn{%descrip} are character arrays
+within an \vn{ele_struct}. All of these have a direct correspondence with
+the \vn{name}, \vn{type}, \vn{alias}, and \vn{descrip} element attributes in
+an input lattice file. The \vnr{bmad_parser} routine will convert 
+\vn{name}, \vn{type}, and \vn{alias} attributes to uppercase before loading them
+into an \vn{ele_struct}. \bmad has routines for searching for an element by \vn{name}
+in a lattice:
+\begin{example}
+  \vnr{element_locator}   ! locate one element by name
+  \vnr{elements_locator}  ! locate an array of elements by name
+\end{example}
+Other than these routines \bmad ignores these character arrays. 
+Notice that \vn{%descrip} is a pointer so if you make use of it in a program 
+make sure that it is allocated before hand.
+
+%--------------------------------------------------------------------------
 \section{Initialization and Element Key}
 \index{Ele_struct!initialization}
-\index{Ele_struct!key}
+\index{Ele_struct!%key}
 
 The \vn{%key} integer component gives the type of element
-(\vn{quadrupole}, \vn{RFcavity}, etc.). In general to get the
+(\vn{Quadrupole}, \vn{RFcavity}, etc.). In general to get the
 corresponding integer parameter for an element type just add a ``\$''
 character to the type name. For example \vn{quadrupole\$} is the integer
 parameter for \vn{quadrupole} elements. The \vn{key_name} array convets from
@@ -74,6 +94,26 @@ The call to \vn{init_ele} is needed for any \vn{ele_struct} defined
 outside of a \vn{ring_struct} structure. The \vn{ele_struct}
 components of a \vn{ring_stuct} variable will get automatically
 initalized.
+
+\index{Ele_struct!%sub_key}
+\index{Element!wiggler}
+\index{Element!Rbend}
+\index{Element!Sbend}
+The \vn{%sub_key} is only used for \vne{Wiggler} and \vne{Rbend} and
+\vne{Sbend} elements. For \vn{Wiggler} elements \index{%sub_key} is
+either set to 
+\begin{example}
+  map_type$ or
+  periodic_type$
+\end{example}
+depending upon tye type of wiggler. For bends the parser routines
+turn all \vn{Sbend}s into \vn{Rbend}s. To keep track of what they
+were in the input lattice file, the \vn{%sub_key} is set to
+\begin{example}
+  sbend$ or
+  rbend$
+\end{example}
+whatever is appropriate.
 
 %--------------------------------------------------------------------------
 \section{Twiss Parameters, etc.}

@@ -39,6 +39,7 @@ they are calculated from.}
 \label{t:dependent}
 \end{table}
 
+\index{Lattice files!primary}
 No attempt should be made to set or vary within a program dependent
 attributes. It should be remarked that this is not an iron clad rule.
 If a program properly bypasses \bmad's attribute bookkeeping routine
@@ -68,7 +69,7 @@ The normal attribute used to vary the strength of, say, a
 \vn{quadrupole} is \vn{k1}.  It is sometimes convenient to be able to
 vary the magnetic field strength directly instead. To do this \bmad has
 a rule that if the appropriate field attribute appears with non-zero value in the
-primary lattice file then it becomes a dependent variable and the strength attribute
+primary lattice file then it becomes a independent variable and the strength attribute
 becomes a dependent variable as tabulated in Table~\ref{t:dep_field}.
 \begin{table}[h]
 \centering {

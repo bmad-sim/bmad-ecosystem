@@ -2818,7 +2818,7 @@ end subroutine
 !+
 ! Subroutine parser_add_lord (in_ring, n2, pring, ring)
 !
-! Subroutine to add overlay, group, and i_beam lords.
+! Subroutine to add overlay, group, and i_beam lords to the lattice.
 ! For overlays and groups: If multiple elements have the same name then 
 ! use all of them.
 !
@@ -2831,7 +2831,7 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
   implicit none
 
   type (ring_struct), target :: in_ring, ring
-  type (ele_struct), pointer :: ele
+  type (ele_struct), pointer :: lord
   type (parser_ring_struct) pring
   type (control_struct), pointer, save :: cs_(:) => null()
 
@@ -2845,6 +2845,8 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
   logical delete
 
 ! setup
+! in_ring has the lords that are to be added to ring.
+! we add an extra 1000 places to the arrays to give us some overhead.
 
   n = ring%n_ele_max + n2 + 1000
 
@@ -2860,31 +2862,32 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
 
   main_loop: do n = 1, n2
 
-    ele => in_ring%ele_(n)
+    lord => in_ring%ele_(n)  ! next lord to add
 
 !-----------------------------------------------------
 ! overlay and groups
 
-    select case (ele%control_type)
+    select case (lord%control_type)
     case (overlay_lord$, group_lord$)
  
-      call new_control (ring, ix_lord)
-      ring%ele_(ix_lord) = ele
-      ixx = ele%ixx
+      call new_control (ring, ix_lord)  ! get index in ring where lord goes
+      ring%ele_(ix_lord) = lord
+      ixx = lord%ixx
 
-! find where the slave elements are. 
-! If slave element is not in ring but is in in_ring then the slave has not been 
-! used in the lattice list. In this case do not add the lord to the lattice.
+! Find where the slave elements are. 
+! If a slave element is not in ring but is in in_ring then the slave has 
+! not been used in the lattice list. In this case do not add the lord to 
+! the lattice.
 
       j = 0 ! number of slaves found
 
-      do i = 1, ele%n_slave
+      do i = 1, lord%n_slave
 
         name = pring%ele(ixx)%name_(i)
         call find_indexx (name, name_, r_indexx, ix1, k, k2)
         if (k == 0) then  ! not in ring
           if (all(in_ring%ele_(1:n2)%name /= name)) then ! Not in in_ring.
-            call warning ('CANNOT FIND SLAVE FOR: ' // ele%name, &
+            call warning ('CANNOT FIND SLAVE FOR: ' // lord%name, &
                           'CANNOT FIND: '// name)
           endif
           cycle
@@ -2902,13 +2905,13 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
           cs_(j)%ix_lord = -1             ! dummy value
           attrib_name = pring%ele(ixx)%attrib_name_(i)
           if (attrib_name == blank) then
-            cs_(j)%ix_attrib = ele%ix_value
+            cs_(j)%ix_attrib = lord%ix_value
           else
             ix = attribute_index(ring%ele_(k), attrib_name)
             cs_(j)%ix_attrib = ix
             if (ix < 1) then
               call warning ('BAD ATTRIBUTE NAME: ' // attrib_name, &
-                            'IN ELEMENT: ' // ele%name)
+                            'IN ELEMENT: ' // lord%name)
             endif
           endif
           k2 = k2 + 1
@@ -2919,24 +2922,24 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
 
       enddo
 
-      ele%n_slave = j
+      lord%n_slave = j
 
 ! put the element name in the list r_indexx list
 
-      call find_indexx (ele%name, ring%ele_(1:ix1)%name, &
+      call find_indexx (lord%name, ring%ele_(1:ix1)%name, &
                                              r_indexx(1:ix1), ix1-1, k, k2)
       ix1 = ix1 + 1
       r_indexx(k2+1:ix1) = r_indexx(k2:ix1-1)
       r_indexx(k2) = ix1
-      name_(ix1) = ele%name
+      name_(ix1) = lord%name
 
 ! create the lord
 
-      ns = ele%n_slave
+      ns = lord%n_slave
 
-      select case (ele%control_type)
+      select case (lord%control_type)
       case (overlay_lord$)
-        call create_overlay (ring, ix_lord, ele%attribute_name, cs_(1:ns))
+        call create_overlay (ring, ix_lord, lord%attribute_name, cs_(1:ns))
       case (group_lord$)
         call create_group (ring, ix_lord, cs_(1:ns))
       end select
@@ -2946,13 +2949,13 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
 
     case (i_beam_lord$) 
 
-      ixx = ele%ixx
+      ixx = lord%ixx
       name1 = pring%ele(ixx)%name_(1)
-      name2 = pring%ele(ixx)%name_(ele%n_slave)
+      name2 = pring%ele(ixx)%name_(lord%n_slave)
 
       call find_indexx (name1, name_, r_indexx, ix1, k, k2)
       if (k == 0) then
-        call warning ('CANNOT FIND START ELEMENT FOR: ' // ele%name, &
+        call warning ('CANNOT FIND START ELEMENT FOR: ' // lord%name, &
                       'CANNOT FIND: '// name)
         cycle
       endif
@@ -2988,14 +2991,14 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
           k = k + 1
           if (j == 20 .or. k == ring%n_ele_use+1) then
             call warning ('CANNOT FIND END ELEMENT FOR I_BEAM: ' // &
-                                          ele%name, 'CANNOT FIND: ' // name2)
+                                          lord%name, 'CANNOT FIND: ' // name2)
             cycle main_loop
           endif
         enddo
 
 ! delete elements
 
-        do i = 2, ele%n_slave-1
+        do i = 2, lord%n_slave-1
           name = pring%ele(ixx)%name_(i)
           delete = .false.
           if (name(1:1) == '-') then
@@ -3008,7 +3011,7 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
           enddo
           if (ij == j + 1) then
             call warning ('CANNOT FIND ELEMENT FOR I_BEAM: ' // &
-                                          ele%name, 'CANNOT FIND: ' // name)
+                                          lord%name, 'CANNOT FIND: ' // name)
             exit
           endif
           if (delete) then
@@ -3018,7 +3021,7 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
         enddo
 
         call new_control (ring, ix_lord)
-        ring%ele_(ix_lord) = ele
+        ring%ele_(ix_lord) = lord
 
 ! create the i_beam element
 
