@@ -2,17 +2,25 @@
 \label{c:elements}
 \index{Element|textbf}
 
-A lattice is made up of a collection of
-elements --- quadrupoles, bends, etc. This chapter discusses the
-various types of elements available in \bmad\ except for \vn{group}s
-and \vn{overlay}s which are discussed in the next chapter.
+A lattice is made up of a collection of elements --- quadrupoles,
+bends, etc. This chapter discusses the various classes of elements
+available in \bmad\ except for \vn{group}s and \vn{overlay}s which are
+discussed \cref{c:control}
 
-Most element types available in \mad\ are provided in \bmad.
-Additionally, \bmad\ provides a number of element types that are not
+\index{MAD}
+Most element classes available in \mad\ are provided in \bmad.
+Additionally, \bmad\ provides a number of element classes that are not
 available in \mad.  A word of caution: In some cases where both \mad\
-and \bmad\ provide the same element type, there will be an overlap of 
+and \bmad\ provide the same element class, there will be an overlap of 
 the attributes available but the two sets of attributes will not be the same.
-The list of element types known to \bmad\ is shown in Table~\ref{t:elements}.
+The list of element classes known to \bmad\ is shown in Table~\ref{t:elements}.
+
+\index{Clone}
+\index{Superimpose}
+Not shown in the following attribute tables are the \vn{superimpose}
+(\sref{s:super}) and \vn{clone} (\sref{s:clone}) attributes.
+These attributes instruct the lattice parser how to set up a lattice
+but are not retained by an element.
 
 \begin{table}[h]
 \centering
@@ -39,7 +47,7 @@ The list of element types known to \bmad\ is shown in Table~\ref{t:elements}.
   
 \end{tabular}
 }
-\caption{Table of \bmad\ elements.}
+\caption{Table of \bmad\ element classes.}
 \label{t:elements}\center
 \end{table}
 
@@ -664,14 +672,14 @@ Example:
   rf\_frequency = Real  &                & alias = String    & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
   gradient      = Real  &                & descrip = String  & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
   phi0          = Real  &                & is\_on = Logical  & \ref{s:is_on}  & field\_calc = Switch        & \ref{s:integ} \\ \hline
-  e\_loss       = Real  &                & x\_limit = Real   & \ref{s:limit}  & rel\_tol = Real             & \ref{s:integ} \\ \hline
-  x\_offset  = Real     & \ref{s:offset} & y\_limit = Real   & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
-  y\_offset  = Real     & \ref{s:offset} & aperture = Real   & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
-  s\_offset  = Real     & \ref{s:offset} & hkick    = Real   & \ref{s:kick}   & lr\_wake\_file = String     &               \\ \hline
-  x\_pitch = Real       & \ref{s:offset} & vkick    = Real   & \ref{s:kick}   & sr\_wake\_file = String     &               \\ \hline
-  y\_pitch = Real       & \ref{s:offset} & energy\_start$^*$ &                & aperture\_at = Switch       & \ref{s:limit} \\ \hline
-  beam\_energy$^*$      & \ref{s:param}  & e\_loss$^*$       &                & delta\_e$^*$                &               \\ \hline
-  freq\_spread          &                &                   &                &                             &               \\ \hline
+  dphi0         = Real  &                & x\_limit = Real   & \ref{s:limit}  & rel\_tol = Real             & \ref{s:integ} \\ \hline
+  e\_loss    = Real     &                & y\_limit = Real   & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
+  x\_offset  = Real     & \ref{s:offset} & aperture = Real   & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
+  y\_offset  = Real     & \ref{s:offset} & hkick    = Real   & \ref{s:kick}   & lr\_wake\_file = String     &               \\ \hline
+  s\_offset  = Real     & \ref{s:offset} & vkick    = Real   & \ref{s:kick}   & sr\_wake\_file = String     &               \\ \hline
+  x\_pitch = Real       & \ref{s:offset} & energy\_start$^*$ &                & aperture\_at = Switch       & \ref{s:limit} \\ \hline
+  y\_pitch = Real       & \ref{s:offset} & e\_loss$^*$       &                & delta\_e$^*$                &               \\ \hline
+  beam\_energy$^*$      & \ref{s:param}  & freq\_spread      &                &                             &               \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
 \end{center}
@@ -680,29 +688,36 @@ Example:
 An \vn{Lcavity} is a LINAC accelerating cavity.
 Tracking through an \vn{Lcavity} is modeled using the equations
 developed by Rosenzweig and Serafini\cite{b:rosenzweig}. The
-attributes specific to an \vn{Lcavity} are The dependent variable
-\vn{delta_e} attribute can be used in place of \vn{gradient} 
-as discussed in Section~\ref{s:depend}.
+attributes specific to an \vn{Lcavity} are 
 \begin{example}
   gradient     ! Accelerating gradient (V/m).
   phi0         ! Phase (radians/2\(\pi\)) of the reference particle with 
                !   respect to the RF. phi0 = 0 is on crest.
+  dphi0        ! Used to shift the phase with respect to a clone lord.
   e_loss       ! Loss parameter for short range wakefields (V/Coulomb).
   rf_frequency ! Rf frequency (Hz).
+  delta_e      ! Nominal change in energy of an on-crest particle
   sr_wake_file ! Short range wake field definition file.
   lr_wake_file ! Long range wake field definition file.
 \end{example}
+The dependent variable \vn{delta_e} attribute can be used in place of
+\vn{gradient} as discussed in Section~\ref{s:depend}.
 
 The kick felt by a particle is 
 \begin{example}
-  dE = gradient * L * cos(twopi * (phi0 - z * rf_frequency / c_light))
+  dE = gradient * L * cos(twopi * (phi - z * rf_frequency / c_light))
 \end{example}
 This is consistent with MAD and LIAR. Note: The MAD8 documentation 
 for an \vn{Lcavity} gives essentially
 \begin{example}
-  dE = gradient * L * cos(twopi * (phi0 + z * rf_frequency / c_light)) ! WRONG
+  dE = gradient * L * cos(twopi * (phi + z * rf_frequency / c_light)) ! WRONG
 \end{example}
 This is incorrect.
+
+\index{Clone}
+In the above equations \vn{phi} = \vn{phi0} + \vn{dphi0}. \vn{dphi0}
+is only to be used to shift the phase with respect to a \vn{clone}
+lord. See \sref{s:clone}.
 
 Note: The transfer matrix for an \vn{Lcavity} with finite
 \vn{gradient} is never symplectic.
@@ -974,12 +989,12 @@ Example:
   harmon   = Real     &                & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
   voltage  = Real     &                & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
   phi0     = Real     &                & rf\_frequency = Real &              & field\_calc = Switch        & \ref{s:integ} \\ \hline
-  x\_offset  = Real   & \ref{s:offset} & x\_limit = Real    & \ref{s:limit}  & rel\_tol = Real             & \ref{s:integ} \\ \hline
-  y\_offset  = Real   & \ref{s:offset} & y\_limit = Real    & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
-  s\_offset  = Real   & \ref{s:offset} & aperture = Real    & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
-  x\_pitch = Real     & \ref{s:offset} & hkick    = Real    & \ref{s:kick}   & is\_on = Logical            & \ref{s:is_on} \\ \hline
-  y\_pitch = Real     & \ref{s:offset} & vkick    = Real    & \ref{s:kick}   & symplectify = Logical       & \ref{s:symp}  \\ \hline
-  beam\_energy$^*$    & \ref{s:param}  &                    &                & aperture\_at = Switch       & \ref{s:limit} \\ \hline
+  dphi0    = Real     &                & x\_limit = Real    & \ref{s:limit}  & rel\_tol = Real             & \ref{s:integ} \\ \hline
+  x\_offset  = Real   & \ref{s:offset} & y\_limit = Real    & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
+  y\_offset  = Real   & \ref{s:offset} & aperture = Real    & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
+  s\_offset  = Real   & \ref{s:offset} & hkick    = Real    & \ref{s:kick}   & is\_on = Logical            & \ref{s:is_on} \\ \hline
+  x\_pitch = Real     & \ref{s:offset} & vkick    = Real    & \ref{s:kick}   & symplectify = Logical       & \ref{s:symp}  \\ \hline
+  y\_pitch = Real     & \ref{s:offset} & beam\_energy$^*$   & \ref{s:param}  & aperture\_at = Switch       & \ref{s:limit} \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
 \end{center}
@@ -989,10 +1004,15 @@ An \vn{RFcavity} is an RF cavity without acceleration generally used
 in a storage ring.
 
 The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
-MAD. The kick felt by a particle is 
+\mad. The kick felt by a particle is 
 \begin{example}
-  dE = voltage * sin(twopi * (phi0 + z * rf_frequency / c_light))
+  dE = voltage * sin(twopi * (phi + z * rf_frequency / c_light))
 \end{example}
+\index{Clone}
+Here \vn{phi} = \vn{phi0} + \vn{dphi0}. \vn{dphi0}
+is only to be used to shift the phase with respect to a \vn{clone}
+lord. See \sref{s:clone}.
+
 If \vn{harmon} is non--zero then \vn{rf_frequency} is a dependent
 attribute calculated by
 \begin{example}

@@ -53,12 +53,8 @@ generally hidden  by the \bmad bookkeeping routines.
 
 %--------------------------------------------------------------------------
 \section{String components}
-\index{Ele_struct!%name}
-\index{Ele_struct!%type}
-\index{Ele_struct!%alias}
-\index{Ele_struct!%descrip}
 
-\vn{%name}, \vn{%type}, \vn{%alias}, and \vn{%descrip} are character arrays
+\vnes{%name}, \vnes{%type}, \vnes{%alias}, and \vnes{%descrip} are character arrays
 within an \vn{ele_struct}. All of these have a direct correspondence with
 the \vn{name}, \vn{type}, \vn{alias}, and \vn{descrip} element attributes in
 an input lattice file. The \vnr{bmad_parser} routine will convert 
@@ -76,11 +72,10 @@ make sure that it is allocated before hand.
 %--------------------------------------------------------------------------
 \section{Initialization and Element Key}
 \index{Ele_struct!initialization}
-\index{Ele_struct!%key}
 
-The \vn{%key} integer component gives the type of element
+The \vnes{%key} integer component gives the type of element
 (\vn{Quadrupole}, \vn{RFcavity}, etc.). In general to get the
-corresponding integer parameter for an element type just add a ``\$''
+corresponding integer parameter for an element class just add a ``\$''
 character to the type name. For example \vn{quadrupole\$} is the integer
 parameter for \vn{quadrupole} elements. The \vn{key_name} array convets from
 integer to the appropriate string. For example
@@ -93,12 +88,8 @@ integer to the appropriate string. For example
 The call to \vn{init_ele} is needed for any \vn{ele_struct} defined
 outside of a \vn{ring_struct} structure.
 
-\index{Ele_struct!%sub_key}
-\index{Element!Wiggler}
-\index{Element!Rbend}
-\index{Element!Sbend}
-The \vn{%sub_key} component is only used for \vne{Wiggler} and \vne{Rbend} and
-\vne{Sbend} elements. For \vn{Wiggler} elements, \vn{%sub_key} is either set to
+The \vnes{%sub_key} component is only used for \vne{Wiggler} and \vne{Rbend} and
+\vne{Sbend} elements. For \vn{Wiggler} elements, \vnes{%sub_key} is either set to
 \begin{example}
   map_type$ or
   periodic_type$
@@ -142,7 +133,7 @@ To get the parameters at a position within an element you can use the
 routines \vn{twiss_and_track_at_s} or \vn{twiss_and_track_partial}.
 
 \index{Normal Mode!in Ele_struct}
-The \vn{%x}, \vn{%y}, and \vn{%z} components are
+The \vnes{%x}, \vnes{%y}, and \vnes{%z} components are
 \vn{twiss_struct} structures that hold the Twiss parameters for the
 $a$, $b$ and $z$ modes respectively. [Yes it is known that the labeling
 is misleading. Unfortunately it is a bit entrenched now.] The definition of
@@ -175,7 +166,7 @@ See Section~\ref{r:mat} for a complete listing of such routines.
 \index{Ele_struct!attribute values}
 
 Most of the real valued attributes of an element are held in the
-\vne{%value(:)} array. For example, the value of the \vn{k1} attribute
+\vnes{%value(:)} array. For example, the value of the \vn{k1} attribute
 for a quadrupole element is stored in \vn{%value(k1\$)} where
 \vn{k1\$} is an integer parameter. In general to get the correct index
 in \vn{%value(:)} for a given attribute just add a ``\$" as a
@@ -194,8 +185,8 @@ type is given in the writeup for the different element in
 Chapter~\ref{c:elements}. 
 
 Certain real valued attributes are {\em not}
-found in the \vn{%value(:)} array. For example, multipole components
-are stored in the \vne{%a(:)} and \vne{%b(:)} arrays. The full list
+found in the \vnes{%value(:)} array. For example, multipole components
+are stored in the \vnes{%a(:)} and \vnes{%b(:)} arrays. The full list
 of attributes not in \vn{%value(:)} is:
 \begin{tabular}{|l|l|} \hline
   {\em Attribute} & {\em Component in Ele\_struct} \\ \hline
@@ -317,7 +308,7 @@ reference point is chosen.
 \index{Ele_struct!multipoles}
 
 The multipole components of an element (See setion~\ref{s:fields}) are
-stored in the pointers \vn{%a(:)} and \vn{%b(:)}. If \vn{%a} and
+stored in the pointers \vnes{%a(:)} and \vnes{%b(:)}. If \vn{%a} and
 \vn{%b} are allocated they always have a range \vn{%a(0:n_pole_maxx)}
 and \vn{%b(0:n_pole_maxx)}. Currently \vn{n_pole_maxx} = 20. If the
 element is a \vn{multipole} then \vn{%a(n)} is taken to be the

@@ -1,7 +1,7 @@
 \chapter{Tracking and Transfer Matrix Calculation Methods}
 
 Typically, there are several ways to do tracking and transfer matrix
-calculations for a given element type within \bmad. What method is
+calculations for a given element class within \bmad. What method is
 used is selected on an element--by--element basis using an element's
 \vn{tracking_method} and \vn{mat6_calc_method} attributes (mat6 refers
 to the size of the 6 by 6 transfer matrices). By supplying the
@@ -19,7 +19,7 @@ If this is not the case
 
 Below are listed the methods for the \vn{tracking_method}
 attribute with an explanation of what the different methods do. A
-table giving which methods are available with which element types is give
+table giving which methods are available with which element classes is give
 in Table~\ref{t:track_methods}. 
 
 A note on terminology: Adaptive step size control used with the
@@ -169,8 +169,8 @@ that it can be used for long term tracking.
 \end{tabular}
 }
 \caption[Table of available {\bf tracking\_method}\ switches for a
-given element type.]{Table of available {\bf tracking\_method}\
-switches for a given element type. D denotes the default method. X
+given element class.]{Table of available {\bf tracking\_method}\
+switches for a given element class. D denotes the default method. X
 denotes an available method.}
 \label{t:track_methods}
 \end{table}
@@ -184,7 +184,7 @@ denotes an available method.}
 
 Below are listed the methods for the \vn{mat6_calc_method}
 attribute with an explanation of what the different methods do. A
-table giving which methods are available with which element types is give
+table giving which methods are available with which element classes is give
 in Table~\ref{t:mat6_methods}. 
 
 For methods that do not necessarily produce a symplectic matrix the
@@ -310,8 +310,8 @@ is that it is directly related to any tracking results.
 }
 
 \caption[Table of available \vn{mat6\_calc\_method}\ switches for a
-given element type.]{Table of available \vn{mat6\_calc\_method}\
-switches for a given element type. D denotes the default method.  X
+given element class.]{Table of available \vn{mat6\_calc\_method}\
+switches for a given element class. D denotes the default method.  X
 denotes an available method.}
 
 \label{t:mat6_methods}

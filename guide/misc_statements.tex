@@ -215,7 +215,7 @@ For any lattice the \vn{beginning} statement can be used to set the starting flo
 \end{example}
 
 %----------------------------------------------------------------------------
-\section{Expand_lattice Statement}
+\section{Expand\_lattice Statement}
 \label{s:lat_expand}
 \index{Lattice!expansion|textbf}
 \index{Statement!expand_lattice}
@@ -231,6 +231,8 @@ some types of operations which must come either before or after
 lattice expansion. 
 \begin{Itemize}
 \item 
+\index{Intrinsic functions!ran}
+\index{Intrinsic functions!ran_gauss}
 The \vn{ran} and \rn{ran_gauss} functions, when used with elements
 that show up multiple times in a lattice, generally need to be used
 after lattice expansion. See \sref{s:functions}.
@@ -238,7 +240,7 @@ after lattice expansion. See \sref{s:functions}.
 Some dependent variables may be set as if they are independent
 variables but only if done before lattice expansion. See
 \sref{s:depend}.
-\index{Element attribute!clone}
+\index{Clone}
 \item 
 Setting \vn{dphi0} for an \vn{Lcavity} or \vn{RFcavity} clone may only
 be done after lattice expansion.

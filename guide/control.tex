@@ -25,18 +25,19 @@ There are five types of lord elements:
 \vn{Group} lord elements are used to make variations in attributes. For example, to
 simulate the action of a control room knob that changes the beam tune
 in a storage ring, a \vn{Group} can be used to vary the strength of
-selected quads in a specified manner. \vn{Groups} are coversed in \sref{s:group}.
+selected quads in a specified manner. \vn{Groups} are covered in \sref{s:group}.
 \item
 An \vn{overlay} lord is like a \vn{group} except that \vn{overlays}
 set the value (not a change in) the attributes they
 control. \vn{Overlays} are covered in \sref{s:overlay}.
 \item
 A \vn{superposition} lord is created when elements are superimposed on
-top of other elements. This is covered in \sref{s:superposition}.
+top of other elements. This is covered in \sref{s:super}.
 \item
-\vn{I_Beam} elements mimic the effect of a support girder. This is
+\vne{I_Beam} elements mimic the effect of a support girder. This is
 covered in \sref{s:i_beam}.
 \item
+\index{Clone}
 \vn{Clone} elements are used when the beam recirculates through the same element multiple times. This is covered in \sref{s:clone}.
 \end{Itemize}
 
@@ -190,7 +191,7 @@ change by $-1.0 = -2.0 * 0.5$.
 %-----------------------------------------------------------------------------
 \section{Superposition}
 \label{s:super}
-\index{Superposition}
+\index{Superimpose|textbf}
 
 In practice the field at a particular point in the lattice may be due
 to more than one physical element. A common example is a quadrupole
@@ -284,13 +285,14 @@ Additionally, \vn{Superpose} may not be used with \vn{close}.
 %-----------------------------------------------------------------------------
 \section{Clone}
 \label{s:clone}
-\index{Clone}
+\index{Clone|textbf}
 
 Some lattices have the beam recirculating through the same element
 multiple times. For example, an Energy Recovery Linac (ERL) will
 circulate the beam back through the LINAC part to retrieve the energy
 in the beam. In \bmad this situation can simulated using the
 \vn{clone} attribute. A simple example shows how this works.
+\index{Statement!expand_lattice}
 \begin{example}
   A: lcavity, clone
   my_line: line = (A, A)
@@ -311,7 +313,7 @@ element will be passed to the slave elements by \bmad's bookkeeping
 routines. Assuming \vn{A\B1} is an accelerating cavity, to make
 \vn{A\B2} a deaccelerating cavity the \vn{dphi0} attribute of
 \vn{A\B2} is set to $pi$. This is the one attribute that \bmad's
-bookkeeping routines will not touch when transfering attribute values
+bookkeeping routines will not touch when transferring attribute values
 from \vn{A} to its slaves. Notice that the \vn{dphi0} attribute had to
 be set after \vn{expand_lattice} is used to expand the lattice since
 \bmad does immediate evaluation and \vn{A\B2} does not exist before
