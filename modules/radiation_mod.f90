@@ -282,7 +282,7 @@ subroutine setup_radiation_tracking (ring, closed_orb, &
   do i = 1, ring%n_ele_ring
     if (ring%ele_(i)%key /= wiggler$) cycle
     if (ring%ele_(i)%sub_key == map_type$) then
-      sl_com%save_orbit = .true.
+      track_com%save_track = .true.
       if (.not. associated(ring%ele_(i)%const)) allocate (ring%ele_(i)%const(1:26))
       ring%ele_(i)%const(1:6) = closed_orb(i)%vec
       call symp_lie_bmad (ring%ele_(i), ring%param, closed_orb(i), end, .false.)
@@ -310,15 +310,15 @@ subroutine calc_h (h2, h3)
 
   h2 = 0; h3 = 0
 
-  do j = 0, ubound(sl_com%s, 1) 
+  do j = 0, ubound(track_com%s, 1) 
 
-    call derivs_bmad (ring%ele_(i), ring%param, sl_com%s(j), &
-                                            sl_com%orb(j)%vec, kick)
+    call derivs_bmad (ring%ele_(i), ring%param, track_com%s(j), &
+                                            track_com%orb(j)%vec, kick)
 
     k2 = kick(2)**2 + kick(4)**2
     k3 = sqrt(k2)**3
 
-    if (i == 0 .or. i == ubound(sl_com%s, 1)) then
+    if (i == 0 .or. i == ubound(track_com%s, 1)) then
       k2 = k2 / 2
       k3 = k3 / 2
     endif
@@ -328,8 +328,8 @@ subroutine calc_h (h2, h3)
 
   enddo
 
-  h2 = h2 / ubound(sl_com%s, 1) 
-  h3 = h3 / ubound(sl_com%s, 1) 
+  h2 = h2 / ubound(track_com%s, 1) 
+  h3 = h3 / ubound(track_com%s, 1) 
 
 end subroutine
 

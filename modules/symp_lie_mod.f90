@@ -5,14 +5,7 @@ module symp_lie_mod
   use bmad_struct
   use bmad_interface
   use make_mat6_mod
-
-  type symp_lie_com_struct
-    logical :: save_orbit = .false.       ! save orbit?
-    real(rp), pointer :: s(:) => null()   ! s_distance
-    type(coord_struct), allocatable :: orb(:) ! orbit
-  end type
-
-  type (symp_lie_com_struct), save :: sl_com
+  use em_field_mod   ! For the track_com_struct
 
 contains
 
@@ -38,8 +31,8 @@ contains
 !   end    -- Coord_struct: Coordinates at the end of element.
 !
 ! To save the orbit through the ele there is a global variable:
-!   sl_com  -- Symp_lie_com_struct: Global variable
-!     %save_orbit -- Logical: Set True to save the orbit
+!   track_com  -- Symp_lie_com_struct: Global variable
+!     %save_track -- Logical: Set True to save the orbit
 !     %s(:)       -- real(rp): S-positions
 !     %orb(:)     -- Coord_struct: orbit.
 !-
@@ -60,7 +53,7 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
   type (save_computations_struct), allocatable, save :: tm(:)
 
   type (ele_struct), target :: ele
-  type (coord_struct) :: start, end, orb
+  type (coord_struct) :: start, end, orb, start0
   type (param_struct)  param
   type (wig_term_struct), pointer :: wt
 
@@ -71,6 +64,24 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
   integer i, j, n
 
   logical calc_mat6
+
+! If z_patch has not been calculated we need to track the reference orbit.
+
+  if (ele%key == wiggler$ .and. any(start%vec /= 0) .and. &
+                                      ele%value(z_patch$) == 0) then
+    start0%vec = 0
+    call track_it (start0, .false., .false.)
+  endif
+
+  call track_it (start, .true., calc_mat6)
+
+!----------------------------------------------------------------------------
+contains
+
+subroutine track_it (start, real_track, calc_mat6)
+
+  type (coord_struct) start
+  logical real_track, calc_mat6
 
 ! init
 
@@ -88,7 +99,7 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
     call drift_mat6_calc (mat6, ele%value(s_offset$), end%vec)
   endif
 
-  call offset_particle (ele, param, end, set$, set_canonical = .false.)
+  if (real_track) call offset_particle (ele, param, end, set$, set_canonical = .false.)
 
 !------------------------------------------------------------------
 ! select the element
@@ -112,18 +123,18 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
     call update_coefs
     call update_y_terms
 
-    if (sl_com%save_orbit) then
+    if (track_com%save_track) then
       n = ele%num_steps 
-      if (associated(sl_com%s)) then
-        if (size(sl_com%s) /= n + 1) then
-          deallocate (sl_com%s, sl_com%orb)
-          allocate (sl_com%s(0:n), sl_com%orb(0:n))
+      if (associated(track_com%s)) then
+        if (size(track_com%s) /= n + 1) then
+          deallocate (track_com%s, track_com%orb)
+          allocate (track_com%s(0:n), track_com%orb(0:n))
         endif
       else
-        allocate (sl_com%s(0:n), sl_com%orb(0:n))
+        allocate (track_com%s(0:n), track_com%orb(0:n))
       endif
-      sl_com%s(0) = 0
-      sl_com%orb(0) = start
+      track_com%s(0) = 0
+      track_com%orb(0) = start
     endif
 
 ! loop over all steps
@@ -245,9 +256,9 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 
       s = s + ds2
 
-      if (sl_com%save_orbit) then
-        sl_com%s(i) = s
-        sl_com%orb(i) = end
+      if (track_com%save_track) then
+        track_com%s(i) = s
+        track_com%orb(i) = end
       endif
 
     enddo
@@ -283,10 +294,12 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
     if (ele%value(tilt$) /= 0) call tilt_mat6 (mat6, ele%value(tilt$))
   endif
 
-  call offset_particle (ele, param, end, unset$, set_canonical = .false.)
+  if (real_track) call offset_particle (ele, param, end, unset$, set_canonical = .false.)
+
+end subroutine
 
 !----------------------------------------------------------------------------
-contains
+! contains
 
 subroutine update_coefs
 

@@ -21,7 +21,7 @@ module em_field_mod
     real(rp) :: step_min = 1e-8            ! min step size to step below which
                                            !   track1_adaptive_boris gives up
     integer :: max_step = 10000            ! maximum number of steps allowed
-    logical :: save_steps = .false.        ! save orbit?
+    logical :: save_track = .false.        ! save orbit?
     integer :: n_pts                       ! number of points
     integer :: n_bad
     integer :: n_ok

@@ -52,7 +52,7 @@ contains
 !
 ! Common block:
 !   track_com -- common_block that holds the path.
-!     %save_steps -- Set True if you want to save the path
+!     %save_track -- Set True if you want to save the path
 !     %n_pts -- The number of data points
 !     %s(:)   -- Real: S positions of the data points
 !     %orb(:) -- Coord_struct: Coordinates.
@@ -84,7 +84,7 @@ subroutine odeint_bmad (start, ele, param, end, &
   h = sign(h1, s2-s1)
   r = start%vec
 
-  if (track_com%save_steps) then
+  if (track_com%save_track) then
     s_sav = s - 2.0_rp * track_com%ds_save
     call allocate_saved_orbit (int(abs(s2-s1)/track_com%ds_save))
   endif
@@ -102,7 +102,7 @@ subroutine odeint_bmad (start, ele, param, end, &
     abs_tol_eff = abs_tol / sqrt_N
     r_scal(:) = abs(r(:)) + abs(h*dr_ds(:)) + TINY
 
-    if (track_com%save_steps .and. (abs(s-s_sav) > track_com%ds_save)) &
+    if (track_com%save_track .and. (abs(s-s_sav) > track_com%ds_save)) &
                                         call save_a_step (ele, param, s, r, s_sav)
     if ((s+h-s2)*(s+h-s1) > 0.0) h = s2-s
 
@@ -118,7 +118,7 @@ subroutine odeint_bmad (start, ele, param, end, &
 
     if ((s-s2)*(s2-s1) >= 0.0) then
       end%vec = r
-      if (track_com%save_steps) call save_a_step (ele, param, s, r, s_sav)
+      if (track_com%save_track) call save_a_step (ele, param, s, r, s_sav)
       return
     end if
 

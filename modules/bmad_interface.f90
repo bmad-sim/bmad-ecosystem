@@ -160,13 +160,14 @@ module bmad_interface
   end interface
 
   interface
-    subroutine chrom_tune (ring, delta_e, chrom_x, chrom_y, err_flag)
+    subroutine chrom_tune (ring, delta_e, chrom_x, chrom_y, err_tol, err_flag)
       use bmad_struct
       implicit none
       type (ring_struct) ring
       real(rp) delta_e
       real(rp) chrom_x
       real(rp) chrom_y
+      real(rp) err_tol
       logical err_flag
     end subroutine
   end interface
