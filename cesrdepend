@@ -7,16 +7,115 @@
 ##  need to be generated, and searches for the files upon which
 ##  this source depends recursively.
 ##
+##  WARNING:  Platform dependence is explicitly handled in this 
+##            script, independent of platform dependent flags and 
+##            executables set in the M.tail makefile.  For the 
+##            long term this is unsafe and must be fixed.
+##            MAP  11/09/03
 ##################################################################
 
-
 parse_args();
-$cpp_in_file=$src_file;
+cpp_setup();
+get_input();
 get_used_file_tree();
 print_d_file();
 
-# prints all the information collected into a .d file
+# Function to parse input arguments
+sub parse_args {
+    @search_dirs_4subs     =();
+    @search_dirs           =();
+    @local_mods            =();
+    $d_file                ="";
+    $fixed_format=0;
+    foreach $argument (@ARGV) {
+        if($argument=~/^-I(.+)/) {
+            push(@search_dirs_4subs,$1);
+            push(@search_dirs,$argument);
+        }
+        elsif($argument=~/^-MOD(.*)/) {
+            push(@local_mods,(split /\s/,$1));
+        }
+        elsif($argument=~/^-MP(.*)/) {
+            $mod_out_dir=$1;
+        }
+        elsif($argument=~/^-PRE(.*)/) {
+            $prefix=$1;
+        }
+        elsif($argument=~/^-SUF(.*)/) {
+            $suffix=$1;
+        } 
+        elsif($argument=~/^-f(.*)/) {
+            $d_file=$1;
+        }
+        elsif($argument=~/^-cpp(.*)/) {
+            $cpp_flags=$1;
+        }
+        elsif($argument!~/^-/) {
+            $src_file=$argument;
+        }
+    }
+    if($src_file=~/\.f$/i) {
+        $fixed_format=1;
+    }
+}
+
+
+# Function to initialize cesrdepend configuration
+sub cpp_setup {
+    
+#   Get platform information
+    $os=`uname -s`;
+    chomp($os);
+    $cpu=`uname -m`;
+    chomp($cpu);
+    $platform_tag=$os."_".$cpu;
+
+#    print "PLATFORM:  $platform_tag \n";
+
+#   Get source file info
+    $length  = length($src_file);
+    $isuf = rindex($src_file,".") + 1;
+    $lsuf = $length - $isuf;
+    
+#   Configure intermediate file name and full cpp command
+    if ($platform_tag eq "OSF1_alpha") {
+        
+#       Intermediate file name for Compaq:  .f90 -> .i90, .f->.i
+        $cpp_file = substr($src_file,0,$isuf)."i".substr($src_file,$isuf+1,$lsuf-1);
+        
+#       cpp command line
+        $cpp_command = "f90 -cpp -P ".$cpp_flags." "."@search_dirs"." ".$src_file;
+
+    } 
+    elsif ($platform_tag eq "Linux_i686") {
+        
+#       Intermediate file name for lf95:  .f* -> .cpp.f*
+        $cpp_file = substr($src_file,0,$isuf)."cpp.".substr($src_file,$isuf,$lsuf);
+        
+#       cpp command line
+        $cpp_command = "lf95 -Cpp -P ".$cpp_flags." "."@search_dirs"." ".$src_file;
+        
+    }
+    elsif ($platform_tag eq "SunOS_sun4u") {
+        
+#       Intermediate file name for Compaq:  .f90 -> .i90, .f->.i
+        $cpp_file = substr($src_file,0,$isuf)."i".substr($src_file,$isuf,$lsuf-1);
+        
+#       cpp command line
+        $cpp_command = "f90 -fpp ".$cpp_flags." "."@search_dirs"." ".$src_file." ".$cpp_file;
+    }
+    else {
+        
+#       Notify of unsupported platform and exit
+        die "CESRDEPEND:  Unsupported platform:  $platform_tag";
+    }   
+
+#    print "CPP command:  $cpp_command\n";
+}
+    
+# prints all the information collected into a dependency (.d) file
 sub print_d_file {
+    $print_to_file = 0;
     $mods_to_create_var="";
     $final_module_var  ="";
     $final_inc_var     ="";
@@ -30,14 +129,32 @@ sub print_d_file {
         }
         $src_file=~/(\w+)\.\w{1,3}$/;
         $src_file=$1;
-        open(F_out, ">>$d_file");
+        if (length($d_file) > 0) {
+            open(F_out, ">>$d_file");
+            $print_to_file = 1;
+        }
+
         foreach $inc (@final_inc_list) {
-            print F_out ("$prefix$src_file$suffix: $inc\n");
-        }    
+            if ($print_to_file == 1) {
+                print F_out ("$prefix$src_file$suffix: $inc\n");
+            }
+            else {
+                print ("$prefix$src_file$suffix: $inc\n");
+            }
+        }
+    
         if($final_module_var) {
-            print F_out ("$prefix$src_file$suffix$mods_to_create_var: $final_module_var\n");
+            if ($print_to_file == 1) {
+                print F_out ("$prefix$src_file$suffix$mods_to_create_var: $final_module_var\n");
+            }
+            else {
+                print ("$prefix$src_file$suffix$mods_to_create_var: $final_module_var\n");
+            }
         } 
-        close(F_out);
+
+        if ($print_to_file == 1) {            
+            close(F_out);
+        }
     }
 }
 
@@ -162,13 +279,8 @@ sub find_mods {
 sub get_used_file_tree {
     @needed_incs=();
     @needed_mods=();
-    get_cpp_out();
 # Go through the file looking for keywords
-  LINE: foreach $line (@cpp_out_file) {
-#     Filter out comment lines- ones that start with ! or c in fixed format
-      if(($line=~/^\s*?!/) or ($fixed_format and ($line=~/^c/i))) {
-          next LINE;
-      }
+  LINE: foreach $line (@stripped_lines) {
       while($line) {
 #         If include statement, get specified file and put it on 'needed' stack
           if(($line=~/(.*?)include\s\'(\S+?)\'/i) and ($1!~/!/)) {
@@ -229,53 +341,40 @@ sub get_used_file_tree {
     } 
 }
 
+# Subroutine to get CPP processed file and strip fortran comments
+sub get_input {
+    
+#   Run CPP
+    `$cpp_command`;
+    
+#   Filter all fortran comments
+    @stripped_lines=();
+    open(CPP_FILE,$cpp_file) || die "Could not open $cpp_file";
+    while(<CPP_FILE>) {
+        chomp;
+        $in_line = $_;
+#        printf "%s\n", $in_line;
 
-sub get_cpp_out {
-    @cpp_out_file=split /\n/, `cpp $cpp_flags @search_dirs $cpp_in_file`;
-}
-
-
-sub parse_args {
-    @search_dirs_4subs     =();
-    @search_dirs           =();
-    @local_mods            =();
-    $fixed_format=0;
-    foreach $argument (@ARGV) {
-        if($argument=~/^-I(.+)/) {
-            push(@search_dirs_4subs,$1);
-            push(@search_dirs,$argument);
+#       Look for fortran comments
+        $icomment = index($in_line,"!");
+        
+        if ($fixed_format and ($in_line=~/^c/i)) {
+            $length = 0;
+        } elsif ($icomment > -1) {
+            $length = $icomment;
+        } else {
+            $length = length($in_line);
         }
-        elsif($argument=~/^-MOD(.*)/) {
-            push(@local_mods,(split /\s/,$1));
-        }
-        elsif($argument=~/^-MP(.*)/) {
-            $mod_out_dir=$1;
-        }
-        elsif($argument=~/^-PRE(.*)/) {
-            $prefix=$1;
-        }
-        elsif($argument=~/^-SUF(.*)/) {
-            $suffix=$1;
-        } 
-        elsif($argument=~/^-f(.*)/) {
-            $d_file=$1;
-        }
-        elsif($argument=~/^-cpp(.*)/) {
-            $cpp_flags=" -C ".$1;
-        }
-        elsif($argument!~/^-/) {
-            $src_file=$argument;
+        
+#       Strip fortran comments and put in intermediate file
+        if ($length > 0) {
+            push(@stripped_lines, substr($in_line,0,$length));
         }
     }
-    if($src_file=~/\.f$/i) {
-        $fixed_format=1;
-    }
+    
+#   Close files
+    close(CPP_FILE);
+    
+#   Delete the CPP intermediate file
+    unlink($cpp_file);
 }
-
-
-
-
-
-
-
-
