@@ -21,23 +21,7 @@
 !                   = 1 => terrible fit
 !-
 
-!$Id$
-!$Log$
-!Revision 1.5  2003/01/27 14:40:39  dcs
-!bmad_version = 56
-!
-!Revision 1.4  2002/06/13 14:54:26  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.3  2002/02/23 20:32:20  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:54  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, track0, chi)
 
@@ -49,12 +33,13 @@ subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, track0, chi)
 
   type (coord_struct), intent(in), target :: track(:)
   type (coord_struct), intent(out) :: track0
-  real(rdef), intent(out) :: mat1(:,:)
-  real(rdef), intent(out) :: chi
+  real(rp), intent(out) :: mat1(:,:)
+  real(rp), intent(out) :: chi
   integer, intent(in) :: i_dim
 
-  real(rdef) sum2, dsum2, chisq, dtrack(6), remainder(6)
-  real(rdef), allocatable, save :: x(:), y(:), sig(:), v(:,:), w(:), a(:), m(:,:)
+  real(rp) sum2, dsum2, chisq, dtrack(6), remainder(6)
+  real(rp), allocatable, save :: x(:), y(:), sig(:), v(:,:), &
+                                   w(:), a(:), m(:,:)
   type (coord_struct), allocatable, target, save :: d0track(:)
   integer i, n
 
@@ -81,12 +66,23 @@ subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, track0, chi)
   x = (/ (i, i=1,n-1) /)
   sig = 1
 
-! because of possible round-off errors we do the computation in two parts.
-! first compute the closed orbit.
+! Because of possible round-off errors we do the computation in two parts.
+! First compute the closed orbit.
+! Use the relation:
+!            V_out = M V_in + (1 - M) C
+! Now extend the dimensions of everything by 1:
+!           VV_in  = (V_in,  1)
+!           VV_out = (V_out, 1)
+!           MM = | M  (1-M)C |
+!                | 0    1    |
+! Then:
+!           VV_out = MM VV_in
+! Which can be solved using svdfit.
+
 
   do i = 1, i_dim
     y = track(2:n)%vec(i)
-    multi_turn_func_common => track(1:n-1)
+    multi_turn_func_com => track(1:n-1)
     call svdfit (x, y, sig, a, v, w, chisq, multi_turn_func)
     mat1(i,1:i_dim) = a(1:i_dim)
     remainder(i) = a(i_dim+1)
@@ -97,7 +93,7 @@ subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, track0, chi)
   call mat_inverse (m, m)
   track0%vec(1:i_dim) = matmul (m, remainder)
 
-! second subtrack off the closed orbit and calculate the 1-turn matrix
+! Second subtrack off the closed orbit and calculate the 1-turn matrix
 
   do i = 1, n-1
     d0track(i)%vec = track(i)%vec - track0%vec
@@ -105,12 +101,12 @@ subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, track0, chi)
 
   do i = 1, i_dim
     y = track(2:n)%vec(i) - track0%vec(i)
-    multi_turn_func_common => d0track
+    multi_turn_func_com => d0track
     call svdfit (x, y, sig, a, v, w, chisq, multi_turn_func)
     mat1(i,1:i_dim) = a(1:i_dim)
   enddo
 
-! calculate chi -  the goodness of fit
+! Calculate chi -  the goodness of fit
 
   sum2 = 0
   dsum2 = 0
@@ -127,19 +123,21 @@ subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, track0, chi)
 
 end subroutine
 
-
+!-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-function multi_turn_func (x, n)
+function multi_turn_func (x, id)
 
   use bmad
 
   implicit none                      
 
-  real(rdef), intent(in) :: x
-  integer, intent(in) :: n
-  real(rdef), dimension(n) :: multi_turn_func
+  real(rp), intent(in) :: x
+  integer, intent(in) :: id
+  real(rp), dimension(id) :: multi_turn_func
 
-  multi_turn_func = (/ multi_turn_func_common(nint(x))%vec(1:n-1), 1.0_rdef /)
+! id = i_dim+1
+
+  multi_turn_func = (/ multi_turn_func_com(nint(x))%vec(1:id-1), 1.0_rp /)
 
 end function
