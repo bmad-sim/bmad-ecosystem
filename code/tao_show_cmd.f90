@@ -74,9 +74,9 @@ lines = " "
 nl = 0
 
 fmt  = '(a, es16.8)'
-ffmt = '(a, i1, a, es16.8)'
+ffmt = '(a, i0, a, es16.8)'
 imt  = '(a, i8)'
-iimt = '(a, i1, a, i8)'
+iimt = '(a, i0, a, i8)'
 lmt  = '(a, l)'
 amt  = '(2a)'
 

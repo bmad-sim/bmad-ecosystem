@@ -17,7 +17,7 @@ show you how to customize \tao for your specific purposes.
 \label{s:get_and_compile}
 
 \tao is available in the \cesr CVS area. To checkout a copy type `\cmd{cvs co
-tao'} in the directory from where you want to run \tao, hereto refered to as
+tao'} in the directory from where you want to run \tao, hereto referred to as
 \vn{ROOT}. If you don't have \cesr CVS write permission then type `\cmd{cesrcvs
 co tao}'. This will check out a copy but will not allow you to check in changes
 to the code. If you aren't at Wilson Laboratory then the source files can be
@@ -27,6 +27,30 @@ www.lepp.cornell.edu/bmad
 \end{example}
 or contact David Sagan \cmd{<dcs16@cornell.edu>} or Jeff Smith 
 \cmd{<js344@cornell.edu>} to obtain a copy. 
+
+First you want to make sure your environmental variables are set
+correctly.  If you are at Cornell and using the bash shell put the
+following in your \vn{.login} file:
+\begin{example}
+  if [ "$MY_PLATFORM" = "Linux" ]; then
+    CESRLIB=devel_ifort
+    . /home/cesrulib/bin/cesrdefs
+  else
+    CESRLIB=devel
+    . /home/cesrulib/bin/cesrdefs
+  fi
+\end{example}
+If you are using tcsh put in your \vn{.login} file: 
+\begin{example} 
+  if ( $OSTYPE == 'linux' ) then
+    setenv CESRLIB devel_ifort
+    source /home/cesrulib/bin/cesrdef
+  else
+    setenv CESRLIB devel
+    source /home/cesrulib/bin/cesrdef
+  endif
+\end{example}
+If you are not at Cornell see your local expert.
 
 From the newly created \cs{ROOT/tao} directory type `\cmd{gmake}' to create the
 libraries and then type `\cmd{gmake -f M.tao}' to create
@@ -42,7 +66,7 @@ configuration files to get everything working. The first time you run the
 program it will need to create a digested \bmad lattice file for the included
 lattice. This may take a few minutes.
 
-\subsection{Customising \tao}
+\subsection{Customizing \tao}
 
 After you are familiar with the basics of \tao you are ready to fully exploit
 the versatility of this wonderful program. See Chapter~\ref{c:custom_tao} to learn
@@ -66,14 +90,14 @@ Particle Accelerators} by Klaus Wille.
 a working knowledge of the conventions used by \bmad. \tao can be used ``out of
 the box'' so an understanding of the nitty-gritty details of \bmad is not
 necessary, however, one should be familiar with the material in Part I
-of the \bmad manual. This part will also sumarize the particle beam dynamics
+of the \bmad manual. This part will also summarize the particle beam dynamics
 used by \tao.
 
 So, what's \tao good for? A large variety of applications. It's versatility is that
-it's easily exapandable. Think of it as an accelerator design and analysis
+it's easily expandable. Think of it as an accelerator design and analysis
 environment. The entire \bmad library is at your disposal. But even without any 
 customizations \tao will do much analysis. These problems fall into three main
-catagories:
+categories:
 
 \begin{itemize}
 \item 
@@ -83,7 +107,7 @@ Simulate errors and changes in machine parameters. For example, you want to
 simulate what happens to the orbit, beta function, etc., when you change
 something in the machine. 
 \item 
-Simulate machine comissioning incliding simulating data measurment and
+Simulate machine commissioning including simulating data measurement and
 correction. For example, you want to know what steering strength changes will
 make an orbit flat.
 \end{itemize}
@@ -94,7 +118,7 @@ machine, you have "data" that you want to view, and, in the first two
 categories above, you want to match the machine model to the data (in
 designing a lattice the constraints correspond to the data).
 
-This tutorial is designed to informaly get the user up and running with \tao without
+This tutorial is designed to informally get the user up and running with \tao without
 needing to dredge through the entire reference manual. Full command syntax
 or greater detail on any topic can be found in the Reference Manual.
 
@@ -116,7 +140,7 @@ within this lattice (i.e. twiss parameters, orbit, phase \&etc...) . Actually,
 there are three lattices within each universe: the \textbf{design
 lattice}, \textbf{model lattice} and \textbf{base lattice}. \emph{All lattice changes
 specified during a \tao session are incurred on the model lattice.} The design lattice is
-fixed at initilization time and serves as a reference point for any elemental
+fixed at initialization time and serves as a reference point for any elemental
 changes incurred during the \tao session. The base lattice also serves as a
 reference point but the user can transfer the model lattice over to the base
 lattice at any time to create a reference lattice.
@@ -128,13 +152,13 @@ model, design and base data correspond to the appropriate quantity
 calculated in its respective lattice above. The measured data corresponds to 
 data obtained during a measurement. If doing design work then the desired or
 goal
-value would be placed here. This data area is also refered to as the constraint during
+value would be placed here. This data area is also referred to as the constraint during
 optimization. The reference data is for observing changes in the data with
 respect to a reference.
 
 \item \textbf{Variables} \Newline
 Variables control attributes of elements in the model lattice of one or more
-universes. They are not the same thing as atributes in lattice elements.
+universes. They are not the same thing as attributes in lattice elements.
 However, they \textit{control} attributes in lattice elements. They are
 more akin to \bmad \textit{overlays}. A given variable may control a single 
 attribute of one element
@@ -179,7 +203,7 @@ arrays and key bindings are specified.
     This is where variables are initialized.
   \item \textbf{tao.startup (optional)} \Newline
     This is a command file that is read in after initialization. Any commands you
-want entered in \tao everytime you start up are put here. This is also a great
+want entered in \tao every time you start up are put here. This is also a great
 place to define aliases.
 \end{enumerate}
 \textbf{tao\_plot.init}, \textbf{tao\_data.init} and \textbf{tao\_var.init} do
@@ -282,7 +306,7 @@ to restore, or ``unveto'' all the coupling data then veto the IR region.
   scale
 \end{example}
 The \vn{0:5 95:98} refers to data indices. As can now be seen, there were a few
-couping data points outside the IR that were previously clipped (notably at the
+coupling data points outside the IR that were previously clipped (notably at the
 halfway point or L03). We probably would have missed this if we just used clip
 and if we wished to zero the coupling outside the IR region we would have not
 correctly zeroed the L03 region.  Your plot window should now look like
@@ -422,7 +446,7 @@ where \vn{<command_name>} is the command you want help with.
 Let's change a variable and see what happens to the lattice. We are going to
 change a quadrupole strength so we should plot the change in beta and phase.
 Type the following (everything after the `!' are just comments and can be
-omited)
+omitted)
 \begin{example}
   x-axis all index        ! let the data index be the x-axis
   place top beta          ! plot Beta data on top plot
@@ -479,11 +503,11 @@ the model lattice to reflect the change so all the bookkeeping is done for you.
 \label{s:optimizer}
 
 There are two non-linear optimizers included with \tao: Levenburg - Marquardt,
-refered to as `\vn{lm}', and Differential Evolution, or `\vn{de}'. This example
+referred to as `\vn{lm}', and Differential Evolution, or `\vn{de}'. This example
 will use the Levenburg - Marquardt optimizer which first uses steepest decent to
-zero in on the region containing the minimun then uses the inverse-Hessian to
+zero in on the region containing the minimum then uses the inverse-Hessian to
 converge on the minimum. See Numerical Recipes in Fortran (or C or C++) for a
-detailed explaination. There's no need to know the details in order to use
+detailed explanation. There's no need to know the details in order to use
 either optimizer. Once you set up the problem \tao has the proper wrapper
 routines to do the optimization. Of course, you are not limited to using the
 included optimizers. Custom analysis can be done using custom routines but these
@@ -491,10 +515,10 @@ two optimizers have been integrated `out of the box' with the \tao data and
 variable structures to make quick optimization possible.
 
 Basically, the `\vn{lm}' is typically faster since it uses a Jacobian or
-``dmerit'' matrix to find the data deritatives versus each variable before
+``dmerit'' matrix to find the data derivatives versus each variable before
 starting the optimization process.  However it assumes the second derivative is
 fairly smooth, so for very complex function spaces the `\vn{de}' may work
-better. But becuase `\vn{lm}' typically converges much faster (for functions it
+better. But because `\vn{lm}' typically converges much faster (for functions it
 can handle) it is recommended to try this one first and only use `\vn{de}' if
 this one fails. 
 
@@ -575,8 +599,8 @@ You see the optimizer going through its cycles and it did it! The model is now
   sho var quad\_k1
 \end{example}
 The optimizer came very close to finding the ``design'' lattice. However, it
-changed more quadrupoles than just 10, 21 and 67. This isn't suprising. The
-optimizer finds the minimun of the merit function and there are potentially many
+changed more quadrupoles than just 10, 21 and 67. This isn't surprising. The
+optimizer finds the minimum of the merit function and there are potentially many
 minimums, or degeneracies.  It does it's best not to get stuck in a local
 minimum and as we can see by the plotted data, the minimum found is very close
 -- virtually identical -- to the design lattice optics.  A good hint as to what
@@ -620,7 +644,7 @@ Single mode utilizes a simple single character interface between the neural
 network present in your brain and the \tao model lattice. By simply typing
 single predefined characters the specified element parameter will be changed by
 a certain amount. Neural networks, like your brain, are very efficient at
-converging on a nieghborhood around a minimun of a multidimensional non-linear
+converging on a neighborhood around a minimum of a multidimensional non-linear
 function space. However, they can be poor at finding the exact minimum. Single mode
 utilizes the two optimization schemas (neural network and model fitting) such
 that they are applied at the proper times in the evolution of the merit
@@ -629,7 +653,7 @@ function.
 In other words, you first mess around with the lattice until it get near to the
 desired optics layout then you let the optimizer take over to narrow in on the
 optimum configuration without requiring it to run all around the
-parameter space looking for the nieghborhood around the minimum, which is very
+parameter space looking for the neighborhood around the minimum, which is very
 inefficient and time consuming for complex parameter spaces.
 
 \fbox{this section is yet to be completed!} 
@@ -678,7 +702,7 @@ interface with \tao the rest of your coding can, in principle all be done in C.
 \tao relies on extensive use of pointers and logical flags. However, all of the
 structures you will need to use are contained in the \vn{tao_struct.f90}
 module. This module is heavily documented and provided all the information
-needed to use the intrinsic \tao strucures on your customizations. It is also a
+needed to use the intrinsic \tao structures on your customizations. It is also a
 very good idea to have a copy of \vn{bmad_struct.f90} handy as this contains
 most of the structures used by \bmad.
 
@@ -696,7 +720,7 @@ the files you can customize. There are two options here.
   \item Change the files directly in \cmd{ROOT/tao/hook}, adding any extra
     files you may need, then recompile from the \cmd{ROOT/tao} directory with
   \cmd{gmake -f M.tao}.  \label{cust_option_one}
-  \item Copy the hook files to a seprate directory say \cmd{ROOT/my_tao},
+  \item Copy the hook files to a separate directory say \cmd{ROOT/my_tao},
 adding any extra files you may need, then write a Makefile to compile and link these
 routines to the main \tao library.
 \label{cust_option_two}
@@ -741,8 +765,8 @@ This tells gmake to use the tao library that has already been created (from
  and then to compile
 all of the hook files, including the main program file (\cmd{my_tao_cl.f90})
 into object files (everything in \cmd{./}, the current directory).  Routines and
-declarations in object files always overide similarly named code in the \tao
-libraries so this allows for your local hook files to overide the dummy hook
+declarations in object files always override similarly named code in the \tao
+libraries so this allows for your local hook files to override the dummy hook
 files in the \tao library. The only downside to this method is it clutters your
 \cmd{my_tao} directory with object files. You can always remove these object files
 with \cmd{gmake clean}.
@@ -790,7 +814,7 @@ Place the following code in \vn{tao_hook_load_data_array.f90} (in the
 \end{verbatim}
 %\end{example}
 This defines what is to be calculated for each \vn{particle_emittance} datum.
-There are two tranverse coordinates, so two definitions need to be made, one for
+There are two transverse coordinates, so two definitions need to be made, one for
 each dimension.
 
 Now you just need to declare the data types in the \cmd{tao.init} and
@@ -908,7 +932,7 @@ emittance from the twiss parameters that includes dispersion and coupling called
   \label{f:plot_emittance}
 \end{figure}
 
-\Section{Other Cutomizations}
+\Section{Other Customizations}
 
 The above example just illustrates one of the customizations you can perform on \tao.
 Part III, Programmer's Guide lays out all of the hook files and provides pointers

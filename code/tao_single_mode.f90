@@ -61,9 +61,8 @@ subroutine tao_single_mode (char)
 ! z: Quit single character input mode.
 
   case ('z')
-    print *
     s%global%single_mode = .false.
-    call out_io (s_blank$, r_name, 'Entering line mode...')
+    call out_io (s_blank$, r_name, ' ', 'Entering line mode...')
 
 ! Z: Quit tao.
 
@@ -77,15 +76,15 @@ subroutine tao_single_mode (char)
 ! v: Set variable at given value
 
   case ('v')
-    print '(a, $)', ' Enter Key# and Value: '
+    write (*, '(a, $)', advance = "NO") ' Enter Key# and Value: '
     read (*, *, iostat = ios) ix, value
     if (ios /= 0) then
-      print *, 'ERROR: I DO NOT UNDERSTAND THIS. NOTHING CHANGED.'
+      write (*, *) 'ERROR: I DO NOT UNDERSTAND THIS. NOTHING CHANGED.'
       return
     endif
     if (ix == 0) ix = 10
     if (ix < 0 .or. ix > 10) then
-      print *, 'ERROR KEY NUMBER OUT OF RANGE (0 - 9).'
+      write (*, *) 'ERROR KEY NUMBER OUT OF RANGE (0 - 9).'
       return
     endif
     ix = ix + s%global%ix_key_bank
@@ -108,9 +107,9 @@ subroutine tao_single_mode (char)
   case ('s')
 
     this_merit = tao_merit ()
-    print *
-    print *, 's%global%optimizer:       ', trim(s%global%optimizer)
-    print *
+    write (*, *)
+    write (*, *) 's%global%optimizer:       ', trim(s%global%optimizer)
+    write (*, *)
     call tao_show_constraints (0, 'ALL')
     call tao_show_constraints (0, 'TOP10')
 
@@ -162,7 +161,7 @@ subroutine tao_single_mode (char)
 ! Escape Error:
 
   case default
-    print *, 'What is this your typing?', char2
+    write (*, *) 'What is this your typing?', char2
 
   end select
 
@@ -187,7 +186,7 @@ subroutine tao_single_mode (char)
       endif
 
     case default
-      print *, 'What is this your typing?', iachar(char)
+      write (*, *) 'What is this your typing?', iachar(char)
 
     end select
 
@@ -203,7 +202,7 @@ subroutine tao_single_mode (char)
 ! /e: Element
 
     case ('e')
-      print '(/, a, $)', ' Element Name or Index: '
+      write (*, '(/, a)', advance = "NO") ' Element Name or Index: '
       read (*, '(a)', iostat = ios) str
       if (ios /= 0) return
       call string_trim (str, str, ix) 
@@ -214,7 +213,7 @@ subroutine tao_single_mode (char)
       if (str(ix-1:ix-1) == ':') then
         read (str(ix:), *, iostat = ios) n1
         if (n1 > size(s%u) .or. n1 < 1) then
-          print *, 'ERROR: RING INDEX NOT VALID.'
+          write (*, *) 'ERROR: RING INDEX NOT VALID.'
           return
         endif
         n2 = n1
@@ -235,28 +234,28 @@ subroutine tao_single_mode (char)
         ring => s%u(i)%model
         do j = 0, ring%n_ele_max
           if (ring%ele_(j)%name /= str .and. j /= ie) cycle
-          print *, '!---------------------------------------------------'
-          print *, '! Ring:', i, ':  ', trim(ring%lattice)
-          print *, '! Element Index:', j
+          write (*, *) '!---------------------------------------------------'
+          write (*, *) '! Ring:', i, ':  ', trim(ring%lattice)
+          write (*, *) '! Element Index:', j
           call type_ele (ring%ele_(j), .false., 6, &
                                                .true., radians$, .true., ring)
           found = .true.
         enddo
       enddo
 
-      if (.not. found) print *, 'Element not found.'
+      if (.not. found) write (*, *) 'Element not found.'
 
 ! /l: Lattice list
 
     case ('l')
       do i = 1, size(s%u)
         ring => s%u(i)%model
-        print *
-        print *, 'Ring: ', ring%lattice, i
+        write (*, *)
+        write (*, *) 'Ring: ', ring%lattice, i
         ring => s%u(i)%model
-        print *, 'Ix  Name                   S  Beta_x  Beta_y'
+        write (*, *) 'Ix  Name                   S  Beta_x  Beta_y'
         do j = 1, ring%n_ele_ring
-          print '(i3, 2x, a, f8.2, 2f8.2)', j, ring%ele_(j)%name, &
+          write (*, '(i3, 2x, a, f8.2, 2f8.2)') j, ring%ele_(j)%name, &
                  ring%ele_(j)%s, ring%ele_(j)%x%beta, ring%ele_(j)%y%beta
         enddo
       enddo
@@ -271,6 +270,25 @@ subroutine tao_single_mode (char)
     case ('P')
       call tao_output_cmd ('hard', ' ')
   
+! /v: View universe 
+
+    case ('v')
+
+      write (*, '(a, $)') ' Universe number to view: '
+      read '(a)', line
+      call string_trim (line, line, ix)
+      if (ix == 0) then
+        write (*, *) 'ERROR: NO UNIVERSE NUMBER.'
+      else
+        read (line, *, iostat = ios) i
+        if (ios /= 0 .or. i < 0 .or. i > size(s%u)) then
+          write (*, *) 'ERROR: BAD UNIVERSE NUMBER.'
+          return
+        endif
+        s%global%u_view = i
+      endif
+
+
 ! /w: Output to default file.
 
     case ('w')
@@ -280,7 +298,7 @@ subroutine tao_single_mode (char)
 
     case ('x')
 
-      print '(a, $)', ' Input x-axis min, max: '
+      write (*, '(a, $)') ' Input x-axis min, max: '
       read '(a)', line
       call string_trim (line, line, ix)
       if (ix == 0) then
@@ -288,7 +306,7 @@ subroutine tao_single_mode (char)
       else
         read (line, *, iostat = ios) m1, m2
         if (ios /= 0) then
-          print *, 'ERROR READING MIN/MAX.'
+          write (*, *) 'ERROR READING MIN/MAX.'
           return
         endif
         call tao_x_scale_cmd ('all', m1, m2, err)
@@ -336,14 +354,14 @@ subroutine tao_single_mode (char)
 ! /Escape Error:
 
       case default
-        print *, 'What is this your typing?', char2
+        write (*, *) 'What is this your typing?', char2
 
       end select
 
 ! / Error:
 
     case default
-      print *, 'What is this your typing?', iachar(char)
+      write (*, *) 'What is this your typing?', iachar(char)
 
     end select
 
@@ -356,7 +374,7 @@ subroutine tao_single_mode (char)
 ! Error:
 
   case default
-    print *, 'What is this your typing?', iachar(char)
+    write (*, *) 'What is this your typing?', iachar(char)
 
   end select
 

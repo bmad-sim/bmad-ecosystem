@@ -208,7 +208,7 @@ do
       crv%line              = curve(j)%line
       crv%convert           = curve(j)%convert
       crv%ele2_name         = curve(j)%ele2_name
-      crv%ix_ele2           = 0
+      crv%ix_ele2           = -1
       if (crv%ele2_name /= ' ') call str_upcase (crv%ele2_name, crv%ele2_name)
     enddo
   enddo

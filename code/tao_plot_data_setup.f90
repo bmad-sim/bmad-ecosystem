@@ -120,6 +120,8 @@ plot_loop: do i = 1, size(s%plot_page%region)
       case ('data_array')
         call tao_find_data (err, u, curve%data_type, d2_ptr, d1_ptr)
         if (err) then
+          call out_io (s_error$, r_name, &
+                'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
           graph%valid = .false.
           cycle graph_loop
         endif
@@ -506,7 +508,11 @@ err = .false.
 
 x1 = min (u%model%ele_(u%model%n_ele_use)%s, max (plot%x%min, u%model%ele_(0)%s))
 x2 = min (u%model%ele_(u%model%n_ele_use)%s, max (plot%x%max, u%model%ele_(0)%s))
-s_last = lat%ele_(curve%ix_ele2)%s
+if (curve%ix_ele2 < 0) then
+  s_last = 0
+else
+  s_last = lat%ele_(curve%ix_ele2)%s
+endif
 
 if (data_type(1:2) == 'r:') data_type = 'r:'
 if (data_type(1:2) == 't:') data_type = 't:'

@@ -89,14 +89,17 @@ call tao_dModel_dVar_calc (s%global%derivative_recalc)
 
 ! run optimizer mrqmin from Numerical Recipes.
 
+finished = .false.
 call out_io (s_blank$, r_name, '   Loop      Merit   A_lambda')
 
 do i = 1, s%global%n_opti_cycles+1
-  if (i == s%global%n_opti_cycles+1) a_lambda = 0  ! tell mrqmin we are finished
+  if (finished .or. i == s%global%n_opti_cycles+1) a_lambda = 0  ! tell mrqmin we are finished
   call mrqmin (x, y, sig, a, mask_a, covar, alpha, chi_sq, tao_mrq_func, a_lambda) 
   call tao_mrq_func (x, a, y_fit, dy_da)  ! put a -> model
   write (line, '(i5, es14.4, es10.2)') i, tao_merit(), a_lambda
   call out_io (s_blank$, r_name, line)
+
+  if (finished) return
 
 ! look for keyboard input to end optimization
 
@@ -106,7 +109,8 @@ do i = 1, s%global%n_opti_cycles+1
       s%global%optimizer_running = .false.
       call out_io (s_blank$, r_name, 'Optimizer stop signal detected.', &
                                                              'Stopping now.')
-      return
+      finished = .true.
+      exit
     endif
     if (char == achar(0)) exit   ! only exit if there is no more input
   enddo

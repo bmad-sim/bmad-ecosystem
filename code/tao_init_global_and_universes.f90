@@ -359,7 +359,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
     if (default_universe == 'clone') then
       do i = 1, size(s%u)
         call var_stuffit_common
-        write (s%v1_var(s%n_v1_var_used)%name, '(2a, i1)') &
+        write (s%v1_var(s%n_v1_var_used)%name, '(2a, i0)') &
                                 s%v1_var(s%n_v1_var_used)%name, ';', i
         call var_stuffit (i)
       enddo
@@ -459,7 +459,7 @@ subroutine init_universe (u)
     u%data(:)%ele_name   = ' '
     u%data(:)%ix_ele     = -1
     u%data(:)%ele2_name  = ' '
-    u%data(:)%ix_ele2    = 0
+    u%data(:)%ix_ele2    = -1
   endif
 
 ! This is needed to keep the totalview debugger happy.
@@ -700,7 +700,7 @@ if (index(data(0)%name, 'COUNT:') /= 0) then
       call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
       call err_exit
     endif
-    write(fmt, '(a,i1.1,a,i1.1,a)') '(a, I', num_hashes, '.', num_hashes, ', a)'
+    write(fmt, '(a,i0,a,i0,a)') '(a, I', num_hashes, '.', num_hashes, ', a)'
     write(u%data(j)%name, fmt) trim(count_name1), jj, trim(count_name2)
     jj = jj + 1
   enddo
@@ -951,7 +951,7 @@ integer num_ele, ios, ixx1, ixx2
         call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
         call err_exit
       endif
-      write(fmt, '(a,i1.1,a,i1.1,a)') '(a, I', num_hashes, '.', num_hashes, ', a)'
+      write(fmt, '(a,i0,a,i0,a)') '(a, I', num_hashes, '.', num_hashes, ', a)'
       write(s%var(j)%name, fmt) trim(count_name1), jj, trim(count_name2)
       jj = jj + 1
     enddo
