@@ -38,6 +38,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/06/13 14:54:31  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.4  2002/02/23 20:32:28  dcs
 !Double/Single Real toggle added
 !
@@ -91,9 +94,9 @@ subroutine twiss_at_start (ring)
     t0_4 = matmul (ring%ele_(n)%mat6(1:4,1:4), t0_4)
     if (debug) then
       type *, '!------------------------------------', n
-      call type_ele (ring%ele_(n), .false., 0, .false., .false., ring)
+      call type_ele (ring%ele_(n), .false., 0, .false., 0, .false., ring)
       do i = 1, 4
-        type '(6f11.4)', (t0_4(i, j), j = 1, 4)
+        type '(4f11.4, 5x, f11.4)', (t0_4(i, j), j = 1, 4), eta_vec(i)
       enddo
     endif
   enddo

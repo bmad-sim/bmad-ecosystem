@@ -40,6 +40,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/06/13 14:54:23  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.4  2002/02/23 20:32:13  dcs
 !Double/Single Real toggle added
 !
@@ -124,8 +127,8 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 !    if (amp_del < amp_co*1.0e-5 + 1.0e-8) then  ! success
 
     amp = max(abs(closed_orb_(0)%vec), abs(closed_orb_(n_ele)%vec))
-    if (all(orb_diff(1:i_dim) < eps_abs(1:i_dim)) .or. &
-          all(orb_diff(1:i_dim) < eps_rel(1:i_dim) * amp(1:i_dim))) then
+    if (all(abs(orb_diff(1:i_dim)) < eps_abs(1:i_dim)) .or. &
+          all(abs(orb_diff(1:i_dim)) < eps_rel(1:i_dim) * amp(1:i_dim))) then
       if (i_dim == 4) where (is_on(1:n_ele)) ring%ele_(1:n_ele)%is_on = .true.
       return
     endif

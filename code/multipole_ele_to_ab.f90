@@ -22,6 +22,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/06/13 14:54:27  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.2  2002/02/23 20:32:20  dcs
 !Double/Single Real toggle added
 !
@@ -39,7 +42,7 @@ subroutine multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)
 
   type (ele_struct) ele
 
-  real(rdef) const, radius, factor, a(0:n_pole_maxx), b(0:n_pole_maxx)
+  real(rdef) const, radius, factor, a(0:), b(0:)
   real(rdef) an, bn, cos_t, sin_t
 
   integer ref_exp, n, particle
@@ -48,7 +51,7 @@ subroutine multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)
 
 !
 
-  if (.not. ele%multipoles_on .or. .not. ele%is_on) then
+  if (.not. ele%multipoles_on .or. .not. ele%is_on .or. .not. associated(ele%a)) then
     a = 0
     b = 0
     return
@@ -56,8 +59,8 @@ subroutine multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)
 
 ! transfer values to a and b vecs
 
-  a = ele%value(ix1_m$:ix2_m$-1:2)
-  b = ele%value(ix1_m$+1:ix2_m$:2)
+  a = ele%a
+  b = ele%b
 
   if (ele%key == multipole$) call multipole_kt_to_ab (a, b, a, b)
 
@@ -95,8 +98,8 @@ subroutine multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)
 
   select case (ele%key)
 
-  case (sbend$, rbend$)           
-    const = ele%value(angle$)
+  case (sbend$, rbend$)
+    const = ele%value(l$) * ele%value(g$)
     ref_exp = 0
 
   case (elseparator$, kicker$)
@@ -105,10 +108,9 @@ subroutine multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)
     elseif (ele%value(vkick$) == 0) then
       const = ele%value(hkick$)
     else
-      call warning ('I CANNOT SCALE: ' // ele%name, &
-        'TO A REFERENCE SEPARATOR WITH HKICK AND VKICK *BOTH* NONZERO:' // &
-         ele%name)
-      const = 0
+      print *, 'ERROR IN MULTIPOLE_ELE_TO_AB: I CANNOT SCALE: ' // ele%name
+      print *, '  TO A REFERENCE SEPARATOR WITH HKICK AND VKICK *BOTH* NONZERO'
+      call err_exit
     endif
     ref_exp = 0
 
@@ -117,7 +119,8 @@ subroutine multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)
     ref_exp = 1
 
   case (wiggler$)
-    const = 2 * ele%value(l$) / (pi * ele%value(rho$) * ele%value(n_pole$))
+    const = 2 * ele%value(l$) / &
+                    (pi * ele%value(rho_bend$) * ele%value(n_pole$))
     ref_exp = 0
 
   case (solenoid$)

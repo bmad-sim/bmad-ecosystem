@@ -10,7 +10,6 @@
 !   twiss -- Twiss_struct: Structure holding the Twiss parameters.
 !     %beta
 !     %alpha
-!     %gamma
 !   phi   -- Real(rdef): Tune in radians.
 !
 ! Output:
@@ -19,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/06/13 14:54:31  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.3  2002/02/23 20:32:29  dcs
 !Double/Single Real toggle added
 !
@@ -44,7 +46,7 @@ subroutine twiss_to_1_turn_mat (twiss, phi, mat2)
 
   mat2(1,1) =  c + s * twiss%alpha
   mat2(1,2) =  s * twiss%beta
-  mat2(2,1) = -s * twiss%gamma
+  mat2(2,1) = -s * (1 + twiss%alpha**2) / twiss%beta
   mat2(2,2) =  c - s * twiss%alpha
 
 end subroutine

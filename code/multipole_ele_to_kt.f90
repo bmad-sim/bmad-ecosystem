@@ -15,12 +15,15 @@
 !                     in calculations.
 !
 ! Output:
-!   knl(0:n_pole_maxx)  -- Real(rdef): Vector of strengths, MAD units.
-!   tilt(0:n_pole_maxx) -- Real(rdef): Vector of tilts.
+!   knl(0:)  -- Real(rdef): Vector of strengths, MAD units.
+!   tilt(0:) -- Real(rdef): Vector of tilts.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/06/13 14:54:27  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.2  2002/02/23 20:32:20  dcs
 !Double/Single Real toggle added
 !
@@ -38,7 +41,7 @@ subroutine multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)
 
   type (ele_struct)  ele
 
-  real(rdef) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), signn, a_n, b_n
+  real(rdef) knl(0:), tilt(0:), signn, a_n, b_n
   real(rdef) value(n_attrib_maxx), a(0:n_pole_maxx), b(0:n_pole_maxx)
 
   integer n, particle, n_fact
@@ -47,7 +50,7 @@ subroutine multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)
 
 !
 
-  if (.not. ele%multipoles_on .or. .not. ele%is_on) then
+  if (.not. ele%multipoles_on .or. .not. ele%is_on .or. .not. associated(ele%a)) then
     knl = 0
     tilt = 0
     return
@@ -56,8 +59,8 @@ subroutine multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)
 ! multipole
                     
   if (ele%key == multipole$) then
-    knl  = ele%value(ix1_m$:ix2_m$-1:2)
-    tilt = ele%value(ix1_m$+1:ix2_m$:2) + ele%value(tilt$)
+    knl  = ele%a
+    tilt = ele%b + ele%value(tilt$)
     return
   endif
 
@@ -66,5 +69,5 @@ subroutine multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)
   call multipole_ele_to_ab (ele, particle, a, b, .false.)
   call multipole_ab_to_kt (a, b, knl, tilt)
   if (use_ele_tilt) tilt = tilt + ele%value(tilt$)
-                       
+
 end subroutine

@@ -47,6 +47,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/06/13 14:54:29  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.3  2002/02/23 20:32:26  dcs
 !Double/Single Real toggle added
 !
@@ -114,11 +117,7 @@ subroutine track_fwd (ix1, ix2)
 
   do n = ix1, ix2
 
-    if (ring%ele_(n)%key == coil$) then
-      call coil_track (orbit_(n-1), n, ring, orbit_(n))
-    else
-      call track1 (orbit_(n-1), ring%ele_(n), ring%param, orbit_(n))
-    endif
+    call track1 (orbit_(n-1), ring%ele_(n), ring%param, orbit_(n))
 
 ! check for lost particles
 
@@ -156,19 +155,17 @@ subroutine track_back (ix1, ix2)
     if (ring%ele_(n)%key == solenoid$ .or. ring%ele_(n)%key == sol_quad$) &
                                                             reverse = .true.
 
-    if (ring%ele_(n)%key == coil$) then
-      call coil_track (orbit_(n), n, ring, orbit_(n-1))
-    else
-      if (reverse) then
-        ring%ele_(n)%value(ks$) = -ring%ele_(n)%value(ks$)
-        mat_save = ring%ele_(n)%mat6
-        call make_mat6 (ring%ele_(n), ring%param, orbit_(n), orbit_(n))
-      endif
-      call track1 (orbit_(n), ring%ele_(n), ring%param, orbit_(n-1))
-      if (reverse) then
-        ring%ele_(n)%value(ks$) = -ring%ele_(n)%value(ks$)
-        ring%ele_(n)%mat6 = mat_save
-      endif
+    if (reverse) then
+      ring%ele_(n)%value(ks$) = -ring%ele_(n)%value(ks$)
+      mat_save = ring%ele_(n)%mat6
+      call make_mat6 (ring%ele_(n), ring%param, orbit_(n))
+    endif
+
+    call track1 (orbit_(n), ring%ele_(n), ring%param, orbit_(n-1))
+
+    if (reverse) then
+      ring%ele_(n)%value(ks$) = -ring%ele_(n)%value(ks$)
+      ring%ele_(n)%mat6 = mat_save
     endif
 
 ! check for lost particles

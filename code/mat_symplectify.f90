@@ -14,6 +14,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/06/13 14:54:26  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.5  2002/02/23 20:32:19  dcs
 !Double/Single Real toggle added
 !
@@ -33,6 +36,7 @@
 subroutine mat_symplectify (mat_in, mat_symp)
 
   use precision_def
+  use bmad_interface
 
   implicit none
 

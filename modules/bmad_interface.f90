@@ -3,6 +3,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.7  2002/06/13 14:54:59  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.6  2002/02/23 20:32:31  dcs
 !Double/Single Real toggle added
 !
@@ -22,6 +25,55 @@
 #include "CESR_platform.inc"
 
 module bmad_interface
+
+  interface assignment (=)
+
+    subroutine equal_ele_ele (ele1, ele2)
+      use bmad_struct
+      implicit none
+      type (ele_struct), intent(out) :: ele1
+      type (ele_struct), intent(in) :: ele2
+    end subroutine
+
+    subroutine equal_ring_ring (ring1, ring2)
+      use bmad_struct
+      implicit none
+      type (ring_struct), intent(out) :: ring1
+      type (ring_struct), intent(in) :: ring2
+    end subroutine
+
+    subroutine equal_coord_coord (coord1, coord2)
+      use bmad_struct
+      implicit none
+      type (coord_struct), intent(out) :: coord1
+      type (coord_struct), intent(in) :: coord2
+    end subroutine
+
+  end interface
+
+
+!-------------------
+
+  interface
+    subroutine init_taylor (bmad_taylor)
+      use bmad_struct
+      type (taylor_struct) bmad_taylor(:)
+    end subroutine
+  end interface
+
+  interface
+    subroutine kill_taylor (bmad_taylor)
+      use bmad_struct
+      type (taylor_struct) bmad_taylor(:)
+    end subroutine
+  end interface
+
+  interface
+    subroutine concat_taylor (taylor1, taylor2, taylor_out)
+      use bmad_struct
+      type (taylor_struct) taylor1(:), taylor2(:), taylor_out(:)
+    end subroutine
+  end interface
 
   interface
     subroutine accel_sol_mat_calc (ls, c_m, c_e, gamma_old, gamma_new, b_x,  &
@@ -81,49 +133,6 @@ module bmad_interface
   end interface
 
   interface
-    subroutine b_field_loop (coord, ele, s_pos, b_loop)
-      use bmad_struct
-      implicit none
-      type (coord_struct) coord
-      type (ele_struct) ele
-      real(rdef) s_pos
-      real(rdef) b_loop(3)
-    end subroutine
-  end interface
-
-  interface
-    subroutine b_field_mult (ring, coord, first, last, s_pos, b_vector)
-      use bmad_struct
-      implicit none
-      type (ring_struct) ring
-      type (coord_struct) coord
-      integer first
-      integer last
-      real(rdef) s_pos(n_comp_maxx)
-      real(rdef) b_vector(3)
-    end subroutine
-  end interface
-
-  interface
-    subroutine back_to_under (output, input)
-      implicit none
-      character*(*) input
-      character*(*) output
-    end subroutine
-  end interface
-
-  interface
-    subroutine Beta_Ave(ring, ix_ele, betaxAve, betayAve)
-      use bmad_struct
-      implicit none
-  type (ring_struct)  ring
-      real(rdef) betaxAve
-      real(rdef) betayAve
-      integer ix_ele
-    end subroutine
-  end interface
-
-  interface
     subroutine bmad_parser (in_file, ring)
       use bmad_struct
       implicit none
@@ -178,8 +187,8 @@ module bmad_interface
   end interface
 
   interface
-    subroutine cesr_crossings(i_train, j_car, species, n_trains_tot, n_cars,&
-    	cross_positions, n_car_spacing, train_spacing)
+    subroutine cesr_crossings(i_train, j_car, species, n_trains_tot, n_cars, &
+                                 cross_positions, n_car_spacing, train_spacing)
 			use bmad_struct
 			implicit none
       integer, intent(in) :: i_train
@@ -193,6 +202,17 @@ module bmad_interface
     end subroutine
   end interface
 
+  interface
+    subroutine cesr_elements_get (name, n_found, ele)
+      use bmad_struct
+      use precision_def
+      implicit none
+      type (ring_master_struct) :: ele(:)
+      integer n_found
+      character name*(*)
+    end subroutine
+  end interface
+ 
   interface
     subroutine change_basis (coord, ref_energy, ref_z, to_cart, time_disp)
       use bmad_struct
@@ -270,21 +290,10 @@ module bmad_interface
      type (ring_struct) ring
      type (coord_struct) closed_orb_(0:n_ele_maxx)
      type (coord_struct), optional :: init_guess
-     real(rdef) eps_rel(:), eps_abs(:)
+     real(rdef), intent(in) :: eps_rel(:), eps_abs(:)
      integer i_dim
    end subroutine
  end interface
-
-  interface
-    subroutine coil_track (start, ele_index, ring, end)
-      use bmad_struct
-      implicit none
-      type (ring_struct) ring
-      type (coord_struct) start
-      type (coord_struct) end
-      integer ele_index
-    end subroutine
-  end interface
 
   interface
     subroutine compress_ring (ring, ok)
@@ -305,7 +314,8 @@ module bmad_interface
   end interface
 
   interface
-    subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)
+    subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, &
+                                                                   coord_out)
       use bmad_struct
       implicit none
       character*(*) in_type_str
@@ -349,6 +359,15 @@ module bmad_interface
   end interface
 
   interface
+    subroutine custom_emitt_calc (ring, ir, i2, i3, i5a, i5b)
+      use bmad_struct
+      type (ring_struct) ring
+      integer ir
+      real(rdef) i2, i3, i5a, i5b
+    end subroutine
+  end interface
+
+  interface
     subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, ring, db, &
                                                 con_, n_con, ok, type_err)
       use bmad_struct
@@ -381,6 +400,14 @@ module bmad_interface
   end interface
 
   interface
+    subroutine deallocate_ele_pointers (ele)
+      use bmad_struct
+      implicit none
+      type (ele_struct) ele
+    end subroutine
+  end interface
+
+  interface
     subroutine do_mode_flip (ele, ele_flip)
       use bmad_struct
       implicit none
@@ -390,12 +417,12 @@ module bmad_interface
   end interface
 
   interface
-    subroutine dynamic_aperture (ring, track_input, aperture_)
+    subroutine ele_to_taylor (ele, orb0, param)
       use bmad_struct
       implicit none
-      type (ring_struct) ring
-      type (aperture_struct) aperture_(:)
-      type (track_input_struct) track_input
+      type (ele_struct), intent(inout) :: ele
+      type (coord_struct), optional, intent(in) :: orb0
+      type (param_struct), optional, intent(in) :: param
     end subroutine
   end interface
 
@@ -429,7 +456,7 @@ module bmad_interface
       real(rdef), intent(in), optional :: position0(3)
     end function
   end interface
- 
+
   interface
     subroutine find_element_ends (ring, ix_ele, ix_start, ix_end)
       use bmad_struct
@@ -578,7 +605,8 @@ module bmad_interface
   end interface
 
   interface
-    subroutine make_hybrid_ring (r_in, use_ele, remove_markers, r_out, ix_out)
+    subroutine make_hybrid_ring (r_in, use_ele, remove_markers, &
+                                             r_out, ix_out, use_taylor, orb0_)
       use bmad_struct
       implicit none
       type (ring_struct) r_in
@@ -586,6 +614,8 @@ module bmad_interface
       integer ix_out(:)
       logical remove_markers
       logical use_ele(:)
+      logical, optional :: use_taylor
+      type (coord_struct), optional :: orb0_(0:)
     end subroutine
   end interface
 
@@ -613,11 +643,61 @@ module bmad_interface
   end interface
 
   interface
-    subroutine custom_make_mat6 (ele, param, c0, c1)
+    subroutine make_mat6_custom (ele, param, c0, c1)
       use bmad_struct
       implicit none
       type (ele_struct) ele
-      type (coord_struct), optional :: c0, c1
+      type (coord_struct) :: c0, c1
+      type (param_struct) param
+    end subroutine
+  end interface
+
+  interface
+    subroutine make_mat6_taylor (ele, param, c0, c1)
+      use bmad_struct
+      implicit none
+      type (ele_struct) ele
+      type (coord_struct) :: c0, c1
+      type (param_struct) param
+    end subroutine
+  end interface
+
+  interface
+    subroutine make_mat6_bmad (ele, param, c0, c1)
+      use bmad_struct
+      implicit none
+      type (ele_struct) ele
+      type (coord_struct) :: c0, c1
+      type (param_struct) param
+    end subroutine
+  end interface
+
+  interface
+    subroutine make_mat6_runge_kutta (ele, param, c0, c1)
+      use bmad_struct
+      implicit none
+      type (ele_struct) ele
+      type (coord_struct) :: c0, c1
+      type (param_struct) param
+    end subroutine
+  end interface
+
+  interface
+    subroutine make_mat6_symp_lie (ele, param, c0, c1)
+      use bmad_struct
+      implicit none
+      type (ele_struct) ele
+      type (coord_struct) :: c0, c1
+      type (param_struct) param
+    end subroutine
+  end interface
+
+  interface
+    subroutine make_mat6_tracking (ele, param, c0, c1)
+      use bmad_struct
+      implicit none
+      type (ele_struct) ele
+      type (coord_struct) :: c0, c1
       type (param_struct) param
     end subroutine
   end interface
@@ -675,7 +755,7 @@ module bmad_interface
     subroutine mat_symp_check (mat, error)
       use precision_def
       implicit none
-      real(rdef) mat(:,:)
+      real(rdef), intent(in) :: mat(:,:)
       real(rdef) error
     end subroutine
   end interface
@@ -714,27 +794,18 @@ module bmad_interface
     subroutine multipole_ab_to_kt (an, bn, knl, tn)
       use bmad_struct
       implicit none
-      real(rdef) an(0:n_pole_maxx), bn(0:n_pole_maxx)
-      real(rdef) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
+      real(rdef) an(0:), bn(0:)
+      real(rdef) knl(0:), tn(0:)
     end subroutine
   end interface
 
   interface
-    subroutine multipole_c_init (c, maxx)
+    function c_multi (n, m)
       use precision_def
       implicit none
-      integer maxx
-      real(rdef) c(0:maxx, 0:maxx)
-    end subroutine
-  end interface
-
-  interface
-    subroutine multipole_kt_to_ab (knl, tn, an, bn)
-      use bmad_struct
-      implicit none
-      real(rdef) an(0:n_pole_maxx), bn(0:n_pole_maxx)
-      real(rdef) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
-    end subroutine
+      real(rdef) c_multi
+      integer, intent(in) :: n, m
+    end function
   end interface
 
   interface
@@ -742,18 +813,9 @@ module bmad_interface
       use bmad_struct
       type (ele_struct) ele
       integer particle
-      real(rdef) a(0:n_pole_maxx), b(0:n_pole_maxx)
+      real(rdef) a(0:), b(0:)
       real(rdef) value(n_attrib_maxx)
       logical use_tilt
-    end subroutine
-  end interface
-
-  interface
-    subroutine multipole_ab_to_value (a, b, value)
-      use bmad_struct
-      real(rdef) a(0:n_pole_maxx)
-      real(rdef) b(0:n_pole_maxx)
-      real(rdef) value(n_attrib_maxx)
     end subroutine
   end interface
 
@@ -769,12 +831,21 @@ module bmad_interface
   end interface
 
   interface
+    subroutine multipole_kt_to_ab (knl, tn, an, bn)
+      use bmad_struct
+      implicit none
+      real(rdef) an(0:), bn(0:)
+      real(rdef) knl(0:), tn(0:)
+    end subroutine
+  end interface
+
+  interface
     subroutine multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)
       use bmad_struct
       implicit none
       type (ele_struct) ele
-      real(rdef) knl(0:n_pole_maxx)
-      real(rdef) tilt(0:n_pole_maxx)
+      real(rdef) knl(0:)
+      real(rdef) tilt(0:)
       logical use_ele_tilt
       integer particle
     end subroutine
@@ -785,8 +856,8 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct) ring
-      logical use_ele(*)
-      character*(*) ele_names(*)
+      logical use_ele(:)
+      character*(*) ele_names(:)
     end subroutine
   end interface
 
@@ -892,7 +963,7 @@ module bmad_interface
   interface
     subroutine quad_calib (lattice, k_theory, k_base,  &
                      len_quad, cu_per_k_gev, quad_rot, dk_gev_dcu, cu_theory)
-      use bmad_struct
+      use precision_def
       implicit none
       character lattice*(*)
       real(rdef) k_theory(0:*)
@@ -930,7 +1001,7 @@ module bmad_interface
     subroutine read_digested_bmad_file (in_file_name, ring, version)
       use bmad_struct
       implicit none
-      type (ring_struct) ring
+      type (ring_struct), intent(out) :: ring
       integer version
       character*(*) in_file_name
     end subroutine
@@ -944,30 +1015,6 @@ module bmad_interface
       type (ele_struct) ele1
       type (ele_struct) ele2
     end function
-  end interface
-
-  interface
-    subroutine ring_ele_ele_attribute (ring, i_ele, attrib_name, &
-                             attrib_value, err_flag, make_mat6_flag, orbit_)
-      use bmad_struct
-      implicit none
-      type (ring_struct) :: ring
-      type (coord_struct), optional :: orbit_(0:n_ele_maxx)
-      real(rdef) attrib_value
-      integer i_ele
-      character*(*) attrib_name
-      logical make_mat6_flag
-      logical err_flag
-    end subroutine
-  end interface
-
-  interface
-    subroutine Ring_Beta_Ave(ring, cesr)
-      use bmad_struct
-      implicit none
-      type (ring_struct) ring
-      type (cesr_struct) cesr
-    end subroutine
   end interface
 
   interface
@@ -989,7 +1036,7 @@ module bmad_interface
   end interface
 
   interface
-    subroutine ring_set_ele_attribute (ring, i_ele, attrib_name, &
+    subroutine set_ele_attribute (ring, i_ele, attrib_name, &
                                 attrib_value, err_flag, make_mat6_flag, orbit_)
       use bmad_struct
       implicit none
@@ -1038,12 +1085,35 @@ module bmad_interface
     end subroutine
   end interface
 
+ interface
+    subroutine set_ptc (param, taylor_order, integ_order, &
+                                      num_steps, no_cavity, exact_calc)
+      use bmad_struct
+      implicit none
+      type (param_struct), optional :: param
+      integer, optional :: taylor_order
+      integer, optional :: integ_order
+      integer, optional :: num_steps
+      logical, optional :: no_cavity
+      logical, optional :: exact_calc
+    end subroutine
+  end interface
+
   interface
     subroutine set_symmetry (symmetry, ring)
       use bmad_struct
       implicit none
       type (ring_struct) ring
       integer symmetry
+    end subroutine
+  end interface
+
+  interface
+    subroutine set_taylor_order (order, override_flag)
+      use bmad_struct
+      implicit none
+        integer, intent(in) :: order
+        logical, optional, intent(in) :: override_flag
     end subroutine
   end interface
 
@@ -1071,10 +1141,20 @@ module bmad_interface
   interface
     subroutine sol_quad_mat_calc (ks, kl, length, order, mat627, orb)
       use precision_def
+      implicit none
       real(rdef) ks, kl, length
       integer order
       real(rdef) mat627(6,27)
       real(rdef), optional :: orb(6)
+    end subroutine
+  end interface
+
+  interface
+    subroutine sort_taylor_terms (taylor_in, taylor_sorted)
+      use bmad_struct
+      implicit none
+      type (taylor_struct), intent(in)  :: taylor_in
+      type (taylor_struct) :: taylor_sorted
     end subroutine
   end interface
 
@@ -1086,6 +1166,27 @@ module bmad_interface
       real(rdef) s_split
       integer ix_split
       logical split_done
+    end subroutine
+  end interface
+
+  interface
+    subroutine taylor_to_mat6 (bmad_taylor, c0, mat6, c1)
+      use bmad_struct
+      implicit none
+      type (taylor_struct), target, intent(in) :: bmad_taylor(6)
+      type (coord_struct), intent(in) :: c0
+      type (coord_struct), intent(out) :: c1
+      real(rdef), intent(out) :: mat6(6,6)
+    end subroutine
+  end interface
+
+  interface 
+    subroutine taylor_propagate1 (bmad_taylor, ele, param)
+      use bmad_struct
+      implicit none
+      type (taylor_struct) bmad_taylor(:)
+      type (ele_struct) ele
+      type (param_struct) param
     end subroutine
   end interface
 
@@ -1109,12 +1210,13 @@ module bmad_interface
   end interface
 
   interface
-    subroutine track_bend (start, ele, end, is_lost)
+    subroutine track_bend (start, ele, param, end)
       use bmad_struct
       implicit none
       type (coord_struct) start
       type (coord_struct) end
       type (ele_struct) ele
+      type (param_struct) param
       logical is_lost
     end subroutine
   end interface
@@ -1144,38 +1246,34 @@ module bmad_interface
   end interface
 
   interface
-    subroutine track_runge_kutta (start, end, s_start, s_end, &
-                 rel_eps, abs_eps, del_s_step, del_s_min, func_type, param)
+    subroutine track_taylor (start, bmad_taylor, end)
       use bmad_struct
       implicit none
-      type (coord_struct) start, end
-      type (param_struct), optional :: param
-      real(rdef) s_start, s_end, rel_eps, abs_eps, del_s_step, del_s_min
-      character*(*) func_type
+      type (taylor_struct), intent(in) :: bmad_taylor(6)
+      type (coord_struct), intent(in) :: start
+      type (coord_struct), intent(out) :: end
     end subroutine
   end interface
 
   interface
-    subroutine track_wiggler (start, ele, param, end, is_lost)
+    subroutine transfer_ele_pointers (ele1, ele2)
       use bmad_struct
       implicit none
-      type (coord_struct) start
-      type (coord_struct) end
-      type (param_struct) param
-      type (ele_struct) ele
-      logical is_lost
+      type (ele_struct), intent(in)  :: ele2
+      type (ele_struct), intent(out) :: ele1
     end subroutine
   end interface
 
   interface
-    subroutine transfer_mat_from_tracking (ele, param, orb0, d_orb, error)
+    subroutine transfer_mat_from_tracking (ele, param, start, d_orb, end, error)
       use bmad_struct
       implicit none
       type (ele_struct), intent(inout) :: ele
-      type (param_struct), intent(in) :: param
-      type (coord_struct), intent(in) :: orb0
-      type (coord_struct), intent(in) :: d_orb
-      real(rdef), intent(out) :: error
+      type (param_struct), intent(inout) :: param
+      type (coord_struct), intent(in) :: start
+      type (coord_struct), optional, intent(out) :: end
+      type (coord_struct), optional :: d_orb
+      real(rdef), optional, intent(out) :: error
     end subroutine
   end interface
 
@@ -1193,21 +1291,99 @@ module bmad_interface
     subroutine track1 (start, ele, param, end)
       use bmad_struct
       implicit none
-      type (coord_struct) start
-      type (coord_struct) end
-      type (ele_struct) ele
-      type (param_struct) param
+      type (coord_struct), intent(in) :: start
+      type (coord_struct), intent(out) :: end
+      type (ele_struct), intent(inout) :: ele
+      type (param_struct), intent(inout) :: param
     end subroutine
   end interface
 
   interface
-    subroutine custom_track1 (start, ele, param, end)
+    subroutine track1_runge_kutta (start, ele, param, end)
+      use bmad_struct
+      implicit none
+      type (coord_struct), intent(in) :: start
+      type (coord_struct), intent(out) :: end
+      type (ele_struct), intent(inout) :: ele
+      type (param_struct), intent(inout) :: param
+    end subroutine
+  end interface
+
+  interface
+    subroutine track1_linear (start, ele, param, end)
+      use bmad_struct
+      implicit none
+      type (coord_struct), intent(in) :: start
+      type (coord_struct), intent(out) :: end
+      type (ele_struct), intent(inout) :: ele
+      type (param_struct), intent(inout) :: param
+    end subroutine
+  end interface
+
+  interface
+    subroutine track1_taylor (start, ele, param, end)
+      use bmad_struct
+      implicit none
+      type (coord_struct), intent(in) :: start
+      type (coord_struct), intent(out) :: end
+      type (ele_struct), intent(inout) :: ele
+      type (param_struct), intent(inout) :: param
+    end subroutine
+  end interface
+
+  interface
+    subroutine track1_custom (start, ele, param, end)
+      use bmad_struct
+      implicit none
+      type (coord_struct), intent(in) :: start
+      type (coord_struct), intent(out) :: end
+      type (ele_struct), intent(inout) :: ele
+      type (param_struct), intent(inout) :: param
+    end subroutine
+  end interface
+
+  interface
+    subroutine track1_bmad (start, ele, param, end)
+      use bmad_struct
+      implicit none
+      type (coord_struct), intent(in) :: start
+      type (coord_struct), intent(out) :: end
+      type (ele_struct), intent(inout) :: ele
+      type (param_struct), intent(inout) :: param
+    end subroutine
+  end interface
+
+  interface
+    subroutine track1_symp_lie (start, ele, param, end)
+      use bmad_struct
+      implicit none
+      type (coord_struct), intent(in) :: start
+      type (coord_struct), intent(out) :: end
+      type (ele_struct), intent(inout) :: ele
+      type (param_struct), intent(inout) :: param
+    end subroutine
+  end interface
+
+  interface
+    subroutine track1_symp_map (start, ele, param, end)
+      use bmad_struct
+      implicit none
+      type (coord_struct), intent(in) :: start
+      type (coord_struct), intent(out) :: end
+      type (ele_struct), intent(inout) :: ele
+      type (param_struct), intent(inout) :: param
+    end subroutine
+  end interface
+
+  interface
+    subroutine track1_wiedemann_wiggler (start, ele, param, end)
       use bmad_struct
       implicit none
       type (coord_struct) start
       type (coord_struct) end
-      type (ele_struct) ele
       type (param_struct) param
+      type (ele_struct) ele
+      logical is_lost
     end subroutine
   end interface
 
@@ -1327,15 +1503,15 @@ module bmad_interface
   end interface
 
   interface
-    subroutine type_ele (ele, type_zero_attrib, type_mat6, type_twiss,  &
-                                                           type_control, ring)
+    subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
+                                      twiss_type, type_control, ring)
       use bmad_struct
       implicit none
       type (ele_struct) ele
       type (ring_struct), optional :: ring
       integer type_mat6
-      logical type_twiss
-      logical type_control
+      integer twiss_type
+      logical type_control, type_taylor
       logical type_zero_attrib
     end subroutine
   end interface
@@ -1350,17 +1526,36 @@ module bmad_interface
   end interface
  
   interface
-    subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_twiss,  &
-                                          type_control, lines, n_lines, ring)
+    subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
+                            twiss_type, type_control, lines, n_lines, ring)
       use bmad_struct
       implicit none
-      type (ele_struct) ele
-      type (ring_struct), optional :: ring
-      integer type_mat6, n_lines
-      integer type_twiss
-      logical type_control
-      logical type_zero_attrib
-      character*(*) lines(:)
+      type (ele_struct), intent(in) :: ele
+      type (ring_struct), optional, intent(in) :: ring
+      integer, intent(in) :: type_mat6
+      integer, intent(out) :: n_lines
+      integer, intent(in) :: twiss_type
+      logical, intent(in) :: type_control, type_taylor
+      logical, intent(in) :: type_zero_attrib
+      character*80, pointer :: lines(:)
+    end subroutine
+  end interface
+
+  interface
+    subroutine type_taylors (bmad_taylor)
+      use bmad_struct
+      implicit none
+      type (taylor_struct) bmad_taylor(:)
+    end subroutine
+  end interface
+
+  interface
+    subroutine type2_taylors (bmad_taylor, lines, n_lines)
+      use bmad_struct
+      implicit none
+      type (taylor_struct), intent(in) :: bmad_taylor(6)
+      integer, intent(out) :: n_lines
+      character*80, pointer :: lines(:)
     end subroutine
   end interface
 
@@ -1380,7 +1575,7 @@ module bmad_interface
                                                       n_files, file_names)
       use bmad_struct
       implicit none
-      type (ring_struct) ring
+      type (ring_struct), intent(in) :: ring
       integer n_files
       character*(*) digested_name
       character*(*) file_names(*)

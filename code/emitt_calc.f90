@@ -4,16 +4,14 @@
 ! Subroutine to calculate the emittance, energy spread, and synchrotron
 ! integrals. This subroutine assumes that bends are in the horizontal plane.
 !
-! Known BUG: For a combined function bend magnet if 1/rho**2 + k1 < 0 then
-! the program will ignore the element.
-!
 ! For a better, more complete calculation see the subroutine: 
 !               RADIATION_INTEGRALS
 ! The only possible saving grace of this subroutine is that it is faster
 ! than RADIATION_INTEGRALS.
 !
 ! Modules Needed:
-!   use bmad
+!   use bmad_struct
+!   use bmad_interface
 !
 ! Input:
 !     RING -- Ring_struct: Ring to use
@@ -40,39 +38,27 @@
 !     2) The calculation assumes that the Twiss parameters have been calculated.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.3  2002/02/23 20:32:15  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:51  rwh24
-!UNIX compatibility updates
-!
-
-#include "CESR_platform.inc"
-
-
 
 subroutine emitt_calc (ring, what, mode)
 
-  use bmad
+  use bmad_struct
   implicit none
 
   type (ring_struct)  ring
   type (modes_struct)  mode
   type (ele_struct)  ele0, ele
 
-  real(rdef) c_gam / 4.425e-5 /, c_q / 3.84e-13 /
-  real(rdef) energy_loss, k2, k3, k4, k5
-  real(rdef) i1, i2, i3, i4a, i4b, i4z, i5a, i5b, gamma2_factor
-  real(rdef) rho, e1, e2, k, sin_kl, cos_kl, tan_e1, tan_e2
-  real(rdef) c11, c12, c21, c22, kl, ll, gamma_c, k1, g3_ave, energy
-  real(rdef) eta_x0, etap_x0, eta_a0, etap_a0, eta_b0, etap_b0
-  real(rdef) i4a_bend, i4z_bend, end_4a, end_4
-  real(rdef) gamma_a0, beta_a0, alpha_a0, gamma_b0, beta_b0, alpha_b0
-  real(rdef) eta_x_int, eta_x20(2), t1, t2, t3, G_max
-  real(rdef) eta_ax0, etap_ax0, m1, m2, n1, n2, beta_eff, alpha_eff, gamma_eff
-  real(rdef) arg, m65
+  real c_gam / 4.425e-5 /, c_q / 3.84e-13 /
+  real energy_loss, k_1, k_2, k_3, k_4, k_5
+  real i1, i2, i3, i4a, i4b, i4z, i5a, i5b, gamma2_factor
+  real g, e1, e2, sin_kl, cos_kl, tan_e1, tan_e2
+  real c11, c12, c21, c22, kl, ll, gamma_c, k1, g3_ave, energy
+  real eta_x0, etap_x0, eta_a0, etap_a0, eta_b0, etap_b0
+  real i4a_bend, i4z_bend, end_4a, end_4
+  real gamma_a0, beta_a0, alpha_a0, gamma_b0, beta_b0, alpha_b0
+  real eta_x_int, eta_x20(2), t1, t2, t3, G_max
+  real eta_ax0, etap_ax0, m1, m2, n1, n2, beta_eff, alpha_eff, gamma_eff
+  real arg, m65
 
   integer ir, what
 
@@ -118,31 +104,32 @@ subroutine emitt_calc (ring, what, mode)
 
       ele  = ring%ele_(ir)
 
-      rho = ele%value(rho$)
+      g = ele%value(g$)
       ll = ele%value(l$)
       k1 = ele%value(k1$)
       e1 = ele%value(e1$)
       e2 = ele%value(e2$)
 
-      k2 = 1/rho**2 + k1
-      if (k2 > 0) then
-        k = sqrt(k2)
-        k3 = k2*k
-        k4 = k3*k
-        k5 = k4*k
+      k_2 = g**2 + k1
+
+      if (k_2 > 0) then
+        k_1 = sqrt(k_2)
+        k_3 = k_2 * k_1
+        k_4 = k_3 * k_1
+        k_5 = k_4 * k_1
+        kl = k_1 * ll
+        sin_kl = sin(kl)
+        cos_kl = cos(kl)
       else
-        if (do_type_err_message) then
-          type *, 'ERROR IN EMITT_CALC: K1 IN BEND TOO NEGATIVE FOR BEND AND I'
-          type *, '      HAVE NOT BEEN PROGRAMMED TO HANDLE THIS CASE!'
-          do_type_err_message = .false.   ! only do this once
-        endif
-        cycle
+        k_1 = sqrt(-k_2)   ! +
+        k_3 = k_2 * k_1    ! -
+        k_4 = k_2 * k_2    ! +
+        k_5 = k_4 * k_1    ! +
+        kl = k_1 * ll
+        sin_kl = sinh(kl)
+        cos_kl = cosh(kl)      
       endif
 
-      kl = ll / rho
-
-      sin_kl = sin(kl)
-      cos_kl = cos(kl)
 
 ! if there is edge focusing then use parameters just past the edge focusing
 
@@ -152,9 +139,8 @@ subroutine emitt_calc (ring, what, mode)
       else
         tan_e1 = tan(e1)
         call mat_unit (ele0%mat6, 6, 6)
-        ele0%mat6(2,1) =  tan_e1 / rho
-        ele0%mat6(4,3) = -tan_e1 / rho
-        ele0%coupled = .false.
+        ele0%mat6(2,1) =  tan_e1 * g
+        ele0%mat6(4,3) = -tan_e1 * g
         call twiss_propagate1 (ring%ele_(ir-1), ele0)
       endif
 
@@ -193,28 +179,28 @@ subroutine emitt_calc (ring, what, mode)
 
 ! i1 calc
 
-      eta_x_int = eta_x0 * sin_kl / k + etap_x0 * (1 - cos_kl) / k2 +  &
-                                            (kl - sin_kl) / (rho * k3)
-      i1 = i1 + eta_x_int / rho
+      eta_x_int = eta_x0 * sin_kl / k_1 + etap_x0 * (1 - cos_kl) / k_2 +  &
+                                            (kl - sin_kl) * g / k_3
+      i1 = i1 + eta_x_int * g
 
 ! i2 calc
 
-      i2 = i2 + ll / rho**2
+      i2 = i2 + ll * g**2
 
 ! i3 calc
 
-      i3 = i3 + ll / abs(rho**3)
+      i3 = i3 + ll * abs(g**3)
 
 ! i4a, i4b, i4z calcs
 
-      t1 = eta_ax0 * sin_kl / k + etap_ax0 * (1 - cos_kl) / k2
-      t2 = gamma_c**2 * (kl - sin_kl) / (rho * k3)
+      t1 = eta_ax0 * sin_kl / k_1 + etap_ax0 * (1 - cos_kl) / k_2
+      t2 = gamma_c**2 * (kl - sin_kl) * g / k_3
       
-      end_4  = (eta_x0 * tan_e1 + ele%x%mobius_eta * tan_e2) / rho**2
-      end_4a = (eta_ax0 * tan_e1 + gamma_c * ele%x%eta * tan_e2) / rho**2
+      end_4  = (eta_x0 * tan_e1 + ele%x%mobius_eta * tan_e2) * g**2
+      end_4a = (eta_ax0 * tan_e1 + gamma_c * ele%x%eta * tan_e2) * g**2
 
-      i4a_bend = (t1 + t2) / rho**3 - end_4a
-      i4z_bend = eta_x_int / rho**3 - end_4
+      i4a_bend = (t1 + t2) * g**3 - end_4a
+      i4z_bend = eta_x_int * g**3 - end_4
 
       i4a = i4a + i4a_bend
       i4b = i4b + i4z_bend - i4a_bend
@@ -224,20 +210,20 @@ subroutine emitt_calc (ring, what, mode)
 
       t1 = gamma_a0*eta_a0**2 + 2*alpha_a0*eta_a0*etap_a0 +  &
                                                     beta_a0*etap_a0**2
-      t2 = (gamma_a0*eta_a0 + alpha_a0*etap_a0) * (sin_kl - kl) / k3 +  &
-                 (alpha_a0*eta_a0 + beta_a0*etap_a0) * (1 - cos_kl) / k2
-      t3 = gamma_a0 * (3*kl - 4*sin_kl + sin_kl*cos_kl) / (2*k5) -  &
-                 alpha_a0 * (1 - cos_kl)**2 / k4 +  &
-                 beta_a0 * (kl - cos_kl*sin_kl) / (2*k3)
+      t2 = (gamma_a0*eta_a0 + alpha_a0*etap_a0) * (sin_kl - kl) / k_3 +  &
+                 (alpha_a0*eta_a0 + beta_a0*etap_a0) * (1 - cos_kl) / k_2
+      t3 = gamma_a0 * (3*kl - 4*sin_kl + sin_kl*cos_kl) / (2*k_5) -  &
+                 alpha_a0 * (1 - cos_kl)**2 / k_4 +  &
+                 beta_a0 * (kl - cos_kl*sin_kl) / (2*k_3)
 
 
-      i5a = i5a + (ll*t1 + 2*gamma_c*t2/rho +  &
-                                   t3*(gamma_c/rho)**2) / abs(rho**3)
+      i5a = i5a + (ll*t1 + 2*gamma_c * t2 * g +  &
+                                   t3*(gamma_c*g)**2) * abs(g**3)
 
 ! i5b calc
 
       i5b = i5b + ll * (gamma_b0*eta_b0**2 + 2*alpha_b0*eta_b0*etap_b0 +  &
-                                  beta_b0*etap_b0**2) / abs(rho**3)
+                                  beta_b0*etap_b0**2) * abs(g**3)
 
       m1 = gamma_b0 * eta_b0 + alpha_b0 * etap_b0
       m2 = alpha_b0 * eta_b0 + beta_b0  * etap_b0
@@ -245,10 +231,10 @@ subroutine emitt_calc (ring, what, mode)
       n1 =  m1 * c22 - m2 * c21
       n2 = -m1 * c12 + m2 * c11
 
-      eta_x20(1) = (sin_kl - kl) / (rho * k3)
-      eta_x20(2) = (1 - cos_kl) / (rho * k2)
+      eta_x20(1) = (sin_kl - kl) * g / k_3
+      eta_x20(2) = (1 - cos_kl) * g / k_2
 
-      i5b = i5b + 2 * (n1 * eta_x20(1) + n2 * eta_x20(2)) / abs(rho**3)
+      i5b = i5b + 2 * (n1 * eta_x20(1) + n2 * eta_x20(2)) * abs(g**3)
 
       beta_eff  = c11**2 * beta_b0 - 2*c11*c12 * alpha_b0 +  &
                                                          c12**2 * gamma_b0
@@ -258,9 +244,9 @@ subroutine emitt_calc (ring, what, mode)
                                                          c22**2 * gamma_b0
 
       i5b = i5b +  &
-             (gamma_eff * (3*kl - 4*sin_kl + sin_kl*cos_kl) / (2*k5) -  &
-              alpha_eff * (1 - cos_kl)**3 / k4 +  &
-              beta_eff * (kl - cos_kl*sin_kl) / (2*k3)) / abs(rho**5)
+             (gamma_eff * (3*kl - 4*sin_kl + sin_kl*cos_kl) / (2*k_5) -  &
+              alpha_eff * (1 - cos_kl)**3 / k_4 +  &
+              beta_eff * (kl - cos_kl*sin_kl) / (2*k_3)) * abs(g**5)
 
 
 !---------------------------------------------------------------------
@@ -272,7 +258,7 @@ subroutine emitt_calc (ring, what, mode)
       ele0 = ring%ele_(ir-1)
       k1 = ele%value(k1$)
 
-      G_max = sqrt(2*abs(k1))       ! 1/rho at max B
+      G_max = sqrt(2*abs(k1))       ! g at max B
       ll = ele%value(l$)
 
 

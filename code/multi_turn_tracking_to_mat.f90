@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/06/13 14:54:26  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.3  2002/02/23 20:32:20  dcs
 !Double/Single Real toggle added
 !
@@ -35,7 +38,7 @@
 
 subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, track0, chi)
 
-  use local_bmad_struct
+  use bmad
   use nr
 
   implicit none
@@ -125,7 +128,7 @@ end subroutine
 
 function multi_turn_func (x, n)
 
-  use local_bmad_struct
+  use bmad
 
   implicit none                      
 

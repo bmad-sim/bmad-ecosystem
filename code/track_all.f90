@@ -25,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/06/13 14:54:29  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.3  2002/02/23 20:32:26  dcs
 !Double/Single Real toggle added
 !
@@ -54,11 +57,7 @@ subroutine track_all (ring, orbit_)
 
   do n = 1, ring%n_ele_use
 
-    if (ring%ele_(n)%key == coil$) then
-      call coil_track (orbit_(n-1), n, ring, orbit_(n))
-    else
-      call track1 (orbit_(n-1), ring%ele_(n), ring%param, orbit_(n))
-    endif
+    call track1 (orbit_(n-1), ring%ele_(n), ring%param, orbit_(n))
 
 ! check for lost particles
 

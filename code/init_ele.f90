@@ -13,6 +13,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/06/13 14:54:26  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.4  2002/02/23 20:32:16  dcs
 !Double/Single Real toggle added
 !
@@ -39,8 +42,13 @@ subroutine init_ele (ele)
   ele%alias = ' '
   ele%name = '****'
 
+  ele%key = 0
+  ele%sub_key = 0
+
   ele%value(:) = 0
 
+
+  ele%control_type = free$
   ele%ix_value = 0
   ele%ic1_lord = 0
   ele%ic2_lord = -1
@@ -48,14 +56,20 @@ subroutine init_ele (ele)
   ele%ix1_slave = 0
   ele%ix2_slave = -1
   ele%n_slave = 0
-  ele%control_type = free$
   ele%ix_pointer = 0
   ele%s = 0
-  ele%is_on = .true.
-  ele%multipoles_on = .true.
-  ele%nonzero_multipoles = .false.
+
   ele%mat6_calc_method = bmad_standard$
   ele%tracking_method = bmad_standard$
-  ele%num_steps = 0
+  ele%num_steps = 1
+  ele%integration_order = 2
+  ele%ptc_kind = 0
+
+  ele%is_on = .true.
+  ele%multipoles_on = .true.
+  ele%symplectify = .false.
+  ele%exact_rad_int_calc = .false.
+
+  call deallocate_ele_pointers (ele)
 
 end subroutine

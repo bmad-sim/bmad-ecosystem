@@ -1,5 +1,5 @@
 !+
-! Subroutine track_bend (start, ele, end, is_lost)
+! Subroutine track_bend (start, ele, param, end)
 !
 ! Particle tracking through a bend element.
 ! This Subroutine does NOT take into account element offsets, pitches or tilts.
@@ -20,6 +20,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/06/13 14:54:29  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.4  2002/02/23 20:32:26  dcs
 !Double/Single Real toggle added
 !
@@ -32,33 +35,43 @@
 
 #include "CESR_platform.inc"
 
-subroutine track_bend (start, ele, end, is_lost)
+subroutine track_bend (start, ele, param, end)
 
   use bmad
   implicit none
 
   type (coord_struct)  start, end
   type (ele_struct)  ele
+  type (param_struct) param
                     
-  real*8 r0, r, theta0, del, x1, xp1, zp, x_center, y_center
+  real*8 g0, g, r, r0, theta0, del, x1, xp1, zp, x_center, y_center
   real*8 cos0, sin0, xc, ys, b, c, x2, x, y, theta, s_travel
   real*8 cos1, sin1, radix
 
-  logical is_lost
-
 ! some init
 
-  r0 = ele%value(rho_design$) 
-  r =  ele%value(rho$) * (1 + start%z%vel) 
-  theta0 = ele%value(angle$)
-
-! track through the entrence face. Treat as thin lens.
+  g0 = ele%value(g_design$) 
+  g =  ele%value(g$) / (1 + start%z%vel)
 
   end = start
 
-  del = tan(ele%value(e1$)) / r
+  if (g == 0) then
+    call offset_particle (ele, param, end, set$)
+    end%vec(1) = end%vec(1) + ele%value(l$) * end%vec(2)
+    end%vec(3) = end%vec(3) + ele%value(l$) * end%vec(4)
+    call offset_particle (ele, param, end, unset$)
+  endif
+
+  r0 = 1/ g0
+  r = 1/ g
+ 
+  theta0 = ele%value(l$) * g0
+
+! track through the entrence face. Treat as thin lens.
+
+  del = tan(ele%value(e1$)) * g
   end%x%vel = end%x%vel + del * end%x%pos
-  end%y%vel = end%y%vel - (del+ end%x%vel/r) * end%y%pos
+  end%y%vel = end%y%vel - (del+ end%x%vel*g) * end%y%pos
 
 ! Track through main body...
 ! We use a local coordinate system (x, y) aligned with
@@ -88,13 +101,13 @@ subroutine track_bend (start, ele, end, is_lost)
   if (radix < 0) then
     type *, 'ERROR IN TRACK_BEND: TRAJECTORY DOES NOT INTERSECT FACE.'
     type *, '      [THAT IS, THE PARTICLE AMPLITUDE IS TOO LARGE.]'
-    is_lost = .true.
+    param%lost = .true.
     return
   else
-    is_lost = .false.
+    param%lost = .false.
   endif
 
-  x2 = (-b + sqrt(radix)) / 2
+  x2 = (-b + sign(sqrt(radix), r0)) / 2 
 
   x = (r0 + x2) * cos0 - x_center
   y = (r0 + x2) * sin0 - y_center

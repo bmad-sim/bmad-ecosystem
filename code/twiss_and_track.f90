@@ -1,7 +1,7 @@
 !+
 ! SUBROUTINE TWISS_AND_TRACK (ring, orb)
 !
-! Subroutine to calculate the twiss and orbit parameters.
+! Subroutine to calculate the twiss and orbit parameters in a closed ring.
 ! This is not necessarily the fastest routine.
 !
 ! Modules Needed:
@@ -18,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/06/13 14:54:30  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.3  2002/02/23 20:32:27  dcs
 !Double/Single Real toggle added
 !

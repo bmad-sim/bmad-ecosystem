@@ -25,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/06/13 14:54:22  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.4  2002/02/23 20:32:11  dcs
 !Double/Single Real toggle added
 !
@@ -39,12 +42,11 @@
 
 subroutine bmad_parser2 (in_file, ring, orbit_)
 
-  use local_bmad_struct
-  use local_bmad_interface
+  use bmad_parser_mod
 
   implicit none
     
-  type (ring_struct), target :: ring, temp
+  type (ring_struct), target :: ring, r_temp
   type (ele_struct)  beam_ele, ele
   type (coord_struct), optional :: orbit_(0:n_ele_maxx)
   type (parser_ring_struct) pring
@@ -244,8 +246,8 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
       endif
 
       var_(ivar)%name = word_1
-
-      call evaluate_value (var_(ivar), ring, delim, delim_found, err_flag)
+      call evaluate_value (var_(ivar)%name, var_(ivar)%value, &
+                                    ring, delim, delim_found, err_flag)
       if (delim /= ' ' .and. .not. err_flag) call warning  &
             ('EXTRA CHARACTERS ON RHS: ' // pcom%parse_line,  &
              'FOR VARIABLE: ' // var_(ivar)%name)
@@ -390,16 +392,16 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
 ! Transfer the new elements to a safe_place
 
   ele_num = n_max - n_max_old
-  temp%ele_(1:ele_num) = ring%ele_(n_max_old+1:n_max)
+  r_temp%ele_(1:ele_num) = ring%ele_(n_max_old+1:n_max)
   n_max = n_max_old
 
 ! Put in the new elements...
 ! First put in superimpose elements
 
   do i = 1, ele_num
-    if (temp%ele_(i)%control_type == super_lord$) then
-      ixx = temp%ele_(i)%ixx
-      call add_all_superimpose (ring, temp%ele_(i), pring%ele(ixx))
+    if (r_temp%ele_(i)%control_type == super_lord$) then
+      ixx = r_temp%ele_(i)%ixx
+      call add_all_superimpose (ring, r_temp%ele_(i), pring%ele(ixx))
     endif
   enddo
 
@@ -407,10 +409,10 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
 
   do ixe = 1, ele_num
 
-    if (temp%ele_(ixe)%control_type == super_lord$) cycle
+    if (r_temp%ele_(ixe)%control_type == super_lord$) cycle
 
-    ic = temp%ele_(ixe)%ixx
-    jmax = temp%ele_(ixe)%n_slave
+    ic = r_temp%ele_(ixe)%ixx
+    jmax = r_temp%ele_(ixe)%n_slave
 
     do j = 1, jmax
 
@@ -420,16 +422,17 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
                  
         name1 = ring%ele_(k)%name
         name2 = null_name
-        ick = index(name1, '\')
+        ick = index(name1, '\')              !'
         if (ick /= 0) name2 = name1(:ick-1)
 
         if (pring%ele(ic)%name_(j) == name1 .or.  &
                 pring%ele(ic)%name_(j) == name2 .and.  &
                 (ring%ele_(k)%control_type /= super_slave$)) then
 
-          if (match_found)  &
-             call warning ('MULTIPLE CONTROL MATCHES FOUND FOR: ' //  &
-             temp%ele_(ixe)%name, 'MATCHING STRING: ' // pring%ele(ic)%name_(j))
+          if (match_found) &
+              call warning ('MULTIPLE CONTROL MATCHES FOUND FOR: '  &
+              //  r_temp%ele_(ixe)%name, &
+              'MATCHING STRING: ' // pring%ele(ic)%name_(j))
 
           match_found = .true.
           pring%ele(ic)%cs_(j)%ix_slave = k
@@ -439,9 +442,9 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
           if (a_name /= blank) then
             pring%ele(ic)%cs_(j)%ix_attrib = ix
             if (ix < 1) call warning ('BAD ATTRIBUTE NAME: ' // a_name,  &
-                     'FOR OVERLAY/GROUP ELEMENT: ' // temp%ele_(ixe)%name)
+                     'FOR OVERLAY/GROUP ELEMENT: ' // r_temp%ele_(ixe)%name)
           else
-            pring%ele(ic)%cs_(j)%ix_attrib = temp%ele_(ixe)%ix_value
+            pring%ele(ic)%cs_(j)%ix_attrib = r_temp%ele_(ixe)%ix_value
           endif
 
         endif ! pring%ele(ic).name(j) == name1 or name2
@@ -450,7 +453,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
 
       if (.not. match_found)  &
              call warning ('NO SLAVE ELEMENT FOUND FOR: ' //  &
-             temp%ele_(ixe)%name, 'FAILED TO FIND: ' // pring%ele(ic)%name_(j))
+             r_temp%ele_(ixe)%name, 'FAILED TO FIND: ' // pring%ele(ic)%name_(j))
 
     enddo   ! j = 1, jmax
 
@@ -460,7 +463,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
 ! Transfer control information from PRING%ELE array to RING.CONTROL_ array.
 
   do i = 1, ele_num
-    ele = temp%ele_(i)
+    ele = r_temp%ele_(i)
     if (ele%control_type == overlay_lord$) then
       call new_control (ring, ix_lord)
       ring%ele_(ix_lord) = ele
@@ -479,7 +482,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
 ! Note that CREATE_GROUP needs RING.PARAM.TOTAL_LENGTH
 
   do i = 1, ele_num
-    ele = temp%ele_(i)
+    ele = r_temp%ele_(i)
     if (ele%control_type == group_lord$ .and. ic > 0) then
       call new_control (ring, ix_lord)
       ring%ele_(ix_lord) = ele
@@ -504,7 +507,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
     do i = 1, ring%n_ele_ring
       type *, '-------------'
       type *, 'Ele #', i
-      call type_ele (ring%ele_(i), .false., 0, .false., .true., ring)
+      call type_ele (ring%ele_(i), .false., 0, .false., 0, .true., ring)
     enddo
 
     type *
@@ -513,7 +516,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
     do i = ring%n_ele_ring+1, ring%n_ele_max
       type *, '-------------'
       type *, 'Ele #', i
-      call type_ele (ring%ele_(i), .false., 0, .false., .true., ring)
+      call type_ele (ring%ele_(i), .false., 0, .false., 0, .true., ring)
     enddo
 
 

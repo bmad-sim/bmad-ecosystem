@@ -31,6 +31,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/06/13 14:54:28  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.3  2002/02/23 20:32:22  dcs
 !Double/Single Real toggle added
 !
@@ -50,178 +53,202 @@ subroutine radiation_integrals (ring, orb_, mode)
   implicit none
 
   type (ring_struct), target :: ring
-  type (coord_struct), target :: orb_(0:*)
+  type (coord_struct), target :: orb_(0:*), start, end
   type (modes_struct) mode
 
   real(rdef), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
-  real(rdef) i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
-  real(rdef) theta, energy, gamma2_factor, energy_loss, arg
+  real(rdef), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
+  real(rdef) theta, energy, gamma2_factor, energy_loss, arg, ll
+  real(rdef) v(4,4), v_inv(4,4)
 
-  integer ir, key
-
-!----------------------------------------------------------------------
-
-  interface
-    function eval_i1 (s_vec)
-      use precision_def
-      use nrtype
-      real(rdef), intent(in) :: s_vec(:)
-      real(rdef), dimension(size(s_vec)) :: eval_i1
-    end function
-  end interface
-
-  interface
-    function eval_i4a (s_vec)
-      use precision_def
-      use nrtype
-      real(rdef), intent(in) :: s_vec(:)
-      real(rdef), dimension(size(s_vec)) :: eval_i4a
-    end function
-  end interface
-
-  interface
-    function eval_i4b (s_vec)
-      use precision_def
-      real(rdef), intent(in) :: s_vec(:)
-      real(rdef), dimension(size(s_vec)) :: eval_i4b
-    end function
-  end interface
-
-  interface
-    function eval_i5a (s_vec)
-      use precision_def
-      real(rdef), intent(in) :: s_vec(:)
-      real(rdef), dimension(size(s_vec)) :: eval_i5a
-    end function
-  end interface
-
-  interface
-    function eval_i5b (s_vec)
-      use precision_def
-      real(rdef), intent(in) :: s_vec(:)
-      real(rdef), dimension(size(s_vec)) :: eval_i5b
-    end function
-  end interface
+  integer i, ix, ir, key
 
 !---------------------------------------------------------------------
 ! init
 
   m65 = 0
 
-  rad_com%i1_ = 0;  rad_com%i2_ = 0;  rad_com%i3_ = 0
-  rad_com%i4a_ = 0;  rad_com%i4b_ = 0
-  rad_com%i5a_ = 0;  rad_com%i5b_ = 0
+  ric%i1_ = 0;   ric%i2_ = 0;  ric%i3_ = 0
+  ric%i4a_ = 0;  ric%i4b_ = 0
+  ric%i5a_ = 0;  ric%i5b_ = 0
 
 !---------------------------------------------------------------------
 ! loop over all elements
 
-  pring => ring
+  ric%ring => ring
 
   do ir = 1, ring%n_ele_use     
 
-    ele => ring%ele_(ir)         
-    orb1 => orb_(ir)
+    ric%ele => ring%ele_(ir)         
+    ric%orb1 => orb_(ir)
 
-    if (.not. ele%is_on) cycle
+    if (.not. ric%ele%is_on) cycle
 
-    ele0 => ring%ele_(ir-1)
-    orb0 => orb_(ir-1)
+    ric%ele0 => ring%ele_(ir-1)
+    ric%orb0 => orb_(ir-1)
 
-    rad_com%ll = ele%value(l$) 
-    if (rad_com%ll == 0) cycle
+    ll = ric%ele%value(l$) 
+    if (ll == 0) cycle
 
-    key = ele%key
+    key = ric%ele%key
 
-    rad_com%g_x0 = -ele%value(hkick$) / rad_com%ll
-    rad_com%g_y0 = -ele%value(vkick$) / rad_com%ll
+    ric%g_x0 = -ric%ele%value(hkick$) / ll
+    ric%g_y0 = -ric%ele%value(vkick$) / ll
 
-    if (key == rfcavity$) m65 = m65 + ele%mat6(6,5) 
+    if (key == rfcavity$) m65 = m65 + ric%ele%mat6(6,5) 
 
-! for a wiggler we make the approximation that the variation of G is
-! fast compaired to the variation in eta.
+! custom
 
-    if (key == wiggler$) then
-      G_max = sqrt(2*abs(ele%value(k1$)))       ! 1/rho at max B
-      rad_com%i2_(ir) = rad_com%ll * G_max**2 / 2
-      g3_ave = 4 * G_max**3 / (3 * pi)
-      rad_com%i3_(ir) = rad_com%ll * g3_ave
-      rad_com%g_x0 = g3_ave**(1.0/3)
-      rad_com%g_y0 = 0
-      rad_com%k1 = 0
-      rad_com%s1 = 0
-      rad_com%i5a_(ir) = qromb_rad_int (eval_i5a, 0.0_rdef, rad_com%ll, i5a)
-      rad_com%i5b_(ir) = qromb_rad_int (eval_i5b, 0.0_rdef, rad_com%ll, i5b)
-      cycle
-    endif
-    
     if (key == custom$) then
       call custom_radiation_integrals (ring, ir, orb_)
       cycle
     endif
 
-    if (rad_com%g_x0 == 0 .and. rad_com%g_y0 == 0 .and. &
+! exact calculation involves runge_kutta tracking.
+
+    if (ric%ele%exact_rad_int_calc) then
+
+      ric%d_orb%vec = (/ 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-5 /)
+
+      rk_com%n_pts = 0
+      call track1_runge_kutta (ric%orb0, ric%ele, ric%ring%param, ric%orb1)
+      call transfer_rk_track (rk_com, ric%rk_track(0))
+
+      do i = 1, 6
+        start = ric%orb0
+        start%vec(i) = start%vec(i) + ric%d_orb%vec(i)
+        call track1_runge_kutta (start, ric%ele, ric%ring%param, end)
+        call transfer_rk_track (rk_com, ric%rk_track(i))
+      enddo
+
+      ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rdef, ll, i1)
+      ric%i2_(ir)  =   qromb_rad_int (eval_i2,  0.0_rdef, ll, i2)
+      ric%i3_(ir)  =   qromb_rad_int (eval_i3,  0.0_rdef, ll, i3)
+      ric%i4a_(ir) = ric%i4a_(ir) + &
+                         qromb_rad_int (eval_i4a, 0.0_rdef, ll, i4a)
+      ric%i4b_(ir) = ric%i4b_(ir) + &
+                         qromb_rad_int (eval_i4b, 0.0_rdef, ll, i4b)
+      ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a)
+      ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b)
+
+      cycle
+
+    endif
+
+! for an old style wiggler we make the approximation that the variation of G is
+! fast compaired to the variation in eta.
+
+    if (key == wiggler$ .and. ric%ele%sub_key == periodic_type$) then
+      G_max = sqrt(2*abs(ric%ele%value(k1$)))       ! 1/rho at max B
+      ric%i2_(ir) = ll * G_max**2 / 2
+      g3_ave = 4 * G_max**3 / (3 * pi)
+      ric%i3_(ir) = ll * g3_ave
+      ric%g_x0 = g3_ave**(1.0/3)
+      ric%g_y0 = 0
+      ric%k1 = 0
+      ric%s1 = 0
+      ric%i5a_(ir) = qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a)
+      ric%i5b_(ir) = qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b)
+      cycle
+    endif
+   
+
+    if (key == wiggler$ .and. ric%ele%sub_key == map_type$) then
+
+!      call track1_runge_kutta (ric%orb0, ric%ele, ric%ring%param, end)
+!      call transfer_rk_track (rk_com, ric%rk_track(0))
+
+      call make_v_mats (ric%ele0, v, v_inv)
+      ric%eta_a0 = &      
+          matmul(v, (/ ric%ele0%x%eta, ric%ele0%x%etap, 0.0_rdef, 0.0_rdef /))
+      ric%eta_b0 = &
+          matmul(v, (/ 0.0_rdef, 0.0_rdef, ric%ele0%y%eta, ric%ele0%y%etap /))
+
+      call make_v_mats (ric%ele, v, v_inv)
+      ric%eta_a1 = &      
+          matmul(v, (/ ric%ele%x%eta, ric%ele%x%etap, 0.0_rdef, 0.0_rdef /))
+      ric%eta_b1 = &
+          matmul(v, (/ 0.0_rdef, 0.0_rdef, ric%ele%y%eta, ric%ele%y%etap /))
+
+      ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rdef, ll, i1)
+      ric%i2_(ir)  =   qromb_rad_int (eval_i2,  0.0_rdef, ll, i2)
+      ric%i3_(ir)  =   qromb_rad_int (eval_i3,  0.0_rdef, ll, i3)
+      ric%i4a_(ir) = ric%i4a_(ir) + &
+                         qromb_rad_int (eval_i4a, 0.0_rdef, ll, i4a)
+      ric%i4b_(ir) = ric%i4b_(ir) + &
+                         qromb_rad_int (eval_i4b, 0.0_rdef, ll, i4b)
+      ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a)
+      ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b)
+
+      cycle
+
+    endif
+
+!
+ 
+    if (ric%g_x0 == 0 .and. ric%g_y0 == 0 .and. &
           key /= quadrupole$ .and. key /= sol_quad$ .and. key /= sbend$) cycle
 
     if (key == sbend$) then
-      theta = ele%value(tilt$) + ele%value(roll$)
-      rad_com%g_x0 = rad_com%g_x0 + cos(theta) / ele%value(rho$) 
-      rad_com%g_y0 = rad_com%g_y0 - sin(theta) / ele%value(rho$) 
+      theta = ric%ele%value(tilt$) + ric%ele%value(roll$)
+      ric%g_x0 = ric%g_x0 + cos(theta) * ric%ele%value(g$) 
+      ric%g_y0 = ric%g_y0 - sin(theta) * ric%ele%value(g$) 
     endif
 
-    rad_com%g2 = rad_com%g_x0**2 + rad_com%g_y0**2
-    rad_com%g = sqrt(rad_com%g2)
+    ric%g2 = ric%g_x0**2 + ric%g_y0**2
+    ric%g = sqrt(ric%g2)
 
-    rad_com%i2_(ir)  = rad_com%g2 * rad_com%ll
-    rad_com%i3_(ir)  = rad_com%g2 * rad_com%g * rad_com%ll
+    ric%i2_(ir)  = ric%g2 * ll
+    ric%i3_(ir)  = ric%g2 * ric%g * ll
 
     if (key == quadrupole$ .or. key == sol_quad$) then
-      theta = ele%value(tilt$)
-      rad_com%k1 = ele%value(k1$) * cos(2*theta)
-      rad_com%s1 = ele%value(k1$) * sin(2*theta)
+      theta = ric%ele%value(tilt$)
+      ric%k1 = ric%ele%value(k1$) * cos(2*theta)
+      ric%s1 = ric%ele%value(k1$) * sin(2*theta)
     elseif (key == sbend$) then
-      theta = ele%value(tilt$) + ele%value(roll$)
-      rad_com%k1 = ele%value(k1$) * cos(2*theta)
-      rad_com%s1 = ele%value(k1$) * sin(2*theta)
+      theta = ric%ele%value(tilt$) + ric%ele%value(roll$)
+      ric%k1 = ric%ele%value(k1$) * cos(2*theta)
+      ric%s1 = ric%ele%value(k1$) * sin(2*theta)
     else
-      rad_com%k1 = 0
-      rad_com%s1 = 0
+      ric%k1 = 0
+      ric%s1 = 0
     endif
 
 ! edge effects for a bend. In this case we ignore any rolls.
 
     if (key == sbend$) then
       call propagate_part_way(0.0)
-      rad_com%i4a_(ir) = -rad_com%eta_a(1) * rad_com%g2 * tan(ele%value(e1$))
-      rad_com%i4b_(ir) = -rad_com%eta_b(1) * rad_com%g2 * tan(ele%value(e1$))
-      call propagate_part_way(rad_com%ll)
-      rad_com%i4a_(ir) = rad_com%i4a_(ir) - &
-                           rad_com%eta_a(1) * rad_com%g2 * tan(ele%value(e2$))
-      rad_com%i4b_(ir) = rad_com%i4a_(ir) - &
-                           rad_com%eta_b(1) * rad_com%g2 * tan(ele%value(e2$))
+      ric%i4a_(ir) = -ric%eta_a(1) * ric%g2 * tan(ric%ele%value(e1$))
+      ric%i4b_(ir) = -ric%eta_b(1) * ric%g2 * tan(ric%ele%value(e1$))
+      call propagate_part_way(ll)
+      ric%i4a_(ir) = ric%i4a_(ir) - &
+                           ric%eta_a(1) * ric%g2 * tan(ric%ele%value(e2$))
+      ric%i4b_(ir) = ric%i4a_(ir) - &
+                           ric%eta_b(1) * ric%g2 * tan(ric%ele%value(e2$))
     endif
 
 ! integrate 
 
-    rad_com%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rdef, rad_com%ll, i1)
-    rad_com%i4a_(ir) = rad_com%i4a_(ir) + &
-                         qromb_rad_int (eval_i4a, 0.0_rdef, rad_com%ll, i4a)
-    rad_com%i4b_(ir) = rad_com%i4b_(ir) + &
-                         qromb_rad_int (eval_i4b, 0.0_rdef, rad_com%ll, i4b)
-    rad_com%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rdef, rad_com%ll, i5a)
-    rad_com%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rdef, rad_com%ll, i5b)
+    ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rdef, ll, i1)
+    ric%i4a_(ir) = ric%i4a_(ir) + &
+                         qromb_rad_int (eval_i4a, 0.0_rdef, ll, i4a)
+    ric%i4b_(ir) = ric%i4b_(ir) + &
+                         qromb_rad_int (eval_i4b, 0.0_rdef, ll, i4b)
+    ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a)
+    ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b)
 
   enddo
 
 !---------------------------------------------------------------------
 ! now put everything together
 
-  i1   = sum(rad_com%i1_(1:ring%n_ele_use))
-  i2   = sum(rad_com%i2_(1:ring%n_ele_use))
-  i3   = sum(rad_com%i3_(1:ring%n_ele_use))
-  i4a  = sum(rad_com%i4a_(1:ring%n_ele_use))
-  i4b  = sum(rad_com%i4b_(1:ring%n_ele_use))
-  i5a  = sum(rad_com%i5a_(1:ring%n_ele_use))
-  i5b  = sum(rad_com%i5b_(1:ring%n_ele_use))
+  i1   = sum(ric%i1_(1:ring%n_ele_use))
+  i2   = sum(ric%i2_(1:ring%n_ele_use))
+  i3   = sum(ric%i3_(1:ring%n_ele_use))
+  i4a  = sum(ric%i4a_(1:ring%n_ele_use))
+  i4b  = sum(ric%i4b_(1:ring%n_ele_use))
+  i5a  = sum(ric%i5a_(1:ring%n_ele_use))
+  i5b  = sum(ric%i5b_(1:ring%n_ele_use))
 
   i4z = i4a + i4b
 
@@ -279,235 +306,155 @@ subroutine propagate_part_way (s)
 
   implicit none
 
-  real(rdef) s, v(4,4), v_inv(4,4)
+  type (coord_struct) orb, orb_0
 
-!
+  real(rdef) s, v(4,4), v_inv(4,4), s1, s2, error, f0, f1
+  real(rdef) here(6), kick_0(6), kick_x(6), kick_y(6)
 
-  if (s == 0) then
-    runt%x = ele0%x
-    runt%y = ele0%y
-    runt%c_mat = ele0%c_mat
-    runt%gamma_c = ele0%gamma_c
-    orb = orb0
-  elseif (s == rad_com%ll) then
-    runt = ele
-    orb = orb1
-  else
-    runt = ele
-    runt%value(l$) = s
-    if (ele%key == sbend$) then
-      runt%value(angle$) = ele%value(angle$) * s / rad_com%ll
-      runt%value(e2$) = 0
-    endif
-    call track1 (orb0, runt, pring%param, orb)
-    call make_mat6 (runt, pring%param, orb0, orb)
-    call twiss_propagate1 (ele0, runt)
+  integer i, ix, n_pts
+
+! exact calc
+
+  if (ric%ele%exact_rad_int_calc) then
+
+    do i = 0, 6
+      n_pts = ric%rk_track(i)%n_pts
+      call bracket_index (ric%rk_track(i)%s(1:n_pts), s, ix)
+
+      if (ix == n_pts) then
+        orb = ric%rk_track(i)%orb(n_pts)
+      else
+        s1 = s - ric%rk_track(i)%s(ix)
+        s2 = ric%rk_track(i)%s(ix+1) - s
+        orb%vec = (s2 * ric%rk_track(i)%orb(ix)%vec + &
+                s1 * ric%rk_track(i)%orb(ix+1)%vec) / (s1 + s2)
+      endif
+
+      if (i == 0) then
+        orb_0 = orb
+        call calc_g_params (orb)
+      else
+        ric%runt%mat6(1:6, i) = (orb%vec - orb_0%vec) / ric%d_orb%vec(i)
+      endif
+    enddo
+
+    call mat_symp_check (ric%runt%mat6, error)
+    call mat_symplectify (ric%runt%mat6, ric%runt%mat6)
+
+    call twiss_propagate1 (ric%ele0, ric%runt)
+
+    call make_v_mats (ric%runt, v, v_inv)
+
+    ric%eta_a = &
+          matmul(v, (/ ric%runt%x%eta, ric%runt%x%etap, 0.0_rdef, 0.0_rdef /))
+    ric%eta_b = &
+          matmul(v, (/ 0.0_rdef, 0.0_rdef, ric%runt%y%eta, ric%runt%y%etap /))
+
+    return
   endif
 
-  call make_v_mats (runt, v, v_inv)
+! non-exact wiggler calc
 
-  rad_com%eta_a = &
-          matmul(v, (/ runt%x%eta, runt%x%etap, 0.0_rdef,   0.0_rdef    /))
-  rad_com%eta_b = &
-          matmul(v, (/ 0.0_rdef,   0.0_rdef,    runt%y%eta, runt%y%etap /))
-  rad_com%eta = rad_com%eta_a + rad_com%eta_b
+  if (ric%ele%key == wiggler$ .and. ric%ele%sub_key == map_type$) then
+!    n_pts = ric%rk_track(i)%n_pts
+!    call bracket_index (ric%rk_track(i)%s(1:n_pts), s, ix)
 
-  rad_com%g_x = rad_com%g_x0 + orb%x%pos * rad_com%k1 + orb%y%pos * rad_com%s1
-  rad_com%g_y = rad_com%g_y0 - orb%y%pos * rad_com%k1 + orb%x%pos * rad_com%s1
+!    if (ix == n_pts) then
+!      orb = ric%rk_track(i)%orb(n_pts)
+!    else
+!      s1 = s - ric%rk_track(i)%s(ix)
+!      s2 = ric%rk_track(i)%s(ix+1) - s
+!      orb%vec = (s2 * ric%rk_track(i)%orb(ix)%vec + &
+!                s1 * ric%rk_track(i)%orb(ix+1)%vec) / (s1 + s2)
+!    endif
+
+    call calc_g_params (orb)
+
+    f0 = (ric%ele%value(l$) - s) / ric%ele%value(l$)
+    f1 = s / ric%ele%value(l$)
+
+    orb%vec = ric%orb0%vec * f0 + ric%orb1%vec * f1
+
+    ric%eta_a = ric%eta_a0 * f0 + ric%eta_a1 * f1
+    ric%eta_b = ric%eta_b0 * f0 + ric%eta_b1 * f1
+
+    ric%runt%x%beta  = ric%ele0%x%beta  * f0 + ric%ele%x%beta  * f1
+    ric%runt%x%alpha = ric%ele0%x%alpha * f0 + ric%ele%x%alpha * f1
+    ric%runt%x%gamma = ric%ele0%x%gamma * f0 + ric%ele%x%gamma * f1
+    ric%runt%x%eta   = ric%ele0%x%eta   * f0 + ric%ele%x%eta   * f1
+    ric%runt%x%etap  = ric%ele0%x%etap  * f0 + ric%ele%x%etap  * f1
+
+    ric%runt%y%beta  = ric%ele0%y%beta  * f0 + ric%ele%y%beta  * f1
+    ric%runt%y%alpha = ric%ele0%y%alpha * f0 + ric%ele%y%alpha * f1
+    ric%runt%y%gamma = ric%ele0%y%gamma * f0 + ric%ele%y%gamma * f1
+    ric%runt%y%eta   = ric%ele0%y%eta   * f0 + ric%ele%y%eta   * f1
+    ric%runt%y%etap  = ric%ele0%y%etap  * f0 + ric%ele%y%etap  * f1
+
+    return
+  endif
+
+! non-exact calc
+
+  if (s == 0) then
+    ric%runt%x       = ric%ele0%x
+    ric%runt%y       = ric%ele0%y
+    ric%runt%c_mat   = ric%ele0%c_mat
+    ric%runt%gamma_c = ric%ele0%gamma_c
+    orb = ric%orb0
+  elseif (s == ric%ele%value(l$)) then
+    ric%runt = ric%ele
+    orb = ric%orb1
+  else
+    ric%runt = ric%ele
+    ric%runt%value(l$) = s
+    if (ric%ele%key == sbend$) ric%runt%value(e2$) = 0
+    call track1 (ric%orb0, ric%runt, ric%ring%param, orb)
+    call make_mat6 (ric%runt, ric%ring%param, ric%orb0, orb)
+    call twiss_propagate1 (ric%ele0, ric%runt)
+  endif
+
+  call make_v_mats (ric%runt, v, v_inv)
+
+  ric%eta_a = &
+          matmul(v, (/ ric%runt%x%eta, ric%runt%x%etap, 0.0_rdef,   0.0_rdef    /))
+  ric%eta_b = &
+          matmul(v, (/ 0.0_rdef,   0.0_rdef,    ric%runt%y%eta, ric%runt%y%etap /))
+
+  ric%g_x = ric%g_x0 + orb%x%pos * ric%k1 + orb%y%pos * ric%s1
+  ric%g_y = ric%g_y0 - orb%y%pos * ric%k1 + orb%x%pos * ric%s1
                    
-  rad_com%dg2_x = 2 * (rad_com%g_x * rad_com%k1 + rad_com%g_y * rad_com%s1)
-  rad_com%dg2_y = 2 * (rad_com%g_x * rad_com%s1 - rad_com%g_y * rad_com%k1) 
+  ric%dg2_x = 2 * (ric%g_x * ric%k1 + ric%g_y * ric%s1)
+  ric%dg2_y = 2 * (ric%g_x * ric%s1 - ric%g_y * ric%k1) 
 
-  rad_com%g2 = rad_com%g_x**2 + rad_com%g_y**2
-  rad_com%g = sqrt(rad_com%g2)
+  ric%g2 = ric%g_x**2 + ric%g_y**2
+  ric%g = sqrt(ric%g2)
+
+!----------------------------------------------------------------------------
+contains
+
+subroutine calc_g_params (orb)
+
+  type (coord_struct) orb
+  real(rdef) del
+
+  del = 1e-6
+  here = orb%vec
+  call derivs_bmad (ric%ele, ric%ring%param, s, here, kick_0)
+  here(1) = here(1) + del
+  call derivs_bmad (ric%ele, ric%ring%param, s, here, kick_x)
+  here = orb%vec
+  here(3) = here(3) + del
+  call derivs_bmad (ric%ele, ric%ring%param, s, here, kick_y)
+  ric%g_x = -kick_0(2)
+  ric%g_y = -kick_0(4)
+  ric%g2 = ric%g_x**2 + ric%g_y**2
+  ric%g  = sqrt(ric%g2)
+  ric%dg2_x = ((kick_x(2)**2 + kick_x(4)**2) - ric%g2) / del
+  ric%dg2_y = ((kick_y(2)**2 + kick_y(4)**2) - ric%g2) / del
+
+end subroutine
 
 end subroutine
   
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-
-function  eval_i1 (s_vec)
-                    
-  use precision_def
-  use rad_int_common
-
-  implicit none
-
-  real(rdef) s_vec(:)
-  real(rdef), dimension(size(s_vec)) :: eval_i1
-
-  integer i
-
-!                      
-                                         
-  do i = 1, size(s_vec)
-    call propagate_part_way (s_vec(i))
-    eval_i1(i) = rad_com%g_x * rad_com%eta(1) + rad_com%g_y * rad_com%eta(3)
-  enddo
-
-end function
-  
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-
-function  eval_i4a (s_vec)
-                    
-  use precision_def
-  use rad_int_common
-                       
-  implicit none
-
-  real(rdef) s_vec(:)
-  real(rdef), dimension(size(s_vec)) :: eval_i4a
-
-  integer i
-
-!
-
-  do i = 1, size(s_vec)
-    call propagate_part_way (s_vec(i))
-    eval_i4a(i) = rad_com%g2 * (rad_com%g_x * rad_com%eta_a(1) + rad_com%g_y * rad_com%eta_a(3)) + &
-                  (rad_com%dg2_x * rad_com%eta_a(1) + rad_com%dg2_y * rad_com%eta_a(3))
-  enddo
-
-end function
-  
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-
-function  eval_i4b (s_vec)
-                    
-  use precision_def
-  use rad_int_common
-
-  implicit none
-
-  real(rdef) s_vec(:)
-  real(rdef), dimension(size(s_vec)) :: eval_i4b
-
-  integer i
-
-!
-
-  call propagate_part_way (s_vec)
-
-  do i = 1, size(s_vec)
-    call propagate_part_way (s_vec(i))
-    eval_i4b(i) = rad_com%g2 * (rad_com%g_x * rad_com%eta_b(1) + rad_com%g_y * rad_com%eta_b(3)) + &
-                  (rad_com%dg2_x * rad_com%eta_b(1) + rad_com%dg2_y * rad_com%eta_b(3))
-  enddo
-
-end function
-  
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-
-function  eval_i5a (s_vec)
-                    
-  use precision_def
-  use rad_int_common
-
-  implicit none
-
-  real(rdef) s_vec(:)
-  real(rdef), dimension(size(s_vec)) :: eval_i5a
-
-!
-
-  integer i
-
-  do i = 1, size(s_vec)
-    call propagate_part_way (s_vec(i))
-    eval_i5a(i) = rad_com%g2 * rad_com%g * (runt%x%gamma * runt%x%eta**2 + &
-                      2 * runt%x%alpha * runt%x%eta * runt%x%etap + &
-                      runt%x%beta * runt%x%etap**2)
-  enddo             
-
-end function
-
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-
-function  eval_i5b (s_vec)
-                    
-  use precision_def
-  use rad_int_common
-
-  implicit none
-
-  real(rdef) s_vec(:)
-  real(rdef), dimension(size(s_vec)) :: eval_i5b
-
-  integer i
-
-!
-
-  do i = 1, size(s_vec)
-    call propagate_part_way (s_vec(i))
-    eval_i5b(i) = rad_com%g2 * rad_com%g * (runt%y%gamma * runt%y%eta**2 + &
-                      2 * runt%y%alpha * runt%y%eta * runt%y%etap + &
-                      runt%y%beta * runt%y%etap**2)
-  enddo
-
-end function
-
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-! This is a modified version of QROMB from Num. Rec.
 
 
-function qromb_rad_int (func, a, b, sum)
-
-  use precision_def
-  use nrtype; use nrutil, only : nrerror
-  use nr, only : polint,trapzd
-
-  implicit none
-
-  interface
-    function func(x)
-    use nrtype
-    real(sp), dimension(:), intent(in) :: x
-    real(sp), dimension(size(x)) :: func
-    end function func
-  end interface
-
-  integer(i4b), parameter :: jmax = 6, jmaxp = jmax+1, k = 5, km = k-1
-  integer(i4b) :: j
-
-  real(sp), intent(in) :: a, b, sum
-  real(sp) :: qromb_rad_int
-  real(sp) :: dqromb
-  real(sp), parameter :: eps = 1.0e-4_sp, eps2 = 1.0e-6_sp
-  real(sp), dimension(jmaxp) :: h, s
-
-  logical :: debug = .false.
-
-!
-
-  h(1) = 1.0
-
-  do j = 1, jmax
-    call trapzd(func, a, b, s(j), j)
-    if (j >=  k) then
-      call polint(h(j-km:j), s(j-km:j), 0.0_sp, qromb_rad_int, dqromb)
-      if (abs(dqromb) <= eps * abs(qromb_rad_int) + eps2 * abs(sum)) return
-    elseif (j >= 3) then
-      call polint(h(1:j), s(1:j), 0.0_sp, qromb_rad_int, dqromb)
-      if (abs(dqromb) <= eps * abs(qromb_rad_int) + eps2 * abs(sum)) return
-    end if
-    s(j+1) = s(j)
-    h(j+1) = 0.25_sp * h(j)
-  end do
-
-  if (debug) then
-    type *, 'Warning in RADIATION_INTEGRALS: Integral does not converge.'
-  endif
-
-end function qromb_rad_int

@@ -24,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/06/13 14:54:28  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.4  2002/02/23 20:32:23  dcs
 !Double/Single Real toggle added
 !
@@ -62,8 +65,14 @@ subroutine ring_geometry (ring)
     leng = dble(ele%value(l$))
 
     if (ele%key == sbend$ .or. ele%key == rbend$) then
-      angle = dble(ele%value(angle$))
-      chord_len = 2 * leng * sin(angle/2) / angle
+      angle = dble(ele%value(l$)) * dble(ele%value(g_design$))
+
+      if (angle == 0) then
+        chord_len = 0
+      else
+        chord_len = 2 * leng * sin(angle/2) / angle
+      endif
+
       if (abs(modulo(ele%value(tilt$), twopi) - pi) < 1e-6) then
         angle = -angle
       elseif (ele%value(tilt$) /= 0) then
@@ -71,9 +80,10 @@ subroutine ring_geometry (ring)
         print *, '      FOR BEND: ', ele%name
         print *, '      WITH TILT: ', ele%value(tilt$)
       endif
+
     else
-      chord_len = leng
       angle = 0.0D0
+      chord_len = leng
     endif
 
     theta_tot = theta_tot + angle / 2

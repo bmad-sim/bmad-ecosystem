@@ -16,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/06/13 14:54:24  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.6  2002/02/23 20:32:13  dcs
 !Double/Single Real toggle added
 !
@@ -101,10 +104,7 @@ subroutine control_bookkeeper (ring, ix_ele)
     ix = ix_eles(j)
     ele => ring%ele_(ix)       
 
-    if (ele%control_type == container_slave$) then
-      call makeup_container_slave (ring, ix)
-      
-    elseif (ele%control_type == super_slave$) then
+    if (ele%control_type == super_slave$) then
       call makeup_super_slave (ring, ix)
 
     elseif (ele%control_type == overlay_slave$) then
@@ -248,7 +248,7 @@ subroutine makeup_super_slave (ring, ix_slave)
   type (ele_struct), pointer :: lord, slave
   type (ele_struct) :: sol_quad
 
-  integer ix_con, j, ix, ix_slave
+  integer i, ix_con, j, ix, ix_slave
 
   real(rdef) tilt, k1_x, k1_y, x_kick, y_kick, ks, k1, coef
   real(rdef) x_o, y_o, x_p, y_p, s_slave, s_del
@@ -256,8 +256,8 @@ subroutine makeup_super_slave (ring, ix_slave)
   real(rdef) knl(0:n_pole_maxx), t(0:n_pole_maxx), value(n_attrib_maxx)
   real(rdef) a_tot(0:n_pole_maxx), b_tot(0:n_pole_maxx)
   real(rdef) sum_1, sum_2, sum_3, sum_4, ks_sum, ks_xp_sum, ks_xo_sum
-  real(rdef) ks_yp_sum, ks_yo_sum, l_slave
-  real(rdef) t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4), r_off(4)
+  real(rdef) ks_yp_sum, ks_yo_sum, l_slave, r_off(4)
+  real(rdef) t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4)
   real(rdef) T_tot(4,4), x_o_sol, x_p_sol, y_o_sol, y_p_sol
 
   logical, save :: init_needed = .true.
@@ -319,7 +319,7 @@ subroutine makeup_super_slave (ring, ix_slave)
 
 ! if a wiggler: 
 ! must keep track of where we are in terms of the unsplit wiggler.
-! This is for track_wiggler which does not try to make a "homogenous" approx.
+! This is for anything which does not try to make a homogeneous approximation.
 ! l_original is the length of the unsplit original wiggler.
 ! l_start is the starting point with respect to the original wiggler.
 ! l_end is the ending point with respect to the original wiggler.
@@ -330,6 +330,23 @@ subroutine makeup_super_slave (ring, ix_slave)
       slave%value(l_start$)    = (slave%s - slave%value(l$)) - &
                                                    (lord%s - lord%value(l$))
       slave%value(l_end$)      = slave%value(l_start$) + slave%value(l$)
+
+      if (associated(lord%wig_term)) then
+        if (.not. associated (slave%wig_term) .or. &
+                size(slave%wig_term) /= size(lord%wig_term)) then
+          deallocate (slave%wig_term)
+          allocate (slave%wig_term(size(lord%wig_term)))
+        endif
+        do i = 1, size(lord%wig_term)
+          slave%wig_term(i)%coef = lord%wig_term(i)%coef
+          slave%wig_term(i)%kx = lord%wig_term(i)%kx
+          slave%wig_term(i)%ky = lord%wig_term(i)%ky
+          slave%wig_term(i)%kz = lord%wig_term(i)%kz
+          slave%wig_term(i)%phi_z = lord%wig_term(i)%phi_z + &
+                               lord%wig_term(i)%kz * slave%value(l_start$)
+        enddo
+      endif
+
     endif
 
 ! if an sbend:
@@ -337,7 +354,6 @@ subroutine makeup_super_slave (ring, ix_slave)
 !     2) zero the face angles next to the split
 
     if (slave%key == sbend$) then
-      slave%value(angle$) = lord%value(angle$) * coef
       slave%value(e2$) = 0.0
       if (ix_con == lord%ix1_slave) then   ! first slave bend
         slave%value(e2$) = 0
@@ -436,7 +452,7 @@ subroutine makeup_super_slave (ring, ix_slave)
       sum_3 = sum_3 + cos_2 * (x_o + x_p * s_del) + sin_2 * (y_o + y_p * s_del)
       sum_4 = sum_4 + sin_2 * (x_o + x_p * s_del) - cos_2 * (y_o + y_p * s_del)
 
-      if (any(lord%value(ix1_m$:ix2_m$) /= 0)) then
+      if (associated(lord%a)) then
         call multipole_ele_to_kt (lord, +1, knl, t, .true.)
         call multipole_kt_to_ab (knl/lord%value(l$), t, a, b)
         a_tot = a_tot + a
@@ -466,7 +482,7 @@ subroutine makeup_super_slave (ring, ix_slave)
   if (k1_x == 0 .and. k1_y == 0) then  ! pure solenoid
     slave%value(k1$) = 0
     slave%value(tilt$) = 0
-    slave%value(ix1_m$:ix2_m$) = 0
+    deallocate (slave%a, slave%b, stat = ix)
     slave%value(x_offset$) = x_o_sol
     slave%value(y_offset$) = y_o_sol
     slave%value(x_pitch$)  = x_p_sol
@@ -498,11 +514,13 @@ subroutine makeup_super_slave (ring, ix_slave)
   slave%value(x_offset$) = cos_2 * sum_3 + sin_2 * sum_4
   slave%value(y_offset$) = sin_2 * sum_3 - cos_2 * sum_4
 
+  deallocate (slave%a, slave%b, stat = ix)
   if (any(a_tot /= 0) .or. any(b_tot /= 0)) then
+    allocate (slave%a(0:n_pole_maxx), slave%b(0:n_pole_maxx))
     call multipole_ab_to_kt(a_tot, b_tot, knl, t)
     call multipole_kt_to_ab(knl/k1, t-tilt, a, b)
-    slave%value(ix1_m$:ix2_m$-1:2) = a
-    slave%value(ix1_m$+1:ix2_m$:2) = b
+    slave%a = a
+    slave%b = b
     slave%value(radius$) = 1
   endif
 
@@ -582,7 +600,7 @@ subroutine makeup_overlay_slave (ring, ix_ele)
                                                ct /= overlay_lord$) then
     type *, 'ERROR IN MAKEUP_OVERLAY_SLAVE: ELEMENT IS NOT OF PROPER TYPE.'
     type *, '      RING INDEX:', ix_ele
-    call type_ele (ele, .true., 0, .false., .true., ring)
+    call type_ele (ele, .true., 0, .false., 0, .true., ring)
     call err_exit
   endif
 
@@ -595,7 +613,7 @@ subroutine makeup_overlay_slave (ring, ix_ele)
     if (ring%ele_(ix)%control_type /= overlay_lord$) then
       type *, 'ERROR IN MAKEUP_OVERLAY_SLAVE:',  &
                           ' THE LORD IS NOT AN OVERLAY_LORD', ix_ele
-      call type_ele (ele, .true., 0, .false., .true., ring)
+      call type_ele (ele, .true., 0, .false., 0, .true., ring)
       call err_exit
     endif     
     coef = ring%control_(j)%coef
@@ -609,54 +627,4 @@ subroutine makeup_overlay_slave (ring, ix_ele)
     if (used(i)) ele%value(i) = value(i)
   enddo
                                             
-end subroutine
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine MAKEUP_CONTAINER_SLAVE (RING, IX_ELE)
-!
-! Subroutine to make up a container element.
-!-
-
-subroutine makeup_container_slave (ring, ix_ele)
-              
-  use bmad
-
-  implicit none
-
-  type (ring_struct)  ring
-
-  integer i, ix_ele, j, ix
-  real(rdef) s_len, x_lim, y_lim
-
-  s_len = 0
-  x_lim = 0
-  y_lim = 0
-
-  do j = ring%ele_(ix_ele)%ic1_lord, ring%ele_(ix_ele)%ic2_lord
-    i = ring%ic_(j)
-    ix = ring%control_(i)%ix_lord
-    s_len = s_len + ring%ele_(ix)%value(l$)
-    if (x_lim * ring%ele_(ix)%value(x_limit$) == 0.0) then
-      x_lim = max(x_lim, ring%ele_(ix)%value(x_limit$))
-    else
-      x_lim = min(x_lim, ring%ele_(ix)%value(x_limit$))
-    endif
-    if (y_lim * ring%ele_(ix)%value(y_limit$) == 0.0) then
-      y_lim = max(y_lim, ring%ele_(ix)%value(y_limit$))
-    else
-      y_lim = min(y_lim, ring%ele_(ix)%value(y_limit$))
-    endif
-  enddo
-
-  ring%ele_(ix_ele)%value(x_limit$) = x_lim
-  ring%ele_(ix_ele)%value(y_limit$) = y_lim
-
-  if (s_len /= ring%ele_(ix_ele)%value(l$)) then
-    ring%ele_(ix_ele)%value(l$) = s_len
-    call s_calc(ring)
-  endif
-
 end subroutine

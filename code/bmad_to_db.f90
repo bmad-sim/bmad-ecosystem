@@ -42,6 +42,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/06/13 14:54:22  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.6  2002/02/23 20:32:11  dcs
 !Double/Single Real toggle added
 !
@@ -183,6 +186,10 @@ subroutine bmad_to_db_main (ring, db)
 ! steerings
 
   gev = ring%param%energy
+  if (gev == 0) then
+    type *, 'ERROR IN BMAD_TO_DB: BEAM ENERGY IS ZERO!'
+    call err_exit
+  endif
 
   call getcs (v_stren, h_stren)
   db%csr_horz_cur(:)%dvar_dcu = -1.0e-6 * h_stren(1:98) / gev  
@@ -253,8 +260,8 @@ subroutine bmad_to_db_main (ring, db)
 
   call non_db_set (db%detector, cesr%det_, 0, 0)
   call non_db_set (db%wiggler, cesr%wig_, b_max$, 1)
-  call non_db_set (db%scir_cam_rho, cesr%scir_cam_rho_, rho$, 1)
-  call non_db_set (db%scir_tilt, cesr%scir_tilt_, rho$, 1)
+  call non_db_set (db%scir_cam_rho, cesr%scir_cam_rho_, 0, 1)
+  call non_db_set (db%scir_tilt, cesr%scir_tilt_, 0, 1)
 
 end subroutine
 

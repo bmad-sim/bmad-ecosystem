@@ -62,17 +62,20 @@
 ! Note: You can control an element's position by setting:
 !       CONTROL_(i)%IX_ATTRIB = START_EDGE$      or
 !                             = END_EDGE$        or
-!                             = ACCORDIAN_EDGE$
+!                             = ACCORDION_EDGE$
 ! %IX_ATTRIB = START_EDGE$ or %IX_ATTRIB = END_EDGE$ controls the
 ! placement of the edges of an element keeping the ring total length invariant.
 ! this is done by lengthening and shortening the elements to either side keeping the
 ! total ring length invariant.
-! %IX_ATTRIB = ACCORDIAN_EDGE$ moves the start and end edges
+! %IX_ATTRIB = ACCORDION_EDGE$ moves the start and end edges
 ! antisymmetrically.   
 !-
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/06/13 14:54:24  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.6  2002/02/23 20:32:13  dcs
 !Double/Single Real toggle added
 !
@@ -122,7 +125,7 @@ subroutine create_group (ring, ix_ele, n_control, control_)
     ixa = control_(i)%ix_attrib
 
     if (ixa == start_edge$ .or. ixa == end_edge$ .or. &
-                                              ixa == accordian_edge$) then
+                                              ixa == accordion_edge$) then
 
       if (ring%ele_(ixe)%control_type == super_lord$) then
         ix_min = ring%control_(ring%ele_(ixe)%ix1_slave)%ix_slave
@@ -149,7 +152,7 @@ subroutine create_group (ring, ix_ele, n_control, control_)
         endif
       enddo
 
-      if (ixa == start_edge$ .or. ixa == accordian_edge$) then
+      if (ixa == start_edge$ .or. ixa == accordion_edge$) then
         if (ix1 < 1) then
           type *, 'ERROR IN CREATE_GROUP: START_EDGE OF CONTROLED'
           type *, '      ELEMENT IS AT BEGINNING OF RING AND CANNOT BE'
@@ -167,7 +170,7 @@ subroutine create_group (ring, ix_ele, n_control, control_)
         endif
       enddo
 
-      if (ixa == end_edge$ .or. ixa == accordian_edge$) then
+      if (ixa == end_edge$ .or. ixa == accordion_edge$) then
         if (ix2 > ring%n_ele_ring) then
           type *, 'ERROR IN CREATE_GROUP: END_EDGE OF CONTROLED'
           type *, '      ELEMENT IS AT END OF RING AND CANNOT BE'
@@ -188,7 +191,7 @@ subroutine create_group (ring, ix_ele, n_control, control_)
         call bookit (ix2, -1)
       endif
 
-      if (ixa == accordian_edge$) then
+      if (ixa == accordion_edge$) then
         call bookit (ix1, -1)
         if (ix_min == ix_max) then
           call bookit (ix_min, 2)

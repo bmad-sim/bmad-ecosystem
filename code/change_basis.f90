@@ -35,6 +35,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/06/13 14:54:23  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.4  2002/02/23 20:32:12  dcs
 !Double/Single Real toggle added
 !
@@ -54,38 +57,41 @@ subroutine change_basis (coord, ref_energy, ref_z, to_cart, time_disp)
 
   implicit none
 
-  type (coord_struct)  coord, temp
-  real(rdef) beta2, ref_energy, ref_z, time_disp, var
+  type (coord_struct)  coord, saved
+  real(rdef) beta2, ref_energy, ref_z, time_disp, rvar
   logical to_cart
 
-  temp%x%pos = coord%x%pos
-  temp%y%pos = coord%y%pos
+!
+
+  saved%x%pos = coord%x%pos
+  saved%y%pos = coord%y%pos
+
   if (to_cart) then
-    var = (e_mass / (ref_energy * (coord%z%vel+1)))**2
-    if (var <= 0.001) then
-      temp%z%vel = c_light / sqrt(1 + coord%x%vel**2 + coord%y%vel**2)  &
-        * (1 - var/2)
+    rvar = (e_mass / (ref_energy * (coord%z%vel+1)))**2
+    if (rvar <= 0.001) then
+      saved%z%vel = c_light / sqrt(1 + coord%x%vel**2 + coord%y%vel**2)  &
+        * (1 - rvar/2)
     else
-      temp%z%vel = c_light * sqrt((1 - var)  &
+      saved%z%vel = c_light * sqrt((1 - rvar)  &
         / (1 + coord%x%vel**2 + coord%y%vel**2))
     endif
-    temp%x%vel = coord%x%vel * temp%z%vel
-    temp%y%vel = coord%y%vel * temp%z%vel
+    saved%x%vel = coord%x%vel * saved%z%vel
+    saved%y%vel = coord%y%vel * saved%z%vel
 !         Convert z from a relative position to an absolute position:
-    temp%z%pos = ref_z
-    time_disp =  - coord%z%pos / temp%z%vel
+    saved%z%pos = ref_z
+    time_disp =  - coord%z%pos / saved%z%vel
   else
-    temp%x%vel = coord%x%vel / coord%z%vel
-    temp%y%vel = coord%y%vel / coord%z%vel
+    saved%x%vel = coord%x%vel / coord%z%vel
+    saved%y%vel = coord%y%vel / coord%z%vel
     beta2 = (coord%x%vel**2 + coord%y%vel**2 + coord%z%vel**2) / c_light**2
 !         Prevent sqrt(negative number) due to rounding errors.  Set such
 !         particles to have gamma = 1000 (approximately).
     if (beta2 >= 0.999999) beta2 = 0.999999
-    temp%z%vel = e_mass / (ref_energy * sqrt(1 - beta2)) - 1
+    saved%z%vel = e_mass / (ref_energy * sqrt(1 - beta2)) - 1
 !         Convert z from an absolute position to a relative position:
-    temp%z%pos = - coord%z%vel * time_disp
+    saved%z%pos = - coord%z%vel * time_disp
   endif
-  coord = temp
+  coord = saved
 
   return
   end

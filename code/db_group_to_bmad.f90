@@ -31,6 +31,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/06/13 14:54:25  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.5  2002/02/23 20:32:14  dcs
 !Double/Single Real toggle added
 !
@@ -51,10 +54,9 @@ subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, ring, db, &
                                               con_, n_con, ok, type_err)
 
   use bmad
+  use group_struct
 
   implicit none
-
-#include "group.inc"
 
   type (ring_struct) ring
   type (db_struct) db

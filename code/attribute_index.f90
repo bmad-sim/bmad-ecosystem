@@ -19,13 +19,16 @@
 !
 ! Example:
 !     ele%key = sbend$
-!     ix = attribute_index (ele, 'ANGLE')
+!     ix = attribute_index (ele, 'K1')
 ! Result:
-!     ix -> angle$
+!     ix -> k1$
 !-
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/06/13 14:54:21  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.3  2002/02/23 20:32:10  dcs
 !Double/Single Real toggle added
 !

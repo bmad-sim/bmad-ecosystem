@@ -42,6 +42,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/06/13 14:54:28  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.2  2002/02/23 20:32:21  dcs
 !Double/Single Real toggle added
 !
@@ -63,7 +66,7 @@ subroutine offset_particle (ele, param, coord, set, &
   type (param_struct) param
 
   real(rdef) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-  real(rdef) del_x_vel, del_y_vel
+  real(rdef) del_x_vel, del_y_vel, angle
 
   integer n
 
@@ -150,7 +153,7 @@ subroutine offset_particle (ele, param, coord, set, &
 
 ! Set: Multipoles
 
-    if (set_multi .and. ele%nonzero_multipoles) then
+    if (set_multi .and. associated(ele%a)) then
       call multipole_ele_to_kt(ele, param%particle, knl, tilt, .true.)
       knl = knl / 2
       do n = 0, n_pole_maxx
@@ -164,13 +167,14 @@ subroutine offset_particle (ele, param, coord, set, &
     if (set_t) then
 
       if (ele%key == sbend$) then
+        angle = ele%value(l$) * ele%value(g$)
         if (ele%value(roll$) /= 0) then
           if (abs(ele%value(roll$)) < 0.01) then
-            del_x_vel = ele%value(angle$) * ele%value(roll$)**2 / 4
+            del_x_vel = angle * ele%value(roll$)**2 / 4
           else
-            del_x_vel = ele%value(angle$) * (1 - cos(ele%value(roll$))) / 2
+            del_x_vel = angle * (1 - cos(ele%value(roll$))) / 2
           endif
-          del_y_vel = -ele%value(angle$) * sin(ele%value(roll$)) / 2
+          del_y_vel = -angle * sin(ele%value(roll$)) / 2
           coord%x%vel = coord%x%vel + del_x_vel
           coord%y%vel = coord%y%vel + del_y_vel
         endif
@@ -218,7 +222,7 @@ subroutine offset_particle (ele, param, coord, set, &
 
 ! Unset: Multipoles
 
-    if (set_multi .and. ele%nonzero_multipoles) then
+    if (set_multi .and. associated(ele%a)) then
       do n = 0, n_pole_maxx
         call multipole_kick (knl(n), tilt(n), n, coord)
       enddo

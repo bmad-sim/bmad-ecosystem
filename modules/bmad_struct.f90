@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2002/06/13 14:54:59  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.8  2002/02/23 20:32:31  dcs
 !Double/Single Real toggle added
 !
@@ -33,21 +36,20 @@ module bmad_struct
 
   use precision_def
   use physical_constants
+  use tpsalie_analysis, pi_fpp => pi, twopi_fpp => twopi
 
 ! The "regular" elements are in positions: 1 to RING.N_ELE_RING
 ! regular elements are:
 !     1) Superimpose slaves:      SUPER_SLAVE$
 !     2) Overlay slaves:          OVERLAY_SLAVE$
-!     3) Container slaves:        CONTAINER_SLAVE$
-!     5) Free:                    FREE$
+!     3) Free:                    FREE$
 !
 ! The "control" elements are in positions: RING.N_ELE_RING+1 to RING.N_ELE_MAX
 !
 ! The control elements are:
 !     1) Superimposed controllers:      SUPER_LORD$
 !     2) Overlay controllers:           OVERLAY_LORD$
-!     3) Component:                     COMPONENT_LORD$
-!     5) Group controllers:             GROUP_LORD$
+!     3) Group controllers:             GROUP_LORD$
 !-
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -56,7 +58,7 @@ module bmad_struct
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 !
-  integer, parameter :: bmad_inc_version$ = 45
+  integer, parameter :: bmad_inc_version$ = 52
 !
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -66,15 +68,56 @@ module bmad_struct
 
 ! parameter def
 
-  integer, parameter :: n_attrib_maxx = 49         ! \ max ix for attributes
-  integer, parameter :: n_attrib_special_maxx = 57 ! / max ix including special.
+  integer, parameter :: n_attrib_maxx = 34
+
   integer, parameter :: n_ele_maxx = 2200
   integer, parameter :: n_control_maxx = 5000
-  integer, parameter :: n_comp_maxx = 50   ! Max number of components in a COIL
+  integer, parameter :: n_pole_maxx = 20  ! maximum multipole order
 
-  integer, parameter :: n_key = 26, n_pole_maxx = 9
+! structure for a particle's coordinates
 
-! Structure definitions
+  type pos_vel_struct
+    real(rdef) pos, vel                            ! position and velocity
+  end type
+
+  type coord_struct
+    union
+      map
+        type (pos_vel_struct)  x, y, z
+      endmap
+      map
+        real(rdef) vec(6)
+      endmap
+    endunion
+  end type
+
+! Pointer structs for the ele_struc
+! Note: the taylor_struct uses the bmad standard (x, p_x, y, p_y, z, p_z) 
+! the universal_taylor in Etienne's PTC uses (x, p_x, y, p_y, p_z, -c*t)
+
+  integer,parameter :: hyper_y$ = 1, hyper_xy$ = 2, hyper_x$ = 3
+  character*8, parameter :: wig_term_type_name(0:3) = (/ &
+                  'Garbage ', 'Hyper_Y ', 'Hyper_XY', 'Hyper_X ' /)
+
+  type wig_term_struct
+    real(rdef) coef
+    real(rdef) kx, ky, kz
+    real(rdef) phi_z
+    integer type      ! hyper_y$, hyper_xy$, or hyper_x$
+  end type
+
+  type taylor_term_struct
+    real(rdef) :: coef
+    integer :: exp(6)  
+  end type
+
+! structure for Taylor series.
+! %ref is the reference point about which the taylor expansion was made
+
+  type taylor_struct
+    real (rdef) ref             
+    type (taylor_term_struct), pointer :: term(:)
+  end type
 
   type twiss_struct
     real(rdef) beta, alpha, gamma, phi, eta, etap
@@ -87,17 +130,26 @@ module bmad_struct
     character*16 type              ! type name (see MAD documentation)
     character*16 alias             ! Another name
     character*16 attribute_name    ! Used by overlays
-    real(rdef) value(n_attrib_maxx)      ! attribute values
-    real(rdef) mat6(6,6)                 ! transpot matrix 
-    real(rdef) c_mat(2,2)                ! 2x2 C coupling matrix
-    real(rdef) gamma_c                   ! gamma associated with C matrix
-    real(rdef) s                         ! longitudinal position at the end
-    real(rdef) x_position, y_position    ! Floor position of element
-    real(rdef) z_position                ! Elevation of element
-    real(rdef) theta_position            ! Floor orientation angle of element
-    real(rdef) phi_position              ! Angle of attack
-    type (twiss_struct)  x,y,z     ! Twiss parameters at end of element
+    type (twiss_struct)  x,y,z         ! Twiss parameters at end of element
+    real(rdef) value(n_attrib_maxx)    ! attribute values
+    real(rdef) vec0(6)                 ! 0th order transport vector
+    real(rdef) mat6(6,6)               ! 1st order transport matrix 
+    real(rdef) c_mat(2,2)              ! 2x2 C coupling matrix
+    real(rdef) gamma_c                 ! gamma associated with C matrix
+    real(rdef) s                       ! longitudinal position at the end
+    real(rdef) x_position, y_position  ! Floor position of element
+    real(rdef) z_position              ! Elevation of element
+    real(rdef) theta_position          ! Floor orientation angle of element
+    real(rdef) phi_position            ! Angle of attack
+    real(rdef), pointer             :: a(:), b(:)     ! multipoles
+    character*200, pointer          :: descrip        ! For general use
+    type (wig_term_struct), pointer :: wig_term(:)    ! Wiggler Coefs
+    type (genfield), pointer        :: gen_field      ! For symp_map$
+    type (taylor_struct)            :: taylor(6)      ! Taylor terms
     integer key                    ! key value
+    integer sub_key                ! For wigglers: map_type$, periodic_type$
+    integer pointer_init           ! Pointers initialized when 
+                                   !   pointer_init = has_been_inited$
     integer control_type           ! SUPER_SLAVE$, OVERLAY_LORD$, etc.
     integer ix_value               ! Pointer for attribute to control
     integer n_slave                ! Number of slaves
@@ -109,18 +161,21 @@ module bmad_struct
     integer ix_pointer             ! Pointer for general use
     integer ixx                    ! Pointer for BMAD internal use
     integer iyy                    ! Pointer for BMAD internal use
-    integer mat6_calc_method       ! bmad_standard$, DA_map$, etc.
-    integer tracking_method        ! bmad_standard$, DA_map$, etc.
+    integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
+    integer tracking_method        ! bmad_standard$, taylor$, etc.
     integer num_steps              ! number of slices for DA_maps
-    logical coupled                ! Is transport matrix coupled?
+    integer integration_order      ! For Etiennes' PTC: 2, 4, or 6.
+    integer ptc_kind               ! For setting the ptc kind type.
+    integer taylor_order           ! Order of the taylor series.
+    logical symplectify            ! Symplectify mat6 matrices.
     logical mode_flip              ! Have the normal modes traded places?
     logical is_on                  ! For turning element on/off
     logical multipoles_on          ! For turning multipoles on/off
-    logical nonzero_multipoles     ! Internal flag. Do not use.
+    logical exact_rad_int_calc     ! Exact radiation integral calculation?
   end type
 
   type control_struct
-    real(rdef) coef                      ! control coefficient
+    real(rdef) coef                ! control coefficient
     integer ix_lord                ! index to lord element
     integer ix_slave               ! index to slave element
     integer ix_attrib              ! index of attribute controlled
@@ -138,7 +193,6 @@ module bmad_struct
     integer ix_lost               ! If lost at what element?
     integer lattice_type          ! linac_lattice$, etc...
     integer ixx                   ! Integer for general use
-    logical z_decoupled           ! is z motion decoupled from x and y?
     logical stable                ! is closed ring stable?
     logical aperture_limit_on     ! use apertures in tracking?
     logical lost                  ! for use in tracking
@@ -172,6 +226,7 @@ module bmad_struct
         integer n_ele_max             ! Index of last element used
         integer n_control_array       ! last index used in CONTROL_ array
         integer n_ic_array            ! last index used in IC_ array
+        integer input_taylor_order    ! As set in the input file
       endmap
       map
         type (dummy_parameter_struct) parameters
@@ -184,37 +239,10 @@ module bmad_struct
     integer ic_(n_control_maxx)                      ! index to %control_(:)
   end type
 
-! structure for a particle
 
-  type pos_vel_struct
-    real(rdef) pos, vel                            ! position and velocity
-  end type
-
-  type coord_struct
-    union
-      map
-        type (pos_vel_struct)  x, y, z
-      endmap
-      map
-        real(rdef) vec(6)
-      endmap
-    endunion
-  end type
-
-  type pos_vel_struct8
-    real*8 pos, vel                            ! position and velocity
-  end type
-
-  type coord_struct8
-    union
-      map
-        type (pos_vel_struct8)  x, y, z
-      endmap
-      map
-        real*8 vec(6)
-      endmap
-    endunion
-  end type
+!
+  character*3, parameter :: coord_name(6) = &
+                              (/ "X  ", "P_x", "Y  ", "P_y", "Z  ", "P_z" /)
 
 ! KEY value definitions
 ! Note: Null_element must be the last element in the list.
@@ -226,19 +254,19 @@ module bmad_struct
   integer, parameter :: elseparator$ = 10, beambeam$ = 11, wiggler$ = 12
   integer, parameter :: sol_quad$ = 13, marker$ = 14, kicker$ = 15
   integer, parameter :: hybrid$ = 16, octupole$ = 17, rbend$ = 18
-  integer, parameter :: multipole$ = 19, coil$ = 20, loop$ = 21
-  integer, parameter :: accel_sol$ = 22, define_energy$ = 23
-  integer, parameter :: def_beam$ = 24, ab_multipole$ = 25
-  integer, parameter :: null_ele$ = 27
+  integer, parameter :: multipole$ = 19, accel_sol$ = 20
+  integer, parameter :: def_beam$ = 21, ab_multipole$ = 22
+  integer, parameter :: null_ele$ = 23
+
+  integer, parameter :: n_key = 23    
 
   character*16 :: key_name(n_key+1) = (/ &
       'DRIFT        ', 'SBEND        ', 'QUADRUPOLE   ', 'GROUP        ', &
       'SEXTUPOLE    ', 'OVERLAY      ', 'CUSTOM       ', 'SOLENOID     ', &
       'RFCAVITY     ', 'ELSEPARATOR  ', 'BEAMBEAM     ', 'WIGGLER      ', &
       'SOL_QUAD     ', 'MARKER       ', 'KICKER       ', 'HYBRID       ', &
-      'OCTUPOLE     ', 'RBEND        ', 'MULTIPOLE    ', 'COIL         ', &
-      'LOOP         ', 'ACCEL_SOL    ', 'DEFINE_ENERGY', 'DEF_BEAM     ', &
-      'AB_MULTIPOLE ', 'NULL_ELEMENT ', '             ' /)
+      'OCTUPOLE     ', 'RBEND        ', 'MULTIPOLE    ', 'ACCEL_SOL    ', &
+      'DEF_BEAM     ', 'AB_MULTIPOLE ', 'NULL_ELEMENT ', '             ' /)
 
 ! Attribute name logical definitions
 ! Note: The following attributes must have unique number assignments:
@@ -248,63 +276,68 @@ module bmad_struct
           b_y2$=5, l_st2$=9, b_z$=10, l_st1$=11, s_st2$=12, s_st1$=13, &
           b_x1$=14, b_y1$=15    
 
-  integer, parameter :: val1$=2, val2$=3, val3$=4, val4$=5, val5$=6, &
-          val6$=7, val7$=8, val8$=9, val9$=10, val10$=11, val11$=12, &
-          val12$=13
+  integer, parameter :: val1$=3, val2$=4, val3$=5, val4$=6, val5$=7, &
+          val6$=8, val7$=9, val8$=10, val9$=11, val10$=12, val11$=13, &
+          val12$=14
 
   integer, parameter :: l$=1
   integer, parameter :: tilt$=2, command$=2
   integer, parameter :: old_command$=3, angle$=3
   integer, parameter :: k1$=4, sig_x$=4, harmon$=4, h_displace$=4
-  integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, rho_design$=5
-  integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, rho$=6
+  integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, g_design$=5
+  integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, g$=6
   integer, parameter :: ks$=7, volt$=7, e1$=7, n_pole$=7, bbi_const$=7
   integer, parameter :: lag$=8, e2$=8, charge$=8, gap$=8
   integer, parameter :: n_slice$=9, l_chord$=9
-  integer, parameter :: fint$=10
-  integer, parameter :: r2$=11, fintx$=11
-  integer, parameter :: ri$=12 , hgap$=12
-  integer, parameter :: coef$=13, current$=13, hgapx$=13
-  integer, parameter :: roll$=14, r2i$=14
-  integer, parameter :: diameter$=15, l_original$ = 15
-  integer, parameter :: l_start$=16
-  integer, parameter :: l_end$=17
-  integer, parameter :: x_pitch$=18
-  integer, parameter :: y_pitch$=19
-  integer, parameter :: hkick$=20
-  integer, parameter :: vkick$=21
-  integer, parameter :: x_offset$=22
-  integer, parameter :: y_offset$=23
-  integer, parameter :: s_offset$=24
-  integer, parameter :: x_limit$=25
-  integer, parameter :: y_limit$=26
-  integer, parameter :: aperture$=27 
-  integer, parameter :: radius$=28
-  integer, parameter :: energy$=29  ! formally new_energy$
+  integer, parameter :: fint$=10, polarity$ = 10
+  integer, parameter :: fintx$=11
+  integer, parameter :: rho_bend$ = 12
+  integer, parameter :: hgap$=13
+  integer, parameter :: coef$=14, current$=14, hgapx$=14
+  integer, parameter :: roll$=15
+  integer, parameter :: l_original$ = 16
+  integer, parameter :: l_start$=17
+  integer, parameter :: l_end$=18
+  integer, parameter :: x_pitch$=19
+  integer, parameter :: y_pitch$=20
+  integer, parameter :: hkick$=21
+  integer, parameter :: vkick$=22
+  integer, parameter :: x_offset$=23
+  integer, parameter :: y_offset$=24
+  integer, parameter :: s_offset$=25
+  integer, parameter :: x_limit$=26
+  integer, parameter :: y_limit$=27
+  integer, parameter :: aperture$=28 
+  integer, parameter :: radius$=29
+  integer, parameter :: energy$=30  ! formally new_energy$
+  integer, parameter :: rel_tol$ = 31
+  integer, parameter :: abs_tol$ = 32
 
-  integer, parameter :: a0$=30, b0$=31, a1$=32, b1$=33, a2$=34, b2$=35, &
-             a3$=36, b3$=37, a4$=38, b4$=39, a5$=40, b5$=41, a6$=42, &
-             b6$=43, a7$=44, b7$=45, a8$=46, b8$=47, a9$=48, b9$=49
+  integer, parameter :: type$ = 35   ! this is 1 greater than n_attrib_maxx
+  integer, parameter :: alias$ = 36 
+  integer, parameter :: start_edge$ = 37     ! special for groups
+  integer, parameter :: end_edge$ = 38       ! special for groups
+  integer, parameter :: accordion_edge$ = 39 ! special for groups
+  integer, parameter :: mat6_calc_method$ = 40
+  integer, parameter :: tracking_method$  = 41
+  integer, parameter :: num_steps$ = 42
+  integer, parameter :: integration_order$ = 43
+  integer, parameter :: term$ = 44
+  integer, parameter :: ptc_kind$ = 45
+  integer, parameter :: symplectify$ = 46
+  integer, parameter :: a$ = 47
+  integer, parameter :: b$ = 48
+  integer, parameter :: kl$ = 49
+  integer, parameter :: t$ = 50  
+  integer, parameter :: descrip$ = 51   !! this is n_attrib_special_maxx  !!
 
-  integer, parameter :: ix1_m$ = a0$, ix2_m$ = b9$
-
-  integer, parameter :: k0l$=30, t0$=31, k1l$=32, t1$=33, k2l$=34, t2$=35, &
-              k3l$=36, t3$=37, k4l$=38, t4$=39, k5l$=40, t5$=41, k6l$=42, &
-              t6$=43, k7l$=44, t7$=45, k8l$=46, t8$=47, k9l$=48, t9$=49 
-
-  integer, parameter :: type$ = 50   ! this is 1 greater than n_attrib_maxx
-  integer, parameter :: alias$ = 51 
-  integer, parameter :: start_edge$ = 52     ! special for groups
-  integer, parameter :: end_edge$ = 53       ! special for groups
-  integer, parameter :: accordian_edge$ = 54 ! special for groups
-  integer, parameter :: mat6_calc_method$ = 55
-  integer, parameter :: tracking_method$  = 56
-  integer, parameter :: num_steps$ = 57
+  integer, parameter :: n_attrib_special_maxx = 51
 
   integer, parameter :: particle$ = 1
   integer, parameter :: n_part$    = 3
 
-  character*16 null_name / 'NULL' /
+  character*16, parameter :: null_name = 'NULL' 
+  character*16, parameter :: blank_name = ' '
 
 ! electron/positron
 
@@ -313,8 +346,8 @@ module bmad_struct
   integer, parameter :: electron$   = -1
   integer, parameter :: antiproton$ = -2
 
-  character*16 :: particle_name(-2:2) = (/ 'ANTIPROTON', 'ELECTRON  ', '??? ', &
-                                           'POSITRON  ', 'PROTON    ' /)
+  character*16 :: particle_name(-2:2) = &
+       (/ 'ANTIPROTON', 'ELECTRON  ', '??? ', 'POSITRON  ', 'PROTON    ' /)
 
 ! SYMMETRY etc., logical names
 
@@ -328,20 +361,18 @@ module bmad_struct
 
 ! logicals for MAKE_HYBIRD_RING
 
-  logical, parameter :: z_decoupled$ = .true.,    no_z_decoupled$ = .false.
   logical, parameter :: remove_markers$ = .true., no_remove_markers$ = .false.
 
 ! control element logicals
-! Note: overlay_lord$ == overlay$ !!
+! Note: Must have overlay_lord$ == overlay$ !!
 
   integer, parameter :: free$ = 1, super_slave$ = 2, overlay_slave$ = 3
   integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
-  integer, parameter :: component_lord$ = 7, container_slave$ = 8
 
-  character*16 :: control_name(9) = (/ &
+  character*16 :: control_name(7) = (/ &
             'FREE_ELEMENT   ', 'SUPER_SLAVE    ', 'OVERLAY_SLAVE  ', &
             'GROUP_LORD     ', 'SUPER_LORD     ', 'OVERLAY_LORD   ', &
-            'COMPONENT_LORD ', 'CONTAINER_SLAVE', '               ' /)
+            '               ' /)
 
 ! plane list, etc
 
@@ -351,44 +382,27 @@ module bmad_struct
   character*16 plane_name(5) / 'X', 'Y', 'Z', 'N', ' ' /
 
   logical, parameter :: set$ = .true., unset$ = .false.
-
-! aperture structure
-
-  integer, parameter :: ap_array_maxx = 100
-
-  type aperture_struct
-    real(rdef) dE_E
-    type (coord_struct)  closed_orbit
-    real(rdef) x_(ap_array_maxx), y_(0:ap_array_maxx)
-    integer plane_(ap_array_maxx)
-    integer ix_ring(ap_array_maxx)
-    integer i_turn(ap_array_maxx)
-  end type
-
-  type track_input_struct
-    integer n_turn
-    integer n_xy_pts
-    integer point_range(2)
-    integer n_energy_pts
-    real(rdef) x_init, y_init
-    real(rdef) e_max
-    real(rdef) energy(10)
-    real(rdef) accuracy
-  end type
+  integer, parameter :: has_been_inited$ = 123456  ! something random
 
 ! garbage$ is, for example, for subroutines that want to communicate to
 ! the calling program that a variable has not been set properly.
 
   integer, parameter :: garbage$ = -9876
 
-!
+! Note: custom$ =7 is taken from the element key list
 
-  integer, parameter :: bmad_standard$ = 1, DA_map$ = 2, custom_calc$ = 3
-  integer, parameter :: runge_kutta$ = 4, linear$ = 5
+  integer, parameter :: bmad_standard$ = 1, symp_lie$ = 2, runge_kutta$ = 3 
+  integer, parameter :: linear$ = 4, taylor$ = 5, symp_map$ = 6
+  integer, parameter :: wiedemann$ = 8, tracking$ = 9, none$ = 10
 
-  character*16, parameter :: calc_method_name(0:5) = (/ &
-                    "GARBAGE!     ", "BMAD_Standard", "DA_Map       ", &
-                    "Custom_Calc  ", "Runge_Kutta  ", "Linear       " /)
+  character*16, parameter :: calc_method_name(0:10) = (/ &
+      "GARBAGE!     ", "BMAD_Standard", "Symp_Lie     ", "Runge_Kutta  ", &
+      "Linear       ", "Taylor       ", "Symp_Map     ", "Custom       ", &
+      "Wiedemann    ", "Tracking     ", "None         " /)
+
+  integer, parameter :: map_type$ = 1, periodic_type$ = 2
+  character*16, parameter :: sub_key_name(0:2) = (/ &
+         "GARBAGE!     ", "Map          ", "Periodic      " /)
 
 !
 
@@ -623,14 +637,48 @@ module bmad_struct
     type (db_element_struct) :: vtable(1:200)
   end type
 
-!----------------------------------------------------------------------------
-! Common stuff used by various subroutines
+!------------------------------------------------------------------------------
+! Misc stuff
 
-  type bmad_common_struct
-    real(rdef) factor                   ! used by track_runge_kutta
-    character*16 func_type        ! used by track_runge_kutta
+! This if for making digested files.
+! Note: The dummy_ele_struct must be larger in size (bytes) then the ele_struct
+
+  type dummy_ele_struct
+    integer dummy(500)
   end type
 
-  type (bmad_common_struct) bmad_common
+  type ele_digested_struct
+    union
+      map
+        type (dummy_ele_struct) digested
+      end map
+      map
+        type (ele_struct) ele
+      end map
+    end union
+  end type
+  
+!------------------------------------------------------------------------------
+! common stuff
+
+! multi_turn_func_common is for multi_turn_tracking_to_mat
+
+! %taylor_order_ptc is what ptc has been set to.
+! %taylor_order is what the user wants.
+
+  type bmad_com_struct
+    type (coord_struct) :: d_orb  ! for the transfer_mat_from_tracking routine
+    real(rdef) :: energy = 0
+    integer :: taylor_order = 3            ! 3rd order is default
+    integer :: taylor_order_ptc = 0        ! 0 -> not yet set 
+    logical :: taylor_order_set = .false.  ! Used by set_taylor_order
+    integer :: real_8_map_init
+    integer :: default_integ_order = 2
+    integer :: default_num_steps = 1
+    logical :: init_needed = .true.
+  end type
+  
+  type (bmad_com_struct) bmad_com
+  type (coord_struct), pointer :: multi_turn_func_common(:)  
 
 end module

@@ -22,11 +22,13 @@
 !       %X             -- X Twiss parameters
 !       %Y             -- Y Twiss parametser
 !       %VALUE(L$)     -- Set to DEL_S
-!       %VALUE(ANGLE$) -- Set appropriately for an sbend$
 !-
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/06/13 14:54:30  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.3  2002/02/23 20:32:28  dcs
 !Double/Single Real toggle added
 !
@@ -58,11 +60,6 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
 
   ele = ele2
 
-  if (ele2%key == sbend$) then
-    ele%value(angle$) =  ele2%value(angle$) * del_s / ele2%value(l$)
-    ele%value(e2$) = 0
-  endif
-
   ele%value(l$) = del_s
 
   if (present(start)) then
@@ -76,7 +73,7 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   if (present(end)) then
     end = c1
     if (ele2%key == sbend$) then
-      del = -end%x%vel / (ele%value(rho$) * (1 + end%z%vel))
+      del = -end%x%vel * ele%value(g$) / (1 + end%z%vel)
       end%x%vel = end%x%vel - del * end%x%pos
       end%y%vel = end%y%vel + del * end%y%pos
     endif

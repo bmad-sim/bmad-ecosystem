@@ -13,6 +13,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/06/13 14:54:23  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.4  2002/02/23 20:32:12  dcs
 !Double/Single Real toggle added
 !
@@ -62,7 +65,7 @@ subroutine check_ring_controls (ring, exit_on_error)
 
     if (i_t > ring%n_ele_ring) then
       if (t_type == free$ .or. t_type == super_slave$ .or. &
-          t_type == container_slave$ .or. t_type == overlay_slave$) then
+          t_type == overlay_slave$) then
         print *, 'ERROR IN CHECK_CONTROL: ELEMENT: ', ele%name
         print *, '      WHICH IS A: ', control_name(t_type)
         print *, '      IS *NOT* IN THE REGULAR PART OF RING LIST AT', i_t
@@ -70,7 +73,7 @@ subroutine check_ring_controls (ring, exit_on_error)
       endif                                             
     else                                                         
       if (t_type == super_lord$ .or. t_type == overlay_lord$ .or. &
-          t_type == group_lord$ .or. t_type == component_lord$) then
+          t_type == group_lord$) then
         print *, 'ERROR IN CHECK_CONTROL: ELEMENT: ', ele%name
         print *, '      WHICH IS A: ', control_name(t_type)
         print *, '      IS IN THE REGULAR PART OF RING LIST AT', i_t
@@ -78,9 +81,8 @@ subroutine check_ring_controls (ring, exit_on_error)
       endif
     endif
 
-    if (.not. any( (/ free$, super_slave$, container_slave$, &
-       overlay_slave$, super_lord$, overlay_lord$, group_lord$, &
-       component_lord$ /) == t_type)) then
+    if (.not. any( (/ free$, super_slave$, overlay_slave$, &
+                    super_lord$, overlay_lord$, group_lord$ /) == t_type)) then
       print *, 'ERROR IN CHECK_CONTROL: ELEMENT: ', ele%name
       print *, '      HAS UNKNOWN CONTROL INDEX: ', t_type
       found_err = .true.

@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/06/13 14:54:28  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.3  2002/02/23 20:32:23  dcs
 !Double/Single Real toggle added
 !
@@ -33,19 +36,22 @@
 #include "CESR_platform.inc"
 
 
-
 subroutine read_digested_bmad_file (in_file_name, ring, version)
 
   use bmad
 
   implicit none
 
-  type (ring_struct)   ring
-
-  integer d_unit, lunget, n_files, version, i, ix
+  type (ring_struct), target, intent(out) :: ring
+  type (ele_struct), pointer :: ele
+  type (ele_digested_struct) :: u_ele
+  
+  integer d_unit, lunget, n_files, version, i, j, k, ix
+  integer ix_w, ix_d, ix_m, ix_t(6)
+  integer stat_b(12), stat, ierr, idate_old
 
   character*(*) in_file_name
-  character*72 fname(3)
+  character*200 fname(3)
 
   logical found_it
 
@@ -53,6 +59,7 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
 
   d_unit = lunget()
   bmad_status%ok = .true.
+  ring%n_ele_ring = 0
 
   open (unit = d_unit, file = in_file_name, status = 'old',  &
                      form = 'unformatted', readonly, shared, err = 9000)
@@ -82,25 +89,28 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
     return
   endif
 
+! if the digested file is out of date then we still read in the file since
+! we can possibly reuse the taylor series.
+
   do i = 1, n_files
-    read (d_unit, err = 9100) fname(1)
+    read (d_unit, err = 9100) fname(1), idate_old
     ix = index(fname(1), ';')
-    if (ix <= 1) then
-      type *, 'READ_DIGESTED_BMAD_FILE: FILE LIST READ ERROR! ', fname(1)
-      close (d_unit)
-      bmad_status%ok = .false.
-      return
-    else
+    stat_b = 0
+    if (ix > 0) then    ! has VMS version number
       fname(2) = fname(1)(:ix-1)
+    else
+      fname(2) = fname(1)
+#ifdef CESR_UNIX
+      ierr = stat(fname(2), stat_b)
+#endif
     endif
     inquire (file = fname(2), exist = found_it, name = fname(3))
-    if (.not. found_It .or. fname(1) /= fname(3)) then
+    if (.not. found_it .or. fname(1) /= fname(3) .or. &
+                                             stat_b(10) /= idate_old) then
       if (bmad_status%type_out) then
         type *, 'READ_DIGESTED_BMAD_FILE: DIGESTED FILE OUT OF DATE.'
       endif
-      close (d_unit)
       bmad_status%ok = .false.
-      return
     endif
   enddo
 
@@ -117,9 +127,48 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
     call err_exit
   endif
 
+!
+
   do i = 0, ring%n_ele_max
-    read (d_unit, err = 9100) ring%ele_(i)
+
+    read (d_unit, err = 9100) u_ele%digested, ix_w, ix_d, ix_m, ix_t
+    u_ele%ele%pointer_init = 0              ! signal that pointers have garbage
+    call deallocate_ele_pointers (u_ele%ele)  ! and deallocate 
+
+    ele => ring%ele_(i)
+    ele = u_ele%ele
+
+    if (ix_w /= 0) then
+      allocate (ele%wig_term(ix_w))
+      do j = 1, ix_w
+        read (d_unit) ele%wig_term(j)
+      enddo
+    endif
+
+    if (ix_d /= 0) then
+      allocate (ele%descrip)
+      read (d_unit) ele%descrip
+    endif
+
+    if (ix_m /= 0) then
+      allocate (ele%a(0:n_ele_maxx), ele%b(0:n_ele_maxx))
+      read (d_unit) ele%a, ele%b
+    endif
+    
+    do j = 1, 6
+      if (ix_t(j) /= 0) then
+        allocate (ele%taylor(j)%term(ix_t(j)))
+        do k = 1, ix_t(j)
+          read (d_unit) ele%taylor(j)%term(k)
+        enddo
+      endif
+    enddo
+    
   enddo
+
+  call init_ele (ring%ele_init)  ! init pointers
+
+!
 
   if (ring%n_control_array > n_control_maxx) then
     type *, 'ERROR IN READ_DIGESTED_BMAD_FILE: NUMBER OF ELEMENTS:',  &

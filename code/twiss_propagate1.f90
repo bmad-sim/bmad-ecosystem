@@ -25,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/06/13 14:54:31  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.3  2002/02/23 20:32:29  dcs
 !Double/Single Real toggle added
 !
@@ -77,7 +80,7 @@ subroutine twiss_propagate1 (ele1, ele2)
 ! propagate c_mat coupling matrix and setup temporary element for propagation
 
 
-  if (.not. ele2%coupled) then
+  if (all(ele2%mat6(1:2,3:4) == 0)) then
 
     call mat_symp_conj (ele2%mat6(3:4,3:4), y_inv, 2, 2) ! conj == inverse
     mat2 = matmul (ele2%mat6(1:2,1:2), ele1%c_mat)

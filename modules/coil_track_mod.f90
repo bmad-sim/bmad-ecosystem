@@ -1,3 +1,41 @@
+module coil_track_mod
+
+contains
+
+subroutine b_field_mult (ring, coord, first, last, s_pos, b_vector)
+
+  use bmad
+  implicit none
+
+  type (ring_struct)  ring
+  type (coord_struct)  coord
+
+  real(rdef) s_pos(:), b_vector(3)
+  real(rdef) b_loop(3)
+
+  integer first, last, loop$, i
+
+!
+
+  loop$ = 999  ! temp so compiler will not complain
+
+  b_vector = 0.0
+
+  do i = first, last
+    if (ring%ele_(i)%key == loop$) then
+      call b_field_loop (coord, ring%ele_(i), s_pos(i - first + 1), b_loop)
+      b_vector = b_vector + b_loop
+    elseif (ring%ele_(i)%key /= drift$) then
+      type *, 'ERROR IN B_FIELD_MULT.F:'
+      type *, 'COIL CONTAINER DOES NOT KNOW HOW TO USE A ',  &
+        key_name(ring%ele_(i)%key),'.'
+      type *, 'EXITING.'
+      call err_exit
+    endif
+  enddo
+
+end subroutine
+
 !+
 ! Subroutine B_FIELD_LOOP (COORD, ELE, S_POS, B_LOOP)
 !
@@ -19,6 +57,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.1  2002/06/13 14:54:59  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.3  2002/02/23 20:32:10  dcs
 !Double/Single Real toggle added
 !
@@ -40,11 +81,22 @@ subroutine b_field_loop (coord, ele, s_pos, b_loop)
   real(rdef) coef, e, e2_inv, inv_rot_pyr(3,3), r, rel_coords(3)
   real(rdef) rot_py(3,3), tworx, v1, v2, x_rel, y_rel, z_rel
   real(rdef) pitch, cos_p, sin_p, yaw, cos_y, sin_y, roll, cos_r, sin_r
+  real(rdef) diameter, r2, ri, r2i
 
   integer x$, y$, z$
   parameter (x$ = 1, y$ = 2, z$ = 3)
 
+
+
+!------------------------------------------------------------
+! This subroutine needs to be rewritten.  -- DCS
+
   r = ele%value(radius$)
+  diameter = 2 * r
+  r2 = r**2
+  ri = r * ele%value(current$)
+  r2i = r2 * ele%value(current$)
+
   rel_coords(1) = coord%x%pos - ele%value(x_offset$)
   rel_coords(2) = coord%y%pos - ele%value(y_offset$)
   rel_coords(3) = coord%z%pos - s_pos
@@ -88,17 +140,17 @@ subroutine b_field_loop (coord, ele, s_pos, b_loop)
   x_rel = x_rel * cos_r - y_rel * sin_r
   if (x_rel/r > 0.001) then
     z_rel = rel_coords(3)
-    tworx = ele%value(diameter$) * x_rel
-    e = (x_rel**2 + z_rel**2 + ele%value(r2$)) / tworx
+    tworx = diameter * x_rel
+    e = (x_rel**2 + z_rel**2 + r2) / tworx
     e2_inv = 1.0/e**2
-    coef = ele%value(ri$) / tworx**1.5
+    coef = ri / tworx**1.5
     v1 = hypergeom(1, e2_inv) / e**1.5
     v2 = hypergeom(2, e2_inv) / e**2.5
     b_loop(x$) = coef * z_rel * v2
     b_loop(z$) = coef * (r * v1 - x_rel * v2)
   else
     b_loop(x$) = 0.0
-    b_loop(z$) = ele%value(r2i$) / (rel_coords(3)**2 + ele%value(r2$))**1.5
+    b_loop(z$) = r2i / (rel_coords(3)**2 + r2)**1.5
   endif
   b_loop(y$) = 0.0
 
@@ -118,5 +170,8 @@ subroutine b_field_loop (coord, ele, s_pos, b_loop)
 
   b_loop = matmul (inv_rot_pyr, b_loop)
 
-  return
-  end
+end subroutine
+
+end module
+
+

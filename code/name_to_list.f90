@@ -10,12 +10,12 @@
 !
 ! Input:
 !     RING         -- Ring_struct: Input ring.
-!     ELE_NAMES(*) -- Character array: list of element names. Wild card
+!     ELE_NAMES(:) -- Character*(*): list of element names. Wild card
 !                     characters may be used. The last array element must
 !                     be blank.
 !
 ! Output:
-!     USE_ELE(*)   -- Logical array: list elements referenced to the element
+!     USE_ELE(:)   -- Logical array: list elements referenced to the element
 !                    list in RING.
 !
 ! Example: The following makes a list of the quads and bends.
@@ -27,6 +27,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/06/13 14:54:28  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.4  2002/02/23 20:32:21  dcs
 !Double/Single Real toggle added
 !
@@ -52,9 +55,9 @@ subroutine name_to_list (ring, ele_names, use_ele)
   integer n, m, n_names
   integer ic
 
-  logical match_wild, use_ele(*)
+  logical match_wild, use_ele(:)
 
-  character*(*) ele_names(*)
+  character*(*) ele_names(:)
 
   logical searching
 

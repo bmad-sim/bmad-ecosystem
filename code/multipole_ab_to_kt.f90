@@ -17,6 +17,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/06/13 14:54:26  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.4  2002/02/23 20:32:20  dcs
 !Double/Single Real toggle added
 !
@@ -36,8 +39,8 @@ subroutine multipole_ab_to_kt (an, bn, knl, tn)
 
   implicit none
 
-  real(rdef) an(0:n_pole_maxx), bn(0:n_pole_maxx)
-  real(rdef) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
+  real(rdef) an(0:), bn(0:)
+  real(rdef) knl(0:), tn(0:)
   real(rdef) n_fact, a, b
 
   integer n

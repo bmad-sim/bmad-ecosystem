@@ -15,6 +15,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/06/13 14:54:23  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.4  2002/02/23 20:32:11  dcs
 !Double/Single Real toggle added
 !
@@ -36,7 +39,7 @@ subroutine c_to_cbar (ele, cbar_mat)
 
   type (ele_struct)  ele
 
-  real(rdef) cbar_mat(2,2), g_a(2,2), g_b_inv(2,2), temp(2,2)
+  real(rdef) cbar_mat(2,2), g_a(2,2), g_b_inv(2,2)
   real(rdef) sqrt_beta_a, sqrt_beta_b, alpha_a, alpha_b
 
 !

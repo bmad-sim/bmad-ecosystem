@@ -17,6 +17,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.6  2002/06/13 14:53:29  dcs
+# Interfaced with FPP/PTC
+#
 # Revision 1.5  2002/02/23 20:31:35  dcs
 # Double/Single Real toggle added
 #
@@ -70,8 +73,7 @@ MOD_SRC_DIRS  := ./modules
 OBJ_SRC_DIRS  :=
 CONFIG_DIRS   := ./lat ./layout
 LOCAL_INCS    := ./include ../include
-LOCAL_MODS    := ../modules ../recipes_f-90
-
+LOCAL_MODS    := ../modules 
 
 #-----------------------------------------------------------------------------
 # "EXTRA" variables can be specified at the command line or hardwired here.  

@@ -22,6 +22,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/06/13 14:54:27  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.3  2002/02/23 20:32:21  dcs
 !Double/Single Real toggle added
 !
@@ -39,19 +42,10 @@ subroutine multipole_kick (knl, tilt, n, coord)
 
   type (coord_struct)  coord
 
-  real(rdef) knl, tilt, c(0:n_pole_maxx, 0:n_pole_maxx), x, y, sin_ang, cos_ang
+  real(rdef) knl, tilt, x, y, sin_ang, cos_ang
   real(rdef) x_vel, y_vel
 
   integer n, m
-
-  logical init_needed / .true. /
-
-! init
-
-  if (init_needed) then
-    call multipole_c_init (c, n_pole_maxx)
-    init_needed = .false.
-  endif
 
 ! simple case
 
@@ -73,11 +67,11 @@ subroutine multipole_kick (knl, tilt, n, coord)
   y_vel = 0
 
   do m = 0, n, 2
-    x_vel = x_vel + knl * c(n, m) * mexp(x, n-m) * mexp(y, m)
+    x_vel = x_vel + knl * c_multi(n, m) * mexp(x, n-m) * mexp(y, m)
   enddo
 
   do m = 1, n, 2
-    y_vel = y_vel + knl * c(n, m) * mexp(x, n-m) * mexp(y, m)
+    y_vel = y_vel + knl * c_multi(n, m) * mexp(x, n-m) * mexp(y, m)
   enddo
 
   if (tilt == 0) then

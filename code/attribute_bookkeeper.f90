@@ -8,11 +8,12 @@
 !
 !   RFCAVITY:     rf_wavelength$ = param%total_length / harmon$
 !
-!   SBEND:        angle$ = length$ / rho_design$
-!                 l_chord$ = 2 * rho_design$ * sin(angle$/2)
+!   SBEND:        angle$   = length$ * G_design$
+!                 l_chord$ = 2 * sin(angle$/2) / G_design$
+!                 rho_bend = 1 / G_design
 !
-!   WIGGLER:      k1$ = -0.5 * (0.2997 * b_max$ / param%energy)**2
-!                 rho$ = 3.3356 * param%energy / b_max$
+!   WIGGLER:      k1$       = -0.5 * (0.2997 * b_max$ / param%energy)**2
+!                 rho_bend$ = 3.3356 * param%energy / b_max$
 !
 !
 ! Modules needed:
@@ -28,6 +29,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/06/13 14:54:21  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.4  2002/02/23 20:32:10  dcs
 !Double/Single Real toggle added
 !
@@ -58,8 +62,18 @@ subroutine attribute_bookkeeper (ele, param)
 ! Bends
 
   case (sbend$)
-    ele%value(angle$) = ele%value(l$) / ele%value(rho_design$)
-    ele%value(l_chord$) = 2 * ele%value(rho_design$) * sin(ele%value(angle$)/2) 
+    ele%value(angle$) = ele%value(l$) * ele%value(g_design$)
+    if (ele%value(l$) == 0 .or. ele%value(g_design$) == 0) then
+      ele%value(l_chord$) = 0
+    else
+      ele%value(l_chord$) = 2 * sin(ele%value(angle$)/2) / ele%value(g_design$)
+    endif
+    if (ele%value(g_design$) == 0) then
+      ele%value(rho_bend$) = 0
+    else
+      ele%value(rho_bend$) = 1 / ele%value(g$)
+    endif
+
 
 ! RFcavity
 
@@ -80,7 +94,7 @@ subroutine attribute_bookkeeper (ele, param)
 
     if (ele%value(sig_x$) == 0 .or. ele%value(sig_y$) == 0) then
       type *, 'ERROR IN ATTRIBUTE_BOOKKEEPER: ZERO SIGMA IN BEAMBEAM ELEMENT!'
-      call type_ele(ele, .true., 0, .false., .false.)
+      call type_ele(ele, .true., 0, .false., 0, .false.)
       call exit
     endif
 
@@ -99,23 +113,11 @@ subroutine attribute_bookkeeper (ele, param)
     endif
 
     if (ele%value(b_max$) == 0) then
-      ele%value(rho$) = 0
+      ele%value(rho_bend$) = 0
     else
-      ele%value(rho$) = 3.3356 * param%energy / ele%value(b_max$)
+      ele%value(rho_bend$) = 3.3356 * param%energy / ele%value(b_max$)
     endif
                        
-! Loop
-
-  case (loop$)
-
-    r = ele%value(radius$)
-    ele%value(diameter$) = 2 * r
-    ele%value(r2$) = r**2
-    ele%value(ri$) = r * ele%value(current$)
-    ele%value(r2i$) = ele%value(r2$) * ele%value(current$)
-
-!
-
   end select
 
 end subroutine

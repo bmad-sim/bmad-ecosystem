@@ -13,12 +13,15 @@
 ! Output:
 !   error -- Real(rdef): difference from symplecticity:
 !             = 0    --> perfect.
-!             = 1e-4 --> Reasonably good.
+!             = 1e-4 --> OK in some cases but I wouldn't use for long term tracking.
 !             = 1    --> Terrible.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/06/13 14:54:26  dcs
+!Interfaced with FPP/PTC
+!
 !Revision 1.3  2002/02/23 20:32:19  dcs
 !Double/Single Real toggle added
 !
