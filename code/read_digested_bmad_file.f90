@@ -39,7 +39,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   integer stat_b(12), stat, ierr, idate_old
 
   character(*) digested_name
-  character(200) fname(3)
+  character(200) fname(3), input_file_name
   character(200), allocatable :: file_names(:)
 
   logical found_it
@@ -92,8 +92,11 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 ! if the digested file is out of date then we still read in the file since
 ! we can possibly reuse the taylor series.
 
+  call simplify_path(ring%input_file_name, input_file_name)
+
   do i = 1, n_files
     read (d_unit, err = 9100) fname(1), idate_old
+    call simplify_path (fname(1), fname(1))
     if (version == 66 .or. version == 67) file_names(i) = fname(1)  ! fake out
     ix = index(fname(1), ';')
     stat_b = 0
@@ -106,15 +109,16 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 #endif
     endif
     inquire (file = fname(2), exist = found_it, name = fname(3))
+    call simplify_path (fname(3), fname(3))
     if (.not. found_it .or. fname(1) /= fname(3) .or. &
                                              stat_b(10) /= idate_old) then
       if (bmad_status%type_out .and. bmad_status%ok) print *, &
-              'READ_DIGESTED_BMAD_FILE: WARNING: DIGESTED FILE OUT OF DATE.'
+              'READ_DIGESTED_BMAD_FILE: NOTE: DIGESTED FILE OUT OF DATE.'
       bmad_status%ok = .false.
     endif
-    if (i == 1 .and. fname(2) /= ring%input_file_name) then
+    if (i == 1 .and. fname(2) /= input_file_name) then
       if (bmad_status%type_out .and. bmad_status%ok) print *, &
-                    'READ_DIGESTED_BMAD_FILE: WARNING: MOVED DIGESTED FILE.'
+                    'READ_DIGESTED_BMAD_FILE: NOTE: MOVED DIGESTED FILE.'
       bmad_status%ok = .false.
     endif
    enddo
@@ -274,5 +278,31 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   close (d_unit)
   bmad_status%ok = .false.
   return
+
+contains
+
+subroutine simplify_path (name_in, name_out)
+
+  implicit none
+
+  character(*) name_in, name_out
+  integer i, ix
+
+! 
+
+  name_out = name_in
+  out_loop: do 
+    ix = index(name_out, '/..')
+    if (ix == 0) return
+    do i = ix-1, 1, -1
+      if (name_out(i:i) == '/') then
+        name_out = name_out(:i-1) // name_out(ix+3:)
+        cycle out_loop
+      endif
+    enddo
+    name_out = name_out(ix+3:)
+  enddo out_loop
+
+end subroutine
 
 end subroutine
