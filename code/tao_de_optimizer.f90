@@ -83,6 +83,7 @@ function merit_wrapper (var_vec, end_flag) result (this_merit)
 
 use tao_mod
 use single_char_input_mod
+use tao_var_mod
 
 implicit none
 
