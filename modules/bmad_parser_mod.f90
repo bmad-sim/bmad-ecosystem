@@ -1412,10 +1412,12 @@ subroutine word_to_value (word, ring, value)
   type (ring_struct), target ::  ring
   type (ele_struct), pointer :: ele
 
-  integer i, ix1, ix2, ix_word, ios
+  integer i, ix1, ix2, ix_word, ios, ix
   real(rp) value
+  real(rp), pointer :: ptr
   character*(*) word
   character(16) name
+  logical err_flag
 
 ! see if this is numeric
 
@@ -1430,58 +1432,58 @@ subroutine word_to_value (word, ring, value)
   ix_word = len_trim(word)
   call verify_valid_name (word, ix_word)
 
-! If word has a "[...]" then it is a element attribute
+! If word does not have a "[...]" then it must be a variable
 
   ix1 = index(word, '[')
-  if (ix1 /= 0) then   
+  if (ix1 == 0) then   
+    call find_indexx (word, bp_com%var_name, &
+                                    bp_com%var_indexx, bp_com%ivar_tot, i)
+    if (i == 0) then
+      call warning ('VARIABLE USED BUT NOT YET DEFINED: ' // word)
+    else
+      value = bp_com%var_value(i)
+    endif
+    return
+  endif
 
-    name = word(:ix1-1)    ! name of attribute
+! Here if word does have a "[...]" then is a element attribute
+
+  name = word(:ix1-1)    ! name of attribute
+
+  if (name == beam_ele%name) then
+    ele => beam_ele
+
+  else
     do i = 0, ring%n_ele_max
       if (ring%ele_(i)%name == name) then
         ele => ring%ele_(i)
-        goto 1000
+        exit
       endif
     enddo
 
-    if (name == beam_ele%name) then
-      ele => beam_ele
-      goto 1000
+    if (i == ring%n_ele_max + 1) then
+      call warning ('ELEMENT NOT DEFINED: ' // name)
+      value = 0
+      return
     endif
 
-    call warning ('ELEMENT NOT DEFINED: ' // name)
-    value = 0
-    return
-
-1000 continue
-
-    ix2 = index(word, ']')
-    name = word(ix1+1:ix2-1)
-
-    if (name == 'S') then
-      if (bp_com%parser_name == 'BMAD_PARSER2') then
-        value = ele%s
-      else
-        call warning ('"S" ATTRIBUTE CAN ONLY BE USED WITH BMAD_PARSER2')
-      endif
-    else
-      i = attribute_index(ele, name)
-      if (i < 1) call warning('BAD ATTRIBUTE NAME: ' // word)
-      value = ele%value(i)
-    endif
-
-    return
   endif
 
-! None of the above? must be a variable
+  ix2 = index(word, ']')
+  name = word(ix1+1:ix2-1)
 
-  call find_indexx (word, bp_com%var_name, &
-                                    bp_com%var_indexx, bp_com%ivar_tot, i)
+  if (name == 'S' .and. bp_com%parser_name /= 'BMAD_PARSER2') then
+    call warning ('"S" ATTRIBUTE CAN ONLY BE USED WITH BMAD_PARSER2')
+  endif
 
-  if (i == 0) then
-    call warning ('VARIABLE USED BUT NOT YET DEFINED: ' // word)
+  call pointer_to_attribute (ele, name, .false., ptr, ix, err_flag, .false.)
+  if (err_flag) then
+    call warning('BAD ATTRIBUTE NAME: ' // word)
   else
-    value = bp_com%var_value(i)
+    value = ptr
   endif
+
+  return
 
 end subroutine
 
