@@ -31,7 +31,7 @@ real(rp), pointer :: value(:)
 
 integer i, ii, j, k, m, n_dat, i_uni, ie, jj
 integer ix_this, ix
-integer :: n_smooth_pts = 400
+integer :: n_smooth_pts = 401
 
 logical err, smooth_curve
 
@@ -570,14 +570,14 @@ do ii = 1, size(curve%x_line)
     value = cbar(2,2)
   case ('r:')
     if (ii == 1) call mat_make_unit (mat6)
-    if (s_now > s_last) cycle
+    if (s_now < s_last) cycle
     i = read_this_index (datum%data_type, 3); if (i == 0) return
     j = read_this_index (datum%data_type, 4); if (j == 0) return
     call tao_mat6_calc_at_s (lat, mat6, s_last, s_now, unit_start = .false.)
     value = mat6(i, j)
   case ('t:')
     if (ii == 1) call taylor_make_unit (t_map)
-    if (s_now > s_last) cycle
+    if (s_now < s_last) cycle
     i = read_this_index (datum%data_type, 3); if (i == 0) return
     j = read_this_index (datum%data_type, 4); if (j == 0) return
     k = read_this_index (datum%data_type, 5); if (k == 0) return
@@ -585,7 +585,7 @@ do ii = 1, size(curve%x_line)
     value = taylor_coef (t_map(i), j, k)
   case ('tt:')
     if (ii == 1) call taylor_make_unit (t_map)
-    if (s_now > s_last) cycle
+    if (s_now < s_last) cycle
     expnt = 0
     i = read_this_index (datum%data_type, 4); if (i == 0) return
     do j = 5, 15

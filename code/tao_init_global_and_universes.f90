@@ -78,7 +78,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   
   namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, &
                            ix_max_data, default_weight, default_data_type
-			   
+                     
   namelist / tao_var / v1_var, var, default_weight, default_step, &
                       ix_min_var, ix_max_var, default_universe, default_attribute, &
                       default_low_lim, default_high_lim
@@ -241,7 +241,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   call tao_open_file ('TAO_INIT_DIR', data_file, iu, file_name)
 
   allocate (mask(size(s%u)))
-	
+      
   do 
     mask(:) = .true.      ! set defaults
     d2_data%name = ' '
@@ -253,16 +253,22 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
                       'Init: Read tao_d2_data namelist: ' // d2_data%name)
 
     n_uni = universe      ! universe to use 
+    if (n_uni > size(s%u)) then
+      call out_io (s_abort$, r_name, &
+          'BAD UNIVERSE NUMBER IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
+      call err_exit
+    endif
+
     if (n_uni == 0) then
       uni_loop1: do i = 1, size(s%u)
 
         ! check if this data type has already been defined for this universe
-	do k = 1, size(s%u(i)%d2_data)
-	  if (trim(s%u(i)%d2_data(k)%name) .eq. trim(d2_data%name)) then
-	    mask(i) = .false.
-	    cycle uni_loop1
-	  endif
-	enddo
+      do k = 1, size(s%u(i)%d2_data)
+        if (trim(s%u(i)%d2_data(k)%name) .eq. trim(d2_data%name)) then
+          mask(i) = .false.
+          cycle uni_loop1
+        endif
+      enddo
       
         call d2_data_stuffit (s%u(i))
       enddo uni_loop1
@@ -293,7 +299,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
         uni_loop2: do i = 1, size(s%u)
 
           ! check if this data type has already been defined for this universe
-	  if (.not. mask(i)) cycle uni_loop2
+        if (.not. mask(i)) cycle uni_loop2
       
           call d1_data_stuffit (k, s%u(i), s%u(i)%n_d2_data_used)
         enddo uni_loop2
@@ -669,7 +675,7 @@ else
 endif
 
 
-			    
+                      
 
 ! Create data names
 
@@ -758,17 +764,17 @@ subroutine var_stuffit (ix_u_in)
       call tao_pointer_to_var_in_lattice (s_var, s_var%this(1), ix_u)
     else ! use found_one array
       found_one_loop: do j = j_save, size(found_one)
-        if (found_one(j)) then
-	  call tao_pointer_to_var_in_lattice (s_var, s_var%this(1), ix_u, &
-	                                      ix_ele = j)
-	  j_save = j+1
-	  exit found_one_loop
-	endif
-	if (j .eq. size(found_one)) then
-	  call out_io (s_abort$, r_name, &
-	               "Internal error in counting variables")
-	  call err_exit
-	endif
+      if (found_one(j)) then
+        call tao_pointer_to_var_in_lattice (s_var, s_var%this(1), ix_u, &
+                                            ix_ele = j)
+        j_save = j+1
+        exit found_one_loop
+      endif
+      if (j .eq. size(found_one)) then
+        call out_io (s_abort$, r_name, &
+                     "Internal error in counting variables")
+        call err_exit
+	    endif
       enddo found_one_loop
     endif
      
@@ -815,9 +821,9 @@ subroutine var_stuffit_all_uni
         if (found_one(j)) then
           do iu = 1, size(s%u)
             call tao_pointer_to_var_in_lattice (s_var, s_var%this(iu), iu, &
-	                                          ix_ele = j)
+                                                                   ix_ele = j)
           enddo
-	  j_save = j+1
+        j_save = j+1
           exit found_one_loop
         endif
       enddo found_one_loop
@@ -859,27 +865,27 @@ integer num_ele, ios, ixx1, ixx2
       ! search through all universes specified
       num_ele = 0
       if (default_universe .eq. 'gang' .or. default_universe .eq. 'clone') then
-	do iu = 1, size(s%u)
-	  num_ele = num_ele + s%u(iu)%design%n_ele_max 
-	enddo
+      do iu = 1, size(s%u)
+        num_ele = num_ele + s%u(iu)%design%n_ele_max 
+      enddo
         if (allocated(found_one)) deallocate (found_one)  
         allocate (found_one(num_ele))
-	! search in all universes
-	call search_for_vars (0, found_one) 
+      ! search in all universes
+      call search_for_vars (0, found_one) 
       elseif (any(var%universe .ne. ' ')) then
         call out_io (s_abort$, r_name, &
-	     "Cannot specify individual universes when searching for variables")
-	call err_exit
+           "Cannot specify individual universes when searching for variables")
+      call err_exit
       else
         read (default_universe, '(i)', iostat = ios) iu
-	if (ios .ne. 0) then
-	  call out_io (s_abort$, r_name, &
-	               "default_universe must be 'gang, clone or a number")
+      if (ios .ne. 0) then
+        call out_io (s_abort$, r_name, &
+                     "default_universe must be 'gang, clone or a number")
           call err_exit
-	endif
+      endif
         if (allocated(found_one)) deallocate (found_one)  
-	allocate (found_one(s%u(iu)%design%n_ele_max))
-	call search_for_vars (iu, found_one)
+      allocate (found_one(s%u(iu)%design%n_ele_max))
+      call search_for_vars (iu, found_one)
       endif
     else
       call out_io (s_abort$, r_name, &
@@ -897,7 +903,7 @@ integer num_ele, ios, ixx1, ixx2
     if (num_ele .ne. 0) then
       ixx2 = 0
       do iu = 1, size(s%u)
-	ixx1 = ixx2 + 1
+      ixx1 = ixx2 + 1
         ixx2 = ixx1 + s%u(iu)%design%n_ele_max
         do j = 1, size(found_one(ixx1:ixx2))
           if (found_one(ixx1+j-1)) then
@@ -1095,8 +1101,8 @@ integer j
     do j = 1, size(key_name)
       if (key_name(j)(1:len(trim(search_string))) .eq. search_string) then
 !      if (index(key_name(j), trim(search_string)) .ne. 0) then
-	found_key = found_key + 1
-       	key = j
+      found_key = found_key + 1
+             key = j
       endif
     enddo
     if (found_key .ne. 1) then
@@ -1154,7 +1160,7 @@ integer j, ix
   u%coupling%coupling_ele%key = match$
   u%coupling%match_to_design = coupled%match_to_design
   if (u%coupling%match_to_design) u%coupling%use_coupling_ele = .true.
-	    
+          
   ! find extraction element
   call string_trim (coupled%at_element, ele_name, ix)
   if (ix .ne. 0) then
@@ -1179,7 +1185,7 @@ integer j, ix
         if (j .eq. 0) then
           call out_io (s_abort$, r_name, &
                       "Couldn't find coupling element in universe \I\ ", &
-          	    coupled%from_universe)
+                    coupled%from_universe)
           call err_exit
         endif
       enddo
@@ -1367,5 +1373,5 @@ integer j, k, ix_ele
   enddo
 
 end subroutine init_ix_data
-		
+
 end subroutine tao_init_global_and_universes

@@ -417,8 +417,8 @@ type (tao_var_struct) var(:)
 
 var%useit_plot = var%exists .and. var%good_user .and. var%good_plot &
                                                 .and. var%good_var
-if (any(plot%who%name == 'meas')) var%useit_plot = var%useit_plot .and. var%good_meas
-if (any(plot%who%name == 'ref'))  var%useit_plot = var%useit_plot .and. var%good_ref
+if (any(plot%who%name == 'meas')) var%useit_plot = var%useit_plot
+if (any(plot%who%name == 'ref'))  var%useit_plot = var%useit_plot
 
 end subroutine
 

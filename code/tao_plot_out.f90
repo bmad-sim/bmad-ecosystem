@@ -172,7 +172,7 @@ do i = 1, 10
   endif
 
   y = (10-i) * dy_key + 5
-  call qp_draw_text (str, 20.0_rp, y, 'POINTS/PAGE', &
+  call qp_draw_text (str, 25.0_rp, y, 'POINTS/PAGE', &
                           height = dy_key-1.0_rp, uniform_spacing = .true.)
 enddo
 

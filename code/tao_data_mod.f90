@@ -330,10 +330,11 @@ case ('t:')
   k = read_this_index (datum%data_type, 5); if (k == 0) return
   if (present(taylor_in)) then
     call tao_transfer_map_calc (lattice, taylor_in, ix2, ix1, unit_start = .false.)
+    datum_value = taylor_coef (taylor_in(i), j, k)
   else
     call tao_transfer_map_calc (lattice, taylor, ix2, ix1)
+    datum_value = taylor_coef (taylor(i), j, k)
   endif
-  datum_value = taylor_coef (taylor(i), j, k)
 
 case ('tt:')
   if (ix1 < ix2) return
@@ -346,10 +347,11 @@ case ('tt:')
   enddo
   if (present(taylor_in)) then
     call tao_transfer_map_calc (lattice, taylor_in, ix2, ix1, unit_start = .false.)
+    datum_value = taylor_coef (taylor_in(i), expnt)
   else
     call tao_transfer_map_calc (lattice, taylor, ix2, ix1)
+    datum_value = taylor_coef (taylor(i), expnt)
   endif
-  datum_value = taylor_coef (taylor(i), expnt)
 
 case ('floor:x')
   datum_value = lattice%ele_(ix1)%floor%x - lattice%ele_(ix2)%floor%x
@@ -707,7 +709,7 @@ subroutine tao_transfer_map_calc (lat, t_map, ix1, ix2, &
 
 
   if (i2 < i1 .or. one_turn_this) then
-    do i = i1, lat%n_ele_use
+    do i = i1+1, lat%n_ele_use
       call add_on_to_t_map
     enddo
     do i = 1, i2
@@ -715,7 +717,7 @@ subroutine tao_transfer_map_calc (lat, t_map, ix1, ix2, &
     enddo
 
   else
-    do i = i1, i2
+    do i = i1+1, i2
       call add_on_to_t_map
     enddo
   endif
@@ -821,15 +823,17 @@ subroutine tao_transfer_map_calc_at_s (lat, t_map, s1, s2, &
   endif
 
 !--------------------------------------------------------
+! Known problems:
+!   1) map type wigglers not treated properly.
+!   2) need to reuse the taylor map? (is time really an issue?)
+
 contains
 
 subroutine transfer_this (s_1, s_2)
 
-  real(rp) s_1, s_2, s_now, s_ele_end
-  real(rp), save :: ds_old = -1
+  real(rp) s_1, s_2, s_now, s_end, ds
   integer ix_ele
   type (ele_struct), save :: ele
-
 
 !
 
@@ -838,47 +842,31 @@ subroutine transfer_this (s_1, s_2)
   s_now = s_1
 
   do
-    if (s_2 > lat%ele_(ix_ele)%s) then
-      s_ele_end = lat%ele_(ix_ele)%s
-      call add_on_to_t_map (ele, s_now, s_ele_end)
-      s_now = s_ele_end
-      ix_ele = ix_ele + 1
-      ele = lat%ele_(ix_ele)
-      ds_old = -1
-    else
-      call add_on_to_t_map (ele, s_now, s_2)
-      ds_old = s_2 - s_now
-      return
-    endif
-  enddo
-
-end subroutine
-
-!--------------------------------------------------------
-
-subroutine add_on_to_t_map (ele, s_11, s_22)
-
-  real(rp) s_11, s_22, ds 
-  type (ele_struct) ele
-!
-
-  if (ele%key == marker$) return
-  ds = s_22 - s_11 
-
-  if (abs(ds - ele%value(l$)) > 1e-6) then
+    s_end = min(s_2, ele%s)
+    ds = s_end - s_now
     ele%value(l$) = ds
-    call kill_taylor (ele%taylor)
-  endif
-
-  if (integrate_this) then
-    call taylor_propagate1 (t_map, ele, lat%param)
-  else
-    if (.not. associated(ele%taylor(1)%term)) then
-      call ele_to_taylor (ele, lat%param)
+    if (ele%key == sbend$) then
+      if (s_now /= lat%ele_(ix_ele-1)%s) ele%value(e1$) = 0
+      if (s_end /= ele%s) ele%value(e2$) = 0
     endif
 
-    call concat_taylor (t_map, ele%taylor, t_map)
-  endif
+    call kill_taylor (ele%taylor)
+
+    if (integrate_this) then
+      call taylor_propagate1 (t_map, ele, lat%param)
+    else
+      if (.not. associated(ele%taylor(1)%term)) then
+        call ele_to_taylor (ele, lat%param)
+      endif
+
+      call concat_taylor (t_map, ele%taylor, t_map)
+    endif
+
+    if (s_end == s_2) return
+    s_now = s_end
+    ix_ele = ix_ele + 1
+    ele = lat%ele_(ix_ele)
+  enddo
 
 end subroutine
 
@@ -957,12 +945,15 @@ subroutine tao_mat6_calc_at_s (lat, mat6, s1, s2, one_turn, unit_start)
   endif
 
 !--------------------------------------------------------
+! Known problems:
+!   1) map type wigglers not treated properly.
+!   2) need to reuse mat6? (is time really an issue?)
+
 contains
 
 subroutine transfer_this (s_1, s_2)
 
-  real(rp) s_1, s_2, s_ele_end, s_now
-  real(rp), save :: ds_old = -1
+  real(rp) s_1, s_2, s_end, s_now, ds
   integer ix_ele
 
 !
@@ -972,39 +963,22 @@ subroutine transfer_this (s_1, s_2)
   s_now = s_1
 
   do
-    if (s_2 > lat%ele_(ix_ele)%s) then
-      s_ele_end = lat%ele_(ix_ele)%s
-      call add_on_to_mat6 (s_now, s_ele_end)
-      s_now = s_ele_end
-      ix_ele = ix_ele + 1
-      ele = lat%ele_(ix_ele)
-      ds_old = -1
-    else
-      call add_on_to_mat6 (s_now, s_2)
-      ds_old = s_2 - s_now
-      return
-    endif
-  enddo
-
-end subroutine
-
-!--------------------------------------------------------
-
-subroutine add_on_to_mat6 (s_11, s_22)
-
-  real(rp) s_11, s_22, ds 
-
-!
-
-  if (ele%key == marker$) return
-  ds = s_22 - s_11 
-
-  if (abs(ds - ele%value(l$)) > 1e-6) then
+    s_end = min(s_2, ele%s)
+    ds = s_end - s_now
     ele%value(l$) = ds
-    call make_mat6 (ele, lat%param)
-  endif
+    if (ele%key == sbend$) then
+      if (s_now /= lat%ele_(ix_ele-1)%s) ele%value(e1$) = 0
+      if (s_end /= ele%s) ele%value(e2$) = 0
+    endif
 
-  mat6 = matmul (ele%mat6, mat6)
+    call make_mat6 (ele, lat%param)
+    mat6 = matmul (ele%mat6, mat6)
+
+    if (s_end == s_2) return
+    s_now = s_end
+    ix_ele = ix_ele + 1
+    ele = lat%ele_(ix_ele)
+  enddo
 
 end subroutine
 
@@ -1055,16 +1029,16 @@ subroutine tao_ele_at_s (lat, s, ix_ele)
   do
 
     if (n3 == n1 + 1) then
-      ix_ele = n1
+      ix_ele = n3
       return
     endif
 
     n2 = (n1 + n3) / 2
 
-    if (ss < lat%ele_(n2)%s) then
-      n3 = n2
-    else
+    if (lat%ele_(n2)%s < ss) then
       n1 = n2
+    else
+      n3 = n2
     endif
 
   enddo

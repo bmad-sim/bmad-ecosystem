@@ -248,8 +248,6 @@ end type
 !
 ! %exists     -- The variable exists. Non-existant variables can serve as place
 !                  holders in the u%var array.
-! %good_meas  -- Set by the routine that reads in a data set. Good_meas may be 
-! %good_ref   -- Like good_meas this is set for a reference data set.
 ! %good_var   -- The variable can be varied. Eg: Permanent magnet quads are 
 !                  generally considered not to be variables.
 ! %good_user  -- What the user has selected using the use, veto, and restore 
@@ -298,8 +296,6 @@ type tao_var_struct
   real(rp) s                ! longitudinal position of ele.
   character(16) merit_type  ! 'target' or 'limit'
   logical exists            ! See above
-  logical good_meas         ! See above
-  logical good_ref          ! See above
   logical good_var          ! See above
   logical good_user         ! See above
   logical good_opt          ! See above

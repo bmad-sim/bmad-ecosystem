@@ -328,8 +328,8 @@ case ('ele')
     nl = nl + 1
 
     ! Show the element info
-    call type2_ele (u%model%ele_(loc), .true., 6, .false., &
-                  s%global%phase_units, .true., ptr_lines, n, u%model)
+    call type2_ele (u%model%ele_(loc), ptr_lines, n, .true., 6, .false., &
+                                        s%global%phase_units, .true., u%model)
     lines(nl+1:nl+n) = ptr_lines(1:n)
     nl = nl + n
     deallocate (ptr_lines)
@@ -424,26 +424,6 @@ case ('lattice')
     return
   endif
 
-! call tao_locate_element (show_word2, u%model, ix1); if (ix1 < 0) return
-! call tao_locate_element (show_word3, u%model, ix2); if (ix2 < 0) return
-  
-! if (ix1 > u%model%n_ele_ring) then
-!   ix = u%model%ele_(ix1)%ix1_slave
-!   ix1 = u%model%control_(ix)%ix_slave
-! endif
-
-! if (ix2 > u%model%n_ele_ring) then
-!   ix = u%model%ele_(ix2)%ix2_slave
-!   ix2 = u%model%control_(ix)%ix_slave
-! endif
-
-! if ((ix2 - ix1 + 1) .gt. max_lines) then
-!   call out_io (s_blank$, r_name, "Too many elements!")
-!   call out_io (s_blank$, r_name, "Listing first \i5\ elements after element" &
-!                                   // show_word3, max_lines)
-!   ix2 = ix1 + max_lines - 1
-! endif
-
   if (.true.) then
     at_ends = .true.
     write (lines(nl+1), '(37x, a)') 'Model values at End of Element:'
@@ -523,14 +503,14 @@ case ('optimizer')
 case ('plots')
 
   nl=nl+1; lines(nl) = '   '
-  nl=nl+1; lines(nl) = 'Templates: Plot: Graphs'
-  do i = 1, size(s%plot_page%plot)
+  nl=nl+1; lines(nl) = 'Template Plots: Graphs'
+  do i = 1, size(s%template_plot)
     plot => s%template_plot(i)
+    nl=nl+1; write (lines(nl), '(4x, 2a)') trim(plot%name), ' :'
     if (associated(plot%graph)) then
-      nl=nl+1; write (lines(nl), '(4x, 2a, t20, 99a)') trim(plot%name), &
-                      ':', (plot%graph(j)%name, j = 1, size(plot%graph))
-    else
-      nl=nl+1; write (lines(nl), '(4x, a)') trim(plot%name)
+      do j = 1, size(plot%graph)
+        nl=nl+1; write (lines(nl), '(20x, a)') plot%graph(j)%name
+      enddo
     endif
   enddo
 
@@ -538,15 +518,6 @@ case ('plots')
   do i = 1, size(s%plot_page%plot)
     plot => s%plot_page%plot(i)
     nl=nl+1; lines(nl) = '   ' // plot%region%name // '<-->  ' // plot%name
-  enddo
-
-
-  nl=nl+1; lines(nl) = ' '
-  nl=nl+1; lines(nl) = ' '
-  nl=nl+1; lines(nl) = 'Available templates:'
-  do i = 1, size(s%template_plot)
-    if (s%template_plot(i)%name .ne. ' ') &
-      nl=nl+1; lines(nl) = '   ' // s%template_plot(i)%name
   enddo
 
   call out_io (s_blank$, r_name, lines(1:nl))
