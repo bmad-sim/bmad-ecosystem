@@ -196,4 +196,128 @@ subroutine transfer_ring_parameters (ring_in, ring_out)
 
 end subroutine
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine transfer_taylor (ring_in, ring_out, type_out)
+!
+! Subroutine to transfer the taylor maps from the elements of one ring to
+! the elements of another. The elements are matched between the rings so 
+! that the appropriate element in ring_out will get the correct Taylor map
+! even if the order of the elements is different in the 2 rings.
+!
+! Note: The transfered Taylor map will be truncated to bmad_com%taylor_order.
+! Note: If the taylor_order of an element in ring_in is less than 
+!   bmad_com%taylor_order then it will not be used.  
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ring_in   -- Ring_struct: Input ring with Taylor maps.
+!   type_out  -- Logical: If True then print a message for each Taylor map
+!                 transfered.
+!
+! Output:
+!   ring_out  -- Ring_struct: Ring to receive the Taylor maps.
+!-
+
+subroutine transfer_taylor (ring_in, ring_out, type_out)
+
+  implicit none
+
+  type (ring_struct), target, intent(in) :: ring_in
+  type (ring_struct), target, intent(inout) :: ring_out
+  type (ele_struct), pointer :: ele_in, ele_out
+
+  integer i, j, k, it, ix
+  integer n_in, ix_in(n_ele_maxx)
+ 
+  logical, intent(in)  :: type_out
+  logical vmask(n_attrib_maxx)  
+
+! check global parameters
+
+  if (ring_in%param%beam_energy /= ring_out%param%beam_energy) then
+    if (type_out) then
+      print *, 'TRANSFER_TAYLOR: THE RING ENERGIES ARE DIFFERENT.'
+      print *, '    TAYLOR MAPS NOT TRANSFERED.'
+    endif
+    return
+  endif
+
+! Find the taylor series in the first ring.
+
+  do i = 1, ring_in%n_ele_max
+    if (associated(ring_in%ele_(i)%taylor(1)%term)) then
+      if (bmad_com%taylor_order > ring_in%ele_(i)%taylor_order) cycle
+      n_in = n_in + 1
+      ix_in(n_in) = i
+    endif
+  enddo
+
+! go through ring_out and match elements
+
+  do i = 1, ring_out%n_ele_max
+
+    ele_out => ring_out%ele_(i)
+
+    vmask = .true.
+    if (ele_out%key == wiggler$) vmask((/k1$, rho$, b_max$/)) = .false.
+
+    do j = 1, n_in
+      ele_in => ring_in%ele_(ix_in(j))
+      if (ele_in%key /= ele_out%key) cycle
+      if (ele_in%name /= ele_out%name) cycle
+      if (any(ele_in%value /= ele_out%value .and. vmask)) cycle
+      if (ele_in%num_steps /= ele_out%num_steps) cycle
+      if (ele_in%integration_order /= ele_out%integration_order) cycle
+      if (associated(ele_in%wig_term) .and. associated(ele_out%wig_term)) then
+        if (size(ele_in%wig_term) /= size(ele_out%wig_term)) cycle
+        do it = 1, size(ele_in%wig_term)
+          if (ele_in%wig_term(it)%coef /= ele_out%wig_term(it)%coef) cycle
+          if (ele_in%wig_term(it)%kx /= ele_out%wig_term(it)%kx) cycle
+          if (ele_in%wig_term(it)%ky /= ele_out%wig_term(it)%ky) cycle
+          if (ele_in%wig_term(it)%kz /= ele_out%wig_term(it)%kz) cycle
+          if (ele_in%wig_term(it)%phi_z /= ele_out%wig_term(it)%phi_z) cycle
+        enddo
+      elseif (associated(ele_in%wig_term) .xor. &
+                                          associated(ele_out%wig_term)) then
+        cycle
+      endif
+      exit
+    enddo
+
+    if (j == n_in + 1) cycle
+
+! we have a match so transfer the Taylor map.
+
+    if (type_out) print *, &
+                    'TRANSFER_TAYLOR: Reusing Taylor for: ', ele_in%name
+
+    do it = 1, 6
+      ix = 0
+      do k = 1, size(ele_in%taylor(it)%term)
+       if (sum(ele_in%taylor(it)%term(k)%exp(:)) <= &
+                                      bmad_com%taylor_order) ix = ix + 1
+      enddo
+      allocate (ele_out%taylor(it)%term(ix))
+      ix = 0
+      do k = 1, size(ele_in%taylor(it)%term)
+       if (sum(ele_in%taylor(it)%term(k)%exp(:)) <= &
+                                      bmad_com%taylor_order) then
+          ix = ix + 1
+          ele_out%taylor(it)%term(ix) = ele_in%taylor(it)%term(ix)
+        endif      
+      enddo
+    enddo
+
+    ele_out%taylor_order = bmad_com%taylor_order
+    ele_out%taylor(it)%ref = ele_in%taylor(it)%ref
+
+  enddo
+
+end subroutine
+
 end module
