@@ -284,7 +284,7 @@ subroutine transfer_taylor (ring_in, ring_out, type_out)
 ! we have a match so transfer the Taylor map.
 
         if (type_out) print *, 'TRANSFER_TAYLOR: ', &
-              'Reusing Taylor from: ', ele_in%name, '  to: ', ele_out%name
+             'Reusing Taylor from: ', trim(ele_in%name), '  to: ', ele_out%name
 
         do it = 1, 6
           ix = 0
@@ -310,6 +310,10 @@ subroutine transfer_taylor (ring_in, ring_out, type_out)
       endif
 
     enddo
+
+    if (ele_out%tracking_method == taylor$ .or. &
+              ele_out%mat6_calc_method == taylor$ .and. type_out) &
+              print *, 'TRANSFER_TAYLOR: NO TAYLOR FOR: ', ele_out%name
 
   enddo
 
