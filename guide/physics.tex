@@ -4,10 +4,10 @@
 
 BMAD uses SI (Syst\'eme International) units as shown in
 Table~\ref{t:units}.  Note that MAD uses different units. For example,
-MAD's unit of Particle Energy is GeV.
-
+MAD's unit of Particle Energy is GeV not eV.
 
 \begin{table}
+\centering
 \begin{tabular}{|l|l|} \hline
   {\em Quantity}     & {\em Units}     \\ \hline
   Angles             &    radians      \\ 
@@ -31,6 +31,7 @@ BMAD defines comonally used constants as shown in Table~\ref{t:constants}.
 All symbols use straight SI units except for \vn{e\_mass} and \vn{p\_mass} which are provided for compatibility with MAD.
 
 \begin{table}
+\centering
 \begin{tabular}{|l|l|l|l|} \hline
   {\em Symbol}   & {\em Value}       & {\em Units} &  {\em Name}     \\ \hline
   pi             & 3.14159265359          &        &                   \\
@@ -44,7 +45,7 @@ All symbols use straight SI units except for \vn{e\_mass} and \vn{p\_mass} which
   r\_p           & $1.5346980 \pow{-18}$  & m      & Proton radius     \\
   e\_charge      & $1.6021892 \pow{-19}$  & C      & Electron charge   \\
   h\_planck      & $6.626196 \pow{-34}$   & J/Hz   & Planck's constant \\
-  h\_bar\_planck & $1.054591 \pow{-34}$   & J s    & Planck / twopi    \\
+  h\_bar\_planck & $1.054591 \pow{-34}$   & J s    & Planck / $2\pi$   \\
   e\_mass        & $0.51099906 \pow{-3}$  & GeV    & Electron mass     \\
   p\_mass        & $0.938271998$          & GeV    & Proton mass     \\ \hline
 \end{tabular}
@@ -66,8 +67,9 @@ Assuming that the Reference Orbit is locally along a straight line
 (there are correction terms if the Reference Orbit is locally curved) the 
 Field up to $3^{rd}$ order is
 \begin{alignat}{4}
-  B_x &=        &B_1 y + &B_2 xy + & \frac{1}{6} B_3 (3x^2 y - y^3) + \ldots \\
-  B_y &= B_0 +  &B_1 x + & \frac{1}{2} B_2 (x^2 - y^2) + 
+  B_x &=        &B_1 y \, + \, &B_2 xy + 
+                                   & \frac{1}{6} B_3 (3x^2 y - y^3) + \ldots \\
+  B_y &= B_0 +  &B_1 x \, + \, & \frac{1}{2} B_2 (x^2 - y^2) + 
                                    & \frac{1}{6} B_3 (x^3 - 3x y^2) + \ldots
 \end{alignat}
 When specifying magnetic multipole components what is used is the
@@ -83,8 +85,8 @@ of strength $B$. In terms of the kicks $\Delta p_x$ and $\Delta p_y$
 given a particle going through a multipole field is
 \begin{alignat}{4}
   \Delta p_x &= \frac{-c\, L \, B_y}{E_0} \\
-             &= -K_0L - &K_1L x + & \frac{1}{2} K_2 (y^2 - x^2) + 
-                                & \frac{1}{6} K_3 (3x y^2 - x^3) + \ldots \\
+             &= -K_0L - &K_1L x + & \frac{1}{2} K_2L (y^2 - x^2) + 
+                                & \frac{1}{6} K_3L (3x y^2 - x^3) + \ldots \\
   \Delta p_y &= \frac{c\, L \, B_x}{E_0} \\
              &=        &K_1L y + &K_2L xy + 
                                 & \frac{1}{6} K_3L (3x^2 y - y^3) + \ldots 
@@ -96,8 +98,8 @@ If the fields associated with a particular $B_n$ multipole component
 are rotated in the $(x, y)$ plane by an angle $\phi_n$ the magnetic
 field at a point $(x,y)$ can be expressed as
 \Begineq
-  B_y(x,y) + i B_x(x,y) = 
-                \frac{1}{n!} K_nL e^{-i(n+1)\phi_n} \, e^{i n \theta} \, r^n 
+  (B_y(x,y) + i B_x(x,y)) = 
+                \frac{1}{n!} B_n e^{-i(n+1)\phi_n} \, e^{i n \theta} \, r^n 
 \Endeq
 where $(r, \theta)$ are the polar coordinates of the point $(x, y)$.
 
@@ -107,7 +109,7 @@ components the magnetic field is
 \Begineq
   \frac{c \, L}{E_0} \, (B_y + i B_x) = (b_n + i a_n) \, (x + i y)^n
 \Endeq
-The conversion between $a_n$/$b_n$ and $K_nL$/$\phi_n$ is
+The conversion between $a_n$,$b_n$ and $K_nL$,$\phi_n$ is
 \Begineq
   b_n + i a_n = \frac{1}{n!} \, K_nL \, e^{-i(n+1)\phi_n)}
 \Endeq
