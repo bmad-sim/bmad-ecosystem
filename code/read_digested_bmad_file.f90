@@ -66,7 +66,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
     if (bmad_status%type_out) print *,  &
            'READ_DIGESTED_BMAD_FILE: DIGESTED FILE VERSION OUT OF DATE',  &
             version, ' <', bmad_inc_version$
-    if (version == 66) then 
+    if (version == 66 .or. version == 67) then 
       allocate (file_names(n_files))
     else
       close (d_unit)
@@ -94,7 +94,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
   do i = 1, n_files
     read (d_unit, err = 9100) fname(1), idate_old
-    if (version == 66) file_names(i) = fname(1)  ! fake out
+    if (version == 66 .or. version = 67) file_names(i) = fname(1)  ! fake out
     ix = index(fname(1), ';')
     stat_b = 0
     if (ix > 0) then    ! has VMS version number
@@ -122,11 +122,19 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 ! we read (and write) the ring in pieces since it is
 ! too big to write in one piece
 
-  read (d_unit, err = 9100)  &   
+  if (version == 68) then
+    read (d_unit, err = 9100)  &   
           ring%name, ring%lattice, ring%input_file_name, ring%title, &
           ring%x, ring%y, ring%z, ring%param, ring%version, ring%n_ele_ring, &
           i_garbage, ring%n_ele_use, ring%n_ele_max, &
           ring%n_control_max, ring%n_ic_max, ring%input_taylor_order
+  else
+    read (d_unit, err = 9100)  &   
+          ring%name, ring%lattice, ring%input_file_name(1:80), ring%title, &
+          ring%x, ring%y, ring%z, ring%param, ring%version, ring%n_ele_ring, &
+          i_garbage, ring%n_ele_use, ring%n_ele_max, &
+          ring%n_control_max, ring%n_ic_max, ring%input_taylor_order
+  endif
 
   call allocate_ring_ele_(ring, ring%n_ele_max+100)
   allocate (ring%control_(ring%n_control_max+100))
