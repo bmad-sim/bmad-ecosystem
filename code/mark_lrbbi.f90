@@ -50,7 +50,7 @@ subroutine MARK_LRBBI(master_ring, master_ring_oppos, ring, crossings)
 
   type (ring_struct), dimension(:) :: ring
   type (ring_struct) :: master_ring, master_ring_oppos
-  type (coord_struct), allocatable :: orbit_(:), orbit_oppos_(:)
+  type (coord_struct), allocatable, save :: orbit_(:), orbit_oppos_(:)
   type (ele_struct) :: insert_ele
 
   real(rp), dimension(:,:) :: crossings
@@ -138,8 +138,8 @@ subroutine MARK_LRBBI(master_ring, master_ring_oppos, ring, crossings)
 
 !
 
-  allocate (orbit_(0:master_ring%n_ele_max))
-  allocate (orbit_oppos_(0:master_ring%n_ele_max))
+  call reallocate_coord (orbit_,master_ring%n_ele_max)
+  call reallocate_coord (orbit_oppos_,master_ring%n_ele_max)
 
   call closed_orbit_at_start (master_ring, orbit_(0), 4, .true.)
   call track_all(master_ring, orbit_)
@@ -157,7 +157,5 @@ subroutine MARK_LRBBI(master_ring, master_ring_oppos, ring, crossings)
 
 !--------------------------------------------------------------------------
 
-  deallocate (orbit_)
-  deallocate (orbit_oppos_)
 
 end subroutine
