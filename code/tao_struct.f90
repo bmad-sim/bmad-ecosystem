@@ -326,8 +326,6 @@ type tao_global_struct
                                      ! Minimum y_max-y_min allowed for a graph.
   integer :: u_view = 1              ! Which universe we are viewing.
   integer :: n_opti_cycles = 20      ! number of optimization cycles
-  integer :: lun_command_file = 0    ! unit number for a command file.
-                                     !  0 -> no command file.
   integer :: ix_key_bank = 0         ! For single mode.
   integer :: phase_units = radians$  ! Phase units on output.
   integer :: bunch_to_plot = 1       ! Which bunch to plot
@@ -453,6 +451,9 @@ type tao_common_struct
   character(40) cmd_arg(9) ! Command file arguments.
   character(100) cmd
   integer :: n_alias = 0
+  integer :: nest_level = 0 ! for nested command files
+              ! unit numbers for a command files. 0 -> no command file.
+  integer, pointer :: lun_command_file(:) => null() 
   logical :: use_cmd_here  = .false. ! Used for the cmd history stack
 end type
 

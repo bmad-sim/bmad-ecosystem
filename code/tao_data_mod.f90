@@ -171,10 +171,10 @@ case ('phase:y')
 case ('beta:x')
   if (s%global%track_type .eq. "single") then
     call load_it (lattice%ele_(:)%x%beta)
+  elseif (s%global%track_type .eq. "beam") then
+    datum_value = u%beam%params%x%beta
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%x%beta
-  else
-    datum_value = 0.0
   endif
     
 case ('beta:y')
@@ -184,8 +184,6 @@ case ('beta:y')
     datum_value = u%beam%params%y%beta
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%y%beta
-  else
-    datum_value = 0.0
   endif
 
 case ('alpha:x')
@@ -195,8 +193,6 @@ case ('alpha:x')
     datum_value = u%beam%params%x%alpha
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%x%alpha
-  else
-    datum_value = 0.0
   endif
   
 case ('alpha:y')
@@ -206,8 +202,6 @@ case ('alpha:y')
     datum_value = u%beam%params%y%alpha
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%y%alpha
-  else
-    datum_value = 0.0
   endif
 
 case ('eta:x')
@@ -621,11 +615,11 @@ logical err
   endif
 
   if (axis .eq. x$) then
-    reading =  (orb%vec(1) - ele%value(x_offset$)) * cos(ele%value(tilt$)) + &
-               (orb%vec(3) - ele%value(y_offset$)) * sin(ele%value(tilt$))              
+    reading =  (orb%vec(1) - ele%value(x_offset_tot$)) * cos(ele%value(tilt_tot$)) + &
+               (orb%vec(3) - ele%value(y_offset_tot$)) * sin(ele%value(tilt_tot$))              
   elseif (axis .eq. y$) then
-    reading = -(orb%vec(1) - ele%value(x_offset$)) * sin(ele%value(tilt$)) + &
-               (orb%vec(3) - ele%value(y_offset$)) * cos(ele%value(tilt$))  
+    reading = -(orb%vec(1) - ele%value(x_offset_tot$)) * sin(ele%value(tilt_tot$)) + &
+               (orb%vec(3) - ele%value(y_offset_tot$)) * cos(ele%value(tilt_tot$))  
   else
     call out_io (s_warn$, r_name, &
                  "This axis not supported for BPM reading!")

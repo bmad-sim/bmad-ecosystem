@@ -294,7 +294,11 @@ subroutine tao_command (command_line, err)
     case ('universe')
       call tao_to_int (cmd_word(2), uni, err)
       if (err) return
-      call tao_set_uni_cmd (uni, cmd_word(3))
+      if (cmd_word(4) .eq. "recalc") then
+        call tao_set_uni_cmd (uni, cmd_word(3), .true.)
+      else
+        call tao_set_uni_cmd (uni, cmd_word(3), .false.)
+      endif
     case default
       call out_io (s_error$, r_name, 'NOT RECOGNIZED: ' // cmd_word(1))
     end select

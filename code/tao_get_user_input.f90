@@ -67,25 +67,35 @@ endif
 
 ! If a command file is open then read a line from the file.
 
-if (s%global%lun_command_file /= 0) then
+if (tao_com%nest_level /= 0) then
   if (.not. multi_commands_here) then
-    read (s%global%lun_command_file, '(a)', end = 8000) cmd_line
+    read (tao_com%lun_command_file(tao_com%nest_level), '(a)', end = 8000) cmd_line
     call string_trim (cmd_line, cmd_line, ix)
+
+    ! replace argument variables
     if (cmd_line(1:5) == 'alias') return
     do i = 1, 9
       ix = index (cmd_line, str(i))
       if (ix /= 0) cmd_line = cmd_line(1:ix-1) // trim(tao_com%cmd_arg(i)) // &
                               cmd_line(ix+3:)
     enddo
+    
     write (*, '(3a)') trim(s%global%prompt_string), ': ', trim(cmd_line)
+    
+    ! Check if in a do loop
+    call do_loop()
+    
   endif
   call alias_translate (cmd_line, err)
   call check_for_multi_commands
+
   return
 
   8000 continue
-  close (s%global%lun_command_file)
-  s%global%lun_command_file = 0 ! signal that the file has been closed
+  close (tao_com%lun_command_file(tao_com%nest_level))
+  tao_com%lun_command_file(tao_com%nest_level) = 0 
+  tao_com%nest_level = tao_com%nest_level - 1 ! signal that the file has been closed
+  if (tao_com%nest_level .ne. 0) return ! still lower nested command file to complete
 endif
 
 ! Here if no command file is being used.
@@ -166,6 +176,105 @@ subroutine check_for_multi_commands
   endif
 
 end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+! contains
+!
+! Right now, no nested do loops
+
+subroutine do_loop
+
+integer indx, indx_start, indx_end ! for do loops
+
+character(6) do_word ! 'do' or 'enddo'
+character(10) indx_name ! do loop index name
+character(15) indx_char
+character(8) :: r_name = "do_loop"
+
+logical, save :: in_loop = .false.
+
+integer, save :: loop_line_count
+
+  do_word = ' '
+  call string_trim (cmd_line, cmd_line, ix)
+  if (ix .le. len(do_word)) &
+    call str_upcase(do_word(1:ix), cmd_line(1:ix))
+  if (ix .eq. 2 .and. do_word(1:3) .eq. "DO ") then
+    in_loop = .true.
+    ! next word is loop index
+    indx_name = ' '
+    call string_trim (cmd_line(ix+1:), cmd_line, ix)
+    indx_name(1:ix) = cmd_line(1:ix)
+    ! now index start
+    call string_trim (cmd_line(ix+1:), cmd_line, ix)
+    read (cmd_line(1:ix), '(I)') indx_start
+    ! now index end
+    call string_trim (cmd_line(ix+1:), cmd_line, ix)
+    read (cmd_line(1:ix), '(I)') indx_end
+    indx = indx_start - 1 ! add one before first loop below
+
+    ! count loop statements so I know how many records to backspace on 'ENDDO"
+    loop_line_count = 0
+    do 
+      read (tao_com%lun_command_file(tao_com%nest_level), '(a)', end = 9000) cmd_line
+      write (*, '(3a)') trim(s%global%prompt_string), ': ', trim(cmd_line)
+      call string_trim (cmd_line, cmd_line, ix)
+      do_word = ' '
+      if (ix .le. len(do_word)) &
+        call str_upcase(do_word(1:ix), cmd_line(1:ix))
+      if (ix .eq. 5 .and. do_word(1:6) .eq. "ENDDO ") exit
+      if (ix .eq. 2 .and. do_word(1:3) .eq. "DO ") &
+        call out_io (s_error$, r_name, "Nested do loops not allowed!")
+      loop_line_count = loop_line_count + 1
+    enddo
+  endif
+
+  ! check if hit 'ENDDO'
+  call string_trim (cmd_line, cmd_line, ix)
+  do_word = ' '
+  if (ix .le. len(do_word)) &
+    call str_upcase(do_word(1:ix), cmd_line(1:ix))
+  if (ix .eq. 5 .and. do_word(1:6) .eq. "ENDDO ") then
+    if (.not. in_loop) then
+      call out_io (s_error$, r_name, &
+                   "ENDDO found without correspoding DO statement")
+      return
+    endif
+    indx = indx + 1
+    if (indx .le. indx_end) then
+      ! rewind
+      do i = 1, loop_line_count+1
+        backspace (tao_com%lun_command_file(tao_com%nest_level))
+      enddo
+    else
+      in_loop = .false.
+    endif
+    ! read next line
+    read (tao_com%lun_command_file(tao_com%nest_level), '(a)', end = 9000) cmd_line
+  endif
+  
+  ! insert index name variable
+  if (in_loop) then
+    ix = index (cmd_line, '[' // trim(indx_name) // ']')
+    if (ix /= 0) then
+      write (indx_char, '(I)') indx
+      cmd_line = cmd_line(1:ix-1) // trim(indx_char) // &
+                                cmd_line(ix+len_trim(indx_char):)
+    endif
+  endif
+
+  return
+
+  ! No 'ENDDO' statement
+  9000 continue
+  call out_io (s_error$, r_name, "No corresponding 'enddo' statment found")
+  close (tao_com%lun_command_file(tao_com%nest_level))
+  tao_com%lun_command_file(tao_com%nest_level) = 0 
+  tao_com%nest_level = tao_com%nest_level - 1 ! signal that the file has been closed
+  in_loop = .false.
+
+end subroutine do_loop
 
 end subroutine tao_get_user_input
 

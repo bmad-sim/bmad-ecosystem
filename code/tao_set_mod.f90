@@ -614,20 +614,21 @@ end subroutine tao_set_data_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_universe_cmd (uni, on_off)
+! Subroutine tao_set_uni_cmd (uni, on_off, recalc)
 !
 ! turns a universe of or off
 !
 ! Input:
 !  uni       -- Integer: which universe; 0 => all off (if you really want to)
 !  on_off    -- Character(*): "on" or "off"
+!  recalc    -- Logical: Recalculate lattices
 !
 ! Output:
 !  s%u(uni)%is_on
 !
 !-
 
-subroutine tao_set_uni_cmd (uni, on_off)
+subroutine tao_set_uni_cmd (uni, on_off, recalc)
 
 implicit none
 
@@ -636,7 +637,7 @@ integer uni, i
 character(*) on_off
 character(20) :: r_name = "tao_set_universe_cmd"
 
-logical is_on
+logical is_on, recalc
 
   call str_upcase (on_off, on_off)
 
@@ -665,7 +666,7 @@ logical is_on
   endif
 
   ! make sure lattice calculation is up to date if turning lattice on
-  if (is_on) s%global%lattice_recalc = .true.
+  if (recalc) s%global%lattice_recalc = .true.
   
 end subroutine tao_set_uni_cmd
 
