@@ -3,6 +3,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.16  2002/11/07 17:10:21  dcs
+!*** empty log message ***
+!
 !Revision 1.15  2002/11/06 06:49:40  dcs
 !modified arrays in some arg lists.
 !
@@ -1613,8 +1616,8 @@ module bmad_interface
       implicit none
       type (ring_struct), intent(in) :: ring
       integer n_files
-      character*(*) digested_name
-      character*(*) file_names(:)
+      character(*) digested_name
+      character(*), optional :: file_names(:)
     end subroutine
   end interface
 
