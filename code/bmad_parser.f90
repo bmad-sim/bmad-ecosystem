@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.25  2003/03/08 01:30:56  dcs
+!Fixed wig1: wig2 bug
+!
 !Revision 1.24  2003/03/06 17:47:06  dcs
 !Bug fix.
 !
@@ -1001,7 +1004,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
 !
 
-  if (ring%param%beam_energy == 0) &
+  if (ring%param%beam_energy == 0 .and. ring%ele_(0)%value(energy$) == 0) &
                     print *, 'WARNING FROM BMAD_PARSER: BEAM_ENERGY IS 0!'
 
   doit = .true.
