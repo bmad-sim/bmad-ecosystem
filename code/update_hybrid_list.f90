@@ -27,6 +27,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/01/04 03:06:34  dcs
+!Bug Fix.
+!
 !Revision 1.5  2003/01/04 00:44:23  dcs
 !Eliminated fixed array and made subroutine recursive.
 !
@@ -45,7 +48,6 @@
 recursive subroutine update_hybrid_list (ring, n_in, use_ele)
 
   use bmad_struct
-  use bmad_interface
 
   implicit none
 
