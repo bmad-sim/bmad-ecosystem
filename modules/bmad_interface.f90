@@ -1122,11 +1122,11 @@ module bmad_interface
   end interface
 
   interface
-    subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
+    subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb) 
       use bmad_struct
       type (ring_struct), intent(inout) :: ring
-      type (coord_struct), intent(in), allocatable :: closed_orb_(:)
-      type (coord_struct), intent(in) :: d_orb
+      type (coord_struct), intent(in) :: ref_orb0
+      real(rp), intent(in), optional :: d_orb(:)   
       real(rp), intent(out) :: error
     end subroutine
   end interface

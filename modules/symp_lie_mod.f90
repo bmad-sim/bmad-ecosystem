@@ -110,8 +110,10 @@ subroutine track_it (start, real_track, calc_mat6)
 
   Case (wiggler$)
 
-    if (.not. allocated(tm) .or. size(tm) < size(ele%wig_term)) then
-      if (allocated(tm)) deallocate(tm)
+    if (.not. allocated(tm)) then
+      allocate (tm(size(ele%wig_term)))
+    elseif (size(tm) < size(ele%wig_term)) then
+      deallocate(tm)
       allocate (tm(size(ele%wig_term)))
     endif
 
