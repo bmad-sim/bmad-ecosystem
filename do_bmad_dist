@@ -22,9 +22,11 @@
 #
 #         variables:
 #           BMAD=<directory>    Specify a directory for the distribution
+#           CESR_BIN<directory> Specify a directory with scripts
 #
-# examples: do_bmad_dist BMAD=/home/cesrulib/cesr_libs/bmad_dist_2003 
-#           do_release -build_only cesr_yyyy_mmdd_d DBL
+# examples: do_bmad_dist
+#           do_bmad_dist BMAD=bmad_dist_test 
+#           do_bmad_dist -build_only BMAD=bmad_dist_yyyy_mmdd_d DBL
 #
 ################################################################
 
@@ -36,7 +38,7 @@
 myprint_help () {
 #       Print help info
     echo ""
-    echo "Usage is:  do_release [options] [var. defs] [<precision>]"
+    echo "Usage is:  do_bmad_dist [options] [var. defs] [<precision>]"
     echo ""
     echo "Inputs:"
     echo "<precision>         SGL or DBL (optional) [default is DBL]"
@@ -51,6 +53,7 @@ myprint_help () {
     echo ""
     echo "Variable definitions:"
     echo "BMAD=<distribution tag>  Specify a custom tag for the release"
+    echo "CESR_BIN=<dir>           Specify a bin directory to use for scripts"
     echo ""
 }
 
