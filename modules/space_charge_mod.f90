@@ -66,7 +66,7 @@ subroutine setup_space_charge_calc (calc_on, lattice, mode, closed_orb)
   type (twiss_struct) a, b
 
   real(rp) c11, c12, c22, g, g2, xx_ave, xy_ave, yy_ave, phi
-  real(rp) xx_rot_ave, yy_rot_ave, a_emit, b_emit, length, g4
+  real(rp) xx_rot_ave, yy_rot_ave, a_emit, b_emit, length, g3
 
   integer i, m, n_use
   logical calc_on
@@ -156,9 +156,9 @@ subroutine setup_space_charge_calc (calc_on, lattice, mode, closed_orb)
 ! The extra factor of 4pi comes from the normalization of 
 !   the bbi_kick routine used in track1_space_charge.
 
-    g4 = (ele%value(beam_energy$) / mass_of(lattice%param%particle))**4
+    g3 = (ele%value(beam_energy$) / mass_of(lattice%param%particle))**3
     v%kick_const = length * r_e *  lattice%param%n_part / &
-        (sqrt(twopi**3) * g4 * (v%sig_x + v%sig_y) * mode%sig_z)
+        (sqrt(twopi**3) * g3 * (v%sig_x + v%sig_y) * mode%sig_z)
 
   enddo
 
