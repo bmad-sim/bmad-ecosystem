@@ -27,6 +27,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/12/04 20:28:57  helms
+!Changes from DCS
+!
 !Revision 1.2  2001/09/27 18:31:50  rwh24
 !UNIX compatibility updates
 !
@@ -38,6 +41,8 @@
 subroutine create_vsp_volt_elements (ring, ele_type)
 
   use bmad_struct
+  use bmad_interface
+
   implicit none
 
   type (ring_struct)  ring
@@ -88,6 +93,7 @@ subroutine create_vsp_volt_elements (ring, ele_type)
 subroutine do_vsp_eles (ring, i_vsep, ix_, ele_type)
 
   use bmad_struct
+  use bmad_interface
   implicit none
 
   type (ring_struct)  ring
@@ -131,3 +137,14 @@ subroutine do_vsp_eles (ring, i_vsep, ix_, ele_type)
 
   return
   end
+
+
+
+
+
+
+
+
+
+
+

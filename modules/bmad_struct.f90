@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2001/12/04 20:29:07  helms
+!Changes from DCS
+!
 !Revision 1.4  2001/10/12 20:53:50  rwh24
 !DCS changes
 !
@@ -271,10 +274,13 @@ module bmad_struct
 
 ! electron/positron
 
-  integer, parameter :: positron$ = +1
-  integer, parameter :: electron$ = -1
+  integer, parameter :: proton$     = +2
+  integer, parameter :: positron$   = +1
+  integer, parameter :: electron$   = -1
+  integer, parameter :: antiproton$ = -2
 
-  character*8 :: particle_name(-1:1) = (/ 'ELECTRON', '???', 'POSITRON' /)
+  character*16 :: particle_name(-2:2) = (/ 'ANTIPROTON', 'ELECTRON  ', '???', &
+                                           'POSITRON  ', 'PROTON    ' /)
 
 ! SYMMETRY etc., logical names
 
@@ -305,7 +311,8 @@ module bmad_struct
 
 ! plane list
 
-  integer, parameter :: x_plane$ = 1, y_plane$ = 2, n_plane$ = 3
+  integer, parameter :: x_plane$ = 1, y_plane$ = 2
+  integer, parameter :: z_plane$ = 3, n_plane$ = 4     
 
   character*16 plane_name(4) / 'X', 'Y', 'N', ' ' /
 

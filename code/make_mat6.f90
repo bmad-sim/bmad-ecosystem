@@ -19,6 +19,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.5  2001/12/04 20:28:57  helms
+!Changes from DCS
+!
 !Revision 1.4  2001/11/29 19:39:53  helms
 !Updates from DCS including (*) -> (:)
 !
@@ -672,8 +675,8 @@ subroutine make_mat6 (ele, param, c0, c1)
 
   case default
 
-    type *, 'ERROR IN MAKE_MAT6: UNKNOWN ELEMENT KEY',  &
-                                    ele%key, '  ', key_name(ele%key)
+     type *, 'ERROR IN MAKE_MAT6: UNKNOWN ELEMENT KEY:', ele%key
+     type *, '      FOR ELEMENT: ', ele%name
 
   end select
 
