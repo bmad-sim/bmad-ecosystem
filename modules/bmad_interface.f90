@@ -3,6 +3,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.14  2002/10/29 17:07:28  dcs
+!*** empty log message ***
+!
 !Revision 1.13  2002/08/23 20:20:23  dcs
 !Modified for VMS port
 !
@@ -211,17 +214,6 @@ module bmad_interface
     end subroutine
   end interface
 
-  interface
-    subroutine cesr_elements_get (name, n_found, ele)
-      use bmad_struct
-      use precision_def
-      implicit none
-      type (ring_master_struct) :: ele(:)
-      integer n_found
-      character name*(*)
-    end subroutine
-  end interface
- 
   interface
     subroutine change_basis (coord, ref_energy, ref_z, to_cart, time_disp)
       use bmad_struct
@@ -830,10 +822,10 @@ module bmad_interface
   end interface
 
   interface
-    function c_multi (n, m)
+    function c_multi (n, m) result (c_out)
       use precision_def
       implicit none
-      real(rdef) c_multi
+      real(rdef) c_out
       integer, intent(in) :: n, m
     end function
   end interface
@@ -902,14 +894,16 @@ module bmad_interface
 
   interface
     subroutine offset_particle (ele, param, coord, set, &
-                    set_canonical, set_tilt, set_multipoles, set_hvkicks)
+             set_canonical, set_tilt, set_multipoles, set_hvkicks, s_pos)
       use bmad_struct
       implicit none
-      type (ele_struct) ele
-      type (coord_struct) coord
-      type (param_struct) param
-      logical set
-      logical, optional :: set_canonical, set_multipoles, set_tilt, set_hvkicks
+      type (ele_struct), intent(in) :: ele
+      type (param_struct), intent(in) :: param
+      type (coord_struct), intent(inout) :: coord
+      logical, intent(in) :: set
+      logical, optional, intent(in) :: set_canonical, set_multipoles, &
+                                                        set_tilt, set_hvkicks
+      real(rdef), optional, intent(in) :: s_pos
     end subroutine
   end interface
 

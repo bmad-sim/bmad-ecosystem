@@ -26,6 +26,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/10/29 17:07:12  dcs
+!*** empty log message ***
+!
 !Revision 1.4  2002/06/13 14:54:21  dcs
 !Interfaced with FPP/PTC
 !
@@ -42,7 +45,8 @@
 
 function attribute_index (ele, name) result (at_index)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

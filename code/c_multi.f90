@@ -15,7 +15,8 @@
 
 function c_multi (n, m) result (c_out)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

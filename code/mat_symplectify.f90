@@ -14,6 +14,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/10/29 17:07:14  dcs
+!*** empty log message ***
+!
 !Revision 1.6  2002/06/13 14:54:26  dcs
 !Interfaced with FPP/PTC
 !
@@ -35,8 +38,7 @@
 
 subroutine mat_symplectify (mat_in, mat_symp)
 
-  use precision_def
-  use bmad_interface
+  use bmad
 
   implicit none
 

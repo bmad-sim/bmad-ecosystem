@@ -15,6 +15,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/10/29 17:07:13  dcs
+!*** empty log message ***
+!
 !Revision 1.5  2002/06/13 14:54:23  dcs
 !Interfaced with FPP/PTC
 !
@@ -33,7 +36,8 @@
 
 subroutine c_to_cbar (ele, cbar_mat)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
   
   implicit none
 

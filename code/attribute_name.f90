@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.10  2002/10/29 17:07:12  dcs
+!*** empty log message ***
+!
 !Revision 1.9  2002/10/21 16:00:11  dcs
 !*** empty log message ***
 !
@@ -52,7 +55,8 @@
 
 character*16 function attribute_name (ele, ix_att) result (at_name)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 

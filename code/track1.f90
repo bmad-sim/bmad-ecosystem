@@ -77,6 +77,12 @@ subroutine track1 (start, ele, param, end)
   case (wiedemann$) 
     call track1_wiedemann_wiggler (start, ele, param, end)
 
+  case (adaptive_boris$) 
+    call track1_adaptive_boris (start, ele, param, end)
+
+  case (boris$) 
+    call track1_boris (start, ele, param, end)
+
   case default
     print *, 'ERROR IN TRACK1: UNKNOWN TRACKING_METHOD: ', ele%tracking_method
     call err_exit

@@ -8,5 +8,6 @@ module bmad
   use make_mat6_mod
   use track1_mod
   use dcslib
+  use boris_mod
 
 end module

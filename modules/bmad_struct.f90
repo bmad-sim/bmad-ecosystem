@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.19  2002/10/29 17:07:28  dcs
+!*** empty log message ***
+!
 !Revision 1.18  2002/10/23 14:45:21  dcs
 !Added Boris tracking.
 !
@@ -61,6 +64,7 @@
 
 module bmad_struct
 
+  use dcslib
   use precision_def
   use physical_constants
   use tpsalie_analysis, pi_fpp => pi, twopi_fpp => twopi, var_ptc => var, &
@@ -425,6 +429,10 @@ module bmad_struct
   character*16 :: particle_name(-2:2) = &
        (/ 'ANTIPROTON', 'ELECTRON  ', '??? ', 'POSITRON  ', 'PROTON    ' /)
 
+  integer, parameter :: charge_of(-2:2) = (/ -1, -1, 0, 1, 1 /)
+  real(rdef), parameter :: mass_of(-2:2) = (/ 0.938279, 0.511003e-3, 0.0, &
+                                              0.511003e-3, 0.938279 /)
+
 ! SYMMETRY etc., logical names
 
   integer, parameter :: no_symmetry$ = 0
@@ -518,12 +526,6 @@ module bmad_struct
 
 ! common flags
 ! status structure
-
-  type ring_master_struct
-    character*8 name
-    real*8 z, mag_len, phys_len
-    character*16 comment
-  end type
 
   type bmad_status_struct
     logical :: ok             = .true.
@@ -716,6 +718,13 @@ module bmad_struct
     type (db_element_struct) :: vkicker(1:200)
     type (db_element_struct) :: htable(1:200)
     type (db_element_struct) :: vtable(1:200)
+  end type
+
+! electric and magnetic fields
+
+  type em_field_struct
+    real(rdef) E(3)         ! electric field
+    real(rdef) B(3)         ! magnetic field
   end type
 
 !------------------------------------------------------------------------------

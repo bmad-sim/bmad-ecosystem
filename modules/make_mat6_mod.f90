@@ -267,11 +267,9 @@ end subroutine
 
 subroutine mat4_multipole (knl, tilt, n, c0, kick_mat)
 
-  use bmad_interface, only: c_multi
-                  
   implicit none
 
-  real(rdef) c0(6)
+  real(rdef) c0(6), c_multi
   real(rdef) x_pos, y_pos, x, y, knl, tilt
   real(rdef) sin_ang, cos_ang, mat(2,2), rot(2,2)
   real(rdef) kick_mat(4,4)
@@ -559,6 +557,9 @@ end subroutine
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/10/29 17:07:28  dcs
+!*** empty log message ***
+!
 !Revision 1.3  2002/08/20 20:35:07  dcs
 !symp_lie_bmad / symp_lie_ptc added
 !

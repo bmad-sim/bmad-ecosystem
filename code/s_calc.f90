@@ -16,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/10/29 17:07:14  dcs
+!*** empty log message ***
+!
 !Revision 1.4  2002/02/23 20:32:24  dcs
 !Double/Single Real toggle added
 !
@@ -32,7 +35,8 @@
 
 subroutine s_calc (ring)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
   
   implicit none
 

@@ -29,6 +29,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/10/29 17:07:12  dcs
+!*** empty log message ***
+!
 !Revision 1.6  2002/07/16 20:44:00  dcs
 !*** empty log message ***
 !
@@ -49,7 +52,8 @@
 
 subroutine attribute_bookkeeper (ele, param)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 
@@ -112,13 +116,14 @@ subroutine attribute_bookkeeper (ele, param)
     if (param%energy == 0) then
       ele%value(k1$) = 0
     else
-      ele%value(k1$) = -0.5 * (0.2997 * ele%value(b_max$) / param%energy)**2
+      ele%value(k1$) = -0.5 * &
+                    (c_light * ele%value(b_max$) / (1e9 * param%energy))**2
     endif
 
     if (ele%value(b_max$) == 0) then
       ele%value(rho$) = 0
     else
-      ele%value(rho$) = 3.3356 * param%energy / ele%value(b_max$)
+      ele%value(rho$) = 1e9 * param%energy / (c_light * ele%value(b_max$))
     endif
                        
   end select

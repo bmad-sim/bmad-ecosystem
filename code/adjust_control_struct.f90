@@ -21,6 +21,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/10/29 17:07:12  dcs
+!*** empty log message ***
+!
 !Revision 1.5  2002/07/31 14:28:26  dcs
 !Added error checking
 !
@@ -39,7 +42,8 @@
 
 subroutine adjust_control_struct (ring, ix_ele)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
                                                  
   implicit none
 

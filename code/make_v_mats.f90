@@ -17,6 +17,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/10/29 17:07:13  dcs
+!*** empty log message ***
+!
 !Revision 1.4  2002/02/23 20:32:18  dcs
 !Double/Single Real toggle added
 !
@@ -33,7 +36,8 @@
 
 subroutine make_v_mats (ele, v_mat, v_inv_mat)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
   
   implicit none
 

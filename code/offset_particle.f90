@@ -1,6 +1,6 @@
 !+
-! Subroutine offset_particle (ele, param, coord, set, 
-!                        set_canonical, set_tilt, set_multipoles, set_hvkicks)
+! Subroutine offset_particle (ele, param, coord, set, set_canonical, 
+!                               set_tilt, set_multipoles, set_hvkicks, s_pos)
 ! Subroutine to effectively offset an element by instead offsetting
 ! the particle position to correspond to the local element coordinates.
 ! Options:
@@ -17,14 +17,15 @@
 !     %value(x_offset$) -- Horizontal offset of element.
 !     %value(x_pitch$)  -- Horizontal roll of element.
 !     %value(tilt$)     -- titlt of element.
-!   coord
+!   coord     -- Coord_struct: Coordinates of the particle.
 !     %z%vel            -- Energy deviation dE/E. 
 !                          Used to modify %x%vel and %y%vel
 !   param     -- Param_struct:
 !     %particle   -- What kind of particle (for elseparator elements).
 !   set       -- Logical: 
-!                   T -> Translate from lab coords to the local element coords.
-!                   F -> Translate back to lab coords.
+!                   T (= set$)   -> Translate from lab coords to the local 
+!                                     element coords.
+!                   F (= unset$) -> Translate back to lab coords.
 !   set_canonical  -- Logical, optional: Default is True.
 !                   T -> Convert between (P_x, P_y) and (x', y') also.
 !                   F -> No conversion between (P_x, P_y) and (x', y').
@@ -35,6 +36,9 @@
 !   set_multipoles -- Logical, optional: Default is True.
 !                   T -> 1/2 of the multipole is applied.
 !   set_hvkicks    -- Logical, optional: Default is True.
+!   s_pos          -- Real(rdef), optional: Longitudinal position of the
+!                   particle. If not present then s_pos = 0 is assumed when
+!                   set = T and s_pos = ele%value(l$) when set = F
 !                                               
 ! Output:
 !     coord -- Coord_struct: Coordinates of particle.
@@ -42,6 +46,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/10/29 17:07:14  dcs
+!*** empty log message ***
+!
 !Revision 1.4  2002/08/20 20:34:53  dcs
 !symp_lie_bmad / symp_lie_ptc added
 !
@@ -57,24 +64,26 @@
 
 #include "CESR_platform.inc"
                                                               
-subroutine offset_particle (ele, param, coord, set, &
-              set_canonical, set_tilt, set_multipoles, set_hvkicks)
+subroutine offset_particle (ele, param, coord, set, set_canonical, &
+                              set_tilt, set_multipoles, set_hvkicks, s_pos)
 
   use bmad
 
   implicit none
 
-  type (ele_struct) ele
-  type (coord_struct) coord
-  type (param_struct) param
+  type (ele_struct), intent(in) :: ele
+  type (param_struct), intent(in) :: param
+  type (coord_struct), intent(inout) :: coord
 
+  real(rdef), optional, intent(in) :: s_pos
   real(rdef) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-  real(rdef) del_x_vel, del_y_vel, angle
+  real(rdef) del_x_vel, del_y_vel, angle, s_here
 
   integer n
 
-  logical set
-  logical, optional :: set_canonical, set_tilt, set_multipoles, set_hvkicks
+  logical, intent(in) :: set
+  logical, optional, intent(in) :: set_canonical, set_tilt, set_multipoles
+  logical, optional, intent(in) :: set_hvkicks
   logical set_canon, set_multi, set_hv, set_t
 
 !---------------------------------------------------------------         
@@ -126,11 +135,16 @@ subroutine offset_particle (ele, param, coord, set, &
         coord%x%pos = coord%x%pos - ele%value(x_offset$)
         coord%y%pos = coord%y%pos - ele%value(y_offset$)
       else
-        coord%x%pos = coord%x%pos - ele%value(x_offset$) +  &
-                           ele%value(x_pitch$) * ele%value(l$) / 2
+        if (present(s_pos)) then
+          s_here = s_pos - ele%value(l$) / 2  ! position relative to center.
+        else
+          s_here = -ele%value(l$) / 2
+        endif
+        coord%x%pos = coord%x%pos - ele%value(x_offset$) -  &
+                                       ele%value(x_pitch$) * s_here
         coord%x%vel = coord%x%vel - ele%value(x_pitch$) * E_rel
-        coord%y%pos = coord%y%pos - ele%value(y_offset$) +  &
-                           ele%value(y_pitch$) * ele%value(l$) / 2
+        coord%y%pos = coord%y%pos - ele%value(y_offset$) -  &
+                                         ele%value(y_pitch$) * s_here
         coord%y%vel = coord%y%vel - ele%value(y_pitch$) * E_rel
       endif
     endif
@@ -254,11 +268,16 @@ subroutine offset_particle (ele, param, coord, set, &
         coord%x%pos = coord%x%pos + ele%value(x_offset$)
         coord%y%pos = coord%y%pos + ele%value(y_offset$)
       else
+        if (present(s_pos)) then
+          s_here = s_pos - ele%value(l$) / 2  ! position relative to center.
+        else
+          s_here = ele%value(l$) / 2
+        endif
         coord%x%pos = coord%x%pos + ele%value(x_offset$) + &
-                           ele%value(x_pitch$) * ele%value(l$) / 2
+                                       ele%value(x_pitch$) * s_pos
         coord%x%vel = coord%x%vel + ele%value(x_pitch$) * E_rel
         coord%y%pos = coord%y%pos + ele%value(y_offset$) +  &
-                           ele%value(y_pitch$) * ele%value(l$) / 2
+                                         ele%value(y_pitch$) * s_pos
         coord%y%vel = coord%y%vel + ele%value(y_pitch$) * E_rel
       endif
     endif
