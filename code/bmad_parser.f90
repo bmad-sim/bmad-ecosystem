@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.13  2002/11/16 16:13:54  dcs
+!overlay/group change and make_mat6 bug fix
+!
 !Revision 1.12  2002/09/14 19:45:23  dcs
 !*** empty log message ***
 !
@@ -76,7 +79,6 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
   use bmad_parser_mod
   use cesr_utils
-  use nr, only: indexx
   
   implicit none
 
@@ -87,14 +89,16 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   type (parser_ring_struct) pring
   type (seq_stack_struct) stack(20)
   type (ele_struct), save, pointer :: ele, old_ele(:) => null()
+  type (control_struct), pointer :: cs_(:) => null()
+  type (coord_struct) co_(0:n_ele_maxx)
 
   integer ix_word, i_use, i, j, k, n, ix, ixr, ixs, i_ring, it
   integer i_lev, i_key, ic, ix_lord
   integer iseq, ix_ring(n_ele_maxx), n_ele_ring
-  integer ix_super, digested_version, key
+  integer ix_super, digested_version, key, ct
   integer ix1, ix2, iv, n_arg
   integer ivar, ixx, j_lord, n_slave
-  integer seq_indexx(n_ele_maxx), in_indexx(n_ele_maxx), r_indexx(n_ele_maxx)
+  integer seq_indexx(n_ele_maxx), in_indexx(n_ele_maxx)
   integer, pointer :: n_max
 
   character*(*) in_file
@@ -600,7 +604,6 @@ subroutine bmad_parser (in_file, ring, make_mats6)
             ('NO "USE" COMMAND FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
 
   call find_indexx (ring%name, seq_(:)%name, seq_indexx, bp_com%iseq_tot, i_use)
-
   if (i_use == 0) call error_exit &
             ('CANNOT FIND DEFINITION FOR "USE" LINE: ' // ring%name, ' ')
 
@@ -625,7 +628,6 @@ subroutine bmad_parser (in_file, ring, make_mats6)
       if (s_ele%ix_arg > 0) cycle  ! dummy arg
 
       call find_indexx (name, in_ring%ele_(1:)%name, in_indexx, n_max, j)
-
       if (j == 0) then  ! if not an element it must be a sequence
         call find_indexx (name, seq_(:)%name, seq_indexx, bp_com%iseq_tot, j)
         if (j == 0) then  ! if not a sequence then I don't know what it is
@@ -831,80 +833,22 @@ subroutine bmad_parser (in_file, ring, make_mats6)
     call add_all_superimpose (ring, in_ring%ele_(i), pring%ele(i))
   enddo
 
-! Now put in the overlay_lord elements
+! Now put in the overlay_lord and group elements
 
   do i = 1, n_max
-    if (in_ring%ele_(i)%control_type == overlay_lord$) then
-      ixr = ring%n_ele_max
-      call indexx (ring%ele_(1:ixr)%name, r_indexx(1:ixr))
-
-      ring%n_ele_max = ring%n_ele_max + 1
-      ixs = ring%n_ele_max
-      ring%ele_(ixs) = in_ring%ele_(i)
-      n_slave = in_ring%ele_(i)%n_slave
-
-      do j = 1, n_slave
-        call find_indexx (pring%ele(i)%name_(j), ring%ele_(1:)%name, &
-                                                          r_indexx, ixr, k)
-        if (k == 0) then
-          call warning ('CANNOT FIND OVERLAY_SLAVE FOR: ' // &
-                  ring%ele_(ixs)%name, 'CANNOT FIND: ' // pring%ele(i)%name_(j))
-          cycle
-        endif
-        pring%ele(i)%cs_(j)%ix_slave = k
-        a_name = pring%ele(i)%attrib_name_(j)
-        if (a_name == blank) then
-          pring%ele(i)%cs_(j)%ix_attrib = ring%ele_(ixs)%ix_value
-        else
-          ix = attribute_index(ring%ele_(k), a_name)
-          pring%ele(i)%cs_(j)%ix_attrib = ix
-          if (ix < 1) call warning('BAD ATTRIBUTE NAME: ' // a_name,  &
-                       'IN OVERLAY ELEMENT: ' // ring%ele_(ixs)%name)
-        endif
-      enddo
-
-      iv = ring%ele_(ixs)%ix_value
-      call create_overlay (ring, ixs, iv, n_slave, pring%ele(i)%cs_)
-      cycle
-
-    endif  
-
-! put in groups
-! Note that CREATE_GROUP needs RING%PARAM%TOTAL_LENGTH
-
-    if (in_ring%ele_(i)%control_type == group_lord$) then
-      ixr = ring%n_ele_max
-      call indexx (ring%ele_(1:ixr)%name, r_indexx(1:ixr))
-
-      ring%n_ele_max = ring%n_ele_max + 1
-      ixs = ring%n_ele_max
-      ring%ele_(ixs) = in_ring%ele_(i)
-      n_slave = in_ring%ele_(i)%n_slave              
-
-      do j = 1, n_slave
-        call find_indexx (pring%ele(i)%name_(j), ring%ele_(1:)%name, &
-                                                        r_indexx, ixr, k)
-        if (k == 0) then
-          call warning ('CANNOT FIND GROUP_SLAVE FOR: ' // &
-                ring%ele_(ixs)%name, 'CANNOT FIND: ' // pring%ele(i)%name_(j))
-          cycle
-        endif
-        pring%ele(i)%cs_(j)%ix_slave = k
-        a_name = pring%ele(i)%attrib_name_(j)
-        if (a_name == blank) then
-          pring%ele(i)%cs_(j)%ix_attrib = ring%ele_(ixs)%ix_value
-        else
-          ix = attribute_index(ring%ele_(k), a_name)
-          pring%ele(i)%cs_(j)%ix_attrib = ix
-          if (ix < 1) call warning('BAD ATTRIBUTE NAME: ' // a_name,  &
-                       'IN OVERLAY ELEMENT: ' // ring%ele_(ixs)%name)
-        endif
-      enddo
-
-      call create_group (ring, ixs, n_slave, pring%ele(i)%cs_)
-
+    ct = in_ring%ele_(i)%control_type
+    if (ct /= overlay_lord$ .and. ct /= group_lord$) cycle
+    ring%n_ele_max = ring%n_ele_max + 1
+    ixs = ring%n_ele_max
+    ring%ele_(ixs) = in_ring%ele_(i)
+    call find_slaves_for_parser (ring, pring%ele(i)%name_, &
+                   pring%ele(i)%attrib_name_, pring%ele(i)%coef_, cs_)
+    ele => ring%ele_(ixs)
+    if (ct == overlay_lord$) then
+      call create_overlay (ring, ixs, ele%ix_value, ele%n_slave, cs_)
+    else
+      call create_group (ring, ixs, ele%n_slave, cs_)
     endif
-
   enddo
 
 ! make matrices for entire ring
@@ -981,7 +925,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
   doit = .true.
   if (present(make_mats6)) doit = make_mats6
-  if (doit) call ring_make_mat6(ring, -1)      ! make 6x6 transport matrices
+  if (doit) call ring_make_mat6(ring, -1, co_)      ! make 6x6 transport matrices
 
 !-------------------------------------------------------------------------
 ! write out if debug is on
@@ -1061,7 +1005,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
     if (associated (pring%ele(i)%name_)) then
       deallocate(pring%ele(i)%name_)
       deallocate(pring%ele(i)%attrib_name_)
-      deallocate(pring%ele(i)%cs_)
+      deallocate(pring%ele(i)%coef_)
     endif
   enddo
 

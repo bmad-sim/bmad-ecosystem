@@ -57,7 +57,7 @@ module bmad_parser_mod
     character*16 ref_name
     character*16, pointer :: name_(:)
     character*16, pointer :: attrib_name_(:)
-    type (control_struct), pointer :: cs_(:)
+    real(rdef), pointer :: coef_(:)
     integer ix_count
     integer ele_pt, ref_pt
     logical common_lord
@@ -684,7 +684,6 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-
 subroutine load_parse_line (how, ix_cmd, file_end)
 
   implicit none
@@ -1247,8 +1246,8 @@ subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
   type (ele_struct)  ele
   type (parser_ring_struct) pring
   type (ring_struct)  ring
-  type (control_struct) cs_(200)
 
+  real(rdef) coef_(200)
   real(rdef) value
   
   integer ic, ix_word, ixs, j, k
@@ -1300,9 +1299,9 @@ subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
         call load_parse_line ('normal', 1, file_end)         ! next line
         return
       endif
-      cs_(ixs)%coef = value
+      coef_(ixs) = value
     else
-      cs_(ixs)%coef = 1.0
+      coef_(ixs) = 1.0
     endif
 
     if (delim == '}') then
@@ -1319,9 +1318,9 @@ subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
 !
 
   ic = ele%ixx
-  allocate (pring%ele(ic)%cs_(ixs), pring%ele(ic)%name_(ixs), &
+  allocate (pring%ele(ic)%coef_(ixs), pring%ele(ic)%name_(ixs), &
                                        pring%ele(ic)%attrib_name_(ixs))
-  pring%ele(ic)%cs_ = cs_(1:ixs)
+  pring%ele(ic)%coef_ = coef_(1:ixs)
   pring%ele(ic)%name_ = name_(1:ixs)
   pring%ele(ic)%attrib_name_ = attrib_name_(1:ixs)
 
@@ -1805,12 +1804,13 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine find_indexx (name, names, an_indexx, n_max, ix_match)
+subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match)
 
 
   implicit none
 
   integer ix1, ix2, ix3, n_max, ix_match
+  integer, optional :: ix2_match
   integer an_indexx(:)
 
   character*16 name, names(:)
@@ -1820,6 +1820,7 @@ subroutine find_indexx (name, names, an_indexx, n_max, ix_match)
 
   if (n_max == 0) then
     ix_match = 0
+    if (present(ix2_match)) ix2_match = 0
     return
   endif
 
@@ -1835,6 +1836,7 @@ subroutine find_indexx (name, names, an_indexx, n_max, ix_match)
 
     if (this_name == name) then
       ix_match = an_indexx(ix2)
+      if (present(ix2_match)) ix2_match = ix2
       return
     elseif (this_name < name) then
       ix1 = ix2 + 1
@@ -2033,6 +2035,93 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
   seq%ele(:) = s_ele(1:ix_ele)
 
   seq%ix = 1   ! Init. Used for replacement list index
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! subroutine find_slaves_for_parser (ring, name_, attrib_name_, coef, cs_)
+!
+! Subroutine to find where the slaves are in a ring for a overlay_lord or
+! group_lord. If multiple elements have the same name then use all of them.
+!-
+
+subroutine find_slaves_for_parser (ring, name_, attrib_name_, coef_, cs_out)
+
+  implicit none
+
+  type (ring_struct), target :: ring
+  type (ele_struct), pointer :: ele
+  type (control_struct), pointer :: cs_out(:)
+  type (control_struct) cs_(n_ele_maxx)
+
+  real(rdef), pointer :: coef_(:)
+
+  integer i, j, k, k2, ixl, ix
+  integer r_indexx(n_ele_maxx)
+
+  character(16), pointer :: name_(:), attrib_name_(:)
+  character(16) name
+
+! ring%n_ele_max is the index of the lord
+
+  ixl = ring%n_ele_max
+  ele => ring%ele_(ixl)
+
+  call indexx (ring%ele_(1:ixl-1)%name, r_indexx(1:ixl-1))
+
+  j = 0
+  do i = 1, ele%n_slave
+
+    call find_indexx (name_(i), ring%ele_(1:)%name, r_indexx, ixl-1, k, k2)
+    if (k2 == 0) then
+      call warning ('CANNOT FIND SLAVE FOR: ' // ele%name, &
+                    'CANNOT FIND: '// name_(i))
+      cycle
+    endif
+
+    do
+      if (k2 == 1) exit
+      if (ring%ele_(r_indexx(k2-1))%name == name_(i)) then
+        k2 = k2 - 1
+      else
+        exit
+      endif
+    enddo
+
+    do 
+      j = j + 1
+      k = r_indexx(k2)
+      cs_(j)%coef = coef_(i)
+      cs_(j)%ix_slave = k
+      name = attrib_name_(i)
+      if (name == blank) then
+        cs_(j)%ix_attrib = ele%ix_value
+      else
+        ix = attribute_index(ring%ele_(k), name)
+        cs_(j)%ix_attrib = ix
+        if (ix < 1) then
+          call warning ('BAD ATTRIBUTE NAME: ' // name, &
+                        'IN ELEMENT: ' // ele%name)
+        endif
+      endif
+      k2 = k2 + 1
+      if (k2 > ixl-1) exit
+      k = r_indexx(k2)
+      if (ring%ele_(k)%name /= name_(i)) exit
+    enddo
+
+  enddo
+
+  ele%n_slave = j
+
+! init
+
+  if (associated(cs_out)) deallocate(cs_out)
+  allocate (cs_out(j))
+  cs_out = cs_(1:j)
 
 end subroutine
 

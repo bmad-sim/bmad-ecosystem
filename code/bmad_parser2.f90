@@ -30,6 +30,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2002/11/16 16:13:54  dcs
+!overlay/group change and make_mat6 bug fix
+!
 !Revision 1.8  2002/11/06 06:48:31  dcs
 !Changed arg array
 !
@@ -61,12 +64,14 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   implicit none
     
   type (ring_struct), target :: ring, r_temp
-  type (ele_struct)  beam_ele, ele
+  type (ele_struct)  beam_ele
+  type (ele_struct), pointer :: ele
   type (coord_struct), optional :: orbit_(0:)
   type (parser_ring_struct) pring
+  type (control_struct), pointer :: cs_(:) => null()
 
   integer ix_word, ick, i, j, k, ix, ixe, ix_lord
-  integer jmax, i_key, last_con, ic, ixx, ele_num
+  integer jmax, i_key, last_con, ic, ixx, ele_num, ct
   integer key, ix_super, ivar, n_max_old
   integer, pointer :: n_max
 
@@ -437,88 +442,20 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
     endif
   enddo
 
-! Find controlled elements for new overlay and group lords
-
-  do ixe = 1, ele_num
-
-    if (r_temp%ele_(ixe)%control_type == super_lord$) cycle
-
-    ic = r_temp%ele_(ixe)%ixx
-    jmax = r_temp%ele_(ixe)%n_slave
-
-    do j = 1, jmax
-
-      match_found = .false.
-
-      do k = 1, ring%n_ele_max
-                 
-        name1 = ring%ele_(k)%name
-        name2 = null_name
-        ick = index(name1, '\')              !'
-        if (ick /= 0) name2 = name1(:ick-1)
-
-        if (pring%ele(ic)%name_(j) == name1 .or.  &
-                pring%ele(ic)%name_(j) == name2 .and.  &
-                (ring%ele_(k)%control_type /= super_slave$)) then
-
-          if (match_found) &
-              call warning ('MULTIPLE CONTROL MATCHES FOUND FOR: '  &
-              //  r_temp%ele_(ixe)%name, &
-              'MATCHING STRING: ' // pring%ele(ic)%name_(j))
-
-          match_found = .true.
-          pring%ele(ic)%cs_(j)%ix_slave = k
-
-          a_name = pring%ele(ic)%attrib_name_(j)
-          ix = attribute_index(ring%ele_(k), a_name)
-          if (a_name /= blank) then
-            pring%ele(ic)%cs_(j)%ix_attrib = ix
-            if (ix < 1) call warning ('BAD ATTRIBUTE NAME: ' // a_name,  &
-                     'FOR OVERLAY/GROUP ELEMENT: ' // r_temp%ele_(ixe)%name)
-          else
-            pring%ele(ic)%cs_(j)%ix_attrib = r_temp%ele_(ixe)%ix_value
-          endif
-
-        endif ! pring%ele(ic).name(j) == name1 or name2
-
-      enddo   ! k = 1, ring.n_ele_ring+ring.n_ele_control
-
-      if (.not. match_found)  &
-             call warning ('NO SLAVE ELEMENT FOUND FOR: ' //  &
-             r_temp%ele_(ixe)%name, 'FAILED TO FIND: ' // pring%ele(ic)%name_(j))
-
-    enddo   ! j = 1, jmax
-
-  enddo
-
-! Go through the overlay elements.
-! Transfer control information from PRING%ELE array to RING.CONTROL_ array.
+! Go through and create the overlay and group lord elements.
 
   do i = 1, ele_num
-    ele = r_temp%ele_(i)
-    if (ele%control_type == overlay_lord$) then
-      call new_control (ring, ix_lord)
-      ring%ele_(ix_lord) = ele
-      call create_overlay (ring, ix_lord, ele%ix_value, ele%n_slave, &
-                                                     pring%ele(ele%ixx)%cs_)
-    endif
-  enddo
-
-  if (ring%n_control_array > n_control_maxx) then
-    type *, 'ERROR IN BMAD_PARSER2: NOT ENOUGH CONTROL ELEMENTS !!!'
-    type *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
-    call err_exit
-  endif
-
-! make up groups
-! Note that CREATE_GROUP needs RING.PARAM.TOTAL_LENGTH
-
-  do i = 1, ele_num
-    ele = r_temp%ele_(i)
-    if (ele%control_type == group_lord$ .and. ic > 0) then
-      call new_control (ring, ix_lord)
-      ring%ele_(ix_lord) = ele
-      call create_group (ring, ix_lord, ele%n_slave, pring%ele(ele%ixx)%cs_)
+    ct = r_temp%ele_(i)%control_type
+    if (ct /= group_lord$ .and. ct /= overlay_lord$) cycle
+    call new_control (ring, ix_lord)
+    ring%ele_(ix_lord) = r_temp%ele_(i)
+    call find_slaves_for_parser (ring, pring%ele(i)%name_, &
+                   pring%ele(i)%attrib_name_, pring%ele(i)%coef_, cs_)
+    ele => ring%ele_(ix_lord)
+    if (ct == overlay_lord$) then
+      call create_overlay (ring, ix_lord, ele%ix_value, ele%n_slave, cs_)
+    else
+      call create_group (ring, ix_lord, ele%n_slave, cs_)
     endif
   enddo
 

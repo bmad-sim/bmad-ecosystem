@@ -3,6 +3,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.17  2002/11/16 16:14:17  dcs
+!overlay/group change and make_mat6 bug fix
+!
 !Revision 1.16  2002/11/07 17:10:21  dcs
 !*** empty log message ***
 !
@@ -1068,7 +1071,7 @@ module bmad_interface
     recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
       use bmad_struct
       implicit none
-      type (ring_struct) ring
+      type (ring_struct), target :: ring
       type (coord_struct), optional :: coord_(0:)
       integer ix_ele
     end subroutine
