@@ -174,7 +174,7 @@ module bmad_struct
 
   type param_struct
     real(rp) beam_energy        ! beam energy in eV
-    real(rp) n_part             ! Number of particles in a bunch
+    real(rp) n_part             ! Particles/bunch (for BeamBeam elements).
     real(rp) charge             ! Charge of a bunch (used by LCavities).
     real(rp) total_length       ! total_length of ring
     real(rp) growth_rate        ! growth rate/turn if not stable
