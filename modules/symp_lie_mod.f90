@@ -2,13 +2,17 @@
 
 module symp_lie_mod
 
-  type (symp_lie_com_struct)
-    logical :: save_steps = .true.        ! save orbit?
+  use bmad_struct
+  use bmad_interface
+  use make_mat6_mod
+
+  type symp_lie_com_struct
+    logical :: save_orbit = .false.       ! save orbit?
     real(rp), pointer :: s(:) => null()   ! s_distance
     type(coord_struct), pointer :: orb(:) ! orbit
   end type
 
-  type (sym_lie_com_struct), save :: sl_com
+  type (symp_lie_com_struct), save :: sl_com
 
 contains
 
@@ -36,10 +40,6 @@ contains
 
 subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 
-  use bmad_struct
-  use bmad_interface
-  use make_mat6_mod
-
   implicit none
 
   type save_coef_struct
@@ -62,7 +62,7 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
   real(rdef), pointer :: mat6(:,:)
   real(rdef), parameter :: z0 = 0, z1 = 1
 
-  integer i, j
+  integer i, j, n
 
   logical calc_mat6
 
@@ -106,6 +106,22 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 
     call update_coefs
     call update_y_terms
+
+    if (sl_com%save_orbit) then
+      n = ele%num_steps 
+      if (associated(sl_com%s)) then
+        if (size(sl_com%s) /= n + 1) then
+          deallocate (sl_com%s, sl_com%orb)
+          allocate (sl_com%s(0:n), sl_com%orb(0:n))
+        endif
+      else
+        allocate (sl_com%s(0:n), sl_com%orb(0:n))
+      endif
+      sl_com%s(0) = 0
+      sl_com%orb(0) = start
+    endif
+
+! loop over all steps
 
     do i = 1, ele%num_steps
 
@@ -223,6 +239,11 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 ! s half step
 
       s = s + ds2
+
+      if (sl_com%save_orbit) then
+        sl_com%s(i) = s
+        sl_com%orb(i) = end
+      endif
 
     enddo
 

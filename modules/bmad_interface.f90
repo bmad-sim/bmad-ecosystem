@@ -964,7 +964,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ele_struct), intent(in)  :: ele2
-      type (ele_struct), intent(out) :: ele1
+      type (ele_struct), intent(inout) :: ele1
     end subroutine
   end interface
 

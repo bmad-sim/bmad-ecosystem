@@ -72,17 +72,90 @@ subroutine ele_equal_ele (ele1, ele2)
 	
   type (ele_struct), intent(inout) :: ele1
   type (ele_struct), intent(in) :: ele2
+  type (ele_struct) ele_save
 
-! deallocate ele1 pointers
+  integer i
 
-  call deallocate_ele_pointers (ele1)
+! If ele2 has not been properly initialized assume there is a problem somewhere
 
-! set ele1 = ele2.
-! if ele2 has allocated pointers then create new storage in ele1.
-! if not allocated then init the pointers.
+  if (ele2%pointer_init /= has_been_inited$) then
+    print *, 'ERROR IN ELE_EQUAL_ELE: NO POINTER_INIT DONE FOR ELE2!'
+    call err_exit
+  endif
 
+  if (ele1%pointer_init /= has_been_inited$) call deallocate_ele_pointers (ele1)
+
+! save ele1 pointers and set ele1 = ele2.
+
+  ele_save = ele1
   ele1 = ele2
-  call transfer_ele_pointers (ele1, ele2)
+
+! Transfer pointer info.
+! When finished ele1's pointers will be pointing to a different memory
+! location from ele2's so that the elements are truely separate.
+! The exception is the %gen_field which is not transfered because it is
+! part of PTC.
+
+  if (associated(ele2%wig_term)) then
+    if (associated (ele_save%wig_term)) then
+      if (size(ele_save%wig_term) /= size(ele2%wig_term)) then
+        deallocate (ele_save%wig_term)
+        allocate (ele1%wig_term(size(ele2%wig_term)))
+      endif
+    else
+      allocate (ele1%wig_term(size(ele2%wig_term)))
+    endif
+    ele1%wig_term = ele2%wig_term
+  else
+    if (associated (ele_save%wig_term)) deallocate (ele_save%wig_term)
+  endif
+
+  if (associated(ele2%const)) then
+    if (associated (ele_save%const)) then
+      if (size(ele_save%const) /= size(ele2%const)) then
+        deallocate (ele_save%const)
+        allocate (ele1%const(size(ele2%const)))
+      endif
+    else
+      allocate (ele1%const(size(ele2%const)))
+    endif
+    ele1%const = ele2%const
+  else
+    if (associated (ele_save%const)) deallocate (ele_save%const)
+  endif
+
+  do i = 1, 6
+    if (associated(ele2%taylor(i)%term)) then
+      if (associated (ele_save%taylor(i)%term)) then
+        if (size(ele_save%taylor(i)%term) /= size(ele2%taylor(i)%term)) then
+          deallocate (ele_save%taylor(i)%term)
+          allocate (ele1%taylor(i)%term(size(ele2%taylor(i)%term)))
+        endif
+      else
+        allocate (ele1%taylor(i)%term(size(ele2%taylor(i)%term)))
+      endif
+      ele1%taylor(i)%term = ele2%taylor(i)%term
+    else
+      if (associated (ele_save%taylor(i)%term)) deallocate (ele_save%taylor(i)%term)
+    endif
+  enddo
+
+  if (associated(ele2%a)) then
+    if (.not. associated (ele_save%a)) then
+      allocate (ele1%a(0:n_pole_maxx), ele1%b(0:n_pole_maxx))
+    endif
+    ele1%a = ele2%a
+    ele1%b = ele2%b
+  else
+    if (associated (ele_save%a)) deallocate (ele_save%a, ele_save%b)
+  endif
+
+  if (associated(ele2%descrip)) then
+    if (.not. associated (ele_save%descrip)) allocate (ele1%descrip)
+    ele1%descrip = ele2%descrip
+  else
+    if (associated (ele_save%descrip)) deallocate (ele_save%descrip)
+  endif
 
 end subroutine
 
@@ -92,11 +165,11 @@ end subroutine
 !+
 ! Subroutine ele_vec_equal_ele_vec (ele1, ele2)
 !
-! Subroutine that is used to set one element vector equal to another. 
-! This routine takes care of the pointers in ele1. 
+! Subroutine that is used to set one element vector equal to another.
+! This routine takes care of the pointers in ele1.
 !
 ! Note: This subroutine is called by the overloaded equal sign:
-!		ele1(:) = ele2(:)
+!               ele1(:) = ele2(:)
 !
 ! Input:
 !   ele2(:) -- Ele_struct: Input element vector.
@@ -112,11 +185,20 @@ subroutine ele_vec_equal_ele_vec (ele1, ele2)
   use bmad_struct
 
   implicit none
-	
+
   type (ele_struct), intent(inout) :: ele1(:)
   type (ele_struct), intent(in) :: ele2(:)
 
   integer i
+
+  interface
+    subroutine ele_equal_ele (ele1, ele2)
+      use bmad_struct
+      implicit none
+      type (ele_struct), intent(inout) :: ele1
+      type (ele_struct), intent(in) :: ele2
+    end subroutine
+  end interface
 
 ! error check
 
@@ -128,12 +210,12 @@ subroutine ele_vec_equal_ele_vec (ele1, ele2)
 ! transfer
 
   do i = 1, size(ele1)
-    ele1(i) = ele2(i)
+    call ele_equal_ele (ele1(i), ele2(i))
   enddo
 
 end subroutine
 
-!----------------------------------------------------------------------
+!!----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
@@ -159,12 +241,12 @@ subroutine ring_equal_ring (ring1, ring2)
   use bmad_struct
 
   implicit none
-	
+
   type (ring_struct), intent(inout) :: ring1
   type (ring_struct), intent(in) :: ring2
 
   integer i
-  
+
 ! deallocate ring1 pointers
 
   call deallocate_ele_pointers (ring1%ele_init)
@@ -185,7 +267,7 @@ subroutine ring_equal_ring (ring1, ring2)
   enddo
 
 
- 
+
 end subroutine
 
 !----------------------------------------------------------------------
