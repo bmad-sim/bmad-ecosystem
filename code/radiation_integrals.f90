@@ -9,9 +9,9 @@
 !
 ! The calculation can spend a significant amount of time calculating the
 ! integrals through any wigglers. To speed up this calculation the ix_cash
-! argument can be used to stash values for the bending radius, etc.
-! so that repeated calls to radiation_integrals consume less time. [If 
-! radiation_integrals is going to be called only once then do not use this
+! argument can be used to stash values for the bending radius, etc. through a
+! wiggler so that repeated calls to radiation_integrals consume less time. 
+! [If radiation_integrals is going to be called only once then do not use this
 ! feature. It will actually slow things down in this case.] 
 ! To use cashing: 
 !   1) First call radiation_integrals with ix_cash set to 0. 
@@ -84,19 +84,23 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cash)
   type (coord_struct), target :: orb_(0:), start, end
   type (modes_struct) mode
   type (synch_rad_com) sr_com_save
+  type (rad_int_cash_struct), pointer :: cash
 
   real(rp), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
   real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
   real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll
-  real(rp) v(4,4), v_inv(4,4)
+  real(rp) v(4,4), v_inv(4,4), f0, f1, s
 
   integer, optional :: ix_cash
-  integer i, ix, ir, key
+  integer i, j, k, ix, ir, key
 
   logical do_alloc
 
 !---------------------------------------------------------------------
-! init
+! Init
+! To make the calculation go faster turn off radiation fluctuations and damping
+
+  sr_com_save = sr_com
 
   if (associated(ric%i1_)) then
     if (size(ric%i1_) < ring%n_ele_max) then 
@@ -125,42 +129,88 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cash)
     allocate (ric%i5b_(ring%n_ele_max))
   endif
 
-  if (present(ix_cash)) then
-    if (ix_cash == 0) then
-
-    else
-
-    endif
-
-
-
-  endif
-
-  m65 = 0
+  ric%ring => ring
 
   ric%i1_ = 0;   ric%i2_ = 0;  ric%i3_ = 0
   ric%i4a_ = 0;  ric%i4b_ = 0
   ric%i5a_ = 0;  ric%i5b_ = 0
 
-! To make the calculation go faster turn off radiation fluctuations and damping
+  m65 = 0
 
-  sr_com_save = sr_com
+! Cashing
+
+  if (present(ix_cash)) then
+
+    if (ix_cash == 0) then
+      do i = 1, size(ric%cash)
+        if (ric%cash(i)%set) cycle
+        ric%cash(i)%set = .true.
+        ix_cash = i
+        cash => ric%cash(i)
+        exit
+      enddo
+
+      if (ix_cash == 0) then
+        print *, 'ERROR IN RADIATION_INTEGRALS: CASH OUT OF MEMORY!'
+        call err_exit
+      endif
+
+      j = 0
+      do i = 1, ring%n_ele_ring
+        ric%ele => ring%ele_(i)
+        if (ric%ele%key /= wiggler$ .or. ric%ele%sub_key /= map_type$) cycle
+        j = j + 1
+      enddo
+      allocate (cash%ele(j))
+
+      j = 0
+      do i = 1, ring%n_ele_ring
+        ric%ele => ring%ele_(i)
+        if (ric%ele%key /= wiggler$ .or. ric%ele%sub_key /= map_type$) cycle
+        j = j + 1
+        ric%ele%ixx = j
+        cash%ele(j)%ix_ele = i
+        cash%ele(j)%ds = ric%ele%value(l$) / ric%ele%num_steps
+        allocate (cash%ele(j)%v(0:ric%ele%num_steps))
+        do k = 0, ric%ele%num_steps
+          s = k * cash%ele(j)%ds
+          f0 = (ric%ele%value(l$) - s) / ric%ele%value(l$)
+          f1 = s / ric%ele%value(l$)
+          start%vec = orb_(i-1)%vec * f0 + orb_(i)%vec * f1
+          call calc_g_params (s, start)
+          cash%ele(j)%v(k)%g     = ric%g
+          cash%ele(j)%v(k)%g2    = ric%g2
+          cash%ele(j)%v(k)%g_x   = ric%g_x
+          cash%ele(j)%v(k)%g_y   = ric%g_y
+          cash%ele(j)%v(k)%dg2_x = ric%dg2_x
+          cash%ele(j)%v(k)%dg2_y = ric%dg2_y
+        enddo
+      enddo
+      
+    else
+      cash => ric%cash(ix_cash)
+
+    endif
+
+    ric%use_cash = .true.
+
+  else
+    ric%use_cash = .false.
+
+  endif
 
 !---------------------------------------------------------------------
-! loop over all elements
+! Loop over all elements
 ! We do the non-wiggler elements first since we can do this quickly.
-
-  ric%ring => ring
 
   do ir = 1, ring%n_ele_use
 
     ric%ele => ring%ele_(ir)
-    ric%orb1 => orb_(ir)
-
     if (.not. ric%ele%is_on) cycle
 
     ric%ele0 => ring%ele_(ir-1)
     ric%orb0 => orb_(ir-1)
+    ric%orb1 => orb_(ir)
 
     ll = ric%ele%value(l$)
     if (ll == 0) cycle
@@ -261,7 +311,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cash)
       ric%s1 = 0
     endif
 
-! edge effects for a bend. In this case we ignore any rolls.
+! Edge effects for a bend. In this case we ignore any rolls.
 
     if (key == sbend$) then
       call propagate_part_way(0.0_rp)
@@ -274,7 +324,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cash)
                            ric%eta_b(1) * ric%g2 * tan(ric%ele%value(e2$))
     endif
 
-! integrate
+! Integrate
 
     ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rp, ll, i1, 'I1')
     ric%i4a_(ir) = ric%i4a_(ir) + &
@@ -291,15 +341,13 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cash)
   do ir = 1, ring%n_ele_use
 
     ric%ele => ring%ele_(ir)
-    ric%orb1 => orb_(ir)
-    key = ric%ele%key
-
-    if (key /= wiggler$) cycle
+    if (ric%ele%key /= wiggler$) cycle
+    if (ric%ele%sub_key /= map_type$) cycle
     if (.not. ric%ele%is_on) cycle
-    if (ric%ele%sub_key == periodic_type$) cycle
 
     ric%ele0 => ring%ele_(ir-1)
     ric%orb0 => orb_(ir-1)
+    ric%orb1 => orb_(ir)
 
     ll = ric%ele%value(l$)
     if (ll == 0) cycle
@@ -324,6 +372,8 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cash)
     i3   = sum(ric%i3_(1:ring%n_ele_use))
     i5a  = sum(ric%i5a_(1:ring%n_ele_use))
     i5b  = sum(ric%i5b_(1:ring%n_ele_use))
+
+    if (ric%use_cash) ric%cash_ele => cash%ele(ric%ele%ixx)
 
     ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rp, ll, i1, 'I1')
     ric%i2_(ir)  =   qromb_rad_int (eval_i2,  0.0_rp, ll, i2, 'I2')

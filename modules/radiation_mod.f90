@@ -18,6 +18,45 @@ module radiation_mod
 
 contains
 
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
+!+
+! Subroutine release_rad_int_cash (ix_cash)
+!
+! Subroutine to release the memory associated with cashing wiggler values.
+! See the radiation_integrals routine for further details.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ix_cash -- Integer: Cash number.
+!
+! Output:
+!   ix_cash -- Integer: Cash number set to 0,
+!-
+
+subroutine release_rad_int_cash (ix_cash)
+
+  use rad_int_common
+
+  implicit none
+
+  integer i, ix_cash
+
+!
+
+  do i = 1, size(ric%cash(ix_cash)%ele)
+    deallocate (ric%cash(ix_cash)%ele(i)%v)
+  enddo
+
+  deallocate (ric%cash(ix_cash)%ele)
+
+  ix_cash = 0
+
+end subroutine
+
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------

@@ -53,17 +53,25 @@ module rad_int_common
     type (runge_kutta_com_struct) :: rk_track(0:6)
     type (coord_struct) d_orb
     type (rad_int_cash_struct) cash(10)
+    type (ele_cash_struct), pointer :: cash_ele
+    logical use_cash
   end type
 
-  type (rad_int_common_struct), save :: ric
-  type (ele_cash_struct), pointer, save :: e_cash
-
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-! This is a modified version of QROMB from Num. Rec.
+  type (rad_int_common_struct), target, save :: ric
 
 contains
+
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
+!+
+! Function qromb_rad_int (func, a, b, sum, which_int, &
+!                                      eps_int, eps_sum) result (rad_int)
+!
+! Function to do integration using Romberg's method.
+! This is a modified version of QROMB from Num. Rec.
+! See the Num. Rec. book for further details
+!-
 
 function qromb_rad_int (func, a, b, sum, which_int, &
                                       eps_int, eps_sum) result (rad_int)
@@ -424,7 +432,7 @@ subroutine propagate_part_way (s)
 
       if (i == 0) then
         orb_0 = orb
-        call calc_g_params (orb)
+        call calc_g_params (s, orb)
       else
         ric%runt%mat6(1:6, i) = (orb%vec - orb_0%vec) / ric%d_orb%vec(i)
       endif
@@ -453,7 +461,7 @@ subroutine propagate_part_way (s)
     f1 = s / ric%ele%value(l$)
 
     orb%vec = ric%orb0%vec * f0 + ric%orb1%vec * f1
-    call calc_g_params (orb)
+    call calc_g_params (s, orb)
 
     ric%eta_a = ric%eta_a0 * f0 + ric%eta_a1 * f1
     ric%eta_b = ric%eta_b0 * f0 + ric%eta_b1 * f1
@@ -509,14 +517,45 @@ subroutine propagate_part_way (s)
   ric%g2 = ric%g_x**2 + ric%g_y**2
   ric%g = sqrt(ric%g2)
 
-!----------------------------------------------------------------------------
-contains
+end subroutine
 
-subroutine calc_g_params (orb)
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+
+subroutine calc_g_params (s, orb)
+
+  implicit none
 
   type (coord_struct) orb
-  real(rp) dk(3,3)
-  real(rp) kick_0(6)
+  type (g_cash_struct) v0, v1
+
+  real(rp) dk(3,3), s, ds
+  real(rp) kick_0(6), f0, f1
+
+  integer i0, i1
+
+! Using the cash is faster if we have one.
+
+  if (ric%use_cash) then
+    ds = ric%cash_ele%ds
+    i0 = int(s/ds)
+    i1 = i0 + 1
+    if (i1 > size(ric%cash_ele%v)) i1 = i0
+    f1 = (s - ds*i0) / ds 
+    f0 = 1 - f1
+    v0 = ric%cash_ele%v(i0)
+    v1 = ric%cash_ele%v(i1)
+    ric%g      = f0 * v0%g     + f1 * v1%g
+    ric%g2     = f0 * v0%g2    + f1 * v1%g2
+    ric%g_x    = f0 * v0%g_x   + f1 * v1%g_x
+    ric%g_y    = f0 * v0%g_y   + f1 * v1%g_y
+    ric%dg2_x  = f0 * v0%dg2_x + f1 * v1%dg2_x
+    ric%dg2_y  = f0 * v0%dg2_y + f1 * v1%dg2_y
+    return
+  endif
+
+! Standard non-cash calc.
 
   call derivs_bmad (ric%ele, ric%ring%param, s, orb%vec, kick_0, dk)
 
@@ -527,8 +566,6 @@ subroutine calc_g_params (orb)
 
   ric%dg2_x = 2*kick_0(2)*dk(1,1) + 2*kick_0(4)*dk(2,1) 
   ric%dg2_y = 2*kick_0(2)*dk(1,2) + 2*kick_0(4)*dk(2,2) 
-
-end subroutine
 
 end subroutine
 
