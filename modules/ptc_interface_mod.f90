@@ -1244,8 +1244,8 @@ subroutine concat_taylor (taylor1, taylor2, taylor3)
 
   implicit none
 
-  type (taylor_struct), intent(in) :: taylor1(:), taylor2(:)
-  type (taylor_struct), intent(out) :: taylor3(:)
+  type (taylor_struct) :: taylor1(:), taylor2(:)
+  type (taylor_struct) :: taylor3(:)
   type (real_8) y1(6), y2(6), y3(6)
   type (damap) da1, da2, da3
 

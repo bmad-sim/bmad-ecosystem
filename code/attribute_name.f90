@@ -36,7 +36,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
 
   character*16 attrib_array(n_key, n_attrib_special_maxx)
 
-  logical init_needed / .true. /
+  logical, save :: init_needed = .true.
 
 !---------------------------------------------------------------------
 ! Init
@@ -66,28 +66,30 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, mat6_calc_method$)  = 'MAT6_CALC_METHOD'
       attrib_array(i, tracking_method$)   = 'TRACKING_METHOD'
 
-      if (i == patch$)   cycle
-      if (i == marker$)  cycle
-      if (i == hkicker$) cycle
-      if (i == vkicker$) cycle
-
+      if (i == patch$)        cycle
+      if (i == marker$)       cycle
+      if (i == hkicker$)      cycle
+      if (i == vkicker$)      cycle
+      if (i == beambeam$)     cycle
       if (i == hom$)          cycle
       if (i == matrix$)       cycle
       if (i == multipole$)    cycle 
       if (i == ab_multipole$) cycle
       if (i == taylor$)       cycle
 
+!!!      attrib_array(i, ptc_kind$)          = 'PTC_KIND'
+      attrib_array(i, integration_order$) = 'INTEGRATION_ORD'
+      attrib_array(i, num_steps$)         = 'NUM_STEPS'
+      attrib_array(i, symplectify$)       = 'SYMPLECTIFY'
+      attrib_array(i, rel_tol$)           = 'REL_TOL'
+      attrib_array(i, abs_tol$)           = 'ABS_TOL'
+
+      if (i == custom$) cycle
+      if (i == drift$)      cycle
+
       attrib_array(i, hkick$)  = 'HKICK'
       attrib_array(i, vkick$)  = 'VKICK'
 
-      attrib_array(i, ptc_kind$)          = 'PTC_KIND'
-      attrib_array(i, integration_order$) = 'INTEGRATION_ORDER'
-      attrib_array(i, num_steps$)         = 'NUM_STEPS'
-      attrib_array(i, symplectify$)       = 'SYMPLECTIFY'
-      attrib_array(i, rel_tol$) = 'REL_TOL'
-      attrib_array(i, abs_tol$) = 'ABS_TOL'
-
-      if (i == drift$)      cycle
       if (i == monitor$)    cycle
       if (i == instrument$) cycle
 
@@ -160,7 +162,9 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(group$, accordion_edge$) = 'ACCORDION_EDGE'
     attrib_array(group$, symmetric_edge$) = 'SYMMETRIC_EDGE'
 
-    attrib_array(drift$,      l$) = 'L'
+    attrib_array(drift$, l$)     = 'L'
+    attrib_array(drift$, is_on$) = null_name    
+
     attrib_array(monitor$,    l$) = 'L'
     attrib_array(instrument$, l$) = 'L'
 
@@ -246,12 +250,19 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(elseparator$, l$)      = 'L'
     attrib_array(elseparator$, gap$)    = 'GAP'
 
-    attrib_array(beambeam$, sig_x$)      = 'SIG_X'
-    attrib_array(beambeam$, sig_y$)      = 'SIG_Y'
-    attrib_array(beambeam$, sig_z$)      = 'SIG_Z'
-    attrib_array(beambeam$, bbi_const$)  = 'BBI_CONSTANT'
-    attrib_array(beambeam$, charge$)     = 'CHARGE'
-    attrib_array(beambeam$, n_slice$)    = 'N_SLICE'
+    attrib_array(beambeam$, sig_x$)       = 'SIG_X'
+    attrib_array(beambeam$, sig_y$)       = 'SIG_Y'
+    attrib_array(beambeam$, sig_z$)       = 'SIG_Z'
+    attrib_array(beambeam$, bbi_const$)   = 'BBI_CONSTANT'
+    attrib_array(beambeam$, charge$)      = 'CHARGE'
+    attrib_array(beambeam$, n_slice$)     = 'N_SLICE'
+    attrib_array(beambeam$, symplectify$) = 'N_SLICE'
+    attrib_array(beambeam$, x_offset$)    = 'X_OFFSET'
+    attrib_array(beambeam$, y_offset$)    = 'Y_OFFSET'
+    attrib_array(beambeam$, s_offset$)    = 'S_OFFSET'
+    attrib_array(beambeam$, x_pitch$)     = 'X_PITCH'
+    attrib_array(beambeam$, y_pitch$)     = 'Y_PITCH'
+    attrib_array(beambeam$, tilt$)        = 'TILT'
 
     attrib_array(wiggler$, l$)        = 'L'
     attrib_array(wiggler$, k1$)       = 'K1'
@@ -315,18 +326,24 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(accel_sol$, y_beg_limit$)   = 'Y_BEG_LIMIT'
 
     attrib_array(custom$, l$)     = 'L'
-    attrib_array(custom$,  val1$) =  'VAL1'
-    attrib_array(custom$,  val2$) =  'VAL2'
-    attrib_array(custom$,  val3$) =  'VAL3'
-    attrib_array(custom$,  val4$) =  'VAL4'
-    attrib_array(custom$,  val5$) =  'VAL5'
-    attrib_array(custom$,  val6$) =  'VAL6'
-    attrib_array(custom$,  val7$) =  'VAL7'
-    attrib_array(custom$,  val8$) =  'VAL8'
-    attrib_array(custom$,  val9$) =  'VAL9'
+    attrib_array(custom$, tilt$)  = 'TILT'
+    attrib_array(custom$,  val1$) = 'VAL1'
+    attrib_array(custom$,  val2$) = 'VAL2'
+    attrib_array(custom$,  val3$) = 'VAL3'
+    attrib_array(custom$,  val4$) = 'VAL4'
+    attrib_array(custom$,  val5$) = 'VAL5'
+    attrib_array(custom$,  val6$) = 'VAL6'
+    attrib_array(custom$,  val7$) = 'VAL7'
+    attrib_array(custom$,  val8$) = 'VAL8'
+    attrib_array(custom$,  val9$) = 'VAL9'
     attrib_array(custom$, val10$) = 'VAL10'
     attrib_array(custom$, val11$) = 'VAL11'
     attrib_array(custom$, val12$) = 'VAL12'
+    attrib_array(custom$, x_offset$) = 'X_OFFSET'
+    attrib_array(custom$, y_offset$) = 'Y_OFFSET'
+    attrib_array(custom$, s_offset$) = 'S_OFFSET'
+    attrib_array(custom$, x_pitch$)  = 'X_PITCH'
+    attrib_array(custom$, y_pitch$)  = 'Y_PITCH'
 
     init_needed = .false.
 

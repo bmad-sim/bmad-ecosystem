@@ -492,6 +492,11 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
       key = in_ring%ele_(n_max)%key
 
+      if (key == custom$) then
+        in_ring%ele_(n_max)%mat6_calc_method = custom$
+        in_ring%ele_(n_max)%tracking_method = custom$
+      endif
+
       if (key == overlay$ .or. key == group$) then
         if (delim /= '=') then
           call warning ('EXPECTING: "=" BUT GOT: ' // delim,  &
