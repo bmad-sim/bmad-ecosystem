@@ -58,7 +58,7 @@ module rad_int_common
     type (ele_struct), pointer :: ele0, ele
     type (ele_struct) runt
     type (coord_struct), pointer :: orb0, orb1
-    type (runge_kutta_com_struct) :: rk_track(0:6)
+    type (track_com_struct) :: track(0:6)
     type (coord_struct) d_orb
     type (rad_int_cache_struct) cache(10)
     type (ele_cache_struct), pointer :: cache_ele
@@ -221,11 +221,11 @@ end subroutine
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 
-subroutine transfer_rk_track (rk1, rk2)
+subroutine transfer_track (rk1, rk2)
 
   implicit none
 
-  type (runge_kutta_com_struct) rk1, rk2
+  type (track_com_struct) rk1, rk2
 
   integer n
 
@@ -335,16 +335,16 @@ subroutine propagate_part_way (s, j_loop, n_pt)
   if (ric%ele%exact_rad_int_calc) then
 
     do i = 0, 6
-      n = ric%rk_track(i)%n_pts
-      call bracket_index (ric%rk_track(i)%s(1:n), s, ix)
+      n = ric%track(i)%n_pts
+      call bracket_index (ric%track(i)%s(1:n), s, ix)
 
       if (ix == n) then
-        orb = ric%rk_track(i)%orb(n)
+        orb = ric%track(i)%orb(n)
       else
-        s1 = s - ric%rk_track(i)%s(ix)
-        s2 = ric%rk_track(i)%s(ix+1) - s
-        orb%vec = (s2 * ric%rk_track(i)%orb(ix)%vec + &
-                s1 * ric%rk_track(i)%orb(ix+1)%vec) / (s1 + s2)
+        s1 = s - ric%track(i)%s(ix)
+        s2 = ric%track(i)%s(ix+1) - s
+        orb%vec = (s2 * ric%track(i)%orb(ix)%vec + &
+                s1 * ric%track(i)%orb(ix+1)%vec) / (s1 + s2)
       endif
 
       if (i == 0) then

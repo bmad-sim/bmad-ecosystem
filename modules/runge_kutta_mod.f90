@@ -2,32 +2,7 @@
 
 module runge_kutta_mod
 
-  use bmad_struct
-
-  type runge_kutta_com_struct
-    logical :: save_steps = .true.         ! save orbit?
-    integer :: n_ok, n_bad, n_pts          ! number of points
-    real(rp) :: ds_save = 1e-3           ! min distance between points
-    real(rp), pointer :: s(:) => null()  ! s-distance of a point
-    type (coord_struct), allocatable :: orb(:) ! position of a point
-  end type
-
-  type (runge_kutta_com_struct), save :: rk_com
-
-  integer, parameter :: kick_field$ = 2   ! b_field$ is defined in bmad_struct
-
-  interface 
-    subroutine field_rk_custom (ele, param, s, orb, field, field_type)
-      use bmad_struct
-      implicit none
-      type (ele_struct), intent(in) :: ele
-      type (param_struct) param
-      type (coord_struct), intent(in) :: orb
-      real(rp), intent(in) :: s
-      real(rp), intent(out) :: field(3)
-      integer, intent(out) :: field_type
-    end subroutine
-  end interface
+  use em_field_mod
 
 contains
 
@@ -57,9 +32,9 @@ contains
 !   start   -- Coord_struct: Starting coords: (x, x', y, y', z, delta).
 !   ele     -- Ele_struct: Element to track through.
 !     %tracking_method -- Determines which subroutine to use to calculate the 
-!                         field. Note: BMAD does no supply field_rk_custom.
-!                           == custom$ then use field_rk_custom
-!                           /= custom$ then use field_rk_standard
+!                         field. Note: BMAD does no supply em_field_custom.
+!                           == custom$ then use em_field_custom
+!                           /= custom$ then use em_field_standard
 !   param   -- Param_struct: Beam parameters.
 !     %enegy       -- Energy in GeV
 !     %particle    -- Particle type [positron$, or electron$]
@@ -76,7 +51,7 @@ contains
 !   end        -- Coord_struct: Ending coords: (x, x', y, y', z, delta).
 !
 ! Common block:
-!   rk_com -- common_block that holds the path.
+!   track_com -- common_block that holds the path.
 !     %save_steps -- Set True if you want to save the path
 !     %n_pts -- The number of data points
 !     %s(:)   -- Real: S positions of the data points
@@ -107,24 +82,11 @@ subroutine odeint_bmad (start, ele, param, end, &
 
   s = s1
   h = sign(h1, s2-s1)
-  rk_com%n_ok = 0
-  rk_com%n_bad = 0
-  rk_com%n_pts = 0
   r = start%vec
 
-! if we are saving the trajectory then allocate enough space in the arrays
-
-  if (rk_com%save_steps) then
-    s_sav = s - 2.0_rp * rk_com%ds_save
-    n_pts_save_max = 2 + abs(s2-s1)/rk_com%ds_save
-    if (associated(rk_com%s)) then
-      if (size(rk_com%s) < n_pts_save_max) then
-        deallocate(rk_com%s, rk_com%orb)
-        allocate(rk_com%s(n_pts_save_max), rk_com%orb(n_pts_save_max))
-      endif
-    else
-      allocate(rk_com%s(n_pts_save_max), rk_com%orb(n_pts_save_max))
-    endif
+  if (track_com%save_steps) then
+    s_sav = s - 2.0_rp * track_com%ds_save
+    call allocate_saved_orbit (int(abs(s2-s1)/track_com%ds_save))
   endif
 
 ! now track
@@ -140,8 +102,8 @@ subroutine odeint_bmad (start, ele, param, end, &
     abs_tol_eff = abs_tol / sqrt_N
     r_scal(:) = abs(r(:)) + abs(h*dr_ds(:)) + TINY
 
-    if (rk_com%save_steps .and. (abs(s-s_sav) > rk_com%ds_save)) &
-                                                       call save_a_step
+    if (track_com%save_steps .and. (abs(s-s_sav) > track_com%ds_save)) &
+                                        call save_a_step (ele, param, s, r, s_sav)
     if ((s+h-s2)*(s+h-s1) > 0.0) h = s2-s
 
     call rkqs_bmad (ele, param, r, dr_ds, s, h, rel_tol_eff, abs_tol_eff, &
@@ -149,14 +111,14 @@ subroutine odeint_bmad (start, ele, param, end, &
     if (.not. bmad_status%ok) return
 
     if (h_did == h) then
-      rk_com%n_ok = rk_com%n_ok + 1
+      track_com%n_ok = track_com%n_ok + 1
     else
-      rk_com%n_bad = rk_com%n_bad+1
+      track_com%n_bad = track_com%n_bad + 1
     end if
 
     if ((s-s2)*(s2-s1) >= 0.0) then
       end%vec = r
-      if (rk_com%save_steps) call save_a_step
+      if (track_com%save_steps) call save_a_step (ele, param, s, r, s_sav)
       return
     end if
 
@@ -174,23 +136,6 @@ subroutine odeint_bmad (start, ele, param, end, &
   bmad_status%ok = .false.
   if (bmad_status%type_out) print *, 'ERROR IN ODEINT_BMAD: TOO MANY STEPS'
   if (bmad_status%exit_on_error) call err_exit
-
-!-----------------------------------------------------------------
-
-contains
-
-subroutine save_a_step
-  integer n_pts
-  rk_com%n_pts = rk_com%n_pts + 1
-  n_pts = rk_com%n_pts 
-  if (n_pts > size(rk_com%s)) then
-    print *, 'ERROR IN ODEINT_BMAD SAVE_A_STEP: ARRAY OVERFLOW!'
-    call err_exit
-  end if
-  rk_com%s(n_pts) = s
-  rk_com%orb(n_pts)%vec = r
-  s_sav = s
-end subroutine save_a_step
 
 end subroutine odeint_bmad
 
@@ -326,6 +271,7 @@ subroutine derivs_bmad (ele, param, s, r, dr_ds, dkick)
 
   type (ele_struct) ele
   type (param_struct) param
+  type (em_field_struct) field
 
   real(rp), intent(in) :: s         ! s-position
   real(rp), intent(in) :: r(6)      ! (x, x', y, y', z, z')
@@ -334,38 +280,31 @@ subroutine derivs_bmad (ele, param, s, r, dr_ds, dkick)
 
   type (coord_struct) here
 
-  real(rp) field(3), k2(3,3)
+  real(rp) energy
   real(rp) vel_x, vel_y, vel_s, dvel_x, dvel_y, dvel_s, f
-
-  integer field_type
 
 ! calculate the field
 
   here%vec = r
-
-  if (ele%tracking_method == custom$) then
-    call field_rk_custom (ele, param, s, here, field, field_type)
-    if (present (dkick)) then
-      print *, 'ERROR IN DERIVS_BMAD: DKICK ARGUMENT PRESENT!'
-      call err_exit
-    endif
-  else 
-    call field_rk_standard (ele, param, s, here, field, field_type, dkick)
+  if (present (dkick)) then
+    call em_field (ele, param, s, here, field, .true.)
+  else
+    call em_field (ele, param, s, here, field, .false.)
   endif
 
 ! if this is a kick field then field gives us directly dr_ds
 
-  if (field_type == KICK_FIELD$) then
+  if (field%type == kick_field$) then
     dr_ds(1) = r(2)    ! dx/ds =
-    dr_ds(2) = field(1)
+    dr_ds(2) = field%kick(1)
     dr_ds(3) = r(4)
-    dr_ds(4) = field(2)
+    dr_ds(4) = field%kick(2)
     dr_ds(5) = -(r(2)**2 + r(4)**2) / 2
-    dr_ds(6) = field(3)
+    dr_ds(6) = field%kick(3)
     return
   endif
 
-! Here for func_type = B_FIELD
+! Here for field%type = em_field
 ! The computation (up to some constant factors):
 !     x' = dx/ds = v_x / v_s
 !     dx'/ds = (dv_x/dt * v_s - v_s * dv_s/dt) / v_s^3  ! ds/dt == v_s
@@ -374,217 +313,42 @@ subroutine derivs_bmad (ele, param, s, r, dr_ds, dkick)
 !   dv_y/dt = v_s * B_x - v_x * B_s
 !   dv_s/dt = v_x * B_y - v_y * B_x
 
-  if (field_type == B_FIELD$) then
+  if (field%type == em_field$) then
     vel_x = r(2)                              ! proportional to x-velosity
     vel_y = r(4)                              ! proportional to y-velosity
     vel_s = 1/sqrt(1 + r(2)**2 + r(4)**2)     ! proportional to s-velosity
 
-    dvel_x = vel_y * field(3) - vel_s * field(2)
-    dvel_y = vel_s * field(1) - vel_x * field(3)
-    dvel_s = vel_x * field(2) - vel_y * field(1)
+    f = param%particle / c_light
+    dvel_x = vel_y * field%B(3) - vel_s * field%B(2) + field%E(1) * f
+    dvel_y = vel_s * field%B(1) - vel_x * field%B(3) + field%E(2) * f
+    dvel_s = vel_x * field%B(2) - vel_y * field%B(1)
 
-    f = c_light / (param%beam_energy * (1 + r(6)))
+    energy = (param%beam_energy * (1 + r(6)))
+    f = c_light / energy
 
     dr_ds(1) = r(2)
     dr_ds(2) = f * (dvel_x * vel_s - vel_x * dvel_s) / vel_s**3
     dr_ds(3) = r(4)
     dr_ds(4) = f * (dvel_y * vel_s - vel_y * dvel_s) / vel_s**3
     dr_ds(5) = -(r(2)**2 + r(4)**2) / 2
-    dr_ds(6) = 0           ! dE/ds = 0
+    dr_ds(6) = field%E(3) / energy
 
 ! We make the small angle approximation for the dkick calc
 
     if (present(dkick)) then
-      k2 = dkick
       dkick = 0
-      f = f / vel_s**2
-      dkick(1,1) = f * (vel_y * k2(3,1) - vel_s * k2(2,1)) 
-      dkick(1,2) = f * (vel_y * k2(3,2) - vel_s * k2(2,2)) 
-      dkick(2,1) = f * (vel_s * k2(1,1) - vel_x * k2(3,1)) 
-      dkick(2,2) = f * (vel_s * k2(1,2) - vel_x * k2(3,2)) 
+      f = c_light / (energy * vel_s**2)
+      dkick(1,1) = f * (vel_y * field%dB(3,1) - vel_s * field%dB(2,1)) 
+      dkick(1,2) = f * (vel_y * field%dB(3,2) - vel_s * field%dB(2,2)) 
+      dkick(2,1) = f * (vel_s * field%dB(1,1) - vel_x * field%dB(3,1)) 
+      dkick(2,2) = f * (vel_s * field%dB(1,2) - vel_x * field%dB(3,2)) 
     endif
 
     return
   endif
   
-  print *, 'ERROR IN DERIVS: UNKNOWN FIELD_TYPE: ', field_type
+  print *, 'ERROR IN DERIVS: UNKNOWN FIELD_TYPE: ', field%type
   call err_exit
-
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-
-subroutine field_rk (ele, param, s, here, field, field_type)
-
-  implicit none
-
-  type (ele_struct), intent(in) :: ele
-  type (param_struct) param
-  type (coord_struct), intent(in) :: here
-
-  real(rp) :: s, field(3)
-
-  integer, intent(out) :: field_type
-
-!
-
-  if (ele%tracking_method == custom$) then
-    call field_rk_custom (ele, param, s, here, field, field_type)
-  else
-    call field_rk_standard (ele, param, s, here, field, field_type)
-  endif
-
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-
-subroutine field_rk_standard (ele, param, s_pos, here, field, field_type, &
-                                                                       dkick)
-
-  implicit none
-
-  type (ele_struct), target, intent(in) :: ele
-  type (param_struct) param
-  type (coord_struct), intent(in) :: here
-  type (wig_term_struct), pointer :: t
-
-  real(rp), optional, intent(out) :: dkick(3,3)
-  real(rp) :: field(3), x, y, c, s, s_pos, f, fd(3)
-  real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, dk(3,3)
-
-  integer, intent(out) :: field_type
-  integer i, sgn_x, dc_x, dc_y
-
-!
-
-  x = here%vec(1)
-  y = here%vec(3)
-  s = s_pos
-
-  field = 0
-
-! Wiggler
-
-  select case (ele%key)
-
-  case(wiggler$)
-
-    field_type = B_FIELD$
-    if (present(dkick)) dkick = 0
-
-    do i = 1, size(ele%wig_term)
-      t => ele%wig_term(i)
-
-      if (t%type == hyper_y$) then
-        c_x = cos(t%kx * x)
-        s_x = sin(t%kx * x)
-        sgn_x = 1
-        dc_x = -1
-      else
-        c_x = cosh(t%kx * x)
-        s_x = sinh(t%kx * x)
-        sgn_x = -1 
-        dc_x = 1
-      endif
-
-      if (t%type == hyper_y$ .or. t%type == hyper_xy$) then
-        c_y = cosh (t%ky * y)
-        s_y = sinh (t%ky * y)
-        dc_y = 1
-      else
-        c_y = cos (t%ky * y)
-        s_y = sin (t%ky * y)
-        dc_y = -1
-      endif
-
-      c_z = cos (t%kz * s + t%phi_z)
-      s_z = sin (t%kz * s + t%phi_z)
-
-      coef = t%coef * ele%value(polarity$)
-
-      field(1) = field(1) - coef  * (t%kx / t%ky) * s_x * s_y * c_z * sgn_x
-      field(2) = field(2) + coef  *                 c_x * c_y * c_z
-      field(3) = field(3) - coef  * (t%kz / t%ky) * c_x * s_y * s_z
-
-      if (present(dkick)) then
-        f = coef * t%kx
-        dkick(1,1) = dkick(1,1) - f  * (t%kx / t%ky) * c_x * s_y * c_z * sgn_x
-        dkick(2,1) = dkick(2,1) + f  *                 s_x * c_y * c_z * dc_x
-        dkick(3,1) = dkick(3,1) - f  * (t%kz / t%ky) * s_x * s_y * s_z * dc_x
-        f = coef * t%ky
-        dkick(1,2) = dkick(1,2) - f  * (t%kx / t%ky) * s_x * c_y * c_z * sgn_x
-        dkick(2,2) = dkick(2,2) + f  *                 c_x * s_y * c_z * dc_y
-        dkick(3,2) = dkick(3,2) - f  * (t%kz / t%ky) * c_x * c_y * s_z 
-      endif
-
-    enddo
-
-! Quad
-
-  case (quadrupole$)
-
-    field_type = KICK_FIELD$
-    f = 1 + here%vec(6)
-
-    field(1) = -ele%value(k1$) * x / f
-    field(2) =  ele%value(k1$) * y / f
-
-    if (present(dkick)) then
-      dkick = 0
-      dkick(1,1) = -ele%value(k1$) / f
-      dkick(2,2) =  ele%value(k1$) / f
-    endif
-
-! Sextupole
-! This is for testing only
-
-  case (sextupole$)
-
-    field_type = KICK_FIELD$
-    f = 1 + here%vec(6)
-
-    field(1) = 0.5 * ele%value(k2$) * (y*y - x*x) / f
-    field(2) =       ele%value(k2$) * x * y / f
-
-    if (present(dkick)) then
-      dkick = 0
-      dkick(1,1) = -ele%value(k2$) * x / f
-      dkick(1,2) =  ele%value(k2$) * y / f
-      dkick(2,1) =  ele%value(k2$) * y / f
-      dkick(2,2) =  ele%value(k2$) * x / f
-    endif
-
-! Error
-
-  case default
-    print *, 'ERROR IN FIELD_RK_STANDARD: ELEMENT NOT CODED: ', &
-                                                         key_name(ele%key)
-    print *, '      FOR: ', ele%name
-    call err_exit
-  end select
-
-! tilt
-
-  if (ele%value(tilt$) /= 0) then
-    fd = field
-    c = cos(ele%value(tilt$))
-    s = sin(ele%value(tilt$))
-    field(1) = c*fd(1) - s*fd(2)
-    field(2) = s*fd(1) + c*fd(2)
-    if (present(dkick)) then
-      dk(1,:) = c * dkick(1,:) - s * dkick(2,:)
-      dk(2,:) = s * dkick(1,:) + c * dkick(2,:)
-      dk(3,:) = dkick(3,:)
-
-      dkick(:,1) = dk(:,1) * c - dk(:,2) * s
-      dkick(:,2) = dk(:,1) * s - dk(:,2) * c
-      dkick(:,3) = dk(:,3) 
-    endif
-  endif
 
 end subroutine
 

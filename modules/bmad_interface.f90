@@ -629,7 +629,7 @@ module bmad_interface
       implicit none
       type (coord_struct), intent(in) :: track(:)
       type (coord_struct), intent(out) :: track0
-      type (ele_struct), intent(out) :: ele
+      type (ele_struct) :: ele
       real(rp), intent(out) :: growth_rate, chi
       integer, intent(in) :: i_dim
       logical, intent(out) :: stable
@@ -928,19 +928,6 @@ module bmad_interface
   end interface
 
   interface
-    subroutine transfer_mat_from_tracking (ele, param, start, d_orb, end, error)
-      use bmad_struct
-      implicit none
-      type (ele_struct), intent(inout) :: ele
-      type (param_struct), intent(inout) :: param
-      type (coord_struct), intent(in) :: start
-      type (coord_struct), optional, intent(out) :: end
-      type (coord_struct), optional :: d_orb
-      real(rp), optional, intent(out) :: error
-    end subroutine
-  end interface
-
-  interface
     subroutine track1 (start, ele, param, end)
       use bmad_struct
       implicit none
@@ -1125,7 +1112,7 @@ module bmad_interface
     subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
       use bmad_struct
       implicit none
-      type (ele_struct), intent(out) :: ele
+      type (ele_struct) :: ele
       real(rp), intent(in) :: mat6(6,6)
       real(rp), intent(out) :: growth_rate
       logical, intent(out) :: stable

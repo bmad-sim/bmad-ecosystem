@@ -35,7 +35,7 @@ subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
 
   implicit none
 
-  type (ele_struct), intent(out) :: ele
+  type (ele_struct) :: ele
   real(rp), intent(in) :: mat6(6,6)
   real(rp), intent(out) :: growth_rate
   logical, intent(out) :: stable

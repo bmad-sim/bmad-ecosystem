@@ -6,16 +6,15 @@ module integration_timer_mod
   private get_taylor, diff, term_diff  
 
 !+ 
-! Subroutine: integration_timer
+! Subroutine integration_timer
+!
+! Subroutine to set the number of integration steps for a fibre or element
+! so that the error of the Taylor map is within tol of the exact map.
 !
 ! This subroutine overloades:
 !    integration_timer_ele (ele, param, start, orb_max, tol)
 !    integration_timer_fibre (a_fibre, orbit, orbit_max, tol_dp)
 ! 
-! Subroutine to set the number of integration steps for a fibre or element
-! so that the coefficients of a taylor series map is within tol of the exact 
-! number.
-!
 ! Modules Needed:
 !   use integration_timer_mod
 !

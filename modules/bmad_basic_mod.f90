@@ -36,8 +36,8 @@ contains
 !   field_interpolate_3d -- Real(rp): interpolated field.
 !-
 
-real(rp) function field_interpolate_3d &
-                             (position, field_mesh, deltas, position0)
+real(rp) function field_interpolate_3d (position, &
+                                         field_mesh, deltas, position0)
 
   implicit none
 

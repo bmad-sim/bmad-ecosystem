@@ -223,6 +223,12 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
+!+
+! Subroutine mat6_multipole (knl, tilt, c00, factor, mat6)
+!
+! subroutine to find the kick from a multipole.
+! This routine is not meant for general use.
+!-
 
 subroutine mat6_multipole (knl, tilt, c00, factor, mat6)
 
@@ -251,17 +257,18 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! MAT4_MULTIPOLE (KNL, TILT, N, C0, KICK_MAT)
+! Subroutine mat4_multipole (knl, tilt, n, c0, kick_mat)
 !
-! Subroutine to find the kick from a multipole
+! Subroutine to find the kick from a multipole.
+! This routine is not meant for general use.
 !
 ! Input:
-!     C0   -- Coord_struct: coordinates of particle
-!     KNL  -- Real(rp): Strength of multipole
-!     TILT -- Real(rp): Tilt of multipole
+!   c0   -- Coord_struct: coordinates of particle
+!   knl  -- Real(rp): Strength of multipole
+!   tilt -- Real(rp): Tilt of multipole
 !
 ! Output:
-!     KICK_MAT(4,4) -- Real(rp): Kick matrix
+!   kick_mat(4,4) -- Real(rp): Kick matrix
 !-
 
 
@@ -423,6 +430,12 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
+!+
+! Subroutine solenoid_mat_calc (ks, length, mat4)
+!
+! Subroutine to calculate the 4x4 transverse transfer matrix for a solenoid.
+! This routine is not meant for general use.
+!-
 
 subroutine solenoid_mat_calc (ks, length, mat4)
 
@@ -439,10 +452,10 @@ subroutine solenoid_mat_calc (ks, length, mat4)
     ll = length
     kl = kss * length 
     kl2 = kl**2
-    mat4(1,:) = (/  1.0_rp,   ll,       kl,        kl*ll    /)
-    mat4(2,:) = (/ -kl * kss,   1.0_rp, kl2*kss,   kl       /)
-    mat4(3,:) = (/ -kl,        -kl*ll,    1.0_rp,  ll       /)
-    mat4(4,:) = (/  kl2*kss,   -ks,      -kl*kss,    1.0_rp /)
+    mat4(1,:) = (/  1.0_rp,   ll,      kl,      kl*ll    /)
+    mat4(2,:) = (/ -kl*kss,   1.0_rp, -kl2*kss, kl       /)
+    mat4(3,:) = (/ -kl,      -kl*ll,   1.0_rp,  ll       /)
+    mat4(4,:) = (/  kl2*kss, -kl,     -kl*kss,  1.0_rp /)
     return
   endif
 

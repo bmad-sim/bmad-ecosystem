@@ -45,7 +45,7 @@ subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
 
   type (coord_struct), intent(in) :: track(:)
   type (coord_struct), intent(out) :: track0
-  type (ele_struct), intent(out) :: ele
+  type (ele_struct) :: ele
 
   real(rp), intent(out) :: growth_rate, chi
   real(rp) a_vec(4), v_mat(4,4), v_inv_mat(4,4)

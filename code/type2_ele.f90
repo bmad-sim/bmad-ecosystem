@@ -204,20 +204,41 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
   nl = nl + 1
   write (li(nl), '(1x, a, f13.4)') 'S:', ele%s
 
-! Encode methods
+! Encode methods, etc.
 
   write (li(nl+1), *)
-  write (li(nl+2), '(2a)')      ' Tracking_method:  ', &
-                                    calc_method_name(ele%tracking_method)
-  write (li(nl+3), '(2a)')      ' Mat6_calc_method: ', &
-                                    calc_method_name(ele%mat6_calc_method)
-  write (li(nl+4), '(a, i4)')   ' Integration_order:', ele%integration_order 
-  write (li(nl+5), '(a, i4)')   ' Num_steps:        ', ele%num_steps 
-  write (li(nl+6), '(a, L)')    ' Symplectify:      ', ele%symplectify
-  nl = nl + 6
+  nl = nl + 1
 
-  if (ele%ptc_kind /= 0) then
-    write (li(nl+1), '(a, i4)') ' PTC_kind:        ', ele%ptc_kind
+  if (attribute_index(ele, 'TRACKING_METHOD') /= 0) then
+    write (li(nl+1), '(2a)') ' Tracking_method:  ', &
+                                    calc_method_name(ele%tracking_method)
+    nl = nl + 1
+  endif
+
+  if (attribute_index(ele, 'MAT6_CALC_METHOD') /= 0) then
+    write (li(nl+1), '(2a)') ' Mat6_calc_method: ', &
+                                    calc_method_name(ele%mat6_calc_method)
+    nl = nl + 1
+  endif
+
+  if (attribute_index(ele, 'FIELD_CALC') /= 0) then
+    write (li(nl+1), '(2a)') ' Field_calc:       ', &
+                                    calc_method_name(ele%field_calc)
+    nl = nl + 1
+  endif
+
+  if (attribute_index(ele, 'INTEGRATION_ORD') /= 0) then
+    write (li(nl+1), '(a, i4)') ' Integration_ord: ', ele%integration_ord 
+    nl = nl + 1
+  endif
+
+  if (attribute_index(ele, 'NUM_STEPS') /= 0) then
+    write (li(nl+1), '(a, i4)') ' Num_steps:       ', ele%num_steps 
+    nl = nl + 1
+  endif
+
+  if (attribute_index(ele, 'SYMPLECTIFY') /= 0) then
+    write (li(nl+1), '(a, L)') ' Symplectify:       ', ele%symplectify
     nl = nl + 1
   endif
   

@@ -1353,7 +1353,7 @@ end subroutine
 !
 ! Input:
 !   ele   -- Element_struct: 
-!     %integration_order  -- Order for the symplectic integrator: 2, 4, or 6.
+!     %integration_ord  -- Order for the symplectic integrator: 2, 4, or 6.
 !     %num_steps          -- Number of integrater steps.
 !   orb0  -- Coord_struct, optional: Starting coords around which the Taylor series 
 !              is evaluated.
@@ -1633,7 +1633,7 @@ end subroutine
 !     %beam_energy     -- Beam energy (for wigglers).
 !   integ_order -- Integer, optional: Order for the 
 !                    sympletic integrator. Possibilities are: 2, 4, or 6
-!                    Overrides ele%integration_order.
+!                    Overrides ele%integration_ord.
 !                    default = 2 (if not set with set_ptc).
 !   steps       -- Integer, optional: Number of integration steps.
 !                    Overrides ele%num_steps.
@@ -1665,6 +1665,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
   integer, optional :: integ_order, steps
 
   character name*16
+  logical kick_here
 
 !
 
@@ -1783,11 +1784,20 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 ! bmad an and bn are integrated fields. PTC uses just the field.
 
   if (ele%key /= elseparator$) then
-    if (ele%value(hkick$) /= 0 .or. ele%value(vkick$) /= 0) then
-      cos_t = cos(ele%value(tilt$))
-      sin_t = sin(ele%value(tilt$))
+    kick_here = .false.
+    if (ele%key == hkicker$ .or. ele%key == vkicker$) then
+      hk = 0; vk = 0
+      if (ele%key == hkicker$) hk = ele%value(kick$) / len
+      if (ele%key == vkicker$) vk = ele%value(kick$) / len
+      kick_here = .true.
+    elseif (ele%value(hkick$) /= 0 .or. ele%value(vkick$) /= 0) then
       hk = ele%value(hkick$) / len
       vk = ele%value(vkick$) / len
+      kick_here = .true.
+    endif
+    if (kick_here) then
+      cos_t = cos(ele%value(tilt$))
+      sin_t = sin(ele%value(tilt$))
       el%k(1)  = -hk * cos_t - vk * sin_t
       el%ks(1) = -hk * sin_t + vk * cos_t
     endif
@@ -1825,8 +1835,8 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 
   if (present (integ_order)) then
     el%method = integ_order
-  elseif (ele%integration_order /= 0) then
-    el%method = ele%integration_order
+  elseif (ele%integration_ord /= 0) then
+    el%method = ele%integration_ord
   else
     el%method = METD
   endif

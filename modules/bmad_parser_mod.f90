@@ -557,12 +557,14 @@ subroutine get_attribute (how, ele, ring, pring, &
         endif
     elseif (i == mat6_calc_method$) then
       ele%mat6_calc_method = nint(value)
+    elseif (i == field_calc$) then
+      ele%field_calc = nint(value)
     elseif (i == tracking_method$) then
       ele%tracking_method = nint(value)
     elseif (i == num_steps$) then
       ele%num_steps = nint(value)
-    elseif (i == integration_order$) then
-      ele%integration_order = nint(value)
+    elseif (i == integration_ord$) then
+      ele%integration_ord = nint(value)
     elseif (i == ptc_kind$) then
       ele%ptc_kind = nint(value)
     else

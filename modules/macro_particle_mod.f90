@@ -40,6 +40,21 @@ contains
 !--------------------------------------------------------------------------
 !+
 ! Subroutine track_all_beam (ring, beam, ix1, ix2)
+!
+! Subroutine to track a beam of macroparticles from the end of
+! ring%ele_(ix1) Through to the end of ring%ele_(ix2).
+!
+! Modules needed:
+!   use macro_particle_mod
+!
+! Input:
+!   ring -- Ring_struct: Lattice to track through.
+!   beam -- Beam_struct: Collection of macroparticles.
+!   ix1  -- Index of starting element (this element is NOT tracked through).
+!   ix2  -- Index of ending element.
+!
+! Output:
+!   beam -- Beam_struct: macroparticles at end of the tracking.
 !-
 
 subroutine track_all_beam (ring, beam, ix1, ix2)
@@ -163,6 +178,11 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine sr_long_wake_calc (bunch, ele)
+!
+! Subroutine to put in the longitudinal component of the
+! short range wake fields. 
+! This routine is not really meant  for general use.
 !-
 
 subroutine sr_long_wake_calc (bunch, ele)
@@ -235,6 +255,11 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine track1_sr_trans_wake (bunch, ele)
+!
+! Subroutine to put in the transverse component of the
+! short range wake fields. 
+! This routine is not really meant  for general use.
 !-
 
 subroutine track1_sr_trans_wake (bunch, ele)
@@ -432,6 +457,10 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine order_macro_particles_in_z (bunch)
+!
+! Subroutine to order the macro particles longitudinally.
+! This routine is not really meant for general use.
 !-
 
 subroutine order_macro_particles_in_z (bunch)

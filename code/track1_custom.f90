@@ -1,9 +1,9 @@
 !+
 ! Subroutine track1_custom (start, ele, param, end)
 !
-! Default routine for custom_tracking. 
-! This routine will do Runge Kutta tracking.
-! You need to supply field_rk_custom.
+! Dummy routine for custom tracking. 
+! If called, this routine will generate an error message and quit.
+! This routine needs to be replaced for a custom calculation.
 !
 ! Modules Needed:
 !   use bmad
@@ -34,6 +34,11 @@ subroutine track1_custom (start, ele, param, end)
 
 !
 
-  call track1_runge_kutta (start, ele, param, end)
+  print *, 'ERROR: DUMMY TRACK1_CUSTOM CALLED FOR: ', ele%name
+  print *, '       EITHER CUSTOM TRACKING_METHOD WAS CALLED BY MISTAKE,'
+  print *, '       OR THE CORRECT ROUTINE WAS NOT LINKED IN!'
+  call err_exit
+
+  end%vec = 0  ! so compiler will not complain
 
 end subroutine

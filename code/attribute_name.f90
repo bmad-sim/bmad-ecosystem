@@ -23,7 +23,7 @@
 
 #include "CESR_platform.inc"
 
-character*16 function attribute_name (ele, ix_att) result (at_name)
+function attribute_name (ele, ix_att) result (at_name)
 
   use bmad_struct
   use bmad_interface
@@ -34,7 +34,8 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
 
   integer i, j, key, ix_att
 
-  character*16 attrib_array(n_key, n_attrib_special_maxx)
+  character(16) attrib_array(n_key, n_attrib_special_maxx)
+  character(16) at_name
 
   logical, save :: init_needed = .true.
 
@@ -77,8 +78,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
       if (i == ab_multipole$) cycle
       if (i == taylor$)       cycle
 
-!!!      attrib_array(i, ptc_kind$)          = 'PTC_KIND'
-      attrib_array(i, integration_order$) = 'INTEGRATION_ORD'
+      attrib_array(i, integration_ord$)   = 'INTEGRATION_ORD'
       attrib_array(i, num_steps$)         = 'NUM_STEPS'
       attrib_array(i, symplectify$)       = 'SYMPLECTIFY'
       attrib_array(i, rel_tol$)           = 'REL_TOL'
@@ -154,6 +154,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(lcavity$, delta_e$)       = 'DELTA_E'
     attrib_array(lcavity$, sr_wake_file$)  = 'SR_WAKE_FILE'
     attrib_array(lcavity$, lr_wake_file$)  = 'LR_WAKE_FILE'
+    attrib_array(lcavity$, field_calc$)    = 'FIELD_CALC'
 
     attrib_array(group$, command$)        = 'COMMAND'
     attrib_array(group$, old_command$)    = 'OLD_COMMAND'
@@ -163,8 +164,9 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(group$, accordion_edge$) = 'ACCORDION_EDGE'
     attrib_array(group$, symmetric_edge$) = 'SYMMETRIC_EDGE'
 
-    attrib_array(drift$, l$)     = 'L'
-    attrib_array(drift$, is_on$) = null_name    
+    attrib_array(drift$, l$)          = 'L'
+    attrib_array(drift$, is_on$)      =  null_name    
+    attrib_array(drift$, field_calc$) = 'FIELD_CALC'
 
     attrib_array(monitor$,    l$) = 'L'
     attrib_array(instrument$, l$) = 'L'
@@ -172,13 +174,15 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(rcollimator$, l$)     = 'L'
     attrib_array(ecollimator$, l$)     = 'L'
 
-    attrib_array(hkicker$, l$)     = 'L'
-    attrib_array(hkicker$, tilt$)  = 'TILT'
-    attrib_array(hkicker$, kick$)  = 'KICK'
+    attrib_array(hkicker$, l$)          = 'L'
+    attrib_array(hkicker$, tilt$)       = 'TILT'
+    attrib_array(hkicker$, kick$)       = 'KICK'
+    attrib_array(hkicker$, field_calc$) = 'FIELD_CALC'
 
-    attrib_array(vkicker$, l$)     = 'L'
-    attrib_array(vkicker$, tilt$)  = 'TILT'
-    attrib_array(vkicker$, kick$)  = 'KICK'
+    attrib_array(vkicker$, l$)          = 'L'
+    attrib_array(vkicker$, tilt$)       = 'TILT'
+    attrib_array(vkicker$, kick$)       = 'KICK'
+    attrib_array(vkicker$, field_calc$) = 'FIELD_CALC'
 
     attrib_array(kicker$, l$)           = 'L'
     attrib_array(kicker$, hkick$)       = 'HKICK'
@@ -187,7 +191,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(kicker$, h_displace$)  = 'H_DISPLACE'
     attrib_array(kicker$, v_displace$)  = 'V_DISPLACE'
     attrib_array(kicker$, radius$)      = 'RADIUS'
-
+    attrib_array(kicker$, field_calc$)  = 'FIELD_CALC'
 
     attrib_array(sbend$, l$)          = 'L'
     attrib_array(sbend$, angle$)      = 'ANGLE'
@@ -206,6 +210,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(sbend$, l_chord$)    = 'L_CHORD'
     attrib_array(sbend$, b_field$)    = 'B_FIELD'
     attrib_array(sbend$, radius$)     = 'RADIUS'
+    attrib_array(sbend$, field_calc$) = 'FIELD_CALC'
 
     attrib_array(patch$, x_pitch$)    = 'X_PITCH'
     attrib_array(patch$, y_pitch$)    = 'Y_PITCH'
@@ -233,42 +238,49 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(rbend$, l_chord$)    = 'L_CHORD'
     attrib_array(rbend$, b_field$)    = 'B_FIELD'
     attrib_array(rbend$, radius$)     = 'RADIUS'
+    attrib_array(rbend$, field_calc$) = 'FIELD_CALC'
 
     attrib_array(quadrupole$, l$)          = 'L'
     attrib_array(quadrupole$, tilt$)       = 'TILT'
     attrib_array(quadrupole$, k1$)         = 'K1'
     attrib_array(quadrupole$, B_gradient$) = 'B_GRADIENT'
     attrib_array(quadrupole$, radius$)     = 'RADIUS'
+    attrib_array(quadrupole$, field_calc$) = 'FIELD_CALC'
 
     attrib_array(sextupole$, l$)          = 'L'
     attrib_array(sextupole$, tilt$)       = 'TILT'
     attrib_array(sextupole$, k2$)         = 'K2'
     attrib_array(sextupole$, B_gradient$) = 'B_GRADIENT'
     attrib_array(sextupole$, radius$)     = 'RADIUS'
+    attrib_array(sextupole$, field_calc$) = 'FIELD_CALC'
 
     attrib_array(octupole$, l$)          = 'L'
     attrib_array(octupole$, tilt$)       = 'TILT'
     attrib_array(octupole$, k3$)         = 'K3'
     attrib_array(octupole$, B_gradient$) = 'B_GRADIENT'
     attrib_array(octupole$, radius$)     = 'RADIUS'
+    attrib_array(octupole$, field_calc$) = 'FIELD_CALC'
 
-    attrib_array(solenoid$, l$)       = 'L'
-    attrib_array(solenoid$, ks$)      = 'KS'
-    attrib_array(solenoid$, b_field$) = 'B_FIELD'
-    attrib_array(solenoid$, radius$)  = 'RADIUS'
+    attrib_array(solenoid$, l$)          = 'L'
+    attrib_array(solenoid$, ks$)         = 'KS'
+    attrib_array(solenoid$, b_field$)    = 'B_FIELD'
+    attrib_array(solenoid$, radius$)     = 'RADIUS'
+    attrib_array(solenoid$, field_calc$) = 'FIELD_CALC'
 
     attrib_array(rfcavity$, l$)             = 'L'
     attrib_array(rfcavity$, volt$)          = 'VOLT'
     attrib_array(rfcavity$, rf_wavelength$) = 'RF_WAVELENGTH'
     attrib_array(rfcavity$, phi0$)          = 'PHI0'
     attrib_array(rfcavity$, harmon$)        = 'HARMON'
+    attrib_array(rfcavity$, field_calc$)    = 'FIELD_CALC'
 
-    attrib_array(elseparator$, l$)        = 'L'
-    attrib_array(elseparator$, gap$)      = 'GAP'
-    attrib_array(elseparator$, e_field$)  = 'E_FIELD'
-    attrib_array(elseparator$, volt$)     = 'VOLT'
-    attrib_array(elseparator$, tilt$)     = 'TILT'
-    attrib_array(elseparator$, radius$)   = 'RADIUS'
+    attrib_array(elseparator$, l$)          = 'L'
+    attrib_array(elseparator$, gap$)        = 'GAP'
+    attrib_array(elseparator$, e_field$)    = 'E_FIELD'
+    attrib_array(elseparator$, volt$)       = 'VOLT'
+    attrib_array(elseparator$, tilt$)       = 'TILT'
+    attrib_array(elseparator$, radius$)     = 'RADIUS'
+    attrib_array(elseparator$, field_calc$) = 'FIELD_CALC'
 
     attrib_array(beambeam$, sig_x$)       = 'SIG_X'
     attrib_array(beambeam$, sig_y$)       = 'SIG_Y'
@@ -283,24 +295,27 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(beambeam$, x_pitch$)     = 'X_PITCH'
     attrib_array(beambeam$, y_pitch$)     = 'Y_PITCH'
     attrib_array(beambeam$, tilt$)        = 'TILT'
+    attrib_array(beambeam$, field_calc$)  = 'FIELD_CALC'
 
-    attrib_array(wiggler$, l$)        = 'L'
-    attrib_array(wiggler$, k1$)       = 'K1'
-    attrib_array(wiggler$, b_max$)    = 'B_MAX'
-    attrib_array(wiggler$, rho$)      = 'RHO'
-    attrib_array(wiggler$, n_pole$)   = 'N_POLE'
-    attrib_array(wiggler$, tilt$)     = 'TILT'
-    attrib_array(wiggler$, radius$)   = 'RADIUS'
-    attrib_array(wiggler$, term$)     = 'TERM'
-    attrib_array(wiggler$, polarity$) = 'POLARITY'
-    attrib_array(wiggler$, z_patch$)  = 'Z_PATCH'
-    attrib_array(wiggler$, radius$)   = 'RADIUS'
+    attrib_array(wiggler$, l$)          = 'L'
+    attrib_array(wiggler$, k1$)         = 'K1'
+    attrib_array(wiggler$, b_max$)      = 'B_MAX'
+    attrib_array(wiggler$, rho$)        = 'RHO'
+    attrib_array(wiggler$, n_pole$)     = 'N_POLE'
+    attrib_array(wiggler$, tilt$)       = 'TILT'
+    attrib_array(wiggler$, radius$)     = 'RADIUS'
+    attrib_array(wiggler$, term$)       = 'TERM'
+    attrib_array(wiggler$, polarity$)   = 'POLARITY'
+    attrib_array(wiggler$, z_patch$)    = 'Z_PATCH'
+    attrib_array(wiggler$, radius$)     = 'RADIUS'
+    attrib_array(wiggler$, field_calc$) = 'FIELD_CALC'
 
-    attrib_array(sol_quad$, l$)      = 'L'
-    attrib_array(sol_quad$, k1$)     = 'K1'
-    attrib_array(sol_quad$, ks$)     = 'KS'
-    attrib_array(sol_quad$, tilt$)   = 'TILT'
-    attrib_array(sol_quad$, radius$) = 'RADIUS'
+    attrib_array(sol_quad$, l$)          = 'L'
+    attrib_array(sol_quad$, k1$)         = 'K1'
+    attrib_array(sol_quad$, ks$)         = 'KS'
+    attrib_array(sol_quad$, tilt$)       = 'TILT'
+    attrib_array(sol_quad$, radius$)     = 'RADIUS'
+    attrib_array(sol_quad$, field_calc$) = 'FIELD_CALC'
 
     attrib_array(def_beam$, particle$)   = 'PARTICLE'
     attrib_array(def_beam$, energy_gev$) = 'ENERGY'
@@ -341,26 +356,28 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(accel_sol$, l_st2$)         = 'L_ST2'
     attrib_array(accel_sol$, x_beg_limit$)   = 'X_BEG_LIMIT'
     attrib_array(accel_sol$, y_beg_limit$)   = 'Y_BEG_LIMIT'
+    attrib_array(accel_sol$, field_calc$)    = 'FIELD_CALC'
 
-    attrib_array(custom$, l$)     = 'L'
-    attrib_array(custom$, tilt$)  = 'TILT'
-    attrib_array(custom$,  val1$) = 'VAL1'
-    attrib_array(custom$,  val2$) = 'VAL2'
-    attrib_array(custom$,  val3$) = 'VAL3'
-    attrib_array(custom$,  val4$) = 'VAL4'
-    attrib_array(custom$,  val5$) = 'VAL5'
-    attrib_array(custom$,  val6$) = 'VAL6'
-    attrib_array(custom$,  val7$) = 'VAL7'
-    attrib_array(custom$,  val8$) = 'VAL8'
-    attrib_array(custom$,  val9$) = 'VAL9'
-    attrib_array(custom$, val10$) = 'VAL10'
-    attrib_array(custom$, val11$) = 'VAL11'
-    attrib_array(custom$, val12$) = 'VAL12'
-    attrib_array(custom$, x_offset$) = 'X_OFFSET'
-    attrib_array(custom$, y_offset$) = 'Y_OFFSET'
-    attrib_array(custom$, s_offset$) = 'S_OFFSET'
-    attrib_array(custom$, x_pitch$)  = 'X_PITCH'
-    attrib_array(custom$, y_pitch$)  = 'Y_PITCH'
+    attrib_array(custom$, l$)          = 'L'
+    attrib_array(custom$, tilt$)       = 'TILT'
+    attrib_array(custom$,  val1$)      = 'VAL1'
+    attrib_array(custom$,  val2$)      = 'VAL2'
+    attrib_array(custom$,  val3$)      = 'VAL3'
+    attrib_array(custom$,  val4$)      = 'VAL4'
+    attrib_array(custom$,  val5$)      = 'VAL5'
+    attrib_array(custom$,  val6$)      = 'VAL6'
+    attrib_array(custom$,  val7$)      = 'VAL7'
+    attrib_array(custom$,  val8$)      = 'VAL8'
+    attrib_array(custom$,  val9$)      = 'VAL9'
+    attrib_array(custom$, val10$)      = 'VAL10'
+    attrib_array(custom$, val11$)      = 'VAL11'
+    attrib_array(custom$, val12$)      = 'VAL12'
+    attrib_array(custom$, x_offset$)   = 'X_OFFSET'
+    attrib_array(custom$, y_offset$)   = 'Y_OFFSET'
+    attrib_array(custom$, s_offset$)   = 'S_OFFSET'
+    attrib_array(custom$, x_pitch$)    = 'X_PITCH'
+    attrib_array(custom$, y_pitch$)    = 'Y_PITCH'
+    attrib_array(custom$, field_calc$) = 'FIELD_CALC'
 
     init_needed = .false.
 

@@ -502,7 +502,8 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
       if (key == custom$) then
         in_ring%ele_(n_max)%mat6_calc_method = custom$
-        in_ring%ele_(n_max)%tracking_method = custom$
+        in_ring%ele_(n_max)%tracking_method  = custom$
+        in_ring%ele_(n_max)%field_calc       = custom$
       endif
 
       if (key == taylor$) then   ! start with unit matrix
@@ -886,6 +887,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
     case (sbend$, rbend$) 
 
+      ele%sub_key = ele%key  ! save input format.
       angle = ele%value(angle$) 
 
       if (ele%value(b_field$) /= 0 .and. ele%value(g$) /= 0) call warning &

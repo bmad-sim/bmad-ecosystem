@@ -18,7 +18,7 @@ contains
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-!  ele_equal_ele (ele1, ele2)
+! Subroutine ele_equal_ele (ele1, ele2)
 !
 ! Subroutine that is used to set one element equal to another. 
 ! This routine takes care of the pointers in ele1. 

@@ -80,9 +80,6 @@ subroutine make_mat6 (ele, param, start, end, end_in)
     call make_mat6_taylor (ele, param, a_start)
     if (.not. end_input) call track_taylor (a_start%vec, ele%taylor, a_end%vec)
 
-  case (runge_kutta$)
-    call make_mat6_runge_kutta (ele, param, a_start, a_end)
-
   case (custom$) 
     call make_mat6_custom (ele, param, a_start, a_end)
 

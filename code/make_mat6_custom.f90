@@ -1,12 +1,9 @@
 !+
 ! Subroutine make_mat6_custom (ele, param, c0, c1)
 !
-! Default routine for making the 6x6 transfer matrices for:
-!   1) ele%mat6_calc_method = custom$
-!   2) ele%key = custom$
-!
-! This routine will do Runge Kutta tracking using field_rk_custom.
-! You must supply field_rk_custom.
+! Dummy subroutine for custom calculation of the transfer matrix. 
+! If called, this routine will generate an error message and quit.
+! This routine needs to be replaced for a custom calculation.
 !
 ! Modules needed:
 !   use bmad
@@ -35,22 +32,11 @@ subroutine make_mat6_custom (ele, param, c0, c1)
   type (coord_struct) :: c0, c1
   type (param_struct)  param
 
-  real(rp) error
-
-  integer temp_method
-  logical temp_symplectify
-
 !
 
-  temp_method = ele%tracking_method
-  temp_symplectify = ele%symplectify
-
-  ele%tracking_method = custom$
-  ele%symplectify = .false.   ! don't do this twice.
-
-  call transfer_mat_from_tracking (ele, param, c0, bmad_com%d_orb, c1, error)
-
-  ele%tracking_method = temp_method
-  ele%symplectify = temp_symplectify
+  print *, 'ERROR: DUMMY MAKE_MAT6_CUSTOM CALLED FOR: ', ele%name
+  print *, '       EITHER CUSTOM MAT6_CALC_METHOD WAS CALLED BY MISTAKE,'
+  print *, '       OR THE CORRECT ROUTINE WAS NOT LINKED IN!'
+  call err_exit
 
 end subroutine

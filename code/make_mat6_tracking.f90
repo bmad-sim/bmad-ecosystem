@@ -11,6 +11,8 @@
 !   ele    -- Ele_struct: Element with transfer matrix
 !   param  -- Param_struct: Parameters are needed for some elements.
 !   c0     -- Coord_struct: Coordinates at the beginning of element. 
+!   bmad_com%d_orb(6) -- Vector of offsets to use. 
+!               Default if d_orb = 0 is to set the offset to 1e-5
 !
 ! Output:
 !   ele    -- Ele_struct: Element with transfer matrix.
@@ -28,21 +30,28 @@ subroutine make_mat6_tracking (ele, param, c0, c1)
   implicit none
 
   type (ele_struct), target :: ele
-  type (coord_struct) :: c0, c1
+  type (coord_struct) :: c0, c1, start1, end1
   type (param_struct)  param
 
-  real (rp) error
-  integer temp_method
-  logical temp_symplectify
+  real (rp) error, del_orb(6)
+  integer i
 
 !
 
-  temp_symplectify = ele%symplectify
-  ele%symplectify = .false.   ! don't do this twice.
+  call track1 (c0, ele, param, c1)
 
-  call transfer_mat_from_tracking (ele, param, c0, bmad_com%d_orb, c1, error)
+  if (all(bmad_com%d_orb == 0)) then
+    del_orb = 1e-5
+  else
+    del_orb = bmad_com%d_orb
+  endif
 
-  ele%symplectify = temp_symplectify
+  do i = 1, 6
+    start1 = c0
+    start1%vec(i) = start1%vec(i) + del_orb(i)
+    call track1 (start1, ele, param, end1)
+    ele%mat6(1:6, i) = (end1%vec - c1%vec) / del_orb(i)
+  enddo
 
 end subroutine
 
