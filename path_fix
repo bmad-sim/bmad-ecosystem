@@ -21,10 +21,10 @@ foreach $file (@ARGV)
 	 {
 		s/ \/disk(.+?)\// \/cdat\/$host\/disk$1\//g;
 		s/ \/a\/(.+?)\// \//g;
-#    s/ \.\.\/include/ \$\(CESR_INC\)/g;
-    s/ \/.*\/$cesrlib\/cvssrc\/include/ \$\(CESR_INC\)/g;
-    s/ \/.*\/$cesrlib\/modules/ \$\(CESR_MOD\)/g;
-    s/ \/.*\/$cesrlib\/packages/ \$\(CESR_PKG\)/g;
+    s/\.\.\/include/\$\(CESR_INC\)/g;
+    s/\/\S*\/$cesrlib\/cvssrc\/include/\$\(CESR_INC\)/g;
+    s/\/\S*\/$cesrlib\/modules/\$\(CESR_MOD\)/g;
+    s/\/\S*\/$cesrlib\/packages/\$\(CESR_PKG\)/g;
 		print (F_out);
    }
 	close(F_in);
