@@ -27,7 +27,7 @@ subroutine track1_wiedemann_wiggler (start, ele, param, end)
                              
   use bmad_struct
   use bmad_interface, except => track1_wiedemann_wiggler
-  use multipole_mod, only: multipole_ele_to_kt
+  use multipole_mod, only: multipole_ele_to_kt, multipole_kick
 
   implicit none
 

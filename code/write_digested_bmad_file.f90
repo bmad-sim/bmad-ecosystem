@@ -34,7 +34,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   integer d_unit, i, j, k, n_file
   integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
   integer stat_b(12), stat
-  integer ix_srf, ix_sr, ix_lrf, ix_lr
+  integer ix_srf, ix_sr, ix_lrf, ix_lr, ierr
 
   character(*) digested_name
   character(*), optional :: file_names(:)

@@ -82,10 +82,9 @@
 subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
   use nr
-  use rad_int_common, only: ric, calc_g_params, rad_int_cache_struct, &
-                            quad_bend_cache_struct
-  use radiation_mod, except => radiation_integrals
-
+  use rad_int_common, except => radiation_integrals
+  use radiation_mod, only: synch_rad_com, sr_com
+  
   implicit none
 
   type (ring_struct), target :: ring
@@ -111,6 +110,8 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 ! To make the calculation go faster turn off radiation fluctuations and damping
 
   sr_com_save = sr_com
+  sr_com%fluctuations_on = .false.
+  sr_com%damping_on = .false.
 
   if (allocated(ric%i1_)) then
     if (ubound(ric%i1_, 1) < ring%n_ele_max) then 

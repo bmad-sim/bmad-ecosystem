@@ -27,11 +27,7 @@
 
 subroutine track1_bmad (start, ele, param, end)
 
-  use bmad_struct
-  use bmad_interface, except => track1_bmad
-  use track1_mod, only: track_a_drift, quad_mat2_calc
-  use multipole_mod, only: multipole_ele_to_kt, multipole_kick
-  use bookkeeper_mod, only: attribute_bookkeeper
+  use bmad, except => track1_bmad
 
   implicit none
 

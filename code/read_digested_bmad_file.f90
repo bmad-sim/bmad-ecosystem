@@ -35,7 +35,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   
   integer d_unit, n_files, version, i, j, k, ix
   integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
-  integer ix_srf, ix_sr, ix_lrf, ix_lr
+  integer ix_srf, ix_sr, ix_lrf, ix_lr, ierr, stat
   integer stat_b(12), idate_old
 
   character(*) digested_name
