@@ -118,7 +118,8 @@ function attribute_name (ele, ix_att) result (at_name)
     do i = 1, n_key
       select case (i)
       case (elseparator$, kicker$, octupole$, quadrupole$, sbend$, rbend$, &
-             sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$, bend_sol_quad$)
+             sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$, bend_sol_quad$, &
+             hkicker$, vkicker$)
         attrib_array(i, a0$:a20$) = (/ 'A0 ', &
                                        'A1 ', 'A2 ', 'A3 ', 'A4 ', 'A5 ', & 
                                        'A6 ', 'A7 ', 'A8 ', 'A9 ', 'A10', &
@@ -214,6 +215,7 @@ function attribute_name (ele, ix_att) result (at_name)
 
     attrib_array(marker$, x_offset$) = 'X_OFFSET'
     attrib_array(marker$, y_offset$) = 'Y_OFFSET'
+    attrib_array(marker$, tilt$)     = 'TILT'
 
     attrib_array(rcollimator$, l$)     = 'L'
     attrib_array(rcollimator$, is_on$) = null_name
