@@ -150,8 +150,8 @@ case ('data')
       do i = 1, size(u%d2_data)
         if (u%d2_data(i)%name == ' ') cycle
         if (nl .gt. max_lines) then
-          call out_io (s_blank$, r_name, "Found too many d2_datas! Listing first &
-	 		                  \i5\ matches", max_lines)
+          call out_io (s_blank$, r_name, &
+              "Found too many d2_datas! Listing first \i5\ matches", max_lines)
 	  exit
         endif
         nl=nl+1; write (lines(nl), '(i4, 2x, a)') i, u%d2_data(i)%name
@@ -266,8 +266,8 @@ case ('data')
       write(lines(1), '(2a)') 'Data type:    ', d2_ptr%name
       do i = 1, size(d2_ptr%d1)
         if (nl+1 .gt. max_lines) then
-          call out_io (s_blank$, r_name, "Found too many d1_data! Listing first \i5\ &
-	  					matches", max_lines-1)
+          call out_io (s_blank$, r_name, &
+              "Found too many d1_data! Listing first \i5\ matches", max_lines-1)
           exit
         endif
         nl=nl+1; write(lines(nl), '(5x, a, i5, a, i5)') d2_ptr%d1(i)%name, &
@@ -342,7 +342,7 @@ case ('ele')
         endif
         nl = nl + 1
         write (lines(nl), *) &
-                        'Note: Found another element with same name at:', i
+                'Note: Found another element with same name at:', i
       endif
     enddo
 
@@ -503,8 +503,8 @@ case ('var')
       v1_ptr => s%v1_var(i)
       if (v1_ptr%name == ' ') cycle
       if (nl+1 .gt. max_lines) then
-        call out_io (s_blank$, r_name, "Found too many v1_vars! Listing first &
-	                               \i5\ matches", max_lines)
+        call out_io (s_blank$, r_name, &
+          & "Found too many v1_vars! Listing first \i5\ matches", max_lines)
         exit
       endif
         nl=nl+1

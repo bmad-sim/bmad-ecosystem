@@ -54,8 +54,11 @@ call tao_dmerit_calc ()
 ! top_delta stores the top |var_model - var_design| 
 
 top_merit(:)%valid  = .false.; top_merit(:)%name  = ' '
+top_merit(:)%value = 0
 top_dmerit(:)%valid = .false.; top_dmerit(:)%name = ' '
+top_dmerit(:)%value = 0
 top_delta(:)%valid  = .false.; top_delta(:)%name  = ' '
+top_delta(:)%value = 0
 
 nu = size(s%u)
 do i = 1, nu
