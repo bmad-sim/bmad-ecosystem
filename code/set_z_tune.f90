@@ -1,5 +1,5 @@
 !+
-! Subroutine SET_Z_TUNE (RING)
+! Subroutine set_z_tune (ring)
 !
 ! Subroutine to set the longitudinal tune by setting the RF voltages
 ! in the RF cavities.
@@ -8,37 +8,24 @@
 !   use bmad
 !
 ! Input:
-!   RING   -- Ring_struct:
-!     %Z%TUNE  -- Longitudinal tune in radians. 
+!   ring   -- Ring_struct:
+!     %z%tune  -- Longitudinal tune in radians (must be negative). 
 !
 ! Output:
-!   RING
-!     %ELE_(I_RF)%VALUE(VOLT$) -- Voltage on the cavity
+!   ring
+!     %ele_(i_rf)%value(volt$) -- Voltage on the cavity
 !
 ! Notes: 
-!   0) The calculation assumes that Q_z << 1.
+!   1) The calculation assumes that Q_z << 1.
 !   2) If the RF wavelength has not been set (needed for the voltage) then
 !      the RF harmonic number is set to 1 and the wavelength set to the ring 
 !      circumference.
 !   3) By convention a positive tune signifies a clockwise rotation 
-!      so that the transverse tunes are positive. This means the
-!      longitudinal tune is negative above transition.
+!      in phase space so that the transverse tunes are positive. This means 
+!      the longitudinal tune is negative above transition.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.4  2003/01/27 14:40:43  dcs
-!bmad_version = 56
-!
-!Revision 1.3  2002/02/23 20:32:25  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:58  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine set_z_tune (ring)
 
@@ -52,61 +39,125 @@ subroutine set_z_tune (ring)
   type (modes_struct) mode
   type (coord_struct)  c0
 
-  real(rdef) z_tune, volt_total, delta_volt
+  real(rp) z_tune_wanted, volt_total, r_volt
+  real(rp) coef_tot, volt, E0
 
-  integer i, n_rf, ix_rf(100)
+  integer i, j, k, ix, n_rf, ix_rf(100), ix_attrib(100)
 
+  logical found_control
 
-! error detec
+! Error detec and init.
 
-  if (ring%z%tune == 0) then
-    type *, 'WARNING FROM SET_Z_TUNE: RING%Z%TUNE = 0!'
-  endif
-      
-  if (ring%z%tune .gt. 0) then
+  if (ring%z%tune > 0) then
     type *, 'WARNING FROM SET_Z_TUNE: RING%Z%TUNE IS POSITIVE!'
-    type *, '     I AM ASSUMING THIS IS INCORRECT AND AM SWITCHING THE SIGN'
+    type *, '     I AM ASSUMING THIS IS INCORRECT AND AM SWITCHING THE SIGN.'
     ring%z%tune = -ring%z%tune
   endif
 
-  z_tune = ring%z%tune
+  z_tune_wanted = ring%z%tune
 
-  call calc_z_tune( ring)
+! Make a list of controllers for the voltage of the RFcavities.
+! The list is:
+!   1) RFcavities that are not super_slaves and do not have their voltage
+!      controlled by an overlay.
+!   2) overlays that control the voltage of an RFcavity
 
 
-! find rf cavities and calculate the transfer matrices between them
+  E0 = ring%param%beam_energy
 
   n_rf = 0
-  do i = 1, ring.n_ele_ring
-    if (ring%ele_(i)%key == rfcavity$) then
+  coef_tot = 0
+
+  do i = 1, ring%n_ele_max
+
+    ele => ring%ele_(i)
+
+    if (ele%key == rfcavity$) then
+
+      if (ele%control_type == super_slave$) cycle 
+
+      do j = ele%ic1_lord, ele%ic2_lord ! check any overlays.
+        ix = ring%ic_(j)
+        if (ring%control_(ix)%ix_attrib == volt$) cycle
+      enddo
+
+      if (ele%value(rf_wavelength$) == 0) then
+        type *, 'ERROR IN SET_Z_TUNE: RF_WAVELENGTH  ATTRIBUTE NOT SET'
+        type *, '      FOR: ', ele%name
+        type *, '      WILL SET RF_WAVELENGTH FOR HAMONIC NUMBER = 1'
+        ele%value(harmon$) = 1
+        ele%value(rf_wavelength$) = ring%param%total_length
+      endif
+
       n_rf = n_rf + 1
       ix_rf(n_rf) = i
-      if (ring%ele_(i)%value(rf_wavelength$) == 0) then
-        type *, 'ERROR IN SET_Z_TUNE: RF_WAVELENGTH  ATTRIBUTE NOT SET'
-        type *, '      FOR: ', ring%ele_(i)%name
-        type *, '      WILL SET RF_WAVELENGTH FOR HAMONIC NUMBER = 1'
-        ring%ele_(i)%value(harmon$) = 1
-        ring%ele_(i)%value(rf_wavelength$) = ring.param.total_length
-      endif
+      coef_tot = coef_tot + twopi * cos(twopi*ele%value(phi0$)) / &
+                                          (E0 * ele%value(rf_wavelength$))
+      ix_attrib(n_rf) = volt$
+
     endif
-  enddo                         
+
+    if (ele%key == overlay$) then
+      found_control = .false.
+      do j = ele%ix1_slave, ele%ix2_slave
+        ix = ring%control_(j)%ix_slave
+        if (ring%ele_(ix)%key == rfcavity$ .and. &
+                          ring%control_(j)%ix_attrib == volt$) then
+          if (.not. found_control) n_rf = n_rf + 1
+          found_control = .true.
+          coef_tot = coef_tot + ring%control_(j)%coef * twopi * &
+                   cos(twopi*ring%ele_(ix)%value(phi0$)) / &
+                   (E0 * ring%ele_(ix)%value(rf_wavelength$))
+          k = ele%ix_value
+          ix_attrib(n_rf) = k
+        else
+          if (found_control) then
+            print *, 'WARNING FROM SET_Z_TUNE: FOUND OVERLAY THAT DOES NOT'
+            print *, '        PURELY CONTROL RF VOLTAGE: ', ele%name
+          endif
+        endif
+      enddo
+    endif
+
+  enddo
+
+! If the voltage is near zero then start from scratch.
+! This is only approximate.
+
+  call calc_z_tune (ring)
+  if (abs(ring%z%tune) < 0.001 .or. z_tune_wanted == 0) then
+    volt = -z_tune_wanted**2 / (ring%ele_(0)%mat6(5,6) * coef_tot)
+    do i = 1, n_rf
+      ring%ele_(ix_rf(i))%value(ix_attrib(i)) = volt
+      call ring_make_mat6 (ring, ix_rf(i))
+    enddo
+  endif
 
 ! now set cavity voltage to get the correct tune
 
-  volt_total = 0.
-  do i = 1, n_rf
-    ele => ring%ele_(ix_rf(i))
-    volt_total = ele%value(volt$) + volt_total
+  do k = 1, 10
+
+    call calc_z_tune (ring)
+    if (abs(ring%z%tune - z_tune_wanted) < 0.001) return
+
+    r_volt = (z_tune_wanted / ring%z%tune)**2 
+
+    do i = 1, n_rf
+      ring%ele_(ix_rf(i))%value(ix_attrib(i)) = &
+                      ring%ele_(ix_rf(i))%value(ix_attrib(i)) * r_volt
+      call ring_make_mat6 (ring, ix_rf(i))
+    enddo
+
+    call calc_z_tune (ring)
+
   enddo
 
-  delta_volt = volt_total * ((z_tune / ring%z%tune)**2 -1.)
+! 
 
-  do i = 1, n_rf
-    ring%ele_(ix_rf(i))%value(volt$) = ring%ele_(ix_rf(i))%value(volt$) &
-        + delta_volt/n_rf
-    call make_mat6 (ring%ele_(ix_rf(i)), ring%param, c0, c0)
-  enddo
+  print *, 'ERROR IN SET_Z_TUNE: I CANNOT SET THE TUNE TO THE CORRECT VALUE.'
+  print *, '      VALUE WANTED:   ', z_tune_wanted
+  print *, '      VALUE OPTAINED: ', ring%z%tune
+  call err_exit
 
-  call calc_z_tune( ring)
- 
 end subroutine
+

@@ -36,26 +36,7 @@
 !                        See MAT_SYMP_DECOUPLE for for more info
 !-
 
-!$Id$
-!$Log$
-!Revision 1.6  2003/01/27 14:40:46  dcs
-!bmad_version = 56
-!
-!Revision 1.5  2002/06/13 14:54:31  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.4  2002/02/23 20:32:28  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/08 21:44:44  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.2  2001/09/27 18:32:00  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine twiss_at_start (ring)
 
@@ -66,8 +47,8 @@ subroutine twiss_at_start (ring)
 
   type (ring_struct)  ring
 
-  real(rdef) eta_vec(4), t0_4(4,4), mat6(6,6)
-  real(rdef) flip_mat(4,4), t_e(4,4), t_w_inv(4,4)
+  real(rp) eta_vec(4), t0_4(4,4), mat6(6,6)
+  real(rp) flip_mat(4,4), t_e(4,4), t_w_inv(4,4)
 
   integer i, j, n
 
@@ -117,7 +98,7 @@ subroutine twiss_at_start (ring)
     call mat_symp_conj (t0_4, t_w_inv, 4, 4)
     t_e = matmul (matmul (flip_mat, t_w_inv), flip_mat)
     mat6(1:4,1:4) = matmul (t_e, t0_4)
-    eta_vec = (/ 0.0_rdef, 2*eta_vec(2), 0.0_rdef, 2*eta_vec(4) /)
+    eta_vec = (/ 0.0_rp, 2*eta_vec(2), 0.0_rp, 2*eta_vec(4) /)
     mat6(1:4, 6) = matmul(t_e, eta_vec)
   else
     mat6 = ring%ele_(0)%mat6
@@ -131,3 +112,5 @@ subroutine twiss_at_start (ring)
   ring%y%tune = ring%ele_(0)%y%phi
 
 end subroutine
+
+

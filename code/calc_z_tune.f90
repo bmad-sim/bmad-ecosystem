@@ -15,6 +15,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/04/04 16:42:28  dcs
+!z_tune imporovement
+!
 !Revision 1.4  2003/01/27 14:40:31  dcs
 !bmad_version = 56
 !
@@ -46,7 +49,14 @@ subroutine calc_z_tune ( ring)
 !
 
   call one_turn_matrix (ring, a)
+  ring%ele_(0)%mat6 = a
+
   cos_z = (a(5,5) + a(6,6)) / (2 * (a(5,5)*a(6,6) - a(5,6)*a(6,5)))
+
+  if (cos_z > 0.9999999) then
+    ring%z%tune = 0
+    return
+  endif
 
   call balanc(a)
   call elmhes(a)

@@ -65,6 +65,8 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
 
       if (i == taylor$) cycle
       if (i == patch$)  cycle
+      if (i == hom$)    cycle
+      if (i == matrix$) cycle
 
       attrib_array(i, hkick$)  = 'HKICK'
       attrib_array(i, vkick$)  = 'VKICK'
@@ -117,6 +119,18 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(def_parameter$, lattice_type$) = 'LATTICE_TYPE'
     attrib_array(def_parameter$, symmetry$)     = 'SYMMETRY'
     attrib_array(def_parameter$, taylor_order$) = 'TAYLOR_ORDER'
+
+    attrib_array(matrix$, l$)             = 'L'
+    attrib_array(matrix$, beta_x0$)       = 'BETA_X0'
+    attrib_array(matrix$, alpha_x0$)      = 'ALPHA_X0'
+    attrib_array(matrix$, beta_y0$)       = 'BETA_Y0'
+    attrib_array(matrix$, alpha_y0$)      = 'ALPHA_Y0'
+    attrib_array(matrix$, beta_x1$)       = 'BETA_X1'
+    attrib_array(matrix$, alpha_x1$)      = 'ALPHA_X1'
+    attrib_array(matrix$, beta_y1$)       = 'BETA_Y1'
+    attrib_array(matrix$, alpha_y1$)      = 'ALPHA_Y1'
+    attrib_array(matrix$, dphi_x$)        = 'DPHI_X'
+    attrib_array(matrix$, dphi_y$)        = 'DPHI_Y'
 
     attrib_array(lcavity$, l$)             = 'L'
     attrib_array(lcavity$, energy_start$)  = 'ENERGY_START'
