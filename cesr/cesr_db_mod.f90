@@ -460,8 +460,8 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, ring, db, &
-!                                                con_, n_con, ok, type_err)
+! Subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, csr_set, &
+!                                      ring, db, con_, n_con, ok, type_err)
 !
 ! Subroutine to take a data base group element and find the elements
 ! controlled along with the coefficients.
@@ -473,6 +473,7 @@ end subroutine
 !   ing_name   -- Character*12: DB node name (e.g. 'CSR PRETZING')
 !   ing_num    -- Integer: DB element number (e.g. 13)
 !   biggrp_set -- Integer: Biggrp set number. 0 => read from the data base
+!   csr_set    -- Integer: CSR set number. 0 => read from the data base
 !   ring       -- Ring_struct: BMAD ring to use.
 !   db         -- Db_struct: Info about ring obtained with a 
 !                            "call bmad_to_db (ring, db)"
@@ -490,8 +491,8 @@ end subroutine
 ! subroutine to create a BMAD group in the ring structure.
 !-
 
-subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, ring, db, &
-                                              con_, n_con, ok, type_err)
+subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, csr_set, &
+                                      ring, db, con_, n_con, ok, type_err)
 
 
   implicit none
@@ -502,7 +503,7 @@ subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, ring, db, &
   type (control_struct) con_(:)
   type (db_element_struct), pointer :: db_ptr(:)
 
-  integer k, n, nn, n_con, ing_num, biggrp_set
+  integer k, n, nn, n_con, ing_num, biggrp_set, csr_set
 
   character*12 ing_name
 
@@ -510,7 +511,7 @@ subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, ring, db, &
 
 !
 
-  call setup_group (ing_name, ing_num, 0, grp, ok, .true.)
+  call setup_group (ing_name, ing_num, biggrp_set, csr_set, grp, ok, .true.)
 
   if (.not. ok) return
   if (grp%ratio_mode) then
@@ -556,8 +557,8 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+     
-! Subroutine db_group_to_bmad_group (group_name, group_num, i_biggrp, 
-!                                               ring, db, ix_ele, ok, type_err)
+! Subroutine db_group_to_bmad_group (group_name, group_num, 
+!                   biggrp_set, csr_set, ring, db, ix_ele, ok, type_err)
 !
 ! Subroutine to set up a data base group knob in a bmad ring structure.
 !
@@ -567,7 +568,8 @@ end subroutine
 ! Input:
 !   group_name -- Character*12: Group node name (eg. "CSR PRETZING")
 !   group_num  -- Integer: Group node number
-!   i_biggrp   -- Integer: Biggrp number. 0 => read from CESR database
+!   biggrp_set -- Integer: Biggrp number. 0 => read from CESR database
+!   csr_set    -- Integer: CSR set number. 0 => read from the data base
 !   ring       -- Ring_struct: Ring to modify
 !   db         -- Db_struct: Info about ring obtained with a 
 !                            "call bmad_to_db (ring, db)"
@@ -581,8 +583,8 @@ end subroutine
 ! Note: See also DB_GROUP_TO_BMAD.
 !-
 
-subroutine db_group_to_bmad_group (group_name, group_num, i_biggrp, &
-                                       ring, db, ix_ele, ok, type_err)
+subroutine db_group_to_bmad_group (group_name, group_num, &
+                   biggrp_set, csr_set, ring, db, ix_ele, ok, type_err)
 
   implicit none              
 
@@ -590,7 +592,7 @@ subroutine db_group_to_bmad_group (group_name, group_num, i_biggrp, &
   type (control_struct) con_(100)
   type (db_struct) db
 
-  integer n_con, group_num, ix_ele, i_biggrp, ix
+  integer n_con, group_num, ix_ele, biggrp_set, ix, csr_set
   character*12 group_name
   logical ok, type_err
 
@@ -598,8 +600,8 @@ subroutine db_group_to_bmad_group (group_name, group_num, i_biggrp, &
 
   ix_ele = -1
 
-  call db_group_to_bmad (group_name, group_num, i_biggrp, ring, db, &
-                                                    con_, n_con, ok, type_err)
+  call db_group_to_bmad (group_name, group_num, biggrp_set, csr_set, &
+                                         ring, db, con_, n_con, ok, type_err)
   if (.not. ok) return
   call new_control (ring, ix_ele)
 
