@@ -32,18 +32,18 @@ module macroparticle_mod
   end type
 
   type slice_struct
-    type (macro_struct), allocatable :: macro(:)
+    type (macro_struct), pointer :: macro(:) => null()
     real(rp) charge   ! total charge in a slice (Coul).
   end type
 
   type bunch_struct
-    type (slice_struct), allocatable :: slice(:)
+    type (slice_struct), pointer :: slice(:) => null()
     real(rp) charge   ! total charge in a bunch (Coul).
     real(rp) s_center ! longitudinal center of bunch (m).
   end type
 
   type beam_struct
-    type (bunch_struct), allocatable :: bunch(:)
+    type (bunch_struct), pointer :: bunch(:) => null()
   end type
 
   integer, parameter :: s11$ = 1, s12$ = 2, s13$ = 3, s14$ =  4, s15$ =  5
@@ -340,6 +340,7 @@ subroutine sr_long_wake_calc (bunch, ele)
       z_ave = 0
 
       do j = 1, nm
+        if (macro(j)%lost) cycle
         ch_j = abs(macro(j)%charge)
         macro(j)%k_loss = macro(j)%k_loss + ch_j * sr02
         sig0 = macro(j)%sig_z + mp_com%sig_z_min
@@ -347,6 +348,7 @@ subroutine sr_long_wake_calc (bunch, ele)
         z_ave = z_ave + (z0 * ch_j) / charge
 
         do k = j+1, nm
+          if (macro(k)%lost) cycle
           sig = macro(k)%sig_z + sig0
           dz = z0 - macro(k)%r%vec(5)
           if (dz > sig) then
@@ -370,6 +372,7 @@ subroutine sr_long_wake_calc (bunch, ele)
     do j = i+1, size(bunch%slice)
       macro2 => bunch%slice(j)%macro
       do k = 1, size(macro2)
+        if (macro(k)%lost) cycle
         z = z_ave - macro2(k)%r%vec(5)
         iw = z / dz_wake
         iw = min (iw, n_wake-1)
@@ -436,6 +439,7 @@ subroutine track1_sr_trans_wake (bunch, ele)
     z_ave = 0
 
     do j = 1, size(macro)
+      if (macro(j)%lost) cycle
       x_ave = x_ave + (macro(j)%charge * macro(j)%r%vec(1)) / charge
       y_ave = y_ave + (macro(j)%charge * macro(j)%r%vec(3)) / charge
       z_ave = z_ave + (macro(j)%charge * macro(j)%r%vec(5)) / charge
@@ -451,6 +455,7 @@ subroutine track1_sr_trans_wake (bunch, ele)
     do j = i+1, size(bunch%slice)
       macro2 => bunch%slice(j)%macro
       do k = 1, size(macro2)
+        if (macro2(k)%lost) cycle
         z = z_ave - macro2(k)%r%vec(5)  ! distance from slice to particle
         iw = z / dz_wake                ! Index of wake array
         iw = min(n_wake-1, iw)    ! effectively do an extrapolation.
@@ -618,8 +623,8 @@ end subroutine
 ! Subroutine order_macroparticles_in_z (bunch)
 !
 ! Subroutine to order in each slice the macro particles longitudinally 
-! The ordering uses the position of leading edge of the macroparticles:
-!   %vec(5) + %sig_z 
+! The ordering uses the centroid of the macroparticles:
+!   %vec(5) 
 ! If the position of a macroparticle in one slice starts overlaping 
 ! macroparticles in another slice, this routine will swap pairs of 
 ! macroparticles to prevent this.
@@ -636,7 +641,7 @@ end subroutine
 ! Output:
 !   bunch     -- Bunch_struct: collection of macroparticles.
 !     %slice(i)  -- i^th slice.
-!       %macro(j) -- Macroparticle ordered using %vec(5)+%sig_z.
+!       %macro(j) -- Macroparticle ordered using %vec(5).
 !                   Order is from large z (head of slice) to small z.
 !                   That is: slice(i)%macro(1) is the macro  
 !                   particle at the head of the slice.
@@ -668,9 +673,7 @@ Subroutine order_macroparticles_in_z (bunch)
       nm = size(macro)
 
       do i = 1, nm-1
-        z1 = macro(i)%r%vec(5) + macro(i)%sig_z
-        z2 = macro(i+1)%r%vec(5) + macro(i+1)%sig_z
-        if (z1 < z2) then
+        if (macro(i)%r%vec(5) < macro(i+1)%r%vec(5)) then
           macro(i:i+1) = macro(i+1:i:-1)
           ordered = .false.
         endif
@@ -679,14 +682,16 @@ Subroutine order_macroparticles_in_z (bunch)
 ! Now make sure that slices do not overlap
 
       if (k < size(bunch%slice)) then
-        z1 = macro(nm)%r%vec(5) + macro(nm)%sig_z
-        z2 = bunch%slice(k+1)%macro(1)%r%vec(5) + bunch%slice(k+1)%macro(1)%sig_z
+        z1 = macro(nm)%r%vec(5)
+        z2 = bunch%slice(k+1)%macro(1)%r%vec(5)
         if (z1 < z2) then
           temp = macro(nm)
           macro(nm) = bunch%slice(k+1)%macro(1)
           bunch%slice(k+1)%macro(1) = temp
-          bunch%slice(k)%charge = sum(bunch%slice(k)%macro%charge)
-          bunch%slice(k+1)%charge = sum(bunch%slice(k+1)%macro%charge)
+          bunch%slice(k)%charge = sum (bunch%slice(k)%macro(:)%charge, &
+                            mask = .not. bunch%slice(k)%macro(:)%lost)
+          bunch%slice(k+1)%charge = sum (bunch%slice(k+1)%macro(:)%charge, &
+                            mask = .not. bunch%slice(k+1)%macro(:)%lost)
           ordered = .false.
         endif
       endif
@@ -986,7 +991,7 @@ subroutine reallocate_beam (beam, n_bunch, n_slice, n_macro)
   de_slice = .false.
   de_macro = .false.
 
-  if (allocated(beam%bunch)) then
+  if (associated(beam%bunch)) then
     if (size(beam%bunch) /= n_bunch) then
       de_bunch = .true.
       de_slice = .true.
@@ -1012,11 +1017,11 @@ subroutine reallocate_beam (beam, n_bunch, n_slice, n_macro)
 
 ! Allocate
 
-  if (.not. allocated (beam%bunch)) allocate (beam%bunch(n_bunch))
+  if (.not. associated (beam%bunch)) allocate (beam%bunch(n_bunch))
   do i = 1, n_bunch
-    if (.not. allocated (beam%bunch(i)%slice)) allocate (beam%bunch(i)%slice(n_slice))
+    if (.not. associated (beam%bunch(i)%slice)) allocate (beam%bunch(i)%slice(n_slice))
     do j = 1, n_slice
-      if (.not. allocated (beam%bunch(i)%slice(j)%macro)) &
+      if (.not. associated (beam%bunch(i)%slice(j)%macro)) &
                     allocate (beam%bunch(i)%slice(j)%macro(n_macro))
     enddo
   enddo
