@@ -326,7 +326,9 @@ subroutine track1_sr_wake (bunch, ele)
   if (n_sr1 > 0) then
     z_sr1_max = ele%wake%sr1(n_sr1-1)%z
     dz_sr1 = z_sr1_max / (n_sr1 - 1)
-    sr02 = ele%wake%sr1(0)%long * particle%charge * ele%value(l$) / (2 * ele%value(p0c$))
+    ! the self wake only sees the charge of each real particle, not the4 "macro"
+    ! charge of the simulated particle
+    sr02 = ele%wake%sr1(0)%long * e_charge * ele%value(l$) / (2 * ele%value(p0c$))
   endif
 
 ! loop over all particles in the bunch and apply the wake
