@@ -47,7 +47,7 @@
 
 \vskip 1in
 \begin{center}
-{\Huge \bf *** DRAFT ***}
+{\Huge \bf *** VERY ROUGH DRAFT ***}
 \end{center}
 \vfill
 \break
@@ -125,7 +125,8 @@ CVS write permission then type \cmd{cesrcvs co tao}. This will check out a copy
 but will not allow you to check in changes to the code. If you aren't at Wilson
 Laboratory then contact David Sagan <dcs16@cornell.edu> to obtain a copy. 
 
-From the newly created \cs{./tao} directory type \cmd{gmake -f M.tao} to create
+From the newly created \cs{./tao} directory type \cmd{gmake} to create the
+libraries and then type \cmd{gmake -f M.tao} to create
 the ''vanilla'' \tao program. Vanilla \tao is the basic \tao program without any
 user customizations. this tutorial covers to basic usage of this program.
 If you are using a custom version of \tao then
@@ -210,18 +211,258 @@ plotting. The the \tao referenc emanual for details.
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
+\chapter{Initializing \tao}
+\label{c:initializing}
+
+There are three files used to initialize \tao.
+  \vspace*{-3ex}
+\begin{description}
+  \item[tao.init] \Newline 
+    This is where global parameters are specified and the data and variable
+arrays are specified.
+  \item[tao\_plot.init] \Newline
+    This is where the plotting is set up.
+  \item[tao.startup] \Newline
+    this is a command file that is read in after initialization. Any commands you
+want entered in \tao everytime you start up are put here. This is also a great
+place to define aliases.
+\end{description}
+
+There is no need to go into the details of the initialization files here. If
+using vanilla \tao these are already set up for you in \cs{/tao/program}. These
+initialization files setup \tao for use with a \cesr lattice. If
+using a custom version of \tao then the author will have already set something
+up for you to use. If he or she didn't then go complain to him or her for making
+your life difficult and demand proper treatment.
+
+\textbf{NOTE: the following chapters will work with vanilla \tao. The commands
+entered and plotting output may be different for custom versions.}
+
+
+%----------------------------------------------------------------
+%----------------------------------------------------------------
 \chapter{Getting information from \tao}
 \label{c:get_info}
+
+%----------------------------------------------------------------
+\section{the plotting window}
+
+When \tao first starts up you will see a plot window and a command prompt. 
+Figure~\ref{f:plot_begin} shows what you will see in the plot window. In the top
+two plots you see the \vn{x} and \vn{y} model lattice orbit data. The horizontal
+axis is the \cesr BPM index. The pretzel and L03 vertical bump can be clearly 
+seen. The slight vertical displacement due to the solenoid can also be seen around 
+the IP. The default particle is the electron. The bottom two plots show the relative 
+particle phase. That is the difference
+between the model and design phases (as specified in the plot title: [model -
+design]. 
+
+As a first step let's view the absolute model phase. At the TAO> prompt type
+\begin{example}
+  plot bottom model
+\end{example}
+This will change the data plotted in the bottom two graphs to just the model.
+The plots are now way off scale. To let \tao automatically set the scale type
+\begin{example}
+  scale bottom
+\end{example}
+As expected, the phase increases approximately linearly as the particle travels
+through the ring. Zero phase is halfway through the ring (at L03 in \cesr lingo).
+This is always true. Absolute phase is arbitrary so \tao sets the average
+phase to zero when generating the data. OK, lets' set this back to relative
+phase by typing
+\begin{example}
+  plot bottom model - design
+\end{example}
+
+Let's now look at the beta function by typing
+\begin{example}
+  place bottom beta
+\end{example}
+Again, we need to rescale the plots by typing
+\begin{example}
+  scale bottom
+\end{example}
+
+Likewise, we can look at the dispersion in the top two graphs by typing
+\begin{example}
+  place top eta
+  scale top
+\end{example}
+The plot window should now look like Figure~\ref{f:plot_eta_beta}.
+
+Now let's look at the coupling (C-matrix) by typing
+\begin{example}
+  place bottom cbar
+  scale bottom
+\end{example}
+We see that there is strong coupling within the CLEO solenoid and virtually no
+coupling anywhere else.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{plot_page1.psfig}
+  \caption{The plot window at startup}
+  \label{f:plot_begin}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{plot_eta_beta.psfig}
+  \caption{Plotting dispersion and beta function}
+  \label{f:plot_eta_beta}
+\end{figure}
+
+%----------------------------------------------------------------
+\section{the \cmd{show} command}
+
+Anything in the super-universe can be displayed using the \cmd{show} command. To
+get a list of the data elements currently defined in \tao type
+\begin{example}
+  show data
+\end{example}
+the output should look like:
+\begin{example}
+   1  orbit
+   2  phase
+   3  eta
+   4  beta
+   5  cbar
+   6  coupling
+\end{example}
+There are 6 data types defined. The sixth is \textbf{WTF is this?}. 
+
+To see the data values for the horizontal beta function for \cesr BPMs 1 through
+50 type
+\begin{example}
+  show data beta:x 1:50
+\end{example}
+since we haven't changed any elements in the lattice yet the model values equal
+the design values.
+
+You can also view variables by typing
+\begin{example}
+  show var
+\end{example}
+To view the quadrupole k1 values for \cesr quadrupoles 5  and 20 through 30 type
+\begin{example}
+  sho var quad\_k1 5 20:30
+\end{example}
+Again, since we haven't changed any quadrupoles the model values are all at their
+design values.
+
+You can also see details of a particular lattice element. To view the details
+for quadrupole Q05W type
+\begin{example}
+  sho ele Q03W
+\end{example}
+
+A list of lattice elements betweem two elements can be shown by typing (for
+example)
+\begin{example}
+  sho lattice beginning Q05W
+\end{example}
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
 \chapter{Modifying the lattice}
 \label{c:modify_lattice}
 
+Let's change a variable and see what happend to the lattice. We are going to
+change a quadrupole strength so we should plot beta and phase. So type
+\begin{example}
+  place top beta
+  plot top model - design
+  place bottom phase
+  scale
+\end{example}
+
+The k1 value can be increased by 0.01 units for quadrupole Q05W by typing
+\begin{example}
+  change var quad\_k1 5 0.01
+  scale
+\end{example}
+Note the information returned after the command and the relative changes in
+beta and phase in the plot window. This is a vertically focusing quadrupole so
+the vertical beta and phase is affected more than the horizontal.
+
+Let's put this quadrupole back where we found it. We can also modify the quadrupole
+by modifying the element directly bytyping
+\begin{example}
+  change ele Q05W k1 -0.01
+\end{example}
+
+A great way to set all variable back to their design values is to type
+\begin{example}
+  set var all model = design
+\end{example}
+
 %----------------------------------------------------------------
 %----------------------------------------------------------------
 \chapter{Running the optimizer}
 \label{c:optimizer}
+
+There are two optimizers included with \tao. DESCRIBE THE OPTIMIZERS.
+
+Let's mess the lattice up a little and see if the optimizer can ''fix'' the
+lattice. First transfer the ''correct'' lattice to the \vn{meas} data area.
+\begin{example}
+  set data all meas = design
+\end{example}
+Now mess up the lattice a bit
+\begin{example}
+  change var quad\_k1 10 0.001
+  change var quad\_k1 21 -0.001
+  change var quad\_k1 67 -0.005
+  plot all meas - model
+  scale
+\end{example}
+
+Now specify what variable and data to use in the optimization. First type
+\begin{example}
+  show top10
+\end{example}
+to see what data is affecting the merit function the most. The merit function is
+defined by
+\Begineq
+  {\cal M} \equiv \sum_{i} w_i \,
+    \bigl[ \data\_\model(i) -  \data\_\meas(i) \bigr]^2 + 
+  \sum_{j} w_j \,
+    \bigl[ \var\_\model(j) - \var\_\meas(j) \bigr]^2
+  \label{m1}
+\Endeq
+We see that the beta function is affecting the merit function the most. Since we
+are looking at beta and phase let's only use that data in the optimization.
+\begin{example}
+  veto data orbit all
+  veto data eta all
+  veto data cbar all
+  veto data coupling all
+  use  data beta all
+  use  data phase all
+\end{example}
+We also know that we need to change quadrupoles to ''correct'' the lattice.
+\begin{example}
+  use var quad\_k1 all
+  veto var h\_steer all
+  veto var v\_steer all
+\end{example}
+Now let's see if we have the optimizer set up correctly.
+\begin{example}
+  sho optimizer
+\end{example}
+Whoops! we want to use the Levenberg-marquat optimizer so
+\begin{example}
+  set global optimizer = lm
+  sho opt
+\end{example}
+
+Now we're ready to run or ''flatten'' the model to the data.
+\begin{example}
+  flatten
+\end{example}
+You see the optimizer going through its cycles and it did it! The model is now
+''flattened.''
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
