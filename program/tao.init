@@ -227,7 +227,7 @@
 
 &tao_d1_data
 	ix_d1_data = 1
-  d1_data%name = "11"  
+  d1_data%name = "11b"  
   default_weight = 1e3
   ix_min_data = 0 
   ix_max_data = 99  
@@ -257,7 +257,7 @@
 
 &tao_d1_data
 	ix_d1_data = 4
-  d1_data%name = "22"  
+  d1_data%name = "22a"  
   default_weight = 1e3
   ix_min_data = 0 
   ix_max_data = 99  

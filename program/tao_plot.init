@@ -219,7 +219,7 @@ Templates define the basics of, say, how to display an orbit.
 /
 
 &tao_template_graph
-	graph%name = '22'
+	graph%name = '22a'
 	graph_index = 1
   graph%this_box = 1, 3
   graph%title = 'Cbar22'
@@ -230,7 +230,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_type   = 'coupling:22'
+  curve(1)%data_type   = 'coupling:22a'
   curve(1)%units_factor = 1
 /
 
@@ -251,7 +251,7 @@ Templates define the basics of, say, how to display an orbit.
 /
 
 &tao_template_graph
-	graph%name = '11'
+	graph%name = '11b'
 	graph_index = 3
   graph%this_box = 1, 1
   graph%title = 'Cbar11'
@@ -262,6 +262,6 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
-  curve(1)%data_type   = 'coupling:11'
+  curve(1)%data_type   = 'coupling:11b'
   curve(1)%units_factor = 1
 /

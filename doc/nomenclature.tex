@@ -7,9 +7,9 @@
 The information that \tao knows about can be divided into 5 categories: 
 \begin{example}
   lattice   -- Machine layout and component strengths, and the beam orbit.
-  data      -- For example: orbit, dispersion, coupling etc.
-  variables -- For example: steerings, quad strengths, etc.
-  plotting  -- How do display stuff.
+  data      -- Anything that can be measured. For example: orbit data, dispersion data, etc.
+  variables -- Anything that can be varied. For example: quad strengths, etc.
+  plotting  -- How to display data and other stuff.
   global    -- Miscellaneous global parameters.
 \end{example}
 The \vn{lattice} and \vn{data} information are grouped into what is called a
@@ -18,17 +18,16 @@ The \vn{lattice} and \vn{data} information are grouped into what is called a
 the \vn{super_universe} and is the sum of what \tao knows about.
 
 %------------------------------------------------------------------------
-\subsection{Lattices}
+\section{Lattices}
 
-A \vn{lattice} defines the placement of elements in a machine, their
-strengths, and a beam orbit through them. Each \vn{universe}
-has actually three lattices:
+A \vn{lattice} consists of a machine description (the strength and placement of elements)
+along with the beam orbit through them. There are actually three types of lattices:
   \vspace*{-3ex}
   \begin{description}
   \item[Design Lattice] \Newline 
 The \vn{design} lattice is the particular lattice that one wants the
-machine to conform to. The \vn{design} lattice is fixed. Nothing is
-alowed to vary in it.
+actual physical machine to conform to. The \vn{design} lattice is fixed. Nothing is
+alowed to vary in this lattice.
   \item[Model Lattice] \Newline
 All \tao commands to vary lattice variables vary quantities in the
 \vn{model} lattice. In particular, things like orbit correction
@@ -40,18 +39,18 @@ changes in the \vn{model} from the reference point can be looked at.
 This reference lattice is called the \vn{base}.
   \end{description}
 
-The \vn{model}, \vn{design}, \vn{base} lattices along with any
+The \vn{model}, \vn{design}, and \vn{base} lattices along with any
 \vn{data} are bundled together to form what is called a
 \vn{universe}. \tao can simultaneously handle multiple universes. Why
 is this useful? It can be used, for example, to simulate both rings of
 a collider machine. This can be convenient if there are, say, steering
 elements in common and it is needed to simultaneously correct the
-orbit in both rings. Another example is in a machine where orbits have
+orbit in both rings. Another case is where orbits in a machine have
 been measured under different conditions of, say, beam energy, and it
-is desired to fit all the data simultaneously. 
+is desired to fit all the data simultaneously.
 
 %------------------------------------------------------------------------
-\subsection{Data}
+\section{Data}
 
 Blocks of like data are associated with what are called \vn{d1_data}
 structures and sets of \vn{d1_data} structures are collected into what
@@ -71,18 +70,21 @@ name ``\vn{orbit}'', and one of its \vn{d1_data} structures has the name
 \vn{d1_data} structure by the name ``\vn{orbit:x}''. Sometimes there is
 only one \vn{d1_data} structure for a given \vn{d2_data} structure. In
 this case the data can be referred to simply by useing the
-\vn{d2_data}'s name.
+\vn{d2_data} structures's name.
 
 Each data point (for example, the horizontal orbit at some
 detector) has a number of quantities associated with it:
   \vspace*{-3ex}
   \begin{description}
   \item[Measured Data] \Newline 
-The data obtained from some measurement. This is generally referred to
-as just \vn{data}. When doing lattice design the \vn{data} corresponds to
+The data as obtained from some measurement.
+When doing lattice design the measured \vn{data} corresponds to
 a constraint (See the chapter on optimization for more details).
   \item[Reference Data] \Newline
-Reference data obtained from some reference measurement.
+Reference data obtained from some reference measurement. For example,
+a measurement before some variable is varied could be designated as
+the \vn{reference}, and the data taken after the variation could be 
+designated the \vn{measrued} data.
   \item[Model Data] \Newline
 The data as calculated from the \vn{model} lattice.
   \item[Design Data] \Newline
@@ -92,7 +94,7 @@ The data as calculated from the \vn{base} lattice.
   \end{description}
 
 %------------------------------------------------------------------------
-\subsection{Variables}
+\section{Variables}
 
 Blocks of variables are associated with what is called a
 \vn{v1_var} structure and each of these structures has a \vn{name}
@@ -119,6 +121,15 @@ The value as given in the \vn{base} lattice.
 %------------------------------------------------------------------------
 \section{Plotting}
 
+\begin{figure}
+  \centering
+  \includegraphics{plot.psfig}
+  \caption{A plot has is a collection of graphs and a graph has a 
+collection of curves. A plot becomes visible when it 
+is associated with a region using the \vn{place} command.}
+  \label{f:plot}
+\end{figure}
+
 Some definitions:
   \vspace*{-3ex}
 \begin{description}
@@ -137,24 +148,19 @@ The \vn{page} is divided up into a number of rectangles called
 \vn{regions}. \vn{Regions} may overlap.
 \end{description}
 
-\begin{figure}
-  \centering
-  \includegraphics{plot.psfig}
-  \caption{A plot has is a collection of graphs and a graph has a 
-collection of curves. A plot becomes visible when it 
-is associated with a region using the \vn{place} command.}
-  \label{f:plot}
-\end{figure}
-
 The plot initialization file (cf.~Chapter~\ref{c:init}) defines a set
-of \vn{template} plots. A \vn{template} defines what type of data is
+of \vn{template plots}. A \vn{template} defines what type of data is
 to be plotted (orbit, coupling, etc.), how many \vn{graphs} there are,
 what the scales are for the \vn{graph} axes, how the \vn{graph}s are
 laid out, etc.  The plot initialization file also defines a set of
-\vn{region}s within the \vn{page}.  Using the \vn{place} command one
-can assign a particular template to a particular region for plotting.
+\vn{region}s within the \vn{page}.  Using the \vn{place} command  
+(see Chapter~\ref{c:command} for a full descriptions of all commands) one
+can assign a particular \vn{template plot} to a particular region for plotting.
 The relationship between \vn{region}, \vn{plot}, \vn{graph}, and
 \vn{curve} is shown graphically in Figure~\ref{f:plot}.
+
+Figures~\ref{f:plot_page1} and \ref{f:plot_page2} show examples
+of a plot \vn{page}. n
 
 Using the \vn{plot} command one can then specify \vn{who} is
 plotted. \vn{who} refers to \vn{measured}, \vn{reference}, \vn{model},
@@ -162,7 +168,6 @@ plotted. \vn{who} refers to \vn{measured}, \vn{reference}, \vn{model},
 plot can be assigned to different \vn{regions} and the plots in different
 \vn{regions} can have different scales for their axes or different
 \vn{who}.
-
 
 The \vn{use}, \vn{veto}, \vn{restore},
 and \vn{clip} commands are used to display or not to display
@@ -178,6 +183,20 @@ use the notation:
 For example, If a template has two graphs named \vn{x} and \vn{y} and
 this template is assigned to the \vn{top} region then the \vn{x} graph
 is referred to as \vn{top:x}. 
+
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{plot_page1.psfig}
+  \caption{Example of a plot page}
+  \label{f:plot_page1}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{plot_page2.psfig}
+  \caption{Another example of a plot page.}
+  \label{f:plot_page2}
+\end{figure}
 
 %------------------------------------------------------------------------
 \section{Single Character Input}

@@ -101,7 +101,7 @@ type (modes_struct) mode
 
 real(rp) datum_value
 integer i, j, k, m, ix, ix1, ix2
-character(20) :: r_name = 'tao_load_data_array'
+character(20) :: r_name = 'tao_evaluate_a_datum'
 logical found
 
 !
