@@ -706,9 +706,10 @@ end subroutine
 ! This subroutine is not intended for general use.
 !
 ! Input:
-!   word       -- Character*(*): Word returned
-!   delim_list -- Character*(*): List of valid delimiters
-!   upper_case_word -- Logical: if True then convert word to upper case.
+!   word            -- Character*(*): Word returned
+!   delim_list      -- Character*(*): List of valid delimiters
+!   upper_case_word -- Logical, optional: if True then convert word to 
+!                       upper case. Default is True.
 !
 ! Output
 !   ix_word     -- Integer: length of WORD
@@ -719,7 +720,7 @@ end subroutine
 
 
 subroutine get_next_word (word, ix_word, delim_list, &
-                    delim, delim_found, upper_case_word)
+                                    delim, delim_found, upper_case_word)
 
   implicit none
 
@@ -727,7 +728,8 @@ subroutine get_next_word (word, ix_word, delim_list, &
 
   character*(*) word, delim_list, delim
                            
-  logical delim_found, file_end, upper_case_word
+  logical delim_found, file_end, to_upper
+  logical, optional :: upper_case_word
 
 ! check for continuation character and if found then load more characters
 ! into the parse line.
@@ -742,7 +744,11 @@ subroutine get_next_word (word, ix_word, delim_list, &
   call word_read (bp_com%parse_line, delim_list,  &
                          word, ix_word, delim, delim_found, bp_com%parse_line)
 
-  if (upper_case_word) call str_upcase (word, word)
+  if (present(upper_case_word)) then
+    if (upper_case_word) call str_upcase (word, word)
+  else
+    call str_upcase (word, word)
+  endif
 
 end subroutine
 
@@ -978,8 +984,7 @@ end function
 ! This subroutine is not intended for general use.
 !-
 
-subroutine evaluate_value (err_str, value, &
-                              ring, final_delim, final_delim_found, err_flag)
+subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
 
   implicit none
 
@@ -994,8 +999,8 @@ subroutine evaluate_value (err_str, value, &
   integer i_lev, i_op, i
 
   integer :: plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
-  integer :: l_parens$ = 5, power$ = 7, unary_minus$ = 8, unary_plus$ = 9
-  integer :: no_delim$ = 10
+  integer :: l_parens$ = 5, r_parens$ = 6, power$ = 7, unary_minus$ = 8
+  integer :: unary_plus$ = 9, no_delim$ = 10
   integer :: sin$ = 11, cos$ = 12, tan$ = 13
   integer :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
   integer :: log$ = 19, exp$ = 20
@@ -1003,18 +1008,16 @@ subroutine evaluate_value (err_str, value, &
 
   integer :: level(20) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
                             9, 9, 9, 9, 9, 9, 9, 9, 9, 9 /)
-  character*1 op_name(9) / '+', '-', '*', '/', '(', ')', '^', '-', ' ' /
 
   integer op_(200), ix_word, i_delim, i2, ix0
 
   real(rp) value
 
   character(*) err_str
-  character(280) line
-  character(1) delim, final_delim
+  character(1) delim
   character(40) word, word0
 
-  logical delim_found, final_delim_found, split
+  logical delim_found, split
   logical err_flag, op_found
 
 ! init
@@ -1023,23 +1026,15 @@ subroutine evaluate_value (err_str, value, &
   i_lev = 0
   i_op = 0
 
-! get line to parse
-
-  call get_next_word (line, ix_word, ',:}', &
-                                final_delim, final_delim_found, .true.)
-  if (ix_word == 0) call warning  &
-                         ('NO VALUE FOUND FOR: ' // err_str)
-
 ! parsing loop to build up the stack
 
   parsing_loop: do
 
 ! get a word
 
-    call word_read (line, '+-*/()^',  &
-                         word, ix_word, delim, delim_found, line)
+    call get_next_word (word, ix_word, '+-*/()^,:}', delim, delim_found)
 
-    if (delim == '*' .and. line(1:1) == '*') then
+    if (delim == '*' .and. word(1:1) == '*') then
       call warning ('EXPONENTIATION SYMBOL IS "^" AS OPPOSED TO "**"!',  &
                     'for: ' // err_str)
       err_flag = .true.
@@ -1065,8 +1060,7 @@ subroutine evaluate_value (err_str, value, &
     if (split) then
       word0 = word(:ix_word) // delim
       ix0 = ix_word + 1
-      call word_read (line, '+-*/()^',  &
-                         word, ix_word, delim, delim_found, line)
+      call get_next_word (word, ix_word, '+-*/()^', delim, delim_found)
       word = word0(:ix0) // word
       ix_word = ix_word + ix0
     endif
@@ -1142,8 +1136,7 @@ subroutine evaluate_value (err_str, value, &
 
         i_op = i - 1
 
-        call word_read (line, '+-*/()^',  &
-                           word, ix_word, delim, delim_found, line)
+        call get_next_word (word, ix_word, '+-*/()^', delim, delim_found)
         if (ix_word /= 0) then
           call warning ('UNEXPECTED CHARACTERS ON RHS AFTER ")"',  &
                                                     'FOR: ' // err_str)
@@ -1177,22 +1170,26 @@ subroutine evaluate_value (err_str, value, &
 
 ! If we are here then we have an operation that is waiting to be identified
 
-    op_found = .false.
-    do i = 1, 7
-      if (delim == op_name(i)) then      ! op identified
-        i_delim = i                        ! op id number
-        op_found = .true.
-        exit
-      endif
-    enddo
+    if (.not. delim_found) delim = ':'
 
-    if (.not. op_found) then
-      if (delim_found) then   ! how could this be?
+    select case (delim)
+    case ('+')
+      i_delim = plus$
+    case ('-')
+      i_delim = minus$
+    case ('*')
+      i_delim = times$
+    case ('/')
+      i_delim = divide$
+    case (')')
+      i_delim = r_parens$
+    case ('^')
+      i_delim = power$
+    case (',', '}', ':')
+      i_delim = no_delim$
+    case default
         call error_exit ('INTERNAL ERROR #01: GET HELP', ' ')
-      else                    ! must be that we are at the end of the line
-        i_delim = no_delim$
-      endif
-    endif
+    end select
 
 ! now see if there are operations on the OP_ stack that need to be transferred
 ! to the STK_ stack
@@ -1224,6 +1221,8 @@ subroutine evaluate_value (err_str, value, &
     err_flag = .true.
     return
   endif
+
+  if (i_lev == 0) call warning ('NO VALUE FOUND FOR: ' // err_str)
 
   i2 = 0
   do i = 1, i_lev

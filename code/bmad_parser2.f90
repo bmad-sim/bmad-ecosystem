@@ -255,7 +255,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
       bp_com%var_(ivar)%name = word_1
       call evaluate_value (bp_com%var_(ivar)%name, bp_com%var_(ivar)%value, &
                                     ring, delim, delim_found, err_flag)
-      if (delim /= ' ' .and. .not. err_flag) call warning  &
+      if (delim_found .and. .not. err_flag) call warning  &
             ('EXTRA CHARACTERS ON RHS: ' // bp_com%parse_line,  &
              'FOR VARIABLE: ' // bp_com%var_(ivar)%name)
       cycle parsing_loop
