@@ -390,7 +390,7 @@ where \vn{<command_name>} is the command you want help with.
 \label{s:modify_lattice}
 
 \subsection{Changing a Variable}
-\label{ss:put_it_back}
+\label{ss:change_variable}
 
 Let's change a variable and see what happens to the lattice. We are going to
 change a quadrupole strength so we should plot the change in beta and phase.
@@ -499,7 +499,7 @@ defined by
     \bigl[ \data_\model(i) -  \data_\meas(i) \bigr]^2 + 
   \sum_{j} w_j \,
     \bigl[ \var_\model(j) - \var_\meas(j) \bigr]^2
-  \label{m1}
+  \label{eq:merit}
 \Endeq
 where $w_{i}$ and $w_{j}$ are the weights given to each component.
 The optimizer tries to minimize the merit function by changing the model to look
@@ -551,7 +551,7 @@ derivatives were not the quadrupoles we adjusted. Nevertheless, the final result
 was a darn near perfect match!
 
 \subsection{Now Not Using all of the Variables}
-\label{ss:fix_it}
+\label{ss:fix_it_not_all}
 
 Alternatively, we could have used only a subsection of the quadrupoles. Say we
 know approximately which quadrupoles should be adjusted. So specify these
