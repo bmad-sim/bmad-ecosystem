@@ -43,7 +43,7 @@ subroutine tao_single_mode (char)
       if (ix_var == 0) cycle
       value = s%var(ix_var)%model_value + this_factor * s%key(ix)%delta
       call tao_set_var_model_value (s%var(ix_var), value)
-      this_merit = tao_merit (.true.)
+      this_merit = tao_merit ()
       return
     endif
   enddo
@@ -106,7 +106,7 @@ subroutine tao_single_mode (char)
 
   case ('s')
 
-    this_merit = tao_merit (.false.)
+    this_merit = tao_merit ()
     print *
     print *, 's%global%optimizer:       ', trim(s%global%optimizer)
     print *

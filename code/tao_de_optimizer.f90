@@ -42,7 +42,7 @@ call tao_get_vars (var_vec, var_step = var_step)
 n_var = size(var_vec)
 
 population = max(5*n_var, 20)
-merit_start = tao_merit (.false.)
+merit_start = tao_merit ()
 
 ! run the optimizer
 
@@ -52,7 +52,7 @@ merit = opti_de (var_vec, s%global%n_opti_cycles, population, &
 ! cleanup after the optimizer
 
 call tao_set_vars (var_vec)
-merit_end = tao_merit (.true.)
+merit_end = tao_merit ()
 
 write (line, *) 'Merit start:', merit_start
 call out_io (s_blank$, r_name, line)
@@ -130,7 +130,7 @@ enddo
 
 call tao_set_vars (var_vec)
 
-this_merit = tao_merit (.true.)
+this_merit = tao_merit ()
 merit_min = min(merit_min, this_merit)
 
 if(bmad_status%status /= ok$) then

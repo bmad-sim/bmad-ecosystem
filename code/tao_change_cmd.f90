@@ -45,7 +45,7 @@ logical err, absolute_num, rel_to_design
 !-------------------------------------------------
 
 call to_number;  if (err) return
-old_merit = tao_merit(.false.)
+old_merit = tao_merit()
 
 ! If changing a variable...
 
@@ -117,6 +117,7 @@ case ('ele')
     new_value = attrib_ptr
   end select
 
+  s%global%lattice_recalc = .true.
 !
 
 case default
@@ -128,7 +129,7 @@ end select
 !---------------------------------------------------
 ! print results
 
-new_merit = tao_merit(.true.)
+new_merit = tao_merit()
 delta = new_value - old_value
 if (max(abs(old_value), abs(new_value), abs(design_value)) > 100) then
   fmt = '(5x, 2(a, f12.0), f12.0)'
@@ -214,7 +215,7 @@ integer direction
 
 !check if this is a linear lattice
 
-!check if we are changin the beginning element
+!check if we are changing the beginning element
 
 !point to correct direction
 select case (where)

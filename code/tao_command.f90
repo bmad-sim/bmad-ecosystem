@@ -43,11 +43,8 @@ subroutine tao_command (command_line, err)
         'call       ', 'view       ', 'alias      ', 'help       ', 'history    ', &
         'single-mode', '           ', 'x-scale    ', 'x-axis     ', 'derivative ' /)
 
-  logical quit_tao, err, calc_lattice
+  logical quit_tao, err
   
-
-!only recalc merit if the lattice changed
-  calc_lattice = .false.
 
 ! Single character mode
 
@@ -108,9 +105,6 @@ subroutine tao_command (command_line, err)
 
     call cmd_split (4, .false., err)
     call tao_change_cmd (cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4))
-    ! lattice is recalculated in tao_change_cmd
-    calc_lattice = .false.
-
 
 !--------------------------------
 ! CLIP
@@ -157,7 +151,6 @@ subroutine tao_command (command_line, err)
 
     call cmd_split (1, .true., err); if (err) return
     call tao_run_cmd (cmd_word(1))
-    calc_lattice = .true.
 
 !--------------------------------
 ! HELP
@@ -265,7 +258,6 @@ subroutine tao_command (command_line, err)
     case ('var')
       call tao_set_var_cmd (cmd_word(2), &
                               cmd_word(3), cmd_word(5), cmd_word(6)) 
-      calc_lattice = .true.
     case ('global')
       call tao_set_global_cmd (cmd_word(2), cmd_word(4))
     case default
@@ -365,7 +357,7 @@ subroutine cmd_end_calc
 
 ! Note: tao_merit calls tao_lattice_calc.
 
-  this_merit =  tao_merit (calc_lattice)         
+  this_merit =  tao_merit ()         
   if (s%global%plot_on) call tao_plot_data_setup ()     ! transfer data to the plotting structures
   if (s%global%plot_on) call tao_plot_out ()            ! Update the plotting window
 

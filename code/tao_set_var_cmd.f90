@@ -122,6 +122,7 @@ do iv = 1, size(var)
   case ('model')
     call check_using (using, 'r', err); if (err) return
     r_ptr = var(iv)%model_value
+    s%global%lattice_recalc = .true.
   case ('base')
     call check_using (using, 'r', err); if (err) return
     r_ptr = var(iv)%base_value

@@ -325,6 +325,7 @@ type tao_global_struct
   logical :: label_lattice_elements = .true. ! For lat_layout plots
   logical :: label_keys = .true.             ! For lat_layout plots
   logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
+  logical :: lattice_recalc = .true.         ! recalculate the lattice?
   character(16) :: valid_plot_who(10) 
   character(40) :: print_command = 'awprint'
   character(80) :: var_out_file = 'var#.out'

@@ -69,7 +69,7 @@ y = 0
 sig(1:n_var) = 1e10  ! something large
 where (weight /= 0) sig(1:n_var) = sqrt(1/weight)
 
-merit0 = tao_merit(.false.)
+merit0 = tao_merit()
 
 k = n_var
 do j = 1, size(s%u)
@@ -95,7 +95,7 @@ do i = 1, s%global%n_opti_cycles
   if (i == s%global%n_opti_cycles) a_lambda = 0  ! tell mrqmin we are finished
   call mrqmin (x, y, sig, a, mask_a, covar, alpha, chi_sq, tao_mrq_func, a_lambda) 
   call tao_mrq_func (x, a, y_fit, dy_da)  ! put a -> model
-  write (line, '(i5, es14.4, es10.2)') i, tao_merit(.true.), a_lambda
+  write (line, '(i5, es14.4, es10.2)') i, tao_merit(), a_lambda
   call out_io (s_blank$, r_name, line)
 
 ! look for keyboard input to end optimization
@@ -159,7 +159,7 @@ endif
 
 ! calculate derivatives
 
-merit0 = tao_merit(.true.)
+merit0 = tao_merit()
 
 dy_da = 0
 n_var = size(a)

@@ -655,6 +655,8 @@ do i = 1, size(var%this)
   var%this(i)%model_ptr = value
 enddo
 
+s%global%lattice_recalc = .true.
+
 end subroutine
 
 !----------------------------------------------------------------------------

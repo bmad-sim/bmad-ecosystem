@@ -79,7 +79,7 @@ call out_io (s_info$, r_name, 'Remaking dModel_dVar derivative matrix...')
 
 ! Calculate matrices
 
-merit_value = tao_merit (.true.)
+merit_value = tao_merit ()
 s%var%old_value = s%var%delta
 
 do j = 1, size(s%var)
@@ -92,7 +92,7 @@ do j = 1, size(s%var)
   endif
   model_value = s%var(j)%model_value
   call tao_set_var_model_value (s%var(j), model_value + s%var(j)%step)
-  merit_value = tao_merit (.true.)
+  merit_value = tao_merit ()
 
   do i = 1, size(s%u)
     u => s%u(i)
