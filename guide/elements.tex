@@ -56,7 +56,7 @@ The list of element classes known to \bmad is shown in Table~\ref{t:elements}.
 \tt 
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  a$n$, b$n$ multipoles  & \ref{s:multip}  & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  a$n$, b$n$ multipoles  & \ref{s:multip}  & Offsets and tilt           & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
@@ -104,9 +104,9 @@ any demand for it.
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  Aperture Limits        & \ref{s:limit}   & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -200,11 +200,12 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  symplectify            & \ref{s:symp}    & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
-  kicks                  & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Integration settings   & \ref{s:integ}   &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -287,11 +288,12 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  symplectify            & \ref{s:symp}    & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
-  kicks                  & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Integration settings   & \ref{s:integ}   &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -417,9 +419,10 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  Description strings    & \ref{s:string}  & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
+  Description strings    & \ref{s:string}  & Offsets                    & \ref{s:offset}  \HH
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Symplectify            & \ref{s:symp}    & Integration settings       & \ref{s:integ}   \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -441,10 +444,11 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  symplectify            & \ref{s:symp}    & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
+  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Integration settings   & \ref{s:integ}   &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -483,10 +487,10 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  symplectify            & \ref{s:symp}    & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
-  Description strings    & \ref{s:string}  &                            &                 \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Description strings    & \ref{s:string}  & Symplectify                & \ref{s:symp}    \HH 
+  Integration settings   & \ref{s:integ}   &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -506,11 +510,12 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  symplectify            & \ref{s:symp}    & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
-  kicks                  & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Integration settings   & \ref{s:integ}   &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -553,11 +558,12 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  symplectify            & \ref{s:symp}    & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
-  kicks                  & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Symplectify            & \ref{s:symp}    & tilt                       & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Kick                   & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Integration settings   & \ref{s:integ}   &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -591,7 +597,7 @@ lattice file but are created by a program, usually for speed purposes.
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  Description strings    & \ref{s:string}  & offsets, pitches, and tilt & \ref{s:offset}  \HH 
+  Description strings    & \ref{s:string}  & Offsets, pitches, and tilt & \ref{s:offset}  \HH 
 \end{tabular}
 \end{center}
 \toffset
@@ -668,10 +674,11 @@ the total tilt is stored in \vn{%value(tilt_tot\$)}, etc.
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  symplectify            & \ref{s:symp}    & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
-  Description strings    & \ref{s:string}  &                            &                 \HH 
+  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Integration settings   & \ref{s:integ}   &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -700,11 +707,12 @@ proper. Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  symplectify            & \ref{s:symp}    & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
-  kicks                  & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Symplectify            & \ref{s:symp}    & tilt                       & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Integration settings   & \ref{s:integ}   &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -732,11 +740,11 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  symplectify            & \ref{s:symp}    & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
-  kicks                  & \ref{s:kick}    &                            &                 \HH
+  Symplectify            & \ref{s:symp}    & Offsets, and pitches       & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Hkick \& Vkick         & \ref{s:kick}    & Integration settings       & \ref{s:integ}   \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -902,18 +910,19 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Aperture Limits        & \ref{s:limit}   &                            &                 \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Reference energy       & \ref{s:energy}  & Offsets and tilt           & \ref{s:offset}  \HH
+  Aperture Limits        & \ref{s:limit}   & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
 
 \index{X_offset}
 \index{Y_offset}
+\index{Tilt}
 \index{Is_on}
 A \vn{Marker} is a zero length element meant to mark a position. The
-\vn{x_offset} and \vn{y_offset} attributes are not used by any \bmad
+\vn{x_offset}, \vn{y_offset} and \vn{tilt} attributes are not used by any \bmad
 routines. Typically if these attributes are used by a program they are
 used to simulate things like BPM offsets. The \vn{is_on} attribute is
 also not used by \bmad proper. Example:
@@ -930,9 +939,9 @@ also not used by \bmad proper. Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Reference energy       & \ref{s:energy}  & Integration settings       & \ref{s:integ}   \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -985,9 +994,9 @@ Example:
 \tt 
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  K$n$L, T$n$ multipoles & \ref{s:multip}  & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
+  K$n$L, T$n$ multipoles & \ref{s:multip}  & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   &                            &                 \HH
 \end{tabular}
 \end{center}
@@ -1019,11 +1028,12 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  symplectify            & \ref{s:symp}    & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
-  kicks                  & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Integration settings   & \ref{s:integ}   &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1056,10 +1066,10 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  is\_on                 & \ref{s:is_on}   & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
+  is\_on                 & \ref{s:is_on}   & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Description strings        & \ref{s:string}  \HH 
-  length                 & \ref{s:l}       &                            &                 \HH
+  Length                 & \ref{s:l}       &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1104,11 +1114,12 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  symplectify            & \ref{s:symp}    & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
-  kicks                  & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Integration settings   & \ref{s:integ}   &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1139,11 +1150,11 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  symplectify            & \ref{s:symp}    & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
-  kicks                  & \ref{s:kick}    &                            &                 \HH
+  Symplectify            & \ref{s:symp}    & Offsets, \& pitches        & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Hkick \& Vkick         & \ref{s:kick}    &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1192,11 +1203,12 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  symplectify            & \ref{s:symp}    & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
-  kicks                  & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Integration settings   & \ref{s:integ}   &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1229,11 +1241,12 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  symplectify            & \ref{s:symp}    & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
-  kicks                  & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Symplectify            & \ref{s:symp}    & Offsets \& pitches         & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Integration settings   & \ref{s:integ}   &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1261,11 +1274,12 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  symplectify            & \ref{s:symp}    & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
-  kicks                  & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Integration settings   & \ref{s:integ}   &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1294,9 +1308,10 @@ Example:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Aperture Limits        & \ref{s:limit}   &                            &                 \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Aperture Limits        & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
+  Length                 & \ref{s:l}       & Tracking \& transfer map   & \ref{c:methods} \HH
+  Reference energy       & \ref{s:energy}  &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1360,11 +1375,12 @@ Example \vn{Taylor} element definition:
 \tt
 \begin{tabular}{|l|l||l|l||} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
-  symplectify            & \ref{s:symp}    & offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & is\_on                     & \ref{s:is_on}   \HH 
-  Reference energy       & \ref{s:energy}  & tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & length                     & \ref{s:l}       \HH
-  kicks                  & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Integration settings   & \ref{s:integ}   &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset

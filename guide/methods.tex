@@ -12,96 +12,6 @@ used is selected on an element--by--element basis using the attributes
 These switches are discussed in more detail in sections \sref{s:tkm} 
 and \sref{s:xfer}.
 
-When calculating transfer (Taylor) maps and tracking through integration
-there are a number of attributes that can affect the calculation. They are
-\begin{example}
-  num_steps = Integer         ! Number of integration steps
-  integration_ord = Integer   ! Integrator order
-  rel_tol = Real              ! Relative tolerance
-  abs_tol = Real              ! Absolute tolerance
-  field_calc = Switch         ! How the field is calculated
-\end{example}
-These attributes are discussed in \sref{s:integ}. Example:
-\begin{example}
-  q1: quadrupole, l = 0.6, tracking_method = bmad_standard, &
-        mat6_calc_method = sym_lie_ptc, num_steps = 20, field_calc = custom
-\end{example}
-
-%-----------------------------------------------------------------
-\section{Transfer Maps via Integration}
-\label{s:integ}
-\index{Transfer map}
-
-\index{Num_steps}
-One way to create a transfer map through an element is to divide the
-element up into slices and then to propagate the transfer map slice by
-slice.  There are several ways to do this integration. The
-\vntm{Boris} and \vntm{Runge_Kutta} methods integrate the equations of
-motion to give the 0\Th order Taylor map which just represents a
-particle's orbit.  Symplectic
-integration\index{Symplectic!integration} using Lie algebraic
-techniques, on the other hand, can generate Taylor maps to any order.
-The \vn{num_steps} attribute determines the number of slices. This
-is applicable to \vn{Boris}, \vntm{Symp_Lie_Bmad}, and
-\vntm{Symp_Lie_PTC} integration.
-
-\index{Integration_ord}
-\index{Num_steps}
-\vn{integrator_order} is the order of the integration formula for 
-\vn{Symp_Lie_PTC}. Possible values are
-\begin{example}
-  integrator_order = 2 (default), 4, or 6
-\end{example}
-Essentially, an integration order of $n$ means that the error in an 
-integration step scales as $dz^{n+1}$ where $dz$ is the slice thickness.
-For a given number of steps a higher order will give more accurate results
-but a higher order integrator will take more time per step. It turns out
-that for wigglers, after adjusting \vn{num_steps} for a given accuracy, 
-the order 2 integrator is the fastest. This is not surprising given the
-highly nonlinear nature of a wiggler. Note that \vntm{Symp_Lie_Bmad} always
-uses a order 2 integrator.
-
-\index{Num_steps}
-\index{Rel_tol}
-\index{Abs_tol}
-\vntm{Adaptive_Boris} and \vntm{Runge_Kutta} use adaptive step
-control independent of \vn{num_steps}. These methods use the \vn{rel_tol} and
-\vn{abs_tol} attributes to try to keep the estimated error of the integration
-such that
-\begin{example}
-  error < abs_tol + |orbit| * rel_tol
-\end{example}
-lowering the error bounds makes for greater accuracy (as long as round-off 
-doesn't hurt) but for slower tracking. 
-
-\index{Field_calc}
-\vntm{Boris}, \vntm{Adaptive_Boris}, and \vntm{Runge_Kutta} tracking all use
-as input the electric and magnetic fields of an element. How the EM fields
-are calculated is determined by the \vn{field_calc} attribute for an element.
-Possible values for \vn{field_calc} are:
-\begin{example}
-  Bmad_Standard     ! This is the default
-  Custom
-\end{example}
-\index{Custom}
-\vn{Custom} means that the field calculations are done outside of the
-\bmad software. A program doing \vn{Custom} field calculations will
-need the appropriate custom routine. See \sref{s:custom_field} for more
-details.
-
-\vntm{Boris} (Both \vn{Boris} and \vntm{Adaptive_Boris}) tracking does not
-assume that a particle is relativistic so \vn{Boris} tracking can be
-used with non--relativistic particles. The phase space coordinates
-used in \vn{Boris} tracking are not the usual \bmad coordinates Rather
-what is used is
-\begin{example}
-    (x, p_x/p_0, y, p_y/p_0, s-ct, dE/(cP_0))
-\end{example}
-At high energy $s-ct = z$ which is the distance of the particle from the 
-reference particle and $cP_0 = vE_0/C = E_0$ so that $dE/cP_0 = dE/E$ giving
-the standard \bmad coordinates.
-
-
 %----------------------------------------------------------------------------
 \section{tracking\_method Switches}
 \label{s:tkm}
@@ -436,3 +346,93 @@ denotes an available method.}
 \end{table}
 
 \vfill \break
+
+%-----------------------------------------------------------------
+\section{Transfer Maps via Integration}
+\label{s:integ}
+\index{Transfer map}
+
+When calculating transfer (Taylor) maps and tracking through integration
+there are a number of attributes that can affect the calculation. They are
+\begin{example}
+  num_steps = Integer         ! Number of integration steps
+  integration_ord = Integer   ! Integrator order
+  rel_tol = Real              ! Relative tolerance
+  abs_tol = Real              ! Absolute tolerance
+  field_calc = Switch         ! How the field is calculated
+\end{example}
+Example:
+\begin{example}
+  q1: quadrupole, l = 0.6, tracking_method = bmad_standard, &
+        mat6_calc_method = sym_lie_ptc, num_steps = 20, field_calc = custom
+\end{example}
+
+\index{Num_steps}
+One way to create a transfer map through an element is to divide the
+element up into slices and then to propagate the transfer map slice by
+slice.  There are several ways to do this integration. The
+\vntm{Boris} and \vntm{Runge_Kutta} methods integrate the equations of
+motion to give the 0\Th order Taylor map which just represents a
+particle's orbit.  Symplectic
+integration\index{Symplectic!integration} using Lie algebraic
+techniques, on the other hand, can generate Taylor maps to any order.
+The \vn{num_steps} attribute determines the number of slices. This
+is applicable to \vn{Boris}, \vntm{Symp_Lie_Bmad}, and
+\vntm{Symp_Lie_PTC} integration.
+
+\index{Integration_ord}
+\index{Num_steps}
+\vn{integrator_order} is the order of the integration formula for 
+\vn{Symp_Lie_PTC}. Possible values are
+\begin{example}
+  integrator_order = 2 (default), 4, or 6
+\end{example}
+Essentially, an integration order of $n$ means that the error in an 
+integration step scales as $dz^{n+1}$ where $dz$ is the slice thickness.
+For a given number of steps a higher order will give more accurate results
+but a higher order integrator will take more time per step. It turns out
+that for wigglers, after adjusting \vn{num_steps} for a given accuracy, 
+the order 2 integrator is the fastest. This is not surprising given the
+highly nonlinear nature of a wiggler. Note that \vntm{Symp_Lie_Bmad} always
+uses a order 2 integrator.
+
+\index{Num_steps}
+\index{Rel_tol}
+\index{Abs_tol}
+\vntm{Adaptive_Boris} and \vntm{Runge_Kutta} use adaptive step
+control independent of \vn{num_steps}. These methods use the \vn{rel_tol} and
+\vn{abs_tol} attributes to try to keep the estimated error of the integration
+such that
+\begin{example}
+  error < abs_tol + |orbit| * rel_tol
+\end{example}
+lowering the error bounds makes for greater accuracy (as long as round-off 
+doesn't hurt) but for slower tracking. 
+
+\index{Field_calc}
+\vntm{Boris}, \vntm{Adaptive_Boris}, and \vntm{Runge_Kutta} tracking all use
+as input the electric and magnetic fields of an element. How the EM fields
+are calculated is determined by the \vn{field_calc} attribute for an element.
+Possible values for \vn{field_calc} are:
+\begin{example}
+  Bmad_Standard     ! This is the default
+  Custom
+\end{example}
+\index{Custom}
+\vn{Custom} means that the field calculations are done outside of the
+\bmad software. A program doing \vn{Custom} field calculations will
+need the appropriate custom routine. See \sref{s:custom_field} for more
+details.
+
+\vntm{Boris} (Both \vn{Boris} and \vntm{Adaptive_Boris}) tracking does not
+assume that a particle is relativistic so \vn{Boris} tracking can be
+used with non--relativistic particles. The phase space coordinates
+used in \vn{Boris} tracking are not the usual \bmad coordinates Rather
+what is used is
+\begin{example}
+    (x, p_x/p_0, y, p_y/p_0, s-ct, dE/(cP_0))
+\end{example}
+At high energy $s-ct = z$ which is the distance of the particle from the 
+reference particle and $cP_0 = vE_0/C = E_0$ so that $dE/cP_0 = dE/E$ giving
+the standard \bmad coordinates.
+
