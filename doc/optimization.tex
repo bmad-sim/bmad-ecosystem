@@ -190,28 +190,38 @@ What kind of data is associated with \vn{model}, \vn{design} and
 \centering 
 {\tt
 \begin{tabular}{|l|l|l|} \hline
-  {\it Data\_Type} & {\it Description}        &          \\ \hline 
-    beta:x, beta:y        & Twiss parameter                 &          \\ \hline 
-    alpha:x, alpha:y      & Twiss parameter                 &          \\ \hline 
-    eta:x, eta:y          & Dispersion                      &          \\ \hline 
-    etap:x, etap:y        & Dispersion derivative           &          \\ \hline 
-    phase:x, phase:y      & Betatron phase                  & relative \\ \hline 
+  {\it Data\_Type}        & {\it Description}                 &          \\ \hline 
+    beta:x, beta:y        & Twiss parameter                   &          \\ \hline 
+    alpha:x, alpha:y      & Twiss parameter                   &          \\ \hline 
+    eta:x, eta:y          & Dispersion                        &          \\ \hline 
+    etap:x, etap:y        & Dispersion derivative             &          \\ \hline 
+    phase:x, phase:y      & Betatron phase                    & relative \\ \hline 
     orbit:x, orbit:y      & Transverse orbit                  &          \\ \hline 
     orbit:x\_p, orbit:y\_p  & Tranverse momenta               &          \\ \hline 
     orbit:z\_p, orbit:z\_p  & Longitudinal orbit and momenta  &          \\ \hline 
 \begin{tabular}{@{}l}     cbar:11, cbar:12, \\ cbar:21, cbar:22 \end{tabular} 
-                      & Coupling                        &          \\ \hline 
+                      & Coupling                              &          \\ \hline 
 \begin{tabular}{@{}l}     coupling:11b, coupling:12a, \\ 
                           coupling:12b, coupling:22a \end{tabular} 
-                      & Coupling                        &          \\ \hline 
+                      & Coupling                              &          \\ \hline 
     floor:x, floor:y, floor:z
-                      & Global (``floor'') position     & relative \\ \hline 
-    floor:theta       & Global (``floor'') angle        & relative \\ \hline 
-    r56               & Term in linear transfer map     & relative \\ \hline 
-    t566              & Term in 2nd order transfer map  & relative \\ \hline 
-    i5a\_e6, i5b\_e6  & Normalized I5 radiation integral &          \\ \hline
-    s\_position       & longitudinal length constraint  & relative \\ \hline 
-    beam\_energy      & Beam energy                     &          \\ \hline
+                      & Global (``floor'') position           & relative \\ \hline 
+    floor:theta       & Global (``floor'') angle              & relative \\ \hline 
+    r:$ij$            & 
+\begin{tabular}{l}
+  Term in linear transfer map \\
+  $1 \le i,j \le 6$
+\end{tabular}
+                                                              & relative \\ \hline 
+    t:$ijk$           & 
+\begin{tabular}{l}
+  Term in 2nd order transfer map \\
+   $1 \le i,j,k \le 6$
+\end{tabular} 
+                                                              & relative \\ \hline 
+    i5a\_e6, i5b\_e6  & Normalized I5 radiation integral      &          \\ \hline
+    s\_position       & longitudinal length constraint        & relative \\ \hline 
+    beam\_energy      & Beam energy                           &          \\ \hline
 \end{tabular}
 } 
 \caption{Constraint List.}
@@ -242,10 +252,10 @@ model value is determined by Table~\ref{t:eval}.
 {\tt
 \begin{tabular}{|l|l|l|} \hline
   {\it Merit\_Type}       & {\it Model Value} \\ \hline 
-  \vn{min}     & $\min_{\mbox{ele} \le i \le \mbox{ele2}} \beta_x(i)$ \\ \hline 
-  \vn{max}     & $\min_{\mbox{ele} \le i \le \mbox{ele2}} \beta_x(i)$ \\ \hline 
-  \vn{abs_min} & $\min_{\mbox{ele} \le i \le \mbox{ele2}} |\beta_x(i)|$ \\ \hline 
-  \vn{abs_max} & $\min_{\mbox{ele} \le i \le \mbox{ele2}} |\beta_x(i)|$ \\ \hline 
+  \vn{min}     & $\min \beta_x(i)$ \\ \hline 
+  \vn{max}     & $\min \beta_x(i)$ \\ \hline 
+  \vn{abs_min} & $\min |\beta_x(i)|$ \\ \hline 
+  \vn{abs_max} & $\min |\beta_x(i)|$ \\ \hline 
   \vn{target}  & {\it Error}   \\ \hline 
 \end{tabular}
 }

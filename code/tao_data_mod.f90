@@ -77,6 +77,8 @@ end subroutine
 
 subroutine tao_data_coupling_init (u)
 
+implicit none
+
 type (tao_universe_struct) u
 integer m
 
@@ -104,16 +106,23 @@ end subroutine
 
 subroutine tao_evaluate_a_datum (datum, lattice, orb, datum_value)
 
+implicit none
+
 type (ele_struct), pointer :: ele
 type (tao_data_struct), pointer :: data
 type (tao_data_struct) datum
 type (ring_struct) lattice
 type (coord_struct) orb(0:)
 type (modes_struct) mode
+type (taylor_struct), save :: taylor(6)
 
-real(rp) datum_value
+real(rp) datum_value, mat6(6,6)
+
 integer i, j, k, m, ix, ix1, ix2
+
 character(20) :: r_name = 'tao_evaluate_a_datum'
+character(16) data_type
+
 logical found
 
 !
@@ -125,7 +134,11 @@ ix1 = datum%ix_ele
 ix2 = datum%ix_ele2
 ele => lattice%ele_(ix1)
 
-select case (datum%data_type)
+data_type = datum%data_type
+if (data_type(1:2) == 'r:') data_type = 'r:'
+if (data_type(1:2) == 't:') data_type = 't:'
+
+select case (data_type)
 
 case ('orbit:x')
   call load_it (orb(:)%vec(1))
@@ -199,13 +212,20 @@ case ('i5b_e6')
   datum_value = mode%lin%i5b_e6
   datum%ix_ele_merit = lattice%n_ele_use
 
-case ('r56')
-  call out_io (s_abort$, r_name, 'r56 constraint not yet implemented')
-  call err_exit
+case ('r:')
+  call relative_switch
+  i = read_this_index (datum%data_type(3:3)); if (i == 0) return
+  j = read_this_index (datum%data_type(4:4)); if (j == 0) return
+  call transfer_matrix_calc (lattice, .true., mat6, ix1, ix2)
+  datum_value = mat6(i, j)
 
-case ('t566')
-  call out_io (s_abort$, r_name, 't566 constraint not yet implemented')
-  call err_exit
+case ('t:')
+  call relative_switch
+  i = read_this_index (datum%data_type(3:3)); if (i == 0) return
+  j = read_this_index (datum%data_type(4:4)); if (j == 0) return
+  k = read_this_index (datum%data_type(5:5)); if (k == 0) return
+  call transfer_map_calc (lattice, taylor, ix1, ix2)
+  datum_value = taylor_coef (taylor(i), j, k)
 
 case ('floor:x')
   call relative_switch
@@ -282,6 +302,23 @@ if (datum%merit_type(1:4) == 'abs_') datum_value = abs(vec(ix_m))
 if (present(f)) datum%conversion_factor = f(ix_m)
 
 end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+! contains
+
+function read_this_index (char) result (ix)
+
+  character(1) char
+  integer ix
+
+  ix = index('123456', char)
+  if (ix == 0) then
+    call out_io (s_abort$, r_name, 'BAD INDEX CONSTRAINT: ' // data%data_type)
+    call err_exit
+  endif
+
+end function
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------

@@ -115,7 +115,7 @@ plot_loop: do i = 1, size(s%plot_page%plot)
         if (plot%x_axis_type == 'index') then
           where (d1_ptr%d%ix_d1 < plot%x%min-eps) d1_ptr%d%good_plot = .false.
           where (d1_ptr%d%ix_d1 > plot%x%max+eps) d1_ptr%d%good_plot = .false.
-	elseif (plot%x_axis_type == 'ele_index') then
+        elseif (plot%x_axis_type == 'ele_index') then
           where (d1_ptr%d%ix_ele < plot%x%min-eps) d1_ptr%d%good_plot = .false.
           where (d1_ptr%d%ix_ele > plot%x%max+eps) d1_ptr%d%good_plot = .false.
         else ! s
@@ -138,9 +138,8 @@ plot_loop: do i = 1, size(s%plot_page%plot)
           curve%x_symb = d1_ptr%d(curve%ix_symb)%ix_ele
         elseif (plot%x_axis_type == 's') then
           curve%x_symb = u%model%ele_(d1_ptr%d(curve%ix_symb)%ix_ele)%s
-	else
-	  call out_io (s_error$, r_name, &
-	               "Unknown axis type!")
+        else
+          call out_io (s_error$, r_name, "Unknown axis type!")
           plot%valid = .false.
           cycle plot_loop
         endif
@@ -186,29 +185,28 @@ plot_loop: do i = 1, size(s%plot_page%plot)
           cycle plot_loop
         endif
 
-	! find which universe we're viewing
-	ix_this = -1
-	do jj = 1, size(v1_ptr%v(1)%this)
-	  if (v1_ptr%v(1)%this(jj)%ix_uni .eq. s%global%u_view) &
-	          ix_this = jj
+  ! find which universe we're viewing
+        ix_this = -1
+        do jj = 1, size(v1_ptr%v(1)%this)
+          if (v1_ptr%v(1)%this(jj)%ix_uni .eq. s%global%u_view) ix_this = jj
         enddo
-	if (ix_this .eq. -1) then
-	  call out_io (s_error$, r_name, &
-	       "This variable doesn't point to the currently displayed  universe.")
+        if (ix_this .eq. -1) then
+          call out_io (s_error$, r_name, &
+                     "This variable doesn't point to the currently displayed  universe.")
           plot%valid = .false.
           cycle plot_loop
-	endif
-	    
+        endif
+      
         v1_ptr%v%good_plot = .true.
         eps = 1e-4 * (plot%x%max - plot%x%min)
         if (plot%x_axis_type == 'index') then
           where (v1_ptr%v%ix_v1 < plot%x%min-eps) v1_ptr%v%good_plot = .false.
           where (v1_ptr%v%ix_v1 > plot%x%max+eps) v1_ptr%v%good_plot = .false.
-	elseif (plot%x_axis_type == 'ele_index') then
-	  do jj = lbound(v1_ptr%v, 1), ubound(v1_ptr%v,1)
-	    if (v1_ptr%v(jj)%this(ix_this)%ix_ele < plot%x%min-eps) v1_ptr%v%good_plot = .false.
-	    if (v1_ptr%v(jj)%this(ix_this)%ix_ele > plot%x%max+eps) v1_ptr%v%good_plot = .false.
-	  enddo
+        elseif (plot%x_axis_type == 'ele_index') then
+          do jj = lbound(v1_ptr%v, 1), ubound(v1_ptr%v,1)
+            if (v1_ptr%v(jj)%this(ix_this)%ix_ele < plot%x%min-eps) v1_ptr%v%good_plot = .false.
+            if (v1_ptr%v(jj)%this(ix_this)%ix_ele > plot%x%max+eps) v1_ptr%v%good_plot = .false.
+          enddo
         else
           where (v1_ptr%v%s < plot%x%min-eps) v1_ptr%v%good_plot = .false.
           where (v1_ptr%v%s > plot%x%max+eps) v1_ptr%v%good_plot = .false.
@@ -223,16 +221,18 @@ plot_loop: do i = 1, size(s%plot_page%plot)
 
         curve%ix_symb = pack(v1_ptr%v%ix_v1, mask = v1_ptr%v%useit_plot)
 
+        plot%x%label = plot%x_axis_type
+
         if (plot%x_axis_type == 'index') then
           curve%x_symb = curve%ix_symb
         elseif (plot%x_axis_type == 'ele_index') then
-	  do jj = lbound(curve%ix_symb,1), ubound(curve%ix_symb,1)
+          do jj = lbound(curve%ix_symb,1), ubound(curve%ix_symb,1)
             curve%x_symb(jj) = v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele
-	  enddo
+          enddo
         elseif (plot%x_axis_type == 's') then
-	  do jj = lbound(curve%ix_symb,1), ubound(curve%ix_symb,1)
+          do jj = lbound(curve%ix_symb,1), ubound(curve%ix_symb,1)
             curve%x_symb(jj) = u%model%ele_(v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele)%s
-	  enddo
+          enddo
         endif
 
 ! calculate the y-axis data point values.
@@ -243,20 +243,23 @@ plot_loop: do i = 1, size(s%plot_page%plot)
           select case (plot%who(m)%name)
           case (' ') 
             cycle
+
+          ! set value to whatever it is in currently viewed universe
           case ('model') 
-	    ! set value to whatever it is in currently viewed universe
-	    do jj = lbound(v1_ptr%v,1), ubound(v1_ptr%v,1)
-	      if (associated(v1_ptr%v(jj)%this(ix_this)%model_ptr)) &
-                v1_ptr%v(jj)%plot_model_value = v1_ptr%v(jj)%this(ix_this)%model_ptr
-	    enddo
-	    value => v1_ptr%v%plot_model_value
+            do jj = lbound(v1_ptr%v,1), ubound(v1_ptr%v,1)
+              if (associated(v1_ptr%v(jj)%this(ix_this)%model_ptr)) &
+                      v1_ptr%v(jj)%plot_model_value = v1_ptr%v(jj)%this(ix_this)%model_ptr
+            enddo
+            value => v1_ptr%v%plot_model_value
+
+          ! set value to whatever it is in currently viewed universe
           case ('base')  
-	    ! set value to whatever it is in currently viewed universe
-	    do jj = lbound(v1_ptr%v,1), ubound(v1_ptr%v,1)
-	      if (associated(v1_ptr%v(jj)%this(ix_this)%base_ptr)) &
-                v1_ptr%v(jj)%plot_base_value = v1_ptr%v(jj)%this(ix_this)%base_ptr
-	    enddo
-	    value => v1_ptr%v%plot_base_value
+            do jj = lbound(v1_ptr%v,1), ubound(v1_ptr%v,1)
+              if (associated(v1_ptr%v(jj)%this(ix_this)%base_ptr)) &
+                      v1_ptr%v(jj)%plot_base_value = v1_ptr%v(jj)%this(ix_this)%base_ptr
+            enddo
+            value => v1_ptr%v%plot_base_value
+
           case ('design')  
             value => v1_ptr%v%design_value
           case ('ref')     
@@ -268,6 +271,7 @@ plot_loop: do i = 1, size(s%plot_page%plot)
             plot%valid = .false.
             cycle plot_loop
           end select
+
           curve%y_symb = curve%y_symb + &
                    plot%who(m)%sign * pack(value, mask = v1_ptr%v%useit_plot)
         enddo
@@ -368,48 +372,42 @@ plot_loop: do i = 1, size(s%plot_page%plot)
         curve%y_line = curve%y_symb
       elseif (plot%x_axis_type == 's') then
         smoothing = .true.
-	do m = 1, size(plot%who)
-	  if(plot%who(m)%name .eq. 'meas' .or. plot%who(m)%name .eq. 'ref') &
-                     smoothing = .false.
+        do m = 1, size(plot%who)
+          if (plot%who(m)%name .eq. 'meas' .or. plot%who(m)%name .eq. 'ref') smoothing = .false.
         enddo
-	if (smoothing) then
+        if (smoothing) then
           call reassociate_real (curve%y_line, 400) ! allocate space for the data
           call reassociate_real (curve%x_line, 400) ! allocate space for the data
           curve%y_line = 0
-          x1 = max (plot%x%min, u%model%ele_(0)%s)
-          x2 = min (plot%x%max, u%model%ele_(u%model%n_ele_use)%s)
-          do ii = 1, size(curve%x_line)
-            curve%x_line(ii) = x1 + (ii-1) * (x2-x1) / (size(curve%x_line)-1)
-            do m = 1, size(plot%who)
-              select case (plot%who(m)%name)
-              case (' ') 
-                cycle
-              case ('model')
-                call s_data_to_plot (u%model, u%model_orb,  & 
-                            curve%x_line(ii), plot%who(m), curve%y_line(ii), err)
-                if (err) cycle plot_loop
-              case ('base')  
-                call s_data_to_plot (u%base, u%base_orb, &
-                            curve%x_line(ii), plot%who(m), curve%y_line(ii), err)
-                if (err) cycle plot_loop
-              case ('design')  
-                call s_data_to_plot (u%design, u%design_orb, &
-                            curve%x_line(ii), plot%who(m), curve%y_line(ii), err)
-                if (err) cycle plot_loop
-              case default
-                call out_io (s_error$, r_name, &
-                                'BAD PLOT "WHO" WITH "S" X-AXIS: ' // plot%who(m)%name)
-                plot%valid = .false.
-                cycle plot_loop
-              end select
-            enddo
+          do m = 1, size(plot%who)
+            select case (plot%who(m)%name)
+            case (' ') 
+              cycle
+            case ('model')
+              call s_data_to_plot (u%model, u%model_orb,  & 
+                          curve%x_line, plot%who(m), curve%y_line, err)
+              if (err) cycle plot_loop
+            case ('base')  
+              call s_data_to_plot (u%base, u%base_orb, &
+                          curve%x_line, plot%who(m), curve%y_line, err)
+              if (err) cycle plot_loop
+            case ('design')  
+              call s_data_to_plot (u%design, u%design_orb, &
+                          curve%x_line, plot%who(m), curve%y_line, err)
+              if (err) cycle plot_loop
+            case default
+              call out_io (s_error$, r_name, &
+                              'BAD PLOT "WHO" WITH "S" X-AXIS: ' // plot%who(m)%name)
+              plot%valid = .false.
+              cycle plot_loop
+            end select
           enddo
-	else
+        else
           call reassociate_real (curve%y_line, n_dat) ! allocate space for the data
           call reassociate_real (curve%x_line, n_dat) ! allocate space for the data
           curve%x_line = curve%x_symb
           curve%y_line = curve%y_symb
-	endif
+        endif
         
       endif
 
@@ -428,16 +426,6 @@ plot_loop: do i = 1, size(s%plot_page%plot)
       if (graph%title_suffix(2:2) == '+') graph%title_suffix = graph%title_suffix(4:)
 
       graph%title_suffix = '[' // trim(graph%title_suffix) // ']'
-
-! attach x-axis type to title suffix
-
-      if (plot%x_axis_type .eq. 'index') then
-	graph%title_suffix = trim(graph%title_suffix) // ', X-axis: index, '
-      elseif (plot%x_axis_type .eq. 'ele_index') then
-	graph%title_suffix = trim(graph%title_suffix) // ', X-axis: ele_index, '
-      elseif (plot%x_axis_type .eq. 's') then
-	graph%title_suffix = trim(graph%title_suffix) // ', X-axis: s, '
-      endif
 
 ! attach universe number to title suffix
 
@@ -460,65 +448,74 @@ type (coord_struct) orb(0:)
 type (ring_struct) lat
 type (ele_struct) ele
 type (coord_struct) here
-real(rp) s_pos, y, cbar(2,2)
+real(rp) s_pos(:), y(:), cbar(2,2)
 logical err
 
 !
 
-call twiss_and_track_at_s (lat, s_pos, ele, orb, here)
-
 err = .false.
 
-select case (curve%data_type)
-case ('orbit:x')
-  y = y + who%sign * here%vec(1)
-case ('orbit:y')
-  y = y + who%sign * here%vec(3)
-case ('orbit:z')
-  y = y + who%sign * here%vec(5)
-case ('orbit:x_p')
-  y = y + who%sign * here%vec(2)
-case ('orbit:y_p')
-  y = y + who%sign * here%vec(4)
-case ('orbit:z_p')
-  y = y + who%sign * here%vec(6)
-case ('phase:x')
-  y = y + who%sign * ele%x%phi
-case ('phase:y')
-  y = y + who%sign * ele%y%phi
-case ('beta:x')
-  y = y + who%sign * ele%x%beta
-case ('beta:y')
-  y = y + who%sign * ele%y%beta
-case ('alpha:x')
-  y = y + who%sign * ele%x%alpha
-case ('alpha:y')
-  y = y + who%sign * ele%y%alpha
-case ('eta:x')
-  y = y + who%sign * ele%x%eta
-case ('eta:y')
-  y = y + who%sign * ele%y%eta
-case ('etap:x')
-  y = y + who%sign * ele%x%etap
-case ('etap:y')
-  y = y + who%sign * ele%y%etap
-case ('cbar:11')
-  call c_to_cbar (ele, cbar)
-  y = y + who%sign * cbar(1,1)
-case ('cbar:12')
-  call c_to_cbar (ele, cbar)
-  y = y + who%sign * cbar(1,2)
-case ('cbar:21')
-  call c_to_cbar (ele, cbar)
-  y = y + who%sign * cbar(2,1)
-case ('cbar:22')
-  call c_to_cbar (ele, cbar)
-  y = y + who%sign * cbar(2,2)
-case default
-  call out_io (s_fatal$, r_name, 'DO NOT KNOW ABOUT THIS DATA_TYPE: ' // curve%data_type)
-  call out_io (s_blank$, r_name, "Will not perfrom any plot smoothing")
-  err = .true.
-end select
+x1 = max (plot%x%min, u%model%ele_(0)%s)
+x2 = min (plot%x%max, u%model%ele_(u%model%n_ele_use)%s)
+
+do ii = 1, size(s_pos)
+  s_pos(ii) = x1 + (ii-1) * (x2-x1) / (size(s_pos)-1)
+
+  call twiss_and_track_at_s (lat, s_pos(ii), ele, orb, here)
+
+
+  select case (curve%data_type)
+  case ('orbit:x')
+    y(ii) = y(ii) + who%sign * here%vec(1)
+  case ('orbit:y')
+    y(ii) = y(ii) + who%sign * here%vec(3)
+  case ('orbit:z')
+    y(ii) = y(ii) + who%sign * here%vec(5)
+  case ('orbit:x_p')
+    y(ii) = y(ii) + who%sign * here%vec(2)
+  case ('orbit:y_p')
+    y(ii) = y(ii) + who%sign * here%vec(4)
+  case ('orbit:z_p')
+    y(ii) = y(ii) + who%sign * here%vec(6)
+  case ('phase:x')
+    y(ii) = y(ii) + who%sign * ele%x%phi
+  case ('phase:y')
+    y(ii) = y(ii) + who%sign * ele%y%phi
+  case ('beta:x')
+    y(ii) = y(ii) + who%sign * ele%x%beta
+  case ('beta:y')
+    y(ii) = y(ii) + who%sign * ele%y%beta
+  case ('alpha:x')
+    y(ii) = y(ii) + who%sign * ele%x%alpha
+  case ('alpha:y')
+    y(ii) = y(ii) + who%sign * ele%y%alpha
+  case ('eta:x')
+    y(ii) = y(ii) + who%sign * ele%x%eta
+  case ('eta:y')
+    y(ii) = y(ii) + who%sign * ele%y%eta
+  case ('etap:x')
+    y(ii) = y(ii) + who%sign * ele%x%etap
+  case ('etap:y')
+    y(ii) = y(ii) + who%sign * ele%y%etap
+  case ('cbar:11')
+    call c_to_cbar (ele, cbar)
+    y(ii) = y(ii) + who%sign * cbar(1,1)
+  case ('cbar:12')
+    call c_to_cbar (ele, cbar)
+    y(ii) = y(ii) + who%sign * cbar(1,2)
+  case ('cbar:21')
+    call c_to_cbar (ele, cbar)
+    y(ii) = y(ii) + who%sign * cbar(2,1)
+  case ('cbar:22')
+    call c_to_cbar (ele, cbar)
+    y(ii) = y(ii) + who%sign * cbar(2,2)
+  case default
+    call out_io (s_fatal$, r_name, 'DO NOT KNOW ABOUT THIS DATA_TYPE: ' // curve%data_type)
+    call out_io (s_blank$, r_name, "Will not perfrom any plot smoothing")
+    err = .true.
+  end select
+
+enddo
 
 end subroutine
 
