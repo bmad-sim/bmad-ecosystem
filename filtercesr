@@ -75,6 +75,7 @@ while (<FILE0>){
        rm_home_packages_modules();
        rm_home_modules();
        rm_home_packages();
+       take_care_of_some_variables();
        if ($#prereqs >= 0){ 
            convertP(@targets);
            print FILE1 ": ";
@@ -180,6 +181,8 @@ sub rm_home_modules {
         
 #this subroutine removes absolute path /home..../packages
 #and changes it to $(PBASE)
+#also it changes $(PBASE)/include/ to
+# $(PBASE).include]
 sub rm_home_packages {
     local($varP,$smlist);
     foreach $varP (@prereqs){
@@ -189,7 +192,26 @@ sub rm_home_packages {
     }
     $smlist = join " ",@prereqs;
     @prereqs =  split " " ,$smlist;
-}        
+}
+#this subroutine does the following:
+#1. It changes $(CESR_INC)/            to [--.include]
+#2.    -||-    $(CESR_MOD)/            to $(MOD_OUT_DIR)
+#3.    -||-    $(CESR_PKG)/modules/    to $(PKG_MOD)
+#4.    -||-    $(CESR_PKG)/cfortran/include/   $(PBASE).cfortran.include]
+sub take_care_of_some_variables {
+    local($varP,$smlist);
+    foreach $varP (@prereqs){
+        $varP =~ s/\$\(CESR_INC\)\//\[--\.include\]/g;
+        $varP =~ s/\$\(CESR_MOD\)\//\$\(MOD_OUT_DIR\)/g;
+        $varP =~ s/\$\(CESR_PKG\)\/modules\//\$\(PKG_MOD\)/g;
+        $varP =~ s/\$\(CESR_PKG\)\/cfortran\/include\//\$\(PBASE\)\.cfortran\.include\]/g;
+    }
+    $smlist = join " ",@prereqs;
+    @prereqs =  split " " ,$smlist;
+}
+
+
+        
 #this subroutine generate hash-array %listfilek with info about the exact directory
 #location of the all  source files in the cesr release library
 # example: $listfilek{file.f90} gives vms-format directory where file.f90 lives.
