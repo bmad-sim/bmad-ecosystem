@@ -3,6 +3,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.9  2002/07/23 17:16:31  dcs
+!*** empty log message ***
+!
 !Revision 1.8  2002/07/16 20:44:19  dcs
 !*** empty log message ***
 !
@@ -445,6 +448,16 @@ module bmad_interface
       type (ring_struct) ring
       integer ix_ele
       character*(*) ele_name
+    end subroutine
+  end interface
+
+  interface
+    subroutine elements_locator (key, ring, indx)
+      use bmad_struct
+      implicit none
+      integer key
+      type (ring_struct) ring
+      integer, allocatable :: indx(:)
     end subroutine
   end interface
 

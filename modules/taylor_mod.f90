@@ -14,6 +14,21 @@ contains
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
+!+
+! Subroutine equal_real_8_taylor (y8, bmad_taylor)
+!
+! Subroutine to overload "=" in expressions
+!       y8 = bmad_taylor
+!
+! Modules needed:
+!   use accelerator
+!
+! Input:
+!   bmad_taylor(:) -- Taylor_struct: Input taylor series array.
+!
+! Output:
+!   y8(:) -- real_8: PTC Taylor series array.
+!-
 
 subroutine equal_real_8_taylor (y8, bmad_taylor)
 
@@ -31,6 +46,21 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
+!+
+! Subroutine equal_taylor_real_8 (bmad_taylor, y8)
+!
+! Subroutine to overload "=" in expressions
+!       bmad_taylor = y8
+!
+! Modules needed:
+!   use accelerator
+!
+! Input:
+!   y8(:) -- real_8: PTC Taylor series array.
+!
+! Output:
+!   bmad_taylor(:) -- Taylor_struct: Input taylor series array.
+!-
 
 subroutine equal_taylor_real_8 (bmad_taylor, y8)
 
