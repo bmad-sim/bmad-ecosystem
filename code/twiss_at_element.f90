@@ -16,8 +16,6 @@
 !   end     -- Ele_struct: [Optional] Twiss and s at end of element.
 !   average -- Ele_struct: [Optional] Average Twiss and s of element.
 !
-! Note: This Subroutine uses INDEXX from Numerical Recipes (F90 edition)
-!
 ! Warning: This routine just takes the average to be the average of both ends.
 ! this does not do a good job of calculating the average for some elements.
 !-
@@ -34,74 +32,78 @@ subroutine twiss_at_element (ring, ix_ele, start, end, average)
 
   type (ring_struct), target :: ring
   type (ele_struct), optional :: start, end, average
-  type (ele_struct), pointer :: s_ele, e_ele, ele
 
-  integer ix_ele, ix1, ix2, n, ix_(100), indx(100)
-  integer i, j, ix1_2, ix2_2, i_2, j_2
+  integer ix_ele, ix1, ix2
+  integer i, n_slave
+  integer, allocatable :: slave_list(:)
 
-  real(rp) rr, rr_2, coef_tot, coef_tot_2
+  real(rp) rr, l_tot, l_now
 
-! start and end
+! Element 0 is easy.
 
   if (ix_ele == 0) then
-    print *, 'ERROR IN TWISS_AT_ELEMENT: IX_ELE = 0'
-    call err_exit
+    if (present(start))   start   = ring%ele_(0)
+    if (present(end))     end     = ring%ele_(0)
+    if (present(average)) average = ring%ele_(0)
+    return
   endif        
 
-  ix1 = ring%ele_(ix_ele)%ix1_slave
-  ix2 = ring%ele_(ix_ele)%ix2_slave
-
-  if (ix_ele <= ring%n_ele_use) then  ! in regular part of the ring.
-    if (present(start)) start = ring%ele_(ix_ele - 1)
-    if (present(end)) end = ring%ele_(ix_ele)
-  elseif (ring%ele_(ix_ele)%control_type == super_lord$) then
-    if (present(start)) start = ring%ele_(ring%control_(ix1)%ix_slave - 1)
-    if (present(end)) end = ring%ele_(ring%control_(ix2)%ix_slave)
-  else  ! overlay_lord$ or group_lord$
-    if (present(start) .or. present(end)) then
-      n = ring%ele_(ix_ele)%n_slave
-      ix_(1:n) = ring%control_(ix1:ix2)%ix_slave
-      ix_(2:n) = ix_(2:n) + ring%n_ele_use * &
-                             nint(float(ix_(1) - ix_(2:n)) / ring%n_ele_use)
-      call indexx (ix_(1:n), indx(1:n))
-      if (present(start)) start = ring%ele_(ix_(indx(1)) - 1)
-      if (present(end)) end = ring%ele_(ix_(indx(n)))
-    endif
-  endif
-
-! average
-
-  if (.not. present(average)) return
-
-  call zero_ave (average)
+! Regular elements are also easy.
 
   if (ix_ele <= ring%n_ele_use) then
-    call twiss_ave (average, ring%ele_(ix_ele - 1), &
+    if (present(start)) start = ring%ele_(ix_ele - 1)
+    if (present(end))   end = ring%ele_(ix_ele)
+    if (present(average)) then
+      call twiss_ave (average, ring%ele_(ix_ele - 1), &
                                              ring%ele_(ix_ele), 0.5_rp)
-    average%value = ring%ele_(ix_ele)%value
-
-  else
-
-    coef_tot = sum (ring%control_(ix1:ix2)%coef)
-
-    do i = ix1, ix2
-      j = ring%control_(i)%ix_slave
-      average%value(l$) = average%value(l$) + ring%ele_(j)%value(l$)
-      rr = ring%control_(i)%coef / (2 * coef_tot)
-      if (ring%ele_(j)%n_slave == 0) then
-        call twiss_ave (average, ring%ele_(j - 1), ring%ele_(j), rr)
-      else
-        ix1_2 = ring%ele_(j)%ix1_slave
-        ix2_2 = ring%ele_(j)%ix2_slave
-        coef_tot_2 = sum (ring%control_(ix1_2:ix2_2)%coef)
-        do i_2 = ix1_2, ix2_2
-          j_2 = ring%control_(i_2)%ix_slave
-          rr_2 = rr * ring%control_(i_2)%coef / (2 * coef_tot_2)
-          call twiss_ave (average, ring%ele_(j_2 - 1), ring%ele_(j_2), rr_2)
-        enddo
-      endif
-    enddo
+      average%value = ring%ele_(ix_ele)%value
+    endif
+    return
   endif
+
+! calculation for the lords...
+
+  call get_element_slave_list (ring, ix_ele, slave_list, n_slave)
+
+  if (ring%ele_(ix_ele)%control_type == super_lord$) then
+    ix1 = ring%ele_(ix_ele)%ix1_slave
+    ix2 = ring%ele_(ix_ele)%ix2_slave
+    if (present(start)) start = ring%ele_(ring%control_(ix1)%ix_slave - 1)
+    if (present(end)) end = ring%ele_(ring%control_(ix2)%ix_slave)
+
+  else  ! overlay_lord$ or group_lord$
+    ix1 = minval (slave_list(1:n_slave))
+    ix2 = maxval (slave_list(1:n_slave))
+
+    if (ix2-ix1 < ring%n_ele_use/2) then
+      if (present(start)) start = ring%ele_(ix1-1)
+      if (present(end))   end   = ring%ele_(ix2)
+    else
+      if (present(start)) start = ring%ele_(ix2-1)
+      if (present(end))   end   = ring%ele_(ix1)
+    endif
+
+  endif
+
+! Average calc for a lord.
+
+  if (.not. present(average)) return
+  call zero_ave (average)
+
+  l_tot = 0
+  do i = 1, n_slave
+    l_tot = l_tot + ring%ele_(slave_list(i))%value(l$)
+  enddo
+  average%value(l$) = l_tot 
+
+  do i = 1, n_slave
+    if (l_tot == 0) then
+      rr = 1.0 / n_slave
+    else
+      rr = ring%ele_(i)%value(l$) / l_tot
+    endif
+    call twiss_ave (average, ring%ele_(i - 1), ring%ele_(i), rr)
+  enddo
 
 !--------------------------------------------------------------------------
 contains
