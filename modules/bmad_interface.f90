@@ -633,16 +633,15 @@ interface
 end interface
 
 interface
-  subroutine check_attrib_free (ele, ix_attrib, ring, &
-                                                err_flag, err_print_flag)
+  function attribute_free (ele, ix_attrib, ring, err_print_flag) result (free)
     use bmad_struct, only: ring_struct, ele_struct
     implicit none
     type (ring_struct) :: ring
     type (ele_struct) :: ele
     integer ix_attrib
-    logical err_flag
+    logical free
     logical, optional :: err_print_flag
-  end subroutine
+  end function
 end interface
 
 interface
