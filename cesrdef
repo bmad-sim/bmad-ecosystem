@@ -37,7 +37,7 @@ if ( $?CERN_LEVEL == 0 ) setenv CERN_LEVEL  pro
 #	Root names
 #
 if ( $?CONST    == 0 ) setenv CONST     /home/cesrulib/constants
-if ( $?CESR_    == 0 ) setenv CESR_     ${CESR_BASE}/cesr_libs
+if ( $?CESR_    == 0 ) setenv CESR_     ${CESRLIB_BASE}/cesr_libs
 if ( $?CERN     == 0 ) setenv CERN      /nfs/cern
 
 #
@@ -65,6 +65,9 @@ if ( $found == 0 ) setenv PATH ${PATH}:${CESRLIB_BIN}
 # $Id$
 #
 # $Log$
+# Revision 1.6  2003/09/08 18:06:44  cesrulib
+# Bug fix - variable name typo.
+#
 # Revision 1.5  2003/09/08 15:14:47  cesrulib
 # Updates for automatic platform dependence and synchronized release/packages
 # areas.
