@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2001/10/05 18:23:57  rwh24
+!Bug Fixes
+!
 !Revision 1.3  2001/10/02 18:49:11  rwh24
 !More compatibility updates; also added many explicit variable declarations.
 !
@@ -75,9 +78,9 @@ subroutine bmad_parser (in_file, ring)
   character*(*) in_file
   character*16 word_2, name, a_name
   character*16 name_(n_ele_maxx)
-  character delim*1, word_1*40, call_file*60
-  character digested_file*70
-  character*60 path, basename
+  character delim*1, word_1*40, call_file*200
+  character digested_file*200
+  character*200 path, basename
 
   real angle
 
@@ -97,7 +100,6 @@ subroutine bmad_parser (in_file, ring)
 !  endif
 
   ix = SplitFileName(in_file, path, basename)
-  print*, in_file, ix
   digested_file = in_file(:ix) // 'digested_' // in_file(ix+1:)
 
   call read_digested_bmad_file (digested_file, ring, digested_version)
@@ -975,7 +977,7 @@ subroutine file_stack (how, file_name, finished)
   integer lunget, i_line_(10), f_unit_(10), i_level
 
   character*(*) how, file_name
-  character*70 stack_file_name_(10)
+  character*200 stack_file_name_(10)
 
   logical finished
 

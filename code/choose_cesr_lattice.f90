@@ -29,6 +29,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2001/10/05 18:23:57  rwh24
+!Bug Fixes
+!
 !Revision 1.3  2001/10/02 18:49:11  rwh24
 !More compatibility updates; also added many explicit variable declarations.
 !
@@ -105,6 +108,9 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
 
     if (ix == 0 .or. (ix == 1 .and. line == '*')) then
       default = .true.
+      do i_lat = 1, num_lats
+        if (lat_list(i_lat) == current_lat) exit
+      enddo
     else
       default = .false.
       read (line, *, iostat = ios) i_lat

@@ -1,5 +1,5 @@
 !+
-! Subroutine get_lattice_list (lat_list, num_lats, directory)
+! Subroutine get_lattice_list_vms (lat_list, num_lats, directory)
 !
 ! Subroutine to get the names of the lattices of the form:
 !     directory // BMAD_*.*
@@ -14,6 +14,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/05 18:23:57  rwh24
+!Bug Fixes
+!
 !Revision 1.2  2001/10/02 18:49:12  rwh24
 !More compatibility updates; also added many explicit variable declarations.
 !
@@ -23,7 +26,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine get_lattice_list (lat_list, num_lats, directory)
+subroutine get_lattice_list_vms (lat_list, num_lats, directory)
 
   character*(*) directory
   character*40 lat_list(*)
@@ -72,6 +75,11 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
   call err_exit
 #endif
   end
+
+
+
+
+
 
 
 

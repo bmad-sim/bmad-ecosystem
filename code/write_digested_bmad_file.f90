@@ -19,6 +19,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/05 18:23:57  rwh24
+!Bug Fixes
+!
 !Revision 1.2  2001/09/27 18:32:01  rwh24
 !UNIX compatibility updates
 !
@@ -40,7 +43,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   integer d_unit, lunget, n_files, i, j
 
   character*(*) digested_name, file_names(*)
-  character*72 fname
+  character*200 fname
 
 ! write input file names to the digested file
 
