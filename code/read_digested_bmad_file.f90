@@ -55,7 +55,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
   d_unit = lunget()
   bmad_status%ok = .true.
-  ring%n_ele_ring = 0
+  ring%n_ele_use = 0
 
   open (unit = d_unit, file = digested_name, status = 'old',  &
                      form = 'unformatted', action = 'READ', err = 9000)
@@ -134,8 +134,8 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   if (v_now .or. v70) then
     read (d_unit, err = 9100)  &   
           ring%name, ring%lattice, ring%input_file_name, ring%title, &
-          ring%x, ring%y, ring%z, ring%param, ring%version, ring%n_ele_ring, &
-          ring%n_ele_use, ring%n_ele_max, &
+          ring%x, ring%y, ring%z, ring%param, ring%version, ring%n_ele_use, &
+          ring%n_ele_ring, ring%n_ele_max, &
           ring%n_control_max, ring%n_ic_max, ring%input_taylor_order
   else
     print *, 'ERROR IN READ_DIGESTED_BMAD_FILE: INTERNAL ERROR: RING.'

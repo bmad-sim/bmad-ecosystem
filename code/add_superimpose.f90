@@ -121,7 +121,7 @@ subroutine add_superimpose (ring, super_ele, ix_super)
   do 
 
     ix_slave = ix_slave + 1
-    if (ix_slave == ring%n_ele_ring + 1) ix_slave = 1
+    if (ix_slave == ring%n_ele_use + 1) ix_slave = 1
     slave_ele = ring%ele_(ix_slave)
     if (slave_ele%value(l$) == 0) goto 8000     ! skip rest of loop
 

@@ -15,10 +15,10 @@ contains
 ! This may be used for backward tracking through the ring. 
 !
 ! The correspondence between elements in the two rings is as follows:
-!     ring_rev%ele_(ring%n_ele_ring+1-i) = ring_in%ele_(i)  
-!                                                for 0 < i <= ring%n_ele_ring
+!     ring_rev%ele_(ring%n_ele_use+1-i) = ring_in%ele_(i)  
+!                                                for 0 < i <= ring%n_ele_use
 !     ring_rev%ele_(i)                   = ring_in%ele_(i)   
-!                                                for ring%n_ele_ring < i 
+!                                                for ring%n_ele_use < i 
 !
 ! All longitudial quantities (for example, the value of ks for a solenoid) 
 ! are flipped in sign for the reversed ring. 
@@ -57,7 +57,7 @@ subroutine ring_reverse (ring_in, ring_rev)
 
   ring_rev = ring_in
 
-  nr = ring_rev%n_ele_ring
+  nr = ring_rev%n_ele_use
   ring_rev%ele_(1:nr) = ring_rev%ele_(nr:1:-1)
 
 ! flip longitudinal stuff, maps

@@ -32,7 +32,7 @@ subroutine s_calc (ring)
 
   ss = ring%ele_(0)%s
 
-  do n = 1, ring%n_ele_ring
+  do n = 1, ring%n_ele_use
     ss = ring%ele_(n-1)%s + ring%ele_(n)%value(l$)
     ring%ele_(n)%s = ss
   enddo
@@ -41,7 +41,7 @@ subroutine s_calc (ring)
 
 ! now get fill in the positions of the super_lords
 
-  do n = ring%n_ele_ring+1, ring%n_ele_max
+  do n = ring%n_ele_use+1, ring%n_ele_max
     if (ring%ele_(n)%control_type == super_lord$) then
       ix2 = ring%control_(ring%ele_(n)%ix2_slave)%ix_slave
       ring%ele_(n)%s = ring%ele_(ix2)%s

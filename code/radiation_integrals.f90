@@ -171,7 +171,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
       endif
 
       j = 0
-      do i = 1, ring%n_ele_ring
+      do i = 1, ring%n_ele_use
         key = ring%ele_(i)%key
         if (key == quadrupole$ .or. key == sol_quad$ .or. key == sbend$ .or. &
               (key == wiggler$ .and. ring%ele_(i)%sub_key == map_type$) .or. &
@@ -186,7 +186,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
       allocate (cache%ele(j))
 
       j = 0
-      do i = 1, ring%n_ele_ring
+      do i = 1, ring%n_ele_use
         if (ring%ele_(i)%ixx == -1) cycle
         ric%ele => ring%ele_(i)
         key = ric%ele%key
@@ -422,7 +422,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 ! Linac radiation integrals:
 
   mc2 = mass_of (ring%param%particle)
-  gamma_f = ring%ele_(ring%n_ele_ring)%value(beam_energy$) / mc2
+  gamma_f = ring%ele_(ring%n_ele_use)%value(beam_energy$) / mc2
 
   mode%lin%sig_E1 = 0
   mode%lin%i2_E4  = 0
@@ -430,7 +430,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
   mode%lin%i5a_E6 = 0
   mode%lin%i5b_E6 = 0
 
-  do i = 1, ring%n_ele_ring
+  do i = 1, ring%n_ele_use
     gamma = ring%ele_(i)%value(beam_energy$) / mc2
     gamma4 = gamma**4
     gamma6 = gamma4 * gamma**2

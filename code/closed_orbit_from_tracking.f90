@@ -84,7 +84,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 
   call mat_make_unit (mat6_unit)
 
-  n_ele = ring%n_ele_ring
+  n_ele = ring%n_ele_use
   nd = i_dim
 
 ! Turn off RF voltage if i_dim == 4 (for constant delta_E)
@@ -95,7 +95,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
     call set_on_off (rfcavity$, ring, off$)
   elseif (nd == 6) then
     rf_on = .false.
-    do i = 1, ring%n_ele_ring
+    do i = 1, ring%n_ele_use
       if (ring%ele_(i)%key == rfcavity$ .and. &
                         ring%ele_(i)%value(voltage$) /= 0) rf_on = .true.
     enddo

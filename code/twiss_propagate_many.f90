@@ -68,16 +68,16 @@ subroutine twiss_propagate_many (ring, ix_start, ix_end, direction)
       return
     endif
 
-    do i = ix_start, ring%n_ele_ring - 1
+    do i = ix_start, ring%n_ele_use - 1
       call twiss_propagate1 (ring%ele_(i), ring%ele_(i+1))
       if (.not. bmad_status%ok) return
     enddo
 
     if (ix_start /= 0) then
-      ring%ele_(0)%x       = ring%ele_(ring%n_ele_ring)%x
-      ring%ele_(0)%y       = ring%ele_(ring%n_ele_ring)%y
-      ring%ele_(0)%c_mat   = ring%ele_(ring%n_ele_ring)%c_mat
-      ring%ele_(0)%gamma_c = ring%ele_(ring%n_ele_ring)%gamma_c
+      ring%ele_(0)%x       = ring%ele_(ring%n_ele_use)%x
+      ring%ele_(0)%y       = ring%ele_(ring%n_ele_use)%y
+      ring%ele_(0)%c_mat   = ring%ele_(ring%n_ele_use)%c_mat
+      ring%ele_(0)%gamma_c = ring%ele_(ring%n_ele_use)%gamma_c
     endif
 
     do i = 0, ix_end-1

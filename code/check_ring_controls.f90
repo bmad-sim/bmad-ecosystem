@@ -58,9 +58,9 @@ subroutine check_ring_controls (ring, exit_on_error)
 
 ! check that element is in correct part of the ele_(:) array
 
-    if (ele%key == null_ele$ .and. i_t > ring%n_ele_ring) cycle      
+    if (ele%key == null_ele$ .and. i_t > ring%n_ele_use) cycle      
 
-    if (i_t > ring%n_ele_ring) then
+    if (i_t > ring%n_ele_use) then
       if (t_type == free$ .or. t_type == super_slave$ .or. &
           t_type == overlay_slave$) then
         print *, 'ERROR IN CHECK_RING_CONTROLS: ELEMENT: ', ele%name
@@ -124,7 +124,7 @@ subroutine check_ring_controls (ring, exit_on_error)
             if (ring%ele_(ii)%value(l$) /= 0) goto 9000   ! error
           enddo
         elseif (ix2 < ix1) then
-          do ii = ix1+1, ring%n_ele_ring
+          do ii = ix1+1, ring%n_ele_use
             if (ring%ele_(ii)%value(l$) /= 0) goto 9000   ! error
           enddo
           do ii = 1, ix2-1            

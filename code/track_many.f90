@@ -77,9 +77,9 @@ subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
       call track_fwd (ix_start+1, ix_end)
       return
     else
-      call track_fwd (ix_start+1, ring%n_ele_ring)
+      call track_fwd (ix_start+1, ring%n_ele_use)
       if (ring%param%lost) return
-      orbit_(0) = orbit_(ring%n_ele_ring) 
+      orbit_(0) = orbit_(ring%n_ele_use) 
       call track_fwd (1, ix_end)
     endif
 
@@ -90,8 +90,8 @@ subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
     else
       call track_back (ix_start, 1)
       if (ring%param%lost) return
-      orbit_(ring%n_ele_ring) = orbit_(0)
-      call track_back (ring%n_ele_ring, ix_end+1)
+      orbit_(ring%n_ele_use) = orbit_(0)
+      call track_back (ring%n_ele_use, ix_end+1)
     endif
 
   else

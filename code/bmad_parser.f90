@@ -59,7 +59,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
   integer ix_word, i_use, i, j, k, n, ix, ixr, ixs, i_ring, it
   integer i_lev, i_key, ic, ix_lord
-  integer iseq, n_ele_ring, temp_maxx
+  integer iseq, n_ele_use, temp_maxx
   integer ix_super, digested_version, key, ct
   integer ix1, ix2, iv, n_arg, iseq_tot
   integer ivar, ixx, j_lord, n_slave
@@ -645,7 +645,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   stack(1)%reflect = +1              ! and move forward
   stack(1)%rep_count = seq%ele(1)%rep_count
 
-  n_ele_ring = 0
+  n_ele_use = 0
            
   allocate (name_(in_ring%n_ele_maxx))
   allocate (ix_ring(in_ring%n_ele_maxx))
@@ -693,13 +693,13 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
     select case (s_ele%type)
     case (element$) 
-      if (n_ele_ring+1 > size(ix_ring)) then
-        n = 1.5*n_ele_ring
+      if (n_ele_use+1 > size(ix_ring)) then
+        n = 1.5*n_ele_use
         call reallocate_integer (ix_ring, n)
         call reallocate_string (name_, len(name_(1)), n)
       endif
-      call pushit (ix_ring, n_ele_ring, s_ele%ix_array)
-      name_(n_ele_ring) = s_ele%name
+      call pushit (ix_ring, n_ele_use, s_ele%ix_array)
+      name_(n_ele_use) = s_ele%name
 
       if (s_ele%ix_array < 1) call warning('NOT A DEFINED ELEMENT: ' // &
                           s_ele%name, 'IN THE LINE/LIST: ' // seq%name, seq)
@@ -709,13 +709,13 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
     case (list$) 
       seq2 => sequence_(s_ele%ix_array)
       j = seq2%ix
-      if (n_ele_ring+1 > size(ix_ring)) then
-        n = 1.5*n_ele_ring
+      if (n_ele_use+1 > size(ix_ring)) then
+        n = 1.5*n_ele_use
         call reallocate_integer (ix_ring, n)
         call reallocate_string (name_, len(name_(1)), n)
       endif
-      call pushit (ix_ring, n_ele_ring, seq2%ele(j)%ix_array)
-      name_(n_ele_ring) = seq2%ele(j)%name
+      call pushit (ix_ring, n_ele_use, seq2%ele(j)%ix_array)
+      name_(n_ele_use) = seq2%ele(j)%name
       seq2%ix = seq2%ix + 1
       if (seq2%ix > size(seq2%ele(:))) seq2%ix = 1
 
@@ -787,20 +787,19 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! superimpose, overlays, and groups are handled later.
 ! first load beam parameters.
 
-  call allocate_ring_ele_(ring, n_ele_ring+100)
+  call allocate_ring_ele_(ring, n_ele_use+100)
 
   ring%version            = bmad_inc_version$
   ring%input_file_name    = full_name             ! save input file
   ring%param%particle     = nint(beam_ele%value(particle$))
   ring%param%n_part       = beam_ele%value(n_part$)
   ring%param%charge       = 0
-  ring%n_ele_ring         = n_ele_ring
-  ring%n_ele_use          = n_ele_ring
-  ring%n_ele_max          = n_ele_ring
+  ring%n_ele_use          = n_ele_use
+  ring%n_ele_ring         = n_ele_use
+  ring%n_ele_max          = n_ele_use
   ring%param%aperture_limit_on  = .true.
   ring%n_ic_max           = 0                     
   ring%n_control_max      = 0    
-  ring%n_ele_use          = ring%n_ele_ring
 
   ring%ele_(0) = in_ring%ele_(0)    ! Beginning element
 
@@ -834,7 +833,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
 ! transfer the ele information from the in_ring to ring
 
-  do i = 1, n_ele_ring
+  do i = 1, n_ele_use
 
 ! Use the name as given in sequence lists since elements can have different 
 ! names from the defining elements. Eg: B01\H2 gets its definition from B01.
@@ -961,7 +960,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
 ! make matrices for entire ring
 
-  do i = ring%n_ele_ring+1, ring%n_ele_max
+  do i = ring%n_ele_use+1, ring%n_ele_max
     call control_bookkeeper (ring, i)      ! need this for ring_geometry
   enddo
 
@@ -969,6 +968,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   call ring_geometry (ring)                ! ring layout
   call set_ptc (ring%beam_energy, ring%param%particle)
   ring%input_taylor_order = bmad_com%taylor_order
+  call compute_element_energy (ring)
 
 ! Reuse the old taylor series if they exist
 ! and the old taylor series has the same attributes.
@@ -978,7 +978,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
     do i = 1, ring%n_ele_max
 
       ele => ring%ele_(i)
-      call attribute_bookkeeper (ele, ring%param) ! so value arrays are equal
+      call attribute_bookkeeper (ele, ring%param) ! for equivalent_eles test
 
       do j = 1, size(old_ele)
         if (any(old_ele(j)%taylor(:)%ref /= 0)) cycle
@@ -1050,8 +1050,8 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
     if (index(bp_com%debug_line, 'SLAVE') /= 0) then
       print *
       print *, '----------------------------------------'
-      print *, 'Number of Elements in Regular Ring:', ring%n_ele_ring
-      do i = 1, ring%n_ele_ring
+      print *, 'Number of Elements in Regular Ring:', ring%n_ele_use
+      do i = 1, ring%n_ele_use
         print *, '-------------'
         print *, 'Ele #', i
         call type_ele (ring%ele_(i), .false., 0, .false., 0, .true., ring)
@@ -1061,8 +1061,8 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
     if (index(bp_com%debug_line, 'LORD') /= 0) then
       print *
       print *, '----------------------------------------'
-      print *, 'LORD elements: ', ring%n_ele_max - ring%n_ele_ring
-      do i = ring%n_ele_ring+1, ring%n_ele_max
+      print *, 'LORD elements: ', ring%n_ele_max - ring%n_ele_use
+      do i = ring%n_ele_use+1, ring%n_ele_max
         print *, '-------------'
         print *, 'Ele #', i
         call type_ele (ring%ele_(i), .false., 0, .false., 0, .true., ring)
@@ -1073,9 +1073,9 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       print *
       print *, '----------------------------------------'
       print *, 'Ring Used: ', ring%name
-      print *, 'Number of ring elements:', ring%n_ele_ring
+      print *, 'Number of ring elements:', ring%n_ele_use
       print *, 'List:                               Key      Length         S'
-      do i = 1, ring%n_ele_ring
+      do i = 1, ring%n_ele_use
         print '(3x, i3, 2a, 3x, a, 2f10.2)', i, ') ', ring%ele_(i)%name,  &
           key_name(ring%ele_(i)%key), ring%ele_(i)%value(l$), ring%ele_(i)%s
       enddo

@@ -68,7 +68,7 @@ subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb)
   enddo
 
   call mat_make_unit (mat6_unit)
-  n_ele = ring%n_ele_ring
+  n_ele = ring%n_ele_use
 
   call set_on_off (rfcavity$, ring, save_state$)
   call set_on_off (rfcavity$, ring, off$)

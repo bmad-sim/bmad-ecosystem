@@ -47,7 +47,7 @@ subroutine quad_beta_ave (ring, ix_ele, beta_x_ave, beta_y_ave)
 ! if a controller element just use the value at the end of the first
 ! controlled element
 
-  if (ix_ele > ring%n_ele_ring) then
+  if (ix_ele > ring%n_ele_use) then
     ix = ring%control_(ele%ix1_slave)%ix_slave
     beta_x_ave = ring%ele_(ix)%x%beta
     beta_y_ave = ring%ele_(ix)%y%beta

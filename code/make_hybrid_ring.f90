@@ -83,7 +83,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
     do_taylor = .false.
   endif
 
-  if (all(r_in%ele_(1:r_in%n_ele_ring)%mat6(6,5) == 0) .and. &
+  if (all(r_in%ele_(1:r_in%n_ele_use)%mat6(6,5) == 0) .and. &
                                                   .not. do_taylor) then
     z_decoupled = .true.
   else
@@ -94,9 +94,9 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
   r_out%ele_(0) = r_in%ele_(0)     !
   init_hybrid_needed = .true.         ! we need to init out ring element
 
-  n_ele = r_in%n_ele_ring
+  n_ele = r_in%n_ele_use
   if (n_ele == 0) then
-    print *, 'ERROR IN MAKE_HYBRID_RING: RING_IN%N_ELE_RING = 0!'
+    print *, 'ERROR IN MAKE_HYBRID_RING: RING_IN%N_ELE_USE = 0!'
     call err_exit
   endif
 
@@ -240,12 +240,12 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
                           call mat6_dispersion (ele_out%mat6, e_vec)
 
   call transfer_ring_parameters (r_in, r_out)
+  r_out%n_ele_use  = i_out
   r_out%n_ele_ring = i_out
-  r_out%n_ele_use = i_out
 
 ! put control elements in
 
-  do j_in = r_in%n_ele_ring+1, r_in%n_ele_max
+  do j_in = r_in%n_ele_use+1, r_in%n_ele_max
     ele_in => r_in%ele_(j_in)    
     if (keep_ele(j_in)) then
       i_out = i_out + 1
@@ -329,7 +329,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 
 ! end
 
-  if (r_out%n_ele_ring == 0) then
+  if (r_out%n_ele_use == 0) then
     print *, 'ERROR IN MAKE_HYBRID_RING: OUTPUT RING HAS 0 ELEMENTS!'
     call err_exit
   endif

@@ -88,12 +88,12 @@ to mix and match. An example of how to do multi-turn tracking is
   coords(0)%vec = (/ 0.01, 0.2, 0.3, 0.4, 0.0, 0.0 /) ! initialization
   do i = 1, n_turns
     call track_all (ring, coord)
-    coords(0) = coords(ring%n_ele_ring)
+    coords(0) = coords(ring%n_ele_use)
   end do
 \end{example}
 \rn{track_all} takes \vn{coord(0)} and tracks through the lattice from
 the 1\St\ element through the $n$\Th\ where $n =$
-\vn{ring%n_ele_ring}.  Each \vn{coord(i)} is associated with the
+\vn{ring%n_ele_use}.  Each \vn{coord(i)} is associated with the
 corresponding \vn{ring%ele_(i)} element and is the particle position
 at the exit end of the i\Th\ element. \rn{reallocate_coords} simply
 does an allocation. Its advantage over just allocating directly is

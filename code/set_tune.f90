@@ -64,8 +64,8 @@ subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
     if (.not. ok) return
     call track_all (ring, orb_)
 
-    phi_x = ring%ele_(ring%n_ele_ring)%x%phi
-    phi_y = ring%ele_(ring%n_ele_ring)%y%phi
+    phi_x = ring%ele_(ring%n_ele_use)%x%phi
+    phi_y = ring%ele_(ring%n_ele_use)%y%phi
     dphi_x = phi_x_set - phi_x 
     dphi_y = phi_y_set - phi_y 
     if (abs(dphi_x) < 0.001 .and. abs(dphi_y) < 0.001) return

@@ -20,8 +20,8 @@ type ring_struct
   character*80 title           ! From TITLE statement
   type (param_struct) param    ! parameters
   integer version              ! Version number for digested files
-  integer n_ele_ring           ! number of physical ring elements
-  integer n_ele_use            ! number of elements used
+  integer n_ele_use            ! number of physical ring elements
+  integer n_ele_ring           ! Identical to n_ele_use.
   integer n_ele_max            ! Index of last element used
   integer n_ele_maxx           ! Index of last element allocated
   integer n_control_array      ! last index used in CONTROL_ array
@@ -31,6 +31,7 @@ type ring_struct
   type (ele_struct), pointer :: ele_(:)    ! Array of ring elements
   type (ele_struct)  ele_init              ! For use by any program
   type (control_struct)  control_(n_control_maxx)  ! control list
+  real(rp), pointer :: beam_energy ! = %ele_(0)%value(beam_energy$)
 end type
 \end{verbatim}
 \caption{Definition of the \tn{ring\_struct}.}
@@ -54,8 +55,8 @@ The bounds of these two parts is given in Table~\ref{tab:part_extent}.
 \hline
               & \multicolumn{2}{c|} {\em index n}         \\ \hline
 {\em section} & {\em min}          & {\em max}            \\ \hline
-physical      & 0                  & \vn{%n_ele_ring}     \\ \hline
-control       & \vn{%n_ele_ring}+1 & \vn{%n_ele_max}      \\ \hline
+physical      & 0                  & \vn{%n_ele_use}     \\ \hline
+control       & \vn{%n_ele_use}+1 & \vn{%n_ele_max}      \\ \hline
 physical size & 0                  & \vn{%n_ele_maxx}     \\ \hline
 \end{tabular} 
 \caption{Bounds of the regular and control parts 
@@ -63,7 +64,8 @@ of the array \vn{\%ele(:)}.}
 \end{center}
 \label{tab:part_extent}
 \end{table}
-Note \vn{%n_ele_use} is identical to \vn{%n_ele_ring}
+Note \vn{%n_ele_ring} is an historical artifact and is identical to
+\vn{%n_ele_use}
 
 The \vn{%ele_init} component within the \vn{ring_struct} is not used
 by \bmad\ and is available for general program use.
@@ -78,7 +80,6 @@ Figure~\ref{f:param_struct}
 \centering
 \begin{verbatim}
   type param_struct
-    real(rp) beam_energy        ! beam energy in eV
     real(rp) n_part             ! Particles/bunch (for BeamBeam elements).
     real(rp) charge             ! Macroparticle charge (used by LCavities).
     real(rp) total_length       ! total_length of ring

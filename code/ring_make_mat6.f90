@@ -53,7 +53,7 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
   endif
 
   if (present(coord_)) then
-    if (ubound(coord_, 1) < ring%n_ele_ring) then
+    if (ubound(coord_, 1) < ring%n_ele_use) then
       print *, 'ERROR IN RING_MAKE_MAT6: COORD_(:) ARGUMENT SIZE IS TOO SMALL!'
       call err_exit
     endif
@@ -67,12 +67,12 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
 
   if (ix_ele < 0) then         
 
-    do i = ring%n_ele_ring+1, ring%n_ele_max
+    do i = ring%n_ele_use+1, ring%n_ele_max
       if (ring%ele_(i)%control_type /= group_lord$)  &
                                  call control_bookkeeper (ring, i)
     enddo
 
-    do i = ring%n_ele_ring+1, ring%n_ele_max
+    do i = ring%n_ele_use+1, ring%n_ele_max
       if (ring%ele_(i)%control_type == group_lord$)  &
                                  call control_bookkeeper (ring, i)
     enddo
@@ -122,7 +122,7 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
 
 ! for a regular element
 
-  if (ix_ele <= ring%n_ele_ring) then
+  if (ix_ele <= ring%n_ele_use) then
      if (present(coord_)) then
         call make_mat6(ring%ele_(ix_ele), ring%param, &
                                   coord_(ix_ele-1), coord_(ix_ele), .true.)

@@ -119,7 +119,7 @@ subroutine create_group (ring, ix_ele, contrl)
       if (ring%ele_(ixe)%control_type == super_lord$) then
         ix_min = ring%control_(ring%ele_(ixe)%ix1_slave)%ix_slave
         ix_max = ring%control_(ring%ele_(ixe)%ix2_slave)%ix_slave
-      elseif (ixe < ring%n_ele_ring) then
+      elseif (ixe < ring%n_ele_use) then
         ix_min = ixe
         ix_max = ixe
       else
@@ -162,7 +162,7 @@ subroutine create_group (ring, ix_ele, contrl)
 
       if (ixa == end_edge$ .or. ixa == accordion_edge$ .or. &
                                         ixa == symmetric_edge$) then
-        if (ix2 > ring%n_ele_ring) then
+        if (ix2 > ring%n_ele_use) then
           print *, 'ERROR IN CREATE_GROUP: END_EDGE OF CONTROLED'
           print *, '      ELEMENT IS AT END OF RING AND CANNOT BE'
           print *, '      VARIED FOR GROUP: ', ring%ele_(ix_ele)%name

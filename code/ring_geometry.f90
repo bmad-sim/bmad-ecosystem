@@ -62,7 +62,7 @@ subroutine ring_geometry (ring)
   knl  = 0   ! initialize
   tilt = 0  
 
-  do i = 1, ring%n_ele_ring
+  do i = 1, ring%n_ele_use
 
     ele => ring%ele_(i)
     leng = ele%value(l$)

@@ -31,7 +31,7 @@ subroutine set_design_linear (ring)
 
 !
 
-  do i = 1, ring%n_ele_ring
+  do i = 1, ring%n_ele_use
     key = ring%ele_(i)%key
     if (key == quadrupole$ .or. key == sbend$ .or. key == wiggler$) then
       ring%ele_(i)%is_on = .true.

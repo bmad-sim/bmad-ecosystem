@@ -132,7 +132,7 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
 
     ele => ring%ele_(i)
 
-    if (i == ring%n_ele_ring+1) then
+    if (i == ring%n_ele_use+1) then
       write (iu, *)
       write (iu, *) '!-------------------------------------------------------'
       write (iu, *)
@@ -349,7 +349,7 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
 
   line = 'main_line: line = ('
 
-  do i = 1, ring%n_ele_ring
+  do i = 1, ring%n_ele_use
     ele => ring%ele_(i)
     if (ele%control_type == super_slave$) then
       if (ele%ixx == 0) cycle

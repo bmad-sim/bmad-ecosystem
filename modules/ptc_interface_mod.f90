@@ -226,7 +226,7 @@ subroutine ring_to_layout (ring, ptc_layout)
 
 ! transfer elements.
 
-  do i = 1, ring%n_ele_ring
+  do i = 1, ring%n_ele_use
     allocate (fib)
     call ele_to_fibre (ring%ele_(i), fib, ring%param)
     call append (ptc_layout, fib)

@@ -56,7 +56,7 @@ subroutine twiss_propagate_all (ring)
 
 ! make sure final mode is same as initial mode
 
-  if (n_use == ring%n_ele_ring) then
+  if (n_use == ring%n_ele_use) then
     if (ring%ele_(0)%mode_flip .neqv. ring%ele_(n_use)%mode_flip) then
       call do_mode_flip (ring%ele_(n_use), ring%ele_(n_use))
       if (bmad_status%type_out .and. .not. bmad_status%ok) then

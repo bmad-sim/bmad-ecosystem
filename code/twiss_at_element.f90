@@ -51,7 +51,7 @@ subroutine twiss_at_element (ring, ix_ele, start, end, average)
   ix1 = ring%ele_(ix_ele)%ix1_slave
   ix2 = ring%ele_(ix_ele)%ix2_slave
 
-  if (ix_ele <= ring%n_ele_ring) then  ! in regular part of the ring.
+  if (ix_ele <= ring%n_ele_use) then  ! in regular part of the ring.
     if (present(start)) start = ring%ele_(ix_ele - 1)
     if (present(end)) end = ring%ele_(ix_ele)
   elseif (ring%ele_(ix_ele)%control_type == super_lord$) then
@@ -61,8 +61,8 @@ subroutine twiss_at_element (ring, ix_ele, start, end, average)
     if (present(start) .or. present(end)) then
       n = ring%ele_(ix_ele)%n_slave
       ix_(1:n) = ring%control_(ix1:ix2)%ix_slave
-      ix_(2:n) = ix_(2:n) + ring%n_ele_ring * &
-                             nint(float(ix_(1) - ix_(2:n)) / ring%n_ele_ring)
+      ix_(2:n) = ix_(2:n) + ring%n_ele_use * &
+                             nint(float(ix_(1) - ix_(2:n)) / ring%n_ele_use)
       call indexx (ix_(1:n), indx(1:n))
       if (present(start)) start = ring%ele_(ix_(indx(1)) - 1)
       if (present(end)) end = ring%ele_(ix_(indx(n)))
@@ -75,7 +75,7 @@ subroutine twiss_at_element (ring, ix_ele, start, end, average)
 
   call zero_ave (average)
 
-  if (ix_ele <= ring%n_ele_ring) then
+  if (ix_ele <= ring%n_ele_use) then
     call twiss_ave (average, ring%ele_(ix_ele - 1), &
                                              ring%ele_(ix_ele), 0.5_rp)
     average%value = ring%ele_(ix_ele)%value

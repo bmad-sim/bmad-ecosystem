@@ -2129,8 +2129,8 @@ subroutine compute_super_lord_s (ele, ring, pring)
 
   ic = ele%ixx
 
-  if (ring%n_ele_max < ring%n_ele_ring) then
-    call warning ('N_ELE_MAX LESS THAN N_ELE_RING!')
+  if (ring%n_ele_max < ring%n_ele_use) then
+    call warning ('N_ELE_MAX LESS THAN n_ele_use!')
     call err_exit
   endif
 
@@ -2229,7 +2229,7 @@ subroutine add_all_superimpose (ring, ele_in, pele)
         ele2%name = ele%name(:ix)            
         call add_superimpose (ring, ele2, i_sup)
 
-        do i = i_ele, ring%n_ele_ring
+        do i = i_ele, ring%n_ele_use
           ring%ele_(i)%s = ring%ele_(i-1)%s + ring%ele_(i)%value(l$)
         enddo
 
@@ -2907,7 +2907,7 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
 
       do 
 
-        if (k > ring%n_ele_ring) then ! must be a super_lord.
+        if (k > ring%n_ele_use) then ! must be a super_lord.
           ix = ring%ele_(k)%ix1_slave
           k = ring%control_(ix)%ix_slave
         endif
@@ -2932,7 +2932,7 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
             if (ring%ele_(k)%name == name2) exit
           endif
           k = k + 1
-          if (j == 20 .or. k == ring%n_ele_ring+1) then
+          if (j == 20 .or. k == ring%n_ele_use+1) then
             call warning ('CANNOT FIND END ELEMENT FOR I_BEAM: ' // &
                                           ele%name, 'CANNOT FIND: ' // name2)
             cycle main_loop

@@ -203,9 +203,9 @@ this half back and superimpose it on the elements at the end of the lattice
 list near $s = s_{lat}$ where $s_{lat}$ is the length of the lattice.
 As explained in Chapter~\ref{c:ring_struct} the
 lattice list that is used for tracking extends from \vn{ring%ele_(0)} through
-\vn{ring%ele_(n)} where \vn{n = ring%n_ele_ring}. The \vn{CLEO_SOL} element 
+\vn{ring%ele_(n)} where \vn{n = ring%n_ele_use}. The \vn{CLEO_SOL} element 
 is put in the section of \vn{ring%ele_(n)} with \vn{n >
-ring%n_ele_ring} since it is not an element to be tracked through. The
+ring%n_ele_use} since it is not an element to be tracked through. The
 \vn{Q00W} quadrupole also gets put in this part of the list.  The
 bookkeeping information that the \vn{cleo_sol\\3} element is derived
 from the \vn{cleo_sol} is put in the \vn{cleo_sol} element as shown in

@@ -50,8 +50,8 @@ subroutine find_element_ends (ring, ix_ele, ix_start, ix_end)
   else  ! overlay_lord$ or group_lord$
     n = ring%ele_(ix_ele)%n_slave
     ix_(1:n) = ring%control_(ix1:ix2)%ix_slave
-    ix_(2:n) = ix_(2:n) + ring%n_ele_ring * &
-                             nint(float(ix_(1) - ix_(2:n)) / ring%n_ele_ring)
+    ix_(2:n) = ix_(2:n) + ring%n_ele_use * &
+                             nint(float(ix_(1) - ix_(2:n)) / ring%n_ele_use)
     call indexx (ix_(1:n), indx(1:n))
     ix_start = ix_(indx(1)) - 1
     ix_end = ix_(indx(n))

@@ -115,7 +115,7 @@ subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
     do it = 1, track_input%n_turn
       call track_all (ring, orbit_)
       if (ring%param%lost) exit
-      orbit_(0) = orbit_(ring%n_ele_ring)
+      orbit_(0) = orbit_(ring%n_ele_use)
     enddo
 
 ! change search interval end

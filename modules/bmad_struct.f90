@@ -200,8 +200,8 @@ module bmad_struct
     type (mode_info_struct) x, y, z  ! Tunes, etc.
     type (param_struct) param        ! Parameters
     integer version                  ! Version number
-    integer n_ele_ring               ! Number of regular ring elements
-    integer n_ele_use                ! number of elements used
+    integer n_ele_use                ! Number of regular ring elements
+    integer n_ele_ring               ! OBSOLETE: Identical to n_ele_use.
     integer n_ele_max                ! Index of last element used
     integer n_ele_maxx               ! Index of last element allocated
     integer n_control_max            ! Last index used in CONTROL_ array

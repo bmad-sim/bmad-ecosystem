@@ -38,7 +38,7 @@ subroutine one_turn_matrix (ring, rf_on, t1)
 
   call mat_make_unit (t1)
 
-  do i=1, ring%n_ele_ring
+  do i=1, ring%n_ele_use
     if (ring%ele_(i)%key == rfcavity$ .and. .not. rf_on) then
       rf_mat = ring%ele_(i)%mat6
       rf_mat(6,5) = 0  ! turn rf off

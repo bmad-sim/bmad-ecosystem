@@ -208,8 +208,8 @@ subroutine transfer_ring_parameters (ring_in, ring_out)
   ring_out%z =                    ring_in%z
   ring_out%param =                ring_in%param
   ring_out%version =              ring_in%version
-  ring_out%n_ele_ring =           ring_in%n_ele_ring
   ring_out%n_ele_use =            ring_in%n_ele_use
+  ring_out%n_ele_ring =           ring_in%n_ele_use
   ring_out%n_ele_max =            ring_in%n_ele_max
   ring_out%n_control_max =        ring_in%n_control_max
   ring_out%n_ic_max =             ring_in%n_ic_max
@@ -892,9 +892,9 @@ subroutine deallocate_ring_pointers (ring)
 
   endif
 
-  ring%n_ele_maxx = -1
-  ring%n_ele_ring = -1
+  ring%n_ele_use  = -1
   ring%n_ele_max  = -1
+  ring%n_ele_maxx = -1
 
 end subroutine
 

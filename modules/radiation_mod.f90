@@ -286,7 +286,7 @@ subroutine setup_radiation_tracking (ring, closed_orb, &
 ! start0 is in local coords                    
 ! start1 is lab coords with vec(6) = dE/E = 0 
 
-  do i = 1, ring%n_ele_ring
+  do i = 1, ring%n_ele_use
 
     if (ring%ele_(i)%key /= wiggler$) cycle
     if (ring%ele_(i)%sub_key /= map_type$) cycle

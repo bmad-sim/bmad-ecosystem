@@ -56,8 +56,10 @@ subroutine compress_ring (ring, ok)
       ix_(i) = i2
       ring%ele_(i2) = ring%ele_(i)
     endif
-    if (i == ring%n_ele_ring) ring%n_ele_ring = i2
-    if (i == ring%n_ele_use)  ring%n_ele_use = i2
+    if (i == ring%n_ele_use) then
+       ring%n_ele_use = i2
+       ring%n_ele_ring = i2
+    endif
   enddo
 
   ring%n_ele_max = i2
@@ -112,7 +114,7 @@ subroutine compress_ring (ring, ok)
       ele%ic1_lord = 0
       ele%ic2_lord = -1
       ele%n_lord = 0
-      if (i <= ring%n_ele_ring) ele%control_type = free$
+      if (i <= ring%n_ele_use) ele%control_type = free$
     else
       ele%ic1_lord = n_ic - n_lord + 1
       ele%ic2_lord = n_ic

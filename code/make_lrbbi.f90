@@ -54,7 +54,7 @@ subroutine MAKE_LRBBI(master_ring_oppos, ring, ix_LRBBI, master_ix_LRBBI_oppos)
   real(rp) :: beta_x, beta_y, eta_x, eta_y
   real(rp) :: sigma_z
   real(rp) :: e_spread, emit_x, emit_y
-  real(rp) :: sigma_x(master_ring_oppos%n_ele_ring), sigma_y(master_ring_oppos%n_ele_ring)
+  real(rp) :: sigma_x(master_ring_oppos%n_ele_use), sigma_y(master_ring_oppos%n_ele_use)
 
   integer :: i,j
   integer, dimension(:,:) :: ix_LRBBI
@@ -93,7 +93,7 @@ subroutine MAKE_LRBBI(master_ring_oppos, ring, ix_LRBBI, master_ix_LRBBI_oppos)
 
   emit_x = mode_oppos%a%emittance
   emit_y = emit_x * 0.01
-  do j = 1, master_ring_oppos%n_ele_ring
+  do j = 1, master_ring_oppos%n_ele_use
     beta_x = master_ring_oppos%ele_(j)%x%beta
     beta_y = master_ring_oppos%ele_(j)%y%beta
     eta_x = master_ring_oppos%ele_(j)%x%eta

@@ -85,7 +85,7 @@ subroutine init_LRBBI(ring, oppos_ring, LRBBI_ele, ix_LRBBI, ix_oppos)
 
 ! Calculate sigmas for the beambeam element.
 
-  do i=1, ring%n_ele_ring
+  do i=1, ring%n_ele_use
     beta_x = ring%ele_(i)%x%beta
     beta_y = ring%ele_(i)%y%beta
     eta_x = ring%ele_(i)%x%eta

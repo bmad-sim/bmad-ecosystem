@@ -19,7 +19,7 @@ contains
 !
 ! Subroutine to transfer attibute information from lord to slave elements.
 ! If you want to do the bookkeeping for the entire ring you only need to
-! call control_bookkeeper for the lord elements from ring%n_ele_ring+1 
+! call control_bookkeeper for the lord elements from ring%n_ele_use+1 
 ! through ring%n_ele_max.
 !
 ! Modules needed:

@@ -58,9 +58,9 @@ subroutine insert_element (ring, insert_ele, insert_index)
            ring%control_(index)%ix_lord = ring%control_(index)%ix_lord + 1
   enddo
 
-  if (insert_index <= ring%n_ele_ring+1) then
-    ring%n_ele_ring = ring%n_ele_ring + 1
-    ring%n_ele_use = ring%n_ele_use + 1
+  if (insert_index <= ring%n_ele_use + 1) then
+    ring%n_ele_use  = ring%n_ele_use + 1
+    ring%n_ele_ring = ring%n_ele_use
   else
     print *, 'WARNING FROM INSERT_ELEMENT: YOU ARE INSERTING AN ELEMENT'
     print *, '        *NOT* INTO THE REGULAR PART OF THE RING STRUCTURE!'

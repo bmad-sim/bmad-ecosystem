@@ -47,7 +47,7 @@ subroutine twiss_and_track_at_s (ring, s, ele, orb_, here)
 
 ! error_check
 
-  i = ring%n_ele_ring
+  i = ring%n_ele_use
   if (s_use < ring%ele_(0)%s .or. s > ring%ele_(i)%s) then
     print *, 'ERROR IN TWISS_AND_TRACK_AT_S: S POSITION OUT OF BOUNDS.', s
     call err_exit
@@ -55,7 +55,7 @@ subroutine twiss_and_track_at_s (ring, s, ele, orb_, here)
 
 ! Propagate to position
 
-  do i = 1, ring%n_ele_ring
+  do i = 1, ring%n_ele_use
     if (abs(ring%ele_(i)%s - s_use) < 1e-5) then
       ele = ring%ele_(i)
       here = orb_(i)

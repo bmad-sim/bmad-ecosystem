@@ -45,7 +45,7 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 
 ! Check for s_split out of bounds.
 
-  nr = ring%n_ele_ring
+  nr = ring%n_ele_use
   if (s_split < ring%ele_(0)%s .or. s_split > ring%ele_(nr)%s) then
     print *, 'ERROR IN SPLIT_RING: POSITION OF SPLIT NOT WITHIN RING: ', s_split
     call err_exit
@@ -53,7 +53,7 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 
 ! Find where to split.
 
-  do ix_split = 0, ring%n_ele_ring   
+  do ix_split = 0, ring%n_ele_use   
     if (abs(ring%ele_(ix_split)%s - s_split) < 1.0e-5) then
       split_done = .false.
       return
@@ -226,7 +226,7 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 
 8000  continue
 
-  do i = ring%n_ele_ring+1, ring%n_ele_max
+  do i = ring%n_ele_use+1, ring%n_ele_max
     ct = ring%ele_(i)%control_type
     if (ct == group_lord$ .or. ct == i_beam_lord$) then
       do j = ring%ele_(i)%ix1_slave, ring%ele_(i)%ix2_slave

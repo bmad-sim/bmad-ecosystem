@@ -79,7 +79,7 @@ contains
 !   ix1    -- Integer, optional: Index of starting element (this element 
 !               is NOT tracked through). Default is 0.
 !   ix2    -- Integer, optional: Index of ending element.
-!               Default is ring%n_ele_ring.
+!               Default is ring%n_ele_use.
 !
 ! Output:
 !   beam -- Beam_struct: Beam at end of element ix2.
@@ -99,7 +99,7 @@ subroutine track_beam (ring, beam, ix1, ix2)
 
   i1 = 0
   if (present(ix1)) i1 = ix1
-  i2 = ring%n_ele_ring
+  i2 = ring%n_ele_use
   if (present(ix2)) i2 = ix2
 
 !

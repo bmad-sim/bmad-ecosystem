@@ -67,7 +67,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
 
   write (d_unit) &
           ring%name, ring%lattice, ring%input_file_name, ring%title, &
-          ring%x, ring%y, ring%z, ring%param, ring%version, ring%n_ele_ring, &
+          ring%x, ring%y, ring%z, ring%param, ring%version, ring%n_ele_use, &
           ring%n_ele_use, ring%n_ele_max, &
           ring%n_control_max, ring%n_ic_max, ring%input_taylor_order
   

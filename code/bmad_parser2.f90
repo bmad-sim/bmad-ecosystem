@@ -432,8 +432,8 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
     print *
     print *, '----------------------------------------'
-    print *, 'Number of Elements in the Regular Ring:', ring%n_ele_ring
-    do i = 1, ring%n_ele_ring
+    print *, 'Number of Elements in the Regular Ring:', ring%n_ele_use
+    do i = 1, ring%n_ele_use
       print *, '-------------'
       print *, 'Ele #', i
       call type_ele (ring%ele_(i), .false., 0, .false., 0, .true., ring)
@@ -441,8 +441,8 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
     print *
     print *, '----------------------------------------'
-    print *, 'Control elements: ', ring%n_ele_max - ring%n_ele_ring
-    do i = ring%n_ele_ring+1, ring%n_ele_max
+    print *, 'Control elements: ', ring%n_ele_max - ring%n_ele_use
+    do i = ring%n_ele_use+1, ring%n_ele_max
       print *, '-------------'
       print *, 'Ele #', i
       call type_ele (ring%ele_(i), .false., 0, .false., 0, .true., ring)
@@ -452,9 +452,9 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
     print *
     print *, '----------------------------------------'
     print *, 'Ring Used: ', ring%name
-    print *, 'Number of ring elements:', ring%n_ele_ring
+    print *, 'Number of ring elements:', ring%n_ele_use
     print *, 'List:                               Key      Length         S'
-    do i = 1, ring%n_ele_ring
+    do i = 1, ring%n_ele_use
       print '(3x, i3, 2a, 3x, a, 2f10.2)', i, ') ', ring%ele_(i)%name,  &
         key_name(ring%ele_(i)%key), ring%ele_(i)%value(l$), ring%ele_(i)%s
     enddo

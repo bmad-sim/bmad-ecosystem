@@ -40,7 +40,7 @@ subroutine compute_element_energy (ring)
 
   if (ring%param%lattice_type == linac_lattice$) then
 
-    do i = 1, ring%n_ele_ring
+    do i = 1, ring%n_ele_use
 
       if (ring%ele_(i)%key == lcavity$ .and. ring%ele_(i)%is_on) then
         ring%ele_(i)%value(energy_start$) = beam_energy
