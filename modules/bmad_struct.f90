@@ -42,7 +42,7 @@ module bmad_struct
 ! Wiggler structures
 
   integer, parameter :: hyper_y$ = 1, hyper_xy$ = 2, hyper_x$ = 3
-  character*8, parameter :: wig_term_type_name(0:3) = (/ &
+  character(8), parameter :: wig_term_type_name(0:3) = (/ &
                   'Garbage ', 'Hyper_Y ', 'Hyper_XY', 'Hyper_X ' /)
 
   type wig_term_struct
@@ -492,7 +492,7 @@ module bmad_struct
 ! Units
 
   integer, parameter :: radians$ = 1, degrees$ = 2, cycles$ = 3, kHz$ = 4
-  character*8 ::frequency_units_name(4) = (/ &
+  character(8) ::frequency_units_name(4) = (/ &
             'Radians ', 'Degrees ', 'Cycles  ', 'kHz     ' /)
 
 ! Electric and magnetic fields.

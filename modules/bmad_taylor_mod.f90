@@ -174,7 +174,7 @@ subroutine type_taylors (bmad_taylor)
 
   type (taylor_struct), target :: bmad_taylor(:)
   integer i, n_lines
-  character*80, pointer :: lines(:)
+  character(80), pointer :: lines(:)
 
 !
 
@@ -205,7 +205,7 @@ end subroutine
 !   bmad_taylor(6) -- Taylor_struct: Array of taylors.
 !
 ! Output:
-!   lines(:)     -- Character*80, allocatable: Character array to hold the 
+!   lines(:)     -- Character(80), allocatable: Character array to hold the 
 !                     output. The array size of lines(:) will be set by
 !                     this subroutine.
 !   n_lines      -- Number of lines in lines(:).
@@ -222,8 +222,8 @@ subroutine type2_taylors (bmad_taylor, lines, n_lines)
   integer, intent(out) :: n_lines
   integer i, j, k, nl, ix
 
-  character*80, pointer :: lines(:)
-  character*40, fmt1, fmt2, fmt
+  character(80), pointer :: lines(:)
+  character(40), fmt1, fmt2, fmt
 
 ! If not allocated then not much to do
 

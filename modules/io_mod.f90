@@ -1040,7 +1040,7 @@ subroutine value_to_line (line, value, str, fmt, typ)
 
   implicit none
 
-  character*(*) line, str, fmt
+  character(*) line, str, fmt
   character fmt2*40, typ*1
 
   real(rp) value

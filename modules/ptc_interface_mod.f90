@@ -357,7 +357,7 @@ end subroutine
 !   this_kind -- Integer: 
 !
 ! Output:
-!   kind_name -- Character*20: 
+!   kind_name -- Character(20): 
 !-
 
 function kind_name (this_kind)
@@ -368,7 +368,7 @@ function kind_name (this_kind)
   implicit none
 
   integer this_kind
-  character*20 kind_name
+  character(20) kind_name
 
 !
 

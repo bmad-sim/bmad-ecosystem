@@ -54,7 +54,7 @@ interface
   function attribute_name(ele, index)
     use bmad_struct, only: ele_struct
     implicit none
-    character*16 attribute_name
+    character(16) attribute_name
     type (ele_struct) ele
     integer index
   end function
@@ -302,7 +302,7 @@ interface
     implicit none
     integer num_lats
     character(*) directory
-    character*40 lat_list(:)
+    character(40) lat_list(:)
   end subroutine
 end interface
 
@@ -1052,7 +1052,7 @@ interface
     integer, intent(in) :: twiss_type
     logical, intent(in) :: type_control, type_taylor
     logical, intent(in) :: type_zero_attrib
-    character*80, pointer :: lines(:)
+    character(80), pointer :: lines(:)
   end subroutine
 end interface
 
