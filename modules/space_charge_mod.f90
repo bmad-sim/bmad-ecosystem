@@ -221,7 +221,7 @@ subroutine track1_space_charge (start, ele, param, end)
   kx = kx_rot * v%cos_phi - ky_rot * v%sin_phi
   ky = kx_rot * v%sin_phi - ky_rot * v%cos_phi
 
-  kick_const = v%kick_const * exp(-(end%vec(5)/v%sig_z)**2) 
+  kick_const = v%kick_const * exp(-0.5 * (end%vec(5)/v%sig_z)**2) 
 
   end%vec(2) = end%vec(2) + kick_const * kx
   end%vec(4) = end%vec(4) + kick_const * ky
