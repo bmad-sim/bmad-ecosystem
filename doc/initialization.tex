@@ -126,20 +126,23 @@ Universes can be coupled together. This can be useful, for example, to attach a
 damping ring a pre-acclerator to a linac. The syntax is as follows:
 \begin{example}
   &tao_coupled_uni_init
-    coupled(i)%from_universe = <universe_number> ! coupled from this universe
-    coupled(i)%at_element    = <ele_name>        ! coupled at end of element 
-    coupled(i)%at_s          = <number>          ! coupled at poisiton s 
-    coupled(i)%match_to_design = <logical> ! match optics to design parameters
+    coupled(i)%from_universe   = <universe_number> ! coupled from this universe
+    coupled(i)%at_element      = <ele_name>         ! coupled at end of element 
+    coupled(i)%at_ele_index    = <ele_index>        ! coupled at end of ele with this index
+    coupled(i)%at_s            = <number>           ! coupled at poisiton s 
+    coupled(i)%match_to_design = <logical>         ! match optics to design parameters
   /
 \end{example}
-where \vn{i} refers to the universe to be coupled. Either \vn{at_element} or
-\vn{at_s} must be specified but not both. These refer to the location in the
+where \vn{i} refers to the universe to be coupled. Any of \vn{at_element},
+\vn{at_ele_index} or
+\vn{at_s} must be specified but not more than one. These refer to the location in the
 lattice where the beam/particle is extracted into this universe. 
 The injection is always at the begining of
 the lattice \vn{i}. Setting \vn{from_universe} = \vn{i}
 will not work to make a circular lattice. This must be set in the lattice file.
 If there are more than one element named \vn{<ele_name>} then the last element
-named as such will be used.If \vn{ele_name = "end"} then the end of the injection lattice will be used as
+named as such will be used. If \vn{ele_name = "end"} then the end of the injection 
+lattice will be used as
 the coupling point. If \vn{universe_number = 0} then universe \vn{i} is not
 injetced into from any other universe
 
@@ -191,6 +194,7 @@ The syntax is as follows:
                                           ! default = F
     sr_wake_file(i)         = <file_name> ! File name for short range wake data
     lr_wake_file(i)         = <file_name> ! File name for long range wake data
+    calc_emittance          = <logical>   ! calculate emittance for rings
     macro_init(i)%x%beta    = <number> 
     macro_init(i)%x%alpha   = <number>
     macro_init(i)%x%emit    = <number> 
@@ -214,6 +218,13 @@ where \vn{i} refers to the universe index. See \bmad documentation on what the
 \vn{macro_init} parameters refer to. Wakefields can only be turned on or off for all
 universes and not for each universe individually. \vn{wake_file} is the file containing the
 wakefield data. If a wakefield file is not needed then do not specify a file.
+
+For circular lattices the twiss parameters will be found form the closed orbit
+so whatever is specified here will not be used.
+The emittance will be calculated using the \bmad routine
+radiation integrals unless \vn{calc_emittance = F} in which case the emittance
+specified in the initialization will be used. The state of \vn{calc_emittance}
+has no effect on Linear lattices where the initial emittance must be specified.
 
 The default is single particle tracking. To turn on macroparticle tracking the
 \vn{global%track_type} perameter must be set to 'macro.' This can be placed in

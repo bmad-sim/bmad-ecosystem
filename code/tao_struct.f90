@@ -325,7 +325,7 @@ type tao_global_struct
                                      !  0 -> no command file.
   integer :: ix_key_bank = 0         ! For single mode.
   integer :: phase_units = radians$  ! Phase units on output.
-  integer :: max_output_lines = 200  ! maximun number of lines sent to output_io
+  integer :: max_output_lines = 400  ! maximun number of lines sent to output_io
   character(16) :: track_type = 'single' ! or macro 
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer = 'de'  ! optimizer to use.
@@ -370,8 +370,9 @@ end type
 type tao_beam_struct
   type (beam_struct) beam             ! macroparticle beam
   type (macro_init_struct) macro_init ! macro distribution at beginning of lat
-  ! this counts through all bunches and slices starting with bunch(1)%slice(1)
-  integer, pointer :: ix_lost(:)  ! if .ne. -1 then this macro lost at this ele
+  logical calc_emittance     ! for a ring calculate emittance
+  integer, pointer :: ix_lost(:,:,:)  ! if .ne. -1 then this macro lost at this ele
+                                      ! (bunch,slice,macro)
 end type
 
 !-----------------------------------------------------------------------

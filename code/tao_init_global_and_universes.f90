@@ -54,6 +54,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   logical err
   logical counting, searching
   logical sr_wakes_on, lr_wakes_on
+  logical calc_emittance(n_universe_maxx)
   logical, allocatable :: found_one(:)
 
 
@@ -62,7 +63,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   namelist / tao_coupled_uni_init / coupled
   
   namelist / tao_beam_init / sr_wakes_on, lr_wakes_on, sr_wake_file, &
-                            lr_wake_file, macro_init
+                            lr_wake_file, calc_emittance, macro_init
          
   namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe
   
@@ -125,6 +126,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
     s%u(i)%coupling%from_uni_ix_ele = -1
     coupled(i)%from_universe = -1
     coupled(i)%at_element = ' '
+    coupled(i)%at_ele_index = -1
     coupled(i)%at_s = -1
     coupled(i)%match_to_design = .false.
   enddo
@@ -144,13 +146,31 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 ! Init macroparticles
 
   call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
-  ! if not specified, set ave energy to initial beam energy
+  ! defaults
   do i = 1, size(s%u)
+    macro_init(i)%x%beta  = s%u(i)%design%ele_(0)%x%beta
+    macro_init(i)%x%alpha = s%u(i)%design%ele_(0)%x%alpha
+    macro_init(i)%x%norm_emit  = 0.0
+    macro_init(i)%y%beta  = s%u(i)%design%ele_(0)%y%beta
+    macro_init(i)%y%alpha = s%u(i)%design%ele_(0)%y%alpha  
+    macro_init(i)%y%norm_emit  = 0.0
+    macro_init(i)%center(:) = 0.0
+    macro_init(i)%ds_bunch = 1
+    macro_init(i)%sig_z   = 10e-6
+    macro_init(i)%sig_e   = 10e-3
+    macro_init(i)%sig_e_cut = 3
+    macro_init(i)%sig_z_cut = 3
+    macro_init(i)%n_bunch = 1
+    macro_init(i)%n_slice = 1
+    macro_init(i)%n_macro = 1
+    macro_init(i)%n_part  = 1e10
+    ! if not specified, set ave energy to initial beam energy
     macro_init(i)%E_0 = s%u(i)%design%ele_(0)%value(beam_energy$)
+    ! by default, no wake data file needed
+    sr_wake_file(i) = 'none'
+    lr_wake_file(i) = 'none'
+    calc_emittance(i) = .false.
   enddo
-  ! by default, no wake data file needed
-  sr_wake_file(:) = 'none'
-  lr_wake_file(:) = 'none'
   read (iu, nml = tao_beam_init, iostat = ios)
   close (iu)
   if (ios .eq. 0) then
@@ -160,7 +180,8 @@ subroutine tao_init_global_and_universes (data_and_var_file)
     if (sr_wakes_on) bmad_com%sr_wakes_on = .true.
     if (lr_wakes_on) bmad_com%lr_wakes_on = .true.
     do i = 1, size(s%u)
-      call init_macro(s%u(i), macro_init(i), sr_wake_file(i), lr_wake_file(i))
+      call init_macro(s%u(i), macro_init(i), sr_wake_file(i), lr_wake_file(i), &
+                            calc_emittance(i))
     enddo
   else
     call out_io (s_blank$, r_name, "No macroparticle initialization")
@@ -1035,12 +1056,13 @@ integer j, ix
   ! find extraction element
   call string_trim (coupled%at_element, ele_name, ix)
   if (ix .ne. 0) then
-    if (coupled%at_s .ne. -1) then
+    if (coupled%at_s .ne. -1 .or. coupled%at_ele_index .ne. -1) then
       call out_io (s_error$, r_name, &
-              "INIT Coupling: cannot specify both an element and position!")
+          "INIT Coupling: cannot specify an element, it's index or position at same time!")
       call out_io (s_blank$, r_name, &
               "Will use element name.")
-    elseif (ele_name .eq. "end") then
+    endif
+    if (ele_name .eq. "end") then
       u%coupling%from_uni_s  = from_uni%design%ele_(from_uni%design%n_ele_use)%s
       u%coupling%from_uni_ix_ele = from_uni%design%n_ele_use
     else
@@ -1060,6 +1082,15 @@ integer j, ix
         endif
       enddo
     endif
+  elseif (coupled%at_ele_index .ne. -1) then
+    if (coupled%at_s .ne. -1) then
+      call out_io (s_error$, r_name, &
+          "INIT Coupling: cannot specify an element, it's index or position at same time!")
+      call out_io (s_blank$, r_name, &
+              "Will use element index.")
+    endif
+      u%coupling%from_uni_s = from_uni%design%ele_(coupled%at_ele_index)%s
+      u%coupling%from_uni_ix_ele = coupled%at_ele_index
   else
     ! using s position
     if (s%global%track_type .eq. 'macro') then
@@ -1079,13 +1110,14 @@ end subroutine init_coupled_uni
 ! Initialize the macroparticles. Determine which element to track beam to
 !
 
-subroutine init_macro(u, macro_init, sr_wake_file, lr_wake_file)
+subroutine init_macro(u, macro_init, sr_wake_file, lr_wake_file, calc_emittance)
 
 implicit none
 
 type (tao_universe_struct) u
 type (macro_init_struct) macro_init
 character(*) sr_wake_file, lr_wake_file
+logical calc_emittance
 
 integer j
 
@@ -1096,12 +1128,24 @@ integer, pointer :: ix_lcav(:)
 
   if (u%design%param%lattice_type .eq. circular_lattice$) then
     call out_io (s_blank$, r_name, &
-                 "This is a circular lattice.")
+                 "Macroparticle tracking through a circular lattice.")
     call out_io (s_blank$, r_name, &
          "Twiss parameters and initial orbit will be found from the closed orbit.")
-    return
+    if (calc_emittance) then
+      call out_io (s_blank$, r_name, &
+                  "Emittance will found using the radiation integrals.")
+    else 
+      call out_io (s_blank$, r_name, &
+                  "Emittance will be as set in macro_init.")
+    endif
+    u%beam%calc_emittance = calc_emittance
+    call out_io (s_blank$, r_name, " ")
+  elseif (calc_emittance) then
+    call out_io (s_warn$, r_name, &
+                "Calc_emittance is only applicable to circular lattices!")
   endif
-
+  
+  
   if (sr_wake_file .ne. 'none') then
     call elements_locator (lcavity$, u%design, ix_lcav)
     do j=1,size(ix_lcav)
@@ -1128,10 +1172,9 @@ integer, pointer :: ix_lcav(:)
   call init_macro_distribution (u%beam%beam, macro_init, .true.)
 
   ! keep track of where macros are lost
-  j = macro_init%n_macro * macro_init%n_slice * macro_init%n_bunch
   if (associated (u%beam%ix_lost)) deallocate (u%beam%ix_lost)
-  allocate (u%beam%ix_lost(j))
-  u%beam%ix_lost(:) = -1
+  allocate (u%beam%ix_lost(macro_init%n_bunch, macro_init%n_slice, macro_init%n_macro))
+  u%beam%ix_lost(:,:,:) = -1
 
 end subroutine init_macro
   

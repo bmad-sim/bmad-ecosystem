@@ -414,10 +414,10 @@ case ('lattice')
   endif
 
 
-  write (lines(nl+2), '(29x, 20x, a)') &
+  write (lines(nl+2), '(29x, 22x, a)') &
                      '|              X           |             Y        '
   write (lines(nl+3), '(6x, a, 16x, a)') ' Name             key', &
-                  '   S  |  Beta   Phi   Eta  Orb   | Beta    Phi    Eta   Orb'
+                  '   S    |  Beta   Phi   Eta  Orb   | Beta    Phi    Eta   Orb'
 
   nl=nl+3
   do ix = ix1, ix2

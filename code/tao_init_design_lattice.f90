@@ -67,5 +67,13 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
     end select
   enddo
 
-end subroutine tao_init_design_lattice
+  ! turn off rfcavities in rings
+  do i = 1, size(s%u)
+    if (s%u(i)%design%param%lattice_type .eq. circular_lattice$) then
+      call out_io (s_blank$, r_name, &
+                  "RFCavities will be turned off in rings")
+      call set_on_off (rfcavity$, s%u(i)%design, off$)
+    endif
+  enddo
 
+end subroutine tao_init_design_lattice

@@ -111,6 +111,7 @@ end type
 type tao_coupled_uni_input
   integer from_universe
   character(16) at_element !coupled at end of element
+  integer at_ele_index ! coupled at end of element
   real(rp) :: at_s ! coupled at position s
   logical match_to_design
 end type
