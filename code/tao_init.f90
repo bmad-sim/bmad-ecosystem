@@ -16,19 +16,20 @@ subroutine tao_init (init_file)
   implicit none
 
   character(*) init_file
-  character(200) lattice_file, plot_file, data_and_var_file, file_name
+  character(200) lattice_file, plot_file, data_file, var_file, file_name
   character(200) single_mode_file, startup_file
   character(n_universe_maxx) :: r_name = 'tao_init'
   integer i, n_universes, iu
 
   namelist / tao_start / lattice_file, startup_file, &
-               data_and_var_file, plot_file, n_universes
+               data_file, var_file, plot_file, n_universes
 
 ! Find namelist files
 
   lattice_file = ' '      ! set default
   plot_file = ' '         ! set default
-  data_and_var_file = ' ' ! set default
+  data_file = ' '         ! set default
+  var_file = ' '          ! set default
   single_mode_file = ' '
   startup_file = 'tao.startup'
   n_universes = 1         ! set default
@@ -47,13 +48,14 @@ subroutine tao_init (init_file)
 
   if (lattice_file == ' ')      lattice_file      = init_file
   if (plot_file == ' ')         plot_file         = init_file
-  if (data_and_var_file == ' ') data_and_var_file = init_file
+  if (data_file == ' ')         data_file         = init_file
+  if (var_file == ' ')          var_file          = init_file
   if (single_mode_file == ' ')  single_mode_file  = init_file
 
 ! Init
 
   call tao_init_design_lattice (lattice_file) 
-  call tao_init_global_and_universes (data_and_var_file)
+  call tao_init_global_and_universes (init_file, data_file, var_file)
   call tao_init_single_mode (single_mode_file)
   call tao_hook_init ()
 

@@ -45,7 +45,8 @@ The initialization starts with an initialization file named \vn{tao.init}.
 \begin{example}
   \&tao_start
     lattice_file      = "<file_name>"  ! Default = this file.
-    data_and_var_file = "<file_name>"  ! Default = this file.
+    data_file         = "<file_name>"  ! Default = this file.
+    var_file          = "<file_name>"  ! Default = this file.
     plot_file         = "<file_name>"  ! Default = this file.
     single_mode_file  = "<file_name>"  ! Default = this file.
     startup_file      = "<file_name>"  ! Default = "tao.startup"
@@ -53,8 +54,34 @@ The initialization starts with an initialization file named \vn{tao.init}.
     startup_single_mode = Logical            ! Default is False.
   /
 \end{example}
-\vn{n_universes} is the number of universes to be created. The \vn{data_and_var_file}
-\vn{single_mode_file}, and \vn{plot_file} files are described in the following sections.
+\vn{n_universes} is the number of universes to be created.
+\vn{startup_single_mode} determines if \vn{tao} starts in single mode. The other
+parameters specify which files to find the other initialization namelists. The
+following sections describe each of these initialization namelists and their
+locations are listed in table \ref{t:init_files}.
+
+\begin{table}[h]
+\centering {\tt
+\begin{tabular}{|l|l|l|l|} \hline
+  {\it Namelist} & {\it File Name} & {\it Initialized here}  & {\it Section} \\ \hline
+  \vn{tao_design_lattice}   & \vn{lattice_file} & lattice files       & \ref{s:init_lat}    \\ \hline
+  \vn{tao_params}           & 'tao.init' & Global Variables    & \ref{s:globals}     \\ \hline
+  \vn{tao_coupled_uni_init} & 'tao.init' & Coupled Universes   & \ref{s:coupled_uni} \\ \hline
+  \vn{tao_beam_init}        & 'tao.init' & Particle beam       & \ref{s:beam_init}   \\ \hline
+  \vn{tao_macro_init}       & 'tao.init' & Macroparticle beam  & \ref{s:macro_init}  \\ \hline
+  \vn{tao_var}              & \vn{var_file}     & Variables           & \ref{s:init_var}    \\ \hline
+  \vn{tao_d2_data}          & \vn{data_file}    & Data                & \ref{s:init_data}   \\ \hline
+  \vn{tao_d1_data}          & \vn{data_file}    & Data                & \ref{s:init_data}   \\ \hline
+  \vn{tao_plot_page}        & \vn{plot_file}    & Plotting            & \ref{s:init_plot}   \\ \hline
+  \vn{tao_template_plot}    & \vn{plot_file}    & Plotting            & \ref{s:init_plot}   \\ \hline
+  \vn{tao_template_graph}   & \vn{plot_file}    & Plotting            & \ref{s:init_plot}   \\ \hline
+  \vn{element_shapes}       & \vn{plot_file}    & Plotting            & \ref{s:init_plot}   \\ \hline
+  \vn{key_bindings}         & \vn{single_mode_file} & Single Mode     & \ref{s:init_single}   \\ \hline
+\end{tabular}}
+\caption{Table of \vn{tao} Initialization Namelists}
+\label{t:init_files}
+\end{table}
+
 
 %-----------------------------------------------------------------
 \section{Lattice Initialization}
@@ -181,8 +208,12 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Initializing Macroparticles}
-\label{s:macros}
+\section{Initializing Particle Beams}
+\label{s:beam_init}
+
+%-----------------------------------------------------------------
+\section{Initializing Macroparticle Beams}
+\label{s:macro_init}
 
 A macroparticle beam is initialized in the \vn{tao_macro_init} namelist block.
 The syntax is as follows:

@@ -1,18 +1,20 @@
 !+
-! Subroutine tao_init_global_and_universes (data_and_var_file)
+! Subroutine tao_init_global_and_universes (init_file, data_file, var_file)
 !
 ! Subroutine to initialize the tao structures.
-! If data_and_var_file is not in the current directory then it will be searched
+! If init_file, data_file or var_file is not in the current directory then it will be searched
 ! for in the directory:
 !   TAO_INIT_DIR
 !
 ! Input:
-!   data_and_var_file -- Character(*): Tao initialization file.
+!   init_file      -- Character(*): Tao initialization file.
+!   data_file      -- Character(*): Tao data initialization file.
+!   var_file       -- Character(*): Tao variable initialization file.
 
 ! Output:
 !-
 
-subroutine tao_init_global_and_universes (data_and_var_file)
+subroutine tao_init_global_and_universes (init_file, data_file, var_file)
 
   use tao_mod
   use tao_data_mod
@@ -45,7 +47,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   integer ix_min_data, ix_max_data, ix_d1_data
   integer, parameter :: ele_name$ = 1, ele_key$ = 2
 
-  character(*) data_and_var_file
+  character(*) init_file, data_file, var_file
   character(40) :: r_name = 'tao_init_global_and_universes'
   character(200) file_name
   character(200) sr_wake_file(n_universe_maxx), lr_wake_file(n_universe_maxx)
@@ -86,7 +88,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 
   global%valid_plot_who(1:5) = &
                 (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  ' /)
-  call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
+  call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
   if (iu .eq. 0) then
     call out_io (s_abort$, r_name, "Error opening init file")
     call err_exit
@@ -124,7 +126,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 !-----------------------------------------------------------------------
 ! Init coupled universes
 
-  call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
+  call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
   ! defaults
   do i = 1, size(s%u)
     s%u(i)%coupling%coupled = .false.
@@ -155,7 +157,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 
   ! Do not initialize both beam and macro
   if (trim(s%global%track_type) .eq. 'beam') then
-    call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
+    call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
     ! defaults
     do i = 1, size(s%u)
       beam_init(i)%a_norm_emitt  = 0.0
@@ -168,6 +170,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
       beam_init(i)%sig_e   = 0.0
       beam_init(i)%sig_e_cut = 1
       beam_init(i)%sig_z_cut = 1
+      beam_init(i)%sig_trans_cut = 1
       beam_init(i)%n_bunch = 1
       beam_init(i)%n_particle  = 1
       ! by default, no wake data file needed
@@ -196,7 +199,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 ! Init macroparticles
  
   elseif(trim(s%global%track_type) .eq. 'macro') then
-    call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
+    call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
     ! defaults
     do i = 1, size(s%u)
       macro_init(i)%x%norm_emit  = 0.0
@@ -239,7 +242,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 !-----------------------------------------------------------------------
 ! Init data
 
-  call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
+  call tao_open_file ('TAO_INIT_DIR', data_file, iu, file_name)
 
   allocate (mask(size(s%u)))
 	
@@ -310,7 +313,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 !-----------------------------------------------------------------------
 ! Init vars
 
-  rewind (iu)
+  call tao_open_file ('TAO_INIT_DIR', var_file, iu, file_name)
 
   do
     v1_var%name = " "         ! set default
@@ -468,12 +471,14 @@ subroutine init_lattices ()
     allocate (s%u(i)%model_orb(0:n), s%u(i)%design_orb(0:n), s%u(i)%base_orb(0:n))
     ! Specify initial conditions
     s%u(i)%design_orb(0)%vec = 0.0
+    call init_ring (s%u(i)%model, s%u(i)%design%n_ele_max)
+    call init_ring (s%u(i)%base, s%u(i)%design%n_ele_max)
     s%u(i)%model = s%u(i)%design
     s%u(i)%base  = s%u(i)%design
   enddo
-    
-
+  
 end subroutine init_lattices
+
 
 !----------------------------------------------------------------
 !----------------------------------------------------------------
@@ -1304,7 +1309,6 @@ logical calc_emittance
   call init_macro_distribution (u%macro_beam%beam, macro_init, u%design%ele_(0), .true.)
   if (u%coupling%coupled) &
     call init_macro_distribution (u%coupling%injecting_macro_beam, macro_init, u%design%ele_(0), .true.)
-
 
   ! keep track of where macros are lost
   if (associated (u%macro_beam%ix_lost)) deallocate (u%macro_beam%ix_lost)

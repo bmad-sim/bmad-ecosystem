@@ -15,6 +15,8 @@ use beam_mod
 integer, parameter :: design$ = 1
 integer, parameter :: model$ = 2
 
+logical all_lost_already
+
 contains
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -200,6 +202,8 @@ real(rp) :: value1, value2, m_particle
   beam => u%beam%beam
   beam_init => u%beam%beam_init
 
+  all_lost_already = .false.
+
   ! Find if injecting into another lattice
   extract_at_ix_ele = -1
   inject_loop: do i_uni = uni+1, size(s%u)
@@ -327,6 +331,8 @@ real(rp) :: value1, value2, m_particle
   u => s%u(uni)
   beam => u%macro_beam%beam
   macro_init => u%macro_beam%macro_init
+
+  all_lost_already = .false.
 
   ! Find if injecting into another lattice
   extract_at_ix_ele = -1
@@ -473,7 +479,7 @@ character(20) :: r_name = "tao_find_beam_centroid"
     if (record_lost .and. beam%bunch(n_bunch)%particle(n_part)%ix_lost == i_ele) then
       n_lost = n_lost + 1
       cycle
-    elseif (beam%bunch(n_bunch)%particle(n_part)%ix_lost /= not_lost$) then
+    elseif (beam%bunch(n_bunch)%particle(n_part)%ix_lost .ne. not_lost$) then
       cycle
     endif
     tot_part = tot_part + 1
@@ -498,8 +504,9 @@ character(20) :: r_name = "tao_find_beam_centroid"
     orb%vec = coord%vec / tot_part
   else 
     ! lost all particles
-    if (record_lost) &
+    if (record_lost .and. .not. all_lost_already) &
       call out_io (s_warn$, r_name, "All particles have been lost!!!!!!!!!!!!!")
+      all_lost_already = .true.
     orb%vec = 0.0
   endif
  
@@ -569,9 +576,12 @@ character(20) :: r_name = "tao_find_macro_beam_centroid"
     orb%vec = coord%vec / tot_charge
   else 
     ! lost all macros
-    call out_io (s_warn$, r_name, &
+    if (.not. all_lost_already) then
+      call out_io (s_warn$, r_name, &
             "All macroparticles have been lost!!!!!!!!!!!!!")
-    orb%vec = 0.0
+      all_lost_already = .true.
+      orb%vec = 0.0
+    endif
   endif
  
 end subroutine tao_find_macro_beam_centroid

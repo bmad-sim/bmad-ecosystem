@@ -173,9 +173,9 @@ interface
 end interface
 
 interface
-  subroutine tao_init_global_and_universes (data_and_var_file)
+  subroutine tao_init_global_and_universes (init_file, data_file, var_file)
     implicit none
-    character(*) data_and_var_file
+    character(*) init_file, data_file, var_file
   end subroutine
 end interface
 
