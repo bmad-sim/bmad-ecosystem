@@ -75,12 +75,14 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
   allocate (li(300))
 
   pos_tot = 0
-  pos_tot(x_offset$) = x_offset_tot$
-  pos_tot(y_offset$) = y_offset_tot$
-  pos_tot(s_offset$) = s_offset_tot$
-  pos_tot(tilt$)     = tilt_tot$
-  pos_tot(x_pitch$)  = x_pitch_tot$
-  pos_tot(y_pitch$)  = y_pitch_tot$
+  if (ele%control_type /= group_lord$  .and. ele%control_type /= overlay_lord$) then
+    pos_tot(x_offset$) = x_offset_tot$
+    pos_tot(y_offset$) = y_offset_tot$
+    pos_tot(s_offset$) = s_offset_tot$
+    pos_tot(tilt$)     = tilt_tot$
+    pos_tot(x_pitch$)  = x_pitch_tot$
+    pos_tot(y_pitch$)  = y_pitch_tot$
+  endif
 
 ! Encode element name and type
 
