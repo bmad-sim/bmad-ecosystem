@@ -379,7 +379,7 @@ subroutine makeup_super_slave (ring, ix_slave)
 
   type (ring_struct), target :: ring
   type (ele_struct), pointer :: lord, slave
-  type (ele_struct) :: sol_quad
+  type (ele_struct), save :: sol_quad
 
   integer i, ix_con, j, ix, ix_slave
 
