@@ -370,15 +370,16 @@ end subroutine
 ! Function equivalent_eles (ele1, ele2) result (equiv)
 !
 ! Subroutine to see if to elements are equivalent in terms of attributes so
-! that their Taylor Maps would be the same.
-! Two elements can be equivalent even if the names are different.
+! that their Taylor Maps would be the same. 
+! If the reference orbit about which the Taylor map is made is zero then
+! two elements can be equivalent even if the names are different.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input: 
-!   ele1 -- Ele_struct: 
-!   ele2 -- Ele_struct:
+!   ele1 -- Ele_struct: Element with a Taylor map
+!   ele2 -- Ele_struct: Element that might receive the Taylor map from ele1.
 !
 ! Output:
 !   equiv -- logical: True if elements are equivalent.
@@ -401,6 +402,8 @@ function equivalent_eles (ele1, ele2) result (equiv)
 
   if (ele1%key /= ele2%key) return
   if (ele1%sub_key /= ele2%sub_key) return
+
+  if (ele1%name /= ele2%name .and. any(ele1%taylor%ref /= 0)) return
 
   vmask = .true.
   if (ele1%key == wiggler$ .and. ele1%sub_key == map_type$) &
