@@ -974,7 +974,7 @@ end subroutine
 
 subroutine concat_real_8 (y1, y2, y3)
 
-  use s_fitting, only: alloc, assignment(=), kill
+  use s_fitting, only: alloc, assignment(=), kill, damap, operator(.o.)
 
   implicit none
 
@@ -1034,7 +1034,7 @@ end subroutine
 
 subroutine taylor_to_genfield (bmad_taylor, gen_field, c0)
 
-  use s_fitting, only: alloc, kill, assignment(=)
+  use s_fitting, only: alloc, kill, assignment(=), damap
 
   implicit none
 
@@ -1172,7 +1172,7 @@ end subroutine
 
 subroutine taylor_inverse (taylor_in, taylor_inv)
 
-  use s_fitting, only: assignment(=), alloc, kill, operator(**)
+  use s_fitting, only: assignment(=), alloc, kill, operator(**), damap
 
   implicit none
 
@@ -1254,7 +1254,7 @@ end subroutine
 
 subroutine concat_taylor (taylor1, taylor2, taylor3)
 
-  use s_fitting, only: assignment(=), kill
+  use s_fitting, only: assignment(=), kill, damap
 
   implicit none
 
