@@ -278,8 +278,6 @@ subroutine transfer_taylor (ring_in, ring_out, type_out, transfered_all)
 
 ! go through ring_out and match elements
 
-  if (present(transfered_all)) transfered_all = .false.
-
   out_loop: do i = 1, ring_out%n_ele_max
 
     ele_out => ring_out%ele_(i)
