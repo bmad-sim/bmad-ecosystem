@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+#-*-perl-*-
+#
+# this script changes any instances of /disk1/blah or /a/cesr38/cdat/cesr38/disk1/blah in the include file paths to /cdat/cesr38/disk1/blah
+
+
+foreach $file (@ARGV)
+ {
+	$file=~s/^-f//;
+  $host=$ENV{HOSTNAME};
+#  print "$host\n";
+  @hostname=split /\./, $host;
+  $host=@hostname[0];
+	 open (F_in, $file) or die("Cannot open file $file\n");
+	 open (F_out, ">temp.out");
+	 while(<F_in>)
+		{
+		 s/ \/disk(.+?)\// \/cdat\/$host\/disk1\//g;
+		 s/ \/a\/(.+?)\// \//g;
+		 print (F_out);
+		}
+	 close(F_in);
+	 close(F_out);
+	 rename "temp.out", $file;
+ }

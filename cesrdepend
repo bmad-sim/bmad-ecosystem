@@ -5,9 +5,18 @@
 # called from the makefile.
 
 
+#print "now CESRDEPEND:\n\n";
+#foreach $argument (@ARGV)
+#{
+#		print "$argument\n";
+#}
+#print "\n\n\n";
+
 
 ($search_dirs, $local_mods, $mod_out_dir, $prefix, $suffix, $d_file, $f_file)
     =parse_args(\@ARGV);
+if($f_file eq "modules/accelerator_interface.f90")
+{print "\n\n@{$local_mods}\n\n"}
 ($needed_incs, $needed_mods, $mods_to_create)
     =get_used_module_names($f_file, $d_file);
 if(@{$needed_mods} || @{$needed_incs})
@@ -164,33 +173,38 @@ sub parse_args
   @makedep_args =();
   foreach $argument (@{$arguments})
    {
-    if($argument=~/^-I(.+)/)
+    if($argument=~/^-I(.*)/)
      {
       push(@Is,$1);
+#      print "I: $argument\n";
       push(@makedep_args," -I\"$1\"");
      }
-    elsif($argument=~/^-MOD(.+)/)
+    elsif($argument=~/^-MOD(.*)/)
      {push(@MOD,(split /\s/,$1));}
-    elsif($argument=~/^-MP(.+)/)
+    elsif($argument=~/^-MP(.*)/)
      {$MP=$1;}
-    elsif($argument=~/^-PRE(.+)/)
+    elsif($argument=~/^-PRE(.*)/)
      {
       $PRE=$1;
+#			print "PRE: $argument\n";
       push(@makedep_args," -p\"$1\"");   
      }
-    elsif($argument=~/^-SUF(.+)/)
+    elsif($argument=~/^-SUF(.*)/)
      {
       $SUF=$1;
+#      print "SUF: $argument\n";
       push(@makedep_args," -o\"$1\"");
      }
-    elsif($argument=~/^-f(.+)/)
+    elsif($argument=~/^-f(.*)/)
      {
       $f=$1;
+#      print "f: $argument\n";
       push(@makedep_args," -f\"$1\"");
      }
     else
      {
       $f_filename=$argument;
+#      print "filename: $argument\n";
       push(@makedep_args," \"$argument\"");
      }#=~/(\w+)\.\w{1,3}$/;}
    }
