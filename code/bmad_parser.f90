@@ -821,17 +821,6 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
                           ring%input_taylor_order = nint(bp_com%var_value(i))
   enddo
 
-! Beam energy
-
-  if (param_ele%value(beam_energy$) == 0) then
-    ring%param%beam_energy = 1d9 * beam_ele%value(energy_gev$)  
-  elseif (beam_ele%value(energy_gev$) == 0) then
-    ring%param%beam_energy = param_ele%value(beam_energy$)
-  else
-    call warning &
-         ('BOTH "BEAM, ENERGY" AND "PARAMETER[BEAM_ENERGY]" CONSTRUCTS USED!')
-  endif
-
 ! Set taylor order and lattice_type
 
   if (ring%input_taylor_order /= 0) &
@@ -950,6 +939,30 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
   call parser_add_lord (in_ring, n_max, pring, ring)
 
+! Beam energy bookkeeping.
+
+  if (param_ele%value(beam_energy$) == 0) then
+    ring%param%beam_energy = 1d9 * beam_ele%value(energy_gev$)  
+  elseif (beam_ele%value(energy_gev$) == 0) then
+    ring%param%beam_energy = param_ele%value(beam_energy$)
+  else
+    call warning &
+         ('BOTH "BEAM, ENERGY" AND "PARAMETER[BEAM_ENERGY]" CONSTRUCTS USED!')
+  endif
+
+  if (ring%param%beam_energy == 0 .and. &
+                          ring%ele_(0)%value(beam_energy$) == 0) then
+    print *, 'WARNING FROM BMAD_PARSER: BEAM_ENERGY IS 0!'
+  elseif (ring%param%beam_energy /= 0 .and. &
+                          ring%ele_(0)%value(beam_energy$) /= 0) then
+    print *, &
+        'WARNING FROM BMAD_PARSER: BEAM_ENERGY AND BEGINNING[ENERGY] BOTH SET!'
+  elseif (ring%param%beam_energy /= 0) then
+    ring%ele_(0)%value(beam_energy$) = ring%param%beam_energy
+  else
+    ring%param%beam_energy = ring%ele_(0)%value(beam_energy$) 
+  endif
+
 ! make matrices for entire ring
 
   do i = ring%n_ele_ring+1, ring%n_ele_max
@@ -990,16 +1003,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
   endif
 
-!
-
-  if (ring%param%beam_energy == 0 .and. &
-                          ring%ele_(0)%value(beam_energy$) == 0) then
-    print *, 'WARNING FROM BMAD_PARSER: BEAM_ENERGY IS 0!'
-  elseif (ring%param%beam_energy /= 0 .and. &
-                          ring%ele_(0)%value(beam_energy$) /= 0) then
-    print *, &
-        'WARNING FROM BMAD_PARSER: BEAM_ENERGY AND BEGINNING[ENERGY] BOTH SET!'
-  endif
+! global computations
 
   doit = .true.
   if (present(make_mats6)) doit = make_mats6
