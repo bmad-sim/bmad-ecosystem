@@ -84,6 +84,8 @@ end subroutine
 
 subroutine track1_radiation (start, ele, param, end, edge)
 
+  use random_mod
+
   implicit none
 
   type (coord_struct), intent(in) :: start
@@ -210,7 +212,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
 
   fact_f = 0
   if (sr_com%fluctuations_on) then
-    call gauss_ran (this_ran)
+    call ran_gauss (this_ran)
     fact_f = sqrt(fluct_const * s_len * gamma_0**5 * g3) * this_ran
   endif
 
