@@ -748,7 +748,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine mat_to_mp_sigma (sigma, mat)
+! Subroutine mat_to_mp_sigma (mat, sigma)
 !
 ! Subroutine to convert a sigma matrix. to a linear array of 
 ! macro-particle sigmas 
