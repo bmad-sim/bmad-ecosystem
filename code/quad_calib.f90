@@ -1,4 +1,3 @@
-!  QUAD_CALIB  SUBROUTINE  CALIB       C.BMAD.LAT  DCS         96.7.9
 !+
 ! Subroutine QUAD_CALIB (LATTICE, K_THEORY, K_BASE, LEN_QUAD,
 !                         CU_PER_K_GEV, QUAD_ROT, DK_GEV_DCU, CU_THEORY)
@@ -47,15 +46,13 @@
 !    I.e. CU_PER_K_GEV is the chord between 2 points on the curve.
 !
 ! 4) Positive QUAD_ROT => CCW rotation from E+ viewpoint
-!
-! 5) Programs known to use this subroutine:
-!     BETMES
-!     LATLOA
-!     K_FIT
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/22 17:04:23  rwh24
+!Updates from DCS
+!
 !Revision 1.2  2001/09/27 18:31:56  rwh24
 !UNIX compatibility updates
 !
@@ -67,6 +64,8 @@ subroutine quad_calib (lattice, k_theory, k_base,  &
                  len_quad, cu_per_k_gev, quad_rot, dk_gev_dcu, cu_theory)
 
   use bmad_struct
+  use bmad_interface
+
   implicit none
 
   type (cesr_struct)  cesr
@@ -74,35 +73,31 @@ subroutine quad_calib (lattice, k_theory, k_base,  &
   character lattice*(*), latfil*50, bmad_lat*40
   real energy, k_theory(0:*), k_base(0:*), len_quad(0:*)
   real cu_per_k_gev(0:*), dk_gev_dcu(0:*), quad_rot(0:*)
-  integer cindex, rindex, cu_theory(0:*)
-  logical error_type
-
-! init
-
-  bmad_lat = 'BMAD_'//lattice
-  do cindex = 0, 120
-    quad_rot(cindex) = 0.0
-  enddo
+  integer ix, rindex, cu_theory(0:*)
 
 ! read lattice file
 
-  call file_directorizer (bmad_lat, latfil, 'BMAD_LAT', .true.)
+  call lattice_to_bmad_file_name (lattice, latfil)
   call bmad_parser(latfil, ring)
-  call bmad_to_cesr(ring, CESR, error_type)
+  call bmad_to_cesr(ring, CESR)
   energy = ring%param%energy
 
-  do cindex = 0, 120
-    rindex = cesr%quad_(cindex)%ix_ring
-    if(rindex/=0) then
-      k_theory(cindex) = ring%ele_(rindex)%value(k1$)
-      len_quad(cindex) = ring%ele_(rindex)%value(l$)
-      quad_rot(cindex) = ring%ele_(rindex)%value(tilt$)*(180./pi)
-    endif
+
+  k_theory(0:120) = 0
+  len_quad(0:120) = 0
+  quad_rot(0:120) = 0
+
+  do ix = 0, 120
+    rindex = cesr%quad_(ix)%ix_ring
+    if(rindex==0) cycle
+    k_theory(ix) = ring%ele_(rindex)%value(k1$)
+    len_quad(ix) = ring%ele_(rindex)%value(l$)
+    quad_rot(ix) = ring%ele_(rindex)%value(tilt$)*(180./pi)
   enddo
 
 ! convert k_theory to scalar computer units given the specified design energy
 
-  call k_to_quad_calib(k_theory, energy, cu_theory, k_base, dk_gev_dcu,  &
+  call k_to_quad_calib (k_theory, energy, cu_theory, k_base, dk_gev_dcu,  &
                                                                 cu_per_k_gev)
 
 end subroutine
