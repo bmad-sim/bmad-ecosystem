@@ -641,7 +641,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
     enddo
   enddo
 
-! to expand the ring we use a stack for nested sublines.
+! to expand the "used" line we use a stack for nested sublines.
 ! IX_RING is the expanded array of elements in the ring.
 ! init stack
 
@@ -660,12 +660,12 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   ix_ring = -1
   sequence_(:)%ix = 1  ! Init. Used for replacement list index
 
-! expand line
+! Expand "used" line...
 
   parsing = .true.
   line_expansion: do while (parsing)
 
-    s_ele => seq%ele(stack(i_lev)%ix_ele)
+    s_ele => seq%ele(stack(i_lev)%ix_ele)  ! next element, line, or list
 
     ix = s_ele%ix_arg
     if (ix /= 0) then  ! it is a dummy argument.

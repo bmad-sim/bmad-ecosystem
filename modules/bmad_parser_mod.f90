@@ -2605,9 +2605,10 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
   implicit none
 
   type (seq_struct), target :: sequence_(:)
-  type (seq_struct), pointer :: seq
-  type (seq_ele_struct), allocatable :: s_ele(:)
+  type (seq_struct), pointer :: seq, sub_seq
+  type (seq_ele_struct), allocatable, target :: s_ele(:)
   type (seq_ele_struct), allocatable :: s_ele2(:)
+  type (seq_ele_struct), pointer :: this_ele
   type (ring_struct) ring
 
   integer ix_ele, iseq_tot, ix_word, ix, i, j, n, ios, i_rl
@@ -2647,6 +2648,7 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
 ! now parse list proper
 
   ix_ele = 1
+  this_ele => s_ele(ix_ele)
 
   do 
 
@@ -2657,31 +2659,31 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
       bp_com%parse_line = word(:ix-1) // "," // bp_com%parse_line
       call evaluate_value (trim(seq%name) // ' Repetition Count', rcount, &
                               ring, c_delim, c_delim_found, err_flag)
-      s_ele(ix_ele)%rep_count = nint(rcount)
+      this_ele%rep_count = nint(rcount)
       if (err_flag) return
-      s_ele(ix_ele)%name = word(ix+1:)
-      if (s_ele(ix_ele)%rep_count < 0) then
-        s_ele(ix_ele)%reflect = .true.
+      this_ele%name = word(ix+1:)
+      if (this_ele%rep_count < 0) then
+        this_ele%reflect = .true.
       else
-        s_ele(ix_ele)%reflect = .false.
+        this_ele%reflect = .false.
       endif
-      s_ele(ix_ele)%rep_count = abs(s_ele(ix_ele)%rep_count)
+      this_ele%rep_count = abs(this_ele%rep_count)
       ix_word = ix_word - ix
     elseif (word(1:1) == '-') then
-      s_ele(ix_ele)%reflect = .true.
-      s_ele(ix_ele)%rep_count = 1
-      s_ele(ix_ele)%name = word(2:)
+      this_ele%reflect = .true.
+      this_ele%rep_count = 1
+      this_ele%name = word(2:)
       ix_word = ix_word - 1
     else
-      s_ele(ix_ele)%reflect = .false.
-      s_ele(ix_ele)%rep_count = 1
-      s_ele(ix_ele)%name = word
+      this_ele%reflect = .false.
+      this_ele%rep_count = 1
+      this_ele%name = word
     endif
 
 ! Check for a subline or replacement line.
 ! If there is one then save as an internal sequence.
 
-    name = s_ele(ix_ele)%name
+    name = this_ele%name
     if (name /= ' ') call verify_valid_name (name, ix_word)
 
     replacement_line_here = .false.
@@ -2690,15 +2692,23 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
       if (name == ' ') then
         ix_internal = ix_internal + 1
         write (str, '(a, i3.3)') '#Internal', ix_internal   ! unique name 
-        s_ele(ix_ele)%name = str
+        this_ele%name = str
         iseq_tot = iseq_tot + 1
-        sequence_(iseq_tot)%name = str
-        sequence_(iseq_tot)%type = line$
+        sub_seq => sequence_(iseq_tot) 
+        sub_seq%name = str
+        sub_seq%type = seq%type
+        if (sub_seq%type == replacement_line$) then
+          ix = size (seq%dummy_arg)
+          allocate (sub_seq%dummy_arg(ix), &
+                sub_seq%corresponding_actual_arg(ix), this_ele%actual_arg(ix))
+          sub_seq%dummy_arg = seq%dummy_arg
+          this_ele%actual_arg = seq%dummy_arg
+        endif
         bp_com%parse_line = '(' // bp_com%parse_line
         call seq_expand1 (sequence_, iseq_tot, ring, .false.)
       else
         replacement_line_here = .true.
-        call get_sequence_args (name, s_ele(ix_ele)%actual_arg, delim, err_flag)
+        call get_sequence_args (name, this_ele%actual_arg, delim, err_flag)
         if (err_flag) return
       endif
       call get_next_word(word, ix_word, ':=(),', delim, delim_found, .true.)
@@ -2707,16 +2717,16 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
                  word, 'IN THE SEQUENCE: ' // seq%name)
     endif
 
-    if (s_ele(ix_ele)%name == ' ') call warning &
+    if (this_ele%name == ' ') call warning &
               ('SUB-ELEMENT NAME IS BLANK FOR LINE/LIST: ' // seq%name)
 
 ! if a replacement line then look for element in argument list
 
-    s_ele(ix_ele)%ix_arg = 0
+    this_ele%ix_arg = 0
     if (seq%type == replacement_line$) then
       do i = 1, size(seq%dummy_arg)
-        if (seq%dummy_arg(i) == s_ele(ix_ele)%name) then
-          s_ele(ix_ele)%ix_arg = i
+        if (seq%dummy_arg(i) == this_ele%name) then
+          this_ele%ix_arg = i
           exit
         endif
       enddo
@@ -2726,6 +2736,7 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
 
     n = size(s_ele)
     ix_ele = ix_ele + 1
+    this_ele => s_ele(ix_ele)
 
     if (ix_ele > n) then
       allocate (s_ele2(n))      
