@@ -38,6 +38,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2001/10/26 14:53:05  helms
+!Changed uppercase filenames to lowercase
+!
 !Revision 1.3  2001/10/02 18:49:12  rwh24
 !More compatibility updates; also added many explicit variable declarations.
 !
@@ -76,19 +79,19 @@ subroutine k_to_quad_calib (k_theory, energy, cu_theory, k_base,  &
 ! Current to CU corrections
 
   lun = lunget()
-  file_scaler = 'CESR_CONST:QUADRUPOLE_SCALER.CAL'
+  file_scaler = 'CESR_CONST:quadrupole_scaler.cal'
   call FullFileName(file_scaler, file_scaler)
   open (lun, file = file_scaler,  &
                              status = 'old', readonly, shared, err = 9200)
   read (lun, nml=quad_scaler_corrections, err = 9210)
   close (lun)
 
-! setup calibrations with constants read from QUAD.CALIBRATION
+! setup calibrations with constants read from quad.calibration
 ! A non-zero k_base is due to dipole current through the magnet.
 ! Thus k_base scales with energy.
 
   lun = lunget()
-  file_cal = 'CESR_CONST:QUADRUPOLE.CAL'
+  file_cal = 'CESR_CONST:quadrupole.cal'
   call FullFileName(file_cal, file_cal)
   open (lun, file = file_cal, status = 'old', readonly, shared, err = 9000)
   read (lun, nml=quadrupole_cal, err = 9010)
