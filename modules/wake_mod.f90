@@ -258,11 +258,11 @@ do i = 1, size(ele%wake%sr2_long)
   ff = charge * sr2_long%amp * exp(-orbit%vec(5) * sr2_long%damp) * &
                                           ele%value(l$) / ele%value(p0c$)
 
-  arg = orbit%vec(5) * sr2_long%k + sr2_long%phi
+  arg = sr2_long%phi - orbit%vec(5) * sr2_long%k 
   c = cos (arg)
   s = sin (arg)
 
-  sr2_long%norm_sin = sr2_long%norm_sin - ff * c
+  sr2_long%norm_sin = sr2_long%norm_sin + ff * c
   sr2_long%norm_cos = sr2_long%norm_cos + ff * s
 
 enddo
@@ -414,13 +414,13 @@ do i = 1, size(ele%wake%sr2_trans)
   ff = charge * sr2_trans%amp * exp(-orbit%vec(5) * sr2_trans%damp) * &
                                            ele%value(l$) / ele%value(p0c$)
 
-  arg = orbit%vec(5) * sr2_trans%k + sr2_trans%phi
+  arg =  sr2_trans%phi - orbit%vec(5) * sr2_trans%k 
   c = cos (arg)
   s = sin (arg)
 
   sr2_trans%norm_sin = sr2_trans%norm_sin + ff * orbit%vec(1) * c
-  sr2_trans%norm_cos = sr2_trans%norm_cos - ff * orbit%vec(1) * s
-  sr2_trans%skew_sin = sr2_trans%skew_sin - ff * orbit%vec(3) * c
+  sr2_trans%norm_cos = sr2_trans%norm_cos + ff * orbit%vec(1) * s
+  sr2_trans%skew_sin = sr2_trans%skew_sin + ff * orbit%vec(3) * c
   sr2_trans%skew_cos = sr2_trans%skew_cos + ff * orbit%vec(3) * s
 
 enddo
@@ -478,7 +478,7 @@ do i = 1, size(ele%wake%sr2_trans)
   w_skew = sr2_trans%skew_sin * ff * s + sr2_trans%skew_cos * ff * c
 
   orbit%vec(2) = orbit%vec(2) - w_norm
-  orbit%vec(4) = orbit%vec(4) + w_skew
+  orbit%vec(4) = orbit%vec(4) - w_skew
 
 enddo
 
