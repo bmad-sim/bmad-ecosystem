@@ -216,17 +216,18 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
 ! Put in the transverse wakefields
 
   rf_ele%value(l$) = ele%value(l$)
-  call track1_sr_trans_wake (bunch_start, rf_ele)
+  call track1_sr_trans_wake (bunch_end, rf_ele)
 
 ! Track the last half of the lcavity. This includes the longitudinal wakes.
 
+  rf_ele%value(l$) = ele%value(l$) / 2
   rf_ele%value(energy_start$) = rf_ele%value(beam_energy$)
   rf_ele%value(beam_energy$) = ele%value(beam_energy$)
 
   do i = 1, size(bunch_start%slice)
     do j = 1, size(bunch_start%slice(i)%macro)
       bmad_com%k_loss = bunch_start%slice(i)%macro(j)%k_loss
-      call track1_macroparticle (bunch_start%slice(i)%macro(j), &
+      call track1_macroparticle (bunch_end%slice(i)%macro(j), &
                                     rf_ele, param, bunch_end%slice(i)%macro(j))
     enddo
   enddo
