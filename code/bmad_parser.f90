@@ -1081,6 +1081,22 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       enddo
     endif
 
+    ix = index(bp_com%debug_line, 'ELE')
+    if (ix /= 0) then
+      print *
+      print *, '----------------------------------------'
+      call string_trim (bp_com%debug_line(ix+3:), bp_com%debug_line, ix)
+      do
+        if (ix == 0) exit
+        read (bp_com%debug_line, *) i
+        print *
+        print *, '----------------------------------------'
+        print *, i
+        call type_ele (ring%ele_(i), .false., 0, .true., 0, .true., ring)
+        call string_trim (bp_com%debug_line(ix+1:), bp_com%debug_line, ix)
+      enddo
+    endif
+
   endif
 
 !-----------------------------------------------------------------------------
