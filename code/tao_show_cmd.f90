@@ -40,7 +40,7 @@ character(40) :: show_word1, show_word2, show_word3
 character(8) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
 character(80), pointer :: ptr_lines(:)
-character(16) ele_name
+character(16) ele_name, name
 
 character(16) :: show_names(10) = (/ &
    'data       ', 'var        ', 'global     ', 'alias      ', 'top10      ', &
@@ -145,27 +145,36 @@ case ('data')
     if (.not. associated (s%u(ju)%d2_data)) return 
     u => s%u(ju)
 
+    if (size(s%u) > 1) then
+      nl=nl+1; write(lines(nl), *) ' '
+      nl=nl+1; write(lines(nl), *) 'Universe:', ju
+    endif
+
 ! If just "show data" then show all names
 
     if (show_word2 == ' ') then
+
+      nl=nl+1; write (lines(nl), '(5x, a, 27x, a)') 'd2_Name', 'd1_Name'
       do i = 1, size(u%d2_data)
-        if (u%d2_data(i)%name == ' ') cycle
-        if (nl .gt. max_lines) then
-          call out_io (s_blank$, r_name, &
-              "Found too many d2_datas! Listing first \i5\ matches", max_lines)
-	  exit
-        endif
-        nl=nl+1; write (lines(nl), '(i4, 2x, a)') i, u%d2_data(i)%name
+        d2_ptr => u%d2_data(i)
+        if (d2_ptr%name == ' ') cycle
+        nl=nl+1; write (lines(nl), '(5x, a)') d2_ptr%name
+        do j = lbound(d2_ptr%d1, 1), ubound(d2_ptr%d1, 1)
+          d1_ptr => d2_ptr%d1(j)
+          name = d1_ptr%name
+          if (name == ' ') name = '<blank>'
+          nl=nl+1; write (lines(nl), '(32x, i5, 2x, a, 2x, 2i6)') &
+                        j, name, lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
+        enddo
       enddo
       call out_io (s_blank$, r_name, lines(1:nl))
       cycle u_loop
     endif
 
-
 ! get pointers to the data
 
     call string_trim (show_word3, show_word3, ix)
-! are we looking at a range of locations?
+    ! are we looking at a range of locations?
     if ((show_word3 .eq. ' ') .or. (index(trim(show_word3), ' ') .ne. 0) &
                                            .or. index(show_word3, ':') .ne. 0) then
       call tao_find_data (err, u, show_word2, d2_ptr, d1_ptr, null_word, d_ptr)
@@ -559,6 +568,9 @@ case ('var')
 ! If just "show var" then show all namees
 
   if (show_word2 == ' ') then
+    write (lines(1), '(5x, a)') '                  Bounds'
+    write (lines(2), '(5x, a)') 'Name            Lower  Upper'
+    nl = 2
     do i = 1, size(s%v1_var)
       v1_ptr => s%v1_var(i)
       if (v1_ptr%name == ' ') cycle
@@ -567,9 +579,9 @@ case ('var')
           & "Found too many v1_vars! Listing first \i5\ matches", max_lines)
         exit
       endif
-        nl=nl+1
-        write(lines(nl), '(5x, a, i5, a, i5)') v1_ptr%name, &
-                  lbound(v1_ptr%v, 1), ':', ubound(v1_ptr%v, 1)
+      nl=nl+1
+      write(lines(nl), '(5x, a, i5, i7)') v1_ptr%name, &
+                  lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
     enddo
     call out_io (s_blank$, r_name, lines(1:nl))
     return

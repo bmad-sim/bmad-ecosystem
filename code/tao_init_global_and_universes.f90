@@ -275,7 +275,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
       data(:)%merit_type = ' '
       data(:)%ele_name   = ' '
       data(:)%ele2_name  = ' '
-      data(:)%meas_value = 0
+      data(:)%meas_value = real_garbage$  ! used to tag when %meas_value is set in file
       data(:)%weight     = 0
       data(:)%good_user  = .true.
       read (iu, nml = tao_d1_data, err = 9150)
@@ -647,6 +647,13 @@ else
   u%data(n1:n2)%merit_type = data(ix1:ix2)%merit_type
   u%data(n1:n2)%good_user  = data(ix1:ix2)%good_user
   u%data(n1:n2)%weight     = data(ix1:ix2)%weight
+  ! If %meas_value was set then %good_meas is set to True
+  where (u%data(n1:n2)%meas_value /= real_garbage$)  ! where %meas_value was set
+    u%data(n1:n2)%good_meas = .true.
+  elsewhere
+    u%data(n1:n2)%meas_value = 0  
+  end where
+
 endif
 
 ! use default_data_type if given, if not, auto-generate the data_type
