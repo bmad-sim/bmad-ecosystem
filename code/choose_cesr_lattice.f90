@@ -32,7 +32,6 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
 
   use bmad_struct
   use bmad_interface
-  use cesr_utils
 
   implicit none
 
@@ -115,8 +114,11 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
       lat_file = line
       inquire (file = lat_file, exist = is_there, name = lat_file)
       if (.not. is_there) then
-        lat_file = 'BMAD_LAT:bmad_' // line 
-        if (index(line, '.') == 0) lat_file = trim(lat_file) // '.lat' 
+        lattice = line
+        lat_file = 'BMAD_LAT:bmad_' // lattice
+        if (index(lattice, '.') == 0) lat_file = trim(lat_file) // '.lat' 
+        ix = index(lattice, '.lat')
+        if (ix /= 0) lattice = lattice(:ix-1)
         call FullFileName(lat_file, lat_file)
         inquire (file = lat_file, exist = is_there, name = lat_file)
         if (.not. is_there) then
@@ -136,6 +138,10 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
 
   if (present (ring)) then
     call bmad_parser (lat_file, ring)
+    if (lattice /= "") then
+      if (lattice /= ring%lattice) print *, &
+           'WARNING FROM CHOOSE_CESR_LATTICE: LATTICE NAME IN RING DOES MATCH FILE NAME!'
+    endif
     lattice = ring%lattice
   endif
 

@@ -8,10 +8,10 @@
 !   use bmad
 !
 ! Input:
-!   ele    -- Ele_struct: Element
-!   param  -- Param_struct: Parameters are needed for some elements.
+!   ele    -- Ele_struct: Element holding the transfer matrix.
+!   param  -- Param_struct: Lattice global parameters.
 !   start  -- Coord_struct, optional: Coordinates at the beginning of element. 
-!               If not present then effectively start = 0.
+!               If not present then default is start = 0.
 !   end    -- Coord_struct, optional: Coordinates at the end of element.
 !               end is an input only if end_in is set to True.
 !   end_in -- Logical, optional: If present and True then the end coords

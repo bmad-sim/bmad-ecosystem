@@ -353,8 +353,8 @@ subroutine make_mat627 (ele, param, direction, mat627)
       return
     endif
 
-    call quad_mat_calc (-k1, length, mat627(1:2,1:2))
-    call quad_mat_calc ( k1, length, mat627(3:4,3:4))
+    call quad_mat2_calc (-k1, length, mat627(1:2,1:2))
+    call quad_mat2_calc ( k1, length, mat627(3:4,3:4))
 
     cx = mat627(1, 1)
     sx = mat627(1, 2)
@@ -504,7 +504,7 @@ subroutine make_mat627 (ele, param, direction, mat627)
     mat627(2, 1) = 0
     mat627(2, 2) = 1
 
-    call quad_mat_calc (k1, length, mat627(3:4,3:4))
+    call quad_mat2_calc (k1, length, mat627(3:4,3:4))
 
     cy = mat627(3, 3) 
     sy = mat627(3, 4) 

@@ -547,6 +547,7 @@ module bmad_struct
     logical :: use_liar_lcavity = .false.    ! Liar like tracking?
     logical :: sr_wakes_on = .true.          ! Short range wakefields?
     logical :: lr_wakes_on = .true.          ! Long range wakefields
+    logical :: mat6_track_symmetric = .true. ! symmetric offsets
   end type
   
   type (bmad_com_struct), save :: bmad_com

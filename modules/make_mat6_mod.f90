@@ -12,17 +12,35 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine QUAD_MAT_CALC (K1, LENGTH, MAT)
+! Subroutine quad_mat2_calc (k1, length, mat2, dz_coef)
 !
-! Subroutine to initialize the transfer matrix for a quad
+! Subroutine to calculate the 2x2 transfer matrix for a quad for
+! one plane. 
+! Note: This calc does not include any energy corrections for an
+! off-energy particle.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   k1     -- Real(rp): Quad strength: k1 > 0 ==> defocus.
+!   length -- Real(rp): Quad length
+!
+! Output:
+!   mat2(2,2)  -- Real(rp): Transfer matrix.
+!   dz_coef(3) -- Real(rp), optional: Coefficients for calculating the
+!                 the change in z position:
+!                   dz = Integral [-x'^2/2 ds]
+!                      = c(1) * x_0^2 + c(2) * x_0 * x'_0 + c(3) * x'_0^2 
 !-
 
-subroutine quad_mat_calc (k1, length, mat)
+subroutine quad_mat2_calc (k1, length, mat2, dz_coef)
 
   implicit none
 
-  real(rp) length, mat(2,2), cx, sx
+  real(rp) length, mat2(2,2), cx, sx
   real(rp) k1, sqrt_k, arg, arg2
+  real(rp), optional :: dz_coef(3)
 
 !
 
@@ -36,15 +54,21 @@ subroutine quad_mat_calc (k1, length, mat)
   elseif (k1 < 0) then       ! focus
     cx = cos(arg)
     sx = sin(arg) / sqrt_k
-  else                           ! defocus
+  else                       ! defocus
     cx = cosh(arg)
     sx = sinh(arg) / sqrt_k
   endif
 
-  mat(1,1) = cx
-  mat(1,2) = sx
-  mat(2,1) = k1 * sx
-  mat(2,2) = cx
+  mat2(1,1) = cx
+  mat2(1,2) = sx
+  mat2(2,1) = k1 * sx
+  mat2(2,2) = cx
+
+  if (present(dz_coef)) then
+    dz_coef(1) = k1 * (-cx * sx + length) / 4
+    dz_coef(2) = -k1 * sx**2 / 2
+    dz_coef(3) = -(cx * sx + length) / 4
+  endif
 
 end subroutine
 
@@ -52,25 +76,30 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine SOL_QUAD_MAT6_CALC (KS, K1, LENGTH, MAT6, ORB)
+! Subroutine sol_quad_mat6_calc (ks, k1, length, mat6, orb, dz_coef)
 !
-! Subroutine to calculate the transfer matrix for a combination 
-! solenoid/quadrupole element.
+! Subroutine to calculate the transfer matrix for a  combination 
+! solenoid/quadrupole element (without a tilt).
+!
+! Note: This routine is not meant to be for general use.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!   ks      [Real]       Solenoid strength
-!   k1      [Real]       Quadrupole strength
-!   length  [Real]       Sol_quad length
-!   orb(6)  [Real]       Orbit at beginning of the sol_quad.
+!   ks      -- Real(rp): Solenoid strength.
+!   k1      -- Real(rp): Quadrupole strength.
+!   length  -- Real(rp): Sol_quad length.
+!   orb(6)  -- Real(rp): Orbit at beginning of the sol_quad.
+!              Note: using non-cononical coords here!
 !
-! Output
-!   mat6(6,6) [Real]  Transfer matrix across the sol_quad
+! Output:
+!   mat6(6,6)    -- Real(rp): Transfer matrix across the sol_quad.
+!   dz_coef(4,4) -- Real(rp), optional: coefs for dz calc
+!                     dz = sum_ij dz_coef(i,j) * orb(i) * orb(j)
 !-
 
-subroutine sol_quad_mat6_calc (ks, k1, s_len, m, orb)
+subroutine sol_quad_mat6_calc (ks_in, k1_in, s_len, m, orb, dz_coef)
 
   implicit none
 
@@ -81,18 +110,22 @@ subroutine sol_quad_mat6_calc (ks, k1, s_len, m, orb)
   integer i, j
   integer order
 
-  real(rp) ks2, s, c, snh, csh
+  real(rp) ks2, s, c, snh, csh, rel_E, ks_in, k1_in
   real(rp) darg1, alpha, alpha2, beta, beta2, f, q, r, a, b
   real(rp) df, dalpha2, dalpha, dbeta2, dbeta, darg
   real(rp) dC, dCsh, dS, dSnh, dq, dr, da, db
   real(rp) ks3, fp, fm, dfm, dfp, df_f, ug
   real(rp) s1, s2, snh1, snh2, dsnh1, dsnh2, ds1, ds2
   real(rp) coef1, coef2, dcoef1, dcoef2, ks4
-
-  real(rp) t5(4,4), t6(4,4)
+  real(rp) t4(4,4), ts(4,4), xp_start, xp_end, yp_start, yp_end
+  real(rp), optional :: dz_coef(4,4)
 
 ! Calc
-          
+
+  rel_E = 1 + orb(6)
+  k1 = k1_in / rel_E
+  ks = ks_in / rel_E
+
   ks2 = ks**2
   ks3 = ks2 * ks 
   ks4 = ks2*ks2
@@ -147,9 +180,9 @@ subroutine sol_quad_mat6_calc (ks, k1, s_len, m, orb)
   m(4,3) = (ug/(2*k1)) * (-coef2*S1 + coef1*Snh1)
   m(4,4) = m(3,3)
 
-!
+! 
 
-  if (all(orb(1:4) == 0)) return
+  if (all(orb == 0) .and. .not. present(dz_coef)) return
 
   df      = -2 * (ks4 + 2*k1**2) / f
   dalpha2 = df/2 - ks2
@@ -188,35 +221,73 @@ subroutine sol_quad_mat6_calc (ks, k1, s_len, m, orb)
   dcoef1 = -2*ks2*r + ks2*dr - 4*k1*a + 4*k1*da
   dcoef2 = -2*ks2*q + ks2*dq - 4*k1*b + 4*k1*db                     
 
-  t6(1,1) = m(1,1)*df_f + 2*ug*(fp*dC + C*dfp + fm*dCsh + Csh*dfm)
-  t6(1,2) = m(1,2)*df_f + (2*ug/k1) * (dq*S1 + q*dS1 - dr*Snh1 - r*dSnh1)
-  t6(1,3) = m(1,3)*df_f + (ks*ug/k1)*(-db*S1 - b*dS1 + da*Snh1 + a*dSnh1)
-  t6(1,4) = m(1,4)*(df_f - 2) + 4*ks*ug*(-dC + dCsh) 
+! t4(i,j) is dm(i,j)/dE and give the m(x,6) terms.
 
-  t6(2,1) = m(2,1)*(df_f + 1) - &
+  t4(1,1) = m(1,1)*df_f + 2*ug*(fp*dC + C*dfp + fm*dCsh + Csh*dfm)
+  t4(1,2) = m(1,2)*df_f + (2*ug/k1) * (dq*S1 + q*dS1 - dr*Snh1 - r*dSnh1)
+  t4(1,3) = m(1,3)*df_f + (ks*ug/k1)*(-db*S1 - b*dS1 + da*Snh1 + a*dSnh1)
+  t4(1,4) = m(1,4)*(df_f - 2) + 4*ks*ug*(-dC + dCsh) 
+
+  t4(2,1) = m(2,1)*(df_f + 1) - &
               (ug/2)*(dcoef1*S2 + coef1*dS2 + dcoef2*Snh2 + coef2*dSnh2)
-  t6(2,2) = t6(1,1)
-  t6(2,3) = m(2,3)*(df_f - 2) + ks3*ug*(dC - dCsh) 
-  t6(2,4) = m(2,4)*(df_f - 1) + ug*ks*(da*S2 + a*dS2 + db*Snh2 + b*dSnh2)
+  t4(2,2) = t4(1,1)
+  t4(2,3) = m(2,3)*(df_f - 2) + ks3*ug*(dC - dCsh) 
+  t4(2,4) = m(2,4)*(df_f - 1) + ug*ks*(da*S2 + a*dS2 + db*Snh2 + b*dSnh2)
 
-  t6(3,1) = -t6(2,4)
-  t6(3,2) = -t6(1,4)
-  t6(3,3) = m(3,3)*df_f + 2*ug*(fm*dC + C*dfm + fp*dCsh + Csh*dfp)
-  t6(3,4) = m(3,4)*(df_f - 1) + 2*ug*(dr*S2 + r*dS2 + dq*Snh2 + q*dSnh2)
+  t4(3,1) = -t4(2,4)
+  t4(3,2) = -t4(1,4)
+  t4(3,3) = m(3,3)*df_f + 2*ug*(fm*dC + C*dfm + fp*dCsh + Csh*dfp)
+  t4(3,4) = m(3,4)*(df_f - 1) + 2*ug*(dr*S2 + r*dS2 + dq*Snh2 + q*dSnh2)
 
-  t6(4,1) = -t6(2,3)        
-  t6(4,2) = -t6(1,3)
-  t6(4,3) = m(4,3)*(df_f + 2) + &
+  t4(4,1) = -t4(2,3)        
+  t4(4,2) = -t4(1,3)
+  t4(4,3) = m(4,3)*(df_f + 2) + &
                (ug/(2*k1))*(-dcoef2*S1 - coef2*dS1 + dcoef1*Snh1 + coef1*dSnh1)
-  t6(4,4) = t6(3,3)
+  t4(4,4) = t4(3,3)
 
-!
+  m(1:4,6) = matmul(t4(1:4,1:4), orb(1:4))
 
-  m(1:4,6) = matmul(t6(1:4,1:4), orb(1:4))
+! dz = Sum_ij dz_coef(i,j) * orb(i) * orb(j)
+
+  if (present(dz_coef)) then
+    ts(1:4,1) = -t4(2,1:4)
+    ts(1:4,2) =  t4(1,1:4)
+    ts(1:4,3) = -t4(4,1:4)
+    ts(1:4,4) =  t4(3,1:4)
+    dz_coef = matmul (ts, m(1:4,1:4)) / 2
+  endif
+
+! energy corrections
+
+  m(1,2) = m(1,2) / rel_E
+  m(1,4) = m(1,4) / rel_E
+
+  m(2,1) = m(2,1) * rel_E
+  m(2,3) = m(2,3) * rel_E
+
+  m(3,2) = m(3,2) / rel_E
+  m(3,4) = m(3,4) / rel_E
+
+  m(4,1) = m(4,1) * rel_E
+  m(4,3) = m(4,3) * rel_E
+
+  m(1,6) = m(1,6) / rel_E
+  m(3,6) = m(3,6) / rel_E
+
+! The m(5,x) terms follow from the symplectic condition.
+
   m(5,1) = -m(2,6)*m(1,1) + m(1,6)*m(2,1) - m(4,6)*m(3,1) + m(3,6)*m(4,1)
   m(5,2) = -m(2,6)*m(1,2) + m(1,6)*m(2,2) - m(4,6)*m(3,2) + m(3,6)*m(4,2)
   m(5,3) = -m(2,6)*m(1,3) + m(1,6)*m(2,3) - m(4,6)*m(3,3) + m(3,6)*m(4,3)
   m(5,4) = -m(2,6)*m(1,4) + m(1,6)*m(2,4) - m(4,6)*m(3,4) + m(3,6)*m(4,4)
+
+! The m(5,6) term is computed 
+
+  xp_start = orb(2) + ks_in * orb(3) / 2
+  yp_start = orb(4) - ks_in * orb(1) / 2
+  xp_end = sum(orb(1:4) * m(2,1:4)) + ks_in * orb(3) / 2
+  yp_end = sum(orb(1:4) * m(4,1:4)) - ks_in * orb(1) / 2
+  m(5,6) = s_len * (xp_start**2 + yp_start**2 +xp_end**2 + yp_end**2) / (2 * rel_E**3)
 
 end subroutine
 
@@ -226,7 +297,7 @@ end subroutine
 !+
 ! Subroutine mat6_multipole (knl, tilt, c00, factor, mat6)
 !
-! subroutine to find the kick from a multipole.
+! Subroutine to add to mat6 the kick matrix from a multipole.
 ! This routine is not meant for general use.
 !-
 

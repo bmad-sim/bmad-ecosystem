@@ -150,21 +150,23 @@ subroutine track_a_bend (start, ele, param, end)
 
   real(8) g0, g, r, r0, theta0, del, x1, xp1, zp, x_center, y_center
   real(8) cos0, sin0, xc, ys, b, c, x2, x_exit, y_exit, theta, s_travel
-  real(8) cos1, sin1, radix, f
+  real(8) cos1, sin1, radix, f, length
 
-  real(rp) k1, kc, mat2(2,2), phi, mat_i6(6), dE, fact, length
+  real(rp) k1, kc, mat2(2,2), phi, mat_i6(6), dE, fact
 
 ! some init
 
   g0 = ele%value(g$) 
   g =  (ele%value(g$) + ele%value(delta_g$)) / (1 + start%vec(6))
+  length = ele%value(l$)
 
   end = start
   call offset_particle (ele, param, end, set$)
 
   if (g == 0) then
-    end%vec(1) = end%vec(1) + ele%value(l$) * end%vec(2)
-    end%vec(3) = end%vec(3) + ele%value(l$) * end%vec(4)
+    end%vec(1) = end%vec(1) + length * end%vec(2)
+    end%vec(3) = end%vec(3) + length * end%vec(4)
+    end%vec(5) = end%vec(5) - length * (end%vec(2)**2 + end%vec(4)**2) / 2 
     call offset_particle (ele, param, end, unset$)
     return
   endif
@@ -172,7 +174,7 @@ subroutine track_a_bend (start, ele, param, end)
   r0 = 1 / g0
   r  = 1 / g
  
-  theta0 = ele%value(l$) * g0
+  theta0 = length * g0
 
 ! Track through the entrence face. Treat as thin lens.
 ! The second order terms come from the Hamiltonian term:
@@ -256,7 +258,7 @@ subroutine track_a_bend (start, ele, param, end)
     end%vec(1) = x2
     end%vec(2) = tan(atan(xp1) + theta0 - theta)
     end%vec(3) = end%vec(3) + end%vec(4) * s_travel
-    end%vec(5) = end%vec(5) + ele%value(l$) - s_travel * sqrt(1 + end%vec(4)**2) 
+    end%vec(5) = end%vec(5) + length - s_travel * sqrt(1 + end%vec(4)**2) 
 
 
 ! k1 /= 0
@@ -266,13 +268,12 @@ subroutine track_a_bend (start, ele, param, end)
     dE = start%vec(6)
     k1 = k1 / (1 + dE)
     kc = g**2 + k1
-    length = ele%value(l$)
     start2 = end  ! Save coords after entrence face
 
-    call quad_mat_calc (-kc, length, mat2)
+    call quad_mat2_calc (-kc, length, mat2)
     end%vec(1:2) = matmul (mat2, end%vec(1:2))
 
-    call quad_mat_calc (k1, length, mat2)
+    call quad_mat2_calc (k1, length, mat2)
     end%vec(3:4) = matmul (mat2, end%vec(3:4))
 
     phi = sqrt(abs(kc)) * length
