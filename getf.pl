@@ -113,7 +113,7 @@ sub searchit {
              /^ *function /i || /^ *elemental subroutine /i ||
              /^ *real\(rp\) *function /i || /^ *interface /i) {
         $_ = $';     # strip off "subroutine"
-        if (/^\s*$str[ |\(]/i) {
+        if (/^\s*$str[ |\(\n]/i) {
           $found_one = 1;
           print "\n$File::Find::name\n";
           foreach $line (@comments) {print $line;}
