@@ -29,6 +29,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/01/11 17:06:59  dcs
+!Fix Bug
+!
 !Revision 1.6  2002/01/08 21:44:38  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -70,7 +73,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
 
 !                   
 
-  call get_lattice_list (lat_list, num_lats, 'BMAD_LAT')
+  call get_lattice_list (lat_list, num_lats, 'BMAD_LAT:')
 
   ask_for_lat = .true.
 
