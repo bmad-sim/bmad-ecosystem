@@ -22,7 +22,8 @@
 #                         script
 #          -tagr          cesr release tagging
 #          -tagp          packages release tagging
-#          -lnx           Build a cesr(packages) release on linux platform as well 
+#          -lnx           Build a cesr(packages) release on linux platform as well
+#          -vms           Porting release to VMS_alpha
 #         variables:
 #           TAG=<release_tag>   Specify a custom tag for the release
 #           PKG=<packages_name> Specify a specific packages release
@@ -72,6 +73,7 @@ myprint_help () {
     echo "-tagr               cesr release tagging"
     echo "-tagp               packages release tagging"
     echo "-lnx     Build a cesr(packages) release on Linux platform as well"
+    echo "-vms    porting release to VMS_alpha"
     echo ""
     echo "Variable definitions:"
     echo "TAG=<release_tag>   Specify a custom tag for the release"
@@ -131,9 +133,11 @@ DO_TAG_PACKAGES=0
 REL=""
 PKG=""
 LNX=0
+VMS=0
 LNX_HOST=lnx6166.lns.cornell.edu
 CURRENT_HOST="`uname -n`"
-
+PLATFORM_TAG_LIST="OSF1_alpha Linux_i686"
+KEY_END=1
 # Get inputs
 arg_list=""
 for i 
@@ -147,7 +151,8 @@ do arg_list="${arg_list} ${i}";
      "-dump"    ) DO_DUMP=1 ;;
      "-tagr"    ) DO_TAG_RELEASE=1;;
      "-tagp"    ) DO_TAG_PACKAGES=1;;
-     "-lnx"     ) LNX=1;; 
+     "-lnx"     ) LNX=1;;
+     "-vms"     ) VMS=1;;
      TAG=*      ) REL_TAG=`echo $i|cut -d= -f2`;;
      PKG=*      ) PKG=`echo $i|cut -d= -f2`;;
      REL=*      ) REL=`echo $i|cut -d= -f2`;;
@@ -163,6 +168,22 @@ done
 echo "do_release - called with the following arguments:  "
 echo "${arg_list}" 
 echo ""
+##################################
+#Have you ran kinit?
+if ( [ $VMS = 1 -o $LNX = 1 ] ) then
+    TERMINAL01=`tty`
+    echo "Did you run kinit? (y/n):" >> $TERMINAL01
+    read ANSWER < $TERMINAL01
+    if ( [ $ANSWER != y ] ) then 
+        echo " Run kinit and start again." >> $TERMINAL01
+        exit
+    fi
+fi 
+
+# set PLATFORM_TAG_LIST 
+if ( [ $VMS -eq 1 ] ) then
+    PLATFORM_TAG_LIST="OSF1_alpha Linux_i686 VMS_alpha"
+fi
    
 # Get the operating system and the machine type
 PLATFORM_TAG="`uname -s`_`uname -m`"
@@ -327,7 +348,7 @@ fi
 co_pkg_status=0
 if ( [ $DO_PKG -eq 1 ] && [ ${DO_CHECKOUT} = "do_checkout" ] ) then
     echo "`date`: Checking out packages..."
-    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_PKG=${DO_PKG} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BUILD="" > ${FULL_PKG_LOG} 2>&1
+    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_PKG=${DO_PKG} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} PLATFORM_TAG_LIST="${PLATFORM_TAG_LIST}" BUILD="" > ${FULL_PKG_LOG} 2>&1
     co_pkg_status=$?
 fi
 ####################################################
@@ -336,7 +357,7 @@ fi
 co_rel_status=0
 if ( [ $DO_REL -eq 1 ] && [ ${DO_CHECKOUT} = "do_checkout" ] ) then
     echo "`date`: Checking out CESR release..."
-    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} BUILD="" > ${FULL_REL_LOG} 2>&1
+    gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT=${DO_CHECKOUT} PLATFORM_TAG_LIST="${PLATFORM_TAG_LIST}" BUILD="" > ${FULL_REL_LOG} 2>&1
     co_rel_status=$?
 fi
 
@@ -407,14 +428,14 @@ fi
 
 ##############################################################
 # waiting for do_release to finish on Linux 
-#  waiting time = xxx01 * 10 in seconds
-#  in each 10 seconds it checks for LNX_FILE_STATUS
+#  waiting time = xxx01 * 20 in seconds
+#  in each 20 seconds it checks for LNX_FILE_STATUS
 #
 if ( [ $LNX_HOST != $CURRENT_HOST -a $LNX -eq 1 ] ) then
-    xxx01=600
+    xxx01=60
     while ( [ $xxx01 -gt 0 ] ) 
     do
-      `sleep 10`;
+      `sleep 20`;
       lnxstatus="`cat $LNX_FILE_STATUS`";
       if ( [ $lnxstatus -ne 1 ] ) then
          xxx01=0 
@@ -431,6 +452,7 @@ fi
 if ( [ $LNX -eq 1 ] ) then
  if ( [ ${build_pkg_status} -eq 0 -a ${build_rel_status} -eq 0 -a $lnxstatus -eq 0 ] ) then
      echo "`date`: Installation completed successfully on Linux and ${PLATFORM_TAG} !";
+     KEY_END=0;
      if ( [ $DO_TAG_RELEASE -eq 1 ] ) then
         echo " Tagging with tag ${REL_NAME}";
         gmake -f ${BIN_DIR}/M.release TAGS_NAME=${REL_NAME}  add_tag_release;
@@ -459,6 +481,8 @@ else
      echo "`date`: Installation completed successfully on ${PLATFORM_TAG} !";
      if ( [ $LNX_HOST = $CURRENT_HOST ] ) then 
         echo "0">$LNX_FILE_STATUS
+        else
+        KEY_END=0;
      fi   
      if ( [ $DO_TAG_RELEASE -eq 1 ] ) then
         echo " Tagging with tag ${REL_NAME}";
@@ -487,7 +511,23 @@ else
      fi 
  fi
 fi
+#################################################################
+# Porting to VMS_alpha
+################################################################
+if ( [ ${KEY_END} -eq 0 -a ${VMS} -eq 1 ] ) then
+    if ( [ $DO_REL -eq 1 ]) then
+    gmake -f ${BIN_DIR}/M.release REL_NAME=${REL_NAME} to_vms_alpha_rel;
+    fi
+    if ( [ $DO_PKG -eq 1 ]) then
+    gmake -f ${BIN_DIR}/M.release PKG_NAME=${PKG_NAME} to_vms_alpha_pkg;
+    fi
+fi
 exit
+
+
+
+
+
 
 
 
