@@ -26,10 +26,7 @@ logical err
 
 ! make sure all calculations are up to date.
 
-if (s%global%lattice_recalc) then
-  call tao_lattice_calc ()
-  s%global%lattice_recalc = .false.
-endif
+call tao_lattice_calc ()
 
 !----------------------------------------
 ! Merit contribution from the variables.

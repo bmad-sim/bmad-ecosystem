@@ -336,8 +336,9 @@ case ('ele')
     found = .false.
     do i = loc + 1, u%model%n_ele_max
       if (u%model%ele_(i)%name == ele_name) then
-        if (nl+1 .gt. max_lines) then
-          call out_io (s_blank$, r_name, "Found too many elements!")
+        if (nl+2 .gt. max_lines) then
+          nl = nl + 1
+          write (lines(nl), *) "Found too many elements!"
           exit
         endif
         if (found) then

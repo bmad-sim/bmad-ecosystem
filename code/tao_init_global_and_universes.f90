@@ -563,7 +563,7 @@ subroutine var_stuffit_all_uni
 
   n = s%n_v1_var_used
   
-  if (abs(lbound(s%v1_var(n)%v, 1) - ubound(s%v1_var(n)%v, 1)) .gt. 500) then
+  if (abs(lbound(s%v1_var(n)%v, 1) - ubound(s%v1_var(n)%v, 1)) .gt. 1000) then
     call out_io (s_blank$, r_name, "Initilizing a large number of variables.")
     call out_io (s_blank$, r_name, "This may take a while...")
     call out_io (s_blank$, r_name, " ")
