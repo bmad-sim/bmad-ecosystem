@@ -448,8 +448,15 @@ subroutine track1_bmad (start, ele, param, end)
 
   case (accel_sol$)
 
-    print *, 'ERROR: ACCEL_SOL MUST BE RESUSITATED!' 
+    print *, 'ERROR: ACCEL_SOL NOT IMPLEMENTED!' 
     call err_exit
+
+!-----------------------------------------------
+! Taylor
+
+  case (taylor$)
+
+    call track_taylor (start%vec, ele%taylor, end%vec)
 
 !-----------------------------------------------
 ! unknown

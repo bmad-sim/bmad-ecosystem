@@ -82,8 +82,9 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
           ecollimator$, monitor$, instrument$, hkicker$, vkicker$ /) )) then
 
     call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
+    call mat6_add_multipoles_and_s_offset
+    return
 
-    goto 8000   ! put in multipole ends if needed
   else
     call mat_make_unit (mat6)
   endif
@@ -215,6 +216,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       call tilt_mat6 (mat6, ele%value(tilt$)+ele%value(roll$))
     endif
 
+    call mat6_add_multipoles_and_s_offset
+
 !--------------------------------------------------------
 ! quadrupole
 
@@ -225,7 +228,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     if (k1 == 0) then
       call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
-      goto 8000
+      call mat6_add_multipoles_and_s_offset
+      return
     endif
 
     call quad_mat_calc (-k1, length, mat6(1:2,1:2))
@@ -265,11 +269,13 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     endif
 
-! tilt
+! tilt and multipoles
 
     if (ele%value(tilt$) /= 0) then
       call tilt_mat6 (mat6, ele%value(tilt$))
     endif
+
+    call mat6_add_multipoles_and_s_offset
 
 !--------------------------------------------------------
 ! Sextupole.
@@ -295,6 +301,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       call tilt_mat6 (mat6, ele%value(tilt$))
     endif
 
+    call mat6_add_multipoles_and_s_offset
+
 !--------------------------------------------------------
 ! octupole
 ! the octupole is modeled as kick-drift-kick
@@ -318,6 +326,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     if (ele%value(tilt$) /= 0) then
       call tilt_mat6 (mat6, ele%value(tilt$))
     endif
+
+    call mat6_add_multipoles_and_s_offset
 
 !--------------------------------------------------------
 ! solenoid
@@ -392,6 +402,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4) + &
                     mat6(5,2) * mat6(4,1) - mat6(5,1) * mat6(4,2)
 
+    call mat6_add_multipoles_and_s_offset
+
 !--------------------------------------------------------
 ! linac rf cavity
 !
@@ -416,7 +428,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     if (gradient == 0) then
       call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
-      goto 8000  ! put in mulipole ends if needed
+      call mat6_add_multipoles_and_s_offset
+      return
     endif
 
     e_start = ele%value(energy_start$) * (1 + c0%vec(6))
@@ -464,6 +477,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(:,4) = mat6(:,4) / (1 + c0%vec(6))
     mat6(2,:) = (1 + c1%vec(6)) * mat6(2,:) 
     mat6(4,:) = (1 + c1%vec(6)) * mat6(4,:)
+
+    call mat6_add_multipoles_and_s_offset
 
 !--------------------------------------------------------
 ! rf cavity
@@ -519,6 +534,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(6,5) = k * (1 + pxy2*L*k/6)
     mat6(6,6) = 1 + pxy2*k*L/(2*E2*E)
 
+    call mat6_add_multipoles_and_s_offset
+
 !--------------------------------------------------------
 ! beam-beam interaction
 
@@ -565,13 +582,26 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     endif
 
+    call mat6_add_multipoles_and_s_offset
+
+!--------------------------------------------------------
+! taylor
+
+  case (taylor$)
+
+    call taylor_to_mat6 (ele%taylor, c0%vec, ele%mat6)
+
 !--------------------------------------------------------
 ! wiggler
 
   case (wiggler$)
 
     call mat_make_unit (mat6)     ! make a unit matrix
-    if (length == 0) goto 8000
+
+    if (length == 0) then
+      call mat6_add_multipoles_and_s_offset
+      return
+    endif
 
     k1 = ele%value(k1$) / rel_E**2
 
@@ -628,6 +658,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       call tilt_mat6 (mat6, ele%value(tilt$))
     endif
 
+    call mat6_add_multipoles_and_s_offset
+
 !--------------------------------------------------------
 ! solenoid/quad
 
@@ -658,6 +690,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     if (ele%value(tilt$) /= 0) then
       call tilt_mat6 (mat6, ele%value(tilt$))
     endif
+
+    call mat6_add_multipoles_and_s_offset
 
 !--------------------------------------------------------
 ! multipole
@@ -705,6 +739,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 !!                                    0.0_rp, 0.0_rp, c0t%vec, mat4, vec_st)
     mat4 = mat6(1:4,1:4)
 
+    call mat6_add_multipoles_and_s_offset
+
 !--------------------------------------------------------
 ! rbends are not allowed internally
 
@@ -736,7 +772,9 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 !--------------------------------------------------------
 ! put in multipole components
 
-8000 continue
+contains
+
+subroutine mat6_add_multipoles_and_s_offset
 
   if (associated(ele%a) .and. key /= multipole$ .and. key /= ab_multipole$) then
     mat6_m = 0
@@ -756,6 +794,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(:,2) = mat6(:,2) + mat6(:,1) * s_off
     mat6(:,4) = mat6(:,4) + mat6(:,3) * s_off
   endif
+
+end subroutine
 
 end subroutine
 
