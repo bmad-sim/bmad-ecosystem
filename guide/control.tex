@@ -1,0 +1,320 @@
+\chapter {Control Elements}
+\label{c:control}
+\index{Element!Overlay}
+\index{Element!Group}
+\index{Element control}
+\index{Element lord}
+\index{Element slave}
+
+It is possible to have elements controlling the attributes of other
+elements. These \vn{lord} elements are meant, for example, to mimic
+the effect of changing a knob in the control room. For this purpose
+the lattice is split into two sections: The first section is the list
+of elements that \bmad uses for any analysis (tracking, Twiss
+parameter calculations, etc.). This first part is called the
+\vn{regular} part of the lattice.
+Elements in the \vn{regular} part are either
+\vn{slave} elements if they have a controlling lord or \vn{free}
+elements if they do not.  The second section consists solely of
+\vn{lord} elements. \vn{Lord} elements can control other \vn{lord}
+elements and a hierarchy of \vn{lord} elements may be established.
+
+There are five types of lord elements: 
+\begin{Itemize}
+\item 
+\vn{Group} lord elements are used to make variations in attributes. For example, to
+simulate the action of a control room knob that changes the beam tune
+in a storage ring, a \vn{Group} can be used to vary the strength of
+selected quads in a specified manner. \vn{Groups} are coversed in \sref{s:group}.
+\item
+An \vn{overlay} lord is like a \vn{group} except that \vn{overlays}
+set the value (not a change in) the attributes they
+control. \vn{Overlays} are covered in \sref{s:overlay}.
+\item
+A \vn{superposition} lord is created when elements are superimposed on
+top of other elements. This is covered in \sref{s:superposition}.
+\item
+\vn{I_Beam} elements mimic the effect of a support girder. This is
+covered in \sref{s:i_beam}.
+\item
+\vn{Clone} elements are used when the beam recirculates through the same element multiple times. This is covered in \sref{s:clone}.
+\end{Itemize}
+
+%-----------------------------------------------------------------------------
+\section{Overlay Elements}
+\label{s:overlay}
+
+An \vn{overlay} element is used to control the attributes of other elements. 
+For example: 
+\begin{example}
+  over1: overlay = \{a_ele, b_ele/2.0\}, hkick = 0.003
+  over2: overlay = \{b_ele\}, hkick
+  over2[hkick] = 0.9
+  a_ele: quad, hkick = 0.05, ...
+  b_ele: rbend, ...
+  this_line: line = ( ... a_ele, ... b_ele, ... )
+  use, this_line
+\end{example}
+
+In the example the overlay \vn{over1} controls the \vn{hkick}
+attribute of the "slave" elements \vn{a_ele} and
+\vn{b_ele}. \vn{over2} controls the hkick attribute of just
+\vn{b_ele}. \vn{over1} has a \vn{hkick} value of 0.003 and \vn{over2}
+has been assigned a value for \vn{hkick} of 0.9.
+
+There are coefficients associated with the control of a slave element. 
+The default coefficient is 1.0. To specify a coefficient use a slash "/" 
+after the element name followed by the coefficient. In the above example 
+the coefficient for the control of \vn{b_ele} from \vn{over1} is 2.0 
+and for the others the default 1.0 is used. thus 
+\begin{example}
+  a_ele[hkick] = over1[hkick]
+               = 0.003
+  b_ele[hkick] = over2[hkick] + 2 * over1[hkick] 
+               = 0.906
+\end{example}
+
+An \vn{overlay} will control all elements of a given name.  Thus, in
+the above example, if there are multiple elements in \vn{this_line}
+with the name \vn{b_ele} then the \vn{over1} and \vn{over2} overlays
+will control the hkick attribute of all of them.
+
+Note: Overlays completely determine the value of the attributes that
+are controlled by the overlay. in the above example, the hkick of 0.05
+assigned directly to \vn{a_ele} is overwritten by the overlay action
+of \vn{over1}.
+
+\noindent The default value for an overlay is 0 so for example
+\begin{example}
+  over3: overlay = \{c_ele\}, k1
+\end{example}
+will make \vn{c_ele[k1]} = 0. Overlays can also control more than one
+type of attribute as the following example shows
+\begin{example}
+  over4: overlay = \{this_quad[k1]/3.4, this_sextupole[k2], ...\}, hkick
+\end{example}
+
+
+%-----------------------------------------------------------------------------
+\section{Group Elements}
+\label{s:group}
+\index{Element!Group}
+ 
+\vn{group} is like \vn{overlay} in that a \vn{group} element controls
+the attribute values of other ``slave'' elements.  A \vn{group}
+element is used to make changes in value. This is unlike an
+\vn{overlay} which sets a specific value directly. An example will
+make this clear
+\begin{example}
+  gr: group = \{q1\}, k1 
+  gr[command] = 0.34 
+  q1, quad, l = ...
+  q1[k1] = 0.57
+\end{example}
+In this example the group \vn{gr} controls the \vn{k1} attribute of
+the element \vn{q1}. Unlike overlays, values are assigned to group
+elements using the \vn{command} attribute.  When a lattice file is
+read in then command values for any groups are always applied
+last. This is independent of the order that they appear in the file.
+Thus in this example the value of q1[k1] would be $0.91 = 0.57 + 0.34$.
+When the changes are made to the slave attributes the value of
+\vn{command} is stored in the \vn{group}'s \vn{old_command} attribute.
+After the lattice is read in a program can change the \vn{gr[command]}
+attribute and this change will be added to the value of
+\vn{q1[k1]}. The bookkeeping routine that transfers the change from
+\vn{gr[command]} to \vn{q1[k1]} doesn't care what the current value of
+\vn{q1[k1]} is. It only knows it has to change it by the change in
+\vn{gr[command]}.
+
+A \vn{group} can be used to control an elements position and length
+using the attributes
+\begin{example}
+  accordion_edge  ! Element grows or shrinks symmetrically
+  start_edge      ! Varies element's starting edge s-position
+  end_edge        ! Varies element's ending edge s-position
+  symmetric_edge  ! Varies element's overall s-position. Constant length.
+  s_offset        ! Same as symmetric_edge
+\end{example}
+In all cases the total length of the lattice is kept invariant.
+\vn{accordion_edge} varies the edges of an element so that the center
+of the element is fixed but the length varies. with
+\vn{accordion_edge} a change of, say, 0.1 in a \vn{group}'s
+\vn{command} attribute moves both edges of the element by 0.1 meters
+so that the length of the element changes by 0.2 meters. To keep the
+total lattice length invariant the lengths of the elements to either
+side are varied accordingly.
+For example
+\begin{example}
+  q10: quad, l = ...
+  q11: quad, l = ...
+  d1: drift, l = ...
+  d2: drift, l = ...
+  this_line: line = (... d1, q10, d2, q11, ...)
+  gr2: group = \{q10\}, start_edge = 0.1
+\end{example}
+This last line that defines \vn{gr2} is just a shorthand notation for
+\begin{example}
+  gr2: group = \{q10\}, start_edge 
+  gr2[command] = 0.1
+\end{example}
+The effect will be to lengthen the length of \vn{q10} and shorten the
+length of \vn{d1}.
+
+The full list of attributes of a group are
+\begin{example}
+  command         
+  old_command     
+  coef            
+  type            ! See section \ref{s:string}
+  alias           ! See section \ref{s:string}
+  descrip         ! See section \ref{s:string}
+\end{example}
+The \vn{coef} attribute is not used by any \bmad\ routine. It is
+defined for individual programs to store, say, a needed conversion
+factor.
+
+Like \vn{overlay}s, coefficients can be specified for the individual
+elements under a \vn{group}'s control and \vn{group}s can control more
+than one type of attribute. For example
+\begin{example}
+  gr3: group = \{q1[k1]/-1.0, q2[tilt], oct1/-2.0\}, k3
+  gr3[command] = 2.0
+  gr3[old_command] = 1.5
+\end{example}
+In this example \vn{gr3} controls 3 attributes of 3 different
+elements.  The change in \vn{gr3} when the lattice is read in is $0.5
+= 2.0 - 1.5$.  this 0.5 change will change \vn{q1[k1]} by $-0.5 = -1
+\times 0.5$, \vn{q2[tilt]} will change by 0.5 and \vn{oct1[k3]} will
+change by $-1.0 = -2.0 * 0.5$.
+
+%-----------------------------------------------------------------------------
+\section{Superposition}
+\label{s:super}
+\index{Superposition}
+
+In practice the field at a particular point in the lattice may be due
+to more than one physical element. A common example is a quadrupole
+inside a solenoid. \bmad has a mechanism to handle some of these
+cases using what is called ``superposition''. A simple example shows
+how this works:
+\begin{example}
+  Q: quad, l = 10
+  D: drift, l = 4
+  S: solenoid, l = 6, superimpose, ref = q, ref_end
+  lat: line = (Q, D)
+  use, lat
+\end{example}
+The \vn{superimpose} attribute of element \vn{S} superimposes \vn{S}
+over the lattice \vn{(Q, D)}. The placement of \vn{S} is such that the
+center of \vn{S} coincides with the end of \vn{Q} (more on how
+superimposed elements get placed later). The regular part of the
+lattice list (the part that one does tracking through) Looks like:
+\begin{example}
+        Element   Key         Length
+  1)    Q{\B}        Quadrupole   7
+  2)    Q{\B}S       Sol_quad     3
+  3)    S{\B}1       Solenoid     3
+  4)    D{\B}        Drift        1
+\end{example}
+What \bmad has done is to split the original elements \vn{(Q, D)} at
+the edges of \vn{S}.  The first element \vn{Q\B} is the part of \vn{Q}
+that is outside of \vn{S}. Since this is only part of \vn{Q} \bmad
+has put a \vn{\B} in the name so that there will be no confusion.
+(\vn{\B} has no special meaning other than the fact that \bmad uses
+it for mangling names). The next element, \vn{Q{\B}S}, is the part of
+\vn{Q} that is inside \vn{S}. \vn{Q{\B}S} is a combination
+solenoid/quadrupole element as one could expect. \vn{S{\B}1} is the part
+of \vn{S} that is outside \vn{Q} so this element is just a
+solenoid. Finally, \vn{D\B} is the rest of the drift outside \vn{S}.
+
+With the lattice broken up like this \bmad has constructed something
+that can be easily analyzed. However, the original elements \vn{Q} and
+\vn{S} still exist within the lord section of the lattice. \bmad has bookkeeping
+routines so that if a change is made to the \vn{Q} or \vn{S} elements then these
+changes can get propagated to the corresponding slaves.  It does
+not matter which element is superimposed. Thus, in the above example,
+\vn{S} could have been put in the Beam Line (with a drift before it)
+and \vn{Q} could then have been superimposed on top and the result
+would have been the same (except that the split elements could have
+different names).
+
+Superpositions are restricted in that \bmad may not have an
+appropriate element for the superimposed fields. For example, a
+solenoid can not be superimposed over an octupole.  If a zero length
+element, such as a marker, is superimposed with some other element (or
+vice versa) the element is just split in two. For example:
+\begin{example}
+  Q: quad, l = 10
+  M: marker, superimpose, offset = 6
+  lat: line = (Q)
+  use, lat
+\end{example}
+The resulting lattice (first part) would be
+\begin{example}
+        Element   Key           Length
+  1)    Q{\B}1       Quadrupole    6
+  2)    M         Marker        0
+  3)    Q{\B}2       Quadrupole    4
+\end{example}
+and the second part of the lattice would have the \vn{Q} element.
+ 
+The placement of a superimposed element is determined by three
+factors: A point on the superimposed element, a reference point in the
+lattice line, and an offset between the points. The attributes that
+determine these three quantities are:
+\begin{example}
+  ref = <element name in lattice>
+  offset = <length>      (default = 0)
+  ref_beginning
+  ref_center             (default)
+  ref_end
+  ele_beginning
+  ele_center             (default)
+  ele_end
+\end{example}
+\vn{ele_beginning} \vn{ele_center} \vn{ele_end} makes the point on the
+superimposed element the beginning edge, the center, or the
+end edge respectively. If neither of these attributes are
+given the default is to use the element center.
+
+Superposition may be done with any element except \vn{drift},
+and \vn{Group}, \vn{Overlay}, and \vn{I_Beam} control elements.
+Additionally, \vn{Superpose} may not be used with \vn{close}.
+
+%-----------------------------------------------------------------------------
+\section{Clone}
+\label{s:clone}
+\index{Clone}
+
+Some lattices have the beam recirculating through the same element
+multiple times. For example, an Energy Recovery Linac (ERL) will
+circulate the beam back through the LINAC part to retrieve the energy
+in the beam. In \bmad this situation can simulated using the
+\vn{clone} attribute. A simple example shows how this works.
+\begin{example}
+  A: lcavity, clone
+  my_line: line = (A, A)
+  use, my_line
+  expand_lattice
+  A\B2[dphi0] = pi
+\end{example}
+The regular part of the lattice (the part that gets tracked through)
+consists of two slave elements
+\begin{example}
+  A\B1, A\B2
+\end{example}
+Since the two elements are derived from a \vn{clone} element they are
+given unique names by adding a \vn{{\B}n} suffix. In addition there is
+a lord element (that doesn't get tracked through) called \vn{a} in the
+lord part of the lattice. Changes to attributes of the lord \vn{A}
+element will be passed to the slave elements by \bmad's bookkeeping
+routines. Assuming \vn{A\B1} is an accelerating cavity, to make
+\vn{A\B2} a deaccelerating cavity the \vn{dphi0} attribute of
+\vn{A\B2} is set to $pi$. This is the one attribute that \bmad's
+bookkeeping routines will not touch when transfering attribute values
+from \vn{A} to its slaves. Notice that the \vn{dphi0} attribute had to
+be set after \vn{expand_lattice} is used to expand the lattice since
+\bmad does immediate evaluation and \vn{A\B2} does not exist before
+the lattice is expanded.
+
+

@@ -6,7 +6,7 @@
 \label{s:ref}
 \index{Coordinates!reference orbit|textbf}
 
-The ``reference orbit'' is the curved path used to define a coordinate
+The \vn{reference orbit} is the curved path used to define a coordinate
 system for particles as shown in Figure~\ref{f:local_coords}.  At a
 given time $t$, a particle's position can be described by a point on
 the reference orbit a distance $s$ relative to the reference orbit's
@@ -47,17 +47,21 @@ of an element with respect to the exit point of the previous element.
 See Section~\ref{s:patch}.  If not specified otherwise, the $s = 0$
 position is the entrance point of the first element.
 
-Notice that, in a \vne{Wiggler},
-the reference orbit, which is a straight
-line, does {\em not} correspond to the orbit that any actual particle
-could travel. Typically the physical entity of an element is centered
-about the reference curve. However, by specifying offsets and pitches
 \index{Element attribute!offset}\index{Element attribute!pitch}
-(See Section~\ref{s:offset}), the physical element may be
-arbitrarily offset with respect to its reference curve.
-Shifting a physical magnet with respect to its
-reference curve generally means that the reference curve does {\em
-not} correspond to the orbit that any actual particle could travel.
+Notice that, in a \vne{Wiggler}, the reference orbit, which is a
+straight line, does {\em not} correspond to the orbit that any actual
+particle could travel. Typically the physical entity of an element is
+centered about the reference curve. However, by specifying offsets and
+pitches (See \sref{s:offset}), the physical element may be
+arbitrarily offset with respect to its reference curve.  Shifting a
+physical magnet with respect to its reference curve generally means
+that the reference curve does {\em not} correspond to the orbit that
+any actual particle could travel.
+
+Do not confuse this reference orbit (which defines the local
+coordinate system) with the reference orbit about which the transfer
+matrics are calculated (\sref{s:twiss}). The former is fixed by the
+lattice while the latter can be any arbitrary orbit.
 
 %-----------------------------------------------------------------------------
 \section{Global Reference System}

@@ -677,13 +677,12 @@ Example:
 \end{center}
 \toffset
 
-\index{Lattice files!primary}
 An \vn{Lcavity} is a LINAC accelerating cavity.
 Tracking through an \vn{Lcavity} is modeled using the equations
 developed by Rosenzweig and Serafini\cite{b:rosenzweig}. The
 attributes specific to an \vn{Lcavity} are The dependent variable
-\vn{delta_e} attribute can be used in place of \vn{gradient} in a
-primary lattice file as discussed in Section~\ref{s:depend}.
+\vn{delta_e} attribute can be used in place of \vn{gradient} 
+as discussed in Section~\ref{s:depend}.
 \begin{example}
   gradient     ! Accelerating gradient (V/m).
   phi0         ! Phase (radians/2\(\pi\)) of the reference particle with 
@@ -730,7 +729,7 @@ The first column is the longitudinal distance $z$. $z$ must start at 0
 and must increment by the a constant amount from row to row. The
 second column is the longitudinal wake function in $V/C/m$. The third
 column is the transverse wake in $V/C/m^2$. Any additional columns are
-ignored.  Wakefield formulas are to be found in \REF{s:wakefields}
+ignored.  Wakefield formulas are to be found in \sref{s:wakefields}
 
 The input file name for the long--range wakefields is specified using
 the \vn{lr_wake_file} attribute. The file gives the transverse dipole
@@ -746,7 +745,7 @@ blank.  An example input file is:
   1.6991e9   11.21    5.0e4
 \end{example}
 The formula used to compute the wakefield is given in
-\REF{s:wakefields}. Note that some papers will quote a quantity R'/Q
+\sref{s:wakefields}. Note that some papers will quote a quantity R'/Q
 with units of Ohm/m$^2$ (sometimes this is confusingly called
 R/Q). This is R/Q at the radius of the beam pipe $a$:
 \Begineq

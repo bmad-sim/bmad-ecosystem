@@ -1,17 +1,20 @@
-\chapter{Lattice File Syntax}
+\chapter{Lattice File Overview}
 \index{Lattice files}
 
 %---------------------------------------------------------------------------
-\section{Lattice files}
+\section{Lattice Files}
 \label{s:lattice_file_formats}
 
+\index{XSIF}
+A lattice file (or files) defines the sequence of elements that a
+particle will travel through along with the attributes of the elements
+(their lengths, their strengths, etc.). 
 The \bmad software library comes with routines to read in (parse) a
-lattice definition file (or files). There are two input formats that
+lattice definition files. There are two input formats that
 \bmad understands: The \bmad standard format and
 XSIF\cite{b:xsif}. XSIF stands for ``Extended Standard Input Format.''
 XSIF is essentially a subset of the MAD input format. Documentation
 can be found at:
-\index{Lattice files!XSIF}
 \begin{example}
   http://www-project.slac.stanford.edu/
               lc/ilc/TechNotes/LCCNotes/PDF/LCC-0060%20rev.1.pdf
@@ -28,23 +31,42 @@ Throughout this manual if the lattice input format is mentioned it
 will always pertain to the \bmad standard format unless explicitly
 stated otherwise.
 
+%---------------------------------------------------------------------------
+\section{File Syntax}
+\index{Lattice files!statement syntax}
+
+The syntax that a \bmad standard lattice file must conform to is
+modeled after the lattice input format of the \MAD program.
+Essentially, a \bmad lattice file is similar to a \mad lattice file
+except that a \bmad file has no ``action'' commands (action commands
+tell the program to calculate the Twiss parameters, do tracking,
+etc.).  Interacting with the user to determine what actions a program
+should take is left to the program and is not part of \bmad (although
+\bmad, of course, provides the routines to perform many
+calculations). A program is not required to use the \bmad parser
+routine but if it does the following chapters describes how to
+construct a valid lattice file.
+
+Input for \bmad is free format. A \bmad lattice input file consists
+of a sequence of statements. Normally a statement occupies a single
+line in the file. Several statements may be placed on the same line by
+inserting a semicolon (;) between them. A long statement can occupy
+multiple lines by putting an ampersand (\&) at the end of each line of
+a statement except for the last line of the statement. An
+exclamation mark (!) denotes a comment and the exclamation mark and
+everything after the exclamation mark on the line are ignored. Example:
+\begin{example}
+  ! This is a comment
+  q0: quad, l = 0.6, &     ! Continued to the next line
+            k1 = 1.4, tilt = pi/3
+\end{example}
+\bmad is case insensitive. Everything is converted to uppercase except
+strings.
+
 %----------------------------------------------------------------------------
-\section{Bmad Lattice Files and Digested Files}
+\section{Digested Files}
 \label{s:lattice_files}
 \index{Lattice files!digested files}
-
-The syntax that a \bmad standard lattice file
-must conform to is modeled after the lattice input format of the \MAD
-program.  Essentially, a \bmad lattice file is similar to a \mad
-lattice file except that a \bmad file has no ``action'' commands
-(action commands tell the program to calculate the Twiss parameters,
-do tracking, etc.). 
-Interacting with the user to determine what actions a program
-should take is left to the program and is not part of \bmad (although
-\bmad, of course, provides the routines to perform many calculations). A
-program is not required to use the \bmad parser routine but if it
-does the following chapters describes how to construct a valid lattice
-file.
 
 Normally the \bmad parser routine will create what is called a
 ``digested file'' after it has parsed a lattice file so that when a
@@ -68,58 +90,97 @@ shifts in magnet positions) and then write out a digested version of the
 lattice. This adjusted lattice can now be read in by another program to
 do some custom analysis.
 
-\index{Lattice files!primary|textbf}
-\index{Lattice files!secondary|textbf}
-A ``secondary'' lattice file (or files) is a lattice file that is used
-to modify the lattice that has already been read in via the
-``primary'' lattice file.  For example, a secondary lattice file can
-be used to set (or reset) aperture limits for the elements of the
-lattice.  The term secondary in this case refers not to the file but
-whether it is read in when the lattice is first read in. For example,
-if the file \vn{lattice_file} holds a lattice definition and
-\vn{aperture_file} is the name of an aperture file then the two files
-may be read in simultaneously by using a third file which calls the
-two
-\begin{example}
-  ! This is a file that calls the two files
-  call, file = 'lattice_file'
-  call, file = 'aperture_file'
-\end{example}
-In this case \vn{aperture_file} is considered to be a
-primary lattice file.  The reason for making a distinction between
-primary and secondary is that there are restrictions, discussed in
-other parts of the manual, on any lattice file used as a secondary
-file.
+%---------------------------------------------------------------------------
+\section{Element Sequence Definition}
 
+\index{Line}
+\index{List}
+The creation of the element sequence that defines a lattice involves
+constructs called \vn{lines} and \vn{lists} which define subsequencies
+that can be concatinated together. For example:
+\begin{example}
+  l3: line = (l1, l2)   ! Concatenate two lines
+  l1: line = (a, b, c)  ! Line with 3 elements
+  l2: line = (a, z)     ! Another line 
+  use, l3               ! Use l3 as the lattice definition.
+  expand_lattice        ! Expand all lines and form the lattice.
+\end{example}
+In this case the lattice would be
+\begin{example}
+  (a, b, c, a, z)
+\end{example}
+\vn{Lines} and \vn{lists} can be defined in any order. Thus in the
+above example \vn{l3} was defined in terms of \vn{l1} and \vn{l2}
+before these lines where defined. See \cref{c:sequence} for more details.
+
+\index{Superposition}
+The \vn{superposition} construct allows elements to be placed in a
+lattice at a definite longitudinal position. What happens is that
+after a lattice is expanded, there is a reshuffling of the elements to
+accomodate any new superimpose elements. See \sref{s:super} for more
+details.
 
 %---------------------------------------------------------------------------
-\section{Lattice files}
-\index{Lattice files!statement syntax}
+\section{Lattice Elements}
 
-Input for \bmad is free format. A \bmad lattice input file consists
-of a sequence of statements. Normally a statement occupies a single
-line in the file. Several statements may be placed on the same line by
-inserting a semicolon (;) between them. A long statement can occupy
-multiple lines by putting an ampersand (\&) at the end of each line of
-a statement except for the last line of the statement. An
-exclamation mark (!) denotes a comment and the exclamation mark and
-everything after the exclamation mark on the line are ignored. Example:
+The syntax for defining a lattice element roughly follows \MAD:
 \begin{example}
-  ! This is a comment
-  q0: quad, l = 0.6, &     ! Continued to the next line
-            k1 = 1.4, tilt = pi/3
+  label: keyword [, attributes]
 \end{example}
-\bmad is case insensitive. Everything is converted to uppercase except
-strings.
+\vn{Overlay} and \vn{Group} elements have a slightly different syntax
+\begin{example}
+  label: keyword = \{ list \}, master-attribute [= value] [, attributes]
+\end{example}
+and \vn{I_Beam} elements have the syntax
+\begin{example}
+  label: keyword = \{ list \} [, attributes]
+\end{example}  
+For example:
+\begin{example}
+  q01w: quadrupole, type = "A String", l = 0.6, tilt = pi/2
+  h10e: overlay = \{ b08e, b10e \}, hkick
+\end{example}
+
+\cref{c:elements} gives a list of elements with their attributes.
+
+%---------------------------------------------------------------------------
+\section{Element Attributes}
+\index{Element attribute|textbf}
+
+Any lattice element has various attributes like its name, its length,
+its strength, etc. The values of element attributes can be specified
+when the element is defined. For example:
+\begin{example}
+  b01w: sbend, l = 6.0, rho = 89.0 ! Define an element with attributes.
+\end{example}
+After an element's definition, an individual attribute may be referred
+to using the syntax
+\begin{example}
+  element-name[attribute-name]
+\end{example}
+Element attributes can be set or used in an algebraic expression:
+\begin{example}
+  bo1w[roll] = 6.5                  ! Set an attribute value.
+  b01w[l] = 6.5                     ! Change an attribute value.
+  b01w[l] = b01w[rho] / 12          ! OK to reset an attribute value.
+  my_const = b01[rho] / b01[l]      ! Use of attribute values in an expression.
+\end{example}
+When setting an attribute value if more than one element has the
+\vn{element-name} then {\it all} such elements will be set.  When setting an
+attribute value if \vn{element-name} is the name of a type of element
+then all elements of that type will be set. For example
+\begin{example}
+  rfcavity[tracking_method] = symp_lie_ptc ! Set all RFcavity elements.
+\end{example}
+
+\cref{c:elements} gives a list of elements with their attributes.
 
 %---------------------------------------------------------------------------
 \section{Variable Types}
 \index{Arithmetic expressions!variables}
 
-There are five types of variables in \bmad: Reals, Integers, Switches, 
-Logicals, and 
-Strings. Reals are discussed below in more detail. Integers are just reals
-that are evaluated to the nearest integer. Acceptable logical values are
+There are five types of variables in \bmad: Reals, Integers, Switches,
+Logicals (booleans), and Strings. Acceptable logical values are
 \begin{example}
   .true.  .false.
    true    false
@@ -130,57 +191,23 @@ For example
   rf1[is_on] = False
 \end{example}
 
-\vskip0.1in
 String literals can be quoted using double quotes (") or, if there are no
 blanks or comma within a string, the quotes can be omitted. For example:
 \begin{example}
   Q00W: Quad, type = "My Type", alias = Who_knows, &
                                   descrip = "Only the shadow knows"
 \end{example}
-Unlike everything else, strings are not converted to uppercase.
+Unlike everything else, strings are not converted to uppercase. Note:
+Single quotes are not allowed as string delimiters.
 
 Switches are variables that take discrete values. For example:
 \begin{example}
-  beam, particle = positron                    
+  beam, particle = positron          
   q01w: quad, tracking\_method = bmad\_standard 
 \end{example}
 The name ``switch'' can refer to the variable (for example,
 \vn{tracking_method}) or to a value that it can take (for example,
 \vn{bmad_standard}). The name ``method'' is used interchangeably with switch.
-
-%---------------------------------------------------------------------------
-\section{Intrinsic functions}
-\label{s:functions}
-\index{Intrinsic Functions}
-
-The following intrinsic functions are recognized by \bmad: \hfil\break
-\hspace*{0.15in}
-\begin{tabular}{ll}
-  \vnif{sqrt}(x)      & Square Root    \\
-  \vnif{log}(x)       & Logarithm      \\
-  \vnif{exp}(x)       & Exponential    \\
-  \vnif{sin}(x)       & Sine           \\
-  \vnif{cos}(x)       & Cosine         \\
-  \vnif{tan}(x)       & Tangent        \\
-  \vnif{asin}(x)      & Arc sine       \\
-  \vnif{acos}(x)      & Arc cosine     \\
-  \vnif{atan}(x)      & Arc Tangent    \\
-  \vnif{abs}(x)       & Absolute Value \\
-  \vnif{ran}()        & Random number between 0 and 1 \\
-  \vnif{ran_gauss}()  & Gaussian distributed random number \\
-\end{tabular}
-
-\index{Statement!parameter!ran_seed}
-\vn{ran_gauss} is a Gaussian distributed random number with unit RMS. 
-Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator. 
-To choose the seed set 
-\begin{example}
-  parameter[ran_seed] = Integer
-\end{example}
-A \vn{value} of zero will set the seed using the system clock so that different
-sequences of random numbers will be generated each time a program is run.
-The default behavior if \vn{parameter[ran_seed]} is not present is for a fixed
-sequence of random numbers every time a program is run.
 
 %---------------------------------------------------------------------------
 \section{Arithmetic Expressions}
@@ -196,6 +223,8 @@ The standard operators are defined: \hfil\break
   $a \; / \; b$     & Division        \\
   $a \, \land \, b$ & Exponentiation  \\
 \end{tabular}
+\bmad also has a set of intrinsic functions. A list of these is given
+in \sref{s:functions}.
 
 \index{Arithmetic expressions!constants}
 Literal constants can be entered with or without a decimal point. An
@@ -232,49 +261,61 @@ defined, symbolic constants cannot be redefined. For example:
 \end{example}
 
 %---------------------------------------------------------------------------
-\section{Element Attributes}
-\index{Element attribute|textbf}
+\section{Intrinsic functions}
+\label{s:functions}
+\index{Intrinsic Functions}
 
-Any lattice element has various attributes like its name, its length,
-its strength, etc. The values of element attributes can be specified using
-the syntax
-\begin{example}
-  element-name[attribute-name]
-\end{example}
-Element attributes can be set or used in an algebraic expression:
-\begin{example}
-  b01w: sbend, l = 6.0, rho = 89.0   ! Define a bend element.
-  bo1w[roll] = 6.5                   ! Set an attribute value.
-  b01w[l] = 6.5                      ! Change an attribute value.
-  b01w[l] = b01w[rho] / 12           ! OK to reset an attribute value.
-  my_const = b01[rho] / b01[l]       ! Use of attribute values in an expression.
-\end{example}
-When setting an attribute value if more than one element has the
-\vn{element-name} then all such elements will be set.  When setting an
-attribute value if \vn{element-name} is the name of a type of element
-then all elements of that type will be set. For example
-\begin{example}
-  rfcavity[tracking_method] = symp_lie_ptc ! Set all of one type of element.
-\end{example}
+The following intrinsic functions are recognized by \bmad: \hfil\break
+\hspace*{0.15in}
+\begin{tabular}{ll}
+  \vnif{sqrt}(x)      & Square Root    \\
+  \vnif{log}(x)       & Logarithm      \\
+  \vnif{exp}(x)       & Exponential    \\
+  \vnif{sin}(x)       & Sine           \\
+  \vnif{cos}(x)       & Cosine         \\
+  \vnif{tan}(x)       & Tangent        \\
+  \vnif{asin}(x)      & Arc sine       \\
+  \vnif{acos}(x)      & Arc cosine     \\
+  \vnif{atan}(x)      & Arc Tangent    \\
+  \vnif{abs}(x)       & Absolute Value \\
+  \vnif{ran}()        & Random number between 0 and 1 \\
+  \vnif{ran_gauss}()  & Gaussian distributed random number \\
+\end{tabular}
 
+\index{Statement!parameter!ran_seed}
+\vn{ran_gauss} is a Gaussian distributed random number with unit RMS. 
+Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator. 
+To choose the seed set 
+\begin{example}
+  parameter[ran_seed] = Integer
+\end{example}
+A \vn{value} of zero will set the seed using the system clock so that
+different sequences of random numbers will be generated each time a
+program is run.  The default behavior if \vn{parameter[ran_seed]} is
+not present is to use the system clock for the seed.
 
-%---------------------------------------------------------------------------
-\section{Lattice Elements}
-
-The syntax for defining a lattice element roughly follows \MAD:
+\index{Expand_lattice}
+If an element is used multiple times in a lattice, and if \vn{ran} or
+\vn{gauss_ran} is used to set an attribute value of this element, then
+to have all instances of the element have different attribute values
+the setting of the attribute must be after the lattice has been
+expanded. For example:
 \begin{example}
-  label: keyword [, attributes]
+  a: quad 
+  a[x_offset] = 0.001*ran_gauss()
+  my_line: line = (a, a)
+  use, my_line
 \end{example}
-\vn{Overlay} and \vn{Group} elements have a slightly different syntax
+Here, because \bmad does immediate evaluation, the \vn{x_offset}
+values for \vn{a} gets set in line 2 and so both copies of \vn{a} in
+the lattice get the same value. This is probably not what is wanted.
+On the other hand if the attribute is set after lattice expansion:
 \begin{example}
-  label: keyword = \{ list \}, master-attribute [= value] [, attributes]
+  a: quad 
+  my_line: line = (a, a)
+  use, my_line
+  expand_line
+  a[x_offset] = 0.001*ran_gauss()
 \end{example}
-and \vn{I_Beam} elements have the syntax
-\begin{example}
-  label: keyword = \{ list \} [, attributes]
-\end{example}  
-For example:
-\begin{example}
-  q01w: quadrupole, type = "A String", l = 0.6, tilt = pi/2
-  h10e: overlay = \{ b08e, b10e \}, hkick
-\end{example}
+Here the two \vn{a} elements in the lattice get different values for
+\vn{x_offset}.

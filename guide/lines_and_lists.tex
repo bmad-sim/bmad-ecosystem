@@ -1,14 +1,14 @@
-\chapter{Beam Lines, Replacement Lists, and Superposition}
+\chapter{Beam Lines, and Replacement Lists}
+\chapter{c:sequence}
 
-To \bmad a ``lattice''\index{Lattice} 
-is the sequence of physical elements that is to
-be studied. The lattice is constructed in the input lattice file
-using what are know as Beam Lines
-and Replacement Lists. Beam Lines are further subdivided into Lines with
-and without replacement arguments. This essentially corresponds to the
-\MAD definition of Lines and Lists. There can be multiple Beam Lines
-and Replacement Lists defined in a lattice file and Lines and Lists can
-be nested inside other Lines and Lists. The particular Line that defines
+To \bmad a ``lattice''\index{Lattice} is the sequence of physical
+elements that is to be studied. The lattice is constructed in the
+input lattice file using what are know as Beam Lines and Replacement
+Lists. Beam Lines are further subdivided into Lines with and without
+replacement arguments. This essentially corresponds to the \MAD
+definition of Lines and Lists. There can be multiple Beam Lines and
+Replacement Lists defined in a lattice file and Lines and Lists can be
+nested inside other Lines and Lists. The particular Line that defines
 the lattice to be analyzed by \bmad is selected by the \vn{use}
 statement. For example
 \begin{example}
@@ -151,103 +151,3 @@ For example the following is not allowed:
 \begin{example}
   list1: list = (2*a, b)  ! NO: No repetition count allowed.
 \end{example}
-
-%-----------------------------------------------------------------------------
-\section{Superposition}
-\label{s:super}
-\index{Superposition}
-
-In practice the field at a particular point in the lattice may be due
-to more than one physical element. A common example is a quadrupole
-inside a solenoid. \bmad has a mechanism to handle some of these
-cases using what is called ``superposition''. A simple example shows
-how this works:
-\begin{example}
-  Q: quad, l = 10
-  D: drift, l = 4
-  S: solenoid, l = 6, superimpose, ref = q, ref_end
-  lat: line = (Q, D)
-  use, lat
-\end{example}
-The \vn{superimpose} attribute of element \vn{S} superimposes \vn{S}
-over the lattice \vn{(Q, D)}. The placement of \vn{S} is such that the
-center of \vn{S} coincides with the end of \vn{Q} (more on how
-superimposed elements get placed later). Now if one looks at a list of
-lattice elements one would find:
-\begin{example}
-        Element   Key         Length
-  1)    Q{\B}        Quadrupole   7
-  2)    Q{\B}S       Sol_quad     3
-  3)    S{\B}1       Solenoid     3
-  4)    D{\B}        Drift        1
-\end{example}
-What \bmad has done is to split the original elements \vn{(Q, D)} at
-the edges of \vn{S}.  The first element \vn{Q\B} is the part of \vn{Q}
-that is outside of \vn{S}. Since this is only part of \vn{Q} \bmad
-has put a \vn{\B} in the name so that there will be no confusion
-(\vn{\B} has no special meaning other than the fact that \bmad uses
-it for mangling names). The next element, \vn{Q{\B}S}, is the part of
-\vn{Q} that is inside \vn{S}. \vn{Q{\B}S} is a combination
-solenoid/quadrupole element as one could expect. \vn{S{\B}1} is the part
-of \vn{S} that is outside \vn{Q} so this element is just a
-solenoid. Finally, \vn{D\B} is the rest of the drift outside \vn{S}.
-
-With the lattice broken up like this \bmad has constructed something
-that can be easily analyzed. However, the original elements \vn{Q} and
-\vn{s} still exist within the lattice because of the following: The
-lattice is actually broken up into two parts. The first part, are the
-elements that \bmad uses for any analysis (tracking, Twiss parameter
-calculations, etc.).  In the example this first part (called the
-``regular'' part of the lattice) is the 4 elements listed above. The
-second part (called the ``lord'' section) is all those elements who
-have been cut up via superposition (along with group and overlay
-elements discussed in Chapter~\ref{c:groups_and_overlays}). What is
-the purpose of this second list? \bmad keeps a record of how
-superpositions were formed. Thus from a programming standpoint \bmad
-makes it simple if one, say, wants to change the \vn{k1} strength of
-\vn{Q} to make the appropriate changes to the \vn{k1} strength of
-\vn{Q\B} and \vn{Q{\B}S}.
-
-It does not matter which element is superimposed. Thus, in the above
-example, \vn{S} could have been put in the Beam Line (with a drift
-before it) and \vn{Q} could then have been superimposed on top and the
-result would have been the same (except that the split elements could
-have a different name). However, superpositions are restricted in that
-\bmad may not have an appropriate element for the superimposed
-fields. For example, a solenoid can not be superimposed over an
-octupole.  If a zero length element, such as a marker, is superimposed
-with some other element (or vice versa) the element is just split in
-two. For example:
-\begin{example}
-  Q: quad, l = 10
-  M: marker, superimpose, offset = 6
-  lat: line = (Q)
-  use, lat
-\end{example}
-The resulting lattice (first part) would be
-\begin{example}
-        Element   Key           Length
-  1)    Q{\B}1       Quadrupole    6
-  2)    M         Marker        0
-  3)    Q{\B}2       Quadrupole    4
-\end{example}
-and the second part of the lattice would have the \vn{Q} element.
- 
-The placement of a superimposed element is determined by three
-factors: A point on the superimposed element, a reference point in the
-lattice line, and an offset between the points. The attributes that
-determine these three quantities are:
-\begin{example}
-  ref = <element name in lattice>
-  offset = <length>      (default = 0)
-  ref_beginning
-  ref_center             (default)
-  ref_end
-  ele_beginning
-  ele_center             (default)
-  ele_end
-\end{example}
-\vn{ele_beginning} \vn{ele_center} \vn{ele_end} makes the point on the
-superimposed element the beginning edge, the center, or the
-end edge respectively. If neither of these attributes are
-given the default is to use the element center.
