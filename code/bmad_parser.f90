@@ -108,7 +108,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   ! correct line
 
   if (present(use_line)) then
-    call str_upase (name, use_line)
+    call str_upcase (name, use_line)
     if (name /= ring%name) bmad_status%ok = .false.
   endif
 
