@@ -1,4 +1,5 @@
-\documentclass{book}
+%\documentclass{book}
+\documentclass{report}
 
 
 \usepackage{graphicx}
@@ -115,20 +116,20 @@ for imporvement or notices of outright errors to:
 \label{c:before_beginning}
 
 \tao is readily customizable. However beginners are advised to start with
-''out of the box'' \tao while getting to know the program.
+``out of the box'' \tao while getting to know the program.
 
 \section{Getting and Compiling \tao}
 
-\tao is available in the \cesr CVS area. To checkout a copy type \cmd{cvs co
-tao} in the directory from where you want to run \tao. If you don't have \cesr
-CVS write permission then type \cmd{cesrcvs co tao}. This will check out a copy
+\tao is available in the \cesr CVS area. To checkout a copy type `\cmd{cvs co
+tao'} in the directory from where you want to run \tao. If you don't have \cesr
+CVS write permission then type `\cmd{cesrcvs co tao}'. This will check out a copy
 but will not allow you to check in changes to the code. If you aren't at Wilson
 Laboratory then contact David Sagan <dcs16@cornell.edu> to obtain a copy. 
 
-From the newly created \cs{./tao} directory type \cmd{gmake} to create the
-libraries and then type \cmd{gmake -f M.tao} to create
-the ''vanilla'' \tao program. Vanilla \tao is the basic \tao program without any
-user customizations. this tutorial covers to basic usage of this program.
+From the newly created \cs{./tao} directory type `\cmd{gmake}' to create the
+libraries and then type `\cmd{gmake -f M.tao}' to create
+the ``vanilla'' \tao program. Vanilla \tao is the basic \tao program without any
+user customizations. This tutorial covers to basic usage of this program.
 If you are using a custom version of \tao then
 follow the compiling directions from the custom \tao author. Keep in mind that
 command syntax and usage may vary between custom versions of \tao (this is a
@@ -153,11 +154,11 @@ the scope of this tutorial! See the \tao Reference Manual for details.
 
 This tutorial assumes the reader is already familiar with basic particle beam
 dynamics and its formalism. There are several books that introduce the topics
-very well. the best the author has found so far is \textit{The Physics of
+very well. The best the author has found so far is \textit{The Physics of
 Particle Accelerators} by Klaus Wille. 
 
 \tao is based on the \bmad subroutins library and the reader is assumed to have
-a working knowledge of the conventions used by \bmad. \tao can be used ''out of
+a working knowledge of the conventions used by \bmad. \tao can be used ``out of
 the box'' so an understanding of the nitty-gritty details of \bmad is not
 necessary, however, one should be familiar with the material in chapters 1 and 2
 of the \bmad manual.
@@ -169,7 +170,7 @@ needing to dredge through the entire reference manual. Full command syntax
 or greater detail on any topic can be found in this manual.
 
 %----------------------------------------------------------------
-\section{Then there was the super-universe}
+\section{Then there was the Super-universe}
 
 Everything known to \tao is placed in an area called the
 \textit{super-universe}. Within the \textit{super-universe} lies one or more
@@ -204,17 +205,18 @@ Variables control attributes of elements in the model lattice of one or more
 universes. So, a given variable may control a single atribute of one element
 for one or more universes. 
 
-\subsection{Other stuff in the Superuniverse}
+\subsection{Other stuff in the Super-universe}
 
 The super-universe also contains information pertaining to global variables and
-plotting. The the \tao referenc emanual for details.
+plotting. No need to go into the details here. The \tao reference manual goes
+into much more detail.
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
 \chapter{Initializing \tao}
 \label{c:initializing}
 
-There are three files used to initialize \tao.
+Initialization occurs at startup. There are three files used to initialize \tao.
   \vspace*{-3ex}
 \begin{description}
   \item[tao.init] \Newline 
@@ -245,7 +247,7 @@ entered and plotting output may be different for custom versions.}
 \label{c:get_info}
 
 %----------------------------------------------------------------
-\section{the plotting window}
+\section{The plotting window}
 
 When \tao first starts up you will see a plot window and a command prompt. 
 Figure~\ref{f:plot_begin} shows what you will see in the plot window. In the top
@@ -257,7 +259,7 @@ particle phase. That is the difference
 between the model and design phases (as specified in the plot title: [model -
 design]. 
 
-As a first step let's view the absolute model phase. At the TAO> prompt type
+As a first step let's view the absolute model phase. At the \cmd{TAO>} prompt type
 \begin{example}
   plot bottom model
 \end{example}
@@ -283,6 +285,8 @@ Again, we need to rescale the plots by typing
 \begin{example}
   scale bottom
 \end{example}
+We see the periodic beta function where large horizontal beta corresponds to
+small vertical beta and vice versa.
 
 Likewise, we can look at the dispersion in the top two graphs by typing
 \begin{example}
@@ -330,7 +334,8 @@ the output should look like:
    5  cbar
    6  coupling
 \end{example}
-There are 6 data types defined. The sixth is \textbf{WTF is this?}. 
+There are 6 data types defined. The sixth is the relative amplitude in
+the coupled demension. See the manual for an explanation.
 
 To see the data values for the horizontal beta function for \cesr BPMs 1 through
 50 type
@@ -363,13 +368,20 @@ example)
   sho lattice beginning Q05W
 \end{example}
 
+Command line help is obtained by typing
+\begin{example}
+  help <command\_name>
+\end{example}
+where <command\_name> is the command you wish help with.
+
 %----------------------------------------------------------------
 %----------------------------------------------------------------
 \chapter{Modifying the lattice}
 \label{c:modify_lattice}
 
 Let's change a variable and see what happend to the lattice. We are going to
-change a quadrupole strength so we should plot beta and phase. So type
+change a quadrupole strength so we should plot the change in beta and phase.
+Type
 \begin{example}
   place top beta
   plot top model - design
@@ -404,8 +416,8 @@ A great way to set all variable back to their design values is to type
 
 There are two optimizers included with \tao. DESCRIBE THE OPTIMIZERS.
 
-Let's mess the lattice up a little and see if the optimizer can ''fix'' the
-lattice. First transfer the ''correct'' lattice to the \vn{meas} data area.
+Let's mess the lattice up a little and see if the optimizer can ``fix'' the
+lattice. First transfer the ``correct'' lattice to the \vn{meas} data area.
 \begin{example}
   set data all meas = design
 \end{example}
@@ -425,9 +437,9 @@ Now specify what variable and data to use in the optimization. First type
 to see what data is affecting the merit function the most. The merit function is
 defined by
 \Begineq
-  {\cal M} \equiv \sum_{i} w_i \,
+  {\cal M} \equiv \sum\_{i} w\_i \,
     \bigl[ \data\_\model(i) -  \data\_\meas(i) \bigr]^2 + 
-  \sum_{j} w_j \,
+  \sum\_{j} w\_j \,
     \bigl[ \var\_\model(j) - \var\_\meas(j) \bigr]^2
   \label{m1}
 \Endeq
@@ -441,7 +453,7 @@ are looking at beta and phase let's only use that data in the optimization.
   use  data beta all
   use  data phase all
 \end{example}
-We also know that we need to change quadrupoles to ''correct'' the lattice.
+We also know that we need to change quadrupoles to ``correct'' the lattice.
 \begin{example}
   use var quad\_k1 all
   veto var h\_steer all
@@ -457,12 +469,28 @@ Whoops! we want to use the Levenberg-marquat optimizer so
   sho opt
 \end{example}
 
-Now we're ready to run or ''flatten'' the model to the data.
+Now we're ready to run or ``flatten'' the model to the data.
 \begin{example}
   flatten
 \end{example}
 You see the optimizer going through its cycles and it did it! The model is now
-''flattened.''
+``flattened.'' We can see what changes where done to the quadrupoles by typing
+\begin{example}
+  sho var quad\_k1
+\end{example}
+The optimizer didn't find the ``design'' lattice but changed more quadrupoles
+than just 10, 21 anf 67. This isn't suprising. The optimizer finds the minimun
+of the merit function and there are potentially many minimums. It does it's best
+not to get stuck in a local minimum but as we can see by the plotted data, the
+minimum found is very close to the design.
+
+Alternatively, we could have used only a subsection of the quadrupole variables
+by typing, for example,
+\begin{example}
+  use var quad\_k1 10 21 67
+\end{example}
+This will only use the the quadrupoles we modified. Now we see that the
+optimizer put the quadrupole k1 values back to the design values.
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
