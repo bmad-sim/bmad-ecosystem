@@ -49,9 +49,9 @@ if (len_trim(where) == 0 .or. where == 'all') then
     plot => s%plot_page%plot(j)
     if (.not. plot%visible) cycle
     call tao_x_scale_plot (plot, x_min, x_max)
-    if (plot%x_axis_type == 's' .and. plot%type /= 'lat_layout') then
+    if (plot%x_axis_type == 's') then
       if (im == 0) im = j
-      if (plot%x%max > s%plot_page%plot(im)%x%max) im = j
+      if (plot%x%max < s%plot_page%plot(im)%x%max) im = j
     endif
   enddo
 

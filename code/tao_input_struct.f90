@@ -77,8 +77,9 @@ end type
 
 type tao_graph_input
   character(16) name
+  character(16) type
   character(80) title
-  integer this_box(2)
+  integer box(4)
   integer ix_universe
   integer n_curve
   type (qp_rect_struct) margin
@@ -88,12 +89,10 @@ end type
 
 type tao_plot_input
   character(16) name
-  character(16) type
   type (tao_plot_who_struct) who(10)
   type (qp_axis_struct) x
   character(16) x_axis_type
   logical convert  
-  integer box_layout(2)
   integer n_graph
   logical independent_graphs
 end type

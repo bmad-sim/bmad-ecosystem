@@ -20,7 +20,7 @@ type (tao_curve_struct), pointer :: curve
 type (qp_rect_struct) border1, border2
 
 real(rp) region(4), dx, dy
-integer i, j, k, graph_box(4)
+integer i, j, k
 character(16) :: r_name = 'tao_plot_out'
 
 ! inits
@@ -57,18 +57,21 @@ do i = 1, size(s%plot_page%plot)
     cycle
   endif
 
-!
+! loop over all the graphs of the plot and draw them.
 
-  select case (plot%type)
-  case ('data')
-    call plot_data 
-  case ('lat_layout')
-    call plot_lat_layout
-  case ('key_table')
-    call plot_key_table
-  case default
-    call out_io (s_fatal$, r_name, 'UNKNOWN PLOT TYPE: ' // plot%type)
-  end select
+  do j = 1, size(plot%graph)
+    graph => plot%graph(j)
+    select case (graph%type)
+    case ('data')
+      call plot_data 
+    case ('lat_layout')
+      call plot_lat_layout  
+    case ('key_table')
+      call plot_key_table
+    case default
+      call out_io (s_fatal$, r_name, 'UNKNOWN PLOT TYPE: ' // graph%type)
+    end select
+  enddo
 
 enddo
 
@@ -77,27 +80,21 @@ contains
 
 subroutine plot_data
 
-! loop over all the graphs of the plot and draw the axes.
-
-do j = 1, size(plot%graph)
-  graph => plot%graph(j)
-  graph_box = (/ graph%this_box, plot%box_layout /)
-  call qp_set_layout (box = graph_box, margin = graph%margin)
-  call qp_set_layout (x_axis = plot%x, y_axis = graph%y, y2_axis = graph%y2)
-  call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
-  call qp_draw_axes
+call qp_set_layout (box = graph%box, margin = graph%margin)
+call qp_set_layout (x_axis = plot%x, y_axis = graph%y, y2_axis = graph%y2)
+call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
+call qp_draw_axes
 
 ! loop over all the curves of the graph and draw them
 
-  do k = 1, size(graph%curve)
-    curve => graph%curve(k)
-    call qp_set_symbol (curve%symbol)
-    call qp_set_line ('PLOT', curve%line) 
-    call qp_draw_data (curve%x_symb, curve%y_symb, .false., &
+do k = 1, size(graph%curve)
+  curve => graph%curve(k)
+  call qp_set_symbol (curve%symbol)
+  call qp_set_line ('PLOT', curve%line) 
+  call qp_draw_data (curve%x_symb, curve%y_symb, .false., &
                                                curve%symbol_every, graph%clip)
-    call qp_draw_data (curve%x_line, curve%y_line, curve%draw_line, &
+  call qp_draw_data (curve%x_line, curve%y_line, curve%draw_line, &
                                                            0, graph%clip)
-  enddo
 enddo
 
 end subroutine
@@ -170,106 +167,98 @@ type (ele_struct), pointer :: ele
 
 real(rp) x1, x2, y, s_pos
 
-integer i, j, k, kk, ix, ix1, ix2, isu, ig
+integer i, j, k, kk, ix, ix1, ix2, isu
 integer icol, ix_var, ixv
 
 character(80) str
 
 ! Each graph is a separate lattice layout (presumably for different universes). 
+! setup the placement of the graph on the plot page.
 
-do ig = 1, size(plot%graph)
+call qp_set_layout (x_axis = plot%x, margin = graph%margin)
+isu = graph%ix_universe
+lat => s%u(isu)%model
 
-  ! setup the placement of the graph on the plot page.
-
-  graph => plot%graph(ig)
-  call qp_set_layout (x_axis = plot%x, margin = graph%margin)
-  isu = graph%ix_universe
-  lat => s%u(isu)%model
-
-  graph_box = (/ graph%this_box, plot%box_layout /)
-  call qp_set_layout (box = graph_box, margin = graph%margin)
-  call qp_set_axis ('Y', -70.0_rp, 30.0_rp, 1, 0)
+call qp_set_layout (box = graph%box, margin = graph%margin)
+call qp_set_axis ('Y', -70.0_rp, 30.0_rp, 1, 0)
   
-  ! loop over all elements in the lattice. Only draw those element that
-  ! are within bounds.
+! loop over all elements in the lattice. Only draw those element that
+! are within bounds.
 
-  do i = 1, lat%n_ele_max
+do i = 1, lat%n_ele_max
 
-    ele => lat%ele_(i)
-    call find_element_ends (lat, i, ix1, ix2)
-    x1 = lat%ele_(ix1)%s
-    x2 = lat%ele_(ix2)%s
+  ele => lat%ele_(i)
+  call find_element_ends (lat, i, ix1, ix2)
+  x1 = lat%ele_(ix1)%s
+  x2 = lat%ele_(ix2)%s
 
-    if (x1 > plot%x%max) cycle
-    if (x2 < plot%x%min) cycle
+  if (x1 > plot%x%max) cycle
+  if (x2 < plot%x%min) cycle
 
-    ! Only those elements with ele%ix_pointer > 0 are to be drawn.
-    ! All others have the zero line drawn through them.
+  ! Only those elements with ele%ix_pointer > 0 are to be drawn.
+  ! All others have the zero line drawn through them.
 
-    j = ele%ix_pointer
-    if (j < 1) then
-      call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
-      cycle
-    endif
+  j = ele%ix_pointer
+  if (j < 1) then
+    call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
+    cycle
+  endif
 
-    ! Here if element is to be drawn...
+  ! Here if element is to be drawn...
 
-    call qp_translate_to_color_index (s%plot_page%ele_shape(j)%color, icol)
+  call qp_translate_to_color_index (s%plot_page%ele_shape(j)%color, icol)
 
-    y =  s%plot_page%ele_shape(j)%dy_pix/2
+  y =  s%plot_page%ele_shape(j)%dy_pix/2
 
-    select case (s%plot_page%ele_shape(j)%shape)
+  select case (s%plot_page%ele_shape(j)%shape)
 
-    case ('BOX')
-      call qp_draw_rectangle (x1, x2,  -y, y, color = icol)
+  case ('BOX')
+    call qp_draw_rectangle (x1, x2,  -y, y, color = icol)
 
-    case ('XBOX')
-      call qp_draw_rectangle (x1, x2,  -y, y, color = icol)
-      call qp_draw_line (x1, x2,  y, -y, color = icol)
-      call qp_draw_line (x1, x2, -y,  y, color = icol)
+  case ('XBOX')
+    call qp_draw_rectangle (x1, x2,  -y, y, color = icol)
+    call qp_draw_line (x1, x2,  y, -y, color = icol)
+    call qp_draw_line (x1, x2, -y,  y, color = icol)
 
-    case default
-      print *, 'ERROR: UNKNOWN SHAPE: ', s%plot_page%ele_shape(j)%shape
-      call err_exit
-    end select
+  case default
+    print *, 'ERROR: UNKNOWN SHAPE: ', s%plot_page%ele_shape(j)%shape
+    call err_exit
+  end select
 
-    if (s%global%label_lattice_elements .and. s%plot_page%ele_shape(j)%plot_name) &
+  if (s%global%label_lattice_elements .and. s%plot_page%ele_shape(j)%plot_name) &
                 call qp_draw_text (ele%name, ele%s-ele%value(l$)/2, &
                 -25.0_rp, justify = 'CT', height = 10.0_rp)
 
-    call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
-
-  enddo
-
-  ! This is for drawing the key numbers under the appropriate elements
-
-  if (s%global%label_keys) then
-    do k = s%global%ix_key_bank+1, s%global%ix_key_bank+10
-      ix_var = s%key(k)%ix_var
-      if (ix_var < 1) cycle
-      do ixv = 1, size(s%var(ix_var)%this)
-        if (s%var(ix_var)%this(ixv)%ix_uni /= isu) cycle
-        ix = s%var(ix_var)%this(ixv)%ix_ele
-        kk = mod(k - s%global%ix_key_bank, 10)
-        write (str, '(i1)') kk
-        if (ix > lat%n_ele_use) then
-          do j = lat%ele_(ix)%ix1_slave, lat%ele_(ix)%ix2_slave
-            ix1 = lat%control_(j)%ix_slave
-            s_pos = lat%ele_(ix1)%s - lat%ele_(ix1)%value(l$)/2
-            call qp_draw_text (trim(str), s_pos, -50.0_rp, &
-                              justify = 'CT', height = 10.0_rp)  
-          enddo
-        else
-          s_pos = lat%ele_(ix)%s - lat%ele_(ix)%value(l$)/2
-          call qp_draw_text (trim(str), s_pos, -50.0_rp, &
-                                justify = 'CT', height = 10.0_rp)  
-        endif
-      enddo
-    enddo
-  endif
+  call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
 
 enddo
 
+! This is for drawing the key numbers under the appropriate elements
+
+if (s%global%label_keys) then
+  do k = s%global%ix_key_bank+1, s%global%ix_key_bank+10
+    ix_var = s%key(k)%ix_var
+    if (ix_var < 1) cycle
+    do ixv = 1, size(s%var(ix_var)%this)
+      if (s%var(ix_var)%this(ixv)%ix_uni /= isu) cycle
+      ix = s%var(ix_var)%this(ixv)%ix_ele
+      kk = mod(k - s%global%ix_key_bank, 10)
+      write (str, '(i1)') kk
+      if (ix > lat%n_ele_use) then
+        do j = lat%ele_(ix)%ix1_slave, lat%ele_(ix)%ix2_slave
+          ix1 = lat%control_(j)%ix_slave
+          s_pos = lat%ele_(ix1)%s - lat%ele_(ix1)%value(l$)/2
+          call qp_draw_text (trim(str), s_pos, -50.0_rp, &
+                              justify = 'CT', height = 10.0_rp)  
+        enddo
+      else
+        s_pos = lat%ele_(ix)%s - lat%ele_(ix)%value(l$)/2
+        call qp_draw_text (trim(str), s_pos, -50.0_rp, &
+                                justify = 'CT', height = 10.0_rp)  
+      endif
+    enddo
+  enddo
+endif
 
 end subroutine
 

@@ -65,7 +65,6 @@ plot_loop: do i = 1, size(s%plot_page%plot)
   plot%valid = .true.   ! assume everything OK
 
   if (.not. plot%visible) cycle  ! Don't worry about invisable graphs
-  if (plot%type /= 'data') cycle ! Don't worry about other types
 
   if (plot%x_axis_type /= 'index' .and. plot%x_axis_type /= 's') then
     call out_io (s_abort$, r_name, 'BAD X_AXIS_TYPE: ' // plot%x_axis_type)
@@ -78,6 +77,7 @@ plot_loop: do i = 1, size(s%plot_page%plot)
   do j = 1, size(plot%graph)
 
     graph => plot%graph(j)
+    if (graph%type /= 'data') cycle ! Don't worry about other types
 
     do k = 1, size(graph%curve)
 

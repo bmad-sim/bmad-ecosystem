@@ -82,6 +82,7 @@ end type
 
 type tao_graph_struct
   character(16) name           ! Name identifying the graph
+  character(16) type           ! "data", "lat_layout", "key_table"
   character(80) title
   character(80) title_suffix 
   character(80) legend(n_legend_maxx) ! Array for holding descriptive information.
@@ -91,12 +92,12 @@ type tao_graph_struct
   type (tao_curve_struct), pointer :: curve(:) => null()
   type (tao_graph_hook) hook   ! Custom stuff. Defined in tao_hook.f90.
   logical clip                 ! clip plot at graph boundary.
-  integer this_box(2)          ! X-Y offset on the page from lower left.
+  integer box(4)               ! Defines which box the plot is put in.
   integer ix_universe          ! Used for lat_layout plots.
 end type
 
 ! A region defines where to position a plot on the plot page
-! %region = (x1, x2, y1, y2) gives the plotting region in percent of the 
+! %location = (x1, x2, y1, y2) gives the plotting region in percent of the 
 !   part of the page inside the page_border with respect to the lower left corner.
 ! Eg: %location = (0.0, 1.0, 0.5, 1.0) gives the top half of the page inside the border.
 
@@ -111,7 +112,6 @@ end type
 
 type tao_plot_struct
   character(16) :: name = ' '           ! Identifying name
-  character(16) :: type = ' '           ! "data", "lat_layout", "key_table"
   type (tao_plot_region_struct) region  ! Where on the plot page to put the plot
   type (tao_plot_who_struct) who(10)    ! Who to plot. Eg: Data - Design
   type (tao_graph_struct), pointer :: graph(:) => null() 
@@ -121,7 +121,6 @@ type tao_plot_struct
   real(rp) x_divisions            ! Nominal number of x-axis divisions.
   character(16) x_axis_type       ! 'index', 's'
   logical independent_graphs      ! Graph y-axis scales independent when using the scale cmd?
-  integer box_layout(2)           ! Defines which box the plot is put in.
   logical visible                 ! To draw or not to draw.
   logical valid                   ! valid if all curve y_dat computed OK.
   logical convert                 ! Eg: covert coupling to cbar?

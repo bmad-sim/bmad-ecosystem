@@ -42,6 +42,7 @@ character(200) file_name, plot_file
 character(20) :: r_name = 'tao_init_plotting'
 
 logical :: init_needed = .true.
+logical lat_layout_here
 
 namelist / tao_plot_page / plot_page, region, place
 namelist / tao_template_plot / plot
@@ -92,6 +93,8 @@ enddo
 ! s%tamplate_plot structures
 
 ip = 0   ! number of template plots
+lat_layout_here = .false.
+
 do
   plot%name = ' '
   plot%who%name  = ' '                               ! set default
@@ -107,15 +110,12 @@ do
   ip = ip + 1
   plt => s%template_plot(ip)
   plt%name        = plot%name
-  plt%type        = plot%type
-  plt%box_layout  = plot%box_layout
   plt%x           = plot%x
   plt%x_divisions = plt%x%major_div
   plt%who         = plot%who
   plt%convert     = plot%convert
   plt%x_axis_type = plot%x_axis_type
   plt%independent_graphs = plot%independent_graphs
-  if (plt%type == 'lat_layout') plt%x_axis_type = 's'
 
   ng = plot%n_graph
   if (ng == 0) then
@@ -126,6 +126,7 @@ do
 
   do i = 1, ng
     graph_index = 0                 ! setup defaults
+    graph%type  = 'data'
     graph%y  = init_axis
     graph%y2 = init_axis
     graph%y2%draw_numbers = .false.
@@ -153,17 +154,25 @@ do
     endif
     grph => plt%graph(i)
     grph%name       = graph%name
-    grph%this_box   = graph%this_box
+    grph%type       = graph%type
+    grph%box        = graph%box
     grph%title      = graph%title
     grph%margin     = graph%margin
     grph%y          = graph%y
     grph%y2         = graph%y2
     grph%ix_universe = graph%ix_universe
+
+    if (grph%type == 'lat_layout') then
+      plt%x_axis_type = 's'
+      lat_layout_here = .true.
+    endif
+
     if (graph%n_curve == 0) then
       nullify (grph%curve)
     else
       allocate (grph%curve(graph%n_curve))
     endif
+
     do j = 1, graph%n_curve
       crv => grph%curve(j)
       crv%data_source       = curve(j)%data_source
@@ -183,7 +192,7 @@ enddo
 
 s%plot_page%ele_shape%key = 0
 
-if (any(s%template_plot(:)%type == 'lat_layout')) then
+if (lat_layout_here) then
 
   rewind (iu)
   shape(:)%key_name = ' '
