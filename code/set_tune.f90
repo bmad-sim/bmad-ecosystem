@@ -97,6 +97,8 @@ subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
       else
         ring%ele_(j)%value(k1$) = ring%ele_(j)%value(k1$) + abs(dk1(j)) * dk_y
       endif
+      if (associated(ring%ele_(j)%taylor(1)%term)) &
+                                        call kill_taylor (ring%ele_(j)%taylor)
     enddo
 
   enddo
