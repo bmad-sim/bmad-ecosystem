@@ -8,6 +8,9 @@ module reverse_mod
 
 contains
 
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
 !+
 ! Subroutine ring_reverse (ring_in, ring_rev)
 !
@@ -45,7 +48,7 @@ subroutine ring_reverse (ring_in, ring_rev)
 
   type (ring_struct), intent(in) :: ring_in
   type (ring_struct), intent(out), target :: ring_rev
-  type (ele_struct), pointer :: ele
+  type (ele_struct), pointer :: lord
   type (control_struct), pointer :: con
 
   integer i, n, i1, i2, nr, n_con
@@ -58,7 +61,7 @@ subroutine ring_reverse (ring_in, ring_rev)
   ring_rev = ring_in
 
   nr = ring_rev%n_ele_use
-  ring_rev%ele_(1:nr) = ring_rev%ele_(nr:1:-1)
+  ring_rev%ele_(1:nr) = ring_in%ele_(nr:1:-1)
 
 ! flip longitudinal stuff, maps
 
@@ -78,17 +81,16 @@ subroutine ring_reverse (ring_in, ring_rev)
 ! ix_con keeps track of the switching.
 ! Also: adjust s-position of lords.
 
-
   forall (i = 1:n_con) ix_con(i) = i 
 
   do i = nr+1, ring_rev%n_ele_max
-    ele => ring_rev%ele_(i)
-    if (ele%control_type /= super_lord$) cycle
-    i1 = ele%ix1_slave
-    i2 = ele%ix2_slave
+    lord => ring_rev%ele_(i)
+    if (lord%control_type /= super_lord$) cycle
+    i1 = lord%ix1_slave
+    i2 = lord%ix2_slave
     ring_rev%control_(i1:i2) = ring_rev%control_(i2:i1:-1)
     ix_con(i1:i2) = ix_con(i2:i1:-1)
-    ele%s = ring_rev%param%total_length - ele%s + ele%value(l$)
+    lord%s = ring_rev%param%total_length - lord%s + lord%value(l$)
   enddo
 
   n = ring_rev%n_ic_max
@@ -101,6 +103,8 @@ subroutine ring_reverse (ring_in, ring_rev)
 
 end subroutine
 
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
 ! Subroutine reverse_ele (ele)

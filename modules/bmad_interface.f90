@@ -153,12 +153,13 @@ interface
 end interface
 
 interface
-  subroutine closed_orbit_calc (ring, closed_orb, i_dim)
+  subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction)
     use bmad_struct, only: ring_struct, coord_struct
     implicit none
     type (ring_struct) ring
-    type (coord_struct), allocatable :: closed_orb(:)
+    type (coord_struct), allocatable, target :: closed_orb(:)
     integer i_dim
+    integer, optional :: direction
   end subroutine
 end interface
 
