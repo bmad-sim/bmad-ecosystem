@@ -24,6 +24,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.4  2001/12/22 01:58:58  cesrulib
+# Turn off debugging switch which was inadvertently left on in last commit.
+#
 # Revision 1.3  2001/12/22 01:47:21  cesrulib
 # Encountered a possible bug with IGNORECASE setting in awk.  Not all
 # use statements were being parsed for modules to use.  Have now enforced
@@ -45,7 +48,7 @@ BEGIN{
 	IGNORECASE = 1;
 
 # DEBUG flag
-DEBUG = 1;
+DEBUG = 0;
 }
 
 ############################
