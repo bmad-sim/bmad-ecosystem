@@ -89,8 +89,10 @@ sub cpp_setup {
     } 
     elsif ($platform_tag eq "Linux_i686") {
         
-#       Intermediate file name for lf95:  .f* -> .cpp.f*
-        $cpp_file = substr($src_file,0,$isuf)."cpp.".substr($src_file,$isuf,$lsuf);
+#       Intermediate file name for lf95:  .f* -> .cpp.f* OR .F* -> .cpp.f*
+        $suffix =  substr($src_file,$isuf,$lsuf);
+        $suffix =~ s/F/f/;
+        $cpp_file = substr($src_file,0,$isuf)."cpp.".$suffix;
         
 #       cpp command line
         $cpp_command = "lf95 -Cpp -P ".$cpp_flags." "."@search_dirs"." ".$src_file;
