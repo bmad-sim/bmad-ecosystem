@@ -48,14 +48,19 @@ calculate the self--consistent starting Twiss parameters:
   call twiss_at_start (ring)
 \end{example}
 
-Once the
-starting Twiss parameters are set, \vnr{twiss_propagate_all} can be used
-to propagate the Twiss parameters to the rest of the elements
+Once the starting Twiss parameters are set, \vnr{twiss_propagate_all}
+can be used to propagate the Twiss parameters to the rest of the
+elements
 \begin{example}
   call twiss_propagate_all (ring)
 \end{example}
 It is important to keep in mind that \vn{ring%ele_(i)%x%eta} is the $a$--mode
 dispersion, not the dispersion along the $x$--axis (\sref{s:ele_twiss}).
+
+To calculate the Twiss parameters at any given longitudinal location
+use the routine \vnr{twiss_and_track_at_s}. Conversely, to propagate
+the Twiss parameters partially through a given element use the the
+routine \vnr{twiss_and_track_partial}.
 
 
 %-----------------------------------------------------------------------------

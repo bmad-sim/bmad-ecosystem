@@ -824,34 +824,41 @@ file is:
   ! [V/C/m^2]     [1/sec]      [Hz]
      4.23e14      2.23e3     5.62e3     0.789
      .. etc ..
+     END_SECTION
+  &sr2_param
+    z_sr2_max = 1.3e-3
+  /
 \end{example}
 The file is divided into three sections with lines containing the word
-\vn{END_SECTION} marking the division between sections.
-Wakes can be specified via a table of wake versus longitudinal position $z$ 
-and/or using a set of ``pseudo'' modes (\sref{s:wakefields}). The first section
-gives the wake vs $z$ table, the second section gives the longitudinal monopole
-pseudo modes, and the third section gives the transverse dipole pseudo modes.
-The cutoff $z_{\rm{cut}}$ below which the wake vs. $z$ table is used is simply
-the last $z$ value of the first section. If pseudo modes are not to be used simply
-provide the first section only. If a wake vs $z$ table is not to be used simply
-leave the first section blank.
+\vn{END_SECTION} marking the division between sections.  Wakes can be
+specified via a table of wake versus longitudinal position $z$ and/or
+using a set of ``pseudo'' modes (\sref{s:wakefields}). The first
+section gives the wake vs $z$ table, the second section gives the
+longitudinal monopole pseudo modes, and the third section gives the
+transverse dipole pseudo modes.  The cutoff $z_{\rm{cut}}$ below which
+the wake vs. $z$ table is used is simply the last $z$ value of the
+first section. If pseudo modes are not to be used simply provide the
+first section only. If a wake vs $z$ table is not to be used simply
+leave the first section blank. The last piece of the file is the
+maximum longitudinal distance \vn{z_sr2_max} over which the pseudo
+modes are valid.
 
-In the fits section with the table of wake vs. $z$,
-the first column is the longitudinal distance $z$. $z$ must start at 0
-and must increment by the a constant amount from row to row. $z$ is negative
-since the wake extends behind a particle. To be backward compatible with
-the Liar program, \bmad accepts positive $z$ and will internally convert
-to negative $z$. The
-second column is the longitudinal wake function in $V/C/m$. The third
-column is the transverse wake in $V/C/m^2$. Any additional columns are
-ignored.  Wakefield formulas are to be found in \sref{s:wakefields}. 
-The wakefield file is only used with macroparticle tracking. 
-When the short--range wakefield file is used with macroparticle tracking 
-the \vn{e_loss} attribute is ignored. However, even in this case, a finite
-\vn{e_loss} value will affect the reference energy. Since the quantities
-like quadrupole k1 strengths and bend strengths are referenced to the 
-reference energy, The value of \vn{e_loss} will affect the results even with
-a short--range wakefield file.
+In the first section with the table of wake vs. $z$, the first column
+is the longitudinal distance $z$. $z$ must start at 0 and must
+increment by the a constant amount from row to row. $z$ is negative
+since the wake extends behind a particle. To be backward compatible
+with the Liar program, \bmad accepts positive $z$ and will internally
+convert to negative $z$. The second column is the longitudinal wake
+function in $V/C/m$. The third column is the transverse wake in
+$V/C/m^2$. Any additional columns are ignored.  Wakefield formulas are
+to be found in \sref{s:wakefields}.  The wakefield file is only used
+with macroparticle tracking.  When the short--range wakefield file is
+used with macroparticle tracking the \vn{e_loss} attribute is
+ignored. However, even in this case, a finite \vn{e_loss} value will
+affect the reference energy. Since the quantities like quadrupole k1
+strengths and bend strengths are referenced to the reference energy,
+The value of \vn{e_loss} will affect the results even with a
+short--range wakefield file.
 
 The input file name for the long--range wakefields is specified using
 the \vn{lr_wake_file} attribute. The file gives the transverse dipole
