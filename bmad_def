@@ -36,7 +36,7 @@
 #
 # THE FOLLOWING LINE SHOULD BE MODIFIED TO REFLECT THE 
 # USER'S LOCAL INSTALLATION
-if ( $?BMAD_ == 0 ) setenv BMAD_=/home/cesrulib/cesr_libs/bmad_dist
+if ( $?BMAD_ == 0 ) setenv BMAD_ /home/cesrulib/cesr_libs/bmad_dist
 
 #
 # Specify the BMAD distribution bin directory
@@ -73,6 +73,9 @@ if ( $found == 0 ) setenv PATH ${PATH}:${BMAD_BIN}
 # $Id$
 #
 # $Log$
+# Revision 1.4  2004/03/06 01:24:44  cesrulib
+# Fix bug when setting BMAD_ environment variable.
+#
 # Revision 1.3  2003/11/26 11:43:59  cesrulib
 # Bug fix in BMADENV override capability.
 #
