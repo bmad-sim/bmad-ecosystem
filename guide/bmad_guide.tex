@@ -6,6 +6,11 @@
 %\makeatother     % Internal ``@'' commands are locked.
 %\renewcommand{\thechapter}{\thepart.\arabic{chapter}}
 
+\newcommand{\rs}{{\it ring\_struct}}
+\newcommand{\es}{{\it ele\_struct}}
+\newcommand{\cs}{{\it coord\_struct}}
+\newcommand{\It[1]{{\it #1}}
+
 %----------------------------------------------------------------
 
 \begin{document}
@@ -41,18 +46,18 @@ framework from which sophisticated simulation programs may easily be developed.
 The weakness of BMAD comes from its strength: Someone must put the pieces 
 together into a program. As a consequence this manual serves two masters:
 
-The BMAD lattice input standard was developed using the MAD lattice input 
-standard as a starting point. MAD (Methodical Accelerator Design) is a 
-widely used
-stand--alone program developed at CERN by Christoph Iselin for charged--particle 
-optics calculations. The limitations of the MAD program was the imputus for
-writting BMAD. Since it can be convienint to do simulattions with both MAD and
-BMAD, differences and simularities between the two input formats are noted in
-this guide.
+The BMAD lattice input standard was developed using the MAD lattice
+input standard as a starting point. MAD (Methodical Accelerator
+Design) is a widely used stand--alone program developed at CERN by
+Christoph Iselin for charged--particle optics calculations. The
+limitations of the MAD program was the imputus for writting
+BMAD. Since it can be convienint to do simulattions with both MAD and
+BMAD, differences and simularities between the two input formats are
+noted in this guide.
 
-Errors and omissions are a fact of life for any reference work and comments from
-you, dear reader, are therefore most welcome. Please send any missives 
-(or chocolate, etc.) to:
+Errors and omissions are a fact of life for any reference work and
+comments from you, dear reader, are therefore most welcome. Please
+send any missives (or chocolate, etc.) to:
 \begin{tty}
   David Sagan <dcs16@cornell.edu>
 \end{tty}
@@ -115,52 +120,147 @@ you, dear reader, are therefore most welcome. Please send any missives
 %----------------------------------------------------------------
 \chapter{The BMAD Distribution}
 
+
+
+\section{Libraries in the BMAD Distribution}
+
 When installing BMAD on a computer what one gets is not only the BMAD
 subroutine library but additionally subsiderary libraries upon which
 subroutines in the BMAD library depend. There are 5 other libraries
-that are used: cesr_utils, forest, numerical_recipes, pgplot, and dcslib.
+that are used: cesr\_utils, forest, numerical_recipes, pgplot, and dcslib.
 \begin{description}
-\item[cesr_utils] This is a small low level library that primarily defines 
-the precision that BMAD works at. The name cesr comes about from
-historical reasons.
-\item[dcslib] This library defines a set of helper routines. 
-The name comes from its creator.
+\item[cesr\_utils] This is a small low level library that primarily defines 
+the precision that BMAD works at (see below) and defines the physical
+and mathematical constants (pi, c_light, etc.) that BMAD knows
+about.
+\item[dcslib] This library defines a set of miscelaneous helper routines. 
+Routines include spline fitting, Gaussian random number generation,
+etc. The library name comes from its creator.
 \item[forest] This is the FPP/PTC 
 (Full Polymorphic Package/ Polymorphic Tracking Code) library of
 Etienne Forest that handles Taylor maps to any arbitrary order (this
-is also known as Truncated Power Series Algebra (TPSA)) along with Lie
-Algebraic Operations. BMAD uses this software to do some calculations
-like tracking and making the 6x6 transfer matrices. FPP/PTC is a very
-general package and BMAD only makes use of a small part of its
+is also known as Truncated Power Series Algebra (TPSA)). The FPP part
+handles the TPSA and the PTC part does the physics of tracking through
+elements using Lie Algebra with a Hamiltonian.  BMAD uses this
+software to crate Taylor Maps, track particles, etc.  FPP/PTC is a
+very general package and BMAD only makes use of a small part of its
 features. See the FPP/PTC documentation at
-<http://bc1.lbl.gov/CBP_pages/educational/TPSA_DA/Introduction.html>
+<http://bc1.lbl.gov/CBP\_pages/educational/TPSA\_DA/Introduction.html>
 for more information.
 \item[recipes] Numerical Recipes is a set of subroutines for doing 
 scientific computing includeing Runge--Kutta integration, FFT's,
-interpolation and extrapolation, etc. The writeup for this library is
-the book ``Numberical Recipes, The Art of Scientific Computing''. For
-BMAD this library has been modified so that either single or double
-precision version may be generated.
+interpolation and extrapolation, etc., etc. The writeup for this
+library is the book ``Numberical Recipes, The Art of Scientific
+Computing''\cite{?}. For BMAD this library has been modified to handle
+both single and double precision reals.
+\item[pgplot] The PGPLOT Graphics Subroutine Library is a Fortran or 
+C-callable, device-independent graphics package for making simple
+scientific graphs. More information may be obtained from the PGPLOT
+web site at <http://www.astro.caltech.edu/\~tjp/pgplot/>. One
+disadvantage of PGPLOT is that it is not the most friendly software
+for the programmer. To remidy this, there is a set of Fortran90
+wrapper subroutines called quick\_plot. The quick\_plot suite is part
+of the dcslib library.
 \end{description}
 
-BMAD comes in two flavors: A single precision one and a double precision one...
+\section{Precision}
+
+BMAD comes in two flavors: One where the real numbers are single
+precision and a version with double precision reals. Which version you
+are working with is controlled by the parameter {\it rp} (Real Precision)
+which is defined in cesr_utils. [Note: For compatibility with older
+programs the parameter {\it rdef} is defined to be equal to {\it rp}.]  On most
+machines single precision has {\it rp} = 4 and double precision has {it rp} =
+8. Normally the double precision version is used since round-off
+errors can be significant in some calulations. Long--term tracking is
+an example where the single precision version is not adequite. 
+
+To define your variables with the correct precision use the syntax
+{\it real(rp)}. For example:
+\begin{verbatum}
+  real(rp) var1, var2, var3
+\end{verbatum}
+When you want to define a literal constant, for example to pass an
+argument to a subroutine, add the suffix {\it \_rp} to the end of the
+constant. For example: {\it 2.0_rp} is equivalent to {\it 2.0D0} if
+{\it rp} is defined to be double precision. Notice that this is not
+equivalent to {\it 2_rp} which defines an integer (not a real) constant.
 
 
-%----------------------------------------------------------------
-\chapter{Reading and Writing Lattices}
+\section{Helper programs}
+
+The {\it listf} command is used to locate routines and structures in
+the cesr_utils, dcslib and bmad libraries. The form of the command is
+\begin{verbatum}
+  listf <name>
+\end{verbatum}
+This searches for any routine or structure with the name
+<name>. <name> may contain the wild--cards ``*'' and ``\%'' where
+``*'' matches to any number of characters and ``\%'' matches to any
+single character. For example:
+\begin{verbatum}
+  listf ring_struct
+  listf twiss_at_%
+\end{verbatum}
+The second example will match to {\it twiss\_at\_s} but not {\it
+twiss\_at\_start}.
+
+The {\it getf} command is like the {\it listf} command with the
+addition that the header comments that are in the source code files
+will be printed out for each rotine match and the structrue definition
+will be printed for each structure matched. The {\it getf} command is
+thus more verbose than the {\it listf} command.
 
 %----------------------------------------------------------------
 \chapter{The Ring\_struct}
+
+\section{overfiew}
+
+\rs is structure that holds all the information about a lattice
+and is shown in figure~\ref{fig:ring_struct}. Despite its name there
+is no assumption about whether the lattice is circular as with a
+storage ring or open as with a LINAC.
+
+
+
 
 Local ring_struct variables must have the save attribute or
 the pointers within must be appropriately deallocated
 before leaving the routine.
 
+How to allocate coord_struct arrays. see the tracking section
+
+\section{Control}
+  Control
+    * Overlays
+    * Superimpose
+    * Groups
+
 %----------------------------------------------------------------
 \chapter{The Ele\_struct}
 
+
+\section{  Initializing
+
+  Dependent and independent variables
+
+  How to locate attributes
+
+  Allocation/deallocation
+
 %----------------------------------------------------------------
-\chapter{CESR Centric Routines}
+\chapter{The Coord\_struct}
+
+  Meaning of vec elements
+
+  Meaning of vec elements in PTC.
+
+%----------------------------------------------------------------
+\chapter{Reading and Writing Lattices}
+
+\section{Digested files}
+
+\section{bmad_parser and bmad_parser2}
 
 %----------------------------------------------------------------
 \chapter{Tracking}
@@ -168,6 +268,20 @@ before leaving the routine.
 When using radiation excitation the random number generator is based
 upon the fortran90 intrinsic random_number. If random_seed is not called
 then the fluctuations from run to run will be exactly the same.
+
+
+How to allocate coord_struct arrays. 
+
+  Switches to switch tracking
+
+  Runge Kutta
+
+  Boris
+
+  Custom
+    * how to setup
+
+
 
 %----------------------------------------------------------------
 \chapter{Transfer Matrices}
@@ -179,9 +293,12 @@ then the fluctuations from run to run will be exactly the same.
 \chapter{Interface to FPP/PTC}
 
 %----------------------------------------------------------------
+\chapter{CESR Centric Routines}
+
+%----------------------------------------------------------------
 \chapter{Routines Sorted by Functionality}
 
-include dcslib and cesr_utils
+include dcslib and cesr\_utils routines
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------

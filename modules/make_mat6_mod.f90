@@ -351,7 +351,7 @@ subroutine bbi_slice_calc (n_slice, sig_z, z_slice)
 
   integer i, n_slice, n_slice_old / 0 /
 
-  real(rdef) sig_z, z_slice(:), y, inverse, z_norm(100)
+  real(rdef) sig_z, z_slice(:), y, z_norm(100)
 
   external probability_funct
 
@@ -365,7 +365,7 @@ subroutine bbi_slice_calc (n_slice, sig_z, z_slice)
     do i = 1, n_slice
       if (n_slice /= n_slice_old) then
         y = (i - 0.5) / n_slice - 0.5
-        z_norm(i) = inverse(probability_funct, y, -5.0, 5.0, 1.0e-5)
+        z_norm(i) = inverse(probability_funct, y, -5.0_rp, 5.0_rp, 1.0e-5_rp)
       endif
       z_slice(i) = sig_z * z_norm(i)
     enddo
