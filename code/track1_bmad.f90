@@ -2,7 +2,7 @@
 ! Subroutine track1_bmad (start, ele, param, end)
 !
 ! Particle tracking through a single element BMAD_standard style.
-! This routine is NOT ment for long term tracking since it does not get 
+! This routine is NOT meant for long term tracking since it does not get 
 ! all the 2nd order terms for the longitudinal motion.
 !
 ! It is assumed that HKICK and VKICK are the kicks in the horizontal
@@ -43,14 +43,14 @@ subroutine track1_bmad (start, ele, param, end)
   type (coord_struct)  c0
   type (ele_struct)  bend
 
-  real(rp) x_kick, y_kick, k1, k2l, k3l, length, phase, mat2(2,2), mat4(4,4)
+  real(rp) x_kick, y_kick, k1, k2, k2l, k3l, length, phase
   real(rp) del, e1, e2, del_x_vel, del_y_vel, sig_x, sig_y, kx, ky, coef
   real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-  real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6)
+  real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
   real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
-  real(rp) ave_x_vel2, ave_y_vel2, dE_E
+  real(rp) ave_x_vel2, ave_y_vel2, dE_E, dE
   real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio
-  real(rp) alpha, sin_a, cos_a, f, z_ave
+  real(rp) alpha, sin_a, cos_a, f, z_ave, r11, r12, r21, r22
   real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2
 
   integer i, j, n, n_slice, key
@@ -273,18 +273,17 @@ subroutine track1_bmad (start, ele, param, end)
     phase = twopi * (ele%value(phi0$) + &
                         end%vec(5) * ele%value(rf_frequency$) / c_light)
     cos_phi = cos(phase)
-    gradient = ele%value(gradient$) * cos_phi
+    gradient = ele%value(gradient$) * cos_phi - ele%value(k_loss$) * &
+                                                           abs(param%charge) 
     e_start = ele%value(energy_start$) * (1 + end%vec(6))
     e_end = e_start + gradient * ele%value(l$)
     e_ratio = e_end / e_start
+
     if (e_ratio < 0) then
       if (bmad_status%type_out) print *, &
                 'ERROR IN TRACK1_BMAD: NEGATIVE BEAM ENERGY FOR: ', ele%name
       if (bmad_status%exit_on_error) call err_exit
     endif
-    alpha = log(e_ratio) / (2 * sqrt_2 * cos_phi)
-    cos_a = cos(alpha)
-    sin_a = sin(alpha)
 
     if (gradient == 0) then
       call track_a_drift (end%vec, length)
@@ -293,29 +292,41 @@ subroutine track1_bmad (start, ele, param, end)
 
     call offset_particle (ele, param, end, set$)
 
-    f = gradient / (2 * e_start)            ! entrence kick
-    end%vec(2) = end%vec(2) - f * end%vec(1)
-    end%vec(4) = end%vec(4) - f * end%vec(3)
+    k1 = -gradient / (2 * e_start)            ! entrence kick
+    end%vec(2) = end%vec(2) + k1 * end%vec(1)
+    end%vec(4) = end%vec(4) + k1 * end%vec(3)
 
-    f = gradient / (2 * sqrt_2 * cos_phi)
+    if (bmad_com%use_dimad_lcavity) then  ! use dimad formula
+      r11 = 1
+      r12 = e_start * log (e_ratio) / gradient
+      r21 = 0
+      r22 = 1 / e_ratio
+    else
+      alpha = log(e_ratio) / (2 * sqrt_2 * cos_phi)
+      cos_a = cos(alpha)
+      sin_a = sin(alpha)
+      f = gradient / (2 * sqrt_2 * cos_phi)
+      r11 =  cos_a
+      r12 =  sin_a * e_start / f
+      r21 = -sin_a * f / e_end
+      r22 =  cos_a * e_start / e_end
+    endif
+
     x_pos = end%vec(1)
     y_pos = end%vec(3)
-    end%vec(1) =  cos_a * end%vec(1)        + sin_a * end%vec(2) * e_start / f
-    end%vec(2) = -sin_a * x_pos * f / e_end + cos_a * end%vec(2) * e_start / e_end
-    end%vec(3) =  cos_a * end%vec(3)        + sin_a * end%vec(4) * e_start / f
-    end%vec(4) = -sin_a * y_pos * f / e_end + cos_a * end%vec(4) * e_start / e_end
 
-    f = gradient / (2 * e_end)              ! exit kick
-    end%vec(2) = end%vec(2) + f * end%vec(1)
-    end%vec(4) = end%vec(4) + f * end%vec(3)
+    end%vec(1) = r11 * x_pos + r12 * end%vec(2)
+    end%vec(2) = r21 * x_pos + r22 * end%vec(2)
+    end%vec(3) = r11 * y_pos + r12 * end%vec(4)
+    end%vec(4) = r21 * y_pos + r22 * end%vec(4)
+
+    k2 = gradient / (2 * e_end)              ! exit kick
+    end%vec(2) = end%vec(2) + k2 * end%vec(1)
+    end%vec(4) = end%vec(4) + k2 * end%vec(3)
 
     end%vec(6) = (e_end - ele%value(beam_energy$)) / ele%value(beam_energy$) 
-
     call offset_particle (ele, param, end, unset$)
     call end_z_calc
-
-    end%vec(6) = end%vec(6) - ele%value(k_loss$) * length * &
-                          abs(param%charge) / ele%value(beam_energy$)
 
 ! sextupole
 ! The sextupole is treated as a drift with position dependent kick

@@ -36,12 +36,12 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   real(rp) mat6_m(6,6), mat2(2,2), mat4(4,4), kmat1(4,4), kmat2(4,4)
   real(rp) e1, e2, angle, g, cos_angle, sin_angle, k1, ks, length, kc
   real(rp) phi, k2l, k3l, c2, s2, cs, ks2, del_l, g_bend, l_period, l_bend
-  real(rp) factor, l_drift, dx, kmat6(6,6)
+  real(rp) factor, l_drift, dx, kmat6(6,6), drift(6,6)
   real(rp) s_pos, s_pos_old, z_slice(100)
   real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
   real(rp) r, c_e, c_m, gamma_old, gamma_new, vec_st(4)
-  real(rp) sqrt_k, arg, kick2, rel_E
-  real(rp) cx, sx, cy, sy, k2l_2, k2l_3, k2l_4
+  real(rp) sqrt_k, arg, kick2, rel_E, dE, r11, r12, r21, r22
+  real(rp) cx, sx, cy, sy, k2l_2, k2l_3, k2l_4, k2
   real(rp) x_off, y_off, s_off, x_pit, y_pit, y_ave, k_z, del_x, del_y
   real(rp) t5_11, t5_12, t5_22, t5_33, t5_34, t5_44, t5_14, t5_23
   real(rp) t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
@@ -262,25 +262,19 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
   case (sextupole$)
 
-    k2l = ele%value(k2$) * length / rel_E
+    k2l = ele%value(k2$) * length 
     call mat4_multipole (k2l/2, 0.0_rp, 2, c0t%vec, kmat1)
-    mat4 = kmat1
-    mat4(1,1:4) = kmat1(1,1:4) + length * kmat1(2,1:4) ! kick * length
-    mat4(3,1:4) = kmat1(3,1:4) + length * kmat1(4,1:4)
     call mat4_multipole (k2l/2, 0.0_rp, 2, c1t%vec, kmat2)
-    mat6(1:4,1:4) = matmul (kmat2, mat4)
 
     c0t%vec(1:4) = matmul(kmat1, c0t%vec(1:4))
+    call drift_mat6_calc (drift, length, c0t%vec)
 
-    mat6(1,6) = -(kmat2(1,1)*c0t%vec(2) + kmat2(1,3)*c0t%vec(4)) * length
-    mat6(2,6) = -(kmat2(2,1)*c0t%vec(2) + kmat2(2,3)*c0t%vec(4)) * length
-    mat6(3,6) = -(kmat2(3,1)*c0t%vec(2) + kmat2(3,3)*c0t%vec(4)) * length
-    mat6(4,6) = -(kmat2(4,1)*c0t%vec(2) + kmat2(4,3)*c0t%vec(4)) * length
-
-    mat6(5,1) = -(c0t%vec(2)*kmat2(2,1) + c0t%vec(4)*kmat2(4,1)) * length
-    mat6(5,2) = -(c0t%vec(2)*kmat2(2,2) + c0t%vec(4)*kmat2(4,2)) * length
-    mat6(5,3) = -(c0t%vec(2)*kmat2(2,3) + c0t%vec(4)*kmat2(4,3)) * length
-    mat6(5,4) = -(c0t%vec(2)*kmat2(2,4) + c0t%vec(4)*kmat2(4,4)) * length
+    mat6 = drift
+    mat6(1:4,1:4) = matmul(kmat2, matmul(drift(1:4,1:4), kmat1))
+    mat6(5,1) = drift(5,2) * kmat1(2,1) + drift(5,4) * kmat1(4,1)
+    mat6(5,3) = drift(5,2) * kmat1(2,3) + drift(5,4) * kmat1(4,3)
+    mat6(2,6) = kmat2(2,1) * drift(1,6) + kmat2(2,3) * drift(3,6)
+    mat6(4,6) = kmat2(4,1) * drift(1,6) + kmat2(4,3) * drift(3,6)
 
     if (ele%value(tilt$) /= 0) then
       call tilt_mat6 (mat6, ele%value(tilt$))
@@ -292,25 +286,19 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
   case (octupole$)
 
-    k3l = ele%value(k3$) * length / rel_E
+    k3l = ele%value(k3$) * length 
     call mat4_multipole (k3l/2, 0.0_rp, 3, c0t%vec, kmat1)
-    mat4 = kmat1
-    mat4(1,1:4) = kmat1(1,1:4) + length * kmat1(2,1:4) ! kick * length
-    mat4(3,1:4) = kmat1(3,1:4) + length * kmat1(4,1:4)
     call mat4_multipole (k3l/2, 0.0_rp, 3, c1t%vec, kmat2)
-    mat6(1:4,1:4) = matmul (kmat2, mat4)
 
     c0t%vec(1:4) = matmul(kmat1, c0t%vec(1:4))
+    call drift_mat6_calc (drift, length, c0t%vec)
 
-    mat6(1,6) = -(kmat2(1,1)*c0t%vec(2) + kmat2(1,3)*c0t%vec(4)) * length
-    mat6(2,6) = -(kmat2(2,1)*c0t%vec(2) + kmat2(2,3)*c0t%vec(4)) * length
-    mat6(3,6) = -(kmat2(3,1)*c0t%vec(2) + kmat2(3,3)*c0t%vec(4)) * length
-    mat6(4,6) = -(kmat2(4,1)*c0t%vec(2) + kmat2(4,3)*c0t%vec(4)) * length
-
-    mat6(5,1) = -(c0t%vec(2)*kmat2(2,1) + c0t%vec(4)*kmat2(4,1)) * length
-    mat6(5,2) = -(c0t%vec(2)*kmat2(2,2) + c0t%vec(4)*kmat2(4,2)) * length
-    mat6(5,3) = -(c0t%vec(2)*kmat2(2,3) + c0t%vec(4)*kmat2(4,3)) * length
-    mat6(5,4) = -(c0t%vec(2)*kmat2(2,4) + c0t%vec(4)*kmat2(4,4)) * length
+    mat6 = drift
+    mat6(1:4,1:4) = matmul(kmat2, matmul(drift(1:4,1:4), kmat1))
+    mat6(5,1) = drift(5,2) * kmat1(2,1) + drift(5,4) * kmat1(4,1)
+    mat6(5,3) = drift(5,2) * kmat1(2,3) + drift(5,4) * kmat1(4,3)
+    mat6(2,6) = kmat2(2,1) * drift(1,6) + kmat2(2,3) * drift(3,6)
+    mat6(4,6) = kmat2(4,1) * drift(1,6) + kmat2(4,3) * drift(3,6)
 
     if (ele%value(tilt$) /= 0) then
       call tilt_mat6 (mat6, ele%value(tilt$))
@@ -395,8 +383,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 ! One must keep in mind that we are NOT using good canonical coordinates since
 !   the energy of the reference particle is changing.
 ! This means that the resulting matrix will NOT be symplectic.
-! Since things are very complicated we simplify things by ignoring most 
-!   off-axis and off-energy corrections to mat6.
+! Since things are very complicated we simplify things by ignoring the
+!   off-axis corrections to mat6.
 
   case (lcavity$)
 
@@ -405,34 +393,49 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
     mat6(6,5) = -ele%value(gradient$) * ele%value(l$) * f * sin(phase)
 
     cos_phi = cos(phase)
-    gradient = ele%value(gradient$) * cos_phi
+    gradient = ele%value(gradient$) * cos_phi - ele%value(k_loss$) * &
+                                                           abs(param%charge)
     e_start = ele%value(energy_start$) * (1 + c0%vec(6))
     e_end = e_start + gradient * ele%value(l$)
     e_ratio = e_end / e_start
-    alpha = log(e_ratio) / (2 * sqrt_2 * cos_phi)
-    cos_a = cos(alpha)
-    sin_a = sin(alpha)
 
     if (gradient == 0) then
       call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
       goto 8000  ! put in mulipole ends if needed
     endif
 
-    f = gradient / (2 * sqrt_2 * cos_phi)   ! body matrix
-    mat6(1,1) =  cos_a
-    mat6(1,2) =  sin_a * e_start / f
-    mat6(2,1) = -sin_a * f / e_end
-    mat6(2,2) =  cos_a * e_start / e_end
+    if (bmad_com%use_dimad_lcavity) then  ! use dimad formula
+      r11 = 1
+      r12 = e_start * log (e_ratio) / gradient
+      r21 = 0
+      r22 = 1 / e_ratio
+    else
+      alpha = log(e_ratio) / (2 * sqrt_2 * cos_phi)
+      cos_a = cos(alpha)
+      sin_a = sin(alpha)
+      f = gradient / (2 * sqrt_2 * cos_phi)   ! body matrix
+      r11 =  cos_a
+      r12 =  sin_a * e_start / f
+      r21 = -sin_a * f / e_end
+      r22 =  cos_a * e_start / e_end
+    endif
 
-    f = gradient / (2 * e_start)          ! entrence kick
-    mat6(1,1) = mat6(1,1) - f * mat6(1,2)
-    mat6(2,1) = mat6(2,1) - f * mat6(2,2)
+    k1 = -gradient / (2 * e_start)
+    k2 = +gradient / (2 * e_end)
 
-    f = gradient / (2 * e_end)            ! exit kick
-    mat6(2,1) = mat6(2,1) + f * mat6(1,1)
-    mat6(2,2) = mat6(2,2) + f * mat6(1,2)
+    mat6(1,1) = r11 + r12*k1
+    mat6(1,2) = r12 
+    mat6(2,1) = r21 + k2 + k2*r12*k1 + r22*k1
+    mat6(2,2) = r22 + k2*r12
 
     mat6(3:4,3:4) = mat6(1:2,1:2)
+
+! off-energy corrections
+
+    mat6(:,2) = mat6(:,2) / (1 + c0%vec(6))
+    mat6(:,4) = mat6(:,4) / (1 + c0%vec(6))
+    mat6(2,:) = (1 + c1%vec(6)) * mat6(2,:) 
+    mat6(4,:) = (1 + c1%vec(6)) * mat6(4,:)
 
 !--------------------------------------------------------
 ! rf cavity
