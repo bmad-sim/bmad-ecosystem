@@ -61,6 +61,9 @@ subroutine ring_geometry (ring)
 
 !
 
+  knl  = 0   ! initialize
+  tilt = 0  
+
   do i = 1, ring%n_ele_ring
 
     ele => ring%ele_(i)
