@@ -349,11 +349,13 @@ subroutine radiation_integrals (ring, orb_, mode)
 
   mode%e_loss = energy_loss
 
-  if(abs(m65) > 0. ) then
-    mode%sig_z = sqrt( mode%synch_int(1)/abs(m65) ) * mode%sig_e
+  if (abs(m65) > 0) then
+    mode%sig_z = sqrt(i1/abs(m65)) * mode%sig_e
   else
     mode%sig_z = 0.
   endif
+
+  mode%z%emittance = mode%sig_z * mode%sig_e
 
   sr_com = sr_com_save
 
