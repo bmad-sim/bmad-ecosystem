@@ -17,7 +17,7 @@ subroutine tao_init (init_file)
   character(*) init_file
   character(200) lattice_file, plot_file, data_and_var_file, file_name
   character(200) single_mode_file, startup_file
-  character(20) :: r_name = 'tao_init'
+  character(n_universe_maxx) :: r_name = 'tao_init'
   integer i, n_universes, iu
 
   namelist / tao_start / lattice_file, startup_file, &
@@ -35,6 +35,12 @@ subroutine tao_init (init_file)
   read (iu, nml = tao_start)
   close (iu)
 
+  if (n_universes .gt. n_universe_maxx) then
+    call out_io (s_abort$, r_name, "Too many universe! Maximum number of &
+                    & universes: \i\ ", n_universe_maxx)
+    call err_exit
+  endif
+  
   allocate (s%u(n_universes))
 
   if (lattice_file == ' ')      lattice_file      = init_file

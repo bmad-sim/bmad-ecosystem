@@ -8,6 +8,7 @@ module tao_struct
 
 use bmad_struct, only: rp, ring_struct, coord_struct, radians$
 use quick_plot, only: qp_line_struct, qp_symbol_struct, qp_axis_struct, qp_rect_struct
+use macroparticle_mod, only: macro_init_struct, beam_struct
 use tao_parameters
 use tao_hook_mod
 
@@ -316,7 +317,7 @@ type tao_global_struct
   integer :: ix_key_bank = 0         ! For single mode.
   integer :: phase_units = radians$  ! Phase units on output.
   integer :: max_output_lines = 200  ! maximun number of lines sent to output_io
-  integer :: track_type = singleparticle$ ! or macroparticle$ 
+  character(16) :: track_type = 'single' ! or macro 
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer = 'de'  ! optimizer to use.
   type (tao_global_hook) hook        ! Custom stuff. Defined in tao_hook.f90
@@ -332,7 +333,7 @@ type tao_global_struct
   logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
   logical :: lattice_recalc = .true.         ! recalculate the lattice?
   logical :: init_plot_needed = .true.       ! reinitialize plotting?
-  character(16) :: valid_plot_who(10) 
+  character(16) :: valid_plot_who(10)        ! model, base, ref etc...
   character(40) :: print_command = 'awprint'
   character(80) :: default_init_file = 'tao.init'
   character(80) :: current_init_file = 'tao.init'
@@ -341,11 +342,22 @@ type tao_global_struct
 end type
 
 !-----------------------------------------------------------------------
+! Macroparticle structure
+
+type tao_beam_struct
+  type (beam_struct) beam             ! macroparticle beam
+  type (macro_init_struct) macro_init ! macro distribution at beginning of lat
+  integer, pointer :: to_ele(:)       ! index of elements to track to   
+  logical track_all                   ! track through every element
+end type
+
+!-----------------------------------------------------------------------
 ! A universe is a snapshot of a machine
 
 type tao_universe_struct
   type (ring_struct) model, design, base           ! lattice structures
   type (coord_struct), allocatable :: model_orb(:), design_orb(:), base_orb(:)
+  type (tao_beam_struct) beam                      ! macroparticle beam 
   type (tao_d2_data_struct), pointer :: d2_data(:) => null()  ! The data types 
   type (tao_data_struct), pointer :: data(:) => null()        ! array of all data.
   real(rp), pointer :: dModel_dVar(:,:)                       ! Derivative matrix.

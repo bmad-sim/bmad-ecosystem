@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_open_file (logical_dir, file, iunit, print_err)
+! Subroutine tao_open_file (logical_dir, file, iunit, file_name)
 !
 ! Subroutine to open a file for reading.
 ! This subroutine will first look for a file in the current directory before
@@ -8,7 +8,7 @@
 ! Input:
 !   logical_dir -- Character(*): Logical directory.
 !   file        -- Character(*): File name.
-!   print_err   -- Logical, optional: Print error message if no file found?
+!   print_err   -- **NOT USED** Logical, optional: Print error message if no file found?
 !                   Default is True.
 !
 ! Output:

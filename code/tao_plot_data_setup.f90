@@ -327,7 +327,7 @@ contains
 subroutine s_data_to_plot (lat, orb, s_pos, who, y, err)
 
 type (tao_plot_who_struct) who
-type (coord_struct) orb(:)
+type (coord_struct) orb(0:)
 type (ring_struct) lat
 type (ele_struct) ele
 type (coord_struct) here

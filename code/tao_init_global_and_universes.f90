@@ -16,6 +16,8 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 
   use tao_mod
   use tao_input_struct
+  use macroparticle_mod
+  use bmad_parser_mod
   
   implicit none
 
@@ -26,6 +28,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   type (tao_var_input) var(n_var_minn:n_var_maxx)
   type (tao_global_struct) global
   type (tao_d1_data_struct), pointer :: d1_ptr
+  type (macro_init_struct) macro_init(n_universe_maxx)
 
   real(rp) :: default_weight        ! default merit function weight
   real(rp) :: default_step          ! default "small" step size
@@ -40,23 +43,29 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 
   character(*) data_and_var_file
   character(40) :: r_name = 'tao_init_global_and_universes'
-  character(200) file_name
+  character(200) file_name, wake_file(n_universe_maxx)
   character(16) name,  default_universe, default_data_type
   character(16) default_merit_type, default_attribute
   character(100) line
 
   logical err
   logical counting, searching
+  logical sr_wakes_on, lr_wakes_on
 
   namelist / tao_params / global, n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
+  
+  namelist / tao_beam_init / sr_wakes_on, lr_wakes_on, wake_file, macro_init
          
   namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe
+  
   namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, &
                            ix_max_data, default_weight, default_data_type
+			   
   namelist / tao_var / v1_var, var, default_weight, default_step, &
                       ix_min_var, ix_max_var, default_universe, default_attribute, &
                       default_low_lim, default_high_lim
 
+!-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 ! Init lattaces
 ! read global structure from tao_params namelist
@@ -64,6 +73,10 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   global%valid_plot_who(1:5) = &
                 (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  ' /)
   call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
+  if (iu .eq. 0) then
+    call out_io (s_abort$, r_name, "Error opening init file")
+    call err_exit
+  endif
   call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
   read (iu, nml = tao_params)
   call out_io (s_blank$, r_name, 'Init: Read tao_params namelist')
@@ -88,6 +101,34 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   s%n_var_used = 0
   s%n_v1_var_used = 0       ! size of s%v1_var(:) array
 
+!-----------------------------------------------------------------------
+! Init macroparticles
+
+  call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
+  ! if not specified, set ave energy to initial beam energy
+  macro_init(:)%E_0 = s%u(1)%design%ele_(0)%value(beam_energy$)
+  ! by default, no wake data file needed
+  wake_file(:) = 'none'
+  read (iu, nml = tao_beam_init, iostat = ios)
+  close (iu)
+  if (ios .eq. 0) then
+    call out_io (s_blank$, r_name, 'Init: Read tao_beam_init namelist')
+    bmad_com%sr_wakes_on = .false.
+    bmad_com%lr_wakes_on = .false.
+    if (sr_wakes_on) bmad_com%sr_wakes_on = .true.
+    if (sr_wakes_on) bmad_com%lr_wakes_on = .true.
+    do i = 1, size(s%u)
+      call init_macro(s%u(i), macro_init(i), wake_file(i))
+    enddo
+  endif
+
+!-----------------------------------------------------------------------
+! do initial twiss_and_track and equate model and base to design
+  do i = 1, size(s%u)
+    call init_lattices (s%u(i))
+  enddo
+
+!-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 ! Init data
 
@@ -206,6 +247,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   enddo
 
   close (iu)
+
   return
 
 ! namelist read error.
@@ -241,19 +283,8 @@ subroutine init_universe (u)
 
 !
 
-  n = u%design%n_ele_max
-  allocate (u%model_orb(0:n), u%design_orb(0:n), u%base_orb(0:n))
-
   u%n_d2_data_used = 0      ! size of s%u(i)%d2_data(:) array
   u%n_data_used = 0         ! size of s%u(i)%data(:) array
-
-! For linacs, specify initial conditions
-
-  u%design_orb(0)%vec = 0.0
-  
-  call twiss_and_track (u%design, u%design_orb)
-  u%model  = u%design; u%model_orb  = u%design_orb
-  u%base = u%design; u%base_orb = u%design_orb
 
 ! allocate and set defaults
 
@@ -281,6 +312,28 @@ subroutine init_universe (u)
   allocate (u%dmodel_dvar(1,1))
   
 end subroutine init_universe
+
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+! contains
+
+subroutine init_lattices (u)
+
+  type (tao_universe_struct) :: u
+
+  n = u%design%n_ele_max
+  allocate (u%model_orb(0:n), u%design_orb(0:n), u%base_orb(0:n))
+
+! For linacs, specify initial conditions
+
+  u%design_orb(0)%vec = 0.0
+
+  s%global%lattice_recalc = .true.
+  call tao_lattice_calc(u, u%design, u%design_orb)
+  u%model  = u%design; u%model_orb  = u%design_orb
+  u%base = u%design; u%base_orb = u%design_orb
+
+end subroutine init_lattices
 
 !----------------------------------------------------------------
 !----------------------------------------------------------------
@@ -633,7 +686,7 @@ logical, allocatable :: found_one(:)
       endif
     else
       call out_io (s_abort$, r_name, 'If you are counting elements you should &
-                                      also be searching for them')
+                                      &also be searching for them')
       call err_exit
     endif
     n1 = s%n_var_used + 1
@@ -737,7 +790,7 @@ integer num_hashes, ix
   ix = index (count_name1, '#')
   if (ix .eq. 0) then
     call out_io (s_abort$, r_name, "WHEN USING 'COUNT:' MUST HAVE '#' &
-                    WILDCARD IN NAME")
+                    &WILDCARD IN NAME")
     call err_exit
   endif
   call tao_count_strings (count_name1, '#', num_hashes)
@@ -795,4 +848,78 @@ integer j
 
 end subroutine find_elements
 
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+! contains
+!
+! Initialize the macroparticles. Determine which element to track beam to
+!
+
+subroutine init_macro(u, macro_init, wake_file)
+
+implicit none
+
+type (tao_universe_struct) u
+type (macro_init_struct) macro_init
+character(*) wake_file
+logical, automatic :: ele(0:u%design%n_ele_max)
+
+integer j, jj
+integer, pointer :: ix_lcav(:)
+
+!
+  if (wake_file .ne. 'none') then
+    call elements_locator (lcavity$, u%design, ix_lcav)
+    do i=1,size(ix_lcav)
+       if (.not. associated(u%design%ele_(ix_lcav(i))%wake%sr_file)) &
+            allocate (u%design%ele_(ix_lcav(i))%wake%sr_file)
+       u%design%ele_(ix_lcav(i))%wake%sr_file = wake_file
+       call read_sr_wake(u%design%ele_(ix_lcav(i)))
+    end do
+  endif
+
+  deallocate(ix_lcav)
+
+  ele = .false.
+
+  u%beam%macro_init = macro_init
+  call init_macro_distribution (u%beam%beam, macro_init, .true.)
+
+! ! find elements to to track to
+! ! These will be the ones associated with any datum
+! forall (j = 1:u%n_data_used, .not.(ele(u%data(j)%ix_ele)))
+!   ele(u%data(j)%ix_ele) = .true.
+! endforall
+!   
+! !now include ix_ele2
+! do j = 1, u%n_data_used
+!   if (u%data(j)%ix_ele2 .ne. -1) then
+!     if ((ele(u%data(j)%ix_ele2))) ele(u%data(j)%ix_ele) = .true.
+!   endif
+! enddo
+
+! allocate (u%beam%to_ele(1:count(ele)))
+
+! ! get the element indexes, but only for regular ring elements
+! ! if a data type refers to a non regular element then not sure what to do
+! jj = 1
+! do j = 0, u%design%n_ele_use
+!   if (ele(j)) then
+!     u%beam%to_ele(jj) = j
+!     jj = jj + 1
+!   endif
+! enddo
+
+! if (jj-1 .ne. count(ele)) then
+!   call out_io (s_warn$, r_name, &
+!    "There appears to be non-regular element references in your data!" )
+!   call out_io (s_blank$, r_name, &
+!    "Macroparticles will not necessarily track to these elements")
+! endif
+  
+  ! For starters, always track through every element.
+  u%beam%track_all = .true.
+  
+end subroutine init_macro
+  
 end subroutine

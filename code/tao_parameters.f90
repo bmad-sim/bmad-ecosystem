@@ -6,6 +6,7 @@
 
 module tao_parameters
 
+  integer, parameter :: n_universe_maxx = 20 !max number of universes
   integer, parameter :: n_legend_maxx = 20   ! number of lines for a legend.
   integer, parameter :: n_descrip_maxx = 10  ! d2_data descriptive info lines.
   integer, parameter :: n_template_maxx = 10 ! number of plot templates.
@@ -20,13 +21,11 @@ module tao_parameters
   
   integer, parameter :: data$ = 1, variable$ = 2
   integer, parameter :: use$ = 1, veto$ = 2, restore$ = 3
-  integer, parameter :: singleparticle$ = 1, macroparticle$ = 2
   
   type  name_struct
     character(16) :: xy_plane(2) = (/ "X", "Y" /)
     character(16) :: data_or_var(2) = (/ "data    ", "variable"/)
     character(16) :: use_veto_restore(3) = (/ "use    ", "veto   ", "restore"/)
-    character(16) :: track_type(2) = (/ "singleparticle", "macroparticle" /)
   end type
 
   type (name_struct), save :: name$

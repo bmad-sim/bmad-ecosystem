@@ -201,7 +201,7 @@ case ('floor:theta')
   call relative_switch
   datum_value = lattice%ele_(ix2)%floor%theta - lattice%ele_(ix1)%floor%theta
 
-case ('s_length')
+case ('s_position')
   call relative_switch
   datum_value = lattice%ele_(ix2)%s - lattice%ele_(ix1)%s
 
