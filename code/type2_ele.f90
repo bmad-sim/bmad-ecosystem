@@ -270,7 +270,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
 ! Encode lord info
 
   if (ele%n_slave /= ele%ix2_slave - ele%ix1_slave + 1) then
-    write (li(nl+1), *)
+    write (li(nl+1), *) ' '
     write (li(nl+2), *) &
                    'ERROR: N_SLAVE DOES NOT MATCH IX2_SLAVE-IX1_SLAVE+1 !!'
     write (li(nl+3), *) ele%n_slave, ele%ix2_slave, ele%ix1_slave
@@ -278,7 +278,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
   endif          
 
   if (ele%n_lord /= ele%ic2_lord - ele%ic1_lord + 1) then
-    write (li(nl+1), *)
+    write (li(nl+1), *) ' '
     write (li(nl+2), *) 'ERROR: N_LORD DOES NOT MATCH Ic1_LORD-Ic2_LORD+1 !!'
     write (li(nl+3), *) ele%n_lord, ele%ic1_lord, ele%ic2_lord
     nl = nl + 3
@@ -292,7 +292,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
   if (type_control) then
 
     nl = nl + 1
-    write (li(nl), *)
+    write (li(nl), *) ' '
 
     if (ct <= 0) then
       nl = nl + 1
