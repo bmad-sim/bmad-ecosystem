@@ -58,7 +58,7 @@ subroutine radiation_integrals (ring, orb_, mode)
   type (ring_struct), target :: ring
   type (coord_struct), target :: orb_(0:), start, end
   type (modes_struct) mode
-  type (sr_rad_com) sr_com_save
+  type (synch_rad_com) sr_com_save
 
   real(rp), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
   real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
