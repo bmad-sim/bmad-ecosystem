@@ -65,9 +65,9 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 
   real(rp) e_vec(4)
 
-  integer j_in, i_out, ix_out(:), i, k, n
+  integer j_in, i_out, ix_out(:), i, k, n, out_symmetry
   integer n_ele, j, ix, ic, o_key, n_con, n_ic
-  integer, allocatable, save :: ic_(:), out_symmetry
+  integer, allocatable, save :: ic_(:)
 
   logical init_hybrid_needed, remove_markers, keep_ele(:)
   logical z_decoupled, do_taylor
