@@ -44,6 +44,7 @@ subroutine compute_element_energy (lattice)
     ele => lattice%ele_(i)
     if (ele%key == lcavity$) then
       ele%value(energy_start$) = beam_energy
+      ele%value(p0c_start$) = p0c
       if (ele%is_on) then
         phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
         beam_energy = beam_energy + ele%value(gradient$) * &
@@ -82,6 +83,7 @@ subroutine compute_element_energy (lattice)
       ix = ele%ix1_slave
       j = lattice%control_(ix)%ix_slave
       ele%value(energy_start$) = lattice%ele_(j)%value(energy_start$)
+      ele%value(poc_start$) = lattice%ele_(j)%value(p0c_start$)
     endif
 
   enddo
