@@ -15,6 +15,7 @@ subroutine tao_show_cmd (word1, word2, word3, word4)
 
 use tao_mod
 use tao_top10_mod
+use tao_single_mod
 
 implicit none
 
@@ -24,6 +25,7 @@ type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_data_struct), pointer :: d_ptr
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: v_ptr
+type (tao_plot_struct), pointer :: plot
 type (coord_struct) orb
 
 type (ele_struct), pointer :: ele
@@ -43,9 +45,9 @@ character(24) show_name, show2_name
 character(80), pointer :: ptr_lines(:)
 character(16) ele_name
 
-character(24) :: show_names(8) = (/ &
-        'data     ', 'var      ', 'global   ',  'alias    ', 'top10    ', &
-        'optimizer', 'ele      ', 'lattice  ' /)
+character(16) :: show_names(10) = (/ &
+   'data       ', 'var        ', 'global     ', 'alias      ', 'top10     ', &
+   'optimizer  ', 'ele        ', 'lattice    ', 'constraints', 'plots     ' /)
 
 character(200) lines(max_lines)
 character(100) line1, line2
@@ -117,6 +119,14 @@ case ('alias')
                                     trim(tao_com%alias(i)%string) // '"'
     call out_io (s_blank$, r_name, lines(1:nl))
   enddo
+
+!----------------------------------------------------------------------
+! constraints
+
+case ('constraints')
+
+  call tao_show_constraints (0, 'ALL')
+  call tao_show_constraints (0, 'TOP10')
 
 !----------------------------------------------------------------------
 ! data
@@ -411,6 +421,32 @@ case ('optimizer')
 
 
 !----------------------------------------------------------------------
+! plots
+
+case ('plots')
+
+  nl=nl+1; lines(nl) = '   '
+  nl=nl+1; lines(nl) = 'Templates: Plot: Graphs'
+  do i = 1, size(s%plot_page%plot)
+    plot => s%template_plot(i)
+    if (associated(plot%graph)) then
+      nl=nl+1; write (lines(nl), '(4x, 2a, t20, 99a)') trim(plot%name), &
+                      ':', (plot%graph(j)%name, j = 1, size(plot%graph))
+    else
+      nl=nl+1; write (lines(nl), '(4x, a)') trim(plot%name)
+    endif
+  enddo
+
+  nl=nl+1; lines(nl) = 'Plot Region <--> Template:' 
+  do i = 1, size(s%plot_page%plot)
+    plot => s%plot_page%plot(i)
+    nl=nl+1; lines(nl) = '   ' // plot%region%name // '<-->  ' // plot%name
+  enddo
+
+
+  call out_io (s_blank$, r_name, lines(1:nl))
+
+!----------------------------------------------------------------------
 ! top10
 
 case ('top10')
@@ -484,24 +520,25 @@ case ('var')
       enddo
     endif
 
-    nl=nl+1; write(lines(nl), fmt)  '%Design_value:   ', v_ptr%design_value
-    nl=nl+1; write(lines(nl), fmt)  '%Old_value:      ', v_ptr%old_value        
-    nl=nl+1; write(lines(nl), fmt)  '%meas_value:     ', v_ptr%meas_value       
-    nl=nl+1; write(lines(nl), fmt)  '%Ref_value:      ', v_ptr%ref_value        
-    nl=nl+1; write(lines(nl), fmt)  '%correction_alue:', v_ptr%correction_value     
-    nl=nl+1; write(lines(nl), fmt)  '%High_lim:       ', v_ptr%high_lim   
-    nl=nl+1; write(lines(nl), fmt)  '%Low_lim:        ', v_ptr%low_lim    
-    nl=nl+1; write(lines(nl), fmt)  '%Step:           ', v_ptr%step             
-    nl=nl+1; write(lines(nl), fmt)  '%Weight:         ', v_ptr%weight           
-    nl=nl+1; write(lines(nl), fmt)  '%Delta:          ', v_ptr%delta
-    nl=nl+1; write(lines(nl), fmt)  '%Merit:          ', v_ptr%merit            
-    nl=nl+1; write(lines(nl), fmt)  '%DMerit_dVar:    ', v_ptr%dMerit_dVar      
-    nl=nl+1; write(lines(nl), lmt)  '%Exists:         ', v_ptr%exists
-    nl=nl+1; write(lines(nl), lmt)  '%Good_var:       ', v_ptr%good_var  
-    nl=nl+1; write(lines(nl), lmt)  '%Good_user:      ', v_ptr%good_user 
-    nl=nl+1; write(lines(nl), lmt)  '%Good_opt:       ', v_ptr%good_opt 
-    nl=nl+1; write(lines(nl), lmt)  '%Useit_opt:      ', v_ptr%useit_opt
-    nl=nl+1; write(lines(nl), lmt)  '%Useit_plot:     ', v_ptr%useit_plot   
+    nl=nl+1; write(lines(nl), fmt)  '%Design_value:    ', v_ptr%design_value
+    nl=nl+1; write(lines(nl), fmt)  '%Old_value:       ', v_ptr%old_value
+    nl=nl+1; write(lines(nl), fmt)  '%Meas_value:      ', v_ptr%meas_value
+    nl=nl+1; write(lines(nl), fmt)  '%Ref_value:       ', v_ptr%ref_value
+    nl=nl+1; write(lines(nl), fmt)  '%Correction_value:', v_ptr%correction_value
+    nl=nl+1; write(lines(nl), fmt)  '%High_lim:        ', v_ptr%high_lim
+    nl=nl+1; write(lines(nl), fmt)  '%Low_lim:         ', v_ptr%low_lim
+    nl=nl+1; write(lines(nl), fmt)  '%Step:            ', v_ptr%step
+    nl=nl+1; write(lines(nl), fmt)  '%Weight:          ', v_ptr%weight
+    nl=nl+1; write(lines(nl), fmt)  '%Delta:           ', v_ptr%delta
+    nl=nl+1; write(lines(nl), amt)  '%Merit_type:      ', v_ptr%merit_type
+    nl=nl+1; write(lines(nl), fmt)  '%Merit:           ', v_ptr%merit
+    nl=nl+1; write(lines(nl), fmt)  '%dMerit_dVar:     ', v_ptr%dMerit_dVar
+    nl=nl+1; write(lines(nl), lmt)  '%Exists:          ', v_ptr%exists
+    nl=nl+1; write(lines(nl), lmt)  '%Good_var:        ', v_ptr%good_var
+    nl=nl+1; write(lines(nl), lmt)  '%Good_user:       ', v_ptr%good_user
+    nl=nl+1; write(lines(nl), lmt)  '%Good_opt:        ', v_ptr%good_opt
+    nl=nl+1; write(lines(nl), lmt)  '%Useit_opt:       ', v_ptr%useit_opt
+    nl=nl+1; write(lines(nl), lmt)  '%Useit_plot:      ', v_ptr%useit_plot
 
 ! check if there is a variable number
 ! if no variable number requested, show it all

@@ -93,7 +93,7 @@ do j = 1, size(plot%graph)
     curve => graph%curve(k)
     call qp_set_symbol (curve%symbol)
     call qp_set_line ('PLOT', curve%line) 
-    call qp_draw_data (curve%x_symb, curve%y_symb, curve%draw_line, &
+    call qp_draw_data (curve%x_symb, curve%y_symb, .false., &
                                                curve%symbol_every, graph%clip)
     call qp_draw_data (curve%x_line, curve%y_line, curve%draw_line, &
                                                            0, graph%clip)

@@ -31,7 +31,7 @@ type (tao_graph_struct), pointer :: graph
 
 real(rp) x_min, x_max
 
-integer i, j, ix, places
+integer i, j, ix, places, im
 
 character(*) where
 
@@ -39,14 +39,33 @@ real(rp) this_min, this_max
 
 logical err
 
-! If the where argument is blank then scale all graphs
+! If the where argument is blank then scale all graphs.
+! Make sure that all plots using an 's' scale have the same scale
 
 if (len_trim(where) == 0 .or. where == 'all') then
+
+  im = 0
   do j = 1, size(s%plot_page%plot)
     plot => s%plot_page%plot(j)
     if (.not. plot%visible) cycle
     call tao_x_scale_plot (plot, x_min, x_max)
+    if (plot%x_axis_type == 's' .and. plot%type /= 'lat_layout') then
+      if (im == 0) im = j
+      if (plot%x%max > s%plot_page%plot(im)%x%max) im = j
+    endif
   enddo
+
+  if (im /= 0) then
+    do j = 1, size(s%plot_page%plot)
+      plot => s%plot_page%plot(j)
+      if (.not. plot%visible) cycle
+      if (plot%x_axis_type /= 's') cycle
+      plot%x%max = s%plot_page%plot(im)%x%max
+      plot%x%min = s%plot_page%plot(im)%x%min
+      plot%x%major_div = s%plot_page%plot(im)%x%major_div
+    enddo
+  endif
+
   return
 endif
 
@@ -109,7 +128,7 @@ endif
 ! calculate divisions and places
 
 call qp_calc_and_set_axis ('X', x1, x2, &
-          nint(0.8 * plot%x_divisions), nint(1.4 * plot%x_divisions), 'GENERAL')
+          nint(0.7 * plot%x_divisions), nint(1.3 * plot%x_divisions), 'GENERAL')
 call qp_get_axis ('X', plot%x%min, plot%x%max, plot%x%major_div, plot%x%places)
 
 end subroutine 

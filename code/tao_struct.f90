@@ -120,6 +120,7 @@ type tao_plot_struct
   type (qp_axis_struct) x         ! X-axis parameters.
   real(rp) x_divisions            ! Nominal number of x-axis divisions.
   character(16) x_axis_type       ! 'index', 's'
+  logical independent_graphs      ! Graph y-axis scales independent when using the scale cmd?
   integer box_layout(2)           ! Defines which box the plot is put in.
   logical visible                 ! To draw or not to draw.
   logical valid                   ! valid if all curve y_dat computed OK.
@@ -313,7 +314,7 @@ type tao_global_struct
   real(rp) :: y_axis_plot_dmin = 1e-4 
                                      ! Minimum y_max-y_min allowed for a graph.
   integer :: u_view = 1              ! Which universe we are viewing.
-  integer :: n_opti_cycles = 10      ! number of optimization cycles
+  integer :: n_opti_cycles = 20      ! number of optimization cycles
   integer :: lun_command_file = 0    ! unit number for a command file.
                                      !  0 -> no command file.
   integer :: ix_key_bank = 0         ! For single mode.
@@ -328,8 +329,9 @@ type tao_global_struct
   logical :: single_mode = .false.
   logical :: optimizer_running 
   logical :: init_opt_wrapper = .true.
-  logical :: label_lattice_elements = .true.     ! for lat_layout plots
-  logical :: label_keys = .true.
+  logical :: label_lattice_elements = .true. ! For lat_layout plots
+  logical :: label_keys = .true.             ! For lat_layout plots
+  logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
   character(16) :: valid_plot_who(10) 
   character(40) :: print_command = 'awprint'
   character(80) :: var_out_file = 'var#.out'

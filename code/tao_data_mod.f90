@@ -97,6 +97,7 @@ type (tao_data_struct), pointer :: data
 type (tao_data_struct) datum
 type (ring_struct) lattice
 type (coord_struct) orb(0:)
+type (modes_struct) mode
 
 real(rp) datum_value
 integer i, j, k, m, ix, ix1, ix2
@@ -143,13 +144,13 @@ case ('etap:x')
 case ('etap:y')
   call load_it (lattice%ele_(:)%y%etap)
 
-case ('coupling:11')
+case ('coupling:11b')
   call load_it (cc%coupling11, cc%f_11, coupling_here = .true.)
 case ('coupling:12a')
   call load_it (cc%coupling12a, cc%f_12a, coupling_here = .true.)
 case ('coupling:12b')
   call load_it (cc%coupling12b, cc%f_12b, coupling_here = .true.)
-case ('coupling:22')
+case ('coupling:22a')
   call load_it (cc%coupling22, cc%f_22, coupling_here = .true.)
 
 case ('cbar:11')
@@ -160,6 +161,24 @@ case ('cbar:21')
   call load_it (cc%cbar(1,2), coupling_here = .true.)
 case ('cbar:22')
   call load_it (cc%cbar(2,2), coupling_here = .true.)
+
+case ('i5a_e6')
+  call radiation_integrals (lattice, orb, mode)
+  datum_value = mode%lin%i5a_e6
+  datum%ix_ele_merit = lattice%n_ele_use
+
+case ('i5b_e6')
+  call radiation_integrals (lattice, orb, mode)
+  datum_value = mode%lin%i5b_e6
+  datum%ix_ele_merit = lattice%n_ele_use
+
+case ('r56')
+  call out_io (s_abort$, r_name, 'r56 constraint not yet implemented')
+  call err_exit
+
+case ('t566')
+  call out_io (s_abort$, r_name, 't566 constraint not yet implemented')
+  call err_exit
 
 case ('floor:x')
   call relative_switch

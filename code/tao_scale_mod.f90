@@ -37,7 +37,7 @@ character(*) where
 
 logical err
 
-! If the where argument is blank then scale all graphs
+! If the where argument is blank or 'all' then scale all plots.
 
 if (len_trim(where) == 0 .or. where(1:3) == 'all') then
   do j = 1, size(s%plot_page%plot)
@@ -85,7 +85,7 @@ do i = 1, size(plot%graph)
   call tao_scale_graph (plot%graph(i), y_min, y_max)
 enddo
 
-if (y_min == y_max) then  ! if auto scale was done...
+if (y_min == y_max .and. .not. plot%independent_graphs) then  ! if auto scale was done...
   this_min = minval (plot%graph(:)%y%min)
   this_max = maxval (plot%graph(:)%y%max)
   do i = 1, size(plot%graph)

@@ -116,7 +116,9 @@ end_flag = 0  ! continue
 do
   call get_tty_char (char, .false., .false.) 
   if (char == '.') then
-    end_flag = 1                     ! signal stop
+    end_flag = 1     ! signal stop
+    call out_io (s_blank$, r_name, 'Optimizer stop signal detected.', &
+                                                             'Stopping now.')
     s%global%optimizer_running = .false.
   endif
   if (char == achar(0)) exit   ! only exit if there is no more input

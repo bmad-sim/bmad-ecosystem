@@ -99,6 +99,7 @@ do
   plot%convert = .false.                             ! set default
   plot%x_axis_type = 'index'
   plot%x = init_axis
+  plot%independent_graphs = .false.
   read (iu, nml = tao_template_plot, iostat = ios, err = 9100)  
   if (ios /= 0) exit                                 ! exit on end of file.
   call out_io (s_blank$, r_name, &
@@ -113,6 +114,7 @@ do
   plt%who         = plot%who
   plt%convert     = plot%convert
   plt%x_axis_type = plot%x_axis_type
+  plt%independent_graphs = plot%independent_graphs
   if (plt%type == 'lat_layout') plt%x_axis_type = 's'
 
   ng = plot%n_graph

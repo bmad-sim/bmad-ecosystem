@@ -95,6 +95,7 @@ type tao_plot_input
   logical convert  
   integer box_layout(2)
   integer n_graph
+  logical independent_graphs
 end type
 
 !-------------------------------------------------------------

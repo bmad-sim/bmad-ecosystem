@@ -55,7 +55,8 @@ do i = 1, size(s%u)
     
   close (iu)
 
-  if (print_message) call out_io (s_blank$, r_name, 'Written: ' // file_name)
+!!  if (print_message) call out_io (s_blank$, r_name, 'Written: ' // file_name)
+call out_io (s_blank$, r_name, 'Written: ' // file_name)
 
 enddo
 
@@ -94,8 +95,7 @@ implicit none
 
 type (tao_top10_struct) top_merit(10)
 
-real(rp) value
-real(rp), allocatable :: merit(:)
+real(rp) value, this_merit
 
 integer i, j, iunit, nc, ir, n_max
 integer ir1, ir2, iu, ie, nl
@@ -106,7 +106,7 @@ character(16) location, con_var, max_loc, loc1, loc2
 character(80) fmt
 character(1) plane
 character(24) :: r_name = 'tao_show_constraints'
-character(100) line(100)
+character(100) line(500), l1
 
 type constraint_struct
   character(16) name
@@ -120,6 +120,7 @@ type (constraint_struct), allocatable :: con(:)
 
 !
 
+this_merit = tao_merit()
 fmt  = '(i3, 1x, a9, 2x, a10, 1x, a9, 1pe10.2, 1pe12.3, e10.2, 2x, a8)'
 top_merit(:)%valid  = .false.; top_merit(:)%name  = ' '
 
@@ -178,7 +179,7 @@ enddo
 !
 
 if (form == 'TOP10') then
-  call indexx(con(:)%merit, ixm)
+  call indexx(con(1:nc)%merit, ixm(1:nc))
   n_max = min(nc, 10)
   ixm(1:n_max) = ixm(nc:nc-n_max+1:-1)
   line(1) = ' '
@@ -194,9 +195,12 @@ else
   call err_exit
 endif
 
-  nl=nl+1; line(nl) = ' '
-  nl=nl+1; line(nl) = 'Constrnt      Where1' //  &
+!
+
+l1 = '  Constraint   Where1' //  &
                      '     Where2     Target     Value      Merit     Max'
+nl=nl+1; line(nl) = ' '
+nl=nl+1; line(nl) = l1
 
 !
 
@@ -207,12 +211,13 @@ do j = 1, n_max
             con(i)%loc1, con(i)%loc2, con(i)%target_value, &
             con(i)%actual_value, con(i)%merit, con(i)%max_loc
 end do
+nl=nl+1; line(nl) = l1
 
 !
 
   nl=nl+1; line(nl) = ' '
   nl=nl+1; write (line(nl), '(1x, a, 1pe12.6)') &
-                                  'figure of merit: ', tao_merit()
+                                  'figure of merit: ', this_merit
 
 !
 

@@ -142,12 +142,13 @@ write (line(3), fmt) 'Value-Design:', old_value-design_value, &
                                   '  ->', new_value-design_value
 
 if (max(abs(old_merit), abs(new_merit)) > 100) then
-  fmt = '(5x, 2(a, f13.0), f13.2)'
+  fmt = '(5x, 2(a, f13.2), f13.2)'
 else
   fmt = '(5x, 2(a, f13.6), f13.6)'
 endif
 
-write (line(4), fmt) 'Merit:      ', old_merit, '  ->', new_merit, new_merit-old_merit
+write (line(4), fmt) 'Merit:      ', &
+                        old_merit, '  ->', new_merit, new_merit-old_merit
 line(5) = ' '
 if (delta /= 0) write (line(5), '(a, es12.3)') &
                          'dMerit/dValue:  ', (new_merit-old_merit) / delta

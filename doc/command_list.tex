@@ -13,18 +13,19 @@ is shown in Table~\ref{t:commands}
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Command} & {\it Section}  & {\it Command} & {\it Section} \\ \hline
-  alias    & \ref{s:alias}    &  restore     & \ref{s:restore} \\ \hline
-  call     & \ref{s:call}     &  run         & \ref{s:run}     \\ \hline
-  change   & \ref{s:change}   &  set         & \ref{s:set}     \\ \hline
-  clip     & \ref{s:clip}     &  scale       & \ref{s:scale}   \\ \hline
-  exit     & \ref{s:exit}     &  show        & \ref{s:show}    \\ \hline
-  flatten  & \ref{s:flatten}  &  single-mode & \ref{s:sing}    \\ \hline
-  help     & \ref{s:help}     &  use         & \ref{s:use}     \\ \hline
-  history  & \ref{s:history}  &  veto        & \ref{s:veto}    \\ \hline
-  output   & \ref{s:output}   &  view        & \ref{s:view}    \\ \hline
-  place    & \ref{s:place}    &  x-axis      & \ref{s:x-axis}  \\ \hline
-  plot     & \ref{s:plot}     &  x-scale     & \ref{s:x-scale} \\ \hline
-  quit     & \ref{s:quit}     &              &                 \\ \hline
+  alias      & \ref{s:alias}    &  restore     & \ref{s:restore} \\ \hline
+  call       & \ref{s:call}     &  run         & \ref{s:run}     \\ \hline
+  change     & \ref{s:change}   &  set         & \ref{s:set}     \\ \hline
+  clip       & \ref{s:clip}     &  scale       & \ref{s:scale}   \\ \hline
+  derivative & \ref{s:deriv}    &              &                 \\ \hline
+  exit       & \ref{s:exit}     &  show        & \ref{s:show}    \\ \hline
+  flatten    & \ref{s:flatten}  &  single-mode & \ref{s:sing}    \\ \hline
+  help       & \ref{s:help}     &  use         & \ref{s:use}     \\ \hline
+  history    & \ref{s:history}  &  veto        & \ref{s:veto}    \\ \hline
+  output     & \ref{s:output}   &  view        & \ref{s:view}    \\ \hline
+  place      & \ref{s:place}    &  x-axis      & \ref{s:x-axis}  \\ \hline
+  plot       & \ref{s:plot}     &  x-scale     & \ref{s:x-scale} \\ \hline
+  quit       & \ref{s:quit}     &              &                 \\ \hline
 \end{tabular}
 }
 \caption{Table of \bmad\ elements.}
@@ -174,6 +175,18 @@ Format:
 \vskip 0.2in
 \vn{Exit} exits the program. Same as \vn{Quit}.
 
+%% derivative --------------------------------------------------------------
+\section{Derivative}
+\label{s:deriv}
+
+Format:
+\begin{example}
+  derivative
+\end{example}
+
+\vskip 0.2in
+\vn{Derivative} calculates the \vn{dModel/dVariable} matrix needed for the \vn{lm} optimizer.
+
 %% flatten --------------------------------------------------------------
 \section{Flatten}
 \label{s:flatten}
@@ -234,10 +247,11 @@ Format:
 \begin{example}
   output hard     ! print the plot window to a printer.
   output ps       ! create a postscript file of the plot window.
+  output var      ! Write a Bmad file of variable valuse.
 \end{example}
 
 \vskip 0.2in
-\vn{Output} creates a PostScript file of the plot window. 
+\vn{Output} creates various files.
 
 %% place --------------------------------------------------------------
 \section{Place}
@@ -325,10 +339,11 @@ Format:
   run \{<optimizer>\}
 \end{example}
 
-\vskip 0.2in 
-The \vn{run} command runs an optimizer. If \vn{<optimizer>} is not
-given then the default optimizer is used. To stop the optimizer before
-it is finished press the period ``.'' key.  Valid optimizers are:
+\vskip 0.2in The \vn{run} command runs an optimizer. If
+\vn{<optimizer>} is not given then the default optimizer is used. To
+stop the optimizer before it is finished press the period ``.''
+key. If you want the optimizer to run forever run the optimizer in
+\vn{single mode}. Valid optimizers are:
 \begin{example}
   lm            ! Levenburg-Marquardt
   de            ! Differential Evolution
@@ -402,6 +417,7 @@ For \vn{set global} the possible
   prompt_string     = <string> ! Prompt string
   var_out_file      = <name>   ! File name of the list of variables in Bmad format. 
   opt_var_out_file  = <name>   ! File name for the optimizer generated file.
+  derivative_recalc = T/F      ! Force recalc of derivative matrix before an optimizer run?
 \end{example}
 
 Examples:
@@ -444,6 +460,7 @@ Examples:
 Format:
 \begin{example}
   show alias                     
+  show constraints
   show data \{<data_name> <number>\} 
   show ele <ele_name>
   show global
@@ -451,6 +468,7 @@ Format:
   show optimizer
   show top10
   show var <class> \{<number>\}
+  show plots
 \end{example}
 
 \vskip 0.2in
@@ -459,6 +477,8 @@ Format:
 \item[show alias]
 Shows a list of defined aliases. See the \vn{alias} command for more
 details.
+\item[show constraints]
+Lists data and variable constraints.
 \item[show data]
 Shows data information. If \vn{<data_name>} and \vn{<number>} are not
 present shown is a list of d2\_data names.

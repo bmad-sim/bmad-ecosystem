@@ -11,7 +11,7 @@ subroutine tao_output_cmd (what)
 
 use tao_mod
 use quick_plot
-
+use tao_single_mod
 
 character(*) what
 character(16) action
@@ -54,6 +54,11 @@ case ('ps')
   call system (trim(s%global%print_command) // ' quick_plot.ps')
   call out_io (s_blank$, r_name, 'Printing with command: ' // &
                                               s%global%print_command)
+
+! variables
+
+case ('var')
+  call tao_var_write (s%global%var_out_file, .true.)
 
 ! error
 

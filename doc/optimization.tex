@@ -12,9 +12,9 @@ well \vn{data_model}, the data as calculated from the \vn{model} fits
 \vn{data_meas}, the measured data
 \Begineq
   {\cal M} \equiv \sum_{i} w_i \,
-    (\data\_\model(i) -  \data\_\meas(i))^2 + 
+    \bigl[ \data\_\model(i) -  \data\_\meas(i) \bigr]^2 + 
   \sum_{j} w_j \,
-    (\var\_\model(j) - \var\_\meas(j))^2
+    \bigl[ \var\_\model(j) - \var\_\meas(j) \bigr]^2
   \label{m1}
 \Endeq
 \vn{var_model} is the value of a variable in the \vn{model} and
@@ -71,11 +71,11 @@ the bump knob is varied. Designating one of these orbit the
 \vn{reference}, the appropriate merit function is
 \begin{alignat}{1}
   {\cal M} = &\sum_{i} w_i \,
-    \left[ \bigl( \data\_\model(i) - \data\_\design(i) \bigr) - 
-      \bigl( \data\_\meas(i) - \data\_\reference(i) \bigr) \right]^2 + \CRNO
+    \Bigl[ \bigl( \data\_\model(i) - \data\_\design(i) \bigr) - 
+      \bigl( \data\_\meas(i) - \data\_\reference(i) \bigr) \Bigr]^2 + \CRNO
   &\sum_{j} w_j \,
-    \left[ \bigl( \var\_\model(j) - \var\_\design(j) \bigr) -
-     \bigl( \var\_\meas(i) - \var\_\reference(i) \bigr) \right]^2 
+    \Bigl[ \bigl( \var\_\model(j) - \var\_\design(j) \bigr) -
+     \bigl( \var\_\meas(i) - \var\_\reference(i) \bigr) \Bigr]^2 
   \label{m2}
 \end{alignat}
 where \vn{data_ref} and \vn{var_ref} refer to the reference
@@ -87,12 +87,12 @@ fitting becomes a two step process: The first step is to fit the
 \Eq{m1}. The \vn{base} lattice is then set equal to the \vn{model}
 lattice. The second step is to fit the model using the merit function
 \begin{alignat}{1}
-  {\cal M} = &\sum_{\data: i} w_i 
-    \left[ (\data\_\model(i) - \data\_\base(i)) - 
-      (\data\_\meas(i) - \data\_\reference(i)) \right]^2 + \CRNO
-  &\sum_{\var: j} w_j 
-    \left[ (\var\_\model(j) - \var\_\base(j)) -
-     (\var\_\meas(i) - \var\_\reference(i)) \right]^2 
+  {\cal M} = &\sum_{i} w_i 
+    \Bigl[ \bigl( \data\_\model(i) - \data\_\base(i) \bigr) - 
+      \bigl( \data\_\meas(i) - \data\_\reference(i) \bigr) \Bigr]^2 + \CRNO
+  &\sum_{j} w_j 
+    \Bigl[ \bigl( \var\_\model(j) - \var\_\base(j) \bigr) -
+     \bigl( \var\_\meas(i) - \var\_\reference(i) \bigr) \Bigr]^2 
   \label{m3}
 \end{alignat}
 
@@ -109,60 +109,166 @@ constraint could be that the beta function in some part of the lattice
 not exceed a certain value. In this case we can proceed as was done
 for lattice correction and define a merit function to be minimized:
 \Begineq
-  {\cal M} = \sum_{\mbox{constraints} i} w_i \, C_i^2
+  {\cal M} = \sum_{i} w_i \, C_i^2
 \Endeq
-The general form of the $C_i$ constraint values is
+Typically constraints are either to limit values to some range so the
+constraint would be of the form
 \Begineq
   C = 
     \begin{cases}
-    (\mbox{Model} - \mbox{Target})  & Condition \\
-    0                               & Otherwise
+    \mbox{model} - \mbox{limit}  & \mbox{model $>$ Limit} \\
+    0                            & \mbox{otherwise}
     \end{cases}
 \Endeq
-where \vn{model} is the value as calculated from the \vn{model}
-lattice and \vn{target} is some given number. Part of the optimization
-process is in deciding what the values should be for the \vn{targets}.
-The \vn{condition} needed for a non--zero $C_i$ is dependent upon the
-\vn{type} of the constraint. There are five constraint types:
+or a constraint is used to keep the \vn{model} at a certain value so
+the form of the constraint would be
+\Begineq
+  C = \mbox{model} - \mbox{target}  
+\Endeq
+Here \vn{model} is the value as calculated from the \vn{model}
+lattice. \vn{target} and \vn{limit} are given numbers. Part of the
+optimization process is in deciding what the values should be for any
+\vn{target} or \vn{limit}.
+
+%------------------------------------------------------------------------
+\section{Generalized Design}
+
+Since lattice design and lattice corrections are similar, \tao
+combines the two into one generalized correction process. In this
+generalized process The merit function becomes
+\Begineq
+  {\cal M} = \sum_i w_i \, D_i^2 + \sum_j w_j \, V_j^2
+\Endeq
+The general form of the data merit terms $D_i$ is 
+\Begineq
+  D = 
+    \begin{cases}
+    \mbox{delta}  & \mbox{Non-zero Condition} \\
+    0             & \mbox{Otherwise}
+    \end{cases}
+\Endeq
+The \vn{Non-zero Condition} needed for a non--zero $C_i$ is dependent
+upon the \vn{merit_type} of the datum. There are five constraint
+types as given in Table~\ref{t:con_type}.
 \begin{table}[h]
 \centering
 {\tt
 \begin{tabular}{|l|l|l|} \hline
-  {\it Constraint Type}  & $C$ & {\it Condition for non-zero $C$} \\ \hline 
-  \vn{target}     & \vn{model} - \vn{target}   & \vn{model} $\ne$ \target     \\ \hline 
-  \vn{min}        & \vn{model} - \vn{target}   & \vn{model} $<$ \vn{target}   \\ \hline 
-  \vn{max}        & \vn{model} - \vn{target}   & \vn{model} $>$ \vn{target}   \\ \hline 
-  \vn{abs_min}    & |\vn{model}| - \vn{target} & |\vn{model}| $<$ \vn{target} \\ \hline 
-  \vn{abs_max}    & |\vn{model}| - \vn{target} & |\vn{model}| $>$ \vn{target} \\ \hline 
+  {\it Merit\_Type}       & {\it Non-zero Condition} \\ \hline 
+  \vn{target}            & Any \vn{delta}   \\ \hline 
+  \vn{min}, \vn{abs_min} & \vn{delta} $<$ 0 \\ \hline 
+  \vn{max}, \vn{abs_max} & \vn{delta} $>$ 0 \\ \hline 
 \end{tabular}
 }
 \caption{Constraint Type List.}
 \label{t:con_type}
 \end{table}
 
-Since lattice design and lattice corrections are very similar, \tao
-combines the two into one generalized correction process. With \tao
-the constraint \vn{model} values are identified with the
-\vn{data_model} and the \vn{target} values are identified with the \vn{data_meas}.
-The different types of \vn{data} that \tao knows about is called the data's \vn{type}
-
-\begin{table}[h] \centering {\tt
+The form of \vn{delta} is determined by two global logicals called
+\vn{opt_with_ref} and \vn{opt_with_base} as shown in
+Table~\ref{t:d_i}. 
+\begin{table}[h] 
+\centering 
+{\tt
 \begin{tabular}{|l|l|l|} \hline
-  {\it Constraint/Data Type} & {\it Description}     &          \\ \hline 
-    beta:x, beta:y    & Twiss parameter              &          \\ \hline 
-    alpha:x, alpha:y  & Twiss parameter              &          \\ \hline 
-    eta:x, eta:y      & Dispersion                   &          \\ \hline 
-    etap:x, etap:y    & Dispersion derivative        &          \\ \hline 
-    phase:x, phase:y  & Betatron phase               & relative \\ \hline 
-    orbit:x, orbit:y  & Particle orbit               &          \\ \hline 
-    cbar:11, cbar:12, cbar:21, cbar:22 
-                      & Coupling                     &          \\ \hline 
-    floor:x, floor:y, floor:z
-                      & Global (``floor'') position  & relative \\ \hline 
-    floor:theta       & Global (``floor'') angle     & relative \\ \hline 
-    r56            & Term in linear transfer map     & relative \\ \hline 
-    t566           & Term in 2nd order transfer map  & relative \\ \hline 
-    s              & Longitudinal length constraint  & relative \\ \hline 
+  \vn{Opt_with_ref} & \vn{Opt_with_base} & \vn{delta} \\ \hline 
+  F & F & Model - Meas                \\ \hline 
+  T & F & Model - Meas + Ref - Design \\ \hline 
+  F & T & Model - Meas - Base         \\ \hline 
+  T & T & Model - Meas + Ref - Base   \\ \hline 
 \end{tabular}
-} \caption{Constraint List.}  \label{t:cons}
+} 
+\caption{$D_i$ Form}  
+\label{t:d_i}
 \end{table}
+
+What kind of data is associated with \vn{model}, \vn{design} and
+\vn{base} is determined by a datum's \vn{data_type}. Valid
+\vn{data_types} are given in table~\ref{t:cons}.
+\begin{table}[h] 
+\centering 
+{\tt
+\begin{tabular}{|l|l|l|} \hline
+  {\it Data\_Type} & {\it Description}        &          \\ \hline 
+    beta:x, beta:y    & Twiss parameter                 &          \\ \hline 
+    alpha:x, alpha:y  & Twiss parameter                 &          \\ \hline 
+    eta:x, eta:y      & Dispersion                      &          \\ \hline 
+    etap:x, etap:y    & Dispersion derivative           &          \\ \hline 
+    phase:x, phase:y  & Betatron phase                  & relative \\ \hline 
+    orbit:x, orbit:y  & Particle orbit                  &          \\ \hline 
+\begin{tabular}{@{}l}     cbar:11, cbar:12, \\ cbar:21, cbar:22 \end{tabular} 
+                      & Coupling                        &          \\ \hline 
+\begin{tabular}{@{}l}     coupling:11b, coupling:12a, \\ 
+                          coupling:12b, coupling:22a \end{tabular} 
+                      & Coupling                        &          \\ \hline 
+    floor:x, floor:y, floor:z
+                      & Global (``floor'') position     & relative \\ \hline 
+    floor:theta       & Global (``floor'') angle        & relative \\ \hline 
+    r56               & Term in linear transfer map     & relative \\ \hline 
+    t566              & Term in 2nd order transfer map  & relative \\ \hline 
+    i5a_e6, i5b_e6    & Normalized I5 radiation integral &          \\ \hline
+    s\_position       & longitudinal length constraint  & relative \\ \hline 
+\end{tabular}
+} 
+\caption{Constraint List.}
+\label{t:cons}
+\end{table}
+
+Also associated with a datum are one or two lattice elements called
+\vn{ele} and \vn{ele2}. The \vn{data_types} are divided into two
+categories: Those that are \vn{relative} and those who are not.  A
+\vn{relative} \vn{data_type} means that the \vn{model} value for that
+datum is determined by a difference between elements. For example, for
+\vn{phase:x} the \vn{model} value is
+\begin{example}
+  model_value = \(\phi\sb{x}\)(ele2) - \(\phi\sb{x}\)(ele)
+\end{example}
+If there is no \vn{ele2} associated with a datum then the model value is
+\begin{example}
+  model_value = \(\phi\sb{x}\)(ele) - \(\phi\sb{x}\)(0)
+\end{example}
+where $\phi_x(0)$ is the phase at the 0\Th element (which is always 0).
+
+For datums with \vn{non-relative} \vn{data_types} If there is also an
+associated \vn{ele2} element then the \vn{model} value is dependent
+upon the \vn{merit_type}. For example, with a \vn{beta:x} \vn{data_type}
+\begin{table}[h]
+\centering
+{\tt
+\begin{tabular}{|l|l|l|} \hline
+  {\it Merit\_Type}       & {\it Model Value} \\ \hline 
+  \vn{min}     & $\min_{\mbox{ele} \le i \le \mbox{ele2}} \beta_x(i)$ \\ \hline 
+  \vn{max}     & $\min_{\mbox{ele} \le i \le \mbox{ele2}} \beta_x(i)$ \\ \hline 
+  \vn{abs_min} & $\min_{\mbox{ele} \le i \le \mbox{ele2}} |\beta_x(i)|$ \\ \hline 
+  \vn{abs_max} & $\min_{\mbox{ele} \le i \le \mbox{ele2}} |\beta_x(i)|$ \\ \hline 
+  \vn{target}  & {\it Error}   \\ \hline 
+\end{tabular}
+}
+\caption{\vn{Model} evaluation.}
+\label{t:eval}
+\end{table}
+
+The form of the variable terms $V_i$ is determined by its \vn{merit_type}.
+For variables the merit types are:
+\begin{example}
+  target
+  limit
+\end{example}
+A \vn{target} \vn{merit_type} for a variable is the same as for
+datum. In this case \vn{model} is just the value of the variable.
+A \vn{limit} \vn{merit_type} has the form
+\Begineq
+  V = 
+    \begin{cases}
+    \mbox{model} - \mbox{high\_lim}  & \mbox{model} > \mbox{high\_lim} \\
+    \mbox{model} - \mbox{low\_lim}   & \mbox{model} < \mbox{low\_lim} \\
+    0                               & \mbox{Otherwise}
+    \end{cases}
+\Endeq
+
+Note: when doing lattice design \vn{opt_with_ref} and
+\vn{opt_with_base} are both set to \vn{False} and the \vn{target} and
+\vn{limit} values are identified with \vn{Meas}.
+
+
+
