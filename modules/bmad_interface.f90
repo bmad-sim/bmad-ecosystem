@@ -103,6 +103,15 @@ module bmad_interface
   end interface
 
   interface
+    subroutine cbar_to_c (cbar_mat, ele)
+      use bmad_struct
+      implicit none
+      real(rp) cbar_mat(2,2)
+      type (ele_struct) ele
+    end subroutine
+  end interface
+
+  interface
     subroutine calc_z_tune (ring)
       use bmad_struct
       implicit none
