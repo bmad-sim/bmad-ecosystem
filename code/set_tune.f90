@@ -14,7 +14,7 @@
 !                  dk1(i) relates to ring%ele_(i). Those quads with a
 !                  positive dk1(i) will be varied as one group and the
 !                  quads with negative dk1(i) will be varied as another group.
-!   orb_(0)%vec(6) -- Coord_struct: Energy at which the tune is computed.
+!   orb_(0)%vec(6) -- Coord_struct: Energy dE/E at which the tune is computed.
 !
 ! Output:
 !   ring      -- Ring_struct: Q_tuned ring

@@ -51,12 +51,14 @@ subroutine radiation_integrals (ring, orb_, mode)
   use precision_def
   use nr
   use rad_int_common
+  use radiation_mod
 
   implicit none
 
   type (ring_struct), target :: ring
   type (coord_struct), target :: orb_(0:), start, end
   type (modes_struct) mode
+  type (sr_rad_com) sr_com_save
 
   real(rp), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
   real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
@@ -103,6 +105,10 @@ subroutine radiation_integrals (ring, orb_, mode)
   ric%i1_ = 0;   ric%i2_ = 0;  ric%i3_ = 0
   ric%i4a_ = 0;  ric%i4b_ = 0
   ric%i5a_ = 0;  ric%i5b_ = 0
+
+! To make the calculation go faster turn off radiation fluctuations and damping
+
+  sr_com_save = sr_com
 
 !---------------------------------------------------------------------
 ! loop over all elements
@@ -348,5 +354,7 @@ subroutine radiation_integrals (ring, orb_, mode)
   else
     mode%sig_z = 0.
   endif
+
+  sr_com = sr_com_save
 
 end subroutine
