@@ -267,6 +267,7 @@ subroutine setup_radiation_tracking (ring, closed_orb, &
   type (ring_struct), target :: ring
   type (coord_struct), intent(in) :: closed_orb(0:)
   type (coord_struct) start0, start1, start, end
+  type (track_struct), save :: track
 
   real(rp), save :: del_orb(6) = (/ 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-5 /)
   real(rp) g2, g3
@@ -291,7 +292,7 @@ subroutine setup_radiation_tracking (ring, closed_orb, &
     if (ring%ele_(i)%key /= wiggler$) cycle
     if (ring%ele_(i)%sub_key /= map_type$) cycle
 
-    track_com%save_track = .true.
+    track%save_track = .true.
 
     start0 = closed_orb(i-1)
     call offset_particle (ring%ele_(i), ring%param, start0, set$)
@@ -303,14 +304,14 @@ subroutine setup_radiation_tracking (ring, closed_orb, &
 
     if (.not. associated(ring%ele_(i)%const)) allocate (ring%ele_(i)%const(1:26))
     ring%ele_(i)%const(1:6) = start0%vec  ! Local coords
-    call symp_lie_bmad (ring%ele_(i), ring%param, start1, end, .false.)
-    call calc_g (ring%ele_(i)%const(10), ring%ele_(i)%const(20))
+    call symp_lie_bmad (ring%ele_(i), ring%param, start1, end, .false., track)
+    call calc_g (track, ring%ele_(i)%const(10), ring%ele_(i)%const(20))
 
     do j = 1, 4
       start = start1
       start%vec(j) = start%vec(j) + del_orb(j)
-      call symp_lie_bmad (ring%ele_(i), ring%param, start, end, .false.)
-      call calc_g (g2, g3)
+      call symp_lie_bmad (ring%ele_(i), ring%param, start, end, .false., track)
+      call calc_g (track, g2, g3)
       ring%ele_(i)%const(j+10) = (g2 - ring%ele_(i)%const(10)) / del_orb(j)
       ring%ele_(i)%const(j+20) = (g3 - ring%ele_(i)%const(20)) / del_orb(j)
     enddo
@@ -320,24 +321,27 @@ subroutine setup_radiation_tracking (ring, closed_orb, &
 !-------------------------------------------------------
 contains
 
-subroutine calc_g (g2, g3)
+subroutine calc_g (track, g2, g3)
 
+  type (track_struct) track
   real(rp) g2, g3, k2, k3, kick(6)
-  integer j
+  integer j, n0, n1
 
 ! g2 is the average kick^2 over the element.
 
   g2 = 0; g3 = 0
 
-  do j = 0, ubound(track_com%s, 1) 
+  n0 = lbound(track%pt, 1)
+  n1 = track%n_pt
+  do j = n0, n1
 
-    call derivs_bmad (ring%ele_(i), ring%param, track_com%s(j), &
-                                            track_com%orb(j)%vec, kick)
+    call derivs_bmad (ring%ele_(i), ring%param, track%pt(j)%s, &
+                                            track%pt(j)%orb%vec, kick)
 
     k2 = kick(2)**2 + kick(4)**2
     k3 = sqrt(k2)**3
 
-    if (i == 0 .or. i == ubound(track_com%s, 1)) then
+    if (i == n0 .or. i == n1) then
       k2 = k2 / 2
       k3 = k3 / 2
     endif
@@ -347,8 +351,8 @@ subroutine calc_g (g2, g3)
 
   enddo
 
-  g2 = g2 / ubound(track_com%s, 1) 
-  g3 = g3 / ubound(track_com%s, 1) 
+  g2 = g2 / (n1 - n0 + 1)
+  g3 = g3 / (n1 - n0 + 1)
 
 end subroutine
 

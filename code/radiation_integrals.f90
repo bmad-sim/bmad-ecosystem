@@ -277,15 +277,12 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
       ric%d_orb%vec = (/ 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-5 /)
 
-      track_com%n_pts = 0
-      call track1_runge_kutta (ric%orb0, ric%ele, ric%ring%param, ric%orb1)
-      call transfer_track (track_com, ric%track(0))
+      call track1_runge_kutta (ric%orb0, ric%ele, ric%ring%param, ric%orb1, ric%track(0))
 
       do i = 1, 6
         start = ric%orb0
         start%vec(i) = start%vec(i) + ric%d_orb%vec(i)
-        call track1_runge_kutta (start, ric%ele, ric%ring%param, end)
-        call transfer_track (track_com, ric%track(i))
+        call track1_runge_kutta (start, ric%ele, ric%ring%param, end, ric%track(i))
       enddo
 
 ! exact integration

@@ -1,11 +1,11 @@
 %!PS-Adobe-3.0 EPSF-3.0
 %%Creator: Adobe Illustrator(TM) 6.0
 %%AI8_CreatorVersion: 10.0
-%%For: (David Sagan) ()
-%%Title: (local_coords.ps)
-%%CreationDate: 7/21/03 11:35 AM
-%%BoundingBox: 80 264 439 528
-%%HiResBoundingBox: 80.7234 264.2998 438.665 527.1719
+%%For: (Michael Roman) (Cornell LEPP)
+%%Title: (local_coords.psfig)
+%%CreationDate: 4/30/04 2:19 PM
+%%BoundingBox: 80 261 440 528
+%%HiResBoundingBox: 80.7234 261.6445 439.0322 528
 %%DocumentProcessColors: Cyan Magenta Yellow Black
 %%DocumentFonts: Helvetica
 %%+ Symbol
@@ -24,16 +24,18 @@
 %%+ Options: 1 16 0 2 0 1 1 1 0 1 1 1 1 18 0 0 0 0 0 0 0 0 -1 -1
 %%+ PPD: 1 21 0 0 60 45 2 2 1 0 0 1 0 0 0 0 0 0 0 0 0 0 () 
 %AI3_TemplateBox: 306.5 395.5 306.5 395.5
-%AI3_TileBox: 31 31 583 759
+%AI3_TileBox: 31 31 607 765
 %AI3_DocumentPreview: Header
 %AI5_ArtSize: 612 792
 %AI5_RulerUnits: 2
 %AI5_ArtFlags: 1 0 0 1 0 0 1 0 0
 %AI5_TargetResolution: 800
 %AI5_NumLayers: 1
-%AI5_OpenToView: 30.5 611.5 1.5 868 901 18 0 1 90 58 0 0
+%AI5_OpenToView: 42.5 659.5 1.5 868 901 18 0 1 443 60 0 0
 %AI5_OpenViewLayers: 7
 %%PageOrigin:31 31
+%%AI3_PaperRect:-18 774 594 -18
+%%AI3_Margin:18 -40 -18 18
 %AI7_GridSettings: 72 8 72 8 1 0 0.8 0.8 0.8 0.9 0.9 0.9
 %AI9_Flatten: 1
 %%EndComments
@@ -5164,267 +5166,11 @@ Adobe_Illustrator_AI5 /initialize get exec
 /hungarumlaut/ogonek/caron
 TE
 %AI3_BeginEncoding: _Helvetica Helvetica
-[/_Helvetica/Helvetica 0 0 1 TZ
-%AI3_EndEncoding AdobeType
+[/_Helvetica/Helvetica 0 0 0 TZ
+%AI3_EndEncoding TrueType
 %AI3_BeginEncoding: _Symbol Symbol
-[/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/space
-/exclam
-/universal
-/numbersign
-/existential
-/percent
-/ampersand
-/suchthat
-/parenleft
-/parenright
-/asteriskmath
-/plus
-/comma
-/minus
-/period
-/slash
-/zero
-/one
-/two
-/three
-/four
-/five
-/six
-/seven
-/eight
-/nine
-/colon
-/semicolon
-/less
-/equal
-/greater
-/question
-/congruent
-/Alpha
-/Beta
-/Chi
-/Delta
-/Epsilon
-/Phi
-/Gamma
-/Eta
-/Iota
-/theta1
-/Kappa
-/Lambda
-/Mu
-/Nu
-/Omicron
-/Pi
-/Theta
-/Rho
-/Sigma
-/Tau
-/Upsilon
-/sigma1
-/Omega
-/Xi
-/Psi
-/Zeta
-/bracketleft
-/therefore
-/bracketright
-/perpendicular
-/underscore
-/radicalex
-/alpha
-/beta
-/chi
-/delta
-/epsilon
-/phi
-/gamma
-/eta
-/iota
-/phi1
-/kappa
-/lambda
-/mu
-/nu
-/omicron
-/pi
-/theta
-/rho
-/sigma
-/tau
-/upsilon
-/omega1
-/omega
-/xi
-/psi
-/zeta
-/braceleft
-/bar
-/braceright
-/similar
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/.notdef
-/Upsilon1
-/minute
-/lessequal
-/fraction
-/infinity
-/florin
-/club
-/diamond
-/heart
-/spade
-/arrowboth
-/arrowleft
-/arrowup
-/arrowright
-/arrowdown
-/degree
-/plusminus
-/second
-/greaterequal
-/multiply
-/proportional
-/partialdiff
-/bullet
-/divide
-/notequal
-/equivalence
-/approxequal
-/ellipsis
-/arrowvertex
-/arrowhorizex
-/carriagereturn
-/aleph
-/Ifraktur
-/Rfraktur
-/weierstrass
-/circlemultiply
-/circleplus
-/emptyset
-/intersection
-/union
-/propersuperset
-/reflexsuperset
-/notsubset
-/propersubset
-/reflexsubset
-/element
-/notelement
-/angle
-/gradient
-/registerserif
-/copyrightserif
-/trademarkserif
-/product
-/radical
-/dotmath
-/logicalnot
-/logicaland
-/logicalor
-/arrowdblboth
-/arrowdblleft
-/arrowdblup
-/arrowdblright
-/arrowdbldown
-/lozenge
-/angleleft
-/registersans
-/copyrightsans
-/trademarksans
-/summation
-/parenlefttp
-/parenleftex
-/parenleftbt
-/bracketlefttp
-/bracketleftex
-/bracketleftbt
-/bracelefttp
-/braceleftmid
-/braceleftbt
-/braceex
-/.notdef
-/angleright
-/integral
-/integraltp
-/integralex
-/integralbt
-/parenrighttp
-/parenrightex
-/parenrightbt
-/bracketrighttp
-/bracketrightex
-/bracketrightbt
-/bracerighttp
-/bracerightmid
-/bracerightbt
-/.notdef
-/_Symbol/Symbol 0 0 0 TZ
-%AI3_EndEncoding AdobeType
+[/_Symbol/Symbol 0 0 0 TZ
+%AI3_EndEncoding TrueType
 [161/degree 173/notequal 176/infinity/plusminus/lessequal/greaterequal
 181/mu/partialdiff/summation/product/pi/integral 189/Omega 
 195/radical 197/approxequal 198/Delta 214/divide/lozenge 240/apple
@@ -6496,6 +6242,8 @@ S
 Pc
 1 1 1 1 k
 Pc
+Pc
+Pc
 0 0 0 0 k
 Pc
 0 0 0 1 k
@@ -6594,8 +6342,8 @@ XB
 12 0 Tl
 0 Tc
 0 Tw
-(Ref) Tx 1 30 Tk
-(erence\r) Tx 1 0 Tk
+(Reference) Tx
+(\r) TX 1 0 Tk
 T*
 (Orbit) Tx 1 0 Tk
 (\r) TX 
@@ -6604,7 +6352,8 @@ TO
 1 0 0 1 316.5 516 0 Tp
 TP
 0 Tr
-(Actual\r) Tx 1 0 Tk
+(Actual) Tx
+(\r) TX 1 0 Tk
 T*
 (Orbit) Tx 1 0 Tk
 (\r) TX 
@@ -6631,11 +6380,10 @@ U
 TP
 0 Tr
 0 0 0 1 k
-(Center of\r) Tx 1 0 Tk
+(Center of) Tx
+(\r) TX 1 0 Tk
 T*
-(Cur) Tx 1 -30 Tk
-(v) Tx 1 25 Tk
-(ature) Tx 1 0 Tk
+(Curvature) Tx 1 0 Tk
 (\r) TX 
 TO
 0 To
@@ -6667,7 +6415,7 @@ TP
 (\r) TX 
 TO
 0 To
-1 0 0 1 244.1665 358.666 0 Tp
+1 0 0 1 278 358 0 Tp
 TP
 0 Tr
 /_Symbol 12 Tf
@@ -6728,11 +6476,11 @@ B
 f
 U
 1 Ap
-236.1255 377.1533 m
-236.1255 375.4141 234.0112 374.0039 231.4009 374.0039 c
-228.7896 374.0039 226.6753 375.4141 226.6753 377.1533 c
-226.6753 378.8945 228.7896 380.3027 231.4009 380.3027 c
-234.0112 380.3027 236.1255 378.8945 236.1255 377.1533 c
+216.9971 361.3813 m
+216.9971 359.6421 214.8828 358.2319 212.2725 358.2319 c
+209.6611 358.2319 207.5469 359.6421 207.5469 361.3813 c
+207.5469 363.1226 209.6611 364.5308 212.2725 364.5308 c
+214.8828 364.5308 216.9971 363.1226 216.9971 361.3813 c
 f
 350.4238 312.0859 m
 350.4238 310.9736 349.0703 310.0703 347.4004 310.0703 c
@@ -6741,82 +6489,74 @@ f
 349.0703 314.1025 350.4238 313.2012 350.4238 312.0859 c
 f
 0.9608 0.9137 0 0 k
-199.7251 426.7539 m
-199.7251 425.0146 197.6118 423.6035 195.0005 423.6035 c
-192.3892 423.6035 190.2759 425.0146 190.2759 426.7539 c
-190.2759 428.4951 192.3892 429.9038 195.0005 429.9038 c
-197.6118 429.9038 199.7251 428.4951 199.7251 426.7539 c
+178.7251 410.7539 m
+178.7251 409.0146 176.6118 407.6035 174.0005 407.6035 c
+171.3892 407.6035 169.2759 409.0146 169.2759 410.7539 c
+169.2759 412.4951 171.3892 413.9038 174.0005 413.9038 c
+176.6118 413.9038 178.7251 412.4951 178.7251 410.7539 c
 f
 0 To
-1 0 0 1 127.334 455 0 Tp
+1 0 0 1 110.334 427 0 Tp
 TP
 0 Tr
 0 0 0 1 k
-(Actual\r) Tx 1 0 Tk
-T*
-(P) Tx 1 40 Tk
-(ar) Tx 1 -40 Tk
-(ticle) Tx 1 0 Tk
+(Particle) Tx 1 0 Tk
 (\r) TX 
 TO
 0 To
-1 0 0 1 287.6665 386.334 0 Tp
+1 0 0 1 221.3335 322.334 0 Tp
 TP
 0 Tr
-(Ref) Tx 1 30 Tk
-(erence\r) Tx 1 0 Tk
+(Reference) Tx
+(\r) TX 1 0 Tk
 T*
-(P) Tx 1 40 Tk
-(ar) Tx 1 -40 Tk
-(ticle) Tx 1 0 Tk
+(Particle) Tx 1 0 Tk
 (\r) TX 
 TO
 u
 0 Ap
 0 R
 0 0 0 1 K
-153.8179 439.8135 m
-183.731 431.5869 l
+132.8179 423.8135 m
+162.731 415.5869 l
 S
 /BBAccumRotation (2.601452) XT
 0 O
 0 0 0 1 k
-181.2407 430.5596 m
-190.563 429.6196 l
-183.1948 433.541 l
-181.2407 430.5596 l
+160.2407 414.5596 m
+169.563 413.6196 l
+162.1948 417.541 l
+160.2407 414.5596 l
 f
 /BBAccumRotation (2.601452) XT
 U
 u
 0 R
 0 0 0 1 K
-283.7095 383.7051 m
-251.9927 379.4336 l
+248.6729 334.0703 m
+223.2256 353.4771 l
 S
-/BBAccumRotation (0.050433) XT
 0 O
 0 0 0 1 k
-253.2007 381.2129 m
-244.6743 378.5313 l
-254.0688 378.0117 l
-253.2007 381.2129 l
+225.3379 353.8813 m
+217.4126 358.0142 l
+223.688 351.0034 l
+225.3379 353.8813 l
 f
-/BBAccumRotation (0.050433) XT
 U
 u
-271.6709 354.9292 m
-241.0625 372.0664 l
+266.6709 357.9292 m
+236.0625 375.0664 l
 F
-241.6328 371.7471 m
-241.7285 369.0498 l
-241.6357 369.0435 l
-239.084 372.1836 l
-238.082 373.0747 237.0786 373.9658 236.0767 374.8574 c
-237.3604 374.4688 238.6445 374.0796 239.9287 373.6914 c
-243.939 373.1582 l
-243.9883 373.0854 l
-241.6328 371.7471 l
+236.6328 374.7471 m
+236.7285 372.0498 l
+236.6357 372.0435 l
+234.084 375.1836 l
+233.082 376.0747 232.0786 376.9658 231.0767 377.8574 c
+232.3604 377.4688 233.6445 377.0796 234.9287 376.6914 c
+238.939 376.1582 l
+238.9883 376.0854 l
+236.6328 374.7471 l
 f
 U
 LB

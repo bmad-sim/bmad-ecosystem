@@ -58,7 +58,7 @@ module rad_int_common
     type (ele_struct), pointer :: ele0, ele
     type (ele_struct) runt
     type (coord_struct), pointer :: orb0, orb1
-    type (track_com_struct) :: track(0:6)
+    type (track_struct) :: track(0:6)
     type (coord_struct) d_orb
     type (rad_int_cache_struct) cache(10)
     type (ele_cache_struct), pointer :: cache_ele
@@ -220,82 +220,51 @@ end subroutine
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
-
-subroutine transfer_track (rk1, rk2)
-
-  implicit none
-
-  type (track_com_struct) rk1, rk2
-
-  integer n
-
-!
-
-  n = size(rk1%s)
-
-  if (associated(rk2%s)) then
-    if (size(rk2%s) < n) then
-      deallocate (rk2%s, rk2%orb)
-      allocate (rk2%s(n), rk2%orb(n))
-    endif
-  else
-    allocate (rk2%s(n), rk2%orb(n))    
-  endif
-
-  n = rk1%n_pts
-
-  rk2%n_pts    = rk1%n_pts
-  rk2%s(1:n)   = rk1%s(1:n)
-  rk2%orb(1:n) = rk1%orb(1:n)
-
-end subroutine
-
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
 !+
-! Subroutine bracket_index (s_, s, ix)
+! Subroutine bracket_index (s_arr, i_min, s, ix)
 !
-! Subroutine to find the index ix so that s_(ix) <= s < s_(ix+1).
-! If s <  s_(1) then ix = 0
-! If s >= s_(n) then ix = n  [where n = size(s_)]
+! Subroutine to find the index ix so that s_arr(ix) <= s < s_arr(ix+1).
+! If s <  s_arr(i_min) then ix = i_min - 1
+! If s >= s_arr(i_max) then ix = i_max  [where i_max = ubound(s_arr)]
 !
-! This routine assumes that s_ is in assending order.
+! This routine assumes that s_arr is in assending order.
 !
 ! Input:
-!   s_(:) -- Real(rp): Sequence of real numbers.
-!   s     -- Real(rp): Number to bracket.
+!   s_arr(i_min:) -- Real(rp): Sequence of real numbers.
+!   i_min         -- Integer: lower bound of s_arr
+!   s             -- Real(rp): Number to bracket.
 !
 ! Output:
-!   ix    -- Integer: Index so that s_(ix) <= s < s_(ix+1).
+!   ix    -- Integer: Index so that s_arr(ix) <= s < s_arr(ix+1).
 !-
 
-subroutine bracket_index (s_, s, ix)
+subroutine bracket_index (s_arr, i_min, s, ix)
 
   implicit none
 
-  real(rp) s_(:), s
+  integer i_min, i_max
+  real(rp) s_arr(i_min:), s
 
-  integer i, ix, n, n1, n2, n3
-
-!
-
-  n = size(s_)
-
-  if (s < s_(1)) then
-    ix = 0
-    return
-  endif
-
-  if (s >= s_(n)) then
-    ix = n
-    return
-  endif
+  integer i, ix, n1, n2, n3
 
 !
 
-  n1 = 1
-  n3 = n
+  i_max = ubound(s_arr, 1)
+
+  if (s < s_arr(i_min)) then
+    ix = i_min - 1
+    return
+  endif
+
+  if (s >= s_arr(i_max)) then
+    ix = i_max
+    return
+  endif
+
+!
+
+  n1 = i_min
+  n3 = i_max
 
   do
 
@@ -306,7 +275,7 @@ subroutine bracket_index (s_, s, ix)
 
     n2 = (n1 + n3) / 2
 
-    if (s < s_(n2)) then
+    if (s < s_arr(n2)) then
       n3 = n2
     else
       n1 = n2
@@ -328,23 +297,24 @@ subroutine propagate_part_way (s, j_loop, n_pt)
 
   real(rp) s, v(4,4), v_inv(4,4), s1, s2, error, f0, f1
 
-  integer i, ix, j_loop, n_pt, n
+  integer i, ix, j_loop, n_pt, n, n1, n2
 
 ! exact calc
 
   if (ric%ele%exact_rad_int_calc) then
 
     do i = 0, 6
-      n = ric%track(i)%n_pts
-      call bracket_index (ric%track(i)%s(1:n), s, ix)
+      n1 = lbound(ric%track(i)%pt, 1)
+      n2 = ric%track(i)%n_pt
+      call bracket_index (ric%track(i)%pt(:)%s, n1, s, ix)
 
-      if (ix == n) then
-        orb = ric%track(i)%orb(n)
+      if (ix == n2) then
+        orb = ric%track(i)%pt(n2)%orb
       else
-        s1 = s - ric%track(i)%s(ix)
-        s2 = ric%track(i)%s(ix+1) - s
-        orb%vec = (s2 * ric%track(i)%orb(ix)%vec + &
-                s1 * ric%track(i)%orb(ix+1)%vec) / (s1 + s2)
+        s1 = s - ric%track(i)%pt(ix)%s
+        s2 = ric%track(i)%pt(ix+1)%s - s
+        orb%vec = (s2 * ric%track(i)%pt(ix)%orb%vec + &
+                s1 * ric%track(i)%pt(ix+1)%orb%vec) / (s1 + s2)
       endif
 
       if (i == 0) then

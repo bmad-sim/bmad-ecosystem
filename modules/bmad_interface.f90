@@ -792,13 +792,14 @@ module bmad_interface
   end interface
 
   interface
-    subroutine track1_runge_kutta (start, ele, param, end)
-      use bmad_struct, only: ele_struct, coord_struct, param_struct
+    subroutine track1_runge_kutta (start, ele, param, end, track)
+      use bmad_struct, only: ele_struct, coord_struct, param_struct, track_struct
       implicit none
       type (coord_struct), intent(in) :: start
       type (coord_struct), intent(out) :: end
       type (ele_struct), target, intent(inout) :: ele
       type (param_struct), target, intent(inout) :: param
+      type (track_struct) track
     end subroutine
   end interface
 

@@ -11,7 +11,7 @@ contains
 !-----------------------------------------------------------
 !+
 ! Subroutine odeint_bmad (start, ele, param, end, &
-!                                 s1, s2, rel_tol, abs_tol, h1, hmin)
+!                                 s1, s2, rel_tol, abs_tol, h1, hmin, track)
 ! 
 ! Subroutine to do Runge Kutta tracking. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
@@ -46,21 +46,18 @@ contains
 !   abs_tol -- Real: Sets the absolute error of the result
 !   h1      -- Real: Initial guess for a step size.
 !   h_min   -- Real: Minimum step size (can be zero).
+!   track      -- Track_struct: Structure holding the track information.
+!     %save_track -- Logical: Set True if track is to be saved.
 !
 ! Output:
 !   end        -- Coord_struct: Ending coords: (x, x', y, y', z, delta).
+!   track      -- Track_struct: Structure holding the track information.
 !
 ! Common block:
-!   track_com -- common_block that holds the path.
-!     %save_track -- Set True if you want to save the path
-!     %n_pts -- The number of data points
-!     %s(:)   -- Real: S positions of the data points
-!     %orb(:) -- Coord_struct: Coordinates.
-!
 !-
 
 subroutine odeint_bmad (start, ele, param, end, &
-                                  s1, s2, rel_tol, abs_tol, h1, h_min)
+                          s1, s2, rel_tol, abs_tol, h1, h_min, track)
 
   implicit none
 
@@ -68,6 +65,7 @@ subroutine odeint_bmad (start, ele, param, end, &
   type (coord_struct), intent(out) :: end
   type (ele_struct) ele
   type (param_struct) param
+  type (track_struct) track
 
   real(rp), intent(in) :: s1, s2, rel_tol, abs_tol, h1, h_min
 
@@ -84,9 +82,9 @@ subroutine odeint_bmad (start, ele, param, end, &
   h = sign(h1, s2-s1)
   r = start%vec
 
-  if (track_com%save_track) then
-    s_sav = s - 2.0_rp * track_com%ds_save
-    call allocate_saved_orbit (int(abs(s2-s1)/track_com%ds_save))
+  if (track%save_track) then
+    s_sav = s - 2.0_rp * track%ds_save
+    call allocate_saved_orbit (track, int(abs(s2-s1)/track%ds_save)+1)
   endif
 
 ! now track
@@ -102,8 +100,8 @@ subroutine odeint_bmad (start, ele, param, end, &
     abs_tol_eff = abs_tol / sqrt_N
     r_scal(:) = abs(r(:)) + abs(h*dr_ds(:)) + TINY
 
-    if (track_com%save_track .and. (abs(s-s_sav) > track_com%ds_save)) &
-                                        call save_a_step (ele, param, s, r, s_sav)
+    if (track%save_track .and. (abs(s-s_sav) > track%ds_save)) &
+                             call save_a_step (track, ele, param, s, r, s_sav)
     if ((s+h-s2)*(s+h-s1) > 0.0) h = s2-s
 
     call rkqs_bmad (ele, param, r, dr_ds, s, h, rel_tol_eff, abs_tol_eff, &
@@ -111,14 +109,14 @@ subroutine odeint_bmad (start, ele, param, end, &
     if (.not. bmad_status%ok) return
 
     if (h_did == h) then
-      track_com%n_ok = track_com%n_ok + 1
+      track%n_ok = track%n_ok + 1
     else
-      track_com%n_bad = track_com%n_bad + 1
+      track%n_bad = track%n_bad + 1
     end if
 
     if ((s-s2)*(s2-s1) >= 0.0) then
       end%vec = r
-      if (track_com%save_track) call save_a_step (ele, param, s, r, s_sav)
+      if (track%save_track) call save_a_step (track, ele, param, s, r, s_sav)
       return
     end if
 

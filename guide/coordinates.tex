@@ -4,17 +4,18 @@
 \section{Reference Orbit}
 \label{s:ref}
 
-The ``reference orbit'' is the path of a ``reference particle'' and is
-used to define a coordinate system for actual particles (whose orbits
-are simulated in \bmad) as shown in Figure~\ref{f:local_coords}. At a
-given time $t$ the reference particle is a distance $s = c \, t$ along
-the reference orbit from the reference orbit's zero position. The
-origin of the local $(x, y, z)$ coordinate system at time $t$ is at the
-reference particle with the $z$--axis tangent to the reference
-orbit and pointing in the direction of the reference particle
-motion. The $x$ and $y$--axes are perpendicular to the reference
-orbit. If there are no vertical bends, the $y$--axis is in the
-vertical direction and the $x$--axis is in the horizontal plane.
+The ``reference orbit'' is the curved path used to define a coordinate
+system for particles as shown in Figure~\ref{f:local_coords}.  At a
+given time $t$ a particle's position can be described by a point on
+the reference orbit a distance $s$ relative to the reference orbit's
+zero position plus a transverse offset. This point on the reference
+orbit is used as the origin of the local $(x, y, z)$ coordinate system
+with the $z$--axis tangent to the reference orbit and pointing in the
+direction of the reference particle motion. The $x$ and $y$--axes are
+perpendicular to the reference orbit. If the lattice has no vertical
+bends the $y$--axis is in the vertical direction and the $x$--axis is
+in the horizontal plane. Notice that by construction the particle is
+always at $z = 0$.
 
 \begin{figure}[tb]
 \centering
@@ -28,16 +29,15 @@ quadrupoles, bends, RF cavities, etc. Each element has an entrance
 point, an exit point, and a reference curve between them. For a bend,
 the reference curve is a segment of a circular arc. For all other
 elements, the reference curve is a straight line segment.  The
-reference orbit itself is constructed by arranging the elements so that the
-exit point of one element coincides with the entrance point of the
-next with the reference curves forming an arc with no kinks.
-The reference orbit is then the sum of the reference curves. Exceptions
-to this construction method may be made
-by using \vn{patch} elements which can arbitrarily offset the entrance point
-of an element with respect to the exit point of the previous element. 
-See Section~\ref{s:patch}. If
-not specified otherwise, the $s = 0$ position is the entrance
-point of the first element.
+reference orbit itself is constructed by arranging the elements so
+that the exit point of one element coincides with the entrance point
+of the next with the reference curves forming an arc with no kinks.
+The reference orbit is then the sum of the reference
+curves. Exceptions to this construction method may be made by using
+\vn{patch} elements which can arbitrarily offset the entrance point of
+an element with respect to the exit point of the previous element.
+See Section~\ref{s:patch}. If not specified otherwise, the $s = 0$
+position is the entrance point of the first element.
 
 Notice that, in a wiggler, the reference orbit, which is a straight
 line, does {\em not} correspond to the orbit that any actual particle
@@ -99,25 +99,51 @@ axes will coincide, and $\phi$ and $\psi$ will both be zero.
 
 \bmad uses the canonical phase space coordinates 
 \Begineq
-  (x, p_x, y, p_y, -c\Delta t, p_z)
+  (x, p_x, y, p_y, z, p_z)
 \Endeq
-$x$ and $y$ are the coordinates with respect to the reference particle
-as explained in Section~\ref{s:ref}. $p_x$ and $p_y$ are the
-normalized momenta
+$x$ and $y$, are the reference orbit coordinates given in
+Section~\ref{s:ref}. The canonical $z$ coordinate is
+\begin{equation}
+  z = - \beta \, c \, t - s
+\end{equation}
+where $\beta = v/c$. At constant $\beta$ (that is for
+ultra--relativistic particles where $\beta = 1$ or for a particle at
+constant energy), $\beta \, c \, t$ is the distance the particle has
+traveled so $z$ can be thought of as the longitudinal distance between
+the particle and some reference particle traveling along the reference
+orbit. In other words at constant $\beta$ one can write
+\begin{equation}
+  z = - \beta \, c \, \Delta t
+\end{equation}
+where $\Delta t$ is the time difference between when the particle
+passes by a given $s$ position along the reference orbit and when the
+reference particle does.
+
+The canonical momenta $p_x$ and $p_y$ are normalized momenta
 \begin{align}
   p_x = &\frac{P_x}{P_0} \\
   p_y = &\frac{P_y}{P_0}
 \end{align}
-where $P_x$ and $P_y$ are respectively the momentum components along the $x$ and
-$y$ axes, and $P_0$ is the reference (sometimes called the
-design) momentum. The longitudinal canonical momentum $p_z$ is given by
+where $P_x$ and $P_y$ are respectively the momentum components along
+the $x$ and $y$ axes, and $P_0$ is the reference (sometimes called the
+design) momentum. The longitudinal canonical momentum $p_z$ is given
+by
 \begin{equation}
-  p_z = \frac{\Delta E}{c \, P_0} \equiv \frac{E - E_0}{c \, P_0}
+  p_z = \frac{\Delta P}{P_0} \equiv \frac{P - P_0}{P_0}
+\end{equation}
+where $P$ is the momentum of the particle. For ultra--relativistic particles
+$p_z$ can be approximated by
+\begin{equation}
+  p_z = \frac{\Delta E}{E_0}
 \end{equation}
 where $E_0$ is the reference energy (energy here always refers to the
-total energy). The $\Delta t$ term in the phase space coordinates is
-the time difference for a particle to pass a point relative to the
-reference particle. These coordinates are the same as used by \mad.
+total energy) and $\Delta E = E - E_0$ is the deviation of the
+particle's energy from the reference energy. 
+
+\mad\ uses a slightly different coordinate system where $(z, p_z)$ is
+replaced by $(-c\Delta t, p_t)$ where $p_t \equiv \Delta E / P_0
+c$. For highly relativistic particles the two coordinate systems are
+identical.
 
 \bmad generally uses the small angle (paraxial) approximation
 where it is assumed that $p_x, p_y \ll 1$. With this approximation, the
@@ -130,18 +156,12 @@ and $y' \equiv dy/ds$ is
 $\Bf a = q \, A / c \, P_0$ is the normalized vector potential, $g =
 1/\rho$ is the curvature function with $\rho$ being the radius of
 curvature of the reference orbit and it has been assumed that the
-bending is in the $x$--$z$ plane. In the small angle approximation the
-relation between the local reference system coordinate $z$ and
-$c\Delta t$ is
-\Begineq
-    z = -\beta c \Delta t 
-\Endeq
-where $\beta = v/c$ with $v$ being the velocity of the particle.  For
-ultra--relativistic particles $z = -c\Delta t$ so in this case the
-canonical coordinates can be referred to as $(x, p_x, y, p_y, z,
-p_z)$.
+bending is in the $x$--$z$ plane. 
 
 For those programmers using the PTC software package directly (ignore
 this if you don't know what I'm talking about) \'Etienne Forest uses,
-by default, a different coordinate system where $(-c\Delta t, p_z)$ is
-replaced by $(P-P_0/P_0, z)$. However, PTC also has the ability to switch to the coordinate system  $(p_z, c \Delta t)$.
+by default, a different coordinate system where $(z, p_z)$ is replaced
+by $(p_z, -z)$. However, PTC also has the ability to switch to the
+coordinate system $(p_t, c \Delta t)$.
+
+

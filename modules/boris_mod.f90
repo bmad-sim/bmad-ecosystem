@@ -28,7 +28,7 @@ contains
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine track1_adaptive_boris (start, ele, param, end, s_start, s_end)
+! Subroutine track1_adaptive_boris (start, ele, param, end, track, s_start, s_end)
 ! 
 ! Subroutine to do Boris tracking with adaptive step size control.
 ! This routine is adapted from odeint in Numerical Recipes. 
@@ -58,25 +58,17 @@ contains
 !                           Default if zero: 1e-7.
 !   param    -- Param_struct: Beam parameters.
 !     %particle    -- Particle type [positron$, or electron$]
+!   track    -- Track_struct: Structure holding the track information.
+!     %save_track -- Logical: Set True if track is to be saved.
 !   s_start  -- Real, optional: Starting point.
 !   s_end    -- Real, optional: Ending point.
 !
 ! Output:
 !   end        -- Coord_struct: Ending coords.
-!
-! Common block:
-!   track_com   -- Common_block that holds the path.
-!     %save_track -- Set True if you want to save the path
-!     %ds_save    -- min distance between points.
-!     %n_pts      -- The number of data points
-!     %s(:)       -- Real: S positions of the data points
-!     %orb(:)     -- Coord_struct: Coordinates.
-!     %step_min   -- Real: min step size to step below which 
-!                      track1_adaptive_boris gives up.
-!     %step0      -- Real: Initial guess for a step size.
+!   track      -- Track_struct: Structure holding the track information.
 !-
 
-subroutine track1_adaptive_boris (start, ele, param, end, s_start, s_end)
+subroutine track1_adaptive_boris (start, ele, param, end, track, s_start, s_end)
 
   implicit none
 
@@ -84,8 +76,8 @@ subroutine track1_adaptive_boris (start, ele, param, end, s_start, s_end)
   type (coord_struct), intent(out) :: end
   type (ele_struct) ele, loc_ele
   type (param_struct) param
-
   type (coord_struct) here, orb1, orb2
+  type (track_struct) :: track
 
   real(rp), optional, intent(in) :: s_start, s_end
   real(rp) :: ds, ds_did, ds_next, s, s_sav, rel_tol, abs_tol, sqrt_N
@@ -121,7 +113,7 @@ subroutine track1_adaptive_boris (start, ele, param, end, s_start, s_end)
   endif
 
   s = s1
-  ds = sign(track_com%step0, s2-s1)
+  ds = sign(track%step0, s2-s1)
 
   call transfer_ele (ele, loc_ele)
   loc_ele%value(x_offset$) = 0
@@ -138,16 +130,16 @@ subroutine track1_adaptive_boris (start, ele, param, end, s_start, s_end)
 
 ! if we are saving the trajectory then allocate enough space in the arrays
 
-  if (track_com%save_track) then
-    s_sav = s - 2 * track_com%ds_save
-    call allocate_saved_orbit (int(abs((s2-s1)/track_com%ds_save)))
+  if (track%save_track) then
+    s_sav = s - 2 * track%ds_save
+    call allocate_saved_orbit (track, int(abs((s2-s1)/track%ds_save))+1)
   endif
 
 ! now track
 
   bmad_status%ok = .true.
 
-  do n_step = 1, track_com%max_step
+  do n_step = 1, track%max_step
 
     sqrt_N = sqrt(abs((s2-s1)/ds))  ! N = estimated number of steps
     rel_tol_N = rel_tol / sqrt_N
@@ -155,8 +147,8 @@ subroutine track1_adaptive_boris (start, ele, param, end, s_start, s_end)
 
 ! record a track if we went far enough.
 
-    if (track_com%save_track .and. (abs(s-s_sav) > track_com%ds_save)) &
-                          call save_a_step (loc_ele, param, s, here%vec, s_sav)
+    if (track%save_track .and. (abs(s-s_sav) > track%ds_save)) &
+                    call save_a_step (track, loc_ele, param, s, here%vec, s_sav)
 
     if ((s+ds-s2)*(s+ds-s1) > 0.0) ds = s2-s
 
@@ -178,7 +170,7 @@ subroutine track1_adaptive_boris (start, ele, param, end, s_start, s_end)
       ds_temp = safety * ds / sqrt(err_max)
       ds = sign(max(abs(ds_temp), 0.1_rp*abs(ds)), ds)
 
-      if (abs(ds) < track_com%step_min) then
+      if (abs(ds) < track%step_min) then
         bmad_status%ok = .false.
         if (bmad_status%type_out) print *, &
             'ERROR IN TRACK1_ADAPTIVE_BORIS: STEPSIZE SMALLER THAN MINIMUM.' 
@@ -203,7 +195,7 @@ subroutine track1_adaptive_boris (start, ele, param, end, s_start, s_end)
 ! check if we are done
 
     if ((s-s2)*(s2-s1) >= 0.0) then
-      if (track_com%save_track) call save_a_step (loc_ele, param, s, here%vec, s_sav)
+      if (track%save_track) call save_a_step (track, loc_ele, param, s, here%vec, s_sav)
       call track_solenoid_edge (loc_ele, param, unset$, here)
       call offset_particle (ele, param, here, unset$, set_canonical = .false.)
       end = here
@@ -223,7 +215,7 @@ end subroutine track1_adaptive_boris
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine track1_boris (start, ele, param, end, s_start, s_end)
+! Subroutine track1_boris (start, ele, param, end, track, s_start, s_end)
 !
 ! Subroutine to do Boris tracking.
 ! For more information on Boris tracking see the boris_mod documentation.
@@ -241,21 +233,18 @@ end subroutine track1_adaptive_boris
 !     %num_steps      -- number of steps to take
 !   param    -- Param_struct: Beam parameters.
 !     %particle    -- Particle type [positron$, or electron$]
+!   track      -- Track_struct: Structure holding the track information.
+!     %save_track -- Logical: Set True if track is to be saved.
 !   s_start  -- Real, optional: Starting point.
 !   s_end    -- Real, optional: Ending point.
 !
 ! Output:
 !   end        -- Coord_struct: Ending coords.
-!
-! Common block:
-!   track_com   -- Common_block that holds the path.
-!     %save_track -- Set True if you want to save the path
-!     %n_pts      -- The number of data points
-!     %s(:)       -- Real: S positions of the data points
-!     %orb(:)     -- Coord_struct: Coordinates.
+!   track      -- Track_struct: Structure holding the track information.
+!     %save_track -- Logical: Set True if track is to be saved.
 !-
 
-subroutine track1_boris (start, ele, param, end, s_start, s_end)
+subroutine track1_boris (start, ele, param, end, track, s_start, s_end)
 
   implicit none
 
@@ -263,7 +252,7 @@ subroutine track1_boris (start, ele, param, end, s_start, s_end)
   type (coord_struct), intent(out) :: end
   type (ele_struct) ele, loc_ele
   type (param_struct) param
-
+  type (track_struct) track
   type (coord_struct) here
 
   real(rp), optional, intent(in) :: s_start, s_end
@@ -310,10 +299,10 @@ subroutine track1_boris (start, ele, param, end, s_start, s_end)
 
 ! if we are saving the trajectory then allocate enough space in the arrays
 
-  if (track_com%save_track) then
-    s_sav = s - 2.0_rp * track_com%ds_save
-    call allocate_saved_orbit (loc_ele%num_steps)
-    call save_a_step (loc_ele, param, s, here%vec, s_sav)
+  if (track%save_track) then
+    s_sav = s - 2.0_rp * track%ds_save
+    call allocate_saved_orbit (track, loc_ele%num_steps+1)
+    call save_a_step (track, loc_ele, param, s, here%vec, s_sav)
   endif
 
 ! track through the body
@@ -321,7 +310,7 @@ subroutine track1_boris (start, ele, param, end, s_start, s_end)
   do i = 1, loc_ele%num_steps
     call track1_boris_partial (here, loc_ele, param, s, ds, here)
     s = s + ds
-    if (track_com%save_track) call save_a_step (loc_ele, param, s, here%vec, s_sav)
+    if (track%save_track) call save_a_step (track, loc_ele, param, s, here%vec, s_sav)
   enddo
 
 ! back to lab coords

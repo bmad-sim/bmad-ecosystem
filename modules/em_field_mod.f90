@@ -11,23 +11,9 @@ module em_field_mod
   use bmad_struct
   use bmad_interface
 
-! for tracking integration
+! track_com is the common block track variable.
 
-  type track_com_struct
-    real(rp), pointer :: s(:) => null()    ! s-distance of a point
-    type (coord_struct), allocatable :: orb(:) ! position of a point
-    real(rp) :: ds_save = 1e-3             ! min distance between points
-    real(rp) :: step0 = 1e-3               ! Initial step size.
-    real(rp) :: step_min = 1e-8            ! min step size to step below which
-                                           !   track1_adaptive_boris gives up
-    integer :: max_step = 10000            ! maximum number of steps allowed
-    logical :: save_track = .false.        ! save orbit?
-    integer :: n_pts                       ! number of points
-    integer :: n_bad
-    integer :: n_ok
-  end type
-
-  type (track_com_struct), save :: track_com
+  type (track_struct), save :: track_com
 
 ! Interface for custom field calc
 
@@ -49,29 +35,41 @@ contains
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
+!+
+! Subroutine allocate_saved_orbit (track, n_pt)
+!
+! Subroutine to allocate space for the track structure.
+!
+! Input:
+!   track -- Track_struct: Structure to initialize.
+!   n_pt  -- Integer: Upper bound of track%pt(1:n).
+!
+! Output:
+!   track -- Track_struct: structure for holding the track
+!     %pt(1:n)  -- Track_point_struct: n will be at least n_pt
+!     %n_bad    -- Reset to 0
+!     %n_ok     -- Reset to 0
+!     %n_pt     -- Reset to -1
+!-
 
-subroutine allocate_saved_orbit (n_steps)
+subroutine allocate_saved_orbit (track, n_pt)
 
   implicit none
 
-  integer n_steps, nn
+  type (track_struct) track
+  integer n_pt
 
 !
 
-  nn = 2 + n_steps
-
-  if (associated(track_com%s)) then
-    if (size(track_com%s) < nn) then
-      deallocate(track_com%s, track_com%orb)
-      allocate(track_com%s(nn), track_com%orb(nn))
-    endif
-  else
-    allocate(track_com%s(nn), track_com%orb(nn))
+  if (.not. associated (track%pt)) allocate(track%pt(0:n_pt))
+  if (ubound(track%pt, 1) < n_pt) then
+    deallocate(track%pt)
+    allocate(track%pt(0:n_pt))
   endif
 
-  track_com%n_ok = 0
-  track_com%n_bad = 0
-  track_com%n_pts = 0
+  track%n_ok = 0
+  track%n_bad = 0
+  track%n_pt = -1
 
 end subroutine
 
@@ -79,22 +77,23 @@ end subroutine
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
 
-subroutine save_a_step (ele, param, s, here, s_sav)
+subroutine save_a_step (track, ele, param, s, here, s_sav)
 
   implicit none
 
+  type (track_struct) track
   type (ele_struct), intent(in) :: ele
   type (param_struct), intent(in) :: param
   type (coord_struct) orb
-  integer n_pts
+  integer n_pt
   real(rp) s, s_sav, here(:)
 
 !
 
-  track_com%n_pts = track_com%n_pts + 1
-  n_pts = track_com%n_pts 
+  track%n_pt = track%n_pt + 1
+  n_pt = track%n_pt 
 
-  if (n_pts > size(track_com%s)) then
+  if (n_pt > ubound(track%pt, 1)) then
     print *, 'ERROR IN SAVE_A_STEP: ARRAY OVERFLOW!'
     call err_exit
   end if
@@ -102,8 +101,9 @@ subroutine save_a_step (ele, param, s, here, s_sav)
   orb%vec = here
   call offset_particle (ele, param, orb, unset$, set_canonical = .false., s_pos = s)
 
-  track_com%s(n_pts) = s
-  track_com%orb(n_pts) = orb
+  track%pt(n_pt)%s = s
+  track%pt(n_pt)%orb = orb
+  track%pt(n_pt)%mat6 = 0
   s_sav = s
 
 end subroutine save_a_step

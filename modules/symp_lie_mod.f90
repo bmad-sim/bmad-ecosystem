@@ -5,12 +5,12 @@ module symp_lie_mod
   use bmad_struct
   use bmad_interface
   use make_mat6_mod
-  use em_field_mod   ! For the track_com_struct
+  use em_field_mod   
 
 contains
 
 !+
-! Subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
+! Subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track)
 !
 ! Subroutine to track through an element (which gives the 0th order 
 ! taylor series) and optionally make the 6x6 transfer matrix (1st order 
@@ -24,20 +24,17 @@ contains
 !   param     -- Param_struct: Parameters are needed for some elements.
 !   start     -- Coord_struct: Coordinates at the beginning of element. 
 !   calc_mat6 -- Logical: If True then make the 6x6 transfer matrix.
+!   track      -- Track_struct: Structure holding the track information.
+!     %save_track -- Logical: Set True if track is to be saved.
 !
 ! Output:
 !   ele    -- Ele_struct: Element with transfer matrix.
 !     %mat6  -- 6x6 transfer matrix.
 !   end    -- Coord_struct: Coordinates at the end of element.
-!
-! To save the orbit through the ele there is a global variable:
-!   track_com  -- Symp_lie_com_struct: Global variable
-!     %save_track -- Logical: Set True to save the orbit
-!     %s(:)       -- real(rp): S-positions
-!     %orb(:)     -- Coord_struct: orbit.
+!   track      -- Track_struct: Structure holding the track information.
 !-
 
-subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
+subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track)
 
   implicit none
 
@@ -56,6 +53,7 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
   type (coord_struct) :: start, end, orb, start0
   type (param_struct)  param
   type (wig_term_struct), pointer :: wt
+  type (track_struct) track
 
   real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6)
   real(rp), pointer :: mat6(:,:)
@@ -125,18 +123,12 @@ subroutine track_it (start, real_track, calc_mat6)
     call update_coefs
     call update_y_terms
 
-    if (track_com%save_track) then
-      n = ele%num_steps 
-      if (associated(track_com%s)) then
-        if (size(track_com%s) /= n + 1) then
-          deallocate (track_com%s, track_com%orb)
-          allocate (track_com%s(0:n), track_com%orb(0:n))
-        endif
-      else
-        allocate (track_com%s(0:n), track_com%orb(0:n))
-      endif
-      track_com%s(0) = 0
-      track_com%orb(0) = start
+    if (track%save_track) then
+      call allocate_saved_orbit (track, ele%num_steps)
+      track%pt(0)%s = 0
+      track%pt(0)%orb = start
+      track%n_pt = ele%num_steps
+      if (calc_mat6) track%pt(0)%mat6 = mat6
     endif
 
 ! loop over all steps
@@ -258,9 +250,10 @@ subroutine track_it (start, real_track, calc_mat6)
 
       s = s + ds2
 
-      if (track_com%save_track) then
-        track_com%s(i) = s
-        track_com%orb(i) = end
+      if (track%save_track) then
+        track%pt(i)%s = s
+        track%pt(i)%orb = end
+        if (calc_mat6) track%pt(i)%mat6 = mat6
       endif
 
     enddo

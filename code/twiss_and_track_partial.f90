@@ -53,8 +53,14 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   ele = ele2
 
   ele%value(l$) = del_s
-  if (ele%key == wiggler$) ele%value(n_pole$) = &
-                              ele2%value(n_pole$) * del_s / ele2%value(l$)
+
+  if (ele%key == wiggler$) then
+    ele%value(n_pole$) = ele2%value(n_pole$) * del_s / ele2%value(l$)
+    if (ele%tracking_method == taylor$) ele%tracking_method = symp_lie_bmad$
+    if (ele%mat6_calc_method == taylor$) ele%mat6_calc_method = symp_lie_bmad$
+  endif
+
+  ele%num_steps = ele%num_steps * del_s / ele2%value(l$)
 
   if (present(start)) then
     c0 = start

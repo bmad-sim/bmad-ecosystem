@@ -29,19 +29,6 @@ module bmad_struct
 
   integer, parameter :: n_attrib_maxx = 41
 
-! Structure for a particle's coordinates.
-! Coordinates are with respect to the reference trajectory.
-! See the MAD-8 Physical Methods Manual.
-! Usually (but there are some exceptions):
-!   vec(1) -- x position: horizontal .
-!   vec(2) -- p_x normalized momentum: P_x/P_0
-!   vec(3) -- y position: vertical.
-!   vec(4) -- p_y normalized momentum: P_Y/P_0
-!   vec(5) -- z position: = -c*delta_t
-!   vec(6) -- p_z normalized energy deviation: Delta_E/E_0
-! Here P_0 is the reference momentum and E_0 is the reference energy.
-! P_X and P_Y are the momentum along the x and y-axes.
-
   type coord_struct
     real(rp) vec(6)
   end type
@@ -533,6 +520,28 @@ module bmad_struct
     real(rp) dB(3,3)      ! magnetic field gradient
     real(rp) dkick(3,3)   ! kick gradiant
     integer  type         ! kick_field$ or em_field$
+  end type
+
+! Structures for saving the track through an element.
+! track%pt(0:n)  goes from 0 to n = track%n_pt
+
+  type track_point_struct
+    real(rp) s
+    type (coord_struct) orb ! position of a point
+    real(rp) mat6(6,6)      ! transfer matrix from beginning.
+  end type
+
+  type track_struct
+    type (track_point_struct), pointer :: pt(:) => null() ! An array of track points. 
+    real(rp) :: ds_save = 1e-3         ! min distance between points
+    real(rp) :: step0 = 1e-3           ! Initial step size.
+    real(rp) :: step_min = 1e-8        ! min step size to step below which
+                                       !   track1_adaptive_boris gives up
+    integer :: max_step = 10000        ! maximum number of steps allowed
+    logical :: save_track = .false.    ! save orbit?
+    integer :: n_pt                    ! upper bound of track%pt(0:n)
+    integer :: n_bad
+    integer :: n_ok
   end type
 
 !------------------------------------------------------------------------------

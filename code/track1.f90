@@ -31,6 +31,7 @@ subroutine track1 (start, ele, param, end)
 
   use bmad
   use mad_mod
+  use boris_mod
 
   implicit none
 
@@ -65,7 +66,7 @@ subroutine track1 (start, ele, param, end)
     call track1_bmad (orb, ele, param, end)
 
   case (runge_kutta$) 
-    call track1_runge_kutta (orb, ele, param, end)
+    call track1_runge_kutta (orb, ele, param, end, track_com)
 
   case (linear$) 
     call track1_linear (orb, ele, param, end)
@@ -80,7 +81,7 @@ subroutine track1 (start, ele, param, end)
     call track1_symp_map (orb, ele, param, end)
 
   case (symp_lie_bmad$) 
-    call symp_lie_bmad (ele, param, orb, end, .false.)
+    call symp_lie_bmad (ele, param, orb, end, .false., track_com)
 
   case (symp_lie_ptc$) 
     call track1_symp_lie_ptc (orb, ele, param, end)
@@ -89,10 +90,10 @@ subroutine track1 (start, ele, param, end)
     call track1_wiedemann_wiggler (orb, ele, param, end)
 
   case (adaptive_boris$) 
-    call track1_adaptive_boris (orb, ele, param, end)
+    call track1_adaptive_boris (orb, ele, param, end, track_com)
 
   case (boris$) 
-    call track1_boris (orb, ele, param, end)
+    call track1_boris (orb, ele, param, end, track_com)
 
   case (mad$)
     call track1_mad (orb, ele, param, end)

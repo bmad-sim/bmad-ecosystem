@@ -96,7 +96,7 @@ subroutine make_mat6 (ele, param, start, end, end_in)
     if (.not. end_input) call track_taylor (a_start%vec, ele%taylor, a_end%vec)
 
   case (symp_lie_bmad$)
-    call symp_lie_bmad (ele, param, a_start, a_end, .true.)
+    call symp_lie_bmad (ele, param, a_start, a_end, .true., track_com)
 
   case (tracking$)
     call make_mat6_tracking (ele, param, a_start, a_end)

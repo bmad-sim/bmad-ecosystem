@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_runge_kutta (start, ele, param, end)
+! Subroutine track1_runge_kutta (start, ele, param, end, track)
 !
 ! Subroutine to do tracking using Runge-Kutta integration. 
 ! The core Runge-Kutta routine used here is odeint_bmad which is
@@ -19,6 +19,8 @@
 !   param      -- Param_struct: Beam parameters.
 !     %enegy     -- Energy in GeV
 !     %particle  -- Particle type [positron$, or electron$]
+!   track      -- Track_struct: Structure holding the track information.
+!     %save_track -- Logical: Set True if track is to be saved.
 !
 ! Output:
 !   end        -- Coord_struct: Ending coords.
@@ -26,17 +28,12 @@
 !                  Thus for a wiggler, where the "zero" orbit path_length 
 !                  is not s_len, there needs to be a correction term:
 !                    end%vec(5) = end%vec(5) + zero_orbit_path_length - s_len
-!
-!   odeint_com -- common structure holding the path from the last tracking.
-!     %n_pts     -- Integer: Number of data points.
-!     %s(:)      -- Real(rp): Array of s locations.
-!     %orb(:)    -- Coord_struct: Array of coordinates
-!       %vec(1)     -- X position, etc.
+!   track      -- Track_struct: Structure holding the track information.
 !- 
 
 #include "CESR_platform.inc"
 
-subroutine track1_runge_kutta (start, ele, param, end)
+subroutine track1_runge_kutta (start, ele, param, end, track)
 
   use runge_kutta_mod
   use bmad_interface
@@ -47,6 +44,7 @@ subroutine track1_runge_kutta (start, ele, param, end)
   type (coord_struct), intent(out) :: end
   type (param_struct), target, intent(inout) :: param
   type (ele_struct), target, intent(inout) :: ele
+  type (track_struct) track
 
   real(rp) s_start, s_end, rel_tol, abs_tol, del_s_step, del_s_min, fac
 
@@ -72,7 +70,7 @@ subroutine track1_runge_kutta (start, ele, param, end)
   
   call offset_particle (ele, param, end, set$)
   call odeint_bmad (start, ele, param, end, 0.0_rp, ele%value(l$), &
-                                  rel_tol, abs_tol, del_s_step, del_s_min)
+                          rel_tol, abs_tol, del_s_step, del_s_min, track)
   call offset_particle (ele, param, end, unset$)
 
 end subroutine
