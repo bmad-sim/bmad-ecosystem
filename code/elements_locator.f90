@@ -41,7 +41,7 @@ subroutine elements_locator (key, ring, indx)
   allocate(indx(ix))
 
   ix = 0
-  do i = 1, ring%n_ele_max
+  do i = 0, ring%n_ele_max
     if (ring%ele_(i)%key == key .and. &
                               ring%ele_(i)%control_type /= super_slave$) then
       ix = ix + 1

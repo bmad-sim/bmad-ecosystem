@@ -30,7 +30,7 @@ subroutine element_locator (ele_name, ring, ix_ele)
 
 ! Very simple.
 
-  do ix_ele = 1, ring%n_ele_max
+  do ix_ele = 0, ring%n_ele_max
     if (ring%ele_(ix_ele)%name == ele_name) return
   enddo
 
