@@ -228,7 +228,7 @@ module bmad_interface
   end interface
 
   interface
-    subroutine create_group (ring, ix_ele, n_slave, con_)
+    subroutine create_group (ring, ix_ele, con_)
       use bmad_struct
       implicit none
       type (ring_struct) ring
@@ -249,14 +249,13 @@ module bmad_interface
   end interface
 
   interface
-    subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
+    subroutine create_overlay (ring, ix_overlay, attrib_value, contl)
       use bmad_struct
       implicit none
       type (ring_struct) ring
-      type (control_struct) con_(:)
       integer ix_overlay
-      integer n_slave
-      integer ix_value
+      character(*) attrib_value
+      type (control_struct) contl(:)
     end subroutine
   end interface
 

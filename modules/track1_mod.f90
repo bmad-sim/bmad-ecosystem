@@ -150,6 +150,7 @@ subroutine track_a_bend (start, ele, param, end)
   real(rp) b1, angle, ct, st, x, px, y, py, z, pz, dpx_t, phi
   real(rp) rel_E, rel_E2, Dxy, Dy, px_t, factor, rho, fact, g0, dg
   real(rp) length, g_tot, dE, del, f, kc, mat2(2,2), mat_i6(6)
+  real(rp) re_xy
 
 ! simple case
 
@@ -199,7 +200,13 @@ subroutine track_a_bend (start, ele, param, end)
   z  = end%vec(5)
   pz = end%vec(6)
  
-  Dxy = sqrt(rel_E2 - px**2 - py**2)
+  re_xy = rel_E2 - px**2 - py**2
+  if (re_xy < 0.1) then  ! somewhat arbitrary cutoff
+    param%lost = .true.
+    return
+  endif 
+
+  Dxy = sqrt(re_xy)
   Dy  = sqrt(rel_E2 - py**2)
 
   px_t = px*ct + (Dxy - b1*(rho+x))*st

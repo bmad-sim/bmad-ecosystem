@@ -2780,7 +2780,7 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
   type (parser_ring_struct) pring
   type (control_struct), pointer, save :: cs_(:) => null()
 
-  integer ixx, i, ic, n, n2, k, k2, ix, j, ie, ij, ix1
+  integer ixx, i, ic, n, n2, k, k2, ix, j, ie, ij, ix1, ns
   integer ix_lord, ix_slave(1000)
   integer, allocatable, save :: r_indexx(:)
 
@@ -2877,11 +2877,13 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
 
 ! create the lord
 
+      ns = ele%n_slave
+
       select case (ele%control_type)
       case (overlay_lord$)
-        call create_overlay (ring, ix_lord, ele%ix_value, ele%n_slave, cs_)
+        call create_overlay (ring, ix_lord, ele%attribute_name, cs_(1:ns))
       case (group_lord$)
-        call create_group (ring, ix_lord, ele%n_slave, cs_)
+        call create_group (ring, ix_lord, cs_(1:ns))
       end select
 
 !-----------------------------------------------------
