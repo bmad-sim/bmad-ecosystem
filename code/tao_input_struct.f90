@@ -136,6 +136,7 @@ type tao_key_input
   real(rp) high_lim
   real(rp) weight
   logical good_opt
+  character(16) merit_type
 end type
 
 end module

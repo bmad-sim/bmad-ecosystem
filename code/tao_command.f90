@@ -81,7 +81,7 @@ subroutine tao_command (command_line, err)
 
   case ('alias')
 
-    call cmd_split(cmd_line, 2, cmd_word, .false., err); if (err) return
+    call tao_cmd_split(cmd_line, 2, cmd_word, .false., err); if (err) return
     call tao_alias_cmd (cmd_word(1), cmd_word(2))
     return
 
@@ -90,7 +90,7 @@ subroutine tao_command (command_line, err)
 
   case ('call')
 
-    call cmd_split(cmd_line, 10, cmd_word, .true., err); if (err) return
+    call tao_cmd_split(cmd_line, 10, cmd_word, .true., err); if (err) return
     call tao_call_cmd (cmd_word(1), cmd_word(2:10))
 
 !--------------------------------
@@ -98,7 +98,7 @@ subroutine tao_command (command_line, err)
 
   case ('change')
 
-    call cmd_split (cmd_line, 4, cmd_word, .false., err)
+    call tao_cmd_split (cmd_line, 4, cmd_word, .false., err)
     call tao_change_cmd (cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4))
 
 !--------------------------------
@@ -106,7 +106,7 @@ subroutine tao_command (command_line, err)
 
   case ('clip')
 
-    call cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
+    call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
     if (cmd_word(2) == ' ') then
       call tao_clip_cmd (cmd_word(1), 0.0_rp, 0.0_rp) 
     else
@@ -144,7 +144,7 @@ subroutine tao_command (command_line, err)
 
   case ('run', 'flatten')
 
-    call cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
+    call tao_cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
     call tao_run_cmd (cmd_word(1))
 
 !--------------------------------
@@ -152,7 +152,7 @@ subroutine tao_command (command_line, err)
 
   case ('help')
 
-    call cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
+    call tao_cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
     call tao_help (cmd_word(1))
     return
 
@@ -161,7 +161,7 @@ subroutine tao_command (command_line, err)
 
   case ('history')
 
-    call cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
+    call tao_cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
     call tao_history_cmd (cmd_word(1), err)
     return
 
@@ -170,15 +170,16 @@ subroutine tao_command (command_line, err)
 
   case ('output')
 
-    call cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
-    call tao_output_cmd (cmd_word(1))
+    call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
+    call tao_output_cmd (cmd_word(1), cmd_word(2))
+    return
 
 !--------------------------------
 ! PLACE
 
   case ('place')
 
-    call cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
+    call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
     if (cmd_word(3) /= ' ') then
       call out_io (s_error$, r_name, 'NOT RECOGNIZED: ' // cmd_word(3))
       return
@@ -196,7 +197,7 @@ subroutine tao_command (command_line, err)
       return
     endif
 
-    call cmd_split (cmd_line, 9, cmd_word, .false., err, '+-')
+    call tao_cmd_split (cmd_line, 9, cmd_word, .false., err, '+-')
 
     i = 1; j = 1
     do 
@@ -220,7 +221,7 @@ subroutine tao_command (command_line, err)
 
   case ('use', 'veto', 'restore')
 
-    call cmd_split(cmd_line, 3, cmd_word, .false., err)
+    call tao_cmd_split(cmd_line, 3, cmd_word, .false., err)
     
     call match_word (cmd_word(1), name$%data_or_var, which)
     
@@ -238,7 +239,7 @@ subroutine tao_command (command_line, err)
 
   case ('reinitialize')
 
-    call cmd_split(cmd_line, 2, cmd_word, .false., err)
+    call tao_cmd_split(cmd_line, 2, cmd_word, .false., err)
 
     call out_io (s_warn$, r_name, &
          "Use this command with a little caution. There is a small memory leak somewhere!")
@@ -268,7 +269,7 @@ subroutine tao_command (command_line, err)
 
   case ('set')
 
-    call cmd_split (cmd_line, 6, cmd_word, .false., err, '=')
+    call tao_cmd_split (cmd_line, 6, cmd_word, .false., err, '=')
 
     if (((cmd_word(1) == 'data' .or. cmd_word(1) == 'var') .and. &
                   cmd_word(4) /= '=') .or. &
@@ -311,7 +312,7 @@ subroutine tao_command (command_line, err)
 
   case ('scale')
 
-    call cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
+    call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
     if (cmd_word(2) == ' ') then
       call tao_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp) 
     else
@@ -330,7 +331,7 @@ subroutine tao_command (command_line, err)
 
   case ('show')
 
-    call cmd_split (cmd_line, 3, cmd_word, .false., err)
+    call tao_cmd_split (cmd_line, 3, cmd_word, .false., err)
     if (cmd_word(1) == ' ') then
       call out_io (s_error$, r_name, 'SHOW WHAT?')
       return
@@ -353,7 +354,7 @@ subroutine tao_command (command_line, err)
 
   case ('view')
 
-    call cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
+    call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
     call tao_to_int (cmd_word(1), int1, err); if (err) return
     call tao_view_cmd (int1)
 
@@ -362,7 +363,7 @@ subroutine tao_command (command_line, err)
 
   case ('x-axis')
 
-    call cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
+    call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
     call tao_x_axis_cmd (cmd_word(1), cmd_word(2))
 
 !--------------------------------
@@ -370,7 +371,7 @@ subroutine tao_command (command_line, err)
 
   case ('x-scale')
 
-    call cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
+    call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
     if (cmd_word(2) == ' ') then
       call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err)
     else

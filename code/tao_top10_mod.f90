@@ -40,7 +40,7 @@ real(rp) delta, a_max, merit
 integer i, j, n, nl, nu
 
 character(16) name
-character(80) fmt, lines(20)
+character(100) fmt, lines(20)
 character(20) :: r_name = 'tao_top10_print'
 
 ! tao_merit also calculates the contrribution of the individual
@@ -89,13 +89,15 @@ a_max = max(1.1, maxval(abs(top_delta(:)%value)))
 n = max(0, 6 - int(log10(a_max)))
 
 write (fmt, '(a, i1, a)') &
-    '((1x, a10, i5, f11.1, 1x), (a8, i5, 1pe12.3, 1x), (a8, i5, 0pf11.', n, '))'
+   '((1x, a10, i5, f11.1, 3x), (a8, i5, 1pe12.3, 3x), (a8, i5, 0pf11.', n, '))'
 
 
 nl = 0
 lines(nl+1) = ' '
-lines(nl+2) = '       Top10 merit          |     Top10 derivative     |      Top10 delta'
-lines(nl+3) = '  Name      ix      Value   | Name      ix  Derivative |  Name     ix     delta'
+lines(nl+2) = &
+  '       Top10 merit          |     Top10 derivative      |      Top10 delta'
+lines(nl+3) = &
+  ' Name         ix      Value | Name       ix  Derivative | Name       ix     delta'
 nl = nl + 3
 
 do i = 1, 10

@@ -475,15 +475,6 @@ plot_loop: do i = 1, size(s%plot_page%region)
        elseif (plot%x_axis_type .eq. 's') then 	 
          graph%title_suffix = trim(graph%title_suffix) // ', X-axis: s, ' 	 
        endif 	 
- 
-
-! attach universe number to title suffix
-
-      if (size(s%u) > 1) then
-        write (u_view_char, '(I)') s%global%u_view
-        call string_trim (u_view_char, u_view_char, ix)
-        graph%title_suffix = trim(graph%title_suffix) // ' Universe: ' // trim(u_view_char)
-      endif
 
     enddo
 

@@ -37,7 +37,6 @@ end type
 type tao_keyboard_struct
   real(rp) val0                            ! Base value
   real(rp) delta                           ! Change in value
-  real(rp) :: normalizer = 1.0
   integer ix_var                           ! Index to variable array.
 end type
 
@@ -247,15 +246,14 @@ end type
 
 !-----------------------------------------------------------------------
 ! The var_struct defined the fundamental variable structure.
-! The universe_struct will hold an array of var_struct structures: u%var(:).
+! The super_universe_struct will hold an array of var_structs: s%var(:).
 !
 ! %exists     -- The variable exists. Non-existant variables can serve as place
-!                  holders in the u%var array.
+!                  holders in the s%var array.
 ! %good_var   -- The variable can be varied. Eg: Permanent magnet quads are 
 !                  generally considered not to be variables.
 ! %good_user  -- What the user has selected using the use, veto, and restore 
 !                  commands.
-!                  touching the other logicals.
 ! %good_plot  -- Conveninet way to veto variables to plot without 
 !                  touching the other logicals.
 ! %useit_opt  -- Variable is to be used for optimizing:
@@ -277,7 +275,7 @@ type tao_var_struct
   character(16) attrib_name ! Name of the attribute to vary.
   type (tao_this_var_struct), pointer :: this(:) => null()
   integer ix_v1             ! Index of this var in the v1_var_struct%v array.
-  integer ix_var            ! Index number of this var in the u%var array.
+  integer ix_var            ! Index number of this var in the s%var array.
   integer ix_dvar           ! Column in the dData_dVar derivative matrix.
   real(rp) model_value      ! Model value.
   real(rp) base_value       ! Base value.
@@ -310,14 +308,14 @@ type tao_var_struct
 end type tao_var_struct  
 
 ! A v1_var_struct represents, say, all the quadrupole power supplies.
-! The v1_var_struct has a pointer to a section in the u%var array. 
+! The v1_var_struct has a pointer to a section in the s%var array. 
 
 type tao_v1_var_struct
   character(16) :: name = ' '  ! Eg: "quad_k1"
-  integer ix_var0              ! Index of the 0th element in u%var
+  integer ix_var0              ! Index of the 0th element in s%var
   type (tao_v1_var_hook) hook  ! Custom stuff. Defined in tao_hook.f90
   type (tao_var_struct), pointer :: v(:) => null() 
-                               ! Pointer to the appropriate section in u%var.
+                               ! Pointer to the appropriate section in s%var.
 end type
 
 !------------------------------------------------------------------------
@@ -329,6 +327,7 @@ type tao_global_struct
   integer :: u_view = 1                  ! Which universe we are viewing.
   integer :: n_opti_cycles = 20          ! number of optimization cycles
   integer :: ix_key_bank = 0             ! For single mode.
+  integer :: n_key_table_max = 0         ! Maximum key table index.
   integer :: n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
   integer :: phase_units = radians$      ! Phase units on output.
   integer :: bunch_to_plot = 1           ! Which bunch to plot
@@ -336,6 +335,7 @@ type tao_global_struct
   character(16) :: track_type = 'single' ! or 'beam' or 'macro' 
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer = 'de'      ! optimizer to use.
+  character(16) :: default_key_merit_type
   type (tao_global_hook) hook            ! Custom stuff. Defined in tao_hook.f90
   logical :: var_limits_on = .false.     ! Respect the variable limits?
   logical :: plot_on = .true.            ! Do plotting?

@@ -167,9 +167,7 @@ n_var = size(a)
 call tao_get_vars (var_delta = var_delta)
 y_fit(1:n_var) = var_delta
 
-do k = 1, n_var
-  if (y_fit(k) /= 0) dy_da(k,k) = 1
-enddo
+forall (k = 1:n_var) dy_da(k,k) = 1
 
 k = n_var
 

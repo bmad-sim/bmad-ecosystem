@@ -95,7 +95,7 @@ subroutine tao_hook_command (command_line, found)
     case ('hook')
       ! split the command line into its separate words
       ! separate words placed in cmd_word(:)
-      call cmd_split(cmd_line, 10, cmd_word, .true., err); if (err) return
+      call tao_cmd_split(cmd_line, 10, cmd_word, .true., err); if (err) return
 
       ! send any output to out_io
       call out_io (s_blank$, r_name, &

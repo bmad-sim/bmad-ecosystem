@@ -90,6 +90,8 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
 
   global%valid_plot_who(1:5) = &
                 (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  ' /)
+  global%default_key_merit_type = 'limit'
+
   call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
   if (iu .eq. 0) then
     call out_io (s_abort$, r_name, "Error opening init file")

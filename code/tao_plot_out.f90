@@ -23,6 +23,7 @@ type (qp_rect_struct) border1, border2
 real(rp) location(4), dx, dy
 integer i, j, k
 character(16) :: r_name = 'tao_plot_out'
+character(3) view_str
 
 ! inits
 
@@ -38,6 +39,12 @@ do i = 1, size(s%plot_page%title)
                      s%plot_page%title(i)%y, s%plot_page%title(i)%units,    &
                      s%plot_page%title(i)%justify)
 enddo
+
+! Draw view universe
+
+write (view_str, '(i3)') s%global%u_view
+call qp_draw_text ('View Universe:' // view_str, &
+              -2.0_rp, -2.0_rp, 'POINTS/PAGE/RT', 'RT')
 
 ! loop over all plots
 
@@ -125,10 +132,15 @@ end subroutine
 
 subroutine plot_key_table
 
-integer i, j, k, j_ele, j_att, ix_var
-real(rp) :: y, norm
+type (tao_var_struct), pointer :: var
+type (tao_keyboard_struct), pointer :: key
+
+integer i, j, k, n, m, p, j_ele, j_att, ix_var
+real(rp) :: y, norm, v
 real(rp) :: dy_key, text_scale
-character(80) str, fmt, str2
+character(80) str, fmt, fmt2, str2
+character(12) model_str, val0_str, delta_str
+character(4) exp_str
 
 !
 
@@ -147,15 +159,15 @@ do k = s%global%ix_key_bank+1, s%global%ix_key_bank+10
 enddo
 
 write (fmt, '(a, i5, a, i2, a)') &
-                        '(3x, a, ', j_ele-2, 'x, a, ', j_att-2, 'x, a)'
+                        '(4x, a, ', j_ele-2, 'x, a, ', j_att-1, 'x, a)'
 write (str, fmt) 'ix  Name', 'Attrib', &
-                              'Value   Value0    Delta  Uni useit_opt'
+                         'Value      Value0       Delta   Uni  useit_opt'
 y = 10 * dy_key + 5.0
 call qp_draw_text (str, 5.0_rp, y, 'POINTS/PAGE', &
                              height = dy_key-1.0_rp, uniform_spacing = .true.)
   
 write (fmt, '(a, i2.2, a, i2.2, a)') &
-        '(i2, 2x, a', j_ele, ', 2x, a', j_att, ', 3f9.4, 2x, a, 3x, l)'
+        '(i2, 2x, a', j_ele, ', 2x, a', j_att, ', 3a12, 2x, a, 3x, l)'
 
 write (str, '(i2, a)') s%global%ix_key_bank/10, ':'
 y = 9 * dy_key + 5
@@ -166,18 +178,43 @@ do i = 1, 10
 
   k = i + s%global%ix_key_bank
   if (k > ubound(s%key, 1)) cycle
-  ix_var = s%key(k)%ix_var
+  key => s%key(k)
+  ix_var = key%ix_var
   j = mod(i, 10)
 
-  if (s%key(k)%ix_var == 0) then
+  if (key%ix_var == 0) then
     write (str, '(i2)') j
   else
-    norm = s%key(k)%normalizer
-    str2 = tao_var_uni_string(s%var(ix_var))
-    write (str, fmt) j, s%var(ix_var)%ele_name, &
-      s%var(ix_var)%attrib_name, s%var(ix_var)%model_value, &
-      s%key(k)%val0/norm, s%key(k)%delta/norm, &
-      trim(str2), s%var(ix_var)%useit_opt
+    var => s%var(ix_var)
+    str2 = tao_var_uni_string(var)
+    v = maxval(abs( (/ var%model_value, key%val0, key%delta /) ))
+    if (v == 0) then
+      n = 0
+      m = 3
+    else
+      m = 1.001 * log10(v)
+      n = 3 * floor(m/3.0)
+      p = 3 - (m - n)
+    endif
+
+    if (m >= -1 .and. m <= 1) then
+      fmt2 = '(f12.4, a0)'
+      n = 0
+    elseif (m == 2) then
+      fmt2 = '(f12.2, a0)'
+      n = 0
+    else
+      write (fmt2, '(a, i1, a)') '(f8.', p, ', a)'
+      write (exp_str, '(a, i3.2)') 'E', n
+      if (exp_str(2:2) == '0') exp_str(2:2) = '+'
+    endif
+
+    write (model_str, fmt2) var%model_value / 10.0**n, exp_str
+    write (val0_str,  fmt2) key%val0 / 10.0**n, exp_str
+    write (delta_str, fmt2) key%delta / 10.0**n, exp_str
+
+    write (str, fmt) j, var%ele_name, var%attrib_name, model_str, &
+                        val0_str, delta_str, trim(str2), var%useit_opt
   endif
 
   y = (10-i) * dy_key + 5

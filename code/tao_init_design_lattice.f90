@@ -20,7 +20,7 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
 
   implicit none
 
-  type (tao_design_lat_input)  design_lattice_file(20)
+  type (tao_design_lat_input)  design_lattice(100)
 
   character(*) tao_design_lattice_file
   character(200) complete_file_name
@@ -29,14 +29,14 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
 
   logical custom_init
 
-  namelist / tao_design_lattice / design_lattice_file, taylor_order
+  namelist / tao_design_lattice / design_lattice, taylor_order
 
 !
 
   call tao_open_file ('TAO_INIT_DIR', tao_design_lattice_file, iu, complete_file_name)
 
-  design_lattice_file%file = ' '
-  design_lattice_file%parser = 'bmad'
+  design_lattice%file = ' '
+  design_lattice%parser = 'bmad'
   taylor_order = 0
   read (iu, nml = tao_design_lattice, iostat = ios)
   if (ios /= 0) then
@@ -53,23 +53,25 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
   ! are we using a custom initialization?
 
   custom_init = .false.
-  call tao_hook_init_design_lattice (design_lattice_file, custom_init)
+  call tao_hook_init_design_lattice (design_lattice, custom_init)
   if (custom_init) return
 
   
   do i = 1, size(s%u)
-    select case (design_lattice_file(i)%parser)
+    if (design_lattice(i)%file == ' ') design_lattice(i)%file = &
+                                              design_lattice(1)%file
+    select case (design_lattice(i)%parser)
     case ('bmad')
-      call bmad_parser (design_lattice_file(i)%file, s%u(i)%design)
+      call bmad_parser (design_lattice(i)%file, s%u(i)%design)
     case ('xsif')
-      call xsif_parser (design_lattice_file(i)%file, s%u(i)%design)
+      call xsif_parser (design_lattice(i)%file, s%u(i)%design)
     case ('digested')
       call out_io (s_blank$, r_name, &
-                  "Reading digested BMAD file " // trim(design_lattice_file(i)%file))
-      call read_digested_bmad_file (design_lattice_file(i)%file, s%u(i)%design, version)
+                  "Reading digested BMAD file " // trim(design_lattice(i)%file))
+      call read_digested_bmad_file (design_lattice(i)%file, s%u(i)%design, version)
     case default
       call out_io (s_abort$, r_name, 'PARSER NOT RECOGNIZED: ' // &
-                                                design_lattice_file(i)%parser)
+                                                design_lattice(i)%parser)
       call err_exit
     end select
   enddo

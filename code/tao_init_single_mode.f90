@@ -38,6 +38,7 @@ subroutine tao_init_single_mode (single_mode_file)
 
   key%ele_name = ' '
   key%universe = '0'
+  key%merit_type = s%global%default_key_merit_type
 
   call tao_open_file ('TAO_INIT_DIR', single_mode_file, iu, file_name)
   read (iu, nml = key_bindings, iostat = ios)
@@ -63,8 +64,9 @@ subroutine tao_init_single_mode (single_mode_file)
     if (key(i)%universe(1:2) == 'U:') key(i)%universe = key(i)%universe(3:)
   enddo key_loop
 
-!
+! allocate the key table. Make it at least s%global%n_key_table_max big.
 
+  i_max = max(s%global%n_key_table_max, i_max)
   allocate (s%key(i_max))
   n1 = s%n_var_used + 1
   s%n_var_used = s%n_var_used + i_max
@@ -87,7 +89,7 @@ subroutine tao_init_single_mode (single_mode_file)
     s%var(n)%high_lim    = key(i)%high_lim
     s%var(n)%low_lim     = key(i)%low_lim
     s%var(n)%good_user   = key(i)%good_opt
-    s%var(n)%merit_type  = 'limit'
+    s%var(n)%merit_type  = key(i)%merit_type
     s%var(n)%exists      = .true.
 
     read (key(i)%universe, *, iostat = ios) ix_u

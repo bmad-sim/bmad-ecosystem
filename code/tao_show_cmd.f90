@@ -26,6 +26,7 @@ type (tao_data_struct), pointer :: d_ptr
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: v_ptr
 type (tao_plot_struct), pointer :: plot
+type (tao_graph_struct), pointer :: graph
 type (tao_plot_region_struct), pointer :: region
 type (coord_struct) orb
 
@@ -41,11 +42,11 @@ character(40) :: show_word1, show_word2, show_word3
 character(8) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
 character(80), pointer :: ptr_lines(:)
-character(16) ele_name, name
+character(16) ele_name, name, sub_name
 
 character(16) :: show_names(10) = (/ &
    'data       ', 'var        ', 'global     ', 'alias      ', 'top10      ', &
-   'optimizer  ', 'ele        ', 'lattice    ', 'constraints', 'plots      ' /)
+   'optimizer  ', 'ele        ', 'lattice    ', 'constraints', 'plot       ' /)
 
 character(200), allocatable :: lines(:)
 character(100) line1, line2
@@ -512,29 +513,71 @@ case ('optimizer')
 !----------------------------------------------------------------------
 ! plots
 
-case ('plots')
+case ('plot')
 
-  nl=nl+1; lines(nl) = '   '
-  nl=nl+1; lines(nl) = 'Template Plots: Graphs'
+  if (show_word2 == ' ') then
+
+    nl=nl+1; lines(nl) = '   '
+    nl=nl+1; lines(nl) = 'Template Plots: Graphs'
+    do i = 1, size(s%template_plot)
+      plot => s%template_plot(i)
+      if (plot%name == ' ') cycle
+      nl=nl+1; write (lines(nl), '(4x, 2a)') trim(plot%name), ' :'
+      if (associated(plot%graph)) then
+        do j = 1, size(plot%graph)
+          nl=nl+1; write (lines(nl), '(20x, a)') plot%graph(j)%name
+        enddo
+      endif
+    enddo
+
+    nl=nl+1; lines(nl) = ' '
+    nl=nl+1; lines(nl) = '[Visible]     Plot Region     <-->  Template' 
+    nl=nl+1; lines(nl) = '---------     -----------           ------------'
+    do i = 1, size(s%plot_page%region)
+      region => s%plot_page%region(i)
+      nl=nl+1; write (lines(nl), '(3x l1, 10x, 3a)') region%visible, &
+                                    region%name, '<-->  ', region%plot%name
+    enddo
+
+    call out_io (s_blank$, r_name, lines(1:nl))
+    return
+  endif
+
+!
+
+  found = .false.
+  ix = index(word2, ':')
+  if (ix == 0) then
+    name = word2(:ix-1)
+    sub_name = word2(ix+1:)
+  else
+    name = word2
+    sub_name = ' '
+  endif
+
   do i = 1, size(s%template_plot)
     plot => s%template_plot(i)
-    if (plot%name == ' ') cycle
-    nl=nl+1; write (lines(nl), '(4x, 2a)') trim(plot%name), ' :'
-    if (associated(plot%graph)) then
+    if (plot%name /= word2) cycle
+    if (sub_name == ' ') then
+      found = .true.
+    else
       do j = 1, size(plot%graph)
-        nl=nl+1; write (lines(nl), '(20x, a)') plot%graph(j)%name
+        graph => plot%graph(i)
+        if (graph%name /= sub_name) cycle
+        found = .true.
       enddo
     endif
   enddo
 
-  nl=nl+1; lines(nl) = ' '
-  nl=nl+1; lines(nl) = '[Visible]     Plot Region     <-->  Template' 
-  nl=nl+1; lines(nl) = '---------     -----------           ------------'
   do i = 1, size(s%plot_page%region)
     region => s%plot_page%region(i)
-    nl=nl+1; write (lines(nl), '(3x l1, 10x, 3a)') region%visible, &
-                                    region%name, '<-->  ', region%plot%name
+    if (region%name /= word2) cycle
+    found = .true.
   enddo
+
+  if (.not. found) then
+    nl=1; lines(1) = 'Cannot match name to a template plot or plot region.'
+  endif 
 
   call out_io (s_blank$, r_name, lines(1:nl))
 

@@ -25,10 +25,12 @@ implicit none
 
 type (tao_universe_struct), pointer :: u
 type (tao_v1_var_struct), pointer :: v1_ptr
+type (tao_var_struct), pointer :: var
 
-real(rp) change_number, model_value, old_merit, new_merit
-real(rp), pointer :: attrib_ptr, design_ptr
+real(rp) change_number, model_value, old_merit, new_merit, max_val
 real(rp) old_value, new_value, design_value, delta
+
+real(rp), pointer :: attrib_ptr, design_ptr
 real(rp), allocatable :: old_var_value(:)
 real(rp), allocatable :: new_var_value(:)
 real(rp), allocatable :: design_var_value(:)
@@ -42,7 +44,7 @@ character(80) num
 character(20) :: r_name = 'tao_change_cmd'
 character(16) ele_name
 character(40) fmt
-character(100) lines(n_output_lines_maxx)
+character(100) l1, lines(n_output_lines_maxx)
 
 logical err, absolute_num, rel_to_design
 logical, allocatable :: action_logic(:) !which variables to change
@@ -82,42 +84,40 @@ case ('var')
   endif
   
   ! now change all desired variables
-  old_var_value(:) = v1_ptr%v(:)%model_value
 
-  if (absolute_num) then
-    do i = lbound(action_logic,1), ubound(action_logic,1)
-      if (action_logic(i)) &
-              call tao_set_var_model_value (v1_ptr%v(i), change_number)
-    enddo
-  elseif (rel_to_design) then
-    do i = lbound(action_logic,1), ubound(action_logic,1)
-      if (action_logic(i)) &
-              call tao_set_var_model_value (v1_ptr%v(i), &
-                                        v1_ptr%v(i)%design_value + change_number)
-    enddo
-  else
-    do i = lbound(action_logic,1), ubound(action_logic,1)
-      if (action_logic(i)) &
-              call tao_set_var_model_value (v1_ptr%v(i), &
-                                        v1_ptr%v(i)%model_value + change_number)
-    enddo
-  endif
+  old_var_value(:)    = v1_ptr%v(:)%model_value
+  design_var_value(:) = v1_ptr%v(:)%design_value
+
+  max_val = 0
+  do i = lbound(action_logic,1), ubound(action_logic,1)
+    if (.not. action_logic(i)) cycle
+    var => v1_ptr%v(i)
+    if (absolute_num) then
+      call tao_set_var_model_value (var, change_number)
+    elseif (rel_to_design) then
+      call tao_set_var_model_value (var, var%design_value + change_number)
+    else
+      call tao_set_var_model_value (var, var%model_value + change_number)
+    endif
+    max_val = max(max_val, abs(old_var_value(i)))
+    max_val = max(max_val, abs(design_var_value(i))) 
+    max_val = max(max_val, abs(var%model_value)) 
+  enddo
 
   new_var_value(:)    = v1_ptr%v(:)%model_value
-  design_var_value(:) = v1_ptr%v(:)%design_value
-    
+
   !-----------------------------------
   ! print results
 
   new_merit = tao_merit()
-  if (any(max(abs(old_var_value), abs(new_var_value), abs(design_var_value)) > 100)) then
+  if (max_val > 100) then
     fmt = '(5x, I5, 2x, f12.0, a, 4f12.0)'
   else
     fmt = '(5x, I5, 2x, f12.6, a, 4f12.6)'
   endif
 
-  nl = nl+1
-  write (lines(nl), '(5x, a)') 'Index       Old              New       Delta   Old-Design   New-Design'
+  l1 = '     Index         Old              New       Delta  Old-Design  New-Design'
+    nl=nl+1; lines(nl) = l1
   do i = lbound(action_logic,1), ubound(action_logic,1)
     if (action_logic(i)) then
       if (nl+5 .gt. max_lines) then
@@ -132,8 +132,7 @@ case ('var')
 			     new_var_value(i)-design_var_value(i)
     endif
   enddo
-  nl = nl+1
-  write (lines(nl), '(5x, a)') 'Index       Old              New       Delta   Old-Design   New-Design'
+  nl=nl+1; lines(nl) = l1
 
   if (max(abs(old_merit), abs(new_merit)) > 100) then
     fmt = '(5x, 2(a, f13.2), f13.2)'

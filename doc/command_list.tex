@@ -81,15 +81,17 @@ Format:
   call <filename> \{<arg_list>\}  \Strut
 \end{example}
 
-\vskip 0.2in \vn{call} opens a command file and executes the commands in it.
-\tao first looks in the current directory for the file. If not found \tao will
-look in the directory pointed to by the \vn{TAO_COMMAND_DIR} directory.  Up to 9
-arguments may be passed to the command file. The i\Th argument is substituted in
-place of the string ``[i]'' in the file. Nesting of command files (command files
-calling other command files) is allowed. There is no limit to the number of
-nestings, however, only one argument list is allowed. This argument list is
-specified by the call to the first command file. Any nested command files can
-use this argument list.
+\vskip 0.2in 
+\vn{call} opens a command file and executes the commands
+in it.  \tao first looks in the current directory for the file. If not
+found \tao will look in the directory pointed to by the
+\vn{TAO_COMMAND_DIR} directory.  Up to 9 arguments may be passed to
+the command file. The i\Th argument is substituted in place of the
+string ``[i]'' in the file. Nesting of command files (command files
+calling other command files) is allowed. There is no limit to the
+number of nestings, however, only one argument list is allowed. This
+argument list is specified by the call to the first command file. Any
+nested command files can use this argument list.
 
 Do loops are allowed with the following syntax:
 \begin{example}
@@ -99,9 +101,10 @@ Do loops are allowed with the following syntax:
     ...
   enddo
 \end{example}
-The loop index can be used as a variable in the loop body but must be bracketed.
-Nested loops are not allowed, but nested command files are allowed in do loops
-provided there are no do loops in the nested command files.
+The loop index can be used as a variable in the loop body but must be
+bracketed.  Nested loops are not allowed, but nested command files are
+allowed in do loops provided there are no do loops in the nested
+command files.
 
 Examples:
 \begin{example}
@@ -276,13 +279,17 @@ Examples
 
 Format:
 \begin{example}
-  output hard     ! print the plot window to a printer.
-  output ps       ! create a postscript file of the plot window.
-  output var      ! Write a Bmad file of variable values.
+  output hard              ! print the plot window to a printer.
+  output ps \{<file_name>\}  ! create a postscript file of the plot window.
+  output gif \{<file_name>\} ! create a gif file of the plot window.
+  output var               ! Write a Bmad file of variable values.
 \end{example}
 
-\vskip 0.2in
-\vn{Output} creates various files.
+\vskip 0.2in \vn{Output} creates various files. If \vn{<file_name>} is
+not given then the default \vn{quick_plot.ps} or \vn{quick_plot.gif}
+is used. Note: PGPLOT does a poor job producing gif files consider
+making a postscript file instead and using the pstogif unix command to
+convert.
 
 %% place --------------------------------------------------------------
 \section{Place}
@@ -584,45 +591,55 @@ Format:
   show optimizer
   show top10
   show var \{<var_name> <locations>\}
-  show plots
+  show plot \{<template_plot_name>\}
+  show plot \{<plot_region_name>\}
 \end{example}
 
 \vskip 0.2in
 \vn{Show} is used to display various information about the state of \tao.
 \begin{description}
-\item[show alias]
+  \item[show alias]
 Shows a list of defined aliases. See the \vn{alias} command for more
 details.
-\item[show constraints]
+
+  \item[show constraints]
 Lists data and variable constraints.
-\item[show data]
+
+  \item[show data]
 Shows data information. If \vn{<data_name>} and \vn{<locations>} are not
 present shown is a list of d2\_data names.
-\item[show ele]
+
+  \item[show ele]
 This shows information on lattice elements. \vn{<ele_name>} can
 contain wild--card characters ``\%'' and ``*''. ``\%'' matches to any
 single character and ``*'' matches to any number of characters. If
 \vn{<ele_name>} contains a wild card then a list of elements that
 match the name are shown. If no wild--card is present then information
-about the element whose name matches \vn{<ele_name>} is
-shown. All data types associated with the element will also be listed.
- \vn{<ele_name>} is a number $n$ then the $n$\Th element in the
+about the element whose name matches \vn{<ele_name>} is shown. All
+data types associated with the element will also be
+listed. \vn{<ele_name>} is a number $n$ then the $n$\Th element in the
 lattice list will be shown.
-\item[show global]
+
+  \item[show global]
 Shows global information.
-\item[show lattice]
-Shows Twiss and orbit data for the \vn{model} lattice
-at the specified regular element locations. If \vn{<locations>} is not present
-then the length of the lattice will be shown.
-\item[show optimizer]
+
+  \item[show lattice]
+Shows Twiss and orbit data for the \vn{model} lattice at the specified
+regular element locations. If \vn{<locations>} is not present then the
+length of the lattice will be shown.
+
+  \item[show optimizer]
 Shows information pertinent to optimization: Data and variables used, etc.
-\item[show top10]
+
+  \item[show top10]
 Shows top contributors to the merit function, dMerit/dVariable
 derivatives, and Largest changes in variable value.
-\item[show var]
+
+  \item[show var]
 Shows variable information. If \vn{<var_name>} \vn{<locations>} is
 not present shown is a list of v1\_var classes.
-\item[show plots]
+
+  \item[show plot]
 Shows which templates are being plotted and in which regions and also all
 available templates.
 \end{description}

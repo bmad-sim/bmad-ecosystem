@@ -97,8 +97,8 @@ end subroutine
 ! used for arbitrary variable pointer indexing
 !
 ! v1       -- tao_v1_var_struct: Contains the pointer
-! var      -- tao_var_struct: the variable
-! n        -- integer: starting index for the pointer
+! var(n:)  -- tao_var_struct: the variable
+! n        -- integer: starting index for the var array.
 !-
 
 subroutine tao_point_v1_to_var (v1, var, n, n_var)

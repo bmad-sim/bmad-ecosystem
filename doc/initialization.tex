@@ -94,7 +94,8 @@ namelist has the form
 \begin{example}
   \&tao_design_lattice
     taylor_order = <num>
-    design_lattice_file(i) = "<lattice_file>", \{"<parser>"\}
+    design_lattice(i)%file = "<lattice_file>"
+    design_lattice(i)%parser = "<parser>"
   /
 \end{example}
 \vn{taylor_order} is the order of the Taylor maps. This will override
@@ -111,8 +112,8 @@ choices for \vn{<parser>} are:
 Example:
 \begin{example}
   \&tao_design_lattice
-    design_lattice_file(1) = "this.lat"          ! Default: Use the bmad parser 
-    design_lattice_file(2) = "that.lat", "xsif"  ! For universe \#2
+    design_lattice(1)%file = "this.lat"          ! Default: Use the bmad parser 
+    design_lattice(2)      = "that.lat", "xsif"  ! For universe \#2
   /
 \end{example}
 
@@ -153,9 +154,6 @@ The \vn{tao_global_struct} is
     real(rp) :: y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
     integer :: u_view = 1                  ! Which universe we are viewing.
     integer :: n_opti_cycles = 20          ! number of optimization cycles
-    integer :: lun_command_file = 0        ! unit number for a command file.
-                                           !  0 -> no command file.
-    integer :: ix_key_bank = 0             ! For single mode.
     integer :: n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
     integer :: phase_units = radians\$     ! Phase units on output.
     integer :: bunch_to_plot = 1           ! Which bunch to plot
@@ -163,19 +161,16 @@ The \vn{tao_global_struct} is
     character(16) :: track_type = 'single' ! or 'beam' or 'macro' 
     character(16) :: prompt_string = 'Tao'
     character(16) :: optimizer = 'de'      ! optimizer to use.
+    character(16) :: default_key_merit_type = 'limit'
     type (tao_global_hook) hook            ! Custom stuff. Defined in tao_hook.f90
     logical :: var_limits_on = .false.     ! Respect the variable limits?
     logical :: plot_on = .true.            ! Do plotting?
     logical :: opt_with_ref = .false.      ! use reference data in optimization?
     logical :: opt_with_base = .false.     ! use base data in optimization?
-    logical :: single_mode = .false.
-    logical :: optimizer_running 
-    logical :: init_opt_wrapper = .true.
+    logical :: single_mode = .false.       ! Startup in single mode?
     logical :: label_lattice_elements = .true. ! For lat_layout plots
     logical :: label_keys = .true.             ! For lat_layout plots
     logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
-    logical :: lattice_recalc = .true.         ! recalculate the lattice?
-    logical :: init_plot_needed = .true.       ! reinitialize plotting?
     character(16) :: valid_plot_who(10)        ! model, base, ref etc...
     character(40) :: print_command = 'awprint'
     character(80) :: default_init_file = 'tao.init'
@@ -374,7 +369,7 @@ format for this is
                                              ! default = 0.0
     default_step       = <number>            ! Small step value.
                                              ! default = 0.0
-    default_merit_type = <merit_type_name>   ! Sets how the merit is calculated.
+    default_merit_type = "<merit_type>"      ! Sets how the merit is calculated.
                                              ! default = 'limit'
     default_low_lim    = <number>            ! Lower variable value limit. 
                                              ! default = -1e30
@@ -390,7 +385,7 @@ format for this is
     var(i)%step        = <number>            ! Small step size.
     var(i)%low_lim     = <number>            ! Lower variable value limit
     var(i)%high_lim    = <number>            ! Upper variable value limit
-    var(i)%merit_type  = <merit_type_name>   ! Sets how the merit is calculated.
+    var(i)%merit_type  = "<merit_type_name>" ! Sets how the merit is calculated.
   /
 \end{example}
 Example:
@@ -1024,7 +1019,7 @@ the element name is to be printed underneath the figure.
 
 
 %-----------------------------------------------------------------
-\section{Initializing Single Mode}
+\section{Initializing Key Bindings for Single Mode}
 \label{s:init_single} 
 
 For single mode the bindings of variables to keys is defined with a
@@ -1033,7 +1028,7 @@ The syntax is:
 \begin{example}
   \&key_bindings
     key(i) = <ele_name> <attrib_name> <delta> <universe> 
-               <small_step> <low_lim> <high_lim> <weight> <good_opt>
+          <small_step> <low_lim> <high_lim> <weight> <good_opt> <merit_type>
   /
 \end{example}
 For example:
@@ -1041,7 +1036,7 @@ For example:
   \&key_bindings
   key(1) = "Q1"   "K1"    0.01 "U:0" 1e-5  -10  10  10  T
   key(2) = "DRFT" "L"     0.1  "U:1" 1e-3    0   3   1  F
-  key(3) = "Q3"   "TILT"  0.01 "U:2" 1e-5   -1   1   3  T
+  key(3) = "Q3"   "TILT"  0.01 "U:2" 1e-5   -1   1   3  T "target"
   /  
 \end{example}
 For the \vn{i}\Th key \vn{<ele_name>} is the name of a lattice element
@@ -1049,9 +1044,16 @@ in universe \vn{<universe>} and \vn{<attrib_name>} is the attribute to
 be varied. If \vn{<unverse>} is ``0'' then the key will vary elements
 in all universes. \vn{<delta>} is the change in value when the
 appropriate key is depressed. \vn{<small_step>} establishes what a 
-``small'' variation of the variable is. \vn{<low_lim>} and \vn{<high_lim>}
-establish limits and if the value of the variable goes outside these
-limits then the contribution to the merit function is given by
+``small'' variation of the variable is. 
+
+\vn{merit_type} sets the variable merit is calculated. See
+\sref{s:init_var} for more details. the \vn{global%default_key_merit_type} 
+sets the default \vn{merit_type}.
+
+If \vn{merit_type} is \vn{"limit"} then \vn{<low_lim>} and
+\vn{<high_lim>} establish limits and if the value of the variable goes
+outside these limits then the contribution to the merit function is
+given by
 \begin{example}
   merit = <weight> * (var_value - <high_lim>)^2  ! For var_value > <high_lim>
   merit = <weight> * (<low_lim> - var_value)^2   ! Fro <low_lim> > var_value

@@ -168,7 +168,7 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine cmd_split (cmd_line, n_word, cmd_word, no_extra_words, err, separator)
+! Subroutine tao_cmd_split (cmd_line, n_word, cmd_word, no_extra_words, err, separator)
 !
 ! This routine splits the command line into words.
 !
@@ -194,13 +194,13 @@ end subroutine
 ! Anything between single or double quotes is treated as a single word.
 !-
 
-subroutine cmd_split (cmd_line, n_word, cmd_word, no_extra_words, err, separator)
+subroutine tao_cmd_split (cmd_line, n_word, cmd_word, no_extra_words, err, separator)
 
   integer i, n, n_word, ix_end_quote, ix_line
   character(*) cmd_line
   character(*), optional :: separator
   character(*) cmd_word(:)
-  character(12) :: r_name = 'cmd_split'
+  character(16) :: r_name = 'tao_cmd_split'
   logical err
   logical no_extra_words
 
@@ -251,7 +251,7 @@ subroutine cmd_split (cmd_line, n_word, cmd_word, no_extra_words, err, separator
     endif
   endif
 
-end subroutine cmd_split
+end subroutine tao_cmd_split
 
 end module
 
