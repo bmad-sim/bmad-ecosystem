@@ -203,7 +203,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
 ! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light
 ! where xi is a random number with sigma = 1.
 
-  gamma_0 = param%beam_energy / m_electron
+  gamma_0 = ele%value(beam_energy$) / m_electron
 
   fact_d = 0
   if (sr_com%damping_on) fact_d = 2 * r_e * gamma_0**3 * g2 * s_len / 3

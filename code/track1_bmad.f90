@@ -250,10 +250,10 @@ subroutine track1_bmad (start, ele, param, end)
       endif
       ff = twopi * ele%value(rf_frequency$) / c_light
       phase = twopi * ele%value(phi0$) + ff * z
-      k  =  ff * ele%value(voltage$) * cos(phase) / param%beam_energy
+      k  =  ff * ele%value(voltage$) * cos(phase) / ele%value(beam_energy$)
     endif
 
-    dE0 =  ele%value(voltage$) * sin(phase) / param%beam_energy
+    dE0 =  ele%value(voltage$) * sin(phase) / ele%value(beam_energy$)
     L = ele%value(l$)
     E = 1 + pz
     E2 = E**2

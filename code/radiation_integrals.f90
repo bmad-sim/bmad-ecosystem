@@ -456,7 +456,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
   i4z = i4a + i4b
 
-  energy = ring%param%beam_energy
+  energy = ring%ele_(0)%value(beam_energy$)
   gamma2_factor = (energy * 1956.95e-9)**2
   energy_loss = 1e9 * c_gam * (1e-9 * mc2)**4 * mode%lin%i2_E4 / pi
 

@@ -357,7 +357,7 @@ function equivalent_eles (ele1, ele2) result (equiv)
 
   vmask = .true.
   if (ele1%key == wiggler$ .and. ele1%sub_key == map_type$) &
-      vmask((/k1$, rho$, b_max$, z_patch$, beam_energy$, check_sum$/)) = .false.
+      vmask((/k1$, rho$, b_max$, z_patch$, p0c$, check_sum$/)) = .false.
   if (any(ele1%value /= ele2%value .and. vmask)) return
 
   if (ele1%num_steps /= ele2%num_steps) return
@@ -785,6 +785,7 @@ subroutine init_ele (ele)
 ! This is needed because of a compiler and/or totalview bug
 
   allocate (ele%r(1,1))
+  ele%r = 0
 
 end subroutine
 
@@ -847,6 +848,7 @@ subroutine allocate_ring_ele_ (ring, des_size)
   end do
 
   ring%n_ele_maxx = desired_size
+  ring%beam_energy => ring%ele_(0)%value(beam_energy$)
 
 end subroutine
 

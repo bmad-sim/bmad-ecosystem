@@ -323,7 +323,7 @@ subroutine derivs_bmad (ele, param, s, r, dr_ds, dkick)
     dvel_y = vel_s * field%B(1) - vel_x * field%B(3) + field%E(2) * f
     dvel_s = vel_x * field%B(2) - vel_y * field%B(1)
 
-    energy = (param%beam_energy * (1 + r(6)))
+    energy = (ele%value(beam_energy$) * (1 + r(6)))
     f = c_light / energy
 
     dr_ds(1) = r(2)

@@ -323,7 +323,7 @@ subroutine emitt_calc (ring, what, mode)
 !---------------------------------------------------------------------
 ! now put everything together
 
-  energy = ring%param%beam_energy
+  energy = ring%ele_(0)%value(beam_energy$)
   gamma2_factor = (energy * 1956.95e-9)**2
   energy_loss = 1e9 * c_gam * (1e-9 * energy)**4 * i2 / pi
 

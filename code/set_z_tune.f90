@@ -60,7 +60,7 @@ subroutine set_z_tune (ring)
 !   2) overlays that control the voltage of an RFcavity
 
 
-  E0 = ring%param%beam_energy
+  E0 = ring%ele_(0)%value(beam_energy$)
 
   n_rf = 0
   coef_tot = 0

@@ -71,8 +71,9 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   character(200) path, basename, full_name, digested_file
   character(40) this_name, word_1
   character(280) parse_line_save
+  character(16) :: r_name = 'bmad_parser'
 
-  real(rp) angle, old_energy
+  real(rp) angle, energy_beam, energy_param, energy_0
 
   logical, optional :: make_mats6, digested_read_ok
   logical parsing, delim_found, matched_delim, arg_list_found, doit
@@ -102,7 +103,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
   if (bmad_status%ok) then
     call set_taylor_order (ring%input_taylor_order, .false.)
-    call set_ptc (ring%param)
+    call set_ptc (ring%beam_energy, ring%param%particle)
     if (ring%input_taylor_order == bmad_com%taylor_order) then
       if (present(digested_read_ok)) digested_read_ok = .true.
       return
@@ -120,8 +121,6 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   if (present(digested_read_ok)) digested_read_ok = .false.
 
 ! save all elements that have a taylor series
-
-  old_energy = ring%param%beam_energy
 
   ix = 0
   do i = 1, ring%n_ele_max
@@ -941,27 +940,24 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
 ! Beam energy bookkeeping.
 
-  if (param_ele%value(beam_energy$) == 0) then
-    ring%param%beam_energy = 1d9 * beam_ele%value(energy_gev$)  
-  elseif (beam_ele%value(energy_gev$) == 0) then
-    ring%param%beam_energy = param_ele%value(beam_energy$)
+  energy_beam  = 1d9 * beam_ele%value(energy_gev$)  
+  energy_param = param_ele%value(beam_energy$)
+  energy_0     = ring%ele_(0)%value(beam_energy$) 
+
+  if (energy_beam == 0 .and. energy_param == 0 .and. energy_0 == 0) then
+    call out_io (s_warn$, r_name, 'BEAM_ENERGY IS 0!')
+  elseif (energy_beam /= 0 .and. energy_param == 0 .and. energy_0 == 0) then
+    ring%ele_(0)%value(beam_energy$) = energy_beam
+  elseif (energy_beam == 0 .and. energy_param /= 0 .and. energy_0 == 0) then
+    ring%ele_(0)%value(beam_energy$) = energy_param
+  elseif (energy_beam == 0 .and. energy_param == 0 .and. energy_0 /= 0) then
+    ring%ele_(0)%value(beam_energy$) = energy_0
   else
-    call warning &
-         ('BOTH "BEAM, ENERGY" AND "PARAMETER[BEAM_ENERGY]" CONSTRUCTS USED!')
+    call warning ('BEAM ENERGY SET MULTIPLE TIMES ')
   endif
 
-  if (ring%param%beam_energy == 0 .and. &
-                          ring%ele_(0)%value(beam_energy$) == 0) then
-    print *, 'WARNING FROM BMAD_PARSER: BEAM_ENERGY IS 0!'
-  elseif (ring%param%beam_energy /= 0 .and. &
-                          ring%ele_(0)%value(beam_energy$) /= 0) then
-    print *, &
-        'WARNING FROM BMAD_PARSER: BEAM_ENERGY AND BEGINNING[ENERGY] BOTH SET!'
-  elseif (ring%param%beam_energy /= 0) then
-    ring%ele_(0)%value(beam_energy$) = ring%param%beam_energy
-  else
-    ring%param%beam_energy = ring%ele_(0)%value(beam_energy$) 
-  endif
+  call energy_to_kinetic (ring%beam_energy, ring%param%particle, &
+                                             p0c = ring%ele_(0)%value(p0c$))
 
 ! make matrices for entire ring
 
@@ -971,7 +967,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
   call s_calc (ring)                       ! calc longitudinal distances
   call ring_geometry (ring)                ! ring layout
-  call set_ptc (ring%param)
+  call set_ptc (ring%beam_energy, ring%param%particle)
   ring%input_taylor_order = bmad_com%taylor_order
 
 ! Reuse the old taylor series if they exist
@@ -981,8 +977,6 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
     do i = 1, ring%n_ele_max
 
-      if (old_energy /= ring%param%beam_energy) exit
-      
       ele => ring%ele_(i)
       call attribute_bookkeeper (ele, ring%param) ! so value arrays are equal
 

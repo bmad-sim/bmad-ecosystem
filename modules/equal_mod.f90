@@ -293,7 +293,8 @@ subroutine ring_equal_ring (ring_out, ring_in)
 
   integer i, n, n_old, n_wanted
 
-! If ring_in has not been properly initialized then assume there is a problem somewhere
+! If ring_in has not been properly initialized then assume there is 
+! a problem somewhere
 
   if (.not. associated (ring_in%ele_)) then
     print *, 'ERROR IN RING_EQUAL_RING: NO RING%ELE_ ON RHS NOT ASSOCIATED!'
@@ -303,7 +304,7 @@ subroutine ring_equal_ring (ring_out, ring_in)
 ! resize %ele_ array if needed
 
   if (ring_out%n_ele_maxx < ring_in%n_ele_maxx) &
-                                  call allocate_ring_ele_(ring_out, ring_in%n_ele_maxx)
+                              call allocate_ring_ele_(ring_out, ring_in%n_ele_maxx)
   
   do i = 0, ring_in%n_ele_max
     ring_out%ele_(i) = ring_in%ele_(i)

@@ -17,7 +17,7 @@ module bmad_struct
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 
-  integer, parameter :: bmad_inc_version$ = 70
+  integer, parameter :: bmad_inc_version$ = 71
 
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -27,7 +27,7 @@ module bmad_struct
 
 ! parameter def
 
-  integer, parameter :: n_attrib_maxx = 40
+  integer, parameter :: n_attrib_maxx = 41
 
 ! Structure for a particle's coordinates.
 ! Coordinates are with respect to the reference trajectory.
@@ -159,7 +159,7 @@ module bmad_struct
 ! parameter and mode structures
 
   type param_struct
-    real(rp) beam_energy        ! beam energy in eV
+    real(rp) garbage            ! Saved for future use.
     real(rp) n_part             ! Particles/bunch (for BeamBeam elements).
     real(rp) charge             ! Charge of a bunch (used by LCavities).
     real(rp) total_length       ! total_length of ring
@@ -211,6 +211,7 @@ module bmad_struct
     type (ele_struct), pointer ::  ele_(:) => null()        ! Array of elements
     type (control_struct), pointer :: control_(:) => null() ! control list
     integer, pointer :: ic_(:) => null()                ! index to %control_(:)
+    real(rp), pointer :: beam_energy ! points to ring%ele_(0)%value(beam_energy$)
   end type
 
 !
@@ -316,9 +317,9 @@ module bmad_struct
   integer, parameter :: x_offset_tot$=38
   integer, parameter :: y_offset_tot$=39
   integer, parameter :: s_offset_tot$=40
+  integer, parameter :: p0c$ = 41
 
-  integer, parameter :: type$ = 41   ! this is 1 greater than n_attrib_maxx
-  integer, parameter :: alias$ = 42 
+  integer, parameter :: alias$ = 42  ! this is 1 greater than n_attrib_maxx
   integer, parameter :: start_edge$ = 43     
   integer, parameter :: end_edge$ = 44     
   integer, parameter :: accordion_edge$ = 45, sr_wake_file$ = 45 
@@ -333,6 +334,7 @@ module bmad_struct
   integer, parameter :: descrip$ = 54
   integer, parameter :: is_on$ = 55
   integer, parameter :: field_calc$ = 56
+  integer, parameter :: type$ = 57
 
 ! Warning: No other attribute parameters can have indexes larger than A0$.
 ! That is: multipole arrays An, Bn, KnL, and Tn must have the largest indexes
@@ -546,7 +548,6 @@ module bmad_struct
 
   type bmad_com_struct
     real(rp) :: d_orb(6) = 1e-5  ! for the make_mat6_tracking routine
-    real(rp) :: beam_energy = 0
     real(rp) :: max_aperture_limit = 1e3    
     real(rp) :: k_loss = 0                   ! Internal var for LCavities.
 #if defined(CESR_F90_DOUBLE)

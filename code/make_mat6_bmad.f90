@@ -524,14 +524,14 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       endif
       factor = twopi * ele%value(rf_frequency$) / c_light
       phase = twopi * ele%value(phi0$) + factor * c0%vec(5) 
-      k  =  factor * ele%value(voltage$) * cos(phase) / param%beam_energy
+      k  =  factor * ele%value(voltage$) * cos(phase) / ele%value(beam_energy$)
     endif
 
     px = c0%vec(2)
     py = c0%vec(4)
     pz = c0%vec(6)
 
-    dE0 =  ele%value(voltage$) * sin(phase) / param%beam_energy
+    dE0 =  ele%value(voltage$) * sin(phase) / ele%value(beam_energy$)
     L = ele%value(l$)
     E = 1 + pz
     E2 = E**2
@@ -734,7 +734,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
         call err_exit
       else
         mat6(6,5) = ele%value(voltage$) * cos(twopi*ele%value(phi0$)) *  &
-                      twopi / ele%value(rf_wavelength$) /param%beam_energy
+                      twopi / ele%value(rf_wavelength$) /ele%value(beam_energy$)
         c_e = ele%value(voltage$) * sin(twopi*ele%value(phi0$))  &
               / (m_electron * length)
       endif
@@ -742,7 +742,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       c_e = 0.0
     endif
     c_m = param%particle * c_light * ele%value(b_z$) / m_electron
-    gamma_old = param%beam_energy * rel_E / m_electron
+    gamma_old = ele%value(beam_energy$) * rel_E / m_electron
     gamma_new = gamma_old + c_e * length
 !!    call accel_sol_mat_calc (length, c_m, c_e, gamma_old, gamma_new, &
 !!                                    0.0_rp, 0.0_rp, c00%vec, mat4, vec_st)

@@ -32,7 +32,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   
   integer, intent(in), optional :: n_files
   integer d_unit, i, j, k, n_file
-  integer ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t(6)
+  integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
   integer stat_b(12), stat, ierr
   integer ix_srf, ix_sr, ix_lrf, ix_lr
 
@@ -81,7 +81,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
 
     if (associated(ele%wig_term)) ix_wig = size(ele%wig_term)
     if (associated(ele%const))    ix_const = size(ele%const)
-    if (associated(ele%r))        ix_r = size(ele%r)
+    if (associated(ele%r))        ix_r = (/ lbound(ele%r), ubound(ele%r) /)
     if (associated(ele%descrip))  ix_d = 1
     if (associated(ele%a))        ix_m = 1
     if (associated(tt(1)%term))   ix_t = (/ (size(tt(j)%term), j = 1, 6) /)
@@ -89,11 +89,6 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
     if (associated(ele%wake%sr))      ix_sr  = size(ele%wake%sr)
     if (associated(ele%wake%lr_file)) ix_lrf = 1
     if (associated(ele%wake%lr))      ix_lr  = size(ele%wake%lr)
-
-    if (ix_r /= 0) then
-      call out_io (s_fatal$, r_name, 'SAVING ELE%R NOT YET IMPLEMENTED!')
-      call err_exit
-    endif
 
     write (d_unit) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
                               ix_srf, ix_sr, ix_lrf, ix_lr, &

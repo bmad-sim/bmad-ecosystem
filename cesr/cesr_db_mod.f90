@@ -241,7 +241,7 @@ subroutine bmad_to_db (ring, db, calib_date)
   this_date = 'NOW'
   if (present(calib_date)) this_date = calib_date
 
-  gev = 1e-9 * ring%param%beam_energy
+  gev = 1e-9 * ring%ele_(0)%value(beam_energy$)
   if (gev == 0) then
     print *, 'ERROR IN BMAD_TO_DB: BEAM ENERGY IS ZERO!'
     call err_exit

@@ -73,7 +73,7 @@ subroutine ring_to_quad_calib (ring, cesr, k_theory, k_base,  &
   enddo
 
 ! read lattice file
-  gev = 1e-9 * ring%param%beam_energy
+  gev = 1e-9 * ring%ele_(0)%value(beam_energy$)
 
   do cindex = 0, 120
     rindex = cesr%quad_(cindex)%ix_ring
@@ -161,7 +161,7 @@ subroutine quad_calib (lattice, k_theory, k_base,  &
   call lattice_to_bmad_file_name (lattice, latfil)
   call bmad_parser(latfil, ring)
   call bmad_to_cesr(ring, CESR)
-  energy = 1e-9 * ring%param%beam_energy
+  energy = 1e-9 * ring%ele_(0)%value(beam_energy$)
 
 
   k_theory(0:120) = 0

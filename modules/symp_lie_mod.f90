@@ -307,7 +307,7 @@ subroutine update_coefs
 
   real(rp) factor, coef
 
-  factor = c_light / param%beam_energy
+  factor = c_light / ele%value(beam_energy$)
 
   do j = 1, size(ele%wig_term)
     wt => ele%wig_term(j)

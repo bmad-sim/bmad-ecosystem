@@ -63,7 +63,7 @@ subroutine track_a_accel_sol (start, ele, param, end)
 ! beta_b is the total speed in units of c_light (before entering the element)
 ! beta_s is the longitudinal speed in units of c_light
 
-  gamma_b = param%beam_energy * (end%vec(6) + 1) / m_electron
+  gamma_b = ele%value(beam_energy$) * (end%vec(6) + 1) / m_electron
   beta_b = sqrt(1 - 1 / gamma_b**2)
   gam_inv2_b = 1.0 / gamma_b**2
   if (gam_inv2_b <= 0.001) then
@@ -87,7 +87,7 @@ subroutine track_a_accel_sol (start, ele, param, end)
       param%lost = .true.
       return
     else
-      end%vec(6) = end%vec(6) + en_gain / param%beam_energy
+      end%vec(6) = end%vec(6) + en_gain / ele%value(beam_energy$)
       c_e = en_gain / (m_electron * length)
     endif
   else

@@ -118,7 +118,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
   enddo
 
   ring%param%particle = positron$
-  ring%param%beam_energy = 0
+  ring%ele_(0)%value(beam_energy$) = 0
 
   ring%ele_(0)%name = 'BEGINNING'     ! Beginning element
   ring%ele_(0)%key = init_ele$
@@ -489,10 +489,9 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
   ring%param%aperture_limit_on  = .true.
   ring%n_ic_max           = 0                     
   ring%n_control_max      = 0    
-  ring%param%beam_energy = ring%ele_(0)%value(beam_energy$)
 
   call set_taylor_order (ring%input_taylor_order, .false.)
-  call set_ptc (ring%param)
+  call set_ptc (ring%beam_energy, ring%param%particle)
 
 ! Element cleanup
 

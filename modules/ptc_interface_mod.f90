@@ -180,7 +180,7 @@ end subroutine
 ! This deallocates the pointers in the layout
 !
 ! Note: Before you call this routine you need to first call:
-!    call set_ptc (ring%param, ...)
+!    call set_ptc (...)
 !
 ! Modules needed:
 !   use ptc_interface_mod
@@ -418,12 +418,13 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine set_ptc (param, taylor_order, integ_order, &
+! Subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
 !                               num_steps, no_cavity, exact_calc)
 !
 ! Subroutine to initialize PTC.
 ! Note: At some point before you use PTC to compute Taylor maps etc.
-!   you have to call set_ptc with a param argument.
+!   you have to call set_ptc with both beam_energy and particle args
+!   present. Always supply both of these args together or not at all. 
 ! Note: If you just want to use FPP without PTC then call init directly.
 ! Note: This subroutine cannot be used if you want to have "knobs" 
 !   (in the PTC sense).
@@ -436,9 +437,9 @@ end subroutine
 !   use ptc_interface_mod
 !
 ! Input:
-!   param        -- Param_struct, optional: BMAD parameters:
-!     %beam_energy -- Energy.
-!     %particle    -- Type of particle.
+!   beam_energy  -- Real(rp), optional: Energy in eV.
+!   particle     -- Integer, optional: Type of particle:
+!                     electron$, proton$, etc.
 !   taylor_order -- Integer, optional: Maximum order of the taylor polynomials.
 !   integ_order  -- Integer, optional: Default Order for the drift-kick-drift 
 !                     sympletic integrator. Possibilities are: 2, 4, or 6
@@ -454,7 +455,7 @@ end subroutine
 !                     See the PTC guide for more details.
 !-
 
-subroutine set_ptc (param, taylor_order, integ_order, &
+subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
                                     num_steps, no_cavity, exact_calc) 
 
   use mad_like, only: make_states, exact_model, always_exactmis, &
@@ -463,23 +464,26 @@ subroutine set_ptc (param, taylor_order, integ_order, &
 
   implicit none
 
-  type (param_struct), optional :: param
-
-  integer, optional :: integ_order, num_steps, taylor_order
+  integer, optional :: integ_order, particle, num_steps, taylor_order
   integer this_method, this_steps
   integer nd2, npara
 
+  real(rp), optional :: beam_energy
+  real(rp), save :: old_beam_energy = 0
   real(dp) this_energy
 
   logical, optional :: no_cavity, exact_calc
   logical, save :: init_needed = .true.
+  logical params_present
 
   character(16) :: r_name = 'set_ptc'
 
 ! do not call set_mad
 
-  if (init_needed .and. present(param)) then
-    if (param%particle == positron$ .or. param%particle == electron$) then
+  params_present = present(beam_energy) .and. present(particle)
+
+  if (init_needed .and. params_present) then
+    if (particle == positron$ .or. particle == electron$) then
       call make_states(.true.)
     else
       call make_states(.false.)
@@ -509,17 +513,17 @@ subroutine set_ptc (param, taylor_order, integ_order, &
     this_steps = bmad_com%default_num_steps
   endif
 
-  if (present(param)) then
-    if (init_needed .or. bmad_com%beam_energy /= param%beam_energy .or. &
+  if (params_present) then
+    if (init_needed .or. old_beam_energy /= beam_energy .or. &
                         present(integ_order) .or. present(num_steps)) then
-      this_energy = 1e-9 * param%beam_energy
+      this_energy = 1e-9 * beam_energy
       if (this_energy == 0) then
         call out_io (s_fatal$, r_name, 'BEAM_ENERGY IS 0.')
         call err_exit
       endif
       call set_mad (energy = this_energy, method = this_method, &
                                                        step = this_steps)
-      bmad_com%beam_energy  = param%beam_energy
+      old_beam_energy  = beam_energy
       init_needed = .false.
     endif
   endif
@@ -1784,7 +1788,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
       endif
       el%tilt = -atan2 (hk, vk) + ele%value(tilt_tot$)
     endif
-    el%volt = 1e-6 * param%beam_energy * sqrt(hk**2 + vk**2)
+    el%volt = 1e-6 * ele%value(beam_energy$) * sqrt(hk**2 + vk**2)
     call multipole_ele_to_ab (ele, param%particle, an0, bn0, .false.) 
     if (any(an0 /= 0) .or. any(bn0 /= 0)) then
       print *, 'ERROR IN ELE_TO_FIBRE: ', &
@@ -1902,7 +1906,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
     call init_wig_pointers (fiber%mag%u2%w, n_term)   
 
     fiber%mag%u2%w%a(1:n_term) = c_light * &
-            ele%value(polarity$) * ele%wig_term%coef / param%beam_energy
+            ele%value(polarity$) * ele%wig_term%coef / ele%value(beam_energy$)
     fiber%mag%u2%w%k(1,1:n_term)  = ele%wig_term%kx
     fiber%mag%u2%w%k(2,1:n_term)  = ele%wig_term%ky
     fiber%mag%u2%w%k(3,1:n_term)  = ele%wig_term%kz

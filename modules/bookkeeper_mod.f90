@@ -824,7 +824,6 @@ subroutine attribute_bookkeeper (ele, param)
   type (param_struct) param
 
   real(rp) r, factor, check_sum
-  real(rp), save :: old_energy = 0, p
 
 ! Transfer tilt to tilt_tot, etc.
 ! If ele is an overlay_slave then this is handled in makeup_overlay_slave.
@@ -842,14 +841,10 @@ subroutine attribute_bookkeeper (ele, param)
 
   if (ele%field_master) then
 
-    if (ele%value(beam_energy$) == 0) then
+    if (ele%value(p0c$) == 0) then
       factor = 0
     else
-      if (old_energy /= ele%value(beam_energy$)) &
-           call energy_to_kinetic (ele%value(beam_energy$), &
-                                                    param%particle, p0c = p)
-      factor = c_light / p
-      old_energy = ele%value(beam_energy$)
+      factor = c_light / ele%value(p0c$)
     endif
 
     select case (ele%key)
@@ -871,14 +866,10 @@ subroutine attribute_bookkeeper (ele, param)
 
   else
 
-    if (ele%value(beam_energy$) == 0) then
+    if (ele%value(p0c$) == 0) then
       factor = 0
     else
-      if (old_energy /= ele%value(beam_energy$)) &
-           call energy_to_kinetic (ele%value(beam_energy$), &
-                                                  param%particle, p0c = p)
-      factor = p / c_light
-      old_energy = ele%value(beam_energy$)
+      factor = ele%value(p0c$) / c_light
     endif
 
     select case (ele%key)
@@ -963,7 +954,7 @@ subroutine attribute_bookkeeper (ele, param)
       ele%value(voltage$) = 0
     else
       ele%value(e_field$) = sqrt(ele%value(hkick$)**2 + ele%value(vkick$)**2) * &
-                                                   ele%value(beam_energy$) / ele%value(l$)
+                                               ele%value(beam_energy$) / ele%value(l$)
       ele%value(voltage$) = ele%value(e_field$) * ele%value(gap$) 
     endif
 
@@ -1096,7 +1087,8 @@ subroutine transfer_ring_taylors (ring_in, ring_out, type_out, transfered_all)
 
   if (present(transfered_all)) transfered_all = .true.
 
-  if (ring_in%param%beam_energy /= ring_out%param%beam_energy) then
+  if (ring_in%ele_(0)%value(beam_energy$) /= &
+                              ring_out%ele_(0)%value(beam_energy$)) then
     if (type_out) then
       print *, 'TRANSFER_RING_TAYLORS: THE RING ENERGIES ARE DIFFERENT.'
       print *, '    TAYLOR MAPS NOT TRANSFERED.'
@@ -1206,10 +1198,10 @@ subroutine set_on_off (key, ring, switch, orb_)
     case (off$)
       ring%ele_(i)%is_on = .false.
     case (save_state$)
-      ring%ele_(i)%is_on = ring%ele_(i)%internal_logic
-    case (restore_state$)
       ring%ele_(i)%internal_logic = ring%ele_(i)%is_on
-      return
+      cycle
+    case (restore_state$)
+      ring%ele_(i)%is_on = ring%ele_(i)%internal_logic
     case default
       print *, 'ERROR IN SET_ON_OFF: BAD SWITCH:', switch
       call err_exit

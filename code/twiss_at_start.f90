@@ -46,10 +46,12 @@ subroutine twiss_at_start (ring)
   real(rp) eta_vec(4), t0_4(4,4), mat6(6,6), error
   real(rp), save :: flip_mat(4,4), t_e(4,4), t_w_inv(4,4)
 
-  integer i, j, n
+  integer i, j, n, iu, n_lines
 
   logical :: debug = .false. 
   logical :: init_needed = .true. 
+
+  character(80), pointer :: lines(:)
 
 ! init
 
@@ -69,17 +71,27 @@ subroutine twiss_at_start (ring)
 
 ! propagate around ring
 
+  if (debug) then
+    iu = lunget()
+    open (iu, file = 'twiss_at_start.dat')
+  endif
+
   do n = 1, ring%n_ele_use
     eta_vec = matmul (ring%ele_(n)%mat6(1:4,1:4), eta_vec)
     eta_vec = eta_vec + ring%ele_(n)%mat6(1:4,6)
     t0_4 = matmul (ring%ele_(n)%mat6(1:4,1:4), t0_4)
     if (debug) then
-      print *, '!------------------------------------', n
-      call type_ele (ring%ele_(n), .false., 0, .false., 0, .false., ring)
+      write (iu, *) '!------------------------------------', n
+      call type2_ele (ring%ele_(n), &
+                  .false., 0, .false., 0, .false., lines, n_lines)
+      do i = 1, n_lines
+        write (iu, *) lines(i)
+      enddo
+      deallocate (lines)
       call mat_symp_check (t0_4, error)
-      print *, 'Symplectic Check:', error
+      write (iu, *), 'Symplectic Check:', error
       do i = 1, 4
-        print '(4f11.4, 5x, f11.4)', (t0_4(i, j), j = 1, 4), eta_vec(i)
+        write (iu, '(4f11.4, 5x, f11.4)') (t0_4(i, j), j = 1, 4), eta_vec(i)
       enddo
     endif
   enddo
