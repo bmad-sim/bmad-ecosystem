@@ -39,8 +39,7 @@ subroutine control_bookkeeper (ring, ix_ele)
   type (ele_struct), pointer :: lord, slave
 
   integer, optional :: ix_ele
-  integer i, j, ix, ix1, ix2, ix_lord
-  integer ix_slaves(300)
+  integer ie
 
 ! If ix_ele is present we only do bookkeeping for this one element
 
@@ -51,12 +50,12 @@ subroutine control_bookkeeper (ring, ix_ele)
 ! The group lords must be done last since their slaves don't know about them.
 
   else
-    do i = ring%n_ele_use+1, ring%n_ele_max
-      if (ring%ele_(i)%control_type /= group_lord$) call this_bookkeeper (i)
+    do ie = ring%n_ele_use+1, ring%n_ele_max
+      if (ring%ele_(ie)%control_type /= group_lord$) call this_bookkeeper (ie)
     enddo
 
-    do i = ring%n_ele_use+1, ring%n_ele_max
-      if (ring%ele_(i)%control_type == group_lord$) call this_bookkeeper (i)
+    do ie = ring%n_ele_use+1, ring%n_ele_max
+      if (ring%ele_(ie)%control_type == group_lord$) call this_bookkeeper (ie)
     enddo
 
   endif
@@ -66,7 +65,8 @@ contains
 
 subroutine this_bookkeeper (ix_ele)
 
-  integer ix_ele
+  integer ix_ele, j, k, ix, ix1, ix2, ix_lord
+  integer ix_slaves(300)
 
 ! Attribute bookkeeping for this element
 
@@ -85,9 +85,9 @@ subroutine this_bookkeeper (ix_ele)
     ix1 = ix1 + 1
     ix_lord = ix_slaves(ix1)
     lord => ring%ele_(ix_lord)
-    do i = lord%ix1_slave, lord%ix2_slave
-      ix = ring%control_(i)%ix_slave
-      if (lord%key == group_lord$ .and. ring%ele_(ix)%key == free$) cycle
+    do j = lord%ix1_slave, lord%ix2_slave
+      ix = ring%control_(j)%ix_slave
+      if (lord%control_type == group_lord$ .and. ring%ele_(ix)%control_type == free$) cycle
       if (ix == ix_slaves(ix2)) cycle   ! do not use duplicates
       ix2 = ix2 + 1
       ix_slaves(ix2) = ix
@@ -111,8 +111,8 @@ subroutine this_bookkeeper (ix_ele)
       call attribute_bookkeeper (slave, ring%param)
 
     elseif (slave%control_type == super_lord$ .and. slave%n_lord > 0) then
-      i =  ring%ic_(slave%ic1_lord)
-      lord => ring%ele_(ring%control_(i)%ix_lord)
+      k =  ring%ic_(slave%ic1_lord)
+      lord => ring%ele_(ring%control_(k)%ix_lord)
       if (lord%control_type == clone_lord$) then
         call makeup_clone_slave (ring, ix)
       else
