@@ -26,6 +26,7 @@ general interest.
  	Particle Coordinate Stuff               & \ref{r:coord}      \\ \hline
  	Ring Geometry                           & \ref{r:geom}       \\ \hline
  	Interface to PTC                        & \ref{r:ptc}        \\ \hline
+  Mad Tracking Routines                   & \ref{r:mad}        \\ \hline
  	Taylor Maps                             & \ref{r:taylor}     \\ \hline
   Macroparticle                           & \ref{r:macro}      \\ \hline
  	Long Range Beam--Beam Interaction       & \ref{r:lrbbi}      \\ \hline
@@ -278,9 +279,6 @@ Subroutine to calculate a drift transfer matrix with a possible kick.
 \item[mat6\_dispersion (mat6, e\_vec)] \Newline
 Subroutine to put the dispersion into ELE%MAT6 given the dispersionvector E\_VEC 
 
-\item[quad\_mat\_calc (k1, length, mat)] \Newline
-Subroutine to initialize the transfer matrix for a quad.
-
 \item[sol\_quad\_mat6\_calc (ks, k1, length, mat6, orb)] \Newline
 Subroutine to calculate the transfer matrix for a combination solenoid/quadrupole element. 
 
@@ -307,10 +305,6 @@ Subroutine to find the closed orbit via tracking.
 
 \item[dynamic\_aperture (ring, track\_input, aperture)] \Newline
 Subroutine to determine the dynamic aperture of a lattice via tracking. 
-
-\item[integration\_timer] \Newline 
-Subroutine to set the number of integration steps for a fibre or element
-so that the error of the Taylor map is within a specified tolerance of the exact map.
 
 \item[multi\_turn\_tracking\_analysis (track, i\_dim, track0, ele, stable, growth\_rate, chi)] \Newline
 Subroutine to analyze multi-turn tracking data to get the Twiss parameters etc. 
@@ -542,7 +536,101 @@ Subroutine to convert from PTC to Bmad coordinates.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Taylor Map routines}
+\section{Mad Tracking Routines}
+\label{r:mad}      
+
+\begin{description}
+
+\item[make\_mat6\_mad (ele, param, map, c0, c1)] \Newline 
+     Subroutine to make the 6x6 transfer matrix for an element from the 
+     2nd order MAD transport map. The map is stored in ele%taylor.
+
+\item[make\_mad\_map (ele, particle, map)] \Newline 
+     Subroutine to make a 2nd order transport map a la MAD.
+
+\item[mad\_add\_offsets\_and\_multipoles (ele, energy, map)] \Newline 
+     Subroutine to add in the effect of element offsets and/or multipoles
+     on the 2nd order transport map for the element.
+
+\item[mad\_drift (ele, energy, map)] \Newline 
+     Subroutine to make a transport map for a drift space.
+     The equivalent MAD-8 routine is: TMDRF
+
+\item[mad\_elsep (ele, energy, map)] \Newline 
+     Subroutine to make a transport map for an electric separator. 
+     The equivalent MAD-8 routine is: TMSEP
+
+\item[mad\_sextupole (ele, energy, map)] \Newline 
+     Subroutine to make a transport map for an sextupole.
+     The equivalent MAD-8 routine is: TMSEXT
+
+\item[mad\_sbend (ele, energy, map)] \Newline 
+     Subroutine to make a transport map for a sector bend element.
+     The equivalent MAD-8 routine is: TMBEND
+
+\item[mad\_sbend\_fringe (ele, energy, into, map)] \Newline 
+     Subroutine to make a transport map for the fringe field of a dipole.
+     The equivalent MAD-8 routine is: TMFRNG
+
+\item[mad\_sbend\_body (ele, energy, map)] \Newline 
+     Subroutine to make a transport map for the body of a sector dipole.
+     The equivalent MAD-8 routine is: TMSECT
+
+\item[mad\_tmfoc (el, sk1, c, s, d, f) ] \Newline 
+     Subroutine to compute the linear focussing functions.  
+     The equivalent MAD-8 routine is: TMFOC
+
+\item[mad\_quadrupole (ele, energy, map)] \Newline 
+     Subroutine to make a transport map for an quadrupole element.
+     The equivalent MAD-8 routine is: TMSEXT
+
+\item[mad\_rfcavity (ele, energy, map)] \Newline 
+     Subroutine to make a transport map for an rfcavity element.
+     The equivalent MAD-8 routine is: TMRF
+
+\item[mad\_solenoid (ele, energy, map)] \Newline 
+     Subroutine to make a transport map for an solenoid.
+     The equivalent MAD-8 routine is: TMSEXT
+
+\item[mad\_sol\_quad (ele, energy, map)] \Newline 
+     Subroutine to make a transport map for a combination solenoid/quadrupole.
+     Note: There is no equivalent MAD-8 routine.
+
+\item[mad\_tmsymm (te)] \Newline 
+     subroutine to symmertrize the 2nd order map t.
+     The equivalent MAD-8 routine is: tmsymm
+
+\item[mad\_tmtilt (map, tilt)] \Newline 
+     Subroutine to apply a tilt to a transport map.
+     The equivalent MAD-8 routine is: TMTILT
+
+\item[mad\_concat\_map2 (map1, map2, map3)] \Newline 
+     Subroutine to concatinate two 2nd order transport maps.
+         map3 = map2(map1)
+
+\item[mad\_track1 (c0, map, c1)] \Newline 
+     Subroutine to track through a 2nd order transfer map.
+     The equivalent MAD-8 routine is: TMTRAK
+
+\item[track1\_mad (start, ele, param, end)] \Newline 
+     Subroutine to track through an element using a 2nd order transfer map.
+     Note: If map does not exist then one will be created. 
+
+\item[mad\_map\_to\_taylor (map, taylor)] \Newline 
+     Subroutine to convert a mad order 2 map to a taylor map.
+
+\item[taylor\_to\_mad\_map (taylor, map)] \Newline 
+     Subroutine to convert a Taylor map to a mad order 2 map.
+     If any of the Taylor terms have order greater than 2 they are ignored.
+
+\item[make\_unit\_mad\_map (map)] \Newline 
+     Subroutine to initialize a 2nd order transport map to unity.
+
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Taylor Map Routines}
 \label{r:taylor}   
 
 \begin{description}
@@ -742,6 +830,10 @@ z\_dot) or vice-versa.
 
 \item[create\_group (ring, ix\_ele, contrl)] \Newline
 Subroutine to create a group control element. 
+
+\item[create\_i\_beam (ring, ix\_i\_beam, ix\_slave\_)] \Newline 
+     Subroutine to add the controller information to slave elements of
+     an i\_beam\_lord.
 
 \item[create\_overlay (ring, ix\_overlay, attrib\_name, , contl)] \Newline
 Subroutine to add the controller information to slave elements of an 
@@ -1181,6 +1273,10 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
 \item[qp\_calc\_minor\_div (delta, div\_max, divisions)] \Newline 
      Subroutine to calculate the number of minor divisions an axis should have.
 
+\item[qp\_convert\_rectangle\_rel (rect1, rect2)] \Newline 
+     Subroutine to convert a "rectangle" (structure of 4 points) from
+     one set of relative units to another
+
 \end{description}
 
 %--------------------------------------
@@ -1283,9 +1379,20 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
 \item[qp\_set\_default (default\_draw\_units, default\_set\_units)] \Newline 
      Subroutine to set the default units for drawing and setting.
 
+\item[qp\_set\_graph (title)] \Newline 
+     Subroutine to set certain graph attributes
+
 \item[qp\_set\_graph\_limits] \Newline 
      Subroutine to calculate the offsets for the graph.
      This subroutine also sets the PGPLOT window size equal to the graph size.
+
+\item[qp\_set\_layout (x\_axis, y\_axis, x2\_axis, y2\_axis, &] \Newline 
+                                          box, margin, page\_border)
+     Subroutine to set varias attributes. This routine can be used
+     in place of other qp\_set\_* routines.
+
+\item[qp\_set\_line (who, line)] \Newline 
+     Subroutine to set the default line attributes.
 
 \item[qp\_set\_margin (x1\_marg, x2\_marg, y1\_marg, y2\_marg, units)] \Newline 
      Subroutine to set up the margins from the sides of the box (see QP\_SET\_BOX)
@@ -1304,6 +1411,10 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
 \item[qp\_subset\_box (ix, iy, ix\_tot, iy\_tot, x\_marg, y\_marg)] \Newline 
      Subroutine to set the box for a graph. This is the same as
      qp\_set\_box but the boundaries of the page are taken to be the box boundaries.
+
+\item[qp\_set\_symbol (symbol)] \Newline 
+     Subroutine to set the type and size of the symbols used in plotting data.
+     See the pgplot documentation for more details.
 
 \item[qp\_set\_symbol\_attrib (type, height, color, fill, line\_width, clip)] \Newline 
      Subroutine to set the type and size of the symbols used in plotting data.
@@ -1386,15 +1497,9 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
 
 \begin{description}
 
-\item[qp\_equal\_qp (qp1, qp2)] \Newline 
-     Subroutine to set qp1 = qp2.
-
 \item[qp\_justify (justify)] \Newline 
      Function to convert a justify character string to a real value
      representing the horizontal justification. 
-
-\item[qp\_set\_pointers (qp)] \Newline 
-     Subroutine to set the pointers correctly.
 
 \item[qp\_save\_state (buffer)] \Newline 
      Subroutine to save the current attributes. 
