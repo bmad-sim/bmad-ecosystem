@@ -132,9 +132,11 @@ sub searchit {
 
       if (/^ *interface *$/i) {    # skip interface blocks
         while (<F_IN>) {
-          if (/^ *end interface/i) {last;}
+          if (/^ *end +interface/i) {last;}
         }
       }
+
+      if (/^ *type *\(/i) {next;}   # skip "type (" constructs
 
       if (/^!\+/) {      # if match to "!+" start recording comment lines
         @comments = ($_);
@@ -158,7 +160,29 @@ sub searchit {
         }
         @comments = ();
         $recording = 0;
+
+        # skip rest of routine including contained routines
+
+        $count = 1;
+        while (<F_IN>) {
+          if (/^ *end /i) {
+            $_ = $';  
+            if (/^ *subroutine/i || /^ *function/i || /^ *interface/i) {
+              $count = $count - 1;
+            }
+          }
+          elsif (/^ *subroutine /i || /^ *recursive subroutine /i || 
+                /^ *function /i || /^ *elemental subroutine /i ||
+                /^ *real\(rp\) *function /i || /^ *interface /i) {
+            $count = $count + 1;
+          }
+          if ($count == 0) {last;}
+        }
+
       }
+
+      # match to type statement
+
       elsif (/^ *type +$str[ \n]/i) {
         $found_one = 1;
         print "\n$File::Find::name\n";

@@ -57,7 +57,7 @@ sub searchit {
 
   $file = $_;
 
-# If in the modules directory then look in the file for a match.
+# If a f90 file look in the file for a match.
 
   if ($file =~ /\.f90$/i) {
 
@@ -68,14 +68,21 @@ sub searchit {
 
       if (/^ *interface *$/i) {   # skip interface blocks
         while (<F_IN>) {
-          if (/^ *end interface/i) {last;}
+          if (/^ *end +interface/i) {last;}
         }
       }
+
+      if (/^ *type *\(/i) {next;}   # skip "type (" constructs
+
+      # if a routine then look for match
 
       if (/^ *subroutine /i || /^ *recursive subroutine /i || 
             /^ *function /i || /^ *type /i || /^ *elemental subroutine /i ||
             /^ *real\(rp\) *function /i || /^ *interface /i) {
-        $name = $';              # strip off "subroutine
+        $name = $';              # strip off "routine" string
+
+        # If a match then print info
+
         if ($name =~ /^\s*$str[ \(\n]/i) {
           if ($found_in_file == 0) {print "File: $File::Find::name\n";}
           $found_one = 1;
@@ -86,6 +93,25 @@ sub searchit {
             print "   $_";
           }
         }
+
+        # skip rest of routine including contained routines
+
+        $count = 1;
+        while (<F_IN>) {
+          if (/^ *type *\(/i) {next;}   # ignore "type (" constructs
+          if (/^ *end /i) {
+            $_ = $';  
+            if (/^ *subroutine/i || /^ *function/i ||
+                /^ *type/i) {$count = $count - 1;}
+          }
+          elsif (/^ *subroutine /i || /^ *recursive subroutine /i || 
+                /^ *function /i || /^ *elemental subroutine /i ||
+                /^ *real\(rp\) *function /i || /^ *type/i) {
+            $count = $count + 1;
+          }
+          if ($count == 0) {last;}
+        }
+
       }
     }
     close (F_IN);
