@@ -197,8 +197,6 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
   bunch_end%s_center = bunch_start%s_center
   bunch_end%charge   = bunch_start%charge
 
-  call order_particles_in_z (bunch_start)  ! needed for wakefield calc.
-
 !------------------------------------------------
 ! Without wakefields just track through
 
@@ -265,9 +263,17 @@ end subroutine track1_bunch
 !+
 ! Subroutine track1_sr_wake (bunch, ele)
 !
-! Subroutine to calculate the longitudinal component of the
-! short range wake fields. 
-! This routine is not really meant for general use.
+! Subroutine to apply the short range wake fields to a bunch. 
+!
+! Modules needed:
+!   use beam_mod
+!
+! Input:
+!   bunch -- Bunch_struct: Bunch of particles.
+!   ele   -- Ele_struct: Element with wakefields.
+!
+! Output:
+!   bunch -- Bunch_struct: Bunch with wakefields applied to the particles.
 !-
 
 subroutine track1_sr_wake (bunch, ele)
@@ -297,7 +303,7 @@ subroutine track1_sr_wake (bunch, ele)
   endif
 
 !-----------------------------------
-! zero wake sums
+! zero wake sums and order particles in z
 
   do i = 1, size(ele%wake%sr2_long)
     ele%wake%sr2_long%norm_sin = 0
@@ -305,6 +311,8 @@ subroutine track1_sr_wake (bunch, ele)
     ele%wake%sr2_long%skew_sin = 0
     ele%wake%sr2_long%skew_cos = 0
   enddo
+
+  call order_particles_in_z (bunch)  ! needed for wakefield calc.
 
 !
 
@@ -361,7 +369,25 @@ end subroutine
 ! Subroutine track1_lr_wake (bunch, ele)
 !
 ! Subroutine to put in the long-range wakes for particle tracking.
-! This routine is not really meant  for general use.
+!
+! Note: It is the responsibility of the calling routine to zero the wakefield
+! components before the first bunch is sent through. The wakefield components 
+! are:
+!     ele%wake%lr%norm_sin
+!     ele%wake%lr%norm_cos
+!     ele%wake%lr%skew_sin
+!     ele%wake%lr%skew_cos
+!
+! Modules needed:
+!   use beam_mod
+!
+! Input:
+!   bunch -- Bunch_struct: Bunch of particles.
+!   ele   -- Ele_struct: Element with wakefields.
+!
+! Output:
+!   bunch -- Bunch_struct: Bunch with wakefields applied to the particles.
+!   ele   -- Ele_struct: Element with wakefields.
 !-
 
 subroutine track1_lr_wake (bunch, ele)
@@ -379,6 +405,8 @@ subroutine track1_lr_wake (bunch, ele)
   if (.not. associated(ele%wake)) return
   n_mode = size(ele%wake%lr)
   if (n_mode == 0 .or. .not. bmad_com%lr_wakes_on) return  
+
+  call order_particles_in_z (bunch)  ! needed for wakefield calc.
 
 ! Give the particles a kick
 
