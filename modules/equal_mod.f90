@@ -9,7 +9,10 @@ module equal_mod
     module procedure ele_vec_equal_ele_vec
     module procedure ring_equal_ring 
     module procedure ring_vec_equal_ring_vec 
-!    module procedure coord_equal_coord 
+!    module procedure coord_equal_coord
+    module procedure slice_equal_slice
+    module procedure bunch_equal_bunch
+    module procedure beam_equal_beam
   end interface
 
 contains
@@ -371,6 +374,137 @@ elemental subroutine coord_equal_coord (coord1, coord2)
   coord1%vec = coord2%vec
  
 end subroutine
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine slice_equal_slice (slice1, slice2)
+!
+! Subroutine to set one macroparticle slice equal to another taking care of
+! pointers so that they don't all point to the same place.
+!
+! Note: This subroutine is called by the overloaded equal sign:
+!		slice1 = slice2
+!
+! Input: 
+!  slice2 -- slice_struct: Input slice
+!
+! Output
+!  slice1 -- slice_struct: Output slice
+!
+!-
+
+subroutine slice_equal_slice (slice1, slice2)
+
+  implicit none
+
+  type (slice_struct), intent(inout) :: slice1
+  type (slice_struct), intent(in)    :: slice2
+
+
+  if (associated(slice1%macro)) deallocate(slice1%macro)
+  allocate(slice1%macro(size(slice2%macro)))
+
+  slice1%macro(:)  = slice2%macro(:)
+  slice1%charge    = slice2%charge
+
+end subroutine slice_equal_slice
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine bunch_equal_bunch (bunch1, bunch2)
+!
+! Subroutine to set one macroparticle bunch equal to another taking care of
+! pointers so that they don't all point to the same place.
+!
+! Note: This subroutine is called by the overloaded equal sign:
+!		bunch1 = bunch2
+!
+! Input: 
+!  bunch2 -- bunch_struct: Input bunch
+!
+! Output
+!  bunch1 -- bunch_struct: Output bunch
+!
+!-
+
+subroutine bunch_equal_bunch (bunch1, bunch2)
+
+  implicit none
+
+  type (bunch_struct), intent(inout) :: bunch1
+  type (bunch_struct), intent(in)    :: bunch2
+
+  integer i
+
+  if (associated(bunch1%slice)) then
+    do i = 1, size(bunch1%slice)
+      if (associated(bunch1%slice(i)%macro)) deallocate(bunch1%slice(i)%macro)
+    enddo  
+    deallocate(bunch1%slice)
+  endif
+  allocate(bunch1%slice(size(bunch2%slice)))
+
+  do i = 1, size(bunch2%slice)
+    call slice_equal_slice(bunch1%slice(i), bunch2%slice(i))
+  enddo
+  bunch1%charge    = bunch2%charge
+  bunch1%s_center  = bunch2%s_center
+
+end subroutine bunch_equal_bunch
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine beam_equal_beam (beam1, beam2)
+!
+! Subroutine to set one macroparticle beam equal to another taking care of
+! pointers so that they don't all point to the same place.
+!
+! Note: This subroutine is called by the overloaded equal sign:
+!		beam1 = beam2
+!
+! Input: 
+!  beam2 -- beam_struct: Input beam
+!
+! Output
+!  beam1 -- beam_struct: Output beam
+!
+!-
+
+subroutine beam_equal_beam (beam1, beam2)
+
+  implicit none
+
+  type (beam_struct), intent(inout) :: beam1
+  type (beam_struct), intent(in)    :: beam2
+
+  integer i, j
+
+  if (associated(beam1%bunch)) then
+    do i = 1, size(beam1%bunch)
+      if (associated(beam1%bunch(i)%slice)) then
+	do j = 1, size(beam1%bunch(i)%slice)
+       	  if (associated(beam1%bunch(i)%slice(j)%macro)) &
+	                   deallocate(beam1%bunch(i)%slice(j)%macro)
+        enddo
+	deallocate(beam1%bunch(i)%slice)
+      endif
+    enddo
+    deallocate(beam1%bunch)
+  endif
+
+  allocate(beam1%bunch(size(beam2%bunch)))
+  
+  do i = 1, size(beam2%bunch)
+    call bunch_equal_bunch (beam1%bunch(i), beam2%bunch(i))
+  enddo
+
+end subroutine beam_equal_beam
 
 end module
 

@@ -1,7 +1,6 @@
 module macro_utils_mod
 
 use bmad
-use macroparticle_mod
 
 type bunch_param_struct
   real(rp) beta, alpha, gamma
@@ -412,13 +411,6 @@ integer*4 i
   
   do i = 1,size(bunch%slice)
     macro => bunch%slice(i)%macro
-!    do k = 1,size(bunch%slice(1)%macro)
-!       z =  bunch%slice(j)%macro(k)%r%vec(5) - params%centroid%vec(5)
-!       zp =  bunch%slice(j)%macro(k)%r%vec(6) - params%centroid%vec(6)
-!       ave_zzp = ave_zzp + bunch%slice(j)%macro(k)%charge* &
-!            (bunch%slice(j)%macro(k)%sigma(s56$) + z * zp)
-!       ave_zz = ave_zz + bunch%slice(j)%macro(k)%charge* &
-!            (bunch%slice(j)%macro(k)%sigma(s55$) + z * z)
 
     ave_zzp = ave_zzp + sum(macro%charge*(macro%sigma(s56$) + &
          	            (macro%r%vec(5) - params%centroid%vec(5)) * &
@@ -430,7 +422,6 @@ integer*4 i
                           (macro%r%vec(5) - params%centroid%vec(5))), &
 		          mask = .not. macro%lost)
 	     
-!    end do
   enddo
   
   ave_zzp = ave_zzp / bunch%charge

@@ -23,36 +23,6 @@ type macro_init_struct
   integer n_macro      ! Number of macroparticles per slice.
 end type
 
-type macro_struct
-  type (coord_struct) r   ! Center of the macroparticle
-  real(rp) sigma(21)      ! Sigma matrix.
-  real(rp) :: sig_z = 0   ! longitudinal macroparticle length (m).
-  real(rp) grad_loss_sr_wake         ! loss factor (V/m). scratch variable for tracking.
-  real(rp) charge         ! charge in a macroparticle (Coul).
-  logical :: lost = .false.  ! Has the particle been lost in tracking?
-end type
-
-type slice_struct
-  type (macro_struct), pointer :: macro(:) => null()
-  real(rp) charge   ! total charge in a slice (Coul).
-end type
-
-type bunch_struct
-  type (slice_struct), pointer :: slice(:) => null()
-  real(rp) charge   ! total charge in a bunch (Coul).
-  real(rp) s_center ! longitudinal center of bunch (m).
-end type
-
-type beam_struct
-  type (bunch_struct), pointer :: bunch(:) => null()
-end type
-
-integer, parameter :: s11$ = 1, s12$ = 2, s13$ = 3, s14$ =  4, s15$ =  5
-integer, parameter :: s16$ = 6, s22$ = 7, s23$ = 8, s24$ = 9
-integer, parameter :: s25$ = 10, s26$ = 11, s33$ = 12, s34$ = 13, s35$ = 14
-integer, parameter :: s36$ = 15, s44$ = 16, s45$ = 17, s46$ = 18
-integer, parameter :: s55$ = 19, s56$ = 20, s66$ = 21
-
 type macroparticle_com_struct
   real(rp) ::  sig_z_min = 5e-6 ! min effective macroparticle length.
 end type
@@ -187,7 +157,8 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
   implicit none
 
   type (bunch_struct) bunch_start, bunch_end
-  type (ele_struct) ele, rf_ele
+  type (ele_struct) ele
+  type (ele_struct), save :: rf_ele
   type (param_struct) param
 
   real(rp) charge
@@ -1232,7 +1203,9 @@ subroutine init_macro_distribution (beam, init, ele, &
 
 ! Initialize all bunches
 
-  do i = 1, size(beam%bunch)
+  bunch%s_center = 0.0
+
+  do i = 2, size(beam%bunch)
     beam%bunch(i) = beam%bunch(1)
     beam%bunch(i)%s_center = (1-i) * init%ds_bunch
   enddo

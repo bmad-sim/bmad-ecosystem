@@ -97,6 +97,7 @@ module bmad_struct
 !     Modify read_digested_bmad_file.
 !     Modify write_digested_bmad_file.
 !     Modify init_ele (in bmad_utils_mod).
+!     Modify ele_equal_ele
 
   type ele_struct
     character(16) name              ! name of element
@@ -198,6 +199,7 @@ module bmad_struct
 !     read_digested_bmad_file
 !     write_digested_bmad_file
 !     transfer_ring_parameters
+!     ring_equal_ring
 
   type ring_struct
     character(16) name               ! Name of ring given by USE statement
@@ -531,6 +533,43 @@ module bmad_struct
     integer :: n_bad
     integer :: n_ok
   end type
+
+!------------------------------------------------------------------------------
+! Macroparticles
+
+! REMEMBER: If any of the macroparticle structures change then you will need to:
+!            Modify beam_equal_beam
+
+  type macro_struct
+    type (coord_struct) r   ! Center of the macroparticle
+    real(rp) sigma(21)      ! Sigma matrix.
+    real(rp) :: sig_z = 0   ! longitudinal macroparticle length (m).
+    real(rp) grad_loss_sr_wake         ! loss factor (V/m). scratch variable for tracking.
+    real(rp) charge         ! charge in a macroparticle (Coul).
+    logical :: lost = .false.  ! Has the particle been lost in tracking?
+  end type
+
+  type slice_struct
+    type (macro_struct), pointer :: macro(:) => null()
+    real(rp) charge   ! total charge in a slice (Coul).
+  end type
+
+  type bunch_struct
+    type (slice_struct), pointer :: slice(:) => null()
+    real(rp) charge   ! total charge in a bunch (Coul).
+    real(rp) s_center ! longitudinal center of bunch (m).
+  end type
+
+  type beam_struct
+    type (bunch_struct), pointer :: bunch(:) => null()
+  end type
+
+  integer, parameter :: s11$ = 1, s12$ = 2, s13$ = 3, s14$ =  4, s15$ =  5
+  integer, parameter :: s16$ = 6, s22$ = 7, s23$ = 8, s24$ = 9
+  integer, parameter :: s25$ = 10, s26$ = 11, s33$ = 12, s34$ = 13, s35$ = 14
+  integer, parameter :: s36$ = 15, s44$ = 16, s45$ = 17, s46$ = 18
+  integer, parameter :: s55$ = 19, s56$ = 20, s66$ = 21
+
 
 !------------------------------------------------------------------------------
 ! common stuff
