@@ -39,6 +39,7 @@ subroutine add_superimpose (ring, super_ele, ix_super)
   integer ix1_split, ix2_split, ix_super, ix_super_con
   integer ix_slave, ixn, ixc, superimpose_key, ix_slave_name
 
+  character(20) fmt
   logical setup_lord, split1_done, split2_done
 
 !-------------------------------------------------------------------------
@@ -175,7 +176,8 @@ subroutine add_superimpose (ring, super_ele, ix_super)
     if (slave_ele%key == drift$) then
       ix_slave_name = ix_slave_name + 1
       n = log10(1.001*ix_slave_name) + 1
-      write (ring%ele_(ix_slave)%name, '(2a, i<n>)') &
+      write (fmt, '(a, i1, a)') '(2a, i', n, ')'
+      write (ring%ele_(ix_slave)%name, fmt) &
                                    trim(sup_ele%name), '\', ix_slave_name
     else
       ring%ele_(ix_slave)%name = trim(ring%ele_(ix_slave)%name) //  &
