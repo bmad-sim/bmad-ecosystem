@@ -96,7 +96,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
     rf_on = .false.
     do i = 1, ring%n_ele_ring
       if (ring%ele_(i)%key == rfcavity$ .and. &
-                        ring%ele_(i)%value(volt$) /= 0) rf_on = .true.
+                        ring%ele_(i)%value(voltage$) /= 0) rf_on = .true.
     enddo
     if (.not. rf_on) then
       print *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: ', &

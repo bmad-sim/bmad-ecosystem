@@ -296,7 +296,7 @@ module bmad_struct
   integer, parameter :: k1$=4, sig_x$=4, harmon$=4, h_displace$=4, e_loss$=4
   integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, g$=5
   integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, delta_g$=6
-  integer, parameter :: ks$=7, volt$=7, e1$=7, n_pole$=7, bbi_const$=7
+  integer, parameter :: ks$=7, voltage$=7, e1$=7, n_pole$=7, bbi_const$=7
   integer, parameter :: e2$=8, charge$=8, gap$=8
   integer, parameter :: n_slice$=9, l_chord$=9, l_pole$=9, rf_frequency$=9
   integer, parameter :: fint$=10, polarity$ = 10, gradient$=10

@@ -281,7 +281,7 @@ subroutine makeup_super_slave (ring, ix_slave)
     value(hkick$) = lord%value(hkick$) * coef
     value(vkick$) = lord%value(vkick$) * coef
     slave%num_steps = lord%num_steps * coef + 1
-    if (slave%key == rfcavity$) value(volt$) = lord%value(volt$) * coef
+    if (slave%key == rfcavity$) value(voltage$) = lord%value(voltage$) * coef
     if (ix_con /= lord%ix2_slave) then   ! if not at end of the lord domain
       value(x_limit$) = 0
       value(y_limit$) = 0
@@ -627,7 +627,7 @@ end subroutine
 !
 ! ELSEPARATOR:
 !     e_field$ = sqrt(hkick$**2 + vkick$**2) * beam_energy$ / l$
-!     volt$ = e_field$ * gap$ 
+!     voltage$ = e_field$ * gap$ 
 !
 ! LCAVITY:    
 !     e_loss$  = ele%wake%sr(0)%long/2 if ele%wake%sr exists
@@ -789,11 +789,11 @@ subroutine attribute_bookkeeper (ele, param)
 
     if (ele%value(l$) == 0 .or. ele%value(gap$) == 0) then
       ele%value(e_field$) = 0
-      ele%value(volt$) = 0
+      ele%value(voltage$) = 0
     else
       ele%value(e_field$) = sqrt(ele%value(hkick$)**2 + ele%value(vkick$)**2) * &
                                                    ele%value(beam_energy$) / ele%value(l$)
-      ele%value(volt$) = ele%value(e_field$) * ele%value(gap$) 
+      ele%value(voltage$) = ele%value(e_field$) * ele%value(gap$) 
     endif
 
 
@@ -847,7 +847,7 @@ subroutine attribute_bookkeeper (ele, param)
     check_sum = ele%value(k3$) + ele%value(tilt$)
 
   case (rfcavity$)
-    check_sum = ele%value(volt$) + ele%value(phi0$)
+    check_sum = ele%value(voltage$) + ele%value(phi0$)
 
   case default
     return

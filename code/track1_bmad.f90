@@ -237,7 +237,7 @@ subroutine track1_bmad (start, ele, param, end)
     py = end%vec(4)
     pz = end%vec(6)
 
-    if (ele%value(volt$) == 0) then
+    if (ele%value(voltage$) == 0) then
       phase = 0
       k = 0
     else
@@ -248,11 +248,11 @@ subroutine track1_bmad (start, ele, param, end)
         call err_exit
       endif
       phase = twopi * (ele%value(phi0$) + z / ele%value(rf_wavelength$))
-      k  =  twopi * ele%value(volt$) * cos(phase) / &
+      k  =  twopi * ele%value(voltage$) * cos(phase) / &
                               (param%beam_energy * ele%value(rf_wavelength$))
     endif
 
-    dE0 =  ele%value(volt$) * sin(phase) / param%beam_energy
+    dE0 =  ele%value(voltage$) * sin(phase) / param%beam_energy
     L = ele%value(l$)
     E = 1 + pz
     E2 = E**2

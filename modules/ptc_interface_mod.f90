@@ -1746,7 +1746,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 
   case (rfcavity$)
     el%kind = kind4
-    el%volt = ele%value(volt$)
+    el%volt = ele%value(voltage$)
     if (param%total_length == 0) then
       el%freq0 = 1
     else

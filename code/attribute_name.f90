@@ -267,7 +267,7 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(solenoid$, field_calc$) = 'FIELD_CALC'
 
     attrib_array(rfcavity$, l$)             = 'L'
-    attrib_array(rfcavity$, volt$)          = 'VOLT'
+    attrib_array(rfcavity$, voltage$)       = 'VOLTAGE'
     attrib_array(rfcavity$, rf_wavelength$) = 'RF_WAVELENGTH'
     attrib_array(rfcavity$, phi0$)          = 'PHI0'
     attrib_array(rfcavity$, harmon$)        = 'HARMON'
@@ -276,7 +276,7 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(elseparator$, l$)          = 'L'
     attrib_array(elseparator$, gap$)        = 'GAP'
     attrib_array(elseparator$, e_field$)    = 'E_FIELD'
-    attrib_array(elseparator$, volt$)       = 'VOLT'
+    attrib_array(elseparator$, voltage$)    = 'VOLTAGE'
     attrib_array(elseparator$, tilt$)       = 'TILT'
     attrib_array(elseparator$, radius$)     = 'RADIUS'
     attrib_array(elseparator$, field_calc$) = 'FIELD_CALC'
@@ -341,7 +341,7 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(ab_multipole$, s_offset$) = 'S_OFFSET'
 
     attrib_array(accel_sol$, l$)             = 'L'
-    attrib_array(accel_sol$, volt$)          = 'VOLT'
+    attrib_array(accel_sol$, voltage$)       = 'VOLTAGE'
     attrib_array(accel_sol$, phi0$)          = 'PHI0'
     attrib_array(accel_sol$, rf_wavelength$) = 'RF_WAVELENGTH'
     attrib_array(accel_sol$, b_z$)           = 'B_Z'

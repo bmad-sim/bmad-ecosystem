@@ -13,7 +13,7 @@
 !
 ! Output:
 !   ring
-!     %ele_(i_rf)%value(volt$) -- Voltage on the cavity
+!     %ele_(i_rf)%value(voltage$) -- Voltage on the cavity
 !
 ! Notes: 
 !   1) The calculation assumes that Q_z << 1.
@@ -78,7 +78,7 @@ subroutine set_z_tune (ring)
 
       do j = ele%ic1_lord, ele%ic2_lord ! check any overlays.
         ix = ring%ic_(j)
-        if (ring%control_(ix)%ix_attrib == volt$) cycle
+        if (ring%control_(ix)%ix_attrib == voltage$) cycle
       enddo
 
       if (ele%value(rf_wavelength$) == 0) then
@@ -93,7 +93,7 @@ subroutine set_z_tune (ring)
       ix_rf(n_rf) = i
       coef_tot = coef_tot + twopi * cos(twopi*ele%value(phi0$)) / &
                                           (E0 * ele%value(rf_wavelength$))
-      ix_attrib(n_rf) = volt$
+      ix_attrib(n_rf) = voltage$
 
     endif
 
@@ -102,7 +102,7 @@ subroutine set_z_tune (ring)
       do j = ele%ix1_slave, ele%ix2_slave
         ix = ring%control_(j)%ix_slave
         if (ring%ele_(ix)%key == rfcavity$ .and. &
-                          ring%control_(j)%ix_attrib == volt$) then
+                          ring%control_(j)%ix_attrib == voltage$) then
           if (.not. found_control) n_rf = n_rf + 1
           found_control = .true.
           coef_tot = coef_tot + ring%control_(j)%coef * twopi * &
