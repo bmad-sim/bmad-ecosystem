@@ -71,6 +71,8 @@ else
   endif
 endif
 
+call tao_set_data_useit_opt (s)
+
 end subroutine
 
 !----------------------------------------------------------------------------

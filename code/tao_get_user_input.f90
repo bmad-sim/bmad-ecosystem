@@ -24,6 +24,7 @@ integer i, ix
 character(*) :: cmd_line
 character(3) :: str(9) = (/ '[1]', '[2]', '[3]', '[4]', '[5]', &
                             '[6]', '[7]', '[8]', '[9]' /)
+character(40) tag
 
 logical err
 
@@ -46,9 +47,12 @@ endif
 
 ! Here if no command file is being used.
 
-!write (*, '(2a)', advance = "NO") trim(s%global%prompt_string), '> '
-print '(1x, 2a, $)', trim(s%global%prompt_string), '> '
-read (*, '(a)') cmd_line
+!!print '(1x, 2a, $)', trim(s%global%prompt_string), '> '
+!!read (*, '(a)') cmd_line
+
+cmd_line = ' '
+tag = trim(s%global%prompt_string) // '> ' // achar(0)
+call read_line (trim(tag), cmd_line)
 call alias_translate (cmd_line, err)
 
 !-------------------------------------------------------------------------

@@ -33,8 +33,9 @@ if (.not. any (which /= (/ '      ', 'de    ', 'lm    ', 'custom' /))) then
   return
 endif
 
-
 if (which /= ' ') s%global%optimizer = which
+call out_io (s_blank$, r_name, 'Optimizing with: ' // which)
+
 select case (s%global%optimizer)
 
 case ('de') 

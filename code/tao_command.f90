@@ -39,7 +39,7 @@ subroutine tao_command (s, command_line)
         'quit      ', 'exit      ', 'show      ', 'plot      ', 'place     ', &
         'clip      ', 'scale     ', 'veto      ', 'use       ', 'restore   ', &
         'run       ', 'flatten   ', 'output    ', 'change    ', 'set       ', &
-        'call      ', 'view      ', 'alias     ', 'help      ', '          ' /)
+        'call      ', 'view      ', 'alias     ', 'help      ', 'history   ' /)
 
   logical quit_tao, err, do_all_universes
 
@@ -149,6 +149,15 @@ subroutine tao_command (s, command_line)
 
     call cmd_split (1, .true., err); if (err) return
     call tao_help (s, cmd_word(1))
+
+!--------------------------------
+! HISTORY
+
+  case ('history')
+
+    call cmd_split (0, .true., err); if (err) return
+    call tao_history_cmd
+
 !--------------------------------
 ! OUTPUT
 
@@ -300,7 +309,7 @@ subroutine tao_command (s, command_line)
 !------------------------------------------------------------------------------
 ! standard calculations and plotting after a command.
 
-  call tao_lattice_calc (s)         ! calculate Twiss parameters, closed orbit
+  call tao_merit (s)         ! calculate Twiss parameters, etc. as well as the merit function
   if (s%global%plot_on) call tao_plot_data_setup (s)      ! transfer data to the plotting structures
   if (s%global%plot_on) call tao_plot_out (s%plot_page)   ! Update the plotting window
 

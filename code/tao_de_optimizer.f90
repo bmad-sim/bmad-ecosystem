@@ -136,7 +136,7 @@ endif
 
 if (this_merit <= 0.98*merit_min_type .or. t_delta > 10) then
   write (line, *) ' So far the minimum is ', merit_min
-  call out_io (s_info$, r_name, &
+  call out_io (s_blank$, r_name, &
     '****************************************************', line, &
     '****************************************************')
   call date_and_time (values = t0)
@@ -145,7 +145,7 @@ if (this_merit <= 0.98*merit_min_type .or. t_delta > 10) then
 endif
 
 if (this_merit < 1e-10) then
-  call out_io (s_info$, r_name, &
+  call out_io (s_blank$, r_name, &
     '****************************************************', &
     ' MERIT < 1E-10 ==> AT MINIMUM. QUITING HERE.', &
     '****************************************************')
