@@ -951,7 +951,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
 ! Now put in the overlay_lord, i_beam, and group elements
 
-  call parser_add_lord (in_ring, 1, n_max, pring, ring)
+  call parser_add_lord (in_ring, n_max, pring, ring)
 
 ! make matrices for entire ring
 
