@@ -5,9 +5,9 @@ module twiss_mod
   use matrix_mod
 
   type twiss_struct
-    real(rdef) beta, alpha, gamma, phi, eta, etap
-    real(rdef) mobius_beta, mobius_eta   ! Mobius effective beta and eta
-    real(rdef) sigma
+    real(rp) beta, alpha, gamma, phi, eta, etap
+    real(rp) mobius_beta, mobius_eta   ! Mobius effective beta and eta
+    real(rp) sigma
   end type
 
 contains
@@ -26,10 +26,10 @@ contains
 !   use bmad
 !
 ! Input:
-!   t0(4,4)  -- Real(rdef): Input matrix
+!   t0(4,4)  -- Real(rp): Input matrix
 !   type_out -- Logical: If .true. then an error message is typed out
 !               for a non ok$ STAT
-!   tol      -- Real(rdef): tollerence for nonsymplectiy
+!   tol      -- Real(rp): tollerence for nonsymplectiy
 !
 ! Output:
 !   stat    -- Integer: status of results:
@@ -37,7 +37,7 @@ contains
 !   twiss1  -- Twiss_struct: Twiss params for the "upper left" mode.
 !      %phi   -- Rotation angle in radians, 0 < %PHI < twopi
 !   twiss2  -- Twiss_struct: Twiss params for the "lower right" mode.
-!   u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4) -- Real(rdef): See
+!   u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4) -- Real(rp): See
 !                 MGB CBN 85-2 and PPB/DLR PAC89 papers for more info.
 !
 !-
@@ -51,14 +51,14 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
 
   integer i, j, stat
 
-  real(rdef) t0(4,4), unit4(4,4), U(4,4), V(4,4), V_inv(4,4)
-  real(rdef) temp4(4,4), tol, error
-  real(rdef) Ubar(4,4), Vbar(4,4), G(4,4), G_inv(4,4)
-  real(rdef) t0_11(2,2), t0_12(2,2), t0_21(2,2), t0_22(2,2)
-  real(rdef) c(2,2), c_conj(2,2), H(2,2), temp2(2,2)
-  real(rdef) g1(2,2), g2(2,2), g1_inv(2,2), g2_inv(2,2)
-  real(rdef) gamma, det_H, det,  trace_t0_diff, denom
-  real(rdef) scaler
+  real(rp) t0(4,4), unit4(4,4), U(4,4), V(4,4), V_inv(4,4)
+  real(rp) temp4(4,4), tol, error
+  real(rp) Ubar(4,4), Vbar(4,4), G(4,4), G_inv(4,4)
+  real(rp) t0_11(2,2), t0_12(2,2), t0_21(2,2), t0_22(2,2)
+  real(rp) c(2,2), c_conj(2,2), H(2,2), temp2(2,2)
+  real(rp) g1(2,2), g2(2,2), g1_inv(2,2), g2_inv(2,2)
+  real(rp) gamma, det_H, det,  trace_t0_diff, denom
+  real(rp) scaler
 
   logical type_out
 
@@ -224,15 +224,15 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   mat(:, :)   -- Real(rdef): Input matrix
+!   mat(:, :)   -- Real(rp): Input matrix
 !   type_out    -- Logical: If .true. then an error message is typed out
 !                            for a non ok$ STAT
-!   tol         -- Real(rdef): tollerence for nonsymplectiy
+!   tol         -- Real(rp): tollerence for nonsymplectiy
 !
 ! Output:
 !   stat -- Integer: status of results:
 !                         OK$, UNSTABLE$, NON_SYMPLECTIC$
-!   det    -- Real(rdef): Determinate of matrix. Should be = 1
+!   det    -- Real(rp): Determinate of matrix. Should be = 1
 !   twiss  -- Twiss_struct: Twiss parameters
 !                            TWISS.PHI is in radians, 0 < TWISS.PHI < twopi
 !-
@@ -244,7 +244,7 @@ subroutine twiss_from_mat2 (mat, det, twiss, stat, tol, type_out)
   type (twiss_struct)  twiss
 
   integer stat
-  real(rdef) mat(:, :), t_cos, t_sin, det, tol, radical
+  real(rp) mat(:, :), t_cos, t_sin, det, tol, radical
   logical type_out
 
 !
@@ -303,10 +303,10 @@ end subroutine
 !   twiss -- Twiss_struct: Structure holding the Twiss parameters.
 !     %beta
 !     %alpha
-!   phi   -- Real(rdef): Tune in radians.
+!   phi   -- Real(rp): Tune in radians.
 !
 ! Output:
-!   mat2(2,2) -- Real(rdef): 1-turn matrix.
+!   mat2(2,2) -- Real(rp): 1-turn matrix.
 !-
 
 subroutine twiss_to_1_turn_mat (twiss, phi, mat2)
@@ -315,7 +315,7 @@ subroutine twiss_to_1_turn_mat (twiss, phi, mat2)
 
   type (twiss_struct) twiss
 
-  real(rdef) phi, mat2(2,2), c, s
+  real(rp) phi, mat2(2,2), c, s
 
 !
 
@@ -345,8 +345,8 @@ end subroutine
 !   twiss        -- Twiss_struct: Twiss parameters.
 !
 ! Output:
-!   g_mat(2,2)     -- Real(rdef): Normal mode to betaless coords.
-!   g_inv_mat(2,2) -- Real(rdef): The inverse of g_mat.
+!   g_mat(2,2)     -- Real(rp): Normal mode to betaless coords.
+!   g_inv_mat(2,2) -- Real(rp): The inverse of g_mat.
 !-
 
 subroutine make_g2_mats (twiss, g2_mat, g2_inv_mat)
@@ -355,8 +355,8 @@ subroutine make_g2_mats (twiss, g2_mat, g2_inv_mat)
 
   type (twiss_struct) twiss
 
-  real(rdef) g2_mat(2,2), g2_inv_mat(2,2)
-  real(rdef) sqrt_beta, alpha
+  real(rp) g2_mat(2,2), g2_inv_mat(2,2)
+  real(rp) sqrt_beta, alpha
 !
 
   sqrt_beta = sqrt(twiss%beta)
@@ -389,7 +389,7 @@ end subroutine
 !   twiss2  -- Twiss_struct: Twiss parameters at the end point.
 !
 ! Output:
-!   mat(2,2) -- Real(rdef): Transfer matrix between the two points.
+!   mat(2,2) -- Real(rp): Transfer matrix between the two points.
 !-
 
 subroutine transfer_mat_from_twiss (twiss1, twiss2, mat)
@@ -398,7 +398,7 @@ subroutine transfer_mat_from_twiss (twiss1, twiss2, mat)
 
   type (twiss_struct) twiss1, twiss2
 
-  real(rdef) mat(2,2), a1, a2, b1, b2, sin21, cos21
+  real(rp) mat(2,2), a1, a2, b1, b2, sin21, cos21
 
 !
 

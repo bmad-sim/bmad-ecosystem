@@ -24,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/07/09 01:38:23  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.5  2003/05/02 15:44:03  dcs
 !F90 standard conforming changes.
 !
@@ -55,7 +58,7 @@ subroutine twiss_at_element (ring, ix_ele, start, end, average)
   integer ix_ele, ix1, ix2, n, ix_(100), indx(100)
   integer i, j, ix1_2, ix2_2, i_2, j_2
 
-  real(rdef) rr, rr_2, coef_tot, coef_tot_2
+  real(rp) rr, rr_2, coef_tot, coef_tot_2
 
 ! start and end
 
@@ -93,7 +96,7 @@ subroutine twiss_at_element (ring, ix_ele, start, end, average)
 
   if (ix_ele <= ring%n_ele_ring) then
     call twiss_ave (average, ring%ele_(ix_ele - 1), &
-                                             ring%ele_(ix_ele), 0.5_rdef)
+                                             ring%ele_(ix_ele), 0.5_rp)
     average%value = ring%ele_(ix_ele)%value
 
   else
@@ -148,7 +151,7 @@ subroutine twiss_ave (ave, e1, e2, r)
 
   type (ele_struct) ave, e1, e2
 
-  real(rdef) r
+  real(rp) r
 
 !
 

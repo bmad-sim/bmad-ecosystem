@@ -14,33 +14,14 @@
 !   ring      -- Ring_struct: Ring structure holding the elements
 !   on_switch -- Logical: True  => turn elements on.
 !                         False => turn elements off.
-!   orb_(0:n_ele_maxx) -- [Optional] Coord_struct: Needed for ring_make_mat6
+!   orb_(0:)  -- Coord_struct, optional: Needed for ring_make_mat6
 !                         if ring%param%matrix_order = 1
 !
 ! Output:
 !   ring -- Ring_struct: Modified ring.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.6  2003/01/27 14:40:43  dcs
-!bmad_version = 56
-!
-!Revision 1.5  2002/07/16 20:44:01  dcs
-!*** empty log message ***
-!
-!Revision 1.4  2002/02/23 20:32:24  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/08 21:44:43  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.2  2001/09/27 18:31:57  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
                                     
 subroutine set_on (key, ring, on_switch, orb_)
 

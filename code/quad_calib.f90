@@ -11,12 +11,12 @@
 !     char*(*)  LATTICE        -- lattice name
 !
 ! Output:
-!     real(rdef)  K_THEORY(0:120)     -- Theory K of quad_i,
-!     real(rdef)  K_BASE(0:120)       -- Extrapolated K for zero cu command
-!     real(rdef)  CU_PER_K_GEV(0:120) -- CU to K*GEV calibration
-!     real(rdef)  LEN_QUAD(0:120)     -- Length of quad_i
-!     real(rdef)  QUAD_ROT(0:120)     -- Quad rotation angle in degrees
-!     real(rdef)  DK_GEV_DCU(0:120)   -- Derivative of K*GEV vs CU curve.
+!     real(rp)  K_THEORY(0:120)     -- Theory K of quad_i,
+!     real(rp)  K_BASE(0:120)       -- Extrapolated K for zero cu command
+!     real(rp)  CU_PER_K_GEV(0:120) -- CU to K*GEV calibration
+!     real(rp)  LEN_QUAD(0:120)     -- Length of quad_i
+!     real(rp)  QUAD_ROT(0:120)     -- Quad rotation angle in degrees
+!     real(rp)  DK_GEV_DCU(0:120)   -- Derivative of K*GEV vs CU curve.
 !     integer CU_THEORY(0:120)  -- Scaler needed to get K_THEORY.
 !
 ! Notes:
@@ -49,6 +49,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/07/09 01:38:18  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.6  2003/03/04 16:03:29  dcs
 !VMS port
 !
@@ -79,8 +82,8 @@ subroutine quad_calib (lattice, k_theory, k_base,  &
   type (cesr_struct)  cesr
   type (ring_struct)  ring
   character lattice*(*), latfil*50, bmad_lat*40
-  real(rdef) energy, k_theory(0:*), k_base(0:*), len_quad(0:*)
-  real(rdef) cu_per_k_gev(0:*), dk_gev_dcu(0:*), quad_rot(0:*)
+  real(rp) energy, k_theory(0:*), k_base(0:*), len_quad(0:*)
+  real(rp) cu_per_k_gev(0:*), dk_gev_dcu(0:*), quad_rot(0:*)
   integer ix, rindex, cu_theory(0:*)
 
 ! read lattice file

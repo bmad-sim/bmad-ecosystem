@@ -21,6 +21,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.4  2003/07/09 01:38:24  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.3  2003/01/27 14:40:47  dcs
 !bmad_version = 56
 !
@@ -45,7 +48,7 @@ subroutine type2_twiss (ele, frequency_units, lines, n_lines)
 
   integer frequency_units, n_lines
 
-  real(rdef) coef
+  real(rp) coef
 
   character*(*) lines(:)
   character fmt*80, str*80

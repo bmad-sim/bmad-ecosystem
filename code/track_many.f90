@@ -48,6 +48,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.12  2003/07/09 01:38:22  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.11  2003/06/04 17:55:55  dcs
 !Eliminated x%pos, x%vel, etc. from coord_struct.
 !
@@ -90,7 +93,7 @@ subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
   integer ix_start, ix_end, direction
   integer n, i
 
-  real(rdef) x_lim, y_lim
+  real(rp) x_lim, y_lim
 
   logical debug / .false. /
                             

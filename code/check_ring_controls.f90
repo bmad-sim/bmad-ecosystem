@@ -11,32 +11,7 @@
 !   exit_on_error -- Logical: Exit if an error detected?
 !-
 
-!$Id$
-!$Log$
-!Revision 1.8  2003/03/31 15:17:40  dcs
-!Bug fixes.
-!
-!Revision 1.7  2003/01/27 14:40:31  dcs
-!bmad_version = 56
-!
-!Revision 1.6  2002/11/04 16:48:58  dcs
-!Null_ele$ add
-!
-!Revision 1.5  2002/06/13 14:54:23  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.4  2002/02/23 20:32:12  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/08 21:44:37  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.2  2001/09/27 18:31:49  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine check_ring_controls (ring, exit_on_error)
 
@@ -54,14 +29,6 @@ subroutine check_ring_controls (ring, exit_on_error)
   logical exit_on_error, found_err, good_control(10,10)
 
 ! check energy
-
-  if (abs(ring%param%beam_energy-1d9*ring%param%energy) > &
-                                             1e-5*ring%param%beam_energy) then
-    print *, 'ERROR IN CHECK_RING_CONTROLS:'
-    print *, '      RING%PARAM%ENERGY AND RING%PARAM%BEAM_ENERGY DO NOT MATCH'
-    print *, '      ', ring%param%energy, ring%param%beam_energy 
-    call err_exit
-  endif
 
   if (any(ring%ele_(:)%key == lcavity$) .and. &
                           ring%param%lattice_type /= linac_lattice$) then
@@ -174,7 +141,7 @@ subroutine check_ring_controls (ring, exit_on_error)
 
     do j = ele%ix1_slave, ele%ix2_slave
 
-      if (j < 1 .or. j > n_control_maxx) then
+      if (j < 1 .or. j > ring%n_control_max) then
         print *, 'ERROR IN CHECK_RING_CONTROLS: LORD: ', ele%name, i_t
         print *, '      HAS IX_SLAVE INDEX OUT OF BOUNDS:', &
                                   ele%ix1_slave, ele%ix2_slave
@@ -228,7 +195,7 @@ subroutine check_ring_controls (ring, exit_on_error)
 
     do ix = ele%ic1_lord, ele%ic2_lord
 
-      if (ix < 1 .or. ix > n_control_maxx) then
+      if (ix < 1 .or. ix > ring%n_control_max) then
         print *, 'ERROR IN CHECK_RING_CONTROLS: SLAVE: ', ele%name, i_t
         print *, '      HAS IC_LORD INDEX OUT OF BOUNDS:', &
                                   ele%ic1_lord, ele%ic2_lord
@@ -237,7 +204,7 @@ subroutine check_ring_controls (ring, exit_on_error)
 
       j = ring%ic_(ix)
 
-      if (j < 1 .or. j > n_control_maxx) then
+      if (j < 1 .or. j > ring%n_control_max) then
         print *, 'ERROR IN CHECK_RING_CONTROLS: SLAVE: ', ele%name, i_t
         print *, '      HAS IC_ INDEX OUT OF BOUNDS:', ix, j
         found_err = .true.
@@ -245,7 +212,7 @@ subroutine check_ring_controls (ring, exit_on_error)
           
       i_t2 = ring%control_(j)%ix_lord
 
-      if (i_t2 < 1 .or. i_t2 > n_ele_maxx) then
+      if (i_t2 < 1 .or. i_t2 > ring%n_ele_max) then
         print *, 'ERROR IN CHECK_RING_CONTROLS: SLAVE: ', ele%name, i_t
         print *, '      HAS A LORD INDEX OUT OF RANGE:', ix, j, i_t2
         found_err = .true.

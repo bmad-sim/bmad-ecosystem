@@ -7,7 +7,7 @@ module dynamic_aperture_mod
 
   type aperture_struct
     type (coord_struct)  closed_orbit
-    real(rdef) x, y
+    real(rp) x, y
     integer plane
     integer ix_ring
     integer i_turn
@@ -15,8 +15,8 @@ module dynamic_aperture_mod
 
   type track_input_struct
     integer n_turn
-    real(rdef) x_init, y_init
-    real(rdef) accuracy
+    real(rp) x_init, y_init
+    real(rp) accuracy
   end type
 
 
@@ -40,7 +40,7 @@ contains
 !   ring        -- Ring_struct: Ring containing the lattice.
 !   orb0        -- Coord_struct: Closed orbit at the start.
 !     %vec(6)      -- Energy offset.
-!   theta_xy    -- Real(rdef): Angle of radial line (in radians) in x-y space.
+!   theta_xy    -- Real(rp): Angle of radial line (in radians) in x-y space.
 !                    Angle is "normalized" by %x_init, %y_init.
 !   track_input -- Track_input_struct: Structure holding the input data:
 !     %n_turn     -- Number of turns tracked.
@@ -67,15 +67,16 @@ subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
 
   type (ring_struct)  ring
   type (param_struct)  param_save
-  type (coord_struct)  orb0, orbit_(0:n_ele_maxx)
+  type (coord_struct)  orb0
+  type (coord_struct), save, allocatable :: orbit_(:)
   type (aperture_struct)  aperture
   type (track_input_struct)  track_input
 
   integer it, i, turn_lost, ixr, ie_max
 
-  real(rdef) eps_rel(4), eps_abs(4)
-  real(rdef) e_init, theta_xy                                   
-  real(rdef) x0, x1, x2, y0, y1, y2
+  real(rp) eps_rel(4), eps_abs(4)
+  real(rp) e_init, theta_xy                                   
+  real(rp) x0, x1, x2, y0, y1, y2
 
   logical aperture_bracketed
 
@@ -90,6 +91,8 @@ subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
   param_save = ring%param
   ring%param%aperture_limit_on = .true.
 
+  call reallocate_coord (orbit_, ring%n_ele_max)
+
 ! Find starting point
 
   x0 = 0
@@ -103,9 +106,7 @@ subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
 
   test_loop: do
 
-    do i = 1, 6
-      orbit_(0)%vec(i) = orb0%vec(i)
-    enddo
+    orbit_(0) = orb0
     orbit_(0)%vec(1) = orbit_(0)%vec(1) + x1
     orbit_(0)%vec(3) = orbit_(0)%vec(3) + y1
 

@@ -11,7 +11,7 @@
 !
 ! Input:
 !     ELE        -- Ele_struct: Element
-!     V_MAT(4,4) -- Real(rdef): Normal mode to X-Y coords transformation
+!     V_MAT(4,4) -- Real(rp): Normal mode to X-Y coords transformation
 !
 ! Output:
 !     ELE.X.MOBIUS_BETA -- Mobius betas
@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/07/09 01:38:16  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.4  2003/01/27 14:40:39  dcs
 !bmad_version = 56
 !
@@ -47,8 +50,8 @@ subroutine mobius_twiss_calc (ele, v_mat)
   type (ele_struct)  ele
   type (twiss_struct)  a, b
 
-  real(rdef) c11, c12, c21, c22, vec(4)
-  real(rdef) v_mat(4,4)
+  real(rp) c11, c12, c21, c22, vec(4)
+  real(rp) v_mat(4,4)
 
 !
 

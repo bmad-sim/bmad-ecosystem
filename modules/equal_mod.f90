@@ -2,7 +2,7 @@
 
 module equal_mod
 
-  use bmad_struct
+  use bmad_utils_mod
 
   interface assignment (=)
     module procedure ele_equal_ele
@@ -18,7 +18,7 @@ contains
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine ele_equal_ele (ele1, ele2)
+!  ele_equal_ele (ele1, ele2)
 !
 ! Subroutine that is used to set one element equal to another. 
 ! This routine takes care of the pointers in ele1. 
@@ -42,15 +42,6 @@ subroutine ele_equal_ele (ele1, ele2)
   type (ele_struct) ele_save
 
   integer i
-
-! If ele2 has not been properly initialized assume there is a problem somewhere
-
-  if (ele2%pointer_init /= has_been_inited$) then
-    print *, 'ERROR IN ELE_EQUAL_ELE: NO POINTER_INIT DONE FOR ELE2!'
-    call err_exit
-  endif
-
-  if (ele1%pointer_init /= has_been_inited$) call deallocate_ele_pointers (ele1)
 
 ! save ele1 pointers and set ele1 = ele2.
 
@@ -95,6 +86,22 @@ subroutine ele_equal_ele (ele1, ele2)
     if (associated (ele_save%const)) deallocate (ele_save%const)
   endif
 
+  if (associated(ele2%r)) then
+    if (associated (ele_save%r)) then
+      if (size(ele_save%r) == size(ele2%r)) then
+        ele1%r => ele_save%r
+      else
+        deallocate (ele_save%r)
+        allocate (ele1%r(size(ele2%r)))
+      endif
+    else
+      allocate (ele1%r(size(ele2%r)))
+    endif
+    ele1%r = ele2%r
+  else
+    if (associated (ele_save%r)) deallocate (ele_save%r)
+  endif
+
   do i = 1, 6
     if (associated(ele2%taylor(i)%term)) then
       if (associated (ele_save%taylor(i)%term)) then
@@ -135,6 +142,60 @@ subroutine ele_equal_ele (ele1, ele2)
     ele1%descrip = ele2%descrip
   else
     if (associated (ele_save%descrip)) deallocate (ele_save%descrip)
+  endif
+
+  if (associated(ele2%wake%sr_file)) then
+    if (associated (ele_save%wake%sr_file)) then
+      ele1%wake%sr_file => ele_save%wake%sr_file
+    else
+      allocate (ele1%wake%sr_file)
+    endif
+    ele1%wake%sr_file = ele2%wake%sr_file
+  else
+    if (associated (ele_save%wake%sr_file)) deallocate (ele_save%wake%sr_file)
+  endif
+
+  if (associated(ele2%wake%lr_file)) then
+    if (associated (ele_save%wake%lr_file)) then
+      ele1%wake%lr_file => ele_save%wake%lr_file
+    else
+      allocate (ele1%wake%lr_file)
+    endif
+    ele1%wake%lr_file = ele2%wake%lr_file
+  else
+    if (associated (ele_save%wake%lr_file)) deallocate (ele_save%wake%lr_file)
+  endif
+
+  if (associated(ele2%wake%sr)) then
+    if (associated (ele_save%wake%sr)) then
+      if (size(ele_save%wake%sr) == size(ele2%wake%sr)) then
+        ele1%wake%sr => ele_save%wake%sr
+      else
+        deallocate (ele_save%wake%sr)
+        allocate (ele1%wake%sr(size(ele2%wake%sr)))
+      endif
+    else
+      allocate (ele1%wake%sr(size(ele2%wake%sr)))
+    endif
+    ele1%wake%sr = ele2%wake%sr
+  else
+    if (associated (ele_save%wake%sr)) deallocate (ele_save%wake%sr)
+  endif
+
+  if (associated(ele2%wake%lr)) then
+    if (associated (ele_save%wake%lr)) then
+      if (size(ele_save%wake%lr) == size(ele2%wake%lr)) then
+        ele1%wake%lr => ele_save%wake%lr
+      else
+        deallocate (ele_save%wake%lr)
+        allocate (ele1%wake%lr(size(ele2%wake%lr)))
+      endif
+    else
+      allocate (ele1%wake%lr(size(ele2%wake%lr)))
+    endif
+    ele1%wake%lr = ele2%wake%lr
+  else
+    if (associated (ele_save%wake%lr)) deallocate (ele_save%wake%lr)
   endif
 
 end subroutine
@@ -182,54 +243,95 @@ subroutine ele_vec_equal_ele_vec (ele1, ele2)
 
 end subroutine
 
-!!----------------------------------------------------------------------
+!----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine ring_equal_ring (ring1, ring2)
+! Subroutine ring_equal_ring (ring_out, ring_in)
 !
 ! Subroutine that is used to set one ring equal to another. 
-! This routine takes care of the pointers in ring1. 
+! This routine takes care of the pointers in ring_in. 
 !
 ! Note: This subroutine is called by the overloaded equal sign:
-!		ring1 = ring2
+!		ring_out = ring_in
 !
 ! Input:
-!   ring2 -- ring_struct: Input ring.
+!   ring_in -- ring_struct: Input ring.
 !
 ! Output:
-!   ring1 -- ring_struct: Output ring.
+!   ring_out -- ring_struct: Output ring.
 !-
 
-subroutine ring_equal_ring (ring1, ring2)
+subroutine ring_equal_ring (ring_out, ring_in)
 
   implicit none
 
-  type (ring_struct), intent(inout) :: ring1
-  type (ring_struct), intent(in) :: ring2
+  type (ring_struct), intent(inout) :: ring_out
+  type (ring_struct), intent(in) :: ring_in
+  type (ele_struct), allocatable :: temp_ele(:)
 
-  integer i
+  integer i, n, n_old, n_wanted
 
-! deallocate ring1 pointers
+! If ring_in has not been properly initialized then assume there is a problem somewhere
 
-  call deallocate_ele_pointers (ring1%ele_init)
+  if (.not. associated (ring_in%ele_)) then
+    print *, 'ERROR IN RING_EQUAL_RING: NO RING%ELE_ ON RHS NOT ASSOCIATED!'
+    call err_exit
+  endif
 
-  do i = 0, ubound(ring1%ele_, 1)
-    call deallocate_ele_pointers (ring1%ele_(i))
+! resize %ele_ array if needed
+
+  if (ring_out%n_ele_maxx < ring_in%n_ele_maxx) &
+                                  call allocate_ring_ele_(ring_out, ring_in%n_ele_maxx)
+  
+  do i = 0, ring_in%n_ele_max
+    ring_out%ele_(i) = ring_in%ele_(i)
   enddo
+  ring_out%ele_init = ring_in%ele_init
 
-! set ring1 = ring2.
-! if ring2 has allocated pointers then create new storate in ring1
+! handle ring%control_ array
 
-  call transfer_ring (ring2, ring1)
+  n = size(ring_in%control_)
+  if (associated (ring_in%control_)) then
+    if (associated(ring_out%control_)) then
+      if (size (ring_in%control_) < size (ring_out%control_)) then
+        ring_out%control_(1:n) = ring_in%control_(1:n)
+      else
+        deallocate (ring_out%control_)
+        allocate (ring_out%control_(n))
+        ring_out%control_ = ring_in%control_
+      endif
+    else
+      allocate (ring_out%control_(n))
+      ring_out%control_ = ring_in%control_
+    endif
+  else
+    if (associated(ring_out%control_)) deallocate (ring_out%control_)
+  endif
 
-  call transfer_ele_pointers (ring1%ele_init, ring2%ele_init)
+! handle ring%ic_ array
 
-  do i = 0, ring2%n_ele_max
-    call transfer_ele_pointers (ring1%ele_(i), ring2%ele_(i))
-  enddo
+  n = size(ring_in%ic_)
+  if (associated (ring_in%ic_)) then
+    if (associated(ring_out%ic_)) then
+      if (size (ring_in%ic_) < size (ring_out%ic_)) then
+        ring_out%ic_(1:n) = ring_in%ic_(1:n)
+      else
+        deallocate (ring_out%ic_)
+        allocate (ring_out%ic_(n))
+        ring_out%ic_ = ring_in%ic_
+      endif
+    else
+      allocate (ring_out%ic_(n))
+      ring_out%ic_ = ring_in%ic_
+    endif
+  else
+    if (associated(ring_out%ic_)) deallocate (ring_out%ic_)
+  endif
 
+! non-pointer transfer
 
+  call transfer_ring_parameters (ring_in, ring_out)
 
 end subroutine
 
@@ -306,73 +408,4 @@ elemental subroutine coord_equal_coord (coord1, coord2)
 end subroutine
 
 end module
-
-
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!+
-! Subroutine transfer_ele (ele1, ele2)
-!
-! Subroutine to set ele2 = ele1. 
-! This is a plain transfer of information not using the overloaded equal.
-! Thus at the end ele2's pointers point to the same memory as ele1's.
-!
-! NOTE: Do not use this routine unless you know what you are doing!
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   ele1 -- Ele_struct:
-!
-! Output:
-!   ele2 -- Ele_struct:
-!-
-
-subroutine transfer_ele (ele1, ele2)
-
-  use bmad_struct
-
-  type (ele_struct) :: ele1
-  type (ele_struct) :: ele2
-
-  ele2 = ele1
-
-end subroutine
-
-
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!+
-! Subroutine transfer_ring (ring1, ring2)
-!
-! Subroutine to set ring2 = ring1. 
-! This is a plain transfer of information not using the overloaded equal.
-! Thus at the end ring2's pointers point to the same memory as ring1's.
-!
-! NOTE: Do not use this routine unless you know what you are doing!
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   ring1 -- ring_struct:
-!
-! Output:
-!   ring2 -- ring_struct:
-!-
-
-subroutine transfer_ring (ring1, ring2)
-
-  use bmad_struct
-
-  type (ring_struct) :: ring1
-  type (ring_struct) :: ring2
-
-  ring2 = ring1
-
-end subroutine
-
 

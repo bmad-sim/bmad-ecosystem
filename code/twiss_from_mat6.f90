@@ -8,7 +8,7 @@
 !   use bmad
 !
 ! Input:
-!   mat6(6,6)   -- Real(rdef): 6x6 1-turn matrix
+!   mat6(6,6)   -- Real(rp): 6x6 1-turn matrix
 !
 ! Output:
 !   ele         -- Ele_struct: Structure holding the Twiss parameters.
@@ -28,6 +28,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/07/09 01:38:23  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.6  2003/05/02 15:44:04  dcs
 !F90 standard conforming changes.
 !
@@ -55,14 +58,14 @@ subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
   implicit none
 
   type (ele_struct), intent(out) :: ele
-  real(rdef), intent(in) :: mat6(6,6)
-  real(rdef), intent(out) :: growth_rate
+  real(rp), intent(in) :: mat6(6,6)
+  real(rp), intent(out) :: growth_rate
   logical, intent(out) :: stable
 
-  real(rdef) mat4(4,4), eta_vec(4)
-  real(rdef) u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4)
-  real(rdef) det, rate1, rate2
-  real(rdef) :: tol = 1.0e-3
+  real(rp) mat4(4,4), eta_vec(4)
+  real(rp) u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4)
+  real(rp) det, rate1, rate2
+  real(rp) :: tol = 1.0e-3
 
   integer i, j
 

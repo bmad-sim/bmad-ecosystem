@@ -11,12 +11,15 @@
 !   ELE        -- Ele_struct: Element
 !
 ! Output:
-!   V_MAT(4,4)     -- Real(rdef): Normal mode to X-Y coords transformation
-!   V_INV_MAT(4,4) -- Real(rdef): X-Y coords to Normal mode transformation
+!   V_MAT(4,4)     -- Real(rp): Normal mode to X-Y coords transformation
+!   V_INV_MAT(4,4) -- Real(rp): X-Y coords to Normal mode transformation
 !-
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/07/09 01:38:16  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.5  2002/10/29 17:07:13  dcs
 !*** empty log message ***
 !
@@ -43,7 +46,7 @@ subroutine make_v_mats (ele, v_mat, v_inv_mat)
 
   type (ele_struct)  ele
 
-  real(rdef) v_mat(4,4), v_inv_mat(4,4), c_conj(2,2)
+  real(rp) v_mat(4,4), v_inv_mat(4,4), c_conj(2,2)
   integer i
 
 !

@@ -26,11 +26,11 @@ module boris_mod
   type track_com_struct
     logical :: save_steps = .false.        ! save orbit?
     integer :: n_pts                       ! number of points
-    real(rdef), pointer :: s(:) => null()  ! s-distance of a point
+    real(rp), pointer :: s(:) => null()  ! s-distance of a point
     type (coord_struct), pointer :: orb(:) ! position of a point
-    real(rdef) :: ds_save = 1e-3           ! min distance between points
-    real(rdef) :: step0 = 1e-3             ! Initial step size.
-    real(rdef) :: step_min = 1e-8          ! min step size to step below which 
+    real(rp) :: ds_save = 1e-3           ! min distance between points
+    real(rp) :: step0 = 1e-3             ! Initial step size.
+    real(rp) :: step_min = 1e-8          ! min step size to step below which 
                                            !   track1_adaptive_boris gives up
     integer :: max_step = 10000            ! maximum number of steps allowed
   end type
@@ -44,7 +44,7 @@ module boris_mod
       type (ele_struct), intent(in) :: ele
       type (param_struct) param
       type (coord_struct), intent(in) :: orb
-      real(rdef), intent(in) :: s
+      real(rp), intent(in) :: s
       type (em_field_struct), intent(out) :: field
     end subroutine
   end interface
@@ -115,11 +115,11 @@ subroutine track1_adaptive_boris (start, ele, param, end, s_start, s_end)
 
   type (coord_struct) here, orb1, orb2
 
-  real(rdef), optional, intent(in) :: s_start, s_end
+  real(rp), optional, intent(in) :: s_start, s_end
 
-  real(rdef) :: ds, ds_did, ds_next, s, s_sav, rel_tol, abs_tol, sqrt_N
-  real(rdef), parameter :: err_5 = 0.0324, safety = 0.9
-  real(rdef) :: s1, s2, scale_orb, err_max, ds_temp, rel_tol_N, abs_tol_N
+  real(rp) :: ds, ds_did, ds_next, s, s_sav, rel_tol, abs_tol, sqrt_N
+  real(rp), parameter :: err_5 = 0.0324, safety = 0.9
+  real(rp) :: s1, s2, scale_orb, err_max, ds_temp, rel_tol_N, abs_tol_N
 
   integer :: n_step
 
@@ -196,7 +196,7 @@ subroutine track1_adaptive_boris (start, ele, param, end, s_start, s_end)
       if (err_max <= 1) exit
 
       ds_temp = safety * ds / sqrt(err_max)
-      ds = sign(max(abs(ds_temp), 0.1_rdef*abs(ds)), ds)
+      ds = sign(max(abs(ds_temp), 0.1_rp*abs(ds)), ds)
 
       if (abs(ds) < track_com%step_min) then
         bmad_status%ok = .false.
@@ -287,8 +287,8 @@ subroutine track1_boris (start, ele, param, end, s_start, s_end)
 
   type (coord_struct) here
 
-  real(rdef), optional, intent(in) :: s_start, s_end
-  real(rdef) s1, s2, s_sav, ds, s
+  real(rp), optional, intent(in) :: s_start, s_end
+  real(rp) s1, s2, s_sav, ds, s
 
   integer i
 
@@ -323,7 +323,7 @@ subroutine track1_boris (start, ele, param, end, s_start, s_end)
 ! if we are saving the trajectory then allocate enough space in the arrays
 
   if (track_com%save_steps) then
-    s_sav = s - 2.0_rdef * track_com%ds_save
+    s_sav = s - 2.0_rp * track_com%ds_save
     call allocate_saved_orbit (ele%num_steps)
     call save_a_step (ele, param, s, here, s_sav)
   endif
@@ -365,8 +365,8 @@ end subroutine
 !   start -- Coord_struct: Starting coordinates.
 !   ele   -- Ele_struct: Element that we are tracking through.
 !   param -- Param_struct: Various neede parameters (Energy, etc.)
-!   s     -- Real(rdef): Starting point relative to element beginning.
-!   ds    -- Real(rdef): step size
+!   s     -- Real(rp): Starting point relative to element beginning.
+!   ds    -- Real(rp): step size
 !
 ! Output:
 !   end   -- Coord_struct: Ending coordinates.
@@ -381,9 +381,9 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
   type (coord_struct) :: start, end  
   type (em_field_struct) :: field
 
-  real(rdef), intent(in) :: s, ds
-  real(rdef) :: f, p_z, d2, alpha, dxv, dyv, ds2_f, charge
-  real(rdef) :: r(3,3), w(3), ex, ey, ex2, ey2, exy, bz, bz2, m2c2
+  real(rp), intent(in) :: s, ds
+  real(rp) :: f, p_z, d2, alpha, dxv, dyv, ds2_f, charge
+  real(rp) :: r(3,3), w(3), ex, ey, ex2, ey2, exy, bz, bz2, m2c2
 
 ! m2c2 = (m*c^2 / (c*P_0))^2,  c*P_0 = sqrt(E^2 - E_0^2)
 
@@ -504,7 +504,7 @@ subroutine save_a_step (ele, param, s, here, s_sav)
   type (coord_struct), intent(in) :: here
   type (coord_struct) orb
   integer n_pts
-  real(rdef) s, s_sav
+  real(rp) s, s_sav
 
 !
 
@@ -579,7 +579,7 @@ end subroutine
 ! Input:
 !   ele    -- Ele_struct: Element
 !   param  -- Param_struct: Parameters
-!   s_pos  -- Real(rdef): Longitudinal position.
+!   s_pos  -- Real(rp): Longitudinal position.
 !   here   -- Coord_struct: Transverse coordinates.
 !
 ! Output:
@@ -597,8 +597,8 @@ subroutine em_field (ele, param, s_pos, here, field)
   type (wig_term_struct), pointer :: t
   type (em_field_struct), intent(out) :: field
 
-  real(rdef) :: x, y, s, s_pos, f, c
-  real(rdef) :: c_x, s_x, c_y, s_y, c_z, s_z, coef
+  real(rp) :: x, y, s, s_pos, f, c
+  real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef
 
   integer i, key
 

@@ -20,8 +20,10 @@
 !   i_dim    -- Integer: 
 !       = 2,4  Transverse closed orbit at constant energy (dE/E = CO.Z.VEL)
 !       = 6    Full closed orbit using the entire transfer 6x6 matrix.
-!   eps_rel(:) -- Real(rdef): relative allowed error.
-!   eps_abs(:) -- Real(rdef): absolute allowed error.
+!   eps_rel(6) -- Real(rp), optional: Relative allowed error.
+!                   Default is 1e-5.
+!   eps_abs(6) -- Real(rp), optional: Absolute allowed error.
+!                   Default is 1e-8.
 !   init_guess -- [Optional] Coord_struct: Starting guess for the closed 
 !                orbit at the start of the ring. If not present then
 !                the origin will be used. 
@@ -33,9 +35,10 @@
 !
 !
 ! Output:
-!   closed_orb_(0:n_ele_maxx) -- Coord_struct: closed orbit.
-!   bmad_status -- BMAD status common block:
-!       %ok         -- Set False if orbit does not converge.
+!   closed_orb_(0:) -- Coord_struct, allocatable: closed orbit. 
+!                       This routine will allocate this array for you.
+!   bmad_status     -- BMAD status common block:
+!       %ok           -- Set False if orbit does not converge.
 !-
 
 #include "CESR_platform.inc" 
@@ -49,21 +52,32 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
   implicit none
 
   type (ring_struct) ring
-  type (coord_struct), intent(inout) :: closed_orb_(0:)
-  type (coord_struct) :: orb_(0:n_ele_maxx), start(100), end(100)
+  type (coord_struct), allocatable, intent(inout) :: closed_orb_(:)
+  type (coord_struct) :: start(100), end(100)
   type (coord_struct), optional :: init_guess
 
-  real(rdef), intent(in) :: eps_rel(:), eps_abs(:)
+  real(rp), intent(in), optional :: eps_rel(:), eps_abs(:)
 
-  real(rdef) amp_co, amp_del, orb_diff(6), amp(6)
-  real(rdef) mat6(6,6), mat6_inv(6,6), mat6_unit(6,6)
-  real(rdef) start_mat(6,6), end_mat(6,6)
-  real(rdef) :: error
+  real(rp) amp_co, amp_del, orb_diff(6), amp(6)
+  real(rp) mat6(6,6), mat6_inv(6,6), mat6_unit(6,6)
+  real(rp) start_mat(6,6), end_mat(6,6)
+  real(rp) :: error, rel_err(6), abs_err(6)
 
   integer i_dim, i, i1, i2, j, k, jmax, n_ele, j0, jj, nd, nnd, msk(6)
 
-  logical is_on(0:n_ele_maxx)
   logical :: debug = .false.
+
+! init
+
+  rel_err = 1e-6
+  if (present(eps_rel)) rel_err = eps_rel
+
+  abs_err = 1e-6
+  if (present(eps_abs)) abs_err = eps_abs
+
+! make sure orb_ has the correct size
+
+  call reallocate_coord (closed_orb_, ring%n_ele_max)
 
 ! make a unit matrix
 
@@ -74,14 +88,9 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 
 ! Turn off RF voltage if i_dim == 4 (for constant delta_E)
 
-  if (nd ==2 .or. nd == 4) then
-    is_on = .false.
-    do i = 1, n_ele
-      if (ring%ele_(i)%key == rfcavity$) then
-        is_on(i) = ring%ele_(i)%is_on
-        ring%ele_(i)%is_on = .false.
-      endif
-    enddo
+  if (nd == 2 .or. nd == 4) then
+    ring%ele_(:)%internal_logic = ring%ele_(:)%is_on
+    call set_on (rfcavity$, ring, .false.)
   elseif (nd /= 6) then
     print *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: BAD "I_DIM":', nd
     call err_exit    
@@ -116,9 +125,10 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
     orb_diff = closed_orb_(n_ele)%vec - closed_orb_(0)%vec
     amp = max(abs(closed_orb_(0)%vec), abs(closed_orb_(n_ele)%vec))
 
-    if (all( (abs(orb_diff(1:nd)) < eps_abs(1:nd)) .or. &
-             (abs(orb_diff(1:nd)) < eps_rel(1:nd) * amp(1:nd)) )) then
-      if (nd == 2 .or. nd == 4) where (is_on(1:n_ele)) ring%ele_(1:n_ele)%is_on = .true.
+    if (all( abs(orb_diff(1:nd)) < abs_err(1:nd) + &
+                                         rel_err(1:nd) * amp(1:nd) ) ) then
+      if (nd == 2 .or. nd == 4) &
+                          ring%ele_(:)%is_on = ring%ele_(:)%internal_logic
       return
     endif
 
@@ -135,8 +145,8 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
     do i = 2, nd, 2
       i1 = i-1
       i2 = i
-      if (.not. all( (abs(orb_diff(i1:i2)) < eps_abs(i1:i2)) .or. &
-                   (abs(orb_diff(i1:i2)) < eps_rel(i1:i2) * amp(i1:i2)) )) then
+      if (.not. all( abs(orb_diff(i1:i2)) < abs_err(i1:i2) + &
+                                     rel_err(i1:i2) * amp(i1:i2) )) then
         msk(nnd+1:nnd+2) = (/ i1, i2 /)
         nnd = nnd + 2
       endif
@@ -156,7 +166,8 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
     mat6 = matmul(end_mat(1:nnd,1:nnd), start_mat(1:nnd,1:nnd))
     call mat_symp_check (mat6(1:nnd,1:nnd), error)
     if (debug) print *, 'error:', error
-    if (debug) print '(i4, a, 3p6f11.5)', j, ':', (closed_orb_(0)%vec(i), i = 1, nd)
+    if (debug) print '(i4, a, 3p6f11.5)', j, ':', &
+                                    (closed_orb_(0)%vec(i), i = 1, nd)
 
     if (error < 0.1) then  ! if error is low use matrix
       mat6(1:nnd,1:nnd) = mat6_unit(1:nnd,1:nnd) - mat6(1:nnd,1:nnd)

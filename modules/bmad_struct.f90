@@ -31,7 +31,7 @@ module bmad_struct
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 
-  integer, parameter :: bmad_inc_version$ = 61
+  integer, parameter :: bmad_inc_version$ = 63
 
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -41,8 +41,6 @@ module bmad_struct
 
 ! parameter def
 
-  integer, parameter :: n_ele_maxx = 15000
-  integer, parameter :: n_control_maxx = 5000
   integer, parameter :: n_attrib_maxx = 34
 
 ! Structure for a particle's coordinates.
@@ -75,17 +73,39 @@ module bmad_struct
     integer type      ! hyper_y$, hyper_xy$, or hyper_x$
   end type
 
+! Wakefield structs
+
+  type sr_wake_struct     ! Short-Range Wake struct
+    real(rp) z            ! Distance behind the leading particle
+    real(rp) long         ! Longitudinal wake in V/C/m
+    real(rp) trans        ! Transverse wake in V/C/m^2
+  end type
+
+  type lr_wake_struct   ! Long-Range Wake struct (transverse only)
+    real(rp) freq       ! frequency in Hz
+    real(rp) kick       ! Strength in V/C/m^2
+    integer  i_cell     ! Index of the cell the mode is in.
+    real(rp) Q          ! Quality factor
+  end type
+
+  type wake_struct
+    character(200), pointer :: sr_file => null()
+    character(200), pointer :: lr_file => null()
+    type (sr_wake_struct), pointer :: sr(:) => null()
+    type (lr_wake_struct), pointer :: lr(:) => null()
+  end type
+
 ! Ele_struct
-! Remember: If this struct is changed you have to modify:
+! REMEMBER: If this struct is changed you have to modify:
 !     read_digested_bmad_file
 !     write_digested_bmad_file
 
   type ele_struct
     character*16 name              ! name of element
-    character*16 type              ! type name (see MAD documentation)
+    character*16 type              ! type name
     character*16 alias             ! Another name
     character*16 attribute_name    ! Used by overlays
-    type (twiss_struct)  x,y,z         ! Twiss parameters at end of element
+    type (twiss_struct)  x,y,z       ! Twiss parameters at end of element
     real(rp) value(n_attrib_maxx)    ! attribute values
     real(rp) gen0(6)                 ! constant part of the genfield map
     real(rp) vec0(6)                 ! 0th order transport vector
@@ -97,16 +117,17 @@ module bmad_struct
     real(rp) z_position              ! Elevation of element
     real(rp) theta_position          ! Floor orientation angle of element
     real(rp) phi_position            ! Angle of attack
-    real(rp), pointer             :: a(:), b(:)     ! multipoles
-    real(rp), pointer             :: const(:)       ! Working constants.
-    character*200, pointer          :: descrip        ! For general use
-    type (wig_term_struct), pointer :: wig_term(:)    ! Wiggler Coefs
-    type (genfield), pointer        :: gen_field      ! For symp_map$
-    type (taylor_struct)            :: taylor(6)      ! Taylor terms
+    real(rp), pointer :: r(:) => null()    ! For general use. Not used by BMAD.
+    real(rp), pointer :: a(:) => null()              ! multipole
+    real(rp), pointer :: b(:) => null()              ! multipoles
+    real(rp), pointer :: const(:) => null()          ! Working constants.
+    character(200), pointer :: descrip => null()     ! For general use
+    type (genfield), pointer :: gen_field => null()  ! For symp_map$
+    type (taylor_struct) :: taylor(6)                ! Taylor terms
+    type (wig_term_struct), pointer :: wig_term(:) => null()   ! Wiggler Coefs
+    type (wake_struct) wake        ! Wakefields
     integer key                    ! key value
     integer sub_key                ! For wigglers: map_type$, periodic_type$
-    integer pointer_init           ! Pointers initialized when 
-                                   !   pointer_init = has_been_inited$
     integer control_type           ! SUPER_SLAVE$, OVERLAY_LORD$, etc.
     integer ix_value               ! Pointer for attribute to control
     integer n_slave                ! Number of slaves
@@ -115,9 +136,9 @@ module bmad_struct
     integer n_lord                 ! Number of lords
     integer ic1_lord               ! Start index for lord elements
     integer ic2_lord               ! Stop  index for lord elements
-    integer ix_pointer             ! Pointer for general use
-    integer ixx                    ! Pointer for BMAD internal use
-    integer iyy                    ! Pointer for BMAD internal use
+    integer ix_pointer             ! For general use. Not used by BMAD.
+    integer ixx                    ! Index for BMAD internal use
+    integer iyy                    ! Index for BMAD internal use
     integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
     integer tracking_method        ! bmad_standard$, taylor$, etc.
     integer num_steps              ! number of slices for DA_maps
@@ -128,8 +149,10 @@ module bmad_struct
     logical mode_flip              ! Have the normal modes traded places?
     logical multipoles_on          ! For turning multipoles on/off
     logical exact_rad_int_calc     ! Exact radiation integral calculation?
-    logical B_field_master         ! Calculate K from the B_field?
+    logical field_master           ! Calculate strength from the field value?
     logical is_on                  ! For turning element on/off.
+    logical internal_logic         ! For BMAD internal use only.
+    logical logic                  ! For general use. Not used by BMAD.
   end type
 
 ! struct for element to element control
@@ -144,7 +167,6 @@ module bmad_struct
 ! parameter and mode structures
 
   type param_struct
-    real(rp) energy             ! USE BEAM_ENERGY INSTEAD ! energy in GeV.
     real(rp) beam_energy        ! beam energy in eV
     real(rp) n_part             ! Number of particles in a bunch
     real(rp) total_length       ! total_length of ring
@@ -159,8 +181,6 @@ module bmad_struct
     logical stable              ! is closed ring stable?
     logical aperture_limit_on   ! use apertures in tracking?
     logical lost                ! for use in tracking
-    logical damping_on          ! Radiation damping calculation toggle.
-    logical fluctuations_on     ! Radiation fluctuations calculation toggle.
   end type
 
   type mode_info_struct
@@ -180,26 +200,26 @@ module bmad_struct
 !     transfer_ring_parameters
 
   type ring_struct
-    character*16 name             ! Name of ring given by USE statement
-    character*40 lattice          ! Lattice
-    character*80 input_file_name  ! name of the lattice input file
-    character*80 title            ! general title
-    type (mode_info_struct)  x, y, z  ! tunes, etc.
-    type (param_struct)      param ! parameters
-    integer version               ! Version number
-    integer n_ele_ring            ! number of regular ring elements
-    integer n_ele_symm            ! symmetry point for rings w/ symmetry
-    integer n_ele_use             ! number of elements used
-    integer n_ele_max             ! Index of last element used
-    integer n_control_array       ! last index used in CONTROL_ array
-    integer n_ic_array            ! last index used in IC_ array
-    integer input_taylor_order    ! As set in the input file
-    type (ele_struct)  ele_(0:n_ele_maxx)    ! Array of ring elements
-    type (ele_struct)  ele_init              ! For use by any program
-    type (control_struct)  control_(n_control_maxx)  ! control list
-    integer ic_(n_control_maxx)                      ! index to %control_(:)
+    character*16 name                ! Name of ring given by USE statement
+    character*40 lattice             ! Lattice
+    character*80 input_file_name     ! Name of the lattice input file
+    character*80 title               ! General title
+    type (mode_info_struct) x, y, z  ! Tunes, etc.
+    type (param_struct) param        ! Parameters
+    integer version                  ! Version number
+    integer n_ele_ring               ! Number of regular ring elements
+    integer n_ele_symm               ! Symmetry point for rings w/ symmetry
+    integer n_ele_use                ! number of elements used
+    integer n_ele_max                ! Index of last element used
+    integer n_ele_maxx               ! Index of last element allocated
+    integer n_control_max            ! Last index used in CONTROL_ array
+    integer n_ic_max                 ! Last index used in IC_ array
+    integer input_taylor_order       ! As set in the input file
+    type (ele_struct)  ele_init      ! For use by any program
+    type (ele_struct), pointer ::  ele_(:) => null()        ! Array of elements
+    type (control_struct), pointer :: control_(:) => null() ! control list
+    integer, pointer :: ic_(:) => null()                ! index to %control_(:)
   end type
-
 
 !
 
@@ -219,9 +239,11 @@ module bmad_struct
   integer, parameter :: def_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23
   integer, parameter :: patch$ = 24, lcavity$ = 25, def_parameter$ = 26
   integer, parameter :: null_ele$ = 27, init_ele$ = 28, hom$ = 29
-  integer, parameter :: matrix$ = 30
+  integer, parameter :: matrix$ = 30, monitor$ = 31, instrument$ = 32
+  integer, parameter :: hkicker$ = 33, vkicker$ = 34, rcollimator$ = 35
+  integer, parameter :: ecollimator$ = 36
 
-  integer, parameter :: n_key = 30
+  integer, parameter :: n_key = 36
 
   character*16 :: key_name(n_key+1) = (/ &
     'DRIFT        ', 'SBEND        ', 'QUADRUPOLE   ', 'GROUP        ', &
@@ -231,7 +253,9 @@ module bmad_struct
     'OCTUPOLE     ', 'RBEND        ', 'MULTIPOLE    ', 'ACCEL_SOL    ', &
     'DEF BEAM     ', 'AB_MULTIPOLE ', 'SOLENOID     ', 'PATCH        ', &
     'LCAVITY      ', 'DEF PARAMETER', 'NULL_ELEMENT ', 'INIT_ELEMENT ', &
-    'HOM          ', 'MATRIX       ', '             ' /)
+    'HOM          ', 'MATRIX       ', 'MONITOR      ', 'INSTRUMENT   ', &
+    'HKICKER      ', 'VKICKER      ', 'RCOLLIMATOR  ', 'ECOLLIMATOR  ', &
+    '             ' /)
 
 ! Attribute name logical definitions
 ! Note: The following attributes must have unique number assignments:
@@ -261,8 +285,8 @@ module bmad_struct
 
   integer, parameter :: l$=1
   integer, parameter :: tilt$=2, command$=2
-  integer, parameter :: old_command$=3, angle$=3
-  integer, parameter :: k1$=4, sig_x$=4, harmon$=4, h_displace$=4
+  integer, parameter :: old_command$=3, angle$=3, k_loss$=3, kick$ = 3
+  integer, parameter :: k1$=4, sig_x$=4, harmon$=4, h_displace$=4, e_loss$=4
   integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, g$=5
   integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, delta_g$=6
   integer, parameter :: ks$=7, volt$=7, e1$=7, n_pole$=7, bbi_const$=7
@@ -272,7 +296,7 @@ module bmad_struct
   integer, parameter :: fintx$=11, z_patch$ = 11, phi0$=11
   integer, parameter :: rho$ = 12
   integer, parameter :: hgap$=13, energy_start$=13
-  integer, parameter :: coef$=14, current$=14, hgapx$=14
+  integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14
   integer, parameter :: roll$=15
   integer, parameter :: l_original$ = 16
   integer, parameter :: l_start$=17
@@ -293,13 +317,14 @@ module bmad_struct
   integer, parameter :: rel_tol$ = 32
   integer, parameter :: abs_tol$ = 33
   integer, parameter :: B_field$ = 34, B_gradient$ = 34
+  integer, parameter :: E_field$ = 34, E_gradient$ = 34
 
   integer, parameter :: type$ = 35   ! this is 1 greater than n_attrib_maxx
   integer, parameter :: alias$ = 36 
-  integer, parameter :: start_edge$ = 37     ! special for groups
-  integer, parameter :: end_edge$ = 38       ! special for groups
-  integer, parameter :: accordion_edge$ = 39 ! special for groups
-  integer, parameter :: symmetric_edge$ = 40
+  integer, parameter :: start_edge$ = 37     
+  integer, parameter :: end_edge$ = 38       
+  integer, parameter :: accordion_edge$ = 39, sr_wake_file$ = 39 
+  integer, parameter :: symmetric_edge$ = 40, lr_wake_file$ = 40
   integer, parameter :: mat6_calc_method$ = 41
   integer, parameter :: tracking_method$  = 42
   integer, parameter :: num_steps$ = 43
@@ -412,7 +437,6 @@ module bmad_struct
   character(16) :: plane_name(5) = (/ 'X', 'Y', 'Z', 'N', ' ' /)
 
   logical, parameter :: set$ = .true., unset$ = .false.
-  integer, parameter :: has_been_inited$ = 123456  ! something random
 
 ! garbage$ is, for example, for subroutines that want to communicate to
 ! the calling program that a variable has not been set properly.
@@ -492,18 +516,6 @@ module bmad_struct
     integer file_num
   end type
 
-! For 6x27 matrices
-
-  integer, parameter :: x11$ = 7, x12$ = 8, x13$ = 9, x14$ = 10, x15$ = 11
-  integer, parameter :: x16$ = 12, x22$ = 13, x23$ = 14, x24$ = 15
-  integer, parameter :: x25$ = 16, x26$ = 17, x33$ = 18, x34$ = 19, x35$ = 20
-  integer, parameter :: x36$ = 21, x44$ = 22, x45$ = 23, x46$ = 24
-  integer, parameter :: x55$ = 25, x56$ = 26, x66$ = 27
-
-  type mat627_struct
-    real(rp) m(6,27)
-  end type
-
 !---------------------------------------------------------------
 ! the cesr_struct is used by bmad_to_cesr.
 ! the element ordering here is similar to what is used by cesrv
@@ -535,6 +547,8 @@ module bmad_struct
   integer, parameter :: n_scir_quad_maxx = 4
   integer, parameter :: n_scir_tilt_maxx = 8
 
+! %ix_cesr is a pointer to cesr_struct for given type
+
   type cesr_struct
     type (cesr_element_struct) quad_(0:120)
     type (cesr_element_struct) skew_quad_(0:120)
@@ -551,7 +565,7 @@ module bmad_struct
     type (cesr_element_struct) scir_cam_rho_(n_scir_cam_maxx)
     type (cesr_element_struct) scir_tilt_(n_scir_tilt_maxx)
     integer ix_ip_l3                     ! pointer to IP_L3
-    integer ix_cesr(n_ele_maxx)  ! pointer to cesr struct for given type
+    integer, pointer :: ix_cesr(:) => null() 
   end type
 
 !-------------------------------------------------------------------------
@@ -609,7 +623,7 @@ module bmad_struct
 ! for pointing to a db_struct array
 
   type db_node_struct
-    type (db_element_struct), pointer :: ptr(:)
+    type (db_element_struct), pointer :: ptr(:) => null()
   end type
                                                        
 ! db_struct def
@@ -691,6 +705,6 @@ module bmad_struct
 
 ! multi_turn_func_common is for multi_turn_tracking_to_mat.
 
-  type (coord_struct), pointer :: multi_turn_func_common(:)  
+  type (coord_struct), pointer :: multi_turn_func_common(:) => null()
 
 end module

@@ -44,7 +44,7 @@ Subroutine dispersion_to_orbit (ele, disp_orb)
 !
 
   disp_orb%vec = (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, &
-                                                       0.0_rdef, 1.0_rdef /)
+                                                       0.0_rp, 1.0_rp /)
 
   if (all(ele%c_mat == 0)) return
 

@@ -14,7 +14,7 @@
 !
 ! Output:
 !   ele    -- Ele_struct: Element
-!     %mat6  -- Real(rdef): 6x6 transfer matrix.
+!     %mat6  -- Real(rp): 6x6 transfer matrix.
 !   end    -- Coord_struct, optional: Coordinates at the end of element.
 !-
 

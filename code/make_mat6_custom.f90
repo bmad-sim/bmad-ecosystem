@@ -24,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2003/07/09 01:38:16  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.2  2003/01/27 14:40:37  dcs
 !bmad_version = 56
 !
@@ -48,7 +51,7 @@ subroutine make_mat6_custom (ele, param, c0, c1)
   type (coord_struct) :: c0, c1
   type (param_struct)  param
 
-  real(rdef) error
+  real(rp) error
 
   integer temp_method
   logical temp_symplectify

@@ -124,7 +124,7 @@ Subroutine adjust_super_lord_s_position (ring, ix_lord)
 
   integer ix_lord, ix
 
-  real(rdef) s_start, s_start2, s_end
+  real(rp) s_start, s_start2, s_end
 
 !
 
@@ -173,7 +173,7 @@ Subroutine makeup_group_slaves (ring, ix_lord)
   type (ring_struct), target :: ring
   type (ele_struct), pointer :: lord, slave
 
-  real(rdef) delta, coef
+  real(rp) delta, coef
 
   integer ix_lord, ix, iv, ict, i
 
@@ -216,7 +216,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine MAKEUP_SUPER_SLAVE (RING, IX_SLAVE)
+! Subroutine makeup_super_slave (ring, ix_slave)
 !
 ! Subroutine to calcualte the attributes of overlay slave elements
 !-
@@ -231,15 +231,15 @@ subroutine makeup_super_slave (ring, ix_slave)
 
   integer i, ix_con, j, ix, ix_slave
 
-  real(rdef) tilt, k1_x, k1_y, x_kick, y_kick, ks, k1, coef
-  real(rdef) x_o, y_o, x_p, y_p, s_slave, s_del
-  real(rdef) sin_2, cos_2, x_off, y_off, a(0:n_pole_maxx), b(0:n_pole_maxx)
-  real(rdef) knl(0:n_pole_maxx), t(0:n_pole_maxx), value(n_attrib_maxx)
-  real(rdef) a_tot(0:n_pole_maxx), b_tot(0:n_pole_maxx)
-  real(rdef) sum_1, sum_2, sum_3, sum_4, ks_sum, ks_xp_sum, ks_xo_sum
-  real(rdef) ks_yp_sum, ks_yo_sum, l_slave, r_off(4)
-  real(rdef) t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4)
-  real(rdef) T_tot(4,4), x_o_sol, x_p_sol, y_o_sol, y_p_sol
+  real(rp) tilt, k1_x, k1_y, x_kick, y_kick, ks, k1, coef
+  real(rp) x_o, y_o, x_p, y_p, s_slave, s_del
+  real(rp) sin_2, cos_2, x_off, y_off, a(0:n_pole_maxx), b(0:n_pole_maxx)
+  real(rp) knl(0:n_pole_maxx), t(0:n_pole_maxx), value(n_attrib_maxx)
+  real(rp) a_tot(0:n_pole_maxx), b_tot(0:n_pole_maxx)
+  real(rp) sum_1, sum_2, sum_3, sum_4, ks_sum, ks_xp_sum, ks_xo_sum
+  real(rp) ks_yp_sum, ks_yo_sum, l_slave, r_off(4)
+  real(rp) t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4)
+  real(rp) T_tot(4,4), x_o_sol, x_p_sol, y_o_sol, y_p_sol
 
   logical, save :: init_needed = .true.
 
@@ -519,7 +519,7 @@ subroutine makeup_super_slave (ring, ix_slave)
 
   l_slave = slave%value(l$)
 
-  t_1 = (/ t_2(2), 0.0_rdef, t_2(4), 0.0_rdef /)
+  t_1 = (/ t_2(2), 0.0_rp, t_2(4), 0.0_rp /)
   t_2(1) = t_2(1) + ks * t_2(4) / k1 
   t_2(3) = t_2(3) + ks * t_2(2) / k1
              
@@ -566,7 +566,7 @@ subroutine makeup_overlay_slave (ring, ix_ele)
   type (ring_struct), target :: ring
   type (ele_struct), pointer :: ele
 
-  real(rdef) value(n_attrib_maxx), coef
+  real(rp) value(n_attrib_maxx), coef
   integer i, j, ix, iv, ix_ele, icom, ct
   logical used(n_attrib_maxx)
 
@@ -629,6 +629,8 @@ end subroutine
 !   WIGGLER:      k1$  = -0.5 * (c_light * b_max$ / param%beam_energy)**2
 !                 rho$ = param%beam_energy / (c_light * b_max$)
 !
+!   LCAVITY:      e_loss$  = k_loss$ * L$
+!                 delta_e$ = gradient$ * L$ 
 !
 ! Modules needed:
 !   use bmad
@@ -648,11 +650,11 @@ subroutine attribute_bookkeeper (ele, param)
   type (ele_struct) ele
   type (param_struct) param
 
-  real(rdef) r, factor, p
+  real(rp) r, factor, p
   
-! b_field_master
+! field_master
 
-  if (ele%b_field_master) then
+  if (ele%field_master) then
 
     if (ele%value(energy$) == 0) then
       factor = 0
@@ -674,7 +676,7 @@ subroutine attribute_bookkeeper (ele, param)
       ele%value(g$) = factor * ele%value(B_field$)
     case default
       print *, 'ERROR IN ATTRIBUTE_BOOKKEEPER: ', &
-                      '"B_FIELD_MASTER" NOT IMPLEMENTED FOR: ', trim(ele%name)
+                      '"FIELD_MASTER" NOT IMPLEMENTED FOR: ', trim(ele%name)
       call err_exit
     end select
 
@@ -699,6 +701,12 @@ subroutine attribute_bookkeeper (ele, param)
       ele%value(rho$) = 1 / ele%value(g$)
     endif
 
+! Lcavity
+
+  case (lcavity$)
+    ele%value(e_loss$)  = ele%value(k_loss$) * ele%value(L$)
+    ele%value(delta_e$) = ele%value(gradient$) * ele%value(L$) 
+    
 
 ! RFcavity
 

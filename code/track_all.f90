@@ -23,30 +23,7 @@
 !       x_limit (or y_limit) as infinite.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.7  2003/05/02 15:44:03  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.6  2003/01/27 14:40:45  dcs
-!bmad_version = 56
-!
-!Revision 1.5  2002/07/16 20:44:02  dcs
-!*** empty log message ***
-!
-!Revision 1.4  2002/06/13 14:54:29  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.3  2002/02/23 20:32:26  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:58  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
-
 
 subroutine track_all (ring, orbit_)
 
@@ -56,15 +33,19 @@ subroutine track_all (ring, orbit_)
   implicit none
 
   type (ring_struct)  ring
-  type (coord_struct)  orbit_(0:)
+  type (coord_struct), allocatable :: orbit_(:)
 
   integer n, i
 
   logical debug / .false. /
 
-! track through elements.
+! init
 
   ring%param%lost = .false.
+  if (size(orbit_) < ring%n_ele_max+1) &
+                  call reallocate_coord (orbit_, ring%n_ele_max)
+
+! track through elements.
 
   do n = 1, ring%n_ele_use
 

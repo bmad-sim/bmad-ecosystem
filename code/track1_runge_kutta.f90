@@ -12,9 +12,9 @@
 ! Input:
 !   start      -- Coord_struct: Starting coords.
 !   ele        -- Ele_struct
-!     %value(rel_tol$)    -- Real(rdef): % Error tollerance. 
+!     %value(rel_tol$)    -- Real(rp): % Error tollerance. 
 !                             A good value would be, say, 1e-5.
-!     %value(abs_tol$)    -- Real(rdef): absolute error. 
+!     %value(abs_tol$)    -- Real(rp): absolute error. 
 !                             A good value would be, say, 1e-8.
 !   param      -- Param_struct: Beam parameters.
 !     %enegy     -- Energy in GeV
@@ -29,13 +29,16 @@
 !
 !   odeint_com -- common structure holding the path from the last tracking.
 !     %n_pts     -- Integer: Number of data points.
-!     %s(:)      -- Real(rdef): Array of s locations.
+!     %s(:)      -- Real(rp): Array of s locations.
 !     %orb(:)    -- Coord_struct: Array of coordinates
 !       %vec(1)     -- X position, etc.
 !- 
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/07/09 01:38:21  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.5  2003/06/04 17:55:55  dcs
 !Eliminated x%pos, x%vel, etc. from coord_struct.
 !
@@ -75,7 +78,7 @@ subroutine track1_runge_kutta (start, ele, param, end)
   type (param_struct), target, intent(inout) :: param
   type (ele_struct), target, intent(inout) :: ele
 
-  real(rdef) s_start, s_end, rel_tol, abs_tol, del_s_step, del_s_min, fac
+  real(rp) s_start, s_end, rel_tol, abs_tol, del_s_step, del_s_min, fac
 
 ! init
 
@@ -98,7 +101,7 @@ subroutine track1_runge_kutta (start, ele, param, end)
   del_s_min = 1e-8
   
   call offset_particle (ele, param, end, set$)
-  call odeint_bmad (start, ele, param, end, 0.0_rdef, ele%value(l$), &
+  call odeint_bmad (start, ele, param, end, 0.0_rp, ele%value(l$), &
                                   rel_tol, abs_tol, del_s_step, del_s_min)
   call offset_particle (ele, param, end, unset$)
 

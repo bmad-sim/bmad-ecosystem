@@ -118,10 +118,10 @@ subroutine check_attrib_free (ele, ix_attrib, ring, err_flag, err_print_flag)
             '      YOU CANNOT VARY THIS ATTRIBUTE DIRECTLY.'
   endif
 
-! b_field_master on means that the b_field and b_gradiant values control
+! field_master on means that the b_field and b_gradient values control
 ! the strength.
 
-  if (ele%b_field_master) then
+  if (ele%field_master) then
     select case (ele%key)
     case (quadrupole$)
       if (ix_attrib == k1$) err_flag = .true.
@@ -141,7 +141,7 @@ subroutine check_attrib_free (ele, ix_attrib, ring, err_flag, err_print_flag)
             'ERROR IN CHECK_ATTRIB_FREE. THE ATTRIBUTE: ' // &
                                              attribute_name(ele, ix_attrib), &
             '      OF ELEMENT: ' // ele%name, &
-            '      IS A DEPENDENT VARIABLE SINCE B_FIELD_MASTER IS ON.', &
+            '      IS A DEPENDENT VARIABLE SINCE FIELD_MASTER IS ON.', &
             '      YOU CANNOT VARY THIS ATTRIBUTE DIRECTLY.'
   endif
 

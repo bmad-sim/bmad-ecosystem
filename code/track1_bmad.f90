@@ -86,7 +86,7 @@ subroutine track1_bmad (start, ele, param, end)
 
 ! drift
 
-  case (drift$) 
+  case (drift$, rcollimator$, ecollimator$, monitor$, instrument$) 
 
     call track_a_drift (end%vec, length)
 
@@ -107,7 +107,7 @@ subroutine track1_bmad (start, ele, param, end)
 
 ! kicker, separator
 
-  case (elseparator$, kicker$) 
+  case (elseparator$, kicker$, hkicker$, vkicker$) 
 
     call offset_particle (ele, param, end, set$)
 
@@ -265,7 +265,7 @@ subroutine track1_bmad (start, ele, param, end)
   case (lcavity$)
 
     if (ele%value(energy_start$) == 0) then
-      print *, 'ERROR IN TRACK1_BMAD: REFERENCE BEAM ENERGY IS 0 FOR A LCAVITY!'
+      print *, 'ERROR IN TRACK1_BMAD: ENERGY_START IS 0 FOR A LCAVITY!'
       call err_exit
     endif
 

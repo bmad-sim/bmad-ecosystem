@@ -8,13 +8,12 @@
 !   use bmad
 !
 ! Input:
-!   phi_x_set       -- Real(rdef): Horizontal set tune (radians)
-!   phi_y_set       -- Real(rdef): Vertical set tune (radians)
-!   dk1(n_ele_maxx) -- Real(rdef): Relative amount to vary a quad in tuning.
-!                       dk1(i) relates to ring%ele_(i). Those quads with a
-!                       positive dk1(i) will be varied as one group and the
-!                       quads with negative dk1(i) will be varied as another
-!                       group.
+!   phi_x_set -- Real(rp): Horizontal set tune (radians)
+!   phi_y_set -- Real(rp): Vertical set tune (radians)
+!   dk1(:)    -- Real(rp): Relative amount to vary a quad in tuning.
+!                  dk1(i) relates to ring%ele_(i). Those quads with a
+!                  positive dk1(i) will be varied as one group and the
+!                  quads with negative dk1(i) will be varied as another group.
 !
 ! Output:
 !   ring      -- Ring_struct: Q_tuned ring
@@ -22,23 +21,6 @@
 !   ok        -- Logical: Set True if everything is ok. False otherwise.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.6  2003/05/02 15:44:02  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.5  2003/01/27 14:40:43  dcs
-!bmad_version = 56
-!
-!Revision 1.4  2002/07/16 20:44:02  dcs
-!*** empty log message ***
-!
-!Revision 1.3  2002/02/23 20:32:25  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:57  rwh24
-!UNIX compatibility updates
-!
 
 #include "CESR_platform.inc"
 
@@ -52,11 +34,11 @@ subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
 
   type (ring_struct) ring
   type (ele_struct) ave
-  type (coord_struct) orb_(0:)
+  type (coord_struct), allocatable :: orb_(:)
 
-  real(rdef) phi_x_set, phi_y_set, dphi_x, dphi_y
-  real(rdef) phi_x, phi_y, d_xx, d_xy, d_yx, d_yy, det
-  real(rdef) l_beta_x, l_beta_y, dk_x, dk_y, dk1(:)
+  real(rp) phi_x_set, phi_y_set, dphi_x, dphi_y
+  real(rp) phi_x, phi_y, d_xx, d_xy, d_yx, d_yy, det
+  real(rp) l_beta_x, l_beta_y, dk_x, dk_y, dk1(:)
 
   integer i, j
 

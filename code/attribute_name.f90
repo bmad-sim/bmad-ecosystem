@@ -64,19 +64,16 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, aperture$) = 'APERTURE'
       attrib_array(i, energy$)   = 'ENERGY'
 
-      if (i == taylor$) cycle
-      if (i == patch$)  cycle
-      if (i == hom$)    cycle
-      if (i == matrix$) cycle
+      if (i == taylor$)  cycle
+      if (i == patch$)   cycle
+      if (i == hom$)     cycle
+      if (i == matrix$)  cycle
+      if (i == marker$)  cycle
+      if (i == hkicker$) cycle
+      if (i == vkicker$) cycle
 
       attrib_array(i, hkick$)  = 'HKICK'
       attrib_array(i, vkick$)  = 'VKICK'
-
-      if (i == marker$) cycle
-
-      attrib_array(i, x_offset$) = 'X_OFFSET'
-      attrib_array(i, y_offset$) = 'Y_OFFSET'
-      attrib_array(i, s_offset$) = 'S_OFFSET'
 
       attrib_array(i, mat6_calc_method$)  = 'MAT6_CALC_METHOD'
       attrib_array(i, tracking_method$)   = 'TRACKING_METHOD'
@@ -84,14 +81,23 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, num_steps$)         = 'NUM_STEPS'
       attrib_array(i, symplectify$)       = 'SYMPLECTIFY'
       attrib_array(i, ptc_kind$)          = 'PTC_KIND'
-      
+      attrib_array(i, rel_tol$) = 'REL_TOL'
+      attrib_array(i, abs_tol$) = 'ABS_TOL'
+
+      if (i == drift$)      cycle
+      if (i == monitor$)    cycle
+      if (i == instrument$) cycle
+
+      attrib_array(i, x_offset$) = 'X_OFFSET'
+      attrib_array(i, y_offset$) = 'Y_OFFSET'
+      attrib_array(i, s_offset$) = 'S_OFFSET'
+
+      if (i == rcollimator$) cycle
+      if (i == ecollimator$) cycle
       if (i == multipole$ .or. i == ab_multipole$) cycle
 
       attrib_array(i, x_pitch$)   = 'X_PITCH'
       attrib_array(i, y_pitch$)   = 'Y_PITCH'
-
-      attrib_array(i, rel_tol$) = 'REL_TOL'
-      attrib_array(i, abs_tol$) = 'ABS_TOL'
 
     enddo
 
@@ -139,6 +145,11 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(lcavity$, gradient$)      = 'GRADIENT'
     attrib_array(lcavity$, rf_frequency$)  = 'RF_FREQUENCY'
     attrib_array(lcavity$, rf_wavelength$) = 'RF_WAVELENGTH'
+    attrib_array(lcavity$, k_loss$)        = 'K_LOSS'
+    attrib_array(lcavity$, e_loss$)        = 'E_LOSS'
+    attrib_array(lcavity$, delta_e$)       = 'DELTA_E'
+    attrib_array(lcavity$, sr_wake_file$)  = 'SR_WAKE_FILE'
+    attrib_array(lcavity$, lr_wake_file$)  = 'LR_WAKE_FILE'
 
     attrib_array(group$, command$)        = 'COMMAND'
     attrib_array(group$, old_command$)    = 'OLD_COMMAND'
@@ -148,7 +159,20 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(group$, accordion_edge$) = 'ACCORDION_EDGE'
     attrib_array(group$, symmetric_edge$) = 'SYMMETRIC_EDGE'
 
-    attrib_array(drift$, l$) = 'L'
+    attrib_array(drift$,      l$) = 'L'
+    attrib_array(monitor$,    l$) = 'L'
+    attrib_array(instrument$, l$) = 'L'
+
+    attrib_array(rcollimator$, l$)     = 'L'
+    attrib_array(ecollimator$, l$)     = 'L'
+
+    attrib_array(hkicker$, l$)     = 'L'
+    attrib_array(hkicker$, tilt$)  = 'TILT'
+    attrib_array(hkicker$, kick$)  = 'KICK'
+
+    attrib_array(vkicker$, l$)     = 'L'
+    attrib_array(vkicker$, tilt$)  = 'TILT'
+    attrib_array(vkicker$, kick$)  = 'KICK'
 
     attrib_array(sbend$, l$)          = 'L'
     attrib_array(sbend$, angle$)      = 'ANGLE'

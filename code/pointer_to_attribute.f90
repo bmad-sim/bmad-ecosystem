@@ -21,7 +21,7 @@
 !                       printing of an error message on error.
 !
 ! Output:
-!   ptr_attrib -- Real(rdef), pointer: Pointer to the attribute.
+!   ptr_attrib -- Real(rp), pointer: Pointer to the attribute.
 !                     Pointer will be deassociated if there is a problem.
 !   ix_attrib  -- Ineger: Index to the attribute.
 !   err_flag   -- Logical: Set True if attribtute not found or attriubte
@@ -40,7 +40,7 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
 
   type (ele_struct), target :: ele
 
-  real(rdef), pointer :: ptr_attrib
+  real(rp), pointer :: ptr_attrib
 
   integer i_ele, ix_attrib, i, ir, ix
 

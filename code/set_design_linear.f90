@@ -12,18 +12,6 @@
 !           set on.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.4  2003/01/27 14:40:42  dcs
-!bmad_version = 56
-!
-!Revision 1.3  2002/02/23 20:32:24  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:57  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 
@@ -35,9 +23,11 @@ subroutine set_design_linear (ring)
   implicit none
 
   type (ring_struct) ring
-  type (coord_struct) orb_(0:n_ele_maxx)
+  type (coord_struct), allocatable :: orb_(:)
 
   integer i, key
+
+  allocate (orb_(0:ring%n_ele_maxx))
 
 !
 
@@ -51,5 +41,7 @@ subroutine set_design_linear (ring)
   enddo
 
   call ring_make_mat6 (ring, -1, orb_)
+
+  deallocate(orb_)
 
 end subroutine

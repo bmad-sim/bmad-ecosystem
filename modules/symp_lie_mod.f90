@@ -36,6 +36,12 @@ contains
 !   ele    -- Ele_struct: Element with transfer matrix.
 !     %mat6  -- 6x6 transfer matrix.
 !   end    -- Coord_struct: Coordinates at the end of element.
+!
+! To save the orbit through the ele there is a global variable:
+!   sl_com  -- Symp_lie_com_struct: Global variable
+!     %save_orbit -- Logical: Set True to save the orbit
+!     %s(:)       -- real(rp): S-positions
+!     %orb(:)     -- Coord_struct: orbit.
 !-
 
 subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
@@ -43,12 +49,12 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
   implicit none
 
   type save_coef_struct
-    real(rdef) coef, dx_coef, dy_coef
+    real(rp) coef, dx_coef, dy_coef
   end type
 
   type save_computations_struct
     type (save_coef_struct) a_y, dint_a_y_dx, da_z_dx, da_z_dy
-    real(rdef) c_x, s_x, c_y, s_y, c_z, s_z, s_x_kx, s_y_ky, c1_ky2
+    real(rp) c_x, s_x, c_y, s_y, c_z, s_z, s_x_kx, s_y_ky, c1_ky2
   end type
 
   type (save_computations_struct), allocatable, save :: tm(:)
@@ -58,9 +64,9 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
   type (param_struct)  param
   type (wig_term_struct), pointer :: wt
 
-  real(rdef) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6)
-  real(rdef), pointer :: mat6(:,:)
-  real(rdef), parameter :: z0 = 0, z1 = 1
+  real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6)
+  real(rp), pointer :: mat6(:,:)
+  real(rp), parameter :: z0 = 0, z1 = 1
 
   integer i, j, n
 
@@ -276,7 +282,7 @@ contains
 
 subroutine update_coefs
 
-  real(rdef) factor, coef
+  real(rp) factor, coef
 
   factor = c_light / param%beam_energy
 
@@ -323,7 +329,7 @@ end subroutine
 
 subroutine update_y_terms
 
-  real(rdef) kyy
+  real(rp) kyy
 
   do j = 1, size(ele%wig_term)
     wt => ele%wig_term(j)
@@ -354,7 +360,7 @@ end subroutine
 
 subroutine update_x_s_terms
 
-  real(rdef) kxx, kzz
+  real(rp) kxx, kzz
 
   do j = 1, size(ele%wig_term)
     wt => ele%wig_term(j)
@@ -387,7 +393,7 @@ end subroutine
 
 function a_y() result (value)
 
-  real(rdef) value
+  real(rp) value
 
   value = 0
   do j = 1, size(ele%wig_term)
@@ -401,7 +407,7 @@ end function
 
 function dint_a_y_dx() result (value)
 
-  real(rdef) value
+  real(rp) value
 
   value = 0
   do j = 1, size(ele%wig_term)
@@ -415,7 +421,7 @@ end function
 
 function da_z_dx() result (value)
 
-  real(rdef) value
+  real(rp) value
 
   value = 0
   do j = 1, size(ele%wig_term)
@@ -429,7 +435,7 @@ end function
 
 function da_z_dy() result (value)
 
-  real(rdef) value
+  real(rp) value
 
   value = 0
   do j = 1, size(ele%wig_term)
@@ -443,7 +449,7 @@ end function
 
 function dint_a_y_dx__dx() result (value)
 
-  real(rdef) value
+  real(rp) value
 
   value = 0
   do j = 1, size(ele%wig_term)
@@ -457,7 +463,7 @@ end function
 
 function dint_a_y_dx__dy() result (value)
 
-  real(rdef) value
+  real(rp) value
 
   value = 0
   do j = 1, size(ele%wig_term)
@@ -471,7 +477,7 @@ end function
 
 function a_y__dx() result (value)
 
-  real(rdef) value
+  real(rp) value
 
   value = 0
   do j = 1, size(ele%wig_term)
@@ -485,7 +491,7 @@ end function
 
 function a_y__dy() result (value)
 
-  real(rdef) value
+  real(rp) value
 
   value = 0
   do j = 1, size(ele%wig_term)
@@ -499,7 +505,7 @@ end function
 
 function da_z_dx__dx() result (value)
 
-  real(rdef) value
+  real(rp) value
 
   value = 0
   do j = 1, size(ele%wig_term)
@@ -513,7 +519,7 @@ end function
 
 function da_z_dx__dy() result (value)
 
-  real(rdef) value
+  real(rp) value
 
   value = 0
   do j = 1, size(ele%wig_term)
@@ -527,7 +533,7 @@ end function
 
 function da_z_dy__dx() result (value)
 
-  real(rdef) value
+  real(rp) value
 
   value = 0
   do j = 1, size(ele%wig_term)
@@ -541,7 +547,7 @@ end function
 
 function da_z_dy__dy() result (value)
 
-  real(rdef) value
+  real(rp) value
 
   value = 0
   do j = 1, size(ele%wig_term)

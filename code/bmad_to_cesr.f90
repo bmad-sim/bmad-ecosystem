@@ -2,7 +2,11 @@
 ! Subroutine BMAD_TO_CESR (RING, CESR)
 !
 ! Subroutine to transfer information from the RING structure returned from
-! BAMD_PARSER to a structure for the CESR ring
+! BMAD_PARSER to a structure for the CESR ring
+!
+! WARNING! cesr%ix_cesr is allocated in this subroutine.  It should be
+! deallocated in the calling function!
+
 !
 ! Modules Needed:
 !   use bmad
@@ -23,34 +27,6 @@
 ! Hardbend steerings are put in CESR.H_STEER(101) through CESR.H_STEER(106)
 !-
 
-!$Id$
-!$Log$
-!Revision 1.9  2003/05/02 15:43:58  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.8  2003/01/27 14:40:30  dcs
-!bmad_version = 56
-!
-!Revision 1.7  2002/02/23 20:32:11  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.6  2002/01/08 21:44:37  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.5  2001/10/12 20:53:35  rwh24
-!DCS changes and two files added
-!
-!Revision 1.4  2001/10/08 17:18:14  rwh24
-!DCS changes to f90 files.
-!Bug fixes to c file.
-!
-!Revision 1.3  2001/10/02 18:49:11  rwh24
-!More compatibility updates; also added many explicit variable declarations.
-!
-!Revision 1.2  2001/09/27 18:31:48  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 subroutine bmad_to_cesr (ring, cesr)
@@ -70,6 +46,9 @@ subroutine bmad_to_cesr (ring, cesr)
   integer j, i, vnumbr
 
 ! load names
+
+  if (associated(cesr%ix_cesr)) deallocate (cesr%ix_cesr)
+  allocate (cesr%ix_cesr(ring%n_ele_max))
 
   cesr%quad_(:)%ix_ring         = 0
   cesr%skew_quad_(:)%ix_ring    = 0

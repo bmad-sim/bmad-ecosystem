@@ -20,21 +20,24 @@
 !
 ! Input:
 !     COORD      -- Coord_struct: Coordinates of particle
-!     REF_ENERGY -- Real(rdef): Reference energy of beam
-!     REF_Z      -- Real(rdef): Reference longitudinal position of beam
+!     REF_ENERGY -- Real(rp): Reference energy of beam
+!     REF_Z      -- Real(rp): Reference longitudinal position of beam
 !     TO_CART    -- Logical: True if converting to cartesian coordinates
 !                            False if converting to accelerator coordinates
 !     If to_cart == .false.:
-!       TIME_DISP -- Real(rdef): Time displacement of particle
+!       TIME_DISP -- Real(rp): Time displacement of particle
 !
 ! Output:
 !     COORD  -- Coord_struct: Converted coordinates
 !     If to_cart == .true.:
-!       TIME_DISP -- Real(rdef): Time displacement of particle
+!       TIME_DISP -- Real(rp): Time displacement of particle
 !-
 
 !$Id$
 !$Log$
+!Revision 1.9  2003/07/09 01:38:10  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.8  2003/06/04 17:55:53  dcs
 !Eliminated x%pos, x%vel, etc. from coord_struct.
 !
@@ -68,7 +71,7 @@ subroutine change_basis (coord, ref_energy, ref_z, to_cart, time_disp)
   implicit none
 
   type (coord_struct)  coord, saved
-  real(rdef) beta2, ref_energy, ref_z, time_disp, rvar
+  real(rp) beta2, ref_energy, ref_z, time_disp, rvar
   logical to_cart
 
 !

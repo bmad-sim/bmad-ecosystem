@@ -48,9 +48,12 @@ subroutine ring_reverse (ring_in, ring_rev)
   type (ele_struct), pointer :: ele
   type (control_struct), pointer :: con
 
-  integer i, n, i1, i2, nr, ix_con(n_control_maxx)
+  integer i, n, i1, i2, nr, n_con
+  integer :: ix_con(size(ring_in%control_))
 
 ! transfer
+
+  n_con = size(ring_in%control_)
 
   ring_rev = ring_in
 
@@ -65,7 +68,7 @@ subroutine ring_reverse (ring_in, ring_rev)
 
 ! correct control information
 
-  do i = 1, ring_rev%n_control_array
+  do i = 1, ring_rev%n_control_max
     con => ring_rev%control_(i)
     if (con%ix_slave <= nr) con%ix_slave = nr+1-con%ix_slave
     if (con%ix_lord <= nr)  con%ix_lord  = nr+1-con%ix_lord
@@ -76,7 +79,7 @@ subroutine ring_reverse (ring_in, ring_rev)
 ! Also: adjust s-position of lords.
 
 
-  forall (i = 1:n_control_maxx) ix_con(i) = i 
+  forall (i = 1:n_con) ix_con(i) = i 
 
   do i = nr+1, ring_rev%n_ele_max
     ele => ring_rev%ele_(i)
@@ -88,7 +91,7 @@ subroutine ring_reverse (ring_in, ring_rev)
     ele%s = ring_rev%param%total_length - ele%s + ele%value(l$)
   enddo
 
-  n = ring_rev%n_ic_array
+  n = ring_rev%n_ic_max
   ring_rev%ic_(1:n) = ix_con(ring_rev%ic_(1:n))
 
 ! Cleanup
@@ -130,7 +133,7 @@ subroutine reverse_ele (ele)
 
   integer i, j, sum245
 
-  real(rdef) tempp
+  real(rp) tempp
 
 ! Flip longitudinal attributes
 

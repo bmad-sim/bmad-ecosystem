@@ -65,8 +65,38 @@ subroutine radiation_integrals (ring, orb_, mode)
 
   integer i, ix, ir, key
 
+  logical do_alloc
+
 !---------------------------------------------------------------------
 ! init
+
+  if (associated(ric%i1_)) then
+   if (size(ric%i1_) < ring%n_ele_max) then 
+     deallocate (ric%i1_)
+     deallocate (ric%i2_)
+     deallocate (ric%i3_)
+     deallocate (ric%i4a_)
+     deallocate (ric%i4b_)
+     deallocate (ric%i5a_)
+     deallocate (ric%i5b_)
+     do_alloc = .true.
+    else
+      do_alloc = .false.
+    endif
+  else
+    do_alloc = .true.
+  endif
+
+  if (do_alloc) then
+   allocate (ric%i1_(ring%n_ele_max))
+   allocate (ric%i2_(ring%n_ele_max))
+   allocate (ric%i3_(ring%n_ele_max))
+   allocate (ric%i4a_(ring%n_ele_max))
+   allocate (ric%i4b_(ring%n_ele_max))
+   allocate (ric%i5a_(ring%n_ele_max))
+   allocate (ric%i5b_(ring%n_ele_max))
+  endif
+
 
   m65 = 0
 
@@ -158,7 +188,6 @@ subroutine radiation_integrals (ring, orb_, mode)
       ric%i5b_(ir) = qromb_rad_int (eval_i5b, 0.0_rp, ll, i5b, 'I5B')
       cycle
     endif
-
 
 !
 

@@ -19,7 +19,7 @@
 ! Input:
 !   in_file     -- Character*(*): Input file name
 !   ring        -- Ring_struct: Ring with existing layout
-!   orbit_(0:n_ele_maxx) -- [Optional] Coord_struct: closed orbit for when
+!   orbit_(0:)  -- Coord_struct, optional: closed orbit for when
 !                           bmad_parser2 calls ring_make_mat6
 !   make_mats6  -- Logical, optional: Make the 6x6 transport matrices for then
 !                   Elements? Default is True.
@@ -47,10 +47,11 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   integer key, ix_super, ivar, n_max_old
   integer, pointer :: n_max
 
-  character*(*) in_file
+  character(*) in_file
   character(16) word_2, name, a_name
   character(16) name1, name2
-  character delim*1, word_1*32, call_file*200
+  character(1) delim 
+  character(32) word_1
   character(40) this_name
   character(280) parse_line_save
 
@@ -60,6 +61,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
 ! init
 
+  bmad_status%ok = .true.
   bp_com%parser_name = 'BMAD_PARSER2'
   bp_com%n_files = 0
   bp_com%error_flag = .false.                  ! set to true on an error
@@ -97,6 +99,8 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 !-----------------------------------------------------------
 ! main parsing loop
 
+  bp_com%input_line_meaningful = .true.
+
   parsing_loop: do
 
 ! get a line from the input file and parse out the first word
@@ -113,26 +117,8 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 ! CALL command
 
     if (word_1(:ix_word) == 'CALL') then
-
-      if (delim /= ',')  &
-              call warning ('"CALL" NOT FOLLOWED BY COMMA', ' ')
-      call get_next_word(call_file, ix_word, ':=,', delim, delim_found, .true.)
-      if (ix_word == 0) then
-        call warning ('NOTHING AFTER "CALL"', ' ')
-      elseif (index('FILENAME', call_file(:ix_word)) /= 1) then
-        call warning ('INVALID "CALL" COMMAND', ' ')
-      elseif (delim /= '=') then
-        call warning ('NO "=" AFTER "FILENAME"', ' ')
-      else
-        call get_next_word(call_file, ix_word, '=,', &
-                                       delim, delim_found, .false.)
-        if (ix_word == 0) then
-          call warning ('NO FILE NAME SPECIFIED', ' ')
-        else
-          call file_stack ('push', call_file, finished)
-          if (.not. bmad_status%ok) return
-        endif
-      endif
+      call get_called_file(delim)
+      if (.not. bmad_status%ok) return
       cycle parsing_loop
 
     endif
@@ -236,7 +222,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
       found = .false.
       do i = 1, bp_com%ivar_tot-1
-        if (word_1 == var_(i)%name) then
+        if (word_1 == bp_com%var_(i)%name) then
           ivar = i
           found = .true.
         endif
@@ -244,19 +230,16 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
       if (.not. found) then
         bp_com%ivar_tot = bp_com%ivar_tot + 1
+        if (bp_com%ivar_tot > size(bp_com%var_)) call reallocate_bp_com_var()
         ivar = bp_com%ivar_tot
-        if (bp_com%ivar_tot > ivar_maxx) then
-          print *, 'ERROR IN BMAD_PARSER2: NEED TO INCREASE IVAR_MAXX!'
-          call err_exit
-        endif
       endif
 
-      var_(ivar)%name = word_1
-      call evaluate_value (var_(ivar)%name, var_(ivar)%value, &
+      bp_com%var_(ivar)%name = word_1
+      call evaluate_value (bp_com%var_(ivar)%name, bp_com%var_(ivar)%value, &
                                     ring, delim, delim_found, err_flag)
       if (delim /= ' ' .and. .not. err_flag) call warning  &
             ('EXTRA CHARACTERS ON RHS: ' // bp_com%parse_line,  &
-             'FOR VARIABLE: ' // var_(ivar)%name)
+             'FOR VARIABLE: ' // bp_com%var_(ivar)%name)
       cycle parsing_loop
 
     endif
@@ -289,12 +272,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
     else
 
       n_max = n_max + 1
-      if (n_max > n_ele_maxx) then
-        print *, 'ERROR IN BMAD_PARSER2: NEED TO INCREASE ELEMENT ARRAY!'
-        call err_exit
-      endif
-
-      call init_ele (ring%ele_(n_max))    ! init element
+      if (n_max > ring%n_ele_maxx) call allocate_ring_ele_( ring )
       ring%ele_(n_max)%name = word_1
       last_con = last_con + 1     ! next free slot
       ring%ele_(n_max)%ixx = last_con
@@ -396,6 +374,9 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   enddo parsing_loop
 
 !---------------------------------------------------------------
+! Now we have read everything in
+
+  bp_com%input_line_meaningful = .false.
 
   ring%param%particle    = nint(beam_ele%value(particle$))
   ring%param%n_part      = beam_ele%value(n_part$)
@@ -406,10 +387,8 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
   if (beam_ele%value(energy$) /= 0) then
     ring%param%beam_energy = beam_ele%value(energy$) * 1e9
-    ring%param%energy      = beam_ele%value(energy$)
   else
     ring%param%beam_energy = param_ele%value(beam_energy$)
-    ring%param%energy      = param_ele%value(beam_energy$) * 1e-9
   endif
 
 ! Transfer the new elements to a safe_place

@@ -13,12 +13,12 @@
 !              Need previous call to bmad_to_cesr.
 !
 ! Output:
-! k_theory(0:120)     -- Real(rdef): Theory K of quad_i,
-! k_base(0:120)       -- Real(rdef): Extrapolated K for zero cu command
-! cu_per_k_gev(0:120) -- Real(rdef): CU to K*GEV calibration
-! len_quad(0:120)     -- Real(rdef): Length of quad_i
-! quad_rot(0:120)     -- Real(rdef): Quad rotation angle in degrees
-! dk_gev_dcu(0:120)   -- Real(rdef): Derivative of K*GEV vs CU curve.
+! k_theory(0:120)     -- Real(rp): Theory K of quad_i,
+! k_base(0:120)       -- Real(rp): Extrapolated K for zero cu command
+! cu_per_k_gev(0:120) -- Real(rp): CU to K*GEV calibration
+! len_quad(0:120)     -- Real(rp): Length of quad_i
+! quad_rot(0:120)     -- Real(rp): Quad rotation angle in degrees
+! dk_gev_dcu(0:120)   -- Real(rp): Derivative of K*GEV vs CU curve.
 ! cu_theory(0:120)    -- Integer: Scaler needed to get K_THEORY.
 !
 ! Notes:
@@ -49,6 +49,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/07/09 01:38:19  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.5  2003/03/04 16:03:29  dcs
 !VMS port
 !
@@ -75,8 +78,8 @@ subroutine ring_to_quad_calib (ring, cesr, k_theory, k_base,  &
 
   record /cesr_struct/ cesr
   record /ring_struct/ ring
-  real(rdef) gev, k_theory(0:*), k_base(0:*), len_quad(0:*)
-  real(rdef) cu_per_k_gev(0:*), dk_gev_dcu(0:*), quad_rot(0:*)
+  real(rp) gev, k_theory(0:*), k_base(0:*), len_quad(0:*)
+  real(rp) cu_per_k_gev(0:*), dk_gev_dcu(0:*), quad_rot(0:*)
   integer cindex, rindex, cu_theory(0:*)
 
 ! init  &

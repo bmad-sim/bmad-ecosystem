@@ -1,9 +1,19 @@
+!+
+! Module bmad_utils_mod
+!
+! Module for subroutines that use bmad_struct structures but do not
+! call other routines in bmad_interface.
+!-
+
 #include "CESR_platform.inc"
 
 module bmad_utils_mod
 
   use bmad_struct
-  use bmad_interface
+
+  interface reallocate
+    module procedure reallocate_control_
+  end interface
 
 contains
 
@@ -75,11 +85,11 @@ end subroutine
 !
 ! Input:
 !   ele     -- Ele_struct: wiggler element.
-!   energy  -- Real(rdef): Particle energy.
+!   energy  -- Real(rp): Particle energy.
 !   here    -- Coord_struct: Coordinates for calculating the vector pot.
 !
 ! Output:
-!   vec_pot(3) -- Real(rdef): Normalized vector potential
+!   vec_pot(3) -- Real(rp): Normalized vector potential
 !-
 
 subroutine wiggler_vec_potential (ele, energy, here, vec_pot)
@@ -88,13 +98,13 @@ subroutine wiggler_vec_potential (ele, energy, here, vec_pot)
 
   type (ele_struct), target, intent(in) :: ele
   type (coord_struct), intent(in) :: here
-  real(rdef), intent(in) :: energy
-  real(rdef), intent(out) :: vec_pot(3)
+  real(rp), intent(in) :: energy
+  real(rp), intent(out) :: vec_pot(3)
 
   type (wig_term_struct), pointer :: t
 
-  real(rdef) c_x, s_x, c_y, s_y, c_z, s_z
-  real(rdef) x, y, s, coef
+  real(rp) c_x, s_x, c_y, s_y, c_z, s_z
+  real(rp) x, y, s, coef
 
   integer i
 
@@ -190,8 +200,8 @@ subroutine transfer_ring_parameters (ring_in, ring_out)
   ring_out%n_ele_symm =           ring_in%n_ele_symm
   ring_out%n_ele_use =            ring_in%n_ele_use
   ring_out%n_ele_max =            ring_in%n_ele_max
-  ring_out%n_control_array =      ring_in%n_control_array
-  ring_out%n_ic_array =           ring_in%n_ic_array
+  ring_out%n_control_max =        ring_in%n_control_max
+  ring_out%n_ic_max =             ring_in%n_ic_max
   ring_out%input_taylor_order =   ring_in%input_taylor_order
 
 end subroutine
@@ -232,7 +242,7 @@ subroutine transfer_taylor (ring_in, ring_out, type_out)
   type (ele_struct), pointer :: ele_in, ele_out
 
   integer i, j, k, it, ix
-  integer n_in, ix_in(n_ele_maxx)
+  integer n_in, ix_in(ring_in%n_ele_maxx)
  
   logical, intent(in)  :: type_out
   logical vmask(n_attrib_maxx)  
@@ -324,6 +334,42 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Subroutine init_ring (ring, n)
+!
+! Subroutine to initialize a BMAD ring.
+! 
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   n    -- Integer: Size ring%ele_(:) array is initialized to.
+!
+! Output:
+!   ring -- Ring_struct: Initialized ring.
+!-
+
+subroutine init_ring (ring, n)
+
+  implicit none
+
+  type (ring_struct)  ring
+  integer n
+
+!
+
+  call deallocate_ring_pointers (ring)
+  call allocate_ring_ele_ (ring, n)
+  call init_ele (ring%ele_init)
+
+  allocate (ring%control_(1000))
+  allocate (ring%ic_(1000))
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Subroutine clear_ring_1turn_mats (ring)
 !
 ! Subroutine to clear the 1-turn matrices in the ring structure:
@@ -348,5 +394,512 @@ subroutine clear_ring_1turn_mats (ring)
   ring%param%t1_mat6 = 0
 
 end subroutine
+
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine transfer_ele (ele1, ele2)
+!
+! Subroutine to set ele2 = ele1. 
+! This is a plain transfer of information not using the overloaded equal.
+! Thus at the end ele2's pointers point to the same memory as ele1's.
+!
+! NOTE: Do not use this routine unless you know what you are doing!
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele1 -- Ele_struct:
+!
+! Output:
+!   ele2 -- Ele_struct:
+!-
+
+elemental subroutine transfer_ele (ele1, ele2)
+
+  type (ele_struct), intent(in) :: ele1
+  type (ele_struct), intent(out) :: ele2
+
+  ele2 = ele1
+
+end subroutine
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine transfer_ring (ring1, ring2)
+!
+! Subroutine to set ring2 = ring1. 
+! This is a plain transfer of information not using the overloaded equal.
+! Thus at the end ring2's pointers point to the same memory as ring1's.
+!
+! NOTE: Do not use this routine unless you know what you are doing!
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ring1 -- ring_struct:
+!
+! Output:
+!   ring2 -- ring_struct:
+!-
+
+elemental subroutine transfer_ring (ring1, ring2)
+
+  type (ring_struct), intent(in) :: ring1
+  type (ring_struct), intent(out) :: ring2
+
+  ring2 = ring1
+
+end subroutine
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine reallocate_coord (coord_, n_coord)
+!
+! Subroutine to reallocate a coord_struct array to at least:
+!     coord_(0:n_coord)
+! Note: The old coordinates are not saved except for coord_(0).
+!  If at input coord_ is not allocated then coord_(0)%vec is set to zero.
+! Note: If coord_ is actually a pointer then you must make sure that 
+!   it is nullified or pointing to allocatable memory.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   coord_(:) -- Coord_struct: Allocatable array.
+!   n_coord   -- Integer: Minimum array upper bound wanted.
+!
+! Output:
+!   coord_(:) -- coord_struct: Allocated array.
+!-
+
+subroutine reallocate_coord (coord_, n_coord)
+
+  type (coord_struct), allocatable :: coord_(:)
+  type (coord_struct) start
+
+  integer, intent(in) :: n_coord
+
+!
+
+  if (allocated (coord_)) then
+    if (size(coord_) < n_coord + 1) then
+      start = coord_(0)
+      deallocate (coord_)
+      allocate (coord_(0:n_coord))
+      coord_(0) = start
+    endif
+  else
+    allocate (coord_(0:n_coord))
+    coord_(0)%vec = 0
+  endif
+
+end subroutine
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Fuunction reallocate_control_(control_, n) result (new_control_)
+!
+! Function to reallocate the ring%control_(:) array.
+! This data in the array will be saved.
+! 
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   control_(:) -- Control_struct, pointer: Control Array
+!   n           -- Integer: Array size for control_(:)
+!
+! Output:
+!   new_control_(:) -- Control_struct, pointer: Allocated array.
+!-
+
+function reallocate_control_(control_, n) result (new_control_)
+
+  implicit none
+
+  type (control_struct), pointer :: control_(:), new_control_(:)
+  integer, intent(in) :: n
+  integer nn
+
+!
+
+  allocate (new_control_(n))
+  if (associated(control_)) then
+    nn = min(n, size(control_))
+    new_control_(1:nn) = control_(1:nn)
+  endif
+
+end function
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine deallocate_ele_pointers (ele, nullify_only)
+!
+! Subroutine to deallocate the pointers in an element.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele -- ele_struct: Element with pointers.
+!   nullify_only -- Logical, optional: If present and True then
+!               Just nullify. Do not deallocate.
+!
+! Output:
+!   ele -- Ele_struct: Element with deallocated pointers.
+!-
+
+subroutine deallocate_ele_pointers (ele, nullify_only)
+
+  implicit none
+
+  type (ele_struct) ele
+  integer ix
+  logical, optional, intent(in) :: nullify_only
+
+! nullify only
+
+  if (present (nullify_only)) then
+    if (nullify_only) then
+      nullify (ele%wig_term)
+      nullify (ele%const)
+      nullify (ele%r)
+      nullify (ele%descrip)
+      nullify (ele%a, ele%b)
+      nullify (ele%wake%sr_file, ele%wake%sr)
+      nullify (ele%wake%lr_file, ele%wake%lr)
+      nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
+                ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
+      nullify (ele%gen_field)
+      return
+    endif
+  endif
+
+! Normal deallocate
+
+  if (associated (ele%wig_term)) deallocate (ele%wig_term)
+  if (associated (ele%const))    deallocate (ele%const)
+  if (associated (ele%r))        deallocate (ele%r)
+  if (associated (ele%descrip))  deallocate (ele%descrip)
+  if (associated (ele%a))        deallocate (ele%a, ele%b)
+  if (associated (ele%wake%sr_file))  deallocate (ele%wake%sr_file)
+  if (associated (ele%wake%sr))       deallocate (ele%wake%sr)
+  if (associated (ele%wake%lr_file))  deallocate (ele%wake%lr_file)
+  if (associated (ele%wake%lr))       deallocate (ele%wake%lr)
+  if (associated (ele%taylor(1)%term)) deallocate &
+           (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
+           ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
+  call kill_gen_field (ele%gen_field)
+
+end subroutine
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine kill_gen_field (gen_fieled)
+!
+! Subroutine to kill a gen_field.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   gen_field -- Genfield, pointer: gen_field to kill.
+!
+! Output:
+!   gen_field -- Genfield, pointer: Killed gen_field.
+!-
+
+subroutine kill_gen_field (gen_field)
+
+  use tpsalie_analysis, only: kill 
+
+  implicit none
+
+  type (genfield), pointer :: gen_field
+
+!
+
+  if (associated(gen_field)) then
+    call kill (gen_field)
+    deallocate (gen_field)
+  endif
+
+end subroutine
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine init_ele (ELE)
+!
+! Subroutine to initialize a BMAD element. Element is initialized to be free
+! (not a lord or slave) and all %VALUES set to zero.
+!
+! Modules needed:
+!   use bmad
+!
+! Output:
+!   ele -- Ele_struct: Initialized element.
+!-
+
+subroutine init_ele (ele)
+
+  implicit none
+
+  type (ele_struct)  ele
+
+!
+
+  ele%type = ' '
+  ele%alias = ' '
+  ele%name = '<Initialized>'
+
+  ele%key = 0
+  ele%sub_key = 0
+
+  ele%value(:) = 0
+
+
+  ele%control_type = free$
+  ele%ix_value = 0
+  ele%ic1_lord = 0
+  ele%ic2_lord = -1
+  ele%n_lord = 0
+  ele%ix1_slave = 0
+  ele%ix2_slave = -1
+  ele%n_slave = 0
+  ele%ix_pointer = 0
+  ele%s = 0
+
+  ele%x_position = 0
+  ele%y_position = 0
+  ele%z_position = 0
+  ele%theta_position = 0
+  ele%phi_position = 0
+
+  ele%mat6_calc_method = bmad_standard$
+  ele%tracking_method = bmad_standard$
+  ele%num_steps = 1
+  ele%integration_order = 2
+  ele%ptc_kind = 0
+
+  ele%is_on = .true.
+  ele%multipoles_on = .true.
+  ele%symplectify = .false.
+  ele%exact_rad_int_calc = .false.
+
+  ele%field_master = .false.
+
+  call deallocate_ele_pointers (ele)
+
+! init Twiss
+
+  ele%c_mat = 0
+  ele%gamma_c = 1.0
+
+  ele%x%beta  = 0
+  ele%x%alpha = 0
+  ele%x%gamma = 0
+  ele%x%eta   = 0
+  ele%x%etap  = 0
+  ele%x%phi   = 0
+  ele%x%sigma = 0
+
+  ele%y%beta  = 0
+  ele%y%alpha = 0
+  ele%y%gamma = 0
+  ele%y%eta   = 0
+  ele%y%etap  = 0
+  ele%y%phi   = 0
+  ele%y%sigma = 0
+
+end subroutine
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine allocate_ring_ele_ (ring, des_size)
+!
+! Subroutine to allocate or re-allocate the ele_ pointer in a ring.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ring     -- ring_struct: Ring with del_ pointer.
+!   des_size -- integer, Optional: Optional desired size for ring%ele_
+!
+! Output:
+!   ring     -- ring_struct: Ring with re-allocated ele_ pointer 
+!                       with 150% larger number of elements.
+!-
+
+subroutine allocate_ring_ele_ (ring, des_size)
+
+  implicit none
+
+  type (ring_struct) ring
+  integer, optional :: des_size
+
+  type (ele_struct), allocatable :: temp_ele_(:)
+  integer curr_n_ele, desired_size, i
+
+! get new size
+
+  desired_size = 1000
+  if (associated (ring%ele_)) &
+        desired_size = max ((3*size(ring%ele_))/2, desired_size)
+  if (present(des_size))  desired_size = des_size
+
+!  save ring%ele_ if present
+
+  if (associated (ring%ele_)) then
+    curr_n_ele = size (ring%ele_) - 1
+    allocate (temp_ele_(0:curr_n_ele))
+    call transfer_ele (ring%ele_, temp_ele_)
+    deallocate (ring%ele_)
+    allocate(ring%ele_(0:desired_size))
+    call transfer_ele (temp_ele_(0:curr_n_ele), ring%ele_(0:curr_n_ele))
+    deallocate (temp_ele_)
+  else
+    curr_n_ele = -1
+    allocate(ring%ele_(0:desired_size))
+  endif
+
+! 
+
+  do i = curr_n_ele+1, desired_size
+    call init_ele (ring%ele_(i))
+  end do
+
+  ring%n_ele_maxx = desired_size
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine deallocate_ring_pointers (ring)
+!
+! Subroutine to deallocate the pointers in a ring.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ring -- ring_struct: Ring with pointers.
+!
+! Output:
+!   ring -- ring_struct: Ring with deallocated pointers.
+!-
+
+subroutine deallocate_ring_pointers (ring)
+
+  implicit none
+
+  type (ring_struct) ring
+  integer i, ix
+
+!
+
+  if (associated (ring%ele_)) then
+
+    do i = lbound(ring%ele_, 1), ubound(ring%ele_, 1)
+      call deallocate_ele_pointers (ring%ele_(i))
+    enddo
+    call deallocate_ele_pointers (ring%ele_init)
+
+    deallocate (ring%ele_)
+    deallocate (ring%control_)
+    deallocate (ring%ic_)
+
+  endif
+
+  ring%n_ele_maxx = -1
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine transfer_ele_pointers (ele1, ele2)
+!
+! Subroutine to transfer the information in the pointers from ele1 to ele2.
+! When finished ele1's pointers will be pointing to a different memory 
+! location from ele2's so that the elements are truely separate.
+!
+! The exception is the %gen_field which is not transfered because it is
+! part of PTC.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele1 -- Ele_struct: Input element holding the information.
+!
+! Output:
+!   ele2 -- Ele_struct: Output element.
+!-
+
+subroutine transfer_ele_pointers (ele1, ele2)
+
+  implicit none
+
+  type (ele_struct), intent(in)  :: ele1
+  type (ele_struct), intent(inout) :: ele2
+
+  integer i
+
+!
+
+  if (associated(ele1%wig_term)) then
+    allocate (ele2%wig_term(size(ele1%wig_term)))
+    ele2%wig_term = ele1%wig_term
+  endif
+
+  if (associated(ele1%taylor(1)%term)) then
+    do i = 1, 6
+      allocate (ele2%taylor(i)%term(size(ele1%taylor(i)%term)))
+      ele2%taylor(i)%term = ele1%taylor(i)%term
+    enddo
+  endif
+
+  if (associated(ele1%a)) then
+    allocate (ele2%a(0:n_pole_maxx), ele2%b(0:n_pole_maxx))
+    ele2%a = ele1%a
+    ele2%b = ele1%b
+  endif
+
+  if (associated(ele1%descrip)) then
+    allocate (ele2%descrip)
+    ele2%descrip = ele1%descrip
+  endif
+
+!  if (associated(ele1%gen_field)) then
+!    allocate (ele2%gen_field)
+!    ele2%gen_field = ele1%gen_field
+!  endif
+
+
+end subroutine   
 
 end module

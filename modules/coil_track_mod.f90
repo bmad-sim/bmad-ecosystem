@@ -10,8 +10,8 @@ subroutine b_field_mult (ring, coord, first, last, s_pos, b_vector)
   type (ring_struct)  ring
   type (coord_struct)  coord
 
-  real(rdef) s_pos(:), b_vector(3)
-  real(rdef) b_loop(3)
+  real(rp) s_pos(:), b_vector(3)
+  real(rp) b_loop(3)
 
   integer first, last, loop$, i
 
@@ -48,15 +48,18 @@ end subroutine
 !                            relative to the (linac) origin; it is not a
 !                            displacement!
 !     ELE   -- Ele_struct: Element
-!     S_POS -- Real(rdef): Longitudinal position of coil component
+!     S_POS -- Real(rp): Longitudinal position of coil component
 !
 ! Output:
-!     B_LOOP(3) -- Real(rdef): (Cartesian) Magnetic field vector x, y, and z
+!     B_LOOP(3) -- Real(rp): (Cartesian) Magnetic field vector x, y, and z
 !                        components (in units of mu_0 / 2)
 !-
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/07/09 01:38:37  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.4  2003/06/04 17:56:06  dcs
 !Eliminated x%pos, x%vel, etc. from coord_struct.
 !
@@ -85,12 +88,12 @@ subroutine b_field_loop (coord, ele, s_pos, b_loop)
 
   type (coord_struct)  coord
   type (ele_struct)  ele
-  real(rdef) s_pos, b_loop(3)
+  real(rp) s_pos, b_loop(3)
 
-  real(rdef) coef, e, e2_inv, inv_rot_pyr(3,3), r, rel_coords(3)
-  real(rdef) rot_py(3,3), tworx, v1, v2, x_rel, y_rel, z_rel
-  real(rdef) pitch, cos_p, sin_p, yaw, cos_y, sin_y, roll, cos_r, sin_r
-  real(rdef) diameter, r2, ri, r2i
+  real(rp) coef, e, e2_inv, inv_rot_pyr(3,3), r, rel_coords(3)
+  real(rp) rot_py(3,3), tworx, v1, v2, x_rel, y_rel, z_rel
+  real(rp) pitch, cos_p, sin_p, yaw, cos_y, sin_y, roll, cos_r, sin_r
+  real(rp) diameter, r2, ri, r2i
 
   integer x$, y$, z$
   parameter (x$ = 1, y$ = 2, z$ = 3)
@@ -199,14 +202,17 @@ end subroutine
 !       If HGCX = 2, use series coefficients of F (5/4, 7/4; 2; ) * 3/4
 !                                              2 1
 !
-!     ARG  -- Real(rdef): Last (fourth) argument of the hypergeometric function
+!     ARG  -- Real(rp): Last (fourth) argument of the hypergeometric function
 !
 ! Output:
-!     HYPERGEOM -- Real(rdef): The hypergeometric function
+!     HYPERGEOM -- Real(rp): The hypergeometric function
 !-
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/07/09 01:38:37  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.4  2003/06/04 17:56:06  dcs
 !Eliminated x%pos, x%vel, etc. from coord_struct.
 !
@@ -233,7 +239,7 @@ function hypergeom (hgcx, arg)
   implicit none
 
   integer hgcx, i
-  real(rdef) arg, arg_power, hypergeom, next_term, hgc, i_max
+  real(rp) arg, arg_power, hypergeom, next_term, hgc, i_max
 
 !!  #include "hypergeom.inc"
 

@@ -9,13 +9,13 @@ module bmad_taylor_mod
 ! %ref is the reference point about which the taylor expansion was made
 
   type taylor_term_struct
-    real(rdef) :: coef
+    real(rp) :: coef
     integer :: exp(6)  
   end type
 
   type taylor_struct
-    real (rdef) ref             
-    type (taylor_term_struct), pointer :: term(:)
+    real (rp) ref             
+    type (taylor_term_struct), pointer :: term(:) => null()
   end type
 
 !
@@ -73,14 +73,65 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine type_taylors (bmad_taylor)
+! Function taylor_coef (bmad_taylor, exp)
 !
-! Subroutine to print in a nice format a BMAD taylor map at the terminal.
+! Function to return the coefficient for a particular taylor term
+! from a Taylor Series.
+! For example: To get the term corresponding to 
+!   y_out = Coef * p_z^2 
+! [This is somtimes refered to as the T_366 term]
+! The call would be
+!   type (taylor_struct) bmad_taylor(6)      ! Taylor Map
+!   ...
+!   coef = taylor_coef (bmad_taylor(3), (/ 0, 0, 0, 0, 0, 2 /) )
 !
 ! Modules needed:
 !   use bmad
 !
-! Input
+! Input:
+!   bmad_taylor -- Taylor_struct: Taylor series.
+!   exp(6)      -- Integer: Array of exponent indices.
+!
+! Output:
+!   taylor_coef -- Real(rp): Coefficient.
+!-
+
+function taylor_coef (bmad_taylor, exp) result (coef)
+
+  implicit none
+
+  type (taylor_struct), intent(in) :: bmad_taylor
+
+  real(rp) coef
+
+  integer, intent(in) :: exp(:)
+  integer i
+
+!
+
+  coef = 0
+
+  do i = 1, size(bmad_taylor%term)
+    if (all(bmad_taylor%term(i)%exp == exp)) then
+      coef = bmad_taylor%term(i)%coef
+      return
+    endif
+  enddo
+
+end function
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine type_taylors (bmad_taylor)
+!
+! Subroutine to print in a nice format a BMAD Taylor Map at the terminal.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
 !   bmad_taylor(6) -- Taylor_struct: 6 taylor series: (x, P_x, y, P_y, z, P_z) 
 !-
 
@@ -356,8 +407,8 @@ end subroutine
 !   c0          -- Coord_struct: Coordinates at the input. 
 !
 ! Output:
-!   mat6(6,6) -- Real(rdef): Jacobian.
-!   c1(6)     -- Real(rdef): Oth order transport vector.
+!   mat6(6,6) -- Real(rp): Jacobian.
+!   c1(6)     -- Real(rp): Oth order transport vector.
 !-
 
 subroutine taylor_to_mat6 (a_taylor, c0, mat6, c1)
@@ -365,12 +416,12 @@ subroutine taylor_to_mat6 (a_taylor, c0, mat6, c1)
   implicit none
 
   type (taylor_struct), target, intent(in) :: a_taylor(6)
-  real(rdef), intent(in) :: c0(:)
-  real(rdef), intent(out) :: c1(:)
+  real(rp), intent(in) :: c0(:)
+  real(rp), intent(out) :: c1(:)
   type (taylor_term_struct), pointer :: term
 
-  real(rdef), intent(out) :: mat6(6,6)
-  real(rdef) prod
+  real(rp), intent(out) :: mat6(6,6)
+  real(rp) prod
 
   integer i, j, k, l
 
@@ -437,8 +488,8 @@ subroutine mat6_to_taylor (mat6, vec0, bmad_taylor)
 
   type (taylor_struct) bmad_taylor(6)
 
-  real(rdef), intent(in) :: mat6(6,6)
-  real(rdef), intent(in) :: vec0(6)
+  real(rp), intent(in) :: mat6(6,6)
+  real(rp), intent(in) :: vec0(6)
 
   integer i, j, n
 !
@@ -484,10 +535,10 @@ end subroutine
 !
 ! Input:
 !   bmad_taylor(6) -- Taylor_struct: Taylor map.
-!   start          -- Real(rdef): Starting coords.
+!   start          -- Real(rp): Starting coords.
 !
 ! Output:
-!   end            -- Real(rdef): Ending coords.
+!   end            -- Real(rp): Ending coords.
 !-
 
 subroutine track_taylor (start, bmad_taylor, end)
@@ -495,10 +546,10 @@ subroutine track_taylor (start, bmad_taylor, end)
   implicit none
   
   type (taylor_struct), intent(in) :: bmad_taylor(6)
-  real(rdef), intent(in) :: start(6)
-  real(rdef), intent(out) :: end(6)
+  real(rp), intent(in) :: start(6)
+  real(rp), intent(out) :: end(6)
   
-  real(rdef) delta
+  real(rp) delta
   
   integer i, j, k, ie
   

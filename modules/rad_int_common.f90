@@ -15,12 +15,16 @@ module rad_int_common
 ! i1_(:), etc. are for diagnostics
 
   type rad_int_common_struct
-    real(rdef) g_x0, g_y0, k1, s1
-    real(rdef) eta_a(4), eta_b(4), eta_a0(4), eta_a1(4), eta_b0(4), eta_b1(4)
-    real(rdef) g, g2, g_x, g_y, dg2_x, dg2_y 
-    real(rdef) i1_(n_ele_maxx), i2_(n_ele_maxx), i3_(n_ele_maxx)
-    real(rdef) i4a_(n_ele_maxx), i4b_(n_ele_maxx)
-    real(rdef) i5a_(n_ele_maxx), i5b_(n_ele_maxx)
+    real(rp) g_x0, g_y0, k1, s1
+    real(rp) eta_a(4), eta_b(4), eta_a0(4), eta_a1(4), eta_b0(4), eta_b1(4)
+    real(rp) g, g2, g_x, g_y, dg2_x, dg2_y 
+    real(rp), pointer :: i1_(:) => null()
+    real(rp), pointer :: i2_(:) => null()
+    real(rp), pointer :: i3_(:) => null()
+    real(rp), pointer :: i4a_(:) => null()
+    real(rp), pointer :: i4b_(:) => null()
+    real(rp), pointer :: i5a_(:) => null()
+    real(rp), pointer :: i5b_(:) => null()
     type (ring_struct), pointer :: ring
     type (ele_struct), pointer :: ele0, ele
     type (ele_struct) runt
@@ -30,6 +34,8 @@ module rad_int_common
   end type
 
   type (rad_int_common_struct), save :: ric
+
+  integer :: been_inited$ = 4242
 
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
@@ -50,8 +56,8 @@ function qromb_rad_int (func, a, b, sum, which_int, &
   interface
     function func(x)
     use precision_def
-    real(rdef), dimension(:), intent(in) :: x
-    real(rdef), dimension(size(x)) :: func
+    real(rp), dimension(:), intent(in) :: x
+    real(rp), dimension(size(x)) :: func
     end function func
   end interface
 
@@ -59,11 +65,11 @@ function qromb_rad_int (func, a, b, sum, which_int, &
   integer(i4b) :: j
 
   real(rp), intent(in), optional :: eps_int, eps_sum
-  real(rdef), intent(in) :: a, b, sum
-  real(rdef) :: rad_int
-  real(rdef) :: dqromb
-  real(rdef) :: eps_i, eps_s
-  real(rdef) :: h(0:jmax), s(0:jmax)
+  real(rp), intent(in) :: a, b, sum
+  real(rp) :: rad_int
+  real(rp) :: dqromb
+  real(rp) :: eps_i, eps_s
+  real(rp) :: h(0:jmax), s(0:jmax)
 
   character*(*) which_int
 
@@ -87,10 +93,10 @@ function qromb_rad_int (func, a, b, sum, which_int, &
     if (ric%ele%key == wiggler$ .and. j < 4) cycle
 
     if (j >=  k) then
-      call polint(h(j-km:j), s(j-km:j), 0.0_rdef, rad_int, dqromb)
+      call polint(h(j-km:j), s(j-km:j), 0.0_rp, rad_int, dqromb)
       if (abs(dqromb) <= eps_i * abs(rad_int) + eps_s * abs(sum)) return
     elseif (j >= 3) then
-      call polint(h(1:j), s(1:j), 0.0_rdef, rad_int, dqromb)
+      call polint(h(1:j), s(1:j), 0.0_rp, rad_int, dqromb)
       if (abs(dqromb) <= eps_i * abs(rad_int) + eps_s * abs(sum)) return
     end if
 
@@ -112,8 +118,8 @@ function  eval_i1 (s_vec)
 
   implicit none
 
-  real(rdef), intent(in) :: s_vec(:)
-  real(rdef), dimension(size(s_vec)) :: eval_i1
+  real(rp), intent(in) :: s_vec(:)
+  real(rp), dimension(size(s_vec)) :: eval_i1
 
   integer i
 
@@ -135,8 +141,8 @@ function  eval_i2 (s_vec)
 
   implicit none
 
-  real(rdef), intent(in) :: s_vec(:)
-  real(rdef), dimension(size(s_vec)) :: eval_i2
+  real(rp), intent(in) :: s_vec(:)
+  real(rp), dimension(size(s_vec)) :: eval_i2
 
   integer i
 
@@ -157,8 +163,8 @@ function  eval_i3 (s_vec)
 
   implicit none
 
-  real(rdef), intent(in) :: s_vec(:)
-  real(rdef), dimension(size(s_vec)) :: eval_i3
+  real(rp), intent(in) :: s_vec(:)
+  real(rp), dimension(size(s_vec)) :: eval_i3
 
   integer i
 
@@ -179,8 +185,8 @@ function  eval_i4a (s_vec)
 
   implicit none
 
-  real(rdef), intent(in) :: s_vec(:)
-  real(rdef), dimension(size(s_vec)) :: eval_i4a
+  real(rp), intent(in) :: s_vec(:)
+  real(rp), dimension(size(s_vec)) :: eval_i4a
 
   integer i
 
@@ -202,8 +208,8 @@ function  eval_i4b (s_vec)
 
   implicit none
 
-  real(rdef), intent(in) :: s_vec(:)
-  real(rdef), dimension(size(s_vec)) :: eval_i4b
+  real(rp), intent(in) :: s_vec(:)
+  real(rp), dimension(size(s_vec)) :: eval_i4b
 
   integer i
 
@@ -225,8 +231,8 @@ function  eval_i5a (s_vec)
 
   implicit none
 
-  real(rdef), intent(in) :: s_vec(:)
-  real(rdef), dimension(size(s_vec)) :: eval_i5a
+  real(rp), intent(in) :: s_vec(:)
+  real(rp), dimension(size(s_vec)) :: eval_i5a
 
 !
 
@@ -249,8 +255,8 @@ function  eval_i5b (s_vec)
 
   implicit none
 
-  real(rdef), intent(in) :: s_vec(:)
-  real(rdef), dimension(size(s_vec)) :: eval_i5b
+  real(rp), intent(in) :: s_vec(:)
+  real(rp), dimension(size(s_vec)) :: eval_i5b
 
   integer i
 
@@ -311,8 +317,8 @@ end subroutine
 ! This routine assumes that s_ is in assending order.
 !
 ! Input:
-!   s_(:) -- Real(rdef): Sequence of real numbers.
-!   s     -- Real(rdef): Number to bracket.
+!   s_(:) -- Real(rp): Sequence of real numbers.
+!   s     -- Real(rp): Number to bracket.
 !
 ! Output:
 !   ix    -- Integer: Index so that s_(ix) <= s < s_(ix+1).
@@ -322,7 +328,7 @@ subroutine bracket_index (s_, s, ix)
 
   implicit none
 
-  real(rdef) s_(:), s
+  real(rp) s_(:), s
 
   integer i, ix, n, n1, n2, n3
 
@@ -374,8 +380,8 @@ subroutine propagate_part_way (s)
 
   type (coord_struct) orb, orb_0
 
-  real(rdef) s, v(4,4), v_inv(4,4), s1, s2, error, f0, f1
-  real(rdef) here(6), kick_0(6), kick_x(6), kick_y(6)
+  real(rp) s, v(4,4), v_inv(4,4), s1, s2, error, f0, f1
+  real(rp) here(6), kick_0(6), kick_x(6), kick_y(6)
 
   integer i, ix, n_pts
 
@@ -412,9 +418,9 @@ subroutine propagate_part_way (s)
     call make_v_mats (ric%runt, v, v_inv)
 
     ric%eta_a = &
-          matmul(v, (/ ric%runt%x%eta, ric%runt%x%etap, 0.0_rdef, 0.0_rdef /))
+          matmul(v, (/ ric%runt%x%eta, ric%runt%x%etap, 0.0_rp, 0.0_rp /))
     ric%eta_b = &
-          matmul(v, (/ 0.0_rdef, 0.0_rdef, ric%runt%y%eta, ric%runt%y%etap /))
+          matmul(v, (/ 0.0_rp, 0.0_rp, ric%runt%y%eta, ric%runt%y%etap /))
 
     return
   endif
@@ -470,9 +476,9 @@ subroutine propagate_part_way (s)
   call make_v_mats (ric%runt, v, v_inv)
 
   ric%eta_a = &
-      matmul(v, (/ ric%runt%x%eta, ric%runt%x%etap, 0.0_rdef,   0.0_rdef    /))
+      matmul(v, (/ ric%runt%x%eta, ric%runt%x%etap, 0.0_rp,   0.0_rp    /))
   ric%eta_b = &
-      matmul(v, (/ 0.0_rdef,   0.0_rdef,    ric%runt%y%eta, ric%runt%y%etap /))
+      matmul(v, (/ 0.0_rp,   0.0_rp,    ric%runt%y%eta, ric%runt%y%etap /))
 
   ric%g_x = ric%g_x0 + orb%vec(1) * ric%k1 + orb%vec(3) * ric%s1
   ric%g_y = ric%g_y0 - orb%vec(3) * ric%k1 + orb%vec(1) * ric%s1
@@ -489,7 +495,7 @@ contains
 subroutine calc_g_params (orb)
 
   type (coord_struct) orb
-  real(rdef) del
+  real(rp) del
 
   del = 1e-6
   here = orb%vec

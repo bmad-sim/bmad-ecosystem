@@ -14,20 +14,23 @@
 !   param    -- param_struct: Needed for track1.
 !   start    -- Coord_struct: Orbit at beginning of element that is used as
 !                the origin for the analysis.
-!   d_orb(6) -- Real(rdef), optional: Vector of offsets to use. 
+!   d_orb(6) -- Real(rp), optional: Vector of offsets to use. 
 !               Default if d_orb = 0 is to set d_orb = 1e-5
 !
 ! Output:
 !   ele     -- Ele_struct: 
 !     %mat6   -- 6x6 transfer matrix.
 !   end     -- Coord_struct, optional: orbit at end of the element.
-!   error   -- Real(rdef), optional: A measure of how symplectic the 
+!   error   -- Real(rp), optional: A measure of how symplectic the 
 !               constructed matrix was before symplecitification. 
 !               See mat_symp_check for more details.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/07/09 01:38:22  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.5  2003/01/27 14:40:45  dcs
 !bmad_version = 56
 !
@@ -56,7 +59,7 @@ subroutine transfer_mat_from_tracking (ele, param, start, d_orb, end, error)
   type (coord_struct), intent(in) :: start
   type (coord_struct), optional, intent(out) :: end
   type (coord_struct), optional :: d_orb
-  real(rdef), optional, intent(out) :: error
+  real(rp), optional, intent(out) :: error
 
   type (coord_struct) :: start1, end1, end0, del_orb
 

@@ -38,6 +38,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/07/09 01:38:12  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.5  2003/05/02 15:43:59  dcs
 !F90 standard conforming changes.
 !
@@ -67,7 +70,7 @@ subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)
 
   integer in_type, out_type
 
-  real(rdef) mat(4,4), mat_inv(4,4), mat2(2,2), mat2_inv(2,2), eta_vec(4)
+  real(rp) mat(4,4), mat_inv(4,4), mat2(2,2), mat2_inv(2,2), eta_vec(4)
 
   integer :: lab$ = 1, mode$ = 2, normalized$ = 3, action_angle$ = 4
   character*16 type_names(5) / 'LAB', 'MODE', 'NORMALIZED', &
@@ -176,7 +179,7 @@ contains
 
 subroutine to_action (coord)
     implicit none
-    real(rdef) coord(2), j, phi
+    real(rp) coord(2), j, phi
     j = (coord(1)**2 + coord(2)**2) / 2
     if (j == 0) then
       phi = 0
@@ -188,7 +191,7 @@ subroutine to_action (coord)
 
 subroutine from_action (coord)
     implicit none
-    real(rdef) coord(2), x, xp
+    real(rp) coord(2), x, xp
     x  =  sqrt(2*coord(1)) * cos(coord(2))
     xp = -sqrt(2*coord(1)) * sin(coord(2))
     coord = (/ x, xp /)

@@ -38,7 +38,7 @@ Subroutine orbit_to_dispersion (orb_diff, ele)
   type (coord_struct), intent(in) :: orb_diff
   type (ele_struct) :: ele
 
-  real(rdef) v_mat(4,4), v_inv_mat(4,4), disp_vec(4)
+  real(rp) v_mat(4,4), v_inv_mat(4,4), disp_vec(4)
   
 !
 

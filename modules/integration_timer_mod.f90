@@ -24,7 +24,7 @@ module integration_timer_mod
 !   param    -- Param_struct:
 !   start    -- Coord_struct: Starting orbit.
 !   orb_max  -- Coord_struct: maximum orbit.
-!   tol      -- Real(rdef): Tolerance for the map coefs. 
+!   tol      -- Real(rp): Tolerance for the map coefs. 
 !               (Good number is, say, 1e-10).
 !
 !   a_fibre      -- Fibre: Fibre to track through.
@@ -55,7 +55,7 @@ subroutine integration_timer_ele (ele, param, start, orb_max, tol)
   type (coord_struct), intent(in) :: start, orb_max
   type (param_struct) param
   
-  real(rdef) tol
+  real(rp) tol
   real(dp) tol_dp, orbit(6), orbit_max(6)
 
 !

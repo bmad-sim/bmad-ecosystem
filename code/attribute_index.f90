@@ -8,13 +8,13 @@
 !   use bmad
 !
 ! Input:
-!     ele  -- Ele_struct: ATTRIBUTE_INDEX will restrict the name search to 
+!   ele  -- Ele_struct: ATTRIBUTE_INDEX will restrict the name search to 
 !             valid attributes of the given element. Note: If 
 !             ELE%KEY = OVERLAY then the entire name table will be searched.
-!     name -- Character*16: Attribute name. Must be uppercase
+!   name -- Character(16): Attribute name. Must be uppercase.
 !
 ! Output:
-!     attribute_index -- Integer: Index of the attribute. If the attribute name
+!   attribute_index -- Integer: Index of the attribute. If the attribute name
 !                            is not appropriate then 0 will be returned.
 !
 ! Example:
@@ -35,14 +35,14 @@ function attribute_index (ele, name) result (at_index)
 
   type (ele_struct) ele, ele0
 
-  integer i, j, k, key, num
+  integer i, j, k, key, num, ilen, n_abbrev, ix_abbrev
   integer attrib_num(n_key)
   integer attrib_ix(n_key, n_attrib_special_maxx)
   integer at_index
 
-  character*(*) name
-  character*16 name16
-  character*16 attrib_name_array(n_key, n_attrib_special_maxx)
+  character(*) name
+  character(16) name16, name_match
+  character(16) attrib_name_array(n_key, n_attrib_special_maxx)
       
   logical init_needed / .true. /
 
@@ -74,6 +74,12 @@ function attribute_index (ele, name) result (at_index)
   key = ele%key
   at_index = 0           ! match not found
 
+  ilen = len_trim(name)
+  if (ilen == 0) return
+  n_abbrev = 0            ! number of abbreviation matches
+
+! Overlays search all types of elements
+
   if (key == overlay$) then
     do k = 1, n_key
       do i = 1, attrib_num(k)
@@ -81,8 +87,14 @@ function attribute_index (ele, name) result (at_index)
           at_index = attrib_ix(k, i)
           return
         endif
+        if (attrib_name_array(k, i)(1:ilen) == name16(1:ilen)) then
+          n_abbrev = n_abbrev + 1
+          ix_abbrev = attrib_ix(k, i)
+        endif 
       enddo
     enddo
+
+! else only search this type of element
 
   elseif (key > 0 .and. key <= n_key) then
     do i = 1, attrib_num(key)
@@ -90,13 +102,26 @@ function attribute_index (ele, name) result (at_index)
         at_index = attrib_ix(key, i)
         return
       endif
+      if (attrib_name_array(key, i)(1:ilen) == name16(1:ilen)) then
+        n_abbrev = n_abbrev + 1
+        ix_abbrev = attrib_ix(key, i)
+      endif 
     enddo      
 
-    if (key == rfcavity$ .and. name16 == 'LAG') at_index = phi0$
+    if (key == rfcavity$ .and. name16 == 'LAG') then
+      at_index = phi0$
+      return
+    endif
+
+! error
 
   else
     print *, 'ERROR IN ATTRIBUTE_INDEX: BAD KEY', key
     call err_exit
   endif
+
+! If there is one unique abbreviation then use it.
+
+  if (n_abbrev == 1) at_index = ix_abbrev
 
 end function

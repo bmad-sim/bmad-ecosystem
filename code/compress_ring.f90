@@ -16,23 +16,7 @@
 !     OK   -- Logical: Ring compressed OK.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.5  2003/05/02 15:43:59  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.4  2003/01/27 14:40:32  dcs
-!bmad_version = 56
-!
-!Revision 1.3  2002/02/23 20:32:13  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:49  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine compress_ring (ring, ok)
 
@@ -44,12 +28,20 @@ subroutine compress_ring (ring, ok)
   type (ring_struct), target :: ring
   type (ele_struct), pointer :: ele
 
-  type (control_struct) control_(n_control_maxx)
+  type (control_struct), allocatable :: control_(:)
 
-  integer i, j, ix, i2, ix_(n_control_maxx), ic_(n_control_maxx)
+  integer i, j, ix, i2
   integer n_ic, n_con, n_lord, n
+  integer, allocatable :: ix_(:), ic_(:)
 
   logical ok
+
+! allocate
+
+  n = ring%n_control_max
+  allocate (control_(n))
+  allocate (ix_(n))
+  allocate (ic_(ring%n_ic_max))
 
 ! remove unwanted ring%ele_() elements
 
@@ -73,7 +65,7 @@ subroutine compress_ring (ring, ok)
 
 ! renumber ring%control_()%ix_ele  
 
-  forall (i = 1:ring%n_control_array) 
+  forall (i = 1:ring%n_control_max) 
     ring%control_(i)%ix_lord = ix_(ring%control_(i)%ix_lord)
     ring%control_(i)%ix_slave = ix_(ring%control_(i)%ix_slave)
   end forall
@@ -130,12 +122,16 @@ subroutine compress_ring (ring, ok)
 
   enddo
 
-  ring%control_ = control_                        
-  ring%n_control_array = n_con
-  ring%ic_ = ic_
-  ring%n_ic_array = n_ic
+  ring%control_(1:n_con) = control_(1:n_con)                     
+  ring%n_control_max = n_con
+  ring%ic_(1:n_ic) = ic_(1:n_ic)
+  ring%n_ic_max = n_ic
 
-! do a check
+! deallocate and do a check
+
+  deallocate (control_)
+  deallocate (ix_)
+  deallocate (ic_)
 
   call check_ring_controls (ring, .true.)
 

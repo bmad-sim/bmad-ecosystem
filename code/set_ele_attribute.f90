@@ -23,13 +23,14 @@
 !                       For example: "HKICK".
 !   attrib_value    -- Real(rp): Attribute value.
 !   make_mat6_flag  -- Logical: If True then make the 6x6 transfer matrix.
-!   orbit_(0:n_ele_maxx) -- Coord_struct: [Optional] closed orbit about
+!   orbit_(0:)      -- Coord_struct, optional: closed orbit about
 !                            which the 6x6 matrices are made.
 !
 ! Output:
-!   ring      -- Ring_struct: Modified ring.
-!     %ele_(i_ele)  -- Modified element.
-!   err_flag  -- Logical: Set True if there is an error. Otherwise set False.
+!   ring            -- Ring_struct: Modified ring.
+!     %ele_(i_ele)    -- Modified element.
+!   err_flag        -- Logical: Set True if there is an error. 
+!                        Otherwise set False.
 !-
 
 #include "CESR_platform.inc"

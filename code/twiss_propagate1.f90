@@ -23,36 +23,6 @@
 !       %ok         -- Set False if an input beta is zero
 !-
 
-!$Id$
-!$Log$
-!Revision 1.10  2003/06/04 17:55:56  dcs
-!Eliminated x%pos, x%vel, etc. from coord_struct.
-!
-!Revision 1.9  2003/05/02 15:44:04  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.8  2003/03/31 15:17:41  dcs
-!Bug fixes.
-!
-!Revision 1.7  2003/03/18 20:37:40  dcs
-!Added code for beta = 0 error.
-!
-!Revision 1.6  2003/03/04 16:03:30  dcs
-!VMS port
-!
-!Revision 1.5  2003/01/27 14:40:47  dcs
-!bmad_version = 56
-!
-!Revision 1.4  2002/06/13 14:54:31  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.3  2002/02/23 20:32:29  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:32:00  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 subroutine twiss_propagate1 (ele1, ele2)
@@ -65,10 +35,10 @@ subroutine twiss_propagate1 (ele1, ele2)
 
   integer i, j
 
-  real(rdef) v_mat(4,4), v_inv_mat(4,4), amat2(2,2), y_inv(2,2), det
-  real(rdef) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
-  real(rdef) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
-  real(rdef) mat2(2,2), vec(4)
+  real(rp) v_mat(4,4), v_inv_mat(4,4), amat2(2,2), y_inv(2,2), det
+  real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
+  real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
+  real(rp) mat2(2,2), vec(4)
 
 !---------------------------------------------------------------------
 ! init
@@ -217,8 +187,8 @@ subroutine twiss_decoupled_propagate (ele1, ele2)
 
   type (ele_struct)  ele1, ele2
 
-  real(rdef) m11, m12, m21, m22, a1, b1, g1, del_phi
-  real(rdef) a2, b2, g2
+  real(rp) m11, m12, m21, m22, a1, b1, g1, del_phi
+  real(rp) a2, b2, g2
 
 ! Basic equation is given by Bovet 2.5.b page 16
 ! Propagate A mode ("X") of ele1

@@ -31,7 +31,7 @@ subroutine make_mat6_tracking (ele, param, c0, c1)
   type (coord_struct) :: c0, c1
   type (param_struct)  param
 
-  real (rdef) error
+  real (rp) error
   integer temp_method
   logical temp_symplectify
 

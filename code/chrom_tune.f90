@@ -11,14 +11,14 @@
 !
 ! Input:
 !   ring     -- Ring_struct: Ring to use, 
-!   delta_e  -- Real(rdef): Delta energy used for the calculation.
+!   delta_e  -- Real(rp): Delta energy used for the calculation.
 !                    If 0 then default of 1.0e-4 is used.
-!   target_x -- Real(rdef): Target X Chromaticity
-!   target_y -- Real(rdef): Target Y Chromaticity
+!   target_x -- Real(rp): Target X Chromaticity
+!   target_y -- Real(rp): Target Y Chromaticity
 !
 ! Output:
 !   ring     -- Ring_struct: Ring with sextupole set
-!   delta_e  -- Real(rdef): Set to 1.0e-4 if on input DELTA_E =< 0.
+!   delta_e  -- Real(rp): Set to 1.0e-4 if on input DELTA_E =< 0.
 !   err_flag -- Logical: .false. if match successful, .true. if failed
 !                   Fails if takes longer than 100 iterations.  If it 
 !                   fails the sextupoles are set to the last value
@@ -40,24 +40,26 @@ subroutine chrom_tune(ring,delta_e,target_x,target_y,err_flag)
   implicit none
   
   type (ring_struct) ring
-  type (coord_struct) co_(0:n_ele_maxx)
+  type (coord_struct), allocatable :: co_(:)
   type (modes_struct) mode
 
   integer i, j, n_sex, n_x_sex, n_y_sex
   integer, pointer :: ix_sex(:)
   integer, allocatable :: ix_x_sex(:), ix_y_sex(:)
 
-  real(rdef), allocatable :: sex_y_values(:), sex_x_values(:)
-  real(rdef) target_x, target_y, chrom_x, chrom_y
-  real(rdef) delta_x, delta_y, d_chrom, chrom_x0
-  real(rdef) chrom_y0, step_x, step_y, chrom_(2,1), matrix(2,2)
-  real(rdef) delta_e
+  real(rp), allocatable :: sex_y_values(:), sex_x_values(:)
+  real(rp) target_x, target_y, chrom_x, chrom_y
+  real(rp) delta_x, delta_y, d_chrom, chrom_x0
+  real(rp) chrom_y0, step_x, step_y, chrom_(2,1), matrix(2,2)
+  real(rp) delta_e
  
   logical err_flag, debug
   logical, allocatable :: is_x_sex(:)
 
 !
  
+  allocate (co_(0:ring%n_ele_max))
+
   debug = .false.
 
   n_sex = 1
@@ -111,6 +113,7 @@ subroutine chrom_tune(ring,delta_e,target_x,target_y,err_flag)
       end if
       deallocate (ix_x_sex, ix_y_sex, ix_sex)
       deallocate (sex_x_values, sex_y_values, is_x_sex)
+      deallocate (co_)
       return
     end if
 

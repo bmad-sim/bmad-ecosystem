@@ -21,8 +21,8 @@ subroutine quad_mat_calc (k1, length, mat)
 
   implicit none
 
-  real(rdef) length, mat(2,2), cx, sx
-  real(rdef) k1, sqrt_k, arg, arg2
+  real(rp) length, mat(2,2), cx, sx
+  real(rp) k1, sqrt_k, arg, arg2
 
 !
 
@@ -74,22 +74,22 @@ subroutine sol_quad_mat6_calc (ks, k1, s_len, m, orb)
 
   implicit none
 
-  real(rdef) ks, k1, s_len
-  real(rdef) m(6,6)
-  real(rdef) orb(6)
+  real(rp) ks, k1, s_len
+  real(rp) m(6,6)
+  real(rp) orb(6)
 
   integer i, j
   integer order
 
-  real(rdef) ks2, s, c, snh, csh
-  real(rdef) darg1, alpha, alpha2, beta, beta2, f, q, r, a, b
-  real(rdef) df, dalpha2, dalpha, dbeta2, dbeta, darg
-  real(rdef) dC, dCsh, dS, dSnh, dq, dr, da, db
-  real(rdef) ks3, fp, fm, dfm, dfp, df_f, ug
-  real(rdef) s1, s2, snh1, snh2, dsnh1, dsnh2, ds1, ds2
-  real(rdef) coef1, coef2, dcoef1, dcoef2, ks4
+  real(rp) ks2, s, c, snh, csh
+  real(rp) darg1, alpha, alpha2, beta, beta2, f, q, r, a, b
+  real(rp) df, dalpha2, dalpha, dbeta2, dbeta, darg
+  real(rp) dC, dCsh, dS, dSnh, dq, dr, da, db
+  real(rp) ks3, fp, fm, dfm, dfp, df_f, ug
+  real(rp) s1, s2, snh1, snh2, dsnh1, dsnh2, ds1, ds2
+  real(rp) coef1, coef2, dcoef1, dcoef2, ks4
 
-  real(rdef) t5(4,4), t6(4,4)
+  real(rp) t5(4,4), t6(4,4)
 
 ! Calc
           
@@ -228,9 +228,9 @@ subroutine mat6_multipole (knl, tilt, c00, factor, mat6)
 
   implicit none
 
-  real(rdef) c00(6)
-  real(rdef) mat6(6,6), kmat1(4,4), factor
-  real(rdef) knl(0:), tilt(0:)
+  real(rp) c00(6)
+  real(rp) mat6(6,6), kmat1(4,4), factor
+  real(rp) knl(0:), tilt(0:)
 
   integer n
 
@@ -257,11 +257,11 @@ end subroutine
 !
 ! Input:
 !     C0   -- Coord_struct: coordinates of particle
-!     KNL  -- Real(rdef): Strength of multipole
-!     TILT -- Real(rdef): Tilt of multipole
+!     KNL  -- Real(rp): Strength of multipole
+!     TILT -- Real(rp): Tilt of multipole
 !
 ! Output:
-!     KICK_MAT(4,4) -- Real(rdef): Kick matrix
+!     KICK_MAT(4,4) -- Real(rp): Kick matrix
 !-
 
 
@@ -269,10 +269,10 @@ subroutine mat4_multipole (knl, tilt, n, c0, kick_mat)
 
   implicit none
 
-  real(rdef) c0(6)
-  real(rdef) x_pos, y_pos, x, y, knl, tilt
-  real(rdef) sin_ang, cos_ang, mat(2,2), rot(2,2)
-  real(rdef) kick_mat(4,4)
+  real(rp) c0(6)
+  real(rp) x_pos, y_pos, x, y, knl, tilt
+  real(rp) sin_ang, cos_ang, mat(2,2), rot(2,2)
+  real(rp) kick_mat(4,4)
 
   integer m, n
 
@@ -351,7 +351,7 @@ subroutine bbi_slice_calc (n_slice, sig_z, z_slice)
 
   integer i, n_slice, n_slice_old / 0 /
 
-  real(rdef) sig_z, z_slice(:), y, z_norm(100)
+  real(rp) sig_z, z_slice(:), y, z_norm(100)
 
   external probability_funct
 
@@ -393,8 +393,8 @@ subroutine mat6_add_tilt_at_end (mat6, tilt)
 
   implicit none
 
-  real(rdef) tilt, mat6(6,6), mm(6,6)
-  real(rdef) c, s
+  real(rp) tilt, mat6(6,6), mm(6,6)
+  real(rp) c, s
 
   if (tilt == 0) return
 
@@ -427,8 +427,8 @@ subroutine tilt_mat6 (mat6, tilt)
 
   implicit none
 
-  real(rdef) tilt, mat6(6,6), mm(6,6)
-  real(rdef) c, s
+  real(rp) tilt, mat6(6,6), mm(6,6)
+  real(rp) c, s
 
 !
 
@@ -461,8 +461,8 @@ subroutine solenoid_mat_calc (ks, length, mat4)
 
   implicit none
 
-  real(rdef) ks, length, kss, c, s, c2, s2, cs, ll, kl, kl2
-  real(rdef) mat4(4,4)
+  real(rp) ks, length, kss, c, s, c2, s2, cs, ll, kl, kl2
+  real(rp) mat4(4,4)
 
 !
 
@@ -472,10 +472,10 @@ subroutine solenoid_mat_calc (ks, length, mat4)
     ll = length
     kl = kss * length 
     kl2 = kl**2
-    mat4(1,:) = (/  1.0_rdef,   ll,       kl,        kl*ll    /)
-    mat4(2,:) = (/ -kl * kss,   1.0_rdef, kl2*kss,   kl       /)
-    mat4(3,:) = (/ -kl,        -kl*ll,    1.0_rdef,  ll       /)
-    mat4(4,:) = (/  kl2*kss,   -ks,      -kl*kss,    1.0_rdef /)
+    mat4(1,:) = (/  1.0_rp,   ll,       kl,        kl*ll    /)
+    mat4(2,:) = (/ -kl * kss,   1.0_rp, kl2*kss,   kl       /)
+    mat4(3,:) = (/ -kl,        -kl*ll,    1.0_rp,  ll       /)
+    mat4(4,:) = (/  kl2*kss,   -ks,      -kl*kss,    1.0_rp /)
     return
   endif
 
@@ -517,19 +517,19 @@ end subroutine
 ! -- Created by Daniel Fromowitz, September 1999.
 !
 ! Input:
-!     LS        -- Real(rdef): length of the segment
-!     C_M       -- Real(rdef): constant proportional to the longitudinal magnetic
+!     LS        -- Real(rp): length of the segment
+!     C_M       -- Real(rp): constant proportional to the longitudinal magnetic
 !                         field
-!     C_E       -- Real(rdef): constant proportional to the electric field
-!     GAMMA_OLD -- Real(rdef): Lorentz factor at beginning of segment
-!     GAMMA_NEW -- Real(rdef): Lorentz factor at end of segment
-!     B_X       -- Real(rdef): Horizontal field of transverse steering
-!     B_Y       -- Real(rdef): Vertical field of transverse steering
-!     COORD(6)  -- Real(rdef): Starting position
+!     C_E       -- Real(rp): constant proportional to the electric field
+!     GAMMA_OLD -- Real(rp): Lorentz factor at beginning of segment
+!     GAMMA_NEW -- Real(rp): Lorentz factor at end of segment
+!     B_X       -- Real(rp): Horizontal field of transverse steering
+!     B_Y       -- Real(rp): Vertical field of transverse steering
+!     COORD(6)  -- Real(rp): Starting position
 !
 ! Output:
-!     MAT4(4,4) -- Real(rdef): 4x4 transfer matrix excluding steerings
-!     VEC_ST(4) -- Real(rdef): Vector due to steerings (assuming positrons)
+!     MAT4(4,4) -- Real(rp): 4x4 transfer matrix excluding steerings
+!     VEC_ST(4) -- Real(rp): Vector due to steerings (assuming positrons)
 !-
 
 subroutine accel_sol_mat_calc (ls, c_m, c_e, gamma_old, gamma_new, b_x,  &
@@ -538,9 +538,9 @@ subroutine accel_sol_mat_calc (ls, c_m, c_e, gamma_old, gamma_new, b_x,  &
   implicit none
 
   
-  real(rdef) ls, c_m, c_e, gamma_old, gamma_new, b_x, b_y, mat4(4,4), vec_st(4)
-  real(rdef) coef, cosr, sinr, denom, ratio, ratio_c_m, sinr_c_m, onecosr_c_m
-  real(rdef) mat_st(4,2), coord(6)
+  real(rp) ls, c_m, c_e, gamma_old, gamma_new, b_x, b_y, mat4(4,4), vec_st(4)
+  real(rp) coef, cosr, sinr, denom, ratio, ratio_c_m, sinr_c_m, onecosr_c_m
+  real(rp) mat_st(4,2), coord(6)
   integer i
 
   if (abs(c_e) > 0.001) then
@@ -627,10 +627,10 @@ subroutine drift_mat6_calc (mat6, length, start, end)
 
   implicit none
 
-  real(rdef) start(:)
-  real(rdef), optional :: end(:)
-  real(rdef) ave(6)
-  real(rdef) mat6(:,:), length, rel_E, len_E2, len_E3
+  real(rp) start(:)
+  real(rp), optional :: end(:)
+  real(rp) ave(6)
+  real(rp) mat6(:,:), length, rel_E, len_E2, len_E3
 
 !
 

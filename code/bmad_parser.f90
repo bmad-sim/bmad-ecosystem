@@ -1,21 +1,22 @@
 !+
 ! Subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 !
-! Subroutine to parse a BMAD input file.
+! Subroutine to parse a BMAD input file and put the information in ring.
 !
 ! Because of the time it takes to parse a file BMAD_PARSER will save 
 ! RING in a "digested" file with the name:
-!                 'DIGESTED_' // IN_FILE
+!               'digested_' // IN_FILE   ! for single precision BMAD version
+!               'digested8_' // IN_FILE  ! for double precision BMAD version
 ! For subsequent calls to the same IN_FILE, BMAD_PARSER will just read in the
 ! digested file. BMAD_PARSER will always check to see that the digested file
-! is up-to-date.
+! is up-to-date and if not the digested file will not be used.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
 !   in_file    -- Character: Name of the input file.
-!   make_mats6 -- Logical, optional: Make the 6x6 transport matrices for then
+!   make_mats6 -- Logical, optional: Compute the 6x6 transport matrices for the
 !                   Elements? Default is True.
 !
 ! Output:
@@ -31,11 +32,6 @@
 !   ring%param%symmetry          = no_symmetry$
 !   ring%param%lattice_type      = circular_lattice$
 !   ring%param%aperture_limit_on = .true.
-!   ring%param%damping_on        = .false.
-!   ring%param%radiation_on      = .false.
-!
-! For more info on the parser see the BMAD documentation.
-! DCS 10/6/97
 !-
 
 #include "CESR_platform.inc"
@@ -48,7 +44,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   implicit none
 
   type (ring_struct), target :: ring, in_ring
-  type (seq_struct), target :: this_seq(200)
+  type (seq_struct), save, target :: this_seq(200)
   type (seq_struct), pointer :: seq, seq2
   type (seq_ele_struct), pointer :: s_ele
   type (parser_ring_struct) pring
@@ -56,24 +52,26 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   type (ele_struct), save, pointer :: ele, old_ele(:) => null()
   type (control_struct), pointer :: cs_(:) => null()
 
+  integer, allocatable :: ix_ring(:)
+  integer, allocatable :: seq_indexx(:), in_indexx(:)
+  character(16), allocatable ::  name_(:)
+
   integer ix_word, i_use, i, j, k, n, ix, ixr, ixs, i_ring, it
   integer i_lev, i_key, ic, ix_lord
-  integer iseq, ix_ring(n_ele_maxx), n_ele_ring
+  integer iseq, n_ele_ring, temp_maxx
   integer ix_super, digested_version, key, ct
   integer ix1, ix2, iv, n_arg
   integer ivar, ixx, j_lord, n_slave
-  integer seq_indexx(n_ele_maxx), in_indexx(n_ele_maxx)
   integer, pointer :: n_max
 
   character*(*) in_file
   character(16) word_2, name, a_name, dummy_name(20)
-  character(16) name_(n_ele_maxx)
   character(1) delim*1
-  character(200) path, basename, full_name, digested_file, call_file
+  character(200) path, basename, full_name, digested_file
   character(40) this_name, word_1
   character(280) parse_line_save
 
-  real(rdef) angle, old_energy
+  real(rp) angle, old_energy
 
   logical, optional :: make_mats6, digested_read_ok
   logical parsing, delim_found, matched_delim, arg_list_found, doit
@@ -86,7 +84,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
   bp_com%parser_name = 'BMAD_PARSER'  ! Used for error messages.
   bp_com%write_digested = .true.
-
+  bp_com%input_line_meaningful = .true.
 
   inquire (file = in_file, name = full_name)      ! full input file_name
   ix = index(full_name, ';')
@@ -94,7 +92,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   ring%input_file_name = full_name      ! needed by read_digested_bmad_file
 
   ix = SplitFileName(in_file, path, basename)
-  if (rdef == 8) then
+  if (rp == 8) then
     digested_file = in_file(:ix) // 'digested8_' // in_file(ix+1:)
   else
     digested_file = in_file(:ix) // 'digested_' // in_file(ix+1:)
@@ -142,20 +140,16 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
     enddo
   endif  
 
-! init
-
-  if (init_needed) then
-    do i = lbound(pring%ele, 1) , ubound(pring%ele, 1)
-      nullify (pring%ele(i)%name_)
-    enddo
-    do i = 1, size(this_seq(:))
-      nullify (this_seq(i)%arg, this_seq(i)%ele)
-    enddo
-    init_needed = .false.
-  endif
-
 ! here if not OK bmad_status. So we have to do everything from scratch...
 ! init variables.
+
+  nullify (pring%ele)
+  call init_ring (in_ring, 1000)
+  call allocate_pring (in_ring, pring)
+
+  do i = 1, size(this_seq(:))
+    nullify (this_seq(i)%arg, this_seq(i)%ele)
+  enddo
 
   bmad_status%ok = .true.
   if (bmad_status%type_out) &
@@ -170,14 +164,9 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   bp_com%iseq_tot = 0                     ! number of sequences encountered
   bp_com%ivar_tot = 0                     ! number of variables encountered
   call init_bmad_parser_common
+
   ring%name = ' '
   ring%lattice = ' '
-
-  pring%ele(:)%ref_name = blank
-  pring%ele(:)%ref_pt  = center$
-  pring%ele(:)%ele_pt  = center$
-  pring%ele(:)%s       = 0
-  pring%ele(:)%common_lord = .false.
 
   call init_ele (in_ring%ele_(0))
   in_ring%ele_(0)%name = 'BEGINNING'     ! Beginning element
@@ -201,11 +190,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   param_ele%value(lattice_type$) = circular_lattice$  ! Default
   param_ele%value(symmetry$)     = no_symmetry$       ! Default
 
-! %ixx is used as a pointer from the in_ring%ele_ array to the pring%ele array
-
-  forall (i = 0:n_ele_maxx) in_ring%ele_(i)%ixx = i
-
-  ring%n_control_array = 0
+  ring%n_control_max = 0
 
 !-----------------------------------------------------------
 ! main parsing loop
@@ -221,6 +206,13 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       ix_word = 8
     else
       call verify_valid_name(word_1, ix_word)
+    endif
+
+! DEBUG_MARKER is used to be able to easily set a break within the debugger
+
+    if (word_1(:ix_word) == 'DEBUG_MARKER') then
+      word_1 = 'ABC'          ! An executable line to set a break on
+      cycle parsing_loop
     endif
 
 ! USE command...
@@ -247,24 +239,8 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! CALL command
 
     if (word_1(:ix_word) == 'CALL') then
-      if (delim /= ',')  call warning ('"CALL" NOT FOLLOWED BY COMMA')
-      call get_next_word(call_file, ix_word, ':=,', delim, delim_found, .true.)
-      if (ix_word == 0) then
-        call warning ('NOTHING AFTER "CALL"')
-      elseif (index('FILENAME', call_file(:ix_word)) /= 1) then
-        call warning ('INVALID "CALL" COMMAND')
-      elseif (delim /= '=') then
-        call warning ('NO "=" AFTER "FILENAME"')
-      else
-        call get_next_word(call_file, ix_word, '=,', &
-                                       delim, delim_found, .false.)
-        if (ix_word == 0) then
-          call warning ('NO FILE NAME SPECIFIED')
-        else
-          call file_stack ('push', call_file, finished)
-          if (.not. bmad_status%ok) return
-        endif
-      endif     
+      call get_called_file(delim)
+      if (.not. bmad_status%ok) return
       cycle parsing_loop
     endif
 
@@ -366,7 +342,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
       found = .false.
       do i = 1, bp_com%ivar_tot-1
-        if (word_1 == var_(i)%name) then
+        if (word_1 == bp_com%var_(i)%name) then
           ivar = i
           found = .true.
         endif
@@ -374,20 +350,17 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
       if (.not. found) then
         bp_com%ivar_tot = bp_com%ivar_tot + 1
+        if (bp_com%ivar_tot > size(bp_com%var_)) call reallocate_bp_com_var()
         ivar = bp_com%ivar_tot
-        if (bp_com%ivar_tot > ivar_maxx) then
-          print *, 'ERROR IN BMAD_PARSER: NEED TO INCREASE IVAR_MAXX!'
-          call err_exit
-        endif
       endif
 
-      var_(ivar)%name = word_1
+      bp_com%var_(ivar)%name = word_1
 
-      call evaluate_value (var_(ivar)%name, var_(ivar)%value, &
+      call evaluate_value (bp_com%var_(ivar)%name, bp_com%var_(ivar)%value, &
                                        in_ring, delim, delim_found, err_flag)
       if (delim /= ' ' .and. .not. err_flag) call warning  &
                     ('EXTRA CHARACTERS ON RHS: ' // bp_com%parse_line,  &
-                     'FOR VARIABLE: ' // var_(ivar)%name)
+                     'FOR VARIABLE: ' // bp_com%var_(ivar)%name)
       cycle parsing_loop
 
     endif
@@ -468,10 +441,11 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
     else
 
+
       n_max = n_max + 1
-      if (n_max > n_ele_maxx) then
-        print *, 'ERROR IN BMAD_PARSER: NEED TO INCREASE ELEMENT ARRAY!'
-        call err_exit
+      if (n_max > in_ring%n_ele_maxx) then
+        call allocate_ring_ele_ (in_ring)
+        call allocate_pring (in_ring, pring)
       endif
 
       call init_ele (in_ring%ele_(n_max))
@@ -558,7 +532,12 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 !---------------------------------------------------------------------------
 ! we now have read in everything. 
 
+  bp_com%input_line_meaningful = .false.
+
 ! sort elements and lists and check for duplicates
+
+  allocate (in_indexx(n_max))
+  allocate (seq_indexx(n_max))
 
   call indexx (this_seq(1:bp_com%iseq_tot)%name, seq_indexx(1:bp_com%iseq_tot))
   call indexx (in_ring%ele_(1:n_max)%name, in_indexx(1:n_max))
@@ -663,7 +642,10 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   seq => this_seq(i_use)
 
   n_ele_ring = 0
-             
+           
+  allocate (name_(in_ring%n_ele_maxx))
+  allocate (ix_ring(in_ring%n_ele_maxx))
+
 ! expand line
 
   parsing = .true.
@@ -674,6 +656,11 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! if an element
 
     if (s_ele%type == element$) then
+      if (n_ele_ring+1 > size(ix_ring)) then
+        n = 1.5*n_ele_ring
+        call reallocate_integer (ix_ring, n)
+        call reallocate_string (name_, len(name_(1)), n)
+      endif
       call pushit (ix_ring, n_ele_ring, s_ele%ix_array)
       name_(n_ele_ring) = s_ele%name
       call increment_pointer (stack(i_lev)%ix_ele, stack(i_lev)%reflect)
@@ -683,6 +670,11 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
     elseif (s_ele%type == list$) then
       seq2 => this_seq(s_ele%ix_array)
       j = seq2%ix
+      if (n_ele_ring+1 > size(ix_ring)) then
+        n = 1.5*n_ele_ring
+        call reallocate_integer (ix_ring, n)
+        call reallocate_string (name_, len(name_(1)), n)
+      endif
       call pushit (ix_ring, n_ele_ring, seq2%ele(j)%ix_array)
       name_(n_ele_ring) = seq2%ele(j)%name
       seq2%ix = seq2%ix + 1
@@ -735,6 +727,8 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! superimpose, overlays, and groups are handled later.
 ! first load beam parameters.
 
+  call init_ring (ring, n_ele_ring+100)
+
   ring%version            = bmad_inc_version$
   ring%input_file_name    = full_name             ! save input file
   ring%param%particle     = nint(beam_ele%value(particle$))
@@ -743,15 +737,12 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   ring%n_ele_use          = n_ele_ring
   ring%n_ele_max          = n_ele_ring
   ring%param%aperture_limit_on  = .true.
-  ring%param%damping_on         = .false.
-  ring%param%fluctuations_on    = .false.
   ring%n_ele_symm         = 0                     ! no symmetry point
-  ring%n_ic_array         = 0                     
-  ring%n_control_array    = 0    
+  ring%n_ic_max           = 0                     
+  ring%n_control_max      = 0    
   call set_symmetry (ring%param%symmetry, ring)   ! set ring.n_ele_use
 
   ring%ele_(0) = in_ring%ele_(0)    ! Beginning element
-  call init_ele (ring%ele_init)
 
 ! New way of doing things
 
@@ -764,44 +755,36 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! old way of doing things
 
   do i = 1, bp_com%ivar_tot
-    if (var_(i)%name == 'SYMMETRY') ring%param%symmetry = nint(var_(i)%value)
-    if (var_(i)%name == 'LATTICE_TYPE')  &
-                              ring%param%lattice_type = nint(var_(i)%value)
-    if (var_(i)%name == 'TAYLOR_ORDER') &
-                              ring%input_taylor_order = nint(var_(i)%value)
+    if (bp_com%var_(i)%name == 'SYMMETRY') &
+                          ring%param%symmetry = nint(bp_com%var_(i)%value)
+    if (bp_com%var_(i)%name == 'LATTICE_TYPE')  &
+                          ring%param%lattice_type = nint(bp_com%var_(i)%value)
+    if (bp_com%var_(i)%name == 'TAYLOR_ORDER') &
+                          ring%input_taylor_order = nint(bp_com%var_(i)%value)
   enddo
 
-!
+! Beam energy
 
-  ring%param%beam_energy  = param_ele%value(beam_energy$)
-  ring%param%energy       = beam_ele%value(energy$)
-
-  if (ring%param%beam_energy /= 0 .and. ring%param%energy /= 0) call warning &
-         ('BOTH "BEAM, ENERGY" AND "PARAMETER[BEAM_ENERGY]" CONSTRUCTS USED!')
-
-  if (ring%param%beam_energy /= 0) then
-    ring%param%energy  = 1d-9 * ring%param%beam_energy
+  if (param_ele%value(beam_energy$) == 0) then
+    ring%param%beam_energy = 1d9 * beam_ele%value(energy$)  ! convert from GeV
+  elseif (beam_ele%value(energy$) == 0) then
+    ring%param%beam_energy = param_ele%value(beam_energy$)
   else
-    ring%param%beam_energy  = 1d9 * ring%param%energy
+    call warning &
+         ('BOTH "BEAM, ENERGY" AND "PARAMETER[BEAM_ENERGY]" CONSTRUCTS USED!')
   endif
 
-! 
+!************************************************************************
+! add call to allocate_ring_ele_ here
 
   if (ring%input_taylor_order /= 0) &
-              call set_taylor_order (ring%input_taylor_order, .false.)
-
-
-  if (n_ele_ring > n_ele_maxx) then
-    print *, 'ERROR IN BMAD_PARSER: NUMBER OF ELEMENTS EXCEEDS ELEMENT ARRAY'
-    print *, '       SIZE THE RING STRUCTURE:', n_ele_ring, n_ele_maxx
-    call err_exit
-  endif
+       call set_taylor_order (ring%input_taylor_order, .false.)
 
   if (any(in_ring%ele_(:)%key == lcavity$) .and. &
                           ring%param%lattice_type /= linac_lattice$) then
-    print *, 'ERROR IN BMAD_PARSER: THERE IS A LCAVITY BUT THE'
-    print *, '      LATTICE_TYPE IS NOT SET TO LINAC_LATTICE!'
-    call err_exit
+    print *, 'Note in BMAD_PARSER: This lattice has a LCAVITY.'
+    print *, '     Setting the LATTICE_TYPE to LINAC_LATTICE.'
+    ring%param%lattice_type = linac_lattice$
   endif
 
 ! transfer the ele information from the in_ring to ring
@@ -851,6 +834,22 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
     endif
 
+! Accept Use of E_loss or Delta_E for lcavities
+
+    if (ele%key == lcavity$) then
+      if (ele%value(e_loss$) /= 0) then
+        if (ele%value(k_loss$) /= 0) call warning &
+                ('BOTH E_LOSS AND K_LOSS NON-ZERO FOR A LCAVITY:', ele%name)
+        ele%value(k_loss$) = ele%value(e_loss$) / ele%value(l$)
+      endif
+
+      if (ele%value(delta_e$) /= 0) then
+        if (ele%value(gradient$) /= 0) call warning &
+                ('BOTH DELTA_E AND gradient NON-ZERO FOR A LCAVITY:', ele%name)
+        ele%value(gradient$) = ele%value(delta_e$) / ele%value(l$)
+      endif
+    endif
+
   enddo
 
 !-------------------------------------------------------------------------
@@ -871,6 +870,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
     ct = in_ring%ele_(i)%control_type
     if (ct /= overlay_lord$ .and. ct /= group_lord$) cycle
     ring%n_ele_max = ring%n_ele_max + 1
+    if (ring%n_ele_max > ring%n_ele_maxx) call allocate_ring_ele_(ring) 
     ixs = ring%n_ele_max
     ring%ele_(ixs) = in_ring%ele_(i)
     call find_slaves_for_parser (ring, pring%ele(i)%name_, &
@@ -983,8 +983,8 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       do i = bp_com%ivar_init+1, bp_com%ivar_tot
         print *
         print *, 'Var #', i-bp_com%ivar_tot
-        print *, 'Name: ', var_(i)%name
-        print *, 'Value:', var_(i)%value
+        print *, 'Name: ', bp_com%var_(i)%name
+        print *, 'Value:', bp_com%var_(i)%value
       enddo
     endif
 
@@ -1057,6 +1057,15 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
     if (associated (this_seq(i)%arg)) deallocate(this_seq(i)%arg)
     if (associated (this_seq(i)%ele)) deallocate(this_seq(i)%ele)
   enddo
+
+  if (associated (in_ring%ele_))     call deallocate_ring_pointers (in_ring)
+  if (associated (pring%ele))        deallocate (pring%ele)
+  if (allocated (ix_ring))           deallocate (ix_ring)
+  if (allocated (seq_indexx))        deallocate (seq_indexx)
+  if (allocated (in_indexx))         deallocate (in_indexx)
+  if (allocated (name_))             deallocate (name_)
+  if (associated (in_ring%control_)) deallocate (in_ring%control_)
+  if (associated (in_ring%ic_))      deallocate (in_ring%ic_)
 
 ! error check
 

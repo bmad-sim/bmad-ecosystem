@@ -42,6 +42,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.12  2003/07/09 01:38:10  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.11  2003/05/02 15:43:58  dcs
 !F90 standard conforming changes.
 !
@@ -98,9 +101,9 @@ subroutine bmad_to_db_main (ring, db)
   type (cesr_struct) cesr
   type (db_struct) db
 
-  real(rdef) h_stren(120), v_stren(120), gev
-  real(rdef) k_theory(0:120), k_base(0:120), len_quad(0:120), cu_per_k_gev(0:120)
-  real(rdef) quad_tilt(0:120), dk_gev_dcu(0:120)
+  real(rp) h_stren(120), v_stren(120), gev
+  real(rp) k_theory(0:120), k_base(0:120), len_quad(0:120), cu_per_k_gev(0:120)
+  real(rp) quad_tilt(0:120), dk_gev_dcu(0:120)
 
   integer n1, i, ix, ios, cu_theory(0:120), nq100
 
@@ -272,6 +275,9 @@ subroutine bmad_to_db_main (ring, db)
   call non_db_set (db%wiggler, cesr%wig_, b_max$, 1)
   call non_db_set (db%scir_cam_rho, cesr%scir_cam_rho_, rho$, 1)
   call non_db_set (db%scir_tilt, cesr%scir_tilt_, tilt$, 1)
+
+
+  deallocate( cesr%ix_cesr )
 
 end subroutine
 

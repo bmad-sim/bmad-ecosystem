@@ -19,21 +19,21 @@ contains
 !   use bmad
 !
 ! Input:
-!   an(0:n_pole_maxx) -- Real(rdef): Skew multipole component.
-!   bn(0:n_pole_maxx) -- Real(rdef): Normal multipole component.
+!   an(0:n_pole_maxx) -- Real(rp): Skew multipole component.
+!   bn(0:n_pole_maxx) -- Real(rp): Normal multipole component.
 !
 ! Output:
-!   knl(0:n_pole_maxx) -- Real(rdef): Multitude magnatude.
-!   tn(0:n_pole_maxx)  -- Real(rdef): Multipole angle.
+!   knl(0:n_pole_maxx) -- Real(rp): Multitude magnatude.
+!   tn(0:n_pole_maxx)  -- Real(rp): Multipole angle.
 !-
 
 subroutine multipole_ab_to_kt (an, bn, knl, tn)
 
   implicit none
 
-  real(rdef) an(0:), bn(0:)
-  real(rdef) knl(0:), tn(0:)
-  real(rdef) n_fact, a, b
+  real(rp) an(0:), bn(0:)
+  real(rp) knl(0:), tn(0:)
+  real(rp) n_fact, a, b
 
   integer n
 
@@ -81,8 +81,8 @@ end subroutine
 !                     in calculations.
 !
 ! Output:
-!   knl(0:)  -- Real(rdef): Vector of strengths, MAD units.
-!   tilt(0:) -- Real(rdef): Vector of tilts.
+!   knl(0:)  -- Real(rp): Vector of strengths, MAD units.
+!   tilt(0:) -- Real(rp): Vector of tilts.
 !-
 
 subroutine multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)
@@ -91,8 +91,8 @@ subroutine multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)
 
   type (ele_struct)  ele
 
-  real(rdef) knl(0:), tilt(0:), signn, a_n, b_n
-  real(rdef) value(n_attrib_maxx), a(0:n_pole_maxx), b(0:n_pole_maxx)
+  real(rp) knl(0:), tilt(0:), signn, a_n, b_n
+  real(rp) value(n_attrib_maxx), a(0:n_pole_maxx), b(0:n_pole_maxx)
 
   integer n, particle, n_fact
 
@@ -134,21 +134,21 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   knl(0:) -- Real(rdef): Multitude magnatude.
-!   tn(0:)  -- Real(rdef): Multipole angle.
+!   knl(0:) -- Real(rp): Multitude magnatude.
+!   tn(0:)  -- Real(rp): Multipole angle.
 !
 ! Output:
-!   an(0:) -- Real(rdef): Skew multipole component.
-!   bn(0:) -- Real(rdef): Normal multipole component.
+!   an(0:) -- Real(rp): Skew multipole component.
+!   bn(0:) -- Real(rp): Normal multipole component.
 !-
 
 subroutine multipole_kt_to_ab (knl, tn, an, bn)
 
   implicit none
 
-  real(rdef) an(0:), bn(0:)
-  real(rdef) knl(0:), tn(0:)
-  real(rdef) n_fact, angle, kl
+  real(rp) an(0:), bn(0:)
+  real(rp) knl(0:), tn(0:)
+  real(rp) n_fact, angle, kl
 
   integer n
 
@@ -196,8 +196,8 @@ end subroutine
 !                     in calculations.
 !
 ! Output:
-!   a(0:n_pole_maxx) -- Real(rdef): Array of scalled multipole values.
-!   b(0:n_pole_maxx) -- Real(rdef): Array of scalled multipole values.
+!   a(0:n_pole_maxx) -- Real(rp): Array of scalled multipole values.
+!   b(0:n_pole_maxx) -- Real(rp): Array of scalled multipole values.
 !-
 
 subroutine multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)
@@ -206,8 +206,8 @@ subroutine multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)
 
   type (ele_struct) ele
 
-  real(rdef) const, radius, factor, a(0:), b(0:)
-  real(rdef) an, bn, cos_t, sin_t
+  real(rp) const, radius, factor, a(0:), b(0:)
+  real(rp) an, bn, cos_t, sin_t
 
   integer ref_exp, n, particle
 
@@ -331,9 +331,9 @@ end subroutine
 !   use bmad
 !                          
 ! Input:
-!   knl   -- Real(rdef): Multipole strength (mad units).
-!   tilt  -- Real(rdef): Multipole tilt.
-!   n     -- Real(rdef): Multipole order.
+!   knl   -- Real(rp): Multipole strength (mad units).
+!   tilt  -- Real(rp): Multipole tilt.
+!   n     -- Real(rp): Multipole order.
 !   coord -- Coord_struct:
 !     %vec(1) -- X position.
 !     %vec(3) -- Y position.
@@ -350,8 +350,8 @@ subroutine multipole_kick (knl, tilt, n, coord)
 
   type (coord_struct)  coord
 
-  real(rdef) knl, tilt, x, y, sin_ang, cos_ang
-  real(rdef) x_vel, y_vel
+  real(rp) knl, tilt, x, y, sin_ang, cos_ang
+  real(rp) x_vel, y_vel
 
   integer n, m
 

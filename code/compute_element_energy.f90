@@ -25,7 +25,7 @@ subroutine compute_element_energy (ring)
 
   type (ring_struct) ring
 
-  real(rdef) energy
+  real(rp) energy
 
   integer i
 

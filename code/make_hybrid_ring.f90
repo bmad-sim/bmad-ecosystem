@@ -22,7 +22,7 @@
 !
 ! Input:
 !   ring_in        -- Ring_struct: Input ring.
-!   keep_ele(n_ele_maxx) 
+!   keep_ele(ring%n_ele_max) 
 !                  -- Logical array: keep_ele(I) = True indicates an element
 !                        that is NOT to be concatenated. That is, there will be
 !                        a corresponding element in ring_out.
@@ -37,12 +37,11 @@
 !                        be concatenated has a taylor series then this taylor
 !                        series will be concatenated with the other elements
 !                        in the hybrid element. 
-!   orb0_(0:n_ele_maxx) 
-!                  -- Coord_struct, optional: Central orbit for taylor stuff.
+!   orb0_(0:)      -- Coord_struct, optional: Central orbit for taylor stuff.
 !
 ! Output:
 !   ring_out  -- Ring_struct. Ring with hybrid elements.
-!   ix_out(n_ele_maxx) 
+!   ix_out(ring%n_ele_max) 
 !             -- Integer array. Ix_out(i) is the index for ring_in%ele_(i) 
 !                of the corresponding element in ring_out%ele(). 
 !                ix_out(i) set to 0 if ring_in%ele_(i) is concatenated.
@@ -66,14 +65,18 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 
   real(rp) e_vec(4)
 
-  integer j_in, i_out, ix_out(:), i
-  integer n_ele, j, ix, ic, o_key
+  integer j_in, i_out, ix_out(:), i, k, n
+  integer n_ele, j, ix, ic, o_key, n_con, n_ic
+  integer, allocatable, save :: ic_(:)
 
   logical init_hybrid_needed, remove_markers, keep_ele(:), out_symmetry
   logical z_decoupled, do_taylor
   logical, optional :: use_taylor
 
 ! Init
+
+  n = count(keep_ele(1:r_in%n_ele_max))
+  call init_ring (r_out, n+100)
 
   if (present(use_taylor)) then
     do_taylor = use_taylor
@@ -129,6 +132,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
         ix_out(j_in) = i_out
       else
         i_out = i_out + 1                     ! starting next element
+        if (i_out > r_out%n_ele_maxx) call allocate_ring_ele_(r_out)
         ele_out => r_out%ele_(i_out)
         ele_out = ele_in   ! single element
         ix_out(j_in) = i_out
@@ -146,6 +150,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 
       if (init_hybrid_needed) then
         i_out = i_out + 1                       ! starting next element
+        if (i_out > r_out%n_ele_maxx) call allocate_ring_ele_(r_out)
         ele_out => r_out%ele_(i_out)
         ele_out = ele_in
         ele_out%control_type = free$
@@ -258,6 +263,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
     ele_in => r_in%ele_(j_in)    
     if (keep_ele(j_in)) then
       i_out = i_out + 1
+      if (i_out > r_out%n_ele_maxx) call allocate_ring_ele_(r_out)
       ele_out => r_out%ele_(i_out)
       ix_out(j_in) = i_out
       ele_out = ele_in
@@ -269,14 +275,23 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 ! if symmetry is EW_ANTISYMMETRY$ then ignore fact that controllers may
 ! control non-existant elements in the east.
 
-  r_out%control_(:)%ix_lord = 0
-  r_out%control_(:)%ix_slave = 0
-  r_out%ic_(:) = r_in%ic_(:)
+
+  n_con = 0
+  n_ic = 0
+  allocate (ic_(size(r_in%control_)))
 
   do i_out = 1, r_out%n_ele_max
+
     ele_out => r_out%ele_(i_out)
+    if (ele_out%n_slave == 0) cycle
+
+    n_con = n_con + ele_out%n_slave
+    if (n_con > size(r_out%control_)) &
+        r_out%control_ => reallocate_control_(r_out%control_, n_con + 500)
 
     do j = ele_out%ix1_slave, ele_out%ix2_slave
+      k = n_con + j - ele_out%ix2_slave
+      ic_(j) = k
       ix = r_in%control_(j)%ix_slave
       if (ix_out(ix) == 0) then
         if (r_out%param%symmetry /= ew_antisymmetry$ .or.  &
@@ -286,20 +301,41 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
       '         FOR LORD ELEMENT: ', ele_out%name,  &
       '         CANNOT FIND: ', r_in%ele_(ix)%name
         endif
-        r_out%control_(j)%ix_lord = i_out
-        r_out%control_(j)%ix_slave = n_ele_maxx     ! point to dummy ele
-        r_out%control_(j)%ix_attrib = -1
-        r_out%control_(j)%coef = 0
+        r_out%control_(k)%ix_lord = i_out
+        r_out%control_(k)%ix_slave = r_out%n_ele_maxx     ! point to dummy ele
+        r_out%control_(k)%ix_attrib = -1
+        r_out%control_(k)%coef = 0
       else
-        r_out%control_(j)%ix_lord = i_out
-        r_out%control_(j)%ix_slave = ix_out(ix)
-        r_out%control_(j)%ix_attrib = r_in%control_(j)%ix_attrib
-        r_out%control_(j)%coef = r_in%control_(j)%coef
+        r_out%control_(k)%ix_lord = i_out
+        r_out%control_(k)%ix_slave = ix_out(ix)
+        r_out%control_(k)%ix_attrib = r_in%control_(j)%ix_attrib
+        r_out%control_(k)%coef = r_in%control_(j)%coef
       endif
     enddo
 
+    ele_out%ix1_slave = n_con - ele_out%n_slave + 1
+    ele_out%ix2_slave = n_con
+
+  enddo
+
+  r_out%n_control_max = n_con
+
+! correct r_out%ic_ array
+
+  n_ic = 0
+  r_out%ic_ => reallocate (r_out%ic_, size(r_out%control_))
+
+  do i_out = 1, r_out%n_ele_max
+    
+    ele_out => r_out%ele_(i_out)
+    if (ele_out%n_lord == 0) cycle
+
+    n_ic = n_ic + ele_out%n_lord
+
     do j = ele_out%ic1_lord, ele_out%ic2_lord
-      ic = r_out%ic_(j)
+      k = n_ic + j - ele_out%ic2_lord
+      r_out%ic_(k) = ic_(r_in%ic_(j))
+      ic = r_out%ic_(k)
       ix = r_in%control_(ic)%ix_lord
       if (ix == 0) then
         print *, 'WARNING IN MAKE_HYBRID_RING: LORD ELEMENT ',  &
@@ -307,7 +343,13 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
       endif
     enddo
 
+    ele_out%ic1_lord = n_ic - ele_out%n_lord + 1
+    ele_out%ic2_lord = n_ic
+
   enddo
+
+  r_out%n_ic_max = n_ic
+  deallocate (ic_)
 
 ! end
 

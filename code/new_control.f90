@@ -13,24 +13,7 @@
 !     IX_ELE -- Integer: Index of the new control element
 !-
 
-!$Id$
-!$Log$
-!Revision 1.5  2003/05/02 15:44:01  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.4  2003/01/27 14:40:41  dcs
-!bmad_version = 56
-!
-!Revision 1.3  2002/02/23 20:32:21  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:55  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
-
 
 subroutine new_control (ring, ix_ele)
 
@@ -47,13 +30,7 @@ subroutine new_control (ring, ix_ele)
   ring%n_ele_max = ring%n_ele_max + 1
   ix_ele = ring%n_ele_max
 
-  if (ix_ele > n_ele_maxx) then
-    print *, 'ERROR IN NEW_CONTROL: NOT ENOUGH RING ELEMENTS!!!'
-    print *, '      YOU NEED TO INCREASE N_ELE_MAXX IN BMAD_STRUCT!!!'
-    stop
-  endif
-
+  if (ix_ele > ring%n_ele_maxx)  call allocate_ring_ele_(ring)
   call init_ele (ring%ele_(ix_ele))
 
-  return
-  end
+end subroutine

@@ -10,7 +10,7 @@
 !   use bmad
 !
 ! Input:
-!   tilt_val  -- Real(rdef): Tilt value (could be the roll value for a bend)
+!   tilt_val  -- Real(rp): Tilt value (could be the roll value for a bend)
 !   set       -- Logical: If .true. then rotate the element.
 !                           If .false. then unrotate the element.
 !
@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/07/09 01:38:20  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.5  2002/02/23 20:32:25  dcs
 !Double/Single Real toggle added
 !
@@ -44,8 +47,8 @@ subroutine tilt_coords (tilt_val, coord, set)
 
   implicit none
 
-  real(rdef) cos_ang, sin_ang, rot_mat(2,2)
-  real(rdef) tilt_val, coord(:)
+  real(rp) cos_ang, sin_ang, rot_mat(2,2)
+  real(rp) tilt_val, coord(:)
 
   logical set
 

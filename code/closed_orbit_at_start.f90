@@ -55,15 +55,20 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
   type (ring_struct)  ring
   type (coord_struct)  orbit_end, del_co, del_orb
-  type (coord_struct)  orbit_end_e_(0:n_ele_maxx), co
-  type (coord_struct)  orbit_(0:n_ele_maxx)
+  type (coord_struct)  co
+  type (coord_struct), allocatable, save ::  orbit_end_e_(:), orbit_(:)
 
   real(rp) s_mat(6,6), mat1(6,6), mat2(6,6), mat(6,6)
   real(rp) amp_co, amp_del, factor / 1.0 /, t1(6,6)
 
   integer i, j, n, n_ele, i_dim
 
-  logical iterate, is_on(0:n_ele_maxx)
+  logical iterate
+
+! allocate storage
+
+  call reallocate_coord (orbit_end_e_, ring%n_ele_max)
+  call reallocate_coord (orbit_,       ring%n_ele_max)
 
 ! Error check
 
@@ -111,13 +116,8 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 ! Turn off RF voltage if i_dim == 4 (for constant delta_E)
 
   if (n == 4) then
-    is_on = .false.
-    do i = 1, n_ele
-      if (ring%ele_(i)%key == rfcavity$) then
-        is_on(i) = ring%ele_(i)%is_on
-        ring%ele_(i)%is_on = .false.
-      endif
-    enddo
+    ring%ele_(:)%internal_logic = ring%ele_(:)%is_on
+    call set_on (rfcavity$, ring, .false.)
   endif
 
 !---------------------------------------------------------------------
@@ -208,8 +208,6 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
 ! return rf cavities to original state
 
-  if (n == 4) then
-    where (is_on(1:n_ele)) ring%ele_(1:n_ele)%is_on = .true.
-  endif
+  if (n == 4) ring%ele_(:)%is_on = ring%ele_(:)%internal_logic
 
 end subroutine

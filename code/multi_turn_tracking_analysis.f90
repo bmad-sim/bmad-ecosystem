@@ -28,8 +28,8 @@
 !     %x%sigma     -- a-mode amplitude = sqrt(ele%x%beta * ele%x%sigma)
 !     %c_mat       -- c coupling matrix (only with i_dim = 4)
 !   stable -- Logical: Is motion stable?
-!   growth_rate -- Real(rdef): Unstable growth rate (= 0 if stable).
-!   chi    -- Real(rdef): How symplectic the computed 1-turn matrix is.
+!   growth_rate -- Real(rp): Unstable growth rate (= 0 if stable).
+!   chi    -- Real(rp): How symplectic the computed 1-turn matrix is.
 !              See mat_symp_check for more details.
 !-
 
@@ -47,13 +47,13 @@ subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
   type (coord_struct), intent(out) :: track0
   type (ele_struct), intent(out) :: ele
 
-  real(rdef), intent(out) :: growth_rate, chi
-  real(rdef) a_vec(4), v_mat(4,4), v_inv_mat(4,4)
+  real(rp), intent(out) :: growth_rate, chi
+  real(rp) a_vec(4), v_mat(4,4), v_inv_mat(4,4)
 
   integer, intent(in) :: i_dim
   logical, intent(out) :: stable
 
-  real(rdef) det
+  real(rp) det
   integer stat, i
 
 ! get 1-turn matrix and symplectify
@@ -67,7 +67,7 @@ subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
 
   if (i_dim == 2) then
 
-    call twiss_from_mat2 (ele%mat6(1:2,1:2), det, ele%x, stat, 1e-4_rdef, .false.)
+    call twiss_from_mat2 (ele%mat6(1:2,1:2), det, ele%x, stat, 1e-4_rp, .false.)
 
     if (stat == unstable$) then
       stable = .false.

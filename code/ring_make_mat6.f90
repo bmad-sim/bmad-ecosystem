@@ -11,17 +11,16 @@
 !   use bmad
 !
 ! Input:
-!   ring     -- Ring_struct: Ring containing the elements.
-!   ix_ele   -- Integer: Index of the element. if < 0 then entire
+!   ring       -- Ring_struct: Ring containing the elements.
+!   ix_ele     -- Integer: Index of the element. if < 0 then entire
 !                    ring will be made. In this case group elements will
 !                    be made up last.
-!   coord_(0:n_ele_maxx) 
-!            -- Coord_struct, optional: Coordinates of the 
+!   coord_(0:) -- Coord_struct, optional: Coordinates of the 
 !                   nominal orbit around which the matrix is calculated. 
 !                   If not present then the orbit is taken to be the orign.
 !
 ! Output:
-!   ring    -- ring_struct:
+!   ring        -- ring_struct:
 !     %ele_(i)%mat6 -- 6x6 transfer matrices.
 !-
 
@@ -43,23 +42,19 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
   integer i, j, k, ie, ix_ele, i1, i2, i3, ix1, ix2, ix3
   integer ix_taylor(100), n_taylor, istat
 
-
-! Check Energy
-
-  if (abs(ring%param%beam_energy-1d9*ring%param%energy) > &
-                                             1e-5*ring%param%beam_energy) then
-    print *, 'ERROR IN RING_MAKE_MAT6:'
-    print *, '      RING%PARAM%ENERGY AND RING%PARAM%BEAM_ENERGY DO NOT MATCH'
-    print *, '      ', ring%param%energy, ring%param%beam_energy 
-    call err_exit
-  endif
-
 ! Error check
 
   if (ix_ele == 0 .or. ix_ele > ring%n_ele_max) then
     print *, 'ERROR IN RING_MAKE_MAT6: ELEMENT INDEX OUT OF BOUNDS:', ix_ele
     if (bmad_status%exit_on_error) call err_exit
     return
+  endif
+
+  if (present(coord_)) then
+    if (ubound(coord_, 1) < ring%n_ele_ring) then
+      print *, 'ERROR IN RING_MAKE_MAT6: COORD_(:) ARGUMENT SIZE IS TOO SMALL!'
+      call err_exit
+    endif
   endif
 
 !--------------------------------------------------------------

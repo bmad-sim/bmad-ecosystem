@@ -41,26 +41,7 @@
 !     call create_overlay (ring, ix_ele, k1$, 2, con_)  ! create the overlay
 !-
 
-!$Id$
-!$Log$
-!Revision 1.6  2003/05/02 15:43:59  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.5  2003/01/27 14:40:32  dcs
-!bmad_version = 56
-!
-!Revision 1.4  2002/02/23 20:32:14  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2001/11/29 19:39:53  helms
-!Updates from DCS including (*) -> (:)
-!
-!Revision 1.2  2001/09/27 18:31:50  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 
 subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
@@ -74,12 +55,16 @@ subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
   type (ele_struct)  slave_ele, over_ele
   type (control_struct)  con_(:)
 
-  integer i, j, ix, ix2, ixc, ix_overlay
+  integer i, j, ix, ix2, ixc, ix_overlay, n_con2
   integer ix_slave, n_slave, ix_value, slave_type, idel
 
 ! Mark element as an overlay lord
 
-  ix = ring%n_control_array
+  ix = ring%n_control_max
+  n_con2 = ix + n_slave
+  if (n_con2 > size(ring%control_)) &
+                      ring%control_ => reallocate (ring%control_, n_con2+500)
+
   do j = 1, n_slave
     ring%control_(ix+j) = con_(j)
     ring%control_(ix+j)%ix_lord = ix_overlay
@@ -89,7 +74,7 @@ subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
   ring%ele_(ix_overlay)%n_slave = n_slave
   ring%ele_(ix_overlay)%ix1_slave = ix + 1
   ring%ele_(ix_overlay)%ix2_slave = ix + n_slave
-  ring%n_control_array = ix + n_slave
+  ring%n_control_max = n_con2
   ring%ele_(ix_overlay)%control_type = overlay_lord$
   ring%ele_(ix_overlay)%key = overlay$
 
@@ -130,13 +115,5 @@ subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
     ring%ic_(ixc) = i
 
   enddo
-
-! end check
-
-  if (ring%n_control_array > n_control_maxx) then
-    print *, 'ERROR IN CREATE_OVERLAY: NOT ENOUGH CONTROL ELEMENTS !!!'
-    print *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
-    call err_exit
-  endif
 
 end subroutine

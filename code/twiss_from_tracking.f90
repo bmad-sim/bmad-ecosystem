@@ -13,24 +13,22 @@
 !   use bmad
 !
 ! Input:
-!   ring    -- Ring_struct: Ring to track through.
-!   closed_orb_(0:n_ele_maxx) -- Coord_struct: closed orbit.
-!   d_orb(6) -- Coord_struct: Vector of offsets to use. All 6 components 
-!                must be non-zero.
-!   bmad_status -- BMAD status common block
+!   ring            -- Ring_struct: Ring to track through.
+!   closed_orb_(0:) -- Coord_struct, allocatable: closed orbit.
+!   d_orb(6)        -- Coord_struct: Vector of offsets to use. 
+!                       All 6 components must be non-zero.
+!   bmad_status      -- BMAD status common block
 !         %exit_on_error -- If True then subroutine will terminate program
 !                           if the orbit does not converge.
 !         %type_out      -- If True then the subroutine will type out
 !                           a warning message if the orbit does not converge.
 !
 ! Output:
-!   error   -- Real(rdef): A measure of how symplectic the constructed 
-!                                                           matrices were.
-!              before symplecitification. See mat_symp_check for more details.
-!   ring    -- Ring_struct:
-!     ele_(:)%mat6  -- 6x6 transfer matrices. The for
-!     %x%beta, etc  -- Twiss parameters.
-!   bmad_status  -- BMAD status common block
+!   ring        -- Ring_struct: Structure holding the Twiss parameters.
+!   error       -- Real(rp): A measure of how symplectic the constructed 
+!                   matrices were before symplecitification. 
+!                   See mat_symp_check for more details.
+!   bmad_status -- BMAD status common block
 !       %ok         -- Set False if orbit does not converge.
 !-
 
@@ -44,18 +42,23 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
   implicit none
 
   type (ring_struct), intent(inout) :: ring
-  type (coord_struct), intent(in) :: closed_orb_(0:), d_orb
-  real(rdef), intent(out) :: error
+  type (coord_struct), intent(in), allocatable :: closed_orb_(:)
+  type (coord_struct), intent(in) :: d_orb
+  real(rp), intent(out) :: error
 
   type multi_orb_struct
-    type (coord_struct) orb(0:n_ele_maxx)
+    type (coord_struct), pointer :: orb(:) => null()
   end type
-  type (multi_orb_struct) mo(6)
+  type (multi_orb_struct), save :: mo(6)
 
-  real(rdef) mat(6,6), mat1(6,6), mat0(6,6), mat_inv(6,6), mat6_unit(6,6)
+  real(rp) mat(6,6), mat1(6,6), mat0(6,6), mat_inv(6,6), mat6_unit(6,6)
   integer i, j, n_ele
 
-  logical is_on(0:n_ele_maxx)
+!
+
+  do i=1,6
+    call reallocate_coord (mo(i)%orb, ring%n_ele_max)
+  enddo
 
 ! make a unit matrix
 
@@ -65,13 +68,8 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
 
 ! Turn off RF voltage 
 
-  is_on = .false.
-  do i = 1, n_ele
-    if (ring%ele_(i)%key == rfcavity$) then
-      is_on(i) = ring%ele_(i)%is_on
-      ring%ele_(i)%is_on = .false.
-    endif
-  enddo
+  ring%ele_(:)%internal_logic = ring%ele_(:)%is_on
+  call set_on (rfcavity$, ring, .false.)
 
 ! track offset particles
 
@@ -85,7 +83,8 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
 ! find 1-turn matrix and twiss at starting point
 
   do i = 1, 6
-    mat(1:6, i) = (mo(i)%orb(n_ele)%vec - closed_orb_(n_ele)%vec) / d_orb%vec(i)
+    mat(1:6, i) = (mo(i)%orb(n_ele)%vec - closed_orb_(n_ele)%vec) / &
+                                                                d_orb%vec(i)
   enddo
 
   call mat_symp_check (mat, error)
@@ -123,6 +122,6 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
 
 ! turn RF back on
 
-  where (is_on(1:n_ele)) ring%ele_(1:n_ele)%is_on = .true.
+  ring%ele_(:)%is_on = ring%ele_(:)%internal_logic
 
 end subroutine

@@ -58,12 +58,18 @@ subroutine check_aperture_limit (orb, ele, param)
   x_lim = ele%value(x_limit$)
   if (x_lim <= 0 .or. .not. param%aperture_limit_on) &
                                     x_lim = bmad_com%max_aperture_limit
-  if (abs(orb%vec(1)) > x_lim) param%lost = .true.
 
   y_lim = ele%value(y_limit$)
   if (y_lim <= 0 .or. .not. param%aperture_limit_on) &
                                     y_lim = bmad_com%max_aperture_limit
-  if (abs(orb%vec(3)) > y_lim) param%lost = .true.
+
+  if (ele%key == ecollimator$) then
+    if (orb%vec(1)**2 / x_lim**2 + orb%vec(3)**2 / y_lim**2 > 1) &
+                                                          param%lost = .true.
+  else
+    if (abs(orb%vec(1)) > x_lim) param%lost = .true.
+    if (abs(orb%vec(3)) > y_lim) param%lost = .true.
+  endif
 
 end subroutine
 

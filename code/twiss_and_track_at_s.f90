@@ -9,7 +9,7 @@
 !
 ! Input:
 !   ring -- Ring_struct: Ring holding the lattice.
-!   s    -- Real(rdef): Longitudinal position. If s is negative the
+!   s    -- Real(rp): Longitudinal position. If s is negative the
 !            the position is taken to be ring%param%total_length - s.
 !   orb_(0:n_ele_max) -- Coord_struct: Orbit through the ring.
 !                           (usually the closed orbit)

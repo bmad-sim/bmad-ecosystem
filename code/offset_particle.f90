@@ -36,7 +36,7 @@
 !   set_multipoles -- Logical, optional: Default is True.
 !                   T -> 1/2 of the multipole is applied.
 !   set_hvkicks    -- Logical, optional: Default is True.
-!   s_pos          -- Real(rdef), optional: Longitudinal position of the
+!   s_pos          -- Real(rp), optional: Longitudinal position of the
 !                   particle. If not present then s_pos = 0 is assumed when
 !                   set = T and s_pos = ele%value(l$) when set = F
 !                                               
@@ -138,6 +138,10 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
         if (ele%key == elseparator$ .and. param%particle < 0) then
           coord%vec(2) = coord%vec(2) - ele%value(hkick$) / 2
           coord%vec(4) = coord%vec(4) - ele%value(vkick$) / 2
+        elseif (ele%key == hkicker$) then
+          coord%vec(2) = coord%vec(2) + ele%value(kick$) / 2
+        elseif (ele%key == vkicker$) then
+          coord%vec(4) = coord%vec(4) + ele%value(kick$) / 2
         else
           coord%vec(2) = coord%vec(2) + ele%value(hkick$) / 2
           coord%vec(4) = coord%vec(4) + ele%value(vkick$) / 2
@@ -232,6 +236,10 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
         if (ele%key == elseparator$ .and. param%particle < 0) then
           coord%vec(2) = coord%vec(2) - ele%value(hkick$) / 2
           coord%vec(4) = coord%vec(4) - ele%value(vkick$) / 2
+        elseif (ele%key == hkicker$) then
+          coord%vec(2) = coord%vec(2) + ele%value(kick$) / 2
+        elseif (ele%key == vkicker$) then
+          coord%vec(4) = coord%vec(4) + ele%value(kick$) / 2
         else
           coord%vec(2) = coord%vec(2) + ele%value(hkick$) / 2
           coord%vec(4) = coord%vec(4) + ele%value(vkick$) / 2

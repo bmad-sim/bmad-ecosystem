@@ -7,7 +7,9 @@ module radiation_mod
   use runge_kutta_mod
 
   type synch_rad_com
-    real(rp) :: scale = 1.0   ! used to scale the radiation
+    real(rp) :: scale = 1.0               ! used to scale the radiation
+    logical :: damping_on = .false.       ! Radiation damping toggle.
+    logical :: fluctuations_on = .false.  ! Radiation fluctuations toggle.
   end type
 
   type (synch_rad_com), save :: sr_com
@@ -149,10 +151,10 @@ subroutine track1_radiation (start, ele, param, end, edge)
   gamma = param%beam_energy / m_electron
 
   fact_d = 0
-  if (param%damping_on) fact_d = 2 * r_e * gamma**3 * h2 * s_len / 3
+  if (sr_com%damping_on) fact_d = 2 * r_e * gamma**3 * h2 * s_len / 3
 
   fact_f = 0
-  if (param%fluctuations_on) then
+  if (sr_com%fluctuations_on) then
     h3 = sqrt(h2)**3
     call gauss_ran (this_ran)
     fact_f = sqrt(fluct_const * s_len * gamma**5 * h3) * this_ran
@@ -215,8 +217,8 @@ subroutine setup_radiation_tracking (ring, closed_orb, &
 
 ! Set logicals.
 
-  if (present(fluctuations_on)) ring%param%fluctuations_on = fluctuations_on
-  if (present(damping_on))      ring%param%damping_on      = damping_on
+  if (present(fluctuations_on)) sr_com%fluctuations_on = fluctuations_on
+  if (present(damping_on))      sr_com%damping_on      = damping_on
 
 ! compute wiggler parameters
 

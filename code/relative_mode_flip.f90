@@ -18,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/07/09 01:38:18  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.4  2003/01/27 14:40:42  dcs
 !bmad_version = 56
 !
@@ -41,7 +44,7 @@ function relative_mode_flip (ele1, ele2) result (rel_mode)
 
   type (ele_struct)  ele1, ele2
 
-  real(rdef) mat4(4,4), conj_mat(2,2), det_aa, det_ab
+  real(rp) mat4(4,4), conj_mat(2,2), det_aa, det_ab
 
   logical rel_mode
 

@@ -21,23 +21,7 @@
 !
 !-
 
-!$Id$
-!$Log$
-!Revision 1.5  2003/05/02 15:44:00  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.4  2003/01/27 14:40:35  dcs
-!bmad_version = 56
-!
-!Revision 1.3  2002/02/23 20:32:17  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:52  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine insert_element (ring, insert_ele, insert_index)
 
@@ -50,21 +34,24 @@ subroutine insert_element (ring, insert_ele, insert_index)
   type (ele_struct)  insert_ele
   integer insert_index, index
 
-!
+! transfer_ele is fast since re reuse storage.
 
   ring%n_ele_max = ring%n_ele_max + 1
-  if (ring%n_ele_max > n_ele_maxx) then
-    print *, 'ERROR IN INSERT_ELEMENT: NOT ENOUGH RING ELEMENTS!!!'
-    print *, '      YOU NEED TO INCREASE N_ELE_MAXX IN BMAD_STRUCT!!!'
-    call err_exit
-  endif
+  if (ring%n_ele_max > ring%n_ele_maxx) call allocate_ring_ele_(ring)
 
   do index = ring%n_ele_max-1, insert_index, -1
-    ring%ele_(index+1) = ring%ele_(index)
+    call transfer_ele (ring%ele_(index), ring%ele_(index+1))
   enddo
+  
+! ring%ele_(insert_index) pointers need to be nullified since they now point to
+! the same memory as ring%ele_(insert_index+1)
+
+  call deallocate_ele_pointers (ring%ele_(insert_index), nullify_only = .true.)
   ring%ele_(insert_index) = insert_ele
 
-  do index = 1, ring%n_control_array
+! correct the control info
+
+  do index = 1, ring%n_control_max
     if (ring%control_(index)%ix_slave >= insert_index)  &
            ring%control_(index)%ix_slave = ring%control_(index)%ix_slave + 1
     if (ring%control_(index)%ix_lord >= insert_index)  &

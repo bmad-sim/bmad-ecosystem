@@ -56,9 +56,9 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
   integer i, j, k, n, twiss_out, ix, iv, ic, ct, nl2
   integer nl, nt, n_max, i_max, particle
 
-  real(rdef) coef
-  real(rdef) a(0:n_pole_maxx), b(0:n_pole_maxx)
-  real(rdef) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
+  real(rp) coef
+  real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
+  real(rp) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 
   character(80), pointer :: lines(:)
   character(80), pointer :: li(:), li2(:)
@@ -84,6 +84,11 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
   if (ele%type /= blank_name) then
     nl = nl + 1
     write (li(nl), *) 'Element Type: "', ele%type, '"'
+  endif
+
+  if (ele%alias /= blank_name) then
+    nl = nl + 1
+    write (li(nl), *) 'Element Alias: "', ele%alias, '"'
   endif
 
   if (associated(ele%descrip)) then
@@ -340,8 +345,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
 
 ! Encode taylor series
 
-  if (type_taylor .and. ele%pointer_init == has_been_inited$ .and. &
-                                    associated(ele%taylor(1)%term)) then
+  if (type_taylor .and. associated(ele%taylor(1)%term)) then
     call type2_taylors (ele%taylor, li2, nt)
     n_max = nl + nt + 1
     n_lines = n_max

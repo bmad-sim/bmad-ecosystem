@@ -7,8 +7,8 @@ module runge_kutta_mod
   type runge_kutta_com_struct
     logical :: save_steps = .true.         ! save orbit?
     integer :: n_ok, n_bad, n_pts          ! number of points
-    real(rdef) :: ds_save = 1e-3           ! min distance between points
-    real(rdef), pointer :: s(:) => null()  ! s-distance of a point
+    real(rp) :: ds_save = 1e-3           ! min distance between points
+    real(rp), pointer :: s(:) => null()  ! s-distance of a point
     type (coord_struct), pointer :: orb(:) ! position of a point
   end type
 
@@ -23,8 +23,8 @@ module runge_kutta_mod
       type (ele_struct), intent(in) :: ele
       type (param_struct) param
       type (coord_struct), intent(in) :: orb
-      real(rdef), intent(in) :: s
-      real(rdef), intent(out) :: field(3)
+      real(rp), intent(in) :: s
+      real(rp), intent(out) :: field(3)
       integer, intent(out) :: field_type
     end subroutine
   end interface
@@ -94,11 +94,11 @@ subroutine odeint_bmad (start, ele, param, end, &
   type (ele_struct) ele
   type (param_struct) param
 
-  real(rdef), intent(in) :: s1, s2, rel_tol, abs_tol, h1, h_min
+  real(rp), intent(in) :: s1, s2, rel_tol, abs_tol, h1, h_min
 
-  real(rdef), parameter :: tiny = 1.0e-30_rdef
-  real(rdef) :: h, h_did, h_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N
-  real(rdef) :: dr_ds(6), r(6), r_scal(6)
+  real(rp), parameter :: tiny = 1.0e-30_rp
+  real(rp) :: h, h_did, h_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N
+  real(rp) :: dr_ds(6), r(6), r_scal(6)
 
   integer, parameter :: max_step = 10000
   integer :: n_step, n_pts_save_max
@@ -115,7 +115,7 @@ subroutine odeint_bmad (start, ele, param, end, &
 ! if we are saving the trajectory then allocate enough space in the arrays
 
   if (rk_com%save_steps) then
-    s_sav = s - 2.0_rdef * rk_com%ds_save
+    s_sav = s - 2.0_rp * rk_com%ds_save
     n_pts_save_max = 2 + abs(s2-s1)/rk_com%ds_save
     if (associated(rk_com%s)) then
       if (size(rk_com%s) < n_pts_save_max) then
@@ -205,16 +205,16 @@ subroutine rkqs_bmad (ele, param, r, dr_ds, s, h_try, rel_tol, abs_tol, &
   type (ele_struct) ele
   type (param_struct) param
 
-  real(rdef), intent(inout) :: r(6)
-  real(rdef), intent(in)    :: dr_ds(6), r_scal(6)
-  real(rdef), intent(inout) :: s
-  real(rdef), intent(in)    :: h_try, rel_tol, abs_tol
-  real(rdef), intent(out)   :: h_did, h_next
+  real(rp), intent(inout) :: r(6)
+  real(rp), intent(in)    :: dr_ds(6), r_scal(6)
+  real(rp), intent(inout) :: s
+  real(rp), intent(in)    :: h_try, rel_tol, abs_tol
+  real(rp), intent(out)   :: h_did, h_next
 
-  real(rdef) :: err_max, h, h_temp, s_new
-  real(rdef) :: r_err(6), r_temp(6)
-  real(rdef), parameter :: safety = 0.9_rdef, p_grow = -0.2_rdef
-  real(rdef), parameter :: p_shrink = -0.25_rdef, err_con = 1.89e-4
+  real(rp) :: err_max, h, h_temp, s_new
+  real(rp) :: r_err(6), r_temp(6)
+  real(rp), parameter :: safety = 0.9_rp, p_grow = -0.2_rp
+  real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89e-4
 
 !
 
@@ -226,7 +226,7 @@ subroutine rkqs_bmad (ele, param, r, dr_ds, s, h_try, rel_tol, abs_tol, &
     err_max = maxval(abs(r_err(:)/(r_scal(:)*rel_tol + abs_tol)))
     if (err_max <=  1.0) exit
     h_temp = safety * h * (err_max**p_shrink)
-    h = sign(max(abs(h_temp), 0.1_rdef*abs(h)), h)
+    h = sign(max(abs(h_temp), 0.1_rp*abs(h)), h)
     s_new = s + h
 
     if (s_new == s) then
@@ -242,7 +242,7 @@ subroutine rkqs_bmad (ele, param, r, dr_ds, s, h_try, rel_tol, abs_tol, &
   if (err_max > err_con) then
     h_next = safety*h*(err_max**p_grow)
   else
-    h_next = 5.0_rdef * h
+    h_next = 5.0_rp * h
   end if
 
   h_did = h
@@ -262,22 +262,22 @@ subroutine rkck_bmad (ele, param, r, dr_ds, s, h, r_out, r_err)
   type (ele_struct) ele
   type (param_struct) param
 
-	real(rdef), intent(in) :: r(6), dr_ds(6)
-	real(rdef), intent(in) :: s, h
-	real(rdef), intent(out) :: r_out(6), r_err(6)
-	real(rdef) :: ak2(6), ak3(6), ak4(6), ak5(6), ak6(6), r_temp(6)
-	real(rdef), parameter :: a2=0.2_rdef, a3=0.3_rdef, a4=0.6_rdef, &
-    a5=1.0_rdef, a6=0.875_rdef, b21=0.2_rdef, b31=3.0_rdef/40.0_rdef, &
-    b32=9.0_rdef/40.0_rdef, b41=0.3_rdef, b42=-0.9_rdef, b43=1.2_rdef, &
-    b51=-11.0_rdef/54.0_rdef, b52=2.5_rdef, b53=-70.0_rdef/27.0_rdef, &
-    b54=35.0_rdef/27.0_rdef, &
-		b61=1631.0_rdef/55296.0_rdef, b62=175.0_rdef/512.0_rdef, &
-		b63=575.0_rdef/13824.0_rdef, b64=44275.0_rdef/110592.0_rdef, &
-		b65=253.0_rdef/4096.0_rdef, c1=37.0_rdef/378.0_rdef, &
-		c3=250.0_rdef/621.0_rdef, c4=125.0_rdef/594.0_rdef, &
-		c6=512.0_rdef/1771.0_rdef, dc1=c1-2825.0_rdef/27648.0_rdef, &
-		dc3=c3-18575.0_rdef/48384.0_rdef, dc4=c4-13525.0_rdef/55296.0_rdef, &
-		dc5=-277.0_rdef/14336.0_rdef, dc6=c6-0.25_rdef
+	real(rp), intent(in) :: r(6), dr_ds(6)
+	real(rp), intent(in) :: s, h
+	real(rp), intent(out) :: r_out(6), r_err(6)
+	real(rp) :: ak2(6), ak3(6), ak4(6), ak5(6), ak6(6), r_temp(6)
+	real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
+    a5=1.0_rp, a6=0.875_rp, b21=0.2_rp, b31=3.0_rp/40.0_rp, &
+    b32=9.0_rp/40.0_rp, b41=0.3_rp, b42=-0.9_rp, b43=1.2_rp, &
+    b51=-11.0_rp/54.0_rp, b52=2.5_rp, b53=-70.0_rp/27.0_rp, &
+    b54=35.0_rp/27.0_rp, &
+		b61=1631.0_rp/55296.0_rp, b62=175.0_rp/512.0_rp, &
+		b63=575.0_rp/13824.0_rp, b64=44275.0_rp/110592.0_rp, &
+		b65=253.0_rp/4096.0_rp, c1=37.0_rp/378.0_rp, &
+		c3=250.0_rp/621.0_rp, c4=125.0_rp/594.0_rp, &
+		c6=512.0_rp/1771.0_rp, dc1=c1-2825.0_rp/27648.0_rp, &
+		dc3=c3-18575.0_rp/48384.0_rp, dc4=c4-13525.0_rp/55296.0_rp, &
+		dc5=-277.0_rp/14336.0_rp, dc6=c6-0.25_rp
 
 !
 
@@ -308,14 +308,14 @@ subroutine derivs_bmad (ele, param, s, r, dr_ds)
   type (ele_struct) ele
   type (param_struct) param
 
-  real(rdef), intent(in) :: s         ! s-position
-  real(rdef), intent(in) :: r(6)      ! (x, x', y, y', z, z')
-  real(rdef), intent(out) :: dr_ds(6)
+  real(rp), intent(in) :: s         ! s-position
+  real(rp), intent(in) :: r(6)      ! (x, x', y, y', z, z')
+  real(rp), intent(out) :: dr_ds(6)
 
   type (coord_struct) here
 
-  real(rdef) field(3)
-  real(rdef) vel_x, vel_y, vel_s, dvel_x, dvel_y, dvel_s, f
+  real(rp) field(3)
+  real(rp) vel_x, vel_y, vel_s, dvel_x, dvel_y, dvel_s, f
 
   integer field_type
 
@@ -387,7 +387,7 @@ subroutine field_rk (ele, param, s, here, field, field_type)
   type (param_struct) param
   type (coord_struct), intent(in) :: here
 
-  real(rdef) :: s, field(3)
+  real(rp) :: s, field(3)
 
   integer, intent(out) :: field_type
 
@@ -414,8 +414,8 @@ subroutine field_rk_standard (ele, param, s_pos, here, field, field_type)
   type (coord_struct), intent(in) :: here
   type (wig_term_struct), pointer :: t
 
-  real(rdef) :: field(3), x, y, s, s_pos
-  real(rdef) :: c_x, s_x, c_y, s_y, c_z, s_z, coef
+  real(rp) :: field(3), x, y, s, s_pos
+  real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef
 
   integer, intent(out) :: field_type
   integer i

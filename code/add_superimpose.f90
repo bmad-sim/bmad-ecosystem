@@ -25,6 +25,7 @@ subroutine add_superimpose (ring, super_ele, ix_super)
 
   use bmad_struct
   use bmad_interface
+  use nrutil, only: reallocate
 
   implicit none
 
@@ -32,9 +33,9 @@ subroutine add_superimpose (ring, super_ele, ix_super)
   type (ele_struct)  super_ele, sup_ele, slave_ele
   type (control_struct)  sup_con(100)
 
-  real(rdef) s1, s2, length, s0
+  real(rp) s1, s2, length, s0
 
-  integer j, jj, k, idel, ix, n, i2, ic
+  integer j, jj, k, idel, ix, n, i2, ic, n_con
   integer ix1_split, ix2_split, ix_super, ix_super_con
   integer ix_slave, ixn, ixc, superimpose_key, ix_slave_name
 
@@ -104,10 +105,7 @@ subroutine add_superimpose (ring, super_ele, ix_super)
 
   ix_super = ring%n_ele_max + 1
   ring%n_ele_max = ix_super
-  if (ring%n_ele_max > n_ele_maxx) then
-    print *, 'ERROR IN ADD_SUPERIMPOSE: NOT ENOUGH RING ELEMENTS!!!'
-    print *, '      YOU NEED TO INCREASE N_ELE_MAXX IN BMAD_STRUCT !!!'
-  endif
+  if (ring%n_ele_max > ring%n_ele_maxx) call allocate_ring_ele_(ring)
   ring%ele_(ix_super) = sup_ele
   ring%ele_(ix_super)%control_type = super_lord$
 
@@ -142,32 +140,31 @@ subroutine add_superimpose (ring, super_ele, ix_super)
 
     if (setup_lord) then
       ixn = ring%n_ele_max + 1
-      if (ring%n_ele_max > n_ele_maxx) then
-        print *, 'ERROR IN ADD_SUPERIMPOSE: NOT ENOUGH RING ELEMENTS!!!'
-        print *, '      YOU NEED TO INCREASE N_ELE_MAXX IN BMAD_STRUCT!!!'
-      endif
+      if (ixn > ring%n_ele_maxx) call allocate_ring_ele_(ring)
       ring%ele_(ixn) = slave_ele
       ring%ele_(ixn)%control_type = super_lord$
       ring%n_ele_max = ixn
-      ixc = ring%n_control_array + 1
+      ixc = ring%n_control_max + 1
+      if (ixc > size(ring%control_)) ring%control_ => reallocate(ring%control_, ixc+500)
       ring%ele_(ixn)%ix1_slave = ixc
       ring%ele_(ixn)%ix2_slave = ixc
       ring%ele_(ixn)%n_slave = 1
       ring%control_(ixc)%ix_lord = ixn
       ring%control_(ixc)%ix_slave = ix_slave
       ring%control_(ixc)%coef = 1.0
-      ring%n_control_array = ixc
+      ring%n_control_max = ixc
 
       do j = ring%ele_(ixn)%ic1_lord, ring%ele_(ixn)%ic2_lord
         jj = ring%ic_(j)
         ring%control_(jj)%ix_slave = ixn
       enddo
 
-      ic = ring%n_ic_array + 1
+      ic = ring%n_ic_max + 1
       ring%ele_(ix_slave)%ic1_lord = ic
       ring%ele_(ix_slave)%ic2_lord = ic + 1
       ring%ele_(ix_slave)%n_lord = 2
-      ring%n_ic_array = ic + 1
+      ring%n_ic_max = ic + 1
+      if (ic+1 > size(ring%ic_)) ring%ic_ => reallocate (ring%ic_, ic+500)
       ring%ic_(ic) = ixc 
 
     else
@@ -223,9 +220,11 @@ subroutine add_superimpose (ring, super_ele, ix_super)
 
 ! transfer control info from sup_con array
 
-  ixc = ring%n_control_array + 1
+  ixc = ring%n_control_max + 1
+  n_con = ixc + ix_super_con - 1
+  if (n_con > size(ring%control_)) ring%control_ => reallocate(ring%control_, n_con+500) 
   ring%ele_(ix_super)%ix1_slave = ixc
-  ring%ele_(ix_super)%ix2_slave = ixc + ix_super_con - 1
+  ring%ele_(ix_super)%ix2_slave = n_con
   ring%ele_(ix_super)%n_slave = ix_super_con
 
   do k = 1, ix_super_con
@@ -235,13 +234,7 @@ subroutine add_superimpose (ring, super_ele, ix_super)
     ring%ic_(i2) = k+ixc-1
   enddo
 
-  ring%n_control_array = ring%ele_(ix_super)%ix2_slave
-
-  if (ring%n_control_array > n_control_maxx) then
-    print *, 'ERROR IN ADD_SUPERIMPOSE: NOT ENOUGH CONTROL ELEMENTS !!!'
-    print *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
-    call err_exit
-  endif
+  ring%n_control_max = n_con
 
 ! order slave elements in the super_lord list to be in the correct order
 

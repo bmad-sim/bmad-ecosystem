@@ -19,6 +19,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/07/09 01:38:13  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.6  2003/05/02 15:44:00  dcs
 !F90 standard conforming changes.
 !
@@ -48,7 +51,7 @@ subroutine do_mode_flip (ele, ele_flip)
 
   type (ele_struct)  ele, ele2, ele_flip
 
-  real(rdef) c_conj(2,2), c_mat(2,2), gamma_flip, v_mat(4,4), v_inv_mat(4,4)
+  real(rp) c_conj(2,2), c_mat(2,2), gamma_flip, v_mat(4,4), v_inv_mat(4,4)
 
   logical init_needed / .true. /
 

@@ -9,13 +9,13 @@
 !
 ! Input:
 !   ring      -- Ring_struct: Ring
-!   delta_e   -- Real(rdef): Delta energy used for the calculation.
+!   delta_e   -- Real(rp): Delta energy used for the calculation.
 !                    If 0 then default of 1.0e-4 is used.
 !
 ! Output:
-!     delta_e     -- Real(rdef): Set to 1.0e-4 if on input DELTA_E =< 0.
-!     chrom_x     -- Real(rdef): Horizontal chromaticity.
-!     chrom_y     -- Real(rdef): Vertical chromaticity.
+!     delta_e     -- Real(rp): Set to 1.0e-4 if on input DELTA_E =< 0.
+!     chrom_x     -- Real(rp): Horizontal chromaticity.
+!     chrom_y     -- Real(rp): Vertical chromaticity.
 !     bmad_status -- Status structure in common block
 !                    See MAT_SYMP_DECOUPLE for for more info.
 !           %type_out  -- Logical: If .true. then will type a message for
@@ -33,12 +33,17 @@ subroutine chrom_calc (ring, delta_e, chrom_x, chrom_y)
 
   type (ring_struct)  ring
   type (ring_struct), save :: ring2
-  type (coord_struct)  c0, coord_(0:n_ele_maxx)
+  type (coord_struct)  c0
+  type (coord_struct), allocatable, save :: coord_(:)
 
   integer i, key
 
   real(rp) high_tune_x, high_tune_y, low_tune_x, low_tune_y
   real(rp) delta_e, chrom_x, chrom_y
+
+!
+
+  call reallocate_coord (coord_, ring%n_ele_max)
 
   if (delta_e <= 0) delta_e = 1.0e-4
   ring2 = ring

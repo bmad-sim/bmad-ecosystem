@@ -9,13 +9,13 @@
 ! Input:
 !     RING                -- Ring_struct: Ring
 !     IX_ELE              -- Integer: Index of group element (see below)
-!     RING%ELE_(IX_ELE)%VALUE(COMMAND$) -- Real(rdef): Initial command value.
+!     RING%ELE_(IX_ELE)%VALUE(COMMAND$) -- Real(rp): Initial command value.
 !     N_CONTROL           -- Integer: Number of elements controlled
 !     CONTROL_(N_CONTROL) -- Control_struct: What to control.
 !       %IX_SLAVE       -- Integer: Index in RING%ELE_() of element controlled
 !       %IX_ATTRIB      -- Integer: Index in %VALUE() array of
 !                                   attribute controlled.
-!       %COEF           -- Real(rdef): Coefficient.
+!       %COEF           -- Real(rp): Coefficient.
 !
 ! Output:
 !     RING -- Ring_struct: Appropriate values are set in the RING structure.
@@ -97,7 +97,7 @@ subroutine create_group (ring, ix_ele, n_control, control_)
 
   ring%ele_(ix_ele)%control_type = group_lord$
   ring%ele_(ix_ele)%key = group$
-  n_con = ring%n_control_array
+  n_con = ring%n_control_max
   ring%ele_(ix_ele)%ix1_slave = n_con + 1
 
 ! loop over all controlled elements
@@ -202,6 +202,8 @@ subroutine create_group (ring, ix_ele, n_control, control_)
     else
 
       n_con = n_con + 1
+      if (n_con > size(ring%control_)) &
+                      ring%control_ => reallocate (ring%control_, n_con+500)
       ring%control_(n_con) = control_(i)
       ring%control_(n_con)%ix_lord = ix_ele
 
@@ -213,13 +215,7 @@ subroutine create_group (ring, ix_ele, n_control, control_)
 
   ring%ele_(ix_ele)%ix2_slave = n_con
   ring%ele_(ix_ele)%n_slave = n_con - ring%ele_(ix_ele)%ix1_slave + 1
-  ring%n_control_array = n_con
-
-  if (ring%n_control_array > n_control_maxx) then
-    print *, 'ERROR IN CREATE_GROUP: NOT ENOUGH CONTROL ELEMENTS !!!'
-    print *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
-    call err_exit
-  endif
+  ring%n_control_max = n_con
 
 !---------------------------------------------------------------------------
 
@@ -230,6 +226,8 @@ subroutine bookit (i_ele, scale)
   integer scale, i_ele
 
   n_con = n_con + 1
+  if (n_con > size(ring%control_)) &
+                      ring%control_ => reallocate (ring%control_, n_con+500)
   ring%control_(n_con)%ix_lord = ix_ele
   ring%control_(n_con)%ix_slave = i_ele
   ring%control_(n_con)%ix_attrib = l$

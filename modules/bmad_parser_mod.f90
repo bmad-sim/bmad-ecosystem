@@ -11,7 +11,7 @@ module bmad_parser_mod
 
   type parser_var_struct
     character(16) name                    ! variable name
-    real(rdef) value                     ! variable value
+    real(rp) value                     ! variable value
   end type                      
 
 ! structure for holding the contents of lines and lists (sequences)
@@ -59,16 +59,16 @@ module bmad_parser_mod
     character(16) ref_name
     character(16), pointer :: name_(:)
     character(16), pointer :: attrib_name_(:)
-    real(rdef), pointer :: coef_(:)
+    real(rp), pointer :: coef_(:)
     integer ix_count
     integer ele_pt, ref_pt
     logical common_lord
-    real(rdef) s
+    real(rp) s
     integer indexx
   end type
 
   type parser_ring_struct
-    type (parser_ele_struct) ele(0:n_ele_maxx)
+    type (parser_ele_struct), pointer :: ele(:)
   end type
 
 ! component_struct
@@ -77,9 +77,6 @@ module bmad_parser_mod
     character(16) name
     integer ix_ele
   end type
-
-  integer ivar_maxx
-  parameter (ivar_maxx =  500)
 
 !
 
@@ -98,26 +95,28 @@ module bmad_parser_mod
 ! 
 
   type bp_com_struct
+    type (parser_var_struct), pointer ::  var_(:) => null()
     integer i_line, f_unit, n_files
     character*200 file_name_(20)        ! List of files all opened.
     character*200 current_file_name_in  ! Has possible logical directory
     character*200 current_file_name     ! Full expanded name.
     character*280 parse_line
+    character(140) input_line1          ! For debug messages
+    character(140) input_line2          ! For debug messages
     character(16) parser_name
     character*72 debug_line
     logical parser_debug, write_digested, error_flag
     integer iseq_tot, ivar_tot, ivar_init
+    logical input_line_meaningful
   end type
 
 ! common stuff
 
   type (bp_com_struct)  bp_com
-  type (parser_var_struct)  var_(ivar_maxx)
   type (ele_struct), target :: beam_ele, param_ele
 
   character(16) :: blank = ' '
 
-!------------------------------------------------------------------------
 contains
 
 !-------------------------------------------------------------------------
@@ -144,8 +143,8 @@ subroutine get_attribute (how, ele, ring, pring, &
   type (ele_struct), target ::  ele, ele0
   type (wig_term_struct), pointer :: wig_term(:)
 
-  real(rdef) kx, ky, kz, tol, value, coef
-  real(rdef), pointer :: r_ptr
+  real(rp) kx, ky, kz, tol, value, coef
+  real(rp), pointer :: r_ptr
 
   integer i, ic, ix_word, how, ix_word1, ix_word2, ix_word3, ios, ix, i_out
   integer expn(6), ix_attrib
@@ -189,8 +188,8 @@ subroutine get_attribute (how, ele, ring, pring, &
     call get_next_word (line, ix_word, '},', delim, delim_found, .true.)
     read (line, *, iostat = ios) expn
     if (delim /= '}' .or. ix_word == 0 .or. ios /= 0) then
-      call warning ('BAD "EXPONENT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name, &
-                                                      'CANNOT PARSE: ' // str)
+      call warning ('BAD "EXPONENT" IN TERM FOR TAYLOR ELEMENT: ' // &
+                                            ele%name, 'CANNOT PARSE: ' // str)
       return
     endif
 
@@ -508,26 +507,28 @@ subroutine get_attribute (how, ele, ring, pring, &
 ! The TYPE, ALIAS, and DESCRIP attributes are special because their "values"
 ! are character strings
 
-  if (i == type$ .or. i == alias$ .or. i == descrip$) then  
+  select case (i)
+
+  case(type$, alias$, descrip$, sr_wake_file$, lr_wake_file$)
     call type_get (ele, i, delim, delim_found)
 
-  elseif (i == symplectify$) then
+  case (symplectify$) 
     call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
-    read (word, '(L)', iostat = ios) ele%symplectify
+    ele%symplectify = evaluate_logical (word, ios)
     if (ios /= 0 .or. ix_word == 0) then
       call warning ('BAD "SYMPLECTIFY" SWITCH FOR: ' // ele%name)
       return
     endif
 
-  elseif (i == is_on$) then
+  case (is_on$)
     call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
-    read (word, '(L)', iostat = ios) ele%is_on
+    ele%is_on = evaluate_logical (word, ios)
     if (ios /= 0 .or. ix_word == 0) then
       call warning ('BAD "IS_ON" SWITCH FOR: ' // ele%name)
       return
     endif
 
-  else ! normal attribute
+  case default   ! normal attribute
 
     call evaluate_value (trim(ele%name) // ' ' // word, value, &
                                       ring, delim, delim_found, err_flag)
@@ -555,11 +556,62 @@ subroutine get_attribute (how, ele, ring, pring, &
       ele%ptc_kind = nint(value)
     else
       ele%value(i) = value
-      if (i == b_field$) ele%b_field_master = .true.
+      if (i == b_field$) ele%field_master = .true.
     endif
-  endif
+
+  end select
 
   err_flag = .false.
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine get_called_file (delim)
+
+  implicit none
+
+  character(1) delim
+  character(200) call_file
+
+  integer ix_word, ix
+  logical delim_found, finished
+
+!
+
+  if (delim /= ',')  call warning ('"CALL" NOT FOLLOWED BY COMMA', ' ')
+  call get_next_word(call_file, ix_word, ':=,', delim, delim_found, .true.)
+  if (ix_word == 0) then
+    call warning ('NOTHING AFTER "CALL"', ' ')
+  elseif (index('FILENAME', call_file(:ix_word)) /= 1) then
+    call warning ('INVALID "CALL" COMMAND', ' ')
+  elseif (delim /= '=') then
+    call warning ('NO "=" AFTER "FILENAME"', ' ')
+  else
+    call get_next_word(call_file, ix_word, ',', &
+                                       delim, delim_found, .false.)
+    if (ix_word == 0) then
+      call warning ('NO FILE NAME SPECIFIED', ' ')
+    else
+      if (call_file(1:1) == '"') then
+        call_file = call_file(2:)
+        ix = index(call_file, '"')
+        if (ix == 0 .or. ix /= len_trim(call_file)) then
+          call warning ('MISSING DOUBLE QUOTE MARK (") FOR CALL STATEMENT')
+          return
+        endif
+        call_file(ix:ix) = ' '
+      endif
+      call file_stack ('push', call_file, finished)
+      if (.not. bmad_status%ok) return
+    endif
+  endif
 
 end subroutine
 
@@ -580,7 +632,7 @@ subroutine add_taylor_term (ele, i_out, coef, expn)
   type (ele_struct) ele
   type (taylor_term_struct), allocatable :: term(:)
 
-  real(rdef) coef
+  real(rp) coef
 
   integer i_out, expn(6), n, i
 
@@ -663,7 +715,7 @@ subroutine get_next_word (word, ix_word, delim_list, &
 
 ! check for continuation character and if found then load more characters
 ! into the parse line.
-! after that get the first word in BP_COM.PARSE_LINE
+! after that get the first word in BP_COM%PARSE_LINE
 
   do
     ix_a = index(bp_com%parse_line, '&')
@@ -694,7 +746,7 @@ subroutine file_stack (how, file_name_in, finished)
   implicit none
 
   integer, parameter :: f_maxx = 10
-  integer lunget, i_line_(f_maxx), f_unit_(f_maxx), i_level
+  integer lunget, i_line_(f_maxx), f_unit_(f_maxx), i_level, ios
 
   character*(*) how, file_name_in
   character*200 stack_file_name_in(f_maxx), stack_file_name(f_maxx), file_name
@@ -726,10 +778,22 @@ subroutine file_stack (how, file_name_in, finished)
     bp_com%f_unit = f_unit_(i_level)
     if (i_level /= 1) i_line_(i_level-1) = bp_com%i_line
     bp_com%i_line = 0
-    open (unit = bp_com%f_unit, file = file_name,  &
-                                 status = 'OLD', action = 'READ', err = 9000)
+
+    open (bp_com%f_unit, file = file_name,  &
+                                 status = 'OLD', action = 'READ', iostat = ios)
+    if (ios /= 0) then
+      print *, 'ERROR IN ', trim(bp_com%parser_name)
+      print *, '      UNABLE TO OPEN FILE: ', trim(file_name)
+      if (file_name_in /= file_name)  print *, &
+              '       THIS FROM THE LOGICAL FILE NAME: ', trim(file_name_in)
+      if (bmad_status%exit_on_error) call err_exit
+      bmad_status%ok = .false.
+      return
+    endif
+
     bp_com%n_files = bp_com%n_files + 1
     inquire (file = file_name, name = bp_com%file_name_(bp_com%n_files))
+
   elseif (how == 'pop') then
     close (unit = bp_com%f_unit)
     i_level = i_level - 1
@@ -748,17 +812,6 @@ subroutine file_stack (how, file_name_in, finished)
     call err_exit
   endif
 
-  return
-
-!
-
-  9000  continue
-  print *, 'ERROR IN ', trim(bp_com%parser_name)
-  print *, '      UNABLE TO OPEN FILE: ', trim(file_name)
-  if (file_name_in /= file_name)  print *, &
-            '       THIS FROM THE LOGICAL FILE NAME: ', trim(file_name_in)
-  if (bmad_status%exit_on_error) call err_exit
-  bmad_status%ok = .false.
 
 end subroutine
 
@@ -777,7 +830,7 @@ subroutine load_parse_line (how, ix_cmd, file_end)
 
   implicit none
 
-  integer ix_cmd, ix
+  integer ix_cmd, ix, ios
 
   character*(*) how
   character*140 line, pending_line
@@ -820,6 +873,14 @@ subroutine load_parse_line (how, ix_cmd, file_end)
       bp_com%i_line = bp_com%i_line + 1
     endif
 
+    if (how == 'continue') then
+      bp_com%input_line1 = bp_com%input_line2
+      bp_com%input_line2 = line
+    else
+      bp_com%input_line1 = ' '
+      bp_com%input_line2 = line
+    endif
+
 ! strip off comments
 
     ix = index(line, '!')
@@ -848,17 +909,71 @@ subroutine load_parse_line (how, ix_cmd, file_end)
 ! if the command line is blank then go back for more input
 
   call string_trim (line, line, ix)
-  if (ix == 0 .and. how == 'normal') goto 1000
+  if (ix == 0 .and. .not. cmd_pending) goto 1000
 
   bp_com%parse_line(ix_cmd:) = line
 
   return
 
-9000  continue
+!
+
+  9000  continue
   file_end = .true.
   bp_com%parse_line = ' '
 
 end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Function evaluate_logical (word, iostat) result (this_logic)
+!
+! Function of convert a string into a logical value.
+! Accepted possibilities are:
+!   .TRUE.  .FALSE. 
+!    TRUE    FALSE
+!    T       F
+!
+! Input:
+!   word   -- Character(*): Input string.
+!   iostat -- Integer: Status: Returns 0 if conversion successful. 
+!
+! Output:
+!   this_logic -- Logical: Result.
+!-
+
+function evaluate_logical (word, iostat) result (this_logic)
+
+  implicit none
+
+  character(*), intent(in) :: word
+  character(len(word)+8) :: wd
+  logical this_logic
+  integer, intent(out) :: iostat
+  integer i
+
+!
+
+  iostat = -1
+
+  call str_upcase(wd, word)
+  do i = 1, len(word)
+    if (wd(i:i) /= ' ') then
+      if (wd(i:i+6) == '.TRUE. ' .or. wd(i:i+4) == 'TRUE ' .or. &
+                                            wd(i:i+1) == 'T ') then
+        this_logic = .true.
+        iostat = 0
+      elseif (wd(i:i+7) == '.FALSE. ' .or. wd(i:i+5) == 'FALSE ' .or. &
+                                            wd(i:i+1) == 'F ') then
+        this_logic = .false.
+        iostat = 0
+      endif
+      return
+    endif
+  enddo
+  
+end function
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -875,7 +990,7 @@ subroutine evaluate_value (err_str, value, &
 
   type eval_stack_struct
     integer type
-    real(rdef) value
+    real(rp) value
   end type
 
   type (ring_struct)  ring
@@ -887,18 +1002,21 @@ subroutine evaluate_value (err_str, value, &
   integer :: l_parens$ = 5, power$ = 7, unary_minus$ = 8, unary_plus$ = 9
   integer :: no_delim$ = 10
   integer :: sin$ = 11, cos$ = 12, tan$ = 13
-  integer :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17
+  integer :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
   integer :: numeric$ = 100
 
-  integer :: level(17) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-                            9, 9, 9, 9, 9, 9, 9 /)
+  integer :: level(18) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+                            9, 9, 9, 9, 9, 9, 9, 9 /)
   character*1 op_name(9) / '+', '-', '*', '/', '(', ')', '^', '-', ' ' /
 
   integer op_(200), ix_word, i_delim, i2, ix0
 
-  real(rdef) value
+  real(rp) value
 
-  character line*70, delim*1, word*40, final_delim*1, word0*40, err_str*(*)
+  character(*) err_str
+  character(280) line
+  character(1) delim, final_delim
+  character(40) word, word0
 
   logical delim_found, final_delim_found, split
   logical err_flag, op_found
@@ -977,6 +1095,8 @@ subroutine evaluate_value (err_str, value, &
           call pushit (op_, i_op, atan$)
         elseif (word == 'ABS') then
           call pushit (op_, i_op, abs$)
+        elseif (word == 'SQRT') then
+          call pushit (op_, i_op, sqrt$)
         else
           call warning ('UNEXPECTED CHARACTERS ON RHS BEFORE "(": ' // word,  &
                                                   'FOR: ' // err_str)
@@ -1145,6 +1265,8 @@ subroutine evaluate_value (err_str, value, &
       stk(i2)%value = atan(stk(i2)%value)
     elseif (stk(i)%type == abs$) then
       stk(i2)%value = abs(stk(i2)%value)
+    elseif (stk(i)%type == sqrt$) then
+      stk(i2)%value = sqrt(stk(i2)%value)
     else
       call error_exit ('INTERNAL ERROR #02: GET HELP', ' ')
     endif
@@ -1182,7 +1304,6 @@ subroutine increment_pointer (ix, reflect)
 
 end subroutine
 
-!-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -1228,7 +1349,7 @@ subroutine word_to_value (word, ring, value)
   type (ele_struct), pointer :: ele
 
   integer i, ix1, ix2, ix_word
-  real(rdef) value
+  real(rp) value
   character*(*) word
   character(16) name
 
@@ -1289,8 +1410,8 @@ subroutine word_to_value (word, ring, value)
 ! None of the above? must be a variable
 
   do i = 1, bp_com%ivar_tot
-    if (word == var_(i)%name) then
-      value = var_(i)%value
+    if (word == bp_com%var_(i)%name) then
+      value = bp_com%var_(i)%value
       return
     endif
   enddo
@@ -1342,21 +1463,136 @@ subroutine type_get (ele, ix_type, delim, delim_found)
     type_name = bp_com%parse_line(2:ix)
   endif
 
-  if (ix_type == type$) then
+  select case (ix_type)
+  case (type$)
     ele%type = type_name
-  elseif (ix_type == alias$) then
+  case (alias$)
     ele%alias = type_name
-  elseif (ix_type == descrip$) then
-    if (associated(ele%descrip)) deallocate (ele%descrip)
-    allocate (ele%descrip) 
+  case (descrip$)
+    if (.not. associated(ele%descrip)) allocate (ele%descrip) 
     ele%descrip = type_name
-  endif
+  case (sr_wake_file$) 
+    if (.not. associated(ele%wake%sr_file)) allocate (ele%wake%sr_file)
+    ele%wake%sr_file = type_name
+    call read_sr_wake (ele)
+  case (lr_wake_file$) 
+    if (.not. associated(ele%wake%lr_file)) allocate (ele%wake%lr_file)
+    ele%wake%lr_file = type_name
+    print *, 'ERROR: LR_WAKES NOT YET IMPLEMENTED!'
+    call err_exit
+    call read_lr_wake (ele)
+  case default
+    print *, 'INTERNAL ERROR IN TYPE_GET: I NEED HELP!'
+    call err_exit
+  end select
 
   bp_com%parse_line = bp_com%parse_line(ix+2:)
   call get_next_word (word, ix_word, ',=', delim, delim_found, .true.)
   if (ix_word /= 0) call warning (  &
                 'EXTRA CHARACTERS FOUND AFTER TYPE ATTRIBUTE: ' // word,  &
                 'FOR ELEMENT: ' // ele%name)
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine read_sr_wake (ele)
+!
+! Subroutine to read in a wake field from an external file.
+! This subroutine is used by bmad_parser and bmad_parser2.
+!
+! Input:
+!   ele -- Ele_struct: Element
+!     %wake%sr_file -- Name of wake field file
+!
+! Output:
+!   ele -- Ele_struct: Element with wake information.
+!     %wake%sr(:) -- Short-range wake potential.
+!-
+        
+subroutine read_sr_wake (ele)
+
+  implicit none
+
+  type (ele_struct) ele
+  type (sr_wake_struct), allocatable :: sr(:)
+  integer i, ix, lunget, iu, ios
+
+  character(200) file_name, line
+
+! open file
+
+  iu = lunget()
+  call fullfilename(ele%wake%sr_file, file_name)
+  open (iu, file = file_name, status = 'OLD', action = 'READ', iostat = ios)
+  if (ios /= 0) then
+    call warning ('CANNOT OPEN WAKE FILE: ' // ele%wake%sr_file, &
+                            'FOR LCAVITY: ' // ele%name)
+    return
+  endif
+
+! read
+
+  allocate (sr(400))
+
+  i = 0
+
+  do
+    read (iu, '(a)', iostat = ios) line
+    if (ios < 0) exit  ! end-of-file
+    if (ios > 0) then
+      call warning ('ERROR READING WAKE FILE: ' // ele%wake%sr_file, &
+                            'FOR LCAVITY: ' // ele%name)
+      return
+    endif
+    call string_trim (line, line, ix)
+    if (line(1:1) == '!') cycle  ! skip comments.
+    if (ix == 0) cycle          ! skip blank lines.
+    i = i + 1
+    read (line, *, iostat = ios) sr(i)%z, sr(i)%long, sr(i)%trans
+    if (ios /= 0) then
+      call warning ('ERROR PARSING WAKE FILE: ' // ele%wake%sr_file, &
+                           'CANNOT READ LINE: ' // line)
+      return
+    endif
+  enddo
+
+  if (associated(ele%wake%sr)) deallocate (ele%wake%sr)
+  allocate (ele%wake%sr(i))
+  ele%wake%sr = sr(1:i)
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine read_lr_wake (ele)
+!
+! Subroutine to read in a wake field from an external file.
+! This subroutine is used by bmad_parser and bmad_parser2.
+!
+! Input:
+!   ele -- Ele_struct: Element
+!     %wake%lr_file -- Name of wake field file
+!
+! Output:
+!   ele -- Ele_struct: Element with wake information.
+!     %wake%lr(:) -- Short-range wake potential.
+!-
+        
+subroutine read_lr_wake (ele)
+
+  implicit none
+
+  type (ele_struct) ele
+
+!
+
+  print *, 'ERROR: READ_LR_WAKE NOT YET IMPLEMENTED!'
+  call err_exit
 
 end subroutine
 
@@ -1378,8 +1614,8 @@ subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
   type (parser_ring_struct) pring
   type (ring_struct)  ring
 
-  real(rdef) coef_(200)
-  real(rdef) value
+  real(rp) coef_(200)
+  real(rp) value
   
   integer ic, ix_word, ixs, j, k
                              
@@ -1560,12 +1796,12 @@ subroutine preparse_element_init (ele)
   if (ele%key == taylor$) then
     ele%tracking_method = taylor$  ! default
     ele%mat6_calc_method = taylor$ ! default
-    call add_taylor_term (ele, 1, 1.0_rdef, (/ 1, 0, 0, 0, 0, 0 /))
-    call add_taylor_term (ele, 2, 1.0_rdef, (/ 0, 1, 0, 0, 0, 0 /))
-    call add_taylor_term (ele, 3, 1.0_rdef, (/ 0, 0, 1, 0, 0, 0 /))
-    call add_taylor_term (ele, 4, 1.0_rdef, (/ 0, 0, 0, 1, 0, 0 /))
-    call add_taylor_term (ele, 5, 1.0_rdef, (/ 0, 0, 0, 0, 1, 0 /))
-    call add_taylor_term (ele, 6, 1.0_rdef, (/ 0, 0, 0, 0, 0, 1 /))
+    call add_taylor_term (ele, 1, 1.0_rp, (/ 1, 0, 0, 0, 0, 0 /))
+    call add_taylor_term (ele, 2, 1.0_rp, (/ 0, 1, 0, 0, 0, 0 /))
+    call add_taylor_term (ele, 3, 1.0_rp, (/ 0, 0, 1, 0, 0, 0 /))
+    call add_taylor_term (ele, 4, 1.0_rp, (/ 0, 0, 0, 1, 0, 0 /))
+    call add_taylor_term (ele, 5, 1.0_rp, (/ 0, 0, 0, 0, 1, 0 /))
+    call add_taylor_term (ele, 6, 1.0_rp, (/ 0, 0, 0, 0, 0, 1 /))
   endif
 
 
@@ -1616,11 +1852,14 @@ subroutine warning (what1, what2, seq)
   character*(*), optional :: what2
   type (seq_struct), optional :: seq
 
-! BP_COM.ERROR_FLAG is a common logical used so program will stop at end of parsing
+! BP_COM%ERROR_FLAG is a common logical used so program will stop at end of parsing
 
   if (bmad_status%type_out) then
+
     print *, 'ERROR IN ', trim(bp_com%parser_name), ': ', what1
+
     if (present(what2)) print '(22x, a)', what2
+
     if (present(seq)) then
       print *, '      IN FILE: ', trim(seq%file_name)
       print *, '      AT LINE:', seq%ix_line
@@ -1628,6 +1867,14 @@ subroutine warning (what1, what2, seq)
       print *, '      IN FILE: ', trim(bp_com%current_file_name)
       print *, '      AT OR BEFORE LINE:', bp_com%i_line
     endif
+
+    if (bp_com%input_line_meaningful) then
+       if (len_trim(bp_com%input_line1) /= 0) print '(5x, a)', trim(bp_com%input_line1)
+       if (len_trim(bp_com%input_line2) /= 0) print '(5x, a)', trim(bp_com%input_line2)
+    endif
+
+    print *
+
   endif
 
   bp_com%error_flag = .true.
@@ -1650,75 +1897,107 @@ subroutine init_bmad_parser_common
   
 !
 
-  var_(1)%name = 'PI'
-  var_(1)%value = pi
-
-  var_(2)%name = 'TWOPI'
-  var_(2)%value = twopi
-
-  var_(3)%name = 'DEGRAD'
-  var_(3)%value= 180 / pi
-
-  var_(4)%name = 'RADDEG'
-  var_(4)%value = pi / 180
-
-  var_(5)%name = 'E'
-  var_(5)%value = 2.718281828459
-
-  var_(6)%name = 'E_MASS'
-  var_(6)%value = e_mass
-
-  var_(7)%name = 'C_LIGHT'
-  var_(7)%value = c_light
-
-  var_(8)%name = 'POSITRON'
-  var_(8)%value = positron$
-
-  var_(9)%name = 'ELECTRON'
-  var_(9)%value = electron$
-
-  var_(10)%name = 'MOBIUS'
-  var_(10)%value = mobius_symmetry$
-
-  var_(11)%name = 'E_CHARGE'
-  var_(11)%value = e_charge
-
-  var_(12)%name = 'EMASS'      ! old style
-  var_(12)%value = e_mass
-
-  var_(13)%name = 'CLIGHT'     ! old style
-  var_(13)%value = c_light
-
-  var_(14)%name = 'LINAC_LATTICE'
-  var_(14)%value = linac_lattice$
-
-  var_(15)%name = 'LINEAR_LATTICE'
-  var_(15)%value = linear_lattice$
-
-  var_(16)%name = 'CIRCULAR_LATTICE'
-  var_(16)%value = circular_lattice$
-
-  var_(17)%name = 'PROTON'
-  var_(17)%value = proton$
-
-  var_(18)%name = 'ANTIPROTON'
-  var_(18)%value = antiproton$
-
-  var_(19)%name = 'M_ELECTRON'
-  var_(19)%value = m_electron
-
-  var_(20)%name = 'M_PROTON'
-  var_(20)%value = m_proton
-
-  nn = 20
-
-  do i = 1, ubound(calc_method_name, 1)
-    call str_upcase (var_(nn+i)%name, calc_method_name(i))
-    var_(nn+i)%value = i
-  enddo
-
+  nn = 22
   bp_com%ivar_init = nn + ubound(calc_method_name, 1)
   bp_com%ivar_tot = bp_com%ivar_init
+
+  allocate (bp_com%var_(bp_com%ivar_tot))
+
+  bp_com%var_(1)%name = 'PI'
+  bp_com%var_(1)%value = pi
+
+  bp_com%var_(2)%name = 'TWOPI'
+  bp_com%var_(2)%value = twopi
+
+  bp_com%var_(3)%name = 'DEGRAD'
+  bp_com%var_(3)%value= 180 / pi
+
+  bp_com%var_(4)%name = 'RADDEG'
+  bp_com%var_(4)%value = pi / 180
+
+  bp_com%var_(5)%name = 'E'
+  bp_com%var_(5)%value = 2.718281828459
+
+  bp_com%var_(6)%name = 'E_MASS'
+  bp_com%var_(6)%value = e_mass
+
+  bp_com%var_(7)%name = 'C_LIGHT'
+  bp_com%var_(7)%value = c_light
+
+  bp_com%var_(8)%name = 'POSITRON'
+  bp_com%var_(8)%value = positron$
+
+  bp_com%var_(9)%name = 'ELECTRON'
+  bp_com%var_(9)%value = electron$
+
+  bp_com%var_(10)%name = 'MOBIUS'
+  bp_com%var_(10)%value = mobius_symmetry$
+
+  bp_com%var_(11)%name = 'E_CHARGE'
+  bp_com%var_(11)%value = e_charge
+
+  bp_com%var_(12)%name = 'EMASS'      ! old style
+  bp_com%var_(12)%value = e_mass
+
+  bp_com%var_(13)%name = 'CLIGHT'     ! old style
+  bp_com%var_(13)%value = c_light
+
+  bp_com%var_(14)%name = 'LINAC_LATTICE'
+  bp_com%var_(14)%value = linac_lattice$
+
+  bp_com%var_(15)%name = 'LINEAR_LATTICE'
+  bp_com%var_(15)%value = linear_lattice$
+
+  bp_com%var_(16)%name = 'CIRCULAR_LATTICE'
+  bp_com%var_(16)%value = circular_lattice$
+
+  bp_com%var_(17)%name = 'PROTON'
+  bp_com%var_(17)%value = proton$
+
+  bp_com%var_(18)%name = 'ANTIPROTON'
+  bp_com%var_(18)%value = antiproton$
+
+  bp_com%var_(19)%name = 'M_ELECTRON'
+  bp_com%var_(19)%value = m_electron
+
+  bp_com%var_(20)%name = 'M_PROTON'
+  bp_com%var_(20)%value = m_proton
+
+  bp_com%var_(21)%name = 'R_E'
+  bp_com%var_(21)%value = r_e
+
+  bp_com%var_(22)%name = 'R_P'
+  bp_com%var_(22)%value = r_p
+
+  do i = 1, ubound(calc_method_name, 1)
+    call str_upcase (bp_com%var_(nn+i)%name, calc_method_name(i))
+    bp_com%var_(nn+i)%value = i
+  enddo
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine reallocate_bp_com_var()
+
+  implicit none
+
+  type (parser_var_struct) :: var_temp(size(bp_com%var_))
+  integer n
+
+!
+
+  n = size(var_temp)
+  var_temp = bp_com%var_
+  deallocate (bp_com%var_)
+  allocate (bp_com%var_(bp_com%ivar_tot+200))
+  bp_com%var_(1:n) = var_temp
 
 
 end subroutine
@@ -1882,10 +2161,15 @@ subroutine add_all_superimpose (ring, ele_in, pele)
   endif
 
   ring%n_ele_max = ring%n_ele_max + 1
+  if (ring%n_ele_max > ubound(ring%ele_, 1)) call allocate_ring_ele_(ring)
+
   nn = ring%n_ele_max 
 
-  n_con = ring%n_control_array 
-  ring%n_control_array = n_con + n_inserted
+  n_con = ring%n_control_max 
+  ring%n_control_max = n_con + n_inserted
+  if (ring%n_control_max > size(ring%control_)) &
+   ring%control_ => reallocate_control_(ring%control_, ring%n_control_max+1000)
+
 
   ring%ele_(nn) = ele
   ring%ele_(nn)%control_type = super_lord$
@@ -1910,13 +2194,14 @@ subroutine add_all_superimpose (ring, ele_in, pele)
       endif
       j = j + 1
       ring%ele_(i)%control_type = super_slave$
-      nic = ring%n_ic_array + 1
+      nic = ring%n_ic_max + 1
+      if (nic > size(ring%ic_)) ring%ic_ => reallocate (ring%ic_, nic+500)
       ring%ele_(i)%n_lord = 1
       ring%ele_(i)%ic1_lord = nic
       ring%ele_(i)%ic2_lord = nic
       ring%ic_(nic) = n_con + j
       ring%control_(n_con+j)%ix_slave = i
-      ring%n_ic_array = nic
+      ring%n_ic_max = nic
     endif
   enddo
 
@@ -1946,7 +2231,7 @@ subroutine compute2_super_lord_s (ring, i_ref, ele, pele)
 
   integer i_ref, i, ix
 
-  real(rdef) s_ref_begin, s_ref_end
+  real(rp) s_ref_begin, s_ref_end
 
 !
 
@@ -2093,13 +2378,14 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
 
   type (seq_struct), target :: seq_(:)
   type (seq_struct), pointer :: seq
-  type (seq_ele_struct) s_ele(n_ele_maxx)
+  type (seq_ele_struct), allocatable :: s_ele(:)
+  type (seq_ele_struct), allocatable :: s_ele2(:)
   type (ring_struct) ring
 
   integer ix_seq, ix_ele, ix_word, ix, count, i, j, n, ios, i_rl
   integer, save :: ix_internal = 0
 
-  real(rdef) rcount
+  real(rp) rcount
 
   character*20 word
   character delim*1, str*16, name*16, c_delim*1
@@ -2108,6 +2394,8 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
   logical err_flag
 
 ! init
+
+  allocate (s_ele(ring%n_ele_maxx))
 
   s_ele%type = 0
   s_ele%ix_array = 0
@@ -2243,6 +2531,16 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
 
 ! if multiple repetition count then expand
 
+    n = size(s_ele)
+    if (ix_ele+count > n) then
+      allocate (s_ele2(n))      
+      s_ele2 = s_ele(1:n)
+      deallocate (s_ele)
+      allocate (s_ele(n+1000))
+      s_ele(1:n) = s_ele2
+      deallocate(s_ele2)
+    endif
+
     do i = 1, count-1
       s_ele(ix_ele+i) = s_ele(ix_ele)
     enddo
@@ -2276,6 +2574,8 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
 
   seq%ix = 1   ! Init. Used for replacement line index
 
+  deallocate (s_ele)
+
 end subroutine
 
 !-------------------------------------------------------------------------
@@ -2290,22 +2590,37 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine find_slaves_for_parser (ring, name_, attrib_name_, coef_, cs_out)
+subroutine find_slaves_for_parser (ring, name_, attrib_name_, coef_, cs_)
 
   implicit none
 
   type (ring_struct), target :: ring
   type (ele_struct), pointer :: ele
-  type (control_struct), pointer :: cs_out(:)
-  type (control_struct) cs_(n_ele_maxx)
+  type (control_struct), pointer :: cs_(:)
 
-  real(rdef), pointer :: coef_(:)
+  real(rp), pointer :: coef_(:)
 
   integer i, j, k, k2, ixl, ix
-  integer r_indexx(n_ele_maxx)
+  integer, allocatable :: r_indexx(:)
 
-  character(16), pointer :: name_(:), attrib_name_(:)
+  character(16) :: name_(:), attrib_name_(:)
   character(16) name
+
+! allocate
+
+  if (.not. allocated(r_indexx)) then
+    allocate (r_indexx(ring%n_ele_maxx))
+  elseif (size(r_indexx) < ring%n_ele_maxx) then
+    deallocate (r_indexx)
+    allocate (r_indexx(ring%n_ele_maxx))
+  endif
+
+  if (.not. associated(cs_)) then
+    allocate (cs_(1000))
+  elseif (size(cs_) < 1000) then
+    deallocate (cs_)
+    allocate (cs_(1000))
+  endif
 
 ! ring%n_ele_max is the index of the lord
 
@@ -2317,7 +2632,7 @@ subroutine find_slaves_for_parser (ring, name_, attrib_name_, coef_, cs_out)
   j = 0
   do i = 1, ele%n_slave
 
-    call find_indexx (name_(i), ring%ele_(1:)%name, r_indexx, ixl-1, k, k2)
+    call find_indexx (name_(i), ring%ele_(1:ixl)%name, r_indexx(1:ixl), ixl-1, k, k2)
     if (k2 == 0) then
       call warning ('CANNOT FIND SLAVE FOR: ' // ele%name, &
                     'CANNOT FIND: '// name_(i))
@@ -2360,11 +2675,55 @@ subroutine find_slaves_for_parser (ring, name_, attrib_name_, coef_, cs_out)
 
   ele%n_slave = j
 
-! init
+end subroutine
 
-  if (associated(cs_out)) deallocate(cs_out)
-  allocate (cs_out(j))
-  cs_out = cs_(1:j)
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine allocate_pring (ring, pring) 
+!
+! Subroutine to allocate allocatable array sizes.
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+Subroutine allocate_pring (ring, pring)
+
+  implicit none
+
+  type (ring_struct) ring
+  type (parser_ring_struct) pring
+  type (parser_ele_struct), allocatable :: temp_pele(:)
+
+  integer i, n_now
+
+! assume all the arrays have the same size
+
+  if (associated(pring%ele)) then
+    n_now = ubound(pring%ele, 1)
+    allocate (temp_pele(0:n_now))
+    temp_pele = pring%ele
+    deallocate (pring%ele)
+    allocate (pring%ele(0:ring%n_ele_maxx))
+    pring%ele(0:n_now) = temp_pele
+    deallocate (temp_pele)
+
+  else
+    allocate (pring%ele(0:ring%n_ele_maxx))
+  endif
+
+! %ixx is used as a pointer from the in_ring%ele_ array to the pring%ele array
+
+  do i = n_now+1, ubound(pring%ele, 1)
+    nullify (pring%ele(i)%name_)
+    pring%ele(i)%ref_name = blank
+    pring%ele(i)%ref_pt  = center$
+    pring%ele(i)%ele_pt  = center$
+    pring%ele(i)%s       = 0
+    pring%ele(i)%common_lord = .false.
+    ring%ele_(i)%ixx = i
+  enddo
 
 end subroutine
 

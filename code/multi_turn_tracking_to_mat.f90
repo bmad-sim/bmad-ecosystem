@@ -14,9 +14,9 @@
 !   i_dim    -- Integer: Dimensionality of the data (2, 4, or 6).
 !
 ! Output: 
-!   mat1(:,:) -- Real(rdef): Calculated 1-turn matrix.
+!   mat1(:,:) -- Real(rp): Calculated 1-turn matrix.
 !   track0    -- Coord_struct: Closed orbit offset.
-!   chi       -- Real(rdef): Figure of merit in the fitting:
+!   chi       -- Real(rp): Figure of merit in the fitting:
 !                   = 0 => perfect fit
 !                   = 1 => terrible fit
 !-

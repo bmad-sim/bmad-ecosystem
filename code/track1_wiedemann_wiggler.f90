@@ -35,11 +35,11 @@ subroutine track1_wiedemann_wiggler (start, ele, param, end)
   type (ele_struct)  ele
   type (param_struct)  param
 
-  real(rdef) length, k_z, factor, dx
-  real(rdef) l_original, l_start, l_end
-  real(rdef) const1, const3, tan_theta
-  real(rdef) x_lim, y_lim, l_period, l_bend, l_drift, rho_bend, angle
-  real(rdef) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+  real(rp) length, k_z, factor, dx
+  real(rp) l_original, l_start, l_end
+  real(rp) const1, const3, tan_theta
+  real(rp) x_lim, y_lim, l_period, l_bend, l_drift, rho_bend, angle
+  real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 
   integer i, j, n, n_slice, n_pole
 
@@ -143,7 +143,7 @@ subroutine track_period (i_pole, l_bend, rho_bend, l_drift, factor)
 
   type (coord_struct8) end8
 
-  real(rdef) l_bend, rho_bend, l_drift, y_ave, factor, l_1, l_2, l_track
+  real(rp) l_bend, rho_bend, l_drift, y_ave, factor, l_1, l_2, l_track
 
   real*8 denom, s_center, x_center, a, b, c, descrim
   real*8 del_s, rho, radix, x_vel_old

@@ -30,11 +30,12 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
 
   implicit none
 
-  type (ring_struct), target, intent(out) :: ring
+  type (ring_struct), target, intent(inout) :: ring
   type (ele_struct), pointer :: ele
   
   integer d_unit, lunget, n_files, version, i, j, k, ix
-  integer ix_wig, ix_const, ix_d, ix_m, ix_t(6)
+  integer ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t(6)
+  integer ix_srf, ix_sr, ix_lrf, ix_lr
   integer stat_b(12), stat, ierr, idate_old
 
   character*(*) in_file_name
@@ -45,10 +46,7 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
 ! init all elements in ring
 
   call init_ele (ring%ele_init)  ! init pointers
-
-  do i = 0, n_ele_maxx
-    call init_ele (ring%ele_(i))
-  enddo
+  call deallocate_ring_pointers (ring)
 
 ! read the digested file
 
@@ -120,22 +118,19 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
           ring%name, ring%lattice, ring%input_file_name, ring%title, &
           ring%x, ring%y, ring%z, ring%param, ring%version, ring%n_ele_ring, &
           ring%n_ele_symm, ring%n_ele_use, ring%n_ele_max, &
-          ring%n_control_array, ring%n_ic_array, ring%input_taylor_order
+          ring%n_control_max, ring%n_ic_max, ring%input_taylor_order
 
-  if (ring%n_ele_max > n_ele_maxx) then
-    print *, 'ERROR IN READ_DIGESTED_BMAD_FILE: NUMBER OF ELEMENTS:',  &
-                                                            ring%n_ele_max
-    print *, '      IS GREATER THAN THE ELEMENT ARRAY SIZE:', n_ele_maxx
-    print *, '      YOU NEED TO RECOMPILE'
-    call err_exit
-  endif
+  call allocate_ring_ele_(ring, ring%n_ele_max+100)
+  allocate (ring%control_(ring%n_control_max+100))
+  allocate (ring%ic_(ring%n_ic_max+100))
 
 !
 
   do i = 0, ring%n_ele_max
 
     ele => ring%ele_(i)
-    read (d_unit, err = 9100) ix_wig, ix_const, ix_d, ix_m, ix_t, &
+    read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+                              ix_srf, ix_sr, ix_lrf, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
             ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%x_position, ele%y_position, &
@@ -146,10 +141,8 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
             ele%iyy, ele%mat6_calc_method, ele%tracking_method, &
             ele%num_steps, ele%integration_order, ele%ptc_kind, &
             ele%taylor_order, ele%symplectify, ele%mode_flip, &
-            ele%multipoles_on, ele%exact_rad_int_calc, ele%B_field_master
-
-    ele%pointer_init = 0  ! signal that pointers have garbage
-    call deallocate_ele_pointers (ele)  ! and deallocate 
+            ele%multipoles_on, ele%exact_rad_int_calc, ele%Field_master, &
+            ele%logic, ele%internal_logic
 
     if (ix_wig /= 0) then
       allocate (ele%wig_term(ix_wig))
@@ -161,6 +154,11 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
     if (ix_const /= 0) then
       allocate (ele%const(ix_const))
       read (d_unit) ele%const
+    endif
+
+    if (ix_r /= 0) then
+      allocate (ele%const(ix_r))
+      read (d_unit) ele%r
     endif
 
     if (ix_d /= 0) then
@@ -181,24 +179,36 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
         enddo
       endif
     enddo
-    
+
+    if (ix_srf /= 0) then
+      allocate (ele%wake%sr_file)
+      read (d_unit) ele%wake%sr_file
+    endif
+
+    if (ix_sr /= 0) then
+      allocate (ele%wake%sr(ix_sr))
+      read (d_unit) ele%wake%sr
+    endif
+
+    if (ix_lrf /= 0) then
+      allocate (ele%wake%lr_file)
+      read (d_unit) ele%wake%lr_file
+    endif
+
+    if (ix_lr /= 0) then
+      allocate (ele%wake%lr(ix_lr))
+      read (d_unit) ele%wake%lr
+    endif
+
   enddo
 
 !
 
-  if (ring%n_control_array > n_control_maxx) then
-    print *, 'ERROR IN READ_DIGESTED_BMAD_FILE: NUMBER OF ELEMENTS:',  &
-                                                      ring%n_control_array
-    print *, '      IS GREATER THAN THE CONTROL ARRAY SIZE:', n_control_maxx
-    print *, '      YOU NEED TO RECOMPILE'
-    call err_exit
-  endif
-
-  do i = 1, ring%n_control_array
+  do i = 1, ring%n_control_max
     read (d_unit, err = 9100) ring%control_(i)
   enddo
 
-  do i = 1, ring%n_ic_array
+  do i = 1, ring%n_ic_max
     read (d_unit, err = 9100) ring%ic_(i)
   enddo
 

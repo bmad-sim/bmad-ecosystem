@@ -68,8 +68,10 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 ! drift or element is off or
 ! Electric Separator or Kicker.
 
-  if (ele%key == drift$ .or. (.not. ele%is_on) .or. &
-      ele%key == elseparator$ .or. ele%key == kicker$) then
+  key = ele%key
+  if (.not. ele%is_on) key = drift$
+  if (any (key == (/ drift$, elseparator$, kicker$, rcollimator$, &
+          ecollimator$, monitor$, instrument$, hkicker$, vkicker$ /) )) then
 
     call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
 

@@ -1,3 +1,267 @@
+#include "CESR_platform.inc"
+
+!+
+!--------------------------------------
+! ******** THIS IS ANTIQUATED. ********
+! ********     DO NOT USE.     ********
+!--------------------------------------
+!-
+
+module mat627_mod
+
+  use bmad_struct
+  use bmad_interface
+  use make_mat6_mod
+
+! For 6x27 matrices
+
+  integer, parameter :: x11$ = 7, x12$ = 8, x13$ = 9, x14$ = 10, x15$ = 11
+  integer, parameter :: x16$ = 12, x22$ = 13, x23$ = 14, x24$ = 15
+  integer, parameter :: x25$ = 16, x26$ = 17, x33$ = 18, x34$ = 19, x35$ = 20
+  integer, parameter :: x36$ = 21, x44$ = 22, x45$ = 23, x46$ = 24
+  integer, parameter :: x55$ = 25, x56$ = 26, x66$ = 27
+
+  type mat627_struct
+    real(rp) m(6,27)
+  end type
+
+contains
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine track_long (ring, orbit_, ix_start, direction, mats627)
+!
+! Subroutine to track for 1-turn. This subroutine is ment for long term
+! tracking and uses 2nd order transport matrices for some of the tracking.
+!
+! Moudules Needed:
+!   use mat627_mod
+!
+! Input:
+!   ring             -- Ring_struct: Ring.
+!     %param%aperture_limit_on -- Logical: Sets whether TRACK_LONG looks to
+!                                   see whether a particle is lost or not
+!   orbit_(ix_start) -- Coord_struct: Coordinates at start of tracking.
+!   ix_start         -- Integer: Start index (See Note).
+!   direction        -- Integer: Direction to track.
+!                            = +1  -> Track forward
+!                            = -1  -> Track backward
+!   mats627(0:n_ele_maxx) -- Mat627_struct: array of 6x27 2nd order matrices.
+!                       Use RING_MAKE_MAT627 to calculate these matrices 
+!                       before calling TRACK_LONG.
+!
+! Output:
+!   ring
+!     %param%lost    -- Logical: Set when a particle is lost with the aperture
+!                        limit on.
+!     %param%ix_lost -- Integer: set to index of element where particle is lost
+!   orbit_(0:n_ele_maxx) -- Coord_struct: Coordinates of tracked particle. 
+!   orbit_(ix_start) -- Coord_struct: Coordinates at end of tracking.
+!
+! Note: Starting and ending points are just after the elements with index
+!   IX_START. For example, if DIRECTION = +1 then the first element
+!   tracked through is element ix_start+1. If DIRECTION = -1 then the first
+!   element tracked through is element ix_start.
+!
+! Note: Remember that if you are tracking backward and you have calculated
+!   the orbit by tracking forward (with, for example, CLOSED_ORBIT_AT_START)
+!   then you need to reverse velocity signs:
+!           orbit_(ix_start)%x_vel = -orbit_(ix_start)%x_vel 
+!           orbit_(ix_start)%y_vel = -orbit_(ix_start)%y_vel 
+!
+! Note: If x_limit (or y_limit) for an element is zero then TRACK_LONG will
+!   take x_limit (or y_limit) as infinite (this is standard BMAD).
+!-
+
+subroutine track_long (ring, orbit_, ix_start, direction, mats627)
+
+  implicit none
+
+  type (ring_struct) ring
+  type (coord_struct) orbit_(0:*)
+  type (ele_struct) ele            
+  type (mat627_struct) mats627(*)
+
+  integer ix_start, direction
+  integer n, i
+
+  real(rdef) x_lim, y_lim
+
+  logical debug / .false. /
+                            
+! track through elements.
+
+  print *, 'ERROR IN TRACK_LONG: THIS SUBROUTINE IS OBSOLETE. PLEASE SEE DCS.'
+  stop
+
+  ring%param%lost = .false.
+
+  if (direction == +1) then
+    call track_fwd (ix_start+1, ring%n_ele_ring)
+    if (ring%param%lost) return
+    orbit_(0) = orbit_(ring%n_ele_ring) 
+    call track_fwd (1, ix_start)
+  elseif (direction == -1) then
+    call track_back (ix_start, 1)
+    if (ring%param%lost) return
+    orbit_(ring%n_ele_ring) = orbit_(0)
+    call track_back (ring%n_ele_ring, ix_start+1)
+  else
+    print *, 'ERROR IN TRACK_LONG: BAD DIRECTION:', direction
+    call err_exit
+  endif
+
+contains
+
+!--------------------------------------------------------------------------
+
+subroutine track_fwd (ix1, ix2)
+
+  integer ix1, ix2
+
+  do n = ix1, ix2
+
+    call track1_627 (orbit_(n-1), ring%ele_(n), ring%param, &
+                                                 mats627(n)%m, orbit_(n))
+
+! check for lost particles
+
+    if (ring%param%lost) then
+      ring%param%ix_lost = n
+      return
+    endif
+
+    if (debug) then
+      print *, ring%ele_(n)%name
+      print *, (orbit_(n)%vec(i), i = 1, 6)
+    endif
+
+  enddo
+
+end subroutine
+
+!--------------------------------------------------------------------------
+
+subroutine track_back (ix1, ix2)
+
+  integer ix1, ix2
+  logical reverse
+  real(rdef) mat_save(6,6)
+
+!
+
+  do n = ix1, ix2, -1
+
+    call track1_627 (orbit_(n), ring%ele_(n), ring%param, mats627(n)%m, &
+                                                                orbit_(n-1))
+
+! check for lost particles
+
+    if (ring%param%lost) then
+      ring%param%ix_lost = n - 1
+      return
+    endif
+
+    if (debug) then
+      print *, ring%ele_(n)%name
+      print *, (orbit_(n)%vec(i), i = 1, 6)
+    endif
+
+  enddo
+
+end subroutine
+
+end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine RING_MAKE_MAT627 (RING, IX_ELE, DIRECTION, MATS627)
+!
+! Subroutine to make the 6x27 2nd order matrices for long term tracking. 
+! Used by, for example, TRACK_LONG.
+!
+! Modules Needed:
+!   use mat627_mod
+!
+! Input:
+!   RING        -- Ring_struct: Ring containing the element.
+!   IX_ELE      -- Integer: Index of the element. if < 0 then entire
+!                    ring will be made. In this case group elements will
+!                    be made up last.
+!   DIRECTION   -- Integer: Transport Direction. 
+!                   = +1  -> For Forward (normal) particle tracking.
+!                   = -1  -> For Backward particle tracking.
+!
+! Output:
+!   MATS627(n_ele_maxx) -- Mat627_struct: Array of 6x27 matrices.
+!     %M(6,27)            -- 6x27 matrix.
+!-
+
+recursive subroutine ring_make_mat627 (ring, ix_ele, direction, mats627)
+
+  implicit none
+
+  type (ring_struct)  ring
+  type (ele_struct)  ele
+  type (mat627_struct) mats627(:)
+
+  integer direction
+  integer i, ix_ele, i1, i2, i3, ix1, ix2, ix3
+
+! make entire ring if ix_ele < 0
+
+  if (ix_ele < 0) then
+
+    do i = ring%n_ele_ring+1, ring%n_ele_max
+      if (ring%ele_(i)%control_type /= group_lord$)  &
+                                 call control_bookkeeper (ring, i)
+    enddo
+
+    do i = ring%n_ele_ring+1, ring%n_ele_max
+      if (ring%ele_(i)%control_type == group_lord$)  &
+                                 call control_bookkeeper (ring, i)
+    enddo
+
+    do i = 1, ring%n_ele_use
+      if (ring%ele_(i)%key /= hybrid$)  &
+         call make_mat627(ring%ele_(i), ring%param, direction, mats627(i)%m)
+    enddo
+
+    return
+
+  endif
+
+!-----------------------------------------------------------
+! otherwise make a single element
+
+  ele = ring%ele_(ix_ele)
+  call control_bookkeeper (ring, ix_ele)
+
+! for a regular element
+
+  if (ele%key == hybrid$) return
+
+  if (ix_ele <= ring%n_ele_ring) then
+    call make_mat627(ring%ele_(ix_ele), ring%param, direction, &
+                                                       mats627(ix_ele)%m)
+  endif                        
+
+! for a control element
+
+  do i1 = ring%ele_(ix_ele)%ix1_slave, ring%ele_(ix_ele)%ix2_slave
+    i = ring%control_(i1)%ix_slave
+    call ring_make_mat627 (ring, i, direction, mats627)
+  enddo
+
+end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
 !+
 ! Subroutine MAKE_MAT627 (ELE, PARAM, DIRECTION, MAT627)
 !
@@ -5,7 +269,7 @@
 ! Note: tilts are not inclueded in the calculation
 !
 ! Modules Needed:
-!   use bmad
+!   use mat627_mod
 !
 ! Input:
 !   ELE       -- Ele_struct: Element
@@ -21,13 +285,7 @@
 !     SBEND, BEAMBEAM, etc...
 !-
 
-#include "CESR_platform.inc"
-
 subroutine make_mat627 (ele, param, direction, mat627)
-
-  use bmad_struct
-  use bmad_interface
-  use make_mat6_mod
 
   implicit none
 
@@ -304,7 +562,7 @@ end subroutine
 ! solenoid/quadrupole element.
 !
 ! Modules Needed:
-!   use bmad
+!   use mat627_mod
 !
 ! Input:
 !   ks      [Real]       Solenoid strength
@@ -316,9 +574,6 @@ end subroutine
 !-
 
 subroutine sol_quad_mat627_calc (ks, k1, s_len, m)
-
-  use dcslib
-  use bmad_struct
 
   implicit none
 
@@ -460,3 +715,121 @@ subroutine sol_quad_mat627_calc (ks, k1, s_len, m)
   m(5, (/ x14$, x24$, x34$, x44$ /) ) = t5(4,1:4)
 
 end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine TRACK1_627 (START, ELE, PARAM, mat627, END)
+!
+! Particle tracking through a single element.
+! Uses the 2nd order 6x27 transport matrices whenever possible.
+! This is for long term tracking.
+!
+! Modules Needed:
+!   use mat627_mod
+!
+! Input:
+!   START        -- Coord_struct: Starting position
+!   ELE          -- Ele_struct: Element
+!   PARAM        -- Param_struct:
+!   mat627(6,27) -- Real(rp): 6x27 2nd order transport matrix.
+!
+! Output:
+!   END   -- Coord_struct: End position
+!
+! Notes:
+!
+! It is assumed that HKICK and VKICK are the kicks in the horizontal
+! and vertical kicks irregardless of the value for TILT.
+!-
+
+subroutine track1_627 (start, ele, param, mat627, end)
+
+  implicit none
+
+  type (coord_struct)  start, end
+  type (ele_struct)  ele
+  type (param_struct)  param
+
+  real(rp) x_kick, y_kick
+  real(rp) mat627(6,27)
+  real(rp) x_lim, y_lim
+
+!-------------------------------------------------------------------
+! some simple cases
+
+  select case (ele%key)
+  case (marker$, drift$, elseparator$, kicker$, beambeam$, octupole$, &
+        sbend$, rfcavity$, hybrid$, multipole$, ab_multipole$, custom$, &
+        wiggler$)
+    call track1 (start, ele, param, end)
+    return
+  end select
+
+
+!-------------------------------------------------------------------
+! 2nd order tracking
+! initially set end = start
+
+  end = start     ! transfer start to end
+
+  select case (ele%key)
+  case (quadrupole$, sextupole$, solenoid$, sol_quad$) 
+    
+    call offset_particle (ele, param, end, set$, set_canonical = .false.)
+    call track1_order2 (end%vec, ele, mat627, end%vec)
+    call offset_particle (ele, param, end, unset$, set_canonical = .false.)
+
+! error
+
+  case default
+    print *, 'ERROR IN TRACK1_627: UNKNOWN ELEMENT: ', &
+                                       key_name(ele%key), ele%type
+    call err_exit
+  end select
+
+!-------------------------------------------------------------------
+! check for particles outside aperture
+
+  if (param%aperture_limit_on) then
+
+    x_lim = ele%value(x_limit$)
+    if (x_lim <= 0) x_lim = 1e10
+    if (abs(end%vec(1)) > x_lim) param%lost = .true.
+
+    y_lim = ele%value(y_limit$)
+    if (y_lim <= 0) y_lim = 1e10
+    if (abs(end%vec(3)) > y_lim) param%lost = .true.
+
+  endif
+
+end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+
+subroutine track1_order2 (vec_begin, ele, mat627, vec_end)
+
+  implicit none
+
+  type (ele_struct) ele
+
+  real(rp) vec_begin(6), vec_end(6), vv(27), mat627(6,27)
+
+!
+
+  vv(1:6)   = vec_begin
+  vv(7:12)  = vv(1) * vv(1:6)
+  vv(13:17) = vv(2) * vv(2:6)
+  vv(18:21) = vv(3) * vv(3:6)
+  vv(22:24) = vv(4) * vv(4:6)
+  vv(25:26) = vv(5) * vv(5:6)
+  vv(27:27) = vv(6) * vv(6:6)
+
+  vec_end = matmul(mat627, vv)      
+
+end subroutine
+
+end module

@@ -11,13 +11,16 @@
 !     ix_ele -- Integer: Index of quadrupole
 !
 ! Output:
-!     beta_x_ave, beta_y_ave -- Real(rdef): Average betas in the quad.
+!     beta_x_ave, beta_y_ave -- Real(rp): Average betas in the quad.
 !
 ! NOTE: This subroutine is only valid if there is no local coupling
 !-
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/07/09 01:38:18  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.6  2003/05/02 15:44:01  dcs
 !F90 standard conforming changes.
 !
@@ -48,7 +51,7 @@ subroutine quad_beta_ave (ring, ix_ele, beta_x_ave, beta_y_ave)
 
   integer ix_ele, ix
 
-  real(rdef) beta_x_ave, beta_y_ave, k_quad
+  real(rp) beta_x_ave, beta_y_ave, k_quad
 
 ! Since the beta stored in the ELE is at the end we need
 ! to invert alpha for BEAVE routine
@@ -84,7 +87,7 @@ subroutine quad_beta_ave (ring, ix_ele, beta_x_ave, beta_y_ave)
   k_quad = ele%value(k1$)
   
   if( ele%key == wiggler$)then
-    beta_x_ave = b_ave(ele%x%beta, -ele%x%alpha,  0.0_rdef, ele%value(l$))
+    beta_x_ave = b_ave(ele%x%beta, -ele%x%alpha,  0.0_rp, ele%value(l$))
     beta_y_ave = b_ave(ele%y%beta, -ele%y%alpha, -k_quad, ele%value(l$))
   else
     beta_x_ave = b_ave(ele%x%beta, -ele%x%alpha,  k_quad, ele%value(l$))
@@ -110,7 +113,7 @@ function b_ave (beta, alpha, kk, l) result (this_ave)
 
   implicit none
 
-  real(rdef) beta,alpha,k,l,kk,a,x,g,gamma, this_ave
+  real(rp) beta,alpha,k,l,kk,a,x,g,gamma, this_ave
   
   k=sqrt(abs(kk))
 

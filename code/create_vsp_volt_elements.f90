@@ -26,6 +26,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/07/09 01:38:12  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.7  2003/05/02 15:44:00  dcs
 !F90 standard conforming changes.
 !
@@ -111,7 +114,7 @@ subroutine do_vsp_eles (ring, i_vsep, ix_, ele_type)
 
   integer i_vsep, ix_(3), ele_type, i, i_con
 
-  real(rdef) vkick
+  real(rp) vkick
 
 !
                  

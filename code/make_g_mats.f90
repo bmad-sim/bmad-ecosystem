@@ -11,12 +11,15 @@
 !     ELE        -- Ele_struct: Element
 !
 ! Output:
-!     G_MAT(4,4)     -- Real(rdef): Normal mode to betaless coords
-!     G_INV_MAT(4,4) -- Real(rdef): The inverse of G_MAT
+!     G_MAT(4,4)     -- Real(rp): Normal mode to betaless coords
+!     G_INV_MAT(4,4) -- Real(rp): The inverse of G_MAT
 !-
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/07/09 01:38:14  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.4  2003/01/27 14:40:37  dcs
 !bmad_version = 56
 !
@@ -39,8 +42,8 @@ subroutine make_g_mats (ele, g_mat, g_inv_mat)
 
   type (ele_struct) ele
 
-  real(rdef) g_mat(4,4), g_inv_mat(4,4)
-  real(rdef) sqrt_beta_a, sqrt_beta_b, alpha_a, alpha_b
+  real(rp) g_mat(4,4), g_inv_mat(4,4)
+  real(rp) sqrt_beta_a, sqrt_beta_b, alpha_a, alpha_b
 !
 
   sqrt_beta_a = sqrt(ele%x%beta)

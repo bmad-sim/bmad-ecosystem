@@ -12,7 +12,7 @@
 ! Input:
 !     ele1    -- Ele_struct: Structure holding the starting Twiss parameters.
 !     ele2    -- Ele_struct: Element to partially track through.
-!     del_s   -- Real(rdef): length to propagate.
+!     del_s   -- Real(rp): length to propagate.
 !     param   -- Param_struct:
 !     start   -- Coord_struct (OPTIONAL): Starting position
 !                  If not present then START is taken to be 0.
@@ -27,6 +27,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/07/09 01:38:23  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.6  2003/06/04 17:55:56  dcs
 !Eliminated x%pos, x%vel, etc. from coord_struct.
 !
@@ -60,9 +63,9 @@ subroutine twiss_and_track_body (ele1, ele2, param, del_s, ele3, &
   type (coord_struct) c0, c1
   type (param_struct) param
 
-  real(rdef) del_s, del
+  real(rp) del_s, del
                     
-! The only real(rdef) complication comes with a dipole where we have to negate
+! The only real(rp) complication comes with a dipole where we have to negate
 ! the focusing of the faces. 
 
   ele = ele2

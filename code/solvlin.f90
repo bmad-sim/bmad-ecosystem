@@ -5,17 +5,20 @@
 ! and 'v' are given.
 !
 ! Input:
-!     mat(size,*) -- Real(rdef): Matrix to be inverted
-!     v(*) -- Real(rdef): known input vector
+!     mat(size,*) -- Real(rp): Matrix to be inverted
+!     v(*) -- Real(rp): known input vector
 !     dim -- Integer: dimension of vectors and matrix
 !     size -- Integer: array size of matrix to be inverted
 !
 ! Output:
-!     z(*) -- Real(rdef): vector solution to the linear equation
+!     z(*) -- Real(rp): vector solution to the linear equation
 !-
 
 !$Id$
 !$Log$
+!Revision 1.4  2003/07/09 01:38:20  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.3  2002/02/23 20:32:25  dcs
 !Double/Single Real toggle added
 !
@@ -35,11 +38,11 @@ logical function solvlin(mat,v,z,dim,size)
   integer dim, size
   integer i, n, m, p, max1, np1
   integer nsub
-  real(rdef) zero
+  real(rp) zero
   parameter(ZERO=0.0)
-  real(rdef) mat(size,*), z(*), v(*)
-  real(rdef) y(100), a(100,100), mult, sum
-  real(rdef) amax, ahold, yhold
+  real(rp) mat(size,*), z(*), v(*)
+  real(rp) y(100), a(100,100), mult, sum
+  real(rp) amax, ahold, yhold
   integer order(100), imax, tempord
   logical shiftFlag
 

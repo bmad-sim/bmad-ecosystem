@@ -12,7 +12,7 @@
 !
 ! Input:
 !     ring    -- Ring_struct: Original ring structure.
-!     s_split -- Real(rdef): Position at which ring is to be split.
+!     s_split -- Real(rp): Position at which ring is to be split.
 !
 ! Output:
 !     ring       -- Ring_struct: Modified ring structure.
@@ -31,15 +31,15 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
   implicit none
 
   type (ring_struct), target :: ring
-  type (ele_struct), save ::  ele
+  type (ele_struct), save :: ele
   type (ele_struct), pointer :: ele1, ele2
 
-  real(rdef) s_split, len_orig, len1, len2, coef1, coef2, angle0, coef_old
-  real(rdef) dl
+  real(rp) s_split, len_orig, len1, len2, coef1, coef2, angle0, coef_old
+  real(rp) dl
 
   integer i, j, k, ix, ix1, ix_del, ix1_del, ix2_del, ixx1
   integer ix_split, ix_lord, ixc, ix_attrib, ix_super_lord
-  integer icon, ix2, inc, nr
+  integer icon, ix2, inc, nr, n_ic2
 
   logical split_done
 
@@ -116,10 +116,12 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 
     if (ele%n_lord == 0) goto 8000  ! nothing to do for free element
 
-    ixc = ring%n_ic_array
+    ixc = ring%n_ic_max
+    n_ic2 = ixc + ele%n_lord
     ele1%ic1_lord = ixc + 1
-    ele1%ic2_lord = ixc + ele%n_lord
-    ring%n_ic_array = ixc + ele%n_lord
+    ele1%ic2_lord = n_ic2
+    ring%n_ic_max = n_ic2
+    if (n_ic2 > size(ring%ic_)) ring%ic_ => reallocate (ring%ic_, n_ic2+500)
 
     do j = 1, ele%n_lord
 
@@ -163,21 +165,19 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 ! Need to make a super lord to control the split elements.
 
   ix_super_lord = ring%n_ele_max + 1
-  if (ix_super_lord > n_ele_maxx) then
-    print *, 'ERROR IN SPLIT_RING: NOT ENOUGH RING ELEMENTS!!!'
-    print *, '      YOU NEED TO INCREASE N_ELE_MAXX IN BMAD_STRUCT!!!'
-    call err_exit
-  endif
+  if (ix_super_lord > ring%n_ele_maxx) call allocate_ring_ele_(ring)
                   
   ring%n_ele_max = ix_super_lord
   ring%ele_(ix_super_lord) = ele
   ring%ele_(ix_super_lord)%control_type = super_lord$
   ring%ele_(ix_super_lord)%value(l$) = len_orig
-  ixc = ring%n_control_array + 1
+  ixc = ring%n_control_max + 1
+  if (ixc+1 > size(ring%control_)) &
+                      ring%control_ => reallocate (ring%control_, ixc+500)
   ring%ele_(ix_super_lord)%ix1_slave = ixc
   ring%ele_(ix_super_lord)%ix2_slave = ixc + 1
   ring%ele_(ix_super_lord)%n_slave = 2
-  ring%n_control_array = ixc + 1
+  ring%n_control_max = ixc + 1
   ring%control_(ixc)%ix_lord = ix_super_lord
   ring%control_(ixc)%ix_slave = ix_split
   ring%control_(ixc)%coef = len1 / len_orig
@@ -200,20 +200,23 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 
 ! split elements must now be pointing towards their lord
 
+  if (ring%n_ic_max+2 > size(ring%ic_)) &
+                    ring%ic_ => reallocate (ring%ic_, ring%n_ic_max+500)
+
   ele1%control_type = super_slave$
-  inc = ring%n_ic_array + 1
+  inc = ring%n_ic_max + 1
   ele1%ic1_lord = inc
   ele1%ic2_lord = inc
   ele1%n_lord = 1
-  ring%n_ic_array = inc
+  ring%n_ic_max = inc
   ring%ic_(inc) = ixc
 
   ele2%control_type = super_slave$
-  inc = ring%n_ic_array + 1
+  inc = ring%n_ic_max + 1
   ele2%ic1_lord = inc
   ele2%ic2_lord = inc
   ele2%n_lord = 1
-  ring%n_ic_array = inc
+  ring%n_ic_max = inc
   ring%ic_(inc) = ixc + 1
 
 ! last details:
@@ -242,13 +245,6 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
       enddo
     endif
   enddo
-
-
-  if (ring%n_control_array > n_control_maxx) then
-    print *, 'ERROR IN SPLIT_RING: NOT ENOUGH CONTROL ELEMENTS !!!'
-    print *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
-    call err_exit
-  endif
 
   call control_bookkeeper (ring, ix_split)
   call control_bookkeeper (ring, ix_split+1)

@@ -415,39 +415,6 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine kill_gen_field (gen_fieled)
-!
-! Subroutine to kill a gen_field.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   gen_field -- Genfield, pointer: gen_field to kill.
-!
-! Output:
-!   gen_field -- Genfield, pointer: Killed gen_field.
-!-
-
-subroutine kill_gen_field (gen_field)
-
-  implicit none
-
-  type (genfield), pointer :: gen_field
-
-!
-
-  if (associated(gen_field)) then
-    call kill (gen_field)
-    deallocate (gen_field)
-  endif
-
-end subroutine
-
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!+
 ! Subroutine set_ptc (param, taylor_order, integ_order, &
 !                               num_steps, no_cavity, exact_calc)
 !
@@ -1703,7 +1670,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 
   select case (key)
 
-  case (drift$) 
+  case (drift$, rcollimator$, ecollimator$, monitor$, instrument$) 
     el%kind = kind1
 
   case (quadrupole$) 
@@ -1737,7 +1704,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
   case (marker$)
     el%kind = kind0
 
-  case (kicker$)
+  case (kicker$, hkicker$, vkicker$)
     el%kind = kind2
 
   case (rfcavity$)

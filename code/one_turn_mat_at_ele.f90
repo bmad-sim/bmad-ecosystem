@@ -13,15 +13,18 @@
 !     %y       -- "b" mode Twiss parameter structure.
 !     %c_mat   -- 2x2 C matrix.
 !     %gamma_c -- gamma associated with C matrix.
-!   phi_a -- Real(rdef): "a" mode tune in radians.
-!   phi_b -- Real(rdef): "b" mode tune in radians.
+!   phi_a -- Real(rp): "a" mode tune in radians.
+!   phi_b -- Real(rp): "b" mode tune in radians.
 !
 ! Output:
-!   mat4(4,4) -- Real(rdef): 1-Turn coupled matrix.
+!   mat4(4,4) -- Real(rp): 1-Turn coupled matrix.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/07/09 01:38:17  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.4  2003/01/27 14:40:41  dcs
 !bmad_version = 56
 !
@@ -42,9 +45,9 @@ subroutine one_turn_mat_at_ele (ele, phi_a, phi_b, mat4)
 
   type (ele_struct) ele
 
-  real(rdef) phi_a, phi_b, mat4(4,4)
-  real(rdef) a(2,2), b(2,2), c_conj(2,2), c(2,2)
-  real(rdef) g
+  real(rp) phi_a, phi_b, mat4(4,4)
+  real(rp) a(2,2), b(2,2), c_conj(2,2), c(2,2)
+  real(rp) g
 
 !
 

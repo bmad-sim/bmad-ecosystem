@@ -19,41 +19,20 @@
 !   ring -- Ring_struct: Ring with control structure fixed.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.7  2003/05/02 15:43:57  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.6  2002/10/29 17:07:12  dcs
-!*** empty log message ***
-!
-!Revision 1.5  2002/07/31 14:28:26  dcs
-!Added error checking
-!
-!Revision 1.4  2002/02/23 20:32:09  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/08 21:44:35  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.2  2001/09/27 18:31:47  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine adjust_control_struct (ring, ix_ele)
 
   use bmad_struct
   use bmad_interface
-                                                 
+  use nrutil, only: reallocate
+
   implicit none
 
   type (ring_struct), target :: ring
   type (ele_struct), pointer :: ele
 
-  integer ix_ele, n_add, iz, i2, ic
+  integer ix_ele, n_add, n_con, i2, ic, n_con2, n_ic, n_ic2
 
 
 ! fix slave problems
@@ -68,14 +47,19 @@ subroutine adjust_control_struct (ring, ix_ele)
   endif
 
   if (n_add > 0) then
-    iz = ring%n_control_array
+
+    n_con = ring%n_control_max
     i2 = ele%ix2_slave
+    n_con2 = ring%n_control_max + n_add
+    if (n_con2 > size(ring%control_)) &
+                        ring%control_ => reallocate(ring%control_, n_con2+500)
+
 
     if (i2 < 0) then
-      ele%ix1_slave = iz + 1
-      ele%ix2_slave = iz + n_add
+      ele%ix1_slave = n_con + 1
+      ele%ix2_slave = n_con + n_add
     else
-      ring%control_(i2+1+n_add:iz+n_add) = ring%control_(i2+1:iz)
+      ring%control_(i2+1+n_add:n_con+n_add) = ring%control_(i2+1:n_con)
       ring%control_(i2+1:i2+n_add)%ix_lord = ix_ele
       ring%control_(i2+1:i2+n_add)%ix_slave = 0
       ring%control_(i2+1:i2+n_add)%ix_attrib = 0
@@ -87,13 +71,7 @@ subroutine adjust_control_struct (ring, ix_ele)
       where (ring%ic_ > i2) ring%ic_ = ring%ic_ + n_add
     endif
 
-    ring%n_control_array = iz + n_add
-
-    if (ring%n_control_array > n_control_maxx) then
-      print *, 'ERROR IN ADJUST_CONTROL_STRUCT: NOT ENOUGH CONTROL ELEMENTS !!!'
-      print *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
-      call err_exit
-    endif
+    ring%n_control_max = n_con2
 
   endif
                                         
@@ -108,14 +86,18 @@ subroutine adjust_control_struct (ring, ix_ele)
   endif
 
   if (n_add > 0) then
-    ic = ring%n_ic_array
+
+    n_ic = ring%n_ic_max
+    n_ic2 = n_ic + n_add
+    if (n_ic2 > size(ring%ic_)) ring%ic_ => reallocate(ring%ic_, n_ic2+500)
+
     i2 = ele%ic2_lord
 
     if (i2 < 0) then
-      ele%ic1_lord = ic + 1
-      ele%ic2_lord = ic + n_add
+      ele%ic1_lord = n_ic + 1
+      ele%ic2_lord = n_ic + n_add
     else
-      ring%ic_(i2+1+n_add:ic+n_add) = ring%ic_(i2+1:ic)
+      ring%ic_(i2+1+n_add:n_ic+n_add) = ring%ic_(i2+1:n_ic)
       ring%ic_(i2+1:i2+n_add) = 0
       where (ring%ele_%ic1_lord > i2) ring%ele_%ic1_lord = &
                                             ring%ele_%ic1_lord + n_add
@@ -123,14 +105,7 @@ subroutine adjust_control_struct (ring, ix_ele)
                                             ring%ele_%ic2_lord + n_add
     endif
 
-    ring%n_ic_array = ic + n_add
-
-    if (ring%n_ic_array > size(ring%ic_)) then
-      print *, 'ERROR IN ADJUST_CONTROL_STRUCT: NOT ENOUGH IC_ CONTROL ELEMENTS !!!'
-      print *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
-      call err_exit
-    endif
-
+    ring%n_ic_max = n_ic + n_add
 
   endif
 

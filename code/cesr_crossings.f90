@@ -34,13 +34,16 @@
 !       															following train.
 !
 ! Output:
-!   cross_positions(:) --  Real(rdef): array of positions of parasitic 
+!   cross_positions(:) --  Real(rp): array of positions of parasitic 
 !																			crossings, where values lie between 0 and 1.
 !      
 !-
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/07/09 01:38:10  dcs
+!new bmad with allocatable ring%ele_(:)
+!
 !Revision 1.5  2003/01/27 14:40:31  dcs
 !bmad_version = 56
 !
@@ -70,12 +73,12 @@ subroutine cesr_crossings(i_train, j_car, species, n_trains_tot, n_cars, &
 	integer, optional, intent(in) ::	n_car_spacing(1:10)
   integer :: i, j, k, p, pp, tnumber, bnumber, trlength, ierr            
   integer :: bunch_tot                                  
-  real(rdef) :: n_bucket
+  real(rp) :: n_bucket
                                                                                
-  real(rdef) :: length                                                               
-  real(rdef), dimension(:), allocatable :: oppos_buckets                
-  real(rdef), dimension(:), allocatable :: trtimes, btimes                           
-  real(rdef), dimension(:), intent(out) :: cross_positions            
+  real(rp) :: length                                                               
+  real(rp), dimension(:), allocatable :: oppos_buckets                
+  real(rp), dimension(:), allocatable :: trtimes, btimes                           
+  real(rp), dimension(:), intent(out) :: cross_positions            
                                                                                
 ! Allocate arrays.
 

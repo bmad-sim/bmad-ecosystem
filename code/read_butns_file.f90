@@ -59,7 +59,7 @@ subroutine read_butns_file (butns_num, butns, db, read_ok, type_err)
   integer i, ix, j, butns_num, iu, lunget, ios, raw(4, 120)
   integer n_node, n_ele
 
-  real(rdef) x_orbit(120), y_orbit(120), rdummy
+  real(rp) x_orbit(120), y_orbit(120), rdummy
 
   character line_in*130, file_in*40
 
