@@ -555,7 +555,9 @@ If \vn{data(j)%data_type} is not given and \vn{default_data_type} is not
 specified then the \vn{d2_data} name and the
 \vn{d1_data} name nare combined for each datum to form the datum's
 \vn{type}. Certain types are recognized by \tao. These are given by
-Table~\ref{t:cons}
+Table~\ref{t:cons}. Custom data types not specified in this table must have a
+corresponding definition in \textit{tao\_hook\_load\_data\_array.f90}. See
+Chapter~\ref{c:prog_customizing} for details.
 
 \vn{data(:)%weight} gives the weight coefficient for a variable in the
 merit function. If not present then the default weight of
@@ -661,7 +663,7 @@ Template plots are defined using namelists with a name of
     plot%x_axis_type = "<x_axis_type>"   ! "index" or "s". Default is "index".
     plot%ix_universe = <number> ! used for lat_layout plots
     plot%n_graph     = <n_graphs>
-    plot%independent_graphs = <logical>
+    plot%independent_graphs = <logical>  ! scale graph y-axis independently
   /
 \end{example}
 For example:
@@ -728,15 +730,16 @@ namelists should be placed directly after their respective
     graph%y               = <qp_axis_struct>
     graph%y2              = <qp_axis_struct>
     graph%n_curve         = <number_of_curves>
+    graph%clip            = <logical> ! Clip plot at grpah boundary. default = .true.
     curve(i)%data_type    = "<data_type>"
     curve(i)%data_source  = "<source_name>" !source for the data curve points
-    curve(i)%units_factor = <factor>
+    curve(i)%units_factor = <factor> ! divide data by this value
     curve(i)%use_y2       = <logical> (not currently inplemented)
     curve(i)%draw_line    = <logical>
     curve(i)%ix_universe  = <universe_number> ! default = 0 => use viewed universe
     curve(i)%line         = <qp_line_struct>
     curve(i)%symbol       = <qp_symbol_struct>
-    curve(i)%symbol_every = <integer>
+    curve(i)%symbol_every = <integer>       ! plot symbol every # datums
     curve(i)%convert      = <Logical>
   /
 \end{example}
@@ -814,7 +817,7 @@ The \vn{tao_template_plot} needed to define a lattice layout looks like:
     graph%type        = "lat_layout"
     graph%title       = "Layout Title"
     graph%box         = <ix>, <iy>
-    graph%ix_universe = <integer>
+    graph%ix_universe = <integer> ! 0 => use currently viewd universe
     graph%margin      = <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
     graph%n_curve     = 0
   /

@@ -70,21 +70,33 @@ do
   if (ios /= 0) return
   if (line(1:2) == '%%') return
 
-  if (line(1:8) == '\section') cycle
-  if (line(1:6) == '\label')   cycle
-  if (line(1:6) == '\begin')   cycle
-  if (line(1:4) == '\end')     cycle
-  if (line(1:6) == '\vskip')   cycle
+  if (line(1:8)  == '\section')   cycle
+  if (line(1:6)  == '\label')     cycle
+  if (line(1:6)  == '\begin')     cycle
+  if (line(1:4)  == '\end')       cycle
+  if (line(1:6)  == '\vskip')     cycle
+  if (line(1:10) == '\centering') cycle
+  if (line(1:10) == '\caption') cycle
+  
+  if (line(1:14)  == '  {\it Command') then
+    call out_io (s_blank$, r_name, &
+                 "Type 'help <command>' for help on an individual command")
+    call out_io (s_blank$, r_name, "Available commands:")
+    cycle
+  endif
 
-  call eliminate ("``", '"')
-  call eliminate ("''", '"')
-  call eliminate ("$")
-  call eliminate ("\{", "{")
-  call eliminate ("\}", "}")
-  call eliminate ("\_", "_")
-  call eliminate ("\tao", "Tao")
+  call eliminate  ("``", '"')
+  call eliminate  ("''", '"')
+  call eliminate  ("$")
+  call eliminate  ("\{", "{")
+  call eliminate  ("\}", "}")
+  call eliminate  ("\_", "_")
+  call eliminate  ("\tao", "Tao")
   call eliminate2 ('\item[', ']')
   call eliminate2 ('\vn{', '}')
+  call eliminate3 ('\ref{', '&')
+  call eliminate3 ('& ref{', '\hline')
+  call eliminate  ('\\ \hline')
 
   if (line == ' ') then
     if (blank_line_before) cycle
@@ -99,6 +111,8 @@ enddo
 
 !-------------------------------------------------------------------------------------
 contains
+!
+! eliminates a string and optionally replaces it with another
 
 subroutine eliminate (str1, sub)
 
@@ -125,6 +139,8 @@ end subroutine
 
 !-------------------------------------------------------------------------------------
 ! contains
+!
+! eliminates two strings, but only if they both exist on the same line
 
 subroutine eliminate2 (str1, str2)
 
@@ -140,6 +156,29 @@ do
   ix2 = index (line(ix+1:), str2) + ix
   if (ix2 == 0) return
   line = line(1:ix-1) // line(ix+n1:ix2-1) // line(ix2+n2:)
+enddo
+
+end subroutine
+
+!-------------------------------------------------------------------------------------
+! contains
+!
+! eliminates everything between strings, including the strings
+
+subroutine eliminate3 (str1, str2)
+
+character(*) str1, str2
+integer n1, n2
+
+n1 = len(str1)
+n2 = len(str2)
+
+do
+  ix = index (line, str1)
+  if (ix == 0) return
+  ix2 = index (line(ix+1:), str2) + ix
+  if (ix2 == 0) return
+  line = line(1:ix-1) // line(ix2+n2:)
 enddo
 
 end subroutine

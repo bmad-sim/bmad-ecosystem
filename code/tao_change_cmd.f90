@@ -93,11 +93,12 @@ case ('ele')
   if (ix_ele < 0) return
 
   select case (where)
-  case ('x', 'x_p', 'y', 'y_p', 'z', 'z_p')
+  case ('x', 'p_x', 'y', 'p_y', 'z', 'p_z')
     !check if this is a linear lattice
-    if (.not. (u%model%param%lattice_type .eq. linear_lattice$)) then
-      call out_io (s_warn$, r_name, "This is not a linear lattice!")
-      call out_io (s_blank$, r_name, "So changing the orbit will not do anything")
+    if ((u%model%param%lattice_type .eq. circular_lattice$) .and. &
+        where .ne.'p_z') then
+      call out_io (s_warn$, r_name, "This is a circular lattice!")
+      call out_io (s_blank$, r_name, "So only changing the p_z orbit will do anything")
       return
     endif
     !check if we are changing the beginning element
@@ -214,6 +215,9 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
+
+! this changes the orbit in a save area which is then injected into model_orb(0)
+! at lattice calc time
 
 subroutine change_orbit (design_orb, model_orb)
 

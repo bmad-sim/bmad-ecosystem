@@ -110,6 +110,7 @@ if (x_max == x_min) then
     curve_here = .false.
     do j = 1, size(plot%graph)
       if (plot%graph(j)%type == 'key_table') cycle
+      if (.not. associated(plot%graph(j)%curve)) cycle
       do k = 1, size(plot%graph(j)%curve)
         curve_here = .true.
         n = size(plot%graph(j)%curve(k)%x_symb)
@@ -120,6 +121,9 @@ if (x_max == x_min) then
 
     if (.not. curve_here) return
 
+  elseif (plot%x_axis_type == "ele_index") then
+    x1 = 0
+    x2 = s%u(s%global%u_view)%design%n_ele_use 
   elseif (plot%x_axis_type == "s") then
     x1 = 0
     x2 = maxval (s%u(:)%model%param%total_length)

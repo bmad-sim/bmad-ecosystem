@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_show_cmd (word1, word2, word3, word4)
+! Subroutine tao_show_cmd (word1, word2, word3)
 !
 ! Show information on variable, parameters, elements, etc...
 !
@@ -318,6 +318,7 @@ case ('ele')
     write (lines(nl+1), *) 'Element #', loc
     nl = nl + 1
 
+    ! Show the element info
     call type2_ele (u%model%ele_(loc), .true., 6, .false., &
                   s%global%phase_units, .true., ptr_lines, n, u%model)
     lines(nl+1:nl+n) = ptr_lines(1:n)
@@ -332,6 +333,9 @@ case ('ele')
     write (lines(nl+4), fmt) "Y  Y':", orb%vec(3:4)
     write (lines(nl+5), fmt) "Z  Z':", orb%vec(5:6)
     nl = nl + 5
+
+    ! Show data associated with this element
+    call show_ele_data (u, loc, lines, nl)
 
     found = .false.
     do i = loc + 1, u%model%n_ele_max
@@ -366,6 +370,8 @@ case ('global')
   nl=nl+1; write (lines(nl), imt) 'phase_units:       ', s%global%phase_units
   nl=nl+1; write (lines(nl), imt) 'n_opti_cycles:     ', s%global%n_opti_cycles
   nl=nl+1; write (lines(nl), amt) 'track_type:        ', s%global%track_type
+  if (s%global%track_type .eq. 'macro') &
+  nl=nl+1; write (lines(nl), imt) 'bunch_to_plot::    ', s%global%bunch_to_plot
   nl=nl+1; write (lines(nl), amt) 'optimizer:         ', s%global%optimizer
   nl=nl+1; write (lines(nl), amt) 'prompt_string:     ', s%global%prompt_string
   nl=nl+1; write (lines(nl), amt) 'var_out_file:      ', s%global%var_out_file
@@ -377,6 +383,7 @@ case ('global')
   nl=nl+1; write (lines(nl), lmt) 'opt_with_base:     ', s%global%opt_with_base
   nl=nl+1; write (lines(nl), lmt) 'plot_on:           ', s%global%plot_on
   nl=nl+1; write (lines(nl), lmt) 'var_limits_on:     ', s%global%var_limits_on
+  nl=nl+1; write (lines(nl), amt) 'curren_init_file:  ', s%global%current_init_file
 
   call out_io (s_blank$, r_name, lines(1:nl))
 
@@ -384,26 +391,43 @@ case ('global')
 ! lattice
 
 case ('lattice')
-
-  call tao_locate_element (show_word2, u%model, ix1); if (ix1 < 0) return
-  call tao_locate_element (show_word3, u%model, ix2); if (ix2 < 0) return
   
-  if (ix1 > u%model%n_ele_ring) then
-    ix = u%model%ele_(ix1)%ix1_slave
-    ix1 = u%model%control_(ix)%ix_slave
+  if (show_word2 .eq. ' ') then
+    nl=nl+1
+    write (lines(nl), '(a, i2, a, i6, a)') "Universe ", s%global%u_view, &
+               " has ", u%model%n_ele_use, " regular elements."
+    call out_io (s_blank$, r_name, lines(1:nl))
+    return
+  endif
+  
+  allocate (show_here(0:u%model%n_ele_use))
+  show_word3 = show_word2 // trim(show_word3)
+  call location_decode (show_word3, show_here, 0, num_locations)
+  if (num_locations .eq. -1) then
+    call out_io (s_error$, r_name, "Syntax error in range list!")
+    deallocate(show_here)
+    return
   endif
 
-  if (ix2 > u%model%n_ele_ring) then
-    ix = u%model%ele_(ix2)%ix2_slave
-    ix2 = u%model%control_(ix)%ix_slave
-  endif
+! call tao_locate_element (show_word2, u%model, ix1); if (ix1 < 0) return
+! call tao_locate_element (show_word3, u%model, ix2); if (ix2 < 0) return
+  
+! if (ix1 > u%model%n_ele_ring) then
+!   ix = u%model%ele_(ix1)%ix1_slave
+!   ix1 = u%model%control_(ix)%ix_slave
+! endif
 
-  if ((ix2 - ix1 + 1) .gt. max_lines) then
-    call out_io (s_blank$, r_name, "Too many elements!")
-    call out_io (s_blank$, r_name, "Listing first \i5\ elements after element" &
-                                    // show_word3, max_lines)
-    ix2 = ix1 + max_lines - 1
-  endif
+! if (ix2 > u%model%n_ele_ring) then
+!   ix = u%model%ele_(ix2)%ix2_slave
+!   ix2 = u%model%control_(ix)%ix_slave
+! endif
+
+! if ((ix2 - ix1 + 1) .gt. max_lines) then
+!   call out_io (s_blank$, r_name, "Too many elements!")
+!   call out_io (s_blank$, r_name, "Listing first \i5\ elements after element" &
+!                                   // show_word3, max_lines)
+!   ix2 = ix1 + max_lines - 1
+! endif
 
   if (.true.) then
     at_ends = .true.
@@ -420,7 +444,13 @@ case ('lattice')
                   '   S    |  Beta   Phi   Eta  Orb   | Beta    Phi    Eta   Orb'
 
   nl=nl+3
-  do ix = ix1, ix2
+  do ix = lbound(show_here,1), ubound(show_here,1)
+    if (.not. show_here(ix)) cycle
+    if (nl+2 .gt. max_lines) then
+      call out_io (s_blank$, r_name, "Too many elements!")
+      call out_io (s_blank$, r_name, "Listing first \i5\ selected elements", max_lines-4)
+      exit
+    endif
     ele => u%model%ele_(ix)
     if (ix == 0 .or. at_ends) then
       ele3 = ele
@@ -436,7 +466,15 @@ case ('lattice')
           ele3%y%beta, f_phi*ele3%y%phi, ele3%y%eta, 1000*orb%vec(3)
   enddo
 
+  write (lines(nl+1), '(6x, a, 16x, a)') ' Name             key', &
+                  '   S    |  Beta   Phi   Eta  Orb   | Beta    Phi    Eta   Orb'
+  write (lines(nl+2), '(29x, 22x, a)') &
+                     '|              X           |             Y        '
+  nl=nl+2
+  
   call out_io (s_blank$, r_name, lines(1:nl))
+
+  deallocate(show_here)
 
 !----------------------------------------------------------------------
 ! optimizer
@@ -487,6 +525,14 @@ case ('plots')
     nl=nl+1; lines(nl) = '   ' // plot%region%name // '<-->  ' // plot%name
   enddo
 
+
+  nl=nl+1; lines(nl) = ' '
+  nl=nl+1; lines(nl) = ' '
+  nl=nl+1; lines(nl) = 'Available templates:'
+  do i = 1, size(s%template_plot)
+    if (s%template_plot(i)%name .ne. ' ') &
+      nl=nl+1; lines(nl) = '   ' // s%template_plot(i)%name
+  enddo
 
   call out_io (s_blank$, r_name, lines(1:nl))
 
@@ -656,5 +702,48 @@ case default
   return
 
 end select
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+contains
+
+subroutine show_ele_data (u, i_ele, lines, nl)
+
+implicit none
+
+type (tao_universe_struct), target :: u
+type (tao_data_struct), pointer :: datum
+character(*) :: lines(:)
+integer i_ele, nl, i
+
+character(30) :: dmt = "(a, 3(1x, es15.5)) "
+
+logical :: found_one = .false.
+
+  nl=nl+1; write (lines(nl), '(a)') "  "
+  nl=nl+1; write (lines(nl), '(a)') &
+        "   Data Type      |  Model Value  |  Design Value |  Base Value"
+
+  do i = 1, size(u%data)
+    if (u%data(i)%ix_ele .eq. i_ele) then
+      found_one = .true.
+      datum => u%data(i)
+      nl = nl + 1
+      write (lines(nl), dmt) datum%data_type, datum%model_value, &
+                             datum%design_value, datum%base_value 
+    endif
+  enddo
+
+  if (.not. found_one) then
+    nl = nl +1 
+    write (lines(nl), '(a)') "No data types associated with this element."
+  endif
+
+  nl=nl+1; write (lines(nl), '(a)') "  "
+  nl=nl+1; write (lines(nl), '(a)') &
+        "   Data Type      |  Model Value  |  Design Value |  Base Value"
+
+
+end subroutine show_ele_data
 
 end subroutine tao_show_cmd

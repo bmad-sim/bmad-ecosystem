@@ -89,6 +89,7 @@ type tao_graph_input
   type (qp_rect_struct) margin
   type (qp_axis_struct) y
   type (qp_axis_struct) y2
+  logical clip
 end type 
 
 type tao_plot_input

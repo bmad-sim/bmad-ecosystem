@@ -93,6 +93,9 @@ call qp_set_layout (x_axis = plot%x, y_axis = graph%y, y2_axis = graph%y2)
 call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
 call qp_draw_axes
 
+if (any(graph%curve%limited) .and. graph%clip) &
+  call qp_draw_text ('**Limited**', -0.18_rp, -0.15_rp, '%/GRAPH/RT', color = red$) 
+
 ! loop over all the curves of the graph and draw them
 
 do k = 1, size(graph%curve)
@@ -186,20 +189,60 @@ character(80) str
 
 call qp_set_layout (x_axis = plot%x, margin = graph%margin)
 isu = graph%ix_universe
-lat => s%u(isu)%model
-
+! if garph%ix_universe .eq. 0 then graph currently viewed universe
+if (isu .eq. 0) then
+  lat => s%u(s%global%u_view)%model
+else
+  lat => s%u(isu)%model
+endif
+  
 call qp_set_layout (box = graph%box, margin = graph%margin)
 call qp_set_axis ('Y', -70.0_rp, 30.0_rp, 1, 0)
   
+! Figure out x axis
+! If it's not 's' then just draw a vertical line at the proper index
+
+  if (plot%x_axis_type .eq. 's') then
+    ! continue
+  elseif (plot%x_axis_type .eq. 'index') then
+    ! cannot plot layout in this case!
+    plot%valid = .false.
+    return
+  elseif (plot%x_axis_type .eq. 'ele_index') then
+    ! plot vertical line at ele_index
+    ! temporarily turn this off until I get scaling working
+    plot%valid = .false.
+    return
+  else
+    call out_io (s_warn$, r_name, "Unknown x_axis_type")
+    plot%valid = .false.
+    return
+  endif
+    
 ! loop over all elements in the lattice. Only draw those element that
 ! are within bounds.
 
 do i = 1, lat%n_ele_max
 
   ele => lat%ele_(i)
-  call find_element_ends (lat, i, ix1, ix2)
-  x1 = lat%ele_(ix1)%s
-  x2 = lat%ele_(ix2)%s
+  if (plot%x_axis_type .eq. 's') then
+    call find_element_ends (lat, i, ix1, ix2)
+    x1 = lat%ele_(ix1)%s
+    x2 = lat%ele_(ix2)%s
+  elseif (plot%x_axis_type .eq. 'index') then
+    ! shouldn't be here!
+    call out_io (s_error$, r_name, "Shouldn't be here!")
+    plot%valid = .false.
+    return
+  elseif (plot%x_axis_type .eq. 'ele_index') then
+    x1 = i
+    x2 = i
+  else
+    call out_io (s_warn$, r_name, "Unknown x_axis_type")
+    plot%valid = .false.
+    return
+  endif
+    
 
   if (x1 > plot%x%max) cycle
   if (x2 < plot%x%min) cycle

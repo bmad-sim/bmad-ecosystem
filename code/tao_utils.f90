@@ -761,34 +761,28 @@ end subroutine tao_cmd_end_calc
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_lat_bookkeeper (lattice)
+! Subroutine tao_lat_bookkeeper (u, lattice)
 !
-! This will make sure all bmad bookkeeping is up to date
+! This will make sure all bookkeeping is up to date
 !
 ! Input:
-!  lattice          -- ring_string: lattice to bookkeep
+!  u                -- tao_universe_struct
+!  lat              -- ring_string: lattice to bookkeep
 !
 ! Output:
-!  lattice          -- ring_string
+!  lat              -- ring_struct
 !-
 
-subroutine tao_lat_bookkeeper (lattice)
+subroutine tao_lat_bookkeeper (u, lat)
 
 implicit none
 
-type (ring_struct) :: lattice
+type (tao_universe_struct) :: u
+type (ring_struct) :: lat
 
-integer i
+character(20) :: r_name = "tao_lat_bookkeeper"
 
-  do i = lattice%n_ele_use+1, lattice%n_ele_max
-    if (lattice%ele_(i)%control_type /= group_lord$)  &
-                               call control_bookkeeper (lattice, i)
-  enddo
- 
-  do i = lattice%n_ele_use+1, lattice%n_ele_max
-    if (lattice%ele_(i)%control_type == group_lord$)  &
-                               call control_bookkeeper (lattice, i)
-  enddo
+  call lattice_bookkeeper (lat)
 
 end subroutine tao_lat_bookkeeper
 

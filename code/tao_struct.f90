@@ -2,6 +2,9 @@
 ! Module tao_struct
 !
 ! Module defining the basic tao structures
+!
+! If any pointers or allocatables are added remember to add a corresponding
+! statment to tao_init\deallocate_everything.
 !-
 
 module tao_struct
@@ -118,7 +121,7 @@ type tao_plot_struct
   type (tao_plot_hook) hook       ! Custom stuff. Defined in tao_hook.f90
   type (qp_axis_struct) x         ! X-axis parameters.
   real(rp) x_divisions            ! Nominal number of x-axis divisions.
-  character(16) x_axis_type       ! 'index', 's'
+  character(16) x_axis_type       ! 'index', 'ele_index', 's'
   logical independent_graphs      ! Graph y-axis scales independent when using the scale cmd?
   logical visible                 ! To draw or not to draw.
   logical valid                   ! valid if all curve y_dat computed OK.
@@ -326,6 +329,7 @@ type tao_global_struct
   integer :: ix_key_bank = 0         ! For single mode.
   integer :: phase_units = radians$  ! Phase units on output.
   integer :: max_output_lines = 400  ! maximun number of lines sent to output_io
+  integer :: bunch_to_plot = 1       ! Which macroparticle bunch to plot
   character(16) :: track_type = 'single' ! or macro 
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer = 'de'  ! optimizer to use.
@@ -370,16 +374,17 @@ end type
 ! These contain the element indexes corresponding to macroparticle data
   type macro_d1_data_struct
     character(16) name
-				type (tao_data_struct), pointer :: d(:) ! ele_index for this datum
-		end type	
+    integer i_save ! save the current index for tao_macro_data loop
+    type (tao_data_struct), pointer :: d(:) => null() ! ele_index for this datum is in here
+  end type	
 				
   type macro_d2_data_struct
-		  character(16) name
-		  type (macro_d1_data_struct), pointer :: d1(:)
-		end type
+    character(16) name
+    type (macro_d1_data_struct), pointer :: d1(:) => null()
+  end type
 
   type macro_data_struct
-    type (macro_d2_data_struct), pointer :: d2(:)
+    type (macro_d2_data_struct), pointer :: d2(:) => null()
   end type
 ! ***
 
@@ -387,7 +392,8 @@ type tao_beam_struct
   type (beam_struct) beam             ! macroparticle beam
   type (macro_init_struct) macro_init ! macro distribution at beginning of lat
   logical calc_emittance     ! for a ring calculate emittance
-  integer, pointer :: ix_lost(:,:,:)  ! if .ne. -1 then this macro lost at this ele
+  integer, pointer :: ix_lost(:,:,:) => null()
+                                      ! ^ if .ne. -1 then this macro lost at this ele
                                       ! ix_lost(bunch,slice,macro)
   type (macro_data_struct) :: macro_data ! macro specific data type element indices
 end type
@@ -402,7 +408,7 @@ type tao_universe_struct
   type (tao_d2_data_struct), pointer :: d2_data(:) => null()  ! The data types 
   type (tao_data_struct), pointer :: data(:) => null()        ! array of all data.
   type (tao_coupled_uni_struct)   :: coupling      !used for coupled lattices
-  real(rp), pointer :: dModel_dVar(:,:)                       ! Derivative matrix.
+  real(rp), pointer :: dModel_dVar(:,:) => null()             ! Derivative matrix.
   integer n_d2_data_used
   integer n_data_used
 end type
@@ -417,7 +423,7 @@ type tao_super_universe_struct
   type (tao_v1_var_struct), pointer :: v1_var(:) => null() ! The variable types
   type (tao_var_struct), pointer :: var(:) => null()       ! array of all variables.
   type (tao_universe_struct), pointer :: u(:) => null()    ! array of universes.
-  type (tao_keyboard_struct), pointer :: key(:)
+  type (tao_keyboard_struct), pointer :: key(:) => null()
   integer n_var_used
   integer n_v1_var_used
 end type

@@ -3,16 +3,15 @@
 
 This chapter gives a description of the commands that \tao knows about
 in \vn{line mode}. Commands are case sensitive. The list of commands
-is shown in Table~\ref{t:commands}. Multiple commands may be entered
+is shown in Table~\ref{t:commands}. 
+
+%%  ---------------------------------------------------------------------
+Multiple commands may be entered
 on one line using the ``|'' character as a separator.
 
-Note: For a description of \vn{single mode} commands see
-Chapter~\ref{c:single}. To put \tao into \vn{single mode} use the
-\vn{single_mode} command. 
 
 \begin{table}[h]
-\centering
-{\tt
+\centering {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Command} & {\it Section}  & {\it Command} & {\it Section} \\ \hline
   alias      & \ref{s:alias}    &  restore      & \ref{s:restore} \\ \hline
@@ -28,11 +27,16 @@ Chapter~\ref{c:single}. To put \tao into \vn{single mode} use the
   place      & \ref{s:place}    &  view         & \ref{s:view}    \\ \hline
   plot       & \ref{s:plot}     &  x-axis       & \ref{s:x-axis}  \\ \hline
   quit       & \ref{s:quit}     &  x-scale      & \ref{s:x-scale} \\ \hline
-\end{tabular}                      
-}
+\end{tabular}}
 \caption{Table of \bmad\ elements.}
 \label{t:commands}
 \end{table}
+
+%%Don't display this!!! ---------------------------------------------------------------------
+
+Note: For a description of \vn{single mode} commands see
+Chapter~\ref{c:single}. To put \tao into \vn{single mode} use the
+\vn{single_mode} command. 
 
 \vfil
 \break
@@ -124,10 +128,10 @@ For \vn{change ele}, six additional
 \vn{<components>}s in addition to the element values are:
 \begin{example}
   \{x, y, z\}           ! position 
-  \{x\_p, y\_p, z\_p\}  ! velocity
+  \{p\_x, p\_y, p\_z\}  ! velocity
 \end{example}.
-These are only applicable for changing the BEGINNING orbit for a
-linear lattice.
+Any orbit dimension can be changed for linear lattices, for circular lattices
+only the \vn{p\_z} component is applicable.
 
 Examples:
 \begin{example}
@@ -523,7 +527,7 @@ Format:
   show data \{<data_name> <locations>\} 
   show ele <ele_name>
   show global
-  show lattice <ele1_name> <ele2_name>
+  show lattice <locations>
   show optimizer
   show top10
   show var \{<var_name> <locations>\}
@@ -548,23 +552,26 @@ single character and ``*'' matches to any number of characters. If
 \vn{<ele_name>} contains a wild card then a list of elements that
 match the name are shown. If no wild--card is present then information
 about the element whose name matches \vn{<ele_name>} is
-shown. \vn{<ele_name>} is a number $n$ then the $n$\Th element in the
+shown. All data types associated with the element will also be listed.
+ \vn{<ele_name>} is a number $n$ then the $n$\Th element in the
 lattice list will be shown.
 \item[show global]
 Shows global information.
 \item[show lattice]
-Shows Twiss and orbit data for the \vn{model} lattice between elements
-\vn{<ele1_name>} and \vn{<ele2_name>}. Either \vn{<ele1_name>} or
-\vn{<ele2_name>} may be numbers indicating the place in the lattice
-list to start or stop at.
+Shows Twiss and orbit data for the \vn{model} lattice
+at the specified regular element locations. If \vn{<locations>} is not present
+then the length of the lattice will be shown.
 \item[show optimizer]
 Shows information pertinent to optimization: Data and variables used, etc.
 \item[show top10]
 Shows top contributors to the merit function, dMerit/dVariable
 derivatives, and Largest changes in variable value.
 \item[show var]
-Shows variable information. If \vn{<var_name>} \vn{<locations>} are
+Shows variable information. If \vn{<var_name>} \vn{<locations>} is
 not present shown is a list of v1\_var classes.
+\item[show plots]
+Shows which templates are being plotted and in which regions and also all
+available templates.
 \end{description}
 
 Examples:
@@ -573,12 +580,13 @@ Examples:
   show data orbit
   show data orbit:x           ! list all orbit:x data elements
   show data orbit:x 35        ! show details for orbit:x element 35
-  show data orbit:x 35, 86:95 ! list orbit:x elements 35 and 86 through 95
+  show data orbit:x 35 86:95  ! list orbit:x elements 35 and 86 through 95
   show data orbit:x 1:100:5   ! list every fifth orbit:x element between 1 and
 100
   show ele q*                 ! list all elements with names beginning with "q".
   show ele q10w               ! show a particular lattice element
   show ele 105                ! show element #105 in the lattice
+  show lattice 50:100         ! show lattice elements 50 to 100
 \end{example}
 
 %% single-mode --------------------------------------------------------------

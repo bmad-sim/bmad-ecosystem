@@ -144,6 +144,7 @@ do
     graph%y2 = init_axis
     graph%y2%draw_numbers = .false.
     graph%ix_universe = i
+    graph%clip = .true.
     curve(:)%units_factor = 1
     curve(:)%convert = .false.                             ! set default
     curve(:)%symbol_every = 1
@@ -175,9 +176,10 @@ do
     grph%y          = graph%y
     grph%y2         = graph%y2
     grph%ix_universe = graph%ix_universe
+    grph%clip       = graph%clip
 
     if (grph%type == 'lat_layout') then
-      plt%x_axis_type = 's'
+!     plt%x_axis_type = 's'
       lat_layout_here = .true.
     endif
 

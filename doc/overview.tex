@@ -203,11 +203,17 @@ to display or not to display individual data points. These are the
 same commands that control what data is used in fitting the model to
 the data in the optimization process (see Chapter~\ref{c:opti}). The
 general rule is that data that is vetoed for display is also vetoed
-for fitting.
+for fitting. However, data that is off the vetical or horizontal scale may still
+be used by the optimizer unless vetoed with the \vn{veto} or \vn{clip} command.
+If there are data points off the vertical scale and are still used by the
+optimizer then ``**Limited**'' will appear in the upper right-hand corner of the
+graph.
 
 The \vn{x-axis} and \vn{x-scale} commands are used to set the axis type and
-scale for each graph. the axis type can be either \vn{index} or \vn{s} which
-corresponds to the data index number and longitudinal poisition in the lattice
+scale for each graph. The axis type can be either \vn{index}, \vn{ele_index} 
+or \vn{s} which
+corresponds to the data index number, element index number and longitudinal 
+poisition in the lattice
 (from element 0) respectively.
 
 Figure~\ref{f:plot_page2} shows another example of a plot \vn{page}.

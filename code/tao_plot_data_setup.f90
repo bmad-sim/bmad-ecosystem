@@ -47,7 +47,7 @@ if (any(s%plot_page%ele_shape(:)%key /= 0)) then
       if (ele%control_type == overlay_lord$) cycle
       if (ele%control_type == super_slave$) cycle
       do k = 1, size(s%plot_page%ele_shape(:))
-        if (s%plot_page%ele_shape(k)%key == 0) exit
+        if (s%plot_page%ele_shape(k)%key == 0) cycle
         if (ele%key == s%plot_page%ele_shape(k)%key .and. &
                  match_wild(ele%name, s%plot_page%ele_shape(k)%ele_name)) then
           ele%ix_pointer = k
@@ -98,7 +98,7 @@ plot_loop: do i = 1, size(s%plot_page%plot)
       i_uni = s%global%u_view  ! universe where the data comes from
       if (curve%ix_universe /= 0) i_uni = curve%ix_universe 
       u => s%u(i_uni)
-
+      
 !----------------------------------------------------------------------------
 ! data_source is a data array
 
@@ -109,7 +109,7 @@ plot_loop: do i = 1, size(s%plot_page%plot)
           plot%valid = .false.
           cycle plot_loop
         endif
-
+	
         d1_ptr%d%good_plot = .true.
         eps = 1e-4 * (plot%x%max - plot%x%min)
         if (plot%x_axis_type == 'index') then
@@ -353,12 +353,19 @@ plot_loop: do i = 1, size(s%plot_page%plot)
          curve%y_symb = curve%y_symb - f
       endif 
 
+!----------------------------------------------------------------------------
+! check for limited graph
+      curve%limited = .false.
+      if (any(curve%y_symb .lt. graph%y%min .or. curve%y_symb .gt. graph%y%max)) &
+        curve%limited = .true.
+
+!----------------------------------------------------------------------------
 ! Calculate the points for drawing the curve through the symbols.
 ! If the x-axis is by index or ele_index then these points are the same as the symbol points.
 ! That is, for x-axis = index or ele_index the line is piece-wise linear between the symbols.
 ! If the axis is by s-value then the line is a "smooth" curve with 400 points if
 ! plotting model, base or design data. It's the same as the symbol points
-! otherwise.
+! otherwise. Smoothing will only be performed if performing single particle tracking.
 
       if (plot%x_axis_type == 'index') then
         call reassociate_real (curve%y_line, n_dat) ! allocate space for the data
@@ -373,7 +380,8 @@ plot_loop: do i = 1, size(s%plot_page%plot)
       elseif (plot%x_axis_type == 's') then
         smoothing = .true.
         do m = 1, size(plot%who)
-          if (plot%who(m)%name .eq. 'meas' .or. plot%who(m)%name .eq. 'ref') smoothing = .false.
+          if (plot%who(m)%name .eq. 'meas' .or. plot%who(m)%name .eq. 'ref' .or. &
+	      s%global%track_type .ne. 'single') smoothing = .false.
         enddo
         if (smoothing) then
           call reassociate_real (curve%y_line, 400) ! allocate space for the data
@@ -427,6 +435,17 @@ plot_loop: do i = 1, size(s%plot_page%plot)
 
       graph%title_suffix = '[' // trim(graph%title_suffix) // ']'
 
+! attach x-axis type to title suffix 	 
+  	 
+       if (plot%x_axis_type .eq. 'index') then 	 
+         graph%title_suffix = trim(graph%title_suffix) // ', X-axis: index, ' 	 
+       elseif (plot%x_axis_type .eq. 'ele_index') then 	 
+         graph%title_suffix = trim(graph%title_suffix) // ', X-axis: ele_index, ' 	 
+       elseif (plot%x_axis_type .eq. 's') then 	 
+         graph%title_suffix = trim(graph%title_suffix) // ', X-axis: s, ' 	 
+       endif 	 
+ 
+
 ! attach universe number to title suffix
 
       write (u_view_char, '(I)') s%global%u_view
@@ -471,11 +490,11 @@ do ii = 1, size(s_pos)
     y(ii) = y(ii) + who%sign * here%vec(3)
   case ('orbit:z')
     y(ii) = y(ii) + who%sign * here%vec(5)
-  case ('orbit:x_p')
+  case ('orbit:p_x')
     y(ii) = y(ii) + who%sign * here%vec(2)
-  case ('orbit:y_p')
+  case ('orbit:p_y')
     y(ii) = y(ii) + who%sign * here%vec(4)
-  case ('orbit:z_p')
+  case ('orbit:p_z')
     y(ii) = y(ii) + who%sign * here%vec(6)
   case ('phase:x')
     y(ii) = y(ii) + who%sign * ele%x%phi
@@ -510,8 +529,8 @@ do ii = 1, size(s_pos)
     call c_to_cbar (ele, cbar)
     y(ii) = y(ii) + who%sign * cbar(2,2)
   case default
-    call out_io (s_fatal$, r_name, 'DO NOT KNOW ABOUT THIS DATA_TYPE: ' // curve%data_type)
-    call out_io (s_blank$, r_name, "Will not perfrom any plot smoothing")
+!   call out_io (s_fatal$, r_name, 'DO NOT KNOW ABOUT THIS DATA_TYPE: ' // curve%data_type)
+!   call out_io (s_blank$, r_name, "Will not perfrom any plot smoothing")
     err = .true.
   end select
 

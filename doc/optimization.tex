@@ -185,7 +185,8 @@ Table~\ref{t:d_i}.
 
 What kind of data is associated with \vn{model}, \vn{design} and
 \vn{base} is determined by a datum's \vn{data_type}. Valid
-\vn{data_types} are given in table~\ref{t:cons}.
+\vn{data_types} are given in table~\ref{t:cons}. Macroparticle specific data
+types are only applicable if tracking macroparticles.
 \begin{table}[h] 
 \centering 
 {\tt
@@ -197,8 +198,8 @@ What kind of data is associated with \vn{model}, \vn{design} and
     etap:x, etap:y        & Dispersion derivative             &          \\ \hline 
     phase:x, phase:y      & Betatron phase                    & relative \\ \hline 
     orbit:x, orbit:y      & Transverse orbit                  &          \\ \hline 
-    orbit:x\_p, orbit:y\_p  & Tranverse momenta               &          \\ \hline 
-    orbit:z\_p, orbit:z\_p  & Longitudinal orbit and momenta  &          \\ \hline 
+    orbit:p\_x, orbit:p\_y  & Tranverse momenta               &          \\ \hline 
+    orbit:z, orbit:z\_p   & Longitudinal orbit and momenta  &          \\ \hline 
 \begin{tabular}{@{}l}     cbar:11, cbar:12, \\ cbar:21, cbar:22 \end{tabular} 
                       & Coupling                              &          \\ \hline 
 \begin{tabular}{@{}l}     coupling:11b, coupling:12a, \\ 
@@ -222,6 +223,18 @@ What kind of data is associated with \vn{model}, \vn{design} and
     i5a\_e6, i5b\_e6  & Normalized I5 radiation integral      &          \\ \hline
     s\_position       & longitudinal length constraint        & relative \\ \hline 
     beam\_energy      & Beam energy                           &          \\ \hline
+\begin{tabular}{@{}l}     norm\_emittance:x \\ 
+                          norm\_emittance:y \end{tabular} 
+                      & Macroparticle normalized emittance    &          \\ \hline 
+\begin{tabular}{@{}l}     bunch\_alpha:x, bunch\_beta:x \\ 
+                          bunch\_alpha:y, bunch\_beta:y \\
+                                            \end{tabular} 
+                      & Macroparticle bunch twiss parameters &          \\ \hline 
+\begin{tabular}{@{}l}     bunch\_sigma:x, bunch\_sigma:p\_x \\ 
+                          bunch\_sigma:y, bunch\_sigma:p\_y \\
+                          bunch\_sigma:z, bunch\_sigma:p\_z \\
+                                            \end{tabular} 
+                      & Macroparticle bunch size              &          \\ \hline 
 \end{tabular}
 } 
 \caption{Constraint List.}

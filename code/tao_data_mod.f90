@@ -147,11 +147,11 @@ case ('orbit:y')
 case ('orbit:z')
   call load_it (orb(:)%vec(5))
 
-case ('orbit:x_p')
+case ('orbit:p_x')
   call load_it (orb(:)%vec(2))
-case ('orbit:y_p')
+case ('orbit:p_y')
   call load_it (orb(:)%vec(4))
-case ('orbit:z_p')
+case ('orbit:p_z')
   call load_it (orb(:)%vec(6))
 
 case ('phase:x')
@@ -244,8 +244,23 @@ case ('s_position')
   call relative_switch
   datum_value = lattice%ele_(ix2)%s - lattice%ele_(ix1)%s
 
-
+! dummy places for macroparticle data
+case ('norm_emittance:x')
+case ('norm_emittance:y')  
+case ('dpz_dz')  
+case ('bunch_sigma:x')  
+case ('bunch_sigma:p_x')  
+case ('bunch_sigma:y')  
+case ('bunch_sigma:p_y')  
+case ('bunch_sigma:z')  
+case ('bunch_sigma:p_z')  
+case ('bunch_alpha:x') 
+case ('bunch_alpha:y') 
+case ('bunch_beta:x') 
+case ('bunch_beta:y') 
+  
 case default
+
   call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
   return
 
@@ -407,46 +422,106 @@ type (tao_universe_struct), intent(INOUT) :: u
 type (ring_struct), intent(IN) :: lat
 type (coord_struct), intent(IN) :: orb(0:)
 type (beam_struct), intent(IN) :: beam
-integer i_ele
+type (bunch_params_struct) :: params
 
 type (tao_data_struct), pointer :: datum
 real(rp), pointer :: datum_value
-real(rp) dummy
+real(rp) dummy, bunch(6)
 
-integer i, ii, iii
+integer i, ii, iii, i_ele
+integer, save :: i_save
+
+logical do_calc_bunch_params
+
+character(20) :: r_name = "tao_macro_data"
+
+  ! reset index counters
+  if (i_ele .eq. 0) then
+    do i = 1 , size(u%beam%macro_data%d2)
+      u%beam%macro_data%d2(i)%d1%i_save = 1
+    enddo
+  endif
+    
+
+! Only calculate the bunch parameters once then fill in the datums 
+! as they come up
+  do_calc_bunch_params = .true.
 
 ! Find any datums associated with this element
-! This is still not as optimized for speed as it could be
-! Better optimized if I assume the element indices are in order
-  do i = 1, size(u%beam%macro_data%d2)
-    do ii = 1, size(u%beam%macro_data%d2(i)%d1)
-      do iii = 1, size(u%beam%macro_data%d2(i)%d1(ii)%d)
+! assume the element indices are in order and use the i_save index so that we
+! only pass through the datums once per lattice calculation.
+  d2_loop: do i = 1, size(u%beam%macro_data%d2)
+    d1_loop: do ii = 1, size(u%beam%macro_data%d2(i)%d1)
+      d_loop: do iii = u%beam%macro_data%d2(i)%d1(ii)%i_save, size(u%beam%macro_data%d2(i)%d1(ii)%d)
 												
 	if (associated(u%beam%macro_data%d2(i)%d1(ii)%d(iii))) then
 	  if (u%beam%macro_data%d2(i)%d1(ii)%d(iii)%ix_ele .eq. i_ele) then
-														
+            u%beam%macro_data%d2(i)%d1(ii)%i_save = iii
+					    
+	    if (do_calc_bunch_params) then
+	      call calc_bunch_params (beam%bunch(s%global%bunch_to_plot), &
+	                              lat%ele_(i_ele), params)
+	      do_calc_bunch_params = .false.
+	    endif
+
 	    datum => u%beam%macro_data%d2(i)%d1(ii)%d(iii)
 	    datum_value => datum%model_value
 	 
 	    select case (datum%data_type)
            
-	    case ('norm_emittance:x')
-	      call calc_bunch_emittance (beam%bunch(1), lat%ele_(i_ele), &
-	          	                 datum_value, dummy)
-	      datum%s = lat%ele_(i_ele)%s
-	 
-	    case ('norm_emittance:y')
-	      call calc_bunch_emittance (beam%bunch(1), lat%ele_(i_ele), &
-	          	                 dummy, datum_value)
-	      datum%s = lat%ele_(i_ele)%s
-           
+	      case ('norm_emittance:x')
+	        datum_value = params%x%emitt
+	     
+	      case ('norm_emittance:y')
+	        datum_value = params%y%emitt
+             
+	      case ('dpz_dz')
+	        datum_value = params%dpz_dz
+            
+              case ('bunch_beta:x')
+	        datum_value = params%x%beta
+	        
+              case ('bunch_beta:y')
+	        datum_value = params%y%beta
+	        
+              case ('bunch_alpha:x')
+	        datum_value = params%x%alpha
+	        
+	      case ('bunch_alpha:y')
+	        datum_value = params%y%alpha
+	        
+	      case ('bunch_sigma:x')
+	        datum_value = params%x%sigma
+	        
+	      case ('bunch_sigma:p_x')
+	        datum_value = params%x%p_sigma
+	        
+	      case ('bunch_sigma:y')
+	        datum_value = params%y%sigma
+	        
+	      case ('bunch_sigma:p_y')
+	        datum_value = params%y%p_sigma
+	        
+	      case ('bunch_sigma:z')
+	        datum_value = params%z_sigma
+	        
+	      case ('bunch_sigma:p_z')
+	        datum_value = params%p_z_sigma
+	      
+	      case default
+		call out_io (s_error$, r_name, &
+		         "macro data type not found")
 	    end select
+
+	    datum%s = lat%ele_(i_ele)%s
+	    cycle d1_loop
+
 	  endif
         endif
 
-      enddo
-    enddo
-  enddo
+      enddo d_loop
+    enddo d1_loop
+  enddo d2_loop
 		
 end subroutine tao_macro_data
 
@@ -465,6 +540,8 @@ implicit none
 
 integer i
 
+integer, parameter :: n_macro_data_types = 5
+
   if (associated(macro_data_names)) then
     do i = 1, size(macro_data_names)
       deallocate(macro_data_names(i)%d1_data)
@@ -473,7 +550,7 @@ integer i
   endif
 		
   ! total number of macro specifc data types
-  allocate(macro_data_names(1))
+  allocate(macro_data_names(n_macro_data_types))
 
   ! norm_emittance
   allocate(macro_data_names(1)%d1_data(2))
@@ -481,8 +558,38 @@ integer i
   macro_data_names(1)%d1_data(1) = 'x'
   macro_data_names(1)%d1_data(2) = 'y'
 
+  ! dPz_dZ
+  allocate(macro_data_names(2)%d1_data(1))
+  macro_data_names(2)%name = 'dpz_dz'
+  macro_data_names(2)%d1_data(1) = 'dpz_dz'
+
+  ! Bunch Size
+  allocate(macro_data_names(3)%d1_data(6))
+  macro_data_names(3)%name = 'bunch_sigma'
+  macro_data_names(3)%d1_data(1) = 'x'
+  macro_data_names(3)%d1_data(2) = 'p_x'
+  macro_data_names(3)%d1_data(3) = 'y'
+  macro_data_names(3)%d1_data(4) = 'p_y'
+  macro_data_names(3)%d1_data(5) = 'z'
+  macro_data_names(3)%d1_data(6) = 'p_z'
+
+  ! Beam beta
+  allocate(macro_data_names(4)%d1_data(3))
+  macro_data_names(4)%name = 'bunch_beta'
+  macro_data_names(4)%d1_data(1) = 'x'
+  macro_data_names(4)%d1_data(2) = 'y'
+  macro_data_names(4)%d1_data(3) = 'z'
+
+  ! Beam beta
+  allocate(macro_data_names(5)%d1_data(3))
+  macro_data_names(5)%name = 'bunch_alpha'
+  macro_data_names(5)%d1_data(1) = 'x'
+  macro_data_names(5)%d1_data(2) = 'y'
+  macro_data_names(5)%d1_data(3) = 'z'
+
   ! If Fortran was object oriented i could define the data functions here too!
 		
 end subroutine tao_define_macro_data_types
+
 
 end module tao_data_mod

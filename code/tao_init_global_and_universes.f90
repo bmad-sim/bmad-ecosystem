@@ -56,7 +56,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   logical counting, searching
   logical sr_wakes_on, lr_wakes_on
   logical calc_emittance(n_universe_maxx)
-  logical, allocatable :: found_one(:)
+  logical, allocatable :: found_one(:), mask(:)
 
 
   namelist / tao_params / global, n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
@@ -113,6 +113,10 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   s%n_var_used = 0
   s%n_v1_var_used = 0       ! size of s%v1_var(:) array
 
+!-----------------------------------------------------------------------
+! allocate lattice coord_structs and equate model and base to design
+  call init_lattices ()
+  
 !-----------------------------------------------------------------------
 ! Init coupled universes
 
@@ -184,17 +188,16 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   endif
 
 !-----------------------------------------------------------------------
-! do initial twiss_and_track and equate model and base to design
-  call init_lattices ()
-  
-!-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 ! Init data
 
   call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
 
+  allocate (mask(size(s%u)))
+	
   do 
-    d2_data%name = ' '      ! set default
+    mask(:) = .true.      ! set defaults
+    d2_data%name = ' '
     universe = 0
     default_merit_type = 'target'
     read (iu, nml = tao_d2_data, iostat = ios, err = 9100)
@@ -204,9 +207,18 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 
     n_uni = universe      ! universe to use 
     if (n_uni == 0) then
-      do i = 1, size(s%u)
+      uni_loop1: do i = 1, size(s%u)
+
+        ! check if this data type has already been defined for this universe
+	do k = 1, size(s%u(i)%d2_data)
+	  if (trim(s%u(i)%d2_data(k)%name) .eq. trim(d2_data%name)) then
+	    mask(i) = .false.
+	    cycle uni_loop1
+	  endif
+	enddo
+      
         call d2_data_stuffit (s%u(i))
-      enddo
+      enddo uni_loop1
     else
       call d2_data_stuffit (s%u(n_uni))
     endif
@@ -231,15 +243,21 @@ subroutine tao_init_global_and_universes (data_and_var_file)
       call out_io (s_blank$, r_name, &
                       'Init: Read tao_d1_data namelist: ' // d1_data%name)
       if (n_uni == 0) then          ! 0 => use all universes
-        do i = 1, size(s%u)
+        uni_loop2: do i = 1, size(s%u)
+
+          ! check if this data type has already been defined for this universe
+	  if (.not. mask(i)) cycle uni_loop2
+      
           call d1_data_stuffit (k, s%u(i), s%u(i)%n_d2_data_used)
-        enddo
+        enddo uni_loop2
       else
         call d1_data_stuffit (k, s%u(n_uni), s%u(n_uni)%n_d2_data_used)
       endif
     enddo
 
   enddo
+
+  if (allocated(mask)) deallocate(mask)
 
 !-----------------------------------------------------------------------
 ! Init macroparticle specific data
@@ -248,7 +266,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 
   do i = 1, size(s%u)
     call init_macro_data(s%u(i))
-	 enddo
+  enddo
 		
 !-----------------------------------------------------------------------
 ! Init vars
@@ -400,17 +418,12 @@ subroutine init_lattices ()
     if (allocated(s%u(i)%design_orb)) deallocate (s%u(i)%design_orb)
     if (allocated(s%u(i)%base_orb)) deallocate (s%u(i)%base_orb)
     allocate (s%u(i)%model_orb(0:n), s%u(i)%design_orb(0:n), s%u(i)%base_orb(0:n))
-    ! For linacs, specify initial conditions
+    ! Specify initial conditions
     s%u(i)%design_orb(0)%vec = 0.0
+    s%u(i)%model = s%u(i)%design
+    s%u(i)%base  = s%u(i)%design
   enddo
     
-  s%global%lattice_recalc = .true.
-  call tao_lattice_calc(.true.)
-
-  do i = 1, size(s%u)
-    s%u(i)%model = s%u(i)%design; s%u(i)%model_orb = s%u(i)%design_orb
-    s%u(i)%base  = s%u(i)%design; s%u(i)%base_orb  = s%u(i)%design_orb
-  enddo
 
 end subroutine init_lattices
 
@@ -1132,22 +1145,25 @@ integer, pointer :: ix_lcav(:)
   if (s%global%track_type .eq. 'single') return
 
   if (u%design%param%lattice_type .eq. circular_lattice$) then
+    call out_io (s_blank$, r_name, "***")
     call out_io (s_blank$, r_name, &
                  "Macroparticle tracking through a circular lattice.")
     call out_io (s_blank$, r_name, &
          "Twiss parameters and initial orbit will be found from the closed orbit.")
     if (calc_emittance) then
       call out_io (s_blank$, r_name, &
-                  "Emittance will found using the radiation integrals.")
+                  "Emittance will be found using the radiation integrals.")
     else 
       call out_io (s_blank$, r_name, &
                   "Emittance will be as set in macro_init.")
     endif
     u%beam%calc_emittance = calc_emittance
-    call out_io (s_blank$, r_name, " ")
+    call out_io (s_blank$, r_name, "***")
   elseif (calc_emittance) then
+    call out_io (s_blank$, r_name, "***")
     call out_io (s_warn$, r_name, &
                 "Calc_emittance is only applicable to circular lattices!")
+    call out_io (s_blank$, r_name, "***")
   endif
   
   
@@ -1174,6 +1190,8 @@ integer, pointer :: ix_lcav(:)
   endif
 
   u%beam%macro_init = macro_init
+  u%design_orb(0)%vec = macro_init%center
+
   ! This is just to get things allocated
   call init_macro_distribution (u%beam%beam, macro_init, u%design%ele_(0), .true.)
 

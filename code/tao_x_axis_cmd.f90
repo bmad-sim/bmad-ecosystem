@@ -62,23 +62,25 @@ integer iu, n
 real(rp) minn, maxx
 
 !
-! no curves to scale
-if (.not. associated(plot%graph(1)%curve(1))) return
 
-iu = plot%graph(1)%curve(1)%ix_universe
-if (iu == 0) iu = s%global%u_view
+plot%x_axis_type = what
+iu = s%global%u_view
 
 if (what == 's') then
   minn = s%u(iu)%model%ele_(0)%s
   n = s%u(iu)%model%n_ele_use
   maxx = s%u(iu)%model%param%total_length
 elseif (what == 'ele_index') then
-  call tao_find_data (err, s%u(iu), &
-               plot%graph(1)%curve(1)%data_type, d1_ptr = d1_ptr)
-  if (err) return
-  minn = lbound(d1_ptr%d, 1)
-  maxx = ubound(d1_ptr%d, 1)
+  minn = 0
+  maxx = s%u(s%global%u_view)%design%n_ele_use 
 elseif (what == 'index') then
+! if no curves to scale then can't scale to index
+  if (.not. associated(plot%graph(1)%curve(1))) then
+    plot%valid = .false.
+    return
+  endif
+  iu = plot%graph(1)%curve(1)%ix_universe
+  if (iu == 0) iu = s%global%u_view
   call tao_find_data (err, s%u(iu), &
                plot%graph(1)%curve(1)%data_type, d1_ptr = d1_ptr)
   if (err) return
@@ -86,9 +88,10 @@ elseif (what == 'index') then
   maxx = ubound(d1_ptr%d, 1)
 endif
 
-call qp_calc_and_set_axis ('X', minn, maxx, 8, 15, 'GENERAL')
+!call qp_calc_and_set_axis ('X', minn, maxx, 8, 15, 'GENERAL')
+call qp_calc_and_set_axis ('X', minn, maxx, &
+          nint(0.7 * plot%x_divisions), nint(1.3 * plot%x_divisions), 'GENERAL')
 call qp_get_axis ('X', a_min = plot%x%min, a_max = plot%x%max)
-plot%x_axis_type = what
 
 
 end subroutine

@@ -238,7 +238,7 @@ subroutine tao_command (command_line, err)
     call cmd_split(2, .false., err)
 
     call out_io (s_warn$, r_name, &
-         "Use this command with caution. There is a memory leak somwhere!")
+         "Use this command with a little caution. There is a small memory leak somewhere!")
     
 ! quit the plot window so it will be recreated    
     call qp_close_page
@@ -325,6 +325,8 @@ subroutine tao_command (command_line, err)
       return
     endif
 
+    ! adding extra cmd_words to tao_chow_cmd will break some current show
+    ! commands!
     call tao_show_cmd (cmd_word(1), cmd_word(2), cmd_word(3))
 
 !--------------------------------

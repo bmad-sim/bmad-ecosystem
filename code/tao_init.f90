@@ -42,6 +42,7 @@ subroutine tao_init (init_file)
     call err_exit
   endif
   
+  if (associated(s%u)) call deallocate_everything ()
   allocate (s%u(n_universes))
 
   if (lattice_file == ' ')      lattice_file      = init_file
@@ -56,7 +57,16 @@ subroutine tao_init (init_file)
   call tao_init_single_mode (single_mode_file)
   call tao_hook_init ()
 
-  call tao_lattice_calc ()
+  ! set up design lattice
+  s%global%lattice_recalc = .true.
+  call tao_lattice_calc (.true.) ! .true. => init design lattice
+  do i = 1, size(s%u)
+    s%u(i)%model = s%u(i)%design; s%u(i)%model_orb = s%u(i)%design_orb
+    s%u(i)%base  = s%u(i)%design; s%u(i)%base_orb  = s%u(i)%design_orb
+  enddo
+
+  ! now get the data without recalcing the model lattice
+  call tao_lattice_calc()      ! calculate Twiss parameters, closed orbit
   do i = 1, size(s%u)
     if (associated (s%u(i)%data)) then
       s%u(i)%data%design_value = s%u(i)%data%model_value
@@ -64,10 +74,6 @@ subroutine tao_init (init_file)
     endif
   enddo
 
-  call tao_set_data_useit_opt ()
-  call tao_set_var_useit_opt ()
-
-  call tao_lattice_calc()      ! calculate Twiss parameters, closed orbit
   call tao_init_plotting (plot_file)
   call tao_plot_data_setup ()  ! transfer data to the plotting structures
   call tao_plot_out ()         ! Update the plotting window
@@ -79,5 +85,131 @@ subroutine tao_init (init_file)
     call out_io (s_blank$, r_name, 'Using startup file: ' // file_name)
     call tao_call_cmd (file_name)
   endif
+
+contains
+!------------------------------------------------------------------------------
+! every pointer and allocatable needs to be deallocated now before the universe
+! is reallocated. This doesn't first check if pointers are associated!
+
+subroutine deallocate_everything ()
+
+implicit none
+
+integer i, j, k, istat
+
+! Variables  
+  do i = 1, size(s%v1_var)
+    nullify(s%v1_var(i)%v)
+  enddo
+  deallocate(s%v1_var, stat=istat)
+  
+  do i = lbound(s%var,1), ubound(s%var,1)
+    do j = 1, size(s%var(i)%this)
+      nullify(s%var(i)%this(j)%model_ptr)
+      nullify(s%var(i)%this(j)%base_ptr)
+    enddo
+    nullify(s%var(i)%v1)
+    deallocate(s%var(i)%this, stat=istat)
+  enddo
+  deallocate(s%var, stat=istat)
+ 
+! Keytable 
+  deallocate(s%key, stat=istat)
+
+! plotting  
+  do i = 1, size(s%template_plot)
+    do j = 1, size(s%template_plot(i)%graph)
+      do k = 1, size(s%template_plot(i)%graph(j)%curve)
+        deallocate(s%template_plot(i)%graph(j)%curve(k)%x_line, stat=istat)
+        deallocate(s%template_plot(i)%graph(j)%curve(k)%y_line, stat=istat)
+        deallocate(s%template_plot(i)%graph(j)%curve(k)%x_symb, stat=istat)
+        deallocate(s%template_plot(i)%graph(j)%curve(k)%y_symb, stat=istat)
+        deallocate(s%template_plot(i)%graph(j)%curve(k)%ix_symb, stat=istat)
+      enddo
+      deallocate(s%template_plot(i)%graph(j)%curve, stat=istat)
+    enddo
+    deallocate(s%template_plot(i)%graph, stat=istat)
+  enddo
+
+  nullify(s%plot_page%plot)
+
+! Universes 
+  do i = 1, size(s%u)
+    ! Orbits
+    deallocate(s%u(i)%model_orb, stat=istat)
+    deallocate(s%u(i)%design_orb, stat=istat)
+    deallocate(s%u(i)%base_orb, stat=istat)
+    
+    ! Beams
+    deallocate(s%u(i)%beam%ix_lost, stat=istat)
+    do j = 1, size(s%u(i)%beam%macro_data%d2)
+      do k = 1, size(s%u(i)%beam%macro_data%d2(j)%d1)
+        nullify(s%u(i)%beam%macro_data%d2(j)%d1(k)%d)
+      enddo
+      deallocate(s%u(i)%beam%macro_data%d2(j)%d1, stat=istat)
+    enddo
+    deallocate(s%u(i)%beam%macro_data%d2, stat=istat)
+ 
+    ! d2_data
+    do j = 1, size(s%u(i)%d2_data)
+      do k = 1, size(s%u(i)%d2_data(j)%d1)
+        nullify(s%u(i)%d2_data(j)%d1(k)%d2)
+        nullify(s%u(i)%d2_data(j)%d1(k)%d)
+      enddo
+      deallocate(s%u(i)%d2_data(j)%d1, stat=istat)
+    enddo
+    deallocate(s%u(i)%d2_data, stat=istat)
+
+
+    ! Data
+    do j = lbound(s%u(i)%data,1), ubound(s%u(i)%data,1)
+      nullify(s%u(i)%data(j)%d1)
+    enddo
+    deallocate(s%u(i)%data, stat=istat)
+
+    ! dModel_dVar
+    deallocate(s%u(i)%dmodel_dvar, stat=istat)
+
+    ! Lattices
+    call deallocate_lattice_internals(s%u(i)%model)
+    call deallocate_lattice_internals(s%u(i)%design)
+    call deallocate_lattice_internals(s%u(i)%base)
+  enddo
+    
+end subroutine deallocate_everything
+    
+
+!------------------------------------------------------------------------------
+
+subroutine deallocate_lattice_internals (lat)
+
+implicit none
+
+type (ring_struct) :: lat
+
+integer j, istat
+
+  ! Lattice elements
+  do j = 0, size(lat%ele_)
+    if (associated(lat%ele_(j)%r)) deallocate(lat%ele_(j)%r, stat=istat)
+    if (associated(lat%ele_(j)%a)) deallocate(lat%ele_(j)%a, stat=istat)
+    if (associated(lat%ele_(j)%b)) deallocate(lat%ele_(j)%b, stat=istat)
+    if (associated(lat%ele_(j)%const)) deallocate(lat%ele_(j)%const, stat=istat)
+    if (associated(lat%ele_(j)%descrip)) deallocate(lat%ele_(j)%descrip, stat=istat)
+    if (associated(lat%ele_(j)%gen_field)) deallocate(lat%ele_(j)%gen_field, stat=istat)
+    if (associated(lat%ele_(j)%wake)) then
+      deallocate(lat%ele_(j)%wake%sr, stat=istat)  
+      deallocate(lat%ele_(j)%wake%lr, stat=istat)  
+      deallocate(lat%ele_(j)%wake, stat=istat)
+    endif
+    if (associated(lat%ele_(j)%wig_term)) deallocate(lat%ele_(j)%wig_term, stat=istat)
+  enddo
+  deallocate(lat%ele_, stat=istat)
+  
+  if (associated(lat%control_)) deallocate(lat%control_, stat=istat)
+  if (associated(lat%ic_)) deallocate(lat%ic_, stat=istat)
+  nullify(lat%beam_energy)
+
+end subroutine deallocate_lattice_internals
 
 end subroutine tao_init
