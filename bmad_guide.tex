@@ -10,7 +10,7 @@
 
 \begin{document}
 
-\title{The BMAD Reverence Manual}
+\title{The BMAD Reference Manual}
 
 \date{11 June, 2003}
 \maketitle
@@ -18,8 +18,45 @@
 %----------------------------------------------------------------
 \section*{Overview}
 
+BMAD (aka "Baby MAD" or "Better MAD" or just plain "BE MAD!")
+is a software subroutine library used for simulating 
+relativistic charged--particle dynamics in high energy accelerators
+and storage rings. BMAD can be used to read in lattice files, compute 
+Twiss parameters, track particles, etc. 
+These subroutines, written in  Fortran90, have been developed to:
+\begin{enumerate}
+\item Cut down on the time needed to develop programs,
+\item Cut down on programming errors, and
+\item Provide a standard input format for specifying lattices.
+\end{enumerate}
+BMAD has been developed at Cornell University's Laboratory for Elementary
+Particle Physics and has been in use since the 1990's.
+
+\break
 %----------------------------------------------------------------
 \section*{Introduction}
+
+The strength of BMAD is that as a subroutine library it provides a flexible
+framework from which sophisticated simulation programs may easily be developed.
+The weakness of BMAD comes from its strength: Someone must put the pieces 
+together into a program. As a consequence this manual serves two masters:
+
+The BMAD lattice input standard was developed using the MAD lattice input 
+standard as a starting point. MAD (Methodical Accelerator Design) is a 
+widely used
+stand--alone program developed at CERN by Christoph Iselin for charged--particle 
+optics calculations. The limitations of the MAD program was the imputus for
+writting BMAD. Since it can be convienint to do simulattions with both MAD and
+BMAD, differences and simularities between the two input formats are noted in
+this guide.
+
+Errors and omissions are a fact of life for any reference work and comments from
+you, dear reader, are therefore most welcome. Please send any missives 
+(or chocolate, etc.) to:
+\begin{tty}
+  David Sagan <dcs16@cornell.edu>
+\end{tty}
+
 
 %----------------------------------------------------------------
 \tableofcontents
@@ -92,6 +129,10 @@
 
 %----------------------------------------------------------------
 \chapter{Tracking}
+
+When using radiation excitation the random number generator is based
+upon the fortran90 intrinsic random_number. If random_seed is not called
+then the fluctuations from run to run will be exactly the same.
 
 %----------------------------------------------------------------
 \chapter{Transfer Matrices}
