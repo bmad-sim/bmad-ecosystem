@@ -47,7 +47,8 @@ attributes set in the lattice file and will not be discussed further.
     logical is_on                     ! For turning element on/off.
   end type
 \end{verbatim}
-\caption{The \tn{ele\_struct}. Only part of the substructure is shown.}
+\caption[The \tn{ele\_struct}.]{The \tn{ele\_struct}. Only part of the 
+  substructure is shown.}
 \label{f:ele_struct}
 \end{figure}
 
@@ -141,7 +142,7 @@ found in the \vn{%value(:)} array are
 \end{example}
 
 \vn{attribute_bookkeeper} is the routine that makes sure the dependent
-variables (See Section~\ref{s:dependent}) of an element are keep
+variables (See Section~\ref{s:depend}) of an element are keep
 up--to--date. \vn{attribute_bookkeeper} is called behind the scenes
 when \vn{make_mat6} is called to make transfer matrices. The general
 rule is that elment attributes are changed, and if you don't call
@@ -180,7 +181,7 @@ attribute is an exercise in futility. An example
 
 \vn{%b_field_master} is the logical within appropriate elements that sets 
 whether it is the strength or field that is the 
-independent variable. See Section~\ref{s:dependent} for more details.
+independent variable. See Section~\ref{s:depend} for more details.
 
 %--------------------------------------------------------------------------
 \section{Transfer Maps}

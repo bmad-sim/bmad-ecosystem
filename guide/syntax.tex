@@ -13,7 +13,7 @@ the MAD input format. Documentation can be found at:
   http://www-project.slac.stanford.edu/
               lc/ilc/TechNotes/LCCNotes/PDF/LCC-0060%20rev.1.pdf
 \end{example}
-One point that is not covered in the documentation is that \vn{beam} and 
+One point that is not covered in the XSIF documentation is that \vn{beam} and 
 \vn{beta0} definitions must have a corresponding \vn{use} statement separate 
 from the \vn{use} statement that defines the lattice. For
 example:
@@ -25,7 +25,7 @@ example:
   use, this_beam
   use, this_beta
 \end{example}
-Another point is that for a \vn{MATRIX} element, unlike MAD, the
+Another undocumented point is that for a \vn{MATRIX} element, unlike MAD, the
 \vn{R$ii$} terms (the diagonal terms of the linear matrix) are not
 unity by default. Thus
 \begin{example}
@@ -45,10 +45,11 @@ The syntax that a \bmad standard lattice file
 must conform to is modeled after the lattice input format of the \mad\
 program.  Essentially, a \bmad\ lattice file is similar to a \mad\
 lattice file except that a \bmad\ file has no ``action'' commands
-(commands tell the program to calculate the Twiss parameters,
-etc.). Interacting with the user to determine what actions a program
+(action commands tell the program to calculate the Twiss parameters,
+do tracking, etc.). 
+Interacting with the user to determine what actions a program
 should take is left to the program and is not part of \bmad\ (although
-\bmad\, of course, provides the routines to do many calculations). A
+\bmad, of course, provides the routines to do many calculations). A
 program is not required to use the \bmad\ parser routine but if it
 does the following chapters describes how to construct a valid lattice
 file.
@@ -84,11 +85,11 @@ in when the lattice is first read in. For example, if the file
 \vn{lattice_file} holds a lattice definition and \vn{aperture_file} is
 the name of an aperture file then the two files may be read in simultaneously
 by using a third file which calls the two
-\begin{verbatim}
+\begin{example}
   ! This is a file that calls the two files
   call, file = 'lattice_file'
   call, file = 'aperture_file'
-\end{verbatim}
+\end{example}
 In this case \vn{aperture_file} is considered part of the set of
 primary lattice files.  The reason for making a distinction between
 primary and secondary is that there are restrictions, discussed in
@@ -148,34 +149,36 @@ Switches are variables that take discrete values. For example:
 \end{example}
 The name ``switch'' can refer to the variable (for example,
 \vn{tracking_method}) or to a value that it can take (for example,
-\vn{bmad_standard}). The name ``method'' is used interchangeable with switch.
+\vn{bmad_standard}). The name ``method'' is used interchangeably with switch.
 
 %---------------------------------------------------------------------------
 \section{Arithmetic Expressions}
 
 Arithmetic expressions can be used in a place where a real value is required.
-The standard operators are defined:
-\begin{ventry}{12em}
-\item[$a + b$] Addition
-\item[$a - b$] Subtraction
-\item[$a \, \ast \, b$] Multiplication
-\item[$a \; / \; b$] Division
-\item[$a \, \land \, b$] Exponentiation
-\end{ventry}
-\vskip0.05in\noindent
-The following functions are recognized by \bmad:
-\begin{ventry}{acos(x)}
-\item[sqrt(x)] Square Root 
-\item[log(x)]  Logarithm
-\item[exp(x)]  Exponential
-\item[sin(x)]  Sine
-\item[cos(x)]  Cosine
-\item[tan(x)]  Tangent
-\item[asin(x)] Arc sine
-\item[acos(x)] Arc cosine
-\item[atan(x)] Arc Tangent
-\item[abs(x)]  Absolute Value
-\end{ventry}
+The standard operators are defined: \hfil\break
+\hspace*{0.15in}
+\begin{tabular}{ll}
+  $a + b$           & Addition        \\
+  $a - b$           & Subtraction     \\
+  $a \, \ast \, b$  & Multiplication  \\
+  $a \; / \; b$     & Division        \\
+  $a \, \land \, b$ & Exponentiation  \\
+\end{tabular}
+
+The following functions are recognized by \bmad: \hfil\break
+\hspace*{0.15in}
+\begin{tabular}{ll}
+  sqrt(x) &  Square Root    \\
+  log(x)  &  Logarithm      \\
+  exp(x)  &  Exponential    \\
+  sin(x)  &  Sine           \\
+  cos(x)  &  Cosine         \\
+  tan(x)  &  Tangent        \\
+  asin(x) &  Arc sine       \\
+  acos(x) &  Arc cosine     \\
+  atan(x) &  Arc Tangent    \\
+  abs(x)  &  Absolute Value \\
+\end{tabular}
 
 
 %---------------------------------------------------------------------------

@@ -1,20 +1,19 @@
 \SECTION{Overview}
 
 \bmad\ (Otherwise known as ``Baby MAD" or ``Better MAD" or just plain
-``Be MAD!")  is a subroutine library used for relativistic
+``Be MAD!")  is an subroutine library used for relativistic
 charged--particle dynamics simulations in high energy accelerators and
 storage rings. \bmad\ has been developed at Cornell University's
 Laboratory for Elementary Particle Physics and has been in use since
 the 1990's. 
 
-Prior to \bmad, programs were written almost from scratch to perform
+Prior to \bmad, simulation programs were written almost from scratch to perform
 calculations that were beyond the capability of existing, generally
 available software. This practice was inefficient, leading to much
 duplication of effort.  Since it was time consuming to write
-simulations, needed calculations where not being done.
-
-As a response, the \bmad\ subroutines, written in
-Fortran90, were developed to:
+simulations, needed calculations where not being done.  As a response,
+the \bmad\ subroutines, using an object oriented approach and written
+in Fortran90, were developed to:
 \begin{Itemize}
 \item Cut down on the time needed to develop programs.
 \item Minimize computation times.
@@ -26,19 +25,26 @@ from within programs (control system or otherwise).
 programs.
 \end{Itemize}
 
-\bmad\ can be used to study single and multi--particle beam dynamics.
-It has the ability to track both particles and macroparticles with
-wakefields, and radiation excitation and damping. \bmad\ has routines
-for calculating transfer matrices, emittances, Twiss parameters,
-dispersion, coupling, etc. The elements that \bmad\ knows about
-include quadrupoles, RF cavities (both storage ring and LINAC
-accelerating types), solenoids, dipole bends, etc. In addition,
-elements can be defined to control the attributes of other
-elements. This can be used, for example, to simulate the action of
-control room ``knobs'' where a control room knob may vary the
-strengths of multiple magnets in the accelerator. Other possibilities
-include the simulation of I--beams that determine the position of
-multiple element.
+\bmad has a wide range of routines to do many things.  \bmad\ can be
+used to study both single and multi--particle beam dynamics.  It has
+routines to track both particles and macroparticles. \bmad has various
+tracking algorithms including Runge--Kutta and symplectic (Lie
+algebraic) integration.  Wakefields, and radiation excitation and
+damping can be simulated. \bmad\ has routines for calculating transfer
+matrices, emittances, Twiss parameters, dispersion, coupling, etc. The
+elements that \bmad\ knows about include quadrupoles, RF cavities
+(both storage ring and LINAC accelerating types), solenoids, dipole
+bends, etc. In addition, elements can be defined to control the
+attributes of other elements. This can be used, for example, to
+simulate the action of control room ``knobs'' which vary the strengths
+of multiple magnets in the lattice. Support ``I--beams'' can be
+defined that determine the position of multiple element. 
+
+To go beyond the things that \bmad can do, \bmad has been developed
+to maximize flexibility. For example, different tracking methods may
+be defined for a given element type and what the actual tracking
+method used can be chosen at run time.
+
 
 \vfill
 \break

@@ -77,15 +77,15 @@ field up to $3^{rd}$ order is
   B_x &=           &&B_1 y \plus         &&B_2 \, xy       && \plus && \frac{1}{6} B_3 (3x^2 y - y^3) \plus \ldots \\
   B_y &= B_0 \plus &&B_1 x + \frac{1}{2} &&B_2 (x^2 - y^2) && \plus && \frac{1}{6} B_3 (x^3 - 3x y^2) \plus \ldots
 \end{alignat}
-The normalized integrated multipole $K_nL$ is used When specifying magnetic
+The normalized integrated multipole $K_nL$ is used when specifying magnetic
 multipole components
 \Begineq
   K_nL = \frac{c \, L \, B_n}{P_0}
 \Endeq
 $L \, B_n$ is the integrated multipole component over a length $L$,
-and $P_0$ is the nominal beam momentum. Note that $P_0$ is sometimes
+and $P_0$ is the reference momentum. Note that $P_0$ is sometimes
 written as $B\rho$. This is just an old notation where $\rho$ is the
-bending radius of a particle with the nominal energy in a field of
+bending radius of a particle with the reference energy in a field of
 strength $B$. The kicks $\Delta p_x$ and $\Delta p_y$ that a
 particle experiences going through a multipole field is
 \begin{alignat}{5}
@@ -114,7 +114,7 @@ where $(r, \theta)$ are the polar coordinates of the point $(x, y)$.
 
 Another representation of the magnetic field used by \bmad\ divides
 the fields into normal $b_n$ and skew $a_n$ components. In terms of
-these components the magnetic field is
+these components the magnetic field for the $n$\Th\ component is
 \Begineq
   \frac{L}{P_0} \, (B_y + i B_x) = (b_n + i a_n) \, (x + i y)^n
 \Endeq
@@ -169,10 +169,10 @@ element as shown in Table~\ref{t:ab}
 
 A transport map ${\cal M}: {\cal R}^6 \rightarrow {\cal R}^6$ through
 an element or a section of a lattice is a function that maps the
-starting phase space coordinates $\Bf r_{\In}$ to the ending
-coordinates $\Bf r_{\Out}$
+starting phase space coordinates $\Bf r(\In)$ to the ending
+coordinates $\Bf r(\Out)$
 \begin{equation}
-  \Bf r_(\Out) = {\cal M} \, \Bf r_(\In)
+  \Bf r(\Out) = {\cal M} \, \Bf r(\In)
 \end{equation}
 ${\cal M}$ is made up of six functions ${\cal M}_i: {\cal R}^6
  \rightarrow {\cal R}$. Each of these functions maps to one of the $r_{\Out}$
@@ -230,7 +230,7 @@ A symplectic matrix $\Bf F$ is now obtained by inverting \eq{e:vsimi}
 \section{Wigglers}
 \label{s:wiggler_phys}
 
-As discussed in Section~\ref{s:wig} \bmad\ wiggler elements are split into 
+As discussed in Section~\ref{s:wig}, \bmad wiggler elements are split into 
 two classes: map type and periodic type.
 
 
@@ -283,28 +283,31 @@ section of magnet due to synchrotron radiation is
 \Endeq
 where
 \Begineq
-  k_d \equiv \frac{2 \, r_e}{3} \, \gamma_0^3, \, \ave{g^2} \, L_p \,  (1 + p_z)
+  k_d \equiv \frac{2 \, r_e}{3} \, \gamma_0^3 \, \ave{g_0^2} \, L_p \,  
+  (1 + p_z)
+  \label{k2r3g}
 \Endeq
 $r_e$ is the classical electron radius, $L_p$ is the actual path
-length, $\gamma_0$ is the energy factor of an on-energy particle, $1/g$
-is the bending radius of an on--energy particle, and $\ave{g^2}$ is an
-average of $g^2$ over the actual path.
+length, $\gamma_0$ is the energy factor of an on-energy particle, $1/g_0$
+is the bending radius of an on--energy particle, and $\ave{g_0^2}$ is an
+average of $g_0^2$ over the actual path.
 
 Radiation excitation is modeled in \bmad\ using a random
 number generator. The energy lost is
 \Begineq
-  \frac{\Delta E}{E_0} = k_f \, (1 + p_z)
+  \frac{\Delta E}{E_0} = -k_f \, (1 + p_z)
 \Endeq
 where
 \Begineq
   k_f \equiv \left( \frac{55 \, r_e \, \hbar \, c}{24 \, \sqrt{3} \, m_e} \, 
-  L_p \, \gamma0^5 \ave{g^3} \right)^{1/2} \, (1 + p_z) \, \xi
+  L_p \, \gamma0^5 \ave{g_0^3} \right)^{1/2} \, (1 + p_z) \, \xi
+  \label{k55rh}
 \Endeq
 $\xi$ is a Gaussian distributed random number with unit sigma and zero mean.
 
-The change in $p_z$ can be written as
+Using \Eqs{k2r3g} and \eq{k55rh} The total change in $p_z$ can be written as
 \Begineq
-  \Delta p_z = -k_E \, (1 + p_z)
+  \Delta p_z = \frac{\Delta E}{E_0} = -k_E \, (1 + p_z)
 \Endeq
 where
 \Begineq
@@ -314,15 +317,15 @@ Since the radiation is emitted in the forward direction the angles
 $x'$ and $y'$ are invariant which leads to the following equations for
 the changes in $p_x$ and $p_y$
 \begin{align}
-  \Delta p_x = &-k_E \, p_x \CRNO
-  \Delta p_y = &-k_E \, p_y 
+  \Delta p_x &= -k_E \, p_x \CRNO
+  \Delta p_y &= -k_E \, p_y 
 \end{align}
 
 %-----------------------------------------------------------------
 \section{Macroparticles}
 \label{s:macro}
 
-Note: Wakefield and Macroparticle simulation has just been implemented
+Note: Wakefield and Macroparticle simulation have just been implemented
 in bmad and is still in the testing phase. Use with caution.
 
 A macroparticle\cite{b:transport_appendix} is a bundle of particles
@@ -337,8 +340,8 @@ defines the ellipsoid at a distance of $n$--sigma from the centroid is
 \Begineq
   (\bfr - \bfrbar)^t \bfsigma\inv (\bfr - \bfrbar) = n
 \Endeq
-where a $t$ superscript denotes the transpose. Given the sigma matrix
-as some point $s_1$ the sigma matrix at a different point $s_2$ is
+where the $t$ superscript denotes the transpose. Given the sigma matrix
+as some point $s_1$, the sigma matrix at a different point $s_2$ is
 \Begineq
   \bfsigma_2 = \Bf M_{21} \, \bfsigma_1 \, \Bf M_{21}^t
 \Endeq
@@ -375,7 +378,7 @@ slices is equal to the input bunch charge.
 
 The initialization of the macroparticles within a slice gives all the
 macroparticles the same centroid position (but with differing
-energies) and sigma matrix as determined by the input parameters:
+energies) and sigma matrix as determined by the input Twiss parameters:
 \begin{align}
   \bfsigma(1,1) &= \epsilon_x \, \beta_x \CRNEG
   \bfsigma(1,2) &= -\epsilon_x \alpha_x  \CRNEG
@@ -409,18 +412,17 @@ to the charge associated with the slice.
 \section{Wakefields}
 \label{s:wakefields}
 
-Note: Wakefield and Macroparticle simulation has just been implemented
+Note: Wakefield and Macroparticle simulation have just been implemented
 in bmad and is still in the testing phase. Use with caution.
 
-Wakefield modeling follows the Liar program\cite{b:liar}. Wakefields
+Wakefield modeling follows the LIAR program\cite{b:liar}. Wakefields
 are applied in the center of LINAC accelerating cavities
 (\vn{LCavity}). Wakefield effects are divided into short--range
 (within a bunch) and long--range (between bunches).
 
 Only the dipole component of the short--range wakefield are
-modeled. Quadrupole wakefields can be implemented upon request.
-The short--range longitudinal wakefield component for the $i$\Th macroparticle 
-is computed from the equation
+modeled. The short--range longitudinal wakefield component for 
+the $i$\Th macroparticle is computed from the equation
 \Begineq
   dE_i = \frac{L \, \Wl(0)}{2} |Q_i| +
                   \sum_{j \ne i} \frac{L \, \tWl(dz_{ij})}{2} |Q_j|
@@ -437,10 +439,9 @@ a modified wakefield function
     \Wl(dz)                                            & \text{otherwise}
   \end{cases}
 \Endeq
-$\tWl$ is used instead of $\Wl$ to avoid simulation artifacts which
-happen when macroparticles are close longitudinally and is due to the
-discontinuity of $\Wl$ at $dz = 0$.  $\sigma_{zij}$ is the combined
-macroparticle length
+$\tWl$ is used instead of $\Wl$ to avoid simulation artifacts 
+is due to the discontinuity of $\Wl$ at $dz = 0$. 
+$\sigma_{zij}$ is the combined macroparticle length
 \Begineq
   \sigma_{zij} = \sigma_{zi} + \sigma_{zj} + \sigma_{z0}
 \Endeq
@@ -521,9 +522,9 @@ $\bfT$ is uncoupled.
 
 It is useful to normalize out the $\beta(s)$ variation in the the above
 analysis. Normalized quantities being denoted by a bar above them. The
-normalized normal mode matrix $\Bar\bfU$ is defined by
+normalized normal mode matrix $\BAR\bfU$ is defined by
   \Begineq
-    \Bar\bfU = \bfG \, \bfU \, \bfG\inv
+    \BAR\bfU = \bfG \, \bfU \, \bfG\inv
     , \label{ugug}
   \Endeq
 Where $\bfG$ is given by 
@@ -545,8 +546,8 @@ with
     , \label{g1b0a} 
   \Endeq
 with a similar equation for $\Bf G_b$. With this definition, the corresponding
-$\Bar\bfA$ and $\Bar\bfB$ (cf.~\Eq{ua00b} are just rotation matrices.
-The relationship between $\bfT$ and $\Bar\bfU$ is 
+$\BAR\bfA$ and $\BAR\bfB$ (cf.~\Eq{ua00b} are just rotation matrices.
+The relationship between $\bfT$ and $\BAR\bfU$ is 
   \Begineq
     \bfT = \bfG\inv \, \BAR\bfV \, \BAR\bfU \, \BAR\bfV\inv \, \bfG
     , \label{tgvuv}
