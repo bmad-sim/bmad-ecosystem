@@ -4,7 +4,7 @@ Typically there are several ways to do tracking and transfer matrix
 calculations for a given element type within \bmad\. What method is used
 is selected on an element--by--element basis using
 an elements \vn{tracking_method} and \vn{mat6_calc_method} attributes 
-(mat6 refers to the size of a transfer matrix which is 6 by 6). By supplying
+(mat6 refers to the size of the 6 by 6 transfer matricies). By supplying
 the appropriate routines a programmer can extend \bmad\ to do customized 
 tracking.
 
@@ -12,28 +12,36 @@ tracking.
 \section{Tracking Methods}
 \label{s:tkm}
 
+Adaptive step size control used with the \vn{Adaptive_Boris} and
+\vn{Runge_Kutta} integrators means that instead of taking fixed step sizes
+the integrator chooses the proper step size so that the error in the
+tracking is below the maximum alowable error set by \vn{rel_tol} and
+\vn{abs_tol} tolerances. The advantage of step size control is that
+the integrator is smarter about using a smaller step size when needed
+but making larger stepswhen it can. The disadvantage is that a step is
+more computationally intensive since the error in a step is estimated by
+repeating a step using two mini steps.
+
 \begin{description}
 \item[Adaptive\_Boris]
-Second order Boris integration with adaptive step size control.
+Second order Boris integration\cite{boris} with adaptive step size control.
 This should be nearly symplectic but slow.
 
 \item[Boris]
-Second order Boris Integration. Like Runge-Kutta Boris does tracking by
-integrating the equation of motion. The difference is that Boris integration
-is symplectic.
+Second order Boris Integration. Like \vn{Runge_Kutta} \vn{Boris} does
+tracking by integrating the equation of motion. The difference is that
+Boris integration is symplectic.
 
 \item[Bmad\_Standard]
-This is meant to be quick and dirty (ie if it is not symplectic
-who cares). Appropriate when you are only interested in single turn stuff
-(that is, not long term tracking). It
-does an exact calculation through sector bends using thin quads at either end
-for non-sector focusing. Sextupoles and octupoles are tracked using a single
-kick-drift-kick integration.
+Uses formulas for tracking. The emphesis here is on speed and not
+symplecticity. Appropriate when you are interested in single turn
+stuff. May be appropriate for long term tracking depending upon how
+many turns are tracked and what kind of elements are involved. 
 
 \item[Custom]
 This method will call a routine \vn{track1_custom} which can be supplied by
-the user. The default \vn{track1_custom} supplied with the BMAD release does
-Runge Kutta tracking. See the Programmer's Guide for more details.
+the user. The default \vn{track1_custom} supplied with the BMAD release will
+print an error message if it is called which indicates a program linking problem.
 
 \item[Linear]
 Linear just uses the 0th order vector with the 1st order 6x6 transfer
@@ -43,13 +51,15 @@ matrix was generated this might or might not be symplectic.
 \item[Runge\_Kutta]
 This uses a 4th order Runge Kutta integration algorithm with adaptive
 step size control.  This is essentially ODEINT adopted from Numerical
-Recipes. This may be slow but it should be accurate. This method is
+Recipes\cite{nr}. This may be slow but it should be accurate. This method is
 non-symplectic.
 
-\item[Symp\_Lie\_BMAD]
+\item[Symp\_Lie\_Bmad]
 Symplectic tracking using a Hamiltonian with Lie operation techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
 BMAD routine.  The difference between this and \vn{Symp_Lie_PTC} is
+\vn{Symp_Lie_Bmad} is about a factor of 10 faster but \vn{Symp_lie_Bmad}
+has
 that PTC tries do do things correctly while BMAD goes for speed by
 making approximations like the small angle approximation, etc. Right
 now only implemented for Wigglers.

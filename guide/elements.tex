@@ -593,6 +593,9 @@ An \vn{Octupole} has a cubic field dependence.
 \end{center}
 \toffset
 
+The \{Bmad_Standard} calculation treats an octupole using a kick--drift--kick model.
+
+
 \vskip0.05in \noindent
 Example:
 \begin{example}
@@ -727,6 +730,9 @@ the two is the way the input attributes are interpreted.
 \end{center}
 \toffset
 
+\Note that \vn{l} for a \vn{RBend} is the chord length. Not the arc length as
+it is for a \vn{SBend}.
+
 After reading in a lattice, \bmad\ will internally convert all \vn{RBend}s
 into \vn{SBend}s so \vn{l} will become the path length. The chord length will
 be stored in the \vn{l_chord} attribute.
@@ -736,6 +742,10 @@ Use of \vn{hgap}, \vn{hgapx}, \vn{fint}, and \vn{fintx} is not yet implemented.
 \vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are specified
 for an element \bmad\ will calculate the appropriate value for the third.
 After reading in a lattice \vn{angle} is considered a dependent variable.
+
+\For \vn{k1} = 0 \vn{Bmad_Standard} tracking does an exact geometrical 
+calculation using thin quads at either end if there is non--zero edge
+focusing.
 
 \vskip0.05in \noindent
 Example:
@@ -814,6 +824,8 @@ A \vn{Sextupole} has a quadratic field dependence.
 \end{tabular}
 \end{center}
 \toffset
+
+The \{Bmad_Standard} calculation treats a sextupole using a kick--drift--kick model.
 
 \vskip0.05 in \noindent
 Example:
