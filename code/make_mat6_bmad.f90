@@ -1,5 +1,5 @@
 !+
-! Subroutine make_mat6_bmad (ele, param, c0, c1)
+! Subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 !
 ! Subroutine to make the 6x6 transfer matrix for an element. 
 !
@@ -10,6 +10,8 @@
 !   ele    -- Ele_struct: Element with transfer matrix
 !   param  -- Param_struct: Parameters are needed for some elements.
 !   c0     -- Coord_struct: Coordinates at the beginning of element. 
+!   end_in -- Logical, optional: If present and True then the end coords c1
+!               will be taken as input. not output as normal.
 !
 ! Output:
 !   ele    -- Ele_struct: Element with transfer matrix.
@@ -19,7 +21,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine make_mat6_bmad (ele, param, c0, c1)
+subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
   use bmad
 
@@ -52,6 +54,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
   integer i, n, n_slice, n_pole, key
 
+  logical, optional :: end_in
+
 !--------------------------------------------------------
 ! init
 
@@ -59,7 +63,11 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   mat6 => ele%mat6
   rel_E = 1 + c0%vec(6)  ! E/E_0
 
-  call track1 (c0, ele, param, c1)
+  if (present(end_in)) then
+    if (.not. end_in) call track1 (c0, ele, param, c1)
+  else
+    call track1 (c0, ele, param, c1)
+  endif
 
   c00 = c0
   c11 = c1

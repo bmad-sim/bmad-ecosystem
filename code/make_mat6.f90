@@ -1,7 +1,8 @@
 !+
-! Subroutine make_mat6 (ele, param, start, end)
+! Subroutine make_mat6 (ele, param, start, end, end_in)
 !
-! Subroutine to make the 6x6 transfer matrix for an element. 
+! Subroutine to make the 6x6 1st order transfer matrix for an element 
+! along with the 0th order transfer vector.
 !
 ! Modules needed:
 !   use bmad
@@ -11,16 +12,23 @@
 !   param  -- Param_struct: Parameters are needed for some elements.
 !   start  -- Coord_struct, optional: Coordinates at the beginning of element. 
 !               If not present then effectively start = 0.
+!   end    -- Coord_struct, optional: Coordinates at the end of element.
+!               end is an input only if end_in is set to True.
+!   end_in -- Logical, optional: If present and True then the end coords
+!               will be taken as input. not output as normal.
+!
 !
 ! Output:
 !   ele    -- Ele_struct: Element
-!     %mat6  -- Real(rp): 6x6 transfer matrix.
+!     %mat6  -- Real(rp): 1st order 6x6 transfer matrix.
+!     %vec0  -- Real(rp): 0th order transfer vector.
 !   end    -- Coord_struct, optional: Coordinates at the end of element.
+!               end is an output if end_in is not set to True.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine make_mat6 (ele, param, start, end)
+subroutine make_mat6 (ele, param, start, end, end_in)
 
   use bmad_struct
   use bmad_interface
@@ -37,6 +45,9 @@ subroutine make_mat6 (ele, param, start, end)
 
   integer mat6_calc_method
 
+  logical, optional :: end_in
+  logical end_input
+
 !--------------------------------------------------------
 ! init
 
@@ -47,16 +58,27 @@ subroutine make_mat6 (ele, param, start, end)
 
 !
 
+  end_input = .false.
+  if (present(end_in)) end_input = end_in
+
+  if (end_input .and. .not. present(end)) then
+    print *, 'ERROR IN MAKE_MAT6: CONFUSED END_IN WITHOUT AN END!'
+    call err_exit
+  endif
+
   if (present(start)) then
     a_start = start
   else
     a_start%vec = 0
   endif
 
+  if (end_input) a_end = end
+
   select case (mat6_calc_method)
 
   case (taylor$)
-    call make_mat6_taylor (ele, param, a_start, a_end)
+    call make_mat6_taylor (ele, param, a_start)
+    if (.not. end_input) call track_taylor (a_start%vec, ele%taylor, a_end%vec)
 
   case (runge_kutta$)
     call make_mat6_runge_kutta (ele, param, a_start, a_end)
@@ -65,10 +87,11 @@ subroutine make_mat6 (ele, param, start, end)
     call make_mat6_custom (ele, param, a_start, a_end)
 
   case (bmad_standard$)
-    call make_mat6_bmad (ele, param, a_start, a_end)
+    call make_mat6_bmad (ele, param, a_start, a_end, end_in)
 
   case (symp_lie_ptc$)
-    call make_mat6_symp_lie_ptc (ele, param, a_start, a_end)
+    call make_mat6_symp_lie_ptc (ele, param, a_start)
+    if (.not. end_input) call track_taylor (a_start%vec, ele%taylor, a_end%vec)
 
   case (symp_lie_bmad$)
     call symp_lie_bmad (ele, param, a_start, a_end, .true.)
@@ -89,10 +112,10 @@ subroutine make_mat6 (ele, param, start, end)
 
   if (ele%symplectify) call mat_symplectify (ele%mat6, ele%mat6)
 
-! make the 0th order transfer vector
+! Make the 0th order transfer vector
 
   ele%vec0 = a_end%vec - matmul(ele%mat6, a_start%vec)
-  if (present (end)) end = a_end
+  if (present(end) .and. .not. end_input) end = a_end
 
 end subroutine
 

@@ -17,11 +17,12 @@
 !                    be made up last.
 !   coord_(0:) -- Coord_struct, optional: Coordinates of the 
 !                   nominal orbit around which the matrix is calculated. 
-!                   If not present then the orbit is taken to be the orign.
+!                   If not present then the orbit is taken to be the origin.
 !
 ! Output:
 !   ring        -- ring_struct:
-!     %ele_(i)%mat6 -- 6x6 transfer matrices.
+!     ele_(:)%mat6  -- Real(rp): 1st order 6x6 transfer matrix.
+!     ele_(:)%vec0  -- Real(rp): 0th order transfer vector.
 !-
 
 #include "CESR_platform.inc"
@@ -104,7 +105,7 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
       endif
 
       if (present(coord_)) then
-        call make_mat6(ele, ring%param, coord_(i-1), c1)
+        call make_mat6(ele, ring%param, coord_(i-1), coord_(i), .true.)
       else
         call make_mat6(ele, ring%param)
       endif
@@ -123,7 +124,8 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
 
   if (ix_ele <= ring%n_ele_ring) then
      if (present(coord_)) then
-        call make_mat6(ring%ele_(ix_ele), ring%param, coord_(ix_ele-1), c1)
+        call make_mat6(ring%ele_(ix_ele), ring%param, &
+                                  coord_(ix_ele-1), coord_(ix_ele), .true.)
      else
         call make_mat6(ring%ele_(ix_ele), ring%param)
      endif

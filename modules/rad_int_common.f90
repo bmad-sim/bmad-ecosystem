@@ -109,6 +109,8 @@ subroutine qromb_rad_int (do_int, ir)
   
   ll = ric%ele%value(l$)
 
+  ric%runt = ric%ele
+
 ! loop until integrals converge
 
   do j = 1, jmax
@@ -391,13 +393,14 @@ subroutine propagate_part_way (s)
     ric%runt%gamma_c = ric%ele0%gamma_c
     orb = ric%orb0
   elseif (s == ric%ele%value(l$)) then
-    ric%runt = ric%ele
+    ric%runt%x       = ric%ele%x
+    ric%runt%y       = ric%ele%y
+    ric%runt%c_mat   = ric%ele%c_mat
+    ric%runt%gamma_c = ric%ele%gamma_c
     orb = ric%orb1
   else
-    ric%runt = ric%ele
     ric%runt%value(l$) = s
     if (ric%ele%key == sbend$) ric%runt%value(e2$) = 0
-    call track1 (ric%orb0, ric%runt, ric%ring%param, orb)
     call make_mat6 (ric%runt, ric%ring%param, ric%orb0, orb)
     call twiss_propagate1 (ric%ele0, ric%runt)
   endif

@@ -448,12 +448,13 @@ module bmad_interface
   end interface
  
   interface
-    subroutine make_mat6 (ele, param, start, end)
+    subroutine make_mat6 (ele, param, start, end, end_in)
       use bmad_struct
       implicit none
       type (ele_struct) ele
       type (coord_struct), optional :: start, end
       type (param_struct) param
+      logical, optional :: end_in
     end subroutine
   end interface
 
@@ -468,22 +469,23 @@ module bmad_interface
   end interface
 
   interface
-    subroutine make_mat6_taylor (ele, param, start, end)
+    subroutine make_mat6_taylor (ele, param, start)
       use bmad_struct
       implicit none
       type (ele_struct), target :: ele
-      type (coord_struct) :: start, end
+      type (coord_struct) :: start
       type (param_struct) param
     end subroutine
   end interface
 
   interface
-    subroutine make_mat6_bmad (ele, param, start, end)
+    subroutine make_mat6_bmad (ele, param, start, end, end_in)
       use bmad_struct
       implicit none
       type (ele_struct), target :: ele
       type (coord_struct) :: start, end
       type (param_struct) param
+      logical, optional :: end_in
     end subroutine
   end interface
 
@@ -498,11 +500,11 @@ module bmad_interface
   end interface
 
   interface
-    subroutine make_mat6_symp_lie_ptc (ele, param, start, end)
+    subroutine make_mat6_symp_lie_ptc (ele, param, start)
       use bmad_struct
       implicit none
       type (ele_struct), target :: ele
-      type (coord_struct) :: start, end
+      type (coord_struct) :: start
       type (param_struct) param
     end subroutine
   end interface

@@ -394,10 +394,10 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine taylor_to_mat6 (a_taylor, c0, mat6, c1)
+! Subroutine taylor_to_mat6 (a_taylor, c0, mat6)
 !
-! Subroutine to calculate the linear (Jacobian) matrix about 
-! some trajectory from a Taylor map.
+! Subroutine to calculate, from a Taylor map and about some trajectory:
+!   The 1st order (Jacobian) transfer matrix.
 !
 ! Modules needed:
 !   use bmad
@@ -407,17 +407,15 @@ end subroutine
 !   c0          -- Coord_struct: Coordinates at the input. 
 !
 ! Output:
-!   mat6(6,6) -- Real(rp): Jacobian.
-!   c1(6)     -- Real(rp): Oth order transport vector.
+!   mat6(6,6) -- Real(rp): 1st order transfer matrix.
 !-
 
-subroutine taylor_to_mat6 (a_taylor, c0, mat6, c1)
+subroutine taylor_to_mat6 (a_taylor, c0, mat6)
 
   implicit none
 
   type (taylor_struct), target, intent(in) :: a_taylor(6)
   real(rp), intent(in) :: c0(:)
-  real(rp), intent(out) :: c1(:)
   type (taylor_term_struct), pointer :: term
 
   real(rp), intent(out) :: mat6(6,6)
@@ -455,10 +453,6 @@ subroutine taylor_to_mat6 (a_taylor, c0, mat6, c1)
       enddo
     enddo
   enddo
-
-! c1 calc
-
-  call track_taylor (c0, a_taylor, c1)
 
 end subroutine
 
