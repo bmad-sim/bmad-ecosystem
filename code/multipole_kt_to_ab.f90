@@ -7,16 +7,19 @@
 !   use bmad
 !
 ! Input:
-!   knl(0:n_pole_maxx) -- Real(rdef): Multitude magnatude.
-!   tn(0:n_pole_maxx)  -- Real(rdef): Multipole angle.
+!   knl(0:) -- Real(rdef): Multitude magnatude.
+!   tn(0:)  -- Real(rdef): Multipole angle.
 !
 ! Output:
-!   an(0:n_pole_maxx) -- Real(rdef): Skew multipole component.
-!   bn(0:n_pole_maxx) -- Real(rdef): Normal multipole component.
+!   an(0:) -- Real(rdef): Skew multipole component.
+!   bn(0:) -- Real(rdef): Normal multipole component.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/07/23 17:13:34  dcs
+!Changed to (0:) type arrays
+!
 !Revision 1.6  2002/07/23 17:05:37  palmer
 !Recover lost version of multipole_kt_to_ab.f90 from attic.
 !
@@ -32,15 +35,14 @@
 
 #include "CESR_platform.inc"
 
-
 subroutine multipole_kt_to_ab (knl, tn, an, bn)
 
   use bmad
 
   implicit none
 
-  real(rdef) an(0:n_pole_maxx), bn(0:n_pole_maxx)
-  real(rdef) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
+  real(rdef) an(0:), bn(0:)
+  real(rdef) knl(0:), tn(0:)
   real(rdef) n_fact, angle, kl
 
   integer n
@@ -49,7 +51,7 @@ subroutine multipole_kt_to_ab (knl, tn, an, bn)
 
   n_fact = 1
 
-  do n = 0, n_pole_maxx
+  do n = lbound(an, 1), ubound(an, 1)
 
     if (n /= 0) n_fact = n_fact * n
 
@@ -67,4 +69,3 @@ subroutine multipole_kt_to_ab (knl, tn, an, bn)
   enddo
 
 end subroutine
-
