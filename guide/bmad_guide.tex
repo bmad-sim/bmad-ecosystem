@@ -6,16 +6,19 @@
 %\makeatother     % Internal ``@'' commands are locked.
 %\renewcommand{\thechapter}{\thepart.\arabic{chapter}}
 
-\newcommand{\rs}{{\it ring\_struct}}
-\newcommand{\es}{{\it ele\_struct}}
-\newcommand{\cs}{{\it coord\_struct}}
-\newcommand{\It}[1]{{\it #1}}
+\newcommand{\ringstruct}{{\bf ring\_struct}}
+\newcommand{\elestruct}{{\bf ele\_struct}}
+\newcommand{\coordstruct}{{\bf coord\_struct}}
+\newcommand{\bmad}{{\bf BMAD}}
+\newcommand{\rp}{{\bf rp}}
+\newcommand{\rdef}{{\bf rdef}}
+
 
 %----------------------------------------------------------------
 
 \begin{document}
 
-\title{The BMAD Reference Manual}
+\title{The \bmad Reference Manual}
 
 \date{11 June, 2003}
 \maketitle
@@ -23,10 +26,10 @@
 %----------------------------------------------------------------
 \section*{Overview}
 
-BMAD (aka "Baby MAD" or "Better MAD" or just plain "BE MAD!")
+\bmad (Otherwise known as "Baby MAD" or "Better MAD" or just plain "BE MAD!")
 is a software subroutine library used for simulating 
 relativistic charged--particle dynamics in high energy accelerators
-and storage rings. BMAD can be used to read in lattice files, compute 
+and storage rings. \bmad can be used to read in lattice files, compute 
 Twiss parameters, track particles, etc. 
 These subroutines, written in  Fortran90, have been developed to:
 \begin{enumerate}
@@ -34,25 +37,25 @@ These subroutines, written in  Fortran90, have been developed to:
 \item Cut down on programming errors, and
 \item Provide a standard input format for specifying lattices.
 \end{enumerate}
-BMAD has been developed at Cornell University's Laboratory for Elementary
+\bmad has been developed at Cornell University's Laboratory for Elementary
 Particle Physics and has been in use since the 1990's.
-
+\vfill
 \break
 %----------------------------------------------------------------
 \section*{Introduction}
 
-The strength of BMAD is that as a subroutine library it provides a flexible
+The strength of \bmad is that as a subroutine library it provides a flexible
 framework from which sophisticated simulation programs may easily be developed.
-The weakness of BMAD comes from its strength: Someone must put the pieces 
+The weakness of \bmad comes from its strength: Someone must put the pieces 
 together into a program. As a consequence this manual serves two masters:
 
-The BMAD lattice input standard was developed using the MAD lattice
+The \bmad lattice input standard was developed using the MAD lattice
 input standard as a starting point. MAD (Methodical Accelerator
 Design) is a widely used stand--alone program developed at CERN by
 Christoph Iselin for charged--particle optics calculations. The
-limitations of the MAD program was the imputus for writting
-BMAD. Since it can be convienint to do simulattions with both MAD and
-BMAD, differences and simularities between the two input formats are
+limitations of the MAD program was the impetus for writing
+\bmad. Since it can be convenient to do simulations with both MAD and
+\bmad, differences and similarities between the two input formats are
 noted in this guide.
 
 Errors and omissions are a fact of life for any reference work and
@@ -72,7 +75,7 @@ send any missives (or chocolate, etc.) to:
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
-\part{Conventions}
+\part{Conventions and Physics}
 
 %----------------------------------------------------------------
 \chapter{Conventions}
@@ -102,7 +105,7 @@ send any missives (or chocolate, etc.) to:
 \chapter{Element Sequencing}
 
 %----------------------------------------------------------------
-\chapter{Superposition of Eleemnts}
+\chapter{Superposition of Elements}
 
 %----------------------------------------------------------------
 \chapter{Elements Controlling Other Elements}
@@ -118,22 +121,22 @@ send any missives (or chocolate, etc.) to:
 \part{Programmer's Guide}
 
 %----------------------------------------------------------------
-\chapter{The BMAD Distribution}
+\chapter{The \bmad Distribution}
 
 
 
-\section{Libraries in the BMAD Distribution}
+\section{Libraries in the \bmad Distribution}
 
-When installing BMAD on a computer what one gets is not only the BMAD
-subroutine library but additionally subsiderary libraries upon which
-subroutines in the BMAD library depend. There are 5 other libraries
+When installing \bmad on a computer what one gets is not only the \bmad
+subroutine library but additionally subsidiary libraries upon which
+subroutines in the \bmad library depend. There are 5 other libraries
 that are used: cesr\_utils, forest, numerical\_recipes, pgplot, and dcslib.
 \begin{description}
 \item[cesr\_utils] This is a small low level library that primarily defines 
-the precision that BMAD works at (see below) and defines the physical
-and mathematical constants (pi, c\_light, etc.) that BMAD knows
+the precision that \bmad works at (see below) and defines the physical
+and mathematical constants (pi, c\_light, etc.) that \bmad knows
 about.
-\item[dcslib] This library defines a set of miscelaneous helper routines. 
+\item[dcslib] This library defines a set of miscellaneous helper routines. 
 Routines include spline fitting, Gaussian random number generation,
 etc. The library name comes from its creator.
 \item[forest] This is the FPP/PTC 
@@ -141,17 +144,17 @@ etc. The library name comes from its creator.
 Etienne Forest that handles Taylor maps to any arbitrary order (this
 is also known as Truncated Power Series Algebra (TPSA)). The FPP part
 handles the TPSA and the PTC part does the physics of tracking through
-elements using Lie Algebra with a Hamiltonian.  BMAD uses this
+elements using Lie Algebra with a Hamiltonian.  \bmad uses this
 software to crate Taylor Maps, track particles, etc.  FPP/PTC is a
-very general package and BMAD only makes use of a small part of its
+very general package and \bmad only makes use of a small part of its
 features. See the FPP/PTC documentation at
 <http://bc1.lbl.gov/CBP\_pages/educational/TPSA\_DA/Introduction.html>
 for more information.
 \item[recipes] Numerical Recipes is a set of subroutines for doing 
-scientific computing includeing Runge--Kutta integration, FFT's,
+scientific computing including Runge--Kutta integration, FFT's,
 interpolation and extrapolation, etc., etc. The writeup for this
-library is the book ``Numberical Recipes, The Art of Scientific
-Computing''\cite{?}. For BMAD this library has been modified to handle
+library is the book ``Numerical Recipes, The Art of Scientific
+Computing''\cite{?}. For \bmad this library has been modified to handle
 both single and double precision reals.
 \item[pgplot] The PGPLOT Graphics Subroutine Library is a Fortran or 
 C-callable, device-independent graphics package for making simple
@@ -165,15 +168,15 @@ of the dcslib library.
 
 \section{Precision}
 
-BMAD comes in two flavors: One where the real numbers are single
+\bmad comes in two flavors: One where the real numbers are single
 precision and a version with double precision reals. Which version you
-are working with is controlled by the parameter {\it rp} (Real Precision)
+are working with is controlled by the parameter \rp (Real Precision)
 which is defined in cesr\_utils. [Note: For compatibility with older
-programs the parameter {\it rdef} is defined to be equal to {\it rp}.]  On most
-machines single precision has {\it rp} = 4 and double precision has {it rp} =
+programs the parameter \rdef is defined to be equal to \rp.]  On most
+machines single precision has \rp = 4 and double precision has \rp =
 8. Normally the double precision version is used since round-off
-errors can be significant in some calulations. Long--term tracking is
-an example where the single precision version is not adequite. 
+errors can be significant in some calculations. Long--term tracking is
+an example where the single precision version is not adequate. 
 
 To define your variables with the correct precision use the syntax
 {\it real(rp)}. For example:
@@ -183,14 +186,14 @@ To define your variables with the correct precision use the syntax
 When you want to define a literal constant, for example to pass an
 argument to a subroutine, add the suffix {\it \_rp} to the end of the
 constant. For example: {\it 2.0\_rp} is equivalent to {\it 2.0D0} if
-{\it rp} is defined to be double precision. Notice that this is not
+\rp is defined to be double precision. Notice that this is not
 equivalent to {\it 2\_rp} which defines an integer (not a real) constant.
 
 
 \section{Helper programs}
 
 The {\it listf} command is used to locate routines and structures in
-the cesr\_utils, dcslib and bmad libraries. The form of the command is
+the cesr\_utils, dcslib and \bmad libraries. The form of the command is
 \begin{verbatim}
   listf <name>
 \end{verbatim}
@@ -199,7 +202,7 @@ This searches for any routine or structure with the name
 ``*'' matches to any number of characters and ``\%'' matches to any
 single character. For example:
 \begin{verbatim}
-  listf ring\_struct
+  listf ring_struct
   listf twiss_at_%
 \end{verbatim}
 The second example will match to {\it twiss\_at\_s} but not {\it
@@ -207,34 +210,125 @@ twiss\_at\_start}.
 
 The {\it getf} command is like the {\it listf} command with the
 addition that the header comments that are in the source code files
-will be printed out for each rotine match and the structrue definition
+will be printed out for each routine match and the structure definition
 will be printed for each structure matched. The {\it getf} command is
 thus more verbose than the {\it listf} command.
 
 %----------------------------------------------------------------
+\chapter{The \bmad Module Hierarchy}
+
+
+%----------------------------------------------------------------
 \chapter{The Ring\_struct}
 
-\section{overfiew}
+\section{overview}
 
-\rs is structure that holds all the information about a lattice
-and is shown in figure~\ref{fig:ring_struct}. Despite its name there
-is no assumption about whether the lattice is circular as with a
-storage ring or open as with a LINAC.
+\ringstruct is structure that holds all the information about a lattice.
+The definition of \ringstruct is shown in figure~\ref{fig:ring_struct}
+along with the definitions of its substructures (except for the
+\elestruct definition which is given in the next section). Despite its
+name there is no assumption about whether the lattice is circular as
+with a storage ring or open as with a LINAC.
+
+\begin{figure}[tb]
+\centering
+\begin{verbatim}
+  type ring_struct
+    character*16 name                 ! Name of ring as given by USE statement
+    character*40 lattice              ! Lattice
+    character*80 input_file_name      ! name of the lattice input file
+    character*80 title                ! general title
+    type (mode_info_struct)  x, y, z  ! tunes, etc.
+    type (param_struct) param         ! parameters
+    integer version                   ! Version number
+    integer n_ele_ring                ! number of regular ring elements
+    integer n_ele_symm                ! symmetry point for rings w/ symmetry
+    integer n_ele_use                 ! number of elements used
+    integer n_ele_max                 ! Index of last element used
+    integer n_ele_maxx                ! Index of last element allocated
+    integer n_control_array           ! last index used in CONTROL_ array
+    integer n_ic_array                ! last index used in IC_ array
+    integer input_taylor_order        ! As set in the input file
+    type (ele_struct), pointer :: ele_(:)    ! Array of ring elements
+    type (ele_struct)  ele_init              ! For use by any program
+    type (control_struct)  control_(n_control_maxx)  ! control list
+    integer ic_(n_control_maxx)                      ! index to %control_(:)
+  end type
+
+  type control_struct
+    real(rp) coef                  ! control coefficient
+    integer ix_lord                ! index to lord element
+    integer ix_slave               ! index to slave element
+    integer ix_attrib              ! index of attribute controlled
+  end type
+
+  type param_struct
+    real(rp) energy             ! USE BEAM_ENERGY INSTEAD ! energy in GeV.
+    real(rp) beam_energy        ! beam energy in eV
+    real(rp) n_part             ! Number of particles in a bunch
+    real(rp) total_length       ! total_length of ring
+    real(rp) growth_rate        ! growth rate/turn if not stable
+    real(rp) t1_mat6(6,6)       ! Full 1-turn 6x6 matrix
+    real(rp) t1_mat4(4,4)       ! Transverse 1-turn 4x4 matrix (RF off).
+    integer particle            ! +1 = positrons, -1 = electrons
+    integer symmetry            ! symmetry of the ring (e/w symm, etc.)
+    integer ix_lost             ! If lost at what element?
+    integer lattice_type        ! LINAC_lattice$, circular_lattice$, etc...
+    integer ixx                 ! Integer for general use
+    logical stable              ! is closed ring stable?
+    logical aperture_limit_on   ! use apertures in tracking?
+    logical lost                ! for use in tracking
+  end type
+
+  type mode_info_struct
+    real(rp) tune          ! "fractional" tune in radians: 0 < tune < 2pi
+    real(rp) emit          ! Emittance
+    real(rp) chrom         ! Chromaticity
+  end type
+\end{verbatim}
+\caption{Definition of the \ringstruct and substructures 
+(except the \elestruct).}
+\label{fig:ring_struct}
+\end{figure}
+
+The array {\sl \%ele\_(n)} holds the elements of the lattice. The
+array is divided up into two parts: A ``physical'' part and a
+``control'' part (Cf.~(ref in lang section). The physical part of this
+array holds the elements that are tracked through. The control part
+holds the superimpose, overlay and group elements. The extent of these
+parts is given in table~\ref{tab:part_extent}. 
+
+\begin{table}[tb]
+\begin{center}
+\begin{tabular}{l|l|l}
+\hline
+              & \multicolumn{2}{c|} {\em index n}        \\ \hline
+{\em section} & {\em min}         & {\em max}          \\ \hline
+physical      & 0                 & \%n\_ele\_ring     \\ \hline
+control       & \%n\_ele\_ring+1  & \%n\_ele\_ring+1   \\ \hline
+\end{tabular} 
+\caption{Extent of the physical and control parts 
+of the array {\sl \%ele\_(n)}.}
+\end{center}
+\label{tab:part_extent}
+\end{table}
 
 
 
+\section{Element Control}
 
-Local ring\_struct variables must have the save attribute or
-the pointers within must be appropriately deallocated
-before leaving the routine.
-
-How to allocate coord\_struct arrays. see the tracking section
-
-\section{Control}
-  Control
     * Overlays
     * Superimpose
     * Groups
+
+Local \ringstruct variables must have the save attribute or
+the pointers within must be appropriately deallocated
+before leaving the routine.
+
+\section{\%ele\_(:) Size}
+
+How to allocate \coordstruct arrays. see the tracking section
+
 
 %----------------------------------------------------------------
 \chapter{The Ele\_struct}
@@ -305,7 +399,7 @@ include dcslib and cesr\_utils routines
 \part{Physics Notes}
 
 %----------------------------------------------------------------
-\chapter{Emittances and Synchrotron Radiaion}
+\chapter{Emittances and Synchrotron Radiation}
 
 
 
