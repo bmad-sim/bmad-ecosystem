@@ -333,6 +333,11 @@ subroutine sr_long_wake_calc (bunch, ele)
       do k = 1, size(macro2)
         z = z_ave - macro2(k)%r%vec(5)
         iw = z / dz_wake
+        if (z < 0) then
+          print *, 'ERROR IN SR_LONG_WAKE_CALC: MACROPARTICLE Z POSITION HAS'
+          print *, '      SHIFTED ACROSS A SLICE BOUNDARY.'
+          call err_exit
+        endif
         f2 = z/dz_wake - iw
         f1 = 1 - f2
         macro2(k)%k_loss = macro2(k)%k_loss + charge * &
@@ -532,6 +537,9 @@ subroutine track1_macroparticle (start, ele, param, end)
     s_mat6 = matmul(ele%mat6, matmul(s_mat6, transpose(ele%mat6)))
     call mat_to_mp_sigma (s_mat6, end%sigma)
 
+! Sig_z calc. Because of roundoff sigma(s55$) can be negative.
+
+    if (end%sigma(s55$) < 0) end%sigma(s55$) = 0
     if (end%sigma(s55$) /= 0) end%sig_z = sqrt(end%sigma(s55$))    
 
 end subroutine
