@@ -353,7 +353,7 @@ subroutine bbi_slice_calc (n_slice, sig_z, z_slice)
 
   real(rp) sig_z, z_slice(:), y, z_norm(100)
 
-  external probability_funct
+!  external probability_funct
 
   save z_norm
 

@@ -112,8 +112,8 @@ module bmad_parser_mod
 
 ! common stuff
 
-  type (bp_com_struct)  bp_com
-  type (ele_struct), target :: beam_ele, param_ele
+  type (bp_com_struct), save :: bp_com
+  type (ele_struct), target, save :: beam_ele, param_ele
 
   character(16) :: blank = ' '
 
