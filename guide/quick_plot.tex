@@ -43,9 +43,8 @@ careful of this.
     accept '(a)', ans
 
   !----------------------------------------------------------------------
-  ! This generates the plot
   contains
-  subroutine plot_it
+  subroutine plot_it                             ! This generates the plot
     real(rp), allocatable :: x(:), y(:), z(:), t(:)
     real(rp) x_axis_min, x_axis_max, y_axis_min, y_axis_max
     integer x_places, x_divisions, y_places, y_divisions
@@ -96,7 +95,7 @@ careful of this.
 
 \begin{figure}
 \centering
-\includegraphics{plot_example.psfig}
+\includegraphics[width=5.5in]{plot_example.psfig}
 \caption{Output of plot\_example.f90.}
 \label{f:plot_out}
 \end{figure}
