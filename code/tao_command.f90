@@ -288,13 +288,13 @@ subroutine tao_command (command_line, err)
 
   case ('show')
 
-    call cmd_split (4, .false., err)
+    call cmd_split (3, .false., err)
     if (cmd_word(1) == ' ') then
       call out_io (s_error$, r_name, 'SHOW WHAT?')
       return
     endif
 
-    call tao_show_cmd (cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4))
+    call tao_show_cmd (cmd_word(1), cmd_word(2), cmd_word(3))
 
 !--------------------------------
 ! SINGLE-MODE

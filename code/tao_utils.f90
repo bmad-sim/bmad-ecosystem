@@ -178,7 +178,7 @@ integer ix_ele, ios, ix
 
 character(*) string
 character(16) ele_name
-character(20) :: r_name = 'tao_find_element'
+character(20) :: r_name = 'tao_locate_element'
 
 ! If it is a number translate it:
 

@@ -11,7 +11,7 @@
 !   word4 -- Character(*):
 !-
 
-subroutine tao_show_cmd (word1, word2, word3, word4)
+subroutine tao_show_cmd (word1, word2, word3)
 
 use tao_mod
 use tao_top10_mod
@@ -33,14 +33,10 @@ type (ele_struct) ele3
 
 real(rp) f_phi
 
-! maximum lines of output
-integer, parameter :: max_lines = 200  
-character(16) :: max_lines_char
-
 character(24) :: var_name
 character(24)  :: plane, fmt, imt, lmt, amt, ffmt, iimt
-character(*) :: word1, word2, word3, word4
-character(40) :: show_word1, show_word2, show_word3, show_word4
+character(*) :: word1, word2, word3
+character(40) :: show_word1, show_word2, show_word3
 character(8) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
 character(80), pointer :: ptr_lines(:)
@@ -50,21 +46,25 @@ character(16) :: show_names(10) = (/ &
    'data       ', 'var        ', 'global     ', 'alias      ', 'top10      ', &
    'optimizer  ', 'ele        ', 'lattice    ', 'constraints', 'plots      ' /)
 
-character(200) lines(max_lines)
+character(200), allocatable :: lines(:)
 character(100) line1, line2
+character(4) null_word
 
 integer :: data_number, ix_plane
 integer nl, loc
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju
+integer num_locations, max_lines
 
 logical err, found, at_ends
 logical show_all, name_found
 logical, automatic :: picked(size(s%u))
+logical, allocatable :: show_here(:)
 
-! The Show string data is stored in the 'lines' array
-! and the number of entries is stored in nl
+max_lines = s%global%max_output_lines 
+if (.not. allocated (lines)) allocate (lines(max_lines))
+if (size(lines) .ne. max_lines) allocate (lines(max_lines))
 
-write(max_lines_char, '(i3.3)') max_lines
+null_word = 'null'
 
 err = .false.
 
@@ -81,7 +81,6 @@ amt  = '(2a)'
 show_word1 = word1
 show_word2 = word2
 show_word3 = word3
-show_word4 = word4
 
 u => s%u(s%global%u_view)
 
@@ -145,15 +144,15 @@ case ('data')
     if (.not. associated (s%u(ju)%d2_data)) return 
     u => s%u(ju)
 
-! If just "show data" then show all namees
+! If just "show data" then show all names
 
     if (show_word2 == ' ') then
       do i = 1, size(u%d2_data)
         if (u%d2_data(i)%name == ' ') cycle
         if (nl .gt. max_lines) then
-          call out_io (s_blank$, r_name, "Found too many d2_datas! Listing first "// &
-                                        		max_lines_char // " matches.")
-	        exit
+          call out_io (s_blank$, r_name, "Found too many d2_datas! Listing first &
+	 		                  \i5\ matches", max_lines)
+	  exit
         endif
         nl=nl+1; write (lines(nl), '(i4, 2x, a)') i, u%d2_data(i)%name
       enddo
@@ -164,8 +163,14 @@ case ('data')
 
 ! get pointers to the data
 
-    if (show_word3 == ' ') show_word3 = 'null'
-    call tao_find_data (err, u, show_word2, d2_ptr, d1_ptr, show_word3, d_ptr)
+    call string_trim (show_word3, show_word3, ix)
+! are we looking at a range of locations?
+    if ((show_word3 .eq. ' ') .or. (index(trim(show_word3), ' ') .ne. 0) &
+                                           .or. index(show_word3, ':') .ne. 0) then
+      call tao_find_data (err, u, show_word2, d2_ptr, d1_ptr, null_word, d_ptr)
+    else
+      call tao_find_data (err, u, show_word2, d2_ptr, d1_ptr, show_word3, d_ptr)
+    endif
     if (err) return
 
 ! If d_ptr points to something then show the datum info.
@@ -213,21 +218,46 @@ case ('data')
       line1 = '        Name                       Data         Model        Design'
       write (lines(3), *) line1
       nl = 3
-      do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
-        if (nl+2 .gt. max_lines) then
-          call out_io (s_blank$, r_name, "Found too many datams! Listing first " // &
-                                   max_lines_char // " matches.")
-          exit
+! if a range is specified, show the data range   
+      if (show_word3 .ne. ' ') then
+	allocate (show_here(lbound(d1_ptr%d,1):ubound(d1_ptr%d,1)))
+        call location_decode (show_word3, show_here, lbound(d1_ptr%d,1), num_locations)
+        if (num_locations .eq. -1) then
+          call out_io (s_error$, r_name, "Syntax error in range list!")
+	  deallocate(show_here)
+          return
         endif
-        if (d1_ptr%d(i)%exists) then
+	do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
+          if (.not. (show_here(i) .and. d1_ptr%d(i)%exists)) cycle
+          if (nl+2 .gt. max_lines) then
+            call out_io (s_blank$, r_name, "Too many elements!")
+            call out_io (s_blank$, r_name, "Listing first \i5\ selected elements", max_lines-4)
+	    exit
+          endif
           nl=nl+1
           write(lines(nl), '(i, 2x, a16, 3es14.4)') i, &
                  d1_ptr%d(i)%name, d1_ptr%d(i)%meas_value, &
                  d1_ptr%d(i)%model_value, d1_ptr%d(i)%design_value
-        endif
-      enddo
-      nl=nl+1
-      write (lines(nl), *) line1
+	enddo
+        nl=nl+1
+        write (lines(nl), *) line1
+	deallocate(show_here)
+      else	
+	do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
+          if (.not. d1_ptr%d(i)%exists) cycle
+          if (nl+2 .gt. max_lines) then
+            call out_io (s_blank$, r_name, "Too many elements!")
+            call out_io (s_blank$, r_name, "Listing first \i5\ elements", max_lines-4)
+            exit
+          endif
+          nl=nl+1
+          write(lines(nl), '(i, 2x, a16, 3es14.4)') i, &
+                 d1_ptr%d(i)%name, d1_ptr%d(i)%meas_value, &
+                 d1_ptr%d(i)%model_value, d1_ptr%d(i)%design_value
+        enddo
+        nl=nl+1
+        write (lines(nl), *) line1
+      endif
 
 ! else we must have a valid d2_ptr.
 
@@ -236,8 +266,8 @@ case ('data')
       write(lines(1), '(2a)') 'Data type:    ', d2_ptr%name
       do i = 1, size(d2_ptr%d1)
         if (nl+1 .gt. max_lines) then
-          call out_io (s_blank$, r_name, "Found too many d1_data! Listing first " // &
-                                       max_lines_char // " matches.")
+          call out_io (s_blank$, r_name, "Found too many d1_data! Listing first \i5\ &
+	  					matches", max_lines-1)
           exit
         endif
         nl=nl+1; write(lines(nl), '(5x, a, i5, a, i5)') d2_ptr%d1(i)%name, &
@@ -263,8 +293,8 @@ case ('ele')
     do loc = 1, u%model%n_ele_max
       if (match_wild(u%model%ele_(loc)%name, ele_name)) then
       if (nl+1 .gt. max_lines) then
-        call out_io (s_blank$, r_name, "Found too many elements! Listing first "//&
-                    max_lines_char // " matches.")
+        call out_io (s_blank$, r_name, "Too many elements!")
+        call out_io (s_blank$, r_name, "Listing first \i5\ selected elements", max_lines-1)
         exit
       endif
         nl = nl + 1
@@ -347,8 +377,8 @@ case ('global')
 
 case ('lattice')
 
-  call tao_locate_element (show_word3, u%model, ix1); if (ix1 < 0) return
-  call tao_locate_element (show_word4, u%model, ix2); if (ix2 < 0) return
+  call tao_locate_element (show_word2, u%model, ix1); if (ix1 < 0) return
+  call tao_locate_element (show_word3, u%model, ix2); if (ix2 < 0) return
   
   if (ix1 > u%model%n_ele_ring) then
     ix = u%model%ele_(ix1)%ix1_slave
@@ -361,24 +391,24 @@ case ('lattice')
   endif
 
   if ((ix2 - ix1 + 1) .gt. max_lines) then
-    call out_io (s_fatal$, r_name, "Too many elements!")
-    call out_io (s_fatal$, r_name, "Listing first " //&
-        max_lines_char // " elements after element" // show_word3 )
+    call out_io (s_blank$, r_name, "Too many elements!")
+    call out_io (s_blank$, r_name, "Listing first \i5\ elements after element" &
+                                    // show_word3, max_lines)
     ix2 = ix1 + max_lines - 1
   endif
 
   if (.true.) then
     at_ends = .true.
-    write (lines(nl+1), '(36x, a)') 'Model values at End of Element:'
+    write (lines(nl+1), '(37x, a)') 'Model values at End of Element:'
   else
     at_ends = .false.
-    write (lines(nl+1), '(36x, a)') 'Model values at Center of Element:'
+    write (lines(nl+1), '(37x, a)') 'Model values at Center of Element:'
   endif
 
 
-  write (lines(nl+2), '(28x, a)') &
+  write (lines(nl+2), '(29x, a)') &
                      '|              X           |             Y        '
-  write (lines(nl+3), '(5x, a, 16x, a)') 'Name', &
+  write (lines(nl+3), '(6x, a, 16x, a)') 'Name', &
                   'S  |  Beta     Phi  Eta   Orb | Beta     Phi  Eta   Orb'
 
   nl=nl+3
@@ -392,7 +422,7 @@ case ('lattice')
                 u%model%param, ele%value(l$)/2, ele3, u%model_orb(ix-1), orb)
     endif
     nl=nl+1
-    write (lines(nl), '(i4, 1x, a16, f8.3, 2(f7.2, f8.3, f5.1, f8.3))') &
+    write (lines(nl), '(i6, 1x, a16, f8.3, 2(f7.2, f8.3, f5.1, f8.3))') &
           ix, ele%name, ele%s-ele%value(l$)/2, &
           ele3%x%beta, f_phi*ele3%x%phi, ele3%x%eta, 1000*orb%vec(1), &
           ele3%y%beta, f_phi*ele3%y%phi, ele3%y%eta, 1000*orb%vec(3)
@@ -473,8 +503,8 @@ case ('var')
       v1_ptr => s%v1_var(i)
       if (v1_ptr%name == ' ') cycle
       if (nl+1 .gt. max_lines) then
-        call out_io (s_blank$, r_name, "Found too many v1_vars! Listing first "//&
-                    max_lines_char// " matches")
+        call out_io (s_blank$, r_name, "Found too many v1_vars! Listing first &
+	                               \i5\ matches", max_lines)
         exit
       endif
       nl = nl+1
@@ -486,8 +516,14 @@ case ('var')
 
 ! get pointers to the variables
 
-  if (show_word3 == ' ') show_word3 = 'null'
-  call tao_find_var(err, show_word2, v1_ptr, show_word3, v_ptr) 
+  call string_trim (show_word3, show_word3, ix)
+! are we looking at a range of locations?
+  if ((show_word3 .eq. ' ') .or. (index(trim(show_word3), ' ') .ne. 0) &
+                                       .or. index(show_word3, ':') .ne. 0) then
+    call tao_find_var(err, show_word2, v1_ptr, null_word, v_ptr) 
+  else
+    call tao_find_var(err, show_word2, v1_ptr, show_word3, v_ptr) 
+  endif
   if (err) return
 
 ! v_ptr is valid then show the variable info.
@@ -547,7 +583,7 @@ case ('var')
     nl=nl+1; write(lines(nl), lmt)  '%Useit_plot:      ', v_ptr%useit_plot
 
 ! check if there is a variable number
-! if no variable number requested, show it all
+! if no variable number requested, show a range
 
   else
 
@@ -556,21 +592,46 @@ case ('var')
     line1 = '       Name                     Data         Model        Design  Useit_opt'
     write (lines(3), *) line1
     nl = 3
-    do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
-      if (v1_ptr%v(i)%exists) then
+! if a range is specified, show the variable range   
+    if (show_word3 .ne. ' ') then
+      allocate (show_here(lbound(v1_ptr%v,1):ubound(v1_ptr%v,1)))
+      call location_decode (show_word3, show_here, lbound(v1_ptr%v,1), num_locations)
+      if (num_locations .eq. -1) then
+        call out_io (s_error$, r_name, "Syntax error in range list!")
+        deallocate(show_here)
+	return
+      endif
+      do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
+      	if (.not. (show_here(i) .and. v1_ptr%v(i)%exists)) cycle
         if (nl+2 .gt. max_lines) then
-          call out_io (s_blank$, r_name, "Found too many variable datams! Listing first "// &
-                    max_lines_char// " matches.")
+          call out_io (s_blank$, r_name, "Too many elements!")
+          call out_io (s_blank$, r_name, "Listing first \i5\ selected elements", max_lines-4)
           exit
         endif
-        nl = nl + 1
+        nl=nl+1
         write(lines(nl), '(i6, 2x, a16, 3es14.4, 7x, l)') i, &
                  v1_ptr%v(i)%name, v1_ptr%v(i)%meas_value, &
                  v1_ptr%v(i)%model_value, v1_ptr%v(i)%design_value, v1_ptr%v(i)%useit_opt
-      endif
-    enddo
-    nl=nl+1
-    write (lines(nl), *) line1
+      enddo 
+      nl=nl+1
+      write (lines(nl), *) line1
+      deallocate(show_here)
+    else	
+      do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
+        if (.not. v1_ptr%v(i)%exists) cycle
+        if (nl+2 .gt. max_lines) then
+          call out_io (s_blank$, r_name, "Too many elements!")
+          call out_io (s_blank$, r_name, "Listing first \i5\ elements", max_lines-4)
+          exit
+        endif
+        nl=nl+1
+        write(lines(nl), '(i6, 2x, a16, 3es14.4, 7x, l)') i, &
+                 v1_ptr%v(i)%name, v1_ptr%v(i)%meas_value, &
+                 v1_ptr%v(i)%model_value, v1_ptr%v(i)%design_value, v1_ptr%v(i)%useit_opt
+      enddo
+      nl=nl+1
+      write (lines(nl), *) line1
+    endif
   endif
 
 ! print out results

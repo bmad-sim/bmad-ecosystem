@@ -312,6 +312,7 @@ type tao_global_struct
                                      !  0 -> no command file.
   integer :: ix_key_bank = 0         ! For single mode.
   integer :: phase_units = radians$  ! Phase units on output.
+  integer :: max_output_lines = 200  ! maximun number of lines sent to output_io
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer = 'de'  ! optimizer to use.
   type (tao_global_hook) hook        ! Custom stuff. Defined in tao_hook.f90
