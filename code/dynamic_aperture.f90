@@ -36,6 +36,15 @@
 !       normalized by %X_INIT and %Y_INIT
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:51  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine dynamic_aperture (ring, track_input, aperture_)
 

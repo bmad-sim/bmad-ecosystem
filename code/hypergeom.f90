@@ -18,12 +18,21 @@
 !     HYPERGEOM -- Real: The hypergeometric function
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:52  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
   function hypergeom (hgcx, arg)
   implicit none
 
   integer hgcx, i
   real arg, arg_power, hypergeom, next_term
-  include 'hypergeom.inc'
+#include "hypergeom.inc"
 
   if (hgcx == 1) then
     hypergeom = 1.0

@@ -20,6 +20,15 @@
 !   ix_lord -- Integer: Index of the lord element created if create_new = True.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:58  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine setup_scale_lord (ring, create_new, ref_name, ix_slave, ix_lord)
 
   use bmad_struct

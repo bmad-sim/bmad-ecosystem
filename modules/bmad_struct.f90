@@ -2,6 +2,15 @@
 ! BMAD_STRUCT holds the structure definitions for BMAD routines.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:32:13  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 module bmad_struct
 
   use physical_constants

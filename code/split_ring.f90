@@ -21,6 +21,15 @@
 !     SPLIT_DONE -- Logical: .true. if ring was split
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:58  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine split_ring (ring, s_split, ix_split, split_done)
 

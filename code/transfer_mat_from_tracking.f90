@@ -25,6 +25,15 @@
 !              before symplecitification. See mat_symp_check for more details.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:59  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine transfer_mat_from_tracking (ele, param, orb0, d_orb, error)  
 
   use bmad_struct

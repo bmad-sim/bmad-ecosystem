@@ -29,6 +29,15 @@
 !
 !-  
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:52  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine init_LRBBI(ring, oppos_ring, LRBBI_ele, ix_LRBBI, ix_oppos)
 
   use bmad_struct

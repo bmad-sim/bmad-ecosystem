@@ -22,6 +22,15 @@
 !                   = 1 => terrible fit
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:54  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, track0, chi)
 
   use local_bmad_struct

@@ -12,6 +12,15 @@
 !   exit_on_error -- Logical: Exit if an error detected?
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:49  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine check_ring_controls (ring, exit_on_error)
 
   use bmad_struct

@@ -19,6 +19,15 @@
 !   ix_LRBBI(1:*)      -- Integer: array of indices of inserted elements
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:52  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine insert_LRBBI(ring, oppos_ring, cross_positions, ix_LRBBI)
 
   use bmad_struct

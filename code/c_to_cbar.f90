@@ -14,6 +14,15 @@
 !     CBAR_MAT(2,2) -- Real: Cbar matrix.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:48  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine c_to_cbar (ele, cbar_mat)
 
   use bmad_struct

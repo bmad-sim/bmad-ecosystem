@@ -14,6 +14,15 @@
 !     IX_ELE -- Integer: Index of the new control element
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:55  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine new_control (ring, ix_ele)
 

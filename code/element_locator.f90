@@ -15,6 +15,15 @@
 !   IX_ELE -- Integer: Index of element. IX_ELE set to -1 if not found.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:51  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine element_locator (ele_name, ring, ix_ele)
 
   use bmad_struct

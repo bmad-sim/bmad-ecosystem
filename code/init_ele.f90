@@ -12,6 +12,15 @@
 !   ELE -- Ele_struct: Initialized element.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:52  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine init_ele (ele)
 
   use bmad_struct

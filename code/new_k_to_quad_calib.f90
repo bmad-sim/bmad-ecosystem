@@ -36,6 +36,15 @@
 !         CU_THEORY = (K_THEORY - K_BASE) * GEV * CU_PER_K_GEV
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:55  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine new_k_to_quad_calib (k_theory, energy, cu_theory, k_base,  &
                                                  dk_gev_dcu, cu_per_k_gev)
 
@@ -63,7 +72,8 @@ subroutine new_k_to_quad_calib (k_theory, energy, cu_theory, k_base,  &
 ! Current to CU corrections
 
   lun = lunget()
-  file_scaler = 'U:[CESR.CONSTANTS]QUADRUPOLE_SCALER.CAL'
+  file_scaler = 'CESR_CONST:QUADRUPOLE_SCALER.CAL'
+  file_scaler = FullFileName(file_scaler)
   open (lun, file = file_scaler,  &
                              status = 'old', readonly, shared, err = 9200)
   read (lun, nml=quad_scaler_corrections, err = 9210)
@@ -74,7 +84,8 @@ subroutine new_k_to_quad_calib (k_theory, energy, cu_theory, k_base,  &
 ! Thus k_base scales with energy.
 
   lun = lunget()
-  file_cal = 'U:[CESR.CONSTANTS]QUADRUPOLE.CAL'
+  file_cal = 'CESR_CONST:QUADRUPOLE.CAL'
+  file_cal = FullFileName(file_cal)
   open (lun, file = file_cal, status = 'old', readonly, shared, err = 9000)
   read (lun, nml=quadrupole_cal, err = 9010)
   close (lun)

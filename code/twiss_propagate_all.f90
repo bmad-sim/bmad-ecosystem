@@ -17,6 +17,15 @@
 !     RING     -- Ring_struct: Ring
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:32:00  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine twiss_propagate_all (ring)
 

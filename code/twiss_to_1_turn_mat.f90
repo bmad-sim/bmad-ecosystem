@@ -18,6 +18,15 @@
 !   mat2(2,2) -- Real: 1-turn matrix.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:32:00  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine twiss_to_1_turn_mat (twiss, phi, mat2)
 
   use bmad_struct

@@ -25,6 +25,15 @@
 !   err_flag    -- Logical: Set False if not a valid set otherwise set true
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:49  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 Subroutine check_ele_attribute_set (ring, i_ele, attrib_name, &
                                       ix_attrib, err_flag, err_print_flag)
 

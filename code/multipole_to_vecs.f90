@@ -17,6 +17,15 @@
 !   tilt(0:n_pole_maxx) -- Real: Vector of tilts.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:55  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine multipole_to_vecs (ele, particle, knl, tilt)
 
   use bmad_struct

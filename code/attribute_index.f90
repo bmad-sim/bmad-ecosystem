@@ -25,6 +25,15 @@
 !     ix -> angle$
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:47  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 integer function attribute_index (ele, name)
 

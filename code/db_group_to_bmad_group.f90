@@ -25,6 +25,15 @@
 ! Note: See also DB_GROUP_TO_BMAD.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:51  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine db_group_to_bmad_group (group_name, group_num, i_biggrp, &
                                        ring, db, ix_ele, ok, type_err)
 

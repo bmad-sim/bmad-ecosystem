@@ -30,6 +30,15 @@
 ! subroutine to create a BMAD group in the ring structure.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:50  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, ring, db, &
                                               con_, n_con, ok, type_err)
 
@@ -38,7 +47,7 @@ subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, ring, db, &
 
   implicit none
 
-  include 'u:[cesr.group]group.inc'
+  #include "group.inc"
 
   type (ring_struct) ring
   type (db_struct) db

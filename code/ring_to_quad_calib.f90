@@ -48,6 +48,15 @@
 !    I.e. CU_PER_K_GEV is the chord between 2 points on the curve.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:57  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine ring_to_quad_calib (ring, cesr, k_theory, k_base,  &
                  len_quad, cu_per_k_gev, quad_rot, dk_gev_dcu, cu_theory)
 

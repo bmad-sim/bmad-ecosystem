@@ -24,6 +24,15 @@
 ! Hardbend steerings are put in CESR.H_STEER(101) through CESR.H_STEER(106)
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:48  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine bmad_to_cesr (ring, cesr)
 

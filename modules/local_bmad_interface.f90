@@ -1,3 +1,15 @@
+!+
+!-
+
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:32:13  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 module local_bmad_interface
 
   use bmad_interface

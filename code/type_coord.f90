@@ -11,6 +11,15 @@
 !     COORD -- Coord_struct: Coordinate
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:32:01  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine type_coord (coord)
 

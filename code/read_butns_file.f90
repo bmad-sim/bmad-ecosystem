@@ -43,6 +43,15 @@
 ! even be approximately the same).
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:56  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine read_butns_file (butns_num, butns, db, ok, type_err)
 
   use bmad_struct

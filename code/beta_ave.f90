@@ -16,6 +16,15 @@
 !     betayAve -- real:  average betay for the element
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:48  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine Beta_Ave(ring, ix_ele, betaxAve, betayAve)
 
   	use bmad_struct

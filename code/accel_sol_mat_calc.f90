@@ -23,6 +23,15 @@
 !     VEC_ST(4) -- Real: Vector due to steerings (assuming positrons)
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:47  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine accel_sol_mat_calc (ls, c_m, c_e, gamma_old, gamma_new, b_x,  &
     b_y, coord, mat4, vec_st)
   use bmad_struct

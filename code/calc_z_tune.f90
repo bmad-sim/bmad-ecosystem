@@ -14,6 +14,15 @@
 !    RING : ring%z%tune  synchrotron tune (radians)
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:48  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine calc_z_tune ( ring)
 

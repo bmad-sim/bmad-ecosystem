@@ -18,6 +18,15 @@
 ! Note: If USE_ELE(N_IN) = .false. then no updating is done
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:32:01  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine update_hybrid_list (ring, n_in, use_ele)
 

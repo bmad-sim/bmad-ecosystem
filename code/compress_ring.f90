@@ -17,6 +17,15 @@
 !     OK   -- Logical: Ring compressed OK.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:49  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine compress_ring (ring, ok)
 
   use bmad_struct

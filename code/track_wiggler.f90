@@ -121,6 +121,15 @@ subroutine track_wiggler (start, ele, param, end, is_lost)
   return
 
 !-----------------------------------------------------------------------
+
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:59  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
 !-----------------------------------------------------------------------
 contains
 

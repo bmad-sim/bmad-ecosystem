@@ -30,6 +30,15 @@
 !     1) %SYNCH_INT(1) = momentum_compaction * ring_length
 !-       
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:56  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine radiation_integrals (ring, orb_, mode)
                      
   use nr

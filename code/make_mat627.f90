@@ -22,6 +22,15 @@
 !     SBEND, BEAMBEAM, etc...
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:53  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine make_mat627 (ele, param, direction, mat627)
 
   use bmad_struct

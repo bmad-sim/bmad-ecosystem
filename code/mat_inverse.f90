@@ -14,6 +14,15 @@
 !   mat_inv(:,:) -- Real: inverse of mat1
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:53  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine mat_inverse (mat, mat_inv)
 
   use nr

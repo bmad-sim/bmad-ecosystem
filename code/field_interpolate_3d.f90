@@ -23,6 +23,15 @@
 !   field_interpolate_3d -- Real: interpolated field.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:51  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 real function field_interpolate_3d (position, field_mesh, deltas, position0)
 
   implicit none

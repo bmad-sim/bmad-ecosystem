@@ -16,6 +16,15 @@
 !     G_INV_MAT(4,4) -- Real: The inverse of G_MAT
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:52  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine make_g_mats (ele, g_mat, g_inv_mat)
 
   use bmad_struct

@@ -21,6 +21,15 @@
 !     %y%vel -- Y kick.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:54  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine multipole_kick (knl, tilt, n, coord)
 
   use bmad_struct

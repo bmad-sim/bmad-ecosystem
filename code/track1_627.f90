@@ -24,6 +24,15 @@
 ! and vertical kicks irregardless of the value for TILT.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:58  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine track1_627 (start, ele, param, mat627, end)
 
   use bmad_struct

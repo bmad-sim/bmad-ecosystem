@@ -19,6 +19,15 @@
 !   	measured clockwise from IP:=0, and normalized to be between 0 and 1.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:52  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine LRBBI_crossings(n_bucket, oppos_buckets, cross_positions)
 
   use bmad_interface

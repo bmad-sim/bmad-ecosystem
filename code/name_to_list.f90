@@ -26,10 +26,20 @@
 !     ele_names(3) = ' '       ! end of ELE_NAMES list
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:55  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine name_to_list (ring, ele_names, use_ele)
 
   use bmad_struct
+  use cesr_util
   implicit none
 
   type (ring_struct)  ring

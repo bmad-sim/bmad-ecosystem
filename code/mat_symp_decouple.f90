@@ -26,6 +26,15 @@
 !
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:53  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
                                              twiss1, twiss2, type_out)

@@ -17,6 +17,15 @@
 !   ORB(0:n_ele_maxx) -- Coord_struct: Orbit
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:59  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine twiss_and_track (ring, orb)
 
   use bmad_struct

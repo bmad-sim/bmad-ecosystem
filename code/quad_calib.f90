@@ -54,6 +54,15 @@
 !     K_FIT
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:56  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine quad_calib (lattice, k_theory, k_base,  &
                  len_quad, cu_per_k_gev, quad_rot, dk_gev_dcu, cu_theory)
 
@@ -77,7 +86,7 @@ subroutine quad_calib (lattice, k_theory, k_base,  &
 
 ! read lattice file
 
-  call file_directorizer (bmad_lat, latfil, '[cesr.bmad.lat]', .true.)
+  call file_directorizer (bmad_lat, latfil, 'BMAD_LAT', .true.)
   call bmad_parser(latfil, ring)
   call bmad_to_cesr(ring, CESR, error_type)
   energy = ring%param%energy

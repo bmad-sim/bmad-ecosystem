@@ -23,6 +23,15 @@
 !     been computed with a previous call with SET = .true.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:58  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine tilt_coords (tilt_val, coord, set)
 

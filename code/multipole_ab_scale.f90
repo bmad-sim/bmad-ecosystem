@@ -17,6 +17,15 @@
 !   b(0:n_pole_maxx) -- Real: Array of scalled multipole values.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:54  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine multipole_ab_scale (ele, particle, a, b)
 
   use bmad_struct

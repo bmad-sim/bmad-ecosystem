@@ -22,6 +22,15 @@
 ! Note: The starting point is taken to be the position in RING.ELE_(0)
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:57  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine ring_geometry (ring)
 

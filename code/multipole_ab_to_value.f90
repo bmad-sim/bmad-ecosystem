@@ -15,6 +15,15 @@
 !   value(n_attrib_maxx) -- Real: Array of An/Bn values.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:54  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine multipole_ab_to_value (a, b, value)
 
   use bmad_struct

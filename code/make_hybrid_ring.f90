@@ -35,6 +35,15 @@
 !       call this routine.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:53  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine make_hybrid_ring (r_in, use_ele, remove_markers, r_out, ix_out)
 

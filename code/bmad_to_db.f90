@@ -40,6 +40,15 @@
 ! Use the DB%NODE(i)%PTR(1)%DB_NAME array to search for a particular node name
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:48  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine bmad_to_db (ring, db)
 
   use bmad_struct

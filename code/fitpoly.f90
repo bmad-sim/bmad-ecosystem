@@ -14,6 +14,15 @@
 !     coe(0:*) -- Real: array of polynomial coefficients
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:51  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine fitpoly(coe, x, y, order, samples)
   implicit none
   integer maxcoe, maxsamp

@@ -74,6 +74,15 @@
 ! antisymmetrically.   
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:50  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine create_group (ring, ix_ele, n_control, control_)
 

@@ -26,6 +26,15 @@
 !       %VALUE(ANGLE$) -- Set appropriately for an sbend$
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:32:00  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
                                                                start, end)
 

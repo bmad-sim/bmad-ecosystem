@@ -26,6 +26,15 @@
 !   RING     -- Ring_struct: OPTIONAL. If present then BMAD_PARSER is called
 !               to load the RING structure.
 !-
+
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:49  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
                
 subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
 
@@ -47,7 +56,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
 
 !                   
 
-  call get_lattice_list (lat_list, num_lats, 'u:[cesr.bmad.lat]')
+  call get_lattice_list (lat_list, num_lats, 'BMAD_LAT')
 
   ask_for_lat = .true.
 
@@ -104,13 +113,15 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
         cycle  ! try again
       endif
       lattice = lat_list(i_lat)
-      lat_file = 'U:[CESR.BMAD.LAT]BMAD_' // lattice
+      lat_file = 'BMAD_LAT:BMAD_' // lattice
+      lat_file = FullFileName(lat_file)
     else
       lattice = ""
       lat_file = line
       inquire (file = lat_file, exist = is_there, name = lat_file)
       if (.not. is_there) then
-        lat_file = 'U:[CESR.BMAD.LAT]BMAD_' // line
+        lat_file = 'BMAD_LAT:BMAD_' // line
+        lat_file = FullFileName(lat_file)
         inquire (file = lat_file, exist = is_there, name = lat_file)
         if (.not. is_there) then
           type *, 'READ ERROR OR FILE DOES NOT EXIST. TRY AGAIN...'

@@ -18,6 +18,15 @@
 !     ELE%MAT6 -- Real: 6x6 transfer matrix.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:53  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine make_mat6 (ele, param, c0, c1)
 
   use bmad_struct

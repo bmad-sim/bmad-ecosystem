@@ -34,6 +34,15 @@
 !       TIME_DISP -- Real: Time displacement of particle
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:49  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine change_basis (coord, ref_energy, ref_z, to_cart, time_disp)
   use bmad_struct
   implicit none

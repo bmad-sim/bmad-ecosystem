@@ -24,6 +24,15 @@
 ! the ELE%Y Twiss parameters are associated with the "B" mode.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:32:00  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine twiss_propagate1 (ele1, ele2)
 

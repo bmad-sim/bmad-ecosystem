@@ -56,6 +56,15 @@
 !   yp(:,:) -- Real: y(:,i) holds the coords at s = xp(i).
 !- 
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:59  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine track_runge_kutta (start, end, s_start, s_end, rel_eps, abs_eps, &
                                        del_s_step, del_s_min, func_type, param)
 

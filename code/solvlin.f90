@@ -14,6 +14,15 @@
 !     z(*) -- Real: vector solution to the linear equation
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:58  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
   logical function solvlin(mat,v,z,dim,size)
   implicit none
   integer dim, size

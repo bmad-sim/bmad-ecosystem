@@ -16,6 +16,15 @@
 !   bn(0:n_pole_maxx) -- Real: Normal multipole component.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:54  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine multipole_kt_to_ab (knl, tn, an, bn)
 
   use bmad_struct

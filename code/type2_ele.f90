@@ -27,6 +27,15 @@
 !   N_LINES          -- Number of lines used
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:32:01  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_twiss,  &
                                           type_control, ring, lines, n_lines)

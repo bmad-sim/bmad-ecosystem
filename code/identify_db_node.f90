@@ -17,6 +17,15 @@
 !   TYPE_ERR -- Logical: If True then error message will be typed if needed.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:52  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine identify_db_node (db_name, db, db_ptr, ok, type_err)
 
   use bmad_struct

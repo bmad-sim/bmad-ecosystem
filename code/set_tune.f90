@@ -23,6 +23,15 @@
 !   ok        -- Logical: Set True if everything is ok. False otherwise.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:57  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
 
   use bmad_struct

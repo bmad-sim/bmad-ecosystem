@@ -42,6 +42,15 @@
 !     call create_overlay (ring, ix_ele, k1$, 2, con_)  ! create the overlay
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:50  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
 

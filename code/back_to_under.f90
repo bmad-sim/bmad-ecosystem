@@ -12,6 +12,15 @@
 !     OUTPUT -- Character: Name that has any backslashes changed to underscores
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:48  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine back_to_under (output, input)
   implicit none
 

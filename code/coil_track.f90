@@ -15,6 +15,15 @@
 !     END       -- Coord_struct: Coordinates after iteration
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:49  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine coil_track (start, ele_index, ring, end)
 
   use bmad_struct

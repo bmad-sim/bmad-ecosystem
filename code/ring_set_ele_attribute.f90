@@ -33,6 +33,15 @@
 !   err_flag  -- Logical: Set True if there is an error. Otherwise set False.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:57  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine ring_set_ele_attribute (ring, i_ele, attrib_name, &
                             attrib_value, err_flag, make_mat6_flag, orbit_)
 

@@ -17,6 +17,15 @@
 !     RELATIVE_MODE_FLIP -- Logical: true if modes are relatively flipped.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:56  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
   function relative_mode_flip (ele1, ele2)
 

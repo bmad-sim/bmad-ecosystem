@@ -1,0 +1,126 @@
+/* int get_lattice_list_unix_(char *lat_list, int *num_lats, char *directory,
+		long int list_len, long int dir_len)
+
+   Function to get the names of the lattices of the form:
+       directory/BMAD_*.*
+
+   Input:
+     directory -- *char : directory to search for lattice files
+
+   Output:
+     lat_list -- *char : list of lattice names
+     num_lats -- *int  : number of lattices found
+
+   Note: This is a UNIX compatible version of get_lattice_list.  Its
+         functionality is identical to the VMS version, but in order to
+	 pass arguments to/from Fortran, its inner workings are quite
+	 different.  This should only be an issue for someone who wishes to
+	 modify it, not someone who wishes to use it in place of its VMS
+	 counterpart.
+
+	 When called from Fortran, the trailing underscore is omitted.
+	 */
+/*----------------------------------------------------------
+ $Id$
+
+ $Log$
+ Revision 1.1  2001/09/27 18:33:14  rwh24
+ UNIX compatibility updates
+
+*----------------------------------------------------------*/
+
+#include "CESR_platform.h"
+
+#include <dirent.h>
+#include <string.h>
+#include <stdio.h>
+
+void trim(char *str, int len);
+void pad_to_length(char *str, int len);
+
+int get_lattice_list_unix_(char *lat_list, int *num_lats, char *directory,
+		long int list_len, long int dir_len)
+{
+  DIR *dir_pointer;
+  struct dirent *dp;
+  char tmp[80];
+  
+  /* set filename mask here using '*' and '?' */
+  const char *mask="BMAD_*.*";
+
+  trim(directory, dir_len);
+  dir_pointer = opendir(directory);
+  if (!dir_pointer) {
+    printf("Error opening directory\n");
+    return -1;
+  }
+
+  *num_lats=0;
+  *lat_list=NULL;
+  for (dp = readdir(dir_pointer); dp != NULL; dp = readdir(dir_pointer)) {
+    strcpy(tmp, dp->d_name);
+    if (match_wild(mask, tmp)) {
+      pad_to_length(tmp, list_len);
+      strcat(lat_list, tmp);
+      (*num_lats)++;
+    }
+  }
+
+  closedir(dir_pointer);
+}
+
+
+/* Trim trailing spaces from FORTRAN string */
+void trim(char *str, int len)
+{
+  int i;
+
+  for (i=0; i<len; i++) {
+    if (isspace(str[i])) {
+      str[i]=NULL;
+      break;
+    }
+  }
+}
+
+
+/* Pad strings with spaces */
+void pad_to_length(char *str, int len)
+{
+  int i;
+  while (strlen(str)<len) strcat(str, " ");
+}
+
+
+/* Check for wildcard match (could be improved) */
+int match_wild(const char *pattern, const char *str)
+{
+  char c;
+  const char *s;
+
+  for(;;) {
+    switch(c=*pattern++) {
+    case 0:
+      if (!*str)
+        return 1;
+      return 0;
+    case '?':
+      ++str;
+      break;
+    case '*':
+      if (!*pattern)
+        return 1;
+      s=str;
+      while (*s) {
+        if (*s == *pattern && match_wild(pattern, s))
+          return 1;
+        ++s;
+      }
+      break;
+    default:
+      if (*str++ != c)
+        return 0;
+      break;
+    }
+  }
+}

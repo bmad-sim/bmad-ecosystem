@@ -22,6 +22,15 @@
 !       .OK       -- Set .false. if read failure.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:56  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine read_digested_bmad_file (in_file_name, ring, version)
 

@@ -23,6 +23,15 @@
 !                         non ok$ bmad_status
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:49  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine chrom_calc (ring, delta_e, chrom_x, chrom_y)
 

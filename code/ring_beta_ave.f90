@@ -14,6 +14,15 @@
 !     cesr -- record/cesr_struct/
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:56  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine Ring_Beta_Ave(ring, cesr)
   use bmad_struct
   implicit none

@@ -31,6 +31,15 @@
 !                 1 => Terrible.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:56  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine phase_space_fit (x, xp, twiss, tune, emitt, x_0, xp_0, chi, tol)
 
   use bmad_struct

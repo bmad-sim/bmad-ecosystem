@@ -16,6 +16,15 @@
 !   ele -- Ele_struct: Element structure holding the twiss_parameters.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:32:00  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine twiss_at_s (ring, s, ele)
 
   use bmad_struct

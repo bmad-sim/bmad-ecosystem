@@ -95,6 +95,15 @@ module local_bmad_struct
   character*16 :: blank = ' '
 
 !--------------------------------------------------
+
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:32:13  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
 ! this is for multi_turn_tracking_to_mat
 
   type (coord_struct), pointer :: multi_turn_func_common(:)  

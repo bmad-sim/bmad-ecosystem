@@ -11,6 +11,15 @@
 !   c(0:maxx, 0:maxx) -- Real: Multipole factors.  
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:54  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine multipole_c_init (c, maxx)
 

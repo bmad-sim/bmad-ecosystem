@@ -46,6 +46,15 @@
 !   take x_limit (or y_limit) as infinite (this is standard BMAD).
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:59  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
 

@@ -20,6 +20,15 @@
 !   ring -- Ring_struct: Ring with control structure fixed.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:47  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine adjust_control_struct (ring, ix_ele)
 
   use bmad_struct

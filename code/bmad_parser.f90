@@ -34,6 +34,15 @@
 ! DCS 10/6/97
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:48  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine bmad_parser (in_file, ring)
 
@@ -64,6 +73,7 @@ subroutine bmad_parser (in_file, ring)
   character*16 name_(n_ele_maxx)
   character delim*1, word_1*40, call_file*60
   character digested_file*70
+  character*60 path, basename
 
   real angle
 
@@ -75,12 +85,15 @@ subroutine bmad_parser (in_file, ring)
 
   pcom%parser_name = 'BMAD_PARSER'
 
-  ix = index(in_file, ']')
-  if (ix /= 0) then
-    digested_file = in_file(:ix) // 'digested_' // in_file(ix+1:)
-  else
-    digested_file = 'digested_' // in_file
-  endif
+!  ix = index(in_file, ']')
+!  if (ix /= 0) then
+!    digested_file = in_file(:ix) // 'digested_' // in_file(ix+1:)
+!  else
+!    digested_file = 'digested_' // in_file
+!  endif
+
+  ix = SplitFileName(in_file, path, basename)
+  digested_file = in_file(:ix) // 'digested_' // in_file(ix+1:)
 
   call read_digested_bmad_file (digested_file, ring, digested_version)
   if (bmad_status%ok) return
@@ -938,7 +951,7 @@ subroutine get_next_word (word, ix_word, delim_list, &
   call word_read (pcom%parse_line, delim_list,  &
                          word, ix_word, delim, delim_found, pcom%parse_line)
 
-  if (upper_case_word) call str$upcase (word, word)
+  if (upper_case_word) call str_upcase (word, word)
 
 end subroutine
 
@@ -1718,7 +1731,7 @@ subroutine type_get (ele, ix_type, delim, delim_found)
     type_name = ' '
   else
     type_name = pcom%parse_line(2:ix)
-    call str$upcase (type_name, type_name)
+    call str_upcase (type_name, type_name)
   endif
 
   if (ix_type == type$) then

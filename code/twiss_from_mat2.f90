@@ -22,6 +22,15 @@
 !                            TWISS.PHI is in radians, 0 < TWISS.PHI < twopi
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:32:00  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine twiss_from_mat2 (mat, det, twiss, stat, tol, type_out)
 

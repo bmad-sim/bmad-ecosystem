@@ -25,6 +25,15 @@
 !     RING -- Ring_struct: Modified ring.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:50  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine create_vsp_volt_elements (ring, ele_type)
 

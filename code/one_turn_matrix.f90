@@ -16,6 +16,15 @@
 !                  1-turn                none$
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:55  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine one_turn_matrix (ring, mat6)
 

@@ -17,6 +17,15 @@
 ! NOTE: This subroutine is only valid if there is no local coupling
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:56  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 
 subroutine quad_beta_ave (ring, ix_ele, beta_x_ave, beta_y_ave)
 

@@ -32,6 +32,15 @@
 !   chi    -- Real: How symplectic the computed 1-turn matrix is.
 !              See mat_symp_check for more details.
 !-
+
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:54  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
                        
 subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
                                                  stable, growth_rate, chi)

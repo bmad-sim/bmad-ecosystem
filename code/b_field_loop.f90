@@ -17,6 +17,15 @@
 !                        components (in units of mu_0 / 2)
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:48  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine b_field_loop (coord, ele, s_pos, b_loop)
   use bmad_struct
   implicit none

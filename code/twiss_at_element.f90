@@ -23,6 +23,15 @@
 ! this does not do a good job of calculating the average for some elements.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:32:00  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine twiss_at_element (ring, ix_ele, start, end, average)
 
   use bmad_struct

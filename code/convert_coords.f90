@@ -37,6 +37,15 @@
 ! 2) phases are in radians
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:50  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)
 
   use bmad_struct

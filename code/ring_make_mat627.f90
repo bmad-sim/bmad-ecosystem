@@ -22,6 +22,15 @@
 !     %M(6,27)            -- 6x27 matrix.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:57  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
 recursive subroutine ring_make_mat627 (ring, ix_ele, direction, mats627)
 
   use bmad_struct

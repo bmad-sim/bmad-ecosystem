@@ -36,6 +36,15 @@
 !     COORD -- Coord_struct: Coordinates of particles.
 !-
 
+!$Id$
+!$Log$
+!Revision 1.2  2001/09/27 18:31:55  rwh24
+!UNIX compatibility updates
+!
+
+#include "CESR_platform.inc"
+
+
                                                                  
 subroutine offset_coords_m(ele, param, coord, set, set_canonical, set_multi)
 
