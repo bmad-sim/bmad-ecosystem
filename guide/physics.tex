@@ -129,13 +129,6 @@ as
                 \frac{1}{n!} B_n e^{-i(n+1)\phi_n} \, e^{i n \theta} \, r^n 
 \Endeq
 where $(r, \theta)$ are the polar coordinates of the point $(x, y)$.
-To convert a normal component into a skew component the rotation angle
-should be
-\Begineq
-  (n+1) \phi_n = \frac{\pi}{2}
-\Endeq
-For example, a normal quadrupole rotated by by $45^\circ$ becomes a
-skew quadrupole.
 
 Another representation of the magnetic field used by \bmad\ divides
 the fields into normal $b_n$ and skew $a_n$ components. In terms of
@@ -152,6 +145,14 @@ or
   K_n L &= n! \, \sqrt{a_n^2 + b_n^2} \\
   \tan[(n+1) \phi_n] &= \frac{-a_n}{b_n}
 \end{align}
+To convert a normal magnet (a magnet with no skew component) into a skew
+magnet (a magnet with no normal component) the magnet shoule be rotated
+about its longitudinal axis with a rotation angle of
+\Begineq
+  (n+1) \phi_n = \frac{\pi}{2}
+\Endeq
+For example, a normal quadrupole rotated by by $45^\circ$ becomes a
+skew quadrupole.
 
 When the $a_n$ and $b_n$ are associated with a physical element (as
 opposed to the $a_n$ and $b_n$ associated with an \vn{AB_Multipole}),
