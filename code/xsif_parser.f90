@@ -120,6 +120,10 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
   ring%param%particle = positron$
   ring%param%beam_energy = 0
 
+  ring%ele_(0)%name = 'BEGINNING'     ! Beginning element
+  ring%ele_(0)%key = init_ele$
+  call mat_make_unit (ring%ele_(0)%mat6)
+
 ! Transfer elements to the ring_struct
 
   i_ele = 0
