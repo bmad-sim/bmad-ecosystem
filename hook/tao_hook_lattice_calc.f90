@@ -1,49 +1,52 @@
 !+
-! Subroutine tao_hook_lattice_calc (universe, lattice, orbit)
+! Subroutine tao_hook_lattice_calc (universe, lattice, orbit, used)
 !
-!  This hook is used to do custom lattice calculations. If you need to do something 
-! more complex then add it here. s%global%lattice_recalc is set to true whenever the 
-! model lattice has changed.
+!  This hook is used to do custom lattice calculations. This routine is only called if
+! the lattice needs to be recalculated. If this hook is used then set used to
+! TRUE or the standard lattice calculation will overwrite whatever you do here!
+! You have the option of only doing a custum lattice calculation for a
+! particular universe. In that case, only set used to TRUE when that universe is
+! passed.
 !
-!  The optional types passed are when not doing a typical lattice calculation
-!  but needing to do the calculations for a specific lattice. This is used in
-!  particular during initialization where the design lattice and orbit is calculated. 
-!  So, make sure you have the logic to take care of this special case!
-!
-!  Keep in mind that the standard Tao data types assume twiss_and_track (...)
-! is called. If you do custom tracking then somehow s%u(:)%model and
-! s%u(:)%model_orb needs to be updated or the standard Tao data types are liable to break! 
-! If s%global%lattice_recalc if FALSE after this subrotuine is
-! complete then the normal TAO lattice calculation will be performed.
+!  Keep in mind that the standard Tao data types assume twiss_and_track
+! is called. If you do custom tracking then somehow the lattice orbit and
+! twiss parameters need to be updated or the standard TAO data types are liable to break! 
 !
 !  See tao/code/tao_lattice_calc.f90 for how the standard lattice calculation is
 ! performed. All bookkeeping is performed in that routine so all you need to do
-! here is the actual lattice calculation.
+! here is the actual lattice calculation for whatever universe, lattice and
+! orbit is passed to it.
 !
+! Input:
+!  universe   -- tao_universe_struct: universe to do calculation in
+!  lattice    -- ring_struct: lattice to use (i.e. model, design, etc...)
+!  orbit      -- coord_struct(0:): orbit structure (i.e. model, design, etc...)
+!  used       -- Logical: is this hook being used for this universe
+!
+! Output:
+!  universe   -- tao_universe_struct: universe to do calculation in
+!  lattice    -- ring_struct: lattice to use (i.e. model, design, etc...)
+!  orbit      -- coord_struct(0:): orbit structure (i.e. model, design, etc...)
 !-
 
-subroutine tao_hook_lattice_calc (universe, lattice, orbit)
+subroutine tao_hook_lattice_calc (universe, lattice, orbit, used)
 
 use tao_mod
 use tao_data_mod
 
 implicit none
 
-type (tao_universe_struct), optional :: universe
-type (ring_struct), optional :: lattice
-type (coord_struct), optional :: orbit(0:)
+type (tao_universe_struct) :: universe
+type (ring_struct) :: lattice
+type (coord_struct) :: orbit(0:)
+logical used
 
 integer i
 
-! if you do a custom lattice calculation here then make sure
-! s%global%lattice_racalc is set to FALSE or the normal TAO lattice calculation
-! will be performed
+! For example here's a simple lattice calculation:
+! call twiss_and_track (lattice, orbit)
 
-if (s%global%lattice_recalc) then
-  !do your custom calculation here and then uncomment the following line:
-
-! s%global%lattice_recalc = .false.
-
-endif
+! change this to TRUE if a custom lattice calculation is performed
+  used = .false.
 
 end subroutine tao_hook_lattice_calc
