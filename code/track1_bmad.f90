@@ -74,6 +74,7 @@ subroutine track1_bmad (start, ele, param, end)
 ! select
 
   key = ele%key
+  if (key == sol_quad$ .and. ele%value(k1$) == 0) key = solenoid$
   if (.not. ele%is_on) key = drift$  ! if element is off looks like a drift
 
   select case (key)
