@@ -106,6 +106,14 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(6) = end%vec(6) - ele%value(dE_offset$)
 
 !-----------------------------------------------
+! match
+
+  case (match$)
+
+    call match_ele_to_mat6 (ele, mat6, vec0)
+    end%vec = matmul (mat6, end%vec) + vec0
+
+!-----------------------------------------------
 ! kicker, separator
 
   case (elseparator$, kicker$, hkicker$, vkicker$) 

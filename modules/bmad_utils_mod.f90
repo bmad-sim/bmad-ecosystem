@@ -899,4 +899,134 @@ subroutine deallocate_ring_pointers (ring)
 
 end subroutine
 
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!+
+! Subroutine transfer_mat_from_twiss (ele1, ele2, m)
+!
+! Subroutine to make a 6 x 6 transfer matrix from the twiss parameters
+! at the end points.
+!
+! Modules Needed:
+!   use bmad
+!
+! Input:
+!   ele1 -- Ele_struct: Element with twiss parameters for the starting point.
+!     %x, %y -- a-mode and b-mode Twiss paramters
+!       %beta   -- Beta parameter.
+!       %alpha  -- Alpha parameter.
+!       %phi    -- Phase at initial point.
+!       %eta    -- Dispersion at initial point.
+!       %etap   -- Dispersion derivative at initial point.
+!     %c_mat(2,2) -- Coupling matrix
+!   ele2 -- Ele_struct: Element with twiss parameters for the ending point.
+!
+! Output:
+!   m(6,6) -- Real(rp): Transfer matrix between the two points.
+!-
+
+subroutine transfer_mat_from_twiss (ele1, ele2, m)
+
+  implicit none
+
+  type (ele_struct) ele1, ele2
+
+  real(rp) m(6,6), v_mat(4,4), v_inv_mat(4,4), det
+
+!
+
+  call mat_make_unit (m)
+  call transfer_mat2_from_twiss (ele1%x, ele2%x, m(1:2,1:2))
+  call transfer_mat2_from_twiss (ele1%y, ele2%y, m(3:4,3:4))
+
+  call mat_det (ele1%c_mat, det)
+  ele1%gamma_c = sqrt(1-det)
+  call make_v_mats (ele1, v_mat, v_inv_mat)
+  m(1:4,1:4) = matmul (m(1:4,1:4), v_inv_mat)
+
+  call mat_det (ele2%c_mat, det)
+  ele2%gamma_c = sqrt(1-det)
+  call make_v_mats (ele2, v_mat, v_inv_mat)
+  m(1:4,1:4) = matmul (v_mat, m(1:4,1:4))
+
+  m(1:2,6) = (/ ele2%x%eta, ele2%x%etap /) - &
+                     matmul (m(1:2,1:2), (/ ele1%x%eta, ele1%x%etap /)) 
+  m(3:4,6) = (/ ele2%y%eta, ele2%y%etap /) - &
+                     matmul (m(3:4,3:4), (/ ele1%y%eta, ele1%y%etap /)) 
+
+! The m(5,x) terms follow from the symplectic condition.
+
+  m(5,1) = -m(2,6)*m(1,1) + m(1,6)*m(2,1) - m(4,6)*m(3,1) + m(3,6)*m(4,1)
+  m(5,2) = -m(2,6)*m(1,2) + m(1,6)*m(2,2) - m(4,6)*m(3,2) + m(3,6)*m(4,2)
+  m(5,3) = -m(2,6)*m(1,3) + m(1,6)*m(2,3) - m(4,6)*m(3,3) + m(3,6)*m(4,3)
+  m(5,4) = -m(2,6)*m(1,4) + m(1,6)*m(2,4) - m(4,6)*m(3,4) + m(3,6)*m(4,4)
+
+
+end subroutine
+
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!+
+! Subroutine match_ele_to_mat6 (ele, mat6, vec0)
+!
+! Subroutine to make the 6 x 6 transfer matrix from the twiss parameters
+!
+! Modules Needed:
+!   use bmad
+!
+! Input:
+!   ele -- Ele_struct: Match element.
+!     %value(beta_x0$) -- Beta_x at the start
+!
+! Output:
+!   mat6(6,6) -- Real(rp): Transfer matrix.
+!   vec0(6)   -- Real(rp): Currently just set to zero.
+!-
+
+subroutine match_ele_to_mat6 (ele, mat6, vec0)
+
+  implicit none
+
+  type (ele_struct) ele, ele0, ele1
+
+  real(rp) mat6(6,6), vec0(6), v(n_attrib_maxx)
+
+!
+
+  vec0 = 0
+  v = ele%value
+
+  ele0%x%beta   = v(beta_x0$)
+  ele0%x%alpha  = v(alpha_x0$)
+  ele0%x%eta    = v(eta_x0$)
+  ele0%x%etap   = v(etap_x0$)
+  ele0%x%phi    = 0
+
+  ele0%y%beta   = v(beta_y0$)
+  ele0%y%alpha  = v(alpha_y0$)
+  ele0%y%eta    = v(eta_y0$)
+  ele0%y%etap   = v(etap_y0$)
+  ele0%y%phi    = 0
+
+  ele1%x%beta   = v(beta_x1$)
+  ele1%x%alpha  = v(alpha_x1$)
+  ele1%x%eta    = v(eta_x1$)
+  ele1%x%etap   = v(etap_x1$)
+  ele1%x%phi    = v(dphi_x$)
+
+  ele1%y%beta   = v(beta_y1$)
+  ele1%y%alpha  = v(alpha_y1$)
+  ele1%y%eta    = v(eta_y1$)
+  ele1%y%etap   = v(etap_y1$)
+  ele1%y%phi    = v(dphi_y$)
+
+  ele0%c_mat = 0 
+  ele1%c_mat = 0 
+
+  call transfer_mat_from_twiss (ele0, ele1, mat6)
+
+end subroutine
+
 end module

@@ -35,6 +35,7 @@ The list of element types known to \bmad\ is shown in Table~\ref{t:elements}.
   Kicker          & \ref{s:kicker}    &  Taylor       & \ref{s:tay}      \\ \hline
   Lcavity         & \ref{s:lcav}      &  VKicker      & \ref{s:hvkicker} \\ \hline
   Marker          & \ref{s:mark}      &  Wiggler      & \ref{s:wig}      \\ \hline
+  Match           & \ref{s:match}     &               &                  \\ \hline
   
 \end{tabular}
 }
@@ -765,6 +766,42 @@ A \vn{Marker} is a zero length element meant to mark a position.
 Example:
 \begin{example}
   mm: mark, type = "BPM"
+\end{example}
+
+%-----------------------------------------------------------------
+\section{Match}
+\label{s:match}
+\index{Element!Match|textbf}
+
+\begin{center}
+\tt
+\begin{tabular}{|l|l||l|l||l|l|} \hline
+  {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
+  beta\_x0  = Real &               & beta\_x1  = Real &               & tracking\_method = Switch   & \ref{s:tkm}    \\ \hline
+  alpha\_x0 = Real &               & alpha\_x1 = Real &               & mat6\_calc\_method = Switch & \ref{s:xfer}   \\ \hline
+  eta\_x0   = Real &               & eta\_x1   = Real &               & x\_limit = Real             & \ref{s:limit}  \\ \hline
+  etap\_x0  = Real &               & etap\_x1  = Real &               & y\_limit = Real             & \ref{s:limit}  \\ \hline
+  beta\_y0  = Real &               & beta\_y1  = Real &               & aperture = Real             & \ref{s:limit}  \\ \hline
+  alpha\_y0 = Real &               & alpha\_y1 = Real &               & aperture\_at = Switch       & \ref{s:limit}  \\ \hline
+  eta\_y0   = Real &               & eta\_y1   = Real &               & type = String               & \ref{s:string} \\ \hline
+  etap\_y0  = Real &               & etap\_y1  = Real &               & alias = String              & \ref{s:string} \\ \hline
+  dphi_x    = Real &               & beam\_energy$^*$ & \ref{s:param} & descrip = String            & \ref{s:string} \\ \hline
+  dphi_y    = Real &               &                  &               & is\_on = Logical            & \ref{s:is_on}  \\ \hline
+  \multicolumn{6}{l}{\small $^*$Dependent attribute. See Chapter~\ref{c:attrib}} \\
+\end{tabular}
+\end{center}
+\toffset
+
+A \vn{Match} element is used to match the Twiss parameters between two points. That is, 
+the tranfer map for a match element, which is just a linear matrix, is calculated such that
+if the Twiss parameters at the exit end of the element preceding the \vn{match} element are 
+given by \vn{beta_x0}, \vn{beta_y0}, etc., then the computed Twiss parameters at the exit
+end of the \vn{match} element will be \vn{beta_x1}, \vn{beta_y1}, etc. \vn{dphi_x} and \vn{dphi_y}
+are the phase advances in radians.
+
+Example:
+\begin{example}
+  mm: match, beta_x0 = 12.5, beta_y0 = 3.4, eta_x0 = 1.0, ...
 \end{example}
 
 %-----------------------------------------------------------------

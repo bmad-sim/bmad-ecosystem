@@ -52,6 +52,7 @@ subroutine track_many (ring, orbit, ix_start, ix_end, direction)
 
   use bmad_struct
   use bmad_interface
+  use bookkeeper_mod, only: control_lord_bookkeeper
   use reverse_mod
 
   implicit none
@@ -68,11 +69,15 @@ subroutine track_many (ring, orbit, ix_start, ix_end, direction)
   logical debug / .false. /
 
   character(16) :: r_name = 'track_many'
-                            
-! track through elements.
 
+! init
+
+  call control_lord_bookkeeper (ring)
+                            
   ring%param%lost = .false.
   ring%param%ix_lost = -1
+
+! track through elements.
 
   if (direction == +1) then
     if (ix_start < ix_end) then

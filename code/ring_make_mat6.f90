@@ -34,7 +34,7 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
   use bmad_struct
   use bmad_utils_mod
   use bmad_interface, only: make_mat6
-  use bookkeeper_mod, only: control_bookkeeper
+  use bookkeeper_mod, only: control_lord_bookkeeper, control_bookkeeper
 
   implicit none
                                          
@@ -69,15 +69,7 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
 
   if (ix_ele < 0) then         
 
-    do i = ring%n_ele_use+1, ring%n_ele_max
-      if (ring%ele_(i)%control_type /= group_lord$)  &
-                                 call control_bookkeeper (ring, i)
-    enddo
-
-    do i = ring%n_ele_use+1, ring%n_ele_max
-      if (ring%ele_(i)%control_type == group_lord$)  &
-                                 call control_bookkeeper (ring, i)
-    enddo
+    call control_lord_bookkeeper (ring)
 
 ! now make the transfer matrices.
 ! for speed if an element needs a taylor series then check if we can use

@@ -18,9 +18,8 @@ contains
 ! Subroutine control_bookkeeper (ring, ix_ele)
 !
 ! Subroutine to transfer attibute information from lord to slave elements.
-! If you want to do the bookkeeping for the entire ring you only need to
-! call control_bookkeeper for the lord elements from ring%n_ele_use+1 
-! through ring%n_ele_max.
+! If you want to do the bookkeeping for the entire ring use:
+!   control_lord_bookkeeper
 !
 ! Modules needed:
 !   use bmad
@@ -44,6 +43,7 @@ subroutine control_bookkeeper (ring, ix_ele)
 ! attribute bookkeeping
 
   call attribute_bookkeeper (ring%ele_(ix_ele), ring%param)
+  if (ring%ele_(ix_ele)%n_slave == 0) return  ! nothing more to do
 
 ! Make a list of elements to update.
 ! we do not need to update free elements of group lords.
@@ -109,6 +109,44 @@ subroutine control_bookkeeper (ring, ix_ele)
 
     endif
 
+  enddo
+
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine control_lord_bookkeeper (ring)
+!
+! Subroutine to transfer attibute information from lord to slave elements.
+! If you want to do the bookkeeping a single element use:
+!   control_bookkeeper
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ring   -- Ring_struct: Lattice.
+!-
+
+subroutine control_lord_bookkeeper (ring)
+
+  implicit none
+
+  type (ring_struct) ring
+  integer i
+
+!
+
+  do i = ring%n_ele_use+1, ring%n_ele_max
+    if (ring%ele_(i)%control_type /= group_lord$)  &
+                                 call control_bookkeeper (ring, i)
+  enddo
+
+  do i = ring%n_ele_use+1, ring%n_ele_max
+    if (ring%ele_(i)%control_type == group_lord$)  &
+                                 call control_bookkeeper (ring, i)
   enddo
 
 end subroutine

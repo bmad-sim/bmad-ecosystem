@@ -29,6 +29,7 @@ subroutine track_all (ring, orbit_)
 
   use bmad_struct
   use bmad_interface
+  use bookkeeper_mod, only: control_lord_bookkeeper
 
   implicit none
 
@@ -45,6 +46,8 @@ subroutine track_all (ring, orbit_)
                   call reallocate_coord (orbit_, ring%n_ele_max)
 
   ring%param%ix_lost = -1
+
+  call control_lord_bookkeeper (ring)
 
 ! track through elements.
 

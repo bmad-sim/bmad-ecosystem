@@ -98,6 +98,7 @@ Figure~\ref{f:param_struct}
     integer particle            ! +1 = positrons, -1 = electrons
     integer iy                  ! Not currently used.
     integer ix_lost             ! If lost at what element?
+    integer end_lost_at         ! entrance_end$ or exit_end$
     integer lattice_type        ! linac_lattice$, circular_lattice$, etc...
     integer ixx                 ! Integer for general use
     logical stable              ! is closed ring stable?
@@ -118,10 +119,23 @@ calculations. The two variables are independent and setting one will not
 affect the other. 
 
 \index{Ring_struct!%param!%lost}
-\vn{%param%lost} is set by tracking routines to signal if a particle
-is lost. \vn{%param%aperture_limit_on} determines is apertures are
-checked to begin with. \vn{%param%ix_lost} gives the index of the
-element at which a particle is lost.
+\index{Ring_struct!%param!%end_lost_at}
+\index{Ring_struct!%param!%aperture_limit_on}
+When tracking particles thorugh a lattice the variable
+\vn{%param%aperture_limit_on} determines if apertures are checked to
+begin with. Even if this is False there is a ``hard'' aperture limit
+set by \vn{bmad_com%max_aperture_limit}. The hard aperture limit is
+needed so that programs will not bomb due to overflow of floating
+point calculations. The default for this hard limit is 1000
+meters. \vn{%param%lost} is set by tracking routines to signal if a
+particle is lost. \vn{%param%ix_lost} gives the index of the element
+at which a particle is lost. and \vn{%param%end_lost_at} gives which
+end the particle was lost at. The possible values for
+\vn{%param%end_lost_at} are
+\begin{example}
+  entrance_end$
+  exit_end$
+\end{example}
 
 \index{Ring_struct!%param!%t1_with_RF}
 \index{Ring_struct!%param!%t1_no_RF}

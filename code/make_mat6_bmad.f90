@@ -110,6 +110,12 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   select case (key)
 
 !--------------------------------------------------------
+! Match
+
+  case (match$)
+    call match_ele_to_mat6 (ele, ele%mat6, ele%vec0)
+
+!--------------------------------------------------------
 ! Patch
 
   case (patch$) 

@@ -70,10 +70,10 @@ function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, tracking_method$)   = 'TRACKING_METHOD'
 
       if (i == marker$)       cycle
-      if (i == match$)        cycle
 
       attrib_array(i, is_on$)       = 'IS_ON'
 
+      if (i == match$)        cycle
       if (i == patch$)        cycle
       if (i == beambeam$)     cycle
       if (i == hom$)          cycle

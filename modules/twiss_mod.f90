@@ -378,7 +378,7 @@ end subroutine
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
-! subroutine transfer_mat_from_twiss (twiss1, twiss2, mat)
+! Subroutine transfer_mat2_from_twiss (twiss1, twiss2, mat)
 !
 ! Subroutine to make a 2 x 2 transfer matrix from the twiss parameters
 ! at the end points.
@@ -388,13 +388,19 @@ end subroutine
 !
 ! Input:
 !   twiss1  -- Twiss_struct: Twiss parameters at the initial point.
+!     %beta   -- Beta parameter.
+!     %alpha  -- Alpha parameter.
+!     %phi    -- Phase at initial point.
 !   twiss2  -- Twiss_struct: Twiss parameters at the end point.
+!     %beta   -- Beta parameter.
+!     %alpha  -- Alpha parameter.
+!     %phi    -- Phase at final point.
 !
 ! Output:
 !   mat(2,2) -- Real(rp): Transfer matrix between the two points.
 !-
 
-subroutine transfer_mat_from_twiss (twiss1, twiss2, mat)
+subroutine transfer_mat2_from_twiss (twiss1, twiss2, mat)
 
   implicit none
 
@@ -415,6 +421,5 @@ subroutine transfer_mat_from_twiss (twiss1, twiss2, mat)
   mat(2,2) = sqrt(b1/b2) * (cos21 - a2 * sin21)
 
 end subroutine
-
 
 end module
