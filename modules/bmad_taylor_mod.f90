@@ -317,7 +317,7 @@ subroutine kill_taylor (bmad_taylor)
 !
 
   do i = 1, size(bmad_taylor)
-    deallocate (bmad_taylor(i)%term, stat = ix)
+    if (associated(bmad_taylor(i)%term)) deallocate (bmad_taylor(i)%term)
   enddo
 
 end subroutine

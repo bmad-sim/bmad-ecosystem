@@ -700,6 +700,7 @@ module bmad_struct
     integer :: default_integ_order = 2
     integer :: default_num_steps = 1
     logical :: init_needed = .true.
+    logical :: use_dimad_lcavity = .false.  ! Dimad like tracking?
   end type
   
   type (bmad_com_struct), save :: bmad_com

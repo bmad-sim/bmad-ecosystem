@@ -1,3 +1,6 @@
+#include "CESR_platform.inc"
+
+
 module coil_track_mod
 
 contains
@@ -54,33 +57,6 @@ end subroutine
 !     B_LOOP(3) -- Real(rp): (Cartesian) Magnetic field vector x, y, and z
 !                        components (in units of mu_0 / 2)
 !-
-
-!$Id$
-!$Log$
-!Revision 1.5  2003/07/09 01:38:37  dcs
-!new bmad with allocatable ring%ele_(:)
-!
-!Revision 1.4  2003/06/04 17:56:06  dcs
-!Eliminated x%pos, x%vel, etc. from coord_struct.
-!
-!Revision 1.3  2003/05/02 15:44:34  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.2  2002/08/23 20:20:23  dcs
-!Modified for VMS port
-!
-!Revision 1.1  2002/06/13 14:54:59  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.3  2002/02/23 20:32:10  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:48  rwh24
-!UNIX compatibility updates
-!
-
-#include "CESR_platform.inc"
-
 
 subroutine b_field_loop (coord, ele, s_pos, b_loop)
   use bmad
@@ -208,30 +184,6 @@ end subroutine
 !     HYPERGEOM -- Real(rp): The hypergeometric function
 !-
 
-!$Id$
-!$Log$
-!Revision 1.5  2003/07/09 01:38:37  dcs
-!new bmad with allocatable ring%ele_(:)
-!
-!Revision 1.4  2003/06/04 17:56:06  dcs
-!Eliminated x%pos, x%vel, etc. from coord_struct.
-!
-!Revision 1.3  2003/05/02 15:44:34  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.2  2002/08/23 20:20:23  dcs
-!Modified for VMS port
-!
-!Revision 1.3  2002/02/23 20:32:16  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:52  rwh24
-!UNIX compatibility updates
-!
-
-#include "CESR_platform.inc"
-
-
 function hypergeom (hgcx, arg)
 
   use precision_def  
@@ -248,6 +200,8 @@ function hypergeom (hgcx, arg)
   else
     hypergeom = 3/4.e0
   endif
+
+  i_max = 10   ! ??? inserted something so compiler would not complain
 
   i = 1
   arg_power = arg
