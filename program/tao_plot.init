@@ -37,13 +37,13 @@ Templates define the basics of, say, how to display an orbit.
   graph%title = 'Horizontal Orbit (mm)'
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
   graph%y%label = 'X'
-  graph%y%max =  4
-  graph%y%min = -4
+  graph%y%max =  20
+  graph%y%min = -20
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
   curve(1)%data_type   = 'orbit:x'
-  curve(1)%units_factor = 100
+  curve(1)%units_factor = 1000
 /
 
 &tao_template_graph
@@ -53,13 +53,13 @@ Templates define the basics of, say, how to display an orbit.
   graph%title = 'Vertical Orbit (mm)'
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
   graph%y%label = 'Y'
-  graph%y%max =  4
-  graph%y%min = -4
+  graph%y%max =  20
+  graph%y%min = -20
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
   curve(1)%data_type   = 'orbit:y'
-  curve(1)%units_factor = 100
+  curve(1)%units_factor = 1000
 /
 
 !----------------------------------------------------------------
