@@ -99,7 +99,7 @@ subroutine MARK_LRBBI(master_ring, master_ring_oppos, ring, crossings)
 
     if (j .gt. 1 .and. crossings(j,1) == crossings(j-1,1)) then
        call split_ring(ring(ring_index), s_split, ix_split, split_done)
-       if (split_done == .false.) cycle j_loop
+       if (.not. split_done) cycle j_loop
        insert_ele%s = s_split
        ix_ele = ix_split + 1
        crossings(j,4) = ix_ele
