@@ -1,5 +1,5 @@
-call, file=[cesr.bmad.lat]wig_7pole_plus.bmad
-call, file=[cesr.bmad.lat]wig_8pole_plus.bmad
+call, file=BMAD_LAYOUT:wig_7pole_plus.bmad
+call, file=BMAD_LAYOUT:wig_8pole_plus.bmad
 
 wig1_14e: wig_7pole_plus
 wig2_14e: wig_7pole_plus
