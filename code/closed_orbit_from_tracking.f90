@@ -21,9 +21,9 @@
 !       = 2,4  Transverse closed orbit at constant energy (dE/E = CO.Z.VEL)
 !       = 6    Full closed orbit using the entire transfer 6x6 matrix.
 !   eps_rel(6) -- Real(rp), optional: Relative allowed error.
-!                   Default is 1e-5.
+!                   Default is bmad_com%rel_tollerance
 !   eps_abs(6) -- Real(rp), optional: Absolute allowed error.
-!                   Default is 1e-8.
+!                   Default is bmad_com%abs_tollerance
 !   init_guess -- [Optional] Coord_struct: Starting guess for the closed 
 !                orbit at the start of the ring. If not present then
 !                the origin will be used. 
@@ -70,10 +70,10 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 
 ! init
 
-  rel_err = 1e-6
+  rel_err = bmad_com%rel_tollerance
   if (present(eps_rel)) rel_err = eps_rel
 
-  abs_err = 1e-6
+  abs_err = bmad_com%abs_tollerance
   if (present(eps_abs)) abs_err = eps_abs
 
 ! make sure orb_ has the correct size
