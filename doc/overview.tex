@@ -14,10 +14,10 @@ The information that \tao knows about can be divided into 5 categories:
   plotting  -- Display data and other stuff.
   global    -- Miscellaneous global parameters.
 \end{example}
-The \vn{lattice} and \vn{data} information are grouped into what is called a
+The \vn{lattice} and \vn{data} information is grouped into what is called a
 \vn{universe}. The entire collection of \vn{lattices}, \vn{data},
 \vn{variables}, \vn{plotting}, and \vn{global} information is called
-the \vn{super_universe} and is the sum of everyhing \tao knows.
+the \vn{super_universe} and is the sum of everything \tao knows.
 
 %------------------------------------------------------------------------
 \section{Lattices}
@@ -37,12 +37,12 @@ involve varying \vn{model} variables until the \vn{data} as calculated
 from the \vn{model} match the \vn{data} as actually measured.
   \item[Base Lattice] \Newline
 It is sometimes convenient to designate a reference lattice so that
-changes in the \vn{model} from the reference point can be looked at.
+changes in the \vn{model} from the reference point can be examined.
 This reference lattice is called the \vn{base}.
   \end{description}
 
 The \vn{model}, \vn{design}, and \vn{base} lattices along with any
-\vn{data} are bundled together to form what is called a
+\vn{data} is bundled together to form what is called a
 \vn{universe}. \tao can simultaneously handle multiple universes. Why
 is this useful? It can be used, for example, to simulate both rings of
 a collider machine. This can be convenient if there are, say, steering
@@ -54,25 +54,22 @@ is desired to fit all the data simultaneously.
 %------------------------------------------------------------------------
 \section{Data}
 
-Blocks of like data are associated with what are called \vn{d1_data}
-structures and sets of \vn{d1_data} structures are collected into what
-are called \vn{d2_data} structures. For example, a \vn{d1_data}
-structure is typically associated with the horizontal orbit data and
-another \vn{d1_data} structure is typically associated with the
-vertical orbit data. These two structures can then be collected into a
-\vn{d2_data} structure representing all orbit data. The \vn{d1_data}
-and \vn{d2_data} structures are defined in the \tao initialization
-file (cf.~Chapter~\ref{c:init}).  When issuing \tao commands, all the
-data associated with a \vn{d2_data} structure is specified using the
-\vn{d2_data} structure's \vn{name}.  The data associated with a
-\vn{d1_data} structure is specified using the format
-\vn{d2_name:d1_name}. For example, If a \vn{d2_data} structure has the
-name ``\vn{orbit}'', and one of its \vn{d1_data} structures has the name
-``\vn{x}'', then in \tao commands you refer to the data in this
-\vn{d1_data} structure by the name ``\vn{orbit:x}''. Sometimes there is
-only one \vn{d1_data} structure for a given \vn{d2_data} structure. In
-this case the data can be referred to simply by using the
-\vn{d2_data} structures's name.
+Blocks of like data are associated with what are called \vn{d1_data} structures
+and sets of \vn{d1_data} structures are collected into what are called
+\vn{d2_data} structures. For example, a \vn{d1_data} structure is typically
+associated with the horizontal orbit data and another \vn{d1_data} structure is
+typically associated with the vertical orbit data. These two structures can then
+be collected into a \vn{d2_data} structure representing all orbit data. The
+\vn{d1_data} and \vn{d2_data} structures are defined in the \tao initialization
+file (cf.~Chapter~\ref{c:init}).  When issuing \tao commands, all the data
+associated with a \vn{d2_data} structure is specified using the \vn{d2_data}
+structure's \vn{name}.  The data associated with a \vn{d1_data} structure is
+specified using the format \vn{d2_name:d1_name}. For example, if a \vn{d2_data}
+structure has the name ``\vn{orbit}'', and one of its \vn{d1_data} structures
+has the name ``\vn{x}'', then \tao commands that refer to the data in this
+\vn{d1_data} structure use the name ``\vn{orbit:x}''. Sometimes there is only
+one \vn{d1_data} structure for a given \vn{d2_data} structure. In this case the
+data can be referred to simply by using the \vn{d2_data} structure's name.
 
 Each data point (for example, the horizontal orbit at some
 detector) has a number of quantities associated with it:
@@ -95,7 +92,7 @@ The data as calculated from the \vn{design} lattice.
 The data as calculated from the \vn{base} lattice.
   \end{description}
 
-Use the \vn{show data} command to view information about any data.
+Use the \vn{show data} command to view information about any data type.
 
 \vfill
 \break
@@ -106,7 +103,7 @@ Blocks of variables are associated with what is called a
 \vn{v1_var} structure and each of these structures has a \vn{name}
 with which to refer to them in \tao commands. A given variable may
 control a single attribute of one element in a \vn{model} lattice
-of a single universe or variables can be configured to simultaneously
+of a single universe or it can be configured to simultaneously
 control an element attribute across multiple universes. Any one variable 
 cannot control more than one attribute of one element. However, a variable
 may control an overlay or group element, which in turn controls numerous elements.
@@ -271,14 +268,16 @@ called a \vn{key table}.
 %------------------------------------------------------------------------
 \section{Tracking Types}
 
-The are two types of tracking implemented in \tao: single particle
-tracking and macroparticle tracking. Single particle tracking is just
-that, the tracking of a single particle through the
-lattice. Macroparticle tracking takes a beam distribution and tracks
-the centroids and sigmas of the ``macro-particles'' through the
-lattice.  Single particle tracking is used by default. See
-Section~\ref{s:macro_init} for details on setting up macroparticle
-tracking.
+The are three types of tracking implemented in \tao: single particle tracking,
+many particle multi-bunch tracking and macroparticle multi-bunch tracking.
+Single particle tracking is just that, the tracking of a single particle through
+the lattice. Many particle multi-bunch tracking creates a gaussian distribution
+of particles at the beginning of the lattice and tracks each particle trhbough
+the lattice, including any wakefields. Macroparticle tracking takes a beam
+distribution and tracks the centroids and sigmas of the ``macro-particles''
+through the lattice, including any wakefields.  Single particle tracking is used
+by default. See Section~\ref{s:bunch-init}~or~\ref{s:macro_init} for details on
+setting up particle bunch and macroparticle bunch tracking.
 
 %------------------------------------------------------------------------
 \section{Lattice Calculation}
@@ -298,27 +297,24 @@ affected by commands such as \vn{use, veto,} and \vn{restore} and any
 changes in the status of elements in the ring (e.g. if any elements
 have been turned off).
   \item 
-If changes have been made to the lattice (e.g. variables changed) Then
-the model lattice for all universes will be recalculated. The
-\vn{model} orbit, linear transfer matrices and twiss parameters are
-recalculated for every element. Any specified data types will also be
-calculated at each element specified in the initialiation file.  For
-single particle tracking the linear transfer matrices and twiss
-parameters are found about the tracked orbit. For macroparticle
-tracking the linear transfer matrices and twiss parameters are found
-about the beam centroid orbit.  Tracking is performed using the
-tracking method defined for each element (i.e. Bmad Standard,
-Symplectic Lie, etc...). See the \bmad Reference manual for details on
-tracking and finding the linear transfer matrices and twiss
-parameters.
+If changes have been made to the lattice (e.g. variables changed) then the model
+lattice for all universes will be recalculated. The \vn{model} orbit, linear
+transfer matrices and twiss parameters are recalculated for every element. Any
+specified data types will also be calculated at each element specified in the
+initialiation file.  For single particle tracking the linear transfer matrices
+and twiss parameters are found about the tracked orbit. For particle bunch and
+macroparticle bunch tracking the linear transfer matrices and twiss parameters
+are calculated from the beam distribution.  Tracking is performed using the
+tracking method defined for each element (i.e. Bmad Standard, Symplectic Lie,
+etc...). See the \bmad Reference manual for details on tracking and finding the
+linear transfer matrices and twiss parameters.
   \item 
-The \vn{model} data is recalculated from the \vn{model} orbit, linear
-transfer matrices, twiss parameters, macroparticle beam information
-and global lattice parameters.
- Any custom  data type calculations
-are performed before the standard \tao data types are calculated.
+The \vn{model} data is recalculated from the \vn{model} orbit, linear transfer
+matrices, twiss parameters, particle beam information and global lattice
+parameters.  Any custom  data type calculations are performed \textit{before}
+the standard \tao data types are calculated.
   \item 
-Any data post-processing is performed (BPM alignment errors, etc...) 
+Any user specified data post-processing is performed (BPM alignment errors, etc...) 
   \item 
 The contributions to the merit function from the variables and data are
 computed.

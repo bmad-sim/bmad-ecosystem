@@ -248,6 +248,59 @@ Example:
 \section{Initializing Particle Beams}
 \label{s:beam_init}
 
+A particle beam is initialized in the \vn{tao_beam_init} namelist block.
+The syntax is as follows:
+\begin{example}
+  &tao_beam_init
+    sr_wakes_on             = <ligical>   ! turn on short range wakes
+                                          ! default = F
+    lr_wakes_on             = <logical>   ! turn on long range wakes
+                                          ! default = F
+    calc_emittance(i)       = <logical>   ! calculate emittance for rings
+    beam_init(i)%a_norm_emit    = <number> ! A-mode emittance
+    beam_init(i)%b_norm_emit    = <number> ! B-mode emittance
+    beam_init(i)%dPz_dZ     = <number>      ! Energy-Z correlation
+    beam_init(i)%center    = <number>*6 ! Bunch center offset relative to
+                                         ! reference particle (BMAD coords)
+    beam_init(i)%sig_e     = <number>   ! e_sigma in eV
+    beam_init(i)%sig_z     = <number>   ! Z sigma in m
+    beam_init(i)%sig_e_cut = <number>   ! Energy cut in sigmas
+    beam_init(i)%sig_z_cut = <number>   ! Z cut in sigmas
+    beam_init(i)%sig_trans_cut = <number> ! transverse dimension cut
+    beam_init(i)%n_bunch   = <integer>  ! Number of bunches
+    beam_init(i)%ds_bunch  = <number>   ! distance between bunches (meters)
+    beam_init(i)%n_particle = <number>  ! Number of particles per bunch
+    beam_init(i)%bunch_charge = <number> ! charge per bunch (Coulombs)
+  /
+\end{example}
+where \vn{i} refers to the universe index. See \bmad documentation on what the
+\vn{beam_init} parameters refer to. Wakefields can only be turned on or off for all
+universes and not for each universe individually. The charge per particle is set
+to $\vn{bunch_charge} / \vn{n_particle}$ and is used when calculating
+wakefield affects.
+
+The twiss parameters at the beginning of the lattice are used in intitiating the
+beam distribution.
+For circular lattices the twiss parameters will be found from the closed orbit,
+and the emittance will be calculated using the \bmad routine
+\vn{radiation_integrals} unless \vn{calc_emittance = F} in which case the emittance
+specified in the initialization will be used. The state of \vn{calc_emittance}
+has no effect on Linear lattices where the initial emittance must be specified.
+
+The default is single particle tracking. To turn on particle tracking the
+\vn{global%track_type} perameter must be set to 'beam.' This can be placed in
+the \vn{tao_params} namelist above, for example,
+\begin{example}
+  \&tao_params
+    n_v1_var_max  = 5
+    n_d2_data_max = 6
+    n_data_max    = 2000
+    n_var_max     = 2000
+    global%optimizer = "lm"  ! Set the default optimizer.
+    global%track_type = 'beam'
+  /
+\end{example}
+
 %-----------------------------------------------------------------
 \section{Initializing Macroparticle Beams}
 \label{s:macro_init}
@@ -260,15 +313,10 @@ The syntax is as follows:
                                           ! default = F
     lr_wakes_on             = <logical>   ! turn on long range wakes
                                           ! default = F
-    sr_wake_file(i)         = <file_name> ! File name for short range wake data
-    lr_wake_file(i)         = <file_name> ! File name for long range wake data
     calc_emittance          = <logical>   ! calculate emittance for rings
-    macro_init(i)%x%beta    = <number> 
-    macro_init(i)%x%alpha   = <number>
-    macro_init(i)%x%emit    = <number> 
-    macro_init(i)%y%beta    = <number> 
-    macro_init(i)%y%alpha   = <number>
-    macro_init(i)%y%emit    = <number> 
+    macro_init(i)%x%norm_emit    = <number> 
+    macro_init(i)%y%norm_emit    = <number> 
+    beam_init(i)%dPz_dZ     = <number>   ! Energy-Z correlation
     macro_init(i)%center    = <number>*6 ! Bunch center offset relative to
                                          ! reference particle (BMAD coords)
     macro_init(i)%sig_e     = <number>   ! e_sigma in eV
@@ -284,13 +332,13 @@ The syntax is as follows:
 \end{example}
 where \vn{i} refers to the universe index. See \bmad documentation on what the
 \vn{macro_init} parameters refer to. Wakefields can only be turned on or off for all
-universes and not for each universe individually. \vn{wake_file} is the file containing the
-wakefield data. If a wakefield file is not needed then do not specify a file.
+universes and not for each universe individually.
 
-For circular lattices the twiss parameters will be found form the closed orbit
-so whatever is specified here will not be used.
-The emittance will be calculated using the \bmad routine
-radiation integrals unless \vn{calc_emittance = F} in which case the emittance
+The twiss parameters at the beginning of the lattice are used in intitiating the
+beam distribution.
+For circular lattices the twiss parameters will be found from the closed orbit,
+and the emittance will be calculated using the \bmad routine
+\vn{radiation_integrals} unless \vn{calc_emittance = F} in which case the emittance
 specified in the initialization will be used. The state of \vn{calc_emittance}
 has no effect on Linear lattices where the initial emittance must be specified.
 
