@@ -752,6 +752,7 @@ type (lr_wake_struct), target :: f_lr_wake
 type (lr_wake_struct), pointer :: f
 type (c_dummy_struct) c_lr_wake
 
+print *, 'Here'
 f => f_lr_wake
 call lr_wake_to_c2 (c_lr_wake, f%freq, f%freq_in, f%R_over_Q, f%q, f%m, &
                      f%norm_sin, f%norm_cos, f%skew_sin, f%skew_cos, f%s_ref)
@@ -769,7 +770,7 @@ end subroutine
 !-
 
 subroutine lr_wake_to_f2 (f_lr_wake, freq, freq_in, r_over_q, q, m, &
-                                      n_sin, n_cos, s_cos, s_sin, s_ref)
+                                      n_sin, n_cos, s_sin, s_cos, s_ref)
 
 use bmad_and_cpp
 
@@ -820,11 +821,11 @@ if (associated(f%lr)) n_lr = size(f%lr)
 
 call wake_to_c2 (c_wake, c_str(f%sr_file), c_str(f%lr_file), n_sr, n_lr)
 
-do i = 0, n_sr-1
+do i = 1, n_sr
   call sr_wake_in_wake_to_c2 (c_wake, i, f%sr(i)%z, f%sr(i)%long, f%sr(i)%trans)
 enddo
 
-do i = 0, n_lr-1
+do i = 1, n_lr
   call lr_wake_in_wake_to_c2 (c_wake, i, f%lr(i)%freq, f%lr(i)%freq_in, &
            f%lr(i)%r_over_q, f%lr(i)%Q, f%lr(i)%m, f%lr(i)%norm_sin, &
            f%lr(i)%norm_cos, f%lr(i)%skew_sin, f%lr(i)%skew_cos, f%lr(i)%s_ref)

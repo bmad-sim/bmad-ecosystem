@@ -275,7 +275,7 @@ extern "C" void lr_wake_to_c2_(C_lr_wake& c, Re& freq, Re& freq_in,
                   Re& R_over_Q, Re& Q, Int& m, Re& n_sin, Re& n_cos, 
                   Re& s_sin, Re& s_cos, Re& s_ref) {
   c = C_lr_wake(freq, freq_in, R_over_Q, Q, m, 
-                                  n_sin, n_cos, s_cos, s_sin, s_ref);
+                                  n_sin, n_cos, s_sin, s_cos, s_ref);
 }
 
 void operator>> (C_lr_wake& c, lr_wake_struct* f) {
@@ -301,10 +301,10 @@ extern "C" void wake_to_f_(C_wake& c, wake_struct* f) {
   const char* lrf = c.lr_file.data();     int n_lrf = c.lr_file.length();
   wake_to_f2_(f, srf, n_srf, lrf, n_lrf, n_sr, n_lr);
   for (int i = 0; i < n_sr; i++) {
-    sr_wake_in_wake_to_f2_(f, i, c.sr[i].z, c.sr[i].longitudinal, c.sr[i].transverse);
+    sr_wake_in_wake_to_f2_(f, i+1, c.sr[i].z, c.sr[i].longitudinal, c.sr[i].transverse);
   }
   for (int i = 0; i < n_lr; i++) {
-    lr_wake_in_wake_to_f2_(f, i, c.lr[i].freq, c.lr[i].freq_in, 
+    lr_wake_in_wake_to_f2_(f, i+1, c.lr[i].freq, c.lr[i].freq_in, 
         c.lr[i].R_over_Q, c.lr[i].Q, c.lr[i].m, c.lr[i].norm_sin, 
         c.lr[i].norm_cos, c.lr[i].skew_sin, c.lr[i].skew_cos, c.lr[i].s_ref);
   }
@@ -318,12 +318,12 @@ extern "C" void wake_to_c2_(C_wake& c, char* srf, char* lrf, Int& n_sr, Int& n_l
 }
 
 extern "C" void sr_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& z, Re& l, Re& t) {
-  c.sr[it] = C_sr_wake(z, l, t);
+  c.sr[it-1] = C_sr_wake(z, l, t);
 }
 
 extern "C" void lr_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& f, Re& k, 
                       Int& i, Re& q, Int& m, Re& ns, Re& nc, Re& ss, Re& sc, Re& z) {
-  c.lr[it] = C_lr_wake(f, k, i, q, m, ns, nc, ss, sc, z);
+  c.lr[it-1] = C_lr_wake(f, k, i, q, m, ns, nc, ss, sc, z);
 }
 
 

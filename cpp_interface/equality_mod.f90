@@ -348,7 +348,8 @@ is_eq = all(f1%d_orb == f2%d_orb) .and. &
       (f1%use_liar_lcavity .eqv. f2%use_liar_lcavity) .and. &
       (f1%sr_wakes_on .eqv. f2%sr_wakes_on) .and.  &
       (f1%lr_wakes_on .eqv. f2%lr_wakes_on) .and.  &
-      (f1%mat6_track_symmetric .eqv.  f2%mat6_track_symmetric)
+      (f1%mat6_track_symmetric .eqv.  f2%mat6_track_symmetric) .and. &
+      (f1%auto_bookkeeper .eqv. f2%auto_bookkeeper)
 
 end function
 
