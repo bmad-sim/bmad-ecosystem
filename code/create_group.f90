@@ -62,17 +62,27 @@
 ! Note: You can control an element's position by setting:
 !       CONTROL_(i)%IX_ATTRIB = START_EDGE$      or
 !                             = END_EDGE$        or
-!                             = ACCORDION_EDGE$
-! %IX_ATTRIB = START_EDGE$ or %IX_ATTRIB = END_EDGE$ controls the
+!                             = ACCORDION_EDGE$  or
+!                             = SYMMETRIC_EDGE$
+!
+! %IX_ATTRIB = START_EDGE$ and %IX_ATTRIB = END_EDGE$ controls the
 ! placement of the edges of an element keeping the ring total length invariant.
-! this is done by lengthening and shortening the elements to either side keeping the
-! total ring length invariant.
-! %IX_ATTRIB = ACCORDION_EDGE$ moves the start and end edges
-! antisymmetrically.   
+! this is done by lengthening and shortening the elements to either side
+! keeping the total ring length invariant.
+!
+! %IX_ATTRIB = ACCORDION_EDGE$ and %IX_ATTRIB = SYMMETRIC_EDGE$ moves both
+! the start and end edges simultaneously.
+! ACCORDION_EDGE$ moves the edges antisymmetrically (and thus there is a length
+! change of the element).
+! SYMMETRIC_EDGE$ moves the edges symmetrically creating a z-offset with no
+! length change.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.8  2002/10/21 16:00:11  dcs
+!*** empty log message ***
+!
 !Revision 1.7  2002/06/13 14:54:24  dcs
 !Interfaced with FPP/PTC
 !
@@ -152,15 +162,6 @@ subroutine create_group (ring, ix_ele, n_control, control_)
         endif
       enddo
 
-      if (ixa == start_edge$ .or. ixa == accordion_edge$) then
-        if (ix1 < 1) then
-          type *, 'ERROR IN CREATE_GROUP: START_EDGE OF CONTROLED'
-          type *, '      ELEMENT IS AT BEGINNING OF RING AND CANNOT BE'
-          type *, '      VARIED FOR GROUP: ', ring%ele_(ix_ele)%name
-          call err_exit
-        endif
-      endif
-
       ix2 = ix_max + 1 
       do
         if (ring%ele_(ix2)%value(l$) == 0) then
@@ -170,7 +171,18 @@ subroutine create_group (ring, ix_ele, n_control, control_)
         endif
       enddo
 
-      if (ixa == end_edge$ .or. ixa == accordion_edge$) then
+      if (ixa == start_edge$ .or. ixa == accordion_edge$ .or. &
+                                       ixa == symmetric_edge$) then
+        if (ix1 < 1) then
+          type *, 'ERROR IN CREATE_GROUP: START_EDGE OF CONTROLED'
+          type *, '      ELEMENT IS AT BEGINNING OF RING AND CANNOT BE'
+          type *, '      VARIED FOR GROUP: ', ring%ele_(ix_ele)%name
+          call err_exit
+        endif
+      endif
+
+      if (ixa == end_edge$ .or. ixa == accordion_edge$ .or. &
+                                        ixa == symmetric_edge$) then
         if (ix2 > ring%n_ele_ring) then
           type *, 'ERROR IN CREATE_GROUP: END_EDGE OF CONTROLED'
           type *, '      ELEMENT IS AT END OF RING AND CANNOT BE'
@@ -178,20 +190,20 @@ subroutine create_group (ring, ix_ele, n_control, control_)
           call err_exit
         endif
       endif
-                                                               
+
 ! put in coefficients
 
-      if (ixa == start_edge$) then
+      select case (ixa)
+
+      case (start_edge$)
         call bookit (ix1, 1)
         call bookit (ix_min, -1)
-      endif
 
-      if (ixa == end_edge$) then
+      case (end_edge$)
         call bookit (ix_max, 1)
         call bookit (ix2, -1)
-      endif
 
-      if (ixa == accordion_edge$) then
+      case (accordion_edge$)
         call bookit (ix1, -1)
         if (ix_min == ix_max) then
           call bookit (ix_min, 2)
@@ -200,7 +212,12 @@ subroutine create_group (ring, ix_ele, n_control, control_)
           call bookit (ix_max, 1)
         endif
         call bookit (ix2, -1)
-      endif
+
+      case (symmetric_edge$)
+        call bookit (ix1, 1)
+        call bookit (ix2, -1)
+
+      end select
 
 ! for all else without position control the group setup is simple.
 

@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.17  2002/10/21 16:00:20  dcs
+!*** empty log message ***
+!
 !Revision 1.16  2002/09/14 19:45:31  dcs
 !*** empty log message ***
 !
@@ -344,14 +347,15 @@ module bmad_struct
   integer, parameter :: start_edge$ = 37     ! special for groups
   integer, parameter :: end_edge$ = 38       ! special for groups
   integer, parameter :: accordion_edge$ = 39 ! special for groups
-  integer, parameter :: mat6_calc_method$ = 40
-  integer, parameter :: tracking_method$  = 41
-  integer, parameter :: num_steps$ = 42
-  integer, parameter :: integration_order$ = 43
-  integer, parameter :: term$ = 44
-  integer, parameter :: ptc_kind$ = 45
-  integer, parameter :: symplectify$ = 46
-  integer, parameter :: descrip$ = 47   
+  integer, parameter :: symmetric_edge$ = 40
+  integer, parameter :: mat6_calc_method$ = 41
+  integer, parameter :: tracking_method$  = 42
+  integer, parameter :: num_steps$ = 43
+  integer, parameter :: integration_order$ = 44
+  integer, parameter :: term$ = 45
+  integer, parameter :: ptc_kind$ = 46
+  integer, parameter :: symplectify$ = 47
+  integer, parameter :: descrip$ = 48
 
 ! Warning: No other attribute parameters can have indexes larger than A0$.
 ! That is: multipole arrays An, Bn, KnL, and Tn must have the largest indexes

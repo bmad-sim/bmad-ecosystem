@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2002/10/21 16:00:11  dcs
+!*** empty log message ***
+!
 !Revision 1.8  2002/09/14 19:45:23  dcs
 !*** empty log message ***
 !
@@ -141,6 +144,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(group$, start_edge$)     = 'START_EDGE'
     attrib_array(group$, end_edge$)       = 'END_EDGE'
     attrib_array(group$, accordion_edge$) = 'ACCORDION_EDGE'
+    attrib_array(group$, symmetric_edge$) = 'SYMMETRIC_EDGE'
 
     attrib_array(drift$, l$) = 'L'
 
