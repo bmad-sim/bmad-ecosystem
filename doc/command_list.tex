@@ -281,7 +281,8 @@ Format:
   restore var <var_name> <locations>
 \end{example}
 
-\vskip 0.2in The \vn{restore} command cancels data or variable
+\vskip 0.2in 
+The \vn{restore} command cancels data or variable
 vetoes. See also the \vn{use}
 and \vn{veto} commands.
 
@@ -299,10 +300,23 @@ Examples:
 
 Format:
 \begin{example}
-  run <optimizer>
+  run \{<optimizer>\}
 \end{example}
 
-\vskip 0.2in
+\vskip 0.2in The \vn{run} command runs an optimizer. If
+\vn{<optimizer>} is not given then the default optimizer is used. To
+stop the optimizer before it is finished press the period ``.'' key.
+Valid optimizers are:
+\begin{example}
+  lm            ! Levenburg-Marquardt
+  de            ! Differential Evolution
+\end{example}
+
+Examples:
+\begin{example}
+  run 
+  run de
+\end{example}
 
 %------------------------------------------------------------------------
 \section{Set}

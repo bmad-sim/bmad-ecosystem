@@ -20,6 +20,7 @@ subroutine tao_lm_optimizer ()
 use tao_mod
 use nr
 use tao_dmerit_mod
+use single_char_input_mod
 
 implicit none
 
@@ -40,6 +41,7 @@ logical :: finished, init_needed = .true.
 
 character(20) :: r_name = 'tao_lm_optimizer'
 character(80) line
+character(1) char
 
 ! setup
 
@@ -95,6 +97,18 @@ do i = 1, s%global%n_opti_cycles
   call tao_mrq_func (x, a, y_fit, dy_da)  ! put a -> model
   write (line, '(i5, f14.3, 1pe10.2)'), i, tao_merit(), a_lambda
   call out_io (s_blank$, r_name, line)
+
+! look for keyboard input to end optimization
+
+  do
+    call get_tty_char (char, .false., .false.) 
+    if (char == '.') then
+      s%global%optimizer_running = .false.
+      return
+    endif
+    if (char == achar(0)) exit   ! only exit if there is no more input
+  enddo
+
 enddo
 
 end subroutine

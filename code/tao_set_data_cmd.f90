@@ -121,6 +121,9 @@ case ('ref')
 case ('good_user')
   l_ptr => data(:)%good_user
   using = 'l'
+case ('good_data')
+  l_ptr => data(:)%good_data
+  using = 'l'
 case default
   call out_io (s_error$, r_name, 'UNKNOWN COMPONENT NAME: ' // component)
   return

@@ -81,6 +81,7 @@ end subroutine
 function merit_wrapper (var_vec, end_flag) result (this_merit)
 
 use tao_mod
+use single_char_input_mod
 
 implicit none
 
@@ -97,10 +98,9 @@ integer t0(8), t1(8), t_del(8), t_delta
 
 character(80) line
 character(20) :: r_name = 'tao_de_optimizer'
+character(1) char
 
 ! Init
-
-end_flag = 0  ! continue
 
 if (tao_com%opti_init) then
   merit_min = 1e35
@@ -108,6 +108,19 @@ if (tao_com%opti_init) then
   merit_min_type = 1e35
   tao_com%opti_init = .false.
 endif
+
+! look for keyboard input to end optimization
+
+end_flag = 0  ! continue
+
+do
+  call get_tty_char (char, .false., .false.) 
+  if (char == '.') then
+    end_flag = 1                     ! signal stop
+    s%global%optimizer_running = .false.
+  endif
+  if (char == achar(0)) exit   ! only exit if there is no more input
+enddo
 
 !
 

@@ -271,12 +271,6 @@ subroutine tao_single_mode (char)
     case ('P')
       call tao_output_cmd ('hard')
   
-! /t: Read from the current tao input file
-
-    case ('t')
-      call tao_read_single_input_file (s%global%tao_single_mode_file)
-      print *, 'Read in tao file: ', trim(s%global%tao_single_mode_file)
-
 ! /w: Output to default file.
 
     case ('w')
