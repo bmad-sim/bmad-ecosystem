@@ -945,7 +945,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_macro_distribution (beam, init, canonical_out)
+! Subroutine init_macro_distribution (beam, init, canonical_out, liar_gaussian)
 !
 ! Subroutine to initialize a macroparticle distribution.
 ! This routine uses the LIAR algorithm. See the Bmad manual for more details.
@@ -958,6 +958,10 @@ end subroutine
 !                     parameters of the initial distribution. See the 
 !                     definition of the structure for more details.
 !   canonical_out -- Logical: If True then convert to canonical coords.
+!   liar_gaussian -- Logical, optional: If true then use the liar algorithm
+!                       for calculating macroparticle charge values.
+!                       This is inaccurate at the few percent level.
+!                       Default is False.
 !
 ! Output:
 !   beam -- beam_struct: Initialized Structure
@@ -965,18 +969,18 @@ end subroutine
 !       %slice(:) -- %slice(1) is leading slice in a bunch. 
 !-
 
-subroutine init_macro_distribution (beam, init, canonical_out)
+subroutine init_macro_distribution (beam, init, canonical_out, liar_gaussian)
 
   implicit none
 
   type (beam_struct), target ::  beam
-  type (macro_init_struct) init
+  type (macro_init_struct), intent(in) :: init
   type (bunch_struct), pointer :: bunch
 
   real(rp) z_fudge, e_fudge, z0, dz, e0, de, ex, ey
   integer i, j, k
-  logical canonical_out
-
+  logical, intent(in) :: canonical_out
+  logical, optional, intent(in) :: liar_gaussian
 ! Reallocate if needed 
 
   call reallocate_beam (beam, init%n_bunch, init%n_slice, init%n_macro)
@@ -1056,8 +1060,148 @@ function gauss_int(x) result (int)
   use nr
 
   real(rp) x, int
-  int = erf(x/sqrt_2) / 2  ! Error function from Numerical Recipes.
 
+  if (logic_option(.false., liar_gaussian)) then
+    int = gauss_int_liar(x)
+  else
+    int = erf(x/sqrt_2) / 2  ! Error function from Numerical Recipes.
+  endif
+
+end function
+
+!-----------------------------------------------------
+
+function gauss_int_liar(x) result (g_int)
+
+  implicit none
+
+  real(rp) x
+  real(rp) g_int
+  integer i
+  integer ipos
+  real*4 zlo_gauss(46)
+  real*4 int_gauss(46)
+  real*4 sign
+  real*4 slope
+
+! define table of integrated gaussian distribution. integral goes
+! from zero to zlo_gauss(i):
+
+  zlo_gauss(01) = 0.0
+  int_gauss(01) = 0.0000
+  zlo_gauss(02) = 0.1
+  int_gauss(02) = 0.0398
+  zlo_gauss(03) = 0.2
+  int_gauss(03) = 0.0793
+  zlo_gauss(04) = 0.3
+  int_gauss(04) = 0.1179
+  zlo_gauss(05) = 0.4
+  int_gauss(05) = 0.1554
+  zlo_gauss(06) = 0.5
+  int_gauss(06) = 0.1915
+  zlo_gauss(07) = 0.6
+  int_gauss(07) = 0.2257
+  zlo_gauss(08) = 0.7
+  int_gauss(08) = 0.2580
+  zlo_gauss(09) = 0.8
+  int_gauss(09) = 0.2881
+  zlo_gauss(10) = 0.9
+  int_gauss(10) = 0.3159
+  zlo_gauss(11) = 1.0
+  int_gauss(11) = 0.3413
+  zlo_gauss(12) = 1.1
+  int_gauss(12) = 0.3643
+  zlo_gauss(13) = 1.2
+  int_gauss(13) = 0.3849
+  zlo_gauss(14) = 1.3
+  int_gauss(14) = 0.4032
+  zlo_gauss(15) = 1.4
+  int_gauss(15) = 0.4192
+  zlo_gauss(16) = 1.5
+  int_gauss(16) = 0.4332
+  zlo_gauss(17) = 1.6
+  int_gauss(17) = 0.4452
+  zlo_gauss(18) = 1.7
+  int_gauss(18) = 0.4554
+  zlo_gauss(19) = 1.8
+  int_gauss(19) = 0.4641
+  zlo_gauss(20) = 1.9
+  int_gauss(20) = 0.4713
+  zlo_gauss(21) = 2.0
+  int_gauss(21) = 0.4772
+  zlo_gauss(22) = 2.1
+  int_gauss(22) = 0.4821
+  zlo_gauss(23) = 2.2
+  int_gauss(23) = 0.4860966
+  zlo_gauss(24) = 2.3
+  int_gauss(24) = 0.4892759
+  zlo_gauss(25) = 2.4
+  int_gauss(25) = 0.4918025
+  zlo_gauss(26) = 2.5
+  int_gauss(26) = 0.4937903
+  zlo_gauss(27) = 2.6
+  int_gauss(27) = 0.4953388
+  zlo_gauss(28) = 2.7
+  int_gauss(28) = 0.4965330
+  zlo_gauss(29) = 2.8
+  int_gauss(29) = 0.4974449
+  zlo_gauss(30) = 2.9
+  int_gauss(30) = 0.4981342
+  zlo_gauss(31) = 3.0
+  int_gauss(31) = 0.4986501
+  zlo_gauss(32) = 3.1
+  int_gauss(32) = 0.4990324
+  zlo_gauss(33) = 3.2
+  int_gauss(33) = 0.4993129
+  zlo_gauss(34) = 3.3
+  int_gauss(34) = 0.4995166
+  zlo_gauss(35) = 3.4
+  int_gauss(35) = 0.4996631
+  zlo_gauss(36) = 3.5
+  int_gauss(36) = 0.4997674
+  zlo_gauss(37) = 3.6
+  int_gauss(37) = 0.4998409
+  zlo_gauss(38) = 3.7
+  int_gauss(38) = 0.4998922
+  zlo_gauss(39) = 3.8
+  int_gauss(39) = 0.4999276
+  zlo_gauss(40) = 3.9
+  int_gauss(40) = 0.4999519
+  zlo_gauss(41) = 4.0
+  int_gauss(41) = 0.4999683
+  zlo_gauss(42) = 4.1
+  int_gauss(42) = 0.4999793
+  zlo_gauss(43) = 4.2
+  int_gauss(43) = 0.4999867
+  zlo_gauss(44) = 4.3
+  int_gauss(44) = 0.4999915
+  zlo_gauss(45) = 4.4
+  int_gauss(45) = 0.4999946
+  zlo_gauss(46) = 4.5
+  int_gauss(46) = 0.4999966
+
+
+  ipos = 0
+  do i = 1, 45
+    if ( zlo_gauss(i)   .le. abs(x) .and. &
+        zlo_gauss(i+1) .gt. abs(x) ) then
+      ipos = i
+      exit
+    endif
+  end do
+
+  i     = ipos
+  slope = (int_gauss(i+1) - int_gauss(i)) / &
+         (zlo_gauss(i+1) - zlo_gauss(i))
+
+  if (x == 0) then
+    g_int = 0
+  else
+    if (x < 0) sign = -1.
+    g_int = (int_gauss(i) + (abs(x) - zlo_gauss(i)) * slope )
+    if (x < 0) g_int = -g_int
+  endif
+  
 end function
 
 end subroutine
