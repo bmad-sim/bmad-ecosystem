@@ -35,7 +35,7 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor,  &
                                          twiss_out, type_control, ring)
 
   use bmad_struct
-  use bmad_interface, only: type2_ele
+  use bmad_interface, except => type_ele
 
   implicit none
 

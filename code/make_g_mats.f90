@@ -20,7 +20,7 @@
 subroutine make_g_mats (ele, g_mat, g_inv_mat)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => make_g_mats
 
   implicit none
 

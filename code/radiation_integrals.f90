@@ -80,11 +80,11 @@
 #include "CESR_platform.inc"
 
 subroutine radiation_integrals (ring, orb_, mode, ix_cache)
-                     
-  use precision_def
+
   use nr
-  use rad_int_common
-  use radiation_mod
+  use rad_int_common, only: ric, calc_g_params, rad_int_cache_struct, &
+                            quad_bend_cache_struct
+  use radiation_mod, except => radiation_integrals
 
   implicit none
 
@@ -97,11 +97,11 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
   real(rp), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
   real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
-  real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, c, gamma_f
+  real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f
   real(rp) v(4,4), v_inv(4,4), f0, f1, s, mc2, gamma, gamma4, gamma6
 
   integer, optional :: ix_cache
-  integer i, j, k, ix, ir, key
+  integer i, j, k, ir, key
 
   logical do_alloc
   logical, parameter :: t = .true., f = .false.

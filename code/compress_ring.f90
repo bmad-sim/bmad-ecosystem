@@ -21,7 +21,7 @@
 subroutine compress_ring (ring, ok)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => compress_ring
 
   implicit none
                            

@@ -26,22 +26,20 @@
 subroutine track1_wiedemann_wiggler (start, ele, param, end)
                              
   use bmad_struct
-  use bmad_interface
-  use multipole_mod
+  use bmad_interface, except => track1_wiedemann_wiggler
+  use multipole_mod, only: multipole_ele_to_kt
 
   implicit none
 
-  type (coord_struct)  start, end, before
+  type (coord_struct)  start, end
   type (ele_struct)  ele
   type (param_struct)  param
 
-  real(rp) length, k_z, factor, dx
-  real(rp) l_original, l_start, l_end
-  real(rp) const1, const3, tan_theta
-  real(rp) x_lim, y_lim, l_period, l_bend, l_drift, rho_bend, angle
+  real(rp) length, k_z, factor, dx, l_start, l_end
+  real(rp) const1, const3, l_period, l_bend, l_drift, rho_bend, angle
   real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 
-  integer i, j, n, n_slice, n_pole
+  integer i, n, n_pole
 
   logical pole_multipoles_on
 
@@ -138,15 +136,15 @@ contains
 subroutine track_period (i_pole, l_bend, rho_bend, l_drift, factor)
 
   type coord_struct8
-    real(8) vec(6)
+    real(dp) vec(6)
   end type
 
   type (coord_struct8) end8
 
   real(rp) l_bend, rho_bend, l_drift, y_ave, factor, l_1, l_2, l_track
 
-  real*8 denom, s_center, x_center, a, b, c, descrim
-  real*8 del_s, rho, radix, x_vel_old
+  real(dp) denom, s_center, x_center
+  real(dp) del_s, rho, radix, x_vel_old
         
   integer i_pole, flip
 

@@ -31,7 +31,7 @@
 subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => twiss_from_mat6
 
   implicit none
 
@@ -45,7 +45,7 @@ subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
   real(rp) det, rate1, rate2
   real(rp) :: tol = 1.0e-3
 
-  integer i, j
+  integer i
 
   character(20) :: r_name = 'twiss_from_mat6'
 
@@ -68,8 +68,8 @@ subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
       rate2 = 10.0
       rate1 = max(rate1, maxval(abs(mat4)))
     else
-      rate1 = sqrt(max(abs(u(1,1) + u(2,2)) - 2, 0.0))
-      rate2 = sqrt(max(abs(u(3,3) + u(4,4)) - 2, 0.0))
+      rate1 = sqrt(max(abs(u(1,1) + u(2,2)) - 2, 0.0_rp))
+      rate2 = sqrt(max(abs(u(3,3) + u(4,4)) - 2, 0.0_rp))
     endif
     growth_rate = max(rate1, rate2)
     stable = .false.

@@ -24,7 +24,7 @@
 subroutine make_mat6_custom (ele, param, c0, c1)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => make_mat6_custom
 
   implicit none
 

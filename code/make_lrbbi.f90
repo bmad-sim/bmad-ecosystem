@@ -42,7 +42,7 @@
 subroutine MAKE_LRBBI(master_ring_oppos, ring, ix_LRBBI, master_ix_LRBBI_oppos)
 
   use bmad_struct
-  use bmad_interface                     
+  use bmad_interface, except => MAKE_LRBBI
 
   implicit none
 

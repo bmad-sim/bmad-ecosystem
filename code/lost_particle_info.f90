@@ -33,14 +33,13 @@
 subroutine lost_particle_info (lattice, orbit, ix_lost, plane_lost)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => lost_particle_info
 
   implicit none
 
   type (ring_struct) lattice
   type (coord_struct) orbit(0:)
 
-  real(rp) x_lim, y_lim
   integer ix_lost, plane_lost, ix
   character(20) :: r_name = 'lost_particle_info'
 

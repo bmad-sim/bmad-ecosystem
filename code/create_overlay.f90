@@ -44,8 +44,8 @@
 subroutine create_overlay (ring, ix_overlay, attrib_name, contl)
 
   use bmad_struct
-  use bmad_interface
-  use bookkeeper_mod
+  use bmad_interface, except => create_overlay
+  use bookkeeper_mod, only: control_bookkeeper
 
   implicit none
 
@@ -53,8 +53,8 @@ subroutine create_overlay (ring, ix_overlay, attrib_name, contl)
   type (ele_struct), pointer :: slave, lord
   type (control_struct)  contl(:)
 
-  integer i, j, ix, ix2, ixc, ix_overlay, n_con2
-  integer ix_slave, n_slave, ix_attrib, slave_type, idel
+  integer i, j, ix, ixc, ix_overlay, n_con2
+  integer ix_slave, n_slave, ix_attrib, slave_type
 
   character(*) attrib_name
   character(16) at_name

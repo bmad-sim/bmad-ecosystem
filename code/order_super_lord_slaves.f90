@@ -19,7 +19,7 @@
 subroutine order_super_lord_slaves (ring, ix_lord)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => order_super_lord_slaves
   use nr
 
   implicit none

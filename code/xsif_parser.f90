@@ -28,7 +28,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
   use xsif_elements
   use xsif_size_pars
   use xsif_elem_pars
-  use bmad_parser_mod
+  use bmad_parser_mod, except => xsif_parser
 
   implicit none
 
@@ -42,7 +42,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
 
   real(rp) k2, angle
 
-  character(*), intent(in) :: xsif_file
+  character(*) :: xsif_file
   character(100) name, line
   character(200) full_name
 

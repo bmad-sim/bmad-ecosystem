@@ -16,7 +16,7 @@
 subroutine check_ring_controls (ring, exit_on_error)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => check_ring_controls
 
   implicit none
        
@@ -24,7 +24,7 @@ subroutine check_ring_controls (ring, exit_on_error)
   type (ele_struct), pointer :: ele, ele2
 
   integer i_t, j, i_t2, ix, t_type, t2_type, n, cc(100), i
-  integer n_count, ix1, ix2, ii, key
+  integer ix1, ix2, ii
 
   logical exit_on_error, found_err, good_control(10,10)
   logical i_beam_here

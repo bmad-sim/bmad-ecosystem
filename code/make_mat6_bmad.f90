@@ -23,7 +23,7 @@
 
 subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
-  use bmad
+  use bmad, except => make_mat6_bmad
 
   implicit none
 
@@ -35,27 +35,26 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
   real(rp), pointer :: mat6(:,:)
 
-  real(rp) mat6_m(6,6), mat2(2,2), mat4(4,4), kmat1(4,4), kmat2(4,4)
-  real(rp) e1, e2, angle, g, cos_angle, sin_angle, k1, ks, length, kc
-  real(rp) phi, k2l, k3l, c2, s2, cs, ks2, del_l, g_bend, l_period, l_bend
-  real(rp) factor, l_drift, dx, kmat6(6,6), drift(6,6)
+  real(rp) mat6_m(6,6), mat4(4,4), kmat1(4,4), kmat2(4,4)
+  real(rp) e1, e2, angle, g, k1, ks, length
+  real(rp) k2l, k3l, c2, s2, cs, ks2, del_l
+  real(rp) factor, kmat6(6,6), drift(6,6)
   real(rp) s_pos, s_pos_old, z_slice(100)
   real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-  real(rp) r, c_e, c_m, gamma_old, gamma_new, vec_st(4)
-  real(rp) sqrt_k, arg, kick2, rel_E, rel_E2, dE, r11, r12, r21, r22
-  real(rp) cx, sx, cy, sy, k2l_2, k2l_3, k2l_4, k2
-  real(rp) x_off, y_off, s_off, x_pitch, y_pitch, y_ave, k_z, del_x, del_y
+  real(rp) c_e, c_m, gamma_old, gamma_new
+  real(rp) arg, rel_E, rel_E2, dE, r11, r12, r21, r22
+  real(rp) cy, sy, k2, s_off, x_pitch, y_pitch, y_ave, k_z
   real(rp) dz_x(3), dz_y(3), xp_start, yp_start
   real(rp) t5_11, t5_14, t5_22, t5_23, t5_33, t5_34, t5_44
   real(rp) t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
   real(rp) t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
-  real(rp) lcs, lc2s2, error, k, L
+  real(rp) lcs, lc2s2, k, L
   real(rp) cos_phi, gradient, e_start, e_end, e_ratio
   real(rp) alpha, sin_a, cos_a, f, phase, E, pxy2, dE0
   real(rp) g_tot, b1, rho, ct, st, x, px, y, py, z, pz, Dxy, Dy, px_t
   real(rp) Dxy_t, dpx_t, df_dpy, df_dE, kx_1, ky_1, kx_2, ky_2
 
-  integer i, n, n_slice, n_pole, key
+  integer i, n_slice, key
 
   logical, optional :: end_in
   character(16) :: r_name = 'make_mat6_bmad'
@@ -92,7 +91,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
           ecollimator$, monitor$, instrument$, hkicker$, vkicker$ /) )) then
 
     call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
-    call mat6_add_multipoles_and_s_offset
+    call add_multipoles_and_s_offset
     return
   endif
 
@@ -221,7 +220,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       call tilt_mat6 (mat6, ele%value(tilt_tot$)+ele%value(roll$))
     endif
 
-    call mat6_add_multipoles_and_s_offset
+    call add_multipoles_and_s_offset
 
 !--------------------------------------------------------
 ! quadrupole
@@ -270,7 +269,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       call tilt_mat6 (mat6, ele%value(tilt_tot$))
     endif
 
-    call mat6_add_multipoles_and_s_offset
+    call add_multipoles_and_s_offset
 
 !--------------------------------------------------------
 ! Sextupole.
@@ -300,7 +299,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       call tilt_mat6 (mat6, ele%value(tilt_tot$))
     endif
 
-    call mat6_add_multipoles_and_s_offset
+    call add_multipoles_and_s_offset
 
 !--------------------------------------------------------
 ! octupole
@@ -329,7 +328,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       call tilt_mat6 (mat6, ele%value(tilt_tot$))
     endif
 
-    call mat6_add_multipoles_and_s_offset
+    call add_multipoles_and_s_offset
 
 !--------------------------------------------------------
 ! solenoid
@@ -414,7 +413,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     yp_start = (c0%vec(4) - ks2 * c0%vec(1)) 
     mat6(5,6) = length * (xp_start**2 + yp_start**2 ) / rel_E**3
 
-    call mat6_add_multipoles_and_s_offset
+    call add_multipoles_and_s_offset
 
 !--------------------------------------------------------
 ! linac rf cavity
@@ -441,7 +440,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     if (gradient == 0) then
       call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
-      call mat6_add_multipoles_and_s_offset
+      call add_multipoles_and_s_offset
       return
     endif
 
@@ -499,7 +498,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(2,:) = (1 + c1%vec(6)) * mat6(2,:) 
     mat6(4,:) = (1 + c1%vec(6)) * mat6(4,:)
 
-    call mat6_add_multipoles_and_s_offset
+    call add_multipoles_and_s_offset
 
 !--------------------------------------------------------
 ! rf cavity
@@ -555,7 +554,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(6,5) = k * (1 + pxy2*L*k/6)
     mat6(6,6) = 1 + pxy2*k*L/(2*E2*E)
 
-    call mat6_add_multipoles_and_s_offset
+    call add_multipoles_and_s_offset
 
 !--------------------------------------------------------
 ! beam-beam interaction
@@ -606,7 +605,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     endif
 
-    call mat6_add_multipoles_and_s_offset
+    call add_multipoles_and_s_offset
 
 !--------------------------------------------------------
 ! taylor
@@ -626,7 +625,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     call mat_make_unit (mat6)     ! make a unit matrix
 
     if (length == 0) then
-      call mat6_add_multipoles_and_s_offset
+      call add_multipoles_and_s_offset
       return
     endif
 
@@ -670,7 +669,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       call tilt_mat6 (mat6, ele%value(tilt_tot$))
     endif
 
-    call mat6_add_multipoles_and_s_offset
+    call add_multipoles_and_s_offset
 
 !--------------------------------------------------------
 ! solenoid/quad
@@ -686,7 +685,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       call tilt_mat6 (mat6, ele%value(tilt_tot$))
     endif
 
-    call mat6_add_multipoles_and_s_offset
+    call add_multipoles_and_s_offset
 
 !--------------------------------------------------------
 ! multipole
@@ -743,7 +742,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 !!                                    0.0_rp, 0.0_rp, c00%vec, mat4, vec_st)
     mat4 = mat6(1:4,1:4)
 
-    call mat6_add_multipoles_and_s_offset
+    call add_multipoles_and_s_offset
 
 !--------------------------------------------------------
 ! rbends are not allowed internally
@@ -778,7 +777,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
 contains
 
-subroutine mat6_add_multipoles_and_s_offset
+subroutine add_multipoles_and_s_offset
 
   if (associated(ele%a) .and. key /= multipole$ .and. key /= ab_multipole$) then
     mat6_m = 0
@@ -835,11 +834,10 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 
-
 subroutine bbi_kick_matrix (ele, orb, s_pos, mat6)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => bbi_kick_matrix
 
   implicit none
 

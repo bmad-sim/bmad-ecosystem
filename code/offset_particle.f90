@@ -49,9 +49,9 @@
 subroutine offset_particle (ele, param, coord, set, set_canonical, &
                               set_tilt, set_multipoles, set_hvkicks, s_pos)
 
-  use bmad_interface
-  use multipole_mod
-  use track1_mod
+  use bmad_interface, except => offset_particle
+  use multipole_mod, only: multipole_ele_to_kt, multipole_kick
+  use track1_mod, only: track_a_drift
 
   implicit none
 

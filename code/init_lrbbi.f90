@@ -31,7 +31,7 @@
 subroutine init_LRBBI(ring, oppos_ring, LRBBI_ele, ix_LRBBI, ix_oppos)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => init_LRBBI
   
   implicit none
 

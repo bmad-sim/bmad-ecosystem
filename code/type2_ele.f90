@@ -42,7 +42,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
                                twiss_out, type_control, lines, n_lines, ring)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => type2_ele
   use multipole_mod
 
   implicit none
@@ -51,10 +51,10 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
   type (ring_struct), optional, intent(in) :: ring
   type (wig_term_struct), pointer :: term
 
-  integer, intent(in) :: type_mat6
+  integer, intent(in) :: type_mat6, twiss_out
   integer, intent(out) :: n_lines
-  integer i, j, k, n, twiss_out, ix, iv, ic, ct, nl2
-  integer nl, nt, n_max, i_max, particle
+  integer i, j, n, ix, iv, ic, ct, nl2
+  integer nl, nt, n_max, particle
   integer pos_tot(n_attrib_maxx)
 
   real(rp) coef
@@ -65,7 +65,6 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
   character(80), pointer :: li(:), li2(:)
   character(16) a_name, name
   character(12) val_str
-  character(80) str
   character(2) str_i
 
   logical, intent(in) :: type_taylor
@@ -258,7 +257,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
   endif
 
   if (attribute_index(ele, 'SYMPLECTIFY') /= 0) then
-    write (li(nl+1), '(a, L)') ' Symplectify:       ', ele%symplectify
+    write (li(nl+1), '(a, l1)') ' Symplectify:       ', ele%symplectify
     nl = nl + 1
   endif
   

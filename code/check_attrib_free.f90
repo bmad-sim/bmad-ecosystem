@@ -30,7 +30,7 @@
 subroutine check_attrib_free (ele, ix_attrib, ring, err_flag, err_print_flag)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => check_attrib_free
 
   implicit none
 

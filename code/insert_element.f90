@@ -26,7 +26,7 @@
 subroutine insert_element (ring, insert_ele, insert_index)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => insert_element
 
   implicit none
 

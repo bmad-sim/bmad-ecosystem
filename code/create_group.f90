@@ -82,7 +82,7 @@
 subroutine create_group (ring, ix_ele, contrl)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => create_group
 
   implicit none
 

@@ -34,7 +34,7 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
                   ptr_attrib, ix_attrib, err_flag, err_print_flag)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => pointer_to_attribute
 
   implicit none
 
@@ -42,7 +42,7 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
 
   real(rp), pointer :: ptr_attrib
 
-  integer i_ele, ix_attrib, i, ir, ix
+  integer ix_attrib
 
   character*(*) attrib_name
   character(16) a_name

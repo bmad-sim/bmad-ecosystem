@@ -43,7 +43,7 @@
 subroutine twiss_propagate_many (ring, ix_start, ix_end, direction)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => twiss_propagate_many
 
   implicit none
 

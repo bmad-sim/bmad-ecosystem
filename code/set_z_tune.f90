@@ -27,16 +27,14 @@
 subroutine set_z_tune (ring)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => set_z_tune
 
   implicit none
 
   type (ring_struct), target :: ring
   type (ele_struct), pointer :: ele
-  type (modes_struct) mode
-  type (coord_struct)  c0
 
-  real(rp) z_tune_wanted, volt_total, r_volt
+  real(rp) z_tune_wanted, r_volt
   real(rp) coef_tot, volt, E0
 
   integer i, j, k, ix, n_rf, ix_rf(100), ix_attrib(100)

@@ -35,8 +35,7 @@
 
 subroutine track1_runge_kutta (start, ele, param, end, track)
 
-  use runge_kutta_mod
-  use bmad_interface
+  use runge_kutta_mod, except => track1_runge_kutta
 
   implicit none
 
@@ -46,7 +45,7 @@ subroutine track1_runge_kutta (start, ele, param, end, track)
   type (ele_struct), target, intent(inout) :: ele
   type (track_struct) track
 
-  real(rp) s_start, s_end, rel_tol, abs_tol, del_s_step, del_s_min, fac
+  real(rp) rel_tol, abs_tol, del_s_step, del_s_min
 
 ! init
 

@@ -22,7 +22,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
                                                   n_files, file_names)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => write_digested_bmad_file
 
   implicit none
 
@@ -33,7 +33,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   integer, intent(in), optional :: n_files
   integer d_unit, i, j, k, n_file
   integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
-  integer stat_b(12), stat, ierr
+  integer stat_b(12), stat
   integer ix_srf, ix_sr, ix_lrf, ix_lr
 
   character(*) digested_name

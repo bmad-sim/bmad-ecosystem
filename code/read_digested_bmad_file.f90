@@ -26,7 +26,7 @@
 subroutine read_digested_bmad_file (digested_name, ring, version)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => read_digested_bmad_file
 
   implicit none
 
@@ -35,9 +35,8 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   
   integer d_unit, n_files, version, i, j, k, ix
   integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
-  integer ix_srf, ix_sr, ix_lrf, ix_lr, i_garbage
-  integer stat_b(12), stat, ierr, idate_old
-  integer ix_r_old
+  integer ix_srf, ix_sr, ix_lrf, ix_lr
+  integer stat_b(12), idate_old
 
   character(*) digested_name
   character(200) fname(3), input_file_name
@@ -84,10 +83,10 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   endif
 
   if (version > bmad_inc_version$) then
-    if (bmad_status%type_out) call out_io (s_warn$, r_name, (/ &
+    if (bmad_status%type_out) call out_io (s_warn$, r_name, &
        'DIGESTED FILE HAS VERSION: \i4\ ', &
        'GREATER THAN VERSION OF THIS PROGRAM: \i4\ ', &
-       'WILL NOT USE THE DIGESTED FILE. YOU SHOULD RECOMPILE THIS PROGRAM.' /), &
+       'WILL NOT USE THE DIGESTED FILE. YOU SHOULD RECOMPILE THIS PROGRAM.', &
        i_array = (/ version, bmad_inc_version$ /) )
     close (d_unit)
     bmad_status%ok = .false.

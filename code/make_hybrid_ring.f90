@@ -51,20 +51,19 @@
 subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
                                        r_out, ix_out, use_taylor, orb0_)
 
-  use ptc_interface_mod
+  use ptc_interface_mod, except => make_hybrid_ring
   use bmad_utils_mod
 
   implicit none
 
   type (ring_struct), target :: r_in, r_out
   type (coord_struct), optional, volatile :: orb0_(0:)
-  type (coord_struct) c0, c1, c2
+  type (coord_struct) c0, c2
   type (ele_struct), pointer :: ele_in, ele_out
-  type (real_8) y8(6)
 
   real(rp) e_vec(4)
 
-  integer j_in, i_out, ix_out(:), i, k, n
+  integer j_in, i_out, ix_out(:), k, n
   integer n_ele, j, ix, ic, o_key, n_con, n_ic
   integer, allocatable, save :: ic_(:)
 

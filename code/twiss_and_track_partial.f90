@@ -33,7 +33,7 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
                                                      start, end, body_only)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => twiss_and_track_partial
   use bookkeeper_mod, only: attribute_bookkeeper
 
   implicit none
@@ -45,9 +45,9 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   type (coord_struct) c0, c1
   type (param_struct) param
 
-  real(rp) del_s, del, l_orig
+  real(rp) del_s, l_orig
   logical, optional :: body_only
-  character(20) :: r_name = 'twiss_and_track_partial'
+  character(24) :: r_name = 'twiss_and_track_partial'
   character(80) line
 
 ! Error check

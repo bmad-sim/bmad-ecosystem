@@ -27,16 +27,13 @@
 subroutine chrom_calc (ring, delta_e, chrom_x, chrom_y)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => chrom_calc
 
   implicit none
 
   type (ring_struct)  ring
   type (ring_struct), save :: ring2
-  type (coord_struct)  c0
   type (coord_struct), allocatable, save :: coord_(:)
-
-  integer i, key
 
   real(rp) high_tune_x, high_tune_y, low_tune_x, low_tune_y
   real(rp) delta_e, chrom_x, chrom_y

@@ -95,14 +95,13 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
 
 end subroutine get_lattice_list
 
-#endif
 
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 ! unix version
 
-#if defined(CESR_UNIX) || defined(CESR_WINCVF)
+#else
 
 subroutine get_lattice_list (lat_list, num_lats, directory)
 

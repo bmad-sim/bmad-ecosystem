@@ -26,13 +26,13 @@
 function attribute_name (ele, ix_att) result (at_name)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => attribute_name
 
   implicit none
 
   type (ele_struct) ele
 
-  integer i, j, key, ix_att
+  integer i, key, ix_att
 
   character(16) attrib_array(n_key, n_attrib_special_maxx)
   character(16) at_name

@@ -57,9 +57,9 @@
 subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
   use bmad_struct
-  use bmad_interface
-  use bookkeeper_mod
-  use radiation_mod
+  use bmad_interface, except => closed_orbit_at_start
+  use bookkeeper_mod, only: set_on_off, save_state$, restore_state$, off$
+  use radiation_mod, only: sr_com
 
   implicit none
 
@@ -68,10 +68,10 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
   type (coord_struct)  co
   type (coord_struct), allocatable, save :: orbit_(:)
 
-  real(rp) s_mat(6,6), mat1(6,6), mat2(6,6), mat(6,6)
-  real(rp) amp_co, amp_del, factor / 1.0 /, t1(6,6)
+  real(rp) s_mat(6,6), mat2(6,6), mat(6,6)
+  real(rp) :: amp_co, amp_del, factor = 1.0, t1(6,6)
 
-  integer i, j, n, n_ele, i_dim
+  integer i, n, n_ele, i_dim
 
   logical iterate
   logical fluct_saved, aperture_saved
@@ -80,7 +80,7 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 ! allocate storage
 ! Random fluctuations must be turned off to find the closed orbit.
 
-  call reallocate_coord (orbit_,       ring%n_ele_max)
+  call reallocate_coord (orbit_, ring%n_ele_max)
 
   fluct_saved = sr_com%fluctuations_on
   sr_com%fluctuations_on = .false.  

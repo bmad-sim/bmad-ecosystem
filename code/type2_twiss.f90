@@ -25,7 +25,7 @@
 subroutine type2_twiss (ele, frequency_units, lines, n_lines)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => type2_twiss
 
   implicit none
 

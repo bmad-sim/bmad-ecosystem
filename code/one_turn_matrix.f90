@@ -22,7 +22,7 @@
 subroutine one_turn_matrix (ring, rf_on, t1)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => one_turn_matrix
 
   implicit none
 

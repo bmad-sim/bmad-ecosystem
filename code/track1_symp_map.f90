@@ -23,8 +23,8 @@
 
 subroutine track1_symp_map (start, ele, param, end)
 
-  use ptc_interface_mod
-  use tpsalie_analysis
+  use ptc_interface_mod, except => track1_symp_map
+  use tpsalie_analysis, only: assignment(=), operator(*), lnv
 
   implicit none
 
@@ -34,8 +34,6 @@ subroutine track1_symp_map (start, ele, param, end)
   type (param_struct), intent(inout) :: param
 
   real(dp) re(lnv)
-
-  integer i
 
 ! Make the genfield map if needed.
 

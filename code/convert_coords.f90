@@ -41,7 +41,7 @@
 subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => convert_coords
 
   implicit none
 
@@ -54,8 +54,8 @@ subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)
   real(rp) mat(4,4), mat_inv(4,4), mat2(2,2), mat2_inv(2,2), eta_vec(4)
 
   integer :: lab$ = 1, mode$ = 2, normalized$ = 3, action_angle$ = 4
-  character*16 type_names(5) / 'LAB', 'MODE', 'NORMALIZED', &
-                    'ACTION-ANGLE', ' ' /
+  character(16) :: type_names(5) = (/ 'LAB         ', 'MODE        ', &
+                      'NORMALIZED  ', 'ACTION-ANGLE', '            ' /)
 
 !---------------------------------------
 ! match character strings to type list

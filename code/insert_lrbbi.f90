@@ -23,7 +23,7 @@
 subroutine insert_LRBBI (ring, oppos_ring, cross_positions, ix_LRBBI)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => insert_LRBBI
 
   implicit none
 

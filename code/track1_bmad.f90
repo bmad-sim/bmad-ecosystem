@@ -28,10 +28,10 @@
 subroutine track1_bmad (start, ele, param, end)
 
   use bmad_struct
-  use bmad_interface
-  use track1_mod
-  use multipole_mod
-  use bookkeeper_mod
+  use bmad_interface, except => track1_bmad
+  use track1_mod, only: track_a_drift, quad_mat2_calc
+  use multipole_mod, only: multipole_ele_to_kt, multipole_kick
+  use bookkeeper_mod, only: attribute_bookkeeper
 
   implicit none
 
@@ -40,22 +40,18 @@ subroutine track1_bmad (start, ele, param, end)
   type (ele_struct),   intent(inout)  :: ele
   type (param_struct), intent(inout) :: param
 
-  type (coord_struct)  c0
-
-  real(rp) x_kick, y_kick, k1, k2, k2l, k3l, length, phase
-  real(rp) del, e1, e2, del_x_vel, del_y_vel, sig_x, sig_y, kx, ky, coef
+  real(rp) k1, k2, k2l, k3l, length, phase
+  real(rp) e2, sig_x, sig_y, kx, ky, coef
   real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
   real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
   real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
-  real(rp) ave_x_vel2, ave_y_vel2, rel_E, dE, ff
+  real(rp) rel_E, ff
   real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio
-  real(rp) alpha, sin_a, cos_a, f, z_ave, r11, r12, r21, r22
+  real(rp) alpha, sin_a, cos_a, f, r11, r12, r21, r22
   real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2
-  real(rp) xp_start, xp_end, yp_start, yp_end, dz4_coef(4,4), dz_coef(3)
+  real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3)
 
-  integer i, j, n, n_slice, key
-
-  logical init_needed / .true. /
+  integer i, n, n_slice, key
 
 ! initially set end = start
 

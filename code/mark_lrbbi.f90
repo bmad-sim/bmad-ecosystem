@@ -41,10 +41,10 @@
 
 #include "CESR_platform.inc"
 
-subroutine MARK_LRBBI(master_ring, master_ring_oppos, ring, crossings)
+subroutine mark_lrbbi (master_ring, master_ring_oppos, ring, crossings)
 
   use bmad_struct
-  use bmad_interface                    
+  use bmad_interface, except => mark_lrbbi
 
   implicit none
 
@@ -56,12 +56,12 @@ subroutine MARK_LRBBI(master_ring, master_ring_oppos, ring, crossings)
   real(rp), dimension(:,:) :: crossings
   real(rp) :: smallest, s_split
 
-  integer :: i, j, k, m, ierr, loc_smallest, ix_split
+  integer :: i, j, k, loc_smallest, ix_split
   integer :: ix_ele, master_ix_split, master_ix_ele, ring_index, total
-  integer :: index1, index2, index3, index4
+  integer :: index1, index2
   integer, dimension(1) :: minloc_array
 	
-  logical :: ok, split_done, split_done_1, split_done_2, split_done_3
+  logical :: split_done, split_done_1, split_done_2, split_done_3
 
 !
 

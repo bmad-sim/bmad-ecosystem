@@ -28,7 +28,7 @@
 subroutine ring_geometry (ring)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => ring_geometry
   use multipole_mod
 
   implicit none
@@ -39,11 +39,11 @@ subroutine ring_geometry (ring)
   integer i, key
 
   real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-  real(8) chord_len, angle, leng, old_theta, rho
-  real(8) s_ang, c_ang, s_the, c_the, s_phi, c_phi, s_psi, c_psi
-  real(8) pos(3), theta, phi, psi, tlt
-  real(8) w_mat(3,3), s_mat(3,3), r_mat(3), t_mat(3,3)
-  real(8) :: twopi_8 = 2 * 3.14159265358979
+  real(dp) chord_len, angle, leng, old_theta, rho
+  real(dp) s_ang, c_ang, s_the, c_the, s_phi, c_phi, s_psi, c_psi
+  real(dp) pos(3), theta, phi, psi, tlt
+  real(dp) w_mat(3,3), s_mat(3,3), r_mat(3), t_mat(3,3)
+  real(dp) :: twopi_dp = 2 * 3.14159265358979
 
 ! init
 ! old_theta is used to tell if we have to reconstruct the w_mat
@@ -105,25 +105,25 @@ subroutine ring_geometry (ring)
         if (key == sbend$) then
           angle = leng * dble(ele%value(g$))
           tlt = ele%value(tilt_tot$)
-          rho = 1.0_8 / ele%value(g$)
+          rho = 1.0_dp / ele%value(g$)
           s_ang = sin(angle); c_ang = cos(angle)
-          r_mat = (/ rho * (c_ang - 1), 0.0_8, rho * s_ang /)
+          r_mat = (/ rho * (c_ang - 1), 0.0_dp, rho * s_ang /)
         else
           angle = knl(0)
           tlt = tilt(0)
           s_ang = sin(angle); c_ang = cos(angle)
           r_mat = 0
         endif
-        s_mat(1,:) = (/ c_ang, 0.0_8, -s_ang /)
-        s_mat(2,:) = (/ 0.0_8, 1.0_8,  0.0_8 /)
-        s_mat(3,:) = (/ s_ang, 0.0_8,  c_ang /) 
+        s_mat(1,:) = (/ c_ang,  0.0_dp, -s_ang /)
+        s_mat(2,:) = (/ 0.0_dp, 1.0_dp,  0.0_dp /)
+        s_mat(3,:) = (/ s_ang,  0.0_dp,  c_ang /) 
         pos = pos + matmul(w_mat, r_mat)
 
         if (tlt /= 0) then
           s_ang = sin(tlt); c_ang = cos(tlt)
-          t_mat(1,:) = (/ c_ang, -s_ang, 0.0_8 /)
-          t_mat(2,:) = (/ s_ang,  c_ang, 0.0_8 /)
-          t_mat(3,:) = (/ 0.0_8,  0.0_8, 1.0_8 /)
+          t_mat(1,:) = (/ c_ang,  -s_ang,  0.0_dp /)
+          t_mat(2,:) = (/ s_ang,   c_ang,  0.0_dp /)
+          t_mat(3,:) = (/ 0.0_dp,  0.0_dp, 1.0_dp /)
           s_mat = matmul (t_mat, s_mat)
           t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
           s_mat = matmul (s_mat, t_mat)
@@ -138,27 +138,27 @@ subroutine ring_geometry (ring)
         angle = ele%value(x_pitch$)            ! x_pitch is negative MAD yrot
         if (angle /= 0) then
           s_ang = sin(angle); c_ang = cos(angle)
-          s_mat(1,:) = (/  c_ang, 0.0_8, s_ang /)
-          s_mat(2,:) = (/  0.0_8, 1.0_8, 0.0_8 /)
-          s_mat(3,:) = (/ -s_ang, 0.0_8, c_ang /) 
+          s_mat(1,:) = (/  c_ang,  0.0_dp, s_ang /)
+          s_mat(2,:) = (/  0.0_dp, 1.0_dp, 0.0_dp /)
+          s_mat(3,:) = (/ -s_ang,  0.0_dp, c_ang /) 
           w_mat = matmul(w_mat, s_mat)
         endif
      
         angle = ele%value(y_pitch$)            ! 
         if (angle /= 0) then
           s_ang = sin(angle); c_ang = cos(angle)
-          s_mat(1,:) = (/ 1.0_8,  0.0_8, 0.0_8 /)
-          s_mat(2,:) = (/ 0.0_8,  c_ang, s_ang /)
-          s_mat(3,:) = (/ 0.0_8, -s_ang, c_ang /) 
+          s_mat(1,:) = (/ 1.0_dp,  0.0_dp, 0.0_dp /)
+          s_mat(2,:) = (/ 0.0_dp,  c_ang,  s_ang /)
+          s_mat(3,:) = (/ 0.0_dp, -s_ang,  c_ang /) 
           w_mat = matmul(w_mat, s_mat)
         endif
 
         angle = ele%value(tilt$)
         if (angle /= 0) then
           s_ang = sin(angle); c_ang = cos(angle)
-          s_mat(1,:) = (/ c_ang, -s_ang, 0.0_8 /)
-          s_mat(2,:) = (/ s_ang,  c_ang, 0.0_8 /)
-          s_mat(3,:) = (/ 0.0_8,  0.0_8, 1.0_8 /) 
+          s_mat(1,:) = (/ c_ang,  -s_ang,  0.0_dp /)
+          s_mat(2,:) = (/ s_ang,   c_ang,  0.0_dp /)
+          s_mat(3,:) = (/ 0.0_dp,  0.0_dp, 1.0_dp /) 
           w_mat = matmul(w_mat, s_mat)
         endif
 
@@ -177,8 +177,8 @@ subroutine ring_geometry (ring)
 
       if (key == sbend$ .or. key == patch$ .or. key == multipole$) then
         theta = atan2 (w_mat(1,3), w_mat(3,3))
-        theta = theta - twopi_8 * &
-                       nint((theta - ring%ele_(i-1)%floor%theta) / twopi_8)
+        theta = theta - twopi_dp * &
+                       nint((theta - ring%ele_(i-1)%floor%theta) / twopi_dp)
         phi = atan2 (w_mat(2,3), sqrt(w_mat(1,3)**2 + w_mat(3,3)**2))
         psi = atan2 (w_mat(2,1), w_mat(2,2))
       endif

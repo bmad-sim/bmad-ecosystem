@@ -27,7 +27,7 @@
 subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => set_tune
 
   implicit none
 
@@ -116,10 +116,10 @@ subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
   phi_array(2) = phi_y/twopi
   phi_array(1) = phi_x_set/twopi
   phi_array(2) = phi_y_set/twopi
-  call out_io (s_error$, r_name, (/ 'CANNOT GET TUNE RIGHT.', &
+  call out_io (s_error$, r_name, 'CANNOT GET TUNE RIGHT.', &
         'CURRENT TUNE: \2f\ ', &
-        'SET TUNE:     \2f\ ' /), &
-        (/ phi_x/twopi, phi_y/twopi, phi_x_set/twopi, phi_y_set/twopi /) )
+        'SET TUNE:     \2f\ ', &
+        r_array = (/ phi_x/twopi, phi_y/twopi, phi_x_set/twopi, phi_y_set/twopi /))
   ok = .false.
 
 end subroutine

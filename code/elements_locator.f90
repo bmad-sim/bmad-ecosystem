@@ -23,7 +23,7 @@
 subroutine elements_locator (key, ring, indx)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => elements_locator
   
   implicit none
 

@@ -28,7 +28,7 @@
 subroutine track_all (ring, orbit_)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => track_all
   use bookkeeper_mod, only: control_lord_bookkeeper
 
   implicit none
@@ -38,7 +38,7 @@ subroutine track_all (ring, orbit_)
 
   integer n, i, nn
 
-  logical debug / .false. /
+  logical :: debug = .false.
 
 ! init
 

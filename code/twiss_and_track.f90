@@ -31,7 +31,7 @@
 subroutine twiss_and_track (ring, orb)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => twiss_and_track
 
   implicit none
 

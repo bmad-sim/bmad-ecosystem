@@ -38,9 +38,9 @@
 subroutine set_ele_attribute (ring, i_ele, attrib_name, &
                                 attrib_value, err_flag, make_mat6_flag, orbit_)
 
-  use bookkeeper_mod
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => set_ele_attribute
+  use bookkeeper_mod, only: control_bookkeeper
 
   implicit none
 
@@ -50,8 +50,7 @@ subroutine set_ele_attribute (ring, i_ele, attrib_name, &
   real(rp) attrib_value
   real(rp), pointer :: ptr_attrib
 
-  integer i_ele
-  integer i, ix, ir, ix_attrib
+  integer i_ele, ix_attrib
 
   character*(*) attrib_name
 

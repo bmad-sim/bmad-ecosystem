@@ -25,7 +25,7 @@
 subroutine one_turn_mat_at_ele (ele, phi_a, phi_b, mat4)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => one_turn_mat_at_ele
 
   type (ele_struct) ele
 

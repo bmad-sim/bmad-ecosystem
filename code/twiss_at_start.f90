@@ -35,7 +35,7 @@
 subroutine twiss_at_start (ring)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => twiss_at_start
 
   implicit none
 

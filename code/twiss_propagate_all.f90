@@ -26,7 +26,7 @@
 subroutine twiss_propagate_all (ring)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => twiss_propagate_all
 
   implicit none
 

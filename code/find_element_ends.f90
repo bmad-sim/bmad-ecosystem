@@ -26,7 +26,7 @@
 subroutine find_element_ends (ring, ix_ele, ix_start, ix_end)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => find_element_ends
   use nr, only: indexx
 
   implicit none

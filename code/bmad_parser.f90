@@ -38,7 +38,7 @@
 
 subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
-  use bmad_parser_mod
+  use bmad_parser_mod, except => bmad_parser
   use cesr_utils
   
   implicit none
@@ -57,28 +57,24 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   integer, allocatable :: seq_indexx(:), in_indexx(:)
   character(16), allocatable ::  name_(:), in_name(:), seq_name(:)
 
-  integer ix_word, i_use, i, j, k, n, ix, ixr, ixs, i_ring, it
-  integer i_lev, i_key, ic, ix_lord
-  integer iseq, n_ele_use, temp_maxx
-  integer ix_super, digested_version, key, ct
-  integer ix1, ix2, iv, n_arg, iseq_tot
-  integer ivar, ixx, j_lord, n_slave
+  integer ix_word, i_use, i, j, k, n, ix, i_lev
+  integer n_ele_use, digested_version, key
+  integer ix1, ix2, iseq_tot
   integer, pointer :: n_max
 
-  character*(*) in_file
-  character(16) word_2, name, a_name
-  character(1) delim*1
-  character(200) path, basename, full_name, digested_file
-  character(40) this_name, word_1
-  character(280) parse_line_save
+  character(*) in_file
+  character(1) delim
+  character(16) word_2, name
   character(16) :: r_name = 'bmad_parser'
+  character(40) this_name, word_1
+  character(200) path, basename, full_name, digested_file
+  character(280) parse_line_save
 
   real(rp) angle, energy_beam, energy_param, energy_0
 
   logical, optional :: make_mats6, digested_read_ok
   logical parsing, delim_found, matched_delim, arg_list_found, doit
-  logical file_end, found, err_flag, finished, save_taylor
-  logical, save :: init_needed = .true.
+  logical file_end, found, err_flag, finished
 
 ! see if digested file is open and current. If so read in and return.
 ! Note: The name of the digested file depends upon the real precision.
@@ -109,10 +105,10 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       return
     else
       if (bmad_status%type_out) then
-         call out_io (s_info$, r_name, (/ 'Taylor_order has changed.', &
-                      'Taylor_order in digested file: \i4\ ', &
-                      'Taylor_order now:              \i4\ ' /), &
-                      i_array = (/ ring%input_taylor_order, bmad_com%taylor_order /) )
+         call out_io (s_info$, r_name, 'Taylor_order has changed.', &
+             'Taylor_order in digested file: \i4\ ', &
+             'Taylor_order now:              \i4\ ', &
+             i_array = (/ ring%input_taylor_order, bmad_com%taylor_order /) )
       endif
       if (ring%input_taylor_order > bmad_com%taylor_order) &
                                            bp_com%write_digested = .false.

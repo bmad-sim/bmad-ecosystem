@@ -19,7 +19,7 @@
 subroutine s_calc (ring)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => s_calc
   
   implicit none
 

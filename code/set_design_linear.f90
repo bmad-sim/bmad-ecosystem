@@ -18,7 +18,7 @@
 subroutine set_design_linear (ring)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => set_design_linear
 
   implicit none
 

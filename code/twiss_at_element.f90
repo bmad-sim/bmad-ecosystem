@@ -27,7 +27,7 @@
 subroutine twiss_at_element (ring, ix_ele, start, end, average)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => twiss_at_element
   use nr
   
   implicit none

@@ -33,7 +33,7 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
 
   use bmad_struct
   use bmad_utils_mod
-  use bmad_interface, only: make_mat6
+  use bmad_interface, except => ring_make_mat6
   use bookkeeper_mod, only: control_lord_bookkeeper, control_bookkeeper
 
   implicit none
@@ -41,10 +41,8 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
   type (ring_struct), target :: ring
   type (coord_struct), optional, volatile :: coord_(0:)
   type (ele_struct), pointer :: ele
-  type (coord_struct) c1
 
-  integer i, j, k, ie, ix_ele, i1, i2, i3, ix1, ix2, ix3
-  integer ix_taylor(100), n_taylor, istat
+  integer i, j, ie, ix_ele, i1, ix_taylor(100), n_taylor
 
 ! Error check
 

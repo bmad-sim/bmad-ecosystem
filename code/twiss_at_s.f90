@@ -25,7 +25,7 @@
 subroutine twiss_at_s (ring, s, ele)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => twiss_at_s
 
   implicit none
 

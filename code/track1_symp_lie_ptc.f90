@@ -21,7 +21,7 @@
 
 subroutine track1_symp_lie_ptc (start, ele, param, end)
 
-  use ptc_interface_mod
+  use ptc_interface_mod, except => track1_symp_lie_ptc
   use s_tracking, only: DEFAULT, alloc_fibre
 
   implicit none
@@ -32,7 +32,7 @@ subroutine track1_symp_lie_ptc (start, ele, param, end)
   type (param_struct), intent(inout) :: param
   type (fibre), pointer :: fibre_ele
 
-  real(8) re(6)
+  real(dp) re(6)
   integer charge
 
 ! Construct a PTC fibre out of the ele element.

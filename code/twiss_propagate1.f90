@@ -28,19 +28,16 @@
 subroutine twiss_propagate1 (ele1, ele2)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => twiss_propagate1
 
   implicit none
   type (ele_struct)  ele1, ele2
   type (ele_struct), save :: ele_temp
 
-  integer i, j
-
-  real(rp) v_mat(4,4), v_inv_mat(4,4), amat2(2,2), y_inv(2,2), det
+  real(rp) v_mat(4,4), v_inv_mat(4,4), y_inv(2,2), det
   real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
   real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
-  real(rp) mat2(2,2), vec(4)
-  real(rp) eta_x(4), eta_a(4)
+  real(rp) mat2(2,2), eta_x(4), eta_a(4)
 
 !---------------------------------------------------------------------
 ! init

@@ -24,7 +24,7 @@
 subroutine add_superimpose (ring, super_ele, ix_super)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => add_superimpose
   use nrutil, only: reallocate
 
   implicit none
@@ -35,7 +35,7 @@ subroutine add_superimpose (ring, super_ele, ix_super)
 
   real(rp) s1, s2, length, s0
 
-  integer j, jj, k, idel, ix, n, i2, ic, n_con
+  integer j, jj, k, ix, n, i2, ic, n_con
   integer ix1_split, ix2_split, ix_super, ix_super_con
   integer ix_slave, ixn, ixc, superimpose_key, ix_slave_name
 

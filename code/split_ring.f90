@@ -25,8 +25,8 @@
 subroutine split_ring (ring, s_split, ix_split, split_done)
 
   use bmad_struct
-  use bmad_interface
-  use bookkeeper_mod
+  use bmad_interface, except => split_ring
+  use bookkeeper_mod, only: control_bookkeeper
 
   implicit none
 
@@ -34,10 +34,9 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
   type (ele_struct), save :: ele
   type (ele_struct), pointer :: ele1, ele2
 
-  real(rp) s_split, len_orig, len1, len2, coef1, coef2, angle0, coef_old
-  real(rp) dl
+  real(rp) s_split, len_orig, len1, len2, coef1, coef2, coef_old
 
-  integer i, j, k, ix, ix1, ix_del, ix1_del, ix2_del, ixx1
+  integer i, j, k, ix
   integer ix_split, ix_lord, ixc, ix_attrib, ix_super_lord
   integer icon, ix2, inc, nr, n_ic2, ct
 

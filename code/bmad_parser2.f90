@@ -32,31 +32,28 @@
 
 subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
-  use bmad_parser_mod
+  use bmad_parser_mod, except => bmad_parser2
 
   implicit none
     
   type (ring_struct), target :: ring, r_temp
-  type (ele_struct), pointer :: ele
   type (coord_struct), optional :: orbit_(0:)
   type (parser_ring_struct) pring
 
-  integer ix_word, ick, i, j, k, ix, ixe, ix_lord
-  integer jmax, i_key, last_con, ic, ixx, ele_num, ct
-  integer key, ix_super, ivar, n_max_old
+  integer ix_word, i, ix, last_con, ixx, ele_num
+  integer key, n_max_old
   integer, pointer :: n_max
 
   character(*) in_file
-  character(16) word_2, name, a_name
-  character(16) name1, name2
   character(1) delim 
+  character(16) word_2, name
   character(32) word_1
   character(40) this_name
   character(280) parse_line_save
 
   logical, optional :: make_mats6
   logical parsing, delim_found, found, matched_delim, doit
-  logical file_end, match_found, err_flag, finished
+  logical file_end, err_flag, finished
 
 ! init
 

@@ -20,7 +20,7 @@
 
 subroutine make_mat6_symp_lie_ptc (ele, param, c0)
 
-  use ptc_interface_mod
+  use ptc_interface_mod, except => make_mat6_symp_lie_ptc
 
   implicit none
 

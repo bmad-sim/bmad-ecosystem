@@ -18,7 +18,7 @@
 subroutine new_control (ring, ix_ele)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => new_control
 
   implicit none
 

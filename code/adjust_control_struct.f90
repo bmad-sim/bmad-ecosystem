@@ -24,7 +24,7 @@
 subroutine adjust_control_struct (ring, ix_ele)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => adjust_control_struct
   use nrutil, only: reallocate
 
   implicit none
@@ -32,7 +32,7 @@ subroutine adjust_control_struct (ring, ix_ele)
   type (ring_struct), target :: ring
   type (ele_struct), pointer :: ele
 
-  integer ix_ele, n_add, n_con, i2, ic, n_con2, n_ic, n_ic2
+  integer ix_ele, n_add, n_con, i2, n_con2, n_ic, n_ic2
 
 
 ! fix slave problems

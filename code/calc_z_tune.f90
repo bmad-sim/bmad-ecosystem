@@ -20,7 +20,7 @@
 subroutine calc_z_tune ( ring)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => calc_z_tune
   use nrtype
   use nr
 

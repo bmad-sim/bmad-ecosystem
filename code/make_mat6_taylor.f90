@@ -20,7 +20,7 @@
 
 subroutine make_mat6_taylor (ele, param, c0)
 
-  use ptc_interface_mod
+  use ptc_interface_mod, except => make_mat6_taylor
 
   implicit none
 

@@ -20,7 +20,7 @@
 subroutine make_v_mats (ele, v_mat, v_inv_mat)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => make_v_mats
   
   implicit none
 

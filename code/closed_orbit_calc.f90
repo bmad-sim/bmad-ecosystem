@@ -44,9 +44,9 @@
 subroutine closed_orbit_calc (ring, closed_orb, i_dim)
 
   use bmad_struct
-  use bmad_interface
-  use bookkeeper_mod
-  use radiation_mod
+  use bmad_interface, except => closed_orbit_calc
+  use bookkeeper_mod, only: set_on_off, save_state$, restore_state$, off$
+  use radiation_mod, only: sr_com
 
   implicit none
 
@@ -54,10 +54,10 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
   type (coord_struct)  del_co, del_orb
   type (coord_struct), allocatable ::  closed_orb(:)
 
-  real(rp) s_mat(6,6), mat1(6,6), mat2(6,6), mat(6,6)
+  real(rp) s_mat(6,6), mat2(6,6), mat(6,6)
   real(rp) :: amp_co, amp_del, t1(6,6), amp_del_old
 
-  integer i, j, n, n_ele, i_dim, i_max
+  integer i, n, n_ele, i_dim, i_max
   logical fluct_saved, aperture_saved
 
 !----------------------------------------------------------------------

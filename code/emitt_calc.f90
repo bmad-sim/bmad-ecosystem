@@ -48,7 +48,7 @@ subroutine emitt_calc (ring, what, mode)
   type (modes_struct)  mode
   type (ele_struct)  ele0, ele
 
-  real c_gam / 4.425e-5 /, c_q / 3.84e-13 /
+  real :: c_gam = 4.425e-5, c_q = 3.84e-13
   real energy_loss, k_1, k_2, k_3, k_4, k_5
   real i1, i2, i3, i4a, i4b, i4z, i5a, i5b, gamma2_factor
   real g, e1, e2, sin_kl, cos_kl, tan_e1, tan_e2
@@ -62,7 +62,7 @@ subroutine emitt_calc (ring, what, mode)
 
   integer ir, what
 
-  logical do_bends, do_wigs, do_type_err_message / .true. /
+  logical :: do_bends, do_wigs, do_type_err_message = .true. 
   logical print_wig_err_message
 
 !----------------------------------------------------------------------

@@ -30,7 +30,7 @@
 subroutine name_to_list (ring, ele_names, use_ele)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => name_to_list
 
   implicit none
 

@@ -35,7 +35,7 @@
 subroutine create_i_beam (ring, ix_i_beam, ix_slave, ele_init)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => create_i_beam
 
   implicit none
 

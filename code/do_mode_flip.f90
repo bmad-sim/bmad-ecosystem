@@ -22,15 +22,15 @@
 subroutine do_mode_flip (ele, ele_flip)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => do_mode_flip
 
   implicit none
 
   type (ele_struct)  ele, ele2, ele_flip
 
-  real(rp) c_conj(2,2), c_mat(2,2), gamma_flip, v_mat(4,4), v_inv_mat(4,4)
+  real(rp) c_conj(2,2), gamma_flip
 
-  logical init_needed / .true. /
+  logical :: init_needed = .true.
 
 !
 

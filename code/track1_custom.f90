@@ -23,8 +23,7 @@
 
 subroutine track1_custom (start, ele, param, end)
 
-  use runge_kutta_mod
-  use bmad_interface
+  use bmad_interface, except => track1_custom
 
   implicit none
 

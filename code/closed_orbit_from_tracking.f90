@@ -47,26 +47,27 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
                                                  eps_rel, eps_abs, init_guess)
 
   use bmad_struct
-  use bmad_interface
-  use bookkeeper_mod
+  use bmad_interface, except => closed_orbit_from_tracking
+  use bookkeeper_mod, only: set_on_off, save_state$, restore_state$, off$
+  use radiation_mod, only: sr_com
 
   implicit none
 
   type (ring_struct) ring
-  type (coord_struct), allocatable, intent(inout) :: closed_orb_(:)
+  type (coord_struct), allocatable :: closed_orb_(:)
   type (coord_struct) :: start(100), end(100)
   type (coord_struct), optional :: init_guess
 
   real(rp), intent(in), optional :: eps_rel(:), eps_abs(:)
 
-  real(rp) amp_co, amp_del, orb_diff(6), amp(6)
+  real(rp) orb_diff(6), amp(6)
   real(rp) mat6(6,6), mat6_inv(6,6), mat6_unit(6,6)
   real(rp) start_mat(6,6), end_mat(6,6)
   real(rp) :: error, rel_err(6), abs_err(6)
 
-  integer i_dim, i, i1, i2, j, k, jmax, n_ele, j0, jj, nd, nnd, msk(6)
+  integer i_dim, i, i1, i2, j, jmax, n_ele, j0, jj, nd, nnd, msk(6)
 
-  logical :: debug = .false., rf_on
+  logical :: debug = .false., rf_on, fluct_saved, aperture_saved
 
 ! init
 
@@ -79,6 +80,12 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 ! make sure orb_ has the correct size
 
   call reallocate_coord (closed_orb_, ring%n_ele_max)
+
+  fluct_saved = sr_com%fluctuations_on
+  sr_com%fluctuations_on = .false.  
+
+  aperture_saved = ring%param%aperture_limit_on
+  ring%param%aperture_limit_on = .false.
 
 ! make a unit matrix
 
@@ -142,6 +149,8 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
                                          rel_err(1:nd) * amp(1:nd) ) ) then
       if (nd == 2 .or. nd == 4) &
                           call set_on_off (rfcavity$, ring, restore_state$)
+      sr_com%fluctuations_on = fluct_saved  ! restore state
+      ring%param%aperture_limit_on = aperture_saved
       return
     endif
 

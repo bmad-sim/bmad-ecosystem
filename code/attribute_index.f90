@@ -29,7 +29,7 @@
 function attribute_index (ele, name) result (at_index)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => attribute_index
 
   implicit none
 
@@ -41,10 +41,10 @@ function attribute_index (ele, name) result (at_index)
   integer at_index
 
   character(*) name
-  character(16) name16, name_match
+  character(16) name16
   character(16) attrib_name_array(n_key, n_attrib_special_maxx)
       
-  logical init_needed / .true. /
+  logical :: init_needed = .true.
 
 !-----------------------------------------------------------------------
 ! Init: We make a short list to compare against to make things go faster

@@ -26,7 +26,7 @@
 subroutine twiss_and_track_at_s (ring, s, ele, orb_, here)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => twiss_and_track_at_s
 
   implicit none
 

@@ -34,11 +34,11 @@
 subroutine make_mat6 (ele, param, start, end, end_in)
 
   use bmad_struct
-  use bmad_interface
-  use make_mat6_mod
-  use symp_lie_mod
-  use bookkeeper_mod
-  use mad_mod
+  use bmad_interface, except => make_mat6
+  use symp_lie_mod, only: symp_lie_bmad
+  use bookkeeper_mod, only: attribute_bookkeeper
+  use mad_mod, only: make_mat6_mad
+  use em_field_mod, only: track_com
 
   implicit none
 

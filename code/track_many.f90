@@ -51,22 +51,19 @@
 subroutine track_many (ring, orbit, ix_start, ix_end, direction)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => track_many
   use bookkeeper_mod, only: control_lord_bookkeeper
-  use reverse_mod
+  use reverse_mod, only: reverse_ele
 
   implicit none
 
-  record / ring_struct / ring
-  record / coord_struct / orbit(0:)
-  record / ele_struct / ele            
+  type (ring_struct) ring
+  type (coord_struct) orbit(0:)
 
   integer ix_start, ix_end, direction
   integer n, i
 
-  real(rp) x_lim, y_lim
-
-  logical debug / .false. /
+  logical :: debug = .false.
 
   character(16) :: r_name = 'track_many'
 

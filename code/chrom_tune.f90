@@ -37,13 +37,12 @@
 subroutine chrom_tune(ring, delta_e, target_x, target_y, err_tol, err_flag)
   
   use bmad_struct
-  use bmad_interface
+  use bmad_interface, except => chrom_tune
   use nr, only: gaussj
 
   implicit none
   
   type (ring_struct) ring
-  type (modes_struct) mode
 
   integer i, j, n_sex, n_x_sex, n_y_sex
   integer, pointer :: ix_sex(:)
@@ -54,7 +53,7 @@ subroutine chrom_tune(ring, delta_e, target_x, target_y, err_tol, err_flag)
   real(rp), allocatable :: sex_y_values(:), sex_x_values(:)
   real(rp) target_x, target_y, chrom_x, chrom_y
   real(rp) delta_x, delta_y, d_chrom, chrom_x0
-  real(rp) chrom_y0, step_x, step_y, chrom_(2,1), matrix(2,2)
+  real(rp) chrom_y0, chrom_(2,1), matrix(2,2)
   real(rp) delta_e, err_tol
  
   logical err_flag, debug
