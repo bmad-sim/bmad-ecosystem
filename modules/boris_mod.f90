@@ -360,7 +360,7 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
   real(rp), intent(in) :: s, ds
   real(rp) :: f, p_z, d2, alpha, dxv, dyv, ds2_f, charge, U_rel, p_rel
-  real(rp) :: r(3,3), w(3), ex, ey, ex2, ey2, exy, bz, bz2, m_rel
+  real(rp) :: r(3,3), w(3), ex, ey, ex2, ey2, exy, bz, bz2, m_rel, beta
 
 !
 
