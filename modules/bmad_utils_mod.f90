@@ -442,7 +442,7 @@ function equivalent_eles (ele1, ele2) result (equiv)
 
   vmask = .true.
   if (ele1%key == wiggler$ .and. ele1%sub_key == map_type$) &
-              vmask((/k1$, rho$, b_max$, z_patch$, beam_energy$ /)) = .false.
+      vmask((/k1$, rho$, b_max$, z_patch$, beam_energy$, check_sum$/)) = .false.
   if (any(ele1%value /= ele2%value .and. vmask)) return
 
   if (ele1%num_steps /= ele2%num_steps) return
