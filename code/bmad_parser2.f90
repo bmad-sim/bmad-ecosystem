@@ -107,7 +107,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
       word_1 = 'END_FILE'
       ix_word = 8
     else
-      call verify_valid_name(word_1, ix_word, .true.)
+      call verify_valid_name(word_1, ix_word)
     endif
 
 ! CALL command
@@ -305,31 +305,38 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
                          ring%ele_(n_max)%name, ' ')
       enddo
 
-! check if element part of a element class
+! check for valid element key name
 
-      do i = 1, n_max-1
-        if (word_2 == ring%ele_(i)%name) then
-          ring%ele_(n_max) = ring%ele_(i)
-          ring%ele_(n_max)%name = word_1
+      found = .false.
+
+      do i = 1, n_key
+        if (word_2(:ix_word) == key_name(i)(:ix_word)) then
+          ring%ele_(n_max)%key = i
+          call preparse_element_init (ring%ele_(n_max))
+          found = .true.
           exit
         endif
       enddo
 
-! check for valid element key name
-! if none of the above then we have an error
+! check if element part of a element class
 
-      if (i == n_max) then
-        do i = 1, n_key
-          if (word_2(:ix_word) == key_name(i)(:ix_word)) then
-            ring%ele_(n_max)%key = i
+      if (.not. found) then
+        do i = 1, n_max-1
+          if (word_2 == ring%ele_(i)%name) then
+            ring%ele_(n_max) = ring%ele_(i)
+            ring%ele_(n_max)%name = word_1
+            found = .true.
             exit
           endif
         enddo
-        if (i == n_key+1) then
-          call warning ('KEY NAME NOT RECOGNIZED: ' // word_2,  &
+      endif
+
+! if none of the above then we have an error
+
+      if (.not. found) then
+        call warning ('KEY NAME NOT RECOGNIZED: ' // word_2,  &
                        'FOR ELEMENT: ' // ring%ele_(n_max)%name)
-          ring%ele_(n_max)%key = 1       ! dummy value
-        endif
+        ring%ele_(n_max)%key = 1       ! dummy value
       endif
 
 ! now get the attribute values.
@@ -337,22 +344,6 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 ! the pring structure where storage for the control lists is
                    
       key = ring%ele_(n_max)%key
-
-      if (key == wiggler$) then
-        ring%ele_(n_max)%sub_key = periodic_type$   ! default
-        ring%ele_(n_max)%value(polarity$) = 1.0     ! default
-      endif
-
-      if (key == taylor$) then
-        ring%ele_(n_max)%tracking_method = taylor$  ! default
-        ring%ele_(n_max)%mat6_calc_method = taylor$ ! default
-        call add_taylor_term (ring%ele_(n_max), 1, 1.0_rdef, (/ 1, 0, 0, 0, 0, 0 /))
-        call add_taylor_term (ring%ele_(n_max), 2, 1.0_rdef, (/ 0, 1, 0, 0, 0, 0 /))
-        call add_taylor_term (ring%ele_(n_max), 3, 1.0_rdef, (/ 0, 0, 1, 0, 0, 0 /))
-        call add_taylor_term (ring%ele_(n_max), 4, 1.0_rdef, (/ 0, 0, 0, 1, 0, 0 /))
-        call add_taylor_term (ring%ele_(n_max), 5, 1.0_rdef, (/ 0, 0, 0, 0, 1, 0 /))
-        call add_taylor_term (ring%ele_(n_max), 6, 1.0_rdef, (/ 0, 0, 0, 0, 0, 1 /))
-      endif
 
       if (key == overlay$ .or. key == group$) then
         if (delim /= '=') then

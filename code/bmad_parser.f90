@@ -74,7 +74,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   logical, optional :: make_mats6
   logical parsing, delim_found, matched_delim, arg_list_found, doit
   logical file_end, found, err_flag, finished, save_taylor
-  logical vmask(n_attrib_maxx), do_init
+  logical vmask(n_attrib_maxx)
   logical, save :: init_needed = .true.
 
 ! see if digested file is open and current. If so read in and return.
@@ -197,7 +197,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
       word_1 = 'END_FILE'
       ix_word = 8
     else
-      call verify_valid_name(word_1, ix_word, .true.)
+      call verify_valid_name(word_1, ix_word)
     endif
 
 ! USE command...
@@ -462,8 +462,8 @@ subroutine bmad_parser (in_file, ring, make_mats6)
       do i = 1, n_key
         if (word_2(:ix_word) == key_name(i)(:ix_word)) then
           in_ring%ele_(n_max)%key = i
+          call preparse_element_init (in_ring%ele_(n_max))
           found = .true.
-          do_init = .true.
           exit
         endif
       enddo
@@ -476,7 +476,6 @@ subroutine bmad_parser (in_file, ring, make_mats6)
           if (word_2 == in_ring%ele_(i)%name) then
             in_ring%ele_(n_max) = in_ring%ele_(i)
             in_ring%ele_(n_max)%name = word_1
-            do_init = .false.
             found = .true.
             exit
           endif
@@ -495,22 +494,6 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 ! the PRING%ELE() array where storage for the control lists is
 
       key = in_ring%ele_(n_max)%key
-
-      if (key == wiggler$ .and. do_init) then
-        in_ring%ele_(n_max)%sub_key = periodic_type$   ! default
-        in_ring%ele_(n_max)%value(polarity$) = 1.0     ! default
-      endif
-
-      if (key == taylor$ .and. do_init) then
-        in_ring%ele_(n_max)%tracking_method = taylor$  ! default
-        in_ring%ele_(n_max)%mat6_calc_method = taylor$ ! default
-        call add_taylor_term (in_ring%ele_(n_max), 1, 1.0_rdef, (/ 1, 0, 0, 0, 0, 0 /))
-        call add_taylor_term (in_ring%ele_(n_max), 2, 1.0_rdef, (/ 0, 1, 0, 0, 0, 0 /))
-        call add_taylor_term (in_ring%ele_(n_max), 3, 1.0_rdef, (/ 0, 0, 1, 0, 0, 0 /))
-        call add_taylor_term (in_ring%ele_(n_max), 4, 1.0_rdef, (/ 0, 0, 0, 1, 0, 0 /))
-        call add_taylor_term (in_ring%ele_(n_max), 5, 1.0_rdef, (/ 0, 0, 0, 0, 1, 0 /))
-        call add_taylor_term (in_ring%ele_(n_max), 6, 1.0_rdef, (/ 0, 0, 0, 0, 0, 1 /))
-      endif
 
       if (key == overlay$ .or. key == group$) then
         if (delim /= '=') then
