@@ -62,7 +62,7 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
 ! Easy case when ele2 has zero length
 
   if (l_orig == 0) then
-    ele3 = ele2
+    if (present(ele3)) ele3 = ele2
     if (present(end)) then
       if (present(start)) then
         end = start 
@@ -80,37 +80,27 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   ele = ele2
   ele%value(l$) = del_s
 
-  if (ele%key == wiggler$) then
-    ele%value(n_pole$) = ele2%value(n_pole$) * del_s / l_orig
-    if (ele%tracking_method == taylor$) ele%tracking_method = symp_lie_bmad$
-    if (ele%mat6_calc_method == taylor$) ele%mat6_calc_method = symp_lie_bmad$
-  endif
-
-  ele%num_steps = max(nint(ele%num_steps * del_s / l_orig), 1)
-
   if (present(start)) then
     c0 = start
   else
     c0%vec = 0
   endif
 
-  if (ele2%key == sbend$ .and. present(body_only)) then
-    if (body_only) then
-      ele%value(e1$) = -atan(c0%vec(2)) * ele%value(g$) / (1 + c0%vec(6))
-      ele%value(e2$) = 0
-    endif
-  endif
+  select case (ele%key)
+  case (wiggler$) 
+    ele%value(n_pole$) = ele2%value(n_pole$) * del_s / l_orig
+    if (ele%tracking_method == taylor$) ele%tracking_method = symp_lie_bmad$
+    if (ele%mat6_calc_method == taylor$) ele%mat6_calc_method = symp_lie_bmad$
+  case (sbend$)
+    if (logic_option(.false., body_only)) ele%value(e1$) = 0
+    ele%value(e2$) = 0  
+  end select
+
+  ele%num_steps = max(nint(ele%num_steps * del_s / l_orig), 1)
 
   call track1 (c0, ele, param, c1)
 
-  if (present(end)) then
-    end = c1
-    if (ele2%key == sbend$) then
-      del = -end%vec(2) * ele%value(g$) / (1 + end%vec(6))
-      end%vec(2) = end%vec(2) - del * end%vec(1)
-      end%vec(4) = end%vec(4) + del * end%vec(3)
-    endif
-  endif
+  if (present(end)) end = c1
 
   if (present(ele3)) then
     if (ele2%key == sbend$) c1%vec = 0
