@@ -1,5 +1,5 @@
 !+                           
-! Subroutine closed_orbit_calc (ring, closed_orb, i_dim)
+! Subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction)
 !
 ! Subroutine to calculate the closed orbit for a circular machine.
 ! Closed_orbit_calc uses the 1-turn transfer matrix to converge upon a  
@@ -26,6 +26,11 @@
 !                    = 4  Transverse closed orbit at constant energy 
 !                        (dE/E = closed_orb(0)%vec(6))
 !                    = 6  Full closed orbit for 6x6 matrix.
+!   direction      -- Integer, optional: Direction of tracking. 
+!                       +1 --> forwad (default), -1 --> backward.
+!                       The closed orbit will be dependent on direction only
+!                       in the case that radiation damping is turned on.
+!
 !   bmad_status -- Bmad status common block
 !     %exit_on_error -- If True then subroutine will terminate program
 !                         if the orbit does not converge.
@@ -41,7 +46,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine closed_orbit_calc (ring, closed_orb, i_dim)
+subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction)
 
   use bmad_struct
   use bmad_interface, except => closed_orbit_calc
@@ -52,12 +57,14 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
 
   type (ring_struct)  ring
   type (coord_struct)  del_co, del_orb
-  type (coord_struct), allocatable ::  closed_orb(:)
+  type (coord_struct), allocatable, target ::  closed_orb(:)
+  type (coord_struct), pointer :: start, end
 
-  real(rp) s_mat(6,6), mat2(6,6), mat(6,6)
+  real(rp) mat2(6,6), mat(6,6)
   real(rp) :: amp_co, amp_del, t1(6,6), amp_del_old
 
-  integer i, n, n_ele, i_dim, i_max
+  integer, optional :: direction
+  integer i, n, n_ele, i_dim, i_max, dir
   logical fluct_saved, aperture_saved
 
 !----------------------------------------------------------------------
@@ -71,6 +78,9 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
 
   aperture_saved = ring%param%aperture_limit_on
   ring%param%aperture_limit_on = .false.
+
+  dir = integer_option(+1, direction)
+  n_ele = ring%n_ele_use
 
 ! Error check
 
@@ -102,53 +112,56 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
     call err_exit
   endif
           
-! Init
+! Orbit correction = (T-1)^-1 * (orbit_end - orbit_start)
+!                  = mat2     * (orbit_end - orbit_start)
+
+  call make_mat2
+
+!--------------------------------------------------------------------------
 ! Turn off RF voltage if i_dim == 4 (for constant delta_E)
-
-  call mat_make_unit(s_mat(1:n,1:n))
-  s_mat(2,2) = -1.0
-  s_mat(4,4) = -1.0
-
-  n_ele = ring%n_ele_use
 
   if (n == 4) then
     call set_on_off (rfcavity$, ring, save_state$)
     call set_on_off (rfcavity$, ring, off$)
   endif
 
-!----------------------------------------------------------------------
-! d_orb = (T-1)^-1 * orbit_end
-
-  call mat_make_unit (mat(1:n,1:n))
-  mat(1:n,1:n) = mat(1:n,1:n) - t1(1:n,1:n)
-  call mat_inverse(mat(1:n,1:n), mat2(1:n,1:n))
-
-!--------------------------------------------------------------------------
 ! Because of nonlinearities we may need to iterate to find the solution
 
-
   amp_del_old = 1e20  ! something large
+
+  if (dir == +1) then
+    start => closed_orb(0)
+    end   => closed_orb(n_ele)
+  else if (dir == -1) then
+    start => closed_orb(n_ele)
+    end   => closed_orb(0)
+  else
+    print *, 'ERROR IN CLOSED_ORBIT_CALC: BAD DIRECTION ARGUMENT.'
+    call err_exit
+  endif
 
   i_max = 100  
   do i = 1, i_max
 
-    call track_all (ring, closed_orb)
+    if (dir == +1) then
+      call track_all (ring, closed_orb)
+    else
+      call track_many (ring, closed_orb, n_ele, 0, -1)
+    endif
 
-    del_orb%vec(1:n) = closed_orb(n_ele)%vec(1:n) - closed_orb(0)%vec(1:n)
+    del_orb%vec(1:n) = end%vec(1:n) - start%vec(1:n)
     del_co%vec(1:n) = matmul(mat2(1:n,1:n), del_orb%vec(1:n)) 
+    amp_co = sum(abs(start%vec(1:n)))
 
-    amp_co = sum(abs(closed_orb(0)%vec(1:n)))
     amp_del = sum(abs(del_co%vec(1:n)))                                  
     if (amp_del < amp_co * bmad_com%rel_tollerance + bmad_com%abs_tollerance) exit
 
     if (amp_del < amp_del_old) then
-      closed_orb(0)%vec(1:n) = closed_orb(0)%vec(1:n) + del_co%vec(1:n)
+      start%vec(1:n) = start%vec(1:n) + del_co%vec(1:n)
     else  ! not converging so remake mat2 matrix
       call ring_make_mat6 (ring, -1, closed_orb)
       call one_turn_matrix (ring, .true., t1)
-      call mat_make_unit (mat(1:n,1:n))
-      mat(1:n,1:n) = mat(1:n,1:n) - t1(1:n,1:n)
-      call mat_inverse(mat(1:n,1:n), mat2(1:n,1:n))
+      call make_mat2
       amp_del_old = 1e20  ! something large
     endif
 
@@ -169,5 +182,17 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
 
   sr_com%fluctuations_on = fluct_saved  ! restore state
   ring%param%aperture_limit_on = aperture_saved
+
+!------------------------------------------------------------------------------
+contains
+
+subroutine make_mat2
+
+  if (dir == -1) call mat_inverse (t1(1:n,1:n), t1(1:n,1:n))
+  call mat_make_unit (mat(1:n,1:n))
+  mat(1:n,1:n) = mat(1:n,1:n) - t1(1:n,1:n)
+  call mat_inverse(mat(1:n,1:n), mat2(1:n,1:n))
+
+end subroutine
 
 end subroutine
