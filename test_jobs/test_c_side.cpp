@@ -14,7 +14,8 @@ extern "C" void test_f_floor_position_(C_floor_position& c1, C_floor_position& c
 extern "C" void test_f_wig_term_(C_wig_term& c1, C_wig_term& c2);
 extern "C" void test_f_taylor_term_(C_taylor_term& c1, C_taylor_term& c2);
 extern "C" void test_f_taylor_(C_taylor& c1, C_taylor& c2);
-extern "C" void test_f_sr_wake_(C_sr_wake& c1, C_sr_wake& c2);
+extern "C" void test_f_sr1_wake_(C_sr1_wake& c1, C_sr1_wake& c2);
+extern "C" void test_f_sr2_wake_(C_sr2_wake& c1, C_sr2_wake& c2);
 extern "C" void test_f_lr_wake_(C_lr_wake& c1, C_lr_wake& c2);
 extern "C" void test_f_wake_(C_wake& c1, C_wake& c2);
 extern "C" void test_f_control_(C_control& c1, C_control& c2);
@@ -40,12 +41,14 @@ C_taylor_term     c_taylor_term_in(1, 2, 3, 4, 5, 6, 7);
 C_taylor_term     c_taylor_term_out(7, 6, 5, 4, 3, 2, 1);
 C_taylor          c_taylor_in(2, -1);
 C_taylor          c_taylor_out(2, 1);
-C_sr_wake         c_sr_wake_in(1, 2, 3);
-C_sr_wake         c_sr_wake_out(3, 2, 1);
+C_sr1_wake        c_sr1_wake_in(1, 2, 3);
+C_sr1_wake        c_sr1_wake_out(3, 2, 1);
+C_sr2_wake        c_sr2_wake_in(21, 22, 23, 24, 25, 26, 27, 28);
+C_sr2_wake        c_sr2_wake_out(31, 32, 33, 34, 35, 36, 37, 38);
 C_lr_wake         c_lr_wake_in(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 C_lr_wake         c_lr_wake_out(10, 9, 8, 7, 6, 5, 4, 3, 2, 1);
-C_wake            c_wake_in("ABCD", "XYZZY", 2, 1);
-C_wake            c_wake_out("abcd", "xyzzy", 0, 2);
+C_wake            c_wake_in("ABCD", "XYZZY", 2, 2, 0, 1);
+C_wake            c_wake_out("abcd", "xyzzy", 0, 0, 2, 2);
 C_control         c_control_in(1, 2, 3, 4);
 C_control         c_control_out(4, 3, 2, 1);
 C_param           c_param_in;
@@ -114,15 +117,21 @@ void init_all_c_structs () {
   c_taylor_out.term[0] = C_taylor_term(-1, -2, -3, -4, -5, -6, -7);
   c_taylor_out.term[1] = C_taylor_term(-8, -9, -10, -11, -12, -13, -14);
 
-  c_wake_in.sr[0] = C_sr_wake(1, 2, 3);
-  c_wake_in.sr[1] = C_sr_wake(4, 5, 6); 
-  c_wake_in.lr[0] = C_lr_wake(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+  c_wake_in.sr1[0] = c_sr1_wake_in;
+  c_wake_in.sr1[1] = c_sr1_wake_out;
+  c_wake_in.sr2_long[0] = c_sr2_wake_in;
+  c_wake_in.sr2_long[1] = c_sr2_wake_out;
+  c_wake_in.z_cut_sr = 100;
+  c_wake_in.lr[0] = c_lr_wake_in;
 
-  c_wake_out.lr[0] = C_lr_wake(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10);
+  c_wake_out.z_cut_sr = 101;
+  c_wake_out.sr2_trans[0] = c_sr2_wake_in;
+  c_wake_out.sr2_trans[1] = c_sr2_wake_out;
+  c_wake_out.lr[0] = C_lr_wake(-1, -2, -3, -4, 5, -6, -7, -8, -9, -10);
   c_wake_out.lr[1] = C_lr_wake(-11, -12, -13, -14, -15, -16, -17, -18, -19, -20);
 
-  c_param_in  = C_param(1, 2, 3, 4, m6a, m6b, 11, 12, 13, 14, 15, 16, 1, 0, 1);
-  c_param_out = C_param(11, 12, 13, 14, m6b, m6a, 111, 112, 113, 114, 115, 116, 0, 0, 0);
+  c_param_in  = C_param(1, 2, 3, m6a, m6b, 11, 12, 13, 14, 15, 16, 1, 0, 1);
+  c_param_out = C_param(11, 12, 13, m6b, m6a, 111, 112, 113, 114, 115, 116, 0, 0, 0);
 
   c_bmad_com_in  = C_bmad_com(v6a, 2, 3, 4, 5, 6, 7, 8, 1, 0, 1, 0, 1, 0);
   c_bmad_com_out = C_bmad_com(v6b, 12, 13, 14, 15, 16, 17, 18, 1, 1, 0, 0, 1, 1);
@@ -179,8 +188,6 @@ void init_all_c_structs () {
 
   c_ele_out = c_ele_in;
 
-//  c_ele_in.wake.sr.resize(2);
-//  c_ele_in.wake.lr.resize(1);
   c_ele_in.descrip = "descrip";
   c_ele_in.wake = c_wake_in;
   c_ele_in.const_arr.resize(6);
@@ -417,26 +424,55 @@ extern "C" void test_c_taylor_(taylor_struct* f1, taylor_struct* f2, int& c_ok) 
 
 //---------------------------------------------------------------------------
 
-extern "C" void test_c_sr_wake_(sr_wake_struct* f1, sr_wake_struct* f2, int& c_ok) {
+extern "C" void test_c_sr1_wake_(sr1_wake_struct* f1, sr1_wake_struct* f2, int& c_ok) {
 
-  C_sr_wake c1, c2;
+  C_sr1_wake c1, c2;
 
   f1 >> c1; 
 
-  if (c1 == c_sr_wake_in) {
-    cout << " C_side_convert: sr_wake F to C: OK" << endl;
+  if (c1 == c_sr1_wake_in) {
+    cout << " C_side_convert: sr1_wake F to C: OK" << endl;
   } else {
-    cout << " C_SIDE_CONVERT: SR_WAKE F TO C: FAILED!!" << endl;
+    cout << " C_SIDE_CONVERT: SR1_WAKE F TO C: FAILED!!" << endl;
     c_ok = 0;
   }
 
 
-  test_f_sr_wake_(c1, c2);
+  test_f_sr1_wake_(c1, c2);
 
-  if (c2 == c_sr_wake_out) {
-    cout << " F_side_convert: sr_wake F to C: OK" << endl;
+  if (c2 == c_sr1_wake_out) {
+    cout << " F_side_convert: sr1_wake F to C: OK" << endl;
   } else {
-    cout << " F_SIDE_CONVERT: SR_WAKE F TO C: FAILED!!" << endl;
+    cout << " F_SIDE_CONVERT: SR1_WAKE F TO C: FAILED!!" << endl;
+    c_ok = 0;
+  }
+
+  c2 >> f2;
+
+}
+
+//---------------------------------------------------------------------------
+
+extern "C" void test_c_sr2_wake_(sr2_wake_struct* f1, sr2_wake_struct* f2, int& c_ok) {
+
+  C_sr2_wake c1, c2;
+
+  f1 >> c1; 
+
+  if (c1 == c_sr2_wake_in) {
+    cout << " C_side_convert: sr2_wake F to C: OK" << endl;
+  } else {
+    cout << " C_SIDE_CONVERT: SR2_WAKE F TO C: FAILED!!" << endl;
+    c_ok = 0;
+  }
+
+
+  test_f_sr2_wake_(c1, c2);
+
+  if (c2 == c_sr2_wake_out) {
+    cout << " F_side_convert: sr2_wake F to C: OK" << endl;
+  } else {
+    cout << " F_SIDE_CONVERT: SR2_WAKE F TO C: FAILED!!" << endl;
     c_ok = 0;
   }
 

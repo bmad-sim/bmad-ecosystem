@@ -31,7 +31,8 @@ type (floor_position_struct)  floor_position_in, floor_position_out
 type (wig_term_struct)        wig_term_in, wig_term_out
 type (taylor_term_struct)     taylor_term_in, taylor_term_out
 type (taylor_struct)          taylor_in, taylor_out
-type (sr_wake_struct)         sr_wake_in, sr_wake_out
+type (sr1_wake_struct)        sr1_wake_in, sr1_wake_out
+type (sr2_wake_struct)        sr2_wake_in, sr2_wake_out
 type (lr_wake_struct)         lr_wake_in, lr_wake_out
 type (wake_struct), target :: wake_in, wake_out
 type (control_struct)         control_in, control_out
@@ -118,36 +119,48 @@ taylor_out%ref = 1.0_rp
 taylor_out%term(1) = taylor_term_struct(-1.0_rp, (/ -2, -3, -4, -5, -6, -7 /))
 taylor_out%term(2) = taylor_term_struct(-8.0_rp, (/ -9, -10, -11, -12, -13, -14 /)) 
 
-sr_wake_in  = sr_wake_struct (1.0_rp, 2.0_rp, 3.0_rp)
-sr_wake_out = sr_wake_struct (3.0_rp, 2.0_rp, 1.0_rp)
+sr1_wake_in  = sr1_wake_struct (1.0_rp, 2.0_rp, 3.0_rp)
+sr1_wake_out = sr1_wake_struct (3.0_rp, 2.0_rp, 1.0_rp)
+
+sr2_wake_in  = sr2_wake_struct (21.0_rp, 22.0_rp, 23.0_rp, 24.0_rp, 25.0_rp, &
+                                                     26.0_rp, 27.0_rp, 28.0_rp)
+sr2_wake_out = sr2_wake_struct (31.0_rp, 32.0_rp, 33.0_rp, 34.0_rp, 35.0_rp, &
+                                                     36.0_rp, 37.0_rp, 38.0_rp)
 
 lr_wake_in  = lr_wake_struct(1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp, 5, &
                              6.0_rp, 7.0_rp, 8.0_rp, 9.0_rp, 10.0_rp)
 lr_wake_out = lr_wake_struct(10.0_rp, 9.0_rp, 8.0_rp, 7.0_rp, 6, 5.0_rp, &
                               4.0_rp, 3.0_rp, 2.0_rp, 1.0_rp)
 
-allocate (wake_in%sr(0:1), wake_in%lr(0:0), wake_out%lr(0:1))
+allocate (wake_in%sr1(0:1), wake_in%sr2_long(2), wake_in%sr2_trans(0), wake_in%lr(1))
+allocate (wake_out%sr1(0), wake_out%sr2_long(0), wake_out%sr2_trans(2), wake_out%lr(2))
 
 wake_in%sr_file = "ABCD"
 wake_in%lr_file = "XYZZY"
-wake_in%sr(0) = sr_wake_struct (1.0_rp, 2.0_rp, 3.0_rp)
-wake_in%sr(1) = sr_wake_struct (4.0_rp, 5.0_rp, 6.0_rp)
-wake_in%lr(0) = lr_wake_in
+wake_in%z_cut_sr = 100
+wake_in%sr1(0) = sr1_wake_in
+wake_in%sr1(1) = sr1_wake_out
+wake_in%sr2_long(1) = sr2_wake_in
+wake_in%sr2_long(2) = sr2_wake_out
+wake_in%lr(1) = lr_wake_in
 
 wake_out%sr_file = "abcd"
 wake_out%lr_file = "xyzzy"
-wake_out%lr(0) = lr_wake_struct (-1.0_rp, -2.0_rp, -3.0_rp, -4.0_rp, 5, &
+wake_out%z_cut_sr = 101
+wake_out%sr2_trans(1) = sr2_wake_in
+wake_out%sr2_trans(2) = sr2_wake_out
+wake_out%lr(1) = lr_wake_struct (-1.0_rp, -2.0_rp, -3.0_rp, -4.0_rp, 5, &
                                   -6.0_rp, -7.0_rp, -8.0_rp, -9.0_rp, -10.0_rp)
-wake_out%lr(1) = lr_wake_struct (-11.0_rp, -12.0_rp, -13.0_rp, -14.0_rp, -15, &
+wake_out%lr(2) = lr_wake_struct (-11.0_rp, -12.0_rp, -13.0_rp, -14.0_rp, -15, &
                                 -16.0_rp, -17.0_rp, -18.0_rp, -19.0_rp, -20.0_rp)
 
 control_in  = control_struct(1.0_rp, 2, 3, 4)
 control_out = control_struct(4.0_rp, 3, 2, 1)
 
-param_in  = param_struct (-100.0_rp, 1.0_rp, 2.0_rp, &
-      3.0_rp, 4.0_rp, mat6_a, mat6_b, 11, 12, 13, 14, 15, 16, T, F, T)
-param_out = param_struct (-100.0_rp, 11.0_rp, 12.0_rp, &
-      13.0_rp, 14.0_rp, mat6_b, mat6_a, 111, 112, 113, 114, 115, 116, F, F, F)
+param_in  = param_struct (1.0_rp, 2.0_rp, &
+      3.0_rp, mat6_a, mat6_b, 11, 12, 13, 14, 15, 16, T, F, T)
+param_out = param_struct (11.0_rp, 12.0_rp, &
+      13.0_rp, mat6_b, mat6_a, 111, 112, 113, 114, 115, 116, F, F, F)
 
 amode_in  = amode_struct (1.0_rp, (/2.0_rp, 3.0_rp/), 4.0_rp, 5.0_rp, 6.0_rp, 7.0_rp)
 amode_out  = amode_struct (11.0_rp, (/12.0_rp, 13.0_rp/), 14.0_rp, 15.0_rp, 16.0_rp, 17.0_rp)
@@ -290,7 +303,8 @@ type (floor_position_struct) floor_position1, floor_position2
 type (wig_term_struct)       wig_term1, wig_term2
 type (taylor_term_struct)    taylor_term1, taylor_term2
 type (taylor_struct)         taylor1, taylor2
-type (sr_wake_struct)        sr_wake1, sr_wake2
+type (sr1_wake_struct)       sr1_wake1, sr1_wake2
+type (sr2_wake_struct)       sr2_wake1, sr2_wake2
 type (lr_wake_struct)        lr_wake1, lr_wake2
 type (wake_struct)           wake1, wake2
 type (control_struct)        control1, control2
@@ -406,18 +420,34 @@ else
 endif
 
 !------------------------------------------------
-! sr_wake Check
+! sr1_wake Check
 
-sr_wake1 = sr_wake_in
+sr1_wake1 = sr1_wake_in
 
 print *
-call test_c_sr_wake (sr_wake1, sr_wake2, c_ok)
+call test_c_sr1_wake (sr1_wake1, sr1_wake2, c_ok)
 all_ok = all_ok .and. f_logic(c_ok)
 
-if (sr_wake2 == sr_wake_out) then
-  print *, 'C_side_convert: sr_wake C to F: OK'
+if (sr1_wake2 == sr1_wake_out) then
+  print *, 'C_side_convert: sr1_wake C to F: OK'
 else
-  print *, 'C_SIDE_CONVERT: sr_wake C to F: FAILED!!'
+  print *, 'C_SIDE_CONVERT: sr1_wake C to F: FAILED!!'
+  all_ok = .false.
+endif
+
+!------------------------------------------------
+! sr2_wake Check
+
+sr2_wake1 = sr2_wake_in
+
+print *
+call test_c_sr2_wake (sr2_wake1, sr2_wake2, c_ok)
+all_ok = all_ok .and. f_logic(c_ok)
+
+if (sr2_wake2 == sr2_wake_out) then
+  print *, 'C_side_convert: sr2_wake C to F: OK'
+else
+  print *, 'C_SIDE_CONVERT: sr2_wake C to F: FAILED!!'
   all_ok = .false.
 endif
 
@@ -813,7 +843,7 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine test_f_sr_wake (c1, c2)
+subroutine test_f_sr1_wake (c1, c2)
 
 use bmad_and_cpp
 use equality_mod
@@ -822,21 +852,51 @@ use test_mod
 implicit none
 
 type (c_dummy_struct) c1, c2
-type (sr_wake_struct) f1, f2
+type (sr1_wake_struct) f1, f2
 
 !
 
-call sr_wake_to_f (c1, f1)
+call sr1_wake_to_f (c1, f1)
 
-if (f1 == sr_wake_in) then
-  print *, 'F_side_convert: sr_wake C to F: OK'
+if (f1 == sr1_wake_in) then
+  print *, 'F_side_convert: sr1_wake C to F: OK'
 else
-  print *, 'F_SIDE_CONVERT: sr_wake C TO F: FAILED!!'
+  print *, 'F_SIDE_CONVERT: sr1_wake C TO F: FAILED!!'
   all_ok = .false.
 endif
 
-f2 = sr_wake_out
-call sr_wake_to_c (f2, c2)
+f2 = sr1_wake_out
+call sr1_wake_to_c (f2, c2)
+
+end subroutine
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
+subroutine test_f_sr2_wake (c1, c2)
+
+use bmad_and_cpp
+use equality_mod
+use test_mod
+
+implicit none
+
+type (c_dummy_struct) c1, c2
+type (sr2_wake_struct) f1, f2
+
+!
+
+call sr2_wake_to_f (c1, f1)
+
+if (f1 == sr2_wake_in) then
+  print *, 'F_side_convert: sr2_wake C to F: OK'
+else
+  print *, 'F_SIDE_CONVERT: sr2_wake C TO F: FAILED!!'
+  all_ok = .false.
+endif
+
+f2 = sr2_wake_out
+call sr2_wake_to_c (f2, c2)
 
 end subroutine
 

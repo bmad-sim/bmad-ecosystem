@@ -8,7 +8,8 @@ using namespace std;
 
 class C_coord;
 class C_taylor_term;
-class C_sr_wake;
+class C_sr1_wake;
+class C_sr2_wake;
 class C_lr_wake;
 class C_control;
 class C_ele;
@@ -27,7 +28,8 @@ typedef valarray<bool>                  Bool_Array;
 typedef valarray<int>                   Int_Array;
 typedef valarray<C_taylor_term>         C_taylor_term_array;
 typedef valarray<C_wig_term>            C_wig_term_array;
-typedef valarray<C_sr_wake>             C_sr_wake_array;
+typedef valarray<C_sr1_wake>            C_sr1_wake_array;
+typedef valarray<C_sr2_wake>            C_sr2_wake_array;
 typedef valarray<C_lr_wake>             C_lr_wake_array;
 typedef valarray<C_control>             C_control_array;
 typedef valarray<C_ele>                 C_ele_array;
@@ -248,30 +250,66 @@ void operator>> (C_taylor&, taylor_struct*);
 void operator>> (taylor_struct*, C_taylor&);
 
 //--------------------------------------------------------------------
-// SR_wake 
+// SR1_wake 
 
-class sr_wake_struct {};
+class sr1_wake_struct {};
 
-class C_sr_wake {
+class C_sr1_wake {
 public:
-  double z;            // Distance behind the leading particle
+  double z;                 // Longitudinal distance
   double longitudinal;      // Longitudinal wake in V/C/m
   double transverse;        // Transverse wake in V/C/m^2
 
-  C_sr_wake (double zz, double lw, double tw) :
+  C_sr1_wake (double zz, double lw, double tw) :
       z(zz), longitudinal(lw), transverse(tw) {}
 
-  C_sr_wake (double zz = 0) :
+  C_sr1_wake (double zz = 0) :
       z(zz), longitudinal(0), transverse(0) {}
 };    // End Class
 
-extern "C" void sr_wake_to_c_(sr_wake_struct*, C_sr_wake&);
-extern "C" void sr_wake_to_f_(C_sr_wake&, sr_wake_struct*);
+extern "C" void sr1_wake_to_c_(sr1_wake_struct*, C_sr1_wake&);
+extern "C" void sr1_wake_to_f_(C_sr1_wake&, sr1_wake_struct*);
 
-bool operator== (const C_sr_wake&, const C_sr_wake&);
+bool operator== (const C_sr1_wake&, const C_sr1_wake&);
 
-void operator>> (C_sr_wake&, sr_wake_struct*);
-void operator>> (sr_wake_struct*, C_sr_wake&);
+void operator>> (C_sr1_wake&, sr1_wake_struct*);
+void operator>> (sr1_wake_struct*, C_sr1_wake&);
+
+//--------------------------------------------------------------------
+// SR2_wake 
+
+class sr2_wake_struct {};
+
+class C_sr2_wake {
+public:
+  double amp;         // Amplitude
+  double damp;        // damping factor
+  double freq;        // Freq in Hz
+  double phi;         // Phase in radians/2pi
+  double norm_sin;    // non-skew sin-like component of the wake
+  double norm_cos;    // non-skew cos-like component of the wake
+  double skew_sin;    // skew sin-like component of the wake
+  double skew_cos;    // skew cos-like component of the wake
+
+
+  C_sr2_wake (double a, double d, double f, double p, double n_sin = 0, 
+                  double n_cos = 0, double s_sin = 0, double s_cos = 0) :
+      amp(a), damp(d), freq(f), phi(p), norm_sin(n_sin), 
+      norm_cos(n_cos), skew_sin(s_sin), skew_cos(s_cos) {}
+
+  C_sr2_wake (double a = 0) :
+      amp(0), damp(0), freq(0), phi(0), norm_sin(0), norm_cos(0), 
+      skew_sin(0), skew_cos(0) {}
+
+};    // End Class
+
+extern "C" void sr2_wake_to_c_(sr2_wake_struct*, C_sr2_wake&);
+extern "C" void sr2_wake_to_f_(C_sr2_wake&, sr2_wake_struct*);
+
+bool operator== (const C_sr2_wake&, const C_sr2_wake&);
+
+void operator>> (C_sr2_wake&, sr2_wake_struct*);
+void operator>> (sr2_wake_struct*, C_sr2_wake&);
 
 //--------------------------------------------------------------------
 // LR_wake  
@@ -318,16 +356,21 @@ class C_wake {
 public:
   string sr_file;
   string lr_file;
-  C_sr_wake_array sr;  // size = variable
-  C_lr_wake_array lr;  // size = variable
+  C_sr1_wake_array sr1;        // size = variable
+  C_sr2_wake_array sr2_long;   // size = variable
+  C_sr2_wake_array sr2_trans;  // size = variable
+  C_lr_wake_array lr;          // size = variable
+  double z_cut_sr;             // Cutoff between sr1 and sr2
 
-  C_wake (const char* srf, const char* lrf, int n_sr, int n_lr) : 
-      sr(C_sr_wake(), n_sr), lr(C_lr_wake(), n_lr),
+  C_wake (const char* srf, const char* lrf, int n_sr1, int n_sr2_long, int n_sr2_trans, int n_lr) : 
+      sr1(C_sr1_wake(), n_sr1), sr2_long(C_sr2_wake(), n_sr2_long), 
+      sr2_trans(C_sr2_wake(), n_sr2_trans), lr(C_lr_wake(), n_lr),
       sr_file(string(srf, strlen(srf))),
       lr_file(string(lrf, strlen(lrf))) {}
 
-  C_wake (string srf, string lrf, int n_sr, int n_lr) : 
-      sr_file(srf), lr_file(lrf), sr(C_sr_wake(), n_sr), lr(C_lr_wake(), n_sr) {}
+  C_wake (string srf, string lrf, int n_sr1, int n_sr2_long, int n_sr2_trans, int n_lr) : 
+      sr_file(srf), lr_file(lrf), sr1(C_sr1_wake(), n_sr1), sr2_long(C_sr2_wake(), n_sr2_long), 
+      sr2_trans(C_sr2_wake(), n_sr2_trans), lr(C_lr_wake(), n_lr) {}
 
   C_wake () : sr_file(""), lr_file("") {}
 
@@ -378,7 +421,6 @@ class param_struct {};
 class C_param {
 public:
   double n_part;            // Particles/bunch (for BeamBeam elements).
-  double garbage;           // Placeholder doing nothing.
   double total_length;      // total_length of ring
   double growth_rate;       // growth rate/turn if not stable
   Real_Matrix t1_with_RF;   // Full 1-turn matrix with RF on.
@@ -393,15 +435,15 @@ public:
   bool aperture_limit_on;   // use apertures in tracking?
   bool lost;                // for use in tracking
 
-  C_param () : n_part(0), garbage(0), total_length(0), growth_rate(0),
+  C_param () : n_part(0), total_length(0), growth_rate(0),
       t1_with_RF(V6_array, 6), t1_no_RF(V6_array, 6), 
       particle(0), ix_lost(0), end_lost_at(0), lattice_type(0), ixx(0),
       ran_seed(0), stable(1), aperture_limit_on(1), lost(0) {}
 
-  C_param (double np, double ch, double tl, double gr, Real_Matrix t1w,
+  C_param (double np, double tl, double gr, Real_Matrix t1w,
     Real_Matrix t1n, int pa, int il, int ela, int lt, int ix, 
-    int st, int r_seed, int alo, int lo) :
-        n_part(np), garbage(ch), total_length(tl), growth_rate(gr),
+    int r_seed, int st, int alo, int lo) :
+        n_part(np), total_length(tl), growth_rate(gr),
         t1_with_RF(t1w), t1_no_RF(t1n), particle(pa), 
         ix_lost(il), end_lost_at(ela), lattice_type(lt), ixx(ix),
         ran_seed(r_seed), stable(st), aperture_limit_on(alo), lost(lo) {}
