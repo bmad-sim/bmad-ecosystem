@@ -203,17 +203,13 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(5,4) = -rel_E * py * df_dpy / b1
     mat6(5,6) = -factor - rel_E * df_dE / b1
 
-    if (e1 /= 0) then
-      arg = tan(e1) * g
-      mat6(1:6,1) = mat6(1:6,1) + mat6(1:6,2) * arg
-      mat6(1:6,3) = mat6(1:6,3) - mat6(1:6,4) * arg
-    endif
+! edge focusing terms
 
-    if (e2 /= 0) then
-      arg = tan(e2) * g
-      mat6(2,1:6) = mat6(2,1:6) + mat6(1,1:6) * arg
-      mat6(4,1:6) = mat6(4,1:6) - mat6(3,1:6) * arg
-    endif
+    mat6(1:6,1) = mat6(1:6,1) + mat6(1:6,2) * kx_1
+    mat6(1:6,3) = mat6(1:6,3) + mat6(1:6,4) * ky_1
+
+    mat6(2,1:6) = mat6(2,1:6) + kx_2 * mat6(1,1:6) 
+    mat6(4,1:6) = mat6(4,1:6) + ky_2 * mat6(3,1:6)
 
     if (ele%value(tilt_tot$)+ele%value(roll$) /= 0) then
       call tilt_mat6 (mat6, ele%value(tilt_tot$)+ele%value(roll$))
