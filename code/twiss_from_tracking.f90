@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2003/06/04 17:55:56  dcs
+!Eliminated x%pos, x%vel, etc. from coord_struct.
+!
 !Revision 1.8  2003/01/27 14:40:46  dcs
 !bmad_version = 56
 !
@@ -84,7 +87,7 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
 
 ! make a unit matrix
 
-  call mat_unit (mat6_unit, 6, 6)
+  call mat_make_unit (mat6_unit)
 
   n_ele = ring%n_ele_max
 
@@ -127,7 +130,7 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
 ! mat  is the transfer matrix from the start to the end of element #j
 ! mat1 is the transfer matrix through element #j
 
-  call mat_unit (mat0, 6, 6)  
+  call mat_make_unit (mat0)  
 
   do j = 1, n_ele
 

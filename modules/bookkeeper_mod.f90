@@ -523,7 +523,7 @@ subroutine makeup_super_slave (ring, ix_slave)
   t_2(1) = t_2(1) + ks * t_2(4) / k1 
   t_2(3) = t_2(3) + ks * t_2(2) / k1
              
-  call mat_unit (T_end, 4, 4)
+  call mat_make_unit (T_end)
   T_end(4,1) =  ks / 2
   T_end(2,3) = -ks / 2
 
@@ -536,7 +536,7 @@ subroutine makeup_super_slave (ring, ix_slave)
   r_off = matmul (T_end, l_slave * t_1 / 2 - t_2) 
   r_off = matmul (T_tot, r_off) + matmul (T_end, l_slave * t_1 / 2 + t_2)
 
-  call mat_unit (mat4, 4, 4)
+  call mat_make_unit (mat4)
   mat4(:,2) = mat4(:,2) + l_slave * T_tot(:,1) / 2
   mat4(:,4) = mat4(:,4) + l_slave * T_tot(:,3) / 2
   mat4(1,2) = mat4(1,2) + l_slave / 2

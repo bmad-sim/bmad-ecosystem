@@ -17,7 +17,7 @@
 !                                all others imply an open lattice.
 !   orb(0:n_ele_maxx)  -- Coord_struct: Orbit to be computed
 !     orb(0)             -- Initial conditions to be used for an open ring.
-!     orb(0)%z%vel       -- For a closed ring: Energy at which the closed orbit 
+!     orb(0)%vec(6)       -- For a closed ring: Energy at which the closed orbit 
 !                             is computed.
 !
 ! Output:
@@ -27,6 +27,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/06/04 17:55:56  dcs
+!Eliminated x%pos, x%vel, etc. from coord_struct.
+!
 !Revision 1.7  2003/01/27 14:40:45  dcs
 !bmad_version = 56
 !

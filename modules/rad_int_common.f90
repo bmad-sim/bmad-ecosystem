@@ -7,6 +7,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2003/06/04 17:56:07  dcs
+!Eliminated x%pos, x%vel, etc. from coord_struct.
+!
 !Revision 1.8  2003/05/02 15:44:35  dcs
 !F90 standard conforming changes.
 !
@@ -499,8 +502,8 @@ subroutine propagate_part_way (s)
   ric%eta_b = &
       matmul(v, (/ 0.0_rdef,   0.0_rdef,    ric%runt%y%eta, ric%runt%y%etap /))
 
-  ric%g_x = ric%g_x0 + orb%x%pos * ric%k1 + orb%y%pos * ric%s1
-  ric%g_y = ric%g_y0 - orb%y%pos * ric%k1 + orb%x%pos * ric%s1
+  ric%g_x = ric%g_x0 + orb%vec(1) * ric%k1 + orb%vec(3) * ric%s1
+  ric%g_y = ric%g_y0 - orb%vec(3) * ric%k1 + orb%vec(1) * ric%s1
                    
   ric%dg2_x = 2 * (ric%g_x * ric%k1 + ric%g_y * ric%s1)
   ric%dg2_y = 2 * (ric%g_x * ric%s1 - ric%g_y * ric%k1) 

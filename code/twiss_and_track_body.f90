@@ -27,6 +27,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/06/04 17:55:56  dcs
+!Eliminated x%pos, x%vel, etc. from coord_struct.
+!
 !Revision 1.5  2003/01/27 14:40:46  dcs
 !bmad_version = 56
 !
@@ -71,7 +74,7 @@ subroutine twiss_and_track_body (ele1, ele2, param, del_s, ele3, &
   endif
 
   if (ele2%key == sbend$) then
-    ele%value(e1$) = -atan(c0%x%vel) * ele%value(g$) / (1 + c0%z%vel)
+    ele%value(e1$) = -atan(c0%vec(2)) * ele%value(g$) / (1 + c0%vec(6))
     ele%value(e2$) = 0
   endif
 
@@ -82,9 +85,9 @@ subroutine twiss_and_track_body (ele1, ele2, param, del_s, ele3, &
   if (present(end)) then
     end = c1
     if (ele2%key == sbend$) then
-      del = -end%x%vel * ele%value(g$) / (1 + end%z%vel)
-      end%x%vel = end%x%vel - del * end%x%pos
-      end%y%vel = end%y%vel + del * end%y%pos
+      del = -end%vec(2) * ele%value(g$) / (1 + end%vec(6))
+      end%vec(2) = end%vec(2) - del * end%vec(1)
+      end%vec(4) = end%vec(4) + del * end%vec(3)
     endif
   endif
 

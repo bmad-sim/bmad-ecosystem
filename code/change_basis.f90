@@ -35,6 +35,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/06/04 17:55:53  dcs
+!Eliminated x%pos, x%vel, etc. from coord_struct.
+!
 !Revision 1.7  2003/03/04 16:03:28  dcs
 !VMS port
 !
@@ -70,33 +73,33 @@ subroutine change_basis (coord, ref_energy, ref_z, to_cart, time_disp)
 
 !
 
-  saved%x%pos = coord%x%pos
-  saved%y%pos = coord%y%pos
+  saved%vec(1) = coord%vec(1)
+  saved%vec(3) = coord%vec(3)
 
   if (to_cart) then
-    rvar = (m_electron / (ref_energy * (coord%z%vel+1)))**2
+    rvar = (m_electron / (ref_energy * (coord%vec(6)+1)))**2
     if (rvar <= 0.001) then
-      saved%z%vel = c_light / sqrt(1 + coord%x%vel**2 + coord%y%vel**2)  &
+      saved%vec(6) = c_light / sqrt(1 + coord%vec(2)**2 + coord%vec(4)**2)  &
         * (1 - rvar/2)
     else
-      saved%z%vel = c_light * sqrt((1 - rvar)  &
-        / (1 + coord%x%vel**2 + coord%y%vel**2))
+      saved%vec(6) = c_light * sqrt((1 - rvar)  &
+        / (1 + coord%vec(2)**2 + coord%vec(4)**2))
     endif
-    saved%x%vel = coord%x%vel * saved%z%vel
-    saved%y%vel = coord%y%vel * saved%z%vel
+    saved%vec(2) = coord%vec(2) * saved%vec(6)
+    saved%vec(4) = coord%vec(4) * saved%vec(6)
 !         Convert z from a relative position to an absolute position:
-    saved%z%pos = ref_z
-    time_disp =  - coord%z%pos / saved%z%vel
+    saved%vec(5) = ref_z
+    time_disp =  - coord%vec(5) / saved%vec(6)
   else
-    saved%x%vel = coord%x%vel / coord%z%vel
-    saved%y%vel = coord%y%vel / coord%z%vel
-    beta2 = (coord%x%vel**2 + coord%y%vel**2 + coord%z%vel**2) / c_light**2
+    saved%vec(2) = coord%vec(2) / coord%vec(6)
+    saved%vec(4) = coord%vec(4) / coord%vec(6)
+    beta2 = (coord%vec(2)**2 + coord%vec(4)**2 + coord%vec(6)**2) / c_light**2
 !         Prevent sqrt(negative number) due to rounding errors.  Set such
 !         particles to have gamma = 1000 (approximately).
     if (beta2 >= 0.999999) beta2 = 0.999999
-    saved%z%vel = m_electron / (ref_energy * sqrt(1 - beta2)) - 1
+    saved%vec(6) = m_electron / (ref_energy * sqrt(1 - beta2)) - 1
 !         Convert z from an absolute position to a relative position:
-    saved%z%pos = - coord%z%vel * time_disp
+    saved%vec(5) = - coord%vec(6) * time_disp
   endif
   coord = saved
 

@@ -24,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/06/04 17:55:53  dcs
+!Eliminated x%pos, x%vel, etc. from coord_struct.
+!
 !Revision 1.4  2003/01/27 14:40:31  dcs
 !bmad_version = 56
 !
@@ -56,7 +59,7 @@ subroutine chrom_calc (ring, delta_e, chrom_x, chrom_y)
 
 ! lower energy tune
 
-  coord_(0)%z%vel = -delta_e
+  coord_(0)%vec(6) = -delta_e
   call closed_orbit_at_start (ring2, coord_(0), 4, .true.)
   call track_all (ring2, coord_)
   call ring_make_mat6 (ring2, -1, coord_)
@@ -69,7 +72,7 @@ subroutine chrom_calc (ring, delta_e, chrom_x, chrom_y)
 
 ! higher energy tune
 
-  coord_(0)%z%vel = delta_e
+  coord_(0)%vec(6) = delta_e
   call closed_orbit_at_start (ring2, coord_(0), 4, .true.)
   call track_all (ring2, coord_)
   call ring_make_mat6 (ring2, -1, coord_)

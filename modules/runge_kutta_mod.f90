@@ -422,8 +422,8 @@ subroutine field_rk_standard (ele, param, s_pos, here, field, field_type)
 
 !
 
-  x = here%x%pos
-  y = here%y%pos
+  x = here%vec(1)
+  y = here%vec(3)
   s = s_pos
 
   field = 0
@@ -470,16 +470,16 @@ subroutine field_rk_standard (ele, param, s_pos, here, field, field_type)
   case (quadrupole$)
 
     field_type = KICK_FIELD$
-    field(1) = -ele%value(k1$) * x / (1 + here%z%vel)
-    field(2) =  ele%value(k1$) * y / (1 + here%z%vel)
+    field(1) = -ele%value(k1$) * x / (1 + here%vec(6))
+    field(2) =  ele%value(k1$) * y / (1 + here%vec(6))
 
 ! Sextupole
 
   case (sextupole$)
 
     field_type = KICK_FIELD$
-    field(1) = 0.5 * ele%value(k2$) * (y*y - x*x) / (1 + here%z%vel)
-    field(2) =       ele%value(k2$) * x * y / (1 + here%z%vel)
+    field(1) = 0.5 * ele%value(k2$) * (y*y - x*x) / (1 + here%vec(6))
+    field(2) =       ele%value(k2$) * x * y / (1 + here%vec(6))
 
 ! Error
 

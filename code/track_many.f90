@@ -48,6 +48,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.11  2003/06/04 17:55:55  dcs
+!Eliminated x%pos, x%vel, etc. from coord_struct.
+!
 !Revision 1.10  2003/05/02 15:44:03  dcs
 !F90 standard conforming changes.
 !
@@ -165,9 +168,9 @@ subroutine track_back (ix1, ix2)
 
 ! flip to reversed coords
 
-  orbit_(ix1)%x%vel = -orbit_(ix1)%x%vel
-  orbit_(ix1)%y%vel = -orbit_(ix1)%y%vel
-  orbit_(ix1)%z%pos = -orbit_(ix1)%z%pos
+  orbit_(ix1)%vec(2) = -orbit_(ix1)%vec(2)
+  orbit_(ix1)%vec(4) = -orbit_(ix1)%vec(4)
+  orbit_(ix1)%vec(5) = -orbit_(ix1)%vec(5)
 
 ! track
 
@@ -196,9 +199,9 @@ subroutine track_back (ix1, ix2)
 
 ! flip back to normal coords
 
-  orbit_(ix_last:ix1)%x%vel = -orbit_(ix_last:ix1)%x%vel
-  orbit_(ix_last:ix1)%y%vel = -orbit_(ix_last:ix1)%y%vel
-  orbit_(ix_last:ix1)%z%pos = -orbit_(ix_last:ix1)%z%pos
+  orbit_(ix_last:ix1)%vec(2) = -orbit_(ix_last:ix1)%vec(2)
+  orbit_(ix_last:ix1)%vec(4) = -orbit_(ix_last:ix1)%vec(4)
+  orbit_(ix_last:ix1)%vec(5) = -orbit_(ix_last:ix1)%vec(5)
 
 end subroutine
 

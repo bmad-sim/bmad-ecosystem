@@ -12,6 +12,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/06/04 17:55:57  dcs
+!Eliminated x%pos, x%vel, etc. from coord_struct.
+!
 !Revision 1.5  2003/05/02 15:44:04  dcs
 !F90 standard conforming changes.
 !
@@ -39,9 +42,9 @@ subroutine type_coord (coord)
 
 !
 
-  print *, '(X, X''):', coord%x%pos, coord%x%vel
-  print *, '(Y, Y''):', coord%y%pos, coord%y%vel
-  print *, '(Z, Z''):', coord%z%pos, coord%z%vel
+  print *, '(X, X''):', coord%vec(1), coord%vec(2)
+  print *, '(Y, Y''):', coord%vec(3), coord%vec(4)
+  print *, '(Z, Z''):', coord%vec(5), coord%vec(6)
 
   return
   end

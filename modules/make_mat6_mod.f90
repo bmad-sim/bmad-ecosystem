@@ -125,7 +125,7 @@ subroutine sol_quad_mat6_calc (ks, k1, s_len, m, orb)
   coef1 = ks2*r + 4*k1*a
   coef2 = ks2*q + 4*k1*b
 
-  call mat_unit(m, 6, 6)
+  call mat_make_unit(m)
                
   m(1,1) = 2*ug * (fp*C + fm*Csh)
   m(1,2) = (2*ug/k1) * (q*S1 - r*Snh1)

@@ -25,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/06/04 17:55:55  dcs
+!Eliminated x%pos, x%vel, etc. from coord_struct.
+!
 !Revision 1.6  2003/05/02 15:44:03  dcs
 !F90 standard conforming changes.
 !
@@ -98,11 +101,11 @@ subroutine track1_627 (start, ele, param, mat627, end)
 
     x_lim = ele%value(x_limit$)
     if (x_lim <= 0) x_lim = 1e10
-    if (abs(end%x%pos) > x_lim) param%lost = .true.
+    if (abs(end%vec(1)) > x_lim) param%lost = .true.
 
     y_lim = ele%value(y_limit$)
     if (y_lim <= 0) y_lim = 1e10
-    if (abs(end%y%pos) > y_lim) param%lost = .true.
+    if (abs(end%vec(3)) > y_lim) param%lost = .true.
 
   endif
 

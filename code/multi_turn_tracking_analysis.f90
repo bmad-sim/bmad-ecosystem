@@ -18,7 +18,8 @@
 !
 ! Output:
 !   track0 -- Coord_struct: Closed orbit.
-!   ele    -- ele_struct: structure holding the 1-turn matrix and Twiss parameters.
+!   ele    -- ele_struct: structure holding the 1-turn matrix and 
+!                                                      Twiss parameters.
 !     %mat6        -- Symplectified 1-turn matrix. If you want the
 !                      true non-symplectified 1-turn matrix use the routine
 !                      multi_turn_tracking_to_mat.
@@ -32,20 +33,7 @@
 !              See mat_symp_check for more details.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.4  2003/01/27 14:40:39  dcs
-!bmad_version = 56
-!
-!Revision 1.3  2002/02/23 20:32:20  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:54  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
                        
 subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
                                                  stable, growth_rate, chi)
@@ -70,7 +58,7 @@ subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
 
 ! get 1-turn matrix and symplectify
 
-  call mat_unit (ele%mat6, 6, 6)
+  call mat_make_unit (ele%mat6)
   call multi_turn_tracking_to_mat (track, i_dim, ele%mat6(1:i_dim,1:i_dim), &
                                                                  track0, chi)
   call mat_symplectify (ele%mat6(1:i_dim,1:i_dim), ele%mat6(1:i_dim,1:i_dim))
@@ -87,9 +75,9 @@ subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
     else
       stable = .true.
       growth_rate = 0
-      ele%x%sigma = (ele%x%gamma * sum(track(:)%x%pos**2) + &
-                     ele%x%alpha * sum(track(:)%x%pos * track(:)%x%vel) + &
-                     ele%x%beta *  sum(track(:)%x%vel**2)) / size(track)
+      ele%x%sigma = (ele%x%gamma * sum(track(:)%vec(1)**2) + &
+                     ele%x%alpha * sum(track(:)%vec(1) * track(:)%vec(2)) + &
+                     ele%x%beta *  sum(track(:)%vec(2)**2)) / size(track)
     endif
 
   elseif (i_dim == 4) then

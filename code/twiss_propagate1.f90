@@ -25,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.10  2003/06/04 17:55:56  dcs
+!Eliminated x%pos, x%vel, etc. from coord_struct.
+!
 !Revision 1.9  2003/05/02 15:44:04  dcs
 !F90 standard conforming changes.
 !
@@ -110,7 +113,7 @@ subroutine twiss_propagate1 (ele1, ele2)
 
   else
 
-    call mat_unit (ele_temp%mat6, 6, 6)   ! makle unit matrix
+    call mat_make_unit (ele_temp%mat6)   ! makle unit matrix
 
     big_M = ele2%mat6(1:2,1:2)
     small_m = ele2%mat6(1:2,3:4)

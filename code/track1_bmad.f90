@@ -107,8 +107,8 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(3) = end%vec(3) + length * end%vec(4)
 
     if (ele%key == kicker$) then
-      end%x%pos = end%x%pos + ele%value(h_displace$)
-      end%y%pos = end%y%pos + ele%value(v_displace$)
+      end%vec(1) = end%vec(1) + ele%value(h_displace$)
+      end%vec(3) = end%vec(3) + ele%value(v_displace$)
     endif
 
     call offset_particle (ele, param, end, unset$)  
@@ -129,9 +129,9 @@ subroutine track1_bmad (start, ele, param, end)
     s_pos = 0    ! end at the ip
     do i = 1, n_slice
       s_pos_old = s_pos
-      s_pos = (end%z%pos + z_slice(i)) / 2
-      end%x%pos = end%x%pos + end%x%vel * (s_pos - s_pos_old)
-      end%y%pos = end%y%pos + end%y%vel * (s_pos - s_pos_old)
+      s_pos = (end%vec(5) + z_slice(i)) / 2
+      end%vec(1) = end%vec(1) + end%vec(2) * (s_pos - s_pos_old)
+      end%vec(3) = end%vec(3) + end%vec(4) * (s_pos - s_pos_old)
       if (ele%x%beta == 0) then
         sig_x = sig_x0
         sig_y = sig_y0
@@ -142,14 +142,14 @@ subroutine track1_bmad (start, ele, param, end)
         sig_y = sig_y0 * sqrt(beta / ele%y%beta)
       endif
 
-      call bbi_kick (end%x%pos/sig_x, end%y%pos/sig_y, sig_y/sig_x,  &
+      call bbi_kick (end%vec(1)/sig_x, end%vec(3)/sig_y, sig_y/sig_x,  &
                                                                   kx, ky)
-      coef = ele%value(bbi_const$) / (n_slice * (1 + end%z%vel))
-      end%x%vel = end%x%vel + kx * coef
-      end%y%vel = end%y%vel + ky * coef
+      coef = ele%value(bbi_const$) / (n_slice * (1 + end%vec(6)))
+      end%vec(2) = end%vec(2) + kx * coef
+      end%vec(4) = end%vec(4) + ky * coef
     enddo
-    end%x%pos = end%x%pos - end%x%vel * s_pos
-    end%y%pos = end%y%pos - end%y%vel * s_pos
+    end%vec(1) = end%vec(1) - end%vec(2) * s_pos
+    end%vec(3) = end%vec(3) - end%vec(4) * s_pos
 
     call offset_particle (ele, param, end, unset$)  
     call end_z_calc
@@ -162,20 +162,20 @@ subroutine track1_bmad (start, ele, param, end)
 
     call offset_particle (ele, param, end, set$)
 
-    k3l = ele%value(k3$) * length / (1 + end%z%vel)
+    k3l = ele%value(k3$) * length / (1 + end%vec(6))
 
-    end%x%vel = end%x%vel + k3l *  &
-                    (3*end%x%pos*end%y%pos**2 - end%x%pos**3) / 12
-    end%y%vel = end%y%vel + k3l *  &
-                    (3*end%y%pos*end%x%pos**2 - end%y%pos**3) / 12
+    end%vec(2) = end%vec(2) + k3l *  &
+                    (3*end%vec(1)*end%vec(3)**2 - end%vec(1)**3) / 12
+    end%vec(4) = end%vec(4) + k3l *  &
+                    (3*end%vec(3)*end%vec(1)**2 - end%vec(3)**3) / 12
 
-    end%x%pos = end%x%pos + end%x%vel * length
-    end%y%pos = end%y%pos + end%y%vel * length
+    end%vec(1) = end%vec(1) + end%vec(2) * length
+    end%vec(3) = end%vec(3) + end%vec(4) * length
 
-    end%x%vel = end%x%vel + k3l *  &
-                    (3*end%x%pos*end%y%pos**2 - end%x%pos**3) / 12
-    end%y%vel = end%y%vel + k3l *  &
-                    (3*end%y%pos*end%x%pos**2 - end%y%pos**3) / 12
+    end%vec(2) = end%vec(2) + k3l *  &
+                    (3*end%vec(1)*end%vec(3)**2 - end%vec(1)**3) / 12
+    end%vec(4) = end%vec(4) + k3l *  &
+                    (3*end%vec(3)*end%vec(1)**2 - end%vec(3)**3) / 12
 
     call offset_particle (ele, param, end, unset$)  
     call end_z_calc
@@ -186,7 +186,7 @@ subroutine track1_bmad (start, ele, param, end)
 
     call offset_particle (ele, param, end, set$)
 
-    k1 = ele%value(k1$) / (1 + end%z%vel)
+    k1 = ele%value(k1$) / (1 + end%vec(6))
     call quad_mat_calc (-k1, length, mat2)
     end%vec(1:2) = matmul(mat2, end%vec(1:2))
     call quad_mat_calc (k1, length, mat2)
@@ -208,13 +208,13 @@ subroutine track1_bmad (start, ele, param, end)
 
     call offset_particle (ele, param, end, set$, set_canonical = .false.)
 
-    x = end%x%pos
-    y = end%y%pos
-    z = end%z%pos
+    x = end%vec(1)
+    y = end%vec(3)
+    z = end%vec(5)
 
-    px = end%x%vel
-    py = end%y%vel
-    pz = end%z%vel
+    px = end%vec(2)
+    py = end%vec(4)
+    pz = end%vec(6)
 
     if (ele%value(volt$) == 0) then
       phase = 0
@@ -240,10 +240,10 @@ subroutine track1_bmad (start, ele, param, end)
 !
 
     end = start
-    end%x%pos = x + px*L * (1/E - dE0/2 + pxy2*L/12 + pz*dE0 + dE0**2/3) 
-    end%y%pos = y + py*L * (1/E - dE0/2 + pxy2*L/12 + pz*dE0 + dE0**2/3)
-    end%z%pos = z + pxy2*L * (-1/(2*E2) + dE0/2)
-    end%z%vel = pz + dE0 + k*pxy2*L * (-1/(4*E2) + dE0/6) 
+    end%vec(1) = x + px*L * (1/E - dE0/2 + pxy2*L/12 + pz*dE0 + dE0**2/3) 
+    end%vec(3) = y + py*L * (1/E - dE0/2 + pxy2*L/12 + pz*dE0 + dE0**2/3)
+    end%vec(5) = z + pxy2*L * (-1/(2*E2) + dE0/2)
+    end%vec(6) = pz + dE0 + k*pxy2*L * (-1/(4*E2) + dE0/6) 
          
     call offset_particle (ele, param, end, unset$, set_canonical = .false.)
 
@@ -262,10 +262,10 @@ subroutine track1_bmad (start, ele, param, end)
     endif
 
     phase = twopi * (ele%value(phi0$) + &
-                        end%z%pos * ele%value(rf_frequency$) / c_light)
+                        end%vec(5) * ele%value(rf_frequency$) / c_light)
     cos_phi = cos(phase)
     gradient = ele%value(gradient$) * cos_phi
-    e_start = ele%value(energy_start$) * (1 + end%z%vel)
+    e_start = ele%value(energy_start$) * (1 + end%vec(6))
     e_end = e_start + gradient * ele%value(l$)
     e_ratio = e_end / e_start
     if (e_ratio < 0) then
@@ -285,22 +285,22 @@ subroutine track1_bmad (start, ele, param, end)
     call offset_particle (ele, param, end, set$)
 
     f = gradient / (2 * e_start)            ! entrence kick
-    end%x%vel = end%x%vel - f * end%x%pos
-    end%y%vel = end%y%vel - f * end%y%pos
+    end%vec(2) = end%vec(2) - f * end%vec(1)
+    end%vec(4) = end%vec(4) - f * end%vec(3)
 
     f = gradient / (2 * sqrt_2 * cos_phi)
-    x_pos = end%x%pos
-    y_pos = end%y%pos
-    end%x%pos =  cos_a * end%x%pos         + sin_a * end%x%vel * e_start / f
-    end%x%vel = -sin_a * x_pos * f / e_end + cos_a * end%x%vel * e_start / e_end
-    end%y%pos =  cos_a * end%y%pos         + sin_a * end%y%vel * e_start / f
-    end%y%vel = -sin_a * y_pos * f / e_end + cos_a * end%y%vel * e_start / e_end
+    x_pos = end%vec(1)
+    y_pos = end%vec(3)
+    end%vec(1) =  cos_a * end%vec(1)         + sin_a * end%vec(2) * e_start / f
+    end%vec(2) = -sin_a * x_pos * f / e_end + cos_a * end%vec(2) * e_start / e_end
+    end%vec(3) =  cos_a * end%vec(3)         + sin_a * end%vec(4) * e_start / f
+    end%vec(4) = -sin_a * y_pos * f / e_end + cos_a * end%vec(4) * e_start / e_end
 
     f = gradient / (2 * e_end)              ! exit kick
-    end%x%vel = end%x%vel + f * end%x%pos
-    end%y%vel = end%y%vel + f * end%y%pos
+    end%vec(2) = end%vec(2) + f * end%vec(1)
+    end%vec(4) = end%vec(4) + f * end%vec(3)
 
-    end%z%vel = (e_end - ele%value(energy$)) / ele%value(energy$) 
+    end%vec(6) = (e_end - ele%value(energy$)) / ele%value(energy$) 
 
     call offset_particle (ele, param, end, unset$)
     call end_z_calc
@@ -313,13 +313,13 @@ subroutine track1_bmad (start, ele, param, end)
 
     call offset_particle (ele, param, end, set$)
 
-    k2l = ele%value(k2$) * length / (1 + end%z%vel)
-    end%x%vel = end%x%vel + k2l * (end%y%pos**2 - end%x%pos**2)/4
-    end%y%vel = end%y%vel + k2l * end%x%pos * end%y%pos / 2
-    end%x%pos = end%x%pos + end%x%vel * length
-    end%y%pos = end%y%pos + end%y%vel * length
-    end%x%vel = end%x%vel + k2l * (end%y%pos**2 - end%x%pos**2)/4
-    end%y%vel = end%y%vel + k2l * end%x%pos * end%y%pos / 2
+    k2l = ele%value(k2$) * length / (1 + end%vec(6))
+    end%vec(2) = end%vec(2) + k2l * (end%vec(3)**2 - end%vec(1)**2)/4
+    end%vec(4) = end%vec(4) + k2l * end%vec(1) * end%vec(3) / 2
+    end%vec(1) = end%vec(1) + end%vec(2) * length
+    end%vec(3) = end%vec(3) + end%vec(4) * length
+    end%vec(2) = end%vec(2) + k2l * (end%vec(3)**2 - end%vec(1)**2)/4
+    end%vec(4) = end%vec(4) + k2l * end%vec(1) * end%vec(3) / 2
 
     call offset_particle (ele, param, end, unset$)
     call end_z_calc
@@ -330,7 +330,7 @@ subroutine track1_bmad (start, ele, param, end)
 
     call offset_particle (ele, param, end, set$)
 
-    ks = ele%value(ks$) / (1 + end%z%vel)
+    ks = ele%value(ks$) / (1 + end%vec(6))
     call solenoid_mat_calc (ks, length, mat4)
     end%vec(1:4) = matmul (mat4, end%vec(1:4))
 
@@ -343,8 +343,8 @@ subroutine track1_bmad (start, ele, param, end)
 
     call offset_particle (ele, param, end, set$)
 
-    ks = ele%value(ks$) / (1 + end%z%vel)
-    k1 = ele%value(k1$) / (1 + end%z%vel)
+    ks = ele%value(ks$) / (1 + end%vec(6))
+    k1 = ele%value(k1$) / (1 + end%vec(6))
     vec0 = 0
     call sol_quad_mat6_calc (ks, k1, length, mat6, vec0)
     end%vec(1:4) = matmul (mat6(1:4,1:4), end%vec(1:4))
@@ -365,7 +365,7 @@ subroutine track1_bmad (start, ele, param, end)
 
     call offset_particle (ele, param, end, set$, set_multipoles=.false.)
 
-    k1 = ele%value(k1$) / (1 + end%z%vel)**2
+    k1 = ele%value(k1$) / (1 + end%vec(6))**2
     call quad_mat_calc (k1, length, mat2)
     end%vec(1) = end%vec(1) + length * end%vec(2)
     end%vec(3:4) = matmul (mat2, end%vec(3:4))
@@ -418,9 +418,9 @@ contains
 
 subroutine end_z_calc
 
-  end%z%pos = end%z%pos - length * &
-      (start%x%vel**2 + end%x%vel**2 + start%x%vel * end%x%vel + &
-       start%y%vel**2 + end%y%vel**2 + start%y%vel * end%y%vel) / 6
+  end%vec(5) = end%vec(5) - length * &
+      (start%vec(2)**2 + end%vec(2)**2 + start%vec(2) * end%vec(2) + &
+       start%vec(4)**2 + end%vec(4)**2 + start%vec(4) * end%vec(4)) / 6
 
 end subroutine
 

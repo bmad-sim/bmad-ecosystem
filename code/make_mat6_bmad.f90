@@ -57,7 +57,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
   length = ele%value(l$)
   mat6 => ele%mat6
-  rel_E = 1 + c0%z%vel  ! E/E_0
+  rel_E = 1 + c0%vec(6)  ! E/E_0
 
   call track1 (c0, ele, param, c1)
 
@@ -128,9 +128,9 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
     endif
 
     angle = length * g
-    e1 = e1 + c0t%x%vel / rel_E
-    e2 = e2 - c1t%x%vel / rel_E
-    angle = angle + (c0t%x%vel - c1t%x%vel) / rel_E
+    e1 = e1 + c0t%vec(2) / rel_E
+    e2 = e2 - c1t%vec(2) / rel_E
+    angle = angle + (c0t%vec(2) - c1t%vec(2)) / rel_E
     g = g / rel_E
     length = angle / g
     k1 = k1 / rel_E
@@ -154,7 +154,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 ! Above correct for (x, x', y, y') coord system. 
 ! Actually we have (x, p_x, y, p_y) so transform.
 
-    mat6(1,6) = mat6(1,6) / rel_E - mat6(1,2) * c0t%x%vel / rel_E**2
+    mat6(1,6) = mat6(1,6) / rel_E - mat6(1,2) * c0t%vec(2) / rel_E**2
     mat6(2,6) = rel_E * mat6(2,6) 
     mat6(3,6) = -c0t%vec(4) * (mat6(5,6) + length)
 
@@ -388,12 +388,12 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   case (lcavity$)
 
     f = twopi * ele%value(rf_frequency$) / c_light
-    phase = f * c0%z%pos + twopi * ele%value(phi0$)
+    phase = f * c0%vec(5) + twopi * ele%value(phi0$)
     mat6(6,5) = -ele%value(gradient$) * ele%value(l$) * f * sin(phase)
 
     cos_phi = cos(phase)
     gradient = ele%value(gradient$) * cos_phi
-    e_start = ele%value(energy_start$) * (1 + c0%z%vel)
+    e_start = ele%value(energy_start$) * (1 + c0%vec(6))
     e_end = e_start + gradient * ele%value(l$)
     e_ratio = e_end / e_start
     alpha = log(e_ratio) / (2 * sqrt_2 * cos_phi)
@@ -437,14 +437,14 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
         print *, '      YOU NEED TO SET THIS OR THE "HARMON" ATTRIBUTE.'
         call err_exit
       endif
-      phase = twopi * (ele%value(phi0$) + c0%z%pos / ele%value(rf_wavelength$))
+      phase = twopi * (ele%value(phi0$) + c0%vec(5) / ele%value(rf_wavelength$))
       k  =  twopi * ele%value(volt$) * cos(phase) / &
                               (param%beam_energy * ele%value(rf_wavelength$))
     endif
 
-    px = c0%x%vel
-    py = c0%y%vel
-    pz = c0%z%vel
+    px = c0%vec(2)
+    py = c0%vec(4)
+    pz = c0%vec(6)
 
     dE0 =  ele%value(volt$) * sin(phase) / param%beam_energy
     L = ele%value(l$)
@@ -489,7 +489,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
     if (ele%value(charge$) == 0 .or. param%n_part == 0) return
 
-! factor of 2 in orb%z%pos since relative motion of the two beams is 2*c_light
+! factor of 2 in orb%vec(5) since relative motion of the two beams is 2*c_light
 
     if (n_slice == 1) then
       call bbi_kick_matrix (ele, c0t, 0.0_rp, mat6)
@@ -497,19 +497,19 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
       call bbi_slice_calc (n_slice, ele%value(sig_z$), z_slice)
 
       s_pos = 0          ! start at IP
-      orb%x%vel = c0t%x%vel - ele%value(x_pitch$)
-      orb%y%vel = c0t%y%vel - ele%value(y_pitch$)
+      orb%vec(2) = c0t%vec(2) - ele%value(x_pitch$)
+      orb%vec(4) = c0t%vec(4) - ele%value(y_pitch$)
       call mat_make_unit (mat4)
 
       do i = 1, n_slice + 1
         s_pos_old = s_pos  ! current position
-        s_pos = (z_slice(i) + c0t%z%pos) / 2 ! position of slice relative to IP
+        s_pos = (z_slice(i) + c0t%vec(5)) / 2 ! position of slice relative to IP
         del_l = s_pos - s_pos_old
         mat4(1,1:4) = mat4(1,1:4) + del_l * mat4(2,1:4)
         mat4(3,1:4) = mat4(3,1:4) + del_l * mat4(4,1:4)
         if (i == n_slice + 1) exit
-        orb%x%pos = c0t%x%pos + s_pos * orb%x%vel
-        orb%y%pos = c0t%y%pos + s_pos * orb%y%vel
+        orb%vec(1) = c0t%vec(1) + s_pos * orb%vec(2)
+        orb%vec(3) = c0t%vec(3) + s_pos * orb%vec(4)
         call bbi_kick_matrix (ele, orb, s_pos, kmat6)
         mat4(2,1:4) = mat4(2,1:4) + kmat6(2,1) * mat4(1,1:4) + &
                                     kmat6(2,3) * mat4(3,1:4)
@@ -533,7 +533,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
 ! octuple correction to k1
 
-    y_ave = (c0t%y%pos + c1t%y%pos) / 2
+    y_ave = (c0t%vec(3) + c1t%vec(3)) / 2
     k_z = pi * ele%value(n_pole$) / length
     k1 = k1 * (1 + 2 * (k_z * y_ave)**2)
 
@@ -746,8 +746,8 @@ subroutine bbi_kick_matrix (ele, orb, s_pos, mat6)
   endif
 
 
-  x_pos = orb%x%pos / sig_x  ! this has offset in it
-  y_pos = orb%y%pos / sig_y
+  x_pos = orb%vec(1) / sig_x  ! this has offset in it
+  y_pos = orb%vec(3) / sig_y
 
   del = 0.001
 
@@ -756,7 +756,7 @@ subroutine bbi_kick_matrix (ele, orb, s_pos, mat6)
   call bbi_kick (x_pos+del, y_pos, ratio, k1_x, garbage)
   call bbi_kick (x_pos, y_pos+del, ratio, garbage, k1_y)
 
-  coef = ele%value(bbi_const$) / (1 + orb%z%vel)
+  coef = ele%value(bbi_const$) / (1 + orb%vec(6))
 
   call mat_make_unit (mat6)
   mat6(2,1) = coef * (k1_x - k0_x) / (ele%value(n_slice$) * del * sig_x)

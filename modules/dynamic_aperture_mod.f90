@@ -39,7 +39,7 @@ contains
 ! Input:
 !   ring        -- Ring_struct: Ring containing the lattice.
 !   orb0        -- Coord_struct: Closed orbit at the start.
-!     %z%vel      -- Energy offset.
+!     %vec(6)      -- Energy offset.
 !   theta_xy    -- Real(rdef): Angle of radial line (in radians) in x-y space.
 !                    Angle is "normalized" by %x_init, %y_init.
 !   track_input -- Track_input_struct: Structure holding the input data:
@@ -106,8 +106,8 @@ subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
     do i = 1, 6
       orbit_(0)%vec(i) = orb0%vec(i)
     enddo
-    orbit_(0)%x%pos = orbit_(0)%x%pos + x1
-    orbit_(0)%y%pos = orbit_(0)%y%pos + y1
+    orbit_(0)%vec(1) = orbit_(0)%vec(1) + x1
+    orbit_(0)%vec(3) = orbit_(0)%vec(3) + y1
 
 ! track n_turns
 
@@ -165,7 +165,7 @@ subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
 
   ixr = ring%param%ix_lost
   if (ring%ele_(ixr)%value(x_limit$) /= 0 .and.  &
-                abs(orbit_(ixr)%x%pos) > ring%ele_(ixr)%value(x_limit$)) then
+                abs(orbit_(ixr)%vec(1)) > ring%ele_(ixr)%value(x_limit$)) then
     aperture%plane = x_plane$
   else
     aperture%plane = y_plane$

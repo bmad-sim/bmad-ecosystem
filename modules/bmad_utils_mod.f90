@@ -108,9 +108,9 @@ subroutine wiggler_vec_potential (ele, energy, here, vec_pot)
 
 !
 
-  x = here%x%pos
-  y = here%y%pos
-  s = here%z%pos
+  x = here%vec(1)
+  y = here%vec(3)
+  s = here%vec(5)
 
   vec_pot = 0
 

@@ -18,8 +18,8 @@
 !     %value(x_pitch$)  -- Horizontal roll of element.
 !     %value(tilt$)     -- titlt of element.
 !   coord     -- Coord_struct: Coordinates of the particle.
-!     %z%vel            -- Energy deviation dE/E. 
-!                          Used to modify %x%vel and %y%vel
+!     %vec(6)            -- Energy deviation dE/E. 
+!                          Used to modify %vec(2) and %vec(4)
 !   param     -- Param_struct:
 !     %particle   -- What kind of particle (for elseparator elements).
 !   set       -- Logical: 
@@ -46,6 +46,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.10  2003/06/04 17:55:54  dcs
+!Eliminated x%pos, x%vel, etc. from coord_struct.
+!
 !Revision 1.9  2003/04/24 17:26:22  dcs
 !Corrected l = 0 & pitch /= 0 bug.
 !
@@ -97,7 +100,7 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
 !---------------------------------------------------------------         
 ! E_rel               
 
-  E_rel = (1 + coord%z%vel)
+  E_rel = (1 + coord%vec(6))
 
 ! init
 
@@ -144,12 +147,12 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
       else
         s_here = -ele%value(l$) / 2
       endif
-      coord%x%pos = coord%x%pos - ele%value(x_offset$) -  &
+      coord%vec(1) = coord%vec(1) - ele%value(x_offset$) -  &
                                        ele%value(x_pitch$) * s_here
-      coord%x%vel = coord%x%vel - ele%value(x_pitch$) * E_rel
-      coord%y%pos = coord%y%pos - ele%value(y_offset$) -  &
+      coord%vec(2) = coord%vec(2) - ele%value(x_pitch$) * E_rel
+      coord%vec(3) = coord%vec(3) - ele%value(y_offset$) -  &
                                          ele%value(y_pitch$) * s_here
-      coord%y%vel = coord%y%vel - ele%value(y_pitch$) * E_rel
+      coord%vec(4) = coord%vec(4) - ele%value(y_pitch$) * E_rel
     endif
 
 ! Set: HV kicks.
@@ -160,11 +163,11 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
     if (set_hv) then
       if (ele%is_on) then
         if (ele%key == elseparator$ .and. param%particle < 0) then
-          coord%x%vel = coord%x%vel - ele%value(hkick$) / 2
-          coord%y%vel = coord%y%vel - ele%value(vkick$) / 2
+          coord%vec(2) = coord%vec(2) - ele%value(hkick$) / 2
+          coord%vec(4) = coord%vec(4) - ele%value(vkick$) / 2
         else
-          coord%x%vel = coord%x%vel + ele%value(hkick$) / 2
-          coord%y%vel = coord%y%vel + ele%value(vkick$) / 2
+          coord%vec(2) = coord%vec(2) + ele%value(hkick$) / 2
+          coord%vec(4) = coord%vec(4) + ele%value(vkick$) / 2
         endif
       endif
     endif
@@ -193,8 +196,8 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
             del_x_vel = angle * (1 - cos(ele%value(roll$))) / 2
           endif
           del_y_vel = -angle * sin(ele%value(roll$)) / 2
-          coord%x%vel = coord%x%vel + del_x_vel
-          coord%y%vel = coord%y%vel + del_y_vel
+          coord%vec(2) = coord%vec(2) + del_x_vel
+          coord%vec(4) = coord%vec(4) + del_y_vel
         endif
         call tilt_coords (ele%value(tilt$)+ele%value(roll$), coord%vec, set$)
       else
@@ -205,9 +208,9 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
 
 ! Set: P_x, P_y -> x', y' 
 
-    if (set_canon .and. coord%z%vel /= 0) then
-      coord%x%vel = coord%x%vel / E_rel
-      coord%y%vel = coord%y%vel / E_rel
+    if (set_canon .and. coord%vec(6) /= 0) then
+      coord%vec(2) = coord%vec(2) / E_rel
+      coord%vec(4) = coord%vec(4) / E_rel
     endif
 
 !----------------------------------------------------------------
@@ -217,9 +220,9 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
 
 ! Unset: x', y' -> P_x, P_y 
 
-    if (set_canon .and. coord%z%vel /= 0) then
-      coord%x%vel = coord%x%vel * E_rel
-      coord%y%vel = coord%y%vel * E_rel
+    if (set_canon .and. coord%vec(6) /= 0) then
+      coord%vec(2) = coord%vec(2) * E_rel
+      coord%vec(4) = coord%vec(4) * E_rel
     endif
 
 ! Unset: Tilt
@@ -229,8 +232,8 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
       if (ele%key == sbend$) then
         call tilt_coords (ele%value(tilt$)+ele%value(roll$), coord%vec, unset$) 
         if (ele%value(roll$) /= 0) then  
-          coord%x%vel = coord%x%vel + del_x_vel
-          coord%y%vel = coord%y%vel + del_y_vel
+          coord%vec(2) = coord%vec(2) + del_x_vel
+          coord%vec(4) = coord%vec(4) + del_y_vel
         endif
       else
         call tilt_coords (ele%value(tilt$), coord%vec, unset$)   
@@ -254,11 +257,11 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
     if (set_hv) then
       if (ele%is_on) then
         if (ele%key == elseparator$ .and. param%particle < 0) then
-          coord%x%vel = coord%x%vel - ele%value(hkick$) / 2
-          coord%y%vel = coord%y%vel - ele%value(vkick$) / 2
+          coord%vec(2) = coord%vec(2) - ele%value(hkick$) / 2
+          coord%vec(4) = coord%vec(4) - ele%value(vkick$) / 2
         else
-          coord%x%vel = coord%x%vel + ele%value(hkick$) / 2
-          coord%y%vel = coord%y%vel + ele%value(vkick$) / 2
+          coord%vec(2) = coord%vec(2) + ele%value(hkick$) / 2
+          coord%vec(4) = coord%vec(4) + ele%value(vkick$) / 2
         endif
       endif
     endif
@@ -272,12 +275,12 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
       else
         s_here = ele%value(l$) / 2
       endif
-      coord%x%pos = coord%x%pos + ele%value(x_offset$) + &
+      coord%vec(1) = coord%vec(1) + ele%value(x_offset$) + &
                                        ele%value(x_pitch$) * s_here
-      coord%x%vel = coord%x%vel + ele%value(x_pitch$) * E_rel
-      coord%y%pos = coord%y%pos + ele%value(y_offset$) +  &
+      coord%vec(2) = coord%vec(2) + ele%value(x_pitch$) * E_rel
+      coord%vec(3) = coord%vec(3) + ele%value(y_offset$) +  &
                                          ele%value(y_pitch$) * s_here
-      coord%y%vel = coord%y%vel + ele%value(y_pitch$) * E_rel
+      coord%vec(4) = coord%vec(4) + ele%value(y_pitch$) * E_rel
     endif
 
     if (ele%value(s_offset$) /= 0) &

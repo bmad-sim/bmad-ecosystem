@@ -395,12 +395,12 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
 ! 1) Push the position 1/2 step
 
-  p_z = sqrt((1 + end%z%vel)**2 - end%x%vel**2 - end%y%vel**2 - m2c2)
+  p_z = sqrt((1 + end%vec(6))**2 - end%vec(2)**2 - end%vec(4)**2 - m2c2)
   ds2_f = ds / (2 * p_z)
 
-  end%x%pos = end%x%pos + ds2_f * end%x%vel 
-  end%y%pos = end%y%pos + ds2_f * end%y%vel
-  end%z%pos = end%z%pos + ds2_f * (p_z - (1 + end%z%vel)) 
+  end%vec(1) = end%vec(1) + ds2_f * end%vec(2) 
+  end%vec(3) = end%vec(3) + ds2_f * end%vec(4)
+  end%vec(5) = end%vec(5) + ds2_f * (p_z - (1 + end%vec(6))) 
 
 ! 2) Evaluate the fields .
 ! 3) Push the momenta a 1/2 step using only "b".
@@ -409,12 +409,12 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
   f = ds * charge * c_light / (2 * param%beam_energy)
 
-  end%x%vel = end%x%vel - field%b(2) * f
-  end%y%vel = end%y%vel + field%b(1) * f
+  end%vec(2) = end%vec(2) - field%b(2) * f
+  end%vec(4) = end%vec(4) + field%b(1) * f
 
   if (field%e(3) /= 0) then
-    end%z%vel = end%z%vel + field%e(3) * f / c_light
-    p_z = sqrt((1 + end%z%vel)**2 - end%x%vel**2 - end%y%vel**2 - m2c2)
+    end%vec(6) = end%vec(6) + field%e(3) * f / c_light
+    p_z = sqrt((1 + end%vec(6))**2 - end%vec(2)**2 - end%vec(4)**2 - m2c2)
   endif
 
 ! 4) Push the momenta a full step using "R".
@@ -425,10 +425,10 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
     if (field%b(3) /= 0) then
       d2 = d2 * field%b(3)
       alpha = 2 * d2 / (1 + d2**2)
-      dxv = -d2 * end%x%vel + end%y%vel
-      dyv = -end%x%vel - d2 * end%y%vel
-      end%x%vel = end%x%vel + alpha * dxv
-      end%y%vel = end%y%vel + alpha * dyv
+      dxv = -d2 * end%vec(2) + end%vec(4)
+      dyv = -end%vec(2) - d2 * end%vec(4)
+      end%vec(2) = end%vec(2) + alpha * dxv
+      end%vec(4) = end%vec(4) + alpha * dyv
     endif
   else
     ex = field%e(1) / c_light;     ex2 = ex**2
@@ -449,18 +449,18 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
 ! 5) Push the momenta a 1/2 step using only "b"
 
-  end%x%vel = end%x%vel - field%b(2) * f
-  end%y%vel = end%y%vel + field%b(1) * f
-  end%z%vel = end%z%vel + field%e(3) * f / c_light
+  end%vec(2) = end%vec(2) - field%b(2) * f
+  end%vec(4) = end%vec(4) + field%b(1) * f
+  end%vec(6) = end%vec(6) + field%e(3) * f / c_light
 
 ! 6) Push the position a 1/2 step.
 
-  p_z = sqrt((1 + end%z%vel)**2 - end%x%vel**2 - end%y%vel**2 - m2c2)
+  p_z = sqrt((1 + end%vec(6))**2 - end%vec(2)**2 - end%vec(4)**2 - m2c2)
   ds2_f = ds / (2 * p_z)
 
-  end%x%pos = end%x%pos + ds2_f * end%x%vel 
-  end%y%pos = end%y%pos + ds2_f * end%y%vel
-  end%z%pos = end%z%pos + ds2_f * (p_z - (1 + end%z%vel)) 
+  end%vec(1) = end%vec(1) + ds2_f * end%vec(2) 
+  end%vec(3) = end%vec(3) + ds2_f * end%vec(4)
+  end%vec(5) = end%vec(5) + ds2_f * (p_z - (1 + end%vec(6))) 
 
 end subroutine
 
@@ -545,13 +545,13 @@ subroutine track_solenoid_edge (ele, param, set, orb)
 
   if (set == set$) then
 
-    orb%x%vel = orb%x%vel + orb%y%pos * ele%value(ks$) / 2
-    orb%y%vel = orb%y%vel - orb%x%pos * ele%value(ks$) / 2
+    orb%vec(2) = orb%vec(2) + orb%vec(3) * ele%value(ks$) / 2
+    orb%vec(4) = orb%vec(4) - orb%vec(1) * ele%value(ks$) / 2
 
   else
 
-    orb%x%vel = orb%x%vel - orb%y%pos * ele%value(ks$) / 2
-    orb%y%vel = orb%y%vel + orb%x%pos * ele%value(ks$) / 2
+    orb%vec(2) = orb%vec(2) - orb%vec(3) * ele%value(ks$) / 2
+    orb%vec(4) = orb%vec(4) + orb%vec(1) * ele%value(ks$) / 2
 
   endif
 
@@ -604,8 +604,8 @@ subroutine em_field (ele, param, s_pos, here, field)
 
 !
 
-  x = here%x%pos
-  y = here%y%pos
+  x = here%vec(1)
+  y = here%vec(3)
   s = s_pos
 
   field%e = 0

@@ -141,7 +141,7 @@ subroutine emitt_calc (ring, what, mode)
         ele0 = ring%ele_(ir-1)
       else
         tan_e1 = tan(e1)
-        call mat_unit (ele0%mat6, 6, 6)
+        call mat_make_unit (ele0%mat6)
         ele0%mat6(2,1) =  tan_e1 * g
         ele0%mat6(4,3) = -tan_e1 * g
         call twiss_propagate1 (ring%ele_(ir-1), ele0)

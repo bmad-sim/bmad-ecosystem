@@ -60,7 +60,7 @@ subroutine twiss_at_start (ring)
   bmad_status%ok = .false.             ! assume the worst
 
   if (init_needed) then
-    call mat_unit(flip_mat, 4, 4)
+    call mat_make_unit(flip_mat)
     flip_mat(1,1) = -1
     flip_mat(4,4) = -1
     init_needed = .false.
@@ -68,7 +68,7 @@ subroutine twiss_at_start (ring)
 
 ! init one turn. T0 is the transverse part of the matrix
 
-  call mat_unit (t0_4, 4, 4)       ! form unit matrix
+  call mat_make_unit (t0_4)       ! form unit matrix
   eta_vec = 0
 
 ! propagate around ring
@@ -88,9 +88,9 @@ subroutine twiss_at_start (ring)
 
 ! put 1-turn matrix into ring%ele_(0)%mat6
 
-  call mat_unit(ring%ele_(0)%mat6, 6, 6)
+  call mat_make_unit(ring%ele_(0)%mat6)
   ring%ele_(0)%mat6(1:4,1:4) = t0_4
-  call mat6_dispersion (ring%ele_(0)%mat6, eta_vec) ! dispersion to ele_(0)%mat6
+  call mat6_dispersion (ring%ele_(0)%mat6, eta_vec) ! dispersion to %mat6
 
 ! if symmetry then propagate through the east side
 

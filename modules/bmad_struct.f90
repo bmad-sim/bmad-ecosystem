@@ -41,26 +41,25 @@ module bmad_struct
 
 ! parameter def
 
-  integer, parameter :: n_attrib_maxx = 34
-
   integer, parameter :: n_ele_maxx = 15000
   integer, parameter :: n_control_maxx = 5000
+  integer, parameter :: n_attrib_maxx = 34
 
-! structure for a particle's coordinates
-
-  type pos_vel_struct
-    real(rdef) pos, vel                            ! position and velocity
-  end type
+! Structure for a particle's coordinates.
+! Coordinates are with respect to the reference trajectory.
+! See the MAD-8 Physical Methods Manual.
+! Usually (but there are some exceptions):
+!   vec(1) -- x position: horizontal .
+!   vec(2) -- p_x normalized momentum: P_x/P_0
+!   vec(3) -- y position: vertical.
+!   vec(4) -- p_y normalized momentum: P_Y/P_0
+!   vec(5) -- z position: = -c*delta_t
+!   vec(6) -- p_z normalized energy deviation: Delta_E/E_0
+! Here P_0 is the reference momentum and E_0 is the reference energy.
+! P_X and P_Y are the momentum along the x and y-axes.
 
   type coord_struct
-    union
-      map
-        type (pos_vel_struct)  x, y, z
-      endmap
-      map
-        real(rdef) vec(6)
-      endmap
-    endunion
+    real(rdef) vec(6)
   end type
 
 ! Wiggler structures

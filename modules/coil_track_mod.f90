@@ -57,6 +57,9 @@ end subroutine
 
 !$Id$
 !$Log$
+!Revision 1.4  2003/06/04 17:56:06  dcs
+!Eliminated x%pos, x%vel, etc. from coord_struct.
+!
 !Revision 1.3  2003/05/02 15:44:34  dcs
 !F90 standard conforming changes.
 !
@@ -103,9 +106,9 @@ subroutine b_field_loop (coord, ele, s_pos, b_loop)
   ri = r * ele%value(current$)
   r2i = r2 * ele%value(current$)
 
-  rel_coords(1) = coord%x%pos - ele%value(x_offset$)
-  rel_coords(2) = coord%y%pos - ele%value(y_offset$)
-  rel_coords(3) = coord%z%pos - s_pos
+  rel_coords(1) = coord%vec(1) - ele%value(x_offset$)
+  rel_coords(2) = coord%vec(3) - ele%value(y_offset$)
+  rel_coords(3) = coord%vec(5) - s_pos
 
 ! Pitch and subsequent yaw rotation matrix:
 ! Note: it is assumed that the original (unrotated) loop was _first_ yawed and
@@ -204,6 +207,9 @@ end subroutine
 
 !$Id$
 !$Log$
+!Revision 1.4  2003/06/04 17:56:06  dcs
+!Eliminated x%pos, x%vel, etc. from coord_struct.
+!
 !Revision 1.3  2003/05/02 15:44:34  dcs
 !F90 standard conforming changes.
 !

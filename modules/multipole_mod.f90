@@ -335,13 +335,13 @@ end subroutine
 !   tilt  -- Real(rdef): Multipole tilt.
 !   n     -- Real(rdef): Multipole order.
 !   coord -- Coord_struct:
-!     %x%pos -- X position.
-!     %y%pos -- Y position.
+!     %vec(1) -- X position.
+!     %vec(3) -- Y position.
 !
 ! Output:
 !   coord -- Coord_struct: 
-!     %x%vel -- X kick.
-!     %y%vel -- Y kick.
+!     %vec(2) -- X kick.
+!     %vec(4) -- Y kick.
 !-
 
 subroutine multipole_kick (knl, tilt, n, coord)
@@ -362,13 +362,13 @@ subroutine multipole_kick (knl, tilt, n, coord)
 ! normal case
 
   if (tilt == 0) then
-    x = coord%x%pos
-    y = coord%y%pos
+    x = coord%vec(1)
+    y = coord%vec(3)
   else
     sin_ang = sin(tilt)
     cos_ang = cos(tilt)
-    x =  coord%x%pos * cos_ang + coord%y%pos * sin_ang
-    y = -coord%x%pos * sin_ang + coord%y%pos * cos_ang
+    x =  coord%vec(1) * cos_ang + coord%vec(3) * sin_ang
+    y = -coord%vec(1) * sin_ang + coord%vec(3) * cos_ang
   endif
 
   x_vel = 0
@@ -383,11 +383,11 @@ subroutine multipole_kick (knl, tilt, n, coord)
   enddo
 
   if (tilt == 0) then
-    coord%x%vel = coord%x%vel + x_vel
-    coord%y%vel = coord%y%vel + y_vel
+    coord%vec(2) = coord%vec(2) + x_vel
+    coord%vec(4) = coord%vec(4) + y_vel
   else
-    coord%x%vel = coord%x%vel + x_vel * cos_ang - y_vel * sin_ang
-    coord%y%vel = coord%y%vel + x_vel * sin_ang + y_vel * cos_ang
+    coord%vec(2) = coord%vec(2) + x_vel * cos_ang - y_vel * sin_ang
+    coord%vec(4) = coord%vec(4) + x_vel * sin_ang + y_vel * cos_ang
   endif
 
 end subroutine

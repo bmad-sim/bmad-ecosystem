@@ -22,20 +22,23 @@
 !
 ! Output:
 !   end        -- Coord_struct: Ending coords.
-!     %z%pos     = s_len - path_length where s_len = s_end-s_start. 
+!     %vec(5)     = s_len - path_length where s_len = s_end-s_start. 
 !                  Thus for a wiggler, where the "zero" orbit path_length 
 !                  is not s_len, there needs to be a correction term:
-!                    end%z%pos = end%z%pos + zero_orbit_path_length - s_len
+!                    end%vec(5) = end%vec(5) + zero_orbit_path_length - s_len
 !
 !   odeint_com -- common structure holding the path from the last tracking.
 !     %n_pts     -- Integer: Number of data points.
 !     %s(:)      -- Real(rdef): Array of s locations.
 !     %orb(:)    -- Coord_struct: Array of coordinates
-!       %x%pos     -- X position, etc.
+!       %vec(1)     -- X position, etc.
 !- 
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/06/04 17:55:55  dcs
+!Eliminated x%pos, x%vel, etc. from coord_struct.
+!
 !Revision 1.4  2003/01/27 14:40:44  dcs
 !bmad_version = 56
 !

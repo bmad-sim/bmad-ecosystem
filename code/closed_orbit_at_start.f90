@@ -44,29 +44,7 @@
 !         of the ring.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.7  2003/05/02 15:43:59  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.6  2003/01/27 14:40:31  dcs
-!bmad_version = 56
-!
-!Revision 1.5  2002/02/23 20:32:13  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.4  2002/01/16 21:04:17  helms
-!Fixed problem with passing optional arguments.
-!
-!Revision 1.3  2002/01/08 21:44:38  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.2  2001/09/27 18:31:49  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
@@ -107,7 +85,7 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 ! init
 
   n = i_dim
-  call mat_unit(s_mat, n, 6)
+  call mat_make_unit(s_mat(1:n,1:n))
   s_mat(2,2) = -1.0
   s_mat(4,4) = -1.0
 
@@ -161,8 +139,8 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 ! symmetric ring then
 !       X = (Mat*S_Mat-S_Mat*Mat)^-1 * (S_mat * orbit_w - orbit_e)
 
-    orbit_(n_ele)%x%vel = -orbit_(n_ele)%x%vel
-    orbit_(n_ele)%y%vel = -orbit_(n_ele)%y%vel
+    orbit_(n_ele)%vec(2) = -orbit_(n_ele)%vec(2)
+    orbit_(n_ele)%vec(4) = -orbit_(n_ele)%vec(4)
     orbit_end%vec = orbit_(n_ele)%vec - orbit_end_e_(n_ele)%vec
 
     mat(1:n,1:n) = matmul(ring%ele_(0)%mat6(1:n,1:n), s_mat(1:n,1:n)) - &
@@ -174,7 +152,7 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
   else
     call track_all (ring, orbit_)
     orbit_end = orbit_(n_ele)
-    call mat_unit (mat, n, 6)
+    call mat_make_unit (mat(1:n,1:n))
     mat(1:n,1:n) = mat(1:n,1:n) - ring%ele_(0)%mat6(1:n,1:n)
   endif
 
@@ -184,7 +162,7 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
   call mat_inverse(mat(1:n,1:n), mat2(1:n,1:n))
   co%vec(1:n) = matmul(mat2(1:n,1:n), orbit_end%vec(1:n))
 
-  if (n == 4) co%z%pos = 0
+  if (n == 4) co%vec(5) = 0
 
 !--------------------------------------------------------------------------
 ! Because of nonlinearities we may need to iterate to find the solution

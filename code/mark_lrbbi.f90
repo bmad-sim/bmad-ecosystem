@@ -41,6 +41,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/06/04 17:55:54  dcs
+!Eliminated x%pos, x%vel, etc. from coord_struct.
+!
 !Revision 1.5  2003/01/27 14:40:38  dcs
 !bmad_version = 56
 !
@@ -121,7 +124,7 @@ subroutine MARK_LRBBI(master_ring, master_ring_oppos, ring, crossings)
 			call init_ele(insert_ele(j))
 			insert_ele(j)%key = marker$
 			insert_ele(j)%name = "LRBBI_MARKER"
-			call mat_unit(insert_ele(j)%mat6, 6, 6)
+			call mat_make_unit(insert_ele(j)%mat6)
 
 			insert_ele(j)%s = s_split
      	ix_ele = ix_split + 1
@@ -142,7 +145,7 @@ subroutine MARK_LRBBI(master_ring, master_ring_oppos, ring, crossings)
 		call init_ele(insert_ele(j))
 		insert_ele(j)%key = marker$
 		insert_ele(j)%name = "LRBBI_MARKER"
-		call mat_unit(insert_ele(j)%mat6, 6, 6)
+		call mat_make_unit(insert_ele(j)%mat6)
 
 		insert_ele(j)%s = s_split
      

@@ -5,7 +5,7 @@
 !
 ! Note that, despite the names, ele%x and ele%y are the "a" and "b" mode
 ! Twiss parameters. Thus, for example, with coupling ele%x%eta is not simply
-! proportional to disp_orb%x%pos.
+! proportional to disp_orb%vec(1).
 !
 ! Note: to calculate ele%x%eta, ele%c_mat, etc. you typically need to have 
 ! called twiss_propagate_all.

@@ -38,33 +38,6 @@
 !       %ok         -- Set False if orbit does not converge.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.11  2003/01/27 14:40:32  dcs
-!bmad_version = 56
-!
-!Revision 1.10  2002/12/13 16:23:32  dcs
-!*** empty log message ***
-!
-!Revision 1.8  2002/11/14 16:07:39  dcs
-!Fixed bug to overwrite closed_orb_(0)%vec(5) when i_dim = 4
-!
-!Revision 1.7  2002/11/06 06:48:31  dcs
-!Changed arg array
-!
-!Revision 1.5  2002/06/13 14:54:23  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.4  2002/02/23 20:32:13  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/16 21:04:17  helms
-!Fixed problem with passing optional arguments.
-!
-!Revision 1.2  2001/09/27 18:31:49  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc" 
 
 subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
@@ -94,7 +67,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 
 ! make a unit matrix
 
-  call mat_unit (mat6_unit, 6, 6)
+  call mat_make_unit (mat6_unit)
 
   n_ele = ring%n_ele_ring
   nd = i_dim

@@ -58,12 +58,12 @@ subroutine check_aperture_limit (orb, ele, param)
   x_lim = ele%value(x_limit$)
   if (x_lim <= 0 .or. .not. param%aperture_limit_on) &
                                     x_lim = bmad_com%max_aperture_limit
-  if (abs(orb%x%pos) > x_lim) param%lost = .true.
+  if (abs(orb%vec(1)) > x_lim) param%lost = .true.
 
   y_lim = ele%value(y_limit$)
   if (y_lim <= 0 .or. .not. param%aperture_limit_on) &
                                     y_lim = bmad_com%max_aperture_limit
-  if (abs(orb%y%pos) > y_lim) param%lost = .true.
+  if (abs(orb%vec(3)) > y_lim) param%lost = .true.
 
 end subroutine
 
@@ -141,7 +141,7 @@ subroutine track_a_bend (start, ele, param, end)
 ! some init
 
   g0 = ele%value(g$) 
-  g =  (ele%value(g$) + ele%value(delta_g$)) / (1 + start%z%vel)
+  g =  (ele%value(g$) + ele%value(delta_g$)) / (1 + start%vec(6))
 
   end = start
   call offset_particle (ele, param, end, set$)
@@ -164,13 +164,13 @@ subroutine track_a_bend (start, ele, param, end)
 ! (See the MAD8 Physics writeup)
 
   del = tan(ele%value(e1$)) * g
-  end%x%vel = end%x%vel + del * end%x%pos
-  end%y%vel = end%y%vel - del * end%y%pos
+  end%vec(2) = end%vec(2) + del * end%vec(1)
+  end%vec(4) = end%vec(4) - del * end%vec(3)
 
   f = g / (2 * cos(ele%value(e1$))**2)
 
-  end%x%pos = end%x%pos + f * end%y%pos**2
-  end%y%vel = end%y%vel - 2 * f * end%x%vel * end%y%pos
+  end%vec(1) = end%vec(1) + f * end%vec(3)**2
+  end%vec(4) = end%vec(4) - 2 * f * end%vec(2) * end%vec(3)
 
 !-----------------------------------------------------------------------
 ! Track through main body...
@@ -195,9 +195,9 @@ subroutine track_a_bend (start, ele, param, end)
 
 ! x,y_center is the center of the actual rotation
 
-    x1  = end%x%pos
-    xp1 = end%x%vel
-    zp = end%z%vel
+    x1  = end%vec(1)
+    xp1 = end%vec(2)
+    zp = end%vec(6)
 
     x_center =  (r0 + x1) - r / sqrt(1 + xp1**2)
     y_center = r * xp1 / sqrt(1 + xp1**2)   
@@ -237,17 +237,17 @@ subroutine track_a_bend (start, ele, param, end)
 
     s_travel = r * theta
 
-    end%x%pos = x2
-    end%x%vel = tan(atan(xp1) + theta0 - theta)
-    end%y%pos = end%y%pos + end%y%vel * s_travel
-    end%z%pos = end%z%pos + ele%value(l$) - s_travel * sqrt(1 + end%y%vel**2) 
+    end%vec(1) = x2
+    end%vec(2) = tan(atan(xp1) + theta0 - theta)
+    end%vec(3) = end%vec(3) + end%vec(4) * s_travel
+    end%vec(5) = end%vec(5) + ele%value(l$) - s_travel * sqrt(1 + end%vec(4)**2) 
 
 
 ! k1 /= 0
 
   case default
 
-    dE = start%z%vel
+    dE = start%vec(6)
     k1 = k1 / (1 + dE)
     kc = g**2 + k1
     length = ele%value(l$)
@@ -288,12 +288,12 @@ subroutine track_a_bend (start, ele, param, end)
 
   f = g / (2 * cos(ele%value(e2$))**2)
 
-  end%x%pos = end%x%pos - f * end%y%pos**2
-  end%y%vel = end%y%vel + 2 * f * end%x%vel * end%y%pos
+  end%vec(1) = end%vec(1) - f * end%vec(3)**2
+  end%vec(4) = end%vec(4) + 2 * f * end%vec(2) * end%vec(3)
 
   del = tan(ele%value(e2$)) * g
-  end%x%vel = end%x%vel + del * end%x%pos
-  end%y%vel = end%y%vel - del * end%y%pos
+  end%vec(2) = end%vec(2) + del * end%vec(1)
+  end%vec(4) = end%vec(4) - del * end%vec(3)
 
   call offset_particle (ele, param, end, unset$)
 
@@ -350,13 +350,13 @@ subroutine track_a_accel_sol (start, ele, param, end)
 ! beta_b is the total speed in units of c_light (before entering the element)
 ! beta_s is the longitudinal speed in units of c_light
 
-  gamma_b = param%beam_energy * (end%z%vel + 1) / m_electron
+  gamma_b = param%beam_energy * (end%vec(6) + 1) / m_electron
   beta_b = sqrt(1 - 1 / gamma_b**2)
   gam_inv2_b = 1.0 / gamma_b**2
   if (gam_inv2_b <= 0.001) then
-    beta_s = 1/sqrt(1 + end%x%vel**2 + end%y%vel**2) *(1-gam_inv2_b/2)
+    beta_s = 1/sqrt(1 + end%vec(2)**2 + end%vec(4)**2) *(1-gam_inv2_b/2)
   else
-    beta_s = sqrt((1 - gam_inv2_b) / (1 + end%x%vel**2 + end%y%vel**2))
+    beta_s = sqrt((1 - gam_inv2_b) / (1 + end%vec(2)**2 + end%vec(4)**2))
   endif
 
 ! Calculation of end.z.vel
@@ -367,14 +367,14 @@ subroutine track_a_accel_sol (start, ele, param, end)
   call offset_particle (ele, param, end, set$)
 
   if (ele%value(volt$) /= 0) then
-    phase = twopi * ele%value(phi0$) + end%z%pos  &
+    phase = twopi * ele%value(phi0$) + end%vec(5)  &
                       / (ele%value(rf_wavelength$) * beta_s)
     en_gain = ele%value(volt$) * sin(twopi * phase)
     if ((en_gain + gamma_b * m_electron) <= m_electron) then
       param%lost = .true.
       return
     else
-      end%z%vel = end%z%vel + en_gain / param%beam_energy
+      end%vec(6) = end%vec(6) + en_gain / param%beam_energy
       c_e = en_gain / (m_electron * length)
     endif
   else
@@ -384,9 +384,9 @@ subroutine track_a_accel_sol (start, ele, param, end)
 ! Beginning fringe
 
   c_m = param%particle * c_light * ele%value(b_z$) / m_electron
-  call mat_unit(mat4, 4, 4)
+  call mat_make_unit(mat4)
   mat4(2,3) = c_m / 2 *  &
-                  sqrt((1 + end%x%vel**2 + end%y%vel**2) / (gamma_b**2 - 1))
+                  sqrt((1 + end%vec(2)**2 + end%vec(4)**2) / (gamma_b**2 - 1))
   mat4(4,1) = -mat4(2,3)
   end%vec(1:4) = matmul(mat4, end%vec(1:4))
 
@@ -464,21 +464,21 @@ subroutine track_a_accel_sol (start, ele, param, end)
 ! Calculation of end.z.pos
 
         if (abs(c_e) > 0.001) then
-          end%z%pos = end%z%pos - ll + (sqrt(1 + (c_e * ll  &
+          end%vec(5) = end%vec(5) - ll + (sqrt(1 + (c_e * ll  &
                           + sqrt(gamma_old**2 - 1))**2) - gamma_old) / c_e
         else
-          end%z%pos = end%z%pos + ll * (sqrt(1 - 1/gamma_old**2) - 1  &
+          end%vec(5) = end%vec(5) + ll * (sqrt(1 - 1/gamma_old**2) - 1  &
               - c_e * ll * (gamma_old**2 - 0.5)/gamma_old**3)
         endif
 
         if (param%aperture_limit_on) then
           if (check_x_ap) then
             x_lim = x_lim_chng_rate * s_grand_cum + x_beg_lim
-            if (abs(end%x%pos) > x_lim) param%lost = .true.
+            if (abs(end%vec(1)) > x_lim) param%lost = .true.
           endif
           if (check_y_ap) then
             y_lim = y_lim_chng_rate * s_grand_cum + y_beg_lim
-            if (abs(end%y%pos) > y_lim) param%lost = .true.
+            if (abs(end%vec(3)) > y_lim) param%lost = .true.
           endif
           if (param%lost) return
         endif
@@ -490,9 +490,9 @@ subroutine track_a_accel_sol (start, ele, param, end)
 
 ! Ending fringe
 
-  call mat_unit(mat4, 4, 4)
+  call mat_make_unit(mat4)
   mat4(4,1) = c_m / 2 *  &
-                sqrt((1 + end%x%vel**2 + end%y%vel**2) / (gamma_new**2 - 1))
+                sqrt((1 + end%vec(2)**2 + end%vec(4)**2) / (gamma_new**2 - 1))
   mat4(2,3) = -mat4(4,1)
   end%vec(1:4) = matmul(mat4, end%vec(1:4))
 

@@ -58,7 +58,7 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 
   if (calc_mat6) mat6 => ele%mat6
 
-  rel_E = (1 + start%z%vel)
+  rel_E = (1 + start%vec(6))
   rel_E2 = rel_E**2
   rel_E3 = rel_E**3
 
@@ -99,8 +99,8 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 
 ! check for overflow
 
-      if (maxval(abs(ele%wig_term(:)%kx * end%x%pos)) > 30 .or. &
-                  maxval(abs(ele%wig_term(:)%ky * end%y%pos)) > 30) then
+      if (maxval(abs(ele%wig_term(:)%kx * end%vec(1))) > 30 .or. &
+                  maxval(abs(ele%wig_term(:)%ky * end%vec(3))) > 30) then
         print *, 'ERROR IN SYMP_LIE_BMAD: ', &
                                      'FLOATING OVERFLOW IN WIGGLER TRACKING.'
         print *, '      PARTICLE WILL BE TAGGED AS LOST.'
@@ -114,20 +114,20 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 
 ! Drift_1 = P_x^2 / (2 * (1 + dE))
 
-      end%x%pos = end%x%pos + ds2 * end%x%vel / rel_E
-      end%z%pos = end%z%pos - ds2 * end%x%vel**2 / (2*rel_E2)
+      end%vec(1) = end%vec(1) + ds2 * end%vec(2) / rel_E
+      end%vec(5) = end%vec(5) - ds2 * end%vec(2)**2 / (2*rel_E2)
 
       if (calc_mat6) then
-        mat6(1,1:6) = mat6(1,1:6) + (ds2 / rel_E)          * mat6(2,1:6) - (ds2*end%x%vel/rel_E2)    * mat6(6,1:6) 
-        mat6(5,1:6) = mat6(5,1:6) - (ds2*end%x%vel/rel_E2) * mat6(2,1:6) + (ds2*end%x%vel**2/rel_E3) * mat6(6,1:6)
+        mat6(1,1:6) = mat6(1,1:6) + (ds2 / rel_E)          * mat6(2,1:6) - (ds2*end%vec(2)/rel_E2)    * mat6(6,1:6) 
+        mat6(5,1:6) = mat6(5,1:6) - (ds2*end%vec(2)/rel_E2) * mat6(2,1:6) + (ds2*end%vec(2)**2/rel_E3) * mat6(6,1:6)
       endif
 
 ! Drift_2 = (P_y - a_y)**2 / (2 * (1 + dE))
 
       call update_x_s_terms
 
-      end%x%vel = end%x%vel - dint_a_y_dx()
-      end%y%vel = end%y%vel - a_y()
+      end%vec(2) = end%vec(2) - dint_a_y_dx()
+      end%vec(4) = end%vec(4) - a_y()
 
       if (calc_mat6) then
         mat6(2,1:6) = mat6(2,1:6) - dint_a_y_dx__dx() * mat6(1,1:6) - dint_a_y_dx__dy() * mat6(3,1:6)
@@ -136,20 +136,20 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 
 !
 
-      end%y%pos = end%y%pos + ds2 * end%y%vel / rel_E
-      end%z%pos = end%z%pos - ds2 * end%y%vel**2 / (2*rel_E2)
+      end%vec(3) = end%vec(3) + ds2 * end%vec(4) / rel_E
+      end%vec(5) = end%vec(5) - ds2 * end%vec(4)**2 / (2*rel_E2)
 
       if (calc_mat6) then
-        mat6(3,1:6) = mat6(3,1:6) + (ds2 / rel_E)          * mat6(4,1:6) - (ds2*end%y%vel/rel_E2)    * mat6(6,1:6) 
-        mat6(5,1:6) = mat6(5,1:6) - (ds2*end%y%vel/rel_E2) * mat6(4,1:6) + (ds2*end%y%vel**2/rel_E3) * mat6(6,1:6)
+        mat6(3,1:6) = mat6(3,1:6) + (ds2 / rel_E)          * mat6(4,1:6) - (ds2*end%vec(4)/rel_E2)    * mat6(6,1:6) 
+        mat6(5,1:6) = mat6(5,1:6) - (ds2*end%vec(4)/rel_E2) * mat6(4,1:6) + (ds2*end%vec(4)**2/rel_E3) * mat6(6,1:6)
       endif      
 
 !
 
       call update_y_terms
 
-      end%x%vel = end%x%vel + dint_a_y_dx()
-      end%y%vel = end%y%vel + a_y()
+      end%vec(2) = end%vec(2) + dint_a_y_dx()
+      end%vec(4) = end%vec(4) + a_y()
 
       if (calc_mat6) then
         mat6(2,1:6) = mat6(2,1:6) + dint_a_y_dx__dx() * mat6(1,1:6) + dint_a_y_dx__dy() * mat6(3,1:6)
@@ -158,8 +158,8 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 
 ! Kick = a_z
 
-      end%x%vel = end%x%vel + ds * da_z_dx()
-      end%y%vel = end%y%vel + ds * da_z_dy()
+      end%vec(2) = end%vec(2) + ds * da_z_dx()
+      end%vec(4) = end%vec(4) + ds * da_z_dy()
 
       if (calc_mat6) then
         mat6(2,1:6) = mat6(2,1:6) + ds * da_z_dx__dx() * mat6(1,1:6) + ds * da_z_dx__dy() * mat6(3,1:6)
@@ -168,8 +168,8 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 
 ! Drift_2
 
-      end%x%vel = end%x%vel - dint_a_y_dx()
-      end%y%vel = end%y%vel - a_y()
+      end%vec(2) = end%vec(2) - dint_a_y_dx()
+      end%vec(4) = end%vec(4) - a_y()
 
       if (calc_mat6) then
         mat6(2,1:6) = mat6(2,1:6) - dint_a_y_dx__dx() * mat6(1,1:6) - dint_a_y_dx__dy() * mat6(3,1:6)
@@ -178,20 +178,20 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 
 !
 
-      end%y%pos = end%y%pos + ds2 * end%y%vel / rel_E
-      end%z%pos = end%z%pos - ds2 * end%y%vel**2 / (2*rel_E2)
+      end%vec(3) = end%vec(3) + ds2 * end%vec(4) / rel_E
+      end%vec(5) = end%vec(5) - ds2 * end%vec(4)**2 / (2*rel_E2)
 
       if (calc_mat6) then
-        mat6(3,1:6) = mat6(3,1:6) + (ds2 / rel_E)          * mat6(4,1:6) - (ds2*end%y%vel/rel_E2)    * mat6(6,1:6) 
-        mat6(5,1:6) = mat6(5,1:6) - (ds2*end%y%vel/rel_E2) * mat6(4,1:6) + (ds2*end%y%vel**2/rel_E3) * mat6(6,1:6)
+        mat6(3,1:6) = mat6(3,1:6) + (ds2 / rel_E)          * mat6(4,1:6) - (ds2*end%vec(4)/rel_E2)    * mat6(6,1:6) 
+        mat6(5,1:6) = mat6(5,1:6) - (ds2*end%vec(4)/rel_E2) * mat6(4,1:6) + (ds2*end%vec(4)**2/rel_E3) * mat6(6,1:6)
       endif      
 
 !
 
       call update_y_terms
 
-      end%x%vel = end%x%vel + dint_a_y_dx()
-      end%y%vel = end%y%vel + a_y()
+      end%vec(2) = end%vec(2) + dint_a_y_dx()
+      end%vec(4) = end%vec(4) + a_y()
 
       if (calc_mat6) then
         mat6(2,1:6) = mat6(2,1:6) + dint_a_y_dx__dx() * mat6(1,1:6) + dint_a_y_dx__dy() * mat6(3,1:6)
@@ -200,12 +200,12 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 
 ! Drift_1
 
-      end%x%pos = end%x%pos + ds2 * end%x%vel / rel_E
-      end%z%pos = end%z%pos - ds2 * end%x%vel**2 / (2*rel_E2)
+      end%vec(1) = end%vec(1) + ds2 * end%vec(2) / rel_E
+      end%vec(5) = end%vec(5) - ds2 * end%vec(2)**2 / (2*rel_E2)
 
       if (calc_mat6) then
-        mat6(1,1:6) = mat6(1,1:6) + (ds2 / rel_E)          * mat6(2,1:6) - (ds2*end%x%vel/rel_E2)    * mat6(6,1:6) 
-        mat6(5,1:6) = mat6(5,1:6) - (ds2*end%x%vel/rel_E2) * mat6(2,1:6) + (ds2*end%x%vel**2/rel_E3) * mat6(6,1:6)
+        mat6(1,1:6) = mat6(1,1:6) + (ds2 / rel_E)          * mat6(2,1:6) - (ds2*end%vec(2)/rel_E2)    * mat6(6,1:6) 
+        mat6(5,1:6) = mat6(5,1:6) - (ds2*end%vec(2)/rel_E2) * mat6(2,1:6) + (ds2*end%vec(2)**2/rel_E3) * mat6(6,1:6)
       endif      
 
 ! s half step
@@ -294,12 +294,12 @@ subroutine update_y_terms
 
   do j = 1, size(ele%wig_term)
     wt => ele%wig_term(j)
-    kyy = wt%ky * end%y%pos
+    kyy = wt%ky * end%vec(3)
     if (abs(kyy) < 1e-20) then
       tm(j)%c_y = 1
       tm(j)%s_y = kyy
-      tm(j)%s_y_ky = end%y%pos
-      tm(j)%c1_ky2 = end%y%pos**2 / 2
+      tm(j)%s_y_ky = end%vec(3)
+      tm(j)%c1_ky2 = end%vec(3)**2 / 2
       if (wt%type == hyper_x$) tm(j)%c1_ky2 = -tm(j)%c1_ky2 
     elseif (wt%type == hyper_y$ .or. wt%type == hyper_xy$) then
       tm(j)%c_y = cosh(kyy)
@@ -326,11 +326,11 @@ subroutine update_x_s_terms
   do j = 1, size(ele%wig_term)
     wt => ele%wig_term(j)
 
-    kxx = wt%kx * end%x%pos
+    kxx = wt%kx * end%vec(1)
     if (abs(kxx) < 1e-20) then
       tm(j)%c_x = 1
       tm(j)%s_x = kxx
-      tm(j)%s_x_kx = end%x%pos
+      tm(j)%s_x_kx = end%vec(1)
     elseif (wt%type == hyper_x$ .or. wt%type == hyper_xy$) then
       tm(j)%c_x = cosh(kxx)
       tm(j)%s_x = sinh(kxx)

@@ -5,7 +5,7 @@
 !
 ! Note that, despite the names, ele%x and ele%y are the "a" and "b" mode
 ! Twiss parameters. Thus, for example, with coupling ele%x%eta is not simply
-! proportional to orb_diff%x%pos.
+! proportional to orb_diff%vec(1).
 !
 ! Modules needed:
 !   use bamd
