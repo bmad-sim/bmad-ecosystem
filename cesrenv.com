@@ -69,14 +69,17 @@ $!
 $!
 $!-- BMAD configuration files --
 $!
-CONFBASE = f$extract(0,f$locate("]","CESR_CONFIG"),"CESR_CONFIG")
-EXPORT BMAD_LAT         "''CONFBASE'.bmad.lat]"
-EXPORT BMAD_LAYOUT      "''CONFBASE'.bmad.layout]"
+$ CONFBASE = "''CLBASE'.config"
+$ EXPORT BMAD_LAT         "''CONFBASE'.bmad.lat]"
+$ EXPORT BMAD_LAYOUT      "''CONFBASE'.bmad.layout]"
 $!
 $!
 $! $Id$
 $!
 $! $Log$
+$! Revision 1.2  2002/01/11 21:05:34  cesrulib
+$! Bug fix in bmad_ logicals
+$!
 $! Revision 1.1  2002/01/03 22:21:44  cesrulib
 $! Add scripts to set up CESR logicals on VMS.
 $!
