@@ -97,6 +97,17 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 
     do i = 1, ele%num_steps
 
+! check for overflow
+
+      if (maxval(abs(ele%wig_term(:)%kx * end%x%pos)) > 30 .or. &
+                  maxval(abs(ele%wig_term(:)%ky * end%y%pos)) > 30) then
+        print *, 'ERROR IN SYMP_LIE_BMAD: ', &
+                                     'FLOATING OVERFLOW IN WIGGLER TRACKING.'
+        print *, '      PARTICLE WILL BE TAGGED AS LOST.'
+        param%lost = .true.
+        return
+      endif
+
 ! s half step
 
       s = s + ds2
