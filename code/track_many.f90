@@ -70,6 +70,7 @@ subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
 ! track through elements.
 
   ring%param%lost = .false.
+  ring%param%ix_lost = -1
 
   if (direction == +1) then
     if (ix_start < ix_end) then

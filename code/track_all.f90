@@ -44,6 +44,8 @@ subroutine track_all (ring, orbit_)
   if (size(orbit_) < ring%n_ele_max+1) &
                   call reallocate_coord (orbit_, ring%n_ele_max)
 
+  ring%param%ix_lost = -1
+
 ! track through elements.
 
   do n = 1, ring%n_ele_use
