@@ -118,7 +118,7 @@ type (taylor_struct), save :: taylor(6)
 
 real(rp) datum_value, mat6(6,6)
 
-integer i, j, k, m, ix, ix1, ix2, exp(6)
+integer i, j, k, m, ix, ix1, ix2, expnt(6)
 
 character(20) :: r_name = 'tao_evaluate_a_datum'
 character(16) data_type
@@ -230,15 +230,15 @@ case ('t:')
 
 case ('tt:')
   call relative_switch
-  exp = 0
+  expnt = 0
   i = read_this_index (datum%data_type(4:4)); if (i == 0) return
   do j = 5, 15
     if (datum%data_type(j:j) == ' ') exit
     k = read_this_index (datum%data_type(j:j)); if (k == 0) return
-    exp(k) = exp(k) + 1
+    expnt(k) = expnt(k) + 1
   enddo
   call transfer_map_calc (lattice, taylor, ix1, ix2)
-  datum_value = taylor_coef (taylor(i), exp)
+  datum_value = taylor_coef (taylor(i), expnt)
 
 case ('floor:x')
   call relative_switch
