@@ -1550,7 +1550,7 @@ subroutine read_sr_wake (ele)
     endif
 
     i = i + 1
-    read (line, *, iostat = ios) ix, sr(i)%z, sr(i)%long, sr(i)%trans
+    read (line, *, iostat = ios) sr(i)%z, sr(i)%long, sr(i)%trans
 
     if (ios /= 0) then
       call warning ('ERROR PARSING WAKE FILE: ' // ele%wake%sr_file, &
