@@ -4,7 +4,8 @@ use bmad_struct
 
 interface operator (==)
   module procedure eq_coord, eq_twiss, eq_floor_position, eq_wig_term
-  module procedure eq_taylor_term, eq_taylor, eq_sr_wake, eq_lr_wake
+  module procedure eq_taylor_term, eq_taylor
+  module procedure eq_sr1_wake, eq_sr2_wake, eq_lr_wake
   module procedure eq_wake, eq_control, eq_param, eq_amode, eq_linac_mode
   module procedure eq_modes, eq_bmad_com, eq_em_field, eq_ele, eq_mode_info
   module procedure eq_ring
@@ -140,18 +141,39 @@ end function
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-elemental function eq_sr_wake (f1, f2) result (is_eq)
+elemental function eq_sr1_wake (f1, f2) result (is_eq)
 
 use bmad_struct
 
 implicit none
 
-type (sr_wake_struct), intent(in) :: f1, f2
+type (sr1_wake_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
 
 is_eq = (f1%z == f2%z) .and. (f1%long == f2%long) .and. (f1%trans == f2%trans)
+
+end function
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
+elemental function eq_sr2_wake (f1, f2) result (is_eq)
+
+use bmad_struct
+
+implicit none
+
+type (sr2_wake_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = (f1%amp == f2%amp) .and. (f1%damp == f2%damp) .and. &
+        (f1%freq == f2%freq) .and. (f1%phi == f2%phi) .and. &
+        (f1%norm_sin == f2%norm_sin) .and. (f1%norm_cos == f2%norm_cos) .and. &
+        (f1%skew_sin == f2%skew_sin) .and. (f1%skew_cos == f2%skew_cos)
 
 end function
 
@@ -193,25 +215,26 @@ logical is_eq
 !
 
 is_eq = (f1%sr_file == f2%sr_file) .and. (f1%lr_file == f2%lr_file) .and. &
-              (associated(f1%sr) .eqv. associated(f2%sr)) .and. &
-              (associated(f1%lr) .eqv. associated(f2%lr))
+     (size(f1%sr1) == size(f2%sr1)) .and. (size(f2%sr2_long) == size(f2%sr2_long)) .and. &
+     (size(f1%sr2_trans) == size(f2%sr2_trans)) .and. (size(f1%lr) == size(f2%lr)) .and. &
+     (f1%z_cut_sr == f2%z_cut_sr)
 if (.not. is_eq) return
 
-if (associated(f1%sr)) then
-  is_eq = is_eq .and. (size(f1%sr) == size(f2%sr))
-  if (.not. is_eq) return
-  do i = lbound(f1%sr, 1), ubound(f1%sr, 1)
-    is_eq = is_eq .and. (f1%sr(i) == f2%sr(i)) 
-  enddo
-endif
+do i = lbound(f1%sr1, 1), ubound(f1%sr1, 1)
+  is_eq = is_eq .and. (f1%sr1(i) == f2%sr1(i)) 
+enddo
 
-if (associated(f1%lr)) then
-  is_eq = is_eq .and. (size(f1%lr) == size(f2%lr))
-  if (.not. is_eq) return
-  do i = lbound(f1%lr, 1), ubound(f1%lr, 1)
-    is_eq = is_eq .and. (f1%lr(i) == f2%lr(i)) 
-  enddo
-endif
+do i = lbound(f1%sr2_long, 1), ubound(f1%sr2_long, 1)
+  is_eq = is_eq .and. (f1%sr2_long(i) == f2%sr2_long(i)) 
+enddo
+
+do i = lbound(f1%sr2_trans, 1), ubound(f1%sr2_trans, 1)
+  is_eq = is_eq .and. (f1%sr2_trans(i) == f2%sr2_trans(i)) 
+enddo
+
+do i = lbound(f1%lr, 1), ubound(f1%lr, 1)
+  is_eq = is_eq .and. (f1%lr(i) == f2%lr(i)) 
+enddo
 
 end function
 
@@ -248,8 +271,7 @@ logical is_eq
 
 !
 
-is_eq = (f1%n_part == f2%n_part) .and. (f1%garbage == f2%garbage) .and. &
-     (f1%total_length == f2%total_length) .and. &
+is_eq = (f1%n_part == f2%n_part) .and. (f1%total_length == f2%total_length) .and. &
      (f1%growth_rate == f2%growth_rate) .and. &
      all(f1%t1_with_RF == f2%t1_with_RF) .and. &
      all(f1%t1_no_RF == f2%t1_no_RF) .and. &

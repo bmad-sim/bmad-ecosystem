@@ -240,24 +240,47 @@ C_taylor& C_taylor::operator= (const C_taylor& c) {
 }
 
 //---------------------------------------------------------------------------
-// sr_wake
+// sr1_wake
 
-extern "C" void sr_wake_to_f2_(sr_wake_struct*, Re&, Re&, Re&);
+extern "C" void sr1_wake_to_f2_(sr1_wake_struct*, Re&, Re&, Re&);
 
-extern "C" void sr_wake_to_f_(C_sr_wake& c, sr_wake_struct* f) {
-  sr_wake_to_f2_(f, c.z, c.longitudinal, c.transverse);
+extern "C" void sr1_wake_to_f_(C_sr1_wake& c, sr1_wake_struct* f) {
+  sr1_wake_to_f2_(f, c.z, c.longitudinal, c.transverse);
 }
 
-extern "C" void sr_wake_to_c2_(C_sr_wake& c, Re& z, Re& lw, Re& tw) {
-  c = C_sr_wake(z, lw, tw);
+extern "C" void sr1_wake_to_c2_(C_sr1_wake& c, Re& z, Re& lw, Re& tw) {
+  c = C_sr1_wake(z, lw, tw);
 }
 
-void operator>> (C_sr_wake& c, sr_wake_struct* f) {
-  sr_wake_to_f_(c, f);
+void operator>> (C_sr1_wake& c, sr1_wake_struct* f) {
+  sr1_wake_to_f_(c, f);
 }
 
-void operator>> (sr_wake_struct* f, C_sr_wake& c) {
-  sr_wake_to_c_(f, c);
+void operator>> (sr1_wake_struct* f, C_sr1_wake& c) {
+  sr1_wake_to_c_(f, c);
+}
+
+//---------------------------------------------------------------------------
+// sr2_wake
+
+extern "C" void sr2_wake_to_f2_(sr2_wake_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
+
+extern "C" void sr2_wake_to_f_(C_sr2_wake& c, sr2_wake_struct* f) {
+  sr2_wake_to_f2_(f, c.amp, c.damp, c.freq, c.phi,
+                          c.norm_sin, c.norm_cos, c.skew_sin, c.skew_cos);
+}
+
+extern "C" void sr2_wake_to_c2_(C_sr2_wake& c, Re& amp, Re& damp, Re& freq, Re& phi,
+                          Re& norm_sin, Re& norm_cos, Re& skew_sin, Re& skew_cos) {
+  c = C_sr2_wake(amp, damp, freq, phi, norm_sin, norm_cos, skew_sin, skew_cos);
+}
+
+void operator>> (C_sr2_wake& c, sr2_wake_struct* f) {
+  sr2_wake_to_f_(c, f);
+}
+
+void operator>> (sr2_wake_struct* f, C_sr2_wake& c) {
+  sr2_wake_to_c_(f, c);
 }
 
 //---------------------------------------------------------------------------
@@ -289,19 +312,33 @@ void operator>> (lr_wake_struct* f, C_lr_wake& c) {
 //---------------------------------------------------------------------------
 // wake
 
-extern "C" void wake_to_f2_(wake_struct*, Char, Int&, Char, Int&, Int&, Int&);
-extern "C" void sr_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&);
+extern "C" void wake_to_f2_(wake_struct*, Char, Int&, Char, Int&, Re&, Int&, Int&, Int&, Int&);
+extern "C" void sr1_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&);
+extern "C" void sr2_long_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
+extern "C" void sr2_trans_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
 extern "C" void lr_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&, Re&, Int&,
-                                       Re&, Re&, Re&, Re&, Re&);
+                                                                 Re&, Re&, Re&, Re&, Re&);
 
 extern "C" void wake_to_f_(C_wake& c, wake_struct* f) {
   int n_lr = c.lr.size();
-  int n_sr = c.sr.size(); 
+  int n_sr1 = c.sr1.size(); 
+  int n_sr2_long = c.sr2_long.size(); 
+  int n_sr2_trans = c.sr2_trans.size(); 
   const char* srf = c.sr_file.data();     int n_srf = c.sr_file.length();
   const char* lrf = c.lr_file.data();     int n_lrf = c.lr_file.length();
-  wake_to_f2_(f, srf, n_srf, lrf, n_lrf, n_sr, n_lr);
-  for (int i = 0; i < n_sr; i++) {
-    sr_wake_in_wake_to_f2_(f, i+1, c.sr[i].z, c.sr[i].longitudinal, c.sr[i].transverse);
+  wake_to_f2_(f, srf, n_srf, lrf, n_lrf, c.z_cut_sr, n_sr1, n_sr2_long, n_sr2_trans, n_lr);
+  for (int i = 0; i < n_sr1; i++) {
+    sr1_wake_in_wake_to_f2_(f, i, c.sr1[i].z, c.sr1[i].longitudinal, c.sr1[i].transverse);
+  }
+  for (int i = 0; i < n_sr2_long; i++) {
+    sr2_long_wake_in_wake_to_f2_(f, i+1, c.sr2_long[i].amp, c.sr2_long[i].damp, 
+        c.sr2_long[i].freq, c.sr2_long[i].phi, c.sr2_long[i].norm_sin, 
+        c.sr2_long[i].norm_cos, c.sr2_long[i].skew_sin, c.sr2_long[i].skew_cos);
+  }
+  for (int i = 0; i < n_sr2_trans; i++) {
+    sr2_trans_wake_in_wake_to_f2_(f, i+1, c.sr2_trans[i].amp, c.sr2_trans[i].damp, 
+        c.sr2_trans[i].freq, c.sr2_trans[i].phi, c.sr2_trans[i].norm_sin, 
+        c.sr2_trans[i].norm_cos, c.sr2_trans[i].skew_sin, c.sr2_trans[i].skew_cos);
   }
   for (int i = 0; i < n_lr; i++) {
     lr_wake_in_wake_to_f2_(f, i+1, c.lr[i].freq, c.lr[i].freq_in, 
@@ -310,19 +347,33 @@ extern "C" void wake_to_f_(C_wake& c, wake_struct* f) {
   }
 }
 
-extern "C" void wake_to_c2_(C_wake& c, char* srf, char* lrf, Int& n_sr, Int& n_lr) {
-  if (c.sr.size() != n_sr) c.sr.resize(n_sr);
+extern "C" void wake_to_c2_(C_wake& c, char* srf, char* lrf, Re& z_cut, Int& n_sr1, Int& n_sr2_long,
+                            Int& n_sr2_trans, Int& n_lr) {
+  if (c.sr1.size() != n_sr1) c.sr1.resize(n_sr1);
+  if (c.sr2_long.size() != n_sr2_long) c.sr2_long.resize(n_sr2_long);
+  if (c.sr2_trans.size() != n_sr2_trans) c.sr2_trans.resize(n_sr2_trans);
   c.sr_file = srf;
   if (c.lr.size() != n_lr) c.lr.resize(n_lr);
   c.lr_file = lrf;
+  c.z_cut_sr = z_cut;
 }
 
-extern "C" void sr_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& z, Re& l, Re& t) {
-  c.sr[it-1] = C_sr_wake(z, l, t);
+extern "C" void sr1_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& z, Re& l, Re& t) {
+  c.sr1[it] = C_sr1_wake(z, l, t);
+}
+
+extern "C" void sr2_long_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& a, Re& d, 
+                      Re& f, Re& p, Re& ns, Re& nc, Re& ss, Re& sc) {
+  c.sr2_long[it-1] = C_sr2_wake(a, d, f, p, ns, nc, ss, sc);
+}
+
+extern "C" void sr2_trans_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& a, Re& d, 
+                      Re& f, Re& p, Re& ns, Re& nc, Re& ss, Re& sc) {
+  c.sr2_trans[it-1] = C_sr2_wake(a, d, f, p, ns, nc, ss, sc);
 }
 
 extern "C" void lr_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& f, Re& k, 
-                      Int& i, Re& q, Int& m, Re& ns, Re& nc, Re& ss, Re& sc, Re& z) {
+                      Re& i, Re& q, Int& m, Re& ns, Re& nc, Re& ss, Re& sc, Re& z) {
   c.lr[it-1] = C_lr_wake(f, k, i, q, m, ns, nc, ss, sc, z);
 }
 
@@ -336,8 +387,12 @@ void operator>> (wake_struct* f, C_wake& c) {
 }
 
 C_wake& C_wake::operator= (const C_wake& c) {
-  if (sr.size() != c.sr.size()) sr.resize(c.sr.size());
-  sr = c.sr;
+  if (sr1.size() != c.sr1.size()) sr1.resize(c.sr1.size());
+  sr1 = c.sr1;
+  if (sr2_long.size() != c.sr2_long.size()) sr2_long.resize(c.sr2_long.size());
+  sr2_long = c.sr2_long;
+  if (sr2_trans.size() != c.sr2_trans.size()) sr2_trans.resize(c.sr2_trans.size());
+  sr2_trans = c.sr2_trans;
   sr_file = c.sr_file;
   if (lr.size() != c.lr.size()) lr.resize(c.lr.size());
   lr = c.lr;
@@ -369,25 +424,25 @@ void operator>> (control_struct* f, C_control& c) {
 //---------------------------------------------------------------------------
 // param
 
-extern "C" void param_to_f2_(param_struct*, Re&, Re&, Re&, Re&, ReArr, ReArr, 
+extern "C" void param_to_f2_(param_struct*, Re&, Re&, Re&, ReArr, ReArr, 
                                Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&);
 
 extern "C" void param_to_f_(C_param& c, param_struct* f) {
   double arr1[36], arr2[36];
   matrix_to_array (c.t1_with_RF, arr1);
   matrix_to_array (c.t1_no_RF, arr2);
-  param_to_f2_(f, c.n_part, c.garbage, c.total_length, c.growth_rate,
+  param_to_f2_(f, c.n_part, c.total_length, c.growth_rate,
       arr1, arr2, c.particle, c.ix_lost, c.end_lost_at,
       c.lattice_type, c.ixx, c.ran_seed, c.stable, c.aperture_limit_on, c.lost);
 }
 
-extern "C" void param_to_c2_(C_param& c, Re& np, Re& ch, Re& total_l, 
+extern "C" void param_to_c2_(C_param& c, Re& np, Re& total_l, 
       Re& growth_r, ReArr t1_with, ReArr t1_no, Int& part, Int& ixl, Int& end_lost,
       Int& lattice_type, Int& ixx, Int& r_seed, Int& stable, Int& ap_lim, Int& lost) {
   static Real_Matrix m1(M6_mat), m2(M6_mat);
   m1 << t1_with;
   m2 << t1_no;
-  c = C_param(np, ch, total_l, growth_r, m1, m2, part, ixl, 
+  c = C_param(np, total_l, growth_r, m1, m2, part, ixl, 
               end_lost, lattice_type, ixx, r_seed, stable, ap_lim, lost);
 }
 
@@ -524,7 +579,7 @@ extern "C" void ele_to_f2_(ele_struct*, Char, Int&, Char, Int&, Char, Int&, Char
   Int&, C_twiss&, C_twiss&, C_twiss&, C_floor_position&, ReArr, ReArr, ReArr, 
   ReArr, ReArr, Re&, Re&, ReArr, Int&, Int&, ReArr, ReArr, Int&, ReArr, Int&, 
   Char, Int&, void*, C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, 
-  C_taylor&, C_wake&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, 
+  C_taylor&, C_wake&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, 
   Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, 
   Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&);
 
@@ -538,7 +593,8 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
   const char* attrib = c.attribute_name.data(); 
                                     int n_attrib = c.attribute_name.length();
   int n_ab = c.a.size(), n_const = c.const_arr.size();
-  int n_sr = c.wake.sr.size(), n_lr = c.wake.lr.size();
+  int n_sr1 = c.wake.sr1.size(), n_sr2_long = c.wake.sr2_long.size();
+  int n_sr2_trans = c.wake.sr2_trans.size(), n_lr = c.wake.lr.size();
   int n_wig = c.wig_term.size();
   int nr1 = c.r.size(), nr2 = 0;
   if (nr1) {
@@ -553,7 +609,8 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
     c.x, c.y, c.z, c.floor, &c.value[1], &c.gen0[0], &c.vec0[0], mat6, c_mat, 
     c.gamma_c, c.s, r_arr, nr1, nr2, &c.a[0], &c.b[0], n_ab, &c.const_arr[0], 
     n_const, des, n_des, c.gen_field, c.taylor[0], c.taylor[1], c.taylor[2], 
-    c.taylor[3], c.taylor[4], c.taylor[5], c.wake, n_sr, n_lr, n_wig, c.key, 
+    c.taylor[3], c.taylor[4], c.taylor[5], c.wake, n_sr1, n_sr2_long, n_sr2_trans, 
+    n_lr, n_wig, c.key, 
     c.sub_key, c.control_type, c.ix_value, c.n_slave, c.ix1_slave, 
     c.ix2_slave, c.n_lord, c.ic1_lord, c.ic2_lord, c.ix_pointer, 
     c.ixx, c.ix_ele, c.mat6_calc_method, c.tracking_method, c.field_calc,
@@ -796,7 +853,7 @@ extern "C" void ring_to_c2_(C_ring& c, char* name, char* lat, char* file,
   c.input_taylor_order  = n_taylor;
 
   if (c.control.size() != n_con_array) c.control.resize(n_con_array);
-  if (!(c.ele.size() == n_maxx+1)) c.ele.resize(n_maxx+1);
+  if (!(c.ele.size() == n_maxx)) c.ele.resize(n_maxx);
   if (!(c.ic.size() == n_ic_array)) c.ic.resize(n_ic_array);
 
   c.ic << ic;

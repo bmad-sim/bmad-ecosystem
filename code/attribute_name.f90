@@ -69,10 +69,9 @@ function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, mat6_calc_method$)  = 'MAT6_CALC_METHOD'
       attrib_array(i, tracking_method$)   = 'TRACKING_METHOD'
 
-      if (i == marker$)       cycle
-
       attrib_array(i, is_on$)       = 'IS_ON'
 
+      if (i == marker$)       cycle
       if (i == match$)        cycle
       if (i == patch$)        cycle
       if (i == beambeam$)     cycle
@@ -91,9 +90,9 @@ function attribute_name (ele, ix_att) result (at_name)
       if (i == vkicker$)      cycle
       if (i == custom$)       cycle
       if (i == drift$)        cycle
+      if (i == kicker$)       cycle
       if (i == monitor$)      cycle
       if (i == instrument$)   cycle
-      if (i == kicker$)       cycle
 
       attrib_array(i, x_offset$) = 'X_OFFSET'
       attrib_array(i, y_offset$) = 'Y_OFFSET'
@@ -102,11 +101,11 @@ function attribute_name (ele, ix_att) result (at_name)
       if (i == rcollimator$) cycle
       if (i == ecollimator$) cycle
 
-      attrib_array(i, hkick$)  = 'HKICK'
-      attrib_array(i, vkick$)  = 'VKICK'
-
       attrib_array(i, x_pitch$)   = 'X_PITCH'
       attrib_array(i, y_pitch$)   = 'Y_PITCH'
+
+      attrib_array(i, hkick$)  = 'HKICK'
+      attrib_array(i, vkick$)  = 'VKICK'
 
     enddo
 
@@ -194,8 +193,20 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(drift$, is_on$)      =  null_name    
     attrib_array(drift$, field_calc$) = 'FIELD_CALC'
 
-    attrib_array(monitor$,    l$) = 'L'
+    attrib_array(monitor$, l$)        = 'L'
+    attrib_array(monitor$, x_offset$) = 'X_OFFSET'
+    attrib_array(monitor$, y_offset$) = 'Y_OFFSET'
+    attrib_array(monitor$, x_pitch$)  = 'X_PITCH'
+    attrib_array(monitor$, y_pitch$)  = 'Y_PITCH'
+
     attrib_array(instrument$, l$) = 'L'
+    attrib_array(instrument$, x_offset$) = 'X_OFFSET'
+    attrib_array(instrument$, y_offset$) = 'Y_OFFSET'
+    attrib_array(instrument$, x_pitch$)  = 'X_PITCH'
+    attrib_array(instrument$, y_pitch$)  = 'Y_PITCH'
+
+    attrib_array(marker$, x_offset$) = 'X_OFFSET'
+    attrib_array(marker$, y_offset$) = 'Y_OFFSET'
 
     attrib_array(rcollimator$, l$)     = 'L'
     attrib_array(ecollimator$, l$)     = 'L'

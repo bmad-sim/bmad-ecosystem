@@ -36,7 +36,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   real(rp), pointer :: mat6(:,:)
 
   real(rp) mat6_m(6,6), mat4(4,4), kmat1(4,4), kmat2(4,4)
-  real(rp) e1, e2, angle, g, k1, ks, length
+  real(rp) angle, k1, ks, length, e2
   real(rp) k2l, k3l, c2, s2, cs, ks2, del_l
   real(rp) factor, kmat6(6,6), drift(6,6)
   real(rp) s_pos, s_pos_old, z_slice(100)
@@ -143,29 +143,25 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       return
     endif
 
-    e1 = ele%value(e1$)
-    e2 = ele%value(e2$)
-    g = ele%value(g$) + ele%value(delta_g$)
+    if (length == 0) return
+
+    g_tot = ele%value(g$) + ele%value(delta_g$)
+
+    if (g_tot == 0) then
+      call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
+      return
+    endif
 
     call offset_particle (ele, param, c00, set$, set_canonical = .false.)
     call offset_particle (ele, param, c11, set$, set_canonical = .false., s_pos = length)
     call track_bend_edge (c00, ele, .true., .false., kx_1, ky_1)
     call track_bend_edge (c11, ele, .false., .true., kx_2, ky_2)  ! track backwards
 
-    if (length == 0) return
-
-    if (g == 0) then
-      call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
-      return
-    endif
-
 ! Body
 ! Used: Eqs (12.18) from Etienne Forest: Beam Dynamics.
 
-    g_tot = ele%value(g$) + ele%value(delta_g$)
     b1 = g_tot
     angle = ele%value(angle$)
-    rho = 1 / ele%value(g$)
     dE = c0%vec(6)
     rel_E  = 1 + dE
     rel_E2 = rel_E**2
@@ -183,9 +179,16 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     Dxy = sqrt(rel_E2 - px**2 - py**2)
     Dy  = sqrt(rel_E2 - py**2)
 
-    px_t = px*ct + (Dxy - b1*(rho+x))*st
+    if (ele%value(g$) == 0) then
+      px_t = px - b1 * length
+      dpx_t = -px*length - b1
+    else
+      rho = 1 / ele%value(g$)
+      px_t = px*ct + (Dxy - b1*(rho+x))*st
+      dpx_t = -px*st/rho + (Dxy - b1*(rho+x))*ct/rho
+    endif
+
     Dxy_t = sqrt(rel_E2 - px_t**2 - py**2)
-    dpx_t = -px*st/rho + (Dxy - b1*(rho+x))*ct/rho
     factor = (angle + asin(px/Dy) - asin(px_t/Dy)) / b1
     df_dpy = px/(Dxy*Dy**2) - px_t/(Dxy_t*Dy**2) + st/(Dxy*Dxy_t)
     df_dE = rel_E * (-px/(Dxy*Dy**2) - st/(Dxy*Dxy_t) + px_t/(Dxy_t*Dy**2))

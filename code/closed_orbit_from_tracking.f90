@@ -1,5 +1,5 @@
 !+
-! Subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, 
+! Subroutine closed_orbit_from_tracking (ring, closed_orb, i_dim, 
 !                                                eps_rel, eps_abs, init_guess)
 !
 ! Subroutine to find the closed orbit via tracking. 
@@ -35,7 +35,7 @@
 !
 !
 ! Output:
-!   closed_orb_(0:) -- Coord_struct, allocatable: closed orbit. 
+!   closed_orb(0:) -- Coord_struct, allocatable: closed orbit. 
 !                       This routine will allocate this array for you.
 !   bmad_status     -- BMAD status common block:
 !       %ok           -- Set False if orbit does not converge.
@@ -43,7 +43,7 @@
 
 #include "CESR_platform.inc" 
 
-subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
+subroutine closed_orbit_from_tracking (ring, closed_orb, i_dim, &
                                                  eps_rel, eps_abs, init_guess)
 
   use bmad_struct
@@ -54,7 +54,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
   implicit none
 
   type (ring_struct) ring
-  type (coord_struct), allocatable :: closed_orb_(:)
+  type (coord_struct), allocatable :: closed_orb(:)
   type (coord_struct) :: start(100), end(100)
   type (coord_struct), optional :: init_guess
 
@@ -79,7 +79,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 
 ! make sure orb_ has the correct size
 
-  call reallocate_coord (closed_orb_, ring%n_ele_max)
+  call reallocate_coord (closed_orb, ring%n_ele_max)
 
   fluct_saved = sr_com%fluctuations_on
   sr_com%fluctuations_on = .false.  
@@ -119,9 +119,9 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 ! determine initial guess
 
   if (present(init_guess)) then
-    closed_orb_(0) = init_guess
+    closed_orb(0) = init_guess
   else
-    closed_orb_(0)%vec = 0
+    closed_orb(0)%vec = 0
   endif
 
 !-------------------
@@ -132,18 +132,18 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 
 ! track the current guess
 
-    call track_all (ring, closed_orb_)
+    call track_all (ring, closed_orb)
     if (ring%param%lost) exit
 
 ! save start and end coords.
 
-    start(j)%vec = closed_orb_(0)%vec
-    end(j)%vec   = closed_orb_(n_ele)%vec
+    start(j)%vec = closed_orb(0)%vec
+    end(j)%vec   = closed_orb(n_ele)%vec
 
 ! is this good enough? if so return.
 
-    orb_diff = closed_orb_(n_ele)%vec - closed_orb_(0)%vec
-    amp = max(abs(closed_orb_(0)%vec), abs(closed_orb_(n_ele)%vec))
+    orb_diff = closed_orb(n_ele)%vec - closed_orb(0)%vec
+    amp = max(abs(closed_orb(0)%vec), abs(closed_orb(n_ele)%vec))
 
     if (all( abs(orb_diff(1:nd)) < abs_err(1:nd) + &
                                          rel_err(1:nd) * amp(1:nd) ) ) then
@@ -158,7 +158,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 ! the new closed orbit guess. 
 ! do not use the matrix if it is very non-symplectic.
 !
-! msk is used to mask out any plans where closed_orb_ has converged to
+! msk is used to mask out any plans where closed_orb has converged to
 ! the closed orbit. If we do not do this then the computation can blow up.
 
   if (j > nd) then
@@ -187,12 +187,12 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
     call mat_symp_check (mat6(1:nnd,1:nnd), error)
     if (debug) print *, 'error:', error
     if (debug) print '(i4, a, 3p6f11.5)', j, ':', &
-                                    (closed_orb_(0)%vec(i), i = 1, nd)
+                                    (closed_orb(0)%vec(i), i = 1, nd)
 
     if (error < 0.1) then  ! if error is low use matrix
       mat6(1:nnd,1:nnd) = mat6_unit(1:nnd,1:nnd) - mat6(1:nnd,1:nnd)
       call mat_inverse (mat6(1:nnd,1:nnd), mat6_inv(1:nnd,1:nnd))
-      closed_orb_(0)%vec(msk(1:nnd)) = closed_orb_(0)%vec(msk(1:nnd)) + &
+      closed_orb(0)%vec(msk(1:nnd)) = closed_orb(0)%vec(msk(1:nnd)) + &
                         matmul(mat6_inv(1:nnd,1:nnd), orb_diff(msk(1:nnd)))
       cycle
     endif
@@ -203,8 +203,8 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 ! if we are here then we did not make a guess using the matrix.
 ! The new guess is the average of the start and end orbits.
 
-    closed_orb_(0)%vec(1:nd) = &
-              (closed_orb_(0)%vec(1:nd) + closed_orb_(n_ele)%vec(1:nd)) / 2
+    closed_orb(0)%vec(1:nd) = &
+              (closed_orb(0)%vec(1:nd) + closed_orb(n_ele)%vec(1:nd)) / 2
 
   enddo
 

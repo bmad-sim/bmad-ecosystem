@@ -55,7 +55,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   type (parser_ring_struct) pring
   type (seq_stack_struct) stack(20)
   type (ele_struct), save, pointer :: ele, old_ele(:) => null()
-  type (used_seq_struct), allocatable ::  used_line(:), used2(:)
+  type (used_seq_struct), allocatable, save ::  used_line(:), used2(:)
 
   integer, allocatable :: ix_ring(:)
   integer, allocatable :: seq_indexx(:), in_indexx(:)
@@ -80,7 +80,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
   logical, optional :: make_mats6, digested_read_ok
   logical parsing, delim_found, matched_delim, arg_list_found, doit
-  logical file_end, found, err_flag, finished
+  logical file_end, found, err_flag, finished, exit_on_error
   logical detected_expand_lattice_cmd, multipass
 
 ! see if digested file is open and current. If so read in and return.
@@ -837,7 +837,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
       if (stack(i_lev)%multipass .and. .not. stack(i_lev-1)%multipass) then
         ix_multipass = 1
         n0_multi = n_ele_use + 1
-        multipass_line = sequence_(stack(i_lev-1)%ix_seq)%name
+        multipass_line = sequence_(stack(i_lev)%ix_seq)%name
       endif
 
     case default
@@ -964,8 +964,8 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
         ele%value(gradient$) = ele%value(delta_e$) / ele%value(l$)
       endif
 
-      if (ele%value(freq_spread$) /= 0) then
-        do n = 1, lr_wake_array_size(ele)
+      if (ele%value(freq_spread$) /= 0 .and. associated(ele%wake)) then
+        do n = 1, size(ele%wake%lr)
           call ran_gauss (rr)
           ele%wake%lr(n)%freq = ele%wake%lr(n)%freq * &
                                             (1 + ele%value(freq_spread$) * rr)
@@ -1102,6 +1102,8 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
 ! global computations
 
+  if (.not. bmad_com%auto_bookkeeper) call lattice_bookkeeper (ring)
+
   doit = .true.
   if (present(make_mats6)) doit = make_mats6
   if (doit) then
@@ -1117,7 +1119,12 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
   call ran_seed_get (ring%param%ran_seed)
 
-  if (detected_expand_lattice_cmd) call bmad_parser2 ('FROM: BMAD_PARSER', ring)
+  if (detected_expand_lattice_cmd) then
+    exit_on_error = bmad_status%exit_on_error
+    bmad_status%exit_on_error = .false.
+    call bmad_parser2 ('FROM: BMAD_PARSER', ring)
+    bmad_status%exit_on_error = exit_on_error
+  endif
 
 !-------------------------------------------------------------------------
 ! write out if debug is on
@@ -1185,7 +1192,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
       print *, 'Number of lattice elements:', ring%n_ele_max
       print *, 'List:                               Key      Length         S'
       do i = 1, ring%n_ele_use
-        print '(3x, i3, 2a, 3x, a, 2f10.2)', i, ') ', ring%ele_(i)%name,  &
+        print '(2x, i4, 2a, 3x, a, 2f10.2)', i, ') ', ring%ele_(i)%name,  &
           key_name(ring%ele_(i)%key), ring%ele_(i)%value(l$), ring%ele_(i)%s
       enddo
     endif

@@ -21,7 +21,8 @@ template <class T> bool is_all_true (const valarray<T>& v1, const valarray<T>& v
 template bool is_all_true(const Real_Array&, const Real_Array&);
 template bool is_all_true(const Int_Array&, const Int_Array&);
 template bool is_all_true(const C_taylor_term_array&, const C_taylor_term_array&);
-template bool is_all_true(const C_sr_wake_array&, const C_sr_wake_array&);
+template bool is_all_true(const C_sr1_wake_array&, const C_sr1_wake_array&);
+template bool is_all_true(const C_sr2_wake_array&, const C_sr2_wake_array&);
 template bool is_all_true(const C_lr_wake_array&, const C_lr_wake_array&);
 template bool is_all_true(const C_taylor_array&, const C_taylor_array&);
 template bool is_all_true(const C_wig_term_array&, const C_wig_term_array&);
@@ -83,8 +84,15 @@ bool operator== (const C_taylor& x, const C_taylor& y) {
   return (x.ref == y.ref) && is_all_true(x.term, y.term);
 };
 
-bool operator== (const C_sr_wake& x, const C_sr_wake& y) {
+bool operator== (const C_sr1_wake& x, const C_sr1_wake& y) {
   return (x.z == y.z) && (x.longitudinal == y.longitudinal) && (x.transverse == y.transverse);
+};
+
+bool operator== (const C_sr2_wake& x, const C_sr2_wake& y) {
+  return (x.amp == y.amp) && (x.damp == y.damp) && 
+         (x.freq == y.freq) && (x.phi == y.phi) && 
+         (x.norm_sin == y.norm_sin) && (x.norm_cos == y.norm_cos) && 
+         (x.skew_sin == y.skew_sin) && (x.skew_cos == y.skew_cos);
 };
 
 bool operator== (const C_lr_wake& x, const C_lr_wake& y) {
@@ -98,9 +106,11 @@ bool operator== (const C_lr_wake& x, const C_lr_wake& y) {
 bool operator== (const C_wake& x, const C_wake& y) {
   bool all_true;
   all_true = (x.sr_file == y.sr_file) && (x.lr_file == y.lr_file) &&
-            (x.sr.size() == y.sr.size()) && (x.lr.size() == y.lr.size()); 
+            (x.sr1.size() == y.sr1.size()) && (x.sr2_long.size() == y.sr2_long.size()) && 
+            (x.sr2_trans.size() == y.sr2_trans.size()) && (x.lr.size() == y.lr.size()); 
   if (!all_true) return all_true;
-  return is_all_true(x.sr, y.sr) && is_all_true(x.lr, y.lr);
+  return is_all_true(x.sr1, y.sr1) && is_all_true(x.sr2_long, y.sr2_long) && 
+         is_all_true(x.sr2_trans, y.sr2_trans) && is_all_true(x.lr, y.lr);
 }
 
 bool operator== (const C_control& x, const C_control& y) {
@@ -109,8 +119,7 @@ bool operator== (const C_control& x, const C_control& y) {
 }
 
 bool operator== (const C_param& x, const C_param& y) {
-  return (x.n_part == y.n_part) && (x.garbage == y.garbage) && 
-         (x.total_length == y.total_length) && 
+  return (x.n_part == y.n_part) && (x.total_length == y.total_length) && 
          (x.growth_rate == y.growth_rate) &&
          is_all_true(x.t1_with_RF, y.t1_with_RF) && 
          is_all_true(x.t1_no_RF, y.t1_no_RF) && 

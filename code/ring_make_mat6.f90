@@ -1,10 +1,10 @@
 !+
-! Subroutine ring_make_mat6 (ring, ix_ele, coord_)
+! Subroutine ring_make_mat6 (ring, ix_ele, coord)
 !
 ! Subroutine to make the first order transfer map:
 !   r_out = M * r_in + vec0
 ! M is the 6x6 linear transfer matrix (Jacobian) about the 
-! reference orbit coord_.
+! reference orbit coord.
 !
 ! The routine will also call control_bookkeeper to make sure that all
 ! lord/slave dependencies are correct.
@@ -17,7 +17,7 @@
 !   ix_ele     -- Integer: Index of the element. if < 0 then entire
 !                    ring will be made. In this case group elements will
 !                    be made up last.
-!   coord_(0:) -- Coord_struct, optional: Coordinates of the reference orbit
+!   coord(0:) -- Coord_struct, optional: Coordinates of the reference orbit
 !                   around which the matrix is calculated. If not present 
 !                   then the referemce is taken to be the origin.
 !
@@ -29,7 +29,7 @@
 
 #include "CESR_platform.inc"
 
-recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
+recursive subroutine ring_make_mat6 (ring, ix_ele, coord)
 
   use bmad_struct
   use bmad_utils_mod
@@ -39,7 +39,7 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
   implicit none
                                          
   type (ring_struct), target :: ring
-  type (coord_struct), optional, volatile :: coord_(0:)
+  type (coord_struct), optional, volatile :: coord(0:)
   type (ele_struct), pointer :: ele
 
   integer i, j, ie, ix_ele, i1, ix_taylor(100), n_taylor
@@ -52,9 +52,9 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
     return
   endif
 
-  if (present(coord_)) then
-    if (ubound(coord_, 1) < ring%n_ele_use) then
-      print *, 'ERROR IN RING_MAKE_MAT6: COORD_(:) ARGUMENT SIZE IS TOO SMALL!'
+  if (present(coord)) then
+    if (ubound(coord, 1) < ring%n_ele_use) then
+      print *, 'ERROR IN RING_MAKE_MAT6: coord(:) ARGUMENT SIZE IS TOO SMALL!'
       call err_exit
     endif
   endif
@@ -84,8 +84,8 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
           do j = 1, n_taylor
             ie = ix_taylor(j)
             if (.not. equivalent_eles (ele, ring%ele_(ie))) cycle
-            if (present(coord_)) then
-              if (any(coord_(i-1)%vec /= coord_(ie-1)%vec)) cycle
+            if (present(coord)) then
+              if (any(coord(i-1)%vec /= coord(ie-1)%vec)) cycle
             endif
             call transfer_ele_taylor (ring%ele_(ie), ele, &
                                                  ring%ele_(ie)%taylor_order)
@@ -96,8 +96,8 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
         ix_taylor(n_taylor) = i
       endif
 
-      if (present(coord_)) then
-        call make_mat6(ele, ring%param, coord_(i-1), coord_(i), .true.)
+      if (present(coord)) then
+        call make_mat6(ele, ring%param, coord(i-1), coord(i), .true.)
       else
         call make_mat6(ele, ring%param)
       endif
@@ -115,9 +115,9 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
 ! for a regular element
 
   if (ix_ele <= ring%n_ele_use) then
-     if (present(coord_)) then
+     if (present(coord)) then
         call make_mat6(ring%ele_(ix_ele), ring%param, &
-                                  coord_(ix_ele-1), coord_(ix_ele), .true.)
+                                  coord(ix_ele-1), coord(ix_ele), .true.)
      else
         call make_mat6(ring%ele_(ix_ele), ring%param)
      endif
@@ -129,8 +129,8 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
 
   do i1 = ring%ele_(ix_ele)%ix1_slave, ring%ele_(ix_ele)%ix2_slave
     i = ring%control_(i1)%ix_slave
-     if (present(coord_)) then
-        call ring_make_mat6 (ring, i, coord_)
+     if (present(coord)) then
+        call ring_make_mat6 (ring, i, coord)
      else
         call ring_make_mat6 (ring, i)
      endif

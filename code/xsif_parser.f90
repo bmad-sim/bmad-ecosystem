@@ -394,11 +394,13 @@ subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
 
         if ((ix1 /= 0) .and. (ix2 /= 0)) then
           allocate (ele%wake)
+          allocate (ele%wake%sr2_long(0), ele%wake%sr2_trans(0), ele%wake%lr(0))
           name1 = arr_to_str(lwake_file(ix1)%fnam_ptr)
           name2 = arr_to_str(twake_file(ix2)%fnam_ptr)
           ele%wake%sr_file = trim(name1) // ' | ' // name2
-          call read_xsif_wake (ele%wake%sr, name1, 'LONG')
-          call read_xsif_wake (ele%wake%sr, name2, 'TRANS')
+          call read_xsif_wake (ele%wake%sr1, name1, 'LONG')
+          call read_xsif_wake (ele%wake%sr1, name2, 'TRANS')
+          ele%wake%z_cut_sr = 1e10  ! something large
         endif
 
         ring%param%lattice_type = linear_lattice$
@@ -572,7 +574,7 @@ end subroutine
 
 subroutine read_xsif_wake (wake, file_name, this)
 
-  type (sr_wake_struct), pointer :: wake(:)
+  type (sr1_wake_struct), pointer :: wake(:)
 
   real(rp) s_(1000), field(1000), ds
 

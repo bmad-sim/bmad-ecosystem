@@ -679,51 +679,107 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine sr_wake_to_c (f_sr_wake, c_sr_wake)
+! Subroutine sr1_wake_to_c (f_sr1_wake, c_sr1_wake)
 !
-! Subroutine to convert a Bmad sr_wake_struct to a C++ C_sr_wake.
+! Subroutine to convert a Bmad sr1_wake_struct to a C++ C_sr1_wake.
 !
 ! Input:
-!   f_sr_wake -- Sr_wake_struct: Input Bmad sr_wake_struct.
+!   f_sr1_wake -- Sr1_wake_struct: Input Bmad sr1_wake_struct.
 !
 ! Output:
-!   c_sr_wake -- c_dummy_struct: Output C_sr_wake.
+!   c_sr1_wake -- c_dummy_struct: Output C_sr1_wake.
 !-
 
-subroutine sr_wake_to_c (f_sr_wake, c_sr_wake)
+subroutine sr1_wake_to_c (f_sr1_wake, c_sr1_wake)
 
 use bmad_and_cpp
 
 implicit none
 
-type (sr_wake_struct), target :: f_sr_wake
-type (sr_wake_struct), pointer :: f
-type (c_dummy_struct) c_sr_wake
+type (sr1_wake_struct), target :: f_sr1_wake
+type (sr1_wake_struct), pointer :: f
+type (c_dummy_struct) c_sr1_wake
 
-f => f_sr_wake
-call sr_wake_to_c2 (c_sr_wake, f%z, f%long, f%trans)
+f => f_sr1_wake
+call sr1_wake_to_c2 (c_sr1_wake, f%z, f%long, f%trans)
 
 end subroutine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine sr_wake_to_f2 (f_sr_wake, z, long, trans)
+! Subroutine sr1_wake_to_f2 (f_sr1_wake, z, long, trans)
 !
-! Subroutine used by sr_wake_to_f to convert a C++ C_sr_wake into
-! a Bmad sr_wake_struct. This routine is not for general use.
+! Subroutine used by sr1_wake_to_f to convert a C++ C_sr1_wake into
+! a Bmad sr1_wake_struct. This routine is not for general use.
 !-
 
-subroutine sr_wake_to_f2 (f_sr_wake, z, long, trans)
+subroutine sr1_wake_to_f2 (f_sr1_wake, z, long, trans)
 
 use bmad_and_cpp
 
 implicit none
 
-type (sr_wake_struct) f_sr_wake
+type (sr1_wake_struct) f_sr1_wake
 real(rp) z, long, trans
 
-f_sr_wake = sr_wake_struct(z, long, trans)
+f_sr1_wake = sr1_wake_struct(z, long, trans)
+
+end subroutine
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine sr2_wake_to_c (f_sr2_wake, c_sr2_wake)
+!
+! Subroutine to convert a Bmad sr2_wake_struct to a C++ C_sr2_wake.
+!
+! Input:
+!   f_sr2_wake -- Sr2_wake_struct: Input Bmad sr2_wake_struct.
+!
+! Output:
+!   c_sr2_wake -- c_dummy_struct: Output C_sr2_wake.
+!-
+
+subroutine sr2_wake_to_c (f_sr2_wake, c_sr2_wake)
+
+use bmad_and_cpp
+
+implicit none
+
+type (sr2_wake_struct), target :: f_sr2_wake
+type (sr2_wake_struct), pointer :: f
+type (c_dummy_struct) c_sr2_wake
+
+f => f_sr2_wake
+call sr2_wake_to_c2 (c_sr2_wake, f%amp, f%damp, f%freq, f%phi, &
+                          f%norm_sin, f%norm_cos, f%skew_sin, f%skew_cos)
+
+end subroutine
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine sr2_wake_to_f2 (f_sr2_wake, amp, damp, freq, phi, 
+!                                     norm_sin, norm_cos, skew_sin, skew_cos)
+!
+! Subroutine used by sr2_wake_to_f to convert a C++ C_sr2_wake into
+! a Bmad sr2_wake_struct. This routine is not for general use.
+!-
+
+subroutine sr2_wake_to_f2 (f_sr2_wake, amp, damp, freq, phi, &
+                                        norm_sin, norm_cos, skew_sin, skew_cos)
+
+use bmad_and_cpp
+
+implicit none
+
+type (sr2_wake_struct) f_sr2_wake
+real(rp) amp, damp, freq, phi, norm_sin, norm_cos, skew_sin, skew_cos
+
+f_sr2_wake = sr2_wake_struct(amp, damp, freq, phi, &
+                                      norm_sin, norm_cos, skew_sin, skew_cos)
 
 end subroutine
 
@@ -752,7 +808,6 @@ type (lr_wake_struct), target :: f_lr_wake
 type (lr_wake_struct), pointer :: f
 type (c_dummy_struct) c_lr_wake
 
-print *, 'Here'
 f => f_lr_wake
 call lr_wake_to_c2 (c_lr_wake, f%freq, f%freq_in, f%R_over_Q, f%q, f%m, &
                      f%norm_sin, f%norm_cos, f%skew_sin, f%skew_cos, f%s_ref)
@@ -781,7 +836,7 @@ real(rp) freq, freq_in, r_over_q, q, n_sin, n_cos, s_cos, s_sin, s_ref
 integer m
 
 f_lr_wake = lr_wake_struct(freq, freq_in, r_over_q, q, m, &
-                                       n_sin, n_cos, s_cos, s_sin, s_ref)
+                                       n_sin, n_cos, s_sin, s_cos, s_ref)
 
 end subroutine
 
@@ -809,20 +864,35 @@ implicit none
 
 type (wake_struct), target :: f_wake
 type (wake_struct), pointer :: f
+type (sr2_wake_struct), pointer :: sr2
 type (c_dummy_struct) c_wake
-integer i, n_sr, n_lr
+integer i, n_sr1, n_sr2_long, n_sr2_trans, n_lr
 
 !
 
 f => f_wake
-n_sr = 0; n_lr = 0
-if (associated(f%sr)) n_sr = size(f%sr)
-if (associated(f%lr)) n_lr = size(f%lr)
+n_sr1       = size(f%sr1)
+n_sr2_long  = size(f%sr2_long)
+n_sr2_trans = size(f%sr2_trans)
+n_lr        = size(f%lr)
 
-call wake_to_c2 (c_wake, c_str(f%sr_file), c_str(f%lr_file), n_sr, n_lr)
+call wake_to_c2 (c_wake, c_str(f%sr_file), c_str(f%lr_file), f%z_cut_sr, &
+                                             n_sr1, n_sr2_long, n_sr2_trans, n_lr)
 
-do i = 1, n_sr
-  call sr_wake_in_wake_to_c2 (c_wake, i, f%sr(i)%z, f%sr(i)%long, f%sr(i)%trans)
+do i = 0, n_sr1-1
+  call sr1_wake_in_wake_to_c2 (c_wake, i, f%sr1(i)%z, f%sr1(i)%long, f%sr1(i)%trans)
+enddo
+
+do i = 1, n_sr2_long
+  sr2 => f%sr2_long(i)
+  call sr2_long_wake_in_wake_to_c2 (c_wake, i, sr2%amp, sr2%damp, sr2%freq, &
+                  sr2%phi, sr2%norm_sin, sr2%norm_cos, sr2%skew_sin, sr2%skew_cos)
+enddo
+
+do i = 1, n_sr2_trans
+  sr2 => f%sr2_trans(i)
+  call sr2_trans_wake_in_wake_to_c2 (c_wake, i, sr2%amp, sr2%damp, sr2%freq, &
+                  sr2%phi, sr2%norm_sin, sr2%norm_cos, sr2%skew_sin, sr2%skew_cos)
 enddo
 
 do i = 1, n_lr
@@ -836,20 +906,23 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine wake_to_f2 (f_wake, sr_file, n_srf, lr_file, n_lrf, n_sr, n_lr)
+! Subroutine wake_to_f2 (f_wake, sr_file, n_srf, lr_file, n_lrf, z_cut_sr,
+!                                            n_sr1, n_sr2_long, n_sr2_trans, n_lr)
 !
 ! Subroutine used by wake_to_f to convert a C++ C_wake into
 ! a Bmad wake_struct. This routine is not for general use.
 !-
 
-subroutine wake_to_f2 (f_wake, sr_file, n_srf, lr_file, n_lrf, n_sr, n_lr)
+subroutine wake_to_f2 (f_wake, sr_file, n_srf, lr_file, n_lrf, z_cut_sr, &
+                                         n_sr1, n_sr2_long, n_sr2_trans, n_lr)
 
 use bmad_and_cpp
 
 implicit none
 
 type (wake_struct) f_wake
-integer n_sr, n_lr, n_srf, n_lrf
+integer n_sr1, n_sr2_long, n_sr2_trans, n_lr, n_srf, n_lrf
+real(rp) z_cut_sr
 character(n_srf) :: sr_file
 character(n_lrf) :: lr_file
 
@@ -857,21 +930,24 @@ character(n_lrf) :: lr_file
 
 f_wake%sr_file = sr_file
 f_wake%lr_file = lr_file
-call init_sr_wake (f_wake%sr, n_sr)
-call init_lr_wake (f_wake%lr, n_lr)
+f_wake%z_cut_sr = z_cut_sr
+allocate (f_wake%sr1(0:n_sr1-1))
+allocate (f_wake%sr2_long(n_sr2_long))
+allocate (f_wake%sr2_trans(n_sr2_trans))
+allocate (f_wake%lr(n_lr))
 
 end subroutine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine sr_wake_in_wake_to_f2 (f_wake, it, z, long, trans)
+! Subroutine sr1_wake_in_wake_to_f2 (f_wake, it, z, long, trans)
 !
 ! Subroutine used by wake_to_f to convert a C++ C_wake into
 ! a Bmad wake_struct. This routine is not for general use.
 !-
 
-subroutine sr_wake_in_wake_to_f2 (f_wake, it, z, long, trans)
+subroutine sr1_wake_in_wake_to_f2 (f_wake, it, z, long, trans)
 
 use bmad_and_cpp
 
@@ -881,21 +957,73 @@ type (wake_struct) f_wake
 real(rp) z, long, trans
 integer it
 
-f_wake%sr(it) = sr_wake_struct(z, long, trans)
+f_wake%sr1(it) = sr1_wake_struct(z, long, trans)
 
 end subroutine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine lr_wake_in_wake_to_f2 (f_wake, it, freq, kick, i_cell, q, m, &
+! Subroutine sr2_long_wake_in_wake_to_f2 (f_wake, it, amp, damp, freq, phi, &
+!                                        norm_sin, norm_cos, skew_sin, skew_cos)
+!
+! Subroutine used by wake_to_f to convert a C++ C_wake into
+! a Bmad wake_struct. This routine is not for general use.
+!-
+
+subroutine sr2_long_wake_in_wake_to_f2 (f_wake, it, amp, damp, freq, phi, &
+                                        norm_sin, norm_cos, skew_sin, skew_cos)
+
+use bmad_and_cpp
+
+implicit none
+
+type (wake_struct) f_wake
+real(rp) amp, damp, freq, phi, norm_sin, norm_cos, skew_sin, skew_cos
+integer it
+
+f_wake%sr2_long(it) = sr2_wake_struct(amp, damp, freq, phi, &
+                                        norm_sin, norm_cos, skew_sin, skew_cos)
+
+end subroutine
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine sr2_trans_wake_in_wake_to_f2 (f_wake, it, amp, damp, freq, phi, &
+!                                        norm_sin, norm_cos, skew_sin, skew_cos)
+!
+! Subroutine used by wake_to_f to convert a C++ C_wake into
+! a Bmad wake_struct. This routine is not for general use.
+!-
+
+subroutine sr2_trans_wake_in_wake_to_f2 (f_wake, it, amp, damp, freq, phi, &
+                                        norm_sin, norm_cos, skew_sin, skew_cos)
+
+use bmad_and_cpp
+
+implicit none
+
+type (wake_struct) f_wake
+real(rp) amp, damp, freq, phi, norm_sin, norm_cos, skew_sin, skew_cos
+integer it
+
+f_wake%sr2_trans(it) = sr2_wake_struct(amp, damp, freq, phi, &
+                                        norm_sin, norm_cos, skew_sin, skew_cos)
+
+end subroutine
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine lr_wake_in_wake_to_f2 (f_wake, it, freq, freq_in, r_over_q, q, m, &
 !                                          n_sin, n_cos, s_cos, s_sin, s_ref)
 !
 ! Subroutine used by wake_to_f to convert a C++ C_wake into
 ! a Bmad wake_struct. This routine is not for general use.
 !-
 
-subroutine lr_wake_in_wake_to_f2 (f_wake, it, freq, kick, i_cell, q, m, &
+subroutine lr_wake_in_wake_to_f2 (f_wake, it, freq, freq_in, r_over_q, q, m, &
                                           n_sin, n_cos, s_cos, s_sin, s_ref)
 
 use bmad_and_cpp
@@ -903,10 +1031,10 @@ use bmad_and_cpp
 implicit none
 
 type (wake_struct) f_wake
-real(rp) freq, kick, q, n_sin, n_cos, s_cos, s_sin, s_ref
-integer it, i_cell, m
+real(rp) freq, freq_in, r_over_q, q, n_sin, n_cos, s_cos, s_sin, s_ref
+integer it, m
 
-f_wake%lr(it) = lr_wake_struct(freq, kick, i_cell, q, m, &
+f_wake%lr(it) = lr_wake_struct(freq, freq_in, r_over_q, q, m, &
                                      n_sin, n_cos, s_cos, s_sin, s_ref)
 
 end subroutine
@@ -991,7 +1119,7 @@ type (c_dummy_struct) c_param
 
 f => f_param
 
-call param_to_c2 (c_param, f%n_part, f%garbage, f%total_length, f%growth_rate, &
+call param_to_c2 (c_param, f%n_part, f%total_length, f%growth_rate, &
       mat2arr(f%t1_with_RF), mat2arr(f%t1_no_RF), &
       f%particle, f%ix_lost, f%end_lost_at, f%lattice_type, &
       f%ixx, f%ran_seed, c_logic(f%stable), c_logic(f%aperture_limit_on), c_logic(f%lost))
@@ -1001,7 +1129,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine param_to_f2 (f_param, n_part, garbage, total_length, &
+! Subroutine param_to_f2 (f_param, n_part, total_length, &
 !      growth_rate, m1, m2, particle, ix_lost, end_lost_at, &
 !      lat_type, ixx, ran_seed, stable, ap_limit_on, lost)
 !
@@ -1009,7 +1137,7 @@ end subroutine
 ! a Bmad param_struct. This routine is not for general use.
 !-
 
-subroutine param_to_f2 (f_param, n_part, garbage, total_length, &
+subroutine param_to_f2 (f_param, n_part, total_length, &
       growth_rate, m1, m2, particle, ix_lost, end_lost_at, &
       lat_type, ixx, ran_seed, stable, ap_limit_on, lost) 
 
@@ -1018,12 +1146,12 @@ use bmad_and_cpp
 implicit none
 
 type (param_struct) f_param
-real(rp) n_part, garbage, total_length, growth_rate
+real(rp) n_part, total_length, growth_rate
 real(rp) m1(36), m2(36)
 integer particle, ix_lost, end_lost_at, lat_type, ixx, stable, &
         ap_limit_on, lost, ran_seed
 
-f_param = param_struct(0.0_rp, n_part, garbage, total_length, growth_rate, &
+f_param = param_struct(n_part, total_length, growth_rate, &
       arr2mat(m1, 6, 6), arr2mat(m2, 6, 6), particle, ix_lost, end_lost_at, &
       lat_type, ixx, ran_seed, f_logic(stable), f_logic(ap_limit_on), &
       f_logic(lost))
@@ -1398,7 +1526,8 @@ end subroutine
 ! Subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, &
 !    n_attrib, x, y, z, floor, val, g0, v0, m6, c2, gam, s, r_arr, nr1, nr2, &
 !    a, b, n_ab, const, n_const, des, n_des, gen, tlr1, tlr2, tlr3, tlr4, &
-!    tlr5, tlr6, wake, n_sr, n_lr, n_wig, key, sub, con_tp, ixv, nsl, ix1s, &
+!    tlr5, tlr6, wake, n_sr1, n_sr2_long, n_sr2_trans, n_lr, n_wig, key, sub, &
+!    con_tp, ixv, nsl, ix1s, &
 !    ix2s, nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, &
 !    int_ord, ptc, tlr_ord, ap_at, symp, mode, mult, ex_rad, f_master, &
 !    on, intern, logic, i_beam)
@@ -1410,7 +1539,8 @@ end subroutine
 subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, &
     n_attrib, x, y, z, floor, val, g0, v0, m6, c2, gam, s, r_arr, nr1, nr2, &
     a, b, n_ab, const, n_const, des, n_des, gen, tlr1, tlr2, tlr3, tlr4, &
-    tlr5, tlr6, wake, n_sr, n_lr, n_wig, key, sub, con_tp, ixv, nsl, ix1s, &
+    tlr5, tlr6, wake, n_sr1, n_sr2_long, n_sr2_trans, n_lr, n_wig, key, sub, &
+    con_tp, ixv, nsl, ix1s, &
     ix2s, nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, &
     int_ord, ptc, tlr_ord, ap_at, symp, mode, mult, ex_rad, f_master, &
     on, intern, logic, i_beam)   
@@ -1428,7 +1558,8 @@ type (genfield), target :: gen
 integer n_nam, nr1, nr2, n_ab, n_const, key, sub, con_tp, ixv, nsl, ix1s, &
     ix2s, nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, &
     int_ord, ptc, tlr_ord, ap_at, symp, mode, mult, ex_rad, f_master, on, &
-    intern, logic, i_beam, n_typ, n_ali, n_attrib, n_des, n_wig, n_sr, n_lr
+    intern, logic, i_beam, n_typ, n_ali, n_attrib, n_des, n_wig, n_sr1, n_sr2_long, &
+    n_sr2_trans, n_lr
 
 real(rp) val(n_attrib_maxx), g0(6), v0(6), m6(36), c2(4), gam, s
 real(rp) a(n_ab), b(n_ab), r_arr(nr1*nr2), const(n_const)
@@ -1541,12 +1672,8 @@ call taylor_to_f (tlr4, f%taylor(4))
 call taylor_to_f (tlr5, f%taylor(5))
 call taylor_to_f (tlr6, f%taylor(6))
 
-if (n_sr == 0 .and. n_lr == 0) then
-  if (associated(f%wake)) deallocate(f%wake)
-else
-  if (.not. associated(f%wake)) allocate(f%wake)
-    call wake_to_f (wake, f%wake)
-endif
+call init_wake (f%wake, n_sr1, n_sr2_long, n_sr2_trans, n_lr)
+if (associated(f%wake)) call wake_to_f (wake, f%wake)
 
 if (n_wig == 0) then
   if (associated(f%wig_term)) deallocate (f%wig_term)
@@ -1663,7 +1790,7 @@ implicit none
 type (ring_struct), target :: f_ring
 type (ring_struct), pointer :: f
 type (c_dummy_struct) c_ring, c_ele
-integer i, n_con
+integer i, n_con, n_ele
 
 !
 
@@ -1672,9 +1799,12 @@ f => f_ring
 n_con = 0
 if (associated(f%control_)) n_con = size(f%control_)
 
+n_ele = 0
+if (associated(f%ele_)) n_ele = size(f%ele_)
+
 call ring_to_c2 (c_ring, c_str(f%name), c_str(f%lattice), &
       c_str(f%input_file_name), c_str(f%title), f%x, f%y, f%z, f%param, &
-      f%version, f%n_ele_use, f%n_ele_max, &
+      f%version, f%n_ele_use, f%n_ele_max, n_ele, &
       f%n_control_max, f%n_ic_max, f%input_taylor_order, &
       f%ele_init, n_con, f%ic_, i_size(f%ic_))
 
@@ -1701,7 +1831,7 @@ end subroutine
 !-
 
 subroutine ring_to_f2 (f, name, n_name, lat, n_lat, file, n_file, title, &
-    n_title, x, y, z, param, ver, n_use, n_max, nc_max, n_ic_max, &
+    n_title, x, y, z, param, ver, n_use, n_max, n_maxx, nc_max, n_ic_max, &
     tlr_ord, ele_init, n_con, ic, n_ic)
 
 use bmad_and_cpp
@@ -1711,7 +1841,7 @@ implicit none
 type (ring_struct) f
 type (c_dummy_struct) x, y, z, param, ele_init
 integer n_ic_max, n_ic, n_name, n_lat, n_file, n_title, ic(n_ic)
-integer ver, n_use, n_max, nc_max, tlr_ord, n_con
+integer ver, n_use, n_max, nc_max, tlr_ord, n_con, n_maxx
 
 character(n_name) name
 character(n_lat) lat
@@ -1736,7 +1866,7 @@ call mode_info_to_f (y, f%y)
 call mode_info_to_f (z, f%z)
 call param_to_f (param, f%param)
 call ele_to_f (ele_init, f%ele_init)
-call allocate_ring_ele_(f, n_max)
+call allocate_ring_ele_(f, n_maxx)
 allocate (f%control_(n_con))
 allocate (f%ic_(n_ic))
 f%ic_ = ic

@@ -1,5 +1,5 @@
 !+
-! Subroutine SET_TUNE (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
+! Subroutine SET_TUNE (phi_x_set, phi_y_set, dk1, ring, orb, ok)
 !
 ! Subroutine to Q_tune a ring. Program will set the tunes to
 ! within 0.001 radian (0.06 deg).
@@ -14,17 +14,17 @@
 !                  dk1(i) relates to ring%ele_(i). Those quads with a
 !                  positive dk1(i) will be varied as one group and the
 !                  quads with negative dk1(i) will be varied as another group.
-!   orb_(0)%vec(6) -- Coord_struct: Energy dE/E at which the tune is computed.
+!   orb(0)%vec(6) -- Coord_struct: Energy dE/E at which the tune is computed.
 !
 ! Output:
-!   ring      -- Ring_struct: Q_tuned ring
-!   orb_(0:)  -- Coord_struct: New closed orbit.
-!   ok        -- Logical: Set True if everything is ok. False otherwise.
+!   ring     -- Ring_struct: Q_tuned ring
+!   orb(0:)  -- Coord_struct: New closed orbit.
+!   ok       -- Logical: Set True if everything is ok. False otherwise.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
+subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb, ok)
 
   use bmad_struct
   use bmad_interface, except => set_tune
@@ -33,7 +33,7 @@ subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
 
   type (ring_struct) ring
   type (ele_struct), save :: ave
-  type (coord_struct), allocatable :: orb_(:)
+  type (coord_struct), allocatable :: orb(:)
 
   real(rp) phi_x_set, phi_y_set, dphi_x, dphi_y
   real(rp) phi_x, phi_y, d_xx, d_xy, d_yx, d_yy, det
@@ -48,24 +48,24 @@ subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
 
 ! q_tune
 
-  call closed_orbit_at_start (ring, orb_(0), 4, .true.)
+  call closed_orbit_at_start (ring, orb(0), 4, .true.)
   ok = bmad_status%ok
   if (.not. ok) return
-  call track_all (ring, orb_)
+  call track_all (ring, orb)
 
   do i = 1, 10
 
-    call ring_make_mat6 (ring, -1, orb_)
+    call ring_make_mat6 (ring, -1, orb)
 
     call twiss_at_start(ring)
     ok = bmad_status%ok
     if (.not. ok) return
 
     call twiss_propagate_all(ring)
-    call closed_orbit_at_start (ring, orb_(0), 4, .true.)
+    call closed_orbit_at_start (ring, orb(0), 4, .true.)
     ok = bmad_status%ok
     if (.not. ok) return
-    call track_all (ring, orb_)
+    call track_all (ring, orb)
 
     phi_x = ring%ele_(ring%n_ele_use)%x%phi
     phi_y = ring%ele_(ring%n_ele_use)%y%phi
