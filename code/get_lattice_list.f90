@@ -36,10 +36,11 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
   character(200) directory2
   character(40) lat_list(:)
 
-  integer num_lats, ios, context, ix, ixx, lib$find_file
-  integer i, stat
+  integer ios, context, ixx, lib$find_file
+  integer stat
 
   character(40) match_file
+  character(200) lat_file
 
 !
 
@@ -61,7 +62,7 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
     call str_upcase (lat_file, lat_file)
 
     if (stat) then
-      if (i > size(lat_list))
+      if (i > size(lat_list)) then
         print *, 'ERROR IN GET_LATTICE_LIST_VMS: NUMBER OF LATTICES EXCEEDS ARRAY SIZE!'
         call err_exit
       endif

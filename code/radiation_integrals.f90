@@ -443,7 +443,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
     mode%lin%i5b_E5 = mode%lin%i5b_E5 + ric%i5b_(i) * gamma5
   enddo
 
-  c = 55 * r_e * h_bar_planck * c_light / &
+  c = 55 * r_e * (h_bar_planck * c_light) / &
                                (24 * e_charge * sqrt(3.0) * mc2)
 
   mode%lin%sig_E1 = sqrt (c * mode%lin%i3_E7)
