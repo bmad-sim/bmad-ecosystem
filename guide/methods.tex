@@ -1,6 +1,6 @@
 \chapter{Tracking and Transfer Matrix Calculation Methods}
 
-Typically there are several ways to do tracking and transfer matrix
+Typically, there are several ways to do tracking and transfer matrix
 calculations for a given element type within \bmad. What method is used
 is selected on an element--by--element basis using
 an element's \vn{tracking_method} and \vn{mat6_calc_method} attributes 
@@ -9,7 +9,7 @@ the appropriate routines a programmer can extend \bmad\ to do customized
 tracking.
 
 %----------------------------------------------------------------------------
-\section{tracking\_method Switches}
+\section{\vn{tracking\_method} Switches}
 \label{s:tkm}
 
 Below are listed the methods for the \vn{tracking_method}
@@ -27,7 +27,7 @@ step size when needed (the fields are rapidly varying), but makes
 larger steps when it can. The disadvantage is that a step is more
 computationally intensive since the error in a step is estimated by
 repeating a step using two mini steps. If the fields are rather
-uniform and you know what a good step size you can save time by using
+uniform and you know what a good step size is you can save time by using
 a fixed step size.
 
 \begin{description}
@@ -67,8 +67,9 @@ accurate. This method is non-symplectic.
 \item[\vn{Symp\_Lie\_Bmad}]
 Symplectic tracking using a Hamiltonian with Lie operation techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
-\bmad\ routine. \vn{Symp_Lie_Bmad} is about a factor of 10 faster 
-then \vn{Symp_Lie_PTC}. However, \vn{Symp_lie_Bmad} is
+\bmad\ routine. By bypassing some of the generality inherent in PTC's routines
+\vn{Symp_Lie_Bmad} achieves about a factor of 10 improvement in speed over
+\vn{Symp_Lie_PTC}. However, \vn{Symp_lie_Bmad} is
 currently only implemented for Wigglers.
 
 \item[\vn{Symp\_Lie\_PTC}]
@@ -77,7 +78,7 @@ This uses Etienne's PTC software for the calculation. This method is
 symplectic but can be slow.
 
 \item[\vn{Symp\_Map}]
-This uses an partially inverted, implicit Taylor map. The calculation
+This uses a partially inverted, implicit Taylor map. The calculation
 uses Etienne's PTC software.  Since the map is implicit, a Newton
 search method must be used. This will slow things down from the Taylor
 method but this is guaranteed symplectic.
@@ -98,7 +99,7 @@ of the model pole matches the actual pole length of the element. The
 strength of the bend and the lengths of the bend and drifts are
 adjusted so that the vertical focusing and horizontal deflection are
 the same in the modal as with a model assuming a sinusoidally varying
-field. \bmad\ arguments this model by assuming that the horizontal
+field. \bmad\ augments this model by assuming that the horizontal
 deflection varies as the $\sinh$ with vertical offset.  Since
 Wiedemann's model does not include longitudinal fields it is not clear
 that it can be used for long term tracking.
@@ -153,7 +154,7 @@ that it can be used for long term tracking.
   \vn{wiggler} (map type)      & X & D & X & X & X & X & X & X & X & X &   \\ \hline
 \end{tabular}
 }
-\caption{Table of available \vn{tracking\_method} switches 
+\caption{Table of available \vn{tracking\_method}\ switches 
 for a given element type. D denotes the default method. X denotes an
 available method.}
 \label{t:track_methods}
@@ -175,17 +176,17 @@ For methods that do not necessarily produce a symplectic matrix the
 solve the problem. See section~\ref{s:symp_method}. 
 
 Symplectic integration is like ordinary integration of a function f(x)
-but what is integrated here is the Hamiltonian H(y) where y here could
-be a 6-dimensional vector (for tracking) or be a taylor series (for
-the mat6 calculation). The order at which a Taylor series is truncated
-at is set by \vn{taylor_order} (this is a global variable). Like
-ordinary integration there are various formulas that one can use to do
-symplectic integration. In \bmad\ (or more precisely Etienne's PTC)
-you can use one of 3 methods. This is set by \vn{integration_ord}. 
-\vn{integration_ord} = n where $n$ is allowed by Etienne's PTC software
-to be 2, 4, or 6. With an integration order of $n$
-the error in an integration step scales as $dz^n$ where $dz$ is 
-step size. The step size $dz$ is set by the length of the element and the
+but what is integrated here is a Taylor map. Truncating the map to
+0\Th\ order gives the particle trajectory and truncating to 1\St\
+order gives the transfer matrix (Jacobian).  The order at which a
+Taylor series is truncated at is set by \vn{taylor_order} (see
+Section~\ref{s:parameter}. Like ordinary integration there are various
+formulas that one can use to do symplectic integration. In \bmad\ (or
+more precisely Etienne's PTC) you can use one of 3 methods. This is
+set by \vn{integration_ord}.  \vn{integration_ord} = n where $n$ is
+allowed by PTC to be 2, 4, or 6. With an integration order of $n$ the
+error in an integration step scales as $dz^n$ where $dz$ is step
+size. The step size $dz$ is set by the length of the element and the
 value of \vn{num_steps}. Remember, as in ordinary integration, higher
 integration order does not necessarily imply higher accuracy.
 
@@ -207,8 +208,9 @@ is called which probably indicates a program linking problem.
 \item[\vn{Symp\_Lie\_Bmad}]
 A Symplectic calculation using a Hamiltonian with Lie operator techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
-\bmad\ routine. \vn{Symp_Lie_Bmad} is about a factor of 10 faster 
-then \vn{Symp_Lie_PTC}. However, \vn{Symp_lie_Bmad} is
+\bmad\ routine. By bypassing some of the generality inherent in PTC's routines
+\vn{Symp_Lie_Bmad} achieves about a factor of 10 improvement in speed over
+\vn{Symp_Lie_PTC}. However, \vn{Symp_lie_Bmad} is
 currently only implemented for Wigglers.
 
 \item[\vn{Symp\_Lie\_PTC}]
@@ -275,8 +277,9 @@ is that it is directly related to any tracking results.
   \vn{wiggler} (map type)      & D & X & X & X & X \\ \hline
 \end{tabular}
 }
-\caption{Table of available \vn{mat6\_calc\_method} switches for a given element type. 
-D denotes the default method. X denotes an available method.}
+\caption{Table of available \vn{mat6\_calc\_method}\ switches for a 
+given element type. D denotes the default method. 
+X denotes an available method.}
 \label{t:mat6_methods}
 \end{table}
 

@@ -1,45 +1,86 @@
 \chapter {Element Attributes}
 
 %-----------------------------------------------------------------
-\section{Independent and Dependent Attributes}
+\section{Dependent and Independent Attributes} 
+\label{s:dependent} 
 
-For convenience \bmad computes the values of some attributes based
-upon the values of other attributes. For example, the \vn{volt} and
-\vn{e_field} attributes of an \vn{elseparator} are calculated from
-the \vn{hkick}, \vn{vkick}, \vn{l}, \vn{gap}, and \vn{beam_energy}
-attributes. No attempt should be made to set or vary within a program
-these dependent attributes. 
-There are, however, some exceptions. For
-example, the \vn{delta_e} attribute of an \vn{lcavity} is a dependent
-attribute which is computed from the \vn{gradient} attribute.  If,
-however, the \vn{delta_e} attribute is set in the lattice file the
-\vn{gradient} will be appropriately calculated. If both \vn{delta_e}
-and \vn{gradient} are set then \bmad\ generates an error message. 
+For convenience \bmad\ computes the values of some attributes based
+upon the values of other attributes. The list of these dependent
+variables is in Table~\ref{t:dependent} along with some of the independent
+variables they are calculated from.
+\begin{table}[h]
+\centering {
+\begin{tabular}{|l|l|l|} \hline
+{\em Element}  & {\em Dependent Variables}  & {\em Independent Variables}  \\ \hline
+  BeamBeam     & bbi\_const             & 
+                                  charge, sig\_x, sig\_y, beam\_energy, n_part  \\ \hline
+  ElSeparator  & e_field, volt          & hkick, vkick, gap, l, beam\_energy    \\ \hline
+  LCavity      & e\_loss, delta\_e      & gradiant, l                           \\ \hline
+  Rbend, Sbend & rho, angle, l\_cord    & g, l                                  \\ \hline
+  RFCavity     & rf\_wavelength         & harmon, l\_lattice                    \\ \hline
+  Wiggler (periodic type)
+               & k1, rho                & b\_max, beam\_energy                  \\ \hline
+\end{tabular}
+}
+\caption {Table of dependent variables and the independent variables 
+they are calculated from.}
+\label{t:dependent}
+\end{table}
+\vn{bema_energy}, \vn{n_part} and \vn{l_lattice} (lattice length) are
+lattice atributes. Not element attributes. The first two are set by
+the \vn{parameter} statement (See Section~\ref{s:parameter}).
 
+No attempt should be made to set or vary within a program a dependent
+attributes. It should be remarked that this is not an ironclad rule.
+If a program properly bypasses \bmad's attribute bookkeeping routine
+then anything is possible. \bmad\, however, allows for some exceptions
+in primary lattice file if the appropriate independent is left unspecified.
+The list of allowed exceptions is given in Table~\ref{t:dep_except}.
+\begin{table}[h]
+\centering {
+\begin{tabular}{|l|l|l|} \hline
+{\em Element}  & {\em Dependent Variable Set}  & {\em Independent Variables Not Set}  \\ \hline
+  LCavity      & delta\_e                  & gradiant                           \\ \hline
+  Rbend, Sbend & rho                       & g                                  \\ \hline
+  Rbend, Sbend & angle                     & g                                  \\ \hline
+\end{tabular}
+}
+\caption {Dependent variables that can be set in a primary lattice file.}
+\label{t:dep_except}
+\end{table}
+After reading in the lattice \bmad\ will set the appropriate
+independent variable based upon the value of the dependent variable.
 
-Some attributes can be dependent or independent depending upon if they
-appear (with non--zero values) or not in the lattice file.  For
-example, If the \vn{k1} value of a \vn{quadrupole} element is set in
-the lattice file then the \vn{b_gradient} attribute for that element
-is a dependent variable. However, if the \vn{b_gradient} is set the
-\vn{k1} attribute becomes the dependent variable. Having the
-\vn{b_gradient} as the independent variable is convenient in the
-situation, say, where a quadrupole's field is fixed but the beam
-energy is varying. If both attributes appear then \bmad\ generates an
-error message. Note the difference between a conditional dependent 
-variable like \vn{b_gradient} and a dependent variable like \vn{delta_e} 
-which may be set in the lattice file. Within the lattice file there
-is no distinction. After a lattice has been read in and a program is
-running a conditional dependent variable can be varied directly
-by the program while a dependent variable cannot.
+The normal attribute used to vary the strength of, say, a
+\vn{quadrupole} is \vn{k1}.  It is sometimes convienient to be able to
+vary the magnetic field strength directly instead. To do this \bmad\ has
+a rule that if the appropriate field attribute appears with non-zero value in the
+primary lattice file then it becomes a dependent variable and the strength attribute
+becomes a dependent variable as tabulated in Table~\ref{t:dep_field}.
+\begin{table}[h]
+\centering {
+\begin{tabular}{|l|l|l|} \hline
+  {\em Element} & {\em Strength Attribute} & {\em Field Attrubte} \\ \hline
+  SBend         &   g                        b_field        \\ \hline
+  Solenoid      &   ks                       b_field        \\ \hline
+  Quadrupole    &   k1                       b_gradient     \\ \hline
+  Sextupole     &   k2                       b_gradient     \\ \hline
+  Octupole      &   k3                       b_gradient     \\ \hline
+\end{example}
+\end{tabular}
+}
+\caption {Field and Strength Attributes.}
+\label{t:dep_field}
+\end{table}
 
 %-----------------------------------------------------------------
 \section{Type, Alias and Descrip Attributes}
 \label{s:string}
 
 \vn{type}, \vn{alias}, and \vn{descrip} are labels to be attached 
-to an element. \bmad\ does not directly use these labels. \vn{Type}
-and \vn{Alias} can be up to 16 characters in length and \vn{Descrip}
+to an element. \bmad\ routines do not use these labels except 
+when printing element informatio. \vn{type}
+and \vn{Alias} can be up to 16 characters in length and \vn{descrip}
 can be up to 200 characters. The attribute strings can be enclosed in
 double quotation marks ("). The attribute strings may contain
 blanks. If the attribute string does not contain a blank then the
@@ -106,7 +147,7 @@ In both \bmad\ and \mad\ offsets are applied before pitches.
 The tilt attribute rotates the element in the $(x, y)$ plane as
 shown in figure~\ref{f:tilt}. For a bend the rotation axis is the
 $z$-axis at the entrance face. The reference orbit is also rotated
-with the element. A bend with a tilt of $pi/2$ will bend a beam
+with the element. A bend with a tilt of $\pi/2$ will bend a beam
 upward vertically. The \vn{hkick} and \vn{vkick} attributes are
 not affected by \vn{tilt} except for \vn{Kicker} and \vn{ElSeparator}
 elements
@@ -116,7 +157,7 @@ a value to designate a skew element. For example
   q1: quad, l = 0.6, x_offset = 0.03, y_pitch = 0.001, tilt
 \end{example}
 Default tilts can be used for \vn{rbend}, \vn{sbend}, \vn{sol_quad},
-\vn{quadrupole}, vn{sextupole}, and \vn{octupole} elements.
+\vn{quadrupole}, \vn{sextupole}, and \vn{octupole} elements.
 The default tilt is $\pi/n$ where $n$ is the number of poles of the
 element (bends have 2, quadrupoles have 4, etc.) 
 
@@ -163,9 +204,9 @@ aperture of an element as shown in figure~\ref{f:limit}.
 The aperture is evaluated at the exit
 face only of the element. A zero \vn{x_limit} or \vn{y_limit}
 is interpreted as no aperture in the $x$ or $y$ direction.
-offsets move the aperture but not pitches or tilts.
+\vn{x_offset} and \vn{y_offset} move the aperture but not pitches or tilts.
 
-\vn{aperture} attribute supersedes
+An \vn{aperture} attribute supersedes
 any \vn{x_limit} and \vn{y_limit} values and sets \vn{x_limit} and
 \vn{y_limit} equal to the value of \vn{aperture}.
 
@@ -186,7 +227,7 @@ One way to create a transfer map through an element is to divide the
 element up into slices and then to propagate the transfer
 map slice by slice.
 There are several ways to do this integration. The Boris and Runge--Kutta 
-methods integrate the equations of motion to give the zeroth order
+methods integrate the equations of motion to give the 0\Th\ order
 transfer map which is just the particle orbit.
 Symplectic integration using Lie algebraic techniques, on the other hand, 
 can generate maps to any order.
@@ -219,8 +260,7 @@ lowering the error bounds makes for greater accuracy (as long as round-off
 doesn't hurt) but for slower tracking. 
 
 \vn{Boris}, \vn{Adaptive_Boris}, and \vn{Runge_Kutta} tracking all use
-as input the electric and magnetic fields of an element. The
-
+as input the electric and magnetic fields of an element. 
 
 %-----------------------------------------------------------------
 \section{Length Attributes}

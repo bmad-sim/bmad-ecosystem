@@ -87,7 +87,7 @@ $L$ and $P_0$ is the nominal beam momentum. Note that often you will see
 $P_0$ written as $B\rho$. This is just an old notation where $\rho$
 is the bending radius of a particle with the nominal energy in a field
 of strength $B$. In terms of the kicks $\Delta p_x$ and $\Delta p_y$
-given a particle going through a multipole field is
+a particle experineces going through a multipole field is
 \begin{alignat}{5}
   \Delta p_x & = \frac{-L \, B_y}{P_0} \\
              & = -K_0 L \;-\; 
@@ -128,7 +128,7 @@ or
   \tan[(n+1) \phi_n] &= \frac{-a_n}{b_n}
 \end{align}
 
-When the $a_n$, and $b_n$ are associated with a physical element (as
+When the $a_n$ and $b_n$ are associated with a physical element (as
 opposed to the $a_n$ and $b_n$ associated with an \vn{ab_multipole}),
 a measurement radius $r_0$ and a scale factor
 $F$ are used to scale the $a_n$ and $b_n$ according to the formula
@@ -213,7 +213,7 @@ where $\Bf S$ is the matrix
       0 &  0 &  0 &  0 &  0 & -1 \cr
       0 &  0 &  0 &  0 & -1 &  0 \cr
   \end{pmatrix}
-  \label{vsimi}
+  \label{s0100}
 \Endeq
 $\Bf V$ is symmetric if and only if $\Bf M$ is symplectic. In any case,
 a symmetric matrix $\Bf W$ near $\Bf V$ can be
@@ -234,7 +234,7 @@ As discussed in Section~\ref{s:wig} \bmad\ wiggler elements are split into
 two classes: map type and periodic type.
 
 
-The map type wigglers are modeled using the paper of Sagan, Crittenden, 
+The map type wigglers are modeled using the paper by Sagan, Crittenden, 
 and Rubin\cite{b:scr}. In this model the magnetic field is written as 
 a sum of terms $B_i$
 \Begineq
@@ -243,7 +243,6 @@ a sum of terms $B_i$
 each term $B_i$ is specified in using 5 numbers: 
 $(C, k_x, k_y, k_z, phi_z)$. A term can take one of three forms. The first
 form is
-If $\vn{ky}^2 = \vn{kx}^2 + \vn{kz}^2$ then the field due to the term is: 
 \begin{alignat}{4}
   B_x &= -&C &\dfrac{k_x}{k_y} & \sin(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
   B_y &=  &C &                 & \cos(\kxx) \cosh(\kyy) \cos(\ksss) \CRNEG

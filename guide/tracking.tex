@@ -4,51 +4,58 @@
 \bmad\ can do two types of tracking. One type uses a single particle 
 and tracks its coordinates throughout the lattice. The other type
 takes a beam distribution and tracks the centroids and sigmas of
-``macro particles''.  This latter type of tracking is associated with
-LINACs and wakefields and is discussed in another chapter.
-
+``macro particles''.  
 
 %----------------------------------------------------------------
 \section{Track\_All Example}
 
-The routines to track through a lattice are listed in Section~\ref{r:track}.
-The \vn{track_all} serves as a good example. \vn{track_all} tracks a particle
-through a lattice from beginning to end. Its code, condensed slightly, 
-is shown below.
+The routines to track through a lattice are listed in
+Section~\ref{r:track}. The \vn{track_all} routine serves as a good
+example. \vn{track_all} tracks a particle through a lattice from
+beginning to end. Its code, condensed slightly, is shown below.
 \begin{example}
-subroutine track_all (ring, orbit_)
-  use bmad_struct
-  use bmad_interface
-  implicit none
-  type (ring_struct)  ring
-  type (coord_struct), allocatable :: orbit_(:)
-  integer n
+  subroutine track_all (ring, orbit_)
+    use bmad_struct
+    use bmad_interface
+    implicit none
+    type (ring_struct)  ring
+    type (coord_struct), allocatable :: orbit_(:)
+    integer n
 
-! Init
+  ! Init
 
-  ring%param%lost = .false.
-  if (size(orbit_) < ring%n_ele_max+1) &
-                  call reallocate_coord (orbit_, ring%n_ele_max)
+    ring%param%lost = .false.
+    if (size(orbit_) < ring%n_ele_max+1) &
+                    call reallocate_coord (orbit_, ring%n_ele_max)
 
-! Track through the elements and check for lost particles.
+  ! Track through the elements and check for lost particles.
 
-  do n = 1, ring%n_ele_use
-    call track1 (orbit_(n-1), ring%ele_(n), ring%param, orbit_(n))
-    if (ring%param%lost) then
-      ring%param%ix_lost = n
-      return
-    endif
-  enddo
-end subroutine
+    do n = 1, ring%n_ele_use
+      call track1 (orbit_(n-1), ring%ele_(n), ring%param, orbit_(n))
+      if (ring%param%lost) then
+        ring%param%ix_lost = n
+        return
+      endif
+    enddo
+  end subroutine
 \end{example}
 The \vn{reallocate_coord} call is done in case the number of elements
 in the lattice has changed. \vn{orbit_(n)} holds the particles's
-position at the end of the $n$\Th element. \vn{ring%param%lost} is
-a logical that signals the calling routine whether a particle has been lost.
-\vn{ring%param%ix_lost} records in what element the particle has been lost.
+position at the exit end of the $n$\Th element. The call to
+\vn{track1} tracks through one element from the exit end of the
+$n-1$\St\ element to the exit end of the $n$\Th
+particle. \vn{ring%param%lost} is a logical that signals the calling
+routine whether a particle has been lost.  This happens when the
+particle's position is larger then the aperture (See
+Section~\ref{s:limit}.) or, because of a large orbit, \vn{track1}
+cannot track through the element. An example of this happens in a bend
+where, say, a particle with a large energy offset will have a
+trajectory that doesn't intersect the exit face.  When a particle is
+lost \vn{ring%param%ix_lost} is used to record in what element the
+loss occured.
 
 %----------------------------------------------------------------
-\section{The Coord\_struct}
+\section{The \vn{coord_struct}}
 
 For single particle tracking the starting point is the
 \tn{coord_struct} whose definition is 
@@ -59,20 +66,18 @@ For single particle tracking the starting point is the
 \end{example}
 shown
 The \tn{coord_struct} defines the phase
-space vector of the particle at a certain location.
+space vector of the particle at a certain longitudinal location.
 
-To get an orbit, that is, the particle position at every element in a lattice
-you will need an array of \tn{coord_struct}'s. Since
-the number of elements in the lattice is not known in advance the
-array must be declared to be allocatable. 
+To get an orbit, that is, the particle position at every element in a
+lattice, you will need an array of \tn{coord_struct}'s. Since the
+number of elements in the lattice is not known in advance the array
+must be declared to be allocatable.
 \begin{verbatim}
   type (coord_struct), allocatable :: coords(:)
 \end{verbatim}
 You cannot, in general, use a pointer to an array since most \bmad\
 subroutines expect an allocatable array and Fortran does not allow you
-to mix and match.
-
-\noindent Example: To track a particle through a lattice:
+to mix and match. An example of how to do multiturn tracking is
 \begin{example}
   type (ring_struct) ring             ! lattice to track through
   type (coord_struct), allocatable :: coord(:)
@@ -80,56 +85,63 @@ to mix and match.
   call bmad_parser ('this_lattice', ring)
   ...
   call reallocate_coords (coord, ring%n_ele_max)
-  coords(0)%vec = (/ 0.01, 0.0, 0.0, 0.0, 0.0, 0.0 /) ! initialization
-  call track_all (ring, coord)
+  coords(0)%vec = (/ 0.01, 0.2, 0.3, 0.4, 0.0, 0.0 /) ! initialization
+  do i = 1, n_turns
+    call track_all (ring, coord)
+    coords(0) = coords(ring%n_ele_ring)
+  end do
 \end{example}
-\rn{Track_all} takes \vn{coord(0)} and tracks through the lattice from
-the 1\St element through the $n$\Th element where $n =$ \vn{ring%n_ele_ring}.  
-Each \vn{coord(i)}
-is associated with the corresponding \vn{ring%ele_(i)} element 
-and is the particle position at
-the end of the i\Th\ element. \rn{reallocate_coords} simply does an
-allocation. Its advantage over just allocating directly is that it
-checks if the allocation is needed and if not then it does
-nothing. This can save time. Since \rn{track_all}, like many \bmad\
-routines, will reallocate if needed, only one call to
-\rn{reallocate_coords} is needed initially even if there are repeated calls
-to \rn{track_all}.
+\rn{track_all} takes \vn{coord(0)} and tracks through the lattice from
+the 1\St\ element through the $n$\Th\ where $n =$
+\vn{ring%n_ele_ring}.  Each \vn{coord(i)} is associated with the
+corresponding \vn{ring%ele_(i)} element and is the particle position
+at the exit end of the i\Th\ element. \rn{reallocate_coords} simply
+does an allocation. Its advantage over just allocating directly is
+that it checks if the allocation is needed and if not then it does
+nothing. Since \rn{track_all}, like many \bmad\ routines, will
+reallocate if needed, only one call to \rn{reallocate_coords} is
+needed initially even if there are repeated calls to \rn{track_all}.
 
-If you are writing a subroutine where the \tn{coord_struct} array is
-local (not passed as an argument to the subroutine)
-then you have to decide how to cleanup the allocated \tn{coord_struct} memory
-at the end of the
-subroutine. In general you have two choices: 1) Deallocate the array. This is the
-cleanest solution but it can be slow since you have to allocate afresh
-each time the subroutine is called. 2) use the save attribute so that
-the array stays around until the next time the subroutine is called.
+If you are writing a routine where the \tn{coord_struct} array is
+local (not passed as an argument to the routine) then you have to
+decide how to cleanup the allocated \tn{coord_struct} memory at the
+end of the routine. In general you have two choices: 1) Deallocate
+the array. This is the cleanest solution but it can be slow since you
+have to allocate afresh each time the routine is called. 2) Use the
+save attribute so that the array stays around until the next time the
+routine is called 
 \begin{example}
   type (coord_struct), allocatable, save :: orb(:) 
 \end{example}
-This is faster but leaves memory tied up. 
+Saving the \sn{coord_stuct} is faster but leaves memory tied up. 
 
 %----------------------------------------------------------------
 \section {Miscelaneous Notes}
 
-The \bmad\ tracking routines never uses the \vn{ele%mat6}
-transfer matrix to do tracking except for \vn{Linear} tracking. 
-However, the reverse is not true.
-The transfer matrix routines will do tracking as needed.
+Except for \vn{Linear} tracking, none of the \bmad\ tracking routines
+make use of the \vn{ele%mat6} transfer matrix. The reverse, however,
+is not true.  The transfer matrix routines (\vn{ring_make_mat6, etc.)
+will do tracking.
 
 For each element the method of tracking may be set either via the
-input lattice file (see section~\ref{s:tkm}) or directly in the program by setting the
-\vn{%tracking_method} attribute of an element
+input lattice file (see section~\ref{s:tkm}) or directly in the
+program by setting the \vn{%tracking_method} attribute of an element
 \begin{verbatim}
   type (ele_struct) ele
   ...
-  ele%tracking_method = boris$  ! for Boris tracking
+  ele%tracking_method = boris$  ! for boris tracking
 \end{verbatim}
-To form the corresponding parameter to a given tracking method just put 
-``\$'' after the name. For example, \vn{Bmad_Standard} tracking becomes
-\vn{bmad_standard\$}, etc.
+To form the corresponding parameter to a given tracking method just
+put ``\$'' after the name. For example, the \vn{bmad_standard}
+tracking method is specified by the \vn{bmad_standard\$}
+parameter.
 
-\bmad\ simulates radiation damping and excitation by appliying a kick
-after each element. To turn on radiation damping and/or excitation
-use the \vn{setup_radiation_tracking} routine.
+
+\bmad\ simulates radiation damping and excitation by applying a kick
+just before and after each element. To turn on radiation damping
+and/or excitation use the \vn{setup_radiation_tracking} routine.
+
+%----------------------------------------------------------------
+\section{Macroparticle Tracking}
+
 

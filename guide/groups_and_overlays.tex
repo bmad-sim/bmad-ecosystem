@@ -72,18 +72,66 @@ as the following example shows
 \section{Group Elements}
 \label{s:group}
  
-\vn{group} is like \vn{overlay} in that a \vn{group} element controls the 
-attribute values of other ``slave'' elements. Unlike an \vn{overlay}, however, 
-a \vn{group} element is used to control changes, not the absolute value. 
-In addition, a \vn{group} element can control an elements position and 
-length using the special attributes
+\vn{group} is like \vn{overlay} in that a \vn{group} element controls
+the attribute values of other ``slave'' elements.  A \vn{group}
+element is used to make changes in value. This is unlike an
+\vn{overlay} which sets a specific value directly. An example will
+make this clear
 \begin{example}
-  accordion\_edge
-  symmetric\_edge  
-  start_edge
-  end\_edge
+  gr: group = {q1}, k1 
+  gr[command] = 0.34 
+  q1, quad, l = ...
+  q1[k1] = 0.57
 \end{example}
-The attributes of a group are
+In this example the group \vn{gr} controls the \vn{k1} attribute of
+the element \vn{q1}. Unlike overlays, values are assigned to group
+elements using the \vn{command} attribute.  When a lattice file is
+read in then command values for any groups are always applied
+last. This is independent of the order that they appear in the file.
+Thus in this example the value of q1[k1] would be $0.91 = 0.57 + 0.34$.
+When the changes are made to the slave attributes the value of
+\vn{command} is stored in the \vn{group}'s \vn{old_command} attribute.
+After the lattice is read in a program can change the \vn{gr[command]}
+attribute and this change will be added to the value of
+\vn{q1[k1]}. The bookkeeping routine that transfers the change from
+\vn{gr[command]} to \vn{q1[k1]} doesn't care what the current value of
+\vn{q1[k1]} is. It only knows it has to change it by the change in
+\vn{gr[command]}.
+
+A \vn{group} can be used to control an elements position and length using the attributes
+\begin{example}
+  accordion\_edge  ! Element grows or shrinks symmetrically
+  start_edge       ! Varies element's starting edge s-position
+  end\_edge        ! Varies element's ending edge s-position
+  symmetric\_edge  ! Varies element's overall s-position. Constant length.
+  s\_offset        ! Same as symmetric_edge
+\end{example}
+In all cases the total length of the lattice is kept invariant.
+\vn{accordion_edge} varies the edges of an element so that the center
+of the element is fixed but the length varies. with
+\vn{accordion_edge} a change of, say, 0.1 in a \vn{group}'s
+\vn{command} attribute moves both edges of the element by 0.1 meters
+so that the length of the element changes by 0.2 meters. To keep the
+total lattice length invariant the lengths of the elments to either
+side are varied accordingly.
+For example
+\begin{example}
+  q10: quad, l = ...
+  q11: quad, l = ...
+  d1: drift, l = ...
+  d2: drift, l = ...
+  this\_line: line = (... d1, q10, d2, q11, ...)
+  gr2: group = {q10}, start\_edge = 0.1
+\end{example}
+This last line that defines \vn{gr2} is just a shorthand notation for
+\begin{example}
+  gr2: group = {q10}, start\_edge 
+  gr2[command] = 0.1
+\end{example}
+The effect will be to lengthen the length of \vn{q10} and shorten the
+length of \vn{d1}.
+
+The full list of attributes of a group are
 \begin{example}
   command         
   old\_command     
@@ -92,60 +140,25 @@ The attributes of a group are
   alias           ! See section \ref{s:string}
   descrip         ! See section \ref{s:string}
 \end{example}
-For example
+The \vn{coef} attribute is not used by any \bmad\ routine. It is
+defined for individual programs to store, say, a needed conversion
+factor.
+
+Like \vn{overlay}s, coefficients can be specified for the individual
+elements under a \vn{group}'s control and \vn{group}s can control more
+than one type of attribute. For example
 \begin{example}
-  q10: quad, l = ...
-  d1: drift, l = ...
-  d2: drift, l = ...
-  this\_line: line = (... d1, q10, d2, q11, ...)
-
-  gr1: group = {q10}, s_offset
-  gr1[old\_command] = 0.4
-  gr1[command] = 0.6
-  gr1[coef] = 100
-
-  gr2: group = {q10}, start\_edge = 0.1
-  gq: group = {q10, q11/-1}, k1
+  gr3: group = {q1[k1]/-1.0, q2[tilt], oct1/-2.0}, k3
+  gr3[command] = 2.0
+  gr3[old_command] = 1.5
 \end{example}
+In this example \vn{gr3} controls 3 attributes of 3 different
+elements.  The change in \vn{gr3} when the lattice is read in is $0.5
+= 2.0 - 1.5$.  this 0.5 change will change \vn{q1[k1]} by $-0.5 = -1
+\times 0.5$, \vn{q2[tilt]} will change by 0.5 and \vn{oct1[k3]} will
+change by $-1.0 = -2.0 * 0.5$.
 
-In this example the \vn{group} element \vn{gr1} can be used by a program to 
-control the longitudinal position of \vn{q10}. similarly \vn{gr2} controls the 
-placement of the starting edge of \vn{q10} (the edge with the minimum s distance). 
-in this case the lengths of \vn{d1} and \vn{q10} are varied in such a way so that the 
-total length of \vn{this_line} is kept constant. 
 
-\vn{accordion_edge} varies the edges of an element so that the center of the 
-element is fixed but the length varies. with \vn{accordion_edge} a change of, 
-say, 0.1 in the \vn{group} moves both edges of the element by 0.1 meters 
-so that the length of the element changes by 0.2 meters. \vn{symmetric_edge}, 
-\vn{accordion_edge}, \vn{start_edge} and \vn{end_edge} keep the total length of the 
-lattice invariant. 
-
-Notes: 
-\begin{Itemize}
-\item	Like \vn{overlay}s, coefficients can be specified for the individual 
-elements under \vn{group} control. in the above example, the \vn{gq} \vn{group} 
-controls the 2 quads in an anti-symmetric manner. 
-\item	Like overlays, \vn{group}s can control more than one type of attribute. 
-see the example above in the overlay section. 
-\item	Unlike overlays, values are assigned to \vn{group} elements using the 
-\vn{command} attribute. The attribute \vn{old_command} sets the starting position for 
-the \vn{group}. in the above example, the effect of \vn{gr1} initially is to 
-move the position of q10 0.2 meters (= 0.6 - 0.4). 
-\item	The coef attribute for a \vn{group} has no meaning within bmad and is 
-used for communication with calling programs (for example, to define the 
-conversion to data base computer units). 
-\item	When a lattice file is read in then command values for any groups are 
-always applied last. this is independent of the order that they appear in the file. 
-\end{Itemize}
-Example:
-\begin{example} 
-  gr: group = {q1}, k1 
-  gr[command] = 0.34 
-  q1[k1] = 0.57
-\end{example}
-
-in this example the value of q1[k1] would be 0.91 = 0.34 + 0.57. 
 
 
 

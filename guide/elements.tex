@@ -13,7 +13,6 @@ available in \mad.  A word of caution: In some cases where both \mad\
 and \bmad\ provide the same element type, there will be an overlap of 
 the attributes available but the two sets of attributes will not be the same.
 The list of element types known to \bmad\ is shown in Table~\ref{tab:elements}.
-In
 \begin{table}[h]
 \centering
 {\tt
@@ -650,7 +649,7 @@ Dependent attributes:
 \section{Quadrupole}
 \label{s:quad}
 
-An \vn{Quadrupole} has a linear field dependence.
+A \vn{Quadrupole} has a linear field dependence.
 
 \toffset
 \begin{center}
@@ -741,7 +740,7 @@ Use of \vn{hgap}, \vn{hgapx}, \vn{fint}, and \vn{fintx} is not yet implemented.
 
 \vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are specified
 for an element \bmad\ will calculate the appropriate value for the third.
-After reading in a lattice \vn{angle} is considered a dependent variable.
+After reading in a lattice, \vn{angle} is considered a dependent variable.
 
 For \vn{k1} = 0 \vn{Bmad_Standard} tracking does an exact geometrical 
 calculation using thin quads at either end if there is non--zero edge
@@ -767,7 +766,7 @@ Dependent attributes:
 \section{RFcavity}
 \label{s:rfcav}
 
-An \vn{RFcavity} is a RF cavity without acceleration generally used in a storage ring.
+An \vn{RFcavity} is an RF cavity without acceleration generally used in a storage ring.
 
 \toffset
 \begin{center}
@@ -960,12 +959,15 @@ That is, a \vn{Taylor} element starts with the following 6 terms
   \{5: 1.0, 0 0 0 0 1 0\}
   \{6: 1.0, 0 0 0 0 0 1\}
 \end{example}
-Note: A term in a \vn{Taylor} element will supersede any previous term
-that is identical except for 
-the \vn{coef}.
+Note: A term in a \vn{Taylor} element will override any previous term
+that is identical except for \vn{coef}. For example
+\begin{example}
+  tt: Taylor, \{1:  0.0   1, 0, 0, 0, 0, 0\} 
+\end{example}
+This will override the default \vn{\{1: 1.0, 1 0 0 0 0 0\}) term.
 
-\vskip0.in \noindent
-Example:
+\vskip0.05in \noindent
+Example \vn{Taylor} element definition:
 \begin{example}
   tt: Taylor, \{4:  2.73, 0, 0, 2, 0, 0, 1\}, &
               \{2: -2.73, 2, 0, 0, 0, 0, 1\}

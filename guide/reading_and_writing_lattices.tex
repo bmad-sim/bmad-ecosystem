@@ -2,21 +2,24 @@
 
 \section{Reading In Lattices}
 
-There are two subroutines to read in a lattice file. \rn{bmad_parser} is
-used to initialize a \tn{ring_struct} structure from scratch using the
-information from an external lattice file. Unless told otherwise, after
-reading in the lattice \rn{bmad_parser} will compute the 6x6 transfer
-matrices for each element. Normally you want to do this but there are
-exceptions where you don't need it and for particular lattices the
-computation can take a long time (especially if there are Taylor maps
-to be computed). Notice that \rn{bmad_parser} does {\em
-not} compute any Twiss parameters.
+There are two subroutines in \bmad\ to read in (parse) a lattice
+file: \rn{bmad_parser} and \rn{bmad_parser2}.
 
-\rn{bmad_parser2} is typically used after \rn{bmad_parser} if there is 
-additional information that needs to be added to the lattice.  
-For example, aperture limits for the various elements is often
-stored in a separate file from the lattice file. In a case such as this
-there are two possibilities: The first is to use \rn{bmad_parser2} 
+\rn{bmad_parser} is used to initialize a \tn{ring_struct}
+structure from scratch using the information from a lattice
+file. Unless told otherwise, after reading in the lattice
+\rn{bmad_parser} will compute the 6x6 transfer matrices for each
+element. Normally you want to do this but there are exceptions where
+you don't need it and for particular lattices the computation can take
+a long time (especially if there are Taylor maps to be
+computed). Notice that \rn{bmad_parser} does {\em not} compute any
+Twiss parameters.
+
+\rn{bmad_parser2} is typically used after \rn{bmad_parser} if there is
+additional information that needs to be added to the lattice. For
+example, aperture limits for the elements are often stored in a
+separate file. In this case there are two possibilities: The first is
+to use \rn{bmad_parser2}
 \begin{verbatim}
   call bmad_parser ('lattice_file', ring)       ! read in a lattice.
   call bmad_parser2 ('aperture_file', ring)     ! read in the aperture limits.
@@ -30,38 +33,39 @@ The second alternative is to create a third file that calls the first two
 and then just use \rn{bmad_parser} to parse this third file.
 
 
-\section{Digested files}
+\section{Digested Files}
 
-Since parsing can be slow, once \rn{bmad_parser} has put the information
-from the lattice file into the \tn{ring_struct} it will make what is
-called a digested file which is just an image of the \tn{ring_struct} 
-in binary form. If
-\rn{bmad_parser} is called and it finds a digested file corresponding to
-the lattice file to be parsed it will try to use the digested file
-instead. Since the digested file stores information about what files were
-parsed originally \vn{bmad_parser} can make sure that the lattice file(s) 
-have not changed since the
-digested file was made. If a lattice file has been changed then
-\rn{bmad_parser} will not use the digested file. There is another 
-circumstance where the lattice file will not be used: \bmad\ has an
-internal version number to keep track of whether the \tn{ring_struct}
-internal structure has changed. If the version number of the compiled
-program is different than the version number stored in the digested
-file then the digested file will not be used. The digested file name
-is given by
+Since parsing can be slow, once \rn{bmad_parser} has transfered the
+information from a lattice file into the \tn{ring_struct} it will make
+what is called a digested file. A digested file is an image of the
+\tn{ring_struct} in binary form. When \rn{bmad_parser} is called it
+(actually it is a the subroutine \rn{read_digested_bmad_file} that
+does all the work) first looks in the same directory as the lattice
+file for a digested file whose name is of the form
 \begin{verbatim}
-  'digested_' // IN_FILE   ! for single precision BMAD 
-  'digested8_' // IN_FILE  ! for double precision BMAD 
+  'digested_' // LAT_FILE   ! for single precision BMAD 
+  'digested8_' // LAT_FILE  ! for double precision BMAD 
 \end{verbatim}
+where \vn{LAT_FILE} is the lattice file name. If it finds the digested
+file it checks that the file is not out--of--date. It can do this
+since the digested file stores the names and the dates of all the
+lattice files that were used when the digested file was made. The
+\bmad\ version number stored in the digested file is also checked. The
+\bmad\ version number is a global parameter that is increased (not too
+frequently) each time the structure of the \vn{ring_struct} or
+\vn{ele_struct} is modified. If the \bmad\ version number in the
+digested file does not agree with the current or the digested file is
+out--of--date a warning will be printed and the digested file will not
+be used.
 
-Since computing Taylor Maps can be very time intensive, \rn{bmad_parser}
-tries to reuse Taylor Maps it finds in the digested file even if the
-lattice file has been changed in the meantime. To make sure that
-everything is OK it will check that the attributes of an element
-needing a Taylor Map is the same as the attributes of a corresponding
-element in the digested file before it reuses the Map. It will,
-however, ignore the names of the elements when it is deciding whether
-to reuse a Map or not. 
+Since computing Taylor Maps can be very time intensive,
+\rn{bmad_parser} tries to reuse Taylor Maps it finds in the digested
+file even if the lattice file has been changed in the meantime. To
+make sure that everything is OK it will check that the attribute
+values of an element needing a Taylor map are the same as the
+attribute values of a corresponding element in the digested file
+before it reuses the map. Element names are not a factor in this
+decision.
 
 This leads to the following trick: If you want to read in a lattice
 where there is no corresponding digested file, and if there is another

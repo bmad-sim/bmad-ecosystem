@@ -2,19 +2,20 @@
 
 %---------------------------------------------------------------------------
 \section{Lattice Files and Digested Files}
+\label{s:lattice_files}
 
 The \bmad\ software library comes with a routine to read in (parse) a
-lattice definition file. The syntax that a lattice file must conform
-to is modeled after the lattice input format of the \mad\ program.
-Essentially, a \bmad\ lattice file is similar to a \mad\ lattice file
-except that a \bmad\ file has no ``action'' commands (commands tell
-the program to calculate the Twiss parameters, etc.). Interacting with
-the user to determine what actions a program should take is left to
-the program and is not part of
-\bmad\ (although \bmad\, of course, provides the routines to do many
-calculations). A program is not required to use the \bmad\
-parser routine but if it does the following chapters describes how to
-construct a valid lattice file.
+lattice definition file (or files). The syntax that a lattice file
+must conform to is modeled after the lattice input format of the \mad\
+program.  Essentially, a \bmad\ lattice file is similar to a \mad\
+lattice file except that a \bmad\ file has no ``action'' commands
+(commands tell the program to calculate the Twiss parameters,
+etc.). Interacting with the user to determine what actions a program
+should take is left to the program and is not part of \bmad\ (although
+\bmad\, of course, provides the routines to do many calculations). A
+program is not required to use the \bmad\ parser routine but if it
+does the following chapters describes how to construct a valid lattice
+file.
 
 Normally the \bmad\ parser routine will create what is called a
 ``digested file'' after it has parsed a lattice file so that when a
@@ -37,6 +38,27 @@ program you might read in a lattice, make some adjustments (say to model
 shifts in magnet positions) and then write out a digested version of the
 lattice. This adjusted lattice can now be read in by another program to
 do some custom analysis.
+
+A ``secondary'' lattice file (or files) is a lattice file that is used to modify
+the lattice that has already been read in via the ``primary'' lattice
+file.  For example, a secondary lattice file can be used to set (or
+reset) aperture limits for the elements of the lattice.  The term
+secondary in this case refers not to the file but whether it is read
+in when the lattice is first read in. For example, if the file
+\vn{lattice_file} holds a lattice definition and \vn{aperture_file} is
+the name of an aperture file then the two files may be read in simultaneously
+by using a third file which calls the two
+\begin{verbatim}
+  ! This is a file that calls the two files
+  call, file = 'lattice_file'
+  call, file = 'aperture_file'
+\end{verbatim}
+In this case \vn{aperture_file} is considered part of the set of
+primary lattice files.  The reason for making a distinction between
+primary and secondary is that there are restrictions, discussed in
+other parts of the manual, on any lattice file used as a secondary
+file.
+
 
 %---------------------------------------------------------------------------
 \section{Lattice File Format}
@@ -124,7 +146,7 @@ The following functions are recognized by \bmad:
 \section{Constants}
 
 Literal constants can be entered with or without a decimal point. An
-exponent is marked with the letter E. Example
+exponent is marked with the letter E. For example
 \begin{example}
   1, 10.35, 5E3, 314.159E-2
 \end{example}

@@ -12,30 +12,30 @@ libraries that are used: \bn{cesr\_utils}, \bn{forest},
 \bn{numerical\_recipes}, \bn{pgplot}, and \bn{dcslib}.
 \begin{description}
 
-\item[cesr\_utils] This is a low level library. Despite its name the 
+\item[cesr\_utils] This is a low level library. Despite its name the
 routines in this library do not have anything to do with the Cornell
 CESR stroage ring.  In \vn{cesr_utils} the module \vn{precision_def}
 defines the precision that \bmad\ works at (see
-Section~\ref{s:precision}) and the module \vn{physical_constants} 
-gives the physical and mathematical constants
-(\vn{pi}, \vn{c_light}, etc.) that \bmad\ knows about.
+Section~\ref{s:precision}) and the module \vn{physical_constants}
+gives the physical and mathematical constants (\vn{pi}, \vn{c_light},
+etc.) that \bmad\ knows about.
 
-\item[dcslib] This library defines a set of miscellaneous helper routines. 
-Routines include spline fitting, Gaussian random number generation,
-etc. The library is named after its creator.
+\item[dcslib] This library defines a set of miscellaneous helper
+routines.  Routines include spline fitting, Gaussian random number
+generation, etc. The library is named after its creator.
 
-\item[forest] This is the FPP/PTC 
-(Fully Polymorphic Package / Polymorphic Tracking Code) library of
-Etienne Forest that handles Taylor maps to any arbitrary order (this
-is also known as Truncated Power Series Algebra (TPSA)). See
-Chapter~\ref{c:etienne} for more details.  FPP/PTC is a very general
-package and \bmad\ only makes use of a small part of its features.
-For more information see the FPP/PTC web site at
+\item[forest] This is the FPP/PTC (Fully Polymorphic Package /
+Polymorphic Tracking Code) library of Etienne Forest that handles
+Taylor maps to any arbitrary order (this is also known as Truncated
+Power Series Algebra (TPSA)). See Chapter~\ref{c:etienne} for more
+details.  FPP/PTC is a very general package and \bmad\ only makes use
+of a small part of its features.  For more information see the FPP/PTC
+web site at
 \begin{example} 
    http://bc1.lbl.gov/CBP_pages/educational/TPSA_DA/Introduction.html
 \end{example}
 
-\item[recipes] Numerical Recipes is a set of subroutines for doing 
+\item[recipes] Numerical Recipes is a set of subroutines for doing
 scientific computing including Runge--Kutta integration, FFT's,
 interpolation and extrapolation, etc., etc. The documentation for this
 library is the books ``Numerical Recipes, in Fortran, The Art of
@@ -48,7 +48,7 @@ Recipes.  For \bmad\ this library has been modified to handle both
 single or double precision reals as needed in the other libraries (See
 Section~\ref{s:precision}.
 
-\item[pgplot] The PGPLOT Graphics Subroutine Library is a Fortran or 
+\item[pgplot] The PGPLOT Graphics Subroutine Library is a Fortran or
 C-callable, device-independent graphics package for making simple
 scientific graphs. Documentation including a user's manual may be
 obtained from the PGPLOT web site at
