@@ -130,6 +130,12 @@ interface
 end interface
  
 interface
+  subroutine tao_hook_lattice_calc ()
+    implicit none
+  end subroutine
+end interface
+ 
+interface
   subroutine tao_hook_init_design_lattice (lat_file)
     implicit none
     character(*) lat_file
