@@ -1,0 +1,82 @@
+#---- bmad_def ----
+#
+# Define BMAD specific environment variables;
+# to be used by csh-like shells: csh,tcsh.
+# (Sh, ksh, bash should use bmad_defs)
+#
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
+# IMPORTANT NOTE:  The first non-comment line of this script #
+#                  contains the default path to the local    #
+#                  bmad distribution.  It should be edited   #
+#                  accordingly.  It is, however, set up such #
+#                  that the user can override the default    #
+#                  value at the command line to get started. #
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
+#
+# Derived from the CLEO cleodef script 
+# M. Palmer
+#
+# Usage in .login:
+#
+#   source <PATH>/bmad_def
+#
+# Can define aliases in .login or .xxxrc files, e.g.:
+#   alias bmad_setup "source <PATH>/bmad_def" 
+#
+# where <PATH> is the path to the installed location.  
+# <PATH> normally should be equivalent to
+#
+#   <PATH>=${BMAD_BIN}
+#
+# (please see BMAD_BIN definition below)
+#
+#-------------------------------------
+#
+# Specify BMAD distribution area
+#
+# THE FOLLOWING LINE SHOULD BE MODIFIED TO REFLECT THE 
+# USER'S LOCAL INSTALLATION
+if ( $?BMAD_ == 0 ) setenv BMAD_=/home/cesrulib/cesr_libs/bmad_dist
+
+#
+# Specify the BMAD distribution bin directory
+#
+if ( $?BMAD_BIN  == 0 ) set BMAD_BIN=${BMAD_}/bin
+
+#
+# Get platform/OS tags
+#
+set PLATFORM_TAG="`uname -s`_`uname -p`"
+
+#
+# Source the BMAD environment script
+#
+if ( $?BMADENV    == 0 ) setenv BMADENV ${BMAD_BIN}/bmadenv
+if ( -f $BMADENV )  then
+	source $BMADENV
+else
+	echo File $BMADENV not found.
+endif
+
+#
+#-----  Add BMAD distribution bin area to user's PATH if not already present ----
+#
+set PATH_LIST=`echo ${PATH} | sed s/:/\ /g`
+set found=0
+foreach dir (${PATH_LIST})
+  if ( "${dir}" == "${BMAD_BIN}" ) set found=1
+end
+if ( $found == 0 ) setenv PATH ${PATH}:${BMAD_BIN}
+
+
+#
+# $Id$
+#
+# $Log$
+# Revision 1.1  2003/11/10 02:35:06  palmer
+# Add bmad_def, bmad_defs, bmadenv scripts to set up bmad distribution
+# environment variables.  Modify cesrenv for compatibility with new
+# bmad environment scripts.
+#
+#
+#

@@ -1,0 +1,48 @@
+#########################################################
+#
+# Set BMAD distribution environment variables
+#
+# Mark Palmer
+#
+#########################################################
+
+#
+#------  BMAD  libraries  ------
+#
+setenv BMAD_DIST     TRUE
+setenv BMAD_PLATFORM $PLATFORM_TAG
+
+#
+#----  BMAD_BASE subtrees  ----
+#
+setenv BMAD_        $BMAD_
+setenv BMAD_CONFIG  $BMAD_/config
+setenv BMAD_EXE     $BMAD_/bin
+setenv BMAD_GMAKE   $BMAD_/Gmake
+setenv BMAD_MOD     $BMAD_/modules
+setenv BMAD_UTIL    $BMAD_/util
+setenv BMAD_INC     $BMAD_/include
+
+#
+#-- PGPLOT server/font directory specification
+#
+setenv PGPLOT_DIR   $BMAD_/PGPLOT
+setenv PGPLOT_FONTS $BMAD_/PGPLOT
+
+#
+#-- BMAD configuration files --
+#
+setenv BMAD_LAT     $BMAD_CONFIG/bmad/lat
+setenv BMAD_LAYOUT  $BMAD_CONFIG/bmad/layout
+
+#
+# $Id$
+#
+# $Log$
+# Revision 1.1  2003/11/10 02:35:06  palmer
+# Add bmad_def, bmad_defs, bmadenv scripts to set up bmad distribution
+# environment variables.  Modify cesrenv for compatibility with new
+# bmad environment scripts.
+#
+#
+#
