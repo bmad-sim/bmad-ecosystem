@@ -67,7 +67,7 @@ subroutine make_mat6 (ele, param, start, end)
     call make_mat6_symp_lie_ptc (ele, param, a_start, a_end)
 
   case (symp_lie_bmad$)
-    call symp_lie_bmad (ele, param, start, end, .true.)
+    call symp_lie_bmad (ele, param, a_start, a_end, .true.)
 
   case (tracking$)
     call make_mat6_tracking (ele, param, a_start, a_end)
