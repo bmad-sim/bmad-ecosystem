@@ -846,4 +846,105 @@ subroutine attribute_bookkeeper (ele, param)
 
 end subroutine
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine transfer_ring_taylors (ring_in, ring_out, 
+!                                              type_out, transfered_all)
+!
+! Subroutine to transfer the taylor maps from the elements of one ring to
+! the elements of another. The elements are matched between the rings so 
+! that the appropriate element in ring_out will get the correct Taylor map
+! even if the order of the elements is different in the 2 rings.
+!
+! Note: The transfered Taylor map will be truncated to bmad_com%taylor_order.
+! Note: If the taylor_order of an element in ring_in is less than 
+!   bmad_com%taylor_order then it will not be used.  
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ring_in   -- Ring_struct: Input ring with Taylor maps.
+!   type_out  -- Logical: If True then print a message for each Taylor map
+!                 transfered.
+!
+! Output:
+!   ring_out  -- Ring_struct: Ring to receive the Taylor maps.
+!   transfered_all -- Logical, optional: Set True if a Taylor map is found
+!                 for all elements in ring_out that need one. False otherwise.
+!-
+
+subroutine transfer_ring_taylors (ring_in, ring_out, type_out, transfered_all)
+
+  implicit none
+
+  type (ring_struct), target, intent(in) :: ring_in
+  type (ring_struct), target, intent(inout) :: ring_out
+  type (ele_struct), pointer :: ele_in, ele_out
+
+  integer i, j, k, it, ix
+  integer n_in, ix_in(ring_in%n_ele_maxx)
+ 
+  logical, intent(in)  :: type_out
+  logical, optional :: transfered_all
+
+! check global parameters
+
+  if (present(transfered_all)) transfered_all = .true.
+
+  if (ring_in%param%beam_energy /= ring_out%param%beam_energy) then
+    if (type_out) then
+      print *, 'TRANSFER_RING_TAYLORS: THE RING ENERGIES ARE DIFFERENT.'
+      print *, '    TAYLOR MAPS NOT TRANSFERED.'
+    endif
+    if (present(transfered_all)) transfered_all = .false.
+    return
+  endif
+
+! Find the taylor series in the first ring.
+
+  n_in = 0
+  do i = 1, ring_in%n_ele_max
+    if (associated(ring_in%ele_(i)%taylor(1)%term)) then
+      if (bmad_com%taylor_order > ring_in%ele_(i)%taylor_order) cycle
+      n_in = n_in + 1
+      ix_in(n_in) = i
+    endif
+  enddo
+
+! Go through ring_out and match elements.
+! If we have a match transfer the Taylor map.
+! Call attribute_bookkeeper before transfering the taylor map to make sure
+! the check_sum is correct. 
+
+  out_loop: do i = 1, ring_out%n_ele_max
+
+    ele_out => ring_out%ele_(i)
+
+    do j = 1, n_in
+
+      ele_in => ring_in%ele_(ix_in(j))
+
+      if (equivalent_eles (ele_in, ele_out)) then
+        if (type_out) print *, 'TRANSFER_RING_TAYLORS: ', &
+             'Reusing Taylor from: ', trim(ele_in%name), '  to: ', ele_out%name
+        call attribute_bookkeeper (ele_out, ring_out%param)
+        call transfer_ele_taylor (ele_in, ele_out, bmad_com%taylor_order)
+        cycle out_loop
+      endif
+
+    enddo
+
+    if (ele_out%tracking_method == taylor$ .or. &
+                    ele_out%mat6_calc_method == taylor$ .and. type_out) then
+      print *, 'TRANSFER_RING_TAYLORS: NO TAYLOR FOR: ', ele_out%name
+      if (present(transfered_all)) transfered_all = .false.
+    endif
+
+  enddo out_loop
+
+end subroutine
+
 end module
