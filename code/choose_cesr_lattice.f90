@@ -29,6 +29,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/02 18:49:11  rwh24
+!More compatibility updates; also added many explicit variable declarations.
+!
 !Revision 1.2  2001/09/27 18:31:49  rwh24
 !UNIX compatibility updates
 !
@@ -40,6 +43,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
 
   use bmad_struct
   use bmad_interface
+  use cesr_utils
 
   implicit none
 
@@ -114,14 +118,14 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
       endif
       lattice = lat_list(i_lat)
       lat_file = 'BMAD_LAT:BMAD_' // lattice
-      lat_file = FullFileName(lat_file)
+      call FullFileName(lat_file, lat_file)
     else
       lattice = ""
       lat_file = line
       inquire (file = lat_file, exist = is_there, name = lat_file)
       if (.not. is_there) then
         lat_file = 'BMAD_LAT:BMAD_' // line
-        lat_file = FullFileName(lat_file)
+        call FullFileName(lat_file, lat_file)
         inquire (file = lat_file, exist = is_there, name = lat_file)
         if (.not. is_there) then
           type *, 'READ ERROR OR FILE DOES NOT EXIST. TRY AGAIN...'

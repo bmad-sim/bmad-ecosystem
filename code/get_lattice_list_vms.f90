@@ -14,6 +14,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.2  2001/10/02 18:49:12  rwh24
+!More compatibility updates; also added many explicit variable declarations.
+!
 !Revision 1.1  2001/09/27 18:33:14  rwh24
 !UNIX compatibility updates
 !
@@ -22,19 +25,23 @@
 
 subroutine get_lattice_list (lat_list, num_lats, directory)
 
-  use cesr_util
+  character*(*) directory
+  character*40 lat_list(*)
+  integer num_lats
+
+!keep compiler happy
+#ifdef CESR_VMS
+  use cesr_utils
 
   implicit none
 
   integer num_lats, ios, context, ix, ixx, lib$find_file
   integer i, stat
 
-  character*(*) directory
-  character*40 lat_list(*), match_file
-  character*80 lat_file
+  character*40 match_file
 
-  include '($ssdef)'
-  include '($rmsdef)'
+#include '($ssdef)'
+#include '($rmsdef)'
 
 ! get twiss file names for matching files 
 
@@ -63,5 +70,8 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
 
   type *, 'GET_LATTICE_LIST: INTERNAL ERROR!'
   call err_exit
-
+#endif
   end
+
+
+

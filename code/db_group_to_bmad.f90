@@ -32,6 +32,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/02 18:49:11  rwh24
+!More compatibility updates; also added many explicit variable declarations.
+!
 !Revision 1.2  2001/09/27 18:31:50  rwh24
 !UNIX compatibility updates
 !
@@ -47,7 +50,7 @@ subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, ring, db, &
 
   implicit none
 
-  #include "group.inc"
+#include "group.inc"
 
   type (ring_struct) ring
   type (db_struct) db

@@ -20,6 +20,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/02 18:49:12  rwh24
+!More compatibility updates; also added many explicit variable declarations.
+!
 !Revision 1.2  2001/09/27 18:31:53  rwh24
 !UNIX compatibility updates
 !
@@ -54,7 +57,7 @@ subroutine make_mat6 (ele, param, c0, c1)
   real t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
   real lcs, lc2s2
 
-  integer i, n, n_slice, n_pole
+  integer i, n, n_slice, n_pole, key
 
   logical unit_multipole_matrix
 
@@ -133,9 +136,16 @@ subroutine make_mat6 (ele, param, c0, c1)
   endif
 
 !--------------------------------------------------------
+! selection
+
+  key = ele%key
+  if (key == sol_quad$ .and. ele%value(k1$) == 0) key = solenoid$
+
+  select case (key)
+
+!--------------------------------------------------------
 ! sbend
 
-  select case (ele%key)
 
   case (sbend$) 
 
@@ -833,7 +843,12 @@ subroutine sol_quad_mat6_calc (ks, k1, s_len, m, orb)
   S2 = S / alpha
 
   Snh1 = Snh * beta
-  Snh2 = Snh / beta
+
+  if (abs(beta) < 1e-10) then
+     Snh2 = s_len
+  else
+     Snh2 = Snh / beta
+  endif
 
   coef1 = ks2*r + 4*k1*a
   coef2 = ks2*q + 4*k1*b
@@ -1034,6 +1049,8 @@ subroutine mat4_multipole (ele, knl, tilt, n, c0, kick_mat)
 
 
   function mexp (x, m)
+
+    implicit none
 
   real x, mexp
   integer m

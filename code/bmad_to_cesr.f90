@@ -26,6 +26,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/02 18:49:11  rwh24
+!More compatibility updates; also added many explicit variable declarations.
+!
 !Revision 1.2  2001/09/27 18:31:48  rwh24
 !UNIX compatibility updates
 !
@@ -170,8 +173,12 @@ subroutine bmad_to_cesr (ring, cesr)
     cesr%scir_tilt_(scir_tilt_sk_w$)%name = 'SCIR_TILT_SK_W'
     cesr%scir_tilt_(scir_tilt_sk_e$)%name = 'SCIR_TILT_SK_E'
 
-    cesr%skew_quad_( 2)%name = 'SK_Q02AW'
-    cesr%skew_quad_(97)%name = 'SK_Q02AE'
+    cesr%skew_quad_( 1)%name = 'DUMMY'
+    cesr%skew_quad_( 2)%name = 'SK_Q03W1'
+    cesr%skew_quad_( 3)%name = 'SK_Q03W2'
+    cesr%skew_quad_(96)%name = 'SK_Q03E2'
+    cesr%skew_quad_(97)%name = 'SK_Q03E1'
+    cesr%skew_quad_(98)%name = 'DUMMY'
 
     cesr%skew_quad_(101)%name = 'SK_Q01W'
     cesr%skew_quad_(102)%name = 'SK_Q02W'
@@ -181,6 +188,7 @@ subroutine bmad_to_cesr (ring, cesr)
     cesr%skew_sex_(11)%name = 'SK_SEX_02W'
 
   endif
+
 
 !-------------------------------------------------------------
 ! Load elements from RING to CESR

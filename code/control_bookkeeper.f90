@@ -17,6 +17,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/02 18:49:11  rwh24
+!More compatibility updates; also added many explicit variable declarations.
+!
 !Revision 1.2  2001/09/27 18:31:49  rwh24
 !UNIX compatibility updates
 !
@@ -112,12 +115,14 @@ Subroutine makeup_group_slaves (ring, ix_lord)
   use bmad_struct
   use dcslib_interface
 
+  implicit none
+
   type (ring_struct), target :: ring
   type (ele_struct), pointer :: lord, slave
 
   real delta, coef
 
-  integer ix_lord, ix, iv, ict
+  integer ix_lord, ix, iv, ict, i
 
   logical moved
 

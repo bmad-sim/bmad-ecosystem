@@ -42,6 +42,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/02 18:49:11  rwh24
+!More compatibility updates; also added many explicit variable declarations.
+!
 !Revision 1.2  2001/09/27 18:31:48  rwh24
 !UNIX compatibility updates
 !
@@ -175,7 +178,9 @@ subroutine bmad_to_db_main (ring, db)
 
   enddo
 
-! get calibrations
+!--------------------------------------------------------------------
+! get calibrations...
+! steerings
 
   gev = ring%param%energy
 
@@ -185,6 +190,8 @@ subroutine bmad_to_db_main (ring, db)
   db%csr_vert_cur(:)%dvar_dcu =  1.0e-6 * v_stren(1:98) / gev  
   db%scir_vertcur(:)%dvar_dcu =  1.0e-6 * v_stren(101:104) / gev  
 
+! separator calibration
+
   call get_sep_strength (db%csr_hsp_volt(:)%dvar_dcu, &
                                        db%csr_vsp_volt(:)%dvar_dcu)
   db%csr_hsp_volt(:)%dvar_dcu = 1.0e-6 * db%csr_hsp_volt(:)%dvar_dcu / gev
@@ -193,20 +200,35 @@ subroutine bmad_to_db_main (ring, db)
   call get_ele_theory (ring, db%csr_hsp_volt)
   call get_ele_theory (ring, db%csr_vsp_volt)
 
+! sextupole calibration
+
   call sext_calib (gev, db%csr_sext_cur(:)%dvar_dcu)
   call get_ele_theory (ring, db%csr_sext_cur)
 
+! octupole calibration
+
   db%csr_octu_cur(:)%dvar_dcu = 0.213 / gev
+  call get_ele_theory (ring, db%csr_octu_cur)
+
+! skew quad calibration
 
   call skew_quad_calib (db%csr_sqewquad(:)%dvar_dcu, &
                                              db%scir_skqucur(:)%dvar_dcu)
   db%csr_sqewquad(:)%dvar_dcu = db%csr_sqewquad(:)%dvar_dcu / gev
   db%scir_skqucur(:)%dvar_dcu = db%scir_skqucur(:)%dvar_dcu / gev
 
+  call get_ele_theory (ring, db%csr_sqewquad) 
+  call get_ele_theory (ring, db%scir_skqucur) 
+
+! skew sextupole calibration
+
   call skew_sex_calib (db%csr_sqewsext(:)%dvar_dcu, &
                                             db%scir_sksxcur(:)%dvar_dcu)
   db%csr_sqewsext(:)%dvar_dcu = db%csr_sqewsext(:)%dvar_dcu / gev
   db%scir_sksxcur(:)%dvar_dcu = db%scir_sksxcur(:)%dvar_dcu / gev
+
+  call get_ele_theory (ring, db%csr_sqewsext) 
+  call get_ele_theory (ring, db%scir_sksxcur) 
                            
 ! quad calibrations 
 

@@ -38,18 +38,22 @@
 
 !$Id$
 !$Log$
-!Revision 1.3  2001/10/02 18:49:12  rwh24
+!Revision 1.4  2001/10/02 18:49:12  rwh24
 !More compatibility updates; also added many explicit variable declarations.
 !
-!Revision 1.2  2001/09/27 18:31:52  rwh24
+!Revision 1.3  2001/09/28 21:54:51  cesrulib
+!Removed files that were not supposed to have been installed as part
+!of bmad (extraneous files in the original source area).
+!
+!Revision 1.2  2001/09/27 18:31:55  rwh24
 !UNIX compatibility updates
 !
 
 #include "CESR_platform.inc"
 
 
-subroutine k_to_quad_calib (k_theory, energy, cu_theory, k_base,  &
-     dk_gev_dcu, cu_per_k_gev)
+subroutine new_k_to_quad_calib (k_theory, energy, cu_theory, k_base,  &
+                                                 dk_gev_dcu, cu_per_k_gev)
 
   use cesr_utils
   implicit none

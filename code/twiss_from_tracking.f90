@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/02 18:49:13  rwh24
+!More compatibility updates; also added many explicit variable declarations.
+!
 !Revision 1.2  2001/09/27 18:32:00  rwh24
 !UNIX compatibility updates
 !
@@ -48,6 +51,8 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
   use bmad_struct
   use bmad_interface
 
+  implicit none
+
   type (ring_struct), intent(inout) :: ring
   type (coord_struct), intent(in) :: closed_orb_(0:n_ele_maxx), d_orb
   real, intent(out) :: error
@@ -57,8 +62,7 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
   end type
   type (multi_orb_struct) mo(6)
 
-  real mat(6,6), mat1(6,6), mat0(6,6), mat_inv(6,6)
-
+  real mat(6,6), mat1(6,6), mat0(6,6), mat_inv(6,6), mat6_unit(6,6)
   integer i, j, n_ele
 
   logical is_on(0:n_ele_maxx)

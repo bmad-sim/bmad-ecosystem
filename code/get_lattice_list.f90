@@ -1,8 +1,8 @@
 !+
 ! Subroutine get_lattice_list (lat_list, num_lats, directory)
 !
-! Subroutine to get the names of the lattices of the form:
-!     directory // BMAD_*.*
+! Subroutine to choose between VMS and UNIX versions
+!    
 !
 ! Input:
 !   directory  -- Character*(*): Directory to use. E.g: "U:[CESR.BMAD.LAT]"
@@ -17,42 +17,17 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
 
   implicit none
 
-  integer num_lats, ios, context, ix, ixx, lib$find_file
-  integer i, stat
+  integer num_lats
 
   character*(*) directory
-  character*40 lat_list(*), match_file
-  character*80 lat_file
+  character*40 lat_list(*)
 
-  include '($ssdef)'
-  include '($rmsdef)'
+#ifdef CESR_VMS
+  call get_lattice_list_vms(lat_list, num_lats, directory)
+#endif
 
-! get twiss file names for matching files 
-
-  context = 0
-  match_file = trim(directory) // 'BMAD_*.*'
-
-  do i = 1, 10000
-
-    stat = lib$find_file (match_file, lat_file, context, , , ios, 0)
-    call str$upcase (lat_file, lat_file)
-
-    if (stat) then
-      ix = index(lat_file, ']BMAD') + 6   ! strip [~]BMAD_ prefix
-      ixx = index(lat_file, ';') - 1      ! strip version number suffix
-      lat_list(i) = lat_file(ix:ixx)
-    else if (stat == rms$_nmf) then
-      num_lats = i - 1
-      return
-    else
-      type *, 'FIND FILE ERROR:', stat
-      call lib$signal(%val(stat))
-      call err_exit
-    endif
-
-  enddo
-
-  type *, 'GET_LATTICE_LIST: INTERNAL ERROR!'
-  call err_exit
-
-  end
+#ifdef CESR_UNIX
+  call get_lattice_list_unix(lat_list, num_lats, directory)
+#endif
+  
+end subroutine get_lattice_list

@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/02 18:49:11  rwh24
+!More compatibility updates; also added many explicit variable declarations.
+!
 !Revision 1.2  2001/09/27 18:31:48  rwh24
 !UNIX compatibility updates
 !
@@ -48,6 +51,7 @@ subroutine bmad_parser (in_file, ring)
 
   use local_bmad_struct
   use local_bmad_interface
+  use cesr_utils
   use nr, only: indexx
   
   implicit none
@@ -93,6 +97,7 @@ subroutine bmad_parser (in_file, ring)
 !  endif
 
   ix = SplitFileName(in_file, path, basename)
+  print*, in_file, ix
   digested_file = in_file(:ix) // 'digested_' // in_file(ix+1:)
 
   call read_digested_bmad_file (digested_file, ring, digested_version)
@@ -103,7 +108,7 @@ subroutine bmad_parser (in_file, ring)
 
   bmad_status%ok = .true.
   if (bmad_status%type_out) print *, 'BMAD_PARSER: CREATING NEW DIGESTED FILE...'
-
+  print*, digested_file
   pcom%n_files = 0
   pcom%error_flag = .false.                 ! set to true on an error
   call file_stack('init', in_file, finished)   ! init stack
@@ -179,6 +184,7 @@ subroutine bmad_parser (in_file, ring)
         if (ix_word == 0) then
           call warning ('NO FILE NAME SPECIFIED', ' ')
         else
+           call fullfilename(call_file, call_file)
           call file_stack ('push', call_file, finished)
           if (.not. bmad_status%ok) return
         endif

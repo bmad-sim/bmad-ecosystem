@@ -28,6 +28,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/02 18:49:12  rwh24
+!More compatibility updates; also added many explicit variable declarations.
+!
 !Revision 1.2  2001/09/27 18:31:55  rwh24
 !UNIX compatibility updates
 !
@@ -39,7 +42,7 @@
 subroutine name_to_list (ring, ele_names, use_ele)
 
   use bmad_struct
-  use cesr_util
+  use cesr_utils
   implicit none
 
   type (ring_struct)  ring

@@ -15,6 +15,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/02 18:49:12  rwh24
+!More compatibility updates; also added many explicit variable declarations.
+!
 !Revision 1.2  2001/09/27 18:31:53  rwh24
 !UNIX compatibility updates
 !
@@ -24,12 +27,14 @@
 
 subroutine mat_symplectify (mat_in, mat_symp)
 
+  implicit none
+
   real, intent(in)  :: mat_in(:,:)
   real, intent(out) :: mat_symp(:,:)
 
   real, save, allocatable :: m1(:,:), m2(:,:), m3(:,:), m_symetric(:,:)
 
-  integer n
+  integer n,i,j
 
 !
 
