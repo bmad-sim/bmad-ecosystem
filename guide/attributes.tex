@@ -21,15 +21,15 @@ lattice is read in.
 \centering {
 \begin{tabular}{|l|l|l|} \hline
 {\em Element}       & {\em Dependent Variables}  & {\em Independent Variables}  \\ \hline
- \vne{BeamBeam}     & \vnea{bbi_const}           & 
+ \vnec{BeamBeam}     & \vnea{bbi_const}           & 
          \vnea{charge}, \vnea{sig_x}, \vnea{sig_y}, \vnea{beam_energy}, \vnea{n_part} \\ \hline
- \vne{Elseparator}  & \vnea{e_field}, \vnea{voltage}   & 
+ \vnec{Elseparator}  & \vnea{e_field}, \vnea{voltage}   & 
          \vnea{hkick}, \vnea{vkick}, \vnea{gap}, \vnea{l}, \vnea{beam_energy}    \\ \hline
- \vne{Lcavity}      & \vnea{e_loss}, \vnea{delta_e}    & 
+ \vnec{Lcavity}      & \vnea{e_loss}, \vnea{delta_e}    & 
          \vnea{gradient}, \vnea{l}                           \\ \hline
- \vne{Rbend}, \vne{Sbend} & \vnea{rho}, \vnea{angle}, \vnea{l_chord} & 
+ \vnec{Rbend}, \vnec{Sbend} & \vnea{rho}, \vnea{angle}, \vnea{l_chord} & 
          \vnea{g}, \vnea{l}                                  \\ \hline
- \vne{Wiggler} (periodic type) & \vnea{k1}, \vnea{rho}             & 
+ \vnec{Wiggler} (periodic type) & \vnea{k1}, \vnea{rho}             & 
          \vnea{b_max}, \vnea{beam_energy}                    \\ \hline
 \end{tabular}
 }
@@ -55,10 +55,10 @@ that it will never be set by the bookkeeping routine.
 \begin{tabular}{|l|l|l|} \hline
 {\em Element}   & {\em Dependent Variable Set}  & 
                       {\em Independent Variables Not Set} \\ \hline
-  \vne{Lcavity}            & \vnea{delta_e}       & \vnea{gradient}  \\ \hline
-  \vne{Rbend}, \vne{Sbend} & \vnea{rho}           & \vnea{g}         \\ \hline
+  \vnec{Lcavity}            & \vnea{delta_e}       & \vnea{gradient}  \\ \hline
+  \vnec{Rbend}, \vnec{Sbend} & \vnea{rho}           & \vnea{g}         \\ \hline
   \vn{Rbend}, \vn{Sbend}   & \vnea{angle}         & \vnea{g}         \\ \hline
-  \vne{RFcavity}           & \vnea{rf_frequency}  & \vnea{harmon}    \\ \hline
+  \vnec{RFcavity}           & \vnea{rf_frequency}  & \vnea{harmon}    \\ \hline
 \end{tabular}
 }
 \caption {Dependent variables that can be set in a primary lattice file.}
@@ -75,11 +75,11 @@ becomes a dependent variable as tabulated in Table~\ref{t:dep_field}.
 \centering {
 \begin{tabular}{|l|l|l|} \hline
   {\em Element} & {\em Strength Attribute} & {\em Field Attribute} \\ \hline
-  \vne{Sbend}, \vne{Rbend} &   \vnea{g}      &  \vnea{b_field}       \\ \hline
-  \vne{Solenoid}           &   \vnea{ks}     &  \vnea{b_field}       \\ \hline
-  \vne{Quadrupole}         &   \vnea{k1}     &  \vnea{b_gradient}    \\ \hline
-  \vne{Sextupole}          &   \vnea{k2}     &  \vnea{b_gradient}    \\ \hline
-  \vne{Octupole}           &   \vnea{k3}     &  \vnea{b_gradient}    \\ \hline
+  \vnec{Sbend}, \vnec{Rbend} &   \vnea{g}      &  \vnea{b_field}       \\ \hline
+  \vnec{Solenoid}           &   \vnea{ks}     &  \vnea{b_field}       \\ \hline
+  \vnec{Quadrupole}         &   \vnea{k1}     &  \vnea{b_gradient}    \\ \hline
+  \vnec{Sextupole}          &   \vnea{k2}     &  \vnea{b_gradient}    \\ \hline
+  \vnec{Octupole}           &   \vnea{k3}     &  \vnea{b_gradient}    \\ \hline
 \end{tabular}
 }
 \caption {Field and Strength Attributes.}
@@ -126,7 +126,7 @@ from the reference orbit. They are
   tilt
   roll
 \end{example}
-The exception here is the \vne{Pitch} element which uses these
+The exception here is the \vnec{Pitch} element which uses these
 attributes to modify the reference orbit itself.
 
 \vn{x_offset} translates an element in the local $x$--direction
@@ -203,10 +203,10 @@ is to give a vertical kick to the beam.
 \index{Element attribute!kick|textbf}
 
 \vn{kick}, \vn{hkick}, and \vn{vkick} attributes are the integrated
-kick of an element in radians. \vn{kick} is only used for \vne{Hkicker}
+kick of an element in radians. \vn{kick} is only used for \vnec{Hkicker}
 and \vn{Vkicker} elements. All other elements that can kick use 
 \vn{hkick} and \vn{vkick}. The \vn{tilt} attribute will only rotate
-a kick for \vne{Hkicker}, \vne{Vkicker}, \vne{Elseparator} and \vne{Kicker}
+a kick for \vnec{Hkicker}, \vnec{Vkicker}, \vnec{Elseparator} and \vnec{Kicker}
 elements. This rule was implemented so that, for example, the 
 \vn{hkick} attribute for a skew quadrupole
 would represent a horizontal steering.
@@ -226,8 +226,8 @@ would represent a horizontal steering.
 \end{figure}
 
 \vn{x_limit}, \vn{y_limit} specify the half--width of the aperture of
-an element as shown in figure~\ref{f:limit}. Notice that an \vne{Ecollimator}
-has a elliptical aperture while a \vne{Rcollimator} and all other elements
+an element as shown in figure~\ref{f:limit}. Notice that an \vnec{Ecollimator}
+has a elliptical aperture while a \vnec{Rcollimator} and all other elements
 have rectangular apertures. A zero \vn{x_limit} or
 \vn{y_limit} is interpreted as no aperture in the $x$ or $y$
 direction. \vn{x_offset} and \vn{y_offset} move the aperture but not
@@ -237,8 +237,8 @@ An \vn{aperture} attribute supersedes
 any \vn{x_limit} and \vn{y_limit} values and sets \vn{x_limit} and
 \vn{y_limit} equal to the value of \vn{aperture}.
 
-\index{Element !entrance end}
-\index{Element !exit end}
+\index{Element!entrance end}
+\index{Element!exit end}
 \index{Tracking!apertures}
 By default the aperture is evaluated at the exit face only of the
 element. This can be changed by setting the \vn{aperture_at} attribute.
@@ -310,8 +310,8 @@ Possible values for \vn{field_calc} are:
   Bmad_Standard     ! This is the default
   Custom
 \end{example}
-\vne{Custom} means that the field calculations are done outside of the
-\bmad software. A program doing \vne{Custom} field calculations will
+\vnec{Custom} means that the field calculations are done outside of the
+\bmad software. A program doing \vnec{Custom} field calculations will
 need the appropriate custom routine. See \S\ref{s:custom_field} for more
 details.
 
@@ -332,9 +332,9 @@ the standard \bmad coordinates.
 \section{Length Attributes}
 \label{s:l}
 
-\vnea{l} is, for all elements except \vne{Rbend}s, the path length 
+\vnea{l} is, for all elements except \vnec{Rbend}s, the path length 
 of the reference particle.
-Note that for \vne{Wiggler}s this is not the same as the path length for
+Note that for \vnec{Wiggler}s this is not the same as the path length for
 a particle with the reference energy starting on the reference orbit.
 
 %-----------------------------------------------------------------

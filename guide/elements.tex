@@ -57,7 +57,7 @@ but are not retained by an element.
 %-----------------------------------------------------------------
 \section{AB\_Multipole}
 \label{s:ab_m}
-\index{Element!AB_Multipole|textbf}
+\index{Element class!AB_Multipole|textbf}
 
 \begin{center}
 \tt 
@@ -93,7 +93,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Accel\_Sol}
 \label{s:accel_sol}
-\index{Element!Accel_Sol|textbf}
+\index{Element class!Accel_Sol|textbf}
 
 An \vn{Accel_Sol} element is a combination LINAC RF accelerating
 section with a solenoid on top of it. For historical reasons this
@@ -103,7 +103,7 @@ any demand for it.
 %-----------------------------------------------------------------
 \section{BeamBeam}
 \label{s:bbi}
-\index{Element!BeamBeam|textbf}
+\index{Element class!BeamBeam|textbf}
 
 \begin{center} 
 \tt
@@ -179,7 +179,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Bend\_Sol\_Quad}
 \label{s:bsq}
-\index{Element!Bend_Sol_Quad|textbf}
+\index{Element class!Bend_Sol_Quad|textbf}
 
 \begin{center}
 \tt
@@ -248,8 +248,8 @@ Example:
 %-----------------------------------------------------------------
 \section{Bends: Rbend and Sbend}
 \label{s:bend}
-\index{Element!Sbend|textbf}
-\index{Element!Rbend|textbf}
+\index{Element class!Sbend|textbf}
+\index{Element class!Rbend|textbf}
 
 \begin{center}
 \tt
@@ -356,8 +356,8 @@ Example:
 %-----------------------------------------------------------------
 \section{Collimators: Ecollimator and Rcollimator}
 \label{s:col}
-\index{Element!Ecollimator|textbf}
-\index{Element!Rcollimator|textbf}
+\index{Element class!Ecollimator|textbf}
+\index{Element class!Rcollimator|textbf}
 
 \begin{center}
 \tt
@@ -386,7 +386,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Custom}
 \label{s:custom}
-\index{Element!Custom|textbf}
+\index{Element class!Custom|textbf}
 
 \begin{center}
 \tt
@@ -426,7 +426,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Drift}
 \label{s:drift}
-\index{Element!Drift|textbf}
+\index{Element class!Drift|textbf}
 
 \begin{center}
 \tt
@@ -453,7 +453,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Elseparator}
 \label{s:elsep}
-\index{Element!Elseparator|textbf}
+\index{Element class!Elseparator|textbf}
 
 \begin{center}
 \tt
@@ -494,8 +494,8 @@ Example:
 %-----------------------------------------------------------------
 \section{Hkicker and Vkicker}
 \label{s:hvkicker}
-\index{Element!Hkicker|textbf}
-\index{Element!Vkicker|textbf}
+\index{Element class!Hkicker|textbf}
+\index{Element class!Vkicker|textbf}
 
 \begin{center}
 \tt
@@ -524,7 +524,7 @@ attributes. Example:
 %-----------------------------------------------------------------
 \section{Hybrid}
 \label{s:hybrid}
-\index{Element!Hybrid|textbf}
+\index{Element class!Hybrid|textbf}
 
 A \vn{Hybrid} element is an element that is formed by concatenating
 other element together. \vn{Hybrid} elements are not part of the input
@@ -533,7 +533,7 @@ lattice file but are created by a program, usually for speed purposes.
 %-----------------------------------------------------------------
 \section{I\_Beam}
 \label{s:i_beam}
-\index{Element!I_Beam|textbf}
+\index{Element class!I_Beam|textbf}
 
 \begin{center}
 \tt
@@ -603,8 +603,8 @@ the total tilt is stored in \vn{%value(tilt_tot\$)}, etc.
 %-----------------------------------------------------------------
 \section{Instrument and Monitor}
 \label{s:monitor}
-\index{Element!Instrument|textbf}
-\index{Element!Monitor|textbf}
+\index{Element class!Instrument|textbf}
+\index{Element class!Monitor|textbf}
 
 \begin{center}
 \tt
@@ -630,7 +630,7 @@ drift.  Example:
 %-----------------------------------------------------------------
 \section{Kicker}
 \label{s:kicker}
-\index{Element!Kicker|textbf}
+\index{Element class!Kicker|textbf}
 
 \begin{center}
 \tt
@@ -662,7 +662,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Lcavity}
 \label{s:lcav}
-\index{Element!Lcavity|textbf}
+\index{Element class!Lcavity|textbf}
 
 \begin{center}
 \tt
@@ -724,12 +724,12 @@ Note: The transfer matrix for an \vn{Lcavity} with finite
 
 \index{Wakefields!in Lcavity}
 The input file name for the short--range wakefields is specified using
-the \vn{sr_wake_file} attribute. The file gives both longitudinal and
-transverse wakes in tabular form. Comment header lines may be included
-by starting a line with an exclamation mark (!) or by leaving the line
-blank.  An example input file is:
+the \vn{sr_wake_file} attribute. The file gives both monopole
+longitudinal and dipole transverse wakes in tabular form. Comment
+header lines may be included by starting a line with an exclamation
+mark (!) or by leaving the line blank.  An example input file is:
 \begin{example}
-  !   z             Wz             Wt
+  !  -z             Wz             Wt
   !  [m]        [V/C/m]       [V/C/m^2]
 
   0.00000E+00  1.61125E+15   0.00000E+00     1 
@@ -748,28 +748,24 @@ ignored.  Wakefield formulas are to be found in \sref{s:wakefields}
 
 The input file name for the long--range wakefields is specified using
 the \vn{lr_wake_file} attribute. The file gives the transverse dipole
-wake by specifying the frequency (in Hz), R/Q (in Ohm) and Q
-for each cavity mode.  Comment header lines may be included by
-starting a line with an exclamation mark (!) or by leaving the line
-blank.  An example input file is:
+wake by specifying the frequency (in Hz), R/Q (in
+$\Omega$/meter$^{2m}$), Q, and m (order number) for each cavity mode.
+Comment header lines may be included by starting a line with an
+exclamation mark (!) or by leaving the line blank.  An example input
+file is:
 \begin{example}
-  ! Freq       R/Q      Q
-  ! [Hz]     [Ohm]
+  ! Freq       R/Q      Q       m
+  ! [Hz]  [Ohm/m^(2m)]
 
-  1.6506e9    0.76    7.0e4
-  1.6991e9   11.21    5.0e4
+  1.6506e9    0.76    7.0e4     1
+  1.6991e9   11.21    5.0e4     1
 \end{example}
 The formula used to compute the wakefield is given in
-\sref{s:wakefields}. Note that some papers will quote a quantity R'/Q
-with units of Ohm/m$^2$ (sometimes this is confusingly called
-R/Q). This is R/Q at the radius of the beam pipe $a$:
-\Begineq
-  \frac{R}{Q} = a^2 \frac{R'}{Q}
-\Endeq 
+\sref{s:wakefields}. 
+
 \vn{freq_spread} is used to randomly spread out the mode frequencies
 among different cavities. The spread is Gaussian in shape with an RMS
 of \vn{freq_spread} * $F$ where $F$ is the frequency of a mode.
-
 
 \vn{e_loss} can be either a dependent or independent variable.  is a
 dependent variable. If a \vn{sr_wake_file} is present \vn{e_loss} is a
@@ -788,7 +784,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Marker}
 \label{s:mark}
-\index{Element!Marker|textbf}
+\index{Element class!Marker|textbf}
 
 \begin{center}
 \tt
@@ -812,7 +808,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Match}
 \label{s:match}
-\index{Element!Match|textbf}
+\index{Element class!Match|textbf}
 
 \begin{center}
 \tt
@@ -848,7 +844,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Multipole}
 \label{s:mult}
-\index{Element!Multipole|textbf}
+\index{Element class!Multipole|textbf}
 
 \begin{center}
 \tt
@@ -882,7 +878,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Octupole}
 \label{s:oct}
-\index{Element!Octupole|textbf}
+\index{Element class!Octupole|textbf}
 
 \begin{center}
 \tt
@@ -916,7 +912,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Patch}
 \label{s:patch}
-\index{Element!Patch|textbf}
+\index{Element class!Patch|textbf}
 
 \begin{center}
 \tt
@@ -946,7 +942,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Quadrupole}
 \label{s:quad}
-\index{Element!Quadrupole|textbf}
+\index{Element class!Quadrupole|textbf}
 
 \begin{center}
 \tt
@@ -979,7 +975,7 @@ Example:
 %-----------------------------------------------------------------
 \section{RFcavity}
 \label{s:rfcav}
-\index{Element!RFcavity|textbf}
+\index{Element class!RFcavity|textbf}
 
 \begin{center}
 \tt
@@ -1028,7 +1024,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Sextupole}
 \label{s:sex}
-\index{Element!Sextupole|textbf}
+\index{Element class!Sextupole|textbf}
 
 \begin{center}
 \tt
@@ -1061,7 +1057,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Solenoid}
 \label{s:sol}
-\index{Element!Solenoid|textbf}
+\index{Element class!Solenoid|textbf}
 
 \begin{center}
 \tt
@@ -1091,7 +1087,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Sol\_Quad}
 \label{s:sq}
-\index{Element!Sol_Quad|textbf}
+\index{Element class!Sol_Quad|textbf}
 
 \begin{center}
 \tt
@@ -1122,7 +1118,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Taylor}
 \label{s:tay}
-\index{Element!Taylor|textbf}
+\index{Element class!Taylor|textbf}
 
 \begin{center}
 \tt
@@ -1182,7 +1178,7 @@ Example \vn{Taylor} element definition:
 %-----------------------------------------------------------------
 \section{Wiggler} 
 \label{s:wig}
-\index{Element!Wiggler|textbf} 
+\index{Element class!Wiggler|textbf} 
 
 \begin{center}
 \tt

@@ -1,10 +1,8 @@
 \chapter {Control Elements}
 \label{c:control}
-\index{Element!Overlay}
-\index{Element!Group}
-\index{Element control}
-\index{Element lord}
-\index{Element slave}
+\index{Element!control}
+\index{Element!lord}
+\index{Element!slave}
 
 It is possible to have elements controlling the attributes of other
 elements. These \vn{lord} elements are meant, for example, to mimic
@@ -22,19 +20,19 @@ elements and a hierarchy of \vn{lord} elements may be established.
 There are five types of lord elements: 
 \begin{Itemize}
 \item 
-\vn{Group} lord elements are used to make variations in attributes. For example, to
+\vnec{Group} lord elements are used to make variations in attributes. For example, to
 simulate the action of a control room knob that changes the beam tune
 in a storage ring, a \vn{Group} can be used to vary the strength of
 selected quads in a specified manner. \vn{Groups} are covered in \sref{s:group}.
 \item
-An \vn{overlay} lord is like a \vn{group} except that \vn{overlays}
+An \vnec{Overlay} lord is like a \vn{group} except that \vn{overlays}
 set the value (not a change in) the attributes they
 control. \vn{Overlays} are covered in \sref{s:overlay}.
 \item
 A \vn{superposition} lord is created when elements are superimposed on
 top of other elements. This is covered in \sref{s:super}.
 \item
-\vne{I_Beam} elements mimic the effect of a support girder. This is
+\vnec{I_Beam} elements mimic the effect of a support girder. This is
 covered in \sref{s:i_beam}.
 \item
 \index{Clone}
@@ -298,7 +296,7 @@ in the beam. In \bmad this situation can simulated using the
   my_line: line = (A, A)
   use, my_line
   expand_lattice
-  A\B2[dphi0] = pi
+  A\B2[dphi0] = 0.5
 \end{example}
 The regular part of the lattice (the part that gets tracked through)
 consists of two slave elements
@@ -312,7 +310,7 @@ lord part of the lattice. Changes to attributes of the lord \vn{A}
 element will be passed to the slave elements by \bmad's bookkeeping
 routines. Assuming \vn{A\B1} is an accelerating cavity, to make
 \vn{A\B2} a deaccelerating cavity the \vn{dphi0} attribute of
-\vn{A\B2} is set to $pi$. This is the one attribute that \bmad's
+\vn{A\B2} is set to 0.5. This is the one attribute that \bmad's
 bookkeeping routines will not touch when transferring attribute values
 from \vn{A} to its slaves. Notice that the \vn{dphi0} attribute had to
 be set after \vn{expand_lattice} is used to expand the lattice since

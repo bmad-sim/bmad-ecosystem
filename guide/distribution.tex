@@ -125,8 +125,8 @@ single character. For example:
     getf 'twiss_at_.'
 \end{example}
 The third line in this example will match to the routine
-\vn{twiss_at_s} but not the routine \vn{twiss_at_start}. You may or may not
-have to put quotation marks if you use wild card characters.
+\vn{twiss_at_s} but not the routine \vn{twiss_at_start}. You may or
+may not have to put quotation marks if you use wild card characters.
 As an example, the command \vn{getf twiss_struct} produces:
 \begin{example}
   /home/cesrulib/cesr_libs/devel/cvssrc/bmad/modules/twiss_mod.f90
@@ -136,9 +136,11 @@ As an example, the command \vn{getf twiss_struct} produces:
       real(rp) sigma
     end type
 \end{example}
-The first line shows the file where the structure is located. The rest of the
-output shows the definition of the \vn{twiss_struct} structure. 
-The result of issuing the command \vn{getf element_locator} is:
+The first line shows the file where the structure is located (This is
+system and user dependent so don't be surprised if you get a different
+directory when you use \vn{getf}). The rest of the output shows the
+definition of the \vn{twiss_struct} structure.  The result of issuing
+the command \vn{getf element_locator} is:
 \begin{example}
   /home/cesrulib/cesr_libs/devel/cvssrc/bmad/code/element_locator.f90
   !+

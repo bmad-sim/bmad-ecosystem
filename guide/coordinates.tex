@@ -28,10 +28,10 @@ the particle coordinates in the local reference system.}
 \label{f:local_coords}
 \end{figure}
 
-\index{Element!Sbend}
-\index{Element!Rbend}
-\index{Element !entrance end}
-\index{Element !exit end}
+\index{Element class!Sbend}
+\index{Element class!Rbend}
+\index{Element!entrance end}
+\index{Element!exit end}
 In \bmad, a lattice is comprised of a sequence of elements such as
 quadrupoles, bends, RF cavities, etc. Each element has an entrance
 point, an exit point, and a reference curve between them. For a bend,
@@ -42,13 +42,13 @@ that the exit point of one element coincides with the entrance point
 of the next with the reference curves forming an arc with no kinks.
 The reference orbit is then the sum of the reference
 curves. Exceptions to this construction method may be made by using
-\vne{Patch} elements which can arbitrarily offset the entrance point
+\vnec{Patch} elements which can arbitrarily offset the entrance point
 of an element with respect to the exit point of the previous element.
 See Section~\ref{s:patch}.  If not specified otherwise, the $s = 0$
 position is the entrance point of the first element.
 
 \index{Element attribute!offset}\index{Element attribute!pitch}
-Notice that, in a \vne{Wiggler}, the reference orbit, which is a
+Notice that, in a \vnec{Wiggler}, the reference orbit, which is a
 straight line, does {\em not} correspond to the orbit that any actual
 particle could travel. Typically the physical entity of an element is
 centered about the reference curve. However, by specifying offsets and

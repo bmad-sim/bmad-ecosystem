@@ -8,7 +8,7 @@
 \bmad\ uses SI (Syst\'eme International) units as shown in
 Table~\ref{t:units}.  Note that \MAD uses different units. For example,
 \mad's unit of Particle Energy is GeV not eV.
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \begin{tabular}{|l|l|} \hline
   {\em Quantity}     & {\em Units}       \\ \hline
@@ -68,14 +68,16 @@ compatibility with \MAD.
 
 Start with the assumption that the local magnetic field has no
 longitudinal component (obviously this assumption does not work with,
-say, a solenoid).  Following \MAD, the vertical magnetic field is
-expanded in a Taylor series
+say, a solenoid).  Following \MAD, the vertical magnetic field along
+the $y = 0$ axis is expanded in a Taylor series (This is not the most
+general form for the magnetic field. Essentially all of the skew
+components are ignored.)
 \Begineq
   B_y(x, 0) = \sum_n B_n \, \frac{x^n}{n!}
 \Endeq
-Assuming that the reference orbit is locally straight 
-(there are correction terms if the Reference Orbit is locally curved), the 
-field up to $3^{rd}$ order is
+Assuming that the
+reference orbit is locally straight (there are correction terms if the
+Reference Orbit is locally curved), the field up to $3^{rd}$ order is
 \begin{alignat}{5}
   B_x &=           &&B_1 y \plus         &&B_2 \, xy       && \plus && \frac{1}{6} B_3 (3x^2 y - y^3) \plus \ldots \\
   B_y &= B_0 \plus &&B_1 x + \frac{1}{2} &&B_2 (x^2 - y^2) && \plus && \frac{1}{6} B_3 (x^3 - 3x y^2) \plus \ldots
@@ -106,14 +108,23 @@ particle experiences going through a multipole field is
 A positive $K_1L$ quadrupole component gives
 horizontal focusing and vertical defocusing. 
 
-If the fields associated with a particular $B_n$ multipole component
-are rotated in the $(x, y)$ plane by an angle $\phi_n$ the magnetic
-field at a point $(x,y)$ can be expressed in complex notation as
+So far only the normal components of the field have been
+considered. If the fields associated with a particular $B_n$ multipole
+component are rotated in the $(x, y)$ plane by an angle $\phi_n$ the
+magnetic field at a point $(x,y)$ can be expressed in complex notation
+as
 \Begineq
   B_y(x,y) + i B_x(x,y) = 
                 \frac{1}{n!} B_n e^{-i(n+1)\phi_n} \, e^{i n \theta} \, r^n 
 \Endeq
 where $(r, \theta)$ are the polar coordinates of the point $(x, y)$.
+To convert a normal component into a skew component the rotation angle
+should be
+\Begineq
+  (n+1) \phi_n = \frac{\pi}{2}
+\Endeq
+For example, a normal quadrupole rotated by by $45^\circ$ becomes a
+skew quadrupole.
 
 Another representation of the magnetic field used by \bmad\ divides
 the fields into normal $b_n$ and skew $a_n$ components. In terms of
@@ -145,7 +156,7 @@ where $r_0$ is set by the \vnea{radius} attribute of an element. $F$ and
 $n_\text{ref}$ are set automatically depending upon the type of
 element as shown in Table~\ref{t:ab}.
 
-Note that the $n = 0$ component of an \vne{AB_Multipole} or \vne{Multipole}
+Note that the $n = 0$ component of an \vnec{AB_Multipole} or \vnec{Multipole}
 element rotates the reference orbit essentially acting as a zero length bend.
 This is not true for multipoles that are associated with 
 non-multipole elements.
@@ -155,17 +166,17 @@ non-multipole elements.
 \begin{tabular}{|l|l|l|} \hline
 \tt
   {\em Element} & $F$                              & $n_\text{ref}$ \\ \hline
-  \vne{Kicker}      & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
-  \vne{Hkicker}     & Kick                                   & 0 \\
-  \vne{Vkicker}     & Kick                                   & 0 \\
-  \vne{Rbend}       & G * L                                  & 0 \\
-  \vne{Sbend}       & G * L                                  & 0 \\
-  \vne{Elseparator} & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
-  \vne{Quadrupole}  & K1 * L                                 & 1 \\
-  \vne{Solenoid}    & KS * L                                 & 1 \\
-  \vne{Sol_Quad}    & K1 * L                                 & 1 \\
-  \vne{Sextupole}   & K2 * L                                 & 2 \\
-  \vne{Octupole}    & K3 * L                                 & 3 \\ \hline
+  \vnec{Kicker}      & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
+  \vnec{Hkicker}     & Kick                                   & 0 \\
+  \vnec{Vkicker}     & Kick                                   & 0 \\
+  \vnec{Rbend}       & G * L                                  & 0 \\
+  \vnec{Sbend}       & G * L                                  & 0 \\
+  \vnec{Elseparator} & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
+  \vnec{Quadrupole}  & K1 * L                                 & 1 \\
+  \vnec{Solenoid}    & KS * L                                 & 1 \\
+  \vnec{Sol_Quad}    & K1 * L                                 & 1 \\
+  \vnec{Sextupole}   & K2 * L                                 & 2 \\
+  \vnec{Octupole}    & K3 * L                                 & 3 \\ \hline
 \end{tabular}
 \caption{$F$ and $n_\text{ref}$ for various elements.}
 \label{t:ab}
@@ -296,7 +307,7 @@ A symplectic matrix $\Bf F$ is now obtained by inverting \eq{e:vsimi}
 \section{Wigglers}
 \label{s:wiggler_phys}
 
-As discussed in Section~\ref{s:wig}, \bmad \vne{Wiggler} elements are split into 
+As discussed in Section~\ref{s:wig}, \bmad \vnec{Wiggler} elements are split into 
 two classes: map type and periodic type.
  The map type \vn{Wigglers} are modeled using the method of Sagan, Crittenden, 
 and Rubin\cite{b:wiggler}. In this model the magnetic field is written as 
@@ -656,30 +667,32 @@ The charge of all the macroparticles is adjusted by a constant factor
 so that the total charge of the macroparticles within a slice is equal
 to the charge associated with the slice.
 
-
-
 %-----------------------------------------------------------------
 \section{Wakefields}
 \label{s:wakefields}
 \index{Wakefields}
+
+%-----------------------------
+\subsection{Short--Range Wakes}
 
 Short--range Wakefield modeling is similar to the LIAR
 program\cite{b:liar}. Wakefields are applied in the center of LINAC
 accelerating cavities (\vn{LCavity}). Wakefield effects are divided
 into short--range (within a bunch) and long--range (between bunches).
 
-Only the dipole component of the short--range wakefield are
-modeled. The longitudinal dipole energy kick $dE$  for 
-the $i$\Th macroparticle is computed from the equation
+Only the transverse dipole and longitudinal monopole components of the
+short--range wakefield are modeled. The longitudinal monopole energy
+kick $dE$ for the $i$\Th macroparticle is computed from the equation
 \Begineq
-  dE_i = \frac{n \, e \, L \, \WlS(0)}{2} \,  |q_i| +
-        n \, e \, L \, \sum_{j \ne i} \tWl(dz_{ij}) \, |q_j|
+  dpz(i) = \frac{-e \, L}{v \, P_0} \, \left(
+        \frac{1}{2}\WlS(0) \,  |q_i| +
+        \sum_{j \ne i} \tWl(dz_{ij}) \, |q_j| \right)
 \Endeq
-where $n \, e$ is the particle charge (typically $n = 1$), $q$ is the
-macroparticle charge, $L$ is the cavity length, $dz_{ij}$ is the
-longitudinal distance between the $i$\Th and $j$\Th macroparticles,
-$\WlS$ is the short--range longitudinal wakefield function, and $\tWl$
-is a modified wakefield function
+where $v$ is the particle velocity, $e$ is the charge on an electron,
+$q$ is the macroparticle charge, $L$ is the cavity length, $dz_{ij}$
+is the longitudinal distance between the $i$\Th and $j$\Th
+macroparticles, $\WlS$ is the short--range longitudinal wakefield
+function, and $\tWl$ is a modified wakefield function
 \Begineq
   \tWl(dz) = 
   \begin{cases}
@@ -701,29 +714,57 @@ small fudge factor needed when $\sigma_{zi} = \sigma_{zj} = 0$.
 The transverse kick $dp_x(i)$ for the $i$\Th macroparticle due to the 
 dipole short--range transverse wakefield is modeled with the equation
 \Begineq
-  dp_x(i) = \frac{n \, e \, L \, \sum_j |q_j| \, x_j \, \WtS(dz_{ij})}{c \, P_0}
+  dp_x(i) = \frac{e \, L \, \sum_j |q_j| \, x_j \, \WtS(dz_{ij})}
+                 {v \, P_0}
 \Endeq
-with a similar equation for $dp_y(i)$. $\WtS$ is the transverse short--range
-wake function.
+There is a similar equation for $dp_y(i)$. $\WtS$
+is the transverse short--range wake function.
 
-The kick of the transverse dipole long--range wakefields are
-calculated in exactly the same way as the short term wakefield:
+%-----------------------------
+\subsection{Long--Range Wakes}
+
+Following, Chao\cite{b:chao} Long--range wakefields are characterized
+by a set of cavity modes. The wake function $W$ for a mode is given by
 \Begineq
-  dp_x(i) = \frac{n \, e \, L \, \sum_j |q_j| \, x_j \, \WtL(dz_{ij})}{c \, P_0}
+  W(z) = \frac{c}{2} \, \left( \frac{R}{Q} \right) \,\,
+  e^{k z/ 2 Q} \, \sin (k \, z)
 \Endeq
-In this case $i$ and $j$ refer to bunch indexes. The wakefield is
-composed as a sum over cavity modes $m$
-\Begineq
-  \WtL(z) = \sum_m \left( \frac{R}{Q} \right)_{\! m}
-  \frac{k_m^2}{2} \,\, 
-  e^{k_m z/ 2 Q_m} \, \sin (-k_m \, z)
-\Endeq
-where 
+where the wake number $k$ is related to the mode frequency $\omega$ by
 \Begineq
   k = \omega / c
 \Endeq
-with $\omega$ being the mode frequency. Note that $z$ is negative for
-trailing particles so $\WtL(z)$ is a decaying exponential as expected.
+Note that $z$ is negative for trailing particles so $W(z)$ is a
+decaying exponential as expected.
+
+Assuming that the macroparticle generating the wake is offset a
+distance $a$ along the $x$--axis, A trailing macroparticle will see a kick
+\begin{align}
+  d{\Bf p}_\perp(i) &= 
+  \frac{-e \, I_m \, W_m(z) \, m \, r^{m-1} \, \left( 
+  {\bf\hat r} \cos m\theta - {\bf\hat\theta} \sin m\theta \right)}
+  {v \, P_0}  \\
+  dp_z &= \frac{-e \, I_m \, W'(z) \, r^m \, \cos m\theta}{v \, P_0}
+\end{align}
+where $m$ is the order of the mode and
+\Begineq
+  I_m = q \, a^m
+\Endeq
+The form of the transverse kick $d{\bf p}_\perp$ is the same as for a
+multipole of order $m$.
+
+Each mode is characterized by an $R/Q$, $Q$, $\omega$, and $m$. Notice
+that $R/Q$ is defined so that it includes the cavity length. Thus the
+long--range wake equations, as opposed to the short--range ones, do
+not have any explicit dependence on $L$. Also notice that there is an
+overall sign difference between how the long--range and short--range
+transverse wakes are defined (This is due to the fact that \bmad takes
+its short--range wake definition from LIAR and its long--range
+definition from Chao).
+
+To make life more interesting differnt people define $R/Q$
+differently. A common practice is to define an $R/Q$ ``at the beam
+pipe radius''. In this case the above equations must be modified to
+include factors of the beam pipe radius.
 
 %-----------------------------------------------------------------
 \section{Synchrotron Integrals}
