@@ -343,14 +343,15 @@ someone writing a program. These components are
 \index{Ele_struct!initialization}
 \index{Ele_struct!pointer components}
 
-Generally most \vn{ele_struct} elements are part of a
-\vn{ring_struct} variable so you generally don't have to worry about
-allocation/deallocation issues directly. In case you do have a local
-\vn{ele_struct} variable within a subroutine then you either have to
+Generally most \vn{ele_struct} elements are part of a \vn{ring_struct}
+variable and elements in a \vn{ring_struct} are handled by the
+\vn{ring_struct} allocation/deallocation routines (see
+Section~\ref{s:ring:point}). In case you do have a local
+\vn{ele_struct} variable within a subroutine or function then you either have to
 deallocate the pointers within it with a call to
 \vn{deallocate_ele_pointers} or you use the save attribute.
 \begin{example}
-  type (ele_struct), save :: ele     ! Either this at the beginning ...
+  type (ele_struct), save :: ele     ! Either do this at the beginning ...
   ...
   call deallocate_ele_pointers (ele) ! ... Or do this at the end.
 \end{example}
