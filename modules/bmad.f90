@@ -11,5 +11,6 @@ module bmad
   use bookkeeper_mod
   use radiation_mod
   use symp_lie_mod
+  use cesr_mod
 
 end module
