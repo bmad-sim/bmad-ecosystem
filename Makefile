@@ -15,6 +15,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.4  2004/04/25 19:11:43  dcs
+# Modified.
+#
 # Revision 1.3  2004/04/18 22:06:29  dcs
 # added readline routine.
 #
@@ -66,7 +69,7 @@
 LIB_SRC_DIRS  := code
 OBJ_SRC_DIRS  := program
 CONFIG_DIRS   :=
-LOCAL_INCS    := ../include /usr/local/include
+LOCAL_INCS    := ../include
 LOCAL_MODS    := ../modules
 SRC_EXCLUDE   :=
 
