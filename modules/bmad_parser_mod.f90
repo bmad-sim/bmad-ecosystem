@@ -519,6 +519,14 @@ subroutine get_attribute (how, ele, ring, pring, &
       return
     endif
 
+  elseif (i == is_on$) then
+    call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
+    read (word, '(L)', iostat = ios) ele%is_on
+    if (ios /= 0 .or. ix_word == 0) then
+      call warning ('BAD "IS_ON" SWITCH FOR: ' // ele%name)
+      return
+    endif
+
   else ! normal attribute
 
     call evaluate_value (trim(ele%name) // ' ' // word, value, &
