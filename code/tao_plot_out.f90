@@ -11,6 +11,7 @@ subroutine tao_plot_out ()
 use tao_mod
 use quick_plot
 use tao_single_mod
+use tao_plot_window_mod
 
 implicit none
 

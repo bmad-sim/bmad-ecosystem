@@ -490,7 +490,7 @@ character(20) :: r_name = "tao_find_beam_centroid"
   if (record_lost) then
     if (n_lost == 1) then
       call out_io (s_blank$, r_name, &
-            "   1 particle lost at element \I\ in universe \I\.", &
+            "   1 particle  lost at element \I\ in universe \I\.", &
                                            i_array = (/ ix_ele, uni /) )
     elseif (n_lost .gt. 1) then
       call out_io (s_blank$, r_name, &

@@ -21,6 +21,7 @@ subroutine tao_command (command_line, err)
   use tao_scale_mod
   use tao_x_scale_mod
   use tao_set_mod
+  use tao_plot_window_mod
 
   implicit none
 
@@ -135,7 +136,7 @@ subroutine tao_command (command_line, err)
     quit_tao = .false.
     call tao_query_logical ('y', 'n', 'Quit?', quit_tao)
     if (.not. quit_tao) return
-    call qp_close_page
+    call tao_destroy_plot_window
     stop
  
 !--------------------------------
@@ -240,8 +241,8 @@ subroutine tao_command (command_line, err)
     call out_io (s_warn$, r_name, &
          "Use this command with a little caution. There is a small memory leak somewhere!")
     
-! quit the plot window so it will be recreated    
-    call qp_close_page
+    ! quit the plot window so it will be recreated    
+    call tao_destroy_plot_window
     s%global%init_plot_needed = .true.
     
     if (cmd_word(1) .eq. ' ') then

@@ -147,6 +147,8 @@ integer i, j, k, istat
   if (associated (s%key)) deallocate(s%key, stat=istat)
 
 ! plotting  
+  nullify(s%plot_page%region)
+
   do i = 1, size(s%template_plot)
     if (.not. associated (s%template_plot(i)%graph)) cycle
     do j = 1, size(s%template_plot(i)%graph)
@@ -162,8 +164,6 @@ integer i, j, k, istat
     deallocate(s%template_plot(i)%graph, stat=istat)
   enddo
 
-  nullify(s%plot_page%region)
-
 ! Universes 
   if (associated (s%u)) then
     do i = 1, size(s%u)
@@ -173,8 +173,15 @@ integer i, j, k, istat
       deallocate(s%u(i)%base_orb, stat=istat)
       
       ! Beams
-      deallocate(s%u(i)%macro_beam%ix_lost, stat=istat)
+      deallocate (s%u(i)%macro_beam%ix_lost, stat=istat)
+      call reallocate_macro_beam (s%u(i)%macro_beam%beam, 0, 0, 0)
+      call reallocate_beam (s%u(i)%beam%beam, 0, 0)
   
+      ! Coupling
+      call deallocate_ele_pointers (s%u(i)%coupling%coupling_ele)
+      call reallocate_macro_beam (s%u(i)%coupling%injecting_macro_beam, 0, 0, 0)
+      call reallocate_beam (s%u(i)%coupling%injecting_beam, 0, 0)
+      
       ! d2_data
       do j = 1, size(s%u(i)%d2_data)
         do k = 1, size(s%u(i)%d2_data(j)%d1)
@@ -185,20 +192,28 @@ integer i, j, k, istat
       enddo
       deallocate(s%u(i)%d2_data, stat=istat)
  
- 
       ! Data
       do j = lbound(s%u(i)%data,1), ubound(s%u(i)%data,1)
         nullify(s%u(i)%data(j)%d1)
       enddo
       deallocate(s%u(i)%data, stat=istat)
  
+      ! ix_data
+      do j = 0, size(s%u(i)%ix_data)
+      if (associated(s%u(i)%ix_data(j)%ix_datum)) deallocate(s%u(i)%ix_data(j)%ix_datum)
+      enddo
+      deallocate(s%u(i)%ix_data)
+      
       ! dModel_dVar
       deallocate(s%u(i)%dmodel_dvar, stat=istat)
  
       ! Lattices
-      call deallocate_lattice_internals(s%u(i)%model)
-      call deallocate_lattice_internals(s%u(i)%design)
-      call deallocate_lattice_internals(s%u(i)%base)
+      call deallocate_ring_pointers (s%u(i)%model)
+      call deallocate_ring_pointers (s%u(i)%design)
+      call deallocate_ring_pointers (s%u(i)%base)
+!     call deallocate_lattice_internals(s%u(i)%model)
+!     call deallocate_lattice_internals(s%u(i)%design)
+!     call deallocate_lattice_internals(s%u(i)%base)
     enddo
   endif
     
@@ -212,11 +227,13 @@ subroutine deallocate_lattice_internals (lat)
 implicit none
 
 type (ring_struct) :: lat
+type (ele_struct), pointer :: ele
 
 integer j, istat
 
   ! Lattice elements
   do j = 0, size(lat%ele_)
+    ele => lat%ele_(j)
     if (associated(lat%ele_(j)%r)) deallocate(lat%ele_(j)%r, stat=istat)
     if (associated(lat%ele_(j)%a)) deallocate(lat%ele_(j)%a, stat=istat)
     if (associated(lat%ele_(j)%b)) deallocate(lat%ele_(j)%b, stat=istat)

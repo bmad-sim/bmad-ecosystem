@@ -17,6 +17,7 @@ subroutine tao_init_plotting (plot_file)
 use tao_mod
 use tao_input_struct
 use quick_plot
+use tao_plot_window_mod
 
 implicit none
 
@@ -176,7 +177,6 @@ do
     endif
 
     if (grph%type == 'lat_layout') then
-      if (plt%x_axis_type== 'index') plt%x_axis_type = 's'
       lat_layout_here = .true.
     endif
 

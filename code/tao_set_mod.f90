@@ -44,6 +44,8 @@ do i = 1, size(s%u)
   if (err) return
 enddo
 
+s%global%lattice_recalc = .true.
+
 !-------------------------------------------
 contains
 

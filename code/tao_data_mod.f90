@@ -97,7 +97,6 @@ end subroutine
 ! Subroutine tao_evaluate_a_datum (datum, u, lattice, orb, datum_value, taylor_in)
 !
 ! Subroutine to put the proper data in the specified datum
-! Data types that require ranges should be evaulated at the ix2 element.
 !
 ! Input:
 !   datum        -- Tao_data_struct: What type of datum
@@ -585,7 +584,6 @@ subroutine tao_read_bpm (orb, ele, axis, reading)
 
 type (coord_struct) orb
 type (ele_struct) ele
-type (tao_d2_data_struct), pointer :: d2_ptr
 
 real(rp) reading
 
@@ -611,8 +609,6 @@ logical err
                  "This axis not supported for BPM reading!")
   endif
     
-  call tao_find_data (err, s%u(3), 'bpm:x', d2_ptr)
-
 end subroutine tao_read_bpm
 
 !-----------------------------------------------------------------------

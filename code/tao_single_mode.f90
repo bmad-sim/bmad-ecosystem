@@ -8,6 +8,7 @@ subroutine tao_single_mode (char)
   use single_char_input_mod
   use tao_scale_mod
   use tao_x_scale_mod
+  use tao_plot_window_mod
 
   implicit none
 
@@ -70,7 +71,7 @@ subroutine tao_single_mode (char)
     doit = .false.
     call tao_query_logical ('y', 'n', 'Quit?', doit)
     if (.not. doit) return
-    call qp_close_page
+    call tao_destroy_plot_window
     stop
 
 ! v: Set variable at given value
