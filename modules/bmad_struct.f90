@@ -705,6 +705,6 @@ module bmad_struct
 
 ! multi_turn_func_common is for multi_turn_tracking_to_mat.
 
-  type (coord_struct), allocatable, save :: multi_turn_func_common(:) 
+  type (coord_struct), pointer :: multi_turn_func_common(:) 
 
 end module
