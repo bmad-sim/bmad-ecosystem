@@ -13,7 +13,7 @@ the reference orbit a distance $s$ relative to the reference orbit's
 zero position plus a transverse offset. This point on the reference
 orbit is used as the origin of the local $(x, y, z)$ coordinate system
 with the $z$--axis tangent to the reference orbit and pointing in the
-direction of the reference particle motion. The $x$ and $y$--axes are
+direction of increasing $s$. The $x$ and $y$--axes are
 perpendicular to the reference orbit. If the lattice has no vertical
 bends, the $y$--axis is in the vertical direction and the $x$--axis is
 in the horizontal plane. Notice that by construction, the particle is
@@ -60,7 +60,7 @@ any actual particle could travel.
 
 Do not confuse this reference orbit (which defines the local
 coordinate system) with the reference orbit about which the transfer
-matrics are calculated (\sref{s:twiss}). The former is fixed by the
+matrices are calculated (\sref{s:twiss}). The former is fixed by the
 lattice while the latter can be any arbitrary orbit.
 
 %-----------------------------------------------------------------------------
@@ -129,14 +129,33 @@ where $P_x$ and $P_y$ are respectively the momentum components along
 the $x$ and $y$ axes, and $P_0$ is the reference (sometimes called the
 design) momentum.
 
-The canonical $z$ coordinate is the path length difference between the
-particle as it passes a given $s$ position relative relative to the
-path length of the reference particle as it passes the same $s$
-position. Notice that the time at which the particle and reference
-particle pass a given $s$ position are generally not the same. Do not
-confuse the canonical $z$ with the particle's longitudinal coordinate
+The canonical $z$ coordinate is 
+\Begineq
+  z(s) = s - \beta \, c \, t 
+\Endeq
+where $t$ is the time at which the particle is at
+position $s$, and $\beta = v/c$ with $v(s)$ being the velocity at position $s$. 
+Do not confuse the canonical $z$ with the particle's longitudinal coordinate
 in the local reference frame $z$ which is always zero as shown in
 Figure~\ref{f:local_coords}.
+
+A physical interpretation of canonical $z$ is given by
+imagining a reference particle travelling along the reference curve who arrives
+at position $s$ at time $t_0 = s / \beta c$. $z$ is then given by
+\begin{align}
+  z &= -\beta \, \c \, (t - t_0)
+    &\equiv - \beta \, c \, \Delta t
+\end{align}
+$\Delta t$ being the time difference between when the
+particle passes by a given $s$ position along the reference orbit and
+when the reference particle does. $z$ is then the longitudinal distance
+between the particle and the reference particle when the particle is at $s$
+with positive $z$ indicating that the particle is ahead of the reference 
+particle. At constant velocity $z$ can also be interpreted as the 
+path length difference between the
+particle as it passes a given $s$ position relative to the
+path length of the reference particle as it passes the same $s$
+position. 
 
 The longitudinal canonical momentum $p_z$ is given by
 \begin{equation}
@@ -168,19 +187,6 @@ $\Bf a = q \, A / c \, P_0$ is the normalized vector potential, $g =
 1/\rho$ is the curvature function with $\rho$ being the radius of
 curvature of the reference orbit and it has been assumed that the
 bending is in the $x$--$z$ plane. 
-
-At constant momentum, $z$ can be expressed in terms of the time via
-\begin{align}
-  z(s) &= s - \beta \, c \, t \\
-  & = - \beta \, c \, \Delta t
-\end{align}
-where $\beta = v/c$, $t$ is the time at which the particle is at
-position $s$, and $\Delta t$ is the time difference between when the
-particle passes by a given $s$ position along the reference orbit and
-when the reference particle does. Another way of saying this is that,
-$z$ will be the longitudinal distance between the particle and the
-reference particle when their positions are both measured at a given
-time $t$.
 
 For those programmers using the PTC\index{PTC/FPP}
 software package directly (ignore

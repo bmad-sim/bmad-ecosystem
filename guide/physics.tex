@@ -13,13 +13,14 @@ Table~\ref{t:units}.  Note that \MAD uses different units. For example,
 \begin{tabular}{|l|l|} \hline
   {\em Quantity}     & {\em Units}       \\ \hline
   Angles             &    radians        \\ 
-  Phase Angles (RF)  &    radians/2$\pi$ \\ 
-  Frequency          &    Hz             \\ 
+  Charge             &    Coulombs       \\
   Current            &    Amps           \\ 
+  Frequency          &    Hz             \\ 
   Kick               &    radians        \\ 
   Length             &    meters         \\ 
   Magnetic Field     &    Tesla          \\ 
   Particle Energy    &    eV             \\ 
+  Phase Angles (RF)  &    radians/2$\pi$ \\ 
   Voltage            &    Volts          \\ \hline
 \end{tabular}
 \caption{Physical units used by \bmad.}
@@ -146,16 +147,16 @@ or
   \tan[(n+1) \phi_n] &= \frac{-a_n}{b_n}
 \end{align}
 To convert a normal magnet (a magnet with no skew component) into a skew
-magnet (a magnet with no normal component) the magnet shoule be rotated
+magnet (a magnet with no normal component) the magnet should be rotated
 about its longitudinal axis with a rotation angle of
 \Begineq
   (n+1) \phi_n = \frac{\pi}{2}
 \Endeq
-For example, a normal quadrupole rotated by by $45^\circ$ becomes a
+For example, a normal quadrupole rotated by $45^\circ$ becomes a
 skew quadrupole.
 
 When the $a_n$ and $b_n$ are associated with a physical element (as
-opposed to the $a_n$ and $b_n$ associated with an \vn{AB_Multipole}),
+opposed to the $a_n$ and $b_n$ associated with an \vn{AB_Multipole} element),
 a measurement radius $r_0$ and a scale factor $F$ are used to scale
 the $a_n$ and $b_n$ according to the formula
 \begin{align}
@@ -267,8 +268,8 @@ For example, suppose that the exact map through an element looks like
 \Endeq
 Then a Taylor map to 1\St order is
 \Begineq
-  x(out) = [A \, \sin(k \, x_{\mbox{ref}}] + 
-  [A \, k \, \cos(k \, x_{\mbox{ref}}] \, x(in)
+  x(out) = [A \, \sin(k \, x_{\mbox{ref}})] + 
+  [A \, k \, \cos(k \, x_{\mbox{ref}})] \, x(in)
 \Endeq
 Thus the choice of the reference point will affect the values of the
 coefficients of the Taylor map but once the coefficient values are
