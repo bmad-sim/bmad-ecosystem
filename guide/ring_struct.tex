@@ -120,7 +120,7 @@ routine.
 Since the \ringstruct has pointers within it (plural since the \elestruct\
 has pointers within it) there is an extra burden on the programmer to
 make sure that allocation and deallocation is done properly. To this
-end the equal sign has been overloaded by the routine \ringequalring\
+end the equal sign has been overloaded by the routine \sn{ring\_equal\_ring}
 so that when one writes
 \begin{verbatim}
     ring1 = ring2
@@ -131,7 +131,7 @@ point to different locations in physical memory so that changes to one
 ring will not affect the other.
 
 Initial allocation of the pointers in \ringstruct\ is generally
-handeled by \bmadparser\ and \ringequalring\ and so typically not a
+handeled by \bmadparser\ and \sn{ring\_equal\_ring} and so typically not a
 concern of most programmers. Deallocation problems can arise when a
 subroutine has a local \ringstruct\ variable. 
 

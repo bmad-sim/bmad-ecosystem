@@ -2,10 +2,16 @@
 
 \bmad\ can do two types of tracking. One type uses a single particle 
 and tracks its coordinates throughout the lattice. The other type
-takes a beam distribution and tracks the beam RMS sigmas. This latter
-tracking is associated with wakefields and is discussed in another
-chapter. The starting point of any tracking is the \tn{coord\_struct}
-shown in~\ref{f:coord_struct}
+takes a beam distribution and tracks the centroids and sigmas of
+``macro particles''.  This latter type of tracking is associated with
+LINACs and wakefields and is discussed in another chapter.
+
+\chapter{The \tn{coord\_struct}}
+
+For single particle tracking the starting point is the
+\tn{coord\_struct} whose definition is shown
+in~\ref{f:coord_struct}. The \tn{coord\_struct} defines the phase
+space vector of the particle at a certain location.
 
 \begin{figure}[tb]
 \centering
@@ -19,83 +25,59 @@ shown in~\ref{f:coord_struct}
 \label{f:ele_struct}
 \end{figure}
 
-To get an orbit you will need an array of \tn{coord_struct}'s. Since
+To get an orbit, that is, the particle position at every element in a lattice
+you will need an array of \tn{coord\_struct}'s. Since
 the number of elements in the lattice is not known in advance the
-array must be decleared via a pointer
+array must be decleared to be allocatable. 
 \begin{verbatim}
-  type (coord_struct), pointer :: coords(:) = null()
+  type (coord_struct), allocatable :: coords(:)
 \end{verbatim}
-You cannot, in general, use an allocatable array since the BMAD
-subroutines expect a pointer and Fortran does not allow you to mix and
-match. Since you have a variable that alloocates memory from the heap
-you are responsable for making sure you clean up after yourself if you
-want to prevent a memory leak. If you are writing a subroutine where
-the \tn{coord\_struct} array is local and if the number of elements in 
-the \tn{ring\_struct} is constant then the fastest way to allocate is:
-\begin{berbatim}
-  type (coord_struct), pointer, save :: orb_(:) => null()§
+You cannot, in general, use a pointer to an array since the BMAD
+subroutines expect an allocatable array and Fortran does not allow you
+to mix and match.
+
+Example: To track a particle through a lattice:
+\begin{verbatim}
+  type (ring_struct) ring             ! lattice to track through
+  type (coord_struct), allocatable :: coord(:)
+  ...
+  call reallocate_coords (coord, ring%n_ele_max)
+  coords(0)%vec = (/ 0.01, 0.0, 0.0, 0.0, 0.0, 0.0 /) ! initialization
+  call track_all (ring, coord)
+\end{verbatim}
+\sn{Track\_all} takes \vn{coord(0)} and propagates it through the lattice from
+the 0\Th element through \vn{ring\%n\_ele\_ring}.  Each \vn{coord(i)}
+is associated with \vn{ring\%ele\_(i)} and is the particle position at
+the end of the element. \sn{reallocate\_coords} simply does an
+allocation. Its advantage over just allocating directly is that it
+checks if the allocation is needed and if not then it does
+nothing. This can save time. Since \sn{track\_all}, like many \bmad\
+routines, will reallocate if needed, only one call to
+\sn{reallocate\_coords} is needed initially even if there are repeated calls
+to \sn{track\_all}.
+
+If you are writing a subroutine where the \tn{coord\_struct} array is
+local then you have to decide what to do at the end of the
+subroutine. You have two choices: 1) Deallocate the array. This is the
+cleanest solution but it can be slow since you have to allocate afresh
+each time the subroutine is called. 2) use the save attribute so that
+the array stays around until the next time the subroutine is called.
+\begin{verbatim}
+  type (coord_struct), allocatable, save :: orb(:) 
   ...
   call allocate_coord (orb_, ring%n_ele_ring)
 \end{verbatim}
+This is faster but leaves memory tied up. 
 
+Note: The \bmad\ tracking routines never use the \vn{ele\%mat6}
+transfer matrix to do tracking.
 
-Advantages: Minimal reallocation so fast.
-  Can always handle case when size of ring%ele_(:) changes.
-Disadvantages: Slightly more complicated, You always have the allocated array
-  filling memory.
-
-3) The "clean" way of doing things is:
-
-      type (coord-struct), allocatable :: orb_(:)
-      ...
-      allocate (orb_(0:ring%n_ele_ring)
-      ...
-      deallocate (orb_)
-
-Advantages: Clean
-Disadvantages: Can be slow. coord_struct gets allocated and deallocated every
-  time the routine is called.
-
--------------------------------------------------------------------
-
-For other types of variables:
-
-1) In each ele_struct there is for general use:
-      ele%r(:)
-      ele%ix_pointer
-      ele%logic
-These subelements are not used by BMAD.
-
-
-2) For allocated arrays there are the following routines:
-      reallocate_real
-      reallocate_integer
-      reallocate_logical
-      reallocate_string
-
-3) For pointer arrays Numerical Recipes has the overloaded reallocate function.
-For example:
-      integer, pointer :: int(:)
-      ...
-      int => reallocate (int, 500)
-
-
-
-
-
-When using radiation excitation the random number generator is based
-upon the fortran90 intrinsic random\_number. If random\_seed is not called
-then the fluctuations from run to run will be exactly the same.
-
-
-How to allocate coord\_struct arrays. 
-
-  Switches to switch tracking
-
-  Runge Kutta
-
-  Boris
-
-  Custom
-    * how to setup
+For each element the method of tracking may be set either via the
+input lattice file or directly in the program by setting the
+\cn{tracking\_method} attribute of an element
+\begin{verbatim}
+  type (ele_struct) ele
+  ...
+  ele%tracking_method = boris$  ! for boris traking
+\end{verbatim}
 

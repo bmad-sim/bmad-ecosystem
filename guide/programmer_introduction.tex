@@ -26,7 +26,7 @@ program test
 end program
 \end{verbatim}
 
-The \code{use bmad} statement defines the \bmad\ structures (types)
+The \cs{use bmad} statement defines the \bmad\ structures (types)
 and defines the interfaces (argument lists) for the \bmad\
 subroutines. In particular, the \ringstruct\ structure holds all the
 lattice information: The list of elements, their attributes,
@@ -51,7 +51,7 @@ horizontal mode) beta.
 \section{Getf and Listf}
 
 As can be seen there is a lot going on behind the scenes even for this
-simple program.This shows that programming with BMAD can be both easy
+simple program.This shows that programming with \bmad\ can be both easy
 and hard. Easy in the sense that a lot can be done with just a few
 lines. The hard part comes about since there are many details that
 have to be keept in mind in order to make sure that the subroutines
@@ -88,7 +88,7 @@ thus more verbose than the \cmd{listf} command.
 
 \section{Porgramming Conventions}
 
-\BMAD subroutines follow the following conventions:
+\bmad\ subroutines follow the following conventions:
 
 \begin{description}
 \item[\$ Denotes Parameter] A ``\$'' at the end of a name denotes an 
@@ -97,7 +97,7 @@ whether an element is a quadrupole one would write:
 \begin{verbatim}
   if (ring%ele_(i)%key == quadrupole$) ...
 \end{verbatim}
-Checking the source code one would find in the module \bmadstruct\
+Checking the source code one would find in the module \tn{bmad\_struct}
 \begin{verbatim}
   integer, parameter :: drift$ = 1, sbend$ = 2, quadrupole$ = 3, group$ = 4
 \end{verbatim}
