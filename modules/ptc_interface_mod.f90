@@ -469,11 +469,13 @@ subroutine set_ptc (param, taylor_order, integ_order, &
   real(dp) this_energy
 
   logical, optional :: no_cavity, exact_calc
-  logical, save :: make_states_needed = .true.
-              
+  logical, save :: init_needed = .true.
+
+  character(16) :: r_name = 'set_ptc'
+
 ! do not call set_mad
 
-  if (make_states_needed .and. present(param)) then
+  if (init_needed .and. present(param)) then
     if (param%particle == positron$ .or. param%particle == electron$) then
       call make_states(.true.)
     else
@@ -481,7 +483,6 @@ subroutine set_ptc (param, taylor_order, integ_order, &
     endif
     EXACT_MODEL = .false.
     ALWAYS_EXACTMIS = .false.
-    make_states_needed = .false.
   endif
 
   if (present(exact_calc)) then
@@ -506,19 +507,24 @@ subroutine set_ptc (param, taylor_order, integ_order, &
   endif
 
   if (present(param)) then
-    if (bmad_com%beam_energy /= param%beam_energy .or. &
+    if (init_needed .or. bmad_com%beam_energy /= param%beam_energy .or. &
                         present(integ_order) .or. present(num_steps)) then
       this_energy = 1e-9 * param%beam_energy
+      if (this_energy == 0) then
+        call out_io (s_fatal$, r_name, 'BEAM_ENERGY IS 0.')
+        call err_exit
+      endif
       call set_mad (energy = this_energy, method = this_method, &
                                                        step = this_steps)
       bmad_com%beam_energy  = param%beam_energy
+      init_needed = .false.
     endif
   endif
 
 ! Do not call init before the call to make_states
 
   if (present(taylor_order)) then  
-    if (make_states_needed) then                   ! make_states has not been called
+    if (init_needed) then                   ! make_states has not been called
       bmad_com%taylor_order = taylor_order  ! store the order for next time
     elseif (bmad_com%taylor_order_ptc /= taylor_order) then
       call init (default, taylor_order, 0, berz, nd2, &
