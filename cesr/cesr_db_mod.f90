@@ -38,7 +38,7 @@ module cesr_db_mod
                                                        
 ! db_struct def
 
-  integer, parameter :: n_csr_sqewsext_maxx = 4
+  integer, parameter :: n_csr_sqewsext_maxx = 6
 
   type db_struct
     type (db_element_struct) :: csr_quad_cur(98)
@@ -194,13 +194,13 @@ subroutine bmad_to_db (ring, db, calib_date)
           'SCIR SKQUCUR',    k1$,    db%node, cesr%skew_quad_(111:114), 111)
                            
   call db_init_it (db%csr_sqewsext, lbound(db%csr_sqewsext, 1), &
-          'CSR SQEWSEXT',    k2$,    db%node, cesr%skew_sex_(1:4), 1)
+          'CSR SQEWSEXT',    k2$,    db%node, cesr%skew_sex_(1:6), 1)
 
   call db_init_it (db%scir_vertcur, lbound(db%scir_vertcur, 1), &
           'SCIR VERTCUR', vkick$, db%node, cesr%v_steer_(111:114), 111)
 
   call db_init_it (db%scir_sksxcur, lbound(db%scir_sksxcur, 1), &
-          'SCIR SKSXCUR',   k1$,    db%node, cesr%skew_sex_(11:11), 11)
+          'SCIR SKSXCUR',   k2$,    db%node, cesr%skew_sex_(11:11), 11)
 
 !-----------------------------------------------------------------------------
 ! find the separators

@@ -229,6 +229,8 @@ subroutine bmad_to_cesr (ring, cesr)
   cesr%skew_sex_(2)%name = 'SK_SEX_23W'
   cesr%skew_sex_(3)%name = 'SK_SEX_23E'
   cesr%skew_sex_(4)%name = 'SK_SEX_07E'
+  cesr%skew_sex_(5)%name = 'SK_SEX_29W'
+  cesr%skew_sex_(6)%name = 'SK_SEX_29E'
 
   cesr%wig_(wig_w$)%name = 'WIG_W'
   cesr%wig_(wig_e$)%name = 'WIG_E'
