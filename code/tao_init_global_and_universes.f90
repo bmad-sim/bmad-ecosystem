@@ -82,9 +82,9 @@ subroutine tao_init_global_and_universes (s, data_and_var_file)
 
   do
     d1_data(:)%sub_class = ' '      ! set default
-    data(:)%default_weight = 0      ! set default
+    data(:)%default_weight = 0.0      ! set default
     do i = lbound(d1_data, 1), ubound(d1_data, 1)
-      data(i)%weight = 0        ! set default
+      data(i)%weight = 0.0        ! set default
     enddo
     read (iu, nml = tao_data, iostat = ios, err = 9100)
     if (ios < 0) exit         ! exit on end-of-file
@@ -193,13 +193,19 @@ subroutine data_stuffit (u, nu, d2_data, d1_data, data)
 
 type (tao_universe_struct), target :: u
 type (n_uni_struct) nu
-integer i, nn, n1, n2, ix, k, ix1, ix2
+integer i, nn, n1, n2, ix, k, ix1, ix2, j, jj
 
 type (tao_d2_data_input) d2_data
 type (tao_d1_data_input) d1_data(:)
 type (tao_data_input) data(:)
 
 integer i_d2, i_d1, nd1
+
+character(20) count_name1, count_name2, ix_char
+character(20) search_string
+
+logical counting, searching
+logical, allocatable :: found_one(:)
 
 ! Count number of d2 data entries and
 ! transfer info from input structures to the universe structure.
@@ -222,30 +228,82 @@ integer i_d2, i_d1, nd1
 
   do i = 1, size(d1_data)
 
+    if (d1_data(i)%sub_class == ' ') exit
+
     u%d2_data(nn)%d1(i)%d2 => u%d2_data(nn)  ! point back to the parent
 
-    if (d1_data(i)%sub_class == ' ') exit
-    n1 = nu%data + 1
-    n2 = nu%data + data(i)%ix_max - data(i)%ix_min + 1
-    ix1 = data(i)%ix_min
-    ix2 = data(i)%ix_max
-    nu%data = n2
-    if (n2 > size(u%data)) then
-      call out_io (s_error$, r_name, &
-              'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
-      call err_exit
+! are we counting elements and forming data names?
+    if (index(data(i)%name(0), 'COUNT:') .ne. 0) then
+      counting = .true.
+      count_name1 = data(i)%name(0)
+      call string_trim (count_name1(7:), count_name1, ix)
+      call string_trim (count_name1, count_name1, ix)
+      ix = index (count_name1, '#')
+      if (ix .eq. 0) then
+	call out_io (s_abort$, r_name, "WHEN USING 'SAME:' MUST HAVE '#' &
+			WILDCARD IN NAME")
+	call err_exit
+      endif
+      count_name2 = count_name1(ix+1:)
+      count_name1 = count_name1(:ix-1) 
+    else
+      counting = .false.
+      n1 = nu%data + 1
+      n2 = nu%data + data(i)%ix_max - data(i)%ix_min + 1
+      ix1 = data(i)%ix_min
+      ix2 = data(i)%ix_max
+      nu%data = n2
+      if (n2 > size(u%data)) then
+        call out_io (s_abort$, r_name, &
+                'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
+        call err_exit
+      endif
     endif
 
     u%d2_data(nn)%d1(i)%sub_class = d1_data(i)%sub_class  ! stuff in the data
 
-! now for some family guidance...
-! point the children to the grandchildren in the big data array
-    call tao_point_d1_to_data (u%d2_data(nn)%d1(i)%d, &
-                                      u%data(n1:n2), data(i)%ix_min, n1)
-
-! are we repeating elements for data using SAME: commmand?
-
-    if (index(data(i)%ele_name(0), 'SAME:') == 1) then
+! now check if we are searching for elements or repeating elements
+! and record the element names in the data structs
+    
+    if (index(data(i)%ele_name(0), 'SEARCH:') .ne. 0) then
+      search_string = data(i)%ele_name(0)
+      call string_trim (search_string(8:), search_string, ix)
+      allocate (found_one(u%design%n_ele_max))
+      found_one = .false.
+      do j = 1, u%design%n_ele_max
+        if (match_wild(u%design%ele_(j)%name, search_string)) &
+	  found_one(j) = .true.
+	  !keep track of element index in lattice
+	  u%design%ele_(j)%ix_pointer = j
+      enddo
+      !finish finding data array limits
+      if (counting) then
+        n1 = nu%data + 1
+        n2 = nu%data + count(found_one)
+        ix1 = data(i)%ix_min
+        ix2 = (count(found_one) - (1-data(i)%ix_min))
+        nu%data = n2
+        if (n2 > size(u%data)) then
+          call out_io (s_abort$, r_name, &
+                  'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
+          call err_exit
+        endif
+      endif
+      !get element names
+      jj = n1
+      do j = 1, size(found_one)
+        if (found_one(j)) then
+          if (jj .gt. n2) then
+	    call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
+	    call err_exit
+	  endif
+          u%data(jj)%ele_name = u%design%ele_(j)%name
+          u%data(jj)%ix_ele   = j
+          u%data(jj)%exists   = .true.
+	  jj = jj + 1
+	endif
+      enddo
+    elseif (index(data(i)%ele_name(0), 'SAME:') .ne. 0) then
       call string_trim (data(i)%ele_name(0)(6:), name, ix)
       call tao_find_data (err, u, name, d1_ptr = d1_ptr)
       if (err) then
@@ -270,19 +328,37 @@ integer i_d2, i_d1, nd1
       enddo
     endif
 
-    if (index(data(i)%name(0), 'SAME:') == 1) then
+! Create data names
+    if (index(data(i)%name(0), 'COUNT:') .ne. 0) then
+      jj = ix1
+      do j = n1, n2
+        if (jj .gt. ix2) then
+	  call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
+	  call err_exit
+	endif
+        write (ix_char, '(I)') jj
+        u%data(j)%name = count_name1 // ix_char // count_name2
+	jj = jj + 1
+      enddo
+    elseif (index(data(i)%name(0), 'SAME:') .ne. 0) then
       call string_trim (data(i)%name(0)(6:), name, ix)
       call tao_find_data (err, u, name, d1_ptr = d1_ptr)
       if (err) then
         call out_io (s_abort$, r_name, 'CANNOT MATCH "SAME:" NAME: ' // name)
         call err_exit
       endif
-      u%data(n1:n2)%ele_name = d1_ptr%d%ele_name
+      u%data(n1:n2)%name = d1_ptr%d%name
     else
       u%data(n1:n2)%name = data(i)%name(ix1:ix2)      
     endif
 
-    u%data(n1:n2)%weight   = data(i)%weight(ix1:ix2)
+    if (ix2-ix1 .le. size(data(i)%weight) .and. .not. counting) &
+    	u%data(n1:n2)%weight   = data(i)%weight(ix1:ix2)
+
+! now for some family guidance...
+! point the children to the grandchildren in the big data array
+    call tao_point_d1_to_data (u%d2_data(nn)%d1(i)%d, &
+                                      u%data(n1:n2), data(i)%ix_min, n1)
 
 ! point the %data back to the d1_data_struct
 
@@ -294,6 +370,7 @@ integer i_d2, i_d1, nd1
 ! point the children back to the mother    
     u%d2_data(nn)%d1(i)%d2 => u%d2_data(nn)
 
+    if (allocated(found_one)) deallocate (found_one)
   enddo
   
   
