@@ -28,7 +28,15 @@
 
 #include "CESR_platform.inc"
 
-subroutine custom_radiation_integrals
+subroutine custom_radiation_integrals (ring, ir, orb_)
+
+  use bmad_struct, only: ring_struct, coord_struct
+
+  implicit none
+
+  type (ring_struct) ring
+  type (coord_struct) orb_(0:)
+  integer ir
 
   print *, 'ERROR IN CUSTOM_RADIATION_INTEGRALS: THIS DUMMY ROUTINE SHOULD NOT' 
   print *, '      HAVE BEEN CALLED IN THE FIRST PLACE.'

@@ -20,10 +20,23 @@
 
 #include "CESR_platform.inc"
 
-subroutine em_field_custom
+subroutine em_field_custom (ele, param, s, orb, field, calc_dfield)
+
+  use bmad_struct
+
+  implicit none
+
+  type (ele_struct), intent(in) :: ele
+  type (param_struct) param
+  type (coord_struct), intent(in) :: orb
+  real(rp), intent(in) :: s
+  type (em_field_struct), intent(out) :: field
+  logical, optional :: calc_dfield
 
   print *, 'ERROR IN EM_FIELD_CUSTOM: THIS DUMMY ROUTINE SHOULD NOT HAVE'
   print *, '      BEEN CALLED IN THE FIRST PLACE.'
   call err_exit
+
+  field%kick = 0   ! so compiler will not complain
 
 end subroutine

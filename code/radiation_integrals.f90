@@ -54,8 +54,8 @@
 !       %i5a_E6         -- Integral: (g^3 * H_a) * gamma^6
 !       %i5b_E6         -- Integral: (g^3 * H_b) * gamma^6
 !       %sig_E1         -- Energy spread after 1 pass (eV)
-!       %sig_a          -- a-mode emittance at end of linac
-!       %sig_b          -- b-mode emittance at end of linac
+!       %emittance_a    -- a-mode emittance at end of linac
+!       %emittance_b    -- b-mode emittance at end of linac
 !   ix_cache -- Integer, optional: Cache pointer. If ix_cache = 0 at input then
 !                   ix_cache is set to a unique number. Otherwise ix_cache 
 !                   is not changed.
