@@ -1,0 +1,28 @@
+# Specify module dependencies for VMS since automatic dependency generation 
+# not yet functional
+#
+# M. Palmer
+#
+# $Id$
+#
+# $Log$
+# Revision 1.1  2002/01/10 19:57:37  cesrulib
+# Patch bmad_struct.  Add module dependency file.
+#
+#
+
+$(MOD_OUT_DIR)bmad_interface.f90$$mod:  $(MOD_OUT_DIR)bmad_struct.f90$$mod
+$(LIBRARY)(bmad_interface.obj):         $(MOD_OUT_DIR)bmad_struct.f90$$mod
+
+$(MOD_OUT_DIR)bmad_struct.f90$$mod:  $(MOD_OUT_DIR)physical_constants.f90$$mod
+$(LIBRARY)(bmad_struct.obj):         $(MOD_OUT_DIR)physical_constants.f90$$mod
+
+$(MOD_OUT_DIR)local_bmad_interface.f90$$mod:  $(MOD_OUT_DIR)bmad_interface.f90$$mod $(MOD_OUT_DIR)local_bmad_struct.f90$$mod
+$(LIBRARY)(local_bmad_interface.obj):         $(MOD_OUT_DIR)bmad_interface.f90$$mod $(MOD_OUT_DIR)local_bmad_struct.f90$$mod
+
+$(MOD_OUT_DIR)local_bmad_struct.f90$$mod:  $(MOD_OUT_DIR)bmad_struct.f90$$mod
+$(LIBRARY)(local_bmad_struct.obj):         $(MOD_OUT_DIR)bmad_struct.f90$$mod
+
+$(MOD_OUT_DIR)rad_int_common.f90$$mod:  $(MOD_OUT_DIR)bmad_struct.f90$$mod
+$(LIBRARY)(rad_int_common.obj):         $(MOD_OUT_DIR)bmad_struct.f90$$mod
+

@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/01/10 19:57:37  cesrulib
+!Patch bmad_struct.  Add module dependency file.
+!
 !Revision 1.6  2002/01/08 21:45:22  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -306,7 +309,7 @@ module bmad_struct
   integer, parameter :: electron$   = -1
   integer, parameter :: antiproton$ = -2
 
-  character*16 :: particle_name(-2:2) = (/ 'ANTIPROTON', 'ELECTRON  ', '???', &
+  character*16 :: particle_name(-2:2) = (/ 'ANTIPROTON', 'ELECTRON  ', '??? ', &
                                            'POSITRON  ', 'PROTON    ' /)
 
 ! SYMMETRY etc., logical names
