@@ -1,11 +1,30 @@
 !+
-! Subroutine radiation_integrals (ring, orb_, mode)
+! Subroutine radiation_integrals (ring, orb_, mode, ix_cash)
 !
 ! Subroutine to calculate the synchrotron radiation integrals along with the
 ! emittance, and energy spread.
 !
 ! Note: A negative emittance is possible and just means that the beam is
 ! unstable. That is, you have a negative damping partition number.
+!
+! The calculation can spend a significant amount of time calculating the
+! integrals through any wigglers. To speed up this calculation the ix_cash
+! argument can be used to stash values for the bending radius, etc.
+! so that repeated calls to radiation_integrals consume less time. [If 
+! radiation_integrals is going to be called only once then do not use this
+! feature. It will actually slow things down in this case.] 
+! To use cashing: 
+!   1) First call radiation_integrals with ix_cash set to 0. 
+!      radiation_integrals will cash values needed to compute the integrals 
+!      for the wigglers and assign ix_cash a unique number that is used to 
+!      point to the cash. 
+!   2) Subsequent calls to radiation_integrals should just pass the value of 
+!      ix_cash that has been assigned.
+! A new cash, with a unique value for ix_cash, is created each time 
+! radiation_integrals is called with ix_cash = 0. To release the memory
+! associated with a cash call release_rad_int_cash(ix_cash).
+! Note: The validity of the cash is dependent upon the orbit being (more or 
+! less) constant but is independent of the Twiss parameters.
 !
 ! Modules needed:
 !   use bmad
@@ -14,7 +33,9 @@
 !   ring      -- Ring_struct: Ring to use. The calculation assumes that 
 !                    the Twiss parameters have been calculated.
 !   orb_(0:)  -- Coord_struct: Closed orbit.
-!
+!   ix_cash   -- Integer, optional: Cash pointer.
+!                              == 0 --> Create a new cash.
+!                              /= 0 --> Use the corresponding cash. 
 ! Output:
 !   mode -- Modes_struct: Parameters for the ("horizontal like") a-mode,
 !                              ("vertical like") b-mode, and the z-mode
@@ -27,6 +48,10 @@
 !       %synch_int(4:5) -- Synchrotron integrals
 !       %j_damp         -- Damping partition factor
 !       %alpha_damp     -- Exponential damping coefficient per turn
+!   ix_cash -- Integer, optional: Cash pointer. If ix_cash = 0 at input then
+!                   ix_cash is set to a unique number. Otherwise ix_cash 
+!                   is not changed.
+!                  
 !
 ! Notes:
 !   1) %synch_int(1) = momentum_compaction * ring_length
@@ -46,7 +71,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine radiation_integrals (ring, orb_, mode)
+subroutine radiation_integrals (ring, orb_, mode, ix_cash)
                      
   use precision_def
   use nr
@@ -65,6 +90,7 @@ subroutine radiation_integrals (ring, orb_, mode)
   real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll
   real(rp) v(4,4), v_inv(4,4)
 
+  integer, optional :: ix_cash
   integer i, ix, ir, key
 
   logical do_alloc
@@ -73,15 +99,15 @@ subroutine radiation_integrals (ring, orb_, mode)
 ! init
 
   if (associated(ric%i1_)) then
-   if (size(ric%i1_) < ring%n_ele_max) then 
-     deallocate (ric%i1_)
-     deallocate (ric%i2_)
-     deallocate (ric%i3_)
-     deallocate (ric%i4a_)
-     deallocate (ric%i4b_)
-     deallocate (ric%i5a_)
-     deallocate (ric%i5b_)
-     do_alloc = .true.
+    if (size(ric%i1_) < ring%n_ele_max) then 
+      deallocate (ric%i1_)
+      deallocate (ric%i2_)
+      deallocate (ric%i3_)
+      deallocate (ric%i4a_)
+      deallocate (ric%i4b_)
+      deallocate (ric%i5a_)
+      deallocate (ric%i5b_)
+      do_alloc = .true.
     else
       do_alloc = .false.
     endif
@@ -90,15 +116,25 @@ subroutine radiation_integrals (ring, orb_, mode)
   endif
 
   if (do_alloc) then
-   allocate (ric%i1_(ring%n_ele_max))
-   allocate (ric%i2_(ring%n_ele_max))
-   allocate (ric%i3_(ring%n_ele_max))
-   allocate (ric%i4a_(ring%n_ele_max))
-   allocate (ric%i4b_(ring%n_ele_max))
-   allocate (ric%i5a_(ring%n_ele_max))
-   allocate (ric%i5b_(ring%n_ele_max))
+    allocate (ric%i1_(ring%n_ele_max))
+    allocate (ric%i2_(ring%n_ele_max))
+    allocate (ric%i3_(ring%n_ele_max))
+    allocate (ric%i4a_(ring%n_ele_max))
+    allocate (ric%i4b_(ring%n_ele_max))
+    allocate (ric%i5a_(ring%n_ele_max))
+    allocate (ric%i5b_(ring%n_ele_max))
   endif
 
+  if (present(ix_cash)) then
+    if (ix_cash == 0) then
+
+    else
+
+    endif
+
+
+
+  endif
 
   m65 = 0
 

@@ -1,6 +1,5 @@
 !+
-! subroutine MAKE_LRBBI(master_ring_oppos, ring, &
-!										                   			ix_LRBBI, master_ix_LRBBI)
+! subroutine MAKE_LRBBI(master_ring_oppos, ring, ix_LRBBI, master_ix_LRBBI)
 !
 ! This subroutine takes rings with markers for LRBBI's (like those created
 !   in MARK_LRBBI) and turns the marked locations into LRBBI elements. The
@@ -41,8 +40,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine MAKE_LRBBI(master_ring_oppos, ring, &
-                  													ix_LRBBI, master_ix_LRBBI)
+subroutine MAKE_LRBBI(master_ring_oppos, ring, ix_LRBBI, master_ix_LRBBI)
 
   use bmad_struct
   use bmad_interface                     
