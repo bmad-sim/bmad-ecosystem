@@ -48,7 +48,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   real(rdef) t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
   real(rdef) lcs, lc2s2, error, rho
 
-  integer i, n, n_slice, n_pole, key, temp_method
+  integer i, n, n_slice, n_pole, key
 
 !--------------------------------------------------------
 ! init
