@@ -22,21 +22,6 @@
 !                         non ok$ bmad_status
 !-
 
-!$Id$
-!$Log$
-!Revision 1.5  2003/06/04 17:55:53  dcs
-!Eliminated x%pos, x%vel, etc. from coord_struct.
-!
-!Revision 1.4  2003/01/27 14:40:31  dcs
-!bmad_version = 56
-!
-!Revision 1.3  2002/02/23 20:32:12  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:49  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 subroutine chrom_calc (ring, delta_e, chrom_x, chrom_y)
@@ -46,13 +31,14 @@ subroutine chrom_calc (ring, delta_e, chrom_x, chrom_y)
 
   implicit none
 
-  type (ring_struct)  ring, ring2
+  type (ring_struct)  ring
+  type (ring_struct), save :: ring2
   type (coord_struct)  c0, coord_(0:n_ele_maxx)
 
   integer i, key
 
-  real(rdef) high_tune_x, high_tune_y, low_tune_x, low_tune_y
-  real(rdef) delta_e, chrom_x, chrom_y
+  real(rp) high_tune_x, high_tune_y, low_tune_x, low_tune_y
+  real(rp) delta_e, chrom_x, chrom_y
 
   if (delta_e <= 0) delta_e = 1.0e-4
   ring2 = ring

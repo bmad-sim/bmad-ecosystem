@@ -1,7 +1,9 @@
 !+
-! Subroutine transfer_ele_pointers (ele1, ele2)
+! Subroutine transfer_ele_pointers (ele1, ele2, ele_save)
 !
+! This 
 ! Subroutine to transfer the information in the pointers from ele2 to ele1.
+! ele_save is holds
 ! When finished ele1's pointers will be pointing to a different memory 
 ! location from ele2's so that the elements are truely separate.
 !
@@ -25,7 +27,7 @@ subroutine transfer_ele_pointers (ele1, ele2)
   implicit none
 
   type (ele_struct), intent(in)  :: ele2
-  type (ele_struct), intent(out) :: ele1
+  type (ele_struct), intent(inout) :: ele1
 
   integer i
 
@@ -35,6 +37,8 @@ subroutine transfer_ele_pointers (ele1, ele2)
     print *, 'ERROR IN TRANSFER_ELE_POINTERS: NO POINTER_INIT DONE FOR ELE2!'
     call err_exit
   endif
+
+  if (ele1%pointer_init /= has_been_inited$) call deallocate_ele_pointers (ele1)
   
   if (associated(ele2%wig_term)) then
     allocate (ele1%wig_term(size(ele2%wig_term)))
