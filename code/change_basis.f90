@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:37  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:49  rwh24
 !UNIX compatibility updates
 !
@@ -44,7 +47,10 @@
 
 
 subroutine change_basis (coord, ref_energy, ref_z, to_cart, time_disp)
+
   use bmad_struct
+  use bmad_interface
+
   implicit none
 
   type (coord_struct)  coord, temp

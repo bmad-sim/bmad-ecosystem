@@ -35,7 +35,7 @@
 ! Output:
 !   co          -- Coord_struct: Closed orbit at the starting point.
 !   bmad_status -- Bmad status common block
-!       %ok         -- Set False if orbit does not converge.
+!       %ok         -- Set False if orbit does not converge, True otherwise.
 !
 ! Note:
 !     1) You can use TWISS_AT_START if I_DIM = 4 to calculate the 1-turn
@@ -47,6 +47,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:38  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:49  rwh24
 !UNIX compatibility updates
 !
@@ -76,14 +79,18 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
 ! Error check
 
+  bmad_status%ok = .true.
+
   if (ring%ele_(0)%mat6(6,5) == 0 .and. i_dim == 6) then
     type *, 'ERROR IN CLOSED_ORBIT_AT_START: CANNOT DO FULL 6-DIMENSIONAL'
     type *, '      CALCULATION WITH NO RF VOLTAGE!'
+    bmad_status%ok = .false. 
     call err_exit
   endif
 
   if (i_dim /= 4 .and. i_dim /= 6) then
     type *, 'ERROR IN CLOSED_ORBIT_AT_START: BAD I_DIM ARGUMENT:', i_dim
+    bmad_status%ok = .false. 
     call err_exit
   endif
           

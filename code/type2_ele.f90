@@ -31,8 +31,12 @@
 !   lines(:)     -- Character*(*): Character array to hold the output.
 !   n_lines      -- Number of lines used
 !-
+
 !$Id$
 !$Log$
+!Revision 1.5  2002/01/08 21:44:44  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.4  2001/11/29 19:39:54  helms
 !Updates from DCS including (*) -> (:)
 !
@@ -109,6 +113,8 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, twiss_out,  &
         i_max = ix1_m$ - 1 
       endif  
       do i = 1, i_max
+        if (i == energy$) cycle   ! energy not yet implemented.
+        if (i == aperture$) cycle ! aperture not yet implemented
         if (attribute_name(ele, i) /= null_name) then
           if (ele%value(i) /= 0 .or. type_zero_attrib) then
             nl = nl + 1
@@ -121,9 +127,9 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, twiss_out,  &
       if (ele%key /= multipole$) then
         particle = +1
         if (present(ring)) particle = ring%param%particle
-        call multipole_ab_scale (ele, particle, a, b)
+        call multipole_ele_to_ab (ele, particle, a, b, .false.)
         call multipole_ab_to_value (a, b, value)
-        call multipole_to_vecs (ele, particle, knl, tilt)
+        call multipole_ele_to_kt (ele, particle, knl, tilt, .true.)
         call multipole_kt_to_ab (knl, tilt, a, b)
         call multipole_ab_to_value (a, b, value2)
         do i = ix1_m$, ix2_m$
@@ -159,6 +165,17 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, twiss_out,  &
 
   nl = nl + 1
   write (lines(nl), '(1x, a, f13.4)') 'S:', ele%s
+
+! Encode methods
+
+  write (lines(nl+1), *)
+  write (lines(nl+2), '(2a)') ' Tracking_method:  ', &
+                                    calc_method_name(ele%tracking_method)
+  write (lines(nl+3), '(2a)') ' Mat6_calc_method: ', &
+                                    calc_method_name(ele%mat6_calc_method)
+  write (lines(nl+4), '(2a)') ' Num_steps: ', &
+                                    calc_method_name(ele%num_steps)
+  nl = nl + 4
 
 ! Encode lord info
 

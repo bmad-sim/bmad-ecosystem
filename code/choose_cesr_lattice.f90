@@ -22,13 +22,16 @@
 !   LATTICE  -- Character*40: Lattice name choisen. If a file name is given
 !                    and RING is not present then LATTICE = ""
 !   LAT_FILE -- Character*(*): Name of the lattice file. Typically:
-!                    lat_file = 'U:[CESR.BMAD.LAT]BMAD_' // lattice
+!                    lat_file = 'U:[CESR.BMAD.LAT]BMAD_' // lattice // .LAT
 !   RING     -- Ring_struct: OPTIONAL. If present then BMAD_PARSER is called
 !               to load the RING structure.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/01/08 21:44:38  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.5  2001/10/08 17:18:14  rwh24
 !DCS changes to f90 files.
 !Bug fixes to c file.
@@ -94,8 +97,8 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
         endif
       enddo
   
-      type *, ' [Note: To be in this list a lattice file must have a name ]'
-      type *, ' [      of the form: U:[CESR.BMAD.LAT]BMAD_<lattice_name>  ]'
+      type *, ' [Note: To be in this list a lattice file must have a name   ]'
+      type *, ' [      of the form: U:[CESR.BMAD.LAT]BMAD_<lattice_name>.LAT]'
 
       type *
       type *, 'You can enter a Lattice number or a full file name.'
@@ -133,7 +136,8 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
       lat_file = line
       inquire (file = lat_file, exist = is_there, name = lat_file)
       if (.not. is_there) then
-        lat_file = 'BMAD_LAT:BMAD_' // line
+        lat_file = 'BMAD_LAT:BMAD_' // line 
+        if (index(line, '.') == 0) lat_file = trim(lat_file) // '.LAT' 
         call FullFileName(lat_file, lat_file)
         inquire (file = lat_file, exist = is_there, name = lat_file)
         if (.not. is_there) then

@@ -1,45 +1,51 @@
 !+
 ! subroutine MAKE_LRBBI(master_ring, master_ring_oppos, ring, &
-!													ix_LRBBI, master_ix_LRBBI)
+!										                   			ix_LRBBI, master_ix_LRBBI)
 !
-! This subroutine takes rings with spots for LRBBI crossings (like those created
-!		in MARK_LRBBI) and turns the marked locations into LRBBI elements. The
-!		master_ring and master_ring_oppos supply the data for calculating sigmas
-!		and offsets.
+! This subroutine takes rings with markers for LRBBI's (like those created
+!   in MARK_LRBBI) and turns the marked locations into LRBBI elements. The
+!   master_ring and master_ring_oppos supply the data for calculating sigmas
+!   and offsets.
+!
+! Modules Needed:
+!   use bmad_interface
+!   use bmad_struct
 !
 ! Input:
-!		master_ring						-- Ring struct: Ring with markers at all LRBBI crossings
-!		master_ring_oppos  -- Ring struct: Ring for oppositely circulating
-!																particles, with markers at all LRBBI crossings
-!   ring									-- Array of ring structs: Each bunch has its own ring(i)
-!                         with markers at all LRBBI crossings that bunch sees
-!   ix_LRBBI							-- Array(i,j): First index (i) is the index of the ring
-!																(i.e., bunch), second index (j) is the index of a
-!																beam-beam element's position in ring(i).
-!		master_ix_LRBBI    -- Array(i,j): First index (i) is the index of the
-!																ring, second index (j) is the index of a beam-beam
-!																element (seen by the ith bunch) in the master_ring 
-!																and master_ring_oppos. This index is used to 
-!																calculate sigmas and offsets.
+!   master_ring          -- Ring struct: Ring with markers at LRBBI locations.
+!   master_ring_oppos    -- Ring struct: Ring for oppositely circulating
+!                           particles, with markers at parasitic crossings.
+!   ring(:)              -- Ring struct: Each bunch has its own ring(i)
+!                           with markers at all crossings that bunch sees.
+!   ix_LRBBI(:,:)        -- Real: First index (i) is the index of the ring
+!                           (i.e., bunch), second index (j) is the index of a
+!                           beam-beam element's position in ring(i).
+!   master_ix_LRBBI(:,:) -- Real: First index (i) is the index of the
+!                           ring, second index (j) is the index of a beam-beam
+!                           element (seen by the ith bunch) in the master_ring
+!                           and master_ring_oppos. This index is used to
+!                           calculate sigmas and offsets.
 !
-!	Output:
-!		ring									-- Array of ring structs: Ring for each bunch with
-!																markers updated to beam-beam elements.
+! Output:
+!   ring(:)              -- Ring struct: Ring for each bunch with
+!                           markers updated to beam-beam elements.
 !
-!	NOTE:	The following attributes of the LRBBI elements are changed:
-!					%name = "LRBBI"
-!					%key = beambeam
-!					%value(charge) = -1
-!					%value(n_slice) = 1
+! NOTE: The following attributes of the LRBBI elements are changed:
+!         %name = "LRBBI"
+!         %key = beambeam
+!         %value(charge) = -1
+!         %value(n_slice) = 1
 !         %value(sig_x), (sig_y), (sig_z), (x_offset), (y_offset)
-!						are assigned values from master_ring and master_ring_oppos
-!				All other values (i.e., %s_pos) must be set elsewhere!! Also, this does
-!					NOT call ring_make_mat6.
-!
+!           (These are assigned values from master_ring and master_ring_oppos.)
+!    All other values (i.e., %s_pos) must be set elsewhere!! Also, this does
+!     NOT call ring_make_mat6.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:39  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:53  rwh24
 !UNIX compatibility updates
 !

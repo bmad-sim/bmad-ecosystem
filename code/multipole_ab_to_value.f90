@@ -17,6 +17,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:41  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:54  rwh24
 !UNIX compatibility updates
 !
@@ -27,6 +30,7 @@
 subroutine multipole_ab_to_value (a, b, value)
 
   use bmad_struct
+  use bmad_interface
 
   real a(0:n_pole_maxx), b(0:n_pole_maxx), value(n_attrib_maxx)
 

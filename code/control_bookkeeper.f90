@@ -14,8 +14,12 @@
 !   IX_ELE -- Integer: Index of element whose attribute values have been
 !               changed.
 !-
+
 !$Id$
 !$Log$
+!Revision 1.5  2002/01/08 21:44:38  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.4  2001/11/29 19:39:52  helms
 !Updates from DCS including (*) -> (:)
 !
@@ -41,6 +45,10 @@ subroutine control_bookkeeper (ring, ix_ele)
   integer ix_ele, i, j, ix, ix1, ix2
   integer ix_eles(300)
 
+! attribute bookkeeping
+
+  call attribute_bookkeeper (ring%ele_(ix_ele), ring%param)
+
 ! Make a list of elements to update.
 ! we do not need to update free elements of group lords.
 
@@ -61,7 +69,10 @@ subroutine control_bookkeeper (ring, ix_ele)
     if (ix1 == ix2) exit
   enddo
 
-! First: Makup Lords
+! First: Makup lords and group slaves.
+! If a super_lord has lords in turn then these lords must be overlay_lords. 
+! therefore treat the super_lord as an overlay_slave.
+! the same is true if an overlay lord has lords.
 
   do j = 1, ix2
 
@@ -72,6 +83,7 @@ subroutine control_bookkeeper (ring, ix_ele)
       call makeup_group_slaves (ring, ix)
 
     elseif (ele%control_type == super_lord$ .and. ele%n_lord > 0) then
+      call adjust_super_lord_s_position (ring, ix)
       call makeup_overlay_slave (ring, ix)
 
     elseif (ele%control_type == overlay_lord$ .and. ele%n_lord > 0) then
@@ -81,7 +93,7 @@ subroutine control_bookkeeper (ring, ix_ele)
 
   enddo
 
-! Second: Makeup Slaves
+! Second: Makeup all slaves but group slaves.
 
   do j = 1, ix2
 
@@ -102,7 +114,62 @@ subroutine control_bookkeeper (ring, ix_ele)
   enddo
 
 end subroutine
-                               
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine adjust_super_lord_s_position (ring, ix_lord)
+!
+! Subroutine to adjust the positions of the slaves of a super_lord due
+! to changes in the lord's s_offset.
+!-
+
+Subroutine adjust_super_lord_s_position (ring, ix_lord)
+
+  use bmad_struct
+  use bmad_interface
+
+  implicit none
+
+  type (ring_struct), target :: ring
+  type (ele_struct), pointer :: lord, slave 
+
+  integer ix_lord, ix
+
+  real s_start, s_start2, s_end
+
+!
+
+  lord => ring%ele_(ix_lord)
+
+  if (lord%control_type /= super_lord$) then
+    print *, 'ERROR IN ADJUST_SUPER_LORD_S_POSITION: ELEMENT IS NOT A LORD!'
+    call err_exit
+  endif
+
+! If a super lord is moved then we just need to adjust the start and end edges.
+! Adjust end position.
+
+  s_end = lord%s + lord%value(s_offset$)
+  ix = ring%control_(lord%ix2_slave)%ix_slave
+  slave => ring%ele_(ix)
+  s_start = slave%s - slave%value(l$)
+  slave%value(l$) = s_end - s_start
+  slave%s = s_end
+
+! Adjust start position
+
+  s_start = s_end - lord%value(l$)
+  if (s_start < 0) s_start = s_start + ring%param%total_length
+  ix = ring%control_(lord%ix1_slave)%ix_slave
+  slave => ring%ele_(ix)
+  s_start2 = slave%s - slave%value(l$)
+  if (s_start < 0) s_start = s_start + ring%param%total_length 
+  slave%value(l$) = slave%value(l$) + s_start2 - s_start
+
+end subroutine
+
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -183,7 +250,7 @@ subroutine makeup_super_slave (ring, ix_slave)
   type (ele_struct), pointer :: lord, slave
   type (ele_struct) :: sol_quad
 
-  integer i, j, ix, ix_slave
+  integer ix_con, j, ix, ix_slave
 
   real tilt, k1_x, k1_y, x_kick, y_kick, ks, k1, coef
   real x_o, y_o, x_p, y_p, s_slave, s_del
@@ -220,40 +287,77 @@ subroutine makeup_super_slave (ring, ix_slave)
 ! are transfered to the slave.
 
 !-----------------------------------------------------------------------
-! 1 controller: just transfer attributes except length
+! 1 super_lord for this super_slave: just transfer attributes except length
 
   if (slave%n_lord == 1) then
 
-    i = ring%ic_(slave%ic1_lord)  
-    ix = ring%control_(i)%ix_lord
+    ix_con = ring%ic_(slave%ic1_lord)  
+    ix = ring%control_(ix_con)%ix_lord
     lord => ring%ele_(ix)
-    coef = ring%control_(i)%coef
+    coef = ring%control_(ix_con)%coef  ! = len_slave / len_lord
 
     value = lord%value
     value(l$) = slave%value(l$)                 ! do not change slave length
     value(hkick$) = lord%value(hkick$) * coef
     value(vkick$) = lord%value(vkick$) * coef
     if (slave%key == rfcavity$) value(volt$) = lord%value(volt$) * coef
-    if (i /= lord%ix2_slave) then   ! if not at end of the lord domain
+    if (ix_con /= lord%ix2_slave) then   ! if not at end of the lord domain
       value(x_limit$) = 0
       value(y_limit$) = 0
     endif
 
+! s_del is the distance between lord and slave centers
+
     if (value(x_pitch$) /= 0 .or. value(y_pitch$) /= 0) then
-      s_del = modulo2 ((slave%s - slave%value(l$)/2) - &
-                  (lord%s - lord%value(l$)/2), ring%param%total_length/2)
+      s_del = (slave%s - slave%value(l$)/2) - &
+                  (lord%s + lord%value(s_offset$) - lord%value(l$)/2)
+      s_del = modulo2 (s_del, ring%param%total_length/2)
       value(x_offset$) = value(x_offset$) + s_del * value(x_pitch$)
       value(y_offset$) = value(y_offset$) + s_del * value(y_pitch$)
     endif
       
     slave%value = value
     slave%is_on = lord%is_on
+
+! if a wiggler: 
+! must keep track of where we are in terms of the unsplit wiggler.
+! This is for track_wiggler which does not try to make a "homogenous" approx.
+! l_original is the length of the unsplit original wiggler.
+! l_start is the starting point with respect to the original wiggler.
+! l_end is the ending point with respect to the original wiggler.
+
+    if (slave%key == wiggler$) then
+      slave%value(n_pole$) = lord%value(n_pole$) * coef
+      slave%value(l_original$) = lord%value(l$)
+      slave%value(l_start$)    = (slave%s - slave%value(l$)) - &
+                                                   (lord%s - lord%value(l$))
+      slave%value(l_end$)      = slave%value(l_start$) + slave%value(l$)
+    endif
+
+! if an sbend:
+!     1) renormalize the angles
+!     2) zero the face angles next to the split
+
+    if (slave%key == sbend$) then
+      slave%value(angle$) = lord%value(angle$) * coef
+      slave%value(e2$) = 0.0
+      if (ix_con == lord%ix1_slave) then   ! first slave bend
+        slave%value(e2$) = 0
+      elseif (ix_con == lord%ix2_slave) then 
+        slave%value(e1$) = 0
+      else
+        slave%value(e1$) = 0
+        slave%value(e2$) = 0
+      endif
+    endif                       
+
     return
 
   endif
 
 !-----------------------------------------------------------------------
-! Multiple controllers: must be a solenoid/quadrupole combo
+! Multiple super_lords for this super_slave: 
+! must be a solenoid/quadrupole combo.
 ! combine the lord elements.
                                            
   k1_x = 0
@@ -282,9 +386,9 @@ subroutine makeup_super_slave (ring, ix_slave)
 
   do j = slave%ic1_lord, slave%ic2_lord
 
-    i = ring%ic_(j)
-    ix = ring%control_(i)%ix_lord
-    coef = ring%control_(i)%coef
+    ix_con = ring%ic_(j)
+    ix = ring%control_(ix_con)%ix_lord
+    coef = ring%control_(ix_con)%coef
     lord => ring%ele_(ix)
 
     if (lord%control_type /= super_lord$) then
@@ -295,7 +399,7 @@ subroutine makeup_super_slave (ring, ix_slave)
       call err_exit
     endif
 
-    if (i == lord%ix2_slave) then      ! longitudinal ends match
+    if (ix_con == lord%ix2_slave) then      ! longitudinal ends match
       slave%value(x_limit$) = lord%value(x_limit$)
       slave%value(y_limit$) = lord%value(y_limit$)
     endif
@@ -305,8 +409,8 @@ subroutine makeup_super_slave (ring, ix_slave)
       x_p = lord%value(x_pitch$);  x_o = lord%value(x_offset$)
       y_p = lord%value(y_pitch$);  y_o = lord%value(y_offset$)
 
-      s_del = modulo2 (s_slave - (lord%s - lord%value(l$)/2), &
-                                                 ring%param%total_length/2)
+      s_del = s_slave - (lord%s + lord%value(s_offset$) - lord%value(l$)/2)
+      s_del = modulo2 (s_del, ring%param%total_length/2)
 
       ks = lord%value(ks$)
 
@@ -335,7 +439,7 @@ subroutine makeup_super_slave (ring, ix_slave)
       sum_4 = sum_4 + sin_2 * (x_o + x_p * s_del) - cos_2 * (y_o + y_p * s_del)
 
       if (any(lord%value(ix1_m$:ix2_m$) /= 0)) then
-        call multipole_to_vecs (lord, +1, knl, t)
+        call multipole_ele_to_kt (lord, +1, knl, t, .true.)
         call multipole_kt_to_ab (knl/lord%value(l$), t, a, b)
         a_tot = a_tot + a
         b_tot = b_tot + b

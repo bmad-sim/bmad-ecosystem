@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/01/08 21:45:22  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.5  2001/12/04 20:29:07  helms
 !Changes from DCS
 !
@@ -19,7 +22,6 @@
 !
 
 #include "CESR_platform.inc"
-
 
 module bmad_struct
 
@@ -47,7 +49,7 @@ module bmad_struct
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 !
-  integer, parameter :: bmad_inc_version$ = 44
+  integer, parameter :: bmad_inc_version$ = 45
 !
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -57,8 +59,8 @@ module bmad_struct
 
 ! parameter def
 
-  integer, parameter :: n_attrib_maxx = 44         ! \ max ix for attributes
-  integer, parameter :: n_attrib_special_maxx = 50 ! / max ix including s$ etc.
+  integer, parameter :: n_attrib_maxx = 49         ! \ max ix for attributes
+  integer, parameter :: n_attrib_special_maxx = 57 ! / max ix including special.
   integer, parameter :: n_ele_maxx = 2200
   integer, parameter :: n_control_maxx = 5000
   integer, parameter :: n_comp_maxx = 50   ! Max number of components in a COIL
@@ -104,7 +106,10 @@ module bmad_struct
     logical mode_flip              ! Have the normal modes traded places?
     logical is_on                  ! For turning element on/off
     logical multipoles_on          ! For turning multipoles on/off
-    logical nonzero_multipoles     ! 
+    logical nonzero_multipoles     ! Internal flag. Do not use.
+    integer mat6_calc_method       ! bmad_standard$, DA_map$, etc.
+    integer tracking_method        ! bmad_standard$, DA_map$, etc.
+    integer num_steps              ! number of slices for DA_maps
   end type
 
   type control_struct
@@ -139,7 +144,7 @@ module bmad_struct
   end type
 
   type dummy_parameter_struct
-    integer dummy(200)
+    integer dummy(220)
   end type
 
 ! RING_STRUCT
@@ -151,6 +156,7 @@ module bmad_struct
         character*16 name             ! Name of ring given by USE statement
         character*40 lattice          ! Lattice
         character*80 input_file_name  ! name of the lattice input file
+        character*80 title            ! general title
         integer n_ele_ring            ! number of regular ring elements
         integer n_ele_symm            ! symmetry point for rings w/ symmetry
         integer n_ele_use             ! number of elements used
@@ -188,6 +194,21 @@ module bmad_struct
     endunion
   end type
 
+  type pos_vel_struct8
+    real*8 pos, vel                            ! position and velocity
+  end type
+
+  type coord_struct8
+    union
+      map
+        type (pos_vel_struct8)  x, y, z
+      endmap
+      map
+        real*8 vec(6)
+      endmap
+    endunion
+  end type
+
 ! KEY value definitions
 ! Note: Null_element must be the last element in the list.
 ! Note: overlay$ == overlay_lord$ 
@@ -214,7 +235,7 @@ module bmad_struct
 
 ! Attribute name logical definitions
 ! Note: The following attributes must have unique number assignments:
-!     X_OFFSET, Y_OFFSET, X_PITCH, Y_PITCH
+!     L$, TILT$, X_PITCH$ and higher
 
   integer, parameter :: x_beg_limit$=2, y_beg_limit$=3, b_x2$=4, &
           b_y2$=5, l_st2$=9, b_z$=10, l_st1$=11, s_st2$=12, s_st1$=13, &
@@ -222,52 +243,58 @@ module bmad_struct
 
   integer, parameter :: val1$=2, val2$=3, val3$=4, val4$=5, val5$=6, &
           val6$=7, val7$=8, val8$=9, val9$=10, val10$=11, val11$=12, &
-          val12$=13, val13$=14, val14$=15, val15$=16, val16$=17
+          val12$=13
 
   integer, parameter :: l$=1
   integer, parameter :: tilt$=2, command$=2
   integer, parameter :: old_command$=3, angle$=3
   integer, parameter :: k1$=4, sig_x$=4, harmon$=4, h_displace$=4
-  integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5
+  integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, rho_design$=5
   integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, rho$=6
   integer, parameter :: ks$=7, volt$=7, e1$=7, n_pole$=7, bbi_const$=7
-  integer, parameter :: lag$=8, e2$=8, charge$=8, gap$=8, ap2$=8
-  integer, parameter :: n_slice$=9, l_cord$=9, bp2$=9
-  integer, parameter :: new_energy$=10, ap4$=10
-  integer, parameter :: r2$=11, bp4$=11
-  integer, parameter :: ri$=12, ap6$=12
-  integer, parameter :: coef$=13, current$=13, bp6$=13
-  integer, parameter :: roll$=14, r2i$=14, ap8$=14
-  integer, parameter :: diameter$=15, bp8$=15
-  integer, parameter :: x_pitch$=16
-  integer, parameter :: y_pitch$=17
-  integer, parameter :: hkick$=18
-  integer, parameter :: vkick$=19
-  integer, parameter :: x_offset$=20
-  integer, parameter :: y_offset$=21
-  integer, parameter :: x_limit$=22 
-  integer, parameter :: y_limit$=23
-  integer, parameter :: radius$=24
+  integer, parameter :: lag$=8, e2$=8, charge$=8, gap$=8
+  integer, parameter :: n_slice$=9, l_chord$=9
+  integer, parameter :: fint$=10
+  integer, parameter :: r2$=11, fintx$=11
+  integer, parameter :: ri$=12 , hgap$=12
+  integer, parameter :: coef$=13, current$=13, hgapx$=13
+  integer, parameter :: roll$=14, r2i$=14
+  integer, parameter :: diameter$=15, l_original$ = 15
+  integer, parameter :: l_start$=16
+  integer, parameter :: l_end$=17
+  integer, parameter :: x_pitch$=18
+  integer, parameter :: y_pitch$=19
+  integer, parameter :: hkick$=20
+  integer, parameter :: vkick$=21
+  integer, parameter :: x_offset$=22
+  integer, parameter :: y_offset$=23
+  integer, parameter :: s_offset$=24
+  integer, parameter :: x_limit$=25
+  integer, parameter :: y_limit$=26
+  integer, parameter :: aperture$=27 
+  integer, parameter :: radius$=28
+  integer, parameter :: energy$=29  ! formally new_energy$
 
-  integer, parameter :: a0$=25, b0$=26, a1$=27, b1$=28, a2$=29, b2$=30, &
-             a3$=31, b3$=32, a4$=33, b4$=34, a5$=35, b5$=36, a6$=37, &
-             b6$=38, a7$=39, b7$=40, a8$=41, b8$=42, a9$=43, b9$=44
+  integer, parameter :: a0$=30, b0$=31, a1$=32, b1$=33, a2$=34, b2$=35, &
+             a3$=36, b3$=37, a4$=38, b4$=39, a5$=40, b5$=41, a6$=42, &
+             b6$=43, a7$=44, b7$=45, a8$=46, b8$=47, a9$=48, b9$=49
 
   integer, parameter :: ix1_m$ = a0$, ix2_m$ = b9$
 
-  integer, parameter :: k0l$=25, t0$=26, k1l$=27, t1$=28, k2l$=29, t2$=30, &
-              k3l$=31, t3$=32, k4l$=33, t4$=34, k5l$=35, t5$=36, k6l$=37, &
-              t6$=38, k7l$=39, t7$=40, k8l$=41, t8$=42, k9l$=43, t9$=44 
+  integer, parameter :: k0l$=30, t0$=31, k1l$=32, t1$=33, k2l$=34, t2$=35, &
+              k3l$=36, t3$=37, k4l$=38, t4$=39, k5l$=40, t5$=41, k6l$=42, &
+              t6$=43, k7l$=44, t7$=45, k8l$=46, t8$=47, k9l$=48, t9$=49 
 
-  integer, parameter :: type$ = 45   ! this is 1 greater than n_attrib_maxx
-  integer, parameter :: alias$ = 46 
-  integer, parameter :: start_edge$ = 47     ! special for groups
-  integer, parameter :: end_edge$ = 48       ! special for groups
-  integer, parameter :: s$ = 49              ! special for groups
-  integer, parameter :: accordian_edge$ = 50 ! special for groups
+  integer, parameter :: type$ = 50   ! this is 1 greater than n_attrib_maxx
+  integer, parameter :: alias$ = 51 
+  integer, parameter :: start_edge$ = 52     ! special for groups
+  integer, parameter :: end_edge$ = 53       ! special for groups
+  integer, parameter :: accordian_edge$ = 54 ! special for groups
+  integer, parameter :: mat6_calc_method$ = 55
+  integer, parameter :: tracking_method$  = 56
+  integer, parameter :: num_steps$ = 57
 
   integer, parameter :: particle$ = 1
-  integer, parameter :: energy$   = 2
   integer, parameter :: n_part$    = 3
 
   character*16 null_name / 'NULL' /
@@ -309,12 +336,14 @@ module bmad_struct
             'GROUP_LORD     ', 'SUPER_LORD     ', 'OVERLAY_LORD   ', &
             'COMPONENT_LORD ', 'CONTAINER_SLAVE', '               ' /)
 
-! plane list
+! plane list, etc
 
   integer, parameter :: x_plane$ = 1, y_plane$ = 2
-  integer, parameter :: z_plane$ = 3, n_plane$ = 4     
+  integer, parameter :: z_plane$ = 3, n_plane$ = 4
 
-  character*16 plane_name(4) / 'X', 'Y', 'N', ' ' /
+  character*16 plane_name(5) / 'X', 'Y', 'Z', 'N', ' ' /
+
+  logical, parameter :: set$ = .true., unset$ = .false.
 
 ! aperture structure
 
@@ -344,6 +373,15 @@ module bmad_struct
 ! the calling program that a variable has not been set properly.
 
   integer, parameter :: garbage$ = -9876
+
+!
+
+  integer, parameter :: bmad_standard$ = 1, DA_map$ = 2, custom_calc$ = 3
+  integer, parameter :: runge_kutta$ = 4, linear$ = 5
+
+  character*16, parameter :: calc_method_name(0:5) = (/ &
+                    "GARBAGE!     ", "BMAD_Standard", "DA_Map       ", &
+                    "Custom_Calc  ", "Runge_Kutta  ", "Linear       " /)
 
 !
 
@@ -437,7 +475,7 @@ module bmad_struct
     real pos_inj              ! position in injection lattice
   end type
 
-  type cesr_element_struct
+  type cesr_element_struct 
     character*16 name              ! bmad name
     character*12 db_node_name
     integer ix_db                  ! element index for data base node

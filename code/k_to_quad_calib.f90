@@ -38,6 +38,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/01/08 21:44:39  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.4  2001/10/26 14:53:05  helms
 !Changed uppercase filenames to lowercase
 !
@@ -103,7 +106,7 @@ subroutine k_to_quad_calib (k_theory, energy, cu_theory, k_base,  &
 
 ! flip signs for vertically focusing quads
 
-  do i = 1, 120
+  do i = 0, 120
     if (k_theory(i) < 0) then
       k_base(i)       = -k_base(i)
       cu_per_k_gev(i) = -cu_per_k_gev(i)

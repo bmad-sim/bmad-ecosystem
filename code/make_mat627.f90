@@ -24,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:40  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:53  rwh24
 !UNIX compatibility updates
 !
@@ -34,6 +37,8 @@
 subroutine make_mat627 (ele, param, direction, mat627)
 
   use bmad_struct
+  use bmad_interface
+  
   implicit none
 
   type (ele_struct), target :: ele
@@ -324,6 +329,7 @@ end subroutine
 subroutine sol_quad_mat627_calc (ks, k1, s_len, m)
 
   use bmad_struct
+  use bmad_interface
 
   implicit none
 

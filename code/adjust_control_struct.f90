@@ -22,6 +22,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:35  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:47  rwh24
 !UNIX compatibility updates
 !
@@ -32,6 +35,7 @@
 subroutine adjust_control_struct (ring, ix_ele)
 
   use bmad_struct
+  use bmad_interface
                                                  
   implicit none
 

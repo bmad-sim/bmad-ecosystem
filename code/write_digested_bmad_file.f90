@@ -19,6 +19,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/01/08 21:44:44  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.3  2001/10/05 18:23:57  rwh24
 !Bug Fixes
 !
@@ -86,8 +89,9 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   return
 
 9000  type *
-  type *, 'WRITE_DIGESTED_BMAD_FILE: ERROR OPENING FILE FOR OUTPUT: '
-  type *, '    ', digested_name
+  type *, 'WRITE_DIGESTED_BMAD_FILE: NOTE: CANNOT OPEN FILE FOR OUTPUT:'
+  type *, '    ', trim(digested_name)
+  type *, '     [This does not affect program operation]'
   return
 
 end subroutine

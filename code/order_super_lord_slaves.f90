@@ -17,6 +17,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:42  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:56  rwh24
 !UNIX compatibility updates
 !
@@ -27,6 +30,7 @@
 subroutine order_super_lord_slaves (ring, ix_lord)
 
   use bmad_struct
+  use bmad_interface
   use nr
 
   implicit none

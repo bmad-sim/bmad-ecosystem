@@ -24,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:39  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:51  rwh24
 !UNIX compatibility updates
 !
@@ -34,6 +37,7 @@
 subroutine find_element_ends (ring, ix_ele, ix_start, ix_end)
 
   use bmad_struct
+  use bmad_interface
   use nr, only: indexx
 
   implicit none

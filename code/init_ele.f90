@@ -14,16 +14,19 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:39  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:52  rwh24
 !UNIX compatibility updates
 !
 
 #include "CESR_platform.inc"
 
-
 subroutine init_ele (ele)
 
   use bmad_struct
+  use bmad_interface
 
   implicit none
 
@@ -50,5 +53,8 @@ subroutine init_ele (ele)
   ele%is_on = .true.
   ele%multipoles_on = .true.
   ele%nonzero_multipoles = .false.
+  ele%mat6_calc_method = bmad_standard$
+  ele%tracking_method = bmad_standard$
+  ele%num_steps = 0
 
 end subroutine

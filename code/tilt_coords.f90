@@ -5,7 +5,6 @@
 ! by instead rotating the particle position with negative the angle.
 ! That is, SET = True rotates the particle from the lab coords to the
 ! unrotated element frame.
-! This subroutine is usually used with the subroutine offset_coords_m.
 !
 ! Modules needed:
 !   use bmad_struct
@@ -22,8 +21,12 @@
 ! Note: with SET = .false. It is assumed that the rotation matrix has
 !     been computed with a previous call with SET = .true.
 !-
+
 !$Id$
 !$Log$
+!Revision 1.4  2002/01/08 21:44:43  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.3  2001/11/29 19:39:54  helms
 !Updates from DCS including (*) -> (:)
 !
@@ -32,7 +35,6 @@
 !
 
 #include "CESR_platform.inc"
-
 
 subroutine tilt_coords (tilt_val, coord, set)
 

@@ -27,6 +27,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/01/08 21:44:38  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.3  2001/12/04 20:28:57  helms
 !Changes from DCS
 !
@@ -135,8 +138,7 @@ subroutine do_vsp_eles (ring, i_vsep, ix_, ele_type)
 
   enddo
 
-  return
-  end
+end subroutine
 
 
 

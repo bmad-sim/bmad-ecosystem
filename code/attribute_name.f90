@@ -24,13 +24,14 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:36  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:47  rwh24
 !UNIX compatibility updates
 !
 
 #include "CESR_platform.inc"
-
-
 
 character*16 function attribute_name (ele, index)
 
@@ -60,12 +61,13 @@ character*16 function attribute_name (ele, index)
       attrib_array(i, type$)     = 'TYPE'
       attrib_array(i, alias$)    = 'ALIAS'
 
-      if (i == group$) cycle
+      if (i == group$)         cycle
+      if (i == overlay$)       cycle
       if (i == define_energy$) cycle
-      if (i == overlay$) cycle
 
       attrib_array(i, x_limit$)  = 'X_LIMIT'
       attrib_array(i, y_limit$)  = 'Y_LIMIT'
+      attrib_array(i, aperture$) = 'APERTURE'
 
       attrib_array(i, hkick$)  = 'HKICK'
       attrib_array(i, vkick$)  = 'VKICK'
@@ -74,6 +76,12 @@ character*16 function attribute_name (ele, index)
 
       attrib_array(i, x_offset$) = 'X_OFFSET'
       attrib_array(i, y_offset$) = 'Y_OFFSET'
+      attrib_array(i, s_offset$) = 'S_OFFSET'
+      attrib_array(i, energy$) = 'ENERGY'
+
+      attrib_array(i, mat6_calc_method$) = 'MAT6_CALC_METHOD'
+      attrib_array(i, tracking_method$)  = 'TRACKING_METHOD'
+      attrib_array(i, num_steps$)        = 'NUM_STEPS'
 
       if (i == multipole$ .or. i == ab_multipole$) cycle
 
@@ -117,7 +125,6 @@ character*16 function attribute_name (ele, index)
     attrib_array(group$, command$)        = 'COMMAND'
     attrib_array(group$, old_command$)    = 'OLD_COMMAND'
     attrib_array(group$, coef$)           = 'COEF'
-    attrib_array(group$, s$)              = 'S'
     attrib_array(group$, start_edge$)     = 'START_EDGE'
     attrib_array(group$, end_edge$)       = 'END_EDGE'
     attrib_array(group$, accordian_edge$) = 'ACCORDIAN_EDGE'
@@ -132,6 +139,11 @@ character*16 function attribute_name (ele, index)
     attrib_array(sbend$, rho$)   = 'RHO'
     attrib_array(sbend$, tilt$)  = 'TILT'
     attrib_array(sbend$, roll$)  = 'ROLL'
+    attrib_array(sbend$, hgap$)  = 'HGAP'
+    attrib_array(sbend$, hgapx$) = 'HGAPX'
+    attrib_array(sbend$, fint$)  = 'FINT'
+    attrib_array(sbend$, fintx$) = 'FINTX'
+    attrib_array(sbend$, rho_design$) = 'RHO_DESIGN'
 
     attrib_array(rbend$, l$)     = 'L'
     attrib_array(rbend$, angle$) = 'ANGLE'
@@ -141,6 +153,11 @@ character*16 function attribute_name (ele, index)
     attrib_array(rbend$, rho$)   = 'RHO'
     attrib_array(rbend$, tilt$)  = 'TILT'
     attrib_array(rbend$, roll$)  = 'ROLL'
+    attrib_array(rbend$, hgap$)  = 'HGAP'
+    attrib_array(rbend$, hgapx$) = 'HGAPX'
+    attrib_array(rbend$, fint$)  = 'FINT'
+    attrib_array(rbend$, fintx$) = 'FINTX'
+    attrib_array(rbend$, rho_design$) = 'RHO_DESIGN'
 
     attrib_array(quadrupole$, l$)    = 'L'
     attrib_array(quadrupole$, tilt$) = 'TILT'
@@ -179,15 +196,11 @@ character*16 function attribute_name (ele, index)
     attrib_array(wiggler$, rho$)    = 'RHO'
     attrib_array(wiggler$, n_pole$) = 'N_POLE'
     attrib_array(wiggler$, tilt$)   = 'TILT'
-    attrib_array(wiggler$, bp2$)    = 'BP2'
-    attrib_array(wiggler$, bp4$)    = 'BP4'
-    attrib_array(wiggler$, bp6$)    = 'BP6'
-    attrib_array(wiggler$, bp8$)    = 'BP8'
+    attrib_array(wiggler$, b2$)    = 'B2'
+    attrib_array(wiggler$, b4$)    = 'B4'
+    attrib_array(wiggler$, b6$)    = 'B6'
+    attrib_array(wiggler$, b8$)    = 'B8'
     attrib_array(wiggler$, radius$) = 'RADIUS'
-!    attrib_array(wiggler$, ap2$)    = 'AP2'
-!    attrib_array(wiggler$, ap4$)    = 'AP4'
-!    attrib_array(wiggler$, ap6$)    = 'AP6'
-!    attrib_array(wiggler$, ap8$)    = 'AP8'
 
 
     attrib_array(sol_quad$, l$)    = 'L'
@@ -254,7 +267,7 @@ character*16 function attribute_name (ele, index)
     attrib_array(accel_sol$, x_beg_limit$) = 'X_BEG_LIMIT'
     attrib_array(accel_sol$, y_beg_limit$) = 'Y_BEG_LIMIT'
 
-    attrib_array(define_energy$, new_energy$) = 'NEW_ENERGY'
+    attrib_array(define_energy$, energy$) = 'NEW_ENERGY'
                  
     attrib_array(custom$, l$) = 'L'
     attrib_array(custom$,  val1$) =  'VAL1'
@@ -269,10 +282,6 @@ character*16 function attribute_name (ele, index)
     attrib_array(custom$, val10$) = 'VAL10'
     attrib_array(custom$, val11$) = 'VAL11'
     attrib_array(custom$, val12$) = 'VAL12'
-    attrib_array(custom$, val13$) = 'VAL13'
-    attrib_array(custom$, val14$) = 'VAL14'
-    attrib_array(custom$, val15$) = 'VAL15'
-    attrib_array(custom$, val16$) = 'VAL16'
 
     init_needed = .false.
 

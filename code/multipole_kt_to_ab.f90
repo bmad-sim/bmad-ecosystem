@@ -18,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:41  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:54  rwh24
 !UNIX compatibility updates
 !
@@ -34,7 +37,7 @@ subroutine multipole_kt_to_ab (knl, tn, an, bn)
 
   real an(0:n_pole_maxx), bn(0:n_pole_maxx)
   real knl(0:n_pole_maxx), tn(0:n_pole_maxx)
-  real n_fact, angle
+  real n_fact, angle, kl
 
   integer n
 
@@ -46,17 +49,18 @@ subroutine multipole_kt_to_ab (knl, tn, an, bn)
 
     if (n /= 0) n_fact = n_fact * n
 
-    if (knl(n) == 0) then
+    kl = knl(n) / n_fact
+
+    if (kl == 0) then
       an(n) = 0
       bn(n) = 0
     else
       angle = -tn(n) * (n + 1)
-      an(n) = knl(n) * sin(angle) / n_fact
-      bn(n) = knl(n) * cos(angle) / n_fact
+      an(n) = kl * sin(angle)
+      bn(n) = kl * cos(angle)
     endif
 
   enddo
 
 end subroutine
-
 

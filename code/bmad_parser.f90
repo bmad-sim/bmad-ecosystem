@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/01/08 21:44:36  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.5  2001/10/12 20:53:34  rwh24
 !DCS changes and two files added
 !
@@ -51,8 +54,6 @@
 
 #include "CESR_platform.inc"
 
-
-
 subroutine bmad_parser (in_file, ring)
 
   use local_bmad_struct
@@ -63,33 +64,33 @@ subroutine bmad_parser (in_file, ring)
   implicit none
 
   type (ring_struct), target :: ring, in_ring
-  type (coord_struct)  coord0_(0:n_ele_maxx)
-  type (seq_struct)    seq_(n_ele_maxx)
-  type (seq_ele_struct)  seq_ele(n_ele_maxx)
+  type (seq_struct), target :: seq_(n_ele_maxx)
+  type (seq_struct), pointer :: seq, seq2
+  type (seq_ele_struct), pointer :: s_ele
   type (parser_ring_struct) pring
+  type (seq_stack_struct) stack(20)
+  type (ele_struct), pointer :: ele
 
   integer ix_word, i_use, i, j, k, n, ix, ixr, ixs, i_ring
   integer i_lev, i_key, ic, ix_lord
-  integer ix1_stk(20), ix2_stk(20), ix_stk(20), reflect_stk(20)
-  integer cur_type, cur_ix_array, iseq, ix_ring(n_ele_maxx), n_ele_ring
+  integer iseq, ix_ring(n_ele_maxx), n_ele_ring
   integer ix_super, digested_version, key
-  integer ix1, ix2, iv
+  integer ix1, ix2, iv, n_arg
   integer ivar, ixx, j_lord, n_slave
   integer seq_indexx(n_ele_maxx), in_indexx(n_ele_maxx), r_indexx(n_ele_maxx)
   integer, pointer :: n_max
 
   character*(*) in_file
-  character*16 word_2, name, a_name
+  character*16 word_2, name, a_name, dummy_name(20)
   character*16 name_(n_ele_maxx)
-  character delim*1, word_1*40, call_file*200
-  character digested_file*200
-  character full_name*200
-  character*200 path, basename
-
+  character delim*1, word_1*40
+  character*200 path, basename, full_name, digested_file, call_file
+  
   real angle
 
-  logical parsing, delim_found, matched_delim
-  logical file_end, found, cur_reflect, err_flag, finished
+  logical parsing, delim_found, matched_delim, arg_list_found
+  logical file_end, found, err_flag, finished
+  logical, save :: init_needed = .true.
 
 ! see if digested file is open and current.
 ! if so read in and return
@@ -109,12 +110,24 @@ subroutine bmad_parser (in_file, ring)
   call read_digested_bmad_file (digested_file, ring, digested_version)
   if (bmad_status%ok) return
 
+! init
+
+  if (init_needed) then
+    do i = lbound(pring%ele, 1) , ubound(pring%ele, 1)
+      nullify (pring%ele(i)%name_)
+    enddo
+    do i = 1, size(seq_(:))
+      nullify (seq_(i)%arg, seq_(i)%ele)
+    enddo
+    init_needed = .false.
+  endif
+
 ! here if not OK bmad_status. So we have to do everything from scratch...
 ! init variables.
 
   bmad_status%ok = .true.
   if (bmad_status%type_out) print *, 'BMAD_PARSER: CREATING NEW DIGESTED FILE...'
-  print*, digested_file
+
   pcom%n_files = 0
   pcom%error_flag = .false.                 ! set to true on an error
   call file_stack('init', in_file, finished)   ! init stack
@@ -123,14 +136,13 @@ subroutine bmad_parser (in_file, ring)
   call load_parse_line ('init', 0, file_end) ! initialize subroutine
   pcom%iseq_tot = 0                     ! number of sequences encountered
   pcom%ivar_tot = 0                     ! number of variables encountered
-  seq_(1)%ix1 = 1                       ! pointer to SEQ_ELE struct
   call init_bmad_parser_common
   ring%name = ' '
 
   n_max => in_ring%n_ele_max
   n_max = 0                         ! number of elements encountered
 
-  pring%ele(:)%name(1) = blank
+  pring%ele(:)%ref_name = blank
   pring%ele(:)%ref_pt  = center$
   pring%ele(:)%ele_pt  = center$
   pring%ele(:)%s       = 0
@@ -139,8 +151,10 @@ subroutine bmad_parser (in_file, ring)
   in_ring%ele_(0)%name = 'BEAM'                 ! fake beam element
   in_ring%ele_(0)%key = def_beam$               ! "definition of beam"
   in_ring%ele_(0)%value(particle$) = positron$  ! default
-  forall (i = 0:n_ele_maxx) in_ring%ele_(i)%ixx = i
 
+! %ixx is used as a pointer from the in_ring%ele_ array to the pring%ele array
+
+  forall (i = 0:n_ele_maxx) in_ring%ele_(i)%ixx = i
 
   ring%n_control_array = 0
 
@@ -163,7 +177,7 @@ subroutine bmad_parser (in_file, ring)
 ! USE command...
 
     if (word_1(:ix_word) == 'USE') then
-      if (delim /= ',') call warning ('"USE" NOT FOLLOWED BY COMMA', ' ')
+      if (delim /= ',') call warning ('"USE" NOT FOLLOWED BY COMMA')
       call get_next_word(word_2, ix_word, ':(=,)', delim, delim_found, .true.)
       if (ix_word == 0) call error_exit  &
                                 ('NO BEAM LINE SPECIFIED WITH "USE"', ' ')
@@ -172,25 +186,33 @@ subroutine bmad_parser (in_file, ring)
       cycle parsing_loop
     endif
 
+! TITLE command
+
+    if (word_1(:ix_word) == 'TITLE') then
+      if (delim_found) call warning ('EXTRA STUFF FOUND AFTER "TITLE"')
+      read (pcom%f_unit, '(a)') ring%title
+      pcom%i_line = pcom%i_line + 1
+      cycle parsing_loop
+    endif
+
 ! CALL command
 
     if (word_1(:ix_word) == 'CALL') then
-      if (delim /= ',')  &
-              call warning ('"CALL" NOT FOLLOWED BY COMMA', ' ')
+      if (delim /= ',')  call warning ('"CALL" NOT FOLLOWED BY COMMA')
       call get_next_word(call_file, ix_word, ':=,', delim, delim_found, .true.)
       if (ix_word == 0) then
-        call warning ('NOTHING AFTER "CALL"', ' ')
+        call warning ('NOTHING AFTER "CALL"')
       elseif (index('FILENAME', call_file(:ix_word)) /= 1) then
-        call warning ('INVALID "CALL" COMMAND', ' ')
+        call warning ('INVALID "CALL" COMMAND')
       elseif (delim /= '=') then
-        call warning ('NO "=" AFTER "FILENAME"', ' ')
+        call warning ('NO "=" AFTER "FILENAME"')
       else
         call get_next_word(call_file, ix_word, '=,', &
                                        delim, delim_found, .false.)
         if (ix_word == 0) then
-          call warning ('NO FILE NAME SPECIFIED', ' ')
+          call warning ('NO FILE NAME SPECIFIED')
         else
-           call fullfilename(call_file, call_file)
+          call fullfilename(call_file, call_file)
           call file_stack ('push', call_file, finished)
           if (.not. bmad_status%ok) return
         endif
@@ -201,7 +223,7 @@ subroutine bmad_parser (in_file, ring)
 ! BEAM command
 
     if (word_1(:ix_word) == 'BEAM') then
-      if (delim /= ',') call warning ('"BEAM" NOT FOLLOWED BY COMMA', ' ')
+      if (delim /= ',') call warning ('"BEAM" NOT FOLLOWED BY COMMA')
       parsing = .true.
       do while (parsing)
         if (.not. delim_found) then
@@ -223,7 +245,7 @@ subroutine bmad_parser (in_file, ring)
     if (word_1(:ix_word) == 'LATTICE') then
       if ((delim /= ':' .or. pcom%parse_line(1:1) /= '=') &
                                        .and. (delim /= '=')) then
-        call warning ('"LATTICE" NOT FOLLOWED BY ":="', ' ')
+        call warning ('"LATTICE" NOT FOLLOWED BY ":="')
       else
         if (delim == ':') pcom%parse_line = pcom%parse_line(2:)  ! trim off '='
         call get_next_word (ring%lattice, ix_word, ',', &
@@ -268,12 +290,12 @@ subroutine bmad_parser (in_file, ring)
           pcom%parse_line = name // ' = ' // pcom%parse_line 
           call get_attribute (redef$, in_ring%ele_(i), in_ring, pring, &
                                           delim, delim_found, err_flag)
-          if (delim_found) call warning ('BAD DELIMITER: ' // delim, ' ')
+          if (delim_found) call warning ('BAD DELIMITER: ' // delim)
           cycle parsing_loop
         endif
       enddo
 
-      call warning ('ELEMENT NOT FOUND: ' // name, ' ')
+      call warning ('ELEMENT NOT FOUND: ' // name)
       cycle parsing_loop
 
 ! else must be a variable
@@ -301,13 +323,42 @@ subroutine bmad_parser (in_file, ring)
 
       call evaluate_value (var_(ivar), in_ring, delim, delim_found, err_flag)
       if (delim /= ' ' .and. .not. err_flag) call warning  &
-            ('EXTRA CHARACTERS ON RHS: ' // pcom%parse_line,  &
-             'FOR VARIABLE: ' // var_(ivar)%name)
+                    ('EXTRA CHARACTERS ON RHS: ' // pcom%parse_line,  &
+                     'FOR VARIABLE: ' // var_(ivar)%name)
       cycle parsing_loop
 
     endif
 
-! bad delimiter
+! if a "(" delimitor then we are looking at a replacement line.
+
+    if (delim == '(') then
+      n_arg = 0
+      do
+        call get_next_word (word_2, ix_word, '(): =,', &
+                                                 delim, delim_found, .true.)
+        if (ix_word == 0 .or. delim == '( :=') then
+          call warning ('BAD ARGUMENT LIST FOR: ', word_1)
+          cycle parsing_loop
+        endif
+        n_arg = n_arg + 1
+        dummy_name(n_arg) = word_2
+        if (delim == ')') then
+          call get_next_word (word_2, ix_word, '(): =,', &
+                                                 delim, delim_found, .true.)
+          if (word_2 /= ' ') call warning &
+                  ('":" NOT FOUND AFTER REPLACEMENT LINE ARGUMENT LIST. ' // &
+                  'FOUND: ' // word_2, 'FOR LINE: ' // word_1)
+          exit
+        endif
+      enddo
+      allocate (seq_(pcom%iseq_tot+1)%arg(n_arg))
+      seq_(pcom%iseq_tot+1)%arg(:)%dummy_name = dummy_name(1:n_arg)
+      arg_list_found = .true.
+    else
+      arg_list_found = .false.
+    endif
+
+! must have a ":" delimiter now
 
     if (delim /= ':') then
       call warning ('1ST DELIMITER IS NOT ":". IT IS: ' // delim,  &
@@ -323,6 +374,14 @@ subroutine bmad_parser (in_file, ring)
 
     call verify_valid_name(word_2, ix_word)
 
+! arg lists are only used with lines
+
+    if (word_2(:ix_word) /= 'LINE' .and. arg_list_found) then
+      call warning ('ARGUMENT LISTS "(...)" ARE ONLY USED WITH LINES', &
+                                                        'FOR: ' // word_1)
+      cycle parsing_loop
+    endif
+
 ! if line or list
 
     if (word_2(:ix_word) == 'LINE' .or. word_2(:ix_word) == 'LIST') then
@@ -333,16 +392,14 @@ subroutine bmad_parser (in_file, ring)
       endif
       seq_(pcom%iseq_tot)%name = word_1
 
-      if (delim /= '=') call warning  &
-                                 ('EXPECTING: "=" BUT GOT: ' // delim, ' ')
-      call seq_expand1 (seq_(pcom%iseq_tot), seq_ele)
+      if (delim /= '=') call warning ('EXPECTING: "=" BUT GOT: ' // delim)
       if (word_2(:ix_word) == 'LINE') then
         seq_(pcom%iseq_tot)%type = line$
+        if (arg_list_found) seq_(pcom%iseq_tot)%type = replacement_line$
       else
         seq_(pcom%iseq_tot)%type = list$
-        seq_(pcom%iseq_tot)%ix = seq_(pcom%iseq_tot)%ix1
       endif
-      seq_(pcom%iseq_tot+1)%ix1 = seq_(pcom%iseq_tot)%ix2 + 1
+      call seq_expand1 (seq_, pcom%iseq_tot, .true.)
 
 ! if not line or list then must be an element
 
@@ -389,7 +446,7 @@ subroutine bmad_parser (in_file, ring)
       endif
 
 ! now get the attribute values.
-! For control elements RING.ELE_().IXX temporarily points to
+! For control elements RING.ELE_()%IXX temporarily points to
 ! the PRING%ELE() array where storage for the control lists is
 
       key = in_ring%ele_(n_max)%key
@@ -447,114 +504,98 @@ subroutine bmad_parser (in_file, ring)
     ix1 = seq_indexx(i)
     ix2 = seq_indexx(i+1)
     if (seq_(ix1)%name == seq_(ix2)%name) call warning  &
-                      ('DUPLICATE LINE NAME ' // seq_(ix1)%name, ' ')
+                      ('DUPLICATE LINE NAME ' // seq_(ix1)%name)
   enddo
 
   do i = 1, n_max-1
     ix1 = in_indexx(i)
     ix2 = in_indexx(i+1)
     if (in_ring%ele_(ix1)%name == in_ring%ele_(ix2)%name) call warning &
-                    ('DUPLICATE ELEMENT NAME ' // in_ring%ele_(ix1)%name, ' ')
+                    ('DUPLICATE ELEMENT NAME ' // in_ring%ele_(ix1)%name)
   enddo
 
   i = 1; j = 1
   do
+    if (i > pcom%iseq_tot) exit
+    if (j > n_max) exit
     ix1 = seq_indexx(i)
     ix2 = in_indexx(j)
     if (seq_(ix1)%name == in_ring%ele_(ix2)%name) call warning  &
-          ('LINE AND ELEMENT HAVE THE SAME NAME: ' // seq_(i)%name, ' ')
+          ('LINE AND ELEMENT HAVE THE SAME NAME: ' // seq_(i)%name)
     if (seq_(ix1)%name < in_ring%ele_(ix2)%name) then
       i = i + 1
     else
       j = j + 1
     endif
-    if (i > pcom%iseq_tot) exit
-    if (j > n_max) exit
   enddo
 
-! create a new line to hold the final list of elements in the ring.
+! find line corresponding to the "use" statement.
 
-  pcom%iseq_tot = pcom%iseq_tot + 1
-  i_use = pcom%iseq_tot
-  seq_(i_use)%name = ' '
-  seq_(i_use)%type = line$
-  ix = seq_(i_use)%ix1
-  seq_(pcom%iseq_tot)%ix2 = ix
-  seq_ele(ix)%name = ring%name
+  if (ring%name == blank) call err_exit &
+            ('NO "USE" COMMAND FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
 
-  if (ring%name == blank) then
-    print *, 'ERROR IN BMAD_PARSER: NO "USE" COMMAND FOUND.'
-    print *, '      I DO NOT KNOW WHAT LINE TO USE!'
-    call err_exit
-  endif  
+  call find_indexx (ring%name, seq_(:)%name, seq_indexx, pcom%iseq_tot, i_use)
+
+  if (i_use == 0) call err_exit &
+            ('CANNOT FIND DEFINITION FOR "USE" LINE: ' // ring%name, ' ')
+
+  if (seq_(i_use)%type /= line$) call error_exit  &
+                              ('NAME AFTER "USE" IS NOT A LINE!', ' ')
 
 ! Now to expand the lines and lists to find the elements to use
 ! first go through the lines and lists and index everything
 
-  do i = 1, seq_(i_use)%ix2
+  do k = 1, pcom%iseq_tot
+    do i = 1, size(seq_(k)%ele(:))
 
-    ix = index(seq_ele(i)%name, '\')
-    if (ix /= 0) then
-      name = seq_ele(i)%name(:ix-1)
-    else
-      name = seq_ele(i)%name
-    endif
+      s_ele => seq_(k)%ele(i)
 
-    call find_indexx (name, in_ring%ele_(1:)%name, in_indexx, n_max, j)
-
-    if (j == 0) then  ! if not an element it must be a line
-      call find_indexx (name, seq_(:)%name, seq_indexx, pcom%iseq_tot-1, j)
-      if (j == 0) then  ! if not a line then I don't know what it is
-        call warning  &
-            ('NOT A DEFINED ELEMENT, LINE, OR LIST: ' // seq_ele(i)%name, ' ')
-        seq_ele(i)%ix_array = 1
-        seq_ele(i)%type = element$
+      ix = index(s_ele%name, '\')
+      if (ix /= 0) then
+        name = s_ele%name(:ix-1)
       else
-        seq_ele(i)%ix_array = j
-        seq_ele(i)%type = seq_(j)%type
+        name = s_ele%name
       endif
-      if (seq_ele(i)%type == list$ .and. seq_ele(i)%reflection) then
-        do ix = 1, pcom%iseq_tot
-          if (seq_(ix)%ix2 >= i) call error_exit  &
-              ('A REFLECTION WITH A LIST IS NOT ALLOWED IN: '  &
-              // seq_(ix)%name, 'FOR LIST: ' // seq_ele(i)%name)
-        enddo
+  
+      if (s_ele%ix_arg > 0) cycle  ! dummy arg
+
+      call find_indexx (name, in_ring%ele_(1:)%name, in_indexx, n_max, j)
+
+      if (j == 0) then  ! if not an element it must be a sequence
+        call find_indexx (name, seq_(:)%name, seq_indexx, pcom%iseq_tot, j)
+        if (j == 0) then  ! if not a sequence then I don't know what it is
+          call warning  &
+              ('NOT A DEFINED ELEMENT, LINE, OR LIST: ' // s_ele%name)
+          s_ele%ix_array = 1
+          s_ele%type = element$
+        else
+          s_ele%ix_array = j
+          s_ele%type = seq_(j)%type
+          if (seq_(k)%type == list$) call warning ('LIST: ' // seq_(k)%name,  &
+                         'CONTAINS A NON-ELEMENT: ' // s_ele%name)
+        endif
+        if (s_ele%type == list$ .and. s_ele%reflect) call warning ( &
+                          'A REFLECTION WITH A LIST IS NOT ALLOWED IN: '  &
+                          // seq_(k)%name, 'FOR LIST: ' // s_ele%name)
+
+      else    ! if an element...
+        s_ele%ix_array = j
+        s_ele%type = element$
       endif
 
-    else    ! if an element...
-      seq_ele(i)%ix_array = j
-      seq_ele(i)%type = element$
-    endif
-
-  enddo
-
-! make sure that lists only have elements
-
-  do i = 1, pcom%iseq_tot
-    if (seq_(i)%type == list$) then
-      do j = seq_(i)%ix1, seq_(i)%ix2
-        if (seq_ele(j)%type /= element$) call warning  &
-                         ('LIST: ' // seq_(i)%name,  &
-                         'CONTAINS A NON-ELEMENT: ' // seq_ele(j)%name)
-      enddo
-    endif
+    enddo
   enddo
 
 ! to expand the ring we use a stack for nested sublines
-! IX_RING is the expanded array of elements in the ring
-
-  i_ring = seq_(i_use)%ix1      ! line to expand
-  if (seq_ele(i_ring)%type /= line$) call error_exit  &
-                              ('NAME AFTER "USE" IS NOT A LINE!', ' ')
-
+! IX_RING is the expanded array of elements in the ring.
 ! init stack
 
-  i_lev = 1                        ! level on the stack
-  iseq = seq_ele(i_ring)%ix_array  ! which sequence to use for the ring
-  ix1_stk(1) = seq_(iseq)%ix1      ! start index
-  ix2_stk(1) = seq_(iseq)%ix2      ! stop index
-  ix_stk(1) = seq_(iseq)%ix1       ! we start at the start index
-  reflect_stk(1) = +1              ! and move forward
+  i_lev = 1                          ! level on the stack
+  stack(1)%ix_seq  = i_use           ! which sequence to use for the ring
+  stack(1)%ix_ele  =  1              ! we start at the beginning
+  stack(1)%reflect = +1              ! and move forward
+
+  seq => seq_(i_use)
 
   n_ele_ring = 0
              
@@ -563,45 +604,46 @@ subroutine bmad_parser (in_file, ring)
   parsing = .true.
   line_expansion: do while (parsing)
 
-    cur_reflect  = seq_ele(ix_stk(i_lev))%reflection  ! forward/backward
-    cur_type     = seq_ele(ix_stk(i_lev))%type        !
-    cur_ix_array = seq_ele(ix_stk(i_lev))%ix_array
+    s_ele => seq%ele(stack(i_lev)%ix_ele)
 
 ! if an element
 
-    if (cur_type == element$) then
-      call pushit (ix_ring, n_ele_ring, cur_ix_array)
-      name_(n_ele_ring) = seq_ele(ix_stk(i_lev))%name
-      call increment_pointer (ix_stk(i_lev), reflect_stk(i_lev))
+    if (s_ele%type == element$) then
+      call pushit (ix_ring, n_ele_ring, s_ele%ix_array)
+      name_(n_ele_ring) = s_ele%name
+      call increment_pointer (stack(i_lev)%ix_ele, stack(i_lev)%reflect)
 
 ! if a list
 
-    elseif (cur_type == list$) then
-      j = seq_(cur_ix_array)%ix
-      call pushit (ix_ring, n_ele_ring, seq_ele(j)%ix_array)
-      name_(n_ele_ring) = seq_ele(j)%name
-      seq_(cur_ix_array)%ix = seq_(cur_ix_array)%ix + 1
-      if (seq_(cur_ix_array)%ix > seq_(cur_ix_array)%ix2)  &
-                              seq_(cur_ix_array)%ix = seq_(cur_ix_array)%ix1
-      call increment_pointer (ix_stk(i_lev), reflect_stk(i_lev))
+    elseif (s_ele%type == list$) then
+      seq2 => seq_(s_ele%ix_array)
+      j = seq2%ix
+      call pushit (ix_ring, n_ele_ring, seq2%ele(j)%ix_array)
+      name_(n_ele_ring) = s_ele%name
+      seq2%ix = seq2%ix + 1
+      if (seq2%ix > size(seq2%ele(:))) seq2%ix = 1
+      call increment_pointer (stack(i_lev)%ix_ele, stack(i_lev)%reflect)
 
 ! if a line:
-!     a) move pointer on current level past line
+!     a) move pointer on current level past line element
 !     b) go to the next higher level
 !     c) initialize pointers for the higher level to use the line
 
-    elseif (cur_type == line$) then
-      call increment_pointer (ix_stk(i_lev), reflect_stk(i_lev))
-      call pushit (ix_stk, i_lev, cur_ix_array)
-      ix1_stk(i_lev) = seq_(cur_ix_array)%ix1
-      ix2_stk(i_lev) = seq_(cur_ix_array)%ix2
-      reflect_stk(i_lev) = reflect_stk(i_lev-1)
-      if (cur_reflect) reflect_stk(i_lev) = -reflect_stk(i_lev)
-      if (reflect_stk(i_lev) == 1) then
-        ix_stk(i_lev) = ix1_stk(i_lev)
+    elseif (s_ele%type == line$) then
+      call increment_pointer (stack(i_lev)%ix_ele, stack(i_lev)%reflect)
+      i_lev = i_lev + 1
+      seq => seq_(s_ele%ix_array)
+      stack(i_lev)%ix_seq = s_ele%ix_array
+      stack(i_lev)%reflect = stack(i_lev-1)%reflect
+      if (s_ele%reflect) stack(i_lev)%reflect = -stack(i_lev)%reflect
+      if (stack(i_lev)%reflect == 1) then
+        stack(i_lev)%ix_ele = 1
       else
-        ix_stk(i_lev) = ix2_stk(i_lev)
+        stack(i_lev)%ix_ele = size(seq%ele(:))
       endif
+
+    else
+      call warning ('INTERNAL SEQUENCE ERROR!')
 
     endif
 
@@ -610,10 +652,11 @@ subroutine bmad_parser (in_file, ring)
 ! Also check if we have gotten to level 0 which says that we are done
 
     do
-      if (ix_stk(i_lev) < ix1_stk(i_lev) .or.  &
-                              ix_stk(i_lev) > ix2_stk(i_lev)) then
+      if (stack(i_lev)%ix_ele < 1 .or. &
+                        stack(i_lev)%ix_ele > size(seq%ele(:))) then
         i_lev = i_lev - 1
         if (i_lev == 0) exit line_expansion
+        seq => seq_(stack(i_lev)%ix_seq)
       else
         exit
       endif
@@ -665,30 +708,58 @@ subroutine bmad_parser (in_file, ring)
 
   do i = 1, n_ele_ring
 
-    ring%ele_(i) = in_ring%ele_(ix_ring(i))
-    ring%ele_(i)%name = name_(i)
+    ele => ring%ele_(i)
 
-    if (ring%ele_(i)%key == rbend$) then
-      angle = ring%ele_(i)%value(angle$)
-      ring%ele_(i)%value(l$) = ring%ele_(i)%value(l$) * angle /  &
-                                                       (2 * sin(angle/2))
-      ring%ele_(i)%value(e1$) = ring%ele_(i)%value(e1$) + angle/2
-      ring%ele_(i)%value(e2$) = ring%ele_(i)%value(e2$) + angle/2
-      ring%ele_(i)%key = sbend$
+    ele = in_ring%ele_(ix_ring(i))
+    ele%name = name_(i)
+
+    if (ele%key == sbend$ .or. ele%key == rbend$) then
+
+      if (ele%value(rho$) /= 0 .and. ele%value(rho_design$) == 0) &
+                                ele%value(rho_design$) = ele%value(rho$)
+      if (ele%value(rho_design$) /= 0 .and. ele%value(rho$) == 0) &
+                                ele%value(rho$) = ele%value(rho_design$)
+
+      if (ele%key == rbend$) then
+        ele%value(l_chord$) = ele%value(l$)
+        angle = ele%value(angle$) 
+        if (ele%value(angle$) /= 0) then
+          ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
+        elseif (ele%value(rho_design$) /= 0) then
+          ele%value(l$) = angle * ele%value(rho_design$)
+        endif
+        ele%value(e1$) = ele%value(e1$) + angle / 2
+        ele%value(e2$) = ele%value(e2$) + angle / 2
+        ele%key = sbend$
+      endif
+
+      if (ele%value(rho$) == 0 .and. ele%value(angle$) /= 0) then
+        ele%value(rho$)        = ele%value(l$) / ele%value(angle$) 
+        ele%value(rho_design$) = ele%value(l$) / ele%value(angle$) 
+      elseif (ele%value(angle$) == 0 .and. ele%value(rho_design$) /= 0) then
+        ele%value(angle$) = ele%value(l$) / ele%value(rho$)
+        ele%value(rho_design$) = ele%value(l$) / ele%value(angle$) 
+      elseif (ele%value(rho_design$) /= 0 .and. ele%value(angle$) /= 0)  then
+        call warning ('BOTH RHO AND ANGLE SPECIFIED FOR BEND: ' // ele%name)
+      endif
+
+      if (ele%value(hgapx$) == 0) ele%value(hgapx$) = ele%value(hgap$)
+      if (ele%value(fintx$) == 0) ele%value(fintx$) = ele%value(fint$)
+
     endif
 
-    if (ring%ele_(i)%control_type == container_slave$) then
-      ring%ele_(i)%n_lord = ring%ele_(i)%n_slave
-      ring%ele_(i)%n_slave = 0
-      ring%ele_(i)%ic1_lord = ring%n_ic_array + 1
-      ring%ele_(i)%ic2_lord = ring%n_ic_array + ring%ele_(i)%n_lord
-      ring%n_ic_array = ring%ele_(i)%ic2_lord
-      do k = 1, ring%ele_(i)%n_lord
-        name = pring%ele(ix_ring(i))%name(k)
+
+    if (ele%control_type == container_slave$) then
+      ele%n_lord = ele%n_slave
+      ele%n_slave = 0
+      ele%ic1_lord = ring%n_ic_array + 1
+      ele%ic2_lord = ring%n_ic_array + ele%n_lord
+      ring%n_ic_array = ele%ic2_lord
+      do k = 1, ele%n_lord
+        name = pring%ele(ix_ring(i))%name_(k)
         call find_indexx (name, in_ring%ele_(1:)%name, in_indexx, n_max, j)
         if (j == 0) exit
-        ring%ele_(i)%value(l$) = ring%ele_(i)%value(l$) +  &
-                                                     in_ring%ele_(j)%value(l$)
+        ele%value(l$) = ele%value(l$) + in_ring%ele_(j)%value(l$)
         in_ring%ele_(j)%n_slave = in_ring%ele_(j)%n_slave + 1
       enddo
     endif
@@ -720,27 +791,27 @@ subroutine bmad_parser (in_file, ring)
       n_slave = in_ring%ele_(i)%n_slave
 
       do j = 1, n_slave
-        call find_indexx (pring%ele(i)%name(j), ring%ele_(1:)%name, &
+        call find_indexx (pring%ele(i)%name_(j), ring%ele_(1:)%name, &
                                                           r_indexx, ixr, k)
         if (k == 0) then
           call warning ('CANNOT FIND OVERLAY_SLAVE FOR: ' // &
-                  ring%ele_(ixs)%name, 'CANNOT FIND: ' // pring%ele(i)%name(j))
+                  ring%ele_(ixs)%name, 'CANNOT FIND: ' // pring%ele(i)%name_(j))
           cycle
         endif
-        pring%ele(i)%cs(j)%ix_slave = k
-        a_name = pring%ele(i)%attrib_name(j)
+        pring%ele(i)%cs_(j)%ix_slave = k
+        a_name = pring%ele(i)%attrib_name_(j)
         if (a_name == blank) then
-          pring%ele(i)%cs(j)%ix_attrib = ring%ele_(ixs)%ix_value
+          pring%ele(i)%cs_(j)%ix_attrib = ring%ele_(ixs)%ix_value
         else
           ix = attribute_index(ring%ele_(k), a_name)
-          pring%ele(i)%cs(j)%ix_attrib = ix
+          pring%ele(i)%cs_(j)%ix_attrib = ix
           if (ix < 1) call warning('BAD ATTRIBUTE NAME: ' // a_name,  &
                        'IN OVERLAY ELEMENT: ' // ring%ele_(ixs)%name)
         endif
       enddo
 
       iv = ring%ele_(ixs)%ix_value
-      call create_overlay (ring, ixs, iv, n_slave, pring%ele(i)%cs)
+      call create_overlay (ring, ixs, iv, n_slave, pring%ele(i)%cs_)
       cycle
 
     endif  
@@ -758,26 +829,26 @@ subroutine bmad_parser (in_file, ring)
       n_slave = in_ring%ele_(i)%n_slave              
 
       do j = 1, n_slave
-        call find_indexx (pring%ele(i)%name(j), ring%ele_(1:)%name, &
+        call find_indexx (pring%ele(i)%name_(j), ring%ele_(1:)%name, &
                                                         r_indexx, ixr, k)
         if (k == 0) then
           call warning ('CANNOT FIND GROUP_SLAVE FOR: ' // &
-                  ring%ele_(ixs)%name, 'CANNOT FIND: ' // pring%ele(i)%name(j))
+                ring%ele_(ixs)%name, 'CANNOT FIND: ' // pring%ele(i)%name_(j))
           cycle
         endif
-        pring%ele(i)%cs(j)%ix_slave = k
-        a_name = pring%ele(i)%attrib_name(j)
+        pring%ele(i)%cs_(j)%ix_slave = k
+        a_name = pring%ele(i)%attrib_name_(j)
         if (a_name == blank) then
-          pring%ele(i)%cs(j)%ix_attrib = ring%ele_(ixs)%ix_value
+          pring%ele(i)%cs_(j)%ix_attrib = ring%ele_(ixs)%ix_value
         else
           ix = attribute_index(ring%ele_(k), a_name)
-          pring%ele(i)%cs(j)%ix_attrib = ix
+          pring%ele(i)%cs_(j)%ix_attrib = ix
           if (ix < 1) call warning('BAD ATTRIBUTE NAME: ' // a_name,  &
                        'IN OVERLAY ELEMENT: ' // ring%ele_(ixs)%name)
         endif
       enddo
 
-      call create_group (ring, ixs, n_slave, pring%ele(i)%cs)
+      call create_group (ring, ixs, n_slave, pring%ele(i)%cs_)
 
     endif
 
@@ -791,7 +862,7 @@ subroutine bmad_parser (in_file, ring)
       n = ring%n_ele_max
       call indexx (ring%ele_(1:n)%name, r_indexx(1:n))
       do k = 1, ring%ele_(i)%n_lord
-        name = pring%ele(ixx)%name(k)
+        name = pring%ele(ixx)%name_(k)
         call find_indexx (name, ring%ele_(1:n)%name, r_indexx, n, j_lord)
         if (j_lord == 0) then
           call find_indexx (name, in_ring%ele_(:)%name, in_indexx, n_max, j)
@@ -831,70 +902,97 @@ subroutine bmad_parser (in_file, ring)
 
   call s_calc (ring)                       ! calc longitudinal distances
   call ring_geometry (ring)                ! ring layout
-  call ring_make_mat6(ring, -1, coord0_)   ! make 6x6 transport matrices
+  call ring_make_mat6(ring, -1)            ! make 6x6 transport matrices
 
 !-------------------------------------------------------------------------
 ! write out if debug is on
 
   if (pcom%parser_debug) then
-
-    print *
-    print *, '----------------------------------------'
-    print *, 'Number of Variables:', pcom%ivar_tot - pcom%ivar_init
-    do i = pcom%ivar_init+1, pcom%ivar_tot
+    
+    if (index(pcom%debug_line, 'VAR') /= 0) then
       print *
-      print *, 'Var #', i-pcom%ivar_tot
-      print *, 'Name: ', var_(i)%name
-      print *, 'Value:', var_(i)%value
-    enddo
+      print *, '----------------------------------------'
+      print *, 'Number of Variables:', pcom%ivar_tot - pcom%ivar_init
+      do i = pcom%ivar_init+1, pcom%ivar_tot
+        print *
+        print *, 'Var #', i-pcom%ivar_tot
+        print *, 'Name: ', var_(i)%name
+        print *, 'Value:', var_(i)%value
+      enddo
+    endif
 
-    print *
-    print *, '----------------------------------------'
-    print *, 'Number of Elements in Regular Ring:', ring%n_ele_ring
-    do i = 1, ring%n_ele_ring
-      print *, '-------------'
-      print *, 'Ele #', i
-      call type_ele (ring%ele_(i), .false., 0, .false., .true., ring)
-    enddo
+    if (index(pcom%debug_line, 'SEQ') /= 0) then
+      print *
+      print *, '----------------------------------------'
+      print *, 'Number of Lines/Lists defined:', pcom.iseq_tot
+      do i = 1, pcom.iseq_tot
+        print *
+        print *, 'Sequence #', i
+        print *, 'Name: ', seq_(i)%name
+        print *, 'Type:', seq_(i)%type
+        print *, 'Number of elements:', size(seq_(i)%ele)
+        print *, 'List:'
+        do j = 1, size(seq_(i)%ele(:))
+          print '(4x, a, l3, i3)', seq_(i)%ele(j)%name, &
+              seq_(i)%ele(j)%reflect, seq_(i)%ele(j)%ix_arg
+        enddo
+      enddo
+    endif
 
-!        print *
-!        print *, '----------------------------------------'
-!        print *, 'Number of Lines/Lists defined:', pcom.iseq_tot
-!        do i = 1, pcom.iseq_tot
-!          print *
-!          print *, 'Sequence #', i
-!          print *, 'Name: ', seq_(i).name
-!          print *, 'Type:', seq_(i).type
-!          print *, 'Number of elements:', seq_(i).ix2 - seq_(i).ix1 + 1
-!          print *, 'List:'
-!          do j = seq_(i).ix1, seq_(i).ix2
-!            print *, '   ', seq_ele(j).name
-!          enddo
-!        enddo
+    if (index(pcom%debug_line, 'SLAVE') /= 0) then
+      print *
+      print *, '----------------------------------------'
+      print *, 'Number of Elements in Regular Ring:', ring%n_ele_ring
+      do i = 1, ring%n_ele_ring
+        print *, '-------------'
+        print *, 'Ele #', i
+        call type_ele (ring%ele_(i), .false., 0, .false., .true., ring)
+      enddo
+    endif
 
-    print *
-    print *, '----------------------------------------'
-    print *, 'Control elements: ', ring%n_ele_max - ring%n_ele_ring
-    do i = ring%n_ele_ring+1, ring%n_ele_max
-      print *, '-------------'
-      print *, 'Ele #', i
-      call type_ele (ring%ele_(i), .false., 0, .false., .true., ring)
-    enddo
+    if (index(pcom%debug_line, 'LORD') /= 0) then
+      print *
+      print *, '----------------------------------------'
+      print *, 'LORD elements: ', ring%n_ele_max - ring%n_ele_ring
+      do i = ring%n_ele_ring+1, ring%n_ele_max
+        print *, '-------------'
+        print *, 'Ele #', i
+        call type_ele (ring%ele_(i), .false., 0, .false., .true., ring)
+      enddo
+    endif
 
-
-    print *
-    print *, '----------------------------------------'
-    print *, 'Ring Used: ', ring%name
-    print *, 'Number of ring elements:', ring%n_ele_ring
-    print *, 'List:                               Key      Length         S'
-    do i = 1, ring%n_ele_ring
-      type '(3x, i3, 2a, 3x, a, 2f10.2)', i, ') ', ring%ele_(i)%name,  &
-        key_name(ring%ele_(i)%key), ring%ele_(i)%value(l$), ring%ele_(i)%s
-    enddo
+    if (index(pcom%debug_line, 'RING') /= 0) then  
+      print *
+      print *, '----------------------------------------'
+      print *, 'Ring Used: ', ring%name
+      print *, 'Number of ring elements:', ring%n_ele_ring
+      print *, 'List:                               Key      Length         S'
+      do i = 1, ring%n_ele_ring
+        type '(3x, i3, 2a, 3x, a, 2f10.2)', i, ') ', ring%ele_(i)%name,  &
+          key_name(ring%ele_(i)%key), ring%ele_(i)%value(l$), ring%ele_(i)%s
+      enddo
+    endif
 
   endif
 
 !-----------------------------------------------------------------------------
+! deallocate pointers
+
+  do i = lbound(pring%ele, 1) , ubound(pring%ele, 1)
+    if (associated (pring%ele(i)%name_)) then
+      deallocate(pring%ele(i)%name_)
+      deallocate(pring%ele(i)%attrib_name_)
+      deallocate(pring%ele(i)%cs_)
+    endif
+  enddo
+
+  do i = 1, size(seq_(:))
+    if (associated (seq_(i)%arg)) deallocate(seq_(i)%arg)
+    if (associated (seq_(i)%ele)) deallocate(seq_(i)%ele)
+  enddo
+
+
+
 ! error check
 
   if (pcom%error_flag) then
@@ -1074,6 +1172,7 @@ subroutine load_parse_line (how, ix_cmd, file_end)
     read (pcom%f_unit, '(a)') line
     if (index(line, '!PARSER_DEBUG')) then
       pcom%parser_debug = .true.
+      pcom%debug_line = line
       print *, 'FOUND IN FILE: "!PARSER_DEBUG". DEBUG IS NOW ON'
     elseif (index(line, '!NO_DIGESTED')) then
       pcom%no_digested = .true.
@@ -1179,7 +1278,7 @@ subroutine evaluate_value (var, ring, final_delim, final_delim_found, err_flag)
 
   call get_next_word (line, ix_word, ',}', final_delim, final_delim_found, .true.)
   if (ix_word == 0) call warning  &
-                         ('NO VALUE FOUND FOR: ' // var%name, ' ')
+                         ('NO VALUE FOUND FOR: ' // var%name)
 
 ! parsing loop to build up the stack
 
@@ -1275,7 +1374,7 @@ subroutine evaluate_value (var, ring, final_delim, final_delim_found, err_flag)
         goto 2500     ! if more ')' need to release more
       elseif (delim == '(') then
         call warning  &
-            ('")(" CONSTRUCT DOES NOT MAKE SENSE FOR: ' // var%name, ' ')
+            ('")(" CONSTRUCT DOES NOT MAKE SENSE FOR: ' // var%name)
         err_flag = .true.
         return
       else
@@ -1286,7 +1385,7 @@ subroutine evaluate_value (var, ring, final_delim, final_delim_found, err_flag)
 
     else
       if (ix_word == 0) then
-        call warning ('CONSTANT OR VARIABLE MISSING FOR: ' // var%name, ' ')
+        call warning ('CONSTANT OR VARIABLE MISSING FOR: ' // var%name)
         err_flag = .true.
         return
       endif
@@ -1415,7 +1514,7 @@ subroutine pushit (stack, i_lev, value)
 
   implicit none
 
-  integer stack(*), i_lev, value
+  integer stack(:), i_lev, value
 
 !
 
@@ -1468,7 +1567,7 @@ subroutine word_to_value (word, ring, value)
       endif
     enddo
 
-    call warning ('ELEMENT NOT DEFINED: ' // name, ' ')
+    call warning ('ELEMENT NOT DEFINED: ' // name)
     value = 0
     return
 
@@ -1481,11 +1580,11 @@ subroutine word_to_value (word, ring, value)
       if (pcom%parser_name == 'BMAD_PARSER2') then
         value = ring%ele_(i_ele)%s
       else
-        call warning ('"S" ATTRIBUTE CAN ONLY BE USED WITH BMAD_PARSER2', ' ')
+        call warning ('"S" ATTRIBUTE CAN ONLY BE USED WITH BMAD_PARSER2')
       endif
     else
       i = attribute_index(ring%ele_(i_ele), name)
-      if (i < 1) call warning('BAD ATTRIBUTE NAME: ' // word, ' ')
+      if (i < 1) call warning('BAD ATTRIBUTE NAME: ' // word)
       value = ring%ele_(i_ele)%value(i)
     endif
 
@@ -1501,10 +1600,10 @@ subroutine word_to_value (word, ring, value)
     endif
   enddo
 
-  call warning ('VARIABLE USED BUT NOT YET DEFINED: ' // word, ' ')
+  call warning ('VARIABLE USED BUT NOT YET DEFINED: ' // word)
   return
 
-9000  call warning ('BAD VARIABLE: ' // word, ' ')
+9000  call warning ('BAD VARIABLE: ' // word)
 
 end subroutine
 
@@ -1598,7 +1697,7 @@ subroutine get_attribute (how, ele, ring, pring, &
           ele%value(i) = var%value
         endif
       elseif (how == redef$) then
-        call warning ('NO VALUE GIVEN FOR ATTRIBUTE FOR: ' // ele%name, ' ')
+        call warning ('NO VALUE GIVEN FOR ATTRIBUTE FOR: ' // ele%name)
         err_flag = .true.
       endif
     endif
@@ -1615,7 +1714,7 @@ subroutine get_attribute (how, ele, ring, pring, &
   if (i < 1) then          ! if not an ordinary attribute...
     if (ix_word == 0) then  ! no word
       call warning  &
-            ('"," NOT FOLLOWED BY ATTRIBUTE NAME FOR: ' // ele%name, ' ')
+            ('"," NOT FOLLOWED BY ATTRIBUTE NAME FOR: ' // ele%name)
       err_flag = .true.
       return
     else
@@ -1630,7 +1729,7 @@ subroutine get_attribute (how, ele, ring, pring, &
       else    ! valid superimpose switch
 
         if (ele%ixx == 0) then
-          call warning ('ELEMENT HAS NO ASSOCIATED INFO: ' // ele%name, ' ') 
+          call warning ('ELEMENT HAS NO ASSOCIATED INFO: ' // ele%name) 
           return
         endif
         ic = ele%ixx
@@ -1651,8 +1750,8 @@ subroutine get_attribute (how, ele, ring, pring, &
         elseif (super_names(i) == 'COMMON_LORD') then
           pring%ele(ic)%common_lord = .true.
         elseif (super_names(i) == 'REFERENCE') then
-          call get_next_word(pring%ele(ic)%name(1), ix_word,  &
-                                                ':=,', delim, delim_found, .true.)
+          call get_next_word(pring%ele(ic)%ref_name, ix_word,  &
+                                             ':=,', delim, delim_found, .true.)
         elseif (super_names(i) == 'OFFSET') then
           var%name = ele%name(:8) // ':' // word   ! in case of error
           call evaluate_value (var, ring, delim, delim_found, err_flag)
@@ -1704,7 +1803,15 @@ subroutine get_attribute (how, ele, ring, pring, &
     var%name = ele%name(:8) // ':' // word   ! in case there is an error
     call evaluate_value (var, ring, delim, delim_found, err_flag)
     if (err_flag) return
-    ele%value(i) = var%value
+    if (i == mat6_calc_method$) then
+      ele%mat6_calc_method = nint(var%value)
+    elseif (i == tracking_method$) then   
+      ele%tracking_method = nint(var%value)
+    elseif (i == num_steps$) then    
+      ele%num_steps = nint(var%value)
+    else
+      ele%value(i) = var%value
+    endif
   endif
 
 end subroutine
@@ -1769,7 +1876,7 @@ end subroutine
 !+
 ! Subroutine GET_OVERLAY_GROUP_NAMES (ELE, RING, PRING, DELIM, DELIM_FOUND)
 !-
-
+        
 subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
 
   use local_bmad_struct
@@ -1781,20 +1888,24 @@ subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
   type (parser_ring_struct) pring
   type (ring_struct)  ring
   type (parser_var_struct)  var
+  type (control_struct) cs_(100)
 
   integer ic, ix_word, ixs, j, k
-
+                             
   character delim*1, word_in*40, word*40
+  character*16 name_(100), attrib_name_(100)
 
   logical delim_found, parsing, err_flag, file_end
-
+                      
 !
 
-  ic = ele%ixx
   call get_next_word (word_in, ix_word, '{,}', delim, delim_found, .true.)
   if (delim /= '{' .or. ix_word /= 0) call warning  &
           ('BAD ' // control_name(ele%control_type) // 'SPEC: ' // word_in,  &
           'FOR ELEMENT: ' // ele%name)
+
+!
+
   parsing = .true.
   do while (parsing)
 
@@ -1807,18 +1918,17 @@ subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
     if (j > 1) then
       k = index(word, ']')
       if (k <= j+1) then
-        call warning ('BAD ATTRIBUTE SPEC: ' // word_in,  &
-                                        'FOR: ' // ele%name)
+        call warning ('BAD ATTRIBUTE SPEC: ' // word_in, 'FOR: ' // ele%name)
         word = word(:k-1) // word(j+1:)
       else
-        pring%ele(ic)%attrib_name(ixs) = word(j+1:k-1)
+        attrib_name_(ixs) = word(j+1:k-1)
         word = word(:j-1) // word(k+1:)
       endif
     else
-      pring%ele(ic)%attrib_name(ixs) = blank
+      attrib_name_(ixs) = blank
     endif
 
-    pring%ele(ic)%name(ixs) = word
+    name_(ixs) = word
 
     if (delim == '/') then
       var%name = ele%name
@@ -1829,9 +1939,9 @@ subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
         call load_parse_line ('normal', 1, file_end)         ! next line
         return
       endif
-      pring%ele(ic)%cs(ixs)%coef = var%value
+      cs_(ixs)%coef = var%value
     else
-      pring%ele(ic)%cs(ixs)%coef = 1.0
+      cs_(ixs)%coef = 1.0
     endif
 
     if (delim == '}') then
@@ -1842,110 +1952,17 @@ subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
               'SPEC: ' // word_in, 'FOR: ' // ele%name)
       parsing = .false.
     endif
-
+                          
   enddo
 
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine SEQ_EXPAND1 (B_LINE, SEQ_ELE)
 !
-! Subroutine to expand a sequence
-!-
 
-subroutine seq_expand1 (b_line, seq_ele)
-
-  use local_bmad_struct
-  use local_bmad_interface
-
-  implicit none
-
-  type (seq_struct)  b_line
-  type (seq_ele_struct)  seq_ele(n_ele_maxx)
-
-  integer ix_ele, ix_word, ix, count, i, ios
-
-  character*20 word
-  character delim*1
-              
-  logical delim_found
-
-! first thing should be a "("
-
-  ix_ele = b_line%ix1
-
-  call get_next_word(word, ix_word, ':=(),', delim, delim_found, .true.)
-
-  if (delim /= '(') call warning  &
-        ('EXPECTING "(", GOT: ' // delim, 'FOR LINE: ' // b_line%name)
-  if (ix_word /= 0)  call warning  &
-        ('EXTRANEOUS STUFF BEFORE "(", GOT: ' // word,  &
-        'FOR LINE: ' // b_line%name)
-
-! now parse list proper
-
-  do 
-
-    call get_next_word (word, ix_word, ':=(,)', delim, delim_found, .true.)
-
-    ix = index(word, '*')          ! E.g. word = '-3*LINE'
-    if (ix /= 0) then
-      read (word(:ix-1), *, iostat = ios) count
-      if (ios /= 0) then
-        call warning ('BAD COUNT: ' // word, ' ')
-        return
-      endif
-      seq_ele(ix_ele)%name = word(ix+1:)
-      if (count < 0) then
-        seq_ele(ix_ele)%reflection = .true.
-      else
-        seq_ele(ix_ele)%reflection = .false.
-      endif
-      count = abs(count)
-      ix_word = ix_word - ix
-    elseif (word(1:1) == '-') then
-      seq_ele(ix_ele)%reflection = .true.
-      count = 1
-      seq_ele(ix_ele)%name = word(2:)
-      ix_word = ix_word - 1
-    else
-      seq_ele(ix_ele)%reflection = .false.
-      count = 1
-      seq_ele(ix_ele)%name = word
-    endif
-
-    call verify_valid_name (seq_ele(ix_ele)%name, ix_word)
-
-! if multiple repetition count then expand
-
-    do i = 1, count-1
-      seq_ele(ix_ele+i)%reflection = seq_ele(ix_ele)%reflection
-      seq_ele(ix_ele+i)%name = seq_ele(ix_ele)%name
-    enddo
-
-    ix_ele = ix_ele + count
-
-    if (delim == ')') exit
-
-    if (delim /= ',') then
-      call warning  &
-               ('EXPECTING "," GOT: ' // delim, 'FOR LINE: ' // b_line%name)
-      exit
-    endif
-           
-  enddo
-
-! make sure there is nothing else
-
-  call get_next_word(word, ix_word, ':=() ', delim, delim_found, .true.)
-
-  if (delim_found .or. ix_word /= 0) call warning  &
-          ('EXTRA CHARACTERS AFTER CLOSING ")"',  'FOR LINE: ' // b_line%name)
-
-  b_line%ix2 = ix_ele - 1
+  ic = ele%ixx
+  allocate (pring%ele(ic)%cs_(ixs), pring%ele(ic)%name_(ixs), &
+                                       pring%ele(ic)%attrib_name_(ixs))
+  pring%ele(ic)%cs_ = cs_(1:ixs)
+  pring%ele(ic)%name_ = name_(1:ixs)
+  pring%ele(ic)%attrib_name_ = attrib_name_(1:ixs)
 
 end subroutine
 
@@ -1955,6 +1972,8 @@ end subroutine
 
 
 subroutine verify_valid_name (name, ix_name)
+
+  use local_bmad_interface
 
   implicit none
 
@@ -1973,19 +1992,19 @@ subroutine verify_valid_name (name, ix_name)
 
   do i = 1, min(ix_name, len(name))
     if (name(i:i) == ' ' .or. name(i:i) == tab) call warning  &
-                          ('NO DELIMITER BETWEEN NAMES: ' // name, ' ')
+                          ('NO DELIMITER BETWEEN NAMES: ' // name)
   enddo
 
 ! check for name too long
 
   if (ix_name > len(name)) then
-     call warning ('NAME TOO LONG: ' // name, ' ')
+     call warning ('NAME TOO LONG: ' // name)
      ix_name = len(name)      ! chop name
   endif
 
 ! check for name too short
 
-  if (ix_name == 0) call warning ('BLANK NAME', ' ')
+  if (ix_name == 0) call warning ('BLANK NAME')
 
 ! check for invalid characters in name
 
@@ -1996,31 +2015,31 @@ subroutine verify_valid_name (name, ix_name)
   enddo
 
   if (.not. OK) call warning ('INVALID NAME: UNRECOGNIZED CHARACTERS IN: '  &
-                                   // name, ' ')
+                                   // name)
 
 ! check for non matched "[" "]" pairs
 
   ix1 = index(name, '[')
   ix2 = index(name, ']')
   if (ix1 /= 0 .or. ix2 /= 0) then
-    if (ix1 == 0) call warning ('UNMATCHED BRACKET: ' // name, ' ')
+    if (ix1 == 0) call warning ('UNMATCHED BRACKET: ' // name)
     if (ix2 <= ix1+1) call warning  &
-                    ('INVALID: REVERSED BRACKETS: ' // name, ' ')
+                    ('INVALID: REVERSED BRACKETS: ' // name)
     if (index(name(ix1+1:), '[') /= 0 .or. index(name(ix2+1:), ']') /=  &
-                   0) call warning ('INVALID: BAD BRACKETS: ' // name, ' ')
+                   0) call warning ('INVALID: BAD BRACKETS: ' // name)
     if (ix2 /= len(name)) then
       if (name(ix2+1:ix2+1) /= ' ') call warning  &
-                    ('INVALID: NOTHING IN BRACKETS: ' // name, ' ')
+                    ('INVALID: NOTHING IN BRACKETS: ' // name)
     endif
   endif
 
 ! check for more than 16 characters
 
   if (ix1 == 0 .and. ix_name > 16)  &
-            call warning ('NAME HAS > 16 CHARACTERS: ' // name, ' ')
+            call warning ('NAME HAS > 16 CHARACTERS: ' // name)
 
   if (ix1 > 17 .or. ix2 - ix1 > 17)  &
-            call warning ('NAME HAS > 16 CHARACTERS: ' // name, ' ')
+            call warning ('NAME HAS > 16 CHARACTERS: ' // name)
 
 end subroutine
 
@@ -2062,13 +2081,14 @@ subroutine warning (what1, what2)
   implicit none
 
   integer ix
-  character*(*) what1, what2
+  character*(*) what1
+  character*(*), optional :: what2
 
 ! PCOM.ERROR_FLAG is a common logical used so program will stop at end of parsing
 
   if (bmad_status%type_out) then
     print *, 'ERROR IN ', trim(pcom%parser_name), ': ', what1
-    if (what2 /= ' ') type '(22x, a)', what2
+    if (present(what2)) type '(22x, a)', what2
     print *, '      IN FILE: ', pcom%current_file_name(:60)
     print *, '      AT OR BEFORE LINE:', pcom%i_line
   endif
@@ -2138,8 +2158,26 @@ subroutine init_bmad_parser_common
   var_(16)%name = 'CIRCULAR_LATTICE'
   var_(16)%value = circular_lattice$
 
-  pcom%ivar_tot = 16
-  pcom%ivar_init = 16
+  var_(17)%name = 'BMAD_STANDARD'
+  var_(17)%value = bmad_standard$
+
+  var_(18)%name = 'DA_MAP'
+  var_(18)%value = DA_map$
+
+  var_(19)%name = 'CUSTOM_CALC'
+  var_(19)%value = custom_calc$
+
+  var_(20)%name = 'RUNGE_KUTTA'
+  var_(20)%value = runge_kutta$
+
+  var_(21)%name = 'PROTON'
+  var_(21)%value = proton$
+
+  var_(22)%name = 'ANTIPROTON'
+  var_(22)%value = antiproton$
+
+  pcom%ivar_tot = 20
+  pcom%ivar_init = 20
 
 end subroutine
 
@@ -2168,11 +2206,11 @@ subroutine compute_super_lord_s (ele, ring, pring)
   ic = ele%ixx
 
   if (ring%n_ele_max < ring%n_ele_ring) then
-    call warning ('N_ELE_MAX LESS THAN N_ELE_RING!', ' ')
+    call warning ('N_ELE_MAX LESS THAN N_ELE_RING!')
     call err_exit
   endif
 
-  if (pring%ele(ic)%name(1) == blank) then
+  if (pring%ele(ic)%ref_name == blank) then
     call compute2_super_lord_s (ring, 0, ele, pring%ele(ic))
     return
   endif
@@ -2182,10 +2220,10 @@ subroutine compute_super_lord_s (ele, ring, pring)
   found = .false.
 
   do k = 1, ring%n_ele_max
-    if (pring%ele(ic)%name(1) == ring%ele_(k)%name) then
+    if (pring%ele(ic)%ref_name == ring%ele_(k)%name) then
       if (found) then
         call warning ('MULTIPLE NAME MATCHES FOR' //  &
-                  ' REFERENCE OF SUPERIMPOSE: ' // ele%name, ' ')
+                  ' REFERENCE OF SUPERIMPOSE: ' // ele%name)
         return
       else
         call compute2_super_lord_s (ring, k, ele, pring%ele(ic))
@@ -2195,7 +2233,7 @@ subroutine compute_super_lord_s (ele, ring, pring)
   enddo
 
   if (.not. found) call warning ('UNKNOWN REFERENCE ELEMENT: ' //  &
-        pring%ele(ic)%name(1), 'FOR SUPERIMPOSE ELEMENT: ' // ele%name)
+        pring%ele(ic)%ref_name, 'FOR SUPERIMPOSE ELEMENT: ' // ele%name)
 
 end subroutine
                                     
@@ -2230,7 +2268,7 @@ subroutine add_all_superimpose (ring, ele_in, pele)
 
 ! If no refrence point then superposition is simple
 
-  if (pele%name(1) == blank) then
+  if (pele%ref_name == blank) then
     call compute2_super_lord_s (ring, 0, ele2, pele)
     call add_superimpose (ring, ele2, i_sup)
     return
@@ -2253,7 +2291,7 @@ subroutine add_all_superimpose (ring, ele_in, pele)
       if (ic == group_lord$ .or. ic == super_slave$) cycle
       if (this_ele%iyy == 1) cycle
 
-      if (match_wild(this_ele%name, pele%name(1))) then
+      if (match_wild(this_ele%name, pele%ref_name)) then
 
         do i = 1, n_inserted
           if (this_ele%name == matched_name(i)) cycle ele_loop
@@ -2284,7 +2322,7 @@ subroutine add_all_superimpose (ring, ele_in, pele)
 ! error check
 
   if (n_inserted == 0) call warning ('NO MATCH FOR REFERENCE ELEMENT: ' //  &
-            pele%name(1), 'FOR SUPERPOSITION OF: ' // ele%name)
+            pele%ref_name, 'FOR SUPERPOSITION OF: ' // ele%name)
 
 
 ! if there is to be no common lord then we are done
@@ -2391,7 +2429,7 @@ subroutine compute2_super_lord_s (ring, i_ref, ele, pele)
       s_ref_end = max(s_ref_end, ring%ele_(ix)%s)
     enddo
   elseif (ring%ele_(i_ref)%control_type == group_lord$) then
-    call warning ('SUPERPOSING: ' // ele%name, 'UPON GROUP' // pele%name(1))
+    call warning ('SUPERPOSING: ' // ele%name, 'UPON GROUP' // pele%ref_name)
     return
   else
     s_ref_begin = ring%ele_(i_ref)%s - ring%ele_(i_ref)%value(l$)
@@ -2429,9 +2467,9 @@ subroutine find_indexx (name, names, an_indexx, n_max, ix_match)
   implicit none
 
   integer ix1, ix2, ix3, n_max, ix_match
-  integer an_indexx(*)
+  integer an_indexx(:)
 
-  character*16 name, names(*)
+  character*16 name, names(:)
   character*16 this_name
 
 ! simple case

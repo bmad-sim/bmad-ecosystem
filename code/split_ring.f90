@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/01/08 21:44:43  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.3  2001/11/29 19:39:54  helms
 !Updates from DCS including (*) -> (:)
 !
@@ -32,8 +35,6 @@
 
 #include "CESR_platform.inc"
 
-
-
 subroutine split_ring (ring, s_split, ix_split, split_done)
 
   use bmad_struct
@@ -41,10 +42,12 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 
   implicit none
 
-  type (ring_struct)  ring
+  type (ring_struct), target :: ring
   type (ele_struct)  ele
+  type (ele_struct), pointer :: ele1, ele2
 
   real s_split, len_orig, len1, len2, coef1, coef2, angle0, coef_old
+  real dl
 
   integer i, j, k, ix, ix1, ix_del, ix1_del, ix2_del, ixx1
   integer ix_split, ix_lord, ixc, ix_attrib, ix_super_lord
@@ -61,7 +64,7 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 
 ! find where to split
 
-  do ix_split = 0, ring%n_ele_ring   !! changed 11/5/01 DCS
+  do ix_split = 0, ring%n_ele_ring   
     if (abs(ring%ele_(ix_split)%s - s_split) < 1.0e-5) then
       split_done = .false.
       return
@@ -75,82 +78,57 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
   len2 = ring%ele_(ix_split)%s - s_split
   len1 = len_orig - len2
 
+! there is a problem with custom elements in that we don't know which
+! attributes (if any) scale with length.
+
+  if (ele%key == custom$) then
+    print *, "ERROR IN SPLIT_RING: I DON'T KNOW HOW TO SPLIT A CUSTOM ELEMENT!"
+    call err_exit
+  endif
+
 ! insert a new element
 ! note: ring.control_().ix_ele pointers to ix_split will now point to ix_split+1
 
   ele%value(l$) = 0       ! so no s recalc with insert_element
   call insert_element (ring, ele, ix_split)
+  ele1 => ring%ele_(ix_split)
+  ele2 => ring%ele_(ix_split+1)
 
   ix = len_trim(ele%name)
-  ring%ele_(ix_split)%name   = ele%name(:ix) // '\1'
-  ring%ele_(ix_split+1)%name = ele%name(:ix) // '\2'
-
-! if an sbend:
-!     1) renormalize the angles
-!     2) zero the face angles next to the split
-
-  if (ele%key == sbend$) then
-    angle0 = ele%value(angle$)
-    ring%ele_(ix_split)%value(angle$) = angle0 * len1 / len_orig
-    ring%ele_(ix_split)%value(e2$) = 0.0
-    ring%ele_(ix_split+1)%value(angle$) = angle0 * len2 / len_orig
-    ring%ele_(ix_split+1)%value(e1$) = 0.0
-  endif                       
-
-! hkicks and vkicks get distributed in proportion to the length
-
-  ring%ele_(ix_split)%value(hkick$) = ele%value(hkick$) * len1 / len_orig
-  ring%ele_(ix_split)%value(vkick$) = ele%value(vkick$) * len1 / len_orig
-
-  ring%ele_(ix_split+1)%value(hkick$) = ele%value(hkick$) * len2 / len_orig
-  ring%ele_(ix_split+1)%value(vkick$) = ele%value(vkick$) * len2 / len_orig
+  ele1%name = ele%name(:ix) // '\1'
+  ele2%name = ele%name(:ix) // '\2'
 
 ! put in correct lengths and s positions
 
-  ring%ele_(ix_split)%value(l$) = len1
-  ring%ele_(ix_split)%s = s_split
-  ring%ele_(ix_split+1)%value(l$) = len2
+  ele1%value(l$) = len1
+  ele1%s = s_split
+  ele2%value(l$) = len2
 
 !-------------------------------------------------------------
 ! Now to correct the slave/lord bookkeeping...
 
   ix_super_lord = 0   ! no super lord made yet.
 
-! a free drift or free bend needs nothing more.
+! a free drift needs nothing more.
 
   if (ele%key == drift$ .and. ele%control_type == free$) goto 8000
-  if (ele%key == sbend$ .and. ele%control_type == free$) goto 8000
 
 ! If we have split a super_slave we need to make a 2nd control list for one
 ! of the split elements (can't have both split elements using the same list).
 ! Also: Redo the control list for the lord elements.
 
-! A split bend element gets handeled the same as a split super_slave.
-! We do not try to create a super_lord for a split bend because of the
-! problem of handling the face angles.
+  if (ele%control_type == super_slave$) then
 
-! Note: If the super_slave is a bend then we are in trouble since the face
-! angles cannot be handled correctly.
-
-  if (ele%control_type == super_slave$ .and. ele%key == sbend$) then
-    type *, 'ERROR IN SPLIT_RING: BEND ELEMENT TO SPLIT IS A SUPER_SLAVE!'
-    type *, '      I DO NOT KNOW HOW TO HANDLE THIS!'
-    type *, '      PLEASE SEAK EXPERT (HUMAN) HELP!'
-    call err_exit
-  endif
-
-  if (ele%control_type == super_slave$ .or. ele%key == sbend$) then
-
-    if (ele%n_lord == 0) goto 8000  ! nothing to do for free sbend$
+    if (ele%n_lord == 0) goto 8000  ! nothing to do for free element
 
     ixc = ring%n_ic_array
-    ring%ele_(ix_split)%ic1_lord = ixc + 1
-    ring%ele_(ix_split)%ic2_lord = ixc + ele%n_lord
+    ele1%ic1_lord = ixc + 1
+    ele1%ic2_lord = ixc + ele%n_lord
     ring%n_ic_array = ixc + ele%n_lord
 
     do j = 1, ele%n_lord
 
-      ix = ring%ele_(ix_split+1)%ic1_lord - 1
+      ix = ele2%ic1_lord - 1
       icon = ring%ic_(ix + j)
 
       coef_old = ring%control_(icon)%coef
@@ -186,7 +164,7 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 
   endif   ! split element is a super_slave
 
-! Here if a free or overlay element, not a bend.
+! Here if a free or overlay element
 ! Need to make a super lord to control the split elements.
 
   ix_super_lord = ring%n_ele_max + 1
@@ -227,19 +205,19 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 
 ! split elements must now be pointing towards their lord
 
-  ring%ele_(ix_split)%control_type = super_slave$
+  ele1%control_type = super_slave$
   inc = ring%n_ic_array + 1
-  ring%ele_(ix_split)%ic1_lord = inc
-  ring%ele_(ix_split)%ic2_lord = inc
-  ring%ele_(ix_split)%n_lord = 1
+  ele1%ic1_lord = inc
+  ele1%ic2_lord = inc
+  ele1%n_lord = 1
   ring%n_ic_array = inc
   ring%ic_(inc) = ixc
 
-  ring%ele_(ix_split+1)%control_type = super_slave$
+  ele2%control_type = super_slave$
   inc = ring%n_ic_array + 1
-  ring%ele_(ix_split+1)%ic1_lord = inc
-  ring%ele_(ix_split+1)%ic2_lord = inc
-  ring%ele_(ix_split+1)%n_lord = 1
+  ele2%ic1_lord = inc
+  ele2%ic2_lord = inc
+  ele2%n_lord = 1
   ring%n_ic_array = inc
   ring%ic_(inc) = ixc + 1
 

@@ -42,6 +42,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/01/08 21:44:37  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.4  2001/10/12 20:53:35  rwh24
 !DCS changes and two files added
 !
@@ -248,7 +251,7 @@ subroutine bmad_to_db_main (ring, db)
 ! Things not part of the CESR DB
 
   call non_db_set (db%detector, cesr%det_, 0, 0)
-  call non_db_set (db%wiggler, cesr%wig_, k1$, 1)
+  call non_db_set (db%wiggler, cesr%wig_, b_max$, 1)
   call non_db_set (db%scir_cam_rho, cesr%scir_cam_rho_, rho$, 1)
   call non_db_set (db%scir_tilt, cesr%scir_tilt_, rho$, 1)
 

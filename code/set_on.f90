@@ -10,7 +10,7 @@
 !   use bmad_interface
 !
 ! Input:
-!   key       -- Integer: Key attribute of elements to be turned on or off.
+!   key       -- Integer: Key name of elements to be turned on or off.
 !                  [Key = quadrupole$, etc.]
 !   ring      -- Ring_struct: Ring structure holding the elements
 !   on_switch -- Logical: True  => turn elements on.
@@ -24,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:43  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:57  rwh24
 !UNIX compatibility updates
 !

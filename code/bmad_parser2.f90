@@ -26,13 +26,14 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:36  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:48  rwh24
 !UNIX compatibility updates
 !
 
 #include "CESR_platform.inc"
-
-
 
 subroutine bmad_parser2 (in_file, ring, orbit_)
 
@@ -54,7 +55,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
   character*(*) in_file
   character*16 word_2, name, a_name
   character*16 name1, name2
-  character delim*1, word_1*32, call_file*60
+  character delim*1, word_1*32, call_file*200
 
   logical parsing, delim_found, found, matched_delim
   logical file_end, match_found, err_flag, finished
@@ -75,7 +76,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
 
   last_con = 0
 
-  pring%ele(:)%name(1) = blank
+  pring%ele(:)%ref_name = blank
   pring%ele(:)%ref_pt  = center$
   pring%ele(:)%ele_pt  = center$
   pring%ele(:)%s       = 0
@@ -420,25 +421,25 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
         ick = index(name1, '\')
         if (ick /= 0) name2 = name1(:ick-1)
 
-        if (pring%ele(ic)%name(j) == name1 .or.  &
-                pring%ele(ic)%name(j) == name2 .and.  &
+        if (pring%ele(ic)%name_(j) == name1 .or.  &
+                pring%ele(ic)%name_(j) == name2 .and.  &
                 (ring%ele_(k)%control_type /= super_slave$)) then
 
           if (match_found)  &
              call warning ('MULTIPLE CONTROL MATCHES FOUND FOR: ' //  &
-             temp%ele_(ixe)%name, 'MATCHING STRING: ' // pring%ele(ic)%name(j))
+             temp%ele_(ixe)%name, 'MATCHING STRING: ' // pring%ele(ic)%name_(j))
 
           match_found = .true.
-          pring%ele(ic)%cs(j)%ix_slave = k
+          pring%ele(ic)%cs_(j)%ix_slave = k
 
-          a_name = pring%ele(ic)%attrib_name(j)
+          a_name = pring%ele(ic)%attrib_name_(j)
           ix = attribute_index(ring%ele_(k), a_name)
           if (a_name /= blank) then
-            pring%ele(ic)%cs(j)%ix_attrib = ix
+            pring%ele(ic)%cs_(j)%ix_attrib = ix
             if (ix < 1) call warning ('BAD ATTRIBUTE NAME: ' // a_name,  &
                      'FOR OVERLAY/GROUP ELEMENT: ' // temp%ele_(ixe)%name)
           else
-            pring%ele(ic)%cs(j)%ix_attrib = temp%ele_(ixe)%ix_value
+            pring%ele(ic)%cs_(j)%ix_attrib = temp%ele_(ixe)%ix_value
           endif
 
         endif ! pring%ele(ic).name(j) == name1 or name2
@@ -447,7 +448,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
 
       if (.not. match_found)  &
              call warning ('NO SLAVE ELEMENT FOUND FOR: ' //  &
-             temp%ele_(ixe)%name, 'FAILED TO FIND: ' // pring%ele(ic)%name(j))
+             temp%ele_(ixe)%name, 'FAILED TO FIND: ' // pring%ele(ic)%name_(j))
 
     enddo   ! j = 1, jmax
 
@@ -462,7 +463,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
       call new_control (ring, ix_lord)
       ring%ele_(ix_lord) = ele
       call create_overlay (ring, ix_lord, ele%ix_value, ele%n_slave, &
-                                                     pring%ele(ele%ixx)%cs)
+                                                     pring%ele(ele%ixx)%cs_)
     endif
   enddo
 
@@ -480,7 +481,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
     if (ele%control_type == group_lord$ .and. ic > 0) then
       call new_control (ring, ix_lord)
       ring%ele_(ix_lord) = ele
-      call create_group (ring, ix_lord, ele%n_slave, pring%ele(ele%ixx)%cs)
+      call create_group (ring, ix_lord, ele%n_slave, pring%ele(ele%ixx)%cs_)
     endif
   enddo
 

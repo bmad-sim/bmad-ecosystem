@@ -32,13 +32,16 @@
 !     %param%growth_rate -- unstable growth rate (= 0 if stable)
 ! 
 !   bmad_status  -- BMAD Common block status structure
-!     %ok            -- Logical: .True. if everything is OK,
+!     %ok            -- Logical: .True. if everything is OK, False otherwise.
 !     %status        -- Integer: Calculation status.
 !                        See MAT_SYMP_DECOUPLE for for more info
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:44  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:32:00  rwh24
 !UNIX compatibility updates
 !

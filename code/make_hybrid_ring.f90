@@ -37,6 +37,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/01/08 21:44:39  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.3  2001/11/29 19:39:53  helms
 !Updates from DCS including (*) -> (:)
 !
@@ -51,6 +54,8 @@
 subroutine make_hybrid_ring (r_in, use_ele, remove_markers, r_out, ix_out)
 
   use bmad_struct
+  use bmad_interface
+
   implicit none
 
 
@@ -160,13 +165,19 @@ subroutine make_hybrid_ring (r_in, use_ele, remove_markers, r_out, ix_out)
 
         o_key = r_out%ele_(i_out)%key 
         if (r_in%ele_(j_in)%key == drift$ .and. &
-              (o_key == drift$ .or. o_key == marker$)) then
+                          (o_key == drift$ .or. o_key == marker$)) then
+          r_out%ele_(i_out)%name = 'DRIFT_HYBRID' 
           r_out%ele_(i_out)%key = drift$
         else
           r_out%ele_(i_out)%name = 'HYBRID'
           r_out%ele_(i_out)%key = hybrid$
           if (r_in%ele_(j_in)%coupled) r_out%ele_(i_out)%coupled = .true.
         endif
+
+        r_out%ele_(i_out)%x       = r_in%ele_(j_in)%x
+        r_out%ele_(i_out)%y       = r_in%ele_(j_in)%y
+        r_out%ele_(i_out)%c_mat   = r_in%ele_(j_in)%c_mat
+        r_out%ele_(i_out)%gamma_c = r_in%ele_(j_in)%gamma_c
 
       endif
 
@@ -281,6 +292,7 @@ end subroutine
 subroutine mat6_dispersion (mat6, e_vec)
 
   use bmad_struct
+  use bmad_interface
 
   implicit none
 

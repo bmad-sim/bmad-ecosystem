@@ -18,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:42  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:55  rwh24
 !UNIX compatibility updates
 !
@@ -29,6 +32,7 @@
 subroutine one_turn_matrix (ring, mat6)
 
   use bmad_struct
+  use bmad_interface
 
   implicit none
 

@@ -1,49 +1,50 @@
 !+
 ! subroutine MARK_LRBBI(master_ring, master_ring_oppos, ring, crossings)
 !
-!	Input:
-!		master_ring						-- Ring struct: Ring with markers at all LRBBI crossings
-!		master_ring_oppos  -- Ring struct: Ring for oppositely circulating
-!																particles, with markers at all LRBBI crossings.
-!   ring									-- Array of ring structs: Each bunch has its own ring(i)
-!                         with markers at all LRBBI crossings that bunch sees.
-!		crossings							-- Array(i,j): First column is the position (as a
-!																fraction/percent of the total ring length) of a beam-
-!																beam interaction seen by a bunch. Second column is
-!																the index of the bunch that sees the crossings in the
-!																first column. (Third column should be an index
-!																indicating which crossing this is: 1rst, 2nd, etc,
-!																but it is not used or changed here.) The fourth and
-!																fifth columns should be empty and will hold,
-!																respectively, the index of the crossings in the ring,
-!																and the index in the master_ring.
+! Subroutine to insert markers at parasitic crossing point.
 !
-!	Output:			
-!		ring									-- Array of ring structs: Ring for each bunch with
-!																markers placed where parasitic crossings are seen
-!																by that bunch.
-!   master_ring						-- Ring struct: Master_ring with markers placed at every 
+! Modules Needed:
+!   use bmad_struct
+!   use bmad_interface
+!
+! Input:
+!   master_ring        -- Ring struct: Ring with markers at LRBBI locations.
+!   master_ring_oppos  -- Ring struct: Ring for oppositely circulating
+!                         particles, with markers at all LRBBI locations.
+!   ring(:)            -- Ring struct: Each bunch has its own ring(i)
+!                         with markers at parasitic crossings that bunch sees.
+!   crossings(:,:)     -- Real: First column is the position (as a
+!                         fraction/percent of the total ring length) of a beam-
+!                         beam interaction seen by a bunch. Second column is
+!                         the index of the bunch that sees the crossings in the
+!                         first column. (Third column should be an index
+!                         indicating which crossing this is: 1rst, 2nd, etc,
+!                         but it is not used or changed here.) The fourth and
+!                         fifth columns should be empty and will hold,
+!                         respectively, the index of the crossings in the ring,
+!                         and the index in the master_ring.
+!
+! Output:
+!   ring(:)            -- Ring struct: Ring for each bunch with
+!                         markers placed where parasitic crossings are seen
+!                         by that bunch.
+!   master_ring        -- Ring struct: Master_ring with markers placed at every
 !                         parasitic crossing (seen by any bunch).
-!   master_ring_oppos		-- Ring struct: Master_ring_oppos with markers placed
+!   master_ring_oppos  -- Ring struct: Master_ring_oppos with markers placed
 !                         at every parasitic crossings (seen by any bunch).
-!   ix_LRBBI							-- Array(i,j): First column (i) is the index of the ring
-!																(i.e., bunch), second column (j) is the index of a
-!																beam-beam element's positions in ring(i).
-!		master_ix_LRBBI    -- Array(i,j): First column (i) is the index of the
-!																ring, second column (j) is the index of a beam-beam
-!																element (seen by the ith bunch) in the master_ring 
-!																and master_ring_oppos. This index is used to 
-!																calculate sigmas and offsets.
 !
 !
-! Note: The elements placed at the parasitic crossing sites are simply markers 
-!       with unit 6x6 matrices. ix_LRBBI and master_ix_LRBBI hold the
-!				indices of the location of all inserted markers (named 'LRBBI_MARKER').
-!       Ring_make_mat6 is called for all rings.
+! Note: The elements placed at the parasitic crossing sites are simply markers
+!       with unit 6x6 matrices. The fourth and fifth columns of crossings hold
+!       the indices of the location of all inserted markers (named
+!       'LRBBI_MARKER'). Ring_make_mat6 is called for all rings.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:40  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:53  rwh24
 !UNIX compatibility updates
 !
@@ -66,7 +67,7 @@ subroutine MARK_LRBBI(master_ring, master_ring_oppos, ring, crossings)
 	real, dimension(:,:) :: crossings
 	real :: smallest, s_split
 
-  integer :: i, j, k, m, ierr, end, loc_smallest, ix_split
+  integer :: i, j, k, m, ierr, loc_smallest, ix_split
 	integer :: ix_ele, master_ix_split, master_ix_ele, ring_index, total
 	integer :: index1, index2, index3, index4
 	integer, dimension(1) :: minloc_array
@@ -85,11 +86,9 @@ subroutine MARK_LRBBI(master_ring, master_ring_oppos, ring, crossings)
 
 !---------------------------------------------------------------------------
 
-	end = total
-
-	do k = 1, end
-		smallest = minval(crossings(k:end,1))
-		minloc_array = minloc(crossings(k:end,1))
+	do k = 1, total
+		smallest = minval(crossings(k:total,1))
+		minloc_array = minloc(crossings(k:total,1))
 		loc_smallest = k - 1 + minloc_array(1)
 		index1 = crossings(loc_smallest, 2)
 		index2 = crossings(loc_smallest, 3)
@@ -103,7 +102,7 @@ subroutine MARK_LRBBI(master_ring, master_ring_oppos, ring, crossings)
 		endif
 	enddo
 
-	jay: do j = 1, end
+	j_loop: do j = 1, total
 
 		s_split = crossings(j,1) * master_ring%param%total_length
 		ring_index = crossings(j,2)
@@ -112,7 +111,7 @@ subroutine MARK_LRBBI(master_ring, master_ring_oppos, ring, crossings)
 
 		if (j .gt. 1 .and. crossings(j,1) == crossings(j-1,1)) then
 			call split_ring(ring(ring_index), s_split, ix_split, split_done)
-			if (split_done == .false.) cycle jay
+			if (split_done == .false.) cycle j_loop
 
 			call init_ele(insert_ele(j))
 			insert_ele(j)%key = marker$
@@ -126,7 +125,7 @@ subroutine MARK_LRBBI(master_ring, master_ring_oppos, ring, crossings)
 
  		  call insert_element(ring(ring_index), insert_ele(j), ix_ele)
 
-			cycle jay		
+			cycle j_loop		
 		endif
 
     ix_split = 0
@@ -160,7 +159,7 @@ subroutine MARK_LRBBI(master_ring, master_ring_oppos, ring, crossings)
  	  	call insert_element(ring(ring_index), insert_ele(j), ix_ele)
     endif
 
-  enddo jay
+  enddo j_loop
 
 	call closed_orbit_at_start(master_ring, orbit_(0), 4, .true.)
 	call track_all(master_ring, orbit_)

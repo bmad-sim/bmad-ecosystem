@@ -2,7 +2,8 @@
 ! Subroutine track_bend (start, ele, end, is_lost)
 !
 ! Particle tracking through a bend element.
-! Subroutine assumes no k1 quadrupole component
+! This Subroutine does NOT take into account element offsets, pitches or tilts.
+! This Subroutine assumes no k1 quadrupole component.
 !
 ! Modules Needed:
 !   use bmad_struct
@@ -20,12 +21,14 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:44  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:59  rwh24
 !UNIX compatibility updates
 !
 
 #include "CESR_platform.inc"
-
 
 subroutine track_bend (start, ele, end, is_lost)
 
@@ -43,8 +46,8 @@ subroutine track_bend (start, ele, end, is_lost)
 
 ! some init
 
-  r0 = ele%value(rho$) 
-  r =  r0 * (1 + start%z%vel) 
+  r0 = ele%value(rho_design$) 
+  r =  ele%value(rho$) * (1 + start%z%vel) 
   theta0 = ele%value(angle$)
 
 ! track through the entrence face. Treat as thin lens.

@@ -17,6 +17,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:43  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:57  rwh24
 !UNIX compatibility updates
 !
@@ -28,7 +31,10 @@
 subroutine s_calc (ring)
 
   use bmad_struct
+  use bmad_interface
+  
   implicit none
+
   type (ring_struct)  ring
 
   integer n, ix2
@@ -57,5 +63,4 @@ subroutine s_calc (ring)
     endif
   enddo
 
-  return
-  end
+end subroutine

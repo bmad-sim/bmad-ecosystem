@@ -17,8 +17,12 @@
 ! Output:
 !     ELE%MAT6 -- Real: 6x6 transfer matrix.
 !-
+
 !$Id$
 !$Log$
+!Revision 1.6  2002/01/08 21:44:39  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.5  2001/12/04 20:28:57  helms
 !Changes from DCS
 !
@@ -57,7 +61,7 @@ subroutine make_mat6 (ele, param, c0, c1)
   real r, c_e, c_m, gamma_old, gamma_new, vec_st(4)
   real sqrt_k, arg, kick2
   real cx, sx, cy, sy, k2l_2, k2l_3, k2l_4
-  real x_off, y_off, x_pit, y_pit, y_ave, k_z
+  real x_off, y_off, s_off, x_pit, y_pit, y_ave, k_z, del_x, del_y
   real t5_11, t5_12, t5_22, t5_33, t5_34, t5_44, t5_14, t5_23
   real t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
   real t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
@@ -69,6 +73,8 @@ subroutine make_mat6 (ele, param, c0, c1)
 
 !--------------------------------------------------------
 ! init
+
+  call attribute_bookkeeper (ele, param)
 
   length = ele%value(l$)
   mat6 => ele%mat6
@@ -108,13 +114,7 @@ subroutine make_mat6 (ele, param, c0, c1)
       ele%key == elseparator$ .or. ele%key == kicker$) then
 
     c00%vec = (c00%vec + c11%vec) / 2
-
-    mat6(1,2) = length
-    mat6(3,4) = length
-    mat6(1,6) =        - c00%vec(2) * length
-    mat6(3,6) =        - c00%vec(4) * length
-    mat6(5,2) =        - c00%vec(2) * length
-    mat6(5,4) =        - c00%vec(4) * length
+    call drift_mat6_calc (mat6, length, c00)
 
     ele%coupled = .false.
     goto 8000   ! put in multipole ends if needed
@@ -126,13 +126,22 @@ subroutine make_mat6 (ele, param, c0, c1)
 ! Note: c00 and c11 are the coords in the frame of reference where the element
 !       is upright (no tilt).
 
-  x_off = ele%value(x_offset$); y_off = ele%value(y_offset$)
-  x_pit = ele%value(x_pitch$) * length / 2
-  y_pit = ele%value(y_pitch$) * length / 2
-  c00%vec = c00%vec - (/ x_off - x_pit*length/2, x_pit, &
-                           y_off - y_pit*length/2, y_pit, 0.0, 0.0 /) 
-  c11%vec = c11%vec - (/ x_off + x_pit*length/2, x_pit, &
-                           y_off + y_pit*length/2, y_pit, 0.0, 0.0 /) 
+  if (ele%value(x_offset$) /= 0 .or. ele%value(y_offset$) /= 0 .or. &
+      ele%value(s_offset$) /= 0 .or. ele%value(x_pitch$) /= 0 .or. &
+      ele%value(y_pitch$) /= 0) then
+    x_off = ele%value(x_offset$)
+    y_off = ele%value(y_offset$)
+    x_pit = ele%value(x_pitch$) * length / 2
+    y_pit = ele%value(y_pitch$) * length / 2
+    s_off = ele%value(s_offset$)
+    del_x = s_off * c00%x%vel / (1 + c00%z%vel)
+    del_y = s_off * c00%y%vel / (1 + c00%z%vel)
+
+    c00%vec = c00%vec - (/ x_off - x_pit*length/2 + del_x, x_pit, &
+                           y_off - y_pit*length/2 + del_y, y_pit, 0.0, 0.0 /) 
+    c11%vec = c11%vec - (/ x_off + x_pit*length/2 - del_x, x_pit, &
+                           y_off + y_pit*length/2 - del_y, y_pit, 0.0, 0.0 /) 
+  endif
 
   if (ele%value(tilt$) /= 0) then
     if (ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
@@ -154,21 +163,21 @@ subroutine make_mat6 (ele, param, c0, c1)
 
   case (sbend$) 
 
-    angle = ele%value(angle$)
     e1 = ele%value(e1$)
     e2 = ele%value(e2$)
     k1 = ele%value(k1$)
-    if (length == 0) then
-      rho = 1  ! so subroutine will not bomb
-    else
-      rho = length / angle
+    if (length == 0) return
+    if (ele%value(rho_design$) == 0 .or. ele%value(rho$) == 0) then
+      if (bmad_status%type_out) &
+              print *, 'ERROR IN MAKE_MAT6: BEND HAS RHO = 0 FOR: ', ele%name
+      if (bmad_status%exit_on_error) call err_exit
     endif
-    ele%value(rho$) = rho
 
+    angle = ele%value(angle$)
     e1 = e1 + c00%x%vel
     e2 = e2 - c11%x%vel
     angle = angle + c00%x%vel - c11%x%vel
-    rho = rho * (1 + c00%z%vel)
+    rho = ele%value(rho$) * (1 + c00%z%vel)
     length = rho * angle
     k1 = k1 / (1 + c00%z%vel)
    
@@ -394,8 +403,6 @@ subroutine make_mat6 (ele, param, c0, c1)
 ! this is not quite correct.
 
   case (rfcavity$) 
-    if (ele%value(harmon$) /= 0) ele%value(rf_wavelength$) =  &
-                                   param%total_length / ele%value(harmon$)
     if (ele%value(volt$) /= 0) then
       if (ele%value(harmon$) == 0) then
         type *, 'ERROR IN MAKE_MAT6: "HARMON" ATTRIBUTE NOT SET FOR RF.'
@@ -427,10 +434,7 @@ subroutine make_mat6 (ele, param, c0, c1)
   case (beambeam$)         
 
     n_slice = nint(ele%value(n_slice$))
-    if (n_slice == 0) then
-      ele%value(n_slice$) = 1.0  ! revert to default
-      n_slice = 1
-    elseif (n_slice < 1) then
+    if (n_slice < 1) then
       type *, 'ERROR IN MAKE_MAT6: N_SLICE FOR BEAMBEAM ELEMENT IS NEGATIVE'
       call type_ele (ele, .true., 0, .false., .false.)
       call exit
@@ -438,18 +442,8 @@ subroutine make_mat6 (ele, param, c0, c1)
 
     if (ele%value(charge$) == 0 .or. param%n_part == 0) then
       ele%coupled = .false.
-      ele%value(bbi_const$) = 0
       return
     endif
-
-    if (ele%value(sig_x$) == 0 .or. ele%value(sig_y$) == 0) then
-      type *, 'ERROR IN MAKE_MAT6: ZERO SIGMA IN BEAMBEAM ELEMENT!'
-      call type_ele(ele, .true., 0, .false., .false.)
-      call exit
-    endif
-
-    ele%value(bbi_const$) = -param%n_part * e_mass * ele%value(charge$) * &
-      r_e /  (2 * pi * param%energy * (ele%value(sig_x$) + ele%value(sig_y$)))
 
 ! factor of 2 in orb.z.pos since relative motion of the two beams is 2*c_light
 
@@ -490,24 +484,12 @@ subroutine make_mat6 (ele, param, c0, c1)
 
     call mat_unit (mat6, 6, 6)     ! make a unit matrix
 
-    if (param%energy == 0) then
-      ele%value(k1$) = 0
-    else
-      ele%value(k1$) = -0.5 * (0.2997 * ele%value(b_max$) / param%energy)**2
-    endif
-
-    if (ele%value(b_max$) == 0) then
-      ele%value(rho$) = 0
-    else
-      ele%value(rho$) = 3.3356 * param%energy / ele%value(b_max$)
-    endif
-
     k1 = ele%value(k1$) / (1 + c00%z%vel)**2
   
 ! octuple correction to k1
 
     y_ave = (c00%y%pos + c11%y%pos) / 2
-    k_z = 2 * pi * ele%value(n_pole$) / length
+    k_z = pi * ele%value(n_pole$) / length
     k1 = k1 * (1 + 2 * (k_z * y_ave)**2)   
 
 ! correction for fact that wigglers with odd number of poles have end
@@ -580,30 +562,23 @@ subroutine make_mat6 (ele, param, c0, c1)
     if (.not. ele%multipoles_on) return
     call mat6_multipole (ele, param, c00, 1.0, ele%mat6, unit_multipole_matrix)
     if (unit_multipole_matrix) ele%coupled = .false.
-    return
 
 !--------------------------------------------------------
 ! loop
-
-  case (loop$) 
-
 ! make a zero matrix because no transfer matrix may be calculated
 ! ahead of time
 
+  case (loop$) 
+
     mat6 = 0   
-    r = ele%value(radius$)
-    ele%value(diameter$) = 2 * r
-    ele%value(r2$) = r**2
-    ele%value(ri$) = r * ele%value(current$)
-    ele%value(r2i$) = ele%value(r2$) * ele%value(current$)
 
 !--------------------------------------------------------
 ! coil
 
-  case (coil$)
-
 ! make a zero matrix because no transfer matrix may be calculated
 ! ahead of time
+
+  case (coil$)
 
     mat6 = 0   
 
@@ -651,7 +626,7 @@ subroutine make_mat6 (ele, param, c0, c1)
   case (define_energy$) 
 
     call mat_unit (mat6, 6, 6)     ! make a unit matrix
-    param%energy = ele%value(new_energy$)
+    param%energy = ele%value(energy$)
     ele%coupled = .false.
 
 !--------------------------------------------------------
@@ -663,20 +638,20 @@ subroutine make_mat6 (ele, param, c0, c1)
     call err_exit
 
 !--------------------------------------------------------
-! unrecognized element
+! Custom
 
   case (custom$)
 
     call custom_make_mat6 (ele, param, c0, c1)
-    return
 
 !--------------------------------------------------------
 ! unrecognized element
 
   case default
 
-     type *, 'ERROR IN MAKE_MAT6: UNKNOWN ELEMENT KEY:', ele%key
-     type *, '      FOR ELEMENT: ', ele%name
+    type *, 'ERROR IN MAKE_MAT6: UNKNOWN ELEMENT KEY:', ele%key
+    type *, '      FOR ELEMENT: ', ele%name
+    call err_exit
 
   end select
 
@@ -692,6 +667,14 @@ subroutine make_mat6 (ele, param, c0, c1)
     mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
     mat6(:,1) = mat6(:,1) + mat6(:,2) * mat6_m(2,1) + mat6(:,4) * mat6_m(4,1)
     mat6(:,3) = mat6(:,3) + mat6(:,2) * mat6_m(2,3) + mat6(:,4) * mat6_m(4,3)
+  endif
+
+  if (ele%value(s_offset$) /= 0) then
+    s_off = ele%value(s_offset$)
+    mat6(1,:) = mat6(1,:) - s_off * mat6(2,:)
+    mat6(3,:) = mat6(3,:) - s_off * mat6(4,:)
+    mat6(:,2) = mat6(:,2) + mat6(:,1) * s_off
+    mat6(:,4) = mat6(:,4) + mat6(:,3) * s_off
   endif
 
 end subroutine
@@ -720,7 +703,7 @@ subroutine mat6_multipole (ele, param, c00, factor, mat6, unit_matrix)
 
 !                        
 
-  call multipole_to_vecs (ele, param%particle, knl, tilt)
+  call multipole_ele_to_kt (ele, param%particle, knl, tilt, .true.)
 
   if (c00%x%pos == 0 .and. c00%y%pos == 0 .and. knl(1) == 0) then
     unit_matrix = .true.
@@ -804,6 +787,7 @@ end subroutine
 subroutine sol_quad_mat6_calc (ks, k1, s_len, m, orb)
 
   use bmad_struct
+  use bmad_interface
 
   implicit none
 
@@ -965,12 +949,15 @@ end subroutine
 subroutine mat4_multipole (ele, knl, tilt, n, c0, kick_mat)
                   
   use bmad_struct
+  use bmad_interface
+
   implicit none
+
   type (ele_struct)  ele
   type (coord_struct)  c0
 
   real x_pos, y_pos, x, y, knl, tilt, c(0:n_pole_maxx, 0:n_pole_maxx)
-  real sin_ang, cos_ang, mexp, mat(2,2), rot(2,2)
+  real sin_ang, cos_ang, mat(2,2), rot(2,2)
   real kick_mat(4,4)
 
   integer m, n
@@ -1079,6 +1066,8 @@ subroutine mat4_multipole (ele, knl, tilt, n, c0, kick_mat)
 subroutine bbi_kick_matrix (ele, orb, s_pos, mat6)
 
   use bmad_struct
+  use bmad_interface
+
   implicit none
 
   type (ele_struct)  ele
@@ -1173,6 +1162,7 @@ subroutine bbi_slice_calc (n_slice, sig_z, z_slice)
 subroutine tilt_mat6 (mat6, tilt)
 
   use bmad_struct
+  use bmad_interface
 
   implicit none
 
@@ -1252,3 +1242,28 @@ subroutine solenoid_mat_calc (ks, length, mat4)
   mat4(4,4) = c2
 
 end subroutine
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+
+subroutine drift_mat6_calc (mat6, length, orb)
+
+  use bmad_struct
+
+  implicit none
+
+  type (coord_struct) orb
+  real mat6(6,6), length
+
+!
+
+  mat6(1,2) = length
+  mat6(3,4) = length
+  mat6(1,6) = -orb%vec(2) * length
+  mat6(3,6) = -orb%vec(4) * length
+  mat6(5,2) = -orb%vec(2) * length
+  mat6(5,4) = -orb%vec(4) * length
+
+end subroutine
+

@@ -20,6 +20,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:38  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:51  rwh24
 !UNIX compatibility updates
 !
@@ -31,6 +34,8 @@
 subroutine do_mode_flip (ele, ele_flip)
 
   use bmad_struct
+  use bmad_interface
+
   implicit none
 
   type (ele_struct)  ele, ele2, ele_flip

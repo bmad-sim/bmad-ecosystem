@@ -26,12 +26,14 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:43  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:58  rwh24
 !UNIX compatibility updates
 !
 
 #include "CESR_platform.inc"
-
 
 subroutine track1_627 (start, ele, param, mat627, end)
 
@@ -48,8 +50,6 @@ subroutine track1_627 (start, ele, param, mat627, end)
   real mat627(6,27)
   real x_lim, y_lim
 
-  logical, parameter :: set$ = .true., unset$ = .false.    
-
 !-------------------------------------------------------------------
 ! some simple cases
 
@@ -63,39 +63,18 @@ subroutine track1_627 (start, ele, param, mat627, end)
 
 
 !-------------------------------------------------------------------
+! 2nd order tracking
 ! initially set end = start
 
   end = start     ! transfer start to end
 
-! Use half the kick at the start
-! Note: Change in %vel is NOT dependent upon energy since we are using
-! cononical momentum
-
-  if (.not. ele%is_on) then
-    x_kick = 0
-    y_kick = 0
-  else
-    x_kick = ele%value(hkick$)
-    y_kick = ele%value(vkick$)
-    if (x_kick /= 0) end%x%vel = end%x%vel + x_kick / 2
-    if (y_kick /= 0) end%y%vel = end%y%vel + y_kick / 2
-  endif
-
-!-------------------------------------------------------------------
-! 2nd order tracking
-
   select case (ele%key)
   case (quadrupole$, sextupole$, solenoid$, sol_quad$) 
     
-    call offset_coords_m (ele, param, end, set$, .false., .true.)
-    call tilt_coords (ele%value(tilt$), end%vec, set$)
-
+    call offset_particle (ele, param, end, set$, set_canonical = .false.)
     call track1_order2 (end%vec, ele, mat627, end%vec)
+    call offset_particle (ele, param, end, unset$, set_canonical = .false.)
 
-    call tilt_coords (ele%value(tilt$), end%vec, unset$)
-    call offset_coords_m (ele, param, end, unset$, .false., .true.)
-
-!-------------------------------------------------------------------
 ! error
 
   case default
@@ -105,11 +84,6 @@ subroutine track1_627 (start, ele, param, mat627, end)
   end select
 
 !-------------------------------------------------------------------
-! finally end with half the kick
-
-  if (x_kick /= 0) end%x%vel = end%x%vel + x_kick / 2
-  if (y_kick /= 0) end%y%vel = end%y%vel + y_kick / 2
-
 ! check for particles outside aperture
 
   if (param%aperture_limit_on) then

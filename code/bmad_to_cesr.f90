@@ -26,6 +26,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/01/08 21:44:37  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.5  2001/10/12 20:53:35  rwh24
 !DCS changes and two files added
 !
@@ -45,6 +48,8 @@
 subroutine bmad_to_cesr (ring, cesr)
 
   use bmad_struct
+  use bmad_interface
+
   implicit none
 
   type (ring_struct)  ring
@@ -385,8 +390,6 @@ contains
 
 subroutine bmad_to_cesr_err_type (cesr_ele, str)
 
-  use bmad_struct
-
   type (cesr_element_struct) :: cesr_ele(:)
   integer i
   character*(*) str
@@ -415,7 +418,8 @@ end subroutine
 subroutine insert_info (cesr_ele, ele, i_ele)
 
   use bmad_struct
-
+  use bmad_interface
+  
   implicit none
 
   type (cesr_element_struct)  cesr_ele

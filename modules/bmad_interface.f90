@@ -3,6 +3,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.5  2002/01/08 21:45:22  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.4  2001/11/29 19:40:11  helms
 !Updates from DCS including (*) -> (:)
 !
@@ -45,6 +48,15 @@ module bmad_interface
     end subroutine
   end interface
 
+  interface
+    subroutine attribute_bookkeeper (ele, param)
+      use bmad_struct
+      implicit none
+      type (ele_struct) ele
+      type (param_struct) param
+    end subroutine
+  end interface
+ 
   interface
     function attribute_index (ele, name)
       use bmad_struct
@@ -712,12 +724,13 @@ module bmad_interface
   end interface
 
   interface
-    subroutine multipole_ab_scale (ele, particle, a, b)
+    subroutine multipole_ele_to_ab (ele, particle, a, b, use_tilt)
       use bmad_struct
       type (ele_struct) ele
       integer particle
       real a(0:n_pole_maxx), b(0:n_pole_maxx)
       real value(n_attrib_maxx)
+      logical use_tilt
     end subroutine
   end interface
 
@@ -742,12 +755,13 @@ module bmad_interface
   end interface
 
   interface
-    subroutine multipole_to_vecs (ele, particle, knl, tilt)
+    subroutine multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)
       use bmad_struct
       implicit none
       type (ele_struct) ele
       real knl(0:n_pole_maxx)
       real tilt(0:n_pole_maxx)
+      logical use_ele_tilt
       integer particle
     end subroutine
   end interface
@@ -772,13 +786,15 @@ module bmad_interface
   end interface
 
   interface
-    subroutine offset_coords_m (ele, param, coord, set, set_canon, set_multi)
+    subroutine offset_particle (ele, param, coord, set, &
+                    set_canonical, set_tilt, set_multipoles, set_hvkicks)
       use bmad_struct
       implicit none
       type (ele_struct) ele
       type (coord_struct) coord
       type (param_struct) param
-      logical set, set_canon, set_multi
+      logical set
+      logical, optional :: set_canonical, set_multipoles, set_tilt, set_hvkicks
     end subroutine
   end interface
 

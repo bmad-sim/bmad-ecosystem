@@ -18,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/08 21:44:40  dcs
+!Aligned with VMS version  -- DCS
+!
 !Revision 1.2  2001/09/27 18:31:53  rwh24
 !UNIX compatibility updates
 !
@@ -29,6 +32,8 @@
 subroutine make_v_mats (ele, v_mat, v_inv_mat)
 
   use bmad_struct
+  use bmad_interface
+  
   implicit none
 
   type (ele_struct)  ele

@@ -17,30 +17,38 @@
 !   end   -- Coord_struct: End position
 !   is_lost -- Logical: Set T or F depending upon whether the particle
 !              reaches the exit face.!-
-
 ! For wiggler tracking use the "hard edge" model of Wiedemann, 
 ! "Part. Acc. Ph. II", pg. 65. Note that in Wiedemann fig 2.8, l_h is 
 ! mistakenly drawn as being the full pole width (it is the half pole width).
+!-
+
+!$Id$
+!$Log$
+!Revision 1.3  2002/01/08 21:44:44  dcs
+!Aligned with VMS version  -- DCS
+!
+
+#include "CESR_platform.inc"
 
 subroutine track_wiggler (start, ele, param, end, is_lost)
-
+                             
   use bmad_struct
   use bmad_interface
 
   implicit none
 
   type (coord_struct)  start, end, before
-  type (ele_struct)  ele, bend
+  type (ele_struct)  ele
   type (param_struct)  param
 
   real length, k_z, factor, dx
+  real l_original, l_start, l_end
   real const1, const3, tan_theta
   real x_lim, y_lim, l_period, l_bend, l_drift, rho_bend, angle
   real knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 
   integer i, j, n, n_slice, n_pole
 
-  logical, parameter :: set$ = .true., unset$ = .false.    
   logical is_lost, pole_multipoles_on
 
 !
@@ -52,18 +60,30 @@ subroutine track_wiggler (start, ele, param, end, is_lost)
 ! if so then it just looks like a drift.
 
   if (ele%value(rho$) == 0) then
-    end%vec(1) = end%vec(1) + length * end%vec(2) * (1 - end%vec(6))
-    end%vec(3) = end%vec(3) + length * end%vec(4) * (1 - end%vec(6))
+    end%vec(1) = end%vec(1) + ele%value(l$) * end%vec(2) * (1 - end%vec(6))
+    end%vec(3) = end%vec(3) + ele%value(l$) * end%vec(4) * (1 - end%vec(6))
     return
   endif
 
 ! normal case of wiggler on.
+! l_original is the original length of the wiggler if the wiggler
+! has been split into pieces by split_ring.
+! l_start & l_end are the starting and stopping points for the tracking
+! (these have been set by split_ring).
 
-  call offset_coords_m (ele, param, end, set$, .true., .true.)
-  call tilt_coords (ele%value(tilt$), end%vec, set$)
+  call offset_particle (ele, param, end, set$, set_multipoles=.false.)
              
-  length = ele%value(l$)
-  n_pole = nint(ele%value(n_pole$))
+  if (ele%value(l_original$) == 0) then ! no split has been done
+    length = ele%value(l$)
+    n_pole = nint(ele%value(n_pole$))
+    l_start = 0
+    l_end = length
+  else
+    length = ele%value(l_original$)
+    n_pole = nint(ele%value(n_pole$) * ele%value(l_original$) / ele%value(l$))
+    l_start = ele%value(l_start$)
+    l_end = ele%value(l_end$)
+  endif
 
   if (n_pole == 1) then
     print *, 'ERROR IN TRACK_WIGGLER: WIGGLER HAS ONLY 1 POLE FOR: ', ele%name
@@ -81,13 +101,7 @@ subroutine track_wiggler (start, ele, param, end, is_lost)
   const1 = 1 / (rho_bend * (1 + end%z%vel))
   const3 =  (pi/l_period)**2 / 6 
 
-  bend = ele
-  bend%value(ix1_m$:ix2_m$) = 0
-  bend%value(a2$) = ele%value(ap2$);  bend%value(b2$) = ele%value(bp2$)
-  bend%value(a4$) = ele%value(ap4$);  bend%value(b4$) = ele%value(bp4$) 
-  bend%value(a6$) = ele%value(ap6$);  bend%value(b6$) = ele%value(bp6$) 
-  bend%value(a8$) = ele%value(ap8$);  bend%value(b8$) = ele%value(bp8$) 
-  call multipole_to_vecs(bend, param%particle, knl, tilt)
+  call multipole_ele_to_kt(ele, param%particle, knl, tilt, .true.)
   knl = knl / 2
 
   if (any(knl /= 0)) then
@@ -104,41 +118,37 @@ subroutine track_wiggler (start, ele, param, end, is_lost)
     factor = sqrt(rho_bend**2 - (l_bend/2)**2)
     dx = 2 * (rho_bend - factor) + l_drift * l_bend / (2 * factor)
     factor = 1 / (1 - 2 * rho_bend * dx / (l_bend * (length-l_bend/2)))
+  else
+    factor = 1
   endif
 
 ! wiggler track
 
   do i = 1, n_pole 
+    if (i*l_period < l_start) cycle
     call track_period (i, l_bend, rho_bend, l_drift, factor) 
     if (is_lost) return
+    if (i*l_period > l_end) exit
   enddo 
 
 ! untilt coords
 
-  call tilt_coords (ele%value(tilt$), end%vec, unset$)
-  call offset_coords_m (ele, param, end, unset$, .true., .true.)
+  call offset_particle (ele, param, end, unset$, set_multipoles=.false.)
 
   return
 
 !-----------------------------------------------------------------------
-
-!$Id$
-!$Log$
-!Revision 1.2  2001/09/27 18:31:59  rwh24
-!UNIX compatibility updates
-!
-
-#include "CESR_platform.inc"
-
 !-----------------------------------------------------------------------
 contains
 
 subroutine track_period (i_pole, l_bend, rho_bend, l_drift, factor)
 
-  real l_bend, rho_bend, l_drift, y_ave, factor
+  type (coord_struct8) end8
+
+  real l_bend, rho_bend, l_drift, y_ave, factor, l_1, l_2, l_track
 
   real*8 denom, s_center, x_center, a, b, c, descrim
-  real*8 xp_out, del_s, rho, x_out, radix
+  real*8 del_s, rho, radix, x_vel_old
         
   integer i_pole, flip
 
@@ -148,93 +158,141 @@ subroutine track_period (i_pole, l_bend, rho_bend, l_drift, factor)
                      
   flip = 1 - 2*mod(i_pole, 2) 
 
+! l_edge1 is the distance from the wiggler start to the start of the pole
+! l_1 and l_2 define the first 1/2 pole
+
+  l_1 = (i_pole - 1) * l_period  
+  l_2 = l_1 + l_bend / 2
+
 ! 1/2 of the multipole
 
-  if (pole_multipoles_on) then
-    do n = 2, 8, 2          
-      call multipole_kick (-flip*knl(n), tilt(n), n, end)
-    enddo
+  if (l_start <= l_1 .and. l_1 < l_end) then
+    if (pole_multipoles_on) then
+      do n = 2, 8, 2          
+         call multipole_kick (-flip*knl(n), tilt(n), n, end)
+      enddo
+    endif
   endif
+
+  end8%vec = end%vec
 
 ! track 1/2 pole
 ! (s,x) is the center of rotation wrt the end boundary
+! l_track is the actual s-distance to track through
 
-  y_ave = end%y%pos + end%y%vel * l_bend/4
-  if (abs(k_z*y_ave) > 70) then
-    rho = 0
-  else
-    rho = flip * rho_bend * (1 + end%z%vel) / cosh(k_z*y_ave)
+  l_track = l_bend / 2  
+  if (l_start > l_1) l_track = l_track - (l_start - l_1)
+  if (l_2 > l_end)   l_track = l_track - (l_2 - l_end)
+
+  if (l_track > 0) then
+    x_vel_old = end8%x%vel
+    y_ave = end8%y%pos + end8%y%vel * l_track / 2
+
+    if (abs(k_z*y_ave) > 70) then
+      rho = 0
+    else
+      rho = flip * rho_bend * (1 + end8%z%vel) / cosh(k_z*y_ave)
+    endif
+
+    if (i_pole == 1) rho = rho * factor
+
+    denom = sqrt(1 + end8%x%vel**2)
+    s_center = -rho * end8%x%vel / denom  - l_track
+    x_center = rho / denom + end8%x%pos
+
+    radix = rho**2 - s_center**2
+    if (radix < 0) then
+      type *, 'ERROR IN TRACK_WIGGLER: TRAJECTORY DOES NOT INTERSECT FACE.'
+      type *, '      [THAT IS, THE PARTICLE AMPLITUDE IS TOO LARGE.]'
+      is_lost = .true.
+      return
+    endif
+
+    end8%x%pos = x_center - sign (sqrt(radix), rho)
+    end8%x%vel = -s_center / (x_center - end8%x%pos)
+
+    del_s = abs ((atan(end8%x%vel) - atan(end%x%vel)) * rho)
+    end8%y%pos = end8%y%pos + end8%y%vel * del_s
   endif
-
-  if (mod(n_pole, 2) == 1 .and. i_pole == 1) rho = rho * factor
-
-  denom = sqrt(1 + end%x%vel**2)
-  s_center = -rho * end%x%vel / denom  - l_bend/2
-  x_center = rho / denom + end%x%pos
-
-  radix = rho**2 - s_center**2
-  if (radix < 0) then
-    type *, 'ERROR IN TRACK_WIGGLER: TRAJECTORY DOES NOT INTERSECT FACE.'
-    type *, '      [THAT IS, THE PARTICLE AMPLITUDE IS TOO LARGE.]'
-    is_lost = .true.
-    return
-  endif
-
-  x_out = x_center - sign (sqrt(radix), rho)
-  xp_out = -s_center / (x_center - x_out)
-
-  del_s = abs ((atan(xp_out) - atan(end%x%vel)) * rho)
-  end%y%pos = end%y%pos + end%y%vel * del_s
 
 ! vertical edge focusing from leaving pole
 
-  end%y%vel = end%y%vel - flip * const1 * xp_out * sinh(k_z * end%y%pos) / k_z
+  if (l_start <= l_2 .and. l_2 < l_end) then
+    end8%y%vel = end8%y%vel - &
+                  flip * const1 * end8%x%vel * sinh(k_z * end8%y%pos) / k_z
+  endif
 
 ! track the drift
 
-  x_out = (x_out + xp_out * l_drift) 
-  end%y%pos = end%y%pos + end%y%vel * l_drift
+  l_1 = l_2
+  l_2 = l_1 + l_drift
+  l_track = l_drift  
+  if (l_start > l_1) l_track = l_track - (l_start - l_1)
+  if (l_2 > l_end)   l_track = l_track - (l_2 - l_end)
+
+  if (l_track > 0) then
+    end8%x%pos = end8%x%pos + end8%x%vel * l_track
+    end8%y%pos = end8%y%pos + end8%y%vel * l_track
+  endif
 
 ! vertical edge focusing entering pole
 
-  end%y%vel = end%y%vel - flip * const1 * xp_out * sinh(k_z * end%y%pos) / k_z
+  l_2 = i_pole * l_period  
+  l_1 = l_2 - l_bend / 2 
+
+  if (l_start <= l_1 .and. l_1 < l_end) then
+    end8%y%vel = end8%y%vel - &
+                  flip * const1 * end8%x%vel * sinh(k_z * end8%y%pos) / k_z
+  endif
 
 ! track 1/2 pole
 
-  y_ave = end%y%pos + end%y%vel * l_bend/4
-  if (abs(k_z*y_ave) > 70) then
-    rho = 0
-  else
-    rho = -flip * rho_bend * (1 + end%z%vel) / cosh(k_z*y_ave)
+  l_track = l_bend / 2  
+  if (l_start > l_1) l_track = l_track - (l_start - l_1)
+  if (l_2 > l_end)   l_track = l_track - (l_2 - l_end)
+
+  if (l_track > 0) then
+    x_vel_old = end8%x%vel
+    y_ave = end8%y%pos + end8%y%vel * l_track/2
+
+    if (abs(k_z*y_ave) > 70) then
+      rho = 0
+    else
+      rho = -flip * rho_bend * (1 + end8%z%vel) / cosh(k_z*y_ave)
+    endif
+    if (i_pole == n_pole) rho = rho * factor
+
+    denom = sqrt(1 + end8%x%vel**2)
+    s_center = -rho * end8%x%vel / denom  - l_track
+    x_center = rho / denom + end8%x%pos
+
+    radix = rho**2 - s_center**2
+    if (radix < 0) then
+      type *, 'ERROR IN TRACK_WIGGLER: TRAJECTORY DOES NOT INTERSECT FACE.'
+      type *, '      [THAT IS, THE PARTICLE AMPLITUDE IS TOO LARGE.]'
+      is_lost = .true.
+      return
+    endif
+
+    end8%x%pos = x_center - sign(sqrt(radix), rho)
+    end8%x%vel = -s_center / (x_center - end8%x%pos)
+
+    del_s = abs ((atan(x_vel_old) - atan(end8%x%vel)) * rho)
+    end8%y%pos = end8%y%pos + end8%y%vel * del_s
   endif
-  if (mod(n_pole, 2) == 1 .and. i_pole == n_pole) rho = rho * factor
-
-  denom = sqrt(1 + xp_out**2)
-  s_center = -rho * xp_out / denom  - l_bend/2
-  x_center = rho / denom + x_out
-
-  radix = rho**2 - s_center**2
-  if (radix < 0) then
-    type *, 'ERROR IN TRACK_WIGGLER: TRAJECTORY DOES NOT INTERSECT FACE.'
-    type *, '      [THAT IS, THE PARTICLE AMPLITUDE IS TOO LARGE.]'
-    is_lost = .true.
-    return
-  endif
-
-  end%x%pos = x_center - sign(sqrt(radix), rho)
-  end%x%vel = -s_center / (x_center - end%x%pos)
-
-  del_s = abs ((atan(xp_out) - atan(end%x%vel)) * rho)
-  end%y%pos = end%y%pos + end%y%vel * del_s
 
 ! 1/2 of the multipole
 
-  if (pole_multipoles_on) then
-    do n = 2, 8, 2
-      call multipole_kick (flip*knl(n), tilt(n), n, end)
-    enddo
+  end%vec = end8%vec
+
+  if (l_start <= l_2 .and. l_2 <= l_end) then
+    if (pole_multipoles_on) then
+      do n = 2, 8, 2
+        call multipole_kick (flip*knl(n), tilt(n), n, end)
+      enddo
+    endif
   endif
-                         
+                      
 end subroutine
 
 end subroutine
