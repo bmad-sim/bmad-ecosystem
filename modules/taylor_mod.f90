@@ -530,7 +530,7 @@ subroutine taylor_to_genfield (bmad_taylor, gen_field, r0)
 
   real(rdef), intent(out) :: r0(6)
 
-  integer i, j, n, nn
+  integer i, j, n, nn, ss
 
 ! set the taylor order in PTC if not already done so
 
