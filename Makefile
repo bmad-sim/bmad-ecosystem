@@ -17,6 +17,10 @@
 # $Id$
 #
 # $Log$
+# Revision 1.11  2005/01/21 13:53:13  palmer
+# Update bmad makefiles for addition of test_job area with sources for a
+# standard test program.
+#
 # Revision 1.10  2004/08/26 15:03:05  dcs
 # Added cpp_interface directory.
 #
@@ -81,6 +85,7 @@
 # LOCAL_MODS      - Local directories to search for F90 compiled module files
 #-----------------------------------------------------------------------------
 LIB_SRC_DIRS := ./code ./cesr ./modules ./cpp_interface
+OBJ_SRC_DIRS := ./test_jobs
 CONFIG_DIRS   := ./lat ./layout
 LOCAL_INCS    := ./include ../include
 LOCAL_MODS    := ../modules 

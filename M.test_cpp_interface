@@ -16,6 +16,10 @@
 # $Id$
 #
 # $Log$
+# Revision 1.3  2005/01/21 13:53:12  palmer
+# Update bmad makefiles for addition of test_job area with sources for a
+# standard test program.
+#
 # Revision 1.2  2004/12/08 16:29:39  dcs
 # Revised by Mark Palmer.
 #
@@ -96,7 +100,7 @@ MAKEFILE := M.test_cpp_interface
 #           In general, it is recommended to AVOID the use of absolute path 
 #           specifications. 
 #-----------------------------------------------------------------------------
-OBJ_SRC_DIRS  := ./test_jobs
+OBJ_SRC_DIRS  := .
 LOCAL_INCS    := ./include
 LOCAL_MODS    := ../modules
 
@@ -110,7 +114,7 @@ LOCAL_MODS    := ../modules
 #           Then you can specify 
 #           MAIN_FILE := test_prog.f90
 #-------------------------------------------------------------
-MAIN_FILE :=
+MAIN_FILE := test_f_side.f90
 
 
 #--------------------------------------------------------------
@@ -120,7 +124,9 @@ ifeq "$(JOB)" ""
   WHERE := $(shell pwd)
   JOB   := $(notdir $(WHERE))
 endif
-LIBNAME := $(JOB)
+ifneq "$(LIB_SRC_DIRS)" ""
+  LIBNAME := $(JOB)
+endif
 
 
 #-------------------------------------------------------------
@@ -128,9 +134,9 @@ LIBNAME := $(JOB)
 # MAIN_FILE has been explicitly specified
 #-------------------------------------------------------------
 ifeq "$(strip $(MAIN_FILE))" ""
-	EXE := ../bin/$(JOB)
+	EXE = $(localbin)/$(JOB)
 else
-  EXE := ../bin/$(basename $(notdir $(MAIN_FILE)))
+  EXE = $(localbin)/$(basename $(notdir $(MAIN_FILE)))
 endif
 
 
@@ -149,7 +155,7 @@ endif
 #             libraries (eg, numerical recipes)
 #
 #------------------------------------------------------------------------------
-LOCAL_OBJS :=
+LOCAL_OBJS = test_c_side$(PREC)$(DBG).o
 CESR_OBJS  :=
 PKG_OBJS   :=
 
@@ -209,7 +215,12 @@ LINK_COMPILER := cxx
 #------------------------------------------------
 # Include the standard CESR M.tail makefile
 #------------------------------------------------
-include $(CESR_GMAKE)/M.tail
+ifeq "$(BMAD_DIST)" "TRUE"
+  include $(BMAD_GMAKE)/M.tail
+else
+  include $(CESR_GMAKE)/M.tail
+endif
+
 
 
 
