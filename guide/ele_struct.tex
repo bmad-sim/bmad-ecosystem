@@ -3,10 +3,9 @@
 
 This chapter describes the \tn{ele_struct} which is the structure that
 holds all the information about an individual element: quadrupoles,
-separators, wigglers, etc. Discussion on how one \tn{ele_struct} controls
-another is deferred to the chapter on the \tn{ring_struct}. Also deferred
-is a discussion of how to compute global parameters such as the 
-Twiss parameters, etc.
+separators, wigglers, etc. This structure is somewhat complicated however,
+a lot of the complexity is generally hidden, in practice, by the \bmad\ 
+bookkeeping routines.
 
 Part of the substructure of the \tn{ele_struct} is shown
 in figure~\ref{f:ele_struct} (use \vn{getf} to see the entire structure 
@@ -22,7 +21,7 @@ attributes set in the lattice file and will not be discussed further.
     character(16) name                ! name of element
     character(16) type                ! type name
     character(16) alias               ! Another name
-    type (twiss_struct)  x,y,z        ! Twiss parameters at end of element
+    type (twiss_struct)  x, y, z      ! Twiss parameters at end of element
     type (floor_position_struct) position
     real(rp) value(n_attrib_maxx)     ! attribute values
     real(rp) vec0(6)                  ! 0th order transport vector
@@ -58,23 +57,63 @@ vary along the length of the element. In such a case the value of the
 component will be the value at the exit edge of the element. The 
 components are:
 \begin{example}
-  %x, %y, %z      ! Twiss parameters
-  %position       ! Floor position
-  %c_mat(2,2)     ! Coupling c matrix
-  %gamma_c        ! Coupling parameter
+  type (twiss_struct)  x, y, z          ! Twiss parameters
+  type (floor_position_struct) position ! Floor position
+  real(rp) c_mat(2,2)                   ! Coupling c matrix
+  real(rp) gamma_c                      ! Coupling parameter
 \end{example}
 To get the Twiss parameters, etc.\ for the beginning of the element you
 need to look at the preceding element in the \vn{ring%ele_(:)} array. To
 get the parameters at a position within an element you can use the routines
-\vn{
+\vn{twiss_and_track_at_s} if the element of part of a \vn{ring_struct} or
+\vn{twiss_and_track_partial} for an individual element.
 
-\vn{%x}, \vn{%y}, and \vn{%z} hold the Twiss parameters for the 
+The \vn{%x}, \vn{%y}, and \vn{%z} components are themselves structures
+that hold the Twiss parameters for the 
 $a$, $b$ and $z$ modes respectively. [Yes it is known that the
 labeling is misleading. Unfortunately it is a bit entrenched now.]
 The $a$ mode is the ``nearly horizontal'' mode and the $b$ mode is the 
 ``nearly vertical'' mode. Remember: The Twiss parameters are associated
 with the normal modes. With coupling there is no Twiss parameter associated
 soley with the horizontal axis.
+
+%--------------------------------------------------------------------------
+\section{Attribute Values: Independent and otherwise}
+
+Most of the real valued attributes of an element are held in the 
+\vn{%value(:)} array. For example, 
+the value of the \vn{k1} attribute for a quadrupole element is
+stored in \vn{%value(k1\$)} where \vn{k1\$} is an integer parameter. In
+general to get the correct index in \vn{%value(:)} for a given
+attribute just add a "\$" as a suffix. 
+
+\vn{attribute_bookkeeper} is the
+routine that makes sure the dependent variables of an element are keep
+up--to--date. \vn{attribute_bookkeeper} is called behind the sceans when
+\vn{make_mat6} is called to make transfer matrices. If you are designing
+a program that will let a user decide what attribute to vary use the
+routine \vn{pointer_to_attribute} which will return an error flag if the
+attribute to be varied should not be. For example, 
+trying to vary the strength of a bend by varying the \vn{rho}
+attribute is an exercise in futility. Remember that in general
+routines are allowed to assume that the dependent variables are consistent
+with the independent variables. Thus if you do not remake that transfer matrices
+after changing attribute values you need to call \vn{attribute_bookkeeper}.
+\vn{getf attribute_bookkeeper} will give you a list of dependent variables.
+
+\vn{%b_field_master} is the logical within appropriate elements that sets 
+whether it is the strength or field that is the 
+independent variable. The following table gives the independent variable
+as a function of \vn{%b_field_master} setting
+\begin{example}
+                 %b_field_master setting
+  Element         True           False
+  SBend           g              b_field
+  Solenoid        ks             b_field
+  Quadrupole      k1             b_gradient
+  Sextupole       k2             b_gradient
+  Octupole        k3             b_gradient
+\end{example}
 
 %--------------------------------------------------------------------------
 \section{Transfer Maps}
@@ -91,32 +130,100 @@ is the Jacobian about the reference orbit.
 %--------------------------------------------------------------------------
 \section{Taylor Maps}
 
-\vn{taylor_order} is the order of the Taylor Map. The map itself is stored 
-in \vn{%taylor(1:6)}. Each \vn{%taylor(i)} is a Taylor series. 
+\vn{taylor_order} is the order of the Taylor Map (see section 
+\ref{taylor_phys}. The map itself is stored 
+in \vn{%taylor(1:6)}. Each \vn{%taylor(i)} is a \vn{taylor_struct} structure
+that defines a Taylor series. The structure is defined as
+\begin{example}
+  type taylor_struct
+    real (rp) ref
+    type (taylor_term_struct), pointer :: term(:) => null()
+  end type
+\end{example}
+Each Taylor series is an array of \vn{taylor_term_struct} term defined as
+\begin{example}
+  type taylor_term_struct
+    real(rp) :: coef
+    integer :: exp(6)
+  end type
+\end{example}
+
+To see if there is a Taylor map associated with an element you check the
+association status of \vn{%taylor(1)%term}.
+As an example the following finds the order of a Taylor map.
+\begin{example}
+  type (ele_struct) ele
+  ...
+  if (associated(ele%taylor(1)%term) then  ! Taylor Map exists
+    taylor_order = 0
+    do i = 1, 6
+      do j = 1, size(ele%taylor(i)%term)
+        taylor_order = max(taylor_order, sum(ele%taylor(i)%term(j)%exp)
+      enddo
+    enddo
+  else  ! Taylor Map does not exist
+    taylor_order = -1  ! flag non-existance
+  endif
+\end{example}
+
+The Taylor map is made up around some reference phase space point
+corresponding to the coordinates at the enertence of the
+element. 
+This reference is saved \vn{%taylor(1:6)%ref}. 
+Once a Taylor map is made the reference point is not needed
+in subsequent calculations. However, The Taylor map it self will
+depend upon what reference point is choisen.
+
 
 %--------------------------------------------------------------------------
 \section {multipoles}
 
+If an element has multipoles that are stored in 
+\begin{example}
+    real(rp), pointer :: a(:) => null()        ! skew component
+    real(rp), pointer :: b(:) => null()        ! normal component
+\end{example}
+See setion~\ref{s:fields}. When a multipole is called for \vn{%a} and \vn{%b}
+are always allocated to \vn{%a(0:20)} and \vn{%b(0:20)}.
+If the element is a \vn{multipole} then \vn{%a(n)}
+is taken to be the integrated multipole strength \vn{KnL}, 
+and \vn{%b(n)} is taken to be the tilt \vn{Tn}. Routines for 
+manipulating multipoles can be found in Section~\ref{r:multi}. 
+
 %--------------------------------------------------------------------------
 \section{General Use Components}
 
-%--------------------------------------------------------------------------
-\section{Floor Position}
+There are three components of an \vn{ele_struct} are garuenteed never be used by
+any \bmad\ routine and so are available for use by someone writing a
+program. These components are
+\begin{example}
+   real(rp), pointer :: r(:) => null()  ! For general use. Not used by \bmad. 
+   integer ix_pointer                   ! For general use. Not used by \bmad.
+   logical logic                        ! For general use. Not used by \bmad.
+\end{example}
 
 %--------------------------------------------------------------------------
-\section{Initializing}
+\section{Initialization and Pointers}
 
-Generally most \tn{ele_struct} components are stored within a
-\tn{ring_struct} so you don't have to worry about
-allocation/deallocation issues directly. In case you do have an local
+Generally most \tn{ele_struct} elements are part of a
+\tn{ring_struct} variable so you generally don't have to worry about
+allocation/deallocation issues directly. In case you do have a local
 \tn{ele_struct} variable within a subroutine then you either have do
 deallocate the pointers within it with a call to
 \rn{deallocate_ele_pointers} or you use the save attribute.
 \begin{example}
-  type (ele_struct), save :: ele     ! Either this or
+  type (ele_struct), save :: ele     ! Either this or ...
+  ...
   call deallocate_ele_pointers (ele) ! Do this at the end.
 \end{example}
 
+The equal sign in the assignment
+\begin{example}
+  ele1 = ele2
+\end{example}
+is overloaded by the routine \vn{ele_equal_ele} to automatically
+make sure that the pointers of \vn{ele1} do not point to the same
+memory locations as the pointers of \vn{ele2}.
 
 %--------------------------------------------------------------------------
 \section{Dependent and Independent Variables}
@@ -140,36 +247,7 @@ and independent variables are: \hfil\break
 When \rn{attribute_bookkeeper} routine is called (this is called by,
 for example, \rn{make_mat6}) the values of the dependent variables
 will be set based upon the values of the independent variables. Thus
-trying to vary the strength of a bend by varying, say, the Rho
+trying to vary the strength of a bend by varying, say, the \vn{rho}
 attribute is an exercise in futility. Also remember that routines are
 allowed to assume that the dependent variables are consistent with the
-independent variables. Thus you need to call either
-
-\vn{b_field_master} ...
-
-------------------------------------------------------------------------
-
-
-  How to locate attributes
-
-  Allocation/deallocation
-
-%--------------------------------------------------------------------------
-\section{Element Control}
-
-    * Overlays
-    * Superimpose
-    * Groups
-
-
-\endinput
-
-\item[\%attribute\_name] This is used by overlays. See below.
-\item[\%value(:)] this array holds the attribute values for the element. 
-For example, the value of the k1 attribute for a quadrupole element is
-stored in \vn{%value(k1)} where \vn{k1$} is an integer parameter. In
-general to get the correct index for the \vn{%value(:)} for a given
-attribute just use a "\$" as a suffix.
-\item[\%gen0] Constant part of a \genfield.
-
-
+independent variables.

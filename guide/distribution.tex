@@ -1,6 +1,8 @@
 \chapter{The Bmad Distribution}
+\label{c:distribution}
 
-\section{Libraries in the Bmad Distribution}
+\section{Libraries in the CESR Distribution}
+\label{s:libs}
 
 When installing \bmad\ on a computer what one gets is not only the
 \bmad\ subroutine library but additionally subsidiary libraries upon
@@ -27,6 +29,14 @@ features. For more information see the FPP/PTC web site at
 \begin{example} 
     <http://bc1.lbl.gov/CBP_pages/educational/TPSA_DA/Introduction.html>
 \end{example}
+
+An important point to keep in mind is that Etienne defines his phase
+space coordinates as $(x, p_x, y, p_y, p_z, ct = -z)$. \bmad uses
+$(x, p_x, y, p_y, z, p_z)$. There are
+\bmad\ routines for converting back and forth between the two 
+representations and if you never call PTC directly then you don't
+have to worry about the difference.
+
 \item[recipes] Numerical Recipes is a set of subroutines for doing 
 scientific computing including Runge--Kutta integration, FFT's,
 interpolation and extrapolation, etc., etc. The write up for this
