@@ -453,7 +453,7 @@ module bmad_struct
       "GARBAGE!      ", "Bmad_Standard ", "Symp_Lie_PTC  ", "Runge_Kutta   ", &
       "Linear        ", "Tracking      ", "Symp_Map      ", "Custom        ", &
       "Taylor        ", "Wiedemann     ", "Symp_Lie_Bmad ", "None          ", &
-      "Boris         ", "Adaptive_Boris", "MAD       " /)
+      "Boris         ", "Adaptive_Boris", "MAD           " /)
 
 ! sbend$ and rbend$ are from key definitions.
 

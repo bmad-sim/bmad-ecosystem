@@ -340,9 +340,9 @@ Subroutine mad_drift (ele, energy, map)
 
   implicit none
 
-  type (ele_struct), target :: ele
+  type (ele_struct) ele
   type (energy_struct) energy
-  type (mad_map2_struct) map
+  type (mad_map2_struct), target :: map
 
   real(rp) el, beta, gamma, f
   real(rp), pointer :: ek(:), re(:,:), te(:,:,:)
@@ -402,9 +402,9 @@ Subroutine mad_elsep (ele, energy, map)
 
   implicit none
 
-  type (ele_struct), target :: ele
+  type (ele_struct) ele
   type (energy_struct) energy            
-  type (mad_map2_struct) map
+  type (mad_map2_struct), target :: map
 
   real(rp) el, beta, gamma, fact, efield, charge, pc
   real(rp) ekick, ekl, ch, sh, sy, dy, tilt
@@ -535,9 +535,9 @@ subroutine mad_sextupole (ele, energy, map)
 
   implicit none
                           
-  type (ele_struct), target :: ele
+  type (ele_struct) ele
   type (energy_struct) energy
-  type (mad_map2_struct) map
+  type (mad_map2_struct), target :: map
 
   real(rp) el, beta, gamma
   real(rp) skl, s1, s2, s3, s4
@@ -697,9 +697,9 @@ subroutine mad_sbend_fringe (ele, energy, into, map2)
 
   implicit none
           
-  type (ele_struct), target :: ele
+  type (ele_struct) ele
   type (energy_struct) energy
-  type (mad_map2_struct) map
+  type (mad_map2_struct), target ::  map
   type (mad_map2_struct) map2
 
   real(rp), pointer :: ek(:), re(:,:), te(:,:,:)
@@ -786,9 +786,9 @@ subroutine mad_sbend_body (ele, energy, map)
 
   implicit none
           
-  type (ele_struct), target :: ele
+  type (ele_struct) ele
   type (energy_struct) energy
-  type (mad_map2_struct) map
+  type (mad_map2_struct), target :: map
 
   real(rp), pointer :: ek(:), re(:,:), te(:,:,:)
   real(rp) bi, bi2, bi2gi2, xksq, xk, xkl, xklsq
@@ -1076,9 +1076,9 @@ subroutine mad_quadrupole (ele, energy, map)
 
   implicit none
                           
-  type (ele_struct), target :: ele
+  type (ele_struct) ele
   type (energy_struct) energy
-  type (mad_map2_struct) map
+  type (mad_map2_struct), target :: map
 
   real(rp) el, beta, gamma
   real(rp) sk1, qk, qkl, qkl2, cx, sx, cy, sy, biby4
@@ -1249,9 +1249,9 @@ subroutine mad_solenoid (ele, energy, map)
 
   implicit none
           
-  type (ele_struct), target :: ele
+  type (ele_struct) ele
   type (energy_struct) energy
-  type (mad_map2_struct) map
+  type (mad_map2_struct), target :: map
 
   real(rp) el, beta, gamma, temp
   real(rp) sk, skl, co, si, sibk, sks
@@ -1366,9 +1366,9 @@ subroutine mad_sol_quad (ele, energy, map)
 
   implicit none
           
-  type (ele_struct), target :: ele
+  type (ele_struct) ele
   type (energy_struct) energy
-  type (mad_map2_struct) map
+  type (mad_map2_struct), target :: map
 
   real(rp), pointer :: ek(:), re(:,:), te(:,:,:)
 
