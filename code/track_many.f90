@@ -1,5 +1,5 @@
 !+
-! Subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
+! Subroutine track_many (ring, orbit, ix_start, ix_end, direction)
 !
 ! Subroutine to track from one point in the ring to another.
 !
@@ -29,7 +29,7 @@
 !   ring             -- Ring_struct: Ring to track through.
 !     %param%aperture_limit_on -- Logical: Sets whether TRACK_MANY looks to
 !                                 see whether a particle is lost or not
-!   orbit_(ix_start) -- Coord_struct: Coordinates at start of tracking.
+!   orbit(ix_start)  -- Coord_struct: Coordinates at start of tracking.
 !   ix_start         -- Integer: Start index (See Note).
 !   ix_end           -- Integer: End index (See Note).
 !   direction        -- Integer: Direction to track.
@@ -40,15 +40,15 @@
 !   ring          -- Ring_struct:
 !     %param%lost    -- Logical: Set when a particle is lost with the 
 !                         aperture limit on.
-!     %param%ix_lost -- Integer: set to index of element where particle is lost
-!   orbit_(ix_end) -- Coord_struct: Coordinates at end of tracking 
-!                       Also: the track between IX_START and IX_END
-!                       are filled in.
+!     %param%ix_lost -- Integer: Index of element where particle is lost.
+!     %param%end_lost_at -- Either entrance_end$ or exit_end$.
+!   orbit(:)      -- Coord_struct: Orbit. In particular orbit(ix_end) is
+!                       the coordinates at the end of tracking. 
 !-
 
 #include "CESR_platform.inc"
 
-subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
+subroutine track_many (ring, orbit, ix_start, ix_end, direction)
 
   use bmad_struct
   use bmad_interface
@@ -57,7 +57,7 @@ subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
   implicit none
 
   record / ring_struct / ring
-  record / coord_struct / orbit_(0:)
+  record / coord_struct / orbit(0:)
   record / ele_struct / ele            
 
   integer ix_start, ix_end, direction
@@ -66,6 +66,8 @@ subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
   real(rp) x_lim, y_lim
 
   logical debug / .false. /
+
+  character(16) :: r_name = 'track_many'
                             
 ! track through elements.
 
@@ -78,8 +80,11 @@ subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
       return
     else
       call track_fwd (ix_start+1, ring%n_ele_use)
-      if (ring%param%lost) return
-      orbit_(0) = orbit_(ring%n_ele_use) 
+      if (ring%param%lost) then
+        call zero_this_track (0, ix_end)
+        return
+      endif
+      orbit(0) = orbit(ring%n_ele_use) 
       call track_fwd (1, ix_end)
     endif
 
@@ -89,8 +94,11 @@ subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
       return
     else
       call track_back (ix_start, 1)
-      if (ring%param%lost) return
-      orbit_(ring%n_ele_use) = orbit_(0)
+      if (ring%param%lost) then
+        call zero_this_track (ix_end, ring%n_ele_use)
+        return
+      endif
+      orbit(ring%n_ele_use) = orbit(0)
       call track_back (ring%n_ele_use, ix_end+1)
     endif
 
@@ -99,10 +107,10 @@ subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
     call err_exit
   endif
 
-contains
-
 !--------------------------------------------------------------------------
 ! tracking forward is simple
+
+contains
 
 subroutine track_fwd (ix1, ix2)
 
@@ -110,18 +118,19 @@ subroutine track_fwd (ix1, ix2)
 
   do n = ix1, ix2
 
-    call track1 (orbit_(n-1), ring%ele_(n), ring%param, orbit_(n))
+    call track1 (orbit(n-1), ring%ele_(n), ring%param, orbit(n))
 
 ! check for lost particles
 
     if (ring%param%lost) then
       ring%param%ix_lost = n
+      call zero_this_track (n+1, ix2)
       return
     endif
 
     if (debug) then
       print *, ring%ele_(n)%name
-      print *, (orbit_(n)%vec(i), i = 1, 6)
+      print *, (orbit(n)%vec(i), i = 1, 6)
     endif
 
   enddo
@@ -129,6 +138,8 @@ subroutine track_fwd (ix1, ix2)
 end subroutine
 
 !--------------------------------------------------------------------------
+! contains
+
 ! reverse_ele is used to reverse an element for tracking backwards.
 ! However, a reversed element has a different coordinate system so
 ! we need to transform to the flipped coordinate system, then track, then
@@ -142,9 +153,9 @@ subroutine track_back (ix1, ix2)
 
 ! flip to reversed coords
 
-  orbit_(ix1)%vec(2) = -orbit_(ix1)%vec(2)
-  orbit_(ix1)%vec(4) = -orbit_(ix1)%vec(4)
-  orbit_(ix1)%vec(5) = -orbit_(ix1)%vec(5)
+  orbit(ix1)%vec(2) = -orbit(ix1)%vec(2)
+  orbit(ix1)%vec(4) = -orbit(ix1)%vec(4)
+  orbit(ix1)%vec(5) = -orbit(ix1)%vec(5)
 
 ! track
 
@@ -154,29 +165,53 @@ subroutine track_back (ix1, ix2)
 
     ele = ring%ele_(n)
     call reverse_ele (ele)
-    call track1 (orbit_(n), ele, ring%param, orbit_(n-1))
+    call track1 (orbit(n), ele, ring%param, orbit(n-1))
 
 ! check for lost particles
 
     if (ring%param%lost) then
+      if (ring%param%end_lost_at == exit_end$) then
+        ring%param%end_lost_at = entrance_end$
+      elseif (ring%param%end_lost_at == exit_end$) then
+        ring%param%end_lost_at = entrance_end$
+      else
+        call out_io (s_abort$, r_name, 'INTERNAL ERROR')
+        call err_exit
+      endif
       ring%param%ix_lost = n 
+      call zero_this_track (ix2-1, n-1)
       ix_last = n-1
       exit
     endif
 
     if (debug) then
       print *, ring%ele_(n)%name
-      print *, (orbit_(n)%vec(i), i = 1, 6)
+      print *, (orbit(n)%vec(i), i = 1, 6)
     endif
 
   enddo
 
 ! flip back to normal coords
 
-  orbit_(ix_last:ix1)%vec(2) = -orbit_(ix_last:ix1)%vec(2)
-  orbit_(ix_last:ix1)%vec(4) = -orbit_(ix_last:ix1)%vec(4)
-  orbit_(ix_last:ix1)%vec(5) = -orbit_(ix_last:ix1)%vec(5)
+  orbit(ix_last:ix1)%vec(2) = -orbit(ix_last:ix1)%vec(2)
+  orbit(ix_last:ix1)%vec(4) = -orbit(ix_last:ix1)%vec(4)
+  orbit(ix_last:ix1)%vec(5) = -orbit(ix_last:ix1)%vec(5)
 
 end subroutine
 
+!--------------------------------------------------------------------------
+! contains
+
+subroutine zero_this_track (n1, n2)
+
+  integer n, n1, n2
+
+!
+
+  do n = n1, n2
+    if (n == ix_start) cycle  ! never zero starting coords.
+    orbit(n)%vec = 0
+  enddo
+
+end subroutine
 end subroutine

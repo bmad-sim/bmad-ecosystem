@@ -154,9 +154,9 @@ module bmad_struct
     real(rp) growth_rate        ! growth rate/turn if not stable
     real(rp) t1_with_RF(6,6)    ! Full 1-turn matrix with RF on.
     real(rp) t1_no_RF(6,6)      ! Full 1-turn matrix with RF off.
-    integer particle            ! +1 = positrons, -1 = electrons
-    integer iy                  ! Not currently used.
-    integer ix_lost             ! If lost at what element?
+    integer particle            ! positron$, electron$, etc.
+    integer ix_lost             ! Index of element particle was lost at.
+    integer end_lost_at         ! entrance_end$ or exit_end$
     integer lattice_type        ! linear_lattice$, etc...
     integer ixx                 ! Integer for general use
     logical stable              ! is closed ring stable?

@@ -35,7 +35,7 @@ subroutine track_all (ring, orbit_)
   type (ring_struct)  ring
   type (coord_struct), allocatable :: orbit_(:)
 
-  integer n, i
+  integer n, i, nn
 
   logical debug / .false. /
 
@@ -56,6 +56,9 @@ subroutine track_all (ring, orbit_)
 
     if (ring%param%lost) then
       ring%param%ix_lost = n
+      do nn = n+1, ring%n_ele_use
+        orbit_(nn)%vec = 0
+      enddo
       return
     endif
 

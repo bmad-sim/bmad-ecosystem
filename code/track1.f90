@@ -50,8 +50,12 @@ subroutine track1 (start, ele, param, end)
 ! check for particles outside aperture
 
   if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$) &
-                                   call check_aperture_limit (start, ele, param)
-  if (param%lost) return
+                                  call check_aperture_limit (start, ele, param)
+  if (param%lost) then
+    param%end_lost_at = entrance_end$
+    end%vec = 0       ! it never got to the end so zero this.
+    return
+  endif
 
 ! Radiation damping and/or fluctuations for the 1st half of the element.
 
@@ -120,5 +124,9 @@ subroutine track1 (start, ele, param, end)
 
   if (ele%aperture_at == exit_end$ .or. ele%aperture_at == both_ends$) &
                                 call check_aperture_limit (end, ele, param)
+  if (param%lost) then
+    param%end_lost_at = exit_end$
+    return
+  endif
 
 end subroutine

@@ -1,24 +1,28 @@
+!+
+! Module bmad_parser_mod
+!
+! This module is a collection of helper routines used by bmad_parser and bmad_parser2.
+! The routines in this module are specifically taylored for bmad_parser and
+! bmad_parser2 and cannot, in general, be used otherwise.
+!-
+
 #include "CESR_platform.inc"
 
 module bmad_parser_mod
 
-! This is for bmad_parser and bmad_parser2
-
   use ptc_interface_mod
   use bookkeeper_mod
 
-! structure for holding the contents of lines and lists (sequences)
+! A "sequence" is a line or a list.
+! The information about a sequence is stored in a seq_struct.
 
-  type replacement_arg_struct
-    character(16) dummy_name
-    character(16) actual_name
-    integer type
-    integer ix_array               ! pointer to ring%ele_ or sequence_ array
-  end type
+! A seq_struct has an array of seq_ele_struct structures.
+! Each seq_ele_struct represents an individual element in a sequence and, since sequences
+! can be nested, can itself be a line or a list.
 
   type seq_ele_struct
     character(16) name             ! name of element, subline, or sublist
-    type (replacement_arg_struct), pointer :: arg(:) => null()
+    character(16), pointer :: actual_arg(:) => null()
     integer type                   ! LINE$, REPLACEMENT_LINE$, LIST$, ELEMENT$
     integer ix_array               ! if an element: pointer to ELE_ array
                                    ! if a list: pointer to SEQ_ array
@@ -27,20 +31,21 @@ module bmad_parser_mod
     logical reflect                ! reflection of subline?
   end type
 
-! Head structure for lines and lists (sequences)
-
   type seq_struct
     character(16) name                 ! name of sequence
     type (seq_ele_struct), pointer :: ele(:) => null()
-    type (replacement_arg_struct), pointer :: arg(:) => null()
+    character(16), pointer :: dummy_arg(:) => null()
+    character(16), pointer :: corresponding_actual_arg(:) => null()
     integer type                       ! LINE$, REPLACEMENT_LINE$ or LIST$
     integer ix                         ! current index of element in %ELE
     integer indexx                     ! alphabetical order sorted index
-    character(200) file_name      ! file where sequence is defined
-    integer ix_line               ! line number in filewhere sequence is defined
+    character(200) file_name     ! file where sequence is defined
+    integer ix_line              ! line number in filewhere sequence is defined
   end type
 
-! stack structures
+
+! A LIFO stack structure is used in the final evaluation of the line that is
+! used to form a lattice
 
   type seq_stack_struct
     integer ix_seq                ! index to seq_(:) array
@@ -48,6 +53,9 @@ module bmad_parser_mod
     integer rep_count             ! repetition count
     integer reflect               ! reflection sequence?
   end type
+
+! A LIFO stack structure is used to hold this list of input lattice files
+! that are currently open.
 
   type stack_file_struct
     character(200) logical_name
@@ -60,6 +68,11 @@ module bmad_parser_mod
 !-----------------------------------------------------------
 ! structure for holding the control names and pointers for
 ! superimpose and overlay elements
+
+  type eval_stack_struct
+    integer type
+    real(rp) value
+  end type
 
   type parser_ele_struct
     character(16) ref_name
@@ -77,13 +90,6 @@ module bmad_parser_mod
     type (parser_ele_struct), pointer :: ele(:) => null()
   end type
 
-! component_struct
-
-  type component_struct
-    character(16) name
-    integer ix_ele
-  end type
-
 !
 
   integer, parameter :: line$ = 1, list$ = 2, element$ = 3
@@ -98,7 +104,8 @@ module bmad_parser_mod
   parameter (def$ = 1)
   parameter (redef$ = 2)
 
-! 
+!------------------------------------------------
+! common stuff
 
   type bp_com_struct
     type (stack_file_struct) current_file
@@ -120,7 +127,7 @@ module bmad_parser_mod
                       './           ', './           ', '$BMAD_LAYOUT:' /)
   end type
 
-! common stuff
+!
 
   type (bp_com_struct), save :: bp_com
   type (ele_struct), target, save :: beam_ele, param_ele
@@ -1000,7 +1007,8 @@ end function
 !+
 ! Subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
 !
-! This routine evaluates an arithmetic expression.
+! This routine creates an "evaluation stack" structure which can be used 
+! to evaluate an arithmethic expression.
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
@@ -1011,11 +1019,6 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
   use random_mod
 
   implicit none
-
-  type eval_stack_struct
-    integer type
-    real(rp) value
-  end type
 
   type (ring_struct)  ring
   type (eval_stack_struct) stk(200)
@@ -2551,13 +2554,12 @@ subroutine get_sequence_args (seq_name, arg_list, delim, err_flag)
 
   implicit none
 
-  type (replacement_arg_struct), pointer :: arg_list(:)
-
   integer n_arg, ix_word
 
+  character(*), pointer :: arg_list(:)
   character(*) seq_name
   character(1) delim
-  character(16) dummy_name(20), word
+  character(16) name(20), word
 
   logical delim_found, err_flag
 
@@ -2573,14 +2575,13 @@ subroutine get_sequence_args (seq_name, arg_list, delim, err_flag)
       return
     endif
     n_arg = n_arg + 1
-    dummy_name(n_arg) = word
+    name(n_arg) = word
     if (delim == ')') exit
   enddo
 
   err_flag = .false.
   allocate (arg_list(n_arg))
-  arg_list(:)%dummy_name = dummy_name(1:n_arg)
-  arg_list(:)%actual_name = dummy_name(1:n_arg)
+  arg_list = name(1:n_arg)
 
 end subroutine
 
@@ -2693,7 +2694,7 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
         call seq_expand1 (sequence_, iseq_tot, ring, .false.)
       else
         replacement_line_here = .true.
-        call get_sequence_args (name, s_ele(ix_ele)%arg, delim, err_flag)
+        call get_sequence_args (name, s_ele(ix_ele)%actual_arg, delim, err_flag)
         if (err_flag) return
       endif
       call get_next_word(word, ix_word, ':=(),', delim, delim_found, .true.)
@@ -2709,8 +2710,8 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
 
     s_ele(ix_ele)%ix_arg = 0
     if (seq%type == replacement_line$) then
-      do i = 1, size(seq%arg)
-        if (seq%arg(i)%dummy_name == s_ele(ix_ele)%name) then
+      do i = 1, size(seq%dummy_arg)
+        if (seq%dummy_arg(i) == s_ele(ix_ele)%name) then
           s_ele(ix_ele)%ix_arg = i
           exit
         endif

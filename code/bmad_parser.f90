@@ -364,8 +364,10 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! if a "(" delimitor then we are looking at a replacement line.
 
     if (delim == '(') then
-      call get_sequence_args (word_1, sequence_(iseq_tot+1)%arg, &
+      call get_sequence_args (word_1, sequence_(iseq_tot+1)%dummy_arg, &
                                                        delim, err_flag)
+      ix = size(sequence_(iseq_tot+1)%dummy_arg)
+      allocate (sequence_(iseq_tot+1)%corresponding_actual_arg(ix))
       if (err_flag) cycle parsing_loop
       arg_list_found = .true.
       call get_next_word (word_2, ix_word, '(): =,', &
@@ -666,7 +668,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
     ix = s_ele%ix_arg
     if (ix /= 0) then  ! it is a dummy argument.
-      name = seq%arg(ix)%actual_name
+      name = seq%corresponding_actual_arg(ix)
       s_ele => this_s_ele
       s_ele%name = name
       call find_indexx (name, in_name, in_indexx, n_max, j)
@@ -733,23 +735,22 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       i_lev = i_lev + 1
       if (s_ele%type == replacement_line$) then
         seq2 => sequence_(s_ele%ix_array)
-        if (size(seq2%arg) /= size(s_ele%arg)) then
+        if (size(seq2%dummy_arg) /= size(s_ele%actual_arg)) then
           call warning ('WRONG NUMBER OF ARGUMENTS FORREPLACEMENT LINE: ' // &
               s_ele%name, 'WHEN USED IN LINE: ' // seq%name, seq)
           call err_exit
         endif
-        arg_loop: do i = 1, size(seq2%arg)
-          seq2%arg(i)%actual_name = s_ele%arg(i)%actual_name
-          if (associated(seq%arg)) then
-            do j = 1, size(seq%arg)
-              if (seq2%arg(i)%actual_name == seq%arg(j)%dummy_name) then
-                seq2%arg(i)%actual_name = seq%arg(j)%actual_name
-                seq2%arg(i)%ix_array = seq%arg(j)%ix_array
+        arg_loop: do i = 1, size(seq2%dummy_arg)
+          seq2%corresponding_actual_arg(i) = s_ele%actual_arg(i)
+          if (associated(seq%dummy_arg)) then
+            do j = 1, size(seq%dummy_arg)
+              if (seq2%corresponding_actual_arg(i) == seq%dummy_arg(j)) then
+                seq2%corresponding_actual_arg(i) = seq%corresponding_actual_arg(j)
                 cycle arg_loop
               endif
             enddo
           endif
-          name = seq2%arg(i)%actual_name
+          name = seq2%corresponding_actual_arg(i)
         enddo arg_loop
       endif
       seq => sequence_(s_ele%ix_array)
@@ -1116,11 +1117,12 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   enddo
 
   do i = 1, size(sequence_(:))
-    if (associated (sequence_(i)%arg)) deallocate(sequence_(i)%arg)
+    if (associated (sequence_(i)%dummy_arg)) &
+              deallocate(sequence_(i)%dummy_arg, sequence_(i)%corresponding_actual_arg)
     if (associated (sequence_(i)%ele)) then
       do j = 1, size(sequence_(i)%ele)
-        if (associated (sequence_(i)%ele(j)%arg)) &
-                                        deallocate(sequence_(i)%ele(j)%arg)
+        if (associated (sequence_(i)%ele(j)%actual_arg)) &
+                              deallocate(sequence_(i)%ele(j)%actual_arg)
       enddo
       deallocate(sequence_(i)%ele)
     endif
