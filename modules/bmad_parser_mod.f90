@@ -1631,6 +1631,7 @@ subroutine read_sr_wake (ele)
 
   enddo
 
+  close (iu)
   if (associated(ele%wake%sr)) deallocate (ele%wake%sr)
   allocate (ele%wake%sr(0:i))
   ele%wake%sr = sr(0:i)
