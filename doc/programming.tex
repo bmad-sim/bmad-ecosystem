@@ -135,7 +135,7 @@ can be performed any lattice separately, this allows for the possibility of, for
 example, 
 tracking a single particle for one lattice and macroparticles in another.
 
-\subsection{tao\_hook\_load\_load\_data\_array}
+\subsection{tao\_hook\_load\_data\_array}
 
 Any custom data types are defined and calculated here. If a non-standard data
 type is listed in the intialization files then a corresponding data type must
@@ -166,6 +166,12 @@ array (from 0 to \vn{n_ele_max}) must be passed to \vn{load_it} for each \vn{orb
 
 If the only merit type that is going to be used is \vn{target} then \vn{load_it}
 can be ignored.
+
+\subsection{tao\_hook\_macro\_data}
+
+The macroparticle beam is not saved at every element due to memory constraints
+so any data associated with a beam must be calculated during the tracking. This
+hook routine is called after the beam is tracked through each element.
 
 \subsection{tao\_hook\_merit\_data}
 

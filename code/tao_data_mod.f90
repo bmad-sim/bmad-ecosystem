@@ -125,6 +125,13 @@ case ('orbit:y')
 case ('orbit:z')
   call load_it (orb(:)%vec(5))
 
+case ('orbit:x_p')
+  call load_it (orb(:)%vec(2))
+case ('orbit:y_p')
+  call load_it (orb(:)%vec(4))
+case ('orbit:z_p')
+  call load_it (orb(:)%vec(6))
+
 case ('phase:x')
   call relative_switch
   datum_value = lattice%ele_(ix2)%x%phi - lattice%ele_(ix1)%x%phi
@@ -317,5 +324,41 @@ cc_p%f_22  = f2
 end subroutine
 
 end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine tao_macro_data (u, lat, orb, beam, i_ele)
+!
+! The macroparticle beam is not
+! saved at every element due to memory constraints so any data must be
+! calculated on the fly during the tracking.
+!
+! Input:
+!  u         -- tao_universe_struct
+!  lat       -- ring_struct
+!  orb       -- coord_struct(0:i_ele): beam centroid coords throguh to the last
+!                tracked element
+!  beam      -- beam_struct
+!  e_ele     -- Integer: index of last tracked element
+!
+! Output:
+!  u%data(:) -- tao_data_struct
+!-
+
+subroutine tao_macro_data (u, lat, orb, beam, i_ele)
+
+use macroparticle_mod
+
+implicit none
+
+type (tao_universe_struct) :: u
+type (ring_struct) :: lat
+type (coord_struct) :: orb(:)
+type (beam_struct) :: beam
+integer i_ele
+
+end subroutine tao_macro_data
 
 end module

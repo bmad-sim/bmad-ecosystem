@@ -148,12 +148,9 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
   ! defaults
   do i = 1, size(s%u)
-    macro_init(i)%x%beta  = s%u(i)%design%ele_(0)%x%beta
-    macro_init(i)%x%alpha = s%u(i)%design%ele_(0)%x%alpha
     macro_init(i)%x%norm_emit  = 0.0
-    macro_init(i)%y%beta  = s%u(i)%design%ele_(0)%y%beta
-    macro_init(i)%y%alpha = s%u(i)%design%ele_(0)%y%alpha  
     macro_init(i)%y%norm_emit  = 0.0
+    macro_init(i)%dPz_dz = 0.0
     macro_init(i)%center(:) = 0.0
     macro_init(i)%ds_bunch = 1
     macro_init(i)%sig_z   = 10e-6
@@ -164,8 +161,6 @@ subroutine tao_init_global_and_universes (data_and_var_file)
     macro_init(i)%n_slice = 1
     macro_init(i)%n_macro = 1
     macro_init(i)%n_part  = 1e10
-    ! if not specified, set ave energy to initial beam energy
-    macro_init(i)%E_0 = s%u(i)%design%ele_(0)%value(beam_energy$)
     ! by default, no wake data file needed
     sr_wake_file(i) = 'none'
     lr_wake_file(i) = 'none'
@@ -1169,7 +1164,8 @@ integer, pointer :: ix_lcav(:)
   endif
 
   u%beam%macro_init = macro_init
-  call init_macro_distribution (u%beam%beam, macro_init, .true.)
+  ! This is just to get things allocated
+  call init_macro_distribution (u%beam%beam, macro_init, u%design%ele_(0), .true.)
 
   ! keep track of where macros are lost
   if (associated (u%beam%ix_lost)) deallocate (u%beam%ix_lost)
