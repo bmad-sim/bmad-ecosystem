@@ -36,22 +36,22 @@ real(rp), allocatable :: new_var_value(:)
 real(rp), allocatable :: design_var_value(:)
 real(rp), allocatable :: var_delta(:)
 
-integer nl, i, ix_ele, ixa, ix, err_num
-integer max_lines
+integer nl, i, ix_ele, ixa, ix, err_num, n
 
 character(*) who, name, where, num_str
 character(80) num
 character(20) :: r_name = 'tao_change_cmd'
 character(16) ele_name
 character(40) fmt
-character(100) l1, lines(n_output_lines_maxx)
+character(100) l1
+character(200), allocatable, save :: lines(:)
 
 logical err, absolute_num, rel_to_design
 logical, allocatable :: action_logic(:) !which variables to change
 
 !-------------------------------------------------
 
-max_lines = n_output_lines_maxx 
+call re_allocate (lines, 200, 200)
 call to_number;  if (err) return
 old_merit = tao_merit()
 nl = 0
@@ -117,20 +117,17 @@ case ('var')
   endif
 
   l1 = '     Index         Old              New       Delta  Old-Design  New-Design'
-    nl=nl+1; lines(nl) = l1
+  nl=nl+1; lines(nl) = l1
+
+  n = count(action_logic)
+  call re_allocate (lines, len(lines(1)), n+100)
+
   do i = lbound(action_logic,1), ubound(action_logic,1)
-    if (action_logic(i)) then
-      if (nl+5 .gt. max_lines) then
-        call out_io (s_blank$, r_name, "Too many elements!")
-        call out_io (s_blank$, r_name, "Listing first \i5\ selected elements", max_lines-4)
-        exit
-      endif
-      nl = nl+1
-      write (lines(nl), fmt) i, old_var_value(i), '  ->', new_var_value(i), &
-                             new_var_value(i)-old_var_value(i), &
+    if (.not. action_logic(i)) cycle
+    nl=nl+1; write (lines(nl), fmt) i, old_var_value(i), '  ->', &
+          new_var_value(i), new_var_value(i)-old_var_value(i), &
 			     old_var_value(i)-design_var_value(i), &
 			     new_var_value(i)-design_var_value(i)
-    endif
   enddo
   nl=nl+1; lines(nl) = l1
 

@@ -183,7 +183,7 @@ type tao_data_struct
   integer ix_ele            ! Index of the element in the lattice element array.
   integer ix_ele2           ! Index of lattice elment when there is a range or reference.
   integer ix_ele_merit      ! Index of lattice elment where merit is evaluated.
-  integer ix_d1             ! Index number of this datum.
+  integer ix_d1             ! Index number in u%d2_data(i)%d1_data(j)%d(:) array.
   integer ix_data           ! Index of this datum in the u%data(:) array of data_structs.
   integer ix_dModel         ! Row number in the dModel_dVar derivative matrix.
   real(rp) meas_value       ! Measured datum value. 
@@ -274,8 +274,8 @@ type tao_var_struct
   character(16) ele_name    ! Associated lattice element name.
   character(16) attrib_name ! Name of the attribute to vary.
   type (tao_this_var_struct), pointer :: this(:) => null()
-  integer ix_v1             ! Index of this var in the v1_var_struct%v array.
-  integer ix_var            ! Index number of this var in the s%var array.
+  integer ix_v1             ! Index of this var in the s%v1_var(i)%v(:) array.
+  integer ix_var            ! Index number of this var in the s%var(:) array.
   integer ix_dvar           ! Column in the dData_dVar derivative matrix.
   real(rp) model_value      ! Model value.
   real(rp) base_value       ! Base value.

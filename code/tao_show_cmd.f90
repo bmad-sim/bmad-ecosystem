@@ -48,24 +48,23 @@ character(16) :: show_names(10) = (/ &
    'data       ', 'var        ', 'global     ', 'alias      ', 'top10      ', &
    'optimizer  ', 'ele        ', 'lattice    ', 'constraints', 'plot       ' /)
 
-character(200), allocatable :: lines(:)
+character(200), allocatable, save :: lines(:)
 character(100) line1, line2
 character(4) null_word
 
 integer :: data_number, ix_plane
 integer nl, loc
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju
-integer num_locations, max_lines
+integer num_locations
 
 logical err, found, at_ends
 logical show_all, name_found
 logical, automatic :: picked(size(s%u))
 logical, allocatable :: show_here(:)
 
-max_lines = n_output_lines_maxx 
-if (.not. allocated (lines)) allocate (lines(max_lines))
-if (size(lines) .ne. max_lines) allocate (lines(max_lines))
+!
 
+call re_allocate (lines, 200, 500)
 null_word = 'null'
 
 err = .false.
@@ -116,6 +115,7 @@ select case (show_name)
 
 case ('alias')
 
+  call re_allocate (lines, len(lines(1)), tao_com%n_alias+10)
   lines(1) = 'Aliases:'
   nl = 1
   do i = 1, tao_com%n_alias
@@ -157,7 +157,7 @@ case ('data')
     if (show_word2 == ' ') then
       nl=nl+1; write (lines(nl), '(62x, a)') 'Bounds' 
       nl=nl+1; write (lines(nl), '(5x, a, 23x, a, 14x, a)') &
-                                             'd2_Name', 'Ix  d1_Name', 'Lower  Upper'
+                                        'd2_Name', 'Ix  d1_Name', 'Lower  Upper'
       do i = 1, size(u%d2_data)
         d2_ptr => u%d2_data(i)
         if (d2_ptr%name == ' ') cycle
@@ -249,13 +249,11 @@ case ('data')
         endif
       endif
 
+      call re_allocate (lines, len(lines(1)), nl+100+size(d1_ptr%d))
+
       do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
         if (.not. (show_here(i) .and. d1_ptr%d(i)%exists)) cycle
-        if (nl+2 .gt. max_lines) then
-          call out_io (s_blank$, r_name, "Too many elements!")
-          call out_io (s_blank$, r_name, "Listing first \i5\ selected elements", max_lines-4)
-          exit
-        endif
+        if (size(lines) > nl + 50) call re_allocate (lines, len(lines(1)), nl+100)
         nl=nl+1; write(lines(nl), '(i5, 2x, a16, 3es14.4, 2l6)') i, &
                      d1_ptr%d(i)%name, d1_ptr%d(i)%meas_value, &
                      d1_ptr%d(i)%model_value, d1_ptr%d(i)%design_value, &
@@ -271,20 +269,20 @@ case ('data')
 
     else 
 
+      call re_allocate (lines, len(lines(1)), nl+100+size(d1_ptr%d))
+
       nl=nl+1; write(lines(nl), '(2a)') 'D2_Data type:    ', d2_ptr%name
       nl=nl+1; write(lines(nl), '(5x, a)') '                   Bounds'
       nl=nl+1; write(lines(nl), '(5x, a)') 'D1_Data name    lower: Upper' 
+
       do i = 1, size(d2_ptr%d1)
-        if (nl+10 .gt. max_lines) then
-          call out_io (s_blank$, r_name, &
-              "Found too many d1_data! Listing first \i5\ matches", max_lines-1)
-          exit
-        endif
+        if (size(lines) > nl + 50) call re_allocate (lines, len(lines(1)), nl+100)
         nl=nl+1; write(lines(nl), '(5x, a, i5, a, i5)') d2_ptr%d1(i)%name, &
                   lbound(d2_ptr%d1(i)%d, 1), ':', ubound(d2_ptr%d1(i)%d, 1)
       enddo
 
       if (any(d2_ptr%descrip /= ' ')) then
+        call re_allocate (lines, len(lines(1)), nl+100+size(d2_ptr%descrip))
         nl=nl+1; write (lines(nl), *)
         nl=nl+1; write (lines(nl), '(a)') 'Descrip:'
         do i = 1, size(d2_ptr%descrip)
@@ -305,27 +303,19 @@ case ('data')
 
 case ('ele')
 
-
   call str_upcase (ele_name, show_word2)
 
   if (index(ele_name, '*') /= 0 .or. index(ele_name, '%') /= 0) then
     write (lines(1), *) 'Matches to name:'
     nl = 1
     do loc = 1, u%model%n_ele_max
-      if (match_wild(u%model%ele_(loc)%name, ele_name)) then
-        if (nl+1 .gt. max_lines) then
-          call out_io (s_blank$, r_name, "Too many elements!")
-          call out_io (s_blank$, r_name, "Listing first \i5\ selected elements", max_lines-1)
-          exit
-        endif
-        nl = nl + 1
-        write (lines(nl), '(i8, 2x, a)') loc, u%model%ele_(loc)%name
-        name_found = .true.
-      endif
+      if (.not. match_wild(u%model%ele_(loc)%name, ele_name)) cycle
+      if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
+      nl=nl+1; write (lines(nl), '(i8, 2x, a)') loc, u%model%ele_(loc)%name
+      name_found = .true.
     enddo
     if (.not. name_found) then
-      nl = nl + 1
-      write (lines(nl), *) '   *** No Matches to Name Found ***'
+      nl=nl+1; write (lines(nl), *) '   *** No Matches to Name Found ***'
     endif
 
 ! else no wild cards
@@ -341,6 +331,7 @@ case ('ele')
     ! Show the element info
     call type2_ele (u%model%ele_(loc), ptr_lines, n, .true., 6, .false., &
                                         s%global%phase_units, .true., u%model)
+    if (size(lines) < nl+n+100) call re_allocate (lines, len(lines(1)), nl+n+100)
     lines(nl+1:nl+n) = ptr_lines(1:n)
     nl = nl + n
     deallocate (ptr_lines)
@@ -359,21 +350,14 @@ case ('ele')
 
     found = .false.
     do i = loc + 1, u%model%n_ele_max
-      if (u%model%ele_(i)%name == ele_name) then
-        if (nl+2 .gt. max_lines) then
-          nl = nl + 1
-          write (lines(nl), *) "Found too many elements!"
-          exit
-        endif
-        if (found) then
-          nl = nl + 1
-          write (lines(nl), *)
-          found = .true.
-        endif
-        nl = nl + 1
-        write (lines(nl), *) &
+      if (u%model%ele_(i)%name /= ele_name) cycle
+      if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
+      if (found) then
+        nl=nl+1; write (lines(nl), *)
+        found = .true.
+      endif 
+      nl=nl+1;  write (lines(nl), *) &
                 'Note: Found another element with same name at:', i
-      endif
     enddo
 
   endif
@@ -413,26 +397,31 @@ case ('global')
 case ('lattice')
   
   if (show_word2 .eq. ' ') then
-    nl=nl+1
-    write (lines(nl), '(a, i2, a, i6, a)') "Universe ", s%global%u_view, &
-               " has ", u%model%n_ele_use, " regular elements."
-    nl=nl+1
+    nl=nl+1; write (lines(nl), '(a, i3)') 'Universe: ', s%global%u_view
+    nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Regular elements:', &
+                                          1, '  through', u%model%n_ele_use
+    nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Lord elements:   ', &
+                        u%model%n_ele_use+1, '  through', u%model%n_ele_max
     if (u%is_on) then
-      write (lines(nl), '(a)') "This universe is turned ON"
+      nl=nl+1; write (lines(nl), '(a)') 'This universe is turned ON'
     else
-      write (lines(nl), '(a)') "This universe is turned OFF"
+      nl=nl+1; write (lines(nl), '(a)') 'This universe is turned OFF'
     endif
     call out_io (s_blank$, r_name, lines(1:nl))
     return
   endif
   
   allocate (show_here(0:u%model%n_ele_use))
-  show_word3 = trim(show_word2) // trim(show_word3)
-  call location_decode (show_word3, show_here, 0, num_locations)
-  if (num_locations .eq. -1) then
-    call out_io (s_error$, r_name, "Syntax error in range list!")
-    deallocate(show_here)
-    return
+  if (show_word2 == 'all') then
+    show_here = .true.
+  else
+    show_word3 = trim(show_word2) // trim(show_word3)
+    call location_decode (show_word3, show_here, 0, num_locations)
+    if (num_locations .eq. -1) then
+      call out_io (s_error$, r_name, "Syntax error in range list!")
+      deallocate(show_here)
+      return
+    endif
   endif
 
   if (.true.) then
@@ -452,11 +441,7 @@ case ('lattice')
   nl=nl+3
   do ix = lbound(show_here,1), ubound(show_here,1)
     if (.not. show_here(ix)) cycle
-    if (nl+2 .gt. max_lines) then
-      call out_io (s_blank$, r_name, "Too many elements!")
-      call out_io (s_blank$, r_name, "Listing first \i5\ selected elements", max_lines-4)
-      exit
-    endif
+    if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
     ele => u%model%ele_(ix)
     if (ix == 0 .or. at_ends) then
       ele3 = ele
@@ -604,11 +589,7 @@ case ('var')
     do i = 1, size(s%v1_var)
       v1_ptr => s%v1_var(i)
       if (v1_ptr%name == ' ') cycle
-      if (nl+1 .gt. max_lines) then
-        call out_io (s_blank$, r_name, &
-          & "Found too many v1_vars! Listing first \i5\ matches", max_lines)
-        exit
-      endif
+      if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
       nl=nl+1
       write(lines(nl), '(5x, a, i5, i7)') v1_ptr%name, &
                   lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
@@ -706,11 +687,7 @@ case ('var')
       endif
       do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
         if (.not. (show_here(i) .and. v1_ptr%v(i)%exists)) cycle
-        if (nl+2 .gt. max_lines) then
-          call out_io (s_blank$, r_name, "Too many elements!")
-          call out_io (s_blank$, r_name, "Listing first \i5\ selected elements", max_lines-4)
-          exit
-        endif
+        if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
         nl=nl+1
         write(lines(nl), '(i6, 2x, a16, 3es14.4, 7x, l)') i, &
                  v1_ptr%v(i)%name, v1_ptr%v(i)%meas_value, &
@@ -722,11 +699,7 @@ case ('var')
     else
       do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
         if (.not. v1_ptr%v(i)%exists) cycle
-        if (nl+2 .gt. max_lines) then
-          call out_io (s_blank$, r_name, "Too many elements!")
-          call out_io (s_blank$, r_name, "Listing first \i5\ elements", max_lines-4)
-          exit
-        endif
+        if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
         nl=nl+1
         write(lines(nl), '(i6, 2x, a16, 3es14.4, 7x, l)') i, &
                  v1_ptr%v(i)%name, v1_ptr%v(i)%meas_value, &

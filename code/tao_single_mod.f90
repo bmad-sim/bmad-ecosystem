@@ -122,20 +122,23 @@ character(16) location, con_var, max_loc, loc1, loc2
 character(80) fmt
 character(1) plane
 character(24) :: r_name = 'tao_show_constraints'
-character(100) line(500), l1
+character(200), allocatable, save :: line(:)
+character(200) l1
 
 type constraint_struct
-  character(16) name
+  character(32) name
   character(16) loc1, loc2, max_loc
   real(rp) target_value
   real(rp) actual_value
   real(rp) merit
+  integer ix
 end type
 
 type (constraint_struct), allocatable :: con(:)
 
 !
 
+call re_allocate (line, 200, 100)
 this_merit = tao_merit()
 top_merit(:)%valid  = .false.; top_merit(:)%name  = ' '
 
@@ -151,12 +154,12 @@ do i = 1, size(s%u)
     data => s%u(i)%data(j)
     if (.not. data%useit_opt) cycle
     nc = nc + 1
-    con(nc)%name = data%data_type
+    con(nc)%name = trim(data%d1%d2%name) // ':' // data%d1%name
     if (size(s%u) > 1) write (con(nc)%name, '(2a, i0)') &
                                      trim(con(nc)%name), ';', i
     con(nc)%loc1 = s%u(i)%model%ele_(data%ix_ele)%name
     ie = data%ix_ele2
-    if (ie < 0) then
+    if (ie < 1) then
       con(nc)%loc2 = ' '
     else
       con(nc)%loc2 = s%u(i)%model%ele_(ie)%name
@@ -170,6 +173,7 @@ do i = 1, size(s%u)
     con(nc)%target_value = data%meas_value
     con(nc)%actual_value = data%model_value
     con(nc)%merit = data%merit
+    con(nc)%ix = data%ix_d1
   enddo
 enddo
 
@@ -178,7 +182,7 @@ do i = 1, size(s%var(:))
   if (.not. var%useit_opt) cycle
 !!  if (var%merit == 0) cycle
   nc = nc + 1
-  con(nc)%name = var%name
+  con(nc)%name = var%v1%name
   iu = var%this(1)%ix_uni
   con(nc)%loc1 = s%u(iu)%model%ele_(var%this(1)%ix_ele)%name
   con(nc)%loc2 = ' '
@@ -198,6 +202,7 @@ do i = 1, size(s%var(:))
   con(nc)%actual_value = var%model_value
   con(nc)%merit = var%merit
   con(nc)%max_loc = ' '
+  con(nc)%ix = var%ix_v1
 enddo
 
 !
@@ -232,8 +237,8 @@ enddo
 
 !
 
-l1 = '    Constraint'
-n=7+ns_name;            l1(n:) = 'Where1'
+l1 = 'Constraint'
+n=8+ns_name;            l1(n:) = 'Where1'
 n=len_trim(l1)+ns_l1-4; l1(n:) = 'Where2'
 n=len_trim(l1)+ns_l2-2; l1(n:) = 'Target       Value     Merit   Max'
 
@@ -242,19 +247,14 @@ nl=nl+1; line(nl) = l1
 
 !
 
-fmt = '(i3, 1x, a, 2x, a, 1x, a, 1pe10.2, 1pe12.3, e10.2, 2x, a)'
+fmt = '(a, i5, 2x, a, 1x, a, 1pe10.2, 1pe12.3, e10.2, 2x, a)'
 
+call re_allocate (line, 200, nl+n_max+100)
 do j = 1, n_max
   i = ixm(j)
-  nl = nl + 1
-  write (line(nl), fmt) i, con(i)%name(1:ns_name), &
+  nl=nl+1; write (line(nl), fmt) con(i)%name(1:ns_name), con(i)%ix, &
             con(i)%loc1(1:ns_l1), con(i)%loc2(1:ns_l2), con(i)%target_value, &
             con(i)%actual_value, con(i)%merit, con(i)%max_loc
-  if (nl+1 .gt. size(line)) then
-    call out_io (s_blank$, r_name, "Too many constraints!")
-    call out_io (s_blank$, r_name, "Showing first \I4\ ", j)
-    exit
-  endif
 end do
 nl=nl+1; line(nl) = l1
 
