@@ -256,9 +256,10 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
 ! Track the last half of the lcavity. 
 ! This includes the short-range longitudinal wakes.
 
-  rf_ele%value(l$) = ele%value(l$) / 2
+  rf_ele%value(l$)            = ele%value(l$) / 2
   rf_ele%value(energy_start$) = rf_ele%value(beam_energy$)
-  rf_ele%value(beam_energy$) = ele%value(beam_energy$)
+  rf_ele%value(beam_energy$)  = ele%value(beam_energy$)
+  rf_ele%value(p0c$)          = ele%value(p0c$)
 
   do i = 1, size(bunch_start%slice)
     do j = 1, size(bunch_start%slice(i)%macro)
@@ -281,7 +282,6 @@ subroutine recalc_charge
                             mask = .not. bunch_end%slice(i)%macro(:)%lost)
   enddo
   bunch_end%charge = sum (bunch_end%slice(:)%charge)
-
 
 end subroutine
 
@@ -571,36 +571,35 @@ subroutine track1_macroparticle (start, ele, param, end)
 
   type (macro_struct) :: start
   type (macro_struct) :: end
-  type (ele_struct), intent(in) :: ele
-  type (ele_struct), save :: temp_ele
+  type (ele_struct) :: ele
   type (param_struct), intent(inout) :: param
 
   real(rp) l, l2, s(21), m4(4,4), s_mat4(4,4), s_mat6(6,6)
+  real(rp) mat6(6,6), vec0(6)
 
 ! transfer z-order index, charge, etc
 
   end = start
-  if (start%lost) return
 
-  if (temp_ele%key == marker$) return
+  if (start%lost) return
+  if (ele%key == marker$) return
 
 ! Init
 
-  temp_ele = ele
   bmad_com%grad_loss_sr_wake = start%grad_loss_sr_wake
 
 ! Very simple cases
 
-  select case (temp_ele%key)
+  select case (ele%key)
   case (drift$, ecollimator$, elseparator$, hkicker$, instrument$, &
                     kicker$, monitor$, rcollimator$)
 
-    call track1 (start%r, temp_ele, param, end%r)
+    call track1 (start%r, ele, param, end%r)
     call check_lost
 
     s = start%sigma
     end%sigma = s
-    l = temp_ele%value(l$) / (1 + start%r%vec(6))
+    l = ele%value(l$) / (1 + start%r%vec(6))
     l2 = l*l
 
     end%sigma(s11$) = s(s11$) + 2 * l * s(s12$) + l2 * s(s22$)
@@ -623,16 +622,17 @@ subroutine track1_macroparticle (start, ele, param, end)
 ! Simple case where longitudinal motion can be ignored.
 
   if (start%sigma(s55$) == 0 .and. start%sigma(s66$) == 0 .and. &
-                                                  temp_ele%key /= sbend$) then
+                                                  ele%key /= sbend$) then
 
-    call make_mat6 (temp_ele, param, start%r, end%r)  
+    mat6 = ele%mat6; vec0 = ele%vec0  ! save
+    call make_mat6 (ele, param, start%r, end%r)  
     call check_lost
 
     s = start%sigma
     end%sigma = s
-    m4 = temp_ele%mat6(1:4,1:4)
+    m4 = ele%mat6(1:4,1:4)
 
-    if (all(temp_ele%mat6(1:2,3:4) == 0) .and. all(temp_ele%mat6(3:4,1:2) == 0)) then
+    if (all(ele%mat6(1:2,3:4) == 0) .and. all(ele%mat6(3:4,1:2) == 0)) then
       end%sigma(s11$) = m4(1,1)*m4(1,1)*s(s11$) + m4(1,2)*m4(1,2)*s(s22$) + &
                                               2*m4(1,1)*m4(1,2)*s(s12$) 
       end%sigma(s12$) = m4(1,2)*m4(2,1)*s(s12$) + m4(1,2)*m4(2,2)*s(s22$) + &
@@ -660,19 +660,22 @@ subroutine track1_macroparticle (start, ele, param, end)
     endif
 
     bmad_com%grad_loss_sr_wake = 0
+    ele%mat6 = mat6; ele%vec0 = vec0
     return
 
   endif
 
 ! Full tracking. 
 
-    call make_mat6 (temp_ele, param, start%r, end%r)  
+    mat6 = ele%mat6; vec0 = ele%vec0  ! save
+    call make_mat6 (ele, param, start%r, end%r)  
     call check_lost
     call mp_sigma_to_mat (start%sigma, s_mat6)
-    s_mat6 = matmul(temp_ele%mat6, matmul(s_mat6, transpose(temp_ele%mat6)))
+    s_mat6 = matmul(ele%mat6, matmul(s_mat6, transpose(ele%mat6)))
     call mat_to_mp_sigma (s_mat6, end%sigma)
 
     bmad_com%grad_loss_sr_wake = 0
+    ele%mat6 = mat6; ele%vec0 = vec0
 
 ! Sig_z calc. Because of roundoff sigma(s55$) can be negative.
 
