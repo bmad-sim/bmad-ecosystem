@@ -306,7 +306,7 @@ if ( [ $DO_PKG -eq 1 ] ) then
     echo "`date`: Installing packages..."
     gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_PKG=${DO_PKG} CESR_PRECISION=${CESR_PREC} CHECKOUT="" BUILD=${DO_BUILD} >> ${FULL_PKG_LOG} 2>&1
     build_pkg_status=$?
-    echo "`date`: PACKAGES build complete"
+    echo "`date`: PACKAGES build complete;  Status = ${build_pkg_status}"
 fi
 
 # Build the CESR RELEASE
@@ -315,18 +315,13 @@ if ( [ $DO_REL -eq 1 ] ) then
     echo "`date`: Installing release..."
     gmake -f ${BIN_DIR}/M.release PACKAGE_NAME=${PKG_NAME} DO_REL=${DO_REL} CESR_PRECISION=${CESR_PREC} CHECKOUT="" BUILD=${DO_BUILD} >> ${FULL_REL_LOG} 2>&1
     build_rel_status=$?
-    echo "`date`: CESR build complete"
+    echo "`date`: CESR build complete;  Status = ${build_rel_status}"
 fi
 
-if ( [ $build_pkg_status -eq 0 ] && [ $build_rel_status -eq 0 ] ) then
+if ( [ ${build_pkg_status} -eq 0 -a ${build_rel_status} -eq 0 ] ) then
     echo "`date`: Installation completed successfully!"
 else
-    echo "`date`: Installation completed with errors [PKG_STATUS=$build_pkg_status, REL_STATUS=$build_rel_status]!"
+    echo "`date`: Installation completed with errors!"
 fi
 
 exit
-
-
-
-
-
