@@ -15,7 +15,6 @@
 !   param     -- Param_struct:
 !   start     -- Coord_struct, optional: Starting position
 !                If not present then START is taken to be 0.
-!   end       -- Coord_struct, optional: End position at DEL_S.
 !   body_only -- Logical, optional: If present and True then for a bend
 !                   no entrence face focusing is applied. That is, the 
 !                   tracking starts just inside the element.
@@ -25,6 +24,7 @@
 !     %x             -- X Twiss parameters
 !     %y             -- Y Twiss parametser
 !     %value(l$)     -- Set to DEL_S
+!   end  -- Coord_struct, optional: End position at DEL_S.
 !-
 
 #include "CESR_platform.inc"
@@ -43,24 +43,48 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   type (coord_struct) c0, c1
   type (param_struct) param
 
-  real(rp) del_s, del
+  real(rp) del_s, del, l_orig
   logical, optional :: body_only
-               
+  character(20) :: r_name = 'twiss_and_track_partial'
+  character(80) line
+
+! Error check
+
+  l_orig = ele2%value(l$)
+
+  if (del_s < 0 .or. del_s > l_orig+1e-6) then
+    write (line, '(a, f10.4)') 'DEL_S NEGATIVE OR LARGER THAN ELEMENT LENGTH: ', del_s
+    call out_io (s_abort$, r_name, line)
+    call err_exit
+  endif
+
+! Easy case when ele2 has zero length
+
+  if (l_orig == 0) then
+    ele3 = ele2
+    if (present(end)) then
+      if (present(start)) then
+        end = start 
+      else
+        end%vec = 0
+      endif
+    endif
+  endif
+
 ! The only real(rp) complication comes with a dipole where we have to negate
 ! the focusing of the exit face (we never get to the exit face since we are
 ! only partially tracking through).
 
   ele = ele2
-
   ele%value(l$) = del_s
 
   if (ele%key == wiggler$) then
-    ele%value(n_pole$) = ele2%value(n_pole$) * del_s / ele2%value(l$)
+    ele%value(n_pole$) = ele2%value(n_pole$) * del_s / l_orig
     if (ele%tracking_method == taylor$) ele%tracking_method = symp_lie_bmad$
     if (ele%mat6_calc_method == taylor$) ele%mat6_calc_method = symp_lie_bmad$
   endif
 
-  ele%num_steps = ele%num_steps * del_s / ele2%value(l$)
+  ele%num_steps = ele%num_steps * del_s / l_orig
 
   if (present(start)) then
     c0 = start
