@@ -32,16 +32,17 @@ contains
 !+
 ! Subroutine taylor_equal_taylor (taylor1, taylor2)
 !
-! Subroutine to transfer the values from one taylor to another.
+! Subroutine to transfer the values from one taylor map to another:
+!     Taylor1 <= Taylor2
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   taylor2(:) -- Taylor_struct:
+!   taylor2(:) -- Taylor_struct: Taylor map.
 !
 ! Output:
-!   taylor1(:) -- Taylor_struct:
+!   taylor1(:) -- Taylor_struct: Taylor map. 
 !-
 
 subroutine taylor_equal_taylor (taylor1, taylor2)
@@ -74,7 +75,7 @@ end subroutine
 !+
 ! Subroutine type_taylors (bmad_taylor)
 !
-! Subroutine to type out the taylor series from a BMAD taylor array
+! Subroutine to print in a nice format a BMAD taylor map at the terminal.
 !
 ! Modules needed:
 !   use bmad
@@ -111,7 +112,7 @@ end subroutine
 !+
 ! Subroutine type2_taylors (bmad_taylor, lines, n_lines)
 !
-! Subroutine to print the terms in taylor array.
+! Subroutine to write a BMAD taylor map in a nice format to a character array.
 !
 ! Moudles needed:
 !   use bmad
@@ -205,7 +206,9 @@ end subroutine
 !+
 ! Subroutine init_taylor (bmad_taylor)
 !
-! Subroutine to initialize a BMAD taylor_struct.
+! Subroutine to initialize (nullify) a BMAD Taylor map.
+! Note: You must be sure that bmad_taylor is not allocated before using this
+! routine otherwise you will have a memory leak!
 !
 ! Modules needed:
 !   use bmad
@@ -239,7 +242,7 @@ end subroutine
 !+
 ! Subroutine kill_taylor (bmad_taylor)
 !
-! Subroutine to deallocate a BMAD taylor_struct.
+! Subroutine to deallocate a BMAD taylor map.
 !
 ! Modules needed:
 !   use bmad
@@ -274,7 +277,8 @@ end subroutine
 !+
 ! subroutine sort_taylor_terms (taylor_in, taylor_sorted)
 !
-! Subroutine to sort the taylor terms from "lowest" to "highest".
+! Subroutine to sort the taylor terms from "lowest" to "highest" of
+! a taylor series.
 ! This subroutine is needed since what comes out of PTC is not sorted.
 !
 ! The number associated with a taylor_term that is used for the sort is:
@@ -342,13 +346,13 @@ end subroutine
 ! Subroutine taylor_to_mat6 (a_taylor, c0, mat6, c1)
 !
 ! Subroutine to calculate the linear (Jacobian) matrix about 
-! some trajectory from a taylor series.
+! some trajectory from a Taylor map.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   a_taylor(6) -- Taylor_struct: Taylor series.
+!   a_taylor(6) -- Taylor_struct: Taylor map.
 !   c0          -- Coord_struct: Coordinates at the input. 
 !
 ! Output:
@@ -413,7 +417,7 @@ end subroutine
 !+
 ! Subroutine mat6_to_taylor (mat6, vec0, bmad_taylor)
 !
-! Subroutine to form a first order taylor series from the 6x6 transfer
+! Subroutine to form a first order Taylor map from the 6x6 transfer
 ! matrix and the 0th order transfer vector.
 !
 ! Modules needed:
@@ -424,7 +428,7 @@ end subroutine
 !   vec0(6)   -- 0th order transfer vector.
 !
 ! Output:
-!   bmad_taylor(6) -- Taylor_struct: first order taylor series.
+!   bmad_taylor(6) -- Taylor_struct: first order taylor map.
 !-
 
 subroutine mat6_to_taylor (mat6, vec0, bmad_taylor)
@@ -473,13 +477,13 @@ end subroutine
 !+
 ! Subroutine track_taylor (start, bmad_taylor, end)
 !
-! Subroutine to track using a taylor series
+! Subroutine to track using a Taylor map.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   bmad_taylor(6) -- Taylor_struct: Taylor series.
+!   bmad_taylor(6) -- Taylor_struct: Taylor map.
 !   start          -- Real(rdef): Starting coords.
 !
 ! Output:
