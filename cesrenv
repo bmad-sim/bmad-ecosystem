@@ -11,7 +11,8 @@
 #
 #-----  Add cesrulib bin area to user's PATH  ----
 #
-setenv PATH $PATH:/home/cesrulib/bin
+
+setenv PATH ${PATH}:/home/cesrulib/bin
 
 #
 #-----  Outside packages  -----
@@ -66,6 +67,9 @@ setenv BMAD_LAYOUT	$CESR_CONFIG/bmad/layout
 # $Id$
 #
 # $Log$
+# Revision 1.6  2003/05/22 17:12:09  palmer
+# Fix variable expansion problem for csh/tcsh type shells.
+#
 # Revision 1.5  2003/05/21 12:33:18  palmer
 # Add PKG_INC environment variable.
 # Fix miscellaneous comments.
