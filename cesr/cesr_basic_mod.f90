@@ -225,7 +225,7 @@ subroutine bmad_to_cesr (ring, cesr)
   cesr%rf_(rf_e2$)%name = 'RF_E2'
 
 
-  cesr%skew_sex_(1)%name = 'DUMMY'
+  cesr%skew_sex_(1)%name = 'SK_SEX_07W'
   cesr%skew_sex_(2)%name = 'SK_SEX_23W'
   cesr%skew_sex_(3)%name = 'SK_SEX_23E'
   cesr%skew_sex_(4)%name = 'SK_SEX_07E'
