@@ -76,6 +76,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/11/02 19:29:58  helms
+!Added 'use bmad_interface' to avoid problems with optional arguments
+!
 !Revision 1.2  2001/09/27 18:31:50  rwh24
 !UNIX compatibility updates
 !
@@ -87,6 +90,8 @@
 subroutine create_group (ring, ix_ele, n_control, control_)
 
   use bmad_struct
+  use bmad_interface
+
   implicit none
   type (ring_struct)  ring
   type (control_struct)  control_(*)
