@@ -1,8 +1,11 @@
 !+
 ! Subroutine ring_make_mat6 (ring, ix_ele, coord_)
 !
-! Subroutine to make the 6x6 linear transfer matrix for an element or
-! elements in a ring.
+! Subroutine to make the 6x6 linear transfer matrix (along with the zeroth
+! order 6 vector) for an element or elements in a ring.
+!
+! The routine will also call control_bookkeeper to make sure that all
+! lord/slave dependencies are correct.
 !
 ! Moudules Needed:
 !   use bmad
@@ -22,32 +25,7 @@
 !     %ele_(i)%mat6 -- 6x6 transfer matrices.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.8  2003/01/27 14:40:42  dcs
-!bmad_version = 56
-!
-!Revision 1.7  2002/11/17 01:01:43  dcs
-!compiler bug fix
-!
-!Revision 1.6  2002/11/06 06:48:32  dcs
-!Changed arg array
-!
-!Revision 1.5  2002/06/13 14:54:28  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.4  2002/02/23 20:32:23  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/16 21:04:18  helms
-!Fixed problem with passing optional arguments.
-!
-!Revision 1.2  2001/09/27 18:31:57  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
 
@@ -67,7 +45,8 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
 
 !
 
-  if (ring%param%lattice_type == linac_lattice$)  call compute_element_energy (ring)
+  if (ring%param%lattice_type == linac_lattice$) &
+                                           call compute_element_energy (ring)
 
 ! Check Energy
 

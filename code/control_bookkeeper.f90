@@ -16,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2003/03/14 21:19:17  dcs
+!Split bend bug fixed
+!
 !Revision 1.8  2003/01/27 14:40:32  dcs
 !bmad_version = 56
 !
@@ -359,7 +362,6 @@ subroutine makeup_super_slave (ring, ix_slave)
 !     2) zero the face angles next to the split
 
     if (slave%key == sbend$) then
-      slave%value(e2$) = 0.0
       if (ix_con == lord%ix1_slave) then   ! first slave bend
         slave%value(e2$) = 0
       elseif (ix_con == lord%ix2_slave) then 
