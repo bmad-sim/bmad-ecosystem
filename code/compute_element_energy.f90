@@ -83,7 +83,7 @@ subroutine compute_element_energy (lattice)
       ix = ele%ix1_slave
       j = lattice%control_(ix)%ix_slave
       ele%value(energy_start$) = lattice%ele_(j)%value(energy_start$)
-      ele%value(poc_start$) = lattice%ele_(j)%value(p0c_start$)
+      ele%value(p0c_start$) = lattice%ele_(j)%value(p0c_start$)
     endif
 
   enddo

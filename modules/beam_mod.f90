@@ -282,7 +282,7 @@ subroutine track1_sr_wake (bunch, ele)
   type (particle_struct), pointer :: particle, leader
 
   real(rp) dz_sr1, sr02, z_sr1_max
-  integer i, j, k, i_sr2, n_sr1, n_sr2_long, n_sr2_trans, k_start
+  integer i, j, k, n, i_sr2, n_sr1, n_sr2_long, n_sr2_trans, k_start
 
   logical wake_here
   character(16) :: r_name = 'track1_sr_wake'
@@ -326,7 +326,7 @@ subroutine track1_sr_wake (bunch, ele)
   if (n_sr1 > 0) then
     z_sr1_max = ele%wake%sr1(n_sr1-1)%z
     dz_sr1 = z_sr1_max / (n_sr1 - 1)
-    sr02 = ele%wake%sr1(0)%long / 2
+    sr02 = ele%wake%sr1(0)%long * particle%charge * ele%value(l$) / (2 * ele%value(p0c$))
   endif
 
 ! loop over all particles in the bunch and apply the wake
@@ -338,8 +338,7 @@ subroutine track1_sr_wake (bunch, ele)
     ! apply longitudinal self wake
 
     if (z_sr1_max < 0) then
-      particle%r%vec(6) = particle%r%vec(6) - &
-           sr02 * particle%charge * ele%value(l$) / (ele%value(p0c$) * (1 + particle%r%vec(6))
+      particle%r%vec(6) = particle%r%vec(6) - sr02 / (1 + particle%r%vec(6))
     else
       call sr2_long_self_wake_apply_kick (ele, particle%charge, particle%r)
     endif
