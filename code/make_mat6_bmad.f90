@@ -514,17 +514,17 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 ! correction for fact that wigglers with odd number of poles have end
 ! poles with modified bending radius
 
-    n_pole = nint(ele%value(n_pole$))
-    if (mod(n_pole, 2) == 1) then
-      rho = 4 * ele%value(rho$) / pi
-      l_period = length / n_pole
-      l_bend = 8 * l_period / pi**2
-      l_drift = l_period - l_bend
-      factor = sqrt(rho**2 - (l_bend/2)**2)
-      dx = 2 * (rho - factor) + l_drift * l_bend / (2 * factor)
-      factor = -2 * rho * dx / (l_bend * (length-l_bend/2))
-      k1 = k1 * (1 + factor / n_pole)
-    endif
+!    n_pole = nint(ele%value(n_pole$))
+!    if (mod(n_pole, 2) == 1) then
+!      rho = 4 * ele%value(rho$) / pi
+!      l_period = length / n_pole
+!      l_bend = 8 * l_period / pi**2
+!      l_drift = l_period - l_bend
+!      factor = sqrt(rho**2 - (l_bend/2)**2)
+!      dx = 2 * (rho - factor) + l_drift * l_bend / (2 * factor)
+!      factor = -2 * rho * dx / (l_bend * (length-l_bend/2))
+!      k1 = k1 * (1 + factor / n_pole)
+!    endif
 
 !
 
