@@ -59,8 +59,17 @@ subroutine energy_to_kinetic (energy, particle, &
 
   if (particle == positron$ .or. particle == electron$) then
     mc2 = m_electron
-  else
+  elseif (particle == proton$ .or. antiproton$) then
     mc2 = m_proton
+  else
+    print *, 'ERROR IN ENERGY_TO_KINETIC: UNKNOWN PARTICLE TYPE:', particle
+    call err_exit
+  endif
+
+  if (energy < mc2) then
+    print *, 'ERROR IN ENERGY_TO_KINETIC: ENERGY IS LESS THAN REST MASS:', &
+                                                                        energy
+    call err_exit
   endif
 
   p0c_ = sqrt(energy**2 - mc2**2)

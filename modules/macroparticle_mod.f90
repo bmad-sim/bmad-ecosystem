@@ -459,11 +459,13 @@ subroutine track1_macroparticle (start, ele, param, end)
 
   end = start
 
+  if (ele%key == marker$) return
+
 ! Very simple cases
 
   select case (ele%key)
   case (drift$, ecollimator$, elseparator$, hkicker$, instrument$, &
-                    kicker$, marker$, monitor$, rcollimator$)
+                    kicker$, monitor$, rcollimator$)
 
     call track1 (start%r, ele, param, end%r)
 
