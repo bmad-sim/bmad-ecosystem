@@ -49,15 +49,55 @@ elsif (-d "../../forest/basic")
 else
   {$forest_dir=$ENV{"CESR_PKG"}."/forest/basic";}
 
+if (-d "./tao")
+  {$tao_dir="./tao";}
+elsif (-d "../tao")
+  {$tao_dir="../tao";}
+elsif (-d "../../tao")
+  {$tao_dir="../../tao";}
+else
+  {$tao_dir=$ENV{"CESR_CVSSRC"}."/tao";}
+
+# Look for arguments
+
+$extra = 0;
+
+$_ = "@ARGV";  
+@field = split;
+
+for ($i = 0; $i <= @field; $i++) {
+
+  $_ = $field[$i];
+
+  if (! /^\-/) {last;}
+
+  if ($_ eq '-d') {
+    $extra = 1; 
+    $extra_dir = $field[$i+1];
+    $i = $i + 1;
+    next;
+  }
+
+  last;
+
+}
+
+#
  
+$str = $field[$i];
+$str =~ s/\*/\\w\*/g;   # replace "*" by "\w*" (any word characters)
+
+#
+
 find(\&searchit, $bmad_dir);
 find(\&searchit, $dcslib_dir);
 find(\&searchit, $cesr_utils_dir);
+find(\&searchit, $tao_dir);
+
 # find(\&searchit, $recipes_dir);
 # find(\&searchit, $forest_dir);
 
-
-if ($found_one == 0) {print "Cannot match String!";}
+if ($found_one == 0) {print "Cannot match String! $str";}
 print "\n";
 
 #---------------------------------------------------------
@@ -65,8 +105,6 @@ print "\n";
 sub searchit {
 
   $file = $_;
-  $str = @ARGV[0];
-  $str =~ s/\*/\\w\*/g;   # replace "*" by "\w*" (any word characters)
 
 # See if the file name matches.
 
@@ -121,7 +159,7 @@ sub searchit {
         @comments = ();
         $recording = 0;
       }
-      elsif (/^ *type +$str */i) {
+      elsif (/^ *type +$str[ \n]/i) {
         $found_one = 1;
         print "\n$File::Find::name\n";
         print $_;

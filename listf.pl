@@ -31,11 +31,24 @@ elsif (-d "../../dcslib")
 else
   {$dcslib_dir=$ENV{"CESR_CVSSRC"}."/dcslib";}
  
+if (-d "./tao")
+  {$tao_dir="./tao";}
+elsif (-d "../tao")
+  {$tao_dir="../tao";}
+elsif (-d "../../tao")
+  {$tao_dir="../../tao";}
+else
+  {$tao_dir=$ENV{"CESR_CVSSRC"}."/tao";}
+
+$str = @ARGV[0];
+$str =~ s/\*/\\w\*/g;  # replace "*" by "\w*"
+
 find(\&searchit, $bmad_dir);
 find(\&searchit, $dcslib_dir);
 find(\&searchit, $cesr_utils_dir);
+find(\&searchit, $tao_dir);
 
-if ($found_one == 0) {print "Cannot match String!";}
+if ($found_one == 0) {print "Cannot match String! $str";}
 print "\n";
 
 #---------------------------------------------------------
@@ -43,8 +56,6 @@ print "\n";
 sub searchit {
 
   $file = $_;
-  $str = @ARGV[0];
-  $str =~ s/\*/\\w\*/g;  # replace "*" by "\w*"
 
 # If in the modules directory then look in the file for a match.
 
