@@ -311,6 +311,7 @@ there must be a \vn{tao_d1_data} namelist which has the form:
   \&tao_d1_data
     ix_d1_data         = <integer>      ! d1_data index
     d1_data%name       = "<d1_name>"    ! d1_data name.
+    default_data_type  = <type_name>    ! Eg: orbit:x, beam_energy, etc...
     default_weight     = <number>       ! Merit function weight.
     ix_min_data        = <integer>      ! Minimum array index.
     ix_max_data        = <integer>      ! Maximum array index.
@@ -418,7 +419,8 @@ Where \vn{<key>} is the \bmad \textit{key} attribute. For example:
 \end{example}
 will search for all monitor elements in the lattice.
 
-If \vn{data(j)%type} is not given then the \vn{d2_data} name and the
+If \vn{data(j)%data_type} is not given and \vn{default_data_type} is not
+specified then the \vn{d2_data} name and the
 \vn{d1_data} name are combined for each datum to form the datum's
 \vn{type}. Certain types are recognized by \tao. These are given by
 Table~\ref{t:cons}

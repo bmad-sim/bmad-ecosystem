@@ -446,18 +446,14 @@ defined by
 We see that the beta function is affecting the merit function the most. Since we
 are looking at beta and phase let's only use that data in the optimization.
 \begin{example}
-  veto data orbit all
-  veto data eta all
-  veto data cbar all
-  veto data coupling all
+  veto data all
   use  data beta all
   use  data phase all
 \end{example}
 We also know that we need to change quadrupoles to ``correct'' the lattice.
 \begin{example}
+  veto var all
   use var quad\_k1 all
-  veto var h\_steer all
-  veto var v\_steer all
 \end{example}
 Now let's see if we have the optimizer set up correctly.
 \begin{example}
