@@ -12,6 +12,7 @@
 ##
 #######################################################################
 
+use File::Basename;
 
 #print STDERR "\nin cesrmakedepend\n";
 get_args(@ARGV);
@@ -19,18 +20,19 @@ setup_commands();
 run_command();
 convert_to_cesr();
 
-
 sub convert_to_cesr {
     open(d_file,">$out_file");
     foreach $dependency (@dependencies) {
         chomp $dependency;
         if(($dependency=~/^(.+?)\.o\s*?:\s+(.+?)[\s\/\\]*?$/)) {
-            print d_file "$prefix$1$suffix: $2\n";
+            $tgt=basename($1);
+            print d_file "$prefix$tgt$suffix: $2\n";
         }
         elsif(($dependency=~/\s*?(.+?)[\s\\]*?$/)) {
             $dep=$1;
             $out_file=~/\.depend\/(.+?)\.d/;
-            print d_file "$prefix$1$suffix: $dep\n";
+            $tgt=basename($1);
+            print d_file "$prefix$tgt$suffix: $dep\n";
         }
         else {
             die "\nunexpected dependency format from compiler: $dependency\n";
@@ -64,7 +66,7 @@ sub setup_commands {
     elsif($fortran) {
         $cesrdep_args="@includes -PRE'$prefix' -SUF'$suffix' -f$out_file $local_mods -MP'$mod_out_dir' $cpp $src_file";
 #       $cesrdep_args=~s/\$/\\\$/g;
-        $command=~s/\$/\\\$/g;
+#MAP        $command=~s/\$/\\\$/g;
         $command=$command."; \$CESR_UTIL/cesrdepend ".$cesrdep_args;
     }
 }
@@ -75,7 +77,7 @@ sub get_args {
     $local_mods=" ";
     $mod_out_dir=" ";
     $cpp=" ";
-  
+
 #   Parse all command line arguments
     foreach $arg (@ARGV) {
         if($arg=~/^-I/) {
