@@ -335,9 +335,9 @@ end subroutine
 !   coord -- Coord_struct:
 !     %vec(1) -- X position.
 !     %vec(3) -- Y position.
-!   ref_orb_offset -- Logical, optional: If present and n = 0 then add the
-!                       'kicks' due to a change in the reference orbit
-!                       (same as one would do for a bend).
+!   ref_orb_offset -- Logical, optional: If present and n = 0 then the
+!                       multipole simulates a zero length bend with bending
+!                       angle knl.
 !
 ! Output:
 !   coord -- Coord_struct: 
@@ -376,6 +376,18 @@ subroutine multipole_kick (knl, tilt, n, coord, ref_orb_offset)
     y = -coord%vec(1) * sin_ang + coord%vec(3) * cos_ang
   endif
 
+! ref_orb_offset with n = 0 means that we are simulating a zero length dipole.
+
+  if (n == 0 .and. present(ref_orb_offset)) then
+    coord%vec(2) = coord%vec(2) + knl * cos_ang * coord%vec(6)
+    coord%vec(4) = coord%vec(4) + knl * sin_ang * coord%vec(6)
+    coord%vec(5) = coord%vec(5) - knl * &
+                    (cos_ang * coord%vec(1) + sin_ang * coord%vec(3))
+    return
+  endif
+
+! normal case
+
   x_vel = 0
   y_vel = 0
 
@@ -393,13 +405,6 @@ subroutine multipole_kick (knl, tilt, n, coord, ref_orb_offset)
   else
     coord%vec(2) = coord%vec(2) + x_vel * cos_ang - y_vel * sin_ang
     coord%vec(4) = coord%vec(4) + x_vel * sin_ang + y_vel * cos_ang
-  endif
-
-  if (n == 0 .and. present(ref_orb_offset)) then
-    coord%vec(2) = coord%vec(2) + knl * cos_ang * coord%vec(6)
-    coord%vec(4) = coord%vec(4) + knl * sin_ang * coord%vec(6)
-    coord%vec(5) = coord%vec(5) - knl * &
-                    (cos_ang * coord%vec(1) + sin_ang * coord%vec(3))
   endif
 
 end subroutine
