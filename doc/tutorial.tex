@@ -260,12 +260,11 @@ clipped (notably at the halfway point or L03). We probably would have missed
 this if we just used clip. Your plot window should now look like
 Figure~\ref{f:plot_coupling_no_IR}.
 
-% FIX ME!!!! get the bug fixed!
-%The x-axis is currently the BPM index number. It is sometimes convenient to plot
-%the data versus the longitudinal position. This is done by typing
-%\begin{figure}
-%  x-axis all s
-%\end{example}
+The x-axis is currently the BPM index number. It is sometimes convenient to plot
+the data versus the longitudinal position. This is done by typing
+\begin{example}
+  x-axis all s
+\end{example}
 
 
 The \cmd{all} will apply the change to all plot areas (both top and bottom). In
@@ -362,6 +361,7 @@ Let's change a variable and see what happens to the lattice. We are going to
 change a quadrupole strength so we should plot the change in beta and phase.
 Type
 \begin{example}
+  x-axis all index
   place top beta
   place bottom phase
   plot all model - design
@@ -377,7 +377,7 @@ Note the information returned on the command line after the command and the rela
 beta and phase in the plot window. This is a vertically focusing quadrupole so
 the vertical beta and phase is affected more than the horizontal. The \cmd{0.01}
 at the end of the command tells \tao to change this variable by 0.01 units. If
-you want to set a cariable to a particular value then use a ``@'' before the
+you want to set a variable to a particular value then use a ``@'' before the
 value. So, to change this quadrupole k1 to -0.348 type
 \begin{example}
   change var quad\_k1 5 @-0.348

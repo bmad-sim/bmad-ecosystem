@@ -391,11 +391,12 @@ Format:
   set var <var_name> <component> = <value> \{<locations>\}
   set lattice <component> = <value>
   set global <component> = <value>
+  set plot <component> = <value1> \{<value2>\}
 \end{example}
 
 \vskip 0.2in
 To apply a set to all data or variable classes use ``all''
-in place of \vn{<data_name>} or \vn{var_name}.
+in place of \vn{<data_name>} or \vn{var_name}. \\
 
 For the \vn{set data} version of \vn{set} possible 
 \vn{<component>}s that can be set are:
@@ -413,6 +414,7 @@ Besides a numeric value \vn{<value>} can be:
   base        ! base lattice value.
   design      ! design lattice value
 \end{example}
+\vskip 0.2in
 
 For \vn{set var} version of \vn{set} possible 
 \vn{<component>}s that can be set are:
@@ -432,6 +434,7 @@ Besides a numeric value \vn{<value>} can be:
   base        ! base lattice value.
   design      ! design lattice value
 \end{example}
+\vskip 0.2in
 
 For \vn{set lattice} version of \vn{set} possible 
 \vn{<component>}s that can be set are:
@@ -445,6 +448,7 @@ For \vn{set lattice} version of \vn{set} possible
   base        ! base lattice value.
   design      ! design lattice value
 \end{example}
+\vskip 0.2in
 
 For \vn{set global} the possible 
 \vn{<component>}s that can be set are:
@@ -459,6 +463,19 @@ For \vn{set global} the possible
   opt_var_out_file  = <name>   ! File name for the optimizer generated file.
   derivative_recalc = T/F      ! Force recalc of derivative matrix before an optimizer run?
 \end{example}
+\vskip 0.2in
+
+For \vn{set plot} the possible 
+\vn{<component>}s that can be set are:
+\begin{example}
+  title        = <string>          ! Set the plot title text
+  subtitle     = <string>          ! Set the subtitle text
+  subtitle_loc = <number> <number> ! Set the subtitle location (\%PAGE)
+\end{example}
+The \vn{subtitle_loc} component can be used to place the subtitle anywhere on
+the plot page. This can be useful for referencing a noteworthy part of a graph
+data.
+\vskip 0.2in
 
 Examples:
 \begin{example}

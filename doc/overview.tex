@@ -252,3 +252,33 @@ certain keyboard keys so that when these keys are pressed the value of
 the variable is varied. This association between variables and keys is
 called a \vn{key table}.
 
+
+%------------------------------------------------------------------------
+\section{Lattice Calculation}
+
+After each \tao command is processed the lattice and ``merit'' function is 
+recalculated then the plot window is regenerated. The
+merit function determines how well the \vn{model} fits the measured data. See
+Chapter~\ref{c:opti} for more information on the merit function and its use by
+the optimizer. 
+
+Below are the steps taken after each \tao command execution:
+\begin{enumerate}
+  \item The data and variables used by the optimizer is re-determined. This is
+affected by commands such as \vn{use, veto,} and \vn{restore} and any changes in the
+status of elements in the ring (e.g. if any elements have been turned off). 
+  \item If changes have been made to the lattice (e.g. variables changed) the
+\vn{model} orbit, linear transfer matrices and twiss parameters are recalculated. 
+The linear transfer matrices and twiss parameters are found about the tracked
+orbit. The orbit tracking is performed using the tracking method defined for
+each element. See the \bmad Reference manual for details on tracking and finding
+the linear transfer matrices and twiss parameters.
+  \item The \vn{model} data is recalculated from the \vn{model} orbit, linear
+transfer matrices and twiss parameters. Any custom calculations and data
+transfers are performed before the standard \tao data is recalculated.
+  \item The contributions to the merit function from the variables and data are
+computed.
+  \item Data and variable values are transfered to the plotting structures.
+  \item The plotting window is regenerated.
+\end{enumerate}
+
