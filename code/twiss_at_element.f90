@@ -54,6 +54,7 @@ subroutine twiss_at_element (ring, ix_ele, start, end, average)
     if (present(start)) start = ring%ele_(ix_ele - 1)
     if (present(end))   end = ring%ele_(ix_ele)
     if (present(average)) then
+      call zero_ave (average)
       call twiss_ave (average, ring%ele_(ix_ele - 1), &
                                              ring%ele_(ix_ele), 0.5_rp)
       average%value = ring%ele_(ix_ele)%value
