@@ -26,17 +26,17 @@
 ! Example:
 !   call new_control (ring, ix_ele)        ! get IX_ELE index
 !   ring%ele_(ix_ele)%name = 'OVERLAY1'    ! overlay name
-!   ring%ele_(ix_ele)%value(command$) = 0  ! start at zero
+!   ring%ele_(ix_ele)%value(k1$) = 0       ! start at zero
 !   n_control = 2                          ! control 2 elements
 !
-!   con_(1)%ix_slave = 10   ! RING%ELE_(10) is Q01W say.
+!   con_(1)%ix_slave = 10   ! RING%ELE_(10) is, say, a quadrupole.
 !   con_(1)%ix_attrib = k1$ ! The overlay controls the quadrupole strength.
 !   con_(1)%coef = 0.1      ! A change in the overlay value of 1 produces
 !                           !    a change of 0.1 in k1 of element 10.
 !
-!   con_(2)%ix_slave = 790  ! RING%ELE_(790) is Q01E say.
-!   con_(2)%ix_attrib = k1$ ! The overlay controls the quadrupole strength.
-!   con_(2)%coef = 0.1      ! make changes antisymmetric.
+!   con_(2)%ix_slave = 790  ! RING%ELE_(790) is, say, a sextupole.
+!   con_(2)%ix_attrib = k2$ ! The overlay controls the sextupole strength.
+!   con_(2)%coef = -0.1     ! make changes antisymmetric.
 !
 !   call create_overlay (ring, ix_ele, k1$, 2, con_)  ! create the overlay
 !-
@@ -47,6 +47,7 @@ subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
 
   use bmad_struct
   use bmad_interface
+  use bookkeeper_mod
 
   implicit none
 
@@ -112,4 +113,8 @@ subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
 
   enddo
 
+  call control_bookkeeper (ring, ix_overlay)
+
 end subroutine
+
+

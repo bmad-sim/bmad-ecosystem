@@ -10,14 +10,15 @@
 !   use bmad
 !
 ! Input:
-!   xsif_file -- Character(*): Name of the xsif file.
+!   xsif_file  -- Character(*): Name of the xsif file.
 !   make_mats6 -- Logical, optional: Compute the 6x6 transport matrices for the
 !                   Elements? Default is True.
 !
 ! Output:
-!   ring     -- Ring_struct: Structure holding the lattice information.
-!   bmad_status      -- Bmad status common block.
-!     %ok              -- Set True if parsing is successful. False otherwise.
+!   ring         -- Ring_struct: Structure holding the lattice information.
+!     %lattice_type  -- Set = circular_lattice$ unless there are LCavities.
+!   bmad_status  -- Bmad status common block.
+!     %ok            -- Set True if parsing is successful. False otherwise.
 !-
 
 subroutine xsif_parser (xsif_file, ring, make_mats6)
@@ -110,6 +111,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
 ! Allocate elements
 
   call init_ring (ring, npos2-npos1+100)
+  ring%param%lattice_type = circular_lattice$
 
   do i = 0, ring%n_ele_maxx
     call init_ele (ring%ele_(i))
@@ -363,6 +365,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
         enddo
 
       case (mad_lcav)
+        ring%param%lattice_type = linac_lattice$
         call add_ele (lcavity$)
         ele%value(l$)            =  pdata(dat_indx)
         ele%value(gradient$)     =  pdata(dat_indx+2) * 1e6 / ele%value(l$)
