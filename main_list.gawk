@@ -25,12 +25,20 @@ BEGIN{
 
 # Look for C/C++ main functions
 /main/ {
-  if (($1 != "//") && (in_comment != 1)) {
+
+# Check for leading C++ style comment
+# Check that not in a C comment
+# Check for leading quote for a string
+  if ((substr($1,1,2) != "//") && 
+      (in_comment != 1)        &&
+      (substr($1,1,1) != "\"")    ) {
     file_type = get_filetype();
     if ((file_type == "c")  ||
         (file_type == "cc") ||
         (file_type == "cxx")  ) {
       status = get_basename();
+#     Diagnostic printout
+#      print $0;
     }
   }
 }
