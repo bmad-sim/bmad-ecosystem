@@ -1,7 +1,7 @@
 \chapter{Tao Initialization}
 \label{c:init}
 
-\tao is custimized for specific machines and specific calculations
+\tao is customized for specific machines and specific calculations
 using input files and custom software routines. Writing custom software is
 covered in the programmer's guide section. This chapter covers the
 input files. 
@@ -14,11 +14,11 @@ In general the input files tell \tao:
 \end{example}
 
 \tao first looks for input files in the current directory and then
-looks in a directory pointed to by the enviironmental variable
+looks in a directory pointed to by the environmental variable
 \vn{TAO_INIT_DIR}.
 
 Initialization parameters are read in from a file using Fortran
-namlist input. Fortran namelist breaks up the input file into
+namelist input. Fortran namelist breaks up the input file into
 blocks. The first line of a namelist block starts with an ampersand ``\&''
 followed by the block identifying name. Variables are assigned using
 an equal sign ``='' and the end of the block is denoted by a slash ``/''
@@ -30,7 +30,7 @@ For example:
   /
 \end{example}
 Variables that have default values can be omitted from the block.  The
-order of the variables inside a block is irrelavent.  Inbetween
+order of the variables inside a block is irrelevant.  In between
 namelist blocks all text is ignored. Inside a block comments may be
 included by using an exclamation mark ``!''.
 
@@ -107,7 +107,7 @@ format for this is
     v1_var%universe       = <integer>           ! Universe variables belong in.
                                                 !   0 => all universes (default).
     v1_var%attribute      = "<attribute_name>"  ! Attribute to control.
-    var%default_weight = <number>            ! Merit_funtion weight.
+    var%default_weight = <number>            ! Merit_function weight.
     var%default_step   = <number>            ! Small step value.
     var%ix_min         = <integer>           ! Minimum array index.
     var%ix_max         = <integer>           ! Maximum array index.
@@ -140,7 +140,7 @@ that is varied by the variables. The variable array's index runs from
 \vn{var%ix_min} to \vn{var%ix_max}. If elements in the variable
 array do not exist the corresponding \vn{var%name} and
 \vn{var%ele_name} should be left blank. \vn{var%weight(:)} gives
-the weigth coefficient for a variable in the merit function. If not
+the weight coefficient for a variable in the merit function. If not
 present then the default weight of \vn{var%default_weight} is used.
 \vn{var%step(i)} establishes what a ``small'' variation of the
 variable is. This is used, for example, by some optimizers when
@@ -227,7 +227,7 @@ blank. Lists of names can be reused using the syntax:
   data(i)%ele_name(0) = "SAME: <d1_data_name>"
 \end{example}
 
-\vn{data%weight(:)} gives the weigth coefficient for a variable in the
+\vn{data%weight(:)} gives the weight coefficient for a variable in the
 merit function. If not present then the default weight of
 \vn{data%default_weight} is used.
 
@@ -353,7 +353,7 @@ about the following classes:
 \vn{plot%who(i)} sets what is being plotted. Possibilities are:
 \begin{example}
   model     ! model values.
-  desgin    ! design values.
+  design    ! design values.
   base      ! Base values
   data      ! data values.
   ref       ! reference data values.

@@ -64,8 +64,8 @@ lines = " "
 nl = 0
 
 fmt = '(a, 1pe16.8)'
-imt = '(a, i)'
-lmt = '(10x, a, l)'
+imt = '(a, i8)'
+lmt = '(a, l)'
 amt = '(2a)'
 
 show_word1 = word1
@@ -273,11 +273,11 @@ case ('ele')
 
 case ('global')
 
-  nl=nl+1; write (lines(nl), imt) 'n_universes:     ', size(s%u)
-  nl=nl+1; write (lines(nl), imt) 'u_view:          ', s%global%u_view
-  nl=nl+1; write (lines(nl), amt) 'optimizer:       ', s%global%optimizer
-  nl=nl+1; write (lines(nl), lmt) 'var_limits_on:   ', s%global%var_limits_on
-  nl=nl+1; write (lines(nl), lmt) 'opt_with_ref:    ', s%global%opt_with_ref 
+  nl=nl+1; write (lines(nl), imt) 'n_universes: ', size(s%u)
+  nl=nl+1; write (lines(nl), imt) 'u_view:      ', s%global%u_view
+  nl=nl+1; write (lines(nl), amt) 'optimizer:     ', s%global%optimizer
+  nl=nl+1; write (lines(nl), lmt) 'var_limits_on: ', s%global%var_limits_on
+  nl=nl+1; write (lines(nl), lmt) 'opt_with_ref:  ', s%global%opt_with_ref 
   nl=nl+1; write (lines(nl), lmt) 'opt_with_base: ', s%global%opt_with_base
 
   call out_io (s_blank$, r_name, lines(1:nl))

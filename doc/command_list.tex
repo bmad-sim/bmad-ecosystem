@@ -134,7 +134,7 @@ values. If only \vn{<limit1>} is present then the clip range is
 outside the range from -\vn{<limit1>} to +\vn{<limit1>}. If both are
 present than the range is from \vn{<limit1>} to \vn{<limit2>}.  The
 graphs that are clipped is determined by the \vn{<where>} switch.  If
-\vn{<where>} is not present all graphs are scalled.
+\vn{<where>} is not present all graphs are scaled.
 
 Examples
 \begin{example}
@@ -342,9 +342,9 @@ neither \vn{<value1>} nor \vn{<value2>} is present then the scale is
 adjusted so that all the data points are within the graph region.  If
 only \vn{<value1>} is present then the scale is taken to be from
 -\vn{<value1>} to +\vn{<value1>}. If both are present than the scale
-is from \vn{<value1>} to \vn{<value2>}.  The graphs that are scalled
+is from \vn{<value1>} to \vn{<value2>}.  The graphs that are scaled
 is determined by the \vn{<where>} switch. If \vn{<where>} is not
-present  or \vn{<where>} is ``all'' then all graphs are scalled. 
+present  or \vn{<where>} is ``all'' then all graphs are scaled. 
 
 Examples:
 \begin{example}
@@ -409,7 +409,7 @@ Examples:
   show data orbit
   show data orbit:x 35
   show ele q*          ! list all lattice elements with names beginning with "q".
-  show ele q10w        ! show a praticular lattice element
+  show ele q10w        ! show a particular lattice element
   show ele 105         ! show element #105 in the lattice
 \end{example}
 
@@ -470,7 +470,7 @@ Format:
 
 \vskip 0.2in The \vn{view} command changes which universe data is
 taken from from plotting.  This also sets the default universe that
-commands are applied to in the absense of a star prefix.  
+commands are applied to in the absence of a star prefix.  
 
 Examples:
 \begin{example}

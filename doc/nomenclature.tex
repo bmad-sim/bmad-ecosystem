@@ -14,7 +14,7 @@ The \vn{design} lattice is the particular model lattice that one wants the
 machine to conform to.
 \item[Base Lattice]
 It is sometimes
-convienient to designate a reference model lattice so that changes in the
+convenient to designate a reference model lattice so that changes in the
 \vn{model} from the reference point can be looked at.  This reference model
 is called \vn{base}.
 \item[Data] 
@@ -22,7 +22,7 @@ Each data point (for example, the horizontal orbit at some
 detector) has a number of quantities associated with it:
 \begin{description}
 \item[Measured Data] 
-The data obtained from some measurement. This is generally refered to
+The data obtained from some measurement. This is generally referred to
 as just \vn{data}. When doing lattice design the \vn{data} corresponds to
 a constraint (see below).
 \item[Reference Data] 
@@ -63,11 +63,11 @@ structure is typically associated with the horizontal data and another
 data. These two structures are then collected into a \vn{d2_data}
 structure representing all orbit data. The \vn{d1_data} and
 \vn{d2_data} structures are defined in the \tao initialization file
-(cf.~Chapter~\ref{c:init}).  When issueing \tao commands one can
+(cf.~Chapter~\ref{c:init}).  When issuing \tao commands one can
 specify all the data associated with a \vn{d2_data} structure use the
 structure's \vn{class}.  For example the name \vn{orbit} specifies the
 orbit data. To specify the data associated with a \vn{d1_data}
-staucture use the format \vn{class:sub_class} where \vn{sub_class} is the
+structure use the format \vn{class:sub_class} where \vn{sub_class} is the
 \vn{sub_class} name of the \vn{d2_data} structure. For example, the horizontal
 orbit data is specified by the name \vn{orbit:x}.
 
@@ -239,11 +239,11 @@ is associated with a region using the \vn{place} command.}
   \label{f:plot}
 \end{figure}
 
-The plot initiialization file (cf.~Chapter~\ref{c:init}) defines a set
+The plot initialization file (cf.~Chapter~\ref{c:init}) defines a set
 of \vn{template} plots. A \vn{template} defines what class of data is
 plotted (orbit, coupling, etc.), how many \vn{graphs} there are, what
 the scales are for the \vn{graph} axes, how the \vn{graph}s are laid
-out, etc.  The plot initiialization file also defines a set of
+out, etc.  The plot initialization file also defines a set of
 \vn{region}s within the \vn{page}.  Using the \vn{place} command one
 can assign a particular template to a particular region for plotting.
 The relationship between \vn{region}, \vn{plot}, \vn{graph}, and
@@ -263,12 +263,12 @@ individual data points. These are the same commands that control what
 data is used in fitting the model to the data. The general rule is
 that data that is vetoed for display are simultaneously vetoed for fitting.
 
-When issueing \tao commands, to specify a particular \vn{graph} in a plot
+When issuing \tao commands, to specify a particular \vn{graph} in a plot
 use the notation:
 \begin{example}
   region:graph
 \end{example}
 For example, If a template has two graphs named \vn{x} and \vn{y} and
 this template is assigned to the \vn{top} region then the \vn{x} graph
-is reffered to as \vn{top:x}. 
+is referred to as \vn{top:x}. 
 

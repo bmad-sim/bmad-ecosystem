@@ -3,38 +3,51 @@
 %\label{c:intro} 
 
 \tao has been designed to be ready extensible with a minimum of
-effert.  The process is as follows: For the purposes of this
+effort.  The process is as follows: For the purposes of this
 discussion assume that the directory that you are developing \tao in
-is called \vn{ROOT}. The first step is to checkout from CVS (or download a
-copy) of \tao and build it on your computer. You will now have \tao in
-\vn{ROOT}/tao. The code will be sitting in \vn{ROOT/tao/code}, a copy of this
-manual will be in \vn{ROOT/tao/doc}, and the vanilla \tao program will be
-in \vn{ROOT/tao/program}. To extend \tao you will want to make a new
+is called \vn{ROOT}. 
+\begin{enumerate}
+\item 
+The first step is to checkout from CVS (or download a
+copy) of \tao. You will now have \tao in
+\vn{ROOT}/tao. The library source code will be sitting in \vn{ROOT/tao/code}
+and the vanilla \tao program is in \vn{ROOT/tao/program/tao_cl.f90}
+\item 
+From the \vn{ROOT}/tao area build the \tao library using the
+\vn{gmake} command.
+\item
+If you want to play around with the vanilla \tao program you can make it
+from the \vn{ROOT}/tao directory using the \vn{gmake -f M.tao} command.
+\item
+There are some test input files in \vn{ROOT/tao/program} so if you run
+\tao from this directory you can play around with \tao.
+\item
+To extend \tao you will want to make a new
 directory, say, called \vn{ROOT/my_tao}. In this directory you write
-the necessary routines to extend \tao and then using \vn{gmake} you
-can compile and link your routines with the \tao routines.
+the necessary routines to extend \tao. You will also need a standard \vn{Makefile} for building programs.
+\item
+You can compile and link your routines with the \tao routines using
+\vn{gmake} in \vn{ROOT/my_tao}.
+\end{enumerate}
 
 The golden rule when writing routines to extend \tao is that you are
-only allowed to replace routines that have the name ``hook'' in them
-and you are only allowed to redefine structures that have the name
-``hook'' in them. The reason for this is to ensure that, as time goes
-by, and revisions are made to the \tao routines to extend the
-usefulness of \tao and to elmiminate bugs, that these changes will
+only allowed to replace routines or redefine structures that have the
+name ``hook'' in them. The reason for this is to ensure that, as time
+goes by, and revisions are made to the \tao routines to extend the
+usefulness of \tao and to eliminate bugs, that these changes will
 have a minimum impact on the specialized routines that will be written
 by various people to extend \tao.  What happens if you need to replace
-or modify a non--hook routine or modify a non--hook structure?  The
-answer is to contact the \tao programming team (OK so it's only me,
-David Sagan) and we (well, I) will modify \tao and create the hooks
-you need.
-
+or modify a non--hook routine or structure?  The answer is to contact
+the \tao programming team (OK so it's only me, David Sagan) and we
+(well, I) will modify \tao and create the hooks you need.
 
 Before one can begin writing code one must understand the structures
-that \tao uses. The structures are defined in a file \vn{tao_struct.f90}. 
-\tao is based upon the \bmad software package for simulations of 
-relativistic charaged particles and the \tao structures have components
-that are defined in \bmad. For information on these structures see the \bmad
-Reference Manual. Note that the hook--structures are defined in a file
-\vn{tao_hook_mod.f90}.
+that \tao uses. The structures are defined in a file
+\vn{tao/code/tao_struct.f90}.  \tao is based upon the \bmad software
+package for simulations of relativistic charged particles and the
+\tao structures have components that are defined in \bmad. For
+information on these structures see the \bmad Reference Manual. Note
+that the hook--structures are defined in a file \vn{tao_hook_mod.f90}.
 
 %-----------------------------------------------------------------
 %\section{Plotting}
@@ -42,6 +55,6 @@ Reference Manual. Note that the hook--structures are defined in a file
 
 Plotting is based upon the \vn{quick_plot} subroutines which are
 documented in the \bmad reference manual and you should review this
-material if you are not familier with concepts of ``graph'', ``box'',
+material if you are not familiar with concepts of ``graph'', ``box'',
 and ``page''. 
 

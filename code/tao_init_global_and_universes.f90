@@ -186,7 +186,7 @@ type (tao_d2_data_input) d2_data
 type (tao_d1_data_input) d1_data(:)
 type (tao_data_input) data(:)
 
-integer i_d2, i_d1
+integer i_d2, i_d1, nd1
 
 ! Count number of d2 data entries and
 ! transfer info from input structures to the universe structure.
@@ -204,10 +204,12 @@ integer i_d2, i_d1
 
 ! allocate memory for the u%d1_data structures
 
-  i = count(d1_data(:)%sub_class /= ' ') 
-  allocate(u%d2_data(nn)%d1(i))
+  nd1 = count(d1_data(:)%sub_class /= ' ') 
+  allocate(u%d2_data(nn)%d1(nd1))
 
   do i = 1, size(d1_data)
+
+    u%d2_data(nn)%d1(i)%d2 => u%d2_data(nn)  ! point back to the parent
 
     if (d1_data(i)%sub_class == ' ') exit
     n1 = nu%data + 1
