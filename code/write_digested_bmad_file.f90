@@ -114,6 +114,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
     if (associated(ele%a))        write (d_unit) ele%a, ele%b
     
     do j = 1, 6
+      if (ix_t(j) == 0) cycle
       write (d_unit) tt(j)%ref
       do k = 1, ix_t(j)
         write (d_unit) tt(j)%term(k)

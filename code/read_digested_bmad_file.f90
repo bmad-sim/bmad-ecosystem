@@ -173,13 +173,12 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
     endif
     
     do j = 1, 6
-      if (ix_t(j) /= 0) then
-        allocate (ele%taylor(j)%term(ix_t(j)))
-        read (d_unit) ele%taylor(j)%ref
-        do k = 1, ix_t(j)
-          read (d_unit) ele%taylor(j)%term(k)
-        enddo
-      endif
+      if (ix_t(j) == 0) cycle
+      read (d_unit) ele%taylor(j)%ref
+      allocate (ele%taylor(j)%term(ix_t(j)))
+      do k = 1, ix_t(j)
+        read (d_unit) ele%taylor(j)%term(k)
+      enddo
     enddo
 
     if (ix_srf /= 0) then
