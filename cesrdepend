@@ -19,6 +19,7 @@
 #                      is expected.
 #   -PRE<prefix>       dependency target prefix
 #   -SUF<suffix>       dependency target suffix
+#   -f<file>           Output file
 #
 #   NOTE:  the order of the control flags is unimportant
 #
@@ -30,11 +31,21 @@
 #
 # MAP - 10/02/01 - Major upgrade to allow for search paths
 #
+# MAP - 10/06/01 - Direct output to file specified with -f option
+#                  or to a file with name "depend" if no file 
+#                  specified.  This makes the functionality 
+#                  more consistent with makedepend.  Also, no 
+#                  longer generate dependency line for targets 
+#                  that have none.
+# 
 #-----------------------------------------------------------------
 #
 # $Id$
 #
 # $Log$
+# Revision 1.3  2001/10/23 21:44:41  palmer
+# Get rid of debugging messages.
+#
 # Revision 1.2  2001/10/05 02:41:42  palmer
 # Update internal path to the fort_depend.awk script.
 #
@@ -59,6 +70,7 @@ LOCAL_MODS=""
 LOCAL_MPATH="."
 TARGET_PRE=""
 TARGET_SUF="d"
+OUT_DEPEND="depend"
 
 
 #-----------------------------------------------------------------
@@ -79,7 +91,7 @@ while ( [ ${arg_cnt} -lt ${num_arg} ] ); do
 		shift
 
 #   Parse control flags and inputs
-		ival=`echo ${arg} | awk '/-I/{printf("1")};/-MOD/{printf("2")};/-MP/{printf("3")};/-PRE/{printf("4")};/-SUF/{printf("5")}'`
+		ival=`echo ${arg} | awk '/-I/{printf("1")};/-MOD/{printf("2")};/-MP/{printf("3")};/-PRE/{printf("4")};/-SUF/{printf("5")};/-f/{printf("6")}'`
 
 #   Prevent sending an empty variable to "test" and generate internal lists
 		ival="_${ival}_"
@@ -101,6 +113,10 @@ while ( [ ${arg_cnt} -lt ${num_arg} ] ); do
 		elif ( [ ${ival} = "_5_" ] ) then
 		  val=`echo ${arg} | awk '// {printf("%s",substr($0,5))}'`
 			TARGET_SUF="${val}"
+		elif ( [ ${ival} = "_6_" ] ) then
+		  val=`echo ${arg} | awk '// {printf("%s",substr($0,3))}'`
+			OUT_DEPEND="${val}"
+
 		fi
 
 done
@@ -128,50 +144,64 @@ for file in ${FILE_LIST}; do
 
   full_dep_list=""
 
-	for dep in ${dep_list}; do
-		found=0
-		for mod in ${LOCAL_MODS}; do 
-			if ( [ ${dep} = ${mod} ] ) then
-  			found=1
-        full_dep_list="${full_dep_list} ${LOCAL_MPATH}/${dep}"
-				break
-      fi
+# Don't do anything if there are no dependcies to record
+# Creating a target with no dependencies will result in that 
+# target always being remade.
+  check_empty="_${dep_list}_"
+#  echo "Checking:  ${check_empty}" >&2
+  if ( [ "${check_empty}" != "_ _" ] ) then
+
+#    echo "Found dependencies for ${file}" >&2
+  	for dep in ${dep_list}; do
+	  	found=0
+			for mod in ${LOCAL_MODS}; do 
+			  if ( [ ${dep} = ${mod} ] ) then
+  			  found=1
+          full_dep_list="${full_dep_list} ${LOCAL_MPATH}/${dep}"
+				  break
+        fi
+      done
+
+      if ( [ ${found} -eq 0 ] ) then
+	  	  for dir in ${SEARCH_PATH}; do
+		  	  full_dep=${dir}/${dep}
+			  	if ( [ -e ${full_dep} ] ) then
+				  	found=1
+  					full_dep_list="${full_dep_list} ${full_dep}"
+	  				break
+		  		fi
+  			done
+	  	fi
+
+	  	if ( [ ${found} -eq 0 ] ) then
+
+		    is_mod=`echo ${dep} | awk '/\.mod/ {printf("1")}'`
+			  is_mod="_${is_mod}_"
+			  if ( [ ${is_mod} = "_1_" ] ) then
+
+#         Assign dependency of unfound modules to the local module directory
+				  full_dep_list="${full_dep_list} ${LOCAL_MPATH}/${dep}"
+
+			  else
+
+#         Declare a warning if can't find an include file
+				  echo "Cannot find ${dep} in:" >&2
+				  for dir in ${SEARCH_PATH}; do
+				    echo "  ${dir}">&2
+				  done
+
+			  fi
+		  fi
+
     done
 
-    if ( [ ${found} -eq 0 ] ) then
-		  for dir in ${SEARCH_PATH}; do
-			  full_dep=${dir}/${dep}
-				if ( [ -e ${full_dep} ] ) then
-					found=1
-					full_dep_list="${full_dep_list} ${full_dep}"
-					break
-				fi
-			done
-		fi
+    echo "${target} ${full_dep_list}" >> ${OUT_DEPEND}
 
-		if ( [ ${found} -eq 0 ] ) then
+  fi
 
-		  is_mod=`echo ${dep} | awk '/\.mod/ {printf("1")}'`
-			is_mod="_${is_mod}_"
-			if ( [ ${is_mod} = "_1_" ] ) then
-
-#       Assign dependency of unfound modules to the local module directory
-				full_dep_list="${full_dep_list} ${LOCAL_MPATH}/${dep}"
-
-			else
-
-#       Declare a warning if can't find an include file
-				echo "Cannot find ${dep} in:" >&2
-				for dir in ${SEARCH_PATH}; do
-				  echo "  ${dir}">&2
-				done
-
-			fi
-		fi
-
-  done
-
-  echo "${target} ${full_dep_list}"
+#		echo " " >> ${OUT_DEPEND}
+  
+#  fi
 
 done
 
