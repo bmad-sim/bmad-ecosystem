@@ -25,13 +25,19 @@ module bmad_struct
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-! parameter def
+! Size of ele%value(:) array
 
   integer, parameter :: n_attrib_maxx = 41
 
-  type coord_struct
-    real(rp) vec(6)
+! coordinate def
+
+  type coord_struct   ! coordinates at a single point
+    real(rp) vec(6)   ! (x, p_x, y, p_y, z, p_z)
   end type
+
+  type orbit_struct                            ! an entire orbit.
+    type (coord_struct), allocatable :: at(:)  ! coords "at" end of each element.
+  end type 
 
 ! Wiggler structures
 
