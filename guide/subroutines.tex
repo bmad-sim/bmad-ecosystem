@@ -41,7 +41,7 @@ for \bmad\ internal use and specialized routines not of general interest.
   Quick Plot                              & \ref{r:qp}        \\ \hline
   Nonlinear Optimizers                    & \ref{r:opti}      \\ \hline
   Matrix Routines in DCSLIB               & \ref{r:dcs_matrix} \\ \hline
-  Miscaleneous DCSLIB Routines            & \ref{r:dcs_misc}  \\ \hline
+  Miscellaneous DCSLIB Routines            & \ref{r:dcs_misc}  \\ \hline
 \end{tabular}
 \end{center}
 \toffset
@@ -95,7 +95,7 @@ change when then energy is changed.
 
 \item[chrom\_tune (ring, delta\_e, target\_x, target\_y, err\_flag)] \Newline
 Subroutine to set the sextupole strengths so that the ring 
-has the desired chormaticities. 
+has the desired chromaticities. 
 
 \item[emitt\_calc (ring, what, mode)] \Newline
 Subroutine to calculate the emittance, energy spread, and synchrotron integrals. 
@@ -358,7 +358,7 @@ the Twiss parameters and the transfer matrices.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Tracking Routines called ty TRACK1}
+\section{Tracking Routines called by TRACK1}
 \label{r:track1}   
 
 Note: Generally you don't call these routines directly.
@@ -379,7 +379,7 @@ see the boris\_mod documentation.
 
 \item[track1\_bmad (start, ele, param, end)] \Newline
 Particle tracking through a single element BMAD\_standard style. This 
-routine is NOT ment for long term tracking since it does not get 
+routine is NOT meant for long term tracking since it does not get 
 
 \item[track1\_custom (start, ele, param, end)] \Newline
 Default routine for custom\_tracking. This routine will do Runge Kutta tracking. 
@@ -396,7 +396,7 @@ Subroutine to do tracking using Runge-Kutta integration. The core
 Runge-Kutta routine used here is odeint\_bmad which is 
 
 \item[track1\_symp\_lie\_ptc (start, ele, param, end)] \Newline
-Particle tracking through a single element using a hamiltonian and a 
+Particle tracking through a single element using a Hamiltonian and a 
 symplectic integrator. This uses Etienne's PTC code. For a 
 
 \item[track1\_symp\_map (start, ele, param, end)] \Newline
@@ -472,7 +472,7 @@ Subroutine to calculate the longitudinal distance S for the elements in a ring.
 \begin{description}
 
 \item[concat\_real\_8 (y1, y2, y3)] \Newline
-Subroutine to concatinate two real\_8 taylor series. 
+Subroutine to concatenate two real\_8 taylor series. 
 
 \item[ele\_to\_fibre (ele, fiber, param, integ\_order, steps)] \Newline
 Subroutine to convert a BMAD element to a PTC fibre element. 
@@ -481,7 +481,7 @@ This subroutine allocates fresh storage for the fibre so after calling
 \item[map\_coef(y, i, j, k, l, style)] \Newline
 Function to return the coefficient of the map y(:) up to 3rd order. 
 
-\item[kill\_gen\_field (gen\_fieled)] \Newline
+\item[kill\_gen\_field (gen\_field)] \Newline
 Subroutine to kill a gen\_field. 
 
 \item[kind\_name (this\_kind)] \Newline
@@ -555,7 +555,7 @@ Subroutine to convert between BMAD and PTC coordinates.
 \begin{description}
 
 \item[concat\_taylor (taylor1, taylor2, taylor3)] \Newline
-Subroutine to concatinate two taylor series: taylor3(x) = taylor1(taylor2(x)) 
+Subroutine to concatenate two taylor series: taylor3(x) = taylor1(taylor2(x)) 
 
 \item[ele\_to\_taylor (ele, orb0, param)] \Newline
 Subroutine to make a taylor map for an element. The order of the map is set by set\_ptc 
@@ -734,11 +734,11 @@ These routine are for adding elements, moving elements, etc.
 Subroutine to make a superimposed element. 
 
 \item[attribute\_bookkeeper (ele, param)] \Newline
-Subroutine to make sure the attributes of an element are self-consistant. 
+Subroutine to make sure the attributes of an element are self-consistent. 
 
 \item[change\_basis (coord, ref\_energy, ref\_z, to\_cart, time\_disp)] \Newline
 Subroutine to convert accelerator coordinates (x, x', y, y', z, z') to 
-cartesian coordinates and time derivatives (x, x\_dot, y, y\_dot, z, z\_dot) or vice-versa. 
+Cartesian coordinates and time derivatives (x, x\_dot, y, y\_dot, z, z\_dot) or vice-versa. 
 
 \item[create\_group (ring, ix\_ele, n\_control, control\_)] \Newline
 Subroutine to create a group control element. 
@@ -817,9 +817,6 @@ lattice. That is, only quadrupoles, bends and wigglers will be set on.
 
 \item[set\_on (key, ring, on\_switch, orb\_)] \Newline
 Subroutine to turn on or off a set of elements (quadrupoles, rfcavities, etc.) in a ring. 
-
-\item[set\_symmetry (symmetry, ring)] \Newline
-Subroutine to set the symmetry of a ring. 
 
 \item[transfer\_ele (ele1, ele2)] \Newline 
      Subroutine to set ele2 = ele1. 
@@ -944,7 +941,7 @@ Dummy routine. Will generate an error if called.
 Subroutine to calculate the attributes of group slave elements 
 
 \item[makeup\_super\_slave (ring, ix\_slave)] \Newline
-Subroutine to calcualte the attributes of overlay slave elements 
+Subroutine to calculate the attributes of overlay slave elements 
 
 \item[orbit\_to\_dispersion (orb\_diff, ele)] \Newline
 Subroutine to take an orbit vector difference and calculate the dispersion. 
@@ -1165,7 +1162,7 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
      of the data. This is similar to calc\_axis\_scale.
 
 \item[qp\_calc\_axis\_places (axis\_min, axis\_max, divisions, places)] \Newline 
-     Subroutine to calculate the number of decmal places needed to display the
+     Subroutine to calculate the number of decimal places needed to display the
      axis numbers.
 
 \item[\protect\parbox{6in}{qp\_calc\_axis\_scale (data\_min, data\_max, divisions, how,
@@ -1288,7 +1285,7 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
      to the edges of the actual graph.
 
 \item[qp\_set\_pgplot\_color (ix\_color) ] \Newline 
-     Subroutine to set the color in pgplot taking into accout that GIF
+     Subroutine to set the color in pgplot taking into account that GIF
      inverts the black for white.
 
 \item[qp\_set\_page\_border (x1\_b, x2\_b, y1\_b, y2\_b, units)] \Newline 
@@ -1299,7 +1296,7 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
 
 \item[qp\_subset\_box (ix, iy, ix\_tot, iy\_tot, x\_marg, y\_marg)] \Newline 
      Subroutine to set the box for a graph. This is the same as
-     qp\_set\_box but the boundries of the page are taken to be the box boundries.
+     qp\_set\_box but the boundaries of the page are taken to be the box boundaries.
 
 \item[qp\_set\_symbol\_attrib (type, height, color, fill, line\_width, clip)] \Newline 
      Subroutine to set the type and size of the symbols used in plotting data.
@@ -1367,7 +1364,7 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
 \end{description}
 
 %--------------------------------------
-\subsection{Miscelaneous Routines}
+\subsection{Miscellaneous Routines}
 
 \begin{description}
 
@@ -1394,11 +1391,11 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
 
 \item[qp\_save\_state (buffer)] \Newline 
      Subroutine to save the current attributes. 
-     Use qp\_restore\_state to reastore the saved state.
+     Use qp\_restore\_state to restore the saved state.
 
 \item[qp\_restore\_state] \Newline 
      Subroutine to restore saved attributes. 
-     Use qp\_save\_state to reastore the saved state.
+     Use qp\_save\_state to restore the saved state.
 
 \item[qp\_init\_struct (qp)] \Newline 
      Subroutine to initialize the qp\_struct.
@@ -1452,7 +1449,7 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
      point 1 to point 2
 
 \item[mat\_type (mat, nunit, header)] \Newline 
-     subroutine to output matraces to the terminal or to a file
+     subroutine to output matrices to the terminal or to a file
 
 \item[mat\_unit (mat, size, psize)] \Newline 
      routine to create a unit matrix out of MAT(SIZE, PSIZE).
@@ -1460,7 +1457,7 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Miscaleneous DCSLIB Routines}
+\section{Miscellaneous DCSLIB Routines}
 \label{r:dcs_misc}      
 
 \begin{description}
@@ -1474,7 +1471,7 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
      interaction using the normalized position for input
 
 \item[gauss\_ran (harvest)] \Newline 
-     Subroutine to return a gaussian distributed random number with unit sigma.
+     Subroutine to return a Gaussian distributed random number with unit sigma.
      This subroutine uses the fortran90 intrinsic random\_number subroutine.
 
 \item[modulo2\_real (x, amp)] \Newline 
@@ -1515,6 +1512,6 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
      This subroutine computes the semi-hermite cubic spline developed by 
 
 \item[spline\_evaluate (spline, x, ok, y, dy)] \Newline 
-     Subroutine to evalueate a spline at a set of points.
+     Subroutine to evaluate a spline at a set of points.
 
 \end{description}

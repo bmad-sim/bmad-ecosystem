@@ -8,11 +8,11 @@ CESR distribution. The CESR distribution also includes example lattice
 files and example programs. The CESR distribution includes a
 customized version of the Numerical Recipes Fortran90 software
 library\cite{b:nr}. It is the obligation of anyone who uses \bmad\ to
-make sure that they have the appropriate licence for Numerical
+make sure that they have the appropriate license for Numerical
 Recipes.
 
 Also included in the distribution is the PGPLOT plotting package
-developed by Tim Pearson of CalTech.  PGPLOT is freely available for
+developed by Tim Pearson of Caltech.  PGPLOT is freely available for
 non-commercial use. Note, however, that PGPLOT is not public--domain
 software and is copyrighted by the California Institute of Technology
 further documentation can be found at
@@ -88,7 +88,7 @@ appropriate system logicals have been setup). The linker makes two
 executable versions of the program and these are found in \vn{../bin}.
 In this case, since there is only one program file in the directory, and
 since a simple \vn{gmake} command was used, the executable files are
-named after the diretory and are \vn{../bin/simple_program} and
+named after the directory and are \vn{../bin/simple_program} and
 \vn{../bin/simple_program_g}. The latter program is a debug version
 which can be used with a debugger but whose execution time is longer.
 
@@ -179,11 +179,11 @@ single character. For example:
 The third line in this example will match to the routine \rn{twiss_at_s} but not
 the routine \rn{twiss_at_start}.
 
-The \cmd{listf} command is like the \cmd{getf} command excecpt that only
+The \cmd{listf} command is like the \cmd{getf} command except that only
 the file name where a routine or structure is found is printed. The
 header comments that are in the source code files and the structure
 definitions will not be printed. The \cmd{listf} command is useful if you
-want to just find out where a routine or stucture definition lives.
+want to just find out where a routine or structure definition lives.
 
 The way \vn{getf} and \vn{listf} work is that they search a list of
 directories to find the \bmad\, \vn{dcslib}, and \vn{cesr_utils}
@@ -197,7 +197,7 @@ is a demand for it.
 \section{Explanation of the Simple\_Program}
 
 A line by line explanation of the simple test program follows. It is
-assumed that you are familer with Fortran90.  The \cs{use bmad}
+assumed that you are familiar with Fortran90.  The \cs{use bmad}
 statement defines the \bmad\ structures (types) and defines the
 interfaces (argument lists) for the \bmad\ subroutines. In particular,
 the \tn{ring_struct} structure holds all the lattice information: The
@@ -252,7 +252,7 @@ with its center as $s = 0$ by default. This means that half of the
 solenoid wraps around to the end of the lattice list. \vn{bmad_parser}
 constructs the appropriate lattice list that it track through and stores
 the \vn{CLEO_SOL} element in the part of the lattice list that doesn't
-get tracked through (along with elments \vn{Q00E} and \vn{Q00W}) as
+get tracked through (along with elements \vn{Q00E} and \vn{Q00W}) as
 explained in Section~\ref{s:super}. It is now possible for the program
 to vary, say, the strength of the \vn{ks} attribute of the \vn{CLEO_SOL}
 and have the \vn{ks} attributes of the dependent (``\vn{super_slave}'')

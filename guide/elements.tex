@@ -1,6 +1,6 @@
 \chapter{Elements}
 
-A lattice for a storage ring or linac is made up of a collection of
+A lattice for a storage ring or LINAC is made up of a collection of
 elements --- quadrupoles, bends, etc. This chapter discusses the
 various types of elements available in \bmad\ except for \vn{group}s
 and \vn{overlay}s which are discussed in the next chapter.
@@ -335,7 +335,7 @@ Dependent attributes:
 \section{Hkicker and Vkicker}
 \label{s:hvkicker}
 
-A \vn{Hkicker} is a horizontal bend and a vn{Vkicker} is a vertical
+A \vn{Hkicker} is a horizontal bend and a \vn{Vkicker} is a vertical
 bend.  Note that \vn{Hkicker} and \vn{Vkicker} elements use the
 \vn{kick} attribute while a \vn{kicker} uses the \vn{hkick} and \vn{vkick} 
 attributes.
@@ -474,7 +474,7 @@ An \vn{Lcavity} is a LINAC accelerating cavity.
 \toffset
 
 Tracking through an \vn{LCavity} is modeled using the equations developed by Rosenzweig
-and Serafini\cite{b:rosenzweig}. The varias attributes are
+and Serafini\cite{b:rosenzweig}. The various attributes are
 \begin{example}
   gradient     ! Accelerating gradient in V/m
   phi0         ! Phase (in radians/2$pi$) of the reference particle with 
@@ -837,7 +837,7 @@ Example:
 Dependent attributes:
 \begin{example}
   beam\_energy  ! See section \ref{s:beam}
-  b\_gradiant or k3
+  b\_gradient or k3
 \end{example}
 
 
@@ -960,7 +960,7 @@ That is, a \vn{Taylor} element starts with the following 6 terms
   \{5: 1.0, 0 0 0 0 1 0\}
   \{6: 1.0, 0 0 0 0 0 1\}
 \end{example}
-Note: A term in a \vn{Taylor} element will superceed any previous term
+Note: A term in a \vn{Taylor} element will supersede any previous term
 that is identical except for 
 the \vn{coef}.
 

@@ -1,21 +1,26 @@
 \chapter{Plotting}
 \label{c:plot}
 
-One drawback of the PGPLOT plotting package that comes with the CESR distribution (see
-Section~\ref{s:libs}) is that the arguments to PGPLOTS subroutines are not always
-convienently structured. to remidy this a suite of wrapper subroutine have been developed
-which can be used to drive PGPLOT. This suite is called Quick Plot and lives in the dcslib
-library which comes with the CESR distribution. A quick reference guide can be seen online
-by using the command \vn{getf quick_plot}. For quick identification in a program
-all Quick Plot subroutines start with a \vn{qp_} suffix. Also, by convention, all PGPLOT
-subroutines start with a \vn{pg} suffix. 
+One drawback of the PGPLOT plotting package that comes with the CESR
+distribution (see Section~\ref{s:libs}) is that the arguments to
+PGPLOT's subroutines are not always conveniently structured. to remidy
+this a suite of wrapper subroutine have been developed which can be
+used to drive PGPLOT. This suite is called Quick Plot and lives in the
+dcslib library which comes with the CESR distribution. A quick
+reference guide can be seen online by using the command \vn{getf
+quick_plot}. For quick identification in a program all Quick Plot
+subroutines start with a \vn{qp_} suffix. Also, by convention, all
+PGPLOT subroutines start with a \vn{pg} suffix.
 
-While Quick Plot covers most of the features of PGPLOT, Quick Plot is still a work in progress. 
-For example, contour plots have not yet been implemented in Quick Plot. If you see a feature
-that is lacking in Quick Plot please do not hesitate to make a request to \vn{dcs16@cornell.edu}.
+While Quick Plot covers most of the features of PGPLOT, Quick Plot is
+still a work in progress.  For example, contour plots have not yet
+been implemented in Quick Plot. If you see a feature that is lacking
+in Quick Plot please do not hesitate to make a request to
+\vn{dcs16@cornell.edu}.
 
-Note: PGPLOT uses single precision real(4) numbers whild Quick Plot uses real(rp) numbers.
-If you use any PGPLOT subroutines be careful of this.
+Note: PGPLOT uses single precision real(4) numbers while Quick Plot
+uses real(rp) numbers.  If you use any PGPLOT subroutines be careful
+of this.
 
 %----------------------------------------------------------------------------
 
