@@ -46,7 +46,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   real(rp) t5_11, t5_12, t5_22, t5_33, t5_34, t5_44, t5_14, t5_23
   real(rp) t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
   real(rp) t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
-  real(rp) lcs, lc2s2, error, rho, z, px, py, pz, k, L
+  real(rp) lcs, lc2s2, error, rho, px, py, pz, k, L
   real(rp) cos_phi, gradient, e_start, e_end, e_ratio
   real(rp) alpha, sin_a, cos_a, f, phase, E, pxy2, dE0
 
@@ -427,22 +427,25 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
   case (rfcavity$)
 
-    if (ele%value(volt$) /= 0) then
-      if (ele%value(harmon$) == 0) then
-        type *, 'ERROR IN MAKE_MAT6_BMAD: "HARMON" ATTRIBUTE NOT SET FOR RF.'
-        type *, '      FOR ELEMENT: ', ele%name
+    if (ele%value(volt$) == 0) then
+      phase = 0
+      k = 0
+    else
+      if (ele%value(RF_wavelength$) == 0) then
+        print *, 'ERROR IN MAKE_MAT6_BMAD: ', &
+                   '"RF_WAVELENGTH" ATTRIBUTE NOT SET FOR RF: ', trim(ele%name)
+        print *, '      YOU NEED TO SET THIS OR THE "HARMON" ATTRIBUTE.'
         call err_exit
       endif
+      phase = twopi * (ele%value(phi0$) + c0%z%pos / ele%value(rf_wavelength$))
+      k  =  twopi * ele%value(volt$) * cos(phase) / &
+                              (param%beam_energy * ele%value(rf_wavelength$))
     endif
 
-    z = c0%z%pos
     px = c0%x%vel
     py = c0%y%vel
     pz = c0%z%vel
 
-    phase = twopi * (ele%value(phi0$) + z / ele%value(rf_wavelength$))
-    k  =  twopi * ele%value(volt$) * cos(phase) / &
-                              (param%beam_energy * ele%value(rf_wavelength$))
     dE0 =  ele%value(volt$) * sin(phase) / param%beam_energy
     L = ele%value(l$)
     E = 1 + pz

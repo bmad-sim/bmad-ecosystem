@@ -88,7 +88,6 @@ subroutine track1_bmad (start, ele, param, end)
   case (drift$) 
 
     call track_a_drift (end%vec, length)
-    return
 
 ! patch
 
@@ -112,6 +111,7 @@ subroutine track1_bmad (start, ele, param, end)
     endif
 
     call offset_particle (ele, param, end, unset$)  
+    call end_z_calc
 
 ! beambeam
                           
@@ -151,6 +151,7 @@ subroutine track1_bmad (start, ele, param, end)
     end%y%pos = end%y%pos - end%y%vel * s_pos
 
     call offset_particle (ele, param, end, unset$)  
+    call end_z_calc
 
 ! octupole
 ! The octupole is treated as a thin lens with a position dependent kick
@@ -176,6 +177,7 @@ subroutine track1_bmad (start, ele, param, end)
                     (3*end%y%pos*end%x%pos**2 - end%y%pos**3) / 12
 
     call offset_particle (ele, param, end, unset$)  
+    call end_z_calc
 
 ! quadrupole
 
@@ -190,6 +192,7 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(3:4) = matmul(mat2, end%vec(3:4))
 
     call offset_particle (ele, param, end, unset$)  
+    call end_z_calc
 
 ! sbend
 ! A non-zero roll has a zeroth order effect that must be included
@@ -197,7 +200,6 @@ subroutine track1_bmad (start, ele, param, end)
   case (sbend$)
 
     call track_a_bend (end, ele, param, end)
-    return ! do not do z-calc at end of this routine
 
 ! rfcavity
 
@@ -213,12 +215,22 @@ subroutine track1_bmad (start, ele, param, end)
     py = end%y%vel
     pz = end%z%vel
 
-
-    phase = twopi * (ele%value(phi0$) + z / ele%value(rf_wavelength$))
-    k  =  twopi * ele%value(volt$) * cos(phase) / &
+    if (ele%value(volt$) == 0) then
+      phase = 0
+      k = 0
+    else
+      if (ele%value(RF_wavelength$) == 0) then
+        print *, 'ERROR IN TRACK1_BMAD: ', &
+                   '"RF_WAVELENGTH" ATTRIBUTE NOT SET FOR RF: ', trim(ele%name)
+        print *, '      YOU NEED TO SET THIS OR THE "HARMON" ATTRIBUTE.'
+        call err_exit
+      endif
+      phase = twopi * (ele%value(phi0$) + z / ele%value(rf_wavelength$))
+      k  =  twopi * ele%value(volt$) * cos(phase) / &
                               (param%beam_energy * ele%value(rf_wavelength$))
-    dE0 =  ele%value(volt$) * sin(phase) / param%beam_energy
+    endif
 
+    dE0 =  ele%value(volt$) * sin(phase) / param%beam_energy
     L = ele%value(l$)
     E = 1 + pz
     E2 = E**2
@@ -290,6 +302,7 @@ subroutine track1_bmad (start, ele, param, end)
     end%z%vel = (e_end - ele%value(energy$)) / ele%value(energy$) 
 
     call offset_particle (ele, param, end, unset$)
+    call end_z_calc
 
 ! sextupole
 ! The sextupole is treated as a drift with position dependent kick
@@ -308,6 +321,7 @@ subroutine track1_bmad (start, ele, param, end)
     end%y%vel = end%y%vel + k2l * end%x%pos * end%y%pos / 2
 
     call offset_particle (ele, param, end, unset$)
+    call end_z_calc
 
 ! solenoid
 
@@ -320,6 +334,7 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(1:4) = matmul (mat4, end%vec(1:4))
 
     call offset_particle (ele, param, end, unset$)
+    call end_z_calc
 
 ! sol_quad
 
@@ -334,6 +349,7 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(1:4) = matmul (mat6(1:4,1:4), end%vec(1:4))
 
     call offset_particle (ele, param, end, unset$)
+    call end_z_calc
 
 ! wiggler:
 
@@ -347,11 +363,14 @@ subroutine track1_bmad (start, ele, param, end)
     endif
 
     call offset_particle (ele, param, end, set$, set_multipoles=.false.)
+
     k1 = ele%value(k1$) / (1 + end%z%vel)**2
     call quad_mat_calc (k1, length, mat2)
     end%vec(1) = end%vec(1) + length * end%vec(2)
     end%vec(3:4) = matmul (mat2, end%vec(3:4))
+
     call offset_particle (ele, param, end, unset$, set_multipoles=.false.)
+    call end_z_calc
 
 ! multipole
 
@@ -386,6 +405,9 @@ subroutine track1_bmad (start, ele, param, end)
 
   end select
 
+
+contains
+
 !--------------------------------------------------------------
 ! Rough calculation for change in longitudinal position using:
 !      dz = -L * (<p_x^2> + <p_y^2>)/ 2 
@@ -393,8 +415,12 @@ subroutine track1_bmad (start, ele, param, end)
 ! The formula below assumes a linear change in velocity between 
 ! the beginning and the end:
 
+subroutine end_z_calc
+
   end%z%pos = end%z%pos - length * &
       (start%x%vel**2 + end%x%vel**2 + start%x%vel * end%x%vel + &
        start%y%vel**2 + end%y%vel**2 + start%y%vel * end%y%vel) / 6
+
+end subroutine
 
 end subroutine
