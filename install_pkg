@@ -8,7 +8,7 @@ $recent_pkg=$ENV{CESR_PKG};
 $linux="";
 $whole=0;
 
-open (STDOUT,">buildlog_$ARGV[0]");
+open (STDOUT,">buildlog_packages_$ARGV[0]");
 open (STDERR,">&STDOUT");
 
 autoflush STDERR 1;
