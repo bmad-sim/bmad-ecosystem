@@ -17,6 +17,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.10  2004/08/26 15:03:05  dcs
+# Added cpp_interface directory.
+#
 # Revision 1.9  2004/04/19 23:07:06  dcs
 # Added bmad/cesr directory.
 #
@@ -77,7 +80,7 @@
 # LOCAL_INCS      - Local directories to search for include files
 # LOCAL_MODS      - Local directories to search for F90 compiled module files
 #-----------------------------------------------------------------------------
-LIB_SRC_DIRS := ./code ./cesr ./modules
+LIB_SRC_DIRS := ./code ./cesr ./modules ./cpp_interface
 CONFIG_DIRS   := ./lat ./layout
 LOCAL_INCS    := ./include ../include
 LOCAL_MODS    := ../modules 
@@ -99,7 +102,6 @@ LOCAL_MODS    := ../modules
 # EXTRA_CFLAGS   - extra C flags for compilation 
 # EXTRA_LFLAGS   - extra linker flags
 #-----------------------------------------------------------------------------
-
 
 #------------------------------------------------
 # Name of local libraries (standard and debug) 
