@@ -386,7 +386,7 @@ the changes in $p_x$ and $p_y$
 \end{align}
 
 The above formalism does not take into account the fact that radiation is 
-emitted with a 1/gamma angular distribution. This means that the caclculated
+emitted with a 1/gamma angular distribution. This means that the calculated
 vertical emittance for a lattice with
 bends only in the horizontal plane and without any coupling elements such as
 skew quadrupoles will be zero. Typically, in practice, the vertical emittance
@@ -567,7 +567,7 @@ particles gives
 \Begineq
   \beta_x \, \epsilon_x = \bfsig(1,1) - \frac{\bfsig^2(1,6)}{\bfsig(6,6)}
 \Endeq
-It is thus convienient to define the betatron part of the sigma martix
+It is thus convenient to define the betatron part of the sigma matrix
 \Begineq
   \bfsigb(i,j) \equiv \bfsig(i,j) - \frac{\bfsig(i,6) \, \bfsig(j,6)}{\bfsig(6,6)}
 \Endeq
@@ -663,32 +663,33 @@ to the charge associated with the slice.
 \label{s:wakefields}
 \index{Wakefields}
 
-Wakefield modeling follows the LIAR program\cite{b:liar}. Wakefields
-are applied in the center of LINAC accelerating cavities
-(\vn{LCavity}). Wakefield effects are divided into short--range
-(within a bunch) and long--range (between bunches).
+Short--range Wakefield modeling is similar to the LIAR
+program\cite{b:liar}. Wakefields are applied in the center of LINAC
+accelerating cavities (\vn{LCavity}). Wakefield effects are divided
+into short--range (within a bunch) and long--range (between bunches).
 
 Only the dipole component of the short--range wakefield are
-modeled. The short--range longitudinal wakefield component for 
+modeled. The longitudinal dipole energy kick $dE$  for 
 the $i$\Th macroparticle is computed from the equation
 \Begineq
-  dE_i = \frac{L \, \Wl(0)}{2} |Q_i| +
-                  \sum_{j \ne i} \frac{L \, \tWl(dz_{ij})}{2} |Q_j|
+  dE_i = \frac{n \, e \, L \, \WlS(0)}{2} \,  |q_i| +
+        n \, e \, L \, \sum_{j \ne i} \tWl(dz_{ij}) \, |q_j|
 \Endeq
-where $L$ is the cavity length, $dz_{ij}$ is the longitudinal distance between 
-the $i$\Th and $j$\Th macroparticles,
-$\Wl$ is the short--range longitudinal wakefield function, and $\tWl$ is 
-a modified wakefield function 
+where $n \, e$ is the particle charge (typically $n = 1$), $q$ is the
+macroparticle charge, $L$ is the cavity length, $dz_{ij}$ is the
+longitudinal distance between the $i$\Th and $j$\Th macroparticles,
+$\WlS$ is the short--range longitudinal wakefield function, and $\tWl$
+is a modified wakefield function
 \Begineq
   \tWl(dz) = 
   \begin{cases}
-    \Wl(0) \cdot \frac{dz + \sigma_{zij}}{2\sigma_{zij}} & 
+    \WlS(0) \cdot \frac{dz + \sigma_{zij}}{2\sigma_{zij}} & 
                                     -\sigma_{zij} < dz < \sigma_{zij} \\
-    \Wl(dz)                                            & \text{otherwise}
+    \WlS(dz)                                            & \text{otherwise}
   \end{cases}
 \Endeq
-$\tWl$ is used instead of $\Wl$ to avoid simulation artifacts 
-is due to the discontinuity of $\Wl$ at $dz = 0$. 
+$\tWl$ is used instead of $\WlS$ to avoid simulation artifacts 
+is due to the discontinuity of $\WlS$ at $dz = 0$. 
 $\sigma_{zij}$ is the combined macroparticle length
 \Begineq
   \sigma_{zij} = \sigma_{zi} + \sigma_{zj} + \sigma_{z0}
@@ -700,10 +701,29 @@ small fudge factor needed when $\sigma_{zi} = \sigma_{zj} = 0$.
 The transverse kick $dp_x(i)$ for the $i$\Th macroparticle due to the 
 dipole short--range transverse wakefield is modeled with the equation
 \Begineq
-  dp_x(i) = \frac{\sum_j |Q_j| \, x_j \, L \, \Wt(dz_{ij})}{P_0}
+  dp_x(i) = \frac{n \, e \, L \, \sum_j |q_j| \, x_j \, \WtS(dz_{ij})}{c \, P_0}
 \Endeq
-with a similar equation for $dp_y(i)$. $\Wt$ is the transverse short--range
+with a similar equation for $dp_y(i)$. $\WtS$ is the transverse short--range
 wake function.
+
+The kick of the transverse dipole long--range wakefields are
+calculated in exactly the same way as the short term wakefield:
+\Begineq
+  dp_x(i) = \frac{n \, e \, L \, \sum_j |q_j| \, x_j \, \WtL(dz_{ij})}{c \, P_0}
+\Endeq
+In this case $i$ and $j$ refer to bunch indexes. The wakefield is
+composed as a sum over cavity modes $m$
+\Begineq
+  \WtL(z) = \sum_m \left( \frac{R}{Q} \right)_{\! m}
+  \frac{k_m^2}{2} \,\, 
+  e^{k_m z/ 2 Q_m} \, \sin (-k_m \, z)
+\Endeq
+where 
+\Begineq
+  k = \omega / c
+\Endeq
+with $\omega$ being the mode frequency. Note that $z$ is negative for
+trailing particles so $\WtL(z)$ is a decaying exponential as expected.
 
 %-----------------------------------------------------------------
 \section{Synchrotron Integrals}
@@ -762,7 +782,7 @@ Using this gives on--axis ($x = y = 0$)
 
 In a dipole a non--zero $e_1$ or $e_2$ gives a contribution to $I_4$
 via the $\nabla G^2 \cdot \bfeta$ term. The edge field is modeled as a
-thin quadrupole of length $\delta$ and stringth $k = -\tan(e) /
+thin quadrupole of length $\delta$ and strength $k = -\tan(e) /
 \delta$. It is assumed that $\Bf G$ rises linearly within the edge field
 from zero on the outside edge of the edge field to its full value on the inside 
 edge of the edge field. 
@@ -787,7 +807,7 @@ compaction $\alpha_p$ via
   \Begineq
     I_1 = \alpha_p \, L
   \Endeq
-where $L$ is the storage ring circumferance. The energy loss per turn is
+where $L$ is the storage ring circumference. The energy loss per turn is
   \Begineq
     U_0 = \frac{2 \, r_e E_0^4}{3 \, mc^2} I_2
   \Endeq
@@ -837,7 +857,7 @@ of the storage ring. Finally the emittances are given by
 For a linac radiation integrals are still of interest if there are
 bends but in this case the appropriate energy factors must be included
 to take account the changing energy in the line. $I_1$ is not altered and
-the $I_4$ integrals are not relavent. The other integrals become
+the $I_4$ integrals are not relevant. The other integrals become
   \Begineqs
     L_2 &=& \int ds \, G^2 \, \gamma_0^4 \\
     L_3 &=& \int ds \, G^3 \, \gamma_0^7 \\
@@ -849,7 +869,7 @@ In terms of these integrals the energy loss through the linac is
     U_0 = \frac{2 \, r_e \, mc^2}{3} L_2
   \Endeq
 The energy spread assuming $\sigma_E$ is zero at the start and neglecting
-any dampling is
+any damping is
   \Begineq
     \sigma_E^2 = \frac{4}{3} \, C_q \, r_e \, \left( m c^2 \right)^2 \, L_3
   \Endeq

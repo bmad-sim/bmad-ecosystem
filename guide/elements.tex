@@ -190,13 +190,13 @@ Example:
   tilt     = Real      & \ref{s:offset} & is\_on = Logical  & \ref{s:is_on}  & integration\_ord = Integer  & \ref{s:integ}  \\ \hline
   k1       = Real      &                & symplectify       & \ref{s:symp}   & field\_calc = Switch        & \ref{s:integ}  \\ \hline
   beam\_energy$^*$     & \ref{s:param}  &                   &                &                             &                \\ \hline
-  \multicolumn{6}{l}{\small $^*$Dependentt attribute. \DAG May be a dependent. \DDAG Settable dependent. See Chapter~\ref{c:attrib}} \\
+  \multicolumn{6}{l}{\small $^*$Dependent attribute. \DAG May be a dependent. \DDAG Settable dependent. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
 \end{center}
 \toffset
 
 \vn{Bend_Sol_Quad} is a combination Bend, Solenoid, and Quadrupole
-with the solenoid strength varying linary with longitudinal position.
+with the solenoid strength varying linearly with longitudinal position.
 This enables the simulation of solenoid edge fields. The magnetic
 field is:
 \begin{alignat}{1}
@@ -220,7 +220,7 @@ and the dipole bend components ($g_x$, $g_y$) are given by
   g_y = g * sin (tilt + bend_tilt)
 \end{example}
 Dipole edge fields have not been implemented since it is not clear where
-the entrence and exit faces of the bend should be and how they are aligned
+the entrance and exit faces of the bend should be and how they are aligned
 with the solenoid.
 
 To simulate a real solenoid you will need at least three
@@ -262,7 +262,7 @@ Example:
   hgap     = Real      &                & fintx    = Real   &                & symplectify                 & \ref{s:symp}   \\ \hline
   hgapx    = Real      &                & a$n$, b$n$ = Real & \ref{s:fields} & is\_on = Logical            & \ref{s:is_on}  \\ \hline
   beam\_energy$^*$     & \ref{s:param}  & radius = Real     & \ref{s:fields} & aperture\_at = Switch       & \ref{s:limit}  \\ \hline
-  \multicolumn{6}{l}{\small $^*$Dependentt attribute. \DAG May be a dependent. \DDAG Settable dependent. See Chapter~\ref{c:attrib}} \\
+  \multicolumn{6}{l}{\small $^*$Dependent attribute. \DAG May be a dependent. \DDAG Settable dependent. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
 \end{center}
 \toffset
@@ -315,7 +315,7 @@ magnetic field. The true field strength is given by
 \vn{g}~+~\vn{delta_g} so changing \vn{delta_g} leaves the design orbit
 unchanged but varies a particle's orbit.
   \item[fint, fintx, hgap, hgapx]
-The field integrals for the entrence and
+The field integrals for the entrance and
 exit pole faces are give by \vn{fint} and \vn{fintx} respectively
 \Begineq
   F_{int} = \int_{pole} \! \! ds \, \frac{B_y(s) (B_0 - B_y(s))}
@@ -327,7 +327,7 @@ the half gaps at the entrance and exit faces. If \vn{fint} or
 \vn{fint} or \vn{fintx} is not present then the default value of 0 is
 used.
   \item[tilt]
-The roll angle about the longitudinal axis at the entrence face of the
+The roll angle about the longitudinal axis at the entrance face of the
 bend is given by \vn{tilt}.  \vn{tilt} = 0 bends the reference
 trajectory in the $-x$ direction.  If the \vn{tilt} attribute is given
 without any value then the value $\pi/2$ will be used. This makes for
@@ -671,6 +671,7 @@ Example:
   x\_pitch = Real       & \ref{s:offset} & vkick    = Real   & \ref{s:kick}   & sr\_wake\_file = String     &               \\ \hline
   y\_pitch = Real       & \ref{s:offset} & energy\_start$^*$ &                & aperture\_at = Switch       & \ref{s:limit} \\ \hline
   beam\_energy$^*$      & \ref{s:param}  & e\_loss$^*$       &                & delta\_e$^*$                &               \\ \hline
+  freq\_spread          &                &                   &                &                             &               \\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
 \end{center}
@@ -707,39 +708,68 @@ This is incorrect.
 Note: The transfer matrix for an \vn{Lcavity} with finite
 \vn{gradient} is never symplectic.
 
-Example:
+\index{Wakefields!in Lcavity}
+The input file name for the short--range wakefields is specified using
+the \vn{sr_wake_file} attribute. The file gives both longitudinal and
+transverse wakes in tabular form. Comment header lines may be included
+by starting a line with an exclamation mark (!) or by leaving the line
+blank.  An example input file is:
 \begin{example}
-  rf1: lcav, l = 4.5, gradient = 1.2e6, sr\_wake\_file = "sr1.dat"
-\end{example}
+  !   z             Wz             Wt
+  !  [m]        [V/C/m]       [V/C/m^2]
 
-The input file name for the short--range wakefields is specified using the 
-\vn{sr_wake_file} attribute. The file gives both longitudinal and transverse wakes in 
-tabular form. Comment header lines may be included by starting a line
-with an exclamation mark (!) or by leaving the line blank. 
-An example input file is:
+  0.00000E+00  1.61125E+15   0.00000E+00     1 
+  1.00000E-05  1.44516E+15   1.30560E+15     2 
+  2.00000E-05  1.38148E+15   2.50665E+15     3 
+  ... etc ...
+  1.97000E-03  3.49958E+14   7.95507E+16   198 
+  1.98000E-03  3.48606E+14   7.97253E+16   199  
+  1.99000E-03  3.47263E+14   7.98989E+16   200 
+\end{example}
+The first column is the longitudinal distance $z$. $z$ must start at 0
+and must increment by the a constant amount from row to row. The
+second column is the longitudinal wake function in $V/C/m$. The third
+column is the transverse wake in $V/C/m^2$. Any additional columns are
+ignored.  Wakefield formulas are to be found in \REF{s:wakefields}
+
+The input file name for the long--range wakefields is specified using
+the \vn{lr_wake_file} attribute. The file gives the transverse dipole
+wake by specifying the frequency (in Hz), R/Q (in Ohm) and Q
+for each cavity mode.  Comment header lines may be included by
+starting a line with an exclamation mark (!) or by leaving the line
+blank.  An example input file is:
 \begin{example}
-!    z[m]       Wz[V/C/m]   Wt[V/C/m^2]
+  ! Freq       R/Q      Q
+  ! [Hz]     [Ohm]
 
- 0.00000E+00  1.61125E+15   0.00000E+00     1 
- 1.00000E-05  1.44516E+15   1.30560E+15     2 
- 2.00000E-05  1.38148E+15   2.50665E+15     3 
- ... etc ...
- 1.97000E-03  3.49958E+14   7.95507E+16   198 
- 1.98000E-03  3.48606E+14   7.97253E+16   199 
- 1.99000E-03  3.47263E+14   7.98989E+16   200 
+  1.6506e9    0.76    7.0e4
+  1.6991e9   11.21    5.0e4
 \end{example}
-The first column is the longitudinal distance $z$. $z$ must start at 0 and must increment by
-the a constant amount from row to row. The second column is the longitudinal wake function in
-$V/C/m$. The third column is the transverse wake in $V/C/m^2$. Any additional columns are ignored.
+The formula used to compute the wakefield is given in
+\REF{s:wakefields}. Note that some papers will quote a quantity R'/Q
+with units of Ohm/m$^2$ (sometimes this is confusingly called
+R/Q). This is R/Q at the radius of the beam pipe $a$:
+\Begineq
+  \frac{R}{Q} = a^2 \frac{R'}{Q}
+\Endeq 
+\vn{freq_spread} is used to randomly spread out the mode frequencies
+among different cavities. The spread is Gaussian in shape with an RMS
+of \vn{freq_spread} * $F$ where $F$ is the frequency of a mode.
 
-Note:  \vn{e_loss} is only a dependent varif a \vn{sr_wake_file} is present. In this case
-it is computed from the $z = 0$ longitudinal wake. 
 
-\vn{delta_e} is simply defined to be
+\vn{e_loss} can be either a dependent or independent variable.  is a
+dependent variable. If a \vn{sr_wake_file} is present \vn{e_loss} is a
+dependent variable and it is computed from the short--range $z = 0$
+longitudinal wake. \vn{delta_e} is a dependent attribute and is
+defined to be
 \begin{example}
   delta_e = gradient * L
 \end{example}
 
+Example:
+\begin{example}
+  rf1: lcav, l = 4.5, gradient = 1.2e6, sr\_wake\_file = "sr1.dat"
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Marker}
@@ -790,7 +820,7 @@ Example:
 \toffset
 
 A \vn{Match} element is used to match the Twiss parameters between two points. That is, 
-the tranfer map for a match element, which is just a linear matrix, is calculated such that
+the transfer map for a match element, which is just a linear matrix, is calculated such that
 if the Twiss parameters at the exit end of the element preceding the \vn{match} element are 
 given by \vn{beta_x0}, \vn{beta_y0}, etc., then the computed Twiss parameters at the exit
 end of the \vn{match} element will be \vn{beta_x1}, \vn{beta_y1}, etc. \vn{dphi_x} and \vn{dphi_y}
@@ -1033,7 +1063,7 @@ Example:
 \end{center}
 \toffset
 
-A \vn{Solenoid} is an element with a longitidinal magnetic field.
+A \vn{Solenoid} is an element with a longitudinal magnetic field.
 Example:
 \begin{example}
   cleo_sol: solenoid, l = 2.6, ks = 1.5*beam[energy]

@@ -22,7 +22,9 @@ always at $z = 0$.
 \begin{figure}[tb]
 \centering
 \includegraphics{local_coords.psfig}
-\caption{The Local Reference System}
+\caption[The Local Reference System.]
+{The Local Reference System. By construction, $z = 0$ for
+the particle coordinates in the local reference system.}
 \label{f:local_coords}
 \end{figure}
 
@@ -123,11 +125,14 @@ where $P_x$ and $P_y$ are respectively the momentum components along
 the $x$ and $y$ axes, and $P_0$ is the reference (sometimes called the
 design) momentum.
 
-The canonical $z$ coordinate is the path length difference of the
-particle relative to the path length of the reference particle. Do not
-confuse this with the longitudinal axis $\Bf z$. By construction the
-longitudinal $z$ position of a particle is always zero as shown in
-Figure~\ref{f:local_coords}. 
+The canonical $z$ coordinate is the path length difference between the
+particle as it passes a given $s$ position relative relative to the
+path length of the reference particle as it passes the same $s$
+position. Notice that the time at which the particle and reference
+particle pass a given $s$ position are generally not the same. Do not
+confuse the canonical $z$ with the particle's longitudinal coordinate
+in the local reference frame $z$ which is always zero as shown in
+Figure~\ref{f:local_coords}.
 
 The longitudinal canonical momentum $p_z$ is given by
 \begin{equation}
@@ -160,15 +165,18 @@ $\Bf a = q \, A / c \, P_0$ is the normalized vector potential, $g =
 curvature of the reference orbit and it has been assumed that the
 bending is in the $x$--$z$ plane. 
 
-With the paraxial approximation and at constant momentum, $z$ can be
-expressed in terms of the time via
+At constant momentum, $z$ can be expressed in terms of the time via
 \begin{align}
-  z(s) &= - \beta \, c \, t - s
+  z(s) &= s - \beta \, c \, t 
   & = - \beta \, c \, \Delta t
 \end{align}
-where $\beta = v/c$ and $\Delta t$ is the time difference between when
-the particle passes by a given $s$ position along the reference orbit
-and when the reference particle does.
+where $\beta = v/c$, $t$ is the time at which the particle is at
+position $s$, and $\Delta t$ is the time difference between when the
+particle passes by a given $s$ position along the reference orbit and
+when the reference particle does. Another way of saying this is that,
+$z$ will be the longitudinal distance between the particle and the
+reference particle when their positions are both measured at a given
+time $t$.
 
 For those programmers using the PTC\index{PTC/FPP}
 software package directly (ignore

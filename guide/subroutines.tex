@@ -26,6 +26,7 @@ general interest.
  	Particle Coordinate Stuff               & \ref{r:coord}      \\ \hline
  	Ring Geometry                           & \ref{r:geom}       \\ \hline
  	Interface to PTC                        & \ref{r:ptc}        \\ \hline
+  \cpp interface                          & \ref{r:cpp}        \\ \hline
   Mad Tracking Routines                   & \ref{r:mad}        \\ \hline
  	Taylor Maps                             & \ref{r:taylor}     \\ \hline
   Macroparticle                           & \ref{r:macro}      \\ \hline
@@ -59,6 +60,10 @@ Subroutine to parse (read in) a Bmad input file.
 
 \item[bmad\_parser2 (in\_file, ring)] \Newline
 Subroutine to parse (read in) a Bmad input file to modify an existing lattice. 
+
+\item[bmad\_to\_mad (mad\_file, ring, ix\_start, ix\_end)] \Newline 
+Subroutine to write a mad lattice file using the information in
+a ring\_struct. 
 
 \item[read\_digested\_bmad\_file (in\_file\_name, ring, version)] \Newline
 Subroutine to read in a digested file. 
@@ -282,11 +287,26 @@ tracking 7 particle with different starting conditions.
 \item[drift\_mat6\_calc (mat6, length, start, end)] \Newline
 Subroutine to calculate a drift transfer matrix with a possible kick. 
 
+\item[init\_lr\_wake (lr\_wake, n\_term)] \Newline 
+Subroutine to initialize a lr\_wake array.
+
+\item[init\_sr\_wake (sr\_wake, n\_term)] \Newline 
+Subroutine to initialize a sr\_wake array.
+
+\item[init\_wake (wake, n\_sr, n\_lr)] \Newline 
+Subroutine to initialize a wake struct.
+
+\item[lr\_wake\_array\_size (ele) result (array\_size)] \Newline 
+Function to return the size of ele%wake%lr.
+
 \item[mat6\_dispersion (mat6, e\_vec)] \Newline
 Subroutine to put the dispersion into ELE%MAT6 given the dispersionvector E\_VEC 
 
 \item[sol\_quad\_mat6\_calc (ks, k1, length, mat6, orb)] \Newline
 Subroutine to calculate the transfer matrix for a combination solenoid/quadrupole element. 
+
+\item[sr\_wake\_array\_size (ele) result (array\_size)] \Newline 
+Function to return the size of ele%wake%sr.
 
 \item[tilt\_mat6 (mat6, tilt)] \Newline
 Subroutine to transform a 6x6 transfer matrix to a new reference frame that is 
@@ -554,6 +574,92 @@ Subroutine to convert from PTC to Bmad coordinates.
 \end{description}
 
 %------------------------------------------------------------------------
+\section{C++ Interface}
+\label{r:cpp}      
+\index{C++ interface!routines}
+
+\begin{description}
+
+\item[amode\_to\_c (f\_amode, c\_amode)] \Newline 
+Subroutine to convert a Bmad amode\_struct to a C++ C\_amode.
+
+\item[arr2mat (arr, n1, n2) result (mat)] \Newline 
+Function to take a an array and turn it into a matrix.
+
+\item[bmad\_com\_to\_c (c\_bmad\_com)] \Newline 
+Subroutine to convert the Bmad bmad\_com\_struct common block to 
+a C++ C\_bmad\_com.
+
+\item[c\_logic (logic) result (c\_log)] \Newline 
+Function to convert from a fortran logical to a C logical.
+
+\item[c\_str (str) result (c\_string)] \Newline 
+Function to append a null (0) character at the end of a string (trimmed
+of trailing blanks) so it will look like a C character array. 
+
+\item[control\_to\_c (f\_control, c\_control)] \Newline 
+Subroutine to convert a Bmad control\_struct to a C++ C\_control.
+
+\item[coord\_to\_c (f\_coord, c\_coord)] \Newline 
+Subroutine to convert a Bmad coord\_struct to a C++ C\_coord.
+
+\item[ele\_to\_c (f\_ele, c\_ele)] \Newline 
+Subroutine to convert a Bmad ele\_struct to a C++ C\_ele.
+
+\item[em\_field\_to\_c (f\_em\_field, c\_em\_field)] \Newline 
+Subroutine to convert a Bmad em\_field\_struct to a C++ C\_em\_field.
+
+\item[f\_logic (logic) result (f\_log)] \Newline 
+Function to convert from a fortran logical to a C logical.
+
+\item[floor\_position\_to\_c (f\_floor\_position, c\_floor\_position)] \Newline 
+Subroutine to convert a Bmad floor\_position\_struct to a C++ C\_floor\_position.
+
+\item[linac\_mode\_to\_c (f\_linac\_mode, c\_linac\_mode)] \Newline 
+Subroutine to convert a Bmad linac\_mode\_struct to a C++ C\_linac\_mode.
+
+\item[lr\_wake\_to\_c (f\_lr\_wake, c\_lr\_wake)] \Newline 
+Subroutine to convert a Bmad lr\_wake\_struct to a C++ C\_lr\_wake.
+
+\item[mat2arr (mat) result (arr)] \Newline 
+Function to take a matrix and turn it into an array.
+
+\item[modes\_to\_c (f\_modes, c\_modes)] \Newline 
+Subroutine to convert a Bmad modes\_struct to a C++ C\_modes.
+
+\item[mode\_info\_to\_c (f\_mode\_info, c\_mode\_info)] \Newline 
+Subroutine to convert a Bmad mode\_info\_struct to a C++ C\_mode\_info.
+
+\item[orbit\_to\_c (f\_orbit, c\_orbit)] \Newline 
+Subroutine to convert an a Bmad orbit\_struct to a C++ C\_orbit.
+
+\item[param\_to\_c (f\_param, c\_param)] \Newline 
+Subroutine to convert a Bmad param\_struct to a C++ C\_param.
+
+\item[ring\_to\_c (f\_ring, c\_ring)] \Newline 
+Subroutine to convert a Bmad ring\_struct to a C++ C\_ring.
+
+\item[sr\_wake\_to\_c (f\_sr\_wake, c\_sr\_wake)] \Newline 
+Subroutine to convert a Bmad sr\_wake\_struct to a C++ C\_sr\_wake.
+
+\item[twiss\_to\_c (f\_twiss, c\_twiss)] \Newline 
+Subroutine to convert a Bmad twiss\_struct to a C++ C\_twiss.
+
+\item[taylor\_term\_to\_c (f\_taylor\_term, c\_taylor\_term)] \Newline 
+Subroutine to convert a Bmad taylor\_term\_struct to a C++ C\_taylor\_term.
+
+\item[taylor\_to\_c (f\_taylor, c\_taylor)] \Newline 
+Subroutine to convert a Bmad taylor\_struct to a C++ C\_taylor.
+
+\item[wake\_to\_c (f\_wake, c\_wake)] \Newline 
+Subroutine to convert a Bmad wake\_struct to a C++ C\_wake.
+
+\item[wig\_term\_to\_c (f\_wig\_term, c\_wig\_term)] \Newline 
+Subroutine to convert a Bmad wig\_term\_struct to a C++ C\_wig\_term.
+
+\end{description}
+
+%------------------------------------------------------------------------
 \section{Mad Tracking Routines}
 \label{r:mad}      
 
@@ -684,6 +790,9 @@ Function to return the coefficient for a particular taylor term from a Taylor Se
 
 \item[taylor\_equal\_taylor (taylor1, taylor2)] \Newline
 Subroutine to transfer the values from one taylor map to another: Taylor1 $\le$ Taylor2 
+
+\item[taylors\_equal\_taylors (taylor1, taylor2)] \Newline 
+Subroutine to transfer the values from one taylor map to another.
 
 \item[taylor\_to\_mat6 (a\_taylor, c0, mat6, c1)] \Newline
 Subroutine to calculate the linear (Jacobian) matrix about some trajectory from a Taylor map. 
@@ -910,9 +1019,6 @@ Subroutine to allocate or re-allocate the ring%ele\_(:) pointer in a ring.
 Subroutine to calculate the combined strength of the attributes for
 controlled elements.
 
-\item[control\_lord\_bookkeeper (ring)] \Newline 
-Subroutine to transfer attibute information from lord to slave elements.
-
 \item[deallocate\_ring\_pointers (ring)] \Newline 
 Subroutine to deallocate the pointers in a ring.
 
@@ -921,6 +1027,9 @@ Subroutine to initialize an element.
 
 \item[init\_ring (ring, n)] \Newline 
 Subroutine to initialize a Bmad ring.
+
+\item[lattice\_bookkeeper (ring)] \Newline 
+Subroutine to do bookkeeping for the entire lattice.
 
 \item[reallocate\_coord (coord\_, n\_coord)] \Newline 
 Subroutine to reallocate an allocatable  coord\_struct array to at least:
@@ -1585,6 +1694,13 @@ Subroutine to return a Gaussian distributed random number with unit sigma.
 
 \item[ran\_seed (seed)] \Newline 
 Subroutine to seed the random number generator. 
+
+\item[ran\_seed\_get (seed)] \Newline 
+Subroutine to return the seed used for the random number generator.
+
+\item[ran\_uniform (harvest)] \Newline 
+Subroutine to return a random number uniformly distributed in the 
+interval [0, 1]. This routine uses the same algorithm as ran from
 
 \item[modulo2\_real (x, amp)] \Newline 
 Function to return

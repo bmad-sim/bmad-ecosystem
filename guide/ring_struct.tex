@@ -153,7 +153,15 @@ elements are computed by \vn{ring_make_mat6}. If \vn{ring_make_mat6}
 is not called then \vn{control_bookkeeper} needs to be
 called. \vn{control_bookkeeper} will call \vn{attribute_bookkeeper} so
 the attribute bookkeeping will be taken care of too (see
-Section~\ref{s:depend}).
+Section~\ref{s:depend}). Example:
+\begin{example}
+  type (ring_struct) lattice
+  ! ... 
+  lattice%ele_(i)%value(k1$) = k1_now   ! change an attribute
+  call control_bookkeeper (lattice, i)  ! do bookkeeping
+\end{example}
+If multiple elements are modified then the \vn{lattice_bookkeeper} will
+do bookkeeping for the entire lattice.
 
 The element control information is stored in the \vn{%control_(:)} array, 
 Each element of this array is a \vn{control_struct} structure 
