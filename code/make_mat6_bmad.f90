@@ -31,24 +31,25 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   type (coord_struct) orb
   type (param_struct)  param
 
-  real(rdef), pointer :: mat6(:,:)
+  real(rp), pointer :: mat6(:,:)
 
-  real(rdef) mat6_m(6,6), mat2(2,2), mat4(4,4), kmat1(4,4), kmat2(4,4)
-  real(rdef) e1, e2, angle, g, cos_angle, sin_angle, k1, ks, length, kc
-  real(rdef) phi, k2l, k3l, c2, s2, cs, ks2, del_l, g_bend, l_period, l_bend
-  real(rdef) factor, l_drift, dx, kmat6(6,6)
-  real(rdef) s_pos, s_pos_old, z_slice(100)
-  real(rdef) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-  real(rdef) r, c_e, c_m, gamma_old, gamma_new, vec_st(4)
-  real(rdef) sqrt_k, arg, kick2, rel_E
-  real(rdef) cx, sx, cy, sy, k2l_2, k2l_3, k2l_4
-  real(rdef) x_off, y_off, s_off, x_pit, y_pit, y_ave, k_z, del_x, del_y
-  real(rdef) t5_11, t5_12, t5_22, t5_33, t5_34, t5_44, t5_14, t5_23
-  real(rdef) t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
-  real(rdef) t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
-  real(rdef) lcs, lc2s2, error, rho
-  real(rdef) cos_phi, gradient, e_start, e_end, e_ratio
-  real(rdef) alpha, sin_a, cos_a, f, phase
+  real(rp) mat6_m(6,6), mat2(2,2), mat4(4,4), kmat1(4,4), kmat2(4,4)
+  real(rp) e1, e2, angle, g, cos_angle, sin_angle, k1, ks, length, kc
+  real(rp) phi, k2l, k3l, c2, s2, cs, ks2, del_l, g_bend, l_period, l_bend
+  real(rp) factor, l_drift, dx, kmat6(6,6)
+  real(rp) s_pos, s_pos_old, z_slice(100)
+  real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+  real(rp) r, c_e, c_m, gamma_old, gamma_new, vec_st(4)
+  real(rp) sqrt_k, arg, kick2, rel_E
+  real(rp) cx, sx, cy, sy, k2l_2, k2l_3, k2l_4
+  real(rp) x_off, y_off, s_off, x_pit, y_pit, y_ave, k_z, del_x, del_y
+  real(rp) t5_11, t5_12, t5_22, t5_33, t5_34, t5_44, t5_14, t5_23
+  real(rp) t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
+  real(rp) t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
+  real(rp) lcs, lc2s2, error, rho, z, px, py, pz, k, L
+  real(rp) cos_phi, gradient, e_start, e_end, e_ratio
+  real(rp) alpha, sin_a, cos_a, f, phase, E, pxy2, dE0
+
   integer i, n, n_slice, n_pole, key
 
 !--------------------------------------------------------
@@ -249,11 +250,11 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   case (sextupole$)
 
     k2l = ele%value(k2$) * length / rel_E
-    call mat4_multipole (k2l/2, 0.0_rdef, 2, c0t%vec, kmat1)
+    call mat4_multipole (k2l/2, 0.0_rp, 2, c0t%vec, kmat1)
     mat4 = kmat1
     mat4(1,1:4) = kmat1(1,1:4) + length * kmat1(2,1:4) ! kick * length
     mat4(3,1:4) = kmat1(3,1:4) + length * kmat1(4,1:4)
-    call mat4_multipole (k2l/2, 0.0_rdef, 2, c1t%vec, kmat2)
+    call mat4_multipole (k2l/2, 0.0_rp, 2, c1t%vec, kmat2)
     mat6(1:4,1:4) = matmul (kmat2, mat4)
 
     c0t%vec(1:4) = matmul(kmat1, c0t%vec(1:4))
@@ -279,11 +280,11 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   case (octupole$)
 
     k3l = ele%value(k3$) * length / rel_E
-    call mat4_multipole (k3l/2, 0.0_rdef, 3, c0t%vec, kmat1)
+    call mat4_multipole (k3l/2, 0.0_rp, 3, c0t%vec, kmat1)
     mat4 = kmat1
     mat4(1,1:4) = kmat1(1,1:4) + length * kmat1(2,1:4) ! kick * length
     mat4(3,1:4) = kmat1(3,1:4) + length * kmat1(4,1:4)
-    call mat4_multipole (k3l/2, 0.0_rdef, 3, c1t%vec, kmat2)
+    call mat4_multipole (k3l/2, 0.0_rp, 3, c1t%vec, kmat2)
     mat6(1:4,1:4) = matmul (kmat2, mat4)
 
     c0t%vec(1:4) = matmul(kmat1, c0t%vec(1:4))
@@ -422,31 +423,54 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
 !--------------------------------------------------------
 ! rf cavity
-! this is not quite correct.
+! Calculation Uses a 3rd order map assuming a linearized rf voltage vs time.
 
   case (rfcavity$)
+
     if (ele%value(volt$) /= 0) then
       if (ele%value(harmon$) == 0) then
         type *, 'ERROR IN MAKE_MAT6_BMAD: "HARMON" ATTRIBUTE NOT SET FOR RF.'
         type *, '      FOR ELEMENT: ', ele%name
         call err_exit
-      else
-        mat6(6,5) = ele%value(volt$) * cos(twopi*ele%value(phi0$)) *  &
-                   twopi / ele%value(rf_wavelength$) /param%beam_energy
       endif
     endif
 
-    c0t%vec = (c0t%vec + c1t%vec) / 2
+    z = c0%z%pos
+    px = c0%x%vel
+    py = c0%y%vel
+    pz = c0%z%vel
 
-    mat6(1,2) = length
-    mat6(3,4) = length
-    mat6(5,2) = - c0t%vec(2) * length
-    mat6(5,4) = - c0t%vec(4) * length
+    phase = twopi * (ele%value(phi0$) + z / ele%value(rf_wavelength$))
+    k  =  twopi * ele%value(volt$) * cos(phase) / &
+                              (param%beam_energy * ele%value(rf_wavelength$))
+    dE0 =  ele%value(volt$) * sin(phase) / param%beam_energy
+    L = ele%value(l$)
+    E = 1 + pz
+    E2 = E**2
+    pxy2 = px**2 + py**2
 
-    mat6(1,5) = mat6(5,2) * mat6(6,5)
-    mat6(1,6) = mat6(5,2)
-    mat6(3,5) = mat6(5,4) * mat6(6,5)
-    mat6(3,6) = mat6(5,4)
+!
+
+    mat6(1,1) = 1
+    mat6(1,2) = L * (1/E - dE0/2 + L*(3*px**2 + py**2)/12 + pz*dE0 + dE0*dE0/3)
+    mat6(1,4) = px*py*L**2/6
+    mat6(1,5) = L*px * (-k/2 + pz*k + 2*dE0*k/3)
+    mat6(1,6) = L*px * (-1/E2 + dE0)
+    mat6(2,2) = 1
+    mat6(3,2) = px*py*L**2/6
+    mat6(3,3) = 1
+    mat6(3,4) = L * (1/E - dE0/2 + L*(3*py**2 + px**2)/12 + pz*dE0 + dE0*dE0/3)
+    mat6(3,5) = L*py * (-k/2 + pz*k + 2*dE0*k/3)
+    mat6(3,6) = L*py * (-1/E2 + dE0)
+    mat6(4,4) = 1
+    mat6(5,2) = px*L * (-1/E2 + dE0)
+    mat6(5,4) = py*L * (-1/E2 + dE0)
+    mat6(5,5) = 1 + pxy2*k*L/2
+    mat6(5,6) = pxy2 * L / (E2*E)
+    mat6(6,2) = k*px*L * (-1/(2*E2) + dE0/3)
+    mat6(6,4) = k*py*L * (-1/(2*E2) + dE0/3)
+    mat6(6,5) = k * (1 + pxy2*L*k/6)
+    mat6(6,6) = 1 + pxy2*k*L/(2*E2*E)
 
 !--------------------------------------------------------
 ! beam-beam interaction
@@ -465,7 +489,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 ! factor of 2 in orb%z%pos since relative motion of the two beams is 2*c_light
 
     if (n_slice == 1) then
-      call bbi_kick_matrix (ele, c0t, 0.0_rdef, mat6)
+      call bbi_kick_matrix (ele, c0t, 0.0_rp, mat6)
     else
       call bbi_slice_calc (n_slice, ele%value(sig_z$), z_slice)
 
@@ -594,7 +618,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   case (multipole$, ab_multipole$)
     if (.not. ele%multipoles_on) return
     call multipole_ele_to_kt (ele, param%particle, knl, tilt, .true.)
-    call mat6_multipole (knl, tilt, c0t%vec, 1.0_rdef, ele%mat6)
+    call mat6_multipole (knl, tilt, c0t%vec, 1.0_rp, ele%mat6)
 
 !--------------------------------------------------------
 ! accelerating solenoid with steerings
@@ -631,7 +655,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
     gamma_old = param%beam_energy * rel_E / m_electron
     gamma_new = gamma_old + c_e * length
     call accel_sol_mat_calc (length, c_m, c_e, gamma_old, gamma_new, &
-                                    0.0_rdef, 0.0_rdef, c0t%vec, mat4, vec_st)
+                                    0.0_rp, 0.0_rp, c0t%vec, mat4, vec_st)
     mat4 = mat6(1:4,1:4)
 
 !--------------------------------------------------------
@@ -670,10 +694,10 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   if (associated(ele%a) .and. key /= multipole$ .and. key /= ab_multipole$) then
     mat6_m = 0
     call multipole_ele_to_kt (ele, param%particle, knl, tilt, .true.)
-    call mat6_multipole (knl, tilt, c00%vec, 0.5_rdef, mat6_m)
+    call mat6_multipole (knl, tilt, c00%vec, 0.5_rp, mat6_m)
     mat6(:,1) = mat6(:,1) + mat6(:,2) * mat6_m(2,1) + mat6(:,4) * mat6_m(4,1)
     mat6(:,3) = mat6(:,3) + mat6(:,2) * mat6_m(2,3) + mat6(:,4) * mat6_m(4,3)
-    call mat6_multipole (knl, tilt, c11%vec, 0.5_rdef, mat6_m)
+    call mat6_multipole (knl, tilt, c11%vec, 0.5_rp, mat6_m)
     mat6(2,:) = mat6(2,:) + mat6_m(2,1) * mat6(1,:) + mat6_m(2,3) * mat6(3,:)
     mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
   endif
@@ -703,8 +727,8 @@ subroutine bbi_kick_matrix (ele, orb, s_pos, mat6)
   type (ele_struct)  ele
   type (coord_struct)  orb
 
-  real(rdef) x_pos, y_pos, del, sig_x, sig_y, coef, garbage, s_pos
-  real(rdef) ratio, k0_x, k1_x, k0_y, k1_y, mat6(6,6), beta
+  real(rp) x_pos, y_pos, del, sig_x, sig_y, coef, garbage, s_pos
+  real(rp) ratio, k0_x, k1_x, k0_y, k1_y, mat6(6,6), beta
 
 !
 

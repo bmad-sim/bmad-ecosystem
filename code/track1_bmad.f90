@@ -42,14 +42,15 @@ subroutine track1_bmad (start, ele, param, end)
   type (coord_struct)  c0
   type (ele_struct)  bend
 
-  real(rdef) x_kick, y_kick, k1, k2l, k3l, length, phase, mat2(2,2), mat4(4,4)
-  real(rdef) del, e1, e2, del_x_vel, del_y_vel, sig_x, sig_y, kx, ky, coef
-  real(rdef) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-  real(rdef) ks, sig_x0, sig_y0, beta, mat6(6,6)
-  real(rdef) z_slice(100), s_pos, s_pos_old, vec0(6)
-  real(rdef) ave_x_vel2, ave_y_vel2, rel_E
-  real(rdef) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio
-  real(rdef) alpha, sin_a, cos_a, f, z_ave
+  real(rp) x_kick, y_kick, k1, k2l, k3l, length, phase, mat2(2,2), mat4(4,4)
+  real(rp) del, e1, e2, del_x_vel, del_y_vel, sig_x, sig_y, kx, ky, coef
+  real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+  real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6)
+  real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
+  real(rp) ave_x_vel2, ave_y_vel2, rel_E
+  real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio
+  real(rp) alpha, sin_a, cos_a, f, z_ave
+  real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2
 
   integer i, j, n, n_slice, key
 
@@ -202,22 +203,36 @@ subroutine track1_bmad (start, ele, param, end)
 
   case (rfcavity$)
 
-    call offset_particle (ele, param, end, set$)
+    call offset_particle (ele, param, end, set$, set_canonical = .false.)
 
-    end%vec(1) = end%vec(1) + length * end%vec(2) 
-    end%vec(3) = end%vec(3) + length * end%vec(4) 
+    x = end%x%pos
+    y = end%y%pos
+    z = end%z%pos
 
-    z_ave = end%z%pos - length * &
-      (start%x%vel**2 + end%x%vel**2 + start%x%vel * end%x%vel + &
-       start%y%vel**2 + end%y%vel**2 + start%y%vel * end%y%vel) / 12
+    px = end%x%vel
+    py = end%y%vel
+    pz = end%z%vel
 
-    if (ele%value(volt$) /= 0) then
-      phase = twopi * (ele%value(phi0$) + z_ave / ele%value(rf_wavelength$))
-      end%z%vel = end%z%vel + &
-                         ele%value(volt$) * sin (phase) / param%beam_energy
-    endif
+
+    phase = twopi * (ele%value(phi0$) + z / ele%value(rf_wavelength$))
+    k  =  twopi * ele%value(volt$) * cos(phase) / &
+                              (param%beam_energy * ele%value(rf_wavelength$))
+    dE0 =  ele%value(volt$) * sin(phase) / param%beam_energy
+
+    L = ele%value(l$)
+    E = 1 + pz
+    E2 = E**2
+    pxy2 = px**2 + py**2
+
+!
+
+    end = start
+    end%x%pos = x + px*L * (1/E - dE0/2 + pxy2*L/12 + pz*dE0 + dE0**2/3) 
+    end%y%pos = y + py*L * (1/E - dE0/2 + pxy2*L/12 + pz*dE0 + dE0**2/3)
+    end%z%pos = z + pxy2*L * (-1/(2*E2) + dE0/2)
+    end%z%vel = pz + dE0 + k*pxy2*L * (-1/(4*E2) + dE0/6) 
          
-    call offset_particle (ele, param, end, unset$)
+    call offset_particle (ele, param, end, unset$, set_canonical = .false.)
 
 ! linac rf cavity
 ! assumes the particle is ultra-relativistic.
