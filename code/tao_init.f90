@@ -15,11 +15,15 @@ subroutine tao_init (init_file)
 
   implicit none
 
+  type (tao_universe_struct), pointer :: u
+  type (tao_var_struct), pointer :: var_ptr
+  type (tao_this_var_struct), pointer :: this
+
   character(*) init_file
   character(200) lattice_file, plot_file, data_file, var_file, file_name
   character(200) single_mode_file, startup_file
   character(n_universe_maxx) :: r_name = 'tao_init'
-  integer i, n_universes, iu
+  integer i, j, n_universes, iu, ix
 
   namelist / tao_start / lattice_file, startup_file, &
                data_file, var_file, plot_file, n_universes
@@ -59,7 +63,31 @@ subroutine tao_init (init_file)
   call tao_init_single_mode (single_mode_file)
   call tao_hook_init ()
 
-  ! set up design and base lattices
+! check variables
+! check if vars are good
+
+  call tao_set_var_useit_opt
+
+  do i = 1, size(s%var)
+    var_ptr => s%var(i)
+    if (.not. var_ptr%exists) cycle
+    do j = 1, size(var_ptr%this)
+      this => var_ptr%this(j)
+      u => s%u(this%ix_uni)
+      ix = attribute_index (u%model%ele_(this%ix_ele), var_ptr%attrib_name)
+      if (.not. attribute_free (u%model%ele_(this%ix_ele), ix, u%model)) then
+        call out_io (s_abort$, r_name, &
+                'Error: Variable trying to control an attribute that is not free to vary.', &
+                '       Variable:  ' // var_ptr%name, &
+                '       Element:   ' // var_ptr%ele_name, &
+                '       Attribute: ' // var_ptr%attrib_name)
+        call err_exit
+      endif
+    enddo
+  enddo
+
+! set up design and base lattices
+
   do i = 1, size(s%u)
     s%u(i)%model = s%u(i)%design; s%u(i)%model_orb = s%u(i)%design_orb
   enddo

@@ -25,10 +25,13 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   
   implicit none
 
+  type (tao_universe_struct), pointer :: u
   type (tao_d2_data_input) d2_data
   type (tao_d1_data_input) d1_data
   type (tao_data_input) data(n_data_minn:n_data_maxx) ! individual weight 
   type (tao_v1_var_input) v1_var
+  type (tao_var_struct), pointer :: var_ptr
+  type (tao_this_var_struct), pointer :: this
   type (tao_var_input) var(n_var_minn:n_var_maxx)
   type (tao_global_struct) global
   type (tao_d1_data_struct), pointer :: d1_ptr
@@ -54,7 +57,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   character(16) default_merit_type, default_attribute
   character(100) line
 
-  logical err
+  logical err, free
   logical counting, searching
   logical sr_wakes_on, lr_wakes_on
   logical calc_emittance(n_universe_maxx)

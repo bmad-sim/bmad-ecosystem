@@ -91,10 +91,11 @@ jj = 10
 do j = 1, s_var_size
 
 ! let user see progress
-  if (modulo(j * 10, s_var_size) .eq. 0) then
-    call out_io (s_blank$, r_name, " \i3\% done...", jj)
-    jj = jj + 10
-  endif
+
+!  if (modulo(j * 10, s_var_size) .eq. 0) then
+!    call out_io (s_blank$, r_name, " \i3\% done...", jj)
+!    jj = jj + 10
+!  endif
 
   if (.not. s%var(j)%useit_opt) cycle
   nv = s%var(j)%ix_dvar
@@ -116,7 +117,9 @@ do j = 1, s_var_size
   enddo
 
   call tao_set_var_model_value (s%var(j), model_value)
+
 enddo
+
 
 end subroutine
 
