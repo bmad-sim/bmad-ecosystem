@@ -35,7 +35,7 @@ type (coord_struct) orbit
 type (lr_wake_struct), pointer :: lr
 
 integer i, n_mode
-real(rp) s_ref, ds, k, f_exp, ff, c, s, w_norm, w_skew, kx, ky
+real(rp) s_ref, ds, k, f_exp, ff, c, s, w_norm, w_skew, kx, ky, k_dum
 
 ! Check if we have to do any calculations
 
@@ -64,8 +64,9 @@ do i = 1, n_mode
   w_skew = lr%skew_sin * ff * (f_exp * s + k * c) + &
            lr%skew_cos * ff * (f_exp * c - k * s)
 
+  call ab_multipole_kick (0.0_rp, w_norm, lr%m, orbit, kx, k_dum)
+  call ab_multipole_kick (0.0_rp, w_skew, lr%m, orbit, k_dum, ky)
 
-  call ab_multipole_kick (w_skew, w_norm, lr%m, orbit, kx, ky)
   orbit%vec(6) = orbit%vec(6) + kx + ky
 
 ! transverse kick
@@ -77,8 +78,8 @@ do i = 1, n_mode
 
   call ab_multipole_kick (w_skew, w_norm, lr%m-1, orbit, kx, ky)
 
-  orbit%vec(2) = orbit%vec(2) + kx
-  orbit%vec(4) = orbit%vec(4) + ky
+  orbit%vec(2) = orbit%vec(2) + lr%m * kx
+  orbit%vec(4) = orbit%vec(4) + lr%m * ky
 
 enddo
 
@@ -138,8 +139,8 @@ do i = 1, n_mode
 
   lr%norm_sin = lr%norm_sin - charge * kx * c
   lr%norm_cos = lr%norm_cos + charge * kx * s
-  lr%skew_sin = lr%skew_sin + charge * ky * c
-  lr%skew_cos = lr%skew_cos - charge * ky * s
+  lr%skew_sin = lr%skew_sin - charge * ky * c
+  lr%skew_cos = lr%skew_cos + charge * ky * s
 
 enddo
 
