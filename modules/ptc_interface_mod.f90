@@ -1163,8 +1163,8 @@ subroutine taylor_inverse (taylor_in, taylor_inv)
 
   implicit none
 
-  type (taylor_struct), intent(in) :: taylor_in(:)
-  type (taylor_struct), intent(out) :: taylor_inv(:)
+  type (taylor_struct) :: taylor_in(:)
+  type (taylor_struct) :: taylor_inv(:)
   type (taylor_struct) tlr(6)
   type (real_8) y(6), yc(6)
   type (damap) da

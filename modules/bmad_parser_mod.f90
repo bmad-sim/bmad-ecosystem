@@ -1574,7 +1574,7 @@ subroutine read_sr_wake (ele)
 
   dz = ele%wake%sr(i)%z / i
   do j = 1, i
-    if (abs(ele%wake%sr(i)%z - dz * j) > 1e-4 * dz) then
+    if (abs(ele%wake%sr(j)%z - dz * j) > 1e-4 * dz) then
       write (line, '(a, i5)') &
                       'WAKEFIELD POINTS DO NOT HAVE UNIFORM DZ FOR POINT:', j
       call warning (line, 'IN FILE: ' // ele%wake%sr_file)
@@ -1875,9 +1875,9 @@ subroutine warning (what1, what2, seq)
 
   if (bmad_status%type_out) then
 
-    print *, 'ERROR IN ', trim(bp_com%parser_name), ': ', what1
+    print *, 'ERROR IN ', trim(bp_com%parser_name), ': ', trim(what1)
 
-    if (present(what2)) print '(22x, a)', what2
+    if (present(what2)) print '(22x, a)', trim(what2)
 
     if (present(seq)) then
       print *, '      IN FILE: ', trim(seq%file_name)

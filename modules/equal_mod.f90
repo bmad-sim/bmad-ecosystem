@@ -172,10 +172,10 @@ subroutine ele_equal_ele (ele1, ele2)
         ele1%wake%sr => ele_save%wake%sr
       else
         deallocate (ele_save%wake%sr)
-        allocate (ele1%wake%sr(size(ele2%wake%sr)))
+        allocate (ele1%wake%sr(0:ubound(ele2%wake%sr,1)))
       endif
     else
-      allocate (ele1%wake%sr(size(ele2%wake%sr)))
+      allocate (ele1%wake%sr(0:ubound(ele2%wake%sr,1)))
     endif
     ele1%wake%sr = ele2%wake%sr
   else
@@ -188,10 +188,10 @@ subroutine ele_equal_ele (ele1, ele2)
         ele1%wake%lr => ele_save%wake%lr
       else
         deallocate (ele_save%wake%lr)
-        allocate (ele1%wake%lr(size(ele2%wake%lr)))
+        allocate (ele1%wake%lr(0:ubound(ele2%wake%lr,1)))
       endif
     else
-      allocate (ele1%wake%lr(size(ele2%wake%lr)))
+      allocate (ele1%wake%lr(0:ubound(ele2%wake%lr,1)))
     endif
     ele1%wake%lr = ele2%wake%lr
   else

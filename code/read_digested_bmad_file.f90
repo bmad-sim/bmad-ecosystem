@@ -186,7 +186,7 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
     endif
 
     if (ix_sr /= 0) then
-      allocate (ele%wake%sr(ix_sr))
+      allocate (ele%wake%sr(0:ix_sr-1))
       read (d_unit) ele%wake%sr
     endif
 
@@ -196,7 +196,7 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
     endif
 
     if (ix_lr /= 0) then
-      allocate (ele%wake%lr(ix_lr))
+      allocate (ele%wake%lr(0:ix_lr-1))
       read (d_unit) ele%wake%lr
     endif
 
