@@ -1,54 +1,68 @@
 \chapter{Elements}
 
-Intro and basic syntax
+A lattice for a storage ring or linac is made up of a collection of
+elements --- Quadrupoles, Bends, etc. This chapter discusses the
+various types of elements available in \bmad.
 
-\section{MAD elements recognized by Bmad}
-Most element types available in \mad\ are provided in \bmad.  In some cases, however, the attributes
-associated with a particular element type are not identical.  Table \ref{tab:mad_elements} summarizes the
-element types which \bmad\ inherits from \mad.
 
-\begin{table}
-\label{tab:mad_elements}\center
+\section{Bmad Element List}
+
+
+Most element types available in \mad\ are provided in \bmad.
+Additionally, \bmad\ provides a number of element types that are not
+available in \mad.  A word of caution: In some cases where both \mad\
+and \bmad\ provide the the same element type, there will be an overlap of 
+the attributes available but the two sets of attributes will not be the same.
+The list of element types known to \bmad\ is shown in Table~\ref{tab:elements}
+\begin{table}[h]
+\centering
 {\tt
-\begin{tabular}{|l|l|} \hline
-    ab\_multipole &  type, a$n$, b$n$ $(0 \le n \le 20)$, radius, tilt     \\ \hline
-    beambeam      &  type, sig\_x, sig\_y, charge, sig\_z, n\_slice        \\ \hline
-    custom        &  type, l, val1, val2, val3, ..., val12                 \\ \hline
-    drift         &  type, l                                               \\ \hline
-    ecollimator   &  type, l, x\_limit, y\_limit                           \\ \hline
-    elseparator   &  type, l, gap                                          \\ \hline
-    group         &  type, command, old\_command, coef                     \\ \hline
-    hkicker       &  type, l, kick, tilt                                   \\ \hline
-    instument     &  type, l                                               \\ \hline
-    kicker        &  type, l, hkick, vkick, h\_displace, v\_displace       \\ \hline
-    lcavity       &  type, l, gradient, phi0, rf\_frequency \\ \hline
-    marker        &  type \\ \hline
-    monitor       &  type, l \\ \hline
-    multipole     &  type, k$n$l, t$n$ $(0 \le n \le 20)$, tilt \\ \hline
-    octupole      &  type, l, k3, tilt, b\_gradient \\ \hline
-    overlay       &  {\sl see chap.~8} \\ \hline
-    patch         &  type, x\_offset, x\_pitch, y\_offset, y\_pitch, z\_offset, \\
-                  &  de\_offset \\ \hline
-    quadrupole    &  type, l, k1, tilt, b\_gradient \\ \hline
-    rbend         &  type, l, angle, e1, e2, k1, tilt, g, delta\_g, \\
-                  &  roll, rho, b\_field \\ \hline
-    rcollimator   &  type, l, x\_limit, y\_limit \\ \hline
-    rfcavity      &  type, l, volt, harmon, phi0 (= lag)  \\ \hline
-    sbend         &  type, l, angle, e1, e2, k1, tilt, g, delta\_g, \\
-                  &  roll, rho, b\_field \\ \hline
-    sextupole     &  type, l, k2, tilt, b\_gradient \\ \hline
-    solenoid      &  type, l, ks, b\_field \\ \hline 
-    sol\_quad     &  type, l, k1, ks, tilt \\ \hline
-    taylor        &  type, \{out\_index : coef : e1 e2 e3 e4 e5 e6\} \\ \hline
-    vkicker       &  type, l, kick, tilt \\ \hline
-    wiggler       &  type, l, b\_max, n\_pole, tilt, b$n$ $(n=2,4,6,8)$, radius \\ \hline
-    wiggler       &  type, l, polarity, z\_patch, \\
-                  &  term($i$) = \{coef, kx, ky, kz, phi\_z\} \\ \hline
+\begin{tabular}{|l|l||l|l|} \hline
+  {\it Element} & {\it Section}  & {\it Element} & {\it Section} \\ \hline
+  ab\_multipole & \ref{s:ab_m}   &  octupole     & \ref{s:oct}   \\ \hline
+  beambeam      & \ref{s:bbi}    &  overlay      & \ref{s:over}  \\ \hline
+  custom        & \ref{s:custom} &  patch        & \ref{s:patch} \\ \hline
+  drift         & \ref{s:drift}  &  quadrupole   & \ref{s:quad}  \\ \hline
+  ecollimator   & \ref{s:ecol}   &  rbend        & \ref{s:rbend} \\ \hline
+  elseparator   & \ref{s:elsep}  &  rcollimator  & \ref{s:rcol}  \\ \hline
+  group         & \ref{s:group}  &  rfcavity     & \ref{s:rfcav} \\ \hline
+  hkicker       & \ref{s:hk}     &  sbend        & \ref{s:sbend} \\ \hline
+  instument     & \ref{s:inst}   &  sextupole    & \ref{s:sex}   \\ \hline
+  kicker        & \ref{s:k}      &  solenoid     & \ref{s:sol}   \\ \hline
+  lcavity       & \ref{s:lcav}   &  sol\_quad    & \ref{s:sq}    \\ \hline
+  marker        & \ref{s:mark}   &  taylor       & \ref{s:tay}   \\ \hline
+  monitor       & \ref{s:mon}    &  vkicker      & \ref{s:vk}    \\ \hline
+  multipole     & \ref{s:m}      &  wiggler      & \ref{s:wig}   \\ \hline
 \end{tabular}}
-\caption{Summary \bmad\ elements}
+\caption{\bmad\ elements.}
+\label{tab:elements}\center
 \end{table}
 
-\subsection{Beambeam}
+%-----------------------------------------------------------------
+\subsection{AB\_Multipole}
+\label{s:ab_m}
+
+
+\begin{table}[h]
+\centering {
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute} & {\sl Description}  & {\sl Attribute} & {\sl description} \\ \hline
+  tilt         = Real & \ref{s:offset} &  type               = String  & \ref{s:string} \\ \hline
+  x\_offset    = Real & \ref{s:offset} &  alias              = String  & \ref{s:string} \\ \hline
+  y\_offset    = Real & \ref{s:offset} &  descrip            = String  & \ref{s:string} \\ \hline
+  s\_offset    = Real & \ref{s:offset} &  mat6\_calc\_method = Switch  & \ref{s:track}  \\ \hline
+  x\_limit     = Real & \ref{s:limit}  &  tracking\_method   = Switch  & \ref{s:track}  \\ \hline
+  y\_limit     = Real & \ref{s:limit}  &  is\_on             = Logical & \ref{s:is_on}  \\ \hline
+  aperture     = Real & \ref{s:limit}  &  a$n$, b$n$         = Real    & \ref{s:ab}     \\ \hline  
+  beam\_energy = Real & \ref{s:energy} &  radius             = Real    & \ref{s:ab}     \\ \hline
+\end{tabular}}
+\end{table}
+
+%-----------------------------------------------------------------
+\subsection{BeamBeam}
+\label{s:bbi}
+
+
 In \bmad, \vn{x_offset} and \vn{y_offset} are used to offset the
 \vn{beambeam} element instead of the \mad\ standard attributes
 \vn{xma} and \vn{yma}.
@@ -62,8 +76,22 @@ not the half-angle).
 \item \vn{charge}=+1: Opposite beam has the same charge.   
 \end{itemize}
 
+%-----------------------------------------------------------------
+\subsection{Custom}
+\label{s:custom}
+
+%-----------------------------------------------------------------
 \subsection{Drift}
+\label{s:drift}
+
+%-----------------------------------------------------------------
+\subsection{Ecollimator}
+\label{s:ecol}
+
+%-----------------------------------------------------------------
 \subsection{Elseperator}
+\label{s:elsep}
+
 For an \vn{elseparator}, the kick is determined by \vn{hkick} and
 \vn{vkick}. The \vn{gap} for an \vn{elseparator} is used to compute
 the electric field for a given kick. The voltage is a dependent
@@ -72,34 +100,93 @@ attribute determined by:
   Voltage (V) = kick * E [ev] * gap [m] / L [m] 
 \end{example}
 
-\subsection{Kicker}
-\subsection{Marker}
-\subsection{Multipole}
-\subsection{Octupole}
-\subsection{Quadrupole}
-\subsection{Rbend}
-\subsection{Rfcavity}
-\subsection{Sbend}
-\subsection{Sextupole}
-\subsection{Solenoid}
-
-\bmad\ provides additional element types corresponding to physical elements, 
-as well as special types which control other elements, or represent
-superimposed or hybrid elements.  Table \ref{tab:bmad_elements}
-summarizes element types unique to \bmad.
-
-\begin{table}\label{tab:bmad_elements}\center
-{\tt\begin{tabular}{|l|l|} \hline
-
-\end{tabular}}
-\caption{Summary of element types unique to \bmad}
-\end{table}
-\subsection{Ab\_multipole}
-\subsection{Custom}
+%-----------------------------------------------------------------
 \subsection{Group}
+\label{s:group}
+
+%-----------------------------------------------------------------
+\subsection{Hkicker}
+\label{s:hk}
+
+%-----------------------------------------------------------------
+\subsection{Instrument}
+\label{s:inst}
+
+%-----------------------------------------------------------------
+\subsection{Kicker}
+\label{s:k}
+
+%-----------------------------------------------------------------
 \subsection{Lcavity}
+\label{s:lcav}
+
+%-----------------------------------------------------------------
+\subsection{Marker}
+\label{s:mark}
+
+%-----------------------------------------------------------------
+\subsection{Monitor}
+\label{s:mon}
+
+%-----------------------------------------------------------------
+\subsection{Multipole}
+\label{s:m}
+
+%-----------------------------------------------------------------
+\subsection{Octupole}
+\label{s:oct}
+
+%-----------------------------------------------------------------
 \subsection{Overlay}
-\subsection{Sol\_quad}
-\subsection{Taylor}
-\subsection{Wiggler} Two of these?
+\label{s:over}
+
+%-----------------------------------------------------------------
 \subsection{Patch}
+\label{s:patch}
+
+%-----------------------------------------------------------------
+\subsection{Quadrupole}
+\label{s:quad}
+
+%-----------------------------------------------------------------
+\subsection{Rbend}
+\label{s:rbend}
+
+%-----------------------------------------------------------------
+\subsection{Rcollimator}
+\label{s:rcol}
+
+%-----------------------------------------------------------------
+\subsection{Rfcavity}
+\label{s:rfcav}
+
+%-----------------------------------------------------------------
+\subsection{Sbend}
+\label{s:sbend}
+
+%-----------------------------------------------------------------
+\subsection{Sextupole}
+\label{s:sex}
+
+%-----------------------------------------------------------------
+\subsection{Solenoid}
+\label{s:sol}
+
+%-----------------------------------------------------------------
+\subsection{Sol\_Quad}
+\label{s:sq}
+
+%-----------------------------------------------------------------
+\subsection{Taylor}
+\label{s:tay}
+
+%-----------------------------------------------------------------
+\subsection{Vkicker}
+\label{s:vk}
+
+%-----------------------------------------------------------------
+\subsection{Wiggler} 
+\label{s:wig}
+
+
+

@@ -37,7 +37,9 @@
 
 \newenvironment{Itemize}
   {\begin{list}{$\bullet$}
-    {\addtolength{\topsep}{-1.5ex} \addtolength{\itemsep}{-1ex}}
+    {\addtolength{\topsep}{-1.5ex} 
+     \addtolength{\itemsep}{-1ex}
+    }
   }
   {\end{list} \vspace*{1ex}}
 
@@ -45,8 +47,16 @@
 
 \newcommand{\SECTION}[1]{\section*{#1}\indent\vspace{-3ex}}
 
+% From pg 64 of The LaTex Companion.
+
 \newenvironment{ventry}[1]
-  {\begin{list}{}\renewcommand{\makelabel}[1]{\textsf{##1:}\hfil}
-    \settowidth{\labelwidth}{\textsf{#1:}}
-    \setlength{\leftmargin}{\labelwidth+\labelsep}}}
+  {\begin{list}{}
+    {\renewcommand{\makelabel}[1]{\textsf{##1}\hfil}
+     \settowidth{\labelwidth}{\textsf{#1}}
+     \addtolength{\itemsep}{-1.5ex}
+     \addtolength{\topsep}{-1.0ex} 
+     \setlength{\leftmargin}{5em}
+    }
+  }
   {\end{list}}
+

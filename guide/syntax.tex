@@ -9,23 +9,27 @@ inserting a semicolon (;) between them. A long statement can occupy
 multiple lines by putting an ampersand (\&) at the end of each line of
 the statement except for the last line of the statement. An
 exclamation mark (!) denotes a comment and the exclamation mark and
-everything else after the mark on the line are ignored.
+everything after the exclamation mark on the line are ignored.
+\begin{example}
+  ! This is a comment
+  q0: quad, l = 0.6, &     ! Continued to next line
+  k1 = 1.4, tilt = pi/3
+\end{example}
 
 \section{Arithmetic Expressions}
 
 Arithmetic expressions can be used in a place where a real value is required.
 The standard operators are defined:
-\begin{description}
+\begin{ventry}{10em}
 \item[+] Addition
 \item[-] Subtraction
 \item[*] Multiplication
 \item[/] Division
-\item[\^] Exponentiation
-\end{description}
-
+\item[$\wedge$] Exponentiation
+\end{ventry}
 The following functions are recognized by \bmad:
-\begin{description}
-\item[sqrt(x)] Square root 
+\begin{ventry}{acos(x)}
+\item[sqrt(x)] Square Root 
 \item[log(x)]  Logarithm
 \item[exp(x)]  Exponential
 \item[sin(x)]  Sine
@@ -34,8 +38,8 @@ The following functions are recognized by \bmad:
 \item[asin(x)] Arc sine
 \item[acos(x)] Arc cosine
 \item[atan(x)] Arc Tangant
-\item[abs(x)]  Absolute value
-\end{description}
+\item[abs(x)]  Absolute Value
+\end{ventry}
 
 
 \section{Constants}
@@ -83,8 +87,9 @@ Element attributes can be set or used in an algerbraic expression using the synt
 For example:
 \begin{example}
   b01w: sbend, l = 6.0, rho = 89.0   ! Define a bend element.
+  bo1w[roll] = 6.5                   ! Set an attribute value.
   b01w[l] = 6.5                      ! Change an attribute value.
-  b01w[roll] = 0.017                 ! Change an attribute value.
+  b01w[l] = b01w[rho] / 12           ! OK to reset an attribute value.
   my_const = b01[rho] / b01[l]       ! Use of attribute values in an expression
 \end{example}
 
@@ -101,5 +106,5 @@ The syntax for defining a lattice element roughly follows MAD:
 For example:
 \begin{example}
   q01w: quad, type = "A String", l = 0.6, tilt = pi/2
-  h10e: overlay = {b08e, b10e}, hkick
+  h10e: overlay = \{b08e, b10e\}, hkick
 \end{example}
