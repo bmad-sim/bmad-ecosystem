@@ -594,291 +594,157 @@ dispersion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
 \label{s:synch_ints}
 
 
-The standard formulas for the synchrotron integrals used to compute 
-emittances, the energy spread, etc.,
-assum no coupling between the horizontal and vertical
-planes\cite{b:helm,b:jowett}. 
-With coupling the equations need to be generalized. To simplify matters it
-will be still be assumed that the bends are in the horizonal plane. In this
-case $I_1$, $I_2$, $I_3$, and $I_5$ are unchanged (but are given below for
-completeness). Without proof, the generalized synchrotron integrals are:
+The standard formulas for the synchrotron integrals used to compute
+emittances, the energy spread, etc., for a storage ring assume no
+coupling between the horizontal and vertical
+planes\cite{b:helm,b:jowett}.  With coupling the equations need to be
+generalized.
+
+In the general case the curvature function $\Bf G = (G_x, G_y)$, which
+points away from the center of curvature of the particle's orbit (see
+Figure~\ref{f:local_coords}), does not lie in the horizontal
+plane. $\Bf G$ has a magnitude $G = 1/\rho$ and a positive $G_y$
+indicates a downward bend in the negative $y$ direction.  Similarly
+the dispersion, $\bfeta\two = (\eta_x, \eta_y)$ will not lie in the
+horizontal plane. With this notation the synchrotron Integrals for the
+$a$ and $b$ normal modes are:
   \Begineqs
-    I_1 \AND= \oint ds \, G \, \eta_x \CRNO
-    I_2 \AND= \oint ds \, G^2 \CRNO
-    I_3 \AND= \oint ds \, |G^3| \CRNO
-    I_{4a} \AND= \oint ds \, (G^2 + 2K_1) \, G \, \eta_{ax} \label{iseg} \\
-    I_{4b} \AND= \oint ds \, (G^2 + 2K_1) \, G \, \eta_{bx} \CRNO
-    I_{4z} \AND= \oint ds \, (G^2 + 2K_1) \, G \, \eta_{x} \CRNO
-    I_{5a} \AND= \oint ds \, |G^3| \, \calh_a \CRNO
-    I_{5b} \AND= \oint ds \, |G^3| \, \calh_b \nonumber
-  \Endeqs  
-where  $\eta_{ax}$ and $\eta_{bx}$ are the horizontal components of $\eta_a$
-and $\eta_b$ respectively. With \Eq{iseg}, the damping partition numbers are
+    I_1 &=& \oint ds \, \Bf G \cdot \bfeta 
+         \equiv \oint ds \, (G_x \, \eta_x + G_y \, \eta_y) \\
+    I_2 &=& \oint ds \, G^2 \\
+    I_3 &=& \oint ds \, G^3 \\
+    I_{4a} &=& \oint ds \, \left[ G^2 \, \Bf G \cdot \bfeta\two_a + 
+         \nabla G^2 \cdot \bfeta\two_a \right] \\
+    I_{4b} &=& \oint ds \, \left[ G^2 \, \Bf G \cdot \bfeta\two_b + 
+         \nabla G^2 \cdot \bfeta\two_b \right] \\
+    I_{4z} &=& \oint ds \, \left[ G^2 \, \Bf G \cdot \bfeta\two + 
+         \nabla G^2 \cdot \bfeta\two \right] \\
+    I_{5a} &=& \oint ds \, G^3 \, \calh_a \\
+    I_{5b} &=& \oint ds \, G^3 \, \calh_b
+  \Endeqs
+where $\calh$ is 
+  \Begineq
+    \calh = \gamma \, \eta^2 + 2 \, \alpha \, \eta \, \eta' + 
+      \beta \eta'^2 
+  \Endeq
+Here $\bfeta\two_a = (\eta_{ax}, \eta_{ay})$, and $\bfeta\two_b = (\eta_{bx},
+\eta_{by})$ are the dispersion vectors for the $a$ and $b$ modes
+respectively. The position dependence of the curvature
+function is:
   \Begineqs
-    J_a \AND= 1 + \frac{I_{4a}}{I_2} \CRNO
-    J_b \AND= 1 + \frac{I_{4b}}{I_2} \label{j1ii} \CR
-    J_z \AND= 1 + \frac{I_{4z}}{I_2} \CRNO
+    G_x(x,y) = G_{x} + x \, k_1 + y \, s_1 \\
+    G_y(x,y) = G_{y} + x \, s_1 - y \, k_1 
+  \Endeqs
+where $k_1$ is the quadrupole moment and $s_1$ is the skew--quadrupole moment.
+Using this gives on--axis ($x = y = 0$)
+  \Begineq
+    \nabla G^2 = 2 \left( G_x k_1 + G_y s_1, \, G_x s_1 - G_y k_1 \right)
+    \label{g2gkg}
+  \Endeq
+
+In a dipole a non--zero $e_1$ or $e_2$ gives a contribution to $I_4$
+via the $\nabla G^2 \cdot \bfeta$ term. The edge field is modeled as a
+thin quadrupole of length $\delta$ and stringth $k = -\tan(e) /
+\delta$. It is assumed that $\Bf G$ rises linearly within the edge field
+from zero on the outside edge of the edge field to its full value on the inside 
+edge of the edge field. 
+Using this in \Eq{g2gkg} and integrating over the edge field gives the contribution
+to $I_4$ from a non--zero $e_1$ as
+  \Begineq
+    I_{4z} = -\tan(e_1) G^2 \,
+    \left( \cos(\theta) \, \eta_x + \sin(\theta) \, \eta_y \right)
+    \label{iegct}
+  \Endeq
+With an analogous equation for a finite $e_2$. The extension to
+$I_{4a}$ and $I_{4b}$ involves using $\bfeta\two_a$ and $\bfeta\two_b$
+in place of $\bfeta\two$.  In \Eq{iegct} $\theta$ is the \vn{tilt}
+angle which is non--zero if the bend is not in the horizontal plane.
+
+The above integrals are invariant under rotation of the $(x,y)$ coordinate
+system and reduce to the standard equations when $G_y = 0$ as they should.
+
+There are various parameters that can be expressed in terms of these
+integrals.  The $I_1$ integral can be related to the momentum
+compaction $\alpha_p$ via
+  \Begineq
+    I_1 = \alpha_p \, L
+  \Endeq
+where $L$ is the storage ring circumferance. The energy loss per turn is
+  \Begineq
+    U_0 = \frac{2 \, r_e E_0^4}{3 \, mc^2} I_2
+  \Endeq
+whee $E_0$ is the nominal energy and $r_e$ is the classical electron
+radius (electrons are assumed here but the formulas are easily
+generalized).
+
+The damping partition numbers are
+  \Begineqs
+    J_a \AND= 1 - \frac{I_{4a}}{I_2} \CRNO
+    J_b \AND= 1 - \frac{I_{4b}}{I_2} \label{j1ii} \CR
+    J_z \AND= 2 + \frac{I_{4z}}{I_2} \CRNO
   \Endeqs
 Since 
   \Begineq          
-    \eta_{ax} + \eta_{bx} = \eta_x
+    \bfeta\two_{a} + \bfeta\two_{b} = \bfeta\two
     \comma \label{eee}
   \Endeq
 Robinson's theorem, $J_a + J_b + J_z = 4$, is satisfied.
-
-\subsection{Evaluation of the Integrals}
-
-The evaluation of $I_1$, $I_2$, $I_3$, and $I_{4z}$ does not depend upon
-whether there is coupling or not and is given by Helm et. al\cite{b:helm}. 
-Using
-the notation of Helm, the evaluation of the other integrals is given below. 
-
-\subsection{Evaluation of $I_{4a}$ and $I_{4b}$}
-
-The relation between the dispersion in eigenmode coordinates and in $x$---$y$
-coordinates is (cf.~Sagan and Rubin\cite{b:coupling})
-  \Begineq
-    \bfeta_a\four = \bV\inv \, \bfeta_x\four
-    \comma \label{eve}
-  \Endeq
-where the superscript (4) is used to distinguish a 4 element vector from a two
-element vector (for compactness, the superscripts on the 2 element vectors
-will be dropped).
-
-Through a bend were the transfer matrix between two points is of the form
-  \Begineq
-    \bT_{12} = 
-    \begin{pmatrix}
-      \bM & 0 \cr 0 & \bN
-    \end{pmatrix}                            
-    \comma \label{tm00n}
-  \Endeq
-with
-  \Begineq
-    \bM = 
-    \begin{pmatrix}
-      \cos kl & \frac{\dstyle 1}{\dstyle k} \sin kl \cr 
-      -k \, \sin kl & \cos kl
-    \end{pmatrix}
-    \comma \label{mkl1k}
-  \Endeq
-and
-  \Begineq
-    k^2 = \frac{1}{\rho^2} + k_1
-    \comma
-  \Endeq
-$k_1$ being the strength of the quadrupole component of the bend.
-The propagation of $\bfeta_x\four$ is
-  \Begineq
-    \bfeta_{x2}\four = \bT_{12} \, \bfeta_{x1}\four + \bfeta_{12}\four 
-    \comma \label{etee}
-  \Endeq
-where $\bfeta_{12}\four$ is the contribution due to the `generation' of
-dispersion within a dipole
-  \Begineq
-    \bfeta_{21}\four = 
-    \begin{pmatrix}
-      \bfeta_{x12} \cr \Bf 0
-    \end{pmatrix} 
-    \comma \label{ee0}
-  \Endeq
-with
-  \Begineq
-    \bfeta_{x12} = 
-    \begin{pmatrix}
-      \rho (1 - \cos (s/\rho)) \cr \sin(s/\rho)
-    \end{pmatrix}
-    \period \label{er1sr}
-  \Endeq
-$\bV\inv$ propagates as\cite{b:coupling}
+Alternatively, the exponential damping coefficients per turn are
   \Begineqs
-    \bV_2\inv \AND= \bT_{12} \, \bV_1\inv \, \bT_{12}\inv \CRNO
-    \AND= 
-    \begin{pmatrix}
-      \gamma_1 & -\bM \, \bC_1 \, \bN\inv \cr 
-                   \bN \, \bC_1^+ \, \bM\inv & \gamma_1
-    \end{pmatrix}
-    \period \label{vtvt}
+    \alpha_a = \frac{U_0 * J_a}{2 E_0} \CRNO
+    \alpha_b = \frac{U_0 * J_b}{2 E_0} \\
+    \alpha_z = \frac{U_0 * J_z}{2 E_0} 
   \Endeqs
-Using the above equations gives
-  \Begineqs
-    \bfeta_{a2} \AND= \bM \, \bfeta_{a1} + \gamma_1 \, \bfeta_{x12} 
-      \comma \CRNO
-    \bfeta_{b2} \AND= \bN \, \bfeta_{b1} + 
-      \bN \, \bC_1^+ \, \bM\inv \, \bfeta_{x12}
-      \period \label{emege}
-  \Endeqs
-The $x$ components of $\bfeta_a$ and $\bfeta_b$ are obtained by inverting
-\Eq{eve}. For the $a$ mode
-  \Begineqs
-    \bfeta_{ax} = \gamma \, \bfeta_{a} 
-    \period \label{ege}
-  \Endeqs
-Also, from \Eq{vtvt}
-  \Begineqs
-    \gamma_2 = \gamma_1 
-    \period \label{gg}
-  \Endeqs
-Using \Eqs{emege}, \eq{ege}, and \eq{gg} then gives
-  \Begineqs
-    \bfeta_{ax2} = \gamma_1 \, \bM \, \bfeta_{a1} + 
-      \gamma_1^2 \, \bfeta_{x12} 
-      \period \label{egmeg}
-  \Endeqs
-From \Eqs{tm00n}, \eq{etee}, and \eq{ee0} $\bfeta_{x}$ propagates as
+The energy spread is given by
   \Begineq
-    \bfeta_{x2} = \bM \, \bfeta_{x1} + \bfeta_{x12}
-    \period \label{emee}
+    \sigma_{pz}^2 = \left( \frac{\sigma_E}{E_0} \right)^2 = 
+    C_q \gamma^2 \frac{I_3}{2I_2 + I_{4z}}
   \Endeq
-Comparing \Eq{egmeg} with \eq{emee} shows that $\bfeta_{ax}$ propagates  like
-$\bfeta_x$ except for extra factors of $\gamma_1$. Thus, the integrated
-$\eta_{ax}$ can be obtained from a modification of Helm Eq.~14:
-  \Begineq
-    \int ds \, \eta_{ax} = \gamma_0 \, \eta_{a0} \, \frac{\sin kl}{k} + 
-      \gamma_0 \, \eta'_{a0} \, \frac{1 - \cos kl}{k^2} +
-      \frac{\gamma_0^2}{\rho} \frac{kl - \sin kl}{k^3}
-      \period \label{segek}
-  \Endeq
-\Eq{segek} can be used to evaluate $I_{5a}$ (cf.~Helm\cite{b:helm}). For
-$I_{5b}$ the integral of $\bfeta_{bx}$ can then be obtained using \Eq{eee}
-  \Begineq
-    \int ds \, \eta_{bx} = \int ds \, \eta_x - \int ds \, \eta_{ax}
-    \period
-  \Endeq
-
-\subsection{Evaluation of $I_{5a}$ and $I_{5b}$}
-
-To compute $I_5$ we go back to the equation for $\calh$
-  \Begineqs
-    \calh \AND= \gamma \, \eta^2 + 2 \, \alpha \, \eta \, \eta' + 
-      \beta \eta'^2 \CRNO
-    \AND= \vdot{\bfeta}{\bS \, \bJ \, \bfeta}
-      \comma\label{hge2a}
-  \Endeqs
-where $[\bA, \, \bB] \equiv \bA^t \bB$, $\bS$ is given by
-  \Begineq
-    \bS \equiv 
-    \begin{pmatrix}
-      0 & -1 \cr 1 & 0
-    \end{pmatrix}
-    \comma
-  \Endeq
-and $\bJ$ is the Twiss matrix (cf.~Courant and Snyder\cite{b:cs})
-  \Begineq
-    \bJ \equiv \begin{pmatrix}
-      \alpha & \beta \cr -\gamma & -\alpha
-    \end{pmatrix}
-    \period
-  \Endeq
-The propagation of $\bJ$ through the bend is given by 
-  \Begineqs
-    \bJ_{a2} \AND= \bM \, \bJ_{a1}\inv \, \bM\inv \comma \CRNO
-    \bJ_{b2} \AND= \bN \, \bJ_{b1}\inv \, \bN\inv
-    \period \label{jmjm}
-  \Endeqs
-In the case were there is no coupling $\calh_x$ would propagate like
-  \Begineqs
-    \calh_{x2} \AND= \vdot{\bfeta_{x2}}{\bS \, \bJ_{x2} \, \bfeta_{x2}} \CRNO
-    \AND= \vdot{\bM \, \bfeta_{x1} + \bfeta_{x12}}
-      {\bS \, \bM \, \bJ_{x1} \bM\inv \, (\bM \, \bfeta_{x1} + \bfeta_{x12})}
-      \CRNO
-    \AND= \vdot{\bfeta_{x1}}{\bS \, \bJ_{x1} \, \bfeta_{x1}} + 2 \, 
-      \vdot{\bfeta_{x1}}{\bS \, \bJ_{x1} \, \bM\inv \, \bfeta_{x12}} 
-      + \label{hesje1} \\
-    \AND\mskip250mu \vdot{\bfeta_{x12}}
-      {\bS \, \bM \, \bJ_{x1} \, \bM\inv \, \bfeta_{x12}}
-      \nonumber  
-  \Endeqs
-Where we have used the identity that for arbitrary matrices $\bA$ and $\bB$
-  \Begineq
-    \vdot{\bA \, \bB}{\bS} = \vdot{\bA}{\bS \, \bA^+}
-    \period \label{absas}
-  \Endeq
-The integration of \Eq{hesje1} is straight--forward, if tedious, and is given by
-Helm Eq.~20 (reproduced here for convenience)
-  \Begineqs
-    \int ds \, \calh_x \AND= \left[ l \, (\gamma_{x0} \, \eta_{x0}^2 + 
-      2 \, \alpha_{x0} \, \eta_{x0} \, \eta'_{x0} + 
-      \beta_{x0} {\eta'}_{x0}^2) \right] + \CRNO
-    \AND\mskip-30mu \frac{2}{\rho} \left[ 
-      (\gamma_{x0} \eta_{x0} + \alpha_{x0} \eta'_{x0})
-      \frac{\sin kl - kl}{k^3} + 
-      (\alpha_{x0} \eta_{x0} + \beta_{x0} \eta'_{x0})
-      \frac{1 - \cos kl}{k^2} \right] + \label{shlgn1} \\
-    \AND\mskip-30mu \frac{1}{\rho^2} \left[
-      \gamma_{x0} \frac{3kl - 4\sin kl + \sin kl \, \cos kl}{2k^5} -
-      \alpha_{x0} \frac{(1 - \cos kl)^2}{k^4} +
-      \beta_{x0} \frac{kl - \cos kl \, \sin kl}{2k^3} \right] \nonumber
-  \Endeqs
-The 3 terms in \Eq{shlgn1} correspond to the integration of the 3 terms in
-\Eq{hesje1}. With coupling, the propagation of $\calh_a$ is obtained with the
-help of \Eqs{emege}, \eq{hge2a}, and \eq{jmjm} to be
-  \Begineqs
-    \calh_{a2} \AND= 
-      \vdot{\bfeta_{a1}}{\bS \, \bJ_{a1} \, \bfeta_{a1}} + 2 \, \gamma_1 \,
-      \vdot{\bfeta_{a1}}{\bS \, \bJ_{a1} \, \bM\inv \, \bfeta_{x12}} 
-      + \label{hesje2} \\
-    \AND\mskip250mu \gamma_1^2 \vdot{\bfeta_{x12}}
-      {\bS \, \bM \, \bJ_{a1} \, \bM\inv \, \bfeta_{x12}}
-      \nonumber  
-  \Endeqs
-This is similar to \Eq{hesje1} with the addition of some factors of $\gamma_1$.
-The integration of $\calh_a$ is thus obtained from \Eq{shlgn1} by inspection
-  \Begineqs
-    \int ds \, \calh_a \AND= \left[ l \, (\gamma_{a0} \, \eta_{a0}^2 + 
-      2 \, \alpha_{a0} \, \eta_{a0} \, \eta'_{a0} + 
-      \beta_{a0} {\eta'}_{a0}^2) \right] + \CRNO
-    \AND\mskip-30mu \frac{2 \gamma_0}{\rho} \left[ 
-      (\gamma_{a0} \eta_{a0} + \alpha_{a0} \eta'_{a0})
-      \frac{\sin kl - kl}{k^3} + 
-      (\alpha_{a0} \eta_{a0} + \beta_{a0} \eta'_{a0})
-      \frac{1 - \cos kl}{k^2} \right] + \\
-    \AND\mskip-30mu \frac{\gamma_0^2}{\rho^2} \left[
-      \gamma_{a0} \frac{3kl - 4\sin kl + \sin kl \, \cos kl}{2k^5} -
-      \alpha_{a0} \frac{(1 - \cos kl)^2}{k^4} +
-      \beta_{a0} \frac{kl - \cos kl \, \sin kl}{2k^3} \right] \nonumber
-  \Endeqs
-For $\calh_b$ \Eqs{emege}, \eq{hge2a}, and \eq{jmjm} give
-  \Begineqs
-    \calh_{b2} \AND= 
-      \vdot{\bfeta_{b1}}{\bS \, \bJ_{b1} \, \bfeta_{b1}} + 2 \, 
-      \vdot{\bfeta_{b1}}{\bS \, \bJ_{b1} \, \bC_1^+ \bM\inv \, \bfeta_{x12}} 
-      + \\
-    \AND\mskip250mu \vdot{\bfeta_{x12}}
-        {\bS \, \bM (\bC_1 \, \bJ_{b1} \, \bC_1^+) \bM\inv \, \bfeta_{x12}}
-        \nonumber
-  \Endeqs      
-Again the integration is straight--forward and gives
-  \Begineqs
-    \int ds \, \calh_b \AND= \left[ l \, (\gamma_{b0} \, \eta_{b0}^2 + 
-      2 \, \alpha_{b0} \, \eta_{b0} \, \eta'_{b0} + 
-      \beta_{b0} {\eta'}_{b0}^2) \right] + \CRNO
-    \AND\mskip-30mu \frac{2}{\rho} \left[ 
-      (m_1 c_{22} - m_2 \, c_{21}) \, \frac{\sin kl - kl}{k^3} + 
-      (m_2 c_{11} - m_1 \, c_{12}) \, \frac{1 - \cos kl}{k^2} \right] + \\
-    \AND\mskip-30mu \frac{1}{\rho^2} \left[
-      \gamma_\eff \frac{3kl - 4\sin kl + \sin kl \, \cos kl}{2k^5} -
-      \alpha_\eff \frac{(1 - \cos kl)^2}{k^4} +
-      \beta_\eff \frac{kl - \cos kl \, \sin kl}{2k^3} \right] \nonumber
-  \Endeqs
 where
-  \Begineqs
-    m_1 \AND\equiv \gamma_{a0} \eta_{a0} + \alpha_{a0} \eta'_{a0} 
-      \comma \CRNO
-    m_2 \AND\equiv \alpha_{a0} \eta_{a0} + \beta_{a0} \eta'_{a0} 
-      \comma 
-  \Endeqs
-and the effective Twiss parameters are defined by
   \Begineq
-    \bJ_\eff \equiv \bC_0 \, \bJ_{b0} \, \bC_0^+
+    C_q = \frac{55}{32 \, \sqrt{3}} \frac{\hbar}{mc} = 
+    3.84 \times 10^{-13} \, \mbox{meter}
   \Endeq
-which when multiplied out give
+If the synchrotron frequency is not too large the bunch length is given by
+  \Begineq
+    \sigma_z = \frac{I_1}{M(6,5)} \, \sigma_{pz}
+  \Endeq
+where $M(6,5)$ is the $(6,5)$ element for the 1--turn transfer matrix
+for the storage ring. Finally the emittances are given by
+  \Begineq
+    \epsilon_a = C_q \, \gamma^2 \frac{I_{5a}}{I_2 - I_{4a}}
+    \epsilon_b = C_q \, \gamma^2 \frac{I_{5b}}{I_2 - I_{4b}}
+  \Endeq
+
+For a linac radiation integrals are still of interest if there are
+bends but in this case the appropriate energy factors must be included
+to take account the changing energy in the line. $I_1$ is not altered
+but the other integrals become
   \Begineqs
-    \beta_\eff \AND= c_{11}^2 \, \beta_{b0} - 
-      2 \, c_{11} \, c_{12} \, \alpha_{b0} + c_{12}^2 \, \gamma_{b0} \CRNO
-    \alpha_\eff \AND= -c_{21} \, c_{11} \, \beta_{b0} + 
-      (c_{11} \, c_{22} + c_{12} \, c_{21}) \, \alpha_{b0} - 
-      c_{12} \, c_{22} \, \gamma_{b0} \\
-    \gamma_\eff \AND= c_{21}^2 \, \beta_{b0} - 
-      2 \, c_{21} \, c_{22} \, \alpha_{b0} + c_{22}^2 \, \gamma_{b0}
+    L_2 &=& \oint ds \, G^2 \, \gamma^4 \\
+    L_3 &=& \oint ds \, G^3 \, \gamma^7 \\
+    L_{4a} &=& \oint ds \, \left[ G^2 \, \Bf G \cdot \bfeta\two_a + 
+         \nabla G^2 \cdot \bfeta\two_a \right] \, \gamma^4 \\
+    L_{4b} &=& \oint ds \, \left[ G^2 \, \Bf G \cdot \bfeta\two_b + 
+         \nabla G^2 \cdot \bfeta\two_b \right] \, \gamma^4 \\
+    L_{4z} &=& \oint ds \, \left[ G^2 \, \Bf G \cdot \bfeta\two + 
+         \nabla G^2 \cdot \bfeta\two \right] \, \gamma^4 \\
+    L_{5a} &=& \oint ds \, G^3 \, \calh_a \, \gamma^6 \\
+    L_{5b} &=& \oint ds \, G^3 \, \calh_b \, \gamma^6
   \Endeqs
+In terms of these integrals the energy loss through the linac is
+  \Begineq
+    U_0 = \frac{2 \, r_e \, mc^2}{3} L_2
+  \Endeq
+The energy spread assuming $\sigma_E$ is zero at the start and neglecting
+any dampling is
+  \Begineq
+    \sigma_E^2 = \frac{3}{2} \, C_q \, r_e \, \left( m c^2 \right)^2 \, L_3
+  \Endeq
+and, again neglecting any initial beam width, the transverse beam size
+at the end of the linac is
+  \Begineq
+    \epsilon_a = \frac{3}{2} \, C_q \, r_e \, 
+    \left( m c^2 \right)^2 \frac{L_{5a}}(E_f}
+  \Endeq
+Where $E_f$ is the final energy

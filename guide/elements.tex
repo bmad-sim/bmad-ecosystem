@@ -188,7 +188,7 @@ Example:
 \toffset
 
 \vn{Rbend} and \vn{Sbend} are dipole bends. The difference between
-the two is the way the input attributes are interpreted.
+the two is the way the \vn{l}, \vn{e1}, and \vn{e2} attributes are interpreted.
 \begin{figure}
   \centering
   \subfigure[rbend]
@@ -205,26 +205,33 @@ the two is the way the input attributes are interpreted.
   \caption{Coordinate systems for (a) \vn{Rbend}\ and (b) \vn{Sbend}\ 
   elements.}
 \end{figure}
-  
-Note that \vn{l} for a \vn{Rbend} is the chord length. Not the arc
+
+\begin{definition}
+\item[\vn{l}]  
+\vn{l} for a \vn{Rbend} is the chord length and not the arc
 length as it is for a \vn{Sbend}. 
-
 After reading in a lattice, \bmad\ will internally convert all
-\vn{Rbend}s into \vn{Sbend}s so \vn{l} will become the path
+\vn{Rbend}s into \vn{Sbend}s so internally \vn{l} will become the path
 length. The chord length will be stored in the \vn{l_chord} attribute.
-
+\item[\vn{h1}, \vn{h2}]
 The attributes \vn{h1} and \vn{h2} are the curvature of the entrance and exit
 pole faces. They are  present for compatibility with MAD but are not yet
 implemented in terms of tracking and other calculations.
-
-\vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are
-specified for an element \bmad\ will calculate the appropriate value
-for the third.  After reading in a lattice, \vn{angle} is considered a
-dependent variable.
-
-If the \vn{tilt} attribute is given without any value then the value
-$\pi/2$ will be used. This makes for a vertical bend.
-
+\item[e1, e2]
+\vn{e1} and \vn{e2} are the rotation angles of the entrance and exit pole faces respectively.
+An \vn{Sbend} with an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent to an 
+\vn{Rbend} with \vn{e1} = \vn{e2} = 0.
+\item[angle]
+\vn{angle} is the total bend angle. A positive \vn{angle} represents a bend towards negative 
+$x$ values (see Figure~\ref{f:local_coords}).
+\item[k1]
+\vn{k1} gives the quadrupole strength.
+\item[g, delta\_g, rho]
+\vn{rho} is the design bending radius which determines the reference coordinate system 
+(see section~\ref{s:ref}).  \vn{g} = 1/\vn{rho} is the curvature function and is proportional
+to the design dipole magnetic field. The true field strength is given by \vn{g}~+~\vn{delta_g} 
+so changing \vn{delta_g} leaves the design orbit unchanged but varies a particle's orbit.
+\item[fint, fintx, hgap, hgapx]
 \vn{fint} and \vn{fintx} are the field integrals for the entrence and exit 
 pole faces
 \Begineq
@@ -235,6 +242,19 @@ with a similar equation for \vn{fintx}. \vn{hgap} and \vn{hgapx}
 are the half gaps at the entrance and exit faces. If \vn{fint} or \vn{fintx}
 is given without a value then a value of 0.5 is used. If \vn{fint} or 
 \vn{fintx} is not present then the default value of 0 is used.
+\item[tilt]
+\vn{tilt} is the roll angle about the longitudinal axis at the entrence face of the bend.
+\vn{tilt} = 0 bends the reference trajectory in the $-x$ direction. 
+If the \vn{tilt} attribute is given without any value then the value
+$\pi/2$ will be used. This makes for a downward vertical ($-y$) bend.
+\end{definition}
+
+
+Note: \vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are
+specified for an element \bmad\ will calculate the appropriate value
+for the third.  After reading in a lattice, \vn{angle} is considered a
+dependent variable.
+
 Example:
 \begin{example}
   b03w: sbend, l = 0.6, k1 = 0.003, fint  ! gives fint = 0.5, fintx = 0
