@@ -537,8 +537,9 @@ subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, csr_set, &
       if (grp%ele(nn)%coef == 0) cycle
       if (db_ptr(n)%ix_ring == 0) then
         if (type_err) then
-          print *, 'ERROR IN DB_GROUP_TO_BMAD: CANNOT FIND IN RING ELEMENT'
-          print *, '      FOR: ', db_ptr(n)%db_node_name, db_ptr(n)%ix_db
+          print *, 'ERROR IN DB_GROUP_TO_BMAD: CANNOT A LATTICE ELEMENT'
+          print *, '      CORRESPONDING TO: ', db_ptr(n)%db_node_name, db_ptr(n)%ix_db
+          print *, '      FOR GROUP:        ', ing_name, ing_num
         endif
         ok = .false.               
         return
