@@ -211,7 +211,7 @@ Example:
 \end{center}
 \toffset
 
-A \vn{Drift} element is just a space free and clear.
+A \vn{Drift} element is a space free and clear of any fields.
 Example:
 \begin{example}
   d21: drift, l = 4.5
@@ -339,7 +339,8 @@ An \vn{I_Beam} is a support structure that orients the elements that
 are attached to it in space.
 
 When an \vn{I_Beam} overlays an element, then that elements
-orientation attributes (\vn{x_offset}, etc.) give the orientation of
+orientation attributes (\vn{x_offset}, \vn{y_pitch}, \vn{tilt}, etc.) 
+give the orientation of
 the element with respect to the \vn{I_Beam}. An example will make this clear:
 \begin{example}
   q1: quad, l = 10

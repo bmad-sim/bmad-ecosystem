@@ -62,18 +62,12 @@ element they are:
    make_mat6_custom             ! only needed if make_mat6 is called.
    track1_custom                ! only needed if track1 is called.
 \end{example}
-use\vn{getf} for more details about the argument lists for these routines.
-The \bmad library has dummy routines of the same name to keep the linker happy
-when custom routines are not implemented. These dummy routines, if called, will 
-print an error message and stop the program. To make the linker preferentially
-link in new custom routines the new routines should be explicitly listed in the 
-linking list.
-
-%-----------------------------------------------------------------------------
-\section{Optimizers}
-
-Optimizers attempt to solve nonlinear optimization problems. This is good
-for designing lattices and such. 
+use\vn{getf} for more details about the argument lists for these
+routines.  The \bmad library has dummy routines of the same name to
+keep the linker happy when custom routines are not implemented. These
+dummy routines, if called, will print an error message and stop the
+program. To make the linker preferentially link in new custom routines
+the new routines should be explicitly listed in the linking list.
 
 
 
