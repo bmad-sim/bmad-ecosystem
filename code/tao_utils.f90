@@ -92,29 +92,30 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_point_v1_to_var (ip, ii, n, n_var)
+! Subroutine tao_point_v1_to_var (v1, var, n, n_var)
 !
 ! used for arbitrary variable pointer indexing
 !
-! ip       -- tao_var_struct: the pointer
-! ii:      -- tao_var_struct: the variable
-! n:       -- integer: starting index for the pointer
+! v1       -- tao_v1_var_struct: Contains the pointer
+! var      -- tao_var_struct: the variable
+! n        -- integer: starting index for the pointer
 !-
 
-subroutine tao_point_v1_to_var (ip, ii, n, n_var)
+subroutine tao_point_v1_to_var (v1, var, n, n_var)
 
 implicit none
 
 integer n, i, n_var
 
-type (tao_var_struct), pointer :: ip(:)
-type (tao_var_struct), target :: ii(n:)
+type (tao_v1_var_struct) v1
+type (tao_var_struct), target :: var(n:)
 
-ip => ii
+v1%v => var
 
-forall (i = lbound(ii, 1):ubound(ii, 1)) 
-  ii(i)%ix_v1 = i
-  ii(i)%ix_var = n_var + i - n
+forall (i = lbound(var, 1):ubound(var, 1)) 
+  var(i)%ix_v1 = i
+  var(i)%ix_var = n_var + i - n
+  var(i)%v1 => v1
 end forall
 
 end subroutine 

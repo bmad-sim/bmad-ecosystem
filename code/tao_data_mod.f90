@@ -209,13 +209,13 @@ else
 
   select case (datum%merit_type)
   case ('min')
-    ix_m = minloc (vec(ix1:ix2), 1)
+    ix_m = minloc (vec(ix1:ix2), 1) + ix1 - 1
   case ('max')
-    ix_m = maxloc (vec(ix1:ix2), 1)
+    ix_m = maxloc (vec(ix1:ix2), 1) + ix1 - 1
   case ('abs_min')
-    ix_m = minloc (abs(vec(ix1:ix2)), 1)
+    ix_m = minloc (abs(vec(ix1:ix2)), 1) + ix1 - 1
   case ('abs_max')
-    ix_m = maxloc (abs(vec(ix1:ix2)), 1)
+    ix_m = maxloc (abs(vec(ix1:ix2)), 1) + ix1 - 1
   case default
     call out_io (s_abort$, r_name, 'BAD MERIT_TYPE: ' // datum%merit_type, &
                                    'FOR DATUM: ' // datum%data_type)
@@ -225,6 +225,7 @@ endif
 
 !
 
+datum%ix_ele_merit = ix_m
 datum_value = vec(ix_m)
 if (datum%merit_type(1:4) == 'abs_') datum_value = abs(vec(ix_m))
 if (present(f)) datum%conversion_factor = f(ix_m)

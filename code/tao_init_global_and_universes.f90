@@ -597,7 +597,7 @@ subroutine var_stuffit_common
 ! now for some family guidance...
 ! point the v1_var mother to the appropriate children in the big data array
 
-  call tao_point_v1_to_var (s%v1_var(nn)%v, s%var(n1:n2), ix_min_var, n1)
+  call tao_point_v1_to_var (s%v1_var(nn), s%var(n1:n2), ix_min_var, n1)
 
   s%var(n1:n2)%attrib_name = var(ix1:ix2)%attribute
   where (s%var(n1:n2)%attrib_name == ' ') s%var(n1:n2)%attrib_name = default_attribute
@@ -616,10 +616,6 @@ subroutine var_stuffit_common
 
   s%var(n1:n2)%high_lim = var(ix1:ix2)%high_lim
   where (s%var(n1:n2)%high_lim == ' ') s%var(n1:n2)%high_lim = default_high_lim
-
-  do i = n1, n2
-    s%var(i)%v1 => s%v1_var(nn)
-  enddo
 
 end subroutine
 
