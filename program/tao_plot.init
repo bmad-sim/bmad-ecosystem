@@ -7,7 +7,7 @@ the plot page) is broken up.
   plot_page%size = 400, 500           
   plot_page%text_height = 12.0 
   plot_page%border = 0, 0, 0, 0, '%PAGE'  
-  plot_page%title(1)%string = 'CESR'
+  plot_page%title(1)%string = 'CESR lattice: bmad_6wig_lum_20030915_v1'
   region(1)%name = 'top'
   region(1)%location = 0.0, 1.0, 0.5, 0.98
   region(2)%name = 'bottom'
