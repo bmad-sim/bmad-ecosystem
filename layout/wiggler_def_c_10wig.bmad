@@ -1,0 +1,12 @@
+call, file=BMAD_LAYOUT:wig1_14w.bmad
+call, file=BMAD_LAYOUT:wig2_14w.bmad
+wig_15w_off: drift, l= 1.6
+call, file=BMAD_LAYOUT:wig1_18w.bmad
+call, file=BMAD_LAYOUT:wig2_18w.bmad
+call, file=BMAD_LAYOUT:wig3_18w.bmad
+call, file=BMAD_LAYOUT:wig1_14e_8pole.bmad
+call, file=BMAD_LAYOUT:wig2_14e_8pole.bmad
+wig_15e_off: drift, l= 1.6
+call, file=BMAD_LAYOUT:wig1_18e.bmad
+call, file=BMAD_LAYOUT:wig2_18e.bmad
+call, file=BMAD_LAYOUT:wig3_18e.bmad
