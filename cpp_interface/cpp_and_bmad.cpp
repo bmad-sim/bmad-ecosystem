@@ -765,12 +765,12 @@ extern "C" void ring_to_f_(C_ring& c, ring_struct* f) {
   const char* title = c.title.data();           int n_title = c.title.size();
   int n_con = c.control.size();
   int n_ic  = c.ic.size();
-  int n_ele_maxx = c.ele.size() - 1;
+  int n_ele_max = c.ele.size() - 1;
   ring_to_f2_(f, name, n_name, lat, n_lat, file, n_file, title, n_title,
       c.x, c.y, c.z, c.param, 
-      c.version, c.n_ele_use, c.n_ele_max, n_ele_maxx, c.n_control_max, 
+      c.version, c.n_ele_use, c.n_ele_max, n_ele_max, c.n_control_max, 
       c.n_ic_max, c.input_taylor_order, c.ele_init, n_con, &c.ic[0], n_ic);
-  for (int i = 0; i < n_ele_maxx+1; i++) {
+  for (int i = 0; i < n_ele_max+1; i++) {
     ele_from_ring_to_f2_(f, i, c.ele[i]);
   }
   for (int i = 0; i < n_con; i++) {

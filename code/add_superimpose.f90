@@ -106,7 +106,7 @@ subroutine add_superimpose (ring, super_ele, ix_super)
 
   ix_super = ring%n_ele_max + 1
   ring%n_ele_max = ix_super
-  if (ring%n_ele_max > ring%n_ele_maxx) call allocate_ring_ele_(ring)
+  if (ring%n_ele_max > ubound(ring%ele_, 1)) call allocate_ring_ele_(ring)
   ring%ele_(ix_super) = sup_ele
   ring%ele_(ix_super)%control_type = super_lord$
 
@@ -141,7 +141,7 @@ subroutine add_superimpose (ring, super_ele, ix_super)
 
     if (setup_lord) then
       ixn = ring%n_ele_max + 1
-      if (ixn > ring%n_ele_maxx) call allocate_ring_ele_(ring)
+      if (ixn > ubound(ring%ele_, 1)) call allocate_ring_ele_(ring)
       ring%ele_(ixn) = slave_ele
       ring%ele_(ixn)%control_type = super_lord$
       ring%n_ele_max = ixn

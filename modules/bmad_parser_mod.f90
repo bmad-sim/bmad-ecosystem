@@ -2758,7 +2758,7 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
 
 ! init
 
-  allocate (s_ele(ring%n_ele_maxx))
+  allocate (s_ele(ubound(ring%ele_, 1)))
   s_ele%type = 0
   s_ele%ix_array = 0
   s_ele%ix_arg = 0
@@ -2930,21 +2930,23 @@ Subroutine allocate_pring (ring, pring)
   type (parser_ring_struct) pring
   type (parser_ele_struct), pointer :: temp_pele(:)
 
-  integer i, n_now
+  integer i, n_now, n_ele_max
 
 ! assume all the arrays have the same size
+
+  n_ele_max = ubound(ring%ele_, 1)
 
   if (associated(pring%ele)) then
     n_now = ubound(pring%ele, 1)
     allocate (temp_pele(0:n_now))
     temp_pele = pring%ele
     deallocate (pring%ele)
-    allocate (pring%ele(0:ring%n_ele_maxx))
+    allocate (pring%ele(0:n_ele_max))
     pring%ele(0:n_now) = temp_pele
     deallocate (temp_pele)
 
   else
-    allocate (pring%ele(0:ring%n_ele_maxx))
+    allocate (pring%ele(0:n_ele_max))
     n_now = -1
   endif
 

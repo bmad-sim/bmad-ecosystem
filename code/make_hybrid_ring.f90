@@ -122,7 +122,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
         ix_out(j_in) = i_out
       else
         i_out = i_out + 1                     ! starting next element
-        if (i_out > r_out%n_ele_maxx) call allocate_ring_ele_(r_out)
+        if (i_out > ubound(r_out%ele_, 1)) call allocate_ring_ele_(r_out)
         ele_out => r_out%ele_(i_out)
         ele_out = ele_in   ! single element
         ix_out(j_in) = i_out
@@ -140,7 +140,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 
       if (init_hybrid_needed) then
         i_out = i_out + 1                       ! starting next element
-        if (i_out > r_out%n_ele_maxx) call allocate_ring_ele_(r_out)
+        if (i_out > ubound(r_out%ele_, 1)) call allocate_ring_ele_(r_out)
         ele_out => r_out%ele_(i_out)
         ele_out = ele_in
         ele_out%control_type = free$
@@ -249,7 +249,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
     ele_in => r_in%ele_(j_in)    
     if (keep_ele(j_in)) then
       i_out = i_out + 1
-      if (i_out > r_out%n_ele_maxx) call allocate_ring_ele_(r_out)
+      if (i_out > ubound(r_out%ele_, 1)) call allocate_ring_ele_(r_out)
       ele_out => r_out%ele_(i_out)
       ix_out(j_in) = i_out
       ele_out = ele_in
@@ -278,7 +278,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
       ix = r_in%control_(j)%ix_slave
       if (ix_out(ix) == 0) then
         r_out%control_(k)%ix_lord = i_out
-        r_out%control_(k)%ix_slave = r_out%n_ele_maxx     ! point to dummy ele
+        r_out%control_(k)%ix_slave = ubound(r_out%ele_, 1) ! point to dummy ele
         r_out%control_(k)%ix_attrib = -1
         r_out%control_(k)%coef = 0
       else

@@ -1279,7 +1279,7 @@ subroutine transfer_ring_taylors (ring_in, ring_out, type_out, transfered_all)
   type (ele_struct), pointer :: ele_in, ele_out
 
   integer i, j
-  integer n_in, ix_in(ring_in%n_ele_maxx)
+  integer n_in, ix_in(ubound(ring_in%ele_, 1))
  
   logical, intent(in)  :: type_out
   logical, optional :: transfered_all

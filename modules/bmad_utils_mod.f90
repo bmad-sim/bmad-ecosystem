@@ -853,7 +853,6 @@ subroutine allocate_ring_ele_ (ring, des_size)
     ring%ele_(i)%ix_ele = i
   end do
 
-  ring%n_ele_maxx = desired_size
   ring%beam_energy => ring%ele_(0)%value(beam_energy$)
 
 end subroutine
@@ -900,7 +899,6 @@ subroutine deallocate_ring_pointers (ring)
 
   ring%n_ele_use  = -1
   ring%n_ele_max  = -1
-  ring%n_ele_maxx = -1
 
 end subroutine
 

@@ -1672,7 +1672,7 @@ if (associated(f%control_)) n_con = size(f%control_)
 
 call ring_to_c2 (c_ring, c_str(f%name), c_str(f%lattice), &
       c_str(f%input_file_name), c_str(f%title), f%x, f%y, f%z, f%param, &
-      f%version, f%n_ele_use, f%n_ele_max, f%n_ele_maxx, &
+      f%version, f%n_ele_use, f%n_ele_max, &
       f%n_control_max, f%n_ic_max, f%input_taylor_order, &
       f%ele_init, n_con, f%ic_, i_size(f%ic_))
 
@@ -1691,7 +1691,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !+
 ! Subroutine ring_to_f2 (f, name, n_name, lat, n_lat, file, n_file, title, &
-!    n_title, x, y, z, param, ver, n_use, n_max, n_maxx, nc_max, n_ic_max, &
+!    n_title, x, y, z, param, ver, n_use, n_max, nc_max, n_ic_max, &
 !    tlr_ord, ele_init, n_con, ic, n_ic)
 !
 ! Subroutine used by ring_to_f to convert a C++ C_ring into
@@ -1699,7 +1699,7 @@ end subroutine
 !-
 
 subroutine ring_to_f2 (f, name, n_name, lat, n_lat, file, n_file, title, &
-    n_title, x, y, z, param, ver, n_use, n_max, n_maxx, nc_max, n_ic_max, &
+    n_title, x, y, z, param, ver, n_use, n_max, nc_max, n_ic_max, &
     tlr_ord, ele_init, n_con, ic, n_ic)
 
 use bmad_and_cpp
@@ -1709,7 +1709,7 @@ implicit none
 type (ring_struct) f
 type (c_dummy_struct) x, y, z, param, ele_init
 integer n_ic_max, n_ic, n_name, n_lat, n_file, n_title, ic(n_ic)
-integer ver, n_use, n_max, n_maxx, nc_max, tlr_ord, n_con
+integer ver, n_use, n_max, nc_max, tlr_ord, n_con
 
 character(n_name) name
 character(n_lat) lat
@@ -1726,7 +1726,6 @@ f%version          = ver
 f%n_ele_use        = n_use
 f%n_ele_ring       = n_use
 f%n_ele_max        = n_max
-f%n_ele_maxx       = n_maxx
 f%n_control_max    = nc_max
 f%n_ic_max         = n_ic_max
 f%input_taylor_order = tlr_ord
@@ -1735,7 +1734,7 @@ call mode_info_to_f (y, f%y)
 call mode_info_to_f (z, f%z)
 call param_to_f (param, f%param)
 call ele_to_f (ele_init, f%ele_init)
-call allocate_ring_ele_(f, n_maxx)
+call allocate_ring_ele_(f, n_max)
 allocate (f%control_(n_con))
 allocate (f%ic_(n_ic))
 f%ic_ = ic

@@ -30,7 +30,7 @@ subroutine new_control (ring, ix_ele)
   ring%n_ele_max = ring%n_ele_max + 1
   ix_ele = ring%n_ele_max
 
-  if (ix_ele > ring%n_ele_maxx)  call allocate_ring_ele_(ring)
+  if (ix_ele > ubound(ring%ele_, 1))  call allocate_ring_ele_(ring)
   call init_ele (ring%ele_(ix_ele))
 
 end subroutine

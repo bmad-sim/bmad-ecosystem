@@ -210,7 +210,6 @@ module bmad_struct
     integer n_ele_use                ! Number of regular ring elements
     integer n_ele_ring               ! OBSOLETE: Identical to n_ele_use.
     integer n_ele_max                ! Index of last element used
-    integer n_ele_maxx               ! Index of last element allocated
     integer n_control_max            ! Last index used in CONTROL_ array
     integer n_ic_max                 ! Last index used in IC_ array
     integer input_taylor_order       ! As set in the input file
@@ -261,8 +260,8 @@ module bmad_struct
 ! Note: The following attributes must have unique number assignments:
 !     L$, TILT$, X_PITCH$ and higher
 
-  integer, parameter :: lattice_type$ = 1, symmetry$ = 2, taylor_order$ = 3
-  integer, parameter :: energy_gev$ = 4 
+  integer, parameter :: particle$ = 1, n_part$   = 2, taylor_order$ = 3
+  integer, parameter :: energy_gev$ = 4, lattice_type$ = 5, symmetry$ = 6
 
   integer, parameter :: x_beg_limit$=2, y_beg_limit$=3, b_x2$=4, &
           b_y2$=5, l_st2$=9, b_z$=10, l_st1$=11, s_st2$=12, s_st1$=13, &
@@ -355,9 +354,6 @@ module bmad_struct
   integer, parameter :: b20$ = 110, t20$ = 110 ! this is n_attrib_special_maxx 
 
   integer, parameter :: n_attrib_special_maxx = 110
-
-  integer, parameter :: particle$ = 1
-  integer, parameter :: n_part$    = 3
 
   character(16), parameter :: null_name = 'NULL' 
   character(16), parameter :: blank_name = ' '

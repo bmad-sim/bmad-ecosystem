@@ -24,7 +24,6 @@ type ring_struct
   integer version              ! Version number for digested files
   integer n_ele_use            ! number of physical lattice elements
   integer n_ele_max            ! Index of last element used
-  integer n_ele_maxx           ! Index of last element allocated
   integer n_control_array      ! last index used in CONTROL_ array
   integer n_ic_array           ! last index used in IC_ array
   integer input_taylor_order   ! As set in the input file
@@ -42,7 +41,6 @@ end type
 \index{Ring_struct!%ele_(:)}
 \index{Ring_struct!%n_ele_use}
 \index{Ring_struct!%n_ele_max}
-\index{Ring_struct!%n_ele_maxx}
 \index{Ele_struct!in ring_struct} 
 The definition of the \vn{ring_struct} is shown in
 Figure~\ref{f:ring_struct}. The array \vn{%ele_(:)} holds the elements
@@ -64,7 +62,6 @@ bounds of these two parts is given in Table~\ref{tab:part_extent}.
 {\em section} & {\em min}          & {\em max}            \\ \hline
 physical      & 0                  & \vn{%n_ele_use}     \\ \hline
 control       & \vn{%n_ele_use}+1 & \vn{%n_ele_max}      \\ \hline
-physical size & 0                  & \vn{%n_ele_maxx}     \\ \hline
 \end{tabular} 
 \caption{Bounds of the regular and control parts 
 of the array \vn{\%ele(:)}.}

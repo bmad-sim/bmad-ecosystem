@@ -135,6 +135,10 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(def_parameter$, ran_seed$)     = 'RAN_SEED'
     attrib_array(def_parameter$, n_part$)       = 'N_PART'
 
+    attrib_array(def_beam$, particle$)   = 'PARTICLE'
+    attrib_array(def_beam$, energy_gev$) = 'ENERGY'
+    attrib_array(def_beam$, n_part$)     = 'N_PART'
+
     attrib_array(taylor$, symplectify$) = 'SYMPLECTIFY'
 
     attrib_array(match$, l$)             = 'L'
@@ -358,10 +362,6 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(sol_quad$, tilt$)       = 'TILT'
     attrib_array(sol_quad$, radius$)     = 'RADIUS'
     attrib_array(sol_quad$, field_calc$) = 'FIELD_CALC'
-
-    attrib_array(def_beam$, particle$)   = 'PARTICLE'
-    attrib_array(def_beam$, energy_gev$) = 'ENERGY'
-    attrib_array(def_beam$, n_part$)     = 'N_PART'
 
     attrib_array(multipole$, tilt$)     = 'TILT'
     attrib_array(multipole$, k0l$:k20l$) = (/ 'K0L ', &

@@ -27,7 +27,7 @@ subroutine set_design_linear (ring)
 
   integer i, key
 
-  allocate (orb_(0:ring%n_ele_maxx))
+  allocate (orb_(0:ubound(ring%ele_, 1)))
 
 !
 

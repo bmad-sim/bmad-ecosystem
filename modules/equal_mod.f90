@@ -246,8 +246,8 @@ subroutine ring_equal_ring (ring_out, ring_in)
 
 ! resize %ele_ array if needed
 
-  if (ring_out%n_ele_maxx < ring_in%n_ele_maxx) &
-                              call allocate_ring_ele_(ring_out, ring_in%n_ele_maxx)
+  if (ubound(ring_out%ele_, 1) < ubound(ring_in%ele_, 1)) &
+               call allocate_ring_ele_(ring_out, ubound(ring_in%ele_, 1))
   
   do i = 0, ring_in%n_ele_max
     ring_out%ele_(i) = ring_in%ele_(i)

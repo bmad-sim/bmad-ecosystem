@@ -257,7 +257,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
     else
 
       n_max = n_max + 1
-      if (n_max > ring%n_ele_maxx) then
+      if (n_max > ubound(ring%ele_, 1)) then
         call allocate_ring_ele_(ring)
         call allocate_pring (ring, pring)
       endif

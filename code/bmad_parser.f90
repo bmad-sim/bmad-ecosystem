@@ -442,7 +442,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
     else
 
       n_max = n_max + 1
-      if (n_max > in_ring%n_ele_maxx) then
+      if (n_max > ubound(in_ring%ele_, 1)) then
         call allocate_ring_ele_ (in_ring)
         call allocate_pring (in_ring, pring)
       endif
@@ -670,8 +670,8 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
   n_ele_use = 0
            
-  allocate (name_(in_ring%n_ele_maxx))
-  allocate (ix_ring(in_ring%n_ele_maxx))
+  allocate (name_(ubound(in_ring%ele_, 1)))
+  allocate (ix_ring(ubound(in_ring%ele_, 1)))
   ix_ring = -1
   sequence_(:)%ix = 1  ! Init. Used for replacement list index
 

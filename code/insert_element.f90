@@ -37,7 +37,7 @@ subroutine insert_element (ring, insert_ele, insert_index)
 ! transfer_ele is fast since re reuse storage.
 
   ring%n_ele_max = ring%n_ele_max + 1
-  if (ring%n_ele_max > ring%n_ele_maxx) call allocate_ring_ele_(ring)
+  if (ring%n_ele_max > ubound(ring%ele_, 1)) call allocate_ring_ele_(ring)
 
   do index = ring%n_ele_max-1, insert_index, -1
     call transfer_ele (ring%ele_(index), ring%ele_(index+1))

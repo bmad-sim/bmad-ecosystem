@@ -113,7 +113,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
   call init_ring (ring, npos2-npos1+100)
   ring%param%lattice_type = circular_lattice$
 
-  do i = 0, ring%n_ele_maxx
+  do i = 0, ubound(ring%ele_, 1)
     call init_ele (ring%ele_(i))
   enddo
 
