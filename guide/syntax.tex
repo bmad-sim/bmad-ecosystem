@@ -1,34 +1,24 @@
 \chapter{Lattice File Syntax}
+\index{Lattice files}
 
 %---------------------------------------------------------------------------
-\section{Lattice File Formats}
+\section{Lattice files}
 \label{s:lattice_file_formats}
 
-The \bmad\ software library comes with routines to read in (parse) a
+The \bmad software library comes with routines to read in (parse) a
 lattice definition file (or files). There are two input formats that
 \bmad understands: The \bmad standard format and
 XSIF\cite{b:xsif}. XSIF stands for ``Extended Standard Input Format.''
 XSIF is essentially a subset of the MAD input format. Documentation
 can be found at:
+\index{Lattice files!XSIF}
 \begin{example}
   http://www-project.slac.stanford.edu/
               lc/ilc/TechNotes/LCCNotes/PDF/LCC-0060%20rev.1.pdf
 \end{example}
-One point that is not covered in the XSIF documentation is that \vn{beam} and 
-\vn{beta0} definitions must have a corresponding \vn{use} statement separate 
-from the \vn{use} statement that defines the lattice. For
-example:
-\begin{example}
-  this_beam: beam, particle = electron, ...
-  this_beta, beta0, betax = 3.45, ...
-  this_lattice: line = ( ... )
-  use, this_lattice
-  use, this_beam
-  use, this_beta
-\end{example}
-Another undocumented point is that for a \vn{MATRIX} element, unlike MAD, the
-\vn{R$ii$} terms (the diagonal terms of the linear matrix) are not
-unity by default. Thus
+One point that is not covered in the XSIF documentation is that for a
+\vn{MATRIX} element, unlike \MAD, the \vn{R$ii$} terms (the diagonal
+terms of the linear matrix) are not unity by default. Thus
 \begin{example}
   m: matrix
 \end{example}
@@ -41,21 +31,22 @@ stated otherwise.
 %----------------------------------------------------------------------------
 \section{Bmad Lattice Files and Digested Files}
 \label{s:lattice_files}
+\index{Lattice files!digested files}
 
 The syntax that a \bmad standard lattice file
-must conform to is modeled after the lattice input format of the \mad\
-program.  Essentially, a \bmad\ lattice file is similar to a \mad\
-lattice file except that a \bmad\ file has no ``action'' commands
+must conform to is modeled after the lattice input format of the \MAD
+program.  Essentially, a \bmad lattice file is similar to a \mad
+lattice file except that a \bmad file has no ``action'' commands
 (action commands tell the program to calculate the Twiss parameters,
 do tracking, etc.). 
 Interacting with the user to determine what actions a program
-should take is left to the program and is not part of \bmad\ (although
-\bmad, of course, provides the routines to do many calculations). A
-program is not required to use the \bmad\ parser routine but if it
+should take is left to the program and is not part of \bmad (although
+\bmad, of course, provides the routines to perform many calculations). A
+program is not required to use the \bmad parser routine but if it
 does the following chapters describes how to construct a valid lattice
 file.
 
-Normally the \bmad\ parser routine will create what is called a
+Normally the \bmad parser routine will create what is called a
 ``digested file'' after it has parsed a lattice file so that when a
 program is run and the same lattice file is to be read in again, to save
 time, the digested file can be used to load in the lattice information.
@@ -65,8 +56,8 @@ Using a digested file can save considerable time if some of the
 elements in the lattice need to have Taylor maps computed.
 (this occurs typically with map--type wigglers).
 
-\bmad\ creates the digested file in the same area as the lattice file.
-If \bmad\ is not able to create a digested file (typically because it
+\bmad creates the digested file in the same area as the lattice file.
+If \bmad is not able to create a digested file (typically because it
 does not have write permission in the directory), an error message will
 be generated but otherwise program operation will be normal.
 
@@ -99,9 +90,10 @@ file.
 
 
 %---------------------------------------------------------------------------
-\section{Lattice File Format}
+\section{Lattice files}
+\index{Lattice files!statement syntax}
 
-Input for \bmad\ is free format. A \bmad\ lattice input file consists
+Input for \bmad is free format. A \bmad lattice input file consists
 of a sequence of statements. Normally a statement occupies a single
 line in the file. Several statements may be placed on the same line by
 inserting a semicolon (;) between them. A long statement can occupy
@@ -114,11 +106,12 @@ everything after the exclamation mark on the line are ignored. Example:
   q0: quad, l = 0.6, &     ! Continued to the next line
             k1 = 1.4, tilt = pi/3
 \end{example}
-\bmad\ is case insensitive. Everything is converted to uppercase except
+\bmad is case insensitive. Everything is converted to uppercase except
 strings.
 
 %---------------------------------------------------------------------------
 \section{Variable Types}
+\index{Arithmetic expressions!variables}
 
 There are five types of variables in \bmad: Reals, Integers, Switches, 
 Logicals, and 
@@ -153,7 +146,42 @@ The name ``switch'' can refer to the variable (for example,
 \vn{bmad_standard}). The name ``method'' is used interchangeably with switch.
 
 %---------------------------------------------------------------------------
+\section{Intrinsic functions}
+\label{s:functions}
+\index{Intrinsic Functions}
+
+The following intrinsic functions are recognized by \bmad: \hfil\break
+\hspace*{0.15in}
+\begin{tabular}{ll}
+  \vnif{sqrt}(x)      & Square Root    \\
+  \vnif{log}(x)       & Logarithm      \\
+  \vnif{exp}(x)       & Exponential    \\
+  \vnif{sin}(x)       & Sine           \\
+  \vnif{cos}(x)       & Cosine         \\
+  \vnif{tan}(x)       & Tangent        \\
+  \vnif{asin}(x)      & Arc sine       \\
+  \vnif{acos}(x)      & Arc cosine     \\
+  \vnif{atan}(x)      & Arc Tangent    \\
+  \vnif{abs}(x)       & Absolute Value \\
+  \vnif{ran}()        & Random number between 0 and 1 \\
+  \vnif{ran_gauss}()  & Gaussian distributed random number \\
+\end{tabular}
+
+\index{Statement!parameter!ran_seed}
+\vn{ran_gauss} is a Gaussian distributed random number with unit RMS. 
+Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator. 
+To choose the seed set 
+\begin{example}
+  parameter[ran_seed] = Integer
+\end{example}
+A \vn{value} of zero will set the seed using the system clock so that different
+sequences of random numbers will be generated each time a program is run.
+The default behavior if \vn{parameter[ran_seed]} is not present is for a fixed
+sequence of random numbers every time a program is run.
+
+%---------------------------------------------------------------------------
 \section{Arithmetic Expressions}
+\index{Arithmetic expressions} 
 
 Arithmetic expressions can be used in a place where a real value is required.
 The standard operators are defined: \hfil\break
@@ -166,25 +194,7 @@ The standard operators are defined: \hfil\break
   $a \, \land \, b$ & Exponentiation  \\
 \end{tabular}
 
-The following functions are recognized by \bmad: \hfil\break
-\hspace*{0.15in}
-\begin{tabular}{ll}
-  sqrt(x) &  Square Root    \\
-  log(x)  &  Logarithm      \\
-  exp(x)  &  Exponential    \\
-  sin(x)  &  Sine           \\
-  cos(x)  &  Cosine         \\
-  tan(x)  &  Tangent        \\
-  asin(x) &  Arc sine       \\
-  acos(x) &  Arc cosine     \\
-  atan(x) &  Arc Tangent    \\
-  abs(x)  &  Absolute Value \\
-\end{tabular}
-
-
-%---------------------------------------------------------------------------
-\section{Constants}
-
+\index{Arithmetic expressions!constants}
 Literal constants can be entered with or without a decimal point. An
 exponent is marked with the letter E. For example
 \begin{example}
@@ -194,7 +204,7 @@ Symbolic constants can be defined using the syntax
 \begin{example}
   parameter_name = expression
 \end{example}
-Alternatively, to be compatible with \mad, using ``:='' instead of ``='' is accepted
+Alternatively, to be compatible with \MAD, using ``:='' instead of ``='' is accepted
 \begin{example}
   parameter_name := expression
 \end{example}
@@ -203,7 +213,7 @@ Examples:
   my_const = sqrt(10.3) * pi^3
   abc     := my_const * 23
 \end{example}
-Unlike \mad, \bmad\ uses immediate substitution so that all constants
+Unlike \MAD, \bmad uses immediate substitution so that all constants
 in an expression must have been previously defined. For example, the
 following is not valid:
 \begin{example}
@@ -218,11 +228,13 @@ defined, symbolic constants cannot be redefined. For example:
   my_const = 2  ! No: my_const cannot be redefined.
 \end{example}
 
-
 %---------------------------------------------------------------------------
 \section{Element Attributes}
+\index{Element attribute|textbf}
 
-The values of element attributes can be specified using the syntax
+Any lattice element has various attributes like its name, its length,
+its strength, etc. The values of element attributes can be specified using
+the syntax
 \begin{example}
   element-name[attribute-name]
 \end{example}
@@ -246,11 +258,11 @@ then all elements of that type will be set. For example
 %---------------------------------------------------------------------------
 \section{Lattice Elements}
 
-The syntax for defining a lattice element roughly follows \mad:
+The syntax for defining a lattice element roughly follows \MAD:
 \begin{example}
   label: keyword [, attributes]
 \end{example}
-\tn{Overlay} and \tn{Group} elements have a slightly different syntax
+\vn{Overlay} and \vn{Group} elements have a slightly different syntax
 \begin{example}
   label: keyword = \{ list \}, master-attribute [= value] [, attributes]
 \end{example}

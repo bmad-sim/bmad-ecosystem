@@ -1,5 +1,7 @@
 \chapter{Quick\_Plot Plotting}
 \label{c:quick_plot}
+\index{Quick_Plot|textbf}
+\index{PGPLOT}
 
 The plotting package included in the \bmad distribution is PGPLOT
 (see Section~\ref{s:libs}).
@@ -218,6 +220,7 @@ sets the distance between the box edges and the axes.
 %----------------------------------------------------------------------------
 \section{Length and Position Units}
 \label{s:plot_units}
+\index{Quick_Plot!position units}
 
 Typically there is an optional \vn{units} argument for \quickplot routines that
 have length and/or position arguments. For example, using \vn{getf} one can
@@ -253,7 +256,6 @@ The third part gives corner of the reference object that is the reference point
     "RT"    -- Right Top.
 \end{example}
 
-\noindent
 Notes:
 \begin{itemize}
  \item 
@@ -291,6 +293,7 @@ Examples:
 %----------------------------------------------------------------------------
 \section{Y2 and X2 axes}
 \label{s:axes2}
+\index{Quick_Plot!axes}
 
 The top and right axes of a graph are known as \vn{X2} and \vn{Y2}
 respectively as shown in Figure~\ref{f:plot_coords}. Normally the
@@ -320,7 +323,7 @@ arguments that are used to choose various styles. As an example of
 this is in lines 44 and 45 of Figure~\ref{f:plot_example}. The
 numbers in the following are the PGPLOT equivalents.
 
-\noindent
+\index{Quick_Plot!line styles}
 The \quickplot line styles are:
 \begin{example}
     1 -- solid\$                  Solid
@@ -330,7 +333,7 @@ The \quickplot line styles are:
     5 -- dash_dot3\$              Dash--dot--dot--dot        
 \end{example}
 
-\noindent
+\index{Quick_Plot!color styles}
 The color styles in \quickplot are:
 \begin{example}
     0 -- White\$   (actually the background color)
@@ -351,7 +354,7 @@ The color styles in \quickplot are:
    15 -- Light_Grey\$
 \end{example}
 
-\noindent
+\index{Quick_Plot!fill styles}
 The fill styles are:
 \begin{example}
     1 -- solid_fill\$        
@@ -360,6 +363,7 @@ The fill styles are:
     4 -- cross_hatched\$     
 \end{example}
 
+\index{Quick_Plot!symbol table}
 \begin{table}
   \centering
   \includegraphics{plot_syms.psfig}
@@ -367,7 +371,7 @@ The fill styles are:
   \label{t:plot_syms}
 \end{table}
 
-\noindent
+\index{Quick_Plot!symbol styles}
 The symbol types are:
 \begin{example}
     0 -- square\$
@@ -409,7 +413,6 @@ using a height of 40 via the call
   call qp_draw_symbol (0.5_rp, 0.5_rp, "%BOX", k, height = 40.0_rp)
 \end{example}
 
-\noindent
 PGPLOT defines certain escape sequences that can be used in text strings
 to draw greek letters, etc. These escape sequences are given in 
 Table~\ref{t:pgplot_escape}.
@@ -441,7 +444,6 @@ cartographical symbols) available.} \\ \hline
 \label{t:pgplot_escape}
 \end{table}
 
-\noindent
 PGPLOT defines a text background index:
 \begin{example}
          -1 - Transparent background.
@@ -452,6 +454,7 @@ PGPLOT defines a text background index:
 %----------------------------------------------------------------------------
 \section{Structures}
 \label{s:qp_structs}
+\index{Quick_Plot!structures}
 
 \quickplot uses several structures to hold data. The structure that
 defines a line is called a \vn{qp_line_struct} and is shown in
@@ -465,7 +468,7 @@ Figure~\ref{f:qp_line_struct}.
     integer style   ! Line style. Default = solid\$
   end type
 \end{verbatim}
-\caption{Definition of the \tn{qp\_line\_struct}.}
+\caption{Definition of the \vn{qp\_line\_struct}.}
 \label{f:qp_line_struct}
 \end{figure}
 
@@ -482,7 +485,7 @@ in Figure~\ref{f:qp_sym_struct}.
     integer  line_width  ! Default = 1
   end type
 \end{verbatim}
-\caption{Definition of the \tn{qp\_sym\_struct}.}
+\caption{Definition of the \vn{qp\_sym\_struct}.}
 \label{f:qp_sym_struct}
 \end{figure}
 
@@ -510,7 +513,7 @@ in Figure~\ref{f:qp_axis_struct}.
     logical draw_numbers      ! Draw the numbering?
   end type
 \end{verbatim}
-\caption{Definition of the \tn{qp\_axis\_struct}.}
+\caption{Definition of the \vn{qp\_axis\_struct}.}
 \label{f:qp_axis_struct}
 \end{figure}
 

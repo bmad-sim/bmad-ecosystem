@@ -15,6 +15,7 @@ If this is not the case
 %----------------------------------------------------------------------------
 \section{tracking\_method Switches}
 \label{s:tkm}
+\index{Tracking method|textbf}
 
 Below are listed the methods for the \vn{tracking_method}
 attribute with an explanation of what the different methods do. A
@@ -178,6 +179,7 @@ denotes an available method.}
 %----------------------------------------------------------------------------
 \section{mat6\_calc\_method Switches}
 \label{s:xfer}
+\index{Mat6_calc_method|textbf}
 
 Below are listed the methods for the \vn{mat6_calc_method}
 attribute with an explanation of what the different methods do. A
@@ -205,12 +207,14 @@ integration order does not necessarily imply higher accuracy.
 
 \begin{description}
 
+\index{Mat6_calc_method!Bmad_Standard}
 \item[\vn{Bmad\_Standard}]
 Uses formulas for the calculation. The emphasis here is on speed and not
 symplecticity. Appropriate when you are interested in single turn
 stuff. May be appropriate for long term tracking depending upon how
 many turns are tracked and what kind of elements are involved. 
 
+\index{Mat6_calc_method!Custom}
 \item[\vn{Custom}]
 This method will call a routine \vn{make_mat6_custom} which must be
 supplied by the programmer implementing the custom transfer matrix
@@ -218,9 +222,11 @@ calculation. The default \vn{make_mat6_custom} supplied with the
 \bmad\ release will print an error message and stop the program if it
 is called which probably indicates a program linking problem.
 
+\index{Mat6_calc_method!MAD}
 \item[\vn{MAD}]
 This uses the MAD 2nd transfer map.
 
+\index{Mat6_calc_method!Symp_lie_Bmad}
 \item[\vn{Symp\_Lie\_Bmad}]
 A Symplectic calculation using a Hamiltonian with Lie operator techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
@@ -229,11 +235,13 @@ This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
 \vn{Symp_Lie_PTC}. However, \vn{Symp_lie_Bmad} is
 currently only implemented for Wigglers.
 
+\index{Mat6_calc_method!Symp_Lie_PTC}
 \item[\vn{Symp\_Lie\_PTC}]
 Symplectic integration using a Hamiltonian and Lie operators.
 This uses Etienne's PTC software for the calculation.
 This method is symplectic but can be slow.
 
+\index{Mat6_calc_method!Taylor}
 \item[\vn{Taylor}]
 This uses a Taylor map generated from Etienne's PTC
 package. Generating the map may take time but once you have it it
@@ -242,6 +250,7 @@ that you have to worry about the accuracy if you do a calculation at points
 that are far from the expansion point about which the map was
 made. This method is non-symplectic away from the expansion point. 
 
+\index{Mat6_calc_method!Tracking}
 \item[\vn{Tracking}]
 This uses the tracking method set by \vn{tracking_method} to track 6
 particles around the central orbit. This method is susceptible to inaccuracies
@@ -263,7 +272,7 @@ is that it is directly related to any tracking results.
 \begin{sideways}\vn{MAD}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_Bmad}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_PTC}\end{sideways} &
-\begin{sideways}\vn{Taylor}\end{sideways}
+\begin{sideways}\vn{Taylor}\end{sideways} &
 \begin{sideways}\vn{Tracking}\end{sideways}
 \\ \hline
 %                               BS   C   M  SLB SLP Tlr Trk 

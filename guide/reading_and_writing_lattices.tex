@@ -2,26 +2,27 @@
 
 %----------------------------------------------------------------------------
 \section{Reading in Lattices}
+\index{Lattice files!reading}
 
 The subroutine to read in an XSIF lattice file is \vn{xsif_parser}.
 There are two subroutines in \bmad\ to read in a \bmad standard
-lattice file: \rn{bmad_parser} and \rn{bmad_parser2}.
+lattice file: \vn{bmad_parser} and \vn{bmad_parser2}.
 
-\rn{bmad_parser} is used to initialize a \tn{ring_struct}
+\vn{bmad_parser} is used to initialize a \vn{ring_struct}
 structure from scratch using the information from a lattice
 file. Unless told otherwise, after reading in the lattice
-\rn{bmad_parser} will compute the 6x6 transfer matrices for each
+\vn{bmad_parser} will compute the 6x6 transfer matrices for each
 element. Normally you want to do this but there are exceptions where
 you don't need it and for particular lattices the computation can take
 a long time (especially if there are Taylor maps to be
-computed). Notice that \rn{bmad_parser} does {\em not} compute any
+computed). Notice that \vn{bmad_parser} does {\em not} compute any
 Twiss parameters.
 
-\rn{bmad_parser2} is typically used after \rn{bmad_parser} if there is
+\vn{bmad_parser2} is typically used after \vn{bmad_parser} if there is
 additional information that needs to be added to the lattice. For
 example, aperture limits for the elements are often stored in a
 separate file. In this case there are two possibilities: The first is
-to use \rn{bmad_parser2}
+to use \vn{bmad_parser2}
 \begin{verbatim}
   call bmad_parser ('lattice_file', ring)       ! read in a lattice.
   call bmad_parser2 ('aperture_file', ring)     ! read in the aperture limits.
@@ -32,16 +33,17 @@ The second alternative is to create a third file that calls the first two
  call, file = 'lattice_file'
  call, file = 'aperture_file'
 \end{verbatim}
-and then just use \rn{bmad_parser} to parse this third file.
+and then just use \vn{bmad_parser} to parse this third file.
 
 %----------------------------------------------------------------------------
 \section{Digested Files}
+\index{Lattice files!digested files}
 
-Since parsing can be slow, once \rn{bmad_parser} has transfered the
-information from a lattice file into the \tn{ring_struct} it will make
+Since parsing can be slow, once \vn{bmad_parser} has transfered the
+information from a lattice file into the \vn{ring_struct} it will make
 what is called a digested file. A digested file is an image of the
-\tn{ring_struct} in binary form. When \rn{bmad_parser} is called it
-(actually it is a the subroutine \rn{read_digested_bmad_file} that
+\vn{ring_struct} in binary form. When \vn{bmad_parser} is called it
+(actually it is a the subroutine \vn{read_digested_bmad_file} that
 does all the work) first looks in the same directory as the lattice
 file for a digested file whose name is of the form
 \begin{verbatim}
@@ -60,8 +62,9 @@ digested file does not agree with the current or the digested file is
 out--of--date a warning will be printed and the digested file will not
 be used.
 
+\index{Transfer map!Taylor!with digested files}
 Since computing Taylor Maps can be very time intensive,
-\rn{bmad_parser} tries to reuse Taylor Maps it finds in the digested
+\vn{bmad_parser} tries to reuse Taylor Maps it finds in the digested
 file even if the lattice file has been changed in the meantime. To
 make sure that everything is OK it will check that the attribute
 values of an element needing a Taylor map are the same as the
@@ -78,8 +81,8 @@ file with the digested file name corresponding to the first lattice.
 The digested file is in binary format and is not human readable but it
 provides a convenient mechanism for transporting lattices between
 programs. For example, say you have read in a lattice, changed
-some parameters in the \tn{ring_struct}, and now you want to do some
-analysis on this modified \tn{ring_struct} using a different program. The 
+some parameters in the \vn{ring_struct}, and now you want to do some
+analysis on this modified \vn{ring_struct} using a different program. The 
 answer is to have the first program create a digested file
 \begin{example}
   call write_digested_bmad_file ('digested_file_of_mine', ring)

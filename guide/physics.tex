@@ -3,9 +3,10 @@
 %-----------------------------------------------------------------
 \section{Units}
 \label{s:units}
+\index{Units|textbf}
 
 \bmad\ uses SI (Syst\'eme International) units as shown in
-Table~\ref{t:units}.  Note that \mad\ uses different units. For example,
+Table~\ref{t:units}.  Note that \MAD uses different units. For example,
 \mad's unit of Particle Energy is GeV not eV.
 \begin{table}[h]
 \centering
@@ -29,11 +30,12 @@ Table~\ref{t:units}.  Note that \mad\ uses different units. For example,
 %-----------------------------------------------------------------
 \section{Constants}
 \label{s:constants}
+\index{Constants|textbf}
 
 \bmad\ defines commonly used physical and mathematical constants
 shown in Table~\ref{t:constants}.  All symbols use straight SI units
 except for \vn{e_mass} and \vn{p_mass} which are provided for
-compatibility with \mad.
+compatibility with \MAD.
 
 \begin{table}
 \centering
@@ -62,10 +64,11 @@ compatibility with \mad.
 %-----------------------------------------------------------------
 \section{Magnetic Fields}
 \label{s:fields}
+\index{Magnetic fields|textbf}
 
 Start with the assumption that the local magnetic field has no
 longitudinal component (obviously this assumption does not work with,
-say, a solenoid).  Following \mad, the vertical magnetic field is
+say, a solenoid).  Following \MAD, the vertical magnetic field is
 expanded in a Taylor series
 \Begineq
   B_y(x, 0) = \sum_n B_n \, \frac{x^n}{n!}
@@ -116,7 +119,7 @@ Another representation of the magnetic field used by \bmad\ divides
 the fields into normal $b_n$ and skew $a_n$ components. In terms of
 these components the magnetic field for the $n$\Th\ component is
 \Begineq
-  \frac{L}{P_0} \, (B_y + i B_x) = (b_n + i a_n) \, (x + i y)^n
+  \frac{q \, L}{P_0} \, (B_y + i B_x) = (b_n + i a_n) \, (x + i y)^n
 \Endeq
 The conversion between $(a_n, b_n)$ and $(K_nL, \phi_n)$ is
 \Begineq
@@ -138,11 +141,11 @@ the $a_n$ and $b_n$ according to the formula
   b_n &\rightarrow 
         b_n \cdot F \cdot \frac{r_0^{n_\text{ref}}}{r_0^n}
 \end{align}
-where $r_0$ is set by the \vn{radius} attribute of an element. $F$ and
+where $r_0$ is set by the \vnea{radius} attribute of an element. $F$ and
 $n_\text{ref}$ are set automatically depending upon the type of
 element as shown in Table~\ref{t:ab}.
 
-Note that the $n = 0$ component of an \vn{AB_Multipole} or \vn{Multipole}
+Note that the $n = 0$ component of an \vne{AB_Multipole} or \vne{Multipole}
 element rotates the reference orbit essentially acting as a zero length bend.
 This is not true for multipoles that are associated with 
 non-multipole elements.
@@ -152,17 +155,17 @@ non-multipole elements.
 \begin{tabular}{|l|l|l|} \hline
 \tt
   {\em Element} & $F$                              & $n_\text{ref}$ \\ \hline
-  Kicker        & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
-  Hkicker       & Kick                                   & 0 \\
-  Vkicker       & Kick                                   & 0 \\
-  Rbend         & G * L                                  & 0 \\
-  Sbend         & G * L                                  & 0 \\
-  Elseparator   & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
-  Quadrupole    & K1 * L                                 & 1 \\
-  Solenoid      & KS * L                                 & 1 \\
-  Sol\_Quad     & K1 * L                                 & 1 \\
-  Sextupole     & K2 * L                                 & 2 \\
-  Octupole      & K3 * L                                 & 3 \\ \hline
+  \vne{Kicker}      & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
+  \vne{Hkicker}     & Kick                                   & 0 \\
+  \vne{Vkicker}     & Kick                                   & 0 \\
+  \vne{Rbend}       & G * L                                  & 0 \\
+  \vne{Sbend}       & G * L                                  & 0 \\
+  \vne{Elseparator} & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
+  \vne{Quadrupole}  & K1 * L                                 & 1 \\
+  \vne{Solenoid}    & KS * L                                 & 1 \\
+  \vne{Sol_Quad}    & K1 * L                                 & 1 \\
+  \vne{Sextupole}   & K2 * L                                 & 2 \\
+  \vne{Octupole}    & K3 * L                                 & 3 \\ \hline
 \end{tabular}
 \caption{$F$ and $n_\text{ref}$ for various elements.}
 \label{t:ab}
@@ -171,6 +174,7 @@ non-multipole elements.
 %-----------------------------------------------------------------
 \section{Taylor Maps}
 \label{s:taylor_phys}
+\index{Transfer map!Taylor|textbf}
 
 A transport map ${\cal M}: {\cal R}^6 \rightarrow {\cal R}^6$ through
 an element or a section of a lattice is a function that maps the
@@ -192,9 +196,67 @@ The order of the map is
   \mbox{order} = \max_{i,j} \left( \sum_{k = 1}^6 e_{ijk} \right)
 \Endeq
 
+The standard \bmad routine for printing a Taylor map might produce something 
+like this: 
+\begin{example}
+   Taylor Terms:
+    Out     Coef              Exponents           Order        Reference
+   ---------------------------------------------------
+      1:     -0.600000000000  0  0  0  0  0  0        0       0.200000000
+      1:      1.000000000000  1  0  0  0  0  0        1
+      1:      0.145000000000  2  0  0  0  0  0        2
+   ---------------------------------------------------
+      2:     -0.185000000000  0  0  0  0  0  0        0       0.000000000
+      2:      1.300000000000  0  1  0  0  0  0        1
+      2:      3.800000000000  2  0  0  0  0  0        2
+   ---------------------------------------------------
+      3:      1.000000000000  0  0  1  0  0  0        1       0.100000000
+      3:      1.600000000000  0  0  0  1  0  0        1
+      3:    -11.138187077310  1  0  1  0  0  0        2
+   ---------------------------------------------------
+      4:      1.000000000000  0  0  0  1  0  0        1       0.000000000
+   ---------------------------------------------------
+      5:      0.000000000000  0  0  0  0  0  0        0       0.000000000
+      5:      0.000001480008  0  1  0  0  0  0        1
+      5:      1.000000000000  0  0  0  0  1  0        1
+      5:      0.000000000003  0  0  0  0  0  1        1
+      5:      0.000000000003  2  0  0  0  0  0        2
+   ---------------------------------------------------
+      6:      1.000000000000  0  0  0  0  0  1        1       0.000000000
+\end{example}
+The Taylor map has 6 Taylor series, one each output phase space coordinate.
+In this example, the second Taylor series when expressed as a formula would
+read:
+\Begineq
+  p_x(out) = -0.185 + 1.3 \, p_x(in) + 3.8 \, x^2(in)
+\Endeq
+
+\index{Transfer map!Taylor!reference coordinates}
+The reference column in the above example shows the coordinates around
+which the Taylor map is calculated. In this case the reference
+coordinates where 
+\Begineq
+  (x, p_x, y, p_y, z, p_z) = (0.2, 0, 0.1, 0, 0, 0, 0)
+\Endeq
+For example, suppose that the exact map through an element looks like
+\Begineq
+  x(out) = A \, \sin(k \, x(in))
+\Endeq
+Then a Taylor map to 1\St order is
+\Begineq
+  x(out) = [A \, \sin(k \, x_{\mbox{ref}}] + 
+  [A \, k \, \cos(k \, x_{\mbox{ref}}] \, x(in)
+\Endeq
+Thus the choice of the reference point will affect the values of the
+coefficients of the Taylor map but once the coefficient values are
+determined the reference point does not play any role when the Taylor
+map is evaluated to determine the output coordinates as a function of
+the input coordinates.
+
 %-----------------------------------------------------------------
 \section{Symplectification}
 \label{s:symp_method}
+\index{Symplectic!symplectification}
 
 If the evolution of a system can be described using a Hamiltonian then
 it can be shown that the linear part of any transport map (the Jacobian)
@@ -234,11 +296,9 @@ A symplectic matrix $\Bf F$ is now obtained by inverting \eq{e:vsimi}
 \section{Wigglers}
 \label{s:wiggler_phys}
 
-As discussed in Section~\ref{s:wig}, \bmad wiggler elements are split into 
+As discussed in Section~\ref{s:wig}, \bmad \vne{Wiggler} elements are split into 
 two classes: map type and periodic type.
-
-
-The map type wigglers are modeled using the method of Sagan, Crittenden, 
+ The map type \vn{Wigglers} are modeled using the method of Sagan, Crittenden, 
 and Rubin\cite{b:wiggler}. In this model the magnetic field is written as 
 a sum of terms $B_i$
 \Begineq
@@ -274,6 +334,7 @@ techniques can be use to construct Taylor maps to arbitrary order.
 %-----------------------------------------------------------------
 \section{Radiation Damping and Excitation}
 \label{s:radiation}
+\index{Synchrotron radiation!damping and excitation|textbf}
 
 Emission of synchrotron radiation by a particle can be decomposed into
 two parts. The deterministic average radiation emitted produces damping
@@ -327,9 +388,7 @@ the changes in $p_x$ and $p_y$
 %-----------------------------------------------------------------
 \section{Macroparticles}
 \label{s:macro}
-
-Note: Wakefield and Macroparticle simulation have just been implemented
-in bmad and is still in the testing phase. Use with caution.
+\index{Macroparticles|textbf}
 
 A macroparticle\cite{b:transport_appendix} is a bundle of particles
 whose distribution is assumed to be Gaussian in shape. A macroparticle
@@ -415,9 +474,7 @@ to the charge associated with the slice.
 %-----------------------------------------------------------------
 \section{Wakefields}
 \label{s:wakefields}
-
-Note: Wakefield and Macroparticle simulation have just been implemented
-in bmad and is still in the testing phase. Use with caution.
+\index{Wakefields}
 
 Wakefield modeling follows the LIAR program\cite{b:liar}. Wakefields
 are applied in the center of LINAC accelerating cavities
@@ -453,17 +510,18 @@ where $\sigma_{zi}$ and $\sigma_{zj}$ are the longitudinal sizes for
 the $i$\Th and $j$\Th particles respectively, and $\sigma_{z0}$ is a
 small fudge factor needed when $\sigma_{zi} = \sigma_{zj} = 0$.
 
-The transverse kick $dx'_i$ for the $i$\Th macroparticle due to the 
+The transverse kick $dp_x(i)$ for the $i$\Th macroparticle due to the 
 dipole short--range transverse wakefield is modeled with the equation
 \Begineq
-  dx'_i = \sum_j |Q_j| \, x_j \, L \Wt(dz_{ij})
+  dp_x(i) = \frac{\sum_j |Q_j| \, x_j \, L \, \Wt(dz_{ij})}{P_0}
 \Endeq
-with a similar equation for $dy'_i$. $\Wt$ is the transverse short--range
+with a similar equation for $dp_y(i)$. $\Wt$ is the transverse short--range
 wake function.
 
 %-----------------------------------------------------------------
 \section{Coupling and Normal Modes}
 \label{s:coupling}
+\index{Coupling}
 
 The coupling formalism used by \bmad\ is taken from the paper of Sagan
 and Rubin\cite{b:coupling}. The main equations are reproduced here.  A
@@ -499,6 +557,7 @@ $\bfV$ is written in the form
     , \label{vgicc1}
   \Endeq
 where the symplectic conjugate is 
+\index{Symplectic!conjugate}
   \Begineq
     \bfC^+ = 
     \begin{pmatrix}
@@ -592,7 +651,7 @@ dispersion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
 %-----------------------------------------------------------------
 \section{Synchrotron Integrals}
 \label{s:synch_ints}
-
+\index{Synchrotron radiation!integrals}
 
 The standard formulas for the synchrotron integrals used to compute
 emittances, the energy spread, etc., for a storage ring assume no

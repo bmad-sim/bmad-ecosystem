@@ -1,13 +1,15 @@
 \chapter{Tracking}
 \label{s:tm}
+\index{Tracking}
 
-\bmad\ can do two types of tracking. One type uses a single particle 
+\bmad can do two types of tracking. One type uses a single particle 
 and tracks its coordinates throughout the lattice. The other type
 takes a beam distribution and tracks the centroids and sigmas of
 ``macro particles''.  
 
 %----------------------------------------------------------------
 \section{Track\_All Example}
+\index{Tracking!example}
 
 The routines to track through a lattice are listed in
 Section~\ref{r:track}. The \vn{track_all} routine serves as a good
@@ -56,26 +58,27 @@ loss occured.
 
 %----------------------------------------------------------------
 \section{The coord\_struct}
+\index{coord_struct}
 
 For single particle tracking the starting point is the
-\tn{coord_struct} whose definition is 
+\vn{coord_struct} whose definition is 
 \begin{example}
   type coord_struct
     real(rp) vec(6)   ! (x, p_x, y, p_y, z, p_z)
   end type
 \end{example}
 shown
-The \tn{coord_struct} defines the phase
+The \vn{coord_struct} defines the phase
 space vector of the particle at a certain longitudinal location.
 
 To get an orbit, that is, the particle position at every element in a
-lattice, you will need an array of \tn{coord_struct}'s. Since the
+lattice, you will need an array of \vn{coord_struct}'s. Since the
 number of elements in the lattice is not known in advance the array
 must be declared to be allocatable.
 \begin{verbatim}
   type (coord_struct), allocatable :: coords(:)
 \end{verbatim}
-You cannot, in general, use a pointer to an array since most \bmad\
+You cannot, in general, use a pointer to an array since most \bmad
 subroutines expect an allocatable array and Fortran does not allow you
 to mix and match. An example of how to do multi-turn tracking is
 \begin{example}
@@ -91,20 +94,20 @@ to mix and match. An example of how to do multi-turn tracking is
     coords(0) = coords(ring%n_ele_use)
   end do
 \end{example}
-\rn{track_all} takes \vn{coord(0)} and tracks through the lattice from
+\vn{track_all} takes \vn{coord(0)} and tracks through the lattice from
 the 1\St\ element through the $n$\Th\ where $n =$
 \vn{ring%n_ele_use}.  Each \vn{coord(i)} is associated with the
 corresponding \vn{ring%ele_(i)} element and is the particle position
-at the exit end of the i\Th\ element. \rn{reallocate_coords} simply
+at the exit end of the i\Th\ element. \vn{reallocate_coords} simply
 does an allocation. Its advantage over just allocating directly is
 that it checks if the allocation is needed and if not then it does
-nothing. Since \rn{track_all}, like many \bmad\ routines, will
-reallocate if needed, only one call to \rn{reallocate_coords} is
-needed initially even if there are repeated calls to \rn{track_all}.
+nothing. Since \vn{track_all}, like many \bmad routines, will
+reallocate if needed, only one call to \vn{reallocate_coords} is
+needed initially even if there are repeated calls to \vn{track_all}.
 
-If you are writing a routine where the \tn{coord_struct} array is
+If you are writing a routine where the \vn{coord_struct} array is
 local (not passed as an argument to the routine) then you have to
-decide how to cleanup the allocated \tn{coord_struct} memory at the
+decide how to cleanup the allocated \vn{coord_struct} memory at the
 end of the routine. In general you have two choices: 1) Deallocate
 the array. This is the cleanest solution but it can be slow since you
 have to allocate afresh each time the routine is called. 2) Use the
@@ -118,11 +121,13 @@ Saving the \vn{coord_stuct} is faster but leaves memory tied up.
 %----------------------------------------------------------------
 \section {Miscellaneous Notes}
 
-Except for \vn{Linear} tracking, none of the \bmad\ tracking routines
+\index{Ele_struct!%mat6}
+Except for \vntm{Linear} tracking, none of the \bmad tracking routines
 make use of the \vn{ele%mat6} transfer matrix. The reverse, however,
 is not true.  The transfer matrix routines (\vn{ring_make_mat6}, etc.)
 will do tracking.
 
+\index{Ele_struct!%tracking_method}
 For each element the method of tracking may be set either via the
 input lattice file (see section~\ref{s:tkm}) or directly in the
 program by setting the \vn{%tracking_method} attribute of an element
@@ -136,14 +141,15 @@ put ``\$'' after the name. For example, the \vn{bmad_standard}
 tracking method is specified by the \vn{bmad_standard\$}
 parameter.
 
-
-\bmad\ simulates radiation damping and excitation by applying a kick
+\index{Synchrotron radiation!calculating}
+\bmad simulates radiation damping and excitation by applying a kick
 just before and after each element. To turn on radiation damping
 and/or excitation use the \vn{setup_radiation_tracking} routine.
 
 %----------------------------------------------------------------
 \section{Macroparticle Tracking}
-
+\index{Macroparticles!tracking}
+\index{Tracking!Macroparticles}
 
 The definition of the \vn{macro_struct} structure that defines a
 macroparticle is shown in Figure~\ref{f:macro_struct}.  
@@ -160,7 +166,7 @@ macroparticle is shown in Figure~\ref{f:macro_struct}.
     integer :: iz = 0       ! index to ordering of particles in z.
   end type
 \end{verbatim}
-\caption{The \tn{macro\_struct}\ that defines a macroparticle.}
+\caption{The \vn{macro\_struct}\ that defines a macroparticle.}
 \label{f:macro_struct}
 \end{figure}
 
@@ -177,6 +183,7 @@ elements need to be stored. Symbolic constants \vn{s$ij$\$} ($i$, $j$
 To convert \vn{%sigma(:)} into an actual matrix use the
 \vn{mp_sigma_to_mat} routine.
 
+\index{LIAR}
 \bmad uses canonical phase space
 coordinates(See Section~\ref{s:phase_space_coords}). The LIAR program uses
 ``angle'' phase space coordinates

@@ -31,31 +31,40 @@
 
 \newcommand{\bmad}{{\sl Bmad}\xspace}
 \newcommand{\mad}{{\sl MAD}\xspace}
+\newcommand{\MAD}{{\sl MAD}\index{MAD}\xspace}
 \newcommand{\quickplot}{{\sl Quick Plot}\xspace}
 
 \newcommand{\eq}[1]{{(\protect\ref{#1})}}
 \newcommand{\Eq}[1]{{Eq.~(\protect\ref{#1})}}
 \newcommand{\Eqs}[1]{{Eqs.~(\protect\ref{#1})}}
 
-\newcommand{\ave}[1]{\left\langle #1 \right\rangle}
-\newcommand{\vn}{\ttcmd}           % For variable names
-\newcommand{\cs}{\ttcmd}           % For code source
-\newcommand{\cmd}{\ttcmd}          % For Unix commands
-\newcommand{\rn}{\ttcmd}           % For Routine names
-\newcommand{\tn}{\ttcmd}           % For Type (structure) names
-\newcommand{\tx}{\txtcmd}           % For Type (structure) names
-\newcommand{\bn}[1]{{\bf #1}}       
 \newcommand{\toffset}{\vskip 0.01in}
 \newcommand{\rot}[1]{\begin{rotate}{-45}#1\end{rotate}}
 
 \newcommand{\Out}{\mbox{out}}
 \newcommand{\In}{\mbox{in}}
+\newcommand{\ave}[1]{\left\langle #1 \right\rangle}
+
+\newcommand{\vn}{\ttcmd}           % For variable names
+\newcommand{\cs}{\ttcmd}           % For code source
+\newcommand{\rn}{\ttcmd}           % For Routine names
+\newcommand{\vne}{\ttcmdz{Element}}
+\newcommand{\vnea}{\ttcmdz{Element attribute}}
+\newcommand{\vns}{\ttcmdz{Statement}}
+\newcommand{\vntm}{\ttcmdz{Tracking method}}
+\newcommand{\vnif}{\ttcmdz{Intrinsic functions}}
 
 \newcommand\ttcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
 \newcommand\dottcmd[1]{\texttt{#1}\endgroup}
 
-\newcommand\slcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \doslcmd}
-\newcommand\doslcmd[1]{\textsl{#1}\endgroup}
+\newcommand{\itemvn}{\ttitem}
+\newcommand\ttitem{\begingroup\catcode`\_=11 \catcode`\%=11 \doitem}
+\newcommand\doitem[1]{\item[\texttt{#1}]\endgroup}
+
+
+\newcommand\ttcmdz{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmdz}
+\newcommand\dottcmdz[2]{\texttt{#2}\endgroup\index{#1!#2}}
+
 
 %\newcommand\ttverb{
 %  \bgroup\let\do\@makeother\dospecials\catcode`{=1 \catcode`}=2 \DSAcode}
@@ -74,8 +83,8 @@
 
 \newcommand{\plus}{\; + \;}
 
-\newcommand{\Th}{$^{th}$}
-\newcommand{\St}{$^{st}$}
+\newcommand{\Th}{$^{th}$\xspace}
+\newcommand{\St}{$^{st}$\xspace}
 \newcommand{\B}{$\backslash$}
 
 \newlength{\dPar}

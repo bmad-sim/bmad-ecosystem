@@ -1,8 +1,9 @@
 \chapter{Twiss Parameter and Other Calculations}
-
+\index{Twiss parameters}
 
 %-----------------------------------------------------------------------------
 \section{Twiss Parameter Calculations}
+\index{Twiss parameters!calculation}
 
 The Twiss parameters for an element are stored in the
 \vn{ele_struct}. See Chapter~\ref{c:ele_struct} for more details.
@@ -16,7 +17,7 @@ a different orbit needs to be used for the reference, The routine
   type (ring_struct) ring
   type (coord_struct), allocatable :: orbit(:)
   call bmad_parser ('my_lattice', ring)
-  call closed_orbit (ring, orbit, 4)
+  call closed_orbit_calc (ring, orbit, 4)
   call ring_make_mat6 (ring, -1, orbit)
 \end{example}
 This example reads in a lattice, finds the closed orbit which may be
@@ -51,7 +52,7 @@ to propagate the Twiss parameters to the rest of the elements. Example
 %-----------------------------------------------------------------------------
 \section{Custom Elements}
 \label{s:custom_ele}
-
+\index{Twiss parameters!calculation with custom elements}
 There are up to six routines that must be written to implement a custom 
 element they are:
 \begin{example}
@@ -74,7 +75,7 @@ the new routines should be explicitly listed in the linking list.
 \label{s:custom_field}
 
 Custom Electric and Magnetic field calculations are used with
-\vn{Runge_Kutta} and \vn{Boris} tracking (See \S\ref{s:integ}).  To
+\vntm{Runge_Kutta} and \vntm{Boris} tracking (See \S\ref{s:integ}).  To
 implement custom field calculations the \vn{ele%field_calc} component
 of an element must be set to \vn{custom\$}. This can be done either
 through the lattice input file or within a program. Additionally a

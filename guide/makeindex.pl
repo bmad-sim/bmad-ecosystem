@@ -8,6 +8,7 @@ open (F_OUT, ">temp.out") || die ("Cannot open temparary file\n");
 
 while (<FC>) {
   s/_/\\_/g;
+  s/\%/\\\%/g;
   print (F_OUT);
 }
 

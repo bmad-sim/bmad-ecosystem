@@ -1,13 +1,14 @@
 \chapter{The Ele\_struct}
 \label{c:ele_struct}
+\index{Ele_struct|textbf}
 
-This chapter describes the \tn{ele_struct} which is the structure that
+This chapter describes the \vn{ele_struct} which is the structure that
 holds all the information about an individual element: quadrupoles,
 separators, wigglers, etc. This structure is somewhat
 complicated. However, in practice, a lot of the complexity is
-generally hidden  by the \bmad\ bookkeeping routines.
+generally hidden  by the \bmad bookkeeping routines.
 
-Part of the substructure of the \tn{ele_struct} is shown
+Part of the substructure of the \vn{ele_struct} is shown
 in figure~\ref{f:ele_struct} (use \vn{getf} to see the entire structure 
 definition). Some of the components of the \vn{ele_struct} like \vn{%name}, 
 \vn{%tracking_method}, etc.\ have an obvious correspondence with 
@@ -47,30 +48,38 @@ attributes set in the lattice file and will not be discussed further.
     logical is_on                     ! For turning element on/off.
   end type
 \end{verbatim}
-\caption[The \tn{ele\_struct}.]{The \tn{ele\_struct}. Only part of the 
+\caption[The \vn{ele\_struct}.]{The \vn{ele\_struct}. Only part of the 
   substructure is shown.}
 \label{f:ele_struct}
 \end{figure}
 
 %--------------------------------------------------------------------------
 \section{Initialization and Element Key}
+\index{Ele_struct!initialization}
+\index{Ele_struct!key}
 
-The \vn{%key} integer component gives the type of element (\vn{quadrupole},
-\vn{RFcavity}, etc.). In general to get the correct index for an element type
-just add a ``\$'' suffix to the type name. The \vn{key_name} array convets
-from integer to the appropriate string. For example
+The \vn{%key} integer component gives the type of element
+(\vn{quadrupole}, \vn{RFcavity}, etc.). In general to get the
+corresponding integer parameter for an element type just add a ``\$''
+character to the type name. For example \vn{quadrupole\$} is the integer
+parameter for \vn{quadrupole} elements. The \vn{key_name} array convets from
+integer to the appropriate string. For example
 \begin{example}
   type (ele_struct) ele
-  call init_ele (ele)                      ! Initialize
-  ele%key = wiggler\$                       ! Turn the element into a quadruple
-  print *, 'This element: ', key_name(ele%key)  ! Prints: 'WIGGLER'
+  call init_ele (ele)                  ! Initialize
+  if (ele%key == wiggler\$) then       ! Test if element is a wiggler.
+  print *, 'This element: ', key_name(ele%key) ! Prints, for example, 'WIGGLER'
 \end{example}
-The call to \vn{init_ele} is needed since this element is being made up
-from scratch.  The elements that are part of a \vn{ring_stuct} variable
-will get automatically initalized.
+The call to \vn{init_ele} is needed for any \vn{ele_struct} defined
+outside of a \vn{ring_struct} structure. The \vn{ele_struct}
+components of a \vn{ring_stuct} variable will get automatically
+initalized.
 
 %--------------------------------------------------------------------------
 \section{Twiss Parameters, etc.}
+\index{Ele_struct!Twiss}
+\index{Ele_struct!global coordinates}
+\index{Coordinates!global!in ele_struct}
 
 There are a class of components of the \vn{ele_struct} whose values 
 vary along the length of the element. In such a case the value of the 
@@ -82,7 +91,7 @@ components are:
   real(rp) c_mat(2,2)                   ! Coupling c matrix
   real(rp) gamma_c                      ! Coupling parameter
 \end{example}
-To get the Twiss parameters, floor position, etc.\ for the beginning
+To get the Twiss parameters, floor (global) position, etc.\ for the beginning
 of the element you need to look at the preceding element in the
 \vn{ring%ele_(:)} array 
 \begin{example}
@@ -96,6 +105,7 @@ The \vn{%x}, \vn{%y}, and \vn{%z} components are themselves
 $a$, $b$ and $z$ modes respectively. Yes it is known that the labeling
 is misleading. Unfortunately it is a bit entrenched now. The definition of
 the \vn{twiss_struct} structure is
+\index{Ele_struct!twiss_struct substruct}
 \begin{example}
   type twiss_struct
     real(rp) beta, alpha, gamma, phi, eta, etap
@@ -114,6 +124,7 @@ and \vn{etap_lab}.
 %--------------------------------------------------------------------------
 \section{Attribute Values: Dependent and Otherwise}
 \label{s:ele_dep}
+\index{Ele_struct!attribute values}
 
 Most of the real valued attributes of an element are held in the
 \vn{%value(:)} array. For example, the value of the \vn{k1} attribute
@@ -183,18 +194,22 @@ independent variable. See Section~\ref{s:depend} for more details.
 
 %--------------------------------------------------------------------------
 \section{Transfer Maps}
+\index{Ele_struct!transfer maps}
+\index{Transfer map!in ele_struct}
 
 The first order transfer map through a element is stored in \vn{vec0}
 and \vn{mat6}. Thus with \vn{Linear} tracking the appropriate formula is
 \begin{example}
   orbit_out = %vec0 + %mat6 * orbit_in
 \end{example}
-The \bmad\ routines that compute \vn{%mat6} (for example \vn{ring_make_mat6})
+The \bmad routines that compute \vn{%mat6} (for example \vn{ring_make_mat6})
 take a reference orbit as an argument and the resulting \vn{%mat6} matrix
 is the Jacobian about the reference orbit.
 
 %--------------------------------------------------------------------------
 \section{Taylor Maps}
+\index{Ele_struct!Taylor maps}
+\index{Transfer map!Taylor!in ele_struct}
 
 \vn{taylor_order} is the order of the Taylor map (see section
 \ref{s:taylor_phys}). The map itself is stored in
@@ -242,6 +257,7 @@ reference point is chosen.
 
 %--------------------------------------------------------------------------
 \section {Multipoles}
+\index{Ele_struct!multipoles}
 
 The multipole components of an element (See setion~\ref{s:fields}) are
 stored in the pointers \vn{%a(:)} and \vn{%b(:)}. If \vn{%a} and
@@ -254,9 +270,10 @@ Section~\ref{r:multi}.
 
 %--------------------------------------------------------------------------
 \section{General Use Components}
+\index{Ele_struct!components not used by Bmad}
 
 There are three components of an \vn{ele_struct} that are gauranteed
-to never be used by any \bmad\ routine and so are available for use by
+to never be used by any \bmad routine and so are available for use by
 someone writing a program. These components are
 \begin{example}
    real(rp), pointer :: r(:) => null()  ! For general use. Not used by \bmad. 
@@ -266,13 +283,15 @@ someone writing a program. These components are
 
 %--------------------------------------------------------------------------
 \section{Initialization and Pointers}
+\index{Ele_struct!initialization}
+\index{Ele_struct!pointer components}
 
-Generally most \tn{ele_struct} elements are part of a
-\tn{ring_struct} variable so you generally don't have to worry about
+Generally most \vn{ele_struct} elements are part of a
+\vn{ring_struct} variable so you generally don't have to worry about
 allocation/deallocation issues directly. In case you do have a local
-\tn{ele_struct} variable within a subroutine then you either have to
+\vn{ele_struct} variable within a subroutine then you either have to
 deallocate the pointers within it with a call to
-\rn{deallocate_ele_pointers} or you use the save attribute.
+\vn{deallocate_ele_pointers} or you use the save attribute.
 \begin{example}
   type (ele_struct), save :: ele     ! Either this at the beginning ...
   ...

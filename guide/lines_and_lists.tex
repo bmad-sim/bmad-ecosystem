@@ -1,10 +1,12 @@
 \chapter{Beam Lines, Replacement Lists, and Superposition}
 
-To \bmad a ``lattice'' is the sequence of physical elements that is to
-be studied. The lattice is constructed using what are know as Beam Lines
+To \bmad a ``lattice''\index{Lattice} 
+is the sequence of physical elements that is to
+be studied. The lattice is constructed in the input lattice file
+using what are know as Beam Lines
 and Replacement Lists. Beam Lines are further subdivided into Lines with
 and without replacement arguments. This essentially corresponds to the
-\mad\ definition of Lines and Lists. There can be multiple Beam Lines
+\MAD definition of Lines and Lists. There can be multiple Beam Lines
 and Replacement Lists defined in a lattice file and Lines and Lists can
 be nested inside other Lines and Lists. The particular Line that defines
 the lattice to be analyzed by \bmad is selected by the \vn{use}
@@ -18,6 +20,8 @@ lattice are always converted to upper case.
 
 %-----------------------------------------------------------------------------
 \section{Beam Lines without Arguments}
+\index{Line|textbf}
+
 A Beam Line without arguments has the format
 \begin{example}
   label: LINE = (member1, member2, ...)
@@ -90,6 +94,7 @@ list using parentheses. For example, the previous example could be rewritten as
 
 %-----------------------------------------------------------------------------
 \section{Beam Lines with Replaceable Arguments}
+\index{Line!with arguments}
 
 Beam lines can have an argument list using the following syntax
 \begin{example}
@@ -107,7 +112,7 @@ case \vn(y, z), replaces the dummy arguments \vn{(DA1, DA2)} to give for
 \begin{example}
   (h, a, z, b, y, g)
 \end{example} 
-Unlike \mad\, Beam Line actual arguments can only be elements or Beam Lines. 
+Unlike \MAD, Beam Line actual arguments can only be elements or Beam Lines. 
 Thus the following is not allowed
 \begin{example}
   line2: line = (h, line1(2*y, z), g)   ! NO: 2*y NOT allowed as an argument.
@@ -115,6 +120,7 @@ Thus the following is not allowed
 
 %-----------------------------------------------------------------------------
 \section{Replacement Lists}
+\index{List}
 
 When a lattice is expanded, all the lattice members that correspond to a 
 name of a Replacement List 
@@ -139,7 +145,7 @@ lattice would be
 \begin{example}
   (z1, a, z2, b, z3, c, z4, a)
 \end{example}
-Unlike \mad\, members of a replacement list can only be simple elements 
+Unlike \MAD members of a replacement list can only be simple elements 
 without reflection or repetition count and not other Lines or Lists. 
 For example the following is not allowed:
 \begin{example}
@@ -149,6 +155,7 @@ For example the following is not allowed:
 %-----------------------------------------------------------------------------
 \section{Superposition}
 \label{s:super}
+\index{Superposition}
 
 In practice the field at a particular point in the lattice may be due
 to more than one physical element. A common example is a quadrupole
@@ -244,5 +251,3 @@ determine these three quantities are:
 superimposed element the beginning edge, the center, or the
 end edge respectively. If neither of these attributes are
 given the default is to use the element center.
-
-

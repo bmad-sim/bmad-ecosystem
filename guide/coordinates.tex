@@ -1,20 +1,22 @@
 \chapter{Coordinates}
+\index{Coordinates|textbf}
 
 %-----------------------------------------------------------------------------
 \section{Reference Orbit}
 \label{s:ref}
+\index{Coordinates!reference orbit|textbf}
 
 The ``reference orbit'' is the curved path used to define a coordinate
 system for particles as shown in Figure~\ref{f:local_coords}.  At a
-given time $t$ a particle's position can be described by a point on
+given time $t$, a particle's position can be described by a point on
 the reference orbit a distance $s$ relative to the reference orbit's
 zero position plus a transverse offset. This point on the reference
 orbit is used as the origin of the local $(x, y, z)$ coordinate system
 with the $z$--axis tangent to the reference orbit and pointing in the
 direction of the reference particle motion. The $x$ and $y$--axes are
 perpendicular to the reference orbit. If the lattice has no vertical
-bends the $y$--axis is in the vertical direction and the $x$--axis is
-in the horizontal plane. Notice that by construction the particle is
+bends, the $y$--axis is in the vertical direction and the $x$--axis is
+in the horizontal plane. Notice that by construction, the particle is
 always at $z = 0$.
 
 \begin{figure}[tb]
@@ -24,6 +26,8 @@ always at $z = 0$.
 \label{f:local_coords}
 \end{figure}
 
+\index{Element!Sbend}
+\index{Element!Rbend}
 In \bmad, a lattice is comprised of a sequence of elements such as
 quadrupoles, bends, RF cavities, etc. Each element has an entrance
 point, an exit point, and a reference curve between them. For a bend,
@@ -34,15 +38,17 @@ that the exit point of one element coincides with the entrance point
 of the next with the reference curves forming an arc with no kinks.
 The reference orbit is then the sum of the reference
 curves. Exceptions to this construction method may be made by using
-\vn{patch} elements which can arbitrarily offset the entrance point of
-an element with respect to the exit point of the previous element.
-See Section~\ref{s:patch}. If not specified otherwise, the $s = 0$
+\vne{Patch} elements which can arbitrarily offset the entrance point
+of an element with respect to the exit point of the previous element.
+See Section~\ref{s:patch}.  If not specified otherwise, the $s = 0$
 position is the entrance point of the first element.
 
-Notice that, in a wiggler, the reference orbit, which is a straight
+Notice that, in a \vne{Wiggler},
+the reference orbit, which is a straight
 line, does {\em not} correspond to the orbit that any actual particle
 could travel. Typically the physical entity of an element is centered
 about the reference curve. However, by specifying offsets and pitches
+\index{Element attribute!offset}\index{Element attribute!pitch}
 (See Section~\ref{s:offset}), the physical element may be
 arbitrarily offset with respect to its reference curve.
 Shifting a physical magnet with respect to its
@@ -52,6 +58,7 @@ not} correspond to the orbit that any actual particle could travel.
 %-----------------------------------------------------------------------------
 \section{Global Reference System}
 \label{s:global}
+\index{Coordinates!global|textbf}
 
 The global reference system describes the orientation of the reference
 orbit with respect to the laboratory coordinate system.  \bmad,
@@ -96,6 +103,7 @@ axes will coincide, and $\phi$ and $\psi$ will both be zero.
 %-----------------------------------------------------------------------------
 \section{Phase Space Coordinate System}
 \label{s:phase_space_coords}
+\index{Coordinates!phase space|textbf}
 
 \bmad uses the canonical phase space coordinates 
 \Begineq
@@ -111,7 +119,7 @@ ultra--relativistic particles where $\beta = 1$ or for a particle at
 constant energy), $\beta \, c \, t$ is the distance the particle has
 traveled so $z$ can be thought of as the longitudinal distance between
 the particle and some reference particle traveling along the reference
-orbit. In other words at constant $\beta$ one can write
+orbit. In other words, at constant $\beta$, one can write
 \begin{equation}
   z = - \beta \, c \, \Delta t
 \end{equation}
@@ -158,10 +166,9 @@ $\Bf a = q \, A / c \, P_0$ is the normalized vector potential, $g =
 curvature of the reference orbit and it has been assumed that the
 bending is in the $x$--$z$ plane. 
 
-For those programmers using the PTC software package directly (ignore
+For those programmers using the PTC\index{PTC/FPP}
+software package directly (ignore
 this if you don't know what I'm talking about) \'Etienne Forest uses,
 by default, a different coordinate system where $(z, p_z)$ is replaced
 by $(p_z, -z)$. However, PTC also has the ability to switch to the
 coordinate system $(p_t, c \Delta t)$.
-
-

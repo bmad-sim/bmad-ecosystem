@@ -1,5 +1,6 @@
 \chapter{Elements}
 \label{c:elements}
+\index{Element|textbf}
 
 A lattice is made up of a collection of
 elements --- quadrupoles, bends, etc. This chapter discusses the
@@ -32,7 +33,7 @@ The list of element types known to \bmad\ is shown in Table~\ref{t:elements}.
   I\_Beam         & \ref{s:i_beam}    &  Solenoid     & \ref{s:sol}      \\ \hline
   Instrument      & \ref{s:monitor}   &  Sol\_Quad    & \ref{s:sq}       \\ \hline
   Kicker          & \ref{s:kicker}    &  Taylor       & \ref{s:tay}      \\ \hline
-  LCavity         & \ref{s:lcav}      &  VKicker      & \ref{s:hvkicker} \\ \hline
+  Lcavity         & \ref{s:lcav}      &  VKicker      & \ref{s:hvkicker} \\ \hline
   Marker          & \ref{s:mark}      &  Wiggler      & \ref{s:wig}      \\ \hline
   
 \end{tabular}
@@ -47,6 +48,7 @@ The list of element types known to \bmad\ is shown in Table~\ref{t:elements}.
 %-----------------------------------------------------------------
 \section{AB\_Multipole}
 \label{s:ab_m}
+\index{Element!AB_Multipole|textbf}
 
 \begin{center}
 \tt 
@@ -79,6 +81,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Accel\_Sol}
 \label{s:accel_sol}
+\index{Element!Accel_Sol|textbf}
 
 An \vn{Accel_Sol} element is a combination LINAC RF accelerating
 section with a solenoid on top of it. For historical reasons this
@@ -88,6 +91,7 @@ any demand for it.
 %-----------------------------------------------------------------
 \section{BeamBeam}
 \label{s:bbi}
+\index{Element!BeamBeam|textbf}
 
 \begin{center} 
 \tt
@@ -163,6 +167,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Bend\_Sol\_Quad}
 \label{s:bsq}
+\index{Element!Bend_Sol_Quad|textbf}
 
 \begin{center}
 \tt
@@ -231,6 +236,8 @@ Example:
 %-----------------------------------------------------------------
 \section{Bends: Rbend and Sbend}
 \label{s:bend}
+\index{Element!Sbend|textbf}
+\index{Element!Rbend|textbf}
 
 \begin{center}
 \tt
@@ -337,6 +344,8 @@ Example:
 %-----------------------------------------------------------------
 \section{Collimators: Ecollimator and Rcollimator}
 \label{s:col}
+\index{Element!Ecollimator|textbf}
+\index{Element!Rcollimator|textbf}
 
 \begin{center}
 \tt
@@ -365,6 +374,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Custom}
 \label{s:custom}
+\index{Element!Custom|textbf}
 
 \begin{center}
 \tt
@@ -404,6 +414,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Drift}
 \label{s:drift}
+\index{Element!Drift|textbf}
 
 \begin{center}
 \tt
@@ -430,6 +441,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Elseparator}
 \label{s:elsep}
+\index{Element!Elseparator|textbf}
 
 \begin{center}
 \tt
@@ -470,6 +482,8 @@ Example:
 %-----------------------------------------------------------------
 \section{Hkicker and Vkicker}
 \label{s:hvkicker}
+\index{Element!Hkicker|textbf}
+\index{Element!Vkicker|textbf}
 
 \begin{center}
 \tt
@@ -498,6 +512,7 @@ attributes. Example:
 %-----------------------------------------------------------------
 \section{Hybrid}
 \label{s:hybrid}
+\index{Element!Hybrid|textbf}
 
 A \vn{Hybrid} element is an element that is formed by concatenating
 other element together. \vn{Hybrid} elements are not part of the input
@@ -506,6 +521,7 @@ lattice file but are created by a program, usually for speed purposes.
 %-----------------------------------------------------------------
 \section{I\_Beam}
 \label{s:i_beam}
+\index{Element!I_Beam|textbf}
 
 \begin{center}
 \tt
@@ -581,6 +597,8 @@ the total tilt is stored in \vn{%value(tilt_tot\$)}, etc.
 %-----------------------------------------------------------------
 \section{Instrument and Monitor}
 \label{s:monitor}
+\index{Element!Instrument|textbf}
+\index{Element!Monitor|textbf}
 
 \begin{center}
 \tt
@@ -606,6 +624,7 @@ drift.  Example:
 %-----------------------------------------------------------------
 \section{Kicker}
 \label{s:kicker}
+\index{Element!Kicker|textbf}
 
 \begin{center}
 \tt
@@ -635,8 +654,10 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
-\section{LCavity}
+\section{Lcavity}
 \label{s:lcav}
+\index{Element!Lcavity|textbf}
+
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
@@ -657,10 +678,10 @@ Example:
 \end{center}
 \toffset
 
-An \vn{LCavity} is a LINAC accelerating cavity.
-Tracking through an \vn{LCavity} is modeled using the equations
+An \vn{Lcavity} is a LINAC accelerating cavity.
+Tracking through an \vn{Lcavity} is modeled using the equations
 developed by Rosenzweig and Serafini\cite{b:rosenzweig}. The
-attributes specific to an \vn{LCavity} are The dependent variable
+attributes specific to an \vn{Lcavity} are The dependent variable
 \vn{delta_e} attribute can be used in place of \vn{gradient} in a
 primary lattice file as discussed in Section~\ref{s:depend}.
 \begin{example}
@@ -678,13 +699,13 @@ The kick felt by a particle is
   dE = gradient * L * cos(twopi * (phi0 - z * rf_frequency / c_light))
 \end{example}
 This is consistent with MAD and LIAR. Note: The MAD8 documentation 
-for an \vn{LCavity} gives essentially
+for an \vn{Lcavity} gives essentially
 \begin{example}
   dE = gradient * L * cos(twopi * (phi0 + z * rf_frequency / c_light)) ! WRONG
 \end{example}
 This is incorrect.
 
-Note: The transfer matrix for an \vn{LCavity} with finite
+Note: The transfer matrix for an \vn{Lcavity} with finite
 \vn{gradient} is never symplectic.
 
 Example:
@@ -724,6 +745,7 @@ it is computed from the $z = 0$ longitudinal wake.
 %-----------------------------------------------------------------
 \section{Marker}
 \label{s:mark}
+\index{Element!Marker|textbf}
 
 \begin{center}
 \tt
@@ -747,6 +769,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Multipole}
 \label{s:mult}
+\index{Element!Multipole|textbf}
 
 \begin{center}
 \tt
@@ -777,6 +800,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Octupole}
 \label{s:oct}
+\index{Element!Octupole|textbf}
 
 \begin{center}
 \tt
@@ -810,6 +834,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Patch}
 \label{s:patch}
+\index{Element!Patch|textbf}
 
 \begin{center}
 \tt
@@ -839,6 +864,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Quadrupole}
 \label{s:quad}
+\index{Element!Quadrupole|textbf}
 
 \begin{center}
 \tt
@@ -871,6 +897,7 @@ Example:
 %-----------------------------------------------------------------
 \section{RFcavity}
 \label{s:rfcav}
+\index{Element!RFcavity|textbf}
 
 \begin{center}
 \tt
@@ -914,6 +941,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Sextupole}
 \label{s:sex}
+\index{Element!Sextupole|textbf}
 
 \begin{center}
 \tt
@@ -946,6 +974,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Solenoid}
 \label{s:sol}
+\index{Element!Solenoid|textbf}
 
 \begin{center}
 \tt
@@ -975,6 +1004,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Sol\_Quad}
 \label{s:sq}
+\index{Element!Sol_Quad|textbf}
 
 \begin{center}
 \tt
@@ -1005,6 +1035,7 @@ Example:
 %-----------------------------------------------------------------
 \section{Taylor}
 \label{s:tay}
+\index{Element!Taylor|textbf}
 
 \begin{center}
 \tt
@@ -1064,6 +1095,7 @@ Example \vn{Taylor} element definition:
 %-----------------------------------------------------------------
 \section{Wiggler} 
 \label{s:wig}
+\index{Element!Wiggler|textbf} 
 
 \begin{center}
 \tt

@@ -1,36 +1,36 @@
 \section*{Introduction}
 
-The strength of \bmad\ is that, as a subroutine library, it provides a
+The strength of \bmad is that, as a subroutine library, it provides a
 flexible framework from which sophisticated simulation programs may
-easily be developed.  The weakness of \bmad\ comes from its strength:
-\bmad\ cannot be used straight out of the box. Someone must put the
-pieces together into a program. This means that \bmad\ is
+easily be developed.  The weakness of \bmad comes from its strength:
+\bmad cannot be used straight out of the box. Someone must put the
+pieces together into a program. This means that \bmad is
 complementary to a general purpose program like
-\mad\cite{b:maduser,b:madphysics}: If \mad\ can solve the problem at
+\MAD\cite{b:maduser,b:madphysics}: If \mad can solve the problem at
 hand you don't need \bmad. If there are no programs that do what you
-want, or they are too slow, then \bmad\ is very useful.
+want, or they are too slow, then \bmad is very useful.
 
-As a consequence of \bmad\ being a software library this manual serves
+As a consequence of \bmad being a software library this manual serves
 two masters: The programmer who wants to develop applications and
 needs to know about the inner workings of \bmad, and the user who
-simply needs to know about the \bmad\ standard input format and about
-the physics behind the various calculations that \bmad\ performs.
+simply needs to know about the \bmad standard input format and about
+the physics behind the various calculations that \bmad performs.
 
 To this end, this manual is divided into three parts. The first two
 parts are for both the user and programmer while the third part is
 meant just for programmers. Part~I gives the conventions used by
-\bmad\ --- coordinate systems, magnetic field expansions, etc. ---
+\bmad --- coordinate systems, magnetic field expansions, etc. ---
 along with some of the physics behind the calculations. By necessity,
 the physics documentation is brief and the reader is assumed to be familiar
 with high energy accelerator physics formalism. Part~II discusses the
-\bmad\ lattice input standard.  The \bmad\ lattice input standard was
-developed using the \mad\ lattice input standard as a starting
-point. \mad\ (Methodical Accelerator Design) is a widely used
+\bmad lattice input standard.  The \bmad lattice input standard was
+developed using the \mad lattice input standard as a starting
+point. \mad (Methodical Accelerator Design) is a widely used
 stand--alone program developed at CERN by Christoph Iselin for
 charged--particle optics calculations. Since it can be convenient
-to do simulations with both \mad\ and \bmad, differences and
+to do simulations with both \mad and \bmad, differences and
 similarities between the two input formats are noted. 
-Finally, Part~III gives the nitty--gritty details of the \bmad\
+Finally, Part~III gives the nitty--gritty details of the \bmad
 subroutines and the structures upon which they are based.
 
 More information, including the most up--to--date version of this
@@ -38,6 +38,7 @@ manual, can be found at the \bmad web site at
 \begin{example}
   http://www.lepp.cornell.edu/~dcs/bmad
 \end{example}
+\index{Bmad!information}
 
 Errors and omissions are a fact of life for any reference work and
 comments from you, dear reader, are therefore most welcome. Please
@@ -45,3 +46,15 @@ send any missives (or chocolates, or any other kind of sustenance) to:
 \begin{example}
   David Sagan <dcs16@cornell.edu>
 \end{example}
+\index{Bmad!error reporting}
+
+It is my pleasure to express appreciation to people who have
+contributed to this effort: To David Rubin for his support, to Etienne
+Forest for use of his remarkable PTC/FPP library not to mention his
+patience in explaining everything to me, to Mark Palmer for all his
+work porting \bmad to different platforms, to Hans Grote for granting
+the adaptation of figures in the \mad manual for use in this one, to
+Richard Helms, Kim Moore, Jeremy Urban, Jeff Smith, and Mike Forster
+for their help, and last but not least to my wife Flora who put up
+with me at 1am in the morning when I was working on \bmad.
+

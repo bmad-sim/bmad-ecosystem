@@ -5,7 +5,14 @@ This chapter deals with the statements not covered in the previous chapters.
 %-----------------------------------------------------------------------------
 \section{Parameter Statement}
 \label{s:param}
+\index{Statement!parameter}
 
+
+\index{Statement!parameter!lattice}
+\index{Statement!parameter!lattice_type}
+\index{Statement!parameter!taylor_order}
+\index{Statement!parameter!beam_energy}
+\index{Statement!parameter!ran_seed}
 The \vn{parameter} statement is used to set the \vn{lattice} name and other variables. 
 The variables that can be set by \vn{parameter} is
 \begin{example}
@@ -13,6 +20,7 @@ The variables that can be set by \vn{parameter} is
   parameter[lattice_type] = Switch      ! 
   parameter[taylor_order] = Integer     ! Default: 3
   parameter[beam_energy]  = Real        ! Total Energy. Default: 0
+  parameter[ran_seed]     = Integer     ! Random number generator init.
 \end{example}
 
 \noindent
@@ -24,14 +32,16 @@ Examples
   parameter[beam_energy]  = 5.6e9    ! eV
 \end{example}
 
+For more information on \vn{parameter[ran_seed]} see Section~\ref{s:functions}.
+
 The \vn{parameter[beam_energy]} is the reference energy at the start of the
 lattice.  Each element in a lattice has an individual reference
 \vn{beam_energy} which is a dependent parameter. 
 The reference energy will only change between \vn{LCavity} or
 \vn{Patch} elements. The starting reference energy must always be set.
 
-The \vn{lattice} name is stored by \bmad\ for use by a program but it does
-not otherwise effect any \bmad\ routines. 
+The \vn{lattice} name is stored by \bmad for use by a program but it does
+not otherwise effect any \bmad routines. 
 Historically it is possible to set the lattice name using the syntax
 \begin{example}
   lattice = String   ! DO NOT USE THIS SYNTAX
@@ -61,14 +71,18 @@ This syntax is obsolete since a typographical error is not easily caught.
 
 %-----------------------------------------------------------------------------
 \section{Beam Statement}
+\index{Statement!beam}
 
-The \vn{Beam} statement is provided for compatibility with \mad. The syntax is
+\index{Statement!beam!energy}
+\index{Statement!beam!particle}
+\index{Statement!beam!n_part}
+The \vn{Beam} statement is provided for compatibility with \MAD. The syntax is
 \begin{example}
   beam, energy = GeV, particle = Switch, n_part = Real
 \end{example}
 For example
 \begin{example}
-  beam, energy = 5.6  ! Note: Gev to be compatible with \mad
+  beam, energy = 5.6  ! Note: Gev to be compatible with \MAD
   beam, particle = electron, n_part = 1.6e10
 \end{example}
 Setting the reference energy using the \vn{energy} attribute is the same
@@ -81,6 +95,8 @@ switches are
 
 %-----------------------------------------------------------------------------
 \section{Title Statement}
+\index{Statement!title}
+
 The \vn{title} statement sets a title string which can be used by a program. 
 For consistency there are two possible syntaxes
 \begin{example}
@@ -99,6 +115,7 @@ For example
 
 %--------------------------------------------------------------------------
 \section{Call Statement}
+\index{Statement!call}
 
 It is frequently convenient to separate the lattice definition into
 several files.  Typically there might be a file (or files) that define
@@ -113,7 +130,7 @@ Example:
 \begin{example}
   call, filename = "../layout/my_layout.bmad"
 \end{example}
-\bmad\ will read the called file until a \vn{return} or \vn{end_file}
+\bmad will read the called file until a \vn{return} or \vn{end_file}
 statement is encountered or the end of the file is reached.
 
 The called file will be searched for in multiple directories.
@@ -135,14 +152,29 @@ would be
 
 %--------------------------------------------------------------------------
 \section{Return and End\_File statements}
+\index{Statement!return}
+\index{Statement!end_file}
 
-\vn{Return} and \vn{end_file} have identical effect and tell \bmad\ to
+\vn{Return} and \vn{end_file} have identical effect and tell \bmad to
 ignore anything beyond the \vn{return} or \vn{end_file} statement in
 the file.
 
 %--------------------------------------------------------------------------
 \section{Beginning Statement}
+\index{Statement!beginning}
 
+\index{Statement!beginning!beta_x}
+\index{Statement!beginning!alpha_x}
+\index{Statement!beginning!phi_x}
+\index{Statement!beginning!eta_x}
+\index{Statement!beginning!etap_x}
+\index{Statement!beginning!beta_y}
+\index{Statement!beginning!alpha_y}
+\index{Statement!beginning!phi_y}
+\index{Statement!beginning!eta_y}
+\index{Statement!beginning!etap_y}
+\index{Statement!beginning!cij}
+\index{Statement!beginning!energy}
 For non--circular lattices the \vn{beginning} statement can be used to
 set the Twiss parameters and beam energy at the beginning of the ring
 \begin{example}
@@ -159,9 +191,18 @@ set the Twiss parameters and beam energy at the beginning of the ring
   beginning[cij]     = Real  ! C coupling matrix. i, j = {``1'', or ``2''} 
   beginning[energy]  = Real  ! Total energy in eV.
 \end{example}
+\index{Statement!parameter!beam_energy}
 The \vn{gamma_x}, \vn{gamma_y}, and \vn{gamma_c} (the coupling gamma factor) 
 will be kept consistent with the values set. If not set the default values are all zero. 
+\vn{beginning[energy]} and \vn{parameter[beam_energy]} are equivalent and one or the other
+may be set but not both.
 
+\index{Statement!beginning!x_position}
+\index{Statement!beginning!y_position}
+\index{Statement!beginning!z_position}
+\index{Statement!beginning!theta_position}
+\index{Statement!beginning!phi_position}
+\index{Statement!beginning!psi_position}
 For any lattice the \vn{beginning} statement can be used to set the starting floor position 
 (see~\ref{s:global}). The syntax is
 \begin{example}
@@ -175,9 +216,10 @@ For any lattice the \vn{beginning} statement can be used to set the starting flo
 
 %--------------------------------------------------------------------------
 \section{Parser\_Debug Statement}
+\index{Statement!parser_debug}
 
 The \vn{parser_debug} statement is used to diagnose problems with the
-\bmad\ parser routine. That is, it is generally only used by
+\bmad parser routine. That is, it is generally only used by
 programmers.  It is recommended that this statement be used with small
 test lattices since it can generate a lot of output.  The syntax is
 \begin{example}
@@ -199,8 +241,9 @@ Example
 
 %--------------------------------------------------------------------------
 \section{No\_Digested Statement}
+\index{Statement!no_digested}
 
-The \vn{no_digested} statement if present, will prevent \bmad\ from 
+The \vn{no_digested} statement if present, will prevent \bmad from 
 creating a digested file. This can be helpful for debugging purposes but
 otherwise it is not generally used.
 

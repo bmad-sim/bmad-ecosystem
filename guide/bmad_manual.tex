@@ -8,6 +8,7 @@
 \usepackage{subfigure}
 \usepackage{toc}
 \usepackage{xspace}
+\usepackage{makeidx}
 
 \input{macros.tex}
 
@@ -18,8 +19,101 @@
 \setlength{\textheight}{8.5in}
 \setlength{\topmargin}{0in}
 
+\makeindex
+
 \begin{document}
 
+\index{Reference orbit|see{Coordinates, reference orbit}}
+\index{Global coordinates|see{Coordinates, global}}
+\index{Floor coordinates|see{Coordinates, global}}
+\index{Phase space|see{Coordinates, phase space}}
+\index{AB_Multipole|see{Element, AB_Multipole}}
+\index{Accel_Sol|see{Element, Accel_Sol}}
+\index{Bend|see{Element, Bend}}
+\index{BeamBeam|see{Element, BeamBeam}}
+\index{Custom|see{Element, Custom}}
+\index{Drift|see{Element, Drift}}
+\index{Ecollimator|see{Element, Ecollimator}}
+\index{Elseparator|see{Element, Elseparator}}
+\index{Group|see{Element, Group}}
+\index{Hkicker|see{Element, Hkicker}}
+\index{Hybrid|see{Element, Hybrid}}
+\index{I_beam|see{Element, I_Beam}}
+\index{Instrument|see{Element, Instrument}}
+\index{Kicker|see{Element, Kicker}}
+\index{Lcavity|see{Element, Lcavity}}
+\index{Marker|see{Element, Marker}}
+\index{Monitor|see{Element, Monitor}}
+\index{Multipole|see{Element, Multipole}}
+\index{Octupole|see{Element, Octupole}}
+\index{Overlay|see{Element, Overlay}}
+\index{Patch|see{Element, Patch}}
+\index{Quadrupole|see{Element, Quadrupole}}
+\index{Rbend|see{Element, Bend}}
+\index{Rcollimator|see{Element, Rcollimator}}
+\index{RFcavity|see{Element, RFcavity}}
+\index{Sbend|see{Element, Bend}}
+\index{Sextupole|see{Element, Sextupole}}
+\index{Solenoid|see{Element, Solenoid}}
+\index{Sol_Quad|see{Element, Sol_Quad}}
+\index{Taylor|see{Element, Taylor}}
+\index{Vkicker|see{Element, Vkicker}}
+\index{Wiggler|see{Element, Wiggler}}
+\index{X_offset|see{Element attribute, offset}}
+\index{Y_offset|see{Element attribute, offset}}
+\index{S_offset|see{Element attribute, offset}}
+\index{X_pitch|see{Element attribute, pitch}}
+\index{Y_pitch|see{Element attribute, pitch}}
+\index{Tilt|see{Element attribute, tilt}}
+\index{Roll|see{Element attribute, roll}}
+\index{L|see{Element attribute, l}}
+\index{L_chord|see{Element attribute, l_chord}}
+\index{Rel_tol|see{Element attribute, rel_tol}}
+\index{Abs_tol|see{Element attribute, abs_tol}}
+\index{Num_steps|see{Element attribute, num_steps}}
+\index{Beam_energy|see{Element attribute, beam_energy}}
+\index{Type|see{Element attribute, type}}
+\index{Alias|see{Element attribute, alias}}
+\index{Descrip|see{Element attribute, descrip}}
+\index{X_limit|see{Element attribute, limit}}
+\index{Y_limit|see{Element attribute, limit}}
+\index{Aperture|see{Element attribute, aperture}}
+\index{Aperture_at|see{Element attribute, aperture_at}}
+\index{Radius|see{Element attribute, radius}}
+\index{Element attribute!Tracking_method|see{Tracking_method}}
+\index{Element attribute!mat6_calc_method|see{Mat6_calc_method}}
+\index{Symplectic!simplectify|see{Element attribute, symplectify}}
+\index{Integration_ord|see{Element attribute, integration_ord}}
+\index{Field_calc|see{Element attribute, field_calc}}
+\index{Is_on|see{Element attribute, is_in}}
+\index{FPP|see{PTC/FPP}}
+\index{Forest, Etienne|see{PTC/FPP}}
+\index{Element!attribute|see{Element attribute}}
+\index{Attribute|see{Element attribute}}
+\index{Bmad!lattice format|see{Lattice file format}}
+\index{an@$a_n$|see{Element attribute, multipole}}
+\index{bn@$b_n$|see{Element attribute, multipole}}
+\index{Radiation damping and excitation|see{Synchrotron radiation}}
+\index{Normal modes|see{Coupling}}
+\index{Variables|see{Lattice file format, variables}}
+\index{Taylor map|see{Transfer map, Taylor}}
+\index{Transfer map!mat6_calc_method|see{mat6_calc_method}}
+\index{Map|see{Transfer map}}
+\index{Beam line|see{Line}}
+\index{Replacement List|see{List}}
+\index{Functions|see{Intrinsic functions}}
+\index{Arithmetic expressions!intrinsic functions|see{Intrinsic functions}}
+\index{Parameter statement|see{Statement, parameter}}
+\index{Beam statement|see{Statement, beam}}
+\index{Title statement|see{Statement, title}}
+\index{Call Statement|see{Statement, call}}
+\index{Return statement|see{Statement, return}}
+\index{End_file statement|see{Statement, end_file}}
+\index{Beginning statement|see{Statement, beginning}}
+\index{Parser_debug statement|see{Statement, parser_debug}}
+\index{No_digested statement|see{Statement, no_digested}}
+
+%----------------------------------------------------------------
 \include{cover_page}
 
 %----------------------------------------------------------------
@@ -72,6 +166,11 @@
 %----------------------------------------------------------------
 
 \include{bibliography}
-%\include{index}
+
+%\begingroup\catcode`\_=11
+%\texttt{
+\printindex
+%}
+%\endgroup
 
 \end{document}
