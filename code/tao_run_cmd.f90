@@ -33,7 +33,7 @@ endif
 if (which /= ' ') s%global%optimizer = which
 call out_io (s_blank$, r_name, 'Optimizing with: ' // which)
 call out_io (s_blank$, r_name, &
-	"Type ``.'' to stop the optimizer before it's finished.")
+              "Type ``.'' to stop the optimizer before it's finished.")
 
 select case (s%global%optimizer)
 

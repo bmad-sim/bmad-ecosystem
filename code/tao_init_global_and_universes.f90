@@ -780,8 +780,8 @@ integer num_ele, ios, ixx1, ixx2
 	call search_for_vars (iu, found_one)
       endif
     else
-      call out_io (s_abort$, r_name, 'If you are counting elements you should &
-                                      &also be searching for them')
+      call out_io (s_abort$, r_name, &
+          'If you are counting elements you should also be searching for them')
       call err_exit
     endif
     n1 = s%n_var_used + 1
@@ -954,8 +954,8 @@ integer num_hashes, ix
   call string_trim (count_name, count_name1, ix)
   ix = index (count_name1, '#')
   if (ix .eq. 0) then
-    call out_io (s_abort$, r_name, "WHEN USING 'COUNT:' MUST HAVE '#' &
-                    &WILDCARD IN NAME")
+    call out_io (s_abort$, r_name, &
+          "WHEN USING 'COUNT:' MUST HAVE '#' WILDCARD IN NAME")
     call err_exit
   endif
   call tao_count_strings (count_name1, '#', num_hashes)
