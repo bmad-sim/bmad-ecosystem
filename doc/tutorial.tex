@@ -4,24 +4,27 @@
 \label{c:vanilla_tao}
 
 %----------------------------------------------------------------
-\section{Before we start}
+\section{Before we start...}
 \label{s:before_beginning}
 
 \tao is readily customizable. All the bookkeeping has already been done and all
-you need to do custom analysis is write the subroutines perinent to your
+you need to do custom analysis is write the subroutines pertinent to your
 project. However beginners are advised to start with
-``out of the box'' \tao while getting to know the program. This tutorial will
+``out of the box'' \tao while getting to know the program. This tutorial starts
+here and will then show you
 how to customize \tao for your speciffic purposes.
 
 \subsection{Getting and Compiling \tao}
+\label{s:get_and_compile}
 
 \tao is available in the \cesr CVS area. To checkout a copy type `\cmd{cvs co
-tao'} in the directory from where you want to run \tao. If you don't have \cesr
+tao'} in the directory from where you want to run \tao, hereto refered to as
+\vn{ROOT}. If you don't have \cesr
 CVS write permission then type `\cmd{cesrcvs co tao}'. This will check out a copy
 but will not allow you to check in changes to the code. If you aren't at Wilson
 Laboratory then contact David Sagan \cmd{<dcs16@cornell.edu>} to obtain a copy. 
 
-From the newly created \cs{./tao} directory type `\cmd{gmake}' to create the
+From the newly created \cs{ROOT/tao} directory type `\cmd{gmake}' to create the
 libraries and then type `\cmd{gmake -f M.tao}' to create
 the ``vanilla'' \tao program. Vanilla \tao is the basic \tao program without any
 user customizations. If you are using a custom version of \tao then
@@ -29,7 +32,7 @@ follow the compiling directions from the custom \tao author. Keep in mind that
 command syntax and usage may vary between custom versions of \tao (this is a
 \textit{feature} \textbf{not} a bug!).
 
-Once \tao has compiled go to the subdirectory \cs{./program} and type
+Once \tao has compiled go to the subdirectory \cs{ROOT/program} and type
 \cmd{../../bin/tao} to run ``vanilla'' \tao. This directory contains all the
 configuration files to get everything working. The first time you run the
 program it will need to create a digested \bmad lattice file for the included
@@ -38,7 +41,7 @@ lattice. This may take a few minutes.
 \subsection{Customising \tao}
 
 After you are familiar with the basics of \tao you are ready to fully exploit
-the versatility of this wonderful program. See part~\ref{p:custom_tao} to learn
+the versatility of this wonderful program. See Chapter~\ref{c:custom_tao} to learn
 how to do this.
 
 %----------------------------------------------------------------
@@ -49,7 +52,7 @@ how to do this.
 %----------------------------------------------------------------
 \subsection{There was the the user}
 
-Part~\ref{p:vanilla_tao} assumes you are already familiar with basic particle beam
+this tutorial assumes you are already familiar with basic particle beam
 dynamics and its formalism. There are several books that introduce the topics
 very well. The best the author has found so far is \textit{The Physics of
 Particle Accelerators} by Klaus Wille. 
@@ -60,9 +63,9 @@ the box'' so an understanding of the nitty-gritty details of \bmad is not
 necessary, however, one should be familiar with the material in Part I
 of the \bmad manual.
 
-First of all, what's \tao good for? Well, everything. It's versatility is that
+So, what's \tao good for? Well, virtually everything. It's versatility is that
 it's easily exapandable. Think of it as an accelerator design and analysis
-environment. the entire \bmad library is at your disposal.But even without any 
+environment. The entire \bmad library is at your disposal. But even without any 
 customizations \tao will do much analysis. These problems fall into three main
 catagories:
 
@@ -84,9 +87,9 @@ machine, you have "data" that you want to view, and, in the first two
 categories above, you want to match the machine model to the data (in
 designing a lattice the constraints correspond to the data).
 
-This tutorial is designed to get the user up and starting with \tao without
+This tutorial is designed to informaly get the user up and running with \tao without
 needing to dredge through the entire reference manual. Full command syntax
-or greater detail on any topic can be found in the referencereferenc  manual.
+or greater detail on any topic can be found in the Reference Manual.
 
 %----------------------------------------------------------------
 \subsection{Then there was the Super-universe}
@@ -98,7 +101,9 @@ to do analysis on multiple machines or multiple configurations of a single
 machine at the same time. A \textit{super-universe} consists of the following
 parts:
 
-\subsubsection{A typical universe}
+\begin{enumerate}
+
+\item \textbf{A typical universe} \Newline
 A universe contains a \bmad lattice plus whatever data one wishes to study
 within this lattice (i.e. twiss parameters, orbit, phase \&etc...) . Actually,
 there are three lattices within each universe: the \textbf{design
@@ -107,39 +112,43 @@ specified during a \tao session are incurred on the model lattice.} The design l
 fixed at initilization time and serves as a reference point for any elemental
 changes incurred during the \tao session. The base lattice also serves as a
 reference point but the user can transfer the model lattice over to the base
-lattice at any time to create your reference lattice.
+lattice at any time to create a reference lattice.
 
 Each data point (for example, the horizontal orbit at some detector) has 5 datum
  quantities associated with it: the \textbf{measured data}, \textbf{reference
 data}, \textbf{model data}, \textbf{design data} and \textbf{base data}. The
-model, design and base data areas correspond to the appropriate quantity
-calculated in their respective lattice above. The measured data corresponds to 
-data obtained during a measurement. If doing design work then the desired data
+model, design and base data correspond to the appropriate quantity
+calculated in its respective lattice above. The measured data corresponds to 
+data obtained during a measurement. If doing design work then the desired or
+goal
 value would be placed here. This data area is also refered to as the constraint during
-optimization. The reference data is for looking at changes in the data with
+optimization. The reference data is for observing changes in the data with
 respect to a reference.
 
-\subsubsection{Variables}
-
+\item \textbf{Variables} \Newline
 Variables control attributes of elements in the model lattice of one or more
-universes. So, a given variable may control a single attribute of one element
-for one or more universes. These are what you vary in order to change
+universes. They are not the same thing as atributes in lattice elements.
+However, they \textit{control} attributes in lattice elements. They are
+more akin to \bmad \textit{overlays}. A given variable may control a single 
+attribute of one element
+in one or more universes. If you want a variable to control a collection of
+elements like a \bmad \textit{group} then you need to insert the appropriate
+group in your lattice. Variables are what you vary in order to change
 your model lattice. You can also change your model lattice by directly changing
-and lattice element parameter. However, if you plan on doing any optimization then 
-you will need to use the variables.
+and lattice element attribute. However, if you plan on doing any optimization then 
+you will need to use variables.
 
-\subsubsection{Key Bindings}
-
+\item \textbf{Key Bindings} \Newline
 Key bindings are used in \textit{single mode} where each key
 stroke is interpreted without the user having to press the carriage control key.
 Each group of keys is bound to a different variable and pressing these keys will
 allow you to rapidly change your lattice optics.
 
-\subsubsection{Other stuff in the Super-universe}
-
+\item \textbf{Other stuff in the Super-universe} \Newline
 The super-universe also contains information pertaining to global environment variables and
-plotting. No need to go into the details here. The \tao reference manual will
-tell you all about this.
+plotting. No need to go into the details here. Part III will
+tell you all about this other stuff.
+\end{enumerate}
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
@@ -148,28 +157,28 @@ tell you all about this.
 
 Initialization occurs at startup. There are \emph{four} files used to initialize \tao.
   \vspace*{-3ex}
-\begin{description}
-  \item[\textit{your lattice file}] \Newline
+\begin{enumerate}
+  \item \textbf{\textit{your lattice file}} \Newline
     This is your lattice file. ``Vanilla'' \tao comes with its own for
 demonstration purposes.
-  \item[tao.init] \Newline 
+  \item \textbf{tao.init} \Newline 
     This is where global environment variables, data/variable
 arrays and key bindings are specified.
-  \item[tao\_plot.init] \Newline
+  \item \textbf{tao\_plot.init} \Newline
     This is where plotting is set up.
-  \item[tao.startup (optional)] \Newline
+  \item \textbf{tao.startup (optional)} \Newline
     This is a command file that is read in after initialization. Any commands you
 want entered in \tao everytime you start up are put here. This is also a great
 place to define aliases.
-\end{description}
+\end{enumerate}
 
 There is no need to go into the details of the initialization files here. If
-using vanilla \tao these are already set up for you in \cs{tao/program} and will
+using Vanilla \tao these are already set up for you in \cs{ROOT/tao/program} and will
 setup \tao for use with the included \cesr lattice. If
 using a custom version of \tao then the customized \tao author will have already set something
 up for you to use. If he or she didn't then go complain to him or her for making
 your life difficult and demand proper treatment. If he or she still refuses to
-do this for you then it looks like you'll need to read part~\ref{p:custom_tao}
+do this for you then it looks like you'll need to read Chapter~\ref{c:custom_tao}
 of this tutorial!
 
 \textbf{NOTE: the following chapters will work with vanilla \tao. The commands
@@ -187,13 +196,14 @@ entered and plotting output may be different for custom versions.}
 When \tao first starts up you will see a plot window and a command prompt. 
 Figure~\ref{f:plot_begin} shows what you will see in the plot window. In the top
 two plots you see the \vn{x} and \vn{y} model lattice orbit data. The horizontal
-axis is the \cesr BPM index. The horizontal pretzel and L03 vertical bump can be clearly 
+axis is the \cesr BPM index. The horizontal pretzel and L03 vertical bump in
+CESR can be clearly 
 seen. The slight vertical displacement due to the solenoid can also be seen around 
-the IP. The orbit data is for the closed orbit electron (this being a storage
+the IP. The orbit data is for a closed orbit electron (this being a storage
 ring). The bottom two plots show the relative 
 particle phase. That is, the difference
 between the model and design phases (as documented in the plot title as [model -
-design]. 
+design]). 
 
 As a first step let's view the absolute model phase. At the \cmd{TAO>} prompt type
 \begin{example}
@@ -243,7 +253,7 @@ coupling outside the interaction region type
 \begin{example}
   clip bottom -0.01 0.01
 \end{example}
-This will clip or veto all coupling data points outside the range (-0.01,0.01).
+This will clip or veto all coupling data points outside the range [-0.01,0.01].
 Now if we zoom in we can see the fine detail.
 \begin{example}
   scale bottom
@@ -255,20 +265,21 @@ to restore all the coupling data then veto the IR region.
   veto data coupling 0:5 95:98
   scale
 \end{example}
-Ah ha! There were a few couping data points outside the IR  that were also
+The \vn{0:5 95:98} refers to data indices. Ah ha! There were a few couping data points
+outside the IR  that were previously
 clipped (notably at the halfway point or L03). We probably would have missed
 this if we just used clip. Your plot window should now look like
 Figure~\ref{f:plot_coupling_no_IR}.
 
 The x-axis is currently the BPM index number. It is sometimes convenient to plot
-the data versus the longitudinal position. This is done by typing
+the data versus longitudinal position. This is done by typing
 \begin{example}
   x-axis all s
 \end{example}
 
 
 The \cmd{all} will apply the change to all plot areas (both top and bottom). In
-any of the above commands the \cmd{top} or \cmd{bottom} coulf have been replaced
+any of the above commands \cmd{top} or \cmd{bottom} could have been replaced
 with \cmd{all}.
 
 \begin{figure}
@@ -310,15 +321,28 @@ the output should look like:
    6  coupling
 \end{example}
 There are 6 data types defined in the initialization file. The fifth and sixth are 
-closely related. See the manual for an explanation.
+closely related. See Part II for an explanation.
 
 To see the data values for the horizontal beta function for \cesr BPMs 1 through
 50 type
 \begin{example}
   show data beta:x 1:50
 \end{example}
-since we haven't changed any elements in the lattice yet the model values equal
-the design values.
+Since we haven't changed any elements in the lattice yet the model values equal
+the design values. Also note that \vn{beta:x} is actually the a-mode betatron
+function. In regions with little or no coupling, the a-mode is almost completely
+in the horizontal plane.
+ 
+This is a significant point. The convention in \bmad is to label the twiss
+parameters as \vn{x} and \vn{y} but they are actually the \vn{a} and \vn{b}
+normal modes. So
+in regions of strong coupling \vn{beta:x} does not correspond to \vn{orbit:x}
+which is always in the true horizontal lab frame. 
+However, if you wish, you can re-label your twiss data planes as \vn{a} and
+\vn{b}. Part II shows how to do this. Keep in mind that the twiss
+parameters are defined \textit{only for uncoupled betatron motion} so don't even ask for the lab
+frame twiss parameters. See the \bmad manual for how to convert
+from normal mode coordinates to lab coordinates.
 
 You can also view variables by typing
 \begin{example}
@@ -336,6 +360,11 @@ for quadrupole Q05W type
 \begin{example}
   sho ele Q03W
 \end{example}
+
+\vn{show var} and \vn{show ele} show two completely different types of
+structures in \tao. Elements are the actual lattice elements as known to \bmad. 
+Variables are native \tao structures that act kind of like \bmad
+\textit{overlays} and only indirectly control the lattice elements.
 
 A list of lattice elements between two elements can be shown by typing (for
 example between elements BEGINNING and Q05W)
@@ -387,7 +416,7 @@ value. So, to change this quadrupole k1 to -0.348 type
 \label{ss:put_it_back}
 
 Let's put this quadrupole back where we found it. We can also modify the quadrupole
-by modifying the element directly by typing
+by modifying the lattice element directly by typing
 \begin{example}
   change ele Q05W k1 d0.0
 \end{example}
@@ -446,22 +475,23 @@ beta and phase.
 \end{example}
 The lattice is now sufficiently screwed up.
 
-Now specify what variable and data to use in the optimization. First type
+Now specify what variables and data to use in the optimization. First type
 \begin{example}
   show top10
 \end{example}
-to see what data is affecting the merit function the most. The merit function is
+to see what data is effecting the merit function the most. The merit function is
 defined by
 \Begineq
-  {\cal M} \equiv \sum\_{i} w\_i \,
-    \bigl[ \data\_\model(i) -  \data\_\meas(i) \bigr]^2 + 
-  \sum\_{j} w\_j \,
-    \bigl[ \var\_\model(j) - \var\_\meas(j) \bigr]^2
+  {\cal M} \equiv \sum_{i} w_i \,
+    \bigl[ \data_\model(i) -  \data_\meas(i) \bigr]^2 + 
+  \sum_{j} w_j \,
+    \bigl[ \var_\model(j) - \var_\meas(j) \bigr]^2
   \label{m1}
 \Endeq
-where $w\_i$ and $w\_j$ are the weights given to each component.
-The optimizer tries to minimize the merit function by makiing the model look
-like the data. We see that the beta function is affecting the merit function the most. Since we
+where $w_{i}$ and $w_{j}$ are the weights given to each component.
+The optimizer tries to minimize the merit function by changing the model to look
+like the data. From the \vn{top10} output we see that the beta function is effecting 
+the merit function the most. Since we
 are looking at beta and phase let's only use that data in the optimization.
 \begin{example}
   veto data all
@@ -473,6 +503,9 @@ We also know that we need to change quadrupoles to ``correct'' the lattice.
   veto var all
   use var quad\_k1 all
 \end{example}
+Note that we need to specify what variables we will be using beforehand in the
+initialization files. Raw lattice elements cannot be used by the optimizer. 
+
 Now let's see if we have the optimizer set up correctly.
 \begin{example}
   sho optimizer
@@ -492,10 +525,10 @@ You see the optimizer going through its cycles and it did it! The model is now
 \begin{example}
   sho var quad\_k1
 \end{example}
-The optimizer cam very close to finding the ``design'' lattice. However, it changed 
+The optimizer came very close to finding the ``design'' lattice. However, it changed 
 more quadrupoles
 than just 10, 21 and 67. This isn't suprising. The optimizer finds the minimun
-of the merit function and there are potentially many minimums, or a degeneracy.
+of the merit function and there are potentially many minimums, or degeneracies.
  It does it's best
 not to get stuck in a local minimum and as we can see by the plotted data, the
 minimum found is very close -- virtually identical -- to the design lattice optics. 
@@ -507,7 +540,7 @@ was a darn near perfect match!
 \subsection{Now Not Using all of the Variables}
 \label{ss:fix_it}
 
-Alternatively, we could have used only a subsection of the quadrupole. Say we
+Alternatively, we could have used only a subsection of the quadrupoles. Say we
 know approximately which quadrupoles should be adjusted. So specify these
 variables ranges.
 \begin{example}
@@ -562,13 +595,13 @@ inefficient and time consuming for complex parameter spaces.
 
 You now have an understanding of the basic abilities of \tao. After this
 tutorial, Part II of the \tao Manual should be legible and useful.
-The Reference Guide will provide the details of everything mentioned this tutorial. 
+The Reference Guide will provide the details of everything mentioned in this tutorial. 
 It goes into detail of setting up your own initialization
 files and how to use the optimizer. It also includes a complete command
 reference with command syntax.
 
-However, you're not ready yet to customize \tao, but this is where the true versatility
-of \tao lies. So, onward to the next section and learn how to write your very
+However, you're not yet ready to customize \tao, but this is where the true versatility
+of \tao lies. So, onward to the next section and learn how to write your
 own custom routines to perform whatever accelerator calculations that strikes your
 fancy!
 
@@ -592,11 +625,217 @@ will ensure that custom changes will
 have a minimum impact on the specialized routines that will be written
 by various people. 
 
+%----------------------------------------------------------------
 \section{Compiling your custom \tao}
 
-\fbox{this section is yet to be completed!} 
+As explained in Section~\ref{s:get_and_compile}, the \tao libraries can be
+compiled without compiling an executable. Here is where this comes in handy. Since
+the standard \tao subroutines have already been made into libraries, all you
+need to do is compile and link your custom routines.
 
+There are 8 ``hook'' files located in the \cmd{ROOT/tao/hook} directory. These are
+the files you can customize. There are two options here. 
+\begin{enumerate}
+  \item Change the files directly in \cmd{ROOT/tao/hook}, adding any extra file you
+may need, then recompile from the \cmd{ROOT/tao} directory with \cmd{gmake -f M.tao}.
+\label{cust_optiin_one}
+  \item Copy the hook files to a seprate directory say \cmd{ROOT/my_tao},
+adding any extra files you may need, then write a Makefile to compile and link these
+routines to the main \tao library.
+\label{cust_option_two}
+\end{enumerate}
+Option~\ref{cust_option_two} is HIGHLY recommended because it keeps the \tao
+distribution tree undisturbed and reserves the possibility to create multiple
+custom \tao programs using the same vanilla \tao library.
+
+%----------------------------------------------------------------
 \section{An Example}
 
-\fbox{this section is yet to be completed!} 
+As an example let's include a new data type called \vn{beam_emittance}. This
+will be the non-normalized x and y emittance.. This
+data type will behave just like any other data type (i.e. \vn{orbit}, \vn{phase}
+etc...). First, we should copy all the hook files to a separate directory call
+it \cmd{ROOT/my_tao}. Also include the main program file from the
+\cmd{ROOT/tao/program} directory.
+(replace \vn{ROOT} with whatever top directory you placed
+the \vn{tao} directory in)
+\begin{example}
+  mkdir ROOT/my_tao
+  cp ROOT/tao/hook/*.f90 ROOT/my_tao
+  cp ROOT/tao/program/tao_cl.f90 ROOT/my_tao/my_tao_cl.f90
+\end{example}
+Next we need a Makefile. The \cmd{ROOT/tao/M.tao} 
+Makefile is a great starting point.
+\begin{example}
+  cp ROOT/tao/M.tao ROOT/my_tao/Makefile
+\end{example}
+Now with your favorite text editor change the following lines in your Makefile
+\begin{example}
+  LIB\_SRC\_DIRS := ./code ./hook
+  OBJ\_SRC\_DIRS := ./program
+\end{example}
+to
+\begin{example}
+  LIB\_SRC\_DIRS := ../tao/code ./
+  OBJ\_SRC\_DIRS := ./
+\end{example}
+and the following line
+\begin{example}
+  MAIN\_FILE :=
+\end{example}
+to
+\begin{example}
+  MAIN\_FILE := ./my\_tao_cl.f90
+\end{example}
+And finally,
+\begin{example}
+  MAKEFILE := M.tao
+\end{example}
+to
+\begin{example}
+  #MAKEFILE := M.tao !using default name for Makefile
+\end{example}
+Now you're ready to make your customizations.
 
+This example will only require the modification of one file:
+\vn{tao_hook_load_data_array.f90}. The formula for emittance is
+\Begineq
+  \epsilon = \gamma x^{2} + 2 \alpha x x' + \beta x'^{2}
+  \label{e:emittance}
+\Endeq
+Place the following code in \vn{tao_hook_load_data_array.f90} (in the
+\cmd{case select} construct, plus the necessary type declarations)
+%\begin{example}
+\begin{verbatim}
+  case ('emittance:x') 
+    ix1 = datum%ix_ele
+    ele => lattice%ele_(ix1)
+
+    datum_value =  (( ele%x%gamma * orb(ix1)%vec(1)**2 + &
+		     2 * ele%x%alpha * orb(ix1)%vec(1) * orb(ix1)%vec(2) + &
+		     ele%x%beta * orb(ix1)%vec(2)**2)
+    
+  case ('emittance:y')
+    ix1 = datum%ix_ele
+    ele => lattice%ele_(ix1)
+
+    datum_value = (( ele%y%gamma * orb(ix1)%vec(3)**2 + &
+		     2 * ele%y%alpha * orb(:)%vec(3) * orb(ix1)%vec(4) + &
+		     ele%y%beta * orb(ix1)%vec(4)**2)
+\end{verbatim}
+%\end{example}
+
+Now you just need to declare the data types in the \cmd{tao.init} and
+\cmd{tao_plot.init} files. For the sake of this example, modify the
+initialization files used for this tutorial.
+\begin{example}
+  cp ROOT/tao/program/*.init ROOT/my_tao
+  cp ROOT/tao/program/*.lat ROOT/my_tao
+\end{example}
+
+In \cmd{ROOT/my_tao/tao.init} add the following lines to the data declarations
+section
+\begin{example}
+  &tao_d2_data
+    d2_data%name = "emittance" 
+    universe = 0 
+    n_d1_data = 2
+  /
+
+  &tao_d1_data
+    ix_d1_data = 1
+    d1_data%name = "x"  
+    default_weight = 1
+    ix_min_data = 0 
+    ix_max_data = 99  
+    data(0)%name = "SAME: orbit:x"
+    data(0)%ele_name = "SAME: orbit:x"
+  /
+
+  &tao_d1_data
+    ix_d1_data = 2
+    d1_data%name = "y"  
+    default_weight = 1
+    ix_min_data = 0 
+    ix_max_data = 99  
+    data(0)%name = "SAME: orbit:x"
+    data(0)%ele_name = "SAME: orbit:x"
+  /
+\end{example}
+and increase \vn{n_d2_data_max} to 7 in the \vn{tao_params} declaration.
+
+In \cmd{ROOT/my_tao/tao_plot.init} add the following lines to the end of the
+file
+\begin{example}
+  &tao_template_plot
+    plot%name = 'emittance'
+    plot%x%min =   0
+    plot%x%max = 100
+    plot%x%major_div = 10
+    plot%x%label = ' '
+    plot%x_axis_type = 'index'
+    plot%n_graph = 2
+  /
+  
+  &tao_template_graph
+    graph%name = 'x'
+    graph_index = 1
+    graph%box = 1, 2, 1, 2
+    graph%title = 'Horizontal Emittance (microns)'
+    graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+    graph%y%label = 'x'
+    graph%y%max =  15
+    graph%y%min =  0.0
+    graph%y%major_div = 4
+    graph%n_curve = 1
+    curve(1)%data_source = 'data_array'
+    curve(1)%data_type   = 'emittance:x'
+    curve(1)%units_factor = 1e6 !convert from meters to microns
+  /
+
+  &tao_template_graph
+    graph%name = 'y'
+    graph_index = 2
+    graph%box = 1, 1, 1, 2
+    graph%title = 'Vertical Emittance (microns)'
+    graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+    graph%y%label = 'Y'
+    graph%y%max =  15
+    graph%y%min =  0.0
+    graph%y%major_div = 4
+    graph%n_curve = 1
+    curve(1)%data_source = 'data_array'
+    curve(1)%data_type = 'emittance:y'
+    curve(1)%units_factor = 1e6 !convert from meters to microns
+  /
+\end{example}
+
+We are now ready to compile and then run the program.
+\begin{example}
+  cd ROOT/my_tao
+  gmake
+  ../bin/my_tao_cl
+\end{example}
+
+Now after initialization type
+\begin{example}
+  place bottom emittance
+  scale
+\end{example}
+Your plot should look like Figure~\ref{f:plot_emittance}.
+
+The emittance (as calculated) is not constant. This is due to dispersion and
+coupling
+throughout the ring. \bmad provides a routine to find the emittance that
+includes dispersion and coupling.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{plot_emittance.psfig}
+  \caption{Custom data type: non-normalized emittance}
+  \label{f:plot_emittance}
+\end{figure}
+
+This example just illustrates one of the customizations you can perform on \tao.
+Part III Programmer's Guide lays out all of the hook files and provides pointers
+for various customizations.
