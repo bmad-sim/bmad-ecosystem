@@ -276,6 +276,7 @@ subroutine makeup_super_slave (ring, ix_slave)
     coef = ring%control_(ix_con)%coef  ! = len_slave / len_lord
 
     value = lord%value
+    value(check_sum$) = slave%value(check_sum$) ! do not change the check_sum
     value(l$) = slave%value(l$)                 ! do not change slave length
     value(hkick$) = lord%value(hkick$) * coef
     value(vkick$) = lord%value(vkick$) * coef
@@ -371,11 +372,11 @@ subroutine makeup_super_slave (ring, ix_slave)
   ks_yp_sum = 0
   ks_yo_sum = 0
 
-  do j = 1, n_attrib_maxx
-    if (j /= l$) slave%value(j) = 0
-  enddo
+  value = 0
+  value(l$) = slave%value(l$)
+  value(check_sum$) = slave%value(check_sum$) ! do not change the check_sum
 
-  s_slave = slave%s - slave%value(l$)/2  ! center of slave
+  s_slave = slave%s - value(l$)/2  ! center of slave
 
 ! sum over all lords...
 
@@ -395,8 +396,8 @@ subroutine makeup_super_slave (ring, ix_slave)
     endif
 
     if (ix_con == lord%ix2_slave) then      ! longitudinal ends match
-      slave%value(x_limit$) = lord%value(x_limit$)
-      slave%value(y_limit$) = lord%value(y_limit$)
+      value(x_limit$) = lord%value(x_limit$)
+      value(y_limit$) = lord%value(y_limit$)
     endif
 
     if (lord%is_on) then
@@ -447,9 +448,11 @@ subroutine makeup_super_slave (ring, ix_slave)
 ! stuff sums into slave element
 
   ks = ks_sum
-  slave%value(ks$) = ks
-  slave%value(hkick$) = x_kick
-  slave%value(vkick$) = y_kick
+  value(ks$) = ks
+  value(hkick$) = x_kick
+  value(vkick$) = y_kick
+
+  slave%value = value
 
   if (k1_x == 0 .and. k1_y == 0 .and. ks == 0) return
 

@@ -8,8 +8,10 @@ module radiation_mod
 
   type synch_rad_com
     real(rp) :: scale = 1.0               ! used to scale the radiation
+    real(rp) :: i2 = 0, i3 = 0            ! radiation integrals
     logical :: damping_on = .false.       ! Radiation damping toggle.
     logical :: fluctuations_on = .false.  ! Radiation fluctuations toggle.
+    logical :: i_calc_on = .false.        ! For calculating i2 and i3    
   end type
 
   type (synch_rad_com), save :: sr_com
@@ -149,7 +151,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
                   dot_product(start%vec-ele%const(1:6), ele%const(21:26))
     elseif (ele%sub_key == periodic_type$) then
       h2 = abs(ele%value(k1$))
-      h3 = sqrt(2*h2) / pi  
+      h3 = 4 * sqrt(2*h2)**3 / (3 * pi)  
     endif
 
   end select
@@ -175,6 +177,11 @@ subroutine track1_radiation (start, ele, param, end, edge)
   end%vec(2) = end%vec(2) * (1 - dE_p)
   end%vec(4) = end%vec(4) * (1 - dE_p)
   end%vec(6) = end%vec(6)  - dE_p * (1 + end%vec(6))
+
+  if (sr_com%i_calc_on) then
+    sr_com%i2 = sr_com%i2 + h2 * s_len
+    sr_com%i3 = sr_com%i3 + h3 * s_len
+  endif
 
 end subroutine
 
@@ -219,6 +226,7 @@ subroutine setup_radiation_tracking (ring, closed_orb, &
   type (coord_struct) start, end
 
   real(rp), save :: del_orb(6) = (/ 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-5 /)
+  real(rp) h2, h3
 
   integer i, j
 
@@ -243,11 +251,9 @@ subroutine setup_radiation_tracking (ring, closed_orb, &
         start = closed_orb(i)
         start%vec(j) = start%vec(j) + del_orb(j)
         call symp_lie_bmad (ring%ele_(i), ring%param, start, end, .false.)
-        call calc_h (ring%ele_(i)%const(j+10), ring%ele_(i)%const(j+20))
-        ring%ele_(i)%const(j+10) = &
-              (ring%ele_(i)%const(j+10) - ring%ele_(i)%const(10)) / del_orb(j)
-        ring%ele_(i)%const(j+20) = &
-              (ring%ele_(i)%const(j+20) - ring%ele_(i)%const(20)) / del_orb(j)
+        call calc_h (h2, h3)
+        ring%ele_(i)%const(j+10) = (h2 - ring%ele_(i)%const(10)) / del_orb(j)
+        ring%ele_(i)%const(j+20) = (h3 - ring%ele_(i)%const(20)) / del_orb(j)
       enddo
     endif
   enddo
@@ -265,6 +271,7 @@ subroutine calc_h (h2, h3)
   h2 = 0; h3 = 0
 
   do j = 0, ubound(sl_com%s, 1) 
+
     call derivs_bmad (ring%ele_(i), ring%param, sl_com%s(j), &
                                             sl_com%orb(j)%vec, kick)
 
@@ -277,7 +284,7 @@ subroutine calc_h (h2, h3)
     endif
 
     h2 = h2 + k2
-    h3 = h3 + k3    
+    h3 = h3 + k3
 
   enddo
 
