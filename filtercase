@@ -1,0 +1,58 @@
+#!/usr/bin/perl -w
+
+###########################################################
+# ussage: ./filtercesr absfilename case,
+# where case is "u" or "l" 
+# it converts names: file.mod to FILE.mod in dependency file (case "u")
+#                    FILE.mod to file.mod       ----         (case "l")   
+###########################################################
+
+###########################################################
+######### taking arguments from comand line #######
+$absfilename=$ARGV[0];
+if ($#ARGV != 0) {$case=$ARGV[1];}
+else {$case="";}
+
+######### reading file to variable $fcontent ###############
+open (FILE1,"$absfilename")|| die "can not open file $absfilename";
+$i=0;
+while (<FILE1>){
+    $fcontent[$i]=$_;
+    $i++;
+}
+close(FILE1) || die "couldn't close $absfilename";
+
+######### converting file.mod to FILE.mod and printing to the file
+open (FILE1,">$absfilename")|| die "can not open file $absfilename";
+for ($i = 0; $i <= $#fcontent; $i++) {
+    if ($case eq "u"){
+        $fcontent[$i]=~s/\/(\w*)\.mod/\/\U$1\E.mod/g;
+        $fcontent[$i]=~s/\s(\w*)\.mod/ \U$1\E.mod/g;
+        print FILE1 "$fcontent[$i]";
+    }
+    elsif ($case eq "l"){
+        $fcontent[$i]=~s/\/(\w*)\.mod/\/\L$1\E.mod/g;
+        $fcontent[$i]=~s/\s(\w*)\.mod/ \L$1\E.mod/g;
+        print FILE1 "$fcontent[$i]";
+    }
+    else {
+        print FILE1 "$fcontent[$i]";
+    }
+}
+close(FILE1) || die "couldn't close $absfilename";
+exit;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
