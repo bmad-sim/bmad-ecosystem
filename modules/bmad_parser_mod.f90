@@ -3241,4 +3241,49 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
 
 end subroutine
 
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine parser_set_ele_defaults (ele)
+!
+! Subroutine initialize an element given its class (key).
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine parser_set_ele_defaults (ele)
+
+  type (ele_struct) ele
+
+!
+
+  select case (ele%key)
+
+  case (custom$)  ! set defaults
+    ele%mat6_calc_method = custom$
+    ele%tracking_method  = custom$
+    ele%field_calc       = custom$
+
+  case (bend_sol_quad$) ! set defaults
+    ele%mat6_calc_method = symp_lie_bmad$
+    ele%tracking_method  = symp_lie_bmad$
+
+  case (taylor$)   ! start with unit matrix
+    call add_taylor_term (ele, 1, 1.0_rp, (/ 1, 0, 0, 0, 0, 0 /)) 
+    call add_taylor_term (ele, 2, 1.0_rp, (/ 0, 1, 0, 0, 0, 0 /)) 
+    call add_taylor_term (ele, 3, 1.0_rp, (/ 0, 0, 1, 0, 0, 0 /)) 
+    call add_taylor_term (ele, 4, 1.0_rp, (/ 0, 0, 0, 1, 0, 0 /)) 
+    call add_taylor_term (ele, 5, 1.0_rp, (/ 0, 0, 0, 0, 1, 0 /)) 
+    call add_taylor_term (ele, 6, 1.0_rp, (/ 0, 0, 0, 0, 0, 1 /)) 
+
+  case (rbend$, sbend$)
+    ele%value(fintx$) = real_garbage$
+    ele%value(hgapx$) = real_garbage$
+
+  end select
+
+end subroutine
+
 end module
