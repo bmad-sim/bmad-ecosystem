@@ -430,9 +430,9 @@ module bmad_struct
 ! plane list, etc
 
   integer, parameter :: x_plane$ = 1, y_plane$ = 2
-  integer, parameter :: z_plane$ = 3, n_plane$ = 4
+  integer, parameter :: z_plane$ = 3, n_plane$ = 4, s_plane$ = 5
 
-  character(16) :: plane_name(5) = (/ 'X', 'Y', 'Z', 'N', ' ' /)
+  character(16) :: plane_name(6) = (/ 'X', 'Y', 'Z', 'N', 'S', ' ' /)
 
   logical, parameter :: set$ = .true., unset$ = .false.
 
