@@ -8,7 +8,7 @@ foreach $file (@ARGV)
 {
   $cesrplatf=`printenv |grep CESR_PLATFORM|cut -d= -f2`;
   chomp $cesrplatf;
-  $cesrlib= `printenv |grep CESR_LIB`;
+  $cesrlib= `printenv |grep CESR_REL`;
   chomp $cesrlib;
   $cesrlib=~s/.*$cesrplatf\///g;
 #  print "$cesrlib,\n";
