@@ -560,36 +560,30 @@ and \vn{q2} is $ds = 5$. The pitch of \vn{ib} produces an offset at
 the center of \vn{q2} of $0.5 = 0.1 * 5$. This, added to the offsets
 of \vn{ib} and \vn{q2}, give the total offset of \vn{q2} to be $1.0 =
 0.5 + 0.3 + 0.2$. The total \vn{x_pitch} of \vn{q2} is $0.11 = 0.1 +
-0.01$.
+0.01$. From the above example it can be seen that an \vn{I_Beam} looks
+similar to an \vn{Overlay} (see Sec.~\ref{s:overlay}). It would,
+however, take six \vn{Overlays} to simulate the effect of a single
+\vn{I_Beam}.
 
-From the above example it can be seen that an \vn{I_Beam} looks similar to
-an overlay (see Sec.~\ref{s:overlay}). One difference is that an
-overlay has only a single value that can be varied. An \vn{I_Beam} has
-6.  Another difference is how the elements to be controlled are
-specified. For an \vn{I_Beam} the syntax is:
+The \vn{I_Beam} statement syntax is:
 \begin{example}
-  beam_name: I_BEAM = \{start_ele, ele1, ele2, ..., end_ele\}, ...
+  beam_name: I_BEAM = \{ele1, ele2, ... \}, ...
 \end{example}
-\vn{start_ele} and \vn{end_ele} define where the \vn{I_Beam} starts
-and ends. In the lattice list \vn{start_ele} must be before
-\vn{end_ele}. By default any element between these two elements that
-is not a drift becomes part of the \vn{I_Beam}. \vn{ele1}, \vn{ele2},
-etc. are used to exclude elements from becoming part of the
-\vn{I_Beam}.  Put a negative sign ``-'' before each element name that
-is to be excluded. For example:
+An \vn{I_Beam} element will be created for each \vn{ele1} element in
+the lattice. The elements \vn{ele2}, \vn{ele3}, etc. do not have to be
+consecutive but, if more than one \vn{I_Beam} is to be created, need
+to be in order of increasing \vn{s}.
+For example:
 \begin{example}
   q1: quad
   q2: quad
   s0: sextupole
   s1: sextupole
-  ib: i_beam = \{q1, -s0, q2\}
+  ib: i_beam = \{q1, s1, q2\}
   this_line: line = (q1, s0, s1, q2, ..., q1, s0, s1, q2)
   use, this
 \end{example}
-In this example \vn{s1} but not \vn{s0} would be controlled by
-\vn{ib}.  If there are more than one \vn{start_ele} and \vn{end_ele}
-pairs then multiple \vn{I_Beam} elements will be created. In the above
-example two \vn{I_Beam} elements will be created.
+In this example two \vn{I_Beam} elements will be created.
 
 Note to programmers: The total horizontal offset of any element is
 stored in the element component \vn{%value(x_offset_tot\$)}. Similarly

@@ -67,19 +67,17 @@ what element the loss occured.
 \index{Tracking!apertures}
 
 \index{Param_struct!aperture_limit_on}
-The logical \vn{lattice%param%aperture_limit_on} determines if
-element apertures given by \vn{lattice%ele_(:)%value(x_limit\$)} and
-\vn{lattice%ele_(:)%value(y_limit\$)} (See
-Section~\ref{s:limit}) are used to determine if a particle has been
-lost in tracking. A value of zero for either of these limits means
-that the aperture is infinite in that plane.  The default is for
-\vn{lattice%param%aperture_limit_on} to be True.  Even if
-\vn{lattice%param%aperture_limit_on} is False there is a ``hard''
-aperture limit set by \vn{bmad_com%max_aperture_limit}.  This hard
-limit is used to prevent floating point overflows. The default hard
-aperture limit is 1000 meters. Additionally, even if a particle is
-within the hard limit, some routines will mark a particle as lost if
-the tracking calculation will result in an overflow.
+\index{Bmad_com_struct!max_aperture_limit}
+The logical \vn{lattice%param%aperture_limit_on} determines if element
+apertures (See Section~\ref{s:limit}) are used to determine if a
+particle has been lost in tracking.  The default
+\vn{lattice%param%aperture_limit_on} is True.  Even if this is False
+there is a ``hard'' aperture limit set by
+\vn{bmad_com%max_aperture_limit}. This hard limit is used to prevent
+floating point overflows. The default hard aperture limit is 1000
+meters. Additionally, even if a particle is within the hard limit,
+some routines will mark a particle as lost if the tracking calculation
+will result in an overflow.
 
 \index{Param_struct!end_lost_at}
 \index{Param_struct!lost}
