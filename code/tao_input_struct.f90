@@ -6,7 +6,9 @@
 
 module tao_input_struct
 
-use tao_mod
+use tao_struct
+use bmad_struct
+use bmad_interface
 
 !-------------------------------------------------------------
 ! data input structures

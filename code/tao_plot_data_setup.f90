@@ -379,6 +379,7 @@ case ('cbar:22')
   y = y + who%sign * cbar(2,2)
 case default
   call out_io (s_fatal$, r_name, 'DO NOT KNOW ABOUT THIS DATA_TYPE: ' // curve%data_type)
+  call out_io (s_blank$, r_name, "Will not perfrom any plot smoothing")
   err = .true.
 end select
 

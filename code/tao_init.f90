@@ -44,7 +44,7 @@ subroutine tao_init (init_file)
 
 ! Init
 
-  call tao_hook_init_design_lattice (lattice_file) 
+  call tao_init_design_lattice (lattice_file) 
   call tao_init_global_and_universes (data_and_var_file)
   call tao_init_single_mode (single_mode_file)
   call tao_hook_init ()

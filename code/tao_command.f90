@@ -29,7 +29,7 @@ subroutine tao_command (command_line, err)
   integer ix, ix_line, ix_cmd, which
   integer int1, int2
 
-  real(rp) value1, value2, this_merit
+  real(rp) value1, value2
 
   character(*) :: command_line
   character(140) cmd_line
@@ -47,14 +47,6 @@ subroutine tao_command (command_line, err)
 
   logical quit_tao, err
   
-
-! Single character mode
-
-  if (s%global%single_mode) then
-    call tao_single_mode (command_line(1:1))
-    call cmd_end_calc
-    return
-  endif
 
 ! blank line => nothing to do
 
@@ -380,34 +372,26 @@ subroutine tao_command (command_line, err)
 
   end select
 
-  call cmd_end_calc
+! do the standard calculations and plotting after command
+  call tao_cmd_end_calc
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 contains
 
-! standard calculations and plotting after a command.
-
-subroutine cmd_end_calc
-
-! Note: tao_merit calls tao_lattice_calc.
-
-  this_merit =  tao_merit ()         
-  call tao_plot_data_setup ()     ! transfer data to the plotting structures
-  call tao_plot_out ()            ! Update the plotting window
-
-end subroutine
-
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-! contains
 
 ! This routine splits the command into words.
 !
-! Anything between single or double quotes is treated as a single word.
+! Input: 
+!  n_word         -- integer: number of words to split command line into
+!  no_extra_words -- logical: are extra words allowed at the end?
+!  err            -- logical: error in splitting words
+!  separator      -- character(*): a list of characters that, besides a blank space,
+!                                  signify a word boundary. 
 !
-! The separator argument is a list of characters that, besides a blank space,
-!  signify a word boundary. 
+! Output:
+!  cmd_word(n_word) -- character(40): the individual words
+!
 ! For example: 
 !   separator = '-+' 
 !   cmd_line = 'model-design'
@@ -415,6 +399,9 @@ end subroutine
 !   cmd_word(1) = 'model'
 !   cmd_word(2) = '-'
 !   cmd_word(3) = 'design'
+!
+! Anything between single or double quotes is treated as a single word.
+!
 
 subroutine cmd_split (n_word, no_extra_words, err, separator)
 

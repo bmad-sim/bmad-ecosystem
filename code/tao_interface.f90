@@ -84,9 +84,9 @@ interface
 end interface
 
 interface
-  subroutine tao_hook_command (cmd_line, found)
+  subroutine tao_hook_command (command_line, found)
     implicit none
-    character(*) cmd_line
+    character(*) command_line
     logical found
   end subroutine
 end interface
@@ -136,9 +136,11 @@ interface
 end interface
  
 interface
-  subroutine tao_hook_init_design_lattice (lat_file)
+  subroutine tao_hook_init_design_lattice (design_lattice_file, custom_init)
+    use tao_input_struct, only: tao_design_lat_input
     implicit none
-    character(*) lat_file
+    type (tao_design_lat_input)  design_lattice_file(:)
+    logical custom_init
   end subroutine
 end interface
 
@@ -149,6 +151,13 @@ interface
   end subroutine
 end interface
  
+interface
+  subroutine tao_init_design_lattice (lat_file)
+    implicit none
+    character(*) lat_file
+  end subroutine
+end interface
+
 interface
   subroutine tao_init_global_and_universes (data_and_var_file)
     implicit none

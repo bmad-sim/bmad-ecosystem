@@ -62,6 +62,8 @@ integer iu, n
 real(rp) minn, maxx
 
 !
+! no curves to scale
+if (.not. associated(plot%graph(1)%curve(1))) return
 
 iu = plot%graph(1)%curve(1)%ix_universe
 if (iu == 0) iu = s%global%u_view
