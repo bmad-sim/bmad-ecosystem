@@ -1,5 +1,5 @@
 !+
-! Subroutine aperture_info (lattice, orbit, ix_lost, plane_lost)
+! Subroutine lost_particle_info (lattice, orbit, ix_lost, plane_lost)
 !
 ! Subroutine to show where in an orbit a particle hit an aperture and was lost.
 !
@@ -30,7 +30,7 @@
 !                     x_plane$ or y_plane$
 !-
 
-subroutine aperture_info (lattice, orbit, ix_lost, plane_lost)
+subroutine lost_particle_info (lattice, orbit, ix_lost, plane_lost)
 
   use bmad_struct
   use bmad_interface
@@ -42,7 +42,7 @@ subroutine aperture_info (lattice, orbit, ix_lost, plane_lost)
 
   real(rp) x_lim, y_lim
   integer ix_lost, plane_lost, ix
-  character(16) :: r_name = 'aperture_info'
+  character(20) :: r_name = 'lost_particle_info'
 
 !
 
