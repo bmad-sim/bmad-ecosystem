@@ -443,8 +443,8 @@ subroutine track1_bmad (start, ele, param, end)
     call offset_particle (ele, param, end, set$)
 
     k_z = pi * ele%value(n_pole$) / length
-    k1 = -0.5 * c_light * ele%value(b_max$) / &
-                    (ele%value(beam_energy$) * rel_E)**2
+    k1 = -0.5 * (c_light * ele%value(b_max$) / &
+                    (ele%value(beam_energy$) * rel_E))**2
 
     ! 1/2 of the octupole octopole kick at the entrance face.
 
