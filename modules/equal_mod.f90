@@ -2,18 +2,15 @@
 
 module equal_mod
 
-  use bmad_utils_mod
+use bmad_utils_mod
 
-  interface assignment (=)
-    module procedure ele_equal_ele
-    module procedure ele_vec_equal_ele_vec
-    module procedure ring_equal_ring 
-    module procedure ring_vec_equal_ring_vec 
+interface assignment (=)
+  module procedure ele_equal_ele
+  module procedure ele_vec_equal_ele_vec
+  module procedure ring_equal_ring 
+  module procedure ring_vec_equal_ring_vec 
 !    module procedure coord_equal_coord
-    module procedure mp_slice_equal_mp_slice
-    module procedure mp_bunch_equal_mp_bunch
-    module procedure mp_beam_equal_mp_beam
-  end interface
+end interface
 
 contains
 
@@ -47,7 +44,7 @@ subroutine ele_equal_ele (ele1, ele2)
   type (ele_struct), intent(in) :: ele2
   type (ele_struct) ele_save
 
-  integer i, n_sr, n_lr
+  integer i, n_sr1, n_sr2_long, n_sr2_trans, n_lr
 
 ! 1) Save ele1 pointers in ele_save
 ! 2) Set ele1 = ele2.
@@ -137,14 +134,22 @@ subroutine ele_equal_ele (ele1, ele2)
     if (associated (ele_save%descrip)) deallocate (ele_save%descrip)
   endif
 
-  n_sr = sr_wake_array_ubound(ele2); n_lr = lr_wake_array_size(ele2)
   ele1%wake => ele_save%wake  ! reinstate
-  call init_wake (ele1%wake, n_sr, n_lr)
-  if (n_sr /= -1)  ele1%wake%sr = ele2%wake%sr
-  if (n_lr /= 0)   ele1%wake%lr = ele2%wake%lr
-  if (associated(ele1%wake)) then
-    ele1%wake%sr_file = ele2%wake%sr_file
-    ele1%wake%lr_file = ele2%wake%lr_file
+  if (associated (ele2%wake)) then
+    n_sr1       = size(ele2%wake%sr1)
+    n_sr2_long  = size(ele2%wake%sr2_long)
+    n_sr2_trans = size(ele2%wake%sr2_trans)
+    n_lr        = size(ele2%wake%lr)
+    call init_wake (ele1%wake, n_sr1, n_sr2_long, n_sr2_trans, n_lr)
+    ele1%wake%sr_file   = ele2%wake%sr_file
+    ele1%wake%lr_file   = ele2%wake%lr_file
+    ele1%wake%z_cut_sr  = ele2%wake%z_cut_sr
+    ele1%wake%sr1       = ele2%wake%sr1
+    ele1%wake%sr2_long  = ele2%wake%sr2_long
+    ele1%wake%sr2_trans = ele2%wake%sr2_trans
+    ele1%wake%lr        = ele2%wake%lr
+  else
+    call init_wake (ele1%wake, 0, 0, 0, 0)
   endif
 
 ! gen_fields are hard because it involves pointers in PTC.
@@ -374,137 +379,6 @@ elemental subroutine coord_equal_coord (coord1, coord2)
   coord1%vec = coord2%vec
  
 end subroutine
-
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!+
-! Subroutine mp_slice_equal_mp_slice (slice1, slice2)
-!
-! Subroutine to set one macroparticle slice equal to another taking care of
-! pointers so that they don't all point to the same place.
-!
-! Note: This subroutine is called by the overloaded equal sign:
-!		slice1 = slice2
-!
-! Input: 
-!  slice2 -- macro_slice_struct: Input slice
-!
-! Output
-!  slice1 -- macro_slice_struct: Output slice
-!
-!-
-
-subroutine mp_slice_equal_mp_slice (slice1, slice2)
-
-  implicit none
-
-  type (macro_slice_struct), intent(inout) :: slice1
-  type (macro_slice_struct), intent(in)    :: slice2
-
-
-  if (associated(slice1%macro)) deallocate(slice1%macro)
-  allocate(slice1%macro(size(slice2%macro)))
-
-  slice1%macro(:)  = slice2%macro(:)
-  slice1%charge    = slice2%charge
-
-end subroutine mp_slice_equal_mp_slice
-
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!+
-! Subroutine mp_bunch_equal_mp_bunch (bunch1, bunch2)
-!
-! Subroutine to set one macroparticle bunch equal to another taking care of
-! pointers so that they don't all point to the same place.
-!
-! Note: This subroutine is called by the overloaded equal sign:
-!		bunch1 = bunch2
-!
-! Input: 
-!  bunch2 -- macro_bunch_struct: Input bunch
-!
-! Output
-!  bunch1 -- macro_bunch_struct: Output bunch
-!
-!-
-
-subroutine mp_bunch_equal_mp_bunch (bunch1, bunch2)
-
-  implicit none
-
-  type (macro_bunch_struct), intent(inout) :: bunch1
-  type (macro_bunch_struct), intent(in)    :: bunch2
-
-  integer i
-
-  if (associated(bunch1%slice)) then
-    do i = 1, size(bunch1%slice)
-      if (associated(bunch1%slice(i)%macro)) deallocate(bunch1%slice(i)%macro)
-    enddo  
-    deallocate(bunch1%slice)
-  endif
-  allocate(bunch1%slice(size(bunch2%slice)))
-
-  do i = 1, size(bunch2%slice)
-    call mp_slice_equal_mp_slice(bunch1%slice(i), bunch2%slice(i))
-  enddo
-  bunch1%charge    = bunch2%charge
-  bunch1%s_center  = bunch2%s_center
-
-end subroutine mp_bunch_equal_mp_bunch
-
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!+
-! Subroutine mp_beam_equal_mp_beam (beam1, beam2)
-!
-! Subroutine to set one macroparticle beam equal to another taking care of
-! pointers so that they don't all point to the same place.
-!
-! Note: This subroutine is called by the overloaded equal sign:
-!		beam1 = beam2
-!
-! Input: 
-!  beam2 -- macro_beam_struct: Input beam
-!
-! Output
-!  beam1 -- macro_beam_struct: Output beam
-!
-!-
-
-subroutine mp_beam_equal_mp_beam (beam1, beam2)
-
-  implicit none
-
-  type (macro_beam_struct), intent(inout) :: beam1
-  type (macro_beam_struct), intent(in)    :: beam2
-
-  integer i, j
-
-  if (associated(beam1%bunch)) then
-    do i = 1, size(beam1%bunch)
-      if (associated(beam1%bunch(i)%slice)) then
-	do j = 1, size(beam1%bunch(i)%slice)
-       	  if (associated(beam1%bunch(i)%slice(j)%macro)) &
-	                   deallocate(beam1%bunch(i)%slice(j)%macro)
-        enddo
-	deallocate(beam1%bunch(i)%slice)
-      endif
-    enddo
-    deallocate(beam1%bunch)
-  endif
-
-  allocate(beam1%bunch(size(beam2%bunch)))
-  
-  do i = 1, size(beam2%bunch)
-    call mp_bunch_equal_mp_bunch (beam1%bunch(i), beam2%bunch(i))
-  enddo
-
-end subroutine mp_beam_equal_mp_beam
 
 end module
 

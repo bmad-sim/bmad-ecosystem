@@ -51,7 +51,7 @@ subroutine energy_to_kinetic (energy, particle, &
 
   real(rp), intent(in) :: energy
   real(rp), intent(out), optional :: kinetic, beta, p0c, brho, gamma
-  real(rp) p0c_, mc2
+  real(rp) p0c_new, mc2
 
   integer, intent(in) :: particle
 
@@ -72,11 +72,11 @@ subroutine energy_to_kinetic (energy, particle, &
     call err_exit
   endif
 
-  p0c_ = sqrt(energy**2 - mc2**2)
+  p0c_new = sqrt(energy**2 - mc2**2)
   if (present(p0c))     p0c     = sqrt(energy**2 - mc2**2)
-  if (present(beta))    beta    = p0c_ / energy  
+  if (present(beta))    beta    = p0c_new / energy  
   if (present(kinetic)) kinetic = energy - mc2
-  if (present(brho))    brho    = p0c_ / c_light
+  if (present(brho))    brho    = p0c_new / c_light
   if (present(gamma))   gamma   = energy / mc2
 
 end subroutine
@@ -505,27 +505,27 @@ end subroutine
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine reallocate_coord (coord_, n_coord)
+! Subroutine reallocate_coord (coord, n_coord)
 !
 ! Subroutine to reallocate an allocatable  coord_struct array to at least:
-!     coord_(0:n_coord)
-! Note: The old coordinates are not saved except for coord_(0).
-!  If at input coord_ is not allocated then coord_(0)%vec is set to zero.
+!     coord(0:n_coord)
+! Note: The old coordinates are not saved except for coord(0).
+!  If at input coord is not allocated then coord(0)%vec is set to zero.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   coord_(:) -- Coord_struct, allocatable: Allocatable array.
+!   coord(:) -- Coord_struct, allocatable: Allocatable array.
 !   n_coord   -- Integer: Minimum array upper bound wanted.
 !
 ! Output:
-!   coord_(:) -- coord_struct: Allocated array.
+!   coord(:) -- coord_struct: Allocated array.
 !-
 
-subroutine reallocate_coord (coord_, n_coord)
+subroutine reallocate_coord (coord, n_coord)
 
-  type (coord_struct), allocatable :: coord_(:)
+  type (coord_struct), allocatable :: coord(:)
   type (coord_struct) start
 
   integer, intent(in) :: n_coord
@@ -533,21 +533,21 @@ subroutine reallocate_coord (coord_, n_coord)
 
 !
 
-  if (allocated (coord_)) then
-    if (size(coord_) < n_coord + 1) then
-      start = coord_(0)
-      deallocate (coord_)
-      allocate (coord_(0:n_coord))
-      coord_(0) = start
+  if (allocated (coord)) then
+    if (size(coord) < n_coord + 1) then
+      start = coord(0)
+      deallocate (coord)
+      allocate (coord(0:n_coord))
+      coord(0) = start
       do i = 1, n_coord
-        coord_(i)%vec = 0
+        coord(i)%vec = 0
       enddo
     endif
   else
-    allocate (coord_(0:n_coord))
-    coord_(0)%vec = 0
+    allocate (coord(0:n_coord))
+    coord(0)%vec = 0
     do i = 1, n_coord
-      coord_(i)%vec = 0
+      coord(i)%vec = 0
     enddo
   endif
 
@@ -645,8 +645,10 @@ subroutine deallocate_ele_pointers (ele, nullify_only)
   if (associated (ele%a))        deallocate (ele%a, ele%b)
 
   if (associated (ele%wake)) then
-    if (associated (ele%wake%sr)) deallocate (ele%wake%sr)
-    if (associated (ele%wake%lr)) deallocate (ele%wake%lr)
+    if (associated (ele%wake%sr1))       deallocate (ele%wake%sr1)
+    if (associated (ele%wake%sr2_long))  deallocate (ele%wake%sr2_long)
+    if (associated (ele%wake%sr2_trans)) deallocate (ele%wake%sr2_trans)
+    if (associated (ele%wake%lr))        deallocate (ele%wake%lr)
     deallocate (ele%wake)
   endif
 
@@ -936,29 +938,49 @@ subroutine transfer_mat_from_twiss (ele1, ele2, m)
   type (ele_struct) ele1, ele2
 
   real(rp) m(6,6), v_mat(4,4), v_inv_mat(4,4), det
+  character(20) :: r_name = 'transfer_mat_from_twiss'
 
-!
+! Error check
+
+  if (ele1%x%beta == 0 .or. ele1%y%beta == 0) then
+    call out_io (s_abort$, r_name, 'ZERO BETA IN ELEMENT: ' // ele1%name)
+    call err_exit
+  endif
+
+  if (ele2%x%beta == 0 .or. ele2%y%beta == 0) then
+    call out_io (s_abort$, r_name, 'ZERO BETA IN ELEMENT: ' // ele2%name)
+    call err_exit
+  endif
+
+! Transfer matrices without coupling or dispersion
 
   call mat_make_unit (m)
   call transfer_mat2_from_twiss (ele1%x, ele2%x, m(1:2,1:2))
   call transfer_mat2_from_twiss (ele1%y, ele2%y, m(3:4,3:4))
 
-  call mat_det (ele1%c_mat, det)
-  ele1%gamma_c = sqrt(1-det)
-  call make_v_mats (ele1, v_mat, v_inv_mat)
-  m(1:4,1:4) = matmul (m(1:4,1:4), v_inv_mat)
+! Add in coupling
 
-  call mat_det (ele2%c_mat, det)
-  ele2%gamma_c = sqrt(1-det)
-  call make_v_mats (ele2, v_mat, v_inv_mat)
-  m(1:4,1:4) = matmul (v_mat, m(1:4,1:4))
+  if (any(ele1%c_mat /= 0)) then
+    call mat_det (ele1%c_mat, det)
+    ele1%gamma_c = sqrt(1-det)
+    call make_v_mats (ele1, v_mat, v_inv_mat)
+    m(1:4,1:4) = matmul (m(1:4,1:4), v_inv_mat)
+  endif
+
+  if (any(ele2%c_mat /= 0)) then
+    call mat_det (ele2%c_mat, det)
+    ele2%gamma_c = sqrt(1-det)
+    call make_v_mats (ele2, v_mat, v_inv_mat)
+    m(1:4,1:4) = matmul (v_mat, m(1:4,1:4))
+  endif
+
+! Add in dispersion.
+! The m(5,x) terms follow from the symplectic condition.
 
   m(1:2,6) = (/ ele2%x%eta, ele2%x%etap /) - &
                      matmul (m(1:2,1:2), (/ ele1%x%eta, ele1%x%etap /)) 
   m(3:4,6) = (/ ele2%y%eta, ele2%y%etap /) - &
                      matmul (m(3:4,3:4), (/ ele1%y%eta, ele1%y%etap /)) 
-
-! The m(5,x) terms follow from the symplectic condition.
 
   m(5,1) = -m(2,6)*m(1,1) + m(1,6)*m(2,1) - m(4,6)*m(3,1) + m(3,6)*m(4,1)
   m(5,2) = -m(2,6)*m(1,2) + m(1,6)*m(2,2) - m(4,6)*m(3,2) + m(3,6)*m(4,2)
@@ -1029,169 +1051,18 @@ subroutine match_ele_to_mat6 (ele, mat6, vec0)
   ele0%c_mat = 0 
   ele1%c_mat = 0 
 
+  ele0%name = ele%name
+  ele1%name = ele%name
+
   call transfer_mat_from_twiss (ele0, ele1, mat6)
 
 end subroutine
 
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Function sr_wake_array_ubound (ele) result (array_ub)
-!
-! Function to return the size of ele%wake%sr.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   ele -- Element_struct: Element to test.
-!
-! Output:
-!   array_ub -- Integer: Upper bound. Set to -1 if array not associated.
-!-
-
-function sr_wake_array_ubound (ele) result (array_ub)
-
-  type (ele_struct) ele
-  integer array_ub
-
-!
-
-  array_ub = -1
-  if (.not. associated(ele%wake)) return
-  if (associated (ele%wake%sr)) array_ub = ubound(ele%wake%sr, 1)
-
-end function
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Function lr_wake_array_size (ele) result (array_size)
-!
-! Function to return the size of ele%wake%lr.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   ele -- Element_struct: Element to test.
-!
-! Output:
-!   array_size -- Integer: Set to 0 if array not associated.
-!-
-
-function lr_wake_array_size (ele) result (array_size)
-
-  type (ele_struct) ele
-  integer array_size
-
-!
-
-  array_size = 0
-  if (.not. associated(ele%wake)) return
-  if (associated (ele%wake%lr)) array_size = size(ele%wake%lr)
-
-end function
-
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine init_sr_wake (sr_wake, n_ub)
-!
-! Subroutine to initialize a sr_wake array.
-! Note: Lower bound is zero.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   sr_wake(:) -- Sr_wake_struct: Old structure.
-!   n_ub       -- Integer: Upper bound of sr_wake(:) to allocate.
-!                   -1 => pointer will be disassociated.
-!
-! Output:
-!   sr_wake(0:n_ub) -- Sr_wake_struct: Initalized structure.
-!-
-
-subroutine init_sr_wake (sr_wake, n_ub)
-
-  implicit none
-
-  type (sr_wake_struct), pointer :: sr_wake(:)
-  integer n_ub
-
-!
-
-  if (n_ub == -1) then
-    if (associated (sr_wake)) deallocate (sr_wake)
-    return
-  endif
-
-  if (associated (sr_wake)) then
-    if (ubound(sr_wake, 1) /= n_ub) then
-      deallocate (sr_wake)
-      allocate (sr_wake(0:n_ub))
-    endif
-  else
-    allocate (sr_wake(0:n_ub))
-  endif
-
-end subroutine
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine init_lr_wake (lr_wake, n_term)
-!
-! Subroutine to initialize a lr_wake array.
-! Note: Lower bound is zero.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   lr_wake(:) -- Lr_wake_struct: Old structure.
-!   n_term     -- Integer: Number of terms to allocate. 
-!                   0 => pointer will be disassociated.
-!
-! Output:
-!   lr_wake(0:n_term-1) -- Lr_wake_struct: Initalized structure.
-!-
-
-subroutine init_lr_wake (lr_wake, n_term)
-
-  implicit none
-
-  type (lr_wake_struct), pointer :: lr_wake(:)
-  integer n_term
-
-!
-
-  if (n_term == 0) then
-    if (associated (lr_wake)) deallocate (lr_wake)
-    return
-  endif
-
-  if (associated (lr_wake)) then
-    if (size(lr_wake) /= n_term) then
-      deallocate (lr_wake)
-      allocate (lr_wake(n_term))
-    endif
-  else
-    allocate (lr_wake(n_term))
-  endif
-
-end subroutine
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine init_wake (wake, n_sr, n_lr)
+! Subroutine init_wake (wake, n_sr1, n_sr2_long, n_sr2_trans, n_lr)
 !
 ! Subroutine to initialize a wake struct.
 !
@@ -1199,35 +1070,64 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   n_sr    -- Integer: Number of terms: wake%sr(0:n_sr) 
-!   n_lr    -- Integer: Number of terms: wake%nr(n_lr)
+!   n_sr1       -- Integer: Number of terms: wake%sr1(0:n_sr-1).
+!   n_sr2_long  -- Integer: Number of terms: wake%nr(n_sr2_long).
+!   n_sr2_trans -- Integer: Number of terms: wake%nr(n_sr2_trans).
+!   n_lr        -- Integer: Number of terms: wake%nr(n_lr)
 !
 ! Output:
-!   wake    -- Wake_struct, pointer: Initialized structure
+!   wake -- Wake_struct, pointer: Initialized structure. 
+!               If all inputs are 0 then wake is deallocated.
 !-
 
-subroutine init_wake (wake, n_sr, n_lr)
+subroutine init_wake (wake, n_sr1, n_sr2_long, n_sr2_trans, n_lr)
 
   implicit none
 
   type (wake_struct), pointer :: wake
-  integer n_sr, n_lr
+  integer n_sr1, n_sr2_long, n_sr2_trans, n_lr
+
+! Deallocate wake if all inputs are zero.
+
+  if (n_sr1 == 0 .and. n_sr2_long == 0 .and. n_sr2_trans == 0 .and. n_lr == 0) then
+    if (associated(wake)) then
+      deallocate (wake%sr1)
+      deallocate (wake%sr2_long)
+      deallocate (wake%sr2_trans)
+      deallocate (wake%lr)
+      deallocate (wake)
+    endif
+    return
+  endif
 
 !
 
-  if (n_sr == -1 .and. n_lr == 0) then
-    if (associated (wake)) then
-      if (associated(wake%sr)) deallocate (wake%sr)
-      if (associated(wake%lr)) deallocate (wake%lr)
-      deallocate (wake)
+  if (associated (wake)) then
+    if (size(wake%sr1) /= n_sr1) then
+      deallocate (wake%sr1)
+      allocate (wake%sr1(0:n_sr1-1))
     endif
+    if (size(wake%sr2_long) /= n_sr2_long) then
+      deallocate (wake%sr2_long)
+      allocate (wake%sr2_long(n_sr2_long))
+    endif
+    if (size(wake%sr2_trans) /= n_sr2_trans) then
+      deallocate (wake%sr2_trans)
+      allocate (wake%sr2_trans(n_sr2_trans))
+    endif
+    if (size(wake%lr) /= n_lr) then
+      deallocate (wake%lr)
+      allocate (wake%lr(n_lr))
+    endif
+
   else
-    if (.not. associated (wake)) allocate (wake)
-    call init_sr_wake (wake%sr, n_sr)
-    call init_lr_wake (wake%lr, n_lr)
+    allocate (wake)
+    allocate (wake%sr1(0:n_sr1-1))
+    allocate (wake%sr2_long(n_sr2_long))
+    allocate (wake%sr2_trans(n_sr2_trans))
+    allocate (wake%lr(n_lr))
   endif
 
 end subroutine
 
 end module
-

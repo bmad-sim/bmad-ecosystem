@@ -246,9 +246,9 @@ subroutine write_bmad_lattice_file (bmad_file, ring)
                               ', descrip = "' // trim(ele%descrip) // '"'
 
     if (associated(ele%wake)) then
-      if (associated(ele%wake%sr)) line = &
+      if (ele%wake%sr_file /= ' ') line = &
             trim(line) // ',  sr_file = "' // trim(ele%wake%sr_file) // '"'
-      if (associated(ele%wake%lr)) line = &
+      if (ele%wake%lr_file /= ' ') line = &
             trim(line) // ',  lr_file = "' // trim(ele%wake%lr_file) // '"'
     endif
 

@@ -352,8 +352,10 @@ subroutine makeup_multipass_slave (ring, ix_slave)
   if (associated (slave%r)) slave%r = lord%r
   if (associated (slave%const)) slave%const = lord%const
   if (associated (slave%wake)) then
-    if (associated (slave%wake%sr)) slave%wake%sr = lord%wake%sr
-    if (associated (slave%wake%lr)) slave%wake%lr = lord%wake%lr
+    slave%wake%sr1       = lord%wake%sr1
+    slave%wake%sr2_long  = lord%wake%sr2_long
+    slave%wake%sr2_trans = lord%wake%sr2_trans
+    slave%wake%lr        = lord%wake%lr
   endif
 
   slave%mat6_calc_method = lord%mat6_calc_method

@@ -10,8 +10,8 @@
 
 module bmad_parser_mod
 
-  use ptc_interface_mod
-  use bookkeeper_mod
+use ptc_interface_mod
+use bookkeeper_mod
 
 ! A "sequence" is a line or a list.
 ! The information about a sequence is stored in a seq_struct.
@@ -20,138 +20,140 @@ module bmad_parser_mod
 ! Each seq_ele_struct represents an individual element in a sequence and, 
 ! since sequences can be nested, can itself be a line or a list.
 
-  type seq_ele_struct
-    character(16) name             ! name of element, subline, or sublist
-    character(16), pointer :: actual_arg(:) => null()
-    integer type                   ! LINE$, REPLACEMENT_LINE$, LIST$, ELEMENT$
-    integer ix_ele                 ! if an element: pointer to ELE_ array
-                                   ! if a list: pointer to SEQ_ array
-    integer ix_arg                 ! index in arg list (for replacement lines)
-    integer rep_count              ! how many copies of an element
-    logical reflect                ! reflection sequence
-  end type
+type seq_ele_struct
+  character(16) name             ! name of element, subline, or sublist
+  character(16), pointer :: actual_arg(:) => null()
+  integer type                   ! LINE$, REPLACEMENT_LINE$, LIST$, ELEMENT$
+  integer ix_ele                 ! if an element: pointer to ELE_ array
+                                 ! if a list: pointer to SEQ_ array
+  integer ix_arg                 ! index in arg list (for replacement lines)
+  integer rep_count              ! how many copies of an element
+  logical reflect                ! reflection sequence
+end type
 
-  type seq_struct
-    character(16) name                 ! name of sequence
-    type (seq_ele_struct), pointer :: ele(:) => null()
-    character(16), pointer :: dummy_arg(:) => null()
-    character(16), pointer :: corresponding_actual_arg(:) => null()
-    integer type                       ! LINE$, REPLACEMENT_LINE$ or LIST$
-    integer ix                         ! current index of element in %ELE
-    integer indexx                     ! alphabetical order sorted index
-    character(200) file_name     ! file where sequence is defined
-    integer ix_line              ! line number in filewhere sequence is defined
-    logical multipass
-  end type
+type seq_struct
+  character(16) name                 ! name of sequence
+  type (seq_ele_struct), pointer :: ele(:) => null()
+  character(16), pointer :: dummy_arg(:) => null()
+  character(16), pointer :: corresponding_actual_arg(:) => null()
+  integer type                       ! LINE$, REPLACEMENT_LINE$ or LIST$
+  integer ix                         ! current index of element in %ELE
+  integer indexx                     ! alphabetical order sorted index
+  character(200) file_name     ! file where sequence is defined
+  integer ix_line              ! line number in filewhere sequence is defined
+  logical multipass
+end type
 
-  type used_seq_struct
-    character(16) name                 ! name of sequence
-    character(16) multipass_line       ! name of root multipass line
-    integer ix_multipass               ! index used to sort elements
-  end type    
+type used_seq_struct
+  character(16) :: name = ' '           ! name of sequence
+  character(16) :: multipass_line = ' ' ! name of root multipass line
+  integer :: ix_multipass = 0           ! index used to sort elements
+end type    
 
 ! A LIFO stack structure is used in the final evaluation of the line that is
 ! used to form a lattice
 
-  type seq_stack_struct
-    integer ix_seq                ! index to seq_(:) array
-    integer ix_ele                ! index to seq%ele(:) array
-    integer rep_count             ! repetition count
-    integer direction             ! +1 => forwad, -1 => back reflection.
-    logical multipass
-  end type
+type seq_stack_struct
+  integer ix_seq                ! index to seq_(:) array
+  integer ix_ele                ! index to seq%ele(:) array
+  integer rep_count             ! repetition count
+  integer direction             ! +1 => forwad, -1 => back reflection.
+  logical multipass
+end type
 
 ! A LIFO stack structure is used to hold the list of input lattice files
 ! that are currently open.
 
-  type stack_file_struct
-    character(200) logical_name
-    character(200) full_name
-    character(200) :: dir = './'
-    integer i_line
-    integer f_unit
-  end type
+type stack_file_struct
+  character(200) logical_name
+  character(200) full_name
+  character(200) :: dir = './'
+  integer i_line
+  integer f_unit
+end type
 
 !-----------------------------------------------------------
 ! structure for holding the control names and pointers for
 ! superimpose and overlay elements
 
-  integer, private :: plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
-  integer, private :: l_parens$ = 5, r_parens$ = 6, power$ = 7
-  integer, private :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
-  integer, private :: sin$ = 11, cos$ = 12, tan$ = 13
-  integer, private :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
-  integer, private :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
-  integer, private :: numeric$ = 100
+integer, private :: plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
+integer, private :: l_parens$ = 5, r_parens$ = 6, power$ = 7
+integer, private :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
+integer, private :: sin$ = 11, cos$ = 12, tan$ = 13
+integer, private :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
+integer, private :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
+integer, private :: numeric$ = 100
 
-  integer, private :: eval_level(22) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+integer, private :: eval_level(22) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
                             9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 /)
 
 
-  type eval_stack_struct
-    integer type
-    real(rp) value
-  end type
+type eval_stack_struct
+  integer type
+  real(rp) value
+end type
 
-  type parser_ele_struct
-    character(16) ref_name
-    character(16), pointer :: name_(:) => null()
-    character(16), pointer :: attrib_name_(:) => null()
-    real(rp), pointer :: coef_(:) => null()
-    real(rp) s
-    integer ix_count
-    integer ele_pt, ref_pt
-    integer indexx
-    logical common_lord
-  end type
+type parser_ele_struct
+  character(16) ref_name
+  character(16), pointer :: name_(:) => null()
+  character(16), pointer :: attrib_name_(:) => null()
+  real(rp), pointer :: coef_(:) => null()
+  real(rp) s
+  integer ix_count
+  integer ele_pt, ref_pt
+  integer indexx
+  logical common_lord
+end type
 
-  type parser_ring_struct
-    type (parser_ele_struct), pointer :: ele(:) => null()
-  end type
+type parser_ring_struct
+  type (parser_ele_struct), pointer :: ele(:) => null()
+end type
 
 !
 
-  integer, parameter :: line$ = 1, list$ = 2, element$ = 3
-  integer, parameter :: replacement_line$ = 4
+integer, parameter :: line$ = 1, list$ = 2, element$ = 3
+integer, parameter :: replacement_line$ = 4
 
-  integer begin$, center$, end$
-  parameter (begin$ = -1)
-  parameter (center$ = 0)
-  parameter (end$ = 1)
+integer begin$, center$, end$
+parameter (begin$ = -1)
+parameter (center$ = 0)
+parameter (end$ = 1)
 
-  integer def$, redef$
-  parameter (def$ = 1)
-  parameter (redef$ = 2)
+integer def$, redef$
+parameter (def$ = 1)
+parameter (redef$ = 2)
 
 !------------------------------------------------
 ! common stuff
 
-  type bp_com_struct
-    type (stack_file_struct) current_file
-    type (stack_file_struct) calling_file
-    character(16), pointer :: var_name(:) => null()    ! variable name
-    real(rp), pointer :: var_value(:) => null()        ! variable value
-    integer, pointer :: var_indexx(:) => null()        ! variable sort index
-    integer num_lat_files               ! Number of files opened
-    character(200) lat_file_names(50)   ! List of all files used to create lat
-    character(280) parse_line
-    character(140) input_line1          ! For debug messages
-    character(140) input_line2          ! For debug messages
-    character(16) parser_name
-    character(72) debug_line
-    logical parser_debug, write_digested, error_flag
-    integer ivar_tot, ivar_init
-    logical input_line_meaningful
-    character(200) :: dirs(3) = (/ &
+integer, parameter :: n_parse_line = 280
+
+type bp_com_struct
+  type (stack_file_struct) current_file
+  type (stack_file_struct) calling_file
+  character(16), pointer :: var_name(:) => null()    ! variable name
+  real(rp), pointer :: var_value(:) => null()        ! variable value
+  integer, pointer :: var_indexx(:) => null()        ! variable sort index
+  integer num_lat_files               ! Number of files opened
+  character(200) lat_file_names(50)   ! List of all files used to create lat
+  character(n_parse_line) parse_line
+  character(n_parse_line) input_line1          ! For debug messages
+  character(n_parse_line) input_line2          ! For debug messages
+  character(16) parser_name
+  character(72) debug_line
+  logical parser_debug, write_digested, error_flag
+  integer ivar_tot, ivar_init
+  logical input_line_meaningful
+  character(200) :: dirs(3) = (/ &
                       './           ', './           ', '$BMAD_LAYOUT:' /)
-  end type
+end type
 
 !
 
-  type (bp_com_struct), save :: bp_com
-  type (ele_struct), target, save :: beam_ele, param_ele
+type (bp_com_struct), save :: bp_com
+type (ele_struct), target, save :: beam_ele, param_ele
 
-  character(16) :: blank = ' '
+character(16) :: blank = ' '
 
 contains
 
@@ -774,7 +776,7 @@ subroutine get_next_word (word, ix_word, delim_list, &
 
   do
     ix_a = index(bp_com%parse_line, '&')
-    if (ix_a == 0 .or. ix_a > 140) exit
+    if (ix_a == 0 .or. ix_a > n_parse_line/2) exit
     call load_parse_line('continue', ix_a, file_end)
   enddo
 
@@ -901,7 +903,7 @@ subroutine load_parse_line (how, ix_cmd, file_end)
   integer ix_cmd, ix
 
   character(*) how
-  character(140) line, pending_line
+  character(n_parse_line+20) line, pending_line
 
   logical :: cmd_pending = .false., file_end
 
@@ -916,6 +918,8 @@ subroutine load_parse_line (how, ix_cmd, file_end)
     else
       read (bp_com%current_file%f_unit, '(a)', end = 9000) line
       bp_com%current_file%i_line = bp_com%current_file%i_line + 1
+      if (line(n_parse_line-ix_cmd-20:) /= ' ') &
+        call warning ('INPUT LINE HAS TOO MANY CHARACTERS:', line)
     endif
 
     if (how == 'continue') then
@@ -1572,13 +1576,9 @@ subroutine type_get (ele, ix_type, delim, delim_found)
     if (.not. associated(ele%descrip)) allocate (ele%descrip) 
     ele%descrip = type_name
   case (sr_wake_file$) 
-    if (.not. associated(ele%wake)) allocate (ele%wake)
-    ele%wake%sr_file = type_name
-    call read_sr_wake (ele)
+    call read_sr_wake (ele, type_name)
   case (lr_wake_file$) 
-    if (.not. associated(ele%wake)) allocate (ele%wake)
-    ele%wake%lr_file = type_name
-    call read_lr_wake (ele)
+    call read_lr_wake (ele, type_name)
   case default
     print *, 'INTERNAL ERROR IN TYPE_GET: I NEED HELP!'
     call err_exit
@@ -1590,39 +1590,50 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine read_lr_wake (ele)
+! Subroutine read_lr_wake (ele, lr_file_name)
 !
-! Subroutine to read in a wake field from an external file.
+! Subroutine to read in a long-range wake field from an external file.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 !
 ! Input:
-!   ele -- Ele_struct: Element
-!     %wake%lr_file -- Name of wake field file
+!   ele          -- Ele_struct: Element containing wake structure.
+!   lr_file_name -- Character(*):  Name of long-range wake field file.
 !
 ! Output:
 !   ele -- Ele_struct: Element with wake information.
-!     %wake%lr(:) -- Short-range wake potential.
+!     %wake%lr(:)       -- Long-range wake potential.
 !-
         
-subroutine read_lr_wake (ele)
+subroutine read_lr_wake (ele, lr_file_name)
 
   implicit none
 
   type (ele_struct) ele
-  real(rp) freq_in(500), r_over_q(500), q(500)
-  integer n_row, m(500)
+  real(rp) c1(500), c2(500), c3(500), c4(500)
+  integer n_row, m(500), iu
+  character(*) lr_file_name
+
+! Init
+
+  if (.not. associated(ele%wake)) allocate (ele%wake)
+  if (.not. associated(ele%wake%sr1))       allocate (ele%wake%sr1(0))
+  if (.not. associated(ele%wake%sr2_long))  allocate (ele%wake%sr2_long(0))
+  if (.not. associated(ele%wake%sr2_trans)) allocate (ele%wake%sr2_trans(0))
+  if (associated(ele%wake%lr)) deallocate (ele%wake%lr)
 
 ! get data
 
-  call read_this_wake (ele%wake%lr_file, n_row, freq_in, r_over_q, q, m)
+  iu = 0
+  ele%wake%lr_file = lr_file_name
+  call read_this_wake (iu, ele%wake%lr_file, n_row, c1, c2, c3, c4)
+  if (iu > 0) close (iu)
 
-  if (associated(ele%wake%lr)) deallocate (ele%wake%lr)
   allocate (ele%wake%lr(n_row))
-  ele%wake%lr%freq_in   = freq_in(1:n_row)
-  ele%wake%lr%freq      = freq_in(1:n_row)
-  ele%wake%lr%r_over_q  = r_over_q(1:n_row)
-  ele%wake%lr%q         = q(1:n_row)
-  ele%wake%lr%m         = m(1:n_row)
+  ele%wake%lr%freq_in   = c1(1:n_row)
+  ele%wake%lr%freq      = c1(1:n_row)
+  ele%wake%lr%r_over_q  = c2(1:n_row)
+  ele%wake%lr%q         = c3(1:n_row)
+  ele%wake%lr%m         = nint(c4(1:n_row))
   ele%wake%lr%norm_sin  = 0
   ele%wake%lr%norm_cos  = 0
   ele%wake%lr%skew_sin  = 0
@@ -1635,54 +1646,68 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine read_sr_wake (ele)
+! Subroutine read_sr_wake (ele, sr_file_name)
 !
-! Subroutine to read in a wake field from an external file.
+! Subroutine to read in a short-range wake field from an external file.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 !
 ! Input:
-!   ele -- Ele_struct: Element
-!     %wake%sr_file -- Name of wake field file
+!   ele          -- Ele_struct: Element containing wake structure.
+!   sr_file_name -- Character(*):  Name of short-range wake field file.
 !
 ! Output:
 !   ele -- Ele_struct: Element with wake information.
-!     %wake%sr(:) -- Short-range wake potential.
+!     %wake%sr1(:)       -- Short-range wake potential.
+!     %wake%sr2_long(:)  -- Short-range wake potential.
+!     %wake%sr2_trans(:) -- Short-range wake potential.
 !-
         
-subroutine read_sr_wake (ele)
+subroutine read_sr_wake (ele, sr_file_name)
 
   implicit none
 
   type (ele_struct) ele
 
-  real(rp) z(500), long(500), trans(500)
-  real(rp) dz
-  integer n_row, n, j
+  real(rp) dz, c1(500), c2(500), c3(500), c4(500)
+  integer n_row, n, j, iu
+  character(*) sr_file_name
   character(80) line
 
-! get data
+! init
 
-  call read_this_wake (ele%wake%sr_file, n_row, z, long, trans)
+  if (.not. associated(ele%wake)) allocate (ele%wake)
+  if (.not. associated(ele%wake%lr)) allocate (ele%wake%lr(0))
+  if (associated(ele%wake%sr1))       deallocate (ele%wake%sr1)
+  if (associated(ele%wake%sr2_long))  deallocate (ele%wake%sr2_long)
+  if (associated(ele%wake%sr2_trans)) deallocate (ele%wake%sr2_trans)
 
-  if (associated(ele%wake%sr)) deallocate (ele%wake%sr)
-  allocate (ele%wake%sr(0:n_row-1))
-  ele%wake%sr%z     = z(1:n_row)
-  ele%wake%sr%long  = long(1:n_row)
-  ele%wake%sr%trans = trans(1:n_row)
+  allocate (ele%wake%sr1(0), ele%wake%sr2_long(0), ele%wake%sr2_trans(0))
 
-! err check
+! get sr1 data
 
-  if (ele%wake%sr(0)%z /= 0) then
+  iu = 0
+  ele%wake%sr_file = sr_file_name
+  call read_this_wake (iu, ele%wake%sr_file, n_row, c1, c2, c3)
+  if (iu == 0) return
+
+  allocate (ele%wake%sr1(0:n_row-1))
+  ele%wake%sr1%z     = c1(1:n_row)
+  ele%wake%sr1%long  = c2(1:n_row)
+  ele%wake%sr1%trans = c3(1:n_row)
+
+  ! err check
+
+  if (ele%wake%sr1(0)%z /= 0) then
     call warning ('WAKEFIELDS DO NOT START AT Z = 0!', &
                                     'IN FILE: ' // ele%wake%sr_file)
     return
   endif
 
   n = n_row - 1
-  dz = ele%wake%sr(n)%z / n
+  dz = ele%wake%sr1(n)%z / n
 
   do j = 1, n
-    if (abs(ele%wake%sr(j)%z - dz * j) > 1e-4 * dz) then
+    if (abs(ele%wake%sr1(j)%z - dz * j) > 1e-4 * dz) then
       write (line, '(a, i5)') &
                'WAKEFIELD POINTS DO NOT HAVE UNIFORM DZ FOR POINT:', j
       call warning (line, 'IN FILE: ' // ele%wake%sr_file)
@@ -1690,62 +1715,100 @@ subroutine read_sr_wake (ele)
     endif
   enddo               
 
+  ! if dz > 0 (old style file) need to reverse sign.
+
+  if (dz > 0) ele%wake%sr1%z = -ele%wake%sr1%z
+
+  if (iu < 0) return  ! end of file reached
+
+! Get sr2_long data
+
+  call read_this_wake (iu, ele%wake%sr_file, n_row, c1, c2, c3, c4)
+  if (iu == 0) return
+
+  allocate (ele%wake%sr2_long(0:n_row-1))
+  ele%wake%sr2_long%amp   = c1(1:n_row)
+  ele%wake%sr2_long%damp  = c2(1:n_row)
+  ele%wake%sr2_long%freq  = c3(1:n_row)
+  ele%wake%sr2_long%phi   = c4(1:n_row)
+
+  if (iu < 0) return
+
+! Get sr2_trans data
+
+  call read_this_wake (iu, ele%wake%sr_file, n_row, c1, c2, c3, c4)
+  if (iu == 0) return
+
+  allocate (ele%wake%sr2_trans(0:n_row-1))
+  ele%wake%sr2_trans%amp   = c1(1:n_row)
+  ele%wake%sr2_trans%damp  = c2(1:n_row)
+  ele%wake%sr2_trans%freq  = c3(1:n_row)
+  ele%wake%sr2_trans%phi   = c4(1:n_row)
+
+  if (iu < 0) return
+
 end subroutine
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine read_this_wake (file, n_row, col1, col2, col3, col4)
+! Subroutine read_this_wake (iu, file, n_row, col1, col2, col3, col4)
 !
 ! Subroutine to read in a wake field from an external file.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 !
 ! Input:
+!   iu   -- Integer: Open file unit. If zero open the file.
 !   file -- Character(*): Name of wake field file
 !
 ! Output:
+!   iu      -- Integer: Open file unit. 
+!               If zero then there was an error. 
+!               If negative then end-of-file reached.
 !   n_row   -- Integer: Number of rows read.
 !   col1(:) -- Real(rp) :: Column 1.
 !   col2(:) -- Real(rp) :: Column 2.
 !   col3(:) -- Real(rp) :: Column 3.
-!   col4(:) -- Integer, optional :: Column 4 (if present).
+!   col4(:) -- Real(rp), optional :: Column 4 (if present).
 !-
         
-subroutine read_this_wake (file, n_row, col1, col2, col3, col4)
+subroutine read_this_wake (iu, file, n_row, col1, col2, col3, col4)
 
   implicit none
 
   integer i, j, ix, iu, ios, n_row, n
-  integer, optional :: col4(:)
 
   character(*) file
   character(200) file_name
   character(80) line
 
   real(rp) col1(:), col2(:), col3(:)
+  real(rp), optional :: col4(:)
 
   logical found_it
 
 ! open file
 
-  iu = lunget()
-  bp_com%dirs(2) = bp_com%calling_file%dir
-  call find_file (file, found_it, file_name, bp_com%dirs)
-  open (iu, file = file_name, status = 'OLD', action = 'READ', iostat = ios)
-  if (ios /= 0) then
-    call warning ('CANNOT OPEN WAKE FILE: ' // file)
-    return
-  endif
+  if (iu == 0) then
+    iu = lunget()
+    bp_com%dirs(2) = bp_com%calling_file%dir
+    call find_file (file, found_it, file_name, bp_com%dirs)
+    open (iu, file = file_name, status = 'OLD', action = 'READ', iostat = ios)
+    if (ios /= 0) then
+      call warning ('CANNOT OPEN WAKE FILE: ' // file)
+      iu = 0
+      return
+    endif
 
-! If we have not read in this file before then add this to the list of files
-! that are used to create the lattice.
+    ! If we have not read in this file before then add this to the list of files
+    ! that are used to create the lattice.
 
-  n = bp_com%num_lat_files
-  inquire (file = file_name, name = bp_com%lat_file_names(n+1))
-  if (all(bp_com%lat_file_names(n+1) /= bp_com%lat_file_names(1:n))) &
+    n = bp_com%num_lat_files
+    inquire (file = file_name, name = bp_com%lat_file_names(n+1))
+    if (all(bp_com%lat_file_names(n+1) /= bp_com%lat_file_names(1:n))) &
                                                 bp_com%num_lat_files = n + 1
-
+  endif
 
 ! read
 
@@ -1753,15 +1816,21 @@ subroutine read_this_wake (file, n_row, col1, col2, col3, col4)
 
   do
     read (iu, '(a)', iostat = ios) line
-    if (ios < 0) exit  ! end-of-file
+    if (ios < 0) then   ! end-of-file
+      close (iu)
+      iu = -1
+      return
+    endif
     if (ios > 0) then
       call warning ('ERROR READING WAKE FILE: ' // file_name)
+      iu = 0
       return
     endif
     call string_trim (line, line, ix)
     if (line(1:1) == '!') cycle  ! skip comments.
     if (ix == 0) cycle          ! skip blank lines.
-
+    call str_upcase (line, line)
+    if (line(1:) == 'END_SECTION') exit
     i = i + 1
     n_row = i
     if (present(col4)) then
@@ -1772,13 +1841,12 @@ subroutine read_this_wake (file, n_row, col1, col2, col3, col4)
 
     if (ios /= 0) then
       call warning ('ERROR PARSING WAKE FILE: ' // file, &
-                                                 'CANNOT READ LINE: ' // line)
+                                          'CANNOT READ LINE: ' // line)
+      iu = 0
       return
     endif
 
   enddo
-
-  close (iu)
 
 end subroutine
 
@@ -1927,7 +1995,7 @@ subroutine verify_valid_name (name, ix_name)
     if (index(valid_chars, name(i:i)) == 0) OK = .false.
   enddo
 
-  if (.not. OK) call warning ('INVALID NAME: UNRECOGNIZED CHARACTERS IN: '  &
+  if (.not. OK) call warning ('INVALID NAME: UNRECOGNIZED CHARACTERS IN: ' &
                                    // name)
 
 ! check for non matched "[" "]" pairs

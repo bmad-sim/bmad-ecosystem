@@ -19,7 +19,7 @@ module bmad_struct
 ! INCREASE THE VERSION NUMBER !
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-  integer, parameter :: bmad_inc_version$ = 75
+  integer, parameter :: bmad_inc_version$ = 76
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -55,10 +55,21 @@ module bmad_struct
 ! Wakefield structs...
 ! Each sr_wake_struct represents a point on the wake vs. z curve.
 
-  type sr_wake_struct     ! Short-Range Wake struct
+  type sr1_wake_struct     ! Short-Range Wake struct
     real(rp) z            ! Distance behind the leading particle
     real(rp) long         ! Longitudinal wake in V/C/m
     real(rp) trans        ! Transverse wake in V/C/m^2
+  end type
+
+  type sr2_wake_struct   ! Long-Range Wake struct 
+    real(rp) amp        ! Amplitude
+    real(rp) damp       ! Dampling factor.
+    real(rp) freq       ! Frequency in Hz
+    real(rp) phi        ! Phase in radians/2pi
+    real(rp) norm_sin   ! non-skew sin-like component of the wake
+    real(rp) norm_cos   ! non-skew cos-like component of the wake
+    real(rp) skew_sin   ! skew sin-like component of the wake
+    real(rp) skew_cos   ! skew cos-like component of the wake
   end type
 
 ! Each lr_wake_struct represents a different mode.
@@ -77,11 +88,17 @@ module bmad_struct
     real(rp) s_ref      ! reference time in terms of s = -c*t
   end type
 
+! Note: Bmad routines observe the following rule: 
+!   All pointers within a wake_struct are assumed to be allocated.
+
   type wake_struct
     character(200) :: sr_file = ' '
     character(200) :: lr_file = ' '
-    type (sr_wake_struct), pointer :: sr(:) => null()
+    type (sr1_wake_struct), pointer :: sr1(:) => null()
+    type (sr2_wake_struct), pointer :: sr2_long(:) => null()
+    type (sr2_wake_struct), pointer :: sr2_trans(:) => null()
     type (lr_wake_struct), pointer :: lr(:) => null()
+    real(rp) :: z_cut_sr = 0    ! cutoff between sr1 and sr2
   end type
 
 ! Local reference frame position with respect to the global (floor) coordinates
@@ -166,9 +183,7 @@ module bmad_struct
 ! parameter and mode structures
 
   type param_struct
-    real(rp) garbage2           ! Saved for future use.
     real(rp) n_part             ! Particles/bunch (for BeamBeam elements).
-    real(rp) garbage            ! Saved for future use.
     real(rp) total_length       ! total_length of ring
     real(rp) growth_rate        ! growth rate/turn if not stable
     real(rp) t1_with_RF(6,6)    ! Full 1-turn matrix with RF on.
@@ -533,43 +548,6 @@ module bmad_struct
     integer :: n_bad
     integer :: n_ok
   end type
-
-!------------------------------------------------------------------------------
-! Macroparticles
-
-! REMEMBER: If any of the macroparticle structures change then you will need to:
-!            Modify beam_equal_beam
-
-  type macro_struct
-    type (coord_struct) r   ! Center of the macroparticle
-    real(rp) sigma(21)      ! Sigma matrix.
-    real(rp) :: sig_z = 0   ! longitudinal macroparticle length (m).
-    real(rp) grad_loss_sr_wake         ! loss factor (V/m). scratch variable for tracking.
-    real(rp) charge         ! charge in a macroparticle (Coul).
-    logical :: lost = .false.  ! Has the particle been lost in tracking?
-  end type
-
-  type macro_slice_struct
-    type (macro_struct), pointer :: macro(:) => null()
-    real(rp) charge   ! total charge in a slice (Coul).
-  end type
-
-  type macro_bunch_struct
-    type (macro_slice_struct), pointer :: slice(:) => null()
-    real(rp) charge   ! total charge in a bunch (Coul).
-    real(rp) s_center ! longitudinal center of bunch (m).
-  end type
-
-  type macro_beam_struct
-    type (macro_bunch_struct), pointer :: bunch(:) => null()
-  end type
-
-  integer, parameter :: s11$ = 1, s12$ = 2, s13$ = 3, s14$ =  4, s15$ =  5
-  integer, parameter :: s16$ = 6, s22$ = 7, s23$ = 8, s24$ = 9
-  integer, parameter :: s25$ = 10, s26$ = 11, s33$ = 12, s34$ = 13, s35$ = 14
-  integer, parameter :: s36$ = 15, s44$ = 16, s45$ = 17, s46$ = 18
-  integer, parameter :: s55$ = 19, s56$ = 20, s66$ = 21
-
 
 !------------------------------------------------------------------------------
 ! common stuff

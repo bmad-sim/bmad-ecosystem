@@ -4,6 +4,39 @@ use bmad_struct
 use bmad_interface
 use wake_mod
 
+! Remember: If any of the macroparticle structures change you will need to modify:
+!   mp_beam_equal_mp_beam, mp_slice_equal_mp_slice, and mp_bunch_equal_mp_bunch
+
+type macro_struct
+  type (coord_struct) r   ! Center of the macroparticle
+  real(rp) sigma(21)      ! Sigma matrix.
+  real(rp) :: sig_z = 0   ! longitudinal macroparticle length (m).
+  real(rp) grad_loss_sr_wake         ! loss factor (V/m). scratch variable for tracking.
+  real(rp) charge         ! charge in a macroparticle (Coul).
+  logical :: lost = .false.  ! Has the particle been lost in tracking?
+end type
+
+type macro_slice_struct
+  type (macro_struct), pointer :: macro(:) => null()
+  real(rp) charge   ! total charge in a slice (Coul).
+end type
+
+type macro_bunch_struct
+  type (macro_slice_struct), pointer :: slice(:) => null()
+  real(rp) charge   ! total charge in a bunch (Coul).
+  real(rp) s_center ! longitudinal center of bunch (m).
+end type
+
+type macro_beam_struct
+  type (macro_bunch_struct), pointer :: bunch(:) => null()
+end type
+
+integer, parameter :: s11$ = 1, s12$ = 2, s13$ = 3, s14$ =  4, s15$ =  5
+integer, parameter :: s16$ = 6, s22$ = 7, s23$ = 8, s24$ = 9
+integer, parameter :: s25$ = 10, s26$ = 11, s33$ = 12, s34$ = 13, s35$ = 14
+integer, parameter :: s36$ = 15, s44$ = 16, s45$ = 17, s46$ = 18
+integer, parameter :: s55$ = 19, s56$ = 20, s66$ = 21
+
 type macro_init_twiss_struct
   real(rp) norm_emit
 end type
@@ -28,6 +61,13 @@ type macroparticle_com_struct
 end type
 
 type (macroparticle_com_struct), save :: mp_com
+
+interface assignment (=)
+  module procedure mp_slice_equal_mp_slice
+  module procedure mp_bunch_equal_mp_bunch
+  module procedure mp_beam_equal_mp_beam
+end interface
+
 
 contains
 
@@ -116,8 +156,7 @@ subroutine track1_macro_beam (beam_start, ele, param, beam_end)
 
 ! zero the long-range wakes if they exist.
 
-  n_mode = lr_wake_array_size(ele)
-  if (n_mode > 0) then
+  if (associated(ele%wake)) then
     ele%wake%lr%norm_sin = 0; ele%wake%lr%norm_cos = 0
     ele%wake%lr%skew_sin = 0; ele%wake%lr%skew_cos = 0
     ele%wake%lr%s_ref = 0
@@ -281,12 +320,15 @@ subroutine grad_loss_macro_sr_wake_calc (bunch, ele)
 
   integer i, j, k, iw, nm, n_wake
   character(24) :: r_name = 'grad_loss_sr_wake_calc'
+  logical wake_here
 
-! Init
+! no wake file: just use e_loss$ factor
 
-  n_wake = sr_wake_array_ubound (ele)
+  wake_here = .true.
+  if (.not. associated(ele%wake)) wake_here = .false.
+  if (wake_here) n_wake = size (ele%wake%sr1) - 1
     
-  if (n_wake == -1) then ! no wake file: just use e_loss$ factor
+  if (.not. wake_here .or. n_wake == -1) then 
     do i = 1, size(bunch%slice)
       bunch%slice(i)%macro(:)%grad_loss_sr_wake = &
                            ele%value(e_loss$) * bunch%charge / ele%value(l$)
@@ -294,12 +336,14 @@ subroutine grad_loss_macro_sr_wake_calc (bunch, ele)
     return 
   endif
 
+!
+
   do i = 1, size(bunch%slice)
     bunch%slice(i)%macro(:)%grad_loss_sr_wake = 0
   enddo
 
-  dz_wake = ele%wake%sr(n_wake)%z / n_wake
-  sr02 = ele%wake%sr(0)%long / 2
+  dz_wake = ele%wake%sr1(n_wake)%z / n_wake
+  sr02 = ele%wake%sr1(0)%long / 2
 
 ! Loop over all slices
 
@@ -359,10 +403,10 @@ subroutine grad_loss_macro_sr_wake_calc (bunch, ele)
       macro2 => bunch%slice(j)%macro
       do k = 1, size(macro2)
         if (macro(k)%lost) cycle
-        z = z_ave - macro2(k)%r%vec(5)
+        z = macro2(k)%r%vec(5) - z_ave
         iw = z / dz_wake
         iw = min (iw, n_wake-1)
-        if (z < 0) then
+        if (z > 0) then
           call out_io (s_abort$, r_name, &
              'MACROPARTICLE Z POSITION HAS SHIFTED ACROSS A SLICE BOUNDARY.')
           call err_exit
@@ -376,7 +420,7 @@ subroutine grad_loss_macro_sr_wake_calc (bunch, ele)
         f2 = z/dz_wake - iw
         f1 = 1 - f2
         macro2(k)%grad_loss_sr_wake = macro2(k)%grad_loss_sr_wake + charge * &
-                  (ele%wake%sr(iw)%long * f1 + ele%wake%sr(iw+1)%long * f2)
+                  (ele%wake%sr1(iw)%long * f1 + ele%wake%sr1(iw+1)%long * f2)
       enddo
     enddo
 
@@ -406,7 +450,8 @@ subroutine track1_macro_lr_wake (bunch, ele)
 
 ! Check to see if we need to do any calc
 
-  n_mode = lr_wake_array_size(ele)
+  if (.not. associated(ele%wake)) return
+  n_mode = size(ele%wake%lr)
   if (n_mode == 0 .or. .not. bmad_com%lr_wakes_on) return  
 
 ! Give the macroparticles a kick
@@ -458,12 +503,13 @@ subroutine track1_macro_sr_trans_wake (bunch, ele)
 
 ! Init
 
-  n_wake = ubound(ele%wake%sr, 1)
-  if (n_wake == 0 .or. .not. bmad_com%sr_wakes_on) return
+  if (.not. associated(ele%wake)) return
+  n_wake = size(ele%wake%sr1) - 1
+  if (n_wake == -1 .or. .not. bmad_com%sr_wakes_on) return
 
   call order_macroparticles_in_z (bunch)
 
-  dz_wake = ele%wake%sr(n_wake)%z / n_wake
+  dz_wake = ele%wake%sr1(n_wake)%z / n_wake
 
 ! Loop over all slices
 
@@ -498,12 +544,12 @@ subroutine track1_macro_sr_trans_wake (bunch, ele)
       macro2 => bunch%slice(j)%macro
       do k = 1, size(macro2)
         if (macro2(k)%lost) cycle
-        z = z_ave - macro2(k)%r%vec(5)  ! distance from slice to particle
+        z = macro2(k)%r%vec(5) - z_ave  ! distance from slice to particle
         iw = z / dz_wake                ! Index of wake array
         iw = min(n_wake-1, iw)    ! effectively do an extrapolation.
         f2 = z/dz_wake - iw
         f1 = 1 - f2
-        fact = (ele%wake%sr(iw)%trans*f1 + ele%wake%sr(iw+1)%trans*f2) * &
+        fact = (ele%wake%sr1(iw)%trans*f1 + ele%wake%sr1(iw+1)%trans*f2) * &
                               charge * ele%value(l$) / ele%value(beam_energy$)
         macro2(k)%r%vec(2) = macro2(k)%r%vec(2) + fact * x_ave 
         macro2(k)%r%vec(4) = macro2(k)%r%vec(4) + fact * y_ave
@@ -1379,5 +1425,153 @@ function gauss_int_liar(x) result (g_int)
 end function
 
 end subroutine
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine mp_slice_equal_mp_slice (slice1, slice2)
+!
+! Subroutine to set one macroparticle slice equal to another taking care of
+! pointers so that they don't all point to the same place.
+!
+! Note: This subroutine is called by the overloaded equal sign:
+!		slice1 = slice2
+!
+! Input: 
+!  slice2 -- macro_slice_struct: Input slice
+!
+! Output
+!  slice1 -- macro_slice_struct: Output slice
+!
+!-
+
+subroutine mp_slice_equal_mp_slice (slice1, slice2)
+
+  implicit none
+
+  type (macro_slice_struct), intent(inout) :: slice1
+  type (macro_slice_struct), intent(in)    :: slice2
+
+!
+
+  if (size(slice1%macro) /= size(slice2%macro)) then
+    deallocate(slice1%macro)
+    allocate(slice1%macro(size(slice2%macro)))
+  endif
+
+  slice1%macro(:)  = slice2%macro(:)
+  slice1%charge    = slice2%charge
+
+end subroutine mp_slice_equal_mp_slice
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine mp_bunch_equal_mp_bunch (bunch1, bunch2)
+!
+! Subroutine to set one macroparticle bunch equal to another taking care of
+! pointers so that they don't all point to the same place.
+!
+! Note: This subroutine is called by the overloaded equal sign:
+!		bunch1 = bunch2
+!
+! Input: 
+!  bunch2 -- macro_bunch_struct: Input bunch
+!
+! Output
+!  bunch1 -- macro_bunch_struct: Output bunch
+!
+!-
+
+subroutine mp_bunch_equal_mp_bunch (bunch1, bunch2)
+
+  implicit none
+
+  type (macro_bunch_struct), intent(inout) :: bunch1
+  type (macro_bunch_struct), intent(in)    :: bunch2
+
+  integer i
+
+!
+
+  if (size(bunch1%slice) /= size(bunch2%slice)) then
+    do i = 1, size(bunch1%slice)
+      deallocate (bunch1%slice(i)%macro)
+    enddo
+    deallocate (bunch1%slice)
+    allocate (bunch1%slice(size(bunch2%slice)))
+    do i = 1, size(bunch1%slice)
+      allocate (bunch1%slice(i)%macro(size(bunch2%slice(i)%macro)))
+    enddo  
+  endif
+
+  do i = 1, size(bunch1%slice)
+    bunch1%slice(i) = bunch2%slice(i)
+  enddo  
+
+  bunch1%charge    = bunch2%charge
+  bunch1%s_center  = bunch2%s_center
+
+end subroutine mp_bunch_equal_mp_bunch
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine mp_beam_equal_mp_beam (beam1, beam2)
+!
+! Subroutine to set one macroparticle beam equal to another taking care of
+! pointers so that they don't all point to the same place.
+!
+! Note: This subroutine is called by the overloaded equal sign:
+!		beam1 = beam2
+!
+! Input: 
+!  beam2 -- macro_beam_struct: Input beam
+!
+! Output
+!  beam1 -- macro_beam_struct: Output beam
+!
+!-
+
+subroutine mp_beam_equal_mp_beam (beam1, beam2)
+
+  implicit none
+
+  type (macro_beam_struct), intent(inout) :: beam1
+  type (macro_beam_struct), intent(in)    :: beam2
+
+  integer i, j, n_bun, n_slice, n_macro
+
+!
+
+  n_bun = size(beam2%bunch)
+
+  if (size(beam1%bunch) /= size(beam2%bunch)) then
+    do i = 1, size(beam1%bunch)
+      do j = 1, size(beam1%bunch(i)%slice)
+        deallocate (beam1%bunch(i)%slice(j)%macro)
+       enddo
+      deallocate (beam1%bunch(i)%slice)
+    enddo
+    deallocate (beam1%bunch)
+    allocate (beam1%bunch(n_bun))
+    do i = 1, n_bun
+      n_slice = size(beam2%bunch(i)%slice)
+      allocate (beam1%bunch(i)%slice(n_slice))
+      do j = 1, n_slice
+        n_macro = size(beam2%bunch(i)%slice(j)%macro)
+        allocate (beam1%bunch(i)%slice(j)%macro(n_macro))
+      enddo
+    enddo
+  endif
+
+  do i = 1, n_bun
+    beam1%bunch(i) = beam2%bunch(i)
+  enddo
+
+end subroutine mp_beam_equal_mp_beam
 
 end module
