@@ -173,14 +173,14 @@ Subroutine adjust_super_lord_s_position (ring, ix_lord)
 
   real(rp) s_start, s_start2, s_end
 
-  character(20) :: r_name='adjust_super_lord_s_position'
+  character(20) :: r_name = 'adjust_super_lord_s_position'
 
 !
 
   lord => ring%ele_(ix_lord)
 
   if (lord%control_type /= super_lord$) then
-     call out_io(s_abort$,r_name,' ELEMENT IS NOT A LORD!')
+     call out_io (s_abort$, r_name, 'ELEMENT IS NOT A LORD! ' // lord%name)
      call err_exit
   endif
 
@@ -228,8 +228,7 @@ Subroutine makeup_group_slaves (ring, ix_lord)
 
   logical moved
 
-  character(20) :: r_name='makeup_group_slaves'
-  character(200) write_line1,write_line2
+  character(20) :: r_name = 'makeup_group_slaves'
 
 !
 
@@ -250,9 +249,8 @@ Subroutine makeup_group_slaves (ring, ix_lord)
     if (iv == l$) then
       moved = .true.
       if (ict /= free$ .and. ict /= super_slave$) then
-         write (write_line1,*) "A GROUP: " // lord%name
-         write (write_line2,*) "       CONTROLS THE LENGTH OF A LORD ELEMENT: " // slave%name
-         call out_io(s_abort$,r_name,write_line1,write_line2)
+        call out_io (s_abort$, r_name, "A GROUP: " // lord%name, &
+                    "CONTROLS THE LENGTH OF A LORD ELEMENT: " // slave%name)
         call err_exit
       endif
     endif
@@ -311,7 +309,7 @@ subroutine makeup_super_slave (ring, ix_slave)
   slave => ring%ele_(ix_slave)
 
   if (slave%control_type /= super_slave$) then
-     call out_io(s_abort$,r_name,"ELEMENT IS NOT AN SUPER SLAVE: ","       " // slave%name)
+     call out_io(s_abort$, r_name, "ELEMENT IS NOT AN SUPER SLAVE: " // slave%name)
     call err_exit
   endif
 
@@ -457,10 +455,10 @@ subroutine makeup_super_slave (ring, ix_slave)
     lord => ring%ele_(ix)
 
     if (lord%control_type /= super_lord$) then
-      call out_io(s_abort$,r_name,"SUPER_SLAVE HAS A",&
-           "      CONTROL ELEMENT THAT IS NOT A SUPER_LORD")
-      call out_io(s_blank$,r_name,'      SLAVE: ' //  slave%name // '  \i\ ', ix_slave)
-      call out_io(s_blank$,r_name,'      LORD:  ' //  lord%name  // '  \i\ ', ix)
+      call out_io (s_abort$, r_name, (/ &
+            "SUPER_SLAVE HAS A CONTROL ELEMENT THAT IS NOT A SUPER_LORD", &
+            'SLAVE: ' //  slave%name // '  \i\ ', &
+            'LORD:  ' //  lord%name  // '  \i\ ' /), i_array = (/ ix_slave, ix /) )
       call err_exit
     endif
 
@@ -472,14 +470,14 @@ subroutine makeup_super_slave (ring, ix_slave)
     else
       if (slave%mat6_calc_method /= lord%mat6_calc_method) then
         ix = ring%control_(ring%ic_(slave%ic1_lord))%ix_lord
-        call out_io(s_abort$,r_name,' MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT',&
-             '      SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(ring%ele_(ix)%name))
+        call out_io(s_abort$, r_name, 'MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT', &
+             'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(ring%ele_(ix)%name))
         call err_exit
       endif
       if (slave%tracking_method /= lord%tracking_method) then
         ix = ring%control_(ring%ic_(slave%ic1_lord))%ix_lord
-        call out_io(s_abort$,r_name,' TRACKING_METHOD DOES NOT AGREE FOR DIFFERENT',&
-             '      SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(ring%ele_(ix)%name))
+        call out_io(s_abort$, r_name, ' TRACKING_METHOD DOES NOT AGREE FOR DIFFERENT', &
+             'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(ring%ele_(ix)%name))
         call err_exit
       endif
     endif
@@ -800,7 +798,6 @@ subroutine makeup_overlay_slave (ring, ix_ele)
   logical used(n_attrib_maxx)
 
   character(20) :: r_name = 'makeup_overlay_slave'
-  character(200) write_line
 
 !
                                
@@ -809,8 +806,7 @@ subroutine makeup_overlay_slave (ring, ix_ele)
 
   if (ct /= super_lord$ .and. ct /= overlay_slave$ .and. &
        ct /= overlay_lord$) then
-     write(write_line,*)  'ELEMENT IS NOT OF PROPER TYPE. RING INDEX:' , ix_ele
-     call out_io(s_abort$,r_name,write_line)
+     call out_io(s_abort$, r_name, 'ELEMENT IS NOT OF PROPER TYPE. RING INDEX: \i\ ', ix_ele)
      call type_ele (ele, .true., 0, .false., 0, .true., ring)
     call err_exit
   endif
@@ -839,7 +835,7 @@ subroutine makeup_overlay_slave (ring, ix_ele)
     endif
 
     if (ring%ele_(ix)%control_type /= overlay_lord$) then
-     call out_io(s_abort$,r_name,' THE LORD IS NOT AN OVERLAY_LORD \i\ ', ix_ele)
+      call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY_LORD \i\ ', ix_ele)
       call type_ele (ele, .true., 0, .false., 0, .true., ring)
       call err_exit
     endif     
@@ -1031,7 +1027,7 @@ subroutine attribute_bookkeeper (ele, param)
     else
 
       if (ele%value(sig_x$) == 0 .or. ele%value(sig_y$) == 0) then
-        call out_io(s_abort$,r_name,'  ZERO SIGMA IN BEAMBEAM ELEMENT!')
+        call out_io(s_abort$, r_name, 'ZERO SIGMA IN BEAMBEAM ELEMENT!')
         call type_ele(ele, .true., 0, .false., 0, .false.)
         call err_exit
       endif
@@ -1180,7 +1176,7 @@ subroutine transfer_ring_taylors (ring_in, ring_out, type_out, transfered_all)
   logical, intent(in)  :: type_out
   logical, optional :: transfered_all
 
-  character(25) :: r_name='TRANSFER_RING_TAYLORS'
+  character(25) :: r_name = 'transfer_ring_taylors'
 
 ! check global parameters
 
@@ -1189,8 +1185,8 @@ subroutine transfer_ring_taylors (ring_in, ring_out, type_out, transfered_all)
   if (ring_in%ele_(0)%value(beam_energy$) /= &
                               ring_out%ele_(0)%value(beam_energy$)) then
     if (type_out) then
-       call out_io(s_warn$,r_name,' THE RING ENERGIES ARE DIFFERENT.',&
-            '    TAYLOR MAPS NOT TRANSFERED.')
+       call out_io (s_warn$, r_name, &
+              'THE RING ENERGIES ARE DIFFERENT. TAYLOR MAPS NOT TRANSFERED.')
     endif
     if (present(transfered_all)) transfered_all = .false.
     return
@@ -1221,8 +1217,8 @@ subroutine transfer_ring_taylors (ring_in, ring_out, type_out, transfered_all)
       ele_in => ring_in%ele_(ix_in(j))
 
       if (equivalent_eles (ele_in, ele_out)) then
-        if (type_out) call out_io(s_info$,r_name,' Reusing Taylor from: ' // trim(ele_in%name) &
-             // '  to: ' //  ele_out%name)
+        if (type_out) call out_io (s_info$, r_name, &
+            ' Reusing Taylor from: ' // trim(ele_in%name) // '  to: ' //  ele_out%name)
         call attribute_bookkeeper (ele_out, ring_out%param)
         call transfer_ele_taylor (ele_in, ele_out, bmad_com%taylor_order)
         cycle out_loop
@@ -1232,7 +1228,7 @@ subroutine transfer_ring_taylors (ring_in, ring_out, type_out, transfered_all)
 
     if (ele_out%tracking_method == taylor$ .or. &
                     ele_out%mat6_calc_method == taylor$ .and. type_out) then
-      call out_io(s_warn$,r_name, ' NO TAYLOR FOR: ' // ele_out%name)
+      call out_io (s_warn$, r_name, ' NO TAYLOR FOR: ' // ele_out%name)
       if (present(transfered_all)) transfered_all = .false.
     endif
 
@@ -1285,7 +1281,7 @@ subroutine set_on_off (key, ring, switch, orb_)
   integer i, key               
   integer, intent(in) :: switch
 
-  character(20) :: r_name='set_on_off'
+  character(20) :: r_name = 'set_on_off'
 
 !
 
@@ -1304,7 +1300,7 @@ subroutine set_on_off (key, ring, switch, orb_)
     case (restore_state$)
       ring%ele_(i)%is_on = ring%ele_(i)%internal_logic
     case default
-       call out_io(s_abort$,r_name,' BAD SWITCH: \i\ ', switch)
+      call out_io (s_abort$, r_name, 'BAD SWITCH: \i\ ', switch)
       call err_exit
     end select
 

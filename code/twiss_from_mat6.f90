@@ -47,7 +47,7 @@ subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
 
   integer i, j
 
-  character(20) :: r_name='twiss_from_mat6'
+  character(20) :: r_name = 'twiss_from_mat6'
 
 ! init
 
@@ -60,7 +60,7 @@ subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
 
   if (bmad_status%status /= ok$) then
     if (bmad_status%type_out) then
-       call out_io(s_error$,r_name,'ERROR IN TWISS_FROM_MAT6: BAD 1-TURN MATRIX: ' //&
+       call out_io (s_error$, r_name, 'ERROR IN TWISS_FROM_MAT6: BAD 1-TURN MATRIX: ' // &
             status_name(bmad_status%status),'TWISS PARAMETERS NOT COMPUTED')
     endif
     if (bmad_status%status == non_symplectic$) then

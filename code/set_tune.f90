@@ -43,7 +43,7 @@ subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
 
   logical ok
 
-  character(20) :: r_name='set_tune'
+  character(20) :: r_name = 'set_tune'
   real(rp), dimension(2) :: phi_array
 
 ! q_tune
@@ -112,15 +112,14 @@ subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
 
   enddo
 
-  call out_io(s_error$,r_name,' CANNOT GET TUNE RIGHT.')
   phi_array(1) = phi_x/twopi
   phi_array(2) = phi_y/twopi
-  call out_io(s_blank$,r_name,'      CURRENT TUNE: \2f\ ',phi_array)
   phi_array(1) = phi_x_set/twopi
   phi_array(2) = phi_y_set/twopi
-  call out_io(s_blank$,r_name,'      SET TUNE:     \2f\ ',phi_array)
-
-
+  call out_io (s_error$, r_name, (/ 'CANNOT GET TUNE RIGHT.', &
+        'CURRENT TUNE: \2f\ ', &
+        'SET TUNE:     \2f\ ' /), &
+        (/ phi_x/twopi, phi_y/twopi, phi_x_set/twopi, phi_y_set/twopi /) )
   ok = .false.
 
 end subroutine
