@@ -24,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/11/17 01:01:43  dcs
+!compiler bug fix
+!
 !Revision 1.6  2002/11/06 06:48:32  dcs
 !Changed arg array
 !
@@ -51,7 +54,7 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
   implicit none
                                          
   type (ring_struct), target :: ring
-  type (coord_struct), optional :: coord_(0:)
+  type (coord_struct), optional, volatile :: coord_(0:)
   type (ele_struct), pointer :: ele
   type (coord_struct) c1
 
