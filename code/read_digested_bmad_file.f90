@@ -34,7 +34,7 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
   type (ele_struct), pointer :: ele
   
   integer d_unit, lunget, n_files, version, i, j, k, ix
-  integer ix_w, ix_d, ix_m, ix_t(6)
+  integer ix_wig, ix_const, ix_d, ix_m, ix_t(6)
   integer stat_b(12), stat, ierr, idate_old
 
   character*(*) in_file_name
@@ -135,7 +135,7 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
   do i = 0, ring%n_ele_max
 
     ele => ring%ele_(i)
-    read (d_unit, err = 9100) ix_w, ix_d, ix_m, ix_t, &
+    read (d_unit, err = 9100) ix_wig, ix_const, ix_d, ix_m, ix_t, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
             ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%x_position, ele%y_position, &
@@ -151,11 +151,16 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
     ele%pointer_init = 0  ! signal that pointers have garbage
     call deallocate_ele_pointers (ele)  ! and deallocate 
 
-    if (ix_w /= 0) then
-      allocate (ele%wig_term(ix_w))
-      do j = 1, ix_w
+    if (ix_wig /= 0) then
+      allocate (ele%wig_term(ix_wig))
+      do j = 1, ix_wig
         read (d_unit) ele%wig_term(j)
       enddo
+    endif
+
+    if (ix_const /= 0) then
+      allocate (ele%const(ix_const))
+      read (d_unit) ele%const
     endif
 
     if (ix_d /= 0) then

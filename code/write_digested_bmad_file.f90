@@ -30,7 +30,8 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   type (ele_struct), pointer :: ele
   type (taylor_struct), pointer :: tt(:)
   
-  integer d_unit, lunget, n_files, i, j, k, ix_w, ix_d, ix_m, ix_t(6)
+  integer d_unit, lunget, n_files, i, j, k
+  integer ix_wig, ix_const, ix_d, ix_m, ix_t(6)
   integer stat_b(12), stat, ierr
 
   character(*) digested_name
@@ -69,16 +70,17 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
     ele => ring%ele_(i)
     tt => ele%taylor
     
-    ix_w = 0; ix_d = 0; ix_m = 0; ix_t = 0
+    ix_wig = 0; ix_d = 0; ix_m = 0; ix_t = 0; ix_const = 0
 
     if (ele%pointer_init == has_been_inited$) then
-      if (associated(ele%wig_term)) ix_w = size(ele%wig_term)
+      if (associated(ele%wig_term)) ix_wig = size(ele%wig_term)
+      if (associated(ele%const))    ix_const = size(ele%const)
       if (associated(ele%descrip))  ix_d = 1
       if (associated(ele%a))        ix_m = 1
       if (associated(tt(1)%term))   ix_t = (/ (size(tt(j)%term), j = 1, 6) /)
     endif
 
-    write (d_unit) ix_w, ix_d, ix_m, ix_t, &
+    write (d_unit) ix_wig, ix_const, ix_d, ix_m, ix_t, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
             ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%x_position, ele%y_position, &
@@ -91,10 +93,11 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
             ele%taylor_order, ele%symplectify, ele%mode_flip, &
             ele%multipoles_on, ele%exact_rad_int_calc, ele%B_field_master
 
-    do j = 1, ix_w
+    do j = 1, ix_wig
       write (d_unit) ele%wig_term(j)
     enddo
 
+    if (associated(ele%const))    write (d_unit) ele%const
     if (associated(ele%descrip))  write (d_unit) ele%descrip
     if (associated(ele%a))        write (d_unit) ele%a, ele%b
     

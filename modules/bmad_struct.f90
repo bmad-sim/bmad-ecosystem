@@ -31,7 +31,7 @@ module bmad_struct
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 
-  integer, parameter :: bmad_inc_version$ = 59
+  integer, parameter :: bmad_inc_version$ = 60
 
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -99,6 +99,7 @@ module bmad_struct
     real(rdef) theta_position          ! Floor orientation angle of element
     real(rdef) phi_position            ! Angle of attack
     real(rdef), pointer             :: a(:), b(:)     ! multipoles
+    real(rdef), pointer             :: const(:)       ! Working constants.
     character*200, pointer          :: descrip        ! For general use
     type (wig_term_struct), pointer :: wig_term(:)    ! Wiggler Coefs
     type (genfield), pointer        :: gen_field      ! For symp_map$
@@ -157,6 +158,8 @@ module bmad_struct
     logical stable                ! is closed ring stable?
     logical aperture_limit_on     ! use apertures in tracking?
     logical lost                  ! for use in tracking
+    logical damping_on            ! Radiation damping calculation toggle.
+    logical fluctuations_on       ! Radiation fluctuations calculation toggle.
   end type
 
   type mode_info_struct

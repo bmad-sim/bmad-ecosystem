@@ -26,11 +26,13 @@
 !                        successfully read. False otherwise.
 !         
 ! Defaults:
-!   ring%n_ele_symm         = 0
-!   ring%param%particle     = positron$
-!   ring%param%symmetry     = no_symmetry$
+!   ring%n_ele_symm              = 0
+!   ring%param%particle          = positron$
+!   ring%param%symmetry          = no_symmetry$
+!   ring%param%lattice_type      = circular_lattice$
 !   ring%param%aperture_limit_on = .true.
-!   ring%param%lattice_type = circular_lattice$
+!   ring%param%damping_on        = .false.
+!   ring%param%radiation_on      = .false.
 !
 ! For more info on the parser see the BMAD documentation.
 ! DCS 10/6/97
@@ -724,7 +726,9 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   ring%n_ele_ring         = n_ele_ring
   ring%n_ele_use          = n_ele_ring
   ring%n_ele_max          = n_ele_ring
-  ring%param%aperture_limit_on = .true.
+  ring%param%aperture_limit_on  = .true.
+  ring%param%damping_on         = .false.
+  ring%param%fluctuations_on    = .false.
   ring%n_ele_symm         = 0                     ! no symmetry point
   ring%n_ic_array         = 0                     
   ring%n_control_array    = 0    

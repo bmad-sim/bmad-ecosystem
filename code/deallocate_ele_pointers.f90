@@ -26,6 +26,7 @@ subroutine deallocate_ele_pointers (ele)
 
   if (ele%pointer_init == has_been_inited$) then
     deallocate (ele%wig_term, stat = ix)
+    deallocate (ele%const, stat = ix)
     deallocate (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
               ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term, &
               stat = ix)
@@ -33,6 +34,7 @@ subroutine deallocate_ele_pointers (ele)
     deallocate (ele%a, ele%b, stat = ix)
     call kill_gen_field (ele%gen_field)
   else
+    nullify (ele%wig_term)
     nullify (ele%wig_term)
     nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
               ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
