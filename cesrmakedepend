@@ -110,7 +110,7 @@ sub get_args {
         }
         elsif($arg=~/^-o(.+)/) {
             $suffix=$1;
-            $suffix=~s/\s//g;
+#            $suffix=~s/\s//g;
         }
         elsif($arg=~/^-p(.+)/) {
             $prefix=$1;
@@ -168,6 +168,8 @@ sub cesr_make_depend {
 parse_args(@ARGUMENTOS);
 #    print "2: $ARGUMENTOS[15]\n $cpp_file\n";
 cpp_setup2();
+#    print "eto cpp_command: $cpp_command\n";
+#    print "a eto cpp_ftail: $cpp_ftail\n";
 get_input();
 get_used_file_tree();
 print_d_file();
@@ -227,7 +229,7 @@ sub parse_args {
 sub cpp_setup2 {
 #   Configure  full cpp command
     $cpp_file_tail=" ";
-    if ($cpp_ftail eq "YES"){$cpp_file_tail=$cpp_file};
+    if ($cpp_ftail=~/YES/){$cpp_file_tail=">$cpp_file"};
     $cpp_command = $fort_cpp." ".$cpp_flags." "."@search_dirs"." ".$src_file." ".$cpp_file_tail;
 }
 #######
