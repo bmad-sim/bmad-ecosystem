@@ -271,6 +271,17 @@ algorithm (See \sref{s:macro}). Once a beam is initialized,
 tracking can be performed using \vn{track_beam}. An example program is
 shown in figure~\ref{f:macro_program}. 
 
+The equal sign in the assigments
+\begin{example}
+  beam1 = beam2
+  bunch1 = bunch2
+  slice1 = slice2
+\end{example}
+is overloaded by the routines \vn{beam_equal_beam}, \vn{bunch_equal_bunch} and
+\vn{slice_equal_slice} to ensure that the pointers of \vn{beam1}, \vn{bunch1}
+and \vn{slice1} do not point to the same memory locations as the pointers of 
+\vn{beam2}, \vn{bunch2} and \vn{slice2}.
+
 the \vn{init} variable (line 11) holds the information to initialize
 the macroparticle distribution. The values of the components in the
 \vn{init} variable are set using a namelist read (line 24). An example

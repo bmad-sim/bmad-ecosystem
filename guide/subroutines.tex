@@ -1222,6 +1222,14 @@ Subroutine to propagate the Twiss parameters from end of ele1 to end of ele2.
 
 \begin{description}
 
+\item[beam\_equal\_beam (beam1, beam2)] \Newline
+Subroutine that is used to set one macroparticle beam to another. This routine
+takes care of the pointers in beam1.
+
+\item[bunch\_equal\_bunch (bunch1, bunch2)] \Newline
+Subroutine that is used to set one macroparticle bunch to another. This routine
+takes care of the pointers in bunch1.
+
 \item[coord\_equal\_coord (coord1, coord2)] \Newline
 Subroutine that is used to set one coord\_struct equal to another. 
 
@@ -1243,6 +1251,10 @@ This routine takes care of the pointers in ring1.
 \item[ring\_vec\_equal\_ring\_vec (ring1, ring2)] \Newline
 Subroutine that is used to set one ring array equal to another. 
 This routine takes care of the pointers in ring1(:). 
+
+\item[slice\_equal\_slice (slice1, slice2)] \Newline
+Subroutine that is used to set one macroparticle slice to another. This routine
+takes care of the pointers in slice1.
 
 \item[taylor\_equal\_real\_8 (bmad\_taylor, y8)] \Newline
 Subroutine to overload "=" in expressions bmad\_taylor = real\_8 (PTC) 
