@@ -31,7 +31,7 @@ module bmad_struct
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 
-  integer, parameter :: bmad_inc_version$ = 67
+  integer, parameter :: bmad_inc_version$ = 68
 
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -207,10 +207,10 @@ module bmad_struct
 !     transfer_ring_parameters
 
   type ring_struct
-    character(16) name                ! Name of ring given by USE statement
-    character(40) lattice             ! Lattice
-    character(80) input_file_name     ! Name of the lattice input file
-    character(80) title               ! General title
+    character(16) name               ! Name of ring given by USE statement
+    character(40) lattice            ! Lattice
+    character(200) input_file_name   ! Name of the lattice input file
+    character(80) title              ! General title
     type (mode_info_struct) x, y, z  ! Tunes, etc.
     type (param_struct) param        ! Parameters
     integer version                  ! Version number
