@@ -210,6 +210,11 @@ do j = 1, n_max
   write (line(nl), fmt) i, con(i)%name, &
             con(i)%loc1, con(i)%loc2, con(i)%target_value, &
             con(i)%actual_value, con(i)%merit, con(i)%max_loc
+  if (nl+1 .gt. size(line)) then
+    call out_io (s_blank$, r_name, "Too many constraints!")
+    call out_io (s_blank$, r_name, "Showing first \I4\ ", j)
+    exit
+  endif
 end do
 nl=nl+1; line(nl) = l1
 

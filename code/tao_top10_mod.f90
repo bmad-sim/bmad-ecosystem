@@ -54,11 +54,11 @@ call tao_dmerit_calc ()
 ! top_delta stores the top |var_model - var_design| 
 
 top_merit(:)%valid  = .false.; top_merit(:)%name  = ' '
-top_merit(:)%value = 0
+top_merit(:)%value = 0; top_merit(:)%index = 0
 top_dmerit(:)%valid = .false.; top_dmerit(:)%name = ' '
-top_dmerit(:)%value = 0
+top_dmerit(:)%value = 0; top_dmerit(:)%index = 0
 top_delta(:)%valid  = .false.; top_delta(:)%name  = ' '
-top_delta(:)%value = 0
+top_delta(:)%value = 0; top_delta(:)%index = 0
 
 nu = size(s%u)
 do i = 1, nu
@@ -89,13 +89,13 @@ a_max = max(1.1, maxval(abs(top_delta(:)%value)))
 n = max(0, 6 - int(log10(a_max)))
 
 write (fmt, '(a, i1, a)') &
-    '((1x, a10, i3, f10.1, 2x), (a8, i4, 1pe12.3, 2x), a8, i4, 0pf11.', n, ')'
+    '((1x, a10, i5, f10.1, 2x), (a8, i5, 1pe12.3, 2x), a8, i5, 0pf11.', n, ')'
 
 
 nl = 0
 lines(nl+1) = ' '
-lines(nl+2) = '       Top10 merit      |    Top10 derivative     |     Top10 delta'
-lines(nl+3) = '  Name     ix     Value | Name     ix  Derivative |  Name    ix      delta'
+lines(nl+2) = '       Top10 merit        |    Top10 derivative      |     Top10 delta'
+lines(nl+3) = '  Name      ix      Value | Name    ix   Derivative  |  Name     ix     delta'
 nl = nl + 3
 
 do i = 1, 10

@@ -119,8 +119,9 @@ case ('alias')
   do i = 1, tao_com%n_alias
     nl=nl+1; lines(nl) = trim(tao_com%alias(i)%name) // ' = "' // &
                                     trim(tao_com%alias(i)%string) // '"'
-    call out_io (s_blank$, r_name, lines(1:nl))
   enddo
+  
+  call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
 ! constraints
@@ -335,6 +336,10 @@ case ('ele')
     found = .false.
     do i = loc + 1, u%model%n_ele_max
       if (u%model%ele_(i)%name == ele_name) then
+        if (nl+1 .gt. max_lines) then
+          call out_io (s_blank$, r_name, "Found too many elements!")
+          exit
+        endif
         if (found) then
           nl = nl + 1
           write (lines(nl), *)
