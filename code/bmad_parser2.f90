@@ -37,6 +37,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   implicit none
     
   type (ring_struct), target :: ring, r_temp
+  type (ele_struct), pointer :: ele
   type (coord_struct), optional :: orbit_(0:)
   type (parser_ring_struct) pring
 
@@ -310,8 +311,9 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 ! For control elements RING%ELE_()%IXX temporarily points to
 ! the pring structure where storage for the control lists is
                    
-      key = ring%ele_(n_max)%key
+      call parser_set_ele_defaults (ring%ele_(n_max))
 
+      key = ring%ele_(n_max)%key
       if (key == overlay$ .or. key == group$ .or. key == i_beam$) then
         if (delim /= '=') then
           call warning ('EXPECTING: "=" BUT GOT: ' // delim,  &
@@ -392,13 +394,23 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   r_temp%ele_(1:ele_num) = ring%ele_(n_max_old+1:n_max)
   n_max = n_max_old
 
+! If fintx or hgapx are real_garbage then they have not been set.
+! If so, set their valuse to fint and hgap.
+
+  do i = 1, ele_num
+    ele => r_temp%ele_(i)
+    if (ele%value(hgapx$) == real_garbage$) ele%value(hgapx$) = ele%value(hgap$)
+    if (ele%value(fintx$) == real_garbage$) ele%value(fintx$) = ele%value(fint$)
+  enddo
+
 ! Put in the new elements...
 ! First put in superimpose elements
 
   do i = 1, ele_num
-    if (r_temp%ele_(i)%control_type == super_lord$) then
-      ixx = r_temp%ele_(i)%ixx
-      call add_all_superimpose (ring, r_temp%ele_(i), pring%ele(ixx))
+    ele => r_temp%ele_(i)
+    if (ele%control_type == super_lord$) then
+      ixx = ele%ixx
+      call add_all_superimpose (ring, ele, pring%ele(ixx))
     endif
   enddo
 

@@ -497,28 +497,9 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 ! Element definition...
 ! First: set defaults.
 
+      call parser_set_ele_defaults (in_ring%ele_(n_max))
+
       key = in_ring%ele_(n_max)%key
-
-      if (key == custom$) then ! set defaults
-        in_ring%ele_(n_max)%mat6_calc_method = custom$
-        in_ring%ele_(n_max)%tracking_method  = custom$
-        in_ring%ele_(n_max)%field_calc       = custom$
-      endif
-
-      if (key == bend_sol_quad$) then ! set defaults
-        in_ring%ele_(n_max)%mat6_calc_method = symp_lie_bmad$
-        in_ring%ele_(n_max)%tracking_method  = symp_lie_bmad$
-      endif
-
-      if (key == taylor$) then   ! start with unit matrix
-        call add_taylor_term (in_ring%ele_(n_max), 1, 1.0_rp, (/ 1, 0, 0, 0, 0, 0 /)) 
-        call add_taylor_term (in_ring%ele_(n_max), 2, 1.0_rp, (/ 0, 1, 0, 0, 0, 0 /)) 
-        call add_taylor_term (in_ring%ele_(n_max), 3, 1.0_rp, (/ 0, 0, 1, 0, 0, 0 /)) 
-        call add_taylor_term (in_ring%ele_(n_max), 4, 1.0_rp, (/ 0, 0, 0, 1, 0, 0 /)) 
-        call add_taylor_term (in_ring%ele_(n_max), 5, 1.0_rp, (/ 0, 0, 0, 0, 1, 0 /)) 
-        call add_taylor_term (in_ring%ele_(n_max), 6, 1.0_rp, (/ 0, 0, 0, 0, 0, 1 /)) 
-      endif
-
       if (key == overlay$ .or. key == group$ .or. key == i_beam$) then
         if (delim /= '=') then
           call warning ('EXPECTING: "=" BUT GOT: ' // delim,  &
@@ -951,8 +932,11 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
       if (ele%value(angle$) /= 0) ele%value(g$) = &
                                         ele%value(angle$) / ele%value(l$) 
 
-      if (ele%value(hgapx$) == 0) ele%value(hgapx$) = ele%value(hgap$)
-      if (ele%value(fintx$) == 0) ele%value(fintx$) = ele%value(fint$)
+      ! If fintx or hgapx are real_garbage then they have not been set.
+      ! If so, set their valuse to fint and hgap.
+
+      if (ele%value(hgapx$) == real_garbage$) ele%value(hgapx$) = ele%value(hgap$)
+      if (ele%value(fintx$) == real_garbage$) ele%value(fintx$) = ele%value(fint$)
 
 ! Accept Use of Delta_E for lcavities and vary the mode frequencies.
 
