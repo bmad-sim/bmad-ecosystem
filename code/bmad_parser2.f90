@@ -80,6 +80,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   param_ele%value(lattice_type$) = ring%param%lattice_type
   param_ele%value(beam_energy$)  = 0
   param_ele%value(taylor_order$) = ring%input_taylor_order
+  param_ele%value(charge$)       = ring%param%charge
 
 !-----------------------------------------------------------
 ! main parsing loop
@@ -370,7 +371,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
   ring%param%particle    = nint(beam_ele%value(particle$))
   ring%param%n_part      = beam_ele%value(n_part$)
-
+  ring%param%charge      = param_ele%value(charge$)
   ring%param%lattice_type = nint(param_ele%value(lattice_type$))
   ring%input_taylor_order = nint(param_ele%value(taylor_order$))
 

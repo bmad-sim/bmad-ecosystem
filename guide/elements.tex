@@ -678,8 +678,8 @@ Example:
   x\_offset  = Real     & \ref{s:offset} & aperture = Real   & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
   y\_offset  = Real     & \ref{s:offset} & hkick    = Real   & \ref{s:kick}   & lr\_wake\_file = String     &               \\ \hline
   s\_offset  = Real     & \ref{s:offset} & vkick    = Real   & \ref{s:kick}   & sr\_wake\_file = String     &               \\ \hline
-  x\_pitch = Real       & \ref{s:offset} & energy\_start$^*$ &                & aperture\_at = Switch       & \ref{s:limit} \\ \hline
-  y\_pitch = Real       & \ref{s:offset} & e\_loss$^*$       &                & delta\_e$^*$                &               \\ \hline
+  x\_pitch = Real       & \ref{s:offset} & e\_loss  = Real   &                & aperture\_at = Switch       & \ref{s:limit} \\ \hline
+  y\_pitch = Real       & \ref{s:offset} & energy\_start$^*$ & \ref{s:energy} & delta\_e$^*$                &               \\ \hline
   freq\_spread = Real   &                & beam\_energy$^*$  & \ref{s:energy} & p0c$^*$                     & \ref{s:energy}\\ \hline
   \multicolumn{6}{l}{\small $^*$Dependent attribute. See Chapter~\ref{c:attrib}} \\
 \end{tabular}
@@ -706,14 +706,22 @@ The dependent variable \vn{delta_e} attribute can be used in place of
 
 The kick felt by a particle is 
 \begin{example}
-  dE = gradient * L * cos(twopi * (phi - z * rf_frequency / c_light))
+  dE = gradient * L * cos(twopi * (phi - z * rf_frequency / c_light)) - e_loss * charge
 \end{example}
 This is consistent with MAD and LIAR. Note: The MAD8 documentation 
-for an \vn{Lcavity} gives essentially
+for an \vn{Lcavity} has a wrong sign. Essentially the MAD8 documentation gives
 \begin{example}
   dE = gradient * L * cos(twopi * (phi + z * rf_frequency / c_light)) ! WRONG
 \end{example}
-This is incorrect.
+This is incorrect. The \vn{e_loss} attribute represents the energy loss due to 
+short--range wakefields. \vn{charge} is set using the \vn{parameter} statement 
+(\sref{s:param}) and represents the charge of a bunch. 
+
+The energy change of the reference particle is just the energy change for a 
+particle with $z = 0$. Thus
+\begin{example}
+  dE(reference) = gradient * L * cos(twopi * phi) - e_loss * charge
+\end{example}
 
 \index{Clone}
 In the above equations \vn{phi} = \vn{phi0} + \vn{dphi0}. \vn{dphi0}
@@ -745,7 +753,14 @@ The first column is the longitudinal distance $z$. $z$ must start at 0
 and must increment by the a constant amount from row to row. The
 second column is the longitudinal wake function in $V/C/m$. The third
 column is the transverse wake in $V/C/m^2$. Any additional columns are
-ignored.  Wakefield formulas are to be found in \sref{s:wakefields}
+ignored.  Wakefield formulas are to be found in \sref{s:wakefields}. 
+The wakefield file is only used with macroparticle tracking. 
+When the short--range wakefield file is used with macroparticle tracking 
+the \vn{e_loss} attribute is ignored. However, even in this case, a finite
+\vn{e_loss} value will affect the reference energy. Since the quantities
+like quadrupole k1 strengths and bend strengths are referenced to the 
+reference energy, The value of \vn{e_loss} will affect the results even with
+a short--range wakefield file.
 
 The input file name for the long--range wakefields is specified using
 the \vn{lr_wake_file} attribute. The file gives the transverse dipole
@@ -768,10 +783,7 @@ The formula used to compute the wakefield is given in
 among different cavities. The spread is Gaussian in shape with an RMS
 of \vn{freq_spread} * $F$ where $F$ is the frequency of a mode.
 
-\vn{e_loss} can be either a dependent or independent variable.  is a
-dependent variable. If a \vn{sr_wake_file} is present \vn{e_loss} is a
-dependent variable and it is computed from the short--range $z = 0$
-longitudinal wake. \vn{delta_e} is a dependent attribute and is
+\vn{delta_e} is a dependent attribute and is
 defined to be
 \begin{example}
   delta_e = gradient * L

@@ -807,7 +807,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   ring%input_file_name    = full_name             ! save input file
   ring%param%particle     = nint(beam_ele%value(particle$))
   ring%param%n_part       = beam_ele%value(n_part$)
-  ring%param%charge       = 0
+  ring%param%charge       = param_ele%value(charge$)
   ring%n_ele_use          = n_ele_use
   ring%n_ele_ring         = n_ele_use
   ring%n_ele_max          = n_ele_use

@@ -13,6 +13,7 @@ This chapter deals with the statements not covered in the previous chapters.
 \index{Statement!parameter!taylor_order}
 \index{Statement!parameter!beam_energy}
 \index{Statement!parameter!ran_seed}
+\index{Statement!parameter!charge}
 The \vn{parameter} statement is used to set the \vn{lattice} name and other variables. 
 The variables that can be set by \vn{parameter} is
 \begin{example}
@@ -20,6 +21,7 @@ The variables that can be set by \vn{parameter} is
   parameter[lattice_type] = Switch      ! 
   parameter[taylor_order] = Integer     ! Default: 3
   parameter[beam_energy]  = Real        ! Total Energy. Default: 0
+  parameter[charge]       = Real        ! Used with Lcavity wakes. 
   parameter[ran_seed]     = Integer     ! Random number generator init.
 \end{example}
 
@@ -39,6 +41,10 @@ lattice.  Each element in a lattice has an individual reference
 \vn{beam_energy} which is a dependent parameter. 
 The reference energy will only change between \vn{LCavity} or
 \vn{Patch} elements. The starting reference energy must always be set.
+
+With wakefields the \vn{parameter[charge]) is used to calculate the
+change in energy through an \vn{Lcavity}. See~\sref{s:lcav} for more
+details.
 
 \index{Statement!lattice}
 The \vn{lattice} name is stored by \bmad for use by a program but it does
