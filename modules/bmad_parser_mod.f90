@@ -17,8 +17,8 @@ module bmad_parser_mod
 ! The information about a sequence is stored in a seq_struct.
 
 ! A seq_struct has an array of seq_ele_struct structures.
-! Each seq_ele_struct represents an individual element in a sequence and, since sequences
-! can be nested, can itself be a line or a list.
+! Each seq_ele_struct represents an individual element in a sequence and, 
+! since sequences can be nested, can itself be a line or a list.
 
   type seq_ele_struct
     character(16) name             ! name of element, subline, or sublist
@@ -54,7 +54,7 @@ module bmad_parser_mod
     integer reflect               ! reflection sequence?
   end type
 
-! A LIFO stack structure is used to hold this list of input lattice files
+! A LIFO stack structure is used to hold the list of input lattice files
 ! that are currently open.
 
   type stack_file_struct
@@ -68,6 +68,18 @@ module bmad_parser_mod
 !-----------------------------------------------------------
 ! structure for holding the control names and pointers for
 ! superimpose and overlay elements
+
+  integer, private :: plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
+  integer, private :: l_parens$ = 5, r_parens$ = 6, power$ = 7
+  integer, private :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
+  integer, private :: sin$ = 11, cos$ = 12, tan$ = 13
+  integer, private :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
+  integer, private :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
+  integer, private :: numeric$ = 100
+
+  integer, private :: eval_level(22) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 /)
+
 
   type eval_stack_struct
     integer type
@@ -1025,17 +1037,6 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
 
   integer i_lev, i_op, i
 
-  integer :: plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
-  integer :: l_parens$ = 5, r_parens$ = 6, power$ = 7, unary_minus$ = 8
-  integer :: unary_plus$ = 9, no_delim$ = 10
-  integer :: sin$ = 11, cos$ = 12, tan$ = 13
-  integer :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
-  integer :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
-  integer :: numeric$ = 100
-
-  integer :: level(22) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 /)
-
   integer op_(200), ix_word, i_delim, i2, ix0
 
   real(rp) value
@@ -1249,7 +1250,7 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
 ! to the STK_ stack
 
     do i = i_op, 1, -1
-      if (level(op_(i)) >= level(i_delim)) then
+      if (eval_level(op_(i)) >= eval_level(i_delim)) then
         call pushit (stk%type, i_lev, op_(i))
       else
         exit
