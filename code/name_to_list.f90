@@ -27,6 +27,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/07/16 21:33:58  dcs
+!*** empty log message ***
+!
 !Revision 1.5  2002/06/13 14:54:28  dcs
 !Interfaced with FPP/PTC
 !
@@ -42,8 +45,6 @@
 
 #include "CESR_platform.inc"
 
-
-
 subroutine name_to_list (ring, ele_names, use_ele)
 
   use bmad
@@ -55,7 +56,7 @@ subroutine name_to_list (ring, ele_names, use_ele)
   integer n, m, n_names
   integer ic
 
-  logical match_wild, use_ele(:)
+  logical use_ele(:)
 
   character*(*) ele_names(:)
 
@@ -94,5 +95,4 @@ subroutine name_to_list (ring, ele_names, use_ele)
 
   enddo
 
-  return
-  end
+end subroutine

@@ -73,7 +73,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
       ele%key == elseparator$ .or. ele%key == kicker$) then
 
     orb%vec = (c0%vec + c1%vec) / 2
-    call drift_mat6_calc (mat6, length, orb)
+    call drift_mat6_calc (mat6, length, orb%vec)
 
     goto 8000   ! put in multipole ends if needed
 
@@ -131,7 +131,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
     if (length == 0) return
 
     if (ele%value(g$) == 0) then
-      call drift_mat6_calc (mat6, length, orb)
+      call drift_mat6_calc (mat6, length, orb%vec)
       return
     endif
 
@@ -239,11 +239,11 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   case (sextupole$) 
    
     k2l = ele%value(k2$) * length / (1 + c00%z%vel)
-    call mat4_multipole (ele, k2l/2, 0.0_rdef, 2, c00%vec, kmat1)
+    call mat4_multipole (k2l/2, 0.0_rdef, 2, c00%vec, kmat1)
     mat4 = kmat1
     mat4(1,1:4) = kmat1(1,1:4) + length * kmat1(2,1:4) ! kick * length
     mat4(3,1:4) = kmat1(3,1:4) + length * kmat1(4,1:4)
-    call mat4_multipole (ele, k2l/2, 0.0_rdef, 2, c11%vec, kmat2)
+    call mat4_multipole (k2l/2, 0.0_rdef, 2, c11%vec, kmat2)
     mat6(1:4,1:4) = matmul (kmat2, mat4)
 
     c00%vec(1:4) = matmul(kmat1, c00%vec(1:4))
@@ -269,11 +269,11 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   case (octupole$) 
 
     k3l = ele%value(k3$) * length / (1 + c00%z%vel)
-    call mat4_multipole (ele, k3l/2, 0.0_rdef, 3, c00%vec, kmat1)
+    call mat4_multipole (k3l/2, 0.0_rdef, 3, c00%vec, kmat1)
     mat4 = kmat1
     mat4(1,1:4) = kmat1(1,1:4) + length * kmat1(2,1:4) ! kick * length
     mat4(3,1:4) = kmat1(3,1:4) + length * kmat1(4,1:4)
-    call mat4_multipole (ele, k3l/2, 0.0_rdef, 3, c11%vec, kmat2)
+    call mat4_multipole (k3l/2, 0.0_rdef, 3, c11%vec, kmat2)
     mat6(1:4,1:4) = matmul (kmat2, mat4)
 
     c00%vec(1:4) = matmul(kmat1, c00%vec(1:4))
@@ -508,7 +508,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   case (multipole$, ab_multipole$) 
     if (.not. ele%multipoles_on) return
     call multipole_ele_to_kt (ele, param%particle, knl, tilt, .true.)
-    call mat6_multipole (knl, c00%vec, 1.0_rdef, ele%mat6)
+    call mat6_multipole (knl, tilt, c00%vec, 1.0_rdef, ele%mat6)
 
 !--------------------------------------------------------
 ! accelerating solenoid with steerings
@@ -584,7 +584,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   if (associated(ele%a)) then
     mat6_m = 0
     call multipole_ele_to_kt (ele, param%particle, knl, tilt, .true.)
-    call mat6_multipole (knl, c00, 0.5_rdef, mat6_m)
+    call mat6_multipole (knl, tilt, c00%vec, 0.5_rdef, mat6_m)
     mat6(2,:) = mat6(2,:) + mat6_m(2,1) * mat6(1,:) + mat6_m(2,3) * mat6(3,:)
     mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
     mat6(:,1) = mat6(:,1) + mat6(:,2) * mat6_m(2,1) + mat6(:,4) * mat6_m(4,1)

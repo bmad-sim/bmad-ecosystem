@@ -223,15 +223,13 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 
-subroutine mat6_multipole (ele, param, c00, factor, mat6)
-
-  use bmad
+subroutine mat6_multipole (knl, tilt, c00, factor, mat6)
 
   implicit none
 
   real(rdef) c00(6)
   real(rdef) mat6(6,6), kmat1(4,4), factor
-  real(rdef) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+  real(rdef) knl(0:), tilt(0:)
 
   integer n
 
@@ -239,9 +237,8 @@ subroutine mat6_multipole (ele, param, c00, factor, mat6)
 
   if (c00(1) == 0 .and. c00(3) == 0 .and. knl(1) == 0) return
 
-  do n = 1, n_pole_maxx
+  do n = 1, ubound(knl, 1)
     if (knl(n) /= 0) then
-      unit_matrix = .false.
       call mat4_multipole (knl(n), tilt(n), n, c00, kmat1)
       mat6(2:4:2, 1:3:2) = mat6(2:4:2, 1:3:2) + factor * kmat1(2:4:2, 1:3:2)
     endif
@@ -268,6 +265,8 @@ end subroutine
 
 
 subroutine mat4_multipole (knl, tilt, n, c0, kick_mat)
+
+  use bmad_interface, only: c_multi
                   
   implicit none
 
@@ -364,7 +363,7 @@ function mexp (x, m)
     mexp = x**m
   endif
 
-end subroutine
+end function
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------

@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.10  2002/07/16 21:33:57  dcs
+!*** empty log message ***
+!
 !Revision 1.9  2002/07/16 20:44:00  dcs
 !*** empty log message ***
 !
@@ -583,12 +586,12 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
 ! find line corresponding to the "use" statement.
 
-  if (ring%name == blank) call err_exit &
+  if (ring%name == blank) call error_exit &
             ('NO "USE" COMMAND FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
 
   call find_indexx (ring%name, seq_(:)%name, seq_indexx, pcom%iseq_tot, i_use)
 
-  if (i_use == 0) call err_exit &
+  if (i_use == 0) call error_exit &
             ('CANNOT FIND DEFINITION FOR "USE" LINE: ' // ring%name, ' ')
 
   if (seq_(i_use)%type /= line$) call error_exit  &

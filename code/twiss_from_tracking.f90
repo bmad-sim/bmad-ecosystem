@@ -24,7 +24,8 @@
 !                           a warning message if the orbit does not converge.
 !
 ! Output:
-!   error   -- Real(rdef): A measure of how symplectic the constructed matrices were
+!   error   -- Real(rdef): A measure of how symplectic the constructed 
+!                                                           matrices were.
 !              before symplecitification. See mat_symp_check for more details.
 !   ring    -- Ring_struct:
 !     ele_(:)%mat6  -- 6x6 transfer matrices. The for
@@ -35,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/07/16 21:33:58  dcs
+!*** empty log message ***
+!
 !Revision 1.4  2002/02/23 20:32:29  dcs
 !Double/Single Real toggle added
 !
@@ -121,7 +125,7 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
       mat(1:6, i) = (mo(i)%orb(j)%vec - closed_orb_(j)%vec) / d_orb%vec(i)
     enddo
 
-    call mat_symp_conj (mat0, mat_inv)   ! symp_conj is the inverse
+    call mat_symp_conj (mat0, mat_inv, 6, 6)   ! symp_conj is the inverse
     mat1 = matmul (mat, mat_inv)
     call mat_symplectify (mat1, ring%ele_(j)%mat6)
     mat0 = matmul (ring%ele_(j)%mat6, mat0)
