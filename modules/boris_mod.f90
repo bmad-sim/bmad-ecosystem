@@ -9,9 +9,10 @@
 !   5, 094001 (2002).
 !
 ! The variables in Boris tracking are:
-!     (x, p_x, y, p_y, s-c*t, dE/E)
+!     (x, p_x/p_0, y, p_y/p_0, s-c*t, dE/(c*P_0))
 ! At high energy s-c*t = z which is the distance of the particle from the 
-! reference particle.
+! reference particle. 
+! Also at high energy c*P_0 = v*E_0/C = E_0 so that dE/(c*P_0) = dE/E.
 !-
 
 
@@ -60,6 +61,8 @@ contains
 ! This routine is adapted from odeint in Numerical Recipes. 
 ! See the NR book for more details.
 !
+! For more information on Boris tracking see the boris_mod documentation.
+!
 ! Note:
 !   For each step the error in the orbit must be:
 !     error < (|orbit|*rel_tol + abs_tol) / sqrt(N)
@@ -75,7 +78,7 @@ contains
 !     %tracking_method -- Determines which subroutine to use to calculate the 
 !                         field. Note: BMAD does no supply em_field_custom.
 !                           == custom$ then use em_field_custom
-!                           /= custom$ then use em_field_standard
+!                           /= custom$ then use em_field
 !     %value(rel_tol$) -- Real: Relative error tollerance.
 !                           Default if zero: 1e-6.
 !     %value(abs_tol$) -- Real: Absolute error tollerance.
@@ -243,6 +246,7 @@ end subroutine track1_adaptive_boris
 ! Subroutine track1_boris (start, ele, param, end, s_start, s_end)
 !
 ! Subroutine to do Boris tracking.
+! For more information on Boris tracking see the boris_mod documentation.
 ! 
 ! Modules needed:
 !   use bmad
@@ -253,7 +257,7 @@ end subroutine track1_adaptive_boris
 !     %tracking_method -- Determines which subroutine to use to calculate the 
 !                         field. Note: BMAD does no supply em_field_custom.
 !                           == custom$ then use em_field_custom
-!                           /= custom$ then use em_field_standard
+!                           /= custom$ then use em_field
 !     %num_steps      -- number of steps to take
 !   param    -- Param_struct: Beam parameters.
 !     %enegy       -- Energy in GeV
@@ -344,6 +348,29 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
+!+
+! Subroutine track1_boris_partial (start, ele, param, s, ds, end)
+!
+! Subroutine to track 1 step using boris tracking.
+! This subroutine is used by track1_boris and track1_adaptive_boris.
+!
+! Note: Coordinates are with respect to the element coordinate frame.
+!
+! For more information on Boris tracking see the boris_mod documentation.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   start -- Coord_struct: Starting coordinates.
+!   ele   -- Ele_struct: Element that we are tracking through.
+!   param -- Param_struct: Various neede parameters (Energy, etc.)
+!   s     -- Real(rdef): Starting point relative to element beginning.
+!   ds    -- Real(rdef): step size
+!
+! Output:
+!   end   -- Coord_struct: Ending coordinates.
+!-
 
 subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
@@ -356,23 +383,24 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
   real(rdef), intent(in) :: s, ds
   real(rdef) :: f, p_z, d2, alpha, dxv, dyv, ds2_f, charge
-  real(rdef) :: r(3,3), w(3), ex, ey, ex2, ey2, exy, bz, bz2, m2c4
+  real(rdef) :: r(3,3), w(3), ex, ey, ex2, ey2, exy, bz, bz2, m2c2
 
-!
+! m2c2 = (m*c^2 / (c*P_0))^2,  c*P_0 = sqrt(E^2 - E_0^2)
 
   charge = charge_of(param%particle)
-  m2c4 = (mass_of(param%particle) / param%energy)**2
+  m2c2 = mass_of(param%particle)**2 / &
+                          (param%energy**2 - mass_of(param%particle)**2)
 
   end = start
 
 ! 1) Push the position 1/2 step
 
-  p_z = sqrt((1 + end%z%vel)**2 - end%x%vel**2 - end%y%vel**2 - m2c4)
+  p_z = sqrt((1 + end%z%vel)**2 - end%x%vel**2 - end%y%vel**2 - m2c2)
   ds2_f = ds / (2 * p_z)
 
-  end%x%pos = end%x%pos + end%x%vel * ds2_f
-  end%y%pos = end%y%pos + end%y%vel * ds2_f
-  end%z%pos = end%z%pos - ds2_f + ds / (2 * (1 + end%z%vel)) 
+  end%x%pos = end%x%pos + ds2_f * end%x%vel 
+  end%y%pos = end%y%pos + ds2_f * end%y%vel
+  end%z%pos = end%z%pos + ds2_f * (p_z - (1 + end%z%vel)) 
 
 ! 2) Evaluate the fields .
 ! 3) Push the momenta a 1/2 step using only "b".
@@ -386,7 +414,7 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
   if (field%e(3) /= 0) then
     end%z%vel = end%z%vel + field%e(3) * f / c_light
-    p_z = sqrt((1 + end%z%vel)**2 - end%x%vel**2 - end%y%vel**2 - m2c4)
+    p_z = sqrt((1 + end%z%vel)**2 - end%x%vel**2 - end%y%vel**2 - m2c2)
   endif
 
 ! 4) Push the momenta a full step using "R".
@@ -408,11 +436,14 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
     bz = field%b(3);               bz2 = bz**2
     exy = ex * ey
     alpha = 2 * d2 / (1 + d2**2 * (bz2 - ex2 - ey2))
-    r(1,1:3) = (/ d2 * (ex2 - bz2), bz2 + d2*exy,     bz*(ex + d2*ey)  /)
-    r(2,1:3) = (/ -bz2 + d2*exy,    d2 * (ey2 - bz2), bz*(ey - d2*ex)  /)
-    r(3,1:3) = (/ bz*(ex - d2*ey),  bz*(ey + d2*ex),  d2 * (ex2 + ey2) /)
+    r(1,1:3) = (/ d2 * (ex2 - bz2), bz + d2*exy,      ex + d2*bz*ey    /)
+    r(2,1:3) = (/ -bz + d2*exy,     d2 * (ey2 - bz2), ey - d2*bz*ex    /)
+    r(3,1:3) = (/ ex - d2*bz*ey,    ey + d2*bz*ex,    d2 * (ex2 + ey2) /)
+
     w = end%vec(2:6:2)
-    w = w + matmul(r, w)
+    w(3) = w(3) + 1
+    w = w + alpha * matmul(r, w)
+    w(3) = w(3) - 1
     end%vec(2:6:2) = w
   endif
 
@@ -424,37 +455,12 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
 ! 6) Push the position a 1/2 step.
 
-  p_z = sqrt((1 + end%z%vel)**2 - end%x%vel**2 - end%y%vel**2 - m2c4)
+  p_z = sqrt((1 + end%z%vel)**2 - end%x%vel**2 - end%y%vel**2 - m2c2)
   ds2_f = ds / (2 * p_z)
 
-  end%x%pos = end%x%pos + end%x%vel * ds2_f
-  end%y%pos = end%y%pos + end%y%vel * ds2_f
-  end%z%pos = end%z%pos - ds2_f + ds / (2 * (1 + end%z%vel)) 
-
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-
-subroutine em_field (ele, param, s, here, field)
-
-  implicit none
-
-  type (ele_struct), intent(in) :: ele
-  type (param_struct) param
-  type (coord_struct), intent(in) :: here
-  type (em_field_struct), intent(out) :: field
-
-  real(rdef) :: s
-
-!
-
-  if (ele%tracking_method == custom$) then
-    call em_field_custom (ele, param, s, here, field)
-  else
-    call em_field_standard (ele, param, s, here, field)
-  endif
+  end%x%pos = end%x%pos + ds2_f * end%x%vel 
+  end%y%pos = end%y%pos + ds2_f * end%y%vel
+  end%z%pos = end%z%pos + ds2_f * (p_z - (1 + end%z%vel)) 
 
 end subroutine
 
@@ -555,7 +561,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine em_field_standard (ele, param, s_pos, here, field)
+! Subroutine em_field (ele, param, s_pos, here, field)
 !
 ! Subroutine to calculate the E and B fields for an element.
 !
@@ -581,7 +587,7 @@ end subroutine
 !-
 
 
-subroutine em_field_standard (ele, param, s_pos, here, field)
+subroutine em_field (ele, param, s_pos, here, field)
 
   implicit none
 
@@ -594,7 +600,7 @@ subroutine em_field_standard (ele, param, s_pos, here, field)
   real(rdef) :: x, y, s, s_pos, f, c
   real(rdef) :: c_x, s_x, c_y, s_y, c_z, s_z, coef
 
-  integer i
+  integer i, key
 
 !
 
@@ -605,9 +611,15 @@ subroutine em_field_standard (ele, param, s_pos, here, field)
   field%e = 0
   field%b = 0
 
-! Wiggler
+!
 
-  select case (ele%key)
+  key = ele%key
+  if (ele%tracking_method == custom$) key = custom$
+
+  select case (key)
+
+
+! Wiggler
 
   case(wiggler$)
 
@@ -640,21 +652,10 @@ subroutine em_field_standard (ele, param, s_pos, here, field)
       field%b(3) = field%b(3) + -coef  * (t%kz / t%ky) * c_x * s_y * s_z
     enddo
 
-! Elseparator
+! Elseparator. Nothing to do.
 
   case (elseparator$)
 
-    f = 1e9 * param%energy / ele%value(l$)
-
-    field%e(1) = ele%value(hkick$) * f
-    field%e(2) = ele%value(vkick$) * f
-
-    if (ele%value(tilt$) /= 0) then
-      c = cos(ele%value(tilt$))
-      s = sin(ele%value(tilt$))
-      field%e(1:2) = &
-          (/ c*field%e(1) + s*field%e(2), -s*field%e(1) + c*field%e(2) /)
-    endif
 
 ! Quadrupole
 
@@ -682,6 +683,12 @@ subroutine em_field_standard (ele, param, s_pos, here, field)
     f = 1e9 * param%energy / c_light
 
     field%b(3) = ele%value(ks$) * f
+
+! Custom
+
+  case (custom$)
+
+    call em_field_custom (ele, param, s_pos, here, field)
 
 ! Error
 
