@@ -199,7 +199,7 @@ subroutine reverse_ele (ele)
 
 ! kill any gen_field
 
-  if (associated(ele%gen_field)) call kill (ele%gen_field)
+  if (associated(ele%gen_field)) call kill_gen_field (ele%gen_field)
 
 ! reverse mat6
 
