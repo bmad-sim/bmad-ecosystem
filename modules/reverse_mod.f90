@@ -154,9 +154,12 @@ subroutine reverse_ele (ele)
     ele%value(e2$) = tempp
 
 ! For wigglers:
-!       phi -> -phi -  k_z * Length
+!       phi_z -> -phi_z -  k_z * Length
 ! This transforms:
-!       (B_x, B_y, B_z) -> (B_x, B_y, -B_z)
+!       (B_x, B_y, B_z) @ (s) -> (B_x, B_y, -B_z) @ (L-s)
+! Also: Since the wiggler trajectory starting on the origin may not end
+!   on the origin z_patch may shift. Zero z_patch so that there are
+!   no shifts in tracking when remaking the element.
 
   case (wiggler$)
     if (associated(ele%wig_term)) then
@@ -164,6 +167,7 @@ subroutine reverse_ele (ele)
         ele%wig_term(i)%phi_z = -ele%wig_term(i)%phi_z - &
                                         ele%wig_term(i)%kz * ele%value(l$)
       enddo
+      ele%value(z_patch$) = 0
     endif
 
   end select

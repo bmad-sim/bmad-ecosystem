@@ -488,16 +488,19 @@ subroutine get_attribute (how, ele, ring, pring, &
 
   if (delim /= '=')  then
     if (word == tilt_word) then
-      if (ele%key == quadrupole$) then
+      select case (ele%key)
+      case (sbend$, rbend$)
+        ele%value(tilt$) = pi / 2
+      case (quadrupole$, sol_quad$) 
         ele%value(tilt$) = pi / 4
-      elseif (ele%key == sextupole$) then
+      case (sextupole$) 
         ele%value(tilt$) = pi / 6
-      elseif (ele%key == octupole$) then
+      case (octupole$) 
         ele%value(tilt$) = pi / 8
-      else
+      case default
         call warning ('SORRY I''M NOT PROGRAMMED TO USE A "TILT" DEFAULT' // &
                 'FOR A: ' // key_name(ele%key), 'FOR: ' // ele%name)
-      endif
+      end select
     elseif (ele%key == multipole$) then
       if (i >= t0$) then
         ele%b(i-t0$) = pi / (2*(i-t0$) + 2)
