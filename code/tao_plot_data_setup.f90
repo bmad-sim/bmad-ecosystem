@@ -318,11 +318,14 @@ plot_loop: do i = 1, size(s%plot_page%plot)
             case (' ') 
               cycle
             case ('model')   
-              call tao_evaluate_a_datum (datum, u%model, u%model_orb, y_val)
+              call tao_evaluate_a_datum (datum, u, u%model, u%model_orb, &
+	                                 max(datum%ix_ele, datum%ix_ele2), y_val)
             case ('base')  
-              call tao_evaluate_a_datum (datum, u%base, u%base_orb, y_val)
+              call tao_evaluate_a_datum (datum, u, u%base, u%base_orb, &
+	                                 max(datum%ix_ele, datum%ix_ele2), y_val)
             case ('design')  
-              call tao_evaluate_a_datum (datum, u%design, u%design_orb, y_val)
+              call tao_evaluate_a_datum (datum, u, u%design, u%design_orb, &
+	                                 max(datum%ix_ele, datum%ix_ele2), y_val)
             case default
               call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // plot%who(m)%name)
               plot%valid = .false.

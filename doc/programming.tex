@@ -142,12 +142,20 @@ type is listed in the intialization files then a corresponding data type must
 be placed in this routine. The tutorial uses this hook routine when
 calculating the emittance. 
 
+\tao evaluates data at each element for each lattice is being calculated. At
+initialization time \tao determines which datums are to be evaluated at each
+element then calls \vn{tao_load_data_array} at each element for each datum that
+needs to be evaluated. If a range of elements are specified for a datum then
+\vn{tao_load|data_array} is called for this datum at the last element in the
+range. \vn{tao_load_data_array} starts by calling \vn{tao_hook_load_data_array}
+to evaluate the custom data types. 
+
 As exmplained in the dummy file, the datum merit type
-affects how a datum's calue should be calculated. There is a helper subroutine
+affects how a datum's value should be calculated. There is a helper subroutine
 in the dummy hook routine called \vn{load_it} to aid in modifying the datum's value based on the
 merit type. If there is a range of elements associated with datum then a merit
 type other than \vn{target} requires that the entire range of elements
-associated with the datum be searched for the appropriate value to be returened.
+associated with the datum be searched for the appropriate value to be returned.
 See Chapter~\ref{c:opti} for details on the merit type. 
 
 For example, if the data type is \vn{orbit:x} (yes, this is already defined in
@@ -162,7 +170,7 @@ case ('orbit:x')
 \vn{target} then \vn{load_it} will search the appropriate range of elements for
 either the minimum or maximum horizontal orbit value and this will be the
 datum's value. Because, a datum may refer to range of elements, the entire orbit
-array (from 0 to \vn{n_ele_max}) must be passed to \vn{load_it} for each \vn{orbit:x} datum.
+array (from 0 to \vn{n_ele_max}) is passed to \vn{load_it} for each \vn{orbit:x} datum.
 
 If the only merit type that is going to be used is \vn{target} then \vn{load_it}
 can be ignored.

@@ -35,6 +35,7 @@ real(rp), allocatable :: design_var_value(:)
 real(rp), allocatable :: var_delta(:)
 
 integer nl, i, ix_ele, ixa, ix, err_num
+integer max_lines
 
 character(*) who, name, where, num_str
 character(80) num
@@ -48,6 +49,7 @@ logical, allocatable :: action_logic(:) !which variables to change
 
 !-------------------------------------------------
 
+max_lines = n_output_lines_maxx 
 call to_number;  if (err) return
 old_merit = tao_merit()
 nl = 0
@@ -118,6 +120,11 @@ case ('var')
   write (lines(nl), '(5x, a)') 'Index       Old              New       Delta   Old-Design   New-Design'
   do i = lbound(action_logic,1), ubound(action_logic,1)
     if (action_logic(i)) then
+      if (nl+5 .gt. max_lines) then
+        call out_io (s_blank$, r_name, "Too many elements!")
+        call out_io (s_blank$, r_name, "Listing first \i5\ selected elements", max_lines-4)
+        exit
+      endif
       nl = nl+1
       write (lines(nl), fmt) i, old_var_value(i), '  ->', new_var_value(i), &
                              new_var_value(i)-old_var_value(i), &

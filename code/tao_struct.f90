@@ -11,7 +11,8 @@ module tao_struct
 
 use bmad_struct, only: rp, ring_struct, coord_struct, radians$, ele_struct
 use quick_plot, only: qp_line_struct, qp_symbol_struct, qp_axis_struct, qp_rect_struct
-use macroparticle_mod, only: macro_init_struct, beam_struct
+use macroparticle_mod, only: macro_init_struct, macro_beam_struct
+use macro_utils_mod, only: macro_bunch_params_struct
 use tao_parameters
 use tao_hook_mod
 
@@ -364,37 +365,50 @@ type tao_coupled_uni_struct
   integer from_uni_ix_ele ! element index where coupling occurs
   real(rp) from_uni_s ! s position in from_uni where coupling occurs
   type (ele_struct) :: coupling_ele ! element used to match universes
-  type (beam_struct) injecting_beam ! used for macroparticle injection
+  type (macro_beam_struct) injecting_macro_beam ! used for macroparticle injection
 end type
 
 !-----------------------------------------------------------------------
-! Macroparticle structure
+! This says which datumns to evaluate at this ele
+! The point of this is to ave time by not looping through all the data at every
+! elements finding which datums need to be evaluated. Instead, do the searching
+! beforehand and just keep a log of where to evaluate.
 
-! These contain the element indexes corresponding to macroparticle data
-  type macro_d1_data_struct
-    character(16) name
-    integer i_save ! save the current index for tao_macro_data loop
-    type (tao_data_struct), pointer :: d(:) => null() ! ele_index for this datum is in here
-  end type	
-				
-  type macro_d2_data_struct
-    character(16) name
-    type (macro_d1_data_struct), pointer :: d1(:) => null()
-  end type
+  type tao_ix_data_struct
+    ! list of all d2_datas evaluated at this ele
+    integer, pointer :: ix_datum(:)
+  endtype
 
-  type macro_data_struct
-    type (macro_d2_data_struct), pointer :: d2(:) => null()
-  end type
-! ***
+!-----------------------------------------------------------------------
+! Particle beam structures
 
+type tao_bunch_init_struct
+  integer dummy
+endtype
+
+type tao_bunch_struct
+  type (coord_struct), pointer :: particle(:)
+  integer, pointer :: lost(:)    ! particle lost at this element
+end type 
+  
 type tao_beam_struct
-  type (beam_struct) beam             ! macroparticle beam
+  type (tao_bunch_struct), pointer :: bunch(:)
+  type (tao_bunch_init_struct) :: particles_init !particle distrubution
+                                                         ! at beginning of lattice
+! type (tao_bunch_params_struct) :: params
+end type
+
+!-----------------------------------------------------------------------
+! Macroparticle beam structures
+
+type tao_macro_beam_struct
+  type (macro_beam_struct) beam             ! macroparticle beam
   type (macro_init_struct) macro_init ! macro distribution at beginning of lat
+  type (macro_bunch_params_struct) params ! macro bunch parameters for viewed bunch
   logical calc_emittance     ! for a ring calculate emittance
   integer, pointer :: ix_lost(:,:,:) => null()
                                       ! ^ if .ne. -1 then this macro lost at this ele
                                       ! ix_lost(bunch,slice,macro)
-  type (macro_data_struct) :: macro_data ! macro specific data type element indices
 end type
 
 !-----------------------------------------------------------------------
@@ -403,10 +417,12 @@ end type
 type tao_universe_struct
   type (ring_struct) model, design, base           ! lattice structures
   type (coord_struct), allocatable :: model_orb(:), design_orb(:), base_orb(:)
-  type (tao_beam_struct) beam                      ! macroparticle beam 
+  type (tao_macro_beam_struct) macro_beam          ! macroparticle beam 
+  type (tao_beam_struct) beam                      ! particle beam
+  type (tao_coupled_uni_struct)   :: coupling      !used for coupled lattices
   type (tao_d2_data_struct), pointer :: d2_data(:) => null()  ! The data types 
   type (tao_data_struct), pointer :: data(:) => null()        ! array of all data.
-  type (tao_coupled_uni_struct)   :: coupling      !used for coupled lattices
+  type (tao_ix_data_struct), pointer :: ix_data(:) ! which data to evaluate at this ele
   real(rp), pointer :: dModel_dVar(:,:) => null()             ! Derivative matrix.
   integer n_d2_data_used
   integer n_data_used

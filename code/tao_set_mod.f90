@@ -658,12 +658,15 @@ logical is_on
   
   if (uni .eq. 0) then
     call out_io (s_blank$, r_name, &
-        "Turning all universes off, no lattice calculations will be performed!")
-    s%u(:)%is_on = .false.
+        "Changing all universes!")
+    s%u(:)%is_on = is_on
   else
-    s%u(uni)%is_on = .false.
+    s%u(uni)%is_on = is_on
   endif
 
+  ! make sure lattice calculation is up to date if turning lattice on
+  if (is_on) s%global%lattice_recalc = .true.
+  
 end subroutine tao_set_uni_cmd
 
 

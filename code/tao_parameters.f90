@@ -18,7 +18,11 @@ module tao_parameters
   integer, parameter :: n_curve_maxx = 20    ! number of curves per graph
   integer, parameter :: n_output_lines_maxx = 400 ! max number of lines in 
                                                   ! output statement
-
+! tracking type
+  integer, parameter :: single_tracking$ = 1
+  integer, parameter :: many_tracking$ = 2
+  integer, parameter :: macro_tracking$ = 3
+						  
 ! the name struct
   
   integer, parameter :: data$ = 1, variable$ = 2

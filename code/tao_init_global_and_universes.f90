@@ -260,15 +260,6 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   if (allocated(mask)) deallocate(mask)
 
 !-----------------------------------------------------------------------
-! Init macroparticle specific data
-
-  call tao_define_macro_data_types () 
-
-  do i = 1, size(s%u)
-    call init_macro_data(s%u(i))
-  enddo
-		
-!-----------------------------------------------------------------------
 ! Init vars
 
   rewind (iu)
@@ -334,8 +325,16 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 
   close (iu)
 
+!-----------------------------------------------------------------------
+! Init ix_data array
+
+  do i = 1, size(s%u)
+    call init_ix_data (s%u(i))
+  enddo
+
   return
 
+!-----------------------------------------------------------------------
 ! namelist read error.
 
 9100 continue
@@ -672,13 +671,21 @@ end subroutine d1_data_stuffit
 subroutine var_stuffit (ix_u_in)
 
   type (tao_var_struct), pointer :: s_var
-  integer i, ix_u, n, ios, ix_u_in
+  integer i, j, ix_u, n, ios, ix_u_in, j_save
 
 ! point the children back to the mother
 
   n = s%n_v1_var_used
+  j_save = 1
   do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
     s_var => s%v1_var(n)%v(i)
+
+    if (associated(s_var%this)) deallocate (s_var%this)
+    allocate (s_var%this(1))
+    if (s_var%ele_name == ' ') then
+      s_var%exists = .false.
+      cycle
+    endif
 
     ! universe to use
     ix_u = ix_u_in
@@ -692,15 +699,23 @@ subroutine var_stuffit (ix_u_in)
           call err_exit
         endif
       endif
+      call tao_pointer_to_var_in_lattice (s_var, s_var%this(1), ix_u)
+    else ! use found_one array
+      found_one_loop: do j = j_save, size(found_one)
+        if (found_one(j)) then
+	  call tao_pointer_to_var_in_lattice (s_var, s_var%this(1), ix_u, &
+	                                      ix_ele = j)
+	  j_save = j+1
+	  exit found_one_loop
+	endif
+	if (j .eq. size(found_one)) then
+	  call out_io (s_abort$, r_name, &
+	               "Internal error in counting variables")
+	  call err_exit
+	endif
+      enddo found_one_loop
     endif
      
-    if (associated(s_var%this)) deallocate (s_var%this)
-    allocate (s_var%this(1))
-    if (s_var%ele_name == ' ') then
-      s_var%exists = .false.
-      cycle
-    endif
-    call tao_pointer_to_var_in_lattice (s_var, s_var%this(1), ix_u)
     s_var%model_value = s_var%this(1)%model_ptr
     s_var%design_value = s_var%model_value
     s_var%base_value = s_var%this(1)%base_ptr
@@ -716,16 +731,16 @@ end subroutine var_stuffit
 
 subroutine var_stuffit_all_uni 
 
-  type (tao_universe_struct), pointer :: u
   type (tao_var_struct), pointer :: s_var
 
-  integer i, j, n1, n2, ix1, ix2
+  integer i, j, n1, n2, iu, j_save
   logical err
 
 ! point the children back to the mother
 
 
   n = s%n_v1_var_used
+  j_save = 1
   
   do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
     s_var => s%v1_var(n)%v(i)
@@ -735,10 +750,22 @@ subroutine var_stuffit_all_uni
       s_var%exists = .false.
       cycle
     endif
-    do j = 1, size(s%u)
-      u => s%u(j)
-      call tao_pointer_to_var_in_lattice (s_var, s_var%this(j), j)
-    enddo
+    if (.not. (counting .and. searching)) then
+      do iu = 1, size(s%u)
+        call tao_pointer_to_var_in_lattice (s_var, s_var%this(iu), iu)
+      enddo
+    else
+      found_one_loop: do j = j_save, size(found_one(1:s%u(1)%design%n_ele_max))
+        if (found_one(j)) then
+          do iu = 1, size(s%u)
+            call tao_pointer_to_var_in_lattice (s_var, s_var%this(iu), iu, &
+	                                          ix_ele = j)
+          enddo
+	  j_save = j+1
+          exit found_one_loop
+        endif
+      enddo found_one_loop
+    endif
     s_var%model_value = s_var%this(1)%model_ptr
     s_var%design_value = s_var%this(1)%model_ptr
     s_var%base_value = s_var%this(1)%base_ptr
@@ -813,9 +840,9 @@ integer num_ele, ios, ixx1, ixx2
     jj = n1
     if (num_ele .ne. 0) then
       ixx2 = 0
-      do  iu = 1, size(s%u)
+      do iu = 1, size(s%u)
 	ixx1 = ixx2 + 1
-        ixx2 = s%u(iu)%design%n_ele_max
+        ixx2 = ixx1 + s%u(iu)%design%n_ele_max
         do j = 1, size(found_one(ixx1:ixx2))
           if (found_one(ixx1+j-1)) then
             if (jj .gt. n2) then
@@ -896,12 +923,12 @@ integer num_ele, ios, ixx1, ixx2
 
   call tao_point_v1_to_var (s%v1_var(nn), s%var(n1:n2), ix_min_var, n1)
 
-  if (abs(lbound(s%v1_var(s%n_v1_var_used)%v, 1) - &
-                          ubound(s%v1_var(s%n_v1_var_used)%v, 1)) .gt. 1000) then
-    call out_io (s_blank$, r_name, "Initilizing a large number of variables.")
-    call out_io (s_blank$, r_name, "This may take a while...")
-    call out_io (s_blank$, r_name, " ")
-  endif
+! if (abs(lbound(s%v1_var(s%n_v1_var_used)%v, 1) - &
+!                         ubound(s%v1_var(s%n_v1_var_used)%v, 1)) .gt. 1000) then
+!   call out_io (s_blank$, r_name, "Initilizing a large number of variables.")
+!   call out_io (s_blank$, r_name, "This may take a while...")
+!   call out_io (s_blank$, r_name, " ")
+! endif
 
 end subroutine
 
@@ -1142,6 +1169,8 @@ integer j
 
 integer, pointer :: ix_lcav(:)
 
+logical long_time_post
+
 !
   if (s%global%track_type .eq. 'single') return
 
@@ -1158,7 +1187,7 @@ integer, pointer :: ix_lcav(:)
       call out_io (s_blank$, r_name, &
                   "Emittance will be as set in macro_init.")
     endif
-    u%beam%calc_emittance = calc_emittance
+    u%macro_beam%calc_emittance = calc_emittance
     call out_io (s_blank$, r_name, "***")
   elseif (calc_emittance) then
     call out_io (s_blank$, r_name, "***")
@@ -1167,9 +1196,18 @@ integer, pointer :: ix_lcav(:)
     call out_io (s_blank$, r_name, "***")
   endif
   
+  ! only post long time to initialize message once.
+  long_time_post = .true.
   
   if (sr_wake_file .ne. 'none') then
     call elements_locator (lcavity$, u%design, ix_lcav)
+    if (size(ix_lcav) .gt. 100) then
+      call out_io (s_info$, r_name, &
+                   "Initializing a large number of lcavity wakes!")
+      call out_io (s_blank$, r_name, &
+                   "This may take a while...!")
+      long_time_post = .false.
+    endif
     do j=1,size(ix_lcav)
        if (.not. associated(u%design%ele_(ix_lcav(j))%wake)) &
             allocate (u%design%ele_(ix_lcav(j))%wake)
@@ -1181,6 +1219,12 @@ integer, pointer :: ix_lcav(:)
 
   if (lr_wake_file .ne. 'none') then
     call elements_locator (lcavity$, u%design, ix_lcav)
+    if (size(ix_lcav) .gt. 100 .and. long_time_post) then
+      call out_io (s_info$, r_name, &
+                   "Initializing a large number of lcavity wakes!")
+      call out_io (s_blank$, r_name, &
+                   "This may take a while...!")
+    endif
     do j=1,size(ix_lcav)
        if (.not. associated(u%design%ele_(ix_lcav(j))%wake)) &
             allocate (u%design%ele_(ix_lcav(j))%wake)
@@ -1190,16 +1234,16 @@ integer, pointer :: ix_lcav(:)
     deallocate(ix_lcav)
   endif
 
-  u%beam%macro_init = macro_init
+  u%macro_beam%macro_init = macro_init
   u%design_orb(0)%vec = macro_init%center
 
   ! This is just to get things allocated
-  call init_macro_distribution (u%beam%beam, macro_init, u%design%ele_(0), .true.)
+  call init_macro_distribution (u%macro_beam%beam, macro_init, u%design%ele_(0), .true.)
 
   ! keep track of where macros are lost
-  if (associated (u%beam%ix_lost)) deallocate (u%beam%ix_lost)
-  allocate (u%beam%ix_lost(macro_init%n_bunch, macro_init%n_slice, macro_init%n_macro))
-  u%beam%ix_lost(:,:,:) = -1
+  if (associated (u%macro_beam%ix_lost)) deallocate (u%macro_beam%ix_lost)
+  allocate (u%macro_beam%ix_lost(macro_init%n_bunch, macro_init%n_slice, macro_init%n_macro))
+  u%macro_beam%ix_lost(:,:,:) = -1
 
 end subroutine init_macro
 
@@ -1207,55 +1251,50 @@ end subroutine init_macro
 !----------------------------------------------------------------
 ! contains
 !
-! Find what elements macroparticle specific data will be taken
+! Defines what datums to evaluate at each element in specified universe
 
-subroutine init_macro_data (u)
+subroutine init_ix_data (u)
 
 implicit none
 
 type (tao_universe_struct) u
 
-integer i, ii, j, jj
+integer, automatic :: ele(0:u%design%n_ele_max)
+integer, automatic :: ix_next(0:u%design%n_ele_max)
 
-  if (associated(u%beam%macro_data%d2)) then
-    do i = 1, size(u%beam%macro_data%d2)
-      deallocate(u%beam%macro_data%d2(i)%d1)
-    enddo
-    deallocate(u%beam%macro_data%d2)
-  endif
-		
-  allocate(u%beam%macro_data%d2(size(macro_data_names)))
-  do i = 1, size(u%beam%macro_data%d2)
-    allocate(u%beam%macro_data%d2(i)%d1(size(macro_data_names(i)%d1_data)))
+integer j, k, ix_ele
+
+  ele(:) = 0
+
+  ! allocate the ix_data array
+  if (associated(u%ix_data)) deallocate(u%ix_data)
+  allocate(u%ix_data(0:u%design%n_ele_max))
+
+  ! find number of datums at each element
+  do j = 1, size(u%data)
+    if (.not. u%data(j)%exists) cycle
+    ix_ele = max(u%data(j)%ix_ele, u%data(j)%ix_ele2)
+    ele(ix_ele) = ele(ix_ele) + 1
   enddo
   
-  ! initialize macro specific data types
-  ! determine the element indexes for corresponding datums
-  ! This is comparing each data type with each macro data type to find matches
-  !  Is this too difficult to follow?
-
-  ! Find d2_data
-  do i = 1, size(u%d2_data)
-    do j = 1, size(macro_data_names)
-      if (u%d2_data(i)%name .eq. macro_data_names(j)%name) then
-  
-        u%beam%macro_data%d2(j)%name = macro_data_names(j)%name
-        ! Find d1_data
-        do ii = 1, size(u%d2_data(i)%d1)
-          do jj = 1, size(macro_data_names(j)%d1_data)
-            if (u%d2_data(i)%d1(ii)%name .eq. macro_data_names(j)%d1_data(jj)) then
-         																					
-              u%beam%macro_data%d2(j)%d1(jj)%name = macro_data_names(j)%d1_data(jj)
-              ! no need to start at the proper index here
-              u%beam%macro_data%d2(j)%d1(jj)%d => u%d2_data(i)%d1(ii)%d
-            endif
-          enddo
-        enddo
-      endif
-    enddo
+  ! allocate ix_ele array for each element
+  do j = 0, u%design%n_ele_max
+    if (associated(u%ix_data(j)%ix_datum)) deallocate (u%ix_data(j)%ix_datum)
+    if (ele(j) .eq. 0) cycle
+    allocate (u%ix_data(j)%ix_datum(ele(j)))
   enddo
 
-end subroutine init_macro_data
+  ! used for keeping track of current datum index in each ix_ele element
+  ix_next(:) = 1
+  
+  ! setup ix_ele array for each element
+  do j = 1, size(u%data)
+    if (.not. u%data(j)%exists) cycle
+    ix_ele = max(u%data(j)%ix_ele, u%data(j)%ix_ele2)
+    u%ix_data(ix_ele)%ix_datum(ix_next(ix_ele)) = j
+    ix_next(ix_ele) = ix_next(ix_ele) + 1
+  enddo
 
+end subroutine init_ix_data
 		
 end subroutine tao_init_global_and_universes

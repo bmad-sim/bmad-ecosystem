@@ -210,18 +210,21 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_pointer_to_var_in_lattice (var, this, ix_uni, err)
+! Subroutine tao_pointer_to_var_in_lattice (var, this, ix_uni, is_ele, err)
 ! 
 ! Routine to set a pointer to the appropriate variable in a lattice
 !
 ! Input:
-!   var   -- Tao_var_struct: Structure has the info of where to point.
+!   var    -- Tao_var_struct: Structure has the info of where to point.
+!   this   -- Tao_this_var_struct: the variables pointers to point with
+!   ix_uni -- Integer: the universe to use
+!   ix_ele -- (Optional) Integer: Point to this element
 !
 ! Output:
 !   err   -- Logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine tao_pointer_to_var_in_lattice (var, this, ix_uni, err)
+subroutine tao_pointer_to_var_in_lattice (var, this, ix_uni, ix_ele, err)
 
 implicit none
 
@@ -229,6 +232,7 @@ type (tao_var_struct) var
 type (tao_universe_struct), pointer :: u
 type (tao_this_var_struct) this
 
+integer, optional :: ix_ele
 integer ix, ie, ix_uni
 logical, optional :: err
 logical error
@@ -236,31 +240,36 @@ character(30) :: r_name = 'tao_pointer_to_var_in_lattice'
 
 ! locate element
 
-if (present(err)) err = .true.
+  if (present(err)) err = .true.
 
-u => s%u(ix_uni)
-call element_locator (var%ele_name, u%model, ie)
-if (ie < 0) then
-  call out_io (s_error$, r_name, 'ELEMENT NAME NOT FOUND: ' // var%ele_name)
-  if (present(err)) return
-  call err_exit
-endif
+  u => s%u(ix_uni)
+  if (present(ix_ele)) then
+    ie = ix_ele
+  else
+    call element_locator (var%ele_name, u%model, ie)
+  endif
 
-! locate attribute
+  if (ie < 0) then
+    call out_io (s_error$, r_name, 'ELEMENT NAME NOT FOUND: ' // var%ele_name)
+    if (present(err)) return
+    call err_exit
+  endif
 
-call pointer_to_attribute (u%model%ele_(ie), var%attrib_name, .true., this%model_ptr, ix, error)
-call pointer_to_attribute (u%base%ele_(ie),  var%attrib_name, .true., this%base_ptr,  ix, error)
-if (error) then
-  if (present(err)) return
-  call err_exit
-endif
+  ! locate attribute
 
-if (present(err)) err = .false.
+  call pointer_to_attribute (u%model%ele_(ie), var%attrib_name, .true., this%model_ptr, ix, error)
+  call pointer_to_attribute (u%base%ele_(ie),  var%attrib_name, .true., this%base_ptr,  ix, error)
+  if (error) then
+    if (present(err)) return
+    call err_exit
+  endif
 
-this%ix_ele = ie
-this%ix_uni = ix_uni
+  if (present(err)) err = .false.
 
-end subroutine
+  this%ix_ele = ie
+  this%ix_uni = ix_uni
+
+end subroutine tao_pointer_to_var_in_lattice
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

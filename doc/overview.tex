@@ -275,7 +275,7 @@ The are two types of tracking implemented in \tao: single particle tracking and
 macroparticle tracking. Single particle tracking is just that, the tracking 
 of a single particle through the lattice. Macroparticle tracking takes a beam distribution
 and tracks the centroids and sigmas of the ``macro-particles'' through the lattice.
-Single particle tracking is used by default. See the Section~\ref{s:macros} for details on
+Single particle tracking is used by default. See Section~\ref{s:macros} for details on
 setting up macroparticle tracking.
 
 %------------------------------------------------------------------------
@@ -293,8 +293,11 @@ Below are the steps taken after each \tao command execution:
   \item The data and variables used by the optimizer is re-determined. This is
 affected by commands such as \vn{use, veto,} and \vn{restore} and any changes in the
 status of elements in the ring (e.g. if any elements have been turned off). 
-  \item If changes have been made to the lattice (e.g. variables changed) the
-\vn{model} orbit, linear transfer matrices and twiss parameters are recalculated. 
+  \item If changes have been made to the lattice (e.g. variables changed) Then
+the model lattice for all universes will be recalculated. The
+\vn{model} orbit, linear transfer matrices and twiss parameters are recalculated
+for every element. Any specified data types will also be calculated at each
+element specified in the initialiation file.
 For single particle tracking the linear transfer matrices and twiss parameters are 
 found about the tracked
 orbit. For macroparticle tracking the linear transfer matrices and twiss parameters are 

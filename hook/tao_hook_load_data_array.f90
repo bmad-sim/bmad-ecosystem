@@ -1,25 +1,28 @@
 !+
-! Subroutine tao_hook_load_data_array (found, datum, lattice, orb, datum_value)
+! Subroutine tao_hook_load_data_array (found, datum, u, lattice, orb, ix_ele, datum_value)
 !
 !  See the Programmer's manual for how to add custom data types here.
 !
 ! Input:
-!  Found         -- Logical: the data type was found here
 !  datum         -- tao_data_struct: the current datum to evaluate
+!  u             -- tao_universe_struct: universe this datum is in
 !  lattice       -- ring_struct: lattice associated with datum
 !  orb           -- coord_struct(:): particle orbit in lattice
+!  ix_ele        -- Integer: element for this datum
 !
 ! Output:
 !  datum_value   -- real(rp): which datum value to compute (model_value,
 !                             design_value, etc...)
+!  Found         -- Logical: TRUE if  this datum is evaluated in this subroutine.
 !-
 
-subroutine tao_hook_load_data_array (found, datum, lattice, orb, datum_value)
+subroutine tao_hook_load_data_array (found, datum, u, lattice, orb, ix_ele, datum_value)
 
 use tao_mod
 
 implicit none
 
+type (tao_universe_struct) u
 type (tao_data_struct) datum
 type (ring_struct) lattice
 type (coord_struct) orb(0:)
@@ -27,7 +30,7 @@ type (coord_struct) orb(0:)
 real(rp) datum_value
 logical found
 
-integer ix1, ix2
+integer ix1, ix2, ix_ele
 type (ele_struct), pointer :: ele
 
 character(20) :: r_name = 'tao_hook_load_data_array'
@@ -37,8 +40,9 @@ character(20) :: r_name = 'tao_hook_load_data_array'
 ix1 = datum%ix_ele
 ! if there is only one element associated with the element then ix2 = -1
 ix2 = datum%ix_ele2
-! pointer to first element associated with datum
-ele => lattice%ele_(ix1)
+! pointer to last element associated with datum 
+!                           = max(datum%ix_ele1, datum%ix_ele2)
+ele => lattice%ele_(ix_ele)
 
 
 ! if found = .true. then the data type was found here and the standard data

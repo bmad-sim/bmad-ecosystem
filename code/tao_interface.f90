@@ -92,15 +92,17 @@ interface
 end interface
  
 interface
-  subroutine tao_hook_load_data_array (found, datum, lattice, orb, datum_value)
-    use tao_struct, only: tao_data_struct
+  subroutine tao_hook_load_data_array (found, datum, u, lattice, orb, ix_ele, datum_value)
+    use tao_struct, only: tao_data_struct, tao_universe_struct
     use bmad_struct, only: ring_struct, coord_struct
     use precision_def, only: rp
     implicit none
     type (tao_data_struct) datum
+    type (tao_universe_struct) u
     type (ring_struct) lattice
     type (coord_struct) orb(0:)
     real(rp) datum_value
+    integer ix_ele
     logical found
   end subroutine
 end interface

@@ -45,6 +45,9 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
   endif
   close (iu)
 
+  ! TAO does its own bookkeeping
+  bmad_com%auto_bookkeeper = .false.
+
   ! are we using a custom initialization?
   custom_init = .false.
   call tao_hook_init_design_lattice (design_lattice_file, custom_init)

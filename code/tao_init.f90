@@ -57,21 +57,17 @@ subroutine tao_init (init_file)
   call tao_init_single_mode (single_mode_file)
   call tao_hook_init ()
 
-  ! set up design lattice
+  ! set up design and base lattices
+  do i = 1, size(s%u)
+    s%u(i)%model = s%u(i)%design; s%u(i)%model_orb = s%u(i)%design_orb
+  enddo
   s%global%lattice_recalc = .true.
   call tao_lattice_calc (.true.) ! .true. => init design lattice
   do i = 1, size(s%u)
-    s%u(i)%model = s%u(i)%design; s%u(i)%model_orb = s%u(i)%design_orb
+    s%u(i)%design = s%u(i)%model; s%u(i)%design_orb = s%u(i)%model_orb
     s%u(i)%base  = s%u(i)%design; s%u(i)%base_orb  = s%u(i)%design_orb
-  enddo
-
-  ! now get the data without recalcing the model lattice
-  call tao_lattice_calc()      ! calculate Twiss parameters, closed orbit
-  do i = 1, size(s%u)
-    if (associated (s%u(i)%data)) then
-      s%u(i)%data%design_value = s%u(i)%data%model_value
-      s%u(i)%data%base_value = s%u(i)%data%model_value
-    endif
+    s%u(i)%data%design_value = s%u(i)%data%model_value
+    s%u(i)%data%base_value = s%u(i)%data%model_value
   enddo
 
   call tao_init_plotting (plot_file)
@@ -141,14 +137,7 @@ integer i, j, k, istat
     deallocate(s%u(i)%base_orb, stat=istat)
     
     ! Beams
-    deallocate(s%u(i)%beam%ix_lost, stat=istat)
-    do j = 1, size(s%u(i)%beam%macro_data%d2)
-      do k = 1, size(s%u(i)%beam%macro_data%d2(j)%d1)
-        nullify(s%u(i)%beam%macro_data%d2(j)%d1(k)%d)
-      enddo
-      deallocate(s%u(i)%beam%macro_data%d2(j)%d1, stat=istat)
-    enddo
-    deallocate(s%u(i)%beam%macro_data%d2, stat=istat)
+    deallocate(s%u(i)%macro_beam%ix_lost, stat=istat)
  
     ! d2_data
     do j = 1, size(s%u(i)%d2_data)
@@ -198,16 +187,28 @@ integer j, istat
     if (associated(lat%ele_(j)%descrip)) deallocate(lat%ele_(j)%descrip, stat=istat)
     if (associated(lat%ele_(j)%gen_field)) deallocate(lat%ele_(j)%gen_field, stat=istat)
     if (associated(lat%ele_(j)%wake)) then
-      deallocate(lat%ele_(j)%wake%sr, stat=istat)  
-      deallocate(lat%ele_(j)%wake%lr, stat=istat)  
+      if (associated(lat%ele_(j)%wake%sr)) deallocate(lat%ele_(j)%wake%sr, stat=istat)  
+      if (associated(lat%ele_(j)%wake%lr)) deallocate(lat%ele_(j)%wake%lr, stat=istat)  
       deallocate(lat%ele_(j)%wake, stat=istat)
     endif
     if (associated(lat%ele_(j)%wig_term)) deallocate(lat%ele_(j)%wig_term, stat=istat)
+    nullify (lat%ele_(j)%r)
+    nullify (lat%ele_(j)%a)
+    nullify (lat%ele_(j)%b)
+    nullify (lat%ele_(j)%const)
+    nullify (lat%ele_(j)%descrip)
+    nullify (lat%ele_(j)%gen_field)
+    nullify (lat%ele_(j)%wake)
+    nullify (lat%ele_(j)%wig_term)
   enddo
   deallocate(lat%ele_, stat=istat)
+  nullify(lat%ele_)
   
+  ! other stuff in lattice
   if (associated(lat%control_)) deallocate(lat%control_, stat=istat)
   if (associated(lat%ic_)) deallocate(lat%ic_, stat=istat)
+  nullify(lat%control_)
+  nullify(lat%ic_)
   nullify(lat%beam_energy)
 
 end subroutine deallocate_lattice_internals
