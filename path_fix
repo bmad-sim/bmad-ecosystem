@@ -8,6 +8,10 @@ foreach $file (@ARGV)
  {
 	$file=~s/^-f//;
   $host=$ENV{HOSTNAME};
+  if(!$host)
+	 {
+		$host=$ENV{HOST};
+   }
 #  print "$host\n";
   @hostname=split /\./, $host;
   $host=@hostname[0];
