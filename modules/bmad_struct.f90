@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.18  2002/10/23 14:45:21  dcs
+!Added Boris tracking.
+!
 !Revision 1.17  2002/10/21 16:00:20  dcs
 !*** empty log message ***
 !
@@ -468,11 +471,13 @@ module bmad_struct
   integer, parameter :: runge_kutta$ = 3 
   integer, parameter :: linear$ = 4, tracking$ = 5, symp_map$ = 6
   integer, parameter :: wiedemann$ = 9, symp_lie_bmad$ = 10, none$ = 11
+  integer, parameter :: boris$ = 12, adaptive_boris$ = 13
 
-  character*16, parameter :: calc_method_name(0:11) = (/ &
-      "GARBAGE!     ", "BMAD_Standard", "Symp_Lie_PTC ", "Runge_Kutta  ", &
-      "Linear       ", "Tracking     ", "Symp_Map     ", "Custom       ", &
-      "Taylor       ", "Wiedemann    ", "Symp_Lie_BMAD", "None         " /)
+  character*16, parameter :: calc_method_name(0:13) = (/ &
+      "GARBAGE!      ", "BMAD_Standard ", "Symp_Lie_PTC  ", "Runge_Kutta   ", &
+      "Linear        ", "Tracking      ", "Symp_Map      ", "Custom        ", &
+      "Taylor        ", "Wiedemann     ", "Symp_Lie_BMAD ", "None          ", &
+      "Boris         ", "Adaptive_Boris" /)
 
   integer, parameter :: map_type$ = 1, periodic_type$ = 2
   character*16, parameter :: sub_key_name(0:2) = (/ &
