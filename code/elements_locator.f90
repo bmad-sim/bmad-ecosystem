@@ -2,7 +2,8 @@
 ! Subroutine elements_locator (key, ring, indx)
 !
 ! Subroutine to locate all the elements of a certain kind in a ring. 
-! Note: super_slave elements are not included in the list.
+! Note: super_slave elements are not included in the list since super_slaves
+! cannot have their attributes changed directly.
 !
 ! Modules Needed:
 !   use bmad
