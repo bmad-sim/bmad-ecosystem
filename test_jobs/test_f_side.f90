@@ -25,26 +25,26 @@ module test_mod
 
 use bmad
 
-type (coord_struct)           coord_in, coord_out
-type (twiss_struct)           twiss_in, twiss_out
-type (floor_position_struct)  floor_position_in, floor_position_out
-type (wig_term_struct)        wig_term_in, wig_term_out
-type (taylor_term_struct)     taylor_term_in, taylor_term_out
-type (taylor_struct)          taylor_in, taylor_out
-type (sr1_wake_struct)        sr1_wake_in, sr1_wake_out
-type (sr2_wake_struct)        sr2_wake_in, sr2_wake_out
-type (lr_wake_struct)         lr_wake_in, lr_wake_out
-type (wake_struct), target :: wake_in, wake_out
-type (control_struct)         control_in, control_out
-type (param_struct)           param_in, param_out
-type (amode_struct)           amode_in, amode_out
-type (linac_mode_struct)      linac_mode_in, linac_mode_out
-type (modes_struct)           modes_in, modes_out
-type (bmad_com_struct)        bmad_com_in, bmad_com_out
-type (em_field_struct)        em_field_in, em_field_out
-type (ele_struct)             ele_in, ele_out
-type (mode_info_struct)       mode_info_in, mode_info_out
-type (ring_struct)            ring_in, ring_out
+type (coord_struct), save ::           coord_in, coord_out
+type (twiss_struct), save ::           twiss_in, twiss_out
+type (floor_position_struct), save ::  floor_position_in, floor_position_out
+type (wig_term_struct), save ::        wig_term_in, wig_term_out
+type (taylor_term_struct), save ::     taylor_term_in, taylor_term_out
+type (taylor_struct), save ::          taylor_in, taylor_out
+type (sr1_wake_struct), save ::        sr1_wake_in, sr1_wake_out
+type (sr2_wake_struct), save ::        sr2_wake_in, sr2_wake_out
+type (lr_wake_struct), save ::         lr_wake_in, lr_wake_out
+type (wake_struct), save, target ::    wake_in, wake_out
+type (control_struct), save ::         control_in, control_out
+type (param_struct), save ::           param_in, param_out
+type (amode_struct), save ::           amode_in, amode_out
+type (linac_mode_struct), save ::      linac_mode_in, linac_mode_out
+type (modes_struct), save ::           modes_in, modes_out
+type (bmad_com_struct), save ::        bmad_com_in, bmad_com_out
+type (em_field_struct), save ::        em_field_in, em_field_out
+type (ele_struct), save ::             ele_in, ele_out
+type (mode_info_struct), save ::       mode_info_in, mode_info_out
+type (ring_struct), save ::            ring_in, ring_out
 
 logical, save :: all_ok = .true.
 
