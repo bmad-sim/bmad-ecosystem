@@ -8,7 +8,12 @@ For convenience, \bmad\ computes the values of some attributes based
 upon the values of other attributes. These dependent variables are
 listed in Table~\ref{t:dependent}. Also shown in
 Table~\ref{t:dependent} are the independent variables they are
-calculated from.
+calculated from.  In the table \vn{n_part} and \vn{l_lattice} (lattice
+length) are lattice atributes, not element attributes. The first two
+are set by the \vn{parameter} statement (See
+Section~\ref{s:parameter}). \vn{l_lattice} is calculated when the
+lattice is read in.
+
 \begin{table}[h]
 \centering {
 \begin{tabular}{|l|l|l|} \hline
@@ -18,7 +23,6 @@ calculated from.
   ElSeparator  & e\_field, voltage    & hkick, vkick, gap, l, beam\_energy    \\ \hline
   LCavity      & e\_loss, delta\_e    & gradiant, l                           \\ \hline
   RBend, SBend & rho, angle, l\_chord & g, l                                  \\ \hline
-  RFCavity     & rf\_wavelength       & harmon, l\_lattice                    \\ \hline
   Wiggler (periodic type)
                & k1, rho              & b\_max, beam\_energy                  \\ \hline
 \end{tabular}
@@ -28,12 +32,6 @@ they are calculated from.}
 \label{t:dependent}
 \end{table}
 
-\vn{beam_energy}, \vn{n_part} and \vn{l_lattice} (lattice length) are
-lattice atributes, not element attributes. The first two are set by
-the \vn{parameter} statement (See
-Section~\ref{s:parameter}). \vn{l_lattice} is calculated when the
-lattice is read in.
-
 No attempt should be made to set or vary within a program dependent
 attributes. It should be remarked that this is not an ironclad rule.
 If a program properly bypasses \bmad's attribute bookkeeping routine
@@ -42,7 +40,8 @@ setting of a select group of dependent variables if the appropriate
 independent is left unspecified.  The list of settable dependent
 variables is given in Table~\ref{t:dep_except}.  After reading in the
 lattice \bmad\ will set the appropriate independent variable based
-upon the value of the dependent variable.
+upon the value of the dependent variable. \vn{harmon} is the exception in 
+that it will never be set by the bookkeeping routine.
 \begin{table}[h]
 \centering {
 \begin{tabular}{|l|l|l|} \hline
@@ -50,11 +49,15 @@ upon the value of the dependent variable.
   LCavity      & delta\_e                  & gradiant                           \\ \hline
   RBend, SBend & rho                       & g                                  \\ \hline
   RBend, SBend & angle                     & g                                  \\ \hline
+  RFCavity     & rf\_frequency             & harmon                             \\ \hline
 \end{tabular}
 }
 \caption {Dependent variables that can be set in a primary lattice file.}
 \label{t:dep_except}
 \end{table}
+
+
+
 
 The normal attribute used to vary the strength of, say, a
 \vn{quadrupole} is \vn{k1}.  It is sometimes convienient to be able to

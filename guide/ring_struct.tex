@@ -69,6 +69,64 @@ The \vn{%ele_init} component within the \vn{ring_struct} is not used
 by \bmad\ and is available for general program use.
 
 %----------------------------------------------------------------------------
+\section{Param\_struct Structure}
+
+The \vn{%param} variable within the \vn{ring_struct} is a
+\vn{param_struct} structure whose definition is shown in
+Figure~\ref{f:param_struct}
+\begin{figure}[htb]
+\centering
+\begin{verbatim}
+  type param_struct
+    real(rp) beam_energy        ! beam energy in eV
+    real(rp) n_part             ! Particles/bunch (for BeamBeam elements).
+    real(rp) charge             ! MacroParticle charge (used by LCavities).
+    real(rp) total_length       ! total_length of ring
+    real(rp) growth_rate        ! growth rate/turn if not stable
+    real(rp) t1_mat6(6,6)       ! Full 1-turn 6x6 matrix
+    real(rp) t1_mat4(4,4)       ! Transverse 1-turn 4x4 matrix (RF off).
+    integer particle            ! +1 = positrons, -1 = electrons
+    integer iy                  ! Not currently used.
+    integer ix_lost             ! If lost at what element?
+    integer lattice_type        ! linac_lattice$, circular_lattice$, etc...
+    integer ixx                 ! Integer for general use
+    logical stable              ! is closed ring stable?
+    logical aperture_limit_on   ! use apertures in tracking?
+    logical lost                ! for use in tracking
+  end type
+\end{verbatim}
+\caption{Definition of the \tn{param\_struct}.}
+\label{f:param_struct}
+\end{figure}
+
+\vn{%param%n_part} is the number of particles in a bunch and is used
+by \vn{BeamBeam} element to determine the strength of the beambeam
+interaction. \vn{%param%charge} is the charge of a particle or
+macroparticle and is used by \vn{LCavity} elements for wakefield
+calculations. The two variables are independent and setting one will not
+affect the other. 
+
+\vn{%param%lost} is set by tracking routines to signal if a particle
+is lost. \vn{%param%aperture_limit_on} determines is apertures are
+checked to begin with. \vn{%param%ix_lost} gives the index of the
+element at which a particle is lost.
+
+\vn{%param%t1_mat6} and \vn{%param%t1_mat4} are the 1--turn transfer
+matrices from the start of the lattice to the end. \vn{%param%t1_mat6}
+is the full transfer matrix with RF on. \vn{%param%t1_mat4} is the
+transverse transfer matrix with RF off. \vn{%param%t1_mat4} is used to
+compute the Twiss parameters. When computing the Twiss parameters
+\vn{%param%stable} is set according to whether the matrix is stable or
+not. If the matrix is not stable the Twiss parameters cannot be
+computed. If unstable, \vn{%param%growth_rate} will be set to the
+growth rate per turn of the unstable mode.  \vn{%param%t1_mat6} and
+\vn{%param%t1_mat4} are set by various routines. Other routines use
+these matrices as input for calculations.
+
+
+
+
+%----------------------------------------------------------------------------
 \section{Elements Controlling Other Elements}
 \label{s:ring_control}
 

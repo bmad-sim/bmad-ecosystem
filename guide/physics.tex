@@ -314,8 +314,8 @@ Since the radiation is emitted in the forward direction the angles
 $x'$ and $y'$ are invariant which leads to the following equations for
 the changes in $p_x$ and $p_y$
 \begin{align}
-  \Delta p_x = &-k_E \, p_x \\
-  \Delta p_y = &-k_E \, p_y
+  \Delta p_x = &-k_E \, p_x \CRNO
+  \Delta p_y = &-k_E \, p_y 
 \end{align}
 
 %-----------------------------------------------------------------
@@ -348,12 +348,62 @@ $s_1$ and $s_2$.
 A relativistic charged particle bunch is modeled by dividing it longitudinally
 into a series
 of slices. Each slice is made up of a number of macroparticles. It is assumed
-that the longitudinal position of the macroparticles of a slice are roughly the
-same with no overlap in $z$ between slices. 
+that the range of the longitudinal positions of the macroparticles of a given
+slice do not overlap the ranges of the other slices. 
 
-If the initial distribution of slices and macroparticles is set--up to 
-mirror the Liar program\cite{b:liar} then the slices within a bunch
-will be placed 
+\bmad has a routine to initialize macroparticles to mirror the initial
+distribution as set--up by the LIAR program\cite{b:liar}. The
+initialization is as follows: The macroparticles within the $j$\Th
+slice within a bunch will be placed, relative to the reference
+particle, at a longitudinal position $z_j$ given by
+\Begineq
+  z_j = z_0 + \frac{(n_s - 2 \, j + 1) \, \sigma_z \, N_{\sigma z}}{n_s}
+\Endeq
+where $z_0$ is an overall offset that will affect the voltage seen by
+the macroparticles, $n_s$ is the number of slices, $j = 1, \ldots,
+n_s$ is the index of the slice, $\sigma_z$ is the RMS bunch length,
+and $N_{\sigma z}$ is the number of $\sigma_z$ the slices go out
+to. The width $dz_s$ of each slice is
+\Begineq
+    dz_s = \frac{2 \, \sigma_z \, N_{\sigma z}}{n_s}
+\Endeq
+The charge associated with each slice is, within a constant factor,
+the charge contained within the region between $z_j - dz_s/2$ and $z_j
++ dz_s/2$ assuming a Gaussian distribution.  The charge of all the
+slices are multiplied by a factor so that the total charge of the
+slices is equal to the input bunch charge.
+
+The initialization of the macroparticles within a slice gives all the
+macroparticles the same centroid position (but with differing
+energies) and sigma matrix as determined by the input parameters:
+\begin{align}
+  \bfsigma(1,1) &= \epsilon_x \, \beta_x \CRNEG
+  \bfsigma(1,2) &= -\epsilon_x \alpha_x  \CRNEG
+  \bfsigma(2,2) &= \epsilon_x \, (1 + \alpha_x^2) / \beta_x \CRNEG
+  \bfsigma(3,3) &= \epsilon_y \, \beta_y \\
+  \bfsigma(3,4) &= -\epsilon_y \alpha_y \CRNEG
+  \bfsigma(3,4) &= \epsilon_y \, (1 + \alpha_y^2) / \beta_y \CRNEG
+  \bfsigma(i,j) &= 0 \quad \mbox{otherwise} \nonumber
+\end{align}
+The centroid energy of the $k$\Th macroparticle is
+\Begineq
+  E_k = E_0 + \frac{(n_{mp} - 2 \, j + 1) \, \sigma_E \, N_{\sigma E}}{n_{mp}}
+\Endeq
+where $E_0$ is the central energy of the bunch, $n_{mp}$ is the number
+of macroparticles per slice, $\sigma_E$ is the energy sigma, and
+$N_{\sigma E}$ is the number of sigma in energy that the range of
+macroparticle energies cover. The charge of each macroparticle is,
+within a constant factor, the charge contained within the energy
+region $E_k - dE_{mp}/2$ to $E_k + dE_{mp}/2$ assuming a Gaussian
+distribution where the energy width $dE_{mp}$ is
+\Begineq
+  dE_{mp} = \frac{2 \, \sigma_E \, N_{\sigma E}}{n_{mp}}
+\Endeq
+The charge of all the macroparticles is adjusted by a constant factor
+so that the total charge of the macroparticles within a slice is equal
+to the charge associated with the slice.
+
+
 
 %-----------------------------------------------------------------
 \section{Wakefields}
@@ -387,16 +437,16 @@ a modified wakefield function
     \Wl(dz)                                            & \text{otherwise}
   \end{cases}
 \Endeq
-$\tWl$ is used instead of $\Wl$ to avoid simulation artifacts which happen
-when macroparticles 
-are close longitudinally and is due to the discontinutiy of $\Wl$ at $dz = 0$. 
-$\sigma_{zij}$ is the combined macroparticle length
+$\tWl$ is used instead of $\Wl$ to avoid simulation artifacts which
+happen when macroparticles are close longitudinally and is due to the
+discontinutiy of $\Wl$ at $dz = 0$.  $\sigma_{zij}$ is the combined
+macroparticle length
 \Begineq
   \sigma_{zij} = \sigma_{zi} + \sigma_{zj} + \sigma_{z0}
 \Endeq
-where $\sigma_{zi}$ and $\sigma_{zj}$ are the longitudinal sizes for the $i$\Th and
-$j$\Th particles respectively, and $\sigma_{z0} is a small fudge factor needed when
-$\sigma_{zi} = \sigma_{zj} = 0$.
+where $\sigma_{zi}$ and $\sigma_{zj}$ are the longitudinal sizes for
+the $i$\Th and $j$\Th particles respectively, and $\sigma_{z0}$ is a
+small fudge factor needed when $\sigma_{zi} = \sigma_{zj} = 0$.
 
 The transverse kick $dx'_i$ for the $i$\Th macroparticle due to the 
 dipole short--range transverse wakefield is modeled with the equation

@@ -1,4 +1,5 @@
 \chapter{Elements}
+\label{c:elements}
 
 A lattice for a storage ring or LINAC is made up of a collection of
 elements --- quadrupoles, bends, etc. This chapter discusses the
@@ -719,16 +720,16 @@ the two is the way the input attributes are interpreted.
   \centering
   \subfigure[rbend]
   {
-    \label{rbend}
     \includegraphics{rbend_coords.psfig}
+    \label{rbend}
   }
   \hspace{1cm}
   \subfigure[sbend]
   {
-    \label{sbend}
     \includegraphics{sbend_coords.psfig}
+    \label{sbend}
   }
-  \caption{Coordinate systems for rbend and sbend elements}
+  \caption{Coordinate systems for (a) \vn{Rbend} and (b) \vn{Sbend} elements.}
 \end{figure}
   
 
@@ -740,8 +741,8 @@ the two is the way the input attributes are interpreted.
   l        = Real       & \ref{s:l}       & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}    \\ \hline
                         &                 & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}   \\ \hline
   g        = Real       &                 & descrip = String   & \ref{s:string} & x\_offset  = Real           & \ref{s:offset} \\ \hline
-  delta\_g = Real       &                 &                    &                & y\_offset  = Real           & \ref{s:offset} \\ \hline
-  e1       = Real       &                 &                    &                & s\_offset  = Real           & \ref{s:offset} \\ \hline
+  delta\_g = Real       &                 & h1                 &                & y\_offset  = Real           & \ref{s:offset} \\ \hline
+  e1       = Real       &                 & h2                 &                & s\_offset  = Real           & \ref{s:offset} \\ \hline
   e2       = Real       &                 & x\_limit = Real    & \ref{s:limit}  & x\_pitch = Real             & \ref{s:offset} \\ \hline
   b\_field = Real       &                 & y\_limit = Real    & \ref{s:limit}  & y\_pitch = Real             & \ref{s:offset} \\ \hline
   rho      = Real       &                 & aperture = Real    & \ref{s:limit}  & rel\_tol = Real             & \ref{s:integ}  \\ \hline
@@ -755,18 +756,21 @@ the two is the way the input attributes are interpreted.
 \end{center}
 \toffset
 
-Note that \vn{l} for a \vn{RBend} is the chord length. Not the arc length as
-it is for a \vn{SBend}.
+Note that \vn{l} for a \vn{Rbend} is the chord length. Not tharc
+length as it is for a \vn{Sbend}.
 
-After reading in a lattice, \bmad\ will internally convert all \vn{RBend}s
-into \vn{SBend}s so \vn{l} will become the path length. The chord length will
-be stored in the \vn{l_chord} attribute.
+After reading in a lattice, \bmad\ will internally convert all
+\vn{Rbend}s into \vn{Sbend}s so \vn{l} will become the path
+length. The chord length will be stored in the \vn{l_chord} attribute.
 
-Use of \vn{hgap}, \vn{hgapx}, \vn{fint}, and \vn{fintx} is not yet implemented.
+The attributes \vn{h1}, \vn{h2}, \vn{hgap}, \vn{hgapx}, \vn{fint}, and
+\vn{fintx} are present for compatibility with MAD but are not yet
+implemented in terms of tracking and other calculations.
 
-\vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are specified
-for an element \bmad\ will calculate the appropriate value for the third.
-After reading in a lattice, \vn{angle} is considered a dependent variable.
+\vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are
+specified for an element \bmad\ will calculate the appropriate value
+for the third.  After reading in a lattice, \vn{angle} is considered a
+dependent variable.
 
 For \vn{k1} = 0 \vn{Bmad_Standard} tracking does an exact geometrical 
 calculation using thin quads at either end if there is non--zero edge
@@ -792,7 +796,8 @@ Dependent attributes:
 \section{RFcavity}
 \label{s:rfcav}
 
-An \vn{RFcavity} is an RF cavity without acceleration generally used in a storage ring.
+An \vn{RFcavity} is an RF cavity without acceleration generally used
+in a storage ring.
 
 \toffset
 \begin{center}
@@ -801,8 +806,8 @@ An \vn{RFcavity} is an RF cavity without acceleration generally used in a storag
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
   l        = Real       & \ref{s:l}      & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
   harmon   = Real       &                & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
-  voltage     = Real       &                & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
-  phi0     = Real       &                &                    &                & field\_calc = Switch        & \ref{s:integ} \\ \hline
+  voltage  = Real       &                & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
+  phi0     = Real       &                & rf\_frequency = Real &              & field\_calc = Switch        & \ref{s:integ} \\ \hline
   x\_offset  = Real     & \ref{s:offset} & x\_limit = Real    & \ref{s:limit}  & rel\_tol = Real             & \ref{s:integ} \\ \hline
   y\_offset  = Real     & \ref{s:offset} & y\_limit = Real    & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
   s\_offset  = Real     & \ref{s:offset} & aperture = Real    & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
@@ -812,6 +817,16 @@ An \vn{RFcavity} is an RF cavity without acceleration generally used in a storag
 \end{center}
 \toffset
 
+The \vn{phi0} attribute here is identical to \vn{lag} attribute of
+MAD. The kick felt by a particle is 
+\begin{example}
+  dE = voltage * sin(twopi * (phi0 + z * rf_frequency / c_light))
+\end{example}
+If \vn{harmon} is non--zero then rf_frequency is a dependent attribute calculated by
+\begin{example}
+  rf_frequency = harmon * c_light / L_lattice 
+\end{example}
+where \vn{L_lattice} is the total lattice length.
 
 \vskip0.05in \noindent
 Example:
@@ -823,7 +838,6 @@ Example:
 Dependent attributes:
 \begin{example}
   beam\_energy  ! See section \ref{s:beam}
-  rf\_wavelength
 \end{example}
 
 %-----------------------------------------------------------------

@@ -60,7 +60,7 @@ just add a ``\$'' suffix to the type name. The \vn{key_name} array convets
 from integer to the appropriate string. For example
 \begin{example}
   type (ele_struct) ele
-  call init_ele (ele)                       ! Initialize
+  call init_ele (ele)                      ! Initialize
   ele%key = wiggler\$                       ! Turn the element into a quadruple
   print *, 'This element: ', key_name(ele%key)  ! Prints: 'WIGGLER'
 \end{example}
@@ -125,9 +125,19 @@ from an index in the \vn{%value} array to a name use the
 \vn{attribute_name} routine
 \begin{example}
   type (ele_struct) ele
-  ele%kye = quadrupole$  ! quadrupole element
-  print *, 'Index for Quadruple K1:  ', attribute_index(ele, 'K1') ! prints: '4' (= k1\$)
-  print *, 'Name for Quadrupole k1\$: ', attrbute_name (ele, k1\$)   ! prints: 'K1' 
+  ele%key = quadrupole$  ! Set element to be a quadrupole
+  print *, 'Index for Quad K1:  ', attribute_index(ele, 'K1') ! prints: `4' (= k1\$)
+  print *, 'Name for Quad k1\$: ', attrbute_name (ele, k1\$)   ! prints: `K1' 
+\end{example}
+The list of attributes in the \vn{%value(:)} array for a given element
+type is given in the writeup for the different element in
+Chapter~\ref{c:elements}. The real valued attribute that are {\em not}
+found in the \vn{%value(:)} array are
+\begin{example}
+  an, bn                                  ! ab_multipole components
+  knl tn                                  ! multipole components
+  \{out: coef, e1, e2, e3, e4, e5, e6\}     ! taylor term for a Taylor element
+  term(i) = Wig_term                      ! Wiggler term
 \end{example}
 
 \vn{attribute_bookkeeper} is the routine that makes sure the dependent

@@ -32,7 +32,7 @@ general interest.
  	Helper Subroutines: Informational       & \ref{r:info}       \\ \hline
  	Helper Subroutines: Elemental           & \ref{r:elem}       \\ \hline
  	Helper Subroutines: Transformational    & \ref{r:trans}      \\ \hline
- 	Helper Subroutines: Multipolar          & \ref{r:multi}      \\ \hline
+ 	Helper Subroutines: Multipoles          & \ref{r:multi}      \\ \hline
  	Helper Subroutines: Miscellaneous       & \ref{r:misc_help}  \\ \hline
  	Helper Subroutines: Low Level Stuff     & \ref{r:low_help}   \\ \hline
  	Overload Equal Sign Routines.           & \ref{r:equal}      \\ \hline
@@ -105,10 +105,6 @@ has the desired chromaticities.
 
 \item[emitt\_calc (ring, what, mode)] \Newline
 Subroutine to calculate the emittance, energy spread, and synchrotron integrals. 
-
-\item[mobius\_twiss\_calc (ele, v\_mat)] \Newline
-Subroutine calculate the mobius betas and etas which are effective 
-projections of beta and eta in the X and Y planes. 
 
 \item[quad\_beta\_ave (ring, ix\_ele, beta\_x\_ave, beta\_y\_ave)] \Newline
 Subroutine to compute the average betas in a quad.
@@ -335,7 +331,7 @@ Subroutine to track through a single element.
 \item[track\_all (ring, orbit\_)] \Newline
 Subroutine to track through the ring. 
 
-\item[track\_all\_beam (ring, beam, ix1, ix2)] \Newline 
+\item[track\_beam (ring, beam, ix1, ix2)] \Newline 
      Subroutine to track a beam of macroparticles from the end of
      ring%ele\_(ix1) Through to the end of ring%ele\_(ix2).
 
@@ -612,28 +608,36 @@ Subroutine to write a Bmad taylor map in a nice format to a character array.
 
 \begin{description}
 
+\item[init\_macro\_distribution (beam, init, canonical\_out)] \Newline 
+Subroutine to initialize a macroparticle distribution.
+This routine uses the LIAR algorithm. See the Bmad manual for more details.
+
 \item[mat\_to\_mp\_sigma (sigma, mat)] \Newline 
-     Subroutine to convert a sigma matrix. to a linear array of 
-     macroparticle sigmas.
+Subroutine to convert a sigma matrix. to a linear array of 
+macroparticle sigmas.
 
 \item[mp\_sigma\_to\_mat (sigma, mat)] \Newline 
-     Subroutine to convert a linear array of macroparticle sigmas to a 
-     sigma matrix. 
+Subroutine to convert a linear array of macroparticle sigmas to a 
+sigma matrix. 
 
 \item[mp\_to\_angle\_coords (mp, energy0)] \Newline 
 Subroutine to convert macroparticle coords from 
 (x, px, y, py, z, pz) to (x, x', y, y', z, E).
 
-\item[mp\_to\_momentum\_coords (mp, energy0)] \Newline 
+\item[mp\_to\_canonical\_coords (mp, energy0)] \Newline 
 Subroutine to convert macroparticle coords from 
 (x, x', y, y', z, E) to (x, px, y, py, z, pz).
 
-\item[track\_all\_beam (ring, beam, ix1, ix2)] \Newline 
+\item[reallocate\_beam (beam, n\_bunch, n\_slice, n\_macro)] \Newline 
+Subroutine to reallocate memory within a beam\_struct.
+
+\item[track\_beam (ring, beam, ix1, ix2)] \Newline 
 Subroutine to track a beam of macroparticles from the end of
 ring%ele\_(ix1) Through to the end of ring%ele\_(ix2).
 
-\item[track1\_macro\_particle (start, ele, param, end)] \Newline 
-     Subroutine to track a macroparticle through an element.
+\item[track1\_macroparticle (start, ele, param, end)] \Newline 
+Subroutine to track a macroparticle through an element.
+
 
 \end{description}
 
@@ -838,7 +842,7 @@ the elements of another.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Helper Subroutines: Multipolar}
+\section{Helper Subroutines: Multipoles}
 \label{r:multi}    
 
 \begin{description}
@@ -851,6 +855,9 @@ Subroutine to put the scaled element multipole components (normal and skew) into
 
 \item[multipole\_ele\_to\_kt (ele, particle, knl, tilt, use\_ele\_tilt)] \Newline
 Subroutine to put the scaled element multipole components (strength and tilt) into 2 vectors. 
+
+\item[multipole\_init] \Newline
+ Subroutine to initialize the multipole arrays within an element.
 
 \item[multipole\_kick (knl, tilt, n, coord)] \Newline
 Subroutine to put in the kick due to a multipole. 
