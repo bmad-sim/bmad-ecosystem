@@ -115,7 +115,7 @@ The general form of the $C_i$ constraint values is
 \Begineq
   C = 
     \begin{cases}
-    (\mbox{Model} - \mbox{Target})  & Condition
+    (\mbox{Model} - \mbox{Target})  & Condition \\
     0                               & Otherwise
     \end{cases}
 \Endeq
@@ -147,22 +147,22 @@ the constraint \vn{model} values are identified with the
 The different types of \vn{data} that \tao knows about is called the data's \vn{type}
 
 \begin{table}[h] \centering {\tt
-\begin{tabular}{|l|l|} \hline
-  {\it Constraint/Data Type} & {\it Description}     &          & \\ \hline 
-    beta:x, beta:y    & Twiss parameter              &          & \\ \hline 
-    alpha:x, alpha:y  & Twiss parameter              &          & \\ \hline 
-    eta:x, eta:y      & Dispersion                   &          & \\ \hline 
-    etap:x, etap:y    & Dispersion derivative        &          & \\ \hline 
-    phase:x, phase:y  & Betatron phase               & relative & \\ \hline 
-    orbit:x, orbit:y  & Particle orbit               &          & \\ \hline 
+\begin{tabular}{|l|l|l|} \hline
+  {\it Constraint/Data Type} & {\it Description}     &          \\ \hline 
+    beta:x, beta:y    & Twiss parameter              &          \\ \hline 
+    alpha:x, alpha:y  & Twiss parameter              &          \\ \hline 
+    eta:x, eta:y      & Dispersion                   &          \\ \hline 
+    etap:x, etap:y    & Dispersion derivative        &          \\ \hline 
+    phase:x, phase:y  & Betatron phase               & relative \\ \hline 
+    orbit:x, orbit:y  & Particle orbit               &          \\ \hline 
     cbar:11, cbar:12, cbar:21, cbar:22 
-                      & Coupling                     &          & \\ \hline 
+                      & Coupling                     &          \\ \hline 
     floor:x, floor:y, floor:z
-                      & Global (``floor'') position  & relative & \\ \hline 
-    floor:theta       & Global (``floor'') angle     & relative & \\ \hline 
-    r56            & Term in linear transfer map     & relative & \\ \hline 
-    t566           & Term in 2nd order transfer map  & relative & \\ \hline 
-    s              & Longitudinal length constraint  & relative & \\ \hline 
+                      & Global (``floor'') position  & relative \\ \hline 
+    floor:theta       & Global (``floor'') angle     & relative \\ \hline 
+    r56            & Term in linear transfer map     & relative \\ \hline 
+    t566           & Term in 2nd order transfer map  & relative \\ \hline 
+    s              & Longitudinal length constraint  & relative \\ \hline 
 \end{tabular}
 } \caption{Constraint List.}  \label{t:cons}
 \end{table}

@@ -113,8 +113,15 @@ do
   plt%who         = plot%who
   plt%convert     = plot%convert
   plt%x_axis_type = plot%x_axis_type
+  if (plt%type == 'lat_layout') plt%x_axis_type = 's'
+
   ng = plot%n_graph
-  allocate (plt%graph(ng))
+  if (ng == 0) then
+    nullify (plt%graph)
+  else
+    allocate (plt%graph(ng))
+  endif
+
   do i = 1, ng
     graph_index = 0                 ! setup defaults
     graph%y  = init_axis
@@ -150,7 +157,11 @@ do
     grph%y          = graph%y
     grph%y2         = graph%y2
     grph%ix_universe = graph%ix_universe
-    allocate (grph%curve(max(1, graph%n_curve)))
+    if (graph%n_curve == 0) then
+      nullify (grph%curve)
+    else
+      allocate (grph%curve(graph%n_curve))
+    endif
     do j = 1, graph%n_curve
       crv => grph%curve(j)
       crv%data_source       = curve(j)%data_source

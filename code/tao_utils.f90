@@ -287,7 +287,7 @@ subroutine tao_find_plot (err, plots, by_who, where, plot, graph)
 
 implicit none
 
-type (tao_plot_struct) :: plots(:)
+type (tao_plot_struct), target :: plots(:)
 type (tao_plot_struct), pointer, optional :: plot
 type (tao_graph_struct), pointer, optional :: graph
 

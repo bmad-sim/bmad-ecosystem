@@ -19,6 +19,7 @@ subroutine tao_command (command_line, err)
   use tao_cmd_history_mod
   use tao_dmerit_mod
   use tao_scale_mod
+  use tao_x_scale_mod
 
   implicit none
 

@@ -1,3 +1,13 @@
+module tao_x_scale_mod
+
+use tao_mod
+use quick_plot
+
+contains
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
 !+
 ! Subroutine tao_x_scale_cmd (where, x_min, x_max, err)
 !
@@ -13,9 +23,6 @@
 !-
 
 subroutine tao_x_scale_cmd (where, x_min, x_max, err)
-
-use tao_mod
-use quick_plot
 
 implicit none
 
@@ -38,7 +45,7 @@ if (len_trim(where) == 0 .or. where == 'all') then
   do j = 1, size(s%plot_page%plot)
     plot => s%plot_page%plot(j)
     if (.not. plot%visible) cycle
-    call scale_plot (plot)
+    call tao_x_scale_plot (plot, x_min, x_max)
   enddo
   return
 endif
@@ -49,17 +56,24 @@ endif
 
 call tao_find_plot (err, s%plot_page%plot, 'BY_REGION', where, plot, graph)
 if (err) return
-call scale_plot (plot)
+call tao_x_scale_plot (plot, x_min, x_max)
+
+end subroutine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
-contains
+!-----------------------------------------------------------------------------
 
-subroutine scale_plot (plot)
+subroutine tao_x_scale_plot (plot, x_min, x_max)
 
 type (tao_plot_struct) plot
 integer j, k, n
+real(rp) x_min, x_max
 real(rp) x1, x2
+
+! Check if the thing exists
+
+if (.not. associated (plot%graph)) return
 
 ! auto scale
 
@@ -80,7 +94,7 @@ if (x_max == x_min) then
       enddo
     enddo
 
-  elseif (plot%type == "s") then
+  elseif (plot%x_axis_type == "s") then
     x1 = 0
     x2 = maxval (s%u(:)%model%param%total_length)
   endif
@@ -98,6 +112,6 @@ call qp_calc_and_set_axis ('X', x1, x2, &
           nint(0.8 * plot%x_divisions), nint(1.4 * plot%x_divisions), 'GENERAL')
 call qp_get_axis ('X', plot%x%min, plot%x%max, plot%x%major_div, plot%x%places)
 
-end subroutine
-
 end subroutine 
+
+end module

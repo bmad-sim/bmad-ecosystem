@@ -1,10 +1,13 @@
 subroutine tao_single_mode (char)
 
-  use tao_mod
+  use tao_struct
+  use tao_interface
+  use tao_utils
   use quick_plot
   use tao_single_mod
   use single_char_input_mod
   use tao_scale_mod
+  use tao_x_scale_mod
 
   implicit none
 
@@ -60,7 +63,7 @@ subroutine tao_single_mode (char)
   case ('z')
     print *
     s%global%single_mode = .false.
-    call out_io (s_blank$, r_name, 'Entering line mode...'
+    call out_io (s_blank$, r_name, 'Entering line mode...')
 
 ! Z: Quit tao.
 
@@ -287,7 +290,7 @@ subroutine tao_single_mode (char)
       read '(a)', line
       call string_trim (line, line, ix)
       if (ix == 0) then
-        call tao_x_scale_cmd ('all', 0.0_rp, 1e20_rp, err)
+        call tao_x_scale_cmd ('all', 0.0_rp, 0.0_rp, err)
       else
         read (line, *, iostat = ios) m1, m2
         if (ios /= 0) then

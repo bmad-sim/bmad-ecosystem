@@ -14,7 +14,9 @@
 
 subroutine tao_plot_struct_transfer (plot_in, plot_out, preserve_region)
 
-use tao_mod
+use tao_struct
+use tao_interface
+use tao_utils
 
 implicit none
 

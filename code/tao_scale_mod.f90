@@ -79,6 +79,8 @@ integer i
 ! are adjusted to have the same scale such that all the data fits on
 ! all the graphs.
 
+if (.not. associated (plot%graph)) return
+
 do i = 1, size(plot%graph)
   call tao_scale_graph (plot%graph(i), y_min, y_max)
 enddo
@@ -107,6 +109,8 @@ integer i
 
 ! If y_min = y_max then autoscale: That is we need to find the 
 ! min/max so all the data points are within bounds.
+
+if (.not. associated (graph%curve)) return
 
 if (y_min == y_max) then
 

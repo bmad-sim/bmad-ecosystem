@@ -66,11 +66,13 @@ else
   call qp_calc_axis_places (ax%min, ax%max, ax%major_div, ax%places)
 endif
 
-do i = 1, size (plot%graph)
-  ax => plot%graph(i)%y
-  call qp_calc_axis_places (ax%min, ax%max, ax%major_div, ax%places)
-  ax => plot%graph(i)%y2
-  call qp_calc_axis_places (ax%min, ax%max, ax%major_div, ax%places)
-enddo
+if (associated (plot%graph)) then
+  do i = 1, size (plot%graph)
+    ax => plot%graph(i)%y
+    call qp_calc_axis_places (ax%min, ax%max, ax%major_div, ax%places)
+    ax => plot%graph(i)%y2
+    call qp_calc_axis_places (ax%min, ax%max, ax%major_div, ax%places)
+  enddo
+endif
 
 end subroutine

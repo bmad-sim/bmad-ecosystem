@@ -486,8 +486,8 @@ namelists should be placed directly after their respective
 \vn{tao_template_graph} namelist is:
 \begin{example}
   \&tao_template_graph
-  	graph_index           = <number>
-  	graph%name            = "<name>"
+    graph_index           = <number>
+    graph%name            = "<name>"
     graph%this_box        = <ix>, <iy>
     graph%title           = "<label>''
     graph%margin          =  <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
@@ -508,8 +508,8 @@ namelists should be placed directly after their respective
 For example:
 \begin{example}
   \&tao_template_graph
-  	graph_index        = 1
-  	graph%name         = "x"
+    graph_index        = 1
+    graph%name         = "x"
     graph%this_box     = 1, 2
     graph%title        = "Horizontal Orbit (mm)"
     graph%margin       =  60, 200, 30, 30, "POINTS"
@@ -534,8 +534,42 @@ The \vn{tao_template_plot} needed to define a lattice layout looks like:
   \&tao_template_plot
     plot%name        = "<plot_name>"
     plot%type        = "lat_layout"
+    plot%box_layout  = <ix>, <iy> 
+    plot%x%min       = <number>
+    plot%x%max       = <number>
+    plot%n_graph     = <number>
+  /
+  \&tao_template_graph
+    graph_index       = <number>
+    graph%name        = <name>
+    graph%this_box    = <ix>, <iy>
+    graph%ix_universe = <integer>
+    graph%margin      = <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
+    graph%n_curve     = 0
   /
 \end{example}
+Example:
+\begin{example}
+  \&tao_template_plot
+    plot%name       = 'layout'
+    plot%type       = 'lat_layout'
+    plot%box_layout = 1, 1                ! break page into boxes.
+    plot%x%min      =   0
+    plot%x%max      = 100
+    plot%n_graph    = 1
+  /
+
+  \&tao_template_graph
+    graph_index       = 1
+    graph%name        = 'u1'
+    graph%this_box    = 1, 1
+    graph%ix_universe = 1
+    graph%margin      = 0.12, 0.12, 0.12, 0.12, '%BOX'
+    graph%n_curve     = 0
+  /
+\end{example}
+
+
 In addition the shapes to be drawn for the various lattice elements need to
 be defined using an \vn{element_shapes} namelist whose syntax is:
 \begin{example}

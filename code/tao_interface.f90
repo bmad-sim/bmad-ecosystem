@@ -369,17 +369,6 @@ interface
   end subroutine
 end interface
 
-interface
-  subroutine tao_x_scale_cmd (where, x_min, x_max, err)
-    use precision_def
-    implicit none
-    real(rp) x_min
-    real(rp) x_max
-    character(*) where
-    logical err
-  end subroutine
-end interface
-
 end module
 
 
