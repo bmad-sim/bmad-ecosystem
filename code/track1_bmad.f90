@@ -41,7 +41,6 @@ subroutine track1_bmad (start, ele, param, end)
   type (param_struct), intent(inout) :: param
 
   type (coord_struct)  c0
-  type (ele_struct)  bend
 
   real(rp) x_kick, y_kick, k1, k2, k2l, k3l, length, phase
   real(rp) del, e1, e2, del_x_vel, del_y_vel, sig_x, sig_y, kx, ky, coef
@@ -57,14 +56,6 @@ subroutine track1_bmad (start, ele, param, end)
   integer i, j, n, n_slice, key
 
   logical init_needed / .true. /
-
-! init bend element                    
-
-  if (init_needed) then
-    call init_ele (bend)
-    bend%key = sbend$
-    init_needed = .false.
-  endif
 
 ! initially set end = start
 
@@ -227,11 +218,10 @@ subroutine track1_bmad (start, ele, param, end)
 
 !-----------------------------------------------
 ! sbend
-! A non-zero roll has a zeroth order effect that must be included
 
   case (sbend$)
 
-    call track_a_bend (end, ele, param, end)
+    call track_a_bend (start, ele, param, end)
 
 !-----------------------------------------------
 ! rfcavity

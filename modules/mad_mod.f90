@@ -21,7 +21,7 @@ module mad_mod
     integer particle      ! particle species
   end type
 
-  type mad_map2_struct
+  type mad_map_struct
     real(rp) k(6)         ! 0th order map.
     real(rp) r(6,6)       ! 1st order map.
     real(rp) t(6,6,6)     ! 2nd order map.
@@ -48,7 +48,7 @@ contains
 !   ele    -- Ele_struct: Element with transfer matrix.
 !   param  -- Param_struct: Lattice parameters.
 !     %particle -- particle species.
-!   map    -- mad_map2_struct: 2nd order map.
+!   map    -- mad_map_struct: 2nd order map.
 !   c0     -- Coord_struct: Coordinates at the beginning of element.
 !
 ! Output:
@@ -64,7 +64,7 @@ subroutine make_mat6_mad (ele, param, c0, c1)
 
   type (ele_struct) ele
   type (param_struct) param
-  type (mad_map2_struct) map
+  type (mad_map_struct) map
   type (coord_struct) c0, c1
 
 ! If ele%taylor does not exist then make it.
@@ -97,7 +97,7 @@ end subroutine
 !   particle -- Integer: Particle species.
 !
 ! Output:
-!   map -- Mad_map2_struct: Structure holding the transfer map.
+!   map -- Mad_map_struct: Structure holding the transfer map.
 !-
 
 subroutine make_mad_map (ele, particle, map) 
@@ -106,7 +106,7 @@ subroutine make_mad_map (ele, particle, map)
 
   type (ele_struct) ele
   type (energy_struct) energy
-  type (mad_map2_struct) map
+  type (mad_map_struct) map
 
   integer particle
 
@@ -175,7 +175,7 @@ end subroutine
 !   energy -- Energy_struct: particle energy structure.
 !
 ! Output:
-!   map -- mad_map2_struct: Structure holding the transfer map.
+!   map -- mad_map_struct: Structure holding the transfer map.
 !-
 
 subroutine mad_add_offsets_and_multipoles (ele, energy, map)
@@ -184,8 +184,8 @@ subroutine mad_add_offsets_and_multipoles (ele, energy, map)
 
   type (ele_struct), target :: ele
   type (energy_struct) energy
-  type (mad_map2_struct) map
-  type (mad_map2_struct) map2
+  type (mad_map_struct) map
+  type (mad_map_struct) map2
 
   real(rp), pointer :: val(:)
   real(rp) s_here
@@ -333,7 +333,7 @@ end subroutine
 !   energy -- Energy_struct: particle energy structure.
 !
 ! Output:
-!   map -- Mad_map2_struct: Structure holding the transfer map.
+!   map -- Mad_map_struct: Structure holding the transfer map.
 !-
 
 Subroutine mad_drift (ele, energy, map)
@@ -342,7 +342,7 @@ Subroutine mad_drift (ele, energy, map)
 
   type (ele_struct) ele
   type (energy_struct) energy
-  type (mad_map2_struct), target :: map
+  type (mad_map_struct), target :: map
 
   real(rp) el, beta, gamma, f
   real(rp), pointer :: ek(:), re(:,:), te(:,:,:)
@@ -395,7 +395,7 @@ end subroutine
 !   energy -- Energy_struct: particle energy structure.
 !
 ! Output:
-!   map -- Mad_map2_struct: Structure holding the transfer map.
+!   map -- Mad_map_struct: Structure holding the transfer map.
 !-
 
 Subroutine mad_elsep (ele, energy, map)
@@ -404,7 +404,7 @@ Subroutine mad_elsep (ele, energy, map)
 
   type (ele_struct) ele
   type (energy_struct) energy            
-  type (mad_map2_struct), target :: map
+  type (mad_map_struct), target :: map
 
   real(rp) el, beta, gamma, fact, efield, charge, pc
   real(rp) ekick, ekl, ch, sh, sy, dy, tilt
@@ -528,7 +528,7 @@ end subroutine
 !   energy -- Energy_struct: particle energy structure.
 !
 ! Output:
-!   map -- Mad_map2_struct: Structure holding the transfer map.
+!   map -- Mad_map_struct: Structure holding the transfer map.
 !-
 
 subroutine mad_sextupole (ele, energy, map) 
@@ -537,7 +537,7 @@ subroutine mad_sextupole (ele, energy, map)
                           
   type (ele_struct) ele
   type (energy_struct) energy
-  type (mad_map2_struct), target :: map
+  type (mad_map_struct), target :: map
 
   real(rp) el, beta, gamma
   real(rp) skl, s1, s2, s3, s4
@@ -623,7 +623,7 @@ end subroutine
 !   energy -- Energy_struct: particle energy structure.
 !
 ! Output:
-!   map -- Mad_map2_struct: Structure holding the transfer map.
+!   map -- Mad_map_struct: Structure holding the transfer map.
 !-
 
 subroutine mad_sbend (ele, energy, map) 
@@ -632,8 +632,8 @@ subroutine mad_sbend (ele, energy, map)
                           
   type (ele_struct), target :: ele
   type (energy_struct) energy
-  type (mad_map2_struct) map2, map_roll
-  type (mad_map2_struct) map
+  type (mad_map_struct) map2, map_roll
+  type (mad_map_struct) map
 
   real(rp) angle, roll
 
@@ -673,7 +673,7 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+                     
-! Subroutine mad_sbend_fringe (ele, energy, into, map2)
+! Subroutine mad_sbend_fringe (ele, energy, into, map)
 !
 ! Subroutine to make a transport map for the fringe field of a dipole.
 ! The equivalent MAD-8 routine is: TMFRNG
@@ -687,20 +687,19 @@ end subroutine
 !   into   -- Logical: If True then map is for particle entering a dipole
 !
 ! Output:
-!   map2 -- Mad_map2_struct: Fringe dipole map.
+!   map    -- Mad_map_struct: Fringe dipole map.
 !     %k(6)     -- 0th order map.
 !     %r(6,6)   -- 1st order map.         
 !     %t(6,6,6) -- 2nd order map.
 !-
 
-subroutine mad_sbend_fringe (ele, energy, into, map2) 
+subroutine mad_sbend_fringe (ele, energy, into, map) 
 
   implicit none
           
   type (ele_struct) ele
   type (energy_struct) energy
-  type (mad_map2_struct), target ::  map
-  type (mad_map2_struct) map2
+  type (mad_map_struct), target ::  map
 
   real(rp), pointer :: ek(:), re(:,:), te(:,:,:)
   real(rp) h, he, hh, edge, tanedg, secedg, psip, sk1
@@ -710,7 +709,7 @@ subroutine mad_sbend_fringe (ele, energy, into, map2)
 ! Setup.
 ! corr is correction factor according to SLAC 75. Not used in this version
 
-  call make_unit_mad_map (map2)
+  call make_unit_mad_map (map)
 
   ek => map%k
   re => map%r
@@ -779,7 +778,7 @@ end subroutine
 !   into   -- Logical: If True then map is for particle entering a dipole
 !
 ! Output:
-!   map -- Mad_map2_struct: Structure holding the transfer map.
+!   map -- Mad_map_struct: Structure holding the transfer map.
 !-
 
 subroutine mad_sbend_body (ele, energy, map) 
@@ -788,7 +787,7 @@ subroutine mad_sbend_body (ele, energy, map)
           
   type (ele_struct) ele
   type (energy_struct) energy
-  type (mad_map2_struct), target :: map
+  type (mad_map_struct), target :: map
 
   real(rp), pointer :: ek(:), re(:,:), te(:,:,:)
   real(rp) bi, bi2, bi2gi2, xksq, xk, xkl, xklsq
@@ -1069,7 +1068,7 @@ end subroutine
 !   energy -- Energy_struct: particle energy structure.
 !
 ! Output:
-!   map -- Mad_map2_struct: Structure holding the transfer map.
+!   map -- Mad_map_struct: Structure holding the transfer map.
 !-
 
 subroutine mad_quadrupole (ele, energy, map) 
@@ -1078,7 +1077,7 @@ subroutine mad_quadrupole (ele, energy, map)
                           
   type (ele_struct) ele
   type (energy_struct) energy
-  type (mad_map2_struct), target :: map
+  type (mad_map_struct), target :: map
 
   real(rp) el, beta, gamma
   real(rp) sk1, qk, qkl, qkl2, cx, sx, cy, sy, biby4
@@ -1189,7 +1188,7 @@ end subroutine
 !   energy -- Energy_struct: particle energy structure.
 !
 ! Output:
-!   map -- Mad_map2_struct: Structure holding the transfer map.
+!   map -- Mad_map_struct: Structure holding the transfer map.
 !-
 
 subroutine mad_rfcavity (ele, energy, map) 
@@ -1198,7 +1197,7 @@ subroutine mad_rfcavity (ele, energy, map)
           
   type (ele_struct) ele
   type (energy_struct) energy
-  type (mad_map2_struct) map
+  type (mad_map_struct) map
 
   real(rp) omega, charge, vrf, phirf, c0, c1, c2
 
@@ -1242,7 +1241,7 @@ end subroutine
 !   energy -- Energy_struct: particle energy structure.
 !
 ! Output:
-!   map -- Mad_map2_struct: Structure holding the transfer map.
+!   map -- Mad_map_struct: Structure holding the transfer map.
 !-
 
 subroutine mad_solenoid (ele, energy, map) 
@@ -1251,7 +1250,7 @@ subroutine mad_solenoid (ele, energy, map)
           
   type (ele_struct) ele
   type (energy_struct) energy
-  type (mad_map2_struct), target :: map
+  type (mad_map_struct), target :: map
 
   real(rp) el, beta, gamma, temp
   real(rp) sk, skl, co, si, sibk, sks
@@ -1359,7 +1358,7 @@ end subroutine
 !   energy -- Energy_struct: particle energy structure.
 !
 ! Output:
-!   map -- Mad_map2_struct: Structure holding the transfer map.
+!   map -- Mad_map_struct: Structure holding the transfer map.
 !-
 
 subroutine mad_sol_quad (ele, energy, map) 
@@ -1368,7 +1367,7 @@ subroutine mad_sol_quad (ele, energy, map)
           
   type (ele_struct) ele
   type (energy_struct) energy
-  type (mad_map2_struct), target :: map
+  type (mad_map_struct), target :: map
 
   real(rp), pointer :: ek(:), re(:,:), te(:,:,:)
 
@@ -1561,33 +1560,32 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine mad_tmtilt (map2, tilt)
+! Subroutine mad_tmtilt (map, tilt)
 !
 ! Subroutine to apply a tilt to a transport map.
 ! The equivalent MAD-8 routine is: TMTILT
 !
 ! Input:
-!   map2  -- Mad_map2_struct: Unrotated transport map.
+!   map  -- Mad_map_struct: Unrotated transport map.
 !     %k(6)     -- 0th order map.
 !     %r(6,6)   -- 1st order map.
 !     %t(6,6,6) -- 2nd order map.
 !   tilt -- Real(rp): Tilt
 !
 ! Output:
-!   map2  -- Mad_map2_struct: Rotated transport map.
+!   map  -- Mad_map_struct: Rotated transport map.
 !     %k(6)     -- 0th order map.
 !     %r(6,6)   -- 1st order map.
 !     %t(6,6,6) -- 2nd order map.
 !-
 
-subroutine mad_tmtilt (map2, tilt) 
+subroutine mad_tmtilt (map, tilt) 
 
   implicit none
 
-  type (mad_map2_struct), target :: map2
-                   
-  real(rp) tilt
+  type (mad_map_struct), target :: map
 
+  real(rp) tilt
   real(rp) c, r1j, r2j, ri1, ri2, s, t1jk
   real(rp) t2jk, ti1k, ti2k, tij1, tij2, xx
 
@@ -1597,9 +1595,9 @@ subroutine mad_tmtilt (map2, tilt)
 
 ! Setup.
 
-  ek => map2%k
-  re => map2%r
-  te => map2%t
+  ek => map%k
+  re => map%r
+  te => map%t
 
   c =  cos(tilt)
   s = -sin(tilt)
@@ -1683,16 +1681,16 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   map1 -- Mad_map2_struct: First map in the beam line.
-!   map2 -- Mad_map2_struct: Second map in the beam line.
+!   map1 -- Mad_map_struct: First map in the beam line.
+!   map2 -- Mad_map_struct: Second map in the beam line.
 !
 ! Output:
-!   map3 -- Mad_map2_struct: Concatinated map.
+!   map3 -- Mad_map_struct: Concatinated map.
 !-
 
 subroutine mad_concat_map2 (map1, map2, map3)
 
-  type (mad_map2_struct) :: map1, map2, map3
+  type (mad_map_struct) :: map1, map2, map3
 
   real(rp) :: ek(6), re(6,6), te(6,6,6), te2(6,6,6)
 
@@ -1758,7 +1756,7 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine mad_track1 (c0, map2, c1)
+! Subroutine mad_track1 (c0, map, c1)
 !
 ! Subroutine to track through a 2nd order transfer map.
 ! The equivalent MAD-8 routine is: TMTRAK
@@ -1768,17 +1766,17 @@ end subroutine
 !
 ! Input:
 !   c0   -- Coord_struct: Starting coords.
-!   map2 -- Mad_map2_struct:  2nd order map.
+!   map -- Mad_map_struct:  2nd order map.
 !
 ! Output:
 !   c1   -- Coord_struct: Ending coords. 
 !-
 
-subroutine mad_track1 (c0, map2, c1)   
+subroutine mad_track1 (c0, map, c1)   
 
   implicit none
 
-  type (mad_map2_struct) map2
+  type (mad_map_struct) map
   type (coord_struct) c0, c1
 
   real(rp) vec0(6), vec1(6), mat(6,6)
@@ -1790,10 +1788,10 @@ subroutine mad_track1 (c0, map2, c1)
   vec0 = c0%vec
 
   do i = 1, 6
-    mat(i,:) = map2%r(i,:) + matmul(vec0, map2%t(i,:,:))
+    mat(i,:) = map%r(i,:) + matmul(vec0, map%t(i,:,:))
   enddo
 
-  vec1 = map2%k + matmul(mat, vec0)
+  vec1 = map%k + matmul(mat, vec0)
 
   c1%vec = vec1 
 
@@ -1829,7 +1827,7 @@ subroutine track1_mad (start, ele, param, end)
   type (param_struct) param
   type (coord_struct) start, end
   type (energy_struct) energy
-  type (mad_map2_struct) map
+  type (mad_map_struct) map
 
 !
 
@@ -1854,7 +1852,7 @@ end subroutine
 !   use mad_mod
 !
 ! Input:
-!   map -- Mad_map2_struct: Order 2 map.
+!   map -- Mad_map_struct: Order 2 map.
 !
 ! Output:
 !   taylor(6) -- Taylor_struct: Taylor map.
@@ -1862,7 +1860,7 @@ end subroutine
 
 subroutine mad_map_to_taylor (map, taylor)
 
-  type (mad_map2_struct) map
+  type (mad_map_struct) map
   type (taylor_struct) taylor(:)
 
   integer i, j, k, n, nt
@@ -1953,12 +1951,12 @@ end subroutine
 !   taylor(6) -- Taylor_struct: Taylor map.
 !
 ! Output:
-!   map -- Mad_map2_struct: Order 2 map.
+!   map -- Mad_map_struct: Order 2 map.
 !-
 
 subroutine taylor_to_mad_map (taylor, map)
 
-  type (mad_map2_struct) map
+  type (mad_map_struct) map
   type (taylor_struct)  :: taylor(:)
   type (taylor_term_Struct) tt
 
@@ -2019,17 +2017,17 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   map -- Mad_map2_struct: 2nd order transport map.
+!   map -- Mad_map_struct: 2nd order transport map.
 !
 ! Output:
-!   map -- Mad_map2_struct: Unity 2nd order map.
+!   map -- Mad_map_struct: Unity 2nd order map.
 !-
 
 subroutine make_unit_mad_map (map)
 
   implicit none
 
-  type (mad_map2_struct) map
+  type (mad_map_struct) map
 
   integer i
 
