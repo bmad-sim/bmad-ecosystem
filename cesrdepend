@@ -114,7 +114,12 @@ sub find_mods
      {
 			$norm_dir=$dir;
 			$norm_dir=~s/\/[\w_]+\/\.\.//g;
-      if(`find $dir -name $mod.mod -print 2>temp.out`)
+      $file_in=0;
+      opendir(include_dir, $dir);
+      $file_in=(grep { $_ eq "$mod.mod"} readdir(include_dir));
+      closedir(include_dir);
+      if($file_in)
+#      if(`find $dir -maxdepth 1 -name $mod.mod -print 2>temp.out`)
        {
         push(@final_module_list,"$dir/$mod");
         next MOD;
