@@ -15,8 +15,11 @@
 # $Id$
 #
 # $Log$
-# Revision 1.1  2004/03/24 17:33:11  cesrulib
-# Initial revision
+# Revision 1.2  2004/04/04 07:42:58  js344
+# added font size option in plotting
+#
+# Revision 1.1.1.1  2004/03/24 17:33:11  cesrulib
+# Create new tao package
 #
 #
 #=============================================================================
@@ -60,7 +63,8 @@
 LIB_SRC_DIRS  := code
 OBJ_SRC_DIRS  := program
 CONFIG_DIRS   :=
-LOCAL_INCS    := include
+LOCAL_INCS    := ../include
+LOCAL_MODS    := ../modules
 SRC_EXCLUDE   :=
 
 
