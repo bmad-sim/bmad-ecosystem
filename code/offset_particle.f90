@@ -46,6 +46,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/11/07 17:10:04  dcs
+!Bug_fix
+!
 !Revision 1.5  2002/10/29 17:07:14  dcs
 !*** empty log message ***
 !
@@ -274,10 +277,10 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
           s_here = ele%value(l$) / 2
         endif
         coord%x%pos = coord%x%pos + ele%value(x_offset$) + &
-                                       ele%value(x_pitch$) * s_pos
+                                       ele%value(x_pitch$) * s_here
         coord%x%vel = coord%x%vel + ele%value(x_pitch$) * E_rel
         coord%y%pos = coord%y%pos + ele%value(y_offset$) +  &
-                                         ele%value(y_pitch$) * s_pos
+                                         ele%value(y_pitch$) * s_here
         coord%y%vel = coord%y%vel + ele%value(y_pitch$) * E_rel
       endif
     endif

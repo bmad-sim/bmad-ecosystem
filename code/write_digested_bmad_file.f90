@@ -9,15 +9,18 @@
 !   use bmad
 !
 ! Input:
-!     digested_name -- Character*72: Name for the digested file.
+!     digested_name -- Character(*): Name for the digested file.
 !     ring          -- Ring_struct: Input ring structure.
 !     n_files       -- Number of original files
-!     file_names(*) -- Character*72: Names of the original files used to create
-!                       the ring structure.
+!     file_names(*) -- Character(*), optional: Names of the original 
+!                       files used to create the ring structure.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.8  2002/11/07 17:10:04  dcs
+!Bug_fix
+!
 !Revision 1.7  2002/11/06 06:48:32  dcs
 !Changed arg array
 !
@@ -55,8 +58,9 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   integer d_unit, lunget, n_files, i, j, k, ix_w, ix_d, ix_m, ix_t(6)
   integer stat_b(12), stat, ierr
 
-  character*(*) digested_name, file_names(:)
-  character*200 fname
+  character(*) digested_name
+  character(*), optional :: file_names(:)
+  character(200) fname
 
   external stat
 
