@@ -208,8 +208,8 @@ subroutine track1_space_charge (start, ele, param, end)
 
 ! Rotate into frame where beam is not tilted.
 
-  x = end%vec(2) - v%closed_orb%vec(2)
-  y = end%vec(4) - v%closed_orb%vec(4)
+  x = end%vec(1) - v%closed_orb%vec(1)
+  y = end%vec(3) - v%closed_orb%vec(3)
 
   x_rel =  (x * v%cos_phi + y * v%sin_phi) / v%sig_x
   y_rel = (-x * v%sin_phi + y * v%cos_phi) / v%sig_y

@@ -309,6 +309,15 @@ interface
 end interface
 
 interface
+  subroutine get_element_slave_list (lat, ix_ele, slave_list, n_slave)
+    use bmad_struct, only: ring_struct
+    type (ring_struct) lat
+    integer ix_ele, n_slave
+    integer, allocatable :: slave_list(:)
+  end subroutine
+end interface
+
+interface
   subroutine get_lattice_list (lat_list, num_lats, directory)
     use precision_def
     implicit none
