@@ -38,6 +38,7 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
 
   use bmad_struct
   use bmad_interface
+  use bookkeeper_mod
 
   implicit none
 
@@ -69,7 +70,7 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
 ! Turn off RF voltage 
 
   ring%ele_(:)%internal_logic = ring%ele_(:)%is_on
-  call set_on (rfcavity$, ring, .false.)
+  call set_on_off (rfcavity$, ring, off$)
 
 ! track offset particles
 
@@ -116,12 +117,10 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
 
   enddo
 
-! now compute the twiss parameters
+! Now compute the twiss parameters.
+! And turn the RF back on.
 
   call twiss_propagate_all (ring)
-
-! turn RF back on
-
-  ring%ele_(:)%is_on = ring%ele_(:)%internal_logic
+  call set_on_off (rfcavity$, ring, from_saved$)
 
 end subroutine

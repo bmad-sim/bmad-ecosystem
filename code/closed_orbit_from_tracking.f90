@@ -48,6 +48,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 
   use bmad_struct
   use bmad_interface
+  use bookkeeper_mod
 
   implicit none
 
@@ -90,8 +91,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 ! Make sure RF is on if i_dim = 6
 
   if (nd == 2 .or. nd == 4) then
-    ring%ele_(:)%internal_logic = ring%ele_(:)%is_on
-    call set_on (rfcavity$, ring, .false.)
+    call set_on_off (rfcavity$, ring, off$)
   elseif (nd == 6) then
     rf_on = .false.
     do i = 1, ring%n_ele_ring
@@ -139,8 +139,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 
     if (all( abs(orb_diff(1:nd)) < abs_err(1:nd) + &
                                          rel_err(1:nd) * amp(1:nd) ) ) then
-      if (nd == 2 .or. nd == 4) &
-                          ring%ele_(:)%is_on = ring%ele_(:)%internal_logic
+      if (nd == 2 .or. nd == 4) call set_on_off (rfcavity$, ring, from_saved$)
       return
     endif
 

@@ -1,4 +1,12 @@
 !+
+! ***********************************************************************
+! ***********************************************************************
+! ***************                                         ***************
+! ***************    OBSOLETE: USE SET_ON_OFF INSTEAD     ***************
+! ***************                                         ***************
+! ***********************************************************************
+! ***********************************************************************
+!                        
 ! Subroutine set_on (key, ring, on_switch, orb_)
 !
 ! Subroutine to turn on or off a set of elements (quadrupoles, rfcavities,
@@ -15,7 +23,6 @@
 !   on_switch -- Logical: True  => turn elements on.
 !                         False => turn elements off.
 !   orb_(0:)  -- Coord_struct, optional: Needed for ring_make_mat6
-!                         if ring%param%matrix_order = 1
 !
 ! Output:
 !   ring -- Ring_struct: Modified ring.

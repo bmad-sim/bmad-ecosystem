@@ -2,10 +2,12 @@
 
 module bookkeeper_mod
 
-  use bmad_basic_mod
+  use bmad_interface
   use bmad_utils_mod
   use multipole_mod
 
+  integer, parameter :: off$ = 0, on$ = 1, from_saved$ = 2
+        
 contains
 
 !--------------------------------------------------------------------------
@@ -614,7 +616,6 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
-
 !+
 ! Subroutine attribute_bookkeeper (ele, param)
 !
@@ -972,6 +973,75 @@ subroutine transfer_ring_taylors (ring_in, ring_out, type_out, transfered_all)
     endif
 
   enddo out_loop
+
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine set_on_off (key, ring, switch, orb_)
+!
+! Subroutine to turn on or off a set of elements (quadrupoles, rfcavities,
+! etc.) in a ring. An element that is turned off acts like a drift.
+! RING_MAKE_MAT6 will be called to remake ring%ele_()%mat6.
+!
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   key       -- Integer: Key name of elements to be turned on or off.
+!                  [Key = quadrupole$, etc.]
+!   ring      -- Ring_struct: Ring structure holding the elements
+!   switch    -- Integer: 
+!                   on$          => Turn elements on.  Save initial state.
+!                   off$         => Turn elements off. Save initial state.
+!                   from_saved$  => Restore initial state.
+!   orb_(0:)  -- Coord_struct, optional: Needed for ring_make_mat6
+!
+! Output:
+!   ring -- Ring_struct: Modified ring.
+!-
+
+#include "CESR_platform.inc"
+                                    
+subroutine set_on_off (key, ring, switch, orb_)
+
+  use bmad_struct
+  use bmad_interface
+
+  implicit none
+
+  type (ring_struct) ring
+  type (coord_struct), optional :: orb_(0:)
+
+  integer i, key               
+  integer, intent(in) :: switch
+
+!
+
+  do i = 1, ring%n_ele_max
+
+    if (ring%ele_(i)%key /= key) cycle
+
+    select case (switch)
+    case (on$) 
+      ring%ele_(i)%internal_logic = ring%ele_(i)%is_on
+      ring%ele_(i)%is_on = .true.
+    case (off$)
+      ring%ele_(i)%internal_logic = ring%ele_(i)%is_on
+      ring%ele_(i)%is_on = .false.
+    case (from_saved$)
+      ring%ele_(i)%is_on = ring%ele_(i)%internal_logic
+    case default
+      print *, 'ERROR IN SET_ON_OFF: BAD SWITCH:', switch
+      call err_exit
+    end select
+
+    call ring_make_mat6(ring, i, orb_)
+
+  enddo
 
 end subroutine
 

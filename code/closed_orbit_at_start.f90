@@ -58,6 +58,7 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
   use bmad_struct
   use bmad_interface
+  use bookkeeper_mod
 
   implicit none
 
@@ -123,10 +124,7 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
 ! Turn off RF voltage if i_dim == 4 (for constant delta_E)
 
-  if (n == 4) then
-    ring%ele_(:)%internal_logic = ring%ele_(:)%is_on
-    call set_on (rfcavity$, ring, .false.)
-  endif
+  if (n == 4) call set_on_off (rfcavity$, ring, off$)
 
 !---------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -177,6 +175,6 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
 ! return rf cavities to original state
 
-  if (n == 4) ring%ele_(:)%is_on = ring%ele_(:)%internal_logic
+  if (n == 4) call set_on_off (rfcavity$, ring, from_saved$)
 
 end subroutine
