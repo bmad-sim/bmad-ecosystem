@@ -1,5 +1,5 @@
 !+
-! subroutine MAKE_LRBBI(master_ring, master_ring_oppos, ring, &
+! subroutine MAKE_LRBBI(master_ring_oppos, ring, &
 !										                   			ix_LRBBI, master_ix_LRBBI)
 !
 ! This subroutine takes rings with markers for LRBBI's (like those created
@@ -11,7 +11,6 @@
 !   use bmad
 !
 ! Input:
-!   master_ring          -- Ring struct: Ring with markers at LRBBI locations.
 !   master_ring_oppos    -- Ring struct: Ring for oppositely circulating
 !                           particles, with markers at parasitic crossings.
 !   ring(:)              -- Ring struct: Each bunch has its own ring(i)
@@ -42,7 +41,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine MAKE_LRBBI(master_ring, master_ring_oppos, ring, &
+subroutine MAKE_LRBBI(master_ring_oppos, ring, &
                   													ix_LRBBI, master_ix_LRBBI)
 
   use bmad_struct
@@ -51,14 +50,14 @@ subroutine MAKE_LRBBI(master_ring, master_ring_oppos, ring, &
   implicit none
 
   type (ring_struct), dimension(:) :: ring
-  type (ring_struct) :: master_ring, master_ring_oppos
-  type (coord_struct), allocatable, save :: orbit_(:), orbit_oppos_(:)
-  type (modes_struct) :: mode
+  type (ring_struct) :: master_ring_oppos
+  type (coord_struct), allocatable, save :: orbit_oppos_(:)
+  type (modes_struct) :: mode_oppos
 
   real(rp) :: beta_x, beta_y, eta_x, eta_y
   real(rp) :: sigma_z
   real(rp) :: e_spread, emit_x, emit_y
-  real(rp) :: sigma_x(master_ring%n_ele_ring), sigma_y(master_ring%n_ele_ring) 
+  real(rp) :: sigma_x(master_ring_oppos%n_ele_ring), sigma_y(master_ring_oppos%n_ele_ring)
 
   integer :: i,j
   integer, dimension(:,:) :: ix_LRBBI
@@ -66,18 +65,7 @@ subroutine MAKE_LRBBI(master_ring, master_ring_oppos, ring, &
   
 ! init
 
-  call reallocate_coord (orbit_, master_ring%n_ele_max)
-  call reallocate_coord (orbit_oppos_, master_ring%n_ele_max)
-
-! calc master_ring parameters
-
-  call closed_orbit_at_start(master_ring, orbit_(0), 4, .true.)
-  if (.not. bmad_status%ok) return
-  call track_all(master_ring, orbit_)
-  call twiss_at_start(master_ring)
-  if (.not. bmad_status%ok) return
-  call twiss_propagate_all(master_ring)
-  call radiation_integrals(master_ring, orbit_, mode)
+  call reallocate_coord (orbit_oppos_, master_ring_oppos%n_ele_max)
 
 ! calc master_ring_opps parameters
 
@@ -86,6 +74,10 @@ subroutine MAKE_LRBBI(master_ring, master_ring_oppos, ring, &
   call closed_orbit_at_start(master_ring_oppos, orbit_oppos_(0), 4, .true.)
   if (.not. bmad_status%ok) return
   call track_all(master_ring_oppos, orbit_oppos_)
+  call twiss_at_start(master_ring_oppos)
+  if (.not. bmad_status%ok) return
+  call twiss_propagate_all(master_ring_oppos)
+  call radiation_integrals(master_ring_oppos, orbit_oppos_, mode_oppos)
 
 !
 
@@ -99,17 +91,17 @@ subroutine MAKE_LRBBI(master_ring, master_ring_oppos, ring, &
     enddo
   enddo
 
-  e_spread = mode%sig_E
-  sigma_z = mode%sig_z
+  e_spread = mode_oppos%sig_E
+  sigma_z = mode_oppos%sig_z
 
-  emit_x = mode%a%emittance
+  emit_x = mode_oppos%a%emittance
   emit_y = emit_x * 0.01
 
-  do j = 1, master_ring%n_ele_ring
-    beta_x = master_ring%ele_(j)%x%beta
-    beta_y = master_ring%ele_(j)%y%beta
-    eta_x = master_ring%ele_(j)%x%eta
-    eta_y = master_ring%ele_(j)%y%eta
+  do j = 1, master_ring_oppos%n_ele_ring
+    beta_x = master_ring_oppos%ele_(j)%x%beta
+    beta_y = master_ring_oppos%ele_(j)%y%beta
+    eta_x = master_ring_oppos%ele_(j)%x%eta
+    eta_y = master_ring_oppos%ele_(j)%y%eta
     sigma_x(j) = sqrt(emit_x * beta_x + (eta_x**2) * ((e_spread)**2))
     sigma_y(j) = sqrt(emit_y * beta_y + (eta_y**2) *((e_spread)**2))
   enddo
