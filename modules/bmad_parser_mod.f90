@@ -7,13 +7,6 @@ module bmad_parser_mod
   use ptc_interface_mod
   use bookkeeper_mod
 
-! structure for a decleared variable
-
-  type parser_var_struct
-    character(16) name                    ! variable name
-    real(rp) value                     ! variable value
-  end type                      
-
 ! structure for holding the contents of lines and lists (sequences)
 
   type replacement_arg_struct
@@ -108,9 +101,11 @@ module bmad_parser_mod
 ! 
 
   type bp_com_struct
-    type (parser_var_struct), pointer ::  var_(:) => null()
     type (stack_file_struct) current_file
     type (stack_file_struct) calling_file
+    character(16), pointer :: var_name(:) => null()    ! variable name
+    real(rp), pointer :: var_value(:) => null()        ! variable value
+    integer, pointer :: var_indexx(:) => null()        ! variable sort index
     integer n_files
     character*200 file_name_(20)        ! List of files all opened.
     character*280 parse_line
@@ -1364,7 +1359,7 @@ subroutine word_to_value (word, ring, value)
   type (ring_struct), target ::  ring
   type (ele_struct), pointer :: ele
 
-  integer i, ix1, ix2, ix_word
+  integer i, ix1, ix2, ix_word, ios
   real(rp) value
   character*(*) word
   character(16) name
@@ -1372,11 +1367,12 @@ subroutine word_to_value (word, ring, value)
 ! see if this is numeric
 
   if (index('-+.0123456789', word(1:1)) /= 0) then
-    read (word, *, err = 9000) value
+    read (word, *, iostat = ios) value
+    if (ios /= 0) call warning ('BAD VARIABLE: ' // word)
     return
   endif
 
-!
+! If not numeric...
 
   ix_word = len_trim(word)
   call verify_valid_name (word, ix_word)
@@ -1425,21 +1421,63 @@ subroutine word_to_value (word, ring, value)
 
 ! None of the above? must be a variable
 
-  do i = 1, bp_com%ivar_tot
-    if (word == bp_com%var_(i)%name) then
-      value = bp_com%var_(i)%value
-      return
-    endif
-  enddo
+  call find_indexx (word, bp_com%var_name, bp_com%var_indexx, bp_com%ivar_tot, i)
 
-  call warning ('VARIABLE USED BUT NOT YET DEFINED: ' // word)
-  return
-
-9000  call warning ('BAD VARIABLE: ' // word)
+  if (i == 0) then
+    call warning ('VARIABLE USED BUT NOT YET DEFINED: ' // word)
+  else
+    value = bp_com%var_value(i)
+  endif
 
 end subroutine
 
 !-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine parser_add_variable (word, ring)
+
+  implicit none
+
+  type (ring_struct) ring
+  character(*) word
+  character(1) delim
+  integer i, ivar, n, ixm, ixm2
+  logical delim_found, err_flag
+
+!
+
+  call find_indexx (word, bp_com%var_name, bp_com%var_indexx, bp_com%ivar_tot, i)
+  if (i /= 0) then
+    call warning ('VARIABLES ARE NOT ALLOWED TO BE REDEFINED: ' // word)
+    call evaluate_value (word, bp_com%var_value(i), ring, &
+                                              delim, delim_found, err_flag)
+    return
+  endif
+
+  bp_com%ivar_tot = bp_com%ivar_tot + 1
+  if (bp_com%ivar_tot > size(bp_com%var_name)) call reallocate_bp_com_var()
+  ivar = bp_com%ivar_tot
+  bp_com%var_name(ivar) = word
+  call evaluate_value (bp_com%var_name(ivar), bp_com%var_value(ivar), &
+                                       ring, delim, delim_found, err_flag)
+  if (delim_found .and. .not. err_flag) call warning  &
+                    ('EXTRA CHARACTERS ON RHS: ' // bp_com%parse_line,  &
+                     'FOR VARIABLE: ' // bp_com%var_name(ivar))
+
+! Reindex.
+
+  call find_indexx (word, bp_com%var_name, bp_com%var_indexx, ivar-1, ixm, ixm2)
+
+  bp_com%var_indexx(ixm2+1:ivar) = bp_com%var_indexx(ixm2:ivar-1)
+  bp_com%var_indexx(ixm2) = ivar
+
+end subroutine
+
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -1939,83 +1977,87 @@ subroutine init_bmad_parser_common
 
   implicit none
   
-  integer nn, i
+  integer nn, nt, i
   
 !
 
-  nn = 21
+  nn = 21  ! number of "constant" variables
   bp_com%ivar_init = nn + ubound(calc_method_name, 1)
   bp_com%ivar_tot = bp_com%ivar_init
 
-  allocate (bp_com%var_(bp_com%ivar_tot))
+  nt = bp_com%ivar_tot
+  allocate (bp_com%var_name(nt), bp_com%var_value(nt), bp_com%var_indexx(nt))
 
-  bp_com%var_(1)%name = 'PI'
-  bp_com%var_(1)%value = pi
+  bp_com%var_name(1)  = 'PI'
+  bp_com%var_value(1) = pi
 
-  bp_com%var_(2)%name = 'TWOPI'
-  bp_com%var_(2)%value = twopi
+  bp_com%var_name(2)  = 'TWOPI'
+  bp_com%var_value(2) = twopi
 
-  bp_com%var_(3)%name = 'DEGRAD'
-  bp_com%var_(3)%value= 180 / pi
+  bp_com%var_name(3)  = 'DEGRAD'
+  bp_com%var_value(3) = 180 / pi
 
-  bp_com%var_(4)%name = 'RADDEG'
-  bp_com%var_(4)%value = pi / 180
+  bp_com%var_name(4)  = 'RADDEG'
+  bp_com%var_value(4) = pi / 180
 
-  bp_com%var_(5)%name = 'E'
-  bp_com%var_(5)%value = 2.718281828459
+  bp_com%var_name(5)  = 'E'
+  bp_com%var_value(5) = 2.718281828459
 
-  bp_com%var_(6)%name = 'E_MASS'
-  bp_com%var_(6)%value = e_mass
+  bp_com%var_name(6)  = 'E_MASS'
+  bp_com%var_value(6) = e_mass
 
-  bp_com%var_(7)%name = 'C_LIGHT'
-  bp_com%var_(7)%value = c_light
+  bp_com%var_name(7)  = 'C_LIGHT'
+  bp_com%var_value(7) = c_light
 
-  bp_com%var_(8)%name = 'POSITRON'
-  bp_com%var_(8)%value = positron$
+  bp_com%var_name(8)  = 'POSITRON'
+  bp_com%var_value(8) = positron$
 
-  bp_com%var_(9)%name = 'ELECTRON'
-  bp_com%var_(9)%value = electron$
+  bp_com%var_name(9)  = 'ELECTRON'
+  bp_com%var_value(9) = electron$
 
-  bp_com%var_(10)%name = 'R_P'
-  bp_com%var_(10)%value = r_p
+  bp_com%var_name(10)  = 'R_P'
+  bp_com%var_value(10) = r_p
 
-  bp_com%var_(11)%name = 'E_CHARGE'
-  bp_com%var_(11)%value = e_charge
+  bp_com%var_name(11)  = 'E_CHARGE'
+  bp_com%var_value(11) = e_charge
 
-  bp_com%var_(12)%name = 'EMASS'      ! old style
-  bp_com%var_(12)%value = e_mass
+  bp_com%var_name(12)  = 'EMASS'      ! old style
+  bp_com%var_value(12) = e_mass
 
-  bp_com%var_(13)%name = 'CLIGHT'     ! old style
-  bp_com%var_(13)%value = c_light
+  bp_com%var_name(13)  = 'CLIGHT'     ! old style
+  bp_com%var_value(13) = c_light
 
-  bp_com%var_(14)%name = 'LINAC_LATTICE'
-  bp_com%var_(14)%value = linac_lattice$
+  bp_com%var_name(14)  = 'LINAC_LATTICE'
+  bp_com%var_value(14) = linac_lattice$
 
-  bp_com%var_(15)%name = 'LINEAR_LATTICE'
-  bp_com%var_(15)%value = linear_lattice$
+  bp_com%var_name(15)  = 'LINEAR_LATTICE'
+  bp_com%var_value(15) = linear_lattice$
 
-  bp_com%var_(16)%name = 'CIRCULAR_LATTICE'
-  bp_com%var_(16)%value = circular_lattice$
+  bp_com%var_name(16)  = 'CIRCULAR_LATTICE'
+  bp_com%var_value(16) = circular_lattice$
 
-  bp_com%var_(17)%name = 'PROTON'
-  bp_com%var_(17)%value = proton$
+  bp_com%var_name(17)  = 'PROTON'
+  bp_com%var_value(17) = proton$
 
-  bp_com%var_(18)%name = 'ANTIPROTON'
-  bp_com%var_(18)%value = antiproton$
+  bp_com%var_name(18)  = 'ANTIPROTON'
+  bp_com%var_value(18) = antiproton$
 
-  bp_com%var_(19)%name = 'M_ELECTRON'
-  bp_com%var_(19)%value = m_electron
+  bp_com%var_name(19)  = 'M_ELECTRON'
+  bp_com%var_value(19) = m_electron
 
-  bp_com%var_(20)%name = 'M_PROTON'
-  bp_com%var_(20)%value = m_proton
+  bp_com%var_name(20)  = 'M_PROTON'
+  bp_com%var_value(20) = m_proton
 
-  bp_com%var_(21)%name = 'R_E'
-  bp_com%var_(21)%value = r_e
+  bp_com%var_name(21)  = 'R_E'
+  bp_com%var_value(21) = r_e
 
   do i = 1, ubound(calc_method_name, 1)
-    call str_upcase (bp_com%var_(nn+i)%name, calc_method_name(i))
-    bp_com%var_(nn+i)%value = i
+    call str_upcase (bp_com%var_name(nn+i), calc_method_name(i))
+    bp_com%var_value(nn+i) = i
   enddo
+
+  nn = bp_com%ivar_tot
+  call indexx (bp_com%var_name(1:nn), bp_com%var_indexx(1:nn))
 
 end subroutine
 
@@ -2031,16 +2073,27 @@ subroutine reallocate_bp_com_var()
 
   implicit none
 
-  type (parser_var_struct) :: var_temp(size(bp_com%var_))
+  character(16) :: var_name_temp(size(bp_com%var_name))
+  real(rp) :: var_value_temp(size(bp_com%var_value))
+  integer :: var_indexx_temp(size(bp_com%var_indexx))
+
   integer n
 
 !
 
-  n = size(var_temp)
-  var_temp = bp_com%var_
-  deallocate (bp_com%var_)
-  allocate (bp_com%var_(bp_com%ivar_tot+200))
-  bp_com%var_(1:n) = var_temp
+  var_name_temp = bp_com%var_name
+  var_value_temp = bp_com%var_value
+  var_indexx_temp = bp_com%var_indexx
+
+  deallocate (bp_com%var_name, bp_com%var_value, bp_com%var_indexx)
+
+  n = bp_com%ivar_tot+200
+  allocate (bp_com%var_name(n), bp_com%var_value(n), bp_com%var_indexx(n))
+
+  n = size(var_indexx_temp)
+  bp_com%var_name(1:n) = var_name_temp
+  bp_com%var_value(1:n) = var_value_temp
+  bp_com%var_indexx(1:n) = var_indexx_temp
 
 
 end subroutine
@@ -2346,16 +2399,20 @@ end subroutine
 !   n_max        -- Integer: Use only names(1:n_max) part of array.
 !
 ! Output:
-!   ix_match     -- Integer: If a match is found then:
-!                                 names(ix_match) = name
-!                     If no match is found then ix_match = 0.
-!   ix2_match    -- Integer, optional: If a match is found then
-!                                 an_indexx(ix2_match) = ix_match.
-!                     If no match is found then ix2_match = 0.
+!   ix_match  -- Integer: If a match is found then:
+!                             names(ix_match) = name
+!                  If no match is found then ix_match = 0.
+!   ix2_match -- Integer, optional: 
+!                  If a match is found then
+!                              an_indexx(ix2_match) = ix_match
+!                  If no match is found then 
+!                    for j = an_indexx(ix2_match):
+!                              names(j) > name
+!                    and if ix2_match > 1 then for j = an_indexx(ix2_match-1):
+!                              names(j) < name
 !-
 
 subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match)
-
 
   implicit none
 
@@ -2396,7 +2453,13 @@ subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match)
                        
     if (ix1 > ix3) then
       ix_match = 0
-      if (present(ix2_match)) ix2_match = 0    
+      if (present(ix2_match)) then
+        if (this_name < name) then
+          ix2_match = ix2 + 1
+        else
+          ix2_match = ix2
+        endif
+      endif
       return
     endif
 
@@ -2684,7 +2747,7 @@ subroutine find_slaves_for_parser (ring, name_, attrib_name_, coef_, cs_)
   do i = 1, ele%n_slave
 
     call find_indexx (name_(i), ring%ele_(1:ixl)%name, r_indexx(1:ixl), ixl-1, k, k2)
-    if (k2 == 0) then
+    if (k == 0) then
       call warning ('CANNOT FIND SLAVE FOR: ' // ele%name, &
                     'CANNOT FIND: '// name_(i))
       cycle

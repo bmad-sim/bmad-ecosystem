@@ -56,7 +56,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
   integer, allocatable :: ix_ring(:)
   integer, allocatable :: seq_indexx(:), in_indexx(:)
-  character(16), allocatable ::  name_(:)
+  character(16), allocatable ::  name_(:), in_name(:), seq_name(:)
 
   integer ix_word, i_use, i, j, k, n, ix, ixr, ixs, i_ring, it
   integer i_lev, i_key, ic, ix_lord
@@ -361,25 +361,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
     elseif (matched_delim) then
 
-      do i = 1, bp_com%ivar_tot-1
-        if (word_1 == bp_com%var_(i)%name) then
-          call warning ('VARIABLES ARE NOT ALLOWED TO BE REDEFINED: ' &
-                                                                  // word_1)
-          call evaluate_value (word_1, bp_com%var_(i)%value, ring, &
-                                                  delim, delim_found, err_flag)
-          cycle parsing_loop
-        endif
-      enddo
-
-      bp_com%ivar_tot = bp_com%ivar_tot + 1
-      if (bp_com%ivar_tot > size(bp_com%var_)) call reallocate_bp_com_var()
-      ivar = bp_com%ivar_tot
-      bp_com%var_(ivar)%name = word_1
-      call evaluate_value (bp_com%var_(ivar)%name, bp_com%var_(ivar)%value, &
-                                    in_ring, delim, delim_found, err_flag)
-      if (delim_found .and. .not. err_flag) call warning  &
-                    ('EXTRA CHARACTERS ON RHS: ' // bp_com%parse_line,  &
-                     'FOR VARIABLE: ' // bp_com%var_(ivar)%name)
+      call parser_add_variable (word_1, in_ring)
       cycle parsing_loop
 
     endif
@@ -446,7 +428,6 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! if not line or list then must be an element
 
     else
-
 
       n_max = n_max + 1
       if (n_max > in_ring%n_ele_maxx) then
@@ -556,12 +537,16 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   bp_com%input_line_meaningful = .false.
 
 ! sort elements and lists and check for duplicates
+! seq_name(:) and in_name(:) arrays speed up the calls to find_indexx since
+! the compiler does not have to repack the memory.
 
-  allocate (in_indexx(n_max))
-  allocate (seq_indexx(iseq_tot))
+  allocate (seq_indexx(iseq_tot), seq_name(iseq_tot))
+  seq_name = sequence_(1:iseq_tot)%name
+  call indexx (seq_name, seq_indexx(1:iseq_tot))
 
-  call indexx (sequence_(1:iseq_tot)%name, seq_indexx(1:iseq_tot))
-  call indexx (in_ring%ele_(1:n_max)%name, in_indexx(1:n_max))
+  allocate (in_indexx(n_max), in_name(n_max))
+  in_name = in_ring%ele_(1:n_max)%name
+  call indexx (in_name, in_indexx(1:n_max))
 
   do i = 1, iseq_tot-1
     ix1 = seq_indexx(i)
@@ -597,8 +582,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   if (ring%name == blank) call error_exit &
             ('NO "USE" STATEMENT FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
 
-  call find_indexx (ring%name, sequence_(:)%name, &
-                                    seq_indexx, iseq_tot, i_use)
+  call find_indexx (ring%name, seq_name, seq_indexx, iseq_tot, i_use)
   if (i_use == 0) call error_exit &
       ('CANNOT FIND DEFINITION OF LINE IN "USE" STATEMENT: ' // ring%name, ' ')
 
@@ -625,9 +609,9 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
         cycle
       endif
 
-      call find_indexx (name, in_ring%ele_(1:)%name, in_indexx, n_max, j)
+      call find_indexx (name, in_name, in_indexx, n_max, j)
       if (j == 0) then  ! if not an element it must be a sequence
-        call find_indexx (name, sequence_(:)%name, seq_indexx, iseq_tot, j)
+        call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
         if (j == 0) then  ! if not a sequence then I don't know what it is
           s_ele%ix_array = -1
           s_ele%type = element$
@@ -682,9 +666,9 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       name = seq%arg(ix)%actual_name
       s_ele => this_s_ele
       s_ele%name = name
-      call find_indexx (name, in_ring%ele_(1:)%name, in_indexx, n_max, j)
+      call find_indexx (name, in_name, in_indexx, n_max, j)
       if (j == 0) then  ! if not an element it must be a sequence
-        call find_indexx (name, sequence_(:)%name, seq_indexx, iseq_tot, j)
+        call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
         if (j == 0) then  ! if not a sequence then I don't know what it is
           call warning ('CANNOT FIND DEFINITION FOR: ' // name, &
                           'IN LINE: ' // seq%name, seq)
@@ -832,10 +816,10 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! old way of doing things
 
   do i = 1, bp_com%ivar_tot
-    if (bp_com%var_(i)%name == 'LATTICE_TYPE')  &
-                          ring%param%lattice_type = nint(bp_com%var_(i)%value)
-    if (bp_com%var_(i)%name == 'TAYLOR_ORDER') &
-                          ring%input_taylor_order = nint(bp_com%var_(i)%value)
+    if (bp_com%var_name(i) == 'LATTICE_TYPE')  &
+                          ring%param%lattice_type = nint(bp_com%var_value(i))
+    if (bp_com%var_name(i) == 'TAYLOR_ORDER') &
+                          ring%input_taylor_order = nint(bp_com%var_value(i))
   enddo
 
 ! Beam energy
@@ -1057,8 +1041,8 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       do i = bp_com%ivar_init+1, bp_com%ivar_tot
         print *
         print *, 'Var #', i
-        print *, 'Name: ', bp_com%var_(i)%name
-        print *, 'Value:', bp_com%var_(i)%value
+        print *, 'Name: ', bp_com%var_name(i)
+        print *, 'Value:', bp_com%var_value(i)
       enddo
     endif
 
@@ -1142,8 +1126,8 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   if (associated (in_ring%ele_))     call deallocate_ring_pointers (in_ring)
   if (associated (pring%ele))        deallocate (pring%ele)
   if (allocated (ix_ring))           deallocate (ix_ring)
-  if (allocated (seq_indexx))        deallocate (seq_indexx)
-  if (allocated (in_indexx))         deallocate (in_indexx)
+  if (allocated (seq_indexx))        deallocate (seq_indexx, seq_name)
+  if (allocated (in_indexx))         deallocate (in_indexx, in_name)
   if (allocated (name_))             deallocate (name_)
   if (associated (in_ring%control_)) deallocate (in_ring%control_)
   if (associated (in_ring%ic_))      deallocate (in_ring%ic_)
