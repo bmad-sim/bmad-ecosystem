@@ -28,8 +28,8 @@
 
 \begin{flushright}
 \large
-  Revision: 0.1 \\
-  9 June, 2004 \\
+  Revision: 0.1.5 \\
+  13 June, 2004 \\
 \end{flushright}
 
 \vfill
@@ -48,7 +48,7 @@
 
 \vskip 1in
 \begin{center}
-{\Huge \bf *** VERY ROUGH DRAFT ***}
+{\Huge \bf *** ROUGH DRAFT ***}
 \end{center}
 \vfill
 \break
@@ -273,7 +273,7 @@ entered and plotting output may be different for custom versions.}
 \label{c:get_info}
 
 %----------------------------------------------------------------
-\section{The plotting window}
+\section{The Plotting Window}
 
 When \tao first starts up you will see a plot window and a command prompt. 
 Figure~\ref{f:plot_begin} shows what you will see in the plot window. In the top
@@ -329,13 +329,36 @@ Now let's look at the coupling (C-matrix) by typing
   scale bottom
 \end{example}
 We see that there is strong coupling within the CLEO solenoid and virtually no
-coupling anywhere else.
-
-The x-axis is currently the BPM index number. It is sometimes convenient to plot
-the data versus the longitudinal position. This is done by typing
-\begin{figure}
-  x-axis all s
+coupling anywhere else. To zoom in the scale so that we can see the residual
+coupling outside the interaction region type
+\begin{example}
+  clip bottom -0.01 0.01
 \end{example}
+This will clip or veto all coupling data points outside the range (-0.01,0.01).
+Now if we zoom in we can see the fine detail.
+\begin{example}
+  scale bottom
+\end{example}
+A better way to ignore the IR region is to use the veto command. First tell \tao
+to restore all the coupling data then veto the IR region.
+\begin{example}
+  restore data coupling all
+  veto data coupling 0:5 95:98
+  scale
+\end{example}
+Ah ha! There were a few couping data points outside the IR  that were also
+clipped (notably at the halfway point or L03). We probably would have missed
+this if we just used clip. Your plot window should now look like
+Figure~\ref{f:plot_coupling_no_IR}.
+
+% FIX ME!!!! get the bug fixed!
+%The x-axis is currently the BPM index number. It is sometimes convenient to plot
+%the data versus the longitudinal position. This is done by typing
+%\begin{figure}
+%  x-axis all s
+%\end{example}
+
+
 The \cmd{all} will apply the change to all plot areas (both top and bottom). In
 any of the above commands the \cmd{top} or \cmd{bottom} coulf have been replaced
 with \cmd{all}.
@@ -354,8 +377,15 @@ with \cmd{all}.
   \label{f:plot_eta_beta}
 \end{figure}
 
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{plot_coupling_no_IR.psfig}
+  \caption{Zooming in on the residual coupling outside the IR.}
+  \label{f:plot_coupling_no_IR}
+\end{figure}
+
 %----------------------------------------------------------------
-\section{the \cmd{show} command}
+\section{The \cmd{Show} Command}
 
 Anything in the super-universe can be displayed using the \cmd{show} command. To
 get a list of the data elements currently defined in \tao type
@@ -409,20 +439,23 @@ Command line help is obtained by typing
 \begin{example}
   help <command\_name>
 \end{example}
-where \<command\_name\> is the command you want help with.
+where \vn{<command_name>} is the command you want help with.
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
-\chapter{Modifying the lattice}
+\chapter{Modifying the Lattice}
 \label{c:modify_lattice}
 
-Let's change a variable and see what happend to the lattice. We are going to
+\section{Changing a Variable}
+\label{s:put_it_back}
+
+Let's change a variable and see what happens to the lattice. We are going to
 change a quadrupole strength so we should plot the change in beta and phase.
 Type
 \begin{example}
   place top beta
-  plot top model - design
   place bottom phase
+  plot all model - design
   scale
 \end{example}
 
@@ -431,41 +464,78 @@ The k1 value can be increased by 0.01 units for quadrupole Q05W by typing
   change var quad\_k1 5 0.01
   scale
 \end{example}
-Note the information returned after the command and the relative changes in
+Note the information returned on the command line after the command and the relative changes in
 beta and phase in the plot window. This is a vertically focusing quadrupole so
-the vertical beta and phase is affected more than the horizontal.
-
-Let's put this quadrupole back where we found it. We can also modify the quadrupole
-by modifying the element directly bytyping
+the vertical beta and phase is affected more than the horizontal. The \cmd{0.01}
+at the end of the command tells \tao to change this variable by 0.01 units. If
+you want to set a cariable to a particular value then use a ``@'' before the
+value. So, to change this quadrupole k1 to -0.348 type
 \begin{example}
-  change ele Q05W k1 -0.01
+  change var quad\_k1 5 @-0.348
 \end{example}
 
-A great way to set all variable back to their design values is to type
+\section{Putting things back where we found them}
+\label{s:put_it_back}
+
+Let's put this quadrupole back where we found it. We can also modify the quadrupole
+by modifying the element directly by typing
+\begin{example}
+  change ele Q05W k1 d0.0
+\end{example}
+By modifying the element directly with the \cmd{change ele} command you can
+modify any attribute of the element listed in the output of \cmd{show ele Q05W}.
+The ``d'' before the value say to set the variable relative to the design value.
+
+If you've changed the lattice around a lot using variables, a great way to set
+all variables back to their design values is to type
 \begin{example}
   set var all model = design
 \end{example}
+This only works if you just changed variables. If you changed any elements
+directly with the \cmd{change ele} command then this will not work. To set
+every attribute of every element back to the design type
+\begin{example}
+  set lattice model = design
+\end{example}
+Note that this will also recalculate the data and variable values associated with the
+the model lattice to reflect the change so all the bookkeeping is done for you.
+
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
 \chapter{Running the optimizer}
 \label{c:optimizer}
 
-There are two optimizers included with \tao. DESCRIBE THE OPTIMIZERS.
+There are two non-linear optimizers included with \tao: Levenburg - Marquardt,
+or `lm', and
+Differential Evolution, or `de'. This example will use the 
+Levenburg - Marquardt optimizer which first uses steepest decent to zero in on
+the region containing the minimun then uses the inverse-Hessian to converge on
+the minimum. See Numerical Recipes in Fortran (or C) book for a detailed
+explaination. There's no need to know the details in order to use the
+optimizer. Once you set up the problem \tao has the proper wrapper routines to
+do the optimization.
+
+\section{Fix a Messed Up lattice}
+\label{s:fix_it}
 
 Let's mess the lattice up a little and see if the optimizer can ``fix'' the
 lattice. First transfer the ``correct'' lattice to the \vn{meas} data area.
 \begin{example}
   set data all meas = design
 \end{example}
-Now mess up the lattice a bit
+Now mess up the lattice a bit. We'll be messing with quadrupoles again so plot
+beta and phase.
 \begin{example}
+  place top beta
+  place bottom phase
+  plot all meas - model
   change var quad\_k1 10 0.001
   change var quad\_k1 21 -0.001
   change var quad\_k1 67 -0.005
-  plot all meas - model
   scale
 \end{example}
+The lattice is now sufficiently screwed up.
 
 Now specify what variable and data to use in the optimization. First type
 \begin{example}
@@ -480,7 +550,8 @@ defined by
     \bigl[ \var\_\model(j) - \var\_\meas(j) \bigr]^2
   \label{m1}
 \Endeq
-We see that the beta function is affecting the merit function the most. Since we
+The optimizer tries to minimize the merit function by makiing the model look
+like the data. We see that the beta function is affecting the merit function the most. Since we
 are looking at beta and phase let's only use that data in the optimization.
 \begin{example}
   veto data all
@@ -496,13 +567,13 @@ Now let's see if we have the optimizer set up correctly.
 \begin{example}
   sho optimizer
 \end{example}
-Whoops! we want to use the Levenberg-marquat optimizer so
+Whoops! we want to use the Levenburg - Marquardt optimizer so
 \begin{example}
   set global optimizer = lm
   sho opt
 \end{example}
 
-Now we're ready to run or ``flatten'' the model to the data.
+Now we're ready to run or ``flatten'' the model to the `measured' data.
 \begin{example}
   flatten
 \end{example}
@@ -513,27 +584,71 @@ You see the optimizer going through its cycles and it did it! The model is now
 \end{example}
 The optimizer didn't find the ``design'' lattice but changed more quadrupoles
 than just 10, 21 anf 67. This isn't suprising. The optimizer finds the minimun
-of the merit function and there are potentially many minimums. It does it's best
-not to get stuck in a local minimum but as we can see by the plotted data, the
-minimum found is very close to the design.
+of the merit function and there are potentially many minimums, or a degeneracy.
+ It does it's best
+not to get stuck in a local minimum and as we can see by the plotted data, the
+minimum found is very close to the design lattice optics. A good hint before we
+even ran the optimizer is the output of \cmd{show optimizer}. The top 3
+derivative were not the quadrupoles we adjusted.
 
-Alternatively, we could have used only a subsection of the quadrupole variables
-by typing, for example,
+\section{Now Not Using all of the Variables}
+\label{s:fix_it}
+
+Alternatively, we could have used only a subsection of the quadrupole. Say we
+know approximately which quadrupoles should be adjusted. So specify these
+variables ranges.
 \begin{example}
-  use var quad\_k1 10 21 67
+  change var quad\_k1 10 0.001
+  change var quad\_k1 21 -0.001
+  change var quad\_k1 67 -0.005
+  scale
+  use var quad\_k1 8:12 20:25 65:70
+  flatten
+  sho var quad\_k1 8:12 20:25 65:70
 \end{example}
-This will only use the the quadrupoles we modified. Now we see that the
-optimizer put the quadrupole k1 values back to the design values.
+Different quadrupoles than the ones we initially adjusted were still ``fixed''
+with the optimizer. This further emphasizes the degeneracy in minimizing the
+merit function.
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
 \chapter{Single Mode}
 \label{c:single_mode}
 
+Single mode utilizes a simple single character interface between the neural 
+network present in your brain and the \tao model lattice. By simply typing
+single predefined characters the specified element parameter will be changed by
+a certain amount. Neural networks, like your brain, are very efficient at
+converging on a nieghborhood around a minimun of a multidimensional non-linear
+function space. However, they can be poor at finding the exact minimum. Single mode
+utilizes the two optimization schemas (neural network and model fitting) such
+that they are applied at the proper times in the evolution of the merit
+function.
+
+In other words, you first mess around with the lattice until it get near to the
+desired optics layout then you let the optimizer take over to narrow in on the
+optimum configuration without requiring it to run all around the
+parameter space looking for the nieghborhood around the minimum, which is very
+inefficient and time consuming for complex parameter spaces.
+
+\fbox{this section is yet to be completed!} 
+
 %----------------------------------------------------------------
 %----------------------------------------------------------------
 \chapter{Where to go from here}
 \label{c:where_to_go}
+
+You now have an understanding of the basic abilities of \tao. After this
+tutorial, Part I of the \tao Reference Manual should be legible and useful.
+The Reference Manual will provide the details of everything mentioned in Part I
+of this tutorial. It goes into detail of setting up your own initialization
+files and how to use the optimizer. It also includes a complete command
+reference with command syntax.
+
+However, you're not ready yet to customize \tao, but this is where the true versatility
+of \tao lies. So, onward to the next section and learn how to write your very
+own custom routines to perform whatever accelerator calculations that strikes your
+fancy!
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
@@ -543,4 +658,24 @@ optimizer put the quadrupole k1 values back to the design values.
 \label{p:custom_tao}
 
 %----------------------------------------------------------------
+\chapter{It's all a matter of Hooks}
+
+The golden rule when extending \tao is that you are only allowed to replace
+routines or redefine structures that have the name ``hook'' in them. 
+If you have the source code then it's within your power to modify any routine as much 
+as you like. However, as time
+goes by, and revisions are made to the \tao routines to extend the
+usefulness of \tao and to eliminate bugs, only modifying the ``hook'' routines
+will ensure that custom changes will
+have a minimum impact on the specialized routines that will be written
+by various people. 
+
+\section{Compiling your custom \tao}
+
+\fbox{this section is yet to be completed!} 
+
+\chapter{An Example}
+
+\fbox{this section is yet to be completed!} 
+
 \end{document}

@@ -389,6 +389,7 @@ Format:
 \begin{example}
   set data <data_name> <component> = <value> \{<locations>\}
   set var <var_name> <component> = <value> \{<locations>\}
+  set lattice <component> = <value>
   set global <component> = <value>
 \end{example}
 
@@ -432,6 +433,19 @@ Besides a numeric value \vn{<value>} can be:
   design      ! design lattice value
 \end{example}
 
+For \vn{set lattice} version of \vn{set} possible 
+\vn{<component>}s that can be set are:
+\begin{example}
+  model      ! Model lattice value.
+  base       ! Base lattice value
+\end{example}
+\vn{<value>} can be:
+\begin{example}
+  model       ! model lattice value.
+  base        ! base lattice value.
+  design      ! design lattice value
+\end{example}
+
 For \vn{set global} the possible 
 \vn{<component>}s that can be set are:
 \begin{example}
@@ -448,8 +462,10 @@ For \vn{set global} the possible
 
 Examples:
 \begin{example}
-  set data all ref = meas       ! set all ref data = measured data.
-  set var quad\_k1 weight = 0.1 ! set quad\_k1 weights. 
+  set data all ref = meas         ! set all ref data = measured data in current universe.
+  set data orbit:x;2 base = model ! set the ref orbit:x data in universe 2 to meas
+  set var quad\_k1 weight = 0.1   ! set quad\_k1 weights. 
+  set lattice;0 model = design    ! resets the model lattice to the design in all universes
 \end{example}
 
 %% scale --------------------------------------------------------------
