@@ -377,7 +377,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
       call evaluate_value (bp_com%var_(ivar)%name, bp_com%var_(ivar)%value, &
                                        in_ring, delim, delim_found, err_flag)
-      if (delim /= ' ' .and. .not. err_flag) call warning  &
+      if (delim_found .and. .not. err_flag) call warning  &
                     ('EXTRA CHARACTERS ON RHS: ' // bp_com%parse_line,  &
                      'FOR VARIABLE: ' // bp_com%var_(ivar)%name)
       cycle parsing_loop
@@ -1053,10 +1053,11 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
     if (index(bp_com%debug_line, 'VAR') /= 0) then
       print *
       print *, '----------------------------------------'
-      print *, 'Number of Variables:', bp_com%ivar_tot - bp_com%ivar_init
+      print *, 'Number of Defined Variables:', &
+                                      bp_com%ivar_tot - bp_com%ivar_init
       do i = bp_com%ivar_init+1, bp_com%ivar_tot
         print *
-        print *, 'Var #', i-bp_com%ivar_tot
+        print *, 'Var #', i
         print *, 'Name: ', bp_com%var_(i)%name
         print *, 'Value:', bp_com%var_(i)%value
       enddo
