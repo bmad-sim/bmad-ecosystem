@@ -383,7 +383,8 @@ case ('norm_emittance:a')
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%a%norm_emitt
   else
-    datum_value = 0.0
+    call orbit_amplitude_calc (lattice%ele_(ix1), orb(ix1), &
+                               amp_na = datum_value, particle = electron$)
   endif
   
 case ('norm_emittance:b')  
@@ -392,7 +393,8 @@ case ('norm_emittance:b')
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%b%norm_emitt
   else
-    datum_value = 0.0
+    call orbit_amplitude_calc (lattice%ele_(ix1), orb(ix1), &
+                               amp_nb = datum_value, particle = electron$)
   endif
   
 case ('dpz_dz') 

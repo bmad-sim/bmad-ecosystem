@@ -50,7 +50,6 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   character(*) init_file, data_file, var_file
   character(40) :: r_name = 'tao_init_global_and_universes'
   character(200) file_name
-  character(200) sr_wake_file(n_universe_maxx), lr_wake_file(n_universe_maxx)
   character(16) name,  default_universe, default_data_type
   character(16) default_merit_type, default_attribute
   character(100) line
@@ -66,11 +65,11 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   
   namelist / tao_coupled_uni_init / coupled
   
-  namelist / tao_beam_init / sr_wakes_on, lr_wakes_on, sr_wake_file, &
-                            lr_wake_file, calc_emittance, beam_init
+  namelist / tao_beam_init / sr_wakes_on, lr_wakes_on, &
+                             calc_emittance, beam_init
          
-  namelist / tao_macro_init / sr_wakes_on, lr_wakes_on, sr_wake_file, &
-                            lr_wake_file, calc_emittance, macro_init
+  namelist / tao_macro_init / sr_wakes_on, lr_wakes_on, &
+                             calc_emittance, macro_init
          
   namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe
   
@@ -174,8 +173,6 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
       beam_init(i)%n_bunch = 1
       beam_init(i)%n_particle  = 1
       ! by default, no wake data file needed
-      sr_wake_file(i) = 'none'
-      lr_wake_file(i) = 'none'
       calc_emittance(i) = .false.
     enddo
     read (iu, nml = tao_beam_init, iostat = ios)
@@ -187,8 +184,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
       if (sr_wakes_on) bmad_com%sr_wakes_on = .true.
       if (lr_wakes_on) bmad_com%lr_wakes_on = .true.
       do i = 1, size(s%u)
-        call init_beam(s%u(i), beam_init(i), sr_wake_file(i), lr_wake_file(i), &
-                              calc_emittance(i))
+        call init_beam(s%u(i), beam_init(i), calc_emittance(i))
       enddo
     else
       call out_io (s_fatal$, r_name, "tao_beam_init namelist error")
@@ -216,8 +212,6 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
       macro_init(i)%n_macro = 1
       macro_init(i)%n_part  = 1e10
       ! by default, no wake data file needed
-      sr_wake_file(i) = 'none'
-      lr_wake_file(i) = 'none'
       calc_emittance(i) = .false.
     enddo
     read (iu, nml = tao_macro_init, iostat = ios)
@@ -229,8 +223,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
       if (sr_wakes_on) bmad_com%sr_wakes_on = .true.
       if (lr_wakes_on) bmad_com%lr_wakes_on = .true.
       do i = 1, size(s%u)
-        call init_macro(s%u(i), macro_init(i), sr_wake_file(i), lr_wake_file(i), &
-                              calc_emittance(i))
+        call init_macro(s%u(i), macro_init(i), calc_emittance(i))
       enddo
     else
       call out_io (s_fatal$, r_name, "tao_macro_init namelist error")
@@ -1210,13 +1203,12 @@ end subroutine init_coupled_uni
 ! Initialize the beams. Determine which element to track beam to
 !
 
-subroutine init_beam (u, beam_init, sr_wake_file, lr_wake_file, calc_emittance)
+subroutine init_beam (u, beam_init, calc_emittance)
 
 implicit none
 
 type (tao_universe_struct) u
 type (beam_init_struct) beam_init
-character(*) sr_wake_file, lr_wake_file
 logical calc_emittance
 
 !
@@ -1244,8 +1236,6 @@ logical calc_emittance
     call out_io (s_blank$, r_name, "***")
   endif
   
-  call init_wakes (u, sr_wake_file, lr_wake_file)
-
   u%beam%beam_init = beam_init
   u%design_orb(0)%vec = beam_init%center
 
@@ -1267,13 +1257,12 @@ end subroutine init_beam
 ! Initialize the macroparticles. Determine which element to track beam to
 !
 
-subroutine init_macro(u, macro_init, sr_wake_file, lr_wake_file, calc_emittance)
+subroutine init_macro(u, macro_init, calc_emittance)
 
 implicit none
 
 type (tao_universe_struct) u
 type (macro_init_struct) macro_init
-character(*) sr_wake_file, lr_wake_file
 logical calc_emittance
 
 !
@@ -1301,8 +1290,6 @@ logical calc_emittance
     call out_io (s_blank$, r_name, "***")
   endif
   
-  call init_wakes (u, sr_wake_file, lr_wake_file)
-
   u%macro_beam%macro_init = macro_init
   u%design_orb(0)%vec = macro_init%center
 
@@ -1320,59 +1307,6 @@ logical calc_emittance
   u%macro_beam%ix_lost(:,:,:) = -1
 
 end subroutine init_macro
-
-!----------------------------------------------------------------
-!----------------------------------------------------------------
-! contains
-! 
-! Initializes the wakes
-!
-
-subroutine init_wakes (u, sr_wake_file, lr_wake_file)
-
-implicit none
-
-type (tao_universe_struct) u
-character(*) sr_wake_file, lr_wake_file
-
-integer, pointer :: ix_lcav(:)
-integer j
-
-logical long_time_post
-
-  ! only post long time to initialize message once.
-  long_time_post = .true.
-  
-  if (sr_wake_file .ne. 'none') then
-    call elements_locator (lcavity$, u%design, ix_lcav)
-    if (size(ix_lcav) .gt. 100) then
-      call out_io (s_info$, r_name, &
-                   "Initializing a large number of lcavity wakes!")
-      call out_io (s_blank$, r_name, &
-                   "This may take a while...!")
-      long_time_post = .false.
-    endif
-    do j=1,size(ix_lcav)
-       call read_sr_wake(u%design%ele_(ix_lcav(j)), sr_wake_file)
-    end do
-    deallocate(ix_lcav)
-  endif
-
-  if (lr_wake_file .ne. 'none') then
-    call elements_locator (lcavity$, u%design, ix_lcav)
-    if (size(ix_lcav) .gt. 100 .and. long_time_post) then
-      call out_io (s_info$, r_name, &
-                   "Initializing a large number of lcavity wakes!")
-      call out_io (s_blank$, r_name, &
-                   "This may take a while...!")
-    endif
-    do j=1,size(ix_lcav)
-       call read_lr_wake(u%design%ele_(ix_lcav(j)), lr_wake_file)
-    end do
-    deallocate(ix_lcav)
-  endif
-
-end subroutine init_wakes
 
 !----------------------------------------------------------------
 !----------------------------------------------------------------
