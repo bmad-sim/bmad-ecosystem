@@ -111,6 +111,17 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   select case (key)
 
 !--------------------------------------------------------
+! Patch
+
+  case (patch$) 
+
+    mat6(2,6) = -ele%value(x_pitch$)
+    mat6(4,6) = -ele%value(y_pitch$)
+    mat6(5,1) =  ele%value(x_pitch$)
+    mat6(5,3) =  ele%value(y_pitch$)
+
+
+!--------------------------------------------------------
 ! sbend
 
   case (sbend$)
