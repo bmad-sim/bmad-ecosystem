@@ -1,0 +1,96 @@
+\chapter{The \bmad\ Distribution}
+
+\section{Libraries in the \bmad\ Distribution}
+
+When installing \bmad\ on a computer what one gets is not only the \bmad\
+subroutine library but additionally subsidiary libraries upon which
+subroutines in the \bmad\ library depend. There are 5 other libraries
+that are used: cesr\_utils, forest, numerical\_recipes, pgplot, and dcslib.
+\begin{description}
+\item[cesr\_utils] This is a small low level library that primarily defines 
+the precision that \bmad\ works at (see below) and defines the physical
+and mathematical constants (pi, c\_light, etc.) that \bmad\ knows
+about.
+\item[dcslib] This library defines a set of miscellaneous helper routines. 
+Routines include spline fitting, Gaussian random number generation,
+etc. The library name comes from its creator.
+\item[forest] This is the FPP/PTC 
+(Fully Polymorphic Package/ Polymorphic Tracking Code) library of
+Etienne Forest that handles Taylor maps to any arbitrary order (this
+is also known as Truncated Power Series Algebra (TPSA)). The FPP part
+handles the TPSA and the PTC part does the physics of tracking through
+elements using Lie Algebra with a Hamiltonian.  \bmad\ uses this
+software to crate Taylor Maps, track particles, etc.  FPP/PTC is a
+very general package and \bmad\ only makes use of a small part of its
+features. For more information see the FPP/PTC web site at
+\begin{verbatim} 
+    <http://bc1.lbl.gov/CBP_pages/educational/TPSA_DA/Introduction.html>
+\end{verbatim}
+\item[recipes] Numerical Recipes is a set of subroutines for doing 
+scientific computing including Runge--Kutta integration, FFT's,
+interpolation and extrapolation, etc., etc. The writeup for this
+library is the book ``Numerical Recipes, The Art of Scientific
+Computing''\cite{?}. For \bmad\ this library has been modified to handle
+both single and double precision reals.
+\item[pgplot] The PGPLOT Graphics Subroutine Library is a Fortran or 
+C-callable, device-independent graphics package for making simple
+scientific graphs.  One
+disadvantage of PGPLOT is that it is not the most friendly software
+for the programmer. To remidy this, there is a set of Fortran90
+wrapper subroutines called quick\_plot. The quick\_plot suite is part
+of the dcslib library. More information may be obtained from the PGPLOT
+web site at 
+\begin{verbatim}
+    <http://www.astro.caltech.edu/~tjp/pgplot>.
+\end{verbatim}
+
+\end{description}
+
+\section{Precision}
+
+\bmad\ comes in two flavors: One where the real numbers are single
+precision and a version with double precision reals. Which version you
+are working with is controlled by the parameter \rp\ (Real Precision)
+which is defined in cesr\_utils. [Note: For compatibility with older
+programs the parameter \rdef\ is defined to be equal to \rp.]  On most
+machines single precision has \rp\ = 4 and double precision has \rp\ =
+8. Normally the double precision version is used since round-off
+errors can be significant in some calculations. Long--term tracking is
+an example where the single precision version is not adequate. 
+
+To define your variables with the correct precision use the syntax
+{\it real(rp)}. For example:
+\begin{verbatim}
+    real(rp) var1, var2, var3
+\end{verbatim}
+When you want to define a literal constant, for example to pass an
+argument to a subroutine, add the suffix {\it \_rp} to the end of the
+constant. For example: {\it 2.0\_rp} is equivalent to {\it 2.0D0} if
+\rp is defined to be double precision. Notice that this is not
+equivalent to {\it 2\_rp} which defines an integer (not a real) constant.
+
+
+\section{Helper programs}
+
+The {\it listf} command is used to locate routines and structures in
+the cesr\_utils, dcslib and \bmad\ libraries. The form of the command is
+\begin{verbatim}
+    listf <name>
+\end{verbatim}
+This searches for any routine or structure with the name
+<name>. <name> may contain the wild--cards ``*'' and ``\%'' where
+``*'' matches to any number of characters and ``\%'' matches to any
+single character. For example:
+\begin{verbatim}
+    listf ring_struct
+    listf twiss_at_%
+\end{verbatim}
+The second example will match to {\it twiss\_at\_s} but not {\sl
+twiss\_at\_start}.
+
+The {\it getf} command is like the {\it listf} command with the
+addition that the header comments that are in the source code files
+will be printed out for each routine match and the structure definition
+will be printed for each structure matched. The {\it getf} command is
+thus more verbose than the {\it listf} command.
+
