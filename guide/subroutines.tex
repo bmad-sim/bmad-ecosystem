@@ -830,8 +830,21 @@ Subroutine to write a Bmad taylor map in a nice format to a character array.
 
 \begin{description}
 
-\item[calc\_bunch\_emittance (bunch, ele, x\_norm\_emit, y\_norm\_emit)] \Newline 
-Subroutine to calculate the normalized emittances of a bunch.
+\item[calc\_bunch\_centroid (bunch, params)] \NewLine
+Subroutine to calculate bunch centroid and total charge excluding lost
+macroparticles.
+
+\item[calc\_bunch\_dpz\_dz (bunch, params, calc\_centroid)] \NewLine
+Subroutine to calculate bunch energy-Z correlation.
+
+\item[calc\_bunch\_params (bunch, ele, params)] \NewLine
+Subroutine to calculate various beam characteristics from a bunch.
+
+\item[calc\_bunch\_sigma (bunch, params, calc\_centroid)] \NewLine
+Subrouine to calculate bunch sigmas.
+
+\item[calc\_bunch\_twiss\_and\_emittance (bunch, ele, params, calc\_centroid)] \Newline 
+Subroutine to calculate the beam twiss parameters and normalized emittances of a bunch.
 
 \item[init\_macro\_distribution (beam, init, canonical\_out)] \Newline 
 Subroutine to initialize a macroparticle distribution.
