@@ -7,24 +7,59 @@ takes a beam distribution and tracks the centroids and sigmas of
 ``macro particles''.  This latter type of tracking is associated with
 LINACs and wakefields and is discussed in another chapter.
 
+
+%----------------------------------------------------------------
+\section{Track\_All Example}
+
+The routines to track through a lattice are listed in Section~\ref{r:track}.
+The \vn{track_all} serves as a good example. \vn{track_all} tracks a particle
+through a lattice from beginning to end. Its code, condensed slightly, 
+is shown below.
+\begin{example}
+subroutine track_all (ring, orbit_)
+  use bmad_struct
+  use bmad_interface
+  implicit none
+  type (ring_struct)  ring
+  type (coord_struct), allocatable :: orbit_(:)
+  integer n
+
+! Init
+
+  ring%param%lost = .false.
+  if (size(orbit_) < ring%n_ele_max+1) &
+                  call reallocate_coord (orbit_, ring%n_ele_max)
+
+! Track through the elements and check for lost particles.
+
+  do n = 1, ring%n_ele_use
+    call track1 (orbit_(n-1), ring%ele_(n), ring%param, orbit_(n))
+    if (ring%param%lost) then
+      ring%param%ix_lost = n
+      return
+    endif
+  enddo
+end subroutine
+\end{example}
+The \vn{reallocate_coord} call is done in case the number of elements
+in the lattice has changed. \vn{orbit_(n)} holds the particles's
+position at the end of the $n$\Th element. \vn{ring%param%lost} is
+a logical that signals the calling routine whether a particle has been lost.
+\vn{ring%param%ix_lost} records in what element the particle has been lost.
+
+%----------------------------------------------------------------
 \section{The Coord\_struct}
 
 For single particle tracking the starting point is the
-\tn{coord_struct} whose definition is shown
-in~\ref{f:coord_struct}. The \tn{coord_struct} defines the phase
-space vector of the particle at a certain location.
-
-\begin{figure}[h]
-\centering
-\small
-\begin{verbatim}
+\tn{coord_struct} whose definition is 
+\begin{example}
   type coord_struct
     real(rp) vec(6)   ! (x, p_x, y, p_y, z, p_z)
   end type
-\end{verbatim}
-\caption{Definition of the \tn{coord\_struct}.}
-\label{f:coord_struct}
-\end{figure}
+\end{example}
+shown
+The \tn{coord_struct} defines the phase
+space vector of the particle at a certain location.
 
 To get an orbit, that is, the particle position at every element in a lattice
 you will need an array of \tn{coord_struct}'s. Since
@@ -74,10 +109,11 @@ the array stays around until the next time the subroutine is called.
 \end{example}
 This is faster but leaves memory tied up. 
 
+%----------------------------------------------------------------
 \section {Miscelaneous Notes}
 
 The \bmad\ tracking routines never uses the \vn{ele%mat6}
-transfer matrix to do tracking (except for \vn{Linear} tracking. 
+transfer matrix to do tracking except for \vn{Linear} tracking. 
 However, the reverse is not true.
 The transfer matrix routines will do tracking as needed.
 
@@ -92,3 +128,8 @@ input lattice file (see section~\ref{s:tkm}) or directly in the program by setti
 To form the corresponding parameter to a given tracking method just put 
 ``\$'' after the name. For example, \vn{Bmad_Standard} tracking becomes
 \vn{bmad_standard\$}, etc.
+
+\bmad\ simulates radiation damping and excitation by appliying a kick
+after each element. To turn on radiation damping and/or excitation
+use the \vn{setup_radiation_tracking} routine.
+

@@ -108,6 +108,7 @@ as a function of \vn{%b_field_master} setting
 \begin{example}
                  %b_field_master setting
   Element         True           False
+  ----------      ----           ----------
   SBend           g              b_field
   Solenoid        ks             b_field
   Quadrupole      k1             b_gradient
@@ -131,7 +132,7 @@ is the Jacobian about the reference orbit.
 \section{Taylor Maps}
 
 \vn{taylor_order} is the order of the Taylor Map (see section 
-\ref{taylor_phys}. The map itself is stored 
+\ref{s:taylor_phys}. The map itself is stored 
 in \vn{%taylor(1:6)}. Each \vn{%taylor(i)} is a \vn{taylor_struct} structure
 that defines a Taylor series. The structure is defined as
 \begin{example}

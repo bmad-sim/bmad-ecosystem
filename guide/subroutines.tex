@@ -908,11 +908,9 @@ Subroutine to make the slave elements of a super\_lord in order.
 
 \item[release\_rad\_int\_cache (ix\_cache)] \Newline 
      Subroutine to release the memory associated with caching wiggler values.
-     See the radiation\_integrals routine for further details.
 
 \item[wiggler\_vec\_potential (ele, energy, here, vec\_pot)] \Newline
-Subroutine to calculate the normalized vector potential at a point for a wiggler. 
-The normalized potental a\_norm is defined by: 
+Subroutine to calculate the normalized vector potential at a point for a wiggler.
 
 \end{description}
 
@@ -1134,33 +1132,32 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
 \section{Quick Plot Routines}
 \label{r:qp}      
 
+
+%--------------------------------------
+\subsection{Page Routines}
+
 \begin{description}
 
-\item[qp\_get\_layout\_attrib (who, x1, x2, y1, y2, units)] \Newline 
-     Subroutine to get the attributes of the layout.
+\item[qp\_open\_page (page\_type, i\_chan, x\_len, y\_len, units)] \Newline 
+     Subroutine to Initialize a page (window) for plotting.
 
-\item[qp\_set\_default (default\_draw\_units, default\_set\_units)] \Newline 
-     Subroutine to set the default units for drawing and setting.
+\item[qp\_select\_page (iw)] \Newline 
+     Subroutine to switch to a particular page for drawing graphics.
 
-\item[qp\_init\_struct (qp)] \Newline 
-     Subroutine to initialize the qp\_struct.
+\item[qp\_close\_page] \Newline 
+     Subroutine to finish plotting on a page.
 
-\item[qp\_set\_pointers (qp)] \Newline 
-     Subroutine to set the pointers correctly.
+\end{description}
 
-\item[qp\_equal\_qp (qp1, qp2)] \Newline 
-     Subroutine to set qp1 = qp2.
+%--------------------------------------
+\subsection{Calculational Routines}
 
-\item[qp\_save\_state (buffer)] \Newline 
-     Subroutine to save the current attributes. 
-     Use qp\_restore\_state to reastore the saved state.
+\begin{description}
 
-\item[qp\_restore\_state] \Newline 
-     Subroutine to restore saved attributes. 
-     Use qp\_save\_state to reastore the saved state.
-
-\item[\protect\parbox{6in}{qp\_set\_axis (axis, a\_min, a\_max, ...)}]
-    Subroutine to set (but not plot) the min, max and divisions for the axes of the graph.
+\item[qp\_calc\_and\_set\_axis (axis, data\_min, data\_max, ] \Newline
+                                    div\_min, div\_max, how, scale\_nums)
+     Subroutine to calculate a "nice" plot scale given the minimum and maximum
+     of the data. Normally if the axis numbers look like, say:
 
 \item[\protect\parbox{6in}{qp\_calc\_axis\_params (data\_min, data\_max, div\_min, 
 \\ \hspace*{2in} div\_max, how, places, axis\_min, axis\_max, divisions)}] \Newline 
@@ -1176,13 +1173,15 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
      Subroutine to calculate a "nice" plot scale given the minimum and maximum
      of the data. 
 
-\item[qp\_set\_graph\_limits] \Newline 
-     Subroutine to calculate the offsets for the graph.
-     This subroutine also sets the PGPLOT window size = The graph size.
+\item[qp\_calc\_minor\_div (delta, div\_max, divisions)] \Newline 
+     Subroutine to calculate the number of minor divisions an axis should have.
 
-\item[qp\_set\_pgplot\_color (ix\_color)  ] \Newline 
-     Subroutine to set the color in pgplot taking into accout that GIF
-     inverts the black for white.
+\end{description}
+
+%--------------------------------------
+\subsection{Drawing Routines}
+
+\begin{description}
 
 \item[qp\_clear\_page] \Newline 
      Subroutine to clear all drawing from the page.
@@ -1191,12 +1190,160 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
      Subroutine to clear all drawing from the current box.
      That is, white out the box region.
 
-\item[qp\_set\_box (ix, iy, ix\_tot, iy\_tot)] \Newline 
+\item[qp\_draw\_arc (x0, y0, r\_x, r\_y, ang1, ang2, 
+                     units, width, color, style, clip) ] \Newline 
+     Subroutine to plot a section of an ellipse.
+
+\item[qp\_draw\_axes] \Newline 
+     Subroutine to plot the axes, title, etc. of a plot.
+
+\item[qp\_draw\_data (x, y, draw\_line, symbol\_every, clip)] \Newline
+     Subroutine to plot data, axes with labels, a grid, and a title.
+
+\item[qp\_draw\_graph (x, y, x\_lab, y\_lab, title, 
+                  draw\_line, draw\_symbol, clip, symbol\_every) ] \Newline 
+     Subroutine to plot data, axes with labels, a grid, and a title.
+
+\item[qp\_draw\_graph\_title (title)] \Newline 
+     Subroutine to draw the title for a graph.
+
+\item[qp\_draw\_grid] \Newline 
+     Subroutine to draw a grid on the current graph.
+
+\item[qp\_draw\_histogram (x\_dat, y\_dat, x\_lab, y\_lab, title)] \Newline 
+     Subroutine to plot data, axes with labels, a grid, and a title.
+
+\item[qp\_draw\_legend (lines, x, y, units)] \Newline 
+     Subroutine to draw a legend.
+
+\item[qp\_draw\_main\_title (lines, justify)] \Newline 
+     Subroutine to plot the main title at the top of the page.
+
+\item[qp\_draw\_polyline (x, y, units, width, color, style, clip)] \Newline 
+     Subroutine to draw a polyline.
+
+\item[qp\_draw\_polyline\_basic (x, y, units) ] \Newline 
+     Subroutine to draw a polyline. See also qp\_draw\_polyline
+
+\item[qp\_draw\_rectangle (x1, x2, y1, y2, units, color, width,
+                                             style, clip) ] \Newline 
+     Subroutine to draw a rectangular box.
+
+\item[qp\_draw\_line (x1, x2, y1, y2, units, width, color, style, clip)] \Newline 
+     Subroutine to draw a line.
+
+\item[qp\_draw\_symbol (x, y, units, type, height, color, 
+                                fill, line\_width, clip) ] \Newline 
+     Draws a symbol at (x, y) 
+
+\item[qp\_draw\_symbols (x, y, units, type, height, color,
+            fill, line\_width, clip, symbol\_every) ] \Newline 
+     Draws a symbol at the (x, y) points. 
+
+\item[qp\_draw\_text (text, x, y, units, justify, height
+        color, angle, ...) ] \Newline 
+     Subroutine to draw text.
+
+\item[qp\_draw\_text\_basic (text, x, y, units, justify, angle)] \Newline 
+     Subroutine to display on a plot a character string.
+     See also: qp\_draw\_text.
+
+\item[qp\_draw\_x\_axis (who, y\_pos)] \Newline 
+     Subroutine to draw a horizontal axis.
+
+\item[qp\_draw\_y\_axis (who, x\_pos)] \Newline 
+     Subroutine to draw a horizontal axis.
+
+\item[qp\_to\_axis\_number\_text (axis, ix\_n, text)] \Newline 
+     Subroutine to form the text string for an axis number.
+
+\end{description}
+
+%--------------------------------------
+\subsection{Set Routines}
+
+\begin{description}
+
+\item[qp\_calc\_and\_set\_axis (axis, data\_min, data\_max, ] \Newline
+                                    div\_min, div\_max, how, scale\_nums)
+     Subroutine to calculate a "nice" plot scale given the minimum and maximum
+     of the data. Normally if the axis numbers look like, say:
+
+\item[qp\_set\_axis (axis, a\_min, a\_max, ...)] \Newline
+    Subroutine to set (but not plot) the min, max and divisions for the axes of the graph.
+
+\item[qp\_set\_box (ix, iy, ix\_tot, iy\_tot) ] \Newline 
      Subroutine to set the box on the physical page.
      This routine divides the page into a grid of boxes. 
 
+\item[qp\_set\_default (default\_draw\_units, default\_set\_units)] \Newline 
+     Subroutine to set the default units for drawing and setting.
+
+\item[qp\_set\_graph\_limits] \Newline 
+     Subroutine to calculate the offsets for the graph.
+     This subroutine also sets the PGPLOT window size = The graph size.
+
+\item[qp\_set\_margin (x1\_marg, x2\_marg, y1\_marg, y2\_marg, units)] \Newline 
+     Subroutine to set up the margins from the sides of the box (see QP\_SET\_BOX)
+     to the edges of the actual graph.
+
+\item[qp\_set\_pgplot\_color (ix\_color) ] \Newline 
+     Subroutine to set the color in pgplot taking into accout that GIF
+     inverts the black for white.
+
 \item[qp\_set\_page\_border (x1\_b, x2\_b, y1\_b, y2\_b, units)] \Newline 
      Subroutine to set the border around the physical page.
+
+\item[qp\_set\_clip (clip)] \Newline 
+     Subroutine to set the default clipping state.
+
+\item[qp\_subset\_box (ix, iy, ix\_tot, iy\_tot, x\_marg, y\_marg)] \Newline 
+     Subroutine to set the box for a graph. This is the same as
+     qp\_set\_box but the boundries of the page are taken to be the box boundries.
+
+\item[qp\_set\_symbol\_attrib (type, height, color, fill, line\_width, clip)] \Newline 
+     Subroutine to set the type and size of the symbols used in plotting data.
+
+\item[qp\_set\_line\_attrib (who, width, color, style, clip)] \Newline 
+     Subroutine to set the default line attributes.
+
+\item[qp\_set\_graph\_attrib (draw\_grid, draw\_title)] \Newline 
+     Subroutine to set attributes of the current graph
+
+\item[qp\_set\_text\_attrib (who, height, color, background, 
+                                uniform\_spacing, spacing\_factor) ] \Newline 
+     Subroutine to set the default text attributes.
+
+\end{description}
+
+%--------------------------------------
+\subsection{Informational Routines}
+
+\begin{description}
+
+\item[qp\_get\_axis (axis, a\_min, a\_max, div, ... ) ] \Newline
+     Subroutine to get the min, max, divisions etc. for the X and Y axes.
+
+\item[qp\_get\_layout\_attrib (who, x1, x2, y1, y2, units)] \Newline 
+     Subroutine to get the attributes of the layout.
+
+\item[text\_len (text)] \Newline 
+     Function to find the length of a text string.
+
+\end{description}
+
+%--------------------------------------
+\subsection{Conversion Routines}
+
+\begin{description}
+
+\item[qp\_from\_inch\_rel (x\_inch, y\_inch, x, y, units)] \Newline 
+     Subroutine to convert from a relative position (an offset) in inches
+     to other units.
+
+\item[qp\_from\_inch\_abs (x\_inch, y\_inch, x, y, units)] \Newline 
+     Subroutine to convert to absolute position (x, y) from inches referenced
+     to the Left Bottom corner of the page
 
 \item[qp\_to\_datum\_abs (x, y, x\_dat, y\_dat, units)] \Newline 
      Subroutine to convert an (x, y) point on the page to data units.
@@ -1210,14 +1357,6 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
 \item[qp\_to\_data\_rel (x, y, x\_dat, y\_dat, units)] \Newline 
      Subroutine to convert (x, y) deltas to data units.
 
-\item[qp\_from\_inch\_rel (x\_inch, y\_inch, x, y, units)] \Newline 
-     Subroutine to convert from a relative position (an offset) in inches
-     to other units.
-
-\item[qp\_from\_inch\_abs (x\_inch, y\_inch, x, y, units)] \Newline 
-     Subroutine to convert to absolute position (x, y) from inches referenced
-     to the Left Bottom corner of the page
-
 \item[qp\_to\_inch\_rel (x, y, x\_inch, y\_inch, units)] \Newline 
      Subroutine to convert a relative (x, y) into inches.
 
@@ -1225,122 +1364,50 @@ Obsolete. Use twiss\_and\_track\_at\_s instead.
      Subroutine to convert an absolute position (x, y) into inches referenced
      to the Left Bottom corner of the page.
 
-\item[qp\_split\_units\_string (u\_type, region, corner, units)] \Newline 
-     Subroutine to split a units string into its components.
+\end{description}
 
-\item[qp\_set\_margin (x1\_marg, x2\_marg, y1\_marg, y2\_marg, units)] \Newline 
-     Subroutine to set up the margins from the sides of the box (see QP\_SET\_BOX)
-     to the edges of the actual graph.
+%--------------------------------------
+\subsection{Miscelaneous Routines}
 
-\item[qp\_draw\_rectangle (x1, x2, y1, y2, units, color, width, ] \Newline 
-                                                         style, clip)
-     Subroutine to draw a rectangular box.
+\begin{description}
 
-\item[qp\_draw\_symbol (x, y, units, type, height, color, ] \Newline 
-                                                fill, line\_width, clip)
-     Draws a symbol at (x, y) 
+\item[qp\_read\_data (iu, err\_flag, x, ix\_col, y, iy\_col, z, iz\_col, 
+                                                               t, it\_col) ] \Newline 
+     Subroutine to read columns of data.
 
-\item[qp\_draw\_symbols (x, y, units, type, height, color, ] \Newline 
-                                                    fill, line\_width, clip)
-     Draws a symbol at the (x, y) points. 
+\end{description}
 
-\item[qp\_draw\_graph (x, y, x\_lab, y\_lab, title, 
-                                draw\_line, draw\_symbol, clip) ] \Newline 
-     Subroutine to plot data, axes with labels, a grid, and a title.
+%--------------------------------------
+\subsection{Low Level Routines}
 
-\item[qp\_draw\_axes] \Newline 
-     Subroutine to plot the axes, title, etc. of a plot.
+\begin{description}
 
-\item[qp\_draw\_graph\_title (title)] \Newline 
-     Subroutine to draw the title for a graph.
-
-\item[qp\_draw\_histogram (x\_dat, y\_dat, x\_lab, y\_lab, title)] \Newline 
-     Subroutine to plot data, axes with labels, a grid, and a title.
-
-\item[qp\_draw\_legend (lines, x, y, units)] \Newline 
-     Subroutine to draw a legend.
-
-\item[qp\_draw\_arc (x0, y0, r\_x, r\_y, ang1, ang2, ] \Newline 
-                             units, width, color, style, clip)
-     Subroutine to plot a section of an ellipse.
-
-\item[qp\_draw\_polyline (x, y, units, width, color, style, clip)] \Newline 
-     Subroutine to draw a polyline.
-
-\item[qp\_draw\_line (x1, x2, y1, y2, units, width, color, style, clip)] \Newline 
-     Subroutine to draw a line.
-
-\item[qp\_draw\_polyline\_basic (x, y, units) ] \Newline 
-     Subroutine to draw a polyline. See also qp\_draw\_polyline
-
-\item[qp\_open\_page (page\_type, i\_chan, x\_len, y\_len, units)] \Newline 
-     Subroutine to Initialize a page (window) for plotting.
-
-\item[qp\_select\_page (iw)] \Newline 
-     Subroutine to switch to a particular page for drawing graphics.
-
-\item[qp\_close\_page] \Newline 
-     Subroutine to finish plotting on a page.
-
-\item[qp\_draw\_text (text, x, y, units, justify, height ] \Newline 
-        color, angle, background, uniform\_spacing, spacing\_factor)
-     Subroutine to draw text.
-
-\item[qp\_draw\_text\_basic (text, x, y, units, justify, angle)] \Newline 
-     Subroutine to display on a plot a character string.
-     See also: qp\_draw\_text.
+\item[qp\_equal\_qp (qp1, qp2)] \Newline 
+     Subroutine to set qp1 = qp2.
 
 \item[qp\_justify (justify)] \Newline 
      Function to convert a justify character string to a real value
      representing the horizontal justification. 
 
-\item[qp\_draw\_main\_title (lines, justify)] \Newline 
-     Subroutine to plot the main title at the top of the page.
+\item[qp\_set\_pointers (qp)] \Newline 
+     Subroutine to set the pointers correctly.
 
-\item[qp\_set\_symbol\_attrib (type, height, color, fill, line\_width, clip)] \Newline 
-     Subroutine to set the type and size of the symbols used in plotting data.
+\item[qp\_save\_state (buffer)] \Newline 
+     Subroutine to save the current attributes. 
+     Use qp\_restore\_state to reastore the saved state.
 
-\item[qp\_set\_line\_attrib (who, width, color, style, clip)] \Newline 
-     Subroutine to set the default line attributes.
+\item[qp\_restore\_state] \Newline 
+     Subroutine to restore saved attributes. 
+     Use qp\_save\_state to reastore the saved state.
 
-\item[qp\_set\_clip (clip)] \Newline 
-     Subroutine to set the default clipping state.
+\item[qp\_init\_struct (qp)] \Newline 
+     Subroutine to initialize the qp\_struct.
 
-\item[qp\_subset\_box (ix, iy, ix\_tot, iy\_tot, x\_marg, y\_marg)] \Newline 
-     Subroutine to set the box for a graph. This is the same as
-     qp\_set\_box but the boundries of the page are taken to be the box boundries.
-
-\item[qp\_set\_text\_attrib (who, height, color, background, 
-                                      uniform\_spacing, spacing\_factor) ] \Newline 
-     Subroutine to set the default text attributes.
-
-\item[qp\_draw\_x\_axis (who, y\_pos)] \Newline 
-     Subroutine to draw a horizontal axis.
-
-\item[qp\_draw\_y\_axis (who, x\_pos)] \Newline 
-     Subroutine to draw a horizontal axis.
-
-\item[qp\_to\_axis\_number\_text (axis, ix\_n, text)] \Newline 
-     Subroutine to form the text string for an axis number.
-
-\item[text\_len (text)] \Newline 
-     Function to find the length of a text string.
-
-\item[qp\_set\_graph\_attrib (draw\_grid, draw\_title)] \Newline 
-     Subroutine to set attributes of the current graph
-
-\item[qp\_draw\_grid] \Newline 
-     Subroutine to draw a grid on the current graph.
-
-\item[qp\_calc\_minor\_div (delta, div\_max, divisions)] \Newline 
-     Subroutine to calculate the number of minor divisions an axis should have.
+\item[qp\_split\_units\_string (u\_type, region, corner, units)] \Newline 
+     Subroutine to split a units string into its components.
 
 \item[qp\_translate\_to\_color\_index (name, index)] \Newline 
      Subroutine to translate from a string to a color index.
-
-\item[qp\_read\_data (iu, err\_flag, x, ix\_col, y, iy\_col, z, iz\_col, 
-                                                               t, it\_col) ] \Newline 
-     Subroutine to read columns of data.
 
 \end{description}
 

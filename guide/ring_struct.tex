@@ -1,14 +1,13 @@
 \chapter{The Ring\_struct}
 
 
-%----------------------------------------------------------------------------
-\section{overview}
-
-\tn{ring_struct} is the structure that holds all the information 
-about a lattice.  The definition of \tn{ring_struct} is shown in
-figure~\ref{f:ring_struct}. Despite its name, \bmad\
+The \tn{ring_struct} is the structure that holds all the information 
+about a lattice.   Despite its name, \bmad\
 makes no assumption about whether an \tn{ring_struct} is circular as
 with a storage ring or open as with a LINAC.
+
+%----------------------------------------------------------------------------
+\section{overview}
 
 \begin{figure}[tb]
 \centering
@@ -16,11 +15,11 @@ with a storage ring or open as with a LINAC.
 type ring_struct
   type (mode_info_struct)  x, y, z  ! tunes, etc.
   character*16 name            ! Name in USE statement
-  character*40 lattice         ! Lattice
+  character*40 lattice         ! Lattice name
   character*80 input_file_name ! Lattice input file name
-  character*80 title           ! general title
+  character*80 title           ! From TITLE statement
   type (param_struct) param    ! parameters
-  integer version              ! Version number
+  integer version              ! Version number for digested files
   integer n_ele_ring           ! number of physical ring elements
   integer n_ele_symm           ! symmetry point for rings w/symmetry
   integer n_ele_use            ! number of elements used
@@ -39,17 +38,20 @@ end type
 \label{f:ring_struct}
 \end{figure}
 
-The array \vn{%ele(:)} holds the elements of the lattice. The array
-is always allocated so that the lower bound index is zero. \vn{%ele(0:)}
-is divided up into two parts: A ``physical'' part (also called
-the ``regular'' part) and a ``control''
-part (also called the ``lord'' part). The physical part of this array holds
-the elements that are tracked through. The control part holds the
-superimpose, overlay and group elements. The extent of these parts is
-given in table~\ref{tab:part_extent}. \vn{%ele(0)} is essentially a marker
-element. \vn{%ele(0)%mat6} is always the unit matrix.
-
-\begin{table}[tb]
+The definition of \tn{ring_struct} is shown in
+figure~\ref{f:ring_struct}. The array \vn{%ele(:)} holds the elements of
+the lattice. This array is always allocated so that the lower bound
+index is zero. \vn{%ele(0)} is essentially a marker element.
+\vn{%ele(0)%mat6} is always the unit matrix. \vn{%ele(0:)} is divided up
+into two parts: A ``physical'' part (also called the ``regular'' part)
+and a ``control'' part (also called the ``lord'' part). The physical
+part of this array holds the elements that are tracked through. The
+control part holds the overlay and group elements, and those elements
+that are ``mangled'' when elements are superimposed upon other elements.
+The bounds of these two parts is given in table~\ref{tab:part_extent}.
+Note: The \vn{%ele_init} component is not used by \bmad\ and is available
+for general program use.
+\begin{table}[htb]
 \begin{center}
 \begin{tabular}{|l|l|l|}
 \hline
@@ -57,31 +59,54 @@ element. \vn{%ele(0)%mat6} is always the unit matrix.
 {\em section} & {\em min}          & {\em max}            \\ \hline
 physical      & 0                  & \vn{%n_ele_ring}     \\ \hline
 control       & \vn{%n_ele_ring}+1 & \vn{%n_ele_max}      \\ \hline
+physical size & 0                  & \vn{%n_ele_maxx}     \\ \hline
 \end{tabular} 
-\caption{Extent of the physical and control parts 
-of the array \vn{\%ele(n)}.}
+\caption{Bounds of the regular and control parts 
+of the array \vn{\%ele(:)}.}
 \end{center}
 \label{tab:part_extent}
 \end{table}
 
-Other indexes within the \tn{ring_struct} are
-\begin{description}
-\item[\tt\%n\_ele\_maxx] 
-The index of the upper bound of the \vn{%ele(:)} array.
-The lower bound is always 0 so the total size of the \vn{%ele(:)}
-array is \vn{%n_ele_maxx}+1.
-\item[\tt\%n\_ele\_symm] Back in the days when the CESR ring was E/W 
-symmetric \vn{%n_ele_symm} designated the symmetry point (roughly at
-\vn{%n_ele_ring}/2).  Currently this is seldom used.
-\item[\%n\_ele\_use] This designates what part of the physical ring to track 
-through. This is the same as \vn{%n_ele_ring} except if there is a
-symmetry point and \vn{%n_ele_symm} is non--zero. In this case
-\vn{%n_ele_use} = \vn{%n_ele_symm}.
-\end{description}
+%Other indexes within the \tn{ring_struct} are
+%\begin{description}
+%\item[\vn{%n_ele_maxx}] 
+%The index of the upper bound of the \vn{%ele(:)} array.
+%The lower bound is always 0 so the total size of the \vn{%ele(:)}
+%array is \vn{%n_ele_maxx}+1.
+%\item[\vn{%n_ele_symm}] Back in the days when the Cornell CESR ring was E/W 
+%symmetric \vn{%n_ele_symm} designated the symmetry point (roughly at
+%\vn{%n_ele_ring}/2).  Currently this is seldom used.
+%\item[\vn{%n_ele_use}] This designates what part of the physical ring to track 
+%through. This is the same as \vn{%n_ele_ring} except if there is a
+%symmetry point and \vn{%n_ele_symm} is non--zero. In this case
+%\vn{%n_ele_use} = \vn{%n_ele_symm}.
+%\end{description}
 
-Local \tn{ring_struct} variables must have the save attribute or the
-pointers within must be appropriately deallocated before leaving the
-routine.
+%----------------------------------------------------------------------------
+\section{Elements Controlling Other Elements}
+
+Generally a programmer does not have to worry about how the lord elements in
+the \vn{%ele(:)} array control other elements. There is a bookkeeping routine
+called \vn{control_bookkeeper} that takes care of that. This routine is
+automatically called when the transfer matrices for the elements is
+computed by \vn{make_mat6}. 
+
+The element control information is stored in the \vn{%control_(:)} array, 
+Each element of this array is a \vn{control_struct} structure 
+\begin{example}
+  type control_struct
+    real(rp) coef                ! control coefficient
+    integer ix_lord                ! index to lord element
+    integer ix_slave               ! index to slave element
+    integer ix_attrib              ! index of attribute controlled
+  end type
+\end{example}
+\vn{%ix_lord} and \vn{%ix_slave} give the indexes in the \vn{%ele_(:)} array
+of a lord element and an element it controls. \vn{%coef} stores the coefficient
+that is needed to convert variations of the appropriate lord attribute to
+variations in the slave attribute indexed by \vn{%ix_attrib}. The section
+of the \vn{%control_(:)} array used by a given lord element is given by 
+\vn{%ele_(ix_lord)%ix1_slave} through \vn{%ele_(ix_lord)%ix2_slave}.
 
 %----------------------------------------------------------------------------
 \section{Pointers}
@@ -91,21 +116,22 @@ Since the \tn{ring_struct} has pointers within it (plural since the
 the programmer to make sure that allocation and deallocation is done
 properly. To this end the equal sign has been overloaded by the
 routine \rn{ring_equal_ring} so that when one writes
-\begin{verbatim}
+\begin{example}
     ring1 = ring2
-\end{verbatim}
+\end{example}
 the pointers will be handled properly. The result will be that ring1
 will hold the same information as ring2 but the pointers in ring1 will
 point to different locations in physical memory so that changes to one
 ring will not affect the other.
 
-Initial allocation of the pointers in \tn{ring_struct} is generally
-handled by \rn{bmad_parser} and \rn{ring_equal_ring} and so typically not a
-concern of most programmers. Deallocation problems can arise when a
-subroutine has a local \tn{ring_struct} variable. 
-
-
-
-Generally allocation is handled
-
-How to allocate \tn{coord_struct} arrays. see the tracking section
+Initial allocation of the pointers in a \tn{ring_struct} variable is generally
+handled by the \rn{bmad_parser} and \rn{ring_equal_ring} routines.
+Once allocated,
+Local \tn{ring_struct} variables must have the save attribute or the
+pointers within must be appropriately deallocated before leaving the
+routine.
+\begin{example}
+  type (ring_struct), save :: ring     ! Either this or ...
+  ...
+  call deallocate_ring_pointers (ring) ! Do this at the end.
+\end{example}
