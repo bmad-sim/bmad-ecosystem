@@ -15,7 +15,7 @@ module bmad_utils_mod
 use bmad_struct
 
 interface reallocate
-  module procedure reallocate_control
+  module procedure reallocate_control_
 end interface
 
 contains
@@ -557,7 +557,7 @@ end subroutine
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Fuunction reallocate_control(control, n) result (new_control)
+! Fuunction reallocate_control_(control, n) result (new_control)
 !
 ! Function to reallocate the ring%control(:) array.
 ! This data in the array will be saved.
@@ -573,7 +573,7 @@ end subroutine
 !   new_control(:) -- Control_struct, pointer: Allocated array.
 !-
 
-function reallocate_control(control, n) result (new_control)
+function reallocate_control_(control, n) result (new_control)
 
   implicit none
 
