@@ -121,6 +121,16 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
+!+
+! Subroutine get_attribute (how, ele, ring, pring,
+!                                             delim, delim_found, err_flag)
+!
+! Subroutine used by bmad_parser and bmad_parser2 to get the value of
+! an attribute from the input file.
+!
+! This subroutine is not intended for general use.
+!-
+
 
 subroutine get_attribute (how, ele, ring, pring, &
                                              delim, delim_found, err_flag)
@@ -546,6 +556,12 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
+!+
+! Subroutine add_taylor_term (ele, i_out, coef, expn) 
+!
+! Subroutine used by bmad_parser and bmad_parser2 to parse the input file.
+! This subroutine is not intended for general use.
+!-
 
 subroutine add_taylor_term (ele, i_out, coef, expn)
 
@@ -608,6 +624,8 @@ end subroutine
 !                        delim_list, delim, delim_found, upper_case_word)
 !
 ! Subroutine to get the next word from the input stream.
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
 !
 ! Input:
 !   word       -- Character*(*): Word returned
@@ -653,6 +671,13 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
+!+
+! Subroutine file_stack (how, file_name, finished)
+!
+! Subroutine to keep track of the files that are opened for reading.
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
 
 subroutine file_stack (how, file_name, finished)
 
@@ -722,6 +747,13 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
+!+
+! Subroutine load_parse_line (how, ix_cmd, file_end) 
+!
+! Subroutine to load characters from the input file.
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
 
 subroutine load_parse_line (how, ix_cmd, file_end)
 
@@ -814,6 +846,10 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
 
 subroutine evaluate_value (err_str, value, &
                               ring, final_delim, final_delim_found, err_flag)
@@ -1107,7 +1143,11 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
-
+!-------------------------------------------------------------------------
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
 
 subroutine increment_pointer (ix, reflect)
 
@@ -1128,7 +1168,11 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
-
+!-------------------------------------------------------------------------
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
 
 subroutine pushit (stack, i_lev, value)
 
@@ -1153,7 +1197,11 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
-
+!-------------------------------------------------------------------------
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
 
 subroutine word_to_value (word, ring, value)
 
@@ -1240,7 +1288,11 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
-
+!-------------------------------------------------------------------------
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
 
 subroutine type_get (ele, ix_type, delim, delim_found)
 
@@ -1296,6 +1348,9 @@ end subroutine
 !-------------------------------------------------------------------------
 !+
 ! Subroutine GET_OVERLAY_GROUP_NAMES (ELE, RING, PRING, DELIM, DELIM_FOUND)
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
 !-
         
 subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
@@ -1388,6 +1443,10 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
 
 
 subroutine verify_valid_name (name, ix_name)
@@ -1463,6 +1522,10 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
 
 subroutine preparse_element_init (ele)
 
@@ -1494,6 +1557,10 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
 
 subroutine error_exit (what1, what2)
 
@@ -1518,7 +1585,10 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
-
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
 
 subroutine warning (what1, what2, seq)
 
@@ -1550,7 +1620,10 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
-
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
 
 subroutine init_bmad_parser_common
 
@@ -1636,7 +1709,10 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
-
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
 
 subroutine compute_super_lord_s (ele, ring, pring)
 
@@ -1689,6 +1765,10 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
 
 subroutine add_all_superimpose (ring, ele_in, pele)
 
@@ -1834,6 +1914,10 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
 
 subroutine compute2_super_lord_s (ring, i_ref, ele, pele)
 
@@ -1907,6 +1991,8 @@ end subroutine
 ! Subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match)
 !
 ! Subroutine to find a matching name in a list of names
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
 !
 ! Input:
 !   name         -- Character(16): Name to match to.
@@ -1979,7 +2065,9 @@ end subroutine
 !+
 ! Subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
 !
-! Subroutine to expand a sequence
+! Subroutine to expand a sequence.
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
 !-
 
 recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
@@ -2181,6 +2269,8 @@ end subroutine
 !
 ! Subroutine to find where the slaves are in a ring for a overlay_lord or
 ! group_lord. If multiple elements have the same name then use all of them.
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
 !-
 
 subroutine find_slaves_for_parser (ring, name_, attrib_name_, coef_, cs_out)
