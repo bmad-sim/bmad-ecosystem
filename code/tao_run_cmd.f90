@@ -17,8 +17,12 @@
 subroutine tao_run_cmd (which)
 
 use tao_mod
+use tao_var_mod
+
 implicit none
 
+real(rp), allocatable, save :: var_vec(:)
+integer n_data, i
 
 character(*)  which
 character(40) :: r_name = 'tao_run_cmd', my_opti
@@ -34,6 +38,26 @@ if (which /= ' ') s%global%optimizer = which
 call out_io (s_blank$, r_name, 'Optimizing with: ' // which)
 call out_io (s_blank$, r_name, &
               "Type ``.'' to stop the optimizer before it's finished.")
+
+call tao_get_vars (var_vec)
+if (size(var_vec) == 0) then
+  call out_io (s_fatal$, r_name, 'No variables to vary!')
+  s%global%optimizer_running = .false.
+  return
+endif
+
+n_data = 0
+do i = 1, size(s%u)
+  n_data = n_data + count(s%u(i)%data(:)%useit_opt)
+enddo
+if (n_data == 0) then
+  call out_io (s_fatal$, r_name, 'No constraints defined for the merit function!')
+  s%global%optimizer_running = .false.
+  return
+endif
+
+
+!
 
 select case (s%global%optimizer)
 

@@ -94,16 +94,18 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_a_datum (datum, u, lattice, orb, datum_value)
+! Subroutine tao_evaluate_a_datum (datum, u, lattice, orb, datum_value, taylor_in)
 !
 ! Subroutine to put the proper data in the specified datum
 ! Data types that require ranges should be evaulated at the ix2 element.
 !
 ! Input:
-!   datum   -- Tao_data_struct: What type of datum
-!   u       -- Tao_universe_struct: Which universe to use.
-!   lattice -- Ring_struct: Lattice to use.
-!   orb(0:) -- Coord_struct: Orbit to use.
+!   datum        -- Tao_data_struct: What type of datum
+!   u            -- Tao_universe_struct: Which universe to use.
+!   lattice      -- Ring_struct: Lattice to use.
+!   orb(0:)      -- Coord_struct: Orbit to use.
+!   taylor_in(6) -- Taylor_struct, optional: Starting point for 
+!                     tt: and t: constraints.
 !     
 ! Output:
 !   datum   -- Tao_data_struct: 
@@ -111,7 +113,7 @@ end subroutine
 !   datum_value -- Real(rp): Value of the datum.
 !-
 
-subroutine tao_evaluate_a_datum (datum, u, lattice, orb, datum_value)
+subroutine tao_evaluate_a_datum (datum, u, lattice, orb, datum_value, taylor_in)
 
 implicit none
 
@@ -121,7 +123,7 @@ type (ring_struct) ::  lattice
 type (coord_struct) :: orb(0:)
 type (modes_struct) mode
 type (taylor_struct), save :: taylor(6)
-!type (macro_bunch_params_struct), save :: macro_params
+type (taylor_struct), optional :: taylor_in(6)
 
 real(rp) datum_value, mat6(6,6)
 
@@ -141,11 +143,12 @@ if (found) return
 
 ix1 = datum%ix_ele
 ix2 = datum%ix_ele2
+datum_value = 0  ! default
 
 data_type = datum%data_type
 if (data_type(1:2) == 'r:') data_type = 'r:'
 if (data_type(1:2) == 't:') data_type = 't:'
-if (data_type(1:2) == 'tt:') data_type = 'tt:'
+if (data_type(1:3) == 'tt:') data_type = 'tt:'
 
 
 select case (data_type)
@@ -170,11 +173,9 @@ case ('orbit:p_z')
   call load_it (orb(:)%vec(6))
 
 case ('phase:x')
-  call relative_switch
-  datum_value = lattice%ele_(ix2)%x%phi - lattice%ele_(ix1)%x%phi
+  datum_value = lattice%ele_(ix1)%x%phi - lattice%ele_(ix2)%x%phi
 case ('phase:y')
-  call relative_switch
-  datum_value = lattice%ele_(ix2)%y%phi - lattice%ele_(ix1)%y%phi
+  datum_value = lattice%ele_(ix1)%y%phi - lattice%ele_(ix2)%y%phi
 
 case ('beta:x')
   if (s%global%track_type .eq. "single") then
@@ -316,48 +317,51 @@ case ('i5b_e6')
   datum%ix_ele_merit = lattice%n_ele_use
 
 case ('r:')
-  call relative_switch
-  i = read_this_index (datum%data_type(3:3)); if (i == 0) return
-  j = read_this_index (datum%data_type(4:4)); if (j == 0) return
-  call transfer_matrix_calc (lattice, .true., mat6, ix1, ix2)
+  if (ix1 < ix2) return
+  i = read_this_index (datum%data_type, 3); if (i == 0) return
+  j = read_this_index (datum%data_type, 4); if (j == 0) return
+  call transfer_matrix_calc (lattice, .true., mat6, ix2, ix1)
   datum_value = mat6(i, j)
 
 case ('t:')
-  call relative_switch
-  i = read_this_index (datum%data_type(3:3)); if (i == 0) return
-  j = read_this_index (datum%data_type(4:4)); if (j == 0) return
-  k = read_this_index (datum%data_type(5:5)); if (k == 0) return
-  call transfer_map_calc (lattice, taylor, ix1, ix2)
+  if (ix1 < ix2) return
+  i = read_this_index (datum%data_type, 3); if (i == 0) return
+  j = read_this_index (datum%data_type, 4); if (j == 0) return
+  k = read_this_index (datum%data_type, 5); if (k == 0) return
+  if (present(taylor_in)) then
+    call tao_transfer_map_calc (lattice, taylor_in, ix2, ix1, unit_start = .false.)
+  else
+    call tao_transfer_map_calc (lattice, taylor, ix2, ix1)
+  endif
   datum_value = taylor_coef (taylor(i), j, k)
 
 case ('tt:')
-  call relative_switch
+  if (ix1 < ix2) return
   expnt = 0
-  i = read_this_index (datum%data_type(4:4)); if (i == 0) return
+  i = read_this_index (datum%data_type, 4); if (i == 0) return
   do j = 5, 15
     if (datum%data_type(j:j) == ' ') exit
-    k = read_this_index (datum%data_type(j:j)); if (k == 0) return
+    k = read_this_index (datum%data_type, j); if (k == 0) return
     expnt(k) = expnt(k) + 1
   enddo
-  call transfer_map_calc (lattice, taylor, ix1, ix2)
+  if (present(taylor_in)) then
+    call tao_transfer_map_calc (lattice, taylor_in, ix2, ix1, unit_start = .false.)
+  else
+    call tao_transfer_map_calc (lattice, taylor, ix2, ix1)
+  endif
   datum_value = taylor_coef (taylor(i), expnt)
 
 case ('floor:x')
-  call relative_switch
-  datum_value = lattice%ele_(ix2)%floor%x - lattice%ele_(ix1)%floor%x
+  datum_value = lattice%ele_(ix1)%floor%x - lattice%ele_(ix2)%floor%x
 case ('floor:y')
-  call relative_switch
-  datum_value = lattice%ele_(ix2)%floor%y - lattice%ele_(ix1)%floor%y
+  datum_value = lattice%ele_(ix1)%floor%y - lattice%ele_(ix2)%floor%y
 case ('floor:z')
-  call relative_switch
-  datum_value = lattice%ele_(ix2)%floor%z - lattice%ele_(ix1)%floor%z
+  datum_value = lattice%ele_(ix1)%floor%z - lattice%ele_(ix2)%floor%z
 case ('floor:theta')
-  call relative_switch
-  datum_value = lattice%ele_(ix2)%floor%theta - lattice%ele_(ix1)%floor%theta
+  datum_value = lattice%ele_(ix1)%floor%theta - lattice%ele_(ix2)%floor%theta
 
 case ('s_position') 
-  call relative_switch
-  datum_value = lattice%ele_(ix2)%s - lattice%ele_(ix1)%s
+  datum_value = lattice%ele_(ix1)%s - lattice%ele_(ix2)%s
 
 case ('norm_emittance:x')
   if (s%global%track_type .eq. "beam") then
@@ -480,7 +484,7 @@ logical, optional :: coupling_here
 
 !
 
-if (ix2 < 0) then
+if (datum%ele2_name == ' ') then
   ix_m = ix1
   if (present(coupling_here)) call coupling_calc (ix_m)
 
@@ -516,36 +520,6 @@ datum%ix_ele_merit = ix_m
 datum_value = vec(ix_m)
 if (datum%merit_type(1:4) == 'abs_') datum_value = abs(vec(ix_m))
 if (present(f)) datum%conversion_factor = f(ix_m)
-
-end subroutine
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-! contains
-
-function read_this_index (char) result (ix)
-
-  character(1) char
-  integer ix
-
-  ix = index('123456', char)
-  if (ix == 0) then
-    call out_io (s_abort$, r_name, 'BAD INDEX CONSTRAINT: ' // datum%data_type)
-    call err_exit
-  endif
-
-end function
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-! contains
-
-subroutine relative_switch
-
-if (ix2 < 0) then
-  ix2 = ix1
-  ix1 = 0
-endif  
 
 end subroutine
 
@@ -639,5 +613,240 @@ logical err
 
 end subroutine tao_read_bpm
 
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+
+function read_this_index (name, ixc) result (ix)
+
+  character(*) name
+  integer ix, ixc
+  character(20) :: r_name = 'read_this_index'
+
+  ix = index('123456', name(ixc:ixc))
+  if (ix == 0) then
+    call out_io (s_abort$, r_name, 'BAD INDEX CONSTRAINT: ' // name)
+    call err_exit
+  endif
+
+end function
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+         
+! Subroutine tao_transfer_map_calc (lat, t_map, ix1, ix2, &
+!                                         integrate, one_turn, unit_start)
+!
+! Subroutine to calculate the transfer map between two elements.
+!
+! The transfer map is from the end of element ix1 to the end of element ix2.
+! If ix1 and ix2 are not present, the full 1-turn map is calculated.
+! If ix2 < ix1 then the calculation will "wrap around" the lattice end.
+! For example if ix1 = 900 and ix2 = 10 then the t_mat is the map from
+! element 900 to the lattice end plus from 0 through 10. 
+!
+! If ix2 = ix1 then you get the unit map except if one_turn = True.
+!
+! Note: If integrate = False and if a taylor map does not exist for an 
+! element this routine will make one and store it in the element.
+!
+! Modules Needed:
+!   use bmad
+!
+! Input:
+!   lat        -- Ring_struct: Lattice used in the calculation.
+!   t_map(6)   -- Taylor_struct: Initial map (used when unit_start = False)
+!   ix1        -- Integer, optional: Element start index for the calculation.
+!                   Default is 0.
+!   ix2        -- Integer, optional: Element end index for the calculation.
+!                   Default is lat%n_ele_use.
+!   integrate  -- Logical, optional: If present and True then do symplectic
+!                   integration instead of concatenation. 
+!                   Default = False.
+!   one_turn   -- Logical, optional: If present and True then construct the
+!                   one-turn map from ix1 back to ix1 (ignoring ix2).
+!                   Default = False.
+!   unit_start -- Logical, optional: If present and False then t_map will be
+!                   used as the starting map instead of the unit map.
+!                   Default = True
+!
+! Output:
+!    t_map(6) -- Taylor_struct: Transfer map.
+!-
+
+subroutine tao_transfer_map_calc (lat, t_map, ix1, ix2, &
+                                      integrate, one_turn, unit_start)
+
+  use bmad_struct
+  use bmad_interface
+  use ptc_interface_mod, only: concat_taylor, ele_to_taylor, taylor_propagate1
+
+  implicit none
+
+  type (ring_struct) lat
+
+  type (taylor_struct) :: t_map(:), taylor2(6)
+
+  integer, intent(in), optional :: ix1, ix2
+  integer i, i1, i2
+
+  logical, optional :: integrate, one_turn, unit_start
+  logical integrate_this, one_turn_this
+
+!
+
+  integrate_this = logic_option (.false., integrate)
+  one_turn_this = logic_option (.false., one_turn)
+
+  i1 = integer_option(0, ix1) 
+  i2 = integer_option(lat%n_ele_use, ix2)
+  if (one_turn_this) i2 = i1
+ 
+  if (logic_option(.true., unit_start)) call taylor_make_unit (t_map)
+
+
+  if (i2 < i1 .or. one_turn_this) then
+    do i = i1, lat%n_ele_use
+      call add_on_to_t_map
+    enddo
+    do i = 1, i2
+      call add_on_to_t_map
+    enddo
+
+  else
+    do i = i1, i2
+      call add_on_to_t_map
+    enddo
+  endif
+
+!--------------------------------------------------------
+contains
+
+subroutine add_on_to_t_map
+
+  if (integrate_this) then
+    call taylor_propagate1 (t_map, lat%ele_(i), lat%param)
+  else
+    if (.not. associated(lat%ele_(i)%taylor(1)%term)) then
+      call ele_to_taylor (lat%ele_(i), lat%param)
+    endif
+
+    call concat_taylor (t_map, lat%ele_(i)%taylor, t_map)
+  endif
+
+end subroutine
+
+end subroutine
+                                          
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+         
+! Subroutine tao_transfer_map_calc_at_s (lat, t_map, s1, s2, &
+!                                         integrate, one_turn, unit_start)
+!
+! Subroutine to calculate the transfer map between two elements.
+!
+! The transfer map is from longitudinal position s1 to s2.
+! If s1 and s2 are not present, the full 1-turn map is calculated.
+! If s2 < s1 then the calculation will "wrap around" the lattice end.
+! For example if s1 = 900 and s2 = 10 then the t_mat is the map from
+! s = 900 to the lattice end plus from 0 through s = 10. 
+!
+! If s2 = s1 then you get the unit map except if one_turn = True.
+!
+! Note: If integrate = False and if a taylor map does not exist for an 
+! element this routine will make one and store it in the element.
+!
+! Modules Needed:
+!   use bmad
+!
+! Input:
+!   lat        -- Ring_struct: Lattice used in the calculation.
+!   t_map(6)   -- Taylor_struct: Initial map (used when unit_start = False)
+!   s1         -- Real(rp), optional: Element start index for the calculation.
+!                   Default is 0.
+!   s2         -- Real(rp), optional: Element end index for the calculation.
+!                   Default is lat%param%total_length.
+!   integrate  -- Logical, optional: If present and True then do symplectic
+!                   integration instead of concatenation. 
+!                   Default = False.
+!   one_turn   -- Logical, optional: If present and True then construct the
+!                   one-turn map from s1 back to s1 (ignoring s2).
+!                   Default = False.
+!   unit_start -- Logical, optional: If present and False then t_map will be
+!                   used as the starting map instead of the unit map.
+!                   Default = True
+!
+! Output:
+!    t_map(6) -- Taylor_struct: Transfer map.
+!-
+
+subroutine tao_transfer_map_calc_at_s (lat, t_map, s1, s2, &
+                                      integrate, one_turn, unit_start)
+
+  use bmad_struct
+  use bmad_interface
+  use ptc_interface_mod, only: concat_taylor, ele_to_taylor, taylor_propagate1
+
+  implicit none
+
+  type (ring_struct) lat
+  type (taylor_struct) :: t_map(:), taylor2(6)
+  type (ele_struct) :: ele
+
+  real(rp), intent(in), optional :: s1, s2
+  real(rp) ss1, ss2
+  integer i, i1, i2
+
+  logical, optional :: integrate, one_turn, unit_start
+  logical integrate_this, one_turn_this
+
+!
+
+  integrate_this = logic_option (.false., integrate)
+  one_turn_this = logic_option (.false., one_turn)
+
+  ss1 = 0;                       if (present(s1)) ss1 = s1
+  ss2 = lat%param%total_length;  if (present(s2)) ss2 = s2
+  if (one_turn_this) ss2 = ss1
+ 
+  if (logic_option(.true., unit_start)) call taylor_make_unit (t_map)
+
+
+  if (i2 < i1 .or. one_turn_this) then
+    call transfer_this (ss1, lat%param%total_length)
+    call transfer_this (0.0_rp, ss2)
+  else
+    call transfer_this (ss1, ss2)
+  endif
+
+!--------------------------------------------------------
+contains
+
+subroutine transfer_this (s_1, s_2)
+
+real(rp) s_1, s_2
+
+end subroutine
+
+!--------------------------------------------------------
+
+subroutine add_on_to_t_map
+
+  if (integrate_this) then
+    call taylor_propagate1 (t_map, lat%ele_(i), lat%param)
+  else
+    if (.not. associated(lat%ele_(i)%taylor(1)%term)) then
+      call ele_to_taylor (lat%ele_(i), lat%param)
+    endif
+
+    call concat_taylor (t_map, lat%ele_(i)%taylor, t_map)
+  endif
+
+end subroutine
+
+end subroutine
 
 end module tao_data_mod

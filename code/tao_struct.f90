@@ -63,6 +63,7 @@ end type
 type tao_curve_struct
   character(16) :: data_source             ! "lat_layout", "data_array", etc...
   character(16) :: data_type = ' '         ! "orbit:x", etc.
+  character(16) :: ele2_name               ! Reference element.
   real(rp), pointer :: x_line(:) => null() ! coords for drawing a curve
   real(rp), pointer :: y_line(:) => null()
   real(rp), pointer :: x_symb(:) => null() ! coords for drawing the symbols
@@ -74,6 +75,7 @@ type tao_curve_struct
   type (tao_curve_hook) hook   ! Custom stuff. Defined in tao_hook.f90.
   integer ix_universe          ! universe to take the data from. 0 => use s%global%u_view
   integer symbol_every         ! symbol every how many points.
+  integer ix_ele2              ! Index in lattice of reference element.
   logical use_y2               ! Use y2 axis?
   logical draw_line            ! draw a line through the data points?
   logical limited              ! True if at least one data point past limit.
@@ -177,7 +179,7 @@ type tao_data_struct
   character(32) data_type   ! Type of data: "orbit:x", etc.
   character(16) merit_type  ! Type of constraint: 'target', 'max', 'min', etc.
   integer ix_ele            ! Index of the element in the lattice element array.
-  integer ix_ele2           ! Index of lattice elment when there is a range.
+  integer ix_ele2           ! Index of lattice elment when there is a range or reference.
   integer ix_ele_merit      ! Index of lattice elment where merit is evaluated.
   integer ix_d1             ! Index number of this datum.
   integer ix_data           ! Index of this datum in the u%data(:) array of data_structs.

@@ -77,6 +77,7 @@ type tao_curve_input
   type (qp_line_struct) line
   type (qp_symbol_struct) symbol
   logical convert  
+  character(16) ele2_name
 end type
 
 type tao_graph_input

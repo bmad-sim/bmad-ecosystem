@@ -24,6 +24,7 @@ type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_v1_var_struct) , pointer :: v1_ptr
 type (tao_data_struct) datum
 type (ele_struct), pointer :: ele
+type (taylor_struct) t_map(6)
 
 real(rp) f, x1, x2, y_val, eps
 real(rp), pointer :: value(:)
@@ -32,7 +33,7 @@ integer i, ii, j, k, m, n_dat, i_uni, ie, jj
 integer ix_this, ix
 integer :: n_smooth_pts = 400
 
-logical err, smoothing
+logical err, smooth_curve
 
 character(20) :: r_name = 'tao_plot_data_setup'
 character(12)  :: u_view_char
@@ -101,6 +102,15 @@ plot_loop: do i = 1, size(s%plot_page%plot)
       if (curve%ix_universe /= 0) i_uni = curve%ix_universe 
       u => s%u(i_uni)
       
+      if (curve%ele2_name /= ' ') then
+        call element_locator (curve%ele2_name, u%design, curve%ix_ele2)
+        if (curve%ix_ele2 < 0) then
+          curve%ix_ele2 = 0
+          call out_io (s_error$, r_name, &
+                  'Curve%ele2_name cannot be found in lattice: ' // curve%ele2_name)
+        endif
+      endif
+
 !----------------------------------------------------------------------------
 ! data_source is a data array
 
@@ -187,7 +197,8 @@ plot_loop: do i = 1, size(s%plot_page%plot)
           cycle plot_loop
         endif
 
-  ! find which universe we're viewing
+        ! find which universe we're viewing
+
         ix_this = -1
         do jj = 1, size(v1_ptr%v(1)%this)
           if (v1_ptr%v(1)%this(jj)%ix_uni .eq. s%global%u_view) ix_this = jj
@@ -309,28 +320,40 @@ plot_loop: do i = 1, size(s%plot_page%plot)
 ! calculate the y-axis data point values.
 
         curve%y_symb = 0
-        datum%ix_ele2 = -1
+        datum%ix_ele2 = curve%ix_ele2
         datum%merit_type = 'target'
         datum%data_type = curve%data_type
+        datum%ele2_name = curve%ele2_name
 
-        do ie = 1, n_dat
-          datum%ix_ele = curve%ix_symb(ie)
-          do m = 1, size(plot%who)
+        do m = 1, size(plot%who)
+          do ie = 1, n_dat
+
+            datum%ix_ele = curve%ix_symb(ie)
+
+            if (datum%data_type(1:3) == 'tt:' .or. datum%data_type(1:2) == 't:') then
+              if (ie == 1) call taylor_make_unit (t_map)
+            endif
+
             select case (plot%who(m)%name)
             case (' ') 
               cycle
             case ('model')   
-              call tao_evaluate_a_datum (datum, u, u%model, u%model_orb, y_val)
+              call tao_evaluate_a_datum (datum, u, u%model, u%model_orb, y_val, t_map)
             case ('base')  
-              call tao_evaluate_a_datum (datum, u, u%base, u%base_orb, y_val)
+              call tao_evaluate_a_datum (datum, u, u%base, u%base_orb, y_val, t_map)
             case ('design')  
-              call tao_evaluate_a_datum (datum, u, u%design, u%design_orb, y_val)
+              call tao_evaluate_a_datum (datum, u, u%design, u%design_orb, y_val, t_map)
             case default
               call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // plot%who(m)%name)
               plot%valid = .false.
               cycle plot_loop
             end select
             curve%y_symb(ie) = curve%y_symb(ie) + plot%who(m)%sign * y_val
+
+            if (datum%data_type(1:3) == 'tt:' .or. datum%data_type(1:2) == 't:') then
+              if (datum%ix_ele > datum%ix_ele2) datum%ix_ele2 = datum%ix_ele
+            endif
+
           enddo
         enddo
 
@@ -343,20 +366,11 @@ plot_loop: do i = 1, size(s%plot_page%plot)
         cycle plot_loop
       end select
 
-
 !----------------------------------------------------------------------------
-! Note: Since there is an arbitrary overall phase, the phase data 
-! gets renormalized so that the average value is zero.
+! Renormalize and check for limited graph
 
       curve%y_symb = curve%y_symb * curve%units_factor
 
-      if (curve%data_type(1:6) == 'phase:' .and. n_dat /= 0) then
-         f = sum(curve%y_symb) / n_dat
-         curve%y_symb = curve%y_symb - f
-      endif 
-
-!----------------------------------------------------------------------------
-! check for limited graph
       curve%limited = .false.
       if (any(curve%y_symb .lt. graph%y%min .or. curve%y_symb .gt. graph%y%max)) &
         curve%limited = .true.
@@ -380,12 +394,12 @@ plot_loop: do i = 1, size(s%plot_page%plot)
         curve%x_line = curve%x_symb
         curve%y_line = curve%y_symb
       elseif (plot%x_axis_type == 's') then
-        smoothing = .true.
+        smooth_curve = .true.
         do m = 1, size(plot%who)
           if (plot%who(m)%name .eq. 'meas' .or. plot%who(m)%name .eq. 'ref' .or. &
-	      s%global%track_type .ne. 'single') smoothing = .false.
+	      s%global%track_type .ne. 'single') smooth_curve = .false.
         enddo
-        if (smoothing) then
+        if (smooth_curve) then
           call reassociate_real (curve%y_line, n_smooth_pts) ! allocate data space
           call reassociate_real (curve%x_line, n_smooth_pts) ! allocate data space
           curve%y_line = 0
@@ -394,16 +408,13 @@ plot_loop: do i = 1, size(s%plot_page%plot)
             case (' ') 
               cycle
             case ('model')
-              call s_data_to_plot (u%model, u%model_orb,  & 
-                          curve%x_line, plot%who(m), curve%y_line, err)
+              call s_data_to_plot (u%model, u%model_orb, plot%who(m), curve, err)
               if (err) cycle plot_loop
             case ('base')  
-              call s_data_to_plot (u%base, u%base_orb, &
-                          curve%x_line, plot%who(m), curve%y_line, err)
+              call s_data_to_plot (u%base, u%base_orb, plot%who(m), curve, err)
               if (err) cycle plot_loop
             case ('design')  
-              call s_data_to_plot (u%design, u%design_orb, &
-                          curve%x_line, plot%who(m), curve%y_line, err)
+              call s_data_to_plot (u%design, u%design_orb, plot%who(m), curve, err)
               if (err) cycle plot_loop
             case default
               call out_io (s_error$, r_name, &
@@ -420,6 +431,16 @@ plot_loop: do i = 1, size(s%plot_page%plot)
         endif
         
       endif
+
+!----------------------------------------------------------------------------
+! Note: Since there is an arbitrary overall phase, the phase data 
+! gets renormalized so that the average value is zero.
+
+      if (curve%data_type(1:6) == 'phase:' .and. n_dat /= 0 .and. curve%ele2_name == ' ') then
+        f = sum(curve%y_symb) / n_dat
+        curve%y_symb = curve%y_symb - f
+        curve%y_line = curve%y_line - f 
+      endif 
 
 ! For the title_suffix: strip off leading "+" and enclose in "[ ]".
 
@@ -450,10 +471,12 @@ plot_loop: do i = 1, size(s%plot_page%plot)
 
 ! attach universe number to title suffix
 
-      write (u_view_char, '(I)') s%global%u_view
-      call string_trim (u_view_char, u_view_char, ix)
-      graph%title_suffix = trim(graph%title_suffix) // ' Universe: ' // trim(u_view_char)
-      
+      if (size(s%u) > 1) then
+        write (u_view_char, '(I)') s%global%u_view
+        call string_trim (u_view_char, u_view_char, ix)
+        graph%title_suffix = trim(graph%title_suffix) // ' Universe: ' // trim(u_view_char)
+      endif
+
     enddo
   enddo
 enddo plot_loop
@@ -462,14 +485,19 @@ enddo plot_loop
 !----------------------------------------------------------------------------
 contains
 
-subroutine s_data_to_plot (lat, orb, s_pos, who, y, err)
+subroutine s_data_to_plot (lat, orb, who, curve, err)
 
 type (tao_plot_who_struct) who
 type (coord_struct) orb(0:)
 type (ring_struct) lat
 type (ele_struct) ele
 type (coord_struct) here
-real(rp) s_pos(:), y(:), cbar(2,2)
+type (tao_curve_struct) curve
+type (taylor_struct) t_map(6)
+
+real(rp) cbar(2,2), s_last, s_now, value, mat6(6,6)
+integer i, j, k, expnt(6)
+character(16) data_type
 logical err
 
 !
@@ -478,63 +506,103 @@ err = .false.
 
 x1 = max (plot%x%min, u%model%ele_(0)%s)
 x2 = min (plot%x%max, u%model%ele_(u%model%n_ele_use)%s)
+s_last = lat%ele_(curve%ix_ele2)%s
 
-do ii = 1, size(s_pos)
-  s_pos(ii) = x1 + (ii-1) * (x2-x1) / (size(s_pos)-1)
+data_type = datum%data_type
+if (data_type(1:2) == 'r:') data_type = 'r:'
+if (data_type(1:2) == 't:') data_type = 't:'
+if (data_type(1:3) == 'tt:') data_type = 'tt:'
 
-  call twiss_and_track_at_s (lat, s_pos(ii), ele, orb, here)
+!
 
+do ii = 1, size(curve%x_line)
 
-  select case (curve%data_type)
+  s_now = x1 + (ii-1) * (x2-x1) / (size(curve%x_line)-1)
+  curve%x_line(ii) = s_now
+  value = 0
+
+  call twiss_and_track_at_s (lat, curve%x_line(ii), ele, orb, here)
+
+  select case (data_type)
   case ('orbit:x')
-    y(ii) = y(ii) + who%sign * here%vec(1)
+    value = here%vec(1)
   case ('orbit:y')
-    y(ii) = y(ii) + who%sign * here%vec(3)
+    value = here%vec(3)
   case ('orbit:z')
-    y(ii) = y(ii) + who%sign * here%vec(5)
+    value = here%vec(5)
   case ('orbit:p_x')
-    y(ii) = y(ii) + who%sign * here%vec(2)
+    value = here%vec(2)
   case ('orbit:p_y')
-    y(ii) = y(ii) + who%sign * here%vec(4)
+    value = here%vec(4)
   case ('orbit:p_z')
-    y(ii) = y(ii) + who%sign * here%vec(6)
+    value = here%vec(6)
   case ('phase:x')
-    y(ii) = y(ii) + who%sign * ele%x%phi
+    value = ele%x%phi
   case ('phase:y')
-    y(ii) = y(ii) + who%sign * ele%y%phi
+    value = ele%y%phi
   case ('beta:x')
-    y(ii) = y(ii) + who%sign * ele%x%beta
+    value = ele%x%beta
   case ('beta:y')
-    y(ii) = y(ii) + who%sign * ele%y%beta
+    value = ele%y%beta
   case ('alpha:x')
-    y(ii) = y(ii) + who%sign * ele%x%alpha
+    value = ele%x%alpha
   case ('alpha:y')
-    y(ii) = y(ii) + who%sign * ele%y%alpha
+    value = ele%y%alpha
   case ('eta:x')
-    y(ii) = y(ii) + who%sign * ele%x%eta
+    value = ele%x%eta
   case ('eta:y')
-    y(ii) = y(ii) + who%sign * ele%y%eta
+    value = ele%y%eta
   case ('etap:x')
-    y(ii) = y(ii) + who%sign * ele%x%etap
+    value = ele%x%etap
   case ('etap:y')
-    y(ii) = y(ii) + who%sign * ele%y%etap
+    value = ele%y%etap
   case ('cbar:11')
     call c_to_cbar (ele, cbar)
-    y(ii) = y(ii) + who%sign * cbar(1,1)
+    value = cbar(1,1)
   case ('cbar:12')
     call c_to_cbar (ele, cbar)
-    y(ii) = y(ii) + who%sign * cbar(1,2)
+    value = cbar(1,2)
   case ('cbar:21')
     call c_to_cbar (ele, cbar)
-    y(ii) = y(ii) + who%sign * cbar(2,1)
+    value = cbar(2,1)
   case ('cbar:22')
     call c_to_cbar (ele, cbar)
-    y(ii) = y(ii) + who%sign * cbar(2,2)
+    value = cbar(2,2)
+  case ('r:')
+    if (ii == 1) call mat_make_unit (mat6)
+    if (s_now > s_last) cycle
+    i = read_this_index (datum%data_type, 3); if (i == 0) return
+    j = read_this_index (datum%data_type, 4); if (j == 0) return
+!    call tao_mat6_calc_at_s (lat, mat6, s_last, s_now, unit_start = .false.)
+    value = mat6(i, j)
+  case ('t:')
+    if (ii == 1) call taylor_make_unit (t_map)
+    if (s_now > s_last) cycle
+    i = read_this_index (datum%data_type, 3); if (i == 0) return
+    j = read_this_index (datum%data_type, 4); if (j == 0) return
+    k = read_this_index (datum%data_type, 5); if (k == 0) return
+!    call tao_transfer_map_calc_at_s (lat, t_map, s_last, s_now, unit_start = .false.)
+    value = taylor_coef (t_map(i), j, k)
+  case ('tt:')
+    if (ii == 1) call taylor_make_unit (t_map)
+    if (s_now > s_last) cycle
+    expnt = 0
+    i = read_this_index (datum%data_type, 4); if (i == 0) return
+    do j = 5, 15
+      if (datum%data_type(j:j) == ' ') exit
+      k = read_this_index (datum%data_type, j); if (k == 0) return
+      expnt(k) = expnt(k) + 1
+    enddo
+!    call tao_transfer_map_calc_at_s (lat, t_map, s_last, s_now, unit_start = .false.)
+    value = taylor_coef (t_map(i), expnt)
   case default
 !   call out_io (s_fatal$, r_name, 'DO NOT KNOW ABOUT THIS DATA_TYPE: ' // curve%data_type)
 !   call out_io (s_blank$, r_name, "Will not perfrom any plot smoothing")
     err = .true.
   end select
+
+  curve%y_line(ii) = curve%y_line(ii) + who%sign * value
+  s_last = s_now
 
 enddo
 

@@ -122,7 +122,6 @@ subroutine plot_key_table
 integer i, j, k, j_ele, j_att, ix_var
 real(rp) :: y, norm
 real(rp) :: dy_key = 12
-character(3) str3
 character(80) str, fmt, str2
 
 !
@@ -131,6 +130,7 @@ j_ele = 4
 j_att = 5
 
 do k = s%global%ix_key_bank+1, s%global%ix_key_bank+10
+  if (k > ubound(s%key, 1)) cycle
   ix_var = s%key(k)%ix_var
   if (ix_var == 0) cycle
   j_ele = max(j_ele, len_trim(s%var(ix_var)%ele_name))
@@ -146,28 +146,33 @@ call qp_draw_text (str, 5.0_rp, y, 'POINTS/PAGE', &
                              height = dy_key-1.0_rp, uniform_spacing = .true.)
   
 write (fmt, '(a, i2.2, a, i2.2, a)') &
-        '(a, i2, 2x, a', j_ele, ', 2x, a', j_att, ', 3f9.4, 2x, a, 3x, l)'
+        '(i2, 2x, a', j_ele, ', 2x, a', j_att, ', 3f9.4, 2x, a, 3x, l)'
+
+write (str, '(i2, a)') s%global%ix_key_bank/10, ':'
+y = 9 * dy_key + 5
+call qp_draw_text (str, 5.0_rp, y, 'POINTS/PAGE', &
+                          height = dy_key-1.0_rp, uniform_spacing = .true.)
 
 do i = 1, 10
+
   k = i + s%global%ix_key_bank
+  if (k > ubound(s%key, 1)) cycle
   ix_var = s%key(k)%ix_var
   j = mod(i, 10)
-  str3 = '  '
-  if (i == 1) write (str3, '(i2, a)') s%global%ix_key_bank/10, ':'
 
   if (s%key(k)%ix_var == 0) then
-    write (str, '(a, i2)') str3, j
+    write (str, '(i2)') j
   else
     norm = s%key(k)%normalizer
     str2 = tao_var_uni_string(s%var(ix_var))
-    write (str, fmt) str3, j, s%var(ix_var)%ele_name, &
+    write (str, fmt) j, s%var(ix_var)%ele_name, &
       s%var(ix_var)%attrib_name, s%var(ix_var)%model_value, &
       s%key(k)%val0/norm, s%key(k)%delta/norm, &
       trim(str2), s%var(ix_var)%useit_opt
   endif
 
   y = (10-i) * dy_key + 5
-  call qp_draw_text (str, 5.0_rp, y, 'POINTS/PAGE', &
+  call qp_draw_text (str, 20.0_rp, y, 'POINTS/PAGE', &
                           height = dy_key-1.0_rp, uniform_spacing = .true.)
 enddo
 
@@ -293,6 +298,7 @@ enddo
 
 if (s%global%label_keys) then
   do k = s%global%ix_key_bank+1, s%global%ix_key_bank+10
+    if (k > ubound(s%key, 1)) cycle
     ix_var = s%key(k)%ix_var
     if (ix_var < 1) cycle
     do ixv = 1, size(s%var(ix_var)%this)

@@ -141,6 +141,7 @@ do
     curve(:)%use_y2 = .false.
     curve(:)%symbol = default_symbol
     curve(:)%line   = default_line
+    curve(:)%ele2_name   = ' '
     curve(2:7)%symbol%type = (/ times$, square$, plus$, triangle$, &
                                   x_symbol$, diamond$ /)
     curve(2:7)%symbol%color = (/ blue$, red$, green$, cyan$, magenta$, yellow$ /)
@@ -196,6 +197,9 @@ do
       crv%symbol            = curve(j)%symbol
       crv%line              = curve(j)%line
       crv%convert           = curve(j)%convert
+      crv%ele2_name         = curve(j)%ele2_name
+      crv%ix_ele2           = 0
+      if (crv%ele2_name /= ' ') call str_upcase (crv%ele2_name, crv%ele2_name)
     enddo
   enddo
 enddo
