@@ -70,7 +70,7 @@ subroutine cesr_crossings(i_train, j_car, species, n_trains_tot, n_cars, &
                                                                                
 ! Allocate arrays.
 
-  allocate(trtimes(1:n_trains_tot), STAT=ierr)            
+  allocate(trtimes(1:max(9,n_trains_tot)), STAT=ierr)            
   if (ierr .ne. 0) THEN                             
     print*, "TRTIMES: ALLOCATION REQUEST DENIED." 
     call err_exit
