@@ -223,8 +223,10 @@ subroutine track1_space_charge (start, ele, param, end)
 
   kick_const = v%kick_const * exp(-0.5 * (end%vec(5)/v%sig_z)**2) 
 
-  end%vec(2) = end%vec(2) + kick_const * kx
-  end%vec(4) = end%vec(4) + kick_const * ky
+! The negative sign is due to the bbi kick assuming beams of opposite sign.
+
+  end%vec(2) = end%vec(2) - kick_const * kx
+  end%vec(4) = end%vec(4) - kick_const * ky
 
 end subroutine
 
@@ -267,14 +269,13 @@ subroutine make_mat6_space_charge (ele, param)
 
   v => sc_com%v(ele%ix_ele)
 
-  kx_rot = -4 * pi / v%sig_x
-  ky_rot = -4 * pi / v%sig_y
-
-  kick_const = v%kick_const 
-
   call mat_make_unit (sc_kick_mat)
-  sc_kick_mat(2,1) = kick_const * kx_rot 
-  sc_kick_mat(4,3) = kick_const * ky_rot 
+
+  kx_rot = 4 * pi * v%kick_const / v%sig_x
+  ky_rot = 4 * pi * v%kick_const / v%sig_y
+  sc_kick_mat(2,1) = kx_rot 
+  sc_kick_mat(4,3) = ky_rot 
+
   call tilt_mat6(sc_kick_mat, -v%phi)
 
   ele%mat6 = matmul (sc_kick_mat, ele%mat6)
