@@ -2,11 +2,7 @@
 ! Subroutine ring_geometry (ring)
 !
 ! Subroutine to calculate the physical placement of all the elements in a ring.
-! That is, the layout on the floor. 
-! This is the same as the MAD convention. See the MAD manual for more details.
-!
-! Note: At present this routine assumes no  vertical bends. That is, 
-! y_position is always 0 and the ring in in the X-Z plane.
+! That is, the layout on the floor. This is the same as the MAD convention.
 !
 ! Modules Needed:
 !   use bmad
@@ -16,11 +12,13 @@
 !
 ! Output:
 !   ring
-!     %ele_(i)
-!       %x_position        -- X position at end of element
-!       %y_position        -- Y position at end of element
-!       %z_position        -- Z position at end of element
-!       %theta_position    -- Orientation angle at end of element in X-Z plane
+!     %ele_(i)%position --  floor_position_struct: Floor position.
+!       %x                -- X position at end of element
+!       %y                -- Y position at end of element
+!       %z                -- Z position at end of element
+!       %theta            -- Orientation angle at end of element in X-Z plane
+!       %phi              -- Elevation angle.
+!       %psi              -- Roll angle.
 !
 ! Note: The starting point is taken to be the position in RING%ELE_(0)
 !-
