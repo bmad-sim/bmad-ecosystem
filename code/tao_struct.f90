@@ -347,7 +347,6 @@ type tao_global_struct
   logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
   logical :: lattice_recalc = .true.         ! recalculate the lattice?
   logical :: init_plot_needed = .true.       ! reinitialize plotting?
-  logical :: use_real_bpms = .false. ! use offsets for monitor model orbits
   character(16) :: valid_plot_who(10)        ! model, base, ref etc...
   character(40) :: print_command = 'awprint'
   character(80) :: default_init_file = 'tao.init'

@@ -250,7 +250,7 @@ real(rp) :: value1, value2, m_particle
         ! other beam_init parameters will be as in init.tao, or as above
         call init_beam_distribution (lat%ele_(extract_at_ix_ele), &
                                      beam_init, s%u(i_uni)%coupling%injecting_beam, &
-	                             .true.)
+	                             .true., .true.)
       endif
       return
     elseif (lat%param%lattice_type == linear_lattice$) then
@@ -262,7 +262,7 @@ real(rp) :: value1, value2, m_particle
       call err_exit
     endif
     
-    call init_beam_distribution (lat%ele_(0), beam_init, beam, .true.)
+    call init_beam_distribution (lat%ele_(0), beam_init, beam, .true., .true.)
   endif
 
   ! beginning element calculations

@@ -45,7 +45,7 @@ character(20) :: r_name = 'tao_load_data_array'
   
   ! find which datums to evaluate here
   if (.not. associated(u%ix_data(ix_ele)%ix_datum)) return
-  
+
   ix_data => u%ix_data(ix_ele)
   do i = 1, size(ix_data%ix_datum)
     call tao_evaluate_a_datum (u%data(ix_data%ix_datum(i)), u, u%model, &
@@ -143,18 +143,16 @@ if (data_type(1:2) == 'tt:') data_type = 'tt:'
 select case (data_type)
 
 case ('orbit:x')
-  if ((lattice%ele_(ix_ele)%key .eq. instrument$ .or. &
-       lattice%ele_(ix_ele)%key .eq. monitor$        ) .and. &
-                                            s%global%use_real_bpms) then 
-!   call misalign_bpm(orb(ix_ele)
-  else
-    call load_it (orb(:)%vec(1))
-  endif
-
+  call load_it (orb(:)%vec(1))
 case ('orbit:y')
   call load_it (orb(:)%vec(3))
 case ('orbit:z')
   call load_it (orb(:)%vec(5))
+
+case ('bpm:x')
+  call tao_read_bpm (orb(ix_ele), lattice%ele_(ix_ele), x$, datum_value)
+case ('bpm:y')
+  call tao_read_bpm (orb(ix_ele), lattice%ele_(ix_ele), y$, datum_value)
 
 case ('orbit:p_x')
   call load_it (orb(:)%vec(2))
@@ -584,6 +582,58 @@ cc_p%f_22  = f2
 end subroutine coupling_calc
 
 end subroutine tao_evaluate_a_datum
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine tao_read_bpm
+!
+! Find the reading on a bpm given the orbit at the BPM and the BPM offsets
+!
+! Input: 
+!  orb      -- Coord_struct: Orbit position at BPM
+!  ele      -- Ele_struct: the BPM
+!  axis     -- Integer: x$ or y$
+!
+! Output:
+!  reading  -- Real(rp): BPM reading
+!
+!-
+
+subroutine tao_read_bpm (orb, ele, axis, reading)
+
+type (coord_struct) orb
+type (ele_struct) ele
+type (tao_d2_data_struct), pointer :: d2_ptr
+
+real(rp) reading
+
+integer axis
+
+character(20) :: r_name = "tao_read_bpm"
+
+logical err
+
+  if (ele%key .ne. monitor$ .and. ele%key .ne. instrument$) then
+    reading = 0.0
+    return
+  endif
+
+  if (axis .eq. x$) then
+    reading =  (orb%vec(1) - ele%value(x_offset$)) * cos(ele%value(tilt$)) + &
+               (orb%vec(3) - ele%value(y_offset$)) * sin(ele%value(tilt$))              
+  elseif (axis .eq. y$) then
+    reading = -(orb%vec(1) - ele%value(x_offset$)) * sin(ele%value(tilt$)) + &
+               (orb%vec(3) - ele%value(y_offset$)) * cos(ele%value(tilt$))  
+  else
+    call out_io (s_warn$, r_name, &
+                 "This axis not supported for BPM reading!")
+  endif
+    
+  call tao_find_data (err, s%u(3), 'bpm:x', d2_ptr)
+
+end subroutine tao_read_bpm
 
 
 end module tao_data_mod

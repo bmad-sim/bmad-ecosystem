@@ -25,11 +25,12 @@ module tao_parameters
 						  
 ! the name struct
   
+  integer, parameter :: x$ = 1, y$ = 2, z$ = 3, a$ = 4, b$ = 5
   integer, parameter :: data$ = 1, variable$ = 2
   integer, parameter :: use$ = 1, veto$ = 2, restore$ = 3
   
   type  name_struct
-    character(16) :: xy_plane(2) = (/ "X", "Y" /)
+    character(16) :: xy_plane(5) = (/ "X", "Y", "Z", "A", "B" /)
     character(16) :: data_or_var(2) = (/ "data    ", "variable"/)
     character(16) :: use_veto_restore(3) = (/ "use    ", "veto   ", "restore"/)
   end type

@@ -1250,9 +1250,10 @@ logical calc_emittance
   u%design_orb(0)%vec = beam_init%center
 
   ! This is just to get things allocated
-  call init_beam_distribution (u%design%ele_(0), beam_init, u%beam%beam, .true.)
+  call init_beam_distribution (u%design%ele_(0), beam_init, u%beam%beam, .true., .true.)
   if (u%coupling%coupled) &
-    call init_beam_distribution (u%design%ele_(0), beam_init, u%coupling%injecting_beam, .true.)
+    call init_beam_distribution (u%design%ele_(0), beam_init, u%coupling%injecting_beam, &
+                                 .true., .true.)
 
 end subroutine init_beam
 
