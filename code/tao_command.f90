@@ -272,7 +272,8 @@ subroutine tao_command (command_line, err)
 
     if (((cmd_word(1) == 'data' .or. cmd_word(1) == 'var') .and. &
                   cmd_word(4) /= '=') .or. &
-                  (cmd_word(1) == 'global' .and. cmd_word(3) /= '=')) then
+                  (cmd_word(1) == 'global' .and. cmd_word(3) /= '=') .or. &
+		  (cmd_word(1)(1:7) == 'lattice' .and. cmd_word(3) /= '=')) then
       call out_io (s_error$, r_name, 'SYNTAX PROBLEM. "=" NOT IN CORRECT PLACE.')
       return
     endif
@@ -285,6 +286,9 @@ subroutine tao_command (command_line, err)
     case ('var')
       call tao_set_var_cmd (cmd_word(2), &
                               cmd_word(3), cmd_word(5), cmd_word(6)) 
+    case ('lattice')
+      call tao_set_lattice_cmd (cmd_word(1), &
+                              cmd_word(2), cmd_word(4)) 
     case ('global')
       call tao_set_global_cmd (cmd_word(2), cmd_word(4))
     case default

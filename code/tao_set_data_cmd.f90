@@ -25,11 +25,16 @@ integer i
 character(*) name, component, set_value, list
 character(20) :: r_name = 'tao_set_data_cmd'
 
+logical, automatic :: this_u(size(s%u))
 logical err
 
 !
 
+call tao_pick_universe (name, name, this_u, err)
+if (err) return
+
 do i = 1, size(s%u)
+  if (.not. this_u(i)) cycle
   call set_data (s%u(i))
   if (err) return
 enddo

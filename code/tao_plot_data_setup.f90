@@ -247,10 +247,10 @@ plot_loop: do i = 1, size(s%plot_page%plot)
         curve%y_line = curve%y_symb
       elseif (plot%x_axis_type == 's') then
         smoothing = .true.
-        forall (m = 1:size(plot%who), &
-	        (plot%who(m)%name .eq. 'meas' .or. plot%who(m)%name .eq. 'ref'))
-            smoothing = .false.
-	endforall
+	do m = 1, size(plot%who)
+	  if(plot%who(m)%name .eq. 'meas' .or. plot%who(m)%name .eq. 'ref') &
+                     smoothing = .false.
+        enddo
 	if (smoothing) then
           call reassociate_real (curve%y_line, 400) ! allocate space for the data
           call reassociate_real (curve%x_line, 400) ! allocate space for the data
