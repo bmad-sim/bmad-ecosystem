@@ -54,7 +54,7 @@ contains
 !   use bmad
 !
 ! Input: 
-!   start   -- Coord_struct: Starting coords.
+!   start   -- Coord_struct: Starting coords: (x, x', y, y', z, delta).
 !   ele     -- Ele_struct: Element to track through.
 !     %tracking_method -- Determines which subroutine to use to calculate the 
 !                         field. Note: BMAD does no supply field_rk_custom.
@@ -73,7 +73,7 @@ contains
 !   h_min   -- Real: Minimum step size (can be zero).
 !
 ! Output:
-!   end        -- Coord_struct: Ending coords.
+!   end        -- Coord_struct: Ending coords: (x, x', y, y', z, delta).
 !
 ! Common block:
 !   rk_com -- common_block that holds the path.
@@ -296,12 +296,31 @@ subroutine rkck_bmad (ele, param, r, dr_ds, s, h, r_out, r_err)
 
 end subroutine rkck_bmad
 
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine derivs_bmad (ele, param, s, r, dr_ds, dkick)
+!
+! Subroutine to essentially calculate the kick felt by a particle in a
+! element. This routine is used by the Runge-Kutta integrater.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele   -- Ele_struct: Element being tracked thorugh.
+!   param -- Param_struct: Lattice parameters.
+!   s     -- Real(rp): Distance from the start of the element to the particle.
+!   r(6)  -- Real(rp): Position vector: (x, x', y, y', z, Pz)
+!
+! Output:
+!   dr_ds(6) -- Real(rp):Kick vector: 
+!                 (dx/ds, dx'/ds, dy/ds, dy'/ds, dz/ds, dPz/ds)
+!   dkick(3,3) -- Real(rp), optional: dKick/dx
+!-
 
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-
-subroutine derivs_bmad (ele, param, s, r, dr_ds)
+subroutine derivs_bmad (ele, param, s, r, dr_ds, dkick)
 
   implicit none
 
@@ -311,10 +330,11 @@ subroutine derivs_bmad (ele, param, s, r, dr_ds)
   real(rp), intent(in) :: s         ! s-position
   real(rp), intent(in) :: r(6)      ! (x, x', y, y', z, z')
   real(rp), intent(out) :: dr_ds(6)
+  real(rp), optional :: dkick(3,3)
 
   type (coord_struct) here
 
-  real(rp) field(3)
+  real(rp) field(3), k2(3,3)
   real(rp) vel_x, vel_y, vel_s, dvel_x, dvel_y, dvel_s, f
 
   integer field_type
@@ -325,8 +345,12 @@ subroutine derivs_bmad (ele, param, s, r, dr_ds)
 
   if (ele%tracking_method == custom$) then
     call field_rk_custom (ele, param, s, here, field, field_type)
+    if (present (dkick)) then
+      print *, 'ERROR IN DERIVS_BMAD: DKICK ARGUMENT PRESENT!'
+      call err_exit
+    endif
   else 
-    call field_rk_standard (ele, param, s, here, field, field_type)
+    call field_rk_standard (ele, param, s, here, field, field_type, dkick)
   endif
 
 ! if this is a kick field then field gives us directly dr_ds
@@ -367,6 +391,19 @@ subroutine derivs_bmad (ele, param, s, r, dr_ds)
     dr_ds(4) = f * (dvel_y * vel_s - vel_y * dvel_s) / vel_s**3
     dr_ds(5) = -(r(2)**2 + r(4)**2) / 2
     dr_ds(6) = 0           ! dE/ds = 0
+
+! We make the small angle approximation for the dkick calc
+
+    if (present(dkick)) then
+      k2 = dkick
+      dkick = 0
+      f = f / vel_s**2
+      dkick(1,1) = f * (vel_y * k2(3,1) - vel_s * k2(2,1)) 
+      dkick(1,2) = f * (vel_y * k2(3,2) - vel_s * k2(2,2)) 
+      dkick(2,1) = f * (vel_s * k2(1,1) - vel_x * k2(3,1)) 
+      dkick(2,2) = f * (vel_s * k2(1,2) - vel_x * k2(3,2)) 
+    endif
+
     return
   endif
   
@@ -405,7 +442,8 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine field_rk_standard (ele, param, s_pos, here, field, field_type)
+subroutine field_rk_standard (ele, param, s_pos, here, field, field_type, &
+                                                                       dkick)
 
   implicit none
 
@@ -414,11 +452,12 @@ subroutine field_rk_standard (ele, param, s_pos, here, field, field_type)
   type (coord_struct), intent(in) :: here
   type (wig_term_struct), pointer :: t
 
-  real(rp) :: field(3), x, y, s, s_pos
-  real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef
+  real(rp), optional, intent(out) :: dkick(3,3)
+  real(rp) :: field(3), x, y, c, s, s_pos, f, fd(3)
+  real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, dk(3,3)
 
   integer, intent(out) :: field_type
-  integer i
+  integer i, sgn_x, dc_x, dc_y
 
 !
 
@@ -435,6 +474,7 @@ subroutine field_rk_standard (ele, param, s_pos, here, field, field_type)
   case(wiggler$)
 
     field_type = B_FIELD$
+    if (present(dkick)) dkick = 0
 
     do i = 1, size(ele%wig_term)
       t => ele%wig_term(i)
@@ -442,17 +482,23 @@ subroutine field_rk_standard (ele, param, s_pos, here, field, field_type)
       if (t%type == hyper_y$) then
         c_x = cos(t%kx * x)
         s_x = sin(t%kx * x)
+        sgn_x = 1
+        dc_x = -1
       else
-        c_x =  cosh(t%kx * x)
-        s_x = -sinh(t%kx * x)
+        c_x = cosh(t%kx * x)
+        s_x = sinh(t%kx * x)
+        sgn_x = -1 
+        dc_x = 1
       endif
 
       if (t%type == hyper_y$ .or. t%type == hyper_xy$) then
         c_y = cosh (t%ky * y)
         s_y = sinh (t%ky * y)
+        dc_y = 1
       else
         c_y = cos (t%ky * y)
         s_y = sin (t%ky * y)
+        dc_y = -1
       endif
 
       c_z = cos (t%kz * s + t%phi_z)
@@ -460,9 +506,21 @@ subroutine field_rk_standard (ele, param, s_pos, here, field, field_type)
 
       coef = t%coef * ele%value(polarity$)
 
-      field(1) = field(1) - coef  * (t%kx / t%ky) * s_x * s_y * c_z
+      field(1) = field(1) - coef  * (t%kx / t%ky) * s_x * s_y * c_z * sgn_x
       field(2) = field(2) + coef  *                 c_x * c_y * c_z
       field(3) = field(3) - coef  * (t%kz / t%ky) * c_x * s_y * s_z
+
+      if (present(dkick)) then
+        f = coef * t%kx
+        dkick(1,1) = dkick(1,1) - f  * (t%kx / t%ky) * c_x * s_y * c_z * sgn_x
+        dkick(2,1) = dkick(2,1) + f  *                 s_x * c_y * c_z * dc_x
+        dkick(3,1) = dkick(3,1) - f  * (t%kz / t%ky) * s_x * s_y * s_z * dc_x
+        f = coef * t%ky
+        dkick(1,2) = dkick(1,2) - f  * (t%kx / t%ky) * s_x * c_y * c_z * sgn_x
+        dkick(2,2) = dkick(2,2) + f  *                 c_x * s_y * c_z * dc_y
+        dkick(3,2) = dkick(3,2) - f  * (t%kz / t%ky) * c_x * c_y * s_z 
+      endif
+
     enddo
 
 ! Quad
@@ -470,16 +528,35 @@ subroutine field_rk_standard (ele, param, s_pos, here, field, field_type)
   case (quadrupole$)
 
     field_type = KICK_FIELD$
-    field(1) = -ele%value(k1$) * x / (1 + here%vec(6))
-    field(2) =  ele%value(k1$) * y / (1 + here%vec(6))
+    f = 1 + here%vec(6)
+
+    field(1) = -ele%value(k1$) * x / f
+    field(2) =  ele%value(k1$) * y / f
+
+    if (present(dkick)) then
+      dkick = 0
+      dkick(1,1) = -ele%value(k1$) / f
+      dkick(2,2) =  ele%value(k1$) / f
+    endif
 
 ! Sextupole
+! This is for testing only
 
   case (sextupole$)
 
     field_type = KICK_FIELD$
-    field(1) = 0.5 * ele%value(k2$) * (y*y - x*x) / (1 + here%vec(6))
-    field(2) =       ele%value(k2$) * x * y / (1 + here%vec(6))
+    f = 1 + here%vec(6)
+
+    field(1) = 0.5 * ele%value(k2$) * (y*y - x*x) / f
+    field(2) =       ele%value(k2$) * x * y / f
+
+    if (present(dkick)) then
+      dkick = 0
+      dkick(1,1) = -ele%value(k2$) * x / f
+      dkick(1,2) =  ele%value(k2$) * y / f
+      dkick(2,1) =  ele%value(k2$) * y / f
+      dkick(2,2) =  ele%value(k2$) * x / f
+    endif
 
 ! Error
 
@@ -489,6 +566,25 @@ subroutine field_rk_standard (ele, param, s_pos, here, field, field_type)
     print *, '      FOR: ', ele%name
     call err_exit
   end select
+
+! tilt
+
+  if (ele%value(tilt$) /= 0) then
+    fd = field
+    c = cos(ele%value(tilt$))
+    s = sin(ele%value(tilt$))
+    field(1) = c*fd(1) - s*fd(2)
+    field(2) = s*fd(1) + c*fd(2)
+    if (present(dkick)) then
+      dk(1,:) = c * dkick(1,:) - s * dkick(2,:)
+      dk(2,:) = s * dkick(1,:) + c * dkick(2,:)
+      dk(3,:) = dkick(3,:)
+
+      dkick(:,1) = dk(:,1) * c - dk(:,2) * s
+      dkick(:,2) = dk(:,1) * s - dk(:,2) * c
+      dkick(:,3) = dk(:,3) 
+    endif
+  endif
 
 end subroutine
 

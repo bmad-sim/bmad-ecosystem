@@ -12,7 +12,28 @@ module rad_int_common
   use ptc_interface_mod
   use runge_kutta_mod
 
-! i1_(:), etc. are for diagnostics
+! The "cash" is for saving values for g, etc through a wiggler to speed
+! up the calculation
+
+  type g_cash_struct
+    real(rp) g
+    real(rp) g2
+    real(rp) g_x, g_y
+    real(rp) dg2_x, dg2_y
+  end type
+
+  type ele_cash_struct
+    type (g_cash_struct), allocatable :: v(:)
+    real(rp) ds
+    integer ix_ele
+  end type
+
+  type rad_int_cash_struct
+    type (ele_cash_struct), allocatable :: ele(:)
+    logical :: set = .false.
+  end type
+
+! This structure stores the radiation integrals for the individual elements
 
   type rad_int_common_struct
     real(rp) g_x0, g_y0, k1, s1
@@ -31,11 +52,11 @@ module rad_int_common
     type (coord_struct), pointer :: orb0, orb1
     type (runge_kutta_com_struct) :: rk_track(0:6)
     type (coord_struct) d_orb
+    type (rad_int_cash_struct) cash(10)
   end type
 
   type (rad_int_common_struct), save :: ric
-
-  integer :: been_inited$ = 4242
+  type (ele_cash_struct), pointer, save :: e_cash
 
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
@@ -381,7 +402,6 @@ subroutine propagate_part_way (s)
   type (coord_struct) orb, orb_0
 
   real(rp) s, v(4,4), v_inv(4,4), s1, s2, error, f0, f1
-  real(rp) here(6), kick_0(6), kick_x(6), kick_y(6)
 
   integer i, ix, n_pts
 
@@ -495,22 +515,18 @@ contains
 subroutine calc_g_params (orb)
 
   type (coord_struct) orb
-  real(rp) del
+  real(rp) dk(3,3)
+  real(rp) kick_0(6)
 
-  del = 1e-6
-  here = orb%vec
-  call derivs_bmad (ric%ele, ric%ring%param, s, here, kick_0)
-  here(1) = here(1) + del
-  call derivs_bmad (ric%ele, ric%ring%param, s, here, kick_x)
-  here = orb%vec
-  here(3) = here(3) + del
-  call derivs_bmad (ric%ele, ric%ring%param, s, here, kick_y)
+  call derivs_bmad (ric%ele, ric%ring%param, s, orb%vec, kick_0, dk)
+
   ric%g_x = -kick_0(2)
   ric%g_y = -kick_0(4)
   ric%g2 = ric%g_x**2 + ric%g_y**2
   ric%g  = sqrt(ric%g2)
-  ric%dg2_x = ((kick_x(2)**2 + kick_x(4)**2) - ric%g2) / del
-  ric%dg2_y = ((kick_y(2)**2 + kick_y(4)**2) - ric%g2) / del
+
+  ric%dg2_x = 2*kick_0(2)*dk(1,1) + 2*kick_0(4)*dk(2,1) 
+  ric%dg2_y = 2*kick_0(2)*dk(1,2) + 2*kick_0(4)*dk(2,2) 
 
 end subroutine
 

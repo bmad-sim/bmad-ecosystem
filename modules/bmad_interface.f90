@@ -436,8 +436,7 @@ module bmad_interface
   end interface
 
   interface
-    subroutine make_LRBBI(master_ring, master_ring_oppos, ring, &
-    													ix_LRBBI, master_ix_LRBBI)
+    subroutine make_LRBBI(master_ring_oppos, ring, ix_LRBBI, master_ix_LRBBI)
       use bmad_struct
       implicit none
       type (ring_struct), dimension(:) :: ring
@@ -724,12 +723,13 @@ module bmad_interface
   end interface
 
   interface
-    subroutine radiation_integrals (ring, orb_, mode)
+    subroutine radiation_integrals (ring, orb_, mode, ix_cash)
       use bmad_struct
       implicit none
       type (ring_struct), target :: ring
       type (coord_struct), target :: orb_(0:)
       type (modes_struct) mode
+      integer, optional :: ix_cash
     end subroutine
   end interface
 

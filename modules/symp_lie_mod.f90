@@ -86,7 +86,6 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 
   if (calc_mat6) then
     call drift_mat6_calc (mat6, ele%value(s_offset$), end%vec)
-    call mat6_add_tilt_at_end (mat6, ele%value(tilt$))
   endif
 
   call offset_particle (ele, param, end, set$, set_canonical = .false.)
@@ -281,7 +280,7 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
     mat6(3,1:6) = mat6(3,1:6) + m6(3,4) * mat6(4,1:6) + m6(3,6) * mat6(6,1:6)
     mat6(5,1:6) = mat6(5,1:6) + m6(5,2) * mat6(2,1:6) + m6(5,4) * mat6(4,1:6) + m6(5,6) * mat6(6,1:6)
 
-    call mat6_add_tilt_at_end (mat6, -ele%value(tilt$))
+    if (ele%value(tilt$) /= 0) call tilt_mat6 (mat6, ele%value(tilt$))
   endif
 
   call offset_particle (ele, param, end, unset$, set_canonical = .false.)
