@@ -145,6 +145,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
   nullify (pring%ele)
   call init_ring (in_ring, 1000)
+  call init_ring (ring, 1)
   call allocate_pring (in_ring, pring)
 
   bmad_status%ok = .true.
@@ -160,9 +161,6 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   iseq_tot = 0                            ! number of sequences encountered
   bp_com%ivar_tot = 0                     ! number of variables encountered
   call init_bmad_parser_common
-
-  ring%name = ' '
-  ring%lattice = ' '
 
   call init_ele (in_ring%ele_(0))
   in_ring%ele_(0)%name = 'BEGINNING'     ! Beginning element
@@ -791,7 +789,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! superimpose, overlays, and groups are handled later.
 ! first load beam parameters.
 
-  call init_ring (ring, n_ele_ring+100)
+  call allocate_ring_ele_(ring, n_ele_ring+100)
 
   ring%version            = bmad_inc_version$
   ring%input_file_name    = full_name             ! save input file
