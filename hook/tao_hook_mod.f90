@@ -1,11 +1,15 @@
 !+
 ! Module tao_hook_mod
 !
-! Module to define the custom variables used for a particular machine.
-! See tao_struct.f90 for where the hooks go.
+!  Module to define  custom variables used in a custom version of Tao.
+! The following structures are referenced in tao_struct.f90. See this file to find where the
+! "hooks" go.
 !
-! This particular file is a dummy module so the compiler will
-! not complain if machine specific variables are not defined.
+!   Keep in mind that the following type structures are used in the tao_struct
+!  module. So, even if they are not used a "dummy" structure must remain here so
+!  that the compiler doesn't comlain. 
+!
+!   More structures can be added to this module for use in custom code.
 !-
 
 module tao_hook_mod

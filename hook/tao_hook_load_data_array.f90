@@ -1,7 +1,17 @@
 !+
 ! Subroutine tao_hook_load_data_array (found, datum, lattice, orb, datum_value)
 !
-! Custom data types are defined here.
+!  See the Programmer's manual for how to add custom data types here.
+!
+! Input:
+!  Found         -- Logical: the data type was found here
+!  datum         -- tao_data_struct: the current datum to evaluate
+!  lattice       -- ring_struct: lattice associated with datum
+!  orb           -- coord_struct(:): particle orbit in lattice
+!
+! Output:
+!  datum_value   -- real(rp): which datum value to compute (model_value,
+!                             design_value, etc...)
 !-
 
 subroutine tao_hook_load_data_array (found, datum, lattice, orb, datum_value)
@@ -23,13 +33,22 @@ type (ele_struct), pointer :: ele
 character(20) :: r_name = 'tao_hook_load_data_array'
 !
 
+! ix1 is the first index associated with element
+ix1 = datum%ix_ele
+! if there is only one element associated with the element then ix2 = -1
+ix2 = datum%ix_ele2
+! pointer to first element associated with datum
+ele => lattice%ele_(ix1)
 
 
+! if found = .true. then the data type was foudn here and the standard data
+! types will not be searched for this datum
 found = .true.
 
 select case (datum%data_type)
 
   case default
+    ! datum not found here
     found = .false.
 
 end select
@@ -82,4 +101,4 @@ if (datum%merit_type(1:4) == 'abs_') datum_value = abs(vec(ix_m))
 
 end subroutine load_it
 
-end subroutine
+end subroutine tao_hook_load_data_array

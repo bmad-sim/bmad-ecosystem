@@ -23,7 +23,7 @@ implicit none
 integer i
 
 ! if you do a custom lattice calculation here then make sure
-! s%global%lattice_racalc is set to FALSE ot the normal TAO lattice calculation
+! s%global%lattice_racalc is set to FALSE or the normal TAO lattice calculation
 ! will be performed
 
 if (s%global%lattice_recalc) then

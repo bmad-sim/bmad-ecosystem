@@ -1,8 +1,7 @@
 !+
 ! Subroutine tao_hook_init ()
 !
-! Custom subroutine to initialize the tao structures.
-! This is a dummy subroutine that can be over written.
+! Subroutine to initialize custom tao structures.
 !
 ! Output:
 !-
