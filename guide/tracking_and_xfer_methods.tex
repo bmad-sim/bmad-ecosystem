@@ -1,0 +1,155 @@
+\chapter{Tracking and Transfer Matrix Calculation Methods}
+
+Typically there are several ways to do tracking and transfer matrix
+calculations for a given element type within \bmad\. What method is used
+is selected on an element--by--element basis using
+an elements \vn{tracking_method} and \vn{mat6_calc_method} attributes 
+(mat6 refers to the size of a transfer matrix which is 6 by 6). By supplying
+the appropriate routines a programmer can extend \bmad\ to do customized 
+tracking.
+
+%----------------------------------------------------------------------------
+\section{Tracking Methods}
+\label{s:tm}
+
+\begin{description}
+\item[Adaptive\_Boris]
+Second order Boris integration with adaptive step size control.
+This should be nearly symplectic but slow.
+
+\item[Boris]
+Second order Boris Integration. Like Runge-Kutta Boris does tracking by
+integrating the equation of motion. The difference is that Boris integration
+is symplectic.
+
+\item[Bmad\_Standard]
+This is meant to be quick and dirty (ie if it is not symplectic
+who cares). Appropriate when you are only interested in single turn stuff
+(that is, not long term tracking). It
+does an exact calculation through sector bends using thin quads at either end
+for non-sector focusing. Sextupoles and octupoles are tracked using a single
+kick-drift-kick integration.
+
+\item[Custom]
+This method will call a routine \vn{track1_custom} which can be supplied by
+the user. The default \vn{track1_custom} supplied with the BMAD release does
+Runge Kutta tracking. See the Programmer's Guide for more details.
+
+\item[Linear]
+Linear just uses the 0th order vector with the 1st order 6x6 transfer
+matrix for an element. Very simple.  Depending upon how the transfer
+matrix was generated this might or might not be symplectic.
+
+\item[Runge\_Kutta]
+This uses a 4th order Runge Kutta integration algorithm with adaptive
+step size control.  This is essentially ODEINT adopted from Numerical
+Recipes. This may be slow but it should be accurate. This method is
+non-symplectic.
+
+\item[Symp\_Lie\_BMAD]
+Symplectic tracking using a Hamiltonian with Lie operation techniques.
+This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
+BMAD routine.  The difference between this and \vn{Symp_Lie_PTC} is
+that PTC tries do do things correctly while BMAD goes for speed by
+making approximations like the small angle approximation, etc. Right
+now only implemented for Wigglers.
+
+\item[Symp\_Lie\_PTC]
+Symplectic tracking using a Hamiltonian with Lie operation techniques.
+This uses Etienne's PTC software for the calculation. This method is
+symplectic but can be slow. See below for additional switches that affect this
+calculation. This method can only be used on elements that have a Hamiltonian.
+Quadrupoles, Solenoids, and most other element types have Hamiltonians. A
+Hybrid element is an  example where there is no Hamiltonian.
+
+\item[Symp\_Map]
+This uses an implicit (partially inverted) Taylor map.
+Since the map is implicit a Newton search method must be used. This will slow
+things down from the Taylor method but this is guaranteed symplectic.
+
+\item[Taylor]
+This uses a Taylor map generated from Etienne's PTC package. Generating
+the map may take time but once you have it it should be very fast. One
+possible problem with using a Taylor series is that you have to worry about
+the accuracy if you do tracking at points that are far from the point about
+which the series was made. This method is non-symplectic. See below for
+additional switches that affect this calculation.
+
+\item[Wiedemann]
+This is Wiedemann's hard edge model of a wiggler.
+
+\end{description}
+
+%----------------------------------------------------------------------------
+\section{Transfer Matrix Calculation Methods}
+\label{s:xfer}
+
+\begin{description}
+
+\item[\vn{Bmad\_Standard}]
+This is meant to be quick and dirty. It tries to be symplectic but this
+is not guaranteed. Sextupoles and octupoles are done using a simple
+kick-drift-kick model.
+
+\item[\vn{Custom}]
+This method calls a routine \rn{make_mat6_custom} which may be supplied
+by the user (which must have been linked into whatever program is
+running).  The default \rn{make_mat6_custom} supplied by the \bmad\ release
+will use Runge Kutta tracking. 
+
+\item[\vn{Runge\_Kutta}]
+This uses a Runge Kutta tracking algorithm adopted from Numerical Recipes.
+This method tracks 6 particles around the central orbit. This method is
+susceptible to inaccuracies caused by nonlinearities. Furthermore this method
+is almost surely slow. While non--symplectic, the advantage of this method is
+that it relies only on the field map for the element.
+
+\item[\vn{Symp\_Lie\_Bmad}]
+Symplectic integration using a Hamiltonian and Lie operators. The
+difference between this and \vn{Symp_lie_PTC} is that PTC tries to do things
+correctly while \bmad\ goes for speed by making approximations like the small
+angle approximation, etc. Right now only implemented for Wigglers.
+
+\item[\vn{Symp\_Lie\_PTC}]
+Symplectic integration using a Hamiltonian and Lie operators.
+This uses Etienne's PTC software for the calculation.
+This method is symplectic but can be slow. See below for additional switches
+that affect this calculation. This method can only be used on elements that
+have a Hamiltonian. Quadrupoles, Solenoids, and most other element types have
+Hamiltonians. A Hybrid element is an example where there is no Hamiltonian.
+
+\item[\vn{Taylor}]
+This uses a Taylor map generated from Etienne's PTC package. Generating
+the map may take time but once you have it should be very fast. One
+possible problem with using a Taylor series is that you have to worry about
+the accuracy of the series if you calculate the Jacobian about a point that is
+far from the point about which the series was made. This method is
+non-symplectic. See below for additional switches that affect this
+calculation.
+
+\item[\vn{Tracking}]
+This uses the tracking method set by \vn{tracking_method} to track 6
+particles around the central orbit. This method is susceptible to inaccuracies
+caused by nonlinearities. While non--symplectic, the advantage of this method
+is that it is directly related to any tracking results.
+
+\end{description}
+
+Symplectic integration is like ordinary integration of a function f(x)
+but what is integrated here is the Hamiltonian H(y) where y here could
+be a 6-dimensional vector (for tracking) or be a taylor series (for
+the mat6 calculation). The order at which a Taylor series is truncated
+at is set by \vn{taylor_order} (this is a global variable). Like
+ordinary integration there are various formulas that one can use to do
+symplectic integration. In \bmad\ (or more precisely Etienne's PTC)
+you can use one of 3 methods. This is set by \vn{integration_order}. 
+\vn{integration_order} = n (n = 2, 4, or 6)
+means that the error scales as $dz^n$ where $dz$ is the integration step
+size. The step size dz is set by the length of the element and the
+value of \vn{num_steps}. Remember, as in ordinary integration, higher
+order does not necessarily imply higher accuracy.
+
+\vn{PTC_kind} sets how the symplectic integrator divides up the hamiltonian.
+The details are in the PTC manual. The default \vn{PTC_kind} = 0
+means \bmad\ will choose what it thinks as best (see the routine
+\rn{Bmad_ele_to_fibre} for more details).

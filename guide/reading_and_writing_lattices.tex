@@ -33,7 +33,7 @@ stored in a separate file from the lattice file. In a case such as this
 there are two possibilities: The first is to use \rn{bmad_parser2} 
 \begin{verbatim}
   call bmad_parser ('lattice_file', ring)       ! read in a lattice.
-  call bmad_parser2 ('aperture_file', ring)     ! read in the apperture limits.
+  call bmad_parser2 ('aperture_file', ring)     ! read in the aperture limits.
 \end{verbatim}
 The second alternative is to create a third file that calls the first two
 \begin{verbatim}
@@ -70,7 +70,7 @@ is given by
 Since computing Taylor Maps can be very time intensive \rn{bmad_parser}
 tries to reuse Taylor Maps it finds in the digested file even if the
 lattice file has been changed in the meantime. To make sure that
-everyting is OK it will check that the attributes of an element
+everything is OK it will check that the attributes of an element
 needing a Taylor Map is the same as the attributes of a corresponding
 element in the digested file before it reuses the Map. It will,
 however, ignore the names of the elements when it is deciding whether
@@ -83,7 +83,7 @@ save on the map computation time simply make a copy of the digested
 file with the digested file name corresponding to the first lattice.
 
 The digested file is in binary format and is not human readable but it
-provides a convienient mechanism for transporting lattices between
+provides a convenient mechanism for transporting lattices between
 programs. The problem is typically you have read in a lattice, changed
 some parameters in the \tn{ring_struct}, and now you want to do some
 analysis on this modified \tn{ring_struct} using a different program. The 

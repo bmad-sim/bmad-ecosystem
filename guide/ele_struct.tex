@@ -3,7 +3,7 @@
 
 This chapter describes the \tn{ele_struct} which is the structure that
 holds all the information about an individual element: quadrupoles,
-separators, wigglers, etc. Discusion on how one \tn{ele_struct} controls
+separators, wigglers, etc. discussion on how one \tn{ele_struct} controls
 another is deferred to the chapter on the \tn{ring_struct}. Also deferred
 is a discussion of how to compute Twiss parameters, etc.
 
@@ -184,10 +184,11 @@ deallocate the pointers within it with a call to
 %--------------------------------------------------------------------------
 \section{Dependent and Independent Variables}
 
-Some attrributes of an element are designated as "dependent variables"
+Some attributes of an element are designated as "dependent variables"
 which are dependent upon other independent variables. The dependent
 and independent variables are: \hfil\break
-\begin{center}
+\begin{table}[h]
+\centering {
 \begin{tabular}{|l|l|l|} \hline
            & {\em Dependent Variables}  & {\em Independent Variables}\\ \hline
   Rbend    & Rho, Angle, L\_Cord    & G, L                         \\ \hline
@@ -196,14 +197,15 @@ and independent variables are: \hfil\break
   BeamBeam & BBI\_Const             & Charge, Sig\_x, Sig\_y       \\ \hline
   Wiggler  & K1, Rho                & B\_max                       \\ \hline
 \end{tabular}
-\end{center}
+}
+\end{table}
 
 When \rn{attribute_bookkeeper} routine is called (this is called by,
 for example, \rn{make_mat6}) the values of the dependent variables
 will be set based upon the values of the independent variables. Thus
 trying to vary the strength of a bend by varying, say, the Rho
-attribute is an exersize in futility. Also remember that routines are
-allowed to assume that the dependent variables are consistant with the
+attribute is an exercise in futility. Also remember that routines are
+allowed to assume that the dependent variables are consistent with the
 independent variables. Thus you need to call either
 
 \vn{b_field_master} ...

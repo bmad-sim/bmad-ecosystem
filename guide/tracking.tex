@@ -1,4 +1,5 @@
 \chapter{Tracking}
+\label{s:tm}
 
 \bmad\ can do two types of tracking. One type uses a single particle 
 and tracks its coordinates throughout the lattice. The other type
@@ -28,7 +29,7 @@ space vector of the particle at a certain location.
 To get an orbit, that is, the particle position at every element in a lattice
 you will need an array of \tn{coord_struct}'s. Since
 the number of elements in the lattice is not known in advance the
-array must be decleared to be allocatable. 
+array must be declared to be allocatable. 
 \begin{verbatim}
   type (coord_struct), allocatable :: coords(:)
 \end{verbatim}
@@ -78,6 +79,6 @@ input lattice file or directly in the program by setting the
 \begin{verbatim}
   type (ele_struct) ele
   ...
-  ele%tracking_method = boris$  ! for boris traking
+  ele%tracking_method = boris$  ! for boris tracking
 \end{verbatim}
 

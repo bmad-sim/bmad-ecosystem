@@ -4,7 +4,7 @@
 
 The \bmad\ software uses other software packages. \bmad, along with the packages it uses, 
 is bundled together to form what is called the \bmad\ distribution. The \bmad\ distribution
-also includes example lattice files and example programs. The \bmad\ distribution includes a custimized version of the Fortran90 version of Numerical Recipes\cite{nr}. It is the obligation of anyone who uses \bmad\ to make sure that they have the appropriate licance for Numerical Recipes. 
+also includes example lattice files and example programs. The \bmad\ distribution includes a customized version of the Fortran90 version of Numerical Recipes\cite{nr}. It is the obligation of anyone who uses \bmad\ to make sure that they have the appropriate licence for Numerical Recipes. 
 
 Also included in the distribution is the PGPLOT plotting package developed by Tim Pearson of CalTech.
 PGPLOT is freely available for non-commercial use. PGPLOT is not public--domain software and is copyrighted by the California Institute of Technology further documentation can be found at
@@ -28,14 +28,14 @@ As can be seen there is a lot going on behind the scenes even for this
 simple program.This shows that programming with \bmad\ can be both easy
 and hard. Easy in the sense that a lot can be done with just a few
 lines. The hard part comes about since there are many details that
-have to be keept in mind in order to make sure that the subroutines
+have to be kept in mind in order to make sure that the subroutines
 are calculating what you want them to calculate.
 
 To help with the details all \bmad\ subroutines have in their source (.f90)
 files a comment block that explains the arguments needed by the
 subroutines and explains what the subroutine does. To help quickly
 access these comments there are two perl scripts that are supplied
-with the \bmad\ distribution that are invloked with the commands
+with the \bmad\ distribution that are invoked with the commands
 \cmd{listf} and \cmd{getf}.
 
 The \cmd{listf} command is used to locate routines and structures.
@@ -61,7 +61,7 @@ will be printed for each structure matched. The \cmd{getf} command is
 thus more verbose than the \cmd{listf} command.
 
 %-----------------------------------------------------------------------------
-\section{Porgramming Conventions}
+\section{Programming Conventions}
 
 \bmad\ subroutines follow the following conventions:
 
@@ -82,8 +82,8 @@ That is, one should never write
   if (ring%ele_(i)%key == 3) ...  ! DO NOT DO THIS!
 \end{verbatim}
 For one, using the name makes the code clearer but more importantly
-the exact value of the parmeters may at times be shuffled which would
-lead to disasterous results if the values themselves were coded into a
+the exact value of the parameters may at times be shuffled which would
+lead to disastrous results if the values themselves were coded into a
 program.
 
 \item[ Type names have a \_struct suffix]. For example: \tn{ring_struct}, 
@@ -131,7 +131,7 @@ call to \rn{twiss_propagate_all} takes the starting Twiss parameters
 and using the transfer matrices of the individual elements calculates
 the Twiss parameters at all the elements. We are now ready for the
 print out the calculation. \vn{ring} has within it an array
-\vn{ring%ele_(0:)} that contains the infomation on each individual
+\vn{ring%ele_(0:)} that contains the information on each individual
 element. \vn{ring%ele_(0)} is basically a marker element to denote
 the beginning of the array. \vn{ring%ele_(i)%key} is an integer
 denoting what type of element (quadrupole, wiggler, etc.) it is.

@@ -30,7 +30,7 @@ Table~\ref{t:units}.  Note that \mad\ uses different units. For example,
 \section{Constants}
 \label{s:constants}
 
-\bmad\ defines commonally used physical and mathematical constants as
+\bmad\ defines commonly used physical and mathematical constants as
 shown in Table~\ref{t:constants}.  All symbols use straight SI units
 except for \vn{e_mass} and \vn{p_mass} which are provided for
 compatibility with \mad.
@@ -101,7 +101,7 @@ given a particle going through a multipole field is
              && \frac{1}{6} K_3L (3x^2 y - y^3) \plus \ldots \nonumber 
 \end{alignat}
 Note that in particular a positive $K_1L$ quadrupole component gives
-hoizontal focusing and vertical defocusing. 
+horizontal focusing and vertical defocusing. 
 
 If the fields associated with a particular $B_n$ multipole component
 are rotated in the $(x, y)$ plane by an angle $\phi_n$ the magnetic
@@ -165,8 +165,8 @@ $b_n$ are associated with and are given in table~\ref{t:ab}
 %-----------------------------------------------------------------
 \section{Taylor Maps}
 
-A Transport Map ${\cal M}: {\cal R}^6 \rightarrow {\cal R}^6$ thorugh
-an element or a section of a lattice is a funcion that maps the
+A Transport Map ${\cal M}: {\cal R}^6 \rightarrow {\cal R}^6$ through
+an element or a section of a lattice is a function that maps the
 starting phase space coordinates $\Bf r_{in}$ to the ending
 coordinates $\Bf r_{out}$
 \begin{equation}
@@ -179,8 +179,42 @@ series. The Taylor Map corresponding to $\cal M$ is the collection of
 the 6 Taylor series.
 
 %-----------------------------------------------------------------
-\section{Symplecticity}
-\label{s:symplecticity}
+\section{Symplectification}
+\label{s:symp_method}
+
+If the evolution of a system can be described using a Hamiltonian then
+it can be shown that the linear part of any transport map (the Jacobian)
+must obey the symplectic condition. If a Jacobian $\Bf M$ is not symplectic,
+Healy\cite{healy} has provided an elegant method for finding a matrix that
+is ``close'' to $\Bf M$ and symplectic. The procedure is as follows:
+From $\Bf M$ a matrix $\Bf V$ is formed via
+\begin{equation}
+  \Bf V = \Bf S (\Bf I - \Bf M)(\Bf I + \Bf M)^{-1} 
+  \label{e:vsimi}
+\end{equation}
+where $\Bf S$ is the matrix
+\Begineq
+  \Bf S = 
+  \begin{pmatrix} 
+      0 &  1 &  0 &  0 &  0 &  0 \cr
+     -1 &  0 &  0 &  0 &  0 &  0 \cr
+      0 &  0 &  0 &  1 &  0 &  0 \cr
+      0 &  0 & -1 &  0 &  0 &  0 \cr
+      0 &  0 &  0 &  0 &  0 & -1 \cr
+      0 &  0 &  0 &  0 & -1 &  0 \cr
+  \end{pmatrix}
+  \label{vsimi}
+\Endeq
+$\Bf V$ is symmetric if and only if $\Bf M$ is symplectic. In any case,
+a symmetric matrix $\Bf W$ near $\Bf V$ can be
+formed via
+\begin{equation}
+  \Bf W = \frac{\Bf V + \Bf V^t}{2}
+\end{equation}
+A symplectic matrix $\Bf F$ is now optained by inverting \eq{vsimi}
+\Begineq
+  \Bf F = (\Bf I + \Bf S \Bf W) (\Bf I - \Bf S \Bf W)^{-1}
+\Endeq
 
 %-----------------------------------------------------------------
 \section{Radiation Damping and Excitation}

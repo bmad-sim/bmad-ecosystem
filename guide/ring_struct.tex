@@ -79,7 +79,7 @@ end type
 
 The array \vn{%ele(0:)} holds the elements of the lattice. The array
 is divided up into two parts: A ``physical'' part and a ``control''
-part (Cf.~(ref in lang section). The physical part of this array holds
+part (Cf.~(ref in language section). The physical part of this array holds
 the elements that are tracked through. The control part holds the
 superimpose, overlay and group elements. The extent of these parts is
 given in table~\ref{tab:part_extent}.  The \vn{%ele(:)} array always
@@ -109,7 +109,7 @@ The lower bound is always 0 so the total size of the \vn{%ele(:)}
 array is \vn{%n_ele_maxx}+1.
 \item[\tt\%n\_ele\_symm] Back in the days when the CESR ring was E/W 
 symmetric \vn{%n_ele_symm} designated the symmetry point (roughly at
-\vn{%n_ele_ring}/2).  Currently this is seldem used.
+\vn{%n_ele_ring}/2).  Currently this is seldom used.
 \item[\%n\_ele\_use] This designates what part of the physical ring to track 
 through. This is the same as \vn{%n_ele_ring} except if there is a
 symmetry point and \vn{%n_ele_symm} is non--zero. In this case
@@ -136,12 +136,12 @@ point to different locations in physical memory so that changes to one
 ring will not affect the other.
 
 Initial allocation of the pointers in \tn{ring_struct} is generally
-handeled by \rn{bmad_parser} and \rn{ring_equal_ring} and so typically not a
+handled by \rn{bmad_parser} and \rn{ring_equal_ring} and so typically not a
 concern of most programmers. Deallocation problems can arise when a
 subroutine has a local \tn{ring_struct} variable. 
 
 
 
-Generally allocation is handeled
+Generally allocation is handled
 
 How to allocate \tn{coord_struct} arrays. see the tracking section
