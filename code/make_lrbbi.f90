@@ -69,12 +69,25 @@ subroutine MAKE_LRBBI(master_ring, master_ring_oppos, ring, &
   call reallocate_coord (orbit_, master_ring%n_ele_max)
   call reallocate_coord (orbit_oppos_, master_ring%n_ele_max)
 
-!
+! calc master_ring parameters
 
   call closed_orbit_at_start(master_ring, orbit_(0), 4, .true.)
+  if (.not. bmad_status%ok) return
   call track_all(master_ring, orbit_)
   call twiss_at_start(master_ring)
+  if (.not. bmad_status%ok) return
   call twiss_propagate_all(master_ring)
+  call radiation_integrals(master_ring, orbit_, mode)
+
+! calc master_ring_opps parameters
+
+  call twiss_at_start(master_ring_oppos)
+  call twiss_propagate_all(master_ring_oppos)
+  call closed_orbit_at_start(master_ring_oppos, orbit_oppos_(0), 4, .true.)
+  if (.not. bmad_status%ok) return
+  call track_all(master_ring_oppos, orbit_oppos_)
+
+!
 
   do i = 1, size(ring)
     do j = 1, size(ix_LRBBI,2)
@@ -86,7 +99,6 @@ subroutine MAKE_LRBBI(master_ring, master_ring_oppos, ring, &
     enddo
   enddo
 
-  call radiation_integrals(master_ring, orbit_, mode)
   e_spread = mode%sig_E
   sigma_z = mode%sig_z
 
@@ -111,11 +123,6 @@ subroutine MAKE_LRBBI(master_ring, master_ring_oppos, ring, &
       ring(i)%ele_(ix_lrbbi(i,j))%value(sig_z$) = sigma_z
     enddo
      
-    call twiss_at_start(master_ring_oppos)
-    call twiss_propagate_all(master_ring_oppos)
-    call closed_orbit_at_start(master_ring_oppos, orbit_oppos_(0), 4, .true.)
-    call track_all(master_ring_oppos, orbit_oppos_)
-
     do j = 1, size(ix_LRBBI, 2)
       if (ix_lrbbi(i,j) == 0) cycle
       ring(i)%ele_(ix_lrbbi(i,j))%value(x_offset$) = orbit_oppos_(master_ix_lrbbi(i,j))%vec(1)
