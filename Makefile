@@ -15,6 +15,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.3  2004/04/18 22:06:29  dcs
+# added readline routine.
+#
 # Revision 1.2  2004/04/04 07:42:58  js344
 # added font size option in plotting
 #
@@ -63,7 +66,7 @@
 LIB_SRC_DIRS  := code
 OBJ_SRC_DIRS  := program
 CONFIG_DIRS   :=
-LOCAL_INCS    := ../include
+LOCAL_INCS    := ../include /usr/local/include
 LOCAL_MODS    := ../modules
 SRC_EXCLUDE   :=
 
@@ -92,13 +95,12 @@ EXTRA_CONFIG   :=
 EXTRA_INCS     :=
 EXTRA_MODS     :=
 EXTRA_LIBDIR   :=
-EXTRA_LIBS     :=
+EXTRA_LIBS     :=  
 EXTRA_OBJS     :=
 EXTRA_FFLAGS   :=
 EXTRA_CFLAGS   :=
 EXTRA_CXXFLAGS :=
-EXTRA_LFLAGS   :=
-
+EXTRA_LFLAGS   := -L/usr/local/lib
 
 #------------------------------------------------
 # Name of local libraries (standard and debug) 
