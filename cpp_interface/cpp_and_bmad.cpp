@@ -263,14 +263,15 @@ void operator>> (sr_wake_struct* f, C_sr_wake& c) {
 //---------------------------------------------------------------------------
 // lr_wake
 
-extern "C" void lr_wake_to_f2_(lr_wake_struct*, Re&, Re&, Int&, Re&);
+extern "C" void lr_wake_to_f2_(lr_wake_struct*, Re&, Re&, Re&, Re&);
 
 extern "C" void lr_wake_to_f_(C_lr_wake& c, lr_wake_struct* f) {
-  lr_wake_to_f2_(f, c.freq, c.kick, c.i_cell, c.Q);
+  lr_wake_to_f2_(f, c.freq, c.freq_in, c.R_over_Q, c.Q);
 }
 
-extern "C" void lr_wake_to_c2_(C_lr_wake& c, Re& freq, Re& kick, Int& i_cell, Re& Q) {
-  c = C_lr_wake(freq, kick, i_cell, Q);
+extern "C" void lr_wake_to_c2_(C_lr_wake& c, Re& freq, Re& freq_in, 
+                  Re& R_over_Q, Re& Q) {
+  c = C_lr_wake(freq, freq_in, R_over_Q, Q);
 }
 
 void operator>> (C_lr_wake& c, lr_wake_struct* f) {
@@ -298,7 +299,7 @@ extern "C" void wake_to_f_(C_wake& c, wake_struct* f) {
     sr_wake_in_wake_to_f2_(f, i, c.sr[i].z, c.sr[i].longitudinal, c.sr[i].transverse);
   }
   for (int i = 0; i < n_lr; i++) {
-    lr_wake_in_wake_to_f2_(f, i, c.lr[i].freq, c.lr[i].kick, c.lr[i].i_cell, c.lr[i].Q);
+    lr_wake_in_wake_to_f2_(f, i, c.lr[i].freq, c.lr[i].freq_in, c.lr[i].R_over_Q, c.lr[i].Q);
   }
 }
 
@@ -361,7 +362,7 @@ void operator>> (control_struct* f, C_control& c) {
 // param
 
 extern "C" void param_to_f2_(param_struct*, Re&, Re&, Re&, Re&, ReArr, ReArr, 
-                                    Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&);
+                               Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&);
 
 extern "C" void param_to_f_(C_param& c, param_struct* f) {
   double arr1[36], arr2[36];
@@ -369,17 +370,17 @@ extern "C" void param_to_f_(C_param& c, param_struct* f) {
   matrix_to_array (c.t1_no_RF, arr2);
   param_to_f2_(f, c.n_part, c.charge, c.total_length, c.growth_rate,
       arr1, arr2, c.particle, c.ix_lost, c.end_lost_at,
-      c.lattice_type, c.ixx, c.stable, c.aperture_limit_on, c.lost);
+      c.lattice_type, c.ixx, c.ran_seed, c.stable, c.aperture_limit_on, c.lost);
 }
 
 extern "C" void param_to_c2_(C_param& c, Re& np, Re& ch, Re& total_l, 
       Re& growth_r, ReArr t1_with, ReArr t1_no, Int& part, Int& ixl, Int& end_lost,
-      Int& lattice_type, Int& ixx, Int& stable, Int& ap_lim, Int& lost) {
+      Int& lattice_type, Int& ixx, Int& r_seed, Int& stable, Int& ap_lim, Int& lost) {
   static Real_Matrix m1(M6_mat), m2(M6_mat);
   m1 << t1_with;
   m2 << t1_no;
   c = C_param(np, ch, total_l, growth_r, m1, m2, part, ixl, 
-              end_lost, lattice_type, ixx, stable, ap_lim, lost);
+              end_lost, lattice_type, ixx, r_seed, stable, ap_lim, lost);
 }
 
 void operator>> (C_param& c, param_struct* f) {

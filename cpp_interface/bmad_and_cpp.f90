@@ -753,30 +753,29 @@ type (lr_wake_struct), pointer :: f
 type (c_dummy_struct) c_lr_wake
 
 f => f_lr_wake
-call lr_wake_to_c2 (c_lr_wake, f%freq, f%kick, f%i_cell, f%q)
+call lr_wake_to_c2 (c_lr_wake, f%freq, f%freq_in, f%R_over_Q, f%q)
 
 end subroutine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine lr_wake_to_f2 (f_lr_wake, freq, kick, i_cell, q)
+! Subroutine lr_wake_to_f2 (f_lr_wake, freq, freq_in, r_over_q, q)
 !
 ! Subroutine used by lr_wake_to_f to convert a C++ C_lr_wake into
 ! a Bmad lr_wake_struct. This routine is not for general use.
 !-
 
-subroutine lr_wake_to_f2 (f_lr_wake, freq, kick, i_cell, q)
+subroutine lr_wake_to_f2 (f_lr_wake, freq, freq_in, r_over_q, q)
 
 use bmad_and_cpp
 
 implicit none
 
 type (lr_wake_struct) f_lr_wake
-real(rp) freq, kick, q
-integer i_cell
+real(rp) freq, freq_in, r_over_q, q
 
-f_lr_wake = lr_wake_struct(freq, kick, i_cell, q)
+f_lr_wake = lr_wake_struct(freq, freq_in, r_over_q, q)
 
 end subroutine
 
@@ -821,8 +820,8 @@ do i = 0, n_sr-1
 enddo
 
 do i = 0, n_lr-1
-  call lr_wake_in_wake_to_c2 (c_wake, i, f%lr(i)%freq, f%lr(i)%kick, &
-                                                  f%lr(i)%i_cell, f%lr(i)%Q)
+  call lr_wake_in_wake_to_c2 (c_wake, i, f%lr(i)%freq, f%lr(i)%freq_in, &
+                                                  f%lr(i)%r_over_q, f%lr(i)%Q)
 enddo 
 
 end subroutine
@@ -985,7 +984,7 @@ f => f_param
 call param_to_c2 (c_param, f%n_part, f%charge, f%total_length, f%growth_rate, &
       mat2arr(f%t1_with_RF), mat2arr(f%t1_no_RF), &
       f%particle, f%ix_lost, f%end_lost_at, f%lattice_type, &
-      f%ixx, c_logic(f%stable), c_logic(f%aperture_limit_on), c_logic(f%lost))
+      f%ixx, f%ran_seed, c_logic(f%stable), c_logic(f%aperture_limit_on), c_logic(f%lost))
 
 end subroutine
 
@@ -994,7 +993,7 @@ end subroutine
 !+
 ! Subroutine param_to_f2 (f_param, n_part, charge, total_length, &
 !      growth_rate, m1, m2, particle, ix_lost, end_lost_at, &
-!      lat_type, ixx, stable, ap_limit_on, lost)
+!      lat_type, ixx, ran_seed, stable, ap_limit_on, lost)
 !
 ! Subroutine used by param_to_f to convert a C++ C_param into
 ! a Bmad param_struct. This routine is not for general use.
@@ -1012,11 +1011,11 @@ type (param_struct) f_param
 real(rp) n_part, charge, total_length, growth_rate
 real(rp) m1(36), m2(36)
 integer particle, ix_lost, end_lost_at, lat_type, ixx, stable, &
-        ap_limit_on, lost
+        ap_limit_on, lost, ran_seed
 
 f_param = param_struct(0.0_rp, n_part, charge, total_length, growth_rate, &
       arr2mat(m1, 6, 6), arr2mat(m2, 6, 6), particle, ix_lost, end_lost_at, &
-      lat_type, ixx, f_logic(stable), f_logic(ap_limit_on), &
+      lat_type, ixx, ran_seed, f_logic(stable), f_logic(ap_limit_on), &
       f_logic(lost))
 
 end subroutine
