@@ -131,12 +131,12 @@ do
     graph%y  = init_axis
     graph%y2 = init_axis
     graph%y2%draw_numbers = .false.
-    graph%ix_universe = 1
+    graph%ix_universe = 0
     graph%clip = .true.
     curve(:)%units_factor = 1
     curve(:)%convert = .false.                             ! set default
     curve(:)%symbol_every = 1
-    curve(:)%ix_universe = 1
+    curve(:)%ix_universe = 0
     curve(:)%draw_line = .true.
     curve(:)%use_y2 = .false.
     curve(:)%symbol = default_symbol
@@ -166,9 +166,9 @@ do
     grph%ix_universe = graph%ix_universe
     grph%clip       = graph%clip
 
-    if (grph%ix_universe < 1 .or. grph%ix_universe > size(s%u)) then
+    if (grph%ix_universe < 0 .or. grph%ix_universe > size(s%u)) then
       call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', grph%ix_universe)
-      call out_io (s_error$, r_name, &
+      call out_io (s_blank$, r_name, &
        'OUT OF RANGE FOR PLOT:GRAPH: ' // trim(plot%name) // ':' // graph%name)
       call err_exit
     endif
