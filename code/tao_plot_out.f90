@@ -26,6 +26,8 @@ character(16) :: r_name = 'tao_plot_out'
 ! inits
 
 if (.not. s%global%plot_on) return
+call tao_create_plot_window () ! This routine knows not to create multiple windows.
+
 call qp_clear_page
 
 ! print the title 

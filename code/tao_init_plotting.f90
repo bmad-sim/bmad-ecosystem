@@ -76,23 +76,11 @@ page%size = plot_page%size
 page%border = plot_page%border
 
 ! title
+
+page%text_height = plot_page%text_height
 page%title = plot_page%title
 forall (i = 1:size(page%title), (page%title(i)%string .ne. ' ')) &
             page%title(i)%draw_it = .true.
-
-! Open a plot window
-
-call qp_open_page ('X', page%id_window, page%size(1), page%size(2), 'POINTS')
-call qp_set_layout (page_border = page%border)
-
-!set default font size
-
-call qp_set_text_attrib ("TEXT",  height = plot_page%text_height) 
-call qp_set_text_attrib ("MAIN_TITLE",  height = plot_page%text_height) 
-call qp_set_text_attrib ("GRAPH_TITLE",  height = plot_page%text_height) 
-call qp_set_text_attrib ("AXIS_LABEL",  height = plot_page%text_height) 
-call qp_set_text_attrib ("AXIS_NUMBERS",  height = plot_page%text_height) 
-call qp_set_text_attrib ("LEGEND",  height = plot_page%text_height) 
 
 ! allocate a s%plot_page%plot structure for each region defined and
 ! transfer the info from the input region structure.
@@ -255,6 +243,8 @@ do i = 1, size(place)
   call tao_place_cmd (place(i)%region, place(i)%plot)
 enddo
 
+call tao_create_plot_window
+
 return
 
 !-----------------------------------------
@@ -287,6 +277,5 @@ rewind (iu)
 do
   read (iu, nml = tao_template_graph)  ! force printing of error message
 enddo
-
 
 end subroutine tao_init_plotting

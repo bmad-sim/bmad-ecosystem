@@ -77,6 +77,11 @@ interface
 end interface
  
 interface
+  subroutine tao_has_been_created ()
+  end subroutine
+end interface
+ 
+interface
   subroutine tao_help (help_what)
     implicit none
     character(*) help_what

@@ -143,6 +143,7 @@ type tao_plot_page_struct
   type (tao_ele_shape_struct) ele_shape(20)
   character(80) ps_scale             ! scaling when creating PS files.
   real(rp) size(2)                   ! width and height of window in pixels.
+  real(rp) text_height
   integer id_window                  ! X window id number.
 end type
 
