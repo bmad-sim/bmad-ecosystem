@@ -21,6 +21,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/07/31 14:28:26  dcs
+!Added error checking
+!
 !Revision 1.4  2002/02/23 20:32:09  dcs
 !Double/Single Real toggle added
 !
@@ -79,6 +82,12 @@ subroutine adjust_control_struct (ring, ix_ele)
 
     ring%n_control_array = iz + n_add
 
+    if (ring%n_control_array > n_control_maxx) then
+      type *, 'ERROR IN ADJUST_CONTROL_STRUCT: NOT ENOUGH CONTROL ELEMENTS !!!'
+      type *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
+      call err_exit
+    endif
+
   endif
                                         
 ! fix lord problems
@@ -108,6 +117,13 @@ subroutine adjust_control_struct (ring, ix_ele)
     endif
 
     ring%n_ic_array = ic + n_add
+
+    if (ring%n_ic_array > size(ring%ic_)) then
+      type *, 'ERROR IN ADJUST_CONTROL_STRUCT: NOT ENOUGH IC_ CONTROL ELEMENTS !!!'
+      type *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
+      call err_exit
+    endif
+
 
   endif
 
