@@ -25,13 +25,6 @@
 !
 ! Input:
 !   start      -- Coord_struct: Starting coords.
-!
-! Output:
-!   end        -- Coord_struct: Ending coords.
-!     %z%pos     = s_len - path_length where s_len = s_end-s_start. 
-!                  Thus for a wiggler, where the "zero" orbit path_length 
-!                  is not s_len, there needs to be a correction term:
-!                    end%z%pos = end%z%pos + zero_orbit_path_length - s_len
 !   s_start    -- Real: Starting point.
 !   s_end      -- Real: Ending point.
 !   rel_eps    -- Real: % Error tollerance. A good value would be, say, 1e-5.
@@ -46,6 +39,13 @@
 !     %enegy     -- Energy in GeV
 !     %particle  -- Particle type [positron$, or electron$]
 !
+! Output:
+!   end        -- Coord_struct: Ending coords.
+!     %z%pos     = s_len - path_length where s_len = s_end-s_start. 
+!                  Thus for a wiggler, where the "zero" orbit path_length 
+!                  is not s_len, there needs to be a correction term:
+!                    end%z%pos = end%z%pos + zero_orbit_path_length - s_len
+!
 !
 ! Ode_path module Input:
 !   save_steps -- Logical: Set True if you want the intermediate results saved.
@@ -58,6 +58,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/29 16:44:44  dcs
+!Fix comments
+!
 !Revision 1.2  2001/09/27 18:31:59  rwh24
 !UNIX compatibility updates
 !
