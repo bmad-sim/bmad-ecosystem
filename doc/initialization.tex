@@ -668,12 +668,13 @@ Where \vn{<key>} is the \bmad \textit{key} attribute. For example:
 \end{example}
 will search for all monitor elements in the lattice.
 
-If \vn{data(j)%data_type} is not given and \vn{default_data_type} is not
-specified then the \vn{d2_data} name and the
-\vn{d1_data} name nare combined for each datum to form the datum's
-\vn{type}. Certain types are recognized by \tao. These are given by
-Table~\ref{t:cons}. Custom data types not specified in this table must have a
-corresponding definition in \textit{tao\_hook\_load\_data\_array.f90}. See
+If \vn{data(j)%data_type} is not given and \vn{default_data_type} is
+not specified then the \vn{d2_data} name and the \vn{d1_data} name
+nare combined for each datum to form the datum's \vn{type}. Certain
+types are recognized by \tao. These are given by
+Table~\ref{t:con_type}. Custom data types not specified in this table
+must have a corresponding definition in
+\textit{tao\_hook\_load\_data\_array.f90}. See
 Chapter~\ref{c:prog_customizing} for details.
 
 \vn{data(:)%weight} gives the weight coefficient for a variable in the
