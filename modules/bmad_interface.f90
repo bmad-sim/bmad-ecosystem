@@ -3,6 +3,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.11  2002/07/26 15:19:44  dcs
+!New subroutines
+!
 !Revision 1.10  2002/07/25 19:58:10  dcs
 !New subroutines added
 !
@@ -434,6 +437,15 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ele_struct) ele
+    end subroutine
+  end interface
+
+  interface
+    Subroutine dispersion_to_orbit (ele, disp_orb)
+      use bmad_struct
+      implicit none
+      type (ele_struct), intent(in) :: ele
+      type (coord_struct), intent(out) :: disp_orb
     end subroutine
   end interface
 
@@ -965,6 +977,15 @@ module bmad_interface
       real(rdef), intent(out) :: mat1(:,:)
       real(rdef), intent(out) :: chi
       integer, intent(in) :: i_dim
+    end subroutine
+  end interface
+
+  interface
+    Subroutine orbit_to_dispersion (orb_diff, ele)
+      use bmad_struct
+      implicit none
+      type (coord_struct), intent(in) :: orb_diff
+      type (ele_struct) :: ele
     end subroutine
   end interface
 
