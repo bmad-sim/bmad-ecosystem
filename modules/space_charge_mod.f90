@@ -156,7 +156,7 @@ subroutine setup_space_charge_calc (calc_on, lattice, mode, closed_orb)
 ! The extra factor of 4pi comes from the normalization of 
 !   the bbi_kick routine used in track1_space_charge.
 
-    g3 = (ele%value(beam_energy$) / mass_of(lattice%param%particle))**3
+    g3 = (ele%value(p0c$) / mass_of(lattice%param%particle))**3
     v%kick_const = length * r_e *  lattice%param%n_part / &
         (sqrt(twopi**3) * g3 * (v%sig_x + v%sig_y) * mode%sig_z)
 

@@ -157,7 +157,7 @@ subroutine track1_bmad (start, ele, param, end)
       call bbi_kick (end%vec(1)/sig_x, end%vec(3)/sig_y, sig_y/sig_x,  &
                                                                   kx, ky)
       bbi_const = -param%n_part * m_electron * ele%value(charge$) * r_e /  &
-                      (2 * pi * ele%value(beam_energy$) * (sig_x + sig_y))
+                      (2 * pi * ele%value(p0c$) * (sig_x + sig_y))
       coef = ele%value(bbi_const$) / (n_slice * rel_E)
       end%vec(2) = end%vec(2) + kx * coef
       end%vec(4) = end%vec(4) + ky * coef
@@ -254,7 +254,7 @@ subroutine track1_bmad (start, ele, param, end)
       endif
       ff = twopi * ele%value(rf_frequency$) / c_light
       phase = twopi * (ele%value(phi0$)+ele%value(dphi0$)) + ff * z
-      k  =  ff * ele%value(voltage$) * cos(phase) / ele%value(beam_energy$)
+      k  =  ff * ele%value(voltage$) * cos(phase) / ele%value(p0c$)
     endif
 
     dE0 =  ele%value(voltage$) * sin(phase) / ele%value(beam_energy$)
@@ -444,7 +444,7 @@ subroutine track1_bmad (start, ele, param, end)
 
     k_z = pi * ele%value(n_pole$) / length
     k1 = -0.5 * (c_light * ele%value(b_max$) / &
-                    (ele%value(beam_energy$) * rel_E))**2
+                    (ele%value(p0c$) * rel_E))**2
 
     ! 1/2 of the octupole octopole kick at the entrance face.
 

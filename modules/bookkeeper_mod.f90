@@ -989,10 +989,10 @@ end subroutine
 ! 
 ! BEAMBEAM:   
 !     bbi_const$ = param%n_part * m_electron * charge$ * r_e /
-!                           (2 * pi * beam_energy$ * (sig_x$ + sig_y$)
+!                           (2 * pi * p0c$ * (sig_x$ + sig_y$)
 !
 ! ELSEPARATOR:
-!     e_field$ = sqrt(hkick$**2 + vkick$**2) * beam_energy$ / l$
+!     e_field$ = sqrt(hkick$**2 + vkick$**2) * p0c$ / l$
 !     voltage$ = e_field$ * gap$ 
 !
 ! LCAVITY:    
@@ -1007,8 +1007,8 @@ end subroutine
 !     rho$     = 1 / G$
 !
 ! WIGGLER:    
-!     k1$  = -0.5 * (c_light * b_max$ / beam_energy$)**2
-!     rho$ = beam_energy$ / (c_light * b_max$)
+!     k1$  = -0.5 * (c_light * b_max$ / p0c$)**2
+!     rho$ = p0c$ / (c_light * b_max$)
 !
 ! Modules needed:
 !   use bmad
@@ -1157,7 +1157,7 @@ subroutine attribute_bookkeeper (ele, param)
 
       ele%value(bbi_const$) = &
         -param%n_part * m_electron * ele%value(charge$) * r_e /  &
-        (2 * pi * ele%value(beam_energy$) * (ele%value(sig_x$) + ele%value(sig_y$)))
+        (2 * pi * ele%value(p0c$) * (ele%value(sig_x$) + ele%value(sig_y$)))
 
     endif
 
@@ -1170,7 +1170,7 @@ subroutine attribute_bookkeeper (ele, param)
       ele%value(voltage$) = 0
     else
       ele%value(e_field$) = sqrt(ele%value(hkick$)**2 + ele%value(vkick$)**2) * &
-                                               ele%value(beam_energy$) / ele%value(l$)
+                                               ele%value(p0c$) / ele%value(l$)
       ele%value(voltage$) = ele%value(e_field$) * ele%value(gap$) 
     endif
 
@@ -1179,17 +1179,17 @@ subroutine attribute_bookkeeper (ele, param)
 
   case (wiggler$) 
 
-    if (ele%value(beam_energy$) == 0) then
+    if (ele%value(p0c$) == 0) then
       ele%value(k1$) = 0
     else
       ele%value(k1$) = -0.5 * &
-                    (c_light * ele%value(b_max$) / ele%value(beam_energy$))**2
+                    (c_light * ele%value(b_max$) / ele%value(p0c$))**2
     endif
 
     if (ele%value(b_max$) == 0) then
       ele%value(rho$) = 0
     else
-      ele%value(rho$) = ele%value(beam_energy$) / (c_light * ele%value(b_max$))
+      ele%value(rho$) = ele%value(p0c$) / (c_light * ele%value(b_max$))
     endif
 
   end select

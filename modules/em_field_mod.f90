@@ -278,7 +278,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
 
   case (quadrupole$) 
 
-    f = ele%value(beam_energy$) / c_light
+    f = ele%value(p0c$) / c_light
     field%b(1) = y * ele%value(k1$) * f 
     field%b(2) = x * ele%value(k1$) * f 
 
@@ -293,7 +293,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
 
   case (sol_quad$)
 
-    f = ele%value(beam_energy$) / c_light
+    f = ele%value(p0c$) / c_light
     field%b(1) = y * ele%value(k1$) * f 
     field%b(2) = x * ele%value(k1$) * f 
     field%b(3) = ele%value(ks$) * f
@@ -308,7 +308,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
 
   case (solenoid$)
 
-    f = ele%value(beam_energy$) / c_light
+    f = ele%value(p0c$) / c_light
     field%b(3) = ele%value(ks$) * f
 
     if (df_calc) then

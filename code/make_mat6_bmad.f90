@@ -436,7 +436,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     f = twopi * ele%value(rf_frequency$) / c_light
     phase = twopi * (ele%value(phi0$)+ele%value(dphi0$)) - f * c0%vec(5)
     mat6(6,5) = ele%value(gradient$) * ele%value(l$) * f * sin(phase) / &
-                                ele%value(beam_energy$)
+                                ele%value(p0c$)
 
     cos_phi = cos(phase)
     gradient = ele%value(gradient$) * cos_phi 
@@ -529,14 +529,14 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       endif
       factor = twopi * ele%value(rf_frequency$) / c_light
       phase = twopi * (ele%value(phi0$)+ele%value(dphi0$)) + factor * c0%vec(5) 
-      k  =  factor * ele%value(voltage$) * cos(phase) / ele%value(beam_energy$)
+      k  =  factor * ele%value(voltage$) * cos(phase) / ele%value(p0c$)
     endif
 
     px = c0%vec(2)
     py = c0%vec(4)
     pz = c0%vec(6)
 
-    dE0 =  ele%value(voltage$) * sin(phase) / ele%value(beam_energy$)
+    dE0 =  ele%value(voltage$) * sin(phase) / ele%value(p0c$)
     L = ele%value(l$)
     E = 1 + pz
     E2 = E**2
@@ -641,7 +641,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     endif
 
     k1 = -0.5 * (c_light * ele%value(b_max$) / &
-                    (ele%value(beam_energy$) * rel_E))**2
+                    (ele%value(p0c$) * rel_E))**2
 
 ! octuple correction to k1
 
@@ -744,14 +744,14 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       else
         phase = twopi * (ele%value(phi0$)+ele%value(dphi0$)) 
         mat6(6,5) = ele%value(voltage$) * cos(phase) *  &
-                      twopi / ele%value(rf_wavelength$) /ele%value(beam_energy$)
+                      twopi / ele%value(rf_wavelength$) /ele%value(p0c$)
         c_e = ele%value(voltage$) * sin(phase) / (m_electron * length)
       endif
     else
       c_e = 0.0
     endif
     c_m = param%particle * c_light * ele%value(b_z$) / m_electron
-    gamma_old = ele%value(beam_energy$) * rel_E / m_electron
+    gamma_old = ele%value(p0c$) * rel_E / m_electron
     gamma_new = gamma_old + c_e * length
 !!    call accel_sol_mat_calc (length, c_m, c_e, gamma_old, gamma_new, &
 !!                                    0.0_rp, 0.0_rp, c00%vec, mat4, vec_st)
@@ -890,7 +890,7 @@ subroutine bbi_kick_matrix (ele, param, orb, s_pos, mat6)
   call bbi_kick (x_pos, y_pos+del, ratio, garbage, k1_y)
 
   bbi_const = -param%n_part * m_electron * ele%value(charge$) * r_e /  &
-                      (2 * pi * ele%value(beam_energy$) * (sig_x + sig_y))
+                      (2 * pi * ele%value(p0c$) * (sig_x + sig_y))
 
   coef = bbi_const / (ele%value(n_slice$) * del * (1 + orb%vec(6)))
 

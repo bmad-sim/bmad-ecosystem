@@ -106,13 +106,22 @@ Figure~\ref{f:param_struct}
 \label{f:param_struct}
 \end{figure}
 
+\index{Param_struct!%total_length}
+\vn{%param%total_length} is the length of the lattice that a beam
+tracks through
+\begin{example}
+  %param%total_length = %ele_(n_use)%s - %ele_(0)%s
+\end{example}
+Normally \vn{%ele_(0)%s} = 0 so \vn{%param%total_length} =
+\vn{%ele_(n_use)%s} but this is not always the case.
+
 \index{Param_struct!%n_part}
 \index{BeamBeam}
 \index{Lcavity}
 \vn{%param%n_part} is the number of particles in a bunch and is used
 by \vn{BeamBeam} element to determine the strength of the beambeam
-interaction. \vn{%param%n_part} is also used by \vn{Lcavity} elements for wakefield
-calculations. 
+interaction. \vn{%param%n_part} is also used by \vn{Lcavity} elements
+for wakefield calculations.
 
 \index{Param_struct!%lost}
 \index{Param_struct!%end_lost_at}

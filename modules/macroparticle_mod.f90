@@ -549,7 +549,7 @@ subroutine track1_macro_sr_trans_wake (bunch, ele)
         f2 = z/dz_wake - iw
         f1 = 1 - f2
         fact = (ele%wake%sr1(iw)%trans*f1 + ele%wake%sr1(iw+1)%trans*f2) * &
-                              charge * ele%value(l$) / ele%value(beam_energy$)
+                              charge * ele%value(l$) / ele%value(p0c$)
         macro2(k)%r%vec(2) = macro2(k)%r%vec(2) - fact * x_ave 
         macro2(k)%r%vec(4) = macro2(k)%r%vec(4) - fact * y_ave
       enddo

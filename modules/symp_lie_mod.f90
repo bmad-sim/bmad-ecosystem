@@ -426,7 +426,7 @@ subroutine update_wig_coefs (do_mat6)
   real(rp) factor, coef
   logical do_mat6
 
-  factor = c_light / ele%value(beam_energy$)
+  factor = c_light / ele%value(p0c$)
 
   do j = 1, size(ele%wig_term)
     wt => ele%wig_term(j)

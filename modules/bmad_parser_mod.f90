@@ -2621,7 +2621,7 @@ subroutine compute_super_lord_s (ring, i_ref, ele, pele)
 
 !
 
-  if (ele%s > ring%param%total_length) then
+  if (ele%s > ring%ele_(ring%n_ele_use)%s) then
     ele%s = ele%s - ring%param%total_length
   elseif (ele%s < 0) then
     ele%s = ele%s + ring%param%total_length
