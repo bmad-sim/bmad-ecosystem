@@ -402,8 +402,8 @@ module bmad_struct
                   'ELECTRON  ', '???       ', 'POSITRON  ', 'PROTON    ' /)
 
   integer, parameter :: charge_of(-2:2) = (/ -1, -1, 0, 1, 1 /)
-  real(rp), parameter :: mass_of(-2:2) = (/ 0.938279e9, 0.511003e6, 0.0, &
-                                              0.511003e9, 0.938279e9 /)
+  real(rp), parameter :: mass_of(-2:2) = (/ m_proton, m_electron, 0.0, &
+                                            m_electron, m_proton /)
 
 ! SYMMETRY etc., logical names
 
