@@ -174,6 +174,7 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(lcavity$, sr_wake_file$)  = 'SR_WAKE_FILE'
     attrib_array(lcavity$, lr_wake_file$)  = 'LR_WAKE_FILE'
     attrib_array(lcavity$, field_calc$)    = 'FIELD_CALC'
+    attrib_array(lcavity$, freq_spread$)   = 'FREQ_SPREAD'
 
     attrib_array(group$, command$)        = 'COMMAND'
     attrib_array(group$, old_command$)    = 'OLD_COMMAND'

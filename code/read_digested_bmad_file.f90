@@ -43,7 +43,27 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   character(200), allocatable :: file_names(:)
   character(25) :: r_name = 'read_digested_bmad_file'
 
-  logical found_it, v71, v72, v73, v_old, v_now
+  logical found_it, v71, v72, v73, v74, v_old, v_now
+
+  type old_param_struct
+    real(rp) garbage            ! Saved for future use.
+    real(rp) n_part             ! Particles/bunch (for BeamBeam elements).
+    real(rp) charge             ! Charge of a bunch (used by LCavities).
+    real(rp) total_length       ! total_length of ring
+    real(rp) growth_rate        ! growth rate/turn if not stable
+    real(rp) t1_with_RF(6,6)    ! Full 1-turn matrix with RF on.
+    real(rp) t1_no_RF(6,6)      ! Full 1-turn matrix with RF off.
+    integer particle            ! positron$, electron$, etc.
+    integer ix_lost             ! Index of element particle was lost at.
+    integer end_lost_at         ! entrance_end$ or exit_end$
+    integer lattice_type        ! linear_lattice$, etc...
+    integer ixx                 ! Integer for general use
+    logical stable              ! is closed ring stable?
+    logical aperture_limit_on   ! use apertures in tracking?
+    logical lost                ! for use in tracking
+  end type
+
+  type (old_param_struct) old_param
 
 ! init all elements in ring
 
@@ -65,7 +85,8 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   v71 = (version == 71)
   v72 = (version == 72)
   v73 = (version == 73)
-  v_old = v71 .or. v72 .or. v73
+  v74 = (version == 74)
+  v_old = v71 .or. v72 .or. v73 .or. v74
   v_now = (version == bmad_inc_version$)
 
   if (version < bmad_inc_version$) then
@@ -132,11 +153,34 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 ! we read (and write) the ring in pieces since it is
 ! too big to write in one piece
 
-  read (d_unit, err = 9100)  &   
+  if (v71 .or. v72 .or. v73 .or. v74) then
+    read (d_unit, err = 9100)  &   
+          ring%name, ring%lattice, ring%input_file_name, ring%title, &
+          ring%x, ring%y, ring%z, old_param, ring%version, ring%n_ele_use, &
+          ring%n_ele_ring, ring%n_ele_max, &
+          ring%n_control_max, ring%n_ic_max, ring%input_taylor_order
+    ring%param%n_part            = old_param%n_part
+    ring%param%charge            = old_param%charge
+    ring%param%total_length      = old_param%total_length
+    ring%param%growth_rate       = old_param%growth_rate
+    ring%param%t1_with_RF(6,6)   = old_param%t1_with_RF(6,6)
+    ring%param%t1_no_RF(6,6)     = old_param%t1_no_RF(6,6)
+    ring%param%particle          = old_param%particle
+    ring%param%ix_lost           = old_param%ix_lost
+    ring%param%end_lost_at       = old_param%end_lost_at
+    ring%param%lattice_type      = old_param%lattice_type
+    ring%param%ixx               = old_param%ixx
+    ring%param%stable            = old_param%stable
+    ring%param%aperture_limit_on = old_param%aperture_limit_on
+    ring%param%lost              = old_param%lost
+    
+  else
+    read (d_unit, err = 9100)  &   
           ring%name, ring%lattice, ring%input_file_name, ring%title, &
           ring%x, ring%y, ring%z, ring%param, ring%version, ring%n_ele_use, &
           ring%n_ele_ring, ring%n_ele_max, &
           ring%n_control_max, ring%n_ic_max, ring%input_taylor_order
+  endif
 
   call allocate_ring_ele_(ring, ring%n_ele_max+100)
   allocate (ring%control_(ring%n_control_max+100))
@@ -147,7 +191,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   do i = 0, ring%n_ele_max
 
     ele => ring%ele_(i)
-    if (v_now) then
+    if (v_now .or. v74) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
                               dum1, ix_sr, dum2, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
@@ -194,7 +238,8 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
             ele%logic, ele%internal_logic, ele%field_calc
     endif
 
-    if (v_old .and. (ele%key == sbend$ .or. ele%key == rbend$)) then
+    if ((v71 .or. v72 .or. v73) .and. &
+                  (ele%key == sbend$ .or. ele%key == rbend$)) then
       ele%value((/ 8, 9, 16 /)) = ele%value((/ 7, 8, 9 /))
     endif
 

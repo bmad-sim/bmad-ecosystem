@@ -392,8 +392,8 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
           name1 = arr_to_str(lwake_file(ix1)%fnam_ptr)
           name2 = arr_to_str(twake_file(ix2)%fnam_ptr)
           ele%wake%sr_file = trim(name1) // ' | ' // name2
-          call read_wake (ele%wake%sr, name1, 'LONG')
-          call read_wake (ele%wake%sr, name2, 'TRANS')
+          call read_xsif_wake (ele%wake%sr, name1, 'LONG')
+          call read_xsif_wake (ele%wake%sr, name2, 'TRANS')
         endif
 
         ring%param%lattice_type = linear_lattice$
@@ -565,7 +565,7 @@ end subroutine
 
 !------------------------------------------------------------------------
 
-subroutine read_wake (wake, file_name, this)
+subroutine read_xsif_wake (wake, file_name, this)
 
   type (sr_wake_struct), pointer :: wake(:)
 

@@ -29,7 +29,7 @@ subroutine track_all (ring, orbit_)
 
   use bmad_struct
   use bmad_interface, except => track_all
-  use bookkeeper_mod, only: control_lord_bookkeeper
+  use bookkeeper_mod, only: control_bookkeeper
 
   implicit none
 
@@ -47,7 +47,7 @@ subroutine track_all (ring, orbit_)
 
   ring%param%ix_lost = -1
 
-  call control_lord_bookkeeper (ring)
+  call control_bookkeeper (ring)
 
 ! track through elements.
 

@@ -52,7 +52,7 @@ subroutine track_many (ring, orbit, ix_start, ix_end, direction)
 
   use bmad_struct
   use bmad_interface, except => track_many
-  use bookkeeper_mod, only: control_lord_bookkeeper
+  use bookkeeper_mod, only: control_bookkeeper
   use reverse_mod, only: reverse_ele
 
   implicit none
@@ -69,8 +69,8 @@ subroutine track_many (ring, orbit, ix_start, ix_end, direction)
 
 ! init
 
-  call control_lord_bookkeeper (ring)
-                            
+  call control_bookkeeper (ring)
+
   ring%param%lost = .false.
   ring%param%ix_lost = -1
 

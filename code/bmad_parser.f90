@@ -40,6 +40,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
   use bmad_parser_mod, except => bmad_parser
   use cesr_utils
+  use random_mod
   
   implicit none
 
@@ -70,7 +71,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   character(200) path, basename, full_name, digested_file
   character(280) parse_line_save
 
-  real(rp) angle, energy_beam, energy_param, energy_0
+  real(rp) angle, energy_beam, energy_param, energy_0, rr
 
   logical, optional :: make_mats6, digested_read_ok
   logical parsing, delim_found, matched_delim, arg_list_found, doit
@@ -885,14 +886,22 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       if (ele%value(hgapx$) == 0) ele%value(hgapx$) = ele%value(hgap$)
       if (ele%value(fintx$) == 0) ele%value(fintx$) = ele%value(fint$)
 
-! Accept Use of Delta_E for lcavities
+! Accept Use of Delta_E for lcavities and vary the mode frequencies.
 
     case (lcavity$) 
 
       if (ele%value(delta_e$) /= 0) then
         if (ele%value(gradient$) /= 0) call warning &
-                ('BOTH DELTA_E AND gradient NON-ZERO FOR A LCAVITY:', ele%name)
+                ('BOTH DELTA_E AND GRADIENT NON-ZERO FOR A LCAVITY:', ele%name)
         ele%value(gradient$) = ele%value(delta_e$) / ele%value(l$)
+      endif
+
+      if (ele%value(freq_spread$) /= 0) then
+        do n = 1, lr_wake_array_size(ele)
+          call ran_gauss (rr)
+          ele%wake%lr(n)%freq = ele%wake%lr(n)%freq * &
+                                            (1 + ele%value(freq_spread$) * rr)
+        enddo
       endif
 
 ! check for inconsistancies
@@ -1011,6 +1020,10 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       call attribute_bookkeeper (ring%ele_(i), ring%param)
     enddo
   endif
+
+! store the random number seed used for this lattice
+
+  call ran_seed_get (ring%param%ran_seed)
 
 !-------------------------------------------------------------------------
 ! write out if debug is on

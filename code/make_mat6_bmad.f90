@@ -697,6 +697,9 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     call multipole_ele_to_kt (ele, param%particle, knl, tilt, .true.)
     call mat6_multipole (knl, tilt, c0%vec, 1.0_rp, ele%mat6)
 
+! if knl(0) is non-zero then the reference orbit itself is bent
+! and we need to account for this.
+
     if (knl(0) /= 0) then
       ele%mat6(2,6) = knl(0) * cos(tilt(0))
       ele%mat6(4,6) = knl(0) * sin(tilt(0))
