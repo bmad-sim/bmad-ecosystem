@@ -2,14 +2,14 @@
 %\chapter{Introduction}
 %\label{c:prog_intro} 
 
+\chapter{Creating a Custom Version of \tao}
+\label{c:prog_intro} 
+
 \tao has been designed to be ready extensible with a minimum of
 effort. The tutorial providesa simple example of a custom data type. Here each
 the hook routines are explained and pointers are given for writing code. 
 
-\chapter{Creating a Custom Version of \tao}
-\label{c:prog_intro} 
-
-The process is summarized as follows: For the purposes of this
+The process for customizing is summarized as follows: For the purposes of this
 discussion assume that the directory that you are developing \tao in
 is called \vn{ROOT}. 
 \begin{enumerate}
@@ -36,6 +36,7 @@ The tutorial in Part I of this manual gave an example of how to carry out the
 above steps. This is repeated below but in greater detail.
 
 \section{Creating the \tao Library and a Custom \tao Directory}
+
 After obtaining the \tao distribution the \tao library is created by typing 
 \cmd{gmake} in the \cmd{ROOT/tao} directory. This will create two libraries
 called \cmd{libtao.a} and \cmd{libtao_g.a} where the second is a debug version
@@ -59,11 +60,148 @@ you need.
 
 Before one can begin writing code one must understand the structures
 that \tao uses. The structures are defined in a file
-\vn{tao/code/tao_struct.f90}.  \tao is based upon the \bmad software
-package for simulations of relativistic charged particles and the
+\vn{tao/code/tao_struct.f90}. It is a good idea to have a copy of
+\vn{tao/code/tao_struct.f90} easily accessible. It will be refered to frequently
+when customizing \tao. Examine the \vn{tao_super_universe_struct} and
+\vn{tao_universe_struct} structures in particular. They reference all other
+structures, either directly or indirectly, in \vn{tao_struct}. 
+\tao is based upon the \bmad software
+package for the simulation of relativistic charged particles and the
 \tao structures have components that are defined in \bmad. For
-information on these structures see the \bmad Reference Manual. Note
-that the hook--structures are defined in a file \vn{tao_hook_mod.f90}.
+information on these structures see the \bmad Reference Manual. Any hook 
+structures are defined in a file \vn{tao_hook_mod.f90}.
+
+Also, to get a good idea of how \tao works it is recommended to spend a
+little bit of time going through the \cmd{tao/code/*.f90} files. This may also
+provide pointers on how to make customizations in the hook routines.
+
+The following is a run through of each of the hook routines. Each routine
+is in a separate file called \vn{tao/hook/<hook_routine_name>.f90}. See these
+files for subroutine headers and plenty of comments throughout the dummy code to aid
+in the modification of these subroutines.
+
+\subsection{tao\_hook\_command}
+
+Any custom commands are placed here. The dummy subrotuine already has an
+ectensive amount of code that replicates what is performed in
+\vn{tao_command}. It also inlcudes some helper rotuines for deconstructing the
+command line syntax -- just like what is performed in \vn{tao_command}. It isn't
+neceddary to use this included infrastructure. All that is required is that the
+subroutine interface remaines the same. Commands placed here are searched before
+the standard \tao commands are searched. This allows for the overwriting of any
+standard \tao command.
+
+By default, there is one command included in here: \vn{`hook'}. This is just a
+simple command that doesn't reallt do anything for the purposes of demonstrating
+how a custom command would be implemented.
+
+The only thing to call at the end of a custom command is
+\vn{tao_cmd_end_calc} (as is done in the dummt subroutine). This will perform
+all of the steps listed in Section~\ref{s:lat_calc}. If this isn't called than
+whatever changes are made will not show up until a standard command is
+performed.
+
+\subsection{tao\_hook\_init\_design\_lattice}
+
+This will do a custom lattice initialialization. The standard lattice
+initialization just calls \vn{bmad_parser} or \vn{xsif_parser}. If anything more
+complex needs to be done then do it here. This is also where any custom overlays
+or other elements would be inserted after the parsing is complete. But in
+general, anything placed here should, in principle, be something that can be
+placed in a lattice file.
+
+\subsection{tao\_hook\_init}
+
+After the lattice and all global and universe structures are intialized then
+\vn{tao_hook_init} is called. Here, any further intializations can be added. In
+paricular, if any custom hook structures need to be initialized, here's the
+place to do it.
+
+\subsection{tao\_hook\_lattice\_calc}
+
+The standard lattice calculation can either be performed for single particle
+tracking or macroparticle tracking and will recalculate the orbit, transfer
+matrices and twiss perameters. If something else needs to be performed whenever
+the lattice is recalculated then it is placed here. A custom lattice calculation
+can be performed any lattice separately, this allows for the possibility of, for
+example, 
+tracking a single particle for one lattice and macroparticles in another.
+
+\subsection{tao\_hook\_load\_load\_data\_array}
+
+Any custom data types are defined and calculated here. If a non-standard data
+type is listed in the intialization files then a corresponding data type must
+be placed in this routine. The tutorial uses this hook routine when
+calculating the emittance. 
+
+As exmplained in the dummy file, the datum merit type
+affects how a datum's calue should be calculated. There is a helper subroutine
+in the dummy hook routine called \vn{load_it} to aid in modifying the datum's value based on the
+merit type. If there is a range of elements associated with datum then a merit
+type other than \vn{target} requires that the entire range of elements
+associated with the datum be searched for the appropriate value to be returened.
+See Chapter~\ref{c:opti} for details on the merit type. 
+
+For example, if the data type is \vn{orbit:x} (yes, this is already defined in
+\tao) then the appropriate case in \vn{tao_hook_load_data_array} would be:
+\begin{example}
+select case (datum%data_type)
+
+case ('orbit:x')
+  call load_it (orb(:)%vec(1))
+\end{example}
+\vn{load_it} will then look at each datum. If the merit type is other than
+\vn{target} then \vn{load_it} will search the appropriate range of elements for
+either the minimum or maximum horizontal orbit value and this will be the
+datum's value. Because, a datum may refer to range of elements, the entire orbit
+array (from 0 to \vn{n_ele_max}) must be passed to \vn{load_it} for each \vn{orbit:x} datum.
+
+If the only merit type that is going to be used is \vn{target} then \vn{load_it}
+can be ignored.
+
+\subsection{tao\_hook\_merit\_data}
+
+A custom data merit type can be defined here. Table~\ref{t:con_type} lists the
+standard merit types. If a custom merit type is used then \vn{load_it} in
+\vn{tao_hook_load_data_array} may also need to be modified to handle this merit
+type, additionally, all standard datd types may need to be overridden in 
+\vn{tao_hook_load_data_array} in order for the custom \vn{load_it} to be used.
+See \vn{tao/code/tao_merit.f90} for how the standard merit types are calculated.
+
+\subsection{tao\_hook\_merit\_var}
+
+Likewise, this hook will allow for a custom variable merit type. However, since
+there is no corresponding data transfer, no \vn{load_it} routine needs to be modified.
+See \vn{tao/code/tao_merit.f90} for how the standard merit types are calculated.
+
+\subsection{tao\_hook\_optimizer}
+
+If a non standard optimizer is needed then it can be implemented here. See the
+\vn{tao/code/tao_*_optimizer.f90} files for how the standard optimizers are
+implemented.
+
+\subsection{tao\_hook\_post\_process\_data}
+
+Here can be placed anything that needs to be done after the data arrays are
+loaded. This routine is called immediately after the data arrays are called and
+before the optimizer or plotting is done, so any final modifications to the
+lattice or data can be performed here. For example, this is whewre BPM
+resolution can be handled.
+
+\subsection{tao\_hook\_mod}
+
+Here any custom structures are defined. In the dummy hook routine there are
+already a number of structures defined. These are used in
+\vn{tao/code/tao_struct.f90} so even if they are not used there must be a dummy
+structure defined so that the compiler doesn't complain.
+
+\textbf{This module is different from all the other hook routine in that the \tao
+library must be compiled after this file is modified so that} \vn{tao_struct}
+\textbf{knows about the hook structure}. If hook structures are needed but only used in
+hook routines then it is recommended that these be placed in a separate file so
+that it can be compiled when the custom \tao program is compiled. Because of the
+special status of this hook module, it is not placed in the standard hook
+directory but in the \vn{tao/code/} directory.
 
 %-----------------------------------------------------------------
 \chapter{Plotting}

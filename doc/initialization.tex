@@ -586,7 +586,7 @@ Template plots are defined using namelists with a name of
     plot%who(i)      = "<who_to_plot>", <sign>
     plot%x           = <qp_axis_struct>
     plot%x_axis_type = "<x_axis_type>"   ! "index" or "s". Default is "index".
-    plot%ix_universe = <number>
+    plot%ix_universe = <number> ! used for lat_layout plots
     plot%n_graph     = <n_graphs>
     plot%independent_graphs = <logical>
   /
@@ -653,7 +653,7 @@ namelists should be placed directly after their respective
     curve(i)%units_factor = <factor>
     curve(i)%use_y2       = <logical> (not currently inplemented)
     curve(i)%draw_line    = <logical>
-    curve(i)%ix_universe  = <universe_number>
+    curve(i)%ix_universe  = <universe_number> ! default = 0 => use viewed universe
     curve(i)%line         = <qp_line_struct>
     curve(i)%symbol       = <qp_symbol_struct>
     curve(i)%symbol_every = <integer>

@@ -265,15 +265,16 @@ called a \vn{key table}.
 %------------------------------------------------------------------------
 \section{Tracking Types}
 
-The are two types of tracking implemented in \tap: single particle tracking 
+The are two types of tracking implemented in \tao: single particle tracking and
 macroparticle tracking. Single particle tracking is just that, the tracking 
 of a single particle through the lattice. Macroparticle tracking takes a beam distribution
 and tracks the centroids and sigmas of the ``macro-particles'' through the lattice.
-Single particle tracking is by default. See the initialization section for details on
+Single particle tracking is used by default. See the Section~\ref{s:macros} for details on
 setting up macroparticle tracking.
 
 %------------------------------------------------------------------------
 \section{Lattice Calculation}
+\label{s:lat_calc}
 
 After each \tao command is processed the lattice and ``merit'' function is 
 recalculated then the plot window is regenerated. The
