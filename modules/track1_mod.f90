@@ -256,7 +256,7 @@ subroutine track_bend_edge (orb, ele, start_edge, reverse, kx, ky)
     del = tan(e) * g
     if (present(kx)) kx = del 
     orb%vec(2) = orb%vec(2) + del * orb%vec(1)
-    if (ele%value(fint$) /= 0) del = tan(e - 2 * ele%value(fint$) * &
+    if (ele%value(fint$) /= 0) del = g * tan(e - 2 * ele%value(fint$) * &
                       abs(g) * ele%value(hgap$) *  (1 + sin(e)**2) / cos(e))
     if (present(ky)) ky = -del
     orb%vec(4) = orb%vec(4) - del * orb%vec(3)
@@ -266,7 +266,7 @@ subroutine track_bend_edge (orb, ele, start_edge, reverse, kx, ky)
     del = tan(e) * g
     if (present(ky)) kx = del
     orb%vec(2) = orb%vec(2) + del * orb%vec(1)
-    if (ele%value(fintx$) /= 0) del = tan(e - 2 * ele%value(fintx$) * &
+    if (ele%value(fintx$) /= 0) del = g * tan(e - 2 * ele%value(fintx$) * &
                       abs(g) * ele%value(hgapx$) *  (1 + sin(e)**2) / cos(e))
     if (present(ky)) ky = -del
     orb%vec(4) = orb%vec(4) - del * orb%vec(3)
