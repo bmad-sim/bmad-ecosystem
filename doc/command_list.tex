@@ -1,0 +1,478 @@
+\chapter{Tao Commands}
+\label{c:commands}
+
+Commands are case sensitive. The list of commands that \tao knows
+about is shown in Table~\ref{t:commands}
+
+\begin{table}[h]
+\centering
+{\tt
+\begin{tabular}{|l|l||l|l|} \hline
+  {\it Command} & {\it Section}  & {\it Command} & {\it Section} \\ \hline
+  alias    & \ref{s:alias}    &  quit    & \ref{s:quit}    \\ \hline
+  call     & \ref{s:call}     &  restore & \ref{s:restore} \\ \hline
+  change   & \ref{s:change}   &  run     & \ref{s:run}     \\ \hline
+  clip     & \ref{s:clip}     &  set     & \ref{s:set}     \\ \hline
+  exit     & \ref{s:exit}     &  scale   & \ref{s:scale}   \\ \hline
+  flatten  & \ref{s:flatten}  &  show    & \ref{s:show}    \\ \hline
+  output   & \ref{s:output}   &  use     & \ref{s:use}     \\ \hline
+  place    & \ref{s:place}    &  veto    & \ref{s:veto}    \\ \hline
+  plot     & \ref{s:plot}     &  view    & \ref{s:view}    \\ \hline
+\end{tabular}
+}
+\caption{Table of \bmad\ elements.}
+\label{t:commands}\center
+\end{table}
+
+Where noted, a ``*'' star can be put in front of a command. This
+signifies that the command is to be applied to all universes and not
+just the one on view.
+
+\vfil
+\break
+
+%------------------------------------------------------------------------
+\section{Alias}
+\label{s:alias}
+
+Format: 
+\begin{example}
+  alias <alias_name> <string>
+\end{example}
+
+\vskip 0.2in
+
+\vn{Alias} is like Unix aliases and allows the defining of alias
+commands. When using an alias up to 9 arguments may be substituted in the
+\vn{<string>}. The i\Th argument is substituted in place of the sub-string
+``[i]''.
+
+Examples:
+\begin{example}
+    alias xyzzy plot [1] model - base 
+    xyzzy top 
+\end{example}
+In the above example ``xyzzy'' is the alias for the string ``plot [1]
+model - base''.  When the command xyzzy is used ``top'' is substituted
+for ``[1]'' in the string.
+
+%------------------------------------------------------------------------
+\section{Call}
+\label{s:call}
+
+Format: 
+\begin{example}
+  call <filename> \{<arg_list>\}  \Strut
+\end{example}
+
+\vskip 0.2in
+\vn{call} opens a command file and executes the commands in it.  \tao
+first looks in the current directory for the file. If not found \tao
+will look in the directory pointed to by the \vn{TAO_COMMAND_DIR}
+directory.  Up to 9 arguments may be passed to the command file. The
+i\Th argument is substituted in place of the string ``[i]'' in the
+file. 
+
+Examples:
+\begin{example}
+    call my_cmd_file abc def 
+\end{example}
+In the above example the argument ``abc'' is substituted for any
+``[1]'' appearing the the file and ``def'' is substituted for any
+``[2]''.
+
+%------------------------------------------------------------------------
+\section{Change}
+\label{s:change}
+
+Format:
+\begin{example}
+  change ele <name> <attribute> <number>
+  change var <name> <index> <number>
+\end{example}
+
+\vskip 0.2in
+\vn{change} changes element attribute values or variable values. Generally
+\vn{<number>} is added to the existing value
+\begin{example}
+  set_value = init_value + <number>
+\end{example}
+If "@" is prepended to \vn{<number>}  then just the value of \vn{<number>} is used
+to set the value
+\begin{example}
+  set_value = <number>
+\end{example}
+If "d" is prepended to \vn{<number>}  then the value relative to the design
+value is used:
+\begin{example}
+  set_value = design_value + <number>
+\end{example}
+
+Examples:
+\begin{example}
+  change ele s24e x_offset  0.1  ! Offset element by 0.1
+  change ele q02w k1 d1.2e-2     ! set the k1 strength of q02w relative to the design
+  change var steering 34 @1e-3  ! set the strength steering #34 to 0.001
+\end{example}
+
+
+%------------------------------------------------------------------------
+\section{Clip}
+\label{s:clip}
+
+Format:
+\begin{example}
+  clip \{<where> <limit1> <limit2>\}
+\end{example}
+
+\vskip 0.2in \vn{clip} vetoes data points for plotting and
+optimizing. The points vetoed are those points whose $y$ values are
+outside a certain range defined by \vn{<limit1>} \vn{<limit2>}. If
+neither \vn{<limit1>} nor \vn{<limit2>} is present then the clip range
+is taken to be outside the graph minimum and maximum $y$--axis
+values. If only \vn{<limit1>} is present then the clip range is
+outside the range from -\vn{<limit1>} to +\vn{<limit1>}. If both are
+present than the range is from \vn{<limit1>} to \vn{<limit2>}.  The
+graphs that are clipped is determined by the \vn{<where>} switch.  If
+\vn{<where>} is not present all graphs are scalled.
+
+Examples
+\begin{example}
+  clip top:x -3  7  ! clip the x graph in the top region
+  clip bottom       ! clip the graphs in the bottom region
+\end{example}
+
+%------------------------------------------------------------------------
+\section{Exit}
+\label{s:exit}
+
+Format:
+\begin{example}
+  exit
+\end{example}
+
+\vskip 0.2in
+\vn{Exit} exits the program. Same as \vn{Quit}.
+
+%------------------------------------------------------------------------
+\section{Flatten}
+\label{s:flatten}
+
+Format:
+\begin{example}
+  flatten <optimizer>
+\end{example}
+
+\vskip 0.2in
+\vn{Flatten} runs the optimizer to minimize the merit function. This is the 
+same as \vn{run}. See the \vn{run} command for more details.
+
+%------------------------------------------------------------------------
+\section{Output}
+\label{s:output}
+
+Format:
+\begin{example}
+  output hard
+\end{example}
+
+\vskip 0.2in
+\vn{Output} creates a PostScript file of the plot window. 
+
+%------------------------------------------------------------------------
+\section{Place}
+\label{s:place}
+
+Format:
+\begin{example}
+  place <region> <template>
+  place <region> none
+\end{example}
+
+\vskip 0.2in The \vn{place} command is used to associate a
+\vn{<template>} plot with a \vn{<region>} and thus create a visible
+plot in that region. To erase a plot from a region use the \vn{none}
+switch. Notice that by using multiple \vn{place} commands a
+\vn{template} can be associated with more than one region. 
+
+Examples:
+\begin{example}
+  place top orbit  ! place the orbit template in the top region
+  place top none   ! erase any plots in the top region
+\end{example}
+
+%------------------------------------------------------------------------
+\section{Plot}
+\label{s:plot}
+
+Format:
+\begin{example}
+  plot <region> <who>
+\end{example}
+
+\vskip 0.2in The \vn{plot} command is used to determine who is plotted
+in the graphs of a given region. Use a ``-'' for baselines. 
+
+Examples:
+\begin{example}
+  plot bottom model - design       ! Plot model - design in the bottom region
+  plot top data - model + design - ref 
+\end{example}
+
+%------------------------------------------------------------------------
+\section{Quit}
+\label{s:quit}
+
+Format:
+\begin{example}
+  quit
+\end{example}
+
+\vskip 0.2in
+\vn{Quit} exits the program. Same as \vn{exit}.
+
+%------------------------------------------------------------------------
+\section{Restore}
+\label{s:restore}
+
+Format:
+\begin{example}
+  \{*\}restore data  <class> <locations>
+  restore var <class> <locations>
+\end{example}
+
+\vskip 0.2in The \vn{restore} command cancels data or variable
+vetoes. See also the \vn{use}
+and \vn{veto} commands.
+
+Examples:
+\begin{example}
+  restore data orbit:x  23, 34:56 ! unveto orbit:x data.
+  *restore data orbit 34          ! unveto orbit data in all universes.
+  restore var quad_k1 67     ! unveto variable
+\end{example}
+
+
+%------------------------------------------------------------------------
+\section{Run}
+\label{s:run}
+
+Format:
+\begin{example}
+  run <optimizer>
+\end{example}
+
+\vskip 0.2in
+
+%------------------------------------------------------------------------
+\section{Set}
+\label{s:set}
+
+Format:
+\begin{example}
+  \{*\}set data <class> <component> = <value> \{<locations\}
+  \{*\}set var <class> <component> = <value> \{<locations\}
+  set global <component> = <value>
+\end{example}
+
+\vskip 0.2in
+A ``*'' star in front means that the \vn{set} is applied
+to all universes and not just the one on view.
+
+To apply a set to all data or variable classes use "all"
+in place of \vn{<class>}.
+
+For the \vn{set data} version of \vn{set} possible 
+\vn{<component>}s that can be set are:
+\begin{example}
+  weight      ! Weight for the merit function.
+  data        ! Measured data value.
+  ref         ! Reference data value.
+\end{example}
+Besides a numeric value \vn{<value>} can be:
+\begin{example}
+  data        ! Measured data value.
+  ref         ! Reference data value.
+  model       ! model lattice value.
+  base        ! base lattice value.
+  design      ! design lattice value
+\end{example}
+
+For \vn{set var} version of \vn{set} possible 
+\vn{<component>}s that can be set are:
+\begin{example}
+  weight     ! Weight for the merit function.
+  step       ! Sets what a "small" variation of the variable is.
+  model      ! Model lattice value.
+  base       ! Base lattice value
+\end{example}
+Besides a numeric value \vn{<value>} can be:
+\begin{example}
+  data        ! Value when data measurement was made.
+  ref         ! Value when reference measurement was made.
+  model       ! model lattice value.
+  base        ! base lattice value.
+  design      ! design lattice value
+\end{example}
+
+For \vn{set global} version of set possible 
+\vn{<components>}s that can be set are:
+\begin{example}
+  opt_with_ref  = T/F ! Use the reference data with optimization.
+  opt_with_base = T/F ! Use the base lattice with optimization.
+\end{example}
+
+Examples:
+\begin{example}
+  set data all ref = data       ! set all ref data = measured data.
+  *set var quad_k1 weight = 0.1 ! set quad_k1 weights. 
+\end{example}
+
+%------------------------------------------------------------------------
+\section{Scale}
+\label{s:scale}
+
+Format:
+\begin{example}
+  scale \{<where> <value1> <value2>\}
+\end{example}
+
+\vskip 0.2in \vn{scale} adjusts the vertical scale of graphs. If
+neither \vn{<value1>} nor \vn{<value2>} is present then the scale is
+adjusted so that all the data points are within the graph region.  If
+only \vn{<value1>} is present then the scale is taken to be from
+-\vn{<value1>} to +\vn{<value1>}. If both are present than the scale
+is from \vn{<value1>} to \vn{<value2>}.  The graphs that are scalled
+is determined by the \vn{<where>} switch. If \vn{<where>} is not
+present  or \vn{<where>} is ``all'' then all graphs are scalled. 
+
+Examples:
+\begin{example}
+  scale top:x -3  7  ! scale the x graph in the top region
+  scale bottom       ! scale the graphs in the bottom region
+  scale              ! scale everything
+\end{example}
+
+
+%------------------------------------------------------------------------
+\section{Show}
+\label{s:show}
+
+Format:
+\begin{example}
+  show alias                     
+  show data \{<class> <number>\} 
+  show ele <ele_name>
+  show global
+  show lattice <ele1_name> <ele2_name>
+  show optimizer
+  show top10
+  show var <class> \{<number>\}
+\end{example}
+
+\vskip 0.2in
+\vn{Show} is used to display various information about the state of \tao.
+\begin{description}
+\item[show alias]
+Shows a list of defined aliases. See the \vn{alias} command for more details.
+\item[show data]
+Shows data information. If \vn{<class>} and \vn{<number>} are not present shown 
+is a list of d2\_data classes.
+\item[show ele]
+This shows information on lattice elements. \vn{<ele_name>} can contain wild--card
+characters ``\%'' and ``*''. ``\%'' matches to any single character and
+``*'' matches to any number of characters. If \vn{<ele_name>} contains a
+wild card then a list of elements that match the name are shown. If no wild--card
+is present then information about the element whose name matches \vn{<ele_name>}
+is shown. \vn{<ele_name>} is a number $n$ then the $n$\Th element in the lattice 
+list will be shown.
+\item[show global]
+Shows global information.
+\item[show lattice]
+Shows Twiss and orbit data for the \vn{model} lattice between elements
+\vn{<ele1_name>} and \vn{<ele2_name>}. Either \vn{<ele1_name>} or
+\vn{<ele2_name>} may be numbers indicating the place in the lattice
+list to start or stop at.
+\item[show optimizer]
+Shows information pertinent to optimization: Data and variables used, etc.
+\item[show top10]
+Shows top contributors to the merit function, dMerit/dVariable
+derivatives, and Largest changes in variable value.
+\item[show var]
+Shows variable information. If \vn{<class>} and \vn{<number>} are not present shown 
+is a list of v1\_var classes.
+\end{description}
+
+Examples:
+\begin{example}
+  show data
+  show data orbit
+  show data orbit:x 35
+  show ele q*          ! list all lattice elements with names beginning with "q".
+  show ele q10w        ! show a praticular lattice element
+  show ele 105         ! show element #105 in the lattice
+\end{example}
+
+%------------------------------------------------------------------------
+\section{Use}
+\label{s:use}
+
+Format:
+\begin{example}
+  \{*\}use data  <class> <locations>
+  use var <class> <locations>
+\end{example}
+
+\vskip 0.2in The \vn{use} command  unvetoes data or variables
+and sets a veto for the rest of the data.
+A ``*'' star in front means that the \vn{use} is applied
+to all universes and not just the one on view. See also the \vn{restore}
+and \vn{veto} commands.
+
+Examples:
+\begin{example}
+  use data orbit:x  23, 34:56 ! use orbit:x data.
+  *use data orbit 34          ! use orbit data in all universes.
+  use var quad_k1 67          ! use variable
+\end{example}
+
+
+%------------------------------------------------------------------------
+\section{Veto}
+\label{s:veto}
+
+Format:
+\begin{example}
+  \{*\}veto data  <class> <locations>
+  veto var <class> <locations>
+\end{example}
+
+\vskip 0.2in The \vn{veto} command  vetoes data or variables.
+A ``*'' star in front means that the \vn{veto} is applied
+to all universes and not just the one on view. See also the \vn{restore}
+and \vn{use} commands.
+
+Examples:
+\begin{example}
+  veto data orbit:x  23, 34:56 ! veto orbit:x data.
+  *veto data orbit 34          ! veto orbit data in all universes.
+  veto var quad_k1 67     ! veto variable
+\end{example}
+
+%------------------------------------------------------------------------
+\section{View}
+\label{s:view}
+
+Format:
+\begin{example}
+  view <number>
+\end{example}
+
+\vskip 0.2in The \vn{view} command changes which universe data is
+taken from from plotting.  This also sets the default universe that
+commands are applied to in the absense of a star prefix.  
+
+Examples:
+\begin{example}
+  view 2   ! Make universe #2 the default.
+\end{example}

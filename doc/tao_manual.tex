@@ -1,0 +1,52 @@
+\documentclass{book}
+
+\usepackage{graphicx}
+\usepackage{moreverb}
+\usepackage{amsmath}
+\usepackage{alltt}
+\usepackage{rotating}
+\usepackage{subfigure}
+\usepackage{toc}
+\usepackage{xspace}
+
+\input{macros.tex}
+
+\setlength{\textwidth}{6.25in}
+\setlength{\oddsidemargin}{0.25in}
+\setlength{\evensidemargin}{0.00in}
+\setlength{\textheight}{8.5in}
+\setlength{\topmargin}{0in}
+
+\begin{document}
+
+\include{cover_page}
+
+%----------------------------------------------------------------
+{
+\setlength{\parskip}{\dPar}
+\setlength{\parindent}{0ex}
+
+\include{introduction}
+}
+
+%----------------------------------------------------------------
+\tableofcontents
+%% \listoffigures
+%% \listoftables
+
+%----------------------------------------------------------------
+\setlength{\parskip}{\dPar}
+\setlength{\parindent}{0ex}
+
+\part{User's Guide}
+
+\include{nomenclature}
+\include{initialization}
+\include{command_list}
+
+%----------------------------------------------------------------
+\part{Programmer's Guide}
+
+\include{programming}
+
+\end{document}

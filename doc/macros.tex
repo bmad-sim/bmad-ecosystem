@@ -1,0 +1,92 @@
+\newcommand{\comma}{\> ,}
+\newcommand{\period}{\> .}
+
+\newcommand{\Begineqs}{\begin{eqnarray}}
+\newcommand{\Endeqs}{\end{eqnarray}}
+\newcommand{\AND}{&& \hskip -17pt\relax}
+\newcommand{\CR}{\\}
+\newcommand{\CRNO}{\nonumber \\}
+\newcommand{\dstyle}{\displaystyle}
+
+\newcommand{\Begineq}{\begin{equation}}
+\newcommand{\Endeq}{\end{equation}}
+
+\newcommand{\pow}[1]{\cdot 10^{#1}}
+\newcommand{\Bf}[1]{{\bf #1}}
+
+\newcommand{\bmad}{{\sl Bmad}\xspace}
+\newcommand{\tao}{{\sl Tao}\xspace}
+\newcommand{\mad}{{\sl MAD}}
+
+\newcommand{\eq}[1]{{(\protect\ref{#1})}}
+\newcommand{\Eq}[1]{{Eq.~(\protect\ref{#1})}}
+\newcommand{\Eqs}[1]{{Eqs.~(\protect\ref{#1})}}
+
+\newcommand{\vn}{\ttcmd}           % For variable names
+\newcommand{\cs}{\ttcmd}           % For code source
+\newcommand{\cmd}{\ttcmd}          % For Unix commands
+\newcommand{\rn}{\ttcmd}           % For Routine names
+\newcommand{\tn}{\ttcmd}           % For Type (structure) names
+\newcommand{\bn}[1]{{\bf #1}}       
+\newcommand{\toffset}{\vskip 0.01in}
+\newcommand{\rot}[1]{\begin{rotate}{-45}#1\end{rotate}}
+
+\newcommand{\data}{{\mbox{data}}}
+\newcommand{\reference}{{\mbox{ref}}}
+\newcommand{\model}{{\mbox{model}}}
+\newcommand{\base}{{\mbox{base}}}
+\newcommand{\design}{{\mbox{design}}}
+\newcommand{\meas}{{\mbox{meas}}}
+\newcommand{\var}{{\mbox{var}}}
+
+\newcommand\ttcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand\dottcmd[1]{\texttt{#1}\endgroup}
+
+\newcommand\slcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \doslcmd}
+\newcommand\doslcmd[1]{\textsl{#1}\endgroup}
+
+\newcommand{\Th}{$^{th}$}
+\newcommand{\St}{$^{st}$}
+\newcommand{\B}{$\backslash$}
+
+\newlength{\dPar}
+\newlength{\ExBeg}
+\newlength{\ExEnd}
+\setlength{\dPar}{1.5ex}
+\setlength{\ExBeg}{-\dPar}
+\addtolength{\ExBeg}{-1.5ex}
+\setlength{\ExEnd}{-\dPar}
+\addtolength{\ExEnd}{-1.0ex}
+
+\newenvironment{example}
+  {\vspace{\ExBeg} \begin{alltt}}
+  {\end{alltt} \vspace{\ExEnd}}
+
+\newcommand\Strut{\rule[-2ex]{0mm}{6ex}}
+
+\newenvironment{Example}{\vspace{-1.5ex} \begin{alltt}}{\end{alltt}}
+
+\newenvironment{Itemize}
+  {\begin{list}{$\bullet$}
+    {\addtolength{\topsep}{-1.5ex} 
+     \addtolength{\itemsep}{-1ex}
+    }
+  }
+  {\end{list} \vspace*{1ex}}
+
+\newcommand{\Section}[1]{\section{#1}\indent\vspace{-3ex}}
+
+\newcommand{\SECTION}[1]{\section*{#1}\indent\vspace{-3ex}}
+
+% From pg 64 of The LaTex Companion.
+
+\newenvironment{ventry}[1]
+  {\begin{list}{}
+    {\renewcommand{\makelabel}[1]{\textsf{##1}\hfil}
+     \settowidth{\labelwidth}{\textsf{#1}}
+     \addtolength{\itemsep}{-1.5ex}
+     \addtolength{\topsep}{-1.0ex} 
+     \setlength{\leftmargin}{5em}
+    }
+  }
+  {\end{list}}

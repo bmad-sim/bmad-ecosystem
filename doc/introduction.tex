@@ -1,0 +1,43 @@
+\section*{Tao: The Tool for Accelerator Optics}
+
+Many simulation problems fall into one of three categories: 
+
+\begin{itemize}
+\item 
+You want to design a lattice subject to various constraints.
+\item 
+You have some measured data and you want to make a correction. For
+example, you want to know what steering strength changes will make an orbit
+flat.
+\item
+You want to simulate what happens to the orbit, beta function,
+etc., when you change something in the machine.
+\end{itemize}
+
+Programs that are written to solve these types of problems have common
+elements: You have variables you want to vary in your model of your
+machine, you have "data" that you want to view, and, in the first two
+categories above, you want to match the machine model to the data (in
+designing a lattice the constraints correspond to the data).
+
+Because of this commonality of design, the \tao program was developed
+to reduce the time needed to develop working programs. \tao is a
+machine independent program that implements the essential ingredients
+needed to solve simulation problems. To make the
+connection, \tao uses configuration input files that can be tailored to
+specific machines. Additionally, \tao has been built
+to be easily customizable so that extending \tao to solve new and
+different poroblems is relatively straight forward.
+
+More information, including the most up--to--date version of this
+manual, can be found at the \bmad web site at
+\begin{example}
+  http://www.lepp.cornell.edu/~dcs/bmad
+\end{example}
+
+Errors and omissions are a fact of life for any reference work and
+comments from you, dear reader, are therefore most welcome. Please
+send any missives (or chocolates, or any other kind of sustenance) to:
+\begin{example}
+  David Sagan <dcs16@cornell.edu>
+\end{example}
