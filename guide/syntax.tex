@@ -8,12 +8,31 @@ The \bmad\ software library comes with routines to read in (parse) a
 lattice definition file (or files). There are two input formats that
 \bmad understands: The \bmad standard format and XSIF. XSIF stands for
 ``Extended Standard Input Format.''  XSIF is esentially a subset of
-the MAD input format and will not be further discussed
-here. Documentation can be found at:
+the MAD input format. Documentation can be found at:
 \begin{example}
   http://www-project.slac.stanford.edu/
               lc/ilc/TechNotes/LCCNotes/PDF/LCC-0060%20rev.1.pdf
 \end{example}
+One point that is not covered in the documentation is that \vn{beam} and 
+\vn{beta0} definitions must have a corresponding \vn{use} statement separate 
+from the \vn{use} statement that defines the lattice. For
+example:
+\begin{example}
+  this_beam: beam, particle = electron, ...
+  this_beta, beta0, betax = 3.45, ...
+  this_lattice: line = ( ... )
+  use, this_lattice
+  use, this_beam
+  use, this_beta
+\end{example}
+Another point is that for a \vn{MATRIX} element, unlike MAD, the
+\vn{R$ii$} terms (the diagonal terms of the linear matrix) are not
+unity by default. Thus
+\begin{example}
+  m: matrix
+\end{example}
+will give a zero linear matrix.
+
 Throughout this manual if the lattice input format is mentioned it
 will always pertain to the \bmad standard format unless explicitly
 stated otherwise.
