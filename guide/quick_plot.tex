@@ -379,6 +379,34 @@ The fill styles are:
   \label{t:plot_syms}
 \end{table}
 
+\begin{table}
+\begin{tabular}{|l|l|} \hline
+{\B}u       & Start a superscript, or end a subscript \\ \hline
+{\B}d       & \parbox{4in}{Start a subscript, or end a superscript 
+               (note that {\B}u and {\B}d must always be used in pairs)} \\ \hline
+{\B}b       & \parbox{4in}{Backspace (i.e., do not advance text pointer  
+               after plotting the previous character)} \\ \hline
+{\B}fn      & Switch to Normal font (1)       \\ \hline
+{\B}fr      & Switch to Roman font (2)        \\ \hline
+{\B}fi      & Switch to Italic font (3)       \\ \hline
+{\B}fs      & Switch to Script font (4)       \\ \hline
+{\B}{\B}    & Backslash character (\B)        \\ \hline
+{\B}x       & Multiplication sign ($\times$)  \\ \hline
+{\B}.       & Centered dot ($\cdot$)          \\ \hline
+{\B}A       & Angstrom symbol (\AA)         \\ \hline
+{\B}gx      & Greek letter corresponding to roman letter x \\ \hline
+{\B}mn {\B}mnn & Graph marker number $n$ or $nn$ (1-31) \\ \hline
+{\B}(nnnn)  & 
+\parbox{4in}{Character number nnnn (1 to 4 decimal digits) from the
+Hershey character set; the closing parenthesis may be omitted if the
+next character is neither a digit nor ``)''. This makes a number of
+special characters (e.g., mathematical, musical, astronomical, and
+cartographical symbols) available.} \\ \hline
+\end{tabular}
+\caption{PGPLOT Escape Sequences.}
+\label{t:pgplot_escape}
+\end{table}
+
 \index{Quick_Plot!symbol styles}
 The symbol types are:
 \begin{example}
@@ -424,33 +452,6 @@ using a height of 40 via the call
 PGPLOT defines certain escape sequences that can be used in text strings
 to draw greek letters, etc. These escape sequences are given in 
 Table~\ref{t:pgplot_escape}.
-\begin{table}[h]
-\begin{tabular}{|l|l|} \hline
-{\B}u       & Start a superscript, or end a subscript \\ \hline
-{\B}d       & \parbox{4in}{Start a subscript, or end a superscript 
-               (note that {\B}u and {\B}d must always be used in pairs)} \\ \hline
-{\B}b       & \parbox{4in}{Backspace (i.e., do not advance text pointer  
-               after plotting the previous character)} \\ \hline
-{\B}fn      & Switch to Normal font (1)       \\ \hline
-{\B}fr      & Switch to Roman font (2)        \\ \hline
-{\B}fi      & Switch to Italic font (3)       \\ \hline
-{\B}fs      & Switch to Script font (4)       \\ \hline
-{\B}{\B}    & Backslash character (\B)        \\ \hline
-{\B}x       & Multiplication sign ($\times$)  \\ \hline
-{\B}.       & Centered dot ($\cdot$)          \\ \hline
-{\B}A       & Angstrom symbol (\AA)         \\ \hline
-{\B}gx      & Greek letter corresponding to roman letter x \\ \hline
-{\B}mn {\B}mnn & Graph marker number $n$ or $nn$ (1-31) \\ \hline
-{\B}(nnnn)  & 
-\parbox{4in}{Character number nnnn (1 to 4 decimal digits) from the
-Hershey character set; the closing parenthesis may be omitted if the
-next character is neither a digit nor ``)''. This makes a number of
-special characters (e.g., mathematical, musical, astronomical, and
-cartographical symbols) available.} \\ \hline
-\end{tabular}
-\caption{PGPLOT Escape Sequences.}
-\label{t:pgplot_escape}
-\end{table}
 
 PGPLOT defines a text background index:
 \begin{example}
@@ -465,26 +466,17 @@ PGPLOT defines a text background index:
 \index{Quick_Plot!structures}
 
 \quickplot uses several structures to hold data. The structure that
-defines a line is called a \vni{qp_line_struct} and is shown in
-Figure~\ref{f:qp_line_struct}. 
-\begin{figure}[htb]
-\centering
-\begin{verbatim}
+defines a line is a \vni{qp_line_struct}
+\begin{example}
   type qp_line_struct
     integer width   ! Line width. Default = 1
     integer color   ! Line color. Default = black\$
     integer style   ! Line style. Default = solid\$
   end type
-\end{verbatim}
-\caption{Definition of the \vni{qp\_line\_struct}.}
-\label{f:qp_line_struct}
-\end{figure}
+\end{example}
 
-The \vni{qp_symbol_struct} defines how symbols are drawn and is shown
-in Figure~\ref{f:qp_sym_struct}.
-\begin{figure}[htb]
-\centering
-\begin{verbatim}
+The \vni{qp_symbol_struct} defines how symbols are drawn 
+\begin{example}
   type qp_symbol_struct
     integer  type        ! Default = circle_dot\$
     real(rp) height      ! Default = 6.0 (points)
@@ -492,16 +484,10 @@ in Figure~\ref{f:qp_sym_struct}.
     integer  fill        ! Default = solid_fill\$
     integer  line_width  ! Default = 1
   end type
-\end{verbatim}
-\caption{Definition of the \vni{qp\_sym\_struct}.}
-\label{f:qp_sym_struct}
-\end{figure}
+\end{example}
 
-The \vni{qp_axis_struct} defines how axes are drawn and is shown
-in Figure~\ref{f:qp_axis_struct}.
-\begin{figure}[htb]
-\centering
-\begin{verbatim}
+The \vni{qp_axis_struct} defines how axes are drawn 
+\begin{example}
   type qp_axis_struct
     character(80) label       ! Axis label.
     real(rp) min              ! Axis minimum number.
@@ -520,7 +506,4 @@ in Figure~\ref{f:qp_axis_struct}.
     logical draw_label        ! Draw the label?
     logical draw_numbers      ! Draw the numbering?
   end type
-\end{verbatim}
-\caption{Definition of the \vni{qp\_axis\_struct}.}
-\label{f:qp_axis_struct}
-\end{figure}
+\end{example}

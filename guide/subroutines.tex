@@ -21,17 +21,18 @@ general interest.
  	Routines called by \vn{make_mat6}       & \ref{r:mat6}       \\ \hline
  	Low level matrix routines               & \ref{r:low_mat}    \\ \hline
  	Tracking, Closed Orbit                  & \ref{r:track}      \\ \hline
- 	Tracking Routines called by \vn{track1} & \ref{r:track1}     \\ \hline
+  Macroparticle Tracking                  & \ref{r:macro}      \\ \hline
+  Particle Distribution Tracking          & \ref{r:part_dist}  \\ \hline
+  Wake Fields                             & \ref{r:wake}       \\ \hline
  	Low Level Tracking Routines             & \ref{r:low_track}  \\ \hline
  	Particle Coordinate Stuff               & \ref{r:coord}      \\ \hline
  	Lattice Geometry                        & \ref{r:geom}       \\ \hline
  	Interface to PTC                        & \ref{r:ptc}        \\ \hline
-  \cpp interface                          & \ref{r:cpp}        \\ \hline
   Mad Tracking Routines                   & \ref{r:mad}        \\ \hline
  	Taylor Maps                             & \ref{r:taylor}     \\ \hline
-  Macroparticle                           & \ref{r:macro}      \\ \hline
-  Wake Fields                             & \ref{r:wake}       \\ \hline
  	Long Range Beam--Beam Interaction       & \ref{r:lrbbi}      \\ \hline
+  \cpp interface                          & \ref{r:cpp}        \\ \hline
+ 	Tracking Routines called by \vn{track1} & \ref{r:track1}     \\ \hline
  	Helper Routines: Informational          & \ref{r:info}       \\ \hline
  	Helper Routines: Elemental              & \ref{r:elem}       \\ \hline
  	Helper Routines: Transformational       & \ref{r:trans}      \\ \hline
@@ -454,11 +455,6 @@ Subroutine to track through a single element.
 \item[track\_all (ring, orbit\_)] \Newline
 Subroutine to track through the ring. 
 
-\index{Routine!track_beam}
-\item[track\_beam (ring, beam, ix1, ix2)] \Newline 
-     Subroutine to track a beam of macroparticles from the end of
-     ring%ele\_(ix1) Through to the end of ring%ele\_(ix2).
-
 \index{Routine!track_many}
 \item[track\_many (ring, orbit\_, ix\_start, ix\_end, direction)] \Newline
 Subroutine to track from one element in the ring to another. 
@@ -483,62 +479,160 @@ for every element in the ring.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Tracking Routines called by TRACK1}
-\label{r:track1}   
-
-Note: Generally you don't call these routines directly.
+\section{Macroparticle Tracking}
+\label{r:macro}    
+\index{Macroparticle!list of routines}
 
 \begin{description}
 
-\index{Routine!symp_lie_bmad}
-\item[symp\_lie\_bmad (ele, param, start, end, calc\_mat6)] \Newline
-Symplectic integration through an element to 0th or 1st order.
+\index{Routine!calc_macro_bunch_params}
+\item[calc\_macro\_bunch\_params (bunch, ele, params)] \Newline
+Subroutine to calculate various beam characteristics from a bunch.
 
-\index{Routine!track1_adaptive_boris}
-\item[track1\_adaptive\_boris (start, ele, param, end, s\_start, s\_end)] \Newline
-Subroutine to do Boris tracking with adaptive step size control. 
+\index{Routine!init_macro_distribution}
+\item[init\_macro\_distribution (beam, init, canonical\_out)] \Newline 
+Subroutine to initialize a macroparticle distribution.
+This routine uses the LIAR algorithm. See the Bmad manual for more details.
 
-\index{Routine!track1_boris}
-\item[track1\_boris (start, ele, param, end, s\_start, s\_end)] \Newline
-Subroutine to do Boris tracking.  
+\index{Routine!mat_to_mp_sigma}
+\item[mat\_to\_mp\_sigma (mat, sigma)] \Newline 
+Subroutine to convert a sigma matrix. to a linear array of 
+macroparticle sigmas.
 
-\index{Routine!track1_bmad}
-\item[track1\_bmad (start, ele, param, end)] \Newline
-Particle tracking through a single element BMAD\_standard style. 
+\index{Routine!mp_sigma_to_mat}
+\item[mp\_sigma\_to\_mat (sigma, mat)] \Newline 
+Subroutine to convert a linear array of macroparticle sigmas to a 
+sigma matrix. 
 
-\index{Routine!track1_custom}
-\item[track1\_custom (start, ele, param, end)] \Newline
-Dummy routine for custom\_tracking.
+\index{Routine!mp_to_angle_coords}
+\item[mp\_to\_angle\_coords (mp, energy0)] \Newline 
+Subroutine to convert macroparticle coords from 
+(x, px, y, py, z, pz) to (x, x', y, y', z, E).
 
-\index{Routine!track1_linear}
-\item[track1\_linear (start, ele, param, end)] \Newline
-Particle tracking through a single element using the transfer matrix.. 
+\index{Routine!mp_to_canonical_coords}
+\item[mp\_to\_canonical\_coords (mp, energy0)] \Newline 
+Subroutine to convert macroparticle coords from 
+(x, x', y, y', z, E) to (x, px, y, py, z, pz).
 
-\index{Routine!track1_radiation}
-\item[track1\_radiation (start, ele, param, end, edge)] \Newline
-Subroutine to put in radiation damping and/or fluctuations. 
+\index{Routine!reallocate_macro_beam}
+\item[reallocate\_macro\_beam (beam, n\_bunch, n\_slice, n\_macro)] \Newline 
+Subroutine to reallocate memory within a beam\_struct.
 
-\index{Routine!track1_runge_kutta}
-\item[track1\_runge\_kutta (start, ele, param, end)] \Newline
-Subroutine to do tracking using Runge-Kutta integration. 
+\index{Routine!track1_macro_beam}
+\item[track1\_macro\_beam (start, ele, param, end] \Newline
+Subroutine to track a beam of macroparticles through an element.
 
-\index{Routine!track1_symp_lie_ptc}
-\item[track1\_symp\_lie\_ptc (start, ele, param, end)] \Newline
-Particle tracking through a single element using a Hamiltonian and a 
-symplectic integrator. 
+\index{Routine!track_macro_beam}
+\item[track\_macro\_beam (ring, beam, ix1, ix2)] \Newline 
+Subroutine to track a beam of macroparticles from the end of
+ring%ele\_(ix1) Through to the end of ring%ele\_(ix2).
 
-\index{Routine!track1_symp_map}
-\item[track1\_symp\_map (start, ele, param, end)] \Newline
-Particle tracking through a single element using a partially inverted 
-taylor map (In PTC/FPP this is called a genfield). 
+\index{Routine!track1_macroparticle}
+\item[track1\_macroparticle (start, ele, param, end)] \Newline 
+Subroutine to track a macroparticle through an element.
 
-\index{Routine!track1_taylor}
-\item[track1\_taylor (start, ele, param, end)] \Newline
-Subroutine to track through an element using the elements taylor series. 
+\end{description}
 
-\index{Routine!track1_wiedemann_wiggler}
-\item[track1\_wiedemann\_wiggler (start, ele, param, end)] \Newline
-Subroutine to track through the body of a wiggler. 
+%------------------------------------------------------------------------
+\section{Particle Distribution Tracking}
+\label{r:part_dist}    
+\index{Particle distribution!list of routines}
+
+\begin{description}
+
+\index{Routine!angle_to_canonical_coords}
+\item[angle\_to\_canonical\_coords (particle, energy0)] \Newline 
+Subroutine to convert particle coords from 
+    (x, x', y, y', z, E)
+
+\index{Routine!beam_equal_beam}
+\item[beam\_equal\_beam (beam1, beam2)] \Newline 
+Subroutine to set one particle beam equal to another taking care of
+pointers so that they don't all point to the same place.
+
+\index{Routine!calc_bunch_params}
+\item[calc\_bunch\_params (bunch, ele, params)] \Newline 
+Finds all bunch parameters defined in bunch\_params\_struct, both normal-mode
+and projected
+
+\index{Routine!canonical_to_angle_coords}
+\item[canonical\_to\_angle\_coords (particle, energy0)] \Newline 
+Subroutine to convert particleparticle coords from 
+    (x, px, y, py, z, pz)
+
+\index{Routine!init_beam_distribution}
+\item[init\_beam\_distribution (ele, beam\_init, beam, renormalize, random\_dist)] \Newline 
+Subroutine to initialize a distribution of particles matched to
+the Twiss parameters, centroid position, and Energy - z correlation
+
+\index{Routine!order_particles_in_z}
+\item[order\_particles\_in\_z (bunch)] \Newline 
+Subroutine to order the particles longitudinally 
+The ordering uses the centroid of the particles:
+
+\index{Routine!reallocate_beam}
+\item[reallocate\_beam (beam, n\_bunch, n\_particle)] \Newline 
+Subroutine to reallocate memory within a beam\_struct.
+
+\index{Routine!track1_beam}
+\item[track1\_beam (beam\_start, ele, param, beam\_end)] \Newline 
+Subroutine to track a beam of particles through a single element.
+
+\index{Routine!track1_sr_wake}
+\item[track1\_sr\_wake (bunch, ele)] \Newline 
+Subroutine to apply the short range wake fields to a bunch. 
+
+\index{Routine!track1_lr_wake}
+\item[track1\_lr\_wake (bunch, ele)] \Newline 
+Subroutine to put in the long-range wakes for particle tracking.
+
+\index{Routine!track1_particle}
+\item[track1\_particle (start, ele, param, end)] \Newline 
+Subroutine to track a particle through an element.
+
+\index{Routine!track_beam}
+\item[track\_beam (ring, beam, ix1, ix2)] \Newline 
+     Subroutine to track a beam of macroparticles from the end of
+     ring%ele\_(ix1) Through to the end of ring%ele\_(ix2).
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Wake Fields}
+\label{r:wake}    
+\index{Wake fields!list of routines}
+
+\begin{description}
+
+\index{Routine!lr_wake_apply_kick}
+\item[lr\_wake\_apply\_kick (ele, s\_ref, orbit)] \Newline 
+Subroutine to apply the long-range wake kick to a particle.
+
+\index{Routine!sr1_apply_kick}
+\item[sr1\_apply\_kick (ele, leader, charge, follower)] \Newline 
+Subroutine to put in the kick for the short-range wakes.
+
+\index{Routine!sr2_long_wake_add_to}
+\item[sr2\_long\_wake\_add\_to (ele, orbit, charge)] \Newline 
+Subroutine to add to the existing short-range wake the contribution from
+a passing (macro)particle.
+
+\index{Routine!sr2_long_wake_apply_kick}
+\item[sr2\_long\_wake\_apply\_kick (ele, orbit)] \Newline 
+Subroutine to put in the kick for the short-range wakes.
+
+\index{Routine!sr2_long_self_wake_apply_kick}
+\item[sr2\_long\_self\_wake\_apply\_kick (ele, charge, orbit)] \Newline 
+Subroutine to put in the kick for the short-range wakes
+
+\index{Routine!sr2_trans_wake_add_to}
+\item[sr2\_trans\_wake\_add\_to (ele, orbit, charge)] \Newline 
+Subroutine to add to the existing short-range wake the contribution from
+a passing (macro)particle.
+
+\index{Routine!sr2_trans_wake_apply_kick}
+\item[sr2\_trans\_wake\_apply\_kick (ele, orbit)] \Newline 
+Subroutine to put in the kick for the short-range wakes
 
 \end{description}
 
@@ -709,121 +803,6 @@ Subroutine to convert from Bmad to PTC coordinates.
 \index{Routine!vec_ptc_to_bmad}
 \item[vec\_ptc\_to\_bmad (vec\_ptc, vec\_bmad)] \Newline
 Subroutine to convert from PTC to Bmad coordinates. 
-
-\end{description}
-
-%------------------------------------------------------------------------
-\section{C++ Interface}
-\label{r:cpp}      
-\index{C++ interface!list of routines}
-
-\begin{description}
-
-\index{Routine!amode_to_c}
-\item[amode\_to\_c (f\_amode, c\_amode)] \Newline 
-Subroutine to convert a Bmad amode\_struct to a C++ C\_amode.
-
-\index{Routine!arr2mat}
-\item[arr2mat (arr, n1, n2) result (mat)] \Newline 
-Function to take a an array and turn it into a matrix.
-
-\index{Routine!bmad_com_to_c}
-\item[bmad\_com\_to\_c (c\_bmad\_com)] \Newline 
-Subroutine to convert the Bmad bmad\_com\_struct common block to 
-a C++ C\_bmad\_com.
-
-\index{Routine!c_logic}
-\item[c\_logic (logic) result (c\_log)] \Newline 
-Function to convert from a fortran logical to a C logical.
-
-\index{Routine!c_str}
-\item[c\_str (str) result (c\_string)] \Newline 
-Function to append a null (0) character at the end of a string (trimmed
-of trailing blanks) so it will look like a C character array. 
-
-\index{Routine!control_to_c}
-\item[control\_to\_c (f\_control, c\_control)] \Newline 
-Subroutine to convert a Bmad control\_struct to a C++ C\_control.
-
-\index{Routine!coord_to_c}
-\item[coord\_to\_c (f\_coord, c\_coord)] \Newline 
-Subroutine to convert a Bmad coord\_struct to a C++ C\_coord.
-
-\index{Routine!ele_to_c}
-\item[ele\_to\_c (f\_ele, c\_ele)] \Newline 
-Subroutine to convert a Bmad ele\_struct to a C++ C\_ele.
-
-\index{Routine!em_field_to_c}
-\item[em\_field\_to\_c (f\_em\_field, c\_em\_field)] \Newline 
-Subroutine to convert a Bmad em\_field\_struct to a C++ C\_em\_field.
-
-\index{Routine!f_logic}
-\item[f\_logic (logic) result (f\_log)] \Newline 
-Function to convert from a fortran logical to a C logical.
-
-\index{Routine!floor_position_to_c}
-\item[floor\_position\_to\_c (f\_floor\_position, c\_floor\_position)] \Newline 
-Subroutine to convert a Bmad floor\_position\_struct to a C++ C\_floor\_position.
-
-\index{Routine!linac_mode_to_c}
-\item[linac\_mode\_to\_c (f\_linac\_mode, c\_linac\_mode)] \Newline 
-Subroutine to convert a Bmad linac\_mode\_struct to a C++ C\_linac\_mode.
-
-\index{Routine!lr_wake_to_c}
-\item[lr\_wake\_to\_c (f\_lr\_wake, c\_lr\_wake)] \Newline 
-Subroutine to convert a Bmad lr\_wake\_struct to a C++ C\_lr\_wake.
-
-\index{Routine!mat2arr}
-\item[mat2arr (mat) result (arr)] \Newline 
-Function to take a matrix and turn it into an array.
-
-\index{Routine!modes_to_c}
-\item[modes\_to\_c (f\_modes, c\_modes)] \Newline 
-Subroutine to convert a Bmad modes\_struct to a C++ C\_modes.
-
-\index{Routine!mode_info_to_c}
-\item[mode\_info\_to\_c (f\_mode\_info, c\_mode\_info)] \Newline 
-Subroutine to convert a Bmad mode\_info\_struct to a C++ C\_mode\_info.
-
-\index{Routine!orbit_to_c}
-\item[orbit\_to\_c (f\_orbit, c\_orbit)] \Newline 
-Subroutine to convert an a Bmad orbit\_struct to a C++ C\_orbit.
-
-\index{Routine!param_to_c}
-\item[param\_to\_c (f\_param, c\_param)] \Newline 
-Subroutine to convert a Bmad param\_struct to a C++ C\_param.
-
-\index{Routine!ring_to_c}
-\item[ring\_to\_c (f\_ring, c\_ring)] \Newline 
-Subroutine to convert a Bmad ring\_struct to a C++ C\_ring.
-
-\index{Routine!sr1_wake_to_c}
-\item[sr1\_wake\_to\_c (f\_sr1\_wake, c\_sr\_wake)] \Newline 
-Subroutine to convert a Bmad sr1\_wake\_struct to a C++ C\_sr1\_wake.
-
-\index{Routine!sr2_wake_to_c}
-\item[sr2\_wake\_to\_c (f\_sr2\_wake, c\_sr\_wake)] \Newline 
-Subroutine to convert a Bmad sr2\_wake\_struct to a C++ C\_sr2\_wake.
-
-\index{Routine!twiss_to_c}
-\item[twiss\_to\_c (f\_twiss, c\_twiss)] \Newline 
-Subroutine to convert a Bmad twiss\_struct to a C++ C\_twiss.
-
-\index{Routine!taylor_term_to_c}
-\item[taylor\_term\_to\_c (f\_taylor\_term, c\_taylor\_term)] \Newline 
-Subroutine to convert a Bmad taylor\_term\_struct to a C++ C\_taylor\_term.
-
-\index{Routine!taylor_to_c}
-\item[taylor\_to\_c (f\_taylor, c\_taylor)] \Newline 
-Subroutine to convert a Bmad taylor\_struct to a C++ C\_taylor.
-
-\index{Routine!wake_to_c}
-\item[wake\_to\_c (f\_wake, c\_wake)] \Newline 
-Subroutine to convert a Bmad wake\_struct to a C++ C\_wake.
-
-\index{Routine!wig_term_to_c}
-\item[wig\_term\_to\_c (f\_wig\_term, c\_wig\_term)] \Newline 
-Subroutine to convert a Bmad wig\_term\_struct to a C++ C\_wig\_term.
 
 \end{description}
 
@@ -1042,101 +1021,6 @@ Subroutine to write a Bmad taylor map in a nice format to a character array.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Macroparticle Routines}
-\label{r:macro}    
-\index{Macroparticle!list of routines}
-
-\begin{description}
-
-\index{Routine!calc_macro_bunch_params}
-\item[calc\_macro\_bunch\_params (bunch, ele, params)] \Newline
-Subroutine to calculate various beam characteristics from a bunch.
-
-\index{Routine!init_macro_distribution}
-\item[init\_macro\_distribution (beam, init, canonical\_out)] \Newline 
-Subroutine to initialize a macroparticle distribution.
-This routine uses the LIAR algorithm. See the Bmad manual for more details.
-
-\index{Routine!mat_to_mp_sigma}
-\item[mat\_to\_mp\_sigma (mat, sigma)] \Newline 
-Subroutine to convert a sigma matrix. to a linear array of 
-macroparticle sigmas.
-
-\index{Routine!mp_sigma_to_mat}
-\item[mp\_sigma\_to\_mat (sigma, mat)] \Newline 
-Subroutine to convert a linear array of macroparticle sigmas to a 
-sigma matrix. 
-
-\index{Routine!mp_to_angle_coords}
-\item[mp\_to\_angle\_coords (mp, energy0)] \Newline 
-Subroutine to convert macroparticle coords from 
-(x, px, y, py, z, pz) to (x, x', y, y', z, E).
-
-\index{Routine!mp_to_canonical_coords}
-\item[mp\_to\_canonical\_coords (mp, energy0)] \Newline 
-Subroutine to convert macroparticle coords from 
-(x, x', y, y', z, E) to (x, px, y, py, z, pz).
-
-\index{Routine!reallocate_macro_beam}
-\item[reallocate\_macro\_beam (beam, n\_bunch, n\_slice, n\_macro)] \Newline 
-Subroutine to reallocate memory within a beam\_struct.
-
-\index{Routine!track1_macro_beam}
-\item[track1\_macro\_beam (start, ele, param, end] \Newline
-Subroutine to track a beam of macroparticles through an element.
-
-\index{Routine!track_macro_beam}
-\item[track\_macro\_beam (ring, beam, ix1, ix2)] \Newline 
-Subroutine to track a beam of macroparticles from the end of
-ring%ele\_(ix1) Through to the end of ring%ele\_(ix2).
-
-\index{Routine!track1_macroparticle}
-\item[track1\_macroparticle (start, ele, param, end)] \Newline 
-Subroutine to track a macroparticle through an element.
-
-
-\end{description}
-
-%------------------------------------------------------------------------
-\section{Wake Fields}
-\label{r:wake}    
-\index{Wake fields!list of routines}
-
-\begin{description}
-
-\index{Routine!lr_wake_apply_kick}
-\item[lr\_wake\_apply\_kick (ele, s\_ref, orbit)] \Newline 
-Subroutine to apply the long-range wake kick to a particle.
-
-\index{Routine!sr1_apply_kick}
-\item[sr1\_apply\_kick (ele, leader, charge, follower)] \Newline 
-Subroutine to put in the kick for the short-range wakes.
-
-\index{Routine!sr2_long_wake_add_to}
-\item[sr2\_long\_wake\_add\_to (ele, orbit, charge)] \Newline 
-Subroutine to add to the existing short-range wake the contribution from
-a passing (macro)particle.
-
-\index{Routine!sr2_long_wake_apply_kick}
-\item[sr2\_long\_wake\_apply\_kick (ele, orbit)] \Newline 
-Subroutine to put in the kick for the short-range wakes.
-
-\index{Routine!sr2_long_self_wake_apply_kick}
-\item[sr2\_long\_self\_wake\_apply\_kick (ele, charge, orbit)] \Newline 
-Subroutine to put in the kick for the short-range wakes
-
-\index{Routine!sr2_trans_wake_add_to}
-\item[sr2\_trans\_wake\_add\_to (ele, orbit, charge)] \Newline 
-Subroutine to add to the existing short-range wake the contribution from
-a passing (macro)particle.
-
-\index{Routine!sr2_trans_wake_apply_kick}
-\item[sr2\_trans\_wake\_apply\_kick (ele, orbit)] \Newline 
-Subroutine to put in the kick for the short-range wakes
-
-\end{description}
-
-%------------------------------------------------------------------------
 \section{Long Range Beam-Beam Interaction}
 \label{r:lrbbi}    
 
@@ -1164,6 +1048,181 @@ Subroutine to turn elements marking parasitic crossings into beam-beam elements.
 \index{Routine!mark_lrbb}
 \item[mark\_lrbbi(master\_ring, master\_ring\_oppos, ring, crossings)] \Newline
 Subroutine to insert named markers into the ring structure at the positions of parasitic crossings. 
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{C++ Interface}
+\label{r:cpp}      
+\index{C++ interface!list of routines}
+
+\begin{description}
+
+\index{Routine!amode_to_c}
+\item[amode\_to\_c (f\_amode, c\_amode)] \Newline 
+Subroutine to convert a Bmad amode\_struct to a C++ C\_amode.
+
+\index{Routine!arr2mat}
+\item[arr2mat (arr, n1, n2) result (mat)] \Newline 
+Function to take a an array and turn it into a matrix.
+
+\index{Routine!bmad_com_to_c}
+\item[bmad\_com\_to\_c (c\_bmad\_com)] \Newline 
+Subroutine to convert the Bmad bmad\_com\_struct common block to 
+a C++ C\_bmad\_com.
+
+\index{Routine!c_logic}
+\item[c\_logic (logic) result (c\_log)] \Newline 
+Function to convert from a fortran logical to a C logical.
+
+\index{Routine!c_str}
+\item[c\_str (str) result (c\_string)] \Newline 
+Function to append a null (0) character at the end of a string (trimmed
+of trailing blanks) so it will look like a C character array. 
+
+\index{Routine!control_to_c}
+\item[control\_to\_c (f\_control, c\_control)] \Newline 
+Subroutine to convert a Bmad control\_struct to a C++ C\_control.
+
+\index{Routine!coord_to_c}
+\item[coord\_to\_c (f\_coord, c\_coord)] \Newline 
+Subroutine to convert a Bmad coord\_struct to a C++ C\_coord.
+
+\index{Routine!ele_to_c}
+\item[ele\_to\_c (f\_ele, c\_ele)] \Newline 
+Subroutine to convert a Bmad ele\_struct to a C++ C\_ele.
+
+\index{Routine!em_field_to_c}
+\item[em\_field\_to\_c (f\_em\_field, c\_em\_field)] \Newline 
+Subroutine to convert a Bmad em\_field\_struct to a C++ C\_em\_field.
+
+\index{Routine!f_logic}
+\item[f\_logic (logic) result (f\_log)] \Newline 
+Function to convert from a fortran logical to a C logical.
+
+\index{Routine!floor_position_to_c}
+\item[floor\_position\_to\_c (f\_floor\_position, c\_floor\_position)] \Newline 
+Subroutine to convert a Bmad floor\_position\_struct to a C++ C\_floor\_position.
+
+\index{Routine!linac_mode_to_c}
+\item[linac\_mode\_to\_c (f\_linac\_mode, c\_linac\_mode)] \Newline 
+Subroutine to convert a Bmad linac\_mode\_struct to a C++ C\_linac\_mode.
+
+\index{Routine!lr_wake_to_c}
+\item[lr\_wake\_to\_c (f\_lr\_wake, c\_lr\_wake)] \Newline 
+Subroutine to convert a Bmad lr\_wake\_struct to a C++ C\_lr\_wake.
+
+\index{Routine!mat2arr}
+\item[mat2arr (mat) result (arr)] \Newline 
+Function to take a matrix and turn it into an array.
+
+\index{Routine!modes_to_c}
+\item[modes\_to\_c (f\_modes, c\_modes)] \Newline 
+Subroutine to convert a Bmad modes\_struct to a C++ C\_modes.
+
+\index{Routine!mode_info_to_c}
+\item[mode\_info\_to\_c (f\_mode\_info, c\_mode\_info)] \Newline 
+Subroutine to convert a Bmad mode\_info\_struct to a C++ C\_mode\_info.
+
+\index{Routine!orbit_to_c}
+\item[orbit\_to\_c (f\_orbit, c\_orbit)] \Newline 
+Subroutine to convert an a Bmad orbit\_struct to a C++ C\_orbit.
+
+\index{Routine!param_to_c}
+\item[param\_to\_c (f\_param, c\_param)] \Newline 
+Subroutine to convert a Bmad param\_struct to a C++ C\_param.
+
+\index{Routine!ring_to_c}
+\item[ring\_to\_c (f\_ring, c\_ring)] \Newline 
+Subroutine to convert a Bmad ring\_struct to a C++ C\_ring.
+
+\index{Routine!sr1_wake_to_c}
+\item[sr1\_wake\_to\_c (f\_sr1\_wake, c\_sr\_wake)] \Newline 
+Subroutine to convert a Bmad sr1\_wake\_struct to a C++ C\_sr1\_wake.
+
+\index{Routine!sr2_wake_to_c}
+\item[sr2\_wake\_to\_c (f\_sr2\_wake, c\_sr\_wake)] \Newline 
+Subroutine to convert a Bmad sr2\_wake\_struct to a C++ C\_sr2\_wake.
+
+\index{Routine!twiss_to_c}
+\item[twiss\_to\_c (f\_twiss, c\_twiss)] \Newline 
+Subroutine to convert a Bmad twiss\_struct to a C++ C\_twiss.
+
+\index{Routine!taylor_term_to_c}
+\item[taylor\_term\_to\_c (f\_taylor\_term, c\_taylor\_term)] \Newline 
+Subroutine to convert a Bmad taylor\_term\_struct to a C++ C\_taylor\_term.
+
+\index{Routine!taylor_to_c}
+\item[taylor\_to\_c (f\_taylor, c\_taylor)] \Newline 
+Subroutine to convert a Bmad taylor\_struct to a C++ C\_taylor.
+
+\index{Routine!wake_to_c}
+\item[wake\_to\_c (f\_wake, c\_wake)] \Newline 
+Subroutine to convert a Bmad wake\_struct to a C++ C\_wake.
+
+\index{Routine!wig_term_to_c}
+\item[wig\_term\_to\_c (f\_wig\_term, c\_wig\_term)] \Newline 
+Subroutine to convert a Bmad wig\_term\_struct to a C++ C\_wig\_term.
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Tracking Routines called by TRACK1}
+\label{r:track1}   
+
+Note: Generally you don't call these routines directly.
+
+\begin{description}
+
+\index{Routine!symp_lie_bmad}
+\item[symp\_lie\_bmad (ele, param, start, end, calc\_mat6)] \Newline
+Symplectic integration through an element to 0th or 1st order.
+
+\index{Routine!track1_adaptive_boris}
+\item[track1\_adaptive\_boris (start, ele, param, end, s\_start, s\_end)] \Newline
+Subroutine to do Boris tracking with adaptive step size control. 
+
+\index{Routine!track1_boris}
+\item[track1\_boris (start, ele, param, end, s\_start, s\_end)] \Newline
+Subroutine to do Boris tracking.  
+
+\index{Routine!track1_bmad}
+\item[track1\_bmad (start, ele, param, end)] \Newline
+Particle tracking through a single element BMAD\_standard style. 
+
+\index{Routine!track1_custom}
+\item[track1\_custom (start, ele, param, end)] \Newline
+Dummy routine for custom\_tracking.
+
+\index{Routine!track1_linear}
+\item[track1\_linear (start, ele, param, end)] \Newline
+Particle tracking through a single element using the transfer matrix.. 
+
+\index{Routine!track1_radiation}
+\item[track1\_radiation (start, ele, param, end, edge)] \Newline
+Subroutine to put in radiation damping and/or fluctuations. 
+
+\index{Routine!track1_runge_kutta}
+\item[track1\_runge\_kutta (start, ele, param, end)] \Newline
+Subroutine to do tracking using Runge-Kutta integration. 
+
+\index{Routine!track1_symp_lie_ptc}
+\item[track1\_symp\_lie\_ptc (start, ele, param, end)] \Newline
+Particle tracking through a single element using a Hamiltonian and a 
+symplectic integrator. 
+
+\index{Routine!track1_symp_map}
+\item[track1\_symp\_map (start, ele, param, end)] \Newline
+Particle tracking through a single element using a partially inverted 
+taylor map (In PTC/FPP this is called a genfield). 
+
+\index{Routine!track1_taylor}
+\item[track1\_taylor (start, ele, param, end)] \Newline
+Subroutine to track through an element using the elements taylor series. 
+
+\index{Routine!track1_wiedemann_wiggler}
+\item[track1\_wiedemann\_wiggler (start, ele, param, end)] \Newline
+Subroutine to track through the body of a wiggler. 
 
 \end{description}
 
@@ -1443,10 +1502,9 @@ Subroutine to convert kt (MAD standard) multipoles to ab type multipoles.
 Subroutine to compute multipole factors: 
 c\_multi(n, m) = +/- ("n choose m")/n! 
 
-\index{Routine!compute_element_energy}
-\item[compute\_element\_energy (ring)] \Newline
-Subroutine to compute the reference energy for each element in a ring 
-structure. 
+\index{Routine!compute_reference_energy}
+\item[compute\_reference\_energy (ring)] \Newline
+Subroutine to compute the reference energy for each element in a lattice. 
 
 \index{Routine!custom_emitt_calc}
 \item[custom\_emitt\_calc (ele, param, c0, c1)] \Newline

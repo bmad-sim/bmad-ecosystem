@@ -8,18 +8,14 @@ use File::Find;
 $tex_hash{"modulo2_sp"} = "modulo2_mod.f90";
 $tex_hash{"modulo2_int"} = "modulo2_mod.f90";
 $tex_hash{"modulo2_dp"} = "modulo2_mod.f90";
-$tex_hash{"bsq_kick"} = "symp_lie_mod.f90";
 $tex_hash{"taylor_coef1"} = "bmad_taylor_mod.f90";
 $tex_hash{"taylor_coef2"} = "bmad_taylor_mod.f90";
-$tex_hash{"add_on_to_t_map"} = "transfer_map_calc.f90";
-$tex_hash{"add_on_to_t_mat"} = "transfer_matrix_calc.f90";
 $tex_hash{"coord_to_f2"} = "bmad_and_cpp.f90";
 $tex_hash{"amode_to_f2"} = "bmad_and_cpp.f90";
 $tex_hash{"param_to_f2"} = "bmad_and_cpp.f90";
 $tex_hash{"ran_uniform_vector"} = "random_mod.f90";
 $tex_hash{"ran_uniform_scaler"} = "random_mod.f90";
 $tex_hash{"integration_timer"} = "integration_timer_mod.f90";
-$tex_hash{"read_xsif_wake"} = "xsif_parser.f90";
 $tex_hash{"test_f_em_field"} = "test_f_side.f90";
 $tex_hash{"test_f_modes"} = "test_f_side.f90";
 $tex_hash{"test_f_amode"} = "test_f_side.f90";
@@ -32,7 +28,6 @@ $tex_hash{"sr1_wake_to_f2"} = "bmad_and_cpp.f90";
 $tex_hash{"sr1_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
 $tex_hash{"sr2_long_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
 $tex_hash{"sr2_long_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"apply_wig_exp_int_ay"} = "symp_lie_mod.f90";
 $tex_hash{"lr_wake_in_wake_to_f2"} = "bmad_and_cpp.f90";
 $tex_hash{"test_f_floor_position"} = "test_f_side.f90";
 $tex_hash{"coord_in_orbit_to_f2"} = "bmad_and_cpp.f90";
@@ -69,28 +64,15 @@ $tex_hash{"em_field_to_f2"} = "bmad_and_cpp.f90";
 $tex_hash{"taylor_term_to_f2"} = "bmad_and_cpp.f90";
 $tex_hash{"orbit_to_f2"} = "bmad_and_cpp.f90";
 $tex_hash{"control_to_f2"} = "bmad_and_cpp.f90";
-$tex_hash{"gauss_int_liar"} = "macroparticle_mod.f90";
-$tex_hash{"end_spline_calc"} = "spline_akima.f90";
-$tex_hash{"track_it"} = "symp_lie_mod.f90";
 $tex_hash{"parser_add_variable"} = "bmad_parser_mod.f90";
 $tex_hash{"quad_mat2_calc"} = "make_mat6_mod.f90";
-$tex_hash{"qp_set_this_char_size"} = "quick_plot.f90";
-$tex_hash{"simplify_path"} = "read_digested_bmad_file.f90";
-$tex_hash{"write_this"} = "io_mod.f90";
 $tex_hash{"write_out"} = "io_mod.f90";
 $tex_hash{"str"} = "io_mod.f90";
 $tex_hash{"rchomp"} = "io_mod.f90";
-$tex_hash{"gauss_int"} = "macroparticle_mod.f90";
-$tex_hash{"z_pitch_correction"} = "track1_bmad.f90";
 $tex_hash{"qrfac"} = "lmdif_mod.f90";
-$tex_hash{"slope_calc"} = "spline_akima.f90";
 $tex_hash{"if_error"} = "if_error.f90";
 $tex_hash{"track_bend_edge"} = "track1_mod.f90";
 $tex_hash{"ion_kick_2d"} = "ion_kick_2d.f90";
-$tex_hash{"twiss_to_taylor"} = "xsif_parser.f90";
-$tex_hash{"add_ele"} = "xsif_parser.f90";
-$tex_hash{"add_t_term"} = "xsif_parser.f90";
-$tex_hash{"xsif_error"} = "xsif_parser.f90";
 $tex_hash{"parser_add_lord"} = "bmad_parser_mod.f90";
 $tex_hash{"mat6_multipole"} = "make_mat6_mod.f90";
 $tex_hash{"mat4_multipole"} = "make_mat6_mod.f90";
@@ -112,71 +94,38 @@ $tex_hash{"derivs_bmad"} = "runge_kutta_mod.f90";
 $tex_hash{"init_bmad_parser_common"} = "bmad_parser_mod.f90";
 $tex_hash{"bbi_slice_calc"} = "make_mat6_mod.f90";
 $tex_hash{"rkqs_bmad"} = "runge_kutta_mod.f90";
-$tex_hash{"from_action"} = "convert_coords.f90";
-$tex_hash{"track_fwd"} = "mat627_mod.f90";
-$tex_hash{"non_db_set"} = "bmad_to_db.f90";
 $tex_hash{"allocate_saved_orbit"} = "em_field_mod.f90";
 $tex_hash{"preparse_element_init"} = "bmad_parser_mod.f90";
-$tex_hash{"da_z_dx__dx"} = "symp_lie_mod.f90";
-$tex_hash{"da_z_dy"} = "symp_lie_mod.f90";
 $tex_hash{"reallocate_control_"} = "bmad_utils_mod.f90";
-$tex_hash{"da_z_dx__dy"} = "symp_lie_mod.f90";
 $tex_hash{"compute_super_lord_s"} = "bmad_parser_mod.f90";
 $tex_hash{"save_a_step"} = "em_field_mod.f90";
-$tex_hash{"end_z_calc"} = "track1_bmad.f90";
 $tex_hash{"verify_valid_name"} = "bmad_parser_mod.f90";
 $tex_hash{"warning"} = "bmad_parser_mod.f90";
-$tex_hash{"cache_quad_bend"} = "radiation_integrals.f90";
-$tex_hash{"calc_g"} = "radiation_mod.f90";
-$tex_hash{"zero_ave"} = "twiss_at_element.f90";
-$tex_hash{"a_y__dx"} = "symp_lie_mod.f90";
-$tex_hash{"a_y__dy"} = "symp_lie_mod.f90";
-$tex_hash{"to_action"} = "convert_coords.f90";
-$tex_hash{"delete_last_chars"} = "add_superimpose.f90";
-$tex_hash{"a_y"} = "symp_lie_mod.f90";
 $tex_hash{"bbi_kick_matrix"} = "make_mat6_bmad.f90";
-$tex_hash{"b_ave"} = "quad_beta_ave.f90";
 $tex_hash{"track_solenoid_edge"} = "boris_mod.f90";
 $tex_hash{"get_called_file"} = "bmad_parser_mod.f90";
 $tex_hash{"mexp"} = "bmad_basic_mod.f90";
 $tex_hash{"integration_timer_fibre"} = "integration_timer_mod.f90";
-$tex_hash{"dint_a_y_dx"} = "symp_lie_mod.f90";
-$tex_hash{"db_init_it"} = "bmad_to_db.f90";
 $tex_hash{"propagate_part_way"} = "rad_int_common.f90";
 $tex_hash{"add_all_superimpose"} = "bmad_parser_mod.f90";
-$tex_hash{"track_back"} = "mat627_mod.f90";
 $tex_hash{"calc_g_params"} = "rad_int_common.f90";
 $tex_hash{"diff"} = "integration_timer_mod.f90";
-$tex_hash{"bmad_to_cesr_err_type"} = "bmad_to_cesr.f90";
 $tex_hash{"multi_turn_func"} = "multi_turn_tracking_to_mat.f90";
 $tex_hash{"evaluate_value"} = "bmad_parser_mod.f90";
-$tex_hash{"dint_a_y_dx__dx"} = "symp_lie_mod.f90";
-$tex_hash{"track_period"} = "track1_wiedemann_wiggler.f90";
-$tex_hash{"dint_a_y_dx__dy"} = "symp_lie_mod.f90";
 $tex_hash{"reallocate_bp_com_var"} = "bmad_parser_mod.f90";
 $tex_hash{"error_exit"} = "bmad_parser_mod.f90";
-$tex_hash{"delete_double_slash"} = "add_superimpose.f90";
 $tex_hash{"do_vsp_eles"} = "create_vsp_volt_elements.f90";
 $tex_hash{"word_to_value"} = "bmad_parser_mod.f90";
-$tex_hash{"twiss_ave"} = "twiss_at_element.f90";
-$tex_hash{"get_ele_theory"} = "bmad_to_db.f90";
-$tex_hash{"da_z_dy__dx"} = "symp_lie_mod.f90";
-$tex_hash{"da_z_dy__dy"} = "symp_lie_mod.f90";
 $tex_hash{"rkck_bmad"} = "runge_kutta_mod.f90";
-$tex_hash{"bookit"} = "create_group.f90";
 $tex_hash{"term_diff"} = "integration_timer_mod.f90";
 $tex_hash{"track1_bunch"} = "macro_particle_mod.f90";
-$tex_hash{"insert_info"} = "bmad_to_cesr.f90";
 $tex_hash{"pushit"} = "bmad_parser_mod.f90";
 $tex_hash{"type_get"} = "bmad_parser_mod.f90";
-$tex_hash{"da_z_dx"} = "symp_lie_mod.f90";
 $tex_hash{"get_taylor"} = "integration_timer_mod.f90";
 $tex_hash{"order_macroparticles_in_z"} = "macro_particle_mod.f90";
 $tex_hash{"integration_timer_ele"} = "integration_timer_mod.f90";
-$tex_hash{"map_index"} = "ptc_interface_mod.f90";
 $tex_hash{"solenoid_mat_calc"} = "make_mat6_mod.f90";
 $tex_hash{"lr_wake_add_to"} = "wake_mod.f90";
-$tex_hash{"coef23_calc"} =             "spline_akima.f90";
 $tex_hash{"word_read"} =               "word_read.f90";
 $tex_hash{"string_typ"} =              "string_typ.f90";
 $tex_hash{"goodbye_exit"} =            "goodbye_exit.f90";
@@ -195,7 +144,6 @@ $tex_hash{"file_suffixer"} =           "file_suffixer.f90";
 $tex_hash{"rel_typ"} =                 "rel_typ.f90";
 $tex_hash{"change_file_number"} =      "change_file_number.f90";
 $tex_hash{"settled_test"} =            "settled_test.f90";
-$tex_hash{"load_data"} =               "quick_plot.f90";
 $tex_hash{"spawn_command"} =           "spawn_command.f90";
 $tex_hash{"to_node_name"} =            "to_node_name.f90";
 $tex_hash{"file_get_open"} =           "file_get_open.f90";
@@ -205,15 +153,7 @@ $tex_hash{"make_legal_comment"} =      "make_legal_comment.f90";
 $tex_hash{"ran_gauss_vector"} = "random_mod.f90";
 $tex_hash{"ran_gauss_scaler"} = "random_mod.f90";
 $tex_hash{"plot_it"} = "plot_example.f90";
-$tex_hash{"update_wig_coefs"} = "symp_lie_mod.f90";
 $tex_hash{"compute_slave_aperture"} = "bookkeeper_mod.f90";
-$tex_hash{"update_wig_y_terms"} = "symp_lie_mod.f90";
-$tex_hash{"update_wig_x_s_terms"} = "symp_lie_mod.f90";
-$tex_hash{"bsq_drift1"} = "symp_lie_mod.f90";
-$tex_hash{"bsq_drift2"} = "symp_lie_mod.f90";
-$tex_hash{"zero_this_track"} = "track_many.f90";
-$tex_hash{"apply_p_x"} = "symp_lie_mod.f90";
-$tex_hash{"apply_p_y"} = "symp_lie_mod.f90";
 
 
 #---------------------------------------------------------
@@ -337,6 +277,25 @@ sub searchit {
       $name =~ tr/A-Z/a-z/; #lowercase
       chomp $name;
       if (! exists $f90_hash{$name}) { $f90_hash{$name} = $file; }
+
+      # skip rest of routine including contained routines
+
+      $count = 1;
+      while (<F_IN>) {
+        if (/^ *end /i) {
+          $_ = $';  
+          if (/^ *subroutine/i || /^ *function/i || /^ *interface/i) {
+            $count = $count - 1;
+          }
+        }
+        elsif (/^ *subroutine /i || /^ *recursive subroutine /i || 
+              /^ *function /i || /^ *elemental subroutine /i ||
+              /^ *real\(rp\) *function /i || /^ *interface /i) {
+          $count = $count + 1;
+        }
+        if ($count == 0) {last;}
+      }
+
     }
 
     $old = $_;

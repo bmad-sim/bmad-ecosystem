@@ -6,6 +6,15 @@
 \label{s:ref}
 \index{Coordinates!reference orbit|textbf}
 
+\begin{figure}[!b]
+\centering
+\includegraphics[height=8.4cm]{local_coords.eps}
+\caption[The Local Reference System.]
+{The Local Reference System. By construction, $z = 0$ for
+the particle coordinates in the local reference system.}
+\label{f:local_coords}
+\end{figure}
+
 The \vn{reference orbit} is the curved path used to define a coordinate
 system for particles as shown in Figure~\ref{f:local_coords}.  At a
 given time $t$, a particle's position can be described by a point on
@@ -18,15 +27,6 @@ perpendicular to the reference orbit. If the lattice has no vertical
 bends, the $y$--axis is in the vertical direction and the $x$--axis is
 in the horizontal plane. Notice that by construction, the particle is
 always at $z = 0$.
-
-\begin{figure}[tb]
-\centering
-\includegraphics{local_coords.eps}
-\caption[The Local Reference System.]
-{The Local Reference System. By construction, $z = 0$ for
-the particle coordinates in the local reference system.}
-\label{f:local_coords}
-\end{figure}
 
 \index{Sbend}
 \index{Rbend}
@@ -114,7 +114,135 @@ coincide, and $\phi$ and $\psi$ will both be zero. The \vn{beginning}
 statement (\sref{s:beginning}) in a lattice file can be use to override
 this default.
 
-\vfill
+\index{MAD}
+Following \mad, the global position of an element is characterized by
+a vector $\Bf V$ 
+\Begineq
+  \Bf V = 
+  \begin{pmatrix}
+    X \\ Y \\ Z 
+  \end{pmatrix}
+\Endeq
+The orientation of an element is described by a unitary matrix $\Bf
+W$.  The column vectors of $\Bf W$ are the unit vectors spanning the
+local coordinate axes in the order $(x, y, s)$. $\Bf W$ can be
+expressed in terms of the angles $\theta$, $\phi$, and $\psi$ via the
+formula
+\Begineq
+  \Bf W = \Bf\Theta \, \Bf\Phi \, \Bf\Psi
+\Endeq
+where
+\Begineq
+  \Bf\Theta = 
+  \begin{pmatrix}
+    \cos\theta  & 0 & \sin\theta \\
+    0           & 1 & 0          \\
+    -\sin\theta & 0 & \cos\theta 
+  \end{pmatrix}, \quad
+  \Bf\Phi = 
+  \begin{pmatrix}
+    1 & 0 & 0                \\
+    0 & \cos\phi  & \sin\phi \\
+    0 & -\sin\phi & \cos\phi 
+  \end{pmatrix}, \quad
+  \Bf\Psi = 
+  \begin{pmatrix}
+    \cos\psi & -\sin\psi & 0 \\
+    \sin\psi &  \cos\psi & 0 \\
+    0        &  0        & 1                
+  \end{pmatrix}
+\Endeq
+\index{MAD}
+\bmad, agian following \mad, computes $\Bf V$ and $\Bf W$ by starting at the first element of the lattice and iteratively using the equations
+\Begineq
+  \Bf V_i = \Bf W_{i-1} \, \Bf R_i + \Bf V_{i-1}, \quad 
+  \Bf W_i = \Bf W_{i-1} \, \Bf S_i
+\Endeq
+$\Bf R_i$ is the displacement vector for the $i$\Th element and matrix
+$\Bf S_i$ is the rotation of the local reference system of the exit
+end with respect to the entrance end. For all elements that are not a
+\vn{bend} or a \vn{patch} (that is, for all elements whose reference orbit
+through them is a straight line) the corresponding $\Bf R$ and $\Bf S$
+are
+\index{Rbend}\index{Sbend}\index{Patch}
+\Begineq
+  \Bf R = 
+  \begin{pmatrix}
+      0 \\ 0 \\ L
+  \end{pmatrix},
+  \quad
+  \Bf S = 
+  \begin{pmatrix}
+      1 & 0 & 0 \\ 
+      0 & 1 & 0 \\
+      0 & 0 & 1
+  \end{pmatrix},
+\Endeq
+
+\index{Rbend}\index{Sbend}
+For a \vn{bend} $\Bf R$ and $\Bf S$ are given by
+\Begineq
+  \Bf R = \Bf T \, \Bf R_0, \quad
+  \Bf S = \Bf T \, \Bf S_0 \, \Bf T^{-1}
+\Endeq
+where
+\Begineq
+  \Bf R_0 = 
+  \begin{pmatrix}
+    \rho (\cos\alpha - 1) \\ 0 \\ \rho \, \sin\alpha
+  \end{pmatrix}, 
+  \quad
+  \Bf S_0 = 
+  \begin{pmatrix}
+    \cos\alpha & 0 & -\sin\alpha \\
+    0          & 1 & 0           \\
+    \sin\alpha & 0 & \cos\alpha
+  \end{pmatrix},
+  \quad
+  \Bf T = 
+  \begin{pmatrix}
+    \cos\theta_t & -\sin\theta_t & 0 \\
+    \sin\theta_t &  \cos\theta_t & 0 \\
+    0            &  0            & 1                
+  \end{pmatrix}
+\Endeq
+\index{Rho}\index{Tilt}\index{Angle}
+where $\rho$ is bend radius (\vn{rho}), $\alpha$ is the bend angle
+(\vn{angle}), and $theta_t$ is the tilt angle (\vn{tilt}). Without a
+tilt, $\Bf T$ is the unit matrix resulting in $\Bf R = \Bf R_0$ and
+$\Bf S = \Bf S_0$.
+
+\index{Patch}\index{Tilt}
+For a \vn{patch} element, the $\Bf S$ matrix corresponding to a
+non--zero \vn{tilt} is
+\Begineq
+  \Bf S = 
+  \begin{pmatrix}
+    \cos\theta_t & -\sin\theta_t & 0 \\
+    \sin\theta_t &  \cos\theta_t & 0 \\
+    0            &  0            & 1                
+  \end{pmatrix}
+\Endeq
+\index{X_pitch}
+The $\Bf S$ matrix corresponding to a non-zero \vn{x_pitch} is
+\Begineq
+  \Bf S = 
+  \begin{pmatrix}
+    \cos\theta_x & 0 & -\sin\theta_x \\
+    0            & 1 & 0             \\
+    \sin\theta_x & 0 & \cos\theta_x
+  \end{pmatrix}
+\Endeq
+\index{Y_pitch}
+Finally, the $\Bf S$ matrix corresponding to a non-zero \vn{y_pitch} is
+\Begineq
+  \Bf S = 
+  \begin{pmatrix}
+    1 & 0             & 0            \\
+    0 & \cos\theta_y  & \sin\theta_y \\
+    0 & -\sin\theta_y & \cos\theta_y 
+  \end{pmatrix}
+\Endeq
 
 %-----------------------------------------------------------------------------
 \section{Phase Space Coordinate System}

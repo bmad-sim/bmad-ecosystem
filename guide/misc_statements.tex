@@ -17,12 +17,12 @@ This chapter deals with the statements not covered in the previous chapters.
 The \vn{parameter} statement is used to set the \vn{lattice} name and other variables. 
 The variables that can be set by \vn{parameter} is
 \begin{example}
-  parameter[lattice]      = String      ! Lattice name 
-  parameter[lattice_type] = Switch      ! 
-  parameter[taylor_order] = Integer     ! Default: 3
-  parameter[beam_energy]  = Real        ! Total Energy. Default: 0
-  parameter[n_part]       = Real        ! Number of particles in a bunch.
-  parameter[ran_seed]     = Integer     ! Random number generator init.
+  parameter[lattice]      = <String>      ! Lattice name 
+  parameter[lattice_type] = <Switch>      ! 
+  parameter[taylor_order] = <Integer>     ! Default: 3
+  parameter[beam_energy]  = <Real>        ! Total Energy. Default: 0
+  parameter[n_part]       = <Real>        ! Number of particles in a bunch.
+  parameter[ran_seed]     = <Integer>     ! Random number generator init.
 \end{example}
 
 \noindent
@@ -53,7 +53,7 @@ The \vn{lattice} name is stored by \bmad for use by a program but it does
 not otherwise effect any \bmad routines. 
 Historically it is possible to set the lattice name using the syntax
 \begin{example}
-  lattice = String   ! DO NOT USE THIS SYNTAX
+  lattice = <String>   ! DO NOT USE THIS SYNTAX
 \end{example}
 This syntax is obsolete since a typographical error cannot be caught.
 
@@ -76,7 +76,7 @@ The Taylor order (\sref{s:taylor_phys}) is set by
 \vn{parameter[taylor_order]} and is the maximum order for a Taylor map.
 Historically it is possible to set the Taylor order using the syntax
 \begin{example}
-  taylor_order = Integer   ! DO NOT USE THIS SYNTAX
+  taylor_order = <Integer>   ! DO NOT USE THIS SYNTAX
 \end{example}
 This syntax is obsolete since a typographical error is not easily caught.
 
@@ -90,7 +90,7 @@ This syntax is obsolete since a typographical error is not easily caught.
 \index{MAD}
 The \vn{Beam} statement is provided for compatibility with \mad. The syntax is
 \begin{example}
-  beam, energy = GeV, particle = Switch, n_part = Real
+  beam, energy = GeV, particle = <Switch>, n_part = <Real>
 \end{example}
 For example
 \index{MAD}
@@ -111,14 +111,14 @@ switches are
 \index{Title statement|textbf}
 
 The \vn{title} statement sets a title string which can be used by a program. 
-For consistency there are two possible syntaxes
+For consistency with \mad there are two possible syntaxes
 \begin{example}
-  title, String
+  title, <String>
 \end{example}
-or
+or the statement can be split into two lines
 \begin{example}
   title
-  String
+  <String>
 \end{example}
 For example
 \begin{example}
@@ -137,7 +137,7 @@ file (or files) that define magnet strengths (something that changes
 more often).  The \vn{call} is used to read in separated lattice
 files. The syntax is
 \begin{example}
-  call, filename = String
+  call, filename = <String>
 \end{example}
 Example:
 \begin{example}
@@ -192,19 +192,19 @@ the file.
 For non--circular lattices the \vn{beginning} statement can be used to
 set the Twiss parameters and beam energy at the beginning of the ring
 \begin{example}
-  beginning[beta_x]  = Real  ! "a" mode beta
-  beginning[alpha_x] = Real  ! "a" mode alpha
-  beginning[phi_x]   = Real  ! "a" mode phase
-  beginning[eta_x]   = Real  ! "a" mode dispersion
-  beginning[etap_x]  = Real  ! "a" mode dispersion derivative.
-  beginning[beta_y]  = Real  ! "b" mode beta
-  beginning[alpha_y] = Real  ! "b" mode alpha
-  beginning[phi_y]   = Real  ! "b" mode phase
-  beginning[eta_y]   = Real  ! "b" mode dispersion
-  beginning[etap_y]  = Real  ! "b" mode dispersion derivative.
-  beginning[cij]     = Real  ! C coupling matrix. i, j = {``1'', or ``2''} 
-  beginning[s]       = Real  ! Longitudinal starting position.
-  beginning[beam_energy] = Real  ! Total energy in eV.
+  beginning[beta_x]  = <Real>  ! "a" mode beta
+  beginning[alpha_x] = <Real>  ! "a" mode alpha
+  beginning[phi_x]   = <Real>  ! "a" mode phase
+  beginning[eta_x]   = <Real>  ! "a" mode dispersion
+  beginning[etap_x]  = <Real>  ! "a" mode dispersion derivative.
+  beginning[beta_y]  = <Real>  ! "b" mode beta
+  beginning[alpha_y] = <Real>  ! "b" mode alpha
+  beginning[phi_y]   = <Real>  ! "b" mode phase
+  beginning[eta_y]   = <Real>  ! "b" mode dispersion
+  beginning[etap_y]  = <Real>  ! "b" mode dispersion derivative.
+  beginning[cij]     = <Real>  ! C coupling matrix. i, j = {``1'', or ``2''} 
+  beginning[s]       = <Real>  ! Longitudinal starting position.
+  beginning[beam_energy] = <Real>  ! Total energy in eV.
 \end{example}
 \index{Beam_energy!initialization}
 The \vn{gamma_x}, \vn{gamma_y}, and \vn{gamma_c} (the coupling gamma factor) 
@@ -221,12 +221,12 @@ may be set but not both.
 For any lattice the \vn{beginning} statement can be used to set the starting floor position 
 (see~\ref{s:global}). The syntax is
 \begin{example}
-  beginning[x_position]     = Real  ! X position
-  beginning[y_position]     = Real  ! Y position
-  beginning[z_position]     = Real  ! Z position
-  beginning[theta_position] = Real  ! Angle on floor
-  beginning[phi_position]   = Real  ! Angle of attack
-  beginning[psi_position]   = Real  ! Roll angle
+  beginning[x_position]     = <Real>  ! X position
+  beginning[y_position]     = <Real>  ! Y position
+  beginning[z_position]     = <Real>  ! Z position
+  beginning[theta_position] = <Real>  ! Angle on floor
+  beginning[phi_position]   = <Real>  ! Angle of attack
+  beginning[psi_position]   = <Real>  ! Roll angle
 \end{example}
 
 %----------------------------------------------------------------------------
@@ -279,9 +279,9 @@ lattice to be printed out at the terminal. It is recommended that this
 statement be used with small test lattices since it can generate a lot
 of output. The syntax is
 \begin{example}
-  parser\_debug \(<\)switches\(>\)
+  parser_debug <switches>
 \end{example}
-Valid switches are
+Valid \vn{<switches>} are
 \begin{example}
   var     ! print variable information.
   seq     ! print sequence information.

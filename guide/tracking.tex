@@ -275,94 +275,8 @@ The number of slices used for the integration is given by
 \index{Macroparticles!tracking}
 \index{Tracking!Macroparticles}
 
-The definition of the \vn{macro_struct} structure that defines a
-macroparticle is shown in Figure~\ref{f:macro_struct}.  
-\begin{figure}[htb]
-\centering
+\begin{figure}[!tb]
 \small
-\begin{verbatim}
-  type macro_struct
-    type (coord_struct) r   ! Center of the macroparticle
-    real(rp) sigma(21)      ! Sigma matrix.
-    real(rp) :: sig_z = 0   ! longitudinal macroparticle length.
-    real(rp) k_loss         ! loss factor (V/m). scratch variable for tracking.
-    real(rp) charge         ! charge in a macroparticle (Coul).
-    integer :: iz = 0       ! index to ordering of particles in z.
-  end type
-\end{verbatim}
-\caption{The \vn{macro\_struct}\ that defines a macroparticle.}
-\label{f:macro_struct}
-\end{figure}
-
-\vn{%r} is the
-coordinates of the macroparticle center. \vn{%sigma(:)} holds the
-sigma matrix. Since the $6 \times 6$ sigma matrix is symmetric only 21
-elements need to be stored. Symbolic constants \vn{s$ij$\$} ($i$, $j$
-= $1, \ldots, 6$) are defined to map to between the linear
-\vn{%sigma(:)} array and the matrix. Example
-\begin{example}
-  type (macro_struct) macro
-  sigma_z = sqrt(macro%sigma(s55\$))
-\end{example}
-To convert \vn{%sigma(:)} into an actual matrix use the
-\vn{mp_sigma_to_mat} routine.
-
-\index{LIAR}
-\bmad uses canonical phase space
-coordinates(See \sref{s:phase_space_coords}). The LIAR program uses
-``angle'' phase space coordinates
-\begin{equation}
-  (x, x', y, y', -z, E)
-\end{equation}
-The notation can be confusing here since in LIAR's notation positive
-$z$ is in the opposite direction to the \bmad convention. Thus in
-LIAR's notation the LIAR phase space coordinates are
-\begin{equation}
-  (x, x', y, y', z, E)
-\end{equation}
-To convert between \bmad and LIAR coordinates there are two routines
-called \vn{mp_to_angle_coords} and \vn{mp_to_canonical_coords}.
-
-Macroparticles are grouped into slices, a number of slices make up a
-bunch, and a number of bunches make up a beam. Initialization of a
-\vn{macro_beam_struct} structure can be done via the
-\vn{init_macro_distribution} which implements the LIAR initialization
-algorithm (See \sref{s:macro}). Once a beam is initialized,
-tracking can be performed using \vn{track_macro_beam}. An example program is
-shown in figure~\ref{f:macro_program}. 
-
-The equal sign in the assignments
-\begin{example}
-  beam1 = beam2
-  bunch1 = bunch2
-  slice1 = slice2
-\end{example}
-is overloaded by the routines \vn{beam_equal_beam}, \vn{bunch_equal_bunch} and
-\vn{slice_equal_slice} to ensure that the pointers of \vn{beam1}, \vn{bunch1}
-and \vn{slice1} do not point to the same memory locations as the pointers of 
-\vn{beam2}, \vn{bunch2} and \vn{slice2}.
-
-The \vn{init} variable (line 11) holds the information to initialize
-the macroparticle distribution. The values of the components in the
-\vn{init} variable are set using a namelist read (line 24). An example
-of an input file that can be used to set \vn{init} is shown in
-figure~\ref{f:beam_init}. Line 23 sets the initial reference energy of
-the beam to be the reference energy at the start of the linac so this
-does not have to be set in the input file.  The
-\vn{init_macro_distribution} routine (line 27) initializes the
-\vn{beam} variable. The \vn{beam} variable is a container that holds
-the macroparticles that make up the beam. The \vn{track_macro_beam} routine
-tracks these macroparticles through to the end of the linac. If it is
-desired to track only through part of the linac then \vn{track_macro_beam}
-has optional arguments that allow this. If it is desired to only track through 1
-element (similarly to \vn{track1}) then the subroutine \vn{track1_beam} is also
-available. Lines 30 through 41 print out
-some horizontal parameters from the position at the end of the linac.
-
-The subroutine \vn{calc_macro_bunch_params} will fine the bunch centroid, emittances,
-sigmas, twiss parameters and energy-Z correlation.
-
-\begin{figure}
 \begin{listing}{1}
 program macroparticle_test
 
@@ -419,25 +333,115 @@ end program
 \label{f:macro_program}
 \end{figure}
 
+The definition of the \vn{macro_struct} structure that defines a
+macroparticle is shown in Figure~\ref{f:macro_struct}.  
+\begin{figure}[htb]
+\centering
+\small
+\begin{verbatim}
+  type macro_struct
+    type (coord_struct) r   ! Center of the macroparticle
+    real(rp) sigma(21)      ! Sigma matrix.
+    real(rp) :: sig_z = 0   ! longitudinal macroparticle length.
+    real(rp) k_loss         ! loss factor (V/m). scratch variable for tracking.
+    real(rp) charge         ! charge in a macroparticle (Coul).
+    integer :: iz = 0       ! index to ordering of particles in z.
+  end type
+\end{verbatim}
+\caption{The \vn{macro\_struct}\ that defines a macroparticle.}
+\label{f:macro_struct}
+\end{figure}
+
+\vn{%r} is the
+coordinates of the macroparticle center. \vn{%sigma(:)} holds the
+sigma matrix. Since the $6 \times 6$ sigma matrix is symmetric only 21
+elements need to be stored. Symbolic constants \vn{s$ij$\$} ($i$, $j$
+= $1, \ldots, 6$) are defined to map to between the linear
+\vn{%sigma(:)} array and the matrix. Example
+\begin{example}
+  type (macro_struct) macro
+  sigma_z = sqrt(macro%sigma(s55\$))
+\end{example}
+To convert \vn{%sigma(:)} into an actual matrix use the
+\vn{mp_sigma_to_mat} routine.
+
+\index{LIAR}
+\bmad uses canonical phase space
+coordinates(See \sref{s:phase_space_coords}). The LIAR program uses
+``angle'' phase space coordinates
+\begin{equation}
+  (x, x', y, y', -z, E)
+\end{equation}
+The notation can be confusing here since in LIAR's notation positive
+$z$ is in the opposite direction to the \bmad convention. Thus in
+LIAR's notation the LIAR phase space coordinates are
+\begin{equation}
+  (x, x', y, y', z, E)
+\end{equation}
+To convert between \bmad and LIAR coordinates there are two routines
+called \vn{mp_to_angle_coords} and \vn{mp_to_canonical_coords}.
+
+
+Macroparticles are grouped into slices, an array of slices make up a
+bunch, and a number of bunches make up a beam. The routine
+\vn{init_macro_distribution} can be used to initialize a
+\vn{macro_beam_struct} structure. \vn{init_macro_distribution}
+implements the LIAR initialization algorithm (See
+\sref{s:macro}). Once a beam is initialized, tracking can be performed
+using \vn{track_macro_beam}. An example program is shown in
+figure~\ref{f:macro_program}.
+
+The equal sign in the assignments
+\begin{example}
+  beam1 = beam2
+  bunch1 = bunch2
+  slice1 = slice2
+\end{example}
+is overloaded by the routines \vn{beam_equal_beam}, \vn{bunch_equal_bunch} and
+\vn{slice_equal_slice} to ensure that the pointers of \vn{beam1}, \vn{bunch1}
+and \vn{slice1} do not point to the same memory locations as the pointers of 
+\vn{beam2}, \vn{bunch2} and \vn{slice2}.
+
+The \vn{init} variable (line 11) holds the information to initialize
+the macroparticle distribution. The values of the components in the
+\vn{init} variable are set using a namelist read (line 24). An example
+of an input file that can be used to set \vn{init} is shown in
+figure~\ref{f:beam_init}. Line 23 sets the initial reference energy of
+the beam to be the reference energy at the start of the linac so this
+does not have to be set in the input file.  The
+\vn{init_macro_distribution} routine (line 27) initializes the
+\vn{beam} variable. The \vn{beam} variable is a container that holds
+the macroparticles that make up the beam. The \vn{track_macro_beam} routine
+tracks these macroparticles through to the end of the linac. If it is
+desired to track only through part of the linac then \vn{track_macro_beam}
+has optional arguments that allow this. If it is desired to only track through 1
+element (similarly to \vn{track1}) then the subroutine \vn{track1_beam} is also
+available. Lines 30 through 41 print out
+some horizontal parameters from the position at the end of the linac.
+
+The subroutine \vn{calc_macro_bunch_params} will find the bunch
+centroid, emittances, sigmas, twiss parameters and energy-Z
+correlation.
+
 \begin{figure}
 \begin{listing}{1}
-\&beam_init
-  init%x%beta      = 4
-  init%x%alpha     = 0.16
-  init%x%norm_emit = 4.d-6  ! normalized emittance
-  init%y%beta      = 16
-  init%y%alpha     = 4
-  init%y%norm_emit = 1.0d-8 ! normalized emittance
-  init%center      = -5e-3, 1.0e-4, 1.0e-3, 0e-6, 0.0, 0.0
-  init%sig_e       = 10e-3
-  init%sig_z       = 10e-6
-  init%sig_e_cut   = 3
-  init%sig_z_cut   = 3
-  init%n_bunch     = 1
-  init%n_slice     = 2
-  init%n_macro     = 1
-  init%n_part      = 1e12
-/
+  &beam_init
+    init%x%beta      = 4
+    init%x%alpha     = 0.16
+    init%x%norm_emit = 4.d-6  ! normalized emittance
+    init%y%beta      = 16
+    init%y%alpha     = 4
+    init%y%norm_emit = 1.0d-8 ! normalized emittance
+    init%center      = -5e-3, 1.0e-4, 1.0e-3, 0e-6, 0.0, 0.0
+    init%sig_e       = 10e-3
+    init%sig_z       = 10e-6
+    init%sig_e_cut   = 3
+    init%sig_z_cut   = 3
+    init%n_bunch     = 1
+    init%n_slice     = 2
+    init%n_macro     = 1
+    init%n_part      = 1e12
+  /
 \end{listing}
 \caption{Example beam initialization file.}
 \label{f:beam_init}
@@ -473,3 +477,12 @@ place, track forward for some distance and then track back to the
 starting place the ending orbit will be equal to the starting
 orbit. However, it should always be kept in mind that radiation
 damping or excitation breaks this symmetry.
+
+%----------------------------------------------------------------
+\section{Particle Distribution Tracking}
+\label{s:part_track}
+\index{Tracking!particle distributions}
+
+Initializing a distribution of particles to conform to some initial
+set of Twiss parameters and emittances can be done using the routine
+\vnr{init_beam_distribution}.

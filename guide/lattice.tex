@@ -7,30 +7,32 @@
 
 \index{XSIF}
 \index{Attribute|textbf}
-A lattice file (or files) defines an accelerator: That is, a sequence
-of elements that a particle will travel through along with the
-attributes of the elements (their lengths, their strengths, etc.).
-The \bmad software library comes with routines to read in (parse) a
-lattice files. There are two input formats that \bmad understands: The
-\bmad standard format and XSIF\cite{b:xsif}. XSIF stands for
-``Extended Standard Input Format.''  XSIF is essentially a subset of
-the MAD input format. XSIF Documentation can be found at:
+A lattice file (or files) defines an accelerator: That is, a lattice
+file defines the sequence of elements that a particle will travel
+through along with the attributes of the elements (their lengths,
+their strengths, etc.). The \bmad software library comes with
+routines to read in (parse) lattice files. There are two input formats
+that \bmad understands: The \bmad standard format and
+XSIF\cite{b:xsif}. XSIF stands for ``Extended Standard Input Format.''
+XSIF is essentially a subset of the MAD input format. XSIF has its own
+documentation which can be found at:
 \begin{example}
   http://www-project.slac.stanford.edu/
               lc/ilc/TechNotes/LCCNotes/PDF/LCC-0060%20rev.1.pdf
 \end{example}
+Since XSIF is separately documented it will not be discussed in detail
+here and throughout this manual, unless explicitly stated otherwise,
+the lattice format under discussion will always pertain to the \bmad
+standard format. Note: One point that is not covered in the XSIF
+documentation is that for a \vn{MATRIX} element, unlike \mad, the
+\vn{R$ii$} terms (the diagonal terms of the linear matrix) are not
+unity by default. Thus
 \index{MAD}
-Note: One point that is not covered in the XSIF documentation is that for a
-\vn{MATRIX} element, unlike \mad, the \vn{R$ii$} terms (the diagonal
-terms of the linear matrix) are not unity by default. Thus
 \begin{example}
   m: matrix
 \end{example}
-will give a matrix with all elements being zero.
+in an XSIF file will give a matrix with all elements being zero.
 
-Throughout this manual, unless explicitly
-stated otherwise, the lattice format under discussion
-will always pertain to the \bmad standard format.
 
 \index{MAD!lattice format}
 The syntax that a \bmad standard lattice file must conform to is
@@ -40,7 +42,7 @@ except that a \bmad file has no ``action'' commands (action commands
 tell the program to calculate the Twiss parameters, do tracking,
 etc.).  Interacting with the user to determine what actions a program
 should take is left to the program and is not part of \bmad (although
-\bmad, of course, provides the routines to perform many
+the \bmad library provides the routines to perform many of the standard
 calculations). A program is not required to use the \bmad parser
 routine but if it does the following chapters describe how to
 construct a valid lattice file.
@@ -58,7 +60,7 @@ The following (rather silly) example shows the main features of a
   bend1: sbend, type = "arc bend", l = 2.3, &    ! An element definition
       g = 2*pa1, tracking_method = bmad_standard
   bend2: bend1, l = 3.4                          ! Another element def
-  bend2[g] = 1 / 37.5                            ! Redefining an attribute
+  bend2[g] = 105 - exp(2.3) / 37.5               ! Redefining an attribute
   ln1: line = (ele1, ele2, ele3)                 ! A line definition
   ln2: line = (ln1, ele4, ele5)                  ! Lines can contain lines
   arg_ln(a, b) = (ele1, a, ele2, b)              ! A line with arguments.
@@ -314,7 +316,7 @@ The following intrinsic functions are recognized by \bmad: \hfil\break
 Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator. 
 To choose the seed set 
 \begin{example}
-  parameter[ran_seed] = Integer
+  parameter[ran_seed] = <Integer>
 \end{example}
 A \vn{value} of zero will set the seed using the system clock so that
 different sequences of random numbers will be generated each time a

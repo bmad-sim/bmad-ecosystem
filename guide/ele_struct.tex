@@ -223,10 +223,11 @@ sets whether it is the normalized strength or field strength that is
 the independent variable. See \sref{s:depend} for more details.
 
 In designing a program that will let a user input what
-attribute to vary, the routine \vn{pointer_to_attribute} 
-is a covienient way to obtain from the user input a pointer
-that points to the approbriate attribute.
-For example:
+attribute to vary, 
+
+With user input the routine \vn{pointer_to_attribute} is a covienient
+way to obtain from an input string a pointer that points to the
+approbriate attribute. For example:
 \begin{example}
   type (ring_struct) lat
   character(16) attrib_name, ele_name
@@ -376,10 +377,10 @@ associated. This simplifies programming in that you do not have to
 test directly the association status of the sub--components.
 
 The short--range wake is parameterized using three arrays:
-\vn{%wake%sr1}, \vn{%wake%sr2_long}, and
-\vn{%wake%sr2_trans}. \vn{%wake%sr1} is the tabular form of the
-short--range wake (see~\sref{s:wiggler}). The structure definition
-for \vn{%wake%sr1} is
+\vn{%wake%sr1} stores the tabular form of the short--range wake
+(see~\sref{s:wiggler}).\vn{%wake%sr2_long}, and \vn{%wake%sr2_trans}
+store the longitudinal and transverse pseudo--modes. The structure
+definition for \vn{%wake%sr1} is
 \begin{example}
   type sr1_wake_struct     ! Tabular short-Range Wake struct
     real(rp) z             ! Distance behind the leading particle
@@ -391,12 +392,10 @@ All \vn{%wake%sr1(0:)%z} will be negative. Notice that the array lower
 bounds is zero since \vn{%wake%sr1(0)%z} = 0. Wakefield kicks are
 applied using \Eqs{delvp} and \eq{pelqxw}.
 
-\vn{%wake%sr2_long} gives
-the psudo--modes for the short--range longitudinal wake and
-\vn{%wake%sr2_trans} gives the pseudo--modes for the short--range
-transverse wake. Their structure definitions are
+The \vn{%wake%sr2_long} and \vn{%wake%sr2_trans} pseudo--mode
+structures are the same:
 \begin{example}
-  type sr2_wake_struct  ! Psudo-mode short-Range Wake struct 
+  type sr2_wake_struct  ! Psudo-mode short-range wake struct 
     real(rp) amp        ! Amplitude
     real(rp) damp       ! Dampling factor.
     real(rp) freq       ! Frequency in Hz

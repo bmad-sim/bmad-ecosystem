@@ -1,4 +1,4 @@
-\chapter{CVS, Gmake and the Bmad Distribution}
+\chapter{Maintaining and Compiling Bmad: CVS and Gmake}
 \label{c:cvs_gmake}
 \index{CVS}
 \index{Gmake}
@@ -73,11 +73,11 @@ read the \vn{CVS/Root} file (see below). If this is not present \cvs
 will look at the \vn{CVSROOT} environmental variable.
 
 \begin{figure}[tb]
-\begin{centering}
-\includegraphics{cvs.eps}
-\caption{A) Example Project before Importing to CVS. B) Project when checked--out.}
-\end{centering}
-\label{f:cvs}
+  \begin{centering}
+  \includegraphics{cvs.eps}
+  \caption{A) Example Project before Importing to CVS. B) Project when checked--out.}
+  \label{f:cvs}
+  \end{centering}
 \end{figure}
 
 After creating the repository root directory, go to the directory that
@@ -192,7 +192,7 @@ of. If \vn{<version>} is not present then the latest is taken. If
 \vn{-r <version>} is not present then the entire log for \vn{file} is
 given. For example, using the command 
 \begin{example}
-  cvs log file1} 
+  cvs log file1
 \end{example}
 will produce:
 \begin{example}
@@ -321,7 +321,7 @@ Thus if the \vn{mad} project has been tagged as above the command
 \begin{example}
   cvs status -v file1
 \end{example}
-Produces
+Produces:
 \begin{example}
   =================================================================
   File: file1             Status: Up-to-date
@@ -445,8 +445,8 @@ conflict the local file will have a section that looks like
   >>>>>>> 1.3
   ... etc ...
 \end{example}
-The \vn{<<<<<<< file1}, \vn{=======}, and \vn{>>>>>>> 1.3} lines are
-added by \cvs to delineate the text coming from the local
+The ``\vn{<<<<<<< file1}'', ``\vn{=======}'', and ``\vn{>>>>>>> 1.3}''
+lines are added by \cvs to delineate the text coming from the local
 modification from the text from the repository modification.
 
 If there is a conflict between a file in the repository and a local
@@ -478,26 +478,25 @@ behave exactly like the repository was on the local disk.
 The \cvs repository for \bmad contains \bmad and the associated
 libraries (\sref{s:libs}). Periodically all the libraries are checked
 out and compiled. This is called a \vn{release}. Typically the release
-root directory is named after the creation date. For example one release is:
+root directory is named after the creation date. For example, one release is:
 \begin{example}
   /home/cesrulib/cesr_libs/OSF1_alpha/cesr_2005_0320_d
 \end{example}
 This is a release for the OSF True64 computers built on March 20,
-2005. There needs to be different releases for different platforms
-since the compiled binary files will be different. At this time there
-are actually different releases on Linux for the two compilers (from
-Lahey--Fujitsu and Intel) in use since the binary files from these
-compilers are not compatible. It is important that if you are
-developing on different platforms or are developing with different
-compilers that you keep your binaries separate as well.
+2005. There needs to be different releases for different platforms,
+and even with different compilers on the same platform, since the
+compiled binary files will be different. Thus, at this time, there are
+different releases on Linux for the two compilers in use
+(Lahey--Fujitsu and Intel). It is important that if you are developing on
+different platforms, or even developing with different compilers, that
+you keep your binaries separate as well.
 
-The latest release has a soft link named \vn{devel}. There is
-also a \vn{current} soft link that
-points to the last "stable" release that is felt to be (relatively)
-bug free. The advantage to using the \vn{devel} version over
-\vn{current} is that you get the latest bug fixes (if any). The
-disadvantage is that it might not be as stable. Typically people use
-the \vn{devel} release.
+The latest release always has a soft link named \vn{devel}. There is
+also a \vn{current} soft link that points to the last "stable" release
+that is felt to be (relatively) bug free. The advantage to using the
+\vn{devel} version over \vn{current} is that you get the latest bug
+fixes (if any). The disadvantage is that it might not be as
+stable. Typically people use the \vn{devel} release.
 
 To initialize for \bmad, the \vn{CESRLIB} environmental variable needs
 to be set to the desired release root directory and the appropriate
@@ -529,7 +528,7 @@ use the following command:
 \begin{example}
   printenv | grep CESR
 \end{example}
-This might produce
+This will produce something like
 \begin{example}
   CESRLIB=devel
   CESR_PLATFORM=OSF1_alpha
@@ -587,19 +586,24 @@ file for portability. \vn{Distributions} may be obtained from the
 \label{s:compile}
 
 \begin{figure}[tb]
-\begin{centering}
-\includegraphics{devel_dir.eps}
-\caption{Standard Directory Structure for Bmad Programs.}
-\end{centering}
-\label{f:devel_dir}
+  \begin{centering}
+  \includegraphics{devel_dir.eps}
+  \caption[Standard Directory Structure for Bmad Programs.]
+{Example of a directory structure for developing Bmad programs. Standardized
+names are shown in bold. Italicized names are arbitrary.}
+  \label{f:devel_dir}
+  \end{centering}
 \end{figure}
 
-To facilitate the automatic compiling and linking of programs there
-is a standard directory structure that is used with \bmad as shown in
-Figure~\ref{f:devel_dir}. \vn{<devel_dir>} is the root development
-directory (names in braces \vn{<..>} means that you choose the name,
-names without braces means that the name is standardized). In
-Figure~\ref{f:devel_dir} \vn{<program1_dir>} and \vn{<program2_dir>}
+To facilitate the automatic compiling and linking of programs there is
+a standard directory structure, an example of which is shown in
+Figure~\ref{f:devel_dir}. In Figure~\ref{f:devel_dir} names in italics
+have been arbitrarily chossen for the purposes of this example. Names
+in bold are standardized names that will be the same between different
+implementations of this directory structure.
+
+\vn{ifort_dir} is the root development directory.  In
+Figure~\ref{f:devel_dir} \vn{prog1} and \vn{prog2}
 are directories for developing programs. Although only two program
 directories are shown, there is no limit as to their number. Code
 files can be put in a program directory or in sub--directories. The
@@ -612,9 +616,8 @@ is for executable files. There can also be local copies of the
 A program directory will always have a \vn{Makefile} file that is used
 by \vn{gmake} to compile and link programs. Any local libraries will
 also have their own \vn{Makefile} files. Program makefiles are
-different from library makefiles and even among program makefiles no
-two makefiles are necessarily the same. More will be said of this
-later.
+different from library makefiles and even two program makefiles can 
+be different (see below).
 
 Any given program directory can have one or multiple programs within
 it. If it has only one program then to compile and link the program
@@ -625,11 +628,11 @@ use the command
 the default \vn{gmake} behavior in this case is to name the executable
 file after the program directory name and not the program file
 name. For example, in Figure~\ref{f:devel_dir}, the executable made
-from \vn{test.f90} in \vn{<program2_dir>} is
-\vn{bin/<program2_dir>}. There are actually two different executables:
+from \vn{test.f90} in \vn{prog2} is
+\vn{bin/prog2}. There are actually two different executables:
 A \vn{production} executable and a \vn{debug} one. The \vn{debug}
 executable has a \vn{_g} appended to the name so in this example its
-name is \vn{bin/<program2_dir>_g}.  The production executable will run
+name is \vn{bin/prog2_g}.  The production executable will run
 much faster than the debug version (roughly a factor of 3 or so). The
 debug version, however, can be used with a debug program to examine
 the program as it is running.  The debug version of the program, just
@@ -640,8 +643,8 @@ array index out of bounds that the production version would not.
 Along with the executables, \vn{gmake} will make a \vn{.map} file for
 each executable which shows where each routine that is part of the
 program came from. The \vn{.map} files are are sometimes helpful in
-debugging a program. For example, \vn{bin/<program2_dir>_g.map} is the
-map file associated with \vn{bin/<program2_dir>_g}.
+debugging a program. For example, \vn{bin/prog2_g.map} is the
+map file associated with \vn{bin/prog2_g}.
 
 To save time, if only the \vn{production} executable is needed, the command
 \begin{example}
@@ -659,19 +662,73 @@ If there is more than one program in a program directory then the
 In this case the executable file will be named after the program file
 name.
 
+\index{.depend}
 \vn{gmake} tries to cut compile and link time by only compiling and/or
 linking when file are "out-of-date". Thus \vn{gmake} will only relink
 the executable if the creation date of the executable is prior to the
 creation dates of the object files that are linked. The dependency
-rules that \vn{gmake} used to decide if one file is dependent upon
-another file is kept in a \vn{.depend} directory in a program
-directory. Sometimes \vn{gmake} can become confused (say if a local
-library is deleted) and if this happens the best way to reset things
-is via the command
+rules that \vn{gmake} uses to decide if one file is dependent upon
+another file are kept in a series of files in the \vn{.depend}
+directory in a program directory. These dependency files are updated
+whenever program files are changed but sometimes \vn{gmake} can become
+confused (say if a local library is deleted that the local program
+files depend upon) and if this happens the best way to reset things is
+via the command
 \begin{example}
   gmake clean
 \end{example}
 This removes the executables, object files and \vn{.depend} directory.
+
+Generally one does not have to worry too much about how \vn{Gmake}
+uses a \vn{Makefile} to compile programs but some knowledge is
+essential. The operation of the \vn{Makefile} is to set some flags and
+then, at the end of the \vn{Makefile}, a second makefile called
+\vn{M.tail} is included. It is actually \vn{M.tail} that does all the
+work. The \vn{Makefile} is divided up into documented sections.
+One such section is:
+\begin{example}
+  #--------------------------------------------------------------
+  # Provide the list of libraries required for linking this job.
+  # All lists should be space delimited.
+  #
+  # LOCAL_LIBS    Local user-supplied libraries
+  # CESR_LIBS     CESR libraries
+  # PKG_LIBS      CESR outside packages libraries
+  # CERN_LIBS     CERN libraries
+  #
+  # NOTE:  Search order is 
+  #        1) locallib area  (typically ../lib)
+  #        2) EXTRA_LIB area (optionally specified by the user)
+  #        3) CESR_LIB area  (library area for currently specified 
+  #                           CESR release)
+  #        4) PKG_LIB area   (library area for outside CESR 
+  #                           packages)
+  #        5) CERN_LIB area  (CERN libraries)
+  #--------------------------------------------------------------
+  LOCAL_LIBS := 
+  CESR_LIBS  := bmad dcslib cesr_utils recipes_f-90_LEPP
+  PKG_LIBS   := forest pgplot
+  CERN_LIBS  :=
+  SYS_LIBS   :=
+\end{example}
+This section sets the libraries to be linked to the program. Often
+link failures can be traced to missing libraries or libraries out of
+order. For example, since the \vn{Bmad} library depends upon
+\vn{dcslib}, \vn{bmad} must come first in the \vn{CESR_LIBS} list.
+
+Another section in the \vn{Makefile} sets where the executable resides
+\begin{example}
+  #-------------------------------------------------------------
+  # Generate the executable name - the default is \$(JOB) unless  
+  # MAIN_FILE has been explicitly specified
+  #-------------------------------------------------------------
+  ifeq "$(strip $(MAIN_FILE))" ""
+          EXE := ../bin/\$(JOB)
+  else
+    EXE := ../bin/\$(basename \$(notdir \$(MAIN_FILE)))
+  endif
+\end{example}
+\vn{\$(JOB)} is the program directory. 
 
 The standard debug program is called \vn{totalview}. \vn{totalview} is
 put out by a company called Etnus and documentation on totalview can

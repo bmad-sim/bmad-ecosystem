@@ -54,7 +54,7 @@ The list of element classes known to \bmad is shown in Table~\ref{t:elements}.
 
 \begin{center}
 \tt 
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   a$n$, b$n$ multipoles  & \ref{s:multip}  & Offsets and tilt           & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
@@ -102,7 +102,7 @@ any demand for it.
 
 \begin{center} 
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Aperture Limits        & \ref{s:limit}   & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
@@ -119,12 +119,12 @@ any demand for it.
 \index{BBI_constant}
 Attributes specific to a \vn{BeamBeam} element are:
 \begin{example}
-  sig_x   = Real     ! Horizontal strong beam sigma   
-  sig_y   = Real     ! Vertical strong beam sigma
-  sig_z   = Real     ! Strong beam length
-  charge   = Real     ! Strong beam charge
-  n_slice = Integer  ! Number of strong beam slices 
-  bbi_constant       ! Dependent attribute (\sref{s:depend}).
+  sig_x   = <Real>     ! Horizontal strong beam sigma   
+  sig_y   = <Real>     ! Vertical strong beam sigma
+  sig_z   = <Real>     ! Strong beam length
+  charge  = <Real>     ! Strong beam charge
+  n_slice = <Integer>  ! Number of strong beam slices 
+  bbi_constant         ! Dependent attribute (\sref{s:depend}).
 \end{example}
 
 A \vn{BeamBeam} element simulates an interaction with an opposing
@@ -198,7 +198,7 @@ Example:
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
@@ -223,17 +223,17 @@ Example:
 \index{ks}
 Attributes specific to a \vn{Bend_Sol_Quad} element are:
 \begin{example}
-  g         = Real    ! Bend strength 1/rho
-  angle     = Real    ! Bend angle. A settable dependent variable (\sref{s:depend})
-  rho       = Real    ! Bend radius. A settable dependent variable (\sref{s:depend})
-  bend_tilt = Real    ! Bend tilt angle. See \sref{s:offset}.
-  k1        = Real    ! Quad strength.
-  x_quad    = Real    ! Quad horizontal offset.
-  y_quad    = Real    ! Quad vertical offset.
-  quad_tilt = Real    ! Quad tilt. See \sref{s:offset}.
-  ks        = Real    ! Solenoid strength.
-  dks_ds    = Real    ! Solenoid field variation.      
-  tilt      = Real    ! Overall tilt. See \sref{s:offset}
+  g         = <Real>    ! Bend strength 1/rho
+  angle     = <Real>    ! Bend angle. A settable dependent variable (\sref{s:depend})
+  rho       = <Real>    ! Bend radius. A settable dependent variable (\sref{s:depend})
+  bend_tilt = <Real>    ! Bend tilt angle. See \sref{s:offset}.
+  k1        = <Real>    ! Quad strength.
+  x_quad    = <Real>    ! Quad horizontal offset.
+  y_quad    = <Real>    ! Quad vertical offset.
+  quad_tilt = <Real>    ! Quad tilt. See \sref{s:offset}.
+  ks        = <Real>    ! Solenoid strength.
+  dks_ds    = <Real>    ! Solenoid field variation.      
+  tilt      = <Real>    ! Overall tilt. See \sref{s:offset}
 \end{example}
 
 \vn{Bend_Sol_Quad} is a combination Bend, Solenoid, and Quadrupole
@@ -286,7 +286,7 @@ Example:
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
@@ -304,38 +304,32 @@ Example:
 \index{Hgap}\index{Hgapx}\index{Roll}\index{K1}
 Attributes specific to a \vn{Rbend} and \vn{Sbend} elements are:
 \begin{example}
-  g           = Real     ! Design bend strength (= 1/rho).
-  b_field     = Real     ! Field strength (= P_0 g / q) (\sref{s:depend}).
-  delta_g     = Real     ! Bend strength error (\sref{s:depend}).
-  angle       = Real     ! Bend angle. A settable dependent variable (\sref{s:depend}).
-  rho         = Real     ! Bend radius. A settable dependent variable (\sref{s:depend}).
-  e1, e2      = Real     ! Face angles.
-  fint, fintx = Real     ! Face field integrals.
-  hgap, hgapx = Real     ! Pole half gap.
-  h1, h2      = Real     ! Face curvature.
-  roll        = Real     ! See \ref{s:offset}.
-  k1          = Real     ! Quadrupole strength.
-  l_chord                ! Chord length. Dependent attribute. See \sref{s:l}.
+  g           = <Real>     ! Design bend strength (= 1/rho).
+  b_field     = <Real>     ! Field strength (= P_0 g / q) (\sref{s:depend}).
+  delta_g     = <Real>     ! Bend strength error (\sref{s:depend}).
+  angle       = <Real>     ! Bend angle. A settable dependent variable (\sref{s:depend}).
+  rho         = <Real>     ! Bend radius. A settable dependent variable (\sref{s:depend}).
+  e1, e2      = <Real>     ! Face angles.
+  fint, fintx = <Real>     ! Face field integrals.
+  hgap, hgapx = <Real>     ! Pole half gap.
+  h1, h2      = <Real>     ! Face curvature.
+  roll        = <Real>     ! See \ref{s:offset}.
+  k1          = <Real>     ! Quadrupole strength.
+  l_chord                  ! Chord length. Dependent attribute. See \sref{s:l}.
 \end{example}
 
 \index{L}
 \vn{Rbend} and \vn{Sbend} are dipole bends. The difference between
 the two is the way the \vn{l}, \vn{e1}, and \vn{e2} attributes are interpreted.
-\begin{figure}
+\begin{figure}[tb]
   \centering
   \subfigure[rbend]
-  {
-    \includegraphics{rbend_coords.eps}
-    \label{rbend}
-  }
+  {\includegraphics{rbend_coords.eps}}
   \hspace{1cm}
   \subfigure[sbend]
-  {
-    \includegraphics{sbend_coords.eps}
-    \label{sbend}
-  }
-  \caption{Coordinate systems for (a) \vn{Rbend}\ and (b) \vn{Sbend}\ 
-  elements.}
+  {\includegraphics{sbend_coords.eps}}
+  \caption{Coordinate systems for (a) \vn{Rbend} and (b) \vn{Sbend} elements.}
+  \label{f:bend}
 \end{figure}
 
   \begin{description}
@@ -350,8 +344,11 @@ The attributes \vn{h1} and \vn{h2} are the curvature of the entrance
 and exit pole faces. They are present for compatibility with MAD but
 are not yet implemented in terms of tracking and other calculations.
   \item[e1, e2]
-the rotation angle of the entrance pole face is \vn{e1} and at the exit
-face it is \vn{e2}. An \vn{Sbend} with an \vn{e1} = \vn{e2} =
+the rotation angle of the entrance pole face is \vn{e1} and at the
+exit face it is \vn{e2}. Zero \vn{e1} and \vn{e2} for an \vn{Rbend}
+gives a rectangular magnet  (Figure~\ref{f:bend}a). Zero \vn{e1} and \vn{e2}
+for a \vn{Sbend} gives a wedge shapped magnet (Figure~\ref{f:bend}b).
+An \vn{Sbend} with an \vn{e1} = \vn{e2} =
 \vn{angle}/2 is equivalent to an \vn{Rbend} with \vn{e1} = \vn{e2} =
 0.
   \item[angle]
@@ -415,7 +412,7 @@ Example:
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Description strings    & \ref{s:string}  & Offsets                    & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -440,7 +437,7 @@ Example:
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
@@ -455,8 +452,8 @@ Example:
 \index{Val1,  ..., Val12}
 Attributes specific to a \vn{Custom} element are
 \begin{example}
-  val1,$\ldots$, val12 = Real  ! Custom values 
-  delta_e   = Real            ! Change in energy.
+  val1,$\ldots$, val12 = <Real>  ! Custom values 
+  delta_e   = <Real>            ! Change in energy.
 \end{example}
 
 A \vn{Custom} element is an element whose properties are defined
@@ -483,7 +480,7 @@ Example:
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
@@ -506,7 +503,7 @@ Example:
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
@@ -523,9 +520,9 @@ Example:
 \index{Voltage}
 Attributes specific to a \vn{Bend_Sol_Quad} element are:
 \begin{example}
-  gap = Real  ! Distance between electrodes
-  voltage     ! Voltage between electrodes. This is a dependent variable (\sref{s:depend}).
-  e_field    ! Electric field. This is a dependent variable (\sref{s:depend}).
+  gap = <Real> ! Distance between electrodes
+  voltage      ! Voltage between electrodes. This is a dependent variable (\sref{s:depend}).
+  e_field      ! Electric field. This is a dependent variable (\sref{s:depend}).
 \end{example}
 
 A \vn{ElSeparator} is an electrostatic separator.
@@ -554,7 +551,7 @@ Example:
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Symplectify            & \ref{s:symp}    & tilt                       & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
@@ -593,7 +590,7 @@ lattice file but are created by a program, usually for speed purposes.
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Description strings    & \ref{s:string}  & Offsets, pitches, and tilt & \ref{s:offset}  \HH 
 \end{tabular}
@@ -602,7 +599,7 @@ lattice file but are created by a program, usually for speed purposes.
 
 Attributes specific to an \vn{I_Beam} are:
 \begin{example}
-  i_beam = \{List\}   ! List of elements on the I_Beam
+  i_beam = \{<List>\}   ! List of elements on the I_Beam
 \end{example}
 
 An \vn{I_Beam} is a support structure that orients the elements that
@@ -670,7 +667,7 @@ the total tilt is stored in \vn{%value(tilt_tot\$)}, etc.
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -703,7 +700,7 @@ proper. Example:
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Symplectify            & \ref{s:symp}    & tilt                       & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
@@ -736,7 +733,7 @@ Example:
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Symplectify            & \ref{s:symp}    & Offsets, and pitches       & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
@@ -760,15 +757,16 @@ attributes specific to an \vn{Lcavity} are
 \index{Sr_wake_file}
 \index{Lr_wake_file}
 \begin{example}
-  gradient     = Real   ! Accelerating gradient (V/m).
-  phi0         = Real   ! Phase (radians/2\(\pi\)) of the reference particle with 
-                        !   respect to the RF. phi0 = 0 is on crest.
-  dphi0        = Real   ! Used to shift the phase with respect to a multipass lord.
-  e_loss       = Real   ! Loss parameter for short range wakefields (V/Coulomb).
-  rf_frequency = Real   ! Rf frequency (Hz).
-  delta_e               ! Change in energy of an on-crest particle. Dependent attribute (\sref{s:depend}).
-  sr_wake_file = String ! Short range wake field definition file.
-  lr_wake_file = String ! Long range wake field definition file.
+  gradient     = <Real>   ! Accelerating gradient (V/m).
+  phi0         = <Real>   ! Phase (radians/2\(\pi\)) of the reference particle with 
+                          !   respect to the RF. phi0 = 0 is on crest.
+  dphi0        = <Real>   ! Used to shift the phase with respect to a multipass lord.
+  e_loss       = <Real>   ! Loss parameter for short range wakefields (V/Coulomb).
+  rf_frequency = <Real>   ! Rf frequency (Hz).
+  delta_e                 ! Change in energy of an on-crest particle. 
+                          !   Dependent attribute (\sref{s:depend}).
+  sr_wake_file = <String> ! Short range wake field definition file.
+  lr_wake_file = <String> ! Long range wake field definition file.
 \end{example}
 The dependent variable \vn{delta_e} attribute can be used in place of
 \vn{gradient} as discussed in \sref{s:depend}.
@@ -906,7 +904,7 @@ Example:
 
 \begin{center} 
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
   Reference energy       & \ref{s:energy}  & Offsets and tilt           & \ref{s:offset}  \HH
@@ -935,7 +933,7 @@ also not used by \bmad proper. Example:
 
 \begin{center} 
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
@@ -946,15 +944,15 @@ also not used by \bmad proper. Example:
 
 Attributes specific to a \vn{Match} element are:
 \begin{example}
-  beta_x0  = Real,  beta_y0  = Real   ! Beginning betas
-  beta_x1  = Real,  beta_y1  = Real   ! Ending betas
-  alpha_x0 = Real,  alpha_y0 = Real   ! Beginning alphas
-  alpha_x1 = Real,  alpha_y1 = Real   ! Ending alphas
-  eta_x0   = Real,  eta_y0   = Real   ! Beginning etas 
-  eta_x1   = Real,  eta_y1   = Real   ! Ending etas 
-  etap_x0  = Real,  etap_y0  = Real   ! Beginning eta' 
-  etap_x1  = Real,  etap_y1  = Real   ! Ending eta'
-  dphi_x   = Real,  dphi_y   = Real   ! Phase advances
+  beta_x0  = <Real>,  beta_y0  = <Real>   ! Beginning betas
+  beta_x1  = <Real>,  beta_y1  = <Real>   ! Ending betas
+  alpha_x0 = <Real>,  alpha_y0 = <Real>   ! Beginning alphas
+  alpha_x1 = <Real>,  alpha_y1 = <Real>   ! Ending alphas
+  eta_x0   = <Real>,  eta_y0   = <Real>   ! Beginning etas 
+  eta_x1   = <Real>,  eta_y1   = <Real>   ! Ending etas 
+  etap_x0  = <Real>,  etap_y0  = <Real>   ! Beginning eta' 
+  etap_x1  = <Real>,  etap_y1  = <Real>   ! Ending eta'
+  dphi_x   = <Real>,  dphi_y   = <Real>   ! Phase advances
 \end{example}
 
 \index{Beta_x0}
@@ -990,7 +988,7 @@ Example:
 
 \begin{center}
 \tt 
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   K$n$L, T$n$ multipoles & \ref{s:multip}  & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
@@ -1024,7 +1022,7 @@ Example:
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
@@ -1040,8 +1038,8 @@ Example:
 \index{B_gradient}
 Attributes specific to an \vn{Octupole} element are:
 \begin{example}
-  k3         = Real   ! Octupole strength.
-  b_gradient = Real   ! Field strength. (\sref{s:depend}).
+  k3         = <Real>   ! Octupole strength.
+  b_gradient = <Real>   ! Field strength. (\sref{s:depend}).
 \end{example}
 
 An \vn{Octupole} has a cubic field dependence.
@@ -1062,7 +1060,7 @@ Example:
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   is\_on                 & \ref{s:is_on}   & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -1076,13 +1074,13 @@ Example:
 \index{X_pitch}\index{Y_pitch}\index{dE_offset}
 Attributes specific to a \vn{Pitch} elements are:
 \begin{example}
-  x_offset  = Real  
-  y_offset  = Real  
-  z_offset  = Real  
-  x_pitch   = Real  
-  y_pitch   = Real  
-  tilt      = Real        
-  de_offset = Real  
+  x_offset  = <Real>  
+  y_offset  = <Real>  
+  z_offset  = <Real>  
+  x_pitch   = <Real>  
+  y_pitch   = <Real>  
+  tilt      = <Real>        
+  de_offset = <Real>  
 \end{example}
 
 \index{X_offset}
@@ -1110,7 +1108,7 @@ Example:
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
@@ -1126,8 +1124,8 @@ Example:
 \index{B_gradient}
 Attributes specific to a \vn{Quadrupole} element are:
 \begin{example}
-  k1         = Real   ! Quadrupole strength.
-  b_gradient = Real   ! Field strength. (\sref{s:depend}).
+  k1         = <Real>   ! Quadrupole strength.
+  b_gradient = <Real>   ! Field strength. (\sref{s:depend}).
 \end{example}
 
 \index{Tilt}
@@ -1146,7 +1144,7 @@ Example:
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Symplectify            & \ref{s:symp}    & Offsets, \& pitches        & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
@@ -1160,11 +1158,11 @@ Example:
 \index{RF_frequency}\index{Harmon}\index{Voltage}\index{phi0}\index{dphi0}
 Attributes specific to an \vn{RFcavity} are:
 \begin{example}
-  rf_frequency = Real  ! Frequency
-  harmon   = Real       ! Harmonic number
-  voltage  = Real       ! Cavity voltage
-  phi0     = Real       ! Cavity phase
-  dphi0    = Real       ! Phase variation with multipass
+  rf_frequency = <Real>    ! Frequency
+  harmon       = <Real>    ! Harmonic number
+  voltage      = <Real>    ! Cavity voltage
+  phi0         = <Real>    ! Cavity phase
+  dphi0        = <Real>    ! Phase variation with multipass
 \end{example}
 
 An \vn{RFcavity} is an RF cavity without acceleration generally used
@@ -1199,7 +1197,7 @@ Example:
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
@@ -1215,8 +1213,8 @@ Example:
 \index{B_gradient}
 Attributes specific to an \vn{Sextupole} element are:
 \begin{example}
-  k2         = Real   ! Sextupole strength.
-  b_gradient = Real   ! Field strength. (\sref{s:depend}).
+  k2         = <Real>   ! Sextupole strength.
+  b_gradient = <Real>   ! Field strength. (\sref{s:depend}).
 \end{example}
 
 A \vn{Sextupole} is an element with a magnetic field that varies
@@ -1237,7 +1235,7 @@ Example:
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Symplectify            & \ref{s:symp}    & Offsets \& pitches         & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
@@ -1253,8 +1251,8 @@ Example:
 \index{B_gradient}
 Attributes specific to an \vn{Solenoid} element are:
 \begin{example}
-  ks         = Real   ! Solenoid strength.
-  b_field    = Real   ! Field strength. (\sref{s:depend}).
+  ks         = <Real>   ! Solenoid strength.
+  b_field    = <Real>   ! Field strength. (\sref{s:depend}).
 \end{example}
 
 A \vn{Solenoid} is an element with a longitudinal magnetic field.
@@ -1270,7 +1268,7 @@ Example:
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
@@ -1285,10 +1283,10 @@ Example:
 \index{k1}\index{ks}\index{b_field}\index{b_gradient}
 Attributes specific to a \vn{Sol_Quad} element are:
 \begin{example}
-  k1         = Real    ! Quadrupole strength.
-  ks         = Real    ! Solenoid strength.
-  b_field    = Real    ! Solenoid Field strength.
-  b_gradient = Real    ! Quadrupole Field strength.
+  k1         = <Real>    ! Quadrupole strength.
+  ks         = <Real>    ! Solenoid strength.
+  b_field    = <Real>    ! Solenoid Field strength.
+  b_gradient = <Real>    ! Quadrupole Field strength.
 \end{example}
 
 A \vn{Sol_Quad} is a combination solenoid/quadrupole.
@@ -1304,7 +1302,7 @@ Example:
 
 \begin{center} 
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
   Aperture Limits        & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
@@ -1316,7 +1314,7 @@ Example:
 
 Attributes specific to a \vn{Taylor} element are:
 \begin{example}
-  \{out: coef,  e1 e2 e3 e4 e5 e6 \}  ! Taylor coefficient. 
+  \{<out>: <coef>, <e1> <e2> <e3> <e4> <e5> <e6> \}  ! Taylor coefficient. 
 \end{example}
 
 A \vn{Taylor} is a Taylor map. This can be used in place of the \mad 
@@ -1371,7 +1369,7 @@ Example \vn{Taylor} element definition:
 
 \begin{center}
 \tt
-\begin{tabular}{|l|l||l|l||} \hline
+\begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \S              & {\sl Attribute Class}      & \S              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is\_on                     & \ref{s:is_on}   \HH 
@@ -1383,37 +1381,49 @@ Example \vn{Taylor} element definition:
 \end{center}
 \toffset
 
-Attributes specific to a \vn{Wiggler} element are:
-\begin{example}
-  polarity = Real    
-  term(i) = Wig_Term 
-\end{example}
-
-A \vn{Wiggler} is a periodic array of alternating bends.
-
+A \vn{Wiggler} is basically a periodic array of alternating bends.
 There are two types of wigglers. Those that that are described using a
 magnetic field map (``map type'') and those that are described
-assuming a periodic field (``periodic type''). See
-\sref{s:wiggler_phys} for more details.
+assuming a periodic field (``periodic type''). 
 
-For the "periodic" type wigglers the attributes are: 
-\index{B_max}
-\index{N_pole}
-\begin{example}  
-  \vn{b_max}  ! Maximum magnetic field (in T) on the wiggler centerline. 
-  \vn{n_pole} ! The number of poles. The period is then L / (2 * N_POLE). 
-  polarity = Real    
-  k1
-  rho  
+\index{Polarity}
+\index{Term (for a Wiggler)}
+Attributes specific to a map type \vn{Wiggler} element are:
+\begin{example}
+  term(i)  = \{<Wig_Term>\} 
+  polarity = <Real>     ! Used to scale the field strength.
 \end{example}
-This type of wiggler is considered to have infinitely wide poles so
-with \vn{bmad_standard} tracking and transfer matrix calculations the
-horizontal motion looks like a drift. The vertical motion is modeled
-as a combination focusing quadrupole and focusing octupole. 
-
+A \vn{<Wig_Term>} is of the form $C, k_x, k_y, k_z, \phi_z$ as
+explained in \sref{s:wiggler_phys}. \vn{Polarity} is used to scale the
+magnetic field. By default, \vn{Polarity} has a value of 1.0. 
 Example:
 \begin{example}
-  wig1: wiggler, l = 1.6, b_max = 2.1, n_pole = 7  ! periodic type wiggler
-  wig2: wiggler, l = 1.6, \&                       ! map type wiggler
-           term(1) = \{ 0.03, 3.00, 4.00, 5.00, 0.63\}
+  wig1: wiggler, l = 1.6, \&
+          term(1) = \{0.03, 3.00, 4.00, 5.00, 0.63\}, \&
+          term(2) = ...
+  ...
+  wig1[polarity] = -1  ! Reverse the polarity of the wiggler
 \end{example}
+
+For the periodic type \vn{Wiggler}s the attributes are: 
+\index{B_max}\index{N_pole}
+\index{K1}\index{Rho}
+\begin{example}  
+  b_max    = <Real>  ! Maximum magnetic field (in T) on the wiggler centerline. 
+  n_pole   = <Real>  ! The number of poles. The period is then L / (2 * N_POLE). 
+  polarity = <Real>  ! Used to scale the field strength.
+  k1                 ! Vertical focusing strength. Dependent attribute (\sref{s:depend}).
+  rho                ! Bending radius. Dependent attribute (\sref{s:depend}).
+\end{example}
+As explained in \sref{s:wiggler_phys} this type of wiggler is
+considered to have infinitely wide poles so with \vn{bmad_standard}
+tracking and transfer matrix calculations the horizontal motion looks
+like a drift. The vertical motion is modeled as a combination focusing
+quadrupole and focusing octupole.
+Example:
+\begin{example}
+  wig2: wiggler, l = 1.6, b_max = 2.1, n_pole = 7  ! periodic type wiggler
+\end{example}
+
+The type of wiggler is determined by whether there are \vn{term(i)}
+terms. If present, the wiggler is classed as a map type.

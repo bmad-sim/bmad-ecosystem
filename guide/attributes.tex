@@ -129,9 +129,9 @@ attribute without setting the strength just set the strength to zero. For exampl
 
 There are three string labels associated with any element:
 \begin{example}
-  type
-  alias
-  descrip
+  type    = <String>
+  alias   = <String>
+  descrip = <String>
 \end{example}
 \bmad routines do not use these labels except when printing element
 information. \vn{type} and \vn{alias} can be up to 16 characters in
@@ -158,8 +158,8 @@ comma (,) or the end of the line marks the end of the string. Example:
 \index{P0c}
 The attributes that define the reference energy and momentum at an element are:
 \begin{example}
-  beam_energy   ! Total energy in eV.
-  p0c           ! Momentum in eV.
+  beam_energy = <Real>  ! Total energy in eV.
+  p0c         = <Real>  ! Momentum in eV.
 \end{example}
 The energy and momentum are defined at the exit end of the element.
 For ultra--relativistic particles these two values are the same.
@@ -192,13 +192,13 @@ which is just the reference energy and momentum at the start of the element.
 There are up to 7 attributes that can offset a physical element
 from the reference orbit. They are
 \begin{example}
-  x_offset
-  y_offset
-  s_offset
-  x_pitch
-  y_pitch
-  tilt
-  roll
+  x_offset = <Real>
+  y_offset = <Real>
+  s_offset = <Real>
+  x_pitch  = <Real>
+  y_pitch  = <Real>
+  tilt     = <Real>
+  roll     = <Real>
 \end{example}
 \index{Pitch}
 The exception here is the \vn{Pitch} element which uses these
@@ -225,14 +225,14 @@ point. In terms of rotation angle
   y_pitch = -dphi
 \end{example}
 In both \bmad and \mad offsets are applied before pitches.
-\begin{figure}
+\begin{figure}[ht]
   \centering
   \includegraphics{pitch.eps}
   \caption{Geometry of Pitch and Offset attributes}
   \label{f:pitch}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[ht]
   \centering
   \includegraphics{tilt.eps}
   \caption{Geometry of a Tilt}
@@ -262,7 +262,7 @@ and rotates the bend, along an axis that runs through the entrance
 point and exit point as shown in figure~\ref{f:roll}. A \vn{roll} 
 does not affect the reference orbit. The major effect of a \vn{roll}
 is to give a vertical kick to the beam.
-\begin{figure}
+\begin{figure}[ht]
   \centering
   \includegraphics{roll.eps}
   \caption{Geometry of a Roll}
@@ -284,9 +284,9 @@ is to give a vertical kick to the beam.
 \index{Kicker}
 The kick attributes that an element may have are:
 \begin{example}
-  kick,  bl_kick    ! Used only with a Hkicker or Vkicker
-  hkick, bl_hkick
-  vkick  bl_vkick
+  kick,  bl_kick  = <Real>  ! Used only with a Hkicker or Vkicker
+  hkick, bl_hkick = <Real>
+  vkick, bl_vkick = <Real>
 \end{example}
 \vn{kick}, \vn{hkick}, and \vn{vkick} attributes are the integrated
 kick of an element in radians. \vn{kick} is only used for \vn{Hkicker}
@@ -307,7 +307,7 @@ they appear in the lattice file (\sref{s:depend}).
 \index{Limit|textbf}
 \index{Aperture_at|textbf}
 
-\begin{figure}
+\begin{figure}[ht]
   \centering
   \includegraphics{apertures.eps}
   \caption{Apertures for ecollimator and rcollimator elements}
@@ -321,10 +321,10 @@ they appear in the lattice file (\sref{s:depend}).
 \index{X_offset}
 The aperture attributes are:
 \begin{example}
-  x_limit      ! Horizontal limit
-  y_limit      ! Vertical limit
-  aperture     ! Alternative to specifying x_limit and y_limit
-  aperture_at  ! What end aperture is at.
+  x_limit  = <Real>      ! Horizontal limit
+  y_limit  = <Real>      ! Vertical limit
+  aperture = <Real>      ! Alternative to specifying x_limit and y_limit
+  aperture_at = <Switch> ! What end aperture is at.
 \end{example}
 \vn{x_limit}, \vn{y_limit} specify the half--width of the aperture of
 an element as shown in figure~\ref{f:limit}. Notice that an \vn{Ecollimator}
@@ -368,26 +368,44 @@ Example:
 \label{s:l}
 
 \index{L}
+\index{L_chord}
 \index{Rbend}
+\index{Sbend}
+The length attributes are
+\begin{example}
+  l       = <Real>  ! 
+  l_chord           ! Chord length of a bend. Dependent attribute.
+\end{example}
+The length \vn{l} is the path length of the reference
+particle. The one exception that that for an \vn{Rbend} the length
+\vn{l} is the chord length (\sref{s:bend}). Internally, \bmad converts
+all \vn{Rbend}s to \vn{Sbend}s and stores the chord length
+under the \vn{l_chord} attribute.
+
 \index{Wiggler}
-\vn{l} is, for all elements except \vn{Rbend}s, the path length of
-the reference particle.  Note that for \vn{Wiggler}s this is not the
-same as the path length for a particle with the reference energy
-starting on the reference orbit.
+Note that for \vn{Wiggler}s
+the length \vn{l} is not the same as the path length for a particle
+with the reference energy starting on the reference orbit.
 
 %-----------------------------------------------------------------
 \section{Symplectify Attribute}
 \label{s:symp}
 \index{Symplectify}
 
-A linear transport matrix may be non--symplectic for a number of reasons.
-For example, the linear matrix that comes from expanding a Taylor Map
-around any point that is not the origin of the map is generally not 
-symplectic. The transfer matrix for an element can be symplectified by
-setting the \vn{symplectify} attribute to True. See section \ref{s:symp_method}
-for details on how a matrix is symplectified. The default value of \vn{symplectify} 
-if it is not present is \vn{False}. If it is present without a value then
-it defaults to true. Examples:
+The \vn{symplectify} attribute
+\begin{example}
+  symplectify = <Logical>
+\end{example}
+is used to make the transfer matrix for an element symplectic. The
+linear transport matrix may be non--symplectic for a number of
+reasons.  For example, the linear matrix that comes from expanding a
+Taylor Map around any point that is not the origin of the map is
+generally not symplectic. The transfer matrix for an element can be
+symplectified by setting the \vn{symplectify} attribute to True. See
+section \ref{s:symp_method} for details on how a matrix is
+symplectified. The default value of \vn{symplectify}, if it is not
+present, is \vn{False}. If it is present without a value then it
+defaults to true. Examples:
 \begin{example}
   s1: sextupole, l = 0.34                       ! symplectify = False
   s1: sextupole, symplectify = True, l = 0.34   ! symplectify = True
@@ -397,13 +415,15 @@ it defaults to true. Examples:
 %-----------------------------------------------------------------
 \section{Is\_on Attribute}
 \label{s:is_on}
-
 \index{Is_on}
-The \vn{is_on} attribute is used to turn an element off. Turning
-an element off essentially converts it into a drift. This is not
-generally used in a lattice file but a program can use the attribute
-for, say, calculating the Twiss parameters which needs to be done
-with the RF cavities off. Example
+
+The \vn{is_on} attribute
+\begin{example}
+  is_on = <Logical>
+\end{example}
+is used to turn an element off. Turning
+an element off essentially converts it into a drift.
+Example
 \begin{example}
   q1: quad, l = 0.6, k1 = 0.95
   q1[is_on] = False
@@ -419,9 +439,19 @@ Note: \vn{is_on} does not affect any apertures that are set.
 \index{AB_Multipole}
 \index{Multipole}
 A \vn{Multipole} element specifies its multipole components using an
-Amplitude (\vn{KnL}) and a tilt (\vn{Tn}). All other elements that
+Amplitude (\vn{KnL}) and a tilt (\vn{Tn})
+\begin{example}
+  KnL = <Real>
+  Tn  = <Real>
+\end{example}
+All other elements that
 have multipole attributes specify the multipoles using normal
-(\vn{Bn}) and skew (\vn{An}) components. Here \vn{n} ranges from 0
+(\vn{Bn}) and skew (\vn{An}) components
+\begin{example}
+  An = <Real>
+  Bn = <Real>
+\end{example}
+Here \vn{n} ranges from 0
 (dipole component) through 20. Example:
 \begin{example}
   q1: quadrupole, b0 = 0.12, a20 = 1e7

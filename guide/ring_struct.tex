@@ -159,10 +159,11 @@ these matrices as input for calculations.
   \vnr{element_locator}((ele_name, ring, ix_ele) ! locate by name
   \vnr{elements_locator}(key, ring, indx)        ! locate by key
 \end{example}
-\vn{element_locator} searches the \vn{ring%ele_(:)} array for an element 
-of the correct name. \vn{elements_locator} searches for all elements of a
-given key and returns an array of indexes.
-The heart of \vn{element_locator} is simplicity itself:
+\vn{element_locator} searches the \vn{ring%ele_(:)} array for an
+element of the correct name. Alternatively, \vn{elements_locator}
+searches for all elements of a given key and returns an array of
+indexes. To see how simple searching a lattice is condider the heart
+of \vn{element_locator}:
 \begin{example}
   do ix_ele = 0, ring%n_ele_max
     if (ring%ele_(ix_ele)%name == ele_name) return
