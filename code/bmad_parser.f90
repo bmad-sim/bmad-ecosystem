@@ -243,7 +243,6 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
         if (ix_word == 0) then
           call warning ('NO FILE NAME SPECIFIED')
         else
-          call fullfilename(call_file, call_file)
           call file_stack ('push', call_file, finished)
           if (.not. bmad_status%ok) return
         endif
