@@ -4,6 +4,10 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/02 18:50:26  rwh24
+!Extended track_input_struct in bmad_struct.
+!Fixed qromb_rad_int definition in rad_int_common.
+!
 !Revision 1.2  2001/09/27 18:32:13  rwh24
 !UNIX compatibility updates
 !
@@ -319,7 +323,9 @@ module bmad_struct
     integer n_turn
     real x_init, y_init
     integer n_xy_pts
+    integer point_range(2)
     real e_max
+    real energy(10)
     integer n_energy_pts
     real accuracy
   end type

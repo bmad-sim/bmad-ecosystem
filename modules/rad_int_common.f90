@@ -3,6 +3,10 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/02 18:50:26  rwh24
+!Extended track_input_struct in bmad_struct.
+!Fixed qromb_rad_int definition in rad_int_common.
+!
 !Revision 1.2  2001/09/27 18:32:13  rwh24
 !UNIX compatibility updates
 !
@@ -36,8 +40,9 @@ module rad_int_common
   interface
     function qromb_rad_int (func, a, b, sum)
       use nrtype
+      implicit none
       real(sp), intent(in) :: a, b, sum
-      real(sp) :: qromb
+      real(sp) :: qromb_rad_int
       interface
         function func(x)
           use nrtype
