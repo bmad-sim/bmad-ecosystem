@@ -879,12 +879,17 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
     ele = in_ring%ele_(ix_ring(i)) 
     ele%name = name_(i)
 
+    select case (ele%key)
+
 ! Convert rbends to sbends and evaluate G if needed.
 ! Needed is the length and either: angle, G, or rho.
 
-    if (ele%key == sbend$ .or. ele%key == rbend$) then
+    case (sbend$, rbend$) 
 
       angle = ele%value(angle$) 
+
+      if (ele%value(b_field$) /= 0 .and. ele%value(g$) /= 0) call warning &
+          ('BOTH G AND B_FIELD SET FOR A BEND: ' // ele%name)
 
       if (ele%value(g$) /= 0 .and. ele%value(rho$) /= 0) &
             call warning ('BOTH G AND RHO SPECIFIED FOR BEND: ' // ele%name)
@@ -913,16 +918,41 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       if (ele%value(hgapx$) == 0) ele%value(hgapx$) = ele%value(hgap$)
       if (ele%value(fintx$) == 0) ele%value(fintx$) = ele%value(fint$)
 
-    endif
-
 ! Accept Use of Delta_E for lcavities
 
-    if (ele%key == lcavity$) then
+    case (lcavity$) 
+
       if (ele%value(delta_e$) /= 0) then
         if (ele%value(gradient$) /= 0) call warning &
                 ('BOTH DELTA_E AND gradient NON-ZERO FOR A LCAVITY:', ele%name)
         ele%value(gradient$) = ele%value(delta_e$) / ele%value(l$)
       endif
+
+! check for inconsistancies
+
+    case (solenoid$)
+      if (ele%value(b_field$) /= 0 .and. ele%value(ks$) /= 0) call warning &
+          ('BOTH KS AND B_FIELD SET FOR A SOLENOID: ' // ele%name)
+
+    case (quadrupole$)
+      if (ele%value(b_gradient$) /= 0 .and. ele%value(k1$) /= 0) call warning &
+          ('BOTH K1 AND B_GRADIENT SET FOR A QUAD: ' // ele%name)
+
+    case (sextupole$)
+      if (ele%value(b_gradient$) /= 0 .and. ele%value(k2$) /= 0) call warning &
+          ('BOTH K2 AND B_GRADIENT SET FOR A SEXTUPOLE: ' // ele%name)
+
+    case (octupole$)
+      if (ele%value(b_gradient$) /= 0 .and. ele%value(k3$) /= 0) call warning &
+          ('BOTH K3 AND B_GRADIENT SET FOR A OCTUPOLE: ' // ele%name)
+
+    end select
+
+! aperture
+
+    if (ele%value(aperture$) /= 0) then
+      ele%value(x_limit$) = ele%value(aperture$)
+      ele%value(y_limit$) = ele%value(aperture$)
     endif
 
   enddo

@@ -51,7 +51,7 @@ subroutine check_aperture_limit (orb, ele, param)
   type (ele_struct),   intent(in)  :: ele
   type (param_struct), intent(inout) :: param
 
-  real(rp) x_lim, y_lim
+  real(rp) x_lim, y_lim, x_beam, y_beam, l2
 
 !
 
@@ -63,12 +63,22 @@ subroutine check_aperture_limit (orb, ele, param)
   if (y_lim <= 0 .or. .not. param%aperture_limit_on) &
                                     y_lim = bmad_com%max_aperture_limit
 
+  if (x_lim == 0 .and. y_lim == 0) return
+
+  l2 = ele%value(l$) / 2
+  x_beam = orb%vec(1) - ele%value(x_offset$)  ! - ele%value(x_pitch$) * l2
+  y_beam = orb%vec(3) - ele%value(y_offset$)  ! - ele%value(y_pitch$) * l2
+
   if (ele%key == ecollimator$) then
-    if (orb%vec(1)**2 / x_lim**2 + orb%vec(3)**2 / y_lim**2 > 1) &
-                                                          param%lost = .true.
+    if (x_lim == 0 .or. y_lim == 0) then
+      print *, 'ERROR IN CHECK_APERTURE_LIMIT: ECOLLIMATOR HAS ONE LIMIT ZERO'
+      print *, '      AND THE OTHER NOT: ', ele%name
+      call err_exit
+    endif
+    if ((x_beam / x_lim)**2 + (y_beam / y_lim)**2 > 1) param%lost = .true.
   else
-    if (abs(orb%vec(1)) > x_lim) param%lost = .true.
-    if (abs(orb%vec(3)) > y_lim) param%lost = .true.
+    if (abs(x_beam) > x_lim) param%lost = .true.
+    if (abs(y_beam) > y_lim) param%lost = .true.
   endif
 
 end subroutine

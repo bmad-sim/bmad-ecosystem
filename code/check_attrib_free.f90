@@ -107,6 +107,10 @@ subroutine check_attrib_free (ele, ix_attrib, ring, err_flag, err_print_flag)
     if (ix_attrib == bbi_const$) err_flag = .true.
   case (wiggler$)
     if (ix_attrib == k1$ .or. ix_attrib == rho$) err_flag = .true. 
+  case (lcavity$)
+    if (ix_attrib == delta_e$) err_flag = .true.
+  case (elseparator$)
+    if (ix_attrib == e_field$ .or. ix_attrib == volt$) err_flag = .true.
   end select
 
   if (err_flag .and. do_print) then

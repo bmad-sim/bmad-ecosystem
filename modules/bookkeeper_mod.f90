@@ -623,10 +623,10 @@ end subroutine
 ! 
 ! BEAMBEAM:   
 !     bbi_const$ = param%n_part * m_electron * charge$ * r_e /
-!                           (2 * pi * param%beam_energy * (sig_x$ + sig_y$)
+!                           (2 * pi * beam_energy$ * (sig_x$ + sig_y$)
 !
 ! ELSEPARATOR:
-!     e_field$ = sqrt(hkick$**2 + vkick$**2) * param%beam_energy / l$
+!     e_field$ = sqrt(hkick$**2 + vkick$**2) * beam_energy$ / l$
 !     volt$ = e_field$ * gap$ 
 !
 ! LCAVITY:    
@@ -642,8 +642,8 @@ end subroutine
 !     rho$     = 1 / G$
 !
 ! WIGGLER:    
-!     k1$  = -0.5 * (c_light * b_max$ / param%beam_energy)**2
-!     rho$ = param%beam_energy / (c_light * b_max$)
+!     k1$  = -0.5 * (c_light * b_max$ / beam_energy$)**2
+!     rho$ = beam_energy$ / (c_light * b_max$)
 !
 ! Modules needed:
 !   use bmad
@@ -654,6 +654,9 @@ end subroutine
 !
 ! Output:
 !   ele  -- Ele_struct: Element with self-consistant attributes.
+!
+! Programming Note: If the dependent attributes are changed then 
+!       check_attrib_free must be modified.
 !-
 
 subroutine attribute_bookkeeper (ele, param)
@@ -725,6 +728,8 @@ subroutine attribute_bookkeeper (ele, param)
   endif
 
 ! Dependent attribute bookkeeping.
+! Note: If the dependent attributes are changed then check_attrib_free 
+!       must be modified.
 
   select case (ele%key)
 
@@ -776,7 +781,7 @@ subroutine attribute_bookkeeper (ele, param)
 
     ele%value(bbi_const$) = &
         -param%n_part * m_electron * ele%value(charge$) * r_e /  &
-        (2 * pi * param%beam_energy * (ele%value(sig_x$) + ele%value(sig_y$)))
+        (2 * pi * ele%value(beam_energy$) * (ele%value(sig_x$) + ele%value(sig_y$)))
 
 ! Elseparator
 
@@ -787,7 +792,7 @@ subroutine attribute_bookkeeper (ele, param)
       ele%value(volt$) = 0
     else
       ele%value(e_field$) = sqrt(ele%value(hkick$)**2 + ele%value(vkick$)**2) * &
-                                                   param%beam_energy / ele%value(l$)
+                                                   ele%value(beam_energy$) / ele%value(l$)
       ele%value(volt$) = ele%value(e_field$) * ele%value(gap$) 
     endif
 
@@ -796,17 +801,17 @@ subroutine attribute_bookkeeper (ele, param)
 
   case (wiggler$) 
 
-    if (param%beam_energy == 0) then
+    if (ele%value(beam_energy$) == 0) then
       ele%value(k1$) = 0
     else
       ele%value(k1$) = -0.5 * &
-                    (c_light * ele%value(b_max$) / param%beam_energy)**2
+                    (c_light * ele%value(b_max$) / ele%value(beam_energy$))**2
     endif
 
     if (ele%value(b_max$) == 0) then
       ele%value(rho$) = 0
     else
-      ele%value(rho$) = param%beam_energy / (c_light * ele%value(b_max$))
+      ele%value(rho$) = ele%value(beam_energy$) / (c_light * ele%value(b_max$))
     endif
 
   end select

@@ -125,7 +125,6 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
 
     else
       do i = 1, n_attrib_maxx
-        if (i == aperture$) cycle ! aperture not yet implemented
         if (attribute_name(ele, i) /= null_name) then
           if (ele%value(i) /= 0 .or. type_zero_attrib) then
             nl = nl + 1
