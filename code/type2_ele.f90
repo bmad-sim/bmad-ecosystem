@@ -37,6 +37,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.10  2002/07/31 14:33:51  dcs
+!Extended lines(:) array.
+!
 !Revision 1.9  2002/06/13 14:54:31  dcs
 !Interfaced with FPP/PTC
 !
@@ -94,7 +97,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
 
 ! init
 
-  allocate (li(100))
+  allocate (li(300))
   
 ! Encode element name and type
 
