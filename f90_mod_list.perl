@@ -17,7 +17,7 @@ while (<FILE1>){
     if ( $_ =~ /^(?:\s*\t*)module(?:\s+\t*)(\w+).*/i ){
         $x=$1;
         if ($x !~ /procedure/i){
-        print "$x ";
+        print "\L$x\E ";
     }
     }
 }
