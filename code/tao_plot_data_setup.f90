@@ -119,9 +119,9 @@ plot_loop: do i = 1, size(s%plot_page%plot)
         call tao_useit_plot_calc (plot, d1_ptr%d) ! make sure %useit_plot up-to-date
         n_dat = count (d1_ptr%d%useit_plot)       ! count the number of data points
 
-        call reallocate_integer (curve%ix_symb, n_dat)
-        call reallocate_real (curve%y_symb, n_dat) ! allocate space for the data
-        call reallocate_real (curve%x_symb, n_dat) ! allocate space for the data
+        call reassociate_integer (curve%ix_symb, n_dat)
+        call reassociate_real (curve%y_symb, n_dat) ! allocate space for the data
+        call reassociate_real (curve%x_symb, n_dat) ! allocate space for the data
 
         curve%ix_symb = pack(d1_ptr%d%ix_d1, mask = d1_ptr%d%useit_plot)
 
@@ -172,9 +172,9 @@ plot_loop: do i = 1, size(s%plot_page%plot)
             (u%base%ele_(:)%s >= plot%x%min-eps) .and. (u%base%ele_(:)%s <= plot%x%max+eps)
         n_dat = count (u%base%ele_(:)%logic)
 
-        call reallocate_integer (curve%ix_symb, n_dat)
-        call reallocate_real (curve%y_symb, n_dat) ! allocate space for the data
-        call reallocate_real (curve%x_symb, n_dat) ! allocate space for the data
+        call reassociate_integer (curve%ix_symb, n_dat)
+        call reassociate_real (curve%y_symb, n_dat) ! allocate space for the data
+        call reassociate_real (curve%x_symb, n_dat) ! allocate space for the data
 
         curve%ix_symb = pack(u%base%ele_(:)%ix_pointer, mask = u%base%ele_(:)%logic)
 
@@ -239,13 +239,13 @@ plot_loop: do i = 1, size(s%plot_page%plot)
 ! If the axis is by s-value then the line is a "smooth" curve
 
       if (plot%x_axis_type == 'index') then
-        call reallocate_real (curve%y_line, n_dat) ! allocate space for the data
-        call reallocate_real (curve%x_line, n_dat) ! allocate space for the data
+        call reassociate_real (curve%y_line, n_dat) ! allocate space for the data
+        call reassociate_real (curve%x_line, n_dat) ! allocate space for the data
         curve%x_line = curve%x_symb
         curve%y_line = curve%y_symb
       elseif (plot%x_axis_type == 's') then
-        call reallocate_real (curve%y_line, 400) ! allocate space for the data
-        call reallocate_real (curve%x_line, 400) ! allocate space for the data
+        call reassociate_real (curve%y_line, 400) ! allocate space for the data
+        call reassociate_real (curve%x_line, 400) ! allocate space for the data
         curve%y_line = 0
         x1 = max (plot%x%min, u%model%ele_(0)%s)
         x2 = min (plot%x%max, u%model%ele_(u%model%n_ele_use)%s)

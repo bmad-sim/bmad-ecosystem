@@ -43,7 +43,7 @@ subroutine tao_single_mode (char)
       if (ix_var == 0) cycle
       value = s%var(ix_var)%model_value + this_factor * s%key(ix)%delta
       call tao_set_var_model_value (s%var(ix_var), value)
-      call tao_merit ()
+      this_merit = tao_merit ()
       return
     endif
   enddo

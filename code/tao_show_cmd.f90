@@ -46,8 +46,8 @@ character(80), pointer :: ptr_lines(:)
 character(16) ele_name
 
 character(16) :: show_names(10) = (/ &
-   'data       ', 'var        ', 'global     ', 'alias      ', 'top10     ', &
-   'optimizer  ', 'ele        ', 'lattice    ', 'constraints', 'plots     ' /)
+   'data       ', 'var        ', 'global     ', 'alias      ', 'top10      ', &
+   'optimizer  ', 'ele        ', 'lattice    ', 'constraints', 'plots      ' /)
 
 character(200) lines(max_lines)
 character(100) line1, line2
