@@ -205,7 +205,6 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
       do j = 1, size(bunch_start%slice(i)%macro)
         call track1_macroparticle (bunch_start%slice(i)%macro(j), &
                                       ele, param, bunch_end%slice(i)%macro(j))
-        if (bunch_end%slice(i)%macro(j)%lost) return
       enddo
     enddo
     return

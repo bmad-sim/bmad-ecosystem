@@ -847,6 +847,7 @@ subroutine allocate_ring_ele_ (ring, des_size)
 
   do i = curr_n_ele+1, desired_size
     call init_ele (ring%ele_(i))
+    ring%ele_(i)%ix_ele = i
   end do
 
   ring%n_ele_maxx = desired_size

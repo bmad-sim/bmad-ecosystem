@@ -2249,7 +2249,7 @@ subroutine add_all_superimpose (ring, ele_in, pele)
   ele = ele_in   ! in case ele changes
   ele2 = ele
   n_inserted = 0
-  ring%ele_%iyy = 0    ! to keep track of where we have inserted
+  ring%ele_%internal_logic = .false.    ! to keep track of where we have inserted
 
 ! If no refrence point then superposition is simple
 
@@ -2275,7 +2275,7 @@ subroutine add_all_superimpose (ring, ele_in, pele)
        
       if (ic == group_lord$ .or. ic == super_slave$) cycle
       if (ic == i_beam_lord$) cycle
-      if (this_ele%iyy == 1) cycle
+      if (this_ele%internal_logic) cycle
 
       if (match_wild(this_ele%name, pele%ref_name)) then
 
@@ -2283,7 +2283,7 @@ subroutine add_all_superimpose (ring, ele_in, pele)
           if (this_ele%name == matched_name(i)) cycle ele_loop
         enddo
        
-        ring%ele_(i_ele)%iyy = 1
+        ring%ele_(i_ele)%internal_logic = .true.
         call compute2_super_lord_s (ring, i_ele, ele2, pele)
         call string_trim(ele%name, ele%name, ix)
         ele2%name = ele%name(:ix)            

@@ -117,7 +117,7 @@ module bmad_struct
     integer ic2_lord               ! Stop  index for lord elements
     integer ix_pointer             ! For general use. Not used by Bmad.
     integer ixx                    ! Index for Bmad internal use
-    integer iyy                    ! Index for Bmad internal use
+    integer ix_ele                 ! Index in ring%ele_(:) array
     integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
     integer tracking_method        ! bmad_standard$, taylor$, etc.
     integer field_calc             ! Used with Boris, Runge-Kutta integrators.

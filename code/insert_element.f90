@@ -41,6 +41,7 @@ subroutine insert_element (ring, insert_ele, insert_index)
 
   do index = ring%n_ele_max-1, insert_index, -1
     call transfer_ele (ring%ele_(index), ring%ele_(index+1))
+    ring%ele_(index+1)%ix_ele = index+1
   enddo
   
 ! ring%ele_(insert_index) pointers need to be nullified since they now point to
@@ -48,6 +49,7 @@ subroutine insert_element (ring, insert_ele, insert_index)
 
   call deallocate_ele_pointers (ring%ele_(insert_index), nullify_only = .true.)
   ring%ele_(insert_index) = insert_ele
+  ring%ele_(insert_index)%ix_ele = insert_index
 
 ! correct the control info
 

@@ -49,6 +49,7 @@ subroutine ele_equal_ele (ele1, ele2)
 
   call transfer_ele (ele1, ele_save)
   call transfer_ele (ele2, ele1)
+  ele1%ix_ele = ele_save%ix_ele  ! this should not change.
 
 ! Transfer pointer info.
 ! When finished ele1's pointers will be pointing to a different memory
