@@ -243,6 +243,9 @@ subroutine tao_command (command_line, err)
   case ('reinitialize')
 
     call cmd_split(2, .false., err)
+! quit the plot window so it will be recreated    
+    call qp_close_page
+    s%global%init_plot_needed = .true.
     
     if (cmd_word(1) .eq. ' ') then
       call out_io (s_info$, r_name, 'Reinitializing with ' // &

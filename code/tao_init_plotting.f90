@@ -41,7 +41,6 @@ integer graph_index
 character(200) file_name, plot_file
 character(20) :: r_name = 'tao_init_plotting'
 
-logical :: init_needed = .true.
 logical lat_layout_here
 
 namelist / tao_plot_page / plot_page, region, place
@@ -51,8 +50,8 @@ namelist / element_shapes / shape
 
 ! See if this routine has been called before
 
-if (.not. init_needed) return
-init_needed = .false.
+if (.not. s%global%init_plot_needed) return
+s%global%init_plot_needed = .false.
 
 ! Read in the plot page parameters
 
@@ -61,12 +60,23 @@ call out_io (s_blank$, r_name, '*Init: Opening Plotting File: ' // file_name)
 
 place%region = ' '
 region%name = ' '       ! a region exists only if its name is not blank 
+plot_page%title(:)%draw_it = .false.
+plot_page%title(:)%string = ' '
+plot_page%title(:)%justify = 'CC'
+plot_page%title(:)%x = 0.50
+plot_page%title(:)%y = 0.995
+plot_page%title(:)%units = '%PAGE'
 read (iu, nml = tao_plot_page, err = 9000)
 call out_io (s_blank$, r_name, 'Init: Read tao_plot_page namelist')
 
 page => s%plot_page
 page%size = plot_page%size
 page%border = plot_page%border
+
+! title
+page%title = plot_page%title
+forall (i = 1:size(page%title), (page%title(i)%string .ne. ' ')) &
+            page%title(i)%draw_it = .true.
 
 ! Open a plot window
 
@@ -75,9 +85,12 @@ call qp_set_layout (page_border = page%border)
 
 !set default font size
 
+call qp_set_text_attrib ("TEXT",  height = plot_page%text_height) 
 call qp_set_text_attrib ("MAIN_TITLE",  height = plot_page%text_height) 
 call qp_set_text_attrib ("GRAPH_TITLE",  height = plot_page%text_height) 
 call qp_set_text_attrib ("AXIS_LABEL",  height = plot_page%text_height) 
+call qp_set_text_attrib ("AXIS_NUMBERS",  height = plot_page%text_height) 
+call qp_set_text_attrib ("LEGEND",  height = plot_page%text_height) 
 
 ! allocate a s%plot_page%plot structure for each region defined and
 ! transfer the info from the input region structure.

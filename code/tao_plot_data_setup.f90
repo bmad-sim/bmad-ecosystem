@@ -236,7 +236,7 @@ plot_loop: do i = 1, size(s%plot_page%plot)
 ! Calculate the points for drawing the curve through the symbols.
 ! If the x-axis is by index then these points are the same as the symbol points.
 !  That is, for x-axis = index the line is piece-wise linear between the symbols.
-! If the axis is by s-value then the line is a "smooth" curve
+! If the axis is by s-value then the line is a "smooth" curve with 400 points
 
       if (plot%x_axis_type == 'index') then
         call reassociate_real (curve%y_line, n_dat) ! allocate space for the data

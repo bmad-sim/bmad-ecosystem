@@ -40,7 +40,10 @@ end type
 
 type tao_title_struct
   character(100) string      ! title character string.
-  character(1) justify       ! Left, Center, or Right justification.
+  character(2) justify       ! Left, Center, or Right justification.
+  real(rp) x, y              ! x, y rwt lower left corner
+  character(16) units        ! %BOX, POINTS, etc...
+  logical draw_it            ! draw the title
 end type
 
 type tao_plot_who_struct     ! Who to plot
@@ -327,6 +330,7 @@ type tao_global_struct
   logical :: label_keys = .true.             ! For lat_layout plots
   logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
   logical :: lattice_recalc = .true.         ! recalculate the lattice?
+  logical :: init_plot_needed = .true.       ! reinitialize plotting?
   character(16) :: valid_plot_who(10) 
   character(40) :: print_command = 'awprint'
   character(80) :: default_init_file = 'tao.init'

@@ -28,6 +28,14 @@ character(16) :: r_name = 'tao_plot_out'
 if (.not. s%global%plot_on) return
 call qp_clear_page
 
+! print the title 
+do i = 1, size(s%plot_page%title)
+  if (s%plot_page%title(i)%draw_it)                                         &
+    call qp_draw_text (s%plot_page%title(i)%string, s%plot_page%title(i)%x, &
+                     s%plot_page%title(i)%y, s%plot_page%title(i)%units,    &
+                     s%plot_page%title(i)%justify)
+enddo
+
 ! loop over all plots
 
 do i = 1, size(s%plot_page%plot)
@@ -228,7 +236,7 @@ do i = 1, lat%n_ele_max
 
   if (s%global%label_lattice_elements .and. s%plot_page%ele_shape(j)%plot_name) &
                 call qp_draw_text (ele%name, ele%s-ele%value(l$)/2, &
-                -25.0_rp, justify = 'CT', height = 10.0_rp)
+                -25.0_rp, justify = 'CT')
 
   call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
 
