@@ -172,18 +172,18 @@ an element or a section of a lattice is a function that maps the
 starting phase space coordinates $\Bf r_{in}$ to the ending
 coordinates $\Bf r_{out}$
 \begin{equation}
-  \Bf r_(out) = {\cal M} \Bf r_(in)
+  \Bf r_(out) = {\cal M} \, \Bf r_(in)
 \end{equation}
 ${\cal M}$ is made up of 6 functions ${\cal M}_i: {\cal R}^6
- \rightarrow {\cal R}$ mapping to one of the $r_{out}$
-coordinates. Each of these functions can be expanded in a Taylor
+ \rightarrow {\cal R}$. Each of these functions maps to one of the $r_{out}$
+coordinates. These functions can be expanded in a Taylor
 series. The Taylor Map corresponding to $\cal M$ is the collection of
 the 6 Taylor series. Each series is in the form
 \Begineq
-  r_i(out) = \sum_{j = 1}^N \, C_{ij} \, \Pi_{k = 1}^6 \, r_k^{e_{ijk}}(in)
+  r_i(out) = \sum_{j = 1}^N \, C_{ij} \, \prod_{k = 1}^6 \, r_k^{e_{ijk}}(in)
 \Endeq
 Where the $C_{ij}$ are coeficients and the $e_{ijk}$ are integer exponents.
-The oder of the Map is
+The order of the Map is
 \Begineq
   \mbox{Map Order} = \max_{i,j} \, \sum_{k = 1}^6 e_{ijk}
 \Endeq
@@ -230,13 +230,19 @@ A symplectic matrix $\Bf F$ is now optained by inverting \eq{vsimi}
 \section{Wigglers}
 \label{s:wiggler_phys}
 
+As discused int Section~\ref{s:wig} \bmad\ wiggler elements are split into 
+two classes: map type and periodic type.
+
+
+The map type wigglers are modeled using the paper of Sagan, Crittenden, 
+and Rubin\cite{b:scr}. In this model the magnetic field is written as 
+a sum of terms $B_i$
 \Begineq
-  B(x,y,z) = \sum_i B_i(x, y, z; C, k_x, k_y, k_z, phi_z)
+  B(x,y,z) = \sum_i B_i(x, y, z; C, k_x, k_y, k_z, \phi_z)
 \Endeq 
-each term $B_i$ is specified in the input file using 5 numbers: 
-\begin{example}
-  term(i) = {coef, kx, ky, kz, phi_z} 
-\end{example}
+each term $B_i$ is specified in using 5 numbers: 
+$(C, k_x, k_y, k_z, phi_z)$. A term can take one of three forms. The first
+form is
 If $\vn{ky}^2 = \vn{kx}^2 + \vn{kz}^2$ then the field due to the term is: 
 \begin{alignat}{4}
   B_x &= -&C &\dfrac{k_x}{k_y} & \sin(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
@@ -258,24 +264,28 @@ and the third form is
   B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sin(\kyy) \sin(\ksss) \CRneg
   & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_s^2$ .} &&& \label{f3}
 \end{alignat}
+The relationship between $k_x$, $k_y$, and $k_z$ ensures that Maxwell's equations
+are satisfied. Since the field is given by analytic equations, Lie algebraic
+techniques can be use to construct Taylor maps to arbitrary order.
 
 %-----------------------------------------------------------------
 \section{Radiation Damping and Excitation}
 \label{s:radiation}
 
+
+
 %-----------------------------------------------------------------
 \section{Wakefields}
 \label{s:wakefields}
+
+
 
 %-----------------------------------------------------------------
 \section{Macro Particles}
 \label{s:macro}
 
+
+
 %-----------------------------------------------------------------
 \section{Coupling and Normal Modes}
 \label{s:coupling}
-
-%-----------------------------------------------------------------
-\section{Tracking}
-\label{s:tracking}
-

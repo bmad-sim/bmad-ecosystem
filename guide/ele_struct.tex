@@ -5,12 +5,13 @@ This chapter describes the \tn{ele_struct} which is the structure that
 holds all the information about an individual element: quadrupoles,
 separators, wigglers, etc. Discussion on how one \tn{ele_struct} controls
 another is deferred to the chapter on the \tn{ring_struct}. Also deferred
-is a discussion of how to compute Twiss parameters, etc.
+is a discussion of how to compute global parameters such as the 
+Twiss parameters, etc.
 
 Part of the substructure of the \tn{ele_struct} is shown
 in figure~\ref{f:ele_struct} (use \vn{getf} to see the entire structure 
-definition). Some of the components of the \vn{ele_struct} like \vn{name}, 
-\vn{tracking_method}, etc.\ have an obvious correspondance with 
+definition). Some of the components of the \vn{ele_struct} like \vn{%name}, 
+\vn{%tracking_method}, etc.\ have an obvious correspondance with 
 attributes set in the lattice file and will not be discussed further.
 
 \begin{figure}[tb]
@@ -54,8 +55,8 @@ attributes set in the lattice file and will not be discussed further.
 
 There are a class of components of the \vn{ele_struct} whose values 
 vary along the length of the element. In such a case the value of the 
-component will be the value at the exit edge of the element. This class
-of components is:
+component will be the value at the exit edge of the element. The 
+components are:
 \begin{example}
   %x, %y, %z      ! Twiss parameters
   %position       ! Floor position
@@ -63,7 +64,9 @@ of components is:
   %gamma_c        ! Coupling parameter
 \end{example}
 To get the Twiss parameters, etc.\ for the beginning of the element you
-need to look at the preceding element in the \vn{ring%ele_(:)} array
+need to look at the preceding element in the \vn{ring%ele_(:)} array. To
+get the parameters at a position within an element you can use the routines
+\vn{
 
 \vn{%x}, \vn{%y}, and \vn{%z} hold the Twiss parameters for the 
 $a$, $b$ and $z$ modes respectively. [Yes it is known that the

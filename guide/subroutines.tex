@@ -127,17 +127,11 @@ This is not necessarily the fastest routine.
 \item[twiss\_and\_track\_partial (ele1, ele2, param, del\_s, ele3, start, end)] \Newline
 Subroutine to propagate partially through ELE2 the Twiss parameters and the orbit. 
 
-\item[twiss\_and\_track\_body (ele1, ele2, param, del\_s, ele3, start, end)] \Newline
-Subroutine to propagate partially through ELE2 the Twiss parameters and the orbit. 
-
 \item[twiss\_at\_element (ring, ix\_ele, start, end, average)] \Newline
 Subroutine to return the twiss parameters at the beginning, end or the average of an element. 
 
 \item[twiss\_propagate\_many (ring, ix\_start, ix\_end, direction)] \Newline
 Subroutine to propagate the Twiss parameters from one point in the ring to another. 
-
-\item[twiss\_at\_s (ring, s, ele)] \Newline
-Obsolete. Use twiss\_and\_track\_at\_s instead. 
 
 \item[twiss\_and\_track\_at\_s (ring, s, ele, orb\_, here)] \Newline
 Subroutine to calculate the twiss parameters and orbit at a particular longitudinal position. 
@@ -1127,6 +1121,12 @@ Subroutine to calculate the transfer matrix for a combination solenoid/quadrupol
 \item[track\_long (ring, orbit\_, ix\_start, direction, mats627)] \Newline
 Subroutine to track for 1-turn. This subroutine is meant for long term tracking and 
 uses 2nd order transport matrices for some of the tracking. 
+
+\item[twiss\_and\_track\_body (ele1, ele2, param, del\_s, ele3, start, end)] \Newline
+Subroutine to propagate partially through ELE2 the Twiss parameters and the orbit. 
+
+\item[twiss\_at\_s (ring, s, ele)] \Newline
+Obsolete. Use twiss\_and\_track\_at\_s instead. 
 
 \end{description}
 
