@@ -447,24 +447,28 @@ window (also called the plot page) and defines the ``regions'' where
 plots go. The syntax of this block is:
 \begin{example}
   \&tao_plot_page
-    plot_page%size     = <x_size>, <y_size>            ! size in POINTS 
-    plot_page%border   = <b_x1>, <b_x2>, <b_y1>, <b_y2>, "<units>"
-    region(i)%name     = "<region_name>"
-    region(i)%location = <l_x1>, <l_x2>, <l_y1>, <l_y2>  ! % plot area
-    place(i)%          = "<region>", "<template>"
+    plot_page%size        = <x_size>, <y_size>         ! size in POINTS 
+    plot_page%border      = <b_x1>, <b_x2>, <b_y1>, <b_y2>, "<units>"
+    plot_page%text_height = <text_height>              !height in POINTS
+    plot_page%title(i)    = <string>, {<x>, <y>, "<justify>", "<units>"}
+    region(i)%name        = "<region_name>"
+    region(i)%location    = <l_x1>, <l_x2>, <l_y1>, <l_y2>  ! % plot area
+    place(i)%             = "<region>", "<template>"
   /
 \end{example}
 For example:
 \begin{example}
   \&tao_plot_page
-    plot_page%size     = 700, 800           ! Points
-    plot_page%border   = 0, 0, 0, 50, "POINTS"  
-    region(1)%name     = "top"
-    region(1)%location = 0.0, 1.0, 0.5, 1.0
-    region(2)%name     = "bottom"
-    region(2)%location = 0.0, 1.0, 0.0, 0.5
-    place(1)           = "top", "orbit"
-    place(2)           = "bottom", "phase"
+    plot_page%size        = 700, 800           ! Points
+    plot_page%border      = 0, 0, 0, 50, "POINTS"  
+    plot_page%text_height = 12.0
+    plot_page%title(1)    = "CESR Lattice"
+    region(1)%name        = "top"
+    region(1)%location    = 0.0, 1.0, 0.5, 1.0
+    region(2)%name        = "bottom"
+    region(2)%location    = 0.0, 1.0, 0.0, 0.5
+    place(1)              = "top", "orbit"
+    place(2)              = "bottom", "phase"
   /
 \end{example}
 
@@ -477,6 +481,12 @@ window. As shown in Figure~\ref{f:plot_page} \vn{b_x1}, \vn{b_x2} are
 the right and left border widths and \vn{b_y1} and \vn{b_y2} are the
 bottom and top border widths respectively.  The rectangle within this
 border is called the plot area.
+
+\vn{plot_page%title(i)} set the page title. There are two title areas 
+(i = 1,2). If only the title string is given then the other variables 
+are set to the defaults \vn{x} = 0.5, \vn{y} = 0.995, \vn{justify} = 
+"CC" and \vn{units} = "%PAGE". See the quickplot documentation for 
+the \vn{justify} variable syntax.
 
 The plot area is divided up into rectangular regions where plots may
 be placed (what defines a plot is discussed below).
@@ -638,7 +648,6 @@ The \vn{tao_template_plot} needed to define a lattice layout looks like:
 \begin{example}
   \&tao_template_plot
     plot%name        = "<plot_name>"
-    plot%type        = "lat_layout"
     plot%box_layout  = <ix>, <iy> 
     plot%x%min       = <number>
     plot%x%max       = <number>
@@ -647,7 +656,9 @@ The \vn{tao_template_plot} needed to define a lattice layout looks like:
   \&tao_template_graph
     graph_index       = <number>
     graph%name        = <name>
-    graph%this_box    = <ix>, <iy>
+    graph%type        = "lat_layout"
+    graph%title       = "Layout Title"
+    graph%box         = <ix>, <iy>
     graph%ix_universe = <integer>
     graph%margin      = <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
     graph%n_curve     = 0
@@ -657,8 +668,6 @@ Example:
 \begin{example}
   \&tao_template_plot
     plot%name       = 'layout'
-    plot%type       = 'lat_layout'
-    plot%box_layout = 1, 1                ! break page into boxes.
     plot%x%min      =   0
     plot%x%max      = 100
     plot%n_graph    = 1
@@ -667,6 +676,7 @@ Example:
   \&tao_template_graph
     graph_index       = 1
     graph%name        = 'u1'
+    graph%type        = 'lat_layout'
     graph%this_box    = 1, 1
     graph%ix_universe = 1
     graph%margin      = 0.12, 0.12, 0.12, 0.12, '%BOX'
@@ -730,7 +740,8 @@ the element name is to be printed underneath the figure.
 \label{s:init_single} 
 
 For single mode the bindings of variables to keys is defined with a
-\vn{key_bindings} namelist. The syntax is:
+\vn{key_bindings} namelist. There is a maximun of 500 key bingdings.
+The syntax is:
 \begin{example}
   \&key_bindings
     key(i) = <ele_name> <attrib_name> <delta> <universe> 
