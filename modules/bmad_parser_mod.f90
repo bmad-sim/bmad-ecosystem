@@ -1456,13 +1456,15 @@ subroutine verify_valid_name (name, ix_name, key_check)
   if (ix1 > 17 .or. ix2 - ix1 > 17)  &
             call warning ('NAME HAS > 16 CHARACTERS: ' // name)
 
-! check if name looks like a element key
+! Check if name looks like a element key.
+! BEAM is OK even though it looks like BEAMBEAM
 
-  if (present(key_check)) then
+  ix = ix_name
+  if (ix1 > 0) ix = ix1
+
+  if (present(key_check) .and. name(:ix) /= 'BEAM') then
     if (key_check) then
       do i = 1, n_key
-        ix = ix_name
-        if (ix1 > 0) ix = ix1
         if (name(:ix) == key_name(i)(:ix)) then
           call warning ('NAME: ' // name, &
                           'LOOKS LIKE AN ELEMENT KEY: ' // key_name(i))

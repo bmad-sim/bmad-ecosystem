@@ -213,9 +213,10 @@ module bmad_struct
   integer, parameter :: multipole$ = 19, accel_sol$ = 20
   integer, parameter :: def_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23
   integer, parameter :: patch$ = 24, lcavity$ = 25, def_parameter$ = 26
-  integer, parameter :: null_ele$ = 27, init_ele$ = 28
+  integer, parameter :: null_ele$ = 27, init_ele$ = 28, hom$ = 29
+  integer, parameter :: matrix$ = 30
 
-  integer, parameter :: n_key = 28
+  integer, parameter :: n_key = 30
 
   character*16 :: key_name(n_key+1) = (/ &
     'DRIFT        ', 'SBEND        ', 'QUADRUPOLE   ', 'GROUP        ', &
@@ -225,7 +226,7 @@ module bmad_struct
     'OCTUPOLE     ', 'RBEND        ', 'MULTIPOLE    ', 'ACCEL_SOL    ', &
     'DEF BEAM     ', 'AB_MULTIPOLE ', 'SOLENOID     ', 'PATCH        ', &
     'LCAVITY      ', 'DEF PARAMETER', 'NULL_ELEMENT ', 'INIT_ELEMENT ', &
-    '               ' /)
+    'HOM          ', 'MATRIX       ', '             ' /)
 
 ! Attribute name logical definitions
 ! Note: The following attributes must have unique number assignments:
@@ -241,6 +242,10 @@ module bmad_struct
   integer, parameter :: val1$=3, val2$=4, val3$=5, val4$=6, val5$=7, &
           val6$=8, val7$=9, val8$=10, val9$=11, val10$=12, val11$=13, &
           val12$=14
+
+  integer, parameter :: beta_x0$ = 2, alpha_x0$ = 3, beta_y0$ = 4, &
+          alpha_y0$ = 5, beta_x1$ = 6, alpha_x1$ = 7, beta_y1$ = 8, &
+          alpha_y1$ = 9, dphi_x$ = 10, dphi_y$ = 11
 
 !  integer, parameter :: x_position$ = 2, y_position$ = 3, z_position$ = 4, &
 !          theta_position$ = 5, phi_position$ = 6, psi_position$ = 7, &
