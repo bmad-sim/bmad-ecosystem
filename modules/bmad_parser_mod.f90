@@ -326,19 +326,10 @@ subroutine get_attribute (how, ele, ring, pring, &
 
     r_ptr = value
     
-    select case (word)
-    case ('BETA_X') 
-      ele%x%gamma = (1 + ele%x%alpha**2) / ele%x%beta
-    case ('ALPHA_X')
-      if (ele%x%beta /= 0) ele%x%gamma = (1 + ele%x%alpha**2) / ele%x%beta
-    case ('BETA_Y') 
-      ele%y%gamma = (1 + ele%y%alpha**2) / ele%y%beta
-    case ('ALPHA_Y')
-      if (ele%y%beta /= 0) ele%y%gamma = (1 + ele%y%alpha**2) / ele%y%beta
-    case ('C11', 'C12', 'C21', 'C22')
-      ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + &
+    if (ele%x%beta /= 0) ele%x%gamma = (1 + ele%x%alpha**2) / ele%x%beta
+    if (ele%y%beta /= 0) ele%y%gamma = (1 + ele%y%alpha**2) / ele%y%beta
+    ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + &
                                               ele%c_mat(1,2)*ele%c_mat(2,1))
-    end select
     return
   endif
 

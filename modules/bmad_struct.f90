@@ -403,7 +403,7 @@ module bmad_struct
   integer, parameter :: circular_lattice$ = 12
 
   character(16) :: lattice_type(10:12) = &
-        (/ 'LINEAR_LATTICE   ', 'GARBAGE!        ', 'CIRCULAR_LATTICE' /)
+        (/ 'LINEAR_LATTICE  ', 'GARBAGE!        ', 'CIRCULAR_LATTICE' /)
 
 ! logicals for MAKE_HYBIRD_RING
 
