@@ -381,7 +381,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
         ix1 = nint(pdata(dat_indx+7))
         ix2 = nint(pdata(dat_indx+8))
 
-        if ((ix1 /= 0) .xor. (ix2 /= 0)) then
+        if ((ix1 /= 0) .neqv. (ix2 /= 0)) then
           call xsif_error ( &
             'LCAVITY DOES NOT HAVE BOTH L AND T WAKE FILES: ' // ele%name)
           call err_exit
