@@ -1872,13 +1872,11 @@ end subroutine
 ! This subroutine is used by bmad_parser and bmad_parser2.
 !
 ! Input:
-!   iu   -- Integer: Open file unit. If zero open the file.
 !   file -- Character(*): Name of wake field file
 !
 ! Output:
-!   iu      -- Integer: Open file unit. 
-!               If zero then there was an error. 
-!               If negative then end-of-file reached.
+!   iu             -- Integer: Open file unit. 
+!                       If zero then there was an error. 
 !   full_file_name -- Character(*): Full name with directory spec.
 !-
 
@@ -1892,26 +1890,23 @@ logical found_it
 
 ! open file
 
-if (iu == 0) then
-  iu = lunget()
-  bp_com%dirs(2) = bp_com%calling_file%dir
-  call find_file (file, found_it, full_file_name, bp_com%dirs)
-  open (iu, file = full_file_name, status = 'OLD', action = 'READ', iostat = ios)
-  if (ios /= 0) then
-    call warning ('CANNOT OPEN WAKE FILE: ' // file)
-    iu = 0
-    return
-  endif
-
-  ! If we have not read in this file before then add this to the list of files
-  ! that are used to create the lattice.
-
-  n = bp_com%num_lat_files
-  inquire (file = full_file_name, name = bp_com%lat_file_names(n+1))
-  if (all(bp_com%lat_file_names(n+1) /= bp_com%lat_file_names(1:n))) &
-                                                bp_com%num_lat_files = n + 1
+iu = lunget()
+bp_com%dirs(2) = bp_com%calling_file%dir
+call find_file (file, found_it, full_file_name, bp_com%dirs)
+open (iu, file = full_file_name, status = 'OLD', action = 'READ', iostat = ios)
+if (ios /= 0) then
+  call warning ('CANNOT OPEN WAKE FILE: ' // file)
+  iu = 0
+  return
 endif
 
+! If we have not read in this file before then add this to the list of files
+! that are used to create the lattice.
+
+n = bp_com%num_lat_files
+inquire (file = full_file_name, name = bp_com%lat_file_names(n+1))
+if (all(bp_com%lat_file_names(n+1) /= bp_com%lat_file_names(1:n))) &
+                                                bp_com%num_lat_files = n + 1
 end subroutine
 
 !-------------------------------------------------------------------------
