@@ -145,14 +145,9 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
           if (ele%value(i) == 0 .and. ele%value(ix) == 0 .and. &
                                                  .not. type_zero_attrib) cycle
           nl = nl + 1
-          if (ele%value(ix) == ele%value(i)) then
-            write (li(nl), '(i6, 3x, 2a, 1pe15.7)')  i, &
-                        attribute_name(ele, i), ' =', ele%value(i)
-          else
-            write (li(nl), '(i6, 3x, 2a, 1pe15.7, 4x, a, e15.7)')  i, &
+          write (li(nl), '(i6, 3x, 2a, 1pe15.7, 4x, a, e15.7)')  i, &
                         attribute_name(ele, i), ' =', ele%value(i), &
                         'Total:', ele%value(ix)
-          endif
         endif
       enddo
 

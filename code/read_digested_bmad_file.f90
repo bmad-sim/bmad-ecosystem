@@ -43,7 +43,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   character(200) fname(3), input_file_name
   character(200), allocatable :: file_names(:)
 
-  logical found_it, v70, v71, v72, v_old, v_now
+  logical found_it, v71, v72, v73, v_old, v_now
 
 ! init all elements in ring
 
@@ -62,10 +62,10 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
   read (d_unit, err = 9100) n_files, version
 
-  v70 = (version == 70)
   v71 = (version == 71)
   v72 = (version == 72)
-  v_old = v70 .or. v71 .or. v72
+  v73 = (version == 73)
+  v_old = v71 .or. v72 .or. v73
   v_now = (version == bmad_inc_version$)
 
   if (version < bmad_inc_version$) then
@@ -149,7 +149,23 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   do i = 0, ring%n_ele_max
 
     ele => ring%ele_(i)
-    if (v_now .or. v72) then
+    if (v_now) then
+      read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+                              ix_srf, ix_sr, ix_lrf, ix_lr, &
+            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
+            ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
+            ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
+            ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+            ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+            ele%iyy, ele%mat6_calc_method, ele%tracking_method, &
+            ele%num_steps, ele%integration_ord, ele%ptc_kind, &
+            ele%taylor_order, ele%symplectify, ele%mode_flip, &
+            ele%multipoles_on, ele%exact_rad_int_calc, ele%Field_master, &
+            ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
+            ele%on_an_i_beam
+
+    elseif (v72 .or. v73) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
                               ix_srf, ix_sr, ix_lrf, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
@@ -178,21 +194,6 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
             ele%taylor_order, ele%symplectify, ele%mode_flip, &
             ele%multipoles_on, ele%exact_rad_int_calc, ele%Field_master, &
             ele%logic, ele%internal_logic, ele%field_calc
-    elseif (v70) then
-      read (d_unit, err = 9100) ix_wig, ix_const, ix_r_old, ix_d, ix_m, ix_t, &
-                              ix_srf, ix_sr, ix_lrf, ix_lr, &
-            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
-            ele%y, ele%z, ele%value(1:40), ele%gen0, ele%vec0, ele%mat6, &
-            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-            ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
-            ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-            ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-            ele%iyy, ele%mat6_calc_method, ele%tracking_method, &
-            ele%num_steps, ele%integration_ord, ele%ptc_kind, &
-            ele%taylor_order, ele%symplectify, ele%mode_flip, &
-            ele%multipoles_on, ele%exact_rad_int_calc, ele%Field_master, &
-            ele%logic, ele%internal_logic, ele%field_calc
-      ix_r = 0
     endif
 
     if (v_old .and. (ele%key == sbend$ .or. ele%key == rbend$)) then

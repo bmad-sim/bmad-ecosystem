@@ -1,5 +1,5 @@
 !+
-! Subroutine create_i_beam (ring, ix_i_beam, ix_slave_)
+! Subroutine create_i_beam (ring, ix_i_beam, ix_slave, ele_init)
 !
 ! Subroutine to add the controller information to slave elements of
 ! an i_beam_lord.
@@ -10,27 +10,29 @@
 ! Input:
 !   ring         -- Ring_struct: Ring to modify.
 !   ix_i_beam    -- Integer: Index of i_beam element.
-!   ix_slave_(:) -- Index of element to control
+!   ix_slave(:)  -- Index of element to control
+!   ele_init     -- Element containing attributes to be transfered
+!                   to the I_Beam element:
+!                       ele_init%name        
+!                       ele_init%alias
+!                       ele_init%descrip
+!                       ele_init%value(:)
 !
 ! Output:
 !   ring    -- Ring_struct: Modified ring.
 !
 ! Note: Use NEW_CONTROL to get an index for the i_beam element
 !
-! Example:
+! Example: Create an I_Beam supporting elements 
+! ring%ele_(10) and ring%ele_(12)
+!
 !   call new_control (ring, ix_ele)        ! get IX_ELE index
-!   ring%ele_(ix_ele)%name = 'I_BEAM1'     ! i_beam name
-!   n_control = 2                          ! control 2 elements
-!
-!   ix_slave_(1) = 10   ! RING%ELE_(10) is Q01W say.
-!   ix_slave_(2) = 12   ! RING%ELE_(12) is Q02W say.
-!
-!   call create_i_beam (ring, ix_ele, ix_slave_(1:2))  ! create the i_beam
+!   call create_i_beam (ring, ix_ele, (/ 10, 12 /))  ! create the i_beam
 !-
 
 #include "CESR_platform.inc"
 
-subroutine create_i_beam (ring, ix_i_beam, ix_slave_)
+subroutine create_i_beam (ring, ix_i_beam, ix_slave, ele_init)
 
   use bmad_struct
   use bmad_interface
@@ -38,11 +40,12 @@ subroutine create_i_beam (ring, ix_i_beam, ix_slave_)
   implicit none
 
   type (ring_struct), target :: ring
+  type (ele_struct), optional :: ele_init
   type (ele_struct), pointer ::  slave, i_beam
 
-  integer, intent(in) :: ix_i_beam, ix_slave_(:)
+  integer, intent(in) :: ix_i_beam, ix_slave(:)
   integer i, j, ix, ix2, ixc, n_con2
-  integer ix_slave, slave_type, idel, n_slave
+  integer ixs, slave_type, idel, n_slave
 
   real(rdef) s_max, s_min
 
@@ -50,7 +53,7 @@ subroutine create_i_beam (ring, ix_i_beam, ix_slave_)
 
   i_beam => ring%ele_(ix_i_beam)
 
-  n_slave = size (ix_slave_)
+  n_slave = size (ix_slave)
   ix = ring%n_control_max
   n_con2 = ix + n_slave
 
@@ -58,7 +61,7 @@ subroutine create_i_beam (ring, ix_i_beam, ix_slave_)
                       ring%control_ => reallocate (ring%control_, n_con2+500)
 
   do j = 1, n_slave
-    ring%control_(ix+j)%ix_slave  = ix_slave_(j)
+    ring%control_(ix+j)%ix_slave  = ix_slave(j)
     ring%control_(ix+j)%ix_lord   = ix_i_beam
     ring%control_(ix+j)%coef      = 0
     ring%control_(ix+j)%ix_attrib = 0
@@ -79,13 +82,13 @@ subroutine create_i_beam (ring, ix_i_beam, ix_slave_)
 
   do i = i_beam%ix1_slave, i_beam%ix2_slave
 
-    ix_slave = ring%control_(i)%ix_slave
-    if (ix_slave <= 0) then
-      print *, 'ERROR IN CREATE_I_BEAM: INDEX OUT OF BOUNDS.', ix_slave
+    ixs = ring%control_(i)%ix_slave
+    if (ixs <= 0) then
+      print *, 'ERROR IN CREATE_I_BEAM: INDEX OUT OF BOUNDS.', ixs
       call err_exit
     endif
 
-    slave => ring%ele_(ix_slave)
+    slave => ring%ele_(ixs)
     slave_type = slave%control_type
 
     if (slave_type == free$) slave%control_type = overlay_slave$
@@ -102,7 +105,7 @@ subroutine create_i_beam (ring, ix_i_beam, ix_slave_)
 ! update controller info for the slave ele
 
     slave%n_lord = slave%n_lord + 1
-    call adjust_control_struct (ring, ix_slave)
+    call adjust_control_struct (ring, ixs)
     ixc = slave%ic2_lord
     ring%ic_(ixc) = i
 
@@ -116,5 +119,17 @@ subroutine create_i_beam (ring, ix_i_beam, ix_slave_)
 ! center of i_beam
 
   i_beam%value(s_center$) = (s_max + s_min) / 2
+
+! ele_init stuff
+
+  if (present(ele_init)) then
+    i_beam%name    = ele_init%name
+    i_beam%alias   = ele_init%alias
+    i_beam%value   = ele_init%value
+    if (associated(ele_init%descrip)) then
+      allocate (i_beam%descrip)
+      i_beam%descrip = ele_init%descrip
+    endif
+  endif
 
 end subroutine

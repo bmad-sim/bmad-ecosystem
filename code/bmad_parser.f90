@@ -1097,7 +1097,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
         read (bp_com%debug_line, *) i
         print *
         print *, '----------------------------------------'
-        print *, i
+        print *, 'Element #', i
         call type_ele (ring%ele_(i), .false., 0, .true., 0, .true., ring)
         call string_trim (bp_com%debug_line(ix+1:), bp_com%debug_line, ix)
       enddo
