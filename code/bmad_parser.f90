@@ -374,7 +374,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       ivar = bp_com%ivar_tot
       bp_com%var_(ivar)%name = word_1
       call evaluate_value (bp_com%var_(ivar)%name, bp_com%var_(ivar)%value, &
-                                    ring, delim, delim_found, err_flag)
+                                    in_ring, delim, delim_found, err_flag)
       if (delim_found .and. .not. err_flag) call warning  &
                     ('EXTRA CHARACTERS ON RHS: ' // bp_com%parse_line,  &
                      'FOR VARIABLE: ' // bp_com%var_(ivar)%name)
