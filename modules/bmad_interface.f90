@@ -73,27 +73,6 @@ module bmad_interface
   end interface
 
   interface
-    subroutine bmad_to_cesr (ring, cesr)
-      use bmad_struct, only: ring_struct
-      use cesr_mod
-      implicit none
-      type (ring_struct) ring
-      type (cesr_struct) cesr
-    end subroutine
-  end interface
-
-  interface
-    subroutine bmad_to_db (ring, db, calib_date)
-      use bmad_struct, only: ring_struct
-      use cesr_mod
-      implicit none
-      type (ring_struct) ring
-      type (db_struct) db
-      character(*), optional :: calib_date
-    end subroutine
-  end interface
-
-  interface
     subroutine c_to_cbar (ele, cbar_mat)
       use bmad_struct, only: ele_struct, rp
       implicit none
@@ -120,40 +99,11 @@ module bmad_interface
   end interface
 
   interface
-    subroutine cesr_crossings(i_train, j_car, species, n_trains_tot, n_cars, &
-                                 cross_positions, n_car_spacing, train_spacing)
-			use bmad_struct, only: rp
-			implicit none
-      integer, intent(in) :: i_train
-      integer, intent(in) :: j_car
-      integer, intent(in) :: species
-      integer, intent(in) :: n_trains_tot
-      integer, intent(in) :: n_cars
-      integer, optional, intent(in) :: train_spacing(1:10)
-      integer, optional, intent(in) :: n_car_spacing(1:10)
-      real(rp), dimension(:), intent(out) :: cross_positions
-    end subroutine
-  end interface
-
-  interface
     subroutine check_ring_controls (ring, exit_on_error)
       use bmad_struct, only: ring_struct
       implicit none
       type (ring_struct), target :: ring
       logical exit_on_error
-    end subroutine
-  end interface
-
-  interface
-    subroutine choose_cesr_lattice (lattice, lat_file, current_lat, &
-                                                                ring, choice)
-      use bmad_struct, only: ring_struct
-      implicit none
-      type (ring_struct), optional :: ring
-      character(len=*), optional :: choice
-      character(*) lat_file
-      character*40 lattice
-      character*40 current_lat
     end subroutine
   end interface
 
@@ -269,15 +219,6 @@ module bmad_interface
   end interface
 
   interface
-    subroutine create_vsp_volt_elements (ring, ele_type)
-      use bmad_struct, only: ring_struct
-      implicit none
-      type (ring_struct) ring
-      integer ele_type
-    end subroutine
-  end interface
-
-  interface
     subroutine custom_emitt_calc (ring, ir, i2, i3, i5a, i5b)
       use bmad_struct, only: ring_struct, rp
       type (ring_struct) ring
@@ -292,40 +233,6 @@ module bmad_interface
       implicit none
       type (ele_struct), intent(in) :: ele
       type (coord_struct), intent(out) :: disp_orb
-    end subroutine
-  end interface
-
-  interface
-    subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, ring, db, &
-                                                con_, n_con, ok, type_err)
-      use bmad_struct, only: ring_struct, control_struct
-      use cesr_mod
-      implicit none
-      type (ring_struct) ring
-      type (db_struct) db
-      type (control_struct) con_(:)
-      integer n_con
-      integer ing_num
-      integer biggrp_set
-      character*12 ing_name
-      logical ok, type_err
-    end subroutine
-  end interface
-
-  interface
-    subroutine db_group_to_bmad_group (group_name, group_num, i_biggrp, &
-                                           ring, db, ix_ele, ok, type_err)
-      use bmad_struct, only: ring_struct
-      use cesr_mod
-      implicit none
-      type (ring_struct) ring
-      type (db_struct) db
-      integer group_num
-      integer ix_ele
-      integer i_biggrp
-      character*12 group_name
-      logical ok
-      logical type_err
     end subroutine
   end interface
 
@@ -427,16 +334,6 @@ module bmad_interface
       character(*) lattice
       character(*) bmad_file_name
     end subroutine
-  end interface
- 
-  interface
-    subroutine LRBBI_crossings (n_bucket, oppos_buckets, cross_positions)
-      use precision_def
-      implicit none
-			real(rp), intent(in) :: n_bucket
-      real(rp), dimension(:), intent(in) :: oppos_buckets
-      real(rp), dimension(:), intent(inout) :: cross_positions
-    end subroutine LRBBI_crossings 
   end interface
  
   interface
@@ -730,22 +627,6 @@ module bmad_interface
   end interface
 
   interface
-    subroutine quad_calib (lattice, k_theory, k_base,  &
-                     len_quad, cu_per_k_gev, quad_rot, dk_gev_dcu, cu_theory)
-      use precision_def
-      implicit none
-      character lattice(*)
-      real(rdef) k_theory(0:*)
-      real(rdef) k_base(0:*)
-      real(rdef) len_quad(0:*)
-      real(rdef) cu_per_k_gev(0:*)
-      real(rdef) dk_gev_dcu(0:*)
-      real(rdef) quad_rot(0:*)
-      integer cu_theory(0:*)
-    end subroutine
-  end interface
-
-  interface
     subroutine radiation_integrals (ring, orb_, mode, ix_cache)
       use bmad_struct, only: ring_struct, coord_struct, modes_struct
       implicit none
@@ -753,18 +634,6 @@ module bmad_interface
       type (coord_struct), target :: orb_(0:)
       type (modes_struct) mode
       integer, optional :: ix_cache
-    end subroutine
-  end interface
-
-  interface
-    subroutine read_butns_file (butns_num, butns, db, ok, type_err)
-      use bmad_struct, only:
-      use cesr_mod
-      implicit none
-      type (db_struct) db
-      type (butns_struct) butns
-      integer butns_num
-      logical ok, type_err
     end subroutine
   end interface
 
@@ -818,24 +687,6 @@ module bmad_interface
       character(*) attrib_name
       logical make_mat6_flag
       logical err_flag
-    end subroutine
-  end interface
-
-  interface
-    subroutine ring_to_quad_calib (ring, cesr, k_theory, k_base,  &
-                     len_quad, cu_per_k_gev, quad_rot, dk_gev_dcu, cu_theory)
-      use bmad_struct, only: ring_struct
-      use cesr_mod
-      implicit none
-      type (cesr_struct)  cesr
-      type (ring_struct)  ring
-      real(rdef) k_theory(0:*)
-      real(rdef) k_base(0:*)
-      real(rdef) len_quad(0:*)
-      real(rdef) cu_per_k_gev(0:*)
-      real(rdef) dk_gev_dcu(0:*)
-      real(rdef) quad_rot(0:*)
-      integer cu_theory(0:*)
     end subroutine
   end interface
 

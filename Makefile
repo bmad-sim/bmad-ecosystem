@@ -17,6 +17,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.9  2004/04/19 23:07:06  dcs
+# Added bmad/cesr directory.
+#
 # Revision 1.8  2003/11/10 14:05:08  palmer
 # Update for BMAD distributions.
 #
@@ -74,7 +77,7 @@
 # LOCAL_INCS      - Local directories to search for include files
 # LOCAL_MODS      - Local directories to search for F90 compiled module files
 #-----------------------------------------------------------------------------
-LIB_SRC_DIRS := ./code ./interface ./modules
+LIB_SRC_DIRS := ./code ./cesr ./modules
 CONFIG_DIRS   := ./lat ./layout
 LOCAL_INCS    := ./include ../include
 LOCAL_MODS    := ../modules 
