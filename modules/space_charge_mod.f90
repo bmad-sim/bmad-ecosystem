@@ -10,6 +10,7 @@ type space_charge_struct
   real(rp) kick_const
   real(rp) sig_x
   real(rp) sig_y
+  real(rp) phi      ! Rotation angle to go from lab frame to rotated frame.
   real(rp) sin_phi
   real(rp) cos_phi
   real(rp) sig_z
@@ -127,11 +128,15 @@ subroutine setup_space_charge_calc (calc_on, lattice, mode, closed_orb)
                   (b%eta_lab * mode%sigE_E)**2
 
     phi = atan2(2 * xy_ave, xx_ave - yy_ave) / 2
+
+    v%phi = phi
     v%cos_phi = cos(phi)
     v%sin_phi = sin(phi)
+
     xx_rot_ave = (xx_ave + yy_ave + cos(2*phi) * (xx_ave - yy_ave) + &
                                                2 * sin(2*phi) * xy_ave) / 2
     yy_rot_ave = xx_ave + yy_ave - xx_rot_ave
+
     v%sig_x = sqrt(xx_rot_ave)
     v%sig_y = sqrt(yy_rot_ave)
 
@@ -219,6 +224,59 @@ subroutine track1_space_charge (start, ele, param, end)
 
   end%vec(1) = end%vec(1) + kick_const * kx
   end%vec(3) = end%vec(3) + kick_const * ky
+
+end subroutine
+
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
+!+
+! Subroutine make_mat6_space_charge (ele, param)
+!
+! Routine to add the space charge kick to the element transfer matrix.
+! The routine setup_space_charge_calc must be called
+! initially before any tracking is done. This routine assumes a Gaussian 
+! bunch and is only valid with relativistic particles where the effect
+! of the space charge is small.
+!
+! Modules needed:
+!   use space_charge_mod
+!
+! Input:
+!   start  -- Coord_struct: Starting position
+!   ele    -- Ele_struct: Element tracked through.
+!   param  -- Param_struct:
+!
+! Output:
+!   end   -- Coord_struct: End position
+!-
+
+subroutine make_mat6_space_charge (ele, param)
+
+  implicit none
+
+  type (ele_struct),   intent(inout)  :: ele
+  type (param_struct), intent(inout) :: param
+  type (space_charge_struct), pointer :: v
+
+  real(rp) kx_rot, ky_rot, kick_const, sc_kick_mat(6,6)
+
+! Setup the space charge kick matrix and concatenate it with the 
+! existing element transfer matrix.
+
+  v => sc_com%v(ele%ix_ele)
+
+  kx_rot = -4 * pi / v%sig_x
+  ky_rot = -4 * pi / v%sig_y
+
+  kick_const = v%kick_const 
+
+  call mat_make_unit (sc_kick_mat)
+  sc_kick_mat(2,1) = kick_const * kx_rot 
+  sc_kick_mat(4,3) = kick_const * ky_rot 
+  call tilt_mat6(sc_kick_mat, -v%phi)
+
+  ele%mat6 = matmul (sc_kick_mat, ele%mat6)
 
 end subroutine
 
