@@ -35,7 +35,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   
   integer d_unit, n_files, version, i, j, k, ix
   integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
-  integer ix_srf, ix_sr, ix_lrf, ix_lr, ierr, stat
+  integer dum1, ix_sr, dum2, ix_lr, ierr, stat
   integer stat_b(12), idate_old
 
   character(*) digested_name
@@ -149,7 +149,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
     ele => ring%ele_(i)
     if (v_now) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-                              ix_srf, ix_sr, ix_lrf, ix_lr, &
+                              dum1, ix_sr, dum2, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
             ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
@@ -165,7 +165,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
     elseif (v72 .or. v73) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-                              ix_srf, ix_sr, ix_lrf, ix_lr, &
+                              dum1, ix_sr, dum2, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
             ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
@@ -180,7 +180,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
     elseif (v71) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-                              ix_srf, ix_sr, ix_lrf, ix_lr, &
+                              dum1, ix_sr, dum2, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
             ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
@@ -234,24 +234,18 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
       enddo
     enddo
 
-    if (ix_srf /= 0) then
-      allocate (ele%wake%sr_file)
-      read (d_unit) ele%wake%sr_file
-    endif
-
-    if (ix_sr /= 0) then
-      allocate (ele%wake%sr(0:ix_sr-1))
-      read (d_unit) ele%wake%sr
-    endif
-
-    if (ix_lrf /= 0) then
-      allocate (ele%wake%lr_file)
-      read (d_unit) ele%wake%lr_file
-    endif
-
-    if (ix_lr /= 0) then
-      allocate (ele%wake%lr(0:ix_lr-1))
-      read (d_unit) ele%wake%lr
+    if (ix_sr /= 0 .or. ix_lr /= 0) then
+      allocate (ele%wake)
+      if (ix_sr /= 0) then
+        allocate (ele%wake%sr(0:ix_sr-1))
+        read (d_unit) ele%wake%sr_file
+        read (d_unit) ele%wake%sr
+      endif
+      if (ix_lr /= 0) then
+        allocate (ele%wake%lr(0:ix_lr-1))
+        read (d_unit) ele%wake%lr_file
+        read (d_unit) ele%wake%lr
+      endif
     endif
 
   enddo

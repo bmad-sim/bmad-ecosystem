@@ -388,7 +388,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
         endif
 
         if ((ix1 /= 0) .and. (ix2 /= 0)) then
-          allocate (ele%wake%sr_file)
+          allocate (ele%wake)
           name1 = arr_to_str(lwake_file(ix1)%fnam_ptr)
           name2 = arr_to_str(twake_file(ix2)%fnam_ptr)
           ele%wake%sr_file = trim(name1) // ' | ' // name2

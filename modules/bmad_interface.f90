@@ -716,15 +716,6 @@ interface
 end interface
 
 interface
-  subroutine set_taylor_order (order, override_flag)
-    use bmad_struct, only:
-    implicit none
-      integer, intent(in) :: order
-      logical, optional, intent(in) :: override_flag
-  end subroutine
-end interface
-
-interface
   subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
     use bmad_struct, only: ring_struct, rp, coord_struct
     implicit none

@@ -106,21 +106,8 @@ subroutine ele_equal_ele (ele1, ele2)
   endif
 
   do i = 1, 6
-    if (associated(ele2%taylor(i)%term)) then
-      if (associated (ele_save%taylor(i)%term)) then
-        if (size(ele_save%taylor(i)%term) == size(ele2%taylor(i)%term)) then
-          ele1%taylor(i)%term => ele_save%taylor(i)%term
-        else
-          deallocate (ele_save%taylor(i)%term)
-          allocate (ele1%taylor(i)%term(size(ele2%taylor(i)%term)))
-        endif
-      else
-        allocate (ele1%taylor(i)%term(size(ele2%taylor(i)%term)))
-      endif
-      ele1%taylor(i)%term = ele2%taylor(i)%term
-    else
-      if (associated (ele_save%taylor(i)%term)) deallocate (ele_save%taylor(i)%term)
-    endif
+    ele1%taylor(i)%term => ele_save%taylor(i)%term ! reinstate
+    ele1%taylor(i) = ele2%taylor(i)      ! use overloaded taylor_equal_taylor
   enddo
 
   if (associated(ele2%a)) then
@@ -147,58 +134,21 @@ subroutine ele_equal_ele (ele1, ele2)
     if (associated (ele_save%descrip)) deallocate (ele_save%descrip)
   endif
 
-  if (associated(ele2%wake%sr_file)) then
-    if (associated (ele_save%wake%sr_file)) then
-      ele1%wake%sr_file => ele_save%wake%sr_file
+  if (associated(ele2%wake)) then
+    if (associated (ele_save%wake)) then
+      ele1%wake => ele_save%wake
     else
-      allocate (ele1%wake%sr_file)
+      allocate (ele1%wake)
     endif
-    ele1%wake%sr_file = ele2%wake%sr_file
+    call init_sr_wake (ele1%wake%sr, sr_wake_array_size(ele2))
+    call init_lr_wake (ele1%wake%lr, lr_wake_array_size(ele2))
+    ele1%wake = ele2%wake
   else
-    if (associated (ele_save%wake%sr_file)) deallocate (ele_save%wake%sr_file)
-  endif
-
-  if (associated(ele2%wake%lr_file)) then
-    if (associated (ele_save%wake%lr_file)) then
-      ele1%wake%lr_file => ele_save%wake%lr_file
-    else
-      allocate (ele1%wake%lr_file)
+    if (associated (ele_save%wake)) then
+      if (associated(ele_save%wake%sr)) deallocate (ele_save%wake%sr)
+      if (associated(ele_save%wake%lr)) deallocate (ele_save%wake%lr)
+      deallocate (ele_save%wake)
     endif
-    ele1%wake%lr_file = ele2%wake%lr_file
-  else
-    if (associated (ele_save%wake%lr_file)) deallocate (ele_save%wake%lr_file)
-  endif
-
-  if (associated(ele2%wake%sr)) then
-    if (associated (ele_save%wake%sr)) then
-      if (size(ele_save%wake%sr) == size(ele2%wake%sr)) then
-        ele1%wake%sr => ele_save%wake%sr
-      else
-        deallocate (ele_save%wake%sr)
-        allocate (ele1%wake%sr(0:ubound(ele2%wake%sr,1)))
-      endif
-    else
-      allocate (ele1%wake%sr(0:ubound(ele2%wake%sr,1)))
-    endif
-    ele1%wake%sr = ele2%wake%sr
-  else
-    if (associated (ele_save%wake%sr)) deallocate (ele_save%wake%sr)
-  endif
-
-  if (associated(ele2%wake%lr)) then
-    if (associated (ele_save%wake%lr)) then
-      if (size(ele_save%wake%lr) == size(ele2%wake%lr)) then
-        ele1%wake%lr => ele_save%wake%lr
-      else
-        deallocate (ele_save%wake%lr)
-        allocate (ele1%wake%lr(0:ubound(ele2%wake%lr,1)))
-      endif
-    else
-      allocate (ele1%wake%lr(0:ubound(ele2%wake%lr,1)))
-    endif
-    ele1%wake%lr = ele2%wake%lr
-  else
-    if (associated (ele_save%wake%lr)) deallocate (ele_save%wake%lr)
   endif
 
 ! gen_fields are hard because it involves pointers in PTC.

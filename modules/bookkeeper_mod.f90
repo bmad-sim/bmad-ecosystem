@@ -1004,8 +1004,9 @@ subroutine attribute_bookkeeper (ele, param)
 ! Lcavity
 
   case (lcavity$)
-    if (associated (ele%wake%sr)) &
-                          ele%value(e_loss$) = ele%wake%sr(0)%long / 2
+    if (associated (ele%wake)) then
+      if (associated (ele%wake%sr)) ele%value(e_loss$) = ele%wake%sr(0)%long / 2
+    endif
     ele%value(delta_e$) = ele%value(gradient$) * ele%value(L$) 
     
 
@@ -1013,7 +1014,7 @@ subroutine attribute_bookkeeper (ele, param)
 
   case (rfcavity$)
     if (ele%value(harmon$) /= 0) ele%value(rf_frequency$) =  &
-                                ele%value(harmon$) * c_light / param%total_length 
+                              ele%value(harmon$) * c_light / param%total_length 
 
 ! BeamBeam
 

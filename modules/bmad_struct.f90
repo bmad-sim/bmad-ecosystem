@@ -35,7 +35,7 @@ module bmad_struct
 
 ! Wiggler structures
 
-  integer,parameter :: hyper_y$ = 1, hyper_xy$ = 2, hyper_x$ = 3
+  integer, parameter :: hyper_y$ = 1, hyper_xy$ = 2, hyper_x$ = 3
   character*8, parameter :: wig_term_type_name(0:3) = (/ &
                   'Garbage ', 'Hyper_Y ', 'Hyper_XY', 'Hyper_X ' /)
 
@@ -62,8 +62,8 @@ module bmad_struct
   end type
 
   type wake_struct
-    character(200), pointer :: sr_file => null()
-    character(200), pointer :: lr_file => null()
+    character(200) :: sr_file = ' '
+    character(200) :: lr_file = ' '
     type (sr_wake_struct), pointer :: sr(:) => null()
     type (lr_wake_struct), pointer :: lr(:) => null()
   end type
@@ -103,8 +103,8 @@ module bmad_struct
     character(200), pointer :: descrip => null()     ! For general use
     type (genfield), pointer :: gen_field => null()  ! For symp_map$
     type (taylor_struct) :: taylor(6)                ! Taylor terms
+    type (wake_struct), pointer :: wake => null()    ! Wakefields
     type (wig_term_struct), pointer :: wig_term(:) => null()   ! Wiggler Coefs
-    type (wake_struct) wake        ! Wakefields
     integer key                    ! key value
     integer sub_key                ! For wigglers: map_type$, periodic_type$
     integer control_type           ! SUPER_SLAVE$, OVERLAY_LORD$, etc.
@@ -331,47 +331,9 @@ module bmad_struct
   integer, parameter :: ran_seed$ = 59
 
   integer, parameter :: a0$  =  60, k0l$  =  60
-  integer, parameter :: a1$  =  61, k1l$  =  61
-  integer, parameter :: a2$  =  62, k2l$  =  62
-  integer, parameter :: a3$  =  63, k3l$  =  63
-  integer, parameter :: a4$  =  64, k4l$  =  64
-  integer, parameter :: a5$  =  65, k5l$  =  65
-  integer, parameter :: a6$  =  66, k6l$  =  66
-  integer, parameter :: a7$  =  67, k7l$  =  67
-  integer, parameter :: a8$  =  68, k8l$  =  68
-  integer, parameter :: a9$  =  69, k9l$  =  69
-  integer, parameter :: a10$ =  70, k10l$ =  70
-  integer, parameter :: a11$ =  71, k11l$ =  71
-  integer, parameter :: a12$ =  72, k12l$ =  72
-  integer, parameter :: a13$ =  73, k13l$ =  73
-  integer, parameter :: a14$ =  74, k14l$ =  74
-  integer, parameter :: a15$ =  75, k15l$ =  75
-  integer, parameter :: a16$ =  76, k16l$ =  76
-  integer, parameter :: a17$ =  77, k17l$ =  77
-  integer, parameter :: a18$ =  78, k18l$ =  78
-  integer, parameter :: a19$ =  79, k19l$ =  79
   integer, parameter :: a20$ =  80, k20l$ =  80
 
   integer, parameter :: b0$  =  90, t0$  =  90
-  integer, parameter :: b1$  =  91, t1$  =  91
-  integer, parameter :: b2$  =  92, t2$  =  92
-  integer, parameter :: b3$  =  93, t3$  =  93
-  integer, parameter :: b4$  =  94, t4$  =  94
-  integer, parameter :: b5$  =  95, t5$  =  95
-  integer, parameter :: b6$  =  96, t6$  =  96
-  integer, parameter :: b7$  =  97, t7$  =  97
-  integer, parameter :: b8$  =  98, t8$  =  98
-  integer, parameter :: b9$  =  99, t9$  =  99
-  integer, parameter :: b10$ = 100, t10$ = 100
-  integer, parameter :: b11$ = 101, t11$ = 101
-  integer, parameter :: b12$ = 102, t12$ = 102
-  integer, parameter :: b13$ = 103, t13$ = 103
-  integer, parameter :: b14$ = 104, t14$ = 104
-  integer, parameter :: b15$ = 105, t15$ = 105
-  integer, parameter :: b16$ = 106, t16$ = 106
-  integer, parameter :: b17$ = 107, t17$ = 107
-  integer, parameter :: b18$ = 108, t18$ = 108
-  integer, parameter :: b19$ = 109, t19$ = 109
   integer, parameter :: b20$ = 110, t20$ = 110 ! this is n_attrib_special_maxx 
 
   integer, parameter :: n_attrib_special_maxx = 110
@@ -579,11 +541,8 @@ module bmad_struct
     real(rp) :: abs_tollerance = 1e-6
 #endif
     integer :: taylor_order = 3              ! 3rd order is default
-    integer :: taylor_order_ptc = 0          ! 0 -> not yet set 
-    logical :: taylor_order_set = .false.    ! Used by set_taylor_order
-    integer :: real_8_map_init               ! See PTC doc.
     integer :: default_integ_order = 2       ! PTC integration order
-    integer :: default_num_steps = 1         ! Number integration steps
+    integer :: default_num_steps = 10        ! Number integration steps
     logical :: canonical_coords = .true.     ! Use (x, px) [not (x, x')]
     logical :: use_liar_lcavity = .false.    ! Liar like tracking?
     logical :: sr_wakes_on = .true.          ! Short range wakefields?

@@ -34,7 +34,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   integer d_unit, i, j, k, n_file
   integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
   integer stat_b(12), stat
-  integer ix_srf, ix_sr, ix_lrf, ix_lr, ierr
+  integer dum1, ix_sr, dum2, ix_lr, ierr
 
   character(*) digested_name
   character(*), optional :: file_names(:)
@@ -77,7 +77,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
     tt => ele%taylor
     
     ix_wig = 0; ix_d = 0; ix_m = 0; ix_t = 0; ix_const = 0; ix_r = 0
-    ix_srf = 0; ix_sr = 0; ix_lrf = 0; ix_lr = 0
+    dum1 = 0; ix_sr = 0; dum2 = 0; ix_lr = 0
 
     if (associated(ele%wig_term)) ix_wig = size(ele%wig_term)
     if (associated(ele%const))    ix_const = size(ele%const)
@@ -85,13 +85,16 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
     if (associated(ele%descrip))  ix_d = 1
     if (associated(ele%a))        ix_m = 1
     if (associated(tt(1)%term))   ix_t = (/ (size(tt(j)%term), j = 1, 6) /)
-    if (associated(ele%wake%sr_file)) ix_srf = 1
-    if (associated(ele%wake%sr))      ix_sr  = size(ele%wake%sr)
-    if (associated(ele%wake%lr_file)) ix_lrf = 1
-    if (associated(ele%wake%lr))      ix_lr  = size(ele%wake%lr)
+
+    if (associated(ele%wake)) then
+      dum1  = 1
+      if (associated(ele%wake%sr)) ix_sr = size(ele%wake%sr)
+      dum2  = 1
+      if (associated(ele%wake%lr)) ix_lr = size(ele%wake%lr)
+    endif
 
     write (d_unit) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-                              ix_srf, ix_sr, ix_lrf, ix_lr, &
+                              dum1, ix_sr, dum2, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
             ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
@@ -122,11 +125,16 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
       enddo
     enddo
 
-    if (associated(ele%wake%sr_file))  write (d_unit) ele%wake%sr_file
-    if (associated(ele%wake%sr))       write (d_unit) ele%wake%sr
-    if (associated(ele%wake%lr_file))  write (d_unit) ele%wake%lr_file
-    if (associated(ele%wake%lr))       write (d_unit) ele%wake%lr
-
+    if (associated(ele%wake)) then
+      if (associated(ele%wake%sr)) then
+        write (d_unit) ele%wake%sr_file
+        write (d_unit) ele%wake%sr
+      endif
+      if (associated(ele%wake%lr)) then 
+        write (d_unit) ele%wake%lr_file
+        write (d_unit) ele%wake%lr
+      endif
+    endif
 
   enddo
 

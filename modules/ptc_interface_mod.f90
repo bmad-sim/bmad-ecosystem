@@ -17,9 +17,77 @@ module ptc_interface_mod
     module procedure universal_equal_universal
   end interface
 
+  type ptc_com_struct
+    integer :: real_8_map_init               ! See PTC doc.
+    integer :: taylor_order_ptc = 0          ! 0 -> not yet set 
+    logical :: taylor_order_set = .false.    ! Used by set_taylor_order
+  end type
+
+  type (ptc_com_struct), private, save :: ptc_com
   integer, parameter :: bmad_std$ = 1, ptc_std$ = -1
 
+
 contains
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine set_taylor_order (order, override_flag)
+!
+! Subroutine to set the taylor order for the Taylor maps.
+!
+! Note: override_flag = .false. is generally only used by bmad_parser so that
+! if the taylor order has been previously set then the setting in the 
+! lattice file will not override it.
+!
+! Note: Calling this routine after calling bmad_parser will not reset any
+! taylor maps made by bmad_parser. Thus when in doubt, call this routine
+! before calling bmad_parser.
+!
+! Note: This routine does not call any of Etienne's PTC routines since this
+! routine may be called before PTC has been initialized. This routine
+! just sets a global variable and returns.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   order         -- Integer: Taylor order.
+!                     If order = 0. then nothing is done.
+!   override_flag -- Logical, optional: If False then if the taylor order 
+!                     has been previously set do not reset.
+!-
+
+subroutine set_taylor_order (order, override_flag)
+
+  implicit none
+
+  integer, intent(in) :: order
+  logical, optional, intent(in) :: override_flag
+  logical override
+
+! do nothing if order = 0
+
+  if (order == 0) return
+
+  if (order < 0 .or. order > 100) then
+    print *, 'ERROR IN SET_TAYLOR_ORDER: ORDER OUT OF BOUNDS:', order
+    call err_exit
+  endif
+
+! check for override_flag and do nothing if the taylor order has been set
+
+  override = .true.
+  if (present(override_flag)) override = override_flag
+  if (.not. override .and. ptc_com%taylor_order_set) return
+
+! set the taylor order.
+
+  bmad_com%taylor_order = order
+  ptc_com%taylor_order_set = .true.    
+
+end subroutine
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -519,10 +587,10 @@ subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
   if (present(taylor_order)) then  
     if (init_needed) then                   ! make_states has not been called
       bmad_com%taylor_order = taylor_order  ! store the order for next time
-    elseif (bmad_com%taylor_order_ptc /= taylor_order) then
+    elseif (ptc_com%taylor_order_ptc /= taylor_order) then
       call init (default, taylor_order, 0, berz, nd2, &
-                                               bmad_com%real_8_map_init)
-      bmad_com%taylor_order_ptc = taylor_order
+                                               ptc_com%real_8_map_init)
+      ptc_com%taylor_order_ptc = taylor_order
       bmad_com%taylor_order     = taylor_order
     endif
   endif
@@ -868,7 +936,7 @@ subroutine real_8_init (y, set_taylor)
 !
 
   call alloc(y)
-  y = bmad_com%real_8_map_init
+  y = ptc_com%real_8_map_init
 
   if (present(set_taylor)) then
     if (set_taylor) y = x   ! converts y to taylor (kind = 2)
@@ -983,7 +1051,7 @@ subroutine concat_real_8 (y1, y2, y3)
 
 ! set the taylor order in PTC if not already done so
 
-  if (bmad_com%taylor_order_ptc /= bmad_com%taylor_order) &
+  if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) &
                          call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! Allocate temp vars
@@ -1047,7 +1115,7 @@ subroutine taylor_to_genfield (bmad_taylor, gen_field, c0)
 
 ! set the taylor order in PTC if not already done so
 
-  if (bmad_com%taylor_order_ptc /= bmad_com%taylor_order) &
+  if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) &
                          call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! Remove constant terms from the taylor map first. This is probably
@@ -1186,7 +1254,7 @@ subroutine taylor_inverse (taylor_in, taylor_inv)
 
 ! set the taylor order in PTC if not already done so
 
-  if (bmad_com%taylor_order_ptc /= bmad_com%taylor_order) &
+  if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) &
                          call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! The inverse operation of PTC ignores constant terms so we have to take
@@ -1264,7 +1332,7 @@ subroutine concat_taylor (taylor1, taylor2, taylor3)
 
 ! set the taylor order in PTC if not already done so
 
-  if (bmad_com%taylor_order_ptc /= bmad_com%taylor_order) &
+  if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) &
                          call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! Allocate temp vars
@@ -1328,7 +1396,7 @@ subroutine taylor_propagate1 (tlr, ele, param)
 
 ! set the taylor order in PTC if not already done so
 
-  if (bmad_com%taylor_order_ptc /= bmad_com%taylor_order) &
+  if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) &
                          call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! init
@@ -1409,7 +1477,7 @@ subroutine ele_to_taylor (ele, param, orb0)
     init_needed = .false.
   endif
 
-  if (bmad_com%taylor_order_ptc /= bmad_com%taylor_order) then
+  if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) then
     call set_ptc (taylor_order = bmad_com%taylor_order)
   endif
 
@@ -1443,7 +1511,7 @@ subroutine ele_to_taylor (ele, param, orb0)
   enddo
   
   call universal_to_bmad_taylor (u_taylor, ele%taylor)
-  ele%taylor_order = bmad_com%taylor_order_ptc
+  ele%taylor_order = ptc_com%taylor_order_ptc
 
   call kill(a_fibre)
   call kill(y)
@@ -1506,7 +1574,6 @@ subroutine type_real_8_taylors (y, switch_z)
 
 !
 
-  call init_taylor (b_taylor)
   call real_8_to_taylor (y, b_taylor, switch_z)
   call type_taylors (b_taylor)
   call kill_taylor (b_taylor)

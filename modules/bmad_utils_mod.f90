@@ -627,8 +627,7 @@ subroutine deallocate_ele_pointers (ele, nullify_only)
       nullify (ele%r)
       nullify (ele%descrip)
       nullify (ele%a, ele%b)
-      nullify (ele%wake%sr_file, ele%wake%sr)
-      nullify (ele%wake%lr_file, ele%wake%lr)
+      nullify (ele%wake)
       nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
                 ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
       nullify (ele%gen_field)
@@ -643,13 +642,17 @@ subroutine deallocate_ele_pointers (ele, nullify_only)
   if (associated (ele%r))        deallocate (ele%r)
   if (associated (ele%descrip))  deallocate (ele%descrip)
   if (associated (ele%a))        deallocate (ele%a, ele%b)
-  if (associated (ele%wake%sr_file))  deallocate (ele%wake%sr_file)
-  if (associated (ele%wake%sr))       deallocate (ele%wake%sr)
-  if (associated (ele%wake%lr_file))  deallocate (ele%wake%lr_file)
-  if (associated (ele%wake%lr))       deallocate (ele%wake%lr)
+
+  if (associated (ele%wake)) then
+    if (associated (ele%wake%sr)) deallocate (ele%wake%sr)
+    if (associated (ele%wake%lr)) deallocate (ele%wake%lr)
+    deallocate (ele%wake)
+  endif
+
   if (associated (ele%taylor(1)%term)) deallocate &
            (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
            ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
+
   call kill_gen_field (ele%gen_field)
 
 end subroutine
@@ -745,8 +748,8 @@ subroutine init_ele (ele)
   ele%mat6_calc_method = bmad_standard$
   ele%tracking_method  = bmad_standard$
   ele%field_calc       = bmad_standard$
-  ele%num_steps = 10
-  ele%integration_ord = 2
+  ele%num_steps        = bmad_com%default_num_steps
+  ele%integration_ord  = bmad_com%default_integ_order
   ele%ptc_kind = 0
 
   ele%is_on = .true.
@@ -1029,4 +1032,160 @@ subroutine match_ele_to_mat6 (ele, mat6, vec0)
 
 end subroutine
 
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function sr_wake_array_size (ele) result (array_size)
+!
+! Function to return the size of ele%wake%sr.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele -- Element_struct: Element to test.
+!
+! Output:
+!   array_size -- Integer: Set to 0 if array not associated.
+!-
+
+function sr_wake_array_size (ele) result (array_size)
+
+  type (ele_struct) ele
+  integer array_size
+
+!
+
+  array_size = 0
+  if (.not. associated(ele%wake)) return
+  if (associated (ele%wake%sr)) array_size = size(ele%wake%sr)
+
+end function
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function lr_wake_array_size (ele) result (array_size)
+!
+! Function to return the size of ele%wake%lr.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele -- Element_struct: Element to test.
+!
+! Output:
+!   array_size -- Integer: Set to 0 if array not associated.
+!-
+
+function lr_wake_array_size (ele) result (array_size)
+
+  type (ele_struct) ele
+  integer array_size
+
+!
+
+  array_size = 0
+  if (.not. associated(ele%wake)) return
+  if (associated (ele%wake%lr)) array_size = size(ele%wake%lr)
+
+end function
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine init_sr_wake (sr_wake, n_term)
+!
+! Subroutine to initialize a sr_wake array.
+! Note: Lower bound is zero.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   sr_wake(:) -- Sr_wake_struct: Old structure.
+!   n_term     -- Integer: Number of terms to allocate. 
+!                   0 => pointer will be disassociated.
+!
+! Output:
+!   sr_wake(0:n_term-1) -- Sr_wake_struct: Initalized structure.
+!-
+
+subroutine init_sr_wake (sr_wake, n_term)
+
+  implicit none
+
+  type (sr_wake_struct), pointer :: sr_wake(:)
+  integer n_term
+
+!
+
+  if (n_term == 0) then
+    if (associated (sr_wake)) deallocate (sr_wake)
+    return
+  endif
+
+  if (associated (sr_wake)) then
+    if (size(sr_wake) /= n_term) then
+      deallocate (sr_wake)
+      allocate (sr_wake(0:n_term-1))
+    endif
+  else
+    allocate (sr_wake(0:n_term-1))
+  endif
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine init_lr_wake (lr_wake, n_term)
+!
+! Subroutine to initialize a lr_wake array.
+! Note: Lower bound is zero.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   lr_wake(:) -- Lr_wake_struct: Old structure.
+!   n_term     -- Integer: Number of terms to allocate. 
+!                   0 => pointer will be disassociated.
+!
+! Output:
+!   lr_wake(0:n_term-1) -- Lr_wake_struct: Initalized structure.
+!-
+
+subroutine init_lr_wake (lr_wake, n_term)
+
+  implicit none
+
+  type (lr_wake_struct), pointer :: lr_wake(:)
+  integer n_term
+
+!
+
+  if (n_term == 0) then
+    if (associated (lr_wake)) deallocate (lr_wake)
+    return
+  endif
+
+  if (associated (lr_wake)) then
+    if (size(lr_wake) /= n_term) then
+      deallocate (lr_wake)
+      allocate (lr_wake(0:n_term-1))
+    endif
+  else
+    allocate (lr_wake(0:n_term-1))
+  endif
+
+end subroutine
+
+
 end module
+

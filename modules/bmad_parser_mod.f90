@@ -1576,11 +1576,11 @@ subroutine type_get (ele, ix_type, delim, delim_found)
     if (.not. associated(ele%descrip)) allocate (ele%descrip) 
     ele%descrip = type_name
   case (sr_wake_file$) 
-    if (.not. associated(ele%wake%sr_file)) allocate (ele%wake%sr_file)
+    if (.not. associated(ele%wake)) allocate (ele%wake)
     ele%wake%sr_file = type_name
     call read_sr_wake (ele)
   case (lr_wake_file$) 
-    if (.not. associated(ele%wake%lr_file)) allocate (ele%wake%lr_file)
+    if (.not. associated(ele%wake)) allocate (ele%wake)
     ele%wake%lr_file = type_name
     print *, 'ERROR: LR_WAKES NOT YET IMPLEMENTED!'
     call err_exit

@@ -4,7 +4,7 @@ module bmad_taylor_mod
 
   use precision_def
 
-! Note: the taylor_struct uses the bmad standard (x, p_x, y, p_y, z, p_z) 
+! Note: the taylor_struct uses the Bmad standard (x, p_x, y, p_y, z, p_z) 
 ! the universal_taylor in Etienne's PTC uses (x, p_x, y, p_y, p_z, -c*t)
 ! %ref is the reference point about which the taylor expansion was made
 
@@ -22,6 +22,7 @@ module bmad_taylor_mod
 
   interface assignment (=)
     module procedure taylor_equal_taylor
+    module procedure taylors_equal_taylors
   end interface
 
 contains
@@ -31,6 +32,45 @@ contains
 !----------------------------------------------------------------------
 !+
 ! Subroutine taylor_equal_taylor (taylor1, taylor2)
+!
+! Subroutine that is used to set one taylor equal to another. 
+! This routine takes care of the pointers in taylor1. 
+!
+! Note: This subroutine is called by the overloaded equal sign:
+!		taylor1 = taylor2
+!
+! Input:
+!   taylor2 -- Ele_struct: Input taylor.
+!
+! Output:
+!   taylor1 -- Ele_struct: Output taylor.
+!-
+
+subroutine taylor_equal_taylor (taylor1, taylor2)
+
+  implicit none
+	
+  type (taylor_struct), intent(inout) :: taylor1
+  type (taylor_struct), intent(in) :: taylor2
+
+!
+
+  taylor1%ref = taylor2%ref
+
+  if (associated(taylor2%term)) then
+    call init_taylor (taylor1, size(taylor2%term))
+    taylor1%term = taylor2%term
+  else
+    if (associated (taylor1%term)) deallocate (taylor1%term)
+  endif
+
+end subroutine
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine taylors_equal_taylors (taylor1, taylor2)
 !
 ! Subroutine to transfer the values from one taylor map to another:
 !     Taylor1 <= Taylor2
@@ -45,7 +85,7 @@ contains
 !   taylor1(:) -- Taylor_struct: Taylor map. 
 !-
 
-subroutine taylor_equal_taylor (taylor1, taylor2)
+subroutine taylors_equal_taylors (taylor1, taylor2)
 
   implicit none
 
@@ -56,15 +96,8 @@ subroutine taylor_equal_taylor (taylor1, taylor2)
 
 !
 
-  if (associated (taylor1(1)%term)) then
-    do i = 1, size(taylor1)
-      deallocate (taylor1(i)%term)
-    enddo
-  endif
-
   do i = 1, size(taylor1)
-    allocate (taylor1(i)%term(size(taylor2(i)%term)))
-    taylor1(i)%term = taylor2(i)%term
+    taylor1(i) = taylor2(i)
   enddo
 
 end subroutine
@@ -126,7 +159,7 @@ end function
 !+
 ! Subroutine type_taylors (bmad_taylor)
 !
-! Subroutine to print in a nice format a BMAD Taylor Map at the terminal.
+! Subroutine to print in a nice format a Bmad Taylor Map at the terminal.
 !
 ! Modules needed:
 !   use bmad
@@ -163,7 +196,7 @@ end subroutine
 !+
 ! Subroutine type2_taylors (bmad_taylor, lines, n_lines)
 !
-! Subroutine to write a BMAD taylor map in a nice format to a character array.
+! Subroutine to write a Bmad taylor map in a nice format to a character array.
 !
 ! Moudles needed:
 !   use bmad
@@ -255,35 +288,44 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine init_taylor (bmad_taylor)
+! Subroutine init_taylor (bmad_taylor, n_term)
 !
-! Subroutine to initialize (nullify) a BMAD Taylor map.
-! Note: You must be sure that bmad_taylor is not allocated before using this
-! routine otherwise you will have a memory leak!
+! Subroutine to initialize a Bmad Taylor map.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   bmad_taylor(:) -- Taylor_struct: New structure.
+!   bmad_taylor -- Taylor_struct: Old structure.
+!   n_term      -- Integer: Number of terms to allocate. 
+!                   0 => %term pointer will be disaccociated.
 !
 ! Output:
-!   bmad_taylor(:) -- Taylor_struct: Initalized structure.
+!   bmad_taylor -- Taylor_struct: Initalized structure.
 !-
 
-subroutine init_taylor (bmad_taylor)
+subroutine init_taylor (bmad_taylor, n_term)
 
   implicit none
 
-  type (taylor_struct) bmad_taylor(:)
-
-  integer i
+  type (taylor_struct) bmad_taylor
+  integer n_term
 
 !
 
-  do i = 1, size(bmad_taylor)
-    nullify (bmad_taylor(i)%term)
-  enddo
+  if (n_term == 0) then
+    if (associated (bmad_taylor%term)) deallocate (bmad_taylor%term)
+    return
+  endif
+
+  if (associated (bmad_taylor%term)) then
+    if (size(bmad_taylor%term) /= n_term) then
+      deallocate (bmad_taylor%term)
+      allocate (bmad_taylor%term(n_term))
+    endif
+  else
+    allocate (bmad_taylor%term(n_term))
+  endif
 
 end subroutine
 
@@ -293,7 +335,7 @@ end subroutine
 !+
 ! Subroutine kill_taylor (bmad_taylor)
 !
-! Subroutine to deallocate a BMAD taylor map.
+! Subroutine to deallocate a Bmad taylor map.
 !
 ! Modules needed:
 !   use bmad

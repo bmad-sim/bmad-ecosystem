@@ -205,7 +205,7 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
 !------------------------------------------------
 ! For an lcavity without a wakefield file use the e_loss attribute 
 
-  if (.not. associated(ele%wake%sr)) then
+  if (sr_wake_array_size(ele) > 0) then
     call order_macroparticles_in_z (bunch_start)
     charge = param%charge
     param%charge = 0
