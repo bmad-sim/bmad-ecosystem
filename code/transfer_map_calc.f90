@@ -30,6 +30,7 @@ subroutine transfer_map_calc (lat, t_map, ix1, ix2)
   use bmad_struct
   use bmad_interface, except => transfer_map_calc
   use cesr_utils, only: integer_option
+  use ptc_interface_mod, only: concat_taylor
 
   implicit none
 
