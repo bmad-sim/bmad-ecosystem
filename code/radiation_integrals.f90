@@ -83,7 +83,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
   use nr
   use rad_int_common, except => radiation_integrals
-  use radiation_mod, only: synch_rad_com, sr_com
+  use radiation_mod
   
   implicit none
 
@@ -92,7 +92,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
   type (ele_struct), pointer :: ele, ele0
   type (coord_struct), target :: orb_(0:), start, end, c2
   type (modes_struct) mode
-  type (synch_rad_com) sr_com_save
+  type (bmad_com_struct) bmad_com_save
   type (rad_int_cache_struct), pointer :: cache
 
   real(rp), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
@@ -110,9 +110,9 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 ! Init
 ! To make the calculation go faster turn off radiation fluctuations and damping
 
-  sr_com_save = sr_com
-  sr_com%fluctuations_on = .false.
-  sr_com%damping_on = .false.
+  bmad_com_save = bmad_com
+  bmad_com%radiation_fluctuations_on = .false.
+  bmad_com%radiation_damping_on = .false.
 
   if (allocated(ric%i1_)) then
     if (ubound(ric%i1_, 1) < ring%n_ele_max) then 
@@ -504,7 +504,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
   mode%z%emittance = mode%sig_z * mode%sigE_E
 
-  sr_com = sr_com_save
+  bmad_com = bmad_com_save
 
 !---------------------------------------------------------------------------
 contains

@@ -862,6 +862,7 @@ subroutine file_stack (how, file_name_in, finished)
               '       THIS FROM THE LOGICAL FILE NAME: ', trim(file_name_in)
       if (bmad_status%exit_on_error) call err_exit
       bmad_status%ok = .false.
+      bp_com%error_flag = .true.
       return
     endif
 

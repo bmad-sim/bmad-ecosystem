@@ -9,12 +9,10 @@ module radiation_mod
   type synch_rad_com
     real(rp) :: scale = 1.0               ! used to scale the radiation
     real(rp) :: i2 = 0, i3 = 0            ! radiation integrals
-    logical :: damping_on = .false.       ! Radiation damping toggle.
-    logical :: fluctuations_on = .false.  ! Radiation fluctuations toggle.
     logical :: i_calc_on = .false.        ! For calculating i2 and i3    
   end type
 
-  type (synch_rad_com), save :: sr_com
+  type (synch_rad_com), save, private :: sr_com
 
 contains
 
@@ -28,7 +26,7 @@ contains
 ! See the radiation_integrals routine for further details.
 !
 ! Modules needed:
-!   use bmad
+!   use radiation_mod
 !
 ! Input:
 !   ix_cache -- Integer: Cache number.
@@ -71,7 +69,7 @@ end subroutine
 ! Use the setup_radiation_tracking routine initially prior to tracking.
 !
 ! Modules needed:
-!   use bmad
+!   use radiation_mod
 !
 ! Input:
 !   start -- Coord_struct: Starting particle position.
@@ -159,29 +157,29 @@ subroutine track1_radiation (start, ele, param, end, edge)
     g_x =  ele%value(k1$) * x_ave
     g_y = -ele%value(k1$) * y_ave
     g2 = g_x**2 + g_y**2
-    if (sr_com%fluctuations_on) g3 = sqrt(g2)**3
+    if (bmad_com%radiation_fluctuations_on) g3 = sqrt(g2)**3
 
   case (sextupole$)
     g = ele%value(k2$) * (start2%vec(1)**2 + start2%vec(3)**2)
     g2 = g**2
-    if (sr_com%fluctuations_on) g3 = g2 * abs(g)
+    if (bmad_com%radiation_fluctuations_on) g3 = g2 * abs(g)
 
   case (octupole$)
     g2 = ele%value(k3$)**2 * (start2%vec(1)**2 + start2%vec(3)**2)**3
-    if (sr_com%fluctuations_on) g3 = sqrt(g2)**3
+    if (bmad_com%radiation_fluctuations_on) g3 = sqrt(g2)**3
 
   case (sbend$)
     if (ele%value(k1$) == 0) then
       g = ele%value(g$) + ele%value(delta_g$)
       g2 = g**2 
-      if (sr_com%fluctuations_on) g3 = g2 * abs(g)
+      if (bmad_com%radiation_fluctuations_on) g3 = g2 * abs(g)
     else
       x_ave = start2%vec(1) + direc * start2%vec(2) * ele%value(l$) / 4
       y_ave = start2%vec(3) + direc * start2%vec(4) * ele%value(l$) / 4
       g_x = ele%value(g$) + ele%value(delta_g$) + ele%value(k1$) * x_ave
       g_y = ele%value(k1$) * y_ave
       g2 = g_x**2 + g_y**2
-      if (sr_com%fluctuations_on) g3 = sqrt(g2)**3
+      if (bmad_com%radiation_fluctuations_on) g3 = sqrt(g2)**3
     endif
 
   case (wiggler$)
@@ -205,10 +203,10 @@ subroutine track1_radiation (start, ele, param, end, edge)
   gamma_0 = ele%value(beam_energy$) / m_electron
 
   fact_d = 0
-  if (sr_com%damping_on) fact_d = 2 * r_e * gamma_0**3 * g2 * s_len / 3
+  if (bmad_com%radiation_damping_on) fact_d = 2 * r_e * gamma_0**3 * g2 * s_len / 3
 
   fact_f = 0
-  if (sr_com%fluctuations_on) then
+  if (bmad_com%radiation_fluctuations_on) then
     call ran_gauss (this_ran)
     fact_f = sqrt(fluct_const * s_len * gamma_0**5 * g3) * this_ran
   endif
@@ -242,7 +240,7 @@ end subroutine
 ! and damping off.
 !
 ! Modules needed:
-!   use bmad
+!   use radiation_mod
 !
 ! Input:
 !   ring            -- Ring_struct:
@@ -277,8 +275,9 @@ subroutine setup_radiation_tracking (ring, closed_orb, &
 
 ! Set logicals.
 
-  if (present(fluctuations_on)) sr_com%fluctuations_on = fluctuations_on
-  if (present(damping_on))      sr_com%damping_on      = damping_on
+  if (present(fluctuations_on)) &
+                  bmad_com%radiation_fluctuations_on = fluctuations_on
+  if (present(damping_on)) bmad_com%radiation_damping_on = damping_on
 
 ! Compute for a map_type wiggler the change in g2 and g3 
 !   with respect to transverse orbit for an on-energy particle..

@@ -372,7 +372,10 @@ is_eq = all(f1%d_orb == f2%d_orb) .and. &
       (f1%sr_wakes_on .eqv. f2%sr_wakes_on) .and.  &
       (f1%lr_wakes_on .eqv. f2%lr_wakes_on) .and.  &
       (f1%mat6_track_symmetric .eqv.  f2%mat6_track_symmetric) .and. &
-      (f1%auto_bookkeeper .eqv. f2%auto_bookkeeper)
+      (f1%auto_bookkeeper .eqv. f2%auto_bookkeeper) .and. &
+      (f1%space_charge_on .eqv. f2%space_charge_on) .and. &
+      (f1%radiation_damping_on .eqv. f2%radiation_damping_on) .and. &
+      (f1%radiation_fluctuations_on .eqv. f2%radiation_fluctuations_on)
 
 end function
 

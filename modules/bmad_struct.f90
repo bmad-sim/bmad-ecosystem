@@ -582,6 +582,9 @@ module bmad_struct
     logical :: lr_wakes_on = .true.          ! Long range wakefields
     logical :: mat6_track_symmetric = .true. ! symmetric offsets
     logical :: auto_bookkeeper = .true.      ! Automatic bookkeeping?
+    logical :: space_charge_on = .false.     ! Space charge kick in tracking.
+    logical :: radiation_damping_on = .false.       ! Damping toggle.
+    logical :: radiation_fluctuations_on = .false.  ! Fluctuations toggle.
   end type
   
   type (bmad_com_struct), save :: bmad_com

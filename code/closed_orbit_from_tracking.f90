@@ -49,7 +49,6 @@ subroutine closed_orbit_from_tracking (ring, closed_orb, i_dim, &
   use bmad_struct
   use bmad_interface, except => closed_orbit_from_tracking
   use bookkeeper_mod, only: set_on_off, save_state$, restore_state$, off$
-  use radiation_mod, only: sr_com
 
   implicit none
 
@@ -81,8 +80,8 @@ subroutine closed_orbit_from_tracking (ring, closed_orb, i_dim, &
 
   call reallocate_coord (closed_orb, ring%n_ele_max)
 
-  fluct_saved = sr_com%fluctuations_on
-  sr_com%fluctuations_on = .false.  
+  fluct_saved = bmad_com%radiation_fluctuations_on
+  bmad_com%radiation_fluctuations_on = .false.  
 
   aperture_saved = ring%param%aperture_limit_on
   ring%param%aperture_limit_on = .false.
@@ -149,7 +148,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb, i_dim, &
                                          rel_err(1:nd) * amp(1:nd) ) ) then
       if (nd == 2 .or. nd == 4) &
                           call set_on_off (rfcavity$, ring, restore_state$)
-      sr_com%fluctuations_on = fluct_saved  ! restore state
+      bmad_com%radiation_fluctuations_on = fluct_saved  ! restore state
       ring%param%aperture_limit_on = aperture_saved
       return
     endif
