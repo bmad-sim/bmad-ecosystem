@@ -969,6 +969,8 @@ subroutine deallocate_ring_pointers (ring)
   endif
 
   ring%n_ele_maxx = -1
+  ring%n_ele_ring = -1
+  ring%n_ele_max  = -1
 
 end subroutine
 
