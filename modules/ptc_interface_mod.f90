@@ -567,7 +567,7 @@ subroutine real_8_equal_taylor (y8, bmad_taylor)
 
   implicit none
 
-  type (real_8), intent(out) :: y8(:)
+  type (real_8), intent(inout) :: y8(:)
   type (taylor_struct), intent(in) :: bmad_taylor(:)
 
   call taylor_to_real_8 (bmad_taylor, y8, .true.)
@@ -598,7 +598,7 @@ subroutine taylor_equal_real_8 (bmad_taylor, y8)
   implicit none
 
   type (real_8), intent(in) :: y8(:)
-  type (taylor_struct), intent(out) :: bmad_taylor(:)
+  type (taylor_struct), intent(inout) :: bmad_taylor(:)
 
   call real_8_to_taylor (y8, bmad_taylor, .true.)
 
@@ -636,7 +636,7 @@ subroutine real_8_to_taylor (y8, bmad_taylor, switch_z)
   implicit none
 
   type (real_8), intent(in) :: y8(:)
-  type (taylor_struct), intent(out) :: bmad_taylor(:)
+  type (taylor_struct), intent(inout) :: bmad_taylor(:)
   type (universal_taylor) :: u_t(6)
 
   integer i
@@ -689,7 +689,7 @@ subroutine taylor_to_real_8 (bmad_taylor, y8, switch_z)
 
   implicit none
 
-  type (real_8), intent(out) :: y8(:)
+  type (real_8), intent(inout) :: y8(:)
   type (taylor_struct), intent(in) :: bmad_taylor(:)
   type (universal_taylor) :: u_t
 
@@ -993,7 +993,7 @@ subroutine concat_real_8 (y1, y2, y3)
   implicit none
 
   type (real_8), intent(in) :: y1(:), y2(:)
-  type (real_8), intent(out) :: y3(:)
+  type (real_8), intent(inout) :: y3(:)
   type (damap) da1, da2, da3
 
 ! set the taylor order in PTC if not already done so
