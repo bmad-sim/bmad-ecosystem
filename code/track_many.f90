@@ -172,8 +172,8 @@ subroutine track_back (ix1, ix2)
     if (ring%param%lost) then
       if (ring%param%end_lost_at == exit_end$) then
         ring%param%end_lost_at = entrance_end$
-      elseif (ring%param%end_lost_at == exit_end$) then
-        ring%param%end_lost_at = entrance_end$
+      elseif (ring%param%end_lost_at == entrance_end$) then
+        ring%param%end_lost_at = exit_end$
       else
         call out_io (s_abort$, r_name, 'INTERNAL ERROR')
         call err_exit
