@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/07/31 14:32:41  dcs
+!Modified so moved digested file handled correctly.
+!
 !Revision 1.4  2002/06/13 14:54:28  dcs
 !Interfaced with FPP/PTC
 !
@@ -107,12 +110,16 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
     inquire (file = fname(2), exist = found_it, name = fname(3))
     if (.not. found_it .or. fname(1) /= fname(3) .or. &
                                              stat_b(10) /= idate_old) then
-      if (bmad_status%type_out) then
-        type *, 'READ_DIGESTED_BMAD_FILE: DIGESTED FILE OUT OF DATE.'
-      endif
+      if (bmad_status%type_out) type *, &
+                        'READ_DIGESTED_BMAD_FILE: DIGESTED FILE OUT OF DATE.'
       bmad_status%ok = .false.
     endif
-  enddo
+    if (i == 1 .and. fname(2) /= ring%input_file_name) then
+      if (bmad_status%type_out) type *, &
+                        'READ_DIGESTED_BMAD_FILE: MOVED DIGESTED FILE.'
+      bmad_status%ok = .false.
+    endif
+   enddo
 
 ! we read (and write) the ring in pieces since it is
 ! too big to write in one piece

@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.11  2002/07/31 14:32:41  dcs
+!Modified so moved digested file handled correctly.
+!
 !Revision 1.10  2002/07/16 21:33:57  dcs
 !*** empty log message ***
 !
@@ -102,14 +105,18 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   logical, optional :: make_mats6
   logical parsing, delim_found, matched_delim, arg_list_found, doit
   logical file_end, found, err_flag, finished, save_taylor
+  logical vmask(n_attrib_maxx)
   logical, save :: init_needed = .true.
 
-! see if digested file is open and current.
-! if so read in and return
+! see if digested file is open and current. If so read in and return.
+! Note: The name of the digested file depends upon the real precision.
 
-  pcom%parser_name = 'BMAD_PARSER'
+  pcom%parser_name = 'BMAD_PARSER'  ! Used for error messages.
 
-! The name of the digested file depends upon the real precision
+  inquire (file = in_file, name = full_name)      ! full input file_name
+  ix = index(full_name, ';')
+  if (ix /= 0) full_name = full_name(:ix-1)
+  ring%input_file_name = full_name      ! needed by read_digested_bmad_file
 
   ix = SplitFileName(in_file, path, basename)
   if (rdef == 8) then
@@ -726,6 +733,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 ! first load beam parameters.
 
   ring%version            = bmad_inc_version$
+  ring%input_file_name    = full_name             ! save input file
   ring%param%particle     = nint(in_ring%ele_(0)%value(particle$))
   ring%param%energy       = in_ring%ele_(0)%value(energy$)
   ring%param%n_part       = in_ring%ele_(0)%value(n_part$)
@@ -736,11 +744,9 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   ring%n_ele_max          = n_ele_ring
   ring%param%aperture_limit_on = .true.
   ring%n_ele_symm         = 0                     ! no symmetry point
+  ring%n_ic_array         = 0                     
+  ring%n_control_array    = 0    
   ring%input_taylor_order = 0
-  inquire (file = in_file, name = full_name)      !! full input file_name
-  ix = index(full_name, ';')
-  if (ix /= 0) full_name = full_name(:ix-1)
-  ring%input_file_name    = full_name             ! save input file
   call set_symmetry (ring%param%symmetry, ring)   ! set ring.n_ele_use
   call init_ele (ring%ele_(0))
   call init_ele (ring%ele_init)
@@ -914,10 +920,14 @@ subroutine bmad_parser (in_file, ring, make_mats6)
       if (old_energy /= ring%param%energy) exit
       
       ele => ring%ele_(i)
+      call attribute_bookkeeper (ele, ring%param) ! so value arrays are equal
 
+      vmask = .true.
+      if (ele%key == wiggler$) vmask((/k1$, rho$, b_max$/)) = .false.
       do j = 1, size(old_ele)
+        if (old_ele(j)%key /= ele%key) cycle
         if (old_ele(j)%name /= ele%name) cycle
-        if (any(old_ele(j)%value /= ele%value)) cycle
+        if (any(old_ele(j)%value /= ele%value .and. vmask)) cycle
         if (old_ele(j)%num_steps /= ele%num_steps) cycle
         if (old_ele(j)%integration_order /= ele%integration_order) cycle
         if (associated(old_ele(j)%wig_term) .and. &
@@ -935,18 +945,31 @@ subroutine bmad_parser (in_file, ring, make_mats6)
           cycle
         endif
         if (any(old_ele(j)%taylor(:)%ref /= 0)) cycle
-        if (bmad_com%taylor_order /= old_ele(j)%taylor_order) cycle
+        if (bmad_com%taylor_order > old_ele(j)%taylor_order) cycle
         exit
       enddo
 
       if (j == size(old_ele) + 1) cycle
 
       print *, 'BMAD_PARSER: Reusing Taylor for: ', old_ele(j)%name
-      do it = 1, 6
-        allocate (ele%taylor(it)%term(size(old_ele(j)%taylor(it)%term)))
-        ele%taylor(it)%term = old_ele(j)%taylor(it)%term
-      enddo
 
+      do it = 1, 6
+        ix = 0
+        do k = 1, size(old_ele(j)%taylor(it)%term)
+         if (sum(old_ele(j)%taylor(it)%term(k)%exp(:)) <= &
+                                      bmad_com%taylor_order) ix = ix + 1
+        enddo
+        allocate (ele%taylor(it)%term(ix))
+        ix = 0
+        do k = 1, size(old_ele(j)%taylor(it)%term)
+         if (sum(old_ele(j)%taylor(it)%term(k)%exp(:)) <= &
+                                      bmad_com%taylor_order) then
+            ix = ix + 1
+            ele%taylor(it)%term(ix) = old_ele(j)%taylor(it)%term(ix)
+          endif      
+        enddo
+      enddo
+      ele%taylor_order = bmad_com%taylor_order
     enddo
 
     deallocate(old_ele)
