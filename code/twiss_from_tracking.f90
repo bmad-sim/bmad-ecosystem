@@ -47,7 +47,7 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
   real(rp), intent(out) :: error
 
   type multi_orb_struct
-    type (coord_struct), pointer :: orb(:) => null()
+    type (coord_struct), allocatable :: orb(:) 
   end type
   type (multi_orb_struct), save :: mo(6)
 
@@ -57,7 +57,7 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
 !
 
   do i=1,6
-    call reallocate_coord_pointer (mo(i)%orb, ring%n_ele_max)
+    call reallocate_coord (mo(i)%orb, ring%n_ele_max)
   enddo
 
 ! make a unit matrix

@@ -28,7 +28,7 @@ module rad_int_common
     type (ring_struct), pointer :: ring
     type (ele_struct), pointer :: ele0, ele
     type (ele_struct) runt
-    type (coord_struct), pointer :: orb0, orb1
+    type (coord_struct), allocatable :: orb0, orb1
     type (runge_kutta_com_struct) :: rk_track(0:6)
     type (coord_struct) d_orb
   end type

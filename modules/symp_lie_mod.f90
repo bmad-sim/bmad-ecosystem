@@ -9,7 +9,7 @@ module symp_lie_mod
   type symp_lie_com_struct
     logical :: save_orbit = .false.       ! save orbit?
     real(rp), pointer :: s(:) => null()   ! s_distance
-    type(coord_struct), pointer :: orb(:) ! orbit
+    type(coord_struct), allocatable :: orb(:) ! orbit
   end type
 
   type (symp_lie_com_struct), save :: sl_com

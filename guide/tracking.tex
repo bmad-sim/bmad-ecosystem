@@ -1,20 +1,43 @@
 \chapter{Tracking}
 
-With coord_structs:
+\bmad\ can do two types of tracking. One type uses a single particle 
+and tracks its coordinates throughout the lattice. The other type
+takes a beam distribution and tracks the beam RMS sigmas. This latter
+tracking is associated with wakefields and is discussed in another
+chapter. The starting point of any tracking is the \tn{coord\_struct}
+shown in~\ref{f:coord_struct}
 
-1) In a subroutine where the coord_struct array is local and the ring_struct is passed as an argument to the routine. If the size of ring%ele_(:) does not change then the simplest allocation strategy is to use an automatic array:
-      subroutine my_sub (ring, ...)
-      type (ring_struct) ring
-      type (coord_struct) orb_(0:ring%n_ele_ring)
+\begin{figure}[tb]
+\centering
+\small
+\begin{verbatim}
+  type coord_struct
+    real(rp) vec(6)   ! (x, p_x, y, p_y, z, p_z)
+  end type
+\end{verbatim}
+\caption{Definition of the \tn{coord\_struct}.}
+\label{f:ele_struct}
+\end{figure}
 
-Advantages: Simplicity
-Disadvantages: Can be slow. coord_struct gets allocated and deallocated every time the routine is called. Also: cannot handle case when the number of ring%ele_(:) elements changes.
+To get an orbit you will need an array of \tn{coord_struct}'s. Since
+the number of elements in the lattice is not known in advance the
+array must be decleared via a pointer
+\begin{verbatim}
+  type (coord_struct), pointer :: coords(:) = null()
+\end{verbatim}
+You cannot, in general, use an allocatable array since the BMAD
+subroutines expect a pointer and Fortran does not allow you to mix and
+match. Since you have a variable that alloocates memory from the heap
+you are responsable for making sure you clean up after yourself if you
+want to prevent a memory leak. If you are writing a subroutine where
+the \tn{coord\_struct} array is local and if the number of elements in 
+the \tn{ring\_struct} is constant then the fastest way to allocate is:
+\begin{berbatim}
+  type (coord_struct), pointer, save :: orb_(:) => null()§
+  ...
+  call allocate_coord (orb_, ring%n_ele_ring)
+\end{verbatim}
 
-2) If time is am issue then the following is to be preferred (again the coord_struct is assumed local to the subroutine):
-
-      type (coord_struct), allocatable, save :: orb_(:)
-      ...
-      call allocate_coord (orb_, ring%n_ele_ring)
 
 Advantages: Minimal reallocation so fast.
   Can always handle case when size of ring%ele_(:) changes.

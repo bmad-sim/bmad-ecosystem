@@ -27,7 +27,7 @@ module boris_mod
     logical :: save_steps = .false.        ! save orbit?
     integer :: n_pts                       ! number of points
     real(rp), pointer :: s(:) => null()  ! s-distance of a point
-    type (coord_struct), pointer :: orb(:) ! position of a point
+    type (coord_struct), allocatable :: orb(:) ! position of a point
     real(rp) :: ds_save = 1e-3           ! min distance between points
     real(rp) :: step0 = 1e-3             ! Initial step size.
     real(rp) :: step_min = 1e-8          ! min step size to step below which 

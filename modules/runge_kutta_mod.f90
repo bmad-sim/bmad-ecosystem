@@ -9,7 +9,7 @@ module runge_kutta_mod
     integer :: n_ok, n_bad, n_pts          ! number of points
     real(rp) :: ds_save = 1e-3           ! min distance between points
     real(rp), pointer :: s(:) => null()  ! s-distance of a point
-    type (coord_struct), pointer :: orb(:) ! position of a point
+    type (coord_struct), allocatable :: orb(:) ! position of a point
   end type
 
   type (runge_kutta_com_struct), save :: rk_com

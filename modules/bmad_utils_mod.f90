@@ -548,8 +548,6 @@ end subroutine
 !     coord_(0:n_coord)
 ! Note: The old coordinates are not saved except for coord_(0).
 !  If at input coord_ is not allocated then coord_(0)%vec is set to zero.
-! Note: If coord_ is actually a pointer then use the routine:
-!     reallocate_coord_pointer
 !
 ! Modules needed:
 !   use bmad
@@ -572,55 +570,6 @@ subroutine reallocate_coord (coord_, n_coord)
 !
 
   if (allocated (coord_)) then
-    if (size(coord_) < n_coord + 1) then
-      start = coord_(0)
-      deallocate (coord_)
-      allocate (coord_(0:n_coord))
-      coord_(0) = start
-    endif
-  else
-    allocate (coord_(0:n_coord))
-    coord_(0)%vec = 0
-  endif
-
-end subroutine
-
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!+
-! Subroutine reallocate_coord_pointer (coord_, n_coord)
-!
-! Subroutine to reallocate a pointer to an coord_struct array to at least:
-!     coord_(0:n_coord)
-! Note: The old coordinates are not saved except for coord_(0).
-!  If at input coord_ is not allocated then coord_(0)%vec is set to zero.
-! Note: You must make sure that coord_ is initially nullified or 
-!   pointing to allocatable memory.
-! Note: For allocatable arrays use the routine:
-!     reallocate_coord
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   coord_(:) -- Coord_struct, pointer: Pointer to an array.
-!   n_coord   -- Integer: Minimum array upper bound wanted.
-!
-! Output:
-!   coord_(:) -- coord_struct: Allocated array.
-!-
-
-subroutine reallocate_coord_pointer (coord_, n_coord)
-
-  type (coord_struct), pointer :: coord_(:)
-  type (coord_struct) start
-
-  integer, intent(in) :: n_coord
-
-!
-
-  if (associated (coord_)) then
     if (size(coord_) < n_coord + 1) then
       start = coord_(0)
       deallocate (coord_)
