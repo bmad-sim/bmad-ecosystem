@@ -60,7 +60,7 @@ logical show_all, name_found
 logical, automatic :: picked(size(s%u))
 logical, allocatable :: show_here(:)
 
-max_lines = s%global%max_output_lines 
+max_lines = n_output_lines_maxx 
 if (.not. allocated (lines)) allocate (lines(max_lines))
 if (size(lines) .ne. max_lines) allocate (lines(max_lines))
 
@@ -396,6 +396,12 @@ case ('lattice')
     nl=nl+1
     write (lines(nl), '(a, i2, a, i6, a)') "Universe ", s%global%u_view, &
                " has ", u%model%n_ele_use, " regular elements."
+    nl=nl+1
+    if (u%is_on) then
+      write (lines(nl), '(a)') "This universe is turned ON"
+    else
+      write (lines(nl), '(a)') "This universe is turned OFF"
+    endif
     call out_io (s_blank$, r_name, lines(1:nl))
     return
   endif

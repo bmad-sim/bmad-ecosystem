@@ -328,7 +328,6 @@ type tao_global_struct
                                      !  0 -> no command file.
   integer :: ix_key_bank = 0         ! For single mode.
   integer :: phase_units = radians$  ! Phase units on output.
-  integer :: max_output_lines = 400  ! maximun number of lines sent to output_io
   integer :: bunch_to_plot = 1       ! Which macroparticle bunch to plot
   character(16) :: track_type = 'single' ! or macro 
   character(16) :: prompt_string = 'Tao'
@@ -411,6 +410,7 @@ type tao_universe_struct
   real(rp), pointer :: dModel_dVar(:,:) => null()             ! Derivative matrix.
   integer n_d2_data_used
   integer n_data_used
+  logical is_on                                    ! universe turned on
 end type
 
 ! The super_universe is the structure that holds an array of universes.

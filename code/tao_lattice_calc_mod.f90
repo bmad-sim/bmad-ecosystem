@@ -45,42 +45,42 @@ logical initing_design
 ! used refers to if a custom lattice calculation is performed
 logical, automatic :: used(size(s%u))
 
-used(:) = .false.
+  used(:) = .false.
 
-! have to do this because the logical init_design is optional
-initing_design = .false.
-if (present(init_design)) then
-  if (init_design) initing_design = .true.
-endif
+  ! have to do this because the logical init_design is optional
+  initing_design = .false.
+  if (present(init_design)) then
+    if (init_design) initing_design = .true.
+  endif
 
-! make sure useit is up-to-date
-if (.not. initing_design) then
-  call tao_set_var_useit_opt
-  call tao_set_data_useit_opt
-endif
-
-! do a custom lattice calculation if desired
-if (s%global%lattice_recalc) then
-  do i = 1, size(s%u)
-    if (initing_design) then
-      lattice => s%u(i)%design
-      orbit => s%u(i)%design_orb
-    else
-      lattice => s%u(i)%model
-      orbit => s%u(i)%model_orb
-    endif
-    call tao_lat_bookkeeper (s%u(i), lattice)
-    call tao_hook_lattice_calc (s%u(i), lattice, orbit, used(i))
-  enddo
-  if (.not. any(.not. used)) s%global%lattice_recalc = .false.
-endif
+  ! make sure useit is up-to-date
+  if (.not. initing_design) then
+    call tao_set_var_useit_opt
+    call tao_set_data_useit_opt
+  endif
   
-! Closed orbit and Twiss calculation.
-! This can be slow for large lattices so only do it if the lattice changed.
-if (s%global%lattice_recalc) then
-  if (s%global%track_type .eq. 'single') then
+  ! do a custom lattice calculation if desired
+  if (s%global%lattice_recalc) then
     do i = 1, size(s%u)
-      if (.not. used(i)) then
+      if (initing_design) then
+        lattice => s%u(i)%design
+        orbit => s%u(i)%design_orb
+      else
+        lattice => s%u(i)%model
+        orbit => s%u(i)%model_orb
+      endif
+      call tao_lat_bookkeeper (s%u(i), lattice)
+      call tao_hook_lattice_calc (s%u(i), lattice, orbit, used(i))
+    enddo
+    if (.not. any(.not. used)) s%global%lattice_recalc = .false.
+  endif
+    
+  ! Closed orbit and Twiss calculation.
+  ! This can be slow for large lattices so only do it if the lattice changed.
+  if (s%global%lattice_recalc) then
+    if (s%global%track_type .eq. 'single') then
+      do i = 1, size(s%u)
+        if (.not. s%u(i)%is_on .or. used(i)) cycle
         if (initing_design) then
           lattice => s%u(i)%design
           orbit => s%u(i)%design_orb
@@ -99,13 +99,12 @@ if (s%global%lattice_recalc) then
 	orbit = temp_orb
         if (lattice%param%lost) &
           call out_io (s_blank$, r_name, "particle lost at element \I\.", &
-                                              lattice%param%ix_lost)
-      endif
-    enddo
-    s%global%lattice_recalc = .false.
-  elseif (s%global%track_type .eq. 'macro') then
-    do i = 1, size(s%u)
-      if (.not. used(i)) then
+                                            lattice%param%ix_lost)
+      enddo
+      s%global%lattice_recalc = .false.
+    elseif (s%global%track_type .eq. 'macro') then
+      do i = 1, size(s%u)
+        if (.not. s%u(i)%is_on .or. used(i)) cycle
         if (initing_design) then
           lattice => s%u(i)%design
           orbit => s%u(i)%design_orb
@@ -118,20 +117,19 @@ if (s%global%lattice_recalc) then
         if (initing_design) call tao_match_lats_init (s%u(i))
         call tao_inject_beam (s%u(i), lattice, orbit, design$)
         call tao_macro_track (i, lattice, orbit)
-      endif
-    enddo
-    s%global%lattice_recalc = .false.
-  else
-    call out_io (s_fatal$, r_name, &
-                   "This tracking type has yet to be implemented!")
-    call out_io (s_blank$, r_name, &
-                   "No tracking or twiss calculations will be perfomred.")
+      enddo
+      s%global%lattice_recalc = .false.
+    else
+      call out_io (s_fatal$, r_name, &
+                     "This tracking type has yet to be implemented!")
+      call out_io (s_blank$, r_name, &
+                     "No tracking or twiss calculations will be perfomred.")
+    endif
   endif
-endif
 
-! Transfer info from %model to %data arrays.
-if (.not. initing_design) &
-  call tao_load_data_array ()
+  ! Transfer info from %model to %data arrays.
+  if (.not. initing_design) &
+    call tao_load_data_array ()
 
 end subroutine tao_lattice_calc
 
@@ -268,8 +266,8 @@ real(rp) :: value1, value2, m_particle
   call ring_make_mat6 (lat, -1, orb)
   call twiss_propagate_all (lat)
 
-  ! only post total lost if no extraction
-  if (extract_at_ix_ele .eq. -1) then
+  ! only post total lost if no extraction or extracting to a turned off lattice
+  if (extract_at_ix_ele .eq. -1 .or. .not. s%u(uni+1)%is_on) then
     n_lost = 0 
     do n_bunch = 1, size(beam%bunch)
       do n_slice = 1, size(beam%bunch(n_bunch)%slice)
@@ -381,6 +379,14 @@ character(20) :: r_name = "inject_particle"
 
   if (.not. u%coupling%coupled) return
     
+  if (.not. s%u(u%coupling%from_uni)%is_on) then
+    call out_io (s_error$, r_name, &
+      "Injecting from a turned off universe! This will not do!")
+    call out_io (s_blank$, r_name, &
+      "No injection will be performed")
+    return
+  endif
+  
   call init_ele (extract_ele)
   
   ! get particle perameters from previous universe at position s
@@ -445,6 +451,14 @@ character(20) :: r_name = "tao_inject_beam"
 
   if (.not. u%coupling%coupled) return
    
+  if (.not. s%u(u%coupling%from_uni)%is_on) then
+    call out_io (s_error$, r_name, &
+      "Injecting from a turned off universe! This will not do!")
+    call out_io (s_blank$, r_name, &
+      "No injection will be performed")
+    return
+  endif
+  
   ! beam from previous universe at end of element should already be set
   ! but we still need the twiss parameters and everything else
   if (from_where .eq. model$) then

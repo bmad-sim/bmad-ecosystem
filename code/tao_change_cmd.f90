@@ -4,11 +4,10 @@
 ! Routine to change a variable in the model lattice.
 !
 ! Input:
-!   who      -- Character(*): 'var', 'ele' or 'begin'
+!   who      -- Character(*): 'var' or 'ele'
 !   name     -- Character(*): Name of variable or element.
-!   where    -- Character(*): For variable: Index of variable.
+!   where    -- Character(*): For variable: Index range of variables.
 !                             For element: Attribute name of element.
-!                             For begin: axis to change
 !   num_str  -- Character(*): Change in value. 
 !                                A '@' signifies a absolute set.
 !                                A 'd' signifies a set relative design.        
@@ -25,27 +24,33 @@ use quick_plot
 implicit none
 
 type (tao_universe_struct), pointer :: u
-type (tao_var_struct), pointer :: v_ptr
+type (tao_v1_var_struct), pointer :: v1_ptr
 
 real(rp) change_number, model_value, old_merit, new_merit
 real(rp), pointer :: attrib_ptr, design_ptr
 real(rp) old_value, new_value, design_value, delta
+real(rp), allocatable :: old_var_value(:)
+real(rp), allocatable :: new_var_value(:)
+real(rp), allocatable :: design_var_value(:)
+real(rp), allocatable :: var_delta(:)
 
-integer i, ix_ele, ixa, ix
+integer nl, i, ix_ele, ixa, ix, err_num
 
 character(*) who, name, where, num_str
 character(80) num
 character(20) :: r_name = 'tao_change_cmd'
 character(16) ele_name
 character(40) fmt
-character(80) line(5)
+character(100) lines(n_output_lines_maxx)
 
 logical err, absolute_num, rel_to_design
+logical, allocatable :: action_logic(:) !which variables to change
 
 !-------------------------------------------------
 
 call to_number;  if (err) return
 old_merit = tao_merit()
+nl = 0
 
 ! If changing a variable...
 
@@ -53,25 +58,97 @@ select case (who)
 
 case ('var')
 
-  call tao_find_var (err, name, var_number = where, v_ptr = v_ptr)
+  call tao_find_var (err, name, v1_ptr)
   if (err) return
-  if (.not. v_ptr%exists) then
-    call out_io (s_error$, r_name, 'VARIABLE DOES NOT EXIST.')
+! if (.not. v_ptr%exists) then
+!   call out_io (s_error$, r_name, 'VARIABLE DOES NOT EXIST.')
+!   return
+! endif
+
+  ! Find locations
+  allocate(action_logic(lbound(v1_ptr%v, 1):ubound(v1_ptr%v,1)))
+  allocate(old_var_value(lbound(v1_ptr%v, 1):ubound(v1_ptr%v,1)))
+  allocate(new_var_value(lbound(v1_ptr%v, 1):ubound(v1_ptr%v,1)))
+  allocate(design_var_value(lbound(v1_ptr%v, 1):ubound(v1_ptr%v,1)))
+  call location_decode (where, action_logic, lbound(v1_ptr%v,1), err_num)
+  if (err_num .eq. -1) then
+    deallocate(action_logic)
+    deallocate(old_var_value)
+    deallocate(new_var_value)
+    deallocate(design_var_value)
     return
   endif
-
-  old_value = v_ptr%model_value
+  
+  ! now change all desired variables
+  old_var_value(:) = v1_ptr%v(:)%model_value
 
   if (absolute_num) then
-    call tao_set_var_model_value (v_ptr, change_number)
+    do i = lbound(action_logic,1), ubound(action_logic,1)
+      if (action_logic(i)) &
+              call tao_set_var_model_value (v1_ptr%v(i), change_number)
+    enddo
   elseif (rel_to_design) then
-    call tao_set_var_model_value (v_ptr, change_number + v_ptr%design_value)
+    do i = lbound(action_logic,1), ubound(action_logic,1)
+      if (action_logic(i)) &
+              call tao_set_var_model_value (v1_ptr%v(i), &
+                                        v1_ptr%v(i)%design_value + change_number)
+    enddo
   else
-    call tao_set_var_model_value (v_ptr, v_ptr%model_value + change_number)
+    do i = lbound(action_logic,1), ubound(action_logic,1)
+      if (action_logic(i)) &
+              call tao_set_var_model_value (v1_ptr%v(i), &
+                                        v1_ptr%v(i)%model_value + change_number)
+    enddo
   endif
 
-  new_value = v_ptr%model_value
-  design_value = v_ptr%design_value
+  new_var_value(:)    = v1_ptr%v(:)%model_value
+  design_var_value(:) = v1_ptr%v(:)%design_value
+    
+  !-----------------------------------
+  ! print results
+
+  new_merit = tao_merit()
+  if (any(max(abs(old_var_value), abs(new_var_value), abs(design_var_value)) > 100)) then
+    fmt = '(5x, I5, 2x, f12.0, a, 4f12.0)'
+  else
+    fmt = '(5x, I5, 2x, f12.6, a, 4f12.6)'
+  endif
+
+  nl = nl+1
+  write (lines(nl), '(5x, a)') 'Index       Old              New       Delta   Old-Design   New-Design'
+  do i = lbound(action_logic,1), ubound(action_logic,1)
+    if (action_logic(i)) then
+      nl = nl+1
+      write (lines(nl), fmt) i, old_var_value(i), '  ->', new_var_value(i), &
+                             new_var_value(i)-old_var_value(i), &
+			     old_var_value(i)-design_var_value(i), &
+			     new_var_value(i)-design_var_value(i)
+    endif
+  enddo
+  nl = nl+1
+  write (lines(nl), '(5x, a)') 'Index       Old              New       Delta   Old-Design   New-Design'
+
+  if (max(abs(old_merit), abs(new_merit)) > 100) then
+    fmt = '(5x, 2(a, f13.2), f13.2)'
+  else
+    fmt = '(5x, 2(a, f13.6), f13.6)'
+  endif
+
+  nl=nl+1
+  nl=nl+1;lines(nl) = ' '
+  write (lines(nl), fmt) 'Merit:      ', &
+                        old_merit, '  ->', new_merit, new_merit-old_merit
+  nl=nl+1;lines(nl) = ' '
+  nl=nl+1
+  if (delta /= 0) write (lines(nl), '(a, es12.3)') &
+                         'dMerit/dValue:  ', (new_merit-old_merit) / delta
+
+  call out_io (s_blank$, r_name, lines(1:nl))
+
+  deallocate(action_logic)
+  deallocate(old_var_value)
+  deallocate(new_var_value)
+  deallocate(design_var_value)
 
 !-------------------------------------------------
 ! If changing an element attribute...
@@ -131,43 +208,43 @@ case ('ele')
   end select
 
   s%global%lattice_recalc = .true.
-!
+
+
+  !----------------------------------
+  ! print results
+
+  new_merit = tao_merit()
+  delta = new_value - old_value
+  if (max(abs(old_value), abs(new_value), abs(design_value)) > 100) then
+    fmt = '(5x, 2(a, f12.0), f12.0)'
+  else
+    fmt = '(5x, 2(a, f12.6), f12.6)'
+  endif
+
+  nl=nl+1;write (lines(nl), '(27x, a)') 'Old              New      Delta'
+  nl=nl+1;write (lines(nl), fmt) 'Value:       ', old_value, '  ->', new_value, delta
+  nl=nl+1;write (lines(nl), fmt) 'Value-Design:', old_value-design_value, &
+                                  '  ->', new_value-design_value
+
+  if (max(abs(old_merit), abs(new_merit)) > 100) then
+    fmt = '(5x, 2(a, f13.2), f13.2)'
+  else
+    fmt = '(5x, 2(a, f13.6), f13.6)'
+  endif
+
+  nl=nl+1;write (lines(nl), fmt) 'Merit:      ', &
+                        old_merit, '  ->', new_merit, new_merit-old_merit
+  nl=nl+1;lines(nl) = ' '
+  nl=nl+1;if (delta /= 0) write (lines(nl), '(a, es12.3)') &
+                         'dMerit/dValue:  ', (new_merit-old_merit) / delta
+
+  call out_io (s_blank$, r_name, lines(1:nl))
 
 case default
 
   call out_io (s_error$, r_name, 'UNKNOWN "WHO" (ele or var?): ' // trim(who))
 
 end select
-
-!---------------------------------------------------
-! print results
-
-new_merit = tao_merit()
-delta = new_value - old_value
-if (max(abs(old_value), abs(new_value), abs(design_value)) > 100) then
-  fmt = '(5x, 2(a, f12.0), f12.0)'
-else
-  fmt = '(5x, 2(a, f12.6), f12.6)'
-endif
-
-write (line(1), '(27x, a)') 'Old              New      Delta'
-write (line(2), fmt) 'Value:       ', old_value, '  ->', new_value, delta
-write (line(3), fmt) 'Value-Design:', old_value-design_value, &
-                                  '  ->', new_value-design_value
-
-if (max(abs(old_merit), abs(new_merit)) > 100) then
-  fmt = '(5x, 2(a, f13.2), f13.2)'
-else
-  fmt = '(5x, 2(a, f13.6), f13.6)'
-endif
-
-write (line(4), fmt) 'Merit:      ', &
-                        old_merit, '  ->', new_merit, new_merit-old_merit
-line(5) = ' '
-if (delta /= 0) write (line(5), '(a, es12.3)') &
-                         'dMerit/dValue:  ', (new_merit-old_merit) / delta
-
-call out_io (s_blank$, r_name, line)
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

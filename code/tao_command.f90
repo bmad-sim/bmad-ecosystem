@@ -27,7 +27,7 @@ subroutine tao_command (command_line, err)
 
   integer i, j
   integer ix, ix_line, ix_cmd, which
-  integer int1, int2
+  integer int1, int2, uni
 
   real(rp) value1, value2
 
@@ -109,9 +109,9 @@ subroutine tao_command (command_line, err)
     if (cmd_word(2) == ' ') then
       call tao_clip_cmd (cmd_word(1), 0.0_rp, 0.0_rp) 
     else
-      call to_real (cmd_word(2), value1, err);  if (err) return
+      call tao_to_real (cmd_word(2), value1, err);  if (err) return
       if (cmd_word(3) /= ' ') then
-        call to_real (cmd_word(3), value2, err);  if (err) return
+        call tao_to_real (cmd_word(3), value2, err);  if (err) return
       else
         value2 = value1
         value1 = -value1
@@ -291,6 +291,10 @@ subroutine tao_command (command_line, err)
       call tao_set_global_cmd (cmd_word(2), cmd_word(4))
     case ('plot')
       call tao_set_plot_cmd (cmd_word(2), cmd_word(4), cmd_word(5))
+    case ('universe')
+      call tao_to_int (cmd_word(2), uni, err)
+      if (err) return
+      call tao_set_uni_cmd (uni, cmd_word(3))
     case default
       call out_io (s_error$, r_name, 'NOT RECOGNIZED: ' // cmd_word(1))
     end select
@@ -304,9 +308,9 @@ subroutine tao_command (command_line, err)
     if (cmd_word(2) == ' ') then
       call tao_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp) 
     else
-      call to_real (cmd_word(2), value1, err);  if (err) return
+      call tao_to_real (cmd_word(2), value1, err);  if (err) return
       if (cmd_word(3) /= ' ') then
-        call to_real (cmd_word(3), value2, err);  if (err) return
+        call tao_to_real (cmd_word(3), value2, err);  if (err) return
       else
         value2 = value1
         value1 = -value1
@@ -343,7 +347,7 @@ subroutine tao_command (command_line, err)
   case ('view')
 
     call cmd_split (2, .true., err); if (err) return
-    call to_int (cmd_word(1), int1, err); if (err) return
+    call tao_to_int (cmd_word(1), int1, err); if (err) return
     call tao_view_cmd (int1)
 
 !--------------------------------
@@ -363,8 +367,8 @@ subroutine tao_command (command_line, err)
     if (cmd_word(2) == ' ') then
       call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err)
     else
-      call to_real (cmd_word(2), value1, err); if (err) return
-      call to_real (cmd_word(3), value2, err); if (err) return
+      call tao_to_real (cmd_word(2), value1, err); if (err) return
+      call tao_to_real (cmd_word(3), value2, err); if (err) return
       call tao_x_scale_cmd (cmd_word(1), value1, value2, err)
     endif
 
@@ -463,56 +467,7 @@ subroutine cmd_split (n_word, no_extra_words, err, separator)
     endif
   endif
 
-end subroutine
-
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-! contains
-! This routine converts a string to a real number.
-
-subroutine to_real (str, r_real, err)
-
-character(*) str
-real(rp) r_real
-integer ios
-logical err
-
-!
-
-err = .false.
-read (str, *, iostat = ios) r_real
-
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'EXPECTING REAL NUMBER: ' // str)
-  err = .true.
-  return
-endif
-
-end subroutine
-
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-! contains
-! This routine converts a string to an integer
-
-subroutine to_int (str, i_int, err)
-
-character(*) str
-integer ios, i_int
-logical err
-
-!
-
-err = .false.
-read (str, *, iostat = ios) i_int
-
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'EXPECTING INTEGER: ' // str)
-  err = .true.
-  return
-endif
-
-end subroutine
+end subroutine cmd_split
 
 
 end subroutine tao_command

@@ -786,4 +786,63 @@ character(20) :: r_name = "tao_lat_bookkeeper"
 
 end subroutine tao_lat_bookkeeper
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_to_real (str, r_real, err)
+! 
+! Converts a string to a real number
+!-
+
+subroutine tao_to_real (str, r_real, err)
+
+character(*) str
+real(rp) r_real
+integer ios
+logical err
+character(12) :: r_name = "tao_to_real"
+
+!
+
+  err = .false.
+  read (str, *, iostat = ios) r_real
+
+  if (ios /= 0) then
+    call out_io (s_error$, r_name, 'EXPECTING REAL NUMBER: ' // str)
+    err = .true.
+    return
+  endif
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_to_int (str, i_int, err)
+! 
+! Converts a string to an integer
+!-
+
+subroutine tao_to_int (str, i_int, err)
+
+character(*) str
+integer ios, i_int
+logical err
+character(12) :: r_name = "tao_to_int"
+
+!
+
+  err = .false.
+  read (str, *, iostat = ios) i_int
+
+  if (ios /= 0) then
+    call out_io (s_error$, r_name, 'EXPECTING INTEGER: ' // str)
+    err = .true.
+    return
+  endif
+
+end subroutine
+
 end module tao_utils

@@ -104,7 +104,7 @@ In the above example the argument ``abc'' is substituted for any
 Format:
 \begin{example}
   change ele <name> <attribute> <number>
-  change var <name> <index> <number>
+  change var <name> <locations> <number>
 \end{example}
 
 \vskip 0.2in
@@ -137,7 +137,8 @@ Examples:
 \begin{example}
   change ele s24e x_offset  0.1  ! Offset element by 0.1
   change ele q02w k1 d1.2e-2     ! set the k1 strength of q02w relative to the design
-  change var steering 34 @1e-3  ! set the strength steering #34 to 0.001
+  change var steering 34:36 @1e-3  ! set the steering strength #34-36 to 0.001
+  change var steering all @0.0  ! set all steering strengths to 0.0
   change ele beginning x @0.001 ! set beggining x position to 1 mm
 \end{example}
 
@@ -392,10 +393,11 @@ Examples:
 Format:
 \begin{example}
   set data <data_name> <component> = <value> \{<locations>\}
-  set var <var_name> <component> = <value> \{<locations>\}
-  set lattice <component> = <value>
   set global <component> = <value>
+  set lattice <component> = <value>
   set plot <component> = <value1> \{<value2>\}
+  set universe <universe> <on/off>
+  set var <var_name> <component> = <value> \{<locations>\}
 \end{example}
 
 \vskip 0.2in
@@ -480,6 +482,20 @@ The \vn{subtitle_loc} component can be used to place the subtitle anywhere on
 the plot page. This can be useful for referencing a noteworthy part of a graph
 data.
 \vskip 0.2in
+
+\vn{set universe} will turn the specified universe on or off. Turning a universe
+off is useful to speed up lattice calculations when this universe is not being
+used. Or, if many changes are to be performed to a universe and there is no need
+to do any lattice calculations between command then turing off all universes
+will speed things up. Turn off all universe with the command \vn{set universe 0
+off}. This flag only affects the lattice calculation. Issueing \vn{change, use,
+veto,} etc...
+commands to a turned off uinverse will still affect the universe, however any
+lattice calculations will not be performed until the universe is turned back on.
+If optimizing while one or more universes are turned off then the variables
+associated with that universe will still be included in the merit function but
+not the data for that universe. The variables will still vary in the turned off
+universe.
 
 Examples:
 \begin{example}

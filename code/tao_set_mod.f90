@@ -610,4 +610,61 @@ end subroutine check_using
 
 end subroutine tao_set_data_cmd
 
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_set_universe_cmd (uni, on_off)
+!
+! turns a universe of or off
+!
+! Input:
+!  uni       -- Integer: which universe; 0 => all off (if you really want to)
+!  on_off    -- Character(*): "on" or "off"
+!
+! Output:
+!  s%u(uni)%is_on
+!
+!-
+
+subroutine tao_set_uni_cmd (uni, on_off)
+
+implicit none
+
+integer uni, i
+
+character(*) on_off
+character(20) :: r_name = "tao_set_universe_cmd"
+
+logical is_on
+
+  call str_upcase (on_off, on_off)
+
+  if (on_off(1:2) .eq. 'ON') then
+    is_on = .true.
+  elseif (on_off(1:3) .eq. 'OFF') then
+    is_on = .false.
+  else
+    call out_io (s_warn$, r_name, &
+                 "Syntax Error: Can only turn universe 'on' or 'off'")
+    return
+  endif
+
+  if (uni .lt. 0 .or. uni .gt. size(s%u)) then
+    call out_io (s_warn$, r_name, &
+                 "Invalid Universe specifier")
+    return
+  endif
+  
+  if (uni .eq. 0) then
+    call out_io (s_blank$, r_name, &
+        "Turning all universes off, no lattice calculations will be performed!")
+    s%u(:)%is_on = .false.
+  else
+    s%u(uni)%is_on = .false.
+  endif
+
+end subroutine tao_set_uni_cmd
+
+
 end module tao_set_mod

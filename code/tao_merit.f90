@@ -65,6 +65,9 @@ enddo
 
 do i = 1, size(s%u)
 
+! check if universe is turned off
+  if (.not. s%u(i)%is_on) cycle
+
 ! First compute the delta for the merit function
   
   data => s%u(i)%data

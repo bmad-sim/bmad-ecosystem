@@ -16,6 +16,8 @@ module tao_parameters
   integer, parameter :: n_var_minn = -100    ! min index of datum per v1_var 
   integer, parameter :: n_region_maxx = 10   ! number of plotting regions.
   integer, parameter :: n_curve_maxx = 20    ! number of curves per graph
+  integer, parameter :: n_output_lines_maxx = 400 ! max number of lines in 
+                                                  ! output statement
 
 ! the name struct
   
