@@ -37,7 +37,8 @@ subroutine twiss_propagate1 (ele1, ele2)
   real(rp) v_mat(4,4), v_inv_mat(4,4), y_inv(2,2), det
   real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
   real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
-  real(rp) mat2(2,2), eta_x(4), eta_a(4), pz_2, eta1_vec(6)
+  real(rp) mat2(2,2), eta_x(4), eta_a(4)
+  real(rp) mat4(4,4), det_factor, det_original
 
 !---------------------------------------------------------------------
 ! init
@@ -71,27 +72,40 @@ subroutine twiss_propagate1 (ele1, ele2)
 
   if (all(ele2%mat6(1:2,3:4) == 0)) then
 
+    ele_temp%mat6 = ele2%mat6
+
     call mat_symp_conj (ele2%mat6(3:4,3:4), y_inv) ! conj == inverse
     mat2 = matmul (ele2%mat6(1:2,1:2), ele1%c_mat)
     ele2%c_mat = matmul (mat2, y_inv)
     ele2%gamma_c = ele1%gamma_c
-    ele_temp%mat6(1:4,1:4) = ele2%mat6(1:4,1:4)
 
 !---------------------------------------------------------------------
 ! here if we are dealing with a coupled transfer matrix
 
   else
 
+    mat4 = ele2%mat6(1:4,1:4)
+
+    ! det_factor is a renormalization factor since det_original != 1
+
+    if (ele2%key == lcavity$) then  
+      call mat_det (mat4, det_original)
+      det_factor = sqrt(det_original)
+    else
+      det_factor = 1
+    endif
+
     call mat_make_unit (ele_temp%mat6)   ! makle unit matrix
 
-    big_M = ele2%mat6(1:2,1:2)
-    small_m = ele2%mat6(1:2,3:4)
-    big_N = ele2%mat6(3:4,3:4)
-    small_n = ele2%mat6(3:4,1:2)
+    big_M = mat4(1:2,1:2)
+    small_m = mat4(1:2,3:4)
+    big_N = mat4(3:4,3:4)
+    small_n = mat4(3:4,1:2)
 
     call mat_symp_conj (ele1%c_mat, c_conj_mat)
     mat2 = ele1%gamma_c * big_M - matmul(small_m, c_conj_mat)
-    call mat_det (mat2, det)
+    call mat_det (mat2, det) 
+    det = det / det_factor
 
 ! we demand that gamma_c > 0.3 (ie det > 0.1)
 ! try to make it so that there is no net mode flip here
@@ -110,13 +124,13 @@ subroutine twiss_propagate1 (ele1, ele2)
 
     else
 
-!!      if (bmad_status%type_out) print *, 'TWISS_PROPAGATE1: MODE_FLIPPED'
-
       mat2 = matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m
       call mat_det (mat2, det)
+      det = det / det_factor
       if (det < 0) then
         print *, 'TWISS_PROPAGATE1: INTERNAL ERROR! (DUE TO ROUNDOFF?)'
       endif
+
       ele2%gamma_c = sqrt(abs(det))
       ele_temp%mat6(1:2,1:2) = &
             (ele1%gamma_c * small_n - matmul(big_N, c_conj_mat)) / ele2%gamma_c
@@ -132,47 +146,31 @@ subroutine twiss_propagate1 (ele1, ele2)
 
   endif
 
-!----------------------------------------------------
-! linac rf matrices need to be renormalized.
-
-  if (ele2%key == lcavity$) then
-    call mat_det (ele_temp%mat6(1:4,1:4), det)
-    ele_temp%mat6(1:4,1:4) = ele_temp%mat6(1:4,1:4) / (det**0.25)
-  endif
-
-!---------------------------------------------------------------------
-! Longitudinal eta
-
-  eta1_vec = (/ ele1%x%eta_lab, ele1%x%etap_lab, &
-           ele1%y%eta_lab, ele1%y%etap_lab, ele1%z%eta_lab, 1.0_rp /)
-
-  pz_2 = dot_product (ele2%mat6(6,:), eta1_vec)
-
-  ele2%z%eta = dot_product (ele2%mat6(5,:), eta1_vec) / pz_2
-  ele2%z%eta_lab = ele2%z%eta
-
 ! calculate components in transfer matrix for dispersion calc
 ! effective_mat6(i,6) = V_2^-1(i,j) * ele2.mat6(j,6)
 
   call make_v_mats (ele2, v_mat, v_inv_mat)
   ele_temp%mat6(1:4,6) = matmul(v_inv_mat(1:4,1:4), ele2%mat6(1:4,6))
+  ele_temp%mat6(6,1:6) = ele2%mat6(6,1:6)
 
-! propagate twiss
+!---------------------------------------------------------------------
+! Propagate twiss.
 
   ele_temp%mode_flip = ele2%mode_flip
-  call twiss_decoupled_propagate (ele1, ele_temp, pz_2)   ! now calc new twiss
+  ele_temp%key       = ele2%key
+  call twiss_decoupled_propagate (ele1, ele_temp)  
   ele2%x = ele_temp%x                     ! transfer twiss to ele2
   ele2%y = ele_temp%y
 
-! comming out of a flipped state correct phase by twopi
-! this is a kludge but factors of twopi are not physically meaningful
+! Comming out of a flipped state correct phase by twopi.
+! This is a kludge but factors of twopi are not physically meaningful.
 
   if (ele1%mode_flip .and. .not. ele2%mode_flip) then
     ele2%x%phi = ele2%x%phi - twopi
     ele2%y%phi = ele2%y%phi - twopi
   endif
 
-! calc laboratory dispersions
+! Calc laboratory dispersions.
 
   call make_v_mats (ele2, v_mat, v_inv_mat)
   eta_a = (/ ele2%x%eta, ele2%x%etap, &
@@ -189,7 +187,7 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine twiss_decoupled_propagate (ele1, ele2, pz_2)
+! Subroutine twiss_decoupled_propagate (ele1, ele2)
 !
 ! Subroutine to propagate the twiss parameters from end of ELE1 to end of ELE2.
 ! This routine assumes that the matrix ele2%mat6 is decoupled.
@@ -200,15 +198,12 @@ end subroutine
 ! Input:
 !   ele1  -- Ele_struct: Structure holding the starting Twiss parameters.
 !   ele2  -- Ele_struct: Structure holding the transfer matrix.
-!   pz_2 -- Real(rp): p_z at end of ele2 assuming p_z = 1 at end of ele1.
-!             Except for RF cavities this is just 1.
 !
 ! Output:
 !   ele2  -- Ele_struct: Structure for the ending Twiss parameters.
 !-
 
-
-subroutine twiss_decoupled_propagate (ele1, ele2, pz_2)
+subroutine twiss_decoupled_propagate (ele1, ele2)
 
   use bmad_struct
   use bmad_interface
@@ -218,15 +213,43 @@ subroutine twiss_decoupled_propagate (ele1, ele2, pz_2)
   type (ele_struct)  ele1, ele2
 
   real(rp) m11, m12, m21, m22, a1, b1, g1, del_phi
-  real(rp) a2, b2, g2, pz_2
+  real(rp) a2, b2, g2, mat4(4,4), det, det_factor
+  real(rp) pz_2, eta1_vec(6)
 
+!----------------------------------------------------
+! Linac rf matrices need to be renormalized.
+
+  mat4 = ele2%mat6(1:4, 1:4)
+
+  if (ele2%key == lcavity$) then
+    call mat_det (mat4, det)
+    det_factor = det**0.25
+  else
+    det_factor = 1.0
+  endif
+
+!----------------------------------------------------
+! Longitudinal eta.
+! p_z2 is p_z at end of ele2 assuming p_z = 1 at end of ele1.
+! Except for RF cavities this is just 1.
+
+  eta1_vec = (/ ele1%x%eta_lab, ele1%x%etap_lab, &
+           ele1%y%eta_lab, ele1%y%etap_lab, ele1%z%eta_lab, 1.0_rp /)
+
+  pz_2 = dot_product (ele2%mat6(6,:), eta1_vec)
+
+  ele2%z%eta = dot_product (ele2%mat6(6,:), eta1_vec) / pz_2
+  ele2%z%eta_lab = ele2%z%eta
+
+!----------------------------------------------------
 ! Basic equation is given by Bovet 2.5.b page 16
 ! Propagate A mode ("X") of ele1
+! Notice that the unnormalized matrix is used in the dispersion computation.
 
-  m11 = ele2%mat6(1,1)
-  m12 = ele2%mat6(1,2)
-  m21 = ele2%mat6(2,1)
-  m22 = ele2%mat6(2,2)
+  m11 = mat4(1,1) / det_factor
+  m12 = mat4(1,2) / det_factor
+  m21 = mat4(2,1) / det_factor
+  m22 = mat4(2,2) / det_factor
 
   a1 = ele1%x%alpha
   b1 = ele1%x%beta
@@ -244,25 +267,30 @@ subroutine twiss_decoupled_propagate (ele1, ele2, pz_2)
     ele2%x%beta = b2
     ele2%x%alpha = a2
     ele2%x%gamma = g2
-    ele2%x%eta  = (m11*ele1%x%eta + m12*ele1%x%etap + ele2%mat6(1,6)) / pz_2
-    ele2%x%etap = (m21*ele1%x%eta + m22*ele1%x%etap + ele2%mat6(2,6)) / pz_2
+    ele2%x%eta  = (mat4(1,1) * ele1%x%eta + mat4(1,2) * ele1%x%etap + &
+                                                       ele2%mat6(1,6)) / pz_2
+    ele2%x%etap = (mat4(2,1) * ele1%x%eta + mat4(2,2) * ele1%x%etap + &
+                                                       ele2%mat6(2,6)) / pz_2
     ele2%x%phi = ele1%x%phi + del_phi
   else
     ele2%y%beta = b2
     ele2%y%alpha = a2
     ele2%y%gamma = g2
-    ele2%y%eta  = (m11*ele1%x%eta + m12*ele1%x%etap + ele2%mat6(3,6)) / pz_2
-    ele2%y%etap = (m21*ele1%x%eta + m22*ele1%x%etap + ele2%mat6(4,6)) / pz_2
+    ele2%y%eta  = (mat4(1,1) * ele1%x%eta + mat4(1,2) * ele1%x%etap + &
+                                                       ele2%mat6(3,6)) / pz_2
+    ele2%y%etap = (mat4(2,1) * ele1%x%eta + mat4(2,2) * ele1%x%etap + &
+                                                       ele2%mat6(4,6)) / pz_2
     ele2%y%phi = ele1%x%phi + del_phi
   endif
 
 !-----------------------------------------------------
 ! Propagate B mode ("Y") of ele1
+! Notice that the unnormalized matrix is used in the dispersion computation.
 
-  m11 = ele2%mat6(3,3)
-  m12 = ele2%mat6(3,4)
-  m21 = ele2%mat6(4,3)
-  m22 = ele2%mat6(4,4)
+  m11 = mat4(3,3) / det_factor
+  m12 = mat4(3,4) / det_factor
+  m21 = mat4(4,3) / det_factor
+  m22 = mat4(4,4) / det_factor
 
   a1 = ele1%y%alpha
   b1 = ele1%y%beta
@@ -280,15 +308,19 @@ subroutine twiss_decoupled_propagate (ele1, ele2, pz_2)
     ele2%y%beta = b2
     ele2%y%alpha = a2
     ele2%y%gamma = g2
-    ele2%y%eta  = m11*ele1%y%eta + m12*ele1%y%etap + ele2%mat6(3,6)
-    ele2%y%etap = m21*ele1%y%eta + m22*ele1%y%etap + ele2%mat6(4,6)
+    ele2%y%eta  = (mat4(3,3) * ele1%y%eta + mat4(3,4) * ele1%y%etap + &
+                                                       ele2%mat6(3,6)) / pz_2
+    ele2%y%etap = (mat4(4,3) * ele1%y%eta + mat4(4,4) * ele1%y%etap + &
+                                                       ele2%mat6(4,6)) / pz_2
     ele2%y%phi = ele1%y%phi + del_phi
   else
     ele2%x%beta = b2
     ele2%x%alpha = a2
     ele2%x%gamma = g2
-    ele2%x%eta  = m11*ele1%y%eta + m12*ele1%y%etap + ele2%mat6(1,6)
-    ele2%x%etap = m21*ele1%y%eta + m22*ele1%y%etap + ele2%mat6(2,6)
+    ele2%x%eta  = (mat4(3,3) * ele1%y%eta + mat4(3,4) * ele1%y%etap + &
+                                                       ele2%mat6(1,6)) / pz_2
+    ele2%x%etap = (mat4(4,3) * ele1%y%eta + mat4(4,4) * ele1%y%etap + &
+                                                       ele2%mat6(2,6)) / pz_2
     ele2%x%phi = ele1%y%phi + del_phi
   endif
 

@@ -1,7 +1,9 @@
 !+
 ! Subroutine do_mode_flip (ele, ele_flip)
 !
-! Subroutine to mode flip the twiss_parameters of an element
+! Subroutine to mode flip the twiss_parameters of an element.
+! That is, the normal mode associated with ele%x is transfered to ele%y
+! and the normal mode associated with ele%y is trnsfered to ele%x.
 !
 ! Modules Needed:
 !   use bmad
@@ -32,12 +34,14 @@ subroutine do_mode_flip (ele, ele_flip)
 
   logical :: init_needed = .true.
 
-!
+! Initialize the temporary ele2
 
   if (init_needed) then
-    ele2%mat6 = 0
+    call init_ele (ele2)
     init_needed = .false.
   endif
+
+! Check that a flip can be done.
 
   if (ele%gamma_c >= 1.0) then
     bmad_status%ok = .false.
@@ -47,13 +51,15 @@ subroutine do_mode_flip (ele, ele_flip)
     return
   endif
 
+! Do the flip
+
   gamma_flip = sqrt(1 - ele%gamma_c**2)
 
   call mat_symp_conj (ele%c_mat, c_conj)
   ele2%mat6(1:2,1:2) = -c_conj / gamma_flip
-  ele2%mat6(3:4,3:4) = ele%c_mat/gamma_flip
+  ele2%mat6(3:4,3:4) = ele%c_mat / gamma_flip
 
-  call twiss_decoupled_propagate (ele, ele2, 1.0_rp)
+  call twiss_decoupled_propagate (ele, ele2)
 
   ele_flip = ele
   ele_flip%mode_flip = .not. ele%mode_flip

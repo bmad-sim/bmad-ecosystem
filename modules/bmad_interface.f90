@@ -992,10 +992,9 @@ interface
 end interface
 
 interface
-  subroutine twiss_decoupled_propagate (ele1, ele2, delta)
-    use bmad_struct, only: ele_struct, rp
+  subroutine twiss_decoupled_propagate (ele1, ele2)
+    use bmad_struct, only: ele_struct
     type (ele_struct) ele1, ele2
-    real(rp) delta
   end subroutine
 end interface
 
