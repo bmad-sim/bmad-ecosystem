@@ -194,7 +194,7 @@ subroutine bmad_to_db (ring, db, calib_date)
           'SCIR SKQUCUR',    k1$,    db%node, cesr%skew_quad_(111:114), 111)
                            
   call db_init_it (db%csr_sqewsext, lbound(db%csr_sqewsext, 1), &
-          'CSR SQEWSEXT',    k2$,    db%node, cesr%skew_sex_(1:6), 1)
+          'CSR SQEWSEXT',    k2$,    db%node, cesr%skew_sex_(1:n_csr_sqewsext_maxx), 1)
 
   call db_init_it (db%scir_vertcur, lbound(db%scir_vertcur, 1), &
           'SCIR VERTCUR', vkick$, db%node, cesr%v_steer_(111:114), 111)
