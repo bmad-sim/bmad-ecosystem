@@ -280,6 +280,42 @@ subroutine get_attribute (how, ele, ring, pring, &
       ele%theta_position = value
     case ('PHI_POSITION') 
       ele%phi_position = value
+    case ('BETA_X') 
+      ele%x%beta = value
+      ele%x%gamma = (1 + ele%x%alpha**2) / ele%x%beta
+    case ('ALPHA_X')
+      ele%x%alpha = value
+      if (ele%x%beta /= 0) ele%x%gamma = (1 + ele%x%alpha**2) / ele%x%beta
+    case ('PHI_X')
+      ele%x%phi = value
+    case ('ETA_X')
+      ele%x%eta = value
+    case ('ETAP_X')
+      ele%x%etap = value
+    case ('BETA_Y') 
+      ele%y%beta = value
+      ele%y%gamma = (1 + ele%y%alpha**2) / ele%y%beta
+    case ('ALPHA_Y')
+      ele%y%alpha = value
+      if (ele%y%beta /= 0) ele%y%gamma = (1 + ele%y%alpha**2) / ele%y%beta
+    case ('PHI_Y')
+      ele%y%phi = value
+    case ('ETA_Y')
+      ele%y%eta = value
+    case ('ETAP_Y')
+      ele%y%etap = value
+    case ('C11')
+      ele%c_mat(1,1) = value
+      ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + ele%c_mat(1,2)*ele%c_mat(2,1))
+    case ('C12')
+      ele%c_mat(1,2) = value
+      ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + ele%c_mat(1,2)*ele%c_mat(2,1))
+    case ('C21')
+      ele%c_mat(2,1) = value
+      ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + ele%c_mat(1,2)*ele%c_mat(2,1))
+    case ('C22')
+      ele%c_mat(2,2) = value
+      ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + ele%c_mat(1,2)*ele%c_mat(2,1))
     case default
       call warning ('UNKNOWN "BEGINNING" ATTRIBUTE: ' // word)
     end select
