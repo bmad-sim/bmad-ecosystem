@@ -33,6 +33,7 @@
 subroutine track1 (start, ele, param, end)
 
   use bmad
+  use mad_mod
 
   implicit none
 
@@ -91,6 +92,9 @@ subroutine track1 (start, ele, param, end)
 
   case (boris$) 
     call track1_boris (orb, ele, param, end)
+
+  case (mad$)
+    call track1_mad (orb, ele, param, end)
 
   case default
     print *, 'ERROR IN TRACK1: UNKNOWN TRACKING_METHOD: ', ele%tracking_method

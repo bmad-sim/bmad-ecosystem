@@ -35,6 +35,7 @@ subroutine make_mat6 (ele, param, start, end, end_in)
   use make_mat6_mod
   use symp_lie_mod
   use bookkeeper_mod
+  use mad_mod
 
   implicit none
 
@@ -95,6 +96,9 @@ subroutine make_mat6 (ele, param, start, end, end_in)
 
   case (tracking$)
     call make_mat6_tracking (ele, param, a_start, a_end)
+
+  case (mad$)
+    call make_mat6_mad (ele, param, a_start, a_end)
 
   case (none$)
     return

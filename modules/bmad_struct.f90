@@ -1,5 +1,5 @@
 !+
-! BMAD_STRUCT holds the structure definitions for BMAD routines.
+! Bmad_struct holds the structure definitions for Bmad routines.
 !-
 
 #include "CESR_platform.inc"
@@ -108,7 +108,7 @@ module bmad_struct
     real(rp) c_mat(2,2)              ! 2x2 C coupling matrix
     real(rp) gamma_c                 ! gamma associated with C matrix
     real(rp) s                       ! longitudinal position at the end
-    real(rp), pointer :: r(:) => null()    ! For general use. Not used by BMAD.
+    real(rp), pointer :: r(:) => null()    ! For general use. Not used by Bmad.
     real(rp), pointer :: a(:) => null()              ! multipole
     real(rp), pointer :: b(:) => null()              ! multipoles
     real(rp), pointer :: const(:) => null()          ! Working constants.
@@ -127,9 +127,9 @@ module bmad_struct
     integer n_lord                 ! Number of lords
     integer ic1_lord               ! Start index for lord elements
     integer ic2_lord               ! Stop  index for lord elements
-    integer ix_pointer             ! For general use. Not used by BMAD.
-    integer ixx                    ! Index for BMAD internal use
-    integer iyy                    ! Index for BMAD internal use
+    integer ix_pointer             ! For general use. Not used by Bmad.
+    integer ixx                    ! Index for Bmad internal use
+    integer iyy                    ! Index for Bmad internal use
     integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
     integer tracking_method        ! bmad_standard$, taylor$, etc.
     integer field_calc             ! Used with Boris or Runge-Kutta integrators.
@@ -143,8 +143,8 @@ module bmad_struct
     logical exact_rad_int_calc     ! Exact radiation integral calculation?
     logical field_master           ! Calculate strength from the field value?
     logical is_on                  ! For turning element on/off.
-    logical internal_logic         ! For BMAD internal use only.
-    logical logic                  ! For general use. Not used by BMAD.
+    logical internal_logic         ! For Bmad internal use only.
+    logical logic                  ! For general use. Not used by Bmad.
   end type
 
 ! struct for element to element control
@@ -447,13 +447,13 @@ module bmad_struct
   integer, parameter :: runge_kutta$ = 3 
   integer, parameter :: linear$ = 4, tracking$ = 5, symp_map$ = 6
   integer, parameter :: wiedemann$ = 9, symp_lie_bmad$ = 10, none$ = 11
-  integer, parameter :: boris$ = 12, adaptive_boris$ = 13, order_2$ = 14
+  integer, parameter :: boris$ = 12, adaptive_boris$ = 13, mad$ = 14
 
   character(16), parameter :: calc_method_name(0:14) = (/ &
-      "GARBAGE!      ", "BMAD_Standard ", "Symp_Lie_PTC  ", "Runge_Kutta   ", &
+      "GARBAGE!      ", "Bmad_Standard ", "Symp_Lie_PTC  ", "Runge_Kutta   ", &
       "Linear        ", "Tracking      ", "Symp_Map      ", "Custom        ", &
-      "Taylor        ", "Wiedemann     ", "Symp_Lie_BMAD ", "None          ", &
-      "Boris         ", "Adaptive_Boris", "Order_2       " /)
+      "Taylor        ", "Wiedemann     ", "Symp_Lie_Bmad ", "None          ", &
+      "Boris         ", "Adaptive_Boris", "MAD       " /)
 
 ! sbend$ and rbend$ are from key definitions.
 
@@ -527,7 +527,7 @@ module bmad_struct
 ! %taylor_order_ptc is what ptc has been set to.
 ! %taylor_order is what the user wants.
 ! The reason why there are two taylor_orders is that the Taylor order of PTC
-!   cannot be set until the energy is set so BMAD must sometimes cache the 
+!   cannot be set until the energy is set so Bmad must sometimes cache the 
 !   taylor order until the energy is known.
 ! %max_aperture_limit is used when no limit is specified or when 
 !   ring%param%aperture_limit_on = False.

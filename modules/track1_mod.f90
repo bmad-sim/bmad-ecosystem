@@ -123,151 +123,104 @@ end subroutine
 ! Subroutine track_a_bend (start, ele, param, end)
 !
 ! Particle tracking through a bend element. 
-! If the k1 quadrupole component is zero then the tracking through the body
-! is an exact (gometrical) calculation.
 ! For e1 or e2 non-zero this subroutine treats the edges as thin quads.
+! This routine is not meant for general use.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!   start  -- Coord_struct: Starting position with x', y' (not cononical).
-!   ele    -- Ele_struct: Element
+!   start  -- Coord_struct: Starting position.
+!   ele    -- Ele_struct: Bend element.
+!   param  -- Param_struct: Lattice parameters.
 !
 ! Output:
-!   end     -- Coord_struct: End position with x', y' (not cononical).
-!   is_lost -- Logical: Set T or F depending upon whether the particle 
-!              reaches the exit face.
+!   end     -- Coord_struct: End position.
 !-
 
 subroutine track_a_bend (start, ele, param, end)
 
-  implicit none
+  type (coord_struct), intent(in)  :: start
+  type (coord_struct), intent(out) :: end
+  type (ele_struct),   intent(inout)  :: ele
+  type (param_struct), intent(inout) :: param
+  type (coord_struct) start2
 
-  type (coord_struct)  start, end, start2
-  type (ele_struct)  ele
-  type (param_struct) param
+  real(rp) b1, angle, ct, st, x, px, y, py, z, pz, dpx_t, phi
+  real(rp) rel_E, rel_E2, Dxy, Dy, px_t, factor, rho, fact, g0, dg
+  real(rp) length, g_tot, dE, del, f, k1, kc, mat2(2,2), mat_i6(6)
 
-  real(8) g0, g, r, r0, theta0, del, x1, xp1, zp, x_center, y_center
-  real(8) cos0, sin0, xc, ys, b, c, x2, x_exit, y_exit, theta, s_travel
-  real(8) cos1, sin1, radix, f, length
+! simple case
 
-  real(rp) k1, kc, mat2(2,2), phi, mat_i6(6), dE, fact
-
-! some init
-
-  g0 = ele%value(g$) 
-  g =  (ele%value(g$) + ele%value(delta_g$)) / (1 + start%vec(6))
-  length = ele%value(l$)
-
-  end = start
-  call offset_particle (ele, param, end, set$)
-
-  if (g == 0) then
-    end%vec(1) = end%vec(1) + length * end%vec(2)
-    end%vec(3) = end%vec(3) + length * end%vec(4)
-    end%vec(5) = end%vec(5) - length * (end%vec(2)**2 + end%vec(4)**2) / 2 
-    call offset_particle (ele, param, end, unset$)
+  if (ele%value(g$) == 0) then
+    end = start
+    end%vec(2) = end%vec(2) + length * ele%value(delta_g$) / 2
+    call track_a_drift (end%vec, ele%value(l$))
+    end%vec(2) = end%vec(2) + length * ele%value(delta_g$) / 2
     return
   endif
 
-  r0 = 1 / g0
-  r  = 1 / g
- 
-  theta0 = length * g0
+!
 
-! Track through the entrence face. Treat as thin lens.
-! The second order terms come from the Hamiltonian term:
-!       H = (g * sec^2(e1$) / 2) * p_x * y^2
-! (See the MAD8 Physics writeup)
+  end = start
+  call offset_particle (ele, param, end, set$, set_canonical = .false.)
 
-  del = tan(ele%value(e1$)) * g
-  end%vec(2) = end%vec(2) + del * end%vec(1)
-  end%vec(4) = end%vec(4) - del * end%vec(3)
+  length = ele%value(l$)
+  g0 = ele%value(g$)
+  dg = ele%value(delta_g$)
+  g_tot = g0 + dg
+  b1 = g_tot
+  angle = ele%value(angle$)
+  rho = 1 / g0
+  dE = start%vec(6)
+  rel_E  = 1 + dE
+  rel_E2 = rel_E**2
 
-  f = g / (2 * cos(ele%value(e1$))**2)
-
-  end%vec(1) = end%vec(1) + f * end%vec(3)**2
-  end%vec(4) = end%vec(4) - 2 * f * end%vec(2) * end%vec(3)
+  call track_bend_edge (end, ele%value(e1$), g_tot, .true.)
 
 !-----------------------------------------------------------------------
 ! Track through main body...
-! Two cases:
-!  If k1 == 0 then do an exact calculation using simple geometry.
-!  If k1 /= 0 then essentually just use the 1st order transfer matrix.
 
   k1 = ele%value(k1$)
   select case (k1 == 0)
 
+! For k1 == 0 then use Eqs (12.18) from Etienne Forest: Beam Dynamics.
+
   case (.true.)  ! k1 == 0
 
-! We use a local coordinate system (x, y) aligned with
-! the entrence face so local x is the same as the particle x and 
-! local y is the same as the particle z.
-! the local coordinate system origin is the nominal center of rotation
-! (that is the center for an on-energy particle with zero offsets).
+    ct = cos(angle)
+    st = sin(angle)
 
-! For reverse bends with g and theta negative then the calculation is done 
-! effectively under the transformation: 
-!           g -> -g,  theta -> -theta,  x -> -x,  Px -> -Px
+    x  = end%vec(1)
+    px = end%vec(2)
+    y  = end%vec(3)
+    py = end%vec(4)
+    z  = end%vec(5)
+    pz = end%vec(6)
+ 
+    Dxy = sqrt(rel_E2 - px**2 - py**2)
+    Dy  = sqrt(rel_E2 - py**2)
 
-! x,y_center is the center of the actual rotation
+    px_t = px*ct + (Dxy - b1*(rho+x))*st
+    dpx_t = -px*st/rho + (Dxy - b1*(rho+x))*ct/rho
+    factor = (asin(px/Dy) - asin(px_t/Dy)) / b1
 
-    x1  = end%vec(1)
-    xp1 = end%vec(2)
-    zp = end%vec(6)
+    end%vec(1) = (sqrt(rel_E2 - px_t**2 -py**2) - rho*dpx_t - rho*b1) / b1
+    end%vec(2) = px_t
+    end%vec(3) = y + py * (angle/b1 + factor)
+    end%vec(4) = py
+    end%vec(5) = end%vec(5) + length * (dg - g0*dE) / g_tot - rel_E * factor
+    end%vec(6) = pz
 
-    x_center =  (r0 + x1) - r / sqrt(1 + xp1**2)
-    y_center = r * xp1 / sqrt(1 + xp1**2)   
+!  If k1 /= 0 then just use the 1st order transfer matrix.
 
-    cos0 = cos(theta0)
-    sin0 = sin(theta0)
+  case (.false.)
 
-    xc = x_center * cos0
-    ys = y_center * sin0
+    end%vec(2) = end%vec(2) / rel_E  ! convert px to x'
+    end%vec(4) = end%vec(4) / rel_E  ! convert py to y'
 
-    b = 2 * (r0 - xc - ys) 
-    c = x_center**2 + y_center**2 - 2 * r0 * (xc + ys) + (r0**2 - r**2)
-
-    radix = b**2 - 4*c
-    if (radix < 0) then
-      print *, 'ERROR IN TRACK_A_BEND: TRAJECTORY DOES NOT INTERSECT FACE.'
-      print *, '      [THAT IS, THE PARTICLE AMPLITUDE IS TOO LARGE.]'
-      param%lost = .true.
-      return
-    else
-      param%lost = .false.
-    endif
-
-! x_exit, y_exit is the point where the particle intersects the exit face.
-! x2 is the distance from the nominal exit point to the actual exit point.
-
-    x2 = (-b + sign(sqrt(radix), r0)) / 2 
-
-    x_exit = (r0 + x2) * cos0 - x_center
-    y_exit = (r0 + x2) * sin0 - y_center
-
-    if (g0 > 0) then
-      theta = atan2 (y_exit, x_exit) + atan(xp1)
-    else                      ! for reverse bends
-      theta = atan2 (y_exit, x_exit) - pi + atan(xp1)
-    endif
-
-    s_travel = r * theta
-
-    end%vec(1) = x2
-    end%vec(2) = tan(atan(xp1) + theta0 - theta)
-    end%vec(3) = end%vec(3) + end%vec(4) * s_travel
-    end%vec(5) = end%vec(5) + length - s_travel * sqrt(1 + end%vec(4)**2) 
-
-
-! k1 /= 0
-
-  case default
-
-    dE = start%vec(6)
-    k1 = k1 / (1 + dE)
-    kc = g**2 + k1
+    k1 = k1 / rel_E
+    kc = g_tot**2 + k1
     start2 = end  ! Save coords after entrence face
 
     call quad_mat2_calc (-kc, length, mat2)
@@ -278,13 +231,13 @@ subroutine track_a_bend (start, ele, param, end)
 
     phi = sqrt(abs(kc)) * length
     if (kc < 0) then
-      mat_i6(1) = (1 - cosh(phi)) * g / kc
-      mat_i6(2) = sinh(phi) * g / sqrt(-kc)
-      mat_i6(5) = (phi - sinh(phi)) * g**2 / abs(kc)**1.5
+      mat_i6(1) = (1 - cosh(phi)) * g_tot / kc
+      mat_i6(2) = sinh(phi) * g_tot / sqrt(-kc)
+      mat_i6(5) = (phi - sinh(phi)) * g_tot**2 / abs(kc)**1.5
     else
-      mat_i6(1) = (1 - cos(phi)) * g / kc
-      mat_i6(2) = sin(phi) * g / sqrt(kc)
-      mat_i6(5) = (sin(phi) - phi) * g**2 / kc**1.5
+      mat_i6(1) = (1 - cos(phi)) * g_tot / kc
+      mat_i6(2) = sin(phi) * g_tot / sqrt(kc)
+      mat_i6(5) = (sin(phi) - phi) * g_tot**2 / kc**1.5
     endif
 
     end%vec(1) = end%vec(1) + mat_i6(1) * dE
@@ -298,21 +251,60 @@ subroutine track_a_bend (start, ele, param, end)
                     fact * start2%vec(4) / 2
     end%vec(3) = end%vec(3) + fact * dE
 
+    end%vec(2) = end%vec(2) * rel_E
+    end%vec(4) = end%vec(4) * rel_E
+
   end select
   
 !------------------------------------------------------------------------
 ! Track through the exit face. Treat as thin lens.
 
-  f = g / (2 * cos(ele%value(e2$))**2)
+  call track_bend_edge (end, ele%value(e2$), g_tot, .false.)
 
-  end%vec(1) = end%vec(1) - f * end%vec(3)**2
-  end%vec(4) = end%vec(4) + 2 * f * end%vec(2) * end%vec(3)
+  call offset_particle (ele, param, end, unset$, set_canonical = .false.)
 
-  del = tan(ele%value(e2$)) * g
-  end%vec(2) = end%vec(2) + del * end%vec(1)
-  end%vec(4) = end%vec(4) - del * end%vec(3)
+end subroutine
 
-  call offset_particle (ele, param, end, unset$)
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine track_bend_edge (orb, e, g, start_edge)
+!
+! Subroutine to track through the edge field of a bend.
+! This routine is not meant for general use.
+!-
+
+subroutine track_bend_edge (orb, e, g, start_edge)
+
+  type (coord_struct) orb
+  real(rp) e, g, del, f
+  logical start_edge
+
+! Track through the entrence face. Treat as thin lens.
+! The second order terms come from the Hamiltonian term:
+!       H = (g * sec^2(e1$) / 2) * p_x * y^2
+! (See the MAD8 Physics writeup)
+
+  if (start_edge) then
+    del = tan(e) * g
+    orb%vec(2) = orb%vec(2) + del * orb%vec(1)
+    orb%vec(4) = orb%vec(4) - del * orb%vec(3)
+
+!    f = g / (2 * (1 - e**2))
+!    orb%vec(1) = orb%vec(1) + f * orb%vec(3)**2
+!    orb%vec(4) = orb%vec(4) - 2 * f * orb%vec(2) * orb%vec(3)
+
+  else
+!    f = g / (2 * (1 - e**2))
+!    orb%vec(1) = orb%vec(1) - f * orb%vec(3)**2
+!    orb%vec(4) = orb%vec(4) + 2 * f * orb%vec(2) * orb%vec(3)
+
+    del = tan(e) * g
+    orb%vec(2) = orb%vec(2) + del * orb%vec(1)
+    orb%vec(4) = orb%vec(4) - del * orb%vec(3)
+
+  endif
 
 end subroutine
 

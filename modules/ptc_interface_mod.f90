@@ -1716,10 +1716,11 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 
   case (sbend$) 
     el%kind = matrix_kick_matrix  ! kind7
-    el%b0 = ele%value(g$)
-    el%lc = ele%value(l_chord$)
-    el%t1 = ele%value(e1$)
-    el%t2 = ele%value(e2$)
+    el%b0   = ele%value(g$)
+    el%lc   = ele%value(l_chord$)
+    el%t1   = ele%value(e1$)
+    el%t2   = ele%value(e2$)
+    el%k(2) = ele%value(k1$)
 
   case (sextupole$)
     el%kind = drift_kick_drift  ! kind2
