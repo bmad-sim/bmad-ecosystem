@@ -10,7 +10,7 @@ tracking.
 
 %----------------------------------------------------------------------------
 \section{Tracking Methods}
-\label{s:tm}
+\label{s:tkm}
 
 \begin{description}
 \item[Adaptive\_Boris]
@@ -80,6 +80,53 @@ This is Wiedemann's hard edge model of a wiggler.
 
 \end{description}
 
+\vfill \break
+
+\begin{tabular}{|l|c|c|c|c|c|c|c|c|c|c|c|} \hline
+\rule{0pt}{80pt} &
+\begin{sideways}\vn{Adaptive_Boris}\end{sideways} &
+\begin{sideways}\vn{BMAD_Standard}\end{sideways} &
+\begin{sideways}\vn{Boris}\end{sideways} &
+\begin{sideways}\vn{Custom}\end{sideways} &
+\begin{sideways}\vn{Linear}\end{sideways} &
+\begin{sideways}\vn{Runge_Kutta}\end{sideways} &
+\begin{sideways}\vn{Symp_Lie_Bmad}\end{sideways} &
+\begin{sideways}\vn{Symp_Lie_PTC}\end{sideways} &
+\begin{sideways}\vn{Symp_Map}\end{sideways} &
+\begin{sideways}\vn{Taylor}\end{sideways} &
+\begin{sideways}\vn{Wiedemann}\end{sideways}
+\\ \hline
+  \vn{ab_multipole}            & & D & & & & & & & & & \\ \hline 
+  \vn{beambeam}                & & D & & & & & & & & & \\ \hline 
+  \vn{custom}                  & & D & & & & & & & & & \\ \hline 
+  \vn{drift}                   & & D & & & & & & & & & \\ \hline 
+  \vn{ecollimator}             & & D & & & & & & & & & \\ \hline 
+  \vn{elseparator}             & & D & & & & & & & & & \\ \hline 
+  \vn{hkicker}                 & & D & & & & & & & & & \\ \hline 
+  \vn{instrument}              & & D & & & & & & & & & \\ \hline 
+  \vn{kicker}                  & & D & & & & & & & & & \\ \hline 
+  \vn{lcavity}                 & & D & & & & & & & & & \\ \hline 
+  \vn{marker}                  & & D & & & & & & & & & \\ \hline 
+  \vn{monitor}                 & & D & & & & & & & & & \\ \hline 
+  \vn{multipole}               & & D & & & & & & & & & \\ \hline 
+  \vn{octupole}                & & D & & & & & & & & & \\ \hline
+  \vn{patch}                   & & D & & & & & & & & & \\ \hline
+  \vn{quadrupole}              & & D & & & & & & & & & \\ \hline
+  \vn{rbend}                   & & D & & & & & & & & & \\ \hline
+  \vn{rcollimator}             & & D & & & & & & & & & \\ \hline
+  \vn{rfcavity}                & & D & & & & & & & & & \\ \hline
+  \vn{sbend}                   & & D & & & & & & & & & \\ \hline
+  \vn{sextupole}               & & D & & & & & & & & & \\ \hline
+  \vn{solenoid}                & & D & & & & & & & & & \\ \hline
+  \vn{sol_quad}                & & D & & & & & & & & & \\ \hline
+  \vn{taylor}                  & & D & & & & & & & & & \\ \hline
+  \vn{vkicker}                 & & D & & & & & & & & & \\ \hline
+  \vn{wiggler} (periodic type) & & D & & & & & & & & & \\ \hline
+  \vn{wiggler} (map type)      & & D & & & & & & & & & \\ \hline
+\end{tabular}
+
+\vfill \break
+
 %----------------------------------------------------------------------------
 \section{Transfer Matrix Calculation Methods}
 \label{s:xfer}
@@ -96,13 +143,6 @@ This method calls a routine \rn{make_mat6_custom} which may be supplied
 by the user (which must have been linked into whatever program is
 running).  The default \rn{make_mat6_custom} supplied by the \bmad\ release
 will use Runge Kutta tracking. 
-
-\item[\vn{Runge\_Kutta}]
-This uses a Runge Kutta tracking algorithm adopted from Numerical Recipes.
-This method tracks 6 particles around the central orbit. This method is
-susceptible to inaccuracies caused by nonlinearities. Furthermore this method
-is almost surely slow. While non--symplectic, the advantage of this method is
-that it relies only on the field map for the element.
 
 \item[\vn{Symp\_Lie\_Bmad}]
 Symplectic integration using a Hamiltonian and Lie operators. The
@@ -130,7 +170,8 @@ calculation.
 \item[\vn{Tracking}]
 This uses the tracking method set by \vn{tracking_method} to track 6
 particles around the central orbit. This method is susceptible to inaccuracies
-caused by nonlinearities. While non--symplectic, the advantage of this method
+caused by nonlinearities. Furthermore this method
+is almost surely slow. While non--symplectic, the advantage of this method
 is that it is directly related to any tracking results.
 
 \end{description}
@@ -142,14 +183,9 @@ the mat6 calculation). The order at which a Taylor series is truncated
 at is set by \vn{taylor_order} (this is a global variable). Like
 ordinary integration there are various formulas that one can use to do
 symplectic integration. In \bmad\ (or more precisely Etienne's PTC)
-you can use one of 3 methods. This is set by \vn{integration_order}. 
-\vn{integration_order} = n (n = 2, 4, or 6)
+you can use one of 3 methods. This is set by \vn{integration_ord}. 
+\vn{integration_ord} = n (n = 2, 4, or 6)
 means that the error scales as $dz^n$ where $dz$ is the integration step
 size. The step size dz is set by the length of the element and the
 value of \vn{num_steps}. Remember, as in ordinary integration, higher
 order does not necessarily imply higher accuracy.
-
-\vn{PTC_kind} sets how the symplectic integrator divides up the hamiltonian.
-The details are in the PTC manual. The default \vn{PTC_kind} = 0
-means \bmad\ will choose what it thinks as best (see the routine
-\rn{Bmad_ele_to_fibre} for more details).

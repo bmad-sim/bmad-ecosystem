@@ -138,8 +138,9 @@ $F$ are used to scale the $a_n$ and $b_n$ according to the formula
   b_n &\rightarrow 
         b_n \cdot F \cdot \frac{r_0^{n_\text{ref}}}{r_0^n}
 \end{align}
-where $F$ and $n_\text{ref}$ depend upon what type of element the $a_n$ and
-$b_n$ are associated with and are given in table~\ref{t:ab}
+$r_0$ is set by the \vn{radius} attribute of an element. $F$ and $n_\text{ref}$ 
+are set automatically depending upon the type of element as shown in 
+table~\ref{t:ab}
 
 \begin{table}[h]
 \centering
@@ -185,7 +186,7 @@ the 6 Taylor series.
 If the evolution of a system can be described using a Hamiltonian then
 it can be shown that the linear part of any transport map (the Jacobian)
 must obey the symplectic condition. If a Jacobian $\Bf M$ is not symplectic,
-Healy\cite{healy} has provided an elegant method for finding a matrix that
+Healy\cite{b:healy} has provided an elegant method for finding a matrix that
 is ``close'' to $\Bf M$ and symplectic. The procedure is as follows:
 From $\Bf M$ a matrix $\Bf V$ is formed via
 \begin{equation}

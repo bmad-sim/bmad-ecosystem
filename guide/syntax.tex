@@ -4,16 +4,17 @@
 \section{Lattice Files and Digested Files}
 
 The \bmad\ software library comes with a routine to read in (parse) a
-lattice definition file. The syntax that this file must conform to is
+lattice definition file. The syntax that a lattice file must conform to is
 modeled after the lattice input format of the \mad\ program.
-Essentially, a \bmad\ input file is like a \mad\ input file except that
-a \bmad\ file has no ``action'' commands (commands to calculate the
+Essentially, a \bmad\ lattice file is similar to a \mad\ lattice file except that
+a \bmad\ file has no ``action'' commands (commands tell the program
+to calculate the
 Twiss parameters, etc.). Interacting with the user to determine what
 actions a program should take is left to the program and is not part of
 \bmad\ (although \bmad\, of course, provides the routines to do many
-calculations). A program, of course, is not required to use the \bmad\
+calculations). A program is not required to use the \bmad\
 parser routine but if it does the following chapters describes how to
-construct a valid input file.
+construct a valid lattice file.
 
 Normally the \bmad\ parser routine will create what is called a
 ``digested file'' after it has parsed a lattice file so that when a
@@ -53,17 +54,23 @@ everything after the exclamation mark on the line are ignored. Example:
   q0: quad, l = 0.6, &     ! Continued to the next line
         k1 = 1.4, tilt = pi/3
 \end{example}
+\bmad\ is case insensitive. Everything is converted to uppercase except strings.
 
 %---------------------------------------------------------------------------
 \section{Variable Types}
 
-There are four types of variables in \bmad: Reals, Integers, Logicals, and 
+There are five types of variables in \bmad: Reals, Integers, Switches, 
+Logicals, and 
 Strings. Reals are discussed below in more detail. Integers are just reals
 that are evaluated to the nearest integer. Acceptable logical values are
 \begin{example}
   .true.  .false.
    true    false
    t       f
+\end{example}
+For example
+\begin{example}
+  rf1[is_on] = False
 \end{example}
 
 \vskip0.1in
@@ -73,19 +80,27 @@ blanks or comma within a string, the quotes can be omitted. For example:
   Q00W: Quad, type = "My Type", alias = Who_knows, &
                                   descrip = "Only the shadow knows"
 \end{example}
+Unlike everything else, strings are not converted to uppercase.
+
+Switches are variables that take discrete values. For example:
+\begin{example}
+  beam, particle = positron                    ! paricle is a switch
+  q01w: quad, tracking\_method = bmad\_standard  ! tracking\_method is a switch
+\end{example}
 
 %---------------------------------------------------------------------------
 \section{Arithmetic Expressions}
 
 Arithmetic expressions can be used in a place where a real value is required.
 The standard operators are defined:
-\begin{ventry}{10em}
+\begin{ventry}{12em}
 \item[$a + b$] Addition
 \item[$a - b$] Subtraction
 \item[$a \, \ast \, b$] Multiplication
 \item[$a \; / \; b$] Division
-\item[$a \, \land \, b$] exponentiation
+\item[$a \, \land \, b$] Exponentiation
 \end{ventry}
+\vskip0.05in\noindent
 The following functions are recognized by \bmad:
 \begin{ventry}{acos(x)}
 \item[sqrt(x)] Square Root 
@@ -120,7 +135,7 @@ Alternatively, to be compatible with \mad, using ``:='' instead of ``='' is acce
 Examples:
 \begin{example}
   my_const = sqrt(10.3) * pi^3
-  abc      = my_const * 23
+  abc     := my_const * 23
 \end{example}
 Unlike \mad, \bmad\ uses immediate substitution so that all constants
 in an expression must have been previously defined. For example, the

@@ -1,14 +1,24 @@
 \SECTION{Overview}
 
-\bmad\ (Otherwise known as ``Baby MAD" or ``Better MAD" or just 
-plain ``Be MAD!")  is a software subroutine library used for
-relativistic charged--particle dynamics simulations in high energy
-accelerators and storage rings. The \bmad\ subroutines, written in
-Fortran90, have been developed to:
+\bmad\ (Otherwise known as ``Baby MAD" or ``Better MAD" or just plain
+``Be MAD!")  is a software subroutine library used for relativistic
+charged--particle dynamics simulations in high energy accelerators and
+storage rings. \bmad\ has been developed at Cornell University's
+Laboratory for Elementary Particle Physics and has been in use since the
+1990's. \bmad\ was developed because there was a need at Cornell to do
+calculations that couldn't be done with existing programs in general use
+in the accelerator physics community. What had been hapening up to then
+was that individual physicists were writing programs almost from scratch 
+to do individual calculations. This lead to much duplication of effert.
+As a response the \bmad\ subroutines, written in
+Fortran90, were developed to:
 \begin{Itemize}
 \item Cut down on the time needed to develop programs,
-\item Cut down on programming errors, and
-\item Provide a standard input format for specifying lattices.
+\item Reduce computation times to a minimum,
+\item Cut down on programming errors, 
+\item Provide a standard input format for specifying lattices, and
+\item Provide a standardized means to share lattice information between 
+programs.
 \end{Itemize}
 
 \bmad\ can be used to study single and multi--particle beam dynamics. Its 
@@ -18,11 +28,5 @@ dispersion, coupling, etc. The elements that \bmad\ knows about include
 quadrupoles, RF cavities (both storage ring and LINAC accelerating types),
 solenoids, dipole bends, etc. 
 
-\bmad\ has been developed at Cornell University's Laboratory for Elementary
-Particle Physics and has been in use since the 1990's. This manual is part of the 
-\bmad\ software distribution but it can also be obtained from the web at
-\begin{example}
-  http://www.lepp.cornell.edu/~dcs/bmad/bmad_guide.ps
-\end{example}
 \vfill
 \break

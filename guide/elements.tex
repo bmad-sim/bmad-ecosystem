@@ -1,8 +1,8 @@
 \chapter{Elements}
 
 A lattice for a storage ring or linac is made up of a collection of
-elements --- Quadrupoles, Bends, etc. This chapter discusses the
-various types of elements available in \bmad except for \vn{group}s
+elements --- quadrupoles, bends, etc. This chapter discusses the
+various types of elements available in \bmad\ except for \vn{group}s
 and \vn{overlay}s which are discussed in the next chapter.
 
 \section{Bmad Elements}
@@ -19,22 +19,22 @@ In
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Element} & {\it Section}     & {\it Element} & {\it Section}    \\ \hline
-  ab\_multipole & \ref{s:ab_m}      &  octupole     & \ref{s:oct}      \\ \hline
-  accel\_sol    & \ref{s:accel_sol} &  overlay      & \ref{s:overlay}  \\ \hline
-  beambeam      & \ref{s:bbi}       &  patch        & \ref{s:patch}    \\ \hline
-  custom        & \ref{s:custom}    &  quadrupole   & \ref{s:quad}     \\ \hline
-  drift         & \ref{s:drift}     &  rbend        & \ref{s:bend}     \\ \hline
-  ecollimator   & \ref{s:col}       &  rcollimator  & \ref{s:col}      \\ \hline
-  elseparator   & \ref{s:elsep}     &  rfcavity     & \ref{s:rfcav}    \\ \hline
-  group         & \ref{s:group}     &  sbend        & \ref{s:bend}     \\ \hline
-  hkicker       & \ref{s:hvkicker}  &  sextupole    & \ref{s:sex}      \\ \hline
-  hybrid        & \ref{s:hybrid}    &  solenoid     & \ref{s:sol}      \\ \hline
-  instrument    & \ref{s:monitor}   &  sol\_quad    & \ref{s:sq}       \\ \hline
-  kicker        & \ref{s:kicker}    &  taylor       & \ref{s:tay}      \\ \hline
-  lcavity       & \ref{s:lcav}      &  vkicker      & \ref{s:hvkicker} \\ \hline
-  marker        & \ref{s:mark}      &  wiggler      & \ref{s:wig}      \\ \hline
-  monitor       & \ref{s:monitor}   &               &                  \\ \hline
-  multipole     & \ref{s:mult}      &               &                  \\ \hline
+  AB\_Multipole & \ref{s:ab_m}      &  Octupole     & \ref{s:oct}      \\ \hline
+  Accel\_Sol    & \ref{s:accel_sol} &  Overlay      & \ref{s:overlay}  \\ \hline
+  BeamBeam      & \ref{s:bbi}       &  Patch        & \ref{s:patch}    \\ \hline
+  Custom        & \ref{s:custom}    &  Quadrupole   & \ref{s:quad}     \\ \hline
+  Drift         & \ref{s:drift}     &  Rbend        & \ref{s:bend}     \\ \hline
+  Ecollimator   & \ref{s:col}       &  Rcollimator  & \ref{s:col}      \\ \hline
+  ElSeparator   & \ref{s:elsep}     &  RFcavity     & \ref{s:rfcav}    \\ \hline
+  Group         & \ref{s:group}     &  Sbend        & \ref{s:bend}     \\ \hline
+  HKicker       & \ref{s:hvkicker}  &  Sextupole    & \ref{s:sex}      \\ \hline
+  Hybrid        & \ref{s:hybrid}    &  Solenoid     & \ref{s:sol}      \\ \hline
+  Instrument    & \ref{s:monitor}   &  Sol\_Quad    & \ref{s:sq}       \\ \hline
+  Kicker        & \ref{s:kicker}    &  Taylor       & \ref{s:tay}      \\ \hline
+  LCavity       & \ref{s:lcav}      &  VKicker      & \ref{s:hvkicker} \\ \hline
+  Marker        & \ref{s:mark}      &  Wiggler      & \ref{s:wig}      \\ \hline
+  Monitor       & \ref{s:monitor}   &               &                  \\ \hline
+  Multipole     & \ref{s:mult}      &               &                  \\ \hline
 \end{tabular}
 }
 \caption{\bmad\ elements.}
@@ -52,40 +52,34 @@ An \vn{AB_Multipole} is a thin multipole lens up to 20th order. The only
 difference between this and a \vn{Multipole} is the input format. See the 
 Magnetic fields section \ref{s:fields} for more details.
 
-\begin{table}[h]
-\centering 
-{\tt
+\toffset
+\begin{center}
+\tt 
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec.} \\ \hline
-  a$n$, b$n$ = Real  &  \ref{s:fields} &  type = String                & \ref{s:string} & x\_limit = Real  & \ref{s:limit} \\ \hline
-  tilt       = Real  &  \ref{s:offset} &  alias = String               & \ref{s:string} & y\_limit = Real  & \ref{s:limit} \\ \hline
-  x\_offset  = Real  &  \ref{s:offset} &  descrip = String             & \ref{s:string} & aperture = Real  & \ref{s:limit} \\ \hline
-  y\_offset  = Real  &  \ref{s:offset} &  mat6\_calc\_method = Switch  & \ref{s:xfer}   & is\_on = Logical & \ref{s:is_on} \\ \hline
-  s\_offset  = Real  &  \ref{s:offset} &  tracking\_method = Switch    & \ref{s:tm}     &                  &               \\ \hline
+  a$n$, b$n$ = Real  &  \ref{s:fields} &  type = String    & \ref{s:string} & tracking\_method = Switch    & \ref{s:tkm}   \\ \hline
+  tilt       = Real  &  \ref{s:offset} &  alias = String   & \ref{s:string} & mat6\_calc\_method = Switch  & \ref{s:xfer}  \\ \hline
+  x\_offset  = Real  &  \ref{s:offset} &  descrip = String & \ref{s:string} & x\_limit = Real              & \ref{s:limit} \\ \hline
+  y\_offset  = Real  &  \ref{s:offset} &  is\_on = Logical & \ref{s:is_on}  & y\_limit = Real              & \ref{s:limit} \\ \hline
+  s\_offset  = Real  &  \ref{s:offset} &                   &                & aperture = Real              & \ref{s:limit} \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
-Unlike a \mad \vn{multipole}, An \vn{AB_Multipole} never affects the reference orbit
-even if there is a dipole component.
+Unlike a \mad\ \vn{multipole}, An \vn{AB_Multipole} never affects the
+reference orbit even if there is a dipole component. For \vn{a$n$},
+and \vn{b$n$} $n$ is in the range 0 through 20.
 
-\noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.05in
-\begin{example}
-   bmad\_standard  (default) 
-\end{example}
-
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Example:
 \begin{example}
   abc: ab_multipole, a2 = 0.034e-2, b3 = 5.7, a11 = 5.6e6/2
 \end{example}
 
-\vskip0.1in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
 \end{example}
 
 %-----------------------------------------------------------------
@@ -106,25 +100,26 @@ A \vn{BeamBeam} element simulates an interaction with an opposing
 ``weak--strong beam--beam Interaction''). The strong beam is assumed
 to be Gaussian in shape.
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center} 
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
-  sig\_x   = Real       &                 &  type = String                & \ref{s:string} & tilt = Real        &  \ref{s:offset}  \\ \hline
-  sig\_y   = Real       &                 &  alias = String               & \ref{s:string} & x\_offset  = Real  &  \ref{s:offset}  \\ \hline
-  sig\_z   = Real       &                 &  descrip = String             & \ref{s:string} & y\_offset  = Real  &  \ref{s:offset}  \\ \hline
-  charge   = Real       &                 &  mat6\_calc\_method = Switch  & \ref{s:method} & s\_offset  = Real  &  \ref{s:offset}  \\ \hline
-  n\_slice = Integer    &                 &  tracking\_method = Switch    & \ref{s:method} & x\_pitch = Real    &  \ref{s:offset}  \\ \hline
-  symplectify = Logical & \ref{s:symp}    &  x\_limit = Real              & \ref{s:limit}  & y\_pitch = Real    &  \ref{s:offset}  \\ \hline
-  is\_on = Logical      & \ref{s:is_on}   &  y\_limit = Real              & \ref{s:limit}  &                    &                  \\ \hline
-                        &                 &  aperture = Real              & \ref{s:limit}  &                    &                  \\ \hline
+  sig\_x   = Real       &                 & type = String    & \ref{s:string} & tracking\_method = Switch    & \ref{s:tkm}    \\ \hline
+  sig\_y   = Real       &                 & alias = String   & \ref{s:string} & mat6\_calc\_method = Switch  & \ref{s:xfer}   \\ \hline
+  sig\_z   = Real       &                 & descrip = String & \ref{s:string} &                              &                \\ \hline
+  charge   = Real       &                 & x\_pitch = Real  & \ref{s:offset} & x\_offset  = Real            & \ref{s:offset} \\ \hline
+  n\_slice = Integer    &                 & y\_pitch = Real  & \ref{s:offset} & y\_offset  = Real            & \ref{s:offset} \\ \hline
+  x\_limit = Real       & \ref{s:limit}   & tilt = Real      & \ref{s:offset} & s\_offset  = Real            & \ref{s:offset} \\ \hline
+  y\_limit = Real       & \ref{s:limit}   & is\_on = Logical & \ref{s:is_on}  & symplectify = Logical        & \ref{s:symp}   \\ \hline
+  aperture = Real       & \ref{s:limit}   &                  &                &                              &                \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
 The magnitude of the strong beam's charge is set by the \vn{beam}
 command (see \ref{s:beam}).  The sign of the strong beam's charge is
-set by the \vn{charge} attribute.  Thus if \vn{charge} = -1 then the
+set by the \vn{charge} attribute. If \vn{charge} = -1 the
 strong beam has the opposite charge. This is the default.
 
 \vn{sig_x}, \vn{sig_y}, \vn{sig_z} are the strong beam sigmas. 
@@ -135,13 +130,15 @@ In \bmad, \vn{x_offset} and \vn{y_offset} are used to offset the
 \vn{x_pitch} and \vn{y_pitch} gives the beam--beam interaction a
 crossing angle. This is the full crossing angle, not the half-angle.
 
-The strong beam is divided up into \vn{n_slice} equal charge (not
-equal thickness) slices. The default for \vn{n_slice} is 1.
-Propagation through the strong beam involves a kick at the charge
-center of each slice with drifts in between the kicks. The kicks are
-calculated using the standard Bassetti--Erskine formula.  Even though
-the strong beam can have a finite \vn{sig_z} the length of the element
-is always considered to be zero. The longitudinal $s$--position of the
+The strong beam is divided up into \vn{n_slice} equal charge (not equal
+thickness) slices. The default for \vn{n_slice} is 1. Propagation
+through the strong beam involves a kick at the charge center of each
+slice with drifts in between the kicks. The kicks are calculated using
+the standard Bassetti--Erskine formula.  Even though the strong beam can
+have a finite \vn{sig_z} the length of the element is always considered
+to be zero. This is achieved by adding drifts at either end of any
+tracking so that the starting point and ending point are
+identical. The longitudinal $s$--position of the
 \vn{BeamBeam} element is at the spot where the reference particle's
 position coincides with the center of the strong bunch. For example,
 with \vn{n_slice} = 2 the calculation would proceed as follows:
@@ -155,32 +152,26 @@ with \vn{n_slice} = 2 the calculation would proceed as follows:
      at the center of the strong bunch.
 \end{example}
 
-\vskip0.2in \noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
-\begin{example}
-   bmad\_standard  (default) 
-\end{example}
-
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Example:
 \begin{example}
   bbi: beambeam, sig\_x = 3e-3, sig\_y = 3e-4, x\_offset = 0.05
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
   bbi\_constant 
 \end{example}
-\vn{bbi_constant} = $N \, m_e \, r_e / (2 \, \pi \, \gamma \, (\sigma_x + \sigma_y))$ 
+\vn{bbi_constant}: $ C_{bbi} = 
+N \, m_e \, r_e / (2 \, \pi \, \gamma \, (\sigma_x + \sigma_y))$ 
 is a measure of the beam--beam interaction strength. For example,
 in the linear region near $x = y = 0$ the horizontal component of the
 beam--beam kick is approximately 
-$k_x = -4\, \pi \, x \, \mbox{bbi\_constant} / \sigma_x$ and the
+$k_x = -4\, \pi \, x \, C_{bbi} / \sigma_x$ and the
 horizontal beam--beam tune shift is 
-$dQ_x = \mbox{bbi\_constant} \, \beta_x / \sigma_x$.
+$dQ_x = C_{bbi} \, \beta_x / \sigma_x$.
 
 %-----------------------------------------------------------------
 \section{Custom}
@@ -191,47 +182,38 @@ outside of the standard \bmad\ subroutine library. That is, to use a
 custom element some programmer must write the appropriate custom
 routines which are then linked with the \bmad\ subroutines into a
 program. \bmad\ will call the custom routines at the appropriate time
-to do tracking and transfer matrix calculations. See the programmer
+to do tracking, transfer matrix calculations, etc. See the programmer
 who wrote the custom routines for more details!
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
-  l        = Real       & \ref{s:l}       &  type = String                & \ref{s:string} & x\_offset  = Real  &  \ref{s:offset}  \\ \hline
-  val$n$, $n$ = 1 - 12 = Real &           &  alias = String               & \ref{s:string} & y\_offset  = Real  &  \ref{s:offset}  \\ \hline
-  rel\_tol = Real       & \ref{s:tol}     &  descrip = String             & \ref{s:string} & s\_offset  = Real  &  \ref{s:offset}  \\ \hline
-  abs\_tol = Real       & \ref{s:tol}     &  mat6\_calc\_method = Switch  & \ref{s:method} & x\_pitch = Real    &  \ref{s:offset}  \\ \hline
-  num\_steps = Integer  & \ref{s:tol}     &  tracking\_method = Switch    & \ref{s:method} & y\_pitch = Real    &  \ref{s:offset}  \\ \hline
-  symplectify = Logical & \ref{s:symp}    &  x\_limit = Real              & \ref{s:limit}  & tilt = Real        &  \ref{s:offset}  \\ \hline
-  is\_on = Logical      & \ref{s:is_on}   &  y\_limit = Real              & \ref{s:limit}  & integration\_ord   &  \ref{s:ord}     \\ \hline
-                        &                 &  aperture = Real              & \ref{s:limit}  &                    &                  \\ \hline
+  l        = Real              & \ref{s:l}      & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
+  \begin{tabular}{@{}l} val$n$ = Real \\ ($n = 1 - 12$) \end{tabular} 
+                               &                & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
+  x\_offset  = Real            & \ref{s:offset} & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
+  y\_offset  = Real            & \ref{s:offset} &                    &                & field\_calc = Switch        & \ref{s:integ} \\ \hline
+  s\_offset  = Real            & \ref{s:offset} & is\_on             & \ref{s:is_on}  & rel\_tol = Real             & \ref{s:integ} \\ \hline
+  x\_pitch = Real              & \ref{s:offset} & x\_limit = Real    & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
+  y\_pitch = Real              & \ref{s:offset} & y\_limit = Real    & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
+  tilt     = Real              & \ref{s:offset} & aperture = Real    & \ref{s:limit}  & symplectify = Logical       & \ref{s:symp}  \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
-\vskip0.2in \noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
-\begin{example}
-  custom  (default)
-  runge\_kutta
-  boris
-  adaptive\_boris
-\end{example}
-
-\vskip0.2in \noindent
+\noindent
 Example:
 \begin{example}
-  c1: custom, l = 3, v4 = 5.6, v12 = 0.9, num_steps = 12, tracking_method = boris
+  c1: custom, l = 3, val4 = 5.6, val12 = 0.9, num_steps = 12, tracking_method = boris
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
 \end{example}
-
 
 %-----------------------------------------------------------------
 \section{Drift}
@@ -239,40 +221,32 @@ Dependent attributes:
 
 A \vn{Drift} element is just a space free and clear.
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
-  l        = Real       & \ref{s:l}    &  type = String                & \ref{s:string} & x\_limit = Real              & \ref{s:limit} \\ \hline 
-                        &              &  alias = String               & \ref{s:string} & y\_limit = Real              & \ref{s:limit} \\ \hline 
-  rel\_tol = Real       & \ref{s:tol}  &  descrip = String             & \ref{s:string} & aperture = Real              & \ref{s:limit} \\ \hline 
-  abs\_tol = Real       & \ref{s:tol}  &  mat6\_calc\_method = Switch  & \ref{s:method} & symplectify = Logical        & \ref{s:symp}  \\ \hline  
-  num\_steps = Integer  & \ref{s:tol}  &  tracking\_method = Switch    & \ref{s:method} & integration\_ord = Integer   & \ref{s:int}   \\ \hline  
+  l        = Real       & \ref{s:l}     & type = String      & \ref{s:string} & tracking\_method = Switch    & \ref{s:tkm}   \\ \hline
+                        &               & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch  & \ref{s:xfer}  \\ \hline
+  rel\_tol = Real       & \ref{s:integ} & descrip = String   & \ref{s:string} &                              &               \\ \hline
+  abs\_tol = Real       & \ref{s:integ} & x\_limit = Real    & \ref{s:limit}  & symplectify = Logical        & \ref{s:symp}  \\ \hline
+  num\_steps = Integer  & \ref{s:integ} & y\_limit = Real    & \ref{s:limit}  & integration\_ord = Integer   & \ref{s:integ} \\ \hline
+                        &               & aperture = Real    & \ref{s:limit}  & field\_calc = Switch         & \ref{s:integ} \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
-\vskip0.2in \noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
-\begin{example}
-  bmad\_standard  (default)
-  symp\_lie\_ptc
-  taylor
-\end{example}
-
-\vskip0.2in \noindent
+\noindent
 Example:
 \begin{example}
   d21: drift, l = 4.5
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
 \end{example}
-
 
 %-----------------------------------------------------------------
 \section{Ecollimator and Rcollimator}
@@ -282,42 +256,32 @@ An \vn{Ecollimator} is a drift with elliptic collimation.
 A \vn{Rcollimator} is a drift with rectangular collimation.
 The aperture is considered to be at the end edge of the element.
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
-  l        = Real       & \ref{s:l}       &  type = String                & \ref{s:string} & x\_offset  = Real  & \ref{s:offset}  \\ \hline
-                        &                 &  alias = String               & \ref{s:string} & y\_offset  = Real  & \ref{s:offset}  \\ \hline
-  rel\_tol = Real       & \ref{s:tol}     &  descrip = String             & \ref{s:string} & s\_offset  = Real  & \ref{s:offset}  \\ \hline
-  abs\_tol = Real       & \ref{s:tol}     &  mat6\_calc\_method = Switch  & \ref{s:method} & tilt = Real        & \ref{s:offset}  \\ \hline
-  num\_steps = Integer  & \ref{s:tol}     &  tracking\_method = Switch    & \ref{s:method} & aperture = Real    & \ref{s:limit}   \\ \hline
-  symplectify = Logical & \ref{s:symp}    &  x\_limit = Real              & \ref{s:limit}  &                    &                 \\ \hline
-  integration\_ord = Integer & \ref{s:int}&  y\_limit = Real              & \ref{s:limit}  &                    &                 \\ \hline
-
+  l        = Real       & \ref{s:l}      & type = String                & \ref{s:string} & tracking\_method = Switch    & \ref{s:tkm}   \\ \hline
+  num\_steps = Integer  & \ref{s:integ}  & alias = String               & \ref{s:string} & mat6\_calc\_method = Switch  & \ref{s:xfer}  \\ \hline
+  rel\_tol = Real       & \ref{s:integ}  & descrip = String             & \ref{s:string} &                              &               \\ \hline
+  abs\_tol = Real       & \ref{s:integ}  & x\_limit = Real              & \ref{s:limit}  & symplectify = Logical        & \ref{s:symp}  \\ \hline
+  x\_offset  = Real     & \ref{s:offset} & y\_limit = Real              & \ref{s:limit}  & integration\_ord = Integer   & \ref{s:integ} \\ \hline
+  y\_offset  = Real     & \ref{s:offset} & aperture = Real              & \ref{s:limit}  & field\_calc = Switch         & \ref{s:integ} \\ \hline                                
 \end{tabular}
-}
-\end{table}
-\vskip0.2in \noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
-\begin{example}
-  bmad\_standard  (default)
-  symp\_lie\_ptc
-  taylor
-\end{example}
+\end{center}
+\toffset
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Example:
 \begin{example}
   d21: ecollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
 \end{example}
-
 
 %-----------------------------------------------------------------
 \section{Elseperator}
@@ -325,52 +289,44 @@ Dependent attributes:
 
 A \vn{ElSeperator} is an electrostatic separator.
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
-  l        = Real       & \ref{s:l}       & type = String                & \ref{s:string} & x\_offset  = Real  & \ref{s:offset}  \\ \hline
-  hkick    = Real       & \ref{s:kick}    & alias = String               & \ref{s:string} & y\_offset  = Real  & \ref{s:offset}  \\ \hline
-  vkick    = Real       & \ref{s:kick}    & descrip = String             & \ref{s:string} & s\_offset  = Real  & \ref{s:offset}  \\ \hline
-  gap      = Real       &                 & mat6\_calc\_method = Switch  & \ref{s:method} & x\_pitch = Real    & \ref{s:offset}  \\ \hline
-                                          & tracking\_method = Switch    & \ref{s:method} & y\_pitch = Real    & \ref{s:offset}  \\ \hline
-  rel\_tol = Real       & \ref{s:tol}     & x\_limit = Real              & \ref{s:limit}  & tilt     = Real    & \ref{s:offset}  \\ \hline
-  abs\_tol = Real       & \ref{s:tol}     & y\_limit = Real              & \ref{s:limit}  & is\_on             & \ref{s:is_on}   \\ \hline
-  num\_steps = Integer  & \ref{s:tol}     & aperture = Real              & \ref{s:limit}  & a$n$, b$n$         & \ref{s:ab}      \\ \hline
-  integration\_ord = Integer & \ref{s:int}& symplectify = Logical        & \ref{s:symp}   & radius             & \ref{s:ab}      \\ \hline
+  l        = Real       & \ref{s:l}      & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
+  hkick    = Real       & \ref{s:kick}   & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
+  vkick    = Real       & \ref{s:kick}   & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
+  gap      = Real       &                &                    &                & field\_calc = Switch        & \ref{s:integ} \\ \hline
+  x\_offset  = Real     & \ref{s:offset} & is\_on             & \ref{s:is_on}  & rel\_tol = Real             & \ref{s:integ} \\ \hline
+  y\_offset  = Real     & \ref{s:offset} & x\_limit = Real    & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
+  s\_offset  = Real     & \ref{s:offset} & y\_limit = Real    & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
+  x\_pitch = Real       & \ref{s:offset} & aperture = Real    & \ref{s:limit}  & symplectify = Logical       & \ref{s:symp}  \\ \hline
+  y\_pitch = Real       & \ref{s:offset} &                    &                & a$n$, b$n$ = Real           & \ref{s:fields}\\ \hline
+  tilt     = Real       & \ref{s:offset} &                    &                & radius = Real               & \ref{s:fields}\\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
 For an \vn{Elseparator}, the kick is determined by \vn{hkick} and
 \vn{vkick}. The \vn{gap} for an \vn{Elseparator} is used to compute
 the electric field for a given kick. The voltage is a dependent
 attribute determined by:
 \begin{example}
-  e\_field (V/m) = sqrt(hkick$^2$ + vkick$^2$) * beam\_energy / L
+  e\_field (V/m) = sqrt(hkick^2 + vkick^2) * beam\_energy / L
   volt (V) = e\_field * gap  
 \end{example}
 
-
-\vskip0.2in \noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
-\begin{example}
-  bmad\_standard  (default)
-  symp\_lie\_ptc
-  taylor
-\end{example}
-
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Example:
 \begin{example}
   h_sep: elsep, l = 4.5, hkick = 0.003, gap = 0.11
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
   e_field
   volt
 \end{example}
@@ -384,30 +340,31 @@ bend.  Note that \vn{Hkicker} and \vn{Vkicker} elements use the
 \vn{kick} attribute while a \vn{kicker} uses the \vn{hkick} and \vn{vkick} 
 attributes.
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} &  {\sl Attribute} & {\sl Sec.} \\ \hline
-  l        = Real       & \ref{s:l}       & type = String                & \ref{s:string} & x\_limit = Real       & \ref{s:limit}  \\ \hline
-  kick     = Real       & \ref{s:kick}    & alias = String               & \ref{s:string} & y\_limit = Real       & \ref{s:limit}  \\ \hline
-  tilt     = Real       & \ref{s:offset}  & descrip = String             & \ref{s:string} & aperture = Real       & \ref{s:limit}  \\ \hline
-  rel\_tol = Real       & \ref{s:tol}     & mat6\_calc\_method = Switch  & \ref{s:method} & is\_on                & \ref{s:is_on}  \\ \hline 
-  abs\_tol = Real       & \ref{s:tol}     & tracking\_method = Switch    & \ref{s:method} & symplectify = Logical & \ref{s:symp}   \\ \hline
-  num\_steps = Integer  & \ref{s:tol}     & integration\_ord = Integer   & \ref{s:int}    &                       &                \\ \hline
+  l        = Real       & \ref{s:l}       & type = String      & \ref{s:string} & tracking\_method = Switch    & \ref{s:tkm}   \\ \hline
+  kick     = Real       & \ref{s:kick}    & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch  & \ref{s:xfer}  \\ \hline
+  tilt     = Real       & \ref{s:offset}  & descrip = String   & \ref{s:string} & integration\_ord = Integer   & \ref{s:integ} \\ \hline
+  rel\_tol = Real       & \ref{s:integ}   & x\_limit = Real    & \ref{s:limit}  & field\_calc = Switch         & \ref{s:integ} \\ \hline 
+  abs\_tol = Real       & \ref{s:integ}   & y\_limit = Real    & \ref{s:limit}  & symplectify = Logical        & \ref{s:symp}  \\ \hline
+  num\_steps = Integer  & \ref{s:integ}   & aperture = Real    & \ref{s:limit}  & is\_on                       & \ref{s:is_on} \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Example:
 \begin{example}
   h_kick: hkicker, l = 4.5, kick = 0.003
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
 \end{example}
 
 %-----------------------------------------------------------------
@@ -425,38 +382,31 @@ lattice file but are created by a program, usually for speed purposes.
 \bmad\ treats \vn{Instrument} and \vn{Monitor} elements exactly like
 a drift.
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
-  l        = Real       & \ref{s:l}       &  type = String                & \ref{s:string} & x\_limit = Real              & \ref{s:limit}  \\ \hline 
-                        &                 &  alias = String               & \ref{s:string} & y\_limit = Real              & \ref{s:limit}  \\ \hline 
-  rel\_tol = Real       & \ref{s:tol}     &  descrip = String             & \ref{s:string} & aperture = Real              & \ref{s:limit}  \\ \hline 
-  abs\_tol = Real       & \ref{s:tol}     &  mat6\_calc\_method = Switch  & \ref{s:method} & symplectify = Logical        & \ref{s:symp}   \\ \hline  
-  num\_steps = Integer  & \ref{s:tol}     &  tracking\_method = Switch    & \ref{s:method} & integration\_ord = Integer   & \ref{s:int}    \\ \hline  
+  l        = Real       & \ref{s:l}     & type = String      & \ref{s:string} & tracking\_method = Switch    & \ref{s:tkm}   \\ \hline
+                        &               & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch  & \ref{s:xfer}  \\ \hline
+  rel\_tol = Real       & \ref{s:integ} & descrip = String   & \ref{s:string} &                              &               \\ \hline
+  abs\_tol = Real       & \ref{s:integ} & x\_limit = Real    & \ref{s:limit}  & symplectify = Logical        & \ref{s:symp}  \\ \hline
+  num\_steps = Integer  & \ref{s:integ} & y\_limit = Real    & \ref{s:limit}  & integration\_ord = Integer   & \ref{s:integ} \\ \hline
+                        &               & aperture = Real    & \ref{s:limit}  & field\_calc = Switch         & \ref{s:integ} \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
-\vskip0.2in \noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
-\begin{example}
-  bmad\_standard  (default)
-  symp\_lie\_ptc
-  taylor
-\end{example}
-
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Example:
 \begin{example}
   d21: instr, l = 4.5
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
 \end{example}
 
 %-----------------------------------------------------------------
@@ -466,44 +416,36 @@ Dependent attributes:
 A \vn{Kicker} can deflect a beam in both planes. Note that a
 \vn{Kicker} uses the \vn{hkick} and \vn{vkick} attributes while
 \vn{Hkicker} and \vn{Vkicker} elements use the \vn{kick} attribute. 
-In addition a \vn{Kicker} can apply a displacement using the
-\vn{h_displace} and \vn{v_displace} attributes.
+In addition a \vn{Kicker} can apply a displacement to a particle
+using the \vn{h_displace} and \vn{v_displace} attributes.
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} &  {\sl Attribute} & {\sl Sec.} \\ \hline
-  l        = Real       & \ref{s:l}       & type = String                & \ref{s:string} & x\_limit = Real       & \ref{s:limit}  \\ \hline
-  hkick    = Real       & \ref{s:kick}    & alias = String               & \ref{s:string} & y\_limit = Real       & \ref{s:limit}  \\ \hline
-  vkick    = Real       & \ref{s:kick}    & descrip = String             & \ref{s:string} & aperture = Real       & \ref{s:limit}  \\ \hline
-  tilt     = Real       & \ref{s:offset}  & mat6\_calc\_method = Switch  & \ref{s:method} & rel\_tol = Real       & \ref{s:tol}    \\ \hline 
-  h\_displace = Real    & \ref{s:disp}    & tracking\_method = Switch    & \ref{s:method} & abs\_tol = Real       & \ref{s:tol}    \\ \hline
-  v\_displace = Real    & \ref{s:disp}    & integration\_ord = Integer   & \ref{s:int}    & num\_steps = Integer  & \ref{s:tol}    \\ \hline
-  symplectify = Logical & \ref{s:symp}    & is\_on                       & \ref{s:is_on}  & a$n$, b$n$            & \ref{s:ab}     \\ \hline
-                        &                 &                              &                & radius                & \ref{s:ab}     \\ \hline
+  l        = Real       & \ref{s:l}       & type = String      & \ref{s:string} & tracking\_method = Switch    & \ref{s:tkm}   \\ \hline
+  hkick    = Real       & \ref{s:kick}    & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch  & \ref{s:xfer}  \\ \hline
+  vkick    = Real       & \ref{s:kick}    & descrip = String   & \ref{s:string} & integration\_ord = Integer   & \ref{s:integ} \\ \hline
+  h\_displace = Real    &                 & x\_limit = Real    & \ref{s:limit}  & field\_calc = Switch         & \ref{s:integ} \\ \hline 
+  v\_displace = Real    &                 & y\_limit = Real    & \ref{s:limit}  & symplectify = Logical        & \ref{s:symp}  \\ \hline
+  rel\_tol = Real       & \ref{s:integ}   & aperture = Real    & \ref{s:limit}  & is\_on                       & \ref{s:is_on} \\ \hline
+  abs\_tol = Real       & \ref{s:integ}   & tilt     = Real    & \ref{s:offset} &                              &               \\ \hline
+  num\_steps = Integer  & \ref{s:integ}   &                    &                &                              &               \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
-\vskip0.2in \noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
-\begin{example}
-  bmad\_standard (default)
-  symp\_lie\_ptc
-  taylor
-\end{example}
-
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Example:
 \begin{example}
   a_kick: kicker, l = 4.5, hkick = 0.003
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
 \end{example}
 
 %-----------------------------------------------------------------
@@ -512,44 +454,49 @@ Dependent attributes:
 
 An \vn{Lcavity} is a LINAC accelerating cavity.
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
-  l        = Real       & \ref{s:l}       & type = String                & \ref{s:string} & x\_offset  = Real  & \ref{s:offset}  \\ \hline
-  rf\_frequency = Real  &                 & alias = String               & \ref{s:string} & y\_offset  = Real  & \ref{s:offset}  \\ \hline
-  gradient      = Real  &                 & descrip = String             & \ref{s:string} & s\_offset  = Real  & \ref{s:offset}  \\ \hline
-  phi0          = Real  &                 & mat6\_calc\_method = Switch  & \ref{s:method} & x\_pitch = Real    & \ref{s:offset}  \\ \hline
-  e\_loss       = Real  &                 & tracking\_method = Switch    & \ref{s:method} & y\_pitch = Real    & \ref{s:offset}  \\ \hline
-  hkick         = Real  & \ref{s:kick}    & x\_limit = Real              & \ref{s:limit}  & is\_on             & \ref{s:is_on}   \\ \hline
-  vkick         = Real  & \ref{s:kick}    & y\_limit = Real              & \ref{s:limit}  & sr\_wake\_file = String &            \\ \hline
-  rel\_tol = Real       & \ref{s:tol}     & aperture = Real              & \ref{s:limit}  & lr\_wake\_file = String &            \\ \hline
-  abs\_tol = Real       & \ref{s:tol}     & symplectify = Logical        & \ref{s:symp}   &                         &            \\ \hline
-  num\_steps = Integer  & \ref{s:tol}     & integration\_ord = Integer   & \ref{s:int}    &                         &            \\ \hline
-
+  l        = Real       & \ref{s:l}      & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
+  rf\_frequency = Real  &                & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
+  gradient      = Real  &                & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
+  phi0          = Real  &                &                    &                & field\_calc = Switch        & \ref{s:integ} \\ \hline
+  e\_loss       = Real  &                & is\_on             & \ref{s:is_on}  & rel\_tol = Real             & \ref{s:integ} \\ \hline
+  x\_offset  = Real     & \ref{s:offset} & x\_limit = Real    & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
+  y\_offset  = Real     & \ref{s:offset} & y\_limit = Real    & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
+  s\_offset  = Real     & \ref{s:offset} & aperture = Real    & \ref{s:limit}  &                             &               \\ \hline
+  x\_pitch = Real       & \ref{s:offset} & hkick    = Real    & \ref{s:kick}   & sr\_wake\_file = String     &               \\ \hline
+  y\_pitch = Real       & \ref{s:offset} & vkick    = Real    & \ref{s:kick}   & lr\_wake\_file = String     &               \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
-
-\vskip0.2in \noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
+Tracking through an \vn{LCavity} is modeled using the equations developed by Rosenzweig
+and Serafini\cite{b:rosenzweig}. The varias attributes are
 \begin{example}
-  bmad\_standard (default)
+  gradient     ! Accelerating gradient in V/m
+  phi0         ! Phase (in radians/2$pi$) of the reference particle with respect to the RF. 
+               !  pho0 = 0 is on crest.
+  e_loss       ! Loss parameter for short range wakefields in V/Coulomb.
+  sr_wake_file ! Short range wake field definition file.
+  lr_wake_file ! Long range wake field definition file.
 \end{example}
 
-\vskip0.2in \noindent
+The transfer matrix for an \vn{LCavity} with finite \vn{gradient} is never symplectic.
+
+\vskip0.05in \noindent
 Example:
 \begin{example}
   rf1: lcav, l = 4.5, gradient = 1.2e6, sr\_wake\_file = "sr1.dat"
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
   energy\_start
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
   e\_loss       ! If sr\_wake\_file is present
   delta\_e
 \end{example}
@@ -560,34 +507,28 @@ Dependent attributes:
 
 A \vn{Marker} is a zero length element meant to mark a position
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
-                               & \ref{s:l}       &  type = String      & \ref{s:string} & x\_limit = Real  & \ref{s:limit} \\ \hline 
-  mat6\_calc\_method = Switch  & \ref{s:method}  &  alias = String     & \ref{s:string} & y\_limit = Real  & \ref{s:limit} \\ \hline 
-  tracking\_method = Switch    & \ref{s:method}  &  descrip = String   & \ref{s:string} & aperture = Real  & \ref{s:limit} \\ \hline 
+  tracking\_method = Switch    & \ref{s:tkm}  &  type = String      & \ref{s:string} & x\_limit = Real  & \ref{s:limit} \\ \hline 
+  mat6\_calc\_method = Switch  & \ref{s:xfer} &  alias = String     & \ref{s:string} & y\_limit = Real  & \ref{s:limit} \\ \hline 
+                               &              &  descrip = String   & \ref{s:string} & aperture = Real  & \ref{s:limit} \\ \hline 
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
-\vskip0.2in \noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
-\begin{example}
-  bmad\_standard (default)
-\end{example}
-
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Example:
 \begin{example}
   mm: mark, type = "BPM"
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
 \end{example}
 
 %-----------------------------------------------------------------
@@ -598,42 +539,34 @@ A \vn{Multipole} is a thin multipole lens up to 20th order. The only
 difference between this and an \vn{AB_Multipole} is the input format. See the 
 Magnetic fields section \ref{s:fields} for more details.
 
-\begin{table}[h]
-\centering 
-{\tt
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
-  K$n$L, T$n$ = Real &  \ref{s:fields} &  type = String                & \ref{s:string} & x\_limit = Real  & \ref{s:limit} \\ \hline
-  tilt       = Real  &  \ref{s:offset} &  alias = String               & \ref{s:string} & y\_limit = Real  & \ref{s:limit} \\ \hline
-  x\_offset  = Real  &  \ref{s:offset} &  descrip = String             & \ref{s:string} & aperture = Real  & \ref{s:limit} \\ \hline
-  y\_offset  = Real  &  \ref{s:offset} &  mat6\_calc\_method = Switch  & \ref{s:xfer}   & is\_on = Logical & \ref{s:is_on} \\ \hline
-  s\_offset  = Real  &  \ref{s:offset} &  tracking\_method = Switch    & \ref{s:tm}     &                  &               \\ \hline
+  K$n$L, T$n$ = Real &  \ref{s:fields} &  type = String                & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
+  tilt       = Real  &  \ref{s:offset} &  alias = String               & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
+  x\_offset  = Real  &  \ref{s:offset} &  descrip = String             & \ref{s:string} & x\_limit = Real             & \ref{s:limit} \\ \hline
+  y\_offset  = Real  &  \ref{s:offset} &  is\_on = Logical             & \ref{s:is_on}  & y\_limit = Real             & \ref{s:limit} \\ \hline
+  s\_offset  = Real  &  \ref{s:offset} &                               &                & aperture = Real             & \ref{s:limit} \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
 Unlike \mad, A \vn{Multipole} never affects the reference orbit
 even if there is a dipole (\vn{k0l}) component.
 
-\noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
-\begin{example}
-   bmad\_standard  (default) 
-\end{example}
-
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Example:
 \begin{example}
   m1: multipole, k1l = 0.034e-2, t1, k3l = 4.5, t3 = 0.31*pi
 \end{example}
 
-\vskip0.1in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
 \end{example}
-
 
 %-----------------------------------------------------------------
 \section{Octupole}
@@ -641,133 +574,110 @@ Dependent attributes:
 
 An \vn{Octupole} has a cubic field dependence.
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
-  l        = Real       & \ref{s:l}       & type = String                & \ref{s:string} & x\_offset  = Real  & \ref{s:offset}  \\ \hline
-  k3       = Real       &                 & alias = String               & \ref{s:string} & y\_offset  = Real  & \ref{s:offset}  \\ \hline
-  b\_gradient = Real    &                 & descrip = String             & \ref{s:string} & s\_offset  = Real  & \ref{s:offset}  \\ \hline
-  hkick    = Real       & \ref{s:kick}    & mat6\_calc\_method = Switch  & \ref{s:method} & x\_pitch = Real    & \ref{s:offset}  \\ \hline
-  vkick    = Real       & \ref{s:kick}    & tracking\_method = Switch    & \ref{s:method} & y\_pitch = Real    & \ref{s:offset}  \\ \hline
-  rel\_tol = Real       & \ref{s:tol}     & x\_limit = Real              & \ref{s:limit}  & tilt     = Real    & \ref{s:offset}  \\ \hline
-  abs\_tol = Real       & \ref{s:tol}     & y\_limit = Real              & \ref{s:limit}  & is\_on             & \ref{s:is_on}   \\ \hline
-  num\_steps = Integer  & \ref{s:tol}     & aperture = Real              & \ref{s:limit}  & a$n$, b$n$         & \ref{s:ab}      \\ \hline
-  symplectify = Logical & \ref{s:symp}    & integration\_ord = Integer   & \ref{s:int}    & radius             & \ref{s:ab}      \\ \hline
+  l        = Real       & \ref{s:l}      & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
+  k3       = Real       &                & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
+  b\_gradient = Real    &                & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
+                        &                & is\_on             & \ref{s:is_on}  & field\_calc = Switch        & \ref{s:integ} \\ \hline
+  x\_offset  = Real     & \ref{s:offset} & x\_limit = Real    & \ref{s:limit}  & rel\_tol = Real             & \ref{s:integ} \\ \hline
+  y\_offset  = Real     & \ref{s:offset} & y\_limit = Real    & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
+  s\_offset  = Real     & \ref{s:offset} & aperture = Real    & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
+  x\_pitch = Real       & \ref{s:offset} & hkick    = Real    & \ref{s:kick}   & a$n$, b$n$ = Real           & \ref{s:fields}\\ \hline
+  y\_pitch = Real       & \ref{s:offset} & vkick    = Real    & \ref{s:kick}   & radius = Real               & \ref{s:fields}\\ \hline
+  tilt                  & \ref{s:offset} &                    &                & symplectify = Logical       & \ref{s:symp}  \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
-
-\vskip0.2in \noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
-\begin{example}
-  bmad\_standard  (default)
-  symp\_lie\_ptc
-  taylor
-\end{example}
-
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Example:
 \begin{example}
   oct1: octupole, l = 4.5, k3 = 0.003
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
   b\_gradient or k3
 \end{example}
-
 
 %-----------------------------------------------------------------
 \section{Patch}
 \label{s:patch}
 
-A \vn{Patch} offsets the reference orbit. This is a generalization 
-of \mad's \vn{yrot} and \vn{srot} elements.
+A \vn{Patch} offsets the reference orbit. This is a generalization of
+\mad's \vn{yrot} and \vn{srot} elements. For example, a positive
+\vn{x_offset} offsets the reference orbit after the \vn{patch} in the
+positive $x$--direction relative to the reference orbit before the
+\vn{patch}.
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec}  & {\sl Attribute} & {\sl Sec} & {\sl Attribute} & {\sl Sec} \\ \hline
-  x\_offset  = Real  & \ref{s:offset} &  type = String                & \ref{s:string} & x\_limit = Real  & \ref{s:limit} \\ \hline
-  y\_offset  = Real  & \ref{s:offset} &  alias = String               & \ref{s:string} & y\_limit = Real  & \ref{s:limit} \\ \hline
-  z\_offset  = Real  & \ref{s:offset} &  descrip = String             & \ref{s:string} & aperture = Real  & \ref{s:limit} \\ \hline
-  x\_pitch   = Real  &                &  mat6\_calc\_method = Switch  & \ref{s:xfer}   & is\_on = Logical & \ref{s:is_on} \\ \hline
-  y\_pitch   = Real  &                &  tracking\_method = Switch    & \ref{s:tm}     &                  &               \\ \hline
-  de\_offset = Real  &                &  tilt = Real                  & \ref{s:offset} &                  &               \\ \hline            
+  x\_offset  = Real  & \ref{s:offset} &  type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
+  y\_offset  = Real  & \ref{s:offset} &  alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
+  z\_offset  = Real  & \ref{s:offset} &  descrip = String   & \ref{s:string} & x\_limit = Real             & \ref{s:limit} \\ \hline
+  tilt = Real        & \ref{s:offset} &  x\_pitch   = Real  & \ref{s:offset} & y\_limit = Real             & \ref{s:limit} \\ \hline
+                     &                &  y\_pitch   = Real  & \ref{s:offset} & aperture = Real             & \ref{s:limit} \\ \hline
+                     &                &  de\_offset = Real  &                & is\_on = Logical            & \ref{s:is_on} \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
-\noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
-\begin{example}
-   bmad\_standard  (default) 
-\end{example}
-
-\vskip0.2in \noindent
+\vskip0.in \noindent
 Example:
 \begin{example}
   pt: patch, x\_offset = 3.2
 \end{example}
 
-\vskip0.1in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
 \end{example}
-
-
-
 
 %-----------------------------------------------------------------
 \section{Quadrupole}
 \label{s:quad}
 
-An \vn{Octupole} has a cubic field dependence.
+An \vn{Quadrupole} has a linear field dependence.
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
-  l        = Real       & \ref{s:l}      & type = String                & \ref{s:string} & x\_offset  = Real  & \ref{s:offset}  \\ \hline
-  k3       = Real       &                & alias = String               & \ref{s:string} & y\_offset  = Real  & \ref{s:offset}  \\ \hline
-  b\_gradient = Real    &                & descrip = String             & \ref{s:string} & s\_offset  = Real  & \ref{s:offset}  \\ \hline
-  hkick    = Real       & \ref{s:kick}   & mat6\_calc\_method = Switch  & \ref{s:method} & x\_pitch = Real    & \ref{s:offset}  \\ \hline
-  vkick    = Real       & \ref{s:kick}   & tracking\_method = Switch    & \ref{s:method} & y\_pitch = Real    & \ref{s:offset}  \\ \hline
-  rel\_tol = Real       & \ref{s:tol}    & x\_limit = Real              & \ref{s:limit}  & tilt     = Real    & \ref{s:offset}  \\ \hline
-  abx\_tol = Real       & \ref{s:tol}    & y\_limit = Real              & \ref{s:limit}  & is\_on             & \ref{s:is_on}   \\ \hline
-  num\_steps = Integer  & \ref{s:tol}    & aperture = Real              & \ref{s:limit}  & a$n$, b$n$         & \ref{s:ab}      \\ \hline
-  symplectify = Logical & \ref{s:symp}   & integration\_ord = Integer   & \ref{s:int}    & radius             & \ref{s:ab}      \\ \hline
+  l        = Real       & \ref{s:l}      & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
+  k1       = Real       &                & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
+  b\_gradient = Real    &                & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
+                        &                & is\_on             & \ref{s:is_on}  & field\_calc = Switch        & \ref{s:integ} \\ \hline
+  x\_offset  = Real     & \ref{s:offset} & x\_limit = Real    & \ref{s:limit}  & rel\_tol = Real             & \ref{s:integ} \\ \hline
+  y\_offset  = Real     & \ref{s:offset} & y\_limit = Real    & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
+  s\_offset  = Real     & \ref{s:offset} & aperture = Real    & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
+  x\_pitch = Real       & \ref{s:offset} & hkick    = Real    & \ref{s:kick}   & a$n$, b$n$ = Real           & \ref{s:fields}\\ \hline
+  y\_pitch = Real       & \ref{s:offset} & vkick    = Real    & \ref{s:kick}   & radius = Real               & \ref{s:fields}\\ \hline
+  tilt     = Real       & \ref{s:offset} &                    &                & symplectify = Logical       & \ref{s:symp}  \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
-
-\vskip0.2in \noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
-\begin{example}
-  bmad\_standard  (default)
-  symp\_lie\_ptc
-  taylor
-\end{example}
-
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Example:
 \begin{example}
   q03w: quad, l = 0.6, k1 = 0.003, tilt
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
   b\_gradient or k3
 \end{example}
 
@@ -778,51 +688,54 @@ Dependent attributes:
 \vn{Rbend} and \vn{Sbend} are dipole bends. The difference between
 the two is the way the input attributes are interpreted.
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
-  l        = Real       & \ref{s:l}       & type = String                & \ref{s:string} & x\_offset  = Real  & \ref{s:offset}      \\ \hline
-  l\_chord = Real       & \ref{s:l}       & alias = String               & \ref{s:string} & y\_offset  = Real  & \ref{s:offset}      \\ \hline
-  g        = Real       &                 & descrip = String             & \ref{s:string} & s\_offset  = Real  & \ref{s:offset}      \\ \hline
-  delta\_g = Real       &                 & mat6\_calc\_method = Switch  & \ref{s:method} & x\_pitch = Real    & \ref{s:offset}      \\ \hline
-  e1       = Real       &                 & tracking\_method = Switch    & \ref{s:method} & y\_pitch = Real    & \ref{s:offset}      \\ \hline
-  e2       = Real       &                 & x\_limit = Real              & \ref{s:limit}  & integration\_ord = Integer & \ref{s:int} \\ \hline
-  b\_field = Real       &                 & y\_limit = Real              & \ref{s:limit}  & is\_on             & \ref{s:is_on}       \\ \hline
-  rho      = Real       &                 & aperture = Real              & \ref{s:limit}  & a$n$, b$n$         & \ref{s:ab}          \\ \hline
-  angle    = Real       &                 & symplectify = Logical        & \ref{s:symp}   & radius             & \ref{s:ab}          \\ \hline
-  tilt     = Real       & \ref{s:offset}  & hkick    = Real              & \ref{s:kick}   & rel\_tol = Real    & \ref{s:tol}         \\ \hline
-  roll     = Real       & \ref{s:offset}  & vkick    = Real              & \ref{s:kick}   & abs\_tol = Real    & \ref{s:tol}         \\ \hline
-  k1       = Real       &                 & fint     = Real              &                & num\_steps = Integer& \ref{s:tol}        \\ \hline
-  hgap     = Real       &                 & fintx    = Real              &                &                     &                    \\ \hline
-  hgapx    = Real       &                 & fintx    = Real              &                &                     &                    \\ \hline
+  l        = Real       & \ref{s:l}       & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}    \\ \hline
+                        &                 & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}   \\ \hline
+  g        = Real       &                 & descrip = String   & \ref{s:string} & x\_offset  = Real           & \ref{s:offset} \\ \hline
+  delta\_g = Real       &                 &                    &                & y\_offset  = Real           & \ref{s:offset} \\ \hline
+  e1       = Real       &                 &                    &                & s\_offset  = Real           & \ref{s:offset} \\ \hline
+  e2       = Real       &                 & x\_limit = Real    & \ref{s:limit}  & x\_pitch = Real             & \ref{s:offset} \\ \hline
+  b\_field = Real       &                 & y\_limit = Real    & \ref{s:limit}  & y\_pitch = Real             & \ref{s:offset} \\ \hline
+  rho      = Real       &                 & aperture = Real    & \ref{s:limit}  & rel\_tol = Real             & \ref{s:integ}  \\ \hline
+  angle    = Real       &                 & hkick    = Real    & \ref{s:kick}   & abs\_tol = Real             & \ref{s:integ}  \\ \hline
+  tilt     = Real       & \ref{s:offset}  & vkick    = Real    & \ref{s:kick}   & num\_steps = Integer        & \ref{s:integ}  \\ \hline
+  roll     = Real       & \ref{s:offset}  & fint     = Real    &                & integration\_ord = Integer  & \ref{s:integ}  \\ \hline
+  k1       = Real       &                 & fintx    = Real    &                & field\_calc = Switch        & \ref{s:integ}  \\ \hline
+  hgap     = Real       &                 & a$n$, b$n$ = Real  & \ref{s:fields} & symplectify                 & \ref{s:symp}   \\ \hline
+  hgapx    = Real       &                 & radius = Real      & \ref{s:fields} & is\_on                      & \ref{s:is_on}  \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
-\vskip0.2in \noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
-\begin{example}
-  bmad\_standard  (default)
-  symp\_lie\_ptc
-  taylor
-\end{example}
+After reading in a lattice, \bmad\ will internally convert all \vn{RBend}s
+into \vn{SBend}s so \vn{l} will become the path length. The chord length will
+be stored in the \vn{l_chord} attribute.
 
-\vskip0.2in \noindent
+Use of \vn{hgap}, \vn{hgapx}, \vn{fint}, and \vn{fintx} is not yet implemented.
+
+\vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are specified
+for an element \bmad\ will calculate the appropriate value for the third.
+After reading in a lattice \vn{angle} is considered a dependent variable.
+
+\vskip0.05in \noindent
 Example:
 \begin{example}
   q03w: quad, l = 0.6, k1 = 0.003, tilt
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
   b\_field or g
   rho
+  angle
+  l\_chord
 \end{example}
-
 
 %-----------------------------------------------------------------
 \section{RFcavity}
@@ -830,41 +743,35 @@ Dependent attributes:
 
 An \vn{RFcavity} is a RF cavity without acceleration generally used in a storage ring.
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
-  l        = Real       & \ref{s:l}       & type = String                & \ref{s:string} & x\_offset  = Real  & \ref{s:offset}  \\ \hline
-  harmon   = Real       &                 & alias = String               & \ref{s:string} & y\_offset  = Real  & \ref{s:offset}  \\ \hline
-  volt     = Real       &                 & descrip = String             & \ref{s:string} & s\_offset  = Real  & \ref{s:offset}  \\ \hline
-  phi0          = Real  &                 & mat6\_calc\_method = Switch  & \ref{s:method} & x\_pitch = Real    & \ref{s:offset}  \\ \hline
-  hkick         = Real  & \ref{s:kick}    & tracking\_method = Switch    & \ref{s:method} & y\_pitch = Real    & \ref{s:offset}  \\ \hline
-  vkick         = Real  & \ref{s:kick}    & x\_limit = Real              & \ref{s:limit}  & is\_on             & \ref{s:is_on}   \\ \hline
-  num\_steps = Integer  & \ref{s:tol}     & y\_limit = Real              & \ref{s:limit}  & integration\_ord = Integer & \ref{s:int} \\ \hline
-  rel\_tol = Real       & \ref{s:tol}     & aperture = Real              & \ref{s:limit}  &                            &         \\ \hline
-  abs\_tol = Real       & \ref{s:tol}     & symplectify = Logical        & \ref{s:symp}   &                         &            \\ \hline
+  l        = Real       & \ref{s:l}      & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
+  harmon   = Real       &                & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
+  volt     = Real       &                & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
+  phi0     = Real       &                &                    &                & field\_calc = Switch        & \ref{s:integ} \\ \hline
+  x\_offset  = Real     & \ref{s:offset} & x\_limit = Real    & \ref{s:limit}  & rel\_tol = Real             & \ref{s:integ} \\ \hline
+  y\_offset  = Real     & \ref{s:offset} & y\_limit = Real    & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
+  s\_offset  = Real     & \ref{s:offset} & aperture = Real    & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
+  x\_pitch = Real       & \ref{s:offset} & hkick    = Real    & \ref{s:kick}   & is\_on                      & \ref{s:is_on} \\ \hline
+  y\_pitch = Real       & \ref{s:offset} & vkick    = Real    & \ref{s:kick}   & symplectify = Logical       & \ref{s:symp}  \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
 
-\vskip0.2in \noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
-\begin{example}
-  bmad\_standard (default)
-\end{example}
-
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Example:
 \begin{example}
-  rf1: lcav, l = 4.5, gradient = 1.2e6, sr\_wake\_file = "sr1.dat"
+  rf1: lcav, l = 4.5, harmon = 1281, volt = 5e6
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
   rf\_wavelength
 \end{example}
 
@@ -873,42 +780,35 @@ Dependent attributes:
 \label{s:sex}
 A \vn{Sextupole} has a quadratic field dependence.
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
-  l        = Real       & \ref{s:l}       & type = String                & \ref{s:string} & x\_offset  = Real  & \ref{s:offset}  \\ \hline
-  k2       = Real       &                 & alias = String               & \ref{s:string} & y\_offset  = Real  & \ref{s:offset}  \\ \hline
-  b\_gradiant = Real    &                 & descrip = String             & \ref{s:string} & s\_offset  = Real  & \ref{s:offset}  \\ \hline
-  hkick    = Real       & \ref{s:kick}    & mat6\_calc\_method = Switch  & \ref{s:method} & x\_pitch = Real    & \ref{s:offset}  \\ \hline
-  vkick    = Real       & \ref{s:kick}    & tracking\_method = Switch    & \ref{s:method} & y\_pitch = Real    & \ref{s:offset}  \\ \hline
-  rel\_tol = Real       & \ref{s:tol}     & x\_limit = Real              & \ref{s:limit}  & tilt     = Real    & \ref{s:offset}  \\ \hline
-  abs\_tol = Real       & \ref{s:tol}     & y\_limit = Real              & \ref{s:limit}  & is\_on             & \ref{s:is_on}   \\ \hline
-  num\_steps = Integer  & \ref{s:tol}     & aperture = Real              & \ref{s:limit}  & a$n$, b$n$         & \ref{s:ab}      \\ \hline
-  symplectify = Logical & \ref{s:symp}    & integration\_ord = Integer   & \ref{s:int}    & radius             & \ref{s:ab}      \\ \hline
+  l        = Real       & \ref{s:l}      & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
+  k2       = Real       &                & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
+  b\_gradient = Real    &                & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
+                        &                & is\_on             & \ref{s:is_on}  & field\_calc = Switch        & \ref{s:integ} \\ \hline
+  x\_offset  = Real     & \ref{s:offset} & x\_limit = Real    & \ref{s:limit}  & rel\_tol = Real             & \ref{s:integ} \\ \hline
+  y\_offset  = Real     & \ref{s:offset} & y\_limit = Real    & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
+  s\_offset  = Real     & \ref{s:offset} & aperture = Real    & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
+  x\_pitch = Real       & \ref{s:offset} & hkick    = Real    & \ref{s:kick}   & a$n$, b$n$ = Real           & \ref{s:fields}\\ \hline
+  y\_pitch = Real       & \ref{s:offset} & vkick    = Real    & \ref{s:kick}   & radius = Real               & \ref{s:fields}\\ \hline
+  tilt     = Real       & \ref{s:offset} &                    &                & symplectify = Logical       & \ref{s:symp}  \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
-\vskip0.2in \noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
-\begin{example}
-  bmad\_standard  (default)
-  symp\_lie\_ptc
-  taylor
-\end{example}
-
-\vskip0.2in \noindent
+\vskip0.05 in \noindent
 Example:
 \begin{example}
   q03w: quad, l = 0.6, k1 = 0.003, tilt
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
   b\_gradiant or k3
 \end{example}
 
@@ -917,42 +817,35 @@ Dependent attributes:
 \section{Solenoid}
 \label{s:sol}
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
-  l        = Real       & \ref{s:l}       & type = String                & \ref{s:string} & x\_offset  = Real  & \ref{s:offset}      \\ \hline
-  ks       = Real       &                 & alias = String               & \ref{s:string} & y\_offset  = Real  & \ref{s:offset}      \\ \hline
-  b\_field = Real       &                 & descrip = String             & \ref{s:string} & s\_offset  = Real  & \ref{s:offset}      \\ \hline
-                        &                 & mat6\_calc\_method = Switch  & \ref{s:method} & x\_pitch = Real    & \ref{s:offset}      \\ \hline
-  hkick    = Real       & \ref{s:kick}    & tracking\_method = Switch    & \ref{s:method} & y\_pitch = Real    & \ref{s:offset}      \\ \hline
-  vkick    = Real       & \ref{s:kick}    & x\_limit = Real              & \ref{s:limit}  & integration\_ord = Integer & \ref{s:int} \\ \hline
-  rel\_tol = Real       & \ref{s:tol}     & y\_limit = Real              & \ref{s:limit}  & is\_on             & \ref{s:is_on}       \\ \hline
-  abs\_tol = Real       & \ref{s:tol}     & aperture = Real              & \ref{s:limit}  & a$n$, b$n$         & \ref{s:ab}          \\ \hline
-  num\_steps = Integer  & \ref{s:tol}     & symplectify = Logical        & \ref{s:symp}   & radius             & \ref{s:ab}          \\ \hline
+  l        = Real       & \ref{s:l}      & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
+  ks       = Real       &                & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
+  b\_gradient = Real    &                & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
+                        &                & is\_on             & \ref{s:is_on}  & field\_calc = Switch        & \ref{s:integ} \\ \hline
+  x\_offset  = Real     & \ref{s:offset} & x\_limit = Real    & \ref{s:limit}  & rel\_tol = Real             & \ref{s:integ} \\ \hline
+  y\_offset  = Real     & \ref{s:offset} & y\_limit = Real    & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
+  s\_offset  = Real     & \ref{s:offset} & aperture = Real    & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
+  x\_pitch = Real       & \ref{s:offset} & hkick    = Real    & \ref{s:kick}   & a$n$, b$n$ = Real           & \ref{s:fields}\\ \hline
+  y\_pitch = Real       & \ref{s:offset} & vkick    = Real    & \ref{s:kick}   & radius = Real               & \ref{s:fields}\\ \hline
+                        &                &                    &                & symplectify = Logical       & \ref{s:symp}  \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
-\vskip0.2in \noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
-\begin{example}
-  bmad\_standard  (default)
-  symp\_lie\_ptc
-  taylor
-\end{example}
-
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Example:
 \begin{example}
   cleo_sol: solenoid, l = 2.6, ks = 1.5*beam[energy]
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
   b\_field or ks
 \end{example}
 
@@ -960,45 +853,39 @@ Dependent attributes:
 \section{Sol\_Quad}
 \label{s:sq}
 
-\begin{table}[h]
-\centering {
+A \vn{Sol_Quad} is a combination solenoid/quadrupole.
+
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
-  l        = Real       & \ref{s:l}       & type = String                & \ref{s:string} & x\_offset  = Real  & \ref{s:offset}      \\ \hline
-  ks       = Real       &                 & alias = String               & \ref{s:string} & y\_offset  = Real  & \ref{s:offset}      \\ \hline
-  k1       = Real       &                 & descrip = String             & \ref{s:string} & s\_offset  = Real  & \ref{s:offset}      \\ \hline
-  hkick    = Real       & \ref{s:kick}    & mat6\_calc\_method = Switch  & \ref{s:method} & x\_pitch = Real    & \ref{s:offset}  \\ \hline
-  vkick    = Real       & \ref{s:kick}    & tracking\_method = Switch    & \ref{s:method} & y\_pitch = Real    & \ref{s:offset}  \\ \hline
-  rel\_tol = Real       & \ref{s:tol}     & x\_limit = Real              & \ref{s:limit}  & tilt     = Real    & \ref{s:offset}  \\ \hline
-  abs\_tol = Real       & \ref{s:tol}     & y\_limit = Real              & \ref{s:limit}  & is\_on             & \ref{s:is_on}   \\ \hline
-  num\_steps = Integer  & \ref{s:tol}     & aperture = Real              & \ref{s:limit}  & a$n$, b$n$         & \ref{s:ab}      \\ \hline
-  symplectify = Logical & \ref{s:symp}    & integration\_ord = Integer   & \ref{s:int}    & radius             & \ref{s:ab}      \\ \hline
+  l        = Real       & \ref{s:l}      & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
+  ks       = Real       &                & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
+  k1       = Real       &                & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
+                        &                & is\_on             & \ref{s:is_on}  & field\_calc = Switch        & \ref{s:integ} \\ \hline
+  x\_offset  = Real     & \ref{s:offset} & x\_limit = Real    & \ref{s:limit}  & rel\_tol = Real             & \ref{s:integ} \\ \hline
+  y\_offset  = Real     & \ref{s:offset} & y\_limit = Real    & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
+  s\_offset  = Real     & \ref{s:offset} & aperture = Real    & \ref{s:limit}  & num\_steps = Integer        & \ref{s:integ} \\ \hline
+  x\_pitch = Real       & \ref{s:offset} & hkick    = Real    & \ref{s:kick}   & a$n$, b$n$ = Real           & \ref{s:fields}\\ \hline
+  y\_pitch = Real       & \ref{s:offset} & vkick    = Real    & \ref{s:kick}   & radius = Real               & \ref{s:fields}\\ \hline
+  tilt     = Real       & \ref{s:offset} &                    &                & symplectify = Logical       & \ref{s:symp}  \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
-\vskip0.2in \noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
-\begin{example}
-  bmad\_standard  (default)
-  symp\_lie\_ptc
-  taylor
-\end{example}
-
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Example:
 \begin{example}
   sq02: sol_quad, l = 2.6, k1 = 0.632, ks = 1.5*beam[energy]
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
   b\_field or ks
 \end{example}
-
 
 %-----------------------------------------------------------------
 \section{Taylor}
@@ -1007,40 +894,60 @@ Dependent attributes:
 A \vn{Taylor} is a Taylor map. This can be used in place of the \mad\ 
 \vn{matrix} element.
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
-  \{out: coef, e1 e2 e3 e4 e5 e6 \} &     &  x\_limit = Real        & \ref{s:limit} \\ \hline  
-                        &                 &  alias = String               & \ref{s:string} & y\_limit = Real        & \ref{s:limit} \\ \hline
-  rel\_tol = Real       & \ref{s:tol}     &  descrip = String             & \ref{s:string} & aperture = Real        & \ref{s:limit} \\ \hline
-  abs\_tol = Real       & \ref{s:tol}     &  mat6\_calc\_method = Switch  & \ref{s:method} & symplectify = Logical  & \ref{s:symp}  \\ \hline
-  num\_steps = Integer  & \ref{s:tol}     &  tracking\_method = Switch    & \ref{s:method} & is\_on = Logical       & \ref{s:is_on} \\ \hline
-
+  $\{ \tt \mbox{out:}\,  coef, \, e1 \, e2 \, e3 \, e4 \, e5 \, e6 \}$ 
+                                   &              &  type = String       & \ref{s:string} & x\_limit = Real  & \ref{s:limit} \\ \hline  
+  tracking\_method = Switch        & \ref{s:tkm}  &  alias = String      & \ref{s:string} & y\_limit = Real  & \ref{s:limit} \\ \hline
+  mat6\_calc\_method = Switch      & \ref{s:xfer} &  descrip = String    & \ref{s:string} & aperture = Real  & \ref{s:limit} \\ \hline
+  symplectify = Logical            & \ref{s:symp} &                      &                & is\_on = Logical & \ref{s:is_on} \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
-\vskip0.2in \noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
+A term in a Taylor map is of the form
+\Begineq
+  x_j({\rm out}) = C \cdot \Pi_{i = 1}^6 \, x_i^{e_i}({\rm in})
+\Endeq
+where $\Bf x = (x, p_x, y, p_y, z, p_z)$. For example a term
+in a Taylor map that was
+\Begineq
+  p_y({\rm out}) = 2.73 \cdot y^2({\rm in}) \, p_z({\rm in})
+\Endeq
+would be written as
 \begin{example}
-  bmad\_standard  (default)
+  \{4: 2.73, 0, 0, 2, 0, 0, 1\}
 \end{example}
 
-\vskip0.2in \noindent
+By default a \vn{Taylor} element starts out as the unit map. 
+That is, a \vn{Taylor} element starts with the following 6 terms
+\begin{example}
+  \{1: 1.0, 1 0 0 0 0 0\}
+  \{2: 1.0, 0 1 0 0 0 0\}
+  \{3: 1.0, 0 0 1 0 0 0\}
+  \{4: 1.0, 0 0 0 1 0 0\}
+  \{5: 1.0, 0 0 0 0 1 0\}
+  \{6: 1.0, 0 0 0 0 0 1\}
+\end{example}
+Note: A term in a \vn{Taylor} element will superceed any previous term
+that is identical except for 
+the \vn{coef}.
+
+\vskip0.in \noindent
 Example:
 \begin{example}
-  d21: drift, l = 4.5
+  tt: Taylor, \{4:  2.73, 0, 0, 2, 0, 0, 1\}, &
+              \{2: -2.73, 2, 0, 0, 0, 0, 1\}
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
+  beam\_energy  ! See section \ref{s:beam}
 \end{example}
-
-
 
 %-----------------------------------------------------------------
 \section{Wiggler} 
@@ -1048,46 +955,79 @@ Dependent attributes:
 
 A \vn{Wiggler} is a periodic array of alternating bends.
 
-\begin{table}[h]
-\centering {
+\toffset
+\begin{center}
+\tt
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
-  l        = Real       & \ref{s:l}       & type = String                & \ref{s:string} & x\_offset  = Real  & \ref{s:offset}   \\ \hline
-  b\_max   = Real       &                 & alias = String               & \ref{s:string} & y\_offset  = Real  & \ref{s:offset}   \\ \hline
-  n\_pole  = Real       &                 & descrip = String             & \ref{s:string} & s\_offset  = Real  & \ref{s:offset}   \\ \hline
-                        &                 & mat6\_calc\_method = Switch  & \ref{s:method} & x\_pitch = Real    & \ref{s:offset}   \\ \hline
-  polarity = Real       &                 & tracking\_method = Switch    & \ref{s:method} & y\_pitch = Real    & \ref{s:offset}   \\ \hline
-  term(i) = \{coef, kx, ky, kz, phi\_z\} && x\_limit = Real              & \ref{s:limit}  & tilt     = Real    & \ref{s:offset}   \\ \hline
-  integration\_ord = Integer & \ref{s:int} & y\_limit = Real              & \ref{s:limit}  & is\_on             & \ref{s:is_on}   \\ \hline
-  rel\_tol = Real       & \ref{s:tol}     & aperture = Real              & \ref{s:limit}  & a$n$, b$n$         & \ref{s:ab}       \\ \hline
-  abs\_tol = Real       & \ref{s:tol}     & hkick    = Real              & \ref{s:kick}   & radius             & \ref{s:ab}       \\ \hline
-  num\_steps = Integer  & \ref{s:tol}     & vkick    = Real              & \ref{s:kick}   & symplectify = Logical & \ref{s:symp}  \\ \hline
+  l        = Real       & \ref{s:l}      & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
+  b\_max   = Real       &                & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
+  n\_pole  = Real       &                & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
+  term(i) = Wig\_Term   &                & x\_offset  = Real  & \ref{s:offset} & field\_calc = Switch        & \ref{s:integ} \\ \hline
+  polarity = Real       &                & y\_offset  = Real  & \ref{s:offset} & rel\_tol = Real             & \ref{s:integ} \\ \hline
+  hkick    = Real       & \ref{s:kick}   & s\_offset  = Real  & \ref{s:offset} & abs\_tol = Real             & \ref{s:integ} \\ \hline
+  vkick    = Real       & \ref{s:kick}   & x\_pitch = Real    & \ref{s:offset} & num\_steps = Integer        & \ref{s:integ} \\ \hline
+  x\_limit = Real       & \ref{s:limit}  & y\_pitch = Real    & \ref{s:offset} & a$n$, b$n$                  & \ref{s:fields}\\ \hline
+  y\_limit = Real       & \ref{s:limit}  & tilt     = Real    & \ref{s:offset} & radius  = Real              & \ref{s:fields}\\ \hline
+  aperture = Real       & \ref{s:limit}  & is\_on             & \ref{s:is_on}  & symplectify = Logical       & \ref{s:symp}  \\ \hline
 \end{tabular}
-}
-\end{table}
+\end{center}
+\toffset
 
-
-
-\vskip0.2in \noindent
-Possible \vn{mat6_calc_method} and \vn{tracking_method} values are:
-\vskip 0.01in
+There are two types of wigglers. Those that that are described using a magnetic field map and those that are described assuming a periodic field by specifying the maximum field and number of poles. For the "map" type wigglers the field is given by a sum of terms: 
+\Begineq
+  B(x,y,z) = \sum_i B_i(x, y, z; C, k_x, k_y, k_z, phi_z)
+\Endeq 
+each term $B_i$ is specified in the input file using 5 numbers: 
 \begin{example}
-  bmad\_standard  (default)
-  symp\_lie\_ptc
-  taylor
+  term(i) = {coef, kx, ky, kz, phi_z} 
+\end{example}
+If $\vn{ky}^2 = \vn{kx}^2 + \vn{kz}^2$ then the field due to the term is: 
+\begin{alignat}{4}
+  B_x &= -&C &\dfrac{k_x}{k_y} & \sin(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
+  B_y &=  &C &                 & \cos(\kxx) \cosh(\kyy) \cos(\ksss) \CRNEG
+  B_s &= -&C &\dfrac{k_s}{k_y} & \cos(\kxx) \sinh(\kyy) \sin(\ksss) \CRneg
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_s^2$ .} &&&  \label{f1}
+\end{alignat}
+The second form is
+\begin{alignat}{4}
+  B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
+  B_y &=  &C &                 & \cosh(\kxx) \cosh(\kyy) \cos(\ksss) \CRNEG
+  B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sinh(\kyy) \sin(\ksss) \CRneg
+  & \makebox[1pt][l]{with $k_y^2 = k_s^2 - k_x^2$ ,} &&&  \label{f2}
+\end{alignat}
+and the third form is
+\begin{alignat}{4}
+  B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sin(\kyy) \cos(\ksss) \CRNEG
+  B_y &=  &C &                 & \cosh(\kxx) \cos(\kyy) \cos(\ksss) \CRNEG
+  B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sin(\kyy) \sin(\ksss) \CRneg
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_s^2$ .} &&& \label{f3}
+\end{alignat}
+
+
+For the "periodic" type wigglers the attributes are: 
+\begin{example}	
+  \vn{b_max} is the maximum magnetic field (in T) on the wiggler centerline. 
+  \vn{n_pole} is the number of poles. The period is then L / (2 * N_POLE). 
+ There is an attribute K1 (that is calculated from B_MAX) which is the vertical focusing strength of the wiggler (a wiggler does not have any focusing in the horizontal). 
+ \vn{rho_bend} is the the bending radius at maximum field strength B_MAX. This is calculated by BMAD and is not an input parameter. 
+*	The multipole attributes B2, B4, B6, and B8 are multipole attributes are for the individual poles. Since the strength of the poles alternate in sign this means that these attributes are not the same as the integrated multipole attributes of the other elements. 
+*	The tracking is designed so that, without multipole components, a particle entering at the origin (x=x'=y=y'=0) leaves at the origin. 
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Example:
 \begin{example}
-  sq02: sol_quad, l = 2.6, k1 = 0.632, ks = 1.5*beam[energy]
+  wig1: wiggler, l = 1.6, b_max = 2.1, n_pole = 7  ! periodic type wiggler
+  wig2: wiggler, l = 1.6,                          ! map type wiggler
+
 \end{example}
 
-\vskip0.2in \noindent
+\vskip0.05in \noindent
 Dependent attributes:
 \begin{example}
-  beam\_energy  ! See section \ref{s:energy}
-  z\_patch
-  k1
+  beam\_energy  ! See section \ref{s:beam}
   rho
 \end{example}
+\noindent
+

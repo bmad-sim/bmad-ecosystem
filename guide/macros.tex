@@ -17,6 +17,8 @@
 \newcommand{\rn}{\ttcmd}           % For Routine names
 \newcommand{\tn}{\ttcmd}           % For Type (structure) names
 \newcommand{\bn}[1]{{\bf #1}}       
+\newcommand{\toffset}{\vskip 0.1in}
+\newcommand{\rot}[1]{\begin{rotate}{-45}#1\end{rotate}}
 
 \newcommand\ttcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
 \newcommand\dottcmd[1]{\texttt{#1}\endgroup}
@@ -24,10 +26,20 @@
 \newcommand\slcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \doslcmd}
 \newcommand\doslcmd[1]{\textsl{#1}\endgroup}
 
-
 %\newcommand\ttverb{
 %  \bgroup\let\do\@makeother\dospecials\catcode`{=1 \catcode`}=2 \DSAcode}
 %\newcommand*\DSAcode[1]{\texttt{#1}\egroup}
+
+\newcommand{\kxn}{k_{xn}}
+\newcommand{\kyn}{k_{yn}}
+\newcommand{\ksn}{k_{sn}}
+\newcommand{\kxx}{k_{x} x}
+\newcommand{\kyy}{k_{y} y}
+\newcommand{\kss}{k_{s} s}
+\newcommand{\ksss}{\kss + \phi_s}   
+\newcommand{\CRNEG}{\nonumber \\*[-1.5\jot]}
+\newcommand{\CRneg}{\nonumber \\*[-1\jot]}
+\newcommand{\Newline}{\hfil \\}
 
 \newcommand{\plus}{\; + \;}
 

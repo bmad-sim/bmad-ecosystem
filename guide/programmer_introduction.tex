@@ -4,7 +4,7 @@
 
 The \bmad\ software uses other software packages. \bmad, along with the packages it uses, 
 is bundled together to form what is called the \bmad\ distribution. The \bmad\ distribution
-also includes example lattice files and example programs. The \bmad\ distribution includes a customized version of the Fortran90 version of Numerical Recipes\cite{nr}. It is the obligation of anyone who uses \bmad\ to make sure that they have the appropriate licence for Numerical Recipes. 
+also includes example lattice files and example programs. The \bmad\ distribution includes a customized version of the Fortran90 version of Numerical Recipes\cite{b:nr}. It is the obligation of anyone who uses \bmad\ to make sure that they have the appropriate licence for Numerical Recipes. 
 
 Also included in the distribution is the PGPLOT plotting package developed by Tim Pearson of CalTech.
 PGPLOT is freely available for non-commercial use. PGPLOT is not public--domain software and is copyrighted by the California Institute of Technology further documentation can be found at
@@ -22,7 +22,60 @@ documentation can be found at
 \end{example}
 
 %-----------------------------------------------------------------------------
+\section{A First Program}
+
+Let us start with a simple test program:
+\begin{verbatim}
+program test
+  use bmad                 ! Define the structures we need to know about.
+  implicit none
+  type (ring_struct) ring  ! This structure holds the lattice info
+  integer i
+  character(200) lat_file
+!
+  lat_file = "../bmad/lat/bmad_L9A18A000-_MOVEREC.lat"
+  call bmad_parser (lat_file, ring)    ! Read in a lattice.
+  call twiss_at_start (ring)           ! Calculate starting Twiss params.
+  call twiss_propagate_all (ring)      ! Propagate Twiss parameters
+  print *, ' Ix  Name              Ele_type                   S      Beta_x'
+  do i = 0, ring%n_ele_ring
+    print '(i4, 2x, a, 2x, a, 2f12.4)', i, ring%ele_(i)%name, &
+                    key_name(ring%ele_(i)%key), &
+                    ring%ele_(i)%s, ring%ele_(i)%x%beta
+  enddo
+end program
+\end{verbatim}
+
+Compliling and running the program gives the following output
+\begin{verbatim}
+
+\end{verbatim}
+
+The \cs{use bmad} statement defines the \bmad\ structures (types)
+and defines the interfaces (argument lists) for the \bmad\
+subroutines. In particular, the \tn{ring_struct} structure holds all the
+lattice information: The list of elements, their attributes,
+etc. \rn{bmad_parser} is the routine to parse a particular lattice file and
+transfer the information to a \tn{ring_struct}\. After it is called the
+program uses \rn{twiss_at_start} to multiply the transfer matrices
+of the individual elements together to form the 1--turn matrix from
+the start back to the start. From this \rn{twiss_at_start}
+calculates the Twiss parameters at the start of the lattice. The next
+call to \rn{twiss_propagate_all} takes the starting Twiss parameters
+and using the transfer matrices of the individual elements calculates
+the Twiss parameters at all the elements. We are now ready for the
+print out the calculation. \vn{ring} has within it an array
+\vn{ring%ele_(0:)} that contains the information on each individual
+element. \vn{ring%ele_(0)} is basically a marker element to denote
+the beginning of the array. \vn{ring%ele_(i)%key} is an integer
+denoting what type of element (quadrupole, wiggler, etc.) it is.
+\vn{ring%ele_(i)%s} is the longitudinal position at the end of an 
+element. \vn{ring%ele_(i)%x%beta} is the $a$--mode (nearly
+horizontal mode) beta.
+
+%-----------------------------------------------------------------------------
 \section{Getf and Listf}
+\label{s:getf}
 
 As can be seen there is a lot going on behind the scenes even for this
 simple program.This shows that programming with \bmad\ can be both easy
@@ -90,52 +143,4 @@ program.
 \tn{ele_struct}, etc.
 
 \end{description}
-
-%-----------------------------------------------------------------------------
-\section{A First Program}
-
-Let us start with a simple test program:
-\begin{verbatim}
-program test
-  use bmad                 ! Define the structures we need to know about.
-  implicit none
-  type (ring_struct) ring  ! This structure holds the lattice info
-  integer i
-  character(200) lat_file
-!
-  lat_file = "/home/cesrulib/cesr_libs/current/" // &
-                "config/bmad/lat/bmad_L9A18A000-_MOVEREC.lat"
-  call bmad_parser (lat_file, ring)    ! Read in a lattice.
-  call twiss_at_start (ring)           ! Calculate starting Twiss params.
-  call twiss_propagate_all (ring)      ! Propagate Twiss parameters
-  print *, ' Ix  Name              Ele_type                   S      Beta_x'
-  do i = 0, ring%n_ele_ring
-    print '(i4, 2x, a, 2x, a, 2f12.4)', i, ring%ele_(i)%name, &
-                    key_name(ring%ele_(i)%key)&
-                    ring%ele_(i)%s, ring%ele_(i)%x%beta
-  enddo
-end program
-\end{verbatim}
-
-The \cs{use bmad} statement defines the \bmad\ structures (types)
-and defines the interfaces (argument lists) for the \bmad\
-subroutines. In particular, the \tn{ring_struct} structure holds all the
-lattice information: The list of elements, their attributes,
-etc. \rn{bmad_parser} is the routine to parse a particular lattice file and
-transfer the information to a \tn{ring_struct}\. After it is called the
-program uses \rn{twiss_at_start} to multiply the transfer matrices
-of the individual elements together to form the 1--turn matrix from
-the start back to the start. From this \rn{twiss_at_start}
-calculates the Twiss parameters at the start of the lattice. The next
-call to \rn{twiss_propagate_all} takes the starting Twiss parameters
-and using the transfer matrices of the individual elements calculates
-the Twiss parameters at all the elements. We are now ready for the
-print out the calculation. \vn{ring} has within it an array
-\vn{ring%ele_(0:)} that contains the information on each individual
-element. \vn{ring%ele_(0)} is basically a marker element to denote
-the beginning of the array. \vn{ring%ele_(i)%key} is an integer
-denoting what type of element (quadrupole, wiggler, etc.) it is.
-\vn{ring%ele_(i)%s} is the longitudinal position at the end of an 
-element. \vn{ring%ele_(i)%x%beta} is the $a$--mode (nearly
-horizontal mode) beta.
 

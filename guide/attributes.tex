@@ -94,7 +94,12 @@ The tilt attribute rotates the element in the $(x, y)$ plane as
 shown in figure~\ref{f:tilt}. For a bend the rotation axis is the
 $z$-axis at the entrance face. The reference orbit is also rotated
 with the element. A bend with a tilt of $pi/2$ will bend a beam
-upward vertically. The \vn{roll} attribute is only used for bends
+upward vertically. The \vn{hkick} and \vn{vkick} attributes are
+not affected by \vn{tilt} except for \vn{Kicker} and \vn{ElSeparator}
+elements
+
+
+The \vn{roll} attribute is only used for bends
 and rotates the bend, along an axis that runs through the entrance
 point and exit point as shown in figure~\ref{f:roll}. A \vn{roll} 
 does not affect the reference orbit. The major effect of a \vn{roll}
@@ -107,6 +112,19 @@ Example
 \end{example}
 
 %-----------------------------------------------------------------
+\section{Hkick, Vkick, and Kick Attributes}
+\label{s:kick}
+
+\vn{kick}, \vn{hkick}, and \vn{vkick} attributes are the integrated
+kick of an element in radians. \vn{kick} is only used for \vn{Hkicker}
+and \vn{Vkicker} elements. All other elements that can kick use 
+\vn{hkick} and \vn{vkick}. The \vn{tilt} attribute will only rotate
+a kick for \vn{Hkicker}, \vn{Vkicker}, \vn{ElSeparator} and \vn{Kicker}
+elements. This rule was implemented so that, for example, the 
+\vn{hkick} attribute for a skew quadrupole
+would represent a horizontal steering.
+
+%-----------------------------------------------------------------
 \section{Aperture and Limit Attributes}
 \label{s:limit}
 
@@ -115,7 +133,7 @@ aperture of an element as shown in figure~\ref{f:limit}.
 The aperture is evaluated at the exit
 face only of the element. A zero \vn{x_limit} or \vn{y_limit}
 is interpreted as no aperture in the $x$ or $y$ direction.
-offsets move the aperture but not pitches and tilts.
+offsets move the aperture but not pitches or tilts.
 
 \vn{aperture} attribute supercedes
 any \vn{x_limit} and \vn{y_limit} values and sets \vn{x_limit} and
@@ -131,9 +149,57 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Energy Attribute}
-\label{s:energy}
+\section{Transfer Maps via Integration}
+\label{s:integ}
 
+One way to create a transfer map through an element is to divide the
+element up into slices and then to propagate the transfer
+map slice by slice.
+There are several ways to do this integration. The Boris and Runge--Kutta 
+methods integrate the equations of motion to give the zeroth order
+transfer map which is just the particle orbit.
+Symplectic integration using Lie algebraic techniques, on the other hand, 
+can generate maps to any order.
+The \vn{num_steps} attribute determines the number of slices. This is
+applicable to \vn{Boris}, \vn{Symp_Lie_Bmad}, and \vn{Symp_Lie_PTC}
+integration. 
+
+\vn{integration_ord} is the order of the integration formula for 
+\vn{Symp_Lie_PTC}. Possible values are
+\begin{example}
+  integration\_ord = 2 (default), 4, or 6
+\end{example}
+Esentially, an integration order of $n$ means that the error in an 
+integration step scales as $dz^{n+1}$ where $dz$ is the slice thickness.
+For a given number of steps a higer order will give more accurate results
+but a higher order integrator will take more time per step. It turns out
+that for wigglers, after adjusting \vn{num_steps} for a given accuracy, 
+the order 2 integrator is the fastest. This is not surprising given the
+highly nonlinear nature of a wiggler. Note that \vn{Symp_Lie_Bmad} always
+uses a order 2 integrator.
+
+\vn{Adaptive_Boris} and \vn{Runge_Kutta} use adaptive step
+control independent of \vn{num_steps}. These methods use the \vn{rel_tol} and
+\vn{abs_tol} attributes to try to keep the extimated error of the integration
+such that
+\begin{example}
+  error < abs\_tol + |orbit| * rel_tol
+\end{example}
+lowering the error bounds makes for greater accuracy (as long as round-off 
+doesn't hurt) but for slower tracking. 
+
+\vn{Boris}, \vn{Adaptive_Boris}, and \vn{Runge_Kutta} tracking all use
+as input the electric and magnetic fields of an element. The
+
+
+%-----------------------------------------------------------------
+\section{Length Attributes}
+\label{s:l}
+
+\vn{l} is, for all elements except \vn{RBend}s, the path length 
+of the reference particle.
+Note that for wigglers this is not the same as the path length for
+a particle with the reference energy starting on the reference orbit.
 
 %-----------------------------------------------------------------
 \section{Symplectify Attribute}
@@ -160,3 +226,4 @@ with the RF cavities off. Example
   q1: quad, l = 0.6, k1 = 0.95
   q1[is_on] = False
 \end{example}
+Note: \vn{is_on} does not affect any apertures that are set.
