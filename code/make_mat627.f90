@@ -15,57 +15,36 @@
 !                   = -1  -> For Backward particle tracking.
 !
 ! Output:
-!   MAT627(6,27) -- Real(rdef): 6x27 transfer matrix.
+!   MAT627(6,27) -- Real(rp): 6x27 transfer matrix.
 !
 ! Elements for whom 2nd order terms are NOT computed:
 !     SBEND, BEAMBEAM, etc...
 !-
 
-!$Id$
-!$Log$
-!Revision 1.7  2003/03/04 16:03:28  dcs
-!VMS port
-!
-!Revision 1.6  2003/01/27 14:40:37  dcs
-!bmad_version = 56
-!
-!Revision 1.5  2002/12/03 18:48:30  dcs
-!*** empty log message ***
-!
-!Revision 1.4  2002/02/23 20:32:18  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/08 21:44:40  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.2  2001/09/27 18:31:53  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine make_mat627 (ele, param, direction, mat627)
 
   use bmad_struct
   use bmad_interface
-  
+  use make_mat6_mod
+
   implicit none
 
   type (ele_struct), target :: ele
   type (param_struct)  param
 
-  real(rdef) mat627(6,27) 
-  real(rdef) mat6_end(6,6), mat2(2,2), mat4(4,4), kmat1(4,4), kmat2(4,4)
-  real(rdef) e1, e2, angle, rho, cos_angle, sin_angle, k1, ks, length, kc
-  real(rdef) phi, k2l, k3l, c2, s2, cs, ks2, del_l
-  real(rdef) s_pos, s_pos_old, z_slice(100)
-  real(rdef) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-  real(rdef) r, c_e, c_m, gamma_old, gamma_new, vec_st(4)
-  real(rdef) sqrt_k, arg, kick2
-  real(rdef) cx, sx, cy, sy, k2l_2, k2l_3, k2l_4
-  real(rdef) x_off, y_off, x_pit, y_pit
-  real(rdef) lcs, lc2s2
+  real(rp) mat627(6,27) 
+  real(rp) mat6_end(6,6), mat2(2,2), mat4(4,4), kmat1(4,4), kmat2(4,4)
+  real(rp) e1, e2, angle, rho, cos_angle, sin_angle, k1, ks, length, kc
+  real(rp) phi, k2l, k3l, c2, s2, cs, ks2, del_l
+  real(rp) s_pos, s_pos_old, z_slice(100)
+  real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+  real(rp) r, c_e, c_m, gamma_old, gamma_new, vec_st(4)
+  real(rp) sqrt_k, arg, kick2
+  real(rp) cx, sx, cy, sy, k2l_2, k2l_3, k2l_4
+  real(rp) x_off, y_off, x_pit, y_pit
+  real(rp) lcs, lc2s2
 
   integer i, n, n_slice, direction
 
@@ -343,20 +322,20 @@ subroutine sol_quad_mat627_calc (ks, k1, s_len, m)
 
   implicit none
 
-  real(rdef) ks, k1, s_len
-  real(rdef) m(6,27)
+  real(rp) ks, k1, s_len
+  real(rp) m(6,27)
 
   integer i, j
 
-  real(rdef) ks2, s, c, snh, csh
-  real(rdef) darg1, alpha, alpha2, beta, beta2, f, q, r, a, b
-  real(rdef) df, dalpha2, dalpha, dbeta2, dbeta, darg
-  real(rdef) dC, dCsh, dS, dSnh, dq, dr, da, db
-  real(rdef) ks3, fp, fm, dfm, dfp, df_f, ug
-  real(rdef) s1, s2, snh1, snh2, dsnh1, dsnh2, ds1, ds2
-  real(rdef) coef1, coef2, dcoef1, dcoef2, ks4
+  real(rp) ks2, s, c, snh, csh
+  real(rp) darg1, alpha, alpha2, beta, beta2, f, q, r, a, b
+  real(rp) df, dalpha2, dalpha, dbeta2, dbeta, darg
+  real(rp) dC, dCsh, dS, dSnh, dq, dr, da, db
+  real(rp) ks3, fp, fm, dfm, dfp, df_f, ug
+  real(rp) s1, s2, snh1, snh2, dsnh1, dsnh2, ds1, ds2
+  real(rp) coef1, coef2, dcoef1, dcoef2, ks4
 
-  real(rdef) t5(4,4), t6(4,4)
+  real(rp) t5(4,4), t6(4,4)
 
 ! Calc
           

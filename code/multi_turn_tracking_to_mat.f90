@@ -82,7 +82,7 @@ subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, track0, chi)
 
   do i = 1, i_dim
     y = track(2:n)%vec(i)
-    multi_turn_func_com => track(1:n-1)
+    multi_turn_func_common => track(1:n-1)
     call svdfit (x, y, sig, a, v, w, chisq, multi_turn_func)
     mat1(i,1:i_dim) = a(1:i_dim)
     remainder(i) = a(i_dim+1)
@@ -101,7 +101,7 @@ subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, track0, chi)
 
   do i = 1, i_dim
     y = track(2:n)%vec(i) - track0%vec(i)
-    multi_turn_func_com => d0track
+    multi_turn_func_common => d0track
     call svdfit (x, y, sig, a, v, w, chisq, multi_turn_func)
     mat1(i,1:i_dim) = a(1:i_dim)
   enddo
@@ -138,6 +138,6 @@ function multi_turn_func (x, id)
 
 ! id = i_dim+1
 
-  multi_turn_func = (/ multi_turn_func_com(nint(x))%vec(1:id-1), 1.0_rp /)
+  multi_turn_func = (/ multi_turn_func_common(nint(x))%vec(1:id-1), 1.0_rp /)
 
 end function
