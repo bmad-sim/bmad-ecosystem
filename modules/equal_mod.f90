@@ -32,12 +32,12 @@ module equal_mod
       type (ring_struct), intent(in) :: ring2(:)
     end subroutine
 
-    elemental subroutine coord_equal_coord (coord1, coord2)
-      use bmad_struct
-      implicit none
-      type (coord_struct), intent(out) :: coord1
-      type (coord_struct), intent(in) :: coord2
-    end subroutine
+!    elemental subroutine coord_equal_coord (coord1, coord2)
+!      use bmad_struct
+!      implicit none
+!      type (coord_struct), intent(out) :: coord1
+!      type (coord_struct), intent(in) :: coord2
+!    end subroutine
 
   end interface
 
