@@ -2,46 +2,17 @@
 
 module equal_mod
 
+  use bmad_struct
+
   interface assignment (=)
-
-    subroutine ele_equal_ele (ele1, ele2)
-      use bmad_struct
-      implicit none
-      type (ele_struct), intent(inout) :: ele1
-      type (ele_struct), intent(in) :: ele2
-    end subroutine
-
-    subroutine ele_vec_equal_ele_vec (ele1, ele2)
-      use bmad_struct
-      implicit none
-      type (ele_struct), intent(inout) :: ele1(:)
-      type (ele_struct), intent(in) :: ele2(:)
-    end subroutine
-
-    subroutine ring_equal_ring (ring1, ring2)
-      use bmad_struct
-      implicit none
-      type (ring_struct), intent(inout) :: ring1
-      type (ring_struct), intent(in) :: ring2
-    end subroutine
-
-    subroutine ring_vec_equal_ring_vec (ring1, ring2)
-      use bmad_struct
-      implicit none
-      type (ring_struct), intent(inout) :: ring1(:)
-      type (ring_struct), intent(in) :: ring2(:)
-    end subroutine
-
-!    elemental subroutine coord_equal_coord (coord1, coord2)
-!      use bmad_struct
-!      implicit none
-!      type (coord_struct), intent(out) :: coord1
-!      type (coord_struct), intent(in) :: coord2
-!    end subroutine
-
+    module procedure ele_equal_ele
+    module procedure ele_vec_equal_ele_vec
+    module procedure ring_equal_ring 
+    module procedure ring_vec_equal_ring_vec 
+!    module procedure coord_equal_coord 
   end interface
 
-end module
+contains
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -64,10 +35,6 @@ end module
 
 subroutine ele_equal_ele (ele1, ele2)
 
-! do not use bmad_interface since "=" is overloaded with this routine
-
-  use bmad_struct
-
   implicit none
 	
   type (ele_struct), intent(inout) :: ele1
@@ -87,8 +54,8 @@ subroutine ele_equal_ele (ele1, ele2)
 
 ! save ele1 pointers and set ele1 = ele2.
 
-  ele_save = ele1
-  ele1 = ele2
+  call transfer_ele (ele1, ele_save)
+  call transfer_ele (ele2, ele1)
 
 ! Transfer pointer info.
 ! When finished ele1's pointers will be pointing to a different memory
@@ -180,25 +147,12 @@ end subroutine
 
 subroutine ele_vec_equal_ele_vec (ele1, ele2)
 
-! do not use bmad_interface since "=" is overloaded with this routine
-
-  use bmad_struct
-
   implicit none
 
   type (ele_struct), intent(inout) :: ele1(:)
   type (ele_struct), intent(in) :: ele2(:)
 
   integer i
-
-  interface
-    subroutine ele_equal_ele (ele1, ele2)
-      use bmad_struct
-      implicit none
-      type (ele_struct), intent(inout) :: ele1
-      type (ele_struct), intent(in) :: ele2
-    end subroutine
-  end interface
 
 ! error check
 
@@ -236,10 +190,6 @@ end subroutine
 
 subroutine ring_equal_ring (ring1, ring2)
 
-! do not use bmad_interface since "=" is overloaded with this routine
-
-  use bmad_struct
-
   implicit none
 
   type (ring_struct), intent(inout) :: ring1
@@ -258,7 +208,7 @@ subroutine ring_equal_ring (ring1, ring2)
 ! set ring1 = ring2.
 ! if ring2 has allocated pointers then create new storate in ring1
 
-  ring1 = ring2
+  call transfer_ring (ring2, ring1)
 
   call transfer_ele_pointers (ring1%ele_init, ring2%ele_init)
 
@@ -290,10 +240,6 @@ end subroutine
 !-
 
 subroutine ring_vec_equal_ring_vec (ring1, ring2)
-
-! do not use bmad_interface since "=" is overloaded with this routine
-
-  use bmad_struct
 
   implicit none
 	
@@ -337,8 +283,6 @@ end subroutine
 
 elemental subroutine coord_equal_coord (coord1, coord2)
 
-  use bmad_struct
-
   implicit none
 	
   type (coord_struct), intent(out) :: coord1
@@ -347,3 +291,75 @@ elemental subroutine coord_equal_coord (coord1, coord2)
   coord1%vec = coord2%vec
  
 end subroutine
+
+end module
+
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine transfer_ele (ele1, ele2)
+!
+! Subroutine to set ele2 = ele1. 
+! This is a plain transfer of information not using the overloaded equal.
+! Thus at the end ele2's pointers point to the same memory as ele1's.
+!
+! NOTE: Do not use this routine unless you know what you are doing!
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele1 -- Ele_struct:
+!
+! Output:
+!   ele2 -- Ele_struct:
+!-
+
+subroutine transfer_ele (ele1, ele2)
+
+  use bmad_struct
+
+  type (ele_struct) :: ele1
+  type (ele_struct) :: ele2
+
+  ele2 = ele1
+
+end subroutine
+
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine transfer_ring (ring1, ring2)
+!
+! Subroutine to set ring2 = ring1. 
+! This is a plain transfer of information not using the overloaded equal.
+! Thus at the end ring2's pointers point to the same memory as ring1's.
+!
+! NOTE: Do not use this routine unless you know what you are doing!
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ring1 -- ring_struct:
+!
+! Output:
+!   ring2 -- ring_struct:
+!-
+
+subroutine transfer_ring (ring1, ring2)
+
+  use bmad_struct
+
+  type (ring_struct) :: ring1
+  type (ring_struct) :: ring2
+
+  ring2 = ring1
+
+end subroutine
+
+
