@@ -604,7 +604,8 @@ subroutine get_attribute (how, ele, ring, pring, &
       call ran_seed (nint(value))  ! init random number generator
     else
       ele%value(i) = value
-      if (i == b_field$) ele%field_master = .true.
+      if (any (i == (/ b_field$, b_gradient$, e_field$, e_field$, &
+                bl_hkick$, bl_vkick$, bl_kick$ /))) ele%field_master = .true.
     endif
 
   end select

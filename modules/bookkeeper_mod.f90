@@ -18,6 +18,7 @@ contains
 ! Subroutine control_bookkeeper (ring, ix_ele)
 !
 ! Subroutine to transfer attibute information from lord to slave elements.
+! This subroutine will call attribute_bookkeeper.
 ! Note: To do a complete bookkeeping job on a lattice use:
 !   lattice_bookkeeper
 !
@@ -983,6 +984,8 @@ end subroutine
 !
 ! Subroutine to recalculate the dependent attributes of an element.
 ! If the attributes have changed then any Taylor Maps will be killed.
+! Note: This routine does not do any other bookkeeping. Consider using
+! control_bookkeeper or lattice_bookkeeper instead.
 ! 
 ! BEAMBEAM:   
 !     bbi_const$ = param%n_part * m_electron * charge$ * r_e /
@@ -1065,24 +1068,20 @@ subroutine attribute_bookkeeper (ele, param)
     case (sbend$)
       ele%value(g$) = factor * ele%value(B_field$)
     case (hkicker$)
-      ele%value(kick$) = factor * ele%value(B_field$)
+      ele%value(kick$) = factor * ele%value(BL_kick$)
     case (vkicker$)
-      ele%value(kick$) = factor * ele%value(B_field$)
+      ele%value(kick$) = factor * ele%value(BL_kick$)
     case default
        call out_io(s_abort$,r_name,' "FIELD_MASTER" NOT IMPLEMENTED FOR: ' // trim(ele%name))
       call err_exit
     end select
 
-    ele%value(hkick$) = factor * ele%value(hkick_B_field$)
-    ele%value(vkick$) = factor * ele%value(vkick_B_field$)
+    ele%value(hkick$) = factor * ele%value(BL_hkick$)
+    ele%value(vkick$) = factor * ele%value(BL_vkick$)
 
   else
 
-    if (ele%value(p0c$) == 0) then
-      factor = 0
-    else
-      factor = ele%value(p0c$) / c_light
-    endif
+    factor = ele%value(p0c$) / c_light
 
     select case (ele%key)
     case (quadrupole$)
@@ -1096,13 +1095,13 @@ subroutine attribute_bookkeeper (ele, param)
     case (sbend$)
       ele%value(B_field$) = factor * ele%value(g$)
     case (hkicker$)
-      ele%value(B_field$) = factor * ele%value(kick$)
+      ele%value(BL_kick$) = factor * ele%value(kick$)
     case (vkicker$) 
-      ele%value(B_field$) = factor * ele%value(kick$)
+      ele%value(BL_kick$) = factor * ele%value(kick$)
     end select
 
-    ele%value(hkick_B_field$) = factor * ele%value(hkick$)
-    ele%value(vkick_B_field$) = factor * ele%value(vkick$)
+    ele%value(BL_hkick$) = factor * ele%value(hkick$)
+    ele%value(BL_vkick$) = factor * ele%value(vkick$)
 
   endif
 

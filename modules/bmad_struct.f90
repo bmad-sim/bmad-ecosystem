@@ -325,8 +325,8 @@ module bmad_struct
   integer, parameter :: y_pitch$=20
   integer, parameter :: hkick$=21
   integer, parameter :: vkick$=22
-  integer, parameter :: hkick_B_field$=23  
-  integer, parameter :: vkick_B_field$=24
+  integer, parameter :: BL_hkick$=23  
+  integer, parameter :: BL_vkick$=24
   integer, parameter :: x_offset$=25
   integer, parameter :: y_offset$=26
   integer, parameter :: s_offset$=27, z_offset$=27
@@ -347,6 +347,7 @@ module bmad_struct
   integer, parameter :: y_offset_tot$=42
   integer, parameter :: s_offset_tot$=43
   integer, parameter :: p0c$ = 44
+  integer, parameter :: BL_kick$ = 45
 
   integer, parameter :: sr_wake_file$ = 50 ! this is 1 + n_attrib_maxx
   integer, parameter :: lr_wake_file$ = 51
