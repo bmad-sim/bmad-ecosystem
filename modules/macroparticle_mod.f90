@@ -149,7 +149,7 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
 
   do i = 1, size(bunch_start%slice)
     bunch_start%slice(i)%charge = sum (bunch_start%slice(i)%macro(:)%charge, &
-                                 mask = bunch_start%slice(i)%macro(:)%lost)
+                            mask = .not. bunch_start%slice(i)%macro(:)%lost)
   enddo
   bunch_start%charge = sum (bunch_start%slice(:)%charge)
 
