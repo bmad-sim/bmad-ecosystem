@@ -1186,6 +1186,47 @@ subroutine init_lr_wake (lr_wake, n_term)
 
 end subroutine
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine init_wake (wake, n_sr, n_lr)
+!
+! Subroutine to initialize a wake struct.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   n_sr    -- Integer: Number of terms: wake%sr(0:n_sr-1) 
+!   n_lr    -- Integer: Number of terms: wake%nr(0:n_lr-1)
+!
+! Output:
+!   wake    -- Wake_struct, pointer: Initialized structure
+!-
+
+subroutine init_wake (wake, n_sr, n_lr)
+
+  implicit none
+
+  type (wake_struct), pointer :: wake
+  integer n_sr, n_lr
+
+!
+
+  if (n_sr == 0 .and. n_lr == 0) then
+    if (associated (wake)) then
+      if (associated(wake%sr)) deallocate (wake%sr)
+      if (associated(wake%lr)) deallocate (wake%lr)
+      deallocate (wake)
+    endif
+  else
+    if (.not. associated (wake)) allocate (wake)
+    call init_sr_wake (wake%sr, n_sr)
+    call init_lr_wake (wake%lr, n_lr)
+  endif
+
+end subroutine
 
 end module
 

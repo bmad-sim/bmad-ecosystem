@@ -36,6 +36,7 @@ contains
 subroutine ele_equal_ele (ele1, ele2)
 
   use tpsalie_analysis 
+  use multipole_mod
 
   implicit none
 	
@@ -43,7 +44,7 @@ subroutine ele_equal_ele (ele1, ele2)
   type (ele_struct), intent(in) :: ele2
   type (ele_struct) ele_save
 
-  integer i
+  integer i, n_sr, n_lr
 
 ! save ele1 pointers and set ele1 = ele2.
 
@@ -89,7 +90,8 @@ subroutine ele_equal_ele (ele1, ele2)
 
   if (associated(ele2%r)) then
     if (associated (ele_save%r)) then
-      if (size(ele_save%r) == size(ele2%r)) then
+      if (all(lbound(ele_save%r) == lbound(ele2%r)) .and. &
+          all(ubound(ele_save%r) == ubound(ele2%r)) ) then
         ele1%r => ele_save%r
       else
         deallocate (ele_save%r)
@@ -115,7 +117,7 @@ subroutine ele_equal_ele (ele1, ele2)
       ele1%a => ele_save%a 
       ele1%b => ele_save%b 
     else
-      allocate (ele1%a(0:n_pole_maxx), ele1%b(0:n_pole_maxx))
+      call multipole_init (ele1)
     endif
     ele1%a = ele2%a
     ele1%b = ele2%b
@@ -134,21 +136,14 @@ subroutine ele_equal_ele (ele1, ele2)
     if (associated (ele_save%descrip)) deallocate (ele_save%descrip)
   endif
 
-  if (associated(ele2%wake)) then
-    if (associated (ele_save%wake)) then
-      ele1%wake => ele_save%wake
-    else
-      allocate (ele1%wake)
-    endif
-    call init_sr_wake (ele1%wake%sr, sr_wake_array_size(ele2))
-    call init_lr_wake (ele1%wake%lr, lr_wake_array_size(ele2))
-    ele1%wake = ele2%wake
-  else
-    if (associated (ele_save%wake)) then
-      if (associated(ele_save%wake%sr)) deallocate (ele_save%wake%sr)
-      if (associated(ele_save%wake%lr)) deallocate (ele_save%wake%lr)
-      deallocate (ele_save%wake)
-    endif
+  n_sr = sr_wake_array_size(ele2); n_lr = lr_wake_array_size(ele2)
+  ele1%wake => ele_save%wake  ! reinstate
+  call init_wake (ele1%wake, n_sr, n_lr)
+  if (n_sr /= 0)  ele1%wake%sr = ele2%wake%sr
+  if (n_lr /= 0)  ele1%wake%lr = ele2%wake%lr
+  if (associated(ele1%wake)) then
+    ele1%wake%sr_file = ele2%wake%sr_file
+    ele1%wake%lr_file = ele2%wake%lr_file
   endif
 
 ! gen_fields are hard because it involves pointers in PTC.

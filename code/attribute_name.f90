@@ -373,11 +373,13 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(multipole$, x_offset$) = 'X_OFFSET'
     attrib_array(multipole$, y_offset$) = 'Y_OFFSET'
     attrib_array(multipole$, s_offset$) = 'S_OFFSET'
+    attrib_array(multipole$, lrad$)     = 'LRAD'
 
     attrib_array(ab_multipole$, tilt$)     = 'TILT'
     attrib_array(ab_multipole$, x_offset$) = 'X_OFFSET'
     attrib_array(ab_multipole$, y_offset$) = 'Y_OFFSET'
     attrib_array(ab_multipole$, s_offset$) = 'S_OFFSET'
+    attrib_array(ab_multipole$, lrad$)     = 'LRAD'
 
     attrib_array(accel_sol$, l$)             = 'L'
     attrib_array(accel_sol$, voltage$)       = 'VOLTAGE'

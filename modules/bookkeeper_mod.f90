@@ -580,8 +580,7 @@ subroutine makeup_super_slave (ring, ix_slave)
   slave%value = value
 
   if (any(a_tot /= 0) .or. any(b_tot /= 0)) then
-    if (.not. associated(slave%a)) &
-                  allocate (slave%a(0:n_pole_maxx), slave%b(0:n_pole_maxx))
+    call multipole_init(slave)
     call multipole_ab_to_kt(a_tot, b_tot, knl, t)
     call multipole_kt_to_ab(knl/k1, t-tilt, a, b)
     slave%a = a
