@@ -3,159 +3,93 @@
 
 This chapter describes the \tn{ele_struct} which is the structure that
 holds all the information about an individual element: quadrupoles,
-separators, wigglers, etc. discussion on how one \tn{ele_struct} controls
+separators, wigglers, etc. Discussion on how one \tn{ele_struct} controls
 another is deferred to the chapter on the \tn{ring_struct}. Also deferred
 is a discussion of how to compute Twiss parameters, etc.
 
-The definition of the \tn{ele_struct} is shown
-in figure~\ref{f:ele_struct}. Substructure definitions are shown in
-figure~\ref{f:subele_struct}. 
-
-General rule: Components like the Twiss parameters, s--position, etc.\
-always have values that are appropriate for the exit end of the element. To
-get the Twiss parameters, etc.\ for the beginning of the element you
-need to look at the preceding element in the \vn{ring%ele_(:)} array
-(see the \tn{ring_struct} chapter).
+Part of the substructure of the \tn{ele_struct} is shown
+in figure~\ref{f:ele_struct} (use \vn{getf} to see the entire structure 
+definition). Some of the components of the \vn{ele_struct} like \vn{name}, 
+\vn{tracking_method}, etc.\ have an obvious correspondance with 
+attributes set in the lattice file and will not be discussed further.
 
 \begin{figure}[tb]
 \centering
 \small
 \begin{verbatim}
   type ele_struct
-    character*16 name              ! name of element
-    character*16 type              ! type name 
-    character*16 alias             ! Another name
-    character*16 attribute_name    ! Used by overlays
-    type (twiss_struct)  x,y,z         ! Twiss parameters at end of element
-    real(rp) value(n_attrib_maxx)    ! attribute values
-    real(rp) gen0(6)                 ! constant part of the genfield map
-    real(rp) vec0(6)                 ! 0th order transfer vector
-    real(rp) mat6(6,6)               ! 1st order transfer matrix
-    real(rp) c_mat(2,2)              ! 2x2 C coupling matrix
-    real(rp) gamma_c                 ! gamma associated with C matrix
-    real(rp) s                       ! longitudinal position at the end
-    real(rp) x_position, y_position  ! Floor position of element
-    real(rp) z_position              ! Elevation of element
-    real(rp) theta_position          ! Floor orientation angle of element
-    real(rp) phi_position            ! Angle of attack
-    real(rp), pointer :: r(:) => null()  ! For general use. Not used  by BMAD.
-    real(rp), pointer :: a(:) => null()              ! multipole
-    real(rp), pointer :: b(:) => null()              ! multipoles
-    real(rp), pointer :: const(:) => null()          ! Working constants.
-    character(200), pointer :: descrip => null()     ! For general use
-    type (genfield), pointer :: gen_field => null()  ! For symp_map$ $
-    type (taylor_struct) :: taylor(6)                ! Taylor terms
-    type (wig_term_struct), pointer :: wig_term(:) => null()   ! Wiggler Coefs
-    integer key                    ! key value
-    integer sub_key                ! For wigglers: map_type$, periodic_type$
-    integer control_type           ! SUPER_SLAVE$, OVERLAY_LORD$, etc.
-    integer ix_value               ! Pointer for attribute to control
-    integer n_slave                ! Number of slaves
-    integer ix1_slave              ! Start index for slave elements
-    integer ix2_slave              ! Stop  index for slave elements
-    integer n_lord                 ! Number of lords
-    integer ic1_lord               ! Start index for lord elements
-    integer ic2_lord               ! Stop  index for lord elements
-    integer ix_pointer             ! For general use. Not used by BMAD.
-    integer ixx                    ! Index for BMAD internal use
-    integer iyy                    ! Index for BMAD internal use
-    integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
-    integer tracking_method        ! bmad_standard$, taylor$, etc.
-    integer num_steps              ! number of slices for DA_maps
-    integer integration_order      ! For Etiennes' PTC: 2, 4, or 6.
-    integer ptc_kind               ! For setting the ptc kind type.
-    integer taylor_order           ! Order of the taylor series.
-    logical symplectify            ! Symplectify mat6 matrices.
-    logical mode_flip              ! Have the normal modes traded places?
-    logical multipoles_on          ! For turning multipoles on/off
-    logical exact_rad_int_calc     ! Exact radiation integral calculation?
-    logical field_master           ! Calculate K from the B_field?
-    logical is_on                  ! For turning element on/off.
-    logical internal_logic         ! For BMAD internal use only.
-    logical logic                  ! For general use. Not used by BMAD.
+    character(16) name                ! name of element
+    character(16) type                ! type name
+    character(16) alias               ! Another name
+    type (twiss_struct)  x,y,z        ! Twiss parameters at end of element
+    type (floor_position_struct) position
+    real(rp) value(n_attrib_maxx)     ! attribute values
+    real(rp) vec0(6)                  ! 0th order transport vector
+    real(rp) mat6(6,6)                ! 1st order transport matrix
+    real(rp) c_mat(2,2)               ! 2x2 C coupling matrix
+    real(rp) gamma_c                  ! gamma associated with C matrix
+    real(rp) s                        ! longitudinal position at the end
+    type (taylor_struct) :: taylor(6) ! Taylor terms
+    type (wake_struct) wake           ! Wakefields
+    integer key                       ! key value
+    integer sub_key                   ! For wigglers: map_type$, periodic_type$
+    integer control_type              ! SUPER_SLAVE$, OVERLAY_LORD$, etc.
+    integer mat6_calc_method          ! bmad_standard$, taylor$, etc.
+    integer tracking_method           ! bmad_standard$, taylor$, etc.
+    integer field_calc                ! Used with integrators (Runge-Kutta et. al)
+    integer num_steps                 ! number of slices for DA_maps
+    integer integration_ord           ! For Etiennes' PTC: 2, 4, or 6.
+    logical symplectify               ! Symplectify mat6 matrices.
+    logical exact_rad_int_calc        ! Exact radiation integral calculation?
+    logical field_master              ! Calculate strength from the field value?
+    logical is_on                     ! For turning element on/off.
   end type
 \end{verbatim}
-\caption{Definition of the \tn{ele\_struct}.}
+\caption{The \tn{ele\_struct}. Only part of the substructure is shown.}
 \label{f:ele_struct}
 \end{figure}
 
-\begin{figure}[tb]
-\centering
-\begin{verbatim}
-
-  type twiss_struct
-    real(rp) beta, alpha, gamma, phi, eta, etap
-    real(rp) mobius_beta, mobius_eta   ! Mobius effective beta and eta
-    real(rp) sigma
-  end type
-
-  type taylor_struct
-    real (rp) ref
-    type (taylor_term_struct), pointer :: term(:) => null()
-  end type
-
-  type taylor_term_struct
-    real(rp) :: coef
-    integer :: exp(6)
-  end type
-
-  type wig_term_struct
-    real(rp) coef
-    real(rp) kx, ky, kz
-    real(rp) phi_z
-    integer type      ! hyper_y$, hyper_xy$, or hyper_x$     $
-  end type
-
-\end{verbatim}
-\caption{Substructures of the \tn{ele\_struct}.}
-\label{f:subele_struct}
-\end{figure}
-
 %--------------------------------------------------------------------------
-\section{Names}
+\section{Twiss Parameters, etc.}
 
-The \vn{%name}, \vn{%type}, \vn{%alias}, and \vn{%descrip} strings
-come directly from the input lattice file. For example an input file
-with:
-\begin{verbatim}
-  q00w: quadrupole, type = "this", alias = "that", descrip = "a long string"
-\end{verbatim}
-gives an element with
-\begin{verbatim}
-  ele%name    = 'Q00W'
-  ele%type    = 'this'
-  ele%alias   = 'that'
-  ele%descrip = 'a long string'
-\end{verbatim}
-Notice that the element name is mapped to upper case. Another
-important point is that \vn{%descrip} is a pointer that does not get
-allocated unless the element has a description so if you want to look
-at an element's \vn{%descrip} you have to verify that it is associated
-first.
+There are a class of components of the \vn{ele_struct} whose values 
+vary along the length of the element. In such a case the value of the 
+component will be the value at the exit edge of the element. This class
+of components is:
+\begin{example}
+  %x, %y, %z      ! Twiss parameters
+  %position       ! Floor position
+  %c_mat(2,2)     ! Coupling c matrix
+  %gamma_c        ! Coupling parameter
+\end{example}
+To get the Twiss parameters, etc.\ for the beginning of the element you
+need to look at the preceding element in the \vn{ring%ele_(:)} array
 
-%--------------------------------------------------------------------------
-\section{Twiss Parameters}
-
-\vn{x}, \vn{y}, \vn{z} components hold the Twiss parameters for the 
+\vn{%x}, \vn{%y}, and \vn{%z} hold the Twiss parameters for the 
 $a$, $b$ and $z$ modes respectively. [Yes it is known that the
 labeling is misleading. Unfortunately it is a bit entrenched now.]
-The Twiss parameters are for the exit end of the element.
+The $a$ mode is the ``nearly horizontal'' mode and the $b$ mode is the 
+``nearly vertical'' mode. Remember: The Twiss parameters are associated
+with the normal modes. With coupling there is no Twiss parameter associated
+soley with the horizontal axis.
 
 %--------------------------------------------------------------------------
 \section{Transfer Maps}
 
 The first order transfer map through a element is stored in \vn{vec0}
-and \vn{mat6}
-\begin{verbatim}
-  orbit_out = vec0 + mat6 * orbit_in
-\end{verbatim}
-See the chapter on tracking for more details.
+and \vn{mat6}. Thus with \vn{Linear} tracking the appropriate formula is
+\begin{example}
+  orbit_out = %vec0 + %mat6 * orbit_in
+\end{example}
+The \bmad\ routines that compute \vn{%mat6} (for example \vn{ring_make_mat6})
+take a reference orbit as an argument and the resulting \vn{%mat6} matrix
+is the Jacobian about the reference orbit.
 
 %--------------------------------------------------------------------------
 \section{Taylor Maps}
 
 \vn{taylor_order} is the order of the Taylor Map. The map itself is stored 
-in \vn{taylor(1:6)}. Each \vn{taylor(i)} is a Taylor series. \vn{taylor(1)}
+in \vn{%taylor(1:6)}. Each \vn{%taylor(i)} is a Taylor series. 
 
 %--------------------------------------------------------------------------
 \section {multipoles}
@@ -169,16 +103,16 @@ in \vn{taylor(1:6)}. Each \vn{taylor(i)} is a Taylor series. \vn{taylor(1)}
 %--------------------------------------------------------------------------
 \section{Initializing}
 
-Generally most \tn{ele_struct} variables are stored within a
+Generally most \tn{ele_struct} components are stored within a
 \tn{ring_struct} so you don't have to worry about
 allocation/deallocation issues directly. In case you do have an local
 \tn{ele_struct} variable within a subroutine then you either have do
 deallocate the pointers within it with a call to
 \rn{deallocate_ele_pointers} or you use the save attribute.
-\begin{verbatim}
+\begin{example}
   type (ele_struct), save :: ele     ! Either this or
   call deallocate_ele_pointers (ele) ! Do this at the end.
-\end{verbatim}
+\end{example}
 
 
 %--------------------------------------------------------------------------

@@ -7,14 +7,14 @@ takes a beam distribution and tracks the centroids and sigmas of
 ``macro particles''.  This latter type of tracking is associated with
 LINACs and wakefields and is discussed in another chapter.
 
-\chapter{The Coord\_struct}
+\section{The Coord\_struct}
 
 For single particle tracking the starting point is the
 \tn{coord_struct} whose definition is shown
 in~\ref{f:coord_struct}. The \tn{coord_struct} defines the phase
 space vector of the particle at a certain location.
 
-\begin{figure}[tb]
+\begin{figure}[h]
 \centering
 \small
 \begin{verbatim}
@@ -33,23 +33,27 @@ array must be declared to be allocatable.
 \begin{verbatim}
   type (coord_struct), allocatable :: coords(:)
 \end{verbatim}
-You cannot, in general, use a pointer to an array since the BMAD
+You cannot, in general, use a pointer to an array since most \bmad\
 subroutines expect an allocatable array and Fortran does not allow you
 to mix and match.
 
-Example: To track a particle through a lattice:
-\begin{verbatim}
+\noindent Example: To track a particle through a lattice:
+\begin{example}
   type (ring_struct) ring             ! lattice to track through
   type (coord_struct), allocatable :: coord(:)
+  ...
+  call bmad_parser ('this_lattice', ring)
   ...
   call reallocate_coords (coord, ring%n_ele_max)
   coords(0)%vec = (/ 0.01, 0.0, 0.0, 0.0, 0.0, 0.0 /) ! initialization
   call track_all (ring, coord)
-\end{verbatim}
-\rn{Track_all} takes \vn{coord(0)} and propagates it through the lattice from
-the 0\Th element through \vn{ring%n_ele_ring}.  Each \vn{coord(i)}
-is associated with \vn{ring%ele_(i)} and is the particle position at
-the end of the element. \rn{reallocate_coords} simply does an
+\end{example}
+\rn{Track_all} takes \vn{coord(0)} and tracks through the lattice from
+the 1\St element through the $n$\Th element where $n =$ \vn{ring%n_ele_ring}.  
+Each \vn{coord(i)}
+is associated with the corresponding \vn{ring%ele_(i)} element 
+and is the particle position at
+the end of the i\Th\ element. \rn{reallocate_coords} simply does an
 allocation. Its advantage over just allocating directly is that it
 checks if the allocation is needed and if not then it does
 nothing. This can save time. Since \rn{track_all}, like many \bmad\
@@ -58,27 +62,33 @@ routines, will reallocate if needed, only one call to
 to \rn{track_all}.
 
 If you are writing a subroutine where the \tn{coord_struct} array is
-local then you have to decide what to do at the end of the
-subroutine. You have two choices: 1) Deallocate the array. This is the
+local (not passed as an argument to the subroutine)
+then you have to decide how to cleanup the allocated \tn{coord_struct} memory
+at the end of the
+subroutine. In general you have two choices: 1) Deallocate the array. This is the
 cleanest solution but it can be slow since you have to allocate afresh
 each time the subroutine is called. 2) use the save attribute so that
 the array stays around until the next time the subroutine is called.
-\begin{verbatim}
+\begin{example}
   type (coord_struct), allocatable, save :: orb(:) 
-  ...
-  call allocate_coord (orb_, ring%n_ele_ring)
-\end{verbatim}
+\end{example}
 This is faster but leaves memory tied up. 
 
-Note: The \bmad\ tracking routines never use the \vn{ele%mat6}
-transfer matrix to do tracking.
+\section {Miscelaneous Notes}
+
+The \bmad\ tracking routines never uses the \vn{ele%mat6}
+transfer matrix to do tracking (except for \vn{Linear} tracking. 
+However, the reverse is not true.
+The transfer matrix routines will do tracking as needed.
 
 For each element the method of tracking may be set either via the
-input lattice file or directly in the program by setting the
+input lattice file (see section~\ref{s:tkm}) or directly in the program by setting the
 \vn{%tracking_method} attribute of an element
 \begin{verbatim}
   type (ele_struct) ele
   ...
-  ele%tracking_method = boris$  ! for boris tracking
+  ele%tracking_method = boris$  ! for Boris tracking
 \end{verbatim}
-
+To form the corresponding parameter to a given tracking method just put 
+``\$'' after the name. For example, \vn{Bmad_Standard} tracking becomes
+\vn{bmad_standard\$}, etc.

@@ -1,20 +1,19 @@
 \chapter{Bmad Library Subroutine List}
 
-Below are a list of \bmad\ routines sorted by their functionality. 
+Below are a list of \bmad\ and dcslib routines sorted by their functionality. 
 Use the \vn{getf} and \vn{listf}
 (See section \ref{s:getf}) scripts for more information on individual routines. 
 This list includes low level routines that are not generally used in writing code
 for a program however excluded from the list are low level routines that are solely meant
-for \bmad\ internal use.
+for \bmad\ internal use and specialized routines not of general interest.
 
 
 \toffset
 \begin{center}
 \begin{tabular}{|l|l|} \hline
-{\em Routine} & {\em Section} \\ \hline
+{\em Routine Type} & {\em Section} \\ \hline
  	Reading/Writing a Lattice File          & \ref{r:read}      \\ \hline
  	Choosing a Lattice                      & \ref{r:lat}       \\ \hline
- 	CESR Specific                           & \ref{r:cesr}      \\ \hline
  	Twiss etc.                              & \ref{r:twiss}     \\ \hline
  	Matrices                                & \ref{r:mat}       \\ \hline
  	Routines called by \vn{make_mat6}       & \ref{r:mat6}      \\ \hline
@@ -36,8 +35,13 @@ for \bmad\ internal use.
  	Helper Subroutines: Low Level Stuff     & \ref{r:low_help}  \\ \hline
  	Overload Equal Sign Routines.           & \ref{r:equal}     \\ \hline
  	Linac Stuff (out of date)               & \ref{r:linac}     \\ \hline
- 	Miscellaneous                           & \ref{r:misc}      \\ \hline
- 	Obsolete                                & \ref{r:obs}       \\ \hline
+% 	Miscellaneous                           & \ref{r:misc}      \\ \hline
+ 	CESR Specific                           & \ref{r:cesr}      \\ \hline
+ 	Obsolete                                & \ref{r:obs}       \\ \hline \hline
+  Quick Plot                              & \ref{r:qp}        \\ \hline
+  Nonlinear Optimizers                    & \ref{r:opti}      \\ \hline
+  Matrix Routines in DCSLIB               & \ref{r:dcs_matrix} \\ \hline
+  Miscaleneous DCSLIB Routines            & \ref{r:dcs_misc}  \\ \hline
 \end{tabular}
 \end{center}
 \toffset
@@ -77,48 +81,6 @@ Subroutine to get the names of the lattices of the form: directory // bmad\_*.*
 \end{description}
 
 %------------------------------------------------------------------------
-\section{CESR Specific}
-\label{r:cesr}
-
-\begin{description}
-
-\item[bmad\_to\_cesr (ring, cesr)] \Newline
-Subroutine to transfer information from the RING structure returned from BAMD\_PARSER to a structure for the CESR ring 
-
-\item[bmad\_to\_db (ring, db)] \Newline
-Subroutine to return information on the data base that pertains to CESR elements. 
-
-\item[choose\_cesr\_lattice (lattice, lat\_file, current\_lat, ring)] \Newline
-Subroutine to let the user choose a lattice. The subroutine will present a list to choose from. 
-
-\item[create\_vsp\_volt\_elements (ring, ele\_type)] \Newline
-Subroutine to create elements corresponding to the 6 data base elements in CSR VSP VOLT. 
-
-\item[db\_group\_to\_bmad (ing\_name, ing\_num, biggrp\_set, ring, con\_, n\_con, ok, type\_err)] \Newline
-Subroutine to take a data base group element and find the elements controlled along with the coefficients. 
-
-\item[db\_group\_to\_bmad\_group (group\_name, group\_num, i\_biggrp, ring, ix\_ele, ok, type\_err)] \Newline
-Subroutine to set up a data base group knob in a bmad ring structure. 
-
-\item[identify\_db\_node (db\_name, db, dp\_ptr, ok, type\_err)] \Newline
-Subroutine to find which array in DB is associated with DB\_NAME. 
-
-\item[lattice\_to\_bmad\_file\_name (lattice, bmad\_file\_name)] \Newline
-Subroutine to convert a lattice name to the appropriate bmad file name. 
-
-\item[quad\_calib (lattice, k\_theory, k\_base, len\_quad, cu\_per\_k\_gev, quad\_rot, dk\_gev\_dcu, cu\_theory)] \Newline
-Subroutine to return the calibration constants for the CESR quads. 
-
-\item[read\_butns\_file (butns\_num, butns, db, ok)] \Newline
-Subroutine to read in the information in a BUTNS.nnnnn file. 
-
-\item[ring\_to\_quad\_calib (ring, cesr, k\_theory, k\_base, len\_quad, cu\_per\_k\_gev, \\
-             \hskip3.0in quad\_rot, dk\_gev\_dcu, cu\_theory)] \Newline
-Subroutine to return the calibration constants for the CESR quads. 
-
-\end{description}
-
-%------------------------------------------------------------------------
 \section{Twiss etc}
 \label{r:twiss}
 
@@ -128,22 +90,26 @@ Subroutine to return the calibration constants for the CESR quads.
 Subroutine to calculate the synchrotron tune from the full 6X6 1 turn matrix. 
 
 \item[chrom\_calc (ring, delta\_e, chrom\_x, chrom\_y)] \Newline
-Subroutine to calculate the chromaticities by computing the tune change when then energy is changed. 
+Subroutine to calculate the chromaticities by computing the tune 
+change when then energy is changed. 
 
 \item[chrom\_tune (ring, delta\_e, target\_x, target\_y, err\_flag)] \Newline
-Subroutine to set the sextupole strengths so that the ring has the desired chormaticities. 
+Subroutine to set the sextupole strengths so that the ring 
+has the desired chormaticities. 
 
 \item[emitt\_calc (ring, what, mode)] \Newline
 Subroutine to calculate the emittance, energy spread, and synchrotron integrals. 
 
 \item[mobius\_twiss\_calc (ele, v\_mat)] \Newline
-Subroutine calculate the mobius betas and etas which are effective projections of beta and eta in the X and Y planes. 
+Subroutine calculate the mobius betas and etas which are effective 
+projections of beta and eta in the X and Y planes. 
 
 \item[quad\_beta\_ave (ring, ix\_ele, beta\_x\_ave, beta\_y\_ave)] \Newline
 Subroutine to compute the average betas in a quad 
 
 \item[radiation\_integrals (ring, orb\_, mode)] \Newline
-Subroutine to calculate the synchrotron radiation integrals along with the emittance, and energy spread. 
+Subroutine to calculate the synchrotron radiation integrals along 
+with the emittance, and energy spread. 
 
 \item[relative\_mode\_flip (ele1, ele2)] \Newline
 Function to see if the modes of ELE1 are flipped relative to ELE2. 
@@ -155,7 +121,8 @@ Subroutine to Q\_tune a ring. Program will set the tunes to within 0.001 radian 
 Subroutine to set the longitudinal tune by setting the RF voltages in the RF cavities. 
 
 \item[twiss\_and\_track (ring, orb)] \Newline
-Subroutine to calculate the twiss and orbit parameters. This is not necessarily the fastest routine. 
+Subroutine to calculate the twiss and orbit parameters. 
+This is not necessarily the fastest routine. 
 
 \item[twiss\_and\_track\_partial (ele1, ele2, param, del\_s, ele3, start, end)] \Newline
 Subroutine to propagate partially through ELE2 the Twiss parameters and the orbit. 
@@ -179,7 +146,8 @@ Subroutine to calculate the twiss parameters and orbit at a particular longitudi
 Subroutine to calculate the twiss parameters at the start of the ring. 
 
 \item[twiss\_from\_tracking (ring, closed\_orb\_, d\_orb, error)] \Newline
-Subroutine to compute from tracking, for every element in the ring, the Twiss parameters and the transfer matrices. 
+Subroutine to compute from tracking, for every element in the ring, 
+the Twiss parameters and the transfer matrices. 
 
 \item[twiss\_propagate1 (ele1, ele2)] \Newline
 Subroutine to propagate the twiss parameters from the end of ELE1 to the end of ELE2. 
@@ -208,10 +176,12 @@ Clear the 1-turn matrices in the ring structure.
 Subroutine to mode flip the twiss\_parameters of an element 
 
 \item[make\_g2\_mats (twiss, g\_mat, g\_inv\_mat)] \Newline
-Subroutine make the matrices needed to go from normal mode coords to coordinates with the beta function removed. 
+Subroutine make the matrices needed to go from normal mode coords to 
+coordinates with the beta function removed. 
 
 \item[make\_g\_mats (ele, g\_mat, g\_inv\_mat)] \Newline
-Subroutine make the matrices needed to go from normal mode coords to coordinates with the beta function removed. 
+Subroutine make the matrices needed to go from normal mode coords to 
+coordinates with the beta function removed. 
 
 \item[make\_mat6 (ele, param, c0, c1)] \Newline
 Subroutine to make the 6x6 transfer matrix for an element. 
@@ -220,10 +190,12 @@ Subroutine to make the 6x6 transfer matrix for an element.
 Subroutine to make the 6x27 2nd order transfer matrix for an element. 
 
 \item[make\_v\_mats (ele, v\_mat, v\_inv\_mat)] \Newline
-Subroutine make the matrices needed to go from normal mode coords to X-Y coords and vice versa. 
+Subroutine make the matrices needed to go from normal mode coords to X-Y 
+coords and vice versa. 
 
 \item[mat6\_to\_taylor (mat6, vec0, bmad\_taylor)] \Newline
-Subroutine to form a first order Taylor map from the 6x6 transfer matrix and the 0th order transfer vector. 
+Subroutine to form a first order Taylor map from the 6x6 transfer matrix 
+and the 0th order transfer vector. 
 
 \item[mat\_inverse (mat, mat\_inv)] \Newline
 Program to take the inverse of a square matrix. 
@@ -235,22 +207,22 @@ Subroutine to form a symplectic matrix that is "close" to the input matrix.
 Routine to check the symplecticity of a square matrix 
 
 \item[mat\_symp\_decouple (t0, tol, stat, u, v, ubar, vbar, g, twiss1, twiss2, type\_out)] \Newline
-Subroutine to find the symplectic eigen modes of the one turn 4x4 coupled transfer matrix T0. 
+Subroutine to find the symplectic eigen modes of the one turn 4x4 coupled 
+transfer matrix T0. 
 
 \item[multi\_turn\_tracking\_to\_mat (track, i\_dim, mat1, track0, chi)] \Newline
-Subroutine to analyze 1-turn tracking data to find the 1-turn transfer matrix and the closed orbit offset 
+Subroutine to analyze 1-turn tracking data to find the 1-turn transfer matrix 
+and the closed orbit offset 
 
 \item[one\_turn\_matrix (ring, mat6)] \Newline
 Subroutine to calculate the full 6X6 1 turn matrix! 
 
 \item[one\_turn\_mat\_at\_ele (ele, phi\_a, phi\_b, mat4)] \Newline
-Subroutine to form the 4x4 1-turn coupled matrix with the reference point at the end of an element. 
+Subroutine to form the 4x4 1-turn coupled matrix with the reference point 
+at the end of an element. 
 
 \item[ring\_make\_mat6 (ring, ix\_ele, coord\_)] \Newline
 Subroutine to make the 6x6 linear transfer matrix for an element 
-
-\item[ring\_make\_mat627 (ring, ix\_ele, direction, mats627)] \Newline
-Subroutine to make the 6x27 2nd order matrices for long term tracking. Used by, for example, TRACK\_LONG. 
 
 \item[taylor\_to\_mat6 (a\_taylor, c0, mat6, c1)] \Newline
 Subroutine to calculate the linear (Jacobian) matrix about some trajectory from a Taylor map. 
@@ -279,7 +251,7 @@ Subroutine to form the 2x2 1-turn transfer matrix from the twiss parameters.
 Subroutine to make the 6x6 transfer matrix for an element. 
 
 \item[make\_mat6\_custom (ele, param, c0, c1)] \Newline
-Default routine for making the 6x6 transfer matrices for: 1) ele%mat6\_calc\_method = custom$ 2) ele%key = custom$ 
+Default routine for making the 6x6 transfer matrices.
 
 \item[make\_mat6\_symp\_lie\_ptc (ele, param, c0, c1)] \Newline
 Subroutine to make the 6x6 transfer matrix for an element. 
@@ -311,7 +283,8 @@ Subroutine to initialize the transfer matrix for a quad !-
 Subroutine to calculate the transfer matrix for a combination solenoid/quadrupole element. 
 
 \item[tilt\_mat6 (mat6, tilt)] \Newline
-Subroutine to transform a 6x6 transfer matrix to a new reference frame that is tilted in (x, Px, y, Py) with respect to the old reference frame. 
+Subroutine to transform a 6x6 transfer matrix to a new reference frame that is 
+tilted in (x, Px, y, Py) with respect to the old reference frame. 
 
 \end{description}
 
@@ -344,14 +317,17 @@ Subroutine to analyze multi-turn tracking data to get the Twiss parameters etc.
 \item[multi\_turn\_tracking\_to\_mat (track, i\_dim, mat1, track0, chi)] \Newline
 Subroutine to analyze 1-turn tracking data to find the 1-turn transfer matrix and the closed orbit offset 
 
-\item[offset\_particle (ele, param, coord, set, set\_canonical, set\_tilt, set\_multipoles, set\_hvkicks, s\_pos)] \Newline
-Subroutine to effectively offset an element by instead offsetting the particle position to correspond to the local element coordinates. 
+\item[\protect\parbox{6in}{offset\_particle (ele, param, coord, set, set\_canonical, \\
+\hspace*{2in} set\_tilt, set\_multipoles, set\_hvkicks, s\_pos)}] \Newline
+Subroutine to effectively offset an element by instead offsetting 
+the particle position to correspond to the local element coordinates. 
 
 \item[setup\_radiation\_tracking (ring, closed\_orb, fluctuations\_on, damping\_on)] \Newline
 Subroutine to compute synchrotron radiation parameters prior to tracking. 
 
 \item[tilt\_coords (tilt\_val coord, set)] \Newline
-Subroutine to effectively tilt (rotate in the x-y plane) an element by instead rotating the particle position with negative the angle. 
+Subroutine to effectively tilt (rotate in the x-y plane) an element by 
+instead rotating the particle position with negative the angle. 
 
 \item[track1 (start, ele, param, end)] \Newline
 Particle tracking through a single element. 
@@ -369,9 +345,6 @@ Subroutine to track from one point in the ring to another.
 \item[track\_many (ring, orbit\_, ix\_start, ix\_end, direction)] \Newline
 Subroutine to track from one point in the ring to another. 
 
-\item[transfer\_mat\_from\_tracking (ele, param, orb0, d\_orb, error)] \Newline
-Subroutine to compute the transfer map for an element from tracking. 
-
 \item[twiss\_and\_track (ring, orb)] \Newline
 See the twiss section for more details. 
 
@@ -385,7 +358,8 @@ See the twiss section for more details.
 See the twiss section for more details. 
 
 \item[twiss\_from\_tracking (ring, closed\_orb\_, d\_orb, error)] \Newline
-Subroutine to compute from tracking, for every element in the ring, the Twiss parameters and the transfer matrices. 
+Subroutine to compute from tracking, for every element in the ring, 
+the Twiss parameters and the transfer matrices. 
 
 \end{description}
 
@@ -398,34 +372,42 @@ Note: Generally you don't call these routines directly.
 \begin{description}
 
 \item[symp\_lie\_bmad (ele, param, start, end, calc\_mat6)] \Newline
-Subroutine to track through an element (which gives the 0th order taylor series) and optionally make the 6x6 transfer matrix. 
+Subroutine to track through an element (which gives the 0th order taylor 
+series) and optionally make the 6x6 transfer matrix. 
 
 \item[track1\_adaptive\_boris (start, ele, param, end, s\_start, s\_end)] \Newline
-Subroutine to do Boris tracking with adaptive step size control. This routine is adapted from odeint in Numerical Recipes. 
+Subroutine to do Boris tracking with adaptive step size control. 
+This routine is adapted from odeint in Numerical Recipes. 
 
 \item[track1\_boris (start, ele, param, end, s\_start, s\_end)] \Newline
-Subroutine to do Boris tracking. For more information on Boris tracking see the boris\_mod documentation. 
+Subroutine to do Boris tracking. For more information on Boris tracking 
+see the boris\_mod documentation. 
 
 \item[track1\_bmad (start, ele, param, end)] \Newline
-Particle tracking through a single element BMAD\_standard style. This routine is NOT ment for long term tracking since it does not get 
+Particle tracking through a single element BMAD\_standard style. This 
+routine is NOT ment for long term tracking since it does not get 
 
 \item[track1\_custom (start, ele, param, end)] \Newline
 Default routine for custom\_tracking. This routine will do Runge Kutta tracking. 
 
 \item[track1\_linear (start, ele, param, end)] \Newline
-Particle tracking through a single element assuming linearity. That is, just using ele%mat6. 
+Particle tracking through a single element assuming linearity. That is, 
+just using ele%mat6. 
 
 \item[track1\_radiation (start, ele, param, end, edge)] \Newline
 Subroutine to put in radiation dampling and/or fluctuations. 
 
 \item[track1\_runge\_kutta (start, ele, param, end)] \Newline
-Subroutine to do tracking using Runge-Kutta integration. The core Runge-Kutta routine used here is odeint\_bmad which is 
+Subroutine to do tracking using Runge-Kutta integration. The core 
+Runge-Kutta routine used here is odeint\_bmad which is 
 
 \item[track1\_symp\_lie\_ptc (start, ele, param, end)] \Newline
-Particle tracking through a single element using a hamiltonian and a symplectic integrator. This uses Etienne's PTC code. For a 
+Particle tracking through a single element using a hamiltonian and a 
+symplectic integrator. This uses Etienne's PTC code. For a 
 
 \item[track1\_symp\_map (start, ele, param, end)] \Newline
-Particle tracking through a single element using a partially inverted taylor map (In PTC/FPP this is called a genfield). 
+Particle tracking through a single element using a partially inverted 
+taylor map (In PTC/FPP this is called a genfield). 
 
 \item[track1\_taylor (start, ele, param, end)] \Newline
 Subroutine to track through an element using the elements taylor series. 
@@ -448,7 +430,8 @@ Subroutine to do Runge Kutta tracking.
 Subroutine to track through an accel\_sol element 
 
 \item[track1\_boris\_partial (start, ele, param, s, ds, end)] \Newline
-Subroutine to track 1 step using boris tracking. This subroutine is used by track1\_boris and track1\_adaptive\_boris. 
+Subroutine to track 1 step using boris tracking. 
+This subroutine is used by track1\_boris and track1\_adaptive\_boris. 
 
 \item[track\_a\_drift (orb, length)] \Newline
 Subroutine to track through a drift. 
@@ -465,7 +448,8 @@ Particle tracking through a bend element.
 \begin{description}
 
 \item[convert\_coords (in\_type\_str, coord\_in, ele, out\_type\_str, coord\_out)] \Newline
-Subroutine to convert between lab frame, normal mode, normalized normal mode, and action-angle coordinates. 
+Subroutine to convert between lab frame, normal mode, normalized normal mode, 
+and action-angle coordinates. 
 
 \item[type\_coord (coord)] \Newline
 Subroutine to type out a coordinate. 
@@ -479,7 +463,8 @@ Subroutine to type out a coordinate.
 \begin{description}
 
 \item[ring\_geometry (ring)] \Newline
-Subroutine to calculate the physical placement of all the elements in a ring. That is, the layout on the floor. 
+Subroutine to calculate the physical placement of all the elements in a ring. 
+That is, the layout on the floor. 
 
 \item[s\_calc (ring)] \Newline
 Subroutine to calculate the longitudinal distance S for the elements in a ring. 
@@ -496,7 +481,8 @@ Subroutine to calculate the longitudinal distance S for the elements in a ring.
 Subroutine to concatinate two real\_8 taylor series. 
 
 \item[ele\_to\_fibre (ele, fiber, param, integ\_order, steps)] \Newline
-Subroutine to convert a BMAD element to a PTC fibre element. This subroutine allocates fresh storage for the fibre so after calling 
+Subroutine to convert a BMAD element to a PTC fibre element. 
+This subroutine allocates fresh storage for the fibre so after calling 
 
 \item[map\_coef(y, i, j, k, l, style)] \Newline
 Function to return the coefficient of the map y(:) up to 3rd order. 
@@ -517,7 +503,8 @@ Subroutine to convert from a real\_8 taylor map in Etienne's PTC to a taylor map
 Subroutine to allocate a PTC real\_8 variable. 
 
 \item[remove\_constant\_taylor (taylor\_in, taylor\_out, c0, remove\_higher\_order\_terms)] \Newline
-Subroutine to remove the constant part of a taylor series. Optionally terms that are higher order than bmad\_com%taylor\_order can 
+Subroutine to remove the constant part of a taylor series. 
+Optionally terms that are higher order than bmad\_com%taylor\_order can 
 
 \item[ring\_to\_layout (ring, ptc\_layout)] \Newline
 Subroutine to create a PTC layout from a BMAD ring. 
@@ -529,7 +516,8 @@ Subroutine to initialize ptc.
 Subroutine to set the taylor order. 
 
 \item[sort\_universal\_terms (ut\_in, ut\_sorted)] \Newline
-Subroutine to sort the taylor terms from "lowest" to "highest". This subroutine is needed since what comes out of PTC is not sorted. 
+Subroutine to sort the taylor terms from "lowest" to "highest". 
+This subroutine is needed since what comes out of PTC is not sorted. 
 
 \item[taylor\_equal\_real\_8 (bmad\_taylor, y8)] \Newline
 Subroutine to overload "=" in expressions bmad\_taylor = y8 
@@ -589,7 +577,8 @@ Subroutine to initialize (nullify) a BMAD Taylor map.
 Subroutine to deallocate a BMAD taylor map. 
 
 \item[mat6\_to\_taylor (mat6, vec0, bmad\_taylor)] \Newline
-Subroutine to form a first order Taylor map from the 6x6 transfer matrix and the 0th order transfer vector. 
+Subroutine to form a first order Taylor map from the 6x6 transfer matrix 
+and the 0th order transfer vector. 
 
 \item[set\_taylor\_order (order, override\_flag)] \Newline
 Subroutine to set the taylor order. 
@@ -610,7 +599,8 @@ Subroutine to calculate the linear (Jacobian) matrix about some trajectory from 
 Subroutine to invert a taylor map. 
 
 \item[taylor\_propagate1 (tlr, ele, param)] \Newline
-Subroutine to track a real\_8 taylor map through an element. The alternative routine if ele has a taylor series is concat\_taylor. 
+Subroutine to track a real\_8 taylor map through an element. 
+he alternative routine if ele has a taylor series is concat\_taylor. 
 
 \item[track\_taylor (start, bmad\_taylor, end)] \Newline
 Subroutine to track using a Taylor map. 
@@ -673,10 +663,12 @@ Subroutine to write a BMAD taylor map in a nice format to a character array.
      Initializes the element and establishes the following values:
 
 \item[insert\_lrbbi (ring, ring\_oppos, cross\_positions, ix\_lrbbi)] \Newline
-Uses a ring and a list of parasitic crossing points to create and insert beambeam elements at each crossing point. 
+Uses a ring and a list of parasitic crossing points to create and insert 
+beambeam elements at each crossing point. 
 
 \item[lrbbi\_crossings (n\_bucket, oppos\_buckets, cross\_positions)] \Newline
-Subroutine to calculate the location of the parasitic crossings points given a bunch and an array of positions of the bunches it will cross. 
+Subroutine to calculate the location of the parasitic crossings points 
+given a bunch and an array of positions of the bunches it will cross. 
 
 \item[make\_lrbbi(master\_ring, master\_ring\_oppos, ring, ix\_lrbbi, master\_ix\_lrbbi)] \Newline
 Subroutine to turn elements marking parasitic crossings into beam-beam elements. 
@@ -693,7 +685,8 @@ Subroutine to insert named markers into the ring structure at the positions of p
 \begin{description}
 
 \item[attribute\_index (key, name)] \Newline
-Function to return the index of an attribute for a given element type and the name of the attribute 
+Function to return the index of an attribute for a given element 
+type and the name of the attribute 
 
 \item[attribute\_name (key, index)] \Newline
 Function to return the name of an attribute for a particular type of element. 
@@ -702,10 +695,12 @@ Function to return the name of an attribute for a particular type of element.
 Subroutine to check if the control links in a ring structure are valid. 
 
 \item[check\_attrib\_free (ele, ix\_attrib, ring, err\_flag, err\_print\_flag)] \Newline
-Subroutine to check if an attribute is free to vary. Attributes that cannot be changed directly are super\_slave attributes (since 
+Subroutine to check if an attribute is free to vary. Attributes that 
+cannot be changed directly are super\_slave attributes (since 
 
 \item[elements\_locator (key, ring, indx)] \Newline
-Subroutine to locate all the elements of a certain kind in a ring. Note: super\_slave elements are not included in the list since super\_slaves 
+Subroutine to locate all the elements of a certain kind in a ring. 
+Note: super\_slave elements are not included in the list since super\_slaves 
 
 \item[element\_locator (ele\_name, ring, ix\_ele)] \Newline
 Subroutine to locate an element in a ring. 
@@ -717,17 +712,19 @@ Subroutine to locate an element in a ring.
 \item[find\_element\_ends (ring, ix\_ele, ix\_start, ix\_end)] \Newline
 subroutine to find the end points of an element. 
 
-\item[type\_ele (ele, type\_zero\_attrib, type\_mat6, type\_twiss, type\_control)] \Newline
+\item[type\_ele (ele, type\_zero\_attrib, type\_mat6, type\_twiss, 
+type\_control)] \Newline
 Subroutine to type out the contents of an element. 
 
-\item[type2\_ele (ele, type\_zero\_attrib, type\_mat6, type\_twiss, type\_control, lines, n\_lines)] \Newline
-Like TYPE\_ELE but the output is stored in the LINES array. 
+\item[type2\_ele (ele, type\_zero\_attrib, type\_mat6, type\_twiss, 
+type\_control, lines, n\_lines)] \Newline
+Like \vn{type_ele} but the output is stored in the LINES array. 
 
 \item[type\_twiss (ele, frequency\_units)] \Newline
 Subroutine to type out the Twiss parameters from an element. 
 
-\item[type2\_twiss (ele, type\_zero\_attrib, type\_mat6, type\_twiss, type\_cont` lines, n\_lines)] \Newline
-Like TYPE\_TWISS but the output is stored in the LINES array. 
+\item[type2\_twiss (ele, frequency\_units, lines, n\_lines)] \Newline
+Like \vn{type_twiss} but the output is stored in the LINES array. 
 
 \end{description}
 
@@ -745,11 +742,9 @@ Subroutine to make a superimposed element.
 \item[attribute\_bookkeeper (ele, param)] \Newline
 Subroutine to make sure the attributes of an element are self-consistant. 
 
-\item[cesr\_crossings (i\_train, j\_car, species, n\_trains\_tot, n\_cars, cross\_positions, n\_car\_spacing, train\_spacing)] \Newline
-Subroutine to calculate all parasitic crossing points for a bunch at a given location with oppositely circulating bunches of known spacing. 
-
 \item[change\_basis (coord, ref\_energy, ref\_z, to\_cart, time\_disp)] \Newline
-Subroutine to convert accelerator coordinates (x, x', y, y', z, z') to cartesian coordinates and time derivatives (x, x\_dot, y, y\_dot, z, z\_dot) or vice-versa. 
+Subroutine to convert accelerator coordinates (x, x', y, y', z, z') to 
+cartesian coordinates and time derivatives (x, x\_dot, y, y\_dot, z, z\_dot) or vice-versa. 
 
 \item[create\_group (ring, ix\_ele, n\_control, control\_)] \Newline
 Subroutine to create a group control element. 
@@ -769,14 +764,17 @@ Subroutine to concatenate together elements to make a hybrid ring
 \item[new\_control (ring, ix\_ele)] \Newline
 Subroutine to create a new control element. 
 
-\item[pointer\_to\_attribute (ele, attrib\_name, do\_allocation, ptr\_attrib, ix\_attrib, err\_flag, err\_print\_flag)] \Newline
+\item[\protect\parbox{6in}{pointer\_to\_attribute (ele, attrib\_name, do\_allocation, 
+\\ \hspace*{2in} ptr\_attrib, ix\_attrib, err\_flag, err\_print\_flag)}] \Newline
 Returns a pointer to an attribute of an element with name attrib\_name. 
 
-\item[set\_ele\_attribute (ring, i\_ele, attrib\_name, attrib\_value, err\_flag, make\_mat6\_flag, orbit\_)] \Newline
+\item[set\_ele\_attribute (ring, i\_ele, attrib\_name, attrib\_value, 
+err\_flag, make\_mat6\_flag, orbit\_)] \Newline
 Subroutine to set the attribute of an element and propagate the change to any slave elements. 
 
 \item[split\_ring (ring, s\_split, ix\_split, split\_done)] \Newline
-Subroutine to split a ring at a point. Subroutine will not split the ring if the split would create a "runt" element with length less than 1um 
+Subroutine to split a ring at a point. Subroutine will not split the ring 
+if the split would create a "runt" element with length less than 1um 
 
 \item[update\_hybrid\_list (ring, n\_in, use\_ele)] \Newline
 USE\_ELE is a list of elements that should not be hybridize in 
@@ -816,10 +814,12 @@ Subroutine to initialize an element. Element is initialized to be free
 Subroutine to "reverse" an element for backward tracking. 
 
 \item[ring\_reverse (ring\_in, ring\_rev)] \Newline
-Subroutine to construct a ring structure with the elements in reversed order. This may be used for backward tracking through the ring. 
+Subroutine to construct a ring structure with the elements in reversed 
+order. This may be used for backward tracking through the ring. 
 
 \item[set\_design\_linear (ring)] \Newline
-Subroutine to set only those elements on that constitute the "design" lattice. That is, only quadrupoles, bends and wigglers will be set on. 
+Subroutine to set only those elements on that constitute the "design" 
+lattice. That is, only quadrupoles, bends and wigglers will be set on. 
 
 \item[set\_on (key, ring, on\_switch, orb\_)] \Newline
 Subroutine to turn on or off a set of elements (quadrupoles, rfcavities, etc.) in a ring. 
@@ -843,10 +843,11 @@ Subroutine to set the symmetry of a ring.
      This is a plain transfer of information not using the overloaded equal.
 
 \item[transfer\_ring\_parameters (ring\_in, ring\_out)] \Newline
-Subroutine to transfer the ring parameters (such as ring%name, ring%param, etc.) from one ring to another. 
+Subroutine to transfer the ring parameters (such as ring\%name, 
+ring\%param, etc.) from one ring to another. 
 
 \item[transfer\_ring\_taylors (ring\_in, ring\_out, 
-                                             type\_out, transfered\_all) ] \Newline 
+                        type\_out, transfered\_all) ] \Newline 
      Subroutine to transfer the taylor maps from the elements of one ring to
      the elements of another. The elements are matched between the rings so 
 
@@ -888,10 +889,12 @@ Subroutine to compute multipole factors: c\_multi(n, m) = +/- ("n choose m")/n!
 Subroutine to compute the energy of the reference particle for each element in a ring structure. 
 
 \item[custom\_emitt\_calc (ele, param, c0, c1)] \Newline
-This is EMITT\_CALC for CUSTOM elements. This subroutine must be supplied by the programmer for any program that makes use of CUSTOM elements. 
+This is EMITT\_CALC for CUSTOM elements. This subroutine must be supplied 
+by the programmer for any program that makes use of CUSTOM elements. 
 
 \item[custom\_radiation\_integrals (ring, ir, orb\_)] \Newline
-This is RADIATION\_INTEGRALS for CUSTOM elements. This subroutine must be supplied by the programmer for any program that makes use of CUSTOM elements. 
+This is RADIATION\_INTEGRALS for CUSTOM elements. This subroutine must be 
+supplied by the programmer for any program that makes use of CUSTOM elements. 
 
 \item[em\_field (ele, param, s\_pos, here, field)] \Newline
 Subroutine to calculate the E and B fields for an element. 
@@ -903,7 +906,8 @@ Subroutine to calculate the kinetic energy, etc. from a particle's energy.
 Function to interpolate a 3d field. 
 
 \item[name\_to\_list (ring, ele\_names, use\_ele)] \Newline
-Subroutine to make a list of elements in RING of the elements whose name matches the names in ELE\_NAMES. 
+Subroutine to make a list of elements in RING of the elements 
+whose name matches the names in ELE\_NAMES. 
 
 \item[order\_super\_lord\_slaves (ring, ix\_lord)] \Newline
 Subroutine to make the slave elements of a super\_lord in order. 
@@ -913,7 +917,8 @@ Subroutine to make the slave elements of a super\_lord in order.
      See the radiation\_integrals routine for further details.
 
 \item[wiggler\_vec\_potential (ele, energy, here, vec\_pot)] \Newline
-Subroutine to calculate the normalized vector potential at a point for a wiggler. The normalized potental a\_norm is defined by: 
+Subroutine to calculate the normalized vector potential at a point for a wiggler. 
+The normalized potental a\_norm is defined by: 
 
 \end{description}
 
@@ -924,10 +929,12 @@ Subroutine to calculate the normalized vector potential at a point for a wiggler
 \begin{description}
 
 \item[adjust\_super\_lord\_s\_position (ring, ix\_lord)] \Newline
-Subroutine to adjust the positions of the slaves of a super\_lord due to changes in the lord's s\_offset. 
+Subroutine to adjust the positions of the slaves of a 
+super\_lord due to changes in the lord's s\_offset. 
 
 \item[bracket\_index (s\_, s, ix)] \Newline
-Subroutine to find the index ix so that s\_(ix) <= s < s\_(ix+1). If s < s\_(1) then ix = 0 
+Subroutine to find the index ix so that s\_(ix) <= s < s\_(ix+1). 
+If s < s\_(1) then ix = 0 
 
 \item[deallocate\_ele\_pointers (ele)] \Newline
 Subroutine to deallocate the pointers in an element. 
@@ -951,7 +958,8 @@ Subroutine to calcualte the attributes of overlay slave elements
 Subroutine to take an orbit vector difference and calculate the dispersion. 
 
 \item[transfer\_ele\_pointers (ele1, ele2)] \Newline
-Subroutine to transfer the information in the pointers from ele2 to ele1. When finished ele1's pointers will be pointing to a different memory 
+Subroutine to transfer the information in the pointers from ele2 to ele1. 
+When finished ele1's pointers will be pointing to a different memory 
 
 \item[twiss\_decoupled\_propagate (ele1, ele2)] \Newline
 Subroutine to propagate the twiss parameters from end of ELE1 to end of ELE2. 
@@ -968,25 +976,31 @@ Subroutine to propagate the twiss parameters from end of ELE1 to end of ELE2.
 Subroutine that is used to set one coord equal to another. 
 
 \item[ele\_equal\_ele (ele1, ele2)] \Newline
-Subroutine that is used to set one element equal to another. This routine takes care of the pointers in ele1. 
+Subroutine that is used to set one element equal to another. 
+This routine takes care of the pointers in ele1. 
 
 \item[ele\_vec\_equal\_ele\_vec (ele1, ele2)] \Newline
-Subroutine that is used to set one element vector equal to another. This routine takes care of the pointers in ele1. 
+Subroutine that is used to set one element vector equal to another. 
+This routine takes care of the pointers in ele1. 
 
 \item[real\_8\_equal\_taylor (y8, bmad\_taylor)] \Newline
 Subroutine to overload "=" in expressions y8 = bmad\_taylor 
 
 \item[ring\_equal\_ring (ring1, ring2)] \Newline
-Subroutine that is used to set one ring equal to another. This routine takes care of the pointers in ring1. 
+Subroutine that is used to set one ring equal to another. 
+This routine takes care of the pointers in ring1. 
 
 \item[ring\_vec\_equal\_ring\_vec (ring1, ring2)] \Newline
-Subroutine that is used to set one ring vector equal to another. This routine takes care of the pointers in ring1. 
+Subroutine that is used to set one ring vector equal to another. 
+This routine takes care of the pointers in ring1. 
 
 \item[taylor\_equal\_real\_8 (bmad\_taylor, y8)] \Newline
 Subroutine to overload "=" in expressions bmad\_taylor = y8 
 
 \item[universal\_equal\_universal (universal1, universal2)] \Newline
-Subroutine that is used to set one PTC universal\_taylor structure equal to another. 
+Subroutine that is used to set one PTC universal\_taylor 
+structure equal to another. 
+
 \end{description}
 
 %------------------------------------------------------------------------
@@ -997,14 +1011,18 @@ Note: These routines are antiquated: Do not use.
 
 \begin{description}
 
-\item[accel\_sol\_mat\_calc (ls, c\_m, c\_e, gamma\_old, gamma\_new, b\_x, b\_y, coord, mat4, vec\_st)] \Newline
-Subroutine to calculate the 4x4 transfer matrix (excluding steerings) for a segment of an accelerating solenoid. 
+\item[accel\_sol\_mat\_calc (ls, c\_m, c\_e, gamma\_old, gamma\_new, 
+b\_x, b\_y, coord, mat4, vec\_st)] \Newline
+Subroutine to calculate the 4x4 transfer matrix (excluding steerings) for a 
+segment of an accelerating solenoid. 
 
 \item[b\_field\_loop (coord, ele, s\_pos, b\_loop)] \Newline
-Subroutine to calculate the magnetic field vector due to a circular current loop. 
+Subroutine to calculate the magnetic field vector due to a 
+circular current loop. 
 
 \item[b\_field\_mult (ring, coord, first, last, s\_pos, b\_vector)] \Newline
-Subroutine to calculate the magnetic field vector due to multiple circular current loops. 
+Subroutine to calculate the magnetic field vector due to multiple 
+circular current loops. 
 
 \item[hypergeom (hgcx, arg)] \Newline
 Function to calculate a particular hypergeometric function 
@@ -1012,11 +1030,78 @@ Function to calculate a particular hypergeometric function
 \end{description}
 
 %------------------------------------------------------------------------
-\section{Miscellaneous}
-\label{r:misc}     
+%\section{Miscellaneous}
+%\label{r:misc}     
+%
+%\begin{description}
+%\item
+%\end{description}
+
+%------------------------------------------------------------------------
+\section{CESR Specific}
+\label{r:cesr}
+
+These routines are specific to the Cornell CESR Storage ring and are
+not, in general, of interest otherwise.
 
 \begin{description}
-\item
+
+\item[bmad\_to\_cesr (ring, cesr)] \Newline
+Subroutine to transfer information from the RING structure returned from 
+\vn{Bmad_Parser} to a structure for the CESR ring 
+
+\item[bmad\_to\_db (ring, db)] \Newline
+Subroutine to return information on the data base that pertains to CESR elements. 
+
+\item[\protect\parbox{6in}{cesr\_crossings (i\_train, j\_car, species, n\_trains\_tot, 
+\\ \hspace*{2in}n\_cars, cross\_positions, n\_car\_spacing, train\_spacing)}] \Newline
+Subroutine to calculate all parasitic crossing points for a bunch at a given location 
+with oppositely circulating bunches of known spacing. 
+
+\item[cesr\_loc\_decode(string, array, num)] \Newline 
+     Subroutine to decode a list of locations in CESR.
+
+\item[cesr\_loc\_encode(list, ew\_encode, sense, string)] \Newline 
+     Subroutine to encode a list of locations into an output string
+
+\item[cesr\_locator (str\_in, prefix, ix\_pre, loc, err\_flag)] \Newline 
+     program to parse a character string for a location in the CESR ring
+
+\item[cesr\_elements\_get (name, n\_found, ele)] \Newline 
+     Subroutine to find the location of elements from [CESR.SURVEY]RING\_MASTER.DAT
+
+\item[choose\_cesr\_lattice (lattice, lat\_file, current\_lat, ring)] \Newline
+Subroutine to let the user choose a lattice. The subroutine will present a list to choose from. 
+
+\item[create\_vsp\_volt\_elements (ring, ele\_type)] \Newline
+Subroutine to create elements corresponding to the 6 data base elements in CSR VSP VOLT. 
+
+\item[db\_group\_to\_bmad (ing\_name, ing\_num, biggrp\_set, 
+ring, con\_, n\_con, ok, type\_err)] \Newline
+Subroutine to take a data base group element and find the elements 
+controlled along with the coefficients. 
+
+\item[db\_group\_to\_bmad\_group (group\_name, group\_num, i\_biggrp, 
+ring, ix\_ele, ok, type\_err)] \Newline
+Subroutine to set up a data base group knob in a bmad ring structure. 
+
+\item[identify\_db\_node (db\_name, db, dp\_ptr, ok, type\_err)] \Newline
+Subroutine to find which array in DB is associated with DB\_NAME. 
+
+\item[lattice\_to\_bmad\_file\_name (lattice, bmad\_file\_name)] \Newline
+Subroutine to convert a lattice name to the appropriate bmad file name. 
+
+\item[\protect\parbox{6in}{quad\_calib (lattice, k\_theory, k\_base, len\_quad, 
+\\ \hspace*{2in} cu\_per\_k\_gev, quad\_rot, dk\_gev\_dcu, cu\_theory)}] \Newline
+Subroutine to return the calibration constants for the CESR quads. 
+
+\item[read\_butns\_file (butns\_num, butns, db, ok)] \Newline
+Subroutine to read in the information in a BUTNS.nnnnn file. 
+
+\item[\protect\parbox{6in}{ring\_to\_quad\_calib (ring, cesr, k\_theory, k\_base, 
+\\ \hspace*{2in} len\_quad, cu\_per\_k\_gev, quad\_rot, dk\_gev\_dcu, cu\_theory)}] \Newline
+Subroutine to return the calibration constants for the CESR quads. 
+
 \end{description}
 
 %------------------------------------------------------------------------
@@ -1028,14 +1113,341 @@ Function to calculate a particular hypergeometric function
 \item[closed\_orbit\_at\_start (ring, co, i\_dim, iterate)] \Newline
 Subroutine to calculate the closed orbit at the beginning of the ring. 
 
+\item[ring\_make\_mat627 (ring, ix\_ele, direction, mats627)] \Newline
+Subroutine to make the 6x27 2nd order matrices for long term tracking. 
+Used by, for example, TRACK\_LONG. 
+
 \item[track1\_627 (start, ele, param, mat627, end)] \Newline
-Particle tracking through a single element. Uses the 2nd order 6x27 transport matrices whenever possible. 
+Particle tracking through a single element. Uses the 2nd order 6x27 transport 
+matrices whenever possible. 
 
 \item[sol\_quad\_mat627\_calc (ks, k1, length, mat627)] \Newline
 Subroutine to calculate the transfer matrix for a combination solenoid/quadrupole element. 
 
 \item[track\_long (ring, orbit\_, ix\_start, direction, mats627)] \Newline
-Subroutine to track for 1-turn. This subroutine is meant for long term tracking and uses 2nd order transport matrices for some of the tracking. 
+Subroutine to track for 1-turn. This subroutine is meant for long term tracking and 
+uses 2nd order transport matrices for some of the tracking. 
 
 \end{description}
 
+%------------------------------------------------------------------------
+\section{Quick Plot Routines}
+\label{r:qp}      
+
+\begin{description}
+
+\item[qp\_get\_layout\_attrib (who, x1, x2, y1, y2, units)] \Newline 
+     Subroutine to get the attributes of the layout.
+
+\item[qp\_set\_default (default\_draw\_units, default\_set\_units)] \Newline 
+     Subroutine to set the default units for drawing and setting.
+
+\item[qp\_init\_struct (qp)] \Newline 
+     Subroutine to initialize the qp\_struct.
+
+\item[qp\_set\_pointers (qp)] \Newline 
+     Subroutine to set the pointers correctly.
+
+\item[qp\_equal\_qp (qp1, qp2)] \Newline 
+     Subroutine to set qp1 = qp2.
+
+\item[qp\_save\_state (buffer)] \Newline 
+     Subroutine to save the current attributes. 
+     Use qp\_restore\_state to reastore the saved state.
+
+\item[qp\_restore\_state] \Newline 
+     Subroutine to restore saved attributes. 
+     Use qp\_save\_state to reastore the saved state.
+
+\item[\protect\parbox{6in}{qp\_set\_axis (axis, a\_min, a\_max, ...)}]
+    Subroutine to set (but not plot) the min, max and divisions for the axes of the graph.
+
+\item[\protect\parbox{6in}{qp\_calc\_axis\_params (data\_min, data\_max, div\_min, 
+\\ \hspace*{2in} div\_max, how, places, axis\_min, axis\_max, divisions)}] \Newline 
+     Subroutine to calculate a "nice" plot scale given the minimum and maximum
+     of the data. This is similar to calc\_axis\_scale.
+
+\item[qp\_calc\_axis\_places (axis\_min, axis\_max, divisions, places)] \Newline 
+     Subroutine to calculate the number of decmal places needed to display the
+     axis numbers.
+
+\item[\protect\parbox{6in}{qp\_calc\_axis\_scale (data\_min, data\_max, divisions, how,
+\\ \hspace*{2in} places, axis\_min, axis\_max, niceness\_score)}] \Newline 
+     Subroutine to calculate a "nice" plot scale given the minimum and maximum
+     of the data. 
+
+\item[qp\_set\_graph\_limits] \Newline 
+     Subroutine to calculate the offsets for the graph.
+     This subroutine also sets the PGPLOT window size = The graph size.
+
+\item[qp\_set\_pgplot\_color (ix\_color)  ] \Newline 
+     Subroutine to set the color in pgplot taking into accout that GIF
+     inverts the black for white.
+
+\item[qp\_clear\_page] \Newline 
+     Subroutine to clear all drawing from the page.
+
+\item[qp\_clear\_box] \Newline 
+     Subroutine to clear all drawing from the current box.
+     That is, white out the box region.
+
+\item[qp\_set\_box (ix, iy, ix\_tot, iy\_tot)] \Newline 
+     Subroutine to set the box on the physical page.
+     This routine divides the page into a grid of boxes. 
+
+\item[qp\_set\_page\_border (x1\_b, x2\_b, y1\_b, y2\_b, units)] \Newline 
+     Subroutine to set the border around the physical page.
+
+\item[qp\_to\_datum\_abs (x, y, x\_dat, y\_dat, units)] \Newline 
+     Subroutine to convert an (x, y) point on the page to data units.
+
+\item[qp\_to\_datum\_rel (x, y, x\_dat, y\_dat, units)] \Newline 
+     Subroutine to convert an (x, y) delta to data units.
+
+\item[qp\_to\_data\_abs (x, y, x\_dat, y\_dat, units)] \Newline 
+     Subroutine to convert (x, y) points on the page to data units.
+
+\item[qp\_to\_data\_rel (x, y, x\_dat, y\_dat, units)] \Newline 
+     Subroutine to convert (x, y) deltas to data units.
+
+\item[qp\_from\_inch\_rel (x\_inch, y\_inch, x, y, units)] \Newline 
+     Subroutine to convert from a relative position (an offset) in inches
+     to other units.
+
+\item[qp\_from\_inch\_abs (x\_inch, y\_inch, x, y, units)] \Newline 
+     Subroutine to convert to absolute position (x, y) from inches referenced
+     to the Left Bottom corner of the page
+
+\item[qp\_to\_inch\_rel (x, y, x\_inch, y\_inch, units)] \Newline 
+     Subroutine to convert a relative (x, y) into inches.
+
+\item[qp\_to\_inch\_abs (x, y, x\_inch, y\_inch, units)] \Newline 
+     Subroutine to convert an absolute position (x, y) into inches referenced
+     to the Left Bottom corner of the page.
+
+\item[qp\_split\_units\_string (u\_type, region, corner, units)] \Newline 
+     Subroutine to split a units string into its components.
+
+\item[qp\_set\_margin (x1\_marg, x2\_marg, y1\_marg, y2\_marg, units)] \Newline 
+     Subroutine to set up the margins from the sides of the box (see QP\_SET\_BOX)
+     to the edges of the actual graph.
+
+\item[qp\_draw\_rectangle (x1, x2, y1, y2, units, color, width, ] \Newline 
+                                                         style, clip)
+     Subroutine to draw a rectangular box.
+
+\item[qp\_draw\_symbol (x, y, units, type, height, color, ] \Newline 
+                                                fill, line\_width, clip)
+     Draws a symbol at (x, y) 
+
+\item[qp\_draw\_symbols (x, y, units, type, height, color, ] \Newline 
+                                                    fill, line\_width, clip)
+     Draws a symbol at the (x, y) points. 
+
+\item[qp\_draw\_graph (x, y, x\_lab, y\_lab, title, 
+                                draw\_line, draw\_symbol, clip) ] \Newline 
+     Subroutine to plot data, axes with labels, a grid, and a title.
+
+\item[qp\_draw\_axes] \Newline 
+     Subroutine to plot the axes, title, etc. of a plot.
+
+\item[qp\_draw\_graph\_title (title)] \Newline 
+     Subroutine to draw the title for a graph.
+
+\item[qp\_draw\_histogram (x\_dat, y\_dat, x\_lab, y\_lab, title)] \Newline 
+     Subroutine to plot data, axes with labels, a grid, and a title.
+
+\item[qp\_draw\_legend (lines, x, y, units)] \Newline 
+     Subroutine to draw a legend.
+
+\item[qp\_draw\_arc (x0, y0, r\_x, r\_y, ang1, ang2, ] \Newline 
+                             units, width, color, style, clip)
+     Subroutine to plot a section of an ellipse.
+
+\item[qp\_draw\_polyline (x, y, units, width, color, style, clip)] \Newline 
+     Subroutine to draw a polyline.
+
+\item[qp\_draw\_line (x1, x2, y1, y2, units, width, color, style, clip)] \Newline 
+     Subroutine to draw a line.
+
+\item[qp\_draw\_polyline\_basic (x, y, units) ] \Newline 
+     Subroutine to draw a polyline. See also qp\_draw\_polyline
+
+\item[qp\_open\_page (page\_type, i\_chan, x\_len, y\_len, units)] \Newline 
+     Subroutine to Initialize a page (window) for plotting.
+
+\item[qp\_select\_page (iw)] \Newline 
+     Subroutine to switch to a particular page for drawing graphics.
+
+\item[qp\_close\_page] \Newline 
+     Subroutine to finish plotting on a page.
+
+\item[qp\_draw\_text (text, x, y, units, justify, height ] \Newline 
+        color, angle, background, uniform\_spacing, spacing\_factor)
+     Subroutine to draw text.
+
+\item[qp\_draw\_text\_basic (text, x, y, units, justify, angle)] \Newline 
+     Subroutine to display on a plot a character string.
+     See also: qp\_draw\_text.
+
+\item[qp\_justify (justify)] \Newline 
+     Function to convert a justify character string to a real value
+     representing the horizontal justification. 
+
+\item[qp\_draw\_main\_title (lines, justify)] \Newline 
+     Subroutine to plot the main title at the top of the page.
+
+\item[qp\_set\_symbol\_attrib (type, height, color, fill, line\_width, clip)] \Newline 
+     Subroutine to set the type and size of the symbols used in plotting data.
+
+\item[qp\_set\_line\_attrib (who, width, color, style, clip)] \Newline 
+     Subroutine to set the default line attributes.
+
+\item[qp\_set\_clip (clip)] \Newline 
+     Subroutine to set the default clipping state.
+
+\item[qp\_subset\_box (ix, iy, ix\_tot, iy\_tot, x\_marg, y\_marg)] \Newline 
+     Subroutine to set the box for a graph. This is the same as
+     qp\_set\_box but the boundries of the page are taken to be the box boundries.
+
+\item[qp\_set\_text\_attrib (who, height, color, background, 
+                                      uniform\_spacing, spacing\_factor) ] \Newline 
+     Subroutine to set the default text attributes.
+
+\item[qp\_draw\_x\_axis (who, y\_pos)] \Newline 
+     Subroutine to draw a horizontal axis.
+
+\item[qp\_draw\_y\_axis (who, x\_pos)] \Newline 
+     Subroutine to draw a horizontal axis.
+
+\item[qp\_to\_axis\_number\_text (axis, ix\_n, text)] \Newline 
+     Subroutine to form the text string for an axis number.
+
+\item[text\_len (text)] \Newline 
+     Function to find the length of a text string.
+
+\item[qp\_set\_graph\_attrib (draw\_grid, draw\_title)] \Newline 
+     Subroutine to set attributes of the current graph
+
+\item[qp\_draw\_grid] \Newline 
+     Subroutine to draw a grid on the current graph.
+
+\item[qp\_calc\_minor\_div (delta, div\_max, divisions)] \Newline 
+     Subroutine to calculate the number of minor divisions an axis should have.
+
+\item[qp\_translate\_to\_color\_index (name, index)] \Newline 
+     Subroutine to translate from a string to a color index.
+
+\item[qp\_read\_data (iu, err\_flag, x, ix\_col, y, iy\_col, z, iz\_col, 
+                                                               t, it\_col) ] \Newline 
+     Subroutine to read columns of data.
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Nonlinear Optimizers}
+\label{r:opti}      
+
+\begin{description}
+
+\item[opti\_lmdif (vec, n, merit, eps) result(this\_opti)] \Newline 
+     Function which tries to get the merit function/s as close to zero as possible
+     by changing the values in vec. Multiple merit functions can be used.
+
+\item[initial\_lmdif] \Newline 
+     Subroutine that clears out previous saved values of the optimizer.
+
+\item[suggest\_lmdif (xv,fv,eps,itermx,iend,reset\_flag)] \Newline 
+     Reverse communication subroutine. 
+     It suggests values for your input variables based on
+
+\item[opti\_de (v\_best, generations, population, merit\_func, v0, v\_del)] \Newline 
+     Differential Evolution for Optimal Control Problems.
+     This optimizer is based upon the work of Storn and Price. 
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Matrix Routines in DCSLIB}
+\label{r:dcs_matrix}      
+
+\begin{description}
+
+\item[mat\_det (mat, det)] \Newline 
+     Subroutine to take the determinant of a square matrix
+     This subroutine is adapted from NUMERICAL RECIPES
+
+\item[mat\_make\_unit (mat)] \Newline 
+     routine to create a unit matrix.
+
+\item[mat\_rotation (mat, angle, bet\_1, bet\_2, alph\_1, alph\_2)] \Newline 
+     Subroutine to construct a 2x2 rotation matrix for translation from
+     point 1 to point 2
+
+\item[mat\_type (mat, nunit, header)] \Newline 
+     subroutine to output matraces to the terminal or to a file
+
+\item[mat\_unit (mat, size, psize)] \Newline 
+     routine to create a unit matrix out of MAT(SIZE, PSIZE).
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Miscaleneous DCSLIB Routines}
+\label{r:dcs_misc}      
+
+\begin{description}
+
+\item[abs\_sort (array, index, n)] \Newline 
+     Input:
+         Real(rp)  ARRAY(*)    -- Array to be sorted by absolute value.
+
+\item[bbi\_kick (x, y, r, kx, ky)] \Newline 
+     This function computes the normalized kick due to the beam-beam
+     interaction using the normalized position for input
+
+\item[gauss\_ran (harvest)] \Newline 
+     Subroutine to return a gaussian distributed random number with unit sigma.
+     This subroutine uses the fortran90 intrinsic random\_number subroutine.
+
+\item[modulo2\_real (x, amp)] \Newline 
+     Function to return
+         modulo2\_real = x + 2 * n * amp
+
+\item[modulo2\_int (x, amp)] \Newline 
+     Function to return
+         modulo2\_int = x + 2 * n * amp
+
+\item[reallocate\_string (str, l\_str, n)] \Newline 
+     Function to reallocate a string array.
+     This is modeled after the reallocate functions in Numerical Recipes.
+
+\item[reallocate\_integer (inte, n)] \Newline 
+     Function to reallocate a string array.
+     This is modeled after the reallocate functions in Numerical Recipes.
+
+\item[reallocate\_real (re, n)] \Newline 
+     Function to reallocate a string array.
+     This is modeled after the reallocate functions in Numerical Recipes.
+
+\item[reallocate\_logical (logic, n)] \Newline 
+     Function to reallocate a string array.
+     This is modeled after the reallocate functions in Numerical Recipes.
+
+
+\item[skip\_header (unit\_, error\_flag)] \Newline 
+     Subroutine to find the first line of data in a file. The first line of
+     data is defined to be the first line whose first non-blank character
+
+\item[string\_trim(in\_string, out\_string, word\_len)] \Newline 
+     Subroutine to trim a string of leading blanks and/or tabs and also to return the
+     length of the first word.
+
+\item[spline\_akima (spline, stat)] \Newline 
+     Given a set of (x,y) points we want to interpolate between the points.
+     This subroutine computes the semi-hermite cubic spline developed by 
+
+\item[spline\_evaluate (spline, x, ok, y, dy)] \Newline 
+     Subroutine to evalueate a spline at a set of points.
+
+\end{description}

@@ -165,19 +165,28 @@ table~\ref{t:ab}
 
 %-----------------------------------------------------------------
 \section{Taylor Maps}
+\label{s:taylor_phys}
 
 A Transport Map ${\cal M}: {\cal R}^6 \rightarrow {\cal R}^6$ through
 an element or a section of a lattice is a function that maps the
 starting phase space coordinates $\Bf r_{in}$ to the ending
 coordinates $\Bf r_{out}$
 \begin{equation}
-  \Bf r_{out} = {\cal M} \Bf r_{in}
+  \Bf r_(out) = {\cal M} \Bf r_(in)
 \end{equation}
 ${\cal M}$ is made up of 6 functions ${\cal M}_i: {\cal R}^6
  \rightarrow {\cal R}$ mapping to one of the $r_{out}$
 coordinates. Each of these functions can be expanded in a Taylor
 series. The Taylor Map corresponding to $\cal M$ is the collection of
-the 6 Taylor series.
+the 6 Taylor series. Each series is in the form
+\Begineq
+  r_i(out) = \sum_{j = 1}^N \, C_{ij} \, \Pi_{k = 1}^6 \, r_k^{e_{ijk}}(in)
+\Endeq
+Where the $C_{ij}$ are coeficients and the $e_{ijk}$ are integer exponents.
+The oder of the Map is
+\Begineq
+  \mbox{Map Order} = \max_{i,j} \, \sum_{k = 1}^6 e_{ijk}
+\Endeq
 
 %-----------------------------------------------------------------
 \section{Symplectification}

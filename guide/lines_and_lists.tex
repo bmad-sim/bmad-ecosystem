@@ -1,17 +1,19 @@
 \chapter{Beam Lines, Replacement Lists, and Superposition}
 
-To \bmad\ a ``lattice'' is the sequence of physical elements that is to be studied.
-The lattice is constructed using what are know as Beam Lines and Replacement Lists.
-Beam Lines are further subdivided into Lines with and
-without replacement arguments. This
-essentually corresponds to the \mad\ definition of Lines and Lists. There can be multiple Beam
-Lines and Replacement Lists defined in a lattice file and Lines and Lists can be
-nested inside other Lines and Lists. The particular Line that defines
-the lattice to be analyzed by \bmad\ is selected by the \vn{use} statement. For example
+To \bmad\ a ``lattice'' is the sequence of physical elements that is to
+be studied. The lattice is constructed using what are know as Beam Lines
+and Replacement Lists. Beam Lines are further subdivided into Lines with
+and without replacement arguments. This essentually corresponds to the
+\mad\ definition of Lines and Lists. There can be multiple Beam Lines
+and Replacement Lists defined in a lattice file and Lines and Lists can
+be nested inside other Lines and Lists. The particular Line that defines
+the lattice to be analyzed by \bmad\ is selected by the \vn{use}
+statement. For example
 \begin{example}
   use, my_line
 \end{example}
-would pick the Line \vn{my_line} for analysis. Note that the names of the elements in the
+would pick the Line \vn{my_line} for analysis. 
+Note that the names of the elements in the
 lattice are always converted to upper case.
 
 %-----------------------------------------------------------------------------
@@ -20,8 +22,8 @@ A Beam Line without arguments has the format
 \begin{example}
   label: LINE = (member1, member2, ...)
 \end{example}
-where \vn{member1}, \vn{member2}, etc. are either elements, other Beam Lines or 
-Replacement Lists, or sublines enclosed in parentheses.
+where \vn{member1}, \vn{member2}, etc. are either elements, other Beam
+Lines or Replacement Lists, or sublines enclosed in parentheses.
 Example:
 \begin{example}
   line1: line = (a, b, c)
@@ -29,15 +31,16 @@ Example:
   use, line2
 \end{example}
 This example shows how an Line member can refer to another Beam Line.
-This is helpful if the same sequence of elements appears repeatedly in the lattice.
-When \vn{line2} is expanded to form the lattice the definition of \vn{line1}
-will be inserted 
-in to produce the following lattice for analysis
+This is helpful if the same sequence of elements appears repeatedly in
+the lattice. When \vn{line2} is expanded to form the lattice the
+definition of \vn{line1} will be inserted in to produce the following
+lattice for analysis
 \begin{example}
   (d, a, b, c, e)
 \end{example}
 
-A member that is a Line or List can be reflected (elements taken in reverse order) if
+A member that is a Line or List can be reflected 
+(elements taken in reverse order) if
 a negative sign is put in front of it. For example:
 \begin{example}
   line1: line = (a, b, c)
@@ -47,7 +50,8 @@ a negative sign is put in front of it. For example:
 \begin{example}
   (d, c, b, a, e)
 \end{example}
-Reflecting a subline will also reflect any sublines of the subline. For example:
+Reflecting a subline will also reflect any sublines of the subline. For
+example:
 \begin{example}
   line0: line = (y, z)
   line1: line = (line0, b, c)
@@ -58,7 +62,8 @@ Reflecting a subline will also reflect any sublines of the subline. For example:
   (d, c, b, z, y, e)
 \end{example}
 
-A repetition count, which is an integer followed by an asterisk, means that the member is
+A repetition count, which is an integer followed by an asterisk, 
+means that the member is
 repeated. For example
 \begin{example}
   line1: line = (a, b, c)
@@ -77,7 +82,8 @@ Repetition count can be combined with reflection. For example
 \begin{example}
   (d, c, b, a, c, b, a, e)
 \end{example}
-Instead of the name of a Line, subline members can also be given as an explicit list using parentheses. For example, the previous example could be rewritten as
+Instead of the name of a Line, subline members can also be given as an explicit 
+list using parentheses. For example, the previous example could be rewritten as
 \begin{example}
   line2: line = (d, -2*(a, b, c), e)
 \end{example}
@@ -95,8 +101,9 @@ elsewhere. For example:
   line1(DA1, DA2): line = (a, DA2, b, DA1)
   line2: line = (h, line1(y, z), g)
 \end{example}
-When \vn{line2} is expanded the actual arguments of \vn{line1}, in this case \vn(y, z),
-replaces the dummy arguments \vn{(DA1, DA2)} to give for \vn{line2}
+When \vn{line2} is expanded the actual arguments of \vn{line1}, in this
+case \vn(y, z), replaces the dummy arguments \vn{(DA1, DA2)} to give for
+\vn{line2}
 \begin{example}
   (h, a, z, b, y, g)
 \end{example} 
@@ -109,7 +116,8 @@ Thus the following is not allowed
 %-----------------------------------------------------------------------------
 \section{Replacement Lists}
 
-When a lattice is expanded, all the lattice members that correspond to a name of a Replacement List 
+When a lattice is expanded, all the lattice members that correspond to a 
+name of a Replacement List 
 are replaced sucessively, by the members
 in the Replacement List. The general syntax is
 \begin{example}
@@ -121,15 +129,19 @@ For example:
   line1: line = (z1, list1, z2, list1, z3, list1, z4, list1)
   use, line1
 \end{example}
-When the lattice is expanded the first instance of \vn{list1} in \vn{line1} is replaced by \vn{a} 
-(which is the first element of \vn{list1}), the second instance of \vn{list1} is replaced by \vn{b},
-etc. If there are more instances of \vn{list1} in the lattice then members of \vn{list1},
-the replacement starts at the beginning of \vn{list1} after the last member of \vn{list1} is used.
-In this case the lattice would be
+When the lattice is expanded the first instance of \vn{list1} in
+\vn{line1} is replaced by \vn{a} (which is the first element of
+\vn{list1}), the second instance of \vn{list1} is replaced by \vn{b},
+etc. If there are more instances of \vn{list1} in the lattice then
+members of \vn{list1}, the replacement starts at the beginning of
+\vn{list1} after the last member of \vn{list1} is used. In this case the
+lattice would be
 \begin{example}
   (z1, a, z2, b, z3, c, z4, a)
 \end{example}
-Unlike \mad\, members of a replacement list can only be simple elements without reflection or repetition count and not other Lines or Lists. For example the following is not allowed:
+Unlike \mad\, members of a replacement list can only be simple elements 
+without reflection or repetition count and not other Lines or Lists. 
+For example the following is not allowed:
 \begin{example}
   list1: list = (2*a, b)  ! NO: No repetition count allowed.
 \end{example}
@@ -182,7 +194,7 @@ calculations, etc.).  In the example this first part (called the
 ``regular'' part of the lattice) is the 4 elements listed above. The
 second part (called the ``lord'' section) is all those elements who
 have been cut up via superposition (along with group and overlay
-elements discussed in chapter \ref{c:groups_and_overlays}). What is
+elements discussed in Chapter~\ref{c:groups_and_overlays}). What is
 the purpose of this second list? \bmad\ keeps a record of how
 superpositions were formed. Thus from a programming standpoint \bmad\
 makes it simple if one, say, wants to change the \vn{k1} strength of
@@ -228,8 +240,9 @@ determine these three quantities are:
   ele_center             (default)
   ele_end
 \end{example}
-\vn{ele_beginning} \vn{ele_center} \vn{ele_end} makes the point on the superimposed element 
-the beginning (``left'') edge, the center, or the end (``right'') edge respectively.
-If neither of these attributes are given the default is to use the element center.
+\vn{ele_beginning} \vn{ele_center} \vn{ele_end} makes the point on the
+superimposed element the beginning (``left'') edge, the center, or the
+end (``right'') edge respectively. If neither of these attributes are
+given the default is to use the element center.
 
 
