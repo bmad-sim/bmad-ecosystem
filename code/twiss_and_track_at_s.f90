@@ -2,7 +2,7 @@
 ! Subroutine twiss_and_track_at_s (ring, s, ele, orb_, here)
 ! 
 ! Subroutine to return the twiss parameters and particle orbit at a 
-! given longitudinal position. 
+! given longitudinal position. See also twiss_and_track_partial
 !
 ! Modules Needed:
 !   use bmad

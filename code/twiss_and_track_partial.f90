@@ -1,21 +1,24 @@
 !+
 ! Subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
-!                                                                  start, end)
+!                                                     start, end, body_only)
 !
 ! Subroutine to propagate partially through ELE2 the twiss parameters and the
-! orbit. See also twiss_and_track_body and twiss_and_track_at_s.
+! orbit. See also twiss_and_track_at_s.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   ele1    -- Ele_struct: Structure holding the starting Twiss parameters.
-!   ele2    -- Ele_struct: Element to partially track through.
-!   del_s   -- Real(rp): length to propagate.
-!   param   -- Param_struct:
-!   start   -- Coord_struct, optional: Starting position
+!   ele1      -- Ele_struct: Structure holding the starting Twiss parameters.
+!   ele2      -- Ele_struct: Element to partially track through.
+!   del_s     -- Real(rp): length to propagate.
+!   param     -- Param_struct:
+!   start     -- Coord_struct, optional: Starting position
 !                If not present then START is taken to be 0.
-!   end     -- Coord_struct, optional: End position at DEL_S.
+!   end       -- Coord_struct, optional: End position at DEL_S.
+!   body_only -- Logical, optional: If present and True then for a bend
+!                   no entrence face focusing is applied. That is, the 
+!                   tracking starts just inside the element.
 !
 ! Output:
 !   ele3 -- Ele_struct, optional: Structure for the Twiss results at DEL_S.
@@ -27,7 +30,7 @@
 #include "CESR_platform.inc"
 
 subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
-                                                               start, end)
+                                                     start, end, body_only)
 
   use bmad_struct
   use bmad_interface
@@ -41,7 +44,8 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   type (param_struct) param
 
   real(rp) del_s, del
-                    
+  logical, optional :: body_only
+               
 ! The only real(rp) complication comes with a dipole where we have to negate
 ! the focusing of the exit face (we never get to the exit face since we are
 ! only partially tracking through).
@@ -56,6 +60,13 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
     c0 = start
   else
     c0%vec = 0
+  endif
+
+  if (ele2%key == sbend$ .and. present(body_only)) then
+    if (body_only) then
+      ele%value(e1$) = -atan(c0%vec(2)) * ele%value(g$) / (1 + c0%vec(6))
+      ele%value(e2$) = 0
+    endif
   endif
 
   call track1 (c0, ele, param, c1)
