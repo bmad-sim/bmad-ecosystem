@@ -647,7 +647,7 @@ type (taylor_struct) f_taylor
 real(rp) ref
 integer n_term
 
-call init_taylor (f_taylor, n_term)
+call init_taylor_series (f_taylor, n_term)
 f_taylor%ref = ref
 
 end subroutine
