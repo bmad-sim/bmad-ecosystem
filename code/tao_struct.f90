@@ -56,7 +56,7 @@ end type
 ! for example the horizontal orbit is one curve.
 
 type tao_curve_struct
-  character(16) :: data_source             ! "lat_layout", "data_array"
+  character(16) :: data_source             ! "lat_layout", "data_array", etc...
   character(16) :: data_type = ' '         ! "orbit:x", etc.
   real(rp), pointer :: x_line(:) => null() ! coords for drawing a curve
   real(rp), pointer :: y_line(:) => null()
@@ -148,9 +148,9 @@ end type
 !
 ! %exists     -- The datum can exist. Non-existant datums can serve 
 !                  as place holders in the u%data array.
-! %good_data  -- Set by the routine that reads in a data set. Good_data may be 
+! %good_meas  -- Set by the routine that reads in a data set. Good_meas may be 
 !                  false, say, if a detector amplifyer is overloaded.
-! %good_ref   -- Like good_data this is set for a reference data set.
+! %good_ref   -- Like good_meas this is set for a reference data set.
 ! %good_user  -- What the user has selected using the use, veto, and restore 
 !                  commands.
 ! %good_opt   -- Convenient way to veto data to use with optimization without 
@@ -189,7 +189,7 @@ type tao_data_struct
   real(rp) conversion_factor ! Typically used to convert coupling to cbar
   real(rp) s                ! longitudinal position of ele.
   logical exists            ! See above
-  logical good_data         ! See above
+  logical good_meas         ! See above
   logical good_ref          ! See above
   logical good_user         ! See above
   logical good_opt          ! See above
@@ -240,6 +240,8 @@ end type
 !
 ! %exists     -- The variable exists. Non-existant variables can serve as place
 !                  holders in the u%var array.
+! %good_meas  -- Set by the routine that reads in a data set. Good_meas may be 
+! %good_ref   -- Like good_meas this is set for a reference data set.
 ! %good_var   -- The variable can be varied. Eg: Permanent magnet quads are 
 !                  generally considered not to be variables.
 ! %good_user  -- What the user has selected using the use, veto, and restore 
@@ -282,11 +284,16 @@ type tao_var_struct
   real(rp) delta            ! Diff used to calculate the merit function term.
   real(rp) merit            ! merit_term = weight * delta^2.
   real(rp) dMerit_dVar      ! Merit derivative.     
+  real(rp) conversion_factor! Not currently used for anything
+  real(rp) s                ! longitudinal position of ele.
   character(16) merit_type  ! 'target' or 'limit'
   logical exists            ! See above
+  logical good_meas         ! See above
+  logical good_ref          ! See above
   logical good_var          ! See above
   logical good_user         ! See above
   logical good_opt          ! See above
+  logical good_plot         ! See above
   logical useit_opt         ! See above
   logical useit_plot        ! See above
   type (tao_var_hook) hook  ! Custom stuff. Defined in tao_hook_mod.f90

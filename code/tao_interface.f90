@@ -130,13 +130,20 @@ interface
 end interface
  
 interface
-  subroutine tao_hook_lattice_calc (universe, lattice, orbit)
+  subroutine tao_hook_post_process_data ()
+    implicit none
+  end subroutine
+end interface
+ 
+interface
+  subroutine tao_hook_lattice_calc (universe, lattice, orbit, used)
     use tao_struct, only: tao_universe_struct
     use bmad_struct, only: ring_struct, coord_struct
     implicit none
-    type (tao_universe_struct), optional :: universe
-    type (ring_struct), optional :: lattice
-    type (coord_struct), optional :: orbit(0:)
+    type (tao_universe_struct) :: universe
+    type (ring_struct) :: lattice
+    type (coord_struct) :: orbit(0:)
+    logical used
   end subroutine
 end interface
  

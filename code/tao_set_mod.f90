@@ -512,8 +512,8 @@ case ('ref')
 case ('good_user')
   l_ptr => data(:)%good_user
   using = 'l'
-case ('good_data')
-  l_ptr => data(:)%good_data
+case ('good_meas')
+  l_ptr => data(:)%good_meas
   using = 'l'
 case default
   call out_io (s_error$, r_name, 'UNKNOWN COMPONENT NAME: ' // component)
@@ -526,7 +526,7 @@ select case (set_value)
 case ('meas')
   call check_using (using, 'r', err); if (err) return
   where (set_it) r_ptr = data(:)%meas_value
-  good = data(:)%good_data
+  good = data(:)%good_meas
 case ('ref')
   call check_using (using, 'r', err); if (err) return
   where (set_it) r_ptr = data(:)%ref_value
@@ -581,7 +581,7 @@ end select
 
 select case (component)
 case ('meas')
-  where (set_it) data(:)%good_data = good
+  where (set_it) data(:)%good_meas = good
 case ('ref')
   where (set_it) data(:)%good_ref = good
 end select

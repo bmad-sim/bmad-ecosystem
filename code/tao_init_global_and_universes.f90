@@ -43,7 +43,8 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 
   character(*) data_and_var_file
   character(40) :: r_name = 'tao_init_global_and_universes'
-  character(200) file_name, wake_file(n_universe_maxx)
+  character(200) file_name
+  character(200) sr_wake_file(n_universe_maxx), lr_wake_file(n_universe_maxx)
   character(16) name,  default_universe, default_data_type
   character(16) default_merit_type, default_attribute
   character(100) line
@@ -54,7 +55,8 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 
   namelist / tao_params / global, n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
   
-  namelist / tao_beam_init / sr_wakes_on, lr_wakes_on, wake_file, macro_init
+  namelist / tao_beam_init / sr_wakes_on, lr_wakes_on, sr_wake_file, &
+                            lr_wake_file, macro_init
          
   namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe
   
@@ -96,7 +98,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   s%var(:)%good_opt  = .true.
   s%var(:)%exists    = .false.
   s%var(:)%good_var  = .true.
-  s%var(:)%good_user = .false.
+  s%var(:)%good_user = .true.
 
   s%n_var_used = 0
   s%n_v1_var_used = 0       ! size of s%v1_var(:) array
@@ -106,9 +108,12 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 
   call tao_open_file ('TAO_INIT_DIR', data_and_var_file, iu, file_name)
   ! if not specified, set ave energy to initial beam energy
-  macro_init(:)%E_0 = s%u(1)%design%ele_(0)%value(beam_energy$)
+  do i = 1, size(s%u)
+    macro_init(i)%E_0 = s%u(i)%design%ele_(0)%value(beam_energy$)
+  enddo
   ! by default, no wake data file needed
-  wake_file(:) = 'none'
+  sr_wake_file(:) = 'none'
+  lr_wake_file(:) = 'none'
   read (iu, nml = tao_beam_init, iostat = ios)
   close (iu)
   if (ios .eq. 0) then
@@ -116,9 +121,9 @@ subroutine tao_init_global_and_universes (data_and_var_file)
     bmad_com%sr_wakes_on = .false.
     bmad_com%lr_wakes_on = .false.
     if (sr_wakes_on) bmad_com%sr_wakes_on = .true.
-    if (sr_wakes_on) bmad_com%lr_wakes_on = .true.
+    if (lr_wakes_on) bmad_com%lr_wakes_on = .true.
     do i = 1, size(s%u)
-      call init_macro(s%u(i), macro_init(i), wake_file(i))
+      call init_macro(s%u(i), macro_init(i), sr_wake_file(i), lr_wake_file(i))
     enddo
   endif
 
@@ -162,7 +167,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
       data(:)%ele2_name  = ' '
       data(:)%meas_value = 0
       data(:)%weight     = 0
-      data(:)%good_data  = .false.
+      data(:)%good_user  = .false.
       read (iu, nml = tao_d1_data, err = 9150)
       if (ix_d1_data /= k) then
         write (line, '(a, 2i4)') 'IX_D1_DATA MISMATCH:', k, ix_d1_data
@@ -296,7 +301,7 @@ subroutine init_universe (u)
   if (n_data_max /= 0) then
     allocate (u%data(n_data_max))
     u%data(:)%exists = .false.       ! set default
-    u%data(:)%good_data  = .false.   ! set default
+    u%data(:)%good_meas  = .false.   ! set default
     u%data(:)%good_ref   = .false.   ! set default
     u%data(:)%good_user  = .true.    ! set default
     u%data(:)%good_opt   = .true.
@@ -452,7 +457,7 @@ if (index(data(0)%ele_name, 'SEARCH') .ne. 0) then
   u%data(n1:n2)%meas_value = 0 
   u%data(n1:n2)%data_type  = default_data_type
   u%data(n1:n2)%merit_type = default_merit_type 
-  u%data(n1:n2)%good_data  = .false.
+  u%data(n1:n2)%good_meas  = .false.
 
 elseif (index(data(0)%ele_name, 'SAME:') /= 0) then
   call string_trim (data(0)%ele_name(6:), name, ix)
@@ -478,7 +483,7 @@ elseif (index(data(0)%ele_name, 'SAME:') /= 0) then
  
   u%data(n1:n2)%meas_value = d1_ptr%d%meas_value
   u%data(n1:n2)%merit_type = d1_ptr%d%merit_type
-  u%data(n1:n2)%good_data  = d1_ptr%d%good_data
+  u%data(n1:n2)%good_meas  = d1_ptr%d%good_meas
   u%data(n1:n2)%weight     = d1_ptr%d%weight
 else
   u%data(n1:n2)%ele_name  = data(ix1:ix2)%ele_name
@@ -508,7 +513,7 @@ else
   u%data(n1:n2)%meas_value = data(ix1:ix2)%meas_value
   u%data(n1:n2)%data_type  = data(ix1:ix2)%data_type
   u%data(n1:n2)%merit_type = data(ix1:ix2)%merit_type
-  u%data(n1:n2)%good_data  = data(ix1:ix2)%good_data
+  u%data(n1:n2)%good_user  = data(ix1:ix2)%good_user
   u%data(n1:n2)%weight     = data(ix1:ix2)%weight
 endif
 
@@ -667,7 +672,7 @@ logical, allocatable :: found_one(:)
   s%n_v1_var_used = s%n_v1_var_used + 1
   nn = s%n_v1_var_used
 
-  ! are we searching for and couting elements?
+  ! are we searching for and counting elements?
   if (index(var(0)%name, 'COUNT:') /= 0) then
     counting = .true.
     call form_count_name (var(0)%name(7:), num_hashes, count_name1, count_name2)
@@ -703,6 +708,7 @@ logical, allocatable :: found_one(:)
           call err_exit
         endif
         s%var(jj)%ele_name = s%u(1)%design%ele_(j)%name
+	s%var(jj)%s = s%u(1)%design%ele_(j)%s
         jj = jj + 1
       endif
     enddo
@@ -855,26 +861,36 @@ end subroutine find_elements
 ! Initialize the macroparticles. Determine which element to track beam to
 !
 
-subroutine init_macro(u, macro_init, wake_file)
+subroutine init_macro(u, macro_init, sr_wake_file, lr_wake_file)
 
 implicit none
 
 type (tao_universe_struct) u
 type (macro_init_struct) macro_init
-character(*) wake_file
+character(*) sr_wake_file, lr_wake_file
 logical, automatic :: ele(0:u%design%n_ele_max)
 
 integer j, jj
 integer, pointer :: ix_lcav(:)
 
 !
-  if (wake_file .ne. 'none') then
+  if (sr_wake_file .ne. 'none') then
     call elements_locator (lcavity$, u%design, ix_lcav)
     do i=1,size(ix_lcav)
        if (.not. associated(u%design%ele_(ix_lcav(i))%wake%sr_file)) &
             allocate (u%design%ele_(ix_lcav(i))%wake%sr_file)
-       u%design%ele_(ix_lcav(i))%wake%sr_file = wake_file
+       u%design%ele_(ix_lcav(i))%wake%sr_file = sr_wake_file
        call read_sr_wake(u%design%ele_(ix_lcav(i)))
+    end do
+  endif
+
+  if (lr_wake_file .ne. 'none') then
+    call elements_locator (lcavity$, u%design, ix_lcav)
+    do i=1,size(ix_lcav)
+       if (.not. associated(u%design%ele_(ix_lcav(i))%wake%lr_file)) &
+            allocate (u%design%ele_(ix_lcav(i))%wake%lr_file)
+       u%design%ele_(ix_lcav(i))%wake%lr_file = lr_wake_file
+       call read_lr_wake(u%design%ele_(ix_lcav(i)))
     end do
   endif
 
@@ -922,4 +938,4 @@ integer, pointer :: ix_lcav(:)
   
 end subroutine init_macro
   
-end subroutine
+end subroutine tao_init_global_and_universes

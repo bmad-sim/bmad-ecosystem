@@ -47,6 +47,9 @@ do i = 1, size(s%u)
   enddo
 enddo
 
+! do any post-processing
+call tao_hook_post_process_data ()
+
 end subroutine
 
 !-----------------------------------------------------------------------

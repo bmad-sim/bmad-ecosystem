@@ -23,7 +23,7 @@ integer i, j
 do i = 1, size(s%u)
   d => s%u(i)%data
   d(:)%useit_opt = d(:)%good_opt .and. d(:)%exists .and. &
-                              d(:)%good_user .and. d(:)%good_data
+                              d(:)%good_user .and. d(:)%good_meas
   if (s%global%opt_with_ref) d(:)%useit_opt = &
                           d(:)%useit_opt .and. d(:)%good_ref
 enddo

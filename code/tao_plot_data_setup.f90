@@ -21,6 +21,7 @@ type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
+type (tao_v1_var_struct) , pointer :: v1_ptr
 type (tao_data_struct) datum
 type (ele_struct), pointer :: ele
 
@@ -116,7 +117,7 @@ plot_loop: do i = 1, size(s%plot_page%plot)
           where (d1_ptr%d%s > plot%x%max+eps) d1_ptr%d%good_plot = .false.
         endif
 
-        call tao_useit_plot_calc (plot, d1_ptr%d) ! make sure %useit_plot up-to-date
+        call tao_useit_data_plot_calc (plot, d1_ptr%d) ! make sure %useit_plot up-to-date
         n_dat = count (d1_ptr%d%useit_plot)       ! count the number of data points
 
         call reassociate_integer (curve%ix_symb, n_dat)
@@ -163,12 +164,81 @@ plot_loop: do i = 1, size(s%plot_page%plot)
 
 
 !----------------------------------------------------------------------------
+! data_source is a var array
+
+      case ('var_array')
+        call tao_find_var (err, curve%data_type, v1_ptr)
+        if (err) then
+          plot%valid = .false.
+          cycle plot_loop
+        endif
+
+        v1_ptr%v%good_plot = .true.
+        eps = 1e-4 * (plot%x%max - plot%x%min)
+        if (plot%x_axis_type == 'index') then
+          where (v1_ptr%v%ix_v1 < plot%x%min-eps) v1_ptr%v%good_plot = .false.
+          where (v1_ptr%v%ix_v1 > plot%x%max+eps) v1_ptr%v%good_plot = .false.
+        else
+          where (v1_ptr%v%s < plot%x%min-eps) v1_ptr%v%good_plot = .false.
+          where (v1_ptr%v%s > plot%x%max+eps) v1_ptr%v%good_plot = .false.
+        endif
+
+        call tao_useit_var_plot_calc (plot, v1_ptr%v) ! make sure %useit_plot up-to-date
+        n_dat = count (v1_ptr%v%useit_plot)       ! count the number of data points
+
+        call reassociate_integer (curve%ix_symb, n_dat)
+        call reassociate_real (curve%y_symb, n_dat) ! allocate space for the data
+        call reassociate_real (curve%x_symb, n_dat) ! allocate space for the data
+
+        curve%ix_symb = pack(v1_ptr%v%ix_v1, mask = v1_ptr%v%useit_plot)
+
+        if (plot%x_axis_type == 'index') then
+          curve%x_symb = curve%ix_symb
+        elseif (plot%x_axis_type == 's') then
+	  ! FIX ME!!! need to set up for different lattices in diff universes
+          !curve%x_symb = u%model%ele_(v1_ptr%v(curve%ix_symb)%this(1)%ix_ele)%s
+          plot%valid = .false.
+          cycle plot_loop
+        endif
+
+! calculate the y-axis data point values.
+
+        curve%y_symb = 0
+
+        do m = 1, size(plot%who)
+          select case (plot%who(m)%name)
+          case (' ') 
+            cycle
+          case ('model') 
+            value => v1_ptr%v%model_value
+          case ('base')  
+            value => v1_ptr%v%base_value
+          case ('design')  
+            value => v1_ptr%v%design_value
+          case ('ref')     
+            value => v1_ptr%v%ref_value
+          case ('meas')    
+            value => v1_ptr%v%meas_value
+          case default
+            call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // plot%who(m)%name)
+            plot%valid = .false.
+            cycle plot_loop
+          end select
+          curve%y_symb = curve%y_symb + &
+                   plot%who(m)%sign * pack(value, mask = v1_ptr%v%useit_plot)
+        enddo
+
+        if (curve%convert) curve%y_symb = curve%y_symb * &
+                           pack(v1_ptr%v%conversion_factor, v1_ptr%v%useit_plot)
+
+
+!----------------------------------------------------------------------------
 ! data source is from the lattice_layout
 
       case ('lat_layout')
  
-       eps = 1e-4 * (plot%x%max - plot%x%min)
-       u%base%ele_(:)%logic = (u%base%ele_(:)%ix_pointer > 0) .and. &
+        eps = 1e-4 * (plot%x%max - plot%x%min)
+        u%base%ele_(:)%logic = (u%base%ele_(:)%ix_pointer > 0) .and. &
             (u%base%ele_(:)%s >= plot%x%min-eps) .and. (u%base%ele_(:)%s <= plot%x%max+eps)
         n_dat = count (u%base%ele_(:)%logic)
 

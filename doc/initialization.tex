@@ -129,7 +129,8 @@ The syntax is as follows:
                                           ! default = F
     lr_wakes_on             = <logical>   ! turn on long range wakes
                                           ! default = F
-    wake_file(i)            = <file_name> ! File name for wake data, if needed
+    sr_wake_file(i)         = <file_name> ! File name for short range wake data
+    lr_wake_file(i)         = <file_name> ! File name for long range wake data
     macro_init(i)%x%beta    = <number> 
     macro_init(i)%x%alpha   = <number>
     macro_init(i)%x%emit    = <number> 
@@ -380,7 +381,7 @@ there must be a \vn{tao_d1_data} namelist which has the form:
     data(j)%merit_type = "<merit_type>" ! Sets how the merit is calculated.
     data(j)%meas_value = "<number>"     ! Datum "measured" value
     data(j)%weight     = "<weight>"     ! Merit function weight.
-    data(j)%good_data  = Logical        ! Valid for optimization and plotting?
+    data(j)%good_user  = Logical        ! Use for optimization and plotting?
   /
 \end{example}
 For example:
@@ -479,7 +480,7 @@ will search for all monitor elements in the lattice.
 
 If \vn{data(j)%data_type} is not given and \vn{default_data_type} is not
 specified then the \vn{d2_data} name and the
-\vn{d1_data} name are combined for each datum to form the datum's
+\vn{d1_data} name nare combined for each datum to form the datum's
 \vn{type}. Certain types are recognized by \tao. These are given by
 Table~\ref{t:cons}
 
@@ -696,15 +697,17 @@ itself into the bottom one.
 
 The \vn{curve} structure is used to define the number and types of 
 curves to plot in each graph. \vn{data_source} is the type of information
-is the source of the data points. There are the following types of 
+for the source of the data points. There are the following types of 
 data sources:
 \begin{example}
-  data_source   ! d1_data is the source of the curve points
+  data_array   ! d1_data is the source of the curve points
+  var_array    ! v1_var is the source of the curve points
   lat_layout    ! the lattice layout is the source
 \end{example}
-\vn{data_type} corresponds to the \vn{d1_data type}. This is what points to
-curve to the proper data thus, there needs to be a
-corresponding data type defined in the data initialization file. 
+\vn{data_type} corresponds to the \vn{d1_data} type for a \vn{data_array} curve data
+source and the \vn{v1_var} type foa \vn{var_array} curve data type. 
+This is what points the curve to the proper data so, there needs to be a
+corresponding data or var type defined in the initialization file. 
 
 
 \vn{curve%convert} is a logical that is only used

@@ -94,6 +94,18 @@ case ('ele')
 
   select case (where)
   case ('x', 'x_p', 'y', 'y_p', 'z', 'z_p')
+    !check if this is a linear lattice
+    if (.not. (u%model%param%lattice_type .eq. linear_lattice$)) then
+      call out_io (s_warn$, r_name, "This is not a linear lattice!")
+      call out_io (s_blank$, r_name, "So changing the orbit will not do anything")
+      return
+    endif
+    !check if we are changing the beginning element
+    if (ix_ele .ne. 0) then
+      call out_io (s_warn$, r_name, &
+          "Changing the orbit is only applicable for the BEGINNING element!")
+      return
+    endif
     call change_orbit (u%design_orb(ix_ele), u%model_orb(ix_ele))
   case default  
     call pointer_to_attribute (u%design%ele_(ix_ele), where, .true., &
@@ -213,10 +225,6 @@ type (coord_struct), target :: design_orb, model_orb
 real(rp), pointer :: design_ptr, model_ptr
 
 integer direction
-
-!check if this is a linear lattice
-
-!check if we are changing the beginning element
 
 !point to correct direction
 select case (where)

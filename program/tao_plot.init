@@ -26,13 +26,13 @@ Templates define the basics of, say, how to display an orbit.
   plot%x%max = 100
   plot%x%major_div = 10
   plot%x%label = ' '
-	plot%x_axis_type = 'index'
+  plot%x_axis_type = 'index'
   plot%n_graph = 2
 /
 
 &tao_template_graph
-	graph%name = 'x'
-	graph_index = 1
+  graph%name = 'x'
+  graph_index = 1
   graph%box = 1, 2, 1, 2
   graph%title = 'Horizontal Orbit (mm)'
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
@@ -47,8 +47,8 @@ Templates define the basics of, say, how to display an orbit.
 /
 
 &tao_template_graph
-	graph%name = 'y'
-	graph_index = 2
+  graph%name = 'y'
+  graph_index = 2
   graph%box = 1, 1, 1, 2
   graph%title = 'Vertical Orbit (mm)'
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
@@ -70,15 +70,15 @@ Templates define the basics of, say, how to display an orbit.
   plot%x%max = 100
   plot%x%major_div = 10
   plot%x%label = ' '
-	plot%x_axis_type = 'index'
+  plot%x_axis_type = 'index'
   plot%n_graph = 2
-	plot%who(1) = 'model', +1
-	plot%who(2) = 'design', -1
+  plot%who(1) = 'model', +1
+  plot%who(2) = 'design', -1
 /
 
 &tao_template_graph
-	graph%name = 'x'
-	graph_index = 1
+  graph%name = 'x'
+  graph_index = 1
   graph%box = 1, 2, 1, 2
   graph%title = 'Horizontal Phase (deg)'
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
@@ -93,8 +93,8 @@ Templates define the basics of, say, how to display an orbit.
 /
 
 &tao_template_graph
-	graph%name = 'y'
-	graph_index = 2
+  graph%name = 'y'
+  graph_index = 2
   graph%box = 1, 1, 1, 2
   graph%title = 'Vertical Phase (deg)'
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
@@ -116,13 +116,13 @@ Templates define the basics of, say, how to display an orbit.
   plot%x%max = 100
   plot%x%major_div = 10
   plot%x%label = ' '
-	plot%x_axis_type = 'index'
+  plot%x_axis_type = 'index'
   plot%n_graph = 2
 /
 
 &tao_template_graph
-	graph%name = 'x'
-	graph_index = 1
+  graph%name = 'x'
+  graph_index = 1
   graph%box = 1, 2, 1, 2
   graph%title = 'Horizontal Beta (m)'
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
@@ -137,8 +137,8 @@ Templates define the basics of, say, how to display an orbit.
 /
 
 &tao_template_graph
-	graph%name = 'y'
-	graph_index = 2
+  graph%name = 'y'
+  graph_index = 2
   graph%box = 1, 1, 1, 2
   graph%title = 'Vertical Beta (m)'
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
@@ -160,13 +160,13 @@ Templates define the basics of, say, how to display an orbit.
   plot%x%max = 100
   plot%x%major_div = 10
   plot%x%label = ' '
-	plot%x_axis_type = 'index'
+  plot%x_axis_type = 'index'
   plot%n_graph = 2
 /
 
 &tao_template_graph
-	graph%name = 'x'
-	graph_index = 1
+  graph%name = 'x'
+  graph_index = 1
   graph%box = 1, 2, 1, 2
   graph%title = 'Horizontal Eta (m)'
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
@@ -181,8 +181,8 @@ Templates define the basics of, say, how to display an orbit.
 /
 
 &tao_template_graph
-	graph%name = 'y'
-	graph_index = 2
+  graph%name = 'y'
+  graph_index = 2
   graph%box = 1, 1, 1, 2
   graph%title = 'Vertical Eta (m)'
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
@@ -204,13 +204,13 @@ Templates define the basics of, say, how to display an orbit.
   plot%x%max = 100
   plot%x%major_div = 10
   plot%x%label = ' '
-	plot%x_axis_type = 'index'
+  plot%x_axis_type = 'index'
   plot%n_graph = 3
 /
 
 &tao_template_graph
-	graph%name = '22a'
-	graph_index = 1
+  graph%name = '22a'
+  graph_index = 1
   graph%box = 1, 3, 1, 3
   graph%title = 'Cbar22'
   graph%margin =  0.15, 0.06, 0.2, 0.2, '%BOX'
@@ -226,8 +226,8 @@ Templates define the basics of, say, how to display an orbit.
 /
 
 &tao_template_graph
-	graph%name = '12a'
-	graph_index = 2
+  graph%name = '12a'
+  graph_index = 2
   graph%box = 1, 2, 1, 3
   graph%title = 'Cbar12'
   graph%margin =  0.15, 0.06, 0.2, 0.2, '%BOX'
@@ -243,8 +243,8 @@ Templates define the basics of, say, how to display an orbit.
 /
 
 &tao_template_graph
-	graph%name = '11b'
-	graph_index = 3
+  graph%name = '11b'
+  graph_index = 3
   graph%box = 1, 1, 1, 3
   graph%title = 'Cbar11'
   graph%margin =  0.15, 0.06, 0.2, 0.2, '%BOX'
@@ -257,4 +257,32 @@ Templates define the basics of, say, how to display an orbit.
   curve(1)%data_type   = 'coupling:11b'
   curve(1)%units_factor = 1
   curve(1)%convert = .true.
+/
+
+!----------------------------------------------------------------
+
+&tao_template_plot
+  plot%name = 'quad_k1'
+  plot%x%min =   0
+  plot%x%max = 100
+  plot%x%major_div = 10
+  plot%x%label = ' '
+  plot%x_axis_type = 'index'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'k1'
+  graph_index = 1
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Quadrupole K1 (1/m^2)'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'k1'
+  graph%y%max =  0.1
+  graph%y%min = -0.1
+  graph%y%major_div = 4
+  graph%n_curve = 1
+  curve(1)%data_source = 'var_array'
+  curve(1)%data_type = 'quad_k1'
+  curve(1)%units_factor = 1
 /

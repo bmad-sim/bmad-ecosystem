@@ -356,7 +356,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_useit_plot_calc (plot, data)
+! Subroutine tao_useit_data_plot_calc (plot, data)
 !
 ! Subroutine to set the data for plotting.
 !
@@ -367,7 +367,7 @@ end subroutine
 !     %useit_plot -- True if good for plotting.
 !-
 
-subroutine tao_useit_plot_calc (plot, data)
+subroutine tao_useit_data_plot_calc (plot, data)
 
 implicit none
 
@@ -377,8 +377,39 @@ type (tao_data_struct) data(:)
 !
 
 data%useit_plot = data%exists .and. data%good_user .and. data%good_plot
-if (any(plot%who%name == 'meas')) data%useit_plot = data%useit_plot .and. data%good_data
+if (any(plot%who%name == 'meas')) data%useit_plot = data%useit_plot .and. data%good_meas
 if (any(plot%who%name == 'ref'))  data%useit_plot = data%useit_plot .and. data%good_ref
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_useit_var_plot_calc (plot, var)
+!
+! Subroutine to set the variables for plotting.
+!
+! Input:
+!
+! Output:
+!   var     -- Tao_var_struct:
+!     %useit_plot -- True if good for plotting.
+!-
+
+subroutine tao_useit_var_plot_calc (plot, var)
+
+implicit none
+
+type (tao_plot_struct) plot
+type (tao_var_struct) var(:)
+
+!
+
+var%useit_plot = var%exists .and. var%good_user .and. var%good_plot &
+                                                .and. var%good_var
+if (any(plot%who%name == 'meas')) var%useit_plot = var%useit_plot .and. var%good_meas
+if (any(plot%who%name == 'ref'))  var%useit_plot = var%useit_plot .and. var%good_ref
 
 end subroutine
 

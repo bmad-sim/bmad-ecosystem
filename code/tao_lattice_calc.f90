@@ -37,7 +37,13 @@ character(20) :: r_name = "tao_lattice_calc"
 ! special means using speciffic lattice
 logical special
 
+! used refers to if a custom lattice calculation is performed
+logical used_special
+logical, automatic :: used(size(s%u))
+
 special = .false.
+used_special =.false.
+used(:) = .false.
 
 if (present(lattice) .and. present(orbit) .and. present(universe)) then
   special = .true.
@@ -56,12 +62,18 @@ if (.not. special) then
   call tao_set_data_useit_opt
 endif
 
-! if using custom tracking then s%global%lattice_recalc needs to be set to FALSE
-! in tao_hook_lattice_calc
-if (special) then
-  call tao_hook_lattice_calc (universe, lattice, orbit)
-else
-  call tao_hook_lattice_calc ()
+! do a custom lattice calculation if desired
+if (s%global%lattice_recalc) then
+  if (special) then
+    call tao_hook_lattice_calc (universe, lattice, orbit, used_special)
+    if (used_special) s%global%lattice_recalc = .false.
+  else
+    do i = 1, size(s%u)
+      call tao_hook_lattice_calc (s%u(i), s%u(i)%model, s%u(i)%model_orb, &
+                                                                   used(i))
+    enddo
+    if (.not. any(.not. used)) s%global%lattice_recalc = .false.
+  endif
 endif
   
 ! Closed orbit and Twiss calculation.
@@ -73,7 +85,8 @@ if (s%global%lattice_recalc) then
       orbit = orbit_temp
     else
       do i = 1, size(s%u)
-        call twiss_and_track (s%u(i)%model, s%u(i)%model_orb)
+        if (.not. used(i)) &
+          call twiss_and_track (s%u(i)%model, s%u(i)%model_orb)
       enddo
     endif
     s%global%lattice_recalc = .false.
@@ -82,7 +95,8 @@ if (s%global%lattice_recalc) then
       call macro_track (universe, lattice, orbit)
     else
       do i = 1, size(s%u)
-        call macro_track (s%u(i), s%u(i)%model, s%u(i)%model_orb)
+        if (.not. used(i)) &
+          call macro_track (s%u(i), s%u(i)%model, s%u(i)%model_orb)
       enddo
     endif
     s%global%lattice_recalc = .false.
