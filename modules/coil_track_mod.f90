@@ -1,13 +1,13 @@
 #include "CESR_platform.inc"
 
-
 module coil_track_mod
+
+  use bmad_struct
 
 contains
 
 subroutine b_field_mult (ring, coord, first, last, s_pos, b_vector)
 
-  use bmad
   implicit none
 
   type (ring_struct)  ring
@@ -59,7 +59,7 @@ end subroutine
 !-
 
 subroutine b_field_loop (coord, ele, s_pos, b_loop)
-  use bmad
+
   implicit none
 
   type (coord_struct)  coord
@@ -185,8 +185,6 @@ end subroutine
 !-
 
 function hypergeom (hgcx, arg)
-
-  use precision_def  
 
   implicit none
 
