@@ -542,26 +542,27 @@ public:
   bool sr_wakes_on;              // Short range wakefields?
   bool lr_wakes_on;              // Long range wakefields
   bool mat6_track_symmetric;     // symmetric offsets
+  bool auto_bookkeeper;          // Automatic bookkeeping when elements change?
 
   C_bmad_com () : d_orb(double(0), 6) {bmad_com_to_c_(*this);}
 
   C_bmad_com (ReArr orb, double max_ap, double kl, double rel_t,
                         double abs_t, int to, int io, int steps, int cc,
-                        int liar, int sr, int lr, int sym) :
+                        int liar, int sr, int lr, int sym, int a_book) :
       d_orb(orb, 6), max_aperture_limit(max_ap), grad_loss_sr_wake(kl), 
       rel_tollerance(rel_t), abs_tollerance(abs_t), taylor_order(to), 
       default_integ_order(io), default_num_steps(steps), canonical_coords(cc), 
       use_liar_lcavity(liar), sr_wakes_on(sr), lr_wakes_on(lr), 
-      mat6_track_symmetric(sym) {}
+      mat6_track_symmetric(sym), auto_bookkeeper(a_book) {}
 
   C_bmad_com (Real_Array orb, double max_ap, double kl, double rel_t,
                         double abs_t, int to, int io, int steps, int cc,
-                        int liar, int sr, int lr, int sym) :
+                        int liar, int sr, int lr, int sym, int a_book) :
       d_orb(orb), max_aperture_limit(max_ap), grad_loss_sr_wake(kl), 
       rel_tollerance(rel_t), abs_tollerance(abs_t), taylor_order(to), 
       default_integ_order(io), default_num_steps(steps), canonical_coords(cc), 
       use_liar_lcavity(liar), sr_wakes_on(sr), lr_wakes_on(lr), 
-      mat6_track_symmetric(sym) {}
+      mat6_track_symmetric(sym), auto_bookkeeper(a_book) {}
 
 };    // End Class
 

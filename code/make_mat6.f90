@@ -56,7 +56,7 @@ subroutine make_mat6 (ele, param, start, end, end_in)
 ! init
 
   param%lost = .false.
-  call attribute_bookkeeper (ele, param)
+  if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 
   mat6_calc_method = ele%mat6_calc_method
   if (.not. ele%is_on) mat6_calc_method = bmad_standard$

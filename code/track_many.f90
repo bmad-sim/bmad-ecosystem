@@ -69,7 +69,7 @@ subroutine track_many (ring, orbit, ix_start, ix_end, direction)
 
 ! init
 
-  call control_bookkeeper (ring)
+  if (bmad_com%auto_bookkeeper) call control_bookkeeper (ring)
 
   ring%param%lost = .false.
   ring%param%ix_lost = -1

@@ -129,7 +129,6 @@ subroutine track1_bmad (start, ele, param, end)
   case (beambeam$)
 
     if (ele%value(charge$) == 0 .or. param%n_part == 0) return
-    call attribute_bookkeeper (ele, param)
     call offset_particle (ele, param, end, set$)
 
     sig_x0 = ele%value(sig_x$)

@@ -1225,7 +1225,7 @@ call bmad_com_to_c2 (c_bmad_com, f%d_orb, f%max_aperture_limit, f%grad_loss_sr_w
       f%default_integ_order, f%default_num_steps, &
       c_logic(f%canonical_coords), c_logic(f%use_liar_lcavity), &
       c_logic(f%sr_wakes_on), c_logic(f%lr_wakes_on), &
-      c_logic(f%mat6_track_symmetric))
+      c_logic(f%mat6_track_symmetric), c_logic(f%auto_bookkeeper))
 
 end subroutine
 
@@ -1233,7 +1233,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !+
 ! Subroutine bmad_com_to_f2 (orb, ap, kl, rel, abs, to, do, ds, cc, liar, &
-!                sr, lr, sym)
+!                sr, lr, sym, a_book)
 !
 ! Subroutine used by bmad_com_to_f to transfer the data from a C++ 
 ! C_bmad_com variable into the Bmad bmad_com_stuct common block.
@@ -1241,17 +1241,18 @@ end subroutine
 !-
 
 subroutine bmad_com_to_f2 (orb, ap, kl, rel, abs, to, do, ds, cc, liar, &
-                sr, lr, sym)
+                sr, lr, sym, a_book)
 
 use bmad_and_cpp
 
 implicit none
 
 real(rp) orb(6), ap, kl, rel, abs
-integer to, do, ds, cc, liar, sr, lr, sym
+integer to, do, ds, cc, liar, sr, lr, sym, a_book
 
 bmad_com = bmad_com_struct(orb, ap, kl, rel, abs, to, do, ds, &
-    f_logic(cc), f_logic(liar), f_logic(sr), f_logic(lr), f_logic(sym))
+    f_logic(cc), f_logic(liar), f_logic(sr), f_logic(lr), f_logic(sym), &
+    f_logic(a_book))
 
 end subroutine
 

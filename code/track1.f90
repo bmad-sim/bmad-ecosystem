@@ -46,7 +46,7 @@ subroutine track1 (start, ele, param, end)
 ! Init
 
   param%lost = .false.  ! assume everything will be OK
-  call attribute_bookkeeper (ele, param)
+  if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 
 ! check for particles outside aperture
 

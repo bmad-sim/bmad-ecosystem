@@ -47,7 +47,7 @@ subroutine track_all (ring, orbit_)
 
   ring%param%ix_lost = -1
 
-  call control_bookkeeper (ring)
+  if (bmad_com%auto_bookkeeper) call control_bookkeeper (ring)
 
 ! track through elements.
 
