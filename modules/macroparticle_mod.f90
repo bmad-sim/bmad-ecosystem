@@ -28,7 +28,6 @@ module macroparticle_mod
     real(rp) :: sig_z = 0   ! longitudinal macroparticle length (m).
     real(rp) k_loss         ! loss factor (V/m). scratch variable for tracking.
     real(rp) charge         ! charge in a macroparticle (Coul).
-    integer :: iz = 0       ! index to ordering of particles in z.
     logical :: lost = .false.  ! Has the particle been lost in tracking?
   end type
 
@@ -302,7 +301,7 @@ subroutine sr_long_wake_calc (bunch, ele)
   real(rp) z_ave, charge, z0, sr02, ch_j, sig0, sig, dz
   real(rp) f, f1, f2, z, dE, E_rel, fact, dz_wake
 
-  integer i, j, k, ix, i0, i1, ij, ik, iw, nm, n_wake
+  integer i, j, k, ix, iw, nm, n_wake
 
 ! Init
 
@@ -328,11 +327,8 @@ subroutine sr_long_wake_calc (bunch, ele)
 ! Calculate wakefields within a slice.
 ! Easy calc is when all the particles have the same position
 
-    i0 = macro(1)%iz
-    i1 = macro(nm)%iz
-  
-    if (macro(i0)%r%vec(5) - macro(i1)%r%vec(5) < mp_com%sig_z_min/100) then
-      z_ave = (macro(i0)%r%vec(5) + macro(i1)%r%vec(5)) / 2
+    if (macro(1)%r%vec(5) - macro(nm)%r%vec(5) < mp_com%sig_z_min/100) then
+      z_ave = (macro(1)%r%vec(5) + macro(nm)%r%vec(5)) / 2
       do j = 1, nm
         macro(j)%k_loss = macro(j)%k_loss + charge * sr02
       enddo
@@ -344,25 +340,23 @@ subroutine sr_long_wake_calc (bunch, ele)
       z_ave = 0
 
       do j = 1, nm
-        ij = macro(j)%iz
-        ch_j = abs(macro(ij)%charge)
-        macro(ij)%k_loss = macro(ij)%k_loss + ch_j * sr02
-        sig0 = macro(ij)%sig_z + mp_com%sig_z_min
-        z0 = macro(ij)%r%vec(5)
+        ch_j = abs(macro(j)%charge)
+        macro(j)%k_loss = macro(j)%k_loss + ch_j * sr02
+        sig0 = macro(j)%sig_z + mp_com%sig_z_min
+        z0 = macro(j)%r%vec(5)
         z_ave = z_ave + (z0 * ch_j) / charge
 
         do k = j+1, nm
-          ik = macro(k)%iz
-          sig = macro(ik)%sig_z + sig0
-          dz = z0 - macro(ik)%r%vec(5)
+          sig = macro(k)%sig_z + sig0
+          dz = z0 - macro(k)%r%vec(5)
           if (dz > sig) then
             f = 1
           else
             f = (1 + dz / sig) / 2
           endif
-          macro(ik)%k_loss = macro(ik)%k_loss + f * ch_j * sr02
-          macro(ij)%k_loss = macro(ij)%k_loss + &
-                                   (1-f) * abs(macro(ik)%charge) * sr02
+          macro(k)%k_loss = macro(k)%k_loss + f * ch_j * sr02
+          macro(j)%k_loss = macro(j)%k_loss + &
+                                   (1-f) * abs(macro(k)%charge) * sr02
         enddo
 
       enddo
@@ -624,7 +618,11 @@ end subroutine
 ! Subroutine order_macroparticles_in_z (bunch)
 !
 ! Subroutine to order in each slice the macro particles longitudinally 
-! using the leading edge of the bunch: %vec(5) + %sig_z
+! The ordering uses the position of leading edge of the macroparticles:
+!   %vec(5) + %sig_z 
+! If the position of a macroparticle in one slice starts overlaping 
+! macroparticles in another slice, this routine will swap pairs of 
+! macroparticles to prevent this.
 !
 ! Modules needed:
 !   use macroparticle_mod
@@ -638,9 +636,9 @@ end subroutine
 ! Output:
 !   bunch     -- Bunch_struct: collection of macroparticles.
 !     %slice(i)  -- i^th slice.
-!       %macro(j)%iz -- Index of macroparticle ordered using %vec(5)+%sig_z.
+!       %macro(j) -- Macroparticle ordered using %vec(5)+%sig_z.
 !                   Order is from large z (head of slice) to small z.
-!                   That is: slice(i)%macro(1)%iz is the index of the macro 
+!                   That is: slice(i)%macro(1) is the macro  
 !                   particle at the head of the slice.
 !-
 
@@ -650,46 +648,55 @@ Subroutine order_macroparticles_in_z (bunch)
 
   type (bunch_struct), target :: bunch
   type (macro_struct), pointer :: macro(:)
-  integer i, k, j1, j2
+  type (macro_struct) temp
+  integer i, k, nm
   real(rp) z1, z2
   logical ordered
 
 ! Loop over all slices
-
-  do k = 1, size(bunch%slice)
-
-    macro => bunch%slice(k)%macro
-
-! Init if needed
-
-    if (any (macro(:)%iz == 0)) then
-      do i = 1, size(macro)
-        macro(i)%iz = i
-      enddo
-    endif
-
 ! Order is from large z (head of bunch) to small z.
 
-    do 
+  do
 
-      ordered = .true.
+    ordered = .true.
 
-      do i = 1, size(macro)-1
-        j1 = macro(i)%iz
-        j2 = macro(i+1)%iz
-        z1 = macro(j1)%r%vec(5) + macro(j1)%sig_z
-        z2 = macro(j2)%r%vec(5) + macro(j2)%sig_z
+    do k = 1, size(bunch%slice)
+
+! order macroparticles within a slice
+
+      macro => bunch%slice(k)%macro
+      nm = size(macro)
+
+      do i = 1, nm-1
+        z1 = macro(i)%r%vec(5) + macro(i)%sig_z
+        z2 = macro(i+1)%r%vec(5) + macro(i+1)%sig_z
         if (z1 < z2) then
-          macro(i:i+1)%iz = macro(i+1:i:-1)%iz
+          macro(i:i+1) = macro(i+1:i:-1)
           ordered = .false.
         endif
       enddo
 
-      if (ordered) exit  ! goto next slice.
+! Now make sure that slices do not overlap
 
-    enddo 
+      if (k < size(bunch%slice)) then
+        z1 = macro(nm)%r%vec(5) + macro(nm)%sig_z
+        z2 = bunch%slice(k+1)%macro(1)%r%vec(5) + bunch%slice(k+1)%macro(1)%sig_z
+        if (z1 < z2) then
+          temp = macro(nm)
+          macro(nm) = bunch%slice(k+1)%macro(1)
+          bunch%slice(k+1)%macro(1) = temp
+          bunch%slice(k)%charge = sum(bunch%slice(k)%macro%charge)
+          bunch%slice(k+1)%charge = sum(bunch%slice(k+1)%macro%charge)
+          ordered = .false.
+        endif
+      endif
+
+    enddo
+
+    if (ordered) exit  ! goto next slice.
 
   enddo
+
 
 end subroutine
 
@@ -1097,7 +1104,6 @@ subroutine init_macro_distribution (beam, init, canonical_out, liar_gaussian)
       bunch%slice(j)%macro(k)%sigma(s34$) = -ey * init%y%alpha
       bunch%slice(j)%macro(k)%sigma(s44$) =  ey * (1+init%y%alpha**2) / &
                                                                  init%y%beta
-      bunch%slice(j)%macro(k)%iz = k
       bunch%slice(j)%macro(k)%lost = .false.
       if (canonical_out) &
               call mp_to_canonical_coords (bunch%slice(j)%macro(k), init%E_0)
