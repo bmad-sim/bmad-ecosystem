@@ -30,6 +30,8 @@ real(rp), pointer :: value(:)
 
 integer i, ii, j, k, m, n_dat, i_uni, ie, jj
 integer ix_this, ix
+integer :: n_smooth_pts = 400
+
 logical err, smoothing
 
 character(20) :: r_name = 'tao_plot_data_setup'
@@ -366,9 +368,9 @@ plot_loop: do i = 1, size(s%plot_page%plot)
 ! Calculate the points for drawing the curve through the symbols.
 ! If the x-axis is by index or ele_index then these points are the same as the symbol points.
 ! That is, for x-axis = index or ele_index the line is piece-wise linear between the symbols.
-! If the axis is by s-value then the line is a "smooth" curve with 400 points if
-! plotting model, base or design data. It's the same as the symbol points
-! otherwise. Smoothing will only be performed if performing single particle tracking.
+! If the axis is by s-value then the line is a "smooth" curve with n_smooth_pts points if
+! plotting model, base or design data. It's the same as the symbol points otherwise.
+! Smoothing will only be performed if performing single particle tracking.
 
       if (plot%x_axis_type == 'index') then
         call reassociate_real (curve%y_line, n_dat) ! allocate space for the data
@@ -387,8 +389,8 @@ plot_loop: do i = 1, size(s%plot_page%plot)
 	      s%global%track_type .ne. 'single') smoothing = .false.
         enddo
         if (smoothing) then
-          call reassociate_real (curve%y_line, 400) ! allocate space for the data
-          call reassociate_real (curve%x_line, 400) ! allocate space for the data
+          call reassociate_real (curve%y_line, n_smooth_pts) ! allocate data space
+          call reassociate_real (curve%x_line, n_smooth_pts) ! allocate data space
           curve%y_line = 0
           do m = 1, size(plot%who)
             select case (plot%who(m)%name)
