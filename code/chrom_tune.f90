@@ -51,7 +51,7 @@ subroutine chrom_tune(ring,delta_e,target_x,target_y,err_flag)
   real(rdef) target_x, target_y, chrom_x, chrom_y
   real(rdef) delta_x, delta_y, d_chrom, chrom_x0
   real(rdef) chrom_y0, step_x, step_y, chrom_(2,1), matrix(2,2)
-  real(rdef) delta_e, initial_x, initial_y
+  real(rdef) delta_e
  
   logical err_flag, debug
   logical, allocatable :: is_x_sex(:)
@@ -85,9 +85,6 @@ subroutine chrom_tune(ring,delta_e,target_x,target_y,err_flag)
   delta_x = 0.1
   delta_y = 0.1
 
-  initial_x = sex_x_values(1)
-  initial_y = sex_y_values(1)
-
 !
 
   do j = 1, 100
@@ -101,7 +98,7 @@ subroutine chrom_tune(ring,delta_e,target_x,target_y,err_flag)
       print*, 'Target Chromaticities'
       print*, target_x, target_y
       print*, 'Initial Chromaticities'
-      print*, chrom_x, chrom_y
+      print*, chrom_x0, chrom_y0
     end if
 
     d_chrom = abs(target_x - chrom_x0) + abs(target_y - chrom_y0)
@@ -109,10 +106,8 @@ subroutine chrom_tune(ring,delta_e,target_x,target_y,err_flag)
     if (d_chrom < 1.0e-3) then
       if (debug) then
         print *, 'Number of iterations:', j
-        print *, 'delta factors on the Sextupoles, x & y:'
-        print *, sex_x_values(1)/initial_x, sex_y_values(1)/initial_y
         print *, 'Final Chromaticities, x & y:'
-        print *, chrom_x, chrom_y
+        print *, chrom_x0, chrom_y0
       end if
       deallocate (ix_x_sex, ix_y_sex, ix_sex)
       deallocate (sex_x_values, sex_y_values, is_x_sex)
