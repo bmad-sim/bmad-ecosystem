@@ -371,12 +371,12 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
       case (mad_lcav)
         ring%param%lattice_type = linear_lattice$
         call add_ele (lcavity$)
-        ele%value(l$)            =  pdata(dat_indx)
-        ele%value(gradient$)     =  pdata(dat_indx+2) * 1e6 / ele%value(l$)
-        ele%value(phi0$)         = -pdata(dat_indx+3)
-        ele%value(rf_frequency$) =  pdata(dat_indx+4) * 1e6
-        ele%value(e_loss$)       =  pdata(dat_indx+9) 
-        ele%value(aperture$)     =  pdata(dat_indx+12)
+        ele%value(l$)            = pdata(dat_indx)
+        ele%value(gradient$)     = pdata(dat_indx+2) * 1e6 / ele%value(l$)
+        ele%value(phi0$)         = pdata(dat_indx+3)
+        ele%value(rf_frequency$) = pdata(dat_indx+4) * 1e6
+        ele%value(e_loss$)       = pdata(dat_indx+9) 
+        ele%value(aperture$)     = pdata(dat_indx+12)
 
         ix = nint(pdata(dat_indx+7))
         if (ix /= 0) then
