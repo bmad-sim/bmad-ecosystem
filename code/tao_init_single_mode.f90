@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_init_single_mode (s, single_mode_file)
+! Subroutine tao_init_single_mode (single_mode_file)
 !
 ! Subroutine to initialize the tao single mode stuff.
 ! If the single_mode_file is not in the current directory then it will be searched
@@ -10,17 +10,15 @@
 !   single_mode_file -- Character(*): Tao initialization file.
 
 ! Output:
-!   s -- Tao_super_universe_struct:
 !-
 
-subroutine tao_init_single_mode (s, single_mode_file)
+subroutine tao_init_single_mode (single_mode_file)
 
   use tao_mod
   use tao_input_struct
   
   implicit none
 
-  type (tao_super_universe_struct) s
   type (tao_key_input) key(500)
 
   integer ios, iu, i, j, n, n1, n2, nn, i_max, ix_u
@@ -94,11 +92,11 @@ subroutine tao_init_single_mode (s, single_mode_file)
     if (ix_u == 0) then
       allocate (s%var(n)%this(size(s%u)))
       do j = 1, size(s%u)
-        call tao_pointer_to_var_in_lattice (s, s%var(n), s%var(n)%this(j), j)
+        call tao_pointer_to_var_in_lattice (s%var(n), s%var(n)%this(j), j)
       enddo
     else
       allocate (s%var(n)%this(1))
-      call tao_pointer_to_var_in_lattice (s, s%var(n), s%var(n)%this(1), ix_u)
+      call tao_pointer_to_var_in_lattice (s%var(n), s%var(n)%this(1), ix_u)
     endif
 
     s%var(n)%model_value = s%var(n)%this(1)%model_ptr

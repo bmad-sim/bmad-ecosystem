@@ -21,7 +21,6 @@ type tao_d1_data_input
 end type
 
 type tao_data_input
-  integer ix_min, ix_max        ! min, max index
   character(16) :: name
   character(16) :: ele_name
   character(16) :: ele2_name
@@ -43,6 +42,8 @@ type tao_var_input
   character(16) universe
   real(rp) :: weight
   real(rp) :: step
+  real(rp) low_lim
+  real(rp) high_lim
   character(16) :: merit_type
 end type
 

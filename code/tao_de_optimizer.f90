@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_de_optimizer (s)
+! Subroutine tao_de_optimizer ()
 !
 ! Subrutine to minimize the merit function by varying variables until
 ! the "data" as calculated from the model matches the measured data.
@@ -9,21 +9,17 @@
 ! more details.
 !
 ! Input:
-!   s  -- tao_super_universe_struct: 
 !
 ! Output:
-!   s  -- tao_super_universe_struct:
 !-
 
-subroutine tao_de_optimizer (s)
+subroutine tao_de_optimizer ()
 
 use tao_mod
-use tao_common
 use opti_mod
 
 implicit none
 
-type (tao_super_universe_struct), target :: s
 type (tao_universe_struct), pointer :: u
 
 real(rp), allocatable, save :: var_vec(:), var_del(:)
@@ -36,16 +32,15 @@ character(80) line
 
 ! setup
 
-s_com => s
 tao_com%opti_init = .true.
 
 ! put the variable values into an array for the optimizer
 
-call tao_get_vars (s, var_vec, var_del = var_del)
+call tao_get_vars (var_vec, var_del = var_del)
 n_var = size(var_vec)
 
 population = max(5*n_var, 20)
-merit_start = tao_merit (s)
+merit_start = tao_merit ()
 
 ! run the optimizer
 
@@ -54,8 +49,8 @@ merit = opti_de (var_vec, s%global%n_opti_cycles, population, &
 
 ! cleanup after the optimizer
 
-call tao_set_vars (s, var_vec)
-merit_end = tao_merit (s)
+call tao_set_vars (var_vec)
+merit_end = tao_merit ()
 
 write (line, *) 'Merit start:', merit_start
 call out_io (s_blank$, r_name, line)
@@ -83,7 +78,6 @@ end subroutine
 function merit_wrapper (var_vec, end_flag) result (this_merit)
 
 use tao_mod
-use tao_common
 
 implicit none
 
@@ -114,9 +108,9 @@ endif
 
 !
 
-call tao_set_vars (s_com, var_vec)
+call tao_set_vars (var_vec)
 
-this_merit = tao_merit (s_com)
+this_merit = tao_merit ()
 merit_min = min(merit_min, this_merit)
 
 if(bmad_status%status /= ok$) then

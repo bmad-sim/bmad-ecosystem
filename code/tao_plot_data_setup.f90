@@ -1,21 +1,19 @@
 !+
-! Subroutine tao_plot_data_setup (s)
+! Subroutine tao_plot_data_setup ()
 !
 ! Subroutine to set the data for plotting.
 ! Essentially transfer info from the s%u(:)%data arrays
 ! to the s%plot_page%plot(:)%graph(:)%curve(:) arrays.
 !
 ! Input/Output:
-!   s     -- Tao_super_universe_struct
 !-
 
-subroutine tao_plot_data_setup (s)
+subroutine tao_plot_data_setup ()
 
 use tao_mod
 
 implicit none
 
-type (tao_super_universe_struct), target :: s
 type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
@@ -49,7 +47,10 @@ plot_loop: do i = 1, size(s%plot_page%plot)
       i_uni = s%global%u_view  ! universe where the data comes from
       if (curve%ix_universe /= 0) i_uni = curve%ix_universe 
       call tao_find_data (err, s%u(i_uni), curve%data_name, d2_ptr, d1_ptr)
-      if (err) cycle
+      if (err) then
+        plot%valid = .false.
+        cycle plot_loop
+      endif
       call tao_useit_plot_calc (plot, d1_ptr%d) ! make sure %useit_plot up-to-date
       n_dat = count (d1_ptr%d%useit_plot)       ! count the number of data points
       call reallocate_real (curve%y_symb, n_dat) ! allocate space for the data

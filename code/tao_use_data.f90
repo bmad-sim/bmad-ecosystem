@@ -1,11 +1,10 @@
 !+
-! subroutine tao_use_data (s, do_all_universes, action, data_name, locations)
+! subroutine tao_use_data (do_all_universes, action, data_name, locations)
 !
 ! Veto, restore or use specified datums. range syntax is just like
 !    indexing in fortran: 1:34, 46, 58:78
 !
 ! Input:
-!   s		             -- tao_super_universe_struct
 !   do_all_universes -- Logical: Apply to all universes?
 !                         if not just use s%u(s%global%u_view)
 !   action	         -- character(*): veto, use or restore
@@ -14,16 +13,14 @@
 !   locations        -- character(*): the index location expression
 !
 ! Output:
-!   s		  -- tao_super_universe_struct
 !-
 
-subroutine tao_use_data (s, do_all_universes, action, data_name, locations)
+subroutine tao_use_data (do_all_universes, action, data_name, locations)
 
 use tao_mod
 
 implicit none
 
-type (tao_super_universe_struct) :: s
 character(*)                :: action
 character(*)                :: data_name
 character(*)                :: locations
@@ -89,7 +86,7 @@ endif
 
 ! Optimizer bookkeeping and Print out changes.
 
-call tao_set_data_useit_opt(s)
+call tao_set_data_useit_opt()
 call tao_data_show_use (d2_ptr)
 
 deallocate(action_logic)

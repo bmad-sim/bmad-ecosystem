@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_command (s, command_line, err)
+! Subroutine tao_command (command_line, err)
 !
 ! Interface to all standard (non hook) tao commands. 
 ! This routine esentially breaks the command line into words
@@ -7,14 +7,12 @@
 ! Commands are case sensitive.
 !
 ! Input:
-!   s            -- tao_super_universe_struct
 !   command_line -- character(*): command line
 !
 !  Output:
-!   s        -- tao_super_universe_struct
 !-
 
-subroutine tao_command (s, command_line, err)
+subroutine tao_command (command_line, err)
 
   use tao_mod
   use quick_plot
@@ -23,7 +21,6 @@ subroutine tao_command (s, command_line, err)
 
   implicit none
 
-  type (tao_super_universe_struct) :: s
 
   integer i, j
   integer ix, ix_line, ix_cmd, which
@@ -49,7 +46,7 @@ subroutine tao_command (s, command_line, err)
 ! Single character mode
 
   if (s%global%single_mode) then
-    call tao_single_mode (s, command_line(1:1))
+    call tao_single_mode (command_line(1:1))
     call cmd_end_calc
     return
   endif
@@ -96,7 +93,7 @@ subroutine tao_command (s, command_line, err)
   case ('alias')
 
     call cmd_split(2, .false., err); if (err) return
-    call tao_alias_cmd (s, cmd_word(1), cmd_word(2))
+    call tao_alias_cmd (cmd_word(1), cmd_word(2))
 
 !--------------------------------
 ! CALL
@@ -104,7 +101,7 @@ subroutine tao_command (s, command_line, err)
   case ('call')
 
     call cmd_split(10, .true., err); if (err) return
-    call tao_call_cmd (s, cmd_word(1), cmd_word(2:10))
+    call tao_call_cmd (cmd_word(1), cmd_word(2:10))
 
 !--------------------------------
 ! CHANGE
@@ -112,7 +109,7 @@ subroutine tao_command (s, command_line, err)
   case ('change')
 
     call cmd_split (4, .false., err)
-    call tao_change_cmd (s, cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4))
+    call tao_change_cmd (cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4))
 
 
 !--------------------------------
@@ -122,7 +119,7 @@ subroutine tao_command (s, command_line, err)
 
     call cmd_split (3, .true., err); if (err) return
     if (cmd_word(2) == ' ') then
-      call tao_clip_cmd (s, cmd_word(1), 0.0_rp, 0.0_rp) 
+      call tao_clip_cmd (cmd_word(1), 0.0_rp, 0.0_rp) 
     else
       call to_real (cmd_word(2), value1, err);  if (err) return
       if (cmd_word(3) /= ' ') then
@@ -131,7 +128,7 @@ subroutine tao_command (s, command_line, err)
         value2 = value1
         value1 = -value1
       endif
-      call tao_clip_cmd (s, cmd_word(1), value1, value2)
+      call tao_clip_cmd (cmd_word(1), value1, value2)
     endif
 
 !--------------------------------
@@ -139,7 +136,7 @@ subroutine tao_command (s, command_line, err)
 
   case ('derivative')
 
-    call tao_dmodel_dvar_calc(s, .true.)
+    call tao_dmodel_dvar_calc(.true.)
     call out_io (s_blank$, r_name, 'Derivative calculated')
 
 !--------------------------------
@@ -159,7 +156,7 @@ subroutine tao_command (s, command_line, err)
   case ('run', 'flatten')
 
     call cmd_split (1, .true., err); if (err) return
-    call tao_run_cmd (s, cmd_word(1))
+    call tao_run_cmd (cmd_word(1))
 
 !--------------------------------
 ! HELP
@@ -167,7 +164,7 @@ subroutine tao_command (s, command_line, err)
   case ('help')
 
     call cmd_split (1, .true., err); if (err) return
-    call tao_help (s, cmd_word(1))
+    call tao_help (cmd_word(1))
 
 !--------------------------------
 ! HISTORY
@@ -183,7 +180,7 @@ subroutine tao_command (s, command_line, err)
   case ('output')
 
     call cmd_split (1, .true., err); if (err) return
-    call tao_output_cmd (s, cmd_word(1))
+    call tao_output_cmd (cmd_word(1))
 
 !--------------------------------
 ! PLACE
@@ -196,7 +193,7 @@ subroutine tao_command (s, command_line, err)
       return
     endif
 
-    call tao_place_cmd (s, cmd_word(1), cmd_word(2))
+    call tao_place_cmd (cmd_word(1), cmd_word(2))
 
 !--------------------------------
 ! PLOT
@@ -225,7 +222,7 @@ subroutine tao_command (s, command_line, err)
       endif
     enddo
 
-    call tao_plot_cmd (s, cmd_word(1), cmd_word(2:i))
+    call tao_plot_cmd (cmd_word(1), cmd_word(2:i))
 
 !--------------------------------
 ! VETO, RESTORE, USE
@@ -237,9 +234,9 @@ subroutine tao_command (s, command_line, err)
     call match_word (cmd_word(1), name$%data_or_var, which)
     
     if (which .eq. data$) then
-      call tao_use_data (s, cmd_name, cmd_word(2), cmd_word(3))
+      call tao_use_data (cmd_name, cmd_word(2), cmd_word(3))
     elseif (which .eq. variable$) then
-      call tao_use_var (s, cmd_name, cmd_word(2), cmd_word(3))
+      call tao_use_var (cmd_name, cmd_word(2), cmd_word(3))
     else
       call out_io (s_error$, r_name, "Use/veto/restore what? data or variable?")
       return
@@ -262,13 +259,13 @@ subroutine tao_command (s, command_line, err)
 
     select case (cmd_word(1))
     case ('data')
-      call tao_set_data_cmd (s, cmd_word(2), &
+      call tao_set_data_cmd (cmd_word(2), &
                               cmd_word(3), cmd_word(5), cmd_word(6)) 
     case ('var')
-      call tao_set_var_cmd (s, cmd_word(2), &
+      call tao_set_var_cmd (cmd_word(2), &
                               cmd_word(3), cmd_word(5), cmd_word(6)) 
     case ('global')
-      call tao_set_global_cmd (s, cmd_word(2), cmd_word(4))
+      call tao_set_global_cmd (cmd_word(2), cmd_word(4))
     case default
       call out_io (s_error$, r_name, 'NOT RECOGNIZED: ' // cmd_word(1))
     end select
@@ -280,7 +277,7 @@ subroutine tao_command (s, command_line, err)
 
     call cmd_split (3, .true., err); if (err) return
     if (cmd_word(2) == ' ') then
-      call tao_scale_cmd (s, cmd_word(1), 0.0_rp, 0.0_rp) 
+      call tao_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp) 
     else
       call to_real (cmd_word(2), value1, err);  if (err) return
       if (cmd_word(3) /= ' ') then
@@ -289,7 +286,7 @@ subroutine tao_command (s, command_line, err)
         value2 = value1
         value1 = -value1
       endif
-      call tao_scale_cmd (s, cmd_word(1), value1, value2)
+      call tao_scale_cmd (cmd_word(1), value1, value2)
     endif
 
 !--------------------------------
@@ -303,7 +300,7 @@ subroutine tao_command (s, command_line, err)
       return
     endif
 
-    call tao_show_cmd (s, cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4))
+    call tao_show_cmd (cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4))
 
 !--------------------------------
 ! SINGLE_MODE
@@ -319,7 +316,7 @@ subroutine tao_command (s, command_line, err)
 
     call cmd_split (2, .true., err); if (err) return
     call to_int (cmd_word(1), int1, err); if (err) return
-    call tao_view_cmd (s, int1)
+    call tao_view_cmd (int1)
 
 !--------------------------------
 ! X_AXIS
@@ -327,7 +324,7 @@ subroutine tao_command (s, command_line, err)
   case ('x_axis')
 
     call cmd_split (2, .true., err); if (err) return
-    call tao_x_axis_cmd (s, cmd_word(1), cmd_word(2))
+    call tao_x_axis_cmd (cmd_word(1), cmd_word(2))
 
 !--------------------------------
 ! X_SCALE
@@ -336,11 +333,11 @@ subroutine tao_command (s, command_line, err)
 
     call cmd_split (3, .true., err); if (err) return
     if (cmd_word(2) == ' ') then
-      call tao_x_scale_cmd (s, cmd_word(1), 0.0_rp, 0.0_rp, err)
+      call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err)
     else
       call to_real (cmd_word(2), value1, err); if (err) return
       call to_real (cmd_word(3), value2, err); if (err) return
-      call tao_x_scale_cmd (s, value1, value2, err)
+      call tao_x_scale_cmd (value1, value2, err)
     endif
 
 !--------------------------------
@@ -365,9 +362,9 @@ subroutine cmd_end_calc
 
 ! Note: tao_merit calls tao_lattice_calc.
 
-  call tao_merit (s)         
-  call tao_plot_data_setup (s)     ! transfer data to the plotting structures
-  call tao_plot_out (s)            ! Update the plotting window
+  call tao_merit ()         
+  call tao_plot_data_setup ()     ! transfer data to the plotting structures
+  call tao_plot_out ()            ! Update the plotting window
 
 end subroutine
 

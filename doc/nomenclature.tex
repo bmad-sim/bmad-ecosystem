@@ -64,19 +64,17 @@ data. These two structures are then collected into a \vn{d2_data}
 structure representing all orbit data. The \vn{d1_data} and
 \vn{d2_data} structures are defined in the \tao initialization file
 (cf.~Chapter~\ref{c:init}).  When issuing \tao commands one can
-specify all the data associated with a \vn{d2_data} structure use the
-structure's \vn{class}.  For example the name \vn{orbit} specifies the
+specify all the data associated with a \vn{d2_data} structure using the
+\vn{d2_data} structure's \vn{name}.  For example the name \vn{orbit} specifies the
 orbit data. To specify the data associated with a \vn{d1_data}
-structure use the format \vn{class:sub_class} where \vn{sub_class} is the
-\vn{sub_class} name of the \vn{d2_data} structure. For example, the horizontal
-orbit data is specified by the name \vn{orbit:x}.
-
-Blocks of variables are also associated with what is called a
-\vn{v1_var} structure and each of these structures has a \vn{class}
-name with which to refer to them in \tao commands.
+structure use the format \vn{d2_name:d1_name} where \vn{d1_name} is the
+name of the \vn{d1_data} structure. For example, if the \vn{d1_data} structure's name
+for the horizontal
+orbit data is \vn{x} then in \tao commands you refer to it by 
+the name \vn{orbit:x}.
 
 The \vn{model}, \vn{design}, \vn{base} lattices along with any
-\vn{data} and \vn{variables} and their associated structures are
+\vn{data} are
 bundled together to form what is called a \vn{universe}. \tao can
 simultaneously handle multiple universes. Why is this useful? It can
 be used, for example, to simulate both rings of a collider
@@ -86,6 +84,13 @@ rings. Another example is in a machine where orbits have been measured
 under different conditions of, say, beam energy, and it is desired to
 fit all the data simultaneously to try to find, say, rolls in the
 bends.
+
+Blocks of variables are associated with what is called a
+\vn{v1_var} structure and each of these structures has a \vn{name}
+with which to refer to them in \tao commands. Typically a given variable 
+controlls a single attribute of one element in a \vn{model} lattice
+of a single universe. However, variables can be configured to simultaneously
+control multiple attributes across multiple universes.
 
 %------------------------------------------------------------------------
 \section{Single Character Input}

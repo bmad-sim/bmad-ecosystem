@@ -92,8 +92,8 @@ Global variables are initialized in the \vn{data_and_var_file} using a
 namelist block named \vn{tao_params} The syntax of this block is:
 \begin{example}
   \&tao_params
-    n_d2_data_max = <integer>   ! number of d2 data structures.
     n_v1_var_max = <integer>    ! number of v1 data structures.
+    n_d2_data_max = <integer>   ! number of d2 data structures.
     n_data_max = <integer>      ! Total number of data points
     n_var_max = <integer>       ! Total number of variables.
   /
@@ -101,8 +101,8 @@ namelist block named \vn{tao_params} The syntax of this block is:
 Example:
 \begin{example}
   \&tao_params
-    n_d2_data_max = 6
     n_v1_var_max = 5
+    n_d2_data_max = 6
     n_data_max = 2000
     n_var_max = 2000
   /
@@ -121,53 +121,94 @@ format for this is
 \begin{example}
   \&tao_var
     v1_var%name        = "<var_array_name>"  ! Variable array name.
-    v1_var%universe    = <integer>           ! Universe variables belong in.
-                                             !   0 => all universes (default).
-    v1_var%attribute   = "<attribute_name>"  ! Attribute to control.
+    default_universe   = "<integer>"         ! Universe variables belong in.
+    default_attribute  = "<attribute_name>"  ! Attribute to control.
     default_weight     = <number>            ! Merit_function weight.
     default_step       = <number>            ! Small step value.
-    default_merit_type = <merit_type_name>   ! Small step value.
+    default_merit_type = <merit_type_name>   ! Sets how the merit is calculated.
+    default_low_lim    = <number>            ! Lower variable value limit. 
+    default_high_lim   = <number>            ! Upper variable value limit. 
     ix_min_var         = <integer>           ! Minimum array index.
     ix_max_var         = <integer>           ! Maximum array index.
     var(i)%name        = "<var_name>"        ! Individual variable name.
     var(i)%ele_name    = "<ele_name>"        ! Element to be controlled.
+    var(i)%attribute   = "<attrib_name>"     ! Element to be controlled.
+    var(i)%universe    = "<integer>"         ! Element to be controlled.
     var(i)%weight      = <number>            ! Merit function weight.
     var(i)%step        = <number>            ! Small step size.
-    var(i)%merit_type  = <merit_type_name>   ! Small step size.
+    var(i)%merit_type  = <merit_type_name>   ! Sets how the merit is calculated.
   /
 \end{example}
 Example:
 \begin{example}
   \&tao_var
-    v1_var%class      = "v_steer"   ! vertical steerings
-    v1_var%universe   = 0
-    v1_var%attribute  = "vkick"     ! vertical kick attribute
+    v1_var%name      = "v_steer"   ! vertical steerings
+    default_universe  = "clone"
+    default_attribute = "vkick"     ! vertical kick attribute
     default_weight    = 1e3
     default_step      = 1e-5
     ix_min_var        = 0
-    ix_max_var        = 120
-    var(1:)%name      = "1w", "2w", "  ", "4w", ...
-    var(1:)%ele_name  = "v01w", "v02w", "    ", "v04w", ...
+    ix_max_var        = 99
+    var(0:99)%name      = "0w", "1w", "2w", "  ", "4w", ...
+    var(0:99)%ele_name  = "v00w", "v01w", "v02w", "    ", "v04w", ...
   /
 \end{example}
 
 A \vn{tao_var} block is needed for each variable array to be defined.
 \vn{v1_var%name} is the name of the array to be used with \tao
-commands. \vn{var(i)%ele_name} is the lattice element associated
-with the variable and \vn{v1_var%attribute} is the \bmad attribute
-that is varied by the variables. The variable array's index runs from
-\vn{var%ix_min} to \vn{var%ix_max}. If elements in the variable
-array do not exist the corresponding \vn{var%name} and
-\vn{var%ele_name} should be left blank. \vn{var%weight(:)} gives
-the weight coefficient for a variable in the merit function. If not
-present then the default weight of \vn{var%default_weight} is used.
-\vn{var%step(i)} establishes what a ``small'' variation of the
+commands. The \vn{var(i)} array of variables has an index \vn{i} that runs
+from \vn{ix_min_var} to \vn{ix_max_var}. Each variable has a name 
+\vn{var(i)%name} to which it can be refered to in \tao commands. 
+A lattice element name \vn{var(i)%ele_name} and the element's attribute to vary
+\vn{var(i)%attribute} needs to specified. Not all elements need to 
+\vn{exist} and the element names of non--existant elements should be undefined
+or set to a name with only spaces in it. For those variables where
+\vn{var(i)%attribute} is not specified in the namelist the \vn{default_attribute}
+will be used. 
+
+
+\vn{var(i)%step} establishes what a ``small'' variation of the
 variable is. This is used, for example, by some optimizers when
 varying variables. If \vn{var%step(i)} is not given for a
-particular variable then the default \vn{var%default_weight} is
-used. Finally \vn{v1_var%universe} gives the universe that the
-variables live in. A value of zero means that an array of variables
-will be generated for each universe.
+particular variable then the default \vn{default_step} is
+used. 
+
+\vn{var(i)%universe} gives the universe that the
+lattice element lives in. If \vn{var(i)%universe} is not present 
+\vn{default_universe} is used instead. In addition to a number 
+\vn{default_universe} can have values:
+\begin{example}
+  "gang"     -- Multiple universe control (default).
+  "clone"    -- Make a var array block for each universe.
+\end{example}
+With both \vn{"gang"} and \vn{"clone"} individual \vn{var(i)%universe} may 
+not be set in the namelist. \vn{"gang"} means that each variable will control
+the given attribute in each universe simultaneously. \vn{"clone"} means that
+an array of variables will be duplicated, one for each universe. To be able
+to specify a given variable the \vn{v1_var%name} must have the character
+\vn{"\#"} in it. For example, if \vn{v1_var%name} is \vn{quad\#} then the
+variable block name for the second universe will be \vn{quad1}. The default 
+if both \vn{default_universe} and all \vn{var(i)%universe} are not given is for
+\vn{default_universe} to be \vn{"gang"}
+
+\vn{var(i)%weight} gives
+the weight coefficient for the contribution of a variable to the merit function. 
+If not present then the default weight of \vn{default_weight} is used.
+\vn{var(i)%low_lim} and \vn{var(i)%high_lim} give the lower and upper bounds
+outside of which the value of a variable should not go. If not present 
+\vn{default_low_lim} and \vn{default_high_lim} are used. If these are not
+present as well then by default
+\begin{example}
+  low_lim  = -1e30
+  high_lim =  1e30
+\end{example}
+\vn{var(i)%merit_type} determines how the merit contribution is calculated.
+Possible values are:
+\begin{example}
+  "limit"       ! Default
+  "target"      
+\end{example}
+For details on \vn{limit} and \vn{target} constraints see the chapter on Optimization.
 
 
 %-----------------------------------------------------------------
@@ -176,44 +217,65 @@ will be generated for each universe.
 
 Data is initialized using the \vn{tao_data} namelist block whose format is
 \begin{example}
-  \&tao_data
-    d2_data%class = "<class_name>"      ! d2_data name.
-    d2_data%universe = <integer>        ! Universe variables belong in.
+  \&tao_d2_data
+    d2_data%name       = "<d2_name>"    ! d2_data name.
+    d2_data%universe   = <integer>      ! Universe variables belong in.
                                         !   0 => all universes (default).
-    d1_data(i)%sub_class = "<sub_name>" ! d1_data Sub-class name.
-    data(i)%default_weight = <number>   ! Merit function weight.
-    data(i)%ix_min      = <integer>     ! Minimum array index.
-    data(i)%ix_max      = <integer>     ! Maximum array index.
-    data(i)%name(j)     = "<data_name>" ! Data names.
-    data(i)%ele_name(j) = "<ele_name>"  ! Lattice element names.
-    data(i)%weight(j)   = "<weight>"    ! Merit function weight.
+    default_merit_type = "<merit_type>" ! Sets how the merit is calculated.
+    n_d1_data          = <integer>      ! Number associated d1_data arrays.
+  /
+\end{example}
+
+\begin{example}
+  \&tao_d1_data
+    ix_d1_data         = <integer>      ! d1_data index
+    d1_data%name       = "<d1_name>"    ! d1_data Sub-class name.
+    default_weight     = <number>       ! Merit function weight.
+    ix_min_data        = <integer>      ! Minimum array index.
+    ix_max_data        = <integer>      ! Maximum array index.
+    data(j)%name       = "<data_name>"  ! Data names.
+    data(j)%ele_name   = "<ele_name>"   ! Lattice element names.
+    data(j)%ele2_name  = "<ele2_name>"  ! Lattice element names.
+    data(j)%weight     = "<weight>"     ! Merit function weight.
+    data(j)%merit_type = "<merit_type>" ! Sets how the merit is calculated.
   /
 \end{example}
 For example:
 \begin{example}
   \&tao_data
-    d2_data%class = "orbit"
+    d2_data%name = "orbit"
     d2_data%universe = 0  ! apply to all universes
+  /
+\end{example}
 
-    d1_data(1)%sub_class = "x"  
-    data(1)%default_weight = 1e6
-    data(1)%ix_min = 0
-    data(1)%ix_max = 99
-    data(1)%name(0:)     = "0W",      " ", "2W", ...
-    data(1)%ele_name(0:) = "DET_00W", " ", "DET_02W", ...
+\begin{example}
+  \&tao_d1_data
+    ix_d1_data        = 1 
+    d1_data%name      = "x"  
+    default_weight    = 1e6
+    ix_min_data       = 0
+    ix_max_data       = 99
+    data(0:)%name     = "0W",      " ", "2W", ...
+    data(0:)%ele_name = "DET_00W", " ", "DET_02W", ...
 
-    d1_data(2)%sub_class = "y"  
-    data(2)%default_weight = 1e6
-    data(2)%ix_min = 0 
-    data(2)%ix_max = 99  
-    data(2)%name(0) = "SAME: orbit:x"
-    data(2)%ele_name(0) = "SAME: orbit:x"
+  /
+\end{example}
+
+\begin{example}
+  \&tao_d1_data
+    ix_d1_data         = 2
+    d1_data%name = "y"  
+    data%default_weight = 1e6
+    data%ix_min = 0 
+    data%ix_max = 99  
+    data(0)%name = "SAME: orbit:x"
+    data(0)%ele_name = "SAME: orbit:x"
   /
 \end{example}
 
 A \vn{tao_data} block is needed for each \vn{d2_data} structure
-defined. \vn{d2_data%class} gives the class name of the
-structure. Certain \vn{d2_data} classes are recognized by \tao. These are:
+defined. \vn{d2_data%name} gives the class name of the
+structure. Certain \vn{d2_data} names are recognized by \tao. These are:
 \begin{example}
   "orbit"       ! Orbit data
   "phase"       ! Betatron phase data
@@ -225,30 +287,30 @@ structure. Certain \vn{d2_data} classes are recognized by \tao. These are:
 
 \vn{d2_data%universe} gives the universe that the data is
 associated with. A value of zero means that a \vn{d2_data} structure
-is set up in each universe. \vn{d1_data(i)%sub_class} gives the
-sub--class name for a \vn{d1_data} structure within the \vn{d2_data}
+is set up in each universe. \vn{d1_data%name} gives the
+name for a \vn{d1_data} structure within the \vn{d2_data}
 structure. Certain \vn{d1_data} classes are recognized by \tao. These are:
 \begin{example}
-  "X" & "Y"                   ! With "orbit", "phase", "eta", and "beta".
+  "x" & "y"                   ! With "orbit", "phase", "eta", and "beta".
   "11", "12a", "12b", & "21"  ! With "coupling".
   "11", "12", "21", & "22"    ! With "cbar".
 \end{example}
 
-\vn{data(i)%ix_min} and \vn{data(i)%ix_max} give the bounds for the
+\vn{ix_min_data} and \vn{ix_max_data} give the bounds for the
 \vn{data(i)} structure array that is associated with the \vn{d1_data}
-structure. \vn{data(i)%name(:)} gives the names of the data points and
-\vn{data(i)%ele_name(:)} gives the lattice element names associated
+structure. \vn{data(:)%name} gives the names of the data points and
+\vn{data(:)%ele_name} gives the lattice element names associated
 with the data points.  If elements in the \vn{data} array do not exist
 the corresponding \vn{var%name} and \vn{data%ele_name} should be left
 blank. Lists of names can be reused using the syntax:
 \begin{example}
-  data(i)%name(0) = "SAME: <d1_data_name>"
-  data(i)%ele_name(0) = "SAME: <d1_data_name>"
+  data(0)%name(0) = "SAME: <d1_data_name>"
+  data(0)%ele_name(0) = "SAME: <d1_data_name>"
 \end{example}
 
-\vn{data%weight(:)} gives the weight coefficient for a variable in the
+\vn{data(:)%weight} gives the weight coefficient for a variable in the
 merit function. If not present then the default weight of
-\vn{data%default_weight} is used.
+\vn{default_weight} is used.
 
 
 %-----------------------------------------------------------------

@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_get_user_input (s, cmd_line)
+! Subroutine tao_get_user_input (cmd_line)
 !
 ! Subroutine to get input from the terminal.
 !
@@ -10,16 +10,14 @@
 !   cmd_line -- Character(*): Command line from the user.
 !-
 
-subroutine tao_get_user_input (s, cmd_line)
+subroutine tao_get_user_input (cmd_line)
 
 use tao_mod
-use tao_common
 use tao_single_mod
 use single_char_input_mod
 
 implicit none
 
-type (tao_super_universe_struct) :: s
 
 integer i, ix
 

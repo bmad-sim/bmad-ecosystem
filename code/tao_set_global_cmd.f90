@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_set_global_cmd (s, who, set_value)
+! Subroutine tao_set_global_cmd (who, set_value)
 !
 ! Routine to set global variables
 ! 
@@ -8,18 +8,16 @@
 !   set_value -- Character(*): Value to set to.
 !
 ! Output:
-!   s         -- tao_super_universe_struct:
 !    %global  -- Global variables structure.
 !-
 
-subroutine tao_set_global_cmd (s, who, set_value)
+subroutine tao_set_global_cmd (who, set_value)
 
 use tao_mod
 use quick_plot
 
 implicit none
 
-type (tao_super_universe_struct) s
 
 character(*) who, set_value
 character(20) :: r_name = 'tao_set_global_cmd'

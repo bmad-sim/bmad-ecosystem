@@ -10,11 +10,10 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 
-subroutine tao_var_write (s, out_file, print_message)
+subroutine tao_var_write (out_file, print_message)
 
 implicit none
 
-type (tao_super_universe_struct) s
 
 integer i, j, iu, ix, ios, ix_hash
 character(*) out_file
@@ -49,8 +48,8 @@ do i = 1, size(s%u)
   write (iu, *) 'end_file'
   write (iu, *)
     
-  call tao_show_constraints (s, iu, 'ALL')
-  call tao_show_constraints (s, iu, 'TOP10')
+  call tao_show_constraints (iu, 'ALL')
+  call tao_show_constraints (iu, 'TOP10')
     
   close (iu)
 
@@ -64,11 +63,10 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 
-subroutine tao_var_print_auto (s)
+subroutine tao_var_print_auto ()
 
 implicit none
 
-type (tao_super_universe_struct) s
 integer i
 character(20) var_name
 
@@ -88,11 +86,10 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 
-subroutine tao_var_print_manual (s)
+subroutine tao_var_print_manual ()
 
 implicit none
 
-type (tao_super_universe_struct) s
 integer i, j
 character(20) var_name
 
@@ -133,11 +130,10 @@ end function
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 
-subroutine tao_read_single_input_file (s, file_name)
+subroutine tao_read_single_input_file (file_name)
 
 implicit none
 
-type (tao_super_universe_struct) s
 
 character(*) file_name
 
@@ -149,13 +145,12 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 
-subroutine tao_show_constraints (s, iunit, form)
+subroutine tao_show_constraints (iunit, form)
 
 use nr
 
 implicit none
 
-type (tao_super_universe_struct) s
 type (tao_top10_struct) top_merit(10)
 
 real(rp) value
@@ -254,10 +249,10 @@ end do
 
 if (iunit == 0) then
   print *
-  print '(1x, a, 1pe12.6)', 'figure of merit: ', tao_merit(s)
+  print '(1x, a, 1pe12.6)', 'figure of merit: ', tao_merit()
 else
   write (iunit, *)
-  write (iunit, '(1x, a, 1pe12.6)') 'figure of merit: ', tao_merit(s)
+  write (iunit, '(1x, a, 1pe12.6)') 'figure of merit: ', tao_merit()
 endif
 
 end subroutine

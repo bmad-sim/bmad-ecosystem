@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_init_global_and_universes (s, data_and_var_file)
+! Subroutine tao_init_global_and_universes (data_and_var_file)
 !
 ! Subroutine to initialize the tao structures.
 ! If data_and_var_file is not in the current directory then it will be searched
@@ -10,17 +10,15 @@
 !   data_and_var_file -- Character(*): Tao initialization file.
 
 ! Output:
-!   s -- Tao_super_universe_struct:
 !-
 
-subroutine tao_init_global_and_universes (s, data_and_var_file)
+subroutine tao_init_global_and_universes (data_and_var_file)
 
   use tao_mod
   use tao_input_struct
   
   implicit none
 
-  type (tao_super_universe_struct) s
   type (tao_d2_data_input) d2_data
   type (tao_d1_data_input) d1_data
   type (tao_data_input) data(n_data_minn:n_data_maxx) ! individual weight 
@@ -31,6 +29,7 @@ subroutine tao_init_global_and_universes (s, data_and_var_file)
 
   real(rp) :: default_weight        ! default merit function weight
   real(rp) :: default_step          ! default "small" step size
+  real(rp) default_low_lim, default_high_lim
 
   integer ios, iu, i, j, k, ix, n_uni
   integer n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
@@ -53,7 +52,8 @@ subroutine tao_init_global_and_universes (s, data_and_var_file)
   namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, &
                            ix_max_data, default_weight
   namelist / tao_var / v1_var, var, default_weight, default_step, &
-                      ix_min_var, ix_max_var, default_universe, default_attribute
+                      ix_min_var, ix_max_var, default_universe, default_attribute, &
+                      default_low_lim, default_high_lim
 
 !-----------------------------------------------------------------------
 ! Init lattaces
@@ -137,11 +137,13 @@ subroutine tao_init_global_and_universes (s, data_and_var_file)
 
   do
     v1_var%name = " "         ! set default
-    default_merit_type = 'target'
+    default_merit_type = 'limit'
     default_weight = 0     ! set default
     default_step = 0       ! set default
     default_attribute = ' '
     default_universe = ' '
+    default_low_lim = -1e30
+    default_high_lim = 1e30
     var%name = ' '
     var%ele_name = ' '
     var%merit_type = ' '
@@ -511,7 +513,7 @@ subroutine var_stuffit (ix_u_in)
 
     allocate (s_var%this(1))
     if (s_var%ele_name == ' ') cycle
-    call tao_pointer_to_var_in_lattice (s, s_var, s_var%this(1), ix_u)
+    call tao_pointer_to_var_in_lattice (s_var, s_var%this(1), ix_u)
     s_var%model_value = s_var%this(1)%model_ptr
     s_var%design_value = s_var%model_value
     s_var%base_value = s_var%this(1)%base_ptr
@@ -543,7 +545,7 @@ subroutine var_stuffit_all_uni
     if (s_var%ele_name == ' ') cycle
     do j = 1, size(s%u)
       u => s%u(j)
-      call tao_pointer_to_var_in_lattice (s, s_var, s_var%this(j), j)
+      call tao_pointer_to_var_in_lattice (s_var, s_var%this(j), j)
     enddo
     s_var%model_value = s_var%this(1)%model_ptr
     s_var%design_value = s_var%this(1)%model_ptr
@@ -576,6 +578,8 @@ subroutine var_stuffit_common
   s%var(n1:n2)%ele_name = var(ix1:ix2)%ele_name
   s%var(n1:n2)%name = var(ix1:ix2)%name
 
+  s%v1_var(nn)%name = v1_var%name
+
 ! now for some family guidance...
 ! point the v1_var mother to the appropriate children in the big data array
 
@@ -592,6 +596,12 @@ subroutine var_stuffit_common
 
   s%var(n1:n2)%merit_type = var(ix1:ix2)%merit_type
   where (s%var(n1:n2)%merit_type == ' ') s%var(n1:n2)%merit_type = default_merit_type
+
+  s%var(n1:n2)%low_lim = var(ix1:ix2)%low_lim
+  where (s%var(n1:n2)%low_lim == ' ') s%var(n1:n2)%low_lim = default_low_lim
+
+  s%var(n1:n2)%high_lim = var(ix1:ix2)%high_lim
+  where (s%var(n1:n2)%high_lim == ' ') s%var(n1:n2)%high_lim = default_high_lim
 
   do i = n1, n2
     s%var(i)%v1 => s%v1_var(nn)

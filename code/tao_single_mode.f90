@@ -1,4 +1,4 @@
-subroutine tao_single_mode (s, char)
+subroutine tao_single_mode (char)
 
   use tao_mod
   use quick_plot
@@ -7,7 +7,6 @@ subroutine tao_single_mode (s, char)
 
   implicit none
 
-  type (tao_super_universe_struct), target :: s
   type (ring_struct), pointer :: ring
 
   integer i, j, ix, ix_plot, ie, iv, factor, ix_key, ios, ir
@@ -39,8 +38,8 @@ subroutine tao_single_mode (s, char)
       ix_var = s%key(ix)%ix_var
       if (ix_var == 0) cycle
       value = s%var(ix_var)%model_value + this_factor * s%key(ix)%delta
-      call tao_set_var_model_value (s, s%var(ix_var), value)
-      call tao_merit (s)
+      call tao_set_var_model_value (s%var(ix_var), value)
+      call tao_merit ()
       return
     endif
   enddo
@@ -86,7 +85,7 @@ subroutine tao_single_mode (s, char)
     endif
     ix = ix + s%global%ix_key_bank
     ix_var = s%key(ix)%ix_var
-    call tao_set_var_model_value (s, s%var(ix_var), value)
+    call tao_set_var_model_value (s%var(ix_var), value)
 
 ! g: Go run optimizer.
 
@@ -95,7 +94,7 @@ subroutine tao_single_mode (s, char)
     s%global%init_opt_wrapper = .true.
     s%global%optimizer_running = .true.
     do
-      call tao_run_cmd (s, ' ')
+      call tao_run_cmd (' ')
       if (.not. s%global%optimizer_running) exit
     enddo
 
@@ -121,7 +120,7 @@ subroutine tao_single_mode (s, char)
     s%global%optimizer_running = .true.
     s%global%init_opt_wrapper = .true.
     do
-      call tao_run_cmd (s, this_opt)
+      call tao_run_cmd (this_opt)
       if (.not. s%global%optimizer_running) exit
     enddo
 
@@ -129,12 +128,12 @@ subroutine tao_single_mode (s, char)
 
   case ('s')
 
-    this_merit = tao_merit (s)
+    this_merit = tao_merit ()
     print *
     print *, 's%global%optimizer:       ', trim(s%global%optimizer)
     print *
-    call tao_show_constraints (s, 0, 'ALL')
-    call tao_show_constraints (s, 0, 'TOP10')
+    call tao_show_constraints (0, 'ALL')
+    call tao_show_constraints (0, 'TOP10')
 
 ! CR: Do nothing
 
@@ -202,7 +201,7 @@ subroutine tao_single_mode (s, char)
     case ('p')
       s%global%plot_on = .not. s%global%plot_on
       if (s%global%plot_on) then
-        call tao_init_plotting (s, ' ')
+        call tao_init_plotting (' ')
         type *, 'Plotting is now: On'
       else
         type *, 'Plotting is now: Off'
@@ -292,17 +291,17 @@ subroutine tao_single_mode (s, char)
 ! /p: Just create a postscript file.
 
     case ('p')
-      call tao_output_cmd (s, 'ps')
+      call tao_output_cmd ('ps')
 
 ! /P: Print a hardcopy.
 
     case ('P')
-      call tao_output_cmd (s, 'hard')
+      call tao_output_cmd ('hard')
   
 ! /t: Read from the current tao input file
 
     case ('t')
-      call tao_read_single_input_file (s, s%global%tao_single_mode_file)
+      call tao_read_single_input_file (s%global%tao_single_mode_file)
       print *, 'Read in tao file: ', trim(s%global%tao_single_mode_file)
 
 ! /T: Read from a tao input file
@@ -319,18 +318,18 @@ subroutine tao_single_mode (s, char)
         s%global%tao_single_mode_file = this_file(2:)
         this_file = this_file(2:)
       endif
-      call tao_read_single_input_file (s, this_file)
+      call tao_read_single_input_file (this_file)
       print *, 'Read in tao file: ', trim(this_file)
 
 ! /v: Output variable settings
 
     case ('v')
-!!      call var_print (s, .true., .true.)
+!!      call var_print (.true., .true.)
 
 ! /w: Output to default file.
 
     case ('w')
-      call tao_var_write (s, 'tao#.manual', .true.)
+      call tao_var_write ('tao#.manual', .true.)
 
 ! /W: Output to a file.
 
@@ -346,7 +345,7 @@ subroutine tao_single_mode (s, char)
           print *, 'No name given. Nothing done.'
           return
         endif
-        call tao_var_write (s, this_file, .true.)
+        call tao_var_write (this_file, .true.)
 
       enddo
 
@@ -358,14 +357,14 @@ subroutine tao_single_mode (s, char)
       read '(a)', line
       call string_trim (line, line, ix)
       if (ix == 0) then
-        call tao_x_scale_cmd (s, 'all', 0, 1e20_rp)
+        call tao_x_scale_cmd ('all', 0, 1e20_rp)
       else
         read (line, *, iostat = ios) m1, m2
         if (ios /= 0) then
           print *, 'ERROR READING MIN/MAX.'
           return
         endif
-        call tao_x_scale_cmd (s, 'all', m1, m2)
+        call tao_x_scale_cmd ('all', m1, m2)
       endif
 
 ! /number: Scale a single plot
@@ -432,7 +431,7 @@ subroutine tao_single_mode (s, char)
       case ('[D')
         do i = 1, size(s%key)
           ix_var = s%key(i)%ix_var
-          call tao_set_var_model_value (s, s%var(ix_var), s%key(i)%val0)
+          call tao_set_var_model_value (s%var(ix_var), s%key(i)%val0)
         enddo
 
 ! /-> (right arrow): Copy variable value to saved
@@ -488,7 +487,7 @@ subroutine scale_it_all (ix_plot, factor, a_min, a_max)
 ! if factor = 0 then use min/max
 
   if (factor == 0) then
-    call tao_scale_cmd (s, 'all', a_min, a_max)
+    call tao_scale_cmd ('all', a_min, a_max)
     return
   endif
 

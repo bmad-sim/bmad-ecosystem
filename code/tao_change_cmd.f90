@@ -1,10 +1,9 @@
 !+
-! Subroutine tao_change_cmd (s, who, name, where, num_str)
+! Subroutine tao_change_cmd (who, name, where, num_str)
 !
 ! Routine to change a variable in the model lattice.
 !
 ! Input:
-!   s        -- tao_super_universe_struct
 !   who      -- Character(*): 'var', 'ele' or 'begin'
 !   name     -- Character(*): Name of variable or element.
 !   where    -- Character(*): For variable: Index of variable.
@@ -15,18 +14,16 @@
 !                                A 'd' signifies a set relative design.        
 !
 ! Output:
-!   s        -- tao_super_universe_struct
 !    %u(s%global%u_view)%model -- model lattice where the variable lives.
 !-
 
-subroutine tao_change_cmd (s, who, name, where, num_str)
+subroutine tao_change_cmd (who, name, where, num_str)
 
 use tao_mod
 use quick_plot
 
 implicit none
 
-type (tao_super_universe_struct), target :: s
 type (tao_universe_struct), pointer :: u
 type (tao_var_struct), pointer :: v_ptr
 
@@ -55,7 +52,7 @@ select case (who)
 
 case ('var')
 
-  call tao_find_var (s, err, name, var_number = where, v_ptr = v_ptr)
+  call tao_find_var (err, name, var_number = where, v_ptr = v_ptr)
   if (err) return
   if (.not. v_ptr%exists) then
     call out_io (s_error$, r_name, 'VARIABLE DOES NOT EXIST.')
@@ -65,11 +62,11 @@ case ('var')
   old_value = v_ptr%model_value
 
   if (absolute_num) then
-    call tao_set_var_model_value (s, v_ptr, change_number)
+    call tao_set_var_model_value (v_ptr, change_number)
   elseif (rel_to_design) then
-    call tao_set_var_model_value (s, v_ptr, change_number + v_ptr%design_value)
+    call tao_set_var_model_value (v_ptr, change_number + v_ptr%design_value)
   else
-    call tao_set_var_model_value (s, v_ptr, v_ptr%model_value + change_number)
+    call tao_set_var_model_value (v_ptr, v_ptr%model_value + change_number)
   endif
 
   new_value = v_ptr%model_value

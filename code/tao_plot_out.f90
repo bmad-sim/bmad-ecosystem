@@ -1,13 +1,12 @@
 !+
-! Subroutine tao_plot_out (s)
+! Subroutine tao_plot_out ()
 !
 ! Subroutine to draw the plots on the plot window.
 !
 ! Input:
-!   s -- Tao_super_universe_struct:
 !-
 
-subroutine tao_plot_out (s)
+subroutine tao_plot_out ()
 
 use tao_mod
 use quick_plot
@@ -15,7 +14,6 @@ use tao_single_mod
 
 implicit none
 
-type (tao_super_universe_struct), target :: s
 type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
@@ -50,6 +48,16 @@ do i = 1, size(s%plot_page%plot)
   border2%y2 = border1%y2 + dy * (1 - region(4))
   border2%units = '%PAGE'
   call qp_set_layout (page_border = border2)
+
+! For a non-valid plot just print a message
+
+  if (.not. plot%valid) then
+    call qp_draw_text ('Error In the Plot Calculation', 0.5_rp, 0.5_rp, '%/PAGE')
+
+    cycle
+  endif
+
+!
 
   select case (plot%type)
   case ('data')

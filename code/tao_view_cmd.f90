@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_view_cmd (s, i_universe)
+! Subroutine tao_view_cmd (i_universe)
 !
 ! Routine to set the default universe.
 ! 
@@ -7,16 +7,14 @@
 !   i_universe -- Integer: Universe to view.
 !
 !  Output:
-!   s     -- Tao_super_universe_struct
 !-
 
-subroutine tao_view_cmd (s, i_universe)
+subroutine tao_view_cmd (i_universe)
 
 use tao_mod
 
 implicit none
 
-type (tao_super_universe_struct) s
 
 integer i_universe
 

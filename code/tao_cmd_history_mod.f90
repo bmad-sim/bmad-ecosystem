@@ -1,7 +1,7 @@
 module tao_cmd_history_mod
 
 use output_mod
-use tao_common
+use tao_struct
 
 type cmd_history_struct  ! record the command history
   character(100) cmd     ! the command

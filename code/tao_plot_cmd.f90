@@ -1,25 +1,22 @@
 !+
-! Subroutine tao_plot_cmd (s, where, who)
+! Subroutine tao_plot_cmd (where, who)
 !
 ! Routine to set what is plotted Eg: model - design, etc.
 !
 ! Input:
-!   s      -- tao_super_universe_struct
 !   where  -- Character(*): Region name to identify the plot to set.
 !   who(:) -- character(*): Who to plot. First character must be a "+"
 !               or a "-" to designate which goes in the baseline.
 !
 !  Output:
-!   s      -- tao_super_universe_struct
 !-
 
-subroutine tao_plot_cmd (s, where, who)
+subroutine tao_plot_cmd (where, who)
 
 use tao_mod
 
 implicit none
 
-type (tao_super_universe_struct) :: s
 type (tao_plot_struct), pointer :: plot
 
 integer i, j

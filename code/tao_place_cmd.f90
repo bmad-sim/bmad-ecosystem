@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_place_cmd (s, where, who)
+! Subroutine tao_place_cmd (where, who)
 !
 ! Subroutine to determine the placement of a plot in the plot window.
 ! The appropriate s%tamplate_plot(i) determined by the who argument is
@@ -7,23 +7,20 @@
 ! argument.
 !
 ! Input:
-!   s     -- Tao_super_universe_struct:
 !    %template_plot(i) -- template matched to who.
 !   where -- Character(*): Region where the plot goes. Eg: 'top'.
 !   who   -- Character(*): Type of plot. Eg: 'orbit'.
 !
 ! Output
-!   s     -- Tao_super_universe_struct:
 !    %plot_page%plot(j) -- Plot matched to where.
 !-
 
-subroutine tao_place_cmd (s, where, who)
+subroutine tao_place_cmd (where, who)
 
 use tao_mod
 
 implicit none
 
-type (tao_super_universe_struct), target :: s
 type (tao_plot_struct), pointer :: plot
 type (tao_plot_struct), pointer :: template
 

@@ -1,23 +1,20 @@
 !+
-! Subroutine tao_lattice_calc (s)
+! Subroutine tao_lattice_calc ()
 !
 ! Routine to calculate the lattice functions.
 ! 
 !
 ! Input:
-!   s        -- tao_super_universe_struct
 !
 !  Output:
-!   s        -- tao_super_universe_struct
 !-
 
-subroutine tao_lattice_calc (s)
+subroutine tao_lattice_calc ()
 
 use tao_mod
 
 implicit none
 
-type (tao_super_universe_struct) s
 
 integer i
 
@@ -29,6 +26,6 @@ enddo
 
 ! Transfer info from %model to %data arrays.
 
-call tao_load_data_array (s)
+call tao_load_data_array ()
 
 end subroutine

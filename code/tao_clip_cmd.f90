@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_clip_cmd (s, where, y_min, y_max)
+! Subroutine tao_clip_cmd (where, y_min, y_max)
 !
 ! Routine to veto (clip) data points whose plotted values lie outside of a 
 ! given range. 
@@ -8,22 +8,19 @@
 ! the graph.
 ! 
 ! Input:
-!   s       -- tao_super_universe_struct
-!   where   -- Character(*): Graph(s) to clip. Eg: 'top:x'
+!   where   -- Character(*): Graph() to clip. Eg: 'top:x'
 !   y_min   -- Real(rp): Min clip value.
 !   y_max   -- Real(rp): Max clip value.
 !
 !  Output:
-!   s        -- tao_super_universe_struct
 !-
 
-subroutine tao_clip_cmd (s, where, y_min, y_max)
+subroutine tao_clip_cmd (where, y_min, y_max)
 
 use tao_mod
 
 implicit none
 
-type (tao_super_universe_struct) s
 type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: graph
 

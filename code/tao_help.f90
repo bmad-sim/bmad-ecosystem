@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_help (s, cmd_line)
+! Subroutine tao_help (cmd_line)
 !
 ! Online help for TAO commmands. 
 ! Interfaces with the documentation.
@@ -12,13 +12,12 @@
 !
 !-
 
-subroutine tao_help (s, help_what)
+subroutine tao_help (help_what)
 
 use tao_mod
 
 implicit none
 
-type (tao_super_universe_struct) :: s
 
 character(*) :: help_what
 

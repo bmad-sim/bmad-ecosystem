@@ -86,7 +86,7 @@
 
 !---------------------------------------------------
 
-&tao_data
+&tao_d2_data
   d2_data%name = "phase" 
   d2_data%universe = 0  ! apply to all universes
 	n_d1_data = 2

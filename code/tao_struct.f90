@@ -271,15 +271,15 @@ type tao_var_struct
   real(rp) old_value        ! The model_value at some previous time.
   real(rp) data_value       ! The value when the data measurement was taken.
   real(rp) ref_value        ! Value when the reference measurement was taken.
-  real(rp) target_value     ! After fit: Value to be put in machine.
+  real(rp) correction_value ! Value determined by a fit to correct the lattice.
   real(rp) high_lim         ! High limit for the model_value.
   real(rp) low_lim          ! Low limit for the model_value.
   real(rp) step             ! Sets what is a small step for varying this var.
   real(rp) weight           ! Weight for the merit function term.
-  real(rp) delta            ! Diff used to calculate the merit function term 
-  real(rp) merit            ! Merit function Value = weight * delta^2.
+  real(rp) delta            ! Diff used to calculate the merit function term.
+  real(rp) merit            ! merit_term = weight * delta^2.
   real(rp) dMerit_dVar      ! Merit derivative.     
-  character(16) merit_type  ! 'calibration', 'limit'
+  character(16) merit_type  ! 'target' or 'limit'
   logical exists            ! See above
   logical good_var          ! See above
   logical good_user         ! See above

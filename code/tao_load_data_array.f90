@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_load_data_array (s)
+! Subroutine tao_load_data_array ()
 !
 ! Routine to take data from the model lattice and model orbit
 ! and put that into the s%u(:)%data(:) arrays.
@@ -8,13 +8,12 @@
 !   s  -- Super_universe_struct:
 !-
 
-subroutine tao_load_data_array(s)
+subroutine tao_load_data_array()
 
 use tao_mod
 
 implicit none
 
-type (tao_super_universe_struct), target :: s
 type (tao_universe_struct), pointer :: u
 type (ele_struct), pointer :: ele
 type (tao_data_struct), pointer :: data
@@ -75,7 +74,7 @@ do i = 1, size(s%u)
   
     data => u%data(j)
     if (.not. data%exists) cycle
-    call tao_hook_load_data_array (s, data, found)
+    call tao_hook_load_data_array (data, found)
     if (found) cycle
 
     ix1 = data%ix_ele

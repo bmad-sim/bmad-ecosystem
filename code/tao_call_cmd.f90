@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_call_cmd (s, file_name, cmd_arg)
+! Subroutine tao_call_cmd (file_name, cmd_arg)
 !
 ! Routine to open a tao command file. If not found in the current director
 ! than the TAO_INIT_DIR will be searched.
@@ -13,14 +13,12 @@
 !                                   command file.
 !-
 
-subroutine tao_call_cmd (s, file_name, cmd_arg)
+subroutine tao_call_cmd (file_name, cmd_arg)
 
 use tao_mod
-use tao_common
 
 implicit none
 
-type (tao_super_universe_struct) s
 
 character(*) file_name
 character(*) cmd_arg(:)

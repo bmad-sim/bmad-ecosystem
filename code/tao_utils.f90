@@ -284,7 +284,6 @@ end subroutine
 ! Subroutine to set the data for plotting.
 !
 ! Input:
-!   plot     -- Tao_super_universe_struct:
 !
 ! Output:
 !   data     -- Tao_data_struct:
@@ -378,7 +377,7 @@ do i = 1, size(u%d2_data)
     exit
   endif
   if (i == size(u%d2_data)) then
-    call out_io (s_error$, r_name, "Couldn't find data name: " // name)
+    call out_io (s_error$, r_name, "Couldn't find d2_data name: " // name)
     err = .true.
     return
   endif
@@ -406,7 +405,7 @@ do i = 1, size(d2_pointer%d1)
   endif
   if (i .eq. size(d2_pointer%d1)) then
     call out_io (s_error$, r_name, &
-                     "COULDN'T FIND DATA D1_NAME: " // d1_name)
+                     "Couldn't find d1_data name: " // d1_name)
     err = .true.
     return	
   endif
@@ -424,7 +423,7 @@ if (ios /= 0) then
   return	
 endif
 if (data_num < lbound(d1_ptr%d, 1) .or. data_num > ubound(d1_ptr%d, 1)) then
-  call out_io (s_error$, r_name, "DATA_NUMBER OUT OF RANGE: " // data_number)
+  call out_io (s_error$, r_name, "DATA NUMBER OUT OF RANGE: " // data_number)
   err = .true.
   return	
 endif
@@ -458,7 +457,6 @@ subroutine tao_find_var (err, var_name, v1_ptr, var_number, v_ptr)
 implicit none
 
 logical err
-type (tao_super_universe_struct), target     :: s
 type (tao_v1_var_struct), pointer, optional  :: v1_ptr
 type (tao_v1_var_struct), pointer :: v1
 type (tao_var_struct), pointer, optional     :: v_ptr
@@ -526,23 +524,20 @@ end subroutine tao_find_var
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_var_target_calc (s)
+! Subroutine tao_var_target_calc ()
 ! 
 ! Subroutine to calculate the variable target values (the values that they need
 ! to be set to to do a correction of the orbit, phase, etc.
 !
 ! Input:
-!   s       -- Tao_super_universe_struct:
 !
 ! Output:
-!   s       -- Tao_super_universe_struct:
 !-
 
-subroutine tao_var_target_calc (s)
+subroutine tao_var_target_calc ()
 
 implicit none
 
-type (tao_super_universe_struct), target :: s
 type (tao_var_struct), pointer :: var
 
 integer i, j
@@ -551,7 +546,7 @@ integer i, j
 
 do j = 1, size(s%var)
   var => s%var(j)
-  var%target_value = var%data_value + (var%design_value - var%model_value)
+  var%correction_value = var%data_value + (var%design_value - var%model_value)
 enddo
 
 end subroutine
@@ -564,7 +559,6 @@ subroutine tao_set_var_model_value (var, value)
 
 implicit none
 
-type (tao_super_universe_struct) s
 type (tao_var_struct) var
 
 real(rp) value

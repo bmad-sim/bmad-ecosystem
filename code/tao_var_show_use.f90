@@ -4,7 +4,6 @@
 ! Displays what variables are used by the optimizer for the specied v1_var
 !
 ! Input:
-!   s       -- tao_super_univewrse_struct
 !   v1_var  -- tao_v1_var_struct
 !-
 

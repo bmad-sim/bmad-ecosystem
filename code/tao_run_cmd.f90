@@ -1,11 +1,10 @@
 !+
-! Subroutine tao_run_cmd (s, which)
+! Subroutine tao_run_cmd (which)
 !
 ! Subrutine to minimize the merit function by varying variables until
 ! the "data" as calculated from the model matches a constraint or measured data.
 !
 ! Input:
-!   s     -- Tao_super_universe_struct:
 !   which -- Character(*): which optimizer to use. 
 !             ' '        -- Same as last time
 !             'de'       -- Differential Evolution.
@@ -13,15 +12,13 @@
 !              'custom'  -- Custom routine.
 !
 ! Output:
-!   s  -- Tao_super_universe_struct:
 !-
 
-subroutine tao_run_cmd (s, which)
+subroutine tao_run_cmd (which)
 
 use tao_mod
 implicit none
 
-type (tao_super_universe_struct) :: s
 
 character(*)  which
 character(40) :: r_name = 'tao_run_cmd', my_opti
@@ -39,13 +36,13 @@ call out_io (s_blank$, r_name, 'Optimizing with: ' // which)
 select case (s%global%optimizer)
 
 case ('de') 
-  call tao_de_optimizer (s)
+  call tao_de_optimizer ()
 
 case ('lm') 
-  call tao_lm_optimizer (s)
+  call tao_lm_optimizer ()
 
 case ('custom')
-  call tao_hook_optimizer (s)
+  call tao_hook_optimizer ()
 
 end select
 

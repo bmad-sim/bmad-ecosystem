@@ -1,11 +1,10 @@
 !+
-! Subroutine tao_hook_merit_var (s, i_uni, j_var, var)
+! Subroutine tao_hook_merit_var (i_uni, j_var, var)
 ! 
 ! Dummy routine that needs to be over written in order to implement a
 ! custom merit calculation for variables.
 !
 ! Input:
-!   s       -- Tao_super_universe_struct:
 !   i_uni   -- Integer: Universe index for the variable in the s%u(:) array.
 !   j_var   -- Integer: index of the variable in the u%var(:) array.
 !   var     -- Tao_var_struct: Variable whose contribution to the merit function
@@ -17,13 +16,12 @@
 !     %merit -- Real(rp): Contribution to the merit function.
 !-
 
-subroutine tao_hook_merit_var (s, i_uni, j_var, var)
+subroutine tao_hook_merit_var (i_uni, j_var, var)
 
 use tao_mod
 
 implicit none
 
-type (tao_super_universe_struct) :: s
 type (tao_var_struct) var
 
 integer, intent(in) :: i_uni, j_var

@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_lm_optimizer (s)
+! Subroutine tao_lm_optimizer ()
 !
 ! Subrutine to minimize the merit function by varying variables until
 ! the "data" as calculated from the model matches the measured data.
@@ -11,22 +11,18 @@
 ! Note: LM assumes 
 !
 ! Input:
-!   s  -- tao_super_universe_struct: 
 !
 ! Output:
-!   s  -- tao_super_universe_struct:
 !-
 
-subroutine tao_lm_optimizer (s)
+subroutine tao_lm_optimizer ()
 
 use tao_mod
-use tao_common
 use nr
 use tao_dmerit_mod
 
 implicit none
 
-type (tao_super_universe_struct), target :: s
 type (tao_universe_struct), pointer :: u
 
 real(rp), allocatable, save :: x(:), y(:), sig(:), a(:)
@@ -47,10 +43,9 @@ character(80) line
 
 ! setup
 
-s_com => s
 a_lambda = -1
 
-call tao_get_vars (s, var_value, var_weight = weight, var_data_value = var_data_value)
+call tao_get_vars (var_value, var_weight = weight, var_data_value = var_data_value)
 n_var = size(var_value)
 
 n_data = n_var
@@ -71,7 +66,7 @@ y(1:n_var) = var_data_value
 sig(1:n_var) = 1e10  ! something large
 where (weight /= 0) sig(1:n_var) = sqrt(1/weight)
 
-merit0 = tao_merit(s)
+merit0 = tao_merit()
 
 k = n_var
 do j = 1, size(s%u)
@@ -88,7 +83,7 @@ do j = 1, size(s%u)
   enddo
 enddo
 
-call tao_dModel_dVar_calc (s, .false.)
+call tao_dModel_dVar_calc (.false.)
 
 ! run optimizer mrqmin from Numerical Recipes.
 
@@ -98,7 +93,7 @@ do i = 1, s%global%n_opti_cycles
   if (i == s%global%n_opti_cycles) a_lambda = 0  ! tell mrqmin we are finished
   call mrqmin (x, y, sig, a, mask_a, covar, alpha, chi_sq, tao_mrq_func, a_lambda) 
   call tao_mrq_func (x, a, y_fit, dy_da)  ! put a -> model
-  write (line, '(i5, f14.3, 1pe10.2)'), i, tao_merit(s), a_lambda
+  write (line, '(i5, f14.3, 1pe10.2)'), i, tao_merit(), a_lambda
   call out_io (s_blank$, r_name, line)
 enddo
 
@@ -116,7 +111,6 @@ end subroutine
 subroutine tao_mrq_func (x, a, y_fit, dy_da)
 
 use tao_mod
-use tao_common
 
 implicit none
 
@@ -134,11 +128,11 @@ character(80) line
 
 ! transfer "a" array to model
 
-call tao_set_vars (s_com, a)
+call tao_set_vars (a)
 
 ! if limited then set y_fit to something large so merit calc gives a large number.
 
-call tao_limit_calc (s_com, limited)
+call tao_limit_calc (limited)
 
 if (limited) then
   y_fit = 1e10 
@@ -147,7 +141,7 @@ endif
 
 ! calculate derivatives
 
-merit0 = tao_merit(s_com)
+merit0 = tao_merit()
 
 dy_da = 0
 n_var = size(a)
@@ -157,18 +151,18 @@ y_fit(1:n_var) = a
 
 k = n_var
 
-do j = 1, size(s_com%u)
-  u => s_com%u(j)
+do j = 1, size(s%u)
+  u => s%u(j)
   do i = 1, size(u%data)
     if (.not. u%data(i)%useit_opt) cycle
     k = k + 1
     y_fit(k) = u%data(i)%delta
     im = u%data(i)%ix_dModel
     nn = 0
-    do n = 1, size(s_com%var)
-      if (.not. s_com%var(n)%useit_opt) cycle
+    do n = 1, size(s%var)
+      if (.not. s%var(n)%useit_opt) cycle
       nn = nn + 1
-      iv = s_com%var(n)%ix_dVar
+      iv = s%var(n)%ix_dVar
       dy_da(k, nn) = u%dModel_dVar(im, iv)
     enddo
   enddo

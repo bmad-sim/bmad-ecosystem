@@ -1,22 +1,20 @@
 !+
-! function tao_merit (s) result (this_merit)
+! function tao_merit () result (this_merit)
 ! 
 ! function to calculate the merit.
 !
 ! Input:
-!   s       -- Tao_super_universe_struct:
 !
 ! Output:
 !   this_merit -- Real(rp): Merit value.
 !-
 
-function tao_merit (s) result (this_merit)
+function tao_merit () result (this_merit)
 
 use tao_mod
 
 implicit none
 
-type (tao_super_universe_struct), target :: s
 type (tao_var_struct), pointer :: var
 type (tao_data_struct), pointer :: data(:)
 type (tao_d1_data_struct), pointer :: d1
@@ -28,7 +26,7 @@ logical err
 
 ! make sure all calculations are up to date.
 
-call tao_lattice_calc (s)
+call tao_lattice_calc ()
 
 !----------------------------------------
 ! Merit contribution from the variables.
@@ -38,37 +36,25 @@ this_merit = 0
 do j = 1, size(s%var)
 
   var => s%var(j)
-  var%merit = 0
   var%delta = 0
+  var%merit = 0
 
   if (.not. var%useit_opt) cycle
 
-  if (s%global%opt_with_ref .and. s%global%opt_with_base) then
-    value = var%model_value - var%base_value + var%ref_value
-  elseif (s%global%opt_with_ref) then
-    value = var%model_value - var%design_value + var%ref_value
-  elseif (s%global%opt_with_base) then
-    value = var%model_value - var%base_value
-  else
-    value = var%model_value 
-  endif
-    
   select case (var%merit_type)
   case ('target')
-    var%delta = value - var%data_value
-    var%merit = var%weight * (value - var%data_value)**2
+    var%delta = var%model_value - var%data_value
   case ('limit')
     if (var%model_value > var%high_lim) then
-      var%delta = value - var%high_lim
-      var%merit = var%weight * (value - var%high_lim)**2
+      var%delta = var%model_value - var%high_lim
     elseif (var%model_value < var%low_lim) then
-      var%delta = value - var%low_lim
-      var%merit = var%weight * (value - var%low_lim)**2
+      var%delta = var%model_value - var%low_lim
     endif
   case default
-    call tao_hook_merit_var (s, i, j, var)
+    call tao_hook_merit_var (i, j, var)
   end select
 
+  var%merit = var%weight * var%delta**2
   this_merit = this_merit + var%merit
 
 enddo
@@ -128,7 +114,7 @@ do i = 1, size(s%u)
     case ('min', 'abs_min')
       if (data(j)%delta > 0) data(j)%delta = 0  ! it's OK to be more
     case default
-      call tao_hook_merit_data (s, i, j, data(j))
+      call tao_hook_merit_data (i, j, data(j))
     end select
   enddo
 

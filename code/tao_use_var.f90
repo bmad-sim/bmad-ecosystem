@@ -1,24 +1,21 @@
 !+
-! subroutine tao_use_var (s, action, var_name, locations)
+! subroutine tao_use_var (action, var_name, locations)
 !
 ! Veto, restore or use specified datums. range syntax: 1:34 46 58:78
 !
 ! Input:
-!   s		      -- tao_super_universe_struct
 !   var_name  -- charatcer(*): the selected variable name
 !   locations -- character(*): the index location expression
 !
 ! Output:
-!   s		  -- tao_super_universe_struct
 !-
 
-subroutine tao_use_var (s, action, var_name, locations)
+subroutine tao_use_var (action, var_name, locations)
 
 use tao_mod
 
 implicit none
 
-type (tao_super_universe_struct) :: s
 character(*)                     :: action
 character(*)                     :: var_name
 character(*)                     :: locations
@@ -40,7 +37,7 @@ logical err
 
 call match_word (action, name$%use_veto_restore, which)
 
-call tao_find_var (s, err, var_name, v1_ptr)
+call tao_find_var (err, var_name, v1_ptr)
 if (err) return
 
 ! find locations
@@ -70,7 +67,7 @@ end select
 
 ! optimizer bookkeeping and print out changes
 
-  call tao_set_var_useit_opt(s)
+  call tao_set_var_useit_opt()
   call tao_var_show_use (v1_ptr)
 
   deallocate(action_logic)

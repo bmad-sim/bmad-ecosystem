@@ -1,11 +1,10 @@
 !+
-! Subroutine tao_hook_merit_data (s, i_uni, j_data, data)
+! Subroutine tao_hook_merit_data (i_uni, j_data, data)
 ! 
 ! Dummy routine that needs to be over written in order to implement a
 ! custom merit calculation for data .
 !
 ! Input:
-!   s       -- Tao_super_universe_struct:
 !   i_uni   -- Integer: Universe index for the datiable in the s%u(:) array.
 !   j_data  -- Integer: Index of the data in the u%data(:) array.
 !   data    -- Tao_dat_struct: Data whose contribution to the merit function
@@ -17,13 +16,12 @@
 !     %merit -- Real(rp): Contribution to the merit function.
 !-
 
-subroutine tao_hook_merit_data (s, i_uni, j_data, data)
+subroutine tao_hook_merit_data (i_uni, j_data, data)
 
 use tao_mod
 
 implicit none
 
-type (tao_super_universe_struct) :: s
 type (tao_data_struct) data
 
 integer, intent(in) :: i_uni, j_data

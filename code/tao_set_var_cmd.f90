@@ -1,27 +1,24 @@
 !+
-! Subroutine tao_set_var_cmd (s, name, component, set_value, list)
+! Subroutine tao_set_var_cmd (name, component, set_value, list)
 !
 ! Routine to set var values.
 !
 ! Input:
-!   s          -- Tao_super_universe_struct
 !   name       -- Character(*): Which var name to set.
 !   component  -- Character(*): Which component to set.
 !   set_value  -- Character(*): What value to set it to.
 !   list       -- Character(*): If not blank then gives which indexes to apply to.
 !
 !  Output:
-!   s        -- tao_super_universe_struct
 !-
 
-subroutine tao_set_var_cmd (s, name, component, set_value, list)
+subroutine tao_set_var_cmd (name, component, set_value, list)
 
 use tao_mod
 use quick_plot
 
 implicit none
 
-type (tao_super_universe_struct) s
 type (tao_v1_var_struct), pointer :: v1_ptr
 
 integer i, j
@@ -36,7 +33,7 @@ logical err
 if (name == 'all') then
   call set_this_var (s%var, .false.)
 else
-  call tao_find_var(s, err, name, v1_ptr)  
+  call tao_find_var(err, name, v1_ptr)  
   if (err) return
   call set_this_var (v1_ptr%v, .true.)
 endif

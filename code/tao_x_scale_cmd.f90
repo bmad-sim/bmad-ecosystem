@@ -1,27 +1,24 @@
 !+
-! Subroutine tao_x_scale_cmd (s, where, x_min, x_max, err)
+! Subroutine tao_x_scale_cmd (where, x_min, x_max, err)
 !
 ! Routine to scale a plot. If x_min = x_max
 ! Then the scales will be chosen to show all the data.
 ! 
 ! Input:
-!   s     -- tao_super_universe_struct
 !   where -- Character(*): Region to scale. Eg: "top"
 !   x_min -- Real(rp): Plot x-axis min value.
 !   x_max -- Real(rp): Plot x-axis max value.
 !
 !  Output:
-!   s     -- tao_super_universe_struct
 !-
 
-subroutine tao_x_scale_cmd (s, where, x_min, x_max, err)
+subroutine tao_x_scale_cmd (where, x_min, x_max, err)
 
 use tao_mod
 use quick_plot
 
 implicit none
 
-type (tao_super_universe_struct) s
 type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: graph
 

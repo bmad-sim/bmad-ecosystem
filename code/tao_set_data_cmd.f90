@@ -1,10 +1,9 @@
 !+
-! Subroutine tao_set_data_cmd (s, do_all_universes, name, component, set_value, list)
+! Subroutine tao_set_data_cmd (do_all_universes, name, component, set_value, list)
 !
 ! Routine to set data values.
 !
 ! Input:
-!   s                -- Tao_super_universe_struct
 !   do_all_universes -- Logical: Apply set to all universes?
 !   name            -- Character(*): Which data name to set.
 !   component        -- Character(*): Which component to set.
@@ -12,17 +11,15 @@
 !   list             -- Character(*): If not blank then gives which indexes to apply to.
 !
 !  Output:
-!   s        -- tao_super_universe_struct
 !-
 
-subroutine tao_set_data_cmd (s, name, component, set_value, list)
+subroutine tao_set_data_cmd (name, component, set_value, list)
 
 use tao_mod
 use quick_plot
 
 implicit none
 
-type (tao_super_universe_struct) s
 
 integer i
 
@@ -67,7 +64,7 @@ else
   endif
 endif
 
-call tao_set_data_useit_opt (s)
+call tao_set_data_useit_opt ()
 
 end subroutine
 

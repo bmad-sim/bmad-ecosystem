@@ -1,20 +1,18 @@
 !+
-! Subroutine tao_hook_init (s)
+! Subroutine tao_hook_init ()
 !
 ! Custom subroutine to initialize the tao structures.
 ! This is a dummy subroutine that can be over written.
 !
 ! Output:
-!   s -- Tao_super_universe_struct:
 !-
 
-subroutine tao_hook_init (s)
+subroutine tao_hook_init ()
 
 use tao_mod
 
 implicit none
 
-type (tao_super_universe_struct) s
 
 !
 

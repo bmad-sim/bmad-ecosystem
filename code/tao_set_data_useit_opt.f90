@@ -1,5 +1,5 @@
 !+
-! subroutine tao_set_data_useit_opt (s)
+! subroutine tao_set_data_useit_opt ()
 !
 ! Routine to set the %data%useit_opt logicals which
 ! determine which data will be used by an optimizer.
@@ -8,13 +8,12 @@
 !   s 		-- type_super_universe_struct
 !-
 
-subroutine tao_set_data_useit_opt (s)
+subroutine tao_set_data_useit_opt ()
 
 use tao_mod
 
 implicit none
 
-type (tao_super_universe_struct), target :: s
 type (tao_data_struct), pointer :: d(:)
 
 integer i, j

@@ -1,26 +1,23 @@
 !+
-! Subroutine tao_show_cmd (s, word1, word2, word3, word4)
+! Subroutine tao_show_cmd (word1, word2, word3, word4)
 !
 ! Show information on variable, parameters, elements, etc...
 !
 !
 ! Input:
-!   s        -- tao_super_universe_struct
 !   word1 -- Character(*):
 !   word2 -- Character(*):
 !   word3 -- Character(*):
 !   word4 -- Character(*):
 !-
 
-subroutine tao_show_cmd (s, word1, word2, word3, word4)
+subroutine tao_show_cmd (word1, word2, word3, word4)
 
 use tao_mod
-use tao_common
 use tao_top10_mod
 
 implicit none
 
-type (tao_super_universe_struct), target :: s
 type (tao_universe_struct), pointer :: u
 type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_d2_data_struct), pointer :: d2_ptr
@@ -398,7 +395,7 @@ case ('optimizer')
 
 case ('top10')
 
-  call tao_top10_print (s)
+  call tao_top10_print ()
 
 !----------------------------------------------------------------------
 ! variable
@@ -428,7 +425,7 @@ case ('var')
 ! get pointers to the variables
 
   if (show_word3 == ' ') show_word3 = 'null'
-  call tao_find_var(s, err, show_word2, v1_ptr, show_word3, v_ptr) 
+  call tao_find_var(err, show_word2, v1_ptr, show_word3, v_ptr) 
   if (err) return
 
 ! v_ptr is valid then show the variable info.
@@ -467,24 +464,24 @@ case ('var')
       enddo
     endif
 
-    nl=nl+1; write(lines(nl), fmt)  '%Design_value:  ', v_ptr%design_value
-    nl=nl+1; write(lines(nl), fmt)  '%Old_value:     ', v_ptr%old_value        
-    nl=nl+1; write(lines(nl), fmt)  '%Data_value:    ', v_ptr%data_value       
-    nl=nl+1; write(lines(nl), fmt)  '%Ref_value:     ', v_ptr%ref_value        
-    nl=nl+1; write(lines(nl), fmt)  '%Target_value:  ', v_ptr%target_value     
-    nl=nl+1; write(lines(nl), fmt)  '%High_lim:      ', v_ptr%high_lim   
-    nl=nl+1; write(lines(nl), fmt)  '%Low_lim:       ', v_ptr%low_lim    
-    nl=nl+1; write(lines(nl), fmt)  '%Step:          ', v_ptr%step             
-    nl=nl+1; write(lines(nl), fmt)  '%Weight:        ', v_ptr%weight           
-    nl=nl+1; write(lines(nl), fmt)  '%Ddelta:        ', v_ptr%delta
-    nl=nl+1; write(lines(nl), fmt)  '%Merit:         ', v_ptr%merit            
-    nl=nl+1; write(lines(nl), fmt)  '%DMerit_dVar:   ', v_ptr%dMerit_dVar      
-    nl=nl+1; write(lines(nl), lmt)  '%Exists:        ', v_ptr%exists
-    nl=nl+1; write(lines(nl), lmt)  '%Good_var:      ', v_ptr%good_var  
-    nl=nl+1; write(lines(nl), lmt)  '%Good_user:     ', v_ptr%good_user 
-    nl=nl+1; write(lines(nl), lmt)  '%Good_opt:     ', v_ptr%good_opt 
-    nl=nl+1; write(lines(nl), lmt)  '%Useit_opt:     ', v_ptr%useit_opt
-    nl=nl+1; write(lines(nl), lmt)  '%Useit_plot:    ', v_ptr%useit_plot   
+    nl=nl+1; write(lines(nl), fmt)  '%Design_value:   ', v_ptr%design_value
+    nl=nl+1; write(lines(nl), fmt)  '%Old_value:      ', v_ptr%old_value        
+    nl=nl+1; write(lines(nl), fmt)  '%Data_value:     ', v_ptr%data_value       
+    nl=nl+1; write(lines(nl), fmt)  '%Ref_value:      ', v_ptr%ref_value        
+    nl=nl+1; write(lines(nl), fmt)  '%correction_alue:', v_ptr%correction_value     
+    nl=nl+1; write(lines(nl), fmt)  '%High_lim:       ', v_ptr%high_lim   
+    nl=nl+1; write(lines(nl), fmt)  '%Low_lim:        ', v_ptr%low_lim    
+    nl=nl+1; write(lines(nl), fmt)  '%Step:           ', v_ptr%step             
+    nl=nl+1; write(lines(nl), fmt)  '%Weight:         ', v_ptr%weight           
+    nl=nl+1; write(lines(nl), fmt)  '%Ddelta:         ', v_ptr%delta
+    nl=nl+1; write(lines(nl), fmt)  '%Merit:          ', v_ptr%merit            
+    nl=nl+1; write(lines(nl), fmt)  '%DMerit_dVar:    ', v_ptr%dMerit_dVar      
+    nl=nl+1; write(lines(nl), lmt)  '%Exists:         ', v_ptr%exists
+    nl=nl+1; write(lines(nl), lmt)  '%Good_var:       ', v_ptr%good_var  
+    nl=nl+1; write(lines(nl), lmt)  '%Good_user:      ', v_ptr%good_user 
+    nl=nl+1; write(lines(nl), lmt)  '%Good_opt:       ', v_ptr%good_opt 
+    nl=nl+1; write(lines(nl), lmt)  '%Useit_opt:      ', v_ptr%useit_opt
+    nl=nl+1; write(lines(nl), lmt)  '%Useit_plot:     ', v_ptr%useit_plot   
 
 ! check if there is a variable number
 ! if no variable number requested, show it all

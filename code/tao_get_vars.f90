@@ -1,11 +1,10 @@
 !+
-! Subroutine tao_get_vars (s, var_value, var_del, var_weight, var_data_value)
+! Subroutine tao_get_vars (var_value, var_del, var_weight, var_data_value)
 !
 ! Subroutine to get the values of the variables used in optimization and put them
 ! in an array. It is important that the variables in different universes be the same.
 !
 ! Input:
-!   s    -- Tao_super_universe_struct: 
 ! 
 ! Output:
 !   var_value(:)       -- Real, allocatable: Variable values
@@ -14,13 +13,12 @@
 !   var_data_value(:)  -- Real, allocatable, optional: Variable values when the data was taken.
 !-
 
-subroutine tao_get_vars (s, var_value, var_del, var_weight, var_data_value)
+subroutine tao_get_vars (var_value, var_del, var_weight, var_data_value)
 
 use tao_mod
 
 implicit none
 
-type (tao_super_universe_struct), target :: s
 type (tao_var_struct), pointer :: var(:)
 
 real(rp), allocatable :: var_value(:)

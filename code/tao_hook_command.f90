@@ -1,26 +1,23 @@
 !+
-! Subroutine tao_hook_command (s, cmd_line, found)
+! Subroutine tao_hook_command (cmd_line, found)
 !
 !
 ! Dummy subroutine that needs to be over written in order to implement
 ! custom commands.
 !
 ! Input:
-!   s          -- tao_super_universe_struct
 !   cmd_line   -- Character(*): command line
 !   found      -- Logical: Set True if the command not handled by this routine.
 !
 !  Output:
-!   s          -- tao_super_universe_struct
 !-
 
-subroutine tao_hook_command (s, cmd_line, found)
+subroutine tao_hook_command (cmd_line, found)
 
   use tao_mod
 
   implicit none
 
-  type (tao_super_universe_struct), target :: s
   character(*) cmd_line
   logical found
 

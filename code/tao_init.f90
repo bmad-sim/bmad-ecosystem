@@ -1,21 +1,19 @@
 !+
-! Subroutine tao_init (s, init_file)
+! Subroutine tao_init (init_file)
 !
 ! Subroutine to initialize the tao structures.
 !
 ! Input:
 !   init_file -- Character(*): Initialization file.
 ! Output:
-!   s -- Tao_super_universe_struct:
 !-
 
-subroutine tao_init (s, init_file)
+subroutine tao_init (init_file)
 
   use tao_mod
 
   implicit none
 
-  type (tao_super_universe_struct) s
   character(*) init_file
   character(200) lattice_file, plot_file, data_and_var_file, file_name
   character(200) single_mode_file
@@ -45,13 +43,13 @@ subroutine tao_init (s, init_file)
 
 ! Init
 
-  call tao_hook_init_design_lattice (s, lattice_file) 
-  call tao_init_global_and_universes (s, data_and_var_file)
-  call tao_init_single_mode (s, single_mode_file)
-  if (s%global%plot_on) call tao_init_plotting (s, plot_file)
-  call tao_hook_init (s)
+  call tao_hook_init_design_lattice (lattice_file) 
+  call tao_init_global_and_universes (data_and_var_file)
+  call tao_init_single_mode (single_mode_file)
+  if (s%global%plot_on) call tao_init_plotting (plot_file)
+  call tao_hook_init ()
 
-  call tao_lattice_calc (s)
+  call tao_lattice_calc ()
   do i = 1, size(s%u)
     if (associated (s%u(i)%data)) then
       s%u(i)%data%design_value = s%u(i)%data%model_value
@@ -59,11 +57,11 @@ subroutine tao_init (s, init_file)
     endif
   enddo
 
-  call tao_set_data_useit_opt (s)
-  call tao_set_var_useit_opt (s)
+  call tao_set_data_useit_opt ()
+  call tao_set_var_useit_opt ()
 
-  call tao_lattice_calc(s)      ! calculate Twiss parameters, closed orbit
-  call tao_plot_data_setup (s)  ! transfer data to the plotting structures
-  call tao_plot_out (s)         ! Update the plotting window
+  call tao_lattice_calc()      ! calculate Twiss parameters, closed orbit
+  call tao_plot_data_setup ()  ! transfer data to the plotting structures
+  call tao_plot_out ()         ! Update the plotting window
 
 end subroutine tao_init

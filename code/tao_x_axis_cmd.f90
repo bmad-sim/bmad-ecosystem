@@ -1,23 +1,21 @@
 !+
-! Subroutine tao_x_axis_cmd (s, where, what)
+! Subroutine tao_x_axis_cmd (where, what)
 !
 ! Routine to axis a plot. If x_min = x_max
 ! Then the axiss will be chosen to show all the data.
 ! 
 ! Input:
-!   s     -- tao_super_universe_struct
 !   where -- Character(*): Region to axis. Eg: "top"
 !   what  -- Character(*): "s" or "index"
 !-
 
-subroutine tao_x_axis_cmd (s, where, what)
+subroutine tao_x_axis_cmd (where, what)
 
 use tao_mod
 use quick_plot
 
 implicit none
 
-type (tao_super_universe_struct) s
 type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: graph
 

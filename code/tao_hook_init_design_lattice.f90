@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_hook_init_design_lattice (s, tao_design_lattice_file)
+! Subroutine tao_hook_init_design_lattice (tao_design_lattice_file)
 !
 ! Subroutine to initialize the design lattices.
 !
@@ -7,18 +7,16 @@
 !   tao_lattice_file
 !
 ! Output:
-!   s -- Tao_super_universe_struct: 
 !    %u(:)%design -- Initialized design lattices.
 !-
 
-subroutine tao_hook_init_design_lattice (s, tao_design_lattice_file)
+subroutine tao_hook_init_design_lattice (tao_design_lattice_file)
 
   use tao_mod
   use tao_input_struct
 
   implicit none
 
-  type (tao_super_universe_struct) s
   type (tao_design_lat_input)  design_lattice_file(20)
 
   character(*) tao_design_lattice_file

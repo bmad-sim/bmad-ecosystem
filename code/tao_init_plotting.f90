@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_init_plotting (s, plot_file)
+! Subroutine tao_init_plotting (plot_file)
 !
 ! Subroutine to initialize the tao plotting structures.
 ! If plot_file is not in the current directory then it will be searched
@@ -10,10 +10,9 @@
 !   plot_file -- Character(*): Plot initialization file.
 !
 ! Output:
-!   s -- Tao_super_universe_struct:
 !-
 
-subroutine tao_init_plotting (s, plot_file)
+subroutine tao_init_plotting (plot_file)
 
 use tao_mod
 use tao_input_struct
@@ -21,7 +20,6 @@ use quick_plot
 
 implicit none
 
-type (tao_super_universe_struct), target :: s
 type (tao_plot_page_struct), pointer :: page
 type (tao_plot_struct), pointer :: plt
 type (tao_graph_struct), pointer :: grph
@@ -200,7 +198,7 @@ close (1)
 
 do i = 1, size(place)
   if (place(i)%region == ' ') cycle
-  call tao_place_cmd (s, place(i)%region, place(i)%plot)
+  call tao_place_cmd (place(i)%region, place(i)%plot)
 enddo
 
 return
