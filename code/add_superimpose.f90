@@ -286,18 +286,27 @@ integer function superimpose_key (key1, key2)
 
 !
 
-  if (key1 == drift$) then
+  superimpose_key = -1
+
+  select case (key1)
+  case (drift$)
     superimpose_key = key2
-  elseif (key1 == key2) then
+    return
+  case (kicker$, rcollimator$, monitor$, instrument$)
+    superimpose_key = key2
+  case (quadrupole$,  solenoid$, sol_quad$) 
+    if (any (key2 == (/ quadrupole$,  solenoid$, sol_quad$ /))) &
+                                         superimpose_key = sol_quad$
+  end select
+
+  select case (key2)
+  case (drift$, kicker$, rcollimator$, monitor$, instrument$)
     superimpose_key = key1
-  elseif (key2 == drift$) then
-    superimpose_key = key1
-  elseif ((key1 == quadrupole$  .or. key1 == solenoid$ .or.  &
-          key1 == sol_quad$) .and. (key2 == quadrupole$  .or.  &
-          key2 == solenoid$ .or. key2 == sol_quad$)) then
-    superimpose_key = sol_quad$
-  else
-    superimpose_key = -1
-  endif
+  case (quadrupole$,  solenoid$, sol_quad$) 
+    if (any (key1 == (/ quadrupole$,  solenoid$, sol_quad$ /))) &
+                                         superimpose_key = sol_quad$
+  end select
+
+  if (key1 == key2) superimpose_key = key1
 
 end function
