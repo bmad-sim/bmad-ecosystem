@@ -26,9 +26,10 @@ setenv CERNSRC      $CERN_ROOT/src
 #
 #------  CESR libraries  ------
 #
-setenv CESR_BASE    $CESR_/$PLATFORM_TAG
-setenv CESR_CURRENT $CESR_BASE/current
-setenv CESR_DEVEL   $CESR_BASE/devel
+setenv CESR_PLATFORM $PLATFORM_TAG
+setenv CESR_BASE     $CESR_/$PLATFORM_TAG
+setenv CESR_CURRENT  $CESR_BASE/current
+setenv CESR_DEVEL    $CESR_BASE/devel
 
 #
 #-- CESR Unix documentation --
@@ -79,6 +80,9 @@ setenv BMAD_LAYOUT  $CESR_CONFIG/bmad/layout
 # $Id$
 #
 # $Log$
+# Revision 1.11  2003/10/28 21:05:08  palmer
+# Add CESR_PLATFORM environment variable for use by CESR makefiles.
+#
 # Revision 1.10  2003/09/08 15:17:59  cesrulib
 # Updates for automatic platform dependence and synchronized release/packages
 # areas.
