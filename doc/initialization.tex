@@ -92,19 +92,19 @@ Global variables are initialized in the \vn{data_and_var_file} using a
 namelist block named \vn{tao_params} The syntax of this block is:
 \begin{example}
   \&tao_params
-    n_v1_var_max = <integer>    ! number of v1 data structures.
+    n_v1_var_max  = <integer>   ! number of v1 data structures.
     n_d2_data_max = <integer>   ! number of d2 data structures.
-    n_data_max = <integer>      ! Total number of data points
-    n_var_max = <integer>       ! Total number of variables.
+    n_data_max    = <integer>   ! Total number of data points
+    n_var_max     = <integer>   ! Total number of variables.
   /
 \end{example}
 Example:
 \begin{example}
   \&tao_params
-    n_v1_var_max = 5
+    n_v1_var_max  = 5
     n_d2_data_max = 6
-    n_data_max = 2000
-    n_var_max = 2000
+    n_data_max    = 2000
+    n_var_max     = 2000
   /
 \end{example}
 \vn{n_d2_data_max} and \vn{n_v1_var_max} are the maximum
@@ -220,8 +220,8 @@ For details on \vn{limit} and \vn{target} constraints see the chapter on Optimiz
 Data is initialized using the \vn{tao_d2_data} namelist block whose format is
 \begin{example}
   \&tao_d2_data
-    d2_data%name       = "<d2_name>"    ! d2_data name.
-    universe   = <integer>      ! Universe variables belong in.
+    d2_data%name = "<d2_name>"    ! d2_data name.
+    universe     = <integer>      ! Universe variables belong in.
                                         !   0 => all universes (default).
     default_merit_type = "<merit_type>" ! Sets how the merit is calculated.
     n_d1_data          = <integer>      ! Number associated d1_data arrays.
@@ -232,8 +232,8 @@ For example:
 \begin{example}
   \&tao_data
     d2_data%name = "orbit"
-    universe = 0  ! apply to all universes
-    n_d1_data        = 2
+    universe     = 0  ! apply to all universes
+    n_d1_data    = 2
   /
 \end{example}
 A \vn{tao_d2_data} block is needed for each \vn{d2_data} structure
@@ -297,35 +297,18 @@ blank. Lists of names can be reused using the syntax:
 For example:
 \begin{example}
   \&tao_d1_data
-    ix_d1_data         = 2
-    d1_data%name = "y"  
+    ix_d1_data       = 2
+    d1_data%name     = "y"  
     ...
-    data(0)%name = "SAME: orbit:x"
+    data(0)%name     = "SAME: orbit:x"
     data(0)%ele_name = "SAME: orbit:x"
   /
 \end{example}
 
 If \vn{data(j)%type} is not given then the \vn{d2_data} name and the
 \vn{d1_data} name are combined for each datum to form the datum's
-\vn{type}. Certain types are recognized by \tao. These are:
-\begin{example}
-  "orbit:x", "orbit:y"             ! Orbit 
-  "phase:x", "phase:y"             ! Betatron phase (relative) 
-  "beta:x",  "beta:y"              ! Beta function
-  "alpha:x", "alpha:y"             ! Alpha function
-  "eta:x",   "eta:y"               ! Dispersion 
-  "etap:x",  "etap:y"              ! Dispersion derivative
-  "cbar:11", "cbar:12",            ! Cbar coupling 
-     "cbar:21", "cbar:22"       
-  "coupling:11", "coupling:12a",   ! Raw coupling 
-     "coupling:12b", "coupling:22" 
-  "floor:x", "floor:y", "floor:z"  ! Floor position (relative)
-  "floor:theta"                    ! Floor angle (relative)
-  "s_length"                       ! longitudinal length (relative)
-  "i5"                             ! Radiation integral
-  "r56"                            ! Transfer matrix element (relative)
-  "t566"                           ! 2nd order Xfer element (relative)
-\end{example}
+\vn{type}. Certain types are recognized by \tao. These are given by
+Table~\ref{t:cons}
 
 \vn{data(:)%weight} gives the weight coefficient for a variable in the
 merit function. If not present then the default weight of
@@ -352,24 +335,24 @@ window (also called the plot page) and defines the ``regions'' where
 plots go. The syntax of this block is:
 \begin{example}
   \&tao_plot_page
-    plot_page%size = <x_size>, <y_size>            ! size in POINTS 
-    plot_page%border = <b_x1>, <b_x2>, <b_y1>, <b_y2>, "<units>"
-    region(i)%name = "<region_name>"
+    plot_page%size     = <x_size>, <y_size>            ! size in POINTS 
+    plot_page%border   = <b_x1>, <b_x2>, <b_y1>, <b_y2>, "<units>"
+    region(i)%name     = "<region_name>"
     region(i)%location = <l_x1>, <l_x2>, <l_y1>, <l_y2>  ! % plot area
-    place(i)% = "<region>", "<template>"
+    place(i)%          = "<region>", "<template>"
   /
 \end{example}
 For example:
 \begin{example}
   \&tao_plot_page
-    plot_page%size = 700, 800           ! Points
-    plot_page%border = 0, 0, 0, 50, "POINTS"  
-    region(1)%name = "top"
+    plot_page%size     = 700, 800           ! Points
+    plot_page%border   = 0, 0, 0, 50, "POINTS"  
+    region(1)%name     = "top"
     region(1)%location = 0.0, 1.0, 0.5, 1.0
-    region(2)%name = "bottom"
+    region(2)%name     = "bottom"
     region(2)%location = 0.0, 1.0, 0.0, 0.5
-    place(1) = "top", "orbit"
-    place(2) = "bottom", "phase"
+    place(1)           = "top", "orbit"
+    place(2)           = "bottom", "phase"
   /
 \end{example}
 

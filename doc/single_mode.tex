@@ -55,9 +55,6 @@ Periodically during the optimization the variable values
 will be written to files, one for each universe, whose name is 
 \vn{tao_opt_vars\#.dat}. where \vn{\#} is the universe number.
 
-\item[G $<$optimizer$>$]
-Go run the optimizer with name \vn{<optimizer>}.
-
 \item[s]  
 Show various parameters.
 
@@ -104,46 +101,16 @@ Read in a BMAD input file whose name is given by \vn{<file_name>}. See the
 \item[/e $<$Index or Name$>$]
 Prints info on a lattice element. If there are two lattices being used
 and only the information of an element from one particular lattice is wanted
-then after the name or index put ":n" where n is the lattice index.
+then after the name or index put ";n" where n is the lattice index.
 
 \item[/l]
 Print a the lattice elements with twiss parameters.
-
-\item[/p]
-Create a postscript file of the plot window.
-p%hardcopy_str is inserted in the PS file that is generated and can be
-used to scale, translate and rotate the plot.
-
-\item[/P]
-Create a hardcopy of the plot window.
-p%print_command needs to be set to the system print command.
-p%hardcopy_str is inserted in the PS file that is generated and can be
-used to scale, translate and rotate the plot.
-
-\item[/t]
-Read a TOAD input file. The file name is given by p%top2_file. The format for
-this file is the same as the input file used to start TOAD. This command is
-useful for setting parameters that you can not set any other way (like
-changing the constraint list). Note that on input p%top2_file is set to the
-file name used to start the TOAD.
-
-\item[/T $<$file\_name$>$]
-Read a TOAD input file whose name is given by \vn{<file_name>}.
-See the "/t" command for more details.
-If the first character of \vn{<file_name>} is "@" then the "@" is stripped
-from  \vn{<file_name>} and p%top2_file is set to \vn{<file_name>}.
 
 \item[/w]
 Write both manual and auto variable values to the default output file. 
 The default output file name is set by p%manual_out_file. This file is in
 BMAD format and you can use the "/b" or "/B" commands to read such a file into
 TOAD.
-
-\item[/W $<$file\_name$>$]
-Write both manual and auto variable values to a file named
-\vn{<file_name>}. See the "/w" command for more details.
-If the first character of \vn{<file_name>} is "@" then the "@" is stripped
-from  \vn{<file_name>} and p%manual_out_file is set to \vn{<file_name>}. 
 
 \item[/x $<$min$>$ $<$max$>$]
 Set the horizontal scale (longitudinal position) min and max values for all
@@ -166,20 +133,6 @@ Paste saved ("value0") values back to the variable values.
 The saved values (the value0 column in the display) are initially set to the
 initial value  on startup. Use the "\vn{/right_arrow}" command to go in the
 reverse direction.
-
-\item[/$<$digit$>$ up\_arrow]
-Scale the plot given by \vn{<digit>} by a factor of 0.5. The bottom most plot
-is number 1, etc. 
-
-\item[/$<$digit$>$ down\_arrow]
-Scale the plot given by \vn{<digit>} by a factor of 2. The bottom most plot is
-number 1, etc. 
-
-\item[/$<$digit$>$: $<$min$>$ $<$max$>$]
-Set the min and max values for the plot given by \vn{<digit>} to \vn{<min>}
-and \vn{<max>}. The bottom most plot is number 1, etc. Notice that by
-necessity there must be a space between "\vn{<min>}" and "\vn{<max>}" and
-that you must type a \vn{<CR>} at the end.
 
 \item[-p]
 Toggle plotting. Whether to plot or not to plot is initially determined by

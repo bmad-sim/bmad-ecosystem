@@ -54,36 +54,38 @@ resonably close to the \vn{data_meas} this data change within the
   var_change = var_design - var_model
 \end{example}
 This assumes the system is linear. For many situations this is true
-since typically \vn{var_change} is ``small''. Since the variables have a measrued value of 
-
-
+since typically \vn{var_change} is ``small''. Since the variables have
+a measrued value of \vn{var_meas} the value that the variables should
+be set to is
 \begin{example}
   var_final = var_meas + (var_design - var_model)
 \end{example}
 Notice that the fitting process is independent of the \vn{design}
 lattice. It is only when calculating the corrections to the
-\vn{variables} that the \vn{design} lattice plays a roll. 
+variables that the \vn{design} lattice plays a roll. 
 
 Sometimes it is desired to fit to changes in data as opposed to the
 absolute value of the data. For example, when closing an orbit bump
-knob what is important is the difference in orbits before and
-after the bump knob is varied. In this case the merit function becomes
+knob what is important is the difference in orbits before and after
+the bump knob is varied. Designating one of these orbit the
+\vn{reference}, the appropriate merit function is
 \begin{alignat}{1}
   {\cal M} = &\sum_{i} w_i \,
-    \left[ (\data\_\model(i) - \data\_\design(i)) - 
-      (\data\_\meas(i) - \data\_\reference(i)) \right]^2 + \CRNO
+    \left[ \bigl( \data\_\model(i) - \data\_\design(i) \bigr) - 
+      \bigl( \data\_\meas(i) - \data\_\reference(i) \bigr) \right]^2 + \CRNO
   &\sum_{j} w_j \,
-    \left[ (\var\_\model(j) - \var\_\design(j)) -
-     (\var\_\meas(i) - \var\_\reference(i)) \right]^2 
+    \left[ \bigl( \var\_\model(j) - \var\_\design(j) \bigr) -
+     \bigl( \var\_\meas(i) - \var\_\reference(i) \bigr) \right]^2 
   \label{m2}
 \end{alignat}
-This merit function is acceptable if the reference data is taken with
-the machine reasonably near the design setup so that nonlinearities
-can be ignored. If this is not the case then the fitting becomes a two
-step process: The first step is to fit the \vn{model} to the \vn{reference}
-data using the merit function of \Eq{m1}. The \vn{base} lattice is then
-set equal to the \vn{model} lattice. The second
-step is to fit the model using the merit function
+where \vn{data_ref} and \vn{var_ref} refer to the reference
+measurement.  This merit function is acceptable if the reference data
+is taken with the machine reasonably near the design setup so that
+nonlinearities can be ignored. If this is not the case then the
+fitting becomes a two step process: The first step is to fit the
+\vn{model} to the \vn{reference} data using the merit function of
+\Eq{m1}. The \vn{base} lattice is then set equal to the \vn{model}
+lattice. The second step is to fit the model using the merit function
 \begin{alignat}{1}
   {\cal M} = &\sum_{\data: i} w_i 
     \left[ (\data\_\model(i) - \data\_\base(i)) - 
@@ -102,110 +104,65 @@ process is controlled by the \vn{use}, \vn{veto}, \vn{restore}, and
 \section{Lattice Design}
 
 Lattice design is the process of calculating \vn{variable} strengths
-to meet a number of criteria (called constraints). For example, one
+to meet a number of criteria called constraints. For example, one
 constraint could be that the beta function in some part of the lattice
 not exceed a certain value. In this case we can proceed as was done
 for lattice correction and define a merit function to be minimized:
 \Begineq
   {\cal M} = \sum_{\mbox{constraints} i} w_i \, C_i^2
 \Endeq
-\vn{C_i} is the constraint value which is dependent upon the \vn{class} of
-the constraint:
-\begin{description}
-\item[target]
-\Begineq
-  C = (\mbox{Model} - \mbox{Target})
-\Endeq
-\item[min, abs\_min]
+The general form of the $C_i$ constraint values is
 \Begineq
   C = 
     \begin{cases}
-    0                               & \mbox{Model} > \mbox{Target} \\
-    (\mbox{Model} - \mbox{Target})  & \mbox{Model} < \mbox{Target} 
+    (\mbox{Model} - \mbox{Target})  & Condition
+    0                               & Otherwise
     \end{cases}
 \Endeq
-\item[max, abs\_max]
-\Begineq
-  C = 
-    \begin{cases}
-    (\mbox{Model} - \mbox{Target})  & \mbox{Model} > \mbox{Target} \\ 
-    0                               & \mbox{Model} < \mbox{Target}
-    \end{cases}
-\Endeq
-\end{description}
-
-%------------------------------------------------------------------------
-\section{Constraints}
-\label{s:cons}
-
-To start the optimization either set \vn{p%opimizer_on} = T in the first section of
-the input file or type 'X' while in manual mode. '.' (a period) will get you
-out of auto mode back into manual mode. TOAD only checks once each loop to see
-what you have typed so there will be a delay between typing '.' and getting
-back to manual mode.
-
-Optimization with TOAD is a lot like optimization with BMADZ.
-There are two things that need to be set for optimization: The constraints
-that determine the merit function and the variables that the optimizer can
-vary in order to try to minimize the merit function.
-
-The forth section of the input file gives the constrains. See the above
-example. Valid constraints are given in Table~\ref{t:cons}.
-In order to use a custom constraint someone must write the appropriate routine
-and link it with the Toad program.
-
-
+where \vn{model} is the value as calculated from the \vn{model}
+lattice and \vn{target} is some given number. Part of the optimization
+process is in deciding what the values should be for the \vn{targets}.
+The \vn{condition} needed for a non--zero $C_i$ is dependent upon the
+\vn{type} of the constraint. There are five constraint types:
 \begin{table}[h]
 \centering
 {\tt
-\begin{tabular}{|l|l|} \hline
-  {\it Constraint\_name}  & {\it Description} \\ \hline 
-    beta           & Twiss parameter                        \\ \hline 
-    alpha          & Twiss parameter                        \\ \hline 
-    eta            & Dispersion                             \\ \hline 
-    etap           & Dispersion derivative                  \\ \hline 
-    phase          & Betatron phase                         \\ \hline 
-    orbit          & Particle orbit                         \\ \hline 
-    r56            & Term in linear transfer matrix         \\ \hline 
-    t566           & Term in 2nd order transfer matrix      \\ \hline 
-    var\_limit     & Variable outside set bounds            \\ \hline 
-    inside\_wall   & Inside CESR tunnel wall                \\ \hline 
-    outside\_wall  & Outside CESR tunnel wall               \\ \hline 
-    tangent        & Floor position                         \\ \hline 
-    position       & Floor position                         \\ \hline 
-    s              & Longitudinal length constraint         \\ \hline 
-    custom         & Custom constraint                      \\ \hline 
-\end{tabular}
-}
-\caption{Constraint List.}
-\label{t:cons}
-\end{table}
-
-The contribution to the merit function if a given constraint has a non-zero
-contribution is
-\Begineq
-  \merit = \weight \cdot (\actual - \target)^2
-\Endeq
-Valid constraint types are given in Table~\ref{t:con_type}.
-\begin{table}[h]
-\centering
-{\tt
-\begin{tabular}{|l|l|} \hline
-  {\it Constraint\_type}  & {\it Condition for non-zero contribution} \\ \hline 
-    min           & $\actual < \target$      \\ \hline 
-    max           & $\actual > \target$      \\ \hline 
-    target        & $\actual \ne \target$    \\ \hline 
-    abs\_min      & $|\actual| < \target$    \\ \hline 
-    abs\_max      & $|\actual| > \target$    \\ \hline 
+\begin{tabular}{|l|l|l|} \hline
+  {\it Constraint Type}  & $C$ & {\it Condition for non-zero $C$} \\ \hline 
+  \vn{target}     & \vn{model} - \vn{target}   & \vn{model} $\ne$ \target     \\ \hline 
+  \vn{min}        & \vn{model} - \vn{target}   & \vn{model} $<$ \vn{target}   \\ \hline 
+  \vn{max}        & \vn{model} - \vn{target}   & \vn{model} $>$ \vn{target}   \\ \hline 
+  \vn{abs_min}    & |\vn{model}| - \vn{target} & |\vn{model}| $<$ \vn{target} \\ \hline 
+  \vn{abs_max}    & |\vn{model}| - \vn{target} & |\vn{model}| $>$ \vn{target} \\ \hline 
 \end{tabular}
 }
 \caption{Constraint Type List.}
 \label{t:con_type}
 \end{table}
 
-Note: For \vn{tangent_angle}, \vn{x_position}, \vn{z_position}, and
-\vn{s_position} constraints: If there is a 2nd "where" then it is
-assumed that the 1st "where" corresponds to an element of ring1 and
-the 2nd "where" corresponds to an element of ring2.  The constraint is
-evaluated by taking the difference of the constraint (\vn{tangent_angle},
-\vn{x_position}, \vn{z_position}, or \vn{s_position}) between the two.
+Since lattice design and lattice corrections are very similar, \tao
+combines the two into one generalized correction process. With \tao
+the constraint \vn{model} values are identified with the
+\vn{data_model} and the \vn{target} values are identified with the \vn{data_meas}.
+The different types of \vn{data} that \tao knows about is called the data's \vn{type}
+
+\begin{table}[h] \centering {\tt
+\begin{tabular}{|l|l|} \hline
+  {\it Constraint/Data Type} & {\it Description}     &          & \\ \hline 
+    beta:x, beta:y    & Twiss parameter              &          & \\ \hline 
+    alpha:x, alpha:y  & Twiss parameter              &          & \\ \hline 
+    eta:x, eta:y      & Dispersion                   &          & \\ \hline 
+    etap:x, etap:y    & Dispersion derivative        &          & \\ \hline 
+    phase:x, phase:y  & Betatron phase               & relative & \\ \hline 
+    orbit:x, orbit:y  & Particle orbit               &          & \\ \hline 
+    cbar:11, cbar:12, cbar:21, cbar:22 
+                      & Coupling                     &          & \\ \hline 
+    floor:x, floor:y, floor:z
+                      & Global (``floor'') position  & relative & \\ \hline 
+    floor:theta       & Global (``floor'') angle     & relative & \\ \hline 
+    r56            & Term in linear transfer map     & relative & \\ \hline 
+    t566           & Term in 2nd order transfer map  & relative & \\ \hline 
+    s              & Longitudinal length constraint  & relative & \\ \hline 
+\end{tabular}
+} \caption{Constraint List.}  \label{t:cons}
+\end{table}
