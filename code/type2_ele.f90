@@ -346,13 +346,14 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
 ! Encode taylor series
 
   if (type_taylor .and. associated(ele%taylor(1)%term)) then
-    call type2_taylors (ele%taylor, li2, nt)
-    n_max = nl + nt + 1
-    n_lines = n_max
-    allocate (lines(n_max+1))
     write (li(nl+1), *)
+    nl = nl + 1
+    call type2_taylors (ele%taylor, li2, nt)
+    n_max = nl + nt
+    n_lines = n_max
+    allocate (lines(n_max))
     do i = 1, nt
-      lines(i+nl+1) = li2(i)
+      lines(i+nl) = li2(i)
     enddo
     deallocate (li2)
   else
