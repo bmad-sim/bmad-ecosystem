@@ -285,12 +285,20 @@ public:
   double R_over_Q;   // wake strength.
   double Q;          // Quality factor
   int m;             // Order number (1 = dipole, etc.)
+  double norm_sin;
+  double norm_cos;
+  double skew_sin;
+  double skew_cos;
+  double z_ref;
 
-  C_lr_wake (double f, double f_in, double rq, double q, int mm) :
-      freq(f), freq_in(f_in), R_over_Q(rq), Q(q), m(mm) {}
+  C_lr_wake (double f, double f_in, double rq, double q, int mm,
+          double n_sin, double n_cos, double s_sin, double s_cos, double z) :
+      freq(f), freq_in(f_in), R_over_Q(rq), Q(q), m(mm), norm_sin(n_sin),
+      norm_cos(n_cos), skew_sin(s_sin), skew_cos(s_cos), z_ref(z){}
 
   C_lr_wake (double f = 0) :
-      freq(f), freq_in(0), R_over_Q(0), Q(0), m(0) {}
+      freq(f), freq_in(0), R_over_Q(0), Q(0), m(0), norm_sin(0), norm_cos(0),
+      skew_sin(0), skew_cos(0), z_ref(0) {}
 };    // End Class
 
 extern "C" void lr_wake_to_c_(lr_wake_struct*, C_lr_wake&);
