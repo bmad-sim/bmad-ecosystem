@@ -513,8 +513,10 @@ subroutine makeup_super_slave (ring, ix_slave)
 ! default
 
     case default
-      call output (r_name, 'no_code', 'ERR', &
-                 'CODING NOT YET IMPLEMENTED FOR A: ' // key_name(slave%key))
+      print *, 'ERROR IN makeup_super_slave: CODING NOT YET IMPLEMENTED FOR A: ' &
+                                            // trim(key_name(slave%key))
+!      call out_io (s_abort$, r_name, &
+!                 'CODING NOT YET IMPLEMENTED FOR A: ' // key_name(slave%key))
       call err_exit
 
     end select
