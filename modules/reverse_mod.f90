@@ -72,23 +72,28 @@ subroutine ring_reverse (ring_in, ring_rev)
   enddo
 
 ! slaves of a super lord must be in assending sequence.
-! ix_con keeps track of the switching
+! ix_con keeps track of the switching.
+! Also: adjust s-position of lords.
+
 
   forall (i = 1:n_control_maxx) ix_con(i) = i 
 
   do i = nr+1, ring_rev%n_ele_max
     ele => ring_rev%ele_(i)
-    if (ele%control_type == super_lord$) then
-      i1 = ele%ix1_slave
-      i2 = ele%ix2_slave
-      ring_rev%control_(i1:i2) = ring_rev%control_(i2:i1:-1)
-      ix_con(i1:i2) = ix_con(i2:i1:-1)
-    endif
+    if (ele%control_type /= super_lord$) cycle
+    i1 = ele%ix1_slave
+    i2 = ele%ix2_slave
+    ring_rev%control_(i1:i2) = ring_rev%control_(i2:i1:-1)
+    ix_con(i1:i2) = ix_con(i2:i1:-1)
+    ele%s = ring_rev%param%total_length - ele%s + ele%value(l$)
   enddo
 
   n = ring_rev%n_ic_array
   ring_rev%ic_(1:n) = ix_con(ring_rev%ic_(1:n))
 
+! Cleanup
+
+  call s_calc (ring_rev) 
   call check_ring_controls (ring_rev, .true.)
 
 end subroutine
@@ -153,7 +158,8 @@ subroutine reverse_ele (ele)
   case (wiggler$)
     if (associated(ele%wig_term)) then
       do i = 1, size(ele%wig_term)
-        ele%wig_term(i)%phi_z = -ele%wig_term(i)%phi_z - ele%wig_term(i)%kz * ele%value(l$)
+        ele%wig_term(i)%phi_z = -ele%wig_term(i)%phi_z - &
+                                        ele%wig_term(i)%kz * ele%value(l$)
       enddo
     endif
 
