@@ -272,7 +272,7 @@ subroutine transfer_taylor (ring_in, ring_out, type_out)
 
 ! go through ring_out and match elements
 
-  do i = 1, ring_out%n_ele_max
+  out_loop: do i = 1, ring_out%n_ele_max
 
     ele_out => ring_out%ele_(i)
 
@@ -306,7 +306,7 @@ subroutine transfer_taylor (ring_in, ring_out, type_out)
         ele_out%taylor_order = bmad_com%taylor_order
         ele_out%taylor(:)%ref = ele_in%taylor(:)%ref
 
-        exit
+        cycle out_loop
       endif
 
     enddo
@@ -315,7 +315,7 @@ subroutine transfer_taylor (ring_in, ring_out, type_out)
               ele_out%mat6_calc_method == taylor$ .and. type_out) &
               print *, 'TRANSFER_TAYLOR: NO TAYLOR FOR: ', ele_out%name
 
-  enddo
+  enddo out_loop
 
 end subroutine
 
