@@ -314,7 +314,7 @@ module bmad_struct
   integer, parameter :: n_slice$=9, e2$=9, l_pole$=9, rf_frequency$=9
   integer, parameter :: fint$=10, polarity$=10, gradient$=10
   integer, parameter :: fintx$=11, z_patch$=11, phi0$=11
-  integer, parameter :: rho$=12, s_center$=12
+  integer, parameter :: rho$=12, s_center$=12, p0c_start$=12
   integer, parameter :: hgap$=13, energy_start$=13
   integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14
   integer, parameter :: roll$=15, quad_tilt$=15, freq_spread$=15

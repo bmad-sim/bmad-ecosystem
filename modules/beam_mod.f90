@@ -187,7 +187,7 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
   type (param_struct) param
 
   real(rp) charge
-  integer i, j
+  integer i, j, n
 
 ! Charge and center
 
@@ -219,7 +219,7 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
   rf_ele%value(beam_energy$) = &
             (ele%value(energy_start$) + ele%value(beam_energy$)) / 2
   rf_ele%value(p0c$) = &
-            (ele%value(p0c$) + ele%value(p0c$)) / 2
+            (ele%value(p0c_start$) + ele%value(p0c$)) / 2
   rf_ele%value(e_loss$) = 0
 
 ! Track half way through. 
@@ -305,7 +305,8 @@ subroutine track1_sr_wake (bunch, ele)
 
   call order_particles_in_z (bunch)  
   if (size(ele%wake%sr2_long) /= 0) then
-    if (bunch%particle(1)%r%vec(5) - bunch%particle(1)%r%vec(5) > ele%wake%z_sr2_max) then
+    n = size(bunch%particle)
+    if (bunch%particle(1)%r%vec(5) - bunch%particle(n)%r%vec(5) > ele%wake%z_sr2_max) then
       call out_io (s_abort$, r_name, &
           'Bunch longer than SR2 wake can handle for element: ' // ele%name)
       call err_exit
@@ -337,7 +338,8 @@ subroutine track1_sr_wake (bunch, ele)
     ! apply longitudinal self wake
 
     if (z_sr1_max < 0) then
-      particle%r%vec(6) = particle%r%vec(6) - sr02 * particle%charge 
+      particle%r%vec(6) = particle%r%vec(6) - &
+           sr02 * particle%charge * ele%value(l$) / (ele%value(p0c$) * (1 + particle%r%vec(6))
     else
       call sr2_long_self_wake_apply_kick (ele, particle%charge, particle%r)
     endif
