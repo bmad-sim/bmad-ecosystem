@@ -134,7 +134,7 @@ REL=""
 PKG=""
 LNX=0
 VMS=0
-LNX_HOST=lnx6166.lns.cornell.edu
+LNX_HOST=lnx209.lns.cornell.edu
 CURRENT_HOST="`uname -n`"
 PLATFORM_TAG_LIST="OSF1_alpha Linux_i686"
 KEY_END=1
@@ -160,7 +160,7 @@ do arg_list="${arg_list} ${i}";
                   GMAKE_OVERRIDE=1;;
      UTIL=*)use_cesr_util=`echo $i|cut -d= -f2`;
                  UTIL_OVERRIDE=1;;
-     CESR_BIN=*)use_cesr_bin=`echo $i|cut -d= -f2`;;
+     BIN=*)use_cesr_bin=`echo $i|cut -d= -f2`;;
      *) myprint_help;
         exit 1;;
    esac
@@ -282,6 +282,7 @@ if ( [ $DO_DUMP -eq 1 ] ) then
     echo "LNX_HOST          = ${LNX_HOST}"
     echo "CURRENT_HOST      = ${CURRENT_HOST}"
     echo "PATH              = $PATH "
+    echo "BIN_DIR           = $BIN_DIR"
 fi
 
 # Print the CESR environment variables
