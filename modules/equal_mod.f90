@@ -35,6 +35,8 @@ contains
 
 subroutine ele_equal_ele (ele1, ele2)
 
+  use tpsalie_analysis 
+
   implicit none
 	
   type (ele_struct), intent(inout) :: ele1
@@ -51,8 +53,6 @@ subroutine ele_equal_ele (ele1, ele2)
 ! Transfer pointer info.
 ! When finished ele1's pointers will be pointing to a different memory
 ! location from ele2's so that the elements are truely separate.
-! The exception is the %gen_field which is not transfered because it is
-! part of PTC.
 
   if (associated(ele2%wig_term)) then
     if (associated (ele_save%wig_term)) then
@@ -197,6 +197,25 @@ subroutine ele_equal_ele (ele1, ele2)
   else
     if (associated (ele_save%wake%lr)) deallocate (ele_save%wake%lr)
   endif
+
+! gen_fields are hard because it involves pointers in PTC.
+! just kill the gen_field in ele1 for now.
+
+  if (associated(ele_save%gen_field)) call kill_gen_field (ele_save%gen_field)
+  if (associated(ele1%gen_field)) nullify (ele1%gen_field)
+
+!  if (associated(ele2%gen_field)) then
+!    if (associated (ele_save%gen_field)) then
+!      ele1%gen_field => ele_save%gen_field
+!      call kill (ele1%gen_field)
+!    else
+!      allocate (ele1%gen_field)
+!    endif
+!    ele1%gen_field = ele2%gen_field
+!  else
+!    if (associated (ele_save%gen_field)) &
+!                              call kill_gen_field (ele_save%gen_field)
+!  endif
 
 end subroutine
 

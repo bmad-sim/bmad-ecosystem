@@ -898,48 +898,51 @@ end subroutine
 !
 ! Output:
 !   ele2 -- Ele_struct: Output element.
-!-
-
-subroutine transfer_ele_pointers (ele1, ele2)
-
-  implicit none
-
-  type (ele_struct), intent(in)  :: ele1
-  type (ele_struct), intent(inout) :: ele2
-
-  integer i
-
 !
-
-  if (associated(ele1%wig_term)) then
-    allocate (ele2%wig_term(size(ele1%wig_term)))
-    ele2%wig_term = ele1%wig_term
-  endif
-
-  if (associated(ele1%taylor(1)%term)) then
-    do i = 1, 6
-      allocate (ele2%taylor(i)%term(size(ele1%taylor(i)%term)))
-      ele2%taylor(i)%term = ele1%taylor(i)%term
-    enddo
-  endif
-
-  if (associated(ele1%a)) then
-    allocate (ele2%a(0:n_pole_maxx), ele2%b(0:n_pole_maxx))
-    ele2%a = ele1%a
-    ele2%b = ele1%b
-  endif
-
-  if (associated(ele1%descrip)) then
-    allocate (ele2%descrip)
-    ele2%descrip = ele1%descrip
-  endif
-
+! NOTE: THIS ROUTINE HAS NOT BEEN USED AND HAS BEEN COMMENTED OUT.
+!       IT DOESN'T LOOK LIKE IT SHOULD WORK ANYWAY.
+!             -- DCS 11/14/03
+!-
+!subroutine transfer_ele_pointers (ele1, ele2)
+!
+!  implicit none
+!
+!  type (ele_struct), intent(in)  :: ele1
+!  type (ele_struct), intent(inout) :: ele2
+!
+!  integer i
+!
+!!
+!
+!  if (associated(ele1%wig_term)) then
+!    allocate (ele2%wig_term(size(ele1%wig_term)))
+!    ele2%wig_term = ele1%wig_term
+!  endif
+!
+!  if (associated(ele1%taylor(1)%term)) then
+!    do i = 1, 6
+!      allocate (ele2%taylor(i)%term(size(ele1%taylor(i)%term)))
+!      ele2%taylor(i)%term = ele1%taylor(i)%term
+!    enddo
+!  endif
+!
+!  if (associated(ele1%a)) then
+!    allocate (ele2%a(0:n_pole_maxx), ele2%b(0:n_pole_maxx))
+!    ele2%a = ele1%a
+!    ele2%b = ele1%b
+!  endif
+!
+!  if (associated(ele1%descrip)) then
+!    allocate (ele2%descrip)
+!    ele2%descrip = ele1%descrip
+!  endif
+!
 !  if (associated(ele1%gen_field)) then
 !    allocate (ele2%gen_field)
 !    ele2%gen_field = ele1%gen_field
 !  endif
-
-
-end subroutine   
+!
+!
+!end subroutine   
 
 end module
