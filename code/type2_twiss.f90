@@ -44,6 +44,7 @@ subroutine type2_twiss (ele, lines, n_lines, frequency_units)
   select case (integer_option(radians$, frequency_units))
   case (0)
     n_lines = 0
+    return
   case (radians$)
     str = '           (m)       (-)     (1/m)     (rad)'
     fmt = '(a, f11.4, 2f10.3, f10.4, 2f11.4)'
