@@ -16,20 +16,20 @@
 #   alias current "setenv CESRLIB current ; source /home/cesrulib/bin/cesrdef"
 #   alias devel   "setenv CESRLIB devel ; source /home/cesrulib/bin/cesrdef"
 #-------------------------------------
-# Promote all shell variables to environment variables via setenv
-# instead of set. (CRN 4/5/94)
 #
 #	Root names
 #
-if ( $?CONST    == 0 ) setenv CONST   /home/cesrulib/constants
-if ( $?CESR_    == 0 ) setenv CESR_   /home/cesrulib/cesr_libs
+if ( $?CONST    == 0 ) setenv CONST    /home/cesrulib/constants
+if ( $?CESR_    == 0 ) setenv CESR_    /home/cesrulib/cesr_libs
 if ( $?PACKAGES == 0 ) setenv PACKAGES /home/cesrulib/cesr_libs/packages
+if ( $?CERN     == 0 ) setenv CERN     /nfs/cern
 #
 #	Switchable version
 #
-if ( $?CESRLIB       == 0 ) setenv CESRLIB current
+if ( $?CESRLIB    == 0 ) setenv CESRLIB current
+if ( $?CERN_LEVEL == 0 ) setenv CERN_LEVEL pro
 #
-if (   $?CESRENV == 0 ) setenv CESRENV /home/cesrulib/bin/cesrenv
+if ( $?CESRENV    == 0 ) setenv CESRENV /home/cesrulib/bin/cesrenv
 if ( -f $CESRENV )  then
 	source $CESRENV
 else
@@ -40,6 +40,9 @@ endif
 # $Id$
 #
 # $Log$
+# Revision 1.4  2003/05/27 15:18:19  palmer
+# Add CERN variable definitions.
+#
 # Revision 1.3  2003/05/21 12:33:17  palmer
 # Add PKG_INC environment variable.
 # Fix miscellaneous comments.

@@ -15,6 +15,16 @@
 setenv PATH ${PATH}:/home/cesrulib/bin
 
 #
+#-----  CERN Libraries  -----
+# Set CERN stuff up here even though it may already be  
+# done by the standard LEPP login scripts
+#
+setenv CERN_ROOT $CERN/$CERN_LEVEL
+#
+setenv CERNLIB  $CERN_ROOT/lib
+setenv CERNSRC  $CERN_ROOT/src
+
+#
 #-----  Outside packages  -----
 #
 setenv CESR_PKG $PACKAGES
@@ -66,6 +76,9 @@ setenv BMAD_LAYOUT	$CESR_CONFIG/bmad/layout
 # $Id$
 #
 # $Log$
+# Revision 1.8  2003/05/27 15:18:20  palmer
+# Add CERN variable definitions.
+#
 # Revision 1.7  2003/05/22 20:51:07  palmer
 # Update for global CESR include directory to live within the cvssrc area.
 #

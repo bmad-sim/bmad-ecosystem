@@ -22,6 +22,7 @@
 CONST=${CONST-/home/cesrulib/constants}
 CESR_=${CESR_-/home/cesrulib/cesr_libs}
 PACKAGES=${PACKAGES-/home/cesrulib/cesr_libs/packages}
+CERN=${CERN-/nfs/cern}
 #
 #       Switchable version
 #
@@ -41,6 +42,9 @@ fi
 # $Id$
 #
 # $Log$
+# Revision 1.4  2003/05/27 15:21:45  palmer
+# Add CERN variable definitions.
+#
 # Revision 1.3  2003/05/21 12:33:17  palmer
 # Add PKG_INC environment variable.
 # Fix miscellaneous comments.
