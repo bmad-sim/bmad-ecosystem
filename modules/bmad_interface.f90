@@ -1039,7 +1039,7 @@ module bmad_interface
 
   interface
     subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
-                                                                   start, end)
+                                                         start, end, body_only)
       use bmad_struct
       implicit none
       type (ele_struct), optional :: ele3
@@ -1048,6 +1048,7 @@ module bmad_interface
       type (coord_struct), optional :: start
       type (coord_struct), optional :: end
       type (param_struct) param
+      logical, optional :: body_only
       real(rp) del_s
     end subroutine
   end interface
