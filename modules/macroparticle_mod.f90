@@ -9,8 +9,8 @@ module macroparticle_mod
 
   type macro_init_struct
     type (macro_init_twiss_struct) x, y
-    real(rp) E_0            ! Nominal Energy (eV).
-    real(rp) center(6) ! Bench center.
+    real(rp) E_0       ! Nominal Energy (eV).
+    real(rp) center(6) ! Bench center offset relative to reference particle.
     real(rp) n_part    ! Number of particles per bunch.
     real(rp) ds_bunch  ! Distance between bunches.
     real(rp) sig_z     ! Z sigma in m.
@@ -1000,8 +1000,9 @@ subroutine init_macro_distribution (beam, init, canonical_out)
       bunch%slice(j)%macro(k)%charge = bunch%slice(j)%charge * &
                            (gauss_int(e0+de) - gauss_int(e0-de)) / e_fudge
       bunch%slice(j)%macro(k)%r%vec = init%center
-      bunch%slice(j)%macro(k)%r%vec(5) = init%sig_z * z0 + init%center(5)
-      bunch%slice(j)%macro(k)%r%vec(6) = init%sig_e * e0 + init%center(6)
+      bunch%slice(j)%macro(k)%r%vec(5) = init%center(5) + init%sig_z * z0 
+      bunch%slice(j)%macro(k)%r%vec(6) = init%center(6) + &
+                                             init%sig_e * e0 + init%E_0
       bunch%slice(j)%macro(k)%sigma = 0
       bunch%slice(j)%macro(k)%sigma(s11$) =  ex * init%x%beta
       bunch%slice(j)%macro(k)%sigma(s12$) = -ex * init%x%alpha
