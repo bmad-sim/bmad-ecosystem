@@ -54,6 +54,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
                                        r_out, ix_out, use_taylor, orb0_)
 
   use ptc_interface_mod
+  use bmad_utils_mod
 
   implicit none
 
