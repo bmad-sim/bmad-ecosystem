@@ -2,11 +2,13 @@
 \label{c:command}
 
 This chapter gives a description of the commands that \tao knows about
-in \vn{line mode}. For a description of \vn{single mode} commands
-see Chapter~\ref{c:single}. To put \tao into \vn{single mode} use the
-\vn{single_mode} command.
-Commands are case sensitive. The list of commands 
-is shown in Table~\ref{t:commands}
+in \vn{line mode}. Commands are case sensitive. The list of commands
+is shown in Table~\ref{t:commands}. Multiple commands may be entered
+on one line using the ``|'' character as a separator.
+
+Note: For a description of \vn{single mode} commands see
+Chapter~\ref{c:single}. To put \tao into \vn{single mode} use the
+\vn{single_mode} command. 
 
 \begin{table}[h]
 \centering
@@ -75,13 +77,13 @@ Format:
   call <filename> \{<arg_list>\}  \Strut
 \end{example}
 
-\vskip 0.2in
-\vn{call} opens a command file and executes the commands in it.  \tao
-first looks in the current directory for the file. If not found \tao
-will look in the directory pointed to by the \vn{TAO_COMMAND_DIR}
-directory.  Up to 9 arguments may be passed to the command file. The
-i\Th argument is substituted in place of the string ``[i]'' in the
-file. 
+\vskip 0.2in \vn{call} opens a command file and executes the commands
+in it.  \tao first looks in the current directory for the file. If not
+found \tao will look in the directory pointed to by the
+\vn{TAO_COMMAND_DIR} directory.  Up to 9 arguments may be passed to
+the command file. The i\Th argument is substituted in place of the
+string ``[i]'' in the file. Nesting of command files (command files
+calling other command files) is not allowed.
 
 Examples:
 \begin{example}

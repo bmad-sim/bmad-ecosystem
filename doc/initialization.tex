@@ -44,10 +44,11 @@ The initialization starts with an initialization file named \vn{tao.init}.
 \vn{tao.init} needs to have a \vn{tao_start} namelist block with the following syntax:
 \begin{example}
   \&tao_start
-    lattice_file      = "<lat_file_name>"    ! Default = this file.
-    data_and_var_file = "<data_file_name>"   ! Default = this file.
-    plot_file         = "<plot_file_name>"   ! Default = this file.
-    single_mode_file  = "<single_mode_name>" ! Default = this file.
+    lattice_file      = "<file_name>"  ! Default = this file.
+    data_and_var_file = "<file_name>"  ! Default = this file.
+    plot_file         = "<file_name>"  ! Default = this file.
+    single_mode_file  = "<file_name>"  ! Default = this file.
+    startup_file      = "<file_name>"  ! Default = "tao.startup"
     n_universes       = <integer>            ! Number of universes. Default = 1.
     startup_single_mode = Logical            ! Default is False.
   /

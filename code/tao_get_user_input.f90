@@ -25,9 +25,11 @@ character(*) :: cmd_line
 character(3) :: str(9) = (/ '[1]', '[2]', '[3]', '[4]', '[5]', &
                             '[6]', '[7]', '[8]', '[9]' /)
 character(40) tag
+character(200), save :: saved_line
 
 logical err, wait, flush
 logical, save :: init_needed = .true.
+logical, save :: multi_commands_here = .false.
 
 ! Init single char input
 
@@ -43,6 +45,17 @@ if (s%global%single_mode) then
   return
 endif
 
+! check if we still have something from a line with multiple commands
+
+if (multi_commands_here) then
+  call string_trim (saved_line, saved_line, ix)
+  if (ix == 0) then
+    multi_commands_here = .false.
+  else
+    cmd_line = saved_line
+  endif
+endif
+
 ! If recalling a command from the cmd history stack...
 
 if (tao_com%use_cmd_here) then
@@ -55,14 +68,17 @@ endif
 ! If a command file is open then read a line from the file.
 
 if (s%global%lun_command_file /= 0) then
-  read (s%global%lun_command_file, '(a)', end = 8000) cmd_line
-  do i = 1, 9
-    ix = index (cmd_line, str(i))
-    if (ix /= 0) cmd_line = cmd_line(1:ix-1) // trim(tao_com%cmd_arg(i)) // &
-                            cmd_line(ix+3:)
-  enddo
-  write (*, '(3a)') trim(s%global%prompt_string), ': ', trim(cmd_line)
+  if (.not. multi_commands_here) then
+    read (s%global%lun_command_file, '(a)', end = 8000) cmd_line
+    do i = 1, 9
+      ix = index (cmd_line, str(i))
+      if (ix /= 0) cmd_line = cmd_line(1:ix-1) // trim(tao_com%cmd_arg(i)) // &
+                              cmd_line(ix+3:)
+    enddo
+    write (*, '(3a)') trim(s%global%prompt_string), ': ', trim(cmd_line)
+  endif
   call alias_translate (cmd_line, err)
+  call check_for_multi_commands
   return
 
   8000 continue
@@ -75,10 +91,13 @@ endif
 !! print '(1x, 2a, $)', trim(s%global%prompt_string), '> '
 !! read (*, '(a)') cmd_line
 
-cmd_line = ' '
-tag = trim(s%global%prompt_string) // '> ' // achar(0)
-call read_line (trim(tag), cmd_line)
+if (.not. multi_commands_here) then
+  cmd_line = ' '
+  tag = trim(s%global%prompt_string) // '> ' // achar(0)
+  call read_line (trim(tag), cmd_line)
+endif
 call alias_translate (cmd_line, err)
+call check_for_multi_commands
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -122,6 +141,27 @@ do i = 1, tao_com%n_alias
   return
 
 enddo
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+! contains
+
+subroutine check_for_multi_commands
+
+  integer ix
+
+  if (cmd_line(1:5) == 'alias') return
+
+  ix = index (cmd_line, '|')
+  if (ix /= 0) then
+    multi_commands_here = .true.
+    saved_line = cmd_line(ix+1:)
+    cmd_line = cmd_line(:ix-1)
+  else
+    saved_line = ' '
+  endif
 
 end subroutine
 

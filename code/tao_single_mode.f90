@@ -55,8 +55,7 @@ subroutine tao_single_mode (char)
   select case (char)
 
   case ('?')
-    call fullfilename ('TAO_DIR:doc/tao_single_mode.doc', this_file)
-    call type_this_file (this_file)
+    call tao_help ('keys')
 
 ! z: Quit single character input mode.
 

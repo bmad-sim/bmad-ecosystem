@@ -175,10 +175,12 @@ integer icol, ix_var, ixv
 
 character(80) str
 
-!
-
+! Each graph is a separate lattice layout (presumably for different universes). 
 
 do ig = 1, size(plot%graph)
+
+  ! setup the placement of the graph on the plot page.
+
   graph => plot%graph(ig)
   call qp_set_layout (x_axis = plot%x, margin = graph%margin)
   isu = graph%ix_universe
@@ -188,6 +190,9 @@ do ig = 1, size(plot%graph)
   call qp_set_layout (box = graph_box, margin = graph%margin)
   call qp_set_axis ('Y', -70.0_rp, 30.0_rp, 1, 0)
   
+  ! loop over all elements in the lattice. Only draw those element that
+  ! are within bounds.
+
   do i = 1, lat%n_ele_max
 
     ele => lat%ele_(i)
@@ -198,11 +203,16 @@ do ig = 1, size(plot%graph)
     if (x1 > plot%x%max) cycle
     if (x2 < plot%x%min) cycle
 
+    ! Only those elements with ele%ix_pointer > 0 are to be drawn.
+    ! All others have the zero line drawn through them.
+
     j = ele%ix_pointer
     if (j < 1) then
       call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
       cycle
     endif
+
+    ! Here if element is to be drawn...
 
     call qp_translate_to_color_index (s%plot_page%ele_shape(j)%color, icol)
 
@@ -231,11 +241,12 @@ do ig = 1, size(plot%graph)
 
   enddo
 
-!
+  ! This is for drawing the key numbers under the appropriate elements
 
   if (s%global%label_keys) then
     do k = s%global%ix_key_bank+1, s%global%ix_key_bank+10
       ix_var = s%key(k)%ix_var
+      if (ix_var < 1) cycle
       do ixv = 1, size(s%var(ix_var)%this)
         if (s%var(ix_var)%this(ixv)%ix_uni /= isu) cycle
         ix = s%var(ix_var)%this(ixv)%ix_ele

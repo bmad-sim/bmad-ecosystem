@@ -34,11 +34,11 @@ logical blank_line_before
 
 if (s%global%single_mode) then
   call fullfilename ('TAO_DIR:doc/single_mode.tex', file_name)
-  start_tag = '%% keys'
 else
   call fullfilename ('TAO_DIR:doc/command_list.tex', file_name)
-  start_tag = '%% ' // help_what
 endif
+
+  start_tag = '%% ' // help_what
 
 ! Open the file 
 

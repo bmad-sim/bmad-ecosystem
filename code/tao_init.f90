@@ -16,11 +16,11 @@ subroutine tao_init (init_file)
 
   character(*) init_file
   character(200) lattice_file, plot_file, data_and_var_file, file_name
-  character(200) single_mode_file
+  character(200) single_mode_file, startup_file
   character(20) :: r_name = 'tao_init'
   integer i, n_universes, iu
 
-  namelist / tao_start / lattice_file, &
+  namelist / tao_start / lattice_file, startup_file, &
                data_and_var_file, plot_file, n_universes
 
 ! Find namelist files
@@ -29,6 +29,7 @@ subroutine tao_init (init_file)
   plot_file = ' '         ! set default
   data_and_var_file = ' ' ! set default
   single_mode_file = ' '
+  startup_file = 'tao.startup'
   n_universes = 1         ! set default
   call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
   read (iu, nml = tao_start)
@@ -63,5 +64,13 @@ subroutine tao_init (init_file)
   if (s%global%plot_on) call tao_init_plotting (plot_file)
   call tao_plot_data_setup ()  ! transfer data to the plotting structures
   call tao_plot_out ()         ! Update the plotting window
+
+! Look for a startup file
+
+  call tao_open_file ('TAO_INIT_DIR', startup_file, iu, file_name)
+  if (iu /= 0) then
+    call out_io (s_blank$, r_name, 'Using startup file: ' // file_name)
+    call tao_call_cmd (file_name)
+  endif
 
 end subroutine tao_init

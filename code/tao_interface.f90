@@ -27,7 +27,7 @@ interface
   subroutine tao_call_cmd (file_name, cmd_arg)
     implicit none
     character(*) :: file_name
-    character(*) :: cmd_arg(:)
+    character(*), optional :: cmd_arg(:)
   end subroutine
 end interface
  
@@ -105,7 +105,8 @@ end interface
 interface
   subroutine tao_hook_load_data_array (found, datum, lattice, orb, datum_value)
     use tao_struct, only: tao_data_struct
-    use bmad_struct, only: ring_struct, coord_struct, rp
+    use bmad_struct, only: ring_struct, coord_struct
+    use precision_def, only: rp
     implicit none
     type (tao_data_struct) datum
     type (ring_struct) lattice

@@ -420,7 +420,7 @@ type (tao_d1_data_struct), pointer :: d1_pointer
 
 character(*)                                :: data_type
 character(*), optional                      :: data_number
-character(20) :: r_name = 'TAO_FIND_DATA'
+character(20) :: r_name = 'tao_find_data'
 character(16) name, d2_name, d1_name
 
 integer :: data_num, ios

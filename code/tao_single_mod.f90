@@ -225,7 +225,7 @@ do i = 1, nl
   if (iunit == 0) then
     call out_io (s_blank$, r_name, line(i))
   else
-    write (iunit, *) line(i)
+    write (iunit, *) trim(line(i))
   endif
 enddo
 
