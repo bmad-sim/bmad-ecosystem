@@ -43,7 +43,7 @@ module bmad_struct
 
   integer, parameter :: n_attrib_maxx = 34
 
-  integer, parameter :: n_ele_maxx = 2200
+  integer, parameter :: n_ele_maxx = 15000
   integer, parameter :: n_control_maxx = 5000
 
 ! structure for a particle's coordinates
