@@ -8,7 +8,7 @@ module ptc_interface_mod
   use multipole_mod
 
   use mad_like, only: kill, set_up, real_8, layout, fibre, &
-        universal_taylor, dp, ptc_track => track
+        universal_taylor, dp, ptc_track => track, append, ring_l
 
   interface assignment (=)
     module procedure real_8_equal_taylor
@@ -193,8 +193,6 @@ end subroutine
 
 subroutine ring_to_layout (ring, ptc_layout)
 
-  use s_fibre_bundle, only: append, ring_l
-
   implicit none
 
   type (ring_struct), intent(in) :: ring
@@ -307,7 +305,8 @@ end subroutine
 
 function kind_name (this_kind)
 
-  use s_status
+  use s_status, only: kind0, kind1, kind2, kind3, kind4, kind5, kind6, kind7, &
+        kind8, kind9, kind10, kindfitted, kinduser1, kinduser2
 
   implicit none
 
@@ -1789,8 +1788,12 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
     if (ele%value(hkick$) /= 0 .or. ele%value(vkick$) /= 0) then
       cos_t = cos(ele%value(tilt$))
       sin_t = sin(ele%value(tilt$))
-      hk =  ele%value(hkick$) / len
-      vk =  ele%value(hkick$) / len
+      hk = ele%value(hkick$) / len
+      vk = ele%value(vkick$) / len
+      if (param%particle < 0) then
+        hk = -hk
+        vk = -vk
+      endif
       el%k(1)  = -hk * cos_t - vk * sin_t
       el%ks(1) = -hk * sin_t + vk * cos_t
     endif
