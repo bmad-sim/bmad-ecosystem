@@ -655,7 +655,7 @@ end subroutine
 !     delta_e$ = gradient$ * L$ 
 !
 ! RFCAVITY:   
-!     rf_wavelength$ = param%total_length / harmon$
+!     rf_frequency$ = harmon$ * c_light / param%total_length (only if harmon$ /= 0)
 !
 ! SBEND:      
 !     angle$   = L$ * G$
@@ -780,8 +780,8 @@ subroutine attribute_bookkeeper (ele, param)
 ! RFcavity
 
   case (rfcavity$)
-    if (ele%value(harmon$) /= 0) ele%value(rf_wavelength$) =  &
-                                   param%total_length / ele%value(harmon$)
+    if (ele%value(harmon$) /= 0) ele%value(rf_frequency$) =  &
+                                ele%value(harmon$) * c_light / param%total_length 
 
 ! BeamBeam
 

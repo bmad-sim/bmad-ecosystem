@@ -84,7 +84,7 @@ contains
 !   beam -- Beam_struct: Beam at end of element ix2.
 !-
 
-subroutine track_all_beam (ring, beam, ix1, ix2)
+subroutine track_beam (ring, beam, ix1, ix2)
 
   implicit none
 

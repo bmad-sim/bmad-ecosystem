@@ -475,15 +475,15 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       phase = 0
       k = 0
     else
-      if (ele%value(RF_wavelength$) == 0) then
+      if (ele%value(RF_frequency$) == 0) then
         print *, 'ERROR IN MAKE_MAT6_BMAD: ', &
-                   '"RF_WAVELENGTH" ATTRIBUTE NOT SET FOR RF: ', trim(ele%name)
+                   '"RF_FREQUENCY" ATTRIBUTE NOT SET FOR RF: ', trim(ele%name)
         print *, '      YOU NEED TO SET THIS OR THE "HARMON" ATTRIBUTE.'
         call err_exit
       endif
-      phase = twopi * (ele%value(phi0$) + c0%vec(5) / ele%value(rf_wavelength$))
-      k  =  twopi * ele%value(voltage$) * cos(phase) / &
-                              (param%beam_energy * ele%value(rf_wavelength$))
+      factor = twopi * ele%value(rf_frequency$) / c_light
+      phase = twopi * ele%value(phi0$) + factor * c0%vec(5) 
+      k  =  factor * ele%value(voltage$) * cos(phase) / param%beam_energy
     endif
 
     px = c0%vec(2)

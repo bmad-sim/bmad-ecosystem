@@ -102,7 +102,7 @@ subroutine check_attrib_free (ele, ix_attrib, ring, err_flag, err_print_flag)
   case (sbend$)
     if (any(ix_attrib == (/ angle$, l_chord$, rho$ /))) err_flag = .true.
   case (rfcavity$)
-    if (ix_attrib == rf_wavelength$) err_flag = .true.
+    if (ix_attrib == rf_frequency$ .and. ele%value(harmon$) /= 0) err_flag = .true.
   case (beambeam$)
     if (ix_attrib == bbi_const$) err_flag = .true.
   case (wiggler$)

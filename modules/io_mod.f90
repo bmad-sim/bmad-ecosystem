@@ -222,8 +222,6 @@ subroutine write_bmad_lattice_file (lattice_name, ring)
       case (lcavity$)
         if (j == e_loss$) cycle
         if (j == delta_e$) cycle
-      case (rfcavity$)
-        if (j == rf_wavelength$) cycle
       case (wiggler$)
         if (j == k1$) cycle
         if (j == rho$) cycle

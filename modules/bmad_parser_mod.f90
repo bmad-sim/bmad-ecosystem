@@ -567,10 +567,7 @@ subroutine get_attribute (how, ele, ring, pring, &
     if (err_flag) return
 
     if (i >= a0$) then  ! multipole attribute
-        if (.not. associated(ele%a)) then
-          allocate (ele%a(0:n_pole_maxx), ele%b(0:n_pole_maxx))
-          ele%a = 0;  ele%b = 0
-        endif
+        if (.not. associated(ele%a)) call multipole_init (ele)
         if (i >= b0$) then
           ele%b(i-b0$) = value
         else

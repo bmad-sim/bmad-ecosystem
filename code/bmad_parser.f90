@@ -25,6 +25,8 @@
 !     %ele_(:)%s     -- This is also computed.
 !   digested_read_ok -- Logical, optional: Set True if the digested file was
 !                        successfully read. False otherwise.
+!   bmad_status      -- Bmad status common block.
+!     %ok              -- Set True if parsing is successful. False otherwise.
 !         
 ! Defaults:
 !   ring%param%particle          = positron$
@@ -847,8 +849,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
          ('BOTH "BEAM, ENERGY" AND "PARAMETER[BEAM_ENERGY]" CONSTRUCTS USED!')
   endif
 
-!************************************************************************
-! add call to allocate_ring_ele_ here
+! Set taylor order and lattice_type
 
   if (ring%input_taylor_order /= 0) &
        call set_taylor_order (ring%input_taylor_order, .false.)

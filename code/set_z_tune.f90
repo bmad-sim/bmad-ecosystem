@@ -1,7 +1,7 @@
 !+
 ! Subroutine set_z_tune (ring)
 !
-! Subroutine to set the longitudinal tune by setting the RF voltages
+! Subroutine to set the longitudinal tune by scalling the RF voltages
 ! in the RF cavities.
 !
 ! Modules Needed:
@@ -17,10 +17,7 @@
 !
 ! Notes: 
 !   1) The calculation assumes that Q_z << 1.
-!   2) If the RF wavelength has not been set (needed for the voltage) then
-!      the RF harmonic number is set to 1 and the wavelength set to the ring 
-!      circumference.
-!   3) By convention a positive tune signifies a clockwise rotation 
+!   2) By convention a positive tune signifies a clockwise rotation 
 !      in phase space so that the transverse tunes are positive. This means 
 !      the longitudinal tune is negative above transition.
 !-
@@ -44,7 +41,7 @@ subroutine set_z_tune (ring)
 
   integer i, j, k, ix, n_rf, ix_rf(100), ix_attrib(100)
 
-  logical found_control
+  logical found_control, rf_is_on
 
 ! Error detec and init.
 
@@ -67,6 +64,7 @@ subroutine set_z_tune (ring)
 
   n_rf = 0
   coef_tot = 0
+  rf_is_on = .false.
 
   do i = 1, ring%n_ele_max
 
@@ -81,18 +79,12 @@ subroutine set_z_tune (ring)
         if (ring%control_(ix)%ix_attrib == voltage$) cycle
       enddo
 
-      if (ele%value(rf_wavelength$) == 0) then
-        print *, 'ERROR IN SET_Z_TUNE: RF_WAVELENGTH  ATTRIBUTE NOT SET'
-        print *, '      FOR: ', ele%name
-        print *, '      WILL SET RF_WAVELENGTH FOR HAMONIC NUMBER = 1'
-        ele%value(harmon$) = 1
-        ele%value(rf_wavelength$) = ring%param%total_length
-      endif
+      if (ele%value(rf_frequency$) /= 0) rf_is_on = .true.
 
       n_rf = n_rf + 1
       ix_rf(n_rf) = i
-      coef_tot = coef_tot + twopi * cos(twopi*ele%value(phi0$)) / &
-                                          (E0 * ele%value(rf_wavelength$))
+      coef_tot = coef_tot + twopi * cos(twopi*ele%value(phi0$)) * &
+                                ele%value(rf_frequency$) / (c_light * E0)
       ix_attrib(n_rf) = voltage$
 
     endif
@@ -106,8 +98,8 @@ subroutine set_z_tune (ring)
           if (.not. found_control) n_rf = n_rf + 1
           found_control = .true.
           coef_tot = coef_tot + ring%control_(j)%coef * twopi * &
-                   cos(twopi*ring%ele_(ix)%value(phi0$)) / &
-                   (E0 * ring%ele_(ix)%value(rf_wavelength$))
+                   cos(twopi*ring%ele_(ix)%value(phi0$)) * &
+                   ring%ele_(ix)%value(rf_frequency$) / (c_light * E0)
           k = ele%ix_value
           ix_attrib(n_rf) = k
         else
@@ -120,6 +112,16 @@ subroutine set_z_tune (ring)
     endif
 
   enddo
+
+!
+
+  if (.not. rf_is_on) then
+    print *, 'ERROR IN SET_Z_TUNE: RF_FREQUENCY ATTRIBUTE NOT SET'
+    print *, '      FOR ANY RF CAVITIES.'
+    print *, '      Z TUNE WILL NOT BE SET.'
+    return
+  endif
+
 
 ! If the voltage is near zero then start from scratch.
 ! This is only approximate.

@@ -48,7 +48,7 @@ subroutine track1_bmad (start, ele, param, end)
   real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
   real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
   real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
-  real(rp) ave_x_vel2, ave_y_vel2, dE_E, dE
+  real(rp) ave_x_vel2, ave_y_vel2, dE_E, dE, ff
   real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio
   real(rp) alpha, sin_a, cos_a, f, z_ave, r11, r12, r21, r22
   real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2
@@ -241,15 +241,15 @@ subroutine track1_bmad (start, ele, param, end)
       phase = 0
       k = 0
     else
-      if (ele%value(RF_wavelength$) == 0) then
+      if (ele%value(RF_frequency$) == 0) then
         print *, 'ERROR IN TRACK1_BMAD: ', &
-                   '"RF_WAVELENGTH" ATTRIBUTE NOT SET FOR RF: ', trim(ele%name)
+                   '"RF_FREQUENCY" ATTRIBUTE NOT SET FOR RF: ', trim(ele%name)
         print *, '      YOU NEED TO SET THIS OR THE "HARMON" ATTRIBUTE.'
         call err_exit
       endif
-      phase = twopi * (ele%value(phi0$) + z / ele%value(rf_wavelength$))
-      k  =  twopi * ele%value(voltage$) * cos(phase) / &
-                              (param%beam_energy * ele%value(rf_wavelength$))
+      ff = twopi * ele%value(rf_frequency$) / c_light
+      phase = twopi * ele%value(phi0$) + ff * z
+      k  =  ff * ele%value(voltage$) * cos(phase) / param%beam_energy
     endif
 
     dE0 =  ele%value(voltage$) * sin(phase) / param%beam_energy

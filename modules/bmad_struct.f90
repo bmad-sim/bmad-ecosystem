@@ -306,8 +306,8 @@ module bmad_struct
   integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14
   integer, parameter :: roll$=15
   integer, parameter :: l_original$ = 16
-  integer, parameter :: l_start$=17
-  integer, parameter :: l_end$=18
+  integer, parameter :: l_start$=17, h1$=17
+  integer, parameter :: l_end$=18, h2$=18
   integer, parameter :: x_pitch$=19
   integer, parameter :: y_pitch$=20
   integer, parameter :: hkick$=21

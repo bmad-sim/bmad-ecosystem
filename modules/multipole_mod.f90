@@ -390,4 +390,35 @@ subroutine multipole_kick (knl, tilt, n, coord)
 
 end subroutine
 
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine multipole_init (ele)
+! 
+! Subroutine to initialize the multipole arrays within an element.
+!
+! Modules needed:
+!   use bmad
+!
+! Output:
+!   ele -- Ele_struct: Element with multipoles initialized.
+!     %a -- multipole array initialized to size (0:n_pole_maxx).
+!     %b -- multipole array initialized to size (0:n_pole_maxx).
+!-
+
+subroutine multipole_init (ele)
+
+  implicit none
+
+  type (ele_struct) ele
+
+!
+
+  if (associated (ele%a)) deallocate (ele%a, ele%b)
+  allocate (ele%a(0:n_pole_maxx), ele%b(0:n_pole_maxx))
+  ele%a = 0;  ele%b = 0
+
+end subroutine
+
 end module
