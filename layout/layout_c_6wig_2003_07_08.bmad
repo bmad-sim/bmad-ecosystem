@@ -460,6 +460,7 @@ SC_SK_Q01E: QUADRUPOLE, L =  0.680000, SUPERIMPOSE, REF = SC_Q01E, &
         TYPE = "SCIR SKQUCUR   4" 
 DET_00E: MARKER, ALIAS = "0E" 
 Q00E: QUADRUPOLE, L =  0.184000 
+IP_L0_END: MARKER 
  
  ! Drifts
 d001: drift, l =   0.429000
@@ -1001,7 +1002,7 @@ cesr: line = (IP_L0, d001, Q00W, d002, DET_00W, d003, SC_Q01W, d004, &
  d430, Q03E, d431, DET_03E, d432, B03AE, d433, B03E, d434, SK_Q03E, &
  d435, SK_Q02E, d436, DET_02E, d437, HVKICK_01E, d438, DET_01E, d439, &
  SK_SEX_02E, d440, SC_Q02E, d441, SC_Q01E, d442, DET_00E, d443, Q00E, &
- d444)                                                           
+ d444, IP_L0_END)                                                           
  
  ! steering overlays
  
