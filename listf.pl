@@ -62,15 +62,15 @@ sub searchit {
     open (F_IN, $file) || die ("Cannot open File: $_");
     while (<F_IN>) {
 
-      if (/^ *interface$/i || /^ *interface /i) {   # skip interface blocks
+      if (/^ *interface$/i) {   # skip interface blocks
         while (<F_IN>) {
-          if (/^ * end interface/i) {last;}
+          if (/^ *end interface/i) {last;}
         }
       }
 
       if (/^ *subroutine /i || /^ *recursive subroutine /i || 
             /^ *function /i || /^ *type /i || /^ *elemental subroutine /i ||
-            /^ *real\(rp\) *function /i) {
+            /^ *real\(rp\) *function /i || /^ *interface /i) {
         $name = $';              # strip off "subroutine
         $name =~ s/\(.*//;       # strip off "(..."
         if ($name =~ /^\s*$str\s*$/) {
