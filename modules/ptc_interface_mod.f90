@@ -293,57 +293,6 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
-!+ 
-! Subroutine energy_to_kinetic (energy, particle, 
-!                                           gamma, kinetic, beta, p0c, brho)
-!
-! Subroutine to calculate the kinetic energy, etc. from a particle's energy.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   energy   -- Real(rdef): Energy of the particle.
-!   particle -- Integer: Type of particle. positron$, etc.
-!
-! Output:
-!   gamma   -- Real(rdef), optional: Gamma factor.
-!   kinetic -- Real(rdef), optional: Kinetic energy
-!   beta    -- Real(rdef), optional: velocity / c_light
-!   p0c     -- Real(rdef), optional: Particle momentum
-!   brho    -- Real(rdef), optional: Nominal B_field*rho_bend
-!-
-
-subroutine energy_to_kinetic (energy, particle, gamma, kinetic, beta, p0c, brho)
-
-  implicit none
-
-  real(rdef), intent(in) :: energy
-  real(rdef), intent(out), optional :: kinetic, beta, p0c, brho, gamma
-  real(rdef) p0c_, mc2
-
-  integer, intent(in) :: particle
-
-!
-
-  if (particle == positron$ .or. particle == electron$) then
-    mc2 = m_electron
-  else
-    mc2 = m_proton
-  endif
-
-  p0c_ = sqrt(energy**2 - mc2**2)
-  if (present(p0c))     p0c     = sqrt(energy**2 - mc2**2)
-  if (present(beta))    beta    = p0c_ / energy  
-  if (present(kinetic)) kinetic = energy - mc2
-  if (present(brho))    brho    = p0c_ / c_light
-  if (present(gamma))   gamma   = energy / mc2
-
-end subroutine
-
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
 !+
 ! function kind_name (this_kind)
 !

@@ -19,27 +19,6 @@
 !     ix_super -- Integer: Index where element is put
 !-
 
-!$Id$
-!$Log$
-!Revision 1.8  2003/05/02 15:43:57  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.7  2003/03/18 20:36:08  dcs
-!modification for non-zero ring%ele_(0)%s
-!
-!Revision 1.6  2003/01/27 14:40:29  dcs
-!bmad_version = 56
-!
-!Revision 1.4  2002/02/23 20:32:09  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/08 21:44:35  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.2  2001/09/27 18:31:47  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 subroutine add_superimpose (ring, super_ele, ix_super)
@@ -214,7 +193,9 @@ subroutine add_superimpose (ring, super_ele, ix_super)
 
     ix_super_con = ix_super_con + 1
     sup_con(ix_super_con)%ix_slave = ix_slave
-    sup_con(ix_super_con)%coef = ring%ele_(ixn)%value(l$) / length
+    sup_con(ix_super_con)%ix_lord = ix_super
+    sup_con(ix_super_con)%coef = slave_ele%value(l$) / length
+    sup_con(ix_super_con)%ix_attrib = 0
 
 ! change the element key
 
@@ -249,7 +230,6 @@ subroutine add_superimpose (ring, super_ele, ix_super)
 
   do k = 1, ix_super_con
     ring%control_(k+ixc-1) = sup_con(k)
-    ring%control_(k+ixc-1)%ix_lord = ix_super
     ix_slave = ring%control_(k+ixc-1)%ix_slave
     i2 = ring%ele_(ix_slave)%ic2_lord
     ring%ic_(i2) = k+ixc-1

@@ -2,168 +2,60 @@
 
 module bmad_utils_mod
 
-  use dcslib
-  use precision_def
-
-  integer, parameter :: n_pole_maxx = 20  ! maximum multipole order
+  use bmad_struct
+  use bmad_interface
 
 contains
 
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-!+
-! Function field_interpolate_3d (position, field_mesh, deltas, position0)
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+ 
+! Subroutine energy_to_kinetic (energy, particle, 
+!                                           gamma, kinetic, beta, p0c, brho)
 !
-! Function to interpolate a 3d field.
-! The interpolation is such that the derivative is continuous.
-!
-! Note: For "interpolation" outside of the region covered by the field_mesh
-! it is assumed that the field is constant, Equal to the field at the
-! boundary.
+! Subroutine to calculate the kinetic energy, etc. from a particle's energy.
 !
 ! Modules needed:
+!   use bmad
 !
 ! Input:
-!   position(3)       -- Real(rdef): (x, y, z) position.
-!   field_mesh(:,:,:) -- Real(rdef): Grid of field points.
-!   deltas(3)         -- Real(rdef): (dx, dy, dz) distances between mesh points.
-!   position0(3)      -- Real(rdef), optional:  position at (ix0, iy0, iz0) where
-!                            (ix0, iy0, iz0) is the lower bound of the
-!                            filed_mesh(i, j, k) array. If not present then
-!                            position0 is taken to be (0.0, 0.0, 0.0)
+!   energy   -- Real(rp): Energy of the particle.
+!   particle -- Integer: Type of particle. positron$, etc.
+!
 ! Output:
-!   field_interpolate_3d -- Real(rdef): interpolated field.
+!   gamma   -- Real(rp), optional: Gamma factor.
+!   kinetic -- Real(rp), optional: Kinetic energy
+!   beta    -- Real(rp), optional: velocity / c_light
+!   p0c     -- Real(rp), optional: Particle momentum
+!   brho    -- Real(rp), optional: Nominal B_field*rho_bend
 !-
 
-real(rdef) function field_interpolate_3d &
-                             (position, field_mesh, deltas, position0)
+subroutine energy_to_kinetic (energy, particle, &
+                                            gamma, kinetic, beta, p0c, brho)
 
   implicit none
 
-  real(rdef), optional, intent(in) :: position0(3)
-  real(rdef), intent(in) :: position(3), field_mesh(0:,0:,0:), deltas(3)
+  real(rp), intent(in) :: energy
+  real(rp), intent(out), optional :: kinetic, beta, p0c, brho, gamma
+  real(rp) p0c_, mc2
 
-  real(rdef) r(3), f(-1:2), g(-1:2), h(-1:2), r_frac(3)
-
-  integer i0(3), ix, iy, iz, iix, iiy, iiz
+  integer, intent(in) :: particle
 
 !
 
-  if (present(position0)) then
-    r = (position - position0) / deltas
+  if (particle == positron$ .or. particle == electron$) then
+    mc2 = m_electron
   else
-    r = position / deltas
+    mc2 = m_proton
   endif
 
-  i0 = int(r)
-  r_frac = r - i0
-
-  do ix = -1, 2
-   iix = min(max(ix + i0(1), 0), ubound(field_mesh, 1))
-   do iy = -1, 2
-      iiy = min(max(iy + i0(2), 0), ubound(field_mesh, 2))
-      do iz = -1, 2
-        iiz = min(max(iz + i0(3), 0), ubound(field_mesh, 3))
-        f(iz) = field_mesh(iix, iiy, iiz)
-      enddo
-      g(iy) = interpolate_1d (r_frac(3), f)
-    enddo
-    h(ix) = interpolate_1d (r_frac(2), g)
-  enddo
-  field_interpolate_3d = interpolate_1d (r_frac(1), h)
-
-!---------------------------------------------------------------
-
-contains
-
-! interpolation in 1 dimension using 4 equally spaced points: P1, P2, P3, P4.
-!   x = interpolation point.
-!           x = 0 -> point is at P2.
-!           x = 1 -> point is at P3.
-! Interpolation is done so that the derivative is continuous.
-! The interpolation uses a cubic polynomial
-
-real function interpolate_1d (x, field_1d)
-
-  implicit none
-
-  real(rdef) x, field_1d(4), df_2, df_3
-  real(rdef) c0, c1, c2, c3
-
-!
-
-  df_2 = (field_1d(3) - field_1d(1)) / 2   ! derivative at P2
-  df_3 = (field_1d(4) - field_1d(2)) / 2   ! derivative at P3
-
-  c0 = field_1d(2)
-  c1 = df_2
-  c2 = 3 * field_1d(3) - df_3 - 3 * field_1d(2) - 2 * df_2
-  c3 = df_3 - 2 * field_1d(3) + 2 * field_1d(2) + df_2
-
-  interpolate_1d = c0 + c1 * x + c2 * x**2 + c3 * x**3
-
-end function
-
-end function
-
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-!+
-! Subroutine FitPoly(coe, x, y, order, samples)
-!
-! Subroutine to fit a polynomial, y = coe(0) + coe(1)*x + coe(2)*x^2 + ...,
-! to the input data of x and y via least squares.
-!
-! Input:
-!     x(:) -- Real(rdef): vector of sample 'x' data
-!     y(:) -- Real(rdef): vector of sample 'y' data
-!     order -- Integer: order of fitted polynomial
-!     samples -- Integer: how many 'x, y' data samples
-!
-! Output:
-!     coe(0:) -- Real(rdef): array of polynomial coefficients
-!-
-
-subroutine fitpoly(coe, x, y, order, samples)
-
-  implicit none
-
-  integer maxcoe, maxsamp
-  parameter(maxcoe=10, maxsamp=100)
-  integer order, samples, numcoe
-  real(rdef) coe(0:), x(:), y(:)
-  real(rdef) Xmat(maxsamp,maxcoe), XtX(maxcoe,maxcoe), Xty(maxcoe)
-  integer coe_index, sam_index, i, j, k
-
-  numcoe = order + 1
-
-  do sam_index = 1, samples
-   Xmat(sam_index, 1) = 1.0
-   do coe_index = 2, numcoe
-    Xmat(sam_index, coe_index) = x(sam_index) *  &
-    Xmat(sam_index, coe_index-1)
-   enddo
-  enddo
-
-  do i = 1, numcoe
-   Xty(i) = 0.0
-   do j = 1, samples
-    Xty(i) = Xty(i) + Xmat(j,i) * y(j)
-   enddo
-  enddo
-
-  do i = 1, numcoe
-   do j = 1, numcoe
-    XtX(i,j) = 0.0
-    do k = 1, samples
-     XtX(i,j) = XtX(i,j) + Xmat(k,i) * Xmat(k,j)
-    enddo
-   enddo
-  enddo
-
-  call solvlin(XtX, Xty, coe, numcoe, maxcoe)
+  p0c_ = sqrt(energy**2 - mc2**2)
+  if (present(p0c))     p0c     = sqrt(energy**2 - mc2**2)
+  if (present(beta))    beta    = p0c_ / energy  
+  if (present(kinetic)) kinetic = energy - mc2
+  if (present(brho))    brho    = p0c_ / c_light
+  if (present(gamma))   gamma   = energy / mc2
 
 end subroutine
 
@@ -171,86 +63,89 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Function c_multi (n, m)
+! Subroutine wiggler_vec_potential (ele, energy, here, vec_pot)
 !
-! Subroutine to compute multipole factors:
-!          c_multi(n, m) =  +/- ("n choose m")/n!
+! Subroutine to calculate the normalized vector potential at 
+! a point for a wiggler. The normalized potental a_norm is defined by:
+!      p_cononical = p_mv - a_norm
+! The Gauge used here is the same one as used in PTC and has A_x = 0.
+! 
+! Modules needed:
+!   use bmad
 !
 ! Input:
-!   n,m -- Integer: For n choose m
+!   ele     -- Ele_struct: wiggler element.
+!   energy  -- Real(rdef): Particle energy.
+!   here    -- Coord_struct: Coordinates for calculating the vector pot.
 !
 ! Output:
-!   c_multi  -- Real(rdef): Multipole factor
+!   vec_pot(3) -- Real(rdef): Normalized vector potential
 !-
 
-function c_multi (n, m) result (c_out)
+subroutine wiggler_vec_potential (ele, energy, here, vec_pot)
 
   implicit none
 
-  integer, intent(in) :: n, m
-  integer in, im
+  type (ele_struct), target, intent(in) :: ele
+  type (coord_struct), intent(in) :: here
+  real(rdef), intent(in) :: energy
+  real(rdef), intent(out) :: vec_pot(3)
 
-  real(rdef) c_out, factorial_n
-  real(rdef), save :: c(0:n_pole_maxx, 0:n_pole_maxx)
+  type (wig_term_struct), pointer :: t
 
-  logical, save :: init_needed = .true.
+  real(rdef) c_x, s_x, c_y, s_y, c_z, s_z
+  real(rdef) x, y, s, coef
 
-! The magnitude of c(n, m) is number of combinations normalized by n!
+  integer i
 
-  if (init_needed) then
+!
 
-    c(0, 0) = 1
-
-    do in = 1, n_pole_maxx
-      c(in, 0) = 1
-      c(in, in) = 1
-      do im = 1, in-1
-        c(in, im) = c(in-1, im-1) + c(in-1, im)
-      enddo
-    enddo
-
-    factorial_n = 1
-
-    do in = 0, n_pole_maxx
-      if (in > 0) factorial_n = in * factorial_n
-      do im = 0, in
-        c(in, im) = c(in, im) / factorial_n
-        if (mod(im, 4) == 0) c(in, im) = -c(in, im)
-        if (mod(im, 4) == 3) c(in, im) = -c(in, im)
-      enddo
-    enddo
-
-    init_needed = .false.
-
+  if (ele%key /= wiggler$) then
+    print *, 'ERROR IN WIGGLER_VEC_POTENTIAL. ELEMENT NOT A WIGGLER: ', &
+                                                                 ele%name
+    call err_exit
   endif
 
 !
 
-  c_out = c(n, m)
+  x = here%x%pos
+  y = here%y%pos
+  s = here%z%pos
 
-end function
+  vec_pot = 0
 
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
+  do i = 1, size(ele%wig_term)
+    t => ele%wig_term(i)
 
-function mexp (x, m)
+      if (t%type == hyper_y$) then
+        c_x = cos(t%kx * x)
+        s_x = sin(t%kx * x)
+      elseif (t%type == hyper_x$ .or. t%type == hyper_xy$) then
+        c_x = cosh(t%kx * x)
+        s_x = sinh(t%kx * x)
+      else
+        print *, 'ERROR IN WIGGLER_VEC_POTENTIAL: UNKNOWN TERM TYPE!'
+        call err_exit
+      endif
 
-  implicit none
+      if (t%type == hyper_y$ .or. t%type == hyper_xy$) then
+        c_y = cosh (t%ky * y)
+        s_y = sinh (t%ky * y)
+      else
+        c_y = cos (t%ky * y)
+        s_y = sin (t%ky * y)
+      endif
 
-  real(rdef) x, mexp
-  integer m
+      c_z = cos (t%kz * s + t%phi_z)
+      s_z = sin (t%kz * s + t%phi_z)
 
-!
+      coef = ele%value(polarity$) * t%coef
 
-  if (m < 0) then
-    mexp = 0
-  elseif (m == 0) then
-    mexp = 1
-  else
-    mexp = x**m
-  endif
+      vec_pot(2) = vec_pot(2) - coef  * (t%kz / (t%kx * t%ky)) * s_x * s_y * s_z
+      vec_pot(3) = vec_pot(3) - coef  * (1 / t%kx)             * s_x * c_y * c_z
+    enddo
 
-end function
+
+end subroutine
 
 end module

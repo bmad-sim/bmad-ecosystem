@@ -2,66 +2,12 @@
 ! This file defines the interfaces for the BMAD subroutines
 !-
 
-!$Id$
-!$Log$
-!Revision 1.22  2003/03/04 16:03:40  dcs
-!VMS port
-!
-!Revision 1.21  2003/02/12 18:15:57  dcs
-!Added pointer to pointer_to_attrubute
-!
-!Revision 1.20  2003/01/27 14:41:00  dcs
-!bmad_version = 56
-!
-!Revision 1.19  2003/01/04 00:45:05  dcs
-!recursive modifications for update_hybrid_list and control_bookkeeper.
-!
-!Revision 1.18  2002/11/26 05:19:43  dcs
-!Modified for BEGINNING floor position entry.
-!
-!Revision 1.17  2002/11/16 16:14:17  dcs
-!overlay/group change and make_mat6 bug fix
-!
-!Revision 1.15  2002/11/06 06:49:40  dcs
-!modified arrays in some arg lists.
-!
-!Revision 1.13  2002/08/23 20:20:23  dcs
-!Modified for VMS port
-!
-!Revision 1.12  2002/08/20 20:35:06  dcs
-!symp_lie_bmad / symp_lie_ptc added
-!
-!Revision 1.11  2002/07/26 15:19:44  dcs
-!New subroutines
-!
-!Revision 1.10  2002/07/25 19:58:10  dcs
-!New subroutines added
-!
-!Revision 1.7  2002/06/13 14:54:59  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.6  2002/02/23 20:32:31  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.5  2002/01/08 21:45:22  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.4  2001/11/29 19:40:11  helms
-!Updates from DCS including (*) -> (:)
-!
-!Revision 1.3  2001/10/12 20:53:50  rwh24
-!DCS changes
-!
-!Revision 1.2  2001/09/27 18:32:13  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 module bmad_interface
 
   use matrix_mod
-  use bmad_utils_mod
+  use bmad_basic_mod
   use equal_mod
 
 !---------------------------------------------------------
@@ -83,15 +29,6 @@ module bmad_interface
     end subroutine
   end interface
 
-  interface
-    subroutine attribute_bookkeeper (ele, param)
-      use bmad_struct
-      implicit none
-      type (ele_struct) ele
-      type (param_struct) param
-    end subroutine
-  end interface
- 
   interface
     function attribute_index (ele, name)
       use bmad_struct
@@ -117,7 +54,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       character*(*) in_file
-      type (ring_struct) ring
+      type (ring_struct), target :: ring
       logical, optional :: make_mats6
     end subroutine
   end interface
@@ -127,7 +64,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       character*(*) in_file
-      type (ring_struct) ring
+      type (ring_struct), target :: ring
       type (coord_struct), optional :: orbit_(0:)
       logical, optional :: make_mats6
     end subroutine
@@ -270,15 +207,6 @@ module bmad_interface
       implicit none
       type (ring_struct), target :: ring
       logical ok
-    end subroutine
-  end interface
-
-  interface
-    subroutine control_bookkeeper (ring, ix_ele)
-      use bmad_struct
-      implicit none
-      type (ring_struct) ring
-      integer ix_ele
     end subroutine
   end interface
 
@@ -530,8 +458,8 @@ module bmad_interface
                                              r_out, ix_out, use_taylor, orb0_)
       use bmad_struct
       implicit none
-      type (ring_struct) r_in
-      type (ring_struct) r_out
+      type (ring_struct), target :: r_in
+      type (ring_struct), target :: r_out
       integer ix_out(:)
       logical remove_markers
       logical use_ele(:)
@@ -567,7 +495,7 @@ module bmad_interface
     subroutine make_mat6_custom (ele, param, start, end)
       use bmad_struct
       implicit none
-      type (ele_struct) ele
+      type (ele_struct), target :: ele
       type (coord_struct) :: start, end
       type (param_struct) param
     end subroutine
@@ -577,7 +505,7 @@ module bmad_interface
     subroutine make_mat6_taylor (ele, param, start, end)
       use bmad_struct
       implicit none
-      type (ele_struct) ele
+      type (ele_struct), target :: ele
       type (coord_struct) :: start, end
       type (param_struct) param
     end subroutine
@@ -587,7 +515,7 @@ module bmad_interface
     subroutine make_mat6_bmad (ele, param, start, end)
       use bmad_struct
       implicit none
-      type (ele_struct) ele
+      type (ele_struct), target :: ele
       type (coord_struct) :: start, end
       type (param_struct) param
     end subroutine
@@ -597,7 +525,7 @@ module bmad_interface
     subroutine make_mat6_runge_kutta (ele, param, start, end)
       use bmad_struct
       implicit none
-      type (ele_struct) ele
+      type (ele_struct), target :: ele
       type (coord_struct) :: start, end
       type (param_struct) param
     end subroutine
@@ -607,7 +535,7 @@ module bmad_interface
     subroutine make_mat6_symp_lie_ptc (ele, param, start, end)
       use bmad_struct
       implicit none
-      type (ele_struct) ele
+      type (ele_struct), target :: ele
       type (coord_struct) :: start, end
       type (param_struct) param
     end subroutine
@@ -617,7 +545,7 @@ module bmad_interface
     subroutine make_mat6_tracking (ele, param, start, end)
       use bmad_struct
       implicit none
-      type (ele_struct) ele
+      type (ele_struct), target :: ele
       type (coord_struct) :: start, end
       type (param_struct) param
     end subroutine
@@ -853,7 +781,7 @@ module bmad_interface
     subroutine read_digested_bmad_file (in_file_name, ring, version)
       use bmad_struct
       implicit none
-      type (ring_struct), intent(out) :: ring
+      type (ring_struct), target, intent(out) :: ring
       integer version
       character*(*) in_file_name
     end subroutine
@@ -980,7 +908,7 @@ module bmad_interface
     subroutine split_ring (ring, s_split, ix_split, split_done)
       use bmad_struct
       implicit none
-      type (ring_struct) ring
+      type (ring_struct), target :: ring
       real(rdef) s_split
       integer ix_split
       logical split_done
@@ -993,7 +921,7 @@ module bmad_interface
       implicit none
       type (coord_struct) :: start
       type (coord_struct) :: end
-      type (ele_struct) :: ele
+      type (ele_struct), target :: ele
       type (param_struct) :: param
       logical make_mat6
     end subroutine
@@ -1081,8 +1009,8 @@ module bmad_interface
       implicit none
       type (coord_struct), intent(in) :: start
       type (coord_struct), intent(out) :: end
-      type (ele_struct), intent(inout) :: ele
-      type (param_struct), intent(inout) :: param
+      type (ele_struct), target, intent(inout) :: ele
+      type (param_struct), target, intent(inout) :: param
     end subroutine
   end interface
 
@@ -1318,7 +1246,7 @@ module bmad_interface
                             twiss_type, type_control, lines, n_lines, ring)
       use bmad_struct
       implicit none
-      type (ele_struct), intent(in) :: ele
+      type (ele_struct), target, intent(in) :: ele
       type (ring_struct), optional, intent(in) :: ring
       integer, intent(in) :: type_mat6
       integer, intent(out) :: n_lines
@@ -1345,7 +1273,7 @@ module bmad_interface
                                                       n_files, file_names)
       use bmad_struct
       implicit none
-      type (ring_struct), intent(in) :: ring
+      type (ring_struct), target, intent(in) :: ring
       integer n_files
       character(*) digested_name
       character(*), optional :: file_names(:)

@@ -204,6 +204,7 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
   endif
   close (d_unit)
   bmad_status%ok = .false.
+  version = -1
   return
 
 9100  continue

@@ -4,7 +4,7 @@ module matrix_mod
 
   use precision_def
   use dcslib
-  use bmad_utils_mod
+  use bmad_basic_mod
 
   integer, parameter :: ok$              = 1
   integer, parameter :: in_stop_band$    = 2

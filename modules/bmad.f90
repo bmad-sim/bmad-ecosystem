@@ -8,5 +8,6 @@ module bmad
   use reverse_mod
   use dynamic_aperture_mod
   use ptc_interface_mod
+  use bookkeeper_mod
 
 end module

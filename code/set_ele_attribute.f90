@@ -21,7 +21,7 @@
 !   i_ele           -- Integer: Index of element in the ring structure
 !   attrib_name     -- Character*16: Name of attribute. Must be uppercase.
 !                       For example: "HKICK".
-!   attrib_value    -- Real(rdef): Attribute value.
+!   attrib_value    -- Real(rp): Attribute value.
 !   make_mat6_flag  -- Logical: If True then make the 6x6 transfer matrix.
 !   orbit_(0:n_ele_maxx) -- Coord_struct: [Optional] closed orbit about
 !                            which the 6x6 matrices are made.
@@ -32,44 +32,22 @@
 !   err_flag  -- Logical: Set True if there is an error. Otherwise set False.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.6  2003/03/04 16:03:29  dcs
-!VMS port
-!
-!Revision 1.5  2003/02/12 18:15:45  dcs
-!Added pointer to pointer_to_attrubute
-!
-!Revision 1.4  2003/01/27 14:40:42  dcs
-!bmad_version = 56
-!
-!Revision 1.3  2002/11/06 06:48:32  dcs
-!Changed arg array
-!
-!Revision 1.1  2002/06/13 15:07:21  dcs
-!Merged with FPP/PTC
-!
-!Revision 1.3  2002/02/23 20:32:24  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:57  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 subroutine set_ele_attribute (ring, i_ele, attrib_name, &
                                 attrib_value, err_flag, make_mat6_flag, orbit_)
 
-  use bmad
+  use bookkeeper_mod
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 
   type (ring_struct) :: ring
   type (coord_struct), optional :: orbit_(0:)
 
-  real(rdef) attrib_value
-  real(rdef), pointer :: ptr_attrib
+  real(rp) attrib_value
+  real(rp), pointer :: ptr_attrib
 
   integer i_ele
   integer i, ix, ir, ix_attrib

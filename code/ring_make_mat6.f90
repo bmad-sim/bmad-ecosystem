@@ -30,7 +30,8 @@
 recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
 
   use bmad_struct
-  use bmad_interface, only: control_bookkeeper, make_mat6
+  use bmad_interface, only: make_mat6
+  use bookkeeper_mod, only: control_bookkeeper
 
   implicit none
                                          

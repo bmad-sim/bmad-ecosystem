@@ -5,6 +5,7 @@ module bmad_parser_mod
 ! This is for bmad_parser and bmad_parser2
 
   use ptc_interface_mod
+  use bookkeeper_mod
 
 ! structure for a decleared variable
 
@@ -2219,6 +2220,7 @@ subroutine find_slaves_for_parser (ring, name_, attrib_name_, coef_, cs_out)
       k = r_indexx(k2)
       cs_(j)%coef = coef_(i)
       cs_(j)%ix_slave = k
+      cs_(j)%ix_lord = -1             ! dummy value
       name = attrib_name_(i)
       if (name == blank) then
         cs_(j)%ix_attrib = ele%ix_value

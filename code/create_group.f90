@@ -78,35 +78,6 @@
 ! length change.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.10  2003/05/02 15:43:59  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.9  2003/01/27 14:40:32  dcs
-!bmad_version = 56
-!
-!Revision 1.8  2002/10/21 16:00:11  dcs
-!*** empty log message ***
-!
-!Revision 1.7  2002/06/13 14:54:24  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.6  2002/02/23 20:32:13  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.5  2002/01/08 21:44:38  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.4  2001/11/29 19:39:53  helms
-!Updates from DCS including (*) -> (:)
-!
-!Revision 1.3  2001/11/02 19:29:58  helms
-!
-!Revision 1.2  2001/09/27 18:31:50  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 subroutine create_group (ring, ix_ele, n_control, control_)

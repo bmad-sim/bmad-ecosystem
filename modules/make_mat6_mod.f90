@@ -4,7 +4,7 @@ module make_mat6_mod
 
   use dcslib
   use physical_constants
-  use bmad_utils_mod
+  use bmad_basic_mod
 
 contains
 
