@@ -271,9 +271,8 @@ subroutine track1_bmad (start, ele, param, end)
     call z_pitch_correction
 
 !-----------------------------------------------
-! Linac rf cavity
-! Assumes the particle is ultra-relativistic.
-! This uses the formalism from:
+! LCavity: Linac rf cavity
+! Ultra-relativistic formalism from:
 !       J. Rosenzweig and L. Serafini
 !       Phys Rev E, Vol. 49, p. 1599, (1994)
 ! with b_0 = b_-1 = 1

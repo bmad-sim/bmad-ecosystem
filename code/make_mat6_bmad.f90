@@ -432,7 +432,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     f = twopi * ele%value(rf_frequency$) / c_light
     phase = twopi * ele%value(phi0$) - f * c0%vec(5)
-    mat6(6,5) = ele%value(gradient$) * ele%value(l$) * f * sin(phase)
+    mat6(6,5) = ele%value(gradient$) * ele%value(l$) * f * sin(phase) / &
+                                ele%value(beam_energy$)
 
     cos_phi = cos(phase)
     gradient = ele%value(gradient$) * cos_phi 
