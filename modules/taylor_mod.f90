@@ -530,7 +530,7 @@ subroutine taylor_to_genfield (bmad_taylor, gen_field, r0)
 
   real(rdef), intent(out) :: r0(6)
 
-  integer i, j, k0, n, nn
+  integer i, j, n, nn
 
 ! set the taylor order in PTC if not already done so
 
@@ -538,7 +538,8 @@ subroutine taylor_to_genfield (bmad_taylor, gen_field, r0)
                          call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! Remove constant terms from the taylor map first. This is probably
-! not needed but we do it to make sure everything is alright
+! not needed but we do it to make sure everything is alright.
+! Also remove terms that have higher order then bmad_com%taylor_order
 
   call alloc (gen_field)
   call alloc (da_map)
@@ -553,18 +554,18 @@ subroutine taylor_to_genfield (bmad_taylor, gen_field, r0)
 
     do j = 1, size(bmad_taylor(i)%term)
       if (all(bmad_taylor(i)%term(j)%exp == 0)) then
-        k0 = j
         n = n - 1
         r0(i) = bmad_taylor(i)%term(j)%coef
-        exit
       endif
+      if (sum(bmad_taylor(i)%term(:)%exp) > bmad_com%taylor_order) n = n - 1
     enddo
 
     allocate (taylor_(i)%term(n))
 
     nn = 0
     do j = 1, size(bmad_taylor(i)%term)
-      if (j == k0) cycle
+      ss = sum(bmad_taylor(i)%term(:)%exp) 
+      if (ss == 0 .or. ss > bmad_com%taylor_order) cycle
       nn = nn + 1
       taylor_(i)%term(nn) = bmad_taylor(i)%term(j)
     enddo

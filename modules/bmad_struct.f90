@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.11  2002/08/07 18:01:35  dcs
+!Corrected ele%gen0 bug
+!
 !Revision 1.10  2002/07/16 20:44:19  dcs
 !*** empty log message ***
 !
@@ -61,7 +64,7 @@ module bmad_struct
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 !
-  integer, parameter :: bmad_inc_version$ = 53
+  integer, parameter :: bmad_inc_version$ = 54
 !
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -135,6 +138,7 @@ module bmad_struct
     character*16 attribute_name    ! Used by overlays
     type (twiss_struct)  x,y,z         ! Twiss parameters at end of element
     real(rdef) value(n_attrib_maxx)    ! attribute values
+    real(rdef) gen0                    ! constant part of the genfield map
     real(rdef) vec0(6)                 ! 0th order transport vector
     real(rdef) mat6(6,6)               ! 1st order transport matrix 
     real(rdef) c_mat(2,2)              ! 2x2 C coupling matrix
@@ -208,7 +212,7 @@ module bmad_struct
   end type
 
   type dummy_parameter_struct
-    integer dummy(240)
+    integer dummy(250)
   end type
 
 ! RING_STRUCT

@@ -42,7 +42,6 @@ subroutine track1_symp_map (start, ele, param, end)
   type (param_struct), intent(inout) :: param
 
   real(dp) re(lnv)
-  real(rdef) r0(6)
 
   integer i
 
@@ -54,7 +53,7 @@ subroutine track1_symp_map (start, ele, param, end)
                               call ele_to_taylor(ele, start, param)
     call kill_gen_field (ele%gen_field)  ! clean up if necessary
     allocate (ele%gen_field)
-    call taylor_to_genfield (ele%taylor, ele%gen_field, r0)
+    call taylor_to_genfield (ele%taylor, ele%gen_field, ele%gen0)
   endif
 
 ! track and add the constant term back in
@@ -62,6 +61,6 @@ subroutine track1_symp_map (start, ele, param, end)
   call vec_bmad_to_ptc (start%vec, re(1:6))
   re = ele%gen_field * re
   call vec_ptc_to_bmad (re(1:6), end%vec)
-  end%vec = end%vec + r0
+  end%vec = end%vec + ele%gen0
 
 end subroutine
