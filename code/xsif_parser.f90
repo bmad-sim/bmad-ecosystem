@@ -344,9 +344,16 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
         do i = 1, 6
           ip0 = dat_indx + 27 * (i-1)
           n = count(pdata(ip0+1:ip0+27) /= 0)
+          if (count(pdata(ip0+1:ip0+6) /= 0) == 0) n = n + 1
           allocate (ele%taylor(i)%term(n))
           it = 0
           call add_t_term (ele%taylor(i)%term, it, 0, ip0+1)  ! Rij terms
+          if (it == 0) then
+            ele%taylor(i)%term(1)%coef = 1
+            ele%taylor(i)%term(1)%exp = 0
+            ele%taylor(i)%term(1)%exp(i) = 1
+            it = 1
+          endif
           call add_t_term (ele%taylor(i)%term, it, 1, ip0+7)  ! Ti1k terms
           call add_t_term (ele%taylor(i)%term, it, 2, ip0+13) ! Ti2k terms
           call add_t_term (ele%taylor(i)%term, it, 3, ip0+18) ! Ti3k terms
