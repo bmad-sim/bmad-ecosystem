@@ -9,7 +9,7 @@
 \newcommand{\rs}{{\it ring\_struct}}
 \newcommand{\es}{{\it ele\_struct}}
 \newcommand{\cs}{{\it coord\_struct}}
-\newcommand{\It[1]{{\it #1}}
+\newcommand{\It}[1]{{\it #1}}
 
 %----------------------------------------------------------------
 
@@ -58,9 +58,9 @@ noted in this guide.
 Errors and omissions are a fact of life for any reference work and
 comments from you, dear reader, are therefore most welcome. Please
 send any missives (or chocolate, etc.) to:
-\begin{tty}
+\begin{verbatim}
   David Sagan <dcs16@cornell.edu>
-\end{tty}
+\end{verbatim}
 
 
 %----------------------------------------------------------------
@@ -127,11 +127,11 @@ send any missives (or chocolate, etc.) to:
 When installing BMAD on a computer what one gets is not only the BMAD
 subroutine library but additionally subsiderary libraries upon which
 subroutines in the BMAD library depend. There are 5 other libraries
-that are used: cesr\_utils, forest, numerical_recipes, pgplot, and dcslib.
+that are used: cesr\_utils, forest, numerical\_recipes, pgplot, and dcslib.
 \begin{description}
 \item[cesr\_utils] This is a small low level library that primarily defines 
 the precision that BMAD works at (see below) and defines the physical
-and mathematical constants (pi, c_light, etc.) that BMAD knows
+and mathematical constants (pi, c\_light, etc.) that BMAD knows
 about.
 \item[dcslib] This library defines a set of miscelaneous helper routines. 
 Routines include spline fitting, Gaussian random number generation,
@@ -168,7 +168,7 @@ of the dcslib library.
 BMAD comes in two flavors: One where the real numbers are single
 precision and a version with double precision reals. Which version you
 are working with is controlled by the parameter {\it rp} (Real Precision)
-which is defined in cesr_utils. [Note: For compatibility with older
+which is defined in cesr\_utils. [Note: For compatibility with older
 programs the parameter {\it rdef} is defined to be equal to {\it rp}.]  On most
 machines single precision has {\it rp} = 4 and double precision has {it rp} =
 8. Normally the double precision version is used since round-off
@@ -177,31 +177,31 @@ an example where the single precision version is not adequite.
 
 To define your variables with the correct precision use the syntax
 {\it real(rp)}. For example:
-\begin{verbatum}
+\begin{verbatim}
   real(rp) var1, var2, var3
-\end{verbatum}
+\end{verbatim}
 When you want to define a literal constant, for example to pass an
 argument to a subroutine, add the suffix {\it \_rp} to the end of the
-constant. For example: {\it 2.0_rp} is equivalent to {\it 2.0D0} if
+constant. For example: {\it 2.0\_rp} is equivalent to {\it 2.0D0} if
 {\it rp} is defined to be double precision. Notice that this is not
-equivalent to {\it 2_rp} which defines an integer (not a real) constant.
+equivalent to {\it 2\_rp} which defines an integer (not a real) constant.
 
 
 \section{Helper programs}
 
 The {\it listf} command is used to locate routines and structures in
-the cesr_utils, dcslib and bmad libraries. The form of the command is
-\begin{verbatum}
+the cesr\_utils, dcslib and bmad libraries. The form of the command is
+\begin{verbatim}
   listf <name>
-\end{verbatum}
+\end{verbatim}
 This searches for any routine or structure with the name
 <name>. <name> may contain the wild--cards ``*'' and ``\%'' where
 ``*'' matches to any number of characters and ``\%'' matches to any
 single character. For example:
-\begin{verbatum}
-  listf ring_struct
+\begin{verbatim}
+  listf ring\_struct
   listf twiss_at_%
-\end{verbatum}
+\end{verbatim}
 The second example will match to {\it twiss\_at\_s} but not {\it
 twiss\_at\_start}.
 
@@ -224,11 +224,11 @@ storage ring or open as with a LINAC.
 
 
 
-Local ring_struct variables must have the save attribute or
+Local ring\_struct variables must have the save attribute or
 the pointers within must be appropriately deallocated
 before leaving the routine.
 
-How to allocate coord_struct arrays. see the tracking section
+How to allocate coord\_struct arrays. see the tracking section
 
 \section{Control}
   Control
@@ -240,7 +240,7 @@ How to allocate coord_struct arrays. see the tracking section
 \chapter{The Ele\_struct}
 
 
-\section{  Initializing
+\section{Initializing}
 
   Dependent and independent variables
 
@@ -260,17 +260,17 @@ How to allocate coord_struct arrays. see the tracking section
 
 \section{Digested files}
 
-\section{bmad_parser and bmad_parser2}
+\section{bmad\_parser and bmad\_parser2}
 
 %----------------------------------------------------------------
 \chapter{Tracking}
 
 When using radiation excitation the random number generator is based
-upon the fortran90 intrinsic random_number. If random_seed is not called
+upon the fortran90 intrinsic random\_number. If random\_seed is not called
 then the fluctuations from run to run will be exactly the same.
 
 
-How to allocate coord_struct arrays. 
+How to allocate coord\_struct arrays. 
 
   Switches to switch tracking
 
