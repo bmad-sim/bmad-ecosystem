@@ -113,7 +113,36 @@ you, dear reader, are therefore most welcome. Please send any missives
 \part{Programmer's Guide}
 
 %----------------------------------------------------------------
-\chapter{Libraries Used by BMAD}
+\chapter{The BMAD Distribution}
+
+When installing BMAD on a computer what one gets is not only the BMAD
+subroutine library but additionally subsiderary libraries upon which
+subroutines in the BMAD library depend. There are 5 other libraries
+that are used: cesr_utils, forest, numerical_recipes, pgplot, and dcslib.
+\begin{description}
+\item[cesr_utils] This is a small low level library that primarily defines 
+the precision that BMAD works at. The name cesr comes about from
+historical reasons.
+\item[dcslib] This library defines a set of helper routines. 
+The name comes from its creator.
+\item[forest] This is the FPP/PTC 
+(Full Polymorphic Package/ Polymorphic Tracking Code) library of
+Etienne Forest that handles Taylor maps to any arbitrary order (this
+is also known as Truncated Power Series Algebra (TPSA)) along with Lie
+Algebraic Operations. BMAD uses this software to do some calculations
+like tracking and making the 6x6 transfer matrices. FPP/PTC is a very
+general package and BMAD only makes use of a small part of its
+features. See the FPP/PTC documentation at
+<http://bc1.lbl.gov/CBP_pages/educational/TPSA_DA/Introduction.html>
+for more information.
+\end{description}
+
+
+The BMAD library is not a single sublibrary but a collection of
+libraries under one
+
+library does not stand alone but is dependent upon other
+libraries
 
 %----------------------------------------------------------------
 \chapter{Reading and Writing Lattices}
@@ -148,7 +177,9 @@ then the fluctuations from run to run will be exactly the same.
 \chapter{Interface to FPP/PTC}
 
 %----------------------------------------------------------------
-\chapter{Routines Sorted by Function}
+\chapter{Routines Sorted by Functionality}
+
+include dcslib and cesr_utils
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
