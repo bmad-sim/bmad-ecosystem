@@ -1,0 +1,120 @@
+!+ 
+! Template file for RING_MASTER_TO_BAMD.F77 program. 
+! See the program header for more details.
+!
+! This file defines what elements are extracted from RING_MASTER.DAT to form a
+! BMAD file of the CESR layout.
+!-
+
+V01W          DO_NOT_USE
+V02W1         DO_NOT_USE
+
+V01E          DO_NOT_USE
+V02E1         DO_NOT_USE
+
+SKQ01W    SC_SK_Q01W: quadrupole, l = ?, superimpose, ref = sc_Q01W, &
+type = "SCIR SKQUCUR   1"
+
+SKQ02W1   SC_SK_Q02W: quadrupole, l = ?, superimpose, ref = sc_Q02W, & 
+type = "SCIR SKQUCUR   2"
+
+SKQ02E3   SC_SK_Q02E: quadrupole, l = ?, superimpose, ref = sc_Q02E, & 
+type = "SCIR SKQUCUR   3"
+
+SKQ01E    SC_SK_Q01E: quadrupole, l = ?, superimpose, ref = sc_Q01E, & 
+type = "SCIR SKQUCUR   4"
+
+* call, file = BMAD_LAYOUT:wiggler_def_c_12wig.bmad
+*    
+* B01: SBEND, L = 6.574262, ANGLE = 0.074799746, E1=0.018699937, E2=0.018699937
+* B02: SBEND, L = 3.237903, ANGLE = 0.102289270 ! rho =  31.65434 
+* B03: RBEND, L = 2.945314, ANGLE = 0.020944245 ! rho = 140.6264 
+* B04: RBEND, L = 1.643524, ANGLE = 0.018699330 ! rho =  87.8915  
+* B06: RBEND, L = 3.287171, ANGLE = 0.037400530 ! rho =  87.8915  
+* B07: SBEND, L = 3.177222, ANGLE = 0.091254660 ! rho =  34.81718 
+* B08: SBEND, L = 6.575289, ANGLE = 0.112200220, E1=0.02805, E2=0.02805 ! 58.60
+
+B13#     B13#:  b08
+B15#     B15#:  b08
+B03#     b03#:  b03
+B03A#    b03A#: b04
+B04#     b04#:  b02
+B05#     B05#:  b02
+B06#     B06#:  b02
+B07#     B07#:  b02
+B44#     B44#:  b08
+B46#     B46#:  b08
+B47#     B47#:  b06
+B47A#    B47A#: b07
+B48#     B48#:  b03
+B%%#     B%%#:  b01
+
+Q01W     SC_Q01W: quadrupole, l = ?
+Q02W     SC_Q02W: quadrupole, l = ?
+Q02E     SC_Q02E: quadrupole, l = ?
+Q01E     SC_Q01E: quadrupole, l = ?
+Q%%#     q%%#: quadrupole, l = ?
+Q%%A#    q%%a#: quadrupole, l = ?
+
+X%%#     sex_%%#: sextupole, l = ?
+
+RF08W3   rf_w1: rfcavity, l = ?
+RF08W4   rf_w2: rfcavity, l = ?
+RF09E1   rf_e1: rfcavity, l = ?
+RF09E2   rf_e2: rfcavity, l = ?
+
+RNB00W   ip_l0: marker
+RNB49W   ip_l3: marker
+RNB00E   ip_l0_end: marker
+
+WIG09W   wig_w: wiggler, b_max = 0.78, n_pole = 50, l = ?
+WIG07E   wig_e: wiggler, b_max = 1.17, n_pole = 24, l = ?
+
+SCW18E3 ! wig3_18e: wiggler, l = @1.60
+SCW18E2 ! wig2_18e: wiggler, l = @1.60
+SCW18E1 ! wig1_18e: wiggler, l = @1.60
+SCW15E  ! wig_15e:  wiggler, l = @1.60
+SCW14E  ! wig2_14e: wiggler, l = @1.60
+SCW13E  ! wig1_14e: wiggler, l = @1.60
+
+SCW18w3 ! wig3_18w: wiggler, l = @1.60
+SCW18w2 ! wig2_18w: wiggler, l = @1.60
+SCW18w1 ! wig1_18w: wiggler, l = @1.60
+SCW15w  ! wig_15w:  wiggler, l = @1.60
+SCW13w2 ! wig2_14w: wiggler, l = @1.60
+SCW13w1 ! wig1_14w: wiggler, l = @1.60
+
+sph%%#   h_sep_%%#: elseparator, l = ?
+spv%%#   v_sep_%%#: elseparator, l = ?
+
+OCT%%#   oct_%%#: octupole, l = ?
+
+SKQ%%#   sk_q$: quadrupole, tilt = pi/4, l = ?
+SKQ%%#%  sk_q$: quadrupole, tilt = pi/4, l = ?
+
+SKX%%#   sk_sex_%%#: sextupole, tilt = pi/6, l = ?
+
+PBH%%#   bump_%%#: kicker, l = ?
+PIH%%#   pinger_%%#: kicker, l = ?
+
+!-----------------------------------------------------
+
+DT01W1   det_00w: marker, alias = "0W"
+DT01W2   det_01w: marker, alias = "1W"
+DT01E%   det_$: marker, alias = "-$"
+DT%%#    det_$: marker, alias = "-$"
+DT02E1   det_02e: marker, alias = "2E"
+
+DFH06W   det_06w1: marker, alias = "6W1"
+DT08AW   det_08aw: marker, alias = "8AW"
+DTX12W1  det_12w1: marker, alias = "12W1"
+DTX12W2  det_12w2: marker, alias = "12W2"
+
+V08AW    vkick_08wa: kicker, l = ?
+H02W2    hvkick_01w: kicker, l = ?
+H02E1    hvkick_01e: kicker, l = ?
+
+H%%#     \superimpose HKICK_$: kicker, l = ?
+H%%#%    \superimpose HKICK_$: kicker, l = ?
+V%%#     \superimpose VKICK_$: kicker, l = ?
+V%%#%    \superimpose VKICK_$: kicker, l = ?
