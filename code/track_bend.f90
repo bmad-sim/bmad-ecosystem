@@ -20,6 +20,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2002/08/05 22:01:33  dcs
+!Bug fix to k1 /= 0 stuff
+!
 !Revision 1.7  2002/08/05 20:04:59  dcs
 !Bug fix for sbends calling make_mat6.
 !
@@ -49,7 +52,7 @@ subroutine track_bend (start, ele, param, end)
 
   implicit none
 
-  type (coord_struct)  start, end
+  type (coord_struct)  start, end, start2
   type (ele_struct)  ele
   type (param_struct) param
                     
@@ -57,7 +60,7 @@ subroutine track_bend (start, ele, param, end)
   real*8 cos0, sin0, xc, ys, b, c, x2, x_exit, y_exit, theta, s_travel
   real*8 cos1, sin1, radix
 
-  real(rdef) k1, kc, mat2(2,2), phi, mat_i6(6), dE, fact
+  real(rdef) k1, kc, mat2(2,2), phi, mat_i6(6), dE, fact, length
 
 ! some init
 
@@ -92,9 +95,9 @@ subroutine track_bend (start, ele, param, end)
 !  If k1 /= 0 then essentually just use the 1st order transfer matrix.
 
   k1 = ele%value(k1$)
-  select case (k1)
+  select case (k1 == 0)
 
-  case (0)  ! k1 == 0
+  case (.true.)  ! k1 == 0
 
 ! We use a local coordinate system (x, y) aligned with
 ! the entrence face so local x is the same as the particle x and 
@@ -189,10 +192,10 @@ subroutine track_bend (start, ele, param, end)
 
     fact = start2%vec(4) * (mat_i6(5) + length)
 
-    end%vec(5) = end%vec(5) - 
-                    mat_i6(2) * start2%vec(1) - mat_i6(1) * start2%vec(2) - &
-                    fact * start2%vec(4)
-    end%vec(3) = end%vec(3) - fact * dE
+    end%vec(5) = end%vec(5) - &
+                    mat_i6(2) * start2%vec(1) - mat_i6(1) * start2%vec(2) + &
+                    fact * start2%vec(4) / 2
+    end%vec(3) = end%vec(3) + fact * dE
 
   end select
   
