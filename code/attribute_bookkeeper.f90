@@ -25,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.2  2002/01/23 16:46:47  dcs
+!Added l_chord to sbend
+!
 !Revision 1.1  2002/01/08 21:44:36  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -41,7 +44,7 @@ subroutine attribute_bookkeeper (ele, param)
   type (ele_struct) ele
   type (param_struct) param
 
-  real r
+  real r, angle
 
 !
 
@@ -51,6 +54,7 @@ subroutine attribute_bookkeeper (ele, param)
 
   case (sbend$, rbend$)
     ele%value(angle$) = ele%value(l$) / ele%value(rho_design$)
+    ele%value(l_chord$) = 2 * ele%value(rho_design$) * sin(ele%value(angle)/2) 
 
 ! RFcavity
 
