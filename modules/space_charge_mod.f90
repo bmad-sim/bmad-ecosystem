@@ -124,8 +124,8 @@ subroutine setup_space_charge_calc (calc_on, lattice, mode, closed_orb)
                   b_emit * (c11 * b%beta - c12 * b%alpha)) + &
                    a%eta_lab * b%eta_lab * mode%sigE_E**2
 
-    yy_ave = g2 * a_emit * a%gamma + b_emit * (c22**2 * b%beta + &
-                  2 * c22 * c12 * b%alpha + c12**2 * b%gamma) + &
+    yy_ave = g2 * b_emit * b%beta + a_emit * (c22**2 * a%beta + &
+                  2 * c22 * c12 * a%alpha + c12**2 * a%gamma) + &
                   (b%eta_lab * mode%sigE_E)**2
 
     phi = atan2(2 * xy_ave, xx_ave - yy_ave) / 2
