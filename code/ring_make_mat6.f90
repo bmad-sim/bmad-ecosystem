@@ -22,6 +22,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/16 21:04:18  helms
+!Fixed problem with passing optional arguments.
+!
 !Revision 1.2  2001/09/27 18:31:57  rwh24
 !UNIX compatibility updates
 !
@@ -57,14 +60,24 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
     enddo
 
     do i = 1, ring%n_ele_use
-      if (ring%ele_(i)%key /= hybrid$)  &
-         call make_mat6(ring%ele_(i), ring%param, coord_(i-1), coord_(i))
+      if (ring%ele_(i)%key /= hybrid$) then
+         if (present(coord_)) then
+            call make_mat6(ring%ele_(i), ring%param, coord_(i-1), coord_(i))
+         else
+            call make_mat6(ring%ele_(i), ring%param)
+         endif
+      endif
     enddo
 
     do i = ring%n_ele_ring+1, ring%n_ele_max
-      if (ring%ele_(i)%control_type == component_lord$)  &
-          call make_mat6(ring%ele_(i), ring%param, coord_(i-1), coord_(i))
-    enddo
+      if (ring%ele_(i)%control_type == component_lord$) then
+         if (present(coord_)) then
+            call make_mat6(ring%ele_(i), ring%param, coord_(i-1), coord_(i))
+         else
+            call make_mat6(ring%ele_(i), ring%param)
+         endif
+      endif
+   enddo
 
     return
 
@@ -82,8 +95,13 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
 
   if (ix_ele <= ring%n_ele_ring .or.  &
                               ele%control_type == component_lord$) then
-    call make_mat6(ring%ele_(ix_ele), ring%param, &
+     if (present(coord_)) then
+        call make_mat6(ring%ele_(ix_ele), ring%param, &
                                          coord_(ix_ele-1), coord_(ix_ele))
+     else
+        call make_mat6(ring%ele_(ix_ele), ring%param)
+     endif
+
     return
   endif                        
 
@@ -91,7 +109,11 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
 
   do i1 = ring%ele_(ix_ele)%ix1_slave, ring%ele_(ix_ele)%ix2_slave
     i = ring%control_(i1)%ix_slave
-    call ring_make_mat6 (ring, i, coord_)
+     if (present(coord_)) then
+        call ring_make_mat6 (ring, i, coord_)
+     else
+        call ring_make_mat6 (ring, i)
+     endif
   enddo
 
   return

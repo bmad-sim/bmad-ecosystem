@@ -47,6 +47,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/01/16 21:04:17  helms
+!Fixed problem with passing optional arguments.
+!
 !Revision 1.3  2002/01/08 21:44:38  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -171,7 +174,7 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 !----------------------------------------------------------------------
 ! Now find closed orbit at start
 
-  call mat_inv(mat, mat2, n, 6)
+  call mat_inverse(mat(1:n,1:n), mat2(1:n,1:n))
   co%vec(1:n) = matmul(mat2(1:n,1:n), orbit_end%vec(1:n))
 
   if (n == 4) co%z%pos = 0

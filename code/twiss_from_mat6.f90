@@ -29,6 +29,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/16 21:04:18  helms
+!Fixed problem with passing optional arguments.
+!
 !Revision 1.2  2001/09/27 18:32:00  rwh24
 !UNIX compatibility updates
 !
@@ -101,7 +104,7 @@ subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
   forall (i = 1:4) mat4(i,i) = mat4(i,i) - 1
 
   mat4 = matmul (mat4, v)
-  call mat_inv(mat4, mat4, 4, 4)
+  call mat_inverse(mat4, mat4)
   eta_vec = -matmul(mat4, eta_vec)
 
   ele%x%eta  = eta_vec(1)

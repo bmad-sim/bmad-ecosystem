@@ -15,6 +15,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/01/16 21:04:18  helms
+!Fixed problem with passing optional arguments.
+!
 !Revision 1.3  2001/10/02 18:49:12  rwh24
 !More compatibility updates; also added many explicit variable declarations.
 !
@@ -63,7 +66,7 @@ subroutine mat_symplectify (mat_in, mat_symp)
 
   m2 = mat_in
   forall (i = 1:n) m2(i,i) = m2(i,i) + 1
-  call mat_inv (m2, m2, n, n)
+  call mat_inverse (m2, m2)
 
   m3 = matmul(m1, m2)
 
@@ -87,7 +90,7 @@ subroutine mat_symplectify (mat_in, mat_symp)
 
   m3 = -m1
   forall (i = 1:n) m3(i,i) = m3(i,i) + 1
-  call mat_inv (m3, m3, n, n)
+  call mat_inverse (m3, m3)
   
   mat_symp = matmul (m2, m3)
 

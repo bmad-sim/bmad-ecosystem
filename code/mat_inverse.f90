@@ -16,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/16 21:04:18  helms
+!Fixed problem with passing optional arguments.
+!
 !Revision 1.2  2001/09/27 18:31:53  rwh24
 !UNIX compatibility updates
 !
@@ -36,7 +39,7 @@ subroutine mat_inverse (mat, mat_inv)
   integer, allocatable, save :: indx(:)
   real d
 
-  integer n, i
+  integer n, i, j
 
 !
 
@@ -50,7 +53,15 @@ subroutine mat_inverse (mat, mat_inv)
   endif
 
   mat2 = mat
-  mat_inv = 0
+
+! This seems not to work
+!  mat_inv = 0
+  do i = 1, n
+     do j = 1, n
+        mat_inv(i,j) = 0
+     enddo
+  enddo
+
   forall (i = 1:n) mat_inv(i,i) = 1
 
   call ludcmp (mat2, indx, d)

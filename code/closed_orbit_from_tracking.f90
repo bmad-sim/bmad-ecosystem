@@ -41,6 +41,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/01/16 21:04:17  helms
+!Fixed problem with passing optional arguments.
+!
 !Revision 1.2  2001/09/27 18:31:49  rwh24
 !UNIX compatibility updates
 !
@@ -145,7 +148,7 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
     type '(i4, a, 3p6f11.5)', j, ':', (closed_orb_(0)%vec(i), i = 1, i_dim)
 
     mat6 = mat6_unit - mat6
-    call mat_inv (mat6, mat6_inv, i_dim, 6)
+    call mat_inverse (mat6(1:i_dim,1:i_dim), mat6_inv(1:i_dim,1:i_dim))
     closed_orb_(0)%vec(1:i_dim) = closed_orb_(0)%vec(1:i_dim) + &
                 factor * matmul(mat6_inv(1:i_dim,1:i_dim), orb_diff(1:i_dim))
 
