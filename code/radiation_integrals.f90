@@ -89,7 +89,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
   implicit none
 
   type (ring_struct), target :: ring
-  type (ele_struct) runt
+  type (ele_struct), save :: runt
   type (coord_struct), target :: orb_(0:), start, end, c2
   type (modes_struct) mode
   type (synch_rad_com) sr_com_save

@@ -31,7 +31,8 @@ subroutine twiss_propagate1 (ele1, ele2)
   use bmad_interface
 
   implicit none
-  type (ele_struct)  ele1, ele2, ele_temp
+  type (ele_struct)  ele1, ele2
+  type (ele_struct), save :: ele_temp
 
   integer i, j
 

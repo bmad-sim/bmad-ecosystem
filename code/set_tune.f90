@@ -32,7 +32,7 @@ subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
   implicit none
 
   type (ring_struct) ring
-  type (ele_struct) ave
+  type (ele_struct), save :: ave
   type (coord_struct), allocatable :: orb_(:)
 
   real(rp) phi_x_set, phi_y_set, dphi_x, dphi_y

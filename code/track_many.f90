@@ -136,7 +136,7 @@ end subroutine
 
 subroutine track_back (ix1, ix2)
 
-  type (ele_struct) ele
+  type (ele_struct), save :: ele
 
   integer ix1, ix2, ix_last 
 

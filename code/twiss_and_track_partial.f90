@@ -38,7 +38,8 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   implicit none
 
   type (ele_struct), optional :: ele3
-  type (ele_struct) ele1, ele2, ele
+  type (ele_struct) ele1, ele2
+  type (ele_struct), save :: ele
   type (coord_struct), optional :: start, end
   type (coord_struct) c0, c1
   type (param_struct) param
