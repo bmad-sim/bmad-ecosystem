@@ -241,7 +241,7 @@ type (sr2_wake_struct), pointer :: sr2_long
 type (coord_struct) orbit
 
 integer i
-real(rp) charge, arg, ff, c, s, kx, ky
+real(rp) charge, arg, ff, c, s
 
 ! Check if we have to do any calculations
 
@@ -255,77 +255,15 @@ do i = 1, size(ele%wake%sr2_long)
 
   sr2_long => ele%wake%sr2_long(i)
 
-  ff = sr2_long%amp * exp(-orbit%vec(5) * sr2_long%damp) / &
+  ff = charge * sr2_long%amp * exp(-orbit%vec(5) * sr2_long%damp) / &
                                                   ele%value(beam_energy$) 
 
   arg = orbit%vec(5) * sr2_long%k + sr2_long%phi
   c = cos (arg)
   s = sin (arg)
 
-  call ab_multipole_kick (0.0_rp, ff, 0, orbit, kx, ky)
-
-  sr2_long%norm_sin = sr2_long%norm_sin - charge * ff * c
-  sr2_long%norm_cos = sr2_long%norm_cos + charge * ff * s
-
-enddo
-
-end subroutine
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine sr2_trans_wake_add_to (ele, orbit, charge)
-!
-! Subroutine to add to the existing short-range wake the contribution from
-! a passing (macro)particle.
-!
-! Modules needed:
-!   use wake_mod
-!
-! Input:
-!   ele     -- Ele_struct: Element with wakes.
-!   orbit   -- Coord_struct: Starting coords.
-!   charge  -- Real(rp): Charge of passing (macro)particle.
-!
-! Output:
-!   ele     -- Ele_struct: Element with wakes.
-!+
-
-subroutine sr2_trans_wake_add_to (ele, orbit, charge)
-
-type (ele_struct), target :: ele
-type (sr2_wake_struct), pointer :: sr2_trans
-type (coord_struct) orbit
-
-integer i
-real(rp) charge, arg, ff, c, s, kx, ky
-
-! Check if we have to do any calculations
-
-if (.not. bmad_com%sr_wakes_on) return  
-if (.not. associated(ele%wake)) return
-
-! Add to wake
-! The monipole wake does not have any skew components.
-
-do i = 1, size(ele%wake%sr2_trans)
-
-  sr2_trans => ele%wake%sr2_trans(i)
-
-  ff = sr2_trans%amp * exp(-orbit%vec(5) * sr2_trans%damp) / &
-                                                     ele%value(beam_energy$) 
-
-  arg = orbit%vec(5) * sr2_trans%k + sr2_trans%phi
-  c = cos (arg)
-  s = sin (arg)
-
-  call ab_multipole_kick (0.0_rp, ff, 1, orbit, kx, ky)
-
-  sr2_trans%norm_sin = sr2_trans%norm_sin - charge * kx * c
-  sr2_trans%norm_cos = sr2_trans%norm_cos + charge * kx * s
-  sr2_trans%skew_sin = sr2_trans%skew_sin - charge * ky * c
-  sr2_trans%skew_cos = sr2_trans%skew_cos + charge * ky * s
+  sr2_long%norm_sin = sr2_long%norm_sin - ff * c
+  sr2_long%norm_cos = sr2_long%norm_cos + ff * s
 
 enddo
 
@@ -425,7 +363,66 @@ if (.not. associated(ele%wake)) return
 
 do i = 1, size(ele%wake%sr2_long)
   sr2_long => ele%wake%sr2_long(i)
-  orbit%vec(6) = orbit%vec(6) - charge * sr2_long%amp / 2
+  orbit%vec(6) = orbit%vec(6) - charge * sin(sr2_long%phi) * &
+                             sr2_long%amp / (2 * ele%value(beam_energy$))
+enddo
+
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine sr2_trans_wake_add_to (ele, orbit, charge)
+!
+! Subroutine to add to the existing short-range wake the contribution from
+! a passing (macro)particle.
+!
+! Modules needed:
+!   use wake_mod
+!
+! Input:
+!   ele     -- Ele_struct: Element with wakes.
+!   orbit   -- Coord_struct: Starting coords.
+!   charge  -- Real(rp): Charge of passing (macro)particle.
+!
+! Output:
+!   ele     -- Ele_struct: Element with wakes.
+!+
+
+subroutine sr2_trans_wake_add_to (ele, orbit, charge)
+
+type (ele_struct), target :: ele
+type (sr2_wake_struct), pointer :: sr2_trans
+type (coord_struct) orbit
+
+integer i
+real(rp) charge, arg, ff, c, s
+
+! Check if we have to do any calculations
+
+if (.not. bmad_com%sr_wakes_on) return  
+if (.not. associated(ele%wake)) return
+
+! Add to wake
+! The monipole wake does not have any skew components.
+
+do i = 1, size(ele%wake%sr2_trans)
+
+  sr2_trans => ele%wake%sr2_trans(i)
+
+  ff = charge * sr2_trans%amp * exp(-orbit%vec(5) * sr2_trans%damp) / &
+                                                     ele%value(beam_energy$) 
+
+  arg = orbit%vec(5) * sr2_trans%k + sr2_trans%phi
+  c = cos (arg)
+  s = sin (arg)
+
+  sr2_trans%norm_sin = sr2_trans%norm_sin + ff * orbit%vec(1) * c
+  sr2_trans%norm_cos = sr2_trans%norm_cos - ff * orbit%vec(1) * s
+  sr2_trans%skew_sin = sr2_trans%skew_sin - ff * orbit%vec(3) * c
+  sr2_trans%skew_cos = sr2_trans%skew_cos + ff * orbit%vec(3) * s
+
 enddo
 
 end subroutine
@@ -458,7 +455,7 @@ type (coord_struct) orbit
 type (sr2_wake_struct), pointer :: sr2_trans
 
 integer i
-real(rp) arg, ff, c, s, w_norm, w_skew, kx, ky
+real(rp) arg, ff, c, s, w_norm, w_skew
 
 ! Check if we have to do any calculations
 
@@ -480,10 +477,8 @@ do i = 1, size(ele%wake%sr2_trans)
   w_norm = sr2_trans%norm_sin * ff * s + sr2_trans%norm_cos * ff * c
   w_skew = sr2_trans%skew_sin * ff * s + sr2_trans%skew_cos * ff * c
 
-  call ab_multipole_kick (w_skew, w_norm, 0, orbit, kx, ky)
-
-  orbit%vec(2) = orbit%vec(2) + kx
-  orbit%vec(4) = orbit%vec(4) + ky
+  orbit%vec(2) = orbit%vec(2) - w_norm
+  orbit%vec(4) = orbit%vec(4) + w_skew
 
 enddo
 
