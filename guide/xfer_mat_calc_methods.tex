@@ -8,9 +8,9 @@ is not guaranteed. Sextupoles and octupoles are done using a simple
 kick-drift-kick model.
 
 \item[\vn{Custom}]
-This method calls a routine make\_mat6\_custom which may be supplied
+This method calls a routine \rn{make_mat6_custom} which may be supplied
 by the user (which must have been linked into whatever program is
-running).  The default make\_mat6\_custom supplied by the BMAD release
+running).  The default \rn{make_mat6_custom} supplied by the BMAD release
 will use Runge Kutta tracking. 
 
 \item[\vn{Runge\_Kutta}]
@@ -22,7 +22,7 @@ that it relies only on the field map for the element.
 
 \item[\vn{Symp\_Lie\_BMAD}]
 Symplectic integration using a Hamiltonian and Lie operators. The
-difference between this and \vn{Symp\_lie\_PTC} is that PTC tries to do things
+difference between this and \vn{Symp_lie_PTC} is that PTC tries to do things
 correctly while \bmad\ goes for speed by making approximations like the small
 angle approximation, etc. Right now only implemented for Wigglers.
 
@@ -44,7 +44,7 @@ non-symplectic. See below for additional switches that affect this
 calculation.
 
 \item[\vn{Tracking}]
-This uses the tracking method set by \vn{tracking\_method} to track 6
+This uses the tracking method set by \vn{tracking_method} to track 6
 particles around the central orbit. This method is susceptible to inaccuracies
 caused by nonlinearities. While non--symplectic, the advantage of this method
 is that it is directly related to any tracking results.
@@ -55,17 +55,17 @@ Symplectic integration is like ordinary integration of a function f(x)
 but what is integrated here is the Hamiltonian H(y) where y here could
 be a 6-dimensional vector (for tracking) or be a taylor series (for
 the mat6 calculation). The order at which a Taylor series is truncated
-at is set by \vn{taylor\_order} (this is a global variable). Like
+at is set by \vn{taylor_order} (this is a global variable). Like
 ordinary integration there are various formulas that one can use to do
 symplectic integration. In \bmad\ (or more precisely Etienne's PTC)
-you can use one of 3 methods. This is set by \vn{integration\_order}. 
-\vn{integration\_order} = n (n = 2, 4, or 6)
+you can use one of 3 methods. This is set by \vn{integration_order}. 
+\vn{integration_order} = n (n = 2, 4, or 6)
 means that the error scales as $dz^n$ where $dz$ is the integration step
 size. The step size dz is set by the length of the element and the
-value of \vn{num\_steps}. Remember, as in ordinary integration, higher
+value of \vn{num_steps}. Remember, as in ordinary integration, higher
 order does not necessarily imply higher accuracy.
 
-\vn{PTC\_kind} sets how the symplectic integrator divides up the hamiltonian.
-The details are in the PTC manual. The default \vn{PTC\_kind} = 0
+\vn{PTC_kind} sets how the symplectic integrator divides up the hamiltonian.
+The details are in the PTC manual. The default \vn{PTC_kind} = 0
 means \bmad\ will choose what it thinks as best (see the routine
-\vn{Bmad\_ele\_to\_fibre} for more details).
+\rn{Bmad_ele_to_fibre} for more details).

@@ -1,11 +1,12 @@
 \chapter{The Ring\_struct}
 \section{overview}
 
-\ringstruct is the structure that holds all the information about a lattice.
-The definition of \ringstruct\ is shown in figure~\ref{f:ring_struct}.
-Substructure definitions are shown in figure~\ref{f:subring_struct} (except for the
-\elestruct\ definition which was defined in the previous section). Despite its
-name, \bmad\ makes no assumption about whether an \ringstruct\ is circular as
+\tn{ring_struct} is the structure that holds all the information 
+about a lattice.  The definition of \tn{ring_struct} is shown in
+figure~\ref{f:ring_struct}.  Substructure definitions are shown in
+figure~\ref{f:subring_struct} (except for the \tn{ele_struct} definition
+which was defined in the previous section). Despite its name, \bmad\
+makes no assumption about whether an \tn{ring_struct} is circular as
 with a storage ring or open as with a LINAC.
 
 \begin{figure}[tb]
@@ -33,7 +34,7 @@ type ring_struct
   type (control_struct)  control_(n_control_maxx)  ! control list
 end type
 \end{verbatim}
-\caption{Definition of the \ringstruct.}
+\caption{Definition of the \tn{ring\_struct}.}
 \label{f:ring_struct}
 \end{figure}
 
@@ -71,57 +72,61 @@ type mode_info_struct
   real(rp) chrom         ! Chromaticity
 end type
 \end{verbatim}
-\caption{Definition of the \ringstruct\ substructures (except the \elestruct).}
+\caption{Definition of the \tn{ring\_struct} substructures 
+(except the \tn{ele\_struct}).}
 \label{f:sub_ring_struct}
 \end{figure}
 
-The array \ele{0:} holds the elements of the lattice. The
-array is divided up into two parts: A ``physical'' part and a
-``control'' part (Cf.~(ref in lang section). The physical part of this
-array holds the elements that are tracked through. The control part
-holds the superimpose, overlay and group elements. The extent of these
-parts is given in table~\ref{tab:part_extent}. 
-The \ele{:} array always has a lower bound of 0. \ele{0} is essentially
-a marker element. \ele{0}\%mat6 is always the unit matrix.
+The array \vn{%ele(0:)} holds the elements of the lattice. The array
+is divided up into two parts: A ``physical'' part and a ``control''
+part (Cf.~(ref in lang section). The physical part of this array holds
+the elements that are tracked through. The control part holds the
+superimpose, overlay and group elements. The extent of these parts is
+given in table~\ref{tab:part_extent}.  The \vn{%ele(:)} array always
+has a lower bound of 0. \vn{%ele(0)} is essentially a marker
+element. \vn{%ele(0)%mat6} is always the unit matrix.
 
 \begin{table}[tb]
 \begin{center}
 \begin{tabular}{|l|l|l|}
 \hline
-              & \multicolumn{2}{c|} {\em index n}      \\ \hline
-{\em section} & {\em min}         & {\em max}          \\ \hline
-physical      & 0                 & \nelering          \\ \hline
-control       & \nelering+1       & \nelemax           \\ \hline
+              & \multicolumn{2}{c|} {\em index n}         \\ \hline
+{\em section} & {\em min}          & {\em max}            \\ \hline
+physical      & 0                  & \vn{%n_ele_ring}     \\ \hline
+control       & \vn{%n_ele_ring}+1 & \vn{%n_ele_max}      \\ \hline
 \end{tabular} 
 \caption{Extent of the physical and control parts 
-of the array \ele{n}.}
+of the array \vn{\%ele(n)}.}
 \end{center}
 \label{tab:part_extent}
 \end{table}
 
-Other indexes within the \ringstruct\ are
+Other indexes within the \tn{ring_struct} are
 \begin{description}
-\item[\nelemaxx] The index of the upper bound of the \ele{:} array.
-The lower bound is always 0 so the total size of the \ele{:} array is
-\nelemaxx+1.
-\item[\nelesymm] Back in the days when the CESR ring was E/W 
-symmetric \nelesymm\ designated the symmetry point (roughly at \nelering/2). 
-Currently this is seldem used.
-\item[\neleuse] This designates what part of the physical ring to track 
-through. This is the same as \nelering except if there is a symmetry point and \nelesymm\ is non--zero. In this case \neleuse\ = \nelesymm.
+\item[\tt\%n\_ele\_maxx] 
+The index of the upper bound of the \vn{%ele(:)} array.
+The lower bound is always 0 so the total size of the \vn{%ele(:)}
+array is \vn{%n_ele_maxx}+1.
+\item[\tt\%n\_ele\_symm] Back in the days when the CESR ring was E/W 
+symmetric \vn{%n_ele_symm} designated the symmetry point (roughly at
+\vn{%n_ele_ring}/2).  Currently this is seldem used.
+\item[\%n\_ele\_use] This designates what part of the physical ring to track 
+through. This is the same as \vn{%n_ele_ring} except if there is a
+symmetry point and \vn{%n_ele_symm} is non--zero. In this case
+\vn{%n_ele_use} = \vn{%n_ele_symm}.
 \end{description}
 
-Local \ringstruct variables must have the save attribute or the
+Local \tn{ring_struct} variables must have the save attribute or the
 pointers within must be appropriately deallocated before leaving the
 routine.
 
 \section{Pointers}
 
-Since the \ringstruct has pointers within it (plural since the \elestruct\
-has pointers within it) there is an extra burden on the programmer to
-make sure that allocation and deallocation is done properly. To this
-end the equal sign has been overloaded by the routine \sn{ring\_equal\_ring}
-so that when one writes
+Since the \tn{ring_struct} has pointers within it (plural since the
+\tn{ele_struct} has pointers within it) there is an extra burden on
+the programmer to make sure that allocation and deallocation is done
+properly. To this end the equal sign has been overloaded by the
+routine \rn{ring_equal_ring} so that when one writes
 \begin{verbatim}
     ring1 = ring2
 \end{verbatim}
@@ -130,13 +135,13 @@ will hold the same information as ring2 but the pointers in ring1 will
 point to different locations in physical memory so that changes to one
 ring will not affect the other.
 
-Initial allocation of the pointers in \ringstruct\ is generally
-handeled by \bmadparser\ and \sn{ring\_equal\_ring} and so typically not a
+Initial allocation of the pointers in \tn{ring_struct} is generally
+handeled by \rn{bmad_parser} and \rn{ring_equal_ring} and so typically not a
 concern of most programmers. Deallocation problems can arise when a
-subroutine has a local \ringstruct\ variable. 
+subroutine has a local \tn{ring_struct} variable. 
 
 
 
 Generally allocation is handeled
 
-How to allocate \coordstruct\ arrays. see the tracking section
+How to allocate \tn{coord_struct} arrays. see the tracking section

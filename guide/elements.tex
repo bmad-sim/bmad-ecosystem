@@ -49,25 +49,28 @@ element types which \bmad\ inherits from \mad.
 \end{table}
 
 \subsection{Beambeam}
-In \bmad, {\tt x\_offset} and {\tt y\_offset} are used to offset the {\tt beambeam} element instead of
-the \mad\ standard attributes {\tt xma} and {\tt yma}.
+In \bmad, \vn{x_offset} and \vn{y_offset} are used to offset the
+\vn{beambeam} element instead of the \mad\ standard attributes
+\vn{xma} and \vn{yma}.
 \begin{itemize}
-\item For a crossing angle use {\tt x\_pitch} and {\tt y\_pitch} (This is the full crossing angle,
+\item For a crossing angle use \vn{x_pitch} and \vn{y_pitch} (This is the full crossing angle,
 not the half-angle).
-\item {\tt n\_slice} is the number of equal charge chunks which the strong beam is sliced.
-      Default is {\tt n\_slice} = 1.
-\item For slicing, you need a non-zero {\tt sig\_z}.
-\item {\tt charge}=-1: Opposite beam has the opposite charge (default).
-\item {\tt charge}=+1: Opposite beam has the same charge.   
+\item \vn{n_slice} is the number of equal charge chunks which the strong beam is sliced.
+      Default is \vn{n_slice} = 1.
+\item For slicing, you need a non-zero \vn{sig_z}.
+\item \vn{charge}=-1: Opposite beam has the opposite charge (default).
+\item \vn{charge}=+1: Opposite beam has the same charge.   
 \end{itemize}
 
 \subsection{Drift}
 \subsection{Elseperator}
-For an {\tt elseparator}, the kick is determined by {\tt hkick} and {\tt vkick}. The {\tt gap} for an
-{\tt elseparator} is used to compute the electric field for a given kick. The voltage is a dependent
+For an \vn{elseparator}, the kick is determined by \vn{hkick} and
+\vn{vkick}. The \vn{gap} for an \vn{elseparator} is used to compute
+the electric field for a given kick. The voltage is a dependent
 attribute determined by:
-
-Voltage (V) = $10^{-9}$ * {\tt kick} * {\tt E} [Gev] * {\tt gap} [m] / {\tt L} [m] 
+\begin{example}
+  Voltage (V) = kick * E [ev] * gap [m] / L [m] 
+\end{example}
 
 \subsection{Kicker}
 \subsection{Marker}
@@ -80,9 +83,10 @@ Voltage (V) = $10^{-9}$ * {\tt kick} * {\tt E} [Gev] * {\tt gap} [m] / {\tt L} [
 \subsection{Sextupole}
 \subsection{Solenoid}
 
-\bmad\ provides additional element types corresponding to physical elements, as well as special
-types which control other elements, or represent superimposed or hybrid elements.
-Table \ref{tab:bmad_elements} summarizes element types unique to \bmad.
+\bmad\ provides additional element types corresponding to physical elements, 
+as well as special types which control other elements, or represent
+superimposed or hybrid elements.  Table \ref{tab:bmad_elements}
+summarizes element types unique to \bmad.
 
 \begin{table}\label{tab:bmad_elements}\center
 {\tt\begin{tabular}{|l|l|} \hline
@@ -90,12 +94,12 @@ Table \ref{tab:bmad_elements} summarizes element types unique to \bmad.
 \end{tabular}}
 \caption{Summary of element types unique to \bmad}
 \end{table}
-\subsection{Ab{\tt\_}multipole}
+\subsection{Ab\_multipole}
 \subsection{Custom}
 \subsection{Group}
 \subsection{Lcavity}
 \subsection{Overlay}
-\subsection{Dol{\tt\_}quad}
+\subsection{Sol\_quad}
 \subsection{Taylor}
 \subsection{Wiggler} Two of these?
 \subsection{Patch}

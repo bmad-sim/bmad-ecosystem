@@ -2,9 +2,8 @@
 
 \section{Reading In Lattices}
 
-{\catcode`\_=11 a_b}
-There are two subroutines to read in a lattice file.\bmadparser\ is
-used to initialize a \ringstruct\ from scratch using the information
+There are two subroutines to read in a lattice file.\rn{bmad_parser} is
+used to initialize a \tn{ring_struct} from scratch using the information
 from an external lattice file. The format is
 \begin{verbatim}
   bmad_parser (in_file, ring, make_mats6, digested_read_ok) 
@@ -21,17 +20,17 @@ from an external lattice file. The format is
     digested_read_ok -- Logical, optional: Set True if the digested file was
                          successfully read. False otherwise.
 \end{verbatim}
-Unless told otherwise, after reading in the lattice \bmadparser\ will
+Unless told otherwise, after reading in the lattice \rn{bmad_parser} will
 compute the 6x6 transfer matrices for each element. Normally you want
 to do this but there are exceptions where you don't need it and for
 particular lattices the computation can take a long time. Notice that
-\bmadparser\ does {\em not} compute any Twiss parameters.
+\rn{bmad_parser} does {\em not} compute any Twiss parameters.
 
-\sn{bmad\_parser2} is typically used after \bmadparser\ if there is 
-additional information that needs to be added to the \ringstruct\
+\rn{bmad_parser2} is typically used after \rn{bmad_parser} if there is 
+additional information that needs to be added to the \tn{ring_struct}
 variable.  For example, aperture limits for the various elements is often
 stored in a separate file from the lattice file. In a case such as this
-there are two possibilities: The first is to use \sn{bmad\_parser2} 
+there are two possibilities: The first is to use \rn{bmad_parser2} 
 \begin{verbatim}
   call bmad_parser ('lattice_file', ring)       ! read in a lattice.
   call bmad_parser2 ('aperture_file', ring)     ! read in the apperture limits.
@@ -42,23 +41,23 @@ The second alternative is to create a third file that calls the first two
  call, file = 'lattice_file'
  call, file = 'aperture_file'
 \end{verbatim}
-and then just use \bmadparser\ to parse this third file.
+and then just use \rn{bmad_parser} to parse this third file.
 
 
 \section{Digested files}
 
-Since parsing can be slow, once \bmadparser\ has put the information
-from the lattice file into the \ringstruct\ it will make what is
-called a digested file which is just an image of the \ringstruct.  If
-\bmadparser\ is called and it finds a digested file corresponding to
+Since parsing can be slow, once \rn{bmad_parser} has put the information
+from the lattice file into the \tn{ring_struct} it will make what is
+called a digested file which is just an image of the \tn{ring_struct}.  If
+\rn{bmad_parser} is called and it finds a digested file corresponding to
 the lattice file to be parsed it will try to use the digested file
-instead. Since \bmadparser\ stores information about what files were
+instead. Since \rn{bmad_parser} stores information about what files were
 parsed originally it can make sure that the lattice file (or any other
 files that the lattice file calls) has not been changed since the
 digested file was made. If the lattice file has been changed then
-\bmadparser\ will not use the digested file. There is another 
+\rn{bmad_parser} will not use the digested file. There is another 
 circumstance where the lattice file will not be used: \bmad\ has an
-internal version number to keep track of whether the \ringstruct\
+internal version number to keep track of whether the \tn{ring_struct}
 internal structure has changed. If the version number of the compiled
 program is different than the version number stored in the digested
 file then the digested file will not be used. The digested file name
@@ -68,7 +67,7 @@ is given by
   'digested8_' // IN_FILE  ! for double precision BMAD 
 \end{verbatim}
 
-Since computing Taylor Maps can be very time intensive \bmadparser\
+Since computing Taylor Maps can be very time intensive \rn{bmad_parser}
 tries to reuse Taylor Maps it finds in the digested file even if the
 lattice file has been changed in the meantime. To make sure that
 everyting is OK it will check that the attributes of an element
@@ -86,8 +85,8 @@ file with the digested file name corresponding to the first lattice.
 The digested file is in binary format and is not human readable but it
 provides a convienient mechanism for transporting lattices between
 programs. The problem is typically you have read in a lattice, changed
-some parameters in the \ringstruct, and now you want to do some
-analysis on this modified \ringstruct using a different program. The 
+some parameters in the \tn{ring_struct}, and now you want to do some
+analysis on this modified \tn{ring_struct} using a different program. The 
 answer is to have the first program create a digested file
 \begin{verbatim}
   call write_digested_bmad_file ('digested_file_of_mine', ring)

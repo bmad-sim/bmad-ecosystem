@@ -28,24 +28,24 @@ end program
 
 The \cs{use bmad} statement defines the \bmad\ structures (types)
 and defines the interfaces (argument lists) for the \bmad\
-subroutines. In particular, the \ringstruct\ structure holds all the
+subroutines. In particular, the \tn{ring_struct} structure holds all the
 lattice information: The list of elements, their attributes,
-etc. \bmadparser is the routine to parse a particular lattice file and
-transfer the information to a \ringstruct\. After it is called the
-program uses \sn{twiss\_at\_start} to multiply the transfer matrices
+etc. \rn{bmad_parser} is the routine to parse a particular lattice file and
+transfer the information to a \tn{ring_struct}\. After it is called the
+program uses \rn{twiss_at_start} to multiply the transfer matrices
 of the individual elements together to form the 1--turn matrix from
-the start back to the start. From this \sn{twiss\_at\_start}
+the start back to the start. From this \rn{twiss_at_start}
 calculates the Twiss parameters at the start of the lattice. The next
-call to \sn{twiss\_propagate\_all} takes the starting Twiss parameters
+call to \rn{twiss_propagate_all} takes the starting Twiss parameters
 and using the transfer matrices of the individual elements calculates
 the Twiss parameters at all the elements. We are now ready for the
 print out the calculation. \vn{ring} has within it an array
-\vn{ring\%ele\_(0:)} that contains the infomation on each individual
-element. \vn{ring\%ele\_(0)} is basically a marker element to denote
-the beginning of the array. \vn{ring\%ele\_(i)\%key} is an integer
+\vn{ring%ele_(0:)} that contains the infomation on each individual
+element. \vn{ring%ele_(0)} is basically a marker element to denote
+the beginning of the array. \vn{ring%ele_(i)%key} is an integer
 denoting what type of element (quadrupole, wiggler, etc.) it is.
-\vn{ring\%ele\_(i)\%s} is the longitudinal position at the end of an 
-element. \vn{ring\%ele\_(i)\%x\%beta} is the $a$--mode (nearly
+\vn{ring%ele_(i)%s} is the longitudinal position at the end of an 
+element. \vn{ring%ele_(i)%x%beta} is the $a$--mode (nearly
 horizontal mode) beta.
 
 \section{Getf and Listf}
@@ -77,8 +77,8 @@ single character. For example:
     listf ring_struct
     listf twiss_at_%
 \end{verbatim}
-The second example will match to \sn{twiss\_at\_s} but not
-\sn{twiss\_at\_start}.
+The second example will match to \rn{twiss_at_s} but not
+\rn{twiss_at_start}.
 
 The \cmd{getf} command is like the \cmd{listf} command with the
 addition that the header comments that are in the source code files
@@ -97,7 +97,7 @@ whether an element is a quadrupole one would write:
 \begin{verbatim}
   if (ring%ele_(i)%key == quadrupole$) ...
 \end{verbatim}
-Checking the source code one would find in the module \tn{bmad\_struct}
+Checking the source code one would find in the module \tn{bmad_struct}
 \begin{verbatim}
   integer, parameter :: drift$ = 1, sbend$ = 2, quadrupole$ = 3, group$ = 4
 \end{verbatim}
@@ -111,8 +111,8 @@ the exact value of the parmeters may at times be shuffled which would
 lead to disasterous results if the values themselves were coded into a
 program.
 
-\item[ Type names have a \_struct suffix]. For example: \ringstruct, 
-\elestruct, etc.
+\item[ Type names have a \_struct suffix]. For example: \tn{ring_struct}, 
+\tn{ele_struct}, etc.
 
 
 \end{description}

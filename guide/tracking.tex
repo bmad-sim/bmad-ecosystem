@@ -6,11 +6,11 @@ takes a beam distribution and tracks the centroids and sigmas of
 ``macro particles''.  This latter type of tracking is associated with
 LINACs and wakefields and is discussed in another chapter.
 
-\chapter{The \tn{coord\_struct}}
+\chapter{The Coord\_struct}
 
 For single particle tracking the starting point is the
-\tn{coord\_struct} whose definition is shown
-in~\ref{f:coord_struct}. The \tn{coord\_struct} defines the phase
+\tn{coord_struct} whose definition is shown
+in~\ref{f:coord_struct}. The \tn{coord_struct} defines the phase
 space vector of the particle at a certain location.
 
 \begin{figure}[tb]
@@ -26,7 +26,7 @@ space vector of the particle at a certain location.
 \end{figure}
 
 To get an orbit, that is, the particle position at every element in a lattice
-you will need an array of \tn{coord\_struct}'s. Since
+you will need an array of \tn{coord_struct}'s. Since
 the number of elements in the lattice is not known in advance the
 array must be decleared to be allocatable. 
 \begin{verbatim}
@@ -45,18 +45,18 @@ Example: To track a particle through a lattice:
   coords(0)%vec = (/ 0.01, 0.0, 0.0, 0.0, 0.0, 0.0 /) ! initialization
   call track_all (ring, coord)
 \end{verbatim}
-\sn{Track\_all} takes \vn{coord(0)} and propagates it through the lattice from
-the 0\Th element through \vn{ring\%n\_ele\_ring}.  Each \vn{coord(i)}
-is associated with \vn{ring\%ele\_(i)} and is the particle position at
-the end of the element. \sn{reallocate\_coords} simply does an
+\rn{Track_all} takes \vn{coord(0)} and propagates it through the lattice from
+the 0\Th element through \vn{ring%n_ele_ring}.  Each \vn{coord(i)}
+is associated with \vn{ring%ele_(i)} and is the particle position at
+the end of the element. \rn{reallocate_coords} simply does an
 allocation. Its advantage over just allocating directly is that it
 checks if the allocation is needed and if not then it does
-nothing. This can save time. Since \sn{track\_all}, like many \bmad\
+nothing. This can save time. Since \rn{track_all}, like many \bmad\
 routines, will reallocate if needed, only one call to
-\sn{reallocate\_coords} is needed initially even if there are repeated calls
-to \sn{track\_all}.
+\rn{reallocate_coords} is needed initially even if there are repeated calls
+to \rn{track_all}.
 
-If you are writing a subroutine where the \tn{coord\_struct} array is
+If you are writing a subroutine where the \tn{coord_struct} array is
 local then you have to decide what to do at the end of the
 subroutine. You have two choices: 1) Deallocate the array. This is the
 cleanest solution but it can be slow since you have to allocate afresh
@@ -69,12 +69,12 @@ the array stays around until the next time the subroutine is called.
 \end{verbatim}
 This is faster but leaves memory tied up. 
 
-Note: The \bmad\ tracking routines never use the \vn{ele\%mat6}
+Note: The \bmad\ tracking routines never use the \vn{ele%mat6}
 transfer matrix to do tracking.
 
 For each element the method of tracking may be set either via the
 input lattice file or directly in the program by setting the
-\cn{tracking\_method} attribute of an element
+\vn{%tracking_method} attribute of an element
 \begin{verbatim}
   type (ele_struct) ele
   ...
