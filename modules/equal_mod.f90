@@ -46,11 +46,12 @@ subroutine ele_equal_ele (ele1, ele2)
 
   integer i, n_sr, n_lr
 
-! save ele1 pointers and set ele1 = ele2.
+! 1) Save ele1 pointers in ele_save
+! 2) Set ele1 = ele2.
 
   call transfer_ele (ele1, ele_save)
   call transfer_ele (ele2, ele1)
-  ele1%ix_ele = ele_save%ix_ele  ! this should not change.
+  ele1%ix_ele = ele_save%ix_ele     ! this should not change.
 
 ! Transfer pointer info.
 ! When finished ele1's pointers will be pointing to a different memory
@@ -113,12 +114,9 @@ subroutine ele_equal_ele (ele1, ele2)
   enddo
 
   if (associated(ele2%a)) then
-    if (associated (ele_save%a)) then
-      ele1%a => ele_save%a 
-      ele1%b => ele_save%b 
-    else
-      call multipole_init (ele1)
-    endif
+    ele1%a => ele_save%a   ! reinstate
+    ele1%b => ele_save%b   ! reinstate
+    call multipole_init (ele1)
     ele1%a = ele2%a
     ele1%b = ele2%b
   else
@@ -242,7 +240,7 @@ subroutine ring_equal_ring (ring_out, ring_in)
 ! a problem somewhere
 
   if (.not. associated (ring_in%ele_)) then
-    print *, 'ERROR IN RING_EQUAL_RING: NO RING%ELE_ ON RHS NOT ASSOCIATED!'
+    print *, 'ERROR IN RING_EQUAL_RING: RING%ELE_(:) ON RHS NOT ASSOCIATED!'
     call err_exit
   endif
 

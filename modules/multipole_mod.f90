@@ -431,8 +431,8 @@ subroutine multipole_init (ele)
 
 !
 
-  if (associated (ele%a)) deallocate (ele%a, ele%b)
-  allocate (ele%a(0:n_pole_maxx), ele%b(0:n_pole_maxx))
+  if (.not. associated (ele%a)) &
+                allocate (ele%a(0:n_pole_maxx), ele%b(0:n_pole_maxx))
   ele%a = 0;  ele%b = 0
 
 end subroutine

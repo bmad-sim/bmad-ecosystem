@@ -282,7 +282,7 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   n    -- Integer: Size ring%ele_(:) array is initialized to.
+!   n    -- Integer: Upper bound ring%ele_(0:) array is initialized to.
 !
 ! Output:
 !   ring -- Ring_struct: Initialized ring.
@@ -298,7 +298,7 @@ subroutine init_ring (ring, n)
 !
 
   call deallocate_ring_pointers (ring)
-  call allocate_ring_ele_ (ring, n)
+  call allocate_ring_ele_(ring, n)
   call init_ele (ring%ele_init)
 
   allocate (ring%control_(1000))
@@ -798,17 +798,19 @@ end subroutine
 ! Subroutine allocate_ring_ele_ (ring, des_size)
 !
 ! Subroutine to allocate or re-allocate the ele_ pointer in a ring.
+! The upper bound of ring%ele_(0:n) will be des_size if it is present
+! or the maximum of: (1000, 1.5*ring%ele_(:)).
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
 !   ring     -- ring_struct: Ring with del_ pointer.
-!   des_size -- integer, Optional: Optional desired size for ring%ele_
+!   des_size -- integer, Optional: Optional desired upper bound for 
+!                 ring%ele_(:).
 !
 ! Output:
-!   ring     -- ring_struct: Ring with re-allocated ele_ pointer 
-!                       with 150% larger number of elements.
+!   ring     -- ring_struct: Ring with re-allocated %ele_(:) pointer. 
 !-
 
 subroutine allocate_ring_ele_ (ring, des_size)
