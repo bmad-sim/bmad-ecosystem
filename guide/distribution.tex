@@ -2,16 +2,24 @@
 \label{c:distribution}
 
 %-----------------------------------------------------------------------
-\section{Libraries in the CESR Distribution}
+\section {The CESR Distribution}
 \label{s:libs}
 
-When installing \bmad\ on a computer what one gets is not only the
-\bmad\ subroutine library but additionally subsidiary libraries upon
-which subroutines in the \bmad\ library depend. There are 5 other
-libraries that are used: \bn{cesr\_utils}, \bn{forest},
+The \bmad distribution consists of the \bmad library and five subsidiary
+libraries which \bmad depends upon. The \bmad distribution can be obtained at:
+\begin{example}
+    http://www.lepp.cornell.edu/~dcs/bmad
+\end{example}
+Supported platforms are Tru64 (aka OSF) and Linux. On Linux the \bmad
+distribution has been built with the Lahey--Fujitsu f95 compiler. The
+\bmad distribution has also been built on VMS and Windows and an
+initial check indicates that the distribution should be buildable
+under Sun Solaris. The \bmad web site has contact information for
+questions about platform support and building problems.
+
+The five subsidiary libraries are: \bn{cesr\_utils}, \bn{forest},
 \bn{numerical\_recipes}, \bn{pgplot}, and \bn{dcslib}.
 \begin{description}
-
 \item[cesr\_utils] This is a low level library. Despite its name the
 routines in this library do not have anything to do with the Cornell
 CESR storage ring.  In \vn{cesr_utils} the module \vn{precision_def}
@@ -109,7 +117,7 @@ want to just find out where a routine or structure definition lives.
 
 The way \vn{getf} and \vn{listf} work is that they search a list of
 directories to find the \bmad, \vn{dcslib}, and \vn{cesr_utils}
-libraries. Currently the libraries in the CESR distribution that were
+libraries. Currently the libraries in the \bmad distribution that were
 not developed at Cornell are not searched. This is primarily due to
 the fact that, to save time, \vn{getf} and \vn{listf} make assumptions
 about file layout that the other libraries violate. In the future, if
