@@ -11,6 +11,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.2  2004/10/26 14:08:08  cesrulib
+# vms-porting
+#
 # Revision 1.1  2002/01/11 01:06:59  cesrulib
 # makefile.vms -> MAKEFILE.VMS
 #
@@ -24,21 +27,24 @@
 # The following must be explicitly set when building under VMS
 #-----------------------------------------------------------------------------
 LIBNAME  := bmad
-RELEASE  :=
+RELEASE  := 
 
 # absrcdir (absolute source directory) and CESRLIB MUST be set 
 # The following clase allows 
 # If you are building a library locally, you should just hardwire 
 # absrcdir and CESRLIB to the desired values and leave RELEASE 
 # blank.
-absrcdir :=
+#absrcdir :=
 CESRLIB  := current
+absrcdir := [cesr_libs.$(CESRLIB).cvssrc.$(LIBNAME)]
+
 ifneq "$(strip $(RELEASE))" ""
-  absrcdir := u:[cesrulib.cesr_libs.$(strip $(RELEASE)).cvssrc.$(LIBNAME)]
+  absrcdir := [cesr_libs.$(strip $(RELEASE)).cvssrc.$(LIBNAME)]
   CESRLIB  := $(strip $(RELEASE))
 endif
 
-MAKE_SRC := u:[cesrulib.cesr_libs.$(CESRLIB).Gmake]
+#MAKE_SRC := u:[cesrulib.cesr_libs.$(CESRLIB).Gmake]
+MAKE_SRC := [cesr_libs.$(CESRLIB).Gmake]
 
 #-----------------------------------------------------------------------------
 # Specify default source directories for code to be compiled and put into
@@ -71,13 +77,14 @@ MAKE_SRC := u:[cesrulib.cesr_libs.$(CESRLIB).Gmake]
 # LOCAL_INCS      - Local directories to search for include files
 # LOCAL_MODS      - Local directories to search for F90 compiled module files
 #-----------------------------------------------------------------------------
-OLB_SRC_DIRS  := [.code] 
-MOD_SRC_DIRS  := [.modules]
+
+OLB_SRC_DIRS  := [.modules] [.code] [.cesr]
+MOD_SRC_DIRS  := 
 OBJ_SRC_DIRS  :=
 CFG_SRC_DIRS  := [.lat] [.layout]
 LOCAL_INCS    := [.include] [-.include]
-LOCAL_MODS    := [-.modules]
-
+LOCAL_MODS    := 
+OBJ_OUT_DIR   :=
 
 #-----------------------------------------------------------------------------
 # "EXTRA" variables can be specified at the command line or hardwired here.  
@@ -94,6 +101,7 @@ LOCAL_MODS    := [-.modules]
 # EXTRA_CFLAGS   - extra C flags for compilation 
 # EXTRA_LFLAGS   - extra linker flags
 #-----------------------------------------------------------------------------
+
 EXTRA_OLB_SRC :=
 EXTRA_MOD_SRC :=
 EXTRA_OBJ_SRC :=
@@ -103,7 +111,7 @@ EXTRA_MODS    :=
 EXTRA_FFLAGS  :=
 EXTRA_CFLAGS  :=
 EXTRA_LFLAGS  :=
-
+CPPFLAG := /DEFINE=CESR_F90_DOUBLE
 
 #------------------------------------------------
 # Include the standard CESR M_vms.tail
