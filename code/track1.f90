@@ -60,7 +60,7 @@ subroutine track1 (start, ele, param, end)
 
 ! Radiation damping and/or fluctuations for the 1st half of the element.
 
-  if (sr_com%damping_on .or. sr_com%fluctuations_on) then
+  if ((sr_com%damping_on .or. sr_com%fluctuations_on) .and. ele%is_on) then
     call track1_radiation (start, ele, param, orb, start_edge$) 
   else
     orb = start
@@ -117,7 +117,7 @@ subroutine track1 (start, ele, param, end)
 
 ! Radiation damping and/or fluctuations for the last half of the element
 
-  if (sr_com%damping_on .or. sr_com%fluctuations_on) then
+  if ((sr_com%damping_on .or. sr_com%fluctuations_on) .and. ele%is_on) then
     call track1_radiation (end, ele, param, end, end_edge$) 
   endif
 
