@@ -82,7 +82,7 @@ subroutine calc_macro_bunch_params (bunch, ele, params)
   implicit none
 
   type (macro_bunch_struct), intent(in) :: bunch
-  type (macro_beam_struct) :: a_beam ! converted to normal modes
+  type (macro_beam_struct), save :: a_beam ! converted to normal modes
   type (ele_struct), intent(in) :: ele
   type (macro_bunch_params_struct) params
   type (macro_struct), pointer :: macro(:)
