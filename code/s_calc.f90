@@ -16,8 +16,8 @@
 
 !$Id$
 !$Log$
-!Revision 1.5  2002/10/29 17:07:14  dcs
-!*** empty log message ***
+!Revision 1.6  2003/03/08 01:31:22  dcs
+!Allow fixing initial s position
 !
 !Revision 1.4  2002/02/23 20:32:24  dcs
 !Double/Single Real toggle added
@@ -27,11 +27,8 @@
 !
 !Revision 1.2  2001/09/27 18:31:57  rwh24
 !UNIX compatibility updates
-!
 
 #include "CESR_platform.inc"
-
-
 
 subroutine s_calc (ring)
 
@@ -45,10 +42,9 @@ subroutine s_calc (ring)
   integer n, ix2
   real*8 ss
 
-! Just go through all the elements and add up the lengths
+! Just go through all the elements and add up the lengths.
 
-  ring%ele_(0)%s = 0
-  ss = 0
+  ss = ring%ele_(0)%s
 
   do n = 1, ring%n_ele_ring
     ss = ring%ele_(n-1)%s + ring%ele_(n)%value(l$)

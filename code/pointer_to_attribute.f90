@@ -102,6 +102,8 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
       ptr_attrib => ele%c_mat(2,2) 
     case ('ENERGY')
       ptr_attrib => ele%value(energy$) 
+    case ('S')
+      ptr_attrib => ele%s
     case default
       if (do_print) then
         print *, 'ERROR IN POINTER_TO_ATTRIBUTE: BAD ATTRIBTE NAME: ', &
