@@ -40,6 +40,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2002/11/15 22:05:55  dcs
+!Added CESR_platform.inc
+!
 !Revision 1.8  2002/11/14 16:07:39  dcs
 !Fixed bug to overwrite closed_orb_(0)%vec(5) when i_dim = 4
 !
@@ -62,6 +65,7 @@
 !UNIX compatibility updates
 !
 
+#include "CESR_platform.inc"
 
 subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
                                                  eps_rel, eps_abs, init_guess)
