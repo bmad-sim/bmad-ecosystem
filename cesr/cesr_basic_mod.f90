@@ -587,7 +587,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
       i_lat = 0
       do i = 1, num_lats
         if (lat_list(i) == current_lat) then
-          print '(1x, a, i2, 3a)', '**', i, ') ', trim(lat_list(i)), &
+          print '(1x, a, i3, 3a)', '**', i, ') ', trim(lat_list(i)), &
                                            '   ! Current lattice in Data Base'
           i_lat = i
         else
