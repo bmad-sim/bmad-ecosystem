@@ -3,6 +3,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.18  2002/11/26 05:19:43  dcs
+!Modified for BEGINNING floor position entry.
+!
 !Revision 1.17  2002/11/16 16:14:17  dcs
 !overlay/group change and make_mat6 bug fix
 !
@@ -580,20 +583,6 @@ module bmad_interface
 			type (ring_struct) oppos_ring 
      real(rdef), dimension(:), intent(inout) :: cross_positions
       integer, dimension(:), intent(inout) :: ix_LRBBI
-    end subroutine
-  end interface
-
-  interface
-    subroutine k_to_quad_calib(k_theory, energy, cu_theory, k_base,  &
-                                                     dk_gev_dcu, cu_per_k_gev)
-      use precision_def
-      implicit none
-      real(rdef) energy
-      real(rdef) k_theory(0:*)
-      real(rdef) k_base(0:120)
-      real(rdef) cu_per_k_gev(0:120)
-      real(rdef) dk_gev_dcu(0:*)
-      integer cu_theory(0:*)
     end subroutine
   end interface
 

@@ -30,6 +30,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.10  2002/11/26 05:19:31  dcs
+!Modified for BEGINNING floor position entry.
+!
 !Revision 1.9  2002/11/16 16:13:54  dcs
 !overlay/group change and make_mat6 bug fix
 !
@@ -227,7 +230,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
     found = .false.
     if (matched_delim .and. ix /= 0) then
       name = word_1(:ix-1)
-      do i = 1, n_max
+      do i = 0, n_max
         if (ring%ele_(i)%name == name) then
           name = word_1(ix+1:)    ! name of attribute
           ix = index(name, ']')

@@ -221,10 +221,11 @@ subroutine get_attribute (how, ele, ring, pring, &
 
     err_flag = .false.
     return
+  endif
 
 ! group...
 
-  elseif (ele%key == group$) then
+  if (ele%key == group$) then
 
     if (how == def$) then
       ele0%key = overlay$
@@ -260,6 +261,27 @@ subroutine get_attribute (how, ele, ring, pring, &
     return
 
   endif
+
+! beginning element
+
+  if (ele%name = 'BEGINNING') then
+    call evaluate_value (trim(ele%name) // ' ' // word, value, &
+                                      ring, delim, delim_found, err_flag) 
+    if (err_flag) return
+    select case (word)
+    case ('X_POSITION') 
+      ele%x_position = value
+    case ('Y_POSITION') 
+      ele%y_position = value
+    case ('Z_POSITION') 
+      ele%z_position = value
+    case ('THETA_POSITION') 
+      ele%theta_position = value
+    case ('PHI_POSITION') 
+      ele%phi_position = value
+    case default
+      call warning ('UNKNOWN "BEGINNING" ATTRIBUTE: ' // word)
+    end select
 
 ! if not an overlay then see if it is an ordinary attribute.
 ! if not an ordinary attribute then might be a superimpose switch

@@ -13,6 +13,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/11/26 05:19:32  dcs
+!Modified for BEGINNING floor position entry.
+!
 !Revision 1.5  2002/06/13 14:54:26  dcs
 !Interfaced with FPP/PTC
 !
@@ -58,6 +61,12 @@ subroutine init_ele (ele)
   ele%n_slave = 0
   ele%ix_pointer = 0
   ele%s = 0
+
+  ele%x_position = 0
+  ele%y_position = 0
+  ele%z_position = 0
+  ele%theta_position = 0
+  ele%phi_position = 0
 
   ele%mat6_calc_method = bmad_standard$
   ele%tracking_method = bmad_standard$

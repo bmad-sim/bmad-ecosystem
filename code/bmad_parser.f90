@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.15  2002/11/26 05:19:31  dcs
+!Modified for BEGINNING floor position entry.
+!
 !Revision 1.14  2002/11/17 01:01:58  dcs
 !*** empty log message ***
 !
@@ -91,6 +94,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   type (seq_ele_struct), pointer :: s_ele
   type (parser_ring_struct) pring
   type (seq_stack_struct) stack(20)
+  type (ele_struct) beam_ele
   type (ele_struct), save, pointer :: ele, old_ele(:) => null()
   type (control_struct), pointer :: cs_(:) => null()
 
@@ -203,9 +207,12 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   pring%ele(:)%common_lord = .false.
 
   call init_ele (in_ring%ele_(0))
-  in_ring%ele_(0)%name = 'BEAM'                 ! fake beam element
-  in_ring%ele_(0)%key = def_beam$               ! "definition of beam"
-  in_ring%ele_(0)%value(particle$) = positron$  ! default
+  in_ring%ele_(0)%name = 'BEGINNING'            ! Beginning element
+
+  call init_ele (beam_ele)
+  beam_ele%name = 'BEAM'                 ! fake beam element
+  beam_ele%key = def_beam$               ! "definition of beam"
+  beam_ele%value(particle$) = positron$  ! default
 
 ! %ixx is used as a pointer from the in_ring%ele_ array to the pring%ele array
 
@@ -288,7 +295,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
                                                      'FOR "BEAM" COMMAND')
           parsing = .false.
         else
-          call get_attribute (def$, in_ring%ele_(0), &
+          call get_attribute (def$, beam_ele, &
                                  in_ring, pring, delim, delim_found, err_flag)
         endif
       enddo
@@ -337,14 +344,14 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
     if (matched_delim .and. ix /= 0) then
       name = word_1(:ix-1)  
-      do i = 1, n_max
+      do i = 0, n_max
         if (in_ring%ele_(i)%name == name) then
           name = word_1(ix+1:)    ! name of attribute
           ix = index(name, ']')
           name = name(:ix-1)
           bp_com%parse_line = name // ' = ' // bp_com%parse_line 
           call get_attribute (redef$, in_ring%ele_(i), in_ring, pring, &
-                                          delim, delim_found, err_flag)
+                                             delim, delim_found, err_flag)
           if (delim_found) call warning ('BAD DELIMITER: ' // delim)
           cycle parsing_loop
         endif
@@ -741,9 +748,9 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
   ring%version            = bmad_inc_version$
   ring%input_file_name    = full_name             ! save input file
-  ring%param%particle     = nint(in_ring%ele_(0)%value(particle$))
-  ring%param%energy       = in_ring%ele_(0)%value(energy$)
-  ring%param%n_part       = in_ring%ele_(0)%value(n_part$)
+  ring%param%particle     = nint(beam_ele%value(particle$))
+  ring%param%energy       = beam_ele%value(energy$)
+  ring%param%n_part       = beam_ele%value(n_part$)
   ring%param%symmetry     = no_symmetry$
   ring%param%lattice_type = circular_lattice$
   ring%n_ele_ring         = n_ele_ring
@@ -755,9 +762,9 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   ring%n_control_array    = 0    
   ring%input_taylor_order = 0
   call set_symmetry (ring%param%symmetry, ring)   ! set ring.n_ele_use
-  call init_ele (ring%ele_(0))
+
+  ring%ele_(0) = in_ring%ele_(0)    ! Beginning element
   call init_ele (ring%ele_init)
-  ring%ele_(0)%name = 'BEGINNING'                 ! Just a name
 
   do i = 1, bp_com%ivar_tot
     if (var_(i)%name == 'SYMMETRY') ring%param%symmetry = var_(i)%value
