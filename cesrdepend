@@ -51,7 +51,7 @@ sub print_empty_d_file
  {
   $d_file=$_[0];
   open(F_out, ">>$d_file");
-  print "no dependencies to record: $d_file\n"
+#  print "no dependencies to record: $d_file\n"
  }
 
 sub print_d_file
@@ -126,8 +126,8 @@ sub find_mods
        }
      }
     if($mod!~/\.inc$/)
-     {push(@final_module_list, "$mod_out_dir/$mod");}
-    print STDERR "warning: can't find $mod, assuming local.\n";
+     {push(@final_module_list, "$mod");}
+    die "fatal: can't find $mod in include paths.\n";
    }
   `rm -fr temp.out`;
   return (\@final_module_list, \@final_inc_list);
@@ -153,7 +153,15 @@ sub get_used_module_names
 #also, there is no recursive search for includes
 #let's find a fortran pre-compiler that will do all that!
     if(($line=~/(.*?)include\s\'(\S+?)\'/i) && (!($1=~/!/)))
-     {push(@needed_incs,$2) unless ($seen{$2}++);}
+     {
+      if($2=~/^\//)
+       {push(@needed_incs,$2) unless ($seen{$2}++);}
+      else
+			 {
+				$!=0;
+        die "fatal: fortran includes need an absolute path from root specified within the statement.\nwarning: recursive searching of fortran includes not supported!";
+		   }
+	   }
    }
   foreach $line (@grep_out_mod)
    {
