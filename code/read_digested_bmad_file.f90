@@ -77,7 +77,8 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   bmad_status%ok = .true.
   ring%n_ele_use = 0
 
-  open (unit = d_unit, file = digested_name, status = 'old',  &
+  call fullfilename (digested_name, input_file_name)
+  open (unit = d_unit, file = input_file_name, status = 'old',  &
                      form = 'unformatted', action = 'READ', err = 9000)
 
   read (d_unit, err = 9100) n_files, version

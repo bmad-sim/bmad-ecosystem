@@ -85,7 +85,8 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   bp_com%write_digested = .true.
   bp_com%input_line_meaningful = .true.
 
-  inquire (file = in_file, name = full_name)      ! full input file_name
+  call fullfilename (in_file, full_name)
+  inquire (file = full_name, name = full_name)      ! full input file_name
   ix = index(full_name, ';')
   if (ix /= 0) full_name = full_name(:ix-1)
   ring%input_file_name = full_name      ! needed by read_digested_bmad_file
@@ -1178,6 +1179,6 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
   if (bp_com%write_digested .and. .not. bp_com%parser_debug .and. &
       digested_version <= bmad_inc_version$) call write_digested_bmad_file  &
-               (digested_file, ring, bp_com%n_files, bp_com%file_name_)
+               (digested_file, ring, bp_com%num_lat_files, bp_com%lat_file_names)
 
 end subroutine

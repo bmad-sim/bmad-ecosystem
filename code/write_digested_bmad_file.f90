@@ -49,7 +49,9 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   if (present(n_files)) n_file = n_files
 
   d_unit = lunget()
-  open (unit = d_unit, file = digested_name, form = 'unformatted', err = 9000)
+
+  call fullfilename (digested_name, fname)
+  open (unit = d_unit, file = fname, form = 'unformatted', err = 9000)
 
   write (d_unit, err = 9010) n_file, bmad_inc_version$
 
