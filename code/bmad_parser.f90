@@ -50,27 +50,27 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   type (ele_struct) this_ele
   type (seq_struct), save, target :: sequence_(1000)
   type (seq_struct), pointer :: seq, seq2
-  type (seq_ele_struct), target :: this_s_ele
-  type (seq_ele_struct), pointer :: s_ele
+  type (seq_ele_struct), target :: dummy_seq_ele
+  type (seq_ele_struct), pointer :: s_ele, this_seq_ele
   type (parser_ring_struct) pring
   type (seq_stack_struct) stack(20)
   type (ele_struct), save, pointer :: ele, old_ele(:) => null()
-  type (used_seq_struct), allocatable ::  used_seq(:)
+  type (used_seq_struct), allocatable ::  used_line(:), used2(:)
 
   integer, allocatable :: ix_ring(:)
   integer, allocatable :: seq_indexx(:), in_indexx(:)
   character(16), allocatable ::  in_name(:), seq_name(:)
 
-  integer ix_word, i_use, i, j, k, n, ix, i_lev
-  integer n_ele_use, digested_version, key
-  integer ix1, ix2, iseq_tot
+  integer ix_word, i_use, i, j, k, n, ix, i_lev, ixm(100)
+  integer n_ele_use, digested_version, key, n0_multi
+  integer ix1, ix2, iseq_tot, ix_multipass, n_ele_max, n_multi
   integer, pointer :: n_max
 
   character(*) lat_file
   character(*), optional :: use_line
 
   character(1) delim
-  character(16) word_2, name
+  character(16) word_2, name, multipass_line
   character(16) :: r_name = 'bmad_parser'
   character(40) this_name, word_1
   character(200) path, basename, full_name, digested_file
@@ -629,9 +629,9 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
       s_ele => sequence_(k)%ele(i)
 
-      ix = index(s_ele%name, '\')   ! '
+      ix = index(s_ele%name, '\')   !' 
       if (ix /= 0) then
-        name = s_ele%name(:ix-1)
+        name = s_ele%name(:ix-1)    ! strip off everything after \
       else
         name = s_ele%name
       endif
@@ -645,10 +645,10 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
       if (j == 0) then  ! if not an element it must be a sequence
         call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
         if (j == 0) then  ! if not a sequence then I don't know what it is
-          s_ele%ix_array = -1
+          s_ele%ix_ele = -1
           s_ele%type = element$
         else
-          s_ele%ix_array = j
+          s_ele%ix_ele = j
           s_ele%type = sequence_(j)%type
         endif
         if (s_ele%type == list$ .and. s_ele%reflect) call warning ( &
@@ -660,7 +660,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
                 'HAS A NON-ELEMENT MEMBER: ' // s_ele%name)
  
       else    ! if an element...
-        s_ele%ix_array = j
+        s_ele%ix_ele = j
         s_ele%type = element$
       endif
 
@@ -674,14 +674,15 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   i_lev = 1                          ! level on the stack
   seq => sequence_(i_use)
 
-  stack(1)%ix_seq  = i_use           ! which sequence to use for the ring
-  stack(1)%ix_ele  =  1              ! we start at the beginning
-  stack(1)%reflect = +1              ! and move forward
+  stack(1)%ix_seq    = i_use           ! which sequence to use for the ring
+  stack(1)%ix_ele    =  1              ! we start at the beginning
+  stack(1)%direction = +1              ! and move forward
   stack(1)%rep_count = seq%ele(1)%rep_count
+  stack(1)%multipass = .false.
 
   n_ele_use = 0
            
-  allocate (used_seq(ubound(in_ring%ele_, 1)))
+  allocate (used_line(ubound(in_ring%ele_, 1)))
   allocate (ix_ring(ubound(in_ring%ele_, 1)))
   ix_ring = -1
   sequence_(:)%ix = 1  ! Init. Used for replacement list index
@@ -691,12 +692,45 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   parsing = .true.
   line_expansion: do while (parsing)
 
+    ! if rep_count is zero then change %ix_ele index by +/- 1 and reset the rep_count.
+    ! if we have got to the end of the current line then pop the stack back to
+    ! the next lower level.
+    ! Also check if we have gotten to level 0 which says that we are done.
+    ! If we have stepped out of a multipass line which has been trasversed in reverse
+    !   then we need to do some bookkeeping to keep the elements straight.
+
+    if (stack(i_lev)%rep_count == 0) then      ! goto next element in the sequence
+      stack(i_lev)%ix_ele = stack(i_lev)%ix_ele + stack(i_lev)%direction 
+      ix = stack(i_lev)%ix_ele
+
+      if (ix > 0 .and. ix <= size(seq%ele)) then
+        stack(i_lev)%rep_count = seq%ele(ix)%rep_count
+      else
+        i_lev = i_lev - 1
+        if (i_lev == 0) exit line_expansion
+        seq => sequence_(stack(i_lev)%ix_seq)
+        if (.not. stack(i_lev)%multipass .and. stack(i_lev+1)%multipass) then
+          if (stack(i_lev+1)%direction == -1) then
+            used_line(n0_multi:n_ele_use)%ix_multipass = &
+                          used_line(n_ele_use:n0_multi:-1)%ix_multipass
+          endif
+        endif
+        cycle
+      endif
+
+    endif
+
+    ! 
+
     s_ele => seq%ele(stack(i_lev)%ix_ele)  ! next element, line, or list
+    stack(i_lev)%rep_count = stack(i_lev)%rep_count - 1
+
+    ! if s_ele is a dummy arg then get corresponding actual arg.
 
     ix = s_ele%ix_arg
     if (ix /= 0) then  ! it is a dummy argument.
       name = seq%corresponding_actual_arg(ix)
-      s_ele => this_s_ele
+      s_ele => dummy_seq_ele
       s_ele%name = name
       call find_indexx (name, in_name, in_indexx, n_max, j)
       if (j == 0) then  ! if not an element it must be a sequence
@@ -706,56 +740,59 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
                           'IN LINE: ' // seq%name, seq)
           call err_exit
         endif
-        s_ele%ix_array = j
+        s_ele%ix_ele = j
         s_ele%type = sequence_(j)%type
       else
-        s_ele%ix_array = j 
+        s_ele%ix_ele = j 
         s_ele%type = element$
       endif
       
     endif
 
-    stack(i_lev)%rep_count = stack(i_lev)%rep_count - 1
-    if (stack(i_lev)%rep_count == 0) then
-      call increment_pointer (stack(i_lev)%ix_ele, stack(i_lev)%reflect)
-      ix = stack(i_lev)%ix_ele
-      if (ix > 0 .and. ix <= size(seq%ele)) &
-                            stack(i_lev)%rep_count = seq%ele(ix)%rep_count
-    endif
-
 ! if an element
 
     select case (s_ele%type)
-    case (element$) 
-      if (n_ele_use+1 > size(ix_ring)) then
-        n = 1.5*n_ele_use
-        call reallocate_integer (ix_ring, n)
-        call reallocate_string (used_seq%name, len(used_seq(1)%name), n)
-        call reallocate_logical (used_seq%multipass, n)
-      endif
-      call pushit (ix_ring, n_ele_use, s_ele%ix_array)
-      used_seq(n_ele_use)%name      = s_ele%name
-      used_seq(n_ele_use)%multipass = seq%multipass
 
-      if (s_ele%ix_array < 1) call warning('NOT A DEFINED ELEMENT: ' // &
+    case (element$, list$) 
+
+      if (s_ele%type == list$) then
+        seq2 => sequence_(s_ele%ix_ele)
+        j = seq2%ix
+        this_seq_ele => seq2%ele(j)
+        seq2%ix = seq2%ix + 1
+        if (seq2%ix > size(seq2%ele(:))) seq2%ix = 1
+      else
+        this_seq_ele => s_ele
+      endif
+
+      if (this_seq_ele%ix_ele < 1) call warning('NOT A DEFINED ELEMENT: ' // &
                           s_ele%name, 'IN THE LINE/LIST: ' // seq%name, seq)
 
-! if a list
 
-    case (list$) 
-      seq2 => sequence_(s_ele%ix_array)
-      j = seq2%ix
       if (n_ele_use+1 > size(ix_ring)) then
         n = 1.5*n_ele_use
         call reallocate_integer (ix_ring, n)
-        call reallocate_string (used_seq%name, len(used_seq(1)%name), n)
-        call reallocate_logical (used_seq%multipass, n)
+        ix = size(used_line) 
+        allocate (used2(ix))
+        used2(1:ix) = used_line(1:ix)
+        deallocate (used_line)
+        allocate (used_line(1:n))
+        used_line(1:ix) = used2(1:ix)
+        deallocate (used2)
       endif
-      call pushit (ix_ring, n_ele_use, seq2%ele(j)%ix_array)
-      used_seq(n_ele_use)%name      = seq2%ele(j)%name
-      used_seq(n_ele_use)%multipass = seq%multipass
-      seq2%ix = seq2%ix + 1
-      if (seq2%ix > size(seq2%ele(:))) seq2%ix = 1
+
+      call pushit (ix_ring, n_ele_use, this_seq_ele%ix_ele)
+
+      used_line(n_ele_use)%name = this_seq_ele%name
+
+      if (stack(i_lev)%multipass) then
+        ix_multipass = ix_multipass + 1
+        used_line(n_ele_use)%ix_multipass = ix_multipass
+        used_line(n_ele_use)%multipass_line = multipass_line
+      else
+        used_line(n_ele_use)%ix_multipass = 0
+      endif
+
 
 ! if a line:
 !     a) move pointer on current level past line element
@@ -765,7 +802,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
     case (line$, replacement_line$)
       i_lev = i_lev + 1
       if (s_ele%type == replacement_line$) then
-        seq2 => sequence_(s_ele%ix_array)
+        seq2 => sequence_(s_ele%ix_ele)
         if (size(seq2%dummy_arg) /= size(s_ele%actual_arg)) then
           call warning ('WRONG NUMBER OF ARGUMENTS FORREPLACEMENT LINE: ' // &
               s_ele%name, 'WHEN USED IN LINE: ' // seq%name, seq)
@@ -784,37 +821,32 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
           name = seq2%corresponding_actual_arg(i)
         enddo arg_loop
       endif
-      seq => sequence_(s_ele%ix_array)
-      stack(i_lev)%ix_seq = s_ele%ix_array
-      stack(i_lev)%reflect = stack(i_lev-1)%reflect
-      if (s_ele%reflect) stack(i_lev)%reflect = -stack(i_lev)%reflect
-      if (stack(i_lev)%reflect == 1) then
+
+      seq => sequence_(s_ele%ix_ele)
+      stack(i_lev)%ix_seq = s_ele%ix_ele
+      stack(i_lev)%direction = stack(i_lev-1)%direction
+      stack(i_lev)%multipass = (stack(i_lev-1)%multipass .or. seq%multipass)
+      if (s_ele%reflect) stack(i_lev)%direction = -stack(i_lev)%direction
+
+      if (stack(i_lev)%direction == 1) then
         ix = 1
       else
         ix = size(seq%ele(:))
       endif
+
       stack(i_lev)%ix_ele = ix
       stack(i_lev)%rep_count = seq%ele(ix)%rep_count
+
+      if (stack(i_lev)%multipass .and. .not. stack(i_lev-1)%multipass) then
+        ix_multipass = 1
+        n0_multi = n_ele_use + 1
+        multipass_line = sequence_(stack(i_lev-1)%ix_seq)%name
+      endif
 
     case default
       call warning ('INTERNAL SEQUENCE ERROR!')
 
     end select
-
-! if we have got to the end of the current line then pop the stack back to
-! the next lower level.
-! Also check if we have gotten to level 0 which says that we are done
-
-    do
-      if (stack(i_lev)%ix_ele < 1 .or. &
-                        stack(i_lev)%ix_ele > size(seq%ele(:))) then
-        i_lev = i_lev - 1
-        if (i_lev == 0) exit line_expansion
-        seq => sequence_(stack(i_lev)%ix_seq)
-      else
-        exit
-      endif
-    enddo
 
   enddo line_expansion
 
@@ -883,8 +915,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
     ele => ring%ele_(i)
     ele = in_ring%ele_(ix_ring(i)) 
-    ele%name = used_seq(i)%name
-    if (used_seq(i)%multipass) ele%control_type = garbage$  ! changed to multipass_slave later
+    ele%name = used_line(i)%name
 
     select case (ele%key)
 
@@ -973,20 +1004,34 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
   enddo
 
+! First work on multipass before overlays, groups, and usuperimpose. 
+! This is important since the elements in the lattice get
+! renamed and if not done first would confuse any overlays, i_beams, etc.
+! Multipass elements are paired by multipass index and multipass line name
+
+  n_ele_max = ring%n_ele_max
+  do i = 1, n_ele_max
+    if (used_line(i)%ix_multipass /= 0) then 
+      n_multi = 0  ! number of elements to slave together
+      ix_multipass = used_line(i)%ix_multipass
+      do j = i, n_ele_max
+        if (used_line(j)%ix_multipass == ix_multipass .and. &
+            used_line(j)%multipass_line == used_line(i)%multipass_line) then
+          n_multi = n_multi + 1
+          ixm(n_multi) = j
+          used_line(j)%ix_multipass = 0  ! mark as taken care of
+        endif
+      enddo
+      call add_this_multipass (ring, ixm(1:n_multi))
+    endif
+  enddo
+
+
+
 !-------------------------------------------------------------------------
 ! Go through the IN_RING elements and put in the superpositions, groups, etc.
 
   call s_calc (ring)              ! calc longitudinal distances
-
-! First work on multipass. This is important since the elements in the lattice get
-! renamed and if not done first would confuse any overlays, i_beams, etc.
-
-  n = ring%n_ele_max
-  do i = 1, n
-    if (ring%ele_(i)%control_type == garbage$) then
-      call add_this_multipass (ring, ring%ele_(i)%name)
-    endif
-  enddo
 
 ! Next superpositions
 
@@ -1194,7 +1239,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   if (allocated (ix_ring))           deallocate (ix_ring)
   if (allocated (seq_indexx))        deallocate (seq_indexx, seq_name)
   if (allocated (in_indexx))         deallocate (in_indexx, in_name)
-  if (allocated (used_seq))          deallocate (used_seq)
+  if (allocated (used_line))         deallocate (used_line)
   if (associated (in_ring%control_)) deallocate (in_ring%control_)
   if (associated (in_ring%ic_))      deallocate (in_ring%ic_)
 
@@ -1216,6 +1261,6 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
   if (bp_com%write_digested .and. .not. bp_com%parser_debug .and. &
       digested_version <= bmad_inc_version$) call write_digested_bmad_file  &
-               (digested_file, ring, bp_com%num_lat_files, bp_com%lat_file_names)
+             (digested_file, ring, bp_com%num_lat_files, bp_com%lat_file_names)
 
 end subroutine

@@ -24,11 +24,11 @@ module bmad_parser_mod
     character(16) name             ! name of element, subline, or sublist
     character(16), pointer :: actual_arg(:) => null()
     integer type                   ! LINE$, REPLACEMENT_LINE$, LIST$, ELEMENT$
-    integer ix_array               ! if an element: pointer to ELE_ array
+    integer ix_ele                 ! if an element: pointer to ELE_ array
                                    ! if a list: pointer to SEQ_ array
     integer ix_arg                 ! index in arg list (for replacement lines)
     integer rep_count              ! how many copies of an element
-    logical reflect                ! reflection of subline?
+    logical reflect                ! reflection sequence
   end type
 
   type seq_struct
@@ -46,7 +46,8 @@ module bmad_parser_mod
 
   type used_seq_struct
     character(16) name                 ! name of sequence
-    logical multipass
+    character(16) multipass_line       ! name of root multipass line
+    integer ix_multipass               ! index used to sort elements
   end type    
 
 ! A LIFO stack structure is used in the final evaluation of the line that is
@@ -56,7 +57,7 @@ module bmad_parser_mod
     integer ix_seq                ! index to seq_(:) array
     integer ix_ele                ! index to seq%ele(:) array
     integer rep_count             ! repetition count
-    integer reflect               ! reflection sequence?
+    integer direction             ! +1 => forwad, -1 => back reflection.
     logical multipass
   end type
 
@@ -1354,31 +1355,6 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! This subroutine is used by bmad_parser and bmad_parser2.
-! This subroutine is not intended for general use.
-!-
-
-subroutine increment_pointer (ix, reflect)
-
-  implicit none
-
-  integer ix, reflect
-
-!
-
-  if (reflect > 0) then
-    ix = ix + 1
-  else
-    ix = ix - 1
-  endif
-
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
 !+
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
@@ -2201,58 +2177,44 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine add_this_multipass (ring, multipass_name)
+subroutine add_this_multipass (ring, ixm)
 
   implicit none
 
   type (ring_struct) ring
   type (ele_struct), pointer :: slave, lord
 
-  integer i, n_multipass, ixs(100), ixc, ixic, ix_lord, ix_slave
-  character(*) multipass_name
+  integer i, n_multipass, ixm(:), ixc, ixic, ix_lord, ix_slave
 
 ! Count slaves.
 ! If i > ring%n_ele_use we are looking at cloning a super_lord which should
 ! not happen.
 
-  n_multipass = 0
-
-  do i = 1, ring%n_ele_max
-    slave => ring%ele_(i)
-    if (slave%name /= multipass_name .or. slave%control_type /= garbage$) cycle
-    n_multipass = n_multipass+1
-    if (i > ring%n_ele_use) then
-      call warning ('INTERNAL ERROR: CONFUSED MULTIPASS SETUP.', &
-                    'PLEASE GET EXPERT HELP!')
-      call err_exit
-    endif
-    if (slave%n_lord /= 0) then
-      call warning ('INTERNAL ERROR: CONFUSED MULTIPASS SETUP2.', &
-                    'PLEASE GET EXPERT HELP!')
-      call err_exit
-    endif
-    ixs(n_multipass) = i
-  enddo
+  n_multipass = size(ixm)
 
 ! setup multipass_lord
 
   call new_control (ring, ix_lord)
   lord => ring%ele_(ix_lord)
 
-  lord = ring%ele_(ixs(1))  ! Set equal to first slave.
+  lord = ring%ele_(ixm(1))  ! Set equal to first slave.
   lord%control_type = multipass_lord$
-  lord%name = multipass_name
   lord%n_slave = n_multipass
   call adjust_control_struct (ring, ix_lord)
 
 ! Setup bookkeeping between lord and slaves
 
   do i = 1, n_multipass
-    ix_slave = ixs(i)
+    ix_slave = ixm(i)
     ixc = i + lord%ix1_slave - 1
     ring%control_(ixc)%ix_lord = ix_lord
     ring%control_(ixc)%ix_slave = ix_slave
     slave => ring%ele_(ix_slave)
+    if (slave%n_lord /= 0) then
+      call warning ('INTERNAL ERROR: CONFUSED MULTIPASS SETUP.', &
+                    'PLEASE GET EXPERT HELP!')
+      call err_exit
+    endif
     slave%n_lord = 1
     write (slave%name, '(2a, i1)') trim(slave%name), '\', i   ! '
     call adjust_control_struct (ring, ix_slave)
@@ -2761,7 +2723,7 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
 
   allocate (s_ele(ubound(ring%ele_, 1)))
   s_ele%type = 0
-  s_ele%ix_array = 0
+  s_ele%ix_ele = 0
   s_ele%ix_arg = 0
 
 ! save info on what file we are parsing for error messages.
