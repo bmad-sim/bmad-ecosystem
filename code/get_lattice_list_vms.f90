@@ -2,7 +2,9 @@
 ! Subroutine get_lattice_list_vms (lat_list, num_lats, directory)
 !
 ! Subroutine to get the names of the lattices of the form:
-!     directory // BMAD_*.*
+!     directory // BMAD_<lattice_name>.LAT
+! or if there is no .LAT extension then a lattice file cam be of the form:
+!     directory // BMAD_<lattice_name>
 !
 ! Input:
 !   directory  -- Character*(*): Directory to use. E.g: "U:[CESR.BMAD.LAT]"
@@ -14,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/01/11 16:58:20  dcs
+!Minor bug fix
+!
 !Revision 1.5  2002/01/11 16:32:13  cesrulib
 !Fixed typos
 !
@@ -31,11 +36,13 @@
 !UNIX compatibility updates
 !
 !-
+
 #include "CESR_platform.inc"
 
 subroutine get_lattice_list_vms (lat_list, num_lats, directory)
 
-!keep compiler happy
+! keep compiler happy
+
   use cesr_utils
 
 #ifdef CESR_VMS
@@ -70,7 +77,7 @@ include '($rmsdef)'
       lat_list(i) = lat_file(ix:ixx)
       ix = index(lat_list(i), '.LAT')
       if (ix + 3 == len_trim(lat_list(i))) lat_list(i) = Lat_list(i)(:ix-1)
-    else if (stat == rms$_nmf) then
+    else if (stat == rms$_nmf .or. stat == rms$_fnf) then
       num_lats = i - 1
       return
     else
