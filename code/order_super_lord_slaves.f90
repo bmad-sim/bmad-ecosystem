@@ -16,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/03/18 20:34:44  dcs
+!bug fix.
+!
 !Revision 1.5  2003/01/27 14:40:41  dcs
 !bmad_version = 56
 !
@@ -30,7 +33,6 @@
 !
 
 #include "CESR_platform.inc"
-
 
 subroutine order_super_lord_slaves (ring, ix_lord)
 
@@ -47,9 +49,10 @@ subroutine order_super_lord_slaves (ring, ix_lord)
   integer i, ix, ix_lord, ix1, ix2, ns
   integer, allocatable :: ixx(:), iyy(:)
 
+  real(rdef) ds
   real(rdef), allocatable :: s_rel(:)
 
-!
+! Init setup.
 
   ele => ring%ele_(ix_lord)
   ix1 = ele%ix1_slave; ix2 = ele%ix2_slave
@@ -59,21 +62,24 @@ subroutine order_super_lord_slaves (ring, ix_lord)
     call err_exit
   endif
 
-!
+! Make an array of distances between the slave elements and the lord element.
+! Note that all distances are negative.
 
   ns = ele%n_slave
   allocate (s_rel(ns), ixx(ns), iyy(ns), cs_(ns))
 
   do i = ix1, ix2
     ix = ring%control_(i)%ix_slave
-    s_rel(i+1-ix1) = ring%ele_(ix)%s - ele%s
+    ds = ring%ele_(ix)%s - ele%s
+    if (ds > 0) ds = ds - ring%param%total_length
+    if (-ds > ele%value(l$)) then
+      print *, 'ERROR IN ORDER_SUPER_LORD_SLAVES: INTERNAL ERROR!'
+      call err_exit
+    endif
+    s_rel(i+1-ix1) = ds
   enddo
 
-  where (s_rel > ring%param%total_length / 2) &
-                    s_rel = s_rel - ring%param%total_length
-
-  where (s_rel < -ring%param%total_length / 2) &
-                    s_rel = s_rel + ring%param%total_length
+! Sort slaves by distance.
 
   call indexx (s_rel, ixx)
   cs_ = ring%control_(ix1:ix2) 
@@ -89,6 +95,6 @@ subroutine order_super_lord_slaves (ring, ix_lord)
     endif
   enddo
 
-  deallocate (s_rel)
+  deallocate (s_rel, ixx, iyy, cs_)
 
 end subroutine
