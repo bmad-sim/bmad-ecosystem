@@ -1107,7 +1107,7 @@ subroutine transfer_wake (wake_in, wake_out)
     call init_wake (wake_out, n_sr1, n_sr2_long, n_sr2_trans, n_lr)
     wake_out%sr_file   = wake_in%sr_file
     wake_out%lr_file   = wake_in%lr_file
-    wake_out%z_cut_sr  = wake_in%z_cut_sr
+    wake_out%z_sr2_max  = wake_in%z_sr2_max
     wake_out%sr1       = wake_in%sr1
     wake_out%sr2_long  = wake_in%sr2_long
     wake_out%sr2_trans = wake_in%sr2_trans

@@ -196,7 +196,7 @@ is_eq = (f1%freq == f2%freq) .and. (f1%r_over_q == f2%r_over_q) .and. &
         (f1%m == f2%m) .and. (f1%norm_sin == f2%norm_sin) .and. &
         (f1%norm_cos == f2%norm_cos) .and. (f1%skew_sin == f2%skew_sin) .and. &
         (f1%skew_cos == f2%skew_cos) .and. (f1%angle == f2%angle) .and. &
-        (f1%polarized == f2%polarized)
+        (f1%polarized .eqv. f2%polarized)
 
 end function
 
@@ -218,7 +218,7 @@ logical is_eq
 is_eq = (f1%sr_file == f2%sr_file) .and. (f1%lr_file == f2%lr_file) .and. &
      (size(f1%sr1) == size(f2%sr1)) .and. (size(f2%sr2_long) == size(f2%sr2_long)) .and. &
      (size(f1%sr2_trans) == size(f2%sr2_trans)) .and. (size(f1%lr) == size(f2%lr)) .and. &
-     (f1%z_cut_sr == f2%z_cut_sr)
+     (f1%z_sr2_max == f2%z_sr2_max)
 if (.not. is_eq) return
 
 do i = lbound(f1%sr1, 1), ubound(f1%sr1, 1)

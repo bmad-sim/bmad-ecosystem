@@ -2,7 +2,11 @@
 ! Subroutine twiss_and_track_at_s (ring, s, ele, orb, here)
 ! 
 ! Subroutine to return the twiss parameters and particle orbit at a 
-! given longitudinal position. See also twiss_and_track_partial
+! given longitudinal position. See also twiss_and_track_partial.
+!
+! Note: When calculating the Twiss parameters, this routine assumes 
+! that the lattice elements already contain the Twiss parameters calculated
+! for the ends of the elements. 
 !
 ! Modules Needed:
 !   use bmad

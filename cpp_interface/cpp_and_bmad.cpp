@@ -326,7 +326,7 @@ extern "C" void wake_to_f_(C_wake& c, wake_struct* f) {
   int n_sr2_trans = c.sr2_trans.size(); 
   const char* srf = c.sr_file.data();     int n_srf = c.sr_file.length();
   const char* lrf = c.lr_file.data();     int n_lrf = c.lr_file.length();
-  wake_to_f2_(f, srf, n_srf, lrf, n_lrf, c.z_cut_sr, n_sr1, n_sr2_long, n_sr2_trans, n_lr);
+  wake_to_f2_(f, srf, n_srf, lrf, n_lrf, c.z_sr2_max, n_sr1, n_sr2_long, n_sr2_trans, n_lr);
   for (int i = 0; i < n_sr1; i++) {
     sr1_wake_in_wake_to_f2_(f, i, c.sr1[i].z, c.sr1[i].longitudinal, c.sr1[i].transverse);
   }
@@ -355,7 +355,7 @@ extern "C" void wake_to_c2_(C_wake& c, char* srf, char* lrf, Re& z_cut, Int& n_s
   c.sr_file = srf;
   if (c.lr.size() != n_lr) c.lr.resize(n_lr);
   c.lr_file = lrf;
-  c.z_cut_sr = z_cut;
+  c.z_sr2_max = z_cut;
 }
 
 extern "C" void sr1_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& z, Re& l, Re& t) {

@@ -1703,10 +1703,12 @@ subroutine read_sr_wake (ele, sr_file_name)
 
   type (ele_struct) ele
 
-  real(rp) dz, c1(500), c2(500), c3(500), c4(500)
-  integer n_row, n, j, iu
+  real(rp) dz, c1(500), c2(500), c3(500), c4(500), z_sr2_max
+  integer n_row, n, j, iu, ios
   character(*) sr_file_name
   character(80) line
+
+  namelist / sr2_param / z_sr2_max
 
 ! init
 
@@ -1781,6 +1783,13 @@ subroutine read_sr_wake (ele, sr_file_name)
   ele%wake%sr2_trans%phi   = c4(1:n_row)
 
   if (iu < 0) return
+
+  read (iu, nml = sr2_param, iostat = ios)
+  if (ios /= 0) then
+    call warning ('CANNOT READ SR2_PARAM NAMELIST IN WAKE FILE: ' // &
+                                                        ele%wkae%sr_file)
+  ele%wake%z_sr2_max = z_sr2_max
+  close (iu)
 
 end subroutine
 

@@ -362,7 +362,7 @@ public:
   C_sr2_wake_array sr2_long;   // size = variable
   C_sr2_wake_array sr2_trans;  // size = variable
   C_lr_wake_array lr;          // size = variable
-  double z_cut_sr;             // Cutoff between sr1 and sr2
+  double z_sr2_max;             // Cutoff between sr1 and sr2
 
   C_wake (const char* srf, const char* lrf, int n_sr1, int n_sr2_long, int n_sr2_trans, int n_lr) : 
       sr1(C_sr1_wake(), n_sr1), sr2_long(C_sr2_wake(), n_sr2_long), 

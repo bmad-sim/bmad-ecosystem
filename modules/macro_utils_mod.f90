@@ -115,7 +115,7 @@ subroutine calc_macro_bunch_params (bunch, ele, params)
   avg_energy = avg_energy * ele%value(beam_energy$) / params%charge
   avg_delta = avg_delta  / params%charge
     
-  if (params%charge .lt. e_charge) then
+  if (params%charge < e_charge) then
     params%centroid%vec = 0.0
     call zero_plane (params%x)
     call zero_plane (params%y)
@@ -336,7 +336,7 @@ subroutine param_stuffit (param, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
   real(rp), intent(in) :: exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d
   real(rp) emitt
 
-  if (exp_x2*exp_p_x2 .lt. exp_x_p_x**2) then
+  if (exp_x2*exp_p_x2 < exp_x_p_x**2) then
     emitt = 0.0
     param%alpha = 0.0
     param%beta  = 0.0

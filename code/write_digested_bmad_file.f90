@@ -158,7 +158,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
       write (d_unit) ele%wake%sr2_trans
       write (d_unit) ele%wake%lr_file
       write (d_unit) ele%wake%lr
-      write (d_unit) ele%wake%z_cut_sr
+      write (d_unit) ele%wake%z_sr2_max
     endif
 
   enddo

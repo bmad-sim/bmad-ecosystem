@@ -99,7 +99,7 @@ module bmad_struct
     type (sr2_wake_struct), pointer :: sr2_long(:) => null()
     type (sr2_wake_struct), pointer :: sr2_trans(:) => null()
     type (lr_wake_struct), pointer :: lr(:) => null()
-    real(rp) :: z_cut_sr = 0    ! cutoff between sr1 and sr2
+    real(rp) :: z_sr2_max = 0   ! Max allowable z value sr2. 
   end type
 
 ! Local reference frame position with respect to the global (floor) coordinates

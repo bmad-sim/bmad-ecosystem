@@ -121,10 +121,10 @@ void init_all_c_structs () {
   c_wake_in.sr1[1] = c_sr1_wake_out;
   c_wake_in.sr2_long[0] = c_sr2_wake_in;
   c_wake_in.sr2_long[1] = c_sr2_wake_out;
-  c_wake_in.z_cut_sr = 100;
+  c_wake_in.z_sr2_max = 100;
   c_wake_in.lr[0] = c_lr_wake_in;
 
-  c_wake_out.z_cut_sr = 101;
+  c_wake_out.z_sr2_max = 101;
   c_wake_out.sr2_trans[0] = c_sr2_wake_in;
   c_wake_out.sr2_trans[1] = c_sr2_wake_out;
   c_wake_out.lr[0] = C_lr_wake(-1, -2, -3, -4, 5, -6, -7, -8, -9, 10, 1);

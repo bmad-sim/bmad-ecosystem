@@ -286,7 +286,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
           read (d_unit, err = 9850) ele%wake%sr2_trans
           read (d_unit, err = 9820) ele%wake%lr_file
           read (d_unit, err = 9830) ele%wake%lr
-          read (d_unit, err = 9860) ele%wake%z_cut_sr
+          read (d_unit, err = 9860) ele%wake%z_sr2_max
         endif
       endif
     endif

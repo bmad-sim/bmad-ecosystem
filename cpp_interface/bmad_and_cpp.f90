@@ -879,7 +879,7 @@ n_sr2_long  = size(f%sr2_long)
 n_sr2_trans = size(f%sr2_trans)
 n_lr        = size(f%lr)
 
-call wake_to_c2 (c_wake, c_str(f%sr_file), c_str(f%lr_file), f%z_cut_sr, &
+call wake_to_c2 (c_wake, c_str(f%sr_file), c_str(f%lr_file), f%z_sr2_max, &
                                              n_sr1, n_sr2_long, n_sr2_trans, n_lr)
 
 do i = 0, n_sr1-1
@@ -910,14 +910,14 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine wake_to_f2 (f_wake, sr_file, n_srf, lr_file, n_lrf, z_cut_sr,
+! Subroutine wake_to_f2 (f_wake, sr_file, n_srf, lr_file, n_lrf, z_sr2_max,
 !                                            n_sr1, n_sr2_long, n_sr2_trans, n_lr)
 !
 ! Subroutine used by wake_to_f to convert a C++ C_wake into
 ! a Bmad wake_struct. This routine is not for general use.
 !-
 
-subroutine wake_to_f2 (f_wake, sr_file, n_srf, lr_file, n_lrf, z_cut_sr, &
+subroutine wake_to_f2 (f_wake, sr_file, n_srf, lr_file, n_lrf, z_sr2_max, &
                                          n_sr1, n_sr2_long, n_sr2_trans, n_lr)
 
 use bmad_and_cpp
@@ -926,7 +926,7 @@ implicit none
 
 type (wake_struct) f_wake
 integer n_sr1, n_sr2_long, n_sr2_trans, n_lr, n_srf, n_lrf
-real(rp) z_cut_sr
+real(rp) z_sr2_max
 character(n_srf) :: sr_file
 character(n_lrf) :: lr_file
 
@@ -934,7 +934,7 @@ character(n_lrf) :: lr_file
 
 f_wake%sr_file = sr_file
 f_wake%lr_file = lr_file
-f_wake%z_cut_sr = z_cut_sr
+f_wake%z_sr2_max = z_sr2_max
 allocate (f_wake%sr1(0:n_sr1-1))
 allocate (f_wake%sr2_long(n_sr2_long))
 allocate (f_wake%sr2_trans(n_sr2_trans))

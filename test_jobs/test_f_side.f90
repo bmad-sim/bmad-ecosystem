@@ -137,7 +137,7 @@ allocate (wake_out%sr1(0), wake_out%sr2_long(0), wake_out%sr2_trans(2), wake_out
 
 wake_in%sr_file = "ABCD"
 wake_in%lr_file = "XYZZY"
-wake_in%z_cut_sr = 100
+wake_in%z_sr2_max = 100
 wake_in%sr1(0) = sr1_wake_in
 wake_in%sr1(1) = sr1_wake_out
 wake_in%sr2_long(1) = sr2_wake_in
@@ -146,7 +146,7 @@ wake_in%lr(1) = lr_wake_in
 
 wake_out%sr_file = "abcd"
 wake_out%lr_file = "xyzzy"
-wake_out%z_cut_sr = 101
+wake_out%z_sr2_max = 101
 wake_out%sr2_trans(1) = sr2_wake_in
 wake_out%sr2_trans(2) = sr2_wake_out
 wake_out%lr(1) = lr_wake_struct (-1.0_rp, -2.0_rp, -3.0_rp, -4.0_rp, -5.0_rp, &

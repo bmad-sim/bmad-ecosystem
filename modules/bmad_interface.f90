@@ -278,6 +278,16 @@ interface
 end interface
 
 interface
+  subroutine ele_at_s (lat, s, ix_ele)
+    use bmad_struct, only: ring_struct, rp
+    implicit none
+    type (ring_struct) lat
+    real(rp) s
+    integer ix_ele
+  end subroutine
+end interface
+
+interface
   subroutine emitt_calc (ring, what, mode)
     use bmad_struct, only: ring_struct, modes_struct
     implicit none

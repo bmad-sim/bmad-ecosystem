@@ -281,10 +281,11 @@ subroutine track1_sr_wake (bunch, ele)
   type (ele_struct) ele
   type (particle_struct), pointer :: particle, leader
 
-  real(rp) dz_sr1, sr02, z_cut
+  real(rp) dz_sr1, sr02, z_sr1_max
   integer i, j, k, i_sr2, n_sr1, n_sr2_long, n_sr2_trans, k_start
 
   logical wake_here
+  character(16) :: r_name = 'track1_sr_wake'
 
 !-----------------------------------
 ! If there is no wake for this element then just use the e_loss attribute.
@@ -300,7 +301,16 @@ subroutine track1_sr_wake (bunch, ele)
   endif
 
 !-----------------------------------
-! zero wake sums and order particles in z
+! error check and zero wake sums and order particles in z
+
+  call order_particles_in_z (bunch)  
+  if (size(ele%wake%sr2_long) /= 0) then
+    if (bunch%particle(1)%r%vec(5) - bunch%particle(1)%r%vec(5) > ele%wake%z_sr2_max) then
+      call out_io (s_abort$, r_name, &
+          'Bunch longer than SR2 wake can handle for element: ' // ele%name)
+      call err_exit
+    endif
+  endif
 
   do i = 1, size(ele%wake%sr2_long)
     ele%wake%sr2_long%norm_sin = 0
@@ -309,25 +319,24 @@ subroutine track1_sr_wake (bunch, ele)
     ele%wake%sr2_long%skew_cos = 0
   enddo
 
-  call order_particles_in_z (bunch)  ! needed for wakefield calc.
-
 !
 
+  z_sr1_max = 0
   if (n_sr1 > 0) then
-    dz_sr1 = ele%wake%sr1(n_sr1-1)%z / (n_sr1 - 1)
+    z_sr1_max = ele%wake%sr1(n_sr1-1)%z
+    dz_sr1 = z_sr1_max / (n_sr1 - 1)
     sr02 = ele%wake%sr1(0)%long / 2
   endif
 
 ! loop over all particles in the bunch and apply the wake
 
   i_sr2 = 1  ! index of next particle to be added to the sr2 wake sums.
-  z_cut = ele%wake%z_cut_sr ! remember z_cut is negative
 
   do j = 1, size(bunch%particle)
     particle => bunch%particle(j)
     ! apply longitudinal self wake
 
-    if (z_cut < 0) then
+    if (z_sr1_max < 0) then
       particle%r%vec(6) = particle%r%vec(6) - sr02 * particle%charge 
     else
       call sr2_long_self_wake_apply_kick (ele, particle%charge, particle%r)
@@ -340,7 +349,7 @@ subroutine track1_sr_wake (bunch, ele)
     k_start = i_sr2
     do k = k_start, j-1
       leader => bunch%particle(k)
-      if (leader%r%vec(5) - particle%r%vec(5) < z_cut) then
+      if (leader%r%vec(5) - particle%r%vec(5) < z_sr1_max) then
         ! use sr1 table to add to particle j the wake of particle k
         call sr1_apply_kick (ele, leader%r, leader%charge, particle%r)
       else
@@ -820,9 +829,9 @@ subroutine init_beam_distribution (ele, beam_init, beam, renormalize, random_dis
      
       ! check distribution for fit to beam_init
       call calc_bunch_params (bunch, ele, params)
-      if (abs(params%a%norm_emitt - beam_init%a_norm_emitt) .lt. &
+      if (abs(params%a%norm_emitt - beam_init%a_norm_emitt) < &
                                       emitt_tol*beam_init%a_norm_emitt .and. &
-          abs(params%b%norm_emitt - beam_init%b_norm_emitt) .lt. &
+          abs(params%b%norm_emitt - beam_init%b_norm_emitt) < &
                                       emitt_tol*beam_init%b_norm_emitt) exit
     enddo
   else ! ordered distribution
@@ -907,10 +916,10 @@ subroutine init_beam_distribution (ele, beam_init, beam, renormalize, random_dis
     ! Now scale to get correct beam sizes
     do 
       call calc_bunch_params (bunch, ele, params)
-!     if (abs(params%a%sigma - sqrt(a_emitt * ele%x%beta)) .lt. &
+!     if (abs(params%a%sigma - sqrt(a_emitt * ele%x%beta)) < &
 !                                     sigma_tol*sqrt(a_emitt * ele%x%beta)) exit
 !     a_factor = sqrt(a_emitt * ele%x%beta) / params%a%sigma
-      if (abs(params%a%norm_emitt - beam_init%a_norm_emitt) .lt. &
+      if (abs(params%a%norm_emitt - beam_init%a_norm_emitt) < &
                                       sigma_tol*beam_init%a_norm_emitt) exit
       a_factor = beam_init%a_norm_emitt / params%a%norm_emitt
       bunch%particle(:)%r%vec(1) = bunch%particle(:)%r%vec(1) * sqrt(a_factor)

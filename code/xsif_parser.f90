@@ -400,7 +400,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
           ele%wake%sr_file = trim(name1) // ' | ' // name2
           call read_xsif_wake (ele%wake%sr1, name1, 'LONG')
           call read_xsif_wake (ele%wake%sr1, name2, 'TRANS')
-          ele%wake%z_cut_sr = 1e10  ! something large
+          ele%wake%z_sr2_max = 0
         endif
 
         ring%param%lattice_type = linear_lattice$
