@@ -793,12 +793,10 @@ subroutine tao_transfer_map_calc_at_s (lat, t_map, s1, s2, &
   implicit none
 
   type (ring_struct) lat
-  type (taylor_struct) :: t_map(:), taylor2(6)
-  type (ele_struct) :: ele
+  type (taylor_struct) :: t_map(:)
 
   real(rp), intent(in), optional :: s1, s2
   real(rp) ss1, ss2
-  integer i, i1, i2
 
   logical, optional :: integrate, one_turn, unit_start
   logical integrate_this, one_turn_this
@@ -815,7 +813,7 @@ subroutine tao_transfer_map_calc_at_s (lat, t_map, s1, s2, &
   if (logic_option(.true., unit_start)) call taylor_make_unit (t_map)
 
 
-  if (i2 < i1 .or. one_turn_this) then
+  if (ss2 < ss1 .or. one_turn_this) then
     call transfer_this (ss1, lat%param%total_length)
     call transfer_this (0.0_rp, ss2)
   else
@@ -827,26 +825,251 @@ contains
 
 subroutine transfer_this (s_1, s_2)
 
-real(rp) s_1, s_2
+  real(rp) s_1, s_2, s_now, s_ele_end
+  real(rp), save :: ds_old = -1
+  integer ix_ele
+  type (ele_struct), save :: ele
+
+
+!
+
+  call tao_ele_at_s (lat, s_1, ix_ele)
+  ele = lat%ele_(ix_ele)
+  s_now = s_1
+
+  do
+    if (s_2 > lat%ele_(ix_ele)%s) then
+      s_ele_end = lat%ele_(ix_ele)%s
+      call add_on_to_t_map (ele, s_now, s_ele_end)
+      s_now = s_ele_end
+      ix_ele = ix_ele + 1
+      ele = lat%ele_(ix_ele)
+      ds_old = -1
+    else
+      call add_on_to_t_map (ele, s_now, s_2)
+      ds_old = s_2 - s_now
+      return
+    endif
+  enddo
 
 end subroutine
 
 !--------------------------------------------------------
 
-subroutine add_on_to_t_map
+subroutine add_on_to_t_map (ele, s_11, s_22)
+
+  real(rp) s_11, s_22, ds 
+  type (ele_struct) ele
+!
+
+  if (ele%key == marker$) return
+  ds = s_22 - s_11 
+
+  if (abs(ds - ele%value(l$)) > 1e-6) then
+    ele%value(l$) = ds
+    call kill_taylor (ele%taylor)
+  endif
 
   if (integrate_this) then
-    call taylor_propagate1 (t_map, lat%ele_(i), lat%param)
+    call taylor_propagate1 (t_map, ele, lat%param)
   else
-    if (.not. associated(lat%ele_(i)%taylor(1)%term)) then
-      call ele_to_taylor (lat%ele_(i), lat%param)
+    if (.not. associated(ele%taylor(1)%term)) then
+      call ele_to_taylor (ele, lat%param)
     endif
 
-    call concat_taylor (t_map, lat%ele_(i)%taylor, t_map)
+    call concat_taylor (t_map, ele%taylor, t_map)
   endif
 
 end subroutine
 
 end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+         
+! Subroutine tao_mat6_calc_at_s (lat, mat6, s1, s2, one_turn, unit_start)
+!
+! Subroutine to calculate the transfer matrix between two elements.
+!
+! The transfer matrix is from longitudinal position s1 to s2.
+! If s1 and s2 are not present, the full 1-turn map is calculated.
+! If s2 < s1 then the calculation will "wrap around" the lattice end.
+! For example if s1 = 900 and s2 = 10 then the t_mat is the map from
+! s = 900 to the lattice end plus from 0 through s = 10. 
+!
+! If s2 = s1 then you get the unit matrix except if one_turn = True.
+!
+! Modules Needed:
+!   use bmad
+!
+! Input:
+!   lat        -- Ring_struct: Lattice used in the calculation.
+!   mat6(6,6)  -- Taylor_struct: Initial map (used when unit_start = False)
+!   s1         -- Real(rp), optional: Element start index for the calculation.
+!                   Default is 0.
+!   s2         -- Real(rp), optional: Element end index for the calculation.
+!                   Default is lat%param%total_length.
+!   one_turn   -- Logical, optional: If present and True then construct the
+!                   one-turn map from s1 back to s1 (ignoring s2).
+!                   Default = False.
+!   unit_start -- Logical, optional: If present and False then t_map will be
+!                   used as the starting map instead of the unit map.
+!                   Default = True
+!
+! Output:
+!    t_map(6) -- Taylor_struct: Transfer map.
+!-
+
+subroutine tao_mat6_calc_at_s (lat, mat6, s1, s2, one_turn, unit_start)
+
+  use bmad_struct
+  use bmad_interface
+
+  implicit none
+
+  type (ring_struct) lat
+  type (ele_struct), save :: ele
+
+  real(rp) mat6(:,:)
+  real(rp), intent(in), optional :: s1, s2
+  real(rp) ss1, ss2
+
+  logical, optional :: one_turn, unit_start
+  logical one_turn_this
+
+!
+
+  one_turn_this = logic_option (.false., one_turn)
+
+  ss1 = 0;                       if (present(s1)) ss1 = s1
+  ss2 = lat%param%total_length;  if (present(s2)) ss2 = s2
+  if (one_turn_this) ss2 = ss1
+ 
+  if (logic_option(.true., unit_start)) call mat_make_unit (mat6)
+
+
+  if (ss2 < ss1 .or. one_turn_this) then
+    call transfer_this (ss1, lat%param%total_length)
+    call transfer_this (0.0_rp, ss2)
+  else
+    call transfer_this (ss1, ss2)
+  endif
+
+!--------------------------------------------------------
+contains
+
+subroutine transfer_this (s_1, s_2)
+
+  real(rp) s_1, s_2, s_ele_end, s_now
+  real(rp), save :: ds_old = -1
+  integer ix_ele
+
+!
+
+  call tao_ele_at_s (lat, s_1, ix_ele)
+  ele = lat%ele_(ix_ele)
+  s_now = s_1
+
+  do
+    if (s_2 > lat%ele_(ix_ele)%s) then
+      s_ele_end = lat%ele_(ix_ele)%s
+      call add_on_to_mat6 (s_now, s_ele_end)
+      s_now = s_ele_end
+      ix_ele = ix_ele + 1
+      ele = lat%ele_(ix_ele)
+      ds_old = -1
+    else
+      call add_on_to_mat6 (s_now, s_2)
+      ds_old = s_2 - s_now
+      return
+    endif
+  enddo
+
+end subroutine
+
+!--------------------------------------------------------
+
+subroutine add_on_to_mat6 (s_11, s_22)
+
+  real(rp) s_11, s_22, ds 
+
+!
+
+  if (ele%key == marker$) return
+  ds = s_22 - s_11 
+
+  if (abs(ds - ele%value(l$)) > 1e-6) then
+    ele%value(l$) = ds
+    call make_mat6 (ele, lat%param)
+  endif
+
+  mat6 = matmul (ele%mat6, mat6)
+
+end subroutine
+
+end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine tao_ele_at_s (lat, s, ix_ele)
+!
+! Subroutine to return the index of the element at position s.
+! That is, ix_ele is choisen such that:
+!     lat%ele_(ix_ele-1)%s < s <= lat%ele_(ix_ele)%s
+!
+! Note: s is evaluated modulo the lattice length:
+!     s -> s - lat_length * floor(s/lat_length)
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   lat -- Ring_struct: Lattice of elements.
+!   s   -- Real(rp): Longitudinal position.
+!
+! Output:
+!   ix_ele -- Integer: Index of element at s.
+!-
+
+subroutine tao_ele_at_s (lat, s, ix_ele)
+
+  use bmad
+
+  implicit none
+
+  type (ring_struct) lat
+  real(rp) s, ss, ll
+  integer ix_ele, n1, n2, n3
+
+!
+
+  ll = lat%param%total_length
+  ss = s - ll * floor(s/ll)
+
+  n1 = 0
+  n3 = lat%n_ele_use
+
+  do
+
+    if (n3 == n1 + 1) then
+      ix_ele = n1
+      return
+    endif
+
+    n2 = (n1 + n3) / 2
+
+    if (ss < lat%ele_(n2)%s) then
+      n3 = n2
+    else
+      n1 = n2
+    endif
+
+  enddo
+
+end subroutine
+
 
 end module tao_data_mod
