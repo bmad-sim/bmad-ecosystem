@@ -65,7 +65,7 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord)
     endif
   endif
 
-  if (bmad_com%auto_bookkeeper) call compute_element_energy (ring)
+  if (bmad_com%auto_bookkeeper) call compute_reference_energy (ring)
 
 !--------------------------------------------------------------
 ! make entire ring if i_ele < 0

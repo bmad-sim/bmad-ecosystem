@@ -1362,7 +1362,7 @@ call bmad_com_to_c2 (c_bmad_com, &
       c_logic(f%sr_wakes_on), c_logic(f%lr_wakes_on), &
       c_logic(f%mat6_track_symmetric), c_logic(f%auto_bookkeeper), & 
       c_logic(f%space_charge_on), c_logic(f%radiation_damping_on), &
-      c_logic(f%radiation_fluctuations_on))
+      c_logic(f%radiation_fluctuations_on), c_logic(f%compute_ref_energy))
 
 end subroutine
 
@@ -1370,7 +1370,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !+
 ! Subroutine bmad_com_to_f2 (orb, ap, kl, rel, abs, to, do, ds, cc, liar, &
-!                sr, lr, sym, a_book, sc_on, rad_d, rad_f)
+!                sr, lr, sym, a_book, sc_on, rad_d, rad_f, ref_e)
 !
 ! Subroutine used by bmad_com_to_f to transfer the data from a C++ 
 ! C_bmad_com variable into the Bmad bmad_com_stuct common block.
@@ -1385,11 +1385,12 @@ use bmad_and_cpp
 implicit none
 
 real(rp) orb(6), ap, kl, rel, abs
-integer to, do, ds, cc, liar, sr, lr, sym, a_book, sc_on, rad_d, rad_f
+integer to, do, ds, cc, liar, sr, lr, sym, a_book, sc_on, rad_d, rad_f, ref_e
 
 bmad_com = bmad_com_struct(orb, ap, kl, rel, abs, to, do, ds, &
     f_logic(cc), f_logic(liar), f_logic(sr), f_logic(lr), f_logic(sym), &
-    f_logic(a_book), f_logic(sc_on), f_logic(rad_d), f_logic(rad_f))
+    f_logic(a_book), f_logic(sc_on), f_logic(rad_d), f_logic(rad_f), &
+    f_logic(ref_e))
 
 end subroutine
 

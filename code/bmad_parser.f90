@@ -1066,7 +1066,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   call ring_geometry (ring)                ! ring layout
   call set_ptc (ring%beam_energy, ring%param%particle)
   ring%input_taylor_order = bmad_com%taylor_order
-  call compute_element_energy (ring)
+  call compute_reference_energy (ring, .true.)
 
 ! Reuse the old taylor series if they exist
 ! and the old taylor series has the same attributes.
@@ -1103,7 +1103,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   if (doit) then
     call ring_make_mat6(ring, -1)      ! make 6x6 transport matrices
   else
-    call compute_element_energy (ring)
+    call compute_reference_energy (ring, .true.)
     do i = 1, ring%n_ele_max
       call attribute_bookkeeper (ring%ele_(i), ring%param)
     enddo

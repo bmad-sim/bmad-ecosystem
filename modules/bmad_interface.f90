@@ -24,9 +24,10 @@ interface
 end interface
 
 interface
-  subroutine compute_element_energy (ring)
+  subroutine compute_reference_energy (ring, compute)
     use bmad_struct, only: ring_struct
     type (ring_struct) ring
+    logical, optional :: compute
   end subroutine
 end interface
 

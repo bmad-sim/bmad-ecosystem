@@ -174,9 +174,9 @@ modes_out = modes_struct ((/11.0_rp, 12.0_rp, 13.0_rp/), 14.0_rp, 15.0_rp, 16.0_
                   amode_out, amode_out, amode_in, linac_mode_out)
 
 bmad_com_in  = bmad_com_struct (vec6_a, 2.0_rp, 3_rp, 4.0_rp, 5.0_rp, 6, 7, 8, &
-                                T, F, T, F, T, F, T, T, T)
+                                T, F, T, F, T, F, T, T, T, F)
 bmad_com_out = bmad_com_struct(vec6_b, 12.0_rp, 13_rp, 14.0_rp, 15.0_rp, 16, 17, 18, &
-                                T, T, F, F, T, T, F, T, F)
+                                T, T, F, F, T, T, F, T, F, T)
 
 em_field_in  = em_field_struct (vec3_a, vec3_b, vec3_c, mat3_a, mat3_b, mat3_c, 77)
 em_field_out = em_field_struct (vec3_c, vec3_b, vec3_a, mat3_c, mat3_b, mat3_a, -77)

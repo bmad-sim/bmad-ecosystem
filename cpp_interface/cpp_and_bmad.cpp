@@ -528,7 +528,8 @@ void operator>> (modes_struct* f, C_modes& c) {
 // bmad_com
 
 extern "C" void bmad_com_to_f2_(ReArr, Re&, Re&, Re&, Re&, 
-     Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&);
+     Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&,
+     Int&);
 
 extern "C" void bmad_com_to_f_(C_bmad_com& c) {
   bmad_com_to_f2_(&c.d_orb[0], c.max_aperture_limit, c.grad_loss_sr_wake, 
@@ -536,16 +537,16 @@ extern "C" void bmad_com_to_f_(C_bmad_com& c) {
     c.default_integ_order, c.default_num_steps, c.canonical_coords, 
     c.use_liar_lcavity, c.sr_wakes_on, c.lr_wakes_on, c.mat6_track_symmetric,
     c.auto_bookkeeper, c. space_charge_on, c.radiation_damping_on,
-    c.radiation_fluctuations_on);
+    c.radiation_fluctuations_on, c.compute_ref_energy);
 }
 
 extern "C" void bmad_com_to_c2_(C_bmad_com& c, 
               ReArr orb, Re& ap, Re& kl, Re& rel, 
               Re& abs, Int& to, Int& dflt_ord, Int& ds, Int& cc, Int& liar, 
               Int& sr, Int& lr, Int& sym, Int& a_book, Int& sc_on, 
-              Int& rad_d, Int& rad_f) {
+              Int& rad_d, Int& rad_f, Int& ref_e) {
   c = C_bmad_com (orb, ap, kl, rel, abs, to, dflt_ord, ds, cc, liar, sr, 
-                  lr, sym, a_book, sc_on, rad_d, rad_f);
+                  lr, sym, a_book, sc_on, rad_d, rad_f, ref_e);
 }
 
 //---------------------------------------------------------------------------

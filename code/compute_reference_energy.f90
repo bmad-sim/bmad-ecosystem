@@ -1,5 +1,5 @@
 !+
-! Subroutine compute_element_energy (lattice)
+! Subroutine compute_reference_energy (lattice, compute)
 !
 ! Subroutine to compute the energy and momentum of the reference particle for 
 ! each element in a ring structure.
@@ -10,16 +10,21 @@
 ! Input:
 !   lattice -- Ring_struct: Input lattice.
 !     %ele_(0)%value(beam_energy$) -- Energy at the start.
+!   bmad_com -- Bmad_com_struct: Bmad global common block.
+!     %compute_ref_energy -- Logical: If set False then do not recompute the
+!                 reference energy.
+!   compute -- Logical, optional: If present then overrides the setting of
+!                bmad_com%compute_ref_energy
 !
 ! Output:
 !   lattice -- Ring_struct
-!     %ele_(:)%value(beam_energy$) -- Energy at the end of the element.
-!     %ele_(:)%value(p0c$)         -- Momentum at the end of the element.
+!     %ele_(:)%value(beam_energy$) -- Reference energy at the end of the element.
+!     %ele_(:)%value(p0c$)         -- Reference momentum at the end of the element.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine compute_element_energy (lattice)
+subroutine compute_reference_energy (lattice, compute)
 
   use bmad_struct
   use bmad_utils_mod
@@ -31,8 +36,11 @@ subroutine compute_element_energy (lattice)
   real(rp) beam_energy, p0c, phase
 
   integer i, j, k, ix
+  logical, optional :: compute
 
 ! Init energy
+
+  if (.not. logic_option(bmad_com%compute_ref_energy, compute)) return
 
   beam_energy = lattice%ele_(0)%value(beam_energy$)
   call energy_to_kinetic (beam_energy, lattice%param%particle, p0c = p0c)

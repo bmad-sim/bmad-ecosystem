@@ -79,7 +79,7 @@ subroutine set_ele_attribute (ring, i_ele, attrib_name, &
 ! bookkeeping
 
   if (ele%key == lcavity$ .or. ele%key == custom$) &
-                                      call compute_element_energy (ring)
+                                      call compute_reference_energy (ring)
   
   call control_bookkeeper (ring, i_ele)
 

@@ -420,7 +420,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
 ! make matrices for entire ring
 
-  call compute_element_energy (ring)
+  call compute_reference_energy (ring, .true.)
   doit = .true.
   if (present(make_mats6)) doit = make_mats6
   if (doit) call ring_make_mat6(ring, -1, orbit_)  ! make transport matrices

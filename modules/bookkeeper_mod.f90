@@ -189,7 +189,7 @@ subroutine lattice_bookkeeper (ring)
 !
 
   call control_bookkeeper (ring)
-  call compute_element_energy (ring)
+  call compute_reference_energy (ring)
 
   do i = 1, ring%n_ele_use
     call attribute_bookkeeper (ring%ele_(i), ring%param)

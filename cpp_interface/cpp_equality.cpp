@@ -153,7 +153,8 @@ bool operator== (const C_modes& x, const C_modes& y) {
 
 bool operator== (const C_bmad_com& x, const C_bmad_com& y) {
   return is_all_true(x.d_orb, y.d_orb) && 
-      (x.max_aperture_limit == y.max_aperture_limit) && (x.grad_loss_sr_wake == y.grad_loss_sr_wake) && 
+      (x.max_aperture_limit == y.max_aperture_limit) && 
+      (x.grad_loss_sr_wake == y.grad_loss_sr_wake) && 
       (x.rel_tollerance == y.rel_tollerance) && 
       (x.abs_tollerance == y.abs_tollerance) && 
       (x.taylor_order == y.taylor_order) && 
@@ -162,7 +163,8 @@ bool operator== (const C_bmad_com& x, const C_bmad_com& y) {
       (x.canonical_coords == y.canonical_coords) && 
       (x.use_liar_lcavity == y.use_liar_lcavity) && 
       (x.sr_wakes_on == y.sr_wakes_on) &&  (x.lr_wakes_on == y.lr_wakes_on) &&  
-      (x.mat6_track_symmetric ==  y.mat6_track_symmetric);
+      (x.mat6_track_symmetric ==  y.mat6_track_symmetric) &&
+      (x.compute_ref_energy == y.compute_ref_energy);
 }
 
 bool operator== (const C_em_field& x, const C_em_field& y) {

@@ -375,7 +375,8 @@ is_eq = all(f1%d_orb == f2%d_orb) .and. &
       (f1%auto_bookkeeper .eqv. f2%auto_bookkeeper) .and. &
       (f1%space_charge_on .eqv. f2%space_charge_on) .and. &
       (f1%radiation_damping_on .eqv. f2%radiation_damping_on) .and. &
-      (f1%radiation_fluctuations_on .eqv. f2%radiation_fluctuations_on)
+      (f1%radiation_fluctuations_on .eqv. f2%radiation_fluctuations_on) .and. &
+      (f1%compute_ref_energy .eqv. f2%compute_ref_energy)
 
 end function
 

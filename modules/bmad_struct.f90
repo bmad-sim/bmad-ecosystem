@@ -590,6 +590,7 @@ module bmad_struct
     logical :: space_charge_on = .false.     ! Space charge kick in tracking.
     logical :: radiation_damping_on = .false.       ! Damping toggle.
     logical :: radiation_fluctuations_on = .false.  ! Fluctuations toggle.
+    logical :: compute_ref_energy = .true.          ! Enable recomputation?
   end type
   
   type (bmad_com_struct), save :: bmad_com

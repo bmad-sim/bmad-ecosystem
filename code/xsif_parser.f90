@@ -506,7 +506,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
 
 ! Element cleanup
 
-  call compute_element_energy (ring)
+  call compute_reference_energy (ring)
   do i = 1, ring%n_ele_max
     if (ele%key == elseparator$) then
       if (ele%value(beam_energy$) == 0) cycle
