@@ -610,7 +610,7 @@ end subroutine
 !   particle -- struct: particle with angular coords.
 !-
 
-subroutine particle_to_angle_coords (particle, energy0)
+subroutine canonical_to_angle_coords (particle, energy0)
 
   implicit none
 
