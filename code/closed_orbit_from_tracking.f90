@@ -40,6 +40,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2002/11/14 16:07:39  dcs
+!Fixed bug to overwrite closed_orb_(0)%vec(5) when i_dim = 4
+!
 !Revision 1.7  2002/11/06 06:48:31  dcs
 !Changed arg array
 !
@@ -190,7 +193,8 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 ! if we are here then we did not make a guess using the matrix.
 ! The new guess is the average of the start and end orbits.
 
-    closed_orb_(0)%vec = (closed_orb_(0)%vec + closed_orb_(n_ele)%vec) / 2
+    closed_orb_(0)%vec(1:nd) = &
+              (closed_orb_(0)%vec(1:nd) + closed_orb_(n_ele)%vec(1:nd)) / 2
 
   enddo
 
