@@ -6,8 +6,7 @@
 ! the aperture is.  Here x and y are deviations from the closed orbit.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   RING    -- Ring_struct: Ring containing the lattice.
@@ -38,6 +37,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:15  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2001/11/29 19:39:53  helms
 !Updates from DCS including (*) -> (:)
 !
@@ -51,8 +53,7 @@
 
 subroutine dynamic_aperture (ring, track_input, aperture_)
 
-  use bmad_struct                                      
-  use bmad_interface
+  use bmad                                      
 
   implicit none
 
@@ -65,9 +66,9 @@ subroutine dynamic_aperture (ring, track_input, aperture_)
 
   integer i_e, i_xy, it, i, turn_lost, ixr, i_e_max
 
-  real eps_rel(4), eps_abs(4)
-  real e_init, theta                                   
-  real x0, x1, x2, y0, y1, y2
+  real(rdef) eps_rel(4), eps_abs(4)
+  real(rdef) e_init, theta                                   
+  real(rdef) x0, x1, x2, y0, y1, y2
 
   logical aperture_bracketed, track_on
 

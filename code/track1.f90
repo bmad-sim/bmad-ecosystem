@@ -6,8 +6,7 @@
 ! the longitudinal motion. For long term tracking see TRACK_LONG. 
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   START  -- Coord_struct: Starting position
@@ -34,6 +33,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:25  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:43  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -45,8 +47,7 @@
 
 subroutine track1 (start, ele, param, end)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -54,12 +55,12 @@ subroutine track1 (start, ele, param, end)
   type (ele_struct)  ele, bend
   type (param_struct)  param
 
-  real x_kick, y_kick, k1, k2l, k3l, length, phase, mat2(2,2), mat4(4,4)
-  real del, e1, e2, del_x_vel, del_y_vel, sig_x, sig_y, kx, ky, coef
-  real knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-  real ks, sig_x0, sig_y0, beta, mat6(6,6)
-  real ave_x_vel2, ave_y_vel2, x_lim, y_lim
-  real z_slice(100), s_pos, s_pos_old, vec0(6)
+  real(rdef) x_kick, y_kick, k1, k2l, k3l, length, phase, mat2(2,2), mat4(4,4)
+  real(rdef) del, e1, e2, del_x_vel, del_y_vel, sig_x, sig_y, kx, ky, coef
+  real(rdef) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+  real(rdef) ks, sig_x0, sig_y0, beta, mat6(6,6)
+  real(rdef) ave_x_vel2, ave_y_vel2, x_lim, y_lim
+  real(rdef) z_slice(100), s_pos, s_pos_old, vec0(6)
 
   integer i, j, n, n_slice, key
 
@@ -415,8 +416,7 @@ end subroutine
 ! Subroutine to track through an accel_sol element
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   START  -- Coord_struct: Starting position
@@ -436,8 +436,7 @@ end subroutine
                 
 subroutine track_accel_sol (start, ele, param, end) 
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -445,12 +444,12 @@ subroutine track_accel_sol (start, ele, param, end)
   type (ele_struct)  ele
   type (param_struct)  param
 
-  real gamma_b, gamma_new, gamma_old, l_over_gamma, ll, ls(5), s_cumul
-  real s_grand_cum, vec_st(4), x_beg_lim, y_beg_lim, x_lim, y_lim
-  real x_lim_chng_rate, y_lim_chng_rate, phase, mat4(4,4), length
-  real b_x(5), b_y(5), beta_b, beta_s, c_e, c_m, en_gain, gam_inv2_b
+  real(rdef) gamma_b, gamma_new, gamma_old, l_over_gamma, ll, ls(5), s_cumul
+  real(rdef) s_grand_cum, vec_st(4), x_beg_lim, y_beg_lim, x_lim, y_lim
+  real(rdef) x_lim_chng_rate, y_lim_chng_rate, phase, mat4(4,4), length
+  real(rdef) b_x(5), b_y(5), beta_b, beta_s, c_e, c_m, en_gain, gam_inv2_b
 
-  real, parameter :: beta_crit$ = 0.999
+  real(rdef), parameter :: beta_crit$ = 0.999
 
   integer i, j
 

@@ -8,12 +8,11 @@
 !       not recomputed.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     RING    -- Ring_struct: Original ring structure.
-!     S_SPLIT -- Real: longitudinal distance at which ring is to be split.
+!     S_SPLIT -- Real(rdef): longitudinal distance at which ring is to be split.
 !
 ! Output:
 !     RING       -- Ring_struct: Modified ring structure.
@@ -23,6 +22,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/02/23 20:32:25  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.4  2002/01/08 21:44:43  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -37,8 +39,7 @@
 
 subroutine split_ring (ring, s_split, ix_split, split_done)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -46,8 +47,8 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
   type (ele_struct)  ele
   type (ele_struct), pointer :: ele1, ele2
 
-  real s_split, len_orig, len1, len2, coef1, coef2, angle0, coef_old
-  real dl
+  real(rdef) s_split, len_orig, len1, len2, coef1, coef2, angle0, coef_old
+  real(rdef) dl
 
   integer i, j, k, ix, ix1, ix_del, ix1_del, ix2_del, ixx1
   integer ix_split, ix_lord, ixc, ix_attrib, ix_super_lord

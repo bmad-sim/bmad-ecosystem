@@ -5,8 +5,7 @@
 ! (not a lord or slave) and all %VALUES set to zero.
 ! 
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Output:
 !   ELE -- Ele_struct: Initialized element.
@@ -14,6 +13,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:16  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:39  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -25,8 +27,7 @@
 
 subroutine init_ele (ele)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 

@@ -4,8 +4,7 @@
 ! Subroutine to track from one point in the ring to another.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring             -- Ring_struct: Ring to track through.
@@ -48,6 +47,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:26  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:59  rwh24
 !UNIX compatibility updates
 !
@@ -58,8 +60,7 @@
 
 subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -70,7 +71,7 @@ subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
   integer ix_start, ix_end, direction
   integer n, i
 
-  real x_lim, y_lim
+  real(rdef) x_lim, y_lim
 
   logical debug / .false. /
                             
@@ -145,7 +146,7 @@ subroutine track_back (ix1, ix2)
 
   integer ix1, ix2
   logical reverse
-  real mat_save(6,6)
+  real(rdef) mat_save(6,6)
 
 !
 

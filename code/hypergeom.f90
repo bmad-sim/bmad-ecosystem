@@ -12,14 +12,17 @@
 !       If HGCX = 2, use series coefficients of F (5/4, 7/4; 2; ) * 3/4
 !                                              2 1
 !
-!     ARG  -- Real: Last (fourth) argument of the hypergeometric function
+!     ARG  -- Real(rdef): Last (fourth) argument of the hypergeometric function
 !
 ! Output:
-!     HYPERGEOM -- Real: The hypergeometric function
+!     HYPERGEOM -- Real(rdef): The hypergeometric function
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:16  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:52  rwh24
 !UNIX compatibility updates
 !
@@ -27,11 +30,15 @@
 #include "CESR_platform.inc"
 
 
-  function hypergeom (hgcx, arg)
+function hypergeom (hgcx, arg)
+
+  use precision_def  
+
   implicit none
 
   integer hgcx, i
-  real arg, arg_power, hypergeom, next_term
+  real(rdef) arg, arg_power, hypergeom, next_term
+
 #include "hypergeom.inc"
 
   if (hgcx == 1) then
@@ -50,5 +57,4 @@
     if (i <= i_max) goto 10
   endif
 
-  return
-  end
+end function

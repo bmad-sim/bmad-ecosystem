@@ -4,8 +4,7 @@
 ! Subroutine to check if the control links in a ring structure are valid
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring -- Ring_struct: Ring to check
@@ -14,6 +13,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:12  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:37  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -26,8 +28,7 @@
 
 subroutine check_ring_controls (ring, exit_on_error)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
        

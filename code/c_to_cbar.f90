@@ -4,18 +4,20 @@
 ! Subroutine to compute Cbar from the C matrix and the Twiss parameters.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     ELE -- Ele_struct: Element with C matrix and Twiss parameters
 !
 ! Output:
-!     CBAR_MAT(2,2) -- Real: Cbar matrix.
+!     CBAR_MAT(2,2) -- Real(rdef): Cbar matrix.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:11  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:37  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -28,15 +30,14 @@
 
 subroutine c_to_cbar (ele, cbar_mat)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
   
   implicit none
 
   type (ele_struct)  ele
 
-  real cbar_mat(2,2), g_a(2,2), g_b_inv(2,2), temp(2,2)
-  real sqrt_beta_a, sqrt_beta_b, alpha_a, alpha_b
+  real(rdef) cbar_mat(2,2), g_a(2,2), g_b_inv(2,2), temp(2,2)
+  real(rdef) sqrt_beta_a, sqrt_beta_b, alpha_a, alpha_b
 
 !
 

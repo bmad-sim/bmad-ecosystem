@@ -10,8 +10,7 @@
 !   Using the multipoles.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ele       -- Ele_struct: Element
@@ -43,6 +42,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.2  2002/02/23 20:32:21  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.1  2002/01/08 21:44:42  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -52,8 +54,7 @@
 subroutine offset_particle (ele, param, coord, set, &
               set_canonical, set_tilt, set_multipoles, set_hvkicks)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -61,8 +62,8 @@ subroutine offset_particle (ele, param, coord, set, &
   type (coord_struct) coord
   type (param_struct) param
 
-  real E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-  real del_x_vel, del_y_vel
+  real(rdef) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+  real(rdef) del_x_vel, del_y_vel
 
   integer n
 

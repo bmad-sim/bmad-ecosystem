@@ -6,13 +6,12 @@
 !   of indices of the new elements.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   Ring               -- Ring_struct: ring to be updated with lrbbi.
 !   Ring_oppos         -- Ring_struct: ring with positions of opposite bunches
-!   cross_positions(:) -- Real: array of parasitic crossing positions
+!   cross_positions(:) -- Real(rdef): array of parasitic crossing positions
 !
 ! Output:
 !   Ring               -- Updated ring within beambeam elements inserted
@@ -21,6 +20,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:17  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:52  rwh24
 !UNIX compatibility updates
 !
@@ -30,8 +32,7 @@
 
 subroutine insert_LRBBI(ring, oppos_ring, cross_positions, ix_LRBBI)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -41,16 +42,16 @@ subroutine insert_LRBBI(ring, oppos_ring, cross_positions, ix_LRBBI)
   type (coord_struct) ::  orbit_(0:n_ele_maxx)
   type (coord_struct) :: orbit_p_(0:n_ele_maxx)
 
-  real, dimension(:), intent(inout) :: cross_positions
+  real(rdef), dimension(:), intent(inout) :: cross_positions
   integer, dimension(:), intent(inout) :: ix_LRBBI
 
-  real :: s_split
+  real(rdef) :: s_split
   character*16 :: call_it
   integer :: ix_ele, ix_split, ix_split_oppos, ierr, i
   logical :: split_done
 
   integer :: loc_smallest, end
-  real :: smallest
+  real(rdef) :: smallest
   integer, dimension(1) :: minloc_array
 
 !

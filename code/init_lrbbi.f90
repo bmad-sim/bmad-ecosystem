@@ -12,8 +12,7 @@
 !                                                                     
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring            -- Ring_struct: ring in which LRBBI's are inserted
@@ -31,6 +30,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:16  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:52  rwh24
 !UNIX compatibility updates
 !
@@ -40,8 +42,7 @@
 
 subroutine init_LRBBI(ring, oppos_ring, LRBBI_ele, ix_LRBBI, ix_oppos)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
   
   implicit none
 
@@ -54,10 +55,10 @@ subroutine init_LRBBI(ring, oppos_ring, LRBBI_ele, ix_LRBBI, ix_oppos)
   type (coord_struct)  orbit_(0:n_ele_maxx)
   type (coord_struct)  oppos_orbit_(0:n_ele_maxx)
   
-  real, dimension(1:n_ele_maxx) :: beta_x, beta_y, eta_x, eta_y
-  real, dimension(1:n_ele_maxx) :: sigma_x, sigma_y, sigma_z
+  real(rdef), dimension(1:n_ele_maxx) :: beta_x, beta_y, eta_x, eta_y
+  real(rdef), dimension(1:n_ele_maxx) :: sigma_x, sigma_y, sigma_z
 
-  real :: e_spread, emit_x, emit_y, current
+  real(rdef) :: e_spread, emit_x, emit_y, current
   integer :: i
 
   character*16 :: call_it

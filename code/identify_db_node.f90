@@ -4,8 +4,7 @@
 ! Subroutine to find which array in DB is associated with DB_NAME.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   DB_NAME -- Character*12: Data base name (eg. "CSR HSP VOLT")
@@ -19,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:16  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:52  rwh24
 !UNIX compatibility updates
 !
@@ -28,8 +30,7 @@
 
 subroutine identify_db_node (db_name, db, db_ptr, ok, type_err)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 

@@ -3,6 +3,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.6  2002/02/23 20:32:31  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.5  2002/01/08 21:45:22  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -26,15 +29,15 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (coord_struct) coord
-      real ls
-      real c_m
-      real c_e
-      real gamma_old
-      real gamma_new
-      real b_x
-      real b_y
-      real mat4(4,4)
-      real vec_st(4)
+      real(rdef) ls
+      real(rdef) c_m
+      real(rdef) c_e
+      real(rdef) gamma_old
+      real(rdef) gamma_new
+      real(rdef) b_x
+      real(rdef) b_y
+      real(rdef) mat4(4,4)
+      real(rdef) vec_st(4)
     end subroutine
   end interface
 
@@ -83,8 +86,8 @@ module bmad_interface
       implicit none
       type (coord_struct) coord
       type (ele_struct) ele
-      real s_pos
-      real b_loop(3)
+      real(rdef) s_pos
+      real(rdef) b_loop(3)
     end subroutine
   end interface
 
@@ -96,8 +99,8 @@ module bmad_interface
       type (coord_struct) coord
       integer first
       integer last
-      real s_pos(n_comp_maxx)
-      real b_vector(3)
+      real(rdef) s_pos(n_comp_maxx)
+      real(rdef) b_vector(3)
     end subroutine
   end interface
 
@@ -114,8 +117,8 @@ module bmad_interface
       use bmad_struct
       implicit none
   type (ring_struct)  ring
-      real betaxAve
-      real betayAve
+      real(rdef) betaxAve
+      real(rdef) betayAve
       integer ix_ele
     end subroutine
   end interface
@@ -162,7 +165,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ele_struct) ele
-      real cbar_mat(2,2)
+      real(rdef) cbar_mat(2,2)
     end subroutine
   end interface
 
@@ -186,7 +189,7 @@ module bmad_interface
       integer, intent(in) :: n_cars
       integer, optional, intent(in) :: train_spacing(1:10)
       integer, optional, intent(in) :: n_car_spacing(1:10)
-      real, dimension(:), intent(out) :: cross_positions
+      real(rdef), dimension(:), intent(out) :: cross_positions
     end subroutine
   end interface
 
@@ -195,9 +198,9 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (coord_struct) coord
-      real ref_energy
-      real ref_z
-      real time_disp
+      real(rdef) ref_energy
+      real(rdef) ref_z
+      real(rdef) time_disp
       logical to_cart
     end subroutine
   end interface
@@ -243,9 +246,9 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct) ring
-      real delta_e
-      real chrom_x
-      real chrom_y
+      real(rdef) delta_e
+      real(rdef) chrom_x
+      real(rdef) chrom_y
     end subroutine
   end interface
 
@@ -267,7 +270,7 @@ module bmad_interface
      type (ring_struct) ring
      type (coord_struct) closed_orb_(0:n_ele_maxx)
      type (coord_struct), optional :: init_guess
-     real eps_rel(:), eps_abs(:)
+     real(rdef) eps_rel(:), eps_abs(:)
      integer i_dim
    end subroutine
  end interface
@@ -417,12 +420,13 @@ module bmad_interface
   end interface
 
   interface
-    real function field_interpolate_3d (position, field_mesh, &
-                                                 deltas, position0)
+    real(rdef) function field_interpolate_3d (position, field_mesh, &
+                                                         deltas, position0)
+      use precision_def
       implicit none
-      real, intent(in) :: position(3), deltas(3)
-      real, intent(in) :: field_mesh(:,:,:)
-      real, intent(in), optional :: position0(3)
+      real(rdef), intent(in) :: position(3), deltas(3)
+      real(rdef), intent(in) :: field_mesh(:,:,:)
+      real(rdef), intent(in), optional :: position0(3)
     end function
   end interface
  
@@ -439,17 +443,19 @@ module bmad_interface
 
   interface
     subroutine fitpoly(coe, x, y, order, samples)
+      use precision_def
       implicit none
       integer order
       integer samples
-      real coe(0:)
-      real x(:)
-      real y(:)
+      real(rdef) coe(0:)
+      real(rdef) x(:)
+      real(rdef) y(:)
     end subroutine
   end interface
 
   interface
     subroutine get_lattice_list (lat_list, num_lats, directory)
+      use precision_def
       implicit none
       integer num_lats
       character*(*) directory
@@ -459,10 +465,11 @@ module bmad_interface
 
   interface
       function hypergeom(hgcx, arg)
+      use precision_def
       implicit none
       integer hgcx
-      real arg
-      real hypergeom
+      real(rdef) arg
+      real(rdef) hypergeom
     end function
   end interface
 
@@ -513,7 +520,7 @@ module bmad_interface
 			use bmad_struct
       type (ring_struct) ring
 			type (ring_struct) oppos_ring 
-     real, dimension(:), intent(inout) :: cross_positions
+     real(rdef), dimension(:), intent(inout) :: cross_positions
       integer, dimension(:), intent(inout) :: ix_LRBBI
     end subroutine
   end interface
@@ -521,12 +528,13 @@ module bmad_interface
   interface
     subroutine k_to_quad_calib(k_theory, energy, cu_theory, k_base,  &
                                                      dk_gev_dcu, cu_per_k_gev)
+      use precision_def
       implicit none
-      real energy
-      real k_theory(0:*)
-      real k_base(0:120)
-      real cu_per_k_gev(0:120)
-      real dk_gev_dcu(0:*)
+      real(rdef) energy
+      real(rdef) k_theory(0:*)
+      real(rdef) k_base(0:120)
+      real(rdef) cu_per_k_gev(0:120)
+      real(rdef) dk_gev_dcu(0:*)
       integer cu_theory(0:*)
     end subroutine
   end interface
@@ -541,9 +549,11 @@ module bmad_interface
  
   interface
     subroutine LRBBI_crossings (n_bucket, oppos_buckets, cross_positions)
-			real, intent(in) :: n_bucket
-      real, dimension(:), intent(in) :: oppos_buckets
-      real, dimension(:), intent(inout) :: cross_positions
+      use precision_def
+      implicit none
+			real(rdef), intent(in) :: n_bucket
+      real(rdef), dimension(:), intent(in) :: oppos_buckets
+      real(rdef), dimension(:), intent(inout) :: cross_positions
     end subroutine LRBBI_crossings 
   end interface
  
@@ -552,8 +562,8 @@ module bmad_interface
       use bmad_struct       
       implicit none
       type (ele_struct) ele
-      real g_mat(4,4)
-      real g_inv_mat(4,4)
+      real(rdef) g_mat(4,4)
+      real(rdef) g_inv_mat(4,4)
     end subroutine
   end interface
 
@@ -562,8 +572,8 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (twiss_struct) twiss
-      real g2_mat(2,2)
-      real g2_inv_mat(2,2)
+      real(rdef) g2_mat(2,2)
+      real(rdef) g2_inv_mat(2,2)
     end subroutine
   end interface
 
@@ -627,8 +637,8 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ele_struct) ele
-      real v_mat(4,4)
-      real v_inv_mat(4,4)
+      real(rdef) v_mat(4,4)
+      real(rdef) v_inv_mat(4,4)
     end subroutine
   end interface
 
@@ -639,7 +649,7 @@ module bmad_interface
       type (ring_struct), dimension(:) :: ring
       type (ring_struct) :: master_ring
       type (ring_struct) :: master_ring_oppos
-      real, dimension(:,:) :: crossings
+      real(rdef), dimension(:,:) :: crossings
     end subroutine
   end interface
 
@@ -647,24 +657,26 @@ module bmad_interface
     subroutine mat6_dispersion (mat6, e_vec)
       use bmad_struct
       implicit none
-      real, intent(inout) :: mat6(6,6)
-      real, intent(in) :: e_vec(*)
+      real(rdef), intent(inout) :: mat6(6,6)
+      real(rdef), intent(in) :: e_vec(*)
     end subroutine
   end interface    
 
   interface
     subroutine mat_inverse (mat, mat_inv)
+      use precision_def
       implicit none
-      real, intent(in)  :: mat(:,:)
-      real, intent(out) :: mat_inv(:,:)
+      real(rdef), intent(in)  :: mat(:,:)
+      real(rdef), intent(out) :: mat_inv(:,:)
     end subroutine
   end interface
 
   interface
     subroutine mat_symp_check (mat, error)
+      use precision_def
       implicit none
-      real mat(:,:)
-      real error
+      real(rdef) mat(:,:)
+      real(rdef) error
     end subroutine
   end interface
 
@@ -674,8 +686,8 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (twiss_struct) twiss1, twiss2
-      real t0(4,4), U(4,4), V(4,4), tol
-      real Ubar(4,4), Vbar(4,4), G(4,4)
+      real(rdef) t0(4,4), U(4,4), V(4,4), tol
+      real(rdef) Ubar(4,4), Vbar(4,4), G(4,4)
       integer stat
       logical type_out
     end subroutine
@@ -683,8 +695,9 @@ module bmad_interface
 
   interface
     subroutine mat_symplectify (mat_in, mat_symp)
-      real, intent(in)  :: mat_in(:,:)
-      real, intent(out) :: mat_symp(:,:)
+      use precision_def
+      real(rdef), intent(in)  :: mat_in(:,:)
+      real(rdef), intent(out) :: mat_symp(:,:)
     end subroutine
   end interface
 
@@ -693,7 +706,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ele_struct) ele
-      real v_mat(4,4)
+      real(rdef) v_mat(4,4)
     end subroutine
   end interface
 
@@ -701,16 +714,17 @@ module bmad_interface
     subroutine multipole_ab_to_kt (an, bn, knl, tn)
       use bmad_struct
       implicit none
-      real an(0:n_pole_maxx), bn(0:n_pole_maxx)
-      real knl(0:n_pole_maxx), tn(0:n_pole_maxx)
+      real(rdef) an(0:n_pole_maxx), bn(0:n_pole_maxx)
+      real(rdef) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
     end subroutine
   end interface
 
   interface
     subroutine multipole_c_init (c, maxx)
+      use precision_def
       implicit none
       integer maxx
-      real c(0:maxx, 0:maxx)
+      real(rdef) c(0:maxx, 0:maxx)
     end subroutine
   end interface
 
@@ -718,8 +732,8 @@ module bmad_interface
     subroutine multipole_kt_to_ab (knl, tn, an, bn)
       use bmad_struct
       implicit none
-      real an(0:n_pole_maxx), bn(0:n_pole_maxx)
-      real knl(0:n_pole_maxx), tn(0:n_pole_maxx)
+      real(rdef) an(0:n_pole_maxx), bn(0:n_pole_maxx)
+      real(rdef) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
     end subroutine
   end interface
 
@@ -728,8 +742,8 @@ module bmad_interface
       use bmad_struct
       type (ele_struct) ele
       integer particle
-      real a(0:n_pole_maxx), b(0:n_pole_maxx)
-      real value(n_attrib_maxx)
+      real(rdef) a(0:n_pole_maxx), b(0:n_pole_maxx)
+      real(rdef) value(n_attrib_maxx)
       logical use_tilt
     end subroutine
   end interface
@@ -737,9 +751,9 @@ module bmad_interface
   interface
     subroutine multipole_ab_to_value (a, b, value)
       use bmad_struct
-      real a(0:n_pole_maxx)
-      real b(0:n_pole_maxx)
-      real value(n_attrib_maxx)
+      real(rdef) a(0:n_pole_maxx)
+      real(rdef) b(0:n_pole_maxx)
+      real(rdef) value(n_attrib_maxx)
     end subroutine
   end interface
 
@@ -748,8 +762,8 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (coord_struct) coord
-      real knl
-      real tilt
+      real(rdef) knl
+      real(rdef) tilt
       integer n
     end subroutine
   end interface
@@ -759,8 +773,8 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ele_struct) ele
-      real knl(0:n_pole_maxx)
-      real tilt(0:n_pole_maxx)
+      real(rdef) knl(0:n_pole_maxx)
+      real(rdef) tilt(0:n_pole_maxx)
       logical use_ele_tilt
       integer particle
     end subroutine
@@ -803,7 +817,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct) ring
-      real mat6(6,6)
+      real(rdef) mat6(6,6)
     end subroutine
   end interface
 
@@ -811,9 +825,9 @@ module bmad_interface
     subroutine one_turn_mat_at_ele (ele, phi_a, phi_b, mat4)
       use bmad_struct
       type (ele_struct) ele
-      real phi_a
-      real phi_b
-      real mat4(4,4)
+      real(rdef) phi_a
+      real(rdef) phi_b
+      real(rdef) mat4(4,4)
     end subroutine
   end interface
 
@@ -825,7 +839,7 @@ module bmad_interface
       type (coord_struct), intent(in) :: track(:)
       type (coord_struct), intent(out) :: track0
       type (ele_struct), intent(out) :: ele
-      real, intent(out) :: growth_rate, chi
+      real(rdef), intent(out) :: growth_rate, chi
       integer, intent(in) :: i_dim
       logical, intent(out) :: stable
     end subroutine
@@ -837,8 +851,8 @@ module bmad_interface
       implicit none
       type (coord_struct), intent(in), target :: track(:)
       type (coord_struct), intent(out) :: track0
-      real, intent(out) :: mat1(:,:)
-      real, intent(out) :: chi
+      real(rdef), intent(out) :: mat1(:,:)
+      real(rdef), intent(out) :: chi
       integer, intent(in) :: i_dim
     end subroutine
   end interface
@@ -857,10 +871,10 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (twiss_struct) twiss
-      real, optional :: tol
-      real x(:), xp(:)
-      real tune, emitt
-      real x_0, xp_0, chi
+      real(rdef), optional :: tol
+      real(rdef) x(:), xp(:)
+      real(rdef) tune, emitt
+      real(rdef) x_0, xp_0, chi
     end subroutine
   end interface
 
@@ -870,8 +884,8 @@ module bmad_interface
       implicit none
       type (ring_struct) ring
       integer ix_ele
-      real beta_x_ave
-      real beta_y_ave
+      real(rdef) beta_x_ave
+      real(rdef) beta_y_ave
     end subroutine
   end interface
 
@@ -881,12 +895,12 @@ module bmad_interface
       use bmad_struct
       implicit none
       character lattice*(*)
-      real k_theory(0:*)
-      real k_base(0:*)
-      real len_quad(0:*)
-      real cu_per_k_gev(0:*)
-      real dk_gev_dcu(0:*)
-      real quad_rot(0:*)
+      real(rdef) k_theory(0:*)
+      real(rdef) k_base(0:*)
+      real(rdef) len_quad(0:*)
+      real(rdef) cu_per_k_gev(0:*)
+      real(rdef) dk_gev_dcu(0:*)
+      real(rdef) quad_rot(0:*)
       integer cu_theory(0:*)
     end subroutine
   end interface
@@ -939,7 +953,7 @@ module bmad_interface
       implicit none
       type (ring_struct) :: ring
       type (coord_struct), optional :: orbit_(0:n_ele_maxx)
-      real attrib_value
+      real(rdef) attrib_value
       integer i_ele
       character*(*) attrib_name
       logical make_mat6_flag
@@ -981,7 +995,7 @@ module bmad_interface
       implicit none
       type (ring_struct) :: ring
       type (coord_struct), optional :: orbit_(0:n_ele_maxx)
-      real attrib_value
+      real(rdef) attrib_value
       integer i_ele
       character*(*) attrib_name
       logical make_mat6_flag
@@ -996,12 +1010,12 @@ module bmad_interface
       implicit none
       type (cesr_struct)  cesr
       type (ring_struct)  ring
-      real k_theory(0:*)
-      real k_base(0:*)
-      real len_quad(0:*)
-      real cu_per_k_gev(0:*)
-      real dk_gev_dcu(0:*)
-      real quad_rot(0:*)
+      real(rdef) k_theory(0:*)
+      real(rdef) k_base(0:*)
+      real(rdef) len_quad(0:*)
+      real(rdef) cu_per_k_gev(0:*)
+      real(rdef) dk_gev_dcu(0:*)
+      real(rdef) quad_rot(0:*)
       integer cu_theory(0:*)
     end subroutine
   end interface
@@ -1039,9 +1053,9 @@ module bmad_interface
       implicit none
       type (ring_struct) ring
       type (coord_struct) orb_(0:*)
-      real phi_x_set
-      real phi_y_set
-      real dk1(*)
+      real(rdef) phi_x_set
+      real(rdef) phi_y_set
+      real(rdef) dk1(*)
       logical ok
     end subroutine
   end interface
@@ -1056,10 +1070,11 @@ module bmad_interface
 
   interface
     subroutine sol_quad_mat_calc (ks, kl, length, order, mat627, orb)
-      real ks, kl, length
+      use precision_def
+      real(rdef) ks, kl, length
       integer order
-      real mat627(6,27)
-      real, optional :: orb(6)
+      real(rdef) mat627(6,27)
+      real(rdef), optional :: orb(6)
     end subroutine
   end interface
 
@@ -1068,7 +1083,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct) ring
-      real s_split
+      real(rdef) s_split
       integer ix_split
       logical split_done
     end subroutine
@@ -1076,9 +1091,10 @@ module bmad_interface
 
   interface
     subroutine tilt_coords (tilt_val, coord, set)
+      use precision_def
       implicit none
-      real tilt_val
-      real coord(:)
+      real(rdef) tilt_val
+      real(rdef) coord(:)
       logical set
     end subroutine
   end interface
@@ -1134,7 +1150,7 @@ module bmad_interface
       implicit none
       type (coord_struct) start, end
       type (param_struct), optional :: param
-      real s_start, s_end, rel_eps, abs_eps, del_s_step, del_s_min
+      real(rdef) s_start, s_end, rel_eps, abs_eps, del_s_step, del_s_min
       character*(*) func_type
     end subroutine
   end interface
@@ -1159,7 +1175,7 @@ module bmad_interface
       type (param_struct), intent(in) :: param
       type (coord_struct), intent(in) :: orb0
       type (coord_struct), intent(in) :: d_orb
-      real, intent(out) :: error
+      real(rdef), intent(out) :: error
     end subroutine
   end interface
 
@@ -1169,7 +1185,7 @@ module bmad_interface
       implicit none
       type (twiss_struct) twiss1
       type (twiss_struct) twiss2
-      real mat(2,2)
+      real(rdef) mat(2,2)
     end subroutine
   end interface
 
@@ -1215,7 +1231,7 @@ module bmad_interface
       type (coord_struct), optional :: start
       type (coord_struct), optional :: end
       type (param_struct) param
-      real del_s
+      real(rdef) del_s
     end subroutine
   end interface
 
@@ -1230,7 +1246,7 @@ module bmad_interface
       type (coord_struct), optional :: start
       type (coord_struct), optional :: end
       type (param_struct) param
-      real del_s
+      real(rdef) del_s
     end subroutine
   end interface
 
@@ -1252,7 +1268,7 @@ module bmad_interface
       implicit none
       type (ring_struct) :: ring
       type (ele_struct) :: ele
-      real s
+      real(rdef) s
     end subroutine
   end interface
 
@@ -1269,8 +1285,8 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ele_struct), intent(out) :: ele
-      real, intent(in) :: mat6(6,6)
-      real, intent(out) :: growth_rate
+      real(rdef), intent(in) :: mat6(6,6)
+      real(rdef), intent(out) :: growth_rate
       logical, intent(out) :: stable
     end subroutine
   end interface
@@ -1281,7 +1297,7 @@ module bmad_interface
       type (ring_struct), intent(inout) :: ring
       type (coord_struct), intent(in) :: closed_orb_(0:n_ele_maxx)
       type (coord_struct), intent(in) :: d_orb
-      real, intent(out) :: error
+      real(rdef), intent(out) :: error
     end subroutine
   end interface
 
@@ -1396,7 +1412,7 @@ module bmad_interface
       implicit none
       type (ele_struct), target :: ele
       type (param_struct) param
-      real mat627(6,27)
+      real(rdef) mat627(6,27)
       integer direction
     end subroutine
   end interface
@@ -1428,7 +1444,7 @@ module bmad_interface
       type (coord_struct) end
       type (ele_struct) ele
       type (param_struct) param
-      real mat627(6,27)
+      real(rdef) mat627(6,27)
     end subroutine
   end interface
 
@@ -1439,9 +1455,9 @@ module bmad_interface
       type (twiss_struct) twiss
       integer psize
       integer stat
-      real mat(:, :)
-      real det
-      real tol
+      real(rdef) mat(:, :)
+      real(rdef) det
+      real(rdef) tol
       logical type_out
     end subroutine
   end interface
@@ -1450,8 +1466,8 @@ module bmad_interface
     subroutine twiss_to_1_turn_mat (twiss, phi, mat2)
       use bmad_struct
       type (twiss_struct) twiss
-      real phi
-      real mat2(2,2)
+      real(rdef) phi
+      real(rdef) mat2(2,2)
     end subroutine
   end interface
 
@@ -1464,18 +1480,19 @@ module bmad_interface
       type (ele_struct) ele
       type (param_struct) param
       type (coord_struct) c00
-      real mat6(6,6)
-      real factor
+      real(rdef) mat6(6,6)
+      real(rdef) factor
       logical unit_matrix
     end subroutine
   end interface
 
   interface
     subroutine quad_mat_calc (k1, length, mat)
+      use precision_def
       implicit none
-      real length
-      real mat(2,2)
-      real k1
+      real(rdef) length
+      real(rdef) mat(2,2)
+      real(rdef) k1
     end subroutine
   end interface
 
@@ -1483,11 +1500,11 @@ module bmad_interface
     subroutine sol_quad_mat6_calc (ks, k1, s_len, m, orb)
       use bmad_struct
       implicit none
-      real ks
-      real k1
-      real s_len
-      real m(6,6)
-      real orb(6)
+      real(rdef) ks
+      real(rdef) k1
+      real(rdef) s_len
+      real(rdef) m(6,6)
+      real(rdef) orb(6)
     end subroutine
   end interface
 
@@ -1497,17 +1514,18 @@ module bmad_interface
       implicit none
       type (ele_struct) ele
       type (coord_struct) c0
-      real knl
-      real tilt
-      real kick_mat(4,4)
+      real(rdef) knl
+      real(rdef) tilt
+      real(rdef) kick_mat(4,4)
       integer n
     end subroutine
   end interface
 
   interface
     function mexp (x, m)
-      real x
-      real mexp
+      use precision_def
+      real(rdef) x
+      real(rdef) mexp
       integer m
     end function
   end interface
@@ -1518,17 +1536,18 @@ module bmad_interface
       implicit none
       type (ele_struct) ele
       type (coord_struct) orb
-      real s_pos
-      real mat6(6,6)
+      real(rdef) s_pos
+      real(rdef) mat6(6,6)
     end subroutine
   end interface
 
   interface
     subroutine bbi_slice_calc (n_slice, sig_z, z_slice)
+      use precision_def
       implicit none
       integer n_slice
-      real sig_z
-      real z_slice(*)
+      real(rdef) sig_z
+      real(rdef) z_slice(*)
     end subroutine
   end interface
 
@@ -1536,17 +1555,18 @@ module bmad_interface
     subroutine tilt_mat6 (mat6, tilt)
       use bmad_struct
       implicit none
-      real tilt
-      real mat6(6,6)
+      real(rdef) tilt
+      real(rdef) mat6(6,6)
     end subroutine
   end interface
 
   interface
     subroutine solenoid_mat_calc (ks, length, mat4)
+      use precision_def
       implicit none
-      real ks
-      real length
-      real mat4(4,4)
+      real(rdef) ks
+      real(rdef) length
+      real(rdef) mat4(4,4)
     end subroutine
   end interface
 

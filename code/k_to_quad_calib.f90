@@ -6,13 +6,13 @@
 ! See also: QUAD_CALIB.
 !
 ! Input:
-!   energy          -- Real: Energy in GeV
-!   k_theory(0:120) -- Real: Theory K of quad_i,
+!   energy          -- Real(rdef): Energy in GeV
+!   k_theory(0:120) -- Real(rdef): Theory K of quad_i,
 !
 ! Output:
-!   k_base(0:120)       -- Real: Extrapolated K for zero CU command
-!   cu_per_k_gev(0:120) -- Real: CU to K*GEV calibration
-!   dk_gev_dcu(0:120)   -- Real: Derivative of K*GEV vs CU curve.
+!   k_base(0:120)       -- Real(rdef): Extrapolated K for zero CU command
+!   cu_per_k_gev(0:120) -- Real(rdef): CU to K*GEV calibration
+!   dk_gev_dcu(0:120)   -- Real(rdef): Derivative of K*GEV vs CU curve.
 !   cu_theory(0:120)    -- Integer: Scaler needed to get K_THEORY.
 !
 ! Notes:
@@ -38,6 +38,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/02/23 20:32:17  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.5  2002/01/08 21:44:39  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -57,13 +60,15 @@
 subroutine k_to_quad_calib (k_theory, energy, cu_theory, k_base,  &
      dk_gev_dcu, cu_per_k_gev)
 
+  use precision_def
   use cesr_utils
+
   implicit none
 
-  real energy, theory
-  real k_theory(0:*), dk_gev_dcu(0:*)
-  real cu_per_k_gev(0:120), k_base(0:120)
-  real satfac(0:120), gain_(0:120), offset_(0:120)
+  real(rdef) energy, theory
+  real(rdef) k_theory(0:*), dk_gev_dcu(0:*)
+  real(rdef) cu_per_k_gev(0:120), k_base(0:120)
+  real(rdef) satfac(0:120), gain_(0:120), offset_(0:120)
 
   integer lun, i, cu_theory(0:*)
 

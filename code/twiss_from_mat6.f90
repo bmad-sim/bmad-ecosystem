@@ -5,11 +5,10 @@
 ! Note: The 1-turn matrix needs to be formed with the RF turned off.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
-!   mat6(6,6)   -- Real: 6x6 1-turn matrix
+!   mat6(6,6)   -- Real(rdef): 6x6 1-turn matrix
 !
 ! Output:
 !   ele         -- Ele_struct: Structure holding the Twiss parameters.
@@ -29,6 +28,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:28  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/16 21:04:18  helms
 !Fixed problem with passing optional arguments.
 !
@@ -41,20 +43,19 @@
 
 subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
   type (ele_struct), intent(out) :: ele
-  real, intent(in) :: mat6(6,6)
-  real, intent(out) :: growth_rate
+  real(rdef), intent(in) :: mat6(6,6)
+  real(rdef), intent(out) :: growth_rate
   logical, intent(out) :: stable
 
-  real mat4(4,4), eta_vec(4)
-  real u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4)
-  real det, rate1, rate2
-  real :: tol = 1.0e-3
+  real(rdef) mat4(4,4), eta_vec(4)
+  real(rdef) u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4)
+  real(rdef) det, rate1, rate2
+  real(rdef) :: tol = 1.0e-3
 
   integer i, j
 

@@ -6,14 +6,13 @@
 ! one turn 4x4 coupled transfer matrix T0.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
-!   T0(4,4)  -- Real: Input matrix
+!   T0(4,4)  -- Real(rdef): Input matrix
 !   TYPE_OUT -- Logical: If .true. then an error message is typed out
 !               for a non ok$ STAT
-!   TOL      -- Real: tollerence for nonsymplectiy
+!   TOL      -- Real(rdef): tollerence for nonsymplectiy
 !
 ! Output:
 !   STAT    -- Integer: status of results:
@@ -21,13 +20,16 @@
 !   TWISS1  -- Twiss_struct: Twiss params for the "upper left" mode.
 !      %PHI   -- Rotation angle in radians, 0 < %PHI < twopi
 !   TWISS2  -- Twiss_struct: Twiss params for the "lower right" mode.
-!   U(4,4), V(4,4), UBAR(4,4), VBAR(4,4), G(4,4) -- Real: See
+!   U(4,4), V(4,4), UBAR(4,4), VBAR(4,4), G(4,4) -- Real(rdef): See
 !                 MGB CBN 85-2 and PPB/DLR PAC89 papers for more info.
 !
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:19  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:53  rwh24
 !UNIX compatibility updates
 !
@@ -39,8 +41,7 @@
 subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
                                              twiss1, twiss2, type_out)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -48,14 +49,14 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
 
   integer i, j, stat
 
-  real t0(4,4), unit4(4,4), U(4,4), V(4,4), V_inv(4,4)
-  real temp4(4,4), tol, error
-  real Ubar(4,4), Vbar(4,4), G(4,4), G_inv(4,4)
-  real t0_11(2,2), t0_12(2,2), t0_21(2,2), t0_22(2,2)
-  real c(2,2), c_conj(2,2), H(2,2), temp2(2,2)
-  real g1(2,2), g2(2,2), g1_inv(2,2), g2_inv(2,2)
-  real gamma, det_H, det,  trace_t0_diff, denom
-  real scaler
+  real(rdef) t0(4,4), unit4(4,4), U(4,4), V(4,4), V_inv(4,4)
+  real(rdef) temp4(4,4), tol, error
+  real(rdef) Ubar(4,4), Vbar(4,4), G(4,4), G_inv(4,4)
+  real(rdef) t0_11(2,2), t0_12(2,2), t0_21(2,2), t0_22(2,2)
+  real(rdef) c(2,2), c_conj(2,2), H(2,2), temp2(2,2)
+  real(rdef) g1(2,2), g2(2,2), g1_inv(2,2), g2_inv(2,2)
+  real(rdef) gamma, det_H, det,  trace_t0_diff, denom
+  real(rdef) scaler
 
   logical type_out
 

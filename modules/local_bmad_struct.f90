@@ -3,6 +3,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/02/23 20:32:31  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.4  2002/01/08 21:45:23  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -19,13 +22,13 @@ module local_bmad_struct
 
 ! This is for bmad_parser and bmad_parser2
 
-  use bmad_struct
+  use bmad
 
 ! structure for a decleared variable
 
   type parser_var_struct
     character*16 name              ! variable name
-    real value                     ! variable value
+    real(rdef) value                     ! variable value
   end type                      
 
 ! structure for holding the contents of lines and lists (sequences)
@@ -75,7 +78,7 @@ module local_bmad_struct
     integer ix_count
     integer ele_pt, ref_pt
     logical common_lord
-    real s
+    real(rdef) s
     integer indexx
   end type
 
@@ -111,9 +114,10 @@ module local_bmad_struct
 
   type pcom_struct
     integer i_line, f_unit, n_files
+    character*200 current_file_name, file_name_(20)
     character*160 parse_line
     character*16 parser_name
-    character*72 current_file_name, file_name_(20), debug_line
+    character*72 debug_line
     logical parser_debug, no_digested, error_flag
     integer iseq_tot, ivar_tot, ivar_init
   end type

@@ -4,20 +4,22 @@
 ! Calculate the vertical and horizontal average betas for a ring element
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     ring -- record/ring_struct/:  ring
 !     ix_ele -- integer: ring location of element
 !
 ! Output:
-!     betaxAve -- real:	 average betax for the element
-!     betayAve -- real:  average betay for the element
+!     betaxAve -- real(rdef):	 average betax for the element
+!     betayAve -- real(rdef):  average betay for the element
 !-
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:10  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:36  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -30,8 +32,7 @@
 
 subroutine Beta_Ave(ring, ix_ele, betaxAve, betayAve)
 
- 	use bmad_struct
- 	use bmad_interface
+ 	use bmad
 
   implicit none
 

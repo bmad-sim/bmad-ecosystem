@@ -7,8 +7,7 @@
 ! to help identify which mode is which.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     ELE1, ELE2 -- Ele_struct: Elements to compare.
@@ -19,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:23  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:56  rwh24
 !UNIX compatibility updates
 !
@@ -27,16 +29,17 @@
 
 
 
-  function relative_mode_flip (ele1, ele2)
+function relative_mode_flip (ele1, ele2) result (rel_mode)
 
-  use bmad_struct
+  use bmad
+
   implicit none
 
   type (ele_struct)  ele1, ele2
 
-  real mat4(4,4), conj_mat(2,2), det_aa, det_ab
+  real(rdef) mat4(4,4), conj_mat(2,2), det_aa, det_ab
 
-  logical relative_mode_flip
+  logical rel_mode
 
 ! fill top half of 4x4 matrix with ele1 a-mode eigen axes
 
@@ -73,10 +76,10 @@
 ! compare dets to see if relative mode flip
 
   if (abs(det_aa) < abs(det_ab)) then
-    relative_mode_flip = .false.
+    rel_mode = .false.
   else
-    relative_mode_flip = .true.
+    rel_mode = .true.
   endif
 
-  return
-  end
+
+end function

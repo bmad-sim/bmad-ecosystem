@@ -13,16 +13,15 @@
 ! routine occurs when the initial guess is far from the true closed orbit.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring     -- Ring_struct: Ring to track through.
 !   i_dim    -- Integer: 
 !       = 4  Transverse closed orbit at constant energy (dE/E = CO.Z.VEL)
 !       = 6  Full closed orbit using the entire transfer 6x6 matrix.
-!   eps_rel(:) -- Real: relative allowed error.
-!   eps_abs(:) -- Real: absolute allowed error.
+!   eps_rel(:) -- Real(rdef): relative allowed error.
+!   eps_abs(:) -- Real(rdef): absolute allowed error.
 !   init_guess -- [Optional] Coord_struct: Starting guess for the closed 
 !                orbit at the start of the ring. If not present then
 !                the origin will be used. 
@@ -41,6 +40,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:13  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/16 21:04:17  helms
 !Fixed problem with passing optional arguments.
 !
@@ -54,8 +56,7 @@
 subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
                                                  eps_rel, eps_abs, init_guess)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -64,12 +65,12 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
   type (coord_struct) :: orb_(0:n_ele_maxx)
   type (coord_struct), optional :: init_guess
 
-  real, intent(in) :: eps_rel(:), eps_abs(:)
+  real(rdef), intent(in) :: eps_rel(:), eps_abs(:)
 
-  real amp_co, amp_del, d_orb(6), orb_diff(6), amp(6)
-  real mat6(6,6), mat6_inv(6,6), mat6_unit(6,6)
+  real(rdef) amp_co, amp_del, d_orb(6), orb_diff(6), amp(6)
+  real(rdef) mat6(6,6), mat6_inv(6,6), mat6_unit(6,6)
 
-  real :: error, factor = 1
+  real(rdef) :: error, factor = 1
 
   integer i_dim, i, j, n_ele
 

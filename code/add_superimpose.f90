@@ -5,8 +5,7 @@
 ! into the ring without making a super_lord element then this will be done.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     RING      -- Ring_struct: Ring to modify
@@ -21,6 +20,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:09  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:35  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -34,8 +36,7 @@
 
 subroutine add_superimpose (ring, super_ele, ix_super)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -43,7 +44,7 @@ subroutine add_superimpose (ring, super_ele, ix_super)
   type (ele_struct)  super_ele, sup_ele, slave_ele
   type (control_struct)  sup_con(100)
 
-  real s1, s2, length
+  real(rdef) s1, s2, length
 
   integer j, jj, k, idel, ix, n, i2, ic
   integer ix1_split, ix2_split, ix_super, ix_super_con
@@ -289,8 +290,7 @@ end subroutine
 
 integer function superimpose_key (key1, key2)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 

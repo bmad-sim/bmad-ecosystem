@@ -3,6 +3,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:32  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2001/10/02 18:50:26  rwh24
 !Extended track_input_struct in bmad_struct.
 !Fixed qromb_rad_int definition in rad_int_common.
@@ -16,7 +19,7 @@
 
 module rad_int_common               
 
-  use bmad_struct
+  use bmad
 
   type (ring_struct), pointer :: pring
   type (ele_struct), pointer :: ele0, ele
@@ -27,10 +30,10 @@ module rad_int_common
 ! i1_(:), etc. are for diagnostics
 
   type rad_int_common_struct
-    real g_x0, g_y0, ll, k1, s1, eta(4), eta_a(4), eta_b(4)
-    real g, g2, g_x, g_y, dg2_x, dg2_y 
-    real i1_(n_ele_maxx), i2_(n_ele_maxx), i3_(n_ele_maxx)
-    real i4a_(n_ele_maxx), i4b_(n_ele_maxx), i5a_(n_ele_maxx), i5b_(n_ele_maxx)
+    real(rdef) g_x0, g_y0, ll, k1, s1, eta(4), eta_a(4), eta_b(4)
+    real(rdef) g, g2, g_x, g_y, dg2_x, dg2_y 
+    real(rdef) i1_(n_ele_maxx), i2_(n_ele_maxx), i3_(n_ele_maxx)
+    real(rdef) i4a_(n_ele_maxx), i4b_(n_ele_maxx), i5a_(n_ele_maxx), i5b_(n_ele_maxx)
   end type
 
   type (rad_int_common_struct) rad_com

@@ -24,4 +24,6 @@ subroutine lattice_to_bmad_file_name (lattice, bmad_file_name)
     bmad_file_name = 'BMAD_LAT:bmad_' // trim(lattice) 
   endif
 
+  call FullFileName(bmad_file_name, bmad_file_name)
+
 end subroutine

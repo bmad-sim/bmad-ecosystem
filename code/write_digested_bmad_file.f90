@@ -6,8 +6,7 @@
 ! by other routines to check if the digested file is out of date.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     digested_name -- Character*72: Name for the digested file.
@@ -19,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/02/23 20:32:30  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.4  2002/01/08 21:44:44  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -36,7 +38,7 @@
 subroutine write_digested_bmad_file (digested_name, ring,  &
                                                   n_files, file_names)
 
-  use bmad_struct
+  use bmad
   use local_bmad_struct
 
   implicit none

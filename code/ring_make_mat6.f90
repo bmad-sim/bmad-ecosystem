@@ -4,8 +4,7 @@
 ! Subroutine to make the 6x6 linear transfer matrix for an element
 !
 ! Moudules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   RING        -- Ring_struct: Ring containing the element.
@@ -22,6 +21,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:23  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/16 21:04:18  helms
 !Fixed problem with passing optional arguments.
 !
@@ -116,5 +118,4 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
      endif
   enddo
 
-  return
-  end
+end subroutine

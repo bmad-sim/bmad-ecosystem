@@ -17,6 +17,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.5  2002/02/23 20:31:35  dcs
+# Double/Single Real toggle added
+#
 # Revision 1.4  2001/10/23 21:34:14  palmer
 # Update to work with M.tail infrastructure.
 #
@@ -62,12 +65,12 @@
 # LOCAL_INCS      - Local directories to search for include files
 # LOCAL_MODS      - Local directories to search for F90 compiled module files
 #-----------------------------------------------------------------------------
-CODE_SRC_DIRS := ./code 
+CODE_SRC_DIRS := ./code ./interface
 MOD_SRC_DIRS  := ./modules
 OBJ_SRC_DIRS  :=
 CONFIG_DIRS   := ./lat ./layout
-LOCAL_INCS    := ./include
-LOCAL_MODS    := ../modules
+LOCAL_INCS    := ./include ../include
+LOCAL_MODS    := ../modules ../recipes_f-90
 
 
 #-----------------------------------------------------------------------------

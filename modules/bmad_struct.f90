@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2002/02/23 20:32:31  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.7  2002/01/10 19:57:37  cesrulib
 !Patch bmad_struct.  Add module dependency file.
 !
@@ -28,6 +31,7 @@
 
 module bmad_struct
 
+  use precision_def
   use physical_constants
 
 ! The "regular" elements are in positions: 1 to RING.N_ELE_RING
@@ -73,28 +77,28 @@ module bmad_struct
 ! Structure definitions
 
   type twiss_struct
-    real beta, alpha, gamma, phi, eta, etap
-    real mobius_beta, mobius_eta   ! Mobius effective beta and eta
-    real sigma
+    real(rdef) beta, alpha, gamma, phi, eta, etap
+    real(rdef) mobius_beta, mobius_eta   ! Mobius effective beta and eta
+    real(rdef) sigma
   end type
 
   type ele_struct
     character*16 name              ! name of element
-    integer key                    ! key value
     character*16 type              ! type name (see MAD documentation)
     character*16 alias             ! Another name
-    real value(n_attrib_maxx)      ! attribute values
-    real mat6(6,6)                 ! transpot matrix 
-    type (twiss_struct)  x,y,z     ! Twiss parameters at end of element
-    real c_mat(2,2)                ! 2x2 C coupling matrix
-    real gamma_c                   ! gamma associated with C matrix
-    real s                         ! longitudinal position at the end
-    real x_position, y_position    ! Floor position of element
-    real z_position                ! Elevation of element
-    real theta_position            ! Floor orientation angle of element
-    real phi_position              ! Angle of attack
-    integer control_type           ! SUPER_SLAVE$, OVERLAY_LORD$, etc.
     character*16 attribute_name    ! Used by overlays
+    real(rdef) value(n_attrib_maxx)      ! attribute values
+    real(rdef) mat6(6,6)                 ! transpot matrix 
+    real(rdef) c_mat(2,2)                ! 2x2 C coupling matrix
+    real(rdef) gamma_c                   ! gamma associated with C matrix
+    real(rdef) s                         ! longitudinal position at the end
+    real(rdef) x_position, y_position    ! Floor position of element
+    real(rdef) z_position                ! Elevation of element
+    real(rdef) theta_position            ! Floor orientation angle of element
+    real(rdef) phi_position              ! Angle of attack
+    type (twiss_struct)  x,y,z     ! Twiss parameters at end of element
+    integer key                    ! key value
+    integer control_type           ! SUPER_SLAVE$, OVERLAY_LORD$, etc.
     integer ix_value               ! Pointer for attribute to control
     integer n_slave                ! Number of slaves
     integer ix1_slave              ! Start index for slave elements
@@ -105,49 +109,49 @@ module bmad_struct
     integer ix_pointer             ! Pointer for general use
     integer ixx                    ! Pointer for BMAD internal use
     integer iyy                    ! Pointer for BMAD internal use
+    integer mat6_calc_method       ! bmad_standard$, DA_map$, etc.
+    integer tracking_method        ! bmad_standard$, DA_map$, etc.
+    integer num_steps              ! number of slices for DA_maps
     logical coupled                ! Is transport matrix coupled?
     logical mode_flip              ! Have the normal modes traded places?
     logical is_on                  ! For turning element on/off
     logical multipoles_on          ! For turning multipoles on/off
     logical nonzero_multipoles     ! Internal flag. Do not use.
-    integer mat6_calc_method       ! bmad_standard$, DA_map$, etc.
-    integer tracking_method        ! bmad_standard$, DA_map$, etc.
-    integer num_steps              ! number of slices for DA_maps
   end type
 
   type control_struct
+    real(rdef) coef                      ! control coefficient
     integer ix_lord                ! index to lord element
     integer ix_slave               ! index to slave element
     integer ix_attrib              ! index of attribute controlled
-    real coef                      ! control coefficient
   end type
 
 ! parameter and mode structures
 
   type param_struct
+    real(rdef) energy             ! beam energy in GeV.
+    real(rdef) n_part             ! Number of particles in a bunch
+    real(rdef) total_length       ! total_length of ring
+    real(rdef) growth_rate        ! growth rate/turn if not stable
     integer particle              ! +1 = positrons, -1 = electrons
-    real energy                   ! beam energy in GeV.
-    real n_part                   ! Number of particles in a bunch
     integer symmetry              ! symmetry of the ring (e/w symm, etc.)
-    logical z_decoupled           ! is z motion decoupled from x and y?
-    real total_length             ! total_length of ring
-    logical stable                ! is closed ring stable?
-    real growth_rate              ! growth rate/turn if not stable
-    logical aperture_limit_on     ! use apertures in tracking?
-    logical lost                  ! for use in tracking
     integer ix_lost               ! If lost at what element?
     integer lattice_type          ! linac_lattice$, etc...
     integer ixx                   ! Integer for general use
+    logical z_decoupled           ! is z motion decoupled from x and y?
+    logical stable                ! is closed ring stable?
+    logical aperture_limit_on     ! use apertures in tracking?
+    logical lost                  ! for use in tracking
   end type
 
   type mode_info_struct
-    real tune      ! "fractional" tune in radians: 0 < tune < 2pi
-    real emit      ! Emittance
-    real chrom     ! Chromaticity
+    real(rdef) tune      ! "fractional" tune in radians: 0 < tune < 2pi
+    real(rdef) emit      ! Emittance
+    real(rdef) chrom     ! Chromaticity
   end type
 
   type dummy_parameter_struct
-    integer dummy(220)
+    integer dummy(240)
   end type
 
 ! RING_STRUCT
@@ -155,19 +159,19 @@ module bmad_struct
   type ring_struct
     union
       map
-        integer version               ! Version number
         character*16 name             ! Name of ring given by USE statement
         character*40 lattice          ! Lattice
         character*80 input_file_name  ! name of the lattice input file
         character*80 title            ! general title
+        type (mode_info_struct)  x, y, z  ! tunes, etc.
+        type (param_struct)      param ! parameters
+        integer version               ! Version number
         integer n_ele_ring            ! number of regular ring elements
         integer n_ele_symm            ! symmetry point for rings w/ symmetry
         integer n_ele_use             ! number of elements used
         integer n_ele_max             ! Index of last element used
         integer n_control_array       ! last index used in CONTROL_ array
         integer n_ic_array            ! last index used in IC_ array
-        type (mode_info_struct)  x, y, z  ! tunes, etc.
-        type (param_struct)      param ! parameters
       endmap
       map
         type (dummy_parameter_struct) parameters
@@ -183,7 +187,7 @@ module bmad_struct
 ! structure for a particle
 
   type pos_vel_struct
-    real pos, vel                            ! position and velocity
+    real(rdef) pos, vel                            ! position and velocity
   end type
 
   type coord_struct
@@ -192,7 +196,7 @@ module bmad_struct
         type (pos_vel_struct)  x, y, z
       endmap
       map
-        real vec(6)
+        real(rdef) vec(6)
       endmap
     endunion
   end type
@@ -353,9 +357,9 @@ module bmad_struct
   integer, parameter :: ap_array_maxx = 100
 
   type aperture_struct
-    real dE_E
+    real(rdef) dE_E
     type (coord_struct)  closed_orbit
-    real x_(ap_array_maxx), y_(0:ap_array_maxx)
+    real(rdef) x_(ap_array_maxx), y_(0:ap_array_maxx)
     integer plane_(ap_array_maxx)
     integer ix_ring(ap_array_maxx)
     integer i_turn(ap_array_maxx)
@@ -363,13 +367,13 @@ module bmad_struct
 
   type track_input_struct
     integer n_turn
-    real x_init, y_init
     integer n_xy_pts
     integer point_range(2)
-    real e_max
-    real energy(10)
     integer n_energy_pts
-    real accuracy
+    real(rdef) x_init, y_init
+    real(rdef) e_max
+    real(rdef) energy(10)
+    real(rdef) accuracy
   end type
 
 ! garbage$ is, for example, for subroutines that want to communicate to
@@ -389,19 +393,19 @@ module bmad_struct
 !
 
   type amode_struct
-    real emittance
-    real synch_int(4:5)
-    real j_damp               ! damping partition number
-    real alpha_damp           ! damping per turn
-    real chrom                ! Chromaticity
-    real tune                 ! "Fractional" tune in radians
+    real(rdef) emittance
+    real(rdef) synch_int(4:5)
+    real(rdef) j_damp               ! damping partition number
+    real(rdef) alpha_damp           ! damping per turn
+    real(rdef) chrom                ! Chromaticity
+    real(rdef) tune                 ! "Fractional" tune in radians
   end type
 
   type modes_struct
-    real synch_int(3)
-    real sig_e
-    real sig_z
-    real energy_loss
+    real(rdef) synch_int(3)
+    real(rdef) sig_e
+    real(rdef) sig_z
+    real(rdef) energy_loss
     type (amode_struct)  a, b, z
   end type
 
@@ -442,17 +446,17 @@ module bmad_struct
 ! For butns.nnnnn files
 
   type detector_struct
-    real x_orb, y_orb
+    real(rdef) x_orb, y_orb
     integer amp(4)
   endtype
 
   type butns_struct
     character*40 lattice
-    integer save_set
     character*20 date
     character*72 comment(5)
-    integer file_num
     type (detector_struct) det(0:99)
+    integer save_set
+    integer file_num
   end type
 
 ! For 6x27 matrices
@@ -464,7 +468,7 @@ module bmad_struct
   integer, parameter :: x55$ = 25, x56$ = 26, x66$ = 27
 
   type mat627_struct
-    real m(6,27)
+    real(rdef) m(6,27)
   end type
 
 !---------------------------------------------------------------
@@ -472,18 +476,18 @@ module bmad_struct
 ! the element ordering here is similar to what is used by cesrv
 
   type b_struct
-    real beta_mid             ! beta at the midpoint
-    real beta_ave             ! beta averaged over the element
-    real pos_mid              ! position at midpoint
-    real pos_inj              ! position in injection lattice
+    real(rdef) beta_mid             ! beta at the midpoint
+    real(rdef) beta_ave             ! beta averaged over the element
+    real(rdef) pos_mid              ! position at midpoint
+    real(rdef) pos_inj              ! position in injection lattice
   end type
 
   type cesr_element_struct 
     character*16 name              ! bmad name
+    type (b_struct)  x, y          ! beta's and positions
     character*12 db_node_name
     integer ix_db                  ! element index for data base node
     integer ix_ring                ! index to element in ring structure
-    type (b_struct)  x, y          ! beta's and positions
   end type
 
   integer, parameter :: n_quad_maxx = 120
@@ -554,15 +558,15 @@ module bmad_struct
 
   type db_element_struct
     character*16 bmad_name    ! bmad name of element
+    real(rdef) dvar_dcu             ! calibration factor
+    real(rdef) var_theory           ! theory var value
+    real(rdef) var_0                ! extrapolated var value at CU = 0
     integer ix_ring           ! index to element array in ring struct
     integer ix_attrib         ! index to element attribute
     integer ix_cesrv          ! index to cesr_struct arrays
     character*12 db_node_name ! node name ("CSR QUAD CUR")
     integer ix_db             ! element index for data base node (5 for Q05W)
     character*16 db_ele_name  ! element name
-    real dvar_dcu             ! calibration factor
-    real var_theory           ! theory var value
-    real var_0                ! extrapolated var value at CU = 0
     integer cu_high_lim       ! high limit
     integer cu_low_lim        ! low limit
     integer cu_now            ! current CU
@@ -623,7 +627,7 @@ module bmad_struct
 ! Common stuff used by various subroutines
 
   type bmad_common_struct
-    real factor                   ! used by track_runge_kutta
+    real(rdef) factor                   ! used by track_runge_kutta
     character*16 func_type        ! used by track_runge_kutta
   end type
 

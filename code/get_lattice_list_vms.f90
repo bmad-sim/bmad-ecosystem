@@ -16,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2002/02/23 20:32:16  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.7  2002/01/11 21:16:00  dcs
 !Bug fix
 !
@@ -75,11 +78,9 @@ include '($rmsdef)'
     call str_upcase (lat_file, lat_file)
 
     if (stat) then
-      ix = index(lat_file, ']BMAD') + 6   ! strip [~]BMAD_ prefix
+      ix = index(lat_file, ']') + 1       ! strip [...] prefix
       ixx = index(lat_file, ';') - 1      ! strip version number suffix
       lat_list(i) = lat_file(ix:ixx)
-      ix = index(lat_list(i), '.LAT')
-      if (ix + 3 == len_trim(lat_list(i))) lat_list(i) = Lat_list(i)(:ix-1)
     else if (stat == rms$_nmf .or. stat == rms$_fnf) then
       num_lats = i - 1
       return
@@ -94,7 +95,8 @@ include '($rmsdef)'
   type *, 'GET_LATTICE_LIST: INTERNAL ERROR!'
   call err_exit
 #endif
-  end
+
+end subroutine
 
 
 

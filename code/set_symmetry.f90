@@ -4,8 +4,7 @@
 ! Subroutine to set the symmetry of a ring.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     SYMMETRY  -- Integer: symmetry to set to
@@ -17,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:24  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:57  rwh24
 !UNIX compatibility updates
 !
@@ -27,7 +29,7 @@
 
 subroutine set_symmetry (symmetry, ring)
 
-  use bmad_struct
+  use bmad
   implicit none
 
   type (ring_struct)  ring

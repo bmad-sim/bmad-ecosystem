@@ -5,17 +5,20 @@
 ! and 'v' are given.
 !
 ! Input:
-!     mat(size,*) -- Real: Matrix to be inverted
-!     v(*) -- Real: known input vector
+!     mat(size,*) -- Real(rdef): Matrix to be inverted
+!     v(*) -- Real(rdef): known input vector
 !     dim -- Integer: dimension of vectors and matrix
 !     size -- Integer: array size of matrix to be inverted
 !
 ! Output:
-!     z(*) -- Real: vector solution to the linear equation
+!     z(*) -- Real(rdef): vector solution to the linear equation
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:25  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:58  rwh24
 !UNIX compatibility updates
 !
@@ -23,16 +26,20 @@
 #include "CESR_platform.inc"
 
 
-  logical function solvlin(mat,v,z,dim,size)
+logical function solvlin(mat,v,z,dim,size)
+
+  use precision_def
+
   implicit none
+
   integer dim, size
   integer i, n, m, p, max1, np1
   integer nsub
-  real zero
+  real(rdef) zero
   parameter(ZERO=0.0)
-  real mat(size,*), z(*), v(*)
-  real y(100), a(100,100), mult, sum
-  real amax, ahold, yhold
+  real(rdef) mat(size,*), z(*), v(*)
+  real(rdef) y(100), a(100,100), mult, sum
+  real(rdef) amax, ahold, yhold
   integer order(100), imax, tempord
   logical shiftFlag
 

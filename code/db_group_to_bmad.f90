@@ -6,8 +6,7 @@
 ! controlled along with the coefficients.
 !
 ! Modules used:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ing_name   -- Character*12: DB node name (e.g. 'CSR PRETZING')
@@ -32,6 +31,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/02/23 20:32:14  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.4  2001/11/29 19:39:53  helms
 !Updates from DCS including (*) -> (:)
 !
@@ -48,8 +50,7 @@
 subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, ring, db, &
                                               con_, n_con, ok, type_err)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 

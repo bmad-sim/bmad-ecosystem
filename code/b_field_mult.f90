@@ -12,15 +12,18 @@
 !                            displacement!
 !     FIRST -- Integer: Index of first element in section
 !     LAST  -- Integer: Index of last element in section
-!     S_POS -- Real: Array of longitudinal positions of coil components
+!     S_POS -- Real(rdef): Array of longitudinal positions of coil components
 !
 ! Output:
-!     B_VECTOR(3) -- Real: (Cartesian) Magnetic field vector x, y, and z
+!     B_VECTOR(3) -- Real(rdef): (Cartesian) Magnetic field vector x, y, and z
 !                          components (in units of mu_0 / 2)
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:10  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:48  rwh24
 !UNIX compatibility updates
 !
@@ -29,15 +32,15 @@
 
 
 subroutine b_field_mult (ring, coord, first, last, s_pos, b_vector)
-  use bmad_struct
+  use bmad
   implicit none
 
   type (ring_struct)  ring
   type (coord_struct)  coord
   integer first, last
-  real s_pos(n_comp_maxx), b_vector(3)
+  real(rdef) s_pos(n_comp_maxx), b_vector(3)
 
-  real b_loop(3)
+  real(rdef) b_loop(3)
   integer i, x$, y$, z$
   parameter (x$ = 1, y$ = 2, z$ = 3)
 

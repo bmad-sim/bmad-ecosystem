@@ -12,8 +12,7 @@
 ! Use BMAD_TO_DB or BMAD_TO_CESR to find where the elements are located.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     RING     -- Ring_struct: Ring to be modified
@@ -27,6 +26,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/02/23 20:32:14  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.4  2002/01/08 21:44:38  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -43,8 +45,7 @@
 
 subroutine create_vsp_volt_elements (ring, ele_type)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -95,8 +96,7 @@ subroutine create_vsp_volt_elements (ring, ele_type)
 
 subroutine do_vsp_eles (ring, i_vsep, ix_, ele_type)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
   implicit none
 
   type (ring_struct)  ring
@@ -104,7 +104,7 @@ subroutine do_vsp_eles (ring, i_vsep, ix_, ele_type)
 
   integer i_vsep, ix_(3), ele_type, i, i_con
 
-  real vkick
+  real(rdef) vkick
 
 !
                  

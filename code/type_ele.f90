@@ -6,8 +6,7 @@
 ! See also the subroutine type2_ele.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ELE              -- Ele_struct: Element
@@ -25,6 +24,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.5  2002/02/23 20:32:30  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.4  2001/11/29 19:39:54  helms
 !Updates from DCS including (*) -> (:)
 !
@@ -42,7 +44,10 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_twiss,  &
                                                        type_control, ring)
 
   use bmad_struct
+  use bmad_interface, only: type2_ele
+
   implicit none
+
   type (ele_struct)  ele
   type (ring_struct), optional :: ring
 

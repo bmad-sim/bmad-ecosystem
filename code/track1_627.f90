@@ -6,14 +6,13 @@
 ! This is for long term tracking.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   START        -- Coord_struct: Starting position
 !   ELE          -- Ele_struct: Element
 !   PARAM        -- Param_struct:
-!   mat627(6,27) -- Real: 6x27 2nd order transport matrix.
+!   mat627(6,27) -- Real(rdef): 6x27 2nd order transport matrix.
 !
 ! Output:
 !   END   -- Coord_struct: End position
@@ -26,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:26  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:43  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -37,8 +39,7 @@
 
 subroutine track1_627 (start, ele, param, mat627, end)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -46,9 +47,9 @@ subroutine track1_627 (start, ele, param, mat627, end)
   type (ele_struct)  ele
   type (param_struct)  param
 
-  real x_kick, y_kick
-  real mat627(6,27)
-  real x_lim, y_lim
+  real(rdef) x_kick, y_kick
+  real(rdef) mat627(6,27)
+  real(rdef) x_lim, y_lim
 
 !-------------------------------------------------------------------
 ! some simple cases
@@ -106,13 +107,13 @@ end subroutine
 
 subroutine track1_order2 (vec_begin, ele, mat627, vec_end)
 
-  use bmad_struct
+  use bmad
 
   implicit none
 
   type (ele_struct) ele
 
-  real vec_begin(6), vec_end(6), vv(27), mat627(6,27)
+  real(rdef) vec_begin(6), vec_end(6), vv(27), mat627(6,27)
 
 !
 

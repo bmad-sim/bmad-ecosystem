@@ -9,8 +9,7 @@
 !  from the interaction point and scaled to be between 0 and 1. 
 ! 
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   i_train         --  Integer: Position (index) of train containing the bunch
@@ -35,13 +34,16 @@
 !       															following train.
 !
 ! Output:
-!   cross_positions(:) --  Real: array of positions of parasitic 
+!   cross_positions(:) --  Real(rdef): array of positions of parasitic 
 !																			crossings, where values lie between 0 and 1.
 !      
 !-
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:12  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:37  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -55,8 +57,7 @@
 subroutine cesr_crossings(i_train, j_car, species, n_trains_tot, n_cars, &
                                  cross_positions, n_car_spacing, train_spacing)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -65,12 +66,12 @@ subroutine cesr_crossings(i_train, j_car, species, n_trains_tot, n_cars, &
 	integer, optional, intent(in) ::	n_car_spacing(1:10)
   integer :: i, j, k, p, pp, tnumber, bnumber, trlength, ierr            
   integer :: bunch_tot                                  
-  real :: n_bucket
+  real(rdef) :: n_bucket
                                                                                
-  real :: length                                                               
-  real, dimension(:), allocatable :: oppos_buckets                
-  real, dimension(:), allocatable :: trtimes, btimes                           
-  real, dimension(:), intent(out) :: cross_positions            
+  real(rdef) :: length                                                               
+  real(rdef), dimension(:), allocatable :: oppos_buckets                
+  real(rdef), dimension(:), allocatable :: trtimes, btimes                           
+  real(rdef), dimension(:), intent(out) :: cross_positions            
                                                                                
 ! Allocate arrays.
 

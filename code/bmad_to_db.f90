@@ -8,7 +8,7 @@
 ! with the database before you use this routine.
 !
 ! Modules needed:
-!   USE BMAD_STRUCT
+!   use bmad
 !   USE BMAD_INTERFACE
 !
 ! Input:
@@ -42,6 +42,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/02/23 20:32:11  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.5  2002/01/08 21:44:37  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -59,8 +62,7 @@
 
 subroutine bmad_to_db (ring, db)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -75,8 +77,7 @@ contains
 
 subroutine bmad_to_db_main (ring, db)
 
-  use bmad_struct                           
-  use bmad_interface
+  use bmad                           
 
   implicit none
 
@@ -84,9 +85,9 @@ subroutine bmad_to_db_main (ring, db)
   type (cesr_struct) cesr
   type (db_struct) db
 
-  real h_stren(120), v_stren(120), gev
-  real k_theory(0:120), k_base(0:120), len_quad(0:120), cu_per_k_gev(0:120)
-  real quad_tilt(0:120), dk_gev_dcu(0:120)
+  real(rdef) h_stren(120), v_stren(120), gev
+  real(rdef) k_theory(0:120), k_base(0:120), len_quad(0:120), cu_per_k_gev(0:120)
+  real(rdef) quad_tilt(0:120), dk_gev_dcu(0:120)
 
   integer n1, i, ix, ios, cu_theory(0:120), nq100
 
@@ -263,8 +264,7 @@ end subroutine
 subroutine db_init_it (node, n1, node_name, ix_attrib, node_array, &
                                                       cesr_ele, ix0_cesrv)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -346,8 +346,7 @@ end subroutine db_init_it
                             
 subroutine get_ele_theory (ring, db_ele)
                                                                
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -373,8 +372,7 @@ end subroutine get_ele_theory
 
 subroutine non_db_set (db_ele, cesr_ele, ix_attrib, ix0_cesrv)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 

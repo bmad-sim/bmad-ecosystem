@@ -4,8 +4,7 @@
 ! Subroutine to propagate the twiss parameters from the start to the end.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     RING.ELE_(0) -- Ring_struct: Twiss parameters at the start
@@ -19,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:29  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:32:00  rwh24
 !UNIX compatibility updates
 !
@@ -29,7 +31,7 @@
 
 subroutine twiss_propagate_all (ring)
 
-  use bmad_struct
+  use bmad
   implicit none
 
   type (ring_struct)  ring

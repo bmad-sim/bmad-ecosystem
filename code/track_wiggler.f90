@@ -5,8 +5,7 @@
 ! used by track1.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   start  -- Coord_struct: Starting position
@@ -24,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:27  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:44  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -32,8 +34,7 @@
 
 subroutine track_wiggler (start, ele, param, end, is_lost)
                              
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -41,11 +42,11 @@ subroutine track_wiggler (start, ele, param, end, is_lost)
   type (ele_struct)  ele
   type (param_struct)  param
 
-  real length, k_z, factor, dx
-  real l_original, l_start, l_end
-  real const1, const3, tan_theta
-  real x_lim, y_lim, l_period, l_bend, l_drift, rho_bend, angle
-  real knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+  real(rdef) length, k_z, factor, dx
+  real(rdef) l_original, l_start, l_end
+  real(rdef) const1, const3, tan_theta
+  real(rdef) x_lim, y_lim, l_period, l_bend, l_drift, rho_bend, angle
+  real(rdef) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 
   integer i, j, n, n_slice, n_pole
 
@@ -145,7 +146,7 @@ subroutine track_period (i_pole, l_bend, rho_bend, l_drift, factor)
 
   type (coord_struct8) end8
 
-  real l_bend, rho_bend, l_drift, y_ave, factor, l_1, l_2, l_track
+  real(rdef) l_bend, rho_bend, l_drift, y_ave, factor, l_1, l_2, l_track
 
   real*8 denom, s_center, x_center, a, b, c, descrim
   real*8 del_s, rho, radix, x_vel_old

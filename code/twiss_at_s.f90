@@ -5,12 +5,11 @@
 ! position.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring -- Ring_struct: Ring holding the lattice.
-!   s    -- Real: Longitudinal position.
+!   s    -- Real(rdef): Longitudinal position.
 !
 ! Output:
 !   ele -- Ele_struct: Element structure holding the twiss_parameters.
@@ -18,6 +17,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:28  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:32:00  rwh24
 !UNIX compatibility updates
 !
@@ -27,15 +29,14 @@
 
 subroutine twiss_at_s (ring, s, ele)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
   type (ring_struct) :: ring
   type (ele_struct) :: ele
 
-  real s
+  real(rdef) s
 
   integer i
 

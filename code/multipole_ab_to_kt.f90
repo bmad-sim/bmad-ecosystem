@@ -4,20 +4,22 @@
 ! Subroutine to convert ab type multipoles to kt (MAD standard) multipoles.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
-!   an(0:n_pole_maxx) -- Real: Skew multipole component.
-!   bn(0:n_pole_maxx) -- Real: Normal multipole component.
+!   an(0:n_pole_maxx) -- Real(rdef): Skew multipole component.
+!   bn(0:n_pole_maxx) -- Real(rdef): Normal multipole component.
 !
 ! Output:
-!   knl(0:n_pole_maxx) -- Real: Multitude magnatude.
-!   tn(0:n_pole_maxx)  -- Real: Multipole angle.
+!   knl(0:n_pole_maxx) -- Real(rdef): Multitude magnatude.
+!   tn(0:n_pole_maxx)  -- Real(rdef): Multipole angle.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:20  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:41  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -30,14 +32,13 @@
 
 subroutine multipole_ab_to_kt (an, bn, knl, tn)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
-  real an(0:n_pole_maxx), bn(0:n_pole_maxx)
-  real knl(0:n_pole_maxx), tn(0:n_pole_maxx)
-  real n_fact, a, b
+  real(rdef) an(0:n_pole_maxx), bn(0:n_pole_maxx)
+  real(rdef) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
+  real(rdef) n_fact, a, b
 
   integer n
 

@@ -5,8 +5,7 @@
 ! See also the subroutine: type_twiss.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ele          -- Ele_struct: Element containing the Twiss parameters.
@@ -18,6 +17,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.2  2002/02/23 20:32:30  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.1  2001/10/12 20:53:36  rwh24
 !DCS changes and two files added
 !
@@ -27,8 +29,7 @@
 
 subroutine type_twiss (ele, frequency_units)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 

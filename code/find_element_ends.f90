@@ -5,8 +5,7 @@
 ! ring.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring   -- Ring_struct: Ring holding the lattice
@@ -24,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:15  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:39  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -36,8 +38,7 @@
 
 subroutine find_element_ends (ring, ix_ele, ix_start, ix_end)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
   use nr, only: indexx
 
   implicit none

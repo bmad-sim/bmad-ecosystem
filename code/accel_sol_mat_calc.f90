@@ -8,23 +8,26 @@
 ! -- Created by Daniel Fromowitz, September 1999.
 !
 ! Input:
-!     LS        -- Real: length of the segment
-!     C_M       -- Real: constant proportional to the longitudinal magnetic
+!     LS        -- Real(rdef): length of the segment
+!     C_M       -- Real(rdef): constant proportional to the longitudinal magnetic
 !                         field
-!     C_E       -- Real: constant proportional to the electric field
-!     GAMMA_OLD -- Real: Lorentz factor at beginning of segment
-!     GAMMA_NEW -- Real: Lorentz factor at end of segment
-!     B_X       -- Real: Horizontal field of transverse steering
-!     B_Y       -- Real: Vertical field of transverse steering
+!     C_E       -- Real(rdef): constant proportional to the electric field
+!     GAMMA_OLD -- Real(rdef): Lorentz factor at beginning of segment
+!     GAMMA_NEW -- Real(rdef): Lorentz factor at end of segment
+!     B_X       -- Real(rdef): Horizontal field of transverse steering
+!     B_Y       -- Real(rdef): Vertical field of transverse steering
 !     COORD     -- Coord_struct: Starting position
 !
 ! Output:
-!     MAT4(4,4) -- Real: 4x4 transfer matrix excluding steerings
-!     VEC_ST(4) -- Real: Vector due to steerings (assuming positrons)
+!     MAT4(4,4) -- Real(rdef): 4x4 transfer matrix excluding steerings
+!     VEC_ST(4) -- Real(rdef): Vector due to steerings (assuming positrons)
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:09  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:47  rwh24
 !UNIX compatibility updates
 !
@@ -34,13 +37,13 @@
 
 subroutine accel_sol_mat_calc (ls, c_m, c_e, gamma_old, gamma_new, b_x,  &
     b_y, coord, mat4, vec_st)
-  use bmad_struct
+  use bmad
   implicit none
 
   type (coord_struct)  coord
-  real ls, c_m, c_e, gamma_old, gamma_new, b_x, b_y, mat4(4,4), vec_st(4)
-  real coef, cosr, sinr, denom, ratio, ratio_c_m, sinr_c_m, onecosr_c_m
-  real mat_st(4,2)
+  real(rdef) ls, c_m, c_e, gamma_old, gamma_new, b_x, b_y, mat4(4,4), vec_st(4)
+  real(rdef) coef, cosr, sinr, denom, ratio, ratio_c_m, sinr_c_m, onecosr_c_m
+  real(rdef) mat_st(4,2)
   integer i
 
   if (abs(c_e) > 0.001) then

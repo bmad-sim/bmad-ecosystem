@@ -7,12 +7,11 @@
 ! are the same as the normal mode betas and etas.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     ELE        -- Ele_struct: Element
-!     V_MAT(4,4) -- Real: Normal mode to X-Y coords transformation
+!     V_MAT(4,4) -- Real(rdef): Normal mode to X-Y coords transformation
 !
 ! Output:
 !     ELE.X.MOBIUS_BETA -- Mobius betas
@@ -24,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:19  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:54  rwh24
 !UNIX compatibility updates
 !
@@ -34,14 +36,14 @@
 
 subroutine mobius_twiss_calc (ele, v_mat)
 
-  use bmad_struct
+  use bmad
   implicit none
 
   type (ele_struct)  ele
   type (twiss_struct)  a, b
 
-  real c11, c12, c21, c22, vec(4)
-  real v_mat(4,4)
+  real(rdef) c11, c12, c21, c22, vec(4)
+  real(rdef) v_mat(4,4)
 
 !
 

@@ -5,17 +5,20 @@
 ! to the input data of x and y via least squares.
 !
 ! Input:
-!     x(:) -- Real: vector of sample 'x' data
-!     y(:) -- Real: vector of sample 'y' data
+!     x(:) -- Real(rdef): vector of sample 'x' data
+!     y(:) -- Real(rdef): vector of sample 'y' data
 !     order -- Integer: order of fitted polynomial
 !     samples -- Integer: how many 'x, y' data samples
 !
 ! Output:
-!     coe(0:) -- Real: array of polynomial coefficients
+!     coe(0:) -- Real(rdef): array of polynomial coefficients
 !-
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:15  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2001/11/29 19:39:53  helms
 !Updates from DCS including (*) -> (:)
 !
@@ -27,12 +30,16 @@
 
 
 subroutine fitpoly(coe, x, y, order, samples)
+
+  use precision_def
+
   implicit none
+
   integer maxcoe, maxsamp
   parameter(maxcoe=10, maxsamp=100)
   integer order, samples, numcoe
-  real coe(0:), x(:), y(:)
-  real Xmat(maxsamp,maxcoe), XtX(maxcoe,maxcoe), Xty(maxcoe)
+  real(rdef) coe(0:), x(:), y(:)
+  real(rdef) Xmat(maxsamp,maxcoe), XtX(maxcoe,maxcoe), Xty(maxcoe)
   integer coe_index, sam_index, i, j, k
 
   numcoe = order + 1
@@ -63,5 +70,4 @@ subroutine fitpoly(coe, x, y, order, samples)
 
   call solvlin(XtX, Xty, coe, numcoe, maxcoe)
 
-  return
-  end
+end

@@ -4,8 +4,7 @@
 ! Calculate the vertical and horizontal average betas for quads around the ring
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     ring -- record/ring_struct/
@@ -16,6 +15,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:23  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:56  rwh24
 !UNIX compatibility updates
 !
@@ -24,14 +26,14 @@
 
 
 subroutine Ring_Beta_Ave(ring, cesr)
-  use bmad_struct
+  use bmad
   implicit none
 
   type (ring_struct)  ring
   type (cesr_struct)  cesr
   type (ele_struct)  elem
   integer rindex, qindex
-  real betaxAve, betayAve
+  real(rdef) betaxAve, betayAve
 
   do rindex = 1, ring%n_ele_symm
    elem = ring%ele_(rindex)

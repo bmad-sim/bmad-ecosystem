@@ -5,8 +5,7 @@
 ! elements can be added.
 !
 ! Modules to use:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring   -- Ring_struct: ring whose control structure needs fixing
@@ -22,6 +21,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:09  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:35  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -34,8 +36,7 @@
 
 subroutine adjust_control_struct (ring, ix_ele)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
                                                  
   implicit none
 

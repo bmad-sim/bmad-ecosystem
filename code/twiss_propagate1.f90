@@ -5,8 +5,7 @@
 ! the end of ELE2.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ELE1        -- Ele_struct: Structure holding the starting Twiss parameters.
@@ -26,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:29  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:32:00  rwh24
 !UNIX compatibility updates
 !
@@ -36,16 +38,16 @@
 
 subroutine twiss_propagate1 (ele1, ele2)
 
-  use bmad_struct
+  use bmad
   implicit none
   type (ele_struct)  ele1, ele2, ele_temp
 
   integer i, j
 
-  real v_mat(4,4), v_inv_mat(4,4), amat2(2,2), y_inv(2,2), det
-  real big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
-  real c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
-  real mat2(2,2), vec(4)
+  real(rdef) v_mat(4,4), v_inv_mat(4,4), amat2(2,2), y_inv(2,2), det
+  real(rdef) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
+  real(rdef) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
+  real(rdef) mat2(2,2), vec(4)
 
 ! init
 ! ELE_TEMP needs the element length for the betatron phase calculation
@@ -178,13 +180,13 @@ subroutine twiss_propagate1 (ele1, ele2)
 
 subroutine twiss_decoupled_propagate (ele1, ele2)
 
-  use bmad_struct
+  use bmad
   implicit none
 
   type (ele_struct)  ele1, ele2
 
-  real m11, m12, m21, m22, a1, b1, g1, del_phi
-  real a2, b2, g2
+  real(rdef) m11, m12, m21, m22, a1, b1, g1, del_phi
+  real(rdef) a2, b2, g2
 
 ! Basic equation is given by Bovet 2.5.b page 16
 ! Propagate A mode ("X") of ele1

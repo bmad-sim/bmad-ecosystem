@@ -16,8 +16,7 @@
 !
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ele   -- Ele_struct: Element with attributes 
@@ -29,6 +28,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:10  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/23 16:52:52  dcs
 !*** empty log message ***
 !
@@ -40,15 +42,14 @@
 
 subroutine attribute_bookkeeper (ele, param)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
   type (ele_struct) ele
   type (param_struct) param
 
-  real r
+  real(rdef) r
   
 !
 

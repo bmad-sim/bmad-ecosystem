@@ -5,8 +5,7 @@
 ! Subroutine to concatinate together elements to make a hybrid ring
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     RING_IN        -- Ring_struct: Input ring.
@@ -37,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/02/23 20:32:18  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.4  2002/01/08 21:44:39  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -53,15 +55,14 @@
 
 subroutine make_hybrid_ring (r_in, use_ele, remove_markers, r_out, ix_out)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
 
   type (ring_struct)  r_in, r_out
 
-  real e_vec(4)
+  real(rdef) e_vec(4)
 
   integer j_in, i_out, ix_out(:), i
   integer n_ele, j, ix, ic, o_key
@@ -281,25 +282,24 @@ end subroutine
 ! Subroutine to put the dispersion into ELE.MAT6 given the eta vector E_VEC
 !
 ! Input:
-!   E_VEC(4) -- Real: eta vector
+!   E_VEC(4) -- Real(rdef): eta vector
 !
 ! Output:
-!   mat6(6,6) -- Real: Matrix with 4x4 x-y submatrix already made.
+!   mat6(6,6) -- Real(rdef): Matrix with 4x4 x-y submatrix already made.
 !-
 
 
 
 subroutine mat6_dispersion (mat6, e_vec)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
-  real, intent(inout) :: mat6(6,6)
-  real, intent(in) :: e_vec(*)
+  real(rdef), intent(inout) :: mat6(6,6)
+  real(rdef), intent(in) :: e_vec(*)
 
-  real e2_vec(4)
+  real(rdef) e2_vec(4)
 
   integer i
 

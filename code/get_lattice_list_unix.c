@@ -24,6 +24,9 @@
  $Id$
 
  $Log$
+ Revision 1.4  2002/02/23 20:32:16  dcs
+ Double/Single Real toggle added
+
  Revision 1.3  2002/01/11 17:39:37  palmer
  Avoid module clashes on VMS with the symbol match_wild
 
@@ -55,7 +58,7 @@ int get_lattice_list_unix_(char *lat_list, int *num_lats, char *directory,
   char tmp[80];
   
   /* set filename mask here using '*' and '?' */
-  const char *mask="BMAD_*.*";
+  const char *mask = "bmad_*.*";
 
   trim(directory, dir_len);
   dir_pointer = opendir(directory);

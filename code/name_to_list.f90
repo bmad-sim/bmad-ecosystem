@@ -6,8 +6,7 @@
 ! This subroutine is typiclly used with MAKE_HYBRID_RING
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     RING         -- Ring_struct: Input ring.
@@ -28,6 +27,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:21  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2001/10/02 18:49:12  rwh24
 !More compatibility updates; also added many explicit variable declarations.
 !
@@ -41,7 +43,7 @@
 
 subroutine name_to_list (ring, ele_names, use_ele)
 
-  use bmad_struct
+  use bmad
   use cesr_utils
   implicit none
 

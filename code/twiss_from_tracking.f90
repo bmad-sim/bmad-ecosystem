@@ -10,8 +10,7 @@
 ! See twiss_at_start and twiss_propagate_all for alternative routines.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring    -- Ring_struct: Ring to track through.
@@ -25,7 +24,7 @@
 !                           a warning message if the orbit does not converge.
 !
 ! Output:
-!   error   -- Real: A measure of how symplectic the constructed matrices were
+!   error   -- Real(rdef): A measure of how symplectic the constructed matrices were
 !              before symplecitification. See mat_symp_check for more details.
 !   ring    -- Ring_struct:
 !     ele_(:)%mat6  -- 6x6 transfer matrices. The for
@@ -36,6 +35,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:29  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2001/10/02 18:49:13  rwh24
 !More compatibility updates; also added many explicit variable declarations.
 !
@@ -48,21 +50,20 @@
 
 subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
   type (ring_struct), intent(inout) :: ring
   type (coord_struct), intent(in) :: closed_orb_(0:n_ele_maxx), d_orb
-  real, intent(out) :: error
+  real(rdef), intent(out) :: error
 
   type multi_orb_struct
     type (coord_struct) orb(0:n_ele_maxx)
   end type
   type (multi_orb_struct) mo(6)
 
-  real mat(6,6), mat1(6,6), mat0(6,6), mat_inv(6,6), mat6_unit(6,6)
+  real(rdef) mat(6,6), mat1(6,6), mat0(6,6), mat_inv(6,6), mat6_unit(6,6)
   integer i, j, n_ele
 
   logical is_on(0:n_ele_maxx)

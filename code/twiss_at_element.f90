@@ -5,8 +5,7 @@
 ! end or the average of an element
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring    -- Ring_struct: Ring holding the lattice.
@@ -25,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:28  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:32:00  rwh24
 !UNIX compatibility updates
 !
@@ -34,7 +36,7 @@
 
 subroutine twiss_at_element (ring, ix_ele, start, end, average)
 
-  use bmad_struct
+  use bmad
   use nr
   
   implicit none
@@ -46,7 +48,7 @@ subroutine twiss_at_element (ring, ix_ele, start, end, average)
   integer ix_ele, ix1, ix2, n, ix_(100), indx(100)
   integer i, j, ix1_2, ix2_2, i_2, j_2
 
-  real rr, rr_2, coef_tot, coef_tot_2
+  real(rdef) rr, rr_2, coef_tot, coef_tot_2
 
 ! start and end
 
@@ -83,7 +85,8 @@ subroutine twiss_at_element (ring, ix_ele, start, end, average)
   call zero_ave (average)
 
   if (ix_ele <= ring%n_ele_ring) then
-    call twiss_ave (average, ring%ele_(ix_ele - 1), ring%ele_(ix_ele), 0.5)
+    call twiss_ave (average, ring%ele_(ix_ele - 1), &
+                                             ring%ele_(ix_ele), 0.5_rdef)
     average%value = ring%ele_(ix_ele)%value
 
   else
@@ -138,7 +141,7 @@ subroutine twiss_ave (ave, e1, e2, r)
 
   type (ele_struct) ave, e1, e2
 
-  real r
+  real(rdef) r
 
 !
 

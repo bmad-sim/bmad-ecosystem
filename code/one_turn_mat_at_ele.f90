@@ -5,8 +5,7 @@
 ! at the end of an element.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ele   -- ele_struct: Reference element.
@@ -14,15 +13,18 @@
 !     %y       -- "b" mode Twiss parameter structure.
 !     %c_mat   -- 2x2 C matrix.
 !     %gamma_c -- gamma associated with C matrix.
-!   phi_a -- Real: "a" mode tune in radians.
-!   phi_b -- Real: "b" mode tune in radians.
+!   phi_a -- Real(rdef): "a" mode tune in radians.
+!   phi_b -- Real(rdef): "b" mode tune in radians.
 !
 ! Output:
-!   mat4(4,4) -- Real: 1-Turn coupled matrix.
+!   mat4(4,4) -- Real(rdef): 1-Turn coupled matrix.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:21  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:55  rwh24
 !UNIX compatibility updates
 !
@@ -32,14 +34,13 @@
 
 subroutine one_turn_mat_at_ele (ele, phi_a, phi_b, mat4)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   type (ele_struct) ele
 
-  real phi_a, phi_b, mat4(4,4)
-  real a(2,2), b(2,2), c_conj(2,2), c(2,2)
-  real g
+  real(rdef) phi_a, phi_b, mat4(4,4)
+  real(rdef) a(2,2), b(2,2), c_conj(2,2), c(2,2)
+  real(rdef) g
 
 !
 

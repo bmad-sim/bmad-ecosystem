@@ -5,13 +5,12 @@
 ! within 0.001 radian (0.06 deg).
 !                                    
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
-!   phi_x_set       -- Real: Horizontal set tune (radians)
-!   phi_y_set       -- Real: Vertical set tune (radians)
-!   dk1(n_ele_maxx) -- Real: Relative amount to vary a quad in tuning.
+!   phi_x_set       -- Real(rdef): Horizontal set tune (radians)
+!   phi_y_set       -- Real(rdef): Vertical set tune (radians)
+!   dk1(n_ele_maxx) -- Real(rdef): Relative amount to vary a quad in tuning.
 !                       dk1(i) relates to ring%ele_(i). Those quads with a
 !                       positive dk1(i) will be varied as one group and the
 !                       quads with negative dk1(i) will be varied as another
@@ -25,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:25  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:57  rwh24
 !UNIX compatibility updates
 !
@@ -34,8 +36,7 @@
 
 subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -43,9 +44,9 @@ subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
   type (ele_struct) ave
   type (coord_struct) orb_(0:*)
 
-  real phi_x_set, phi_y_set, dphi_x, dphi_y
-  real phi_x, phi_y, d_xx, d_xy, d_yx, d_yy, det
-  real l_beta_x, l_beta_y, dk_x, dk_y, dk1(*)
+  real(rdef) phi_x_set, phi_y_set, dphi_x, dphi_y
+  real(rdef) phi_x, phi_y, d_xx, d_xy, d_yx, d_yy, det
+  real(rdef) l_beta_x, l_beta_y, dk_x, dk_y, dk1(*)
           
   integer i, j
 

@@ -5,8 +5,7 @@
 ! BAMD_PARSER to a structure for the CESR ring
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     RING      -- Ring_struct: Ring to parse.
@@ -26,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/02/23 20:32:11  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.6  2002/01/08 21:44:37  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -47,8 +49,7 @@
 
 subroutine bmad_to_cesr (ring, cesr)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -417,8 +418,7 @@ end subroutine
 
 subroutine insert_info (cesr_ele, ele, i_ele)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
   
   implicit none
 

@@ -10,15 +10,18 @@
 !                            relative to the (linac) origin; it is not a
 !                            displacement!
 !     ELE   -- Ele_struct: Element
-!     S_POS -- Real: Longitudinal position of coil component
+!     S_POS -- Real(rdef): Longitudinal position of coil component
 !
 ! Output:
-!     B_LOOP(3) -- Real: (Cartesian) Magnetic field vector x, y, and z
+!     B_LOOP(3) -- Real(rdef): (Cartesian) Magnetic field vector x, y, and z
 !                        components (in units of mu_0 / 2)
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:10  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:48  rwh24
 !UNIX compatibility updates
 !
@@ -27,16 +30,16 @@
 
 
 subroutine b_field_loop (coord, ele, s_pos, b_loop)
-  use bmad_struct
+  use bmad
   implicit none
 
   type (coord_struct)  coord
   type (ele_struct)  ele
-  real s_pos, b_loop(3)
+  real(rdef) s_pos, b_loop(3)
 
-  real coef, e, e2_inv, hypergeom, inv_rot_pyr(3,3), r, rel_coords(3)
-  real rot_py(3,3), tworx, v1, v2, x_rel, y_rel, z_rel
-  real pitch, cos_p, sin_p, yaw, cos_y, sin_y, roll, cos_r, sin_r
+  real(rdef) coef, e, e2_inv, inv_rot_pyr(3,3), r, rel_coords(3)
+  real(rdef) rot_py(3,3), tworx, v1, v2, x_rel, y_rel, z_rel
+  real(rdef) pitch, cos_p, sin_p, yaw, cos_y, sin_y, roll, cos_r, sin_r
 
   integer x$, y$, z$
   parameter (x$ = 1, y$ = 2, z$ = 3)

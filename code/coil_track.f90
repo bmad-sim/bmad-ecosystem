@@ -17,6 +17,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:13  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:49  rwh24
 !UNIX compatibility updates
 !
@@ -26,7 +29,7 @@
 
 subroutine coil_track (start, ele_index, ring, end)
 
-  use bmad_struct
+  use bmad
 
   implicit none
 
@@ -36,10 +39,10 @@ subroutine coil_track (start, ele_index, ring, end)
   integer ele_index
 
 
-  real dt, dt_partial, dt_temp, g, g_partial, g_temp, time_disp, time_total
-  real z_end, z_start, b_vector(3), mu_0_over_2, original_z_prime
-  real x_dot_temp, y_dot_temp, s_pos(n_comp_maxx), s_cumul
-  real x_lim, y_lim
+  real(rdef) dt, dt_partial, dt_temp, g, g_partial, g_temp, time_disp, time_total
+  real(rdef) z_end, z_start, b_vector(3), mu_0_over_2, original_z_prime
+  real(rdef) x_dot_temp, y_dot_temp, s_pos(n_comp_maxx), s_cumul
+  real(rdef) x_lim, y_lim
   parameter (mu_0_over_2 = twopi * 1.0e-7)
   integer i, ic, x$, y$, z$
   parameter (x$ = 1, y$ = 2, z$ = 3)

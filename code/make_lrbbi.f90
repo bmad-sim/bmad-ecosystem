@@ -8,8 +8,7 @@
 !   and offsets.
 !
 ! Modules Needed:
-!   use bmad_interface
-!   use bmad_struct
+!   use bmad
 !
 ! Input:
 !   master_ring          -- Ring struct: Ring with markers at LRBBI locations.
@@ -17,10 +16,10 @@
 !                           particles, with markers at parasitic crossings.
 !   ring(:)              -- Ring struct: Each bunch has its own ring(i)
 !                           with markers at all crossings that bunch sees.
-!   ix_LRBBI(:,:)        -- Real: First index (i) is the index of the ring
+!   ix_LRBBI(:,:)        -- Real(rdef): First index (i) is the index of the ring
 !                           (i.e., bunch), second index (j) is the index of a
 !                           beam-beam element's position in ring(i).
-!   master_ix_LRBBI(:,:) -- Real: First index (i) is the index of the
+!   master_ix_LRBBI(:,:) -- Real(rdef): First index (i) is the index of the
 !                           ring, second index (j) is the index of a beam-beam
 !                           element (seen by the ith bunch) in the master_ring
 !                           and master_ring_oppos. This index is used to
@@ -43,6 +42,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:18  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:39  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -56,8 +58,7 @@
 subroutine MAKE_LRBBI(master_ring, master_ring_oppos, ring, &
 													ix_LRBBI, master_ix_LRBBI)
 
-  use bmad_struct                      
-  use bmad_interface
+  use bmad                      
 
   implicit none
 

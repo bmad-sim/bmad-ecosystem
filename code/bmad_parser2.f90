@@ -11,8 +11,7 @@
 !       then the index of a given element already in the ring may change.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   in_file -- Character*(*): Input file name
@@ -26,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:11  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:36  dcs
 !Aligned with VMS version  -- DCS
 !

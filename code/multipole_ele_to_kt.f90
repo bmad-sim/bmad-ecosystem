@@ -6,8 +6,7 @@
 ! Note: tilt(:) does includes ele%value(tilt$).
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ele          -- Ele_struct: Multipole element.
@@ -16,12 +15,15 @@
 !                     in calculations.
 !
 ! Output:
-!   knl(0:n_pole_maxx)  -- Real: Vector of strengths, MAD units.
-!   tilt(0:n_pole_maxx) -- Real: Vector of tilts.
+!   knl(0:n_pole_maxx)  -- Real(rdef): Vector of strengths, MAD units.
+!   tilt(0:n_pole_maxx) -- Real(rdef): Vector of tilts.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.2  2002/02/23 20:32:20  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.1  2002/01/08 21:48:14  dcs
 !Align with VMS version
 !
@@ -30,15 +32,14 @@
 
 subroutine multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
   type (ele_struct)  ele
 
-  real knl(0:n_pole_maxx), tilt(0:n_pole_maxx), signn, a_n, b_n
-  real value(n_attrib_maxx), a(0:n_pole_maxx), b(0:n_pole_maxx)
+  real(rdef) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), signn, a_n, b_n
+  real(rdef) value(n_attrib_maxx), a(0:n_pole_maxx), b(0:n_pole_maxx)
 
   integer n, particle, n_fact
 

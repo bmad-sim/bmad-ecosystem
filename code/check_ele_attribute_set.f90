@@ -9,8 +9,7 @@
 ! the routine also checks that i_ele is not out of bounds.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring            -- Ring_struct: Ring structure.
@@ -27,6 +26,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:12  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2001/10/22 17:04:23  rwh24
 !Updates from DCS
 !
@@ -40,8 +42,7 @@
 Subroutine check_ele_attribute_set (ring, i_ele, attrib_name, &
                                       ix_attrib, err_flag, err_print_flag)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 

@@ -4,17 +4,19 @@
 ! Subroutine to form a symplectic matrix that is  "close" to the input matrix.
 !
 ! Modules needed:
-!   use bmad_interface
 !
 ! Input:
-!   mat_in(:,:) -- Real: Input matrix to symplectify.
+!   mat_in(:,:) -- Real(rdef): Input matrix to symplectify.
 !
 ! Output:
-!   mat_symp(:,:) -- Real: Symplectic output matrix
+!   mat_symp(:,:) -- Real(rdef): Symplectic output matrix
 !-
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/02/23 20:32:19  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.4  2002/01/16 21:04:18  helms
 !Fixed problem with passing optional arguments.
 !
@@ -30,12 +32,14 @@
 
 subroutine mat_symplectify (mat_in, mat_symp)
 
+  use precision_def
+
   implicit none
 
-  real, intent(in)  :: mat_in(:,:)
-  real, intent(out) :: mat_symp(:,:)
+  real(rdef), intent(in)  :: mat_in(:,:)
+  real(rdef), intent(out) :: mat_symp(:,:)
 
-  real, save, allocatable :: m1(:,:), m2(:,:), m3(:,:), m_symetric(:,:)
+  real(rdef), save, allocatable :: m1(:,:), m2(:,:), m3(:,:), m_symetric(:,:)
 
   integer n,i,j
 

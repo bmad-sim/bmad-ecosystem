@@ -5,8 +5,7 @@
 ! in a ring.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring -- Ring_struct:
@@ -17,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:24  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:43  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -30,8 +32,7 @@
 
 subroutine s_calc (ring)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
   
   implicit none
 

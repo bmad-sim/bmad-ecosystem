@@ -9,22 +9,24 @@
 ! boundary.
 !
 ! Modules needed:
-!   use bmad_interface
 !
 ! Input:
-!   position(3)       -- Real: (x, y, z) position.
-!   field_mesh(:,:,:) -- Real: Grid of field points.
-!   deltas(3)         -- Real: (dx, dy, dz) distances between mesh points.
-!   position0(3)      -- Real, optional:  position at (ix0, iy0, iz0) where 
+!   position(3)       -- Real(rdef): (x, y, z) position.
+!   field_mesh(:,:,:) -- Real(rdef): Grid of field points.
+!   deltas(3)         -- Real(rdef): (dx, dy, dz) distances between mesh points.
+!   position0(3)      -- Real(rdef), optional:  position at (ix0, iy0, iz0) where 
 !                            (ix0, iy0, iz0) is the lower bound of the 
 !                            filed_mesh(i, j, k) array. If not present then
 !                            position0 is taken to be (0.0, 0.0, 0.0)
 ! Output:
-!   field_interpolate_3d -- Real: interpolated field.
+!   field_interpolate_3d -- Real(rdef): interpolated field.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:15  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:51  rwh24
 !UNIX compatibility updates
 !
@@ -32,14 +34,17 @@
 #include "CESR_platform.inc"
 
 
-real function field_interpolate_3d (position, field_mesh, deltas, position0)
+real(rdef) function field_interpolate_3d &
+                             (position, field_mesh, deltas, position0)
+
+  use precision_def
 
   implicit none
 
-  real, optional, intent(in) :: position0(3)
-  real, intent(in) :: position(3), field_mesh(0:,0:,0:), deltas(3)
+  real(rdef), optional, intent(in) :: position0(3)
+  real(rdef), intent(in) :: position(3), field_mesh(0:,0:,0:), deltas(3)
 
-  real r(3), f(-1:2), g(-1:2), h(-1:2), r_frac(3)
+  real(rdef) r(3), f(-1:2), g(-1:2), h(-1:2), r_frac(3)
 
   integer i0(3), ix, iy, iz, iix, iiy, iiz
 
@@ -83,8 +88,8 @@ real function interpolate_1d (x, field_1d)
 
   implicit none
 
-  real x, field_1d(4), df_2, df_3
-  real c0, c1, c2, c3
+  real(rdef) x, field_1d(4), df_2, df_3
+  real(rdef) c0, c1, c2, c3
 
 !
 

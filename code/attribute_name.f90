@@ -5,8 +5,7 @@
 ! BMAD element. 
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ele   -- Ele_struct: Integer: Key name of element type (e.g. SBEND$, etc.)
@@ -24,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:10  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:36  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -33,9 +35,9 @@
 
 #include "CESR_platform.inc"
 
-character*16 function attribute_name (ele, index)
+character*16 function attribute_name (ele, index) result (at_name)
 
-  use bmad_struct
+  use bmad
 
   implicit none
 
@@ -294,9 +296,9 @@ character*16 function attribute_name (ele, index)
 
   if (key <= 0 .or. key > n_key .or.  &
             index <= 0 .or. index > n_attrib_special_maxx) then
-    attribute_name = '?? BAD KEY/INDEX'
+    at_name = '?? BAD KEY/INDEX'
   else
-    attribute_name = attrib_array(key, index)
+    at_name = attrib_array(key, index)
   endif                       
 
 end function

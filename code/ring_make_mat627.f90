@@ -5,8 +5,7 @@
 ! Used by, for example, TRACK_LONG.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   RING        -- Ring_struct: Ring containing the element.
@@ -24,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:23  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2001/11/29 19:39:54  helms
 !Updates from DCS including (*) -> (:)
 !
@@ -37,6 +39,7 @@
 recursive subroutine ring_make_mat627 (ring, ix_ele, direction, mats627)
 
   use bmad_struct
+  use bmad_interface, only: control_bookkeeper, make_mat627
 
   implicit none
 
@@ -63,7 +66,7 @@ recursive subroutine ring_make_mat627 (ring, ix_ele, direction, mats627)
 
     do i = 1, ring%n_ele_use
       if (ring%ele_(i)%key /= hybrid$)  &
-         call make_mat627(ring%ele_(i), ring%param, direction, mats627(i))
+         call make_mat627(ring%ele_(i), ring%param, direction, mats627(i)%m)
     enddo
 
     return
@@ -81,7 +84,8 @@ recursive subroutine ring_make_mat627 (ring, ix_ele, direction, mats627)
   if (ele%key == hybrid$) return
 
   if (ix_ele <= ring%n_ele_ring) then
-    call make_mat627(ring%ele_(ix_ele), ring%param, direction, mats627(ix_ele))
+    call make_mat627(ring%ele_(ix_ele), ring%param, direction, &
+                                                       mats627(ix_ele)%m)
   endif                        
 
 ! for a control element

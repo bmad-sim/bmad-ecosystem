@@ -6,8 +6,7 @@
 ! vertical bends.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring -- ring_struct: The ring
@@ -25,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:23  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:42  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -36,7 +38,7 @@
 
 subroutine ring_geometry (ring)
 
-  use bmad_struct
+  use bmad
   implicit none
 
   type (ring_struct)  ring

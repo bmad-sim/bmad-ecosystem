@@ -5,19 +5,18 @@
 ! This subroutine returns the calibration constants for the CESR quads.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     char*(*)  LATTICE        -- lattice name
 !
 ! Output:
-!     real  K_THEORY(0:120)     -- Theory K of quad_i,
-!     real  K_BASE(0:120)       -- Extrapolated K for zero cu command
-!     real  CU_PER_K_GEV(0:120) -- CU to K*GEV calibration
-!     real  LEN_QUAD(0:120)     -- Length of quad_i
-!     real  QUAD_ROT(0:120)     -- Quad rotation angle in degrees
-!     real  DK_GEV_DCU(0:120)   -- Derivative of K*GEV vs CU curve.
+!     real(rdef)  K_THEORY(0:120)     -- Theory K of quad_i,
+!     real(rdef)  K_BASE(0:120)       -- Extrapolated K for zero cu command
+!     real(rdef)  CU_PER_K_GEV(0:120) -- CU to K*GEV calibration
+!     real(rdef)  LEN_QUAD(0:120)     -- Length of quad_i
+!     real(rdef)  QUAD_ROT(0:120)     -- Quad rotation angle in degrees
+!     real(rdef)  DK_GEV_DCU(0:120)   -- Derivative of K*GEV vs CU curve.
 !     integer CU_THEORY(0:120)  -- Scaler needed to get K_THEORY.
 !
 ! Notes:
@@ -50,6 +49,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:22  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2001/10/22 17:04:23  rwh24
 !Updates from DCS
 !
@@ -63,16 +65,15 @@
 subroutine quad_calib (lattice, k_theory, k_base,  &
                  len_quad, cu_per_k_gev, quad_rot, dk_gev_dcu, cu_theory)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
   type (cesr_struct)  cesr
   type (ring_struct)  ring
   character lattice*(*), latfil*50, bmad_lat*40
-  real energy, k_theory(0:*), k_base(0:*), len_quad(0:*)
-  real cu_per_k_gev(0:*), dk_gev_dcu(0:*), quad_rot(0:*)
+  real(rdef) energy, k_theory(0:*), k_base(0:*), len_quad(0:*)
+  real(rdef) cu_per_k_gev(0:*), dk_gev_dcu(0:*), quad_rot(0:*)
   integer ix, rindex, cu_theory(0:*)
 
 ! read lattice file

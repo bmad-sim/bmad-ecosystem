@@ -6,8 +6,7 @@
 ! See also the subroutine: type_ele.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ele          -- Ele_struct: Element
@@ -34,6 +33,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2002/02/23 20:32:29  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.7  2002/01/24 16:37:35  dcs
 !Bug fix
 !
@@ -58,8 +60,7 @@
 subroutine type2_ele (ele, type_zero_attrib, type_mat6, twiss_out,  &
                                           type_control, lines, n_lines, ring)
 
-  use bmad_struct
-  use bmad_interface         
+  use bmad
 
   implicit none
 
@@ -69,9 +70,9 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, twiss_out,  &
   integer i, j, n, twiss_out, type_mat6, ix, iv, ic, ct, n_lines
   integer nl, nl2, i_max, particle
 
-  real coef, value(n_attrib_maxx), value2(n_attrib_maxx)
-  real a(0:n_pole_maxx), b(0:n_pole_maxx)
-  real knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+  real(rdef) coef, value(n_attrib_maxx), value2(n_attrib_maxx)
+  real(rdef) a(0:n_pole_maxx), b(0:n_pole_maxx)
+  real(rdef) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 
   character*16 a_name, name, null_type / ' ' /
   character*(*) lines(:)

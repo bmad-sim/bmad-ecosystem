@@ -6,8 +6,7 @@
 ! RING_MAKE_MAT6 will be called to remake ring%ele_()%mat6
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   key       -- Integer: Key name of elements to be turned on or off.
@@ -24,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:24  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:43  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -36,8 +38,7 @@
                                     
 subroutine set_on (key, ring, on_switch, orb_)
 
-  use bmad_struct
-  use bmad_interface, only: ring_make_mat6
+  use bmad
 
   implicit none
 

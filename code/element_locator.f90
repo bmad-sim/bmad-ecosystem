@@ -4,8 +4,7 @@
 ! Subroutine to locate an element in a ring. 
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ELE_NAME -- Character*16: Name of the element to find.
@@ -17,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:15  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:38  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -29,8 +31,7 @@
 
 subroutine element_locator (ele_name, ring, ix_ele)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
   
   implicit none
 

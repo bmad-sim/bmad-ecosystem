@@ -5,8 +5,7 @@
 ! Note: tilts are not inclueded in the calculation
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ELE       -- Ele_struct: Element
@@ -16,7 +15,7 @@
 !                   = -1  -> For Backward particle tracking.
 !
 ! Output:
-!   MAT627(6,27) -- Real: 6x27 transfer matrix.
+!   MAT627(6,27) -- Real(rdef): 6x27 transfer matrix.
 !
 ! Elements for whom 2nd order terms are NOT computed:
 !     SBEND, BEAMBEAM, etc...
@@ -24,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:18  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:40  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -36,25 +38,24 @@
 
 subroutine make_mat627 (ele, param, direction, mat627)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
   
   implicit none
 
   type (ele_struct), target :: ele
   type (param_struct)  param
 
-  real mat627(6,27) 
-  real mat6_end(6,6), mat2(2,2), mat4(4,4), kmat1(4,4), kmat2(4,4)
-  real e1, e2, angle, rho, cos_angle, sin_angle, k1, ks, length, kc
-  real phi, k2l, k3l, c2, s2, cs, ks2, del_l
-  real s_pos, s_pos_old, z_slice(100)
-  real knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-  real r, c_e, c_m, gamma_old, gamma_new, vec_st(4)
-  real sqrt_k, arg, kick2
-  real cx, sx, cy, sy, k2l_2, k2l_3, k2l_4
-  real x_off, y_off, x_pit, y_pit
-  real lcs, lc2s2
+  real(rdef) mat627(6,27) 
+  real(rdef) mat6_end(6,6), mat2(2,2), mat4(4,4), kmat1(4,4), kmat2(4,4)
+  real(rdef) e1, e2, angle, rho, cos_angle, sin_angle, k1, ks, length, kc
+  real(rdef) phi, k2l, k3l, c2, s2, cs, ks2, del_l
+  real(rdef) s_pos, s_pos_old, z_slice(100)
+  real(rdef) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+  real(rdef) r, c_e, c_m, gamma_old, gamma_new, vec_st(4)
+  real(rdef) sqrt_k, arg, kick2
+  real(rdef) cx, sx, cy, sy, k2l_2, k2l_3, k2l_4
+  real(rdef) x_off, y_off, x_pit, y_pit
+  real(rdef) lcs, lc2s2
 
   integer i, n, n_slice, direction
 
@@ -314,8 +315,7 @@ end subroutine
 ! solenoid/quadrupole element.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ks      [Real]       Solenoid strength
@@ -328,25 +328,24 @@ end subroutine
 
 subroutine sol_quad_mat627_calc (ks, k1, s_len, m)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
-  real ks, k1, s_len
-  real m(6,27)
+  real(rdef) ks, k1, s_len
+  real(rdef) m(6,27)
 
   integer i, j
 
-  real ks2, s, c, snh, csh
-  real darg1, alpha, alpha2, beta, beta2, f, q, r, a, b
-  real df, dalpha2, dalpha, dbeta2, dbeta, darg
-  real dC, dCsh, dS, dSnh, dq, dr, da, db
-  real ks3, fp, fm, dfm, dfp, df_f, ug
-  real s1, s2, snh1, snh2, dsnh1, dsnh2, ds1, ds2
-  real coef1, coef2, dcoef1, dcoef2, ks4
+  real(rdef) ks2, s, c, snh, csh
+  real(rdef) darg1, alpha, alpha2, beta, beta2, f, q, r, a, b
+  real(rdef) df, dalpha2, dalpha, dbeta2, dbeta, darg
+  real(rdef) dC, dCsh, dS, dSnh, dq, dr, da, db
+  real(rdef) ks3, fp, fm, dfm, dfp, df_f, ug
+  real(rdef) s1, s2, snh1, snh2, dsnh1, dsnh2, ds1, ds2
+  real(rdef) coef1, coef2, dcoef1, dcoef2, ks4
 
-  real t5(4,4), t6(4,4)
+  real(rdef) t5(4,4), t6(4,4)
 
 ! Calc
           

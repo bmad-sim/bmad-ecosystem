@@ -16,26 +16,28 @@
 ! -- Created by Daniel Fromowitz, November 1998.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     COORD      -- Coord_struct: Coordinates of particle
-!     REF_ENERGY -- Real: Reference energy of beam
-!     REF_Z      -- Real: Reference longitudinal position of beam
+!     REF_ENERGY -- Real(rdef): Reference energy of beam
+!     REF_Z      -- Real(rdef): Reference longitudinal position of beam
 !     TO_CART    -- Logical: True if converting to cartesian coordinates
 !                            False if converting to accelerator coordinates
 !     If to_cart == .false.:
-!       TIME_DISP -- Real: Time displacement of particle
+!       TIME_DISP -- Real(rdef): Time displacement of particle
 !
 ! Output:
 !     COORD  -- Coord_struct: Converted coordinates
 !     If to_cart == .true.:
-!       TIME_DISP -- Real: Time displacement of particle
+!       TIME_DISP -- Real(rdef): Time displacement of particle
 !-
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:12  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:37  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -48,13 +50,12 @@
 
 subroutine change_basis (coord, ref_energy, ref_z, to_cart, time_disp)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
   type (coord_struct)  coord, temp
-  real beta2, ref_energy, ref_z, time_disp, var
+  real(rdef) beta2, ref_energy, ref_z, time_disp, var
   logical to_cart
 
   temp%x%pos = coord%x%pos

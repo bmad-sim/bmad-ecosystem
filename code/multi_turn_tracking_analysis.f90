@@ -8,8 +8,7 @@
 !        multi_turn_tracking_to_mat.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   track(:) -- Cooord_struct: multi-turn tracking data to analyze.
@@ -28,13 +27,16 @@
 !     %x%sigma     -- a-mode amplitude = sqrt(ele%x%beta * ele%x%sigma)
 !     %c_mat       -- c coupling matrix (only with i_dim = 4)
 !   stable -- Logical: Is motion stable?
-!   growth_rate -- Real: Unstable growth rate (= 0 if stable).
-!   chi    -- Real: How symplectic the computed 1-turn matrix is.
+!   growth_rate -- Real(rdef): Unstable growth rate (= 0 if stable).
+!   chi    -- Real(rdef): How symplectic the computed 1-turn matrix is.
 !              See mat_symp_check for more details.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:20  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:54  rwh24
 !UNIX compatibility updates
 !
@@ -45,8 +47,7 @@
 subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
                                                  stable, growth_rate, chi)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -54,13 +55,13 @@ subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
   type (coord_struct), intent(out) :: track0
   type (ele_struct), intent(out) :: ele
 
-  real, intent(out) :: growth_rate, chi
-  real a_vec(4), v_mat(4,4), v_inv_mat(4,4)
+  real(rdef), intent(out) :: growth_rate, chi
+  real(rdef) a_vec(4), v_mat(4,4), v_inv_mat(4,4)
 
   integer, intent(in) :: i_dim
   logical, intent(out) :: stable
 
-  real det
+  real(rdef) det
   integer stat, i
 
 ! get 1-turn matrix and symplectify
@@ -74,7 +75,7 @@ subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
 
   if (i_dim == 2) then
 
-    call twiss_from_mat2 (ele%mat6(1:2,1:2), det, ele%x, stat, 1e-4, .false.)
+    call twiss_from_mat2 (ele%mat6(1:2,1:2), det, ele%x, stat, 1e-4_rdef, .false.)
 
     if (stat == unstable$) then
       stable = .false.

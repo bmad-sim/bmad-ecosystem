@@ -6,8 +6,7 @@
 ! attribute values have been changed.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   RING   -- Ring_struct: Ring to be used
@@ -17,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/02/23 20:32:13  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.5  2002/01/08 21:44:38  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -34,8 +36,7 @@
 
 subroutine control_bookkeeper (ring, ix_ele)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -127,8 +128,7 @@ end subroutine
 
 Subroutine adjust_super_lord_s_position (ring, ix_lord)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -137,7 +137,7 @@ Subroutine adjust_super_lord_s_position (ring, ix_lord)
 
   integer ix_lord, ix
 
-  real s_start, s_start2, s_end
+  real(rdef) s_start, s_start2, s_end
 
 !
 
@@ -181,8 +181,7 @@ end subroutine
 
 Subroutine makeup_group_slaves (ring, ix_lord)   
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
   use dcslib_interface
 
   implicit none
@@ -190,7 +189,7 @@ Subroutine makeup_group_slaves (ring, ix_lord)
   type (ring_struct), target :: ring
   type (ele_struct), pointer :: lord, slave
 
-  real delta, coef
+  real(rdef) delta, coef
 
   integer ix_lord, ix, iv, ict, i
 
@@ -240,8 +239,7 @@ end subroutine
          
 subroutine makeup_super_slave (ring, ix_slave)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
   use dcslib_interface
 
   implicit none
@@ -252,15 +250,15 @@ subroutine makeup_super_slave (ring, ix_slave)
 
   integer ix_con, j, ix, ix_slave
 
-  real tilt, k1_x, k1_y, x_kick, y_kick, ks, k1, coef
-  real x_o, y_o, x_p, y_p, s_slave, s_del
-  real sin_2, cos_2, x_off, y_off, a(0:n_pole_maxx), b(0:n_pole_maxx)
-  real knl(0:n_pole_maxx), t(0:n_pole_maxx), value(n_attrib_maxx)
-  real a_tot(0:n_pole_maxx), b_tot(0:n_pole_maxx)
-  real sum_1, sum_2, sum_3, sum_4, ks_sum, ks_xp_sum, ks_xo_sum
-  real ks_yp_sum, ks_yo_sum, l_slave
-  real t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4), r_off(4)
-  real T_tot(4,4), x_o_sol, x_p_sol, y_o_sol, y_p_sol
+  real(rdef) tilt, k1_x, k1_y, x_kick, y_kick, ks, k1, coef
+  real(rdef) x_o, y_o, x_p, y_p, s_slave, s_del
+  real(rdef) sin_2, cos_2, x_off, y_off, a(0:n_pole_maxx), b(0:n_pole_maxx)
+  real(rdef) knl(0:n_pole_maxx), t(0:n_pole_maxx), value(n_attrib_maxx)
+  real(rdef) a_tot(0:n_pole_maxx), b_tot(0:n_pole_maxx)
+  real(rdef) sum_1, sum_2, sum_3, sum_4, ks_sum, ks_xp_sum, ks_xo_sum
+  real(rdef) ks_yp_sum, ks_yo_sum, l_slave
+  real(rdef) t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4), r_off(4)
+  real(rdef) T_tot(4,4), x_o_sol, x_p_sol, y_o_sol, y_p_sol
 
   logical, save :: init_needed = .true.
 
@@ -522,7 +520,7 @@ subroutine makeup_super_slave (ring, ix_slave)
 
   l_slave = slave%value(l$)
 
-  t_1 = (/ t_2(2), 0.0, t_2(4), 0.0 /)
+  t_1 = (/ t_2(2), 0.0_rdef, t_2(4), 0.0_rdef /)
   t_2(1) = t_2(1) + ks * t_2(4) / k1 
   t_2(3) = t_2(3) + ks * t_2(2) / k1
              
@@ -564,15 +562,14 @@ end subroutine
 
 subroutine makeup_overlay_slave (ring, ix_ele)
 
-  use bmad_struct                        
-  use bmad_interface
+  use bmad                        
 
   implicit none
 
   type (ring_struct), target :: ring
   type (ele_struct), pointer :: ele
 
-  real value(n_attrib_maxx), coef
+  real(rdef) value(n_attrib_maxx), coef
   integer i, j, ix, iv, ix_ele, icom, ct
   logical used(n_attrib_maxx)
 
@@ -625,15 +622,14 @@ end subroutine
 
 subroutine makeup_container_slave (ring, ix_ele)
               
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
   type (ring_struct)  ring
 
   integer i, ix_ele, j, ix
-  real s_len, x_lim, y_lim
+  real(rdef) s_len, x_lim, y_lim
 
   s_len = 0
   x_lim = 0

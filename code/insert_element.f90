@@ -9,8 +9,7 @@
 ! of all the elements will be recalculated.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     ring         -- ring_struct: ring that will be modified
@@ -24,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:17  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:52  rwh24
 !UNIX compatibility updates
 !
@@ -33,7 +35,7 @@
 
 subroutine insert_element (ring, insert_ele, insert_index)
 
-  use bmad_struct
+  use bmad
 
   implicit none
 

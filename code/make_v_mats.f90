@@ -5,19 +5,21 @@
 ! to X-Y coords and vice versa.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ELE        -- Ele_struct: Element
 !
 ! Output:
-!   V_MAT(4,4)     -- Real: Normal mode to X-Y coords transformation
-!   V_INV_MAT(4,4) -- Real: X-Y coords to Normal mode transformation
+!   V_MAT(4,4)     -- Real(rdef): Normal mode to X-Y coords transformation
+!   V_INV_MAT(4,4) -- Real(rdef): X-Y coords to Normal mode transformation
 !-
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:18  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:40  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -31,14 +33,13 @@
 
 subroutine make_v_mats (ele, v_mat, v_inv_mat)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
   
   implicit none
 
   type (ele_struct)  ele
 
-  real v_mat(4,4), v_inv_mat(4,4), c_conj(2,2)
+  real(rdef) v_mat(4,4), v_inv_mat(4,4), c_conj(2,2)
   integer i
 
 !

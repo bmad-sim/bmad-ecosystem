@@ -4,19 +4,18 @@
 ! Subroutine to create a group control element.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     RING                -- Ring_struct: Ring
 !     IX_ELE              -- Integer: Index of group element (see below)
-!     RING%ELE_(IX_ELE)%VALUE(COMMAND$) -- Real: Initial command value.
+!     RING%ELE_(IX_ELE)%VALUE(COMMAND$) -- Real(rdef): Initial command value.
 !     N_CONTROL           -- Integer: Number of elements controlled
 !     CONTROL_(N_CONTROL) -- Control_struct: What to control.
 !       %IX_SLAVE       -- Integer: Index in RING%ELE_() of element controlled
 !       %IX_ATTRIB      -- Integer: Index in %VALUE() array of
 !                                   attribute controlled.
-!       %COEF           -- Real: Coefficient.
+!       %COEF           -- Real(rdef): Coefficient.
 !
 ! Output:
 !     RING -- Ring_struct: Appropriate values are set in the RING structure.
@@ -74,6 +73,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/02/23 20:32:13  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.5  2002/01/08 21:44:38  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -81,7 +83,6 @@
 !Updates from DCS including (*) -> (:)
 !
 !Revision 1.3  2001/11/02 19:29:58  helms
-!Added 'use bmad_interface' to avoid problems with optional arguments
 !
 !Revision 1.2  2001/09/27 18:31:50  rwh24
 !UNIX compatibility updates
@@ -91,8 +92,7 @@
 
 subroutine create_group (ring, ix_ele, n_control, control_)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 

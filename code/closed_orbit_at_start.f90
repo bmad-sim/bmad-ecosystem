@@ -15,8 +15,7 @@
 ! of finding the closed orbit.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring   -- Ring_struct: Ring
@@ -47,6 +46,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/02/23 20:32:13  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.4  2002/01/16 21:04:17  helms
 !Fixed problem with passing optional arguments.
 !
@@ -63,8 +65,7 @@
 
 subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -73,8 +74,8 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
   type (coord_struct)  orbit_end_e_(0:n_ele_maxx), co
   type (coord_struct)  orbit_(0:n_ele_maxx)
 
-  real s_mat(6,6), mat1(6,6), mat2(6,6), mat(6,6)
-  real amp_co, amp_del, factor / 1.0 /
+  real(rdef) s_mat(6,6), mat1(6,6), mat2(6,6), mat(6,6)
+  real(rdef) amp_co, amp_del, factor / 1.0 /
 
   integer i, j, n, n_ele, i_dim
 

@@ -7,11 +7,10 @@
 ! unrotated element frame.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
-!   tilt_val  -- Real: Tilt value (could be the roll value for a bend)
+!   tilt_val  -- Real(rdef): Tilt value (could be the roll value for a bend)
 !   set       -- Logical: If .true. then rotate the element.
 !                           If .false. then unrotate the element.
 !
@@ -24,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/02/23 20:32:25  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.4  2002/01/08 21:44:43  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -38,10 +40,12 @@
 
 subroutine tilt_coords (tilt_val, coord, set)
 
+  use precision_def
+
   implicit none
 
-  real cos_ang, sin_ang, rot_mat(2,2)
-  real tilt_val, coord(:)
+  real(rdef) cos_ang, sin_ang, rot_mat(2,2)
+  real(rdef) tilt_val, coord(:)
 
   logical set
 

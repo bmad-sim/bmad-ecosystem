@@ -4,8 +4,7 @@
 ! Subroutine to calculate the synchrotron tune from the full 6X6 1 turn matrix
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !    RING  -- Ring_struct: Ring
@@ -16,6 +15,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:11  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:48  rwh24
 !UNIX compatibility updates
 !
@@ -26,8 +28,7 @@
 
 subroutine calc_z_tune ( ring)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
   use nrtype
   use nr
 
@@ -35,7 +36,7 @@ subroutine calc_z_tune ( ring)
 
   type (ring_struct) ring
 
-  real a(6,6), wr(6), wi(6), cos_z
+  real(rdef) a(6,6), wr(6), wi(6), cos_z
 
   integer i
 !

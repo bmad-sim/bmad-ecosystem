@@ -5,25 +5,27 @@
 ! 2x2 matrices
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
-!   mat(:, :)   -- Real: Input matrix
+!   mat(:, :)   -- Real(rdef): Input matrix
 !   type_out    -- Logical: If .true. then an error message is typed out
 !                            for a non ok$ STAT
-!   tol         -- Real: tollerence for nonsymplectiy
+!   tol         -- Real(rdef): tollerence for nonsymplectiy
 !
 ! Output:
 !   stat -- Integer: status of results:
 !                         OK$, UNSTABLE$, NON_SYMPLECTIC$
-!   det    -- Real: Determinate of matrix. Should be = 1
+!   det    -- Real(rdef): Determinate of matrix. Should be = 1
 !   twiss  -- Twiss_struct: Twiss parameters
 !                            TWISS.PHI is in radians, 0 < TWISS.PHI < twopi
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:28  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:32:00  rwh24
 !UNIX compatibility updates
 !
@@ -34,12 +36,12 @@
 
 subroutine twiss_from_mat2 (mat, det, twiss, stat, tol, type_out)
 
-  use bmad_struct
+  use bmad
   implicit none
   type (twiss_struct)  twiss
 
   integer stat
-  real mat(:, :), t_cos, t_sin, det, tol, radical
+  real(rdef) mat(:, :), t_cos, t_sin, det, tol, radical
   logical type_out
 
 !

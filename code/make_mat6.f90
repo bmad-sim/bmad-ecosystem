@@ -4,8 +4,7 @@
 ! Subroutine to make the 6x6 transfer matrix for an element. 
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     ELE    -- Ele_struct: Element
@@ -15,11 +14,14 @@
 !               not present then the closed orbit is assumed to be the origin. 
 !
 ! Output:
-!     ELE%MAT6 -- Real: 6x6 transfer matrix.
+!     ELE%MAT6 -- Real(rdef): 6x6 transfer matrix.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/02/23 20:32:18  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.6  2002/01/08 21:44:39  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -40,8 +42,7 @@
 
 subroutine make_mat6 (ele, param, c0, c1)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -50,22 +51,22 @@ subroutine make_mat6 (ele, param, c0, c1)
   type (coord_struct) orb, c00, c11
   type (param_struct)  param
 
-  real, pointer :: mat6(:,:)
+  real(rdef), pointer :: mat6(:,:)
 
-  real mat6_m(6,6), mat2(2,2), mat4(4,4), kmat1(4,4), kmat2(4,4)
-  real e1, e2, angle, rho, cos_angle, sin_angle, k1, ks, length, kc
-  real phi, k2l, k3l, c2, s2, cs, ks2, del_l, rho_bend, l_period, l_bend
-  real factor, l_drift, dx, kmat6(6,6)
-  real s_pos, s_pos_old, z_slice(100)
-  real knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-  real r, c_e, c_m, gamma_old, gamma_new, vec_st(4)
-  real sqrt_k, arg, kick2
-  real cx, sx, cy, sy, k2l_2, k2l_3, k2l_4
-  real x_off, y_off, s_off, x_pit, y_pit, y_ave, k_z, del_x, del_y
-  real t5_11, t5_12, t5_22, t5_33, t5_34, t5_44, t5_14, t5_23
-  real t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
-  real t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
-  real lcs, lc2s2
+  real(rdef) mat6_m(6,6), mat2(2,2), mat4(4,4), kmat1(4,4), kmat2(4,4)
+  real(rdef) e1, e2, angle, rho, cos_angle, sin_angle, k1, ks, length, kc
+  real(rdef) phi, k2l, k3l, c2, s2, cs, ks2, del_l, rho_bend, l_period, l_bend
+  real(rdef) factor, l_drift, dx, kmat6(6,6)
+  real(rdef) s_pos, s_pos_old, z_slice(100)
+  real(rdef) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+  real(rdef) r, c_e, c_m, gamma_old, gamma_new, vec_st(4)
+  real(rdef) sqrt_k, arg, kick2
+  real(rdef) cx, sx, cy, sy, k2l_2, k2l_3, k2l_4
+  real(rdef) x_off, y_off, s_off, x_pit, y_pit, y_ave, k_z, del_x, del_y
+  real(rdef) t5_11, t5_12, t5_22, t5_33, t5_34, t5_44, t5_14, t5_23
+  real(rdef) t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
+  real(rdef) t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
+  real(rdef) lcs, lc2s2
 
   integer i, n, n_slice, n_pole, key
 
@@ -138,9 +139,9 @@ subroutine make_mat6 (ele, param, c0, c1)
     del_y = s_off * c00%y%vel / (1 + c00%z%vel)
 
     c00%vec = c00%vec - (/ x_off - x_pit*length/2 + del_x, x_pit, &
-                           y_off - y_pit*length/2 + del_y, y_pit, 0.0, 0.0 /) 
+             y_off - y_pit*length/2 + del_y, y_pit, 0.0_rdef, 0.0_rdef /) 
     c11%vec = c11%vec - (/ x_off + x_pit*length/2 - del_x, x_pit, &
-                           y_off + y_pit*length/2 - del_y, y_pit, 0.0, 0.0 /) 
+             y_off + y_pit*length/2 - del_y, y_pit, 0.0_rdef, 0.0_rdef /) 
   endif
 
   if (ele%value(tilt$) /= 0) then
@@ -281,11 +282,11 @@ subroutine make_mat6 (ele, param, c0, c1)
   case (sextupole$) 
    
     k2l = ele%value(k2$) * length / (1 + c00%z%vel)
-    call mat4_multipole (ele, k2l/2, 0.0, 2, c00, kmat1)
+    call mat4_multipole (ele, k2l/2, 0.0_rdef, 2, c00, kmat1)
     mat4 = kmat1
     mat4(1,1:4) = kmat1(1,1:4) + length * kmat1(2,1:4) ! kick * length
     mat4(3,1:4) = kmat1(3,1:4) + length * kmat1(4,1:4)
-    call mat4_multipole (ele, k2l/2, 0.0, 2, c11, kmat2)
+    call mat4_multipole (ele, k2l/2, 0.0_rdef, 2, c11, kmat2)
     mat6(1:4,1:4) = matmul (kmat1, mat4)
 
     c00%vec(1:4) = matmul(kmat1, c00%vec(1:4))
@@ -313,11 +314,11 @@ subroutine make_mat6 (ele, param, c0, c1)
   case (octupole$) 
 
     k3l = ele%value(k3$) * length / (1 + c00%z%vel)
-    call mat4_multipole (ele, k3l/2, 0.0, 3, c00, kmat1)
+    call mat4_multipole (ele, k3l/2, 0.0_rdef, 3, c00, kmat1)
     mat4 = kmat1
     mat4(1,1:4) = kmat1(1,1:4) + length * kmat1(2,1:4) ! kick * length
     mat4(3,1:4) = kmat1(3,1:4) + length * kmat1(4,1:4)
-    call mat4_multipole (ele, k3l/2, 0.0, 3, c11, kmat2)
+    call mat4_multipole (ele, k3l/2, 0.0_rdef, 3, c11, kmat2)
     mat6(1:4,1:4) = matmul (kmat1, mat4)
 
     c00%vec(1:4) = matmul(kmat1, c00%vec(1:4))
@@ -448,7 +449,7 @@ subroutine make_mat6 (ele, param, c0, c1)
 ! factor of 2 in orb.z.pos since relative motion of the two beams is 2*c_light
 
     if (n_slice == 1) then
-      call bbi_kick_matrix (ele, c00, 0.0, mat6)
+      call bbi_kick_matrix (ele, c00, 0.0_rdef, mat6)
     else
       call bbi_slice_calc (n_slice, ele%value(sig_z$), z_slice)
 
@@ -560,7 +561,7 @@ subroutine make_mat6 (ele, param, c0, c1)
 
   case (multipole$, ab_multipole$) 
     if (.not. ele%multipoles_on) return
-    call mat6_multipole (ele, param, c00, 1.0, ele%mat6, unit_multipole_matrix)
+    call mat6_multipole (ele, param, c00, 1.0_rdef, ele%mat6, unit_multipole_matrix)
     if (unit_multipole_matrix) ele%coupled = .false.
 
 !--------------------------------------------------------
@@ -617,7 +618,7 @@ subroutine make_mat6 (ele, param, c0, c1)
     gamma_old = param%energy * (c00%z%vel + 1) / e_mass
     gamma_new = gamma_old + c_e * length
     call accel_sol_mat_calc (length, c_m, c_e, gamma_old, gamma_new, &
-                                                0.0, 0.0, c00, mat4, vec_st)
+                                        0.0_rdef, 0.0_rdef, c00, mat4, vec_st)
     mat4 = mat6(1:4,1:4)
 
 !--------------------------------------------------------
@@ -662,7 +663,7 @@ subroutine make_mat6 (ele, param, c0, c1)
 
   if (ele%nonzero_multipoles) then
     mat6_m = 0
-    call mat6_multipole (ele, param, c00, 0.5, mat6_m, unit_multipole_matrix)
+    call mat6_multipole (ele, param, c00, 0.5_rdef, mat6_m, unit_multipole_matrix)
     mat6(2,:) = mat6(2,:) + mat6_m(2,1) * mat6(1,:) + mat6_m(2,3) * mat6(3,:)
     mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
     mat6(:,1) = mat6(:,1) + mat6(:,2) * mat6_m(2,1) + mat6(:,4) * mat6_m(4,1)
@@ -685,8 +686,7 @@ end subroutine
 
 subroutine mat6_multipole (ele, param, c00, factor, mat6, unit_matrix)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -694,8 +694,8 @@ subroutine mat6_multipole (ele, param, c00, factor, mat6, unit_matrix)
   type (param_struct) param
   type (coord_struct) c00
                            
-  real mat6(6,6), kmat1(4,4), factor
-  real knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+  real(rdef) mat6(6,6), kmat1(4,4), factor
+  real(rdef) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 
   integer n
 
@@ -732,10 +732,12 @@ end subroutine
 
 subroutine quad_mat_calc (k1, length, mat)
     
+  use precision_def
+
   implicit none
 
-  real length, mat(2,2), cx, sx
-  real k1, sqrt_k, arg, arg2
+  real(rdef) length, mat(2,2), cx, sx
+  real(rdef) k1, sqrt_k, arg, arg2
 
 !
 
@@ -771,8 +773,7 @@ end subroutine
 ! solenoid/quadrupole element.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ks      [Real]       Solenoid strength
@@ -786,27 +787,26 @@ end subroutine
 
 subroutine sol_quad_mat6_calc (ks, k1, s_len, m, orb)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
-  real ks, k1, s_len
-  real m(6,6)
-  real orb(6)
+  real(rdef) ks, k1, s_len
+  real(rdef) m(6,6)
+  real(rdef) orb(6)
 
   integer i, j
   integer order
 
-  real ks2, s, c, snh, csh
-  real darg1, alpha, alpha2, beta, beta2, f, q, r, a, b
-  real df, dalpha2, dalpha, dbeta2, dbeta, darg
-  real dC, dCsh, dS, dSnh, dq, dr, da, db
-  real ks3, fp, fm, dfm, dfp, df_f, ug
-  real s1, s2, snh1, snh2, dsnh1, dsnh2, ds1, ds2
-  real coef1, coef2, dcoef1, dcoef2, ks4
+  real(rdef) ks2, s, c, snh, csh
+  real(rdef) darg1, alpha, alpha2, beta, beta2, f, q, r, a, b
+  real(rdef) df, dalpha2, dalpha, dbeta2, dbeta, darg
+  real(rdef) dC, dCsh, dS, dSnh, dq, dr, da, db
+  real(rdef) ks3, fp, fm, dfm, dfp, df_f, ug
+  real(rdef) s1, s2, snh1, snh2, dsnh1, dsnh2, ds1, ds2
+  real(rdef) coef1, coef2, dcoef1, dcoef2, ks4
 
-  real t5(4,4), t6(4,4)
+  real(rdef) t5(4,4), t6(4,4)
 
 ! Calc
           
@@ -872,7 +872,11 @@ subroutine sol_quad_mat6_calc (ks, k1, s_len, m, orb)
   dalpha2 = df/2 - ks2
   dalpha  = (df/2 - ks2)/(2*alpha)
   dbeta2  = ks2 + df/2
-  dbeta   = (ks2 + df/2)/(2*beta)
+  if (dbeta < 1e-4) then
+    dbeta   = -abs(k1**3/(ks3*ks2))
+  else
+    dbeta   = (ks2 + df/2)/(2*beta)
+  endif
   darg    = s_len*dalpha
   darg1   = s_len*dbeta         
   dC      = -darg*S
@@ -891,7 +895,12 @@ subroutine sol_quad_mat6_calc (ks, k1, s_len, m, orb)
   dS2 = dS / alpha - S * dalpha / alpha2
 
   dSnh1 = dSnh * beta + Snh * dbeta
-  dSnh2 = dSnh / beta - Snh * dbeta / beta2
+
+  if (beta < 1e-4) then
+    dSnh2 = -k1**4 * s_len**3 / (3 * ks3**2)
+  else
+    dSnh2 = dSnh / beta - Snh * dbeta / beta2
+  endif
 
   dcoef1 = -2*ks2*r + ks2*dr - 4*k1*a + 4*k1*da
   dcoef2 = -2*ks2*q + ks2*dq - 4*k1*b + 4*k1*db                     
@@ -938,27 +947,26 @@ end subroutine
 !
 ! Input:
 !     C0   -- Coord_struct: coordinates of particle
-!     KNL  -- Real: Strength of multipole
-!     TILT -- Real: Tilt of multipole
+!     KNL  -- Real(rdef): Strength of multipole
+!     TILT -- Real(rdef): Tilt of multipole
 !
 ! Output:
-!     KICK_MAT(4,4) -- Real: Kick matrix
+!     KICK_MAT(4,4) -- Real(rdef): Kick matrix
 !-
 
 
 subroutine mat4_multipole (ele, knl, tilt, n, c0, kick_mat)
                   
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
   type (ele_struct)  ele
   type (coord_struct)  c0
 
-  real x_pos, y_pos, x, y, knl, tilt, c(0:n_pole_maxx, 0:n_pole_maxx)
-  real sin_ang, cos_ang, mat(2,2), rot(2,2)
-  real kick_mat(4,4)
+  real(rdef) x_pos, y_pos, x, y, knl, tilt, c(0:n_pole_maxx, 0:n_pole_maxx)
+  real(rdef) sin_ang, cos_ang, mat(2,2), rot(2,2)
+  real(rdef) kick_mat(4,4)
 
   integer m, n
 
@@ -1042,7 +1050,11 @@ subroutine mat4_multipole (ele, knl, tilt, n, c0, kick_mat)
 
   function mexp (x, m)
 
-  real x, mexp
+  use precision_def
+
+  implicit none
+
+  real(rdef) x, mexp
   integer m
 
 !
@@ -1065,16 +1077,15 @@ subroutine mat4_multipole (ele, knl, tilt, n, c0, kick_mat)
 
 subroutine bbi_kick_matrix (ele, orb, s_pos, mat6)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
   type (ele_struct)  ele
   type (coord_struct)  orb
 
-  real x_pos, y_pos, del, sig_x, sig_y, coef, garbage, s_pos
-  real ratio, k0_x, k1_x, k0_y, k1_y, mat6(6,6), beta
+  real(rdef) x_pos, y_pos, del, sig_x, sig_y, coef, garbage, s_pos
+  real(rdef) ratio, k0_x, k1_x, k0_y, k1_y, mat6(6,6), beta
 
 !
 
@@ -1118,11 +1129,13 @@ subroutine bbi_kick_matrix (ele, orb, s_pos, mat6)
 
 subroutine bbi_slice_calc (n_slice, sig_z, z_slice)
 
+  use precision_def
+
   implicit none
 
   integer i, n_slice, n_slice_old / 0 /
 
-  real sig_z, z_slice(*), y, inverse, z_norm(100)
+  real(rdef) sig_z, z_slice(*), y, inverse, z_norm(100)
 
   external probability_funct
 
@@ -1161,13 +1174,12 @@ subroutine bbi_slice_calc (n_slice, sig_z, z_slice)
 
 subroutine tilt_mat6 (mat6, tilt)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
-  real tilt, mat6(6,6), mm(6,6)
-  real c, s, c2, cs, s2
+  real(rdef) tilt, mat6(6,6), mm(6,6)
+  real(rdef) c, s, c2, cs, s2
 
 !
 
@@ -1198,10 +1210,12 @@ end subroutine
 
 subroutine solenoid_mat_calc (ks, length, mat4)
 
+  use precision_def
+
   implicit none
 
-  real ks, length, kss, c, s, c2, s2, cs, ll, kl, kl2
-  real mat4(4,4)
+  real(rdef) ks, length, kss, c, s, c2, s2, cs, ll, kl, kl2
+  real(rdef) mat4(4,4)
 
 !
 
@@ -1211,10 +1225,10 @@ subroutine solenoid_mat_calc (ks, length, mat4)
     ll = length
     kl = kss * length 
     kl2 = kl**2
-    mat4(1,:) = (/  1.0,        ll,      kl,        kl*ll /)
-    mat4(2,:) = (/ -kl * kss,   1.0,     kl2*kss,   kl    /)
-    mat4(3,:) = (/ -kl,        -kl*ll,   1.0,       ll    /)
-    mat4(4,:) = (/  kl2*kss,   -ks,     -kl*kss,    1.0   /)
+    mat4(1,:) = (/  1.0_rdef,   ll,       kl,        kl*ll    /)
+    mat4(2,:) = (/ -kl * kss,   1.0_rdef, kl2*kss,   kl       /)
+    mat4(3,:) = (/ -kl,        -kl*ll,    1.0_rdef,  ll       /)
+    mat4(4,:) = (/  kl2*kss,   -ks,      -kl*kss,    1.0_rdef /)
     return
   endif
 
@@ -1249,12 +1263,12 @@ end subroutine
 
 subroutine drift_mat6_calc (mat6, length, orb)
 
-  use bmad_struct
+  use bmad
 
   implicit none
 
   type (coord_struct) orb
-  real mat6(6,6), length
+  real(rdef) mat6(6,6), length
 
 !
 

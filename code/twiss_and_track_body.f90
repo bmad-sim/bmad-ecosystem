@@ -7,13 +7,12 @@
 ! the tracking starts just inside the bend.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     ele1    -- Ele_struct: Structure holding the starting Twiss parameters.
 !     ele2    -- Ele_struct: Element to partially track through.
-!     del_s   -- Real: length to propagate.
+!     del_s   -- Real(rdef): length to propagate.
 !     param   -- Param_struct:
 !     start   -- Coord_struct (OPTIONAL): Starting position
 !                  If not present then START is taken to be 0.
@@ -29,6 +28,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:27  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:32:00  rwh24
 !UNIX compatibility updates
 !
@@ -39,8 +41,7 @@
 subroutine twiss_and_track_body (ele1, ele2, param, del_s, ele3, &
                                                                start, end)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -50,9 +51,9 @@ subroutine twiss_and_track_body (ele1, ele2, param, del_s, ele3, &
   type (coord_struct) c0, c1
   type (param_struct) param
 
-  real del_s, del
+  real(rdef) del_s, del
                     
-! The only real complication comes with a dipole where we have to negate
+! The only real(rdef) complication comes with a dipole where we have to negate
 ! the focusing of the faces. 
 
   ele = ele2

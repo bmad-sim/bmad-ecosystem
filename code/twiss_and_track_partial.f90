@@ -6,13 +6,12 @@
 ! orbit. See also TWISS_AND_TRACK_BODY.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     ELE1    -- Ele_struct: Structure holding the starting Twiss parameters.
 !     ELE2    -- Ele_struct: Element to partially track through.
-!     DEL_S   -- Real: length to propagate.
+!     DEL_S   -- Real(rdef): length to propagate.
 !     PARAM   -- Param_struct:
 !     START   -- Coord_struct (OPTIONAL): Starting position
 !                  If not present then START is taken to be 0.
@@ -28,6 +27,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:28  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:32:00  rwh24
 !UNIX compatibility updates
 !
@@ -38,8 +40,7 @@
 subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
                                                                start, end)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -49,9 +50,9 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   type (coord_struct) c0, c1
   type (param_struct) param
 
-  real del_s, del
+  real(rdef) del_s, del
                     
-! The only real complication comes with a dipole where we have to negate
+! The only real(rdef) complication comes with a dipole where we have to negate
 ! the focusing of the exit face (we never get to the exit face since we are
 ! only partially tracking through).
 

@@ -9,8 +9,7 @@
 ! Note: This subroutine also reads in the common structures for BMAD_PARSER2
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     IN_FILE_NAME -- Character*(*): Name of the digested file
@@ -24,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:23  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:56  rwh24
 !UNIX compatibility updates
 !
@@ -34,7 +36,7 @@
 
 subroutine read_digested_bmad_file (in_file_name, ring, version)
 
-  use bmad_struct
+  use bmad
 
   implicit none
 

@@ -12,8 +12,7 @@
 ! an attribute of a super_slave.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring            -- Ring_struct: Ring structure containing the element 
@@ -22,7 +21,7 @@
 !   i_ele           -- Integer: Index of element in the ring structure
 !   attrib_name     -- Character*16: Name of attribute. Must be uppercase.
 !                       For example: "HKICK".
-!   attrib_value    -- Real: Attribute value.
+!   attrib_value    -- Real(rdef): Attribute value.
 !   make_mat6_flag  -- Logical: If True then make the 6x6 transfer matrix.
 !   orbit_(0:n_ele_maxx) -- Coord_struct: [Optional] closed orbit about
 !                            which the 6x6 matrices are made.
@@ -35,6 +34,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:24  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:57  rwh24
 !UNIX compatibility updates
 !
@@ -45,15 +47,14 @@
 subroutine ring_set_ele_attribute (ring, i_ele, attrib_name, &
                             attrib_value, err_flag, make_mat6_flag, orbit_)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
   type (ring_struct) :: ring
   type (coord_struct), optional :: orbit_(0:n_ele_maxx)
 
-  real attrib_value
+  real(rdef) attrib_value
 
   integer i_ele
   integer i, ix, ir, ix_attrib

@@ -5,22 +5,24 @@
 !   a bunch and an array of positions of the bunches it will cross.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
-!   n_bucket      		-- Real: The bucket (position) of the bunch to find
+!   n_bucket      		-- Real(rdef): The bucket (position) of the bunch to find
 !                      		 crossing points for.
 !   oppos_buckets(:) -- Integer: Array of buckets (positions) of oppositely
 !                      		 circulating bunches.
 !
 ! Output:
-!   cross_positions -- Real: Array of positions of crossing points,
+!   cross_positions -- Real(rdef): Array of positions of crossing points,
 !   	measured clockwise from IP:=0, and normalized to be between 0 and 1.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:17  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:52  rwh24
 !UNIX compatibility updates
 !
@@ -30,16 +32,17 @@
 
 subroutine LRBBI_crossings(n_bucket, oppos_buckets, cross_positions)
 
-  use bmad_interface
+
+  use precision_def
 
   implicit none
                                                                               
   integer :: bunch_tot
-  real, intent(in) :: n_bucket
-  real, dimension(:), intent(in) :: oppos_buckets                        
-  real, dimension(:), intent(inout) :: cross_positions                      
+  real(rdef), intent(in) :: n_bucket
+  real(rdef), dimension(:), intent(in) :: oppos_buckets                        
+  real(rdef), dimension(:), intent(inout) :: cross_positions                      
   integer :: i, j
-  real :: bucket_tot
+  real(rdef) :: bucket_tot
                                                                         
 !
 

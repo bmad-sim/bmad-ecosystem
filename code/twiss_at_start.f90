@@ -7,8 +7,7 @@
 ! from the transverse.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring   -- Ring_struct: Ring
@@ -39,6 +38,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:28  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:44  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -51,15 +53,14 @@
 
 subroutine twiss_at_start (ring)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
   type (ring_struct)  ring
 
-  real eta_vec(4), t0_4(4,4), mat6(6,6)
-  real flip_mat(4,4), t_e(4,4), t_w_inv(4,4)
+  real(rdef) eta_vec(4), t0_4(4,4), mat6(6,6)
+  real(rdef) flip_mat(4,4), t_e(4,4), t_w_inv(4,4)
 
   integer i, j, n
 
@@ -109,7 +110,7 @@ subroutine twiss_at_start (ring)
     call mat_symp_conj (t0_4, t_w_inv, 4, 4)
     t_e = matmul (matmul (flip_mat, t_w_inv), flip_mat)
     mat6(1:4,1:4) = matmul (t_e, t0_4)
-    eta_vec = (/ 0.0, 2*eta_vec(2), 0.0, 2*eta_vec(4) /)
+    eta_vec = (/ 0.0_rdef, 2*eta_vec(2), 0.0_rdef, 2*eta_vec(4) /)
     mat6(1:4, 6) = matmul(t_e, eta_vec)
   else
     mat6 = ring%ele_(0)%mat6

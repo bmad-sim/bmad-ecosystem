@@ -4,8 +4,7 @@
 ! Subroutine to mode flip the twiss_parameters of an element
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ele          -- Ele_struct: Starting Element
@@ -20,6 +19,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:14  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:38  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -33,14 +35,13 @@
 
 subroutine do_mode_flip (ele, ele_flip)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
   type (ele_struct)  ele, ele2, ele_flip
 
-  real c_conj(2,2), c_mat(2,2), gamma_flip, v_mat(4,4), v_inv_mat(4,4)
+  real(rdef) c_conj(2,2), c_mat(2,2), gamma_flip, v_mat(4,4), v_inv_mat(4,4)
 
   logical init_needed / .true. /
 

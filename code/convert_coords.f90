@@ -6,8 +6,7 @@
 ! mode, and action-angle coordinates.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   in_type_str  -- Character*(*): type of the input coords.
@@ -39,6 +38,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:13  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:50  rwh24
 !UNIX compatibility updates
 !
@@ -48,8 +50,7 @@
 
 subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -59,7 +60,7 @@ subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)
 
   integer in_type, out_type
 
-  real mat(4,4), mat_inv(4,4), mat2(2,2), mat2_inv(2,2), eta_vec(4)
+  real(rdef) mat(4,4), mat_inv(4,4), mat2(2,2), mat2_inv(2,2), eta_vec(4)
 
   integer :: lab$ = 1, mode$ = 2, normalized$ = 3, action_angle$ = 4
   character*16 type_names(5) / 'LAB', 'MODE', 'NORMALIZED', &
@@ -168,7 +169,7 @@ contains
 
 subroutine to_action (coord)
     implicit none
-    real coord(2), j, phi
+    real(rdef) coord(2), j, phi
     j = (coord(1)**2 + coord(2)**2) / 2
     if (j == 0) then
       phi = 0
@@ -180,7 +181,7 @@ subroutine to_action (coord)
 
 subroutine from_action (coord)
     implicit none
-    real coord(2), x, xp
+    real(rdef) coord(2), x, xp
     x  =  sqrt(2*coord(1)) * cos(coord(2))
     xp = -sqrt(2*coord(1)) * sin(coord(2))
     coord = (/ x, xp /)

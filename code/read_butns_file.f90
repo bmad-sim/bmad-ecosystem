@@ -4,8 +4,7 @@
 ! Subroutine to read in the information in a BUTNS.nnnnn file.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   butns_num -- Integer: Number in BUTNS.nnnnn file name.
@@ -20,8 +19,8 @@
 !       %file_num   -- Integer: Equal to butns_num.
 !       %comment(5) -- Character*72: Comment.
 !       %det(0:99)%amp(4) -- Integer: raw button numbers.
-!       %det(0:99)%x_orb  -- Real: Horizontal orbit in meters.
-!       %det(0:99)%y_orb  -- Real: Horizontal orbit in meters.
+!       %det(0:99)%x_orb  -- Real(rdef): Horizontal orbit in meters.
+!       %det(0:99)%y_orb  -- Real(rdef): Horizontal orbit in meters.
 !   db    -- Db_struct: Structure holding the steering settings.
 !     %csr_horz_cur(i)%cu_now -- CU settings for CSR HORZ CUR
 !     %csr_hbnd_cur(i)%cu_now -- CU settings for CSR HBND CUR
@@ -45,6 +44,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:22  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:56  rwh24
 !UNIX compatibility updates
 !
@@ -54,8 +56,7 @@
 
 subroutine read_butns_file (butns_num, butns, db, ok, type_err)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
               
   implicit none
 
@@ -66,7 +67,7 @@ subroutine read_butns_file (butns_num, butns, db, ok, type_err)
   integer i, ix, j, butns_num, iu, lunget, ios, raw(4, 100)
   integer n_node, n_ele
 
-  real x_orbit(100), y_orbit(100), rdummy
+  real(rdef) x_orbit(100), y_orbit(100), rdummy
 
   character line_in*130, file_in*40
 

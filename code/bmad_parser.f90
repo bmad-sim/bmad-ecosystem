@@ -11,8 +11,7 @@
 ! is up-to-date.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   in_file -- Character: Name of the input file.
@@ -36,6 +35,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/02/23 20:32:10  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.6  2002/01/08 21:44:36  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -86,7 +88,7 @@ subroutine bmad_parser (in_file, ring)
   character delim*1, word_1*40
   character*200 path, basename, full_name, digested_file, call_file
   
-  real angle
+  real(rdef) angle
 
   logical parsing, delim_found, matched_delim, arg_list_found
   logical file_end, found, err_flag, finished
@@ -104,8 +106,14 @@ subroutine bmad_parser (in_file, ring)
 !    digested_file = 'digested_' // in_file
 !  endif
 
+! The name of the digested file depends upon the real precision
+
   ix = SplitFileName(in_file, path, basename)
-  digested_file = in_file(:ix) // 'digested_' // in_file(ix+1:)
+  if (rdef == 8) then
+    digested_file = in_file(:ix) // 'digested8_' // in_file(ix+1:)
+  else
+    digested_file = in_file(:ix) // 'digested_' // in_file(ix+1:)
+  endif
 
   call read_digested_bmad_file (digested_file, ring, digested_version)
   if (bmad_status%ok) return
@@ -295,7 +303,8 @@ subroutine bmad_parser (in_file, ring)
         endif
       enddo
 
-      call warning ('ELEMENT NOT FOUND: ' // name)
+      call warning ('ATTRIBUTE REDEFINED FOR ELEMENT: ' // trim(name), &
+                    'BUT I HAVE NOT SEEN THIS NAME BEFORE!')
       cycle parsing_loop
 
 ! else must be a variable
@@ -1261,7 +1270,7 @@ subroutine evaluate_value (var, ring, final_delim, final_delim_found, err_flag)
 
   integer stk_type(200), op_(200), ix_word, i_delim, i2, ix0
 
-  real stk_value(200), value
+  real(rdef) stk_value(200), value
 
   character line*70, delim*1, word*40, final_delim*1, word0*40
 
@@ -1538,7 +1547,7 @@ subroutine word_to_value (word, ring, value)
   type (ring_struct)  ring
 
   integer i, i_ele, ix1, ix2
-  real value
+  real(rdef) value
   character*(*) word
   character*16 name
 
@@ -2402,7 +2411,7 @@ subroutine compute2_super_lord_s (ring, i_ref, ele, pele)
 
   integer i_ref, i, ix
 
-  real s_ref_begin, s_ref_end
+  real(rdef) s_ref_begin, s_ref_end
 
 !
 

@@ -8,11 +8,14 @@
 !   maxx -- Integer: Size of c matrix
 !
 ! Output:
-!   c(0:maxx, 0:maxx) -- Real: Multipole factors.  
+!   c(0:maxx, 0:maxx) -- Real(rdef): Multipole factors.  
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:20  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:54  rwh24
 !UNIX compatibility updates
 !
@@ -23,11 +26,13 @@
 
 subroutine multipole_c_init (c, maxx)
 
+  use precision_def
+
   implicit none
 
   integer n, m, maxx
 
-  real c(0:maxx, 0:maxx), factorial_n
+  real(rdef) c(0:maxx, 0:maxx), factorial_n
 
 ! The magnitude of c(n, m) is number of combinations normalized by n!
 

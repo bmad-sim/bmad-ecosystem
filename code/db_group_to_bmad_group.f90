@@ -5,8 +5,7 @@
 ! Subroutine to set up a data base group knob in a bmad ring structure.
 !
 ! Modules used:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   group_name -- Character*12: Group node name (eg. "CSR PRETZING")
@@ -27,6 +26,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:14  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:51  rwh24
 !UNIX compatibility updates
 !
@@ -37,8 +39,7 @@
 subroutine db_group_to_bmad_group (group_name, group_num, i_biggrp, &
                                        ring, db, ix_ele, ok, type_err)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none              
 

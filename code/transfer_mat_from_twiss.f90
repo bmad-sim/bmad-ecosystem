@@ -5,19 +5,21 @@
 ! at the end points.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   twiss1  -- Twiss_struct: Twiss parameters at the initial point.
 !   twiss2  -- Twiss_struct: Twiss parameters at the end point.
 !
 ! Output:
-!   mat(2,2) -- Real: Transfer matrix between the two points.
+!   mat(2,2) -- Real(rdef): Transfer matrix between the two points.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:27  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:59  rwh24
 !UNIX compatibility updates
 !
@@ -27,13 +29,13 @@
 
 subroutine transfer_mat_from_twiss (twiss1, twiss2, mat)
 
-  use bmad_struct
+  use bmad
 
   implicit none
       
   type (twiss_struct) twiss1, twiss2
 
-  real mat(2,2), a1, a2, b1, b2, sin21, cos21
+  real(rdef) mat(2,2), a1, a2, b1, b2, sin21, cos21
 
 !
 

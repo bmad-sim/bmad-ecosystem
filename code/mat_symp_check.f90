@@ -6,13 +6,12 @@
 !     error = maxval (abs (Mat_transpose * S * Mat - S))
 !
 ! Modules Needed:
-!   use bmad_interface
 !
 ! Input:
-!   mat(:,:) -- Real: Matrix to check
+!   mat(:,:) -- Real(rdef): Matrix to check
 !
 ! Output:
-!   error -- Real: difference from symplecticity:
+!   error -- Real(rdef): difference from symplecticity:
 !             = 0    --> perfect.
 !             = 1e-4 --> Reasonably good.
 !             = 1    --> Terrible.
@@ -20,6 +19,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:19  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:53  rwh24
 !UNIX compatibility updates
 !
@@ -30,16 +32,15 @@
 
 subroutine mat_symp_check (mat, error)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
   integer i, j, n
 
-  real, intent(in) :: mat(:,:)
-  real, allocatable, save :: m2(:,:)
-  real error
+  real(rdef), intent(in) :: mat(:,:)
+  real(rdef), allocatable, save :: m2(:,:)
+  real(rdef) error
       
   logical :: debug = .false.
 

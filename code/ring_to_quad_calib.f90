@@ -5,8 +5,7 @@
 ! This subroutine returns the calibration constants for the CESR quads.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring  -- Ring_struct: Ring with lattice loaded.
@@ -14,12 +13,12 @@
 !              Need previous call to bmad_to_cesr.
 !
 ! Output:
-! k_theory(0:120)     -- Real: Theory K of quad_i,
-! k_base(0:120)       -- Real: Extrapolated K for zero cu command
-! cu_per_k_gev(0:120) -- Real: CU to K*GEV calibration
-! len_quad(0:120)     -- Real: Length of quad_i
-! quad_rot(0:120)     -- Real: Quad rotation angle in degrees
-! dk_gev_dcu(0:120)   -- Real: Derivative of K*GEV vs CU curve.
+! k_theory(0:120)     -- Real(rdef): Theory K of quad_i,
+! k_base(0:120)       -- Real(rdef): Extrapolated K for zero cu command
+! cu_per_k_gev(0:120) -- Real(rdef): CU to K*GEV calibration
+! len_quad(0:120)     -- Real(rdef): Length of quad_i
+! quad_rot(0:120)     -- Real(rdef): Quad rotation angle in degrees
+! dk_gev_dcu(0:120)   -- Real(rdef): Derivative of K*GEV vs CU curve.
 ! cu_theory(0:120)    -- Integer: Scaler needed to get K_THEORY.
 !
 ! Notes:
@@ -50,6 +49,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:24  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:57  rwh24
 !UNIX compatibility updates
 !
@@ -60,13 +62,13 @@
 subroutine ring_to_quad_calib (ring, cesr, k_theory, k_base,  &
                  len_quad, cu_per_k_gev, quad_rot, dk_gev_dcu, cu_theory)
 
-  use bmad_struct
+  use bmad
   implicit none
 
   record /cesr_struct/ cesr
   record /ring_struct/ ring
-  real energy, k_theory(0:*), k_base(0:*), len_quad(0:*)
-  real cu_per_k_gev(0:*), dk_gev_dcu(0:*), quad_rot(0:*)
+  real(rdef) energy, k_theory(0:*), k_base(0:*), len_quad(0:*)
+  real(rdef) cu_per_k_gev(0:*), dk_gev_dcu(0:*), quad_rot(0:*)
   integer cindex, rindex, cu_theory(0:*)
 
 ! init  &

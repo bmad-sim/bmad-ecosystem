@@ -3,6 +3,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:31  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:45:23  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -14,7 +17,6 @@
 
 module local_bmad_interface
 
-  use bmad_interface
 
   interface
     subroutine get_next_word (word, ix_word, delim_list, &
@@ -83,7 +85,7 @@ module local_bmad_interface
       use local_bmad_struct
       implicit none
       type (ring_struct) ring
-      real value
+      real(rdef) value
       character*(*) word
     end subroutine
   end interface
@@ -295,7 +297,7 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level)
                  word, 'IN THE SEQUENCE: ' // seq%name)
     endif
 
-! if a replacement line then switch the real list for the actual args.
+! if a replacement line then switch the real(rdef) list for the actual args.
 
     if (replacement_line_here) then  ! replacement line 
       do i_rl = 1, ix_seq

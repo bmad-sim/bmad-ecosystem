@@ -4,13 +4,12 @@
 ! Subroutine to put in the kick due to a multipole.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !                          
 ! Input:
-!   knl   -- Real: Multipole strength (mad units).
-!   tilt  -- Real: Multipole tilt.
-!   n     -- Real: Multipole order.
+!   knl   -- Real(rdef): Multipole strength (mad units).
+!   tilt  -- Real(rdef): Multipole tilt.
+!   n     -- Real(rdef): Multipole order.
 !   coord -- Coord_struct:
 !     %x%pos -- X position.
 !     %y%pos -- Y position.
@@ -23,6 +22,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:21  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:54  rwh24
 !UNIX compatibility updates
 !
@@ -32,13 +34,13 @@
 
 subroutine multipole_kick (knl, tilt, n, coord)
 
-  use bmad_struct
+  use bmad
   implicit none
 
   type (coord_struct)  coord
 
-  real knl, tilt, c(0:n_pole_maxx, 0:n_pole_maxx), x, y, sin_ang, cos_ang
-  real mexp, x_vel, y_vel
+  real(rdef) knl, tilt, c(0:n_pole_maxx, 0:n_pole_maxx), x, y, sin_ang, cos_ang
+  real(rdef) x_vel, y_vel
 
   integer n, m
 

@@ -4,8 +4,7 @@
 ! Subroutine to calculate the full 6X6 1 turn matrix
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     RING   -- Ring_struct: Ring
@@ -18,6 +17,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:22  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:42  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -31,14 +33,13 @@
 
 subroutine one_turn_matrix (ring, mat6)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
   type (ring_struct)  ring
 
-  real mat6(6,6)
+  real(rdef) mat6(6,6)
   integer i
 
   mat6 = ring%ele_(1)%mat6

@@ -5,8 +5,7 @@
 ! list to choose from.
 !                                                               
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   CURRENT_LAT -- Character*40: Name of current lattice (will be stared in
@@ -29,6 +28,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2002/02/23 20:32:12  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.7  2002/01/11 17:06:59  dcs
 !Fix Bug
 !
@@ -54,8 +56,7 @@
                
 subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
   use cesr_utils
 
   implicit none
@@ -101,7 +102,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
       enddo
   
       type *, ' [Note: To be in this list a lattice file must have a name   ]'
-      type *, ' [      of the form: U:[CESR.BMAD.LAT]BMAD_<lattice_name>.LAT]'
+      type *, ' [      of the form: U:[CESR.BMAD.LAT]bmad_<lattice_name>.lat]'
 
       type *
       type *, 'You can enter a Lattice number or a full file name.'
@@ -133,14 +134,14 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
         cycle  ! try again
       endif
       lattice = lat_list(i_lat)
-      call lattice_to_bmad_file_name (lattice, lat_file)  !! changed line
+      call lattice_to_bmad_file_name (lattice, lat_file)
     else
       lattice = ""
       lat_file = line
       inquire (file = lat_file, exist = is_there, name = lat_file)
       if (.not. is_there) then
-        lat_file = 'BMAD_LAT:BMAD_' // line 
-        if (index(line, '.') == 0) lat_file = trim(lat_file) // '.LAT' 
+        lat_file = 'BMAD_LAT:bmad_' // line 
+        if (index(line, '.') == 0) lat_file = trim(lat_file) // '.lat' 
         call FullFileName(lat_file, lat_file)
         inquire (file = lat_file, exist = is_there, name = lat_file)
         if (.not. is_there) then

@@ -4,8 +4,7 @@
 ! Subroutine to insert markers at parasitic crossing point.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   master_ring        -- Ring struct: Ring with markers at LRBBI locations.
@@ -13,7 +12,7 @@
 !                         particles, with markers at all LRBBI locations.
 !   ring(:)            -- Ring struct: Each bunch has its own ring(i)
 !                         with markers at parasitic crossings that bunch sees.
-!   crossings(:,:)     -- Real: First column is the position (as a
+!   crossings(:,:)     -- Real(rdef): First column is the position (as a
 !                         fraction/percent of the total ring length) of a beam-
 !                         beam interaction seen by a bunch. Second column is
 !                         the index of the bunch that sees the crossings in the
@@ -42,6 +41,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:19  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:40  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -54,8 +56,7 @@
 
 subroutine MARK_LRBBI(master_ring, master_ring_oppos, ring, crossings)
 
-  use bmad_struct                      
-  use bmad_interface
+  use bmad                      
 
   implicit none
 
@@ -64,8 +65,8 @@ subroutine MARK_LRBBI(master_ring, master_ring_oppos, ring, crossings)
   type (coord_struct) :: orbit_(0:n_ele_maxx), orbit_oppos_(0:n_ele_maxx)
   type (ele_struct), dimension(:), allocatable ::  insert_ele
 
-	real, dimension(:,:) :: crossings
-	real :: smallest, s_split
+	real(rdef), dimension(:,:) :: crossings
+	real(rdef) :: smallest, s_split
 
   integer :: i, j, k, m, ierr, loc_smallest, ix_split
 	integer :: ix_ele, master_ix_split, master_ix_ele, ring_index, total

@@ -5,8 +5,7 @@
 ! Note: The ab values will be scalled by the strength of the element.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ele          -- Ele_struct: Element.
@@ -17,12 +16,15 @@
 !                     in calculations.
 !
 ! Output:
-!   a(0:n_pole_maxx) -- Real: Array of scalled multipole values.
-!   b(0:n_pole_maxx) -- Real: Array of scalled multipole values.
+!   a(0:n_pole_maxx) -- Real(rdef): Array of scalled multipole values.
+!   b(0:n_pole_maxx) -- Real(rdef): Array of scalled multipole values.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.2  2002/02/23 20:32:20  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.1  2002/01/08 21:48:14  dcs
 !Align with VMS version
 !
@@ -31,15 +33,14 @@
 
 subroutine multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
   type (ele_struct) ele
 
-  real const, radius, factor, a(0:n_pole_maxx), b(0:n_pole_maxx)
-  real an, bn, cos_t, sin_t
+  real(rdef) const, radius, factor, a(0:n_pole_maxx), b(0:n_pole_maxx)
+  real(rdef) an, bn, cos_t, sin_t
 
   integer ref_exp, n, particle
 

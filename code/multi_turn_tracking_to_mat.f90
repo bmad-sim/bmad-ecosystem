@@ -5,8 +5,7 @@
 ! matrix and the closed orbit offset at a given point in the ring.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !             
 ! Input:
 !   track(:) -- Coord_struct: multi-turn tracking data to analyze.
@@ -15,15 +14,18 @@
 !   i_dim    -- Integer: Dimensionality of the data (2, 4, or 6).
 !
 ! Output: 
-!   mat1(:,:) -- Real: Calculated 1-turn matrix.
+!   mat1(:,:) -- Real(rdef): Calculated 1-turn matrix.
 !   track0    -- Coord_struct: Closed orbit offset.
-!   chi       -- Real: Figure of merit in the fitting:
+!   chi       -- Real(rdef): Figure of merit in the fitting:
 !                   = 0 => perfect fit
 !                   = 1 => terrible fit
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:20  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:54  rwh24
 !UNIX compatibility updates
 !
@@ -34,19 +36,18 @@
 subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, track0, chi)
 
   use local_bmad_struct
-  use bmad_interface
   use nr
 
   implicit none
 
   type (coord_struct), intent(in), target :: track(:)
   type (coord_struct), intent(out) :: track0
-  real, intent(out) :: mat1(:,:)
-  real, intent(out) :: chi
+  real(rdef), intent(out) :: mat1(:,:)
+  real(rdef), intent(out) :: chi
   integer, intent(in) :: i_dim
 
-  real sum2, dsum2, chisq, dtrack(6), remainder(6)
-  real, allocatable, save :: x(:), y(:), sig(:), v(:,:), w(:), a(:), m(:,:)
+  real(rdef) sum2, dsum2, chisq, dtrack(6), remainder(6)
+  real(rdef), allocatable, save :: x(:), y(:), sig(:), v(:,:), w(:), a(:), m(:,:)
   type (coord_struct), allocatable, target, save :: d0track(:)
   integer i, n
 
@@ -59,7 +60,7 @@ subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, track0, chi)
   if (.not. allocated (x)) then
     allocate (x(n-1), y(n-1), sig(n-1), d0track(n-1))
   elseif (size(x) /= n-1) then
-    deallocate (x, y, sig)
+    deallocate (x, y, sig, d0track)
     allocate (x(n-1), y(n-1), sig(n-1), d0track(n-1))
   endif
 
@@ -128,10 +129,10 @@ function multi_turn_func (x, n)
 
   implicit none                      
 
-  real, intent(in) :: x
+  real(rdef), intent(in) :: x
   integer, intent(in) :: n
-  real, dimension(n) :: multi_turn_func
+  real(rdef), dimension(n) :: multi_turn_func
 
-  multi_turn_func = (/ multi_turn_func_common(nint(x))%vec(1:n-1), 1.0 /)
+  multi_turn_func = (/ multi_turn_func_common(nint(x))%vec(1:n-1), 1.0_rdef /)
 
 end function

@@ -20,6 +20,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:30  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:32:01  rwh24
 !UNIX compatibility updates
 !
@@ -30,7 +33,7 @@
 
 subroutine update_hybrid_list (ring, n_in, use_ele)
 
-  use bmad_struct
+  use bmad
   implicit none      
 
   type (ring_struct)  ring

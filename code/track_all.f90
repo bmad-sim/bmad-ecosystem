@@ -4,8 +4,7 @@
 ! Subroutine to track through the ring.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring      -- Ring_struct: Ring to track through.
@@ -26,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:26  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:58  rwh24
 !UNIX compatibility updates
 !
@@ -36,7 +38,7 @@
 
 subroutine track_all (ring, orbit_)
 
-  use bmad_struct
+  use bmad
   implicit none
 
   type (ring_struct)  ring

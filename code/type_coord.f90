@@ -4,8 +4,7 @@
 ! Subroutine to type out a coordinate.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     COORD -- Coord_struct: Coordinate
@@ -13,6 +12,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:30  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:32:01  rwh24
 !UNIX compatibility updates
 !
@@ -23,7 +25,7 @@
 
 subroutine type_coord (coord)
 
-  use bmad_struct
+  use bmad
   implicit none
   type (coord_struct)  coord
 

@@ -6,8 +6,7 @@
 !     ring%ele_(i)%key = null_ele$
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     RING -- Ring_struct: Ring to compress.
@@ -19,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:13  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:49  rwh24
 !UNIX compatibility updates
 !
@@ -28,8 +30,7 @@
 
 subroutine compress_ring (ring, ok)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
                            

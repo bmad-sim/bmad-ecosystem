@@ -5,8 +5,7 @@
 ! and the name of the attribute.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     ele  -- Ele_struct: ATTRIBUTE_INDEX will restrict the name search to 
@@ -27,6 +26,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:10  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:47  rwh24
 !UNIX compatibility updates
 !
@@ -35,10 +37,9 @@
 
 
 
-integer function attribute_index (ele, name)
+function attribute_index (ele, name) result (at_index)
 
-  use bmad_struct
-  use bmad_interface, only: attribute_name
+  use bmad
 
   implicit none
 
@@ -47,6 +48,7 @@ integer function attribute_index (ele, name)
   integer i, j, k, key, num
   integer attrib_num(n_key)
   integer attrib_ix(n_key, n_attrib_special_maxx)
+  integer at_index
 
   character*(*) name
   character*16 name16
@@ -85,7 +87,7 @@ integer function attribute_index (ele, name)
     do k = 1, n_key
       do i = 1, attrib_num(k)
         if (attrib_name_array(k, i) == name16) then
-          attribute_index = attrib_ix(k, i)
+          at_index = attrib_ix(k, i)
           return
         endif
       enddo
@@ -93,7 +95,7 @@ integer function attribute_index (ele, name)
   elseif (key > 0 .and. key <= n_key) then
     do i = 1, attrib_num(key)
       if (attrib_name_array(key, i) == name16) then
-        attribute_index = attrib_ix(key, i)
+        at_index = attrib_ix(key, i)
         return
       endif
     enddo      
@@ -102,6 +104,6 @@ integer function attribute_index (ele, name)
     call err_exit
   endif
 
-  attribute_index = 0         ! match not found
+  at_index = 0         ! match not found
 
 end function

@@ -5,19 +5,21 @@
 ! to coordinates with the beta function removed.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     TWISS        -- Twiss_struct: Twiss parameters
 !
 ! Output:
-!     G_MAT(2,2)     -- Real: Normal mode to betaless coords
-!     G_INV_MAT(2,2) -- Real: The inverse of G_MAT
+!     G_MAT(2,2)     -- Real(rdef): Normal mode to betaless coords
+!     G_INV_MAT(2,2) -- Real(rdef): The inverse of G_MAT
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:17  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:52  rwh24
 !UNIX compatibility updates
 !
@@ -27,15 +29,14 @@
 
 subroutine make_g2_mats (twiss, g2_mat, g2_inv_mat)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
   type (twiss_struct) twiss
 
-  real g2_mat(2,2), g2_inv_mat(2,2)
-  real sqrt_beta, alpha
+  real(rdef) g2_mat(2,2), g2_inv_mat(2,2)
+  real(rdef) sqrt_beta, alpha
 !
 
   sqrt_beta = sqrt(twiss%beta)

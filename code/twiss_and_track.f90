@@ -5,8 +5,7 @@
 ! This is not necessarily the fastest routine.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   RING              -- Ring_struct: Ring 
@@ -19,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:27  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:59  rwh24
 !UNIX compatibility updates
 !
@@ -28,8 +30,7 @@
 
 subroutine twiss_and_track (ring, orb)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 

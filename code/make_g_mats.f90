@@ -5,19 +5,21 @@
 ! to coordinates with the beta function removed.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !     ELE        -- Ele_struct: Element
 !
 ! Output:
-!     G_MAT(4,4)     -- Real: Normal mode to betaless coords
-!     G_INV_MAT(4,4) -- Real: The inverse of G_MAT
+!     G_MAT(4,4)     -- Real(rdef): Normal mode to betaless coords
+!     G_INV_MAT(4,4) -- Real(rdef): The inverse of G_MAT
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:18  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:52  rwh24
 !UNIX compatibility updates
 !
@@ -27,15 +29,14 @@
 
 subroutine make_g_mats (ele, g_mat, g_inv_mat)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
   type (ele_struct) ele
 
-  real g_mat(4,4), g_inv_mat(4,4)
-  real sqrt_beta_a, sqrt_beta_b, alpha_a, alpha_b
+  real(rdef) g_mat(4,4), g_inv_mat(4,4)
+  real(rdef) sqrt_beta_a, sqrt_beta_b, alpha_a, alpha_b
 !
 
   sqrt_beta_a = sqrt(ele%x%beta)

@@ -5,8 +5,7 @@
 ! emittance, and energy spread.
 !
 ! Modules to use:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   RING      -- Ring_struct: Ring to use. The calculation assumes that 
@@ -32,6 +31,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:22  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:56  rwh24
 !UNIX compatibility updates
 !
@@ -41,6 +43,7 @@
 
 subroutine radiation_integrals (ring, orb_, mode)
                      
+  use precision_def
   use nr
   use rad_int_common
 
@@ -50,9 +53,9 @@ subroutine radiation_integrals (ring, orb_, mode)
   type (coord_struct), target :: orb_(0:*)
   type (modes_struct) mode
 
-  real, parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
-  real i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
-  real theta, energy, gamma2_factor, energy_loss, arg
+  real(rdef), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
+  real(rdef) i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
+  real(rdef) theta, energy, gamma2_factor, energy_loss, arg
 
   integer ir, key
 
@@ -60,38 +63,43 @@ subroutine radiation_integrals (ring, orb_, mode)
 
   interface
     function eval_i1 (s_vec)
+      use precision_def
       use nrtype
-      real, intent(in) :: s_vec(:)
-      real, dimension(size(s_vec)) :: eval_i1
+      real(rdef), intent(in) :: s_vec(:)
+      real(rdef), dimension(size(s_vec)) :: eval_i1
     end function
   end interface
 
   interface
     function eval_i4a (s_vec)
+      use precision_def
       use nrtype
-      real, intent(in) :: s_vec(:)
-      real, dimension(size(s_vec)) :: eval_i4a
+      real(rdef), intent(in) :: s_vec(:)
+      real(rdef), dimension(size(s_vec)) :: eval_i4a
     end function
   end interface
 
   interface
     function eval_i4b (s_vec)
-      real, intent(in) :: s_vec(:)
-      real, dimension(size(s_vec)) :: eval_i4b
+      use precision_def
+      real(rdef), intent(in) :: s_vec(:)
+      real(rdef), dimension(size(s_vec)) :: eval_i4b
     end function
   end interface
 
   interface
     function eval_i5a (s_vec)
-      real, intent(in) :: s_vec(:)
-      real, dimension(size(s_vec)) :: eval_i5a
+      use precision_def
+      real(rdef), intent(in) :: s_vec(:)
+      real(rdef), dimension(size(s_vec)) :: eval_i5a
     end function
   end interface
 
   interface
     function eval_i5b (s_vec)
-      real, intent(in) :: s_vec(:)
-      real, dimension(size(s_vec)) :: eval_i5b
+      use precision_def
+      real(rdef), intent(in) :: s_vec(:)
+      real(rdef), dimension(size(s_vec)) :: eval_i5b
     end function
   end interface
 
@@ -141,8 +149,8 @@ subroutine radiation_integrals (ring, orb_, mode)
       rad_com%g_y0 = 0
       rad_com%k1 = 0
       rad_com%s1 = 0
-      rad_com%i5a_(ir) = qromb_rad_int (eval_i5a, 0.0, rad_com%ll, i5a)
-      rad_com%i5b_(ir) = qromb_rad_int (eval_i5b, 0.0, rad_com%ll, i5b)
+      rad_com%i5a_(ir) = qromb_rad_int (eval_i5a, 0.0_rdef, rad_com%ll, i5a)
+      rad_com%i5b_(ir) = qromb_rad_int (eval_i5b, 0.0_rdef, rad_com%ll, i5b)
       cycle
     endif
     
@@ -194,13 +202,13 @@ subroutine radiation_integrals (ring, orb_, mode)
 
 ! integrate 
 
-    rad_com%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0, rad_com%ll, i1)
+    rad_com%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rdef, rad_com%ll, i1)
     rad_com%i4a_(ir) = rad_com%i4a_(ir) + &
-                         qromb_rad_int (eval_i4a, 0.0, rad_com%ll, i4a)
+                         qromb_rad_int (eval_i4a, 0.0_rdef, rad_com%ll, i4a)
     rad_com%i4b_(ir) = rad_com%i4b_(ir) + &
-                         qromb_rad_int (eval_i4b, 0.0, rad_com%ll, i4b)
-    rad_com%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0, rad_com%ll, i5a)
-    rad_com%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0, rad_com%ll, i5b)
+                         qromb_rad_int (eval_i4b, 0.0_rdef, rad_com%ll, i4b)
+    rad_com%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rdef, rad_com%ll, i5a)
+    rad_com%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rdef, rad_com%ll, i5b)
 
   enddo
 
@@ -242,7 +250,7 @@ subroutine radiation_integrals (ring, orb_, mode)
     mode%z%j_damp = 2 + i4z / i2
 
     arg = (c_q * i3 * gamma2_factor / (2*i2 + i4z))
-    mode%sig_e = sqrt(max(0.0, arg))
+    mode%sig_e = sqrt(max(0.0_rdef, arg))
 
   endif
 
@@ -266,12 +274,12 @@ end subroutine
 
 subroutine propagate_part_way (s)
 
+  use precision_def
   use rad_int_common
-  use bmad_interface
 
   implicit none
 
-  real s, v(4,4), v_inv(4,4)
+  real(rdef) s, v(4,4), v_inv(4,4)
 
 !
 
@@ -299,9 +307,9 @@ subroutine propagate_part_way (s)
   call make_v_mats (runt, v, v_inv)
 
   rad_com%eta_a = &
-          matmul(v, (/ runt%x%eta, runt%x%etap, 0.0,       0.0        /))
+          matmul(v, (/ runt%x%eta, runt%x%etap, 0.0_rdef,   0.0_rdef    /))
   rad_com%eta_b = &
-          matmul(v, (/ 0.0,       0.0,        runt%y%eta, runt%y%etap /))
+          matmul(v, (/ 0.0_rdef,   0.0_rdef,    runt%y%eta, runt%y%etap /))
   rad_com%eta = rad_com%eta_a + rad_com%eta_b
 
   rad_com%g_x = rad_com%g_x0 + orb%x%pos * rad_com%k1 + orb%y%pos * rad_com%s1
@@ -321,12 +329,13 @@ end subroutine
 
 function  eval_i1 (s_vec)
                     
+  use precision_def
   use rad_int_common
 
   implicit none
 
-  real s_vec(:)
-  real, dimension(size(s_vec)) :: eval_i1
+  real(rdef) s_vec(:)
+  real(rdef), dimension(size(s_vec)) :: eval_i1
 
   integer i
 
@@ -345,12 +354,13 @@ end function
 
 function  eval_i4a (s_vec)
                     
+  use precision_def
   use rad_int_common
                        
   implicit none
 
-  real s_vec(:)
-  real, dimension(size(s_vec)) :: eval_i4a
+  real(rdef) s_vec(:)
+  real(rdef), dimension(size(s_vec)) :: eval_i4a
 
   integer i
 
@@ -370,12 +380,13 @@ end function
 
 function  eval_i4b (s_vec)
                     
+  use precision_def
   use rad_int_common
 
   implicit none
 
-  real s_vec(:)
-  real, dimension(size(s_vec)) :: eval_i4b
+  real(rdef) s_vec(:)
+  real(rdef), dimension(size(s_vec)) :: eval_i4b
 
   integer i
 
@@ -397,12 +408,13 @@ end function
 
 function  eval_i5a (s_vec)
                     
+  use precision_def
   use rad_int_common
 
   implicit none
 
-  real s_vec(:)
-  real, dimension(size(s_vec)) :: eval_i5a
+  real(rdef) s_vec(:)
+  real(rdef), dimension(size(s_vec)) :: eval_i5a
 
 !
 
@@ -423,12 +435,13 @@ end function
 
 function  eval_i5b (s_vec)
                     
+  use precision_def
   use rad_int_common
 
   implicit none
 
-  real s_vec(:)
-  real, dimension(size(s_vec)) :: eval_i5b
+  real(rdef) s_vec(:)
+  real(rdef), dimension(size(s_vec)) :: eval_i5b
 
   integer i
 
@@ -451,6 +464,7 @@ end function
 
 function qromb_rad_int (func, a, b, sum)
 
+  use precision_def
   use nrtype; use nrutil, only : nrerror
   use nr, only : polint,trapzd
 

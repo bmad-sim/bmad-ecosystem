@@ -4,8 +4,7 @@
 ! Subroutine to make the slave elements of a super_lord in order.
 !
 ! Modules needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring    -- Ring_struct: Ring.
@@ -17,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/02/23 20:32:22  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.3  2002/01/08 21:44:42  dcs
 !Aligned with VMS version  -- DCS
 !
@@ -29,8 +31,7 @@
 
 subroutine order_super_lord_slaves (ring, ix_lord)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
   use nr
 
   implicit none
@@ -42,7 +43,7 @@ subroutine order_super_lord_slaves (ring, ix_lord)
   integer i, ix, ix_lord, ix1, ix2, ns
   integer, allocatable :: ixx(:), iyy(:)
 
-  real, allocatable :: s_rel(:)
+  real(rdef), allocatable :: s_rel(:)
 
 !
 
@@ -67,7 +68,7 @@ subroutine order_super_lord_slaves (ring, ix_lord)
   where (s_rel > ring%param%total_length / 2) &
                     s_rel = s_rel - ring%param%total_length
 
-  where (s_rel < ring%param%total_length / 2) &
+  where (s_rel < -ring%param%total_length / 2) &
                     s_rel = s_rel + ring%param%total_length
 
   call indexx (s_rel, ixx)

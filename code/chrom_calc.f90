@@ -5,18 +5,17 @@
 ! when then energy is changed.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   ring      -- Ring_struct: Ring
-!   delta_e   -- Real: Delta energy used for the calculation.
+!   delta_e   -- Real(rdef): Delta energy used for the calculation.
 !                    If 0 then default of 1.0e-4 is used.
 !
 ! Output:
-!     delta_e     -- Real: Set to 1.0e-4 if on input DELTA_E =< 0.
-!     chrom_x     -- Real: Horizontal chromaticity.
-!     chrom_y     -- Real: Vertical chromaticity.
+!     delta_e     -- Real(rdef): Set to 1.0e-4 if on input DELTA_E =< 0.
+!     chrom_x     -- Real(rdef): Horizontal chromaticity.
+!     chrom_y     -- Real(rdef): Vertical chromaticity.
 !     bmad_status -- Status structure in common block
 !                    See MAT_SYMP_DECOUPLE for for more info.
 !           %type_out  -- Logical: If .true. then will type a message for
@@ -25,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:12  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:49  rwh24
 !UNIX compatibility updates
 !
@@ -35,7 +37,7 @@
 
 subroutine chrom_calc (ring, delta_e, chrom_x, chrom_y)
 
-  use bmad_struct
+  use bmad
   implicit none
 
   type (ring_struct)  ring, ring2
@@ -43,8 +45,8 @@ subroutine chrom_calc (ring, delta_e, chrom_x, chrom_y)
 
   integer i, key
 
-  real high_tune_x, high_tune_y, low_tune_x, low_tune_y
-  real delta_e, chrom_x, chrom_y
+  real(rdef) high_tune_x, high_tune_y, low_tune_x, low_tune_y
+  real(rdef) delta_e, chrom_x, chrom_y
 
   if (delta_e <= 0) delta_e = 1.0e-4
   ring2 = ring

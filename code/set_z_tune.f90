@@ -5,8 +5,7 @@
 ! in the RF cavities.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use bmad
 !
 ! Input:
 !   RING   -- Ring_struct:
@@ -28,6 +27,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2002/02/23 20:32:25  dcs
+!Double/Single Real toggle added
+!
 !Revision 1.2  2001/09/27 18:31:58  rwh24
 !UNIX compatibility updates
 !
@@ -37,8 +39,7 @@
 
 subroutine set_z_tune (ring)
 
-  use bmad_interface
-  use bmad_struct
+  use bmad
 
   implicit none
 
@@ -47,7 +48,7 @@ subroutine set_z_tune (ring)
   type (modes_struct) mode
   type (coord_struct)  c0
 
-  real z_tune, volt_total, delta_volt
+  real(rdef) z_tune, volt_total, delta_volt
 
   integer i, n_rf, ix_rf(100)
 
