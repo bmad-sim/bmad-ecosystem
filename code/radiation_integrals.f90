@@ -4,6 +4,9 @@
 ! Subroutine to calculate the synchrotron radiation integrals along with the
 ! emittance, and energy spread.
 !
+! Note: A negative emittance is possible and just means that the beam is
+! unstable. That is, you have a negative damping partition number.
+!
 ! Modules needed:
 !   use bmad
 !
@@ -43,6 +46,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/11/04 16:49:26  dcs
+!*** empty log message ***
+!
 !Revision 1.5  2002/07/16 20:44:01  dcs
 !*** empty log message ***
 !
