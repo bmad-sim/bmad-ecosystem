@@ -469,7 +469,8 @@ enddo
 
 if (d1_name == ' ') then
   if (size(d2_pointer%d1) == 1 .and. present(d1_ptr)) then
-    d1_ptr => d2_pointer%d1(1) 
+    if (present(d1_ptr)) d1_ptr => d2_pointer%d1(1) 
+    return
   else
     return
   endif

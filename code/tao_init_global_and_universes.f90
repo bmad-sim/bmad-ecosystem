@@ -41,7 +41,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   character(*) data_and_var_file
   character(40) :: r_name = 'tao_init_global_and_universes'
   character(200) file_name
-  character(16) name,  default_universe
+  character(16) name,  default_universe, default_data_type
   character(16) default_merit_type, default_attribute
   character(100) line
 
@@ -52,7 +52,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
          
   namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe
   namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, &
-                           ix_max_data, default_weight
+                           ix_max_data, default_weight, default_data_type
   namelist / tao_var / v1_var, var, default_weight, default_step, &
                       ix_min_var, ix_max_var, default_universe, default_attribute, &
                       default_low_lim, default_high_lim
@@ -113,6 +113,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 
     do k = 1, n_d1_data
       default_weight = 0      ! set default
+      default_data_type  = ' '
       data(:)%name       = ' '
       data(:)%data_type  = ' '
       data(:)%merit_type = ' '
@@ -396,7 +397,7 @@ if (index(data(0)%ele_name, 'SEARCH') .ne. 0) then
     endif
   enddo
   u%data(n1:n2)%meas_value = 0 
-  u%data(n1:n2)%data_type  = ' '
+  u%data(n1:n2)%data_type  = default_data_type
   u%data(n1:n2)%merit_type = 'target'  
   u%data(n1:n2)%good_data  = .false.
 
@@ -415,7 +416,7 @@ elseif (index(data(0)%ele_name, 'SAME:') /= 0) then
                 'N_DATA_MAX NOT LARGE ENOUGH IN INPUT FILE: ' // file_name)
     call err_exit
   endif
-  u%data(n1:n2)%data_type  = ' '
+  u%data(n1:n2)%data_type  = default_data_type
   u%data(n1:n2)%ele_name   = d1_ptr%d%ele_name
   u%data(n1:n2)%ix_ele     = d1_ptr%d%ix_ele
   u%data(n1:n2)%ele2_name  = d1_ptr%d%ele2_name
@@ -458,8 +459,14 @@ else
   u%data(n1:n2)%weight     = data(ix1:ix2)%weight
 endif
 
-where (u%data(n1:n2)%data_type == ' ') u%data(n1:n2)%data_type = &
+! use default_data_type if given, if not, auto-generate the data_type
+if (default_data_type .eq. ' ') then
+  where (u%data(n1:n2)%data_type == ' ') u%data(n1:n2)%data_type = &
                             trim(d2_data%name) // ':' // d1_data%name
+else
+  where (u%data(n1:n2)%data_type == ' ') u%data(n1:n2)%data_type = &
+                                                    default_data_type
+endif
 
 
 			    
@@ -571,12 +578,6 @@ subroutine var_stuffit_all_uni
 
   n = s%n_v1_var_used
   
-  if (abs(lbound(s%v1_var(n)%v, 1) - ubound(s%v1_var(n)%v, 1)) .gt. 1000) then
-    call out_io (s_blank$, r_name, "Initilizing a large number of variables.")
-    call out_io (s_blank$, r_name, "This may take a while...")
-    call out_io (s_blank$, r_name, " ")
-  endif
-
   do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
     s_var => s%v1_var(n)%v(i)
     allocate (s_var%this(size(s%u)))
@@ -706,6 +707,13 @@ logical, allocatable :: found_one(:)
 ! point the v1_var mother to the appropriate children in the big data array
 
   call tao_point_v1_to_var (s%v1_var(nn), s%var(n1:n2), ix_min_var, n1)
+
+  if (abs(lbound(s%v1_var(s%n_v1_var_used)%v, 1) - &
+                          ubound(s%v1_var(s%n_v1_var_used)%v, 1)) .gt. 1000) then
+    call out_io (s_blank$, r_name, "Initilizing a large number of variables.")
+    call out_io (s_blank$, r_name, "This may take a while...")
+    call out_io (s_blank$, r_name, " ")
+  endif
 
 end subroutine
 

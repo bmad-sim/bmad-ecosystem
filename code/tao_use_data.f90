@@ -58,7 +58,7 @@ do iu = 1, size(s%u)
   if (.not. picked(iu)) cycle
   if (all_selected) then
     if (locations .eq. ' ') locations = "all"
-    do j = 1, size(s%u(iu)%d2_data)
+    do j = 1, s%u(iu)%n_d2_data_used
       d2_ptr => s%u(iu)%d2_data(j)
       ix = index(d_name, ':')
       if (ix .ne. 0) then !do only specified dimension
@@ -78,19 +78,12 @@ do iu = 1, size(s%u)
       endif
       call use_d2_data () ! with d1_ptr and d2_ptr set
       if (err_num == -1) return
-      ! Optimizer bookkeeping and Print out changes.
-      call tao_set_data_useit_opt()
-      call tao_data_show_use (d2_ptr)
     enddo
   else
     call tao_find_data (err, s%u(iu), d_name, d2_ptr, d1_ptr)
     if (err) return
     call use_d2_data () ! with d1_ptr and d2_ptr set
     if (err_num == -1) return
-    ! Optimizer bookkeeping and Print out changes.
-    call tao_set_data_useit_opt()
-    call tao_data_show_use (d2_ptr)
-
   endif
 enddo
 
@@ -107,7 +100,8 @@ subroutine use_d2_data ()
 n1 = lbound(d2_ptr%d1(1)%d, 1)
 n2 = ubound(d2_ptr%d1(1)%d, 1)
 allocate(action_logic(n1:n2))
-call location_decode (locations, action_logic, n1, err_num) 
+line = locations
+call location_decode (line, action_logic, n1, err_num) 
 if (err_num == -1) return
 
 ! set d%good_user based on action and action_logic
@@ -117,12 +111,18 @@ if (associated(d1_ptr)) then
 else
   do i = 1, size(d2_ptr%d1)
     call use (d2_ptr%d1(i))
-    if (err) return
+    if (err) then
+      deallocate(action_logic)
+      return
+    endif
   enddo
 endif
 
 deallocate(action_logic)
 
+! Optimizer bookkeeping and Print out changes.
+call tao_set_data_useit_opt()
+call tao_data_show_use (d2_ptr)
 
 end subroutine use_d2_data
 

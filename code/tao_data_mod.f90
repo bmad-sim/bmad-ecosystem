@@ -149,6 +149,9 @@ case ('etap:x')
 case ('etap:y')
   call load_it (lattice%ele_(:)%y%etap)
 
+case ('beam_energy')
+  call load_it (lattice%ele_(:)%value(beam_energy$))
+  
 case ('coupling:11b')
   call load_it (cc%coupling11, cc%f_11, coupling_here = .true.)
 case ('coupling:12a')
