@@ -17,7 +17,7 @@
 !   use bmad
 !
 ! Input:
-!   in_file     -- Character*(*): Input file name
+!   in_file     -- Character(*): Input file name
 !   ring        -- Ring_struct: Ring with existing layout
 !   orbit_(0:)  -- Coord_struct, optional: closed orbit for when
 !                           bmad_parser2 calls ring_make_mat6

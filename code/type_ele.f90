@@ -46,7 +46,7 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor,  &
   
   logical type_control, type_zero_attrib, type_taylor
 
-  character*80, pointer :: lines(:) 
+  character(80), pointer :: lines(:) 
 
 !
 

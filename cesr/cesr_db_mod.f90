@@ -14,16 +14,16 @@ module cesr_db_mod
 ! for an individual element
 
   type db_element_struct
-    character*16 bmad_name    ! bmad name of element
+    character(16) bmad_name    ! bmad name of element
     real dvar_dcu             ! calibration factor
     real var_theory           ! theory var value
     real var_0                ! extrapolated var value at CU = 0
     integer ix_ring           ! index to element array in ring struct
     integer ix_attrib         ! index to element attribute
     integer ix_cesrv          ! index to cesr_struct arrays
-    character*12 db_node_name ! node name ("CSR QUAD CUR")
+    character(12) db_node_name ! node name ("CSR QUAD CUR")
     integer ix_db             ! element index for data base node (5 for Q05W)
-    character*16 db_ele_name  ! element name
+    character(16) db_ele_name  ! element name
     integer cu_high_lim       ! high limit
     integer cu_low_lim        ! low limit
     integer cu_now            ! current CU
@@ -336,7 +336,7 @@ subroutine db_init_it (node, n1, node_name, ix_attrib, node_array, &
   type (db_node_struct) :: node_array(:)
   type (cesr_element_struct), optional :: cesr_ele(:)
 
-  character*(*) node_name
+  character(*) node_name
 
   integer, optional :: ix0_cesrv
   integer, save :: i_array
@@ -470,7 +470,7 @@ end subroutine
 !   use cesr_mod
 !
 ! Input:
-!   ing_name   -- Character*12: DB node name (e.g. 'CSR PRETZING')
+!   ing_name   -- Character(12): DB node name (e.g. 'CSR PRETZING')
 !   ing_num    -- Integer: DB element number (e.g. 13)
 !   biggrp_set -- Integer: Biggrp set number. 0 => read from the data base
 !   csr_set    -- Integer: CSR set number. 0 => read from the data base
@@ -505,7 +505,7 @@ subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, csr_set, &
 
   integer k, n, nn, n_con, ing_num, biggrp_set, csr_set
 
-  character*12 ing_name
+  character(12) ing_name
 
   logical ok, type_err
 
@@ -566,7 +566,7 @@ end subroutine
 !   use cesr_mod
 !
 ! Input:
-!   group_name -- Character*12: Group node name (eg. "CSR PRETZING")
+!   group_name -- Character(12): Group node name (eg. "CSR PRETZING")
 !   group_num  -- Integer: Group node number
 !   biggrp_set -- Integer: Biggrp number. 0 => read from CESR database
 !   csr_set    -- Integer: CSR set number. 0 => read from the data base
@@ -593,7 +593,7 @@ subroutine db_group_to_bmad_group (group_name, group_num, &
   type (db_struct) db
 
   integer n_con, group_num, ix_ele, biggrp_set, ix, ixs(1), csr_set
-  character*12 group_name
+  character(12) group_name
   logical ok, type_err
 
 !                                          
@@ -632,7 +632,7 @@ end subroutine
 !   use cesr_mod
 !
 ! Input:
-!   db_name -- Character*12: Data base name (eg. "CSR HSP VOLT")
+!   db_name -- Character(12): Data base name (eg. "CSR HSP VOLT")
 !   db      -- Db_node_struct: Data base structure.
 !  
 ! Output:
@@ -650,7 +650,7 @@ subroutine identify_db_node (db_name, db, db_ptr, ok, type_err)
 
   integer k
 
-  character*(*) db_name
+  character(*) db_name
 
   logical ok, type_err
 
@@ -689,12 +689,12 @@ end subroutine
 !
 ! Output:
 !   butns -- Butns_struct: Orbit information.
-!       %lattice    -- Character*40: Lattice name.
+!       %lattice    -- Character(40): Lattice name.
 !       %save_set   -- Integer: Save set number.
-!       %date       -- Character*20: Date orbit was taken
+!       %date       -- Character(20): Date orbit was taken
 !       %file_num   -- Integer: Equal to butns_num.
 !       %turn       -- Integer: Turn number for injection orbits. 0 otherwise.
-!       %comment(5) -- Character*72: Comment.
+!       %comment(5) -- Character(72): Comment.
 !       %det(0:99)%amp(4) -- Integer: raw button numbers.
 !       %det(0:99)%x_orb  -- Real: Horizontal orbit in meters.
 !       %det(0:99)%y_orb  -- Real: Horizontal orbit in meters.

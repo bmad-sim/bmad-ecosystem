@@ -50,7 +50,7 @@ subroutine init_LRBBI(ring, oppos_ring, LRBBI_ele, ix_LRBBI, ix_oppos)
   real(rp) :: e_spread, emit_x, emit_y, current
   integer :: i
 
-  character*16 :: call_it
+  character(16) :: call_it
 
 ! init
 

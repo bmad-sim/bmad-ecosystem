@@ -9,12 +9,12 @@
 !   use bmad
 !
 ! Input:
-!   in_type_str  -- Character*(*): type of the input coords.
+!   in_type_str  -- Character(*): type of the input coords.
 !   coord_in -- Coord_struct: Input coordinates.
 !   ele      -- Ele_struct: Provides the Twiss parameters.
 !
 ! Output:
-!   out_type_str  -- Character*(*): type of the output coords.
+!   out_type_str  -- Character(*): type of the output coords.
 !   coord_out -- Coord_struct: Output coordinates.
 !
 ! in_type_str and out_type_str can be:
@@ -45,7 +45,7 @@ subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)
 
   implicit none
 
-  character*(*) in_type_str, out_type_str
+  character(*) in_type_str, out_type_str
   type (coord_struct) coord_in, coord_out
   type (ele_struct) ele
 

@@ -29,7 +29,7 @@
 !   ring         -- Ring_struct, optional: Needed for control typeout.
 !              
 ! Output       
-!   lines(:)     -- Character*80, pointer: Character array to hold the 
+!   lines(:)     -- Character(80), pointer: Character array to hold the 
 !                     output. The array size of lines(:) will be set by
 !                     this subroutine. Note: You need to deallocate lines
 !                     between each call to type2_ele.

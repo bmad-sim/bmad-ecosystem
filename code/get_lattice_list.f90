@@ -7,7 +7,7 @@
 !     directory // bmad_<lattice_name>
 !
 ! Input:
-!   directory  -- Character*(*): Directory to use. E.g: "U:[CESR.BMAD.LAT]"
+!   directory  -- Character(*): Directory to use. E.g: "U:[CESR.BMAD.LAT]"
 !
 ! Output:
 !   lat_list(*) -- Character(40): List of lattice names.

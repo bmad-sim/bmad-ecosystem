@@ -16,7 +16,7 @@
 !                       = cycles$   => Type Twiss, use cycles (1 = 2pi) units.
 !
 ! Output
-!   lines(:)     -- Character*(*): Character array to hold the output.
+!   lines(:)     -- Character(*): Character array to hold the output.
 !   n_lines      -- Number of lines used
 !-
 
@@ -35,7 +35,7 @@ subroutine type2_twiss (ele, frequency_units, lines, n_lines)
 
   real(rp) coef
 
-  character*(*) lines(:)
+  character(*) lines(:)
   character fmt*80, str*80
 
 ! Encode twiss info

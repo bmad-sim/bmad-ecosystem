@@ -7,7 +7,7 @@
 !   use bmad
 !
 ! Input:
-!   ele_name -- Character*16: Name of the element to find.
+!   ele_name -- Character(16): Name of the element to find.
 !   ring     -- Ring_struct: Ring to search through
 !
 ! Output:
@@ -26,7 +26,7 @@ subroutine element_locator (ele_name, ring, ix_ele)
 
   type (ring_struct) ring
   integer ix_ele
-  character*(*) ele_name
+  character(*) ele_name
 
 ! Very simple.
 

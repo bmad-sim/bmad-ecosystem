@@ -12,7 +12,7 @@
 !   use bmad
 !
 ! Input:
-!   digested_name -- Character*(*): Name of the digested file
+!   digested_name -- Character(*): Name of the digested file
 !
 ! Output:
 !   ring      -- Ring_struct: Output structure

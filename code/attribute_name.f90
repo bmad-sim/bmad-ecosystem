@@ -12,7 +12,7 @@
 !   ix_att -- Integer: Index of attribute (e.g. k1$)
 !
 ! Output:
-!   attribute_name -- Character*16: Name of attribute.
+!   attribute_name -- Character(16): Name of attribute.
 !
 ! Example:
 !   ele%key = sbend$

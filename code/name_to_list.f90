@@ -10,7 +10,7 @@
 !
 ! Input:
 !   ring         -- Ring_struct: Input ring.
-!   ele_names(:) -- Character*(*): list of element names. Wild card
+!   ele_names(:) -- Character(*): list of element names. Wild card
 !                     characters may be used. The last array element must
 !                     be blank.
 !
@@ -41,7 +41,7 @@ subroutine name_to_list (ring, ele_names, use_ele)
 
   logical use_ele(:)
 
-  character*(*) ele_names(:)
+  character(*) ele_names(:)
 
   logical searching
 

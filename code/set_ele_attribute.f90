@@ -19,7 +19,7 @@
 !                                                            to be modified.
 !     %ele_(i_ele)      -- Element to be modified
 !   i_ele           -- Integer: Index of element in the ring structure
-!   attrib_name     -- Character*16: Name of attribute. Must be uppercase.
+!   attrib_name     -- Character(16): Name of attribute. Must be uppercase.
 !                       For example: "HKICK".
 !   attrib_value    -- Real(rp): Attribute value.
 !   make_mat6_flag  -- Logical: If True then make the 6x6 transfer matrix.
@@ -52,7 +52,7 @@ subroutine set_ele_attribute (ring, i_ele, attrib_name, &
 
   integer i_ele, ix_attrib
 
-  character*(*) attrib_name
+  character(*) attrib_name
 
   logical make_mat6_flag, err_flag
 

@@ -12,7 +12,7 @@
 ! Input:
 !   ele             -- Ele_struct: After this routine finishes Ptr_attrib 
 !                        will point to a variable within this element.
-!   attrib_name     -- Character*16: Name of attribute. Must be uppercase.
+!   attrib_name     -- Character(16): Name of attribute. Must be uppercase.
 !                       For example: "HKICK".
 !   do_allocation   -- Logical: If True then do an allocation if needed.
 !                       EG: The multipole An and Bn arrays need to be allocated
@@ -44,7 +44,7 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
 
   integer ix_attrib
 
-  character*(*) attrib_name
+  character(*) attrib_name
   character(16) a_name
 
   logical err_flag, do_allocation, do_print

@@ -29,7 +29,7 @@ subroutine type_twiss (ele, frequency_units)
 
   integer frequency_units, n, n_lines
 
-  character*80 lines(5)
+  character(80) lines(5)
 
 !
 
