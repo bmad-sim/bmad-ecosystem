@@ -18,6 +18,7 @@ subroutine tao_command (command_line, err)
   use quick_plot
   use tao_cmd_history_mod
   use tao_dmerit_mod
+  use tao_scale_mod
 
   implicit none
 
@@ -300,6 +301,7 @@ subroutine tao_command (command_line, err)
   case ('single-mode')
 
     s%global%single_mode = .true.
+    call out_io (s_blank$, r_name, 'Entering Single Mode...')
 
 !--------------------------------
 ! VIEW

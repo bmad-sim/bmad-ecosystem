@@ -4,6 +4,7 @@ subroutine tao_single_mode (char)
   use quick_plot
   use tao_single_mod
   use single_char_input_mod
+  use tao_scale_mod
 
   implicit none
 
@@ -25,7 +26,7 @@ subroutine tao_single_mode (char)
   character(80) this_file, line
   character(40) :: this_opt, str, r_name = 'tao_single_mode'
 
-  logical doit, found
+  logical doit, found, err
 
 ! parse input.
 ! is it a variable change?
@@ -59,6 +60,7 @@ subroutine tao_single_mode (char)
   case ('z')
     print *
     s%global%single_mode = .false.
+    call out_io (s_blank$, r_name, 'Entering line mode...'
 
 ! Z: Quit tao.
 
@@ -95,32 +97,6 @@ subroutine tao_single_mode (char)
     s%global%optimizer_running = .true.
     do
       call tao_run_cmd (' ')
-      if (.not. s%global%optimizer_running) exit
-    enddo
-
-! G: Go run the optimizer.
-
-  case ('G')
-
-    print '(a, $)', ' Optimizer to use: '
-    read '(a)', this_opt
-    call str_upcase (this_opt, this_opt)
-    call string_trim (this_opt, this_opt, ix)
-
-    if (ix == 0) then
-      print *, 'No name given. Nothing done.'
-      return
-    endif
-
-    if (this_opt(1:1) == '@') then
-      s%global%optimizer = this_opt(2:)
-      this_opt = this_opt(2:)
-    endif 
-
-    s%global%optimizer_running = .true.
-    s%global%init_opt_wrapper = .true.
-    do
-      call tao_run_cmd (this_opt)
       if (.not. s%global%optimizer_running) exit
     enddo
 
@@ -267,12 +243,6 @@ subroutine tao_single_mode (char)
 
       if (.not. found) print *, 'Element not found.'
 
-! /h: Define header title
-
-    case ('h')
-      print '(a, $)', ' Header title: '
-      read '(a)', s%plot_page%title(1)%string
-
 ! /l: Lattice list
 
     case ('l')
@@ -304,50 +274,10 @@ subroutine tao_single_mode (char)
       call tao_read_single_input_file (s%global%tao_single_mode_file)
       print *, 'Read in tao file: ', trim(s%global%tao_single_mode_file)
 
-! /T: Read from a tao input file
-
-    case ('T')
-      print '(a, $)', ' tao input file name: '
-      read '(a)', this_file
-      call string_trim (this_file, this_file, ix)
-      if (ix == 0) then
-        print *, 'No name given. Nothing done.'
-        return
-      endif
-      if (this_file(1:1) == '@') then
-        s%global%tao_single_mode_file = this_file(2:)
-        this_file = this_file(2:)
-      endif
-      call tao_read_single_input_file (this_file)
-      print *, 'Read in tao file: ', trim(this_file)
-
-! /v: Output variable settings
-
-    case ('v')
-!!      call var_print (.true., .true.)
-
 ! /w: Output to default file.
 
     case ('w')
       call tao_var_write ('tao#.manual', .true.)
-
-! /W: Output to a file.
-
-    case ('W')
-
-      do i = 1, size(s%u)
-
-        print '(1x, i1, a, $)', i, ': Output file name: '
-        read '(a)', this_file
-        call string_trim (this_file, this_file, ix)
-
-        if (ix == 0) then
-          print *, 'No name given. Nothing done.'
-          return
-        endif
-        call tao_var_write (this_file, .true.)
-
-      enddo
 
 ! /x: Scale horizontal axis
 
@@ -357,64 +287,15 @@ subroutine tao_single_mode (char)
       read '(a)', line
       call string_trim (line, line, ix)
       if (ix == 0) then
-        call tao_x_scale_cmd ('all', 0, 1e20_rp)
+        call tao_x_scale_cmd ('all', 0.0_rp, 1e20_rp, err)
       else
         read (line, *, iostat = ios) m1, m2
         if (ios /= 0) then
           print *, 'ERROR READING MIN/MAX.'
           return
         endif
-        call tao_x_scale_cmd ('all', m1, m2)
+        call tao_x_scale_cmd ('all', m1, m2, err)
       endif
-
-! /number: Scale a single plot
-
-    case ('1', '2', '3', '4', '5', '6', '7', '8', '9')
-
-      read (char, *) ix_plot
-      call get_a_char (char, .true., ignore_space)
-
-      select case (char)
-
-! /number:: Get min, max
-
-      case (':')
-
-        print '(a, $)', ' Input plot min, max: '
-        read (*, *, iostat = ios) this_min, this_max
-        if (ios /= 0) then
-          print *, 'ERROR READING MIN/MAX'
-          return
-        endif
-        call scale_it_all (ix_plot, 0.0_rdef, this_min, this_max)
-
-! /number Escape: Look for the rest of the sequence:
-
-      case (achar(27))
-
-        call get_a_char (char2(1:1), .false.)
-        call get_a_char (char2(2:2), .false.)
-
-        select case (char2)
-
-! /number ^ (up arrow): scale plot
-
-        case ('[A')
-          call scale_it_all (ix_plot, 0.5_rdef)
-
-! /number ^ (up arrow): scale plot
-
-        case ('[B') 
-          call scale_it_all (ix_plot, 2.0_rdef)
-
-! /number Escape Error:
-
-        case default
-          print *, 'What is this your typing?', char2
-  
-        end select      ! /number Escape
-
-      end select      ! /number
 
 !----------------------------------
 ! /Escape: Look for the rest of the sequence:
@@ -483,6 +364,7 @@ subroutine scale_it_all (ix_plot, factor, a_min, a_max)
   real(rdef), optional :: a_min, a_max
 
   integer ix_plot
+  character(32) name
 
 ! if factor = 0 then use min/max
 
@@ -494,10 +376,10 @@ subroutine scale_it_all (ix_plot, factor, a_min, a_max)
   do i = 1, size(s%plot_page%plot)
     do j = 1, size(s%plot_page%plot(i)%graph)
       graph => s%plot_page%plot(i)%graph(j) 
-      graph%y%max  = graph%y%max * factor 
-      graph%y%min  = graph%y%min * factor 
+      name = trim(s%plot_page%plot(i)%name) // ':' // graph%name
       graph%y2%max = graph%y2%max * factor 
       graph%y2%min = graph%y2%min * factor 
+      call tao_scale_cmd (name, graph%y%min * factor, graph%y%max * factor)
     enddo
   enddo
 

@@ -4,5 +4,6 @@ module tao
   use tao_top10_mod
   use tao_dmerit_mod
   use tao_data_mod
+  use tao_scale_mod
 
 end module

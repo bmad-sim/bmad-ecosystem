@@ -60,7 +60,7 @@ plot%visible = .true.
 ! auto scale and calculate places
 
 if (plot%x%min == plot%x%max) then
-  call tao_x_scale_cmd (where, 0.0_rp, 0.0_rp)
+  call tao_x_scale_cmd (where, 0.0_rp, 0.0_rp, err)
 else
   ax => plot%x
   call qp_calc_axis_places (ax%min, ax%max, ax%major_div, ax%places)
