@@ -17,7 +17,7 @@ module bmad_struct
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 
-  integer, parameter :: bmad_inc_version$ = 71
+  integer, parameter :: bmad_inc_version$ = 72
 
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -119,11 +119,12 @@ module bmad_struct
     integer iyy                    ! Index for Bmad internal use
     integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
     integer tracking_method        ! bmad_standard$, taylor$, etc.
-    integer field_calc             ! Used with Boris or Runge-Kutta integrators.
+    integer field_calc             ! Used with Boris, Runge-Kutta integrators.
     integer num_steps              ! number of slices for DA_maps
     integer integration_ord        ! For Etiennes' PTC: 2, 4, or 6.
     integer ptc_kind               ! For setting the ptc kind type.
     integer taylor_order           ! Order of the taylor series.
+    integer aperture_at            ! Where aperture is applied. exit_end$, ...
     logical symplectify            ! Symplectify mat6 matrices.
     logical mode_flip              ! Have the normal modes traded places?
     logical multipoles_on          ! For turning multipoles on/off
@@ -322,6 +323,7 @@ module bmad_struct
   integer, parameter :: is_on$ = 55
   integer, parameter :: field_calc$ = 56
   integer, parameter :: type$ = 57
+  integer, parameter :: aperture_at$ = 58
 
 ! Warning: No other attribute parameters can have indexes larger than A0$.
 ! That is: multipole arrays An, Bn, KnL, and Tn must have the largest indexes
@@ -447,11 +449,18 @@ module bmad_struct
 ! sbend$ and rbend$ are from key definitions.
 
   integer, parameter :: map_type$ = 1, periodic_type$ = 3
-  character(16), parameter :: sub_key_name(0:18) = (/ "GARBAGE!     ", &
-         "Map          ", "SBend        ", "Periodic     ", "GARBAGE!     ", "GARBAGE!     ", &
-         "GARBAGE!     ", "GARBAGE!     ", "GARBAGE!     ", "GARBAGE!     ", "GARBAGE!     ", &
-         "GARBAGE!     ", "GARBAGE!     ", "GARBAGE!     ", "GARBAGE!     ", "GARBAGE!     ", &
-         "GARBAGE!     ", "GARBAGE!     ", "RBend        " /)
+  character(16), parameter :: sub_key_name(0:18) = (/ "GARBAGE!  ", &
+     "Map       ", "SBend     ", "Periodic  ", "GARBAGE!  ", "GARBAGE!  ", &
+     "GARBAGE!  ", "GARBAGE!  ", "GARBAGE!  ", "GARBAGE!  ", "GARBAGE!  ", &
+     "GARBAGE!  ", "GARBAGE!  ", "GARBAGE!  ", "GARBAGE!  ", "GARBAGE!  ", &
+     "GARBAGE!  ", "GARBAGE!  ", "RBend     " /)
+
+! ele%aperture_at logical definitions.
+
+  integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3
+  integer, parameter :: no_end$ = 4
+  character(16), parameter :: aperture_at_name(0:4) = (/ "GARBAGE!    ", &
+      "Entrance_End", "Exit_End    ", "Both_Ends   ", "No_End      " /)
 
 ! The linac_mode_struct is basically the synchrotron integrals with the
 ! energy factors thrown in. Useful for linacs.

@@ -42,6 +42,7 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
   integer icon, ix2, inc, nr, n_ic2, ct
 
   logical split_done
+  character(16) :: r_name = "split_ring"
 
 ! Check for s_split out of bounds.
 
@@ -98,6 +99,31 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
   ele1%value(l$) = len1
   ele1%s = s_split
   ele2%value(l$) = len2
+
+! correct aperture limits
+
+  select case (ele%aperture_at)
+  case (entrance_end$) 
+    ele2%value(x_limit$) = 0
+    ele2%value(y_limit$) = 0
+    ele2%value(aperture$) = 0
+
+  case (exit_end$)
+    ele1%value(x_limit$) = 0
+    ele1%value(y_limit$) = 0
+    ele1%value(aperture$) = 0
+
+  case (both_ends$)
+    ele1%aperture_at = entrance_end$
+    ele2%aperture_at = exit_end$
+
+  case (no_end$)
+
+  case default
+    call out_io (s_abort$, r_name, 'BAD ELE%APERTURE_AT VALUE: ' // &
+                                     aperture_at_name(ele%aperture_at))
+    call err_exit
+  end select
 
 !-------------------------------------------------------------
 ! Now to correct the slave/lord bookkeeping...

@@ -208,24 +208,32 @@ would represent a horizontal steering.
   \label{f:limit}
 \end{figure}
 
-\vn{x_limit}, \vn{y_limit} specify the half--width of the 
-aperture of an element as shown in figure~\ref{f:limit}. 
-The aperture is evaluated at the exit
-face only of the element. A zero \vn{x_limit} or \vn{y_limit}
-is interpreted as no aperture in the $x$ or $y$ direction.
-\vn{x_offset} and \vn{y_offset} move the aperture but not pitches or tilts.
+\vn{x_limit}, \vn{y_limit} specify the half--width of the aperture of
+an element as shown in figure~\ref{f:limit}. A zero \vn{x_limit} or
+\vn{y_limit} is interpreted as no aperture in the $x$ or $y$
+direction. \vn{x_offset} and \vn{y_offset} move the aperture but not
+pitches or tilts.
 
 An \vn{aperture} attribute supersedes
 any \vn{x_limit} and \vn{y_limit} values and sets \vn{x_limit} and
 \vn{y_limit} equal to the value of \vn{aperture}.
 
-\noindent
+By default the aperture is evaluated at the exit face only of the
+element. This can be changed by setting the \vn{aperture_at} attribute.
+Possible settings for \vn{aperture_at} are:
+\begin{example}
+  entrance_end
+  exit_end  ! default
+  both_ends
+\end{example}
+
 Example:
 \begin{example}
   q1: quad, l = 0.6
   q1[x_limit] = 0.03
   q1[y_limit] = 0.03
   q1[aperture] = 0.03  ! equivalent to the proceeding 2 lines.  
+  q1[aperture_at] = both_ends
 \end{example}
 
 %-----------------------------------------------------------------

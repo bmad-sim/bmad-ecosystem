@@ -634,7 +634,7 @@ $x--y$ space (these 2--vectors are not to be confused with the
 dispersion 4--vectors used in the previous section). The position
 dependence of the curvature function is:
   \Begineqs
-    G_x(x,y) = G_{x} + x \, k_1 + y \, s_1 \\
+    G_x(x,y) = G_{x} + x \, k_1 + y \, s_1 \CRNO
     G_y(x,y) = G_{y} + x \, s_1 - y \, k_1 
   \Endeqs
 where $k_1$ is the quadrupole moment and $s_1$ is the skew--quadrupole moment.
@@ -680,11 +680,11 @@ radius (electrons are assumed here but the formulas are easily
 generalized).
 
 The damping partition numbers are
-  \Begineqs
-    J_a \AND= 1 - \frac{I_{4a}}{I_2} \CRNO
-    J_b \AND= 1 - \frac{I_{4b}}{I_2} \label{j1ii} \CR
-    J_z \AND= 2 + \frac{I_{4z}}{I_2} \CRNO
-  \Endeqs
+  \Begineq
+    J_a = 1 - \frac{I_{4a}}{I_2} \comma \quad
+    J_b = 1 - \frac{I_{4b}}{I_2} \comma \, \mbox{and} \quad \label{j1ii}
+    J_z = 2 + \frac{I_{4z}}{I_2} \period
+  \Endeq
 Since 
   \Begineq          
     \bfeta\two_{a} + \bfeta\two_{b} = \bfeta\two
@@ -692,11 +692,11 @@ Since
   \Endeq
 Robinson's theorem, $J_a + J_b + J_z = 4$, is satisfied.
 Alternatively, the exponential damping coefficients per turn are
-  \Begineqs
-    \alpha_a = \frac{U_0 \, J_a}{2 E_0} \CRNO
-    \alpha_b = \frac{U_0 \, J_b}{2 E_0} \\
-    \alpha_z = \frac{U_0 \, J_z}{2 E_0} 
-  \Endeqs
+  \Begineq
+    \alpha_a = \frac{U_0 \, J_a}{2 E_0} \comma \quad
+    \alpha_b = \frac{U_0 \, J_b}{2 E_0} \comma \, \mbox{and} \quad
+    \alpha_z = \frac{U_0 \, J_z}{2 E_0} \period
+  \Endeq
 The energy spread is given by
   \Begineq
     \sigma_{pz}^2 = \left( \frac{\sigma_E}{E_0} \right)^2 = 
@@ -705,7 +705,7 @@ The energy spread is given by
 where $\gamma_0$ is the usual energy factor and 
   \Begineq
     C_q = \frac{55}{32 \, \sqrt{3}} \, \frac{\hbar}{mc} = 
-    3.84 \times 10^{-13} \, \mbox{meter}
+    3.84 \times 10^{-13} \, \mbox{meter for electrons}
   \Endeq
 If the synchrotron frequency is not too large the bunch length is given by
   \Begineq
@@ -735,7 +735,7 @@ In terms of these integrals the energy loss through the linac is
 The energy spread assuming $\sigma_E$ is zero at the start and neglecting
 any dampling is
   \Begineq
-    \sigma_E^2 = \frac{2}{3} \, C_q \, r_e \, \left( m c^2 \right)^2 \, L_3
+    \sigma_E^2 = \frac{4}{3} \, C_q \, r_e \, \left( m c^2 \right)^2 \, L_3
   \Endeq
 and, again neglecting any initial beam width, the transverse beam size
 at the end of the linac is

@@ -47,6 +47,12 @@ subroutine track1 (start, ele, param, end)
 
   param%lost = .false.  ! assume everything will be OK
 
+! check for particles outside aperture
+
+  if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$) &
+                                   call check_aperture_limit (start, ele, param)
+  if (param%lost) return
+
 ! Radiation damping and/or fluctuations for the 1st half of the element.
 
   if (sr_com%damping_on .or. sr_com%fluctuations_on) then
@@ -112,6 +118,7 @@ subroutine track1 (start, ele, param, end)
 
 ! check for particles outside aperture
 
-  call check_aperture_limit (end, ele, param)
+  if (ele%aperture_at == exit_end$ .or. ele%aperture_at == both_ends$) &
+                                call check_aperture_limit (end, ele, param)
 
 end subroutine

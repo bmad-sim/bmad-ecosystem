@@ -437,7 +437,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
     mode%lin%i5b_E6 = mode%lin%i5b_E6 + ric%i5b_(i) * gamma6
   enddo
 
-  mode%lin%sig_E1 = mc2 * sqrt (3 * c_q * r_e * mode%lin%i3_E7 / 2)
+  mode%lin%sig_E1 = mc2 * sqrt (4 * c_q * r_e * mode%lin%i3_E7 / 3)
   mode%lin%emittance_a = 2 * c_q * r_e * mode%lin%i5a_e6 / (3 * gamma_f)
   mode%lin%emittance_b = 2 * c_q * r_e * mode%lin%i5b_e6 / (3 * gamma_f)
 

@@ -135,6 +135,14 @@ subroutine reverse_ele (ele)
 
   real(rp) tempp
 
+! Flip aperture limit position
+
+  if (ele%aperture_at == entrance_end$) then
+    ele%aperture_at = exit_end$
+  elseif (ele%aperture_at == exit_end$) then
+    ele%aperture_at = entrance_end$
+  endif
+
 ! Flip longitudinal attributes
 
   ele%value(x_pitch$) = -ele%value(x_pitch$)

@@ -758,6 +758,7 @@ subroutine init_ele (ele)
   ele%exact_rad_int_calc = .false.
 
   ele%field_master = .false.
+  ele%aperture_at = exit_end$
 
   call deallocate_ele_pointers (ele)
 

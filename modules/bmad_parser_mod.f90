@@ -583,6 +583,8 @@ subroutine get_attribute (how, ele, ring, pring, &
       ele%integration_ord = nint(value)
     elseif (i == ptc_kind$) then
       ele%ptc_kind = nint(value)
+    elseif (i == aperture_at$) then
+      ele%aperture_at = nint(value)
     else
       ele%value(i) = value
       if (i == b_field$) ele%field_master = .true.
@@ -2060,6 +2062,11 @@ subroutine init_bmad_parser_common
 
   do i = 1, ubound(calc_method_name, 1)
     call str_upcase (bp_com%var_name(nn+i), calc_method_name(i))
+    bp_com%var_value(nn+i) = i
+  enddo
+
+  do i = 1, ubound(aperture_at_name, 1)
+    call str_upcase (bp_com%var_name(nn+i), aperture_at_name(i))
     bp_com%var_value(nn+i) = i
   enddo
 

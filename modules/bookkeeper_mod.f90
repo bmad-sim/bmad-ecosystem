@@ -292,10 +292,9 @@ subroutine makeup_super_slave (ring, ix_slave)
     value(vkick$) = lord%value(vkick$) * coef
     slave%num_steps = lord%num_steps * coef + 1
     if (slave%key == rfcavity$) value(voltage$) = lord%value(voltage$) * coef
-    if (ix_con /= lord%ix2_slave) then   ! if not at end of the lord domain
-      value(x_limit$) = 0
-      value(y_limit$) = 0
-    endif
+
+    slave%aperture_at = no_end$
+    call compute_slave_aperture (value, slave, lord, ix_con)
 
 ! s_del is the distance between lord and slave centers
 
@@ -418,10 +417,7 @@ subroutine makeup_super_slave (ring, ix_slave)
       call err_exit
     endif
 
-    if (ix_con == lord%ix2_slave) then      ! longitudinal ends match
-      value(x_limit$) = lord%value(x_limit$)
-      value(y_limit$) = lord%value(y_limit$)
-    endif
+    call compute_slave_aperture (value, slave, lord, ix_con)
 
     if (j == slave%ic1_lord) then
       slave%mat6_calc_method = lord%mat6_calc_method
@@ -686,6 +682,45 @@ subroutine makeup_super_slave (ring, ix_slave)
     slave%value(y_pitch$)  = beta(4) + y_p_sol
 
   end select
+
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+
+subroutine compute_slave_aperture (value, slave, lord, ix_con)
+
+  use bmad_struct
+
+  implicit none
+
+  type (ele_struct) slave, lord
+  real(rp) value(n_attrib_maxx)
+  integer ix_con
+
+!
+
+  select case (lord%aperture_at)
+  case (exit_end$) 
+    if (ix_con == lord%ix2_slave) slave%aperture_at = exit_end$
+  case (entrance_end$)
+    if (ix_con == lord%ix1_slave) slave%aperture_at = entrance_end$
+  case (both_ends$)
+    if (ix_con == lord%ix1_slave .and. ix_con == lord%ix2_slave) then
+      slave%aperture_at = both_ends$
+    elseif (ix_con == lord%ix1_slave) then
+      slave%aperture_at = entrance_end$
+    elseif (ix_con == lord%ix2_slave) then 
+      slave%aperture_at = exit_end$
+    endif
+  end select
+
+  if (slave%aperture_at == no_end$) then
+    value(x_limit$) = 0
+    value(y_limit$) = 0
+    value(aperture$) = 0
+  endif
 
 end subroutine
 

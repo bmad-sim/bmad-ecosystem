@@ -156,6 +156,9 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
         endif
       enddo
 
+      nl=nl+1; write (li(nl), '(9x, 2a)') 'APERTURE_AT      = ', &
+                                  aperture_at_name(ele%aperture_at)
+
       if (associated(ele%a)) then
         particle = +1
         if (present(ring)) particle = ring%param%particle

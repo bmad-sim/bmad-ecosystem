@@ -159,7 +159,7 @@ subroutine track_back (ix1, ix2)
 ! check for lost particles
 
     if (ring%param%lost) then
-      ring%param%ix_lost = n - 1
+      ring%param%ix_lost = n 
       ix_last = n-1
       exit
     endif

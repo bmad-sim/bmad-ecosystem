@@ -204,6 +204,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 
         ele_out%value(x_limit$) = ele_in%value(x_limit$)
         ele_out%value(y_limit$) = ele_in%value(y_limit$)
+        ele_out%value(aperture$) = ele_in%value(aperture$)
 
         o_key = ele_out%key 
         if (ele_in%key == drift$ .and. &

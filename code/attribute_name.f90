@@ -63,6 +63,7 @@ function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, x_limit$)     = 'X_LIMIT'
       attrib_array(i, y_limit$)     = 'Y_LIMIT'
       attrib_array(i, aperture$)    = 'APERTURE'
+      attrib_array(i, aperture_at$) = 'APERTURE_AT'
       attrib_array(i, beam_energy$) = 'BEAM_ENERGY'
       attrib_array(i, p0c$)         = 'P0C'
       attrib_array(i, mat6_calc_method$)  = 'MAT6_CALC_METHOD'
