@@ -34,7 +34,7 @@ subroutine track1_taylor (start, ele, param, end)
     print *, 'WARNING FROM TRACK1_TAYLOR: TAYLOR SERIES NOT PRESENT FOR: ', &
                                                                       ele%name
     print *, '        I WILL MAKE A TAYLOR SERIES AROUND THE GIVEN ORBIT...'
-    call ele_to_taylor(ele, start, param)
+    call ele_to_taylor(ele, param, start)
   endif
 
   call track_taylor (start%vec, ele%taylor, end%vec)

@@ -31,7 +31,7 @@ subroutine make_mat6_taylor (ele, param, c0, c1)
 
 !
 
-  if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, c0, param)
+  if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, param, c0)
   call taylor_to_mat6 (ele%taylor, c0%vec, ele%mat6, c1%vec)
 
 end subroutine

@@ -64,7 +64,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
   type (ele_struct), pointer :: ele_in, ele_out
   type (real_8) y8(6)
 
-  real(rdef) e_vec(4)
+  real(rp) e_vec(4)
 
   integer j_in, i_out, ix_out(:), i
   integer n_ele, j, ix, ic, o_key
@@ -170,7 +170,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
           ele_out%tracking_method = taylor$
           ele_out%mat6_calc_method = taylor$
           if (.not. associated(ele_out%taylor(1)%term)) then ! construct taylor
-            call ele_to_taylor (ele_out, c0, r_in%param)
+            call ele_to_taylor (ele_out, r_in%param, c0)
           endif
         endif
 

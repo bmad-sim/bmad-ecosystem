@@ -1377,7 +1377,7 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine ele_to_taylor (ele, orb0, param)
+! Subroutine ele_to_taylor (ele, param, orb0)
 !
 ! Subroutine to make a taylor map for an element. 
 ! The order of the map is set by set_ptc
@@ -1391,7 +1391,7 @@ end subroutine
 !     %num_steps          -- Number of integrater steps.
 !   orb0  -- Coord_struct, optional: Starting coords around which the Taylor series 
 !              is evaluated.
-!   param -- Param_struct, optional: 
+!   param -- Param_struct: 
 !     %beam_energy -- Needed for wigglers.
 !
 ! Output:
@@ -1399,15 +1399,15 @@ end subroutine
 !     %taylor(6)  -- Taylor maps.
 !-
 
-subroutine ele_to_taylor (ele, orb0, param)
+subroutine ele_to_taylor (ele, param, orb0)
 
   use s_tracking
 
   implicit none
   
   type (ele_struct), intent(inout) :: ele
+  type (param_struct), intent(in) :: param
   type (coord_struct), optional, intent(in) :: orb0
-  type (param_struct), optional, intent(in) :: param
 
   type (fibre), pointer, save :: a_fibre
   type (real_8) y(6), y2(6)
