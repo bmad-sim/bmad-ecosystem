@@ -647,7 +647,7 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine kill_gen_field (gen_fieled)
+! Subroutine kill_gen_field (gen_field)
 !
 ! Subroutine to kill a gen_field.
 !
