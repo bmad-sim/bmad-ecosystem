@@ -766,7 +766,7 @@ subroutine load_parse_line (how, ix_cmd, file_end)
   if (how == 'init') then
     bp_com%parser_debug = .false.
     bp_com%no_digested = .false.
-    read (bp_com%f_unit, '(a)') line
+    read (bp_com%f_unit, '(a)', end = 9000) line
     if (index(line, '!PARSER_DEBUG')) then
       bp_com%parser_debug = .true.
       bp_com%debug_line = line
