@@ -322,21 +322,21 @@ end program
 \begin{figure}
 \begin{listing}{1}
 \&beam_init
-  init%x%beta = 4
-  init%x%alpha = 0.16
-  init%x%emit = 4.d-6
-  init%y%beta = 16
-  init%y%alpha = 4
-  init%y%emit = 1.0d-8
-  init%center = -5e-3, 1.0e-4, 1.0e-3, 0e-6, 0.0, 0.0
-  init%sig_e = 10e-3
-  init%sig_z = 10e-6
-  init%sig_e_cut = 3
-  init%sig_z_cut = 3
-  init%n_bunch = 1
-  init%n_slice = 2
-  init%n_macro = 1
-  init%n_part = 1e12
+  init%x%beta      = 4
+  init%x%alpha     = 0.16
+  init%x%norm_emit = 4.d-6  ! normalized emittance
+  init%y%beta      = 16
+  init%y%alpha     = 4
+  init%y%norm_emit = 1.0d-8 ! normalized emittance
+  init%center      = -5e-3, 1.0e-4, 1.0e-3, 0e-6, 0.0, 0.0
+  init%sig_e       = 10e-3
+  init%sig_z       = 10e-6
+  init%sig_e_cut   = 3
+  init%sig_z_cut   = 3
+  init%n_bunch     = 1
+  init%n_slice     = 2
+  init%n_macro     = 1
+  init%n_part      = 1e12
 /
 \end{listing}
 \caption{Example beam initialization file.}

@@ -4,7 +4,7 @@ module macroparticle_mod
   use bmad_interface
 
   type macro_init_twiss_struct
-    real(rp) beta, alpha, emit
+    real(rp) beta, alpha, norm_emit
   end type
 
   type macro_init_struct
@@ -1070,8 +1070,8 @@ subroutine init_macro_distribution (beam, init, canonical_out, liar_gaussian)
   bunch => beam%bunch(1)
   bunch%charge = init%n_part * e_charge
 
-  ex = init%x%emit * m_electron / init%E_0
-  ey = init%y%emit * m_electron / init%E_0
+  ex = init%x%norm_emit * m_electron / init%E_0
+  ey = init%y%norm_emit * m_electron / init%E_0
 
   do j = 1, init%n_slice
     z0 = (init%n_slice - 2*j + 1) * init%sig_z_cut / init%n_slice 
