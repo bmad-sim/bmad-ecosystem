@@ -75,7 +75,7 @@ elseif (what == 'ele_index') then
   maxx = s%u(s%global%u_view)%design%n_ele_use 
 elseif (what == 'index') then
 ! if no curves to scale then can't scale to index
-  if (.not. associated(plot%graph(1)%curve(1))) then
+  if (.not. associated(plot%graph(1)%curve)) then
     plot%valid = .false.
     return
   endif

@@ -407,7 +407,7 @@ case ('lattice')
   endif
   
   allocate (show_here(0:u%model%n_ele_use))
-  show_word3 = show_word2 // trim(show_word3)
+  show_word3 = trim(show_word2) // trim(show_word3)
   call location_decode (show_word3, show_here, 0, num_locations)
   if (num_locations .eq. -1) then
     call out_io (s_error$, r_name, "Syntax error in range list!")
