@@ -37,7 +37,7 @@ subroutine twiss_propagate1 (ele1, ele2)
   real(rp) v_mat(4,4), v_inv_mat(4,4), y_inv(2,2), det
   real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
   real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
-  real(rp) mat2(2,2), eta_x(4), eta_a(4)
+  real(rp) mat2(2,2), eta_x(4), eta_a(4), pz_2, eta1_vec(6)
 
 !---------------------------------------------------------------------
 ! init
@@ -141,6 +141,16 @@ subroutine twiss_propagate1 (ele1, ele2)
   endif
 
 !---------------------------------------------------------------------
+! Longitudinal eta
+
+  eta1_vec = (/ ele1%x%eta_lab, ele1%x%etap_lab, &
+           ele1%y%eta_lab, ele1%y%etap_lab, ele1%z%eta_lab, 1.0_rp /)
+
+  pz_2 = dot_product (ele2%mat6(6,:), eta1_vec)
+
+  ele2%z%eta = dot_product (ele2%mat6(5,:), eta1_vec) / pz_2
+  ele2%z%eta_lab = ele2%z%eta
+
 ! calculate components in transfer matrix for dispersion calc
 ! effective_mat6(i,6) = V_2^-1(i,j) * ele2.mat6(j,6)
 
@@ -150,7 +160,7 @@ subroutine twiss_propagate1 (ele1, ele2)
 ! propagate twiss
 
   ele_temp%mode_flip = ele2%mode_flip
-  call twiss_decoupled_propagate (ele1, ele_temp)   ! now calc new twiss
+  call twiss_decoupled_propagate (ele1, ele_temp, pz_2)   ! now calc new twiss
   ele2%x = ele_temp%x                     ! transfer twiss to ele2
   ele2%y = ele_temp%y
 
@@ -173,20 +183,32 @@ subroutine twiss_propagate1 (ele1, ele2)
   ele2%y%eta_lab  = eta_x(3)
   ele2%y%etap_lab = eta_x(4)
 
-
 end subroutine
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine TWISS_DECOUPLED_PROPAGATE (ele1, ele2)
+! Subroutine twiss_decoupled_propagate (ele1, ele2, pz_2)
 !
 ! Subroutine to propagate the twiss parameters from end of ELE1 to end of ELE2.
+! This routine assumes that the matrix ele2%mat6 is decoupled.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele1  -- Ele_struct: Structure holding the starting Twiss parameters.
+!   ele2  -- Ele_struct: Structure holding the transfer matrix.
+!   pz_2 -- Real(rp): p_z at end of ele2 assuming p_z = 1 at end of ele1.
+!             Except for RF cavities this is just 1.
+!
+! Output:
+!   ele2  -- Ele_struct: Structure for the ending Twiss parameters.
 !-
 
 
-subroutine twiss_decoupled_propagate (ele1, ele2)
+subroutine twiss_decoupled_propagate (ele1, ele2, pz_2)
 
   use bmad_struct
   use bmad_interface
@@ -196,7 +218,7 @@ subroutine twiss_decoupled_propagate (ele1, ele2)
   type (ele_struct)  ele1, ele2
 
   real(rp) m11, m12, m21, m22, a1, b1, g1, del_phi
-  real(rp) a2, b2, g2
+  real(rp) a2, b2, g2, pz_2
 
 ! Basic equation is given by Bovet 2.5.b page 16
 ! Propagate A mode ("X") of ele1
@@ -222,15 +244,15 @@ subroutine twiss_decoupled_propagate (ele1, ele2)
     ele2%x%beta = b2
     ele2%x%alpha = a2
     ele2%x%gamma = g2
-    ele2%x%eta  = m11*ele1%x%eta + m12*ele1%x%etap + ele2%mat6(1,6)
-    ele2%x%etap = m21*ele1%x%eta + m22*ele1%x%etap + ele2%mat6(2,6)
+    ele2%x%eta  = (m11*ele1%x%eta + m12*ele1%x%etap + ele2%mat6(1,6)) / pz_2
+    ele2%x%etap = (m21*ele1%x%eta + m22*ele1%x%etap + ele2%mat6(2,6)) / pz_2
     ele2%x%phi = ele1%x%phi + del_phi
   else
     ele2%y%beta = b2
     ele2%y%alpha = a2
     ele2%y%gamma = g2
-    ele2%y%eta  = m11*ele1%x%eta + m12*ele1%x%etap + ele2%mat6(3,6)
-    ele2%y%etap = m21*ele1%x%eta + m22*ele1%x%etap + ele2%mat6(4,6)
+    ele2%y%eta  = (m11*ele1%x%eta + m12*ele1%x%etap + ele2%mat6(3,6)) / pz_2
+    ele2%y%etap = (m21*ele1%x%eta + m22*ele1%x%etap + ele2%mat6(4,6)) / pz_2
     ele2%y%phi = ele1%x%phi + del_phi
   endif
 

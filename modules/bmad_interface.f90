@@ -974,6 +974,14 @@ interface
 end interface
 
 interface
+  subroutine twiss_decoupled_propagate (ele1, ele2, delta)
+    use bmad_struct, only: ele_struct, rp
+    type (ele_struct) ele1, ele2
+    real(rp) delta
+  end subroutine
+end interface
+
+interface
   subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
     use bmad_struct, only: ele_struct, rp
     implicit none

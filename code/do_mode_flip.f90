@@ -53,7 +53,7 @@ subroutine do_mode_flip (ele, ele_flip)
   ele2%mat6(1:2,1:2) = -c_conj / gamma_flip
   ele2%mat6(3:4,3:4) = ele%c_mat/gamma_flip
 
-  call twiss_decoupled_propagate (ele, ele2)
+  call twiss_decoupled_propagate (ele, ele2, 1.0_rp)
 
   ele_flip = ele
   ele_flip%mode_flip = .not. ele%mode_flip
