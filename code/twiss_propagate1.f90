@@ -112,7 +112,7 @@ subroutine twiss_propagate1 (ele1, ele2)
 
     else
 
-      if (bmad_status%type_out) print *, 'TWISS_PROPAGATE1: MODE_FLIPPED'
+!!      if (bmad_status%type_out) print *, 'TWISS_PROPAGATE1: MODE_FLIPPED'
 
       mat2 = matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m
       call mat_det (mat2, det)
@@ -151,6 +151,7 @@ subroutine twiss_propagate1 (ele1, ele2)
 
 ! propagate twiss
 
+  ele_temp%mode_flip = ele2%mode_flip
   call twiss_decoupled_propagate (ele1, ele_temp)   ! now calc new twiss
   ele2%x = ele_temp%x                     ! transfer twiss to ele2
   ele2%y = ele_temp%y
