@@ -414,10 +414,10 @@ case ('lattice')
   endif
 
 
-  write (lines(nl+2), '(29x, 23x, a)') &
+  write (lines(nl+2), '(29x, 20x, a)') &
                      '|              X           |             Y        '
   write (lines(nl+3), '(6x, a, 16x, a)') ' Name             key', &
-                  '   S  |  Beta     Phi  Eta   Orb | Beta     Phi  Eta   Orb'
+                  '   S  |  Beta   Phi   Eta  Orb   | Beta    Phi    Eta   Orb'
 
   nl=nl+3
   do ix = ix1, ix2
@@ -430,7 +430,7 @@ case ('lattice')
                 u%model%param, ele%value(l$)/2, ele3, u%model_orb(ix-1), orb)
     endif
     nl=nl+1
-    write (lines(nl), '(i6, 1x, a16, 1x, a16, f8.3, 2(f7.2, f8.3, f5.1, f8.3))') &
+    write (lines(nl), '(i6, 1x, a16, 1x, a16, f10.3, 2(f7.2, f8.3, f5.1, f8.3))') &
           ix, ele%name, key_name(ele%key), ele%s-ele%value(l$)/2, &
           ele3%x%beta, f_phi*ele3%x%phi, ele3%x%eta, 1000*orb%vec(1), &
           ele3%y%beta, f_phi*ele3%y%phi, ele3%y%eta, 1000*orb%vec(3)

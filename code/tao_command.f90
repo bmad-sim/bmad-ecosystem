@@ -236,6 +236,10 @@ subroutine tao_command (command_line, err)
   case ('reinitialize')
 
     call cmd_split(2, .false., err)
+
+    call out_io (s_warn$, r_name, &
+         "Use this command with caution. There is a memory leak somwhere!")
+    
 ! quit the plot window so it will be recreated    
     call qp_close_page
     s%global%init_plot_needed = .true.

@@ -1087,10 +1087,13 @@ type (tao_universe_struct) u
 type (macro_init_struct) macro_init
 character(*) sr_wake_file, lr_wake_file
 
-integer j, jj
+integer j
+
 integer, pointer :: ix_lcav(:)
 
 !
+  if (s%global%track_type .eq. 'single') return
+
   if (u%design%param%lattice_type .eq. circular_lattice$) then
     call out_io (s_blank$, r_name, &
                  "This is a circular lattice.")
@@ -1123,6 +1126,12 @@ integer, pointer :: ix_lcav(:)
 
   u%beam%macro_init = macro_init
   call init_macro_distribution (u%beam%beam, macro_init, .true.)
+
+  ! keep track of where macros are lost
+  j = macro_init%n_macro * macro_init%n_slice * macro_init%n_bunch
+  if (associated (u%beam%ix_lost)) deallocate (u%beam%ix_lost)
+  allocate (u%beam%ix_lost(j))
+  u%beam%ix_lost(:) = -1
 
 end subroutine init_macro
   

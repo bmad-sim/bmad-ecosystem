@@ -17,7 +17,7 @@ contains
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_lattice_calc (universe, lattice, orbit)
+! Subroutine tao_lattice_calc (init_design)
 !
 ! Routine to calculate the lattice functions.
 ! 
@@ -84,10 +84,13 @@ if (s%global%lattice_recalc) then
         if (.not. used(i)) then
 	  call tao_lat_bookkeeper (s%u(i)%design)
           ! set up matching element
-	  call match_lats_init (s%u(i))
+	  call tao_match_lats_init (s%u(i))
 	  call compute_element_energy (s%u(i)%design)
-          call inject_particle (s%u(i), s%u(i)%design, s%u(i)%design_orb, from_design$)
+          call tao_inject_particle (s%u(i), s%u(i)%design, s%u(i)%design_orb, from_design$)
           call twiss_and_track (s%u(i)%design, s%u(i)%design_orb)
+          if (s%u(i)%design%param%lost) &
+            call out_io (s_blank$, r_name, "particle lost at element \I\.", &
+                                                s%u(i)%design%param%ix_lost)
         endif
       enddo
     else
@@ -95,8 +98,11 @@ if (s%global%lattice_recalc) then
         if (.not. used(i)) then
 	  call tao_lat_bookkeeper (s%u(i)%model)
 	  call compute_element_energy (s%u(i)%model)
-          call inject_particle (s%u(i), s%u(i)%model, s%u(i)%model_orb, from_model$)
+          call tao_inject_particle (s%u(i), s%u(i)%model, s%u(i)%model_orb, from_model$)
           call twiss_and_track (s%u(i)%model, s%u(i)%model_orb)
+          if (s%u(i)%model%param%lost) &
+            call out_io (s_blank$, r_name, "particle lost at element \I\.", &
+                                                s%u(i)%model%param%ix_lost)
         endif
       enddo
     endif
@@ -107,10 +113,10 @@ if (s%global%lattice_recalc) then
         if (.not. used(i)) then
 	  call tao_lat_bookkeeper (s%u(i)%design)
           ! set up matching element
-	  call match_lats_init (s%u(i))
+	  call tao_match_lats_init (s%u(i))
 	  call compute_element_energy (s%u(i)%design)
-          call inject_beam (s%u(i), s%u(i)%design, s%u(i)%design_orb, from_design$)
-          call macro_track (i, s%u(i)%design, s%u(i)%design_orb)
+          call tao_inject_beam (s%u(i), s%u(i)%design, s%u(i)%design_orb, from_design$)
+          call tao_macro_track (i, s%u(i)%design, s%u(i)%design_orb)
 	endif
       enddo
     else
@@ -118,8 +124,8 @@ if (s%global%lattice_recalc) then
         if (.not. used(i)) then
 	  call tao_lat_bookkeeper (s%u(i)%model)
 	  call compute_element_energy (s%u(i)%model)
-          call inject_beam (s%u(i), s%u(i)%model, s%u(i)%model_orb, from_model$)
-          call macro_track (i, s%u(i)%model, s%u(i)%model_orb)
+          call tao_inject_beam (s%u(i), s%u(i)%model, s%u(i)%model_orb, from_model$)
+          call tao_macro_track (i, s%u(i)%model, s%u(i)%model_orb)
 	endif
       enddo
     endif
@@ -142,7 +148,7 @@ end subroutine tao_lattice_calc
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine macro_track (uni, lat, orb)
+subroutine tao_macro_track (uni, lat, orb)
 
 implicit none
 
@@ -239,7 +245,7 @@ character(20) :: r_name = "macro_track"
     endif
     
     ! compute centroid orbit
-    call find_beam_centroid (beam, orb(ix2))
+    call tao_find_beam_centroid (beam, orb(ix2), ix2, u%beam)
     
     ix1 = ix2
   enddo
@@ -247,41 +253,76 @@ character(20) :: r_name = "macro_track"
   call ring_make_mat6 (lat, -1, orb)
   call twiss_propagate_all (lat)
 
-end subroutine macro_track
+end subroutine tao_macro_track
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
+!
+! Find the centroid of all macroparticles in all slices in all bunches
+! Also keep track of lost macroparticles if the optional arguments are passed
 
-subroutine find_beam_centroid (beam, orb)
+subroutine tao_find_beam_centroid (beam, orb, ix_ele, u_beam)
 
 implicit none
 
 type (beam_struct), target :: beam
 type (coord_struct) :: orb, coord
+integer, optional :: ix_ele
+type (tao_beam_struct), optional :: u_beam
 type (macro_struct), pointer :: macro
 
 real charge, tot_charge
 
 integer n_bunch, n_slice, n_macro
 
+logical record_lost
+
+character(20) :: r_name = "tao_find_beam_centroid"
+
+  ! are we checking keep track of lost particles?
+  if (present(ix_ele) .and. present(u_beam)) then
+    record_lost = .true.
+  else
+    record_lost = .false.
+  endif
+
   tot_charge = 0.0
   coord%vec = 0.0
 
-  do n_bunch = 1, size(beam%bunch)
-    do n_slice = 1, size(beam%bunch(n_bunch)%slice)
-      do n_macro = 1, size(beam%bunch(n_bunch)%slice(n_slice)%macro)
+  bunch_loop: do n_bunch = 1, size(beam%bunch)
+    slice_loop: do n_slice = 1, size(beam%bunch(n_bunch)%slice)
+      macro_loop: do n_macro = 1, size(beam%bunch(n_bunch)%slice(n_slice)%macro)
+        ! only average over particles that haven't been lost
+	if (record_lost) then
+          if (u_beam%ix_lost(n_bunch*n_slice*n_macro) .ne. -1) cycle macro_loop
+	else
+	  if (macro%lost) cycle macro_loop
+	endif
         macro => beam%bunch(n_bunch)%slice(n_slice)%macro(n_macro)
+	! check for lost macro through this element
+	if (macro%lost .and. record_lost) then
+	  u_beam%ix_lost(n_bunch*n_slice*n_macro) = ix_ele
+          call out_io (s_blank$, r_name, "Macroparticle lost at element \I\.", &
+                                               ix_ele )
+	  cycle macro_loop
+	endif
         charge = macro%charge
+	tot_charge = tot_charge + charge
 	coord%vec = coord%vec + charge * macro%r%vec
-      enddo
-    enddo
-  enddo
+      enddo macro_loop
+    enddo slice_loop
+  enddo bunch_loop
       
-  ! average thing
+  ! average
 
-  orb%vec = coord%vec / sum(beam%bunch(:)%charge)
+  if (tot_charge .ne. 0) then
+    orb%vec = coord%vec / tot_charge
+  else 
+    ! lost all macros
+    orb%vec = 0.0
+  endif
  
-end subroutine find_beam_centroid
+end subroutine tao_find_beam_centroid
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -290,7 +331,7 @@ end subroutine find_beam_centroid
 ! preparation for tracking. The lattice where the extraction occurs will have
 ! already been calculated
 
-subroutine inject_particle (u, lat, orbit, from_where)
+subroutine tao_inject_particle (u, lat, orbit, from_where)
 
 implicit none
 
@@ -343,7 +384,7 @@ character(20) :: r_name = "inject_particle"
   lat%ele_(0)%floor   = extract_ele%floor
   orbit(0)      = pos
 		    
-end subroutine inject_particle
+end subroutine tao_inject_particle
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -352,7 +393,7 @@ end subroutine inject_particle
 ! preparation for tracking. The lattice where the extraction occurs will have
 ! already been calculated.
 
-subroutine inject_beam (u, lat, orbit, from_where)
+subroutine tao_inject_beam (u, lat, orbit, from_where)
 
 implicit none
  
@@ -397,9 +438,9 @@ character(20) :: r_name = "inject_beam"
   lat%ele_(0)%gamma_c = extract_ele%gamma_c
   lat%ele_(0)%floor   = extract_ele%floor
   u%beam%beam = u%coupling%injecting_beam
-  call find_beam_centroid (u%coupling%injecting_beam, orbit(0))
+  call tao_find_beam_centroid (u%coupling%injecting_beam, orbit(0))
 
-end subroutine inject_beam
+end subroutine tao_inject_beam
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -408,7 +449,7 @@ end subroutine inject_beam
 ! extraction occurs will have already been calculated but the injected lattice
 ! will not have been calculated yet.
 
-subroutine match_lats_init (u)
+subroutine tao_match_lats_init (u)
 
 implicit none
 
@@ -487,6 +528,6 @@ character(20) :: r_name = "match_lats_init"
   ! it's a linear element so no orbit need be passed
   call make_mat6 (coupling_ele, s%u(u%coupling%from_uni)%design%param)
   
-end subroutine  match_lats_init
+end subroutine  tao_match_lats_init
  
 end module tao_lattice_calc_mod

@@ -370,6 +370,8 @@ end type
 type tao_beam_struct
   type (beam_struct) beam             ! macroparticle beam
   type (macro_init_struct) macro_init ! macro distribution at beginning of lat
+  ! this counts through all bunches and slices starting with bunch(1)%slice(1)
+  integer, pointer :: ix_lost(:)  ! if .ne. -1 then this macro lost at this ele
 end type
 
 !-----------------------------------------------------------------------
