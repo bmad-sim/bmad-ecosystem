@@ -73,6 +73,26 @@ module bmad_interface
   end interface
 
   interface
+    subroutine bmad_to_cesr (ring, cesr)
+      use bmad_struct
+      use cesr_mod
+      implicit none
+      type (ring_struct) ring
+      type (cesr_struct) cesr
+    end subroutine
+  end interface
+
+  interface
+    subroutine bmad_to_db (ring, db)
+      use bmad_struct
+      use cesr_mod
+      implicit none
+      type (ring_struct) ring
+      type (db_struct) db
+    end subroutine
+  end interface
+
+  interface
     subroutine c_to_cbar (ele, cbar_mat)
       use bmad_struct
       implicit none
@@ -254,6 +274,40 @@ module bmad_interface
       implicit none
       type (ele_struct), intent(in) :: ele
       type (coord_struct), intent(out) :: disp_orb
+    end subroutine
+  end interface
+
+  interface
+    subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, ring, db, &
+                                                con_, n_con, ok, type_err)
+      use bmad_struct
+      use cesr_mod
+      implicit none
+      type (ring_struct) ring
+      type (db_struct) db
+      type (control_struct) con_(:)
+      integer n_con
+      integer ing_num
+      integer biggrp_set
+      character*12 ing_name
+      logical ok, type_err
+    end subroutine
+  end interface
+
+  interface
+    subroutine db_group_to_bmad_group (group_name, group_num, i_biggrp, &
+                                           ring, db, ix_ele, ok, type_err)
+      use bmad_struct
+      use cesr_mod
+      implicit none
+      type (ring_struct) ring
+      type (db_struct) db
+      integer group_num
+      integer ix_ele
+      integer i_biggrp
+      character*12 group_name
+      logical ok
+      logical type_err
     end subroutine
   end interface
 
@@ -665,12 +719,40 @@ module bmad_interface
   end interface
 
   interface
+    subroutine quad_calib (lattice, k_theory, k_base,  &
+                     len_quad, cu_per_k_gev, quad_rot, dk_gev_dcu, cu_theory)
+      use precision_def
+      implicit none
+      character lattice*(*)
+      real(rdef) k_theory(0:*)
+      real(rdef) k_base(0:*)
+      real(rdef) len_quad(0:*)
+      real(rdef) cu_per_k_gev(0:*)
+      real(rdef) dk_gev_dcu(0:*)
+      real(rdef) quad_rot(0:*)
+      integer cu_theory(0:*)
+    end subroutine
+  end interface
+
+  interface
     subroutine radiation_integrals (ring, orb_, mode)
       use bmad_struct
       implicit none
       type (ring_struct), target :: ring
       type (coord_struct), target :: orb_(0:)
       type (modes_struct) mode
+    end subroutine
+  end interface
+
+  interface
+    subroutine read_butns_file (butns_num, butns, db, ok, type_err)
+      use bmad_struct
+      use cesr_mod
+      implicit none
+      type (db_struct) db
+      type (butns_struct) butns
+      integer butns_num
+      logical ok, type_err
     end subroutine
   end interface
 
@@ -724,6 +806,24 @@ module bmad_interface
       character*(*) attrib_name
       logical make_mat6_flag
       logical err_flag
+    end subroutine
+  end interface
+
+  interface
+    subroutine ring_to_quad_calib (ring, cesr, k_theory, k_base,  &
+                     len_quad, cu_per_k_gev, quad_rot, dk_gev_dcu, cu_theory)
+      use bmad_struct
+      use cesr_mod
+      implicit none
+      type (cesr_struct)  cesr
+      type (ring_struct)  ring
+      real(rdef) k_theory(0:*)
+      real(rdef) k_base(0:*)
+      real(rdef) len_quad(0:*)
+      real(rdef) cu_per_k_gev(0:*)
+      real(rdef) dk_gev_dcu(0:*)
+      real(rdef) quad_rot(0:*)
+      integer cu_theory(0:*)
     end subroutine
   end interface
 
