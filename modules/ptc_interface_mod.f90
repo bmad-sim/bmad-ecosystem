@@ -1743,18 +1743,23 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
     el%delta_e = 0
 
   case (elseparator$)
-!    el%kind = drift_kick_drift  ! kind2
     el%kind = kind15
-    if (ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0) then
+    hk = ele%value(hkick$) / len
+    vk = ele%value(vkick$) / len
+    if (hk == 0 .and. vk == 0) then
       el%tilt = 0
     else
-      el%tilt = -atan2 (ele%value(hkick$), ele%value(vkick$))
+      if (param%particle < 0) then
+        hk = -hk
+        vk = -vk
+      endif
+      el%tilt = -atan2 (hk, vk)
     endif
-    el%volt = (1e-6 * param%beam_energy / len) * &
-                   sqrt(ele%value(hkick$)**2 + ele%value(vkick$)**2)
+    el%volt = 1e-6 * param%beam_energy * sqrt(hk**2 + vk**2)
     call multipole_ele_to_ab (ele, param%particle, an0, bn0, .false.) 
     if (any(an0 /= 0) .or. any(bn0 /= 0)) then
-      print *, 'ERROR IN ELE_TO_FIBRE: MULTIPOLES IN AN ELSEPARATOR NOT SUPPORTED IN A FIBRE'
+      print *, 'ERROR IN ELE_TO_FIBRE: ', &
+                       'MULTIPOLES IN AN ELSEPARATOR NOT SUPPORTED IN A FIBRE.'
       call err_exit
     endif
 
@@ -1790,10 +1795,6 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
       sin_t = sin(ele%value(tilt$))
       hk = ele%value(hkick$) / len
       vk = ele%value(vkick$) / len
-      if (param%particle < 0) then
-        hk = -hk
-        vk = -vk
-      endif
       el%k(1)  = -hk * cos_t - vk * sin_t
       el%ks(1) = -hk * sin_t + vk * cos_t
     endif
