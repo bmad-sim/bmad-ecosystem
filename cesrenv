@@ -28,13 +28,14 @@ setenv CESR_CVSROOT $CESR_/cvsroot
 #
 setenv CESR_LIB $CESR_/$CESRLIB
 #
-setenv CESR_EXE			$CESR_LIB/bin
-setenv CESR_RUN			$CESR_LIB/run
 setenv CESR_CONFIG	$CESR_LIB/config
 setenv CESR_CVSSRC	$CESR_LIB/cvssrc
+setenv CESR_EXE			$CESR_LIB/bin
+setenv CESR_GMAKE   $CESR_LIB/Gmake
 setenv CESR_INC     $CESR_LIB/include
 setenv CESR_MOD     $CESR_LIB/modules
-setenv CESR_GMAKE   $CESR_LIB/Gmake
+setenv CESR_RUN			$CESR_LIB/run
+setenv CESR_UTIL    $CESR_LIB/util
 
 #
 #------  CESR constants  ------
@@ -52,6 +53,9 @@ setenv BMAD_LAYOUT	$CESR_CONFIG/bmad/layout
 # $Id$
 #
 # $Log$
+# Revision 1.3  2001/10/04 17:21:48  palmer
+# New scripts for doing CESR fortran 90 dependencies.
+#
 # Revision 1.2  2001/09/29 21:20:50  palmer
 # Fix path to CESR cvsroot area.
 #

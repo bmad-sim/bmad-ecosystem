@@ -1,0 +1,177 @@
+#!/bin/sh
+#-----------------------------------------------------------------
+# Script to check Fortran 90 dependencies in CESR code
+#
+# Useage:
+#
+#   cesrdepend [-I<directory>... -MOD"<list>"... -MP<directory>] <filename>
+# 
+# Control Flags:
+#   
+#   -I<directory>      specifies a directory to search for a 
+#                      Fortran module or include file.  This 
+#                      flag can be used multiple times.
+#   -MOD"a b c"        specifies that modules a, b, and c are 
+#                      to be searched for locally.  This flag 
+#                      can be used multiple times.
+#   -MP<directory>     specifies the local compiled module output 
+#                      directory.  Only one instance of this flag
+#                      is expected.
+#   -PRE<prefix>       dependency target prefix
+#   -SUF<suffix>       dependency target suffix
+#
+#   NOTE:  the order of the control flags is unimportant
+#
+# M. Palmer   7/25/00
+#
+# Modifications:
+#
+# MAP -  7/28/00 - Switch over to using the new depend_parse.awk
+#
+# MAP - 10/02/01 - Major upgrade to allow for search paths
+#
+#-----------------------------------------------------------------
+#
+# $Id$
+#
+# $Log$
+# Revision 1.1  2001/10/04 17:21:48  palmer
+# New scripts for doing CESR fortran 90 dependencies.
+#
+#
+
+#-----------------------------------------------------------------
+# Get the input count
+#-----------------------------------------------------------------
+num_arg=$#
+
+
+#-----------------------------------------------------------------
+# Initializations
+#-----------------------------------------------------------------
+arg_cnt=0
+FILE_LIST=""
+SEARCH_PATH="."
+LOCAL_MODS=""
+LOCAL_MPATH="."
+TARGET_PRE=""
+TARGET_SUF="d"
+
+
+#-----------------------------------------------------------------
+# Set up some variables
+#-----------------------------------------------------------------
+CPP=/usr/bin/cpp
+CPP_FLAGS="-C"
+BIN_DIR=${CESR_EXE}
+
+
+#-----------------------------------------------------------------
+# Loop over all arguments and sort by type
+#-----------------------------------------------------------------
+while ( [ ${arg_cnt} -lt ${num_arg} ] ); do
+
+		arg=$1
+		arg_cnt=`expr ${arg_cnt} + 1`
+		shift
+
+#   Parse control flags and inputs
+		ival=`echo ${arg} | awk '/-I/{printf("1")};/-MOD/{printf("2")};/-MP/{printf("3")};/-PRE/{printf("4")};/-SUF/{printf("5")}'`
+
+#   Prevent sending an empty variable to "test" and generate internal lists
+		ival="_${ival}_"
+		if ( [ ${ival} = "__" ] ) then
+		  FILE_LIST="${FILE_LIST} ${arg}"
+		elif ( [ ${ival} = "_1_" ] ) then
+			val=`echo ${arg} | awk '// {printf("%s",substr($0,3))}'`
+			SEARCH_PATH="${SEARCH_PATH} ${val}"
+      CPP_FLAGS="${CPP_FLAGS} ${arg}"
+		elif ( [ ${ival} = "_2_" ] ) then
+		  val=`echo ${arg} | awk '// {printf("%s",substr($0,5))}'`
+			LOCAL_MODS="${LOCAL_MODS} ${val}"
+		elif ( [ ${ival} = "_3_" ] ) then
+		  val=`echo ${arg} | awk '// {printf("%s",substr($0,4))}'`
+			LOCAL_MPATH="${val}"
+		elif ( [ ${ival} = "_4_" ] ) then
+		  val=`echo ${arg} | awk '// {printf("%s",substr($0,5))}'`
+			TARGET_PRE="${val}"
+		elif ( [ ${ival} = "_5_" ] ) then
+		  val=`echo ${arg} | awk '// {printf("%s",substr($0,5))}'`
+			TARGET_SUF="${val}"
+		fi
+
+done
+
+# Some debugging dumps
+#echo "FILE_LIST  :  ${FILE_LIST}"   >&2
+#echo "SEARCH_PATH:  ${SEARCH_PATH}" >&2
+#echo "LOCAL_MODS :  ${LOCAL_MODS}"  >&2
+#echo "LOCAL_MPATH:  ${LOCAL_MPATH}" >&2
+#echo "TARGET_PRE :   ${TARGET_PRE}" >&2
+#echo "TARGET_SUF :   ${TARGET_SUF}" >&2
+
+
+#-----------------------------------------------------------------
+# Generate the dependency lists
+#-----------------------------------------------------------------
+for file in ${FILE_LIST}; do
+
+  fname=`basename ${file}`  
+  fbase=`echo ${fname} | sed s/\.f90// | sed s/\.f77// | sed s/\.for// | sed s/\.F// `
+  
+	target="${TARGET_PRE}${fbase}${TARGET_SUF}:"
+
+	dep_list=`${CPP} ${CPP_FLAGS} ${file} | awk -f ${BIN_DIR}/fort_depend.awk`
+
+  full_dep_list=""
+
+	for dep in ${dep_list}; do
+		found=0
+		for mod in ${LOCAL_MODS}; do 
+			if ( [ ${dep} = ${mod} ] ) then
+  			found=1
+        full_dep_list="${full_dep_list} ${LOCAL_MPATH}/${dep}"
+				break
+      fi
+    done
+
+    if ( [ ${found} -eq 0 ] ) then
+		  for dir in ${SEARCH_PATH}; do
+			  full_dep=${dir}/${dep}
+				if ( [ -e ${full_dep} ] ) then
+					found=1
+					full_dep_list="${full_dep_list} ${full_dep}"
+					break
+				fi
+			done
+		fi
+
+		if ( [ ${found} -eq 0 ] ) then
+
+		  is_mod=`echo ${dep} | awk '/\.mod/ {printf("1")}'`
+			is_mod="_${is_mod}_"
+			if ( [ ${is_mod} = "_1_" ] ) then
+
+#       Assign dependency of unfound modules to the local module directory
+				full_dep_list="${full_dep_list} ${LOCAL_MPATH}/${dep}"
+
+			else
+
+#       Declare a warning if can't find an include file
+				echo "Cannot find ${dep} in:" >&2
+				for dir in ${SEARCH_PATH}; do
+				  echo "  ${dir}">&2
+				done
+
+			fi
+		fi
+
+  done
+
+  echo "${target} ${full_dep_list}"
+
+done
+
+exit
+
+
