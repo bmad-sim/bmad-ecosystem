@@ -15,7 +15,7 @@ $F90_LMOD_RULE ="\t\@\$(ECHO) \"F90_LMOD_RULE: Compiling :  \$< --> \$\@\"
 $F90_MOD_RULE="\t\@\$(ECHO) \"F90_MOD_RULE: Compiling :  \$< --> \$\@\"
 \t\$(CPP) \$(CPPFLAG) \$(LIST_INCS) \$<
 \t\$(FC)  \$(FFLAGS) \$(F90FLAGS) \$(LIST_INCS) \$(OFLAG) \$(notdir \$(patsubst %.f90,%.i,\$<))
-\t\$(CP) \$(notdir \$(patsubst %.f90,%.obj,\$<));* \$(CLBASE).lib]
+\t\$(CP) \$(notdir \$(patsubst %.f90,%.obj,\$<));* \$(locallib)
 \t\$(RM) \$(notdir \$(patsubst %.f90,%.obj,\$<));*
 \t\$(RM) \$(notdir \$(patsubst %.f90,%.i,\$<));*\n";
 
@@ -194,17 +194,18 @@ sub rm_home_packages {
     @prereqs =  split " " ,$smlist;
 }
 #this subroutine does the following:
-#1. It changes $(CESR_INC)/            to [--.include]
-#2.    -||-    $(CESR_MOD)/            to $(MOD_OUT_DIR)
-#3.    -||-    $(CESR_PKG)/modules/    to $(PKG_MOD)
+#NA 1. It changes $(CESR_INC)/            to [--.include]
+#NA 2.    -||-    $(CESR_MOD)/            to $(MOD_OUT_DIR)
+#3.    -||-    $(CESR_PKG)/modules/    to $(PBASE).modules]
 #4.    -||-    $(CESR_PKG)/cfortran/include/   $(PBASE).cfortran.include]
 sub take_care_of_some_variables {
     local($varP,$smlist);
     foreach $varP (@prereqs){
-        $varP =~ s/\$\(CESR_INC\)\//\[--\.include\]/g;
-        $varP =~ s/\$\(CESR_MOD\)\//\$\(MOD_OUT_DIR\)/g;
-        $varP =~ s/\$\(CESR_PKG\)\/modules\//\$\(PKG_MOD\)/g;
+#        $varP =~ s/\$\(CESR_INC\)\//\[--\.include\]/g;
+#        $varP =~ s/\$\(CESR_MOD\)\//\$\(MOD_OUT_DIR\)/g;
+        $varP =~ s/\$\(CESR_PKG\)\/modules\//\$\(PBASE\)\.Modules\]/g;
         $varP =~ s/\$\(CESR_PKG\)\/cfortran\/include\//\$\(PBASE\)\.cfortran\.include\]/g;
+        $varP =~ s/\.\.\/c_utils\/include\//\$\(CLBASE\)\.cvssrc\.c_utils\.include\]/g;
     }
     $smlist = join " ",@prereqs;
     @prereqs =  split " " ,$smlist;
@@ -232,6 +233,7 @@ sub gendepfullname {
             $listfilek{$x}=~s/\B\//\$(CLBASE)\.$cvssrcdot/g;
             $listfilek{$x}=~s/\//\./g;
             $listfilek{$x}=~s/\-/\_/g;
+            $listfilek{$x}=~s/\B\$\(CLBASE\)\.cvssrc\./\[--\./g;
             $listfilek{$x}="$listfilek{$x}]";
         }
         close (FILE03)|| die "can not close file tmp03.dat";
