@@ -7,33 +7,31 @@ $master_dir="/home/cesrulib/cesr_libs";
 $recent_pkg=$ENV{CESR_PKG};
 $linux="";
 $whole=0;
+@is_linux=`uname`;
+if($is_linux[0]=~/inux/)
+ {$linux="_lnx";}
 
-open (STDOUT,">buildlog_packages_$ARGV[0]");
+open (STDOUT,">buildlog_$ARGV[0]");
 open (STDERR,">&STDOUT");
 
-autoflush STDERR 1;
 autoflush STDOUT 1;
-
+autoflush STDERR 1;
 
 if (!$ARGV[0])
  {die ("\nincorrect arguments\n");}
-elsif($ARGV[1])
- {
-  $linux="_lnx";
- }
 if ($ARGV[0]=~/[0-9]{4}_[0-9]{4}/)
  {
   $whole=1;
-  makewholerelease($master_dir, $ARGV[0], $linux);
+  makewholerelease($master_dir, $ARGV[0]);
  }
 elsif ($ARGV[0] eq "PGPLOT")
- {sure(); makePGPLOT($recent_pkg, $linux);}
+ {sure(); makePGPLOT($recent_pkg);}
 elsif ($ARGV[0] eq "cfortran")
  {sure(); makecfortran($recent_pkg);}
 elsif ($ARGV[0] eq "forest")
  {sure(); makeforest($recent_pkg);}
 elsif ($ARGV[0] eq "recipes_f-90")
- {sure(); makerecipes_f90($recent_pkg, $linux);}
+ {sure(); makerecipes_f90($recent_pkg);}
 elsif ($ARGV[0] eq "recipes_c-ansi")
  {sure(); makerecipes_cansi($recent_pkg);}
 
@@ -41,13 +39,11 @@ close(STDOUT);
 close(STDERR);
 if($whole)
  {
-  `cp build_stdout_pkg $master_dir/packages_$ARGV[0]$linux/build_stdout`;
-  `cp build_stderr_pkg $master_dir/packages_$ARGV[0]$linux/build_stderr`;
+  `cp ./buildlog_$ARGV[0] /home/cesrulib/cesr_libs/log/Build/log_$ARGV[0]/`;
  }
 else
  {
-  `cp build_stdout_pkg $recent_pkg/log/$ARGV[0]_rebuild_stdout`;
-  `cp build_stderr_pkg $recent_pkg/log/$ARGV[0]_rebuild_stderr`;
+  `cp ./buildlog_$ARGV[0] /home/cesrulib/cesr_libs/log/log_$ARGV[0]_rebuild`;
  } 
 
 
@@ -66,8 +62,7 @@ sub makewholerelease()
  {
   $master_dir=$_[0];
   $date=$_[1];
-  $linux=$_[2];
-  $new_pkg="$master_dir/packages_$date$linux";
+  $new_pkg="$master_dir/$date";
   if(-d $new_pkg)
    {die ("\npackage release already exists\n");}
   else
@@ -76,17 +71,16 @@ sub makewholerelease()
     mkdir("$new_pkg/lib");
     mkdir("$new_pkg/log");
    }
-  makePGPLOT($new_pkg, $linux);
+  makePGPLOT($new_pkg);
   makecfortran($new_pkg);
   makeforest($new_pkg);
-  makerecipes_f90($new_pkg, $linux);
+  makerecipes_f90($new_pkg);
   makerecipes_cansi($new_pkg);
  }
 
 sub makePGPLOT()
  {
   $pkg_dir=$_[0];
-  $linux=$_[1];
   chdir($pkg_dir);
   if(-d "PGPLOT")
    {
@@ -95,7 +89,7 @@ sub makePGPLOT()
    }
   `cvs -d \$CESR_CVSROOT co PGPLOT`;
   chdir("./PGPLOT");
-  if($linux eq "_lnx")
+  if($linux=~/lnx/)
    {print `makemake . linux g77_gcc`;}
   else
    {print `makemake . osf1 f77_cc`;}
@@ -132,12 +126,11 @@ sub makeforest()
 sub makerecipes_f90()
  {
   $pkg_dir=$_[0];
-  $linux=$_[1];
-  if($linux eq "_lnx")
+  if($linux=~/lnx/)
    {
     $F90OPTS="";
     $F90OPTS_g="-g";
-    $F90="lf95";
+    $F90="/opt/lf9561/bin/lf95";
    }
   else
    {
@@ -176,11 +169,15 @@ sub makerecipes_cansi()
    }
   `cvs -d \$CESR_CVSROOT co recipes_c-ansi`;
   chdir("./recipes_c-ansi");
-  print `gmake -f makefile_cesr NRROOT="$pkg_dir/recipes_c-ansi" lib`;
+  
+  `cp ~cesrulib/cesr_libs/packages_cesr_2003_0608_lnx/recipes_c-ansi/recipes/icrc1.c ./recipes/icrc1.c`;
+
+  $cc="cc -std1 -DANSI";
+  print `gmake -f makefile_cesr CC="$cc" NRROOT="$pkg_dir/recipes_c-ansi" lib`;
   print `cp librecipes_c-ansi.a ../lib/librecipes_c-ansi.a`;
-  print `gmake -f makefile_cesr NRROOT="$pkg_dir/recipes_c-ansi" clean`;
-  print "gmake -f makefile_cesr NRROOT=\"$pkg_dir/recipes_c-ansi\" CFLAGS=\"-D_ANSI_C_SOURCE -I\$(NRROOT)/include -g\" lib"; 
-  print `gmake -f makefile_cesr NRROOT="$pkg_dir/recipes_c-ansi" CFLAGS="-D_ANSI_C_SOURCE -I$pkg_dir/recipes_c-ansi/include -g" lib`; 
+  print `gmake -f makefile_cesr CC="$cc" NRROOT="$pkg_dir/recipes_c-ansi" clean`;
+  print "gmake -f makefile_cesr CC=\"$cc\" NRROOT=\"$pkg_dir/recipes_c-ansi\" CFLAGS=\"-D_ANSI_C_SOURCE -I\$(NRROOT)/include -g\" lib"; 
+  print `gmake -f makefile_cesr CC="$cc" NRROOT="$pkg_dir/recipes_c-ansi" CFLAGS="-D_ANSI_C_SOURCE -I$pkg_dir/recipes_c-ansi/include -g" lib`; 
   print `cp librecipes_c-ansi.a ../lib/librecipes_c-ansi_g.a`;
  }
     
