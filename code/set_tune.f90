@@ -120,9 +120,7 @@ subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
   phi_array(2) = phi_y_set/twopi
   call out_io(s_blank$,r_name,'      SET TUNE:     \2f\ ',phi_array)
 
-!  print *, 'ERROR IN SET_TUNE: CANNOT GET TUNE RIGHT.'
-!  print *, '      CURRENT TUNE:', phi_x/twopi, phi_y/twopi
-!  print *, '      SET TUNE:    ', phi_x_set/twopi, phi_y_set/twopi
+
   ok = .false.
 
 end subroutine

@@ -43,7 +43,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   character(200) fname(3), input_file_name
   character(200), allocatable :: file_names(:)
   character(25) :: r_name='read_digested_bmad_file'
-  character(200) write_line
+  character(200) write_line1,write_line2
 
   logical found_it, v71, v72, v73, v_old, v_now
 
@@ -72,12 +72,9 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
   if (version < bmad_inc_version$) then
 !    if (bmad_status%type_out) print '(1x, a, i4, a, i4)',  &
-     write (write_line,'(1x, a, i4, a, i4)') 'DIGESTED FILE VERSION OUT OF DATE',  &
+     write (write_line1,'(1x, a, i4, a, i4)') 'DIGESTED FILE VERSION OUT OF DATE',  &
             version, ' <', bmad_inc_version$
-    if (bmad_status%type_out) call out_io(s_dwarn$,r_name,write_line)
-!    if (bmad_status%type_out) print *,  &
-!           'READ_DIGESTED_BMAD_FILE: DIGESTED FILE VERSION OUT OF DATE',  &
-!            version, ' <', bmad_inc_version$
+    if (bmad_status%type_out) call out_io(s_dwarn$,r_name,write_line1)
     if (v_old) then 
       allocate (file_names(n_files))
       bmad_status%ok = .false.
@@ -90,16 +87,11 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
   if (version > bmad_inc_version$) then
     if (bmad_status%type_out) then
-       call out_io(s_error$,r_name,' DIGESTED FILE HAS VERSION: \i\ ',version)
-       call out_io(s_blank$,r_name,'      GREATER THAN VERSION OF THIS PROGRAM: \i\ ',bmad_inc_version$)
+       write (write_line1,*) 'DIGESTED FILE HAS VERSION:',version
+       write (write_line2,*)'     GREATER THAN VERSION OF THIS PROGRAM:', bmad_inc_version$
+       call out_io(s_error$,r_name,write_line1,write_line2)
        call out_io(s_blank$,r_name,'     WILL NOT USE THE DIGESTED FILE.',&
             '     YOU SHOULD RECOMPILE THIS PROGRAM.')
-!      print *, 'READ_DIGESTED_BMAD_FILE: DIGESTED FILE HAS VERSION:',  &
-!                                                              version
-!      print *, '     GREATER THAN VERSION OF THIS PROGRAM:',  &
-!                                                  bmad_inc_version$
-!      print *, '     WILL NOT USE THE DIGESTED FILE.'
-!      print *, '     YOU SHOULD RECOMPILE THIS PROGRAM.'
     endif
     close (d_unit)
     bmad_status%ok = .false.
@@ -131,15 +123,13 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
                                              stat_b(10) /= idate_old) then
       if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_dwarn$,r_name,&
               'NOTE: DIGESTED FILE OUT OF DATE.')
-!      if (bmad_status%type_out .and. bmad_status%ok) print *, &
-!              'READ_DIGESTED_BMAD_FILE: NOTE: DIGESTED FILE OUT OF DATE.'
+
       bmad_status%ok = .false.
     endif
     if (i == 1 .and. fname(2) /= input_file_name) then
       if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_dwarn$,r_name,&
                     ' NOTE: MOVED DIGESTED FILE.')
-!      if (bmad_status%type_out .and. bmad_status%ok) print *, &
-!                    'READ_DIGESTED_BMAD_FILE: NOTE: MOVED DIGESTED FILE.'
+
       bmad_status%ok = .false.
     endif
    enddo
@@ -290,7 +280,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 9000  continue
   if (bmad_status%type_out) then
      call out_io(s_error$,r_name,' DIGESTED FILE DOES NOT EXIST.')
-!    print *, 'READ_DIGESTED_BMAD_FILE: DIGESTED FILE DOES NOT EXIST.'
+
   endif
   close (d_unit)
   bmad_status%ok = .false.
@@ -300,7 +290,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 9100  continue
   if (bmad_status%type_out) then
      call out_io(s_error$,r_name,' ERROR READING DIGESTED FILE.')
-!    print *, 'READ_DIGESTED_BMAD_FILE: ERROR READING DIGESTED FILE.'
+
   endif
   close (d_unit)
   bmad_status%ok = .false.

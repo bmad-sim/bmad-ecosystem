@@ -68,7 +68,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   character*(*) in_file
   character(16) word_2, name, a_name
   character(1) delim*1
-  character(200) path, basename, full_name, digested_file
+  character(200) path, basename, full_name, digested_file,write_line1,write_line2
   character(40) this_name, word_1
   character(280) parse_line_save
   character(16) :: r_name = 'bmad_parser'
@@ -109,12 +109,9 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       return
     else
       if (bmad_status%type_out) then
-         call out_io(s_info$,r_name,' BMAD_PARSER: Taylor_order has changed.')
-         call out_io(s_blank$,r_name,'    Taylor_order in digested file: \*\ ', ring%input_taylor_order)
-         call out_io(s_blank$,r_name,'    Taylor_order now:              \*\ ', bmad_com%taylor_order)
-!        print *, 'BMAD_PARSER: Taylor_order has changed.'
-!        print *, '    Taylor_order in digested file:', ring%input_taylor_order
-!        print *, '    Taylor_order now:             ', bmad_com%taylor_order
+         write (write_line1,*) '    Taylor_order in digested file:', ring%input_taylor_order
+         write (write_line2,*) '    Taylor_order now:             ', bmad_com%taylor_order
+         call out_io(s_info$,r_name,'Taylor_order has changed.',write_line1,write_line2)
       endif
       if (ring%input_taylor_order > bmad_com%taylor_order) &
                                            bp_com%write_digested = .false.
@@ -153,7 +150,6 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   bmad_status%ok = .true.
   if (bmad_status%type_out) &
        call out_io(s_info$,r_name,' Creating new digested file...')
-!                        print *, 'BMAD_PARSER: Creating new digested file...'
 
   bp_com%n_files = 0
   bp_com%error_flag = .false.                 ! set to true on an error
@@ -210,7 +206,6 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       bp_com%debug_line = bp_com%parse_line
       call str_upcase (bp_com%debug_line, bp_com%debug_line)
       call out_io(s_info$,r_name,' FOUND IN FILE: "PARSER_DEBUG". DEBUG IS NOW ON')
-!      print *, 'FOUND IN FILE: "PARSER_DEBUG". DEBUG IS NOW ON'
       cycle parsing_loop
     endif
 
@@ -219,7 +214,6 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
     if (word_1(:ix_word) == 'NO_DIGESTED') then
       bp_com%write_digested = .false.
       call out_io(s_info$,r_name,' FOUND IN FILE: "NO_DIGESTED". NO DIGESTED FILE WILL BE CREATED')
-!      print *, 'FOUND IN FILE: "NO_DIGESTED". NO DIGESTED FILE WILL BE CREATED'
       cycle parsing_loop
     endif
 
@@ -1001,7 +995,6 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
       if (j == size(old_ele) + 1) cycle
       call out_io(s_info$,r_name,' Reusing Taylor for: ' //  old_ele(j)%name)
-!      print *, 'BMAD_PARSER: Reusing Taylor for: ', old_ele(j)%name
       call transfer_ele_taylor (old_ele(j), ele, bmad_com%taylor_order)
     enddo
 
@@ -1148,7 +1141,6 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   if (bp_com%error_flag) then
     if (bmad_status%exit_on_error) then
        call out_io(s_fatal$,r_name,' BMAD_PARSER FINISHED. EXITING ON ERRORS')
-!      print *, 'BMAD_PARSER FINISHED. EXITING ON ERRORS'
       stop
     else
       bmad_status%ok = .false.
