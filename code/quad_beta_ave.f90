@@ -26,7 +26,7 @@ subroutine quad_beta_ave (ring, ix_ele, beta_x_ave, beta_y_ave)
   implicit none
 
   type (ring_struct)  ring
-  type (ele_struct),save ::  ele
+  type (ele_struct), save ::  ele
 
   integer ix_ele, ix
 
