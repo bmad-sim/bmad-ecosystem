@@ -200,15 +200,16 @@ of real attributes not in \vn{%value(:)} is:
 \end{center}
 
 \vn{attribute_bookkeeper} is the routine that makes sure that the
-dependent variables (See \sref{s:depend}) of an element are
-keep up--to--date. \vn{attribute_bookkeeper} is called behind the
-scenes when \vnf{make_mat6} is called to make transfer matrices and when
+dependent variables (See \sref{s:depend}) of an element are keep
+up--to--date. \vn{attribute_bookkeeper} is called behind the scenes
+when \vnf{make_mat6} is called to make transfer matrices and when
 \vnf{track1} is called to track through an element. As a general rule,
-to be safe, when elment attributes are changed,
-call \vnf{attribute_bookkeeper}. If the element is part of a \vn{Ring_struct}
-(as it is in most cases), the routine \vnf{control_bookkeeper} (which calls
-\vn{attribute_bookkeeper}) should be called instead.
-The function \vnr{attribute_free} will check if an attribute is free to vary.
+to be safe, when elment attributes are changed, call
+\vnf{attribute_bookkeeper}. If the element is part of a
+\vn{Ring_struct} (as it is in most cases), the routine
+\vnf{control_bookkeeper} (which calls \vn{attribute_bookkeeper})
+should be called instead.  The function \vnr{attribute_free} will
+check if an attribute is free to vary.
 \begin{example}
   type (ring_struct) lat
   integer ix_ele
@@ -492,8 +493,8 @@ someone writing a program. These components are
 Generally most \vn{ele_struct} elements are part of a \vn{ring_struct}
 variable and elements in a \vn{ring_struct} are handled by the
 \vn{ring_struct} allocation/deallocation routines (see
-\sref{s:ring:point}). In case you do have a local
-\vn{ele_struct} variable within a subroutine or function then you either have to
+\sref{s:ring:point}). In case you do have a local \vn{ele_struct}
+variable within a subroutine or function then you either have to
 deallocate the pointers within it with a call to
 \vn{deallocate_ele_pointers} or you use the save attribute.
 \begin{example}
