@@ -313,7 +313,7 @@ the electric field for a given kick. The voltage is a dependent
 attribute determined by:
 \begin{example}
   e\_field (V/m) = sqrt(hkick^2 + vkick^2) * beam\_energy / L
-  volt (V) = e\_field * gap  
+  voltage (V) = e\_field * gap  
 \end{example}
 
 \vskip0.05in \noindent
@@ -327,7 +327,7 @@ Dependent attributes:
 \begin{example}
   beam\_energy  ! See section \ref{s:beam}
   e_field
-  volt
+  voltage
 \end{example}
 
 %-----------------------------------------------------------------
@@ -775,7 +775,7 @@ An \vn{RFcavity} is an RF cavity without acceleration generally used in a storag
   {\sl Attribute} & {\sl Sec.}  & {\sl Attribute} & {\sl Sec.} & {\sl Attribute} & {\sl Sec.} \\ \hline
   l        = Real       & \ref{s:l}      & type = String      & \ref{s:string} & tracking\_method = Switch   & \ref{s:tkm}   \\ \hline
   harmon   = Real       &                & alias = String     & \ref{s:string} & mat6\_calc\_method = Switch & \ref{s:xfer}  \\ \hline
-  volt     = Real       &                & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
+  voltage     = Real       &                & descrip = String   & \ref{s:string} & integration\_ord = Integer  & \ref{s:integ} \\ \hline
   phi0     = Real       &                &                    &                & field\_calc = Switch        & \ref{s:integ} \\ \hline
   x\_offset  = Real     & \ref{s:offset} & x\_limit = Real    & \ref{s:limit}  & rel\_tol = Real             & \ref{s:integ} \\ \hline
   y\_offset  = Real     & \ref{s:offset} & y\_limit = Real    & \ref{s:limit}  & abs\_tol = Real             & \ref{s:integ} \\ \hline
@@ -790,7 +790,7 @@ An \vn{RFcavity} is an RF cavity without acceleration generally used in a storag
 \vskip0.05in \noindent
 Example:
 \begin{example}
-  rf1: lcav, l = 4.5, harmon = 1281, volt = 5e6
+  rf1: lcav, l = 4.5, harmon = 1281, voltage = 5e6
 \end{example}
 
 \vskip0.05in \noindent

@@ -1,42 +1,44 @@
 \SECTION{Overview}
 
 \bmad\ (Otherwise known as ``Baby MAD" or ``Better MAD" or just plain
-``Be MAD!")  is a software subroutine library used for relativistic
+``Be MAD!")  is a subroutine library used for relativistic
 charged--particle dynamics simulations in high energy accelerators and
 storage rings. \bmad\ has been developed at Cornell University's
 Laboratory for Elementary Particle Physics and has been in use since
-the 1990's. \bmad\ was developed because there was a need at Cornell
-to do calculations that couldn't be done with existing programs in
-general use in the accelerator physics community. Individual
-physicists at Cornell were writing programs almost from scratch to do
-individual calculations. This lead to much duplication of effort.
-Since it was time consuming to write simulations, needed calculations
-where not being done. As a response, the \bmad\ subroutines, written in
+the 1990's. 
+
+Prior to \bmad, programs were written almost from scratch to perform
+calculations that were beyond the capability of existing, generally
+available software. This practice was inefficient, leading to much
+duplication of effort.  Since it was time consuming to write
+simulations, needed calculations where not being done.
+
+As a response, the \bmad\ subroutines, written in
 Fortran90, were developed to:
 \begin{Itemize}
-\item Cut down on the time needed to develop programs,
-\item Reduce computation times to a minimum,
+\item Cut down on the time needed to develop programs.
+\item Minimize computation times.
 \item Cut down on programming errors, 
-\item Provide a simple means with which one can do lattice calculations 
-from within programs (control system or otherwise),
-\item Provide a standard input format for specifying lattices, and
-\item Provide a standardized means to share lattice information between 
+\item Provide a simple mechonism for lattice function calculations
+from within programs (control system or otherwise).
+\item Provide a flexible yet powerful lattice input format.
+\item Standardize sharing of lattice information between 
 programs.
 \end{Itemize}
 
 \bmad\ can be used to study single and multi--particle beam dynamics.
 It has the ability to track both particles and macroparticles with
-wakefields, and radiation excitation and damping. \bmad\ has routines for
-calculating transfer matrices, emittances, Twiss parameters, dispersion,
-coupling, etc. The elements that \bmad\ knows about include
-quadrupoles, RF cavities (both storage ring and LINAC accelerating
-types), solenoids, dipole bends, etc. In addition \bmad\ has the feature
-that elements can be defined to control the attributes of other
+wakefields, and radiation excitation and damping. \bmad\ has routines
+for calculating transfer matrices, emittances, Twiss parameters,
+dispersion, coupling, etc. The elements that \bmad\ knows about
+include quadrupoles, RF cavities (both storage ring and LINAC
+accelerating types), solenoids, dipole bends, etc. In addition,
+elements can be defined to control the attributes of other
 elements. This can be used, for example, to simulate the action of
-control room ``knobs'' where a control room knob may vary the strengths
-of multiple magnets in the accelerator. Other possibilities include
-the simulation of I--beams that determine the position of multiple
-element.
+control room ``knobs'' where a control room knob may vary the
+strengths of multiple magnets in the accelerator. Other possibilities
+include the simulation of I--beams that determine the position of
+multiple element.
 
 \vfill
 \break

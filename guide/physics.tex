@@ -271,7 +271,52 @@ techniques can be use to construct Taylor maps to arbitrary order.
 \section{Radiation Damping and Excitation}
 \label{s:radiation}
 
+Emission of synchrotron radiation by a particle can be decomposed into
+two parts. The deterministic average radiaion emitted produces damping
+while the stochastic fuluctuating part produces excitation\cite{jowett}.
 
+The treatment of radiation damping by \bmad\ esentially follows MAD.
+The average change in energy $\Delta E$ of a particle going through a
+section of magnet due to synchrotron radiation is
+\Begineq
+  \frac{\Delta E}{E_0} = -k_d \, (1 + p_z)
+\Endeq
+where
+\Begineq
+  k_d \equiv \frac{2 \, r_e}{3} \, \gamma_0^3, \, \ave{g^2} \, L_p \,  (1 + p_z)
+\Endeq
+$r_e$ is the classical electron radius, $L_p$ is the actual path
+length, $\gamma_0$ is the energy factor of an on-energy particle, $g$
+is the bending radius of an on--energy particle, and $\ave{g^2}$ is an
+average of $g^2$ over the actual path.
+
+Radiation excitation is modeled in \bmad\ using a random
+number generator. The energy lost is
+\Begineq
+  \frac{\Delta E}{E_0} = k_f \, (1 + p_z)
+\Endeq
+where
+\Begineq
+  k_f \equiv \sqrt{\frac{55 \, r_e \, \hbar \, c}{24 \, \sqrt{3} m_e} \, 
+  L_p \, \gamma0^5 \ave{g^3}} \, \xi \, (1 + p_z)
+\Endeq
+$\xi$ is a Gaussian distributed random number with unit sigma and zero mean.
+
+The change in $p_z$ can be written as
+\Begineq
+  \Delta p_z = -k_E \, (1 + p_z)
+\Endeq
+\where
+\Begineq
+  k_E = k_d + k_f
+\Endeq
+Since the radiation is emitted in the forward direction the angles
+$x'$ and $y'$ are invariant which leads to the following equations for
+the changes in $p_x$ and $p_y$
+\begein{align}
+  \Delta p_x = &-k_E \, p_x \\
+  \Delta p_y = &-k_E \, p_y
+\end{align}
 
 %-----------------------------------------------------------------
 \section{Wakefields}
@@ -280,7 +325,7 @@ techniques can be use to construct Taylor maps to arbitrary order.
 
 
 %-----------------------------------------------------------------
-\section{Macro Particles}
+\section{Macroparticles}
 \label{s:macro}
 
 
