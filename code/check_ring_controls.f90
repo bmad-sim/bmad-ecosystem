@@ -13,6 +13,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/11/04 16:48:58  dcs
+!Null_ele$ add
+!
 !Revision 1.5  2002/06/13 14:54:23  dcs
 !Interfaced with FPP/PTC
 !
@@ -62,6 +65,8 @@ subroutine check_ring_controls (ring, exit_on_error)
     t_type = ele%control_type
 
 ! check that element is in correct part of the ele_(:) array
+
+    if (ele%key == null_ele$ .and. i_t > ring%n_ele_ring) cycle      
 
     if (i_t > ring%n_ele_ring) then
       if (t_type == free$ .or. t_type == super_slave$ .or. &
