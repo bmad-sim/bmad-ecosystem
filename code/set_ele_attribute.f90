@@ -34,14 +34,14 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/02/12 18:15:45  dcs
+!Added pointer to pointer_to_attrubute
+!
 !Revision 1.4  2003/01/27 14:40:42  dcs
 !bmad_version = 56
 !
 !Revision 1.3  2002/11/06 06:48:32  dcs
 !Changed arg array
-!
-!Revision 1.2  2002/07/16 20:44:01  dcs
-!*** empty log message ***
 !
 !Revision 1.1  2002/06/13 15:07:21  dcs
 !Merged with FPP/PTC
@@ -55,12 +55,10 @@
 
 #include "CESR_platform.inc"
 
-
 subroutine set_ele_attribute (ring, i_ele, attrib_name, &
                                 attrib_value, err_flag, make_mat6_flag, orbit_)
 
-  use bmad_struct
-  use bmad_interface
+  use bmad
 
   implicit none
 
@@ -68,6 +66,7 @@ subroutine set_ele_attribute (ring, i_ele, attrib_name, &
   type (coord_struct), optional :: orbit_(0:)
 
   real(rdef) attrib_value
+  real(rdef), pointer :: ptr_attrib
 
   integer i_ele
   integer i, ix, ir, ix_attrib
@@ -78,26 +77,26 @@ subroutine set_ele_attribute (ring, i_ele, attrib_name, &
 
 ! error checks
 
-  call check_ele_attribute_set (ring, i_ele, attrib_name, ix_attrib, &
-                                                              err_flag, .true.)
+  call pointer_to_attribute (ring, i_ele, attrib_name, .true., &
+                                             ptr_attrib, ix_attrib, err_flag)
   if (err_flag) return
 
 ! setting the attribute value is trivial
 
-  ring%ele_(i_ele)%value(ix_attrib) = attrib_value
+  ptr_attrib = attrib_value
 
-! bookkeeping 
+! bookkeeping
+
+  if (associated(ring%ele_(i_ele)%taylor(1)%term)) &
+                              call kill_taylor(ring%ele_(i_ele)%taylor)
+  if (associated(ring%ele_(i_ele)%gen_field)) &
+                              call kill_gen_field (ring%ele_(i_ele)%gen_field)
 
   if (make_mat6_flag) then
     call ring_make_mat6 (ring, i_ele, orbit_)
   else
     call control_bookkeeper (ring, i_ele)
   endif
-
-  if (associated(ring%ele_(i_ele)%taylor(1)%term)) &
-                              call kill_taylor(ring%ele_(i_ele)%taylor)
-  if (associated(ring%ele_(i_ele)%gen_field)) &
-                              call kill_gen_field (ring%ele_(i_ele)%gen_field)
 
   err_flag = .false.
 

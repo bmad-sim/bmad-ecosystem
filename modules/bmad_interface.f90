@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.21  2003/02/12 18:15:57  dcs
+!Added pointer to pointer_to_attrubute
+!
 !Revision 1.20  2003/01/27 14:41:00  dcs
 !bmad_version = 56
 !
@@ -187,20 +190,6 @@ module bmad_interface
       real(rdef) ref_z
       real(rdef) time_disp
       logical to_cart
-    end subroutine
-  end interface
-
-  interface
-    Subroutine check_ele_attribute_set (ring, i_ele, attrib_name, &
-                                          ix_attrib, err_flag, err_print_flag)
-      use bmad_struct
-      implicit none
-      type (ring_struct), target :: ring
-      integer i_ele
-      integer ix_attrib
-      character*(*) attrib_name
-      logical err_print_flag
-      logical err_flag
     end subroutine
   end interface
 
@@ -777,6 +766,22 @@ module bmad_interface
       real(rdef) x(:), xp(:)
       real(rdef) tune, emitt
       real(rdef) x_0, xp_0, chi
+    end subroutine
+  end interface
+
+  interface
+    Subroutine pointer_to_attribute (ring, i_ele, attrib_name, do_allocation, &
+                      ptr_attrib, ix_attrib, cannot_vary_flag, err_print_flag)
+      use bmad_struct
+      implicit none
+      type (ring_struct), target :: ring
+      real(rdef), pointer :: ptr_attrib
+      integer i_ele
+      integer ix_attrib
+      character*(*) attrib_name
+      logical cannot_vary_flag
+      logical do_allocation
+      logical, optional :: err_print_flag
     end subroutine
   end interface
 
