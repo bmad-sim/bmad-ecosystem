@@ -17,7 +17,8 @@
 !------------------------------------------------------------------------
 
 &tao_design_lattice
-  design_lattice_file = "~dcs/new_lib/bmad/lat/bmad_6wig_lum_20030915_v1.lat"
+!  design_lattice_file = "~dcs/new_lib/bmad/lat/bmad_6wig_lum_20030915_v1.lat"
+  design_lattice_file = "/home/dcs/new_lib/bmad/lat/bmad_6wig_lum_20030915_v1.lat"
 /
 
 
@@ -36,7 +37,8 @@
   default_weight = 1e6
   ix_min_data = 0 
   ix_max_data = 99  
-  data(0:)%name = "0W", 
+  data(0)%name = "0W"
+  data(1:99)%name =  
            "1W",  "2W",  "3W",  "4W",  "5W",  "6W", 
            "7W",  "8W",  "9W", "10W", "11W", "12W", 
           "13W", "14W", "15W", "16W", "17W", "18W", 
@@ -54,7 +56,8 @@
           "13E", "12E", "11E", "10E",  "9E",  "8E", 
            "7E",  "6E",  "5E",  "4E",  "3E",  "2E", 
            "1E",  "0E"
-  data(0:)%ele_name = "DET_00W",
+  data(0)%ele_name = "DET_00W"
+  data(1:99)%ele_name =
           "DET_01W", "DET_02W", "DET_03W", "DET_04W", "DET_05W", "DET_06W", 
           "DET_07W", "DET_08W", "DET_09W", "DET_10W", "DET_11W", "DET_12W", 
           "DET_13W", "DET_14W", "DET_15W", "DET_16W", "DET_17W", "DET_18W", 
@@ -277,8 +280,9 @@
   default_step = 1e-4
   ix_min_var = 0
   ix_max_var = 120
-  var(0:)%name = 
-    "Q00W", "    ", "    ", "Q03W", "Q04W", "Q05W", "Q06W", "Q07W", "Q08W", "Q09W", 
+  var(0)%name = "Q00W"
+  var(1:115)%name = 
+            "    ", "    ", "Q03W", "Q04W", "Q05W", "Q06W", "Q07W", "Q08W", "Q09W", 
     "Q10W", "Q11W", "Q12W", "Q13W", "Q14W", "Q15W", "Q16W", "Q17W", "Q18W", "Q19W", 
     "Q20W", "Q21W", "Q22W", "Q23W", "Q24W", "Q25W", "Q26W", "Q27W", "Q28W", "Q29W", 
     "Q30W", "Q31W", "Q32W", "Q33W", "Q34W", "Q35W", "Q36W", "Q37W", "Q38W", "Q39W", 
@@ -290,8 +294,9 @@
     "Q09E", "Q08E", "Q07E", "Q06E", "Q05E", "Q04E", "Q03E", "    ", "    ", "Q00E", 
     "    ", "Q49AW", "Q47AW", "Q47AE", "Q49AE", "Q43AW", "Q43AE", "Q08AW", "     ", 
     "    ", "     ", "SC_Q01W" "SC_Q02W", "SC_Q02E", "SC_Q01E"
-  var(0:)%ele_name = 
-    "Q00W", "    ", "    ", "Q03W", "Q04W", "Q05W", "Q06W", "Q07W", "Q08W", "Q09W", 
+  var(0)%ele_name = "Q00W"
+  var(1:115)%ele_name = 
+            "    ", "    ", "Q03W", "Q04W", "Q05W", "Q06W", "Q07W", "Q08W", "Q09W", 
     "Q10W", "Q11W", "Q12W", "Q13W", "Q14W", "Q15W", "Q16W", "Q17W", "Q18W", "Q19W", 
     "Q20W", "Q21W", "Q22W", "Q23W", "Q24W", "Q25W", "Q26W", "Q27W", "Q28W", "Q29W", 
     "Q30W", "Q31W", "Q32W", "Q33W", "Q34W", "Q35W", "Q36W", "Q37W", "Q38W", "Q39W", 
