@@ -2,8 +2,15 @@
 
 &tao_start
   n_universes = 1
-	plot_file = 'tao_plot.init'
+  plot_file = 'tao_plot.init'
 /
+
+!------------------------------------------------------------------------
+
+&tao_design_lattice
+  design_lattice_file(1) = "bmad_6wig_lum_20030915_v1.lat"
+/
+
 
 !------------------------------------------------------------------------
 
@@ -15,23 +22,16 @@
 /
 
 !------------------------------------------------------------------------
-
-&tao_design_lattice
-  design_lattice_file = "bmad_6wig_lum_20030915_v1.lat"
-/
-
-
-!------------------------------------------------------------------------
 ! Data
 
 &tao_d2_data
   d2_data%name = "orbit" 
   universe = 0  ! apply to all universes
-	n_d1_data = 2
+  n_d1_data = 2
 /
 
 &tao_d1_data
-	ix_d1_data = 1
+  ix_d1_data = 1
   d1_data%name = "x"  
   default_weight = 1e6
   ix_min_data = 0 
@@ -77,7 +77,7 @@
 /
 
 &tao_d1_data
-	ix_d1_data = 2
+  ix_d1_data = 2
   d1_data%name = "y"  
   default_weight = 1e6
   ix_min_data = 0 
@@ -91,11 +91,11 @@
 &tao_d2_data
   d2_data%name = "phase" 
   universe = 0  ! apply to all universes
-	n_d1_data = 2
+  n_d1_data = 2
 /
 
 &tao_d1_data
-	ix_d1_data = 1
+  ix_d1_data = 1
   d1_data%name = "x"  
   default_weight = 1e6
   ix_min_data = 0 
@@ -105,7 +105,7 @@
 /
 
 &tao_d1_data
-	ix_d1_data = 2
+  ix_d1_data = 2
   d1_data%name = "y"  
   default_weight = 1e6
   ix_min_data = 0 
@@ -120,11 +120,11 @@
 &tao_d2_data
   d2_data%name = "eta" 
   universe = 0  ! apply to all universes
-	n_d1_data = 2
+  n_d1_data = 2
 /
 
 &tao_d1_data
-	ix_d1_data = 1
+  ix_d1_data = 1
   d1_data%name = "x"  
   default_weight = 0
   ix_min_data = 0 
@@ -134,7 +134,7 @@
 /
 
 &tao_d1_data
-	ix_d1_data = 2
+  ix_d1_data = 2
   d1_data%name = "y"  
   default_weight = 200
   ix_min_data = 0 
@@ -148,11 +148,11 @@
 &tao_d2_data
   d2_data%name = "beta" 
   universe = 0  ! apply to all universes
-	n_d1_data = 2
+  n_d1_data = 2
 /
 
 &tao_d1_data
-	ix_d1_data = 1
+  ix_d1_data = 1
   d1_data%name = "x"  
   default_weight = 1
   ix_min_data = 0 
@@ -162,7 +162,7 @@
 /
 
 &tao_d1_data
-	ix_d1_data = 2
+  ix_d1_data = 2
   d1_data%name = "y"  
   default_weight = 1
   ix_min_data = 0 
@@ -176,11 +176,11 @@
 &tao_d2_data
   d2_data%name = "cbar"
   universe = 0  ! apply to all universes
-	n_d1_data = 4
+  n_d1_data = 4
 /
 
 &tao_d1_data
-	ix_d1_data = 1
+  ix_d1_data = 1
   d1_data%name = "11"
   default_weight = 1e3
   ix_min_data = 0
@@ -190,7 +190,7 @@
 /
 
 &tao_d1_data
-	ix_d1_data = 2
+  ix_d1_data = 2
   d1_data%name = "12"
   default_weight = 1e3
   ix_min_data = 0
@@ -200,7 +200,7 @@
 /
 
 &tao_d1_data
-	ix_d1_data = 3
+  ix_d1_data = 3
   d1_data%name = "21"
   default_weight = 1e3
   ix_min_data = 0
@@ -224,11 +224,11 @@
 &tao_d2_data
   d2_data%name = "coupling" 
   universe = 0  ! apply to all universes
-	n_d1_data = 4
+  n_d1_data = 4
 /
 
 &tao_d1_data
-	ix_d1_data = 1
+  ix_d1_data = 1
   d1_data%name = "11b"  
   default_weight = 1e3
   ix_min_data = 0 
@@ -238,7 +238,7 @@
 /
 
 &tao_d1_data
-	ix_d1_data = 2
+  ix_d1_data = 2
   d1_data%name = "12a"  
   default_weight = 1e3
   ix_min_data = 0 
@@ -248,7 +248,7 @@
 /
 
 &tao_d1_data
-	ix_d1_data = 3
+  ix_d1_data = 3
   d1_data%name = "12b"  
   default_weight = 1e3
   ix_min_data = 0 
@@ -258,7 +258,7 @@
 /
 
 &tao_d1_data
-	ix_d1_data = 4
+  ix_d1_data = 4
   d1_data%name = "22a"  
   default_weight = 1e3
   ix_min_data = 0 
