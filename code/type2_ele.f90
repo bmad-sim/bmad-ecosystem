@@ -29,14 +29,18 @@
 !   ring         -- Ring_struct, optional: Needed for control typeout.
 !              
 ! Output       
-!   lines(:)     -- Character*80, allocatable: Character array to hold the 
+!   lines(:)     -- Character*80, pointer: Character array to hold the 
 !                     output. The array size of lines(:) will be set by
-!                     this subroutine.
+!                     this subroutine. Note: You need to deallocate lines
+!                     between each call to type2_ele.
 !   n_lines      -- Number of lines in lines(:).
 !-
 
 !$Id$
 !$Log$
+!Revision 1.11  2002/08/23 20:19:02  dcs
+!Update Documentation.
+!
 !Revision 1.10  2002/07/31 14:33:51  dcs
 !Extended lines(:) array.
 !
