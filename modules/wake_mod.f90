@@ -51,7 +51,7 @@ do i = 1, n_mode
 
   k = twopi * lr%freq / c_light
   f_exp = k / (2 * lr%Q)
-  ff = exp(ds * f_exp) / ele%value(beam_energy$) 
+  ff = exp(ds * f_exp)
 
   c = cos (ds * k)
   s = sin (ds * k)
@@ -129,15 +129,15 @@ do i = 1, n_mode
 
   k = twopi * lr%freq / c_light
   f_exp = k / (2 * lr%Q)
-  ff = lr%r_over_q * (c_light / 2) * exp(ds * f_exp)
+  ff = lr%r_over_q * (c_light / 2) * exp(ds * f_exp) / ele%value(beam_energy$) 
 
   c = cos (ds * k)
   s = sin (ds * k)
 
-  call ab_multipole_kick (0.0_rp, -ff, lr%m, orbit, kx, ky)
+  call ab_multipole_kick (0.0_rp, ff, lr%m, orbit, kx, ky)
 
-  lr%norm_sin = lr%norm_sin + charge * kx * c
-  lr%norm_cos = lr%norm_cos - charge * kx * s
+  lr%norm_sin = lr%norm_sin - charge * kx * c
+  lr%norm_cos = lr%norm_cos + charge * kx * s
   lr%skew_sin = lr%skew_sin + charge * ky * c
   lr%skew_cos = lr%skew_cos - charge * ky * s
 

@@ -459,8 +459,8 @@ subroutine ab_multipole_kick (a, b, n, coord, kx, ky)
 
   do m = 1, n, 2
     f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
-    ky = kx + b * f
     kx = kx + a * f
+    ky = ky + b * f
   enddo
 
 end subroutine
