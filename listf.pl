@@ -4,38 +4,56 @@ use File::Find;
 
 $found_one = 0;
 
-if (-d "./bmad")
+if (-d "./bmad/modules")
   {$bmad_dir="./bmad";}
-elsif (-d "../bmad")
+elsif (-d "../bmad/modules")
   {$bmad_dir="../bmad";}
-elsif (-d "../../bmad")
+elsif (-d "../../bmad/modules")
   {$bmad_dir="../../bmad";}
 else
   {$bmad_dir=$ENV{"CESR_CVSSRC"}."/bmad";}
 
-if (-d "./cesr_utils")
+if (-d "./cesr_utils/modules")
   {$cesr_utils_dir="./cesr_utils";}
-elsif (-d "../cesr_utils")
+elsif (-d "../cesr_utils/modules")
   {$cesr_utils_dir="../cesr_utils";}
-elsif (-d "../../cesr_utils")
+elsif (-d "../../cesr_utils/modules")
   {$cesr_utils_dir="../../cesr_utils";}
 else
   {$cesr_utils_dir=$ENV{"CESR_CVSSRC"}."/cesr_utils";}
 
-if (-d "./dcslib")
+if (-d "./dcslib/modules")
   {$dcslib_dir="./dcslib";}
-elsif (-d "../dcslib")
+elsif (-d "../dcslib/modules")
   {$dcslib_dir="../dcslib";}
-elsif (-d "../../dcslib")
+elsif (-d "../../dcslib/modules")
   {$dcslib_dir="../../dcslib";}
 else
   {$dcslib_dir=$ENV{"CESR_CVSSRC"}."/dcslib";}
- 
-if (-d "./tao")
+
+if (-d "./recipes_f-90_LEPP")
+  {$recipes_dir="./recipes_f-90_LEPP";}
+elsif (-d "../recipes_f-90_LEPP")
+  {$recipes_dir="../recipes_f-90_LEPP";}
+elsif (-d "../../recipes_f-90_LEPP")
+  {$recipes_dir="../../recipes_f-90_LEPP";}
+else
+  {$recipes_dir=$ENV{"CESR_CVSSRC"}."/recipes_f-90_LEPP";}
+
+if (-d "./forest/basic")
+  {$forest_dir="./forest/basic";}
+elsif (-d "../forest/basic")
+  {$forest_dir="../forest/basic";}
+elsif (-d "../../forest/basic")
+  {$forest_dir="../../forest/basic";}
+else
+  {$forest_dir=$ENV{"CESR_PKG"}."/forest/basic";}
+
+if (-d "./tao/code")
   {$tao_dir="./tao";}
-elsif (-d "../tao")
+elsif (-d "../tao/code")
   {$tao_dir="../tao";}
-elsif (-d "../../tao")
+elsif (-d "../../tao/code")
   {$tao_dir="../../tao";}
 else
   {$tao_dir=$ENV{"CESR_CVSSRC"}."/tao";}
@@ -102,7 +120,7 @@ sub searchit {
           if (/^ *end /i) {
             $_ = $';  
             if (/^ *subroutine/i || /^ *function/i ||
-                /^ *type/i) {$count = $count - 1;}
+                /^ *type/i || /^ *interface/i) {$count = $count - 1;}
           }
           elsif (/^ *subroutine /i || /^ *recursive subroutine /i || 
                 /^ *function /i || /^ *elemental subroutine /i ||
