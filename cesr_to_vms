@@ -1,0 +1,58 @@
+#!/bin/sh
+#---------------------------------------------------------------
+# cesr_to_vms - Script to move a specfied library directory from 
+#            Unix to VMS
+#
+# Useage:  cesr_to_vms <library_directory>
+#
+# Inputs:  library_directory  -  full path to the directory to 
+#                                zip and move
+#
+# Author:  M. Palmer  01/09/02
+#
+#---------------------------------------------------------------
+#
+# $Id$
+#
+# $Log$
+# Revision 1.1  2004/10/19 19:21:28  cesrulib
+# VMS porting.
+#
+#
+#---------------------------------------------------------------
+# Inputs
+LIBRARY=$1
+
+if ( [ $# -ne 1 ] ) then
+		echo "[cesr_to_vms]:  Incorrect number of parameters specified.  Exiting!"
+		exit 1
+fi
+
+# Initializations
+DO_ZIP=/home/cesrulib/bin/do_zip
+LIB_NAME=`basename ${LIBRARY}`
+LIB_DIR=`dirname ${LIBRARY}`
+
+# Now make a copy for transport to VMS
+echo "Preparing ${LIB_NAME} for transport to vms"
+
+# Run zip from the solaris nodes to package up the library
+krsh -x solfa3 ${DO_ZIP} ${LIB_DIR} ${LIB_NAME}
+
+# Now ftp the library to the [cesrulib.cesr_libs] area on CESR2f
+WORKDIR=CESR2f'$'DKB200:[CESR_LIBS.ZIP]
+echo $WORKDIR
+cd ${LIB_DIR}
+ftp cesr2f <<EOF
+		binary
+		cd $WORKDIR
+		put ${LIB_NAME}.zip
+EOF
+
+# Notify of completion
+echo "Transfer of ${LIB_NAME} to CESR2f::$WORKDIR complete!"
+
+exit 0
+
+
+
