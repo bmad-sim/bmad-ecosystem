@@ -26,6 +26,10 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2001/10/08 17:18:14  rwh24
+!DCS changes to f90 files.
+!Bug fixes to c file.
+!
 !Revision 1.3  2001/10/02 18:49:11  rwh24
 !More compatibility updates; also added many explicit variable declarations.
 !
@@ -185,7 +189,7 @@ subroutine bmad_to_cesr (ring, cesr)
     cesr%skew_quad_(103)%name = 'SK_Q02E'
     cesr%skew_quad_(104)%name = 'SK_Q01E'
 
-    cesr%skew_sex_(11)%name = 'SK_SEX_02W'
+    cesr%skew_sex_(11)%name = 'SK_SEX_02E'
 
   endif
 

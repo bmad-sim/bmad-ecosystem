@@ -29,6 +29,10 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2001/10/08 17:18:14  rwh24
+!DCS changes to f90 files.
+!Bug fixes to c file.
+!
 !Revision 1.4  2001/10/05 18:23:57  rwh24
 !Bug Fixes
 !
@@ -123,8 +127,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
         cycle  ! try again
       endif
       lattice = lat_list(i_lat)
-      lat_file = 'BMAD_LAT:BMAD_' // lattice
-      call FullFileName(lat_file, lat_file)
+      call lattice_to_bmad_file_name (lattice, lat_file)  !! changed line
     else
       lattice = ""
       lat_file = line

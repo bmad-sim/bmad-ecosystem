@@ -24,6 +24,10 @@
  $Id$
 
  $Log$
+ Revision 1.2  2001/10/08 17:18:14  rwh24
+ DCS changes to f90 files.
+ Bug fixes to c file.
+
  Revision 1.1  2001/09/27 18:33:14  rwh24
  UNIX compatibility updates
 
@@ -34,9 +38,11 @@
 #include <dirent.h>
 #include <string.h>
 #include <stdio.h>
+#include <ctype.h>
 
 void trim(char *str, int len);
 void pad_to_length(char *str, int len);
+int match_wild(const char *pattern, const char *str);
 
 int get_lattice_list_unix_(char *lat_list, int *num_lats, char *directory,
 		long int list_len, long int dir_len)
@@ -66,7 +72,7 @@ int get_lattice_list_unix_(char *lat_list, int *num_lats, char *directory,
     }
   }
 
-  closedir(dir_pointer);
+  return closedir(dir_pointer);
 }
 
 
@@ -123,4 +129,6 @@ int match_wild(const char *pattern, const char *str)
       break;
     }
   }
+  /* Should never get here */
+  return -1;
 }

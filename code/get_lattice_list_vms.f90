@@ -14,6 +14,10 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2001/10/08 17:18:14  rwh24
+!DCS changes to f90 files.
+!Bug fixes to c file.
+!
 !Revision 1.3  2001/10/05 18:23:57  rwh24
 !Bug Fixes
 !
@@ -60,6 +64,8 @@ subroutine get_lattice_list_vms (lat_list, num_lats, directory)
       ix = index(lat_file, ']BMAD') + 6   ! strip [~]BMAD_ prefix
       ixx = index(lat_file, ';') - 1      ! strip version number suffix
       lat_list(i) = lat_file(ix:ixx)
+      ix = index(lat_list(i), '.LAT')
+      if (ix + 3 == len_trim(lat_list(i))) lat_list(i) = Lat_list(i)(:ix-1)
     else if (stat == rms$_nmf) then
       num_lats = i - 1
       return
