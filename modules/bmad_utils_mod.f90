@@ -748,7 +748,7 @@ subroutine init_ele (ele)
   ele%mat6_calc_method = bmad_standard$
   ele%tracking_method  = bmad_standard$
   ele%field_calc       = bmad_standard$
-  ele%num_steps = 1
+  ele%num_steps = 10
   ele%integration_ord = 2
   ele%ptc_kind = 0
 

@@ -77,14 +77,14 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track)
 !----------------------------------------------------------------------------
 contains
 
-subroutine track_it (start, real_track, calc_mat6)
+subroutine track_it (start, real_track, local_calc_mat6)
 
   type (coord_struct) start
-  logical real_track, calc_mat6
+  logical real_track, local_calc_mat6
 
 ! init
 
-  if (calc_mat6) mat6 => ele%mat6
+  if (local_calc_mat6) mat6 => ele%mat6
 
   rel_E = (1 + start%vec(6))
   rel_E2 = rel_E**2
@@ -94,7 +94,7 @@ subroutine track_it (start, real_track, calc_mat6)
 
 ! element offset 
 
-  if (calc_mat6) then
+  if (local_calc_mat6) then
     call drift_mat6_calc (mat6, ele%value(s_offset_tot$), end%vec)
   endif
 
@@ -112,7 +112,7 @@ subroutine track_it (start, real_track, calc_mat6)
     track%pt(0)%s = 0
     track%pt(0)%orb = start
     track%n_pt = ele%num_steps
-    if (calc_mat6) track%pt(0)%mat6 = mat6
+    if (local_calc_mat6) track%pt(0)%mat6 = mat6
   endif
 
 !------------------------------------------------------------------
@@ -132,7 +132,7 @@ subroutine track_it (start, real_track, calc_mat6)
       allocate (tm(size(ele%wig_term)))
     endif
 
-    call update_wig_coefs
+    call update_wig_coefs (local_calc_mat6)
     call update_wig_y_terms
 
 ! loop over all steps
@@ -156,36 +156,36 @@ subroutine track_it (start, real_track, calc_mat6)
 
 ! Drift_1 = P_x^2 / (2 * (1 + dE))
 
-      call apply_p_x
+      call apply_p_x (local_calc_mat6)
 
 ! Drift_2 = (P_y - a_y)**2 / (2 * (1 + dE))
 
       call update_wig_x_s_terms
-      call apply_wig_exp_int_ay (-1)
-      call apply_p_y
+      call apply_wig_exp_int_ay (-1, local_calc_mat6)
+      call apply_p_y (local_calc_mat6)
       call update_wig_y_terms
-      call apply_wig_exp_int_ay (+1)
+      call apply_wig_exp_int_ay (+1, local_calc_mat6)
 
 ! Kick = a_z
 
       end%vec(2) = end%vec(2) + ds * da_z_dx()
       end%vec(4) = end%vec(4) + ds * da_z_dy()
 
-      if (calc_mat6) then
+      if (local_calc_mat6) then
         mat6(2,1:6) = mat6(2,1:6) + ds * da_z_dx__dx() * mat6(1,1:6) + ds * da_z_dx__dy() * mat6(3,1:6)
         mat6(4,1:6) = mat6(4,1:6) + ds * da_z_dy__dx() * mat6(1,1:6) + ds * da_z_dy__dy() * mat6(3,1:6)
       endif 
 
 ! Drift_2
 
-      call apply_wig_exp_int_ay (-1)
-      call apply_p_y
+      call apply_wig_exp_int_ay (-1, local_calc_mat6)
+      call apply_p_y (local_calc_mat6)
       call update_wig_y_terms
-      call apply_wig_exp_int_ay (+1)
+      call apply_wig_exp_int_ay (+1, local_calc_mat6)
 
 ! Drift_1
 
-      call apply_p_x
+      call apply_p_x (local_calc_mat6)
 
 ! s half step
 
@@ -194,7 +194,7 @@ subroutine track_it (start, real_track, calc_mat6)
       if (track%save_track) then
         track%pt(i)%s = s
         track%pt(i)%orb = end
-        if (calc_mat6) track%pt(i)%mat6 = mat6
+        if (local_calc_mat6) track%pt(i)%mat6 = mat6
       endif
 
     enddo
@@ -227,11 +227,11 @@ subroutine track_it (start, real_track, calc_mat6)
       s = s + ds2
       ks_tot_2 = (ele%value(ks$) + ele%value(dks_ds$) * s) / 2
 
-      call bsq_drift1
-      call bsq_drift2
-      call bsq_kick
-      call bsq_drift2
-      call bsq_drift1
+      call bsq_drift1 (local_calc_mat6)
+      call bsq_drift2 (local_calc_mat6)
+      call bsq_kick (local_calc_mat6)
+      call bsq_drift2 (local_calc_mat6)
+      call bsq_drift1 (local_calc_mat6)
 
       s = s + ds2
       ks_tot_2 = (ele%value(ks$) + ele%value(dks_ds$) * s) / 2
@@ -239,7 +239,7 @@ subroutine track_it (start, real_track, calc_mat6)
       if (track%save_track) then
         track%pt(i)%s = s
         track%pt(i)%orb = end
-        if (calc_mat6) track%pt(i)%mat6 = mat6
+        if (local_calc_mat6) track%pt(i)%mat6 = mat6
       endif
 
     enddo
@@ -249,7 +249,7 @@ subroutine track_it (start, real_track, calc_mat6)
 
   case default
 
-    print *, 'ERROR IN CALC_MAT6_SYMP_LIE_BMAD: NOT YET IMPLEMENTED:', ele%key
+    print *, 'ERROR IN SYMP_LIE_BMAD: NOT YET IMPLEMENTED:', ele%key
     print *, '      FOR ELEMENT: ', ele%name
     call err_exit
 
@@ -257,7 +257,7 @@ subroutine track_it (start, real_track, calc_mat6)
 
 ! element offset
 
-  if (calc_mat6) then
+  if (local_calc_mat6) then
     call drift_mat6_calc (m6, -ele%value(s_offset_tot$), end%vec)
     mat6(1,1:6) = mat6(1,1:6) + m6(1,2) * mat6(2,1:6) + m6(1,6) * mat6(6,1:6)
     mat6(3,1:6) = mat6(3,1:6) + m6(3,4) * mat6(4,1:6) + m6(3,6) * mat6(6,1:6)
@@ -274,12 +274,14 @@ end subroutine
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine apply_p_x
+subroutine apply_p_x (do_mat6)
+
+  logical do_mat6
 
   end%vec(1) = end%vec(1) + ds2 * end%vec(2) / rel_E
   end%vec(5) = end%vec(5) - ds2 * end%vec(2)**2 / (2*rel_E2)
 
-  if (calc_mat6) then
+  if (do_mat6) then
     mat6(1,1:6) = mat6(1,1:6) + (ds2 / rel_E)           * mat6(2,1:6) - (ds2*end%vec(2)/rel_E2)    * mat6(6,1:6) 
     mat6(5,1:6) = mat6(5,1:6) - (ds2*end%vec(2)/rel_E2) * mat6(2,1:6) + (ds2*end%vec(2)**2/rel_E3) * mat6(6,1:6)
   endif
@@ -290,12 +292,14 @@ end subroutine
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine apply_p_y
+subroutine apply_p_y (do_mat6)
+
+  logical do_mat6
 
   end%vec(3) = end%vec(3) + ds2 * end%vec(4) / rel_E
   end%vec(5) = end%vec(5) - ds2 * end%vec(4)**2 / (2*rel_E2)
 
-  if (calc_mat6) then
+  if (do_mat6) then
     mat6(3,1:6) = mat6(3,1:6) + (ds2 / rel_E)           * mat6(4,1:6) - (ds2*end%vec(4)/rel_E2)    * mat6(6,1:6) 
     mat6(5,1:6) = mat6(5,1:6) - (ds2*end%vec(4)/rel_E2) * mat6(4,1:6) + (ds2*end%vec(4)**2/rel_E3) * mat6(6,1:6)
   endif      
@@ -306,28 +310,30 @@ end subroutine
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine bsq_drift1
+subroutine bsq_drift1 (do_mat6)
+
+  logical do_mat6
 
 ! Drift_1 = (P_x - a_x)**2 / (2 * (1 + dE))
 
   end%vec(2) = end%vec(2) + end%vec(3) * ks_tot_2   !  vec(2) - a_x
   end%vec(4) = end%vec(4) + end%vec(1) * ks_tot_2   !  vec(4) - dint_a_x_dy
 
-  if (calc_mat6) then
+  if (do_mat6) then
     mat6(2,1:6) = mat6(2,1:6) + ks_tot_2 * mat6(3,1:6)
     mat6(4,1:6) = mat6(4,1:6) + ks_tot_2 * mat6(1,1:6)
   endif      
 
 !
 
-  call apply_p_x
+  call apply_p_x (do_mat6)
 
 !
 
   end%vec(2) = end%vec(2) - end%vec(3) * ks_tot_2   !  vec(2) + a_x
   end%vec(4) = end%vec(4) - end%vec(1) * ks_tot_2   !  vec(4) + dint_a_x_dy
 
-  if (calc_mat6) then
+  if (do_mat6) then
     mat6(2,1:6) = mat6(2,1:6) - ks_tot_2 * mat6(3,1:6)
     mat6(4,1:6) = mat6(4,1:6) - ks_tot_2 * mat6(1,1:6)
   endif  
@@ -338,28 +344,30 @@ end subroutine
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine bsq_drift2
+subroutine bsq_drift2 (do_mat6)
+
+  logical do_mat6
 
 ! Drift_2 = (P_y - a_y)**2 / (2 * (1 + dE))
 
   end%vec(2) = end%vec(2) - end%vec(3) * ks_tot_2   !  vec(2) - dint_a_y_dx
   end%vec(4) = end%vec(4) - end%vec(1) * ks_tot_2   !  vec(4) - a_y
 
-  if (calc_mat6) then
+  if (do_mat6) then
     mat6(2,1:6) = mat6(2,1:6) - ks_tot_2 * mat6(3,1:6)
     mat6(4,1:6) = mat6(4,1:6) - ks_tot_2 * mat6(1,1:6)
   endif      
 
 !
 
-  call apply_p_y
+  call apply_p_y (do_mat6)
 
 !
 
   end%vec(2) = end%vec(2) + end%vec(3) * ks_tot_2   !  vec(2) + dint_a_y_dx
   end%vec(4) = end%vec(4) + end%vec(1) * ks_tot_2   !  vec(4) + a_y
 
-  if (calc_mat6) then
+  if (do_mat6) then
     mat6(2,1:6) = mat6(2,1:6) + ks_tot_2 * mat6(3,1:6)
     mat6(4,1:6) = mat6(4,1:6) + ks_tot_2 * mat6(1,1:6)
   endif  
@@ -370,14 +378,16 @@ end subroutine
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine bsq_kick
+subroutine bsq_kick (do_mat6)
+
+  logical do_mat6
 
   end%vec(2) = end%vec(2) + ds * &  ! da_z_dx
                 (k1_norm * (x_q - end%vec(1)) - k1_skew * end%vec(3) - g_x)    
   end%vec(4) = end%vec(4) + ds * &  ! da_z_dy
                 (k1_norm * (end%vec(3) - y_q) - k1_skew * end%vec(1) - g_y)    
 
-  if (calc_mat6) then
+  if (do_mat6) then
     mat6(2,1:6) = mat6(2,1:6) - ds * k1_norm * mat6(1,1:6) - ds * k1_skew * mat6(3,1:6)
     mat6(4,1:6) = mat6(4,1:6) - ds * k1_skew * mat6(1,1:6) + ds * k1_norm * mat6(3,1:6)
   endif 
@@ -388,14 +398,15 @@ end subroutine
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine apply_wig_exp_int_ay (sgn)
+subroutine apply_wig_exp_int_ay (sgn, do_mat6)
 
   integer sgn
+  logical do_mat6
 
   end%vec(2) = end%vec(2) + sgn * dint_a_y_dx()
   end%vec(4) = end%vec(4) + sgn * a_y()
 
-  if (calc_mat6) then
+  if (do_mat6) then
     mat6(2,1:6) = mat6(2,1:6) + sgn * &
             (dint_a_y_dx__dx() * mat6(1,1:6) + dint_a_y_dx__dy() * mat6(3,1:6))
     mat6(4,1:6) = mat6(4,1:6) + sgn * &
@@ -408,9 +419,10 @@ end subroutine
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine update_wig_coefs
+subroutine update_wig_coefs (do_mat6)
 
   real(rp) factor, coef
+  logical do_mat6
 
   factor = c_light / ele%value(beam_energy$)
 
@@ -427,7 +439,7 @@ subroutine update_wig_coefs
     endif
   enddo
 
-  if (.not. calc_mat6) return
+  if (.not. do_mat6) return
 
   do j = 1, size(ele%wig_term)
     wt => ele%wig_term(j)

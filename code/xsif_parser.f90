@@ -574,7 +574,12 @@ subroutine read_wake (wake, file_name, this)
 !
 
   iu = lunget()
-  open (iu, file = file_name)
+  open (iu, file = file_name, status = 'old', iostat = ios)
+  if (ios /= 0) then
+    call xsif_error ('CANNOT OPEN WAKE FILE: ' // file_name)
+    call err_exit
+  endif
+
   n = 0
   do
     read (iu, '(a)', iostat = ios) line
@@ -593,7 +598,7 @@ subroutine read_wake (wake, file_name, this)
   close (iu)
 
   if (n < 1) then
-    call xsif_error ('CANNOT READ WAKE IN FILE: ' // file_name)
+    call xsif_error ('WAKE FILE SEEMS TO BE EMPTY: ' // file_name)
     call err_exit
   endif
 

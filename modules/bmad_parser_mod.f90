@@ -145,7 +145,9 @@ contains
 
 subroutine get_attribute (how, ele, ring, pring, &
                                              delim, delim_found, err_flag)
-                            
+
+  use random_mod
+         
   implicit none
 
   type (ring_struct)  ring
@@ -564,7 +566,7 @@ subroutine get_attribute (how, ele, ring, pring, &
                                       ring, delim, delim_found, err_flag)
     if (err_flag) return
 
-    if (i >= a0$) then  ! multipole attribute
+    if (i >= a0$ .and. i <= b20$) then  ! multipole attribute
         if (.not. associated(ele%a)) call multipole_init (ele)
         if (i >= b0$) then
           ele%b(i-b0$) = value
@@ -585,6 +587,8 @@ subroutine get_attribute (how, ele, ring, pring, &
       ele%ptc_kind = nint(value)
     elseif (i == aperture_at$) then
       ele%aperture_at = nint(value)
+    elseif (i == ran_seed$) then
+      call ran_seed (nint(value))  ! init random number generator
     else
       ele%value(i) = value
       if (i == b_field$) ele%field_master = .true.
@@ -994,11 +998,17 @@ end function
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
+! Subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
+!
+! This routine evaluates an arithmetic expression.
+!
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
 
 subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
+
+  use random_mod
 
   implicit none
 
@@ -1017,11 +1027,11 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
   integer :: unary_plus$ = 9, no_delim$ = 10
   integer :: sin$ = 11, cos$ = 12, tan$ = 13
   integer :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
-  integer :: log$ = 19, exp$ = 20
+  integer :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
   integer :: numeric$ = 100
 
-  integer :: level(20) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9 /)
+  integer :: level(22) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 /)
 
   integer op_(200), ix_word, i_delim, i2, ix0
 
@@ -1031,16 +1041,26 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
   character(1) delim
   character(40) word, word0
 
-  logical delim_found, split
+  logical delim_found, split, ran_function_pending
   logical err_flag, op_found
+
+! The general idea is to rewrite the expression on a stack in reverse polish.
+! Reverse polish means that the operand goes last so that 2 * 3 is writen 
+! on the stack as: [2, 3, *]
+
+! The stack is called: stk
+! Since operations move towards the end of the stack we need a separate
+! stack called op_ which keeps track of what operations have not yet
+! been put on stk.
 
 ! init
 
   err_flag = .false.
   i_lev = 0
   i_op = 0
+  ran_function_pending = .false.
 
-! parsing loop to build up the stack
+! parsing loop to build up the stack.
 
   parsing_loop: do
 
@@ -1054,6 +1074,10 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
       err_flag = .true.
       return
     endif
+
+    if (ran_function_pending .and. (ix_word /= 0 .or. delim /= ')')) &
+          call error_exit ('RAN AND RAN_GAUSS DO NOT TAKE AN ARGUMENT', 'FOR: ' // err_str)
+
 
 ! just make sure we are not chopping a number in two, e.g. "3.5e-7" should not
 ! get split at the "-" even though "-" is a delimiter
@@ -1084,6 +1108,8 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
 ! for a "(" delim
 
     if (delim == '(') then
+
+      ran_function_pending = .false.
       if (ix_word /= 0) then
         if (word == 'SIN') then
           call pushit (op_, i_op, sin$)
@@ -1105,6 +1131,12 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
           call pushit (op_, i_op, log$)
         elseif (word == 'EXP') then
           call pushit (op_, i_op, exp$)
+        elseif (word == 'RAN') then
+          call pushit (op_, i_op, ran$)
+          ran_function_pending = .true.
+        elseif (word == 'RAN_GAUSS') then
+          call pushit (op_, i_op, ran_gauss$)
+          ran_function_pending = .true.
         else
           call warning ('UNEXPECTED CHARACTERS ON RHS BEFORE "(": ' // word,  &
                                                   'FOR: ' // err_str)
@@ -1112,6 +1144,7 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
           return
         endif
       endif
+
       call pushit (op_, i_op, l_parens$)
       cycle parsing_loop
 
@@ -1130,11 +1163,15 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
 ! for a ")" delim
 
     elseif (delim == ')') then
-      if (ix_word == 0) call error_exit  &
-            ('CONSTANT OR VARIABLE MISSING BEFOR ")" FOR: ' // err_str, ' ')
-      call word_to_value (word, ring, value)
-      call pushit (stk%type, i_lev, numeric$)
-      stk(i_lev)%value = value
+      if (ix_word == 0) then
+        if (.not. ran_function_pending) call error_exit  &
+              ('CONSTANT OR VARIABLE MISSING BEFORE ")"', 'FOR: ' // err_str)
+        ran_function_pending = .false.
+      else
+        call word_to_value (word, ring, value)
+        call pushit (stk%type, i_lev, numeric$)
+        stk(i_lev)%value = value
+      endif
 
       do
         do i = i_op, 1, -1     ! release pending ops
@@ -1284,6 +1321,12 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
       stk(i2)%value = log(stk(i2)%value)
     elseif (stk(i)%type == exp$) then
       stk(i2)%value = exp(stk(i2)%value)
+    elseif (stk(i)%type == ran$) then
+      i2 = i2 + 1
+      call random_number(stk(i2)%value)
+    elseif (stk(i)%type == ran_gauss$) then
+      i2 = i2 + 1
+      call ran_gauss(stk(i2)%value)
     else
       call error_exit ('INTERNAL ERROR #02: GET HELP', ' ')
     endif
@@ -1917,12 +1960,17 @@ subroutine error_exit (what1, what2)
 
 !
 
-  print *, 'FATAL ERROR IN BMAD_PARSER: ', what1
+  print *, 'FATAL ERROR IN ', trim(bp_com%parser_name) 
+  print '(5x, a)', trim(what1)
   if (present(what2)) then
-    if (what2 /= ' ') print '(22x, a)', what2
+    if (what2 /= ' ') print '(5x, a)', trim(what2)
   endif
-  print *, '      IN FILE: ', trim(bp_com%current_file%full_name)
-  print *, '      AT OR BEFORE LINE:', bp_com%current_file%i_line
+
+  if (bp_com%input_line_meaningful) then
+    print *, '      IN FILE: ', trim(bp_com%current_file%full_name)
+    print *, '      AT OR BEFORE LINE:', bp_com%current_file%i_line
+  endif
+
   call err_exit
 
 end subroutine

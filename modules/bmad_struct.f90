@@ -220,7 +220,7 @@ module bmad_struct
   integer, parameter :: def_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23
   integer, parameter :: patch$ = 24, lcavity$ = 25, def_parameter$ = 26
   integer, parameter :: null_ele$ = 27, init_ele$ = 28, hom$ = 29
-  integer, parameter :: matrix$ = 30, monitor$ = 31, instrument$ = 32
+  integer, parameter :: match$ = 30, monitor$ = 31, instrument$ = 32
   integer, parameter :: hkicker$ = 33, vkicker$ = 34, rcollimator$ = 35
   integer, parameter :: ecollimator$ = 36, i_beam$ = 37, bend_sol_quad$ = 38
 
@@ -234,7 +234,7 @@ module bmad_struct
     'OCTUPOLE     ', 'RBEND        ', 'MULTIPOLE    ', 'ACCEL_SOL    ', &
     'DEF BEAM     ', 'AB_MULTIPOLE ', 'SOLENOID     ', 'PATCH        ', &
     'LCAVITY      ', 'DEF PARAMETER', 'NULL_ELEMENT ', 'INIT_ELEMENT ', &
-    'HOM          ', 'MATRIX       ', 'MONITOR      ', 'INSTRUMENT   ', &
+    'HOM          ', 'MATCH        ', 'MONITOR      ', 'INSTRUMENT   ', &
     'HKICKER      ', 'VKICKER      ', 'RCOLLIMATOR  ', 'ECOLLIMATOR  ', &
     'I_BEAM       ', 'BEND_SOL_QUAD', '             ' /)
 
@@ -255,7 +255,9 @@ module bmad_struct
 
   integer, parameter :: beta_x0$ = 2, alpha_x0$ = 3, beta_y0$ = 4, &
           alpha_y0$ = 5, beta_x1$ = 6, alpha_x1$ = 7, beta_y1$ = 8, &
-          alpha_y1$ = 9, dphi_x$ = 10, dphi_y$ = 11
+          alpha_y1$ = 9, dphi_x$ = 10, dphi_y$ = 11, &
+          eta_x0$ = 12, etap_x0$ = 13, eta_y0$ = 14, etap_y0$ = 15, &
+          eta_x1$ = 16, etap_x1$ = 17, eta_y1$ = 18, etap_y1$ = 19
 
 !  integer, parameter :: x_position$ = 2, y_position$ = 3, z_position$ = 4, &
 !          theta_position$ = 5, phi_position$ = 6, psi_position$ = 7, &
@@ -324,9 +326,7 @@ module bmad_struct
   integer, parameter :: field_calc$ = 56
   integer, parameter :: type$ = 57
   integer, parameter :: aperture_at$ = 58
-
-! Warning: No other attribute parameters can have indexes larger than A0$.
-! That is: multipole arrays An, Bn, KnL, and Tn must have the largest indexes
+  integer, parameter :: ran_seed$ = 59
 
   integer, parameter :: a0$  =  60, k0l$  =  60
   integer, parameter :: a1$  =  61, k1l$  =  61
@@ -411,12 +411,13 @@ module bmad_struct
 
   integer, parameter :: free$ = 1, super_slave$ = 2, overlay_slave$ = 3
   integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
-  integer, parameter :: i_beam_lord$ = 7
+  integer, parameter :: i_beam_lord$ = 7, clone_lord$ = 8, clone_slave$ = 9
 
-  character(16) :: control_name(8) = (/ &
+  character(16) :: control_name(10) = (/ &
             'FREE_ELEMENT   ', 'SUPER_SLAVE    ', 'OVERLAY_SLAVE  ', &
             'GROUP_LORD     ', 'SUPER_LORD     ', 'OVERLAY_LORD   ', &
-            'I_BEAM_LORD    ', '               ' /)
+            'I_BEAM_LORD    ', 'CLONE_LORD     ', 'CLONE_SLAVE    ', &
+            '               ' /)
 
 ! plane list, etc
 

@@ -126,7 +126,7 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
 
 ! multipole?
 
-  if (ix_attrib >= a0$) then   ! multipole attribute
+  if (ix_attrib >= a0$ .and. ix_attrib <= b20$) then   ! multipole attribute
 
     if (.not. associated(ele%a)) then
       if (do_allocation) then

@@ -70,13 +70,13 @@ function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, tracking_method$)   = 'TRACKING_METHOD'
 
       if (i == marker$)       cycle
+      if (i == match$)        cycle
 
       attrib_array(i, is_on$)       = 'IS_ON'
 
       if (i == patch$)        cycle
       if (i == beambeam$)     cycle
       if (i == hom$)          cycle
-      if (i == matrix$)       cycle
       if (i == multipole$)    cycle 
       if (i == ab_multipole$) cycle
       if (i == taylor$)       cycle
@@ -132,20 +132,29 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(def_parameter$, beam_energy$)  = 'BEAM_ENERGY'
     attrib_array(def_parameter$, lattice_type$) = 'LATTICE_TYPE'
     attrib_array(def_parameter$, taylor_order$) = 'TAYLOR_ORDER'
+    attrib_array(def_parameter$, ran_seed$)     = 'RAN_SEED'
 
     attrib_array(taylor$, symplectify$) = 'SYMPLECTIFY'
 
-    attrib_array(matrix$, l$)             = 'L'
-    attrib_array(matrix$, beta_x0$)       = 'BETA_X0'
-    attrib_array(matrix$, alpha_x0$)      = 'ALPHA_X0'
-    attrib_array(matrix$, beta_y0$)       = 'BETA_Y0'
-    attrib_array(matrix$, alpha_y0$)      = 'ALPHA_Y0'
-    attrib_array(matrix$, beta_x1$)       = 'BETA_X1'
-    attrib_array(matrix$, alpha_x1$)      = 'ALPHA_X1'
-    attrib_array(matrix$, beta_y1$)       = 'BETA_Y1'
-    attrib_array(matrix$, alpha_y1$)      = 'ALPHA_Y1'
-    attrib_array(matrix$, dphi_x$)        = 'DPHI_X'
-    attrib_array(matrix$, dphi_y$)        = 'DPHI_Y'
+    attrib_array(match$, l$)             = 'L'
+    attrib_array(match$, beta_x0$)       = 'BETA_X0'
+    attrib_array(match$, alpha_x0$)      = 'ALPHA_X0'
+    attrib_array(match$, beta_y0$)       = 'BETA_Y0'
+    attrib_array(match$, alpha_y0$)      = 'ALPHA_Y0'
+    attrib_array(match$, beta_x1$)       = 'BETA_X1'
+    attrib_array(match$, alpha_x1$)      = 'ALPHA_X1'
+    attrib_array(match$, beta_y1$)       = 'BETA_Y1'
+    attrib_array(match$, alpha_y1$)      = 'ALPHA_Y1'
+    attrib_array(match$, dphi_x$)        = 'DPHI_X'
+    attrib_array(match$, dphi_y$)        = 'DPHI_Y'
+    attrib_array(match$, eta_x0$)        = 'ETA_X0'
+    attrib_array(match$, etap_x0$)       = 'ETAP_X0'
+    attrib_array(match$, eta_y0$)        = 'ETA_Y0'
+    attrib_array(match$, etap_y0$)       = 'ETAP_Y0'
+    attrib_array(match$, eta_x1$)        = 'ETA_X1'
+    attrib_array(match$, etap_x1$)       = 'ETAP_X1'
+    attrib_array(match$, eta_y1$)        = 'ETA_Y1'
+    attrib_array(match$, etap_y1$)       = 'ETAP_Y1'
 
     attrib_array(i_beam$, x_offset$)     = 'X_OFFSET'
     attrib_array(i_beam$, y_offset$)     = 'Y_OFFSET'
@@ -431,11 +440,6 @@ function attribute_name (ele, ix_att) result (at_name)
   else
     at_name = attrib_array(key, ix_att)
   endif
-
-!  if (key == wiggler$ .and. ele%sub_key == map_type$) then
-!    if (any (ix_att == (/ k1$, b_max$, rho$, n_pole$, radius$ /) )) &
-!                                                    at_name = null_name
-!  endif
 
 end function
 

@@ -227,12 +227,6 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     k1 = ele%value(k1$) / rel_E
 
-    if (k1 == 0) then
-      call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
-      call mat6_add_multipoles_and_s_offset
-      return
-    endif
-
     call quad_mat2_calc (-k1, length, mat6(1:2,1:2), dz_x)
     call quad_mat2_calc ( k1, length, mat6(3:4,3:4), dz_y)
 

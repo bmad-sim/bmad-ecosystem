@@ -419,7 +419,7 @@ end subroutine
 !------------------------------------------------------------------------
 !+
 ! Subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
-!                               num_steps, no_cavity, exact_calc)
+!                               num_steps, no_cavity, exact_calc, exact_misalign)
 !
 ! Subroutine to initialize PTC.
 ! Note: At some point before you use PTC to compute Taylor maps etc.
@@ -450,17 +450,20 @@ end subroutine
 !                     Default = False.
 !                     Corresponds to the nocavity option of the PTC init routine.
 !                     Do not set this unless you know what you are doing.
-!   exact_calc   -- logical, optional: Exact Model? 
+!   exact_calc   -- logical, optional: Sets the PTC EXACT_MODEL variable.
 !                     Default = False.
+!                     See the PTC guide for more details.
+!   exact_misalign -- logical, optional: Sets the PTC ALWAYS_EXACTMIS variable.
+!                     Default = true.
 !                     See the PTC guide for more details.
 !-
 
 subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
-                                    num_steps, no_cavity, exact_calc) 
+                                    num_steps, no_cavity, exact_calc, exact_misalign) 
 
   use mad_like, only: make_states, exact_model, always_exactmis, &
                 assignment(=), set_mad, nocavity, default, operator(+), &
-                berz, init
+                berz, init, set_madx
 
   implicit none
 
@@ -472,7 +475,7 @@ subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
   real(rp), save :: old_beam_energy = 0
   real(dp) this_energy
 
-  logical, optional :: no_cavity, exact_calc
+  logical, optional :: no_cavity, exact_calc, exact_misalign
   logical, save :: init_needed = .true.
   logical params_present
 
@@ -489,13 +492,11 @@ subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
       call make_states(.false.)
     endif
     EXACT_MODEL = .false.
-    ALWAYS_EXACTMIS = .false.
+    ALWAYS_EXACTMIS = .true.
   endif
 
-  if (present(exact_calc)) then
-    EXACT_MODEL = exact_calc
-    ALWAYS_EXACTMIS = exact_calc
-  endif
+  if (present (exact_calc))     EXACT_MODEL = exact_calc
+  if (present (exact_misalign)) ALWAYS_EXACTMIS = exact_misalign
     
   if (present(no_cavity)) default = default+nocavity
   
@@ -521,7 +522,7 @@ subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
         call out_io (s_fatal$, r_name, 'BEAM_ENERGY IS 0.')
         call err_exit
       endif
-      call set_mad (energy = this_energy, method = this_method, &
+      call set_madx (energy = this_energy, method = this_method, &
                                                        step = this_steps)
       old_beam_energy  = beam_energy
       init_needed = .false.
@@ -1682,24 +1683,24 @@ end subroutine
 
 subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 
-  use user_kind2, only: hyperbolic_x$, hyperbolic_y$, hyperbolic_xy$
-  use mad_like, only: el_list, matrix_kick_matrix, drift_kick_drift, kind17, &
-                kind0, kind2, kind4, kind15, METD, NSTD, copy, &
-                assignment(=), kind1, kind3, kinduser2, nmax, init_wig_pointers
+  use sagan_wiggler, only: hyperbolic_x$, hyperbolic_y$, hyperbolic_xy$
+  use madx_keywords, only: keywords, zero_key, create_fibre, geo_rot
+  use mad_like, only: nmax, init_sagan_pointers, misalign_fibre, copy, c_
 
   implicit none
  
   type (ele_struct) ele
   type (fibre) fiber
-  type (el_list) el
+  type (keywords) ptc_key
   type (param_struct) :: param
 
   real(8) mis_rot(6)
+  real(8) omega(3), basis(3,3), angle(3)
 
   real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
   real(rp) cos_t, sin_t, len, hk, vk, x_off, y_off
 
-  integer i, n, metd_temp, nstd_temp, key, n_term
+  integer i, n, metd_temp, nstd_temp, key, n_term, exception
   integer, optional :: integ_order, steps
 
   character name*16
@@ -1707,16 +1708,18 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 
 !
 
-  el = 0  ! init: subroutine el_0
+  call zero_key(ptc_key)  ! init key
+  ptc_key%model = 'MATRIX_KICK'
 
-  el%name    = ele%name
-  el%vorname = ele%type
+  ptc_key%list%name    = ele%name
 
-  el%l    = ele%value(l$)
-  el%ld   = ele%value(l$)
-  el%lc   = ele%value(l$)
+  ptc_key%list%l    = ele%value(l$)
+!  ptc_key%list%ld   = ele%value(l$)
+!  ptc_key%list%lc   = ele%value(l$)
 
-  el%tilt = ele%value(tilt_tot$)
+  ptc_key%tiltd = ele%value(tilt_tot$)
+  ptc_key%nstep = ele%num_steps
+  ptc_key%method = ele%integration_ord  
 
 !
 
@@ -1727,68 +1730,67 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
   select case (key)
 
   case (drift$, rcollimator$, ecollimator$, monitor$, instrument$) 
-    el%kind = kind1
+    ptc_key%magnet = 'drift'
 
   case (quadrupole$) 
-    el%kind = matrix_kick_matrix  ! kind7
-    el%k(2) = ele%value(k1$)
+    ptc_key%magnet = 'quadrupole'
+    ptc_key%list%k(2) = ele%value(k1$)
 
   case (sbend$) 
-    el%kind = matrix_kick_matrix  ! kind7
-    el%b0   = ele%value(g$)
-    el%lc   = ele%value(l_chord$)
-    el%t1   = ele%value(e1$)
-    el%t2   = ele%value(e2$)
-    el%k(2) = ele%value(k1$)
+    ptc_key%magnet = 'sbend'
+    ptc_key%list%b0   = ele%value(angle$)  ! Yep this is correct. 
+    ptc_key%list%t1   = ele%value(e1$)
+    ptc_key%list%t2   = ele%value(e2$)
+    ptc_key%list%k(1) = ele%value(delta_g$)
+    ptc_key%list%k(2) = ele%value(k1$)
 
   case (sextupole$)
-    el%kind = drift_kick_drift  ! kind2
-    el%k(3) = ele%value(k2$) / 2
+    ptc_key%magnet = 'sextupole'
+    ptc_key%list%k(3) = ele%value(k2$) / 2
 
   case (octupole$)
-    el%kind = drift_kick_drift ! kind2
-    el%k(4) = ele%value(k3$) / 6
+    ptc_key%magnet = 'octupole'
+    ptc_key%list%k(4) = ele%value(k3$) / 6
 
   case (solenoid$)
-    el%kind = kind17    ! kind5 will be quicker but not exact
-    el%bsol = ele%value(ks$)
+    ptc_key%magnet = 'solenoid'
+    ptc_key%list%bsol = ele%value(ks$)
 
   case (sol_quad$)
-    el%kind = kind17    ! kind5 will be quicker but not exact
-    el%bsol = ele%value(ks$)
-    el%k(2) = ele%value(k1$)
+    ptc_key%magnet = 'solenoid'
+    ptc_key%list%bsol = ele%value(ks$)
+    ptc_key%list%k(2) = ele%value(k1$)
 
   case (marker$)
-    el%kind = kind0
+    ptc_key%magnet = 'marker'
 
   case (kicker$, hkicker$, vkicker$)
-    el%kind = kind2
+    ptc_key%magnet = 'kicker'
 
   case (rfcavity$)
-    el%kind = kind4
-    el%volt = ele%value(voltage$)
-    if (param%total_length == 0) then
-      el%freq0 = 1
-    else
-      el%freq0 = c_light / param%total_length
-    endif
-    el%lag = ele%value(phi0$)
-    el%delta_e = 0
+    ptc_key%nstep = 1
+    ptc_key%method = 2
+    ptc_key%magnet = 'rfcavity'
+    ptc_key%list%volt = 1e-6 * ele%value(voltage$)
+    ptc_key%list%freq0 = ele%value(rf_frequency$)
+    ptc_key%list%lag = twopi * ele%value(phi0$) + pi * ptc_key%list%freq0 * &
+        ele%value(l$) / c_light + c_%phase0  ! For (t, dE) use /(c_light*beta0)
+    ptc_key%list%delta_e = 0
 
   case (elseparator$)
-    el%kind = kind15
+    ptc_key%magnet = 'kicker'
     hk = ele%value(hkick$) / len
     vk = ele%value(vkick$) / len
     if (hk == 0 .and. vk == 0) then
-      el%tilt = 0
+      ptc_key%tiltd = 0
     else
       if (param%particle < 0) then
         hk = -hk
         vk = -vk
       endif
-      el%tilt = -atan2 (hk, vk) + ele%value(tilt_tot$)
+      ptc_key%tiltd = -atan2 (hk, vk) + ele%value(tilt_tot$)
     endif
-    el%volt = 1e-6 * ele%value(beam_energy$) * sqrt(hk**2 + vk**2)
+    ptc_key%list%volt = 1e-6 * ele%value(beam_energy$) * sqrt(hk**2 + vk**2)
     call multipole_ele_to_ab (ele, param%particle, an0, bn0, .false.) 
     if (any(an0 /= 0) .or. any(bn0 /= 0)) then
       print *, 'ERROR IN ELE_TO_FIBRE: ', &
@@ -1797,14 +1799,15 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
     endif
 
   case (ab_multipole$, multipole$)
-    el%kind = kind3
+    ptc_key%magnet = 'multipole'
 
   case (beambeam$)
+    ptc_key%magnet = 'beambeam'
     print *, 'ERROR IN ELE_TO_FIBRE: BEAMBEAM ELEMENT NOT YET IMPLEMENTED!'
     call err_exit
 
   case (wiggler$)
-    el%kind = kinduser2    
+    ptc_key%magnet = 'wiggler'
     if (ele%sub_key == periodic_type$) then
       print *, 'ERROR IN ELE_TO_FIBRE: OLD STYLE WIGGLER: ', ele%name
       print *, '       CANNOT BE USED WITH TAYLOR.'
@@ -1837,8 +1840,8 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
     if (kick_here) then
       cos_t = cos(ele%value(tilt_tot$))
       sin_t = sin(ele%value(tilt_tot$))
-      el%k(1)  = -hk * cos_t - vk * sin_t
-      el%ks(1) = -hk * sin_t + vk * cos_t
+      ptc_key%list%k(1)  = ptc_key%list%k(1) - hk * cos_t - vk * sin_t
+      ptc_key%list%ks(1) =         - hk * sin_t + vk * cos_t
     endif
 
     call multipole_ele_to_ab (ele, param%particle, an0, bn0, .false.)
@@ -1847,7 +1850,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
       bn0 = bn0 / len
     endif
 
-    n = min(n_pole_maxx+1, size(el%k))
+    n = min(n_pole_maxx+1, size(ptc_key%list%k))
     if (n-1 < n_pole_maxx) then
       if (any(an0(n:n_pole_maxx) /= 0) .or. any(bn0(n:n_pole_maxx) /= 0)) then
         print *, 'WARNING IN ELE_TO_FIBRE: MULTIPOLE NOT TRANSFERED TO FIBRE'
@@ -1855,40 +1858,16 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
       endif
     endif
  
-    el%ks(1:n) = el%ks(1:n) + an0(0:n-1)
-    el%k(1:n) = el%k(1:n) + bn0(0:n-1)
-
-    if (key == sbend$) el%k(1) = el%k(1) + ele%value(g$) + ele%value(delta_g$)
+    ptc_key%list%ks(1:n) = ptc_key%list%ks(1:n) + an0(0:n-1)
+    ptc_key%list%k(1:n) = ptc_key%list%k(1:n) + bn0(0:n-1)
 
     do n = nmax, 1, -1
-      if (el%ks(n) /= 0 .or. el%k(n) /= 0) exit
+      if (ptc_key%list%ks(n) /= 0 .or. ptc_key%list%k(n) /= 0) exit
     enddo
-    el%nmul  = n
+    ptc_key%list%nmul  = n
   endif
 
-  if (el%kind == kind1 .and. el%nmul > 0) el%kind = matrix_kick_matrix  ! kind7
-
-  if (el%kind == matrix_kick_matrix) el%nmul = max(2, el%nmul)
-
-! METD and STEPS are global variables in PTC.
-
-  if (present (integ_order)) then
-    el%method = integ_order
-  elseif (ele%integration_ord /= 0) then
-    el%method = ele%integration_ord
-  else
-    el%method = METD
-  endif
-
-  if (present (steps)) then
-    el%nst = steps
-  elseif (ele%num_steps /= 0) then
-    el%nst = ele%num_steps
-  else
-    el%nst = NSTD
-  endif
-
-  fiber = el
+  call create_fibre (fiber, ptc_key, EXCEPTION)   ! ptc routine
 
 ! wiggler
 
@@ -1903,30 +1882,38 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
     endif
 
     n_term = size(ele%wig_term)
-    call init_wig_pointers (fiber%mag%u2%w, n_term)   
+    call init_sagan_pointers (fiber%mag%wi%w, n_term)   
 
-    fiber%mag%u2%w%a(1:n_term) = c_light * &
+    fiber%mag%wi%w%a(1:n_term) = c_light * &
             ele%value(polarity$) * ele%wig_term%coef / ele%value(beam_energy$)
-    fiber%mag%u2%w%k(1,1:n_term)  = ele%wig_term%kx
-    fiber%mag%u2%w%k(2,1:n_term)  = ele%wig_term%ky
-    fiber%mag%u2%w%k(3,1:n_term)  = ele%wig_term%kz
-    fiber%mag%u2%w%f(1:n_term)    = ele%wig_term%phi_z
-    fiber%mag%u2%w%form(1:n_term) = ele%wig_term%type
+    fiber%mag%wi%w%k(1,1:n_term)  = ele%wig_term%kx
+    fiber%mag%wi%w%k(2,1:n_term)  = ele%wig_term%ky
+    fiber%mag%wi%w%k(3,1:n_term)  = ele%wig_term%kz
+    fiber%mag%wi%w%f(1:n_term)    = ele%wig_term%phi_z
+    fiber%mag%wi%w%form(1:n_term) = ele%wig_term%type
 
     call copy (fiber%mag, fiber%magp)
   endif
 
-!  misalignments.
-! In PTC the reference point for the offsets is the beginning of the element.
+! Misalignments:
+! in PTC the reference point for the offsets is the beginning of the element.
 ! In BMAD the reference point is the center of the element..
 
-  x_off = ele%value(x_offset_tot$)-ele%value(l$)*ele%value(x_pitch_tot$)
-  y_off = ele%value(y_offset_tot$)-ele%value(l$)*ele%value(y_pitch_tot$)
+  x_off = ele%value(x_offset_tot$)
+  y_off = ele%value(y_offset_tot$)
 
   mis_rot = (/ x_off, y_off, 0.0_rp, &
               -ele%value(y_pitch_tot$), -ele%value(x_pitch_tot$),  0.0_rp /)
 
-  fiber = mis_rot  ! call fibre_mis
+  angle = 0
+  angle(3) = -fiber%mag%p%tiltd
+
+  omega = fiber%chart%f%o
+  basis = fiber%chart%f%mid
+
+  call geo_rot(basis, angle, 1, basis)                 ! PTC call
+  call misalign_fibre (fiber, mis_rot, omega, basis)   ! PTC call
+
 
 end subroutine
 
