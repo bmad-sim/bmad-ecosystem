@@ -5,6 +5,7 @@ module bmad_basic_mod
   use dcslib
   use cesr_utils
   use precision_def
+  use precision_constants, only: dp
 
   integer, parameter :: n_pole_maxx = 20  ! maximum multipole order
 

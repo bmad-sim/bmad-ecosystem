@@ -7,9 +7,9 @@ module ptc_interface_mod
   use bmad_interface
   use multipole_mod
 
-  use mad_like, only: kill, set_up, real_8, layout, fibre, &
-        universal_taylor, dp, ptc_track => track, append, ring_l, &
-        hyperbolic_x$, hyperbolic_y$, hyperbolic_xy$
+  use definition, only: real_8, universal_taylor
+  use s_def_all_kinds, only: fibre, layout
+  use mad_like, only: kill, ptc_track => track
 
   interface assignment (=)
     module procedure real_8_equal_taylor
@@ -39,7 +39,7 @@ contains
 ! Notice that map_coef(y, i, j) just gives the linear (matrix) part of the map.
 !
 ! Modules Needed:                    
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   y(:)  -- Real_8: Taylor Map.
@@ -143,7 +143,7 @@ end function
 ! Subroutine to print the global information in a layout
 !
 ! Modules Needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   lay - layout: layout to use.
@@ -183,7 +183,7 @@ end subroutine
 !    call set_ptc (ring%param, ...)
 !
 ! Modules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   ring -- Ring_struct: 
@@ -193,6 +193,9 @@ end subroutine
 !-
 
 subroutine ring_to_layout (ring, ptc_layout)
+
+  use s_fibre_bundle, only: ring_l, append
+  use mad_like, only: set_up
 
   implicit none
 
@@ -250,7 +253,7 @@ end subroutine
 ! Subroutine to type the transfer map up to first order.
 !
 ! Modules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   y(:)  -- Real_8: 
@@ -345,7 +348,7 @@ end function
 ! Subroutine to print the global information in a fibre
 !
 ! Modules Needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   fib - fibre: fibre to use.
@@ -430,7 +433,7 @@ end subroutine
 !     init
 !
 ! Modules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   param        -- Param_struct, optional: BMAD parameters:
@@ -546,7 +549,7 @@ end subroutine
 !       y8 = bmad_taylor
 !
 ! Modules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   bmad_taylor(:) -- Taylor_struct: Input taylor series array.
@@ -576,7 +579,7 @@ end subroutine
 !       bmad_taylor = y8
 !
 ! Modules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   y8(:) -- real_8: PTC Taylor series array.
@@ -610,7 +613,7 @@ end subroutine
 !         (x, P_x, y, P_y, z, P_z)
 !
 ! Modules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   y8(6)       -- Real_8: Taylor map.
@@ -664,7 +667,7 @@ end subroutine
 !         (x, P_x, y, P_y, P_z, c*t = -z)
 !
 ! Modules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   bmad_taylor(6) -- Taylor_struct: Taylor map.
@@ -808,7 +811,7 @@ end subroutine
 ! another. Note: ut1 needs to have been initialized.
 !
 ! Modules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   ut2 -- Universal_taylor:
@@ -850,7 +853,7 @@ end subroutine
 !   call kill(y)
 !
 ! Modules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   y(:)       -- Real_8: 
@@ -897,7 +900,7 @@ end subroutine
 !         (x, P_x, y, P_y, z, P_z)
 !
 ! Modules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   u_taylor(6) -- Universal_taylor: Universal_taylor map.
@@ -968,7 +971,7 @@ end subroutine
 ! This subroutine assumes that y1, y2, and y3 have been allocated.
 !
 ! Modules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   y1(6) -- real_8: Input.
@@ -1028,7 +1031,7 @@ end subroutine
 ! Note: The genfield uses PTC coordinates.
 !
 ! Moudules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   bmad_taylor(6) -- Taylor_struct: Input taylor map.
@@ -1099,7 +1102,7 @@ end subroutine
 ! same is prohibited.
 !
 ! Moudules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !  taylor_in(6) -- Taylor_struct: Input taylor map.
@@ -1167,7 +1170,7 @@ end subroutine
 ! Subroutine to invert a taylor map.
 !
 ! Moudules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   taylor_in(6)  -- Taylor_struct: Input taylor map.
@@ -1248,7 +1251,7 @@ end subroutine
 !   taylor3(x) = taylor1(taylor2(x))  
 !
 ! Modules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   taylor1(6) -- Taylor_struct: Taylor series.
@@ -1308,7 +1311,7 @@ end subroutine
 ! The alternative routine if ele has a taylor series is concat_taylor.
 !
 ! Modules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   tlr(6) -- Taylor_struct: Map to be tracked
@@ -1369,7 +1372,7 @@ end subroutine
 ! The order of the map is set by set_ptc
 !
 ! Modules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   ele   -- Element_struct: 
@@ -1494,7 +1497,7 @@ end subroutine
 ! Subroutine to type out the taylor series from a real_8 array.
 !
 ! Modules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input
 !   y(6)     -- Real_8: 6 taylor series: (x, P_x, y, P_y, P_z, -z)
@@ -1538,7 +1541,7 @@ end subroutine
 !           call sort_universal_terms (this_ut, this_ut)
 !
 ! Modules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   ut_in     -- Universal_taylor: Unsorted taylor series.
@@ -1605,7 +1608,7 @@ end subroutine
 ! Subroutine to type the transfer maps of a real_8 array.
 !
 ! Modules needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   y(:)  -- Real_8: 
@@ -1653,7 +1656,7 @@ end subroutine
 ! Note: You need to call set_ptc before using this routine.
 !
 ! Modules Needed:
-!   use bmad
+!   use ptc_interface_mod
 !
 ! Input:
 !   ele    -- Ele_struct: BMAD element.
@@ -1675,9 +1678,10 @@ end subroutine
 
 subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 
+  use user_kind2, only: hyperbolic_x$, hyperbolic_y$, hyperbolic_xy$
   use mad_like, only: el_list, matrix_kick_matrix, drift_kick_drift, kind17, &
-                  kind0, kind2, kind4, kind15, METD, NSTD, copy, &
-                  assignment(=), kind1, kind3, kinduser2, nmax, init_wig_pointers
+                kind0, kind2, kind4, kind15, METD, NSTD, copy, &
+                assignment(=), kind1, kind3, kinduser2, nmax, init_wig_pointers
 
   implicit none
  
