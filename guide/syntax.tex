@@ -49,7 +49,7 @@ Symbolic constants can be defined using the syntax
 \begin{example}
   parameter_name = expression
 \end{example}
-and to be compatable with MAD the syntax
+alternatively, to be compatable with MAD, using ``:='' instead of ``='' is accepted
 \begin{example}
   parameter_name := expression
 \end{example}
@@ -74,8 +74,32 @@ defined, symbolic constants cannot be redefined. For example:
 \end{example}
 
 
+\section{Element attributes}
+
+Element attributes can be set or used in an algerbraic expression using the syntax
+\begin{example}
+  element-name[attribute-name]
+\end{example}
+For example:
+\begin{example}
+  b01w: sbend, l = 6.0, rho = 89.0   ! Define a bend element.
+  b01w[l] = 6.5                      ! Change an attribute value.
+  b01w[roll] = 0.017                 ! Change an attribute value.
+  my_const = b01[rho] / b01[l]       ! Use of attribute values in an expression
+\end{example}
+
 \section{Lattice Elements}
 
-The syntax for defining a lattice element follows MAD:
+The syntax for defining a lattice element roughly follows MAD:
 \begin{example}
+  label: keyword [, attributes]
+\end{example}
+\tn{Overlay} and \tn{Group} elements have a slightly different syntax
+\begin{example}
+  label: keyword = \{ list \}, master-attribute [= value] [, attributes]
+\end{example}
+For example:
+\begin{example}
+  q01w: quad, type = "A String", l = 0.6, tilt = pi/2
+  h10e: overlay = {b08e, b10e}, hkick
 \end{example}

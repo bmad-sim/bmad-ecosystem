@@ -213,7 +213,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine transfer_taylor (ring_in, ring_out, type_out)
+! Subroutine transfer_taylor (ring_in, ring_out, type_out, transfered_all)
 !
 ! Subroutine to transfer the taylor maps from the elements of one ring to
 ! the elements of another. The elements are matched between the rings so 
@@ -234,9 +234,11 @@ end subroutine
 !
 ! Output:
 !   ring_out  -- Ring_struct: Ring to receive the Taylor maps.
+!   transfered_all -- Logical, optional: Set True if a Taylor map is found
+!                 for all elements in ring_out that need one. False otherwise.
 !-
 
-subroutine transfer_taylor (ring_in, ring_out, type_out)
+subroutine transfer_taylor (ring_in, ring_out, type_out, transfered_all)
 
   implicit none
 
@@ -248,14 +250,18 @@ subroutine transfer_taylor (ring_in, ring_out, type_out)
   integer n_in, ix_in(ring_in%n_ele_maxx)
  
   logical, intent(in)  :: type_out
+  logical, optional :: transfered_all
 
 ! check global parameters
+
+  if (present(transfered_all)) transfered_all = .true.
 
   if (ring_in%param%beam_energy /= ring_out%param%beam_energy) then
     if (type_out) then
       print *, 'TRANSFER_TAYLOR: THE RING ENERGIES ARE DIFFERENT.'
       print *, '    TAYLOR MAPS NOT TRANSFERED.'
     endif
+    if (present(transfered_all)) transfered_all = .false.
     return
   endif
 
@@ -271,6 +277,8 @@ subroutine transfer_taylor (ring_in, ring_out, type_out)
   enddo
 
 ! go through ring_out and match elements
+
+  if (present(transfered_all)) transfered_all = .false.
 
   out_loop: do i = 1, ring_out%n_ele_max
 
@@ -312,8 +320,10 @@ subroutine transfer_taylor (ring_in, ring_out, type_out)
     enddo
 
     if (ele_out%tracking_method == taylor$ .or. &
-              ele_out%mat6_calc_method == taylor$ .and. type_out) &
-              print *, 'TRANSFER_TAYLOR: NO TAYLOR FOR: ', ele_out%name
+                    ele_out%mat6_calc_method == taylor$ .and. type_out) then
+      print *, 'TRANSFER_TAYLOR: NO TAYLOR FOR: ', ele_out%name
+      if (present(transfered_all)) transfered_all = .false.
+    endif
 
   enddo out_loop
 
