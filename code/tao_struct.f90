@@ -288,7 +288,7 @@ type tao_var_struct
   logical good_opt          ! See above
   logical useit_opt         ! See above
   logical useit_plot        ! See above
-  type (tao_var_hook) hook  ! Custom stuff. Defined in tao_hook.f90
+  type (tao_var_hook) hook  ! Custom stuff. Defined in tao_hook_mod.f90
   type (tao_v1_var_struct), pointer :: v1 => null() ! Pointer to the parent.
 end type tao_var_struct  
 
@@ -316,6 +316,7 @@ type tao_global_struct
   integer :: ix_key_bank = 0         ! For single mode.
   integer :: phase_units = radians$  ! Phase units on output.
   integer :: max_output_lines = 200  ! maximun number of lines sent to output_io
+  integer :: track_type = singleparticle$ ! or macroparticle$ 
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer = 'de'  ! optimizer to use.
   type (tao_global_hook) hook        ! Custom stuff. Defined in tao_hook.f90
