@@ -16,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/01/11 21:16:00  dcs
+!Bug fix
+!
 !Revision 1.6  2002/01/11 16:58:20  dcs
 !Minor bug fix
 !
@@ -51,7 +54,7 @@ subroutine get_lattice_list_vms (lat_list, num_lats, directory)
 
   character*(*) directory
   character*40 lat_list(*)
-  character*80 lat_file
+  character*200 lat_file
 
   integer num_lats, ios, context, ix, ixx, lib$find_file
   integer i, stat
