@@ -1,0 +1,118 @@
+\chapter{Introduction to BMAD programming}
+
+\section{A First Program}
+
+
+Let us start with a simple test program:
+\begin{verbatim}
+program test
+  use bmad                 ! Define the structures we need to know about.
+  implicit none
+  type (ring_struct) ring  ! This structure holds the lattice info
+  integer i
+  character(200) lat_file
+!
+  lat_file = "/home/cesrulib/cesr_libs/current/" // &
+                "config/bmad/lat/bmad_L9A18A000-_MOVEREC.lat"
+  call bmad_parser (lat_file, ring)    ! Read in a lattice.
+  call twiss_at_start (ring)           ! Calculate starting Twiss params.
+  call twiss_propagate_all (ring)      ! Propagate Twiss parameters
+  print *, ' Ix  Name              Ele_type                   S      Beta_x'
+  do i = 0, ring%n_ele_ring
+    print '(i4, 2x, a, 2x, a, 2f12.4)', i, ring%ele_(i)%name, &
+                    key_name(ring%ele_(i)%key)&
+                    ring%ele_(i)%s, ring%ele_(i)%x%beta
+  enddo
+end program
+\end{verbatim}
+
+The \code{use bmad} statement defines the \bmad\ structures (types)
+and defines the interfaces (argument lists) for the \bmad\
+subroutines. In particular, the \ringstruct\ structure holds all the
+lattice information: The list of elements, their attributes,
+etc. \bmadparser is the routine to parse a particular lattice file and
+transfer the information to a \ringstruct\. After it is called the
+program uses \sn{twiss\_at\_start} to multiply the transfer matrices
+of the individual elements together to form the 1--turn matrix from
+the start back to the start. From this \sn{twiss\_at\_start}
+calculates the Twiss parameters at the start of the lattice. The next
+call to \sn{twiss\_propagate\_all} takes the starting Twiss parameters
+and using the transfer matrices of the individual elements calculates
+the Twiss parameters at all the elements. We are now ready for the
+print out the calculation. \vn{ring} has within it an array
+\vn{ring\%ele\_(0:)} that contains the infomation on each individual
+element. \vn{ring\%ele\_(0)} is basically a marker element to denote
+the beginning of the array. \vn{ring\%ele\_(i)\%key} is an integer
+denoting what type of element (quadrupole, wiggler, etc.) it is.
+\vn{ring\%ele\_(i)\%s} is the longitudinal position at the end of an 
+element. \vn{ring\%ele\_(i)\%x\%beta} is the $a$--mode (nearly
+horizontal mode) beta.
+
+\section{Getf and Listf}
+
+As can be seen there is a lot going on behind the scenes even for this
+simple program.This shows that programming with BMAD can be both easy
+and hard. Easy in the sense that a lot can be done with just a few
+lines. The hard part comes about since there are many details that
+have to be keept in mind in order to make sure that the subroutines
+are calculating what you want them to calculate.
+
+To help with the details all \bmad\ subroutines have in their source (.f90)
+files a comment block that explains the arguments needed by the
+subroutines and explains what the subroutine does. To help quickly
+access these comments there are two perl scripts that are supplied
+with the \bmad\ distribution that are invloked with the commands
+\cmd{listf} and \cmd{getf}.
+
+The \cmd{listf} command is used to locate routines and structures.
+The form of the command is
+\begin{verbatim}
+    listf <name>
+\end{verbatim}
+This searches for any routine or structure with the name
+<name>. <name> may contain the wild--cards ``*'' and ``\%'' where
+``*'' matches to any number of characters and ``\%'' matches to any
+single character. For example:
+\begin{verbatim}
+    listf ring_struct
+    listf twiss_at_%
+\end{verbatim}
+The second example will match to \sn{twiss\_at\_s} but not
+\sn{twiss\_at\_start}.
+
+The \cmd{getf} command is like the \cmd{listf} command with the
+addition that the header comments that are in the source code files
+will be printed out for each routine match and the structure definition
+will be printed for each structure matched. The \cmd{getf} command is
+thus more verbose than the \cmd{listf} command.
+
+\section{Porgramming Conventions}
+
+\BMAD subroutines follow the following conventions:
+
+\begin{description}
+\item[\$ Denotes Parameter] A ``\$'' at the end of a name denotes an 
+integer parameter. For example, in the above example program, to check
+whether an element is a quadrupole one would write:
+\begin{verbatim}
+  if (ring%ele_(i)%key == quadrupole$) ...
+\end{verbatim}
+Checking the source code one would find in the module \bmadstruct\
+\begin{verbatim}
+  integer, parameter :: drift$ = 1, sbend$ = 2, quadrupole$ = 3, group$ = 4
+\end{verbatim}
+One should always use the parameter name instead of the integer it represents.
+That is, one should never write
+\begin{verbatim}
+  if (ring%ele_(i)%key == 3) ...  ! DO NOT DO THIS!
+\end{verbatim}
+For one, using the name makes the code clearer but more importantly
+the exact value of the parmeters may at times be shuffled which would
+lead to disasterous results if the values themselves were coded into a
+program.
+
+\item[ Type names have a \_struct suffix]. For example: \ringstruct, 
+\elestruct, etc.
+
+
+\end{description}
