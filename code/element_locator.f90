@@ -1,14 +1,14 @@
 !+
 ! Subroutine element_locator (ele_name, ring, ix_ele)
 !
-! Subroutine to locate an element in a ring. 
+! Subroutine to locate an element in a lattice. 
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
 !   ele_name -- Character(16): Name of the element to find.
-!   ring     -- Ring_struct: Ring to search through
+!   ring     -- Ring_struct: Lattice to search through.
 !
 ! Output:
 !   ix_ele -- Integer: Index of element in ring%ele_(:) array. 

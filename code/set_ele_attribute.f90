@@ -1,6 +1,6 @@
 !+
 ! Subroutine set_ele_attribute (ring, i_ele, attrib_name,
-!                           attrib_value, err_flag, make_mat6_flag, orbit_)
+!               attrib_value, err_flag, make_mat6_flag, orbit_)
 !
 ! Subroutine to set the attribute of an element, propagate the change to
 ! any slave elements, and optionally to remake the 6x6 transfer matrix. 
@@ -44,17 +44,18 @@ subroutine set_ele_attribute (ring, i_ele, attrib_name, &
 
   implicit none
 
-  type (ring_struct) :: ring
+  type (ring_struct), target :: ring
+  type (ele_struct), pointer :: ele
   type (coord_struct), optional :: orbit_(0:)
 
   real(rp) attrib_value
   real(rp), pointer :: ptr_attrib
 
-  integer i_ele, ix_attrib
+  integer i_ele, ix_attrib, key
 
   character(*) attrib_name
 
-  logical make_mat6_flag, err_flag
+  logical make_mat6_flag, err_flag, do_bookkeeping
 
 ! error checks
 
@@ -64,11 +65,13 @@ subroutine set_ele_attribute (ring, i_ele, attrib_name, &
     return
   endif
 
-  call pointer_to_attribute (ring%ele_(i_ele), attrib_name, .true., &
+  ele => ring%ele_(i_ele)
+
+  call pointer_to_attribute (ele, attrib_name, .true., &
                                              ptr_attrib, ix_attrib, err_flag)
   if (err_flag) return
 
-  call check_attrib_free (ring%ele_(i_ele), ix_attrib, ring, err_flag)
+  call check_attrib_free (ele, ix_attrib, ring, err_flag)
   if (err_flag) return
 
 ! Setting the attribute value is trivial
@@ -77,12 +80,18 @@ subroutine set_ele_attribute (ring, i_ele, attrib_name, &
 
 ! bookkeeping
 
-  if (make_mat6_flag) then
-    call ring_make_mat6 (ring, i_ele, orbit_)
-  else
-    call control_bookkeeper (ring, i_ele)
-  endif
+  if (ele%key == lcavity$ .or. ele%key == custom$) &
+                                      call compute_element_energy (ring)
+  
+  call control_bookkeeper (ring, i_ele)
 
+  if (make_mat6_flag) then
+    do_bookkeeping = bmad_com%auto_bookkeeper
+    bmad_com%auto_bookkeeper = .false.
+    call ring_make_mat6 (ring, i_ele, orbit_)
+    bmad_com%auto_bookkeeper = do_bookkeeping
+  endif
+  
   err_flag = .false.
 
 end subroutine
