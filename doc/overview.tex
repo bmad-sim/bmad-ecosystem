@@ -271,50 +271,60 @@ called a \vn{key table}.
 %------------------------------------------------------------------------
 \section{Tracking Types}
 
-The are two types of tracking implemented in \tao: single particle tracking and
-macroparticle tracking. Single particle tracking is just that, the tracking 
-of a single particle through the lattice. Macroparticle tracking takes a beam distribution
-and tracks the centroids and sigmas of the ``macro-particles'' through the lattice.
-Single particle tracking is used by default. See Section~\ref{s:macros} for details on
-setting up macroparticle tracking.
+The are two types of tracking implemented in \tao: single particle
+tracking and macroparticle tracking. Single particle tracking is just
+that, the tracking of a single particle through the
+lattice. Macroparticle tracking takes a beam distribution and tracks
+the centroids and sigmas of the ``macro-particles'' through the
+lattice.  Single particle tracking is used by default. See
+Section~\ref{s:macro_init} for details on setting up macroparticle
+tracking.
 
 %------------------------------------------------------------------------
 \section{Lattice Calculation}
 \label{s:lat_calc}
 
-After each \tao command is processed the lattice and ``merit'' function is 
-recalculated then the plot window is regenerated. The
-merit function determines how well the \vn{model} fits the measured data. See
-Chapter~\ref{c:opti} for more information on the merit function and its use by
-the optimizer. 
+After each \tao command is processed the lattice and ``merit''
+function is recalculated then the plot window is regenerated. The
+merit function determines how well the \vn{model} fits the measured
+data. See Chapter~\ref{c:opti} for more information on the merit
+function and its use by the optimizer.
 
 Below are the steps taken after each \tao command execution:
 \begin{enumerate}
-  \item The data and variables used by the optimizer is re-determined. This is
-affected by commands such as \vn{use, veto,} and \vn{restore} and any changes in the
-status of elements in the ring (e.g. if any elements have been turned off). 
-  \item If changes have been made to the lattice (e.g. variables changed) Then
+  \item 
+The data and variables used by the optimizer is re-determined. This is
+affected by commands such as \vn{use, veto,} and \vn{restore} and any
+changes in the status of elements in the ring (e.g. if any elements
+have been turned off).
+  \item 
+If changes have been made to the lattice (e.g. variables changed) Then
 the model lattice for all universes will be recalculated. The
-\vn{model} orbit, linear transfer matrices and twiss parameters are recalculated
-for every element. Any specified data types will also be calculated at each
-element specified in the initialiation file.
-For single particle tracking the linear transfer matrices and twiss parameters are 
-found about the tracked
-orbit. For macroparticle tracking the linear transfer matrices and twiss parameters are 
-found about the beam centroid orbit. 
-Tracking is performed using the tracking method defined for
-each element (i.e. Bmad Standard, Symplectic Lie, etc...). See the \bmad 
-Reference manual for details on tracking and finding
-the linear transfer matrices and twiss parameters.
-  \item The \vn{model} data is recalculated from the \vn{model} orbit, linear
-transfer matrices, twiss parameters, macroparticle beam information and global
-lattice parameters.
+\vn{model} orbit, linear transfer matrices and twiss parameters are
+recalculated for every element. Any specified data types will also be
+calculated at each element specified in the initialiation file.  For
+single particle tracking the linear transfer matrices and twiss
+parameters are found about the tracked orbit. For macroparticle
+tracking the linear transfer matrices and twiss parameters are found
+about the beam centroid orbit.  Tracking is performed using the
+tracking method defined for each element (i.e. Bmad Standard,
+Symplectic Lie, etc...). See the \bmad Reference manual for details on
+tracking and finding the linear transfer matrices and twiss
+parameters.
+  \item 
+The \vn{model} data is recalculated from the \vn{model} orbit, linear
+transfer matrices, twiss parameters, macroparticle beam information
+and global lattice parameters.
  Any custom  data type calculations
 are performed before the standard \tao data types are calculated.
-  \item Any data post-processing is performed (BPM alignment errors, etc...) 
-  \item The contributions to the merit function from the variables and data are
+  \item 
+Any data post-processing is performed (BPM alignment errors, etc...) 
+  \item 
+The contributions to the merit function from the variables and data are
 computed.
-  \item Data and variable values are transfered to the plotting structures.
-  \item The plotting window is regenerated.
+  \item 
+Data and variable values are transfered to the plotting structures.
+  \item 
+The plotting window is regenerated.
 \end{enumerate}
 

@@ -145,6 +145,43 @@ maximum number of datums needed and \vn{n_var_max} is the maximum
 total number variables used. For a list of \vn{global} elements see
 the description of the \vn{set} command in Chapter~\ref{c:command}.
 
+The \vn{tao_global_struct} is
+\begin{example}
+  type tao_global_struct
+    real(rp) :: y_axis_plot_dmin = 1e-4 
+                                       ! Minimum y_max-y_min allowed for a graph.
+    integer :: u_view = 1              ! Which universe we are viewing.
+    integer :: n_opti_cycles = 20      ! number of optimization cycles
+    integer :: lun_command_file = 0    ! unit number for a command file.
+                                       !  0 -> no command file.
+    integer :: ix_key_bank = 0         ! For single mode.
+    integer :: phase_units = radians\$  ! Phase units on output.
+    integer :: bunch_to_plot = 1       ! Which bunch to plot
+    character(16) :: track_type = 'single' ! or 'beam' or 'macro' 
+    character(16) :: prompt_string = 'Tao'
+    character(16) :: optimizer = 'de'  ! optimizer to use.
+    type (tao_global_hook) hook        ! Custom stuff. Defined in tao_hook.f90
+    logical :: var_limits_on = .false. ! Respect the variable limits?
+    logical :: plot_on = .true.        ! Do plotting?
+    logical :: opt_with_ref = .false.  ! use reference data in optimization?
+    logical :: opt_with_base = .false. ! use base data in optimization?
+    logical :: single_mode = .false.
+    logical :: optimizer_running 
+    logical :: init_opt_wrapper = .true.
+    logical :: label_lattice_elements = .true. ! For lat_layout plots
+    logical :: label_keys = .true.             ! For lat_layout plots
+    logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
+    logical :: lattice_recalc = .true.         ! recalculate the lattice?
+    logical :: init_plot_needed = .true.       ! reinitialize plotting?
+    character(16) :: valid_plot_who(10)        ! model, base, ref etc...
+    character(40) :: print_command = 'awprint'
+    character(80) :: default_init_file = 'tao.init'
+    character(80) :: current_init_file = 'tao.init'
+    character(80) :: var_out_file = 'var#.out'
+    character(80) :: opt_var_out_file = 'opt_var#.out'
+  end type
+\end{example}
+
 %-----------------------------------------------------------------
 \section{Initializing Coupled Universes}
 \label{s:coupled_uni}
