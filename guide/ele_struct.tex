@@ -156,7 +156,7 @@ the coupling factors. For example:
   C_to_Cbar(ele, cbar_mat)             ! Form Cbar(2,2) matrix
   Make_V_Mats(ele, v_mat, v_inv_mat)   ! Form V matrices.
 \end{example}
-See Section~\ref{r:mat} for a complete listing of such routines.
+See \sref{r:mat} for a complete listing of such routines.
 
 %--------------------------------------------------------------------------
 \section{Attribute Values: Dependent and Otherwise}
@@ -198,7 +198,7 @@ of real attributes not in \vn{%value(:)} is:
 \end{center}
 
 \vn{attribute_bookkeeper} is the routine that makes sure that the
-dependent variables (See Section~\ref{s:depend}) of an element are
+dependent variables (See \sref{s:depend}) of an element are
 keep up--to--date. \vn{attribute_bookkeeper} is called behind the
 scenes when \vnf{make_mat6} is called to make transfer matrices and when
 \vnf{track1} is called to track through an element. As a general rule,
@@ -238,7 +238,7 @@ For example:
 
 \vn{%b_field_master} is the logical within appropriate elements that sets 
 whether it is the strength or field that is the 
-independent variable. See Section~\ref{s:depend} for more details.
+independent variable. See \sref{s:depend} for more details.
 
 %--------------------------------------------------------------------------
 \section{Positional Offsets}
@@ -449,14 +449,16 @@ explained in \sref{s:lcav}. \vn{%s_ref} is not currently used.
 
 \index{Multipole!an, bn!in ele_struct}
 \index{Multipole!KnL, Tn!in ele_struct}
-The multipole components of an element (See setion~\ref{s:fields}) are
+The multipole components of an element (See \sref{s:fields}) are
 stored in the pointers \vnes{%a(:)} and \vnes{%b(:)}. If \vn{%a} and
 \vn{%b} are allocated they always have a range \vn{%a(0:n_pole_maxx)}
-and \vn{%b(0:n_pole_maxx)}. Currently \vn{n_pole_maxx} = 20. If the
-element is a \vn{multipole} then \vn{%a(n)} is taken to be the
-integrated multipole strength \vn{KnL}, and \vn{%b(n)} is taken to be
-the tilt \vn{Tn}. Routines for manipulating multipoles can be found in
-Section~\ref{r:multi}.
+and \vn{%b(0:n_pole_maxx)}. Currently \vn{n_pole_maxx} = 20. For a
+\vn{Multipole} element, the \vn{%a(n)} array stores the integrated
+multipole strength \vn{KnL}, and the \vn{%b(n)} array stores the tilt
+\vn{Tn}.
+
+A list of \bmad routines for manipulating multipoles can be found in
+\sref{r:multi}.
 
 %--------------------------------------------------------------------------
 \section{General Use Components}
@@ -482,7 +484,7 @@ someone writing a program. These components are
 Generally most \vn{ele_struct} elements are part of a \vn{ring_struct}
 variable and elements in a \vn{ring_struct} are handled by the
 \vn{ring_struct} allocation/deallocation routines (see
-Section~\ref{s:ring:point}). In case you do have a local
+\sref{s:ring:point}). In case you do have a local
 \vn{ele_struct} variable within a subroutine or function then you either have to
 deallocate the pointers within it with a call to
 \vn{deallocate_ele_pointers} or you use the save attribute.

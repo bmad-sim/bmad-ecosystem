@@ -343,7 +343,7 @@ The quadrupole strength.
 \index{Rho}
 \index{Delta_g}
 The design bending radius which determines the reference coordinate
-system is \vn{rho} (see section~\ref{s:ref}).  \vn{g} = 1/\vn{rho} is
+system is \vn{rho} (see \sref{s:ref}).  \vn{g} = 1/\vn{rho} is
 the curvature function and is proportional to the design dipole
 magnetic field. The true field strength is given by
 \vn{g}~+~\vn{delta_g} so changing \vn{delta_g} leaves the design orbit
@@ -442,7 +442,7 @@ routines which are then linked with the \bmad subroutines into a
 program. \bmad will call the custom routines at the appropriate time
 to do tracking, transfer matrix calculations, etc. See the programmer
 who wrote the custom routines for more details! See 
-section~\ref{s:custom_ele} on how to write custom routines.
+\sref{s:custom_ele} on how to write custom routines.
 
 \vn{delta_e} is the energy gain of the {\it reference} particle
 between the starting edge of the element and the ending edge.
@@ -763,7 +763,7 @@ attributes specific to an \vn{Lcavity} are
   lr_wake_file ! Long range wake field definition file.
 \end{example}
 The dependent variable \vn{delta_e} attribute can be used in place of
-\vn{gradient} as discussed in Section~\ref{s:depend}.
+\vn{gradient} as discussed in \sref{s:depend}.
 
 The kick felt by a particle is 
 \begin{example}
@@ -1344,7 +1344,7 @@ magnetic field map (``map type'') and those that are described assuming
 a periodic field (``periodic type''). The periodic type is defined by
 specifying \vn{b_max} and \vn{n_pole}. For the "map" type wigglers the
 field is given by a sum of terms as outlined in
-Section~\ref{s:wiggler_phys}.
+\sref{s:wiggler_phys}.
 
 For the "periodic" type wigglers the attributes are: 
 \begin{example}  
