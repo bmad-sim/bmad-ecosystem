@@ -1,8 +1,10 @@
 !+
 ! Subroutine ring_make_mat6 (ring, ix_ele, coord_)
 !
-! Subroutine to make the 6x6 linear transfer matrix (along with the zeroth
-! order 6 vector) for an element or elements in a ring.
+! Subroutine to make the first order transfer map:
+!   r_out = M * r_in + vec0
+! M is the 6x6 linear transfer matrix (Jacobian) about the 
+! reference orbit coord_.
 !
 ! The routine will also call control_bookkeeper to make sure that all
 ! lord/slave dependencies are correct.
@@ -15,13 +17,13 @@
 !   ix_ele     -- Integer: Index of the element. if < 0 then entire
 !                    ring will be made. In this case group elements will
 !                    be made up last.
-!   coord_(0:) -- Coord_struct, optional: Coordinates of the 
-!                   nominal orbit around which the matrix is calculated. 
-!                   If not present then the orbit is taken to be the origin.
+!   coord_(0:) -- Coord_struct, optional: Coordinates of the reference orbit
+!                   around which the matrix is calculated. If not present 
+!                   then the referemce is taken to be the origin.
 !
 ! Output:
 !   ring        -- ring_struct:
-!     ele_(:)%mat6  -- Real(rp): 1st order 6x6 transfer matrix.
+!     ele_(:)%mat6  -- Real(rp): 1st order (Jacobian) 6x6 transfer matrix.
 !     ele_(:)%vec0  -- Real(rp): 0th order transfer vector.
 !-
 
