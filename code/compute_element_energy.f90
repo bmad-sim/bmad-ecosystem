@@ -28,7 +28,7 @@ subroutine compute_element_energy (lattice)
 
   type (ring_struct) lattice
   type (ele_struct), pointer :: ele, lord
-  real(rp) beam_energy, p0c
+  real(rp) beam_energy, p0c, phase
 
   integer i, j, k
 
@@ -44,8 +44,9 @@ subroutine compute_element_energy (lattice)
     ele => lattice%ele_(i)
     if (ele%key == lcavity$ .and. ele%is_on) then
       ele%value(energy_start$) = beam_energy
+      phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
       beam_energy = beam_energy + ele%value(gradient$) * &
-                        ele%value(l$) * cos(twopi*ele%value(phi0$)) 
+                                                  ele%value(l$) * cos(phase)
       if (bmad_com%sr_wakes_on) beam_energy = beam_energy - &
                             ele%value(e_loss$) * lattice%param%charge
       call energy_to_kinetic (beam_energy, lattice%param%particle, p0c = p0c)

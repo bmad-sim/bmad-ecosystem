@@ -71,7 +71,7 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
       lat_list(i) = lat_file(ix:ixx)
     else if (stat == rms$_nmf .or. stat == rms$_fnf) then
       num_lats = i - 1
-      return
+      exit
     else
       print *, 'FIND FILE ERROR:', stat
       call lib$signal(%val(stat))
@@ -79,9 +79,6 @@ subroutine get_lattice_list (lat_list, num_lats, directory)
     endif
 
   enddo
-
-  print *, 'GET_LATTICE_LIST: INTERNAL ERROR!'
-  call err_exit
 
 ! Strip off beginning "bmad_" and endding ".lat"
 

@@ -9,6 +9,8 @@
 !
 ! Input:
 !   ring   -- Ring_struct: ring whose control structure needs fixing
+!     %ele_(ix_ele)  -- This could be a new element or an existing element
+!                       that needs more control info.
 !     %ele_(ix_ele)%n_slave -- Increase this to reserve more room in the
 !                              ring%control_(:) array.
 !     %ele_(ix_ele)%n_lord  -- Increase this to reserve more room in the 
@@ -53,7 +55,7 @@ subroutine adjust_control_struct (ring, ix_ele)
     n_con2 = ring%n_control_max + n_add
     if (n_con2 > size(ring%control_)) &
                         ring%control_ => reallocate(ring%control_, n_con2+500)
-
+    ring%control_(ring%n_control_max+1:) = control_struct(0.0_rp, 0, 0, 0)
 
     if (i2 < 0) then
       ele%ix1_slave = n_con + 1

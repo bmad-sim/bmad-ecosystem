@@ -166,6 +166,7 @@ function attribute_name (ele, ix_att) result (at_name)
 
     attrib_array(lcavity$, l$)             = 'L'
     attrib_array(lcavity$, energy_start$)  = 'ENERGY_START'
+    attrib_array(lcavity$, dphi0$)         = 'DPHI0'
     attrib_array(lcavity$, phi0$)          = 'PHI0'
     attrib_array(lcavity$, gradient$)      = 'GRADIENT'
     attrib_array(lcavity$, rf_frequency$)  = 'RF_FREQUENCY'
@@ -307,6 +308,7 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(solenoid$, field_calc$) = 'FIELD_CALC'
 
     attrib_array(rfcavity$, l$)             = 'L'
+    attrib_array(rfcavity$, dphi0$)         = 'DPHI0'
     attrib_array(rfcavity$, voltage$)       = 'VOLTAGE'
     attrib_array(rfcavity$, rf_frequency$)  = 'RF_FREQUENCY'
     attrib_array(rfcavity$, phi0$)          = 'PHI0'

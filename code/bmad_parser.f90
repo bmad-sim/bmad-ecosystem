@@ -942,7 +942,15 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
   call s_calc (ring)              ! calc longitudinal distances
 
-! superpositions first
+! First clone. This is important since the elements in the lattice get
+! renamed and if not done first would confuse any overlays, i_beams, etc.
+
+  do i = 1, n_max
+    if (.not. pring%ele(i)%clone) cycle
+    call add_this_clone (ring, in_ring%ele_(i)%name)
+  enddo
+
+! Next superpositions
 
   do i = 1, n_max
     if (in_ring%ele_(i)%control_type /= super_lord$) cycle

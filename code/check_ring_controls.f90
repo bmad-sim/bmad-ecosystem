@@ -26,7 +26,7 @@ subroutine check_ring_controls (ring, exit_on_error)
   integer i_t, j, i_t2, ix, t_type, t2_type, n, cc(100), i
   integer ix1, ix2, ii
 
-  logical exit_on_error, found_err, good_control(10,10)
+  logical exit_on_error, found_err, good_control(12,12)
   logical i_beam_here
 
 ! check energy
@@ -37,15 +37,17 @@ subroutine check_ring_controls (ring, exit_on_error)
     print *, '      LATTICE_TYPE IS NOT SET TO LINEAR_LATTICE!'
   endif
 
-!
+! good_control specifies what elements can control what other elements.
 
   good_control = .false.
   good_control(group_lord$, (/ group_lord$, overlay_lord$, super_lord$, &
-                              i_beam_lord$, free$, overlay_slave$ /)) = .true.
-  good_control(i_beam_lord$, (/ super_lord$, overlay_slave$ /)) = .true.
+                i_beam_lord$, free$, overlay_slave$, clone_lord$ /)) = .true.
+  good_control(i_beam_lord$, (/ super_lord$, overlay_slave$, &
+                clone_lord$ /)) = .true.
   good_control(overlay_lord$, (/ overlay_lord$, &
-                       i_beam_lord$, overlay_slave$, super_lord$ /)) = .true.
+                i_beam_lord$, overlay_slave$, super_lord$, clone_lord$ /)) = .true.
   good_control(super_lord$, (/ super_slave$ /)) = .true.
+  good_control(clone_lord$, (/ super_lord$, clone_slave$ /)) = .true.
 
   found_err = .false.
              
@@ -62,7 +64,7 @@ subroutine check_ring_controls (ring, exit_on_error)
 
     if (i_t > ring%n_ele_use) then
       if (t_type == free$ .or. t_type == super_slave$ .or. &
-          t_type == overlay_slave$) then
+          t_type == overlay_slave$ .or. t_type == clone_slave$) then
         print *, 'ERROR IN CHECK_RING_CONTROLS: ELEMENT: ', ele%name
         print *, '      WHICH IS A: ', control_name(t_type)
         print *, '      IS *NOT* IN THE REGULAR PART OF RING LIST AT', i_t
@@ -70,7 +72,8 @@ subroutine check_ring_controls (ring, exit_on_error)
       endif                                             
     else                                                         
       if (t_type == super_lord$ .or. t_type == overlay_lord$ .or. &
-          t_type == group_lord$ .or. t_type == i_beam_lord$) then
+          t_type == group_lord$ .or. t_type == i_beam_lord$ .or. &
+          t_type == clone_lord$) then
         print *, 'ERROR IN CHECK_RING_CONTROLS: ELEMENT: ', ele%name
         print *, '      WHICH IS A: ', control_name(t_type)
         print *, '      IS IN THE REGULAR PART OF RING LIST AT', i_t
@@ -79,7 +82,8 @@ subroutine check_ring_controls (ring, exit_on_error)
     endif
 
     if (.not. any( (/ free$, super_slave$, overlay_slave$, i_beam_lord$, &
-                    super_lord$, overlay_lord$, group_lord$ /) == t_type)) then
+                      super_lord$, overlay_lord$, group_lord$, clone_lord$, &
+                      clone_slave$ /) == t_type)) then
       print *, 'ERROR IN CHECK_RING_CONTROLS: ELEMENT: ', ele%name
       print *, '      HAS UNKNOWN CONTROL INDEX: ', t_type
       found_err = .true.
@@ -133,7 +137,22 @@ subroutine check_ring_controls (ring, exit_on_error)
         else
           print *, 'ERROR IN CHECK_RING_CONTROLS: DUPLICATE SUPER_SLAVES: ', &
                                                       ring%ele_(ix1)%name, ii
-          print *, '      FOR SUPER_SLAVE: ', ele%name, i_t
+          print *, '      FOR SUPER_LORD: ', ele%name, i_t
+          found_err = .true.
+        endif
+      enddo
+    endif
+
+! The slaves of a clone_lord cannot be controlled by anything else
+
+    if (t_type == clone_lord$) then
+      do i = ele%ix1_slave, ele%ix2_slave
+        ii = ring%control_(i)%ix_slave
+        if (ring%ele_(ii)%n_lord /= 1) then
+          print *, 'ERROR IN CHECK_RING_CONTROLS: SLAVE OF A CLONE_LORD: ', &
+                                                          ring%ele_(ii)%name, ii
+          print *, '      HAS MORE THAN ONE LORD.'
+          print *, '      FOR CLONE_LORD: ', ele%name, i_t
           found_err = .true.
         endif
       enddo

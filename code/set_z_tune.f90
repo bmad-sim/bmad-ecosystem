@@ -32,10 +32,10 @@ subroutine set_z_tune (ring)
   implicit none
 
   type (ring_struct), target :: ring
-  type (ele_struct), pointer :: ele
+  type (ele_struct), pointer :: ele, ele2
 
   real(rp) z_tune_wanted, r_volt
-  real(rp) coef_tot, volt, E0
+  real(rp) coef_tot, volt, E0, phase
 
   integer i, j, k, ix, n_rf, ix_rf(100), ix_attrib(100)
 
@@ -81,7 +81,8 @@ subroutine set_z_tune (ring)
 
       n_rf = n_rf + 1
       ix_rf(n_rf) = i
-      coef_tot = coef_tot + twopi * cos(twopi*ele%value(phi0$)) * &
+      phase = twopi * (ele%value(phi0$) + ele%value(dphi0$))
+      coef_tot = coef_tot + twopi * cos(phase) * &
                                 ele%value(rf_frequency$) / (c_light * E0)
       ix_attrib(n_rf) = voltage$
 
@@ -91,13 +92,14 @@ subroutine set_z_tune (ring)
       found_control = .false.
       do j = ele%ix1_slave, ele%ix2_slave
         ix = ring%control_(j)%ix_slave
-        if (ring%ele_(ix)%key == rfcavity$ .and. &
+        ele2 => ring%ele_(ix)
+        if (ele2%key == rfcavity$ .and. &
                           ring%control_(j)%ix_attrib == voltage$) then
           if (.not. found_control) n_rf = n_rf + 1
           found_control = .true.
+          phase = twopi * (ele2%value(phi0$) + ele2%value(dphi0$))
           coef_tot = coef_tot + ring%control_(j)%coef * twopi * &
-                   cos(twopi*ring%ele_(ix)%value(phi0$)) * &
-                   ring%ele_(ix)%value(rf_frequency$) / (c_light * E0)
+                   cos(phase) * ele2%value(rf_frequency$) / (c_light * E0)
           k = ele%ix_value
           ix_attrib(n_rf) = k
         else
