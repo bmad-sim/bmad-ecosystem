@@ -469,6 +469,16 @@ end subroutine
 ! Subroutine to transform a 6x6 transfer matrix to a new reference frame
 ! that is tilted in (x, Px, y, Py) with respect to the old reference frame.
 !     mat6 -> tilt_mat * mat6 * tilt_mat_inverse
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   mat6(6,6) -- Real(rp): Untilted matrix.
+!   tilt      -- Real(rp): Tilt angle.
+!
+! Output:
+!   mat6(6,6) -- Real(rp): Tilted matrix.
 !-
 
 subroutine tilt_mat6 (mat6, tilt)
