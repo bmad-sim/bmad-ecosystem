@@ -39,14 +39,15 @@ This syntax is obsolete since a typographical error is not easily caught.
 \noindent
 Valid \vn{lattice_type} switches are
 \begin{example}
-  circular_lattice  ! default
-  linear_lattice
-  linac_lattice
+  circular_lattice  ! Default w/o LCavity element present.
+  linac_lattice     ! Default if LCavity elements present.
 \end{example}
-a \vn{circular_lattice} is for a closed ring where one expects a periodic
-solution for the Twiss parameters. A \vn{linear_lattice} is not closed
-so that the initial Twiss parameters need to be given, not computed. A
-\vn{linac_lattice} is a linear lattice with \vn{Lcavity} elements.
+a \vn{circular_lattice} is for a closed ring where one expects a
+periodic solution for the Twiss parameters. A \vn{linac_lattice} is
+not closed so that the initial Twiss parameters need to be given, not
+computed. Although \vn{circular_lattice} is the nominal default, If
+there are \vn{Lcavity} elements present, \vn{linac_lattice} will be used
+as the default.
 
 The Taylor order (cf.~\ref{s:taylor_phys}) is the maximum order for a
 Taylor map.  Historically it is possible to set the Taylor order using

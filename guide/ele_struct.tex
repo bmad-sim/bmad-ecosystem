@@ -141,20 +141,18 @@ found in the \vn{%value(:)} array are
   term(i) = Wig_term                      ! Wiggler term
 \end{example}
 
-\vn{attribute_bookkeeper} is the routine that makes sure the dependent
-variables (See Section~\ref{s:depend}) of an element are keep
-up--to--date. \vn{attribute_bookkeeper} is called behind the scenes
-when \vn{make_mat6} is called to make transfer matrices. The general
-rule is that elment attributes are changed, and if you don't call
-\vn{make_mat6}, \vn{ring_make_mat6}, or \vn{control_bookkeeper}
-(Section~\ref{s:ring_control}) then you must call
-\vn{attribute_bookkeeper}.
+\vn{attribute_bookkeeper} is the routine that makes sure that the
+dependent variables (See Section~\ref{s:depend}) of an element are
+keep up--to--date. \vn{attribute_bookkeeper} is called behind the
+scenes when \vn{make_mat6} is called to make transfer matrices. The
+general rule is that, to be safe, when elment attributes are changed,
+call \vn{attribute_bookkeeper}.
 
-If you are designing a program that will let a user decide what
-attribute to vary use the routine \vn{pointer_to_attribute} which will
-return an error flag if the attribute to be varied should not be. For
-example, trying to vary the strength of a bend by varying the \vn{rho}
-attribute is an exercise in futility. An example
+In designing a program that will let a user input what
+attribute to vary, the routine \vn{pointer_to_attribute} 
+is a covienient way to obtain from the user input a pointer
+that points to the approbriate attribute.
+For example:
 \begin{example}
   type (ring_struct) ring
   character(16) attrib_name, ele_name
