@@ -47,7 +47,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   real(rdef) t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
   real(rdef) t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
   real(rdef) lcs, lc2s2, error, rho
-  real(rdef) cos_phi, gradiant, e_start, e_end, e_ratio
+  real(rdef) cos_phi, gradient, e_start, e_end, e_ratio
   real(rdef) alpha, sin_a, cos_a, f, phase
   integer i, n, n_slice, n_pole, key
 
@@ -388,33 +388,33 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
     f = twopi * ele%value(rf_frequency$) / c_light
     phase = f * c0%z%pos + ele%value(phase_0$)
-    mat6(6,5) = -ele%value(gradiant$) * ele%value(l$) * f * sin(phase)
+    mat6(6,5) = -ele%value(gradient$) * ele%value(l$) * f * sin(phase)
 
     cos_phi = cos(phase)
-    gradiant = ele%value(gradiant$) * cos_phi
+    gradient = ele%value(gradient$) * cos_phi
     e_start = ele%value(energy_start$) * (1 + c0%z%vel)
-    e_end = e_start + gradiant * ele%value(l$)
+    e_end = e_start + gradient * ele%value(l$)
     e_ratio = e_end / e_start
     alpha = log(e_ratio) / (2 * sqrt_2 * cos_phi)
     cos_a = cos(alpha)
     sin_a = sin(alpha)
 
-    if (gradiant == 0) then
+    if (gradient == 0) then
       call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
       goto 8000  ! put in mulipole ends if needed
     endif
 
-    f = gradiant / (2 * sqrt_2 * cos_phi)   ! body matrix
+    f = gradient / (2 * sqrt_2 * cos_phi)   ! body matrix
     mat6(1,1) =  cos_a
     mat6(1,2) =  sin_a * e_start / f
     mat6(2,1) = -sin_a * f / e_end
     mat6(2,2) =  cos_a * e_start / e_end
 
-    f = gradiant / (2 * e_start)          ! entrence kick
+    f = gradient / (2 * e_start)          ! entrence kick
     mat6(1,1) = mat6(1,1) - f * mat6(1,2)
     mat6(2,1) = mat6(2,1) - f * mat6(2,2)
 
-    f = gradiant / (2 * e_end)            ! exit kick
+    f = gradient / (2 * e_end)            ! exit kick
     mat6(2,1) = mat6(2,1) + f * mat6(1,1)
     mat6(2,2) = mat6(2,2) + f * mat6(1,2)
 

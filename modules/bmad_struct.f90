@@ -258,7 +258,7 @@ module bmad_struct
   integer, parameter :: ks$=7, volt$=7, e1$=7, n_pole$=7, bbi_const$=7
   integer, parameter :: e2$=8, charge$=8, gap$=8
   integer, parameter :: n_slice$=9, l_chord$=9, l_pole$=9, rf_frequency$=9
-  integer, parameter :: fint$=10, polarity$ = 10, gradiant$=10
+  integer, parameter :: fint$=10, polarity$ = 10, gradient$=10
   integer, parameter :: fintx$=11, z_patch$ = 11, phase_0$=11
   integer, parameter :: rho$ = 12
   integer, parameter :: hgap$=13, energy_start$=13
@@ -282,7 +282,7 @@ module bmad_struct
   integer, parameter :: energy$=31  ! formally new_energy$
   integer, parameter :: rel_tol$ = 32
   integer, parameter :: abs_tol$ = 33
-  integer, parameter :: B_field$ = 34
+  integer, parameter :: B_field$ = 34, B_gradient$ = 34
 
   integer, parameter :: type$ = 35   ! this is 1 greater than n_attrib_maxx
   integer, parameter :: alias$ = 36 

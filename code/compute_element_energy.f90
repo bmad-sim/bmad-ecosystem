@@ -17,6 +17,8 @@
 !     %ele_(:)%value(energy$) -- Energy at the end of the element.
 !-
 
+#include "CESR_platform.inc"
+
 subroutine compute_element_energy (ring)
 
   use bmad_struct
@@ -36,7 +38,7 @@ subroutine compute_element_energy (ring)
   do i = 1, ring%n_ele_ring
     if (ring%ele_(i)%key == lcavity$) then
       ring%ele_(i)%value(energy_start$) = energy
-      energy = energy + ring%ele_(i)%value(gradiant$) * &
+      energy = energy + ring%ele_(i)%value(gradient$) * &
           ring%ele_(i)%value(l$) * cos(twopi*ring%ele_(i)%value(phase_0$))
     endif
     ring%ele_(i)%value(energy$) = energy

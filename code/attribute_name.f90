@@ -21,36 +21,6 @@
 !   name -> 'k1'
 !-
 
-!$Id$
-!$Log$
-!Revision 1.14  2003/03/31 15:17:39  dcs
-!Bug fixes.
-!
-!Revision 1.13  2003/03/04 16:03:27  dcs
-!VMS port
-!
-!Revision 1.12  2003/01/29 16:14:31  dcs
-!Linac RF bug fix and update.
-!
-!Revision 1.11  2003/01/27 14:40:29  dcs
-!bmad_version = 56
-!
-!Revision 1.7  2002/08/20 20:34:52  dcs
-!symp_lie_bmad / symp_lie_ptc added
-!
-!Revision 1.5  2002/06/13 14:54:21  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.4  2002/02/23 20:32:10  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/08 21:44:36  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.2  2001/09/27 18:31:47  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 character*16 function attribute_name (ele, ix_att) result (at_name)
@@ -151,7 +121,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(lcavity$, l$)             = 'L'
     attrib_array(lcavity$, energy_start$)  = 'ENERGY_START'
     attrib_array(lcavity$, phase_0$)       = 'PHASE_0'
-    attrib_array(lcavity$, gradiant$)      = 'GRADIANT'
+    attrib_array(lcavity$, gradient$)      = 'GRADIENT'
     attrib_array(lcavity$, rf_frequency$)  = 'RF_FREQUENCY'
     attrib_array(lcavity$, rf_wavelength$) = 'RF_WAVELENGTH'
 
@@ -210,17 +180,17 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(quadrupole$, l$)       = 'L'
     attrib_array(quadrupole$, tilt$)    = 'TILT'
     attrib_array(quadrupole$, k1$)      = 'K1'
-    attrib_array(quadrupole$, b_field$) = 'B_FIELD'
+    attrib_array(quadrupole$, B_gradiant$) = 'B_GRADIANT'
 
     attrib_array(sextupole$, l$)       = 'L'
     attrib_array(sextupole$, tilt$)    = 'TILT'
     attrib_array(sextupole$, k2$)      = 'K2'
-    attrib_array(sextupole$, b_field$) = 'B_FIELD'
+    attrib_array(sextupole$, B_gradiant$) = 'B_GRADIANT'
 
     attrib_array(octupole$, l$)       = 'L'
     attrib_array(octupole$, tilt$)    = 'TILT'
     attrib_array(octupole$, k3$)      = 'K3'
-    attrib_array(octupole$, b_field$) = 'B_FIELD'
+    attrib_array(octupole$, B_gradiant$) = 'B_GRADIANT'
 
     attrib_array(solenoid$, l$)       = 'L'
     attrib_array(solenoid$, ks$)      = 'KS'

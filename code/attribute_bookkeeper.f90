@@ -27,21 +27,6 @@
 !   ele  -- Ele_struct: Element with self-consistant attributes.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.9  2003/03/04 16:03:27  dcs
-!VMS port
-!
-!Revision 1.8  2003/01/27 14:40:29  dcs
-!bmad_version = 56
-!
-!Revision 1.4  2002/02/23 20:32:10  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.1  2002/01/08 21:44:36  dcs
-!Aligned with VMS version  -- DCS
-!
-
 #include "CESR_platform.inc"
 
 subroutine attribute_bookkeeper (ele, param)
@@ -70,15 +55,15 @@ subroutine attribute_bookkeeper (ele, param)
 
     select case (ele%key)
     case (quadrupole$)
-      ele%value(k1$) = factor * ele%value(b_field$)
+      ele%value(k1$) = factor * ele%value(B_gradiant$)
     case (sextupole$)
-      ele%value(k2$) = factor * ele%value(b_field$)
+      ele%value(k2$) = factor * ele%value(B_gradiant$)
     case (octupole$)
-      ele%value(k3$) = factor * ele%value(b_field$)
+      ele%value(k3$) = factor * ele%value(B_gradiant$)
     case (solenoid$)
-      ele%value(ks$) = factor * ele%value(b_field$)
+      ele%value(ks$) = factor * ele%value(B_field$)
     case (sbend$)
-      ele%value(g$) = factor * ele%value(b_field$)
+      ele%value(g$) = factor * ele%value(B_field$)
     case default
       print *, 'ERROR IN ATTRIBUTE_BOOKKEEPER: ', &
                       '"B_FIELD_MASTER" NOT IMPLEMENTED FOR: ', trim(ele%name)

@@ -48,7 +48,7 @@ subroutine track1_bmad (start, ele, param, end)
   real(rdef) ks, sig_x0, sig_y0, beta, mat6(6,6)
   real(rdef) z_slice(100), s_pos, s_pos_old, vec0(6)
   real(rdef) ave_x_vel2, ave_y_vel2, rel_E
-  real(rdef) x_pos, y_pos, cos_phi, gradiant, e_start, e_end, e_ratio
+  real(rdef) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio
   real(rdef) alpha, sin_a, cos_a, f, z_ave
 
   integer i, j, n, n_slice, key
@@ -236,9 +236,9 @@ subroutine track1_bmad (start, ele, param, end)
     phase = twopi * end%z%pos * ele%value(rf_frequency$) / &
                                       c_light + ele%value(phase_0$)
     cos_phi = cos(phase)
-    gradiant = ele%value(gradiant$) * cos_phi
+    gradient = ele%value(gradient$) * cos_phi
     e_start = ele%value(energy_start$) * (1 + end%z%vel)
-    e_end = e_start + gradiant * ele%value(l$)
+    e_end = e_start + gradient * ele%value(l$)
     e_ratio = e_end / e_start
     if (e_ratio < 0) then
       if (bmad_status%type_out) print *, &
@@ -249,18 +249,18 @@ subroutine track1_bmad (start, ele, param, end)
     cos_a = cos(alpha)
     sin_a = sin(alpha)
 
-    if (gradiant == 0) then
+    if (gradient == 0) then
       call track_a_drift (end%vec, length)
       return
     endif
 
     call offset_particle (ele, param, end, set$)
 
-    f = gradiant / (2 * e_start)            ! entrence kick
+    f = gradient / (2 * e_start)            ! entrence kick
     end%x%vel = end%x%vel - f * end%x%pos
     end%y%vel = end%y%vel - f * end%y%pos
 
-    f = gradiant / (2 * sqrt_2 * cos_phi)
+    f = gradient / (2 * sqrt_2 * cos_phi)
     x_pos = end%x%pos
     y_pos = end%y%pos
     end%x%pos =  cos_a * end%x%pos         + sin_a * end%x%vel * e_start / f
@@ -268,7 +268,7 @@ subroutine track1_bmad (start, ele, param, end)
     end%y%pos =  cos_a * end%y%pos         + sin_a * end%y%vel * e_start / f
     end%y%vel = -sin_a * y_pos * f / e_end + cos_a * end%y%vel * e_start / e_end
 
-    f = gradiant / (2 * e_end)              ! exit kick
+    f = gradient / (2 * e_end)              ! exit kick
     end%x%vel = end%x%vel + f * end%x%pos
     end%y%vel = end%y%vel + f * end%y%pos
 
