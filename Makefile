@@ -17,6 +17,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.8  2003/11/10 14:05:08  palmer
+# Update for BMAD distributions.
+#
 # Revision 1.7  2003/04/21 17:24:14  cesrulib
 # new makefile
 #
@@ -107,7 +110,10 @@ endif
 #------------------------------------------------
 # Include the standard CESR M.tail makefile
 #------------------------------------------------
-include $(CESR_GMAKE)/M.tail
-
+ifeq "$(BMAD_DIST)" "TRUE"
+  include $(BMAD_GMAKE)/M.tail
+else
+  include $(CESR_GMAKE)/M.tail
+endif
 
 
