@@ -68,7 +68,8 @@ DEBUG = 0;
 			
 #     Generate the module name and add to the dependency list
 			module_name=substr(fields[2],1,fieldlen);
-			module_file=sprintf("%s.mod",module_name);
+			module_lcname=tolower(module_name);
+			module_file=sprintf("%s.mod",module_lcname);
 
     	if (DEBUG == 1) printf("Module Name:  %s\n", module_name);
 			if (depend_match(mod_depend,module_file) == 0) {
