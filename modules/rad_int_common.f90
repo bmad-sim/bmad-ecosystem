@@ -110,7 +110,7 @@ subroutine qromb_rad_int (do_int, ir)
   
   ll = ric%ele%value(l$)
 
-  ric%runt = ric%ele
+  call transfer_ele(ric%ele, ric%runt)  ! faster then ele = ele
 
 ! loop until integrals converge
 
