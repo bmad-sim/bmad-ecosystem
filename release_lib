@@ -1,0 +1,56 @@
+#!/usr/local/bin/bash
+#
+################################################################
+#
+# this is a wrapper script used to setup the correct environment
+# and call install_lib
+#
+# usage : release_lib <lib_name> <vms[opt]> <no_checkout[opt]>
+#          <vms>          if you want to copy the libraries for 
+#                         use on vms add VMS argument
+#          <no_checkout>  if you want to forgo the checkout and
+#                         creation of necessary dirs, add 
+#                         no_checkout argument
+#
+# example: release_lib cesr_yyyy_mmdd
+#          release_lib cesr_yyyy_mmdd VMS
+#          release_lib cesr_yyyy_mmdd VMS no_checkout
+#
+################################################################
+
+
+if test $1 
+ then 
+  CESRLIB=$1
+  source /home/cesrulib/bin/cesrdefs
+  if [ `uname | grep Linux` = "Linux" ]
+   then
+    PKG_LIB=/home/cesrulib/cesr_libs/packages_lnx/lib
+    PKG_INC=/home/cesrulib/cesr_libs/packages_lnx/include
+    PKG_MOD=/home/cesrulib/cesr_libs/packages_lnx/modules
+    CESR_PKG=/home/cesrulib/cesr_libs/packages_lnx
+  fi
+ else
+  echo "" 
+  echo "usage:"
+  echo "  release_lib <lib_name>"
+  echo "optional arguments:"
+  echo "  nocheckout - do not checkout new source from cvs"
+  echo "  vms        - create a vms release and zip it for transfer"
+  echo ""
+fi
+
+if test $3 
+ then
+  /home/cesrulib/devel/port/release_script/install_lib $1 $2 $3
+ else
+  if test $2 
+   then
+    /home/cesrulib/devel/port/release_script/install_lib $1 $2
+   else
+    if test $1 
+     then
+      /home/cesrulib/devel/port/release_script/install_lib $1
+    fi
+  fi
+fi
