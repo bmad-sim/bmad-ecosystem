@@ -1247,6 +1247,8 @@ logical calc_emittance
 
   ! This is just to get things allocated
   call init_beam_distribution (u%design%ele_(0), beam_init, u%beam%beam, .true.)
+  if (u%coupling%coupled) &
+    call init_beam_distribution (u%design%ele_(0), beam_init, u%coupling%injecting_beam, .true.)
 
 end subroutine init_beam
 
@@ -1296,8 +1298,14 @@ logical calc_emittance
   u%macro_beam%macro_init = macro_init
   u%design_orb(0)%vec = macro_init%center
 
+  ! Don't initialize beams in circular lattice
+  if (u%design%param%lattice_type .eq. circular_lattice$) return
+    
   ! This is just to get things allocated
   call init_macro_distribution (u%macro_beam%beam, macro_init, u%design%ele_(0), .true.)
+  if (u%coupling%coupled) &
+    call init_macro_distribution (u%coupling%injecting_macro_beam, macro_init, u%design%ele_(0), .true.)
+
 
   ! keep track of where macros are lost
   if (associated (u%macro_beam%ix_lost)) deallocate (u%macro_beam%ix_lost)
@@ -1338,10 +1346,7 @@ logical long_time_post
       long_time_post = .false.
     endif
     do j=1,size(ix_lcav)
-       if (.not. associated(u%design%ele_(ix_lcav(j))%wake)) &
-            allocate (u%design%ele_(ix_lcav(j))%wake)
-       u%design%ele_(ix_lcav(j))%wake%sr_file = sr_wake_file
-       call read_sr_wake(u%design%ele_(ix_lcav(j)))
+       call read_sr_wake(u%design%ele_(ix_lcav(j)), sr_wake_file)
     end do
     deallocate(ix_lcav)
   endif
@@ -1355,10 +1360,7 @@ logical long_time_post
                    "This may take a while...!")
     endif
     do j=1,size(ix_lcav)
-       if (.not. associated(u%design%ele_(ix_lcav(j))%wake)) &
-            allocate (u%design%ele_(ix_lcav(j))%wake)
-       u%design%ele_(ix_lcav(j))%wake%lr_file = lr_wake_file
-       call read_lr_wake(u%design%ele_(ix_lcav(j)))
+       call read_lr_wake(u%design%ele_(ix_lcav(j)), lr_wake_file)
     end do
     deallocate(ix_lcav)
   endif

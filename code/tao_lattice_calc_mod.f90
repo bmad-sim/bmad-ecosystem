@@ -462,7 +462,7 @@ character(20) :: r_name = "tao_find_beam_centroid"
   
   ! If optional arguments not present no verbose and
   !  just check if particles lost
-  if (present(uni) . or. present(ix_ele)) then
+  if (present(uni) .or. present(ix_ele)) then
     record_lost = .true.
     i_ele = ix_ele
   else

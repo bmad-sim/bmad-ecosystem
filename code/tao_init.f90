@@ -194,7 +194,9 @@ integer j, istat
     if (associated(lat%ele_(j)%descrip)) deallocate(lat%ele_(j)%descrip, stat=istat)
     if (associated(lat%ele_(j)%gen_field)) deallocate(lat%ele_(j)%gen_field, stat=istat)
     if (associated(lat%ele_(j)%wake)) then
-      if (associated(lat%ele_(j)%wake%sr)) deallocate(lat%ele_(j)%wake%sr, stat=istat)  
+      if (associated(lat%ele_(j)%wake%sr1)) deallocate(lat%ele_(j)%wake%sr1, stat=istat)  
+      if (associated(lat%ele_(j)%wake%sr2_long)) deallocate(lat%ele_(j)%wake%sr2_long, stat=istat)  
+      if (associated(lat%ele_(j)%wake%sr2_trans)) deallocate(lat%ele_(j)%wake%sr2_trans, stat=istat)  
       if (associated(lat%ele_(j)%wake%lr)) deallocate(lat%ele_(j)%wake%lr, stat=istat)  
       deallocate(lat%ele_(j)%wake, stat=istat)
     endif

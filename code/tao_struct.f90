@@ -379,7 +379,7 @@ end type
 
   type tao_ix_data_struct
     ! list of all datums evaluated at this ele
-    integer, pointer :: ix_datum(:)
+    integer, pointer :: ix_datum(:) => null()
   endtype
 
 !-----------------------------------------------------------------------
