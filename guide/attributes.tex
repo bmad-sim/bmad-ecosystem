@@ -108,6 +108,27 @@ the end of the line marks the end of the string. Example:
 \end{example}
 
 %-----------------------------------------------------------------
+\section{Beam\_Energy and P0C Attributes}
+\label{s:energy}
+\index{Element attribute!beam_energy}
+\index{Element attribute!p0c}
+\index{Statement!parameter}
+
+The \vn{beam_energy} attribute is the referency energy (in eV) for a
+particle at the end of an element.
+See~\sref{s:phase_space_coords}. This attribute is dependent and thus
+it cannot be set for an element directly in the lattice input
+file. The value of \vn{beam_energy} for an element is calculated by
+\bmad to be the same as the previous element except for \vn{Lcavity}
+and \vn{Patch} elements. To set the \vn{beam_energy} at the start of
+the lattice use the \vn{beginning} or \vn{parameter} statements.
+See~\sref{s:param}.
+
+The \vn{beam_energy} attribute give the total energy. The \vn{p0c}
+attribute gives the reference momentum times the speed of light (in
+eV) For ultra--relativistic particles these two values are the same.
+
+%-----------------------------------------------------------------
 \section{Offset, Pitch, Tilt, and Roll Attributes}
 \label{s:offset}
 \index{Element attribute!offset|textbf}
