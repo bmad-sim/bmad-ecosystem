@@ -541,7 +541,7 @@ subroutine calc_g_params (s, orb)
     ds = ric%cache_ele%ds
     i0 = int(s/ds)
     i1 = i0 + 1
-    if (i1 > size(ric%cache_ele%v)) i1 = i0
+    if (i1 > ubound(ric%cache_ele%v, 1)) i1 = i0  ! can happen with roundoff
     f1 = (s - ds*i0) / ds 
     f0 = 1 - f1
     v0 = ric%cache_ele%v(i0)
