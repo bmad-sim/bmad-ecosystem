@@ -51,10 +51,11 @@ sub searchit {
   if (/^$str\.f90$/) {
     $found_one = 1;
     print "$File::Find::name\n";
+  }
 
 # If in the modules directory then look in the file for a match.
 
-  } elsif ($file =~ /\.f90$/i) {
+  if ($file =~ /\.f90$/i) {
 
     $found_in_file = 0;
 
@@ -72,7 +73,7 @@ sub searchit {
             /^ *real\(rp\) *function /i || /^ *interface /i) {
         $name = $';              # strip off "subroutine
         if ($name =~ /^\s*$str[ \(\n]/i) {
-          if ($found_in_file == 0) {print "Module: $File::Find::name\n";}
+          if ($found_in_file == 0) {print "File: $File::Find::name\n";}
           $found_one = 1;
           $found_in_file = 1;
           print "     $_";
