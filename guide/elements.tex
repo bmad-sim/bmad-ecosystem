@@ -61,7 +61,7 @@ difference between this and a \vn{Multipole} is the input format.
 \end{tabular}}
 \end{table}
 
-Possible methods are:
+Possible transfer matrix and tracking methods are:
 \begin{example}
   mat6\_calc\_method: 
               bmad\_standard  (default) 
@@ -240,47 +240,3 @@ This is akin to controls in a Control Room. See ...
 \section{Wiggler} 
 \label{s:wig}
 
-%-----------------------------------------------------------------
-\section{Type, Alias and Descrip Attributes}
-\label{s:string}
-
-\vn{Type}, \vn{Alias}, and \vn{Descrip} are labels to be attached 
-to an element. \bmad\ does not directly use these labels. \vn{Type}
-and \vn{Alias} can be up to 16 characters in length and \vn{Descrip}
-can be up to 200 characters in length. The attribute strings should be
-enclosed in double quotation marks ("). The attribute strings may
-contain blanks. If the attribute string does not contain a blank then
-the quotation marks may be omitted. In this case the first comma (,)
-or the end of the line marks the end of the string. Example:
-\begin{example}
-  Q00W: Quad, type = "My Type", alias = Who_knows, &
-                                        descrip = "Only the shadow knows"
-\end{example}
-
-%-----------------------------------------------------------------
-\section{Mat6\_calc\_method and Tracking\_method switches}
-\label{s:track}
-
-
-%-----------------------------------------------------------------
-\section{Offsets and Tilt Attrubutes}
-\label{s:offset}
-
-\vn{x_offset}, \vn{y_offset}, \vn{s_offset} offset an element from the reference orbit.
-\vn{tilt} rotates.
-
-%-----------------------------------------------------------------
-\section{Aperture and Limit Attributes}
-\label{s:limit}
-
-%-----------------------------------------------------------------
-\section{Energy Attribute}
-\label{s:energy}
-
-%-----------------------------------------------------------------
-\section{Is\_on Attribute}
-\label{s:is_on}
-
-%-----------------------------------------------------------------
-\section{An, Bn and Radius attributes}
-\label{s:ab}
