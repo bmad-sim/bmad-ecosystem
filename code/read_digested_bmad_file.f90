@@ -108,7 +108,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
       fname(2) = fname(1)(:ix-1)
     else
       fname(2) = fname(1)
-#if defined(CESR_UNIX) || defined(CESR_WINCVF)
+#ifndef CESR_VMS 
       ierr = stat(fname(2), stat_b)
 #endif
     endif
