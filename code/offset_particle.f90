@@ -46,6 +46,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/12/03 18:48:30  dcs
+!*** empty log message ***
+!
 !Revision 1.6  2002/11/07 17:10:04  dcs
 !Bug_fix
 !
@@ -187,7 +190,7 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
       if (ele%key == sbend$) then
         angle = ele%value(l$) * ele%value(g$)
         if (ele%value(roll$) /= 0) then
-          if (abs(ele%value(roll$)) < 0.01) then
+          if (abs(ele%value(roll$)) < 0.001) then
             del_x_vel = angle * ele%value(roll$)**2 / 4
           else
             del_x_vel = angle * (1 - cos(ele%value(roll$))) / 2

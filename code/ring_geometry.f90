@@ -27,6 +27,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2002/12/03 18:48:30  dcs
+!*** empty log message ***
+!
 !Revision 1.8  2002/11/27 04:04:07  dcs
 !Correct bug
 !
@@ -66,10 +69,10 @@ subroutine ring_geometry (ring)
 
 !
 
-  theta_tot = 0D0
-  x_pos = 0.0D0
-  y_pos = 0.0D0
-  z_pos = 0.0D0
+  theta_tot = ring%ele_(0)%theta_position
+  x_pos = ring%ele_(0)%x_position
+  y_pos = ring%ele_(0)%y_position
+  z_pos = ring%ele_(0)%z_position
 
   do i = 1, ring%n_ele_ring
 

@@ -16,6 +16,8 @@
 !   n_lines      -- Number of lines in lines(:).
 !-
 
+#include "CESR_platform.inc"
+
 subroutine type2_taylors (bmad_taylor, lines, n_lines)
 
   use bmad
@@ -52,6 +54,8 @@ subroutine type2_taylors (bmad_taylor, lines, n_lines)
     write (lines(nl+1), *) &
                       '---------------------------------------------------'
     nl = nl + 1
+
+    nullify (tlr%term)
     call sort_taylor_terms (bmad_taylor(i), tlr)
 
     do j = 1, size(bmad_taylor(i)%term)
@@ -74,6 +78,7 @@ subroutine type2_taylors (bmad_taylor, lines, n_lines)
     enddo
 
     nl = nl + size(bmad_taylor(i)%term)
+    deallocate (tlr%term)
 
   enddo
 

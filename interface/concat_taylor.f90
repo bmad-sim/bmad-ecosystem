@@ -1,7 +1,8 @@
 !+
 ! Subroutine concat_taylor (taylor1, taylor2, taylor3)
 ! 
-! Subroutine to concatinate two taylor series.
+! Subroutine to concatinate two taylor series:
+!   taylor3(x) = taylor1(taylor2(x))  
 !
 ! Modules needed:
 !   use bmad

@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.17  2002/12/03 18:48:29  dcs
+!*** empty log message ***
+!
 !Revision 1.16  2002/11/27 04:04:06  dcs
 !Correct bug
 !
@@ -110,11 +113,12 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   integer, pointer :: n_max
 
   character*(*) in_file
-  character*16 word_2, name, a_name, dummy_name(20)
-  character*16 name_(n_ele_maxx)
-  character delim*1, word_1*40
-  character*200 path, basename, full_name, digested_file, call_file
-  
+  character(16) word_2, name, a_name, dummy_name(20)
+  character(16) name_(n_ele_maxx)
+  character(1) delim*1
+  character(200) path, basename, full_name, digested_file, call_file
+  character(40) this_name, word_1
+
   real(rdef) angle, old_energy
 
   logical, optional :: make_mats6
@@ -348,10 +352,10 @@ subroutine bmad_parser (in_file, ring, make_mats6)
       name = word_1(:ix-1)  
       do i = 0, n_max
         if (in_ring%ele_(i)%name == name) then
-          name = word_1(ix+1:)    ! name of attribute
-          ix = index(name, ']')
-          name = name(:ix-1)
-          bp_com%parse_line = name // ' = ' // bp_com%parse_line 
+          this_name = word_1(ix+1:)    ! name of attribute
+          ix = index(this_name, ']')
+          this_name = this_name(:ix-1)
+          bp_com%parse_line = trim(this_name) // ' = ' // bp_com%parse_line 
           call get_attribute (redef$, in_ring%ele_(i), in_ring, pring, &
                                              delim, delim_found, err_flag)
           if (delim_found) call warning ('BAD DELIMITER: ' // delim)
@@ -359,7 +363,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
         endif
       enddo
 
-      call warning ('ATTRIBUTE REDEFINED FOR ELEMENT: ' // trim(name), &
+      call warning ('ATTRIBUTE REDEFINED FOR ELEMENT: ' // trim(this_name), &
                     'BUT I HAVE NOT SEEN THIS NAME BEFORE!')
       cycle parsing_loop
 
@@ -495,10 +499,8 @@ subroutine bmad_parser (in_file, ring, make_mats6)
       if (i == n_key) then
         do i = 1, n_max-1
           if (word_2 == in_ring%ele_(i)%name) then
-            i_key = in_ring%ele_(i)%key
-            in_ring%ele_(n_max)%key = i_key
-            in_ring%ele_(n_max)%type = in_ring%ele_(i)%type
-            in_ring%ele_(n_max)%value = in_ring%ele_(i)%value
+            in_ring%ele_(n_max) = in_ring%ele_(i)
+            in_ring%ele_(n_max)%name = word_1
             exit
           endif
         enddo

@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/12/03 18:48:30  dcs
+!*** empty log message ***
+!
 !Revision 1.4  2002/02/23 20:32:18  dcs
 !Double/Single Real toggle added
 !
@@ -462,10 +465,11 @@ subroutine sol_quad_mat627_calc (ks, k1, s_len, m)
                      t6(4,j) * m(3,i) + t6(3,j) * m(4,i)
       if (i == j) t5(i,j) = t5(i,j) / 2
     enddo
-    m(5, (/ x11$, x12$, x13$, x14$ /) ) = t5(1,1:4)
-    m(5, (/ x12$, x22$, x23$, x24$ /) ) = t5(2,1:4)
-    m(5, (/ x13$, x23$, x33$, x34$ /) ) = t5(3,1:4)
-    m(5, (/ x14$, x24$, x34$, x44$ /) ) = t5(4,1:4)
   enddo
+
+  m(5, (/ x11$, x12$, x13$, x14$ /) ) = t5(1,1:4)
+  m(5, (/ x12$, x22$, x23$, x24$ /) ) = t5(2,1:4)
+  m(5, (/ x13$, x23$, x33$, x34$ /) ) = t5(3,1:4)
+  m(5, (/ x14$, x24$, x34$, x44$ /) ) = t5(4,1:4)
 
 end subroutine
