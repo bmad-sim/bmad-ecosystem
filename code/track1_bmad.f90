@@ -46,14 +46,13 @@ subroutine track1_bmad (start, ele, param, end)
   real(rp) x_kick, y_kick, k1, k2, k2l, k3l, length, phase
   real(rp) del, e1, e2, del_x_vel, del_y_vel, sig_x, sig_y, kx, ky, coef
   real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-  real(rp) ks, ks2, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
+  real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
   real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
   real(rp) ave_x_vel2, ave_y_vel2, rel_E, dE, ff
   real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio
   real(rp) alpha, sin_a, cos_a, f, z_ave, r11, r12, r21, r22
   real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2
   real(rp) xp_start, xp_end, yp_start, yp_end, dz4_coef(4,4), dz_coef(3)
-  real(rp) x_pitch, y_pitch
 
   integer i, j, n, n_slice, key
 
@@ -72,8 +71,6 @@ subroutine track1_bmad (start, ele, param, end)
   end = start     ! transfer start to end
   length = ele%value(l$)
   rel_E = 1 + start%vec(6)
-  x_pitch = ele%value(x_pitch_tot$)
-  y_pitch = ele%value(y_pitch_tot$)
 
 !-----------------------------------------------
 ! select
@@ -200,6 +197,7 @@ subroutine track1_bmad (start, ele, param, end)
                     (3*end%vec(3)*end%vec(1)**2 - end%vec(3)**3) / 12
 
     call offset_particle (ele, param, end, unset$, set_canonical = .false.)  
+    call z_pitch_correction
 
 !-----------------------------------------------
 ! quadrupole
@@ -215,11 +213,6 @@ subroutine track1_bmad (start, ele, param, end)
                               dz_coef(2) * end%vec(1) * end%vec(2) + &
                               dz_coef(3) * end%vec(2)**2 
 
-    if (x_pitch /= 0) then
-      end%vec(5) = end%vec(5) - x_pitch**2 - &
-            x_pitch * ((mat2(1,1) - 1) * end%vec(1) + mat2(1,2) * end%vec(2))
-    endif
-
     end%vec(1:2) = matmul(mat2, end%vec(1:2))
 
     call quad_mat2_calc (k1, length, mat2, dz_coef)
@@ -227,15 +220,10 @@ subroutine track1_bmad (start, ele, param, end)
                               dz_coef(2) * end%vec(3) * end%vec(4) + &
                               dz_coef(3) * end%vec(4)**2 
 
-    if (y_pitch /= 0) then
-      end%vec(5) = end%vec(5) - y_pitch**2 - &
-            y_pitch * ((mat2(1,1) - 1) * end%vec(3) + mat2(1,2) * end%vec(4))
-    endif
-
-
     end%vec(3:4) = matmul(mat2, end%vec(3:4))
 
     call offset_particle (ele, param, end, unset$)  
+    call z_pitch_correction
 
 !-----------------------------------------------
 ! sbend
@@ -290,6 +278,7 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(6) = pz + dE0 + k*pxy2*L * (-1/(4*E2) + dE0/6) 
          
     call offset_particle (ele, param, end, unset$, set_canonical = .false.)
+    call z_pitch_correction
 
 !-----------------------------------------------
 ! Linac rf cavity
@@ -395,6 +384,7 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(4) = end%vec(4) + k2l * end%vec(1) * end%vec(3) / 2
 
     call offset_particle (ele, param, end, unset$, set_canonical = .false.)
+    call z_pitch_correction
 
 !-----------------------------------------------
 ! solenoid
@@ -404,16 +394,16 @@ subroutine track1_bmad (start, ele, param, end)
     call offset_particle (ele, param, end, set$)
 
     ks = ele%value(ks$) / rel_E
+
+    xp_start = end%vec(2) + ks * end%vec(3) / 2
+    yp_start = end%vec(4) - ks * end%vec(1) / 2
+    end%vec(5) = end%vec(5) - length * (xp_start**2 + yp_start**2 ) / 2
+
     call solenoid_mat_calc (ks, length, mat4)
     end%vec(1:4) = matmul (mat4, end%vec(1:4))
 
     call offset_particle (ele, param, end, unset$)
-
-    ks2 = ele%value(ks$) / 2
-    xp_start = (start%vec(2) + ks2 * start%vec(3)) / rel_E
-    yp_start = (start%vec(4) - ks2 * start%vec(1)) / rel_E
-    end%vec(5) = end%vec(5) - length * (xp_start**2 + yp_start**2 ) / 2
-
+    call z_pitch_correction
 
 !-----------------------------------------------
 ! sol_quad
@@ -430,6 +420,7 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(1:4) = matmul (mat6(1:4,1:4), end%vec(1:4))
 
     call offset_particle (ele, param, end, unset$)
+    call z_pitch_correction
 
 !-----------------------------------------------
 ! wiggler:
@@ -496,7 +487,6 @@ subroutine track1_bmad (start, ele, param, end)
 
   end select
 
-
 contains
 
 !--------------------------------------------------------------
@@ -511,6 +501,23 @@ subroutine end_z_calc
   end%vec(5) = end%vec(5) - (length / rel_E**2) * &
         (start%vec(2)**2 + end%vec(2)**2 + start%vec(2) * end%vec(2) + &
          start%vec(4)**2 + end%vec(4)**2 + start%vec(4) * end%vec(4)) / 6
+
+end subroutine
+
+!-------------------------------------------------------------------
+
+subroutine z_pitch_correction
+
+  real(rp) x_pitch, y_pitch
+
+  x_pitch = ele%value(x_pitch_tot$)
+  y_pitch = ele%value(y_pitch_tot$)
+
+  if (x_pitch /= 0) end%vec(5) = end%vec(5) + length*x_pitch**2/2 - &
+                   x_pitch * (end%vec(1) - start%vec(1))
+
+  if (y_pitch /= 0) end%vec(5) = end%vec(5) + length*y_pitch**2/2 - &
+                   y_pitch * (end%vec(3) - start%vec(3))
 
 end subroutine
 

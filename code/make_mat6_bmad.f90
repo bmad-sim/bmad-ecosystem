@@ -67,8 +67,6 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   length = ele%value(l$)
   mat6 => ele%mat6
   rel_E = 1 + c0%vec(6)  ! E/E_0
-  x_pitch = ele%value(x_pitch_tot$)
-  y_pitch = ele%value(y_pitch_tot$)
 
   if (present(end_in)) then
     if (.not. end_in) call track1 (c0, ele, param, c1)
@@ -252,16 +250,6 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       mat6(5,2) =    (c00%vec(1) * dz_x(2) + 2 * c00%vec(2) * dz_x(3)) / rel_E
       mat6(5,3) = 2 * c00%vec(3) * dz_y(1) +     c00%vec(4) * dz_y(2)
       mat6(5,4) =    (c00%vec(3) * dz_y(2) + 2 * c00%vec(4) * dz_y(3)) / rel_E
-    endif
-
-    if (x_pitch /= 0) then
-      mat6(5,1) = mat6(5,1) - x_pitch * (mat6(1,1) - 1)
-      mat6(5,2) = mat6(5,2) - x_pitch * (mat6(1,2))
-    endif
-
-    if (y_pitch /= 0) then
-      mat6(5,3) = mat6(5,3) - y_pitch * (mat6(3,3) - 1)
-      mat6(5,4) = mat6(5,4) - y_pitch * (mat6(3,4))
     endif
 
     if (any(mat6(5,1:4) /= 0)) then
@@ -793,6 +781,34 @@ subroutine mat6_add_multipoles_and_s_offset
     mat6(:,2) = mat6(:,2) + mat6(:,1) * s_off
     mat6(:,4) = mat6(:,4) + mat6(:,3) * s_off
   endif
+
+! pitch corrections
+
+  x_pitch = ele%value(x_pitch_tot$)
+  y_pitch = ele%value(y_pitch_tot$)
+
+  if (x_pitch /= 0 .or. y_pitch /= 0) then
+    mat6(5,1) = mat6(5,1) - x_pitch * (mat6(1,1) - 1) 
+    mat6(5,2) = mat6(5,2) - x_pitch *  mat6(1,2)
+    mat6(5,3) = mat6(5,3) - x_pitch *  mat6(1,3)
+    mat6(5,4) = mat6(5,4) - x_pitch *  mat6(1,4)
+
+    mat6(5,1) = mat6(5,1) - y_pitch *  mat6(3,1)
+    mat6(5,2) = mat6(5,2) - y_pitch *  mat6(3,2)
+    mat6(5,3) = mat6(5,3) - y_pitch * (mat6(3,3) - 1)
+    mat6(5,4) = mat6(5,4) - y_pitch *  mat6(3,4)
+
+    mat6(1,6) = mat6(5,2) * mat6(1,1) - mat6(5,1) * mat6(1,2) + &
+                    mat6(5,4) * mat6(1,3) - mat6(5,3) * mat6(1,4)
+    mat6(2,6) = mat6(5,2) * mat6(2,1) - mat6(5,1) * mat6(2,2) + &
+                    mat6(5,4) * mat6(2,3) - mat6(5,3) * mat6(2,4)
+    mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4) + &
+                    mat6(5,2) * mat6(3,1) - mat6(5,1) * mat6(3,2)
+    mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4) + &
+                    mat6(5,2) * mat6(4,1) - mat6(5,1) * mat6(4,2)
+
+  endif
+
 
 end subroutine
 
