@@ -193,7 +193,7 @@ subroutine track_a_bend (start, ele, param, end)
   dg = ele%value(delta_g$)
   g_tot = g0 + dg
   b1 = g_tot
-  angle = ele%value(angle$)
+  angle = ele%value(g$) * length
   rho = 1 / g0
   dE = start%vec(6)
   rel_E  = 1 + dE

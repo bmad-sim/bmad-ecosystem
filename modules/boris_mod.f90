@@ -472,8 +472,8 @@ subroutine boris_energy_correction (ele, param, here)
   type (param_struct), intent(in) :: param
   type (coord_struct) :: here
 
-  real(rp) p0, p1
-!  character(24) :: r_name = 'boris_energy_correction'
+  real(rp) p0, p1, e_start
+  character(24) :: r_name = 'boris_energy_correction'
 
 !
 
@@ -486,7 +486,8 @@ subroutine boris_energy_correction (ele, param, here)
     here%vec(6) = ((1 + here%vec(6)) * p0 - p1) / p1
 
   case (custom$)
-    call energy_to_kinetic (ele%value(beam_energy$)-ele%value(delta_e$), param%particle, p0c = p0)
+    e_start = ele%value(beam_energy$)-ele%value(gradient$)*ele%value(l$)
+    call energy_to_kinetic (e_start, param%particle, p0c = p0)
     call energy_to_kinetic (ele%value(beam_energy$), param%particle, p0c = p1)
     here%vec(2) = here%vec(2) * p0 / p1
     here%vec(4) = here%vec(4) * p0 / p1

@@ -268,8 +268,8 @@ module bmad_struct
     'RFCAVITY     ', 'ELSEPARATOR  ', 'BEAMBEAM     ', 'WIGGLER      ', &
     'SOL_QUAD     ', 'MARKER       ', 'KICKER       ', 'HYBRID       ', &
     'OCTUPOLE     ', 'RBEND        ', 'MULTIPOLE    ', 'ACCEL_SOL    ', &
-    'DEF BEAM     ', 'AB_MULTIPOLE ', 'SOLENOID     ', 'PATCH        ', &
-    'LCAVITY      ', 'DEF PARAMETER', 'NULL_ELEMENT ', 'INIT_ELEMENT ', &
+    'DEF_BEAM     ', 'AB_MULTIPOLE ', 'SOLENOID     ', 'PATCH        ', &
+    'LCAVITY      ', 'DEF_PARAMETER', 'NULL_ELE     ', 'INIT_ELE     ', &
     'HOM          ', 'MATCH        ', 'MONITOR      ', 'INSTRUMENT   ', &
     'HKICKER      ', 'VKICKER      ', 'RCOLLIMATOR  ', 'ECOLLIMATOR  ', &
     'I_BEAM       ', 'BEND_SOL_QUAD', '             ' /)

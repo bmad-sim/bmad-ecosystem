@@ -1018,7 +1018,7 @@ end subroutine
 !   ele  -- Ele_struct: Element with self-consistant attributes.
 !
 ! Programming Note: If the dependent attributes are changed then 
-!       check_attrib_free must be modified.
+!       attribute_free must be modified.
 !-
 
 subroutine attribute_bookkeeper (ele, param)
@@ -1093,7 +1093,7 @@ subroutine attribute_bookkeeper (ele, param)
   endif
 
 ! Dependent attribute bookkeeping.
-! Note: If the dependent attributes are changed then check_attrib_free 
+! Note: If the dependent attributes are changed then attribute_free 
 !       must be modified.
 
   select case (ele%key)

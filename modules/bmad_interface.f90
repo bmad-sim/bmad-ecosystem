@@ -1054,10 +1054,10 @@ interface
     implicit none
     type (ele_struct) ele
     type (ring_struct), optional :: ring
-    integer type_mat6
-    integer twiss_type
-    logical type_control, type_taylor
-    logical type_zero_attrib
+    logical, optional :: type_zero_attrib
+    integer, optional :: type_mat6
+    integer, optional :: twiss_type
+    logical, optional :: type_control, type_taylor
   end subroutine
 end interface
 
@@ -1066,32 +1066,32 @@ interface
     use bmad_struct, only: ele_struct
     implicit none
     type (ele_struct) ele
-    integer frequency_units
+    integer, optional :: frequency_units
   end subroutine
 end interface
  
 interface
-  subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
-                          twiss_type, type_control, lines, n_lines, ring)
+  subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
+                      type_mat6, type_taylor, twiss_type, type_control, ring)
     use bmad_struct, only: ring_struct, ele_struct
     implicit none
     type (ele_struct), target, intent(in) :: ele
     type (ring_struct), optional, intent(in) :: ring
-    integer, intent(in) :: type_mat6
+    integer, optional, intent(in) :: type_mat6
     integer, intent(out) :: n_lines
-    integer, intent(in) :: twiss_type
-    logical, intent(in) :: type_control, type_taylor
-    logical, intent(in) :: type_zero_attrib
+    integer, optional, intent(in) :: twiss_type
+    logical, optional, intent(in) :: type_control, type_taylor
+    logical, optional, intent(in) :: type_zero_attrib
     character(80), pointer :: lines(:)
   end subroutine
 end interface
 
 interface
-  subroutine type2_twiss (ele, frequency_units, lines, n_lines)
+  subroutine type2_twiss (ele, lines, n_lines, frequency_units)
     use bmad_struct, only: ele_struct
     implicit none
     type (ele_struct) ele
-    integer frequency_units
+    integer, optional :: frequency_units
     integer n_lines
     character(*) lines(:)
   end subroutine
@@ -1160,10 +1160,11 @@ interface
 end interface
 
 interface
-  subroutine bbi_kick_matrix (ele, orb, s_pos, mat6)
-    use bmad_struct, only: ele_struct, rp, coord_struct
+  subroutine bbi_kick_matrix (ele, param, orb, s_pos, mat6)
+    use bmad_struct, only: ele_struct, rp, coord_struct, param_struct
     implicit none
     type (ele_struct) ele
+    type (param_struct) param
     type (coord_struct) orb
     real(rp) s_pos
     real(rp) mat6(6,6)

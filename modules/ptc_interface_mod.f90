@@ -1026,14 +1026,15 @@ end subroutine
 ! Subroutine concat_real_8 (y1, y2, y3)
 !
 ! Subroutine to concatinate two real_8 taylor series.
+!       y3 = y2(y1)
 ! This subroutine assumes that y1, y2, and y3 have been allocated.
 !
 ! Modules needed:
 !   use ptc_interface_mod
 !
 ! Input:
-!   y1(6) -- real_8: Input.
-!   y2(6) -- real_8: Input.
+!   y1(6) -- real_8: First Input map.
+!   y2(6) -- real_8: Second Input map.
 !
 ! Output
 !   y3(6) -- real_8: Concatinated output.
@@ -1065,7 +1066,7 @@ subroutine concat_real_8 (y1, y2, y3)
   da1 = y1
   da2 = y2
 
-  da3 = da1 .o. da2  ! concat with constant terms
+  da3 = da2 .o. da1  ! concat with constant terms
   
   y3 = da3
 
@@ -1283,7 +1284,7 @@ subroutine taylor_inverse (taylor_in, taylor_inv)
     call vec_bmad_to_ptc (c0, c8) ! Convert constant part to PTC coords
     c8 = -c8                      ! negate
     yc = c8                       ! Convert this to PTC taylor map
-    call concat_real_8 (y, yc, y) 
+    call concat_real_8 (yc, y, y) 
     call kill (yc)
   endif
 
@@ -1307,7 +1308,7 @@ end subroutine
 ! Subroutine concat_taylor (taylor1, taylor2, taylor3)
 ! 
 ! Subroutine to concatinate two taylor series:
-!   taylor3(x) = taylor1(taylor2(x))  
+!   taylor3(x) = taylor2(taylor1(x))  
 !
 ! Modules needed:
 !   use ptc_interface_mod
@@ -1481,6 +1482,14 @@ subroutine ele_to_taylor (ele, param, orb0)
     call set_ptc (taylor_order = bmad_com%taylor_order)
   endif
 
+! LCavity elements are not implemented in PTC so just use the matrix.
+
+  if (ele%key == lcavity$) then
+    call make_mat6 (ele, param)
+    call mat6_to_taylor (ele%mat6, ele%vec0, ele%taylor)
+    return
+  endif
+
 ! Track with offset
 
   call alloc (a_fibre)
@@ -1502,7 +1511,7 @@ subroutine ele_to_taylor (ele, param, orb0)
 
   call real_8_init(y2)
   y2 = -x
-  call concat_real_8 (y, y2, y)
+  call concat_real_8 (y2, y, y)
 
 ! convert to bmad_taylor  
 
@@ -1750,7 +1759,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
   real(dp) omega(3), basis(3,3), angle(3)
 
   real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
-  real(rp) cos_t, sin_t, len, hk, vk, x_off, y_off
+  real(rp) cos_t, sin_t, leng, hk, vk, x_off, y_off
 
   integer n, key, n_term, exception
   integer, optional :: integ_order, steps
@@ -1777,7 +1786,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 !
 
   key = ele%key
-  len = ele%value(l$)
+  leng = ele%value(l$)
   if (.not. ele%is_on) key = drift$
 
   select case (key)
@@ -1791,7 +1800,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 
   case (sbend$) 
     ptc_key%magnet = 'sbend'
-    ptc_key%list%b0   = ele%value(angle$)  ! Yep this is correct. 
+    ptc_key%list%b0   = ele%value(g$) * leng ! Yep this is correct. 
     ptc_key%list%t1   = ele%value(e1$)
     ptc_key%list%t2   = ele%value(e2$)
     ptc_key%list%k(1) = ele%value(delta_g$)
@@ -1814,7 +1823,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
     ptc_key%list%bsol = ele%value(ks$)
     ptc_key%list%k(2) = ele%value(k1$)
 
-  case (marker$)
+  case (marker$, init_ele$)
     ptc_key%magnet = 'marker'
 
   case (kicker$, hkicker$, vkicker$)
@@ -1833,8 +1842,8 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 
   case (elseparator$)
     ptc_key%magnet = 'elseparator'
-    hk = ele%value(hkick$) / len
-    vk = ele%value(vkick$) / len
+    hk = ele%value(hkick$) / leng
+    vk = ele%value(vkick$) / leng
     if (hk == 0 .and. vk == 0) then
       ptc_key%tiltd = 0
     else
@@ -1883,12 +1892,12 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
     kick_here = .false.
     if (ele%key == hkicker$ .or. ele%key == vkicker$) then
       hk = 0; vk = 0
-      if (ele%key == hkicker$) hk = ele%value(kick$) / len
-      if (ele%key == vkicker$) vk = ele%value(kick$) / len
+      if (ele%key == hkicker$) hk = ele%value(kick$) / leng
+      if (ele%key == vkicker$) vk = ele%value(kick$) / leng
       kick_here = .true.
     elseif (ele%value(hkick$) /= 0 .or. ele%value(vkick$) /= 0) then
-      hk = ele%value(hkick$) / len
-      vk = ele%value(vkick$) / len
+      hk = ele%value(hkick$) / leng
+      vk = ele%value(vkick$) / leng
       kick_here = .true.
     endif
     if (kick_here) then
@@ -1899,9 +1908,9 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
     endif
 
     call multipole_ele_to_ab (ele, param%particle, an0, bn0, .false.)
-    if (len /= 0) then
-      an0 = an0 / len
-      bn0 = bn0 / len
+    if (leng /= 0) then
+      an0 = an0 / leng
+      bn0 = bn0 / leng
     endif
 
     n = min(n_pole_maxx+1, size(ptc_key%list%k))
