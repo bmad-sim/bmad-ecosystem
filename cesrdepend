@@ -35,6 +35,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.2  2001/10/05 02:41:42  palmer
+# Update internal path to the fort_depend.awk script.
+#
 # Revision 1.1  2001/10/04 17:21:48  palmer
 # New scripts for doing CESR fortran 90 dependencies.
 #
@@ -63,7 +66,7 @@ TARGET_SUF="d"
 #-----------------------------------------------------------------
 CPP=/usr/bin/cpp
 CPP_FLAGS="-C"
-BIN_DIR=${CESR_EXE}
+BIN_DIR=${CESR_UTIL}
 
 
 #-----------------------------------------------------------------
