@@ -1,26 +1,4 @@
-!+
-! Subroutine odeint_bmad (start, ele, param, end, &
-!                                 s1, s2, rel_tol, abs_tol, h1, hmin)
-! 
-! Subroutine to do Runge Kutta tracking. This routine is adapted from Numerical
-! Recipes. See the NR book for more details.
-!
-! Notice that this routine has one more argument (abs_tol) than odeint.
-! Also rel_tol (essentually equivalent to eps in odeint) is scalled by the
-! step size to to able to relate it to the final accuracy.
-!
-! Input: [See the odeint writeup for the arguments not shown]
-!   rel_tol -- Real: Same as eps for odeint scalled by sqrt(h/(s2-s1))
-!               where h is the step size for the current step. rel_tol
-!               sets the %error of the result
-!   abs_tol -- Real: Sets the absolute error of the result
-!
-! Essentually (assuming random errors) one of these conditions holds:
-!             %error in tracking < rel_tol
-! or
-!     absolute error in tracking < abs_tol
-!-
-
+#include "CESR_platform.inc"      
 
 module runge_kutta_mod
 
@@ -39,10 +17,11 @@ module runge_kutta_mod
   integer, parameter :: b_field$ = 1, kick_field$ = 2
 
   interface 
-    subroutine field_rk_custom (ele, s, orb, field, field_type)
+    subroutine field_rk_custom (ele, param, s, orb, field, field_type)
       use bmad_struct
       implicit none
       type (ele_struct), intent(in) :: ele
+      type (param_struct) param
       type (coord_struct), intent(in) :: orb
       real(rdef), intent(in) :: s
       real(rdef), intent(out) :: field(3)
@@ -50,10 +29,60 @@ module runge_kutta_mod
     end subroutine
   end interface
 
-!-----------------------------------------------------------
-!-----------------------------------------------------------
-
 contains
+
+!-----------------------------------------------------------
+!-----------------------------------------------------------
+!-----------------------------------------------------------
+!+
+! Subroutine odeint_bmad (start, ele, param, end, &
+!                                 s1, s2, rel_tol, abs_tol, h1, hmin)
+! 
+! Subroutine to do Runge Kutta tracking. This routine is adapted from Numerical
+! Recipes. See the NR book for more details.
+!
+! Notice that this routine has an two tollerance arguments rel_tol and abs_tol.
+! Odein only has 1. rel_tol (essentually equivalent to eps in odeint) 
+! is scalled by the step size to to able to relate it to the final accuracy.
+!
+! Essentually (assuming random errors) one of these conditions holds:
+!             %error in tracking < rel_tol
+! or
+!     absolute error in tracking < abs_tol
+!
+! Modules needed:
+!   use bmad
+!
+! Input: 
+!   start   -- Coord_struct: Starting coords.
+!   ele     -- Ele_struct: Element to track through.
+!     %tracking_method -- Determines which subroutine to use to calculate the 
+!                         field. Note: BMAD does no supply field_rk_custom.
+!                           == custom$ then use field_rk_custom
+!                           /= custom$ then use field_rk_standard
+!   param   -- Param_struct: Beam parameters.
+!     %enegy       -- Energy in GeV
+!     %particle    -- Particle type [positron$, or electron$]
+!   s1      -- Real: Starting point.
+!   s2      -- Real: Ending point.
+!   rel_tol -- Real: Same as eps for odeint scalled by sqrt(h/(s2-s1))
+!               where h is the step size for the current step. rel_tol
+!               sets the %error of the result
+!   abs_tol -- Real: Sets the absolute error of the result
+!   h1      -- Real: Initial guess for a step size.
+!   h_min   -- Real: Minimum step size (can be zero).
+!
+! Output:
+!   end        -- Coord_struct: Ending coords.
+!
+! Common block:
+!   rk_com -- common_block that holds the path.
+!     %save_steps -- Set True if you want to save the path
+!     %n_pts -- The number of data points
+!     %s(:)   -- Real: S positions of the data points
+!     %orb(:) -- Coord_struct: Coordinates.
+!
+!-
 
 subroutine odeint_bmad (start, ele, param, end, &
                                   s1, s2, rel_tol, abs_tol, h1, h_min)
@@ -295,9 +324,9 @@ subroutine derivs_bmad (ele, param, s, r, dr_ds)
   here%vec = r
 
   if (ele%tracking_method == custom$) then
-    call field_rk_custom (ele, s, here, field, field_type)
+    call field_rk_custom (ele, param, s, here, field, field_type)
   else 
-    call field_rk_standard (ele, s, here, field, field_type)
+    call field_rk_standard (ele, param, s, here, field, field_type)
   endif
 
 ! if this is a kick field then field gives us directly dr_ds
@@ -350,11 +379,12 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine field_rk (ele, s, here, field, field_type)
+subroutine field_rk (ele, param, s, here, field, field_type)
 
   implicit none
 
   type (ele_struct), intent(in) :: ele
+  type (param_struct) param
   type (coord_struct), intent(in) :: here
 
   real(rdef) :: s, field(3)
@@ -364,9 +394,9 @@ subroutine field_rk (ele, s, here, field, field_type)
 !
 
   if (ele%tracking_method == custom$) then
-    call field_rk_custom (ele, s, here, field, field_type)
+    call field_rk_custom (ele, param, s, here, field, field_type)
   else
-    call field_rk_standard (ele, s, here, field, field_type)
+    call field_rk_standard (ele, param, s, here, field, field_type)
   endif
 
 end subroutine
@@ -375,11 +405,12 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine field_rk_standard (ele, s_pos, here, field, field_type)
+subroutine field_rk_standard (ele, param, s_pos, here, field, field_type)
 
   implicit none
 
   type (ele_struct), target, intent(in) :: ele
+  type (param_struct) param
   type (coord_struct), intent(in) :: here
   type (wig_term_struct), pointer :: t
 
@@ -462,3 +493,24 @@ subroutine field_rk_standard (ele, s_pos, here, field, field_type)
 end subroutine
 
 end module
+
+!   rel_eps    -- Real: % Error tollerance. A good value would be, say, 1e-5.
+!   abs_eps    -- Real: absolute error. A good value would be, say, 1e-8.
+!   del_s_step -- Real: Initial guess for a step size.
+!   del_s_min  -- Real: Minimum step size (can be zero).
+!   func_type  -- Character*(*): Descripter for field_rk function:
+!                   = 'B_FIELD'     -> field_rk returns the B field (Tesla).
+!                   = 'KICK_FIELD'  -> field_rk returns the kicks.
+!   param      -- Param_struct: [Optional] Beam parameters.
+!                 [Needed if func_type = 'B_FIELD']
+!     %enegy     -- Energy in GeV
+!     %particle  -- Particle type [positron$, or electron$]
+!
+! Output:
+!   end        -- Coord_struct: Ending coords.
+!     %z%pos     = s_len - path_length where s_len = s_end-s_start.
+!                  Thus for a wiggler, where the "zero" orbit path_length
+!                  is not s_len, there needs to be a correction term:
+!                    end%z%pos = end%z%pos + zero_orbit_path_length - s_len
+!
+!

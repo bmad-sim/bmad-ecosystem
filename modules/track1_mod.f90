@@ -52,7 +52,7 @@ subroutine check_aperture_limit (orb, ele, param)
 
 !
 
-  if (param%aperture_limit_on) return
+  if (.not. param%aperture_limit_on) return
 
   x_lim = ele%value(x_limit$)
   if (x_lim <= 0) x_lim = 1e10
@@ -122,6 +122,9 @@ end subroutine
 
 !$Id$
 !$Log$
+!Revision 1.2  2002/09/05 14:01:07  dcs
+!*** empty log message ***
+!
 !Revision 1.1  2002/08/20 20:37:06  dcs
 !Added symp_lie_bmad / symp_lie_ptc switches.
 !

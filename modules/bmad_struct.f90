@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.15  2002/09/05 14:01:06  dcs
+!*** empty log message ***
+!
 !Revision 1.14  2002/08/23 20:20:23  dcs
 !Modified for VMS port
 !
@@ -51,7 +54,9 @@ module bmad_struct
 
   use precision_def
   use physical_constants
-  use tpsalie_analysis, pi_fpp => pi, twopi_fpp => twopi, var_ptc => var
+  use tpsalie_analysis, pi_fpp => pi, twopi_fpp => twopi, var_ptc => var, &
+                        is_fpp => is, first_time_fpp => first_time, &
+                        table_fpp => table
 
 ! The "regular" elements are in positions: 1 to RING.N_ELE_RING
 ! regular elements are:
@@ -665,7 +670,7 @@ module bmad_struct
 ! Note: The dummy_ele_struct must be larger in size (bytes) then the ele_struct
 
   type dummy_ele_struct
-    integer dummy(500)
+    integer(rdef) dummy(250)
   end type
 
   type ele_digested_struct
