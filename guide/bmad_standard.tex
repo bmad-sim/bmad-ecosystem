@@ -1,9 +1,39 @@
 %-----------------------------------------------------------------
 \section{Bmad\_Standard Matrix calculations and Tracking}
 \label{s:bmad_standard}
-\index{} 
 
-\vn{Bmad_standard} transfer matrix calculations (\sref{s:tkm}) tracking (\sref{s:xfer} are meant to be quick. To this end the paraxial approximation (\Eq{xpa1p}) is used. 
 
+\vn{Bmad_standard} transfer matrix calculations (\sref{s:tkm})
+tracking (\sref{s:xfer} are meant to be quick. To this end the
+paraxial approximation (\Eq{xpa1p}) is always used.
+
+
+\index{Drift} 
 \subsection{Drift}
-
+The Hamiltonian for a drift is
+\Begineq
+  H = \frac{p_x^2 + p_y^2}{2 (1 + p_z)} 
+\Endeq
+This gives the map
+\begin{align}
+  x   &\rightarrow x + \frac{l \, p_x}{1 + p_z} \CRNO
+  p_x &\rightarrow p_x  \CRNO
+  y   &\rightarrow y + \frac{l \, p_y}{1 + p_z} \CRNO
+  p_y &\rightarrow p_y  \\
+  z   &\rightarrow z - \frac{l \, (p_x^2 + p_y^2)}{2 (1 + p_z)^2} \CRNO
+  p_z &\rightarrow p_z \nonumber
+\end{align}
+The Jacobian is 
+\Begineq
+  \begin{pmatrix}
+    x \\ p_x \\ z \\ p_z
+  \end{pmatrix}
+  = 
+  \begin{pmatrix}
+    1 & \frac{l}{1 + p_z}             & 0 & \frac{-l \, p_x}{(1 + p_z)^2} \\
+    0 & 1                             & 0 & 0 \\
+    0 & -\frac{l \, p_x}{(1 + p_z)^2} & 1 & 
+                              \frac{l \, (p_x^2 + p_y^2)}{(1 + p_z)^3} \\
+    0 & 0                             & 0 & 1
+  \end{pmatrix}
+\Endeq

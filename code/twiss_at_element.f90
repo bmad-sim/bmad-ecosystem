@@ -15,6 +15,8 @@
 !   start   -- Ele_struct: [Optional] Twiss and s at start of element.
 !   end     -- Ele_struct: [Optional] Twiss and s at end of element.
 !   average -- Ele_struct: [Optional] Average Twiss and s of element.
+!     %value(l$) -- "Effective" length which for groups and overlays
+!                      are weighted by the control coefficient.
 !
 ! Warning: This routine just takes the average to be the average of both ends.
 ! this does not do a good job of calculating the average for some elements.
@@ -36,7 +38,7 @@ recursive subroutine twiss_at_element (ring, ix_ele, start, end, average)
   type (ele_struct) slave_ave
 
   integer ix_ele, ix1, ix2
-  integer i, ix, n_slave
+  integer i, ix, n_slave, ct
   integer, allocatable :: slave_list(:)
 
   real(rp) rr, tot, l_now
@@ -68,17 +70,17 @@ recursive subroutine twiss_at_element (ring, ix_ele, start, end, average)
     return
   endif
 
-! calculation for the lords...
+! start and end calculation for the lord elements
 
-  call get_element_slave_list (ring, ix_ele, slave_list, n_slave)
-
-  if (ele%control_type == super_lord$) then
+  select case (ele%control_type)
+  case (super_lord$, multipass_lord$, i_beam_lord$)
     ix1 = ele%ix1_slave
     ix2 = ele%ix2_slave
     if (present(start)) start = ring%ele_(ring%control_(ix1)%ix_slave - 1)
     if (present(end)) end = ring%ele_(ring%control_(ix2)%ix_slave)
 
-  else  ! overlay_lord$ or group_lord$
+  case default   ! overlay_lord$ or group_lord$
+    call get_element_slave_list (ring, ix_ele, slave_list, n_slave)
     ix1 = minval (slave_list(1:n_slave))
     ix2 = maxval (slave_list(1:n_slave))
 
@@ -90,28 +92,38 @@ recursive subroutine twiss_at_element (ring, ix_ele, start, end, average)
       if (present(end))   end   = ring%ele_(ix1)
     endif
 
-  endif
+  end select
 
 ! Average calc for a lord.
 ! %control_(:)%coef is proportional to the length of the save for super_lords
+! The "length" is tricky for group and overlay lords: Essentially it is the 
+! length weighted by the coefficient.
 
   if (.not. present(average)) return
   call zero_ave (average)
   if (ele%n_slave == 0) return
+  ct = ele%control_type
 
   tot = 0
   do i = ele%ix1_slave, ele%ix2_slave
-    tot = tot + abs(ring%control_(i)%coef)
+    if (ct == group_lord$ .or. ct == overlay_lord$) then
+      ix = ring%control_(i)%ix_slave
+      tot = tot + abs(ring%control_(i)%coef) * ring%ele_(ix)%value(l$)
+    else
+      tot = tot + ring%ele_(ix)%value(l$)
+    endif
   enddo
-  average%value(l$) = ele%value(l$)
+  average%value(l$) = tot
 
   do i = ele%ix1_slave, ele%ix2_slave
     ix = ring%control_(i)%ix_slave
     call twiss_at_element (ring, ix, average = slave_ave)
     if (tot == 0) then
       rr = 1.0 / ele%n_slave
+    elseif (ct == group_lord$ .or. ct == overlay_lord$) then
+      rr = abs(ring%control_(i)%coef) * slave_ave%value(l$) / tot
     else
-      rr = abs(ring%control_(i)%coef) / tot
+      rr = slave_ave%value(l$) / tot
     endif
     call twiss_ave (average, slave_ave, rr)
   enddo

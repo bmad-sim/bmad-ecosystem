@@ -51,10 +51,7 @@ conserved quantities more accurately than \vn{Runge_Kutta}.
 
 \index{Tracking method!Bmad_Standard}
 \item[\vn{Bmad\_Standard}]
-Uses formulas for tracking. The emphasis here is on speed and not
-symplecticity. Appropriate when you are interested in single turn
-stuff. May be appropriate for long term tracking depending upon how
-many turns are tracked and what kind of elements are involved. 
+Uses formulas for tracking. The emphasis here is on speed.
 
 \index{Tracking method!Custom}
 \item[\vn{Custom}]
@@ -78,7 +75,7 @@ This uses the MAD 2nd order transfer map.
 \item[\vn{None}]
 This prevents the transfer matrix from being recomputed.
 Using \vn{None} in the input file is generally not a good idea since
-it prevents the martix from being computed in the first place.
+it prevents the matrix from being computed in the first place.
 Typically \vn{None} is used internally in a program to prevent recomputation.
 
 \index{Tracking method!Runge_Kutta}
@@ -230,10 +227,7 @@ integration order does not necessarily imply higher accuracy.
 
 \index{Mat6_calc_method!Bmad_Standard}
 \item[\vn{Bmad\_Standard}]
-Uses formulas for the calculation. The emphasis here is on speed and not
-symplecticity. Appropriate when you are interested in single turn
-stuff. May be appropriate for long term tracking depending upon how
-many turns are tracked and what kind of elements are involved. 
+Uses formulas for the calculation. The emphasis here is on speed
 
 \index{Mat6_calc_method!Custom}
 \item[\vn{Custom}]
@@ -251,7 +245,7 @@ This uses the MAD 2nd transfer map.
 \item[\vn{None}]
 This prevents the transfer matrix from being recomputed.
 Using \vn{None} in the input file is generally not a good idea since
-it prevents the martix from being computed in the first place.
+it prevents the matrix from being computed in the first place.
 Typically \vn{None} is used internally in a program to prevent recomputation.
 
 \index{Mat6_calc_method!Symp_lie_Bmad}
@@ -364,7 +358,7 @@ there are a number of attributes that can affect the calculation. They are
 Example:
 \begin{example}
   q1: quadrupole, l = 0.6, tracking_method = bmad_standard, &
-        mat6_calc_method = sym_lie_ptc, num_steps = 20, field_calc = custom
+        mat6_calc_method = symp_lie_ptc, num_steps = 20, field_calc = custom
 \end{example}
 
 \index{Num_steps}

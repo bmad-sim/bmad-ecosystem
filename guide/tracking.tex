@@ -47,7 +47,7 @@ An example of how to do multi-turn tracking (assuming a circular lattice) is
 $n$\Th element. With \vn{ring%n_ele_max} elements in the lattice
 (\sref{s:ring_ele}) the \vn{orbit(:)} array needs to be made this
 large. The call to \vn{reallocate_coords} does this allocation. Since
-\vn{ring%ele_(0)} is essentually a marker element \vn{orbit(0)} is the
+\vn{ring%ele_(0)} is essentially a marker element \vn{orbit(0)} is the
 orbit at the start of the lattice.  \vn{track_all} takes \vn{orbit(0)}
 and tracks through the list of lattice elements until it gets to the
 last trackable element \vn{lattice%n_ele_use} (\sref{s:ring_ele}).
@@ -140,7 +140,7 @@ iteratively converging on the closed orbit using the 1--turn matrix to
 calculate the next guess. On rare occasions if the nonlinearities are
 strong enough, this can fail to converge. An alternative routine is
 \vn{closed_orbit_from_tracking} which tries to do things in a more
-robust way but with a large speed penelty.
+robust way but with a large speed penalty.
 
 %----------------------------------------------------------------
 \section{Apertures}
@@ -331,7 +331,7 @@ algorithm (See \sref{s:macro}). Once a beam is initialized,
 tracking can be performed using \vn{track_macro_beam}. An example program is
 shown in figure~\ref{f:macro_program}. 
 
-The equal sign in the assigments
+The equal sign in the assignments
 \begin{example}
   beam1 = beam2
   bunch1 = bunch2
@@ -375,7 +375,7 @@ program macroparticle_test
   type (macro_beam_struct) beam
   type (macroparticle_struct) mp
   type (macro_init_struct) init
-  tyep (macro_bunch_params_struct) params
+  type (macro_bunch_params_struct) params
 
   integer i, j, k, n
 
@@ -471,5 +471,5 @@ Generally tracking backwards is simply the reverse of tracking
 forwards (time reversal symmetry). That is, if you start at some
 place, track forward for some distance and then track back to the
 starting place the ending orbit will be equal to the starting
-orbing. However, it should always be kept in mind that radiation
+orbit. However, it should always be kept in mind that radiation
 damping or excitation breaks this symmetry.

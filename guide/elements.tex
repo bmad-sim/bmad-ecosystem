@@ -119,7 +119,7 @@ any demand for it.
 \index{BBI_constant}
 Attributes specific to a \vn{BeamBeam} element are:
 \begin{example}
-  sig_x   = Real     ! Hoirzontal strong beam sigma   
+  sig_x   = Real     ! Horizontal strong beam sigma   
   sig_y   = Real     ! Vertical strong beam sigma
   sig_z   = Real     ! Strong beam length
   charge   = Real     ! Strong beam charge
@@ -869,7 +869,7 @@ The input file name for the long--range wakefields is specified using
 the \vn{lr_wake_file} attribute. The file gives the
 wake modes by specifying the frequency (in Hz), R/Q (in
 $\Omega$/meter$^{2m}$), Q, and m (order number), and optionally the
-poarization angle (in radians/2pi) for each cavity mode. The input
+polarization angle (in radians/2pi) for each cavity mode. The input
 uses Fortran90 namelist syntax: The data begins with the string
 \vn{\&long_range_modes} and ends with a \vn{/}. Everything outside is
 ignored. Each mode is labeled \vn{lr(i)} where \vn{i} is the mode
@@ -1408,7 +1408,7 @@ For the "periodic" type wigglers the attributes are:
 \end{example}
 This type of wiggler is considered to have infinitely wide poles so
 with \vn{bmad_standard} tracking and transfer matrix calculations the
-horizontal motion looks like a drift. The vertical motion is moddeled
+horizontal motion looks like a drift. The vertical motion is modeled
 as a combination focusing quadrupole and focusing octupole. 
 
 Example:

@@ -27,7 +27,7 @@ do the Lie algebraic calculations.  PTC is a very general package and
 \bmad\ only makes use of a small part of its features. Essentially
 the part that \bmad\ uses is the part that creates Taylor maps and
 does symplectic integration. Not used is, for example, the
-calculational part that does normal form analysis Twiss parameters
+Calculational part that does normal form analysis Twiss parameters
 (\bmad\ does its own), beam envelope tracking, etc. PTC also has the
 ability, which \bmad\ does not take advantage of, to define ``knobs''
 which means that the Taylor map can be a function of the phase space
@@ -43,7 +43,7 @@ conjunction with FPP) subroutines directly.
 \label{s:etienne_space}
 \indexptc{phase space}
 
-PTC uses different longitudinal phase space coordinates compaired to \bmad.
+PTC uses different longitudinal phase space coordinates compared to \bmad.
 \bmad's phase space coordinates are
 \Begineq
   (x, p_x, y, p_y, z, p_z)
@@ -83,7 +83,7 @@ directly to look at the particular terms. To simplify life, Etienne has
 implemented the \vnptc{universal_taylor}structure:
 \begin{example}
   type universal_taylor
-    integer, pointer  :: n       ! Number of coeeficients
+    integer, pointer  :: n       ! Number of coefficients
     integer, pointer  :: nv      ! Number of variables
     real(dp), pointer :: c(:)    ! Coefficients C(N)
     integer, pointer  :: j(:,:)  ! Exponents of each coefficients J(N,NV)

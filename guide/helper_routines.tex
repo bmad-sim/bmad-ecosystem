@@ -1,7 +1,7 @@
 \chapter{Helper Routines}
 \label{c:helper}
 
-This chapter gives an overview of various compulational helper routines.
+This chapter gives an overview of various computational helper routines.
 
 %-----------------------------------------------------------------------------
 \section{Nonlinear Optimization}
@@ -31,7 +31,7 @@ A second implementation of Levenberg--Marquardt available with \bmad
 is \vnr{opti_lmdif} which is Fortran90 version of the popular
 \vn{lmdif} routine. Also available is \vnr{opti_de} which implements
 the Differential Evolution algorithm of Storn and
-Price\cite{b:storn}. This routine is good for finding global minimua
+Price\cite{b:storn}. This routine is good for finding global minima
 but can be slow. 
 
 Another routine that should be mentioned is the \vn{amoeba} routine
@@ -51,4 +51,7 @@ following example shows some of the \bmad matrix routines
 \index{Routine!mat_det}
 \index{Routine!mat_make_unit}
 \begin{example}
-
+  real(rp) mat(6,6), mat_inv(6,6)
+  call mat_make_unit (mat)    ! make a unit matrix
+  call mat_inv (mat, mat_inv) ! Compute the inverse matrix.
+\end{example}

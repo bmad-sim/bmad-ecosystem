@@ -106,7 +106,7 @@ Table~\ref{t:dep_field}.
 \label{t:dep_field}
 \end{table}
 Using both field strength and normalized strength as the independent
-varialbe for a given element is not permitted. For example, for a quadrupole the 
+variable for a given element is not permitted. For example, for a quadrupole the 
 normalized strengths \vn{k1}, \vn{hkick}, and \vn{vkick} can be used as the
 independent variable or the field strengths \vn{b_gradient}, \vn{bl_hkick} and
 \vn{bl_vkick}. but the mixing of the two is not valid
@@ -127,15 +127,19 @@ attribute without setting the strength just set the strength to zero. For exampl
 \index{Alias|textbf}
 \index{Descrip|textbf}
 
-\vn{type}, \vn{alias}, and \vn{descrip} are labels to be attached 
-to an element. \bmad routines do not use these labels except 
-when printing element information. \vn{type}
-and \vn{Alias} can be up to 16 characters in length and \vn{descrip}
-can be up to 200 characters. The attribute strings can be enclosed in
-double quotation marks ("). The attribute strings may contain
-blanks. If the attribute string does not contain a blank then the
-quotation marks may be omitted. In this case the first comma (,) or
-the end of the line marks the end of the string. Example:
+There are three string labels associated with any element:
+\begin{example}
+  type
+  alias
+  descrip
+\end{example}
+\bmad routines do not use these labels except when printing element
+information. \vn{type} and \vn{alias} can be up to 16 characters in
+length and \vn{descrip} can be up to 200 characters. The attribute
+strings can be enclosed in double quotation marks ("). The attribute
+strings may contain blanks. If the attribute string does not contain a
+blank then the quotation marks may be omitted. In this case the first
+comma (,) or the end of the line marks the end of the string. Example:
 \begin{example}
   Q00W: Quad, type = "My Type", alias = Who_knows, &
                                   descrip = "Only the shadow knows"
@@ -148,24 +152,31 @@ the end of the line marks the end of the string. Example:
 
 \index{Beam_energy}
 \index{Energy_start}
+\index{P0c_start}
 \index{Patch}
 \index{Lcavity}
-The \vn{beam_energy} attribute is the referency energy (in eV) for a
-particle at the end of an element.
-See~\sref{s:phase_space_coords}. This attribute is dependent and thus
-it cannot be set for an element directly in the lattice input
-file. The value of \vn{beam_energy} for an element is calculated by
+\index{P0c}
+The attributes that define the reference energy and momentum at an element are:
+\begin{example}
+  beam_energy   ! Total energy in eV.
+  p0c           ! Momentum in eV.
+\end{example}
+The energy and momentum are defined at the exit end of the element.
+For ultra--relativistic particles these two values are the same.
+See~\sref{s:phase_space_coords}. These attributes are dependent and thus
+cannot be set for an element directly in the lattice input
+file. The value of \vn{beam_energy} and \vn{p0c} for an element is calculated by
 \bmad to be the same as the previous element except for \vn{Lcavity}
-and \vn{Patch} elements. To set the \vn{beam_energy} at the start of
+and \vn{Patch} elements. To set the \vn{beam_energy} or \vn{p0c} at the start of
 the lattice use the \vn{beginning} or \vn{parameter} statements.
 See~\sref{s:param}. Since the energy changes from the start to the end
-of an \vn{Lcavity}, An \vn{Lcavity} has a \vn{energy_start} attribute
-which is just the reference energy at the start of the element.
+of an \vn{Lcavity}, An \vn{Lcavity} has the attributes
+\begin{example}
+  energy_start
+  p0c_start
+\end{example}
+which is just the reference energy and momentum at the start of the element.
 
-\index{P0c}
-The \vn{beam_energy} attribute give the total energy. The \vn{p0c}
-attribute gives the reference momentum times the speed of light (in
-eV). For ultra--relativistic particles these two values are the same.
 
 %-----------------------------------------------------------------
 \section{Offset, Pitch, Tilt, and Roll Attributes}
@@ -262,23 +273,32 @@ is to give a vertical kick to the beam.
 %-----------------------------------------------------------------
 \section{Hkick, Vkick, and Kick Attributes}
 \label{s:kick}
-\index{Hkick|textbf}
-\index{Vkick|textbf}
-\index{Kick|textbf}
+\index{Hkick|textbf}\index{BL_hkick|textbf}
+\index{Vkick|textbf}\index{BL_vkick|textbf}
+\index{Kick|textbf}\index{BL_kick|textbf}
 
-\index{Hkicker}
+
 \index{Hkicker}
 \index{Vkicker}
 \index{Elseparator}
 \index{Kicker}
+The kick attributes that an element may have are:
+\begin{example}
+  kick,  bl_kick    ! Used only with a Hkicker or Vkicker
+  hkick, bl_hkick
+  vkick  bl_vkick
+\end{example}
 \vn{kick}, \vn{hkick}, and \vn{vkick} attributes are the integrated
 kick of an element in radians. \vn{kick} is only used for \vn{Hkicker}
-and \vn{Vkicker} elements. All other elements that can kick use 
-\vn{hkick} and \vn{vkick}. The \vn{tilt} attribute will only rotate
-a kick for \vn{Hkicker}, \vn{Vkicker}, \vn{Elseparator} and \vn{Kicker}
-elements. This rule was implemented so that, for example, the 
-\vn{hkick} attribute for a skew quadrupole
-would represent a horizontal steering.
+and \vn{Vkicker} elements. All other elements that can kick use
+\vn{hkick} and \vn{vkick}. The \vn{tilt} attribute will only rotate a
+kick for \vn{Hkicker}, \vn{Vkicker}, \vn{Elseparator} and \vn{Kicker}
+elements. This rule was implemented so that, for example, the
+\vn{hkick} attribute for a skew quadrupole would represent a
+horizontal steering. The \vn{bl_kick}, \vn{bl_hkick}, and
+\vn{bl_vkick} attributes are the integrated field kick in
+\vn{meters-Tesla}. Normally these are dependent attributes except if
+they appear in the lattice file (\sref{s:depend}).
 
 %-----------------------------------------------------------------
 \section{Aperture and Limit Attributes}
@@ -299,6 +319,13 @@ would represent a horizontal steering.
 \index{X_limit}
 \index{Y_limit}
 \index{X_offset}
+The aperture attributes are:
+\begin{example}
+  x_limit      ! Horizontal limit
+  y_limit      ! Vertical limit
+  aperture     ! Alternative to specifying x_limit and y_limit
+  aperture_at  ! What end aperture is at.
+\end{example}
 \vn{x_limit}, \vn{y_limit} specify the half--width of the aperture of
 an element as shown in figure~\ref{f:limit}. Notice that an \vn{Ecollimator}
 has a elliptical aperture while a \vn{Rcollimator} and all other elements

@@ -126,7 +126,7 @@ for wakefield calculations.
 \index{Param_struct!%lost}
 \index{Param_struct!%end_lost_at}
 \index{Param_struct!%aperture_limit_on}
-When tracking particles thorugh a lattice the variable
+When tracking particles through a lattice the variable
 \vn{%param%aperture_limit_on} determines if apertures are checked.
 \vn{%param%lost} is used to signal if a particle is lost and
 \vn{%param%ix_lost} gives the index of the element at which a particle
@@ -162,7 +162,7 @@ these matrices as input for calculations.
 \vn{element_locator} searches the \vn{ring%ele_(:)} array for an element 
 of the correct name. \vn{elements_locator} searches for all elements of a
 given key and returns an array of indexes.
-The heart of \vn{element_locator} is simplcity itself:
+The heart of \vn{element_locator} is simplicity itself:
 \begin{example}
   do ix_ele = 0, ring%n_ele_max
     if (ring%ele_(ix_ele)%name == ele_name) return
@@ -171,7 +171,7 @@ The heart of \vn{element_locator} is simplcity itself:
 
 Once an element or elements are identified in the lattice
 Changing an element attribute generally involves changing values in the 
-\vn{ring%ele_(i)%value(:)} array. This is done useing the 
+\vn{ring%ele_(i)%value(:)} array. This is done using the 
 \vnr{set_ele_attribute} routine. For example:
 \begin{example}
   type (ring_struct) lat
@@ -185,7 +185,7 @@ This example sets the \vn{K1} attribute of an element named \vn{Q01W}.
 \vn{set_ele_attribute} checks whether this element is actually free to
 be varied and sets the \vn{err_flag} logical accordingly. An element's
 attribute may not be freely varied if, for example, the attribute is
-controled via an \vn{Overlay}.
+controlled via an \vn{Overlay}.
 
 \index{Bmad_com_struct!auto_bookkeeper}
 There is a global variable \vn{bmad_com%auto_bookkeeper} that 

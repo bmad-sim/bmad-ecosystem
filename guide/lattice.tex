@@ -7,22 +7,20 @@
 
 \index{XSIF}
 \index{Attribute|textbf}
-A lattice file (or files) defines the sequence of elements that a
-particle will travel through along with the attributes of the elements
-(their lengths, their strengths, etc.). 
+A lattice file (or files) defines an accelerator: That is, a sequence
+of elements that a particle will travel through along with the
+attributes of the elements (their lengths, their strengths, etc.).
 The \bmad software library comes with routines to read in (parse) a
-lattice definition files. There are two input formats that
-\bmad understands: The \bmad standard format and
-XSIF\cite{b:xsif}. XSIF stands for ``Extended Standard Input Format.''
-XSIF is essentially a subset of the MAD input format. XSIF
-Documentation
-can be found at:
+lattice files. There are two input formats that \bmad understands: The
+\bmad standard format and XSIF\cite{b:xsif}. XSIF stands for
+``Extended Standard Input Format.''  XSIF is essentially a subset of
+the MAD input format. XSIF Documentation can be found at:
 \begin{example}
   http://www-project.slac.stanford.edu/
               lc/ilc/TechNotes/LCCNotes/PDF/LCC-0060%20rev.1.pdf
 \end{example}
 \index{MAD}
-One point that is not covered in the XSIF documentation is that for a
+Note: One point that is not covered in the XSIF documentation is that for a
 \vn{MATRIX} element, unlike \mad, the \vn{R$ii$} terms (the diagonal
 terms of the linear matrix) are not unity by default. Thus
 \begin{example}
@@ -51,7 +49,8 @@ construct a valid lattice file.
 \section{File Example and Syntax}
 \index{Lattice files!statement syntax}
 
-The following (rather silly) example shows how an input file can look like
+The following (rather silly) example shows the main features of a
+\bmad lattice file:
 \begin{example}
   ! This is a comment
   parameter[beam_energy] = 5e9                   ! Parameter definition
@@ -66,22 +65,21 @@ The following (rather silly) example shows how an input file can look like
   use, ln2                                       ! Which line to use for the lattice
 \end{example}
 
-A \bmad standard lattice file is free format. A \bmad lattice file consists
-of a sequence of statements. Normally a statement occupies a single
-line in the file. Several statements may be placed on the same line by
-inserting a semicolon (;) between them. A long statement can occupy
-multiple lines by putting an ampersand (\&) at the end of each line of
-a statement except for the last line of the statement. An
-exclamation mark (!) denotes a comment and the exclamation mark and
-everything after the exclamation mark on the line are ignored. 
-\bmad is case insensitive. All names are converted to uppercase except
-strings (\sref{s:var_types}).
+A \bmad lattice file consists of a sequence of statements. Normally a
+statement occupies a single line in the file. Several statements may
+be placed on the same line by inserting a semicolon (;) between
+them. A long statement can occupy multiple lines by putting an
+ampersand (\&) at the end of each line of a statement except for the
+last line. An exclamation mark (!) denotes a comment and the
+exclamation mark and everything after the exclamation mark on a line
+are ignored.  \bmad is case insensitive. All names are converted to
+uppercase except strings (\sref{s:var_types}).
 
 \index{Lattice files!name syntax}
 Names of constants, elements, lines, etc. are limited to 16
-characters. The first character must be al letter (\vn{A} --- \vn{Z}).
+characters. The first character must be a letter (\vn{A} --- \vn{Z}).
 The other characters may be a letter, a digit (\vn{0} --- \vn{9}) or
-an underscore (\vn{_}). The backslash (\vn{\}) may also appear in a
+an underscore (\vn{_}). The backslash (\vn{\B}) may also appear in a
 name but only under special circumstances discussed elsewhere.
 
 %----------------------------------------------------------------------------
@@ -108,17 +106,16 @@ Digested files can also be used for easy transport of lattices between
 programs or between sessions of a program. For example, using one
 program you might read in a lattice, make some adjustments (say to model
 shifts in magnet positions) and then write out a digested version of the
-lattice. This adjusted lattice can now be read in by another program to
-do some custom analysis.
+lattice. This adjusted lattice can now be read in by another program.
 
 %---------------------------------------------------------------------------
 \section{Element Sequence Definition}
 
 \index{Line}
-\index{List}
-The creation of the element sequence that defines a lattice involves
-constructs called \vn{lines} and \vn{lists} which define subsequencies
-that can be concatenated together. For example:
+A \vn{line} defines a sequence of elements. \vn{lines} may contain
+other \vn{lines} and so a hierarchy may be established. One line is
+selected, via a \vn{use} statement, that defines the lattice. For
+example:
 \begin{example}
   l3: line = (l1, l2)   ! Concatenate two lines
   l1: line = (a, b, c)  ! Line with 3 elements
@@ -130,9 +127,8 @@ In this case the lattice would be
 \begin{example}
   (a, b, c, a, z)
 \end{example}
-\vn{Lines} and \vn{lists} can be defined in any order. Thus in the
-above example \vn{l3} was defined in terms of \vn{l1} and \vn{l2}
-before these lines where defined. See \cref{c:sequence} for more details.
+\vn{Lines} can be defined in any order. See \cref{c:sequence} for more
+details.
 
 \index{Superimpose}
 The \vn{superimpose} construct allows elements to be placed in a
