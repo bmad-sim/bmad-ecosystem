@@ -498,7 +498,7 @@ The kick felt by a particle is
 This is consistent with MAD and LIAR. Note: The MAD8 documentation 
 for an \vn{LCavity} gives essentially
 \begin{example}
-  dE = voltage * cos(twopi * (phi0 + z * rf_frequency / c_light))
+  dE = voltage * cos(twopi * (phi0 + z * rf_frequency / c_light)) ! WRONG
 \end{example}
 This is incorrect.
 
@@ -777,7 +777,7 @@ Example:
 An \vn{RFcavity} is an RF cavity without acceleration generally used
 in a storage ring.
 
-The \vn{phi0} attribute here is identical to \vn{lag} attribute of
+The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
 MAD. The kick felt by a particle is 
 \begin{example}
   dE = voltage * sin(twopi * (phi0 + z * rf_frequency / c_light))
