@@ -187,7 +187,8 @@ Chapter~\ref{c:elements}.
 Certain real valued attributes are {\em not}
 found in the \vnes{%value(:)} array. For example, multipole components
 are stored in the \vnes{%a(:)} and \vnes{%b(:)} arrays. The full list
-of attributes not in \vn{%value(:)} is:
+of real attributes not in \vn{%value(:)} is:
+\begin{center}
 \begin{tabular}{|l|l|} \hline
   {\em Attribute} & {\em Component in Ele\_struct} \\ \hline
   a$n$, b$n$      & \%a(:), \%b(:)     \\ \hline
@@ -196,6 +197,7 @@ of attributes not in \vn{%value(:)} is:
   wakes           & \%wake             \\ \hline
   wiggler terms   & \%wig\_term(:)      \\ \hline
 \end{tabular}
+\end{center}
 
 \vn{attribute_bookkeeper} is the routine that makes sure that the
 dependent variables (See Section~\ref{s:depend}) of an element are

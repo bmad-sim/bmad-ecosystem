@@ -1,5 +1,5 @@
 \chapter{Lattice File Overview}
-\index{Lattice files}
+\index{Lattice files|textbf}
 
 %---------------------------------------------------------------------------
 \section{Lattice Files}
@@ -97,7 +97,7 @@ do some custom analysis.
 \index{List}
 The creation of the element sequence that defines a lattice involves
 constructs called \vn{lines} and \vn{lists} which define subsequencies
-that can be concatinated together. For example:
+that can be concatenated together. For example:
 \begin{example}
   l3: line = (l1, l2)   ! Concatenate two lines
   l1: line = (a, b, c)  ! Line with 3 elements
@@ -117,7 +117,7 @@ before these lines where defined. See \cref{c:sequence} for more details.
 The \vn{superimpose} construct allows elements to be placed in a
 lattice at a definite longitudinal position. What happens is that
 after a lattice is expanded, there is a reshuffling of the elements to
-accomodate any new superimpose elements. See \sref{s:super} for more
+accommodate any new superimpose elements. See \sref{s:super} for more
 details.
 
 %---------------------------------------------------------------------------
@@ -179,6 +179,7 @@ then all elements of that type will be set. For example
 \section{Variable Types}
 \index{Arithmetic expressions!variables}
 
+\index{Logicals|textbf}
 There are five types of variables in \bmad: Reals, Integers, Switches,
 Logicals (booleans), and Strings. Acceptable logical values are
 \begin{example}
@@ -191,15 +192,17 @@ For example
   rf1[is_on] = False
 \end{example}
 
-String literals can be quoted using double quotes (") or, if there are no
-blanks or comma within a string, the quotes can be omitted. For example:
+\index{Strings|textbf}
+String literals can be quoted using double quotes (") or single quotes ('). 
+If there are no
+blanks or commas within a string, the quotes can be omitted. For example:
 \begin{example}
   Q00W: Quad, type = "My Type", alias = Who_knows, &
                                   descrip = "Only the shadow knows"
 \end{example}
-Unlike everything else, strings are not converted to uppercase. Note:
-Single quotes are not allowed as string delimiters.
+Unlike most everything else, strings are not converted to uppercase.
 
+\index{Switches|textbf}
 Switches are variables that take discrete values. For example:
 \begin{example}
   beam, particle = positron          
@@ -263,7 +266,7 @@ defined, symbolic constants cannot be redefined. For example:
 %---------------------------------------------------------------------------
 \section{Intrinsic functions}
 \label{s:functions}
-\index{Intrinsic Functions}
+\index{Intrinsic functions}
 
 The following intrinsic functions are recognized by \bmad: \hfil\break
 \hspace*{0.15in}
