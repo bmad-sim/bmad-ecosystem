@@ -1,0 +1,9107 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%Creator: Adobe Illustrator(TM) 6.0
+%%AI8_CreatorVersion: 8.0.1
+%%For: (David Sagan) ()
+%%Title: (example_plot.psifg)
+%%CreationDate: (11/9/03) (1:57 PM)
+%%BoundingBox: 96 285 516 507
+%%HiResBoundingBox: 96.3003 285 515.7002 507
+%%DocumentProcessColors: Cyan Magenta Yellow Black
+%%DocumentSuppliedResources: procset Adobe_level2_AI5 1.2 0
+%%+ procset Adobe_ColorImage_AI6 1.1 0
+%%+ procset Adobe_Illustrator_AI5 1.0 0
+%AI5_FileFormat 2.0
+%AI3_ColorUsage: Color
+%AI3_IncludePlacedImages
+%%AI6_ColorSeparationSet: 1 1 (AI6 Default Color Separation Set) 
+%%+ Options: 1 16 0 1 0 1 1 1 0 1 1 1 1 18 0 0 0 0 0 0 0 0 -1 -1
+%%+ PPD: 1 21 0 0 60 45 2 2 1 0 0 1 0 0 0 0 0 0 0 0 0 0 () 
+%AI3_TemplateBox: 306.5 395.5 306.5 395.5
+%AI3_TileBox: 18 37 594 787
+%AI3_DocumentPreview: Header
+%AI5_ArtSize: 612 792
+%AI5_RulerUnits: 0
+%AI5_ArtFlags: 1 0 0 1 0 0 1 0 0
+%AI5_TargetResolution: 800
+%AI5_NumLayers: 1
+%AI5_OpenToView: -221.1348 802.1265 1 1274 981 18 0 1 3 40 0 0
+%AI5_OpenViewLayers: 7
+%%PageOrigin:18 37
+%%AI3_PaperRect:-18 787 594 -5
+%%AI3_Margin:18 -33 -18 5
+%AI7_GridSettings: 72 8 72 8 1 0 0.8 0.8 0.8 0.9 0.9 0.9
+%%EndComments
+%%BeginProlog
+%%BeginResource: procset Adobe_level2_AI5 1.2 0
+%%Title: (Adobe Illustrator (R) Version 5.0 Level 2 Emulation)
+%%Version: 1.2 0
+%%CreationDate: (04/10/93) ()
+%%Copyright: ((C) 1987-1996 Adobe Systems Incorporated All Rights Reserved)
+userdict /Adobe_level2_AI5 26 dict dup begin
+	put
+	/packedarray where not
+	{
+		userdict begin
+		/packedarray
+		{
+			array astore readonly
+		} bind def
+		/setpacking /pop load def
+		/currentpacking false def
+	 end
+		0
+	} if
+	pop
+	userdict /defaultpacking currentpacking put true setpacking
+	/initialize
+	{
+		Adobe_level2_AI5 begin
+	} bind def
+	/terminate
+	{
+		currentdict Adobe_level2_AI5 eq
+		{
+		 end
+		} if
+	} bind def
+	mark
+	/setcustomcolor where not
+	{
+		/findcmykcustomcolor
+		{
+			(AI8_CMYK_CustomColor)
+			6 packedarray
+		} bind def
+		/findrgbcustomcolor
+		{
+			(AI8_RGB_CustomColor)
+			5 packedarray
+		} bind def
+		/setcustomcolor
+		{
+			exch 
+			aload pop dup
+			(AI8_CMYK_CustomColor) eq
+			{
+				pop pop
+				4
+				{
+					4 index mul
+					4 1 roll
+				} repeat
+				5 -1 roll pop
+				setcmykcolor
+			}
+			{
+				dup (AI8_RGB_CustomColor) eq
+				{
+					pop pop
+					3
+					{
+						1 exch sub
+						3 index mul 
+						1 exch sub
+						3 1 roll
+					} repeat
+					4 -1 roll pop
+					setrgbcolor
+				}
+				{
+					pop
+					4
+					{
+						4 index mul 4 1 roll
+					} repeat
+					5 -1 roll pop
+					setcmykcolor
+				} ifelse
+			} ifelse
+		}
+		def
+	} if
+	/setAIseparationgray
+	{
+		false setoverprint
+		0 setgray
+		/setseparationgray where{
+			pop setseparationgray
+		}{
+			/setcolorspace where{
+				pop
+				[/Separation (All) /DeviceCMYK {dup dup dup}] setcolorspace
+				1 exch sub setcolor
+			}{
+				setgray
+			}ifelse
+		}ifelse
+	} def
+	
+	/gt38? mark {version cvr cvx exec} stopped {cleartomark true} {38 gt exch pop} ifelse def
+	userdict /deviceDPI 72 0 matrix defaultmatrix dtransform dup mul exch dup mul add sqrt put
+	userdict /level2?
+	systemdict /languagelevel known dup
+	{
+		pop systemdict /languagelevel get 2 ge
+	} if
+	put
+/level2ScreenFreq
+{
+ begin
+		60
+		HalftoneType 1 eq
+		{
+			pop Frequency
+		} if
+		HalftoneType 2 eq
+		{
+			pop GrayFrequency
+		} if
+		HalftoneType 5 eq
+		{
+			pop Default level2ScreenFreq
+		} if
+ end
+} bind def
+userdict /currentScreenFreq  
+	level2? {currenthalftone level2ScreenFreq} {currentscreen pop pop} ifelse put
+level2? not
+	{
+		/setcmykcolor where not
+		{
+			/setcmykcolor
+			{
+				exch .11 mul add exch .59 mul add exch .3 mul add
+				1 exch sub setgray
+			} def
+		} if
+		/currentcmykcolor where not
+		{
+			/currentcmykcolor
+			{
+				0 0 0 1 currentgray sub
+			} def
+		} if
+		/setoverprint where not
+		{
+			/setoverprint /pop load def
+		} if
+		/selectfont where not
+		{
+			/selectfont
+			{
+				exch findfont exch
+				dup type /arraytype eq
+				{
+					makefont
+				}
+				{
+					scalefont
+				} ifelse
+				setfont
+			} bind def
+		} if
+		/cshow where not
+		{
+			/cshow
+			{
+				[
+				0 0 5 -1 roll aload pop
+				] cvx bind forall
+			} bind def
+		} if
+	} if
+	cleartomark
+	/anyColor?
+	{
+		add add add 0 ne
+	} bind def
+	/testColor
+	{
+		gsave
+		setcmykcolor currentcmykcolor
+		grestore
+	} bind def
+	/testCMYKColorThrough
+	{
+		testColor anyColor?
+	} bind def
+	userdict /composite?
+	1 0 0 0 testCMYKColorThrough
+	0 1 0 0 testCMYKColorThrough
+	0 0 1 0 testCMYKColorThrough
+	0 0 0 1 testCMYKColorThrough
+	and and and
+	put
+	composite? not
+	{
+		userdict begin
+		gsave
+		/cyan? 1 0 0 0 testCMYKColorThrough def
+		/magenta? 0 1 0 0 testCMYKColorThrough def
+		/yellow? 0 0 1 0 testCMYKColorThrough def
+		/black? 0 0 0 1 testCMYKColorThrough def
+		grestore
+		/isCMYKSep? cyan? magenta? yellow? black? or or or def
+		/customColor? isCMYKSep? not def
+	 end
+	} if
+ end defaultpacking setpacking
+%%EndResource
+%%BeginProcSet: Adobe_ColorImage_AI6 1.2 0
+userdict /Adobe_ColorImage_AI6 known not
+{
+	userdict /Adobe_ColorImage_AI6 50 dict put 
+} if
+userdict /Adobe_ColorImage_AI6 get begin
+/initialize { 
+	Adobe_ColorImage_AI6 begin
+	Adobe_ColorImage_AI6 {
+		dup type /arraytype eq {
+			dup xcheck {
+				bind
+			} if
+		} if
+		pop pop
+	} forall
+} def
+/terminate { end } def
+currentdict /Adobe_ColorImage_AI6_Vars known not {
+	/Adobe_ColorImage_AI6_Vars 40 dict def
+} if
+Adobe_ColorImage_AI6_Vars begin
+	/plateindex -1 def
+	/_newproc null def
+	/_proc1 null def
+	/_proc2 null def
+	/channelcount 0 def
+	/sourcecount 0 def
+	/sourcearray 4 array def
+	/_ptispace null def
+	/_ptiname null def
+	/_pti0 0 def
+	/_pti1 0 def
+	/_ptiproc null def
+	/_ptiscale 0 def
+	/_pticomps 0 def
+	/_ptibuf 0 string def
+	/_gtigray 0 def
+	/_cticmyk null def
+	/_rtirgb null def
+	/XIEnable true def
+	/XIType 0 def
+	/XIEncoding 0 def
+	/XICompression 0 def
+	/XIChannelCount 0 def
+	/XIBitsPerPixel 0 def
+	/XIImageHeight 0 def
+	/XIImageWidth 0 def
+	/XIImageMatrix null def
+	/XIRowBytes 0 def
+	/XIFile null def
+	/XIBuffer1 null def
+	/XIBuffer2 null def
+	/XIDataProc null def
+	/XIVersion 6 def
+	/XIColorSpace /DeviceGray def
+	/XIColorValues 0 def
+end
+currentdict /_colorimage known not {
+	/colorimage where {
+		/colorimage get /_colorimage exch def
+	}{
+		/_colorimage null def
+	} ifelse
+} if
+/_image systemdict /image get def
+/_currenttransfer systemdict /currenttransfer get def
+/FourEqual {
+	4 index ne {
+		pop pop pop false
+	}{
+		4 index ne {
+			pop pop false
+		}{
+			4 index ne {
+				pop false
+			}{
+				4 index eq
+			} ifelse
+		} ifelse
+	} ifelse
+} def
+/TestPlateIndex {
+	Adobe_ColorImage_AI6_Vars begin
+		/plateindex -1 def
+		/setcmykcolor where {
+			pop
+			gsave
+			1 0 0 0 setcmykcolor systemdict /currentgray get exec 1 exch sub
+			0 1 0 0 setcmykcolor systemdict /currentgray get exec 1 exch sub
+			0 0 1 0 setcmykcolor systemdict /currentgray get exec 1 exch sub
+			0 0 0 1 setcmykcolor systemdict /currentgray get exec 1 exch sub
+			grestore
+			1 0 0 0 FourEqual { 
+				/plateindex 0 def
+			}{
+				0 1 0 0 FourEqual { 
+					/plateindex 1 def
+				}{
+					0 0 1 0 FourEqual {
+						/plateindex 2 def
+					}{
+						0 0 0 1 FourEqual { 
+							/plateindex 3 def
+						}{
+							0 0 0 0 FourEqual {
+								/plateindex 5 def
+							} if
+						} ifelse
+					} ifelse
+				} ifelse
+			} ifelse
+			pop pop pop pop
+		} if
+		plateindex
+ end
+} def
+/concatprocs {
+	/packedarray where {
+		pop dup type /packedarraytype eq 2 index type
+		/packedarraytype eq or
+	}{
+		false
+	} ifelse
+	{
+		/_proc2 exch cvlit def
+		/_proc1 exch cvlit def
+		_proc1 aload pop
+		_proc2 aload pop
+		_proc1 length
+		_proc2 length add
+		packedarray cvx
+	}{
+		/_proc2 exch cvlit def
+		/_proc1 exch cvlit def
+		/_newproc _proc1 length _proc2 length add array def
+		_newproc 0 _proc1 putinterval
+		_newproc _proc1 length _proc2 putinterval
+		_newproc cvx
+	} ifelse
+} def
+/clrspaceissepn {
+	type /arraytype eq 
+} def
+/clrspacegetname {
+	dup clrspaceissepn {dup length 2 sub get}{pop ()} ifelse
+} def
+/clrspacegetalt {
+	aload pop pop pop colormake
+} def
+/clrspacegetcomps {
+	dup /DeviceGray eq {
+		pop 1
+	}{
+		dup /DeviceRGB eq {
+			pop 3
+		}{
+			/DeviceCMYK eq {
+				4
+			}{
+				1
+			} ifelse
+		} ifelse
+	} ifelse
+} def
+/clrspacemarksplate {
+	dup /DeviceGray eq {
+		pop plateindex 3 eq
+	}{
+		dup /DeviceRGB eq {
+			pop plateindex 5 ne
+		}{
+			dup /DeviceCMYK eq {
+				pop plateindex 5 ne
+			}{
+				/findcmykcustomcolor where {
+					pop
+					dup length 2 sub get
+					0.1 0.1 0.1 0.1 5 -1 roll
+					findcmykcustomcolor 1 setcustomcolor
+					systemdict /currentgray get exec
+					1 ne
+				}{
+					pop plateindex 5 ne
+				} ifelse
+			} ifelse
+		} ifelse
+	} ifelse
+} def
+/colormake {
+	dup clrspacegetcomps
+	exch 1 index 2 add 1 roll
+	dup 1 eq {pop}{array astore} ifelse
+	exch
+} def
+/colorexpand {
+	dup clrspacegetname exch
+	dup clrspaceissepn {
+		clrspacegetalt
+		exch 4 1 roll
+	}{
+		1 3 1 roll
+	} ifelse
+} def
+/colortint {
+	dup /DeviceGray eq {
+		3 1 roll 1 exch sub mul 1 exch sub exch
+	}{
+		dup /DeviceRGB eq {
+			3 1 roll {1 exch sub 1 index mul 1 exch sub exch} forall pop 3 array astore exch
+		}{
+			dup /DeviceCMYK eq {
+				3 1 roll {1 index mul exch} forall pop 4 array astore exch
+			}{
+				3 1 roll mul exch
+			} ifelse
+		} ifelse
+	} ifelse
+} def
+/colortocmyk {
+	dup /DeviceGray eq {
+		pop 1 exch sub 0 0 0 4 -1 roll 4 array astore
+	}{
+		dup /DeviceRGB eq {
+			pop aload pop _rgbtocmyk 4 array astore
+		}{
+			dup /DeviceCMYK eq {
+				pop
+			}{
+				clrspacegetalt colortint colortocmyk
+			} ifelse
+		} ifelse
+	} ifelse
+} def
+/makeimagedict {
+	7 dict begin
+		/ImageType 1 def
+		/Decode exch def
+		/DataSource exch def
+		/ImageMatrix exch def
+		/BitsPerComponent exch def
+		/Height exch def
+		/Width exch def
+	currentdict end
+} def
+/stringinvert {
+	0 1 2 index length 1 sub {
+		dup 2 index exch get 255 exch sub 2 index 3 1 roll put
+	} for
+} def
+/stringknockout {
+	0 1 2 index length 1 sub {
+		255 2 index 3 1 roll put
+	} for
+} def
+/stringapply {
+	0 1 4 index length 1 sub {
+		dup
+		4 index exch get
+		3 index 3 1 roll
+		3 index exec
+	} for
+	pop exch pop
+} def
+/WalkRGBString {
+	0 3 index
+	dup length 1 sub 0 3 3 -1 roll {
+		3 getinterval {} forall
+		5 index exec
+		3 index
+	} for
+	
+	 5 {pop} repeat
+} def
+/WalkCMYKString
+{
+	0 3 index
+	dup length 1 sub 0 4 3 -1 roll {
+		4 getinterval {} forall
+		
+		6 index exec
+		
+		3 index
+		
+	} for
+	
+	5 { pop } repeat
+	
+} def
+/StuffRGBIntoGrayString
+{
+	.11 mul exch
+	
+	.59 mul add exch
+	
+	.3 mul add
+	
+	cvi 3 copy put
+	
+	pop 1 add
+} def
+/StuffCMYKIntoGrayString
+{
+	exch .11 mul add
+	
+	exch .59 mul add
+	
+	exch .3 mul add
+	
+	dup 255 gt { pop 255 } if
+	
+	255 exch sub cvi 3 copy put
+	
+	pop 1 add
+} def
+/RGBToGrayImageProc {	
+	Adobe_ColorImage_AI6_Vars begin 
+		sourcearray 0 get exec
+		dup length 3 idiv string
+		dup 3 1 roll 
+		
+		/StuffRGBIntoGrayString load exch
+		WalkRGBString
+ end
+} def
+/CMYKToGrayImageProc {	
+	Adobe_ColorImage_AI6_Vars begin
+		sourcearray 0 get exec
+		dup length 4 idiv string
+		dup 3 1 roll 
+		
+		/StuffCMYKIntoGrayString load exch
+		WalkCMYKString
+ end
+} def
+/SeparateCMYKImageProc {	
+	Adobe_ColorImage_AI6_Vars begin
+		sourcecount 0 ne {
+			sourcearray plateindex get exec
+		}{			
+			sourcearray 0 get exec
+			
+			dup length 4 idiv string
+			
+			0 2 index
+			
+			plateindex 4 2 index length 1 sub {
+				get 255 exch sub
+				
+				3 copy put pop 1 add
+				
+				2 index
+			} for
+			pop pop exch pop
+		} ifelse
+ end
+} def
+	
+/ColorImageCompositeEmulator {
+	pop true eq {
+		Adobe_ColorImage_AI6_Vars /sourcecount get 5 add { pop } repeat
+	}{
+		Adobe_ColorImage_AI6_Vars /channelcount get 1 ne {
+			Adobe_ColorImage_AI6_Vars begin
+				sourcearray 0 3 -1 roll put
+			
+				channelcount 3 eq {/RGBToGrayImageProc}{/CMYKToGrayImageProc} ifelse
+				load
+		 end
+		} if
+		image
+	} ifelse
+} def
+/colorimage {
+	Adobe_ColorImage_AI6_Vars begin
+		/channelcount 1 index def
+		/sourcecount 2 index 1 eq { channelcount 1 sub } { 0 } ifelse def
+		4 sourcecount add index
+ end
+	
+	dup 8 eq exch 1 eq or not {
+		/_colorimage load null ne {
+			_colorimage
+		}{
+			Adobe_ColorImage_AI6_Vars /sourcecount get
+			7 add { pop } repeat
+		} ifelse
+	}{
+		dup 3 eq TestPlateIndex dup -1 eq exch 5 eq or or {
+			/_colorimage load null eq {
+				ColorImageCompositeEmulator
+			}{
+				dup 1 eq {
+					pop pop image
+				}{
+					Adobe_ColorImage_AI6_Vars /plateindex get 5 eq {
+						gsave
+						
+						0 _currenttransfer exec
+						1 _currenttransfer exec
+						eq
+						{ 0 _currenttransfer exec 0.5 lt }
+						{ 0 _currenttransfer exec 1 _currenttransfer exec gt } ifelse
+						
+						{ { pop 0 } } { { pop 1 } } ifelse
+						systemdict /settransfer get exec
+					} if
+					
+					_colorimage
+					
+					Adobe_ColorImage_AI6_Vars /plateindex get 5 eq {
+						grestore
+					} if
+				} ifelse
+			} ifelse
+		}{
+			dup 1 eq {
+				pop pop
+				image
+			}{
+				pop pop
+				Adobe_ColorImage_AI6_Vars begin
+					sourcecount -1 0 {			
+						exch sourcearray 3 1 roll put
+					} for
+					/SeparateCMYKImageProc load
+			 end
+				systemdict /image get exec
+			} ifelse
+		} ifelse
+	} ifelse
+} def
+/proctintimage {
+	/_ptispace exch store /_ptiname exch store /_pti1 exch store /_pti0 exch store /_ptiproc exch store
+	/_pticomps _ptispace clrspacegetcomps store
+	/_ptiscale _pti1 _pti0 sub store
+	level2? {
+		_ptiname length 0 gt version cvr 2012 ge and {
+			[/Separation _ptiname _ptispace {_ptiproc}] setcolorspace
+			[_pti0 _pti1] makeimagedict _image
+		}{
+			[/Indexed _ptispace 255 {255 div _ptiscale mul _pti0 add _ptiproc}] setcolorspace
+			[0 255] makeimagedict _image
+		} ifelse
+	}{
+		_pticomps 1 eq {
+			{
+				dup
+				{
+					255 div _ptiscale mul _pti0 add _ptiproc 255 mul cvi put
+				} stringapply
+			} concatprocs _image
+		}{
+			{
+				dup length _pticomps mul dup _ptibuf length ne {/_ptibuf exch string store}{pop} ifelse
+				_ptibuf {
+					exch _pticomps mul exch 255 div _ptiscale mul _pti0 add _ptiproc
+					_pticomps 2 add -2 roll
+					_pticomps 1 sub -1 0 {
+						1 index add 2 index exch
+						5 -1 roll
+						255 mul cvi put
+					} for
+					pop pop
+				} stringapply
+			} concatprocs false _pticomps
+			/_colorimage load null eq {7 {pop} repeat}{_colorimage} ifelse
+		} ifelse
+	} ifelse
+} def
+/graytintimage {
+	/_gtigray 5 -1 roll store
+	{1 _gtigray sub mul 1 exch sub} 4 1 roll
+	/DeviceGray proctintimage
+} def
+/cmyktintimage {
+	/_cticmyk 5 -1 roll store
+	{_cticmyk {1 index mul exch} forall pop} 4 1 roll
+	/DeviceCMYK proctintimage
+} def
+/rgbtintimage {
+	/_rtirgb 5 -1 roll store
+	{_rtirgb {1 exch sub 1 index mul 1 exch sub exch} forall pop} 4 1 roll
+	/DeviceRGB proctintimage
+} def
+/tintimage {
+	TestPlateIndex -1 eq {
+		colorexpand
+		3 -1 roll 5 -1 roll {0}{0 exch} ifelse 4 2 roll
+		dup /DeviceGray eq {
+			pop graytintimage
+		}{
+			dup /DeviceRGB eq {
+				pop rgbtintimage
+			}{
+				pop cmyktintimage
+			} ifelse
+		} ifelse
+	}{
+		dup clrspacemarksplate {
+			plateindex 5 lt {
+				colortocmyk plateindex get 1 exch sub
+				exch {1 0}{0 1} ifelse () graytintimage
+			}{
+				pop exch {0}{0 exch} ifelse 0 3 1 roll () graytintimage
+			} ifelse
+		}{
+			pop pop pop
+			{pop 1} 0 1 () /DeviceGray proctintimage
+		} ifelse
+	} ifelse
+} def
+/XINullImage {
+} def
+/XIImageMask {
+	XIImageWidth XIImageHeight false
+	[XIImageWidth 0 0 XIImageHeight neg 0 0]
+	/XIDataProc load
+	imagemask
+} def
+/XIImageTint {
+	0 setgray
+	XIImageWidth XIImageHeight XIBitsPerPixel
+	[XIImageWidth 0 0 XIImageHeight neg 0 0]
+	/XIDataProc load
+	XIType 3 eq XIColorValues XIColorSpace tintimage
+} def
+/XIImage {
+	0 setgray
+	XIImageWidth XIImageHeight XIBitsPerPixel
+	[XIImageWidth 0 0 XIImageHeight neg 0 0]
+	/XIDataProc load
+	XIChannelCount 1 eq {image}{false XIChannelCount colorimage} ifelse
+} def
+/XG {
+	pop pop
+} def
+/XF {
+	13 {pop} repeat
+} def
+/Xh {
+	Adobe_ColorImage_AI6_Vars begin
+		gsave
+		/XIType exch def
+		/XIImageHeight exch def
+		/XIImageWidth exch def
+		/XIImageMatrix exch def
+		0 0 moveto
+		XIImageMatrix concat
+		XIImageWidth XIImageHeight scale
+		
+		XIType 1 eq {
+			/_lp /null ddef
+			_fc
+			/_lp /imagemask ddef
+		}
+		if
+		/XIVersion 7 def
+ end
+} def
+/XH {
+	Adobe_ColorImage_AI6_Vars begin
+		/XIVersion 6 def
+		grestore
+ end
+} def
+/XIEnable {
+	Adobe_ColorImage_AI6_Vars /XIEnable 3 -1 roll put
+} def
+/XC {
+	Adobe_ColorImage_AI6_Vars begin
+		colormake
+		/XIColorSpace exch def
+		/XIColorValues exch def
+ end
+} def
+/XI
+{
+	Adobe_ColorImage_AI6_Vars begin
+		gsave
+		/XIType exch def
+		cvi dup
+		256 idiv /XICompression exch store
+		256 mod /XIEncoding exch store
+		pop pop
+		/XIChannelCount exch def
+		/XIBitsPerPixel exch def
+		/XIImageHeight exch def
+		/XIImageWidth exch def
+		pop pop pop pop
+		/XIImageMatrix exch def
+		XIBitsPerPixel 1 eq {
+			XIImageWidth 8 div ceiling cvi
+		}{
+			XIImageWidth XIChannelCount mul
+		} ifelse
+		/XIRowBytes exch def
+		XIEncoding 0 ne XIVersion 6 le and {
+			currentfile 128 string readline pop pop
+		} if
+		XICompression 0 eq {
+			/XIBuffer1 XIRowBytes string def
+			XIEncoding 0 eq {
+				{currentfile XIBuffer1 readhexstring pop}
+			}{
+				{currentfile XIBuffer1 readstring pop}
+			} ifelse
+		}{
+			/XIBuffer1 256 string def
+			/XIBuffer2 XIRowBytes string def
+			{currentfile XIBuffer1 readline pop (%) anchorsearch {pop} if}
+			/ASCIIHexDecode filter /DCTDecode filter
+			/XIFile exch def
+			{XIFile XIBuffer2 readstring pop}
+		} ifelse
+		/XIDataProc exch def
+		
+		XIVersion 6 le {
+			0 0 moveto
+			XIImageMatrix concat
+			XIImageWidth XIImageHeight scale
+			XIType 1 eq {
+				/_lp /null ddef
+				_fc
+				/_lp /imagemask ddef
+			} if
+		} if
+		XIEnable {
+			XIType 1 eq {
+				XIImageMask
+			}{
+				XIType 2 eq XIType 3 eq or {
+					XIImageTint
+				}{
+					XIImage
+				} ifelse
+			} ifelse
+		}{
+			XINullImage
+		} ifelse
+		grestore
+ end
+} def
+end
+%%EndProcSet
+%%BeginResource: procset Adobe_Illustrator_AI5 1.1 0
+%%Title: (Adobe Illustrator (R) Version 5.0 Full Prolog)
+%%Version: 1.1 0
+%%CreationDate: (3/7/1994) ()
+%%Copyright: ((C) 1987-1996 Adobe Systems Incorporated All Rights Reserved)
+currentpacking true setpacking
+userdict /Adobe_Illustrator_AI5_vars 81 dict dup begin
+put
+/_eo false def
+/_lp /none def
+/_pf
+{
+} def
+/_ps
+{
+} def
+/_psf
+{
+} def
+/_pss
+{
+} def
+/_pjsf
+{
+} def
+/_pjss
+{
+} def
+/_pola 0 def
+/_doClip 0 def
+/cf currentflat def
+/_tm matrix def
+/_renderStart
+[
+/e0 /r0 /a0 /o0 /e1 /r1 /a1 /i0
+] def
+/_renderEnd
+[
+null null null null /i1 /i1 /i1 /i1
+] def
+/_render -1 def
+/_rise 0 def
+/_ax 0 def
+/_ay 0 def
+/_cx 0 def
+/_cy 0 def
+/_leading
+[
+0 0
+] def
+/_ctm matrix def
+/_mtx matrix def
+/_sp 16#020 def
+/_hyphen (-) def
+/_fScl 0 def
+/_cnt 0 def
+/_hs 1 def
+/_nativeEncoding 0 def
+/_useNativeEncoding 0 def
+/_tempEncode 0 def
+/_pntr 0 def
+/_tDict 2 dict def
+/_wv 0 def
+/Tx
+{
+} def
+/Tj
+{
+} def
+/CRender
+{
+} def
+/_AI3_savepage
+{
+} def
+/_gf null def
+/_cf 4 array def
+/_if null def
+/_of false def
+/_fc
+{
+} def
+/_gs null def
+/_cs 4 array def
+/_is null def
+/_os false def
+/_sc
+{
+} def
+/_pd 1 dict def
+/_ed 15 dict def
+/_pm matrix def
+/_fm null def
+/_fd null def
+/_fdd null def
+/_sm null def
+/_sd null def
+/_sdd null def
+/_i null def
+/discardSave null def
+/buffer 256 string def
+/beginString null def
+/endString null def
+/endStringLength null def
+/layerCnt 1 def
+/layerCount 1 def
+/perCent (%) 0 get def
+/perCentSeen? false def
+/newBuff null def
+/newBuffButFirst null def
+/newBuffLast null def
+/clipForward? false def
+end
+userdict /Adobe_Illustrator_AI5 known not {
+	userdict /Adobe_Illustrator_AI5 91 dict put
+} if
+userdict /Adobe_Illustrator_AI5 get begin
+/initialize
+{
+	Adobe_Illustrator_AI5 dup begin
+	Adobe_Illustrator_AI5_vars begin
+	discardDict
+	{
+		bind pop pop
+	} forall
+	dup /nc get begin
+	{
+		dup xcheck 1 index type /operatortype ne and
+		{
+			bind
+		} if
+		pop pop
+	} forall
+ end
+	newpath
+} def
+/terminate
+{
+ end
+ end
+} def
+/_
+null def
+/ddef
+{
+	Adobe_Illustrator_AI5_vars 3 1 roll put
+} def
+/xput
+{
+	dup load dup length exch maxlength eq
+	{
+		dup dup load dup
+		length 2 mul dict copy def
+	} if
+	load begin
+	def
+ end
+} def
+/npop
+{
+	{
+		pop
+	} repeat
+} def
+/sw
+{
+	dup length exch stringwidth
+	exch 5 -1 roll 3 index mul add
+	4 1 roll 3 1 roll mul add
+} def
+/swj
+{
+	dup 4 1 roll
+	dup length exch stringwidth
+	exch 5 -1 roll 3 index mul add
+	4 1 roll 3 1 roll mul add
+	6 2 roll /_cnt 0 ddef
+	{
+		1 index eq
+		{
+			/_cnt _cnt 1 add ddef
+		} if
+	} forall
+	pop
+	exch _cnt mul exch _cnt mul 2 index add 4 1 roll 2 index add 4 1 roll pop pop
+} def
+/ss
+{
+	4 1 roll
+	{
+		2 npop
+		(0) exch 2 copy 0 exch put pop
+		gsave
+		false charpath currentpoint
+		4 index setmatrix
+		stroke
+		grestore
+		moveto
+		2 copy rmoveto
+	} exch cshow
+	3 npop
+} def
+/jss
+{
+	4 1 roll
+	{
+		2 npop
+		(0) exch 2 copy 0 exch put
+		gsave
+		_sp eq
+		{
+			exch 6 index 6 index 6 index 5 -1 roll widthshow
+			currentpoint
+		}
+		{
+			false charpath currentpoint
+			4 index setmatrix stroke
+		} ifelse
+		grestore
+		moveto
+		2 copy rmoveto
+	} exch cshow
+	6 npop
+} def
+/sp
+{
+	{
+		2 npop (0) exch
+		2 copy 0 exch put pop
+		false charpath
+		2 copy rmoveto
+	} exch cshow
+	2 npop
+} def
+/jsp
+{
+	{
+		2 npop
+		(0) exch 2 copy 0 exch put
+		_sp eq
+		{
+			exch 5 index 5 index 5 index 5 -1 roll widthshow
+		}
+		{
+			false charpath
+		} ifelse
+		2 copy rmoveto
+	} exch cshow
+	5 npop
+} def
+/pl
+{
+	transform
+	0.25 sub round 0.25 add exch
+	0.25 sub round 0.25 add exch
+	itransform
+} def
+/setstrokeadjust where
+{
+	pop true setstrokeadjust
+	/c
+	{
+		curveto
+	} def
+	/C
+	/c load def
+	/v
+	{
+		currentpoint 6 2 roll curveto
+	} def
+	/V
+	/v load def
+	/y
+	{
+		2 copy curveto
+	} def
+	/Y
+	/y load def
+	/l
+	{
+		lineto
+	} def
+	/L
+	/l load def
+	/m
+	{
+		moveto
+	} def
+}
+{
+	/c
+	{
+		pl curveto
+	} def
+	/C
+	/c load def
+	/v
+	{
+		currentpoint 6 2 roll pl curveto
+	} def
+	/V
+	/v load def
+	/y
+	{
+		pl 2 copy curveto
+	} def
+	/Y
+	/y load def
+	/l
+	{
+		pl lineto
+	} def
+	/L
+	/l load def
+	/m
+	{
+		pl moveto
+	} def
+} ifelse
+/d
+{
+	setdash
+} def
+/cf
+{
+} def
+/i
+{
+	dup 0 eq
+	{
+		pop cf
+	} if
+	setflat
+} def
+/j
+{
+	setlinejoin
+} def
+/J
+{
+	setlinecap
+} def
+/M
+{
+	setmiterlimit
+} def
+/w
+{
+	setlinewidth
+} def
+/XR
+{
+	0 ne
+	/_eo exch ddef
+} def
+/H
+{
+} def
+/h
+{
+	closepath
+} def
+/N
+{
+	_pola 0 eq
+	{
+		_doClip 1 eq
+		{
+			_eo {eoclip} {clip} ifelse /_doClip 0 ddef
+		} if
+		newpath
+	}
+	{
+		/CRender
+		{
+			N
+		} ddef
+	} ifelse
+} def
+/n
+{
+	N
+} def
+/F
+{
+	_pola 0 eq
+	{
+		_doClip 1 eq
+		{
+			gsave _pf grestore _eo {eoclip} {clip} ifelse newpath /_lp /none ddef _fc
+			/_doClip 0 ddef
+		}
+		{
+			_pf
+		} ifelse
+	}
+	{
+		/CRender
+		{
+			F
+		} ddef
+	} ifelse
+} def
+/f
+{
+	closepath
+	F
+} def
+/S
+{
+	_pola 0 eq
+	{
+		_doClip 1 eq
+		{
+			gsave _ps grestore _eo {eoclip} {clip} ifelse newpath /_lp /none ddef _sc
+			/_doClip 0 ddef
+		}
+		{
+			_ps
+		} ifelse
+	}
+	{
+		/CRender
+		{
+			S
+		} ddef
+	} ifelse
+} def
+/s
+{
+	closepath
+	S
+} def
+/B
+{
+	_pola 0 eq
+	{
+		_doClip 1 eq
+		gsave F grestore
+		{
+			gsave S grestore _eo {eoclip} {clip} ifelse newpath /_lp /none ddef _sc
+			/_doClip 0 ddef
+		}
+		{
+			S
+		} ifelse
+	}
+	{
+		/CRender
+		{
+			B
+		} ddef
+	} ifelse
+} def
+/b
+{
+	closepath
+	B
+} def
+/W
+{
+	/_doClip 1 ddef
+} def
+/*
+{
+	count 0 ne
+	{
+		dup type /stringtype eq
+		{
+			pop
+		} if
+	} if
+	newpath
+} def
+/u
+{
+} def
+/U
+{
+} def
+/q
+{
+	_pola 0 eq
+	{
+		gsave
+	} if
+} def
+/Q
+{
+	_pola 0 eq
+	{
+		grestore
+	} if
+} def
+/*u
+{
+	_pola 1 add /_pola exch ddef
+} def
+/*U
+{
+	_pola 1 sub /_pola exch ddef
+	_pola 0 eq
+	{
+		CRender
+	} if
+} def
+/D
+{
+	pop
+} def
+/*w
+{
+} def
+/*W
+{
+} def
+/`
+{
+	/_i save ddef
+	clipForward?
+	{
+		nulldevice
+	} if
+	6 1 roll 4 npop
+	concat pop
+	userdict begin
+	/showpage
+	{
+	} def
+	0 setgray
+	0 setlinecap
+	1 setlinewidth
+	0 setlinejoin
+	10 setmiterlimit
+	[] 0 setdash
+	/setstrokeadjust where {pop false setstrokeadjust} if
+	newpath
+	0 setgray
+	false setoverprint
+} def
+/~
+{
+ end
+	_i restore
+} def
+/O
+{
+	0 ne
+	/_of exch ddef
+	/_lp /none ddef
+} def
+/R
+{
+	0 ne
+	/_os exch ddef
+	/_lp /none ddef
+} def
+/g
+{
+	/_gf exch ddef
+	/_fc
+	{
+		_lp /fill ne
+		{
+			_of setoverprint
+			_gf setgray
+			/_lp /fill ddef
+		} if
+	} ddef
+	/_pf
+	{
+		_fc
+		_eo {eofill} {fill} ifelse
+	} ddef
+	/_psf
+	{
+		_fc
+		ashow
+	} ddef
+	/_pjsf
+	{
+		_fc
+		awidthshow
+	} ddef
+	/_lp /none ddef
+} def
+/G
+{
+	/_gs exch ddef
+	/_sc
+	{
+		_lp /stroke ne
+		{
+			_os setoverprint
+			_gs setgray
+			/_lp /stroke ddef
+		} if
+	} ddef
+	/_ps
+	{
+		_sc
+		stroke
+	} ddef
+	/_pss
+	{
+		_sc
+		ss
+	} ddef
+	/_pjss
+	{
+		_sc
+		jss
+	} ddef
+	/_lp /none ddef
+} def
+/k
+{
+	_cf astore pop
+	/_fc
+	{
+		_lp /fill ne
+		{
+			_of setoverprint
+			_cf aload pop setcmykcolor
+			/_lp /fill ddef
+		} if
+	} ddef
+	/_pf
+	{
+		_fc
+		_eo {eofill} {fill} ifelse
+	} ddef
+	/_psf
+	{
+		_fc
+		ashow
+	} ddef
+	/_pjsf
+	{
+		_fc
+		awidthshow
+	} ddef
+	/_lp /none ddef
+} def
+/K
+{
+	_cs astore pop
+	/_sc
+	{
+		_lp /stroke ne
+		{
+			_os setoverprint
+			_cs aload pop setcmykcolor
+			/_lp /stroke ddef
+		} if
+	} ddef
+	/_ps
+	{
+		_sc
+		stroke
+	} ddef
+	/_pss
+	{
+		_sc
+		ss
+	} ddef
+	/_pjss
+	{
+		_sc
+		jss
+	} ddef
+	/_lp /none ddef
+} def
+/x
+{
+	/_gf exch ddef
+	findcmykcustomcolor
+	/_if exch ddef
+	/_fc
+	{
+		_lp /fill ne
+		{
+			_of setoverprint
+			_if _gf 1 exch sub setcustomcolor
+			/_lp /fill ddef
+		} if
+	} ddef
+	/_pf
+	{
+		_fc
+		_eo {eofill} {fill} ifelse
+	} ddef
+	/_psf
+	{
+		_fc
+		ashow
+	} ddef
+	/_pjsf
+	{
+		_fc
+		awidthshow
+	} ddef
+	/_lp /none ddef
+} def
+/X
+{
+	/_gs exch ddef
+	findcmykcustomcolor
+	/_is exch ddef
+	/_sc
+	{
+		_lp /stroke ne
+		{
+			_os setoverprint
+			_is _gs 1 exch sub setcustomcolor
+			/_lp /stroke ddef
+		} if
+	} ddef
+	/_ps
+	{
+		_sc
+		stroke
+	} ddef
+	/_pss
+	{
+		_sc
+		ss
+	} ddef
+	/_pjss
+	{
+		_sc
+		jss
+	} ddef
+	/_lp /none ddef
+} def
+/A
+{
+	pop
+} def
+/annotatepage
+{
+userdict /annotatepage 2 copy known {get exec} {pop pop} ifelse
+} def
+/XT {
+	pop pop
+} def
+/discard
+{
+	save /discardSave exch store
+	discardDict begin
+	/endString exch store
+	gt38?
+	{
+		2 add
+	} if
+	load
+	stopped
+	pop
+ end
+	discardSave restore
+} bind def
+userdict /discardDict 7 dict dup begin
+put
+/pre38Initialize
+{
+	/endStringLength endString length store
+	/newBuff buffer 0 endStringLength getinterval store
+	/newBuffButFirst newBuff 1 endStringLength 1 sub getinterval store
+	/newBuffLast newBuff endStringLength 1 sub 1 getinterval store
+} def
+/shiftBuffer
+{
+	newBuff 0 newBuffButFirst putinterval
+	newBuffLast 0
+	currentfile read not
+	{
+	stop
+	} if
+	put
+} def
+0
+{
+	pre38Initialize
+	mark
+	currentfile newBuff readstring exch pop
+	{
+		{
+			newBuff endString eq
+			{
+				cleartomark stop
+			} if
+			shiftBuffer
+		} loop
+	}
+	{
+	stop
+	} ifelse
+} def
+1
+{
+	pre38Initialize
+	/beginString exch store
+	mark
+	currentfile newBuff readstring exch pop
+	{
+		{
+			newBuff beginString eq
+			{
+				/layerCount dup load 1 add store
+			}
+			{
+				newBuff endString eq
+				{
+					/layerCount dup load 1 sub store
+					layerCount 0 eq
+					{
+						cleartomark stop
+					} if
+				} if
+			} ifelse
+			shiftBuffer
+		} loop
+	} if
+} def
+2
+{
+	mark
+	{
+		currentfile buffer readline not
+		{
+		stop
+		} if
+		endString eq
+		{
+			cleartomark stop
+		} if
+	} loop
+} def
+3
+{
+	/beginString exch store
+	/layerCnt 1 store
+	mark
+	{
+		currentfile buffer readline not
+		{
+		stop
+		} if
+		dup beginString eq
+		{
+			pop /layerCnt dup load 1 add store
+		}
+		{
+			endString eq
+			{
+				layerCnt 1 eq
+				{
+					cleartomark stop
+				}
+				{
+					/layerCnt dup load 1 sub store
+				} ifelse
+			} if
+		} ifelse
+	} loop
+} def
+end
+userdict /clipRenderOff 15 dict dup begin
+put
+{
+	/n /N /s /S /f /F /b /B
+}
+{
+	{
+		_doClip 1 eq
+		{
+			/_doClip 0 ddef _eo {eoclip} {clip} ifelse
+		} if
+		newpath
+	} def
+} forall
+/Tr /pop load def
+/Bb {} def
+/BB /pop load def
+/Bg {12 npop} def
+/Bm {6 npop} def
+/Bc /Bm load def
+/Bh {4 npop} def
+end
+/Lb
+{
+	4 npop
+	6 1 roll
+	pop
+	4 1 roll
+	pop pop pop
+	0 eq
+	{
+		0 eq
+		{
+			(%AI5_BeginLayer) 1 (%AI5_EndLayer--) discard
+		}
+		{
+			
+			/clipForward? true def
+			
+			/Tx /pop load def
+			/Tj /pop load def
+			
+			currentdict end clipRenderOff begin begin
+		} ifelse
+	}
+	{
+		0 eq
+		{
+			save /discardSave exch store
+		} if
+	} ifelse
+} bind def
+/LB
+{
+	discardSave dup null ne
+	{
+		restore
+	}
+	{
+		pop
+		clipForward?
+		{
+			currentdict
+		 end
+		 end
+		 begin
+					
+			/clipForward? false ddef
+		} if
+	} ifelse
+} bind def
+/Pb
+{
+	pop pop
+	0 (%AI5_EndPalette) discard
+} bind def
+/Np
+{
+	0 (%AI5_End_NonPrinting--) discard
+} bind def
+/Ln /pop load def
+/Ap
+/pop load def
+/Ar
+{
+	72 exch div
+	0 dtransform dup mul exch dup mul add sqrt
+	dup 1 lt
+	{
+		pop 1
+	} if
+	setflat
+} def
+/Mb
+{
+	q
+} def
+/Md
+{
+} def
+/MB
+{
+	Q
+} def
+/nc 3 dict def
+nc begin
+/setgray
+{
+	pop
+} bind def
+/setcmykcolor
+{
+	4 npop
+} bind def
+/setcustomcolor
+{
+	2 npop
+} bind def
+currentdict readonly pop
+end
+end
+setpacking
+%%EndResource
+%%EndProlog
+%%BeginSetup
+Adobe_level2_AI5 /initialize get exec
+Adobe_ColorImage_AI6 /initialize get exec
+Adobe_Illustrator_AI5 /initialize get exec
+%AI5_Begin_NonPrinting
+Np
+%AI3_BeginPattern: (Brick)
+(Brick) 0 0 72 72 [
+%AI3_Tile
+(0 O 0 R 0.3 0.85 0.85 0 k
+ 0.3 0.85 0.85 0 K
+) @
+(
+%AI6_BeginPatternLayer
+800 Ar
+0 J 0 j 1 w 4 M []0 d
+%AI3_Note:
+0 D
+0 XR
+0 0 m
+0 72 L
+72 72 L
+72 0 L
+0 0 L
+f
+%AI6_EndPatternLayer
+) &
+(0 O 0 R 1 g
+ 1 G
+) @
+(
+%AI6_BeginPatternLayer
+800 Ar
+0 J 0 j 0.3 w 4 M []0 d
+%AI3_Note:
+0 D
+0 XR
+0 68.4097 m
+72 68.4097 l
+S
+0 61.209 m
+72 61.209 L
+S
+0 54.0088 m
+72 54.0088 L
+S
+0 46.8076 m
+72 46.8076 L
+S
+0 39.6084 m
+72 39.6084 L
+S
+0 32.4072 m
+72 32.4072 L
+S
+0 25.207 m
+72 25.207 L
+S
+0 18.0059 m
+72 18.0059 L
+S
+0 10.8057 m
+72 10.8057 L
+S
+0 3.6064 m
+72 3.6064 L
+S
+68.4102 68.4097 m
+68.4102 61.2217 l
+S
+54.0098 68.4097 m
+54.0098 61.2217 L
+S
+39.6094 68.4097 m
+39.6094 61.2217 L
+S
+25.21 68.4097 m
+25.21 61.2217 L
+S
+10.8105 68.4097 m
+10.8105 61.2217 L
+S
+68.4102 53.9717 m
+68.4102 46.7842 l
+S
+54.0098 53.9717 m
+54.0098 46.7842 L
+S
+39.6094 53.9717 m
+39.6094 46.7842 L
+S
+25.21 53.9717 m
+25.21 46.7842 L
+S
+10.8105 53.9717 m
+10.8105 46.7842 L
+S
+68.4102 39.5967 m
+68.4102 32.4092 l
+S
+54.0098 39.5967 m
+54.0098 32.4092 L
+S
+39.6094 39.5967 m
+39.6094 32.4092 L
+S
+25.21 39.5967 m
+25.21 32.4092 L
+S
+10.8105 39.5967 m
+10.8105 32.4092 L
+S
+68.4102 25.2217 m
+68.4102 18.0342 l
+S
+54.0098 25.2217 m
+54.0098 18.0342 L
+S
+39.6094 25.2217 m
+39.6094 18.0342 L
+S
+25.21 25.2217 m
+25.21 18.0342 L
+S
+10.8105 25.2217 m
+10.8105 18.0342 L
+S
+68.4102 10.7842 m
+68.4102 3.5967 l
+S
+54.0098 10.7842 m
+54.0098 3.5967 L
+S
+39.6094 10.7842 m
+39.6094 3.5967 L
+S
+25.21 10.7842 m
+25.21 3.5967 L
+S
+10.8105 10.7842 m
+10.8105 3.5967 L
+S
+61.1973 3.5967 m
+61.1973 0 L
+S
+46.7969 3.5967 m
+46.7969 0 L
+S
+32.3965 3.5967 m
+32.3965 0 L
+S
+17.9971 3.5967 m
+17.9971 0 L
+S
+3.5967 3.5967 m
+3.5967 0 l
+S
+61.1973 18.0342 m
+61.1973 10.8467 L
+S
+46.7969 18.0342 m
+46.7969 10.8467 L
+S
+32.3965 18.0342 m
+32.3965 10.8467 L
+S
+17.9971 18.0342 m
+17.9971 10.8467 L
+S
+3.5967 18.0342 m
+3.5967 10.8467 l
+S
+61.1973 32.4092 m
+61.1973 25.2217 L
+S
+46.7969 32.4092 m
+46.7969 25.2217 L
+S
+17.9971 32.4092 m
+17.9971 25.2217 L
+S
+3.5967 32.4092 m
+3.5967 25.2217 l
+S
+61.1973 46.7842 m
+61.1973 39.5967 L
+S
+46.7969 46.7842 m
+46.7969 39.5967 L
+S
+32.3965 46.7842 m
+32.3965 39.5967 L
+S
+17.9971 46.7842 m
+17.9971 39.5967 L
+S
+3.5967 46.7842 m
+3.5967 39.5967 l
+S
+61.1973 61.2217 m
+61.1973 54.0347 L
+S
+46.7969 61.2217 m
+46.7969 54.0347 L
+S
+32.3965 61.2217 m
+32.3965 54.0347 L
+S
+17.9971 61.2217 m
+17.9971 54.0347 L
+S
+3.5967 61.2217 m
+3.5967 54.0347 l
+S
+61.1973 71.959 m
+61.1973 68.4717 L
+S
+46.7969 71.959 m
+46.7969 68.4717 L
+S
+32.3965 71.959 m
+32.3965 68.4717 L
+S
+17.9971 71.959 m
+17.9971 68.4717 L
+S
+3.5967 71.959 m
+3.5967 68.4717 l
+S
+32.3965 32.4092 m
+32.3965 25.2217 L
+S
+%AI6_EndPatternLayer
+) &
+] E
+%AI3_EndPattern
+%AI3_BeginPattern: (Confetti)
+(Confetti) 4.85 3.617 76.85 75.617 [
+%AI3_Tile
+(0 O 0 R 1 g
+ 1 G
+) @
+(
+%AI6_BeginPatternLayer
+800 Ar
+0 J 0 j 1 w 4 M []0 d
+%AI3_Note:
+0 D
+0 XR
+4.85 3.617 m
+4.85 75.617 L
+76.85 75.617 L
+76.85 3.617 L
+4.85 3.617 L
+f
+%AI6_EndPatternLayer
+) &
+(0 O 0 R 0 g
+ 0 G
+) @
+(
+%AI6_BeginPatternLayer
+800 Ar
+0 J 0 j 0.3 w 4 M []0 d
+%AI3_Note:
+0 D
+0 XR
+10.6 64.867 m
+7.85 62.867 l
+S
+9.1 8.617 m
+6.85 6.867 l
+S
+78.1 68.617 m
+74.85 67.867 l
+S
+76.85 56.867 m
+74.35 55.117 l
+S
+79.6 51.617 m
+76.6 51.617 l
+S
+76.35 44.117 m
+73.6 45.867 l
+S
+78.6 35.867 m
+76.6 34.367 l
+S
+76.1 23.867 m
+73.35 26.117 l
+S
+78.1 12.867 m
+73.85 13.617 l
+S
+68.35 14.617 m
+66.1 12.867 l
+S
+76.6 30.617 m
+73.6 30.617 l
+S
+62.85 58.117 m
+60.956 60.941 l
+S
+32.85 59.617 m
+31.196 62.181 l
+S
+47.891 64.061 m
+49.744 66.742 l
+S
+72.814 2.769 m
+73.928 5.729 l
+S
+67.976 2.633 m
+67.35 5.909 l
+S
+61.85 27.617 m
+59.956 30.441 l
+S
+53.504 56.053 m
+51.85 58.617 l
+S
+52.762 1.779 m
+52.876 4.776 l
+S
+45.391 5.311 m
+47.244 7.992 l
+S
+37.062 3.375 m
+35.639 5.43 l
+S
+55.165 34.828 m
+57.518 37.491 l
+S
+20.795 3.242 m
+22.12 5.193 l
+S
+14.097 4.747 m
+15.008 8.965 l
+S
+9.736 1.91 m
+8.073 4.225 l
+S
+31.891 5.573 m
+32.005 8.571 l
+S
+12.1 70.367 m
+15.6 68.867 l
+S
+9.35 54.867 m
+9.6 58.117 l
+S
+12.85 31.867 m
+14.35 28.117 l
+S
+10.1 37.367 m
+12.35 41.117 l
+S
+34.1 71.117 m
+31.85 68.617 l
+S
+38.35 71.117 m
+41.6 68.367 l
+S
+55.1 71.117 m
+58.35 69.117 l
+S
+57.35 65.117 m
+55.35 61.867 l
+S
+64.35 66.367 m
+69.35 68.617 l
+S
+71.85 62.867 m
+69.35 61.117 l
+S
+23.6 70.867 m
+23.6 67.867 l
+S
+20.6 65.867 m
+17.35 65.367 l
+S
+24.85 61.367 m
+25.35 58.117 l
+S
+25.85 65.867 m
+29.35 66.617 l
+S
+14.1 54.117 m
+16.85 56.117 l
+S
+12.35 11.617 m
+12.6 15.617 l
+S
+12.1 19.867 m
+14.35 22.367 l
+S
+26.1 9.867 m
+23.6 13.367 l
+S
+34.6 47.117 m
+32.1 45.367 l
+S
+62.6 41.867 m
+59.85 43.367 l
+S
+31.6 35.617 m
+27.85 36.367 l
+S
+36.35 26.117 m
+34.35 24.617 l
+S
+33.85 14.117 m
+31.1 16.367 l
+S
+37.1 9.867 m
+35.1 11.117 l
+S
+34.35 20.867 m
+31.35 20.867 l
+S
+44.6 56.617 m
+42.1 54.867 l
+S
+47.35 51.367 m
+44.35 51.367 l
+S
+44.1 43.867 m
+41.35 45.617 l
+S
+43.35 33.117 m
+42.6 30.617 l
+S
+43.85 23.617 m
+41.1 25.867 l
+S
+44.35 15.617 m
+42.35 16.867 l
+S
+67.823 31.1 m
+64.823 31.1 l
+S
+27.1 32.617 m
+29.6 30.867 l
+S
+31.85 55.117 m
+34.85 55.117 l
+S
+19.6 40.867 m
+22.1 39.117 l
+S
+16.85 35.617 m
+19.85 35.617 l
+S
+20.1 28.117 m
+22.85 29.867 l
+S
+52.1 42.617 m
+54.484 44.178 l
+S
+52.437 50.146 m
+54.821 48.325 l
+S
+59.572 54.133 m
+59.35 51.117 l
+S
+50.185 10.055 m
+53.234 9.928 l
+S
+51.187 15.896 m
+53.571 14.075 l
+S
+58.322 19.883 m
+59.445 16.823 l
+S
+53.1 32.117 m
+50.6 30.367 l
+S
+52.85 24.617 m
+49.6 25.617 l
+S
+61.85 9.117 m
+59.1 10.867 l
+S
+69.35 34.617 m
+66.6 36.367 l
+S
+67.1 23.617 m
+65.1 22.117 l
+S
+24.435 46.055 m
+27.484 45.928 l
+S
+25.437 51.896 m
+27.821 50.075 l
+S
+62.6 47.117 m
+65.321 46.575 l
+S
+19.85 19.867 m
+20.35 16.617 l
+S
+21.85 21.867 m
+25.35 22.617 l
+S
+37.6 62.867 m
+41.6 62.117 l
+S
+38.323 42.1 m
+38.823 38.6 l
+S
+69.35 52.617 m
+66.85 53.867 l
+S
+14.85 62.117 m
+18.1 59.367 l
+S
+9.6 46.117 m
+7.1 44.367 l
+S
+20.6 51.617 m
+18.6 50.117 l
+S
+46.141 70.811 m
+47.994 73.492 l
+S
+69.391 40.561 m
+71.244 43.242 l
+S
+38.641 49.311 m
+39.35 52.117 l
+S
+25.141 16.811 m
+25.85 19.617 l
+S
+36.6 32.867 m
+34.6 31.367 l
+S
+6.1 68.617 m
+2.85 67.867 l
+S
+4.85 56.867 m
+2.35 55.117 l
+S
+7.6 51.617 m
+4.6 51.617 l
+S
+6.6 35.867 m
+4.6 34.367 l
+S
+6.1 12.867 m
+1.85 13.617 l
+S
+4.6 30.617 m
+1.6 30.617 l
+S
+72.814 74.769 m
+73.928 77.729 l
+S
+67.976 74.633 m
+67.35 77.909 l
+S
+52.762 73.779 m
+52.876 76.776 l
+S
+37.062 75.375 m
+35.639 77.43 l
+S
+20.795 75.242 m
+22.12 77.193 l
+S
+9.736 73.91 m
+8.073 76.225 l
+S
+10.1 23.617 m
+6.35 24.367 l
+S
+73.217 18.276 m
+71.323 21.1 l
+S
+28.823 39.6 m
+29.505 42.389 l
+S
+49.6 38.617 m
+47.6 37.117 l
+S
+60.323 73.6 m
+62.323 76.6 l
+S
+60.323 1.6 m
+62.323 4.6 l
+S
+%AI6_EndPatternLayer
+) &
+] E
+%AI3_EndPattern
+%AI3_BeginPattern: (Leaves - Fall )
+(Leaves - Fall ) 0 0 64.0781 78.9336 [
+%AI3_Tile
+(0 O 0 R 0.05 0.2 1 0 k
+ 0.05 0.2 1 0 K
+) @
+(
+%AI6_BeginPatternLayer
+800 Ar
+0 J 0 j 1 w 4 M []0 d
+%AI3_Note:
+0 D
+0 XR
+64.0781 78.9336 m
+64.0781 0 L
+0 0 L
+0 78.9336 L
+64.0781 78.9336 L
+f
+%AI6_EndPatternLayer
+) &
+(0 O 0 R 0.83 0 1 0 k
+ 0.83 0 1 0 K
+) @
+(
+%AI6_BeginPatternLayer
+800 Ar
+0 J 0 j 1 w 4 M []0 d
+%AI3_Note:
+1 D
+0 XR
+29.7578 0.9902 m
+30.4346 1.1914 30.7246 1.3428 V
+29.2559 4.0547 33.707 8.3359 34.627 9.0762 C
+35.2275 8.8506 35.3477 6.3184 34.6699 4.9805 C
+35.5137 5.1035 37.7031 3.7256 38.4609 2.4365 C
+38.5254 3.125 40.0957 6.0664 40.9219 6.4434 C
+40.002 6.8408 39.3359 8.3135 38.5742 9.7617 C
+39.5957 9.9287 40.9961 9.0078 42.4668 8.1025 C
+42.9814 8.9043 44.3555 9.875 45.6143 10.3916 C
+44.5264 11.0781 44.0313 11.8203 43.5352 13.2793 C
+42.4922 12.7139 40.3057 12.5645 39.7764 12.8516 C
+40.291 13.9648 42.5371 14.5078 43.2676 14.4551 C
+43.0137 15.3164 42.8652 17.4697 43.0391 20.0625 C
+41.3789 18.7461 39.834 17.4297 38.1738 17.4883 C
+38.4434 16.0664 37.8076 14.2607 37.4307 13.7676 C
+36.8574 14.5117 36.4463 15.3389 36.8008 17.3164 C
+35.3486 17.8008 34.1113 18.3467 32.7373 19.6045 C
+32.7373 17.7734 32.166 16.5723 31.2969 15.2959 C
+32.5576 14.8076 33.8301 13.6045 33.8252 12.5664 C
+32.9775 12.7178 31.2852 13.4619 30.793 14.4551 C
+30.0742 13.707 28.3906 12.3984 26.7871 12.3945 C
+27.9746 11.5391 28.8945 10.5059 28.9893 8.5938 C
+30.2422 9.5645 32.6953 10.1797 34.0752 9.582 C
+29.2344 5.3457 29.7031 2.3125 29.7578 0.9902 C
+f
+13.8525 29.9844 m
+13.3281 29.5127 13.1309 29.25 V
+15.623 27.4326 13.3691 21.6074 12.8555 20.5439 C
+12.2168 20.4883 10.8096 23.2285 10.8457 24.7266 C
+9.7129 23.9707 8.0488 24.0918 6.4463 24.3779 C
+7.0186 23.2891 6.6172 21.3447 5.8164 20.5439 C
+6.8184 20.5801 8.1699 19.8652 9.4785 18.8838 C
+8.6436 18.0645 6.8164 18.2246 4.9004 18.8838 C
+4.9004 17.5107 4.0781 15.7734 3.2412 14.5918 C
+4.5576 14.6484 5.7031 13.9629 6.5605 12.9316 C
+7.2256 14.5 9.2598 15.6133 10.166 15.5645 C
+10.1826 14.1992 8.6094 12.1094 7.5879 11.7109 C
+8.1875 11.041 9.207 9.5107 10.166 7.0947 C
+10.9648 9.0205 12.1348 10.2627 13.3672 11.1953 C
+12.2256 12.7578 12.3994 13.6289 12.7988 15.1074 C
+13.541 14.5664 14.5723 14.1338 14.7441 12.1309 C
+16.4609 12.416 17.5957 12.3447 19.0938 11.4434 C
+18.6387 13.1055 18.6348 14.707 18.9551 16.4063 C
+17.1055 16.2666 15.5449 16.4795 14.5156 17.9688 C
+15.3457 18.1953 17.6055 18.2549 18.4795 17.3223 C
+18.8066 18.3047 19.7012 19.7109 21.1475 20.4043 C
+19.707 20.6641 18.7227 21.7637 17.8135 23.4492 C
+17.1006 22.0332 14.873 20.3691 13.3711 20.3145 C
+15.373 24.3779 15.373 27.2959 13.8525 29.9844 C
+f
+41.2324 26.0742 m
+41.5518 26.7021 41.7549 26.959 V
+44.1523 25.0176 48.958 28.3262 49.8535 29.0957 C
+49.7432 29.7266 47.6182 30.8643 45.9004 29.834 C
+46.3408 31.123 45.4395 33.084 44.2402 34.126 C
+45.9805 34.0254 48.126 35.3867 48.6484 36.1289 C
+48.8701 35.1514 50.0527 33.8809 51.3379 32.8672 C
+51.6895 33.8398 50.9941 35.958 50.0781 37.5605 C
+51.3125 38.0605 52.4248 38.9912 52.8828 40.25 C
+53.3398 38.9336 54.3428 38.2598 55.6875 37.5039 C
+54.5273 36.0762 53.7471 33.9023 54.0273 33.0391 C
+55.3496 33.374 56.9209 36.0918 57.0439 37.1816 C
+57.9189 36.415 59.4727 35.7285 62.0537 35.4219 C
+60.3535 34.3438 59.9902 32.3516 59.4063 30.9219 C
+58.2588 31.3682 56.0898 31.4277 55.1152 30.8643 C
+55.8281 30.2852 57.168 29.7344 59.1777 29.7207 C
+59.1777 28.1758 59.6406 27.043 60.8945 25.8281 C
+59.1719 25.8418 57.0723 25.3555 55.5762 24.9629 C
+55.3281 26.292 54.4844 27.8887 53.3398 28.2891 C
+53.334 27.4277 53.5996 25.1797 54.4844 24.5117 C
+53.6201 23.9443 52.3672 22.5674 51.9102 20.8496 C
+51.2881 22.1758 50.4268 23.4805 48.5645 23.9238 C
+49.749 24.9766 50.584 26.9941 50.25 28.4609 C
+45.1973 24.4785 42.5215 25.7773 41.2324 26.0742 C
+f
+27.7578 38.7324 m
+28.4346 38.9316 28.7246 39.084 V
+27.2559 41.7969 31.707 46.0776 32.627 46.8169 C
+33.2275 46.5918 33.3477 44.0586 32.6699 42.7227 C
+33.5137 42.8457 35.7031 41.4678 36.4609 40.1787 C
+36.5254 40.8652 38.0957 43.8066 38.9219 44.1846 C
+38.002 44.582 37.3359 46.0547 36.5742 47.5039 C
+37.5957 47.6709 38.9961 46.7485 40.4668 45.8438 C
+40.9814 46.6445 42.3555 47.6177 43.6143 48.1328 C
+42.5264 48.8198 42.0313 49.5615 41.5352 51.0205 C
+40.4922 50.4556 38.3057 50.3057 37.7764 50.5938 C
+38.291 51.7056 40.5371 52.2485 41.2676 52.1958 C
+41.0137 53.0576 40.8652 55.2109 41.0391 57.8037 C
+39.3789 56.4878 37.834 55.1719 36.1738 55.2285 C
+36.4434 53.8076 35.8076 52.002 35.4307 51.5088 C
+34.8574 52.2529 34.4463 53.0796 34.8008 55.0576 C
+33.3486 55.5425 32.1113 56.0879 30.7373 57.3467 C
+30.7373 55.5146 30.166 54.314 29.2969 53.0366 C
+30.5576 52.5488 31.8301 51.3467 31.8252 50.3076 C
+30.9775 50.46 29.2852 51.2036 28.793 52.1958 C
+28.0742 51.4497 26.3906 50.1396 24.7871 50.1357 C
+25.9746 49.2817 26.8945 48.2466 26.9893 46.335 C
+28.2422 47.3057 30.6953 47.9209 32.0752 47.3237 C
+27.2344 43.0869 27.7031 40.0547 27.7578 38.7324 C
+f
+13.5195 70.3916 m
+12.9941 69.9209 12.7988 69.6587 V
+15.2891 67.8418 13.0352 62.0146 12.5225 60.9517 C
+11.8828 60.8955 10.4766 63.6367 10.5117 65.1348 C
+9.3809 64.3789 7.7148 64.4995 6.1133 64.7856 C
+6.6855 63.6987 6.2842 61.7529 5.4834 60.9517 C
+6.4854 60.9878 7.8359 60.2729 9.1455 59.2925 C
+8.3105 58.4717 6.4834 58.6338 4.5674 59.2925 C
+4.5674 57.9189 3.7461 56.1816 2.9082 54.9995 C
+4.2246 55.0576 5.3691 54.3706 6.2275 53.3408 C
+6.8926 54.9097 8.9258 56.0215 9.832 55.9727 C
+9.8496 54.6079 8.2764 52.5176 7.2539 52.1187 C
+7.8545 51.4497 8.873 49.9189 9.832 47.5039 C
+10.6309 49.4297 11.8008 50.6719 13.0342 51.6045 C
+11.8926 53.1655 12.0664 54.0366 12.4648 55.5146 C
+13.209 54.9746 14.2393 54.5415 14.4102 52.5386 C
+16.127 52.8247 17.2637 52.7529 18.7598 51.8525 C
+18.3057 53.5137 18.3027 55.1147 18.623 56.8149 C
+16.7725 56.6748 15.2129 56.8887 14.1826 58.377 C
+15.0117 58.6035 17.2725 58.6626 18.1465 57.731 C
+18.4736 58.7129 19.3691 60.1187 20.8145 60.8125 C
+19.375 61.0728 18.3896 62.1719 17.4805 63.8579 C
+16.7676 62.4429 14.541 60.7769 13.0371 60.7227 C
+15.041 64.7856 15.041 67.7046 13.5195 70.3916 C
+f
+41.2324 64.4824 m
+41.5518 65.1113 41.7549 65.3682 V
+44.1523 63.4272 48.958 66.7354 49.8535 67.5034 C
+49.7432 68.1362 47.6182 69.2725 45.9004 68.2422 C
+46.3408 69.5313 45.4395 71.4922 44.2402 72.5342 C
+45.9805 72.4341 48.126 73.7954 48.6484 74.5371 C
+48.8701 73.5601 50.0527 72.29 51.3379 71.2754 C
+51.6895 72.249 50.9941 74.3662 50.0781 75.9683 C
+51.3125 76.4692 52.4248 77.3994 52.8828 78.6582 C
+53.3398 77.3423 54.3428 76.667 55.6875 75.9111 C
+54.5273 74.4844 53.7471 72.3101 54.0273 71.4473 C
+55.3496 71.7822 56.9209 74.5 57.0439 75.5903 C
+57.9189 74.8232 59.4727 74.1372 62.0537 73.8311 C
+60.3535 72.7534 59.9902 70.7612 59.4063 69.3301 C
+58.2588 69.7773 56.0898 69.8364 55.1152 69.2725 C
+55.8281 68.6934 57.168 68.1431 59.1777 68.1284 C
+59.1777 66.583 59.6406 65.4512 60.8945 64.2373 C
+59.1719 64.249 57.0723 63.7632 55.5762 63.3721 C
+55.3281 64.7002 54.4844 66.2974 53.3398 66.6973 C
+53.334 65.8364 53.5996 63.5874 54.4844 62.9214 C
+53.6201 62.353 52.3672 60.9751 51.9102 59.2583 C
+51.2881 60.583 50.4268 61.8882 48.5645 62.333 C
+49.749 63.3862 50.584 65.4033 50.25 66.8691 C
+45.1973 62.8872 42.5215 64.1851 41.2324 64.4824 C
+f
+%AI6_EndPatternLayer
+) &
+] E
+%AI3_EndPattern
+%AI3_BeginPattern: (Stripes)
+(Stripes) 8.45 4.6001 80.45 76.6001 [
+%AI3_Tile
+(0 O 0 R 1 0.07 1 0 k
+ 1 0.07 1 0 K
+) @
+(
+%AI6_BeginPatternLayer
+800 Ar
+0 J 0 j 3.6 w 4 M []0 d
+%AI3_Note:
+0 D
+0 XR
+8.2 8.2 m
+80.7 8.2 L
+S
+8.2 22.6001 m
+80.7 22.6001 L
+S
+8.2 37.0002 m
+80.7 37.0002 L
+S
+8.2 51.4 m
+80.7 51.4 L
+S
+8.2 65.8001 m
+80.7 65.8001 L
+S
+8.2 15.4 m
+80.7 15.4 L
+S
+8.2 29.8001 m
+80.7 29.8001 L
+S
+8.2 44.2 m
+80.7 44.2 L
+S
+8.2 58.6001 m
+80.7 58.6001 L
+S
+8.2 73.0002 m
+80.7 73.0002 L
+S
+%AI6_EndPatternLayer
+) &
+] E
+%AI3_EndPattern
+%AI5_End_NonPrinting--
+%AI5_Begin_NonPrinting
+Np
+4 Bn
+%AI5_BeginGradient: (Black, White)
+(Black, White) 0 2 Bd
+[
+0
+0
+0
+<
+000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F2021222324252627
+28292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F404142434445464748494A4B4C4D4E4F
+505152535455565758595A5B5C5D5E5F606162636465666768696A6B6C6D6E6F7071727374757677
+78797A7B7C7D7E7F808182838485868788898A8B8C8D8E8F909192939495969798999A9B9C9D9E9F
+A0A1A2A3A4A5A6A7A8A9AAABACADAEAFB0B1B2B3B4B5B6B7B8B9BABBBCBDBEBFC0C1C2C3C4C5C6C7
+C8C9CACBCCCDCECFD0D1D2D3D4D5D6D7D8D9DADBDCDDDEDFE0E1E2E3E4E5E6E7E8E9EAEBECEDEEEF
+F0F1F2F3F4F5F6F7F8F9FAFBFCFDFEFF
+>
+1 %_Br
+[
+0 0 50 100 %_Bs
+1 0 50 0 %_Bs
+BD
+%AI5_EndGradient
+%AI5_BeginGradient: (Chrome)
+(Chrome) 0 6 Bd
+[
+0
+<
+464646454545444444444343434342424241414141404040403F3F3F3E3E3E3E3D3D3D3C3C3C3C3B
+3B3B3B3A3A3A39393939383838383737373636363635353535343434333333333232323131313130
+3030302F2F2F2E2E2E2E2D2D2D2D2C2C2C2B2B2B2B2A2A2A2A292929282828282727272626262625
+2525252424242323232322222222212121202020201F1F1F1F1E1E1E1D1D1D1D1C1C1C1B1B1B1B1A
+1A1A1A1919191818181817171717161616151515151414141413131312121212111111101010100F
+0F0F0F0E0E0E0D0D0D0D0C0C0C0C0B0B0B0A0A0A0A09090909080808070707070606060505050504
+04040403030302020202010101010000
+>
+<
+FFFEFDFCFBFAF9F8F7F6F5F4F3F2F1F0EFEEEDECEBEAE9E8E7E6E5E4E3E2E1E0DFDEDDDCDBDAD9D8
+D7D6D5D4D3D2D1D0CFCECDCCCBCAC9C8C7C6C5C4C3C2C1C0BFBEBDBCBBBAB9B8B7B6B5B4B3B2B1B0
+AFAEADACABAAA9A8A7A6A5A4A3A2A1A09F9E9D9C9B9A999897969594939291908F8E8D8C8B8A8988
+87868584838281807F7E7D7C7B7A797877767574737271706F6E6D6C6B6A69686766656463626160
+5F5E5D5C5B5A595857565554535251504F4E4D4C4B4A494847464544434241403F3E3D3C3B3A3938
+37363534333231302F2E2D2C2B2A292827262524232221201F1E1D1C1B1A19181716151413121110
+0F0E0D0C0B0A09080706050403020100
+>
+<
+1F1E1E1E1E1E1E1E1E1E1D1D1D1D1D1D1D1D1C1C1C1C1C1C1C1C1B1B1B1B1B1B1B1B1B1A1A1A1A1A
+1A1A1A19191919191919191818181818181818181717171717171717161616161616161615151515
+15151515151414141414141414131313131313131312121212121212121211111111111111111010
+1010101010100F0F0F0F0F0F0F0F0F0E0E0E0E0E0E0E0E0D0D0D0D0D0D0D0D0C0C0C0C0C0C0C0C0C
+0B0B0B0B0B0B0B0B0A0A0A0A0A0A0A0A090909090909090909080808080808080807070707070707
+07060606060606060606050505050505050504040404040404040303030303030303030202020202
+02020201010101010101010000000000
+>
+1 %_Br
+0
+0.275
+1
+<
+6B6A696867666564636261605F5E5D5C5B5A595857565554535251504F4E4D4C4B4A494847464544
+434241403F3E3D3C3B3A393837363534333231302F2E2D2C2B2A292827262524232221201F
+>
+1 %_Br
+0
+<
+00000101010102020202030303040404040505050506060607070707080808090909090A0A0A0A0B
+0B0B0C0C0C0C0D0D0D0D0E0E0E0F0F0F0F1010101011111112121212131313141414141515151516
+161617171717181818181919191A1A1A1A1B1B1B1C1C1C1C1D1D1D1D1E1E1E1F1F1F1F2020202021
+212122222222232323232424242525252526262626272727282828282929292A2A2A2A2B2B2B2B2C
+2C2C2D2D2D2D2E2E2E2E2F2F2F303030303131313132323233333333343434353535353636363637
+373738383838393939393A3A3A3B3B3B3B3C3C3C3D3D3D3D3E3E3E3E3F3F3F404040404141414142
+42424343434344444444454545464646
+>
+<
+000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F2021222324252627
+28292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F404142434445464748494A4B4C4D4E4F
+505152535455565758595A5B5C5D5E5F606162636465666768696A6B6C6D6E6F7071727374757677
+78797A7B7C7D7E7F808182838485868788898A8B8C8D8E8F909192939495969798999A9B9C9D9E9F
+A0A1A2A3A4A5A6A7A8A9AAABACADAEAFB0B1B2B3B4B5B6B7B8B9BABBBCBDBEBFC0C1C2C3C4C5C6C7
+C8C9CACBCCCDCECFD0D1D2D3D4D5D6D7D8D9DADBDCDDDEDFE0E1E2E3E4E5E6E7E8E9EAEBECEDEEEF
+F0F1F2F3F4F5F6F7F8F9FAFBFCFDFEFF
+>
+<
+00000101020203030304040505050606070708080809090A0A0B0B0B0C0C0D0D0D0E0E0F0F101010
+1111121212131314141515151616171718181819191A1A1A1B1B1C1C1D1D1D1E1E1F1F1F20202121
+222222232324242525252626272727282829292A2A2A2B2B2C2C2D2D2D2E2E2F2F2F303031313232
+32333334343435353636373737383839393A3A3A3B3B3C3C3C3D3D3E3E3F3F3F4040414142424243
+434444444545464647474748484949494A4A4B4B4C4C4C4D4D4E4E4F4F4F50505151515252535354
+54545555565657575758585959595A5A5B5B5C5C5C5D5D5E5E5E5F5F606061616162626363646464
+6565666666676768686969696A6A6B6B
+>
+1 %_Br
+0
+0
+0
+0
+1 %_Br
+<
+FFFEFDFCFBFAF9F8F7F6F5F4F3F2F1F0EFEEEDECEBEAE9E8E7E6E5E4E3E2E1E0DFDEDDDCDBDAD9D8
+D7D6D5D4D3D2D1D0CFCECDCCCBCAC9C8C7C6C5C4C3C2C1C0BFBEBDBCBBBAB9B8B7B6B5B4B3B2B1B0
+AFAEADACABAAA9A8A7A6A5A4A3A2A1A09F9E9D9C9B9A999897969594939291908F8E8D8C8B8A8988
+87868584838281807F7E7D7C7B7A797877767574737271706F6E6D6C6B6A69686766656463626160
+5F5E5D5C5B5A595857565554535251504F4E4D4C4B4A494847464544434241403F3E3D3C3B3A3938
+37363534333231302F2E2D2C2B2A292827262524232221201F1E1D1C1B1A19181716151413121110
+0F0E0D0C0B0A09080706050403020100
+>
+<
+4D4C4C4C4B4B4B4A4A4A4A4949494848484747474746464645454544444444434343424242414141
+414040403F3F3F3E3E3E3E3D3D3D3C3C3C3B3B3B3B3A3A3A39393938383838373737363636353535
+35343434333333323232323131313030302F2F2F2E2E2E2E2D2D2D2C2C2C2B2B2B2B2A2A2A292929
+282828282727272626262525252524242423232322222222212121202020201F1F1F1E1E1E1D1D1D
+1D1C1C1C1B1B1B1A1A1A1A1919191818181717171616161615151514141413131313121212111111
+101010100F0F0F0E0E0E0D0D0D0D0C0C0C0B0B0B0A0A0A0A09090908080807070707060606050505
+04040404030303020202010101010000
+>
+0
+0
+1 %_Br
+[
+1 0 50 92 %_Bs
+0 0.275 1 0.12 1 50 59 %_Bs
+0 0.275 1 0.42 1 50 50 %_Bs
+1 0 50 49 %_Bs
+1 0 50 41 %_Bs
+1 0.3 0 0 1 50 0 %_Bs
+BD
+%AI5_EndGradient
+%AI5_BeginGradient: (Rainbow)
+(Rainbow) 0 6 Bd
+[
+<
+FFFEFDFCFBFAF9F8F7F6F5F4F3F2F1F0EFEEEDECEBEAE9E8E7E6E5E4E3E2E1E0DFDEDDDCDBDAD9D8
+D7D6D5D4D3D2D1D0CFCECDCCCBCAC9C8C7C6C5C4C3C2C1C0BFBEBDBCBBBAB9B8B7B6B5B4B3B2B1B0
+AFAEADACABAAA9A8A7A6A5A4A3A2A1A09F9E9D9C9B9A999897969594939291908F8E8D8C8B8A8988
+87868584838281807F7E7D7C7B7A797877767574737271706F6E6D6C6B6A69686766656463626160
+5F5E5D5C5B5A595857565554535251504F4E4D4C4B4A494847464544434241403F3E3D3C3B3A3938
+37363534333231302F2E2D2C2B2A292827262524232221201F1E1D1C1B1A19181716151413121110
+0F0E0D0C0B0A09080706050403020100
+>
+1
+0
+0
+1 %_Br
+1
+<
+0708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E
+2F303132333435363738393A3B3C3D3E3F404142434445464748494A4B4C4D4E4F50515253545556
+5758595A5B5C5D5E5F606162636465666768696A6B6C6D6E6F707172737475767778797A7B7C7D7E
+7F808182838485868788898A8B8C8D8E8F909192939495969798999A9B9C9D9E9FA0A1A2A3A4A5A6
+A7A8A9AAABACADAEAFB0B1B2B3B4B5B6B7B8B9BABBBCBDBEBFC0C1C2C3C4C5C6C7C8C9CACBCCCDCE
+CFD0D1D2D3D4D5D6D7D8D9DADBDCDDDEDFE0E1E2E3E4E5E6E7E8E9EAEBECEDEEEFF0F1F2F3F4F5F6
+F7F8F9FAFBFCFDFEFF
+>
+0
+0
+1 %_Br
+1
+<
+00000000000000000000000000000000000001010101010101010101010101010101010101010101
+01010101010101010101010101010202020202020202020202020202020202020202020202020202
+02020202020202020202030303030303030303030303030303030303030303030303030303030303
+03030303030304040404040404040404040404040404040404040404040404040404040404040404
+04040505050505050505050505050505050505050505050505050505050505050505050505050606
+06060606060606060606060606060606060606060606060606060606060606060607070707070707
+07070707070707070707070707070707
+>
+<
+FFFEFDFCFBFAF9F8F7F6F5F4F3F2F1F0EFEEEDECEBEAE9E8E7E6E5E4E3E2E1E0DFDEDDDCDBDAD9D8
+D7D6D5D4D3D2D1D0CFCECDCCCBCAC9C8C7C6C5C4C3C2C1C0BFBEBDBCBBBAB9B8B7B6B5B4B3B2B1B0
+AFAEADACABAAA9A8A7A6A5A4A3A2A1A09F9E9D9C9B9A999897969594939291908F8E8D8C8B8A8988
+87868584838281807F7E7D7C7B7A797877767574737271706F6E6D6C6B6A69686766656463626160
+5F5E5D5C5B5A595857565554535251504F4E4D4C4B4A494847464544434241403F3E3D3C3B3A3938
+37363534333231302F2E2D2C2B2A292827262524232221201F1E1D1C1B1A19181716151413121110
+0F0E0D0C0B0A09080706050403020100
+>
+0
+1 %_Br
+<
+000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F2021222324252627
+28292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F404142434445464748494A4B4C4D4E4F
+505152535455565758595A5B5C5D5E5F606162636465666768696A6B6C6D6E6F7071727374757677
+78797A7B7C7D7E7F808182838485868788898A8B8C8D8E8F909192939495969798999A9B9C9D9E9F
+A0A1A2A3A4A5A6A7A8A9AAABACADAEAFB0B1B2B3B4B5B6B7B8B9BABBBCBDBEBFC0C1C2C3C4C5C6C7
+C8C9CACBCCCDCECFD0D1D2D3D4D5D6D7D8D9DADBDCDDDEDFE0E1E2E3E4E5E6E7E8E9EAEBECEDEEEF
+F0F1F2F3F4F5F6F7F8F9FAFBFCFDFEFF
+>
+0
+1
+0
+1 %_Br
+0
+<
+FFFEFDFCFBFAF9F8F7F6F5F4F3F2F1F0EFEEEDECEBEAE9E8E7E6E5E4E3E2E1E0DFDEDDDCDBDAD9D8
+D7D6D5D4D3D2D1D0CFCECDCCCBCAC9C8C7C6C5C4C3C2C1C0BFBEBDBCBBBAB9B8B7B6B5B4B3B2B1B0
+AFAEADACABAAA9A8A7A6A5A4A3A2A1A09F9E9D9C9B9A999897969594939291908F8E8D8C8B8A8988
+87868584838281807F7E7D7C7B7A797877767574737271706F6E6D6C6B6A69686766656463626160
+5F5E5D5C5B5A595857565554535251504F4E4D4C4B4A494847464544434241403F3E3D3C3B3A3938
+37363534333231302F2E2D2C2B2A292827262524232221201F1E1D1C1B1A19181716151413121110
+0F0E0D0C0B0A09080706050403020100
+>
+1
+0
+1 %_Br
+[
+0 1 0 0 1 50 100 %_Bs
+1 1 0 0 1 50 80 %_Bs
+1 0.0279 0 0 1 50 60 %_Bs
+1 0 1 0 1 50 40 %_Bs
+0 0 1 0 1 50 20 %_Bs
+0 1 1 0 1 50 0 %_Bs
+BD
+%AI5_EndGradient
+%AI5_BeginGradient: (Yellow & Orange Radial)
+(Yellow & Orange Radial) 1 2 Bd
+[
+0
+<
+0001010203040506060708090A0B0C0C0D0E0F10111213131415161718191A1B1C1D1D1E1F202122
+232425262728292A2B2B2C2D2E2F303132333435363738393A3B3C3D3E3E3F404142434445464748
+494A4B4C4D4E4F505152535455565758595A5B5C5D5E5F60606162636465666768696A6B6C6D6E6F
+707172737475767778797A7B7C7D7E7F808182838485868788898A8B8C
+>
+<
+FFFFFFFFFEFEFEFEFEFEFEFDFDFDFDFDFDFCFCFCFCFCFCFBFBFBFBFBFBFAFAFAFAFAFAF9F9F9F9F9
+F9F8F8F8F8F8F8F7F7F7F7F7F7F6F6F6F6F6F6F5F5F5F5F5F5F4F4F4F4F4F3F3F3F3F3F3F2F2F2F2
+F2F2F1F1F1F1F1F0F0F0F0F0F0EFEFEFEFEFEFEEEEEEEEEEEDEDEDEDEDEDECECECECECEBEBEBEBEB
+EBEAEAEAEAEAE9E9E9E9E9E9E8E8E8E8E8E8E7E7E7E7E7E6E6E6E6E6E6
+>
+0
+1 %_Br
+[
+0 0 1 0 1 52 19 %_Bs
+0 0.55 0.9 0 1 50 100 %_Bs
+BD
+%AI5_EndGradient
+%AI5_End_NonPrinting--
+%AI5_BeginPalette
+0 0 Pb
+1 1 1 1 k
+Pc
+0 0 0 0 k
+Pc
+0 0 0 1 k
+Pc
+0 0.1 1 0 k
+Pc
+0 0.5 0 0 k
+Pc
+0 0.5 1 0 k
+Pc
+1 0.55 1 0 k
+Pc
+1 0.9 0.1 0 k
+Pc
+0.15 1 1 0 k
+Pc
+0.45 0.9 0 0 k
+Pc
+0.5 0.4 0.3 0 k
+Pc
+0.5 0.85 1 0 k
+Pc
+0.75 0.05 1 0 k
+Pc
+0.75 0.9 0 0 k
+Pc
+0.8 0.05 0 0 k
+Pc
+Bb
+2 (Black, White) -7885 8587 0 0 1 0 0 1 0 0 Bg
+0 BB
+Pc
+Bb
+2 (Chrome) -7885 8587 0 0 1 0 0 1 0 0 Bg
+0 BB
+Pc
+Bb
+2 (Rainbow) -7885 8587 0 0 1 0 0 1 0 0 Bg
+0 BB
+Pc
+Bb
+0 0 0 0 Bh
+2 (Yellow & Orange Radial) -7885 8587 0 0 1 0 0 1 0 0 Bg
+0 BB
+Pc
+(Brick) 0 0 1 1 0 0 0 0 0 [1 0 0 1 0 0] p
+Pc
+(Confetti) 0 0 1 1 0 0 0 0 0 [1 0 0 1 0 0] p
+Pc
+(Leaves - Fall ) 0 0 1 1 0 0 0 0 0 [1 0 0 1 0 0] p
+Pc
+(Stripes) 0 0 1 1 0 0 0 0 0 [1 0 0 1 0 0] p
+Pc
+PB
+%AI5_EndPalette
+%%EndSetup
+%AI5_BeginLayer
+1 1 1 1 0 0 0 79 128 255 Lb
+(Layer 1) Ln
+0 A
+u
+q
+300 Ar
+0 J 0 j 1 w 4 M []0 d
+%AI3_Note:
+0 D
+0 XR
+96.3003 507 m
+515.7002 507 l
+515.7002 285 l
+96.3003 285 l
+96.3003 507 l
+h
+W
+n
+/BBAccumRotation (-1.570796) XT
+0 R
+0 0 0 1 K
+1 J 1 j 0.36 w 10 M
+263.748 506.5342 m
+261.0698 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+263.748 506.5342 m
+266.3833 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+262.063 501.8687 m
+265.3901 501.8687 l
+S
+/BBAccumRotation (-1.570796) XT
+274.7212 506.5342 m
+274.7212 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+272.3882 506.5342 m
+277.0537 506.5342 l
+S
+/BBAccumRotation (-1.570796) XT
+282.3677 504.2017 m
+282.3677 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+282.3677 503.208 m
+281.6763 503.856 l
+S
+/BBAccumRotation (-1.570796) XT
+281.6763 503.856 m
+281.0278 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+281.0278 504.2017 m
+280.0342 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+280.0342 504.2017 m
+279.3433 503.856 l
+S
+/BBAccumRotation (-1.570796) XT
+279.3433 503.856 m
+278.6953 503.208 l
+S
+/BBAccumRotation (-1.570796) XT
+278.6953 503.208 m
+278.3496 502.2144 l
+S
+/BBAccumRotation (-1.570796) XT
+278.3496 502.2144 m
+278.3496 501.5229 l
+S
+/BBAccumRotation (-1.570796) XT
+278.3496 501.5229 m
+278.6953 500.5293 l
+S
+/BBAccumRotation (-1.570796) XT
+278.6953 500.5293 m
+279.3433 499.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+279.3433 499.8818 m
+280.0342 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+280.0342 499.5361 m
+281.0278 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+281.0278 499.5361 m
+281.6763 499.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+281.6763 499.8818 m
+282.3677 500.5293 l
+S
+/BBAccumRotation (-1.570796) XT
+285.0024 506.5342 m
+285.0024 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+287.335 502.2144 m
+291.3096 502.2144 l
+S
+/BBAccumRotation (-1.570796) XT
+291.3096 502.2144 m
+291.3096 502.8623 l
+S
+/BBAccumRotation (-1.570796) XT
+291.3096 502.8623 m
+291.0073 503.5103 l
+S
+/BBAccumRotation (-1.570796) XT
+291.0073 503.5103 m
+290.6616 503.856 l
+S
+/BBAccumRotation (-1.570796) XT
+290.6621 503.856 m
+290.0142 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+290.0142 504.2017 m
+289.02 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+289.02 504.2017 m
+288.3286 503.856 l
+S
+/BBAccumRotation (-1.570796) XT
+288.3286 503.856 m
+287.6807 503.208 l
+S
+/BBAccumRotation (-1.570796) XT
+287.6807 503.208 m
+287.335 502.2144 l
+S
+/BBAccumRotation (-1.570796) XT
+287.3354 502.2144 m
+287.3354 501.5229 l
+S
+/BBAccumRotation (-1.570796) XT
+287.3354 501.5229 m
+287.6807 500.5293 l
+S
+/BBAccumRotation (-1.570796) XT
+287.6807 500.5293 m
+288.3286 499.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+288.3286 499.8818 m
+289.02 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+289.02 499.5361 m
+290.0142 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+290.0142 499.5361 m
+290.6621 499.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+290.6621 499.8818 m
+291.3101 500.5293 l
+S
+/BBAccumRotation (-1.570796) XT
+300.2954 504.2017 m
+299.6475 503.856 l
+S
+/BBAccumRotation (-1.570796) XT
+299.6475 503.856 m
+298.9561 503.208 l
+S
+/BBAccumRotation (-1.570796) XT
+298.9561 503.208 m
+298.6538 502.2144 l
+S
+/BBAccumRotation (-1.570796) XT
+298.6538 502.2144 m
+298.6538 501.5229 l
+S
+/BBAccumRotation (-1.570796) XT
+298.6538 501.5229 m
+298.9561 500.5298 l
+S
+/BBAccumRotation (-1.570796) XT
+298.9561 500.5298 m
+299.6475 499.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+299.6475 499.8818 m
+300.2954 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+300.2954 499.5361 m
+301.2891 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+301.2891 499.5361 m
+301.98 499.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+301.98 499.8818 m
+302.6279 500.5298 l
+S
+/BBAccumRotation (-1.570796) XT
+302.6279 500.5298 m
+302.9736 501.5234 l
+S
+/BBAccumRotation (-1.570796) XT
+302.9736 501.5234 m
+302.9736 502.2144 l
+S
+/BBAccumRotation (-1.570796) XT
+302.9736 502.2144 m
+302.6279 503.208 l
+S
+/BBAccumRotation (-1.570796) XT
+302.6279 503.2085 m
+301.98 503.856 l
+S
+/BBAccumRotation (-1.570796) XT
+301.98 503.856 m
+301.2891 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+301.2891 504.2017 m
+300.2954 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+307.2939 506.5342 m
+306.6025 506.5342 l
+S
+/BBAccumRotation (-1.570796) XT
+306.6025 506.5342 m
+305.9546 506.1885 l
+S
+/BBAccumRotation (-1.570796) XT
+305.9546 506.1885 m
+305.6089 505.1953 l
+S
+/BBAccumRotation (-1.570796) XT
+305.6089 505.1953 m
+305.6089 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+304.6157 504.2017 m
+306.9482 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+315.9336 506.5342 m
+315.9336 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+313.6016 506.5342 m
+318.2227 506.5342 l
+S
+/BBAccumRotation (-1.570796) XT
+319.5625 504.2017 m
+320.9023 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+322.2412 504.2017 m
+320.9023 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+322.2412 504.2017 m
+323.5801 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+324.876 504.2017 m
+323.5801 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+328.5488 504.2017 m
+327.9004 503.856 l
+S
+/BBAccumRotation (-1.570796) XT
+327.9004 503.856 m
+327.209 503.208 l
+S
+/BBAccumRotation (-1.570796) XT
+327.209 503.208 m
+326.8633 502.2144 l
+S
+/BBAccumRotation (-1.570796) XT
+326.8633 502.2144 m
+326.8633 501.5229 l
+S
+/BBAccumRotation (-1.570796) XT
+326.8633 501.5229 m
+327.209 500.5293 l
+S
+/BBAccumRotation (-1.570796) XT
+327.209 500.5298 m
+327.9004 499.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+327.9004 499.8818 m
+328.5488 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+328.5488 499.5361 m
+329.542 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+329.542 499.5361 m
+330.1895 499.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+330.1895 499.8818 m
+330.8809 500.5298 l
+S
+/BBAccumRotation (-1.570796) XT
+330.8809 500.5298 m
+331.1836 501.5229 l
+S
+/BBAccumRotation (-1.570796) XT
+331.1836 501.5229 m
+331.1836 502.2144 l
+S
+/BBAccumRotation (-1.570796) XT
+331.1836 502.2144 m
+330.8809 503.208 l
+S
+/BBAccumRotation (-1.570796) XT
+330.8809 503.208 m
+330.1895 503.856 l
+S
+/BBAccumRotation (-1.570796) XT
+330.1895 503.856 m
+329.542 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+329.542 504.2017 m
+328.5488 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+343.4961 504.8496 m
+343.1504 505.5405 l
+S
+/BBAccumRotation (-1.570796) XT
+343.1504 505.5405 m
+342.502 506.1885 l
+S
+/BBAccumRotation (-1.570796) XT
+342.502 506.1885 m
+341.8535 506.5342 l
+S
+/BBAccumRotation (-1.570796) XT
+341.8535 506.5342 m
+340.5137 506.5342 l
+S
+/BBAccumRotation (-1.570796) XT
+340.5137 506.5342 m
+339.8232 506.1885 l
+S
+/BBAccumRotation (-1.570796) XT
+339.8232 506.189 m
+339.1758 505.541 l
+S
+/BBAccumRotation (-1.570796) XT
+339.1758 505.541 m
+338.8301 504.8496 l
+S
+/BBAccumRotation (-1.570796) XT
+338.8301 504.8496 m
+338.5273 503.856 l
+S
+/BBAccumRotation (-1.570796) XT
+338.5273 503.856 m
+338.5273 502.2144 l
+S
+/BBAccumRotation (-1.570796) XT
+338.5273 502.2144 m
+338.8301 501.2207 l
+S
+/BBAccumRotation (-1.570796) XT
+338.8301 501.2207 m
+339.1758 500.5298 l
+S
+/BBAccumRotation (-1.570796) XT
+339.1758 500.5298 m
+339.8232 499.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+339.8232 499.8818 m
+340.5137 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+340.5137 499.5361 m
+341.8535 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+341.8535 499.5361 m
+342.502 499.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+342.502 499.8818 m
+343.1504 500.5298 l
+S
+/BBAccumRotation (-1.570796) XT
+343.1504 500.5298 m
+343.4961 501.2212 l
+S
+/BBAccumRotation (-1.570796) XT
+343.4961 501.2212 m
+343.4961 502.2144 l
+S
+/BBAccumRotation (-1.570796) XT
+341.8535 502.2144 m
+343.4961 502.2144 l
+S
+/BBAccumRotation (-1.570796) XT
+345.8281 504.2017 m
+345.8281 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+345.8281 502.2144 m
+346.1738 503.208 l
+S
+/BBAccumRotation (-1.570796) XT
+346.1738 503.208 m
+346.8223 503.856 l
+S
+/BBAccumRotation (-1.570796) XT
+346.8223 503.856 m
+347.4688 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+347.4688 504.2017 m
+348.4629 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+353.8203 504.2017 m
+353.8203 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+353.8203 503.208 m
+353.1289 503.856 l
+S
+/BBAccumRotation (-1.570796) XT
+353.1289 503.856 m
+352.4805 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+352.4805 504.2017 m
+351.4883 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+351.4883 504.2017 m
+350.7969 503.856 l
+S
+/BBAccumRotation (-1.570796) XT
+350.7969 503.856 m
+350.1484 503.208 l
+S
+/BBAccumRotation (-1.570796) XT
+350.1484 503.208 m
+349.8027 502.2144 l
+S
+/BBAccumRotation (-1.570796) XT
+349.8027 502.2144 m
+349.8027 501.5229 l
+S
+/BBAccumRotation (-1.570796) XT
+349.8027 501.5229 m
+350.1484 500.5298 l
+S
+/BBAccumRotation (-1.570796) XT
+350.1484 500.5298 m
+350.7969 499.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+350.7969 499.8818 m
+351.4883 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+351.4883 499.5361 m
+352.4805 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+352.4805 499.5361 m
+353.1289 499.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+353.1289 499.8818 m
+353.8203 500.5298 l
+S
+/BBAccumRotation (-1.570796) XT
+356.4551 504.2017 m
+356.4551 497.2031 l
+S
+/BBAccumRotation (-1.570796) XT
+356.4551 503.208 m
+357.1035 503.856 l
+S
+/BBAccumRotation (-1.570796) XT
+357.1035 503.856 m
+357.7949 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+357.7949 504.2017 m
+358.7891 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+358.7891 504.2017 m
+359.4365 503.856 l
+S
+/BBAccumRotation (-1.570796) XT
+359.4365 503.856 m
+360.127 503.208 l
+S
+/BBAccumRotation (-1.570796) XT
+360.127 503.208 m
+360.4297 502.2144 l
+S
+/BBAccumRotation (-1.570796) XT
+360.4297 502.2144 m
+360.4297 501.5229 l
+S
+/BBAccumRotation (-1.570796) XT
+360.4297 501.5229 m
+360.127 500.5298 l
+S
+/BBAccumRotation (-1.570796) XT
+360.127 500.5298 m
+359.4365 499.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+359.4365 499.8818 m
+358.7891 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+358.7891 499.5361 m
+357.7949 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+357.7949 499.5361 m
+357.1035 499.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+357.1035 499.8818 m
+356.4551 500.5298 l
+S
+/BBAccumRotation (-1.570796) XT
+362.7617 506.5342 m
+362.7617 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+362.7617 502.8623 m
+363.7559 503.856 l
+S
+/BBAccumRotation (-1.570796) XT
+363.7559 503.856 m
+364.4473 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+364.4473 504.2017 m
+365.4414 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+365.4414 504.2017 m
+366.0898 503.856 l
+S
+/BBAccumRotation (-1.570796) XT
+366.0898 503.856 m
+366.4336 502.8623 l
+S
+/BBAccumRotation (-1.570796) XT
+366.4336 502.8623 m
+366.4336 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+372.3965 503.208 m
+372.0938 503.856 l
+S
+/BBAccumRotation (-1.570796) XT
+372.0938 503.856 m
+371.0996 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+371.0996 504.2017 m
+370.0625 504.2017 l
+S
+/BBAccumRotation (-1.570796) XT
+370.0625 504.2017 m
+369.0693 503.856 l
+S
+/BBAccumRotation (-1.570796) XT
+369.0693 503.856 m
+368.7676 503.208 l
+S
+/BBAccumRotation (-1.570796) XT
+368.7676 503.208 m
+369.0693 502.5171 l
+S
+/BBAccumRotation (-1.570796) XT
+369.0693 502.5171 m
+369.7607 502.2144 l
+S
+/BBAccumRotation (-1.570796) XT
+369.7607 502.2144 m
+371.4023 501.8687 l
+S
+/BBAccumRotation (-1.570796) XT
+371.4023 501.8687 m
+372.0938 501.5229 l
+S
+/BBAccumRotation (-1.570796) XT
+372.0938 501.5229 m
+372.3965 500.8755 l
+S
+/BBAccumRotation (-1.570796) XT
+372.3965 500.8755 m
+372.3965 500.5298 l
+S
+/BBAccumRotation (-1.570796) XT
+372.3965 500.5298 m
+372.0938 499.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+372.0938 499.8818 m
+371.0996 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+371.0996 499.5361 m
+370.0625 499.5361 l
+S
+/BBAccumRotation (-1.570796) XT
+370.0625 499.5361 m
+369.0703 499.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+369.0703 499.8818 m
+368.7676 500.5298 l
+S
+/BBAccumRotation (-1.570796) XT
+0.298 0.2118 0.1804 0.0392 K
+156.5259 308.2031 m
+156.5259 476.6396 l
+S
+/BBAccumRotation (-1.570796) XT
+190.9995 308.2031 m
+190.9995 476.6396 l
+S
+/BBAccumRotation (-1.570796) XT
+225.4731 308.2031 m
+225.4731 476.6396 l
+S
+/BBAccumRotation (-1.570796) XT
+259.9468 308.2031 m
+259.9468 476.6396 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 350.3232 m
+294.4204 350.3232 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 392.4434 m
+294.4204 392.4434 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 434.52 m
+294.4204 434.52 l
+S
+/BBAccumRotation (-1.570796) XT
+0 0 0 1 K
+0.72 w
+122.0522 308.2031 m
+294.4204 308.2031 l
+S
+/BBAccumRotation (-1.570796) XT
+123.3481 303.9258 m
+122.7861 303.71 l
+S
+/BBAccumRotation (-1.570796) XT
+122.7861 303.71 m
+122.3979 303.1914 l
+S
+/BBAccumRotation (-1.570796) XT
+122.3979 303.1914 m
+122.2251 302.2422 l
+S
+/BBAccumRotation (-1.570796) XT
+122.2251 302.2422 m
+122.2251 301.6797 l
+S
+/BBAccumRotation (-1.570796) XT
+122.2251 301.6797 m
+122.3979 300.7734 l
+S
+/BBAccumRotation (-1.570796) XT
+122.3979 300.7734 m
+122.7861 300.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+122.7861 300.2109 m
+123.3481 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+123.3481 300.0391 m
+123.6938 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+123.6938 300.0391 m
+124.2554 300.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+124.2554 300.2109 m
+124.644 300.7734 l
+S
+/BBAccumRotation (-1.570796) XT
+124.644 300.7734 m
+124.8169 301.6797 l
+S
+/BBAccumRotation (-1.570796) XT
+124.8169 301.6797 m
+124.8169 302.2422 l
+S
+/BBAccumRotation (-1.570796) XT
+124.8169 302.2422 m
+124.644 303.1914 l
+S
+/BBAccumRotation (-1.570796) XT
+124.644 303.1914 m
+124.2554 303.7109 l
+S
+/BBAccumRotation (-1.570796) XT
+124.2554 303.7109 m
+123.6938 303.9258 l
+S
+/BBAccumRotation (-1.570796) XT
+123.6938 303.9258 m
+123.3481 303.9258 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 308.2031 m
+122.0522 312.5234 l
+S
+/BBAccumRotation (-1.570796) XT
+156.8716 302.9766 m
+156.8716 303.1914 l
+S
+/BBAccumRotation (-1.570796) XT
+156.8716 303.1914 m
+157.0869 303.5371 l
+S
+/BBAccumRotation (-1.570796) XT
+157.0869 303.5371 m
+157.2598 303.71 l
+S
+/BBAccumRotation (-1.570796) XT
+157.2598 303.7109 m
+157.6055 303.9258 l
+S
+/BBAccumRotation (-1.570796) XT
+157.6055 303.9258 m
+158.3833 303.9258 l
+S
+/BBAccumRotation (-1.570796) XT
+158.3833 303.9258 m
+158.729 303.7109 l
+S
+/BBAccumRotation (-1.570796) XT
+158.729 303.7109 m
+158.9019 303.5371 l
+S
+/BBAccumRotation (-1.570796) XT
+158.9019 303.5371 m
+159.1177 303.1914 l
+S
+/BBAccumRotation (-1.570796) XT
+159.1177 303.1914 m
+159.1177 302.8027 l
+S
+/BBAccumRotation (-1.570796) XT
+159.1177 302.8027 m
+158.9019 302.4141 l
+S
+/BBAccumRotation (-1.570796) XT
+158.9019 302.4141 m
+158.5562 301.8965 l
+S
+/BBAccumRotation (-1.570796) XT
+158.5562 301.8965 m
+156.6987 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+156.6987 300.0391 m
+159.2905 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+156.5259 308.2031 m
+156.5259 312.5234 l
+S
+/BBAccumRotation (-1.570796) XT
+193.0298 303.9258 m
+191.1724 301.334 l
+S
+/BBAccumRotation (-1.570796) XT
+191.1724 301.334 m
+193.9365 301.334 l
+S
+/BBAccumRotation (-1.570796) XT
+193.0298 303.9258 m
+193.0298 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+190.9995 308.2031 m
+190.9995 312.5234 l
+S
+/BBAccumRotation (-1.570796) XT
+228.0649 303.3652 m
+227.8491 303.71 l
+S
+/BBAccumRotation (-1.570796) XT
+227.8491 303.71 m
+227.2871 303.9258 l
+S
+/BBAccumRotation (-1.570796) XT
+227.2871 303.9258 m
+226.9419 303.9258 l
+S
+/BBAccumRotation (-1.570796) XT
+226.9419 303.9258 m
+226.3799 303.7109 l
+S
+/BBAccumRotation (-1.570796) XT
+226.3799 303.7109 m
+226.0342 303.1914 l
+S
+/BBAccumRotation (-1.570796) XT
+226.0342 303.1914 m
+225.8188 302.2422 l
+S
+/BBAccumRotation (-1.570796) XT
+225.8188 302.2422 m
+225.8188 301.334 l
+S
+/BBAccumRotation (-1.570796) XT
+225.8188 301.334 m
+226.0342 300.5996 l
+S
+/BBAccumRotation (-1.570796) XT
+226.0342 300.5996 m
+226.3799 300.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+226.3799 300.2109 m
+226.9419 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+226.9419 300.0391 m
+227.1143 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+227.1143 300.0391 m
+227.6763 300.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+227.6763 300.2109 m
+228.0645 300.5996 l
+S
+/BBAccumRotation (-1.570796) XT
+228.0645 300.5996 m
+228.2373 301.1621 l
+S
+/BBAccumRotation (-1.570796) XT
+228.2373 301.1621 m
+228.2373 301.334 l
+S
+/BBAccumRotation (-1.570796) XT
+228.2373 301.334 m
+228.0645 301.8965 l
+S
+/BBAccumRotation (-1.570796) XT
+228.0645 301.8965 m
+227.6763 302.2422 l
+S
+/BBAccumRotation (-1.570796) XT
+227.6763 302.2422 m
+227.1143 302.4141 l
+S
+/BBAccumRotation (-1.570796) XT
+227.1143 302.4141 m
+226.9419 302.4141 l
+S
+/BBAccumRotation (-1.570796) XT
+226.9419 302.4141 m
+226.3799 302.2422 l
+S
+/BBAccumRotation (-1.570796) XT
+226.3799 302.2422 m
+226.0342 301.8965 l
+S
+/BBAccumRotation (-1.570796) XT
+226.0342 301.8965 m
+225.8188 301.334 l
+S
+/BBAccumRotation (-1.570796) XT
+225.4731 308.2031 m
+225.4731 312.5234 l
+S
+/BBAccumRotation (-1.570796) XT
+261.0264 303.9258 m
+260.4653 303.71 l
+S
+/BBAccumRotation (-1.570796) XT
+260.4644 303.71 m
+260.2925 303.3652 l
+S
+/BBAccumRotation (-1.570796) XT
+260.2925 303.3652 m
+260.2925 302.9766 l
+S
+/BBAccumRotation (-1.570796) XT
+260.2925 302.9766 m
+260.4644 302.6309 l
+S
+/BBAccumRotation (-1.570796) XT
+260.4644 302.6309 m
+260.8535 302.4141 l
+S
+/BBAccumRotation (-1.570796) XT
+260.8535 302.4141 m
+261.5879 302.2422 l
+S
+/BBAccumRotation (-1.570796) XT
+261.5879 302.2422 m
+262.1499 302.0684 l
+S
+/BBAccumRotation (-1.570796) XT
+262.1499 302.0684 m
+262.4946 301.6797 l
+S
+/BBAccumRotation (-1.570796) XT
+262.4946 301.6797 m
+262.7109 301.334 l
+S
+/BBAccumRotation (-1.570796) XT
+262.7109 301.334 m
+262.7109 300.7734 l
+S
+/BBAccumRotation (-1.570796) XT
+262.7109 300.7734 m
+262.4946 300.3848 l
+S
+/BBAccumRotation (-1.570796) XT
+262.4946 300.3848 m
+262.3218 300.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+262.3218 300.2109 m
+261.7607 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+261.7607 300.0391 m
+261.0264 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+261.0264 300.0391 m
+260.4644 300.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+260.4644 300.2109 m
+260.2915 300.3848 l
+S
+/BBAccumRotation (-1.570796) XT
+260.2915 300.3848 m
+260.1187 300.7734 l
+S
+/BBAccumRotation (-1.570796) XT
+260.1187 300.7734 m
+260.1187 301.334 l
+S
+/BBAccumRotation (-1.570796) XT
+260.1187 301.334 m
+260.2915 301.6797 l
+S
+/BBAccumRotation (-1.570796) XT
+260.2915 301.6797 m
+260.6807 302.0684 l
+S
+/BBAccumRotation (-1.570796) XT
+260.6807 302.0684 m
+261.2422 302.2422 l
+S
+/BBAccumRotation (-1.570796) XT
+261.2422 302.2422 m
+261.9761 302.4141 l
+S
+/BBAccumRotation (-1.570796) XT
+261.9761 302.4141 m
+262.3218 302.6309 l
+S
+/BBAccumRotation (-1.570796) XT
+262.3218 302.6309 m
+262.4946 302.9766 l
+S
+/BBAccumRotation (-1.570796) XT
+262.4946 302.9766 m
+262.4946 303.3652 l
+S
+/BBAccumRotation (-1.570796) XT
+262.4946 303.3652 m
+262.3218 303.7109 l
+S
+/BBAccumRotation (-1.570796) XT
+262.3218 303.7109 m
+261.7607 303.9268 l
+S
+/BBAccumRotation (-1.570796) XT
+261.7607 303.9268 m
+261.0259 303.9268 l
+S
+/BBAccumRotation (-1.570796) XT
+259.9468 308.2031 m
+259.9468 312.5234 l
+S
+/BBAccumRotation (-1.570796) XT
+291.8281 303.1914 m
+292.1738 303.3652 l
+S
+/BBAccumRotation (-1.570796) XT
+292.1738 303.3652 m
+292.7349 303.9258 l
+S
+/BBAccumRotation (-1.570796) XT
+292.7349 303.9258 m
+292.7349 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+296.0615 303.9258 m
+295.5 303.71 l
+S
+/BBAccumRotation (-1.570796) XT
+295.5 303.71 m
+295.1543 303.1914 l
+S
+/BBAccumRotation (-1.570796) XT
+295.1543 303.1914 m
+294.938 302.2422 l
+S
+/BBAccumRotation (-1.570796) XT
+294.938 302.2422 m
+294.938 301.6797 l
+S
+/BBAccumRotation (-1.570796) XT
+294.938 301.6797 m
+295.1543 300.7734 l
+S
+/BBAccumRotation (-1.570796) XT
+295.1543 300.7734 m
+295.5 300.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+295.5 300.2109 m
+296.0615 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+296.0615 300.0391 m
+296.4507 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+296.4507 300.0391 m
+296.9692 300.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+296.9692 300.2109 m
+297.3574 300.7734 l
+S
+/BBAccumRotation (-1.570796) XT
+297.3574 300.7734 m
+297.5303 301.6797 l
+S
+/BBAccumRotation (-1.570796) XT
+297.5303 301.6797 m
+297.5303 302.2422 l
+S
+/BBAccumRotation (-1.570796) XT
+297.5303 302.2422 m
+297.3574 303.1914 l
+S
+/BBAccumRotation (-1.570796) XT
+297.3574 303.1914 m
+296.9692 303.7109 l
+S
+/BBAccumRotation (-1.570796) XT
+296.9692 303.7109 m
+296.4507 303.9268 l
+S
+/BBAccumRotation (-1.570796) XT
+296.4507 303.9268 m
+296.0615 303.9268 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 308.2031 m
+294.4204 312.5234 l
+S
+/BBAccumRotation (-1.570796) XT
+128.9644 308.2031 m
+128.9644 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+135.8325 308.2031 m
+135.8325 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+142.7451 308.2031 m
+142.7451 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+149.6138 308.2031 m
+149.6138 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+163.3945 308.2031 m
+163.3945 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+170.3062 308.2031 m
+170.3062 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+177.2188 308.2031 m
+177.2188 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+184.0869 308.2031 m
+184.0869 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+197.8682 308.2031 m
+197.8682 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+204.7798 308.2031 m
+204.7798 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+211.6924 308.2031 m
+211.6924 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+218.5605 308.2031 m
+218.5605 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+232.3418 308.2031 m
+232.3418 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+239.2534 308.2031 m
+239.2534 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+246.1226 308.2031 m
+246.1226 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+253.0342 308.2031 m
+253.0342 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+266.8154 308.2031 m
+266.8154 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+273.7271 308.2031 m
+273.7271 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+280.5962 308.2031 m
+280.5962 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+287.5078 308.2031 m
+287.5078 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+202.4473 294.6816 m
+206.335 288.8926 l
+S
+/BBAccumRotation (-1.570796) XT
+206.335 294.6816 m
+202.4473 288.8926 l
+S
+/BBAccumRotation (-1.570796) XT
+208.02 289.9297 m
+208.02 285.5664 l
+S
+/BBAccumRotation (-1.570796) XT
+211.9512 288.4609 m
+211.9512 285.5664 l
+S
+/BBAccumRotation (-1.570796) XT
+211.9512 287.8125 m
+211.5195 288.2441 l
+S
+/BBAccumRotation (-1.570796) XT
+211.5195 288.2441 m
+211.1304 288.4609 l
+S
+/BBAccumRotation (-1.570796) XT
+211.1304 288.4609 m
+210.4824 288.4609 l
+S
+/BBAccumRotation (-1.570796) XT
+210.4824 288.4609 m
+210.0938 288.2441 l
+S
+/BBAccumRotation (-1.570796) XT
+210.0938 288.2441 m
+209.6616 287.8125 l
+S
+/BBAccumRotation (-1.570796) XT
+209.6616 287.8125 m
+209.4458 287.207 l
+S
+/BBAccumRotation (-1.570796) XT
+209.4458 287.207 m
+209.4458 286.7754 l
+S
+/BBAccumRotation (-1.570796) XT
+209.4458 286.7754 m
+209.6616 286.1719 l
+S
+/BBAccumRotation (-1.570796) XT
+209.6616 286.1719 m
+210.0938 285.7393 l
+S
+/BBAccumRotation (-1.570796) XT
+210.0938 285.7393 m
+210.4824 285.5664 l
+S
+/BBAccumRotation (-1.570796) XT
+210.4824 285.5664 m
+211.1304 285.5664 l
+S
+/BBAccumRotation (-1.570796) XT
+211.1304 285.5664 m
+211.5195 285.7393 l
+S
+/BBAccumRotation (-1.570796) XT
+211.5195 285.7393 m
+211.9512 286.1719 l
+S
+/BBAccumRotation (-1.570796) XT
+213.5933 289.9297 m
+213.5933 285.5664 l
+S
+/BBAccumRotation (-1.570796) XT
+213.5933 287.8125 m
+214.0249 288.2441 l
+S
+/BBAccumRotation (-1.570796) XT
+214.0249 288.2441 m
+214.4565 288.4609 l
+S
+/BBAccumRotation (-1.570796) XT
+214.4565 288.4609 m
+215.0615 288.4609 l
+S
+/BBAccumRotation (-1.570796) XT
+215.0615 288.4609 m
+215.4937 288.2441 l
+S
+/BBAccumRotation (-1.570796) XT
+215.4937 288.2441 m
+215.8823 287.8125 l
+S
+/BBAccumRotation (-1.570796) XT
+215.8823 287.8125 m
+216.0986 287.207 l
+S
+/BBAccumRotation (-1.570796) XT
+216.0986 287.207 m
+216.0986 286.7754 l
+S
+/BBAccumRotation (-1.570796) XT
+216.0986 286.7754 m
+215.8823 286.1719 l
+S
+/BBAccumRotation (-1.570796) XT
+215.8823 286.1719 m
+215.4937 285.7393 l
+S
+/BBAccumRotation (-1.570796) XT
+215.4937 285.7393 m
+215.0615 285.5664 l
+S
+/BBAccumRotation (-1.570796) XT
+215.0615 285.5664 m
+214.4565 285.5664 l
+S
+/BBAccumRotation (-1.570796) XT
+214.4565 285.5664 m
+214.0249 285.7393 l
+S
+/BBAccumRotation (-1.570796) XT
+214.0249 285.7393 m
+213.5933 286.1719 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 476.6396 m
+294.4204 476.6396 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 476.6396 m
+122.0522 472.3198 l
+S
+/BBAccumRotation (-1.570796) XT
+156.5259 476.6396 m
+156.5259 472.3198 l
+S
+/BBAccumRotation (-1.570796) XT
+190.9995 476.6396 m
+190.9995 472.3198 l
+S
+/BBAccumRotation (-1.570796) XT
+225.4731 476.6396 m
+225.4731 472.3198 l
+S
+/BBAccumRotation (-1.570796) XT
+259.9468 476.6396 m
+259.9468 472.3198 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 476.6396 m
+294.4204 472.3198 l
+S
+/BBAccumRotation (-1.570796) XT
+128.9644 476.6396 m
+128.9644 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+135.8325 476.6396 m
+135.8325 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+142.7451 476.6396 m
+142.7451 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+149.6138 476.6396 m
+149.6138 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+163.3945 476.6396 m
+163.3945 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+170.3062 476.6396 m
+170.3062 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+177.2188 476.6396 m
+177.2188 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+184.0869 476.6396 m
+184.0869 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+197.8682 476.6396 m
+197.8682 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+204.7798 476.6396 m
+204.7798 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+211.6924 476.6396 m
+211.6924 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+218.5605 476.6396 m
+218.5605 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+232.3418 476.6396 m
+232.3418 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+239.2534 476.6396 m
+239.2534 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+246.1226 476.6396 m
+246.1226 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+253.0342 476.6396 m
+253.0342 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+266.8154 476.6396 m
+266.8154 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+273.7271 476.6396 m
+273.7271 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+280.5962 476.6396 m
+280.5962 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+287.5078 476.6396 m
+287.5078 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 308.2031 m
+122.0522 476.6396 l
+S
+/BBAccumRotation (-1.570796) XT
+106.5864 309.8447 m
+109.9126 309.8447 l
+S
+/BBAccumRotation (-1.570796) XT
+112.332 312.0479 m
+111.7705 311.875 l
+S
+/BBAccumRotation (-1.570796) XT
+111.7705 311.875 m
+111.3813 311.3145 l
+S
+/BBAccumRotation (-1.570796) XT
+111.3813 311.3145 m
+111.2085 310.4063 l
+S
+/BBAccumRotation (-1.570796) XT
+111.2085 310.4063 m
+111.2085 309.8447 l
+S
+/BBAccumRotation (-1.570796) XT
+111.2085 309.8447 m
+111.3813 308.9375 l
+S
+/BBAccumRotation (-1.570796) XT
+111.3813 308.9375 m
+111.7705 308.376 l
+S
+/BBAccumRotation (-1.570796) XT
+111.7705 308.376 m
+112.332 308.2031 l
+S
+/BBAccumRotation (-1.570796) XT
+112.332 308.2031 m
+112.6777 308.2031 l
+S
+/BBAccumRotation (-1.570796) XT
+112.6777 308.2031 m
+113.2397 308.376 l
+S
+/BBAccumRotation (-1.570796) XT
+113.2397 308.376 m
+113.6279 308.9375 l
+S
+/BBAccumRotation (-1.570796) XT
+113.6279 308.9375 m
+113.8008 309.8447 l
+S
+/BBAccumRotation (-1.570796) XT
+113.8008 309.8447 m
+113.8008 310.4063 l
+S
+/BBAccumRotation (-1.570796) XT
+113.8008 310.4063 m
+113.6279 311.3145 l
+S
+/BBAccumRotation (-1.570796) XT
+113.6279 311.3145 m
+113.2397 311.875 l
+S
+/BBAccumRotation (-1.570796) XT
+113.2397 311.875 m
+112.6777 312.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+112.6777 312.0479 m
+112.332 312.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+115.27 308.5488 m
+115.0972 308.376 l
+S
+/BBAccumRotation (-1.570796) XT
+115.0972 308.376 m
+115.27 308.2031 l
+S
+/BBAccumRotation (-1.570796) XT
+115.27 308.2031 m
+115.4429 308.376 l
+S
+/BBAccumRotation (-1.570796) XT
+115.4429 308.376 m
+115.27 308.5488 l
+S
+/BBAccumRotation (-1.570796) XT
+116.9546 311.1406 m
+116.9546 311.3145 l
+S
+/BBAccumRotation (-1.570796) XT
+116.9546 311.3145 m
+117.1274 311.7021 l
+S
+/BBAccumRotation (-1.570796) XT
+117.1274 311.7021 m
+117.3003 311.875 l
+S
+/BBAccumRotation (-1.570796) XT
+117.3003 311.875 m
+117.689 312.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+117.689 312.0479 m
+118.4233 312.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+118.4233 312.0479 m
+118.769 311.875 l
+S
+/BBAccumRotation (-1.570796) XT
+118.769 311.875 m
+118.9849 311.7021 l
+S
+/BBAccumRotation (-1.570796) XT
+118.9849 311.7021 m
+119.1577 311.3145 l
+S
+/BBAccumRotation (-1.570796) XT
+119.1577 311.3145 m
+119.1577 310.9688 l
+S
+/BBAccumRotation (-1.570796) XT
+119.1577 310.9688 m
+118.9849 310.5801 l
+S
+/BBAccumRotation (-1.570796) XT
+118.9849 310.5801 m
+118.5962 310.0176 l
+S
+/BBAccumRotation (-1.570796) XT
+118.5962 310.0176 m
+116.7388 308.2031 l
+S
+/BBAccumRotation (-1.570796) XT
+116.7388 308.2031 m
+119.3306 308.2031 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 308.2031 m
+126.3721 308.2031 l
+S
+/BBAccumRotation (-1.570796) XT
+106.5864 348.9844 m
+109.9126 348.9844 l
+S
+/BBAccumRotation (-1.570796) XT
+112.332 351.1875 m
+111.7705 351.0146 l
+S
+/BBAccumRotation (-1.570796) XT
+111.7705 351.0146 m
+111.3813 350.4531 l
+S
+/BBAccumRotation (-1.570796) XT
+111.3813 350.4531 m
+111.2085 349.502 l
+S
+/BBAccumRotation (-1.570796) XT
+111.2085 349.502 m
+111.2085 348.9844 l
+S
+/BBAccumRotation (-1.570796) XT
+111.2085 348.9844 m
+111.3813 348.0332 l
+S
+/BBAccumRotation (-1.570796) XT
+111.3813 348.0332 m
+111.7705 347.4727 l
+S
+/BBAccumRotation (-1.570796) XT
+111.7705 347.4727 m
+112.332 347.2988 l
+S
+/BBAccumRotation (-1.570796) XT
+112.332 347.2988 m
+112.6777 347.2988 l
+S
+/BBAccumRotation (-1.570796) XT
+112.6777 347.2988 m
+113.2397 347.4727 l
+S
+/BBAccumRotation (-1.570796) XT
+113.2397 347.4727 m
+113.6279 348.0332 l
+S
+/BBAccumRotation (-1.570796) XT
+113.6279 348.0332 m
+113.8008 348.9844 l
+S
+/BBAccumRotation (-1.570796) XT
+113.8008 348.9844 m
+113.8008 349.502 l
+S
+/BBAccumRotation (-1.570796) XT
+113.8008 349.502 m
+113.6279 350.4531 l
+S
+/BBAccumRotation (-1.570796) XT
+113.6279 350.4531 m
+113.2397 351.0146 l
+S
+/BBAccumRotation (-1.570796) XT
+113.2397 351.0146 m
+112.6777 351.1875 l
+S
+/BBAccumRotation (-1.570796) XT
+112.6777 351.1875 m
+112.332 351.1875 l
+S
+/BBAccumRotation (-1.570796) XT
+115.27 347.6875 m
+115.0972 347.4727 l
+S
+/BBAccumRotation (-1.570796) XT
+115.0972 347.4727 m
+115.27 347.2988 l
+S
+/BBAccumRotation (-1.570796) XT
+115.27 347.2988 m
+115.4429 347.4727 l
+S
+/BBAccumRotation (-1.570796) XT
+115.4429 347.4727 m
+115.27 347.6875 l
+S
+/BBAccumRotation (-1.570796) XT
+117.3003 350.4531 m
+117.689 350.625 l
+S
+/BBAccumRotation (-1.570796) XT
+117.689 350.625 m
+118.207 351.1875 l
+S
+/BBAccumRotation (-1.570796) XT
+118.207 351.1875 m
+118.207 347.2988 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 350.3232 m
+126.3721 350.3232 l
+S
+/BBAccumRotation (-1.570796) XT
+112.332 393.3066 m
+111.7705 393.1348 l
+S
+/BBAccumRotation (-1.570796) XT
+111.7705 393.1348 m
+111.3813 392.5723 l
+S
+/BBAccumRotation (-1.570796) XT
+111.3813 392.5723 m
+111.2085 391.623 l
+S
+/BBAccumRotation (-1.570796) XT
+111.2085 391.623 m
+111.2085 391.1035 l
+S
+/BBAccumRotation (-1.570796) XT
+111.2085 391.1035 m
+111.3813 390.1533 l
+S
+/BBAccumRotation (-1.570796) XT
+111.3813 390.1533 m
+111.7705 389.5918 l
+S
+/BBAccumRotation (-1.570796) XT
+111.7705 389.5918 m
+112.332 389.4199 l
+S
+/BBAccumRotation (-1.570796) XT
+112.332 389.4199 m
+112.6777 389.4199 l
+S
+/BBAccumRotation (-1.570796) XT
+112.6777 389.4199 m
+113.2397 389.5918 l
+S
+/BBAccumRotation (-1.570796) XT
+113.2397 389.5918 m
+113.6279 390.1533 l
+S
+/BBAccumRotation (-1.570796) XT
+113.6279 390.1533 m
+113.8008 391.1035 l
+S
+/BBAccumRotation (-1.570796) XT
+113.8008 391.1035 m
+113.8008 391.623 l
+S
+/BBAccumRotation (-1.570796) XT
+113.8008 391.623 m
+113.6279 392.5723 l
+S
+/BBAccumRotation (-1.570796) XT
+113.6279 392.5723 m
+113.2397 393.1348 l
+S
+/BBAccumRotation (-1.570796) XT
+113.2397 393.1348 m
+112.6777 393.3066 l
+S
+/BBAccumRotation (-1.570796) XT
+112.6777 393.3076 m
+112.332 393.3076 l
+S
+/BBAccumRotation (-1.570796) XT
+115.27 389.8076 m
+115.0972 389.5918 l
+S
+/BBAccumRotation (-1.570796) XT
+115.0972 389.5918 m
+115.27 389.4199 l
+S
+/BBAccumRotation (-1.570796) XT
+115.27 389.4199 m
+115.4429 389.5918 l
+S
+/BBAccumRotation (-1.570796) XT
+115.4429 389.5918 m
+115.27 389.8076 l
+S
+/BBAccumRotation (-1.570796) XT
+117.8613 393.3066 m
+117.3003 393.1348 l
+S
+/BBAccumRotation (-1.570796) XT
+117.3003 393.1348 m
+116.9546 392.5723 l
+S
+/BBAccumRotation (-1.570796) XT
+116.9546 392.5723 m
+116.7388 391.623 l
+S
+/BBAccumRotation (-1.570796) XT
+116.7388 391.623 m
+116.7388 391.1035 l
+S
+/BBAccumRotation (-1.570796) XT
+116.7388 391.1035 m
+116.9546 390.1533 l
+S
+/BBAccumRotation (-1.570796) XT
+116.9546 390.1533 m
+117.3003 389.5918 l
+S
+/BBAccumRotation (-1.570796) XT
+117.3003 389.5918 m
+117.8613 389.4199 l
+S
+/BBAccumRotation (-1.570796) XT
+117.8613 389.4199 m
+118.207 389.4199 l
+S
+/BBAccumRotation (-1.570796) XT
+118.207 389.4199 m
+118.769 389.5918 l
+S
+/BBAccumRotation (-1.570796) XT
+118.769 389.5918 m
+119.1577 390.1533 l
+S
+/BBAccumRotation (-1.570796) XT
+119.1577 390.1533 m
+119.3306 391.1035 l
+S
+/BBAccumRotation (-1.570796) XT
+119.3306 391.1035 m
+119.3306 391.623 l
+S
+/BBAccumRotation (-1.570796) XT
+119.3306 391.623 m
+119.1577 392.5723 l
+S
+/BBAccumRotation (-1.570796) XT
+119.1577 392.5723 m
+118.769 393.1348 l
+S
+/BBAccumRotation (-1.570796) XT
+118.769 393.1348 m
+118.207 393.3066 l
+S
+/BBAccumRotation (-1.570796) XT
+118.207 393.3076 m
+117.8613 393.3076 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 392.4434 m
+126.3721 392.4434 l
+S
+/BBAccumRotation (-1.570796) XT
+112.332 435.4272 m
+111.7705 435.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+111.7705 435.2109 m
+111.3813 434.6924 l
+S
+/BBAccumRotation (-1.570796) XT
+111.3813 434.6924 m
+111.2085 433.7422 l
+S
+/BBAccumRotation (-1.570796) XT
+111.2085 433.7422 m
+111.2085 433.1807 l
+S
+/BBAccumRotation (-1.570796) XT
+111.2085 433.1807 m
+111.3813 432.2734 l
+S
+/BBAccumRotation (-1.570796) XT
+111.3813 432.2734 m
+111.7705 431.7119 l
+S
+/BBAccumRotation (-1.570796) XT
+111.7705 431.7119 m
+112.332 431.5391 l
+S
+/BBAccumRotation (-1.570796) XT
+112.332 431.5391 m
+112.6777 431.5391 l
+S
+/BBAccumRotation (-1.570796) XT
+112.6777 431.5391 m
+113.2397 431.7119 l
+S
+/BBAccumRotation (-1.570796) XT
+113.2397 431.7119 m
+113.6279 432.2734 l
+S
+/BBAccumRotation (-1.570796) XT
+113.6279 432.2734 m
+113.8008 433.1807 l
+S
+/BBAccumRotation (-1.570796) XT
+113.8008 433.1807 m
+113.8008 433.7427 l
+S
+/BBAccumRotation (-1.570796) XT
+113.8008 433.7427 m
+113.6279 434.6929 l
+S
+/BBAccumRotation (-1.570796) XT
+113.6279 434.6929 m
+113.2397 435.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+113.2397 435.2109 m
+112.6777 435.4272 l
+S
+/BBAccumRotation (-1.570796) XT
+112.6777 435.4272 m
+112.332 435.4272 l
+S
+/BBAccumRotation (-1.570796) XT
+115.27 431.8848 m
+115.0972 431.7119 l
+S
+/BBAccumRotation (-1.570796) XT
+115.0972 431.7119 m
+115.27 431.5391 l
+S
+/BBAccumRotation (-1.570796) XT
+115.27 431.5391 m
+115.4429 431.7119 l
+S
+/BBAccumRotation (-1.570796) XT
+115.4429 431.7119 m
+115.27 431.8848 l
+S
+/BBAccumRotation (-1.570796) XT
+117.3003 434.6924 m
+117.689 434.8652 l
+S
+/BBAccumRotation (-1.570796) XT
+117.689 434.8652 m
+118.207 435.4272 l
+S
+/BBAccumRotation (-1.570796) XT
+118.207 435.4272 m
+118.207 431.5391 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 434.52 m
+126.3721 434.52 l
+S
+/BBAccumRotation (-1.570796) XT
+112.332 474.5229 m
+111.7705 474.3501 l
+S
+/BBAccumRotation (-1.570796) XT
+111.7705 474.3501 m
+111.3813 473.7886 l
+S
+/BBAccumRotation (-1.570796) XT
+111.3813 473.7886 m
+111.2085 472.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+111.2085 472.8818 m
+111.2085 472.3198 l
+S
+/BBAccumRotation (-1.570796) XT
+111.2085 472.3198 m
+111.3813 471.3696 l
+S
+/BBAccumRotation (-1.570796) XT
+111.3813 471.3696 m
+111.7705 470.8511 l
+S
+/BBAccumRotation (-1.570796) XT
+111.7705 470.8511 m
+112.332 470.6353 l
+S
+/BBAccumRotation (-1.570796) XT
+112.332 470.6353 m
+112.6777 470.6353 l
+S
+/BBAccumRotation (-1.570796) XT
+112.6777 470.6353 m
+113.2397 470.8511 l
+S
+/BBAccumRotation (-1.570796) XT
+113.2397 470.8511 m
+113.6279 471.3696 l
+S
+/BBAccumRotation (-1.570796) XT
+113.6279 471.3696 m
+113.8008 472.3198 l
+S
+/BBAccumRotation (-1.570796) XT
+113.8008 472.3198 m
+113.8008 472.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+113.8008 472.8818 m
+113.6279 473.7886 l
+S
+/BBAccumRotation (-1.570796) XT
+113.6279 473.7886 m
+113.2397 474.3501 l
+S
+/BBAccumRotation (-1.570796) XT
+113.2397 474.3501 m
+112.6777 474.5229 l
+S
+/BBAccumRotation (-1.570796) XT
+112.6777 474.5229 m
+112.332 474.5229 l
+S
+/BBAccumRotation (-1.570796) XT
+115.27 471.0239 m
+115.0972 470.8511 l
+S
+/BBAccumRotation (-1.570796) XT
+115.0972 470.8511 m
+115.27 470.6353 l
+S
+/BBAccumRotation (-1.570796) XT
+115.27 470.6353 m
+115.4429 470.8511 l
+S
+/BBAccumRotation (-1.570796) XT
+115.4429 470.8511 m
+115.27 471.0239 l
+S
+/BBAccumRotation (-1.570796) XT
+116.9546 473.6157 m
+116.9546 473.7886 l
+S
+/BBAccumRotation (-1.570796) XT
+116.9546 473.7886 m
+117.1274 474.1772 l
+S
+/BBAccumRotation (-1.570796) XT
+117.1274 474.1772 m
+117.3003 474.3501 l
+S
+/BBAccumRotation (-1.570796) XT
+117.3003 474.3501 m
+117.689 474.5229 l
+S
+/BBAccumRotation (-1.570796) XT
+117.689 474.5229 m
+118.4233 474.5229 l
+S
+/BBAccumRotation (-1.570796) XT
+118.4233 474.5229 m
+118.769 474.3501 l
+S
+/BBAccumRotation (-1.570796) XT
+118.769 474.3501 m
+118.9849 474.1772 l
+S
+/BBAccumRotation (-1.570796) XT
+118.9849 474.1777 m
+119.1577 473.7886 l
+S
+/BBAccumRotation (-1.570796) XT
+119.1577 473.7886 m
+119.1577 473.3999 l
+S
+/BBAccumRotation (-1.570796) XT
+119.1577 473.3999 m
+118.9849 473.0547 l
+S
+/BBAccumRotation (-1.570796) XT
+118.9849 473.0547 m
+118.5962 472.4927 l
+S
+/BBAccumRotation (-1.570796) XT
+118.5962 472.4927 m
+116.7388 470.6353 l
+S
+/BBAccumRotation (-1.570796) XT
+116.7388 470.6353 m
+119.3306 470.6353 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 476.6396 m
+126.3721 476.6396 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 316.627 m
+124.644 316.627 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 325.0508 m
+124.644 325.0508 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 333.4746 m
+124.644 333.4746 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 341.8984 m
+124.644 341.8984 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 358.7471 m
+124.644 358.7471 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 367.1719 m
+124.644 367.1719 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 375.5957 m
+124.644 375.5957 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 384.0195 m
+124.644 384.0195 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 400.8237 m
+124.644 400.8237 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 409.248 m
+124.644 409.248 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 417.6719 m
+124.644 417.6719 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 426.0962 m
+124.644 426.0962 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 442.9438 m
+124.644 442.9438 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 451.3677 m
+124.644 451.3677 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 459.792 m
+124.644 459.792 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 468.2158 m
+124.644 468.2158 l
+S
+/BBAccumRotation (-1.570796) XT
+97.9033 386.4814 m
+98.1621 385.9199 l
+S
+/BBAccumRotation (-1.570796) XT
+98.1621 385.9199 m
+98.7241 385.3574 l
+S
+/BBAccumRotation (-1.570796) XT
+98.7241 385.3574 m
+99.8042 384.7969 l
+S
+/BBAccumRotation (-1.570796) XT
+99.8042 384.7969 m
+100.6685 384.5371 l
+S
+/BBAccumRotation (-1.570796) XT
+100.6685 384.5371 m
+101.748 384.2344 l
+S
+/BBAccumRotation (-1.570796) XT
+101.748 384.2354 m
+103.4326 383.9766 l
+S
+/BBAccumRotation (-1.570796) XT
+103.4326 383.9766 m
+105.6357 383.7168 l
+S
+/BBAccumRotation (-1.570796) XT
+97.9033 386.4814 m
+97.9033 387.043 l
+S
+/BBAccumRotation (-1.570796) XT
+97.9033 387.043 m
+98.4219 387.5605 l
+S
+/BBAccumRotation (-1.570796) XT
+98.4219 387.5625 m
+99.2856 387.5625 l
+S
+/BBAccumRotation (-1.570796) XT
+99.2856 387.5625 m
+99.8042 387.3027 l
+S
+/BBAccumRotation (-1.570796) XT
+99.8042 387.3027 m
+100.1064 387.043 l
+S
+/BBAccumRotation (-1.570796) XT
+100.1064 387.043 m
+100.3657 386.4814 l
+S
+/BBAccumRotation (-1.570796) XT
+100.3657 386.4814 m
+100.3657 385.6172 l
+S
+/BBAccumRotation (-1.570796) XT
+100.3657 385.6172 m
+100.6685 386.1797 l
+S
+/BBAccumRotation (-1.570796) XT
+100.6685 386.1797 m
+101.186 386.7402 l
+S
+/BBAccumRotation (-1.570796) XT
+101.186 386.7402 m
+101.748 387.043 l
+S
+/BBAccumRotation (-1.570796) XT
+101.748 387.043 m
+102.6118 387.043 l
+S
+/BBAccumRotation (-1.570796) XT
+102.6118 387.043 m
+103.1304 386.7402 l
+S
+/BBAccumRotation (-1.570796) XT
+103.1304 386.7402 m
+103.4326 386.4814 l
+S
+/BBAccumRotation (-1.570796) XT
+103.4326 386.4814 m
+103.6924 385.9199 l
+S
+/BBAccumRotation (-1.570796) XT
+103.6924 385.9199 m
+103.6924 385.3594 l
+S
+/BBAccumRotation (-1.570796) XT
+103.6924 385.3594 m
+103.4326 384.7969 l
+S
+/BBAccumRotation (-1.570796) XT
+103.4326 384.7969 m
+103.1304 384.5371 l
+S
+/BBAccumRotation (-1.570796) XT
+103.1304 384.5371 m
+102.3096 384.2354 l
+S
+/BBAccumRotation (-1.570796) XT
+96.7798 391.4492 m
+97.3418 390.8887 l
+S
+/BBAccumRotation (-1.570796) XT
+97.3418 390.8887 m
+98.1621 390.3262 l
+S
+/BBAccumRotation (-1.570796) XT
+98.1621 390.3262 m
+99.2856 389.8076 l
+S
+/BBAccumRotation (-1.570796) XT
+99.2856 389.8076 m
+100.6685 389.5059 l
+S
+/BBAccumRotation (-1.570796) XT
+100.6685 389.5059 m
+101.748 389.5059 l
+S
+/BBAccumRotation (-1.570796) XT
+101.748 389.5059 m
+103.1304 389.8076 l
+S
+/BBAccumRotation (-1.570796) XT
+103.1304 389.8076 m
+104.2534 390.3262 l
+S
+/BBAccumRotation (-1.570796) XT
+104.2534 390.3262 m
+105.0747 390.8887 l
+S
+/BBAccumRotation (-1.570796) XT
+105.0747 390.8887 m
+105.6357 391.4492 l
+S
+/BBAccumRotation (-1.570796) XT
+98.7241 394.7754 m
+103.6924 393.1348 l
+S
+/BBAccumRotation (-1.570796) XT
+98.7241 395.3379 m
+103.6924 396.979 l
+S
+/BBAccumRotation (-1.570796) XT
+98.7241 395.0347 m
+103.6924 396.7202 l
+S
+/BBAccumRotation (-1.570796) XT
+102.0503 393.6523 m
+102.0503 396.1582 l
+S
+/BBAccumRotation (-1.570796) XT
+103.6924 392.5723 m
+103.6924 394.2148 l
+S
+/BBAccumRotation (-1.570796) XT
+103.6924 395.8989 m
+103.6924 397.5405 l
+S
+/BBAccumRotation (-1.570796) XT
+96.7798 394.7754 m
+97.0396 394.2148 l
+S
+/BBAccumRotation (-1.570796) XT
+97.0396 394.2148 m
+97.6011 393.9551 l
+S
+/BBAccumRotation (-1.570796) XT
+97.6011 393.9551 m
+98.1621 393.9551 l
+S
+/BBAccumRotation (-1.570796) XT
+98.1621 393.9551 m
+98.7241 394.2148 l
+S
+/BBAccumRotation (-1.570796) XT
+98.7241 394.2148 m
+98.9829 394.7754 l
+S
+/BBAccumRotation (-1.570796) XT
+98.9829 394.7754 m
+98.9829 395.3379 l
+S
+/BBAccumRotation (-1.570796) XT
+98.9829 395.3379 m
+98.7241 395.8989 l
+S
+/BBAccumRotation (-1.570796) XT
+98.7241 395.8989 m
+98.1621 396.1582 l
+S
+/BBAccumRotation (-1.570796) XT
+98.1621 396.1582 m
+97.6011 396.1582 l
+S
+/BBAccumRotation (-1.570796) XT
+97.6011 396.1582 m
+97.0396 395.8989 l
+S
+/BBAccumRotation (-1.570796) XT
+97.0396 395.8989 m
+96.7798 395.3379 l
+S
+/BBAccumRotation (-1.570796) XT
+96.7798 395.3379 m
+96.7798 394.7754 l
+S
+/BBAccumRotation (-1.570796) XT
+96.7798 398.6641 m
+97.3418 399.2256 l
+S
+/BBAccumRotation (-1.570796) XT
+97.3418 399.2256 m
+98.1621 399.7441 l
+S
+/BBAccumRotation (-1.570796) XT
+98.1621 399.7441 m
+99.2856 400.3057 l
+S
+/BBAccumRotation (-1.570796) XT
+99.2856 400.3057 m
+100.6685 400.6079 l
+S
+/BBAccumRotation (-1.570796) XT
+100.6685 400.6079 m
+101.748 400.6079 l
+S
+/BBAccumRotation (-1.570796) XT
+101.748 400.6079 m
+103.1304 400.3057 l
+S
+/BBAccumRotation (-1.570796) XT
+103.1304 400.3057 m
+104.2534 399.7441 l
+S
+/BBAccumRotation (-1.570796) XT
+104.2534 399.7441 m
+105.0747 399.2256 l
+S
+/BBAccumRotation (-1.570796) XT
+105.0747 399.2256 m
+105.6357 398.6641 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 308.2031 m
+294.4204 476.6396 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 308.2031 m
+290.1001 308.2031 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 350.3232 m
+290.1001 350.3232 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 392.4434 m
+290.1001 392.4434 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 434.52 m
+290.1001 434.52 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 476.6396 m
+290.1001 476.6396 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 316.627 m
+291.8281 316.627 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 325.0508 m
+291.8281 325.0508 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 333.4746 m
+291.8281 333.4746 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 341.8984 m
+291.8281 341.8984 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 358.7471 m
+291.8281 358.7471 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 367.1719 m
+291.8281 367.1719 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 375.5957 m
+291.8281 375.5957 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 384.0195 m
+291.8281 384.0195 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 400.8237 m
+291.8281 400.8237 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 409.248 m
+291.8281 409.248 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 417.6719 m
+291.8281 417.6719 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 426.0962 m
+291.8281 426.0962 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 442.9438 m
+291.8281 442.9438 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 451.3682 m
+291.8281 451.3682 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 459.792 m
+291.8281 459.792 l
+S
+/BBAccumRotation (-1.570796) XT
+294.4204 468.2158 m
+291.8281 468.2158 l
+S
+/BBAccumRotation (-1.570796) XT
+122.0522 434.52 m
+123.7798 434.3472 l
+S
+/BBAccumRotation (-1.570796) XT
+123.7798 434.3472 m
+125.5078 433.6992 l
+S
+/BBAccumRotation (-1.570796) XT
+125.5078 433.6992 m
+127.2358 432.6621 l
+S
+/BBAccumRotation (-1.570796) XT
+127.2358 432.6621 m
+128.9644 431.1938 l
+S
+/BBAccumRotation (-1.570796) XT
+128.9644 431.1938 m
+130.6489 429.3789 l
+S
+/BBAccumRotation (-1.570796) XT
+130.6489 429.3794 m
+132.377 427.1758 l
+S
+/BBAccumRotation (-1.570796) XT
+132.377 427.1758 m
+134.105 424.627 l
+S
+/BBAccumRotation (-1.570796) XT
+134.105 424.6274 m
+135.8325 421.7759 l
+S
+/BBAccumRotation (-1.570796) XT
+135.8325 421.7759 m
+137.5605 418.6226 l
+S
+/BBAccumRotation (-1.570796) XT
+137.5605 418.6226 m
+139.2891 415.1665 l
+S
+/BBAccumRotation (-1.570796) XT
+139.2891 415.1665 m
+141.0171 411.5376 l
+S
+/BBAccumRotation (-1.570796) XT
+141.0171 411.5376 m
+142.7451 407.6494 l
+S
+/BBAccumRotation (-1.570796) XT
+142.7451 407.6499 m
+144.4731 403.6753 l
+S
+/BBAccumRotation (-1.570796) XT
+144.4731 403.6753 m
+146.1577 399.5713 l
+S
+/BBAccumRotation (-1.570796) XT
+146.1577 399.5713 m
+147.8853 395.4243 l
+S
+/BBAccumRotation (-1.570796) XT
+147.8853 395.4243 m
+149.6138 391.1904 l
+S
+/BBAccumRotation (-1.570796) XT
+149.6138 391.1904 m
+151.3418 387 l
+S
+/BBAccumRotation (-1.570796) XT
+151.3418 387 m
+153.0698 382.8525 l
+S
+/BBAccumRotation (-1.570796) XT
+153.0698 382.8525 m
+154.7979 378.8359 l
+S
+/BBAccumRotation (-1.570796) XT
+154.7979 378.8359 m
+156.5259 374.9043 l
+S
+/BBAccumRotation (-1.570796) XT
+156.5259 374.9043 m
+158.2534 371.1455 l
+S
+/BBAccumRotation (-1.570796) XT
+158.2534 371.1455 m
+159.9814 367.6035 l
+S
+/BBAccumRotation (-1.570796) XT
+159.9814 367.6035 m
+161.7095 364.3633 l
+S
+/BBAccumRotation (-1.570796) XT
+161.7095 364.3633 m
+163.3945 361.3828 l
+S
+/BBAccumRotation (-1.570796) XT
+163.3945 361.3828 m
+165.1226 358.7051 l
+S
+/BBAccumRotation (-1.570796) XT
+165.1226 358.7051 m
+166.8506 356.3281 l
+S
+/BBAccumRotation (-1.570796) XT
+166.8506 356.3281 m
+168.5786 354.3408 l
+S
+/BBAccumRotation (-1.570796) XT
+168.5786 354.3408 m
+170.3062 352.7422 l
+S
+/BBAccumRotation (-1.570796) XT
+170.3062 352.7422 m
+172.0342 351.5332 l
+S
+/BBAccumRotation (-1.570796) XT
+172.0342 351.5332 m
+173.7622 350.7129 l
+S
+/BBAccumRotation (-1.570796) XT
+173.7622 350.7129 m
+175.4907 350.3672 l
+S
+/BBAccumRotation (-1.570796) XT
+175.4907 350.3672 m
+177.2188 350.4102 l
+S
+/BBAccumRotation (-1.570796) XT
+177.2188 350.4102 m
+178.9468 350.8418 l
+S
+/BBAccumRotation (-1.570796) XT
+178.9468 350.8418 m
+180.6313 351.7061 l
+S
+/BBAccumRotation (-1.570796) XT
+180.6313 351.7061 m
+182.3589 353.002 l
+S
+/BBAccumRotation (-1.570796) XT
+182.3589 353.002 m
+184.0869 354.6445 l
+S
+/BBAccumRotation (-1.570796) XT
+184.0869 354.6445 m
+185.8154 356.7168 l
+S
+/BBAccumRotation (-1.570796) XT
+185.8154 356.7168 m
+187.5435 359.0938 l
+S
+/BBAccumRotation (-1.570796) XT
+187.5435 359.0938 m
+189.2715 361.8574 l
+S
+/BBAccumRotation (-1.570796) XT
+189.2715 361.8574 m
+190.9995 364.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+190.9995 364.8818 m
+192.7271 368.209 l
+S
+/BBAccumRotation (-1.570796) XT
+192.7271 368.209 m
+194.4551 371.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+194.4551 371.7949 m
+196.1401 375.5527 l
+S
+/BBAccumRotation (-1.570796) XT
+196.1401 375.5527 m
+197.8682 379.4834 l
+S
+/BBAccumRotation (-1.570796) XT
+197.8682 379.4834 m
+199.5962 383.5449 l
+S
+/BBAccumRotation (-1.570796) XT
+199.5962 383.5449 m
+201.3242 387.6914 l
+S
+/BBAccumRotation (-1.570796) XT
+201.3242 387.6914 m
+203.0522 391.9258 l
+S
+/BBAccumRotation (-1.570796) XT
+203.0522 391.9258 m
+204.7798 396.0728 l
+S
+/BBAccumRotation (-1.570796) XT
+204.7798 396.0728 m
+206.5078 400.3062 l
+S
+/BBAccumRotation (-1.570796) XT
+206.5078 400.3062 m
+208.2358 404.3672 l
+S
+/BBAccumRotation (-1.570796) XT
+208.2358 404.3672 m
+209.9639 408.3413 l
+S
+/BBAccumRotation (-1.570796) XT
+209.9639 408.3413 m
+211.6924 412.186 l
+S
+/BBAccumRotation (-1.570796) XT
+211.6924 412.186 m
+213.377 415.772 l
+S
+/BBAccumRotation (-1.570796) XT
+213.377 415.772 m
+215.105 419.1846 l
+S
+/BBAccumRotation (-1.570796) XT
+215.105 419.1846 m
+216.8325 422.2949 l
+S
+/BBAccumRotation (-1.570796) XT
+216.8325 422.2949 m
+218.5605 425.103 l
+S
+/BBAccumRotation (-1.570796) XT
+218.5605 425.103 m
+220.2886 427.6084 l
+S
+/BBAccumRotation (-1.570796) XT
+220.2886 427.6084 m
+222.0166 429.7251 l
+S
+/BBAccumRotation (-1.570796) XT
+222.0166 429.7251 m
+223.7451 431.4536 l
+S
+/BBAccumRotation (-1.570796) XT
+223.7451 431.4536 m
+225.4731 432.8359 l
+S
+/BBAccumRotation (-1.570796) XT
+225.4731 432.8359 m
+227.2007 433.8296 l
+S
+/BBAccumRotation (-1.570796) XT
+227.2007 433.8296 m
+228.8853 434.3911 l
+S
+/BBAccumRotation (-1.570796) XT
+228.8853 434.3911 m
+230.6133 434.5205 l
+S
+/BBAccumRotation (-1.570796) XT
+230.6133 434.5205 m
+232.3418 434.2612 l
+S
+/BBAccumRotation (-1.570796) XT
+232.3418 434.2612 m
+234.0698 433.5703 l
+S
+/BBAccumRotation (-1.570796) XT
+234.0698 433.5703 m
+235.7979 432.4468 l
+S
+/BBAccumRotation (-1.570796) XT
+235.7979 432.4468 m
+237.5259 430.9351 l
+S
+/BBAccumRotation (-1.570796) XT
+237.5259 430.9351 m
+239.2534 429.0342 l
+S
+/BBAccumRotation (-1.570796) XT
+239.2534 429.0342 m
+240.9814 426.7881 l
+S
+/BBAccumRotation (-1.570796) XT
+240.9814 426.7881 m
+242.7095 424.1958 l
+S
+/BBAccumRotation (-1.570796) XT
+242.7095 424.1958 m
+244.4375 421.2583 l
+S
+/BBAccumRotation (-1.570796) XT
+244.4375 421.2583 m
+246.1226 418.0181 l
+S
+/BBAccumRotation (-1.570796) XT
+246.1226 418.0181 m
+247.8506 414.5625 l
+S
+/BBAccumRotation (-1.570796) XT
+247.8506 414.5625 m
+249.5786 410.8901 l
+S
+/BBAccumRotation (-1.570796) XT
+249.5786 410.8901 m
+251.3062 407.0454 l
+S
+/BBAccumRotation (-1.570796) XT
+251.3062 407.0454 m
+253.0342 402.9849 l
+S
+/BBAccumRotation (-1.570796) XT
+253.0342 402.9849 m
+254.7622 398.8809 l
+S
+/BBAccumRotation (-1.570796) XT
+254.7622 398.8809 m
+256.4902 394.6904 l
+S
+/BBAccumRotation (-1.570796) XT
+256.4902 394.6904 m
+258.2188 390.5 l
+S
+/BBAccumRotation (-1.570796) XT
+258.2188 390.5 m
+259.9468 386.2656 l
+S
+/BBAccumRotation (-1.570796) XT
+259.9468 386.2656 m
+261.6743 382.1621 l
+S
+/BBAccumRotation (-1.570796) XT
+261.6743 382.1621 m
+263.3589 378.1445 l
+S
+/BBAccumRotation (-1.570796) XT
+263.3589 378.1445 m
+265.0869 374.2568 l
+S
+/BBAccumRotation (-1.570796) XT
+265.0869 374.2568 m
+266.8149 370.585 l
+S
+/BBAccumRotation (-1.570796) XT
+266.8149 370.585 m
+268.5435 367.0859 l
+S
+/BBAccumRotation (-1.570796) XT
+268.5435 367.0859 m
+270.2715 363.8457 l
+S
+/BBAccumRotation (-1.570796) XT
+270.2715 363.8457 m
+271.9995 360.8652 l
+S
+/BBAccumRotation (-1.570796) XT
+271.9995 360.8652 m
+273.7271 358.2725 l
+S
+/BBAccumRotation (-1.570796) XT
+273.7271 358.2725 m
+275.4551 355.9834 l
+S
+/BBAccumRotation (-1.570796) XT
+275.4551 355.9834 m
+277.1831 354.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+277.1831 354.0391 m
+278.8677 352.4844 l
+S
+/BBAccumRotation (-1.570796) XT
+278.8677 352.4844 m
+280.5962 351.3613 l
+S
+/BBAccumRotation (-1.570796) XT
+280.5962 351.3613 m
+282.3242 350.627 l
+S
+/BBAccumRotation (-1.570796) XT
+282.3242 350.627 m
+284.0522 350.3242 l
+S
+/BBAccumRotation (-1.570796) XT
+284.0522 350.3242 m
+285.7798 350.4531 l
+S
+/BBAccumRotation (-1.570796) XT
+285.7798 350.4531 m
+287.5078 350.9297 l
+S
+/BBAccumRotation (-1.570796) XT
+287.5078 350.9297 m
+289.2358 351.9229 l
+S
+/BBAccumRotation (-1.570796) XT
+289.2358 351.9229 m
+290.9639 353.2617 l
+S
+/BBAccumRotation (-1.570796) XT
+290.9639 353.2617 m
+292.6919 354.9902 l
+S
+/BBAccumRotation (-1.570796) XT
+292.6919 354.9902 m
+294.4204 357.1064 l
+S
+/BBAccumRotation (-1.570796) XT
+0.9569 0.9294 0 0 K
+122.0522 392.4434 m
+123.7798 396.6768 l
+S
+/BBAccumRotation (-1.570796) XT
+123.7798 396.6768 m
+123.8232 396.8496 l
+S
+/BBAccumRotation (-1.570796) XT
+125.5947 401.2559 m
+127.2358 405.23 l
+S
+/BBAccumRotation (-1.570796) XT
+127.2358 405.23 m
+127.4087 405.6621 l
+S
+/BBAccumRotation (-1.570796) XT
+129.1802 410.0688 m
+130.6489 413.6113 l
+S
+/BBAccumRotation (-1.570796) XT
+130.6489 413.6113 m
+131.0376 414.4751 l
+S
+/BBAccumRotation (-1.570796) XT
+132.939 418.8384 m
+134.105 421.4302 l
+S
+/BBAccumRotation (-1.570796) XT
+134.105 421.4302 m
+134.9258 423.1582 l
+S
+/BBAccumRotation (-1.570796) XT
+137.0854 427.4351 m
+137.5605 428.3857 l
+S
+/BBAccumRotation (-1.570796) XT
+137.5605 428.3857 m
+139.2891 431.4097 l
+S
+/BBAccumRotation (-1.570796) XT
+139.2891 431.4097 m
+139.4185 431.5825 l
+S
+/BBAccumRotation (-1.570796) XT
+142.0972 435.5137 m
+142.7451 436.3774 l
+S
+/BBAccumRotation (-1.570796) XT
+142.7451 436.3774 m
+144.4731 438.2783 l
+S
+/BBAccumRotation (-1.570796) XT
+144.4731 438.2783 m
+145.3364 439.0127 l
+S
+/BBAccumRotation (-1.570796) XT
+149.4839 441.2158 m
+149.6138 441.2593 l
+S
+/BBAccumRotation (-1.570796) XT
+149.6138 441.2593 m
+151.3418 441.2593 l
+S
+/BBAccumRotation (-1.570796) XT
+151.3418 441.2593 m
+153.0698 440.8271 l
+S
+/BBAccumRotation (-1.570796) XT
+153.0698 440.8271 m
+154.02 440.2656 l
+S
+/BBAccumRotation (-1.570796) XT
+157.562 437.1548 m
+158.2534 436.3774 l
+S
+/BBAccumRotation (-1.570796) XT
+158.2534 436.3774 m
+159.9814 433.9585 l
+S
+/BBAccumRotation (-1.570796) XT
+159.9814 433.9585 m
+160.3706 433.2671 l
+S
+/BBAccumRotation (-1.570796) XT
+162.6597 429.1201 m
+163.3945 427.6943 l
+S
+/BBAccumRotation (-1.570796) XT
+163.3945 427.6943 m
+164.7334 424.8428 l
+S
+/BBAccumRotation (-1.570796) XT
+166.5913 420.4365 m
+166.8506 419.7886 l
+S
+/BBAccumRotation (-1.570796) XT
+166.8506 419.7886 m
+168.3193 415.9873 l
+S
+/BBAccumRotation (-1.570796) XT
+169.918 411.5376 m
+170.3062 410.5005 l
+S
+/BBAccumRotation (-1.570796) XT
+170.3062 410.5005 m
+171.4731 407.0015 l
+S
+/BBAccumRotation (-1.570796) XT
+172.9849 402.5088 m
+173.7622 400.1328 l
+S
+/BBAccumRotation (-1.570796) XT
+173.7622 400.1328 m
+174.4536 397.9727 l
+S
+/BBAccumRotation (-1.570796) XT
+175.8794 393.3936 m
+177.2188 389.1602 l
+S
+/BBAccumRotation (-1.570796) XT
+177.2188 389.1602 m
+177.3047 388.8574 l
+S
+/BBAccumRotation (-1.570796) XT
+178.687 384.3223 m
+178.9468 383.5879 l
+S
+/BBAccumRotation (-1.570796) XT
+178.9468 383.5879 m
+180.1128 379.7422 l
+S
+/BBAccumRotation (-1.570796) XT
+181.5386 375.2061 m
+182.3589 372.4414 l
+S
+/BBAccumRotation (-1.570796) XT
+182.3589 372.4414 m
+182.9644 370.6699 l
+S
+/BBAccumRotation (-1.570796) XT
+184.3901 366.1348 m
+185.8154 361.8574 l
+S
+/BBAccumRotation (-1.570796) XT
+185.8154 361.8574 m
+185.9019 361.5977 l
+S
+/BBAccumRotation (-1.570796) XT
+187.4565 357.1055 m
+187.5435 356.8896 l
+S
+/BBAccumRotation (-1.570796) XT
+187.5435 356.8896 m
+189.0986 352.6123 l
+S
+/BBAccumRotation (-1.570796) XT
+190.8267 348.2061 m
+190.9995 347.7744 l
+S
+/BBAccumRotation (-1.570796) XT
+190.9995 347.7744 m
+192.7271 343.7998 l
+S
+/BBAccumRotation (-1.570796) XT
+194.8442 339.5664 m
+196.1401 337.2334 l
+S
+/BBAccumRotation (-1.570796) XT
+196.1401 337.2334 m
+197.3496 335.5059 l
+S
+/BBAccumRotation (-1.570796) XT
+200.5464 331.9629 m
+201.3242 331.3154 l
+S
+/BBAccumRotation (-1.570796) XT
+201.3242 331.3154 m
+203.0522 330.4941 l
+S
+/BBAccumRotation (-1.570796) XT
+203.0522 330.4941 m
+204.7798 330.3652 l
+S
+/BBAccumRotation (-1.570796) XT
+204.7798 330.3652 m
+204.8667 330.3652 l
+S
+/BBAccumRotation (-1.570796) XT
+208.9707 332.5684 m
+209.9644 333.5605 l
+S
+/BBAccumRotation (-1.570796) XT
+209.9644 333.5605 m
+211.6924 335.8516 l
+S
+/BBAccumRotation (-1.570796) XT
+211.6924 335.8516 m
+211.9077 336.2832 l
+S
+/BBAccumRotation (-1.570796) XT
+214.1978 340.4736 m
+215.105 342.2881 l
+S
+/BBAccumRotation (-1.570796) XT
+215.105 342.2881 m
+216.1846 344.793 l
+S
+/BBAccumRotation (-1.570796) XT
+217.9126 349.2432 m
+218.5605 350.9277 l
+S
+/BBAccumRotation (-1.570796) XT
+218.5605 350.9277 m
+219.5112 353.7363 l
+S
+/BBAccumRotation (-1.570796) XT
+220.98 358.2715 m
+222.0171 361.5117 l
+S
+/BBAccumRotation (-1.570796) XT
+222.0171 361.5117 m
+222.4058 362.8076 l
+S
+/BBAccumRotation (-1.570796) XT
+223.7451 367.3867 m
+223.7451 367.3867 l
+S
+/BBAccumRotation (-1.570796) XT
+223.7451 367.3867 m
+224.9976 371.9668 l
+S
+/BBAccumRotation (-1.570796) XT
+226.2505 376.5889 m
+227.2007 380.0879 l
+S
+/BBAccumRotation (-1.570796) XT
+227.2007 380.0879 m
+227.46 381.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+228.6699 385.791 m
+228.8853 386.7402 l
+S
+/BBAccumRotation (-1.570796) XT
+228.8853 386.7402 m
+229.8359 390.4121 l
+S
+/BBAccumRotation (-1.570796) XT
+231.0024 395.0347 m
+232.1689 399.6577 l
+S
+/BBAccumRotation (-1.570796) XT
+233.2925 404.2798 m
+234.0698 407.3901 l
+S
+/BBAccumRotation (-1.570796) XT
+234.0698 407.3901 m
+234.4585 408.9023 l
+S
+/BBAccumRotation (-1.570796) XT
+235.625 413.5249 m
+235.7979 414.2158 l
+S
+/BBAccumRotation (-1.570796) XT
+235.7979 414.2158 m
+236.8345 418.147 l
+S
+/BBAccumRotation (-1.570796) XT
+238.001 422.7695 m
+239.2534 427.3486 l
+S
+/BBAccumRotation (-1.570796) XT
+240.5063 431.9712 m
+240.9814 433.6128 l
+S
+/BBAccumRotation (-1.570796) XT
+240.9814 433.6128 m
+241.8457 436.5503 l
+S
+/BBAccumRotation (-1.570796) XT
+243.228 441.0864 m
+244.4375 444.9312 l
+S
+/BBAccumRotation (-1.570796) XT
+244.4375 444.9312 m
+244.6538 445.6226 l
+S
+/BBAccumRotation (-1.570796) XT
+246.2085 450.1152 m
+247.8506 454.3916 l
+S
+/BBAccumRotation (-1.570796) XT
+247.8506 454.3916 m
+247.9365 454.5645 l
+S
+/BBAccumRotation (-1.570796) XT
+249.9243 458.9277 m
+251.3062 461.52 l
+S
+/BBAccumRotation (-1.570796) XT
+251.3062 461.52 m
+252.3003 463.0322 l
+S
+/BBAccumRotation (-1.570796) XT
+255.4536 466.5308 m
+256.4907 467.2656 l
+S
+/BBAccumRotation (-1.570796) XT
+256.4907 467.2656 m
+258.2188 467.7407 l
+S
+/BBAccumRotation (-1.570796) XT
+258.2188 467.7407 m
+259.9033 467.4385 l
+S
+/BBAccumRotation (-1.570796) XT
+263.4893 464.3711 m
+265.0869 461.9517 l
+S
+/BBAccumRotation (-1.570796) XT
+265.0869 461.9517 m
+265.9512 460.3105 l
+S
+/BBAccumRotation (-1.570796) XT
+267.9814 455.9902 m
+268.5435 454.6079 l
+S
+/BBAccumRotation (-1.570796) XT
+268.5435 454.6079 m
+269.6665 451.5405 l
+S
+/BBAccumRotation (-1.570796) XT
+271.2217 447.0479 m
+271.9995 444.6284 l
+S
+/BBAccumRotation (-1.570796) XT
+271.9995 444.6284 m
+272.6475 442.4688 l
+S
+/BBAccumRotation (-1.570796) XT
+273.9434 437.8896 m
+275.1963 433.3105 l
+S
+/BBAccumRotation (-1.570796) XT
+276.3623 428.688 m
+277.1831 425.4048 l
+S
+/BBAccumRotation (-1.570796) XT
+277.1831 425.4048 m
+277.4854 424.0654 l
+S
+/BBAccumRotation (-1.570796) XT
+278.5659 419.3999 m
+278.8682 418.0605 l
+S
+/BBAccumRotation (-1.570796) XT
+278.8682 418.0605 m
+279.646 414.7773 l
+S
+/BBAccumRotation (-1.570796) XT
+280.6821 410.1118 m
+281.6763 405.4463 l
+S
+/BBAccumRotation (-1.570796) XT
+282.7124 400.8237 m
+283.7065 396.1582 l
+S
+/BBAccumRotation (-1.570796) XT
+284.7002 391.4922 m
+285.6504 386.8271 l
+S
+/BBAccumRotation (-1.570796) XT
+286.644 382.1611 m
+287.5078 378.0146 l
+S
+/BBAccumRotation (-1.570796) XT
+287.5078 378.0146 m
+287.6372 377.4961 l
+S
+/BBAccumRotation (-1.570796) XT
+288.5884 372.8301 m
+289.2358 369.8926 l
+S
+/BBAccumRotation (-1.570796) XT
+289.2358 369.8926 m
+289.5815 368.165 l
+S
+/BBAccumRotation (-1.570796) XT
+290.5752 363.499 m
+290.9644 361.8574 l
+S
+/BBAccumRotation (-1.570796) XT
+290.9644 361.8574 m
+291.6118 358.877 l
+S
+/BBAccumRotation (-1.570796) XT
+292.6489 354.2109 m
+292.6924 354.082 l
+S
+/BBAccumRotation (-1.570796) XT
+292.6924 354.082 m
+293.729 349.5449 l
+S
+/BBAccumRotation (-1.570796) XT
+*u
+2 J 0 j 0.6154 w
+122.0522 394.6582 m
+122.0522 390.2285 l
+S
+/BBAccumRotation (-1.570796) XT
+1 D
+120.2056 393.5508 m
+123.8984 391.3359 l
+S
+/BBAccumRotation (-1.570796) XT
+0 D
+123.8984 393.5508 m
+120.2056 391.3359 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+1 D
+130.6489 415.8267 m
+130.6489 411.3955 l
+S
+/BBAccumRotation (-1.570796) XT
+0 D
+128.8027 414.7188 m
+132.4951 412.5034 l
+S
+/BBAccumRotation (-1.570796) XT
+132.4951 414.7188 m
+128.8027 412.5034 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+139.2891 433.625 m
+139.2891 429.1943 l
+S
+/BBAccumRotation (-1.570796) XT
+1 D
+137.4429 432.5171 m
+141.1348 430.3018 l
+S
+/BBAccumRotation (-1.570796) XT
+0 D
+141.1348 432.5171 m
+137.4429 430.3018 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+1 D
+147.8853 442.9561 m
+147.8853 438.5254 l
+S
+/BBAccumRotation (-1.570796) XT
+0 D
+146.0396 441.8481 m
+149.7319 439.6328 l
+S
+/BBAccumRotation (-1.570796) XT
+1 D
+149.7319 441.8481 m
+146.0396 439.6328 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+0 D
+156.5259 440.5801 m
+156.5259 436.1494 l
+S
+/BBAccumRotation (-1.570796) XT
+154.6792 439.4722 m
+158.3721 437.2568 l
+S
+/BBAccumRotation (-1.570796) XT
+1 D
+158.3721 439.4722 m
+154.6792 437.2568 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+0 D
+165.1226 426.1514 m
+165.1226 421.7207 l
+S
+/BBAccumRotation (-1.570796) XT
+163.2764 425.0435 m
+166.9688 422.8281 l
+S
+/BBAccumRotation (-1.570796) XT
+1 D
+166.9688 425.0435 m
+163.2764 422.8281 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+0 D
+173.7622 402.3481 m
+173.7622 397.9175 l
+S
+/BBAccumRotation (-1.570796) XT
+1 D
+171.9165 401.2407 m
+175.6084 399.0249 l
+S
+/BBAccumRotation (-1.570796) XT
+175.6084 401.2407 m
+171.9165 399.0249 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+0 D
+182.3589 374.6572 m
+182.3589 370.2266 l
+S
+/BBAccumRotation (-1.570796) XT
+1 D
+180.5132 373.5488 m
+184.2056 371.334 l
+S
+/BBAccumRotation (-1.570796) XT
+184.2056 373.5488 m
+180.5132 371.334 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+190.9995 349.9902 m
+190.9995 345.5586 l
+S
+/BBAccumRotation (-1.570796) XT
+0 D
+189.1528 348.8818 m
+192.8457 346.667 l
+S
+/BBAccumRotation (-1.570796) XT
+1 D
+192.8457 348.8818 m
+189.1528 346.667 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+199.5962 334.957 m
+199.5962 330.5254 l
+S
+/BBAccumRotation (-1.570796) XT
+197.75 333.8477 m
+201.4424 331.6328 l
+S
+/BBAccumRotation (-1.570796) XT
+201.4424 333.8477 m
+197.75 331.6328 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+0 D
+208.2358 334.0918 m
+208.2358 329.6611 l
+S
+/BBAccumRotation (-1.570796) XT
+1 D
+206.3901 332.9844 m
+210.082 330.7695 l
+S
+/BBAccumRotation (-1.570796) XT
+210.082 332.9844 m
+206.3901 330.7695 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+216.8325 348.5645 m
+216.8325 344.1328 l
+S
+/BBAccumRotation (-1.570796) XT
+214.9868 347.4561 m
+218.6792 345.2412 l
+S
+/BBAccumRotation (-1.570796) XT
+0 D
+218.6792 347.4561 m
+214.9868 345.2412 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+225.4731 375.8232 m
+225.4731 371.3926 l
+S
+/BBAccumRotation (-1.570796) XT
+1 D
+223.6265 374.7158 m
+227.3193 372.5 l
+S
+/BBAccumRotation (-1.570796) XT
+0 D
+227.3193 374.7158 m
+223.6265 372.5 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+234.0698 409.6055 m
+234.0698 405.1748 l
+S
+/BBAccumRotation (-1.570796) XT
+232.2236 408.498 m
+235.916 406.2827 l
+S
+/BBAccumRotation (-1.570796) XT
+235.916 408.498 m
+232.2236 406.2827 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+242.7095 441.6602 m
+242.7095 437.2295 l
+S
+/BBAccumRotation (-1.570796) XT
+240.8638 440.5522 m
+244.5557 438.3369 l
+S
+/BBAccumRotation (-1.570796) XT
+244.5557 440.5522 m
+240.8638 438.3369 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+251.3062 463.7354 m
+251.3062 459.3047 l
+S
+/BBAccumRotation (-1.570796) XT
+249.46 462.6279 m
+253.1528 460.4121 l
+S
+/BBAccumRotation (-1.570796) XT
+253.1528 462.6279 m
+249.46 460.4121 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+259.9468 469.6538 m
+259.9468 465.2227 l
+S
+/BBAccumRotation (-1.570796) XT
+258.1001 468.5459 m
+261.793 466.3306 l
+S
+/BBAccumRotation (-1.570796) XT
+261.793 468.5459 m
+258.1001 466.3306 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+268.5435 456.8232 m
+268.5435 452.3926 l
+S
+/BBAccumRotation (-1.570796) XT
+1 D
+266.6973 455.7158 m
+270.3892 453.5005 l
+S
+/BBAccumRotation (-1.570796) XT
+0 D
+270.3892 455.7158 m
+266.6973 453.5005 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+1 D
+277.1831 427.6201 m
+277.1831 423.189 l
+S
+/BBAccumRotation (-1.570796) XT
+0 D
+275.3369 426.5122 m
+279.0293 424.2974 l
+S
+/BBAccumRotation (-1.570796) XT
+279.0293 426.5122 m
+275.3369 424.2974 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+285.7798 388.4375 m
+285.7798 384.0068 l
+S
+/BBAccumRotation (-1.570796) XT
+1 D
+283.9336 387.3301 m
+287.6265 385.1143 l
+S
+/BBAccumRotation (-1.570796) XT
+0 D
+287.6265 387.3301 m
+283.9336 385.1143 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+*u
+294.4204 348.8232 m
+294.4204 344.3926 l
+S
+/BBAccumRotation (-1.570796) XT
+292.5737 347.7158 m
+296.2666 345.5 l
+S
+/BBAccumRotation (-1.570796) XT
+296.2666 347.7158 m
+292.5737 345.5 l
+S
+/BBAccumRotation (-1.570796) XT
+*U
+/BBAccumRotation (0.000000) XT
+0 0 0 1 K
+1 J 1 j 0.72 w
+339.7373 308.2031 m
+512.1055 308.2031 l
+S
+/BBAccumRotation (-1.570796) XT
+341.0332 303.9258 m
+340.5137 303.71 l
+S
+/BBAccumRotation (-1.570796) XT
+340.5137 303.71 m
+340.125 303.1914 l
+S
+/BBAccumRotation (-1.570796) XT
+340.125 303.1914 m
+339.9531 302.2422 l
+S
+/BBAccumRotation (-1.570796) XT
+339.9531 302.2422 m
+339.9531 301.6797 l
+S
+/BBAccumRotation (-1.570796) XT
+339.9531 301.6797 m
+340.125 300.7734 l
+S
+/BBAccumRotation (-1.570796) XT
+340.125 300.7734 m
+340.5137 300.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+340.5137 300.2109 m
+341.0332 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+341.0332 300.0391 m
+341.4219 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+341.4219 300.0391 m
+341.9824 300.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+341.9824 300.2109 m
+342.3281 300.7734 l
+S
+/BBAccumRotation (-1.570796) XT
+342.3281 300.7734 m
+342.5449 301.6797 l
+S
+/BBAccumRotation (-1.570796) XT
+342.5449 301.6797 m
+342.5449 302.2422 l
+S
+/BBAccumRotation (-1.570796) XT
+342.5449 302.2422 m
+342.3281 303.1914 l
+S
+/BBAccumRotation (-1.570796) XT
+342.3281 303.1914 m
+341.9824 303.7109 l
+S
+/BBAccumRotation (-1.570796) XT
+341.9824 303.7109 m
+341.4219 303.9258 l
+S
+/BBAccumRotation (-1.570796) XT
+341.4219 303.9258 m
+341.0332 303.9258 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 308.2031 m
+339.7373 312.5234 l
+S
+/BBAccumRotation (-1.570796) XT
+374.5996 302.9766 m
+374.5996 303.1914 l
+S
+/BBAccumRotation (-1.570796) XT
+374.5996 303.1914 m
+374.7715 303.5371 l
+S
+/BBAccumRotation (-1.570796) XT
+374.7715 303.5371 m
+374.9453 303.71 l
+S
+/BBAccumRotation (-1.570796) XT
+374.9453 303.71 m
+375.334 303.9258 l
+S
+/BBAccumRotation (-1.570796) XT
+375.334 303.9258 m
+376.0684 303.9258 l
+S
+/BBAccumRotation (-1.570796) XT
+376.0684 303.9258 m
+376.457 303.71 l
+S
+/BBAccumRotation (-1.570796) XT
+376.457 303.71 m
+376.6289 303.5371 l
+S
+/BBAccumRotation (-1.570796) XT
+376.6289 303.5371 m
+376.8027 303.1914 l
+S
+/BBAccumRotation (-1.570796) XT
+376.8027 303.1914 m
+376.8027 302.8027 l
+S
+/BBAccumRotation (-1.570796) XT
+376.8027 302.8027 m
+376.6289 302.4141 l
+S
+/BBAccumRotation (-1.570796) XT
+376.6289 302.4141 m
+376.2412 301.8965 l
+S
+/BBAccumRotation (-1.570796) XT
+376.2412 301.8965 m
+374.4258 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+374.4258 300.0391 m
+376.9746 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+374.2109 308.2031 m
+374.2109 312.5234 l
+S
+/BBAccumRotation (-1.570796) XT
+410.7148 303.9258 m
+408.9004 301.334 l
+S
+/BBAccumRotation (-1.570796) XT
+408.9004 301.334 m
+411.6641 301.334 l
+S
+/BBAccumRotation (-1.570796) XT
+410.7148 303.9258 m
+410.7148 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+408.6836 308.2031 m
+408.6836 312.5234 l
+S
+/BBAccumRotation (-1.570796) XT
+445.75 303.3652 m
+445.5762 303.71 l
+S
+/BBAccumRotation (-1.570796) XT
+445.5762 303.71 m
+445.0156 303.9258 l
+S
+/BBAccumRotation (-1.570796) XT
+445.0156 303.9258 m
+444.627 303.9258 l
+S
+/BBAccumRotation (-1.570796) XT
+444.627 303.9258 m
+444.1074 303.71 l
+S
+/BBAccumRotation (-1.570796) XT
+444.1074 303.71 m
+443.7188 303.1914 l
+S
+/BBAccumRotation (-1.570796) XT
+443.7188 303.1914 m
+443.5469 302.2422 l
+S
+/BBAccumRotation (-1.570796) XT
+443.5469 302.2422 m
+443.5469 301.334 l
+S
+/BBAccumRotation (-1.570796) XT
+443.5469 301.334 m
+443.7188 300.5996 l
+S
+/BBAccumRotation (-1.570796) XT
+443.7188 300.5996 m
+444.1074 300.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+444.1074 300.2109 m
+444.627 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+444.627 300.0391 m
+444.8428 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+444.8428 300.0391 m
+445.4043 300.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+445.4043 300.2109 m
+445.75 300.5996 l
+S
+/BBAccumRotation (-1.570796) XT
+445.75 300.5996 m
+445.9219 301.1621 l
+S
+/BBAccumRotation (-1.570796) XT
+445.9219 301.1621 m
+445.9219 301.334 l
+S
+/BBAccumRotation (-1.570796) XT
+445.9219 301.334 m
+445.75 301.8965 l
+S
+/BBAccumRotation (-1.570796) XT
+445.75 301.8965 m
+445.4043 302.2422 l
+S
+/BBAccumRotation (-1.570796) XT
+445.4043 302.2422 m
+444.8428 302.4141 l
+S
+/BBAccumRotation (-1.570796) XT
+444.8428 302.4141 m
+444.627 302.4141 l
+S
+/BBAccumRotation (-1.570796) XT
+444.627 302.4141 m
+444.1074 302.2422 l
+S
+/BBAccumRotation (-1.570796) XT
+444.1074 302.2422 m
+443.7188 301.8965 l
+S
+/BBAccumRotation (-1.570796) XT
+443.7188 301.8965 m
+443.5469 301.334 l
+S
+/BBAccumRotation (-1.570796) XT
+443.1582 308.2031 m
+443.1582 312.5234 l
+S
+/BBAccumRotation (-1.570796) XT
+478.7539 303.9258 m
+478.1934 303.71 l
+S
+/BBAccumRotation (-1.570796) XT
+478.1934 303.71 m
+478.0195 303.3652 l
+S
+/BBAccumRotation (-1.570796) XT
+478.0195 303.3652 m
+478.0195 302.9766 l
+S
+/BBAccumRotation (-1.570796) XT
+478.0195 302.9766 m
+478.1934 302.6309 l
+S
+/BBAccumRotation (-1.570796) XT
+478.1934 302.6309 m
+478.582 302.4141 l
+S
+/BBAccumRotation (-1.570796) XT
+478.582 302.4141 m
+479.3164 302.2422 l
+S
+/BBAccumRotation (-1.570796) XT
+479.3164 302.2422 m
+479.834 302.0684 l
+S
+/BBAccumRotation (-1.570796) XT
+479.834 302.0684 m
+480.2227 301.6797 l
+S
+/BBAccumRotation (-1.570796) XT
+480.2227 301.6797 m
+480.3965 301.334 l
+S
+/BBAccumRotation (-1.570796) XT
+480.3965 301.334 m
+480.3965 300.7734 l
+S
+/BBAccumRotation (-1.570796) XT
+480.3965 300.7734 m
+480.2227 300.3848 l
+S
+/BBAccumRotation (-1.570796) XT
+480.2227 300.3848 m
+480.0508 300.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+480.0508 300.2109 m
+479.4883 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+479.4883 300.0391 m
+478.7539 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+478.7539 300.0391 m
+478.1924 300.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+478.1924 300.2109 m
+478.0195 300.3848 l
+S
+/BBAccumRotation (-1.570796) XT
+478.0195 300.3848 m
+477.8047 300.7734 l
+S
+/BBAccumRotation (-1.570796) XT
+477.8047 300.7734 m
+477.8047 301.334 l
+S
+/BBAccumRotation (-1.570796) XT
+477.8047 301.334 m
+478.0195 301.6797 l
+S
+/BBAccumRotation (-1.570796) XT
+478.0195 301.6797 m
+478.3652 302.0684 l
+S
+/BBAccumRotation (-1.570796) XT
+478.3652 302.0684 m
+478.9268 302.2422 l
+S
+/BBAccumRotation (-1.570796) XT
+478.9268 302.2422 m
+479.6621 302.4141 l
+S
+/BBAccumRotation (-1.570796) XT
+479.6621 302.4141 m
+480.0508 302.6309 l
+S
+/BBAccumRotation (-1.570796) XT
+480.0508 302.6309 m
+480.2227 302.9766 l
+S
+/BBAccumRotation (-1.570796) XT
+480.2227 302.9766 m
+480.2227 303.3652 l
+S
+/BBAccumRotation (-1.570796) XT
+480.2227 303.3652 m
+480.0498 303.7109 l
+S
+/BBAccumRotation (-1.570796) XT
+480.0498 303.7109 m
+479.4883 303.9268 l
+S
+/BBAccumRotation (-1.570796) XT
+479.4883 303.9268 m
+478.7539 303.9268 l
+S
+/BBAccumRotation (-1.570796) XT
+477.6309 308.2031 m
+477.6309 312.5234 l
+S
+/BBAccumRotation (-1.570796) XT
+509.5127 303.1914 m
+509.9023 303.3652 l
+S
+/BBAccumRotation (-1.570796) XT
+509.9023 303.3652 m
+510.4629 303.9258 l
+S
+/BBAccumRotation (-1.570796) XT
+510.4629 303.9258 m
+510.4629 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+513.79 303.9258 m
+513.2285 303.71 l
+S
+/BBAccumRotation (-1.570796) XT
+513.2285 303.71 m
+512.8398 303.1914 l
+S
+/BBAccumRotation (-1.570796) XT
+512.8398 303.1914 m
+512.666 302.2422 l
+S
+/BBAccumRotation (-1.570796) XT
+512.666 302.2422 m
+512.666 301.6797 l
+S
+/BBAccumRotation (-1.570796) XT
+512.666 301.6797 m
+512.8398 300.7734 l
+S
+/BBAccumRotation (-1.570796) XT
+512.8398 300.7734 m
+513.2285 300.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+513.2285 300.2109 m
+513.79 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+513.79 300.0391 m
+514.1348 300.0391 l
+S
+/BBAccumRotation (-1.570796) XT
+514.1348 300.0391 m
+514.6973 300.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+514.6973 300.2109 m
+515.043 300.7734 l
+S
+/BBAccumRotation (-1.570796) XT
+515.043 300.7734 m
+515.2578 301.6797 l
+S
+/BBAccumRotation (-1.570796) XT
+515.2578 301.6797 m
+515.2578 302.2422 l
+S
+/BBAccumRotation (-1.570796) XT
+515.2578 302.2422 m
+515.043 303.1914 l
+S
+/BBAccumRotation (-1.570796) XT
+515.043 303.1914 m
+514.6973 303.7109 l
+S
+/BBAccumRotation (-1.570796) XT
+514.6973 303.7109 m
+514.1348 303.9258 l
+S
+/BBAccumRotation (-1.570796) XT
+514.1348 303.9258 m
+513.79 303.9258 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 308.2031 m
+512.1055 312.5234 l
+S
+/BBAccumRotation (-1.570796) XT
+346.6484 308.2031 m
+346.6484 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+353.5605 308.2031 m
+353.5605 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+360.4297 308.2031 m
+360.4297 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+367.3418 308.2031 m
+367.3418 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+381.123 308.2031 m
+381.123 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+388.0352 308.2031 m
+388.0352 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+394.9033 308.2031 m
+394.9033 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+401.8145 308.2031 m
+401.8145 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+415.5957 308.2031 m
+415.5957 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+422.4648 308.2031 m
+422.4648 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+429.377 308.2031 m
+429.377 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+436.2891 308.2031 m
+436.2891 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+450.0703 308.2031 m
+450.0703 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+456.9395 308.2031 m
+456.9395 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+463.8506 308.2031 m
+463.8506 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+470.7617 308.2031 m
+470.7617 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+484.543 308.2031 m
+484.543 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+491.4121 308.2031 m
+491.4121 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+498.3242 308.2031 m
+498.3242 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+505.1934 308.2031 m
+505.1934 310.7949 l
+S
+/BBAccumRotation (-1.570796) XT
+402.377 291.6572 m
+402.1172 291.3555 l
+S
+/BBAccumRotation (-1.570796) XT
+402.1172 291.3555 m
+402.377 291.0957 l
+S
+/BBAccumRotation (-1.570796) XT
+402.377 291.0957 m
+402.6797 291.3555 l
+S
+/BBAccumRotation (-1.570796) XT
+402.6797 291.3555 m
+402.377 291.6572 l
+S
+/BBAccumRotation (-1.570796) XT
+409.0293 293.2988 m
+409.0293 289.4102 l
+S
+/BBAccumRotation (-1.570796) XT
+407.0859 291.3555 m
+410.9736 291.3555 l
+S
+/BBAccumRotation (-1.570796) XT
+416.8057 293.04 m
+416.8057 289.7139 l
+S
+/BBAccumRotation (-1.570796) XT
+415.4238 292.1758 m
+418.1885 290.5342 l
+S
+/BBAccumRotation (-1.570796) XT
+418.1885 292.1758 m
+415.4238 290.5342 l
+S
+/BBAccumRotation (-1.570796) XT
+424.2793 293.2988 m
+423.459 293.04 l
+S
+/BBAccumRotation (-1.570796) XT
+423.459 293.04 m
+422.8965 292.4785 l
+S
+/BBAccumRotation (-1.570796) XT
+422.8965 292.4785 m
+422.5947 291.6572 l
+S
+/BBAccumRotation (-1.570796) XT
+422.5947 291.6572 m
+422.5947 291.0957 l
+S
+/BBAccumRotation (-1.570796) XT
+422.5947 291.0957 m
+422.8965 290.2754 l
+S
+/BBAccumRotation (-1.570796) XT
+422.8965 290.2754 m
+423.459 289.7139 l
+S
+/BBAccumRotation (-1.570796) XT
+423.459 289.7139 m
+424.2793 289.4121 l
+S
+/BBAccumRotation (-1.570796) XT
+424.2793 289.4121 m
+424.8418 289.4121 l
+S
+/BBAccumRotation (-1.570796) XT
+424.8418 289.4121 m
+425.6621 289.7139 l
+S
+/BBAccumRotation (-1.570796) XT
+425.6621 289.7139 m
+426.2227 290.2754 l
+S
+/BBAccumRotation (-1.570796) XT
+426.2227 290.2754 m
+426.4824 291.0957 l
+S
+/BBAccumRotation (-1.570796) XT
+426.4824 291.0957 m
+426.4824 291.6572 l
+S
+/BBAccumRotation (-1.570796) XT
+426.4824 291.6582 m
+426.2227 292.4785 l
+S
+/BBAccumRotation (-1.570796) XT
+426.2227 292.4785 m
+425.6621 293.04 l
+S
+/BBAccumRotation (-1.570796) XT
+425.6621 293.04 m
+424.8418 293.2988 l
+S
+/BBAccumRotation (-1.570796) XT
+424.8418 293.2988 m
+424.2793 293.2988 l
+S
+/BBAccumRotation (-1.570796) XT
+430.9316 292.7383 m
+433.6973 289.9727 l
+S
+/BBAccumRotation (-1.570796) XT
+433.6973 292.7383 m
+430.9316 289.9727 l
+S
+/BBAccumRotation (-1.570796) XT
+438.1035 293.04 m
+438.1035 289.7139 l
+S
+/BBAccumRotation (-1.570796) XT
+438.1035 289.7139 m
+441.4297 289.7139 l
+S
+/BBAccumRotation (-1.570796) XT
+441.4297 289.7139 m
+441.4297 293.04 l
+S
+/BBAccumRotation (-1.570796) XT
+441.4297 293.04 m
+438.1035 293.04 l
+S
+/BBAccumRotation (-1.570796) XT
+447.8232 293.6016 m
+445.8789 290.2754 l
+S
+/BBAccumRotation (-1.570796) XT
+445.8789 290.2754 m
+449.7676 290.2754 l
+S
+/BBAccumRotation (-1.570796) XT
+449.7676 290.2754 m
+447.8232 293.6016 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 476.6396 m
+512.1055 476.6396 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 476.6396 m
+339.7373 472.3198 l
+S
+/BBAccumRotation (-1.570796) XT
+374.2109 476.6396 m
+374.2109 472.3198 l
+S
+/BBAccumRotation (-1.570796) XT
+408.6836 476.6396 m
+408.6836 472.3198 l
+S
+/BBAccumRotation (-1.570796) XT
+443.1582 476.6396 m
+443.1582 472.3198 l
+S
+/BBAccumRotation (-1.570796) XT
+477.6309 476.6396 m
+477.6309 472.3198 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 476.6396 m
+512.1055 472.3198 l
+S
+/BBAccumRotation (-1.570796) XT
+346.6484 476.6396 m
+346.6484 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+353.5605 476.6396 m
+353.5605 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+360.4297 476.6396 m
+360.4297 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+367.3418 476.6396 m
+367.3418 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+381.123 476.6396 m
+381.123 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+388.0352 476.6396 m
+388.0352 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+394.9033 476.6396 m
+394.9033 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+401.8145 476.6396 m
+401.8145 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+415.5957 476.6396 m
+415.5957 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+422.4648 476.6396 m
+422.4648 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+429.377 476.6396 m
+429.377 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+436.2891 476.6396 m
+436.2891 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+450.0693 476.6396 m
+450.0693 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+456.9395 476.6396 m
+456.9395 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+463.8506 476.6396 m
+463.8506 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+470.7617 476.6396 m
+470.7617 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+484.543 476.6396 m
+484.543 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+491.4121 476.6396 m
+491.4121 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+498.3242 476.6396 m
+498.3242 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+505.1934 476.6396 m
+505.1934 474.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 308.2031 m
+339.7373 476.6396 l
+S
+/BBAccumRotation (-1.570796) XT
+320.5996 309.8447 m
+323.9258 309.8447 l
+S
+/BBAccumRotation (-1.570796) XT
+326.3457 312.0479 m
+325.7832 311.875 l
+S
+/BBAccumRotation (-1.570796) XT
+325.7832 311.875 m
+325.3945 311.3145 l
+S
+/BBAccumRotation (-1.570796) XT
+325.3945 311.3145 m
+325.2217 310.4063 l
+S
+/BBAccumRotation (-1.570796) XT
+325.2217 310.4063 m
+325.2217 309.8447 l
+S
+/BBAccumRotation (-1.570796) XT
+325.2217 309.8447 m
+325.3945 308.9375 l
+S
+/BBAccumRotation (-1.570796) XT
+325.3945 308.9375 m
+325.7832 308.376 l
+S
+/BBAccumRotation (-1.570796) XT
+325.7832 308.376 m
+326.3457 308.2031 l
+S
+/BBAccumRotation (-1.570796) XT
+326.3457 308.2031 m
+326.6914 308.2031 l
+S
+/BBAccumRotation (-1.570796) XT
+326.6914 308.2031 m
+327.252 308.376 l
+S
+/BBAccumRotation (-1.570796) XT
+327.252 308.376 m
+327.6406 308.9375 l
+S
+/BBAccumRotation (-1.570796) XT
+327.6406 308.9375 m
+327.8135 309.8447 l
+S
+/BBAccumRotation (-1.570796) XT
+327.8135 309.8447 m
+327.8135 310.4063 l
+S
+/BBAccumRotation (-1.570796) XT
+327.8135 310.4063 m
+327.6406 311.3145 l
+S
+/BBAccumRotation (-1.570796) XT
+327.6406 311.3145 m
+327.252 311.875 l
+S
+/BBAccumRotation (-1.570796) XT
+327.252 311.875 m
+326.6914 312.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+326.6914 312.0479 m
+326.3457 312.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+329.2822 308.5488 m
+329.1094 308.376 l
+S
+/BBAccumRotation (-1.570796) XT
+329.1094 308.376 m
+329.2822 308.2031 l
+S
+/BBAccumRotation (-1.570796) XT
+329.2822 308.2031 m
+329.4551 308.376 l
+S
+/BBAccumRotation (-1.570796) XT
+329.4551 308.376 m
+329.2822 308.5488 l
+S
+/BBAccumRotation (-1.570796) XT
+331.3125 311.3145 m
+331.7012 311.5293 l
+S
+/BBAccumRotation (-1.570796) XT
+331.7012 311.5293 m
+332.2637 312.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+332.2637 312.0479 m
+332.2637 308.2031 l
+S
+/BBAccumRotation (-1.570796) XT
+335.5469 312.0479 m
+335.0273 311.875 l
+S
+/BBAccumRotation (-1.570796) XT
+335.0273 311.875 m
+334.6396 311.3145 l
+S
+/BBAccumRotation (-1.570796) XT
+334.6396 311.3145 m
+334.4668 310.4063 l
+S
+/BBAccumRotation (-1.570796) XT
+334.4668 310.4063 m
+334.4668 309.8447 l
+S
+/BBAccumRotation (-1.570796) XT
+334.4668 309.8447 m
+334.6396 308.9375 l
+S
+/BBAccumRotation (-1.570796) XT
+334.6396 308.9375 m
+335.0273 308.376 l
+S
+/BBAccumRotation (-1.570796) XT
+335.0273 308.376 m
+335.5469 308.2031 l
+S
+/BBAccumRotation (-1.570796) XT
+335.5469 308.2031 m
+335.9355 308.2031 l
+S
+/BBAccumRotation (-1.570796) XT
+335.9355 308.2031 m
+336.4971 308.376 l
+S
+/BBAccumRotation (-1.570796) XT
+336.4971 308.376 m
+336.8428 308.9375 l
+S
+/BBAccumRotation (-1.570796) XT
+336.8428 308.9375 m
+337.0586 309.8447 l
+S
+/BBAccumRotation (-1.570796) XT
+337.0586 309.8447 m
+337.0586 310.4063 l
+S
+/BBAccumRotation (-1.570796) XT
+337.0586 310.4063 m
+336.8428 311.3145 l
+S
+/BBAccumRotation (-1.570796) XT
+336.8428 311.3145 m
+336.4971 311.875 l
+S
+/BBAccumRotation (-1.570796) XT
+336.4971 311.875 m
+335.9355 312.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+335.9355 312.0479 m
+335.5469 312.0479 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 308.2031 m
+344.0566 308.2031 l
+S
+/BBAccumRotation (-1.570796) XT
+320.5996 348.9844 m
+323.9258 348.9844 l
+S
+/BBAccumRotation (-1.570796) XT
+326.3457 351.1875 m
+325.7832 351.0146 l
+S
+/BBAccumRotation (-1.570796) XT
+325.7832 351.0146 m
+325.3945 350.4531 l
+S
+/BBAccumRotation (-1.570796) XT
+325.3945 350.4531 m
+325.2217 349.502 l
+S
+/BBAccumRotation (-1.570796) XT
+325.2217 349.502 m
+325.2217 348.9844 l
+S
+/BBAccumRotation (-1.570796) XT
+325.2217 348.9844 m
+325.3945 348.0332 l
+S
+/BBAccumRotation (-1.570796) XT
+325.3945 348.0332 m
+325.7832 347.4727 l
+S
+/BBAccumRotation (-1.570796) XT
+325.7832 347.4727 m
+326.3457 347.2988 l
+S
+/BBAccumRotation (-1.570796) XT
+326.3457 347.2988 m
+326.6914 347.2988 l
+S
+/BBAccumRotation (-1.570796) XT
+326.6914 347.2988 m
+327.252 347.4727 l
+S
+/BBAccumRotation (-1.570796) XT
+327.252 347.4727 m
+327.6406 348.0332 l
+S
+/BBAccumRotation (-1.570796) XT
+327.6406 348.0332 m
+327.8135 348.9844 l
+S
+/BBAccumRotation (-1.570796) XT
+327.8135 348.9844 m
+327.8135 349.502 l
+S
+/BBAccumRotation (-1.570796) XT
+327.8135 349.502 m
+327.6406 350.4531 l
+S
+/BBAccumRotation (-1.570796) XT
+327.6406 350.4531 m
+327.252 351.0146 l
+S
+/BBAccumRotation (-1.570796) XT
+327.252 351.0146 m
+326.6914 351.1875 l
+S
+/BBAccumRotation (-1.570796) XT
+326.6914 351.1875 m
+326.3457 351.1875 l
+S
+/BBAccumRotation (-1.570796) XT
+329.2822 347.6875 m
+329.1094 347.4727 l
+S
+/BBAccumRotation (-1.570796) XT
+329.1094 347.4727 m
+329.2832 347.2988 l
+S
+/BBAccumRotation (-1.570796) XT
+329.2832 347.2988 m
+329.4551 347.4727 l
+S
+/BBAccumRotation (-1.570796) XT
+329.4551 347.4727 m
+329.2832 347.6875 l
+S
+/BBAccumRotation (-1.570796) XT
+331.875 351.1875 m
+331.3125 351.0146 l
+S
+/BBAccumRotation (-1.570796) XT
+331.3125 351.0146 m
+330.9668 350.4531 l
+S
+/BBAccumRotation (-1.570796) XT
+330.9668 350.4531 m
+330.752 349.502 l
+S
+/BBAccumRotation (-1.570796) XT
+330.752 349.502 m
+330.752 348.9844 l
+S
+/BBAccumRotation (-1.570796) XT
+330.752 348.9844 m
+330.9668 348.0332 l
+S
+/BBAccumRotation (-1.570796) XT
+330.9668 348.0332 m
+331.3125 347.4727 l
+S
+/BBAccumRotation (-1.570796) XT
+331.3125 347.4727 m
+331.875 347.2988 l
+S
+/BBAccumRotation (-1.570796) XT
+331.875 347.2988 m
+332.2637 347.2988 l
+S
+/BBAccumRotation (-1.570796) XT
+332.2637 347.2988 m
+332.7822 347.4727 l
+S
+/BBAccumRotation (-1.570796) XT
+332.7822 347.4727 m
+333.1699 348.0332 l
+S
+/BBAccumRotation (-1.570796) XT
+333.1699 348.0332 m
+333.3438 348.9844 l
+S
+/BBAccumRotation (-1.570796) XT
+333.3438 348.9844 m
+333.3438 349.502 l
+S
+/BBAccumRotation (-1.570796) XT
+333.3438 349.502 m
+333.1699 350.4531 l
+S
+/BBAccumRotation (-1.570796) XT
+333.1699 350.4531 m
+332.7822 351.0146 l
+S
+/BBAccumRotation (-1.570796) XT
+332.7822 351.0146 m
+332.2637 351.1875 l
+S
+/BBAccumRotation (-1.570796) XT
+332.2637 351.1875 m
+331.875 351.1875 l
+S
+/BBAccumRotation (-1.570796) XT
+336.6699 351.1875 m
+334.8125 351.1875 l
+S
+/BBAccumRotation (-1.570796) XT
+334.8125 351.1875 m
+334.6396 349.502 l
+S
+/BBAccumRotation (-1.570796) XT
+334.6396 349.502 m
+334.8125 349.7188 l
+S
+/BBAccumRotation (-1.570796) XT
+334.8125 349.7188 m
+335.373 349.8906 l
+S
+/BBAccumRotation (-1.570796) XT
+335.373 349.8906 m
+335.9355 349.8906 l
+S
+/BBAccumRotation (-1.570796) XT
+335.9355 349.8906 m
+336.4971 349.7188 l
+S
+/BBAccumRotation (-1.570796) XT
+336.4971 349.7188 m
+336.8428 349.3301 l
+S
+/BBAccumRotation (-1.570796) XT
+336.8428 349.3301 m
+337.0586 348.7676 l
+S
+/BBAccumRotation (-1.570796) XT
+337.0586 348.7676 m
+337.0586 348.4219 l
+S
+/BBAccumRotation (-1.570796) XT
+337.0586 348.4219 m
+336.8428 347.8613 l
+S
+/BBAccumRotation (-1.570796) XT
+336.8428 347.8613 m
+336.4971 347.4727 l
+S
+/BBAccumRotation (-1.570796) XT
+336.4971 347.4727 m
+335.9355 347.2988 l
+S
+/BBAccumRotation (-1.570796) XT
+335.9355 347.2988 m
+335.373 347.2988 l
+S
+/BBAccumRotation (-1.570796) XT
+335.373 347.2988 m
+334.8125 347.4727 l
+S
+/BBAccumRotation (-1.570796) XT
+334.8125 347.4727 m
+334.6396 347.6875 l
+S
+/BBAccumRotation (-1.570796) XT
+334.6396 347.6875 m
+334.4668 348.0332 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 350.3232 m
+344.0566 350.3232 l
+S
+/BBAccumRotation (-1.570796) XT
+326.3457 393.3066 m
+325.7832 393.1348 l
+S
+/BBAccumRotation (-1.570796) XT
+325.7832 393.1348 m
+325.3945 392.5723 l
+S
+/BBAccumRotation (-1.570796) XT
+325.3945 392.5723 m
+325.2217 391.623 l
+S
+/BBAccumRotation (-1.570796) XT
+325.2217 391.623 m
+325.2217 391.1035 l
+S
+/BBAccumRotation (-1.570796) XT
+325.2217 391.1035 m
+325.3945 390.1533 l
+S
+/BBAccumRotation (-1.570796) XT
+325.3945 390.1533 m
+325.7832 389.5918 l
+S
+/BBAccumRotation (-1.570796) XT
+325.7832 389.5918 m
+326.3457 389.4199 l
+S
+/BBAccumRotation (-1.570796) XT
+326.3457 389.4199 m
+326.6914 389.4199 l
+S
+/BBAccumRotation (-1.570796) XT
+326.6914 389.4199 m
+327.252 389.5918 l
+S
+/BBAccumRotation (-1.570796) XT
+327.252 389.5918 m
+327.6406 390.1543 l
+S
+/BBAccumRotation (-1.570796) XT
+327.6406 390.1543 m
+327.8135 391.1045 l
+S
+/BBAccumRotation (-1.570796) XT
+327.8135 391.1045 m
+327.8135 391.623 l
+S
+/BBAccumRotation (-1.570796) XT
+327.8135 391.623 m
+327.6406 392.5723 l
+S
+/BBAccumRotation (-1.570796) XT
+327.6406 392.5723 m
+327.252 393.1348 l
+S
+/BBAccumRotation (-1.570796) XT
+327.252 393.1348 m
+326.6914 393.3076 l
+S
+/BBAccumRotation (-1.570796) XT
+326.6914 393.3076 m
+326.3457 393.3076 l
+S
+/BBAccumRotation (-1.570796) XT
+329.2822 389.8076 m
+329.1094 389.5918 l
+S
+/BBAccumRotation (-1.570796) XT
+329.1094 389.5918 m
+329.2832 389.4199 l
+S
+/BBAccumRotation (-1.570796) XT
+329.2832 389.4199 m
+329.4551 389.5918 l
+S
+/BBAccumRotation (-1.570796) XT
+329.4551 389.5918 m
+329.2832 389.8076 l
+S
+/BBAccumRotation (-1.570796) XT
+331.875 393.3066 m
+331.3125 393.1348 l
+S
+/BBAccumRotation (-1.570796) XT
+331.3125 393.1348 m
+330.9668 392.5723 l
+S
+/BBAccumRotation (-1.570796) XT
+330.9668 392.5723 m
+330.752 391.623 l
+S
+/BBAccumRotation (-1.570796) XT
+330.752 391.623 m
+330.752 391.1035 l
+S
+/BBAccumRotation (-1.570796) XT
+330.752 391.1035 m
+330.9668 390.1533 l
+S
+/BBAccumRotation (-1.570796) XT
+330.9668 390.1533 m
+331.3125 389.5918 l
+S
+/BBAccumRotation (-1.570796) XT
+331.3125 389.5918 m
+331.875 389.4199 l
+S
+/BBAccumRotation (-1.570796) XT
+331.875 389.4199 m
+332.2637 389.4199 l
+S
+/BBAccumRotation (-1.570796) XT
+332.2637 389.4199 m
+332.7822 389.5918 l
+S
+/BBAccumRotation (-1.570796) XT
+332.7822 389.5918 m
+333.1699 390.1543 l
+S
+/BBAccumRotation (-1.570796) XT
+333.1699 390.1543 m
+333.3438 391.1045 l
+S
+/BBAccumRotation (-1.570796) XT
+333.3438 391.1045 m
+333.3438 391.623 l
+S
+/BBAccumRotation (-1.570796) XT
+333.3438 391.623 m
+333.1699 392.5723 l
+S
+/BBAccumRotation (-1.570796) XT
+333.1699 392.5723 m
+332.7822 393.1348 l
+S
+/BBAccumRotation (-1.570796) XT
+332.7822 393.1348 m
+332.2637 393.3076 l
+S
+/BBAccumRotation (-1.570796) XT
+332.2637 393.3076 m
+331.875 393.3076 l
+S
+/BBAccumRotation (-1.570796) XT
+335.5469 393.3066 m
+335.0273 393.1348 l
+S
+/BBAccumRotation (-1.570796) XT
+335.0273 393.1348 m
+334.6396 392.5723 l
+S
+/BBAccumRotation (-1.570796) XT
+334.6396 392.5723 m
+334.4668 391.623 l
+S
+/BBAccumRotation (-1.570796) XT
+334.4668 391.623 m
+334.4668 391.1035 l
+S
+/BBAccumRotation (-1.570796) XT
+334.4668 391.1035 m
+334.6396 390.1533 l
+S
+/BBAccumRotation (-1.570796) XT
+334.6396 390.1533 m
+335.0273 389.5918 l
+S
+/BBAccumRotation (-1.570796) XT
+335.0293 389.5918 m
+335.5469 389.4199 l
+S
+/BBAccumRotation (-1.570796) XT
+335.5469 389.4199 m
+335.9355 389.4199 l
+S
+/BBAccumRotation (-1.570796) XT
+335.9355 389.4199 m
+336.4971 389.5918 l
+S
+/BBAccumRotation (-1.570796) XT
+336.4971 389.5918 m
+336.8428 390.1543 l
+S
+/BBAccumRotation (-1.570796) XT
+336.8428 390.1543 m
+337.0586 391.1045 l
+S
+/BBAccumRotation (-1.570796) XT
+337.0586 391.1045 m
+337.0586 391.623 l
+S
+/BBAccumRotation (-1.570796) XT
+337.0586 391.623 m
+336.8428 392.5723 l
+S
+/BBAccumRotation (-1.570796) XT
+336.8428 392.5723 m
+336.4971 393.1348 l
+S
+/BBAccumRotation (-1.570796) XT
+336.4971 393.1348 m
+335.9355 393.3076 l
+S
+/BBAccumRotation (-1.570796) XT
+335.9355 393.3076 m
+335.5469 393.3076 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 392.4434 m
+344.0566 392.4434 l
+S
+/BBAccumRotation (-1.570796) XT
+326.3457 435.4272 m
+325.7832 435.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+325.7832 435.2109 m
+325.3945 434.6929 l
+S
+/BBAccumRotation (-1.570796) XT
+325.3945 434.6929 m
+325.2217 433.7427 l
+S
+/BBAccumRotation (-1.570796) XT
+325.2217 433.7427 m
+325.2217 433.1807 l
+S
+/BBAccumRotation (-1.570796) XT
+325.2217 433.1807 m
+325.3945 432.2734 l
+S
+/BBAccumRotation (-1.570796) XT
+325.3945 432.2734 m
+325.7832 431.7119 l
+S
+/BBAccumRotation (-1.570796) XT
+325.7832 431.7119 m
+326.3457 431.5396 l
+S
+/BBAccumRotation (-1.570796) XT
+326.3457 431.5396 m
+326.6914 431.5396 l
+S
+/BBAccumRotation (-1.570796) XT
+326.6914 431.5396 m
+327.252 431.7124 l
+S
+/BBAccumRotation (-1.570796) XT
+327.252 431.7124 m
+327.6406 432.2739 l
+S
+/BBAccumRotation (-1.570796) XT
+327.6406 432.2739 m
+327.8135 433.1807 l
+S
+/BBAccumRotation (-1.570796) XT
+327.8135 433.1807 m
+327.8135 433.7427 l
+S
+/BBAccumRotation (-1.570796) XT
+327.8135 433.7427 m
+327.6406 434.6929 l
+S
+/BBAccumRotation (-1.570796) XT
+327.6406 434.6934 m
+327.252 435.2114 l
+S
+/BBAccumRotation (-1.570796) XT
+327.252 435.2114 m
+326.6914 435.4272 l
+S
+/BBAccumRotation (-1.570796) XT
+326.6914 435.4272 m
+326.3457 435.4272 l
+S
+/BBAccumRotation (-1.570796) XT
+329.2822 431.8848 m
+329.1094 431.7119 l
+S
+/BBAccumRotation (-1.570796) XT
+329.1094 431.7119 m
+329.2832 431.5391 l
+S
+/BBAccumRotation (-1.570796) XT
+329.2832 431.5391 m
+329.4551 431.7119 l
+S
+/BBAccumRotation (-1.570796) XT
+329.4551 431.7119 m
+329.2832 431.8848 l
+S
+/BBAccumRotation (-1.570796) XT
+331.875 435.4272 m
+331.3125 435.2109 l
+S
+/BBAccumRotation (-1.570796) XT
+331.3125 435.2109 m
+330.9668 434.6929 l
+S
+/BBAccumRotation (-1.570796) XT
+330.9668 434.6929 m
+330.752 433.7427 l
+S
+/BBAccumRotation (-1.570796) XT
+330.752 433.7427 m
+330.752 433.1807 l
+S
+/BBAccumRotation (-1.570796) XT
+330.752 433.1807 m
+330.9668 432.2734 l
+S
+/BBAccumRotation (-1.570796) XT
+330.9668 432.2734 m
+331.3125 431.7119 l
+S
+/BBAccumRotation (-1.570796) XT
+331.3125 431.7119 m
+331.875 431.5396 l
+S
+/BBAccumRotation (-1.570796) XT
+331.875 431.5396 m
+332.2637 431.5396 l
+S
+/BBAccumRotation (-1.570796) XT
+332.2637 431.5396 m
+332.7822 431.7124 l
+S
+/BBAccumRotation (-1.570796) XT
+332.7822 431.7124 m
+333.1699 432.2739 l
+S
+/BBAccumRotation (-1.570796) XT
+333.1699 432.2739 m
+333.3438 433.1807 l
+S
+/BBAccumRotation (-1.570796) XT
+333.3438 433.1807 m
+333.3438 433.7427 l
+S
+/BBAccumRotation (-1.570796) XT
+333.3438 433.7427 m
+333.1699 434.6929 l
+S
+/BBAccumRotation (-1.570796) XT
+333.1699 434.6934 m
+332.7822 435.2114 l
+S
+/BBAccumRotation (-1.570796) XT
+332.7822 435.2114 m
+332.2637 435.4272 l
+S
+/BBAccumRotation (-1.570796) XT
+332.2637 435.4272 m
+331.875 435.4272 l
+S
+/BBAccumRotation (-1.570796) XT
+336.6699 435.4272 m
+334.8125 435.4272 l
+S
+/BBAccumRotation (-1.570796) XT
+334.8125 435.4272 m
+334.6396 433.7422 l
+S
+/BBAccumRotation (-1.570796) XT
+334.6396 433.7427 m
+334.8125 433.915 l
+S
+/BBAccumRotation (-1.570796) XT
+334.8125 433.9155 m
+335.373 434.1313 l
+S
+/BBAccumRotation (-1.570796) XT
+335.373 434.1313 m
+335.9355 434.1313 l
+S
+/BBAccumRotation (-1.570796) XT
+335.9355 434.1313 m
+336.4971 433.9155 l
+S
+/BBAccumRotation (-1.570796) XT
+336.4971 433.9155 m
+336.8428 433.5698 l
+S
+/BBAccumRotation (-1.570796) XT
+336.8428 433.5698 m
+337.0586 433.0078 l
+S
+/BBAccumRotation (-1.570796) XT
+337.0586 433.0078 m
+337.0586 432.6626 l
+S
+/BBAccumRotation (-1.570796) XT
+337.0586 432.6626 m
+336.8428 432.1011 l
+S
+/BBAccumRotation (-1.570796) XT
+336.8428 432.1011 m
+336.4971 431.7124 l
+S
+/BBAccumRotation (-1.570796) XT
+336.4971 431.7124 m
+335.9355 431.5396 l
+S
+/BBAccumRotation (-1.570796) XT
+335.9355 431.5396 m
+335.373 431.5396 l
+S
+/BBAccumRotation (-1.570796) XT
+335.373 431.5396 m
+334.8125 431.7124 l
+S
+/BBAccumRotation (-1.570796) XT
+334.8125 431.7124 m
+334.6396 431.8853 l
+S
+/BBAccumRotation (-1.570796) XT
+334.6396 431.8853 m
+334.4668 432.2739 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 434.52 m
+344.0566 434.52 l
+S
+/BBAccumRotation (-1.570796) XT
+326.3457 474.5229 m
+325.7832 474.3501 l
+S
+/BBAccumRotation (-1.570796) XT
+325.7832 474.3501 m
+325.3945 473.7886 l
+S
+/BBAccumRotation (-1.570796) XT
+325.3945 473.7886 m
+325.2217 472.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+325.2217 472.8818 m
+325.2217 472.3198 l
+S
+/BBAccumRotation (-1.570796) XT
+325.2217 472.3198 m
+325.3945 471.3696 l
+S
+/BBAccumRotation (-1.570796) XT
+325.3945 471.3696 m
+325.7832 470.8511 l
+S
+/BBAccumRotation (-1.570796) XT
+325.7832 470.8516 m
+326.3457 470.6353 l
+S
+/BBAccumRotation (-1.570796) XT
+326.3457 470.6353 m
+326.6914 470.6353 l
+S
+/BBAccumRotation (-1.570796) XT
+326.6914 470.6353 m
+327.252 470.8516 l
+S
+/BBAccumRotation (-1.570796) XT
+327.252 470.8516 m
+327.6406 471.3696 l
+S
+/BBAccumRotation (-1.570796) XT
+327.6406 471.3696 m
+327.8135 472.3198 l
+S
+/BBAccumRotation (-1.570796) XT
+327.8135 472.3198 m
+327.8135 472.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+327.8135 472.8818 m
+327.6406 473.7891 l
+S
+/BBAccumRotation (-1.570796) XT
+327.6406 473.7891 m
+327.252 474.3506 l
+S
+/BBAccumRotation (-1.570796) XT
+327.252 474.3506 m
+326.6914 474.5234 l
+S
+/BBAccumRotation (-1.570796) XT
+326.6914 474.5234 m
+326.3457 474.5234 l
+S
+/BBAccumRotation (-1.570796) XT
+329.2822 471.0239 m
+329.1094 470.8511 l
+S
+/BBAccumRotation (-1.570796) XT
+329.1094 470.8511 m
+329.2832 470.6353 l
+S
+/BBAccumRotation (-1.570796) XT
+329.2832 470.6353 m
+329.4551 470.8511 l
+S
+/BBAccumRotation (-1.570796) XT
+329.4551 470.8511 m
+329.2832 471.0239 l
+S
+/BBAccumRotation (-1.570796) XT
+331.3125 473.7886 m
+331.7012 473.9614 l
+S
+/BBAccumRotation (-1.570796) XT
+331.7012 473.9614 m
+332.2637 474.5229 l
+S
+/BBAccumRotation (-1.570796) XT
+332.2637 474.5229 m
+332.2637 470.6353 l
+S
+/BBAccumRotation (-1.570796) XT
+335.5469 474.5229 m
+335.0273 474.3501 l
+S
+/BBAccumRotation (-1.570796) XT
+335.0273 474.3501 m
+334.6396 473.7886 l
+S
+/BBAccumRotation (-1.570796) XT
+334.6396 473.7886 m
+334.4668 472.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+334.4668 472.8818 m
+334.4668 472.3198 l
+S
+/BBAccumRotation (-1.570796) XT
+334.4668 472.3198 m
+334.6396 471.3696 l
+S
+/BBAccumRotation (-1.570796) XT
+334.6396 471.3696 m
+335.0273 470.8511 l
+S
+/BBAccumRotation (-1.570796) XT
+335.0293 470.8516 m
+335.5469 470.6353 l
+S
+/BBAccumRotation (-1.570796) XT
+335.5469 470.6353 m
+335.9355 470.6353 l
+S
+/BBAccumRotation (-1.570796) XT
+335.9355 470.6353 m
+336.4971 470.8516 l
+S
+/BBAccumRotation (-1.570796) XT
+336.4971 470.8516 m
+336.8428 471.3696 l
+S
+/BBAccumRotation (-1.570796) XT
+336.8428 471.3696 m
+337.0586 472.3198 l
+S
+/BBAccumRotation (-1.570796) XT
+337.0586 472.3198 m
+337.0586 472.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+337.0586 472.8818 m
+336.8428 473.7891 l
+S
+/BBAccumRotation (-1.570796) XT
+336.8428 473.7891 m
+336.4971 474.3506 l
+S
+/BBAccumRotation (-1.570796) XT
+336.4971 474.3506 m
+335.9355 474.5234 l
+S
+/BBAccumRotation (-1.570796) XT
+335.9355 474.5234 m
+335.5469 474.5234 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 476.6396 m
+344.0566 476.6396 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 316.627 m
+342.3281 316.627 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 325.0508 m
+342.3281 325.0508 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 333.4746 m
+342.3281 333.4746 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 341.8984 m
+342.3281 341.8984 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 358.7471 m
+342.3281 358.7471 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 367.1719 m
+342.3281 367.1719 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 375.5957 m
+342.3281 375.5957 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 384.0195 m
+342.3281 384.0195 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 400.8237 m
+342.3281 400.8237 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 409.248 m
+342.3281 409.248 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 417.6719 m
+342.3281 417.6719 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 426.0962 m
+342.3281 426.0962 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 442.9438 m
+342.3281 442.9438 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 451.3682 m
+342.3281 451.3682 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 459.792 m
+342.3281 459.792 l
+S
+/BBAccumRotation (-1.570796) XT
+339.7373 468.2158 m
+342.3281 468.2158 l
+S
+/BBAccumRotation (-1.570796) XT
+312.7373 387.9941 m
+313.2988 387.7344 l
+S
+/BBAccumRotation (-1.570796) XT
+313.2988 387.7344 m
+313.8164 387.7344 l
+S
+/BBAccumRotation (-1.570796) XT
+313.8164 387.7344 m
+314.3789 387.9941 l
+S
+/BBAccumRotation (-1.570796) XT
+314.3789 387.9941 m
+314.6816 388.5547 l
+S
+/BBAccumRotation (-1.570796) XT
+314.6816 388.5547 m
+314.6816 389.376 l
+S
+/BBAccumRotation (-1.570796) XT
+314.6816 389.376 m
+314.3789 390.1973 l
+S
+/BBAccumRotation (-1.570796) XT
+314.3789 390.1973 m
+314.1191 390.7588 l
+S
+/BBAccumRotation (-1.570796) XT
+314.1191 390.7588 m
+313.2988 391.5791 l
+S
+/BBAccumRotation (-1.570796) XT
+313.2988 391.5791 m
+312.4355 391.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+312.4355 391.8818 m
+312.1758 391.8818 l
+S
+/BBAccumRotation (-1.570796) XT
+312.1758 391.8818 m
+311.916 391.5801 l
+S
+/BBAccumRotation (-1.570796) XT
+311.916 391.5801 m
+311.916 391.3203 l
+S
+/BBAccumRotation (-1.570796) XT
+311.916 391.3203 m
+312.1758 390.7588 l
+S
+/BBAccumRotation (-1.570796) XT
+312.1758 390.7588 m
+312.4355 390.499 l
+S
+/BBAccumRotation (-1.570796) XT
+312.4355 390.499 m
+313.2988 389.9375 l
+S
+/BBAccumRotation (-1.570796) XT
+313.2988 389.9375 m
+316.0635 388.8145 l
+S
+/BBAccumRotation (-1.570796) XT
+316.0635 388.8145 m
+316.625 388.5557 l
+S
+/BBAccumRotation (-1.570796) XT
+316.625 388.5557 m
+317.4453 387.9941 l
+S
+/BBAccumRotation (-1.570796) XT
+317.4453 387.9941 m
+317.7051 387.4316 l
+S
+/BBAccumRotation (-1.570796) XT
+312.4355 390.499 m
+313.5576 389.9375 l
+S
+/BBAccumRotation (-1.570796) XT
+313.5576 389.9375 m
+315.502 389.376 l
+S
+/BBAccumRotation (-1.570796) XT
+315.502 389.376 m
+316.3223 389.1172 l
+S
+/BBAccumRotation (-1.570796) XT
+316.3223 389.1172 m
+316.8848 388.8145 l
+S
+/BBAccumRotation (-1.570796) XT
+316.8848 388.8145 m
+317.4453 388.252 l
+S
+/BBAccumRotation (-1.570796) XT
+317.4453 388.252 m
+317.7051 387.4316 l
+S
+/BBAccumRotation (-1.570796) XT
+317.7051 387.4316 m
+317.7051 386.8711 l
+S
+/BBAccumRotation (-1.570796) XT
+317.7051 386.8711 m
+317.4453 386.6113 l
+S
+/BBAccumRotation (-1.570796) XT
+317.4453 386.6113 m
+316.8848 386.6113 l
+S
+/BBAccumRotation (-1.570796) XT
+316.8848 386.6113 m
+316.625 386.8711 l
+S
+/BBAccumRotation (-1.570796) XT
+316.625 386.8711 m
+316.625 387.4316 l
+S
+/BBAccumRotation (-1.570796) XT
+316.625 387.4316 m
+316.8848 387.9941 l
+S
+/BBAccumRotation (-1.570796) XT
+316.8848 387.9941 m
+317.4453 388.8145 l
+S
+/BBAccumRotation (-1.570796) XT
+317.4453 388.8145 m
+317.7051 389.377 l
+S
+/BBAccumRotation (-1.570796) XT
+317.7051 389.377 m
+317.7051 390.1973 l
+S
+/BBAccumRotation (-1.570796) XT
+317.7051 390.1973 m
+317.4453 390.7588 l
+S
+/BBAccumRotation (-1.570796) XT
+317.4453 390.7588 m
+316.8848 391.3203 l
+S
+/BBAccumRotation (-1.570796) XT
+312.9961 392.7021 m
+312.1758 393.2637 l
+S
+/BBAccumRotation (-1.570796) XT
+312.1758 393.2637 m
+311.916 393.8262 l
+S
+/BBAccumRotation (-1.570796) XT
+311.916 393.8262 m
+311.916 394.085 l
+S
+/BBAccumRotation (-1.570796) XT
+311.916 394.085 m
+312.1758 394.6465 l
+S
+/BBAccumRotation (-1.570796) XT
+312.1758 394.6465 m
+312.7373 394.6465 l
+S
+/BBAccumRotation (-1.570796) XT
+312.7373 394.6465 m
+314.3789 394.085 l
+S
+/BBAccumRotation (-1.570796) XT
+314.3789 394.085 m
+315.2422 394.085 l
+S
+/BBAccumRotation (-1.570796) XT
+315.2422 394.085 m
+315.7607 394.3438 l
+S
+/BBAccumRotation (-1.570796) XT
+311.916 394.084 m
+312.1758 394.3438 l
+S
+/BBAccumRotation (-1.570796) XT
+312.1758 394.3438 m
+312.7373 394.3438 l
+S
+/BBAccumRotation (-1.570796) XT
+312.7373 394.3438 m
+314.3789 393.8262 l
+S
+/BBAccumRotation (-1.570796) XT
+314.3789 393.8262 m
+315.2422 393.8262 l
+S
+/BBAccumRotation (-1.570796) XT
+315.2422 393.8262 m
+315.7607 394.3438 l
+S
+/BBAccumRotation (-1.570796) XT
+315.7607 394.3438 m
+315.7607 394.9053 l
+S
+/BBAccumRotation (-1.570796) XT
+315.7607 394.9053 m
+315.502 395.7266 l
+S
+/BBAccumRotation (-1.570796) XT
+315.502 395.7266 m
+314.9404 396.2881 l
+S
+/BBAccumRotation (-1.570796) XT
+314.9404 396.2881 m
+314.1191 396.8496 l
+S
+/BBAccumRotation (-1.570796) XT
+314.1191 396.8496 m
+313.5576 397.1089 l
+S
+/BBAccumRotation (-1.570796) XT
+311.916 397.6704 m
+313.5576 397.1089 l
+S
+/BBAccumRotation (-1.570796) XT
+313.5576 397.1089 m
+315.7607 396.2881 l
+S
+/BBAccumRotation (-1.570796) XT
+315.7607 396.2881 m
+316.8848 395.7261 l
+S
+/BBAccumRotation (-1.570796) XT
+311.916 397.9727 m
+313.5576 397.4111 l
+S
+/BBAccumRotation (-1.570796) XT
+313.5576 397.4111 m
+314.9404 396.8496 l
+S
+/BBAccumRotation (-1.570796) XT
+314.9404 396.8496 m
+316.0625 396.2881 l
+S
+/BBAccumRotation (-1.570796) XT
+316.0625 396.2881 m
+316.8848 395.7261 l
+S
+/BBAccumRotation (-1.570796) XT
+316.8848 395.7261 m
+317.4453 395.2075 l
+S
+/BBAccumRotation (-1.570796) XT
+317.4453 395.2085 m
+317.7051 394.3438 l
+S
+/BBAccumRotation (-1.570796) XT
+317.7051 394.3438 m
+317.7051 393.2637 l
+S
+/BBAccumRotation (-1.570796) XT
+317.7051 393.2637 m
+317.4453 392.7021 l
+S
+/BBAccumRotation (-1.570796) XT
+317.4453 392.7021 m
+316.8848 392.4434 l
+S
+/BBAccumRotation (-1.570796) XT
+316.8848 392.4434 m
+316.625 392.4434 l
+S
+/BBAccumRotation (-1.570796) XT
+316.625 392.4434 m
+316.3223 392.7021 l
+S
+/BBAccumRotation (-1.570796) XT
+316.3223 392.7031 m
+316.625 392.9619 l
+S
+/BBAccumRotation (-1.570796) XT
+316.625 392.9619 m
+316.8848 392.7031 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 308.2031 m
+512.1055 476.6396 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 308.2031 m
+507.7852 308.2031 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 350.3232 m
+507.7852 350.3232 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 392.4434 m
+507.7852 392.4434 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 434.52 m
+507.7852 434.52 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 476.6396 m
+507.7852 476.6396 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 316.627 m
+509.5127 316.627 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 325.0508 m
+509.5127 325.0508 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 333.4746 m
+509.5127 333.4746 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 341.8984 m
+509.5127 341.8984 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 358.7471 m
+509.5127 358.7471 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 367.1719 m
+509.5127 367.1719 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 375.5957 m
+509.5127 375.5957 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 384.0195 m
+509.5127 384.0195 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 400.8237 m
+509.5127 400.8237 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 409.248 m
+509.5127 409.248 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 417.6719 m
+509.5127 417.6719 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 426.0962 m
+509.5127 426.0962 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 442.9438 m
+509.5127 442.9438 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 451.3682 m
+509.5127 451.3682 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 459.792 m
+509.5127 459.792 l
+S
+/BBAccumRotation (-1.570796) XT
+512.1055 468.2158 m
+509.5127 468.2158 l
+S
+/BBAccumRotation (-1.570796) XT
+0 O
+0 0 0 1 k
+0 J 0 j 1 w 4 M
+339.7373 384.0527 m
+339.2598 382.6191 l
+337.8262 382.6191 l
+339.0195 381.6631 l
+338.543 380.2305 l
+339.7373 381.1855 l
+340.9316 380.2305 l
+340.4531 381.6631 l
+341.6484 382.6191 l
+340.2148 382.6191 l
+339.7373 384.0527 l
+f
+/BBAccumRotation (-1.570796) XT
+346.6484 383.1885 m
+346.1709 381.7559 l
+344.7383 381.7559 l
+345.9316 380.7988 l
+345.4551 379.3662 l
+346.6484 380.3213 l
+347.8438 379.3662 l
+347.3652 380.7988 l
+348.5605 381.7559 l
+347.127 381.7559 l
+346.6484 383.1885 l
+f
+/BBAccumRotation (-1.570796) XT
+353.5605 382.4541 m
+353.083 381.0205 l
+351.6494 381.0205 l
+352.8438 380.0645 l
+352.3672 378.6309 l
+353.5605 379.5879 l
+354.7559 378.6309 l
+354.2773 380.0645 l
+355.4727 381.0205 l
+354.0391 381.0205 l
+353.5605 382.4541 l
+f
+/BBAccumRotation (-1.570796) XT
+360.4297 381.6768 m
+359.9521 380.2422 l
+358.5195 380.2422 l
+359.7129 379.2871 l
+359.2344 377.8535 l
+360.4297 378.8096 l
+361.625 377.8535 l
+361.1465 379.2871 l
+362.3408 380.2422 l
+360.9072 380.2422 l
+360.4297 381.6768 l
+f
+/BBAccumRotation (-1.570796) XT
+367.3418 381.0293 m
+366.8633 379.5947 l
+365.4307 379.5947 l
+366.625 378.6387 l
+366.1465 377.2061 l
+367.3418 378.1621 l
+368.5361 377.2061 l
+368.0586 378.6387 l
+369.2539 379.5947 l
+367.8193 379.5947 l
+367.3418 381.0293 l
+f
+/BBAccumRotation (-1.570796) XT
+374.2109 380.5098 m
+373.7324 379.0762 l
+372.2988 379.0762 l
+373.4941 378.1211 l
+373.0156 376.6875 l
+374.2109 377.6426 l
+375.4043 376.6875 l
+374.9277 378.1211 l
+376.1211 379.0762 l
+374.6885 379.0762 l
+374.2109 380.5098 l
+f
+/BBAccumRotation (-1.570796) XT
+381.123 380.1641 m
+380.6445 378.7305 l
+379.2109 378.7305 l
+380.4063 377.7754 l
+379.9277 376.3418 l
+381.123 377.2969 l
+382.3174 376.3418 l
+381.8398 377.7754 l
+383.0332 378.7305 l
+381.5996 378.7305 l
+381.123 380.1641 l
+f
+/BBAccumRotation (-1.570796) XT
+388.0352 379.9922 m
+387.5566 378.5586 l
+386.123 378.5586 l
+387.3184 377.6025 l
+386.8398 376.1699 l
+388.0352 377.125 l
+389.2285 376.1699 l
+388.751 377.6025 l
+389.9453 378.5586 l
+388.5117 378.5586 l
+388.0352 379.9922 l
+f
+/BBAccumRotation (-1.570796) XT
+394.9033 380.0781 m
+394.4258 378.6445 l
+392.9922 378.6445 l
+394.1865 377.6895 l
+393.709 376.2559 l
+394.9033 377.2109 l
+396.0977 376.2559 l
+395.6191 377.6895 l
+396.8145 378.6445 l
+395.3809 378.6445 l
+394.9033 380.0781 l
+f
+/BBAccumRotation (-1.570796) XT
+401.8145 380.4238 m
+401.3379 378.9902 l
+399.9043 378.9902 l
+401.0996 378.0352 l
+400.6211 376.6016 l
+401.8145 377.5566 l
+403.0098 376.6016 l
+402.5322 378.0352 l
+403.7266 378.9902 l
+402.293 378.9902 l
+401.8145 380.4238 l
+f
+/BBAccumRotation (-1.570796) XT
+408.6836 381.0293 m
+408.207 379.5947 l
+406.7734 379.5947 l
+407.9668 378.6387 l
+407.4893 377.2061 l
+408.6836 378.1621 l
+409.8789 377.2061 l
+409.4004 378.6387 l
+410.5957 379.5947 l
+409.1621 379.5947 l
+408.6836 381.0293 l
+f
+/BBAccumRotation (-1.570796) XT
+415.5957 381.9355 m
+415.1182 380.502 l
+413.6855 380.502 l
+414.8789 379.5469 l
+414.4014 378.1133 l
+415.5957 379.0684 l
+416.791 378.1133 l
+416.3125 379.5469 l
+417.5078 380.502 l
+416.0742 380.502 l
+415.5957 381.9355 l
+f
+/BBAccumRotation (-1.570796) XT
+422.4648 383.2744 m
+421.9863 381.8418 l
+420.5537 381.8418 l
+421.748 380.8857 l
+421.2705 379.4531 l
+422.4648 380.4082 l
+423.6592 379.4531 l
+423.1816 380.8857 l
+424.376 381.8418 l
+422.9434 381.8418 l
+422.4648 383.2744 l
+f
+/BBAccumRotation (-1.570796) XT
+429.377 384.959 m
+428.8994 383.5264 l
+427.4648 383.5264 l
+428.6602 382.5703 l
+428.1816 381.1367 l
+429.377 382.0928 l
+430.5723 381.1367 l
+430.0938 382.5703 l
+431.2871 383.5264 l
+429.8545 383.5264 l
+429.377 384.959 l
+f
+/BBAccumRotation (-1.570796) XT
+436.2891 387.0762 m
+435.8105 385.6426 l
+434.3779 385.6426 l
+435.5723 384.6875 l
+435.0938 383.2539 l
+436.2891 384.209 l
+437.4834 383.2539 l
+437.0059 384.6875 l
+438.1992 385.6426 l
+436.7666 385.6426 l
+436.2891 387.0762 l
+f
+/BBAccumRotation (-1.570796) XT
+443.1582 389.582 m
+442.6797 388.1484 l
+441.2461 388.1484 l
+442.4414 387.1934 l
+441.9629 385.7598 l
+443.1582 386.7148 l
+444.3516 385.7598 l
+443.875 387.1934 l
+445.0684 388.1484 l
+443.6357 388.1484 l
+443.1582 389.582 l
+f
+/BBAccumRotation (-1.570796) XT
+450.0703 392.6484 m
+449.5918 391.2158 l
+448.1582 391.2158 l
+449.3535 390.2598 l
+448.875 388.8262 l
+450.0703 389.7832 l
+451.2646 388.8262 l
+450.7871 390.2598 l
+451.9805 391.2158 l
+450.5469 391.2158 l
+450.0703 392.6484 l
+f
+/BBAccumRotation (-1.570796) XT
+456.9395 396.1914 m
+456.4609 394.7578 l
+455.0273 394.7578 l
+456.2217 393.8027 l
+455.7441 392.3691 l
+456.9395 393.3252 l
+458.1328 392.3691 l
+457.6543 393.8027 l
+458.8496 394.7578 l
+457.416 394.7578 l
+456.9395 396.1914 l
+f
+/BBAccumRotation (-1.570796) XT
+463.8506 400.2959 m
+463.373 398.8623 l
+461.9395 398.8623 l
+463.1338 397.9067 l
+462.6563 396.4731 l
+463.8506 397.4287 l
+465.0449 396.4731 l
+464.5664 397.9067 l
+465.7617 398.8623 l
+464.3281 398.8623 l
+463.8506 400.2959 l
+f
+/BBAccumRotation (-1.570796) XT
+470.7617 405.0044 m
+470.2852 403.5713 l
+468.8516 403.5713 l
+470.0449 402.6152 l
+469.5684 401.1821 l
+470.7617 402.1377 l
+471.957 401.1821 l
+471.4795 402.6152 l
+472.6738 403.5713 l
+471.2402 403.5713 l
+470.7617 405.0044 l
+f
+/BBAccumRotation (-1.570796) XT
+477.6309 410.3179 m
+477.1543 408.8848 l
+475.7207 408.8848 l
+476.9141 407.9292 l
+476.4365 406.4956 l
+477.6309 407.4512 l
+478.8262 406.4956 l
+478.3477 407.9292 l
+479.543 408.8848 l
+478.1094 408.8848 l
+477.6309 410.3179 l
+f
+/BBAccumRotation (-1.570796) XT
+484.543 416.3228 m
+484.0654 414.8892 l
+482.6328 414.8892 l
+483.8262 413.9336 l
+483.3486 412.5005 l
+484.543 413.4561 l
+485.7383 412.5005 l
+485.2598 413.9336 l
+486.4551 414.8892 l
+485.0215 414.8892 l
+484.543 416.3228 l
+f
+/BBAccumRotation (-1.570796) XT
+491.4121 422.8892 m
+490.9336 421.4561 l
+489.5 421.4561 l
+490.6953 420.5005 l
+490.2178 419.0669 l
+491.4121 420.0225 l
+492.6064 419.0669 l
+492.1289 420.5005 l
+493.3232 421.4561 l
+491.8906 421.4561 l
+491.4121 422.8892 l
+f
+/BBAccumRotation (-1.570796) XT
+498.3242 430.2764 m
+497.8467 428.8428 l
+496.4121 428.8428 l
+497.6074 427.8877 l
+497.1289 426.4541 l
+498.3242 427.4097 l
+499.5195 426.4541 l
+499.041 427.8877 l
+500.2344 428.8428 l
+498.8018 428.8428 l
+498.3242 430.2764 l
+f
+/BBAccumRotation (-1.570796) XT
+505.1934 438.3545 m
+504.7148 436.9214 l
+503.2813 436.9214 l
+504.4766 435.9658 l
+503.998 434.5322 l
+505.1934 435.4878 l
+506.3867 434.5322 l
+505.9102 435.9658 l
+507.1045 436.9214 l
+505.6699 436.9214 l
+505.1934 438.3545 l
+f
+/BBAccumRotation (-1.570796) XT
+512.1055 447.2109 m
+511.627 445.7773 l
+510.1934 445.7773 l
+511.3887 444.8218 l
+510.9102 443.3887 l
+512.1055 444.3442 l
+513.2988 443.3887 l
+512.8213 444.8218 l
+514.0156 445.7773 l
+512.583 445.7773 l
+512.1055 447.2109 l
+f
+/BBAccumRotation (-1.570796) XT
+Q
+/BBAccumRotation (0.000000) XT
+U
+/BBAccumRotation (0.000000) XT
+LB
+%AI5_EndLayer--
+%%PageTrailer
+gsave annotatepage grestore showpage
+%%Trailer
+Adobe_Illustrator_AI5 /terminate get exec
+Adobe_ColorImage_AI6 /terminate get exec
+Adobe_level2_AI5 /terminate get exec
+%%EOF

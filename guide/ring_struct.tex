@@ -21,7 +21,6 @@ type ring_struct
   type (param_struct) param    ! parameters
   integer version              ! Version number for digested files
   integer n_ele_ring           ! number of physical ring elements
-  integer n_ele_symm           ! symmetry point for rings w/symmetry
   integer n_ele_use            ! number of elements used
   integer n_ele_max            ! Index of last element used
   integer n_ele_maxx           ! Index of last element allocated
@@ -66,21 +65,8 @@ of the array \vn{\%ele(:)}.}
 \end{center}
 \label{tab:part_extent}
 \end{table}
+Note \vn{%n_ele_use} is identical to \vn{%n_ele_ring}
 
-%Other indexes within the \tn{ring_struct} are
-%\begin{description}
-%\item[\vn{%n_ele_maxx}] 
-%The index of the upper bound of the \vn{%ele(:)} array.
-%The lower bound is always 0 so the total size of the \vn{%ele(:)}
-%array is \vn{%n_ele_maxx}+1.
-%\item[\vn{%n_ele_symm}] Back in the days when the Cornell CESR ring was E/W 
-%symmetric \vn{%n_ele_symm} designated the symmetry point (roughly at
-%\vn{%n_ele_ring}/2).  Currently this is seldom used.
-%\item[\vn{%n_ele_use}] This designates what part of the physical ring to track 
-%through. This is the same as \vn{%n_ele_ring} except if there is a
-%symmetry point and \vn{%n_ele_symm} is non--zero. In this case
-%\vn{%n_ele_use} = \vn{%n_ele_symm}.
-%\end{description}
 
 %----------------------------------------------------------------------------
 \section{Elements Controlling Other Elements}
