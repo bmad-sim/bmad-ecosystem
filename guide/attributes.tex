@@ -3,7 +3,7 @@
 %-----------------------------------------------------------------
 \section{Independent and Dependent Attributes}
 
-For convieninece \bmad computes the values of some attributes based
+For convenience \bmad computes the values of some attributes based
 upon the values of other attributes. For example, the \vn{volt} and
 \vn{e_field} attributes of an \vn{elseparator} are calculated from
 the \vn{hkick}, \vn{vkick}, \vn{l}, \vn{gap}, and \vn{beam_energy}
@@ -160,7 +160,7 @@ face only of the element. A zero \vn{x_limit} or \vn{y_limit}
 is interpreted as no aperture in the $x$ or $y$ direction.
 offsets move the aperture but not pitches or tilts.
 
-\vn{aperture} attribute supercedes
+\vn{aperture} attribute supersedes
 any \vn{x_limit} and \vn{y_limit} values and sets \vn{x_limit} and
 \vn{y_limit} equal to the value of \vn{aperture}.
 
@@ -170,7 +170,7 @@ Example:
   q1: quad, l = 0.6
   q1[x_limit] = 0.03
   q1[y_limit] = 0.03
-  q1[aperture] = 0.03  ! equivalent to the preceeding 2 lines.  
+  q1[aperture] = 0.03  ! equivalent to the proceeding 2 lines.  
 \end{example}
 
 %-----------------------------------------------------------------
@@ -194,9 +194,9 @@ integration.
 \begin{example}
   integration\_ord = 2 (default), 4, or 6
 \end{example}
-Esentially, an integration order of $n$ means that the error in an 
+Essentially, an integration order of $n$ means that the error in an 
 integration step scales as $dz^{n+1}$ where $dz$ is the slice thickness.
-For a given number of steps a higer order will give more accurate results
+For a given number of steps a higher order will give more accurate results
 but a higher order integrator will take more time per step. It turns out
 that for wigglers, after adjusting \vn{num_steps} for a given accuracy, 
 the order 2 integrator is the fastest. This is not surprising given the
@@ -205,7 +205,7 @@ uses a order 2 integrator.
 
 \vn{Adaptive_Boris} and \vn{Runge_Kutta} use adaptive step
 control independent of \vn{num_steps}. These methods use the \vn{rel_tol} and
-\vn{abs_tol} attributes to try to keep the extimated error of the integration
+\vn{abs_tol} attributes to try to keep the estimated error of the integration
 such that
 \begin{example}
   error < abs\_tol + |orbit| * rel_tol
@@ -233,7 +233,7 @@ a particle with the reference energy starting on the reference orbit.
 A linear transport matrix may be non--symplectic for a number of reasons.
 For example, the linear matrix that comes from expanding a Taylor Map
 around any point that is not the origin of the map is generally not 
-symplectic. The transfer matrix for an element can be symplecitified by
+symplectic. The transfer matrix for an element can be symplectified by
 setting the \vn{symplectify} attribute to True. See section \ref{s:symp_method}
 for details on how a matrix is symplectified.
 
@@ -243,7 +243,7 @@ for details on how a matrix is symplectified.
 \label{s:is_on}
 
 The \vn{is_on} attribute is used to turn an element off. Turning
-an element off esentially converts it into a drift. This is not
+an element off essentially converts it into a drift. This is not
 generally used in a lattice file but a program can use the attribute
 for, say, calculating the Twiss parameters which needs to be done
 with the RF cavities off. Example
