@@ -816,7 +816,7 @@ end subroutine
 !
 ! Subroutine to allocate or re-allocate the ele_ pointer in a ring.
 ! The upper bound of ring%ele_(0:n) will be des_size if it is present
-! or the maximum of: (1000, 1.5*ring%ele_(:)).
+! or the maximum of: (1000, 1.3*ring%ele_(:)).
 !
 ! Modules needed:
 !   use bmad
@@ -844,7 +844,7 @@ subroutine allocate_ring_ele_ (ring, des_size)
 
   desired_size = 1000
   if (associated (ring%ele_)) &
-        desired_size = max ((3*size(ring%ele_))/2, desired_size)
+        desired_size = max (int(1.3*size(ring%ele_)), desired_size)
   if (present(des_size))  desired_size = des_size
 
 !  save ring%ele_ if present
