@@ -486,9 +486,11 @@ subroutine boris_energy_correction (ele, param, here)
     here%vec(6) = here%vec(6) * ele%value(energy_start$) / ele%value(beam_energy$)
 
   case (custom$)
-    call out_io (s_fatal$, r_name, &
-                      'I DO NOT KNOW HOW TO CORRECT THE ENERGY FOR CUSTOM ELEMENTS!')
-    call err_exit
+    call energy_to_kinetic (ele%value(beam_energy$)-ele%value(delta_e$), param%particle, p0c = p0)
+    call energy_to_kinetic (ele%value(beam_energy$), param%particle, p0c = p1)
+    here%vec(2) = here%vec(2) * p0 / p1
+    here%vec(4) = here%vec(4) * p0 / p1
+    here%vec(6) = here%vec(6) * ele%value(energy_start$) / ele%value(beam_energy$)
 
   end select
 

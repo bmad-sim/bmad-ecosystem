@@ -250,7 +250,7 @@ module bmad_struct
 
   integer, parameter :: val1$=3, val2$=4, val3$=5, val4$=6, val5$=7, &
           val6$=8, val7$=9, val8$=10, val9$=11, val10$=12, val11$=13, &
-          val12$=14
+          val12$=15
 
   integer, parameter :: beta_x0$ = 2, alpha_x0$ = 3, beta_y0$ = 4, &
           alpha_y0$ = 5, beta_x1$ = 6, alpha_x1$ = 7, beta_y1$ = 8, &

@@ -391,6 +391,7 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(custom$, x_pitch$)    = 'X_PITCH'
     attrib_array(custom$, y_pitch$)    = 'Y_PITCH'
     attrib_array(custom$, field_calc$) = 'FIELD_CALC'
+    attrib_array(custom$, delta_e$)    = 'DELTA_E'
 
     init_needed = .false.
 

@@ -49,6 +49,10 @@ subroutine compute_element_energy (ring)
         if (bmad_com%sr_wakes_on) beam_energy = beam_energy - &
                             ring%ele_(i)%value(e_loss$) * ring%param%charge
         call energy_to_kinetic (beam_energy, ring%param%particle, p0c = p0c)
+
+      elseif (ring%ele_(i)%key == custom$) then
+        beam_energy = beam_energy + ring%ele_(i)%value(delta_e$)
+        call energy_to_kinetic (beam_energy, ring%param%particle, p0c = p0c)
       endif
 
       ring%ele_(i)%value(beam_energy$) = beam_energy

@@ -34,13 +34,13 @@ careful of this.
     character(1) ans
   
   ! Generate PS and X-windows plots.
-    call qp_open_page ('PS-L')  ! Tell \quickplot to generate a PS file.
+    call qp_open_page ("PS-L")  ! Tell \quickplot to generate a PS file.
     call plot_it              ! Generate the plot
     call qp_close_page        ! quick_plot.ps is the file name
-    call qp_open_page ('X', id, 600.0_rp, 470.0_rp, 'POINTS')
+    call qp_open_page ("X", id, 600.0_rp, 470.0_rp, "POINTS")
     call plot_it
-    write (*, '(a)', advance = 'NO') ' Hit any key to end program: '
-    accept '(a)', ans
+    write (*, "(a)", advance = "NO") " Hit any key to end program: "
+    accept "(a)", ans
 
   !----------------------------------------------------------------------
   contains
@@ -53,25 +53,25 @@ careful of this.
     namelist / parameters / title
 
   ! Read in the data
-    open (1, file = 'plot.dat', status = 'old')
+    open (1, file = "plot.dat", status = "old")
     read (1, nml = parameters)                  ! read in the parameters.
     call qp_read_data (1, err_flag, x, 1, y, 3, z, 4, t, 5) ! read in the data.
     close (1)
 
   ! Setup the margins and page border and draw the title
-    call qp_set_page_border (0.01_rp, 0.02_rp, 0.2_rp, 0.2_rp, '%PAGE')
-    call qp_set_margin (0.07_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
-    call qp_draw_text (title, 0.5_rp, 0.85_rp, '%PAGE', 'CT') 
+    call qp_set_page_border (0.01_rp, 0.02_rp, 0.2_rp, 0.2_rp, "%PAGE")
+    call qp_set_margin (0.07_rp, 0.05_rp, 0.05_rp, 0.05_rp, "%PAGE")
+    call qp_draw_text (title, 0.5_rp, 0.85_rp, "%PAGE", "CT") 
 
   ! draw the left graph
     call qp_set_box (1, 1, 2, 1)
-    call qp_calc_and_set_axis ('X', minval(x), maxval(x), 4, 8, 'ZERO_AT_END')
-    call qp_calc_and_set_axis ('Y', minval(z), maxval(z), 4, 8, 'GENERAL')
-    call qp_draw_graph (x, y, 'X\dlab\u', '\gb(\A)', symbol_every = 0)
+    call qp_calc_and_set_axis ("X", minval(x), maxval(x), 4, 8, "ZERO_AT_END")
+    call qp_calc_and_set_axis ("Y", minval(z), maxval(z), 4, 8, "GENERAL")
+    call qp_draw_graph (x, y, "X\dlab\u", "\gb(\A)", symbol_every = 0)
 
     call qp_save_state (.true.)
     call qp_set_symbol_attrib (times$, color = blue$, height = 20.0_rp)
-    call qp_set_line_attrib ('PLOT', color = blue$, style = dashed$)
+    call qp_set_line_attrib ("PLOT", color = blue$, style = dashed$)
     call qp_draw_data (x, z, symbol_every = 5)
     call qp_restore_state
 
@@ -80,10 +80,10 @@ careful of this.
     call qp_set_box (2, 1, 2, 1)
     call qp_set_graph_attrib (draw_grid = .false.)
     call qp_set_symbol_attrib (star5_filled$, height = 10.0_rp)
-    call qp_set_axis ('Y', -0.1_rp, 0.1_rp, 4, 2)
-    call qp_set_axis ('Y2', label = 'Y2 axis')
-    call qp_draw_graph (x, t, '\m1 \m2 \m3 \m4 \m5 \m6 \m7', '\fsLY\fn', &
-             title = 'That Darn Graph', draw_line = .false., symbol_every = 4)
+    call qp_set_axis ("Y", -0.1_rp, 0.1_rp, 4, 2)
+    call qp_set_axis ("Y2", label = "Y2 axis")
+    call qp_draw_graph (x, t, "\m1 \m2 \m3 \m4 \m5 \m6 \m7", "\fsLY\fn", &
+             title = "That Darn Graph", draw_line = .false., symbol_every = 4)
     call qp_restore_state
   end subroutine
   end program
@@ -152,7 +152,7 @@ first graph in the left box of a 2 box grid. The \vn{qp_set_margin} on
 line 34 sets the margins between the box and the graph axes.
 
 \vn{qp_calc_and_set_axis} on lines 39 and 40 are used to scale the
-axes. \vn{'ZERO_AT_END'} ensures that the $x$--axis starts (or stops)
+axes. \vn{"ZERO_AT_END"} ensures that the $x$--axis starts (or stops)
 at zero.  \vn{qp_calc_and_axis_axis} is told to restrict the number of
 major divisions to be between 4 and 8. For the horizontal axis, as can be
 seen in Figure~\ref{f:plot_out}, it chooses 5 divisions.
@@ -232,25 +232,25 @@ parts. The syntax of the \vn{units} argument is
 \end{example}
 The first part \vn{unit_type} gives the type of units
 \begin{example}
-  '%'       -- Percent.
-  'DATA'    -- Data units. (Draw default)
-  'MM'      -- millimeters.
-  'INCH'    -- Inches. (Set default)
-  'POINTS'  -- Printers points (72 points = 1 inch, 1pt is about 1pixel).
+  "%"       -- Percent.
+  "DATA"    -- Data units. (Draw default)
+  "MM"      -- millimeters.
+  "INCH"    -- Inches. (Set default)
+  "POINTS"  -- Printers points (72 points = 1 inch, 1pt is about 1pixel).
 \end{example}
 The second and third parts give the reference point for a position.
 The second part specifies the reference object
 \begin{example}
-    'PAGE'  -- Relative to the page (Set default).
-    'BOX'   -- Relative to the box.
-    'GRAPH' -- Relative to the graph (Draw default).
+    "PAGE"  -- Relative to the page (Set default).
+    "BOX"   -- Relative to the box.
+    "GRAPH" -- Relative to the graph (Draw default).
 \end{example}
 The third part gives corner of the reference object that is the reference point
 \begin{example}
-    'LB'    -- Left Bottom (Set and Draw default).
-    'LT'    -- Left Top.
-    'RB'    -- Right Bottom.
-    'RT'    -- Right Top.
+    "LB"    -- Left Bottom (Set and Draw default).
+    "LT"    -- Left Top.
+    "RB"    -- Right Bottom.
+    "RT"    -- Right Top.
 \end{example}
 
 \noindent
@@ -280,12 +280,12 @@ default is \vn{INCH/PAGE/LB}. use \vn{qp_set_default} to change this.
 \end{itemize}
 Examples:
 \begin{example}
-  'DATA'          -- This is the draw default. 
-  'DATA/GRAPH/LB' -- Same as above.
-  'DATA/BOX/RT'   -- ILLEGAL: DATA must always go with GRAPH/LB.
-  '%PAGE/LT'      -- Percentage of page so (0.0, 1.0) = RT of page.
-  '%BOX'          -- Percentage of box so (1.0, 1.0) = RT of box.
-  'INCH/PAGE'     -- Inches from LB of page.
+  "DATA"          -- This is the draw default. 
+  "DATA/GRAPH/LB" -- Same as above.
+  "DATA/BOX/RT"   -- ILLEGAL: DATA must always go with GRAPH/LB.
+  "%PAGE/LT"      -- Percentage of page so (0.0, 1.0) = RT of page.
+  "%BOX"          -- Percentage of box so (1.0, 1.0) = RT of box.
+  "INCH/PAGE"     -- Inches from LB of page.
 \end{example}
 
 %----------------------------------------------------------------------------
@@ -299,7 +299,7 @@ respectively as shown in Figure~\ref{f:plot_coords}. Normally the
 and \vn{Y2} axes are the same as the \vn{X} and \vn{Y} axes
 respectively. \vn{qp_set_axis} can be used to disable mirroring. For example:
 \begin{example}
-  call qp_set_axis ('Y2', mirror = .false.)  ! y2-axis now independent of y.
+  call qp_set_axis ("Y2", mirror = .false.)  ! y2-axis now independent of y.
 \end{example}
 \vn{qp_set_axis} can also be used to set \vn{Y2} axis parameters (axis
 minimum, maximum, etc.). 
@@ -308,7 +308,7 @@ Note that the default is for the \vn{X2} and \vn{Y2} axis numbering
 not to be shown. To enable or disable axis numbering again use
 \vn{qp_set_axis}. For example:
 \begin{example}
-  call qp_set_axis ('Y2', draw_numbers = .true.)  ! draw y2 axis numbers
+  call qp_set_axis ("Y2", draw_numbers = .true.)  ! draw y2 axis numbers
 \end{example}
 
 %----------------------------------------------------------------------------
@@ -397,7 +397,7 @@ The PGPLOT list of symbols is:
           -1 - Dot with diameter = current line width.
    0 ...  31 - Standard marker symbols.
   32 ... 127 - ASCII characters (in the current font).
-                  E.G. to use letter F as a marker, set type = ICHAR('F'). 
+                  E.G. to use letter F as a marker, set type = ICHAR("F"). 
        > 127 - A Hershey symbol number.
 \end{example}
 Table~\ref{t:plot_syms} shows some of the symbols and there associated 
@@ -406,7 +406,7 @@ To partially overcome this, \quickplot scales some of the symbols to
 give a more uniform appearence. Table~\ref{t:plot_syms} was generated
 using a height of 40 via the call
 \begin{example}
-  call qp_draw_symbol (0.5_rp, 0.5_rp, '%BOX', k, height = 40.0_rp)
+  call qp_draw_symbol (0.5_rp, 0.5_rp, "%BOX", k, height = 40.0_rp)
 \end{example}
 
 \noindent
@@ -454,77 +454,40 @@ PGPLOT defines a text background index:
 \label{s:qp_structs}
 
 \quickplot uses several structures to hold data. The structure that
-defines the ``state'' of \quickplot is \vn{qp_state_struct} The
-definition of \vn{qp_state_struct} is shown in
-Figure~\ref{f:qp_state_struct}. 
-
+defines a line is called a \vn{qp_line_struct} and is shown in
+Figure~\ref{f:qp_line_struct}. 
 \begin{figure}[htb]
 \centering
 \begin{verbatim}
-  type qp_state_struct
-    type (qp_plot_struct) plot        ! Plot axes parameters.
-    type (qp_rect_struct) page        ! Size of the plot page.
-    type (qp_rect_struct) box         ! Position of the box on the page.
-    type (qp_rect_struct) graph       ! Position of the graph on the page.
-    type (qp_rect_struct) margin      ! Margin widths between box and graph.
-    type (qp_rect_struct) border      ! Border widths around edge of page.
-    type (qp_text_struct) main_title  ! Default plot page title style.
-    type (qp_text_struct) graph_title ! Default graph title style.
-    type (qp_text_struct) legend      ! Default legend style.
-    type (qp_text_struct) text        ! Default text style.
-    type (qp_text_struct) axis_number ! Default axis numbering style.
-    type (qp_text_struct) axis_label  ! Default axis label style.
-    type (qp_text_struct) this_text   ! Style of current text being drawn.
-    type (qp_symbol_struct) symbol    ! Default symbol style.
-    type (qp_line_struct) std_line    ! Default line style.
-    type (qp_line_struct) plot_line   ! Default plotting line style.
-    type (qp_line_struct) axis_line   ! Default axis line style.
-    type (qp_line_struct) grid_line   ! Default grid line style.
-    real(rp) text_height_factor       ! pgplot text height units / points
-    real(rp) text_spacing_factor 
-    integer text_background 
-    logical subgraph_on = .false.
-    logical clip = .false.
-    logical buffer = .false.          ! Internal variable
-    logical uniform_symbol_size 
-    character(16) page_type              ! 'PS', 'X', etc.
-    character(8) dflt_draw_units(3)   ! Default units for draw routines.
-    character(8) dflt_set_units(3)    ! Default units for set routines.
-    integer dflt_units
-    character(80) plot_file
+  type qp_line_struct
+    integer width   ! Line width. Default = 1
+    integer color   ! Line color. Default = black\$
+    integer style   ! Line style. Default = solid\$
   end type
 \end{verbatim}
-\caption{Definition of the \tn{qp\_state\_struct}.}
-\label{f:qp_state_struct}
+\caption{Definition of the \tn{qp\_line\_struct}.}
+\label{f:qp_line_struct}
 \end{figure}
 
-The \vn{%plot} component of the \vn{qp_state_struct} holds information
-about the plot axes. The definition of the \vn{qp_plot_struct} is
-shown in Figure~\ref{f:qp_plot_struct}. \vn{%x} and \vn{%x2} are the
-bottom and top axes, and \vn{%y} and \vn{%y2} are the left and right
-axes respectively.
-
-
+The \vn{qp_symbol_struct} defines how symbols are drawn and is shown
+in Figure~\ref{f:qp_sym_struct}.
 \begin{figure}[htb]
 \centering
 \begin{verbatim}
-  type qp_plot_struct
-    character(80) title = ' '
-    type (qp_axis_struct) x, y, x2, y2
-    logical draw_box    = .true.
-    logical draw_title  = .true.
-    logical draw_grid   = .true.
-    logical limit_plot
-  end type          
+  type qp_symbol_struct
+    integer  type        ! Default = circle_dot\$
+    real(rp) height      ! Default = 6.0 (points)
+    integer  color       ! Default = black\$
+    integer  fill        ! Default = solid_fill\$
+    integer  line_width  ! Default = 1
+  end type
 \end{verbatim}
-\caption{Definition of the \tn{qp\_plot\_struct}.}
-\label{f:qp_plot_struct}
+\caption{Definition of the \tn{qp\_sym\_struct}.}
+\label{f:qp_sym_struct}
 \end{figure}
 
-The definition of the \vn{qp_axis_struct} is given in
-Figure~\ref{f:qp_axis_struct}.
-
-
+The \vn{qp_axis_struct} defines how axes are drawn and is shown
+in Figure~\ref{f:qp_axis_struct}.
 \begin{figure}[htb]
 \centering
 \begin{verbatim}
@@ -541,15 +504,14 @@ Figure~\ref{f:qp_axis_struct}.
     integer minor_div_max     ! Maximum number for auto choose.
     integer places            ! Places after the decimal point.
     character(16) type        ! For log scales. Not yet implemented.
-    integer tick_side         ! +1 = up or right, 0 = both, -1 = down or left.
-    integer number_side       ! +1 = up or right, -1 = down or left.
+    integer tick_side         ! +1 = draw to the inside, 0 = both, -1 = outside.
+    integer number_side       ! +1 = draw to the inside, -1 = outside.
     logical draw_label        ! Draw the label?
     logical draw_numbers      ! Draw the numbering?
-    logical mirror_on         ! Draw x2 axis same as x axis?
   end type
 \end{verbatim}
 \caption{Definition of the \tn{qp\_axis\_struct}.}
 \label{f:qp_axis_struct}
 \end{figure}
 
-The \vn{qp_axis_struct} defines
+
