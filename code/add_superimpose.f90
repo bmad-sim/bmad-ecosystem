@@ -1,5 +1,5 @@
 !+
-! Subroutine ADD_SUPERIMPOSE (RING, SUPER_ELE, IX_SUPER)
+! Subroutine add_superimpose (ring, super_ele, ix_super)
 !
 ! Subroutine to make a superimposed element. If the element can be inserted
 ! into the ring without making a super_lord element then this will be done.
@@ -8,23 +8,24 @@
 !   use bmad
 !
 ! Input:
-!     RING      -- Ring_struct: Ring to modify
-!     SUPER_ELE -- Ele_struct: Element to superimpose
-!         %S       -- Position of end of element
+!     ring      -- Ring_struct: Ring to modify
+!     super_ele -- Ele_struct: Element to superimpose
+!         %s       -- Position of end of element.
+!                      Negative distances mean distance from the end.
 !
 !
 ! Output:
-!     RING     -- Ring_struct: Modified ring.
-!     IX_SUPER -- Integer: Index where element is put
+!     ring     -- Ring_struct: Modified ring.
+!     ix_super -- Integer: Index where element is put
 !-
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/03/18 20:36:08  dcs
+!modification for non-zero ring%ele_(0)%s
+!
 !Revision 1.6  2003/01/27 14:40:29  dcs
 !bmad_version = 56
-!
-!Revision 1.5  2002/10/29 17:07:11  dcs
-!*** empty log message ***
 !
 !Revision 1.4  2002/02/23 20:32:09  dcs
 !Double/Single Real toggle added
@@ -38,8 +39,6 @@
 
 #include "CESR_platform.inc"
 
-
-
 subroutine add_superimpose (ring, super_ele, ix_super)
 
   use bmad_struct
@@ -51,7 +50,7 @@ subroutine add_superimpose (ring, super_ele, ix_super)
   type (ele_struct)  super_ele, sup_ele, slave_ele
   type (control_struct)  sup_con(100)
 
-  real(rdef) s1, s2, length
+  real(rdef) s1, s2, length, s0
 
   integer j, jj, k, idel, ix, n, i2, ic
   integer ix1_split, ix2_split, ix_super, ix_super_con
@@ -66,11 +65,14 @@ subroutine add_superimpose (ring, super_ele, ix_super)
   sup_ele = super_ele
   ix_slave_name = 0
 
+! s1 is the left edge of the superimpose.
+
+  s0 = ring%ele_(0)%s   ! normally this is zero.
+  s1 = sup_ele%s - sup_ele%value(l$)
+  if (s1 < s0) s1 = s1 + ring%param%total_length
+
 !-------------------------------------------------------------------------
 ! if element has zero length then just insert it in the regular ring list
-
-  s1 = sup_ele%s - sup_ele%value(l$)
-  if (s1 < 0) s1 = s1 + ring%param%total_length
 
   if (sup_ele%value(l$) == 0) then
     call split_ring (ring, s1, ix1_split, split1_done)
@@ -81,7 +83,7 @@ subroutine add_superimpose (ring, super_ele, ix_super)
   endif
 
 !-------------------------------------------------------------------------
-! Split ring at beggining and end of the superimpose.
+! Split ring at begining and end of the superimpose.
 ! the correct order of splitting is important since we are creating elements
 ! so that the numbering of the elments after the split changes.
 ! SPLIT_RING adds "\1" and "\2" to the names of the split elements.
