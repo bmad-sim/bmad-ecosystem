@@ -1,4 +1,3 @@
-
 #include "CESR_platform.inc"
 
 module bmad_parser_mod
@@ -34,11 +33,13 @@ module bmad_parser_mod
 
   type seq_struct
     character*16 name                  ! name of sequence
-    integer type                       ! LINE$, REPLACEMENT_LIST$ or LIST$
+    integer type                       ! LINE$, REPLACEMENT_LINE$ or LIST$
     integer ix                         ! current index of element in %ELE
     integer indexx                     ! alphabetical order sorted index
     type (seq_ele_struct), pointer :: ele(:)
     type (replacement_arg_struct), pointer :: arg(:)
+    character(200) file_name           ! file where sequence is defined
+    integer ix_line                    ! line where sequence is defined
   end type
 
 ! stack structure
@@ -82,7 +83,7 @@ module bmad_parser_mod
 !
 
   integer, parameter :: line$ = 1, list$ = 2, element$ = 3
-  integer, parameter :: replacement_list$ = 4
+  integer, parameter :: replacement_line$ = 4
 
   integer begin$, center$, end$
   parameter (begin$ = -1)
@@ -828,12 +829,14 @@ subroutine evaluate_value (err_str, value, &
   integer i_lev, i_op, i
 
   integer :: plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
-  integer :: l_parens$ = 5, power$ = 7, chs$ = 8, no_delim$ = 9
-  integer :: sin$ = 10, cos$ = 11, tan$ = 12
-  integer :: asin$ = 13, acos$ = 14, atan$ = 15
+  integer :: l_parens$ = 5, power$ = 7, unary_minus$ = 8, unary_plus$ = 9
+  integer :: no_delim$ = 10
+  integer :: sin$ = 11, cos$ = 12, tan$ = 13
+  integer :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17
   integer :: numeric$ = 100
 
-  integer :: level(15) = (/ 1, 1, 2, 2, 0, 0, 4, 3, -1, 9, 9, 9, 9, 9, 9 /)
+  integer :: level(17) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+                            9, 9, 9, 9, 9, 9, 9 /)
   character*1 op_name(9) / '+', '-', '*', '/', '(', ')', '^', '-', ' ' /
 
   integer op_(200), ix_word, i_delim, i2, ix0
@@ -917,6 +920,8 @@ subroutine evaluate_value (err_str, value, &
           call pushit (op_, i_op, acos$)
         elseif (word == 'ATAN') then
           call pushit (op_, i_op, atan$)
+        elseif (word == 'ABS') then
+          call pushit (op_, i_op, abs$)
         else
           call warning ('UNEXPECTED CHARACTERS ON RHS BEFORE "(": ' // word,  &
                                                   'FOR: ' // err_str)
@@ -930,14 +935,20 @@ subroutine evaluate_value (err_str, value, &
 ! for a unary "-"
 
     elseif (delim == '-' .and. ix_word == 0) then
-      call pushit (op_, i_op, chs$)
+      call pushit (op_, i_op, unary_minus$)
+      cycle parsing_loop
+
+! for a unary "+"
+
+    elseif (delim == '+' .and. ix_word == 0) then
+      call pushit (op_, i_op, unary_plus$)
       cycle parsing_loop
 
 ! for a ")" delim
 
     elseif (delim == ')') then
       if (ix_word == 0) call error_exit  &
-            ('CONSTANT OR VARIABLE MISSING FOR: ' // err_str, ' ')
+            ('CONSTANT OR VARIABLE MISSING BEFOR ")" FOR: ' // err_str, ' ')
       call word_to_value (word, ring, value)
       call pushit (stk%type, i_lev, numeric$)
       stk(i_lev)%value = value
@@ -1044,8 +1055,10 @@ subroutine evaluate_value (err_str, value, &
     if (stk(i)%type == numeric$) then
       i2 = i2 + 1
       stk(i2)%value = stk(i)%value
-    elseif (stk(i)%type == chs$) then
+    elseif (stk(i)%type == unary_minus$) then
       stk(i2)%value = -stk(i2)%value
+    elseif (stk(i)%type == unary_plus$) then
+      stk(i2)%value = stk(i2)%value
     elseif (stk(i)%type == plus$) then
       stk(i2-1)%value = stk(i2-1)%value + stk(i2)%value
       i2 = i2 - 1
@@ -1075,6 +1088,8 @@ subroutine evaluate_value (err_str, value, &
       stk(i2)%value = acos(stk(i2)%value)
     elseif (stk(i)%type == atan$) then
       stk(i2)%value = atan(stk(i2)%value)
+    elseif (stk(i)%type == abs$) then
+      stk(i2)%value = abs(stk(i2)%value)
     else
       call error_exit ('INTERNAL ERROR #02: GET HELP', ' ')
     endif
@@ -1372,17 +1387,18 @@ end subroutine
 !-------------------------------------------------------------------------
 
 
-subroutine verify_valid_name (name, ix_name)
+subroutine verify_valid_name (name, ix_name, key_check)
 
   implicit none
 
-  integer i, ix_name, len, ix1, ix2
+  integer i, ix_name, len, ix, ix1, ix2
 
   character*(*) name
   character*27 letters / '\ABCDEFGHIJKLMNOPQRSTUVWXYZ' / 
   character*40   valid_chars / 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]' /
   character*1 tab
 
+  logical, optional :: key_check
   logical OK
 
   parameter (tab = char(9))
@@ -1440,6 +1456,22 @@ subroutine verify_valid_name (name, ix_name)
   if (ix1 > 17 .or. ix2 - ix1 > 17)  &
             call warning ('NAME HAS > 16 CHARACTERS: ' // name)
 
+! check if name looks like a element key
+
+  if (present(key_check)) then
+    if (key_check) then
+      do i = 1, n_key
+        ix = ix_name
+        if (ix1 > 0) ix = ix1
+        if (name(:ix) == key_name(i)(:ix)) then
+          call warning ('NAME: ' // name, &
+                          'LOOKS LIKE AN ELEMENT KEY: ' // key_name(i))
+          return
+        endif
+      enddo
+    endif
+  endif
+
 end subroutine
 
 !-------------------------------------------------------------------------
@@ -1472,25 +1504,30 @@ end subroutine
 !-------------------------------------------------------------------------
 
 
-subroutine warning (what1, what2)
+subroutine warning (what1, what2, seq)
 
   implicit none
 
   integer ix
   character*(*) what1
   character*(*), optional :: what2
+  type (seq_struct), optional :: seq
 
 ! BP_COM.ERROR_FLAG is a common logical used so program will stop at end of parsing
 
   if (bmad_status%type_out) then
     print *, 'ERROR IN ', trim(bp_com%parser_name), ': ', what1
     if (present(what2)) type '(22x, a)', what2
-    print *, '      IN FILE: ', bp_com%current_file_name(:60)
-    print *, '      AT OR BEFORE LINE:', bp_com%i_line
+    if (present(seq)) then
+      print *, '      IN FILE: ', trim(seq%file_name)
+      print *, '      AT LINE:', seq%ix_line
+    else
+      print *, '      IN FILE: ', trim(bp_com%current_file_name)
+      print *, '      AT OR BEFORE LINE:', bp_com%i_line
+    endif
   endif
 
   bp_com%error_flag = .true.
-  bmad_status%ok = .false.
 
 end subroutine
 
@@ -1946,13 +1983,16 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
   character*20 word
   character delim*1, str*16, name*16, c_delim*1
               
-  logical delim_found, top_level, replacement_list_here, c_delim_found
+  logical delim_found, top_level, replacement_line_here, c_delim_found
   logical err_flag
 
-! first thing should be a "("
+! save info on what file we are parsing for error messages.
 
   seq => seq_(ix_seq)
-  ix_ele = 1
+  seq%file_name = bp_com%current_file_name 
+  seq%ix_line = bp_com%i_line
+
+! first thing should be a "("
 
   call get_next_word(word, ix_word, ':=(),', delim, delim_found, .true.)
 
@@ -1963,6 +2003,8 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
         'FOR LINE: ' // seq%name)
 
 ! now parse list proper
+
+  ix_ele = 1
 
   do 
 
@@ -1994,15 +2036,15 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
       s_ele(ix_ele)%name = word
     endif
 
-! Check for a subline or replacement list.
+! Check for a subline or replacement line.
 ! If there is one then save as an internal sequence.
 
     name = s_ele(ix_ele)%name
     if (name /= ' ') call verify_valid_name (name, ix_word)
 
-    replacement_list_here = .false.
+    replacement_line_here = .false.
     if (delim == '(') then ! subline or replacement line
-      if (name /= ' ') replacement_list_here = .true.
+      if (name /= ' ') replacement_line_here = .true.
       ix_internal = ix_internal + 1
       write (str, '(a, i3.3)') '#Internal', ix_internal   ! unique name
       s_ele(ix_ele)%name = str
@@ -2013,33 +2055,33 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
       call seq_expand1 (seq_, ix_seq, .false., ring)
       call get_next_word(word, ix_word, ':=(),', delim, delim_found, .true.)
       if (word /= ' ') call warning &
-                ('NO COMMA AFTER SUBLINE OR REPLACEMENT LIST. FOUND: ' // &
+                ('NO COMMA AFTER SUBLINE OR REPLACEMENT LINE. FOUND: ' // &
                  word, 'IN THE SEQUENCE: ' // seq%name)
     endif
 
     if (s_ele(ix_ele)%name == ' ') call warning &
               ('SUB-ELEMENT NAME IS BLANK FOR LINE/LIST: ' // seq%name)
 
-! if a replacement list then switch the real list for the actual args.
+! if a replacement line then switch the real list for the actual args.
 
-    if (replacement_list_here) then  ! replacement line 
+    if (replacement_line_here) then  ! replacement line 
       do i_rl = 1, ix_seq
         if (i_rl == ix_seq) then
-          call warning ('CANNOT FIND REPLACEMENT LIST DEFINITION FOR: ' &
+          call warning ('CANNOT FIND REPLACEMENT LINE DEFINITION FOR: ' &
                           // name, 'WHICH APPEARS IN LINE: ' // seq%name)
           return
         endif
         if (seq_(i_rl)%name == name) exit
       enddo
 
-      if (seq_(i_rl)%type /= replacement_list$) then
-        call warning (trim(name) // ' IS USED AS A REPLACEMENT LIST IN: ' // &
-              seq%name, 'BUT IT IS NOT A REPLACEMENT LIST')
+      if (seq_(i_rl)%type /= replacement_line$) then
+        call warning (trim(name) // ' IS USED AS A REPLACEMENT LINE IN: ' // &
+              seq%name, 'BUT IT IS NOT A REPLACEMENT LINE')
         return
       endif
 
       if (size(seq_(i_rl)%arg) /= size(seq_(ix_seq)%ele)) then
-        call warning ('NUMBER OF ARGUMENTS IN REPLACEMENT LIST: ' &
+        call warning ('NUMBER OF ARGUMENTS IN REPLACEMENT LINE: ' &
                 // seq_(i_rl)%name, 'DOES NOT MATCH USE IN LINE: ' // seq%name)
         return
       endif
@@ -2052,6 +2094,7 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
         ix = seq_(i_rl)%ele(j)%ix_arg
         if (ix > 0) then
           seq_(ix_seq)%ele(j)%name = seq_(i_rl)%arg(ix)%actual_name
+          seq_(ix_seq)%ele(j)%ix_arg = 0
         else
           seq_(ix_seq)%ele(j) = seq_(i_rl)%ele(j)
         endif
@@ -2059,10 +2102,10 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
 
    endif
 
-! if a replacement list then look for element in argument list
+! if a replacement line then look for element in argument list
 
     s_ele(ix_ele)%ix_arg = 0
-    if (seq%type == replacement_list$) then
+    if (seq%type == replacement_line$) then
       do i = 1, size(seq%arg)
         if (seq%arg(i)%dummy_name == s_ele(ix_ele)%name) then
           s_ele(ix_ele)%ix_arg = i
@@ -2104,7 +2147,7 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
   allocate (seq%ele(ix_ele))
   seq%ele(:) = s_ele(1:ix_ele)
 
-  seq%ix = 1   ! Init. Used for replacement list index
+  seq%ix = 1   ! Init. Used for replacement line index
 
 end subroutine
 

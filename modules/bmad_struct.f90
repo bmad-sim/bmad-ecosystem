@@ -2,58 +2,6 @@
 ! BMAD_STRUCT holds the structure definitions for BMAD routines.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.23  2003/03/04 16:03:41  dcs
-!VMS port
-!
-!Revision 1.22  2003/01/29 16:14:48  dcs
-!Linac RF bug fix and update.
-!
-!Revision 1.21  2003/01/27 14:41:01  dcs
-!bmad_version = 56
-!
-!Revision 1.18  2002/10/23 14:45:21  dcs
-!Added Boris tracking.
-!
-!Revision 1.14  2002/08/23 20:20:23  dcs
-!Modified for VMS port
-!
-!Revision 1.13  2002/08/20 20:35:06  dcs
-!symp_lie_bmad / symp_lie_ptc added
-!
-!Revision 1.12  2002/08/08 19:46:37  dcs
-!ele%gen0 bug fix
-!
-!Revision 1.11  2002/08/07 18:01:35  dcs
-!Corrected ele%gen0 bug
-!
-!Revision 1.9  2002/06/13 14:54:59  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.8  2002/02/23 20:32:31  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.7  2002/01/10 19:57:37  cesrulib
-!Patch bmad_struct.  Add module dependency file.
-!
-!Revision 1.6  2002/01/08 21:45:22  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.5  2001/12/04 20:29:07  helms
-!Changes from DCS
-!
-!Revision 1.4  2001/10/12 20:53:50  rwh24
-!DCS changes
-!
-!Revision 1.3  2001/10/02 18:50:26  rwh24
-!Extended track_input_struct in bmad_struct.
-!Fixed qromb_rad_int definition in rad_int_common.
-!
-!Revision 1.2  2001/09/27 18:32:13  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 module bmad_struct
@@ -264,20 +212,20 @@ module bmad_struct
   integer, parameter :: hybrid$ = 16, octupole$ = 17, rbend$ = 18
   integer, parameter :: multipole$ = 19, accel_sol$ = 20
   integer, parameter :: def_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23
-  integer, parameter :: patch$ = 24, linac_rf_cavity$ = 25, def_parameter$ = 26
+  integer, parameter :: patch$ = 24, lcavity$ = 25, def_parameter$ = 26
   integer, parameter :: null_ele$ = 27, init_ele$ = 28
 
   integer, parameter :: n_key = 28
 
   character*16 :: key_name(n_key+1) = (/ &
-  'DRIFT          ', 'SBEND          ', 'QUADRUPOLE     ', 'GROUP          ', &
-  'SEXTUPOLE      ', 'OVERLAY        ', 'CUSTOM         ', 'TAYLOR         ', &
-  'RFCAVITY       ', 'ELSEPARATOR    ', 'BEAMBEAM       ', 'WIGGLER        ', &
-  'SOL_QUAD       ', 'MARKER         ', 'KICKER         ', 'HYBRID         ', &
-  'OCTUPOLE       ', 'RBEND          ', 'MULTIPOLE      ', 'ACCEL_SOL      ', &
-  'DEF BEAM       ', 'AB_MULTIPOLE   ', 'SOLENOID       ', 'PATCH          ', &
-  'LINAC_RF_CAVITY', 'DEF PARAMETER  ', 'NULL_ELEMENT   ', 'INIT_ELEMENT   ', &
-  '               ' /)
+    'DRIFT        ', 'SBEND        ', 'QUADRUPOLE   ', 'GROUP        ', &
+    'SEXTUPOLE    ', 'OVERLAY      ', 'CUSTOM       ', 'TAYLOR       ', &
+    'RFCAVITY     ', 'ELSEPARATOR  ', 'BEAMBEAM     ', 'WIGGLER      ', &
+    'SOL_QUAD     ', 'MARKER       ', 'KICKER       ', 'HYBRID       ', &
+    'OCTUPOLE     ', 'RBEND        ', 'MULTIPOLE    ', 'ACCEL_SOL    ', &
+    'DEF BEAM     ', 'AB_MULTIPOLE ', 'SOLENOID     ', 'PATCH        ', &
+    'LCAVITY      ', 'DEF PARAMETER', 'NULL_ELEMENT ', 'INIT_ELEMENT ', &
+    '               ' /)
 
 ! Attribute name logical definitions
 ! Note: The following attributes must have unique number assignments:
@@ -707,17 +655,18 @@ module bmad_struct
 !------------------------------------------------------------------------------
 ! common stuff
 
-! multi_turn_func_common is for multi_turn_tracking_to_mat
-
 ! %taylor_order_ptc is what ptc has been set to.
 ! %taylor_order is what the user wants.
+! %max_aperture_limit is used when no limit is specified or when 
+!   ring%param%aperture_limit_on = False.
 
   type bmad_com_struct
     type (coord_struct) :: d_orb  ! for the transfer_mat_from_tracking routine
     real(rdef) :: beam_energy = 0
-    integer :: taylor_order = 3            ! 3rd order is default
-    integer :: taylor_order_ptc = 0        ! 0 -> not yet set 
-    logical :: taylor_order_set = .false.  ! Used by set_taylor_order
+    real(rdef) :: max_aperture_limit = 1e3    
+    integer :: taylor_order = 3              ! 3rd order is default
+    integer :: taylor_order_ptc = 0          ! 0 -> not yet set 
+    logical :: taylor_order_set = .false.    ! Used by set_taylor_order
     integer :: real_8_map_init
     integer :: default_integ_order = 2
     integer :: default_num_steps = 1
@@ -725,6 +674,9 @@ module bmad_struct
   end type
   
   type (bmad_com_struct) bmad_com
+
+! multi_turn_func_common is for multi_turn_tracking_to_mat.
+
   type (coord_struct), pointer :: multi_turn_func_common(:)  
 
 end module

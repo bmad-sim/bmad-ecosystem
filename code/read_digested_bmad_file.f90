@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.10  2003/03/31 15:17:41  dcs
+!Bug fixes.
+!
 !Revision 1.9  2003/03/04 16:03:29  dcs
 !VMS port
 !
@@ -135,12 +138,12 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
     inquire (file = fname(2), exist = found_it, name = fname(3))
     if (.not. found_it .or. fname(1) /= fname(3) .or. &
                                              stat_b(10) /= idate_old) then
-      if (bmad_status%type_out) type *, &
+      if (bmad_status%type_out .and. bmad_status%ok) type *, &
                         'READ_DIGESTED_BMAD_FILE: DIGESTED FILE OUT OF DATE.'
       bmad_status%ok = .false.
     endif
     if (i == 1 .and. fname(2) /= ring%input_file_name) then
-      if (bmad_status%type_out) type *, &
+      if (bmad_status%type_out .and. bmad_status%ok) type *, &
                         'READ_DIGESTED_BMAD_FILE: MOVED DIGESTED FILE.'
       bmad_status%ok = .false.
     endif

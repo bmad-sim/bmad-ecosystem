@@ -38,12 +38,14 @@ subroutine check_attrib_free (ele, ix_attrib, ring, err_flag, err_print_flag)
   logical err_flag, do_print
   logical, optional :: err_print_flag
 
-! check that attribute can be adjusted.
+! init
 
   err_flag = .true.
 
   do_print = .true.
   if (present(err_print_flag)) do_print = err_print_flag
+
+! super_slaves attributes cannot be varied
 
   if (ele%control_type == super_slave$) then
     if (do_print) then
@@ -55,23 +57,38 @@ subroutine check_attrib_free (ele, ix_attrib, ring, err_flag, err_print_flag)
     return
   endif
 
+! if the attribute is controled by an overlay lord then it cannot be varied
+
   do i = ele%ic1_lord, ele%ic2_lord
     ix = ring%ic_(i)
     ir = ring%control_(ix)%ix_lord
     if (ring%ele_(ir)%control_type == overlay_lord$) then
       if (ring%control_(ix)%ix_attrib == ix_attrib) then
-        if (do_print) then
-          print '((1x, a))', &
+        if (do_print) print '((1x, a))', &
             'ERROR IN CHECK_ATTRIB_FREE. THE ATTRIBUTE: ' // &
                                              attribute_name(ele, ix_attrib), &
             '      OF ELEMENT: ' // ele%name, &
             '      IS CONTROLLED BY OVERLAY_LORD: ' // ring%ele_(ir)%name, &
             '      YOU CANNOT VARY THIS ATTRIBUTE DIRECTLY.'
-        endif
         return
       endif
     endif
   enddo
+
+! only one particular attribute of an overlay lord is allowed to be adjusted
+
+  if (ele%control_type == overlay_lord$) then
+    if (ix_attrib /= ele%ix_value) then
+      if (do_print) print '((1x, a))', &
+              'ERROR IN CHECK_ATTRIB_FREE:' // &
+                        ' OVERLAYS HAVE ONLY ONE ATTRIBUTE TO VARY.', &
+              '      FOR THE OVERLAY: ' // trim(ele%name), &
+              '      THAT ATTRIBUTE IS: ' // ele%attribute_name
+      return
+    endif
+  endif
+
+! Everything must be OK
 
   err_flag = .false.
 

@@ -22,6 +22,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/03/31 15:17:41  dcs
+!Bug fixes.
+!
 !Revision 1.7  2003/03/18 20:34:09  dcs
 !Updated Documentation.
 !
@@ -261,9 +264,7 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
     call err_exit
   endif
 
-  if (ele%control_type /= free$) then
-    call control_bookkeeper (ring, ix_split)
-    call control_bookkeeper (ring, ix_split+1)
-  endif
+  call control_bookkeeper (ring, ix_split)
+  call control_bookkeeper (ring, ix_split+1)
 
 end subroutine

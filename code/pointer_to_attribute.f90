@@ -3,7 +3,7 @@
 !                            ptr_attrib, ix_attrib, err_flag, err_print_flag)
 !
 ! Returns a pointer to an attribute of an element with name attrib_name.
-! Note: use check_attrib_free to see if the attribute may be 
+! Note: use check_attrib_free to see if the attribute may be
 !   varied independently.
 !
 ! Modules needed:
@@ -62,46 +62,46 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
 
   if (ele%key == init_ele$) then
     select case (attrib_name)
-    case ('X_POSITION') 
-      ptr_attrib => ele%x_position 
-    case ('Y_POSITION') 
-      ptr_attrib => ele%y_position 
-    case ('Z_POSITION') 
-      ptr_attrib => ele%z_position 
-    case ('THETA_POSITION') 
-      ptr_attrib => ele%theta_position 
-    case ('PHI_POSITION') 
-      ptr_attrib => ele%phi_position 
-    case ('BETA_X') 
-      ptr_attrib => ele%x%beta 
+    case ('X_POSITION')
+      ptr_attrib => ele%x_position
+    case ('Y_POSITION')
+      ptr_attrib => ele%y_position
+    case ('Z_POSITION')
+      ptr_attrib => ele%z_position
+    case ('THETA_POSITION')
+      ptr_attrib => ele%theta_position
+    case ('PHI_POSITION')
+      ptr_attrib => ele%phi_position
+    case ('BETA_X')
+      ptr_attrib => ele%x%beta
     case ('ALPHA_X')
-      ptr_attrib => ele%x%alpha 
+      ptr_attrib => ele%x%alpha
     case ('PHI_X')
-      ptr_attrib => ele%x%phi 
+      ptr_attrib => ele%x%phi
     case ('ETA_X')
-      ptr_attrib => ele%x%eta 
+      ptr_attrib => ele%x%eta
     case ('ETAP_X')
-      ptr_attrib => ele%x%etap 
-    case ('BETA_Y') 
-      ptr_attrib => ele%y%beta 
+      ptr_attrib => ele%x%etap
+    case ('BETA_Y')
+      ptr_attrib => ele%y%beta
     case ('ALPHA_Y')
-      ptr_attrib => ele%y%alpha 
+      ptr_attrib => ele%y%alpha
     case ('PHI_Y')
-      ptr_attrib => ele%y%phi 
+      ptr_attrib => ele%y%phi
     case ('ETA_Y')
-      ptr_attrib => ele%y%eta 
+      ptr_attrib => ele%y%eta
     case ('ETAP_Y')
-      ptr_attrib => ele%y%etap 
+      ptr_attrib => ele%y%etap
     case ('C11')
-      ptr_attrib => ele%c_mat(1,1) 
+      ptr_attrib => ele%c_mat(1,1)
     case ('C12')
-      ptr_attrib => ele%c_mat(1,2) 
+      ptr_attrib => ele%c_mat(1,2)
     case ('C21')
-      ptr_attrib => ele%c_mat(2,1) 
+      ptr_attrib => ele%c_mat(2,1)
     case ('C22')
-      ptr_attrib => ele%c_mat(2,2) 
+      ptr_attrib => ele%c_mat(2,2)
     case ('ENERGY')
-      ptr_attrib => ele%value(energy$) 
+      ptr_attrib => ele%value(energy$)
     case ('S')
       ptr_attrib => ele%s
     case default

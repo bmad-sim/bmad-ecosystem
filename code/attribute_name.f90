@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.14  2003/03/31 15:17:39  dcs
+!Bug fixes.
+!
 !Revision 1.13  2003/03/04 16:03:27  dcs
 !VMS port
 !
@@ -145,12 +148,12 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(def_parameter$, symmetry$)     = 'SYMMETRY'
     attrib_array(def_parameter$, taylor_order$) = 'TAYLOR_ORDER'
 
-    attrib_array(linac_rf_cavity$, l$)             = 'L'
-    attrib_array(linac_rf_cavity$, energy_start$)  = 'ENERGY_START'
-    attrib_array(linac_rf_cavity$, phase_0$)       = 'PHASE_0'
-    attrib_array(linac_rf_cavity$, gradiant$)      = 'GRADIANT'
-    attrib_array(linac_rf_cavity$, rf_frequency$)  = 'RF_FREQUENCY'
-    attrib_array(linac_rf_cavity$, rf_wavelength$) = 'RF_WAVELENGTH'
+    attrib_array(lcavity$, l$)             = 'L'
+    attrib_array(lcavity$, energy_start$)  = 'ENERGY_START'
+    attrib_array(lcavity$, phase_0$)       = 'PHASE_0'
+    attrib_array(lcavity$, gradiant$)      = 'GRADIANT'
+    attrib_array(lcavity$, rf_frequency$)  = 'RF_FREQUENCY'
+    attrib_array(lcavity$, rf_wavelength$) = 'RF_WAVELENGTH'
 
     attrib_array(group$, command$)        = 'COMMAND'
     attrib_array(group$, old_command$)    = 'OLD_COMMAND'
@@ -317,12 +320,19 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
 
   key = ele%key
 
-  if (key <= 0 .or. key > n_key .or.  &
-            ix_att <= 0 .or. ix_att > n_attrib_special_maxx) then
-    at_name = '?? BAD KEY/INDEX'
+  if (key <= 0 .or. key > n_key) then
+    at_name = 'BAD ELE KEY'
+  elseif (ix_att <= 0 .or. ix_att > n_attrib_special_maxx) then
+    at_name = 'BAD INDEX'
+  elseif (ele%control_type == overlay_lord$) then
+    if (ix_att == ele%ix_value) then
+      at_name = ele%attribute_name
+    else
+      at_name = 'INVALID INDEX'
+    endif
   else
     at_name = attrib_array(key, ix_att)
-  endif                       
+  endif
 
   if (key == wiggler$ .and. ele%sub_key == map_type$) then
     if (any (ix_att == (/ k1$, b_max$, rho$, n_pole$, radius$ /) )) &

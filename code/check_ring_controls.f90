@@ -13,6 +13,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/03/31 15:17:40  dcs
+!Bug fixes.
+!
 !Revision 1.7  2003/01/27 14:40:31  dcs
 !bmad_version = 56
 !
@@ -60,9 +63,9 @@ subroutine check_ring_controls (ring, exit_on_error)
     call err_exit
   endif
 
-  if (any(ring%ele_(:)%key == linac_rf_cavity$) .and. &
+  if (any(ring%ele_(:)%key == lcavity$) .and. &
                           ring%param%lattice_type /= linac_lattice$) then
-    print *, 'ERROR IN CHECK_RING_CONTROLS: THERE IS A LINAC_RF_CAVITY BUT THE'
+    print *, 'ERROR IN CHECK_RING_CONTROLS: THERE IS A LCAVITY BUT THE'
     print *, '      LATTICE_TYPE IS NOT SET TO LINAC_LATTICE!'
   endif
 

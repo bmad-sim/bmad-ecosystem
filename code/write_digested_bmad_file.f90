@@ -16,38 +16,7 @@
 !                       files used to create the ring structure.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.10  2003/03/04 16:03:30  dcs
-!VMS port
-!
-!Revision 1.9  2003/01/27 14:40:48  dcs
-!bmad_version = 56
-!
-!Revision 1.8  2002/11/07 17:10:04  dcs
-!Bug_fix
-!
-!Revision 1.7  2002/11/06 06:48:32  dcs
-!Changed arg array
-!
-!Revision 1.6  2002/06/13 14:54:31  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.5  2002/02/23 20:32:30  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.4  2002/01/08 21:44:44  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.3  2001/10/05 18:23:57  rwh24
-!Bug Fixes
-!
-!Revision 1.2  2001/09/27 18:32:01  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine write_digested_bmad_file (digested_name, ring,  &
                                                   n_files, file_names)
@@ -95,7 +64,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   enddo
 
   i_write = i + 4
-  print *, 'WRITE_DIGESTED_BMAD_FILE: Ele_struct size is:', i_write
+!!  print *, 'WRITE_DIGESTED_BMAD_FILE: Ele_struct size is:', i_write
 
 ! write input file names to the digested file
 

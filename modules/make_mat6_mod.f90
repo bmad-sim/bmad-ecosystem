@@ -618,15 +618,19 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine drift_mat6_calc (mat6, length, orb)
+! Subroutine drift_mat6_calc (mat6, length, start, end)
+!
+! Subroutine to calculate a drift transfer matrix with a possible kick.
 !-
 
-subroutine drift_mat6_calc (mat6, length, orb)
+subroutine drift_mat6_calc (mat6, length, start, end)
 
   implicit none
 
-  real(rdef) orb(:)
-  real(rdef) mat6(:,:), length, rel_E, len_E
+  real(rdef) start(:)
+  real(rdef), optional :: end(:)
+  real(rdef) ave(6)
+  real(rdef) mat6(:,:), length, rel_E, len_E2, len_E3
 
 !
 
@@ -634,16 +638,28 @@ subroutine drift_mat6_calc (mat6, length, orb)
 
   if (length == 0) return
 
-  rel_E = 1 + orb(6)
-  len_E = length / rel_E**2
+  if (present(end)) then
+    ave = (start + end) / 2
+  else
+    ave = start
+  endif
+
+  rel_E = 1 + ave(6)
+  len_E2 = length / rel_E**2
+  len_E3 = len_E2 / rel_E
 
   mat6(1,2) = length / rel_E
   mat6(3,4) = length / rel_E
-  mat6(1,6) = -orb(2) * len_E
-  mat6(3,6) = -orb(4) * len_E
-  mat6(5,2) = -orb(2) * len_E
-  mat6(5,4) = -orb(4) * len_E
-  mat6(5,6) = (orb(2)**2 + orb(4)**2) * len_E / rel_E
+  mat6(1,6) = -ave(2) * len_E2
+  mat6(3,6) = -ave(4) * len_E2
+  mat6(5,2) = -ave(2) * len_E2
+  mat6(5,4) = -ave(4) * len_E2
+  if (present(end)) then
+    mat6(5,6) = (start(2)**2 + start(2)*end(2) + end(2)**2 + &
+                 start(4)**2 + start(4)*end(4) + end(4)**2) * len_E3 / 3
+  else
+    mat6(5,6) = (start(2)**2 + start(4)**2) * len_E3
+  endif
 
 end subroutine
 

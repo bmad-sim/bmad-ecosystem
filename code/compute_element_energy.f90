@@ -34,7 +34,7 @@ subroutine compute_element_energy (ring)
   energy = ring%ele_(0)%value(energy$)
 
   do i = 1, ring%n_ele_ring
-    if (ring%ele_(i)%key == linac_rf_cavity$) then
+    if (ring%ele_(i)%key == lcavity$) then
       ring%ele_(i)%value(energy_start$) = energy
       energy = energy + ring%ele_(i)%value(gradiant$) * &
           ring%ele_(i)%value(l$) * cos(twopi*ring%ele_(i)%value(phase_0$))

@@ -226,19 +226,25 @@ subroutine track1_bmad (start, ele, param, end)
 !       Phys Rev E, Vol. 49, p. 1599, (1994)
 ! with b_0 = b_-1 = 1
 
-  case (linac_rf_cavity$)
+  case (lcavity$)
 
     if (ele%value(energy_start$) == 0) then
-      print *, 'ERROR IN TRACK1_BMAD: REFERENCE BEAM ENERGY IS 0 FOR A LINAC_RF_CAVITY!'
+      print *, 'ERROR IN TRACK1_BMAD: REFERENCE BEAM ENERGY IS 0 FOR A LCAVITY!'
       call err_exit
     endif
 
-    phase = twopi * end%z%pos * ele%value(rf_frequency$) / c_light + ele%value(phase_0$)
+    phase = twopi * end%z%pos * ele%value(rf_frequency$) / &
+                                      c_light + ele%value(phase_0$)
     cos_phi = cos(phase)
     gradiant = ele%value(gradiant$) * cos_phi
     e_start = ele%value(energy_start$) * (1 + end%z%vel)
     e_end = e_start + gradiant * ele%value(l$)
     e_ratio = e_end / e_start
+    if (e_ratio < 0) then
+      if (bmad_status%type_out) print *, &
+                'ERROR IN TRACK1_BMAD: NEGATIVE BEAM ENERGY FOR: ', ele%name
+      if (bmad_status%exit_on_error) call err_exit
+    endif
     alpha = log(e_ratio) / (2 * sqrt_2 * cos_phi)
     cos_a = cos(alpha)
     sin_a = sin(alpha)

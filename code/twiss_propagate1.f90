@@ -25,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/03/31 15:17:41  dcs
+!Bug fixes.
+!
 !Revision 1.7  2003/03/18 20:37:40  dcs
 !Added code for beta = 0 error.
 !
@@ -157,7 +160,7 @@ subroutine twiss_propagate1 (ele1, ele2)
 !----------------------------------------------------
 ! linac rf matrices need to be renormalized.
 
-  if (ele2%key == linac_rf_cavity$) then
+  if (ele2%key == lcavity$) then
     call mat_det (ele_temp%mat6, det, 4, 6)
     ele_temp%mat6(1:4,1:4) = ele_temp%mat6(1:4,1:4) / (det**0.25)
   endif

@@ -43,11 +43,6 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
   integer ix_taylor(100), n_taylor, istat
 
 
-!
-
-  if (ring%param%lattice_type == linac_lattice$) &
-                                           call compute_element_energy (ring)
-
 ! Check Energy
 
   if (abs(ring%param%beam_energy-1d9*ring%param%energy) > &
@@ -81,6 +76,9 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
       if (ring%ele_(i)%control_type == group_lord$)  &
                                  call control_bookkeeper (ring, i)
     enddo
+
+    if (ring%param%lattice_type == linac_lattice$) &
+                                           call compute_element_energy (ring)
 
 ! now make the transfer matrices.
 ! for speed if an element needs a taylor series then check if we can use
@@ -128,6 +126,8 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
 
   call control_bookkeeper (ring, ix_ele)
 
+  if (ring%param%lattice_type == linac_lattice$) &
+                                           call compute_element_energy (ring)
 ! for a regular element
 
   if (ix_ele <= ring%n_ele_ring) then

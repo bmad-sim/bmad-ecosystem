@@ -28,42 +28,6 @@
 !   ring    -- Ring_struct: Ring with modifications
 !-
 
-!$Id$
-!$Log$
-!Revision 1.15  2003/01/27 14:40:30  dcs
-!bmad_version = 56
-!
-!Revision 1.14  2003/01/08 15:50:16  dcs
-!Fixed bug in an error message.
-!
-!Revision 1.13  2002/12/17 04:28:36  dcs
-!parser bug fix with "ele[b] = c" redefs and multiple ele elements.
-!
-!Revision 1.11  2002/11/27 04:04:06  dcs
-!Correct bug
-!
-!Revision 1.10  2002/11/26 05:19:31  dcs
-!Modified for BEGINNING floor position entry.
-!
-!Revision 1.9  2002/11/16 16:13:54  dcs
-!overlay/group change and make_mat6 bug fix
-!
-!Revision 1.8  2002/11/06 06:48:31  dcs
-!Changed arg array
-!
-!Revision 1.5  2002/06/13 14:54:22  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.4  2002/02/23 20:32:11  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/08 21:44:36  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.2  2001/09/27 18:31:48  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
@@ -143,7 +107,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
       word_1 = 'END_FILE'
       ix_word = 8
     else
-      call verify_valid_name(word_1, ix_word)
+      call verify_valid_name(word_1, ix_word, .true.)
     endif
 
 ! CALL command

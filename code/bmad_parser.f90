@@ -34,66 +34,6 @@
 ! DCS 10/6/97
 !-
 
-!$Id$
-!$Log$
-!Revision 1.26  2003/03/18 20:39:28  dcs
-!Better error handling messages.
-!
-!Revision 1.25  2003/03/08 01:30:56  dcs
-!Fixed wig1: wig2 bug
-!
-!Revision 1.24  2003/03/06 17:47:06  dcs
-!Bug fix.
-!
-!Revision 1.23  2003/03/04 16:03:27  dcs
-!VMS port
-!
-!Revision 1.22  2003/01/27 14:40:30  dcs
-!bmad_version = 56
-!
-!Revision 1.21  2003/01/08 15:50:15  dcs
-!Fixed bug in an error message.
-!
-!Revision 1.20  2002/12/17 04:28:36  dcs
-!parser bug fix with "ele[b] = c" redefs and multiple ele elements.
-!
-!Revision 1.18  2002/12/06 01:53:02  dcs
-!Fix rho/g bug in bends
-!
-!Revision 1.16  2002/11/27 04:04:06  dcs
-!Correct bug
-!
-!Revision 1.15  2002/11/26 05:19:31  dcs
-!Modified for BEGINNING floor position entry.
-!
-!Revision 1.13  2002/11/16 16:13:54  dcs
-!overlay/group change and make_mat6 bug fix
-!
-!Revision 1.11  2002/07/31 14:32:41  dcs
-!Modified so moved digested file handled correctly.
-!
-!Revision 1.8  2002/06/13 14:54:22  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.7  2002/02/23 20:32:10  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.6  2002/01/08 21:44:36  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.5  2001/10/12 20:53:34  rwh24
-!DCS changes and two files added
-!
-!Revision 1.4  2001/10/05 18:23:57  rwh24
-!Bug Fixes
-!
-!Revision 1.3  2001/10/02 18:49:11  rwh24
-!More compatibility updates; also added many explicit variable declarations.
-!
-!Revision 1.2  2001/09/27 18:31:48  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 subroutine bmad_parser (in_file, ring, make_mats6)
@@ -104,7 +44,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   implicit none
 
   type (ring_struct), target :: ring, in_ring
-  type (seq_struct), target :: this_seq(n_ele_maxx)
+  type (seq_struct), target :: this_seq(200)
   type (seq_struct), pointer :: seq, seq2
   type (seq_ele_struct), pointer :: s_ele
   type (parser_ring_struct) pring
@@ -257,7 +197,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
       word_1 = 'END_FILE'
       ix_word = 8
     else
-      call verify_valid_name(word_1, ix_word)
+      call verify_valid_name(word_1, ix_word, .true.)
     endif
 
 ! USE command...
@@ -345,7 +285,6 @@ subroutine bmad_parser (in_file, ring, make_mats6)
     if (word_1(:ix_word) == 'RETURN' .or.  &
                                     word_1(:ix_word) == 'END_FILE') then
       call file_stack ('pop', ' ', finished)
-      if (.not. bmad_status%ok .and. bmad_status%exit_on_error) call err_exit
       if (.not. bmad_status%ok) return
       if (finished) exit ! break loop
       cycle parsing_loop
@@ -479,7 +418,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 ! arg lists are only used with lines
 
     if (word_2(:ix_word) /= 'LINE' .and. arg_list_found) then
-      call warning ('ARGUMENT LISTS "(...)" ARE ONLY USED WITH LINES', &
+      call warning ('ARGUMENTS "XYZ(...):" ARE ONLY USED WITH REPLACEMENT LINES.', &
                                                         'FOR: ' // word_1)
       cycle parsing_loop
     endif
@@ -488,7 +427,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
     if (word_2(:ix_word) == 'LINE' .or. word_2(:ix_word) == 'LIST') then
       bp_com%iseq_tot = bp_com%iseq_tot + 1
-      if (bp_com%iseq_tot > n_ele_maxx-1) then
+      if (bp_com%iseq_tot > size(this_seq)-1) then
         print *, 'ERROR IN BMAD_PARSER: NEED TO INCREASE LINE ARRAY!'
         call err_exit
       endif
@@ -497,7 +436,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
       if (delim /= '=') call warning ('EXPECTING: "=" BUT GOT: ' // delim)
       if (word_2(:ix_word) == 'LINE') then
         this_seq(bp_com%iseq_tot)%type = line$
-        if (arg_list_found) this_seq(bp_com%iseq_tot)%type = replacement_list$
+        if (arg_list_found) this_seq(bp_com%iseq_tot)%type = replacement_line$
       else
         this_seq(bp_com%iseq_tot)%type = list$
       endif
@@ -611,7 +550,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
   enddo parsing_loop       ! main parsing loop
 
-!---------------------------------------------------------------
+!---------------------------------------------------------------------------
 ! we now have read in everything. 
 
 ! sort elements and lists and check for duplicates
@@ -651,18 +590,18 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 ! find line corresponding to the "use" statement.
 
   if (ring%name == blank) call error_exit &
-            ('NO "USE" COMMAND FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
+            ('NO "USE" STATEMENT FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
 
   call find_indexx (ring%name, this_seq(:)%name, &
                                     seq_indexx, bp_com%iseq_tot, i_use)
   if (i_use == 0) call error_exit &
-            ('CANNOT FIND DEFINITION FOR "USE" LINE: ' // ring%name, ' ')
+      ('CANNOT FIND DEFINITION OF LINE IN "USE" STATEMENT: ' // ring%name, ' ')
 
   if (this_seq(i_use)%type /= line$) call error_exit  &
-                              ('NAME AFTER "USE" IS NOT A LINE!', ' ')
+                      ('NAME IN "USE" STATEMENT IS NOT A LINE!', ' ')
 
-! Now to expand the lines and lists to find the elements to use
-! first go through the lines and lists and index everything
+! Now to expand the lines and lists to find the elements to use.
+! First go through the lines and lists and index everything.
 
   do k = 1, bp_com%iseq_tot
     do i = 1, size(this_seq(k)%ele(:))
@@ -683,18 +622,21 @@ subroutine bmad_parser (in_file, ring, make_mats6)
         call find_indexx (name, this_seq(:)%name, seq_indexx, bp_com%iseq_tot, j)
         if (j == 0) then  ! if not a sequence then I don't know what it is
           call warning ('NOT A DEFINED ELEMENT, LINE, OR LIST: ' // &
-             s_ele%name, 'IN THE LINE/LIST: ' // this_seq(k)%name)
+                 s_ele%name, 'IN THE LINE/LIST: ' // this_seq(k)%name, &
+                 seq = this_seq(k))
           s_ele%ix_array = 1
           s_ele%type = element$
         else
           s_ele%ix_array = j
           s_ele%type = this_seq(j)%type
           if (this_seq(k)%type == list$) call warning ('LIST: ' // & 
-                  this_seq(k)%name, 'CONTAINS A NON-ELEMENT: ' // s_ele%name)
+                  this_seq(k)%name, 'CONTAINS A NON-ELEMENT: ' // s_ele%name, &
+                  seq = this_seq(k))
         endif
         if (s_ele%type == list$ .and. s_ele%reflect) call warning ( &
                           'A REFLECTION WITH A LIST IS NOT ALLOWED IN: '  &
-                          // this_seq(k)%name, 'FOR LIST: ' // s_ele%name)
+                          // this_seq(k)%name, 'FOR LIST: ' // s_ele%name, &
+                          seq = this_seq(k))
 
       else    ! if an element...
         s_ele%ix_array = j
@@ -704,7 +646,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
     enddo
   enddo
 
-! to expand the ring we use a stack for nested sublines
+! to expand the ring we use a stack for nested sublines.
 ! IX_RING is the expanded array of elements in the ring.
 ! init stack
 
@@ -737,7 +679,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
       seq2 => this_seq(s_ele%ix_array)
       j = seq2%ix
       call pushit (ix_ring, n_ele_ring, seq2%ele(j)%ix_array)
-      name_(n_ele_ring) = s_ele%name
+      name_(n_ele_ring) = seq2%ele(j)%name
       seq2%ix = seq2%ix + 1
       if (seq2%ix > size(seq2%ele(:))) seq2%ix = 1
       call increment_pointer (stack(i_lev)%ix_ele, stack(i_lev)%reflect)
@@ -783,7 +725,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   enddo line_expansion
 
 !---------------------------------------------------------------
-! we now have expanded the lines and lists.
+! we now have the line to use in constructing the ring.
 ! now to put the elements in RING in the correct order.
 ! superimpose, overlays, and groups are handled later.
 ! first load beam parameters.
@@ -804,6 +746,14 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   ring%ele_(0) = in_ring%ele_(0)    ! Beginning element
   call init_ele (ring%ele_init)
 
+! New way of doing things
+
+  ring%param%lattice_type = nint(param_ele%value(lattice_type$))
+  ring%param%symmetry = nint(param_ele%value(symmetry$))
+
+  if (nint(param_ele%value(taylor_order$)) /= 0) &
+            ring%input_taylor_order = nint(param_ele%value(taylor_order$))
+
 ! old way of doing things
 
   do i = 1, bp_com%ivar_tot
@@ -814,16 +764,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
                               ring%input_taylor_order = nint(var_(i)%value)
   enddo
 
-! New way of doing things
-
-  if (nint(param_ele%value(lattice_type$)) /= circular_lattice$) &
-            ring%param%lattice_type = nint(param_ele%value(lattice_type$))
-
-  if (nint(param_ele%value(symmetry$)) /= no_symmetry$) &
-            ring%param%symmetry = nint(param_ele%value(symmetry$))
-
-  if (nint(param_ele%value(taylor_order$)) /= 0) &
-            ring%input_taylor_order = nint(param_ele%value(taylor_order$))
+!
 
   ring%param%beam_energy  = param_ele%value(beam_energy$)
   ring%param%energy       = beam_ele%value(energy$)
@@ -848,9 +789,9 @@ subroutine bmad_parser (in_file, ring, make_mats6)
     call err_exit
   endif
 
-  if (any(in_ring%ele_(:)%key == linac_rf_cavity$) .and. &
+  if (any(in_ring%ele_(:)%key == lcavity$) .and. &
                           ring%param%lattice_type /= linac_lattice$) then
-    print *, 'ERROR IN BMAD_PARSER: THERE IS A LINAC_RF_CAVITY BUT THE'
+    print *, 'ERROR IN BMAD_PARSER: THERE IS A LCAVITY BUT THE'
     print *, '      LATTICE_TYPE IS NOT SET TO LINAC_LATTICE!'
     call err_exit
   endif

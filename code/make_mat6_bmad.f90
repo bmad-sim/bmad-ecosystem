@@ -70,8 +70,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   if (ele%key == drift$ .or. (.not. ele%is_on) .or. &
       ele%key == elseparator$ .or. ele%key == kicker$) then
 
-    orb%vec = (c0%vec + c1%vec) / 2
-    call drift_mat6_calc (mat6, length, orb%vec)
+    call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
 
     goto 8000   ! put in multipole ends if needed
   else
@@ -123,7 +122,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
     if (length == 0) return
 
     if (g == 0) then
-      call drift_mat6_calc (mat6, length, c0%vec)
+      call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
       return
     endif
 
@@ -196,7 +195,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
     k1 = ele%value(k1$) / rel_E
 
     if (k1 == 0) then
-      call drift_mat6_calc (mat6, length, c0%vec)
+      call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
       goto 8000
     endif
 
@@ -379,13 +378,13 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 !--------------------------------------------------------
 ! linac rf cavity
 !
-! There is a problem in that we do NOT have good canonical coordinates since
+! One must keep in mind that we are NOT using good canonical coordinates since
 !   the energy of the reference particle is changing.
 ! This means that the resulting matrix will NOT be symplectic.
-! Since this matrix has limited value we simplify things by ignoring most 
+! Since things are very complicated we simplify things by ignoring most 
 !   off-axis and off-energy corrections to mat6.
 
-  case (linac_rf_cavity$)
+  case (lcavity$)
 
     f = twopi * ele%value(rf_frequency$) / c_light
     phase = f * c0%z%pos + ele%value(phase_0$)
@@ -401,7 +400,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
     sin_a = sin(alpha)
 
     if (gradiant == 0) then
-      call drift_mat6_calc (mat6, length, orb%vec)
+      call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
       goto 8000  ! put in mulipole ends if needed
     endif
 
@@ -463,7 +462,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
     if (ele%value(charge$) == 0 .or. param%n_part == 0) return
 
-! factor of 2 in orb.z.pos since relative motion of the two beams is 2*c_light
+! factor of 2 in orb%z%pos since relative motion of the two beams is 2*c_light
 
     if (n_slice == 1) then
       call bbi_kick_matrix (ele, c0t, 0.0_rdef, mat6)
