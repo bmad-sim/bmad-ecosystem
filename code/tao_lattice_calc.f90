@@ -71,6 +71,8 @@ if (s%global%lattice_recalc) then
     do i = 1, size(s%u)
       call tao_hook_lattice_calc (s%u(i), s%u(i)%model, s%u(i)%model_orb, &
                                                                    used(i))
+      call tao_hook_lattice_calc (s%u(i), s%u(i)%model, s%u(i)%model_orb, &
+                                                                   used(i))
     enddo
     if (.not. any(.not. used)) s%global%lattice_recalc = .false.
   endif
@@ -82,10 +84,12 @@ if (s%global%lattice_recalc) then
   if (s%global%track_type .eq. 'single') then
     if (special) then
       call twiss_and_track (lattice, orbit_temp)
+      call twiss_and_track (lattice, orbit_temp)
       orbit = orbit_temp
     else
       do i = 1, size(s%u)
         if (.not. used(i)) &
+          call twiss_and_track (s%u(i)%model, s%u(i)%model_orb)
           call twiss_and_track (s%u(i)%model, s%u(i)%model_orb)
       enddo
     endif
@@ -93,9 +97,11 @@ if (s%global%lattice_recalc) then
   elseif (s%global%track_type .eq. 'macro') then
     if (special) then
       call macro_track (universe, lattice, orbit)
+      call macro_track (universe, lattice, orbit)
     else
       do i = 1, size(s%u)
         if (.not. used(i)) &
+          call macro_track (s%u(i), s%u(i)%model, s%u(i)%model_orb)
           call macro_track (s%u(i), s%u(i)%model, s%u(i)%model_orb)
       enddo
     endif

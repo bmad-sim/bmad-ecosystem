@@ -52,6 +52,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   logical err
   logical counting, searching
   logical sr_wakes_on, lr_wakes_on
+  logical, allocatable :: search_this_u(:)
 
   namelist / tao_params / global, n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
   
@@ -167,7 +168,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
       data(:)%ele2_name  = ' '
       data(:)%meas_value = 0
       data(:)%weight     = 0
-      data(:)%good_user  = .false.
+      data(:)%good_user  = .true.
       read (iu, nml = tao_d1_data, err = 9150)
       if (ix_d1_data /= k) then
         write (line, '(a, 2i4)') 'IX_D1_DATA MISMATCH:', k, ix_d1_data
@@ -574,6 +575,7 @@ enddo
 ! point the children back to the mother    
 
 u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)
+if (allocated(search_this_u)) deallocate (search_this_u)  
 if (allocated(found_one)) deallocate (found_one)  
   
 end subroutine d1_data_stuffit
@@ -678,6 +680,7 @@ logical, allocatable :: found_one(:)
     call form_count_name (var(0)%name(7:), num_hashes, count_name1, count_name2)
     if (index(var(0)%ele_name, 'SEARCH') /= 0) then
       searching = .true.
+      ! search through all universes specified
       allocate (found_one(s%u(1)%design%n_ele_max))
       if (index(var(0)%ele_name, 'SEARCH_KEY:') .ne. 0) then
         call string_trim(var(0)%ele_name(12:), search_string, ix)

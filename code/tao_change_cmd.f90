@@ -142,7 +142,6 @@ end select
 ! print results
 
 new_merit = tao_merit()
-s%global%lattice_recalc = .true.
 delta = new_value - old_value
 if (max(abs(old_value), abs(new_value), abs(design_value)) > 100) then
   fmt = '(5x, 2(a, f12.0), f12.0)'

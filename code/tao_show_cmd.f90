@@ -293,11 +293,11 @@ case ('ele')
     nl = 1
     do loc = 1, u%model%n_ele_max
       if (match_wild(u%model%ele_(loc)%name, ele_name)) then
-      if (nl+1 .gt. max_lines) then
-        call out_io (s_blank$, r_name, "Too many elements!")
-        call out_io (s_blank$, r_name, "Listing first \i5\ selected elements", max_lines-1)
-        exit
-      endif
+        if (nl+1 .gt. max_lines) then
+          call out_io (s_blank$, r_name, "Too many elements!")
+          call out_io (s_blank$, r_name, "Listing first \i5\ selected elements", max_lines-1)
+          exit
+        endif
         nl = nl + 1
         write (lines(nl), '(i8, 2x, a)') loc, u%model%ele_(loc)%name
         name_found = .true.
