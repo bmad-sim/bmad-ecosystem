@@ -30,6 +30,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.11  2002/11/27 04:04:06  dcs
+!Correct bug
+!
 !Revision 1.10  2002/11/26 05:19:31  dcs
 !Modified for BEGINNING floor position entry.
 !
@@ -67,7 +70,6 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   implicit none
     
   type (ring_struct), target :: ring, r_temp
-  type (ele_struct)  beam_ele
   type (ele_struct), pointer :: ele
   type (coord_struct), optional :: orbit_(0:)
   type (parser_ring_struct) pring

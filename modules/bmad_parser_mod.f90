@@ -109,6 +109,7 @@ module bmad_parser_mod
 
   type (bp_com_struct)  bp_com
   type (parser_var_struct)  var_(ivar_maxx)
+  type (ele_struct), target :: beam_ele
 
   character*16 :: blank = ' '
 
@@ -1130,9 +1131,10 @@ subroutine word_to_value (word, ring, value)
 
   implicit none
 
-  type (ring_struct)  ring
+  type (ring_struct), target ::  ring
+  type (ele_struct), pointer :: ele
 
-  integer i, i_ele, ix1, ix2
+  integer i, ix1, ix2
   real(rdef) value
   character*(*) word
   character*16 name
@@ -1154,33 +1156,37 @@ subroutine word_to_value (word, ring, value)
   if (ix1 /= 0) then   
 
     name = word(:ix1-1)    ! name of attribute
-    i_ele = 0
     do i = 0, ring%n_ele_max
       if (ring%ele_(i)%name == name) then
-        i_ele = i
+        ele => ring%ele_(i)
         goto 1000
       endif
     enddo
+
+    if (name == beam_ele%name) then
+      ele => beam_ele
+      goto 1000
+    endif
 
     call warning ('ELEMENT NOT DEFINED: ' // name)
     value = 0
     return
 
-1000    continue
+1000 continue
 
     ix2 = index(word, ']')
     name = word(ix1+1:ix2-1)
 
     if (name == 'S') then
       if (bp_com%parser_name == 'BMAD_PARSER2') then
-        value = ring%ele_(i_ele)%s
+        value = ele%s
       else
         call warning ('"S" ATTRIBUTE CAN ONLY BE USED WITH BMAD_PARSER2')
       endif
     else
-      i = attribute_index(ring%ele_(i_ele), name)
+      i = attribute_index(ele, name)
       if (i < 1) call warning('BAD ATTRIBUTE NAME: ' // word)
-      value = ring%ele_(i_ele)%value(i)
+      value = ele%value(i)
     endif
 
     return

@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.16  2002/11/27 04:04:06  dcs
+!Correct bug
+!
 !Revision 1.15  2002/11/26 05:19:31  dcs
 !Modified for BEGINNING floor position entry.
 !
@@ -94,7 +97,6 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   type (seq_ele_struct), pointer :: s_ele
   type (parser_ring_struct) pring
   type (seq_stack_struct) stack(20)
-  type (ele_struct) beam_ele
   type (ele_struct), save, pointer :: ele, old_ele(:) => null()
   type (control_struct), pointer :: cs_(:) => null()
 

@@ -27,6 +27,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2002/11/27 04:04:07  dcs
+!Correct bug
+!
 !Revision 1.7  2002/11/26 21:26:33  dcs
 !Switch XYZ to MAD convention.
 !
@@ -108,6 +111,7 @@ subroutine ring_geometry (ring)
 
     ring%ele_(i)%theta_position = theta_tot
     ring%ele_(i)%x_position = x_pos
+    ring%ele_(i)%y_position = 0
     ring%ele_(i)%z_position = z_pos
 
   enddo
