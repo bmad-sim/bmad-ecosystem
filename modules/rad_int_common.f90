@@ -46,6 +46,7 @@ module rad_int_common
     real(rp), allocatable :: i4b_(:)
     real(rp), allocatable :: i5a_(:) 
     real(rp), allocatable :: i5b_(:) 
+    real(rp), allocatable :: n_steps(:)      ! number of qromb steps needed
     real(rp) :: int_tot(7)
     type (ring_struct), pointer :: ring
     type (ele_struct), pointer :: ele0, ele
@@ -175,6 +176,9 @@ subroutine qromb_rad_int (do_int, ir)
     enddo
 
     if (complete .or. j == jmax) then
+
+      ric%n_steps(ir) = j
+
       ric%i1_(ir)  = ric%i1_(ir)  + rad_int(1)
       ric%i2_(ir)  = ric%i2_(ir)  + rad_int(2)
       ric%i3_(ir)  = ric%i3_(ir)  + rad_int(3)
@@ -190,6 +194,7 @@ subroutine qromb_rad_int (do_int, ir)
       ric%int_tot(5) = ric%int_tot(5) + ric%i4b_(ir)
       ric%int_tot(6) = ric%int_tot(6) + ric%i5a_(ir)
       ric%int_tot(7) = ric%int_tot(7) + ric%i5b_(ir)
+
     endif
 
     if (complete) return
@@ -401,7 +406,8 @@ subroutine propagate_part_way (s)
   else
     ric%runt%value(l$) = s
     if (ric%ele%key == sbend$) ric%runt%value(e2$) = 0
-    call make_mat6 (ric%runt, ric%ring%param, ric%orb0, orb)
+    call track1 (ric%orb0, ric%runt, ric%ring%param, orb)
+    call make_mat6 (ric%runt, ric%ring%param, ric%orb0, orb, .true.)
     call twiss_propagate1 (ric%ele0, ric%runt)
   endif
 

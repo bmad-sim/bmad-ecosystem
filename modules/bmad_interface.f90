@@ -182,6 +182,16 @@ module bmad_interface
     end subroutine
   end interface
 
+  interface
+    subroutine closed_orbit_calc (ring, closed_orb, i_dim)
+      use bmad_struct
+      implicit none
+      type (ring_struct) ring
+      type (coord_struct), allocatable :: closed_orb(:)
+      integer i_dim
+    end subroutine
+  end interface
+
  interface
    subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
                                                  eps_rel, eps_abs, init_guess)
