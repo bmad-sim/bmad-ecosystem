@@ -19,9 +19,9 @@ subroutine lattice_to_bmad_file_name (lattice, bmad_file_name)
 !
 
   if (index(lattice, '.') == 0) then
-    bmad_file_name = 'u:[cesr.bmad.lat]bmad_' // trim(lattice) // '.lat'
+    bmad_file_name = 'BMAD_LAT:bmad_' // trim(lattice) // '.lat'
   else
-    bmad_file_name = 'u:[cesr.bmad.lat]bmad_' // trim(lattice) 
+    bmad_file_name = 'BMAD_LAT:bmad_' // trim(lattice) 
   endif
 
 end subroutine
