@@ -475,7 +475,9 @@ An \vn{LCavity} is a LINAC accelerating cavity.
 
 Tracking through an \vn{LCavity} is modeled using the equations
 developed by Rosenzweig and Serafini\cite{b:rosenzweig}. The
-attributes specific to an \vn{LCavity} are
+attributes specific to an \vn{LCavity} are The dependent variable
+\vn{delta_e} attribute can be used in place of \vn{gradiant} in a
+primary lattice file as discussed in Section~\ref{s:dependent}.
 \begin{example}
   gradient     ! Accelerating gradient (V/m).
   phi0         ! Phase (radians/2\(\pi\)) of the reference particle with 
@@ -485,8 +487,15 @@ attributes specific to an \vn{LCavity} are
   sr_wake_file ! Short range wake field definition file.
   lr_wake_file ! Long range wake field definition file.
 \end{example}
-The dependent variable \vn{delta_e} attribute can be used in place of
-\vn{gradiant} in a primary lattice file as discussed in Section~\ref{s:dependent}.
+
+The kick felt by a particle is 
+\begin{example}
+  dE = voltage * cos(twopi * (phi0 + z * rf_frequency / c_light))
+\end{example}
+This is consistant with MAD but not with LIAR which uses
+\begin{example}
+  dE = voltage * cos(twopi * (phi0 - z * rf_frequency / c_light))
+\end{example}
 
 Note: The transfer matrix for an \vn{LCavity} with finite
 \vn{gradient} is never symplectic.

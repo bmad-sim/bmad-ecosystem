@@ -1,9 +1,11 @@
 \chapter{Reading and Writing Lattices}
 
+%----------------------------------------------------------------------------
 \section{Reading in Lattices}
 
-There are two subroutines in \bmad\ to read in (parse) a lattice
-file: \rn{bmad_parser} and \rn{bmad_parser2}.
+The subroutine to read in an XSIF lattice file is \vn{xsif_parser}.
+There are two subroutines in \bmad\ to read in a \bmad standard
+lattice file: \rn{bmad_parser} and \rn{bmad_parser2}.
 
 \rn{bmad_parser} is used to initialize a \tn{ring_struct}
 structure from scratch using the information from a lattice
@@ -32,7 +34,7 @@ The second alternative is to create a third file that calls the first two
 \end{verbatim}
 and then just use \rn{bmad_parser} to parse this third file.
 
-
+%----------------------------------------------------------------------------
 \section{Digested Files}
 
 Since parsing can be slow, once \rn{bmad_parser} has transfered the

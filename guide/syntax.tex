@@ -1,11 +1,28 @@
 \chapter{Lattice File Syntax}
 
 %---------------------------------------------------------------------------
-\section{Lattice Files and Digested Files}
+\section{Lattice File Formats}
 \label{s:lattice_files}
 
-The \bmad\ software library comes with a routine to read in (parse) a
-lattice definition file (or files). The syntax that a lattice file
+The \bmad\ software library comes with routines to read in (parse) a
+lattice definition file (or files). There are two input formats that
+\bmad understands: The \bmad standard format and XSIF. XSIF stands for
+``Extended Standard Input Format.''  XSIF is esentially a subset of
+the MAD input format and will not be further discussed
+here. Documentation can be found at:
+\begin{example}
+  http://www-project.slac.stanford.edu/
+              lc/ilc/TechNotes/LCCNotes/PDF/LCC-0060%20rev.1.pdf
+\end{example}
+Throughout this manual if the lattice input format is mentioned it
+will always pertain to the \bmad standard format unless explicitly
+stated otherwise.
+
+%----------------------------------------------------------------------------
+\section{Bmad Lattice Files and Digested Files}
+\label{s:lattice_files}
+
+The syntax that a \bmad standard lattice file
 must conform to is modeled after the lattice input format of the \mad\
 program.  Essentially, a \bmad\ lattice file is similar to a \mad\
 lattice file except that a \bmad\ file has no ``action'' commands

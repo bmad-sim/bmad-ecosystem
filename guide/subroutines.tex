@@ -14,7 +14,7 @@ general interest.
 \begin{center}
 \begin{tabular}{|l|l|} \hline
 {\em Routine Type} & {\em Section} \\ \hline
- 	Reading/Writing a Lattice File          & \ref{r:read}       \\ \hline
+ 	Reading/Writing Lattice Files           & \ref{r:read}       \\ \hline
  	Choosing a Lattice                      & \ref{r:lat}        \\ \hline
  	Twiss etc.                              & \ref{r:twiss}      \\ \hline
  	Matrices                                & \ref{r:mat}        \\ \hline
@@ -49,7 +49,7 @@ general interest.
 \toffset
 
 %------------------------------------------------------------------------
-\section{Reading/Writing a Lattice File} 
+\section{Reading/Writing Lattice Files} 
 \label{r:read}
 
 \begin{description}
@@ -69,6 +69,9 @@ a ring\_struct.
 
 \item[write\_digested\_bmad\_file (digested\_name, ring, n\_files, file\_names)] \Newline
 Subroutine to write a digested file. 
+
+\item[xsif\_parser (xsif\_file, ring, make\_mats6)] \Newline 
+     Subroutine to parse an XSIF (extended standard input format) lattice file.
 
 \end{description}
 
