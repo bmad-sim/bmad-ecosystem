@@ -259,27 +259,35 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
       enddo
     enddo
 
+    ! If ix_lr is negative then it is a pointer to a previously read wake. 
+    ! See write_digested_bmad_file.
+
     if (ix_sr1 /= 0 .or. ix_sr2_long /= 0 .or. ix_sr2_trans /= 0 .or. ix_lr /= 0) then
-      call init_wake (ele%wake, ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr)
-      if (v75) then
-        if (ix_sr1 /= 0) then
-          allocate (ele%wake%sr1(0:ix_sr1-1))
+      if (ix_lr < 0) then
+        call transfer_wake (ring%ele_(abs(ix_lr))%wake, ele%wake)
+
+      else
+        call init_wake (ele%wake, ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr)
+        if (v75) then
+          if (ix_sr1 /= 0) then
+            allocate (ele%wake%sr1(0:ix_sr1-1))
+            read (d_unit, err = 9800) ele%wake%sr_file
+            read (d_unit, err = 9810) ele%wake%sr1
+          endif
+          if (ix_lr /= 0) then
+            allocate (ele%wake%lr(0:ix_lr-1))
+            read (d_unit, err = 9820) ele%wake%lr_file
+            read (d_unit, err = 9830) ele%wake%lr
+          endif
+        elseif (v_now) then
           read (d_unit, err = 9800) ele%wake%sr_file
           read (d_unit, err = 9810) ele%wake%sr1
-        endif
-        if (ix_lr /= 0) then
-          allocate (ele%wake%lr(0:ix_lr-1))
+          read (d_unit, err = 9840) ele%wake%sr2_long
+          read (d_unit, err = 9850) ele%wake%sr2_trans
           read (d_unit, err = 9820) ele%wake%lr_file
           read (d_unit, err = 9830) ele%wake%lr
+          read (d_unit, err = 9860) ele%wake%z_cut_sr
         endif
-      elseif (v_now) then
-        read (d_unit, err = 9800) ele%wake%sr_file
-        read (d_unit, err = 9810) ele%wake%sr1
-        read (d_unit, err = 9840) ele%wake%sr2_long
-        read (d_unit, err = 9850) ele%wake%sr2_trans
-        read (d_unit, err = 9820) ele%wake%lr_file
-        read (d_unit, err = 9830) ele%wake%lr
-        read (d_unit, err = 9860) ele%wake%z_cut_sr
       endif
     endif
 
