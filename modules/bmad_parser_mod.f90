@@ -2632,7 +2632,7 @@ subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match)
 
   if (n_max == 0) then
     ix_match = 0
-    if (present(ix2_match)) ix2_match = 0
+    if (present(ix2_match)) ix2_match = 1
     return
   endif
 
