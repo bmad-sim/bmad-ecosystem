@@ -298,10 +298,9 @@ subroutine track1_bmad (start, ele, param, end)
     e_end = e_start + gradient * ele%value(l$)
     e_ratio = e_end / e_start
 
-    if (e_ratio < 0) then
-      if (bmad_status%type_out) print *, &
-                'ERROR IN TRACK1_BMAD: NEGATIVE BEAM ENERGY FOR: ', ele%name
-      if (bmad_status%exit_on_error) call err_exit
+    if (e_end <= 0) then
+      param%lost = .true.
+      return
     endif
 
     if (gradient == 0) then

@@ -58,6 +58,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   integer i, n, n_slice, n_pole, key
 
   logical, optional :: end_in
+  character(16) :: r_name = 'make_mat6_bmad'
 
 !--------------------------------------------------------
 ! init
@@ -68,10 +69,12 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   mat6 => ele%mat6
   rel_E = 1 + c0%vec(6)  ! E/E_0
 
-  if (present(end_in)) then
-    if (.not. end_in) call track1 (c0, ele, param, c1)
-  else
+  if (.not. logic_option (.false., end_in)) then
     call track1 (c0, ele, param, c1)
+    if (param%lost) then
+      mat6 = 0
+      return
+    endif
   endif
 
   c00 = c0
@@ -448,6 +451,14 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     e_start = ele%value(energy_start$) * (1 + c0%vec(6))
     e_end = e_start + gradient * ele%value(l$)
+
+    if (e_end <= 0) then
+      call out_io (s_fatal$, r_name, 'END ENERGY IS NEGATIVE!')
+      param%lost = .true.
+      mat6 = 0   ! garbage.
+      return 
+    endif
+
     e_ratio = e_end / e_start
 
 ! entrence kick

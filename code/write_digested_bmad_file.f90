@@ -39,6 +39,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   character(*) digested_name
   character(*), optional :: file_names(:)
   character(200) fname
+  character(32) :: r_name = 'write_digested_bmad_file'
 
   external stat
 
@@ -88,6 +89,11 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
     if (associated(ele%wake%sr))      ix_sr  = size(ele%wake%sr)
     if (associated(ele%wake%lr_file)) ix_lrf = 1
     if (associated(ele%wake%lr))      ix_lr  = size(ele%wake%lr)
+
+    if (ix_r /= 0) then
+      call out_io (s_fatal$, r_name, 'SAVING ELE%R NOT YET IMPLEMENTED!')
+      call err_exit
+    endif
 
     write (d_unit) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
                               ix_srf, ix_sr, ix_lrf, ix_lr, &

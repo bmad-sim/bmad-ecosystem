@@ -11,19 +11,16 @@
 !   start  -- Coord_struct: Starting position
 !   ele    -- Ele_struct: Element
 !   param  -- Param_struct:
-!     %aperture_limit_on -- If .true. then param%lost will be set if the
-!                 particle is outside the aperture.
+!     %aperture_limit_on -- If True then a particle may be lost by going outside
+!                of the element aperture. 
 !
 ! Output:
 !   end   -- Coord_struct: End position
 !   param
-!     %lost -- Set .true. If the particle is outside the aperture and
-!                %aperture_limit_on is set. Also: %lost is set .true. if
-!                the particle does not make it through a bend irregardless
-!                of the the setting of %aperture_limit_on.
+!     %lost -- Set True If the particle cannot make it through an element.
+!                Set False otherwise.
 !
 ! Notes:
-!
 ! It is assumed that HKICK and VKICK are the kicks in the horizontal
 ! and vertical kicks irregardless of the value for TILT.
 !-
@@ -44,6 +41,10 @@ subroutine track1 (start, ele, param, end)
   type (param_struct), intent(inout) :: param
 
   integer tracking_method
+
+! Init
+
+  param%lost = .false.  ! assume everything will be OK
 
 ! Radiation damping and/or fluctuations for the 1st half of the element.
 

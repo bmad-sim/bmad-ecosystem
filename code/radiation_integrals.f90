@@ -49,13 +49,13 @@
 !       %j_damp         -- Damping partition factor
 !       %alpha_damp     -- Exponential damping coefficient per turn
 !     %lin            -- Linac version of the integrals.
-!       %sig_E1         -- Energy spread after 1 pass (eV)
 !       %i2_E4          -- Integral: g^2 * gamma^4
 !       %i3_E7          -- Integral: g^3 * gamma^7
-!       %i4a_E4         -- Integral: (g^2 + 2K1) * G * eta_a * gamma^4
-!       %i4b_E4         -- Integral: (g^2 + 2K1) * G * eta_b * gamma^4
 !       %i5a_E6         -- Integral: (g^3 * H_a) * gamma^6
 !       %i5b_E6         -- Integral: (g^3 * H_b) * gamma^6
+!       %sig_E1         -- Energy spread after 1 pass (eV)
+!       %sig_a          -- a-mode emittance at end of linac
+!       %sig_b          -- b-mode emittance at end of linac
 !   ix_cache -- Integer, optional: Cache pointer. If ix_cache = 0 at input then
 !                   ix_cache is set to a unique number. Otherwise ix_cache 
 !                   is not changed.
@@ -97,7 +97,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
   real(rp), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
   real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
-  real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, c
+  real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, c, gamma_f
   real(rp) v(4,4), v_inv(4,4), f0, f1, s, mc2, gamma, gamma4, gamma6
 
   integer, optional :: ix_cache
@@ -422,12 +422,11 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 ! Linac radiation integrals:
 
   mc2 = mass_of (ring%param%particle)
+  gamma_f = ring%ele_(ring%n_ele_ring)%value(beam_energy$) / mc2
 
   mode%lin%sig_E1 = 0
   mode%lin%i2_E4  = 0
   mode%lin%i3_E7  = 0
-  mode%lin%i4a_E4 = 0
-  mode%lin%i4b_E4 = 0
   mode%lin%i5a_E6 = 0
   mode%lin%i5b_E6 = 0
 
@@ -437,16 +436,13 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
     gamma6 = gamma4 * gamma**2
     mode%lin%i2_E4  = mode%lin%i2_E4  + ric%i2_(i) * gamma4
     mode%lin%i3_E7  = mode%lin%i3_E7  + ric%i3_(i) * gamma6 * gamma
-    mode%lin%i4a_E4 = mode%lin%i4a_E4 + ric%i4a_(i) * gamma4
-    mode%lin%i4b_E4 = mode%lin%i4b_E4 + ric%i4b_(i) * gamma4
     mode%lin%i5a_E6 = mode%lin%i5a_E6 + ric%i5a_(i) * gamma6
     mode%lin%i5b_E6 = mode%lin%i5b_E6 + ric%i5b_(i) * gamma6
   enddo
 
-  c = 55 * r_e * (h_bar_planck * c_light) / &
-                               (24 * e_charge * sqrt(3.0) * mc2)
-
-  mode%lin%sig_E1 = sqrt (c * mode%lin%i3_E7)
+  mode%lin%sig_E1 = mc2 * sqrt (3 * c_q * r_e * mode%lin%i3_E7 / 2)
+  mode%lin%emittance_a = 2 * c_q * r_e * mode%lin%i5a_e6 / (3 * gamma_f)
+  mode%lin%emittance_b = 2 * c_q * r_e * mode%lin%i5b_e6 / (3 * gamma_f)
 
 ! Normal integrals
 

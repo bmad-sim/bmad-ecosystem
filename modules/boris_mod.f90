@@ -57,7 +57,6 @@ contains
 !     %value(abs_tol$) -- Real: Absolute error tollerance.
 !                           Default if zero: 1e-7.
 !   param    -- Param_struct: Beam parameters.
-!     %enegy       -- Energy in GeV
 !     %particle    -- Particle type [positron$, or electron$]
 !   s_start  -- Real, optional: Starting point.
 !   s_end    -- Real, optional: Ending point.
@@ -89,7 +88,6 @@ subroutine track1_adaptive_boris (start, ele, param, end, s_start, s_end)
   type (coord_struct) here, orb1, orb2
 
   real(rp), optional, intent(in) :: s_start, s_end
-
   real(rp) :: ds, ds_did, ds_next, s, s_sav, rel_tol, abs_tol, sqrt_N
   real(rp), parameter :: err_5 = 0.0324, safety = 0.9
   real(rp) :: s1, s2, scale_orb, err_max, ds_temp, rel_tol_N, abs_tol_N
@@ -134,6 +132,7 @@ subroutine track1_adaptive_boris (start, ele, param, end, s_start, s_end)
   loc_ele%value(tilt$)     = 0
 
   here = start
+  call boris_energy_correction (ele, param, here)
   call offset_particle (ele, param, here, set$, set_canonical = .false.)
   call track_solenoid_edge (loc_ele, param, set$, here)
 
@@ -241,7 +240,6 @@ end subroutine track1_adaptive_boris
 !                           /= custom$ then use em_field
 !     %num_steps      -- number of steps to take
 !   param    -- Param_struct: Beam parameters.
-!     %enegy       -- Energy in GeV
 !     %particle    -- Particle type [positron$, or electron$]
 !   s_start  -- Real, optional: Starting point.
 !   s_end    -- Real, optional: Ending point.
@@ -306,6 +304,7 @@ subroutine track1_boris (start, ele, param, end, s_start, s_end)
   loc_ele%value(tilt$)     = 0
 
   here = start
+  call boris_energy_correction (ele, param, here)
   call offset_particle (ele, param, here, set$, set_canonical = .false.)
   call track_solenoid_edge (loc_ele, param, set$, here)
 
@@ -353,7 +352,8 @@ end subroutine
 ! Input:
 !   start -- Coord_struct: Starting coordinates.
 !   ele   -- Ele_struct: Element that we are tracking through.
-!   param -- Param_struct: Various neede parameters (Energy, etc.)
+!   param -- Param_struct: 
+!     %particle    -- Particle type [positron$, electron$, etc.]
 !   s     -- Real(rp): Starting point relative to element beginning.
 !   ds    -- Real(rp): step size
 !
@@ -378,7 +378,7 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
   charge = charge_of(param%particle)
   m2c2 = mass_of(param%particle)**2 / &
-                          (param%beam_energy**2 - mass_of(param%particle)**2)
+                          (ele%value(beam_energy$)**2 - mass_of(param%particle)**2)
 
   end = start
 
@@ -401,7 +401,7 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
     call err_exit
   endif
 
-  f = ds * charge * c_light / (2 * param%beam_energy)
+  f = ds * charge * c_light / (2 * ele%value(beam_energy$))
 
   end%vec(2) = end%vec(2) - field%b(2) * f
   end%vec(4) = end%vec(4) + field%b(1) * f
@@ -413,7 +413,7 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
 ! 4) Push the momenta a full step using "R".
 
-  d2 = ds * charge * c_light / (2 * p_z * param%beam_energy) 
+  d2 = ds * charge * c_light / (2 * p_z * ele%value(beam_energy$)) 
 
   if (field%e(1) == 0 .and. field%e(2) == 0) then
     if (field%b(3) /= 0) then
@@ -455,6 +455,53 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
   end%vec(1) = end%vec(1) + ds2_f * end%vec(2) 
   end%vec(3) = end%vec(3) + ds2_f * end%vec(4)
   end%vec(5) = end%vec(5) + ds2_f * (p_z - (1 + end%vec(6))) 
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine boris_energy_correction (ele, param, here)
+!
+! Subroutine to correct the orbit due to a change in the reference energy
+! from the start of the element to the end.
+!
+! Input:
+!   ele   -- Ele_struct: Element being tracked through.
+!   param -- Param_struct:
+!
+! Output:
+!   here  -- Coord_struct: Coordinates to correct.
+!-
+
+subroutine boris_energy_correction (ele, param, here)
+
+  implicit none
+
+  type (ele_struct), intent(in) :: ele
+  type (param_struct), intent(in) :: param
+  type (coord_struct) :: here
+
+  real(rp) p0, p1
+  character(24) :: r_name = 'boris_energy_correction'
+
+!
+
+  select case (ele%key)
+  case (lcavity$) 
+    call energy_to_kinetic (ele%value(energy_start$), param%particle, p0c = p0)
+    call energy_to_kinetic (ele%value(beam_energy$), param%particle, p0c = p1)
+    here%vec(2) = here%vec(2) * p0 / p1
+    here%vec(4) = here%vec(4) * p0 / p1
+    here%vec(6) = here%vec(6) * ele%value(energy_start$) / ele%value(beam_energy$)
+
+  case (custom$)
+    call out_io (s_fatal$, r_name, &
+                      'I DO NOT KNOW HOW TO CORRECT THE ENERGY FOR CUSTOM ELEMENTS!')
+    call err_exit
+
+  end select
 
 end subroutine
 

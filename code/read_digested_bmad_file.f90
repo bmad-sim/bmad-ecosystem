@@ -211,10 +211,10 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
       read (d_unit) ele%const
     endif
 
-    if (ix_r /= 0) then
-      allocate (ele%const(ix_r))
-      read (d_unit) ele%r
-    endif
+!    if (ix_r /= 0) then
+!      allocate (ele%r(ix_r))
+!      read (d_unit) ele%r
+!    endif
 
     if (ix_d /= 0) then
       allocate (ele%descrip)

@@ -92,10 +92,12 @@ subroutine ele_equal_ele (ele1, ele2)
         ele1%r => ele_save%r
       else
         deallocate (ele_save%r)
-        allocate (ele1%r(size(ele2%r)))
+        allocate (ele1%r(lbound(ele2%r,1):ubound(ele2%r,1), &
+                         lbound(ele2%r,2):ubound(ele2%r,2)))
       endif
     else
-      allocate (ele1%r(size(ele2%r)))
+      allocate (ele1%r(lbound(ele2%r,1):ubound(ele2%r,1), &
+                       lbound(ele2%r,2):ubound(ele2%r,2)))
     endif
     ele1%r = ele2%r
   else

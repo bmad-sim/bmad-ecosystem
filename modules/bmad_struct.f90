@@ -108,7 +108,7 @@ module bmad_struct
     real(rp) c_mat(2,2)              ! 2x2 C coupling matrix
     real(rp) gamma_c                 ! gamma associated with C matrix
     real(rp) s                       ! longitudinal position at the end
-    real(rp), pointer :: r(:) => null()    ! For general use. Not used by Bmad.
+    real(rp), pointer :: r(:,:) => null()  ! For general use. Not used by Bmad.
     real(rp), pointer :: a(:) => null()              ! multipole
     real(rp), pointer :: b(:) => null()              ! multipoles
     real(rp), pointer :: const(:) => null()          ! Working constants.
@@ -477,13 +477,13 @@ module bmad_struct
   end type
 
   type linac_mode_struct
-    real(rp) sig_E1       ! Energy spread after 1 pass (eV)
     real(rp) i2_E4        ! Integral: g^2 * gamma^4
     real(rp) i3_E7        ! Integral: g^3 * gamma^7
-    real(rp) i4a_E4       ! Integral: (g^2 + 2K1) * G * eta_a * gamma^4
-    real(rp) i4b_E4       ! Integral: (g^2 + 2K1) * G * eta_b * gamma^4
     real(rp) i5a_E6       ! Integral: (g^3 * H_a) * gamma^6
     real(rp) i5b_E6       ! Integral: (g^3 * H_b) * gamma^6
+    real(rp) sig_E1       ! Energy spread after 1 pass (eV)
+    real(rp) emittance_a  ! a mode emittance at end of linac
+    real(rp) emittance_b  ! b mode emittance at end of linac
   end type
 
   type modes_struct

@@ -29,6 +29,7 @@ module macroparticle_mod
     real(rp) k_loss         ! loss factor (V/m). scratch variable for tracking.
     real(rp) charge         ! charge in a macroparticle (Coul).
     integer :: iz = 0       ! index to ordering of particles in z.
+    logical :: lost = .false.  ! Has the particle been lost in tracking?
   end type
 
   type slice_struct
@@ -160,6 +161,7 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
       do j = 1, size(bunch_start%slice(i)%macro)
         call track1_macroparticle (bunch_start%slice(i)%macro(j), &
                                       ele, param, bunch_end%slice(i)%macro(j))
+        if (bunch_end%slice(i)%macro(j)%lost) return
       enddo
     enddo
     return
@@ -461,9 +463,11 @@ subroutine track1_macroparticle (start, ele, param, end)
 
   real(rp) l, l2, s(21), m4(4,4), s_mat4(4,4), s_mat6(6,6)
 
+
 ! transfer z-order index, charge, etc
 
   end = start
+  if (start%lost) return
 
   if (ele%key == marker$) return
 
@@ -474,6 +478,7 @@ subroutine track1_macroparticle (start, ele, param, end)
                     kicker$, monitor$, rcollimator$)
 
     call track1 (start%r, ele, param, end%r)
+    call check_lost
 
     s = start%sigma
     end%sigma = s
@@ -501,6 +506,7 @@ subroutine track1_macroparticle (start, ele, param, end)
                                                   ele%key /= sbend$) then
 
     call make_mat6 (ele, param, start%r, end%r)  
+    call check_lost
 
     s = start%sigma
     end%sigma = s
@@ -539,6 +545,7 @@ subroutine track1_macroparticle (start, ele, param, end)
 ! Full tracking. 
 
     call make_mat6 (ele, param, start%r, end%r)  
+    call check_lost
     call mp_sigma_to_mat (start%sigma, s_mat6)
     s_mat6 = matmul(ele%mat6, matmul(s_mat6, transpose(ele%mat6)))
     call mat_to_mp_sigma (s_mat6, end%sigma)
@@ -547,6 +554,22 @@ subroutine track1_macroparticle (start, ele, param, end)
 
     if (end%sigma(s55$) < 0) end%sigma(s55$) = 0
     if (end%sigma(s55$) /= 0) end%sig_z = sqrt(end%sigma(s55$))    
+
+!--------------------------------------------
+contains
+
+subroutine check_lost
+
+  end%lost = param%lost
+
+  if (end%lost) then
+    end%r%vec = 0
+    end%sigma = 0 
+    end%charge = 0
+    return
+  endif
+
+end subroutine
 
 end subroutine
 
@@ -1031,6 +1054,7 @@ subroutine init_macro_distribution (beam, init, canonical_out, liar_gaussian)
       bunch%slice(j)%macro(k)%sigma(s44$) =  ey * (1+init%y%alpha**2) / &
                                                                  init%y%beta
       bunch%slice(j)%macro(k)%iz = k
+      bunch%slice(j)%macro(k)%lost = .false.
       if (canonical_out) &
               call mp_to_canonical_coords (bunch%slice(j)%macro(k), init%E_0)
     enddo

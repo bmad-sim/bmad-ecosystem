@@ -8,15 +8,15 @@
 !
 ! Input:
 !   ring      -- Ring_struct: Ring to track through.
-!     %param%aperture_limit_on -- Logical: Sets whether TRACK_ALL looks to
-!                                   see whether a particle is lost or not
+!     %param%aperture_limit_on -- Logical: Sets whether track_all looks to
+!                                 see whether a particle hits an aperture or not.
 !   orbit_(0) -- Coord_struct: Coordinates at beginning of ring.
 !
 ! Output:
 !   ring
-!     %param%lost    -- Logical: Set when a particle is lost with the 
-!                         aperture limit on.
-!     %param%ix_lost -- Integer: set to index of element where particle is lost
+!     %param%lost    -- Logical: Set True when a particle cannot make it 
+!                         through an element.
+!     %param%ix_lost -- Integer: Set to index of element where particle is lost.
 !   orbit_(0:*) -- Coord_struct: Orbit array
 !
 ! Note: If x_limit (or y_limit) for an element is zero then TRACK_ALL will take
@@ -41,7 +41,6 @@ subroutine track_all (ring, orbit_)
 
 ! init
 
-  ring%param%lost = .false.
   if (size(orbit_) < ring%n_ele_max+1) &
                   call reallocate_coord (orbit_, ring%n_ele_max)
 
