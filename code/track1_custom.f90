@@ -9,13 +9,14 @@
 !   use bmad
 !
 ! Input:
-!   start  -- Coord_struct: Starting position
-!   ele    -- Ele_struct: Element
-!   param  -- Param_struct:
+!   start  -- Coord_struct: Starting position.
+!   ele    -- Ele_struct: Element.
+!   param  -- Param_struct: Lattice parameters.
 !
 ! Output:
-!   end   -- Coord_struct: End position
-!   param
+!   end   -- Coord_struct: End position.
+!   param -- Param_struct: Lattice parameters.
+!     %lost -- Logical. Set to true if a particle is lost.
 !-
 
 #include "CESR_platform.inc"
