@@ -64,7 +64,7 @@ MAKEFILE := M.tao
 #-----------------------------------------------------------------------------
 LIB_SRC_DIRS  := ./code ./hook
 OBJ_SRC_DIRS  := ./program
-LOCAL_INCS    := ../nclude
+LOCAL_INCS    := ../include
 LOCAL_MODS    := ../modules
 
 
