@@ -758,7 +758,7 @@ end subroutine
 !         (x, P_x, y, P_y, z, P_z)
 !
 ! Input:
-!   vec_bmad(6) -- Real(rdef): Input BMAD vector.
+!   vec_bmad(6) -- Real(rp): Input BMAD vector.
 !
 ! Output:
 !   vec_ptc(6)  -- Real(dp): Output PTC vector.
@@ -768,7 +768,7 @@ subroutine vec_bmad_to_ptc (vec_bmad, vec_ptc)
 
   implicit none
   
-  real(rdef), intent(in)  :: vec_bmad(:)
+  real(rp), intent(in)  :: vec_bmad(:)
   real(dp), intent(out)   :: vec_ptc(:)
   real(dp) temp_vec(6)
 
@@ -791,10 +791,10 @@ end subroutine
 !         (x, P_x, y, P_y, z, P_z)
 !
 ! Input:
-!   vec_ptc(6)  -- Real(rdef): Input PTC vector.
+!   vec_ptc(6)  -- Real(rp): Input PTC vector.
 !
 ! Output:
-!   vec_bmad(6) -- Real(rdef): Output BMAD vector.
+!   vec_bmad(6) -- Real(rp): Output BMAD vector.
 !-
 
 subroutine vec_ptc_to_bmad (vec_ptc, vec_bmad)
@@ -802,8 +802,8 @@ subroutine vec_ptc_to_bmad (vec_ptc, vec_bmad)
   implicit none
   
   real(dp), intent(in)    :: vec_ptc(:)
-  real(rdef), intent(out) :: vec_bmad(:)
-  real(rdef) temp(6)
+  real(rp), intent(out) :: vec_bmad(:)
+  real(rp) temp(6)
 
   temp = vec_ptc((/1,2,3,4,6,5/))
   vec_bmad = temp
@@ -1033,7 +1033,7 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine taylor_to_genfield (bmad_taylor, gen_field, r0)
+! Subroutine taylor_to_genfield (bmad_taylor, gen_field, c0)
 !
 ! Subroutine to construct a genfield (partially inverted map) from a taylor
 ! map.
@@ -1048,10 +1048,10 @@ end subroutine
 !
 ! Output:
 !   gen_field      -- Genfield: Output partially inverted map.
-!   r0(6)          -- Real(rdef): The constant part of the bmad_taylor map
+!   c0(6)          -- Real(rp): The constant part of the bmad_taylor map
 !-
 
-subroutine taylor_to_genfield (bmad_taylor, gen_field, r0)
+subroutine taylor_to_genfield (bmad_taylor, gen_field, c0)
 
   use s_fitting
 
@@ -1063,7 +1063,7 @@ subroutine taylor_to_genfield (bmad_taylor, gen_field, r0)
   type (damap) da_map
   type (real_8) y(6)
 
-  real(rdef), intent(out) :: r0(6)
+  real(rp), intent(out) :: c0(6)
 
 ! set the taylor order in PTC if not already done so
 
@@ -1074,7 +1074,7 @@ subroutine taylor_to_genfield (bmad_taylor, gen_field, r0)
 ! not needed but we do it to make sure everything is alright.
 ! Also remove terms that have higher order then bmad_com%taylor_order
 
-  call remove_constant_taylor (bmad_taylor, taylor_, r0, .true.)
+  call remove_constant_taylor (bmad_taylor, taylor_, c0, .true.)
 
 ! allocate pointers
 
@@ -1100,7 +1100,7 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine remove_constant_taylor (taylor_in, taylor_out, r0, &
+! Subroutine remove_constant_taylor (taylor_in, taylor_out, c0, &
 !                                                 remove_higher_order_terms)
 !
 ! Subroutine to remove the constant part of a taylor series.
@@ -1121,10 +1121,10 @@ end subroutine
 !
 ! Output:
 !   taylor_out(6)  -- Taylor_struct: Taylor with constant terms removed.
-!   r0(6)          -- Real(rdef): The constant part of the taylor map
+!   c0(6)          -- Real(rp): The constant part of the taylor map
 !-
 
-subroutine remove_constant_taylor (taylor_in, taylor_out, r0, &
+subroutine remove_constant_taylor (taylor_in, taylor_out, c0, &
                                                  remove_higher_order_terms)
 
   implicit none
@@ -1132,7 +1132,7 @@ subroutine remove_constant_taylor (taylor_in, taylor_out, r0, &
   type (taylor_struct), intent(in) :: taylor_in(:)
   type (taylor_struct) taylor_out(:)
 
-  real(rdef), intent(out) :: r0(:)
+  real(rp), intent(out) :: c0(:)
 
   integer i, j, n, nn, ss
 
@@ -1140,7 +1140,7 @@ subroutine remove_constant_taylor (taylor_in, taylor_out, r0, &
 
 !
 
-  r0 = 0
+  c0 = 0
 
   do i = 1, 6
 
@@ -1149,7 +1149,7 @@ subroutine remove_constant_taylor (taylor_in, taylor_out, r0, &
     do j = 1, size(taylor_in(i)%term)
       if (all(taylor_in(i)%term(j)%exp == 0)) then
         n = n - 1
-        r0(i) = taylor_in(i)%term(j)%coef
+        c0(i) = taylor_in(i)%term(j)%coef
       endif
       if (remove_higher_order_terms) then
         if (sum(taylor_in(i)%term(j)%exp) > bmad_com%taylor_order) n = n - 1
@@ -1201,8 +1201,8 @@ subroutine taylor_inverse (taylor_in, taylor_inv)
   type (real_8) y(6), yc(6)
   type (damap) da
 
-  real(rdef) r0(6)
-  real(8) r8(6)
+  real(rp) c0(6)
+  real(8) c8(6)
 
 ! set the taylor order in PTC if not already done so
 
@@ -1212,7 +1212,7 @@ subroutine taylor_inverse (taylor_in, taylor_inv)
 ! The inverse operation of PTC ignores constant terms so we have to take
 ! them out and then put them back in.
 
-  call remove_constant_taylor (taylor_in, tlr, r0, .true.)
+  call remove_constant_taylor (taylor_in, tlr, c0, .true.)
 
   call alloc(da)
   call alloc(y)
@@ -1224,12 +1224,18 @@ subroutine taylor_inverse (taylor_in, taylor_inv)
   da = da**(-1)
   y = da
 
-! put constant terms back in
+! put constant terms back in.
+! If the Map is written as:
+!   R_out = T * R_in + C
+! Then inverting:
+!   R_in = T_inv * (R_out - C)
 
-  if (any(r0 /= 0)) then
+  if (any(c0 /= 0)) then
     call real_8_init(yc)
-    yc = real(r0, 8)
-    call concat_real_8 (y, yc, y)
+    call vec_bmad_to_ptc (c0, c8) ! Convert constant part to PTC coords
+    c8 = -c8                      ! negate
+    yc = c8                       ! Convert this to PTC taylor map
+    call concat_real_8 (y, yc, y) 
     call kill (yc)
   endif
 
@@ -1667,8 +1673,8 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 
   real(8) mis_rot(6)
 
-  real(rdef) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
-  real(rdef) cos_t, sin_t, len, hk, vk, x_off, y_off
+  real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
+  real(rp) cos_t, sin_t, len, hk, vk, x_off, y_off
 
   integer i, n, metd_temp, nstd_temp, key, n_term
   integer, optional :: integ_order, steps
@@ -1878,8 +1884,8 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
   x_off = ele%value(x_offset$)-ele%value(l$)*ele%value(x_pitch$)
   y_off = ele%value(y_offset$)-ele%value(l$)*ele%value(y_pitch$)
 
-  mis_rot = (/ x_off, y_off, 0.0_rdef, &
-              -ele%value(y_pitch$), -ele%value(x_pitch$),  0.0_rdef /)
+  mis_rot = (/ x_off, y_off, 0.0_rp, &
+              -ele%value(y_pitch$), -ele%value(x_pitch$),  0.0_rp /)
 
   fiber = mis_rot  ! call fibre_mis
 

@@ -142,7 +142,7 @@ subroutine type2_taylors (bmad_taylor, lines, n_lines)
 
 ! If not allocated then not much to do
 
-  if (.not. associated(bmad_taylor(1))) then
+  if (.not. associated(bmad_taylor(1)%term)) then
     n_lines = 2
     allocate (lines(n_lines))
     lines(1) = '---------------------------------------------------'
