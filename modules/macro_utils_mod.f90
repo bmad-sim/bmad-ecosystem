@@ -66,12 +66,23 @@ avg_yp2      = 0
 
 do i=1, size(bunch%slice)
   macro => bunch%slice(i)%macro(:)
-  bunch_x  = bunch_x  + sum (macro%charge * macro%r%vec(1))
-  bunch_xp = bunch_xp + sum (macro%charge * macro%r%vec(2))
-  bunch_y  = bunch_y  + sum (macro%charge * macro%r%vec(3))
-  bunch_yp = bunch_yp + sum (macro%charge * macro%r%vec(4))
-  total_charge = total_charge + sum (macro%charge)
+  bunch_x  = bunch_x  + sum (macro%charge * macro%r%vec(1), &
+                                        mask = .not. macro%lost)
+  bunch_xp = bunch_xp + sum (macro%charge * macro%r%vec(2), &
+                                        mask = .not. macro%lost)
+  bunch_y  = bunch_y  + sum (macro%charge * macro%r%vec(3), &
+                                        mask = .not. macro%lost)
+  bunch_yp = bunch_yp + sum (macro%charge * macro%r%vec(4), &
+                                        mask = .not. macro%lost)
+  total_charge = total_charge + sum (macro%charge, &
+                                        mask = .not. macro%lost)
 enddo
+
+if (total_charge == 0) then
+  x_norm_emit  = 0
+  y_norm_emit  = 0
+  return
+endif
 
 bunch_x  = bunch_x  / total_charge
 bunch_xp = bunch_xp / total_charge
@@ -85,6 +96,8 @@ do i=1, size(bunch%slice)
   do j = 1, size(bunch%slice(i)%macro)
 
     mp => bunch%slice(i)%macro(j)
+    if (mp%lost) cycle
+
     zp = mp%r%vec(6)
     charge = mp%charge
 

@@ -182,12 +182,6 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
 
 ! Charge and center
 
-  do i = 1, size(bunch_start%slice)
-    bunch_start%slice(i)%charge = sum (bunch_start%slice(i)%macro(:)%charge, &
-                            mask = .not. bunch_start%slice(i)%macro(:)%lost)
-  enddo
-  bunch_start%charge = sum (bunch_start%slice(:)%charge)
-
   bunch_end%s_center = bunch_start%s_center
   bunch_end%charge   = bunch_start%charge
   do i = 1, size(bunch_start%slice)
@@ -204,6 +198,7 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
                                       ele, param, bunch_end%slice(i)%macro(j))
       enddo
     enddo
+    call recalc_charge
     return
   endif
 
@@ -224,6 +219,7 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
     enddo
     param%charge = charge
     bmad_com%k_loss = 0
+    call recalc_charge
     return
   endif
 
@@ -274,6 +270,23 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
 
   param%charge = charge
   bmad_com%k_loss = 0
+  call recalc_charge
+
+!--------------------------------------
+! This subroutine is needed when particles get lost.
+
+contains
+
+subroutine recalc_charge
+
+  do i = 1, size(bunch_end%slice)
+    bunch_end%slice(i)%charge = sum (bunch_end%slice(i)%macro(:)%charge, &
+                            mask = .not. bunch_end%slice(i)%macro(:)%lost)
+  enddo
+  bunch_end%charge = sum (bunch_end%slice(:)%charge)
+
+
+end subroutine
 
 end subroutine
 
