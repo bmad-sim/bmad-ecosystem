@@ -969,8 +969,14 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
   doit = .true.
   if (present(make_mats6)) doit = make_mats6
-  call compute_element_energy (ring)
-  if (doit) call ring_make_mat6(ring, -1)      ! make 6x6 transport matrices
+  if (doit) then
+    call ring_make_mat6(ring, -1)      ! make 6x6 transport matrices
+  else
+    call compute_element_energy (ring)
+    do i = 1, ring%n_ele_max
+      call attribute_bookkeeper (ring%ele_(i), ring%param)
+    enddo
+  endif
 
 !-------------------------------------------------------------------------
 ! write out if debug is on
