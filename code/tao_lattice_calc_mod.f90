@@ -77,7 +77,7 @@ logical, automatic :: used(size(s%u))
   ! Closed orbit and Twiss calculation.
   ! This can be slow for large lattices so only do it if the lattice changed.
   if (s%global%lattice_recalc) then
-    if (s%global%track_type .eq. 'single') then
+    if (s%global%track_type == 'single') then
       do i = 1, size(s%u)
         if (.not. s%u(i)%is_on .or. used(i)) cycle
         lattice => s%u(i)%model
@@ -88,7 +88,7 @@ logical, automatic :: used(size(s%u))
         call tao_lat_bookkeeper (s%u(i), lattice)
 	call tao_single_track (i, lattice, orbit)
       enddo
-    elseif (s%global%track_type .eq. 'beam') then
+    elseif (s%global%track_type == 'beam') then
       do i = 1, size(s%u)
         if (.not. s%u(i)%is_on .or. used(i)) cycle
         lattice => s%u(i)%model
@@ -99,7 +99,7 @@ logical, automatic :: used(size(s%u))
         call tao_lat_bookkeeper (s%u(i), lattice)
         call tao_beam_track (i, lattice, orbit)
       enddo
-    elseif (s%global%track_type .eq. 'macro') then
+    elseif (s%global%track_type == 'macro') then
       do i = 1, size(s%u)
         if (.not. s%u(i)%is_on .or. used(i)) cycle
         lattice => s%u(i)%model
@@ -143,7 +143,7 @@ character(20) :: r_name = "tao_single_track"
     call closed_orbit_at_start (lat, orb(0), 4, .true.)
   endif
 
-  lat%param%ix_lost = -1
+  lat%param%ix_lost = not_lost$
 
   i = 0
   if (lat%param%lattice_type == circular_lattice$) call twiss_at_start (lat)
@@ -204,7 +204,7 @@ real(rp) :: value1, value2, m_particle
   extract_at_ix_ele = -1
   inject_loop: do i_uni = uni+1, size(s%u)
     if (s%u(i_uni)%coupling%coupled) then
-      if (s%u(i_uni)%coupling%from_uni .eq. uni) then
+      if (s%u(i_uni)%coupling%from_uni == uni) then
 	if (s%u(i_uni)%coupling%from_uni_ix_ele .ne. -1) then
 	  extract_at_ix_ele = s%u(i_uni)%coupling%from_uni_ix_ele
 	  exit inject_loop ! save i_uni for coupled universe
@@ -220,16 +220,16 @@ real(rp) :: value1, value2, m_particle
   ! If beam is injected into this lattice then no initialization wanted.
   if (.not. u%coupling%coupled) then
     ! no beam tracking in rings
-    if (lat%param%lattice_type .eq. circular_lattice$ ) then
+    if (lat%param%lattice_type == circular_lattice$ ) then
       call tao_single_track (uni, lat, orb) 
       if (u%beam%calc_emittance) then
         call radiation_integrals (lat, orb, modes)
         if (extract_at_ix_ele .ne. -1) then
-	  if (lat%param%particle .eq. electron$ .or. &
-	      lat%param%particle .eq. positron$       ) then
+	  if (lat%param%particle == electron$ .or. &
+	      lat%param%particle == positron$       ) then
 	    m_particle = m_electron
-	  elseif (lat%param%particle .eq. proton$ .or. &
-	          lat%param%particle .eq. antiproton$   ) then
+	  elseif (lat%param%particle == proton$ .or. &
+	          lat%param%particle == antiproton$   ) then
 	    m_particle = m_proton
 	  endif
           beam_init%a_norm_emitt  = modes%a%emittance * &
@@ -249,7 +249,7 @@ real(rp) :: value1, value2, m_particle
 	                             .true.)
       endif
       return
-    elseif (lat%param%lattice_type .eq. linear_lattice$) then
+    elseif (lat%param%lattice_type == linear_lattice$) then
       ! set initial beam centroid
       beam_init%center = orb(0)%vec
     else
@@ -270,7 +270,7 @@ real(rp) :: value1, value2, m_particle
     call track_beam (lat, beam, j-1, j)
  
     ! Save beam at location if injecting into another lattice
-    if (extract_at_ix_ele .eq. j) then
+    if (extract_at_ix_ele == j) then
       call beam_equal_beam (s%u(i_uni)%coupling%injecting_beam, beam)
     endif
     
@@ -285,13 +285,10 @@ real(rp) :: value1, value2, m_particle
   enddo
 
   ! only post total lost if no extraction or extracting to a turned off lattice
-  if (extract_at_ix_ele .eq. -1 .or. .not. s%u(uni+1)%is_on) then
+  if (extract_at_ix_ele == -1 .or. .not. s%u(uni+1)%is_on) then
     n_lost = 0 
     do n_bunch = 1, size(beam%bunch)
-      do n_part = 1, size(beam%bunch(n_bunch)%particle)
-        if (beam%bunch(n_bunch)%ix_lost(n_part) .ne. particle_not_lost$) &
-        n_lost = n_lost + 1
-      enddo
+      n_lost = n_lost + count(beam%bunch(n_bunch)%particle%ix_lost /= not_lost$)
     enddo
     call out_io (s_blank$, r_name, &
       "Total number of lost particles by the end of universe \I2\: \I5\.", &
@@ -335,7 +332,7 @@ real(rp) :: value1, value2, m_particle
   extract_at_ix_ele = -1
   inject_loop: do i_uni = uni+1, size(s%u)
     if (s%u(i_uni)%coupling%coupled) then
-      if (s%u(i_uni)%coupling%from_uni .eq. uni) then
+      if (s%u(i_uni)%coupling%from_uni == uni) then
 	if (s%u(i_uni)%coupling%from_uni_ix_ele .ne. -1) then
 	  extract_at_ix_ele = s%u(i_uni)%coupling%from_uni_ix_ele
 	  exit inject_loop ! save i_uni for coupled universe
@@ -351,16 +348,16 @@ real(rp) :: value1, value2, m_particle
   ! If beam is injected to here then no initialization wanted.
   if (.not. u%coupling%coupled) then
     ! no macroparticle tracking in rings
-    if (lat%param%lattice_type .eq. circular_lattice$ ) then
+    if (lat%param%lattice_type == circular_lattice$ ) then
       call tao_single_track (uni, lat, orb) 
       if (u%macro_beam%calc_emittance) then
         call radiation_integrals (lat, orb, modes)
         if (extract_at_ix_ele .ne. -1) then
-	  if (lat%param%particle .eq. electron$ .or. &
-	      lat%param%particle .eq. positron$       ) then
+	  if (lat%param%particle == electron$ .or. &
+	      lat%param%particle == positron$       ) then
 	    m_particle = m_electron
-	  elseif (lat%param%particle .eq. proton$ .or. &
-	          lat%param%particle .eq. antiproton$   ) then
+	  elseif (lat%param%particle == proton$ .or. &
+	          lat%param%particle == antiproton$   ) then
 	    m_particle = m_proton
 	  endif
           macro_init%x%norm_emit  = modes%a%emittance * &
@@ -379,7 +376,7 @@ real(rp) :: value1, value2, m_particle
 	                              macro_init, lat%ele_(extract_at_ix_ele), .true.)
       endif
       return
-    elseif (lat%param%lattice_type .eq. linear_lattice$) then
+    elseif (lat%param%lattice_type == linear_lattice$) then
       ! set initial beam centroid
       macro_init%center = orb(0)%vec
     else
@@ -390,7 +387,7 @@ real(rp) :: value1, value2, m_particle
     
     call init_macro_distribution (beam, macro_init, lat%ele_(0), .true.)
     
-    u%macro_beam%ix_lost(:,:,:) = -1
+    u%macro_beam%ix_lost(:,:,:) = not_lost$
   endif
 
   ! beginning element calculations
@@ -402,7 +399,7 @@ real(rp) :: value1, value2, m_particle
     call track_macro_beam (lat, beam, j-1, j)
  
     ! Save beam at location if injecting into another lattice
-    if (extract_at_ix_ele .eq. j) then
+    if (extract_at_ix_ele == j) then
       s%u(i_uni)%coupling%injecting_macro_beam = beam
     endif
     
@@ -417,7 +414,7 @@ real(rp) :: value1, value2, m_particle
   enddo
 
   ! only post total lost if no extraction or extracting to a turned off lattice
-  if (extract_at_ix_ele .eq. -1 .or. .not. s%u(uni+1)%is_on) then
+  if (extract_at_ix_ele == -1 .or. .not. s%u(uni+1)%is_on) then
     n_lost = 0 
     do n_bunch = 1, size(beam%bunch)
       do n_slice = 1, size(beam%bunch(n_bunch)%slice)
@@ -467,25 +464,25 @@ character(20) :: r_name = "tao_find_beam_centroid"
     i_ele = ix_ele
   else
     record_lost = .false.
-    i_ele = particle_lost$
+    i_ele = 0
   endif
 
   
   do n_part = 1, size(beam%bunch(n_bunch)%particle)
     ! only average over particles that haven't been lost
-    if (beam%bunch(n_bunch)%ix_lost(n_part) .eq. i_ele) then
+    if (record_lost .and. beam%bunch(n_bunch)%particle(n_part)%ix_lost == i_ele) then
       n_lost = n_lost + 1
       cycle
-    elseif (beam%bunch(n_bunch)%ix_lost(n_part) .ne. particle_not_lost$) then
+    elseif (beam%bunch(n_bunch)%particle(n_part)%ix_lost /= not_lost$) then
       cycle
     endif
     tot_part = tot_part + 1
-    coord%vec = coord%vec + beam%bunch(n_bunch)%particle(n_part)%vec
+    coord%vec = coord%vec + beam%bunch(n_bunch)%particle(n_part)%r%vec
   enddo
       
   ! Post lost particles
   if (record_lost) then
-    if (n_lost .eq. 1) then
+    if (n_lost == 1) then
       call out_io (s_blank$, r_name, &
             "   1 particle lost at element \I\ in universe \I\.", &
                                            i_array = (/ ix_ele, uni /) )
@@ -548,7 +545,7 @@ character(20) :: r_name = "tao_find_macro_beam_centroid"
       macro => beam%bunch(n_bunch)%slice(n_slice)%macro(n_macro)
       ! only average over particles that haven't been lost
       if (record_lost) then
-        if (u_beam%ix_lost(n_bunch,n_slice,n_macro) .ne. -1) cycle macro_loop
+        if (u_beam%ix_lost(n_bunch,n_slice,n_macro) /= not_lost$) cycle macro_loop
       else
         if (macro%lost) cycle macro_loop
       endif
@@ -800,11 +797,11 @@ character(20) :: r_name = "match_lats_init"
   call init_ele (inject_ele)
   
   ! set up coupling%injecting_beam or macro_beam 
-  if (s%global%track_type .eq. 'beam') then
+  if (s%global%track_type == 'beam') then
     injecting_beam => s%u(u%coupling%from_uni)%beam%beam
     call reallocate_beam (u%coupling%injecting_beam, size(injecting_beam%bunch), &
             size(injecting_beam%bunch(1)%particle))
-  elseif (s%global%track_type .eq. 'macro') then
+  elseif (s%global%track_type == 'macro') then
     injecting_macro_beam => s%u(u%coupling%from_uni)%macro_beam%beam
     call reallocate_macro_beam (u%coupling%injecting_macro_beam, &
                                 size(injecting_macro_beam%bunch), &
@@ -815,13 +812,13 @@ character(20) :: r_name = "match_lats_init"
   ! match design lattices
   if (u%coupling%match_to_design) then
     ! get twiss parameters from extracted lattice
-    if (s%global%track_type .eq. 'single') then
+    if (s%global%track_type == 'single') then
       call twiss_and_track_at_s (s%u(u%coupling%from_uni)%design, &
                      u%coupling%from_uni_s, extract_ele, &
           	   s%u(u%coupling%from_uni)%design_orb, extract_pos)
-    elseif (s%global%track_type .eq. 'beam') then
+    elseif (s%global%track_type == 'beam') then
       extract_ele = s%u(u%coupling%from_uni)%design%ele_(u%coupling%from_uni_ix_ele)
-    elseif (s%global%track_type .eq. 'macro') then
+    elseif (s%global%track_type == 'macro') then
       extract_ele = s%u(u%coupling%from_uni)%design%ele_(u%coupling%from_uni_ix_ele)
     endif
     

@@ -162,15 +162,14 @@ subroutine tao_init_global_and_universes (data_and_var_file)
       beam_init(i)%b_norm_emitt  = 0.0
       beam_init(i)%dPz_dz = 0.0
       beam_init(i)%center(:) = 0.0
-      beam_init(i)%n_part_real = 0.0
+      beam_init(i)%bunch_charge = 0.0
       beam_init(i)%ds_bunch = 1
       beam_init(i)%sig_z   = 0.0
       beam_init(i)%sig_e   = 0.0
       beam_init(i)%sig_e_cut = 1
       beam_init(i)%sig_z_cut = 1
-      beam_init(i)%sig_trans_cut = 1
       beam_init(i)%n_bunch = 1
-      beam_init(i)%n_part  = 1
+      beam_init(i)%n_particle  = 1
       ! by default, no wake data file needed
       sr_wake_file(i) = 'none'
       lr_wake_file(i) = 'none'
