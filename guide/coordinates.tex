@@ -109,35 +109,27 @@ axes will coincide, and $\phi$ and $\psi$ will both be zero.
 
 \bmad uses the canonical phase space coordinates 
 \Begineq
-  (x, p_x, y, p_y, z, p_z)
+  \Bf r(s) = (x, p_x, y, p_y, z, p_z)
 \Endeq
-$x$ and $y$, are the reference orbit coordinates given in
-Section~\ref{s:ref}. The canonical $z$ coordinate is
-\begin{equation}
-  z(s) = - \beta \, c \, t - s
-\end{equation}
-where $\beta = v/c$. At constant $\beta$ (that is for
-ultra--relativistic particles where $\beta = 1$ or for a particle at
-constant energy), $\beta \, c \, t$ is the distance the particle has
-traveled so $z$ can be thought of as the pathlength difference between
-the particle and some reference particle traveling along the reference
-orbit. In other words, at constant $\beta$, one can write
-\begin{equation}
-  z = - \beta \, c \, \Delta t
-\end{equation}
-where $\Delta t$ is the time difference between when the particle
-passes by a given $s$ position along the reference orbit and when the
-reference particle does.
-
-The canonical momenta $p_x$ and $p_y$ are normalized momenta
+The longitudinal position $s$ is the independent variable instead of
+the time.  $x$ and $y$, are the reference orbit coordinates given in
+Section~\ref{s:ref}.  The canonical momenta $p_x$ and $p_y$ are
+normalized momenta
 \begin{align}
   p_x = &\frac{P_x}{P_0} \\
   p_y = &\frac{P_y}{P_0}
 \end{align}
 where $P_x$ and $P_y$ are respectively the momentum components along
 the $x$ and $y$ axes, and $P_0$ is the reference (sometimes called the
-design) momentum. The longitudinal canonical momentum $p_z$ is given
-by
+design) momentum.
+
+The canonical $z$ coordinate is the path length difference of the
+particle relative to the path length of the reference particle. Do not
+confuse this with the longitudinal axis $\Bf z$. By construction the
+longitudinal $z$ position of a particle is always zero as shown in
+Figure~\ref{f:local_coords}. 
+
+The longitudinal canonical momentum $p_z$ is given by
 \begin{equation}
   p_z = \frac{\Delta P}{P_0} \equiv \frac{P - P_0}{P_0}
 \end{equation}
@@ -167,6 +159,16 @@ $\Bf a = q \, A / c \, P_0$ is the normalized vector potential, $g =
 1/\rho$ is the curvature function with $\rho$ being the radius of
 curvature of the reference orbit and it has been assumed that the
 bending is in the $x$--$z$ plane. 
+
+With the paraxial approximation and at constant momentum, $z$ can be
+expressed in terms of the time via
+\begin{align}
+  z(s) &= - \beta \, c \, t - s
+  & = - \beta \, c \, \Delta t
+\end{align}
+where $\beta = v/c$ and $\Delta t$ is the time difference between when
+the particle passes by a given $s$ position along the reference orbit
+and when the reference particle does.
 
 For those programmers using the PTC\index{PTC/FPP}
 software package directly (ignore
