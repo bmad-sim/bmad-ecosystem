@@ -83,7 +83,9 @@ sub searchit {
       elsif ($recording == 1) {
         @comments = (@comments, $_)
       }
-      elsif (/^ *recursive subroutine /i || /^ *subroutine /i || /^ *function /i) {
+      elsif (/^ *subroutine /i || /^ *recursive subroutine /i || 
+             /^ *function /i || /^ *elemental subroutine /i ||
+             /^ *real\(rp\) *function /i) {
         $_ = $';     # strip off "subroutine"
         s/\(.*//;    # strip off "(..."
         if (/^\s*$str\s*$/) {

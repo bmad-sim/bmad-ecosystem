@@ -61,7 +61,8 @@ sub searchit {
       }
 
       if (/^ *subroutine /i || /^ *recursive subroutine /i || 
-          /^ *function /i || /^ *type /i || /^ *elemental subroutine /i) {
+            /^ *function /i || /^ *type /i || /^ *elemental subroutine /i ||
+            /^ *real\(rp\) *function /i) {
         $name = $';              # strip off "subroutine
         $name =~ s/\(.*//;       # strip off "(..."
         if ($name =~ /^\s*$str\s*$/) {
