@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/11/29 19:39:54  helms
+!Updates from DCS including (*) -> (:)
+!
 !Revision 1.2  2001/09/27 18:31:58  rwh24
 !UNIX compatibility updates
 !
@@ -58,7 +61,7 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 
 ! find where to split
 
-  do ix_split = 1, ring%n_ele_ring
+  do ix_split = 0, ring%n_ele_ring   !! changed 11/5/01 DCS
     if (abs(ring%ele_(ix_split)%s - s_split) < 1.0e-5) then
       split_done = .false.
       return

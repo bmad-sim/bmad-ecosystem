@@ -1,6 +1,6 @@
 !+
 ! Subroutine type2_ele (ele, type_zero_attrib, type_mat6, twiss_out, 
-!                                           type_control, ring, lines, n_lines)
+!                                           type_control, lines, n_lines, ring)
 !
 ! Subroutine to put information on an element in a string array. 
 ! See also the subroutine: type_ele.
@@ -25,7 +25,7 @@
 !                       = degrees$  => Type Twiss, use degrees for phi.
 !                       = cycles$   => Type Twiss, use cycles (1 = 2pi) units.
 !   type_control -- Logical: If true then type control status.
-!   ring         -- Ring_struct: Needed for control typeout.
+!   ring         -- Ring_struct, optional: Needed for control typeout.
 !              
 ! Output       
 !   lines(:)     -- Character*(*): Character array to hold the output.
@@ -33,6 +33,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.4  2001/11/29 19:39:54  helms
+!Updates from DCS including (*) -> (:)
+!
 !Revision 1.3  2001/10/12 20:53:35  rwh24
 !DCS changes and two files added
 !
@@ -43,18 +46,18 @@
 #include "CESR_platform.inc"
 
 subroutine type2_ele (ele, type_zero_attrib, type_mat6, twiss_out,  &
-                                          type_control, ring, lines, n_lines)
+                                          type_control, lines, n_lines, ring)
 
   use bmad_struct
-  use bmad_interface
+  use bmad_interface         
 
   implicit none
 
   type (ele_struct)  ele
-  type (ring_struct)  ring
+  type (ring_struct), optional :: ring
 
   integer i, j, n, twiss_out, type_mat6, ix, iv, ic, ct, n_lines
-  integer nl, nl2, i_max
+  integer nl, nl2, i_max, particle
 
   real coef, value(n_attrib_maxx), value2(n_attrib_maxx)
   real a(0:n_pole_maxx), b(0:n_pole_maxx)
@@ -116,9 +119,11 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, twiss_out,  &
       enddo
 
       if (ele%key /= multipole$) then
-        call multipole_ab_scale (ele, ring%param%particle, a, b)
+        particle = +1
+        if (present(ring)) particle = ring%param%particle
+        call multipole_ab_scale (ele, particle, a, b)
         call multipole_ab_to_value (a, b, value)
-        call multipole_to_vecs (ele, ring%param%particle, knl, tilt)
+        call multipole_to_vecs (ele, particle, knl, tilt)
         call multipole_kt_to_ab (knl, tilt, a, b)
         call multipole_ab_to_value (a, b, value2)
         do i = ix1_m$, ix2_m$

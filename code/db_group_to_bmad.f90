@@ -19,11 +19,11 @@
 !   type_err   -- Logical: If true then error messages are typed.
 !
 ! Output:
-!   con_(*) -- Control_struct: Control structure.
+!   con_(:) -- Control_struct: Control structure.
 !     %ix_slave    -- Index to ring element controlled.
 !     %ix_attrib -- Index of attribute controlled.
 !     %coef      -- Control coefficient
-!   n_con   -- Integer: number of con_(*) elements used by the group.
+!   n_con   -- Integer: number of con_(:) elements used by the group.
 !   ok      -- Logical: True if everything was OK.
 !
 ! Note: See also DB_GROUP_TO_BMAD_GROUP which uses the results of this
@@ -32,6 +32,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2001/11/29 19:39:53  helms
+!Updates from DCS including (*) -> (:)
+!
 !Revision 1.3  2001/10/02 18:49:11  rwh24
 !More compatibility updates; also added many explicit variable declarations.
 !
@@ -55,7 +58,7 @@ subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, ring, db, &
   type (ring_struct) ring
   type (db_struct) db
   type (group_info_struct) grp
-  type (control_struct) con_(*)
+  type (control_struct) con_(:)
   type (db_element_struct), pointer :: db_ptr(:)
 
   integer k, n, nn, n_con, ing_num, biggrp_set

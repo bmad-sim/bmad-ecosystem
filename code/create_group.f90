@@ -76,6 +76,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2001/11/29 19:39:53  helms
+!Updates from DCS including (*) -> (:)
+!
 !Revision 1.3  2001/11/02 19:29:58  helms
 !Added 'use bmad_interface' to avoid problems with optional arguments
 !
@@ -94,7 +97,7 @@ subroutine create_group (ring, ix_ele, n_control, control_)
 
   implicit none
   type (ring_struct)  ring
-  type (control_struct)  control_(*)
+  type (control_struct)  control_(:)
 
   integer i, ix_ele, ixa, n_control, n_con
   integer ix1, ix2, ix_min, ix_max, ixe

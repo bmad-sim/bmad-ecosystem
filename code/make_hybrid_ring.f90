@@ -37,6 +37,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/11/29 19:39:53  helms
+!Updates from DCS including (*) -> (:)
+!
 !Revision 1.2  2001/09/27 18:31:53  rwh24
 !UNIX compatibility updates
 !
@@ -55,10 +58,10 @@ subroutine make_hybrid_ring (r_in, use_ele, remove_markers, r_out, ix_out)
 
   real e_vec(4)
 
-  integer j_in, i_out, ix_out(*), i
+  integer j_in, i_out, ix_out(:), i
   integer n_ele, j, ix, ic, o_key
 
-  logical init_ele_needed, remove_markers, use_ele(*), out_symmetry
+  logical init_ele_needed, remove_markers, use_ele(:), out_symmetry
 
 ! Init
 

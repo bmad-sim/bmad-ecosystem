@@ -21,7 +21,7 @@
 !     %ACCURACY       -- Accuracy needed of aperture results.
 !
 ! Output:
-!     APERTURE_(*) -- Aperture_struct: Array of Structures for the results.
+!     APERTURE_(:) -- Aperture_struct: Array of Structures for the results.
 !                     Each element of the array is the results for one
 !                     particular energy.
 !     %dE_E       -- dE/E
@@ -38,6 +38,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/11/29 19:39:53  helms
+!Updates from DCS including (*) -> (:)
+!
 !Revision 1.2  2001/09/27 18:31:51  rwh24
 !UNIX compatibility updates
 !
@@ -56,7 +59,7 @@ subroutine dynamic_aperture (ring, track_input, aperture_)
   type (ring_struct)  ring
   type (param_struct)  ring_param_state
   type (coord_struct)  closed_(0:n_ele_maxx), orbit_(0:n_ele_maxx), co
-  type (aperture_struct)  aperture_(*)
+  type (aperture_struct)  aperture_(:)
   type (track_input_struct)  track_input
   type (mat627_struct) mats627(n_ele_maxx)
 

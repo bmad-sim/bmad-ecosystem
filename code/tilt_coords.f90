@@ -17,14 +17,16 @@
 !                           If .false. then unrotate the element.
 !
 ! Output:
-!   coord -- Real(6): Coordinates of particles.
+!   coord -- Real(:): Coordinates of particles.
 !
 ! Note: with SET = .false. It is assumed that the rotation matrix has
 !     been computed with a previous call with SET = .true.
 !-
-
 !$Id$
 !$Log$
+!Revision 1.3  2001/11/29 19:39:54  helms
+!Updates from DCS including (*) -> (:)
+!
 !Revision 1.2  2001/09/27 18:31:58  rwh24
 !UNIX compatibility updates
 !
@@ -32,13 +34,12 @@
 #include "CESR_platform.inc"
 
 
-
 subroutine tilt_coords (tilt_val, coord, set)
 
   implicit none
 
   real cos_ang, sin_ang, rot_mat(2,2)
-  real tilt_val, coord(6)
+  real tilt_val, coord(:)
 
   logical set
 
@@ -56,8 +57,10 @@ subroutine tilt_coords (tilt_val, coord, set)
     rot_mat(2,1) = -sin_ang
     rot_mat(2,2) =  cos_ang
   else
+    rot_mat(1,1) =  cos_ang
     rot_mat(1,2) = -sin_ang
     rot_mat(2,1) =  sin_ang
+    rot_mat(2,2) =  cos_ang
   endif
 
   coord(1:3:2) = matmul(rot_mat, coord(1:3:2))

@@ -1,9 +1,11 @@
 !+
 ! This file defines the interfaces for the BMAD subroutines
 !-
-
 !$Id$
 !$Log$
+!Revision 1.4  2001/11/29 19:40:11  helms
+!Updates from DCS including (*) -> (:)
+!
 !Revision 1.3  2001/10/12 20:53:50  rwh24
 !DCS changes
 !
@@ -12,7 +14,6 @@
 !
 
 #include "CESR_platform.inc"
-
 
 module bmad_interface
 
@@ -305,7 +306,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct) ring
-      type (control_struct) control_(*)
+      type (control_struct) control_(:)
       integer ix_ele
       integer n_control
     end subroutine
@@ -316,7 +317,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct) ring
-      type (control_struct) con_(*)
+      type (control_struct) con_(:)
       integer ix_overlay
       integer n_slave
       integer ix_value
@@ -339,7 +340,7 @@ module bmad_interface
       implicit none
       type (ring_struct) ring
       type (db_struct) db
-      type (control_struct) con_(*)
+      type (control_struct) con_(:)
       integer n_con
       integer ing_num
       integer biggrp_set
@@ -378,7 +379,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct) ring
-      type (aperture_struct) aperture_(*)
+      type (aperture_struct) aperture_(:)
       type (track_input_struct) track_input
     end subroutine
   end interface
@@ -429,9 +430,9 @@ module bmad_interface
       implicit none
       integer order
       integer samples
-      real coe(0:*)
-      real x(*)
-      real y(*)
+      real coe(0:)
+      real x(:)
+      real y(:)
     end subroutine
   end interface
 
@@ -519,13 +520,13 @@ module bmad_interface
   end interface
 
   interface
-     subroutine lattice_to_bmad_file_name (lattice, bmad_file_name)
-       implicit none
-       character*(*) lattice
-       character*(*) bmad_file_name
-     end subroutine lattice_to_bmad_file_name
+    subroutine lattice_to_bmad_file_name (lattice, bmad_file_name)
+      implicit none
+      character*(*) lattice
+      character*(*) bmad_file_name
+    end subroutine
   end interface
-
+ 
   interface
     subroutine LRBBI_crossings (n_bucket, oppos_buckets, cross_positions)
 			real, intent(in) :: n_bucket
@@ -560,9 +561,9 @@ module bmad_interface
       implicit none
       type (ring_struct) r_in
       type (ring_struct) r_out
-      integer ix_out(*)
+      integer ix_out(:)
       logical remove_markers
-      logical use_ele(*)
+      logical use_ele(:)
     end subroutine
   end interface
 
@@ -1061,7 +1062,7 @@ module bmad_interface
     subroutine tilt_coords (tilt_val, coord, set)
       implicit none
       real tilt_val
-      real coord(6)
+      real coord(:)
       logical set
     end subroutine
   end interface
@@ -1299,7 +1300,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ele_struct) ele
-      type (ring_struct) ring
+      type (ring_struct), optional :: ring
       integer type_mat6
       logical type_twiss
       logical type_control
@@ -1308,41 +1309,40 @@ module bmad_interface
   end interface
 
   interface
-    subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_twiss,  &
-                                          type_control, ring, lines, n_lines)
+    subroutine type_twiss (ele, frequency_units)
       use bmad_struct
       implicit none
       type (ele_struct) ele
-      type (ring_struct) ring
+      integer frequency_units
+    end subroutine
+  end interface
+ 
+  interface
+    subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_twiss,  &
+                                          type_control, lines, n_lines, ring)
+      use bmad_struct
+      implicit none
+      type (ele_struct) ele
+      type (ring_struct), optional :: ring
       integer type_mat6, n_lines
-      logical type_twiss
+      integer type_twiss
       logical type_control
       logical type_zero_attrib
-      character*(*) lines(*)
+      character*(*) lines(:)
     end subroutine
   end interface
 
   interface
-     subroutine type_twiss (ele, frequency_units)
-       use bmad_struct
-       implicit none
-       type (ele_struct) ele
-       integer frequency_units
-     end subroutine type_twiss
+    subroutine type2_twiss (ele, frequency_units, lines, n_lines)
+      use bmad_struct
+      implicit none
+      type (ele_struct) ele
+      integer frequency_units
+      integer n_lines
+      character*(*) lines(:)
+    end subroutine
   end interface
-
-  interface
-     subroutine type2_twiss (ele, frequency_units, lines, n_lines)
-       use bmad_struct
-       implicit none
-       type (ele_struct) ele
-       integer frequency_units
-       integer n_lines
-       character*(*) lines(:)
-     end subroutine type2_twiss
-  end interface
-
-
+ 
   interface
     subroutine write_digested_bmad_file (digested_name, ring,  &
                                                       n_files, file_names)
@@ -1375,18 +1375,6 @@ module bmad_interface
   end interface
 
   interface
-    subroutine long_track (ring, orbit_, ix_start, direction, mats627)
-      use bmad_struct
-      implicit none
-      type (ring_struct) ring
-      type (coord_struct) orbit_(0:*)
-      type (mat627_struct) mats627(*)
-      integer ix_start
-      integer direction
-    end subroutine
-  end interface
-
-  interface
     subroutine make_mat627 (ele, param, direction, mat627)
       use bmad_struct
       implicit none
@@ -1402,7 +1390,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct) ring
-      type (mat627_struct) mats627(*)
+      type (mat627_struct) mats627(:)
       integer direction
       integer ix_ele
     end subroutine

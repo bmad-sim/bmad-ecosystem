@@ -24,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/11/29 19:39:54  helms
+!Updates from DCS including (*) -> (:)
+!
 !Revision 1.2  2001/09/27 18:31:57  rwh24
 !UNIX compatibility updates
 !
@@ -39,7 +42,7 @@ recursive subroutine ring_make_mat627 (ring, ix_ele, direction, mats627)
 
   type (ring_struct)  ring
   type (ele_struct)  ele
-  type (mat627_struct) mats627(*)
+  type (mat627_struct) mats627(:)
 
   integer direction
   integer i, ix_ele, i1, i2, i3, ix1, ix2, ix3

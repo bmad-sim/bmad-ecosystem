@@ -5,17 +5,20 @@
 ! to the input data of x and y via least squares.
 !
 ! Input:
-!     x(*) -- Real: vector of sample 'x' data
-!     y(*) -- Real: vector of sample 'y' data
+!     x(:) -- Real: vector of sample 'x' data
+!     y(:) -- Real: vector of sample 'y' data
 !     order -- Integer: order of fitted polynomial
 !     samples -- Integer: how many 'x, y' data samples
 !
 ! Output:
-!     coe(0:*) -- Real: array of polynomial coefficients
+!     coe(0:) -- Real: array of polynomial coefficients
 !-
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/11/29 19:39:53  helms
+!Updates from DCS including (*) -> (:)
+!
 !Revision 1.2  2001/09/27 18:31:51  rwh24
 !UNIX compatibility updates
 !
@@ -28,7 +31,7 @@ subroutine fitpoly(coe, x, y, order, samples)
   integer maxcoe, maxsamp
   parameter(maxcoe=10, maxsamp=100)
   integer order, samples, numcoe
-  real coe(0:*), x(*), y(*)
+  real coe(0:), x(:), y(:)
   real Xmat(maxsamp,maxcoe), XtX(maxcoe,maxcoe), Xty(maxcoe)
   integer coe_index, sam_index, i, j, k
 

@@ -20,13 +20,14 @@
 !   TYPE_TWISS       -- Logical: If true then type the twiss parameters
 !                          at the end of the element.
 !   TYPE_CONTROL     -- Logical: If true then type control status.
-!   RING             -- Ring_struct: Needed for control typeout.
+!   RING             -- Ring_struct, Optional: Needed for control typeout.
 !
 !-
-
-
 !$Id$
 !$Log$
+!Revision 1.4  2001/11/29 19:39:54  helms
+!Updates from DCS including (*) -> (:)
+!
 !Revision 1.3  2001/10/12 20:53:35  rwh24
 !DCS changes and two files added
 !
@@ -36,13 +37,14 @@
 
 #include "CESR_platform.inc"
 
+
 subroutine type_ele (ele, type_zero_attrib, type_mat6, type_twiss,  &
                                                        type_control, ring)
 
   use bmad_struct
   implicit none
   type (ele_struct)  ele
-  type (ring_struct)  ring
+  type (ring_struct), optional :: ring
 
   integer type_mat6, n_lines, i
   logical type_twiss, type_control, type_zero_attrib
@@ -53,10 +55,10 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_twiss,  &
 
   if (type_twiss) then
     call type2_ele (ele, type_zero_attrib, type_mat6, radians$, &
-                                          type_control, ring, lines, n_lines)
+                                          type_control, lines, n_lines, ring)
   else
     call type2_ele (ele, type_zero_attrib, type_mat6, 0, &
-                                          type_control, ring, lines, n_lines)
+                                          type_control, lines, n_lines, ring)
   endif
 
   do i = 1, n_lines

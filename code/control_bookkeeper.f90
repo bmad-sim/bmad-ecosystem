@@ -14,9 +14,11 @@
 !   IX_ELE -- Integer: Index of element whose attribute values have been
 !               changed.
 !-
-
 !$Id$
 !$Log$
+!Revision 1.4  2001/11/29 19:39:52  helms
+!Updates from DCS including (*) -> (:)
+!
 !Revision 1.3  2001/10/02 18:49:11  rwh24
 !More compatibility updates; also added many explicit variable declarations.
 !
@@ -26,10 +28,10 @@
 
 #include "CESR_platform.inc"
 
-
 subroutine control_bookkeeper (ring, ix_ele)
 
   use bmad_struct
+  use bmad_interface
 
   implicit none
 
@@ -113,6 +115,7 @@ end subroutine
 Subroutine makeup_group_slaves (ring, ix_lord)   
 
   use bmad_struct
+  use bmad_interface
   use dcslib_interface
 
   implicit none
@@ -171,21 +174,37 @@ end subroutine
 subroutine makeup_super_slave (ring, ix_slave)
 
   use bmad_struct
+  use bmad_interface
   use dcslib_interface
 
   implicit none
 
   type (ring_struct), target :: ring
   type (ele_struct), pointer :: lord, slave
+  type (ele_struct) :: sol_quad
 
   integer i, j, ix, ix_slave
 
   real tilt, k1_x, k1_y, x_kick, y_kick, ks, k1, coef
-  real x_offset, y_offset, x_pitch, y_pitch, s_slave, s_del
-  real sin_1, cos_1, x_off, y_off, a(0:n_pole_maxx), b(0:n_pole_maxx)
+  real x_o, y_o, x_p, y_p, s_slave, s_del
+  real sin_2, cos_2, x_off, y_off, a(0:n_pole_maxx), b(0:n_pole_maxx)
   real knl(0:n_pole_maxx), t(0:n_pole_maxx), value(n_attrib_maxx)
   real a_tot(0:n_pole_maxx), b_tot(0:n_pole_maxx)
-                                                      
+  real sum_1, sum_2, sum_3, sum_4, ks_sum, ks_xp_sum, ks_xo_sum
+  real ks_yp_sum, ks_yo_sum, l_slave
+  real t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4), r_off(4)
+  real T_tot(4,4), x_o_sol, x_p_sol, y_o_sol, y_p_sol
+
+  logical, save :: init_needed = .true.
+
+! init
+
+  if (init_needed) then
+    call init_ele (sol_quad)
+    sol_quad%key = sol_quad$
+    init_needed = .false.
+  endif
+
 ! Super_slave:
 
   slave => ring%ele_(ix_slave)
@@ -237,17 +256,21 @@ subroutine makeup_super_slave (ring, ix_slave)
 ! Multiple controllers: must be a solenoid/quadrupole combo
 ! combine the lord elements.
                                            
-  ks = 0
   k1_x = 0
   k1_y = 0
   x_kick = 0
   y_kick = 0
-  x_offset = 0
-  y_offset = 0
-  x_pitch = 0
-  y_pitch = 0
   a_tot = 0
   b_tot = 0
+  sum_1 = 0
+  sum_2 = 0
+  sum_3 = 0
+  sum_4 = 0
+  ks_sum = 0
+  ks_xp_sum = 0
+  ks_xo_sum = 0
+  ks_yp_sum = 0
+  ks_yo_sum = 0
 
   do j = 1, n_attrib_maxx
     if (j /= l$) slave%value(j) = 0
@@ -255,24 +278,10 @@ subroutine makeup_super_slave (ring, ix_slave)
 
   s_slave = slave%s - slave%value(l$)/2  ! center of slave
 
-! find the pitch of the slave.
-! this is the pitch of the first non-solenoid lord element (if there is one).
-
-  do j = slave%ic1_lord, slave%ic2_lord
-    i = ring%ic_(j)
-    ix = ring%control_(i)%ix_lord
-    lord => ring%ele_(ix)
-    x_pitch = lord%value(x_pitch$)
-    y_pitch = lord%value(y_pitch$)
-    if (lord%key /= solenoid$) exit
-  enddo
-
 ! sum over all lords...
-! all lords must have the same pitch except for a lord that is a solenoid.
-! If a solenoid has a different pitch then it looks like a solenoid with a
-! kick
 
   do j = slave%ic1_lord, slave%ic2_lord
+
     i = ring%ic_(j)
     ix = ring%control_(i)%ix_lord
     coef = ring%control_(i)%coef
@@ -286,87 +295,162 @@ subroutine makeup_super_slave (ring, ix_slave)
       call err_exit
     endif
 
-    if (lord%value(x_pitch$) /= x_pitch .or. &
-                                      lord%value(y_pitch$) /= y_pitch) then
-      if (lord%key == solenoid$) then
-        x_kick = x_kick - lord%value(ks$) * &
-                           (lord%value(y_pitch$) - y_pitch) * slave%value(l$)
-        y_kick = y_kick + lord%value(ks$) * &
-                           (lord%value(x_pitch$) - x_pitch) * slave%value(l$)
-      else
-        type *, 'WARNING FROM CONTROL_BOOKKEEPER: I DO NOT YET KNOW HOW'
-        type *, '        TO COMBINE DIFFERENT PITCH''S FROM 2 LORD ELEMENTS!'
-        type *, '        SLAVE: ', slave%name
-        call err_exit
-      endif
-    endif
-
     if (i == lord%ix2_slave) then      ! longitudinal ends match
       slave%value(x_limit$) = lord%value(x_limit$)
       slave%value(y_limit$) = lord%value(y_limit$)
     endif
 
-! Offsets are computed so that the quadrupole field gives the correct kick.
-
     if (lord%is_on) then
-      ks = ks + lord%value(ks$)
-      x_kick = x_kick + lord%value(hkick$) * coef
-      y_kick = y_kick + lord%value(vkick$) * coef
-      tilt = lord%value(tilt$)
-      cos_1 = lord%value(k1$) * cos(2 * tilt)
-      sin_1 = lord%value(k1$) * sin(2 * tilt)
-      k1_x = k1_x + cos_1
-      k1_y = k1_y + sin_1
+
+      x_p = lord%value(x_pitch$);  x_o = lord%value(x_offset$)
+      y_p = lord%value(y_pitch$);  y_o = lord%value(y_offset$)
+
       s_del = modulo2 (s_slave - (lord%s - lord%value(l$)/2), &
                                                  ring%param%total_length/2)
-      x_off = lord%value(x_offset$) + s_del * x_pitch
-      y_off = lord%value(y_offset$) + s_del * y_pitch
-      x_offset = x_offset + cos_1 * x_off + sin_1 * y_off
-      y_offset = y_offset + sin_1 * x_off - cos_1 * y_off
+
+      ks = lord%value(ks$)
+
+      ks_sum = ks_sum + ks
+
+      ks_xp_sum = ks_xp_sum + ks * x_p
+      ks_yp_sum = ks_yp_sum + ks * y_p
+
+      ks_xo_sum = ks_xo_sum + ks * (x_o + x_p * s_del)
+      ks_yo_sum = ks_yo_sum + ks * (y_o + y_p * s_del)
+
+      x_kick = x_kick + lord%value(hkick$) * coef
+      y_kick = y_kick + lord%value(vkick$) * coef
+
+      tilt = lord%value(tilt$)
+      cos_2 = lord%value(k1$) * cos(2 * tilt)
+      sin_2 = lord%value(k1$) * sin(2 * tilt)
+
+      k1_x = k1_x + cos_2
+      k1_y = k1_y + sin_2
+
+      sum_1 = sum_1 + cos_2 * x_p + sin_2 * y_p
+      sum_2 = sum_2 + sin_2 * x_p - cos_2 * y_p
+
+      sum_3 = sum_3 + cos_2 * (x_o + x_p * s_del) + sin_2 * (y_o + y_p * s_del)
+      sum_4 = sum_4 + sin_2 * (x_o + x_p * s_del) - cos_2 * (y_o + y_p * s_del)
+
       if (any(lord%value(ix1_m$:ix2_m$) /= 0)) then
         call multipole_to_vecs (lord, +1, knl, t)
         call multipole_kt_to_ab (knl/lord%value(l$), t, a, b)
         a_tot = a_tot + a
         b_tot = b_tot + b
       endif
+
     endif
+
   enddo
 
 ! stuff sums into slave element
 
+  ks = ks_sum
   slave%value(ks$) = ks
   slave%value(hkick$) = x_kick
   slave%value(vkick$) = y_kick
-  slave%value(x_pitch$) = x_pitch
-  slave%value(y_pitch$) = y_pitch
-  if (k1_x == 0 .and. k1_y == 0) then
+
+  if (k1_x == 0 .and. k1_y == 0 .and. ks == 0) return
+
+  if (ks /= 0) then
+    x_o_sol = ks_xo_sum / ks
+    x_p_sol = ks_xp_sum / ks
+    y_o_sol = ks_yo_sum / ks
+    y_p_sol = ks_yp_sum / ks
+  endif
+
+  if (k1_x == 0 .and. k1_y == 0) then  ! pure solenoid
     slave%value(k1$) = 0
     slave%value(tilt$) = 0
     slave%value(ix1_m$:ix2_m$) = 0
-  else
-    k1 = sqrt(k1_x**2 + k1_y**2)
-    tilt = atan2(k1_y, k1_x) / 2
-    if (tilt > pi/4) then
-      k1 = -k1
-      tilt = tilt - pi/2
-    elseif (tilt < -pi/4) then
-      k1 = -k1
-      tilt = tilt + pi/2
-    endif
-    slave%value(k1$) = k1
-    slave%value(tilt$) = tilt
-    cos_1 = k1_x / (k1_x**2 + k1_y**2)
-    sin_1 = k1_y / (k1_x**2 + k1_y**2)
-    slave%value(x_offset$) =  cos_1 * x_offset + sin_1 * y_offset
-    slave%value(y_offset$) =  sin_1 * x_offset - cos_1 * y_offset
-    if (any(a_tot /= 0) .or. any(b_tot /= 0)) then
-      call multipole_ab_to_kt(a_tot, b_tot, knl, t)
-      call multipole_kt_to_ab(knl/k1, t-tilt, a, b)
-      slave%value(ix1_m$:ix2_m$-1:2) = a
-      slave%value(ix1_m$+1:ix2_m$:2) = b
-      slave%value(radius$) = 1
-    endif
+    slave%value(x_offset$) = x_o_sol
+    slave%value(y_offset$) = y_o_sol
+    slave%value(x_pitch$)  = x_p_sol
+    slave%value(y_pitch$)  = y_p_sol
+    return
+  endif   
+
+! here if have quadrupole component
+
+  k1 = sqrt(k1_x**2 + k1_y**2)
+  tilt = atan2(k1_y, k1_x) / 2
+
+  if (tilt > pi/4) then
+    k1 = -k1
+    tilt = tilt - pi/2
+  elseif (tilt < -pi/4) then
+    k1 = -k1
+    tilt = tilt + pi/2
   endif
+
+  slave%value(k1$) = k1
+  slave%value(tilt$) = tilt
+
+  cos_2 = k1_x / (k1_x**2 + k1_y**2)
+  sin_2 = k1_y / (k1_x**2 + k1_y**2)
+
+  slave%value(x_pitch$)  = cos_2 * sum_1 + sin_2 * sum_2
+  slave%value(y_pitch$)  = sin_2 * sum_1 - cos_2 * sum_2
+  slave%value(x_offset$) = cos_2 * sum_3 + sin_2 * sum_4
+  slave%value(y_offset$) = sin_2 * sum_3 - cos_2 * sum_4
+
+  if (any(a_tot /= 0) .or. any(b_tot /= 0)) then
+    call multipole_ab_to_kt(a_tot, b_tot, knl, t)
+    call multipole_kt_to_ab(knl/k1, t-tilt, a, b)
+    slave%value(ix1_m$:ix2_m$-1:2) = a
+    slave%value(ix1_m$+1:ix2_m$:2) = b
+    slave%value(radius$) = 1
+  endif
+
+! if ks /= 0 then we have to recalculate the offsets and pitches.
+
+  if (ks == 0) return
+
+  x_p = slave%value(x_pitch$) - x_p_sol; x_o = slave%value(x_offset$) - x_o_sol
+  y_p = slave%value(y_pitch$) - y_p_sol; y_o = slave%value(y_offset$) - y_o_sol
+
+  if (x_p == 0 .and. x_o == 0 .and. y_p == 0 .and. y_o == 0) return
+
+  t_2 = (/ x_o, x_p, y_o, y_p /)
+  call tilt_coords (tilt, t_2, .true.)  ! set
+
+  l_slave = slave%value(l$)
+
+  t_1 = (/ t_2(2), 0.0, t_2(4), 0.0 /)
+  t_2(1) = t_2(1) + ks * t_2(4) / k1 
+  t_2(3) = t_2(3) + ks * t_2(2) / k1
+             
+  call mat_unit (T_end, 4, 4)
+  T_end(4,1) =  ks / 2
+  T_end(2,3) = -ks / 2
+
+  sol_quad%value(ks$) = ks
+  sol_quad%value(k1$) = k1
+  sol_quad%value(l$)  = l_slave
+  call make_mat6 (sol_quad, ring%param)
+  T_tot = sol_quad%mat6(1:4,1:4)
+
+  r_off = matmul (T_end, l_slave * t_1 / 2 - t_2) 
+  r_off = matmul (T_tot, r_off) + matmul (T_end, l_slave * t_1 / 2 + t_2)
+
+  call mat_unit (mat4, 4, 4)
+  mat4(:,2) = mat4(:,2) + l_slave * T_tot(:,1) / 2
+  mat4(:,4) = mat4(:,4) + l_slave * T_tot(:,3) / 2
+  mat4(1,2) = mat4(1,2) + l_slave / 2
+  mat4(3,4) = mat4(3,4) + l_slave / 2
+  mat4 = mat4 - T_tot
+
+  call mat_inverse (mat4, mat4_inv)
+  beta = matmul (mat4_inv, r_off)
+
+  call tilt_coords (tilt, beta, .false.)  ! unset
+
+  slave%value(x_offset$) = beta(1) + x_o_sol
+  slave%value(x_pitch$)  = beta(2) + x_p_sol
+  slave%value(y_offset$) = beta(3) + y_o_sol
+  slave%value(y_pitch$)  = beta(4) + y_p_sol
 
 end subroutine
 
@@ -376,7 +460,9 @@ end subroutine
 
 subroutine makeup_overlay_slave (ring, ix_ele)
 
-  use bmad_struct
+  use bmad_struct                        
+  use bmad_interface
+
   implicit none
 
   type (ring_struct), target :: ring
@@ -436,6 +522,7 @@ end subroutine
 subroutine makeup_container_slave (ring, ix_ele)
               
   use bmad_struct
+  use bmad_interface
 
   implicit none
 

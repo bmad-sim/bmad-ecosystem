@@ -17,9 +17,11 @@
 ! Output:
 !     ELE%MAT6 -- Real: 6x6 transfer matrix.
 !-
-
 !$Id$
 !$Log$
+!Revision 1.4  2001/11/29 19:39:53  helms
+!Updates from DCS including (*) -> (:)
+!
 !Revision 1.3  2001/10/02 18:49:12  rwh24
 !More compatibility updates; also added many explicit variable declarations.
 !
@@ -29,10 +31,11 @@
 
 #include "CESR_platform.inc"
 
-
 subroutine make_mat6 (ele, param, c0, c1)
 
   use bmad_struct
+  use bmad_interface
+
   implicit none
 
   type (ele_struct), target :: ele
@@ -45,7 +48,7 @@ subroutine make_mat6 (ele, param, c0, c1)
   real mat6_m(6,6), mat2(2,2), mat4(4,4), kmat1(4,4), kmat2(4,4)
   real e1, e2, angle, rho, cos_angle, sin_angle, k1, ks, length, kc
   real phi, k2l, k3l, c2, s2, cs, ks2, del_l, rho_bend, l_period, l_bend
-  real factor, l_drift, dx
+  real factor, l_drift, dx, kmat6(6,6)
   real s_pos, s_pos_old, z_slice(100)
   real knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
   real r, c_e, c_m, gamma_old, gamma_new, vec_st(4)
@@ -134,7 +137,7 @@ subroutine make_mat6 (ele, param, c0, c1)
       call tilt_coords (ele%value(tilt$), c11%vec, .true.)
     endif
   endif
-
+               
 !--------------------------------------------------------
 ! selection
 
@@ -145,7 +148,6 @@ subroutine make_mat6 (ele, param, c0, c1)
 
 !--------------------------------------------------------
 ! sbend
-
 
   case (sbend$) 
 
@@ -467,11 +469,11 @@ subroutine make_mat6 (ele, param, c0, c1)
         if (i == n_slice + 1) exit
         orb%x%pos = c00%x%pos + s_pos * orb%x%vel
         orb%y%pos = c00%y%pos + s_pos * orb%y%vel
-        call bbi_kick_matrix (ele, orb, s_pos, kmat1)
-        mat4(2,1:4) = mat4(2,1:4) + kmat1(2,1) * mat4(1,1:4) + &
-                                    kmat1(2,3) * mat4(3,1:4)
-        mat4(4,1:4) = mat4(4,1:4) + kmat1(4,1) * mat4(1,1:4) + &
-                                    kmat1(4,3) * mat4(3,1:4)
+        call bbi_kick_matrix (ele, orb, s_pos, kmat6)
+        mat4(2,1:4) = mat4(2,1:4) + kmat6(2,1) * mat4(1,1:4) + &
+                                    kmat6(2,3) * mat4(3,1:4)
+        mat4(4,1:4) = mat4(4,1:4) + kmat6(4,1) * mat4(1,1:4) + &
+                                    kmat6(4,3) * mat4(3,1:4)
       enddo
 
       mat6(1:4,1:4) = mat4
@@ -636,8 +638,8 @@ subroutine make_mat6 (ele, param, c0, c1)
     c_m = param%particle * c_light * ele%value(b_z$) / (e_mass * 1.e9)
     gamma_old = param%energy * (c00%z%vel + 1) / e_mass
     gamma_new = gamma_old + c_e * length
-    call accel_sol_mat_calc (length, c_m, c_e, gamma_old, gamma_new, 0, 0,  &
-                                            c00, mat4, vec_st)
+    call accel_sol_mat_calc (length, c_m, c_e, gamma_old, gamma_new, &
+                                                0.0, 0.0, c00, mat4, vec_st)
     mat4 = mat6(1:4,1:4)
 
 !--------------------------------------------------------
@@ -845,9 +847,9 @@ subroutine sol_quad_mat6_calc (ks, k1, s_len, m, orb)
   Snh1 = Snh * beta
 
   if (abs(beta) < 1e-10) then
-     Snh2 = s_len
+    Snh2 = s_len
   else
-     Snh2 = Snh / beta
+    Snh2 = Snh / beta
   endif
 
   coef1 = ks2*r + 4*k1*a
@@ -1050,8 +1052,6 @@ subroutine mat4_multipole (ele, knl, tilt, n, c0, kick_mat)
 
   function mexp (x, m)
 
-    implicit none
-
   real x, mexp
   integer m
 
@@ -1207,10 +1207,23 @@ subroutine solenoid_mat_calc (ks, length, mat4)
 
   implicit none
 
-  real ks, length, kss, c, s, c2, s2, cs
+  real ks, length, kss, c, s, c2, s2, cs, ll, kl, kl2
   real mat4(4,4)
 
+!
+
   kss = ks / 2
+
+  if (abs(length * kss) < 1e-5) then
+    ll = length
+    kl = kss * length 
+    kl2 = kl**2
+    mat4(1,:) = (/  1.0,        ll,      kl,        kl*ll /)
+    mat4(2,:) = (/ -kl * kss,   1.0,     kl2*kss,   kl    /)
+    mat4(3,:) = (/ -kl,        -kl*ll,   1.0,       ll    /)
+    mat4(4,:) = (/  kl2*kss,   -ks,     -kl*kss,    1.0   /)
+    return
+  endif
 
   c = cos(kss*length)
   s = sin(kss*length)

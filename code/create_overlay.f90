@@ -14,7 +14,7 @@
 !     IX_VALUE   -- Integer: Index of variable in RING%ELE_(IX_OVERLAY)%VALUE()
 !                       that will be varied.
 !     N_SLAVE    -- Integer: Number of slaves
-!     CON_(*)    -- Control_struct: control info. 1 element for each slave.
+!     CON_(:)    -- Control_struct: control info. 1 element for each slave.
 !       %IX_SLAVE  -- Index of element to control
 !       %IX_ATTRIB -- Index of attribute controlled
 !       %COEF      -- Coefficient
@@ -44,6 +44,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/11/29 19:39:53  helms
+!Updates from DCS including (*) -> (:)
+!
 !Revision 1.2  2001/09/27 18:31:50  rwh24
 !UNIX compatibility updates
 !
@@ -61,7 +64,7 @@ subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
 
   type (ring_struct)  ring
   type (ele_struct)  slave_ele, over_ele
-  type (control_struct)  con_(*)
+  type (control_struct)  con_(:)
 
   integer i, j, ix, ix2, ixc, ix_overlay
   integer ix_slave, n_slave, ix_value, slave_type, idel
