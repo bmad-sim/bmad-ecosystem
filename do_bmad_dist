@@ -89,6 +89,7 @@ get_release_name () {
 
 #Initializations
 BUILD_DIR=/home/cesrulib/distribution
+WEB_DIR=/home/cesrulib/public_html/downloads
 PREC="DBL"
 BMAD_TAG="bmad_dist"
 DO_CHECKOUT="do_checkout"
@@ -175,7 +176,7 @@ BMADENV=${BIN_DIR}/bmadenv
 
 
 # Export the environment for the BMAD distribution
-BMAD_=${FULL_DIST_NAME}; . ${BIN_DIR}/cesrdefs
+BMAD_=${FULL_DIST_NAME}; . ${BIN_DIR}/bmad_defs
 
 
 # Dump the configuration information if requested
@@ -223,6 +224,16 @@ else
     exit 1
 fi
 
+# Now make the tarball
+cd ${BUILD_DIR}
+tar cvf ${DNAME}.tar ${DNAME}
+gzip ${DNAME}.tar
+cp -p ${DNAME}.tar.gz ${WEB_DIR}
+cp -p ${BMAD_}/documents/README.BMAD_DISTRIBUTION ${WEB_DIR}
+echo " "
+echo "Listing of ${WEB_DIR}:"
+ls -rtl ${WEB_DIR}
+echo " "
 
 # Build the BMAD Distribution
 build_dist_status=0
