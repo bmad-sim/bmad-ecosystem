@@ -3,6 +3,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.10  2002/07/25 19:58:10  dcs
+!New subroutines added
+!
 !Revision 1.9  2002/07/23 17:16:31  dcs
 !*** empty log message ***
 !
@@ -288,6 +291,18 @@ module bmad_interface
   end interface
 
   interface
+    subroutine chrom_tune (ring, delta_e, chrom_x, chrom_y, err_flag)
+      use bmad_struct
+      implicit none
+      type (ring_struct) ring
+      real(rdef) delta_e
+      real(rdef) chrom_x
+      real(rdef) chrom_y
+      logical err_flag
+    end subroutine
+  end interface
+
+  interface
     subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
       use bmad_struct
       implicit none
@@ -457,7 +472,7 @@ module bmad_interface
       implicit none
       integer key
       type (ring_struct) ring
-      integer, allocatable :: indx(:)
+      integer, pointer :: indx(:)
     end subroutine
   end interface
 
