@@ -41,7 +41,7 @@ subroutine track1_bmad (start, ele, param, end)
   real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
   real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
   real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
-  real(rp) rel_E, ff
+  real(rp) rel_E, ff, k_z
   real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio
   real(rp) alpha, sin_a, cos_a, f, r11, r12, r21, r22
   real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2
@@ -424,6 +424,12 @@ subroutine track1_bmad (start, ele, param, end)
 
 !-----------------------------------------------
 ! wiggler:
+! Only map_type wigglers are handled here.
+! In the horizontal plane the tracking looks like a drift.
+! The tracking in the vertical plane is:
+!   1) 1/2 the octupole kick at the entrance face.
+!   2) Track as a quadrupole through the body
+!   3) 1/2 the octupole kick at the exit face.
 
   case (wiggler$)
 
@@ -434,14 +440,29 @@ subroutine track1_bmad (start, ele, param, end)
       call err_exit
     endif
 
-    call offset_particle (ele, param, end, set$, set_multipoles=.false.)
+    call offset_particle (ele, param, end, set$)
 
-    k1 = ele%value(k1$) / rel_E**2
+    k_z = pi * ele%value(n_pole$) / length
+    k1 = -0.5 * c_light * ele%value(b_max$) / &
+                    (ele%value(beam_energy$) * rel_E)**2
+
+    ! 1/2 of the octupole octopole kick at the entrance face.
+
+    end%vec(4) = end%vec(4) + 0.5 * k1 * &
+                    end%vec(3) * (1 + 2 * (k_z * end%vec(3))**2 / 3)
+
+    ! Quadrupole body
+
     call quad_mat2_calc (k1, length, mat2)
     end%vec(1) = end%vec(1) + length * end%vec(2)
     end%vec(3:4) = matmul (mat2, end%vec(3:4))
 
-    call offset_particle (ele, param, end, unset$, set_multipoles=.false.)
+    ! 1/2 of the octupole octopole kick at the exit face.
+
+    end%vec(4) = end%vec(4) + 0.5 * k1 * &
+                    end%vec(3) * (1 + 2 * (k_z * end%vec(3))**2 / 3)
+
+    call offset_particle (ele, param, end, unset$)
     call end_z_calc
 
 !-----------------------------------------------

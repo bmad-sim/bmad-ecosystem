@@ -638,7 +638,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       return
     endif
 
-    k1 = ele%value(k1$) / rel_E**2
+    k1 = -0.5 * c_light * ele%value(b_max$) / &
+                    (ele%value(beam_energy$) * rel_E)**2
 
 ! octuple correction to k1
 
