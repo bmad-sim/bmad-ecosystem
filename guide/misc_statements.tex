@@ -40,6 +40,7 @@ lattice.  Each element in a lattice has an individual reference
 The reference energy will only change between \vn{LCavity} or
 \vn{Patch} elements. The starting reference energy must always be set.
 
+\index{Statement!lattice}
 The \vn{lattice} name is stored by \bmad for use by a program but it does
 not otherwise effect any \bmad routines. 
 Historically it is possible to set the lattice name using the syntax
@@ -61,9 +62,11 @@ computed. Although \vn{circular_lattice} is the nominal default, If
 there are \vn{Lcavity} elements present, \vn{linear_lattice} will be used
 as the default.
 
-The Taylor order (cf.~\ref{s:taylor_phys}) is the maximum order for a
-Taylor map.  Historically it is possible to set the Taylor order using
-the syntax
+\index{Statement!taylor_order}
+\index{Statement!parameter!taylor_order}
+The Taylor order (\sref{s:taylor_phys}) is set by
+\vn{parameter[taylor_order]} and is the maximum order for a Taylor map.
+Historically it is possible to set the Taylor order using the syntax
 \begin{example}
   taylor_order = Integer   ! DO NOT USE THIS SYNTAX
 \end{example}
