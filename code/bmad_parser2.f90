@@ -85,9 +85,9 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
   beam_ele%name = 'BEAM'              ! fake beam element
   beam_ele%key = def_beam$            ! "definition of beam"
-  beam_ele%value(particle$) = ring%param%particle 
-  beam_ele%value(energy$)   = 0
-  beam_ele%value(n_part$)   = ring%param%n_part
+  beam_ele%value(particle$)   = ring%param%particle 
+  beam_ele%value(energy_gev$) = 0
+  beam_ele%value(n_part$)     = ring%param%n_part
 
   param_ele%name = 'PARAMETER'
   param_ele%key = def_parameter$
@@ -402,8 +402,8 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   ring%param%symmetry     = nint(param_ele%value(symmetry$))
   ring%input_taylor_order = nint(param_ele%value(taylor_order$))
 
-  if (beam_ele%value(energy$) /= 0) then
-    ring%param%beam_energy = beam_ele%value(energy$) * 1e9
+  if (beam_ele%value(energy_gev$) /= 0) then
+    ring%param%beam_energy = beam_ele%value(energy_gev$) * 1e9
   else
     ring%param%beam_energy = param_ele%value(beam_energy$)
   endif

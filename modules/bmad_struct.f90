@@ -31,7 +31,7 @@ module bmad_struct
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 
-  integer, parameter :: bmad_inc_version$ = 63
+  integer, parameter :: bmad_inc_version$ = 64
 
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -169,6 +169,7 @@ module bmad_struct
   type param_struct
     real(rp) beam_energy        ! beam energy in eV
     real(rp) n_part             ! Number of particles in a bunch
+    real(rp) charge             ! Charge for linac RF k_loss calc.
     real(rp) total_length       ! total_length of ring
     real(rp) growth_rate        ! growth rate/turn if not stable
     real(rp) t1_mat6(6,6)       ! Full 1-turn 6x6 matrix
@@ -262,7 +263,7 @@ module bmad_struct
 !     L$, TILT$, X_PITCH$ and higher
 
   integer, parameter :: lattice_type$ = 1, symmetry$ = 2, taylor_order$ = 3
-  integer, parameter :: beam_energy$ = 4 
+  integer, parameter :: energy_gev$ = 4 
 
   integer, parameter :: x_beg_limit$=2, y_beg_limit$=3, b_x2$=4, &
           b_y2$=5, l_st2$=9, b_z$=10, l_st1$=11, s_st2$=12, s_st1$=13, &
@@ -313,7 +314,7 @@ module bmad_struct
   integer, parameter :: y_limit$=28
   integer, parameter :: aperture$=29
   integer, parameter :: radius$=30
-  integer, parameter :: energy$=31  ! formally new_energy$
+  integer, parameter :: beam_energy$=31 
   integer, parameter :: rel_tol$ = 32
   integer, parameter :: abs_tol$ = 33
   integer, parameter :: B_field$ = 34, B_gradient$ = 34

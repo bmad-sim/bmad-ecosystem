@@ -300,19 +300,22 @@ subroutine track1_bmad (start, ele, param, end)
     f = gradient / (2 * sqrt_2 * cos_phi)
     x_pos = end%vec(1)
     y_pos = end%vec(3)
-    end%vec(1) =  cos_a * end%vec(1)         + sin_a * end%vec(2) * e_start / f
+    end%vec(1) =  cos_a * end%vec(1)        + sin_a * end%vec(2) * e_start / f
     end%vec(2) = -sin_a * x_pos * f / e_end + cos_a * end%vec(2) * e_start / e_end
-    end%vec(3) =  cos_a * end%vec(3)         + sin_a * end%vec(4) * e_start / f
+    end%vec(3) =  cos_a * end%vec(3)        + sin_a * end%vec(4) * e_start / f
     end%vec(4) = -sin_a * y_pos * f / e_end + cos_a * end%vec(4) * e_start / e_end
 
     f = gradient / (2 * e_end)              ! exit kick
     end%vec(2) = end%vec(2) + f * end%vec(1)
     end%vec(4) = end%vec(4) + f * end%vec(3)
 
-    end%vec(6) = (e_end - ele%value(energy$)) / ele%value(energy$) 
+    end%vec(6) = (e_end - ele%value(beam_energy$)) / ele%value(beam_energy$) 
 
     call offset_particle (ele, param, end, unset$)
     call end_z_calc
+
+    end%vec(6) = end%vec(6) - ele%value(k_loss$) * length * &
+                          abs(param%charge) / ele%value(beam_energy$)
 
 ! sextupole
 ! The sextupole is treated as a drift with position dependent kick

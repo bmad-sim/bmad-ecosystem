@@ -283,8 +283,8 @@ subroutine transfer_taylor (ring_in, ring_out, type_out)
 
 ! we have a match so transfer the Taylor map.
 
-        if (type_out) print *, &
-                    'TRANSFER_TAYLOR: Reusing Taylor for: ', ele_in%name
+        if (type_out) print *, 'TRANSFER_TAYLOR: ', &
+              'Reusing Taylor from: ', ele_in%name, '  to: ', ele_out%name
 
         do it = 1, 6
           ix = 0

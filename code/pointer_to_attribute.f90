@@ -99,8 +99,6 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
       ptr_attrib => ele%c_mat(2,1)
     case ('C22')
       ptr_attrib => ele%c_mat(2,2)
-    case ('ENERGY')
-      ptr_attrib => ele%value(energy$)
     case ('S')
       ptr_attrib => ele%s
     case default

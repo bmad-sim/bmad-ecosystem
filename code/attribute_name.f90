@@ -58,11 +58,11 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
       if (i == group$)    cycle
       if (i == overlay$)  cycle
 
-      attrib_array(i, is_on$)    = 'IS_ON'
-      attrib_array(i, x_limit$)  = 'X_LIMIT'
-      attrib_array(i, y_limit$)  = 'Y_LIMIT'
-      attrib_array(i, aperture$) = 'APERTURE'
-      attrib_array(i, energy$)   = 'ENERGY'
+      attrib_array(i, is_on$)       = 'IS_ON'
+      attrib_array(i, x_limit$)     = 'X_LIMIT'
+      attrib_array(i, y_limit$)     = 'Y_LIMIT'
+      attrib_array(i, aperture$)    = 'APERTURE'
+      attrib_array(i, beam_energy$) = 'BEAM_ENERGY'
 
       if (i == taylor$)  cycle
       if (i == patch$)   cycle
@@ -271,9 +271,9 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(kicker$, h_displace$)  = 'H_DISPLACE'
     attrib_array(kicker$, v_displace$)  = 'V_DISPLACE'
 
-    attrib_array(def_beam$, particle$)  = 'PARTICLE'
-    attrib_array(def_beam$, energy$)    = 'ENERGY'
-    attrib_array(def_beam$, n_part$)    = 'N_PART'
+    attrib_array(def_beam$, particle$)   = 'PARTICLE'
+    attrib_array(def_beam$, energy_gev$) = 'ENERGY'
+    attrib_array(def_beam$, n_part$)     = 'N_PART'
 
     attrib_array(multipole$, tilt$)     = 'TILT'
     attrib_array(multipole$, k0l$:k20l$) = (/ 'K0L ', &

@@ -1496,8 +1496,9 @@ subroutine read_sr_wake (ele)
   implicit none
 
   type (ele_struct) ele
-  type (sr_wake_struct), allocatable :: sr(:)
-  integer i, ix, lunget, iu, ios
+  type (sr_wake_struct), allocatable :: sr(:), sr2(:)
+  real(rp) dz
+  integer i, j, ix, lunget, iu, ios
 
   character(200) file_name, line
 
@@ -1514,9 +1515,9 @@ subroutine read_sr_wake (ele)
 
 ! read
 
-  allocate (sr(400))
+  allocate (sr(0:500))
 
-  i = 0
+  i = -1
 
   do
     read (iu, '(a)', iostat = ios) line
@@ -1529,18 +1530,48 @@ subroutine read_sr_wake (ele)
     call string_trim (line, line, ix)
     if (line(1:1) == '!') cycle  ! skip comments.
     if (ix == 0) cycle          ! skip blank lines.
+
+    if (i == ubound(sr, 1)) then
+      allocate (sr2(0:i))
+      sr2 = sr
+      deallocate (sr)
+      allocate (sr(0:i+500))
+      sr(0:i) = sr2
+      deallocate(sr2)
+    endif
+
     i = i + 1
-    read (line, *, iostat = ios) sr(i)%z, sr(i)%long, sr(i)%trans
+    read (line, *, iostat = ios) ix, sr(i)%z, sr(i)%long, sr(i)%trans
+
     if (ios /= 0) then
       call warning ('ERROR PARSING WAKE FILE: ' // ele%wake%sr_file, &
                            'CANNOT READ LINE: ' // line)
       return
     endif
+
   enddo
 
   if (associated(ele%wake%sr)) deallocate (ele%wake%sr)
-  allocate (ele%wake%sr(i))
-  ele%wake%sr = sr(1:i)
+  allocate (ele%wake%sr(0:i))
+  ele%wake%sr = sr(0:i)
+
+! err check
+
+  if (ele%wake%sr(0)%z /= 0) then
+    call warning ('WAKEFIELDS DO NOT START AT Z = 0!', &
+                                    'IN FILE: ' // ele%wake%sr_file)
+    return
+  endif
+
+  dz = ele%wake%sr(i)%z / i
+  do j = 1, i
+    if (abs(ele%wake%sr(i)%z - dz * j) > 1e-4 * dz) then
+      write (line, '(a, i5)') &
+                      'WAKEFIELD POINTS DO NOT HAVE UNIFORM DZ FOR POINT:', j
+      call warning (line, 'IN FILE: ' // ele%wake%sr_file)
+      return
+    endif
+  enddo               
 
 end subroutine
 

@@ -782,8 +782,8 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! Beam energy
 
   if (param_ele%value(beam_energy$) == 0) then
-    ring%param%beam_energy = 1d9 * beam_ele%value(energy$)  ! convert from GeV
-  elseif (beam_ele%value(energy$) == 0) then
+    ring%param%beam_energy = 1d9 * beam_ele%value(energy_gev$)  
+  elseif (beam_ele%value(energy_gev$) == 0) then
     ring%param%beam_energy = param_ele%value(beam_energy$)
   else
     call warning &
@@ -959,10 +959,11 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
 !
 
-  if (ring%param%beam_energy == 0 .and. ring%ele_(0)%value(energy$) == 0) then
+  if (ring%param%beam_energy == 0 .and. &
+                          ring%ele_(0)%value(beam_energy$) == 0) then
     print *, 'WARNING FROM BMAD_PARSER: BEAM_ENERGY IS 0!'
   elseif (ring%param%beam_energy /= 0 .and. &
-                                        ring%ele_(0)%value(energy$) /= 0) then
+                          ring%ele_(0)%value(beam_energy$) /= 0) then
     print *, 'WARNING FROM BMAD_PARSER: BEAM_ENERGY AND BEGINNING[ENERGY] BOTH SET!'
   endif
 

@@ -658,13 +658,14 @@ subroutine attribute_bookkeeper (ele, param)
 
   if (ele%field_master) then
 
-    if (ele%value(energy$) == 0) then
+    if (ele%value(beam_energy$) == 0) then
       factor = 0
     else
-      if (old_energy /= ele%value(energy$)) &
-           call energy_to_kinetic (ele%value(energy$), param%particle, p0c = p)
+      if (old_energy /= ele%value(beam_energy$)) &
+           call energy_to_kinetic (ele%value(beam_energy$), &
+                                                    param%particle, p0c = p)
       factor = c_light / p
-      old_energy = ele%value(energy$)
+      old_energy = ele%value(beam_energy$)
     endif
 
     select case (ele%key)
@@ -686,13 +687,14 @@ subroutine attribute_bookkeeper (ele, param)
 
   else
 
-    if (ele%value(energy$) == 0) then
+    if (ele%value(beam_energy$) == 0) then
       factor = 0
     else
-      if (old_energy /= ele%value(energy$)) &
-           call energy_to_kinetic (ele%value(energy$), param%particle, p0c = p)
+      if (old_energy /= ele%value(beam_energy$)) &
+           call energy_to_kinetic (ele%value(beam_energy$), &
+                                                  param%particle, p0c = p)
       factor = p / c_light
-      old_energy = ele%value(energy$)
+      old_energy = ele%value(beam_energy$)
     endif
 
     select case (ele%key)
