@@ -81,13 +81,27 @@ Format:
   call <filename> \{<arg_list>\}  \Strut
 \end{example}
 
-\vskip 0.2in \vn{call} opens a command file and executes the commands
-in it.  \tao first looks in the current directory for the file. If not
-found \tao will look in the directory pointed to by the
-\vn{TAO_COMMAND_DIR} directory.  Up to 9 arguments may be passed to
-the command file. The i\Th argument is substituted in place of the
-string ``[i]'' in the file. Nesting of command files (command files
-calling other command files) is not allowed.
+\vskip 0.2in \vn{call} opens a command file and executes the commands in it.
+\tao first looks in the current directory for the file. If not found \tao will
+look in the directory pointed to by the \vn{TAO_COMMAND_DIR} directory.  Up to 9
+arguments may be passed to the command file. The i\Th argument is substituted in
+place of the string ``[i]'' in the file. Nesting of command files (command files
+calling other command files) is allowed. There is no limit to the number of
+nestings, however, only one argument list is allowed. This argument list is
+specified by the call to the first command file. Any nested command files can
+use this argument list.
+
+Do loops are allowed with the following syntax:
+\begin{example}
+  do i 1 100
+    ...
+    tao command [i]
+    ...
+  enddo
+\end{example}
+The loop index can be used as a variable in the loop body but must be bracketed.
+Nested loops are not allowed, but nested command files are allowed in do loops
+provided there are no do loops in the nested command files.
 
 Examples:
 \begin{example}
@@ -96,6 +110,14 @@ Examples:
 In the above example the argument ``abc'' is substituted for any
 ``[1]'' appearing the file and ``def'' is substituted for any
 ``[2]''.
+
+
+\begin{example}
+  do i 1 100
+    call set_qaud_misalignemnts
+    zero_quad [i] ! this would be a user supplied command to zero quad number [i]
+  enddo
+\end{example}
 
 %% change --------------------------------------------------------------
 \section{Change}
@@ -396,7 +418,7 @@ Format:
   set global <component> = <value>
   set lattice <component> = <value>
   set plot <component> = <value1> \{<value2>\}
-  set universe <universe> <on/off>
+  set universe <universe> <on/off> <recalculate>
   set var <var_name> <component> = <value> \{<locations>\}
 \end{example}
 
@@ -496,12 +518,15 @@ data.
 \vn{set universe} will turn the specified universe on or off. Turning a universe
 off is useful to speed up lattice calculations when this universe is not being
 used. Or, if many changes are to be performed to a universe and there is no need
-to do any lattice calculations between command then turing off all universes
+to do any lattice calculations between commands then turning off all universes
 will speed things up. Turn off all universe with the command \vn{set universe 0
 off}. This flag only affects the lattice calculation. Issueing \vn{change, use,
 veto,} etc...
 commands to a turned off uinverse will still affect the universe, however any
 lattice calculations will not be performed until the universe is turned back on.
+To recalculate the turned on lattices when issueing a \vn{set universe} command
+then use \vn{set universe <universe> <on/off> recalc}. Otherwise, no lattice
+calculation will be performed until an appropriate command is called afterwards.
 If optimizing while one or more universes are turned off then the variables
 associated with that universe will still be included in the merit function but
 not the data for that universe. The variables will still vary in the turned off
