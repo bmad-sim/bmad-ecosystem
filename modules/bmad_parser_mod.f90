@@ -2740,8 +2740,8 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
 
   type (seq_struct), target :: sequence_(:)
   type (seq_struct), pointer :: seq, sub_seq
-  type (seq_ele_struct), allocatable, target :: s_ele(:)
-  type (seq_ele_struct), allocatable :: s_ele2(:)
+  type (seq_ele_struct), pointer :: s_ele(:)
+  type (seq_ele_struct), pointer :: s_ele2(:)
   type (seq_ele_struct), pointer :: this_ele
   type (ring_struct) ring
 
@@ -2928,7 +2928,7 @@ Subroutine allocate_pring (ring, pring)
 
   type (ring_struct) ring
   type (parser_ring_struct) pring
-  type (parser_ele_struct), allocatable :: temp_pele(:)
+  type (parser_ele_struct), pointer :: temp_pele(:)
 
   integer i, n_now
 
