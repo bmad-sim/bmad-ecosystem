@@ -1,11 +1,15 @@
 !+
 ! Subroutine set_taylor_order (order, override_flag)
 !
-! Subroutine to set the taylor order.
+! Subroutine to set the taylor order for the Taylor maps.
 !
 ! Note: override_flag = .false. is generally only used by bmad_parser so that
 ! if the taylor order has been previously set then the setting in the 
 ! lattice file will not override it.
+!
+! Note: Calling this routine after calling bmad_parser will not reset any
+! taylor maps made by bmad_parser. Thus when in doubt, call this routine
+! before calling bmad_parser.
 !
 ! Note: This routine does not call any of Etienne's PTC routines since this
 ! routine may be called before PTC has been initialized. This routine
