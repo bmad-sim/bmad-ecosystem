@@ -199,22 +199,18 @@ subroutine get_attribute (how, ele, ring, pring, &
 
   logical delim_found, err_flag
 
+! Get next WORD.
+! If an overlay or group element then word is just an attribute to control
+! [except for a "GROUP[COMMAND] = 0.343" redef construct]
+
+  err_flag = .true.  ! assume the worst
+  call get_next_word (word, ix_word, ':, =()', delim, delim_found, .true.)
+
 ! taylor
 
-  if (ele%key == taylor$) then
+  if (ele%key == taylor$ .and. word(1:1) == '{') then
 
-    call get_next_word (str, ix_word, '}', delim, delim_found, .true.)
-    str = trim(str) // delim
-    bp_com%parse_line = str // bp_com%parse_line
-
-    call get_next_word (word, ix_word, ',{}', delim, delim_found, .true.)
-    if (delim /= '{' .or. ix_word /= 0) then
-      call warning ('BAD TERM FOR TAYLOR ELEMENT: ' // ele%name, &
-                                              'CANNOT PARSE: ' // str)
-      return
-    endif
-
-    call get_next_word (word, ix_word, ',:}', delim, delim_found, .true.)
+    word = word(2:)             ! strip off '{'
     read (word, *, iostat = ios) i_out
     if (delim /= ':' .or. ix_word == 0 .or. ios /= 0) then
       call warning ('BAD "OUT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name, &
@@ -244,13 +240,6 @@ subroutine get_attribute (how, ele, ring, pring, &
 
     return
   endif
-
-! Get next WORD.
-! If an overlay or group element then word is just an attribute to control
-! [except for a "GROUP[COMMAND] = 0.343" redef construct]
-
-  err_flag = .true.  ! assume the worst
-  call get_next_word (word, ix_word, ':, =()', delim, delim_found, .true.)
 
   if (ele%key == overlay$) then
     i = attribute_index(ele, word)       ! general attribute search
@@ -1088,7 +1077,7 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
 
 ! get a word
 
-    call get_next_word (word, ix_word, '+-*/()^,:}', delim, delim_found)
+    call get_next_word (word, ix_word, '+-*/()^,:} ', delim, delim_found)
 
     if (delim == '*' .and. word(1:1) == '*') then
       call warning ('EXPONENTIATION SYMBOL IS "^" AS OPPOSED TO "**"!',  &

@@ -17,9 +17,9 @@
 !
 ! Input:
 !   ring       -- Ring_struct: Ring containing the elements.
-!   ix_ele     -- Integer: Index of the element. if < 0 then entire
+!   ix_ele     -- Integer, optional: Index of the element. if < 0 then entire
 !                    ring will be made. In this case group elements will
-!                    be made up last.
+!                    be made up last. Default is -1.
 !   coord(0:) -- Coord_struct, optional: Coordinates of the reference orbit
 !                   around which the matrix is calculated. If not present 
 !                   then the referemce is taken to be the origin.
@@ -45,12 +45,15 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord)
   type (coord_struct), optional, volatile :: coord(0:)
   type (ele_struct), pointer :: ele
 
-  integer i, j, ie, ix_ele, i1, ix_taylor(100), n_taylor
+  integer, optional :: ix_ele
+  integer i, j, ie, i1, ix_taylor(100), n_taylor, i_ele
 
 ! Error check
 
-  if (ix_ele == 0 .or. ix_ele > ring%n_ele_max) then
-    print *, 'ERROR IN RING_MAKE_MAT6: ELEMENT INDEX OUT OF BOUNDS:', ix_ele
+  i_ele = integer_option (-1, ix_ele)
+
+  if (i_ele == 0 .or. i_ele > ring%n_ele_max) then
+    print *, 'ERROR IN RING_MAKE_MAT6: ELEMENT INDEX OUT OF BOUNDS:', i_ele
     if (bmad_status%exit_on_error) call err_exit
     return
   endif
@@ -65,10 +68,10 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord)
   if (bmad_com%auto_bookkeeper) call compute_element_energy (ring)
 
 !--------------------------------------------------------------
-! make entire ring if ix_ele < 0
+! make entire ring if i_ele < 0
 ! first do the inter element bookkeeping
 
-  if (ix_ele < 0) then         
+  if (i_ele < 0) then         
 
     if (bmad_com%auto_bookkeeper) call control_bookkeeper (ring)
 
@@ -113,16 +116,16 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord)
 !-----------------------------------------------------------
 ! otherwise make a single element
 
-  call control_bookkeeper (ring, ix_ele)
+  call control_bookkeeper (ring, i_ele)
 
 ! for a regular element
 
-  if (ix_ele <= ring%n_ele_use) then
+  if (i_ele <= ring%n_ele_use) then
      if (present(coord)) then
-        call make_mat6(ring%ele_(ix_ele), ring%param, &
-                                  coord(ix_ele-1), coord(ix_ele), .true.)
+        call make_mat6(ring%ele_(i_ele), ring%param, &
+                                  coord(i_ele-1), coord(i_ele), .true.)
      else
-        call make_mat6(ring%ele_(ix_ele), ring%param)
+        call make_mat6(ring%ele_(i_ele), ring%param)
      endif
 
     return
@@ -130,7 +133,7 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord)
 
 ! for a control element
 
-  do i1 = ring%ele_(ix_ele)%ix1_slave, ring%ele_(ix_ele)%ix2_slave
+  do i1 = ring%ele_(i_ele)%ix1_slave, ring%ele_(i_ele)%ix2_slave
     i = ring%control_(i1)%ix_slave
      if (present(coord)) then
         call ring_make_mat6 (ring, i, coord)

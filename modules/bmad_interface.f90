@@ -709,7 +709,7 @@ interface
     implicit none
     type (ring_struct), target :: ring
     type (coord_struct), optional :: coord_(0:)
-    integer ix_ele
+    integer, optional :: ix_ele
   end subroutine
 end interface
 
