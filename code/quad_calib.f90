@@ -80,7 +80,7 @@ subroutine quad_calib (lattice, k_theory, k_base,  &
     if(rindex==0) cycle
     k_theory(ix) = ring%ele_(rindex)%value(k1$)
     len_quad(ix) = ring%ele_(rindex)%value(l$)
-    quad_rot(ix) = ring%ele_(rindex)%value(tilt$)*(180./pi)
+    quad_rot(ix) = ring%ele_(rindex)%value(tilt_tot$)*(180./pi)
   enddo
 
 ! convert k_theory to scalar computer units given the specified design energy

@@ -131,24 +131,24 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
 
 ! Set s_offset
 
-    if (ele%value(s_offset$) /= 0) &
-                      call track_a_drift (coord%vec, ele%value(s_offset$))
+    if (ele%value(s_offset_tot$) /= 0) &
+                      call track_a_drift (coord%vec, ele%value(s_offset_tot$))
 
 ! Set: Offset and pitch
 
-    if (ele%value(x_offset$) /= 0 .or. ele%value(y_offset$) /= 0 .or. &
-              ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0) then
+    if (ele%value(x_offset_tot$) /= 0 .or. ele%value(y_offset_tot$) /= 0 .or. &
+              ele%value(x_pitch_tot$) /= 0 .or. ele%value(y_pitch_tot$) /= 0) then
       if (present(s_pos)) then
         s_here = s_pos - ele%value(l$) / 2  ! position relative to center.
       else
         s_here = -ele%value(l$) / 2
       endif
-      coord%vec(1) = coord%vec(1) - ele%value(x_offset$) -  &
-                                       ele%value(x_pitch$) * s_here
-      coord%vec(2) = coord%vec(2) - ele%value(x_pitch$) * E_rel
-      coord%vec(3) = coord%vec(3) - ele%value(y_offset$) -  &
-                                         ele%value(y_pitch$) * s_here
-      coord%vec(4) = coord%vec(4) - ele%value(y_pitch$) * E_rel
+      coord%vec(1) = coord%vec(1) - ele%value(x_offset_tot$) -  &
+                                       ele%value(x_pitch_tot$) * s_here
+      coord%vec(2) = coord%vec(2) - ele%value(x_pitch_tot$) * E_rel
+      coord%vec(3) = coord%vec(3) - ele%value(y_offset_tot$) -  &
+                                         ele%value(y_pitch_tot$) * s_here
+      coord%vec(4) = coord%vec(4) - ele%value(y_pitch_tot$) * E_rel
     endif
 
 ! Set: HV kicks for quads, etc.
@@ -188,9 +188,9 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
           coord%vec(2) = coord%vec(2) + del_x_vel
           coord%vec(4) = coord%vec(4) + del_y_vel
         endif
-        call tilt_coords (ele%value(tilt$)+ele%value(roll$), coord%vec, set$)
+        call tilt_coords (ele%value(tilt_tot$)+ele%value(roll$), coord%vec, set$)
       else
-        call tilt_coords (ele%value(tilt$), coord%vec, set$)
+        call tilt_coords (ele%value(tilt_tot$), coord%vec, set$)
       endif
 
     endif
@@ -251,13 +251,13 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
     if (set_t) then
 
       if (ele%key == sbend$) then
-        call tilt_coords (ele%value(tilt$)+ele%value(roll$), coord%vec, unset$) 
+        call tilt_coords (ele%value(tilt_tot$)+ele%value(roll$), coord%vec, unset$) 
         if (ele%value(roll$) /= 0) then  
           coord%vec(2) = coord%vec(2) + del_x_vel
           coord%vec(4) = coord%vec(4) + del_y_vel
         endif
       else
-        call tilt_coords (ele%value(tilt$), coord%vec, unset$)   
+        call tilt_coords (ele%value(tilt_tot$), coord%vec, unset$)   
       endif
 
     endif
@@ -282,23 +282,23 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
 
 ! Unset: Offset and pitch
 
-    if (ele%value(x_offset$) /= 0 .or. ele%value(y_offset$) /= 0 .or. &
-              ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0) then
+    if (ele%value(x_offset_tot$) /= 0 .or. ele%value(y_offset_tot$) /= 0 .or. &
+              ele%value(x_pitch_tot$) /= 0 .or. ele%value(y_pitch_tot$) /= 0) then
       if (present(s_pos)) then
         s_here = s_pos - ele%value(l$) / 2  ! position relative to center.
       else
         s_here = ele%value(l$) / 2
       endif
-      coord%vec(1) = coord%vec(1) + ele%value(x_offset$) + &
-                                       ele%value(x_pitch$) * s_here
-      coord%vec(2) = coord%vec(2) + ele%value(x_pitch$) * E_rel
-      coord%vec(3) = coord%vec(3) + ele%value(y_offset$) +  &
-                                         ele%value(y_pitch$) * s_here
-      coord%vec(4) = coord%vec(4) + ele%value(y_pitch$) * E_rel
+      coord%vec(1) = coord%vec(1) + ele%value(x_offset_tot$) + &
+                                       ele%value(x_pitch_tot$) * s_here
+      coord%vec(2) = coord%vec(2) + ele%value(x_pitch_tot$) * E_rel
+      coord%vec(3) = coord%vec(3) + ele%value(y_offset_tot$) +  &
+                                         ele%value(y_pitch_tot$) * s_here
+      coord%vec(4) = coord%vec(4) + ele%value(y_pitch_tot$) * E_rel
     endif
 
-    if (ele%value(s_offset$) /= 0) &
-                      call track_a_drift (coord%vec, -ele%value(s_offset$))
+    if (ele%value(s_offset_tot$) /= 0) &
+                      call track_a_drift (coord%vec, -ele%value(s_offset_tot$))
 
   endif
 

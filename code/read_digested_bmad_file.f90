@@ -42,7 +42,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   character(200) fname(3), input_file_name
   character(200), allocatable :: file_names(:)
 
-  logical found_it
+  logical found_it, v66, v67, v68, v_now
 
 ! init all elements in ring
 
@@ -50,7 +50,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   call deallocate_ring_pointers (ring)
 
 ! read the digested file
-! version 66 can be read even though it is not the current version
+! versions 66, 67, and 68 can be read even though it is not the current version
 
   d_unit = lunget()
   bmad_status%ok = .true.
@@ -61,13 +61,19 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
   read (d_unit, err = 9100) n_files, version
 
+  v66 = (version == 66)
+  v67 = (version == 67)
+  v68 = (version == 68)
+  v_now = (version == bmad_inc_version$)
+
   if (version < bmad_inc_version$) then
 !    if (bmad_status%type_out) print '(1x, a, i4, a, i4)',  &
     if (bmad_status%type_out) print *,  &
            'READ_DIGESTED_BMAD_FILE: DIGESTED FILE VERSION OUT OF DATE',  &
             version, ' <', bmad_inc_version$
-    if (version == 66 .or. version == 67) then 
+    if (v66 .or. v67 .or. v68) then 
       allocate (file_names(n_files))
+      bmad_status%ok = .false.
     else
       close (d_unit)
       bmad_status%ok = .false.
@@ -97,7 +103,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   do i = 1, n_files
     read (d_unit, err = 9100) fname(1), idate_old
     call simplify_path (fname(1), fname(1))
-    if (version == 66 .or. version == 67) file_names(i) = fname(1)  ! fake out
+    if (v66 .or. v67 .or. v68) file_names(i) = fname(1)  ! fake out
     ix = index(fname(1), ';')
     stat_b = 0
     if (ix > 0) then    ! has VMS version number
@@ -126,18 +132,22 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 ! we read (and write) the ring in pieces since it is
 ! too big to write in one piece
 
-  if (version == 68) then
+  if (v68 .or. v_now) then
     read (d_unit, err = 9100)  &   
           ring%name, ring%lattice, ring%input_file_name, ring%title, &
           ring%x, ring%y, ring%z, ring%param, ring%version, ring%n_ele_ring, &
           i_garbage, ring%n_ele_use, ring%n_ele_max, &
           ring%n_control_max, ring%n_ic_max, ring%input_taylor_order
-  else
+  elseif (v66 .or. v67) then
     read (d_unit, err = 9100)  &   
           ring%name, ring%lattice, ring%input_file_name(1:80), ring%title, &
           ring%x, ring%y, ring%z, ring%param, ring%version, ring%n_ele_ring, &
           i_garbage, ring%n_ele_use, ring%n_ele_max, &
           ring%n_control_max, ring%n_ic_max, ring%input_taylor_order
+  else
+    print *, 'ERROR IN READ_DIGESTED_BMAD_FILE: INTERNAL ERROR: RING.'
+    print *, '      PLEASE GET EXPERT HELP!'
+    call err_exit
   endif
 
   call allocate_ring_ele_(ring, ring%n_ele_max+100)
@@ -149,11 +159,11 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   do i = 0, ring%n_ele_max
 
     ele => ring%ele_(i)
-    if (version == 66) then
+    if (v66) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
                               ix_srf, ix_sr, ix_lrf, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
-            ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            ele%y, ele%z, ele%value(1:34), ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%position, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -165,7 +175,21 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
             ele%logic, ele%internal_logic
       ele%field_calc = bmad_standard$
       if (ele%sub_key == 2) ele%sub_key = 3
-    else
+    elseif (v67 .or. v68) then
+      read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+                              ix_srf, ix_sr, ix_lrf, ix_lr, &
+            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
+            ele%y, ele%z, ele%value(1:34), ele%gen0, ele%vec0, ele%mat6, &
+            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%position, &
+            ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
+            ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+            ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+            ele%iyy, ele%mat6_calc_method, ele%tracking_method, &
+            ele%num_steps, ele%integration_ord, ele%ptc_kind, &
+            ele%taylor_order, ele%symplectify, ele%mode_flip, &
+            ele%multipoles_on, ele%exact_rad_int_calc, ele%Field_master, &
+            ele%logic, ele%internal_logic, ele%field_calc
+    elseif (v_now) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
                               ix_srf, ix_sr, ix_lrf, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
@@ -179,6 +203,10 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
             ele%taylor_order, ele%symplectify, ele%mode_flip, &
             ele%multipoles_on, ele%exact_rad_int_calc, ele%Field_master, &
             ele%logic, ele%internal_logic, ele%field_calc
+    else
+      print *, 'ERROR IN READ_DIGESTED_BMAD_FILE: INTERNAL ERROR: ELE.'
+      print *, '      PLEASE GET EXPERT HELP!'
+      call err_exit
     endif
 
     if (ix_wig /= 0) then
@@ -250,13 +278,6 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   enddo
 
   close (d_unit)
-
-! update for version 66
-
-  if (version == 66) then
-    call write_digested_bmad_file (digested_name, ring, n_files, file_names)
-    deallocate (file_names)
-  endif
 
   return
 

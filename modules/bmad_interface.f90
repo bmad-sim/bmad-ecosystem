@@ -228,13 +228,23 @@ module bmad_interface
   end interface
 
   interface
-    subroutine create_group (ring, ix_ele, n_control, control_)
+    subroutine create_group (ring, ix_ele, n_slave, con_)
       use bmad_struct
       implicit none
       type (ring_struct) ring
-      type (control_struct) control_(:)
+      type (control_struct) con_(:)
       integer ix_ele
-      integer n_control
+      integer n_slave
+    end subroutine
+  end interface
+
+  interface
+    subroutine create_i_beam (ring, ix_ele, ix_slave)
+      use bmad_struct
+      implicit none
+      type (ring_struct) ring
+      integer, intent(in) :: ix_ele
+      integer, intent(in) :: ix_slave(:)
     end subroutine
   end interface
 

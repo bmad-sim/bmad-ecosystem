@@ -39,7 +39,7 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 
   integer i, j, k, ix, ix1, ix_del, ix1_del, ix2_del, ixx1
   integer ix_split, ix_lord, ixc, ix_attrib, ix_super_lord
-  integer icon, ix2, inc, nr, n_ic2
+  integer icon, ix2, inc, nr, n_ic2, ct
 
   logical split_done
 
@@ -227,7 +227,8 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 8000  continue
 
   do i = ring%n_ele_ring+1, ring%n_ele_max
-    if (ring%ele_(i)%control_type == group_lord$) then
+    ct = ring%ele_(i)%control_type
+    if (ct == group_lord$ .or. ct == i_beam_lord$) then
       do j = ring%ele_(i)%ix1_slave, ring%ele_(i)%ix2_slave
         if (ring%control_(j)%ix_slave == ix_split+1) then
           if (ring%control_(j)%ix_attrib == l$) then

@@ -106,10 +106,10 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   c0t = c00
   c1t = c11
 
-  if (ele%value(tilt$) /= 0) then
+  if (ele%value(tilt_tot$) /= 0) then
     if (ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
-      call tilt_coords (ele%value(tilt$), c0t%vec, .true.)
-      call tilt_coords (ele%value(tilt$), c1t%vec, .true.)
+      call tilt_coords (ele%value(tilt_tot$), c0t%vec, .true.)
+      call tilt_coords (ele%value(tilt_tot$), c1t%vec, .true.)
     endif
   endif
 
@@ -126,13 +126,13 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
   case (patch$) 
 
-    mat6(2,6) = -ele%value(x_pitch$)
-    mat6(4,6) = -ele%value(y_pitch$)
-    mat6(5,1) =  ele%value(x_pitch$)
-    mat6(5,3) =  ele%value(y_pitch$)
+    mat6(2,6) = -ele%value(x_pitch_tot$)
+    mat6(4,6) = -ele%value(y_pitch_tot$)
+    mat6(5,1) =  ele%value(x_pitch_tot$)
+    mat6(5,3) =  ele%value(y_pitch_tot$)
 
-    if (ele%value(tilt$) /= 0) then
-      cos_a = cos(ele%value(tilt$)) ; sin_a = sin(ele%value(tilt$))
+    if (ele%value(tilt_tot$) /= 0) then
+      cos_a = cos(ele%value(tilt_tot$)) ; sin_a = sin(ele%value(tilt_tot$))
       mat6(1,1) =  cos_a ; mat6(2,2) =  cos_a
       mat6(1,3) =  sin_a ; mat6(2,4) =  sin_a
       mat6(3,1) = -sin_a ; mat6(4,2) = -sin_a
@@ -212,8 +212,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       mat6(4,1:6) = mat6(4,1:6) - mat6(3,1:6) * arg
     endif
 
-    if (ele%value(tilt$)+ele%value(roll$) /= 0) then
-      call tilt_mat6 (mat6, ele%value(tilt$)+ele%value(roll$))
+    if (ele%value(tilt_tot$)+ele%value(roll$) /= 0) then
+      call tilt_mat6 (mat6, ele%value(tilt_tot$)+ele%value(roll$))
     endif
 
     call mat6_add_multipoles_and_s_offset
@@ -271,8 +271,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
 ! tilt and multipoles
 
-    if (ele%value(tilt$) /= 0) then
-      call tilt_mat6 (mat6, ele%value(tilt$))
+    if (ele%value(tilt_tot$) /= 0) then
+      call tilt_mat6 (mat6, ele%value(tilt_tot$))
     endif
 
     call mat6_add_multipoles_and_s_offset
@@ -297,8 +297,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(2,6) = kmat2(2,1) * drift(1,6) + kmat2(2,3) * drift(3,6)
     mat6(4,6) = kmat2(4,1) * drift(1,6) + kmat2(4,3) * drift(3,6)
 
-    if (ele%value(tilt$) /= 0) then
-      call tilt_mat6 (mat6, ele%value(tilt$))
+    if (ele%value(tilt_tot$) /= 0) then
+      call tilt_mat6 (mat6, ele%value(tilt_tot$))
     endif
 
     call mat6_add_multipoles_and_s_offset
@@ -323,8 +323,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(2,6) = kmat2(2,1) * drift(1,6) + kmat2(2,3) * drift(3,6)
     mat6(4,6) = kmat2(4,1) * drift(1,6) + kmat2(4,3) * drift(3,6)
 
-    if (ele%value(tilt$) /= 0) then
-      call tilt_mat6 (mat6, ele%value(tilt$))
+    if (ele%value(tilt_tot$) /= 0) then
+      call tilt_mat6 (mat6, ele%value(tilt_tot$))
     endif
 
     call mat6_add_multipoles_and_s_offset
@@ -418,8 +418,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   case (lcavity$)
 
     f = twopi * ele%value(rf_frequency$) / c_light
-    phase = f * c0%vec(5) + twopi * ele%value(phi0$)
-    mat6(6,5) = -ele%value(gradient$) * ele%value(l$) * f * sin(phase)
+    phase = twopi * ele%value(phi0$) - f * c0%vec(5)
+    mat6(6,5) = ele%value(gradient$) * ele%value(l$) * f * sin(phase)
 
     cos_phi = cos(phase)
     gradient = ele%value(gradient$) * cos_phi 
@@ -558,8 +558,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       call bbi_slice_calc (n_slice, ele%value(sig_z$), z_slice)
 
       s_pos = 0          ! start at IP
-      orb%vec(2) = c0t%vec(2) - ele%value(x_pitch$)
-      orb%vec(4) = c0t%vec(4) - ele%value(y_pitch$)
+      orb%vec(2) = c0t%vec(2) - ele%value(x_pitch_tot$)
+      orb%vec(4) = c0t%vec(4) - ele%value(y_pitch_tot$)
       call mat_make_unit (mat4)
 
       do i = 1, n_slice + 1
@@ -654,8 +654,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4)
     mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4)
 
-    if (ele%value(tilt$) /= 0) then
-      call tilt_mat6 (mat6, ele%value(tilt$))
+    if (ele%value(tilt_tot$) /= 0) then
+      call tilt_mat6 (mat6, ele%value(tilt_tot$))
     endif
 
     call mat6_add_multipoles_and_s_offset
@@ -687,8 +687,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(5,3) = -mat6(2,6)*mat6(1,3) + mat6(1,6)*mat6(2,3) - mat6(4,6)*mat6(3,3) + mat6(3,6)*mat6(4,3)
     mat6(5,4) = -mat6(2,6)*mat6(1,4) + mat6(1,6)*mat6(2,4) - mat6(4,6)*mat6(3,4) + mat6(3,6)*mat6(4,4)
 
-    if (ele%value(tilt$) /= 0) then
-      call tilt_mat6 (mat6, ele%value(tilt$))
+    if (ele%value(tilt_tot$) /= 0) then
+      call tilt_mat6 (mat6, ele%value(tilt_tot$))
     endif
 
     call mat6_add_multipoles_and_s_offset
@@ -787,8 +787,8 @@ subroutine mat6_add_multipoles_and_s_offset
     mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
   endif
 
-  if (ele%value(s_offset$) /= 0) then
-    s_off = ele%value(s_offset$)
+  if (ele%value(s_offset_tot$) /= 0) then
+    s_off = ele%value(s_offset_tot$)
     mat6(1,:) = mat6(1,:) - s_off * mat6(2,:)
     mat6(3,:) = mat6(3,:) - s_off * mat6(4,:)
     mat6(:,2) = mat6(:,2) + mat6(:,1) * s_off

@@ -327,7 +327,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
     if (ric%use_cache) ric%cache_ele => cache%ele(ric%ele%ixx)
  
    if (key == sbend$) then
-      theta = ric%ele%value(tilt$) + ric%ele%value(roll$)
+      theta = ric%ele%value(tilt_tot$) + ric%ele%value(roll$)
       ric%g_x0 = ric%g_x0 + cos(theta) * ric%ele%value(g$)
       ric%g_y0 = ric%g_y0 - sin(theta) * ric%ele%value(g$)
     endif
@@ -339,11 +339,11 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
     ric%i3_(ir)  = ric%g2 * ric%g * ll
 
     if (key == quadrupole$ .or. key == sol_quad$) then
-      theta = ric%ele%value(tilt$)
+      theta = ric%ele%value(tilt_tot$)
       ric%k1 = ric%ele%value(k1$) * cos(2*theta)
       ric%s1 = ric%ele%value(k1$) * sin(2*theta)
     elseif (key == sbend$) then
-      theta = ric%ele%value(tilt$) + ric%ele%value(roll$)
+      theta = ric%ele%value(tilt_tot$) + ric%ele%value(roll$)
       ric%k1 = ric%ele%value(k1$) * cos(2*theta)
       ric%s1 = ric%ele%value(k1$) * sin(2*theta)
     else

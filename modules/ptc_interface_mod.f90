@@ -1697,7 +1697,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
   el%ld   = ele%value(l$)
   el%lc   = ele%value(l$)
 
-  el%tilt = ele%value(tilt$)
+  el%tilt = ele%value(tilt_tot$)
 
 !
 
@@ -1766,7 +1766,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
         hk = -hk
         vk = -vk
       endif
-      el%tilt = -atan2 (hk, vk) + ele%value(tilt$)
+      el%tilt = -atan2 (hk, vk) + ele%value(tilt_tot$)
     endif
     el%volt = 1e-6 * param%beam_energy * sqrt(hk**2 + vk**2)
     call multipole_ele_to_ab (ele, param%particle, an0, bn0, .false.) 
@@ -1815,8 +1815,8 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
       kick_here = .true.
     endif
     if (kick_here) then
-      cos_t = cos(ele%value(tilt$))
-      sin_t = sin(ele%value(tilt$))
+      cos_t = cos(ele%value(tilt_tot$))
+      sin_t = sin(ele%value(tilt_tot$))
       el%k(1)  = -hk * cos_t - vk * sin_t
       el%ks(1) = -hk * sin_t + vk * cos_t
     endif
@@ -1900,11 +1900,11 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 ! In PTC the reference point for the offsets is the beginning of the element.
 ! In BMAD the reference point is the center of the element..
 
-  x_off = ele%value(x_offset$)-ele%value(l$)*ele%value(x_pitch$)
-  y_off = ele%value(y_offset$)-ele%value(l$)*ele%value(y_pitch$)
+  x_off = ele%value(x_offset_tot$)-ele%value(l$)*ele%value(x_pitch_tot$)
+  y_off = ele%value(y_offset_tot$)-ele%value(l$)*ele%value(y_pitch_tot$)
 
   mis_rot = (/ x_off, y_off, 0.0_rp, &
-              -ele%value(y_pitch$), -ele%value(x_pitch$),  0.0_rp /)
+              -ele%value(y_pitch_tot$), -ele%value(x_pitch_tot$),  0.0_rp /)
 
   fiber = mis_rot  ! call fibre_mis
 

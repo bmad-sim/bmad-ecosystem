@@ -70,7 +70,7 @@ subroutine ring_geometry (ring)
 ! General case
 
     if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
-                    (key == sbend$ .and. ele%value(tilt$) /= 0)) then
+                    (key == sbend$ .and. ele%value(tilt_tot$) /= 0)) then
 
       if (old_theta /= theta) then
         s_the = sin(theta); c_the = cos(theta)

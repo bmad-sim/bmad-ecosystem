@@ -69,7 +69,7 @@ end subroutine
 !
 ! Subroutine to put the multipole components (strength and tilt)
 ! into 2 vectors along with the appropriate scaling.
-! Note: tilt(:) does includes ele%value(tilt$).
+! Note: tilt(:) does includes ele%value(tilt_tot$).
 !
 ! Modules needed:
 !   use bmad
@@ -77,7 +77,7 @@ end subroutine
 ! Input:
 !   ele          -- Ele_struct: Multipole element.
 !   particle     -- Integer: Particle species (+1 or -1).
-!   use_ele_tilt -- Logical: If True then include ele%value(tilt$) 
+!   use_ele_tilt -- Logical: If True then include ele%value(tilt_tot$) 
 !                     in calculations.
 !
 ! Output:
@@ -110,7 +110,7 @@ subroutine multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)
                     
   if (ele%key == multipole$) then
     knl  = ele%a
-    tilt = ele%b + ele%value(tilt$)
+    tilt = ele%b + ele%value(tilt_tot$)
     return
   endif
 
@@ -118,7 +118,7 @@ subroutine multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)
 
   call multipole_ele_to_ab (ele, particle, a, b, .false.)
   call multipole_ab_to_kt (a, b, knl, tilt)
-  if (use_ele_tilt) tilt = tilt + ele%value(tilt$)
+  if (use_ele_tilt) tilt = tilt + ele%value(tilt_tot$)
 
 end subroutine
 
@@ -192,7 +192,7 @@ end subroutine
 !     %value()     -- ab_multipole values.
 !   particle     -- Integer: Particle species (positron$, etc.).
 !                     To be used with electrostatic elements.
-!   use_ele_tilt -- Logical: If True then include ele%value(tilt$) 
+!   use_ele_tilt -- Logical: If True then include ele%value(tilt_tot$) 
 !                     in calculations.
 !
 ! Output:
@@ -241,12 +241,12 @@ subroutine multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)
 
 ! use tilt?
 
-  if (use_ele_tilt .and. ele%value(tilt$) /= 0) then
+  if (use_ele_tilt .and. ele%value(tilt_tot$) /= 0) then
     do n = 0, n_pole_maxx
       if (a(n) /= 0 .or. b(n) /= 0) then
         an = a(n); bn = b(n)
-        cos_t = cos((n+1)*ele%value(tilt$))
-        sin_t = sin((n+1)*ele%value(tilt$))
+        cos_t = cos((n+1)*ele%value(tilt_tot$))
+        sin_t = sin((n+1)*ele%value(tilt_tot$))
         b(n) =  bn * cos_t + an * sin_t
         a(n) = -bn * sin_t + an * cos_t
       endif

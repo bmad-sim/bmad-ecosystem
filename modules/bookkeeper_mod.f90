@@ -25,8 +25,8 @@ contains
 !   use bmad
 !
 ! Input:
-!   RING   -- Ring_struct: Ring to be used
-!   IX_ELE -- Integer: Index of element whose attribute values have been
+!   ring   -- Ring_struct: Ring to be used
+!   ix_ele -- Integer: Index of element whose attribute values have been
 !               changed.
 !-
 
@@ -76,13 +76,16 @@ subroutine control_bookkeeper (ring, ix_ele)
 
     if (ele%control_type == group_lord$) then
       call makeup_group_slaves (ring, ix)
+      call attribute_bookkeeper (ring%ele_(ix), ring%param)
 
     elseif (ele%control_type == super_lord$ .and. ele%n_lord > 0) then
       call adjust_super_lord_s_position (ring, ix)
       call makeup_overlay_slave (ring, ix)
+      call attribute_bookkeeper (ring%ele_(ix), ring%param)
 
     elseif (ele%control_type == overlay_lord$ .and. ele%n_lord > 0) then
       call makeup_overlay_slave (ring, ix)
+      call attribute_bookkeeper (ring%ele_(ix), ring%param)
 
     endif
 
@@ -97,9 +100,11 @@ subroutine control_bookkeeper (ring, ix_ele)
 
     if (ele%control_type == super_slave$) then
       call makeup_super_slave (ring, ix)
+      call attribute_bookkeeper (ring%ele_(ix), ring%param)
 
     elseif (ele%control_type == overlay_slave$) then
       call makeup_overlay_slave (ring, ix)
+      call attribute_bookkeeper (ring%ele_(ix), ring%param)
 
     endif
 
@@ -424,10 +429,10 @@ subroutine makeup_super_slave (ring, ix_slave)
 
     if (lord%is_on) then
 
-      x_p = lord%value(x_pitch$);  x_o = lord%value(x_offset$)
-      y_p = lord%value(y_pitch$);  y_o = lord%value(y_offset$)
+      x_p = lord%value(x_pitch_tot$);  x_o = lord%value(x_offset_tot$)
+      y_p = lord%value(y_pitch_tot$);  y_o = lord%value(y_offset_tot$)
 
-      s_del = s_slave - (lord%s + lord%value(s_offset$) - lord%value(l$)/2)
+      s_del = s_slave - (lord%s + lord%value(s_offset_tot$) - lord%value(l$)/2)
       s_del = modulo2 (s_del, ring%param%total_length/2)
 
       ks = lord%value(ks$)
@@ -443,7 +448,7 @@ subroutine makeup_super_slave (ring, ix_slave)
       x_kick = x_kick + lord%value(hkick$) * coef
       y_kick = y_kick + lord%value(vkick$) * coef
 
-      tilt = lord%value(tilt$)
+      tilt = lord%value(tilt_tot$)
       cos_2 = lord%value(k1$) * cos(2 * tilt)
       sin_2 = lord%value(k1$) * sin(2 * tilt)
 
@@ -589,11 +594,11 @@ subroutine makeup_overlay_slave (ring, ix_ele)
   implicit none
 
   type (ring_struct), target :: ring
-  type (ele_struct), pointer :: ele
+  type (ele_struct), pointer :: ele, i_beam
 
-  real(rp) value(n_attrib_maxx), coef
+  real(rp) value(n_attrib_maxx), coef, ds
   integer i, j, ix, iv, ix_ele, icom, ct
-  logical used(n_attrib_maxx)
+  logical used(n_attrib_maxx), i_beam_here
 
 !
                                
@@ -610,16 +615,34 @@ subroutine makeup_overlay_slave (ring, ix_ele)
 
   value = 0
   used = .false.
+  i_beam_here = .false.
 
   do i = ele%ic1_lord, ele%ic2_lord
     j = ring%ic_(i)
     ix = ring%control_(j)%ix_lord
+
+    if (ring%ele_(ix)%control_type == i_beam_lord$) then
+      i_beam => ring%ele_(ix)
+      ds = (ele%s - ele%value(l$)/2) - i_beam%value(s_center$) 
+      ele%value(x_offset_tot$) = ele%value(x_offset$) + &
+                     ds * i_beam%value(x_pitch$) + i_beam%value(x_offset$)
+      ele%value(y_offset_tot$) = ele%value(y_offset$) + &
+                     ds * i_beam%value(y_pitch$) + i_beam%value(y_offset$)
+      ele%value(s_offset_tot$) = ele%value(s_offset$) + i_beam%value(s_offset$)
+      ele%value(x_pitch_tot$)  = ele%value(x_pitch$)  + i_beam%value(x_pitch$)
+      ele%value(y_pitch_tot$)  = ele%value(y_pitch$)  + i_beam%value(y_pitch$)
+      ele%value(tilt_tot$)     = ele%value(tilt$)     + i_beam%value(tilt$)
+      i_beam_here = .true.
+      cycle
+    endif
+
     if (ring%ele_(ix)%control_type /= overlay_lord$) then
       print *, 'ERROR IN MAKEUP_OVERLAY_SLAVE:',  &
                           ' THE LORD IS NOT AN OVERLAY_LORD', ix_ele
       call type_ele (ele, .true., 0, .false., 0, .true., ring)
       call err_exit
     endif     
+
     coef = ring%control_(j)%coef
     iv = ring%control_(j)%ix_attrib
     icom = ring%ele_(ix)%ix_value
@@ -627,10 +650,19 @@ subroutine makeup_overlay_slave (ring, ix_ele)
     used(iv) = .true.
   enddo
 
-  do i = 1, n_attrib_maxx
-    if (used(i)) ele%value(i) = value(i)
-  enddo
-                                            
+  where (used) ele%value = value
+
+! If no i_beam then simply transfer tilt to tilt_tot, etc.
+
+  if (.not. i_beam_here) then
+    ele%value(tilt_tot$)     = ele%value(tilt$)
+    ele%value(x_offset_tot$) = ele%value(x_offset$)
+    ele%value(y_offset_tot$) = ele%value(y_offset$)
+    ele%value(s_offset_tot$) = ele%value(s_offset$)
+    ele%value(x_pitch_tot$)  = ele%value(x_pitch$)
+    ele%value(y_pitch_tot$)  = ele%value(y_pitch$)
+  endif
+
 end subroutine
 
 !--------------------------------------------------------------------------
@@ -689,7 +721,19 @@ subroutine attribute_bookkeeper (ele, param)
 
   real(rp) r, factor, check_sum
   real(rp), save :: old_energy = 0, p
-  
+
+! Transfer tilt to tilt_tot, etc.
+! If ele is an overlay_slave then this is handled in makeup_overlay_slave.
+
+  if (ele%control_type /= overlay_slave$) then
+    ele%value(tilt_tot$)     = ele%value(tilt$)
+    ele%value(x_offset_tot$) = ele%value(x_offset$)
+    ele%value(y_offset_tot$) = ele%value(y_offset$)
+    ele%value(s_offset_tot$) = ele%value(s_offset$)
+    ele%value(x_pitch_tot$)  = ele%value(x_pitch$)
+    ele%value(y_pitch_tot$)  = ele%value(y_pitch$)
+  endif
+
 ! field_master
 
   if (ele%field_master) then
@@ -791,18 +835,20 @@ subroutine attribute_bookkeeper (ele, param)
 
     if (ele%value(charge$) == 0 .or. param%n_part == 0) then
       ele%value(bbi_const$) = 0
-      return
-    endif
 
-    if (ele%value(sig_x$) == 0 .or. ele%value(sig_y$) == 0) then
-      print *, 'ERROR IN ATTRIBUTE_BOOKKEEPER: ZERO SIGMA IN BEAMBEAM ELEMENT!'
-      call type_ele(ele, .true., 0, .false., 0, .false.)
-      stop
-    endif
+    else
 
-    ele%value(bbi_const$) = &
+      if (ele%value(sig_x$) == 0 .or. ele%value(sig_y$) == 0) then
+        print *, 'ERROR IN ATTRIBUTE_BOOKKEEPER: ZERO SIGMA IN BEAMBEAM ELEMENT!'
+        call type_ele(ele, .true., 0, .false., 0, .false.)
+        call err_exit
+      endif
+
+      ele%value(bbi_const$) = &
         -param%n_part * m_electron * ele%value(charge$) * r_e /  &
         (2 * pi * ele%value(beam_energy$) * (ele%value(sig_x$) + ele%value(sig_y$)))
+
+    endif
 
 ! Elseparator
 

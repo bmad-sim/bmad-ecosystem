@@ -96,7 +96,7 @@ subroutine track_it (start, real_track, calc_mat6)
 ! element offset 
 
   if (calc_mat6) then
-    call drift_mat6_calc (mat6, ele%value(s_offset$), end%vec)
+    call drift_mat6_calc (mat6, ele%value(s_offset_tot$), end%vec)
   endif
 
   if (real_track) call offset_particle (ele, param, end, set$, set_canonical = .false.)
@@ -286,12 +286,12 @@ subroutine track_it (start, real_track, calc_mat6)
 ! element offset
 
   if (calc_mat6) then
-    call drift_mat6_calc (m6, -ele%value(s_offset$), end%vec)
+    call drift_mat6_calc (m6, -ele%value(s_offset_tot$), end%vec)
     mat6(1,1:6) = mat6(1,1:6) + m6(1,2) * mat6(2,1:6) + m6(1,6) * mat6(6,1:6)
     mat6(3,1:6) = mat6(3,1:6) + m6(3,4) * mat6(4,1:6) + m6(3,6) * mat6(6,1:6)
     mat6(5,1:6) = mat6(5,1:6) + m6(5,2) * mat6(2,1:6) + m6(5,4) * mat6(4,1:6) + m6(5,6) * mat6(6,1:6)
 
-    if (ele%value(tilt$) /= 0) call tilt_mat6 (mat6, ele%value(tilt$))
+    if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
   if (real_track) call offset_particle (ele, param, end, unset$, set_canonical = .false.)

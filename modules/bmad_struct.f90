@@ -11,27 +11,13 @@ module bmad_struct
 
   use tpsalie_analysis, only: genfield
 
-! The "regular" elements are in positions: 1 to RING.N_ELE_RING
-! regular elements are:
-!     1) Superimpose slaves:      SUPER_SLAVE$
-!     2) Overlay slaves:          OVERLAY_SLAVE$
-!     3) Free:                    FREE$
-!
-! The "control" elements are in positions: RING.N_ELE_RING+1 to RING.N_ELE_MAX
-!
-! The control elements are:
-!     1) Superimposed controllers:      SUPER_LORD$
-!     2) Overlay controllers:           OVERLAY_LORD$
-!     3) Group controllers:             GROUP_LORD$
-!-
-
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 
-  integer, parameter :: bmad_inc_version$ = 68
+  integer, parameter :: bmad_inc_version$ = 69
 
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -41,7 +27,7 @@ module bmad_struct
 
 ! parameter def
 
-  integer, parameter :: n_attrib_maxx = 34
+  integer, parameter :: n_attrib_maxx = 40
 
 ! Structure for a particle's coordinates.
 ! Coordinates are with respect to the reference trajectory.
@@ -233,7 +219,6 @@ module bmad_struct
                               (/ "X  ", "P_x", "Y  ", "P_y", "Z  ", "P_z" /)
 
 ! KEY value definitions
-! Note: overlay$ == overlay_lord$ 
 ! Note: sbend$ and rbend$ also used for sub_key
 
   integer, parameter :: drift$ = 1, sbend$ = 2, quadrupole$ = 3, group$ = 4
@@ -248,9 +233,9 @@ module bmad_struct
   integer, parameter :: null_ele$ = 27, init_ele$ = 28, hom$ = 29
   integer, parameter :: matrix$ = 30, monitor$ = 31, instrument$ = 32
   integer, parameter :: hkicker$ = 33, vkicker$ = 34, rcollimator$ = 35
-  integer, parameter :: ecollimator$ = 36
+  integer, parameter :: ecollimator$ = 36, i_beam$ = 37
 
-  integer, parameter :: n_key = 36
+  integer, parameter :: n_key = 37
 
   character(16) :: key_name(n_key+1) = (/ &
     'DRIFT        ', 'SBEND        ', 'QUADRUPOLE   ', 'GROUP        ', &
@@ -262,7 +247,7 @@ module bmad_struct
     'LCAVITY      ', 'DEF PARAMETER', 'NULL_ELEMENT ', 'INIT_ELEMENT ', &
     'HOM          ', 'MATRIX       ', 'MONITOR      ', 'INSTRUMENT   ', &
     'HKICKER      ', 'VKICKER      ', 'RCOLLIMATOR  ', 'ECOLLIMATOR  ', &
-    '             ' /)
+    'I_BEAM       ', '             ' /)
 
 ! Attribute name logical definitions
 ! Note: The following attributes must have unique number assignments:
@@ -299,13 +284,13 @@ module bmad_struct
   integer, parameter :: ks$=7, voltage$=7, e1$=7, n_pole$=7, bbi_const$=7
   integer, parameter :: e2$=8, charge$=8, gap$=8
   integer, parameter :: n_slice$=9, l_chord$=9, l_pole$=9, rf_frequency$=9
-  integer, parameter :: fint$=10, polarity$ = 10, gradient$=10
-  integer, parameter :: fintx$=11, z_patch$ = 11, phi0$=11
-  integer, parameter :: rho$ = 12
+  integer, parameter :: fint$=10, polarity$=10, gradient$=10
+  integer, parameter :: fintx$=11, z_patch$=11, phi0$=11
+  integer, parameter :: rho$=12, s_center$=12
   integer, parameter :: hgap$=13, energy_start$=13
   integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14
   integer, parameter :: roll$=15
-  integer, parameter :: l_original$ = 16
+  integer, parameter :: l_original$=16
   integer, parameter :: l_start$=17, h1$=17
   integer, parameter :: l_end$=18, h2$=18
   integer, parameter :: x_pitch$=19
@@ -314,34 +299,40 @@ module bmad_struct
   integer, parameter :: vkick$=22
   integer, parameter :: x_offset$=23
   integer, parameter :: y_offset$=24
-  integer, parameter :: s_offset$=25, z_offset$ = 25
-  integer, parameter :: dE_offset$ = 26, check_sum$ = 26
+  integer, parameter :: s_offset$=25, z_offset$=25
+  integer, parameter :: dE_offset$=26, check_sum$=26
   integer, parameter :: x_limit$=27
   integer, parameter :: y_limit$=28
   integer, parameter :: aperture$=29
   integer, parameter :: radius$=30
-  integer, parameter :: beam_energy$=31 
-  integer, parameter :: rel_tol$ = 32
-  integer, parameter :: abs_tol$ = 33
-  integer, parameter :: B_field$ = 34, B_gradient$ = 34
-  integer, parameter :: E_field$ = 34, E_gradient$ = 34
+  integer, parameter :: beam_energy$=31
+  integer, parameter :: rel_tol$=32
+  integer, parameter :: abs_tol$=33
+  integer, parameter :: B_field$=34, B_gradient$=34, &
+                             E_field$=34, E_gradient$=34
+  integer, parameter :: tilt_tot$=35
+  integer, parameter :: x_pitch_tot$=36
+  integer, parameter :: y_pitch_tot$=37
+  integer, parameter :: x_offset_tot$=38
+  integer, parameter :: y_offset_tot$=39
+  integer, parameter :: s_offset_tot$=40
 
-  integer, parameter :: type$ = 35   ! this is 1 greater than n_attrib_maxx
-  integer, parameter :: alias$ = 36 
-  integer, parameter :: start_edge$ = 37     
-  integer, parameter :: end_edge$ = 38       
-  integer, parameter :: accordion_edge$ = 39, sr_wake_file$ = 39 
-  integer, parameter :: symmetric_edge$ = 40, lr_wake_file$ = 40
-  integer, parameter :: mat6_calc_method$ = 41
-  integer, parameter :: tracking_method$  = 42
-  integer, parameter :: num_steps$ = 43
-  integer, parameter :: integration_ord$ = 44
-  integer, parameter :: term$ = 45
-  integer, parameter :: ptc_kind$ = 46
-  integer, parameter :: symplectify$ = 47
-  integer, parameter :: descrip$ = 48
-  integer, parameter :: is_on$ = 49
-  integer, parameter :: field_calc$ = 50
+  integer, parameter :: type$ = 41   ! this is 1 greater than n_attrib_maxx
+  integer, parameter :: alias$ = 42 
+  integer, parameter :: start_edge$ = 43     
+  integer, parameter :: end_edge$ = 44     
+  integer, parameter :: accordion_edge$ = 45, sr_wake_file$ = 45 
+  integer, parameter :: symmetric_edge$ = 46, lr_wake_file$ = 46
+  integer, parameter :: mat6_calc_method$ = 47
+  integer, parameter :: tracking_method$  = 48
+  integer, parameter :: num_steps$ = 49
+  integer, parameter :: integration_ord$ = 50
+  integer, parameter :: term$ = 51
+  integer, parameter :: ptc_kind$ = 52
+  integer, parameter :: symplectify$ = 53
+  integer, parameter :: descrip$ = 54
+  integer, parameter :: is_on$ = 55
+  integer, parameter :: field_calc$ = 56
 
 ! Warning: No other attribute parameters can have indexes larger than A0$.
 ! That is: multipole arrays An, Bn, KnL, and Tn must have the largest indexes
@@ -426,15 +417,15 @@ module bmad_struct
   logical, parameter :: remove_markers$ = .true., no_remove_markers$ = .false.
 
 ! control element logicals
-! Note: Must have overlay_lord$ == overlay$ !!
 
   integer, parameter :: free$ = 1, super_slave$ = 2, overlay_slave$ = 3
   integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
+  integer, parameter :: i_beam_lord$ = 7
 
-  character(16) :: control_name(7) = (/ &
+  character(16) :: control_name(8) = (/ &
             'FREE_ELEMENT   ', 'SUPER_SLAVE    ', 'OVERLAY_SLAVE  ', &
             'GROUP_LORD     ', 'SUPER_LORD     ', 'OVERLAY_LORD   ', &
-            '               ' /)
+            'I_BEAM_LORD    ', '               ' /)
 
 ! plane list, etc
 

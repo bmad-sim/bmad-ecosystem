@@ -1421,7 +1421,8 @@ subroutine word_to_value (word, ring, value)
 
 ! None of the above? must be a variable
 
-  call find_indexx (word, bp_com%var_name, bp_com%var_indexx, bp_com%ivar_tot, i)
+  call find_indexx (word, bp_com%var_name, &
+                                    bp_com%var_indexx, bp_com%ivar_tot, i)
 
   if (i == 0) then
     call warning ('VARIABLE USED BUT NOT YET DEFINED: ' // word)
@@ -1451,7 +1452,8 @@ subroutine parser_add_variable (word, ring)
 
 !
 
-  call find_indexx (word, bp_com%var_name, bp_com%var_indexx, bp_com%ivar_tot, i)
+  call find_indexx (word, bp_com%var_name, &
+                                    bp_com%var_indexx, bp_com%ivar_tot, i)
   if (i /= 0) then
     call warning ('VARIABLES ARE NOT ALLOWED TO BE REDEFINED: ' // word)
     call evaluate_value (word, bp_com%var_value(i), ring, &
@@ -2207,6 +2209,7 @@ subroutine add_all_superimpose (ring, ele_in, pele)
       ic = this_ele%control_type
        
       if (ic == group_lord$ .or. ic == super_slave$) cycle
+      if (ic == i_beam_lord$) cycle
       if (this_ele%iyy == 1) cycle
 
       if (match_wild(this_ele%name, pele%ref_name)) then
@@ -2325,7 +2328,7 @@ subroutine compute2_super_lord_s (ring, i_ref, ele, pele)
   type (ele_struct)  ele
   type (parser_ele_struct) pele
 
-  integer i_ref, i, ix
+  integer i_ref, i, ix, ct
 
   real(rp) s_ref_begin, s_ref_end
 
@@ -2344,7 +2347,8 @@ subroutine compute2_super_lord_s (ring, i_ref, ele, pele)
 
 !
 
-  if (ring%ele_(i_ref)%control_type == overlay_lord$) then
+  ct = ring%ele_(i_ref)%control_type
+  if (ct == overlay_lord$ .or. ct == i_beam_lord$) then
     s_ref_begin = 1e10
     s_ref_end = 0
     do i = ring%ele_(i_ref)%ix1_slave, ring%ele_(i_ref)%ix2_slave
@@ -2353,7 +2357,7 @@ subroutine compute2_super_lord_s (ring, i_ref, ele, pele)
                          ring%ele_(ix)%s - ring%ele_(ix)%value(l$))
       s_ref_end = max(s_ref_end, ring%ele_(ix)%s)
     enddo
-  elseif (ring%ele_(i_ref)%control_type == group_lord$) then
+  elseif (ct == group_lord$) then
     call warning ('SUPERPOSING: ' // ele%name, 'UPON GROUP' // pele%ref_name)
     return
   else
@@ -2405,6 +2409,7 @@ end subroutine
 !   ix2_match -- Integer, optional: 
 !                  If a match is found then
 !                              an_indexx(ix2_match) = ix_match
+!                              names(an_indexx(ix2_match-1)) /= name
 !                  If no match is found then 
 !                    for j = an_indexx(ix2_match):
 !                              names(j) > name
@@ -2442,6 +2447,11 @@ subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match)
     this_name = names(an_indexx(ix2))
 
     if (this_name == name) then
+      do ! if there are duplicate names in the list choose the first one
+        if (ix2 == 1) exit
+        if (names(an_indexx(ix2-1)) /= this_name) exit
+        ix2 = ix2 - 1
+      enddo
       ix_match = an_indexx(ix2)
       if (present(ix2_match)) ix2_match = ix2
       return
@@ -2696,105 +2706,6 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! subroutine find_slaves_for_parser (ring, name_, attrib_name_, coef, cs_)
-!
-! Subroutine to find where the slaves are in a ring for a overlay_lord or
-! group_lord. If multiple elements have the same name then use all of them.
-! This subroutine is used by bmad_parser and bmad_parser2.
-! This subroutine is not intended for general use.
-!-
-
-subroutine find_slaves_for_parser (ring, name_, attrib_name_, coef_, cs_)
-
-  implicit none
-
-  type (ring_struct), target :: ring
-  type (ele_struct), pointer :: ele
-  type (control_struct), pointer :: cs_(:)
-
-  real(rp), pointer :: coef_(:)
-
-  integer i, j, k, k2, ixl, ix
-  integer, allocatable :: r_indexx(:)
-
-  character(16) :: name_(:), attrib_name_(:)
-  character(16) name
-
-! allocate
-
-  if (.not. allocated(r_indexx)) then
-    allocate (r_indexx(ring%n_ele_maxx))
-  elseif (size(r_indexx) < ring%n_ele_maxx) then
-    deallocate (r_indexx)
-    allocate (r_indexx(ring%n_ele_maxx))
-  endif
-
-  if (.not. associated(cs_)) then
-    allocate (cs_(1000))
-  elseif (size(cs_) < 1000) then
-    deallocate (cs_)
-    allocate (cs_(1000))
-  endif
-
-! ring%n_ele_max is the index of the lord
-
-  ixl = ring%n_ele_max
-  ele => ring%ele_(ixl)
-
-  call indexx (ring%ele_(1:ixl-1)%name, r_indexx(1:ixl-1))
-
-  j = 0
-  do i = 1, ele%n_slave
-
-    call find_indexx (name_(i), ring%ele_(1:ixl)%name, r_indexx(1:ixl), ixl-1, k, k2)
-    if (k == 0) then
-      call warning ('CANNOT FIND SLAVE FOR: ' // ele%name, &
-                    'CANNOT FIND: '// name_(i))
-      cycle
-    endif
-
-    do
-      if (k2 == 1) exit
-      if (ring%ele_(r_indexx(k2-1))%name == name_(i)) then
-        k2 = k2 - 1
-      else
-        exit
-      endif
-    enddo
-
-    do 
-      j = j + 1
-      k = r_indexx(k2)
-      cs_(j)%coef = coef_(i)
-      cs_(j)%ix_slave = k
-      cs_(j)%ix_lord = -1             ! dummy value
-      name = attrib_name_(i)
-      if (name == blank) then
-        cs_(j)%ix_attrib = ele%ix_value
-      else
-        ix = attribute_index(ring%ele_(k), name)
-        cs_(j)%ix_attrib = ix
-        if (ix < 1) then
-          call warning ('BAD ATTRIBUTE NAME: ' // name, &
-                        'IN ELEMENT: ' // ele%name)
-        endif
-      endif
-      k2 = k2 + 1
-      if (k2 > ixl-1) exit
-      k = r_indexx(k2)
-      if (ring%ele_(k)%name /= name_(i)) exit
-    enddo
-
-  enddo
-
-  ele%n_slave = j
-
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
 ! Subroutine allocate_pring (ring, pring) 
 !
 ! Subroutine to allocate allocatable array sizes.
@@ -2839,6 +2750,230 @@ Subroutine allocate_pring (ring, pring)
     pring%ele(i)%common_lord = .false.
     ring%ele_(i)%ixx = i
   enddo
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine parser_add_lord (in_ring, n1, n2, pring, ring)
+!
+! Subroutine to add overlay, group, and i_beam lords.
+! For overlays and groups: If multiple elements have the same name then 
+! use all of them.
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine parser_add_lord (in_ring, n1, n2, pring, ring)
+
+  implicit none
+
+  type (ring_struct), target :: in_ring, ring
+  type (ele_struct), pointer :: ele
+  type (parser_ring_struct) pring
+  type (control_struct), pointer, save :: cs_(:) => null()
+
+  integer ixx, i, ic, n, n1, n2, k, k2, ix, j, ie, ij, ix1
+  integer ix_lord, ix_slave(1000)
+  integer, allocatable, save :: r_indexx(:)
+
+  character(16), allocatable :: name_(:)
+  character(16) name, name1, name2, attrib_name
+
+  logical delete
+
+! setup
+
+  n = ring%n_ele_max + n2 - n1 + 1000
+
+  allocate (r_indexx(n))
+  allocate (name_(n))
+  allocate (cs_(1000))
+
+  ix1 = ring%n_ele_max
+  name_(1:ix1) = ring%ele_(1:ix1)%name
+  call indexx (name_(1:ix1), r_indexx(1:ix1)) ! get sorted list
+
+! loop over elements
+
+  main_loop: do n = n1, n2
+
+    ele => in_ring%ele_(n)
+
+!-----------------------------------------------------
+! overlay and groups
+
+    select case (ele%control_type)
+    case (overlay_lord$, group_lord$)
+ 
+      call new_control (ring, ix_lord)
+      ring%ele_(ix_lord) = ele
+      ixx = ele%ixx
+
+! find where the slave elements are
+
+      j = 0 ! number of slaves found
+
+      do i = 1, ele%n_slave
+
+        name = pring%ele(ixx)%name_(i)
+        call find_indexx (name, name_, r_indexx, ix1, k, k2)
+        if (k == 0) then
+          call warning ('CANNOT FIND SLAVE FOR: ' // ele%name, &
+                        'CANNOT FIND: '// name)
+          cycle
+        endif
+
+! There might be more than 1 element with %name = name. 
+! Loop over all elements whose name matches name.
+! Put the info into the cs_ structure.
+
+        do 
+          j = j + 1
+          k = r_indexx(k2)
+          cs_(j)%coef = pring%ele(ixx)%coef_(i)
+          cs_(j)%ix_slave = k
+          cs_(j)%ix_lord = -1             ! dummy value
+          attrib_name = pring%ele(ixx)%attrib_name_(i)
+          if (attrib_name == blank) then
+            cs_(j)%ix_attrib = ele%ix_value
+          else
+            ix = attribute_index(ring%ele_(k), attrib_name)
+            cs_(j)%ix_attrib = ix
+            if (ix < 1) then
+              call warning ('BAD ATTRIBUTE NAME: ' // attrib_name, &
+                            'IN ELEMENT: ' // ele%name)
+            endif
+          endif
+          k2 = k2 + 1
+          if (k2 > ix1-1) exit
+          k = r_indexx(k2)
+          if (ring%ele_(k)%name /= name) exit ! exit loop if no more matches
+        enddo
+
+      enddo
+
+      ele%n_slave = j
+
+! put the element name in the list r_indexx list
+
+      call find_indexx (ele%name, ring%ele_(1:ix1)%name, &
+                                             r_indexx(1:ix1), ix1-1, k, k2)
+      ix1 = ix1 + 1
+      r_indexx(k2+1:ix1) = r_indexx(k2:ix1-1)
+      r_indexx(k2) = ix1
+      name_(ix1) = ele%name
+
+! create the lord
+
+      select case (ele%control_type)
+      case (overlay_lord$)
+        call create_overlay (ring, ix_lord, ele%ix_value, ele%n_slave, cs_)
+      case (group_lord$)
+        call create_group (ring, ix_lord, ele%n_slave, cs_)
+      end select
+
+!-----------------------------------------------------
+! i_beam
+
+    case (i_beam_lord$) 
+
+      ixx = ele%ixx
+      name1 = pring%ele(ixx)%name_(1)
+      name2 = pring%ele(ixx)%name_(ele%n_slave)
+
+      call find_indexx (name1, name_, r_indexx, ix1, k, k2)
+      if (k == 0) then
+        call warning ('CANNOT FIND START ELEMENT FOR: ' // ele%name, &
+                      'CANNOT FIND: '// name)
+        cycle
+      endif
+
+! Loop over all matches to the first name.
+
+      do 
+
+        if (k > ring%n_ele_ring) then ! must be a super_lord.
+          ix = ring%ele_(k)%ix1_slave
+          k = ring%control_(ix)%ix_slave
+        endif
+
+        j = 0  ! number of slaves found
+        do 
+          if (ring%ele_(k)%control_type == super_slave$) then
+            do ic = ring%ele_(k)%ic1_lord, ring%ele_(k)%ic2_lord
+              ie = ring%control_(ic)%ix_lord
+              if (any(ix_slave(1:j) == ie)) cycle
+              j = j + 1
+              ix_slave(j) = ie
+              if (ring%ele_(ie)%name == name2) then
+                ix = ring%ele_(ie)%ix2_slave
+                if (k == ring%control_(ix)%ix_slave) exit
+              endif
+            enddo
+          else
+            if (ring%ele_(k)%key == drift$) cycle
+            j = j + 1
+            ix_slave(j) = k
+            if (ring%ele_(k)%name == name2) exit
+          endif
+          k = k + 1
+          if (j == 20 .or. k == ring%n_ele_ring+1) then
+            call warning ('CANNOT FIND END ELEMENT FOR I_BEAM: ' // &
+                                          ele%name, 'CANNOT FIND: ' // name2)
+            cycle main_loop
+          endif
+        enddo
+
+! delete elements
+
+        do i = 2, ele%n_slave-1
+          name = pring%ele(ixx)%name_(i)
+          delete = .false.
+          if (name(1:1) == '-') then
+            name = name(2:)
+            delete = .true.
+          endif
+          do ij = 1, j
+            ix = ix_slave(ij)
+            if (name == ring%ele_(ix)%name) exit
+          enddo
+          if (ij == j + 1) then
+            call warning ('CANNOT FIND ELEMENT FOR I_BEAM: ' // &
+                                          ele%name, 'CANNOT FIND: ' // name)
+            exit
+          endif
+          if (delete) then
+            ix_slave(ij:j-1) = ix_slave(ij+1:j)
+            j = j - 1
+          endif
+        enddo
+
+        call new_control (ring, ix_lord)
+        ring%ele_(ix_lord) = ele
+
+! create the i_beam element
+
+        call create_i_beam (ring, ix_lord, ix_slave(1:j))
+
+        k2 = k2 + 1
+        k = r_indexx(k2)
+        if (ring%ele_(k)%name /= name1) exit
+
+      enddo 
+
+    end select
+
+  enddo main_loop
+
+! cleanup
+
+  deallocate (r_indexx)
+  deallocate (name_)
+  deallocate (cs_)
 
 end subroutine
 

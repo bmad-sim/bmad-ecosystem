@@ -286,7 +286,7 @@ subroutine track1_bmad (start, ele, param, end)
       call err_exit
     endif
 
-    phase = twopi * (ele%value(phi0$) + &
+    phase = twopi * (ele%value(phi0$) - &
                         end%vec(5) * ele%value(rf_frequency$) / c_light)
     cos_phi = cos(phase)
     gradient = ele%value(gradient$) * cos_phi 

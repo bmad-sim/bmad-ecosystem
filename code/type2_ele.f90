@@ -55,6 +55,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
   integer, intent(out) :: n_lines
   integer i, j, k, n, twiss_out, ix, iv, ic, ct, nl2
   integer nl, nt, n_max, i_max, particle
+  integer pos_tot(n_attrib_maxx)
 
   real(rp) coef
   real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
@@ -73,7 +74,15 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
 ! init
 
   allocate (li(300))
-  
+
+  pos_tot = 0
+  pos_tot(x_offset$) = x_offset_tot$
+  pos_tot(y_offset$) = y_offset_tot$
+  pos_tot(s_offset$) = s_offset_tot$
+  pos_tot(tilt$)     = tilt_tot$
+  pos_tot(x_pitch$)  = x_pitch_tot$
+  pos_tot(y_pitch$)  = y_pitch_tot$
+
 ! Encode element name and type
 
   ct = ele%control_type
@@ -125,11 +134,24 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
 
     else
       do i = 1, n_attrib_maxx
-        if (attribute_name(ele, i) /= null_name) then
-          if (ele%value(i) /= 0 .or. type_zero_attrib) then
-            nl = nl + 1
+        if (attribute_name(ele, i) == null_name) cycle
+        ix = pos_tot(i)
+        if (ix == 0) then
+          if (ele%value(i) == 0 .and. .not. type_zero_attrib) cycle
+          nl = nl + 1
+          write (li(nl), '(i6, 3x, 2a, 1pe13.5)')  i, &
+                        attribute_name(ele, i), ' =', ele%value(i)
+        else
+          if (ele%value(i) == 0 .and. ele%value(ix) == 0 .and. &
+                                                 .not. type_zero_attrib) cycle
+          nl = nl + 1
+          if (ele%value(ix) == ele%value(i)) then
             write (li(nl), '(i6, 3x, 2a, 1pe13.5)')  i, &
-                         attribute_name(ele, i), ' =', ele%value(i)
+                        attribute_name(ele, i), ' =', ele%value(i)
+          else
+            write (li(nl), '(i6, 3x, 2a, 1pe13.5, 4x, a, e13.5)')  i, &
+                        attribute_name(ele, i), ' =', ele%value(i), &
+                        'Total:', ele%value(ix)
           endif
         endif
       enddo
@@ -285,7 +307,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
           j = ring%control_(i)%ix_slave
           iv = ring%control_(i)%ix_attrib
           coef = ring%control_(i)%coef
-          if (ct == super_lord$) then
+          if (ct == super_lord$ .or. ct == i_beam_lord$) then
             a_name = '--------'
           elseif (ring%ele_(j)%control_type == overlay_lord$) then
             if (iv == ring%ele_(j)%ix_value) then
@@ -313,7 +335,8 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
           j = ring%control_(ic)%ix_lord
           coef = ring%control_(ic)%coef
           ct = ele%control_type
-          if (ct == super_slave$) then
+          if (ct == super_slave$ .or. &
+                            ring%ele_(j)%control_type == i_beam_lord$) then
             a_name = '--------'
             val_str = '    --------'
           else

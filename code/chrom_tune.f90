@@ -68,7 +68,7 @@ subroutine chrom_tune(ring, delta_e, target_x, target_y, err_tol, err_flag)
 
   do i = 1, size(ix_sex)
     ix = ix_sex(i)
-    if (ring%ele_(ix)%value(tilt$) /= 0) then
+    if (ring%ele_(ix)%value(tilt_tot$) /= 0) then
       sex_type(i) = n_plane$  ! do not use tilted sextupoles 
     elseif ((ring%ele_(ix_sex(i))%x%beta) > & 
                       (ring%ele_(ix_sex(i))%y%beta)) then

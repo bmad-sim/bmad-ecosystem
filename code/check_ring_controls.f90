@@ -27,6 +27,7 @@ subroutine check_ring_controls (ring, exit_on_error)
   integer n_count, ix1, ix2, ii
 
   logical exit_on_error, found_err, good_control(10,10)
+  logical i_beam_here
 
 ! check energy
 
@@ -40,9 +41,10 @@ subroutine check_ring_controls (ring, exit_on_error)
 
   good_control = .false.
   good_control(group_lord$, (/ group_lord$, overlay_lord$, super_lord$, &
-                                            free$, overlay_slave$ /)) = .true.
+                              i_beam_lord$, free$, overlay_slave$ /)) = .true.
+  good_control(i_beam_lord$, (/ super_lord$, overlay_slave$ /)) = .true.
   good_control(overlay_lord$, (/ overlay_lord$, &
-           overlay_slave$, super_lord$ /)) = .true.
+                       i_beam_lord$, overlay_slave$, super_lord$ /)) = .true.
   good_control(super_lord$, (/ super_slave$ /)) = .true.
 
   found_err = .false.
@@ -68,7 +70,7 @@ subroutine check_ring_controls (ring, exit_on_error)
       endif                                             
     else                                                         
       if (t_type == super_lord$ .or. t_type == overlay_lord$ .or. &
-          t_type == group_lord$) then
+          t_type == group_lord$ .or. t_type == i_beam_lord$) then
         print *, 'ERROR IN CHECK_RING_CONTROLS: ELEMENT: ', ele%name
         print *, '      WHICH IS A: ', control_name(t_type)
         print *, '      IS IN THE REGULAR PART OF RING LIST AT', i_t
@@ -76,7 +78,7 @@ subroutine check_ring_controls (ring, exit_on_error)
       endif
     endif
 
-    if (.not. any( (/ free$, super_slave$, overlay_slave$, &
+    if (.not. any( (/ free$, super_slave$, overlay_slave$, i_beam_lord$, &
                     super_lord$, overlay_lord$, group_lord$ /) == t_type)) then
       print *, 'ERROR IN CHECK_RING_CONTROLS: ELEMENT: ', ele%name
       print *, '      HAS UNKNOWN CONTROL INDEX: ', t_type
@@ -178,7 +180,7 @@ subroutine check_ring_controls (ring, exit_on_error)
         found_err = .true.
       endif
 
-      if (t_type /= group_lord$) then
+      if (t_type /= group_lord$ .and. t_type /= i_beam_lord$) then
         n = ele2%ic2_lord - ele2%ic1_lord + 1
         cc(1:n) = (/ (ring%ic_(i), i = ele2%ic1_lord, ele2%ic2_lord) /)
         if (.not. any(ring%control_(cc(1:n))%ix_lord == i_t)) then
@@ -192,6 +194,8 @@ subroutine check_ring_controls (ring, exit_on_error)
     enddo      
 
 ! check lords
+
+    i_beam_here = .false.
 
     do ix = ele%ic1_lord, ele%ic2_lord
 
@@ -237,6 +241,16 @@ subroutine check_ring_controls (ring, exit_on_error)
         print *, '      WHICH IS A: ', control_name(t2_type)
         found_err = .true.
       endif
+
+      if (t2_type == i_beam_lord$) then
+        if (i_beam_here) then
+          print *, 'ERROR IN CHECK_RING_CONTROLS: SLAVE: ', ele%name, i_t
+          print *, '      HAS MORE THAN ONE I_BEAM_LORD.'
+          found_err = .true.
+        endif
+        i_beam_here = .true.
+      endif
+
 
     enddo
 

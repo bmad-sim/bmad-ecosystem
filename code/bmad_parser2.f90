@@ -40,7 +40,6 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   type (ele_struct), pointer :: ele
   type (coord_struct), optional :: orbit_(0:)
   type (parser_ring_struct) pring
-  type (control_struct), pointer :: cs_(:) => null()
 
   integer ix_word, ick, i, j, k, ix, ixe, ix_lord
   integer jmax, i_key, last_con, ic, ixx, ele_num, ct
@@ -321,21 +320,23 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
       endif
 
 ! now get the attribute values.
-! For control elements RING.ELE_().IXX temporarily points to
+! For control elements RING%ELE_()%IXX temporarily points to
 ! the pring structure where storage for the control lists is
                    
       key = ring%ele_(n_max)%key
 
-      if (key == overlay$ .or. key == group$) then
+      if (key == overlay$ .or. key == group$ .or. key == i_beam$) then
         if (delim /= '=') then
           call warning ('EXPECTING: "=" BUT GOT: ' // delim,  &
                       'FOR ELEMENT: ' // ring%ele_(n_max)%name)
         else
-          ring%ele_(n_max)%control_type = key
+          if (key == overlay$) ring%ele_(n_max)%control_type = overlay_lord$
+          if (key == group$)   ring%ele_(n_max)%control_type = group_lord$
+          if (key == i_beam$)  ring%ele_(n_max)%control_type = i_beam_lord$
           call get_overlay_group_names(ring%ele_(n_max), ring,  &
                                               pring, delim, delim_found)
         endif
-        if (.not. delim_found) then
+        if (key /= i_beam$ .and. .not. delim_found) then
           call warning ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
                         'FOR ELEMENT: ' // ring%ele_(n_max)%name)
           n_max = n_max - 1
@@ -410,22 +411,9 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
     endif
   enddo
 
-! Go through and create the overlay and group lord elements.
+! Go through and create the overlay, i_beam, and group lord elements.
 
-  do i = 1, ele_num
-    ct = r_temp%ele_(i)%control_type
-    if (ct /= group_lord$ .and. ct /= overlay_lord$) cycle
-    call new_control (ring, ix_lord)
-    ring%ele_(ix_lord) = r_temp%ele_(i)
-    call find_slaves_for_parser (ring, pring%ele(i)%name_, &
-                   pring%ele(i)%attrib_name_, pring%ele(i)%coef_, cs_)
-    ele => ring%ele_(ix_lord)
-    if (ct == overlay_lord$) then
-      call create_overlay (ring, ix_lord, ele%ix_value, ele%n_slave, cs_)
-    else
-      call create_group (ring, ix_lord, ele%n_slave, cs_)
-    endif
-  enddo
+  call parser_add_lord (r_temp, 1, ele_num, pring, ring)
 
 ! make matrices for entire ring
 

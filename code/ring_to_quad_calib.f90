@@ -74,7 +74,7 @@ subroutine ring_to_quad_calib (ring, cesr, k_theory, k_base,  &
     if(rindex/=0) then
       k_theory(cindex) = ring%ele_(rindex)%value(k1$)
       len_quad(cindex) = ring%ele_(rindex)%value(l$)
-      quad_rot(cindex) = ring%ele_(rindex)%value(tilt$)*(180./pi)
+      quad_rot(cindex) = ring%ele_(rindex)%value(tilt_tot$)*(180./pi)
     endif
   enddo
       

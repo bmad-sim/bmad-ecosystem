@@ -182,9 +182,9 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
     y = y - ele%value(y_offset$) - ele%value(y_pitch$) * s_rel
   endif
 
-  if (ele%value(tilt$) /= 0) then
-    cos_ang = cos(ele%value(tilt$))
-    sin_ang = sin(ele%value(tilt$))
+  if (ele%value(tilt_tot$) /= 0) then
+    cos_ang = cos(ele%value(tilt_tot$))
+    sin_ang = sin(ele%value(tilt_tot$))
     x =  cos_ang * x + sin_ang * y
     y = -sin_ang * x + cos_ang * y
   endif
@@ -322,7 +322,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
 !----------------------
 ! convert fields to lab coords
 
-  if (ele%value(tilt$) /= 0) then
+  if (ele%value(tilt_tot$) /= 0) then
 
     fd = field%B
     field%B(1) = cos_ang * fd(1) - sin_ang * fd(2)

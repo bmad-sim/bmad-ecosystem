@@ -52,7 +52,6 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   type (parser_ring_struct) pring
   type (seq_stack_struct) stack(20)
   type (ele_struct), save, pointer :: ele, old_ele(:) => null()
-  type (control_struct), pointer :: cs_(:) => null()
 
   integer, allocatable :: ix_ring(:)
   integer, allocatable :: seq_indexx(:), in_indexx(:)
@@ -473,7 +472,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
 ! Element definition.
 ! we need to get the attribute values for the element.
-! For control elements RING.ELE_()%IXX temporarily points to
+! For control elements RING%ELE_()%IXX temporarily points to
 ! the PRING%ELE() array where storage for the control lists is
 
       key = in_ring%ele_(n_max)%key
@@ -493,18 +492,21 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
         call add_taylor_term (in_ring%ele_(n_max), 6, 1.0_rp, (/ 0, 0, 0, 0, 0, 1 /)) 
       endif
 
-      if (key == overlay$ .or. key == group$) then
+      if (key == overlay$ .or. key == group$ .or. key == i_beam$) then
         if (delim /= '=') then
           call warning ('EXPECTING: "=" BUT GOT: ' // delim,  &
                       'FOR ELEMENT: ' // in_ring%ele_(n_max)%name)
           cycle parsing_loop        
         endif
 
-        in_ring%ele_(n_max)%control_type = key
+        if (key == overlay$) in_ring%ele_(n_max)%control_type = overlay_lord$
+        if (key == group$)   in_ring%ele_(n_max)%control_type = group_lord$
+        if (key == i_beam$)  in_ring%ele_(n_max)%control_type = i_beam_lord$
+
         call get_overlay_group_names(in_ring%ele_(n_max), in_ring, &
                                                     pring, delim, delim_found)
 
-        if (.not. delim_found) then
+        if (key /= i_beam$ .and. .not. delim_found) then
           call warning ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
                         'FOR ELEMENT: ' // in_ring%ele_(n_max)%name)
           cycle parsing_loop
@@ -947,24 +949,9 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
     call add_all_superimpose (ring, in_ring%ele_(i), pring%ele(i))
   enddo
 
-! Now put in the overlay_lord and group elements
+! Now put in the overlay_lord, i_beam, and group elements
 
-  do i = 1, n_max
-    ct = in_ring%ele_(i)%control_type
-    if (ct /= overlay_lord$ .and. ct /= group_lord$) cycle
-    ring%n_ele_max = ring%n_ele_max + 1
-    if (ring%n_ele_max > ring%n_ele_maxx) call allocate_ring_ele_(ring) 
-    ixs = ring%n_ele_max
-    ring%ele_(ixs) = in_ring%ele_(i)
-    call find_slaves_for_parser (ring, pring%ele(i)%name_, &
-                   pring%ele(i)%attrib_name_, pring%ele(i)%coef_, cs_)
-    ele => ring%ele_(ixs)
-    if (ct == overlay_lord$) then
-      call create_overlay (ring, ixs, ele%ix_value, ele%n_slave, cs_)
-    else
-      call create_group (ring, ixs, ele%n_slave, cs_)
-    endif
-  enddo
+  call parser_add_lord (in_ring, 1, n_max, pring, ring)
 
 ! make matrices for entire ring
 

@@ -50,14 +50,16 @@ subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
 
   implicit none
 
-  type (ring_struct)  ring
-  type (ele_struct)  slave_ele, over_ele
+  type (ring_struct), target :: ring
+  type (ele_struct), pointer :: slave, lord
   type (control_struct)  con_(:)
 
   integer i, j, ix, ix2, ixc, ix_overlay, n_con2
   integer ix_slave, n_slave, ix_value, slave_type, idel
 
 ! Mark element as an overlay lord
+
+  lord => ring%ele_(ix_overlay)
 
   ix = ring%n_control_max
   n_con2 = ix + n_slave
@@ -69,48 +71,43 @@ subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
     ring%control_(ix+j)%ix_lord = ix_overlay
   enddo
 
-  ring%ele_(ix_overlay)%ix_value = ix_value
-  ring%ele_(ix_overlay)%n_slave = n_slave
-  ring%ele_(ix_overlay)%ix1_slave = ix + 1
-  ring%ele_(ix_overlay)%ix2_slave = ix + n_slave
+  lord%ix_value = ix_value
+  lord%n_slave = n_slave
+  lord%ix1_slave = ix + 1
+  lord%ix2_slave = ix + n_slave
+  lord%control_type = overlay_lord$
+  lord%key = overlay$
   ring%n_control_max = n_con2
-  ring%ele_(ix_overlay)%control_type = overlay_lord$
-  ring%ele_(ix_overlay)%key = overlay$
 
 ! Loop over all slaves
 ! Free elements convert to overlay slaves.
 
-  over_ele = ring%ele_(ix_overlay)
-
-  do i = over_ele%ix1_slave, over_ele%ix2_slave
+  do i = lord%ix1_slave, lord%ix2_slave
 
     ix_slave = ring%control_(i)%ix_slave
-
     if (ix_slave <= 0) then
       print *, 'ERROR IN CREATE_OVERLAY: INDEX OUT OF BOUNDS.', ix_slave
       call err_exit
     endif
 
-    slave_ele = ring%ele_(ix_slave)
-    slave_type = slave_ele%control_type
+    slave => ring%ele_(ix_slave)
+    slave_type = slave%control_type
 
-    if (slave_type == free$) ring%ele_(ix_slave)%control_type =  &
-                                                            overlay_slave$
+    if (slave_type == free$) slave%control_type = overlay_slave$
 
-! You cannot overlay super_slaves or overlay_lords
+! You cannot overlay super_slaves 
 
     if (slave_type == super_slave$) then
-      print *, 'ERROR IN CREATE_OVERLAY: ILLEGAL OVERLAY ON ',  &
-                                             ring%ele_(ix_slave)%name
-      print *, '      BY: ', over_ele%name
+      print *, 'ERROR IN CREATE_OVERLAY: ILLEGAL OVERLAY ON ', slave%name
+      print *, '      BY: ', lord%name
       call err_exit
     endif
 
 ! update controller info for the slave ele
 
-    ring%ele_(ix_slave)%n_lord = slave_ele%n_lord + 1
+    slave%n_lord = slave%n_lord + 1
     call adjust_control_struct (ring, ix_slave)
-    ixc = ring%ele_(ix_slave)%ic2_lord
+    ixc = slave%ic2_lord
     ring%ic_(ixc) = i
 
   enddo

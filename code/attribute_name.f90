@@ -58,6 +58,7 @@ function attribute_name (ele, ix_att) result (at_name)
       if (i == init_ele$) cycle
       if (i == group$)    cycle
       if (i == overlay$)  cycle
+      if (i == i_beam$)   cycle
 
       attrib_array(i, x_limit$)     = 'X_LIMIT'
       attrib_array(i, y_limit$)     = 'Y_LIMIT'
@@ -143,6 +144,14 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(matrix$, alpha_y1$)      = 'ALPHA_Y1'
     attrib_array(matrix$, dphi_x$)        = 'DPHI_X'
     attrib_array(matrix$, dphi_y$)        = 'DPHI_Y'
+
+    attrib_array(i_beam$, x_offset$)     = 'X_OFFSET'
+    attrib_array(i_beam$, y_offset$)     = 'Y_OFFSET'
+    attrib_array(i_beam$, s_offset$)     = 'S_OFFSET'
+    attrib_array(i_beam$, x_pitch$)      = 'X_PITCH'
+    attrib_array(i_beam$, y_pitch$)      = 'Y_PITCH'
+    attrib_array(i_beam$, s_center$)     = 'S_CENTER'
+    attrib_array(i_beam$, tilt$)         = 'TILT'
 
     attrib_array(lcavity$, l$)             = 'L'
     attrib_array(lcavity$, energy_start$)  = 'ENERGY_START'

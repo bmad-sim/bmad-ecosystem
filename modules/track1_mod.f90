@@ -66,8 +66,8 @@ subroutine check_aperture_limit (orb, ele, param)
   if (x_lim == 0 .and. y_lim == 0) return
 
   l2 = ele%value(l$) / 2
-  x_beam = orb%vec(1) - ele%value(x_offset$)  ! - ele%value(x_pitch$) * l2
-  y_beam = orb%vec(3) - ele%value(y_offset$)  ! - ele%value(y_pitch$) * l2
+  x_beam = orb%vec(1) - ele%value(x_offset_tot$)  ! - ele%value(x_pitch$) * l2
+  y_beam = orb%vec(3) - ele%value(y_offset_tot$)  ! - ele%value(y_pitch$) * l2
 
   if (ele%key == ecollimator$) then
     if (x_lim == 0 .or. y_lim == 0) then
