@@ -426,3 +426,107 @@ PGPLOT defines a text background index:
    1 to 255 - Opaque with the number specifying the color index.
 \end{example}
 
+%----------------------------------------------------------------------------
+\section{Structures}
+\label{s:qp_structs}
+
+Quick Plot uses several structures to hold data. The structure that
+defines the ``state'' of Quick Plot is \vn{qp_state_struct} The
+definition of \vn{qp_state_struct} is shown in
+Figure~\ref{f:qp_state_struct}. 
+
+\begin{figure}[htb]
+\centering
+\begin{verbatim}
+  type qp_state_struct
+    type (qp_plot_struct) plot        ! Plot axes parameters.
+    type (qp_rect_struct) page        ! Size of the plot page.
+    type (qp_rect_struct) box         ! Position of the box on the page.
+    type (qp_rect_struct) graph       ! Position of the graph on the page.
+    type (qp_rect_struct) margin      ! Margin widths between box and graph.
+    type (qp_rect_struct) border      ! Border widths around edge of page.
+    type (qp_text_struct) main_title  ! Default plot page title style.
+    type (qp_text_struct) graph_title ! Default graph title style.
+    type (qp_text_struct) legend      ! Default legend style.
+    type (qp_text_struct) text        ! Default text style.
+    type (qp_text_struct) axis_number ! Default axis numbering style.
+    type (qp_text_struct) axis_label  ! Default axis label style.
+    type (qp_text_struct) this_text   ! Style of current text being drawn.
+    type (qp_symbol_struct) symbol    ! Default symbol style.
+    type (qp_line_struct) std_line    ! Default line style.
+    type (qp_line_struct) plot_line   ! Default plotting line style.
+    type (qp_line_struct) axis_line   ! Default axis line style.
+    type (qp_line_struct) grid_line   ! Default grid line style.
+    real(rp) text_height_factor       ! pgplot text height units / points
+    real(rp) text_spacing_factor 
+    integer text_background 
+    logical subgraph_on = .false.
+    logical clip = .false.
+    logical buffer = .false.          ! Internal variable
+    logical uniform_symbol_size 
+    character(16) page_type              ! 'PS', 'X', etc.
+    character(8) dflt_draw_units(3)   ! Default units for draw routines.
+    character(8) dflt_set_units(3)    ! Default units for set routines.
+    integer dflt_units
+    character(80) plot_file
+  end type
+\end{verbatim}
+\caption{Definition of the \tn{qp\_state\_struct}.}
+\label{f:qp_state_struct}
+\end{figure}
+
+The \vn{%plot} component of the \vn{qp_state_struct} holds information
+about the plot axes. The definition of the \vn{qp_plot_struct} is
+shown in Figure~\ref{f:qp_plot_struct}. \vn{%x} and \vn{%x2} are the
+left and right axes, and \vn{%y} and \vn{%y2} are the bottom and top
+axes respectively.
+
+
+\begin{figure}[htb]
+\centering
+\begin{verbatim}
+  type qp_plot_struct
+    character(80) title = ' '
+    type (qp_axis_struct) x, y, x2, y2
+    logical draw_box    = .true.
+    logical draw_title  = .true.
+    logical draw_grid   = .true.
+    logical limit_plot
+  end type          
+\end{verbatim}
+\caption{Definition of the \tn{qp\_plot\_struct}.}
+\label{f:qp_plot_struct}
+\end{figure}
+
+The definition of the \vn{qp_axis_struct} is given in
+Figure~\ref{f:qp_axis_struct}.
+
+
+\begin{figure}[htb]
+\centering
+\begin{verbatim}
+  type qp_axis_struct
+    character(80) label       ! Axis label.
+    real(rp) min              ! Axis minimum number.
+    real(rp) max              ! Axis maximum number.
+    real(rp) number_offset    ! Offset of numbering from the axis line.
+    real(rp) label_offset     ! Offset of the label from the numbering.
+    real(rp) major_tick_len   ! Length of the major ticks in inches.
+    real(rp) minor_tick_len   ! Length of the minor ticks in inches.
+    integer major_div         ! Number of major divisions.
+    integer minor_div         ! Number of minor divisions.
+    integer minor_div_max     ! Maximum number for auto choose.
+    integer places            ! Places after the decimal point.
+    character(16) type        ! For log scales. Not yet implemented.
+    integer tick_side         ! +1 = up or right, 0 = both, -1 = down or left.
+    integer number_side       ! +1 = up or right, -1 = down or left.
+    logical draw_label        ! Draw the label?
+    logical draw_numbers      ! Draw the numbering?
+    logical mirror_on         ! Draw x2 axis same as x axis?
+  end type
+\end{verbatim}
+\caption{Definition of the \tn{qp\_axis\_struct}.}
+\label{f:qp_axis_struct}
+\end{figure}
+
+The \vn{qp_axis_struct} defines

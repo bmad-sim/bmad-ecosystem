@@ -12,6 +12,7 @@ available in \mad.  A word of caution: In some cases where both \mad\
 and \bmad\ provide the same element type, there will be an overlap of 
 the attributes available but the two sets of attributes will not be the same.
 The list of element types known to \bmad\ is shown in Table~\ref{tab:elements}.
+
 \begin{table}[h]
 \centering
 {\tt
@@ -104,8 +105,10 @@ any demand for it.
 \toffset
 
 A \vn{BeamBeam} element simulates an interaction with an opposing
-(``strong'') beam traveling in the opposite direction. The strong 
-beam is assumed to be Gaussian in shape.
+(``strong'') beam traveling in the opposite direction. The strong beam
+is assumed to be Gaussian in shape. In the \vn{bmad_standard}
+calculation the beam--beam kick is computed using the
+Bassetti--Erskine complex error function formula\cite{b:talman}
 
 The magnitude of the strong beam's charge is set by the \vn{beam}
 command (see \ref{s:beam}).  The sign of the strong beam's charge is
