@@ -51,8 +51,8 @@ subroutine transfer_matrix_calc (lat, rf_on, t_mat, ix1, ix2)
 
   call mat_make_unit (t_mat)
 
-  i1 = integer_option(ix1, 0) 
-  i2 = integer_option(ix2, lat%n_ele_use) 
+  i1 = integer_option(0, ix1) 
+  i2 = integer_option(lat%n_ele_use, ix2) 
 
   if (i2 < i1) then
     do i = i1+1, lat%n_ele_use
