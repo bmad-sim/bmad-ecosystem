@@ -1074,7 +1074,7 @@ subroutine init_macro_distribution (beam, init, ele, &
   type (bunch_struct), pointer :: bunch
   type (macro_struct), pointer :: macro
 
-  real(rp) z_fudge, e_fudge, z_rel, dz, e_rel, de, ex, ey, dE_E, z
+  real(rp) z_fudge, e_fudge, z_rel, dz, e_rel, ex, ey, dE, z, E0, del_e
   real(rp) mat4(4,4), v_mat(4,4), v_inv_mat(4,4), r(4)
 
   integer i, j, k
@@ -1092,12 +1092,13 @@ subroutine init_macro_distribution (beam, init, ele, &
 
   z_fudge = 2 * gauss_int(init%sig_z_cut)
   e_fudge = 2 * gauss_int(init%sig_e_cut)
+  E0 = ele%value(beam_energy$)
 
   bunch => beam%bunch(1)
   bunch%charge = init%n_part * e_charge
 
-  ex = init%x%norm_emit * m_electron / ele%value(beam_energy$)
-  ey = init%y%norm_emit * m_electron / ele%value(beam_energy$)
+  ex = init%x%norm_emit * m_electron / E0
+  ey = init%y%norm_emit * m_electron / E0
 
   do j = 1, init%n_slice
     dz = init%sig_z_cut / init%n_slice
@@ -1107,16 +1108,16 @@ subroutine init_macro_distribution (beam, init, ele, &
 
     do k = 1, init%n_macro
       macro => bunch%slice(j)%macro(k)
-      de = init%sig_e_cut / init%n_macro
-      e_rel = (2*k - 1 - init%n_macro) * de
+      del_e = init%sig_e_cut / init%n_macro
+      e_rel = (2*k - 1 - init%n_macro) * del_e
       macro%charge = bunch%slice(j)%charge * &
-                           (gauss_int(e_rel+de) - gauss_int(e_rel-de)) / e_fudge
+                           (gauss_int(e_rel+del_e) - gauss_int(e_rel-del_e)) / e_fudge
       macro%r%vec = init%center
       z = init%center(5) + init%sig_z * z_rel 
       macro%r%vec(5) = init%center(5) + init%sig_z * z_rel 
-      dE_E = (init%center(6) + init%dPz_dz * z + e_rel * init%sig_e) 
-      macro%r%vec(6) = ele%value(beam_energy$) * (1+ dE_E)
-      r = (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /) * dE_E
+      dE = init%center(6) + init%dPz_dz * z * E0 + e_rel * init%sig_e
+      macro%r%vec(6) = E0 + dE
+      r = (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /) * (dE / E0)
       ele%x%gamma = (1+ele%x%alpha**2) / ele%x%beta
       ele%y%gamma = (1+ele%y%alpha**2) / ele%y%beta
       macro%sigma = 0
@@ -1134,7 +1135,7 @@ subroutine init_macro_distribution (beam, init, ele, &
       endif
       macro%lost = .false.
       if (canonical_out) &
-              call mp_to_canonical_coords (macro, ele%value(beam_energy$))
+              call mp_to_canonical_coords (macro, E0)
     enddo
   enddo
 
