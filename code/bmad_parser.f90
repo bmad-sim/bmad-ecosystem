@@ -85,6 +85,8 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! Note: The name of the digested file depends upon the real precision.
 
   bp_com%parser_name = 'BMAD_PARSER'  ! Used for error messages.
+  bp_com%write_digested = .true.
+
 
   inquire (file = in_file, name = full_name)      ! full input file_name
   ix = index(full_name, ';')
@@ -103,8 +105,15 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   if (bmad_status%ok) then
     call set_taylor_order (ring%input_taylor_order, .false.)
     call set_ptc (ring%param)
-    if (present(digested_read_ok)) digested_read_ok = .true.
-    return
+    if (ring%input_taylor_order == bmad_com%taylor_order) then
+      if (present(digested_read_ok)) digested_read_ok = .true.
+      return
+    else
+      if (bmad_status%type_out) &
+                  print *, 'BMAD_PARSER: Taylor_order has changed.'
+      if (ring%input_taylor_order > bmad_com%taylor_order) &
+                                           bp_com%write_digested = .false.
+    endif
   endif
 
   if (present(digested_read_ok)) digested_read_ok = .false.
@@ -1056,7 +1065,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
 ! write to digested file
 
-  if (.not. bp_com%no_digested .and. .not. bp_com%parser_debug .and. &
+  if (bp_com%write_digested .and. .not. bp_com%parser_debug .and. &
       digested_version <= bmad_inc_version$) call write_digested_bmad_file  &
                (digested_file, ring, bp_com%n_files, bp_com%file_name_)
 

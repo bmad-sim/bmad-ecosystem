@@ -544,6 +544,7 @@ subroutine set_ptc (param, taylor_order, integ_order, &
       call init (default, taylor_order, 0, berz, nd2, &
                                                bmad_com%real_8_map_init)
       bmad_com%taylor_order_ptc = taylor_order
+      bmad_com%taylor_order     = taylor_order
     endif
   endif
   

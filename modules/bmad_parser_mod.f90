@@ -105,7 +105,7 @@ module bmad_parser_mod
     character*280 parse_line
     character(16) parser_name
     character*72 debug_line
-    logical parser_debug, no_digested, error_flag
+    logical parser_debug, write_digested, error_flag
     integer iseq_tot, ivar_tot, ivar_init
   end type
 
@@ -785,14 +785,13 @@ subroutine load_parse_line (how, ix_cmd, file_end)
 
   if (how == 'init') then
     bp_com%parser_debug = .false.
-    bp_com%no_digested = .false.
     read (bp_com%f_unit, '(a)', end = 9000) line
     if (index(line, '!PARSER_DEBUG') /= 0) then
       bp_com%parser_debug = .true.
       bp_com%debug_line = line
       print *, 'FOUND IN FILE: "!PARSER_DEBUG". DEBUG IS NOW ON'
     elseif (index(line, '!NO_DIGESTED') /= 0) then
-      bp_com%no_digested = .true.
+      bp_com%write_digested = .false.
       print *, 'FOUND IN FILE: "!NO_DIGESTED". NO DIGESTED FILE WILL BE CREATED'
     endif
     rewind (unit = bp_com%f_unit)
