@@ -441,10 +441,10 @@ raw_pretzing_13[type]:="CSR PRETZING  13"
 use, cesr
 
  ! Vars not in original file
-RF_W1[VOLT] := 1.5e6
-RF_W2[VOLT] := 1.5e6
-RF_E1[VOLT] := 1.5e6
-RF_E2[VOLT] := 1.5e6
+RF_W1[voltage] := 1.5e6
+RF_W2[voltage] := 1.5e6
+RF_E1[voltage] := 1.5e6
+RF_E2[voltage] := 1.5e6
 RF_W1[HARMON] := 1281
 RF_W2[HARMON] := 1281
 RF_E1[HARMON] := 1281

@@ -200,10 +200,10 @@ Q00W[K1] =  k1_00 ; Q00E[K1] = Q00W[K1]
 Q00W[TILT] = q00_tilt ;  Q00E[TILT] = -Q00W[TILT]
 
 
-RF_W1[VOLT] := 1.5e6 *1.88/5.289
-RF_W2[VOLT] := 1.5e6 *1.88/5.289
-RF_E1[VOLT] := 1.5e6 *1.88/5.289
-RF_E2[VOLT] := 1.5e6 *1.88/5.289
+RF_W1[voltage] := 1.5e6 *1.88/5.289
+RF_W2[voltage] := 1.5e6 *1.88/5.289
+RF_E1[voltage] := 1.5e6 *1.88/5.289
+RF_E2[voltage] := 1.5e6 *1.88/5.289
 RF_W1[HARMON] := 1281
 RF_W2[HARMON] := 1281
 RF_E1[HARMON] := 1281

@@ -112,10 +112,10 @@ V_SEP_48W[VKICK] :=  0.001       ; V_SEP_48E[VKICK] :=  V_SEP_48W[VKICK]
 !H_SEP_45 : overlay = {H_SEP_45W, H_SEP_45E/-1.0}, HKICK =  4.73856E-04
 !V_SEP_48 : overlay = {V_SEP_48W, V_SEP_48E/1.0}, VKICK =   0.001
  
-RF_W1[VOLT] := 1.5e6
-RF_W2[VOLT] := 1.5e6
-RF_E1[VOLT] := 1.5e6
-RF_E2[VOLT] := 1.5e6
+RF_W1[voltage] := 1.5e6
+RF_W2[voltage] := 1.5e6
+RF_E1[voltage] := 1.5e6
+RF_E2[voltage] := 1.5e6
 RF_W1[HARMON] := 1281
 RF_W2[HARMON] := 1281
 RF_E1[HARMON] := 1281

@@ -220,10 +220,10 @@ SEX_45W[K2] = 0.215424E+00; SEX_45E[K2] = 0.234240E+00
 use, cesr
  
  ! Vars not in original file
-RF_W1[VOLT] := 1.5e6 
-RF_W2[VOLT] := 1.5e6 
-RF_E1[VOLT] := 1.5e6 
-RF_E2[VOLT] := 1.5e6 
+RF_W1[voltage] := 1.5e6 
+RF_W2[voltage] := 1.5e6 
+RF_E1[voltage] := 1.5e6 
+RF_E2[voltage] := 1.5e6 
 RF_W1[HARMON] := 1281
 RF_W2[HARMON] := 1281
 RF_E1[HARMON] := 1281
