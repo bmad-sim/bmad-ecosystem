@@ -53,7 +53,7 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
   type (coord_struct), allocatable ::  closed_orb(:)
 
   real(rp) s_mat(6,6), mat1(6,6), mat2(6,6), mat(6,6)
-  real(rp) :: amp_co, amp_del, t1(6,6)
+  real(rp) :: amp_co, amp_del, t1(6,6), amp_del_old
 
   integer i, j, n, n_ele, i_dim, i_max
   logical fluct_saved
@@ -116,16 +116,11 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
 !--------------------------------------------------------------------------
 ! Because of nonlinearities we may need to iterate to find the solution
 
+
+  amp_del_old = 1e20  ! something large
+
   i_max = 100  
   do i = 1, i_max
-
-    if (mod(i, 10) == 0) then  ! remake matrix every 10th turn.
-      call ring_make_mat6 (ring, -1, closed_orb)
-      call one_turn_matrix (ring, .true., t1)
-      call mat_make_unit (mat(1:n,1:n))
-      mat(1:n,1:n) = mat(1:n,1:n) - t1(1:n,1:n)
-      call mat_inverse(mat(1:n,1:n), mat2(1:n,1:n))
-    endif
 
     call track_all (ring, closed_orb)
 
@@ -133,12 +128,21 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
     del_co%vec(1:n) = matmul(mat2(1:n,1:n), del_orb%vec(1:n)) 
 
     amp_co = sum(abs(closed_orb(0)%vec(1:n)))
-    amp_del = sum(abs(del_co%vec(1:n)))
-                                            
+    amp_del = sum(abs(del_co%vec(1:n)))                                  
     if (amp_del < amp_co * bmad_com%rel_tollerance + bmad_com%abs_tollerance) exit
 
-    closed_orb(0)%vec(1:n) = closed_orb(0)%vec(1:n) + del_co%vec(1:n)
-            
+    if (amp_del < amp_del_old) then
+      closed_orb(0)%vec(1:n) = closed_orb(0)%vec(1:n) + del_co%vec(1:n)
+    else  ! not converging so remake mat2 matrix
+      call ring_make_mat6 (ring, -1, closed_orb)
+      call one_turn_matrix (ring, .true., t1)
+      call mat_make_unit (mat(1:n,1:n))
+      mat(1:n,1:n) = mat(1:n,1:n) - t1(1:n,1:n)
+      call mat_inverse(mat(1:n,1:n), mat2(1:n,1:n))
+    endif
+
+    amp_del_old = amp_del
+
     if (i == i_max) then
       if (bmad_status%type_out) print *,  &
           'ERROR IN CLOSED_ORBIT_CALC: NONLINEAR ORBIT NOT CONVERGING!'
