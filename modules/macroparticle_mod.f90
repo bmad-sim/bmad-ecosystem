@@ -1131,7 +1131,7 @@ subroutine init_macro_distribution (beam, init, ele, &
         call mp_sigma_to_mat (macro%sigma, mat4)
         call make_v_mats (ele, v_mat, v_inv_mat)
         mat4 = matmul (v_mat, matmul (mat4, transpose(v_mat)))
-        call mp_mat_to_sigma (mat4, macro%sigma)
+        call mat_to_mp_sigma (mat4, macro%sigma)
       endif
       macro%lost = .false.
       if (canonical_out) &
