@@ -493,7 +493,7 @@ case ('var')
     nl=nl+1; write(lines(nl), fmt)  '%Low_lim:        ', v_ptr%low_lim    
     nl=nl+1; write(lines(nl), fmt)  '%Step:           ', v_ptr%step             
     nl=nl+1; write(lines(nl), fmt)  '%Weight:         ', v_ptr%weight           
-    nl=nl+1; write(lines(nl), fmt)  '%Ddelta:         ', v_ptr%delta
+    nl=nl+1; write(lines(nl), fmt)  '%Delta:          ', v_ptr%delta
     nl=nl+1; write(lines(nl), fmt)  '%Merit:          ', v_ptr%merit            
     nl=nl+1; write(lines(nl), fmt)  '%DMerit_dVar:    ', v_ptr%dMerit_dVar      
     nl=nl+1; write(lines(nl), lmt)  '%Exists:         ', v_ptr%exists

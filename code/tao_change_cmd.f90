@@ -27,9 +27,9 @@ implicit none
 type (tao_universe_struct), pointer :: u
 type (tao_var_struct), pointer :: v_ptr
 
-real(rp) change_number, model_value
+real(rp) change_number, model_value, old_merit, new_merit
 real(rp), pointer :: attrib_ptr, design_ptr
-real(rp) old_value, new_value, design_value
+real(rp) old_value, new_value, design_value, delta
 
 integer i, ix_ele, ixa, ix
 
@@ -38,13 +38,14 @@ character(80) num
 character(20) :: r_name = 'tao_change_cmd'
 character(16) ele_name
 character(40) fmt
-character(80) line(2)
+character(80) line(5)
 
 logical err, absolute_num, rel_to_design
 
 !-------------------------------------------------
 
 call to_number;  if (err) return
+old_merit = tao_merit()
 
 ! If changing a variable...
 
@@ -127,16 +128,29 @@ end select
 !---------------------------------------------------
 ! print results
 
+new_merit = tao_merit()
+delta = new_value - old_value
 if (max(abs(old_value), abs(new_value), abs(design_value)) > 100) then
-  fmt = '(5x, 2(a, f11.0), 6x, a, f11.0)'
+  fmt = '(5x, 2(a, f12.0), f12.0)'
 else
-  fmt = '(5x, 2(a, f11.6), 6x, a, f11.6)'
+  fmt = '(5x, 2(a, f12.6), f12.6)'
 endif
 
-write (line(1), fmt) 'Change in Value:   ', old_value, ' ->', new_value, &
-                                                 'Del =', new_value-old_value
-write (line(2), fmt) 'Relative to Design:', old_value-design_value, &
-                                  ' ->', new_value-design_value
+write (line(1), '(27x, a)') 'Old              New      Delta'
+write (line(2), fmt) 'Value:       ', old_value, '  ->', new_value, delta
+write (line(3), fmt) 'Value-Design:', old_value-design_value, &
+                                  '  ->', new_value-design_value
+
+if (max(abs(old_merit), abs(new_merit)) > 100) then
+  fmt = '(5x, 2(a, f13.0), f13.2)'
+else
+  fmt = '(5x, 2(a, f13.6), f13.6)'
+endif
+
+write (line(4), fmt) 'Merit:      ', old_merit, '  ->', new_merit, new_merit-old_merit
+line(5) = ' '
+if (delta /= 0) write (line(5), '(a, es12.3)') &
+                         'dMerit/dValue:  ', (new_merit-old_merit) / delta
 
 call out_io (s_blank$, r_name, line)
 
