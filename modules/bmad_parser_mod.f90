@@ -1390,7 +1390,7 @@ end subroutine
 !-------------------------------------------------------------------------
 
 
-subroutine verify_valid_name (name, ix_name, key_check)
+subroutine verify_valid_name (name, ix_name)
 
   implicit none
 
@@ -1401,7 +1401,6 @@ subroutine verify_valid_name (name, ix_name, key_check)
   character*40   valid_chars / 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]' /
   character*1 tab
 
-  logical, optional :: key_check
   logical OK
 
   parameter (tab = char(9))
@@ -1459,30 +1458,42 @@ subroutine verify_valid_name (name, ix_name, key_check)
   if (ix1 > 17 .or. ix2 - ix1 > 17)  &
             call warning ('NAME HAS > 16 CHARACTERS: ' // name)
 
-! Check if name looks like a element key.
-! BEAM is OK even though it looks like BEAMBEAM
-
-  ix = ix_name
-  if (ix1 > 0) ix = ix1
-
-  if (present(key_check) .and. name(:ix) /= 'BEAM' .and. ix <= 16) then
-    if (key_check) then
-      do i = 1, n_key
-        if (name(:ix) == key_name(i)(:ix)) then
-          call warning ('NAME: ' // name, &
-                          'LOOKS LIKE AN ELEMENT KEY: ' // key_name(i))
-          return
-        endif
-      enddo
-    endif
-  endif
-
 end subroutine
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
+subroutine preparse_element_init (ele)
+
+  implicit none
+
+  type (ele_struct) ele
+
+!
+
+  if (ele%key == wiggler$) then
+    ele%sub_key = periodic_type$   ! default
+    ele%value(polarity$) = 1.0     ! default
+  endif
+
+  if (ele%key == taylor$) then
+    ele%tracking_method = taylor$  ! default
+    ele%mat6_calc_method = taylor$ ! default
+    call add_taylor_term (ele, 1, 1.0_rdef, (/ 1, 0, 0, 0, 0, 0 /))
+    call add_taylor_term (ele, 2, 1.0_rdef, (/ 0, 1, 0, 0, 0, 0 /))
+    call add_taylor_term (ele, 3, 1.0_rdef, (/ 0, 0, 1, 0, 0, 0 /))
+    call add_taylor_term (ele, 4, 1.0_rdef, (/ 0, 0, 0, 1, 0, 0 /))
+    call add_taylor_term (ele, 5, 1.0_rdef, (/ 0, 0, 0, 0, 1, 0 /))
+    call add_taylor_term (ele, 6, 1.0_rdef, (/ 0, 0, 0, 0, 0, 1 /))
+  endif
+
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
 
 subroutine error_exit (what1, what2)
 
