@@ -21,8 +21,9 @@
 #
 #	Root names
 #
-if ( $?CONST   == 0 ) setenv CONST   /home/cesrulib/constants
-if ( $?CESR_   == 0 ) setenv CESR_   /home/cesrulib/cesr_libs
+if ( $?CONST    == 0 ) setenv CONST   /home/cesrulib/constants
+if ( $?CESR_    == 0 ) setenv CESR_   /home/cesrulib/cesr_libs
+if ( $?PACKAGES == 0 ) setenv PACKAGES /home/cesrulib/cesr_libs/packages
 #
 #	Switchable version
 #
@@ -39,6 +40,9 @@ endif
 # $Id$
 #
 # $Log$
+# Revision 1.2  2001/10/04 20:35:21  palmer
+# Add environment variables for paths to the external packages area.
+#
 # Revision 1.1  2001/09/29 18:18:14  palmer
 # Environment variable utilities for CESR libraries on Unix.
 #

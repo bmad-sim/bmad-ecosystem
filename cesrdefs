@@ -10,7 +10,7 @@
 # Usage in .profile:
 #   . /home/cesrulib/bin/cesrdefs
 # or switch to other versions of libraries and constants:
-#   CESRLIB=current; CONST=/tem/constants; . cesrdefs
+#   CESRLIB=current; CONST=/tem/constants; PACKAGES=/tem/packages; . cesrdefs
 # or define aliases in .profile, e.g.:
 #   alias cesrdefs ". /home/cesrulib/bin/cesrdefs"
 #   alias devel="CESRLIB=devel; cesrdefs"
@@ -21,6 +21,7 @@
 #
 CONST=${CONST-/home/cesrulib/constants}
 CESR_=${CESR_-/home/cesrulib/cesr_libs}
+PACKAGES=${PACKAGES-/home/cesrulib/cesr_libs/packages}
 #
 #       Switchable version
 #
@@ -40,6 +41,9 @@ fi
 # $Id$
 #
 # $Log$
+# Revision 1.2  2001/10/04 20:35:21  palmer
+# Add environment variables for paths to the external packages area.
+#
 # Revision 1.1  2001/09/29 18:18:15  palmer
 # Environment variable utilities for CESR libraries on Unix.
 #
