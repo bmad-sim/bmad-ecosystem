@@ -553,7 +553,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 ! sort elements and lists and check for duplicates
 
   allocate (in_indexx(n_max))
-  allocate (seq_indexx(n_max))
+  allocate (seq_indexx(bp_com%iseq_tot))
 
   call indexx (this_seq(1:bp_com%iseq_tot)%name, seq_indexx(1:bp_com%iseq_tot))
   call indexx (in_ring%ele_(1:n_max)%name, in_indexx(1:n_max))
