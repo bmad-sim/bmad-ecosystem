@@ -58,14 +58,19 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
   real(rp) :: amp_co, amp_del, t1(6,6), amp_del_old
 
   integer i, j, n, n_ele, i_dim, i_max
-  logical fluct_saved
+  logical fluct_saved, aperture_saved
 
 !----------------------------------------------------------------------
 ! init
+! Random fluctuations must be turned off to find the closed orbit.
 
   call reallocate_coord (closed_orb, ring%n_ele_max)  ! allocate if needed
+
   fluct_saved = sr_com%fluctuations_on
-  sr_com%fluctuations_on = .false.  ! cannot find closed orbit with fluctuations
+  sr_com%fluctuations_on = .false.  
+
+  aperture_saved = ring%param%aperture_limit_on
+  ring%param%aperture_limit_on = .false.
 
 ! Error check
 
@@ -161,6 +166,8 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
 ! return rf cavities to original state
 
   if (n == 4) call set_on_off (rfcavity$, ring, restore_state$)
+
   sr_com%fluctuations_on = fluct_saved  ! restore state
+  ring%param%aperture_limit_on = aperture_saved
 
 end subroutine

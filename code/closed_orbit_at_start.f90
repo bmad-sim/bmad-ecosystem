@@ -59,13 +59,14 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
   use bmad_struct
   use bmad_interface
   use bookkeeper_mod
+  use radiation_mod
 
   implicit none
 
   type (ring_struct)  ring
   type (coord_struct)  orbit_end, del_co, del_orb
   type (coord_struct)  co
-  type (coord_struct), allocatable, save ::  orbit_end_e_(:), orbit_(:)
+  type (coord_struct), allocatable, save :: orbit_(:)
 
   real(rp) s_mat(6,6), mat1(6,6), mat2(6,6), mat(6,6)
   real(rp) amp_co, amp_del, factor / 1.0 /, t1(6,6)
@@ -73,11 +74,19 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
   integer i, j, n, n_ele, i_dim
 
   logical iterate
+  logical fluct_saved, aperture_saved
 
+! Init.
 ! allocate storage
+! Random fluctuations must be turned off to find the closed orbit.
 
-  call reallocate_coord (orbit_end_e_, ring%n_ele_max)
   call reallocate_coord (orbit_,       ring%n_ele_max)
+
+  fluct_saved = sr_com%fluctuations_on
+  sr_com%fluctuations_on = .false.  
+
+  aperture_saved = ring%param%aperture_limit_on
+  ring%param%aperture_limit_on = .false.
 
 ! Error check
 
@@ -116,9 +125,6 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
   orbit_(0)%vec(:) = 0.0
   orbit_(0)%vec(6) = co%vec(6)
-
-  orbit_end_e_(0)%vec(:) = 0.0
-  orbit_end_e_(0)%vec(6) = co%vec(6)
 
   n_ele = ring%n_ele_use
 
@@ -180,4 +186,11 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
   if (n == 4) call set_on_off (rfcavity$, ring, restore_state$)
 
+  sr_com%fluctuations_on = fluct_saved  ! restore state
+  ring%param%aperture_limit_on = aperture_saved
+
 end subroutine
+
+
+
+
