@@ -91,11 +91,12 @@ module bmad_parser_mod
     character(16), pointer :: name_(:) => null()
     character(16), pointer :: attrib_name_(:) => null()
     real(rp), pointer :: coef_(:) => null()
+    real(rp) s
     integer ix_count
     integer ele_pt, ref_pt
-    logical common_lord
-    real(rp) s
     integer indexx
+    logical common_lord
+    logical clone
   end type
 
   type parser_ring_struct
@@ -125,7 +126,7 @@ module bmad_parser_mod
     character(16), pointer :: var_name(:) => null()    ! variable name
     real(rp), pointer :: var_value(:) => null()        ! variable value
     integer, pointer :: var_indexx(:) => null()        ! variable sort index
-    integer n_files
+    integer n_files                      ! Number of files opened
     character(200) file_name_(50)        ! List of files all opened.
     character(280) parse_line
     character(140) input_line1          ! For debug messages
@@ -182,11 +183,11 @@ subroutine get_attribute (how, ele, ring, pring, &
 
   character(16) :: word, tilt_word = 'TILT', str_ix
   character delim*1, delim1*1, delim2*1, str*80, err_str*40, line*80
-  character(16) :: super_names(11) = (/ &
+  character(16) :: super_names(12) = (/ &
                 'SUPERIMPOSE  ', 'OFFSET       ', 'REFERENCE    ',  &
                 'ELE_BEGINNING', 'ELE_CENTER   ', 'ELE_END      ',  &
                 'REF_BEGINNING', 'REF_CENTER   ', 'REF_END      ', &
-                'COMMON_LORD  ', '             ' /)
+                'COMMON_LORD  ', 'CLONE        ', '             ' /)
 
   logical delim_found, err_flag
 
@@ -339,6 +340,7 @@ subroutine get_attribute (how, ele, ring, pring, &
   i = attribute_index(ele, word)
 
   if (i < 1) then          ! if not an ordinary attribute...
+
     if (ix_word == 0) then  ! no word
       call warning  &
             ('"," NOT FOLLOWED BY ATTRIBUTE NAME FOR: ' // ele%name)
@@ -349,49 +351,51 @@ subroutine get_attribute (how, ele, ring, pring, &
       if (i < 1) then
         call warning  &
             ('BAD ATTRIBUTE NAME: ' // word, 'FOR ELEMENT: ' // ele%name)
-
         return
       else    ! valid superimpose switch
-
         if (ele%ixx == 0) then
           call warning ('ELEMENT HAS NO ASSOCIATED INFO: ' // ele%name) 
           return
         endif
-        ic = ele%ixx
-        if (super_names(i) == 'SUPERIMPOSE') then
-          ele%control_type = super_lord$
-        elseif (super_names(i) == 'REF_BEGINNING') then
-          pring%ele(ic)%ref_pt = begin$
-        elseif (super_names(i) == 'REF_CENTER') then
-          pring%ele(ic)%ref_pt = center$
-        elseif (super_names(i) == 'REF_END') then
-          pring%ele(ic)%ref_pt = end$
-        elseif (super_names(i) == 'ELE_BEGINNING') then
-          pring%ele(ic)%ele_pt = begin$
-        elseif (super_names(i) == 'ELE_CENTER') then
-          pring%ele(ic)%ele_pt = center$
-        elseif (super_names(i) == 'ELE_END') then
-          pring%ele(ic)%ele_pt = end$
-        elseif (super_names(i) == 'COMMON_LORD') then
-          pring%ele(ic)%common_lord = .true.
-        elseif (super_names(i) == 'REFERENCE') then
-          call get_next_word(pring%ele(ic)%ref_name, ix_word,  &
-                                             ':=,', delim, delim_found, .true.)
-        elseif (super_names(i) == 'OFFSET') then
-          call evaluate_value (trim(ele%name) // ' ' // word, value, &
-                                          ring, delim, delim_found, err_flag)
-          if (err_flag) return
-          pring%ele(ic)%s = value
-        else
-          print *, 'ERROR IN BMAD_PARSER: INTERNAL ERROR. PLEASE GET HELP!'
-          call err_exit
-        endif
       endif
-
-      err_flag = .false.
-      return
-
     endif
+
+    ic = ele%ixx
+    select case (super_names(i))
+    case ('SUPERIMPOSE')
+      ele%control_type = super_lord$
+    case ('REF_BEGINNING')
+      pring%ele(ic)%ref_pt = begin$
+    case ('REF_CENTER')
+      pring%ele(ic)%ref_pt = center$
+    case ('REF_END')
+      pring%ele(ic)%ref_pt = end$
+    case ('ELE_BEGINNING')
+      pring%ele(ic)%ele_pt = begin$
+    case ('ELE_CENTER')
+      pring%ele(ic)%ele_pt = center$
+    case ('ELE_END')
+      pring%ele(ic)%ele_pt = end$
+    case ('COMMON_LORD')
+      pring%ele(ic)%common_lord = .true.
+    case ('REFERENCE')
+      call get_next_word(pring%ele(ic)%ref_name, ix_word,  &
+                                         ':=,', delim, delim_found, .true.)
+    case ('OFFSET')
+      call evaluate_value (trim(ele%name) // ' ' // word, value, &
+                                      ring, delim, delim_found, err_flag)
+      if (err_flag) return
+      pring%ele(ic)%s = value
+    case ('CLONE')
+      pring%ele(ic)%clone = .true.
+    case default
+      print *, 'ERROR IN BMAD_PARSER: INTERNAL ERROR. PLEASE GET HELP!'
+      call err_exit
+    end select
+
+    err_flag = .false.
+    return
+
   endif
 
 ! wiggler term attribute
@@ -735,14 +739,14 @@ end subroutine
 ! This subroutine is not intended for general use.
 !
 ! Input:
-!   word            -- Character*(*): Word returned
-!   delim_list      -- Character*(*): List of valid delimiters
+!   word            -- Character(*): Word returned
+!   delim_list      -- Character(*): List of valid delimiters
 !   upper_case_word -- Logical, optional: if True then convert word to 
 !                       upper case. Default is True.
 !
 ! Output
 !   ix_word     -- Integer: length of WORD
-!   delim       -- Character*1: Actual delimiter found
+!   delim       -- Character1: Actual delimiter found
 !   delim_found -- Logical: Set true if a delimiter found. A delimiter
 !                    may not be found if the end of the line is reached first.
 !-
@@ -755,7 +759,7 @@ subroutine get_next_word (word, ix_word, delim_list, &
 
   integer ix_a, ix_word
 
-  character*(*) word, delim_list, delim
+  character(*) word, delim_list, delim
                            
   logical delim_found, file_end
   logical, optional :: upper_case_word
@@ -796,29 +800,36 @@ subroutine file_stack (how, file_name_in, finished)
 
   implicit none
 
-  integer, parameter :: f_maxx = 10
+  integer, parameter :: f_maxx = 20
   type (stack_file_struct), save :: file(0:f_maxx)
 
-  integer ix, i_level, ios
+  integer :: i_level = 0
+  integer ix, ios
 
   character(*) how, file_name_in
   character(200) file_name, basename
   logical finished, found_it
 
-  save i_level
-
-!
+! "push" means open a file and put its name on the stack.
+! The special name 'FROM: BMAD_PARSER' is for letting bmad_parser2 finish 
+! parsing after an expand_lattice command has been detected by bmad_parser
 
   finished = .false.
 
-  if (how == 'init') then
-    i_level = 0
-    return
+  if (how == 'push') then
 
-  elseif (how == 'push') then
-    i_level = i_level + 1
+    if (file_name_in == 'FROM: BMAD_PARSER') return 
+
+    if (i_level == 0) then   ! if we are just starting out then init some vars.
+      bp_com%n_files = 0           ! total number of files opened
+      bp_com%error_flag = .false.  ! set to true on an error
+      bp_com%parser_debug = .false.
+      call init_bmad_parser_common
+    endif
+
+    i_level = i_level + 1    ! number of files currently open
     if (i_level > f_maxx) then
-      print *, 'ERROR: CALL NESTING GREATER THAN 10 LEVELS'
+      print *, 'ERROR: CALL NESTING GREATER THAN 20 LEVELS'
       call err_exit
     endif
     ix = splitfilename (file_name_in, file(i_level)%dir, basename)
@@ -844,8 +855,11 @@ subroutine file_stack (how, file_name_in, finished)
       return
     endif
 
-    bp_com%n_files = bp_com%n_files + 1
+    bp_com%n_files = bp_com%n_files + 1 
     inquire (file = file_name, name = bp_com%file_name_(bp_com%n_files))
+
+
+! "pop" means close the current file and pop its name off the stack
 
   elseif (how == 'pop') then
     close (unit = bp_com%current_file%f_unit)
@@ -882,8 +896,8 @@ subroutine load_parse_line (how, ix_cmd, file_end)
 
   integer ix_cmd, ix
 
-  character*(*) how
-  character*140 line, pending_line
+  character(*) how
+  character(140) line, pending_line
 
   logical :: cmd_pending = .false., file_end
 
@@ -1318,7 +1332,7 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
       stk(i2)%value = exp(stk(i2)%value)
     elseif (stk(i)%type == ran$) then
       i2 = i2 + 1
-      call random_number(stk(i2)%value)
+      call ran_uniform(stk(i2)%value)
     elseif (stk(i)%type == ran_gauss$) then
       i2 = i2 + 1
       call ran_gauss(stk(i2)%value)
@@ -1406,7 +1420,7 @@ subroutine word_to_value (word, ring, value)
   integer i, ix1, ix2, ix_word, ios, ix
   real(rp) value
   real(rp), pointer :: ptr
-  character*(*) word
+  character(*) word
   character(16) name
   logical err_flag
 
@@ -1614,11 +1628,11 @@ subroutine read_lr_wake (ele)
 
   type (ele_struct) ele
   real(rp) freq_in(500), r_over_q(500), q(500)
-  integer n_row
+  integer n_row, m(500)
 
 ! get data
 
-  call read_this_wake (ele%wake%lr_file, n_row, freq_in, r_over_q, q)
+  call read_this_wake (ele%wake%lr_file, n_row, freq_in, r_over_q, q, m)
 
   if (associated(ele%wake%lr)) deallocate (ele%wake%lr)
   allocate (ele%wake%lr(0:n_row-1))
@@ -1626,6 +1640,7 @@ subroutine read_lr_wake (ele)
   ele%wake%lr%freq      = freq_in(1:n_row)
   ele%wake%lr%r_over_q  = r_over_q(1:n_row)
   ele%wake%lr%q         = q(1:n_row)
+  ele%wake%lr%m         = m(1:n_row)
 
 end subroutine
 
@@ -1694,7 +1709,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine read_this_wake (file, n_row, col1, col2, col3)
+! Subroutine read_this_wake (file, n_row, col1, col2, col3, col4)
 !
 ! Subroutine to read in a wake field from an external file.
 ! This subroutine is used by bmad_parser and bmad_parser2.
@@ -1704,16 +1719,18 @@ end subroutine
 !
 ! Output:
 !   n_row   -- Integer: Number of rows read.
-!   col1(:) -- Real(rp) :: column 1.
-!   col2(:) -- Real(rp) :: column 2.
-!   col3(:) -- Real(rp) :: column 3.
+!   col1(:) -- Real(rp) :: Column 1.
+!   col2(:) -- Real(rp) :: Column 2.
+!   col3(:) -- Real(rp) :: Column 3.
+!   col4(:) -- Integer, optional :: Column 4 (if present).
 !-
         
-subroutine read_this_wake (file, n_row, col1, col2, col3)
+subroutine read_this_wake (file, n_row, col1, col2, col3, col4)
 
   implicit none
 
   integer i, j, ix, iu, ios, n_row, n
+  integer, optional :: col4(:)
 
   character(*) file
   character(200) file_name
@@ -1751,7 +1768,11 @@ subroutine read_this_wake (file, n_row, col1, col2, col3)
 
     i = i + 1
     n_row = i
-    read (line, *, iostat = ios) col1(i), col2(i), col3(i)
+    if (present(col4)) then
+      read (line, *, iostat = ios) col1(i), col2(i), col3(i), col4(i)
+    else
+      read (line, *, iostat = ios) col1(i), col2(i), col3(i)
+    endif
 
     if (ios /= 0) then
       call warning ('ERROR PARSING WAKE FILE: ' // file, &
@@ -1986,8 +2007,8 @@ subroutine error_exit (what1, what2)
 
   implicit none
 
-  character*(*) what1
-  character*(*), optional :: what2
+  character(*) what1
+  character(*), optional :: what2
 
 !
 
@@ -2019,8 +2040,8 @@ subroutine warning (what1, what2, seq)
 
   implicit none
 
-  character*(*) what1
-  character*(*), optional :: what2
+  character(*) what1
+  character(*), optional :: what2
   type (seq_struct), optional :: seq
 
 ! BP_COM%ERROR_FLAG is a common logical used so program will stop at end of parsing
@@ -2640,7 +2661,7 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
 
   real(rp) rcount
 
-  character*20 word
+  character(20) word
   character delim*1, str*16, name*16, c_delim*1
               
   logical delim_found, replacement_line_here, c_delim_found
@@ -2842,11 +2863,14 @@ Subroutine allocate_pring (ring, pring)
 
   do i = n_now+1, ubound(pring%ele, 1)
     nullify (pring%ele(i)%name_)
+
     pring%ele(i)%ref_name = blank
     pring%ele(i)%ref_pt  = center$
     pring%ele(i)%ele_pt  = center$
     pring%ele(i)%s       = 0
     pring%ele(i)%common_lord = .false.
+    pring%ele(i)%clone       = .false.
+
     ring%ele_(i)%ixx = i
   enddo
 

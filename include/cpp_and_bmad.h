@@ -282,14 +282,15 @@ class C_lr_wake {
 public:
   double freq;       // frequency in Hz
   double freq_in;    // freq in input file. strength in V/C/m^2
-  double R_over_Q;    // wake strength.
+  double R_over_Q;   // wake strength.
   double Q;          // Quality factor
+  int m;             // Order number (1 = dipole, etc.)
 
-  C_lr_wake (double f, double f_in, double rq, double q) :
-      freq(f), freq_in(f_in), R_over_Q(rq), Q(q) {}
+  C_lr_wake (double f, double f_in, double rq, double q, int mm) :
+      freq(f), freq_in(f_in), R_over_Q(rq), Q(q), m(mm) {}
 
   C_lr_wake (double f = 0) :
-      freq(f), freq_in(0), R_over_Q(0), Q(0) {}
+      freq(f), freq_in(0), R_over_Q(0), Q(0), m(0) {}
 };    // End Class
 
 extern "C" void lr_wake_to_c_(lr_wake_struct*, C_lr_wake&);

@@ -263,15 +263,15 @@ void operator>> (sr_wake_struct* f, C_sr_wake& c) {
 //---------------------------------------------------------------------------
 // lr_wake
 
-extern "C" void lr_wake_to_f2_(lr_wake_struct*, Re&, Re&, Re&, Re&);
+extern "C" void lr_wake_to_f2_(lr_wake_struct*, Re&, Re&, Re&, Re&, Int&);
 
 extern "C" void lr_wake_to_f_(C_lr_wake& c, lr_wake_struct* f) {
-  lr_wake_to_f2_(f, c.freq, c.freq_in, c.R_over_Q, c.Q);
+  lr_wake_to_f2_(f, c.freq, c.freq_in, c.R_over_Q, c.Q, c.m);
 }
 
 extern "C" void lr_wake_to_c2_(C_lr_wake& c, Re& freq, Re& freq_in, 
-                  Re& R_over_Q, Re& Q) {
-  c = C_lr_wake(freq, freq_in, R_over_Q, Q);
+                  Re& R_over_Q, Re& Q, Int& m) {
+  c = C_lr_wake(freq, freq_in, R_over_Q, Q, m);
 }
 
 void operator>> (C_lr_wake& c, lr_wake_struct* f) {
@@ -287,7 +287,7 @@ void operator>> (lr_wake_struct* f, C_lr_wake& c) {
 
 extern "C" void wake_to_f2_(wake_struct*, Char, Int&, Char, Int&, Int&, Int&);
 extern "C" void sr_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&);
-extern "C" void lr_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Int&, Re&);
+extern "C" void lr_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Int&, Re&, Int&);
 
 extern "C" void wake_to_f_(C_wake& c, wake_struct* f) {
   int n_lr = c.lr.size();
@@ -299,7 +299,8 @@ extern "C" void wake_to_f_(C_wake& c, wake_struct* f) {
     sr_wake_in_wake_to_f2_(f, i, c.sr[i].z, c.sr[i].longitudinal, c.sr[i].transverse);
   }
   for (int i = 0; i < n_lr; i++) {
-    lr_wake_in_wake_to_f2_(f, i, c.lr[i].freq, c.lr[i].freq_in, c.lr[i].R_over_Q, c.lr[i].Q);
+    lr_wake_in_wake_to_f2_(f, i, c.lr[i].freq, c.lr[i].freq_in, 
+                  c.lr[i].R_over_Q, c.lr[i].Q, c.lr[i].m);
   }
 }
 
@@ -314,8 +315,9 @@ extern "C" void sr_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& z, Re& l, Re& t) 
   c.sr[it] = C_sr_wake(z, l, t);
 }
 
-extern "C" void lr_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& f, Re& k, Int& i, Re& q) {
-  c.lr[it] = C_lr_wake(f, k, i, q);
+extern "C" void lr_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& f, Re& k, 
+                      Int& i, Re& q, Int& m) {
+  c.lr[it] = C_lr_wake(f, k, i, q, m);
 }
 
 

@@ -69,6 +69,7 @@ module bmad_struct
     real(rp) freq_in    ! Input frequency in Hz
     real(rp) R_over_Q   ! Strength in V/C/m^2
     real(rp) Q          ! Quality factor
+    integer m           ! order (1 = dipole, 2 = quad, etc.)
   end type
 
   type wake_struct

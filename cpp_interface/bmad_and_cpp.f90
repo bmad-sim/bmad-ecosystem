@@ -753,20 +753,20 @@ type (lr_wake_struct), pointer :: f
 type (c_dummy_struct) c_lr_wake
 
 f => f_lr_wake
-call lr_wake_to_c2 (c_lr_wake, f%freq, f%freq_in, f%R_over_Q, f%q)
+call lr_wake_to_c2 (c_lr_wake, f%freq, f%freq_in, f%R_over_Q, f%q, f%m)
 
 end subroutine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine lr_wake_to_f2 (f_lr_wake, freq, freq_in, r_over_q, q)
+! Subroutine lr_wake_to_f2 (f_lr_wake, freq, freq_in, r_over_q, q, m)
 !
 ! Subroutine used by lr_wake_to_f to convert a C++ C_lr_wake into
 ! a Bmad lr_wake_struct. This routine is not for general use.
 !-
 
-subroutine lr_wake_to_f2 (f_lr_wake, freq, freq_in, r_over_q, q)
+subroutine lr_wake_to_f2 (f_lr_wake, freq, freq_in, r_over_q, q, m)
 
 use bmad_and_cpp
 
@@ -774,8 +774,9 @@ implicit none
 
 type (lr_wake_struct) f_lr_wake
 real(rp) freq, freq_in, r_over_q, q
+integer m
 
-f_lr_wake = lr_wake_struct(freq, freq_in, r_over_q, q)
+f_lr_wake = lr_wake_struct(freq, freq_in, r_over_q, q, m)
 
 end subroutine
 
@@ -821,7 +822,7 @@ enddo
 
 do i = 0, n_lr-1
   call lr_wake_in_wake_to_c2 (c_wake, i, f%lr(i)%freq, f%lr(i)%freq_in, &
-                                                  f%lr(i)%r_over_q, f%lr(i)%Q)
+                                          f%lr(i)%r_over_q, f%lr(i)%Q, f%lr(i)%m)
 enddo 
 
 end subroutine
@@ -881,13 +882,13 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine lr_wake_in_wake_to_f2 (f_wake, it, freq, kick, i_cell, q)
+! Subroutine lr_wake_in_wake_to_f2 (f_wake, it, freq, kick, i_cell, q, m)
 !
 ! Subroutine used by wake_to_f to convert a C++ C_wake into
 ! a Bmad wake_struct. This routine is not for general use.
 !-
 
-subroutine lr_wake_in_wake_to_f2 (f_wake, it, freq, kick, i_cell, q)
+subroutine lr_wake_in_wake_to_f2 (f_wake, it, freq, kick, i_cell, q, m)
 
 use bmad_and_cpp
 
@@ -895,9 +896,9 @@ implicit none
 
 type (wake_struct) f_wake
 real(rp) freq, kick, q
-integer it, i_cell
+integer it, i_cell, m
 
-f_wake%lr(it) = lr_wake_struct(freq, kick, i_cell, q)
+f_wake%lr(it) = lr_wake_struct(freq, kick, i_cell, q, m)
 
 end subroutine
 
@@ -1001,7 +1002,7 @@ end subroutine
 
 subroutine param_to_f2 (f_param, n_part, charge, total_length, &
       growth_rate, m1, m2, particle, ix_lost, end_lost_at, &
-      lat_type, ixx, stable, ap_limit_on, lost) 
+      lat_type, ixx, ran_seed, stable, ap_limit_on, lost) 
 
 use bmad_and_cpp
 

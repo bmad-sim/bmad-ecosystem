@@ -691,17 +691,6 @@ subroutine bmad_to_mad (mad_file, ring, ix_start, ix_end)
         'BEAM, Particle = ', trim(particle_name(ring%param%particle)),  &
         ', Energy =', 1e-9*ele%value(beam_energy$), ', Npart =', ring%param%n_part
 
-  if (ring%param%lattice_type /= circular_lattice$) then
-    write (iu, '(3(a, es12.5))') &
-        'TWISS, betax =', ele%x%beta, ', betay =', ele%y%beta, ', &'
-    write (iu, '(5x, 3(a, es12.5))') &
-        'alfx =', ele%x%alpha, ', alfy =', ele%y%alpha, ', &'
-    write (iu, '(5x, 3(a, es12.5)))') &
-        'dx =', ele%x%eta, ', dpx = ', ele%x%etap, ', &'
-    write (iu, '(5x, 3(a, es12.5)))') &
-        'dy =', ele%y%eta, ', dpy = ', ele%y%etap
-  endif
-
   write (iu, *)
 
 ! add drifts before and after wigglers and sol_quads so total length is invariant
@@ -770,12 +759,11 @@ subroutine bmad_to_mad (mad_file, ring, ix_start, ix_end)
       if (iout >= 75 .or. n == ie2) then
         i = len_trim(ele%name)
         line(ix+1:) = ', ' // name(:i) // ')'
-        ix = len_trim(line)
-        write (iu, '(2a)') line(:ix+1)
+        write (iu, '(2a)') trim(line)
         line = ' '
         init_needed = .true.
       else
-        write (iu, '(2a)') line(:ix), ', &'
+        write (iu, '(2a)') trim(line(:ix)), ', &'
         iout = iout + 1
         line = '   ' // name
       endif
@@ -799,6 +787,20 @@ subroutine bmad_to_mad (mad_file, ring, ix_start, ix_end)
   write (iu, *) '!---------------------------------'
   write (iu, *)
   write (iu, *) 'ring: line = (line_1', (', ', line_name(i), i = 2, il), ')'
+
+  if (ring%param%lattice_type /= circular_lattice$) then
+    write (iu, *)
+    write (iu, *) '!---------------------------------'
+    write (iu, *)
+    write (iu, '(3(a, es12.5))') &
+        'TWISS, betx =', ele%x%beta, ', bety =', ele%y%beta, ', &'
+    write (iu, '(5x, 3(a, es12.5))') &
+        'alfx =', ele%x%alpha, ', alfy =', ele%y%alpha, ', &'
+    write (iu, '(5x, 3(a, es12.5)))') &
+        'dx =', ele%x%eta, ', dpx = ', ele%x%etap, ', &'
+    write (iu, '(5x, 3(a, es12.5)))') &
+        'dy =', ele%y%eta, ', dpy = ', ele%y%etap
+  endif
 
   type *, 'Written: ', trim(mad_file)
 
@@ -1022,7 +1024,7 @@ subroutine element_out (ele)
     line = '    ' // line(60+ix:)
   enddo
 
-  write (iu, '(a)') line(:75)
+  write (iu, '(a)') trim(line(:75))
 
 end subroutine
 
