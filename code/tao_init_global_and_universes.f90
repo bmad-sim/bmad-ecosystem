@@ -52,7 +52,8 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   logical err
   logical counting, searching
   logical sr_wakes_on, lr_wakes_on
-  logical, allocatable :: search_this_u(:)
+  logical, allocatable :: found_one(:)
+
 
   namelist / tao_params / global, n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
   
@@ -382,10 +383,8 @@ integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2
 integer i_d1, num_hashes
 
 character(20) count_name1, count_name2, ix_char
-character(20) search_string
+character(32) search_string
 character(20) fmt
-
-logical, allocatable :: found_one(:)
 
 !
 
@@ -575,7 +574,6 @@ enddo
 ! point the children back to the mother    
 
 u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)
-if (allocated(search_this_u)) deallocate (search_this_u)  
 if (allocated(found_one)) deallocate (found_one)  
   
 end subroutine d1_data_stuffit
@@ -663,11 +661,11 @@ end subroutine
 subroutine var_stuffit_common
 
 character(20) count_name1, count_name2, ix_char
-character(20) fmt, search_string
+character(20) fmt
 
-integer i, j, jj, nn, n1, n2, ix1, ix2, num_hashes, ix
+integer i, iu, j, jj, nn, n1, n2, ix1, ix2, num_hashes, ix
+integer num_ele, ios, ixx1, ixx2
 
-logical, allocatable :: found_one(:)
 
 ! count number of v1 entries
 
@@ -681,16 +679,29 @@ logical, allocatable :: found_one(:)
     if (index(var(0)%ele_name, 'SEARCH') /= 0) then
       searching = .true.
       ! search through all universes specified
-      allocate (found_one(s%u(1)%design%n_ele_max))
-      if (index(var(0)%ele_name, 'SEARCH_KEY:') .ne. 0) then
-        call string_trim(var(0)%ele_name(12:), search_string, ix)
-        call find_elements (s%u(1), search_string, ele_key$, found_one)
-      elseif (index(var(0)%ele_name, 'SEARCH:') .ne. 0) then 
-        call string_trim(var(0)%ele_name(8:), search_string, ix)
-        call find_elements (s%u(1), search_string, ele_name$, found_one)
-      else
-	call out_io (s_abort$, r_name, 'Syntax Error in var(0)%ele_name SEARCH string')
+      num_ele = 0
+      if (default_universe .eq. 'gang' .or. default_universe .eq. 'clone') then
+	do iu = 1, size(s%u)
+	  num_ele = num_ele + s%u(iu)%design%n_ele_max 
+	enddo
+        if (allocated(found_one)) deallocate (found_one)  
+        allocate (found_one(num_ele))
+	! search in all universes
+	call search_for_vars (0, found_one) 
+      elseif (any(var%universe .ne. ' ')) then
+        call out_io (s_abort$, r_name, &
+	     "Cannot specify individual universes when searching for variables")
 	call err_exit
+      else
+        write (iu, '(i)', iostat = ios) default_universe
+	if (ios .ne. 0) then
+	  call out_io (s_abort$, r_name, &
+	               "default_universe must be 'gang, clone or a number")
+          call err_exit
+	endif
+        if (allocated(found_one)) deallocate (found_one)  
+	allocate (found_one(s%u(iu)%design%n_ele_max))
+	call search_for_vars (iu, found_one)
       endif
     else
       call out_io (s_abort$, r_name, 'If you are counting elements you should &
@@ -702,19 +713,39 @@ logical, allocatable :: found_one(:)
     ix1 = ix_min_var
     ix2 = (count(found_one) - (1-ix_min_var))
     s%n_var_used = n2
-    !get element names
+    ! get element names
+    ! if num_ele .ne. 0 then searching through multiple universes
     jj = n1
-    do j = 1, size(found_one)
-      if (found_one(j)) then
-        if (jj .gt. n2) then
-          call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
-          call err_exit
+    if (num_ele .ne. 0) then
+      ixx2 = 0
+      do  iu = 1, size(s%u)
+	ixx1 = ixx2 + 1
+        ixx2 = s%u(iu)%design%n_ele_max
+        do j = 1, size(found_one(ixx1:ixx2))
+          if (found_one(ixx1+j-1)) then
+            if (jj .gt. n2) then
+              call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
+              call err_exit
+            endif
+            s%var(jj)%ele_name = s%u(iu)%design%ele_(j)%name
+            s%var(jj)%s = s%u(iu)%design%ele_(j)%s
+            jj = jj + 1
+          endif
+        enddo
+      enddo
+    else  
+      do j = 1, size(found_one)
+        if (found_one(j)) then
+          if (jj .gt. n2) then
+            call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
+            call err_exit
+          endif
+          s%var(jj)%ele_name = s%u(iu)%design%ele_(j)%name
+          s%var(jj)%s = s%u(iu)%design%ele_(j)%s
+          jj = jj + 1
         endif
-        s%var(jj)%ele_name = s%u(1)%design%ele_(j)%name
-	s%var(jj)%s = s%u(1)%design%ele_(j)%s
-        jj = jj + 1
-      endif
-    enddo
+      enddo
+    endif
     ! Create var names
     jj = ix1
     do j = n1, n2
@@ -779,6 +810,55 @@ logical, allocatable :: found_one(:)
 
 end subroutine
 
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+! contains
+!
+! This will search each universe for variables matching name or key
+!
+! The found_one array contains logicals for all universes to be searched
+! through
+
+subroutine search_for_vars (uni, found_one)
+
+implicit none
+
+integer uni, jj, ix1, ix2
+logical :: found_one(:)
+character(32) search_string
+
+ix2 = 0
+
+if (uni .eq. 0) then
+  do jj = 1, size(s%u)
+    ix1 = ix2 + 1
+    ix2 = s%u(jj)%design%n_ele_max
+    if (index(var(0)%ele_name, 'SEARCH_KEY:') .ne. 0) then
+      call string_trim(var(0)%ele_name(12:), search_string, ix)
+      call find_elements (s%u(jj), search_string, ele_key$, found_one(ix1:ix2))
+    elseif (index(var(0)%ele_name, 'SEARCH:') .ne. 0) then 
+      call string_trim(var(0)%ele_name(8:), search_string, ix)
+      call find_elements (s%u(jj), search_string, ele_name$, found_one(ix1:ix2))
+    else
+      call out_io (s_abort$, r_name, 'Syntax Error in var(0)%ele_name SEARCH string')
+      call err_exit
+    endif
+  enddo
+else
+  if (index(var(0)%ele_name, 'SEARCH_KEY:') .ne. 0) then
+    call string_trim(var(0)%ele_name(12:), search_string, ix)
+    call find_elements (s%u(uni), search_string, ele_key$, found_one)
+  elseif (index(var(0)%ele_name, 'SEARCH:') .ne. 0) then 
+    call string_trim(var(0)%ele_name(8:), search_string, ix)
+    call find_elements (s%u(uni), search_string, ele_name$, found_one)
+  else
+    call out_io (s_abort$, r_name, 'Syntax Error in var(0)%ele_name SEARCH string')
+    call err_exit
+  endif
+
+endif
+  
+end subroutine
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 ! contains

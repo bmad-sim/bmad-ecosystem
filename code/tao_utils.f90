@@ -757,4 +757,39 @@ implicit none
 
 end subroutine tao_cmd_end_calc
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_lat_bookkeeper (lattice)
+!
+! This will make sure all bmad bookkeeping is up to date
+!
+! Input:
+!  lattice          -- ring_string: lattice to bookkeep
+!
+! Output:
+!  lattice          -- ring_string
+!-
+
+subroutine tao_lat_bookkeeper (lattice)
+
+implicit none
+
+type (ring_struct) :: lattice
+
+integer i
+
+  do i = lattice%n_ele_use+1, lattice%n_ele_max
+    if (lattice%ele_(i)%control_type /= group_lord$)  &
+                               call control_bookkeeper (lattice, i)
+  enddo
+ 
+  do i = lattice%n_ele_use+1, lattice%n_ele_max
+    if (lattice%ele_(i)%control_type == group_lord$)  &
+                               call control_bookkeeper (lattice, i)
+  enddo
+
+end subroutine tao_lat_bookkeeper
+
 end module tao_utils

@@ -211,8 +211,10 @@ plot_loop: do i = 1, size(s%plot_page%plot)
             cycle
           case ('model') 
             value => v1_ptr%v%model_value
+!            value => v1_ptr%v%this(s%global%u_view)%model_ptr
           case ('base')  
             value => v1_ptr%v%base_value
+!            value => v1_ptr%v%this(s%global%u_view)%base_ptr
           case ('design')  
             value => v1_ptr%v%design_value
           case ('ref')     

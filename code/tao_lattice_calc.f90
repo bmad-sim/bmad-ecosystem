@@ -30,7 +30,7 @@ type (coord_struct), optional :: orbit(0:)
 
 type (coord_struct), allocatable :: orbit_temp(:)
 
-integer i
+integer i, j
 
 character(20) :: r_name = "tao_lattice_calc"
 
@@ -65,12 +65,12 @@ endif
 ! do a custom lattice calculation if desired
 if (s%global%lattice_recalc) then
   if (special) then
+    call tao_lat_bookkeeper (lattice)
     call tao_hook_lattice_calc (universe, lattice, orbit, used_special)
     if (used_special) s%global%lattice_recalc = .false.
   else
     do i = 1, size(s%u)
-      call tao_hook_lattice_calc (s%u(i), s%u(i)%model, s%u(i)%model_orb, &
-                                                                   used(i))
+      call tao_lat_bookkeeper (s%u(i)%model)
       call tao_hook_lattice_calc (s%u(i), s%u(i)%model, s%u(i)%model_orb, &
                                                                    used(i))
     enddo
@@ -83,26 +83,28 @@ endif
 if (s%global%lattice_recalc) then
   if (s%global%track_type .eq. 'single') then
     if (special) then
-      call twiss_and_track (lattice, orbit_temp)
+      call tao_lat_bookkeeper (lattice)
       call twiss_and_track (lattice, orbit_temp)
       orbit = orbit_temp
     else
       do i = 1, size(s%u)
-        if (.not. used(i)) &
+        if (.not. used(i)) then
+	  call tao_lat_bookkeeper (s%u(i)%model)
           call twiss_and_track (s%u(i)%model, s%u(i)%model_orb)
-          call twiss_and_track (s%u(i)%model, s%u(i)%model_orb)
+        endif
       enddo
     endif
     s%global%lattice_recalc = .false.
   elseif (s%global%track_type .eq. 'macro') then
     if (special) then
-      call macro_track (universe, lattice, orbit)
+      call tao_lat_bookkeeper (lattice)
       call macro_track (universe, lattice, orbit)
     else
       do i = 1, size(s%u)
-        if (.not. used(i)) &
+        if (.not. used(i)) then
+	  call tao_lat_bookkeeper (s%u(i)%model)
           call macro_track (s%u(i), s%u(i)%model, s%u(i)%model_orb)
-          call macro_track (s%u(i), s%u(i)%model, s%u(i)%model_orb)
+	endif
       enddo
     endif
     s%global%lattice_recalc = .false.
