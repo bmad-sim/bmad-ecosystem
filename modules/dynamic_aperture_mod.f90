@@ -125,6 +125,7 @@ subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
       y2 = y1
       turn_lost = it
       aperture_bracketed = .true.
+      aperture%ix_ring = ring%param%ix_lost
     else
       x0 = x1
       y0 = y1
@@ -164,7 +165,7 @@ subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
   aperture%i_turn = turn_lost
   aperture%closed_orbit = orb0
 
-  ixr = ring%param%ix_lost
+  ixr = aperture%ix_ring
   if (ring%ele_(ixr)%value(x_limit$) /= 0 .and.  &
                 abs(orbit_(ixr)%vec(1)) > ring%ele_(ixr)%value(x_limit$)) then
     aperture%plane = x_plane$
@@ -173,7 +174,6 @@ subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
   endif
 
   if (ring%ele_(ixr)%key == drift$) ixr = ixr + 1
-  aperture%ix_ring = ixr
 
 !
 
