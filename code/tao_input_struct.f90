@@ -57,6 +57,7 @@ end type
 
 type tao_plot_page_input
   real(rp) size(2)
+  real(rp) text_height
   type (qp_rect_struct) border
 end type
 
