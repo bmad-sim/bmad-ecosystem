@@ -1183,7 +1183,7 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   taylor_in(6)     -- Taylor_struct: Input taylor map.
+!   taylor_in(6)  -- Taylor_struct: Input taylor map.
 !
 ! Output:
 !   taylor_inv(6) -- Taylor_struct: Inverted taylor map.
@@ -1203,6 +1203,11 @@ subroutine taylor_inverse (taylor_in, taylor_inv)
 
   real(rdef) r0(6)
   real(8) r8(6)
+
+! set the taylor order in PTC if not already done so
+
+  if (bmad_com%taylor_order_ptc /= bmad_com%taylor_order) &
+                         call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! The inverse operation of PTC ignores constant terms so we have to take
 ! them out and then put them back in.
