@@ -42,6 +42,7 @@ end type
 \index{Ring_struct!%n_ele_use}
 \index{Ring_struct!%n_ele_max}
 \index{Ele_struct!in ring_struct} 
+\index{I_Beam}
 \index{Overlay}
 \index{Group}
 The definition of the \vn{ring_struct} is shown in
@@ -53,7 +54,7 @@ matrix. \vn{%ele_(0:)} is divided up into two parts: A ``physical''
 part (also called the ``regular'' part) and a ``control'' part (also
 called the ``lord'' part). The physical part of this array holds the
 elements that are tracked through. The control part holds the
-\vn{Overlay} and \vn{Group} elements, and those elements that are
+\vn{Overlay}, \vn{I_Beam} and \vn{Group} elements, and those elements that are
 ``mangled'' when elements are superimposed upon other elements.  The
 bounds of these two parts is given in Table~\ref{tab:part_extent}.
 \begin{table}[htb]
@@ -172,9 +173,10 @@ Changing an element attribute generally involves changing values in the
 \end{example}
 \index{Overlay}
 This example sets the \vn{K1} attribute of an element named \vn{Q01W}.
-\vn{set_ele_attribute} checks whether this element is actually free to be varied
-and sets the \vn{err_flag} logical accordingly. An element's attribute may not be
-freely varied if, for example, the attribute is controled via an \vn{Overlay}.
+\vn{set_ele_attribute} checks whether this element is actually free to
+be varied and sets the \vn{err_flag} logical accordingly. An element's
+attribute may not be freely varied if, for example, the attribute is
+controled via an \vn{Overlay}.
 
 \index{Bmad_com_struct!auto_bookkeeper}
 There is a global variable \vn{bmad_com%auto_bookkeeper} that 
@@ -223,6 +225,7 @@ Each element of this array is a \vn{control_struct} structure
     integer ix_attrib              ! index of attribute controlled
   end type
 \end{example}
+\index{I_Beam
 \index{Overlay}
 \index{Group}
 \vn{%ix_lord} and \vn{%ix_slave} give the indices in the \vn{%ele_(:)}
