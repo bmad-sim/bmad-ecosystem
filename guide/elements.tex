@@ -370,27 +370,25 @@ the curvature function and is proportional to the design dipole
 magnetic field. The true field strength is given by
 \vn{g}~+~\vn{delta_g} so changing \vn{delta_g} leaves the design orbit
 unchanged but varies a particle's orbit.
-  \item[fint, fintx, hgap, hgapx]
-\index{Fint}
-\index{Fintx}
+  \item[fint, fintx, hgap, hgapx]\index{Fint}\index{Fintx}
 The field integrals for the entrance and
 exit pole faces are give by \vn{fint} and \vn{fintx} respectively
 \Begineq
   F_{int} = \int_{pole} \! \! ds \, \frac{B_y(s) (B_0 - B_y(s))}
   {2 H_{gap} B_0^2}
 \Endeq
+\index{Hgap}\index{Hgapx}
 with a similar equation for \vn{fintx}. \vn{hgap} and \vn{hgapx} are
 the half gaps at the entrance and exit faces. If \vn{fint} or
 \vn{fintx} is given without a value then a value of 0.5 is used. If
 \vn{fint} or \vn{fintx} is not present then the default value of 0 is
 used. Note: \mad does not have the \vn{fintx} and \vn{hgapx}
 attributes. \mad just assumes that the values are the same for the
-entrance and exit faces. For compatibility with \mad, if \vn{fint}
+entrance and exit faces. For compatibility with \mad, if \vn{fint} is
 given but \vn{fintx} is not, then \vn{fintx} is set equal to
 \vn{fint}. Similarly, \vn{hgapx} will be set to \vn{hgap} if
 \vn{hgapx} is not given.
-  \item[tilt]
-\index{Tilt}
+  \item[tilt]\index{Tilt}
 The roll angle about the longitudinal axis at the entrance face of the
 bend is given by \vn{tilt}.  \vn{tilt} = 0 bends the reference
 trajectory in the $-x$ direction.  If the \vn{tilt} attribute is given
@@ -406,7 +404,7 @@ dependent variable.
 
 Example:
 \begin{example}
-  b03w: sbend, l = 0.6, k1 = 0.003, fint  ! gives fint = 0.5, fintx = 0
+  b03w: sbend, l = 0.6, k1 = 0.003, fint  ! gives fint = fintx = 0.5
 \end{example}
 
 %-----------------------------------------------------------------

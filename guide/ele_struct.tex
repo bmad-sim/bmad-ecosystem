@@ -218,6 +218,9 @@ check if an attribute is free to vary.
   free = attribute_free (lat%ele_(ix_ele), k1$, lat, .false.)
   if (.not. free) print *, 'Cannot vary: Q10W k1'
 \end{example}
+\vn{%b_field_master} is the logical within appropriate elements that
+sets whether it is the normalized strength or field strength that is
+the independent variable. See \sref{s:depend} for more details.
 
 In designing a program that will let a user input what
 attribute to vary, the routine \vn{pointer_to_attribute} 
@@ -248,22 +251,11 @@ For example:
   enddo
 \end{example}
 
-\vn{%b_field_master} is the logical within appropriate elements that sets 
-whether it is the strength or field that is the 
-independent variable. See \sref{s:depend} for more details.
-
 %--------------------------------------------------------------------------
 \section{Positional Offsets}
-\index{X_offset}
-\index{Y_offset}
-\index{X_pitch}
-\index{Y_pitch}
-\index{Tilt}
-\index{X_offset_tot}
-\index{Y_offset_tot}
-\index{X_pitch_tot}
-\index{Y_pitch_tot}
-\index{Tilt_tot}
+\index{X_offset}\index{Y_offset}\index{X_pitch}\index{Y_pitch}
+\index{Tilt}\index{X_offset_tot}\index{Y_offset_tot}\index{X_pitch_tot}
+\index{Y_pitch_tot}\index{Tilt_tot}
 
 The positional offsets for an element are stored in:
 \begin{example}
