@@ -1067,6 +1067,8 @@ end subroutine
 ! 
 ! Subroutine to reallocate memory within a macro_beam_struct.
 !
+! If n_bunch = 0 then all macro beam pointers will be deallocated.
+!
 ! Modules needed:
 !   use macroparticle_mod
 !
@@ -1097,17 +1099,23 @@ subroutine reallocate_macro_beam (beam, n_bunch, n_slice, n_macro)
   de_macro = .false.
 
   if (associated(beam%bunch)) then
-    if (size(beam%bunch) /= n_bunch) then
+    if (n_bunch .eq. 0) then
       de_bunch = .true.
       de_slice = .true.
       de_macro = .true.
-    endif
-    if (size(beam%bunch(1)%slice) /= n_slice) then
-      de_slice = .true.
-      de_macro = .true.
-    endif
-    if (size(beam%bunch(1)%slice(1)%macro) /= n_macro) then
-      de_macro= .true.
+    else
+      if (size(beam%bunch) /= n_bunch) then
+        de_bunch = .true.
+        de_slice = .true.
+        de_macro = .true.
+      endif
+      if (size(beam%bunch(1)%slice) /= n_slice) then
+        de_slice = .true.
+        de_macro = .true.
+      endif
+      if (size(beam%bunch(1)%slice(1)%macro) /= n_macro) then
+        de_macro= .true.
+      endif
     endif
 
     do i = 1, size(beam%bunch)
@@ -1120,6 +1128,8 @@ subroutine reallocate_macro_beam (beam, n_bunch, n_slice, n_macro)
 
   endif
 
+  if (n_bunch .eq. 0) return
+  
 ! Allocate
 
   if (.not. associated (beam%bunch)) allocate (beam%bunch(n_bunch))

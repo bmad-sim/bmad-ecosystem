@@ -640,6 +640,8 @@ end subroutine
 ! 
 ! Subroutine to reallocate memory within a beam_struct.
 !
+! If n_bunch = 0 then all macro beam pointers will be deallocated.
+!
 ! Modules needed:
 !   use beam_mod
 !
@@ -668,12 +670,17 @@ subroutine reallocate_beam (beam, n_bunch, n_particle)
   de_particle = .false.
 
   if (associated(beam%bunch)) then
-    if (size(beam%bunch) /= n_bunch) then
+    if (n_bunch .eq. 0) then
       de_bunch = .true.
       de_particle = .true.
-    endif
-    if (size(beam%bunch(1)%particle) /= n_particle) then
-      de_particle= .true.
+    else
+      if (size(beam%bunch) /= n_bunch) then
+        de_bunch = .true.
+        de_particle = .true.
+      endif
+      if (size(beam%bunch(1)%particle) /= n_particle) then
+        de_particle= .true.
+      endif
     endif
 
     do i = 1, size(beam%bunch)
@@ -683,6 +690,8 @@ subroutine reallocate_beam (beam, n_bunch, n_particle)
 
   endif
 
+  if (n_bunch .eq. 0) return
+  
 ! Allocate
 
   if (.not. associated (beam%bunch)) allocate (beam%bunch(n_bunch))
