@@ -936,6 +936,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
         enddo
       enddo
       ele%taylor_order = bmad_com%taylor_order
+      ele%taylor(:)%ref = 0
     enddo
 
     deallocate(old_ele)
