@@ -9,7 +9,7 @@ module tao_parameters
   integer, parameter :: n_universe_maxx = 20 !max number of universes
   integer, parameter :: n_legend_maxx = 20   ! number of lines for a legend.
   integer, parameter :: n_descrip_maxx = 10  ! d2_data descriptive info lines.
-  integer, parameter :: n_template_maxx = 10 ! number of plot templates.
+  integer, parameter :: n_template_maxx = 20 ! number of plot templates.
   integer, parameter :: n_data_maxx = 1000   ! max index of datum per d1_data
   integer, parameter :: n_data_minn = -100   ! min index of datum per d1_data
   integer, parameter :: n_var_maxx = 500     ! max index of datum per v1_var 

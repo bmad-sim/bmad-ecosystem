@@ -15,6 +15,7 @@
 subroutine tao_init_global_and_universes (data_and_var_file)
 
   use tao_mod
+  use tao_data_mod
   use tao_lattice_calc_mod
   use tao_input_struct
   use macroparticle_mod
@@ -185,7 +186,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 !-----------------------------------------------------------------------
 ! do initial twiss_and_track and equate model and base to design
   call init_lattices ()
-
+  
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 ! Init data
@@ -240,6 +241,15 @@ subroutine tao_init_global_and_universes (data_and_var_file)
 
   enddo
 
+!-----------------------------------------------------------------------
+! Init macroparticle specific data
+
+  call tao_define_macro_data_types () 
+
+  do i = 1, size(s%u)
+    call init_macro_data(s%u(i))
+	 enddo
+		
 !-----------------------------------------------------------------------
 ! Init vars
 
@@ -1144,8 +1154,8 @@ integer, pointer :: ix_lcav(:)
   if (sr_wake_file .ne. 'none') then
     call elements_locator (lcavity$, u%design, ix_lcav)
     do j=1,size(ix_lcav)
-       if (.not. associated(u%design%ele_(ix_lcav(j))%wake%sr_file)) &
-            allocate (u%design%ele_(ix_lcav(j))%wake%sr_file)
+       if (.not. associated(u%design%ele_(ix_lcav(j))%wake)) &
+            allocate (u%design%ele_(ix_lcav(j))%wake)
        u%design%ele_(ix_lcav(j))%wake%sr_file = sr_wake_file
        call read_sr_wake(u%design%ele_(ix_lcav(j)))
     end do
@@ -1155,8 +1165,8 @@ integer, pointer :: ix_lcav(:)
   if (lr_wake_file .ne. 'none') then
     call elements_locator (lcavity$, u%design, ix_lcav)
     do j=1,size(ix_lcav)
-       if (.not. associated(u%design%ele_(ix_lcav(j))%wake%lr_file)) &
-            allocate (u%design%ele_(ix_lcav(j))%wake%lr_file)
+       if (.not. associated(u%design%ele_(ix_lcav(j))%wake)) &
+            allocate (u%design%ele_(ix_lcav(j))%wake)
        u%design%ele_(ix_lcav(j))%wake%lr_file = lr_wake_file
        call read_lr_wake(u%design%ele_(ix_lcav(j)))
     end do
@@ -1173,5 +1183,60 @@ integer, pointer :: ix_lcav(:)
   u%beam%ix_lost(:,:,:) = -1
 
 end subroutine init_macro
+
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+! contains
+!
+! Find what elements macroparticle specific data will be taken
+
+subroutine init_macro_data (u)
+
+implicit none
+
+type (tao_universe_struct) u
+
+integer i, ii, j, jj
+
+  if (associated(u%beam%macro_data%d2)) then
+    do i = 1, size(u%beam%macro_data%d2)
+      deallocate(u%beam%macro_data%d2(i)%d1)
+    enddo
+    deallocate(u%beam%macro_data%d2)
+  endif
+		
+  allocate(u%beam%macro_data%d2(size(macro_data_names)))
+  do i = 1, size(u%beam%macro_data%d2)
+    allocate(u%beam%macro_data%d2(i)%d1(size(macro_data_names(i)%d1_data)))
+  enddo
   
+  ! initialize macro specific data types
+  ! determine the element indexes for corresponding datums
+  ! This is comparing each data type with each macro data type to find matches
+  !  Is this too difficult to follow?
+
+  ! Find d2_data
+  do i = 1, size(u%d2_data)
+    do j = 1, size(macro_data_names)
+      if (u%d2_data(i)%name .eq. macro_data_names(j)%name) then
+  
+        u%beam%macro_data%d2(j)%name = macro_data_names(j)%name
+        ! Find d1_data
+        do ii = 1, size(u%d2_data(i)%d1)
+          do jj = 1, size(macro_data_names(j)%d1_data)
+            if (u%d2_data(i)%d1(ii)%name .eq. macro_data_names(j)%d1_data(jj)) then
+         																					
+              u%beam%macro_data%d2(j)%d1(jj)%name = macro_data_names(j)%d1_data(jj)
+              ! no need to start at the proper index here
+              u%beam%macro_data%d2(j)%d1(jj)%d => u%d2_data(i)%d1(ii)%d
+            endif
+          enddo
+        enddo
+      endif
+    enddo
+  enddo
+
+end subroutine init_macro_data
+
+		
 end subroutine tao_init_global_and_universes

@@ -367,12 +367,29 @@ end type
 !-----------------------------------------------------------------------
 ! Macroparticle structure
 
+! These contain the element indexes corresponding to macroparticle data
+  type macro_d1_data_struct
+    character(16) name
+				type (tao_data_struct), pointer :: d(:) ! ele_index for this datum
+		end type	
+				
+  type macro_d2_data_struct
+		  character(16) name
+		  type (macro_d1_data_struct), pointer :: d1(:)
+		end type
+
+  type macro_data_struct
+    type (macro_d2_data_struct), pointer :: d2(:)
+  end type
+! ***
+
 type tao_beam_struct
   type (beam_struct) beam             ! macroparticle beam
   type (macro_init_struct) macro_init ! macro distribution at beginning of lat
   logical calc_emittance     ! for a ring calculate emittance
   integer, pointer :: ix_lost(:,:,:)  ! if .ne. -1 then this macro lost at this ele
-                                      ! (bunch,slice,macro)
+                                      ! ix_lost(bunch,slice,macro)
+  type (macro_data_struct) :: macro_data ! macro specific data type element indices
 end type
 
 !-----------------------------------------------------------------------

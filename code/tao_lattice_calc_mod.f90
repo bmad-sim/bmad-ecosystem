@@ -162,9 +162,9 @@ type (tao_universe_struct), pointer :: u
 type (beam_struct), pointer :: beam
 type (macro_init_struct), pointer :: macro_init
 type (modes_struct) :: modes
-type (coord_struct), allocatable :: temp_orb(:)
+type (coord_struct), allocatable, save :: temp_orb(:)
 
-integer j, i_uni, ix1, ix2
+integer j, i_uni
 integer n_bunch, n_slice, n_macro
 integer, save :: ix_cache(n_universe_maxx) = 0
 integer extract_at_ix_ele, n_lost
@@ -241,14 +241,13 @@ character(20) :: r_name = "macro_track"
     u%beam%ix_lost(:,:,:) = -1
   endif
 
+  ! beginning element calculations
+  call tao_macro_data (u, lat, orb(0:0), beam, 0) 
 
-  ix1 = 0
   ! track through every element
   do j = 1, lat%n_ele_use
-    ix2 = j
-  
     ! track to the element
-    call track_beam (lat, beam, ix1, ix2)
+    call track_beam (lat, beam, j-1, j)
  
     ! Save beam at location if injecting into another lattice
     if (extract_at_ix_ele .eq. j) then
@@ -256,13 +255,12 @@ character(20) :: r_name = "macro_track"
     endif
     
     ! compute centroid orbit
-    call tao_find_beam_centroid (beam, orb(ix2), uni, ix2, u%beam)
+    call tao_find_beam_centroid (beam, orb(j), uni, j, u%beam)
 
     ! do any data calculations
-    call tao_macro_data (u, lat, orb(0:ix2), beam, ix2) 
-
-    ix1 = ix2
+    call tao_macro_data (u, lat, orb(0:j), beam, j) 
   enddo
+
   ! now find the standard transfer matrices and twiss parameters
   call ring_make_mat6 (lat, -1, orb)
   call twiss_propagate_all (lat)

@@ -2,6 +2,13 @@ module tao_data_mod
 
 use tao_mod
 
+! These are data types specific to macroparticles
+
+type macro_d2_data_names_struct
+  character(16) :: name
+  character(16), pointer :: d1_data(:)
+end type
+
 type this_coupling_struct
   real(rp) cbar(2,2)
   real(rp) coupling11, coupling12a, coupling12b, coupling22
@@ -10,6 +17,8 @@ type this_coupling_struct
 end type
 
 type (this_coupling_struct), save, allocatable, target :: cc(:)
+
+type (macro_d2_data_names_struct), save, pointer :: macro_data_names(:)
 
 contains
 
@@ -335,6 +344,9 @@ end subroutine
 ! saved at every element due to memory constraints so any data must be
 ! calculated on the fly during the tracking.
 !
+! Obviously, data types that require a range doesn't work. That would require a
+! bit more work to set up...
+!
 ! Input:
 !  u         -- tao_universe_struct
 !  lat       -- ring_struct
@@ -350,15 +362,90 @@ end subroutine
 subroutine tao_macro_data (u, lat, orb, beam, i_ele)
 
 use macroparticle_mod
+use macro_utils_mod
 
 implicit none
 
-type (tao_universe_struct) :: u
-type (ring_struct) :: lat
-type (coord_struct) :: orb(:)
-type (beam_struct) :: beam
+type (tao_universe_struct), intent(INOUT) :: u
+type (ring_struct), intent(IN) :: lat
+type (coord_struct), intent(IN) :: orb(0:)
+type (beam_struct), intent(IN) :: beam
 integer i_ele
 
+type (tao_data_struct), pointer :: datum
+real(rp), pointer :: datum_value
+real(rp) dummy
+
+integer i, ii, iii
+
+! Find any datums associated with this element
+! This is still not as optimized for speed as it could be
+! Better optimized if I assume the element indices are in order
+  do i = 1, size(u%beam%macro_data%d2)
+    do ii = 1, size(u%beam%macro_data%d2(i)%d1)
+      do iii = 1, size(u%beam%macro_data%d2(i)%d1(ii)%d)
+												
+	if (associated(u%beam%macro_data%d2(i)%d1(ii)%d(iii))) then
+	  if (u%beam%macro_data%d2(i)%d1(ii)%d(iii)%ix_ele .eq. i_ele) then
+														
+	    datum => u%beam%macro_data%d2(i)%d1(ii)%d(iii)
+	    datum_value => datum%model_value
+	 
+	    select case (datum%data_type)
+           
+	    case ('norm_emittance:x')
+	      call calc_bunch_emittance (beam%bunch(1), lat%ele_(i_ele), &
+	          	                 datum_value, dummy)
+	      datum%s = lat%ele_(i_ele)%s
+	 
+	    case ('norm_emittance:y')
+	      call calc_bunch_emittance (beam%bunch(1), lat%ele_(i_ele), &
+	          	                 dummy, datum_value)
+	      datum%s = lat%ele_(i_ele)%s
+           
+	    end select
+	  endif
+        endif
+
+      enddo
+    enddo
+  enddo
+		
 end subroutine tao_macro_data
 
-end module
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine tao_define_macro_data_types ()
+!
+! Defines which data types are specific to macroparticles
+!-
+
+subroutine tao_define_macro_data_types ()
+
+implicit none
+
+integer i
+
+  if (associated(macro_data_names)) then
+    do i = 1, size(macro_data_names)
+      deallocate(macro_data_names(i)%d1_data)
+    enddo
+    deallocate(macro_data_names)
+  endif
+		
+  ! total number of macro specifc data types
+  allocate(macro_data_names(1))
+
+  ! norm_emittance
+  allocate(macro_data_names(1)%d1_data(2))
+  macro_data_names(1)%name = 'norm_emittance'
+  macro_data_names(1)%d1_data(1) = 'x'
+  macro_data_names(1)%d1_data(2) = 'y'
+
+  ! If Fortran was object oriented i could define the data functions here too!
+		
+end subroutine tao_define_macro_data_types
+
+end module tao_data_mod
