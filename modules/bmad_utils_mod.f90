@@ -148,4 +148,56 @@ subroutine wiggler_vec_potential (ele, energy, here, vec_pot)
 
 end subroutine
 
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine transfer_ring_parameters (ring_in, ring_out)
+!
+! Subroutine to transfer the ring parameters (such as ring%name, ring%param, etc.)
+! from one ring to another.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ring_in -- Ring_struct: Input ring.
+!
+! Output:
+!   ring_out -- Ring_struct: Output ring with parameters set.
+!-
+
+subroutine transfer_ring_parameters (ring_in, ring_out)
+
+  implicit none
+
+  type (ring_struct), intent(in) :: ring_in
+  type (ring_struct) :: ring_out
+
+!
+
+  ring_out%name =                 ring_in%name
+  ring_out%lattice =              ring_in%lattice
+  ring_out%input_file_name =      ring_in%input_file_name
+  ring_out%title =                ring_in%title
+  ring_out%x =                    ring_in%x
+  ring_out%y =                    ring_in%y
+  ring_out%z =                    ring_in%z
+  ring_out%param =                ring_in%param
+  ring_out%version =              ring_in%version
+  ring_out%n_ele_ring =           ring_in%n_ele_ring
+  ring_out%n_ele_symm =           ring_in%n_ele_symm
+  ring_out%n_ele_use =            ring_in%n_ele_use
+  ring_out%n_ele_max =            ring_in%n_ele_max
+  ring_out%n_control_array =      ring_in%n_control_array
+  ring_out%n_ic_array =           ring_in%n_ic_array
+  ring_out%input_taylor_order =   ring_in%input_taylor_order
+  ring_out%ele_ =                 ring_in%ele_
+  ring_out%ele_init =             ring_in%ele_init
+  ring_out%control_ =             ring_in%control_
+  ring_out%ic_ =                  ring_in%ic_
+
+end subroutine
+
 end module

@@ -1,5 +1,5 @@
 !+
-! Subroutine bmad_parser (in_file, ring, make_mats6)
+! Subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 !
 ! Subroutine to parse a BMAD input file.
 !
@@ -20,8 +20,10 @@
 !
 ! Output:
 !   ring -- Ring_struct: Ring structure. See bmad_struct.f90 for more details.
-!     %ele_(:)%mat6 -- This is computed assuming an on-axis orbit 
-!     %ele_(:)%s    -- This is also computed.
+!     %ele_(:)%mat6  -- This is computed assuming an on-axis orbit 
+!     %ele_(:)%s     -- This is also computed.
+!   digested_read_ok -- Logical, optional: Set True if the digested file was
+!                        successfully read. False otherwise.
 !         
 ! Defaults:
 !   ring%n_ele_symm         = 0
@@ -36,7 +38,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine bmad_parser (in_file, ring, make_mats6)
+subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
   use bmad_parser_mod
   use cesr_utils
@@ -71,7 +73,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
 
   real(rdef) angle, old_energy
 
-  logical, optional :: make_mats6
+  logical, optional :: make_mats6, digested_read_ok
   logical parsing, delim_found, matched_delim, arg_list_found, doit
   logical file_end, found, err_flag, finished, save_taylor
   logical vmask(n_attrib_maxx)
@@ -99,8 +101,11 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   if (bmad_status%ok) then
     call set_taylor_order (ring%input_taylor_order, .false.)
     call set_ptc (ring%param)
+    if (present(digested_read_ok)) digested_read_ok = .true.
     return
   endif
+
+  if (present(digested_read_ok)) digested_read_ok = .false.
 
 ! save all elements that have a taylor series
 

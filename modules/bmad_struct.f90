@@ -31,7 +31,7 @@ module bmad_struct
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 
-  integer, parameter :: bmad_inc_version$ = 58
+  integer, parameter :: bmad_inc_version$ = 59
 
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -63,7 +63,7 @@ module bmad_struct
     endunion
   end type
 
-!
+! Wiggler structures
 
   integer,parameter :: hyper_y$ = 1, hyper_xy$ = 2, hyper_x$ = 3
   character*8, parameter :: wig_term_type_name(0:3) = (/ &
@@ -76,7 +76,10 @@ module bmad_struct
     integer type      ! hyper_y$, hyper_xy$, or hyper_x$
   end type
 
-!
+! Ele_struct
+! Remember: If this struct is changed you have to modify:
+!     read_digested_bmad_file
+!     write_digested_bmad_file
 
   type ele_struct
     character*16 name              ! name of element
@@ -129,6 +132,8 @@ module bmad_struct
     logical is_on                  ! For turning element on/off.
   end type
 
+! struct for element to element control
+
   type control_struct
     real(rdef) coef                ! control coefficient
     integer ix_lord                ! index to lord element
@@ -165,30 +170,26 @@ module bmad_struct
   end type
 
 ! RING_STRUCT
+! Remember: If this struct is changed you have to modify:
+!     read_digested_bmad_file
+!     write_digested_bmad_file
+!     transfer_ring_parameters
 
   type ring_struct
-    union
-      map
-        character*16 name             ! Name of ring given by USE statement
-        character*40 lattice          ! Lattice
-        character*80 input_file_name  ! name of the lattice input file
-        character*80 title            ! general title
-        type (mode_info_struct)  x, y, z  ! tunes, etc.
-        type (param_struct)      param ! parameters
-        integer version               ! Version number
-        integer n_ele_ring            ! number of regular ring elements
-        integer n_ele_symm            ! symmetry point for rings w/ symmetry
-        integer n_ele_use             ! number of elements used
-        integer n_ele_max             ! Index of last element used
-        integer n_control_array       ! last index used in CONTROL_ array
-        integer n_ic_array            ! last index used in IC_ array
-        integer input_taylor_order    ! As set in the input file
-      endmap
-      map
-        type (dummy_parameter_struct) parameters
-      endmap
-    endunion
-
+    character*16 name             ! Name of ring given by USE statement
+    character*40 lattice          ! Lattice
+    character*80 input_file_name  ! name of the lattice input file
+    character*80 title            ! general title
+    type (mode_info_struct)  x, y, z  ! tunes, etc.
+    type (param_struct)      param ! parameters
+    integer version               ! Version number
+    integer n_ele_ring            ! number of regular ring elements
+    integer n_ele_symm            ! symmetry point for rings w/ symmetry
+    integer n_ele_use             ! number of elements used
+    integer n_ele_max             ! Index of last element used
+    integer n_control_array       ! last index used in CONTROL_ array
+    integer n_ic_array            ! last index used in IC_ array
+    integer input_taylor_order    ! As set in the input file
     type (ele_struct)  ele_(0:n_ele_maxx)    ! Array of ring elements
     type (ele_struct)  ele_init              ! For use by any program
     type (control_struct)  control_(n_control_maxx)  ! control list
@@ -197,6 +198,7 @@ module bmad_struct
 
 
 !
+
   character*3, parameter :: coord_name(6) = &
                               (/ "X  ", "P_x", "Y  ", "P_y", "Z  ", "P_z" /)
 

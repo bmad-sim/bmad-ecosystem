@@ -92,7 +92,7 @@ subroutine track1_wiedemann_wiggler (start, ele, param, end)
 
   k_z = pi / l_period
 
-  const1 = 1 / (rho_bend * (1 + end%z%vel))
+  const1 = 1 / (rho_bend * (1 + end%vec(6)))
   const3 =  (pi/l_period)**2 / 6 
 
   call multipole_ele_to_kt(ele, param%particle, knl, tilt, .true.)
@@ -137,19 +137,8 @@ contains
 
 subroutine track_period (i_pole, l_bend, rho_bend, l_drift, factor)
 
-  type pos_vel_struct8
-    real*8 pos, vel                            ! position and velocity
-  end type
-
   type coord_struct8
-    union
-      map
-        type (pos_vel_struct8)  x, y, z
-      endmap
-      map
-        real*8 vec(6)
-      endmap
-    endunion
+    real(8) vec
   end type
 
   type (coord_struct8) end8
@@ -194,20 +183,20 @@ subroutine track_period (i_pole, l_bend, rho_bend, l_drift, factor)
   if (l_2 > l_end)   l_track = l_track - (l_2 - l_end)
 
   if (l_track > 0) then
-    x_vel_old = end8%x%vel
-    y_ave = end8%y%pos + end8%y%vel * l_track / 2
+    x_vel_old = end8%vec(2)
+    y_ave = end8%vec(3) + end8%vec(4) * l_track / 2
 
     if (abs(k_z*y_ave) > 70) then
       rho = 0
     else
-      rho = flip * rho_bend * (1 + end8%z%vel) / cosh(k_z*y_ave)
+      rho = flip * rho_bend * (1 + end8%vec(6)) / cosh(k_z*y_ave)
     endif
 
     if (i_pole == 1) rho = rho * factor
 
-    denom = sqrt(1 + end8%x%vel**2)
-    s_center = -rho * end8%x%vel / denom  - l_track
-    x_center = rho / denom + end8%x%pos
+    denom = sqrt(1 + end8%vec(2)**2)
+    s_center = -rho * end8%vec(2) / denom  - l_track
+    x_center = rho / denom + end8%vec(1)
 
     radix = rho**2 - s_center**2
     if (radix < 0) then
@@ -217,18 +206,18 @@ subroutine track_period (i_pole, l_bend, rho_bend, l_drift, factor)
       return
     endif
 
-    end8%x%pos = x_center - sign (sqrt(radix), rho)
-    end8%x%vel = -s_center / (x_center - end8%x%pos)
+    end8%vec(1) = x_center - sign (sqrt(radix), rho)
+    end8%vec(2) = -s_center / (x_center - end8%vec(1))
 
-    del_s = abs ((atan(end8%x%vel) - atan(end%x%vel)) * rho)
-    end8%y%pos = end8%y%pos + end8%y%vel * del_s
+    del_s = abs ((atan(end8%vec(2)) - atan(end%vec(2))) * rho)
+    end8%vec(3) = end8%vec(3) + end8%vec(4) * del_s
   endif
 
 ! vertical edge focusing from leaving pole
 
   if (l_start <= l_2 .and. l_2 < l_end) then
-    end8%y%vel = end8%y%vel - &
-                  flip * const1 * end8%x%vel * sinh(k_z * end8%y%pos) / k_z
+    end8%vec(4) = end8%vec(4) - &
+                  flip * const1 * end8%vec(2) * sinh(k_z * end8%vec(3)) / k_z
   endif
 
 ! track the drift
@@ -240,8 +229,8 @@ subroutine track_period (i_pole, l_bend, rho_bend, l_drift, factor)
   if (l_2 > l_end)   l_track = l_track - (l_2 - l_end)
 
   if (l_track > 0) then
-    end8%x%pos = end8%x%pos + end8%x%vel * l_track
-    end8%y%pos = end8%y%pos + end8%y%vel * l_track
+    end8%vec(1) = end8%vec(1) + end8%vec(2) * l_track
+    end8%vec(3) = end8%vec(3) + end8%vec(4) * l_track
   endif
 
 ! vertical edge focusing entering pole
@@ -250,8 +239,8 @@ subroutine track_period (i_pole, l_bend, rho_bend, l_drift, factor)
   l_1 = l_2 - l_bend / 2 
 
   if (l_start <= l_1 .and. l_1 < l_end) then
-    end8%y%vel = end8%y%vel - &
-                  flip * const1 * end8%x%vel * sinh(k_z * end8%y%pos) / k_z
+    end8%vec(4) = end8%vec(4) - &
+                  flip * const1 * end8%vec(2) * sinh(k_z * end8%vec(3)) / k_z
   endif
 
 ! track 1/2 pole
@@ -261,19 +250,19 @@ subroutine track_period (i_pole, l_bend, rho_bend, l_drift, factor)
   if (l_2 > l_end)   l_track = l_track - (l_2 - l_end)
 
   if (l_track > 0) then
-    x_vel_old = end8%x%vel
-    y_ave = end8%y%pos + end8%y%vel * l_track/2
+    x_vel_old = end8%vec(2)
+    y_ave = end8%vec(3) + end8%vec(4) * l_track/2
 
     if (abs(k_z*y_ave) > 70) then
       rho = 0
     else
-      rho = -flip * rho_bend * (1 + end8%z%vel) / cosh(k_z*y_ave)
+      rho = -flip * rho_bend * (1 + end8%vec(6)) / cosh(k_z*y_ave)
     endif
     if (i_pole == n_pole) rho = rho * factor
 
-    denom = sqrt(1 + end8%x%vel**2)
-    s_center = -rho * end8%x%vel / denom  - l_track
-    x_center = rho / denom + end8%x%pos
+    denom = sqrt(1 + end8%vec(2)**2)
+    s_center = -rho * end8%vec(2) / denom  - l_track
+    x_center = rho / denom + end8%vec(1)
 
     radix = rho**2 - s_center**2
     if (radix < 0) then
@@ -283,11 +272,11 @@ subroutine track_period (i_pole, l_bend, rho_bend, l_drift, factor)
       return
     endif
 
-    end8%x%pos = x_center - sign(sqrt(radix), rho)
-    end8%x%vel = -s_center / (x_center - end8%x%pos)
+    end8%vec(1) = x_center - sign(sqrt(radix), rho)
+    end8%vec(2) = -s_center / (x_center - end8%vec(1))
 
-    del_s = abs ((atan(x_vel_old) - atan(end8%x%vel)) * rho)
-    end8%y%pos = end8%y%pos + end8%y%vel * del_s
+    del_s = abs ((atan(x_vel_old) - atan(end8%vec(2))) * rho)
+    end8%vec(3) = end8%vec(3) + end8%vec(4) * del_s
   endif
 
 ! 1/2 of the multipole

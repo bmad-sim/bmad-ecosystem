@@ -50,12 +50,13 @@ module bmad_interface
   end interface
 
   interface
-    subroutine bmad_parser (in_file, ring, make_mats6)
+    subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
       use bmad_struct
       implicit none
       character*(*) in_file
       type (ring_struct), target :: ring
       logical, optional :: make_mats6
+      logical, optional :: digested_read_ok
     end subroutine
   end interface
 

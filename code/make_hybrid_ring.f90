@@ -48,38 +48,7 @@
 !                ix_out(i) set to 0 if ring_in%ele_(i) is concatenated.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.10  2003/05/02 15:44:00  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.9  2003/01/27 14:40:37  dcs
-!bmad_version = 56
-!
-!Revision 1.8  2002/08/05 20:04:16  dcs
-!Updated Documentation.
-!
-!Revision 1.7  2002/07/16 20:44:01  dcs
-!*** empty log message ***
-!
-!Revision 1.6  2002/06/13 14:54:26  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.5  2002/02/23 20:32:18  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.4  2002/01/08 21:44:39  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.3  2001/11/29 19:39:53  helms
-!Updates from DCS including (*) -> (:)
-!
-!Revision 1.2  2001/09/27 18:31:53  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
                                        r_out, ix_out, use_taylor, orb0_)
@@ -266,7 +235,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
                           call mat6_dispersion (ele_out%mat6, e_vec)
 
   out_symmetry = r_out%param%symmetry   ! save symmetry
-  r_out%parameters = r_in%parameters
+  call transfer_ring_parameters (r_in, r_out)
   r_out%n_ele_ring = i_out
   r_out%param%symmetry = out_symmetry
 
