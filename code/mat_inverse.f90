@@ -16,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/08/28 14:04:15  dcs
+!Cleaned up code.
+!
 !Revision 1.4  2002/02/23 20:32:19  dcs
 !Double/Single Real toggle added
 !
@@ -56,19 +59,12 @@ subroutine mat_inverse (mat, mat_inv)
     allocate (mat2(n,n), indx(n))
   endif
 
-  mat2 = mat
-
-! This seems not to work
-!  mat_inv = 0
-  do i = 1, n
-     do j = 1, n
-        mat_inv(i,j) = 0
-     enddo
-  enddo
-
-  forall (i = 1:n) mat_inv(i,i) = 1
+  mat2 = mat  ! use temp mat so as to not change mat
 
   call ludcmp (mat2, indx, d)
+
+  mat_inv(1:n,1:n) = 0
+  forall (i = 1:n) mat_inv(i,i) = 1
 
   do i = 1, n
     call lubksb (mat2, indx, mat_inv(1:n,i))
