@@ -289,3 +289,127 @@ techniques can be use to construct Taylor maps to arbitrary order.
 %-----------------------------------------------------------------
 \section{Coupling and Normal Modes}
 \label{s:coupling}
+
+The coupling formalism used by \bmad\ is taken from the paper of Sagan
+and Rubin\cite{b:coupling}. The main equations are reporduced here.  A
+1--turn map $\bfT(s)$ for the transverse 2--dimensional phase space
+$\bfx = (x, x', y, y')$ starting and ending at some point $s$ can be
+written as
+  \Begineq
+    \bfT = \bfV \, \bfU \, \bfV\inv 
+    , \label{tvuv}
+  \Endeq 
+where $\bfV$ is symplectic, and $\bfU$ is of the form
+  \Begineq
+    \bfU = 
+    \begin{pmatrix}
+      \bfA & \Bf0 \cr 
+      \Bf0 & \bfB \cr
+    \end{pmatrix}
+    . \label{ua00b}
+  \Endeq
+Since $\bfU$ is uncoupled the standard Twiss analysis can be
+proformed on the matrices $\bfA$ and $\bfB$. The normal modes
+are labeled $a$ and $b$ and if the 1--turn matrix $\bfT$ is
+uncoupled then $a$ corresponds to the horizontal mode and $b$
+corresponds to the vertical mode. 
+
+$\bfV$ is written in the form
+  \Begineq
+    \bfV = 
+    \begin{pmatrix}
+        \gamma \bfI & \bfC \cr 
+        -\bfC^+     & \gamma \bfI \cr
+    \end{pmatrix}
+    , \label{vgicc1}
+  \Endeq
+where the symplectic conjugate is 
+  \Begineq
+    \bfC^+ = 
+    \begin{pmatrix}
+       C_{22} & -C_{12} \cr 
+      -C_{21} & C_{11} \cr
+    \end{pmatrix}
+    . \label{ccccc}
+  \Endeq
+Since we demand that $\bfV$ be symplectic we have the condition
+  \Begineq               
+    \gamma^2 + \, ||\bfC|| = 1
+    , \label{gc1}
+  \Endeq
+and $\bfV\inv$ is given by
+  \Begineq
+    \bfV\inv = 
+    \begin{pmatrix}
+      \gamma \bfI & -\bfC \cr 
+      \bfC^+ & \gamma \bfI \cr
+    \end{pmatrix}
+    . \label{vgicc2}
+  \Endeq 
+$\bfC$ is a measure of the coupling and when $\bfC = \Bf 0$
+$\bfT$ is uncoupled. 
+
+It is useful to normalize out the $\beta(s)$ variaion in the the above
+analysis. Normalized quantities being denoted by a bar above them. The
+normailized normal mode matrix $\Bar\bfU$ is defined by
+  \Begineq
+    \Bar\bfU = \bfG \, \bfU \, \bfG\inv
+    , \label{ugug}
+  \Endeq
+Where $\bfG$ is given by 
+  \Begineq
+    \bfG \equiv 
+    \begin{pmatrix}
+      \bfG_a & \Bf0 \cr 
+      \Bf0 & \bfG_b
+    \end{pmatrix}
+    , \label{gg00g}
+  \Endeq  
+with 
+  \Begineq
+    \Bf G_a = 
+    \begin{pmatrix}
+      \frac{\tstyle 1}{\tstyle \sqrt{\beta_a}} & 0 \cr
+      \frac{\tstyle \alpha_a}{\tstyle \sqrt{\beta_a}} & \sqrt{\beta_a}
+    \end{pmatrix}
+    , \label{g1b0a} 
+  \Endeq
+with a similar equation for $\Bf G_b$. With this definition the corresponing
+$\Bar\bfA$ and $\Bar\bfB$ (cf.~\Eq{ua00b} are just rotation matrices.
+The relationship between $\bfT$ and $\Bar\bfU$ is 
+  \Begineq
+    \bfT = \bfG\inv \, \Bar\bfV \, \Bar\bfU \, \Bar\bfV\inv \, \bfG
+    , \label{tgvuv}
+  \Endeq
+where
+  \Begineq
+    \Bar\bfV = \bfG \, \bfV \, \bfG\inv
+    . \label{vgvg}
+  \Endeq
+Using \Eq{gg00g}, $\Bar\bfV$ can be written in the form
+  \Begineq
+    \Bar\bfV = 
+    \begin{pmatrix}
+      \gamma \bfI & \Bar\bfC \cr -\Bar\bfC^+ & \gamma \bfI
+    \end{pmatrix}
+    , \label{vgicc3}
+  \Endeq
+with the normalized matrix $\Bar\bfC$ given by
+  \Begineq
+    \Bar\bfC = \bfG_a \, \bfC \, \bfG_b\inv
+    . \label{cgcg}
+  \Endeq
+
+The normal mode coordinates ${\bf a} = (a, a', b, b')$ are related to
+the laboratory frame via
+  \Begineq
+    {\bf a} = \bfV\inv \, {\bf x}
+    . \label{avx}
+  \Endeq 
+In particular the normal mode disperion $\bfeta_a = (\eta_a,
+\eta'_a, \eta_b, \eta'_b)$ is related to the laboratory frame
+disperion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
+  \Begineq
+    {\bfeta_a} = \bfV\inv \, {\bf eta_x}
+    . \label{etaavx}
+  \Endeq 

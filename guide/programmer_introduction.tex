@@ -1,48 +1,20 @@
 \chapter{Introduction to BMAD programming}
+\label{c:program_info}
 
-\section{The BMAD Distribution}
-
-The \bmad\ software uses other software packages. \bmad, along with
-the packages it uses, is bundled together to form what is called the
-CESR distribution. The CESR distribution also includes example lattice
-files and example programs. The CESR distribution includes a
-customized version of the Numerical Recipes Fortran90 software
-library\cite{b:nr}. It is the obligation of anyone who uses \bmad\ to
-make sure that they have the appropriate license for Numerical
-Recipes.
-
-Also included in the distribution is the PGPLOT plotting package
-developed by Tim Pearson of Caltech.  PGPLOT is freely available for
-non-commercial use. Note, however, that PGPLOT is not public--domain
-software and is copyrighted by the California Institute of Technology
-further documentation can be found at
-\begin{example}
-    http://www.astro.caltech.edu/~tjp/pgplot
-\end{example}
-The advantage of PGPLOT is that it provides a set of
-device--independent plotting routines making it very flexible and
-portable. To simplify the interface, a set of wrapper subroutines
-called Quick\_Plot are included in the CESR distribution. This is
-discussed later.
-
-The other package used by \bmad\ is FPP/PTC written by Etienne
-Forest. This software can do various differential and lie algebraic
-operations as well as truncated power series algebra. further
-documentation can be found at
-\begin{example}
-    http://bc1.lbl.gov/CBP_pages/educational/TPSA_DA/Introduction.html
-\end{example}
+Routine calculations like tracking and Twiss parameter can be fairly
+simple useing \bmad\. To get the general feel for things before
+getting into the nitty--gritty details in subsequent chapters, this
+chapter analyzes a simple program.
 
 %-----------------------------------------------------------------------------
 \section{A First Program}
 
-Let us start with a simple test program that is provided with the
-\bmad\ distribution. The test program, shown in figure~\ref{f:program}
-is in a file called
-\vn{test.f90} and is in a directory called \vn{simple_program}
+Consider the simple test program shown in Figure~\ref{f:program}.
+This program is provided with the CESR distribution, in a file called
+\vn{test.f90} which is in a directory called \vn{simple_program}
 
 \begin{figure}
-\begin{verbatim}
+\begin{listing}{1}
 program test
 
   use bmad                 ! Define the structures we need to know about.
@@ -53,7 +25,7 @@ program test
 
 ! Read in a lattice and print info on the first 11 elements
 
-  lat_file = "../bmad/lat/bmad_L9A18A000-_MOVEREC.lat"
+  lat_file = "bmad_test.lat"
   call bmad_parser (lat_file, ring)    ! Read in a lattice.
   call twiss_at_start (ring)           ! Calculate starting Twiss params.
   call twiss_propagate_all (ring)      ! Propagate Twiss parameters
@@ -77,7 +49,7 @@ program test
   enddo
 
 end program
-\end{verbatim}
+\end{listing}
 \caption{A simple first program}
 \label{f:program}
 \end{figure}
@@ -89,14 +61,15 @@ executable versions of the program and these are found in \vn{../bin}.
 In this case, since there is only one program file in the directory, and
 since a simple \vn{gmake} command was used, the executable files are
 named after the directory and are \vn{../bin/simple_program} and
-\vn{../bin/simple_program_g}. The latter program is a debug version
+\vn{../bin/simple_program_g}. The former program is the regular 
+distribution executable. The latter program is a debug version
 which can be used with a debugger but whose execution time is longer.
 
-running the program with the command \vn{../bin/simple_program}
-gives the output as shown in figure~\ref{f:output}
+Running the program with the command \vn{../bin/simple_program}
+gives the output as shown in Figure~\ref{f:output}.
 
 \begin{figure}
-\begin{verbatim}
+\begin{listing}{1}
   Ix  Name              Ele_type                   S      Beta_x
    0  BEGINNING         INIT_ELEMENT          0.0000      0.9381
    1  IP_L0             MARKER                0.0000      0.9381
@@ -138,157 +111,114 @@ gives the output as shown in figure~\ref{f:output}
       CLEO_SOL\3               2  --------          1.773E-01
       CLEO_SOL\4               4  --------          4.460E-03
       Q00W\CLEO_SOL            5  --------          3.182E-01
-\end{verbatim}
+\end{listing}
 \caption{Output from a simple first program}
 \label{f:output}
 \end{figure}
 
 %-----------------------------------------------------------------------------
-\section{Getf and Listf}
-\label{s:getf}
-
-As can be seen there is a lot going on behind the scenes even for this
-simple program. This shows that programming with \bmad\ can be both easy
-and hard. Easy in the sense that a lot can be done with just a few
-lines. The hard part comes about since there are many details that
-have to be kept in mind in order to make sure that the subroutines
-are calculating what you want them to calculate.
-
-To help with the details all \bmad\ subroutines have in their source (.f90)
-files a comment block that explains the arguments needed by the
-subroutines and explains what the subroutine does. To help quickly
-access these comments there are two perl scripts that are supplied
-with the \bmad\ distribution that are invoked with the commands
-\cmd{listf} and \cmd{getf}.
-
-The \cmd{getf} command is used to locate routines and structures.
-and to type out information on them
-The form of the command is
-\begin{verbatim}
-    getf <name>
-\end{verbatim}
-This searches for any routine or structure with the name
-\vn{<name>}. \vn{<name>} may contain the wild--cards ``*'' and ``\%'' where
-``*'' matches to any number of characters and ``\%'' matches to any
-single character. For example:
-\begin{verbatim}
-    getf bmad_parser
-    getf ring_struct
-    getf twiss_at_%
-\end{verbatim}
-The third line in this example will match to the routine \rn{twiss_at_s} but not
-the routine \rn{twiss_at_start}.
-
-The \cmd{listf} command is like the \cmd{getf} command except that only
-the file name where a routine or structure is found is printed. The
-header comments that are in the source code files and the structure
-definitions will not be printed. The \cmd{listf} command is useful if you
-want to just find out where a routine or structure definition lives.
-
-The way \vn{getf} and \vn{listf} work is that they search a list of
-directories to find the \bmad\, \vn{dcslib}, and \vn{cesr_utils}
-libraries. Currently the other libraries, the ones not developed at cornell,
-in the CESR distribution are not searched. This is primarily due to 
-the fact that, to save time, \vn{getf} and \vn{listf} make assumptions
-about file layout that the other libraries violate. This may change is there
-is a demand for it.
-
-%-----------------------------------------------------------------------------
 \section{Explanation of the Simple\_Program}
 
-A line by line explanation of the simple test program follows. It is
-assumed that you are familiar with Fortran90.  The \cs{use bmad}
-statement defines the \bmad\ structures (types) and defines the
-interfaces (argument lists) for the \bmad\ subroutines. In particular,
-the \tn{ring_struct} structure holds all the lattice information: The
-list of elements, their attributes, etc. \rn{bmad_parser} is the
-routine to parse a particular lattice file and transfer the
-information to a \tn{ring_struct}. 
+A line by line explanation of the simple test program follows.  As
+always use \vn{getf} to get full information on the routines and
+structures used by the program. The \cs{use bmad} statement at line 3
+defines the \bmad\ structures (types) and defines the interfaces
+(argument lists) for the \bmad\ subroutines. In particular, the
+\tn{ring_struct} structure (line 5) holds all of the lattice
+information: The list of elements, their attributes,
+etc. \rn{bmad_parser} (line 12) is the routine which parses a lattice
+file and transfers the information to a
+\tn{ring_struct} variable.
 
-After \rn{bmad_parser} is called the program uses the routine
-\rn{twiss_at_start} to multiply the transfer matrices of the individual
-elements together to form the 1--turn matrix from the start of the ring
-back to the start. From this matrix \rn{twiss_at_start} calculates the
-Twiss parameters at the start of the lattice. The next call to
-\rn{twiss_propagate_all} takes the starting Twiss parameters and using
-the transfer matrices of the individual elements calculates the Twiss
-parameters at all the elements. We are now ready for the print out the
-calculation. \vn{ring} has within it an array \vn{ring%ele_(0:)} that
-contains the information on each individual element. \vn{ring%ele_(0)}
-is basically a marker element to denote the beginning of the array.
-\vn{ring%ele_(i)%key} is an integer denoting what type of element
-(quadrupole, wiggler, etc.) it is. \vn{ring%ele_(i)%s} is the
-longitudinal position at the end of an element. \vn{ring%ele_(i)%x%beta}
-is the $a$--mode (nearly horizontal mode) beta.
+After \rn{bmad_parser} (line 12) is called the program uses the
+routine \rn{twiss_at_start} (line 13) to multiply the transfer
+matrices of the individual elements together to form the 1--turn
+matrix from the start of the ring back to the start. From this matrix
+\rn{twiss_at_start} calculates the Twiss parameters at the start of
+the lattice and puts the infomation into the \vn{ring} variable. The
+next call, to \rn{twiss_propagate_all} (line 14), takes the starting
+Twiss parameters and, using the transfer matrices of the individual
+elements, calculates the Twiss parameters at all the elements. Again
+the results of the calculation are stored in \vn{ring}. 
 
-The next section of the program looks for an element with the name \vn{CLEO_SOL}
-and when it is finds the program calls \vn{type_ele} to type out the element's 
-attributes and other information. 
+The program is now ready to print out the results of the calculation
+which it does on lines 16 through 20 of the program and lines 1 through 12
+of the output. \vn{ring} has within it an array
+\vn{ring%ele_(0:)}.  Each element of the array holds the information
+about an individual element as explained in
+Chapter~\ref{c:ele_struct}. \vn{ring%ele_(0)} is basically a marker
+element to denote the beginning of the array. \vn{ring%ele_(i)%key} is
+an integer denoting what type of element (quadrupole, wiggler, etc.)
+it is. \vn{key_name} is an array that translates the key of an element
+to a string. \vn{ring%ele_(i)%s} is the longitudinal position at the
+exit end of the i\Th\ element. \vn{ring%ele_(i)%x%beta} is the
+$a$--mode (nearly horizontal mode) beta.
 
-This brings us to the programs output.
-The lattice file used by the example program is 
-\begin{example}
-  ../bmad/lat/bmad_L9A18A000-_MOVEREC.lat
-\end{example} 
-This file calls another file
-\begin{example}
-  ../bmad/layout/bmad_CESR_RECMOVE.layout
-\end{example}
+The next section of the program, lines 24 through 32, looks for an
+element with the name \vn{CLEO_SOL} and when it finds it the program
+calls \vn{type_ele} to type out the element's attributes and other
+information as shown on lines 14 through 41 of the Output (more on this later).
+
+This brings us to the lattice file used for the input to the program.
+The name of the lattice file is 
+  \begin{example}
+  bmad_test.lat
+  \end{example} 
+if you look at this file you will find a call to another file
+  \begin{example}
+  call, file=bmad_test.layout
+  \end{example}
 It is in this second file
-that the layout of the lattice is defined. In particular the \vn{line} used
-to define the layout look like
+that the layout of the lattice is defined. In particular, the \vn{line} used
+to define the element order looks like
 \begin{example}
   cesr: line = (IP_L0, d001, DET_00W, d002, Q00W, d003, ...
 \end{example}
-No sign of a solenoid here. The solenoid \vn{CLEO_SOL} is defined in
-the first lattice file and is superimposed upon
-the lattice. The definition of \vn{CLEO_SOL} from the lattice file is
+If you compare this to the listing of the elements in
+Figure~\ref{f:output} you will find differences. For example, element
+\#2 in the program listing is named \vn{CLEO_SOL\\3}. From the
+definition of the \vn{cesr} line this should be \vn{d001} which, if
+you look up its definition in \vn{bmad_test.layout} is a drift.  The
+answer comes when you look at the definition of the \vn{CLEO_SOL}
+element which appears in \vn{bmad_test.lat}
 \begin{example}
   ks_solenoid    := -1.0e-9 * clight * solenoid_tesla / beam[energy]
   cleo_sol: solenoid, l = 3.51, ks = ks_solenoid, superimpose 
 \end{example}
-The solenoid is 3.51 meters long and it is superimposed upon the lattice
-with its center as $s = 0$ by default. This means that half of the
-solenoid wraps around to the end of the lattice list. \vn{bmad_parser}
-constructs the appropriate lattice list that it track through and stores
-the \vn{CLEO_SOL} element in the part of the lattice list that doesn't
-get tracked through (along with elements \vn{Q00E} and \vn{Q00W}) as
-explained in Section~\ref{s:super}. It is now possible for the program
-to vary, say, the strength of the \vn{ks} attribute of the \vn{CLEO_SOL}
-and have the \vn{ks} attributes of the dependent (``\vn{super_slave}'')
-elements updated with one subroutine call. This kind of element controlling
-other elements will be covered in later chapters and is a very useful
-feature of \bmad.
+The solenoid is 3.51 meters long and it is superimposed upon the
+lattice with its center as $s = 0$ by default. When \vn{bmad_parser}
+constructs the lattice list of elements the superposition of
+\vn{IP_L0} which is a zero--length marker with a solenoid leaves a
+zero--length marker. The superposition of the \vn{d001} drift with the
+solenoid gives a solenoid with the same length as the drift. Since
+this is a ``new'' element \vn{bmad_parser} makes up a name that
+reflects that it is basically a section of the solenoid it came from.
+Since the \vn{CLEO_SOL} element only covers part of the \vn{Q00W} quadrupole
+\vn{bmad_parser} breaks the quadrupole into two pieces. One piece that
+is inside the solenoid is a \vn{sol_quad} and the piece outside the
+solenoid is a regular quadrupole. See Section~\ref{s:super} for more
+details. Since the center of the \vn{CLEO_SOL} is a $s = 0$ half of it
+extends to negative $s$. In this situation \vn{bmad_parser} will wrap
+this half back and superimpose it on the elements at the end of the lattice
+list near $s = s_{lat}$ where $s_{lat}$ is the length of the lattice.
+As exaplined in Chapter~\ref{c:ring_struct} the
+lattice list that is used for tracking extends from \vn{ring%ele_(0)} through
+\vn{ring%ele_(n)} where \vn{n = ring%n_ele_ring}. The \vn{CLEO_SOL} element 
+is put in the section of \vn{ring%ele_(n)} with \vn{n >
+ring%n_ele_ring} since it is not an element to be tracked through. The
+\vn{Q00W} quadrupole also gets put in this part of the list.  The
+bookkeeping information that the \vn{cleo_sol\\3} element is derived
+from the \vn{cleo_sol} is put in the \vn{cleo_sol} element as shown in
+lines 33 through 41 of the output.  It is now possible in the program
+to vary, say, the strength of the \vn{ks} attribute of the
+\vn{CLEO_SOL} and have the \vn{ks} attributes of the dependent
+(``\vn{super_slave}'') elements updated with one subroutine call. For
+example:
+  \begin{example}
+  ring%ele_(871)%value(ks$) = ring%ele_(871)%value(ks$) * 1.01 
+  call control_bookkeeper (ring, 871)
+  \end{example}
+\bmad\ takes care of the bookkeeping. In fact \vn{control_bookkeeper} is
+automatically called when transfer matrices are remade so the direct call
+to \vn{control_bookkeeper} may not be necessary.
 
-%-----------------------------------------------------------------------------
-\section{Programming Conventions}
-
-\bmad\ subroutines follow the following conventions:
-
-\begin{description}
-
-\item[\$ Denotes Parameter] A ``\$'' at the end of a name denotes an 
-integer parameter. For example, in the above program, to check
-whether an element is a quadrupole one would write:
-\begin{verbatim}
-  if (ring%ele_(i)%key == quadrupole$) ...
-\end{verbatim}
-Checking the source code one would find in the module \tn{bmad_struct}
-\begin{verbatim}
-  integer, parameter :: drift$ = 1, sbend$ = 2, quadrupole$ = 3, group$ = 4
-\end{verbatim}
-One should always use the parameter name instead of the integer it represents.
-That is, one should never write
-\begin{verbatim}
-  if (ring%ele_(i)%key == 3) ...  ! DO NOT DO THIS!
-\end{verbatim}
-For one, using the name makes the code clearer. However, more
-importantly, the integer value of the parameters may at times be
-shuffled for paractical internal reasons. The use of the integer value
-could thus lead to disastrous results.  
-
-\item[ Type names have a \_struct suffix]. 
-For example: \tn{ring_struct}, \tn{ele_struct}, etc. Structures without a 
-\tn{_struct} are inevitably part of Etienne's PTC package.
-
-\end{description}

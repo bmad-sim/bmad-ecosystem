@@ -1,4 +1,7 @@
 \chapter{The Ele\_struct}
+\label{c:ele_struct}
+
+%-----------------------------------------------------------------------------
 \section{overview}
 
 This chapter describes the \tn{ele_struct} which is the structure that
@@ -62,20 +65,32 @@ components are:
   real(rp) c_mat(2,2)                   ! Coupling c matrix
   real(rp) gamma_c                      ! Coupling parameter
 \end{example}
-To get the Twiss parameters, etc.\ for the beginning of the element you
-need to look at the preceding element in the \vn{ring%ele_(:)} array. To
-get the parameters at a position within an element you can use the routines
+To get the Twiss parameters, floor position, etc.\ for the beginning
+of the element you need to look at the preceding element in the
+\vn{ring%ele_(:)} array. To get the parameters at a position within an
+element you can use the routines
 \vn{twiss_and_track_at_s} if the element of part of a \vn{ring_struct} or
 \vn{twiss_and_track_partial} for an individual element.
 
-The \vn{%x}, \vn{%y}, and \vn{%z} components are themselves structures
-that hold the Twiss parameters for the 
-$a$, $b$ and $z$ modes respectively. [Yes it is known that the
-labeling is misleading. Unfortunately it is a bit entrenched now.]
-The $a$ mode is the ``nearly horizontal'' mode and the $b$ mode is the 
-``nearly vertical'' mode. Remember: The Twiss parameters are associated
-with the normal modes. With coupling there is no Twiss parameter associated
-soley with the horizontal axis.
+The \vn{%x}, \vn{%y}, and \vn{%z} components are themselves
+\vn{twiss_struct} structures that hold the Twiss parameters for the
+$a$, $b$ and $z$ modes respectively. Yes it is known that the labeling
+is misleading. Unfortunately it is a bit entrenched now. The definition of
+the \vn{twiss_struct} structure is
+\begin{example}
+  type twiss_struct
+    real(rp) beta, alpha, gamma, phi, eta, etap
+    real(rp) eta_lab, etap_lab   ! dispersion along the x or y axis
+    real(rp) sigma
+  end type 
+\end{example} 
+The $a$ mode is the ``nearly horizontal'' mode and the $b$ mode is the
+``nearly vertical'' mode. Remember: The Twiss parameters are
+associated with the normal modes. With coupling there is no Twiss
+parameter associated soley with the horizontal axis.  \vn{eta} and
+\vn{etap} are also the normal mode dispersion and dispersion derivative.
+The true horizontal and vertical dipersions are given by \vn{eta_lab}
+and \vn{etap_lab}.
 
 %--------------------------------------------------------------------------
 \section{Attribute Values: Independent and otherwise}

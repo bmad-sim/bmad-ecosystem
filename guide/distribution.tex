@@ -1,6 +1,7 @@
-\chapter{The Bmad Distribution}
+\chapter{The CESR Distribution}
 \label{c:distribution}
 
+%-----------------------------------------------------------------------
 \section{Libraries in the CESR Distribution}
 \label{s:libs}
 
@@ -10,13 +11,19 @@ which subroutines in the \bmad\ library depend. There are 5 other
 libraries that are used: \bn{cesr\_utils}, \bn{forest},
 \bn{numerical\_recipes}, \bn{pgplot}, and \bn{dcslib}.
 \begin{description}
-\item[cesr\_utils] This is a small low level library that primarily defines 
-the precision that \bmad\ works at (see below) and defines the physical
-and mathematical constants (\vn{pi}, \vn{c_light}, etc.) that \bmad\ knows
-about.
+
+\item[cesr\_utils] This is a low level library. Despite its name the 
+routines in this library do not have anything to do with the Cornell
+CESR stroage ring.  In \vn{cesr_utils} the module \vn{precision_def}
+defines the precision that \bmad\ works at (see
+Section~\ref{s:precision}) and the module \vn{physical_constants} 
+gives the physical and mathematical constants
+(\vn{pi}, \vn{c_light}, etc.) that \bmad\ knows about.
+
 \item[dcslib] This library defines a set of miscellaneous helper routines. 
 Routines include spline fitting, Gaussian random number generation,
-etc. The library name comes from its creator.
+etc. The library is named after its creator.
+
 \item[forest] This is the FPP/PTC 
 (Fully Polymorphic Package / Polymorphic Tracking Code) library of
 Etienne Forest that handles Taylor maps to any arbitrary order (this
@@ -25,47 +32,105 @@ Chapter~\ref{c:etienne} for more details.  FPP/PTC is a very general
 package and \bmad\ only makes use of a small part of its features.
 For more information see the FPP/PTC web site at
 \begin{example} 
-    <http://bc1.lbl.gov/CBP_pages/educational/TPSA_DA/Introduction.html>
+   http://bc1.lbl.gov/CBP_pages/educational/TPSA_DA/Introduction.html
 \end{example}
-
-An important point to keep in mind is that Etienne defines his phase
-space coordinates as $(x, p_x, y, p_y, p_z, ct = -z)$. \bmad uses
-$(x, p_x, y, p_y, z, p_z)$. There are
-\bmad\ routines for converting back and forth between the two 
-representations and if you never call PTC directly then you don't
-have to worry about the difference.
 
 \item[recipes] Numerical Recipes is a set of subroutines for doing 
 scientific computing including Runge--Kutta integration, FFT's,
-interpolation and extrapolation, etc., etc. The write up for this
-library is the book ``Numerical Recipes, The Art of Scientific
-Computing''\cite{b:nr}. For \bmad\ this library has been modified to handle
-both single and double precision reals.
+interpolation and extrapolation, etc., etc. The documentation for this
+library is the books ``Numerical Recipes, in Fortran, The Art of
+Scientific Computing''\cite{b:nr} and ``Numerical Recipes in
+Fortran90, the Art of Parallel Scientific Computing''\cite{b:nr.f90}.
+The first book explains how the subroutines work and the second book
+explains what the argument lists for the Fortran90 version of the
+subroutines are. You do need both books if you want to use Numerical
+Recipes.  For \bmad\ this library has been modified to handle both
+single or double precision reals as needed in the other libraries (See
+Section~\ref{s:precision}.
+
 \item[pgplot] The PGPLOT Graphics Subroutine Library is a Fortran or 
 C-callable, device-independent graphics package for making simple
-scientific graphs.  One disadvantage of PGPLOT is that it is not the
-most friendly software for the programmer. To remedy this, there is a
-set of Fortran90 wrapper subroutines called \bn{quick\_plot}. The
-\bn{quick\_plot} suite is part of the dcslib library. Documentation
-including a user's manual
-may be obtained from the PGPLOT web site at
+scientific graphs. Documentation including a user's manual may be
+obtained from the PGPLOT web site at
 \begin{verbatim}
-    <http://www.astro.caltech.edu/~tjp/pgplot>.
-\end{verbatim}
+    http://www.astro.caltech.edu/~tjp/pgplot.
+\end{verbatim} 
+One disadvantage of PGPLOT for the programmer is that it is not the
+most user friendly. To remedy this, there is a set of Fortran90
+wrapper subroutines called \bn{quick\_plot}.  The \bn{quick\_plot}
+suite is part of the dcslib library and is documented in
+Chapter~\ref{c:quick_plot}.
 
 \end{description}
 
-\section{Precision}
+%-----------------------------------------------------------------------------
+\section{Getf and Listf}
+\label{s:getf}
 
-\bmad\ comes in two flavors: One where the real numbers are single
-precision and a version with double precision reals. Which version you
-are working with is controlled by the parameter \vn{rp}\ (Real Precision)
-which is defined in \bn{cesr\_utils}. [Note: For compatibility with older
-programs the parameter \vn{rdef} is defined to be equal to \vn{rp}.]  On most
-machines single precision has \vn{rp}\ = 4 and double precision has \vn{rp}\ =
+As can be seen from the program example in Chaper~\ref{c:program_info}
+there is a lot going on behind the scenes even for this
+simple program. This shows that programming with \bmad\ can be both easy
+and hard. Easy in the sense that a lot can be done with just a few
+lines. The hard part comes about since there are many details that
+have to be kept in mind in order to make sure that the subroutines
+are calculating what you really want them to calculate.
+
+To help with the details all \bmad\ subroutines have in their source (.f90)
+files a comment block that explains the arguments needed by the
+subroutines and explains what the subroutine does. To help quickly
+access these comments there are two perl scripts that are supplied
+with the \bmad\ distribution that are invoked with the commands
+\cmd{listf} and \cmd{getf}.
+
+The \cmd{getf} command is used to locate routines and structures, and
+to type out information on them.  The form of the command is
+\begin{verbatim}
+    getf <name>
+\end{verbatim}
+This searches for any routine or structure with the name
+\vn{<name>}. \vn{<name>} may contain the wild--cards ``*'' and ``\%'' where
+``*'' matches to any number of characters and ``\%'' matches to any
+single character. For example:
+\begin{verbatim}
+    getf bmad_parser
+    getf ring_struct
+    getf twiss_at_%
+\end{verbatim}
+The third line in this example will match to the routine
+\rn{twiss_at_s} but not the routine \rn{twiss_at_start}.
+
+The \cmd{listf} command is like the \cmd{getf} command except that only
+the file name where a routine or structure is found is printed. The
+header comments that are in the source code files and the structure
+definitions will not be printed. The \cmd{listf} command is useful if you
+want to just find out where a routine or structure definition lives.
+
+The way \vn{getf} and \vn{listf} work is that they search a list of
+directories to find the \bmad, \vn{dcslib}, and \vn{cesr_utils}
+libraries. Currently the libraries in the CESR distribution that were
+not developed at Cornell are not searched. This is primarily due to
+the fact that, to save time, \vn{getf} and \vn{listf} make assumptions
+about file layout that the other libraries violate. In the future, if
+there is a demand for it, other libraries may be added to the search
+paths.
+
+%-----------------------------------------------------------------------
+\section{Precision}
+\label{s:precision}
+
+\bmad\ comes in two flavors: One version where the real numbers are single
+precision and a second version with double precision reals. Which
+version you are working with is controlled by the kind parameter \vn{rp}\
+(Real Precision) which is defined in the \vn{precision_def}
+module. [Note: For compatibility with older programs the kind parameter
+\vn{rdef} is defined to be equal to \vn{rp}.]  On most platforms single
+precision translates to \vn{rp}\ = 4 and double precision to \vn{rp}\ =
 8. Normally the double precision version is used since round-off
 errors can be significant in some calculations. Long--term tracking is
-an example where the single precision version is not adequate. 
+an example where the single precision version is not adequate. Changing 
+the precision means recompiling all the libraries except PTC and PGPLOT. 
+You cannot mix and match. Either you are using the single precision version
+or you are using the double precision version.
 
 To define your variables with the correct precision use the syntax
 {\tt real(rp)}. For example:
@@ -74,8 +139,44 @@ To define your variables with the correct precision use the syntax
 \end{example}
 When you want to define a literal constant, for example to pass an
 argument to a subroutine, add the suffix \vn{_rp} to the end of the
-constant. For example: \vn{2.0_rp} is equivalent to \vn{2.0D0} if
-\vn{rp} is defined to be double precision. Notice that this is not
-equivalent to \vn{2_rp} which defines an integer (not a real) constant.
+constant. For example
+\begin{example}
+   var1 =  2.0_rp * var2
+   call my_sub (var1, 1.0e6_rp)
+\end{example}
+Note that \vn{2_rp} is different from \vn{2.0_rp}. \vn{2_rp} is an
+integer of kind \vn{rp}, not a real.
 
 
+%-----------------------------------------------------------------------------
+\section{Programming Conventions}
+
+\bmad\ subroutines follow the following conventions:
+
+\begin{description}
+
+\item[\$ Denotes Parameter] A ``\$'' at the end of a name denotes an 
+integer parameter. For example, in the above program, to check
+whether an element is a quadrupole one would write:
+\begin{verbatim}
+  if (ring%ele_(i)%key == quadrupole$) ...
+\end{verbatim}
+Checking the source code one would find in the module \tn{bmad_struct}
+\begin{verbatim}
+  integer, parameter :: drift$ = 1, sbend$ = 2, quadrupole$ = 3, group$ = 4
+\end{verbatim}
+One should always use the parameter name instead of the integer it represents.
+That is, one should never write
+\begin{verbatim}
+  if (ring%ele_(i)%key == 3) ...  ! DO NOT DO THIS!
+\end{verbatim}
+For one, using the name makes the code clearer. However, more
+importantly, the integer value of the parameters may at times be
+shuffled for paractical internal reasons. The use of the integer value
+could thus lead to disastrous results.  
+
+\item[ Type names have a \_struct suffix]. 
+For example: \tn{ring_struct}, \tn{ele_struct}, etc. Structures without a 
+\tn{_struct} are inevitably part of Etienne's PTC package.
+
+\end{description}
