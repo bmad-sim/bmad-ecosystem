@@ -15,15 +15,21 @@ module rad_int_common
 ! The "cache" is for saving values for g, etc through a wiggler to speed
 ! up the calculation
 
-  type g_cache_struct
+  type wig_cache_struct
     real(rp) g
     real(rp) g2
     real(rp) g_x, g_y
     real(rp) dg2_x, dg2_y
   end type
 
+  type quad_bend_cache_struct
+    real(rp) mat6(6,6)
+    type (coord_struct) orb
+  end type
+
   type ele_cache_struct
-    type (g_cache_struct), allocatable :: v(:)
+    type (wig_cache_struct), allocatable :: v(:)
+    type (quad_bend_cache_struct) qb(3)
     real(rp) ds
     integer ix_ele
   end type
@@ -111,6 +117,9 @@ subroutine qromb_rad_int (do_int, ir)
   ll = ric%ele%value(l$)
 
   call transfer_ele(ric%ele, ric%runt)  ! faster then ele = ele
+  if (ric%runt%tracking_method  == taylor$) ric%runt%tracking_method  = bmad_standard$
+  if (ric%runt%mat6_calc_method == taylor$) ric%runt%mat6_calc_method = bmad_standard$
+
 
 ! loop until integrals converge
 
@@ -134,7 +143,7 @@ subroutine qromb_rad_int (do_int, ir)
 
     do n = 1, n_pts
       s_pos = s0 + (n-1) * ds
-      call propagate_part_way (s_pos)
+      call propagate_part_way (s_pos, j, n)
       i_sum(1) = i_sum(1) + ric%g_x * (ric%eta_a(1) + ric%eta_b(1)) + &
                             ric%g_y * (ric%eta_a(3) + ric%eta_b(3))
       i_sum(2) = i_sum(2) + ric%g2
@@ -311,7 +320,7 @@ end subroutine
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 
-subroutine propagate_part_way (s)
+subroutine propagate_part_way (s, j_loop, n_pt)
 
   implicit none
 
@@ -319,18 +328,18 @@ subroutine propagate_part_way (s)
 
   real(rp) s, v(4,4), v_inv(4,4), s1, s2, error, f0, f1
 
-  integer i, ix, n_pts
+  integer i, ix, j_loop, n_pt, n
 
 ! exact calc
 
   if (ric%ele%exact_rad_int_calc) then
 
     do i = 0, 6
-      n_pts = ric%rk_track(i)%n_pts
-      call bracket_index (ric%rk_track(i)%s(1:n_pts), s, ix)
+      n = ric%rk_track(i)%n_pts
+      call bracket_index (ric%rk_track(i)%s(1:n), s, ix)
 
-      if (ix == n_pts) then
-        orb = ric%rk_track(i)%orb(n_pts)
+      if (ix == n) then
+        orb = ric%rk_track(i)%orb(n)
       else
         s1 = s - ric%rk_track(i)%s(ix)
         s2 = ric%rk_track(i)%s(ix+1) - s
@@ -391,23 +400,29 @@ subroutine propagate_part_way (s)
 
 ! non-exact calc
 
-  if (s == 0) then
+  if (j_loop == 1 .and. n_pt == 1) then  ! s = 0
     ric%runt%x       = ric%ele0%x
     ric%runt%y       = ric%ele0%y
     ric%runt%c_mat   = ric%ele0%c_mat
     ric%runt%gamma_c = ric%ele0%gamma_c
     orb = ric%orb0
-  elseif (s == ric%ele%value(l$)) then
+  elseif (j_loop == 1 .and. n_pt == 2) then  ! s = l$
     ric%runt%x       = ric%ele%x
     ric%runt%y       = ric%ele%y
     ric%runt%c_mat   = ric%ele%c_mat
     ric%runt%gamma_c = ric%ele%gamma_c
     orb = ric%orb1
   else
-    ric%runt%value(l$) = s
-    if (ric%ele%key == sbend$) ric%runt%value(e2$) = 0
-    call track1 (ric%orb0, ric%runt, ric%ring%param, orb)
-    call make_mat6 (ric%runt, ric%ring%param, ric%orb0, orb, .true.)
+    if (ric%use_cache .and. (j_loop == 2 .or. j_loop == 3)) then
+      n = j_loop + n_pt - 2
+      ric%runt%mat6 = ric%cache_ele%qb(n)%mat6
+      orb = ric%cache_ele%qb(n)%orb
+    else
+      ric%runt%value(l$) = s
+      if (ric%ele%key == sbend$) ric%runt%value(e2$) = 0
+      call track1 (ric%orb0, ric%runt, ric%ring%param, orb)
+      call make_mat6 (ric%runt, ric%ring%param, ric%orb0, orb, .true.)
+    endif
     call twiss_propagate1 (ric%ele0, ric%runt)
   endif
 
@@ -438,7 +453,7 @@ subroutine calc_g_params (s, orb)
   implicit none
 
   type (coord_struct) orb
-  type (g_cache_struct) v0, v1
+  type (wig_cache_struct) v0, v1
 
   real(rp) dk(3,3), s, ds
   real(rp) kick_0(6), f0, f1

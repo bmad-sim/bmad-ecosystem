@@ -48,7 +48,8 @@ subroutine release_rad_int_cache (ix_cache)
 !
 
   do i = 1, size(ric%cache(ix_cache)%ele)
-    deallocate (ric%cache(ix_cache)%ele(i)%v)
+    if (allocated(ric%cache(ix_cache)%ele(i)%v)) &
+                                deallocate (ric%cache(ix_cache)%ele(i)%v)
   enddo
 
   deallocate (ric%cache(ix_cache)%ele)
