@@ -233,7 +233,7 @@ subroutine make_mat627 (ele, param, direction, mat627)
 
   case (wiggler$) 
 
-    call mat_make_unit (mat627)     ! make a unit matrix
+    call mat_make_unit (mat627(1:6,1:6))     ! make a unit matrix
 
     if (param%beam_energy == 0) then
       k1 = 0
@@ -367,7 +367,7 @@ subroutine sol_quad_mat627_calc (ks, k1, s_len, m)
   coef2 = ks2*q + 4*k1*b
 
   m = 0
-  call mat_make_unit(m(1:6), 6, 6)
+  call mat_make_unit(m)
                
   m(1,1) = 2*ug * (fp*C + fm*Csh)
   m(1,2) = (2*ug/k1) * (q*S1 - r*Snh1)
