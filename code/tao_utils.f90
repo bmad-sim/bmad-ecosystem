@@ -112,11 +112,11 @@ type (tao_var_struct), target :: var(n:)
 
 v1%v => var
 
-forall (i = lbound(var, 1):ubound(var, 1)) 
+do i = lbound(var, 1), ubound(var, 1)
   var(i)%ix_v1 = i
   var(i)%ix_var = n_var + i - n
   var(i)%v1 => v1
-end forall
+end do
 
 end subroutine 
 
@@ -145,10 +145,10 @@ type (tao_data_struct), target :: ii(n:)
 
 ip => ii
 
-forall (i = lbound(ii, 1):ubound(ii, 1)) 
+do i = lbound(ii, 1), ubound(ii, 1)
   ii(i)%ix_d1 = i
   ii(i)%ix_data = n_data + i - n
-end forall
+enddo
 
 end subroutine 
 
