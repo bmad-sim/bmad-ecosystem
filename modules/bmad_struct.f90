@@ -157,7 +157,7 @@ module bmad_struct
     integer particle            ! +1 = positrons, -1 = electrons
     integer iy                  ! Not currently used.
     integer ix_lost             ! If lost at what element?
-    integer lattice_type        ! linac_lattice$, etc...
+    integer lattice_type        ! linear_lattice$, etc...
     integer ixx                 ! Integer for general use
     logical stable              ! is closed ring stable?
     logical aperture_limit_on   ! use apertures in tracking?
@@ -396,12 +396,12 @@ module bmad_struct
 
 ! lattice logical names
 
-  integer, parameter :: linac_lattice$ = 10
+  integer, parameter :: linear_lattice$ = 10
 !!  integer, parameter :: linear_lattice$ = 11
   integer, parameter :: circular_lattice$ = 12
 
   character(16) :: lattice_type(10:12) = &
-        (/ 'LINAC_LATTICE   ', 'GARBAGE!        ', 'CIRCULAR_LATTICE' /)
+        (/ 'LINEAR_LATTICE   ', 'GARBAGE!        ', 'CIRCULAR_LATTICE' /)
 
 ! logicals for MAKE_HYBIRD_RING
 

@@ -825,10 +825,10 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
        call set_taylor_order (ring%input_taylor_order, .false.)
 
   if (any(in_ring%ele_(:)%key == lcavity$) .and. &
-                          ring%param%lattice_type /= linac_lattice$) then
+                          ring%param%lattice_type /= linear_lattice$) then
     print *, 'Note in BMAD_PARSER: This lattice has a LCAVITY.'
-    print *, '     Setting the LATTICE_TYPE to LINAC_LATTICE.'
-    ring%param%lattice_type = linac_lattice$
+    print *, '     Setting the LATTICE_TYPE to LINEAR_LATTICE.'
+    ring%param%lattice_type = linear_lattice$
   endif
 
 ! transfer the ele information from the in_ring to ring

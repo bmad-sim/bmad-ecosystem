@@ -36,9 +36,9 @@ subroutine compute_element_energy (ring)
   beam_energy = ring%ele_(0)%value(beam_energy$)
   call energy_to_kinetic (beam_energy, ring%param%particle, p0c = p0c)
 
-! compute element energy if a linac_lattice
+! compute element energy if a linear_lattice
 
-  if (ring%param%lattice_type == linac_lattice$) then
+  if (ring%param%lattice_type == linear_lattice$) then
 
     do i = 1, ring%n_ele_use
 

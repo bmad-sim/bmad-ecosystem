@@ -32,9 +32,9 @@ subroutine check_ring_controls (ring, exit_on_error)
 ! check energy
 
   if (any(ring%ele_(:)%key == lcavity$) .and. &
-                          ring%param%lattice_type /= linac_lattice$) then
+                          ring%param%lattice_type /= linear_lattice$) then
     print *, 'ERROR IN CHECK_RING_CONTROLS: THERE IS A LCAVITY BUT THE'
-    print *, '      LATTICE_TYPE IS NOT SET TO LINAC_LATTICE!'
+    print *, '      LATTICE_TYPE IS NOT SET TO LINEAR_LATTICE!'
   endif
 
 !

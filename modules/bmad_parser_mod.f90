@@ -2037,8 +2037,8 @@ subroutine init_bmad_parser_common
   bp_com%var_name(13)  = 'CLIGHT'     ! old style
   bp_com%var_value(13) = c_light
 
-  bp_com%var_name(14)  = 'LINAC_LATTICE'
-  bp_com%var_value(14) = linac_lattice$
+  bp_com%var_name(14)  = 'LINEAR_LATTICE'
+  bp_com%var_value(14) = linear_lattice$
 
   bp_com%var_name(15)  = 'CIRCULAR_LATTICE'
   bp_com%var_value(15) = circular_lattice$

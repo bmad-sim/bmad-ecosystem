@@ -369,7 +369,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
         enddo
 
       case (mad_lcav)
-        ring%param%lattice_type = linac_lattice$
+        ring%param%lattice_type = linear_lattice$
         call add_ele (lcavity$)
         ele%value(l$)            =  pdata(dat_indx)
         ele%value(gradient$)     =  pdata(dat_indx+2) * 1e6 / ele%value(l$)
@@ -394,7 +394,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
           call read_wake (ele%wake%sr, name, 'TRANS')
         endif
 
-        ring%param%lattice_type = linac_lattice$
+        ring%param%lattice_type = linear_lattice$
 
       case (mad_inst, mad_blmo, mad_prof, mad_wire, mad_slmo, mad_imon)
         call add_ele (instrument$)
