@@ -82,7 +82,7 @@ contains
 !               Default is ring%n_ele_use.
 !
 ! Output:
-!   beam -- Beam_struct: Beam at end of element ix2.
+!   beam   -- Beam_struct: Beam at end of element ix2.
 !-
 
 subroutine track_beam (ring, beam, ix1, ix2)
@@ -111,6 +111,44 @@ subroutine track_beam (ring, beam, ix1, ix2)
   enddo
 
 end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine track1_beam (beam_start, ele, param, beam_end)
+!
+! Subroutine to track a beam of macroparticles through a single element.
+!
+! Modules needed:
+!   use macroparticle_mod
+!
+! Input:
+!   beam_start  -- Beam_struct: starting beam position
+!   ele         -- Ele_struct: The element to track through.
+!   param       -- Param_struct: General parameters.
+!
+! Output:
+!   beam_end    -- Beam_struct: ending beam position.
+!-
+
+subroutine track1_beam (beam_start, ele, param, beam_end)
+
+  implicit none
+
+  type (beam_struct) beam_start
+  type (beam_struct) beam_end
+  type (ele_struct) ele
+  type (param_struct) param
+
+  integer i
+
+!
+  do i = 1, size(beam_start%bunch)
+    call track1_bunch (beam_start%bunch(i), ele, param, beam_end%bunch(i))
+  enddo
+
+end subroutine track1_beam
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -444,8 +482,6 @@ end subroutine
 ! Subroutine track1_macroparticle (start, ele, param, end)
 !
 ! Subroutine to track a macro-particle through an element.
-! Note: the transfer ele%mat6 matrix is changed and not restored
-! during traking.
 !
 ! Modules needed:
 !   use macroparticle_mod
@@ -463,33 +499,35 @@ subroutine track1_macroparticle (start, ele, param, end)
 
   implicit none
 
-  type (macro_struct) start
-  type (macro_struct) end
-  type (ele_struct) ele
-  type (param_struct) param
+  type (macro_struct) :: start
+  type (macro_struct) :: end
+  type (ele_struct), intent(in) :: ele
+  type (ele_struct), save :: temp_ele
+  type (param_struct), intent(inout) :: param
 
   real(rp) l, l2, s(21), m4(4,4), s_mat4(4,4), s_mat6(6,6)
 
+  temp_ele = ele
 
 ! transfer z-order index, charge, etc
 
   end = start
   if (start%lost) return
 
-  if (ele%key == marker$) return
+  if (temp_ele%key == marker$) return
 
 ! Very simple cases
 
-  select case (ele%key)
+  select case (temp_ele%key)
   case (drift$, ecollimator$, elseparator$, hkicker$, instrument$, &
                     kicker$, monitor$, rcollimator$)
 
-    call track1 (start%r, ele, param, end%r)
+    call track1 (start%r, temp_ele, param, end%r)
     call check_lost
 
     s = start%sigma
     end%sigma = s
-    l = ele%value(l$) / (1 + start%r%vec(6))
+    l = temp_ele%value(l$) / (1 + start%r%vec(6))
     l2 = l*l
 
     end%sigma(s11$) = s(s11$) + 2 * l * s(s12$) + l2 * s(s22$)
@@ -510,16 +548,16 @@ subroutine track1_macroparticle (start, ele, param, end)
 ! Simple case where longitudinal motion can be ignored.
 
   if (start%sigma(s55$) == 0 .and. start%sigma(s66$) == 0 .and. &
-                                                  ele%key /= sbend$) then
+                                                  temp_ele%key /= sbend$) then
 
-    call make_mat6 (ele, param, start%r, end%r)  
+    call make_mat6 (temp_ele, param, start%r, end%r)  
     call check_lost
 
     s = start%sigma
     end%sigma = s
-    m4 = ele%mat6(1:4,1:4)
+    m4 = temp_ele%mat6(1:4,1:4)
 
-    if (all(ele%mat6(1:2,3:4) == 0) .and. all(ele%mat6(3:4,1:2) == 0)) then
+    if (all(temp_ele%mat6(1:2,3:4) == 0) .and. all(temp_ele%mat6(3:4,1:2) == 0)) then
       end%sigma(s11$) = m4(1,1)*m4(1,1)*s(s11$) + m4(1,2)*m4(1,2)*s(s22$) + &
                                               2*m4(1,1)*m4(1,2)*s(s12$) 
       end%sigma(s12$) = m4(1,2)*m4(2,1)*s(s12$) + m4(1,2)*m4(2,2)*s(s22$) + &
@@ -551,10 +589,10 @@ subroutine track1_macroparticle (start, ele, param, end)
 
 ! Full tracking. 
 
-    call make_mat6 (ele, param, start%r, end%r)  
+    call make_mat6 (temp_ele, param, start%r, end%r)  
     call check_lost
     call mp_sigma_to_mat (start%sigma, s_mat6)
-    s_mat6 = matmul(ele%mat6, matmul(s_mat6, transpose(ele%mat6)))
+    s_mat6 = matmul(temp_ele%mat6, matmul(s_mat6, transpose(temp_ele%mat6)))
     call mat_to_mp_sigma (s_mat6, end%sigma)
 
 ! Sig_z calc. Because of roundoff sigma(s55$) can be negative.
