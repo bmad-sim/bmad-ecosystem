@@ -303,8 +303,8 @@ subroutine multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)
     return
 
   case default                                  
-    type *, 'ERROR IN MULTIPOLE_ELE_TO_AB: ELEMENT NOT A AB_MULTIPOLE, QUAD, ETC.'
-    type *, '      ', ele%name
+    print *, 'ERROR IN MULTIPOLE_ELE_TO_AB: ELEMENT NOT A AB_MULTIPOLE, QUAD, ETC.'
+    print *, '      ', ele%name
     call err_exit
 
   end select

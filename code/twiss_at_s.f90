@@ -17,6 +17,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/05/02 15:44:04  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.4  2003/01/27 14:40:46  dcs
 !bmad_version = 56
 !
@@ -47,7 +50,7 @@ subroutine twiss_at_s (ring, s, ele)
 ! error_check
 
   if (s < 0 .or. s > ring%param%total_length) then
-    type *, 'ERROR IN TWISS_AT_S: S POSITION OUT OF BOUNDS.', s
+    print *, 'ERROR IN TWISS_AT_S: S POSITION OUT OF BOUNDS.', s
     call err_exit
   endif
 

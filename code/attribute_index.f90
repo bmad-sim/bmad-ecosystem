@@ -26,6 +26,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/05/02 15:43:58  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.5  2002/10/29 17:07:12  dcs
 !*** empty log message ***
 !
@@ -107,7 +110,7 @@ function attribute_index (ele, name) result (at_index)
       endif
     enddo      
   else
-    type *, 'ERROR IN ATTRIBUTE_INDEX: BAD KEY', key
+    print *, 'ERROR IN ATTRIBUTE_INDEX: BAD KEY', key
     call err_exit
   endif
 

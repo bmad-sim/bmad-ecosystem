@@ -78,10 +78,10 @@ subroutine twiss_at_start (ring)
     eta_vec = eta_vec + ring%ele_(n)%mat6(1:4,6)
     t0_4 = matmul (ring%ele_(n)%mat6(1:4,1:4), t0_4)
     if (debug) then
-      type *, '!------------------------------------', n
+      print *, '!------------------------------------', n
       call type_ele (ring%ele_(n), .false., 0, .false., 0, .false., ring)
       do i = 1, 4
-        type '(4f11.4, 5x, f11.4)', (t0_4(i, j), j = 1, 4), eta_vec(i)
+        print '(4f11.4, 5x, f11.4)', (t0_4(i, j), j = 1, 4), eta_vec(i)
       enddo
     endif
   enddo

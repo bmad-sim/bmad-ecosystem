@@ -399,7 +399,7 @@ subroutine track1_bmad (start, ele, param, end)
 
   case default
 
-    type *, 'ERROR IN TRACK1_BMAD: UNKNOWN ELEMENT: ', &
+    print *, 'ERROR IN TRACK1_BMAD: UNKNOWN ELEMENT: ', &
                                         key_name(ele%key), ele%type
     call err_exit
 

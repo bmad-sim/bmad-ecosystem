@@ -25,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/05/02 15:44:03  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.5  2003/01/27 14:40:44  dcs
 !bmad_version = 56
 !
@@ -83,7 +86,7 @@ subroutine track1_627 (start, ele, param, mat627, end)
 ! error
 
   case default
-    type *, 'ERROR IN TRACK1_627: UNKNOWN ELEMENT: ', &
+    print *, 'ERROR IN TRACK1_627: UNKNOWN ELEMENT: ', &
                                        key_name(ele%key), ele%type
     call err_exit
   end select

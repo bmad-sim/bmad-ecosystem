@@ -43,6 +43,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/05/02 15:43:59  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.5  2003/01/27 14:40:32  dcs
 !bmad_version = 56
 !
@@ -100,7 +103,7 @@ subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
     ix_slave = ring%control_(i)%ix_slave
 
     if (ix_slave <= 0) then
-      type *, 'ERROR IN CREATE_OVERLAY: INDEX OUT OF BOUNDS.', ix_slave
+      print *, 'ERROR IN CREATE_OVERLAY: INDEX OUT OF BOUNDS.', ix_slave
       call err_exit
     endif
 
@@ -113,9 +116,9 @@ subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
 ! You cannot overlay super_slaves or overlay_lords
 
     if (slave_type == super_slave$) then
-      type *, 'ERROR IN CREATE_OVERLAY: ILLEGAL OVERLAY ON ',  &
+      print *, 'ERROR IN CREATE_OVERLAY: ILLEGAL OVERLAY ON ',  &
                                              ring%ele_(ix_slave)%name
-      type *, '      BY: ', over_ele%name
+      print *, '      BY: ', over_ele%name
       call err_exit
     endif
 
@@ -131,8 +134,8 @@ subroutine create_overlay (ring, ix_overlay, ix_value, n_slave, con_)
 ! end check
 
   if (ring%n_control_array > n_control_maxx) then
-    type *, 'ERROR IN CREATE_OVERLAY: NOT ENOUGH CONTROL ELEMENTS !!!'
-    type *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
+    print *, 'ERROR IN CREATE_OVERLAY: NOT ENOUGH CONTROL ELEMENTS !!!'
+    print *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
     call err_exit
   endif
 

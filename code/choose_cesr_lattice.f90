@@ -28,6 +28,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.10  2003/05/02 15:43:59  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.9  2003/01/27 14:40:31  dcs
 !bmad_version = 56
 !
@@ -93,29 +96,29 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
   do
 
     if (ask_for_lat) then
-      type *
+      print *
       i_lat = 0
       do i = 1, num_lats
         if (lat_list(i) == current_lat) then
-          type '(1x, a, i2, 3a)', '**', i, ') ', trim(lat_list(i)), &
+          print '(1x, a, i2, 3a)', '**', i, ') ', trim(lat_list(i)), &
                                            '   ! Current lattice in Data Base'
           i_lat = i
         else
-          type '(i5, 2a)', i, ') ', lat_list(i)
+          print '(i5, 2a)', i, ') ', lat_list(i)
         endif
       enddo
   
-      type *, ' [Note: To be in this list a lattice file must have a name   ]'
-      type *, ' [      of the form: U:[CESR.BMAD.LAT]bmad_<lattice_name>.lat]'
+      print *, ' [Note: To be in this list a lattice file must have a name   ]'
+      print *, ' [      of the form: U:[CESR.BMAD.LAT]bmad_<lattice_name>.lat]'
 
-      type *
-      type *, 'You can enter a Lattice number or a full file name.'
+      print *
+      print *, 'You can enter a Lattice number or a full file name.'
       if (i_lat == 0) then
-        type '(a, $)', ' Choice: '
+        print '(a, $)', ' Choice: '
       else
-        type '(a, i3, a, $)', ' Choice: <CR =', i_lat, '> '
+        print '(a, i3, a, $)', ' Choice: <CR =', i_lat, '> '
       endif
-      accept '(a)', line
+      read (*, '(a)') line
     endif
 
     call string_trim (line, line, ix)
@@ -133,7 +136,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
 
     if (default_flag .or. (ios == 0 .and. index('0123456789', line(1:1)) /= 0)) then
       if (i_lat < 1 .or. i_lat > num_lats) then
-        type *, 'ERROR: WHICH LATTICE? TRY AGAIN...'
+        print *, 'ERROR: WHICH LATTICE? TRY AGAIN...'
         ask_for_lat = .true.
         cycle  ! try again
       endif
@@ -149,7 +152,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
         call FullFileName(lat_file, lat_file)
         inquire (file = lat_file, exist = is_there, name = lat_file)
         if (.not. is_there) then
-          type *, 'READ ERROR OR FILE DOES NOT EXIST. TRY AGAIN...'
+          print *, 'READ ERROR OR FILE DOES NOT EXIST. TRY AGAIN...'
           ask_for_lat = .true.
           cycle
         endif

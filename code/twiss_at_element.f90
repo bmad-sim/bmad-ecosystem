@@ -24,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/05/02 15:44:03  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.4  2003/01/27 14:40:46  dcs
 !bmad_version = 56
 !
@@ -57,7 +60,7 @@ subroutine twiss_at_element (ring, ix_ele, start, end, average)
 ! start and end
 
   if (ix_ele == 0) then
-    type *, 'ERROR IN TWISS_AT_ELEMENT: IX_ELE = 0'
+    print *, 'ERROR IN TWISS_AT_ELEMENT: IX_ELE = 0'
     call err_exit
   endif        
 

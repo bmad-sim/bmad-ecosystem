@@ -25,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/05/02 15:44:03  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.6  2003/01/27 14:40:45  dcs
 !bmad_version = 56
 !
@@ -75,8 +78,8 @@ subroutine track_all (ring, orbit_)
     endif
 
     if (debug) then
-      type *, ring%ele_(n)%name
-      type *, (orbit_(n)%vec(i), i = 1, 6)
+      print *, ring%ele_(n)%name
+      print *, (orbit_(n)%vec(i), i = 1, 6)
     endif
 
   enddo

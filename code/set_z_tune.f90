@@ -49,8 +49,8 @@ subroutine set_z_tune (ring)
 ! Error detec and init.
 
   if (ring%z%tune > 0) then
-    type *, 'WARNING FROM SET_Z_TUNE: RING%Z%TUNE IS POSITIVE!'
-    type *, '     I AM ASSUMING THIS IS INCORRECT AND AM SWITCHING THE SIGN.'
+    print *, 'WARNING FROM SET_Z_TUNE: RING%Z%TUNE IS POSITIVE!'
+    print *, '     I AM ASSUMING THIS IS INCORRECT AND AM SWITCHING THE SIGN.'
     ring%z%tune = -ring%z%tune
   endif
 
@@ -82,9 +82,9 @@ subroutine set_z_tune (ring)
       enddo
 
       if (ele%value(rf_wavelength$) == 0) then
-        type *, 'ERROR IN SET_Z_TUNE: RF_WAVELENGTH  ATTRIBUTE NOT SET'
-        type *, '      FOR: ', ele%name
-        type *, '      WILL SET RF_WAVELENGTH FOR HAMONIC NUMBER = 1'
+        print *, 'ERROR IN SET_Z_TUNE: RF_WAVELENGTH  ATTRIBUTE NOT SET'
+        print *, '      FOR: ', ele%name
+        print *, '      WILL SET RF_WAVELENGTH FOR HAMONIC NUMBER = 1'
         ele%value(harmon$) = 1
         ele%value(rf_wavelength$) = ring%param%total_length
       endif

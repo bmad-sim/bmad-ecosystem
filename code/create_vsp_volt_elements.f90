@@ -26,6 +26,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/05/02 15:44:00  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.6  2003/01/27 14:40:32  dcs
 !bmad_version = 56
 !
@@ -75,7 +78,7 @@ subroutine create_vsp_volt_elements (ring, ele_type)
     elseif (ring%ele_(i)%name == vsep_east) then
       call do_vsp_eles (ring, i, ix_east, ele_type)
       if (.not. found_west) then
-        type *, 'ERROR IN CREATE_VSP_VOLT_ELEMENTS: CANNOT FIND WEST VSEP!'
+        print *, 'ERROR IN CREATE_VSP_VOLT_ELEMENTS: CANNOT FIND WEST VSEP!'
         if (bmad_status%exit_on_error) call err_exit
         bmad_status%ok = .false.
       endif
@@ -84,7 +87,7 @@ subroutine create_vsp_volt_elements (ring, ele_type)
 
   enddo
 
-  type *, 'ERROR IN CREATE_VSP_VOLT_ELEMENTS: CANNOT FIND EAST VSEP!'
+  print *, 'ERROR IN CREATE_VSP_VOLT_ELEMENTS: CANNOT FIND EAST VSEP!'
   if (bmad_status%exit_on_error) call err_exit
   bmad_status%ok = .false.
 
@@ -113,7 +116,7 @@ subroutine do_vsp_eles (ring, i_vsep, ix_, ele_type)
 !
                  
   if (ring%ele_(i_vsep)%control_type /= free$) then
-    type *, 'ERROR IN CREATE_VSP_VOLT_ELEMENTS: VSEP NOT FREE!', i_vsep
+    print *, 'ERROR IN CREATE_VSP_VOLT_ELEMENTS: VSEP NOT FREE!', i_vsep
     return
   endif
 
@@ -136,7 +139,7 @@ subroutine do_vsp_eles (ring, i_vsep, ix_, ele_type)
       call create_overlay (ring, i_con, vkick$, 1, con_)
       if (i == 2 .or. i == 3) ring%ele_(i_con)%value(vkick$) = vkick / 2
     else
-      type *, 'ERROR IN CREATE_VSP_VOLT_ELEMENTS: BAD ELE_TYPE: ', ele_type
+      print *, 'ERROR IN CREATE_VSP_VOLT_ELEMENTS: BAD ELE_TYPE: ', ele_type
       call err_exit
     endif
 

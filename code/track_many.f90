@@ -48,6 +48,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.10  2003/05/02 15:44:03  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.9  2003/03/06 17:47:40  dcs
 !Hiding PTC stuff.
 !
@@ -115,7 +118,7 @@ subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
     endif
 
   else
-    type *, 'ERROR IN TRACK_MANY: BAD DIRECTION:', direction
+    print *, 'ERROR IN TRACK_MANY: BAD DIRECTION:', direction
     call err_exit
   endif
 
@@ -140,8 +143,8 @@ subroutine track_fwd (ix1, ix2)
     endif
 
     if (debug) then
-      type *, ring%ele_(n)%name
-      type *, (orbit_(n)%vec(i), i = 1, 6)
+      print *, ring%ele_(n)%name
+      print *, (orbit_(n)%vec(i), i = 1, 6)
     endif
 
   enddo
@@ -185,8 +188,8 @@ subroutine track_back (ix1, ix2)
     endif
 
     if (debug) then
-      type *, ring%ele_(n)%name
-      type *, (orbit_(n)%vec(i), i = 1, 6)
+      print *, ring%ele_(n)%name
+      print *, (orbit_(n)%vec(i), i = 1, 6)
     endif
 
   enddo

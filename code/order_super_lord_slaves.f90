@@ -16,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/05/02 15:44:01  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.6  2003/03/18 20:34:44  dcs
 !bug fix.
 !
@@ -58,7 +61,7 @@ subroutine order_super_lord_slaves (ring, ix_lord)
   ix1 = ele%ix1_slave; ix2 = ele%ix2_slave
 
   if (ele%control_type /= super_lord$) then
-    type *, 'ERROR IN ORDER_SUPER_LORD_SLAVES: ELEMENT NOT A SUPER_LORD'
+    print *, 'ERROR IN ORDER_SUPER_LORD_SLAVES: ELEMENT NOT A SUPER_LORD'
     call err_exit
   endif
 

@@ -55,7 +55,7 @@ subroutine read_butns_file (butns_num, butns, db, read_ok, type_err)
   type (db_struct) db
   type (butns_struct) butns
 
-  integer vec(120), det_type(120), is_ok(120)
+  integer vec(120), det_type(120)
   integer i, ix, j, butns_num, iu, lunget, ios, raw(4, 120)
   integer n_node, n_ele
 
@@ -63,7 +63,7 @@ subroutine read_butns_file (butns_num, butns, db, read_ok, type_err)
 
   character line_in*130, file_in*40
 
-  logical read_ok, type_err, err_flag
+  logical read_ok, type_err, err_flag, is_ok(120)
 
 ! init comments
 
@@ -82,9 +82,9 @@ subroutine read_butns_file (butns_num, butns, db, read_ok, type_err)
 ! and sterring strengths
 
   iu = lunget()
-  open(unit = iu, file = file_in, type = 'old', readonly, shared, iostat = ios)
+  open(unit = iu, file = file_in, status = 'old', action = 'READ', iostat = ios)
   if (ios /= 0) then
-    if (type_err) type *, &
+    if (type_err) print *, &
           'ERROR IN READ_BUTNS_FILE: ERROR OPENING: ', trim(file_in)
     return
   endif
@@ -97,7 +97,7 @@ subroutine read_butns_file (butns_num, butns, db, read_ok, type_err)
   do
     read (iu, '(a)', iostat = ios) line_in
     if (ios /= 0) then
-      type *, 'ERROR IN ORBIT_READ: ERROR READING STEERINGS IN ORBIT FILE'
+      print *, 'ERROR IN ORBIT_READ: ERROR READING STEERINGS IN ORBIT FILE'
       goto 1000
     endif
     ix = index(line_in, 'END BUTNS')
@@ -106,7 +106,7 @@ subroutine read_butns_file (butns_num, butns, db, read_ok, type_err)
 
   read (line_in(ix+10:), *, iostat = ios) n_node
   if (ios /= 0) then
-    type *, 'ERROR IN ORBIT_READ: ERROR READING STEERING NODE NUMBER IN ORBIT FILE'
+    print *, 'ERROR IN ORBIT_READ: ERROR READING STEERING NODE NUMBER IN ORBIT FILE'
     goto 1000
   endif
 
@@ -116,7 +116,7 @@ subroutine read_butns_file (butns_num, butns, db, read_ok, type_err)
 
     read (iu, '(a)', iostat = ios) line_in
     if (ios /= 0) then
-      type *, 'ERROR IN ORBIT_READ: ERROR READING STEERING NODE IN ORBIT FILE'
+      print *, 'ERROR IN ORBIT_READ: ERROR READING STEERING NODE IN ORBIT FILE'
       exit
     endif
 
@@ -126,7 +126,7 @@ subroutine read_butns_file (butns_num, butns, db, read_ok, type_err)
       do j = 1, n_ele
         read (iu, '(1x, a)', iostat = ios) butns%comment(j)
         if (ios /= 0) then
-          type *, 'ERROR IN ORBIT_READ: ERROR READING COMMENT #', j
+          print *, 'ERROR IN ORBIT_READ: ERROR READING COMMENT #', j
           exit
         endif
       enddo
@@ -156,7 +156,7 @@ subroutine read_butns_file (butns_num, butns, db, read_ok, type_err)
     elseif (line_in(2:13) == 'SCIR POS RD ') then
       db%scir_pos_rd(1:n_ele)%cu_now = vec(1:n_ele)
     else
-      type *, 'ERROR IN ORBIT_READ: UNKNOWN NODE IN ORBIT FILE: ', line_in(2:13)
+      print *, 'ERROR IN ORBIT_READ: UNKNOWN NODE IN ORBIT FILE: ', line_in(2:13)
       goto 1000
     endif
 

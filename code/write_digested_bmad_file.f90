@@ -26,24 +26,12 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
 
   implicit none
 
-  type ele_digested_struct
-    union
-      map
-        integer(rdef) dummy(1000)
-      end map
-      map
-        type (ele_struct) ele
-      end map
-    end union
-  end type
-  
   type (ring_struct), target, intent(in) :: ring
-  type (ele_digested_struct) :: u_ele
   type (ele_struct), pointer :: ele
   type (taylor_struct), pointer :: tt(:)
   
   integer d_unit, lunget, n_files, i, j, k, ix_w, ix_d, ix_m, ix_t(6)
-  integer stat_b(12), stat, ierr, i_write
+  integer stat_b(12), stat, ierr
 
   character(*) digested_name
   character(*), optional :: file_names(:)
@@ -51,28 +39,12 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
 
   external stat
 
-! Find out minimum size to write
-
-  u_ele%dummy = 0
-  u_ele%ele%is_on = .true.
-  do i = 1, size(u_ele%dummy)
-    if (u_ele%dummy(i) /= 0) exit
-    if (i == size(u_ele%dummy)) then
-      print *, 'ERROR IN WRITE_DIGESTED_BMAD_FILE: END OF ELE_STRUCT NOT FOUND!'
-      call err_exit
-    endif
-  enddo
-
-  i_write = i + 4
-!!  print *, 'WRITE_DIGESTED_BMAD_FILE: Ele_struct size is:', i_write
-
 ! write input file names to the digested file
 
   d_unit = lunget()
   open (unit = d_unit, file = digested_name, form = 'unformatted', err = 9000)
 
   write (d_unit, err = 9010) n_files, bmad_inc_version$
-  write (d_unit, err = 9010) i_write
 
   do j = 1, n_files
     fname = file_names(j)
@@ -85,8 +57,6 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
 
 ! write the ring structure to the digested file. We do this in pieces
 ! since the whole structure is too big to write in 1 statement.
-! also: because of the pointers we need to disguise that we are writting ele's
-!  by using the digested_ele_struct
 
   write (d_unit) ring%parameters
   
@@ -94,7 +64,6 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   
     ele => ring%ele_(i)
     tt => ele%taylor
-    u_ele%ele = ele
     
     ix_w = 0; ix_d = 0; ix_m = 0; ix_t = 0
 
@@ -105,7 +74,19 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
       if (associated(tt(1)%term))   ix_t = (/ (size(tt(j)%term), j = 1, 6) /)
     endif
 
-    write (d_unit) ix_w, ix_d, ix_m, ix_t, u_ele%dummy(1:i_write)
+    write (d_unit) ix_w, ix_d, ix_m, ix_t, &
+            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
+            ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            ele%c_mat, ele%gamma_c, ele%s, ele%x_position, ele%y_position, &
+            ele%z_position, ele%theta_position, ele%phi_position, ele%key, &
+            ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
+            ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+            ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+            ele%iyy, ele%mat6_calc_method, ele%tracking_method, &
+            ele%num_steps, ele%integration_order, ele%ptc_kind, &
+            ele%taylor_order, ele%symplectify, ele%mode_flip, &
+            ele%multipoles_on, ele%exact_rad_int_calc, ele%B_field_master
+
     do j = 1, ix_w
       write (d_unit) ele%wig_term(j)
     enddo
@@ -137,16 +118,16 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
 
 ! Errors
 
-9000  type *
-  type *, 'WRITE_DIGESTED_BMAD_FILE: NOTE: CANNOT OPEN FILE FOR OUTPUT:'
-  type *, '    ', trim(digested_name)
-  type *, '     [This does not affect program operation]'
+9000  print *
+  print *, 'WRITE_DIGESTED_BMAD_FILE: NOTE: CANNOT OPEN FILE FOR OUTPUT:'
+  print *, '    ', trim(digested_name)
+  print *, '     [This does not affect program operation]'
   return
 
-9010  type *
-  type *, 'WRITE_DIGESTED_BMAD_FILE: NOTE: CANNOT WRITE TO FILE FOR OUTPUT:'
-  type *, '    ', trim(digested_name)
-  type *, '     [This does not affect program operation]'
+9010  print *
+  print *, 'WRITE_DIGESTED_BMAD_FILE: NOTE: CANNOT WRITE TO FILE FOR OUTPUT:'
+  print *, '    ', trim(digested_name)
+  print *, '     [This does not affect program operation]'
   close (d_unit)
   return
 

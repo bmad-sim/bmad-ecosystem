@@ -31,6 +31,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/05/02 15:44:00  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.7  2003/01/27 14:40:32  dcs
 !bmad_version = 56
 !
@@ -80,7 +83,7 @@ subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, ring, db, &
 
   if (.not. ok) return
   if (grp%ratio_mode) then
-    if (type_err) type *, 'ERROR: RATIO MODE NOT SUPPORTED.'
+    if (type_err) print *, 'ERROR: RATIO MODE NOT SUPPORTED.'
     ok = .false.
     return
   endif
@@ -92,7 +95,7 @@ subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, ring, db, &
     call identify_db_node (grp%node(k)%name, db, db_ptr, ok, .true.)
 
     if (.not. ok) then
-      if (type_err) type *, 'ERROR IN DB_GROUP_TO_BMAD:', &
+      if (type_err) print *, 'ERROR IN DB_GROUP_TO_BMAD:', &
                                    ' CANNOT FIND NODE: ', grp%node(k)%name
       return
     endif
@@ -102,8 +105,8 @@ subroutine db_group_to_bmad (ing_name, ing_num, biggrp_set, ring, db, &
       if (grp%ele(nn)%coef == 0) cycle
       if (db_ptr(n)%ix_ring == 0) then
         if (type_err) then
-          type *, 'ERROR IN DB_GROUP_TO_BMAD: CANNOT FIND IN RING ELEMENT'
-          type *, '      FOR: ', db_ptr(n)%db_node_name, db_ptr(n)%ix_db
+          print *, 'ERROR IN DB_GROUP_TO_BMAD: CANNOT FIND IN RING ELEMENT'
+          print *, '      FOR: ', db_ptr(n)%db_node_name, db_ptr(n)%ix_db
         endif
         ok = .false.               
         return

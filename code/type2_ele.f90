@@ -36,48 +36,6 @@
 !   n_lines      -- Number of lines in lines(:).
 !-
 
-!$Id$
-!$Log$
-!Revision 1.15  2003/03/04 16:03:30  dcs
-!VMS port
-!
-!Revision 1.14  2003/01/29 16:14:32  dcs
-!Linac RF bug fix and update.
-!
-!Revision 1.13  2003/01/27 14:40:47  dcs
-!bmad_version = 56
-!
-!Revision 1.11  2002/08/23 20:19:02  dcs
-!Update Documentation.
-!
-!Revision 1.10  2002/07/31 14:33:51  dcs
-!Extended lines(:) array.
-!
-!Revision 1.9  2002/06/13 14:54:31  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.8  2002/02/23 20:32:29  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.7  2002/01/24 16:37:35  dcs
-!Bug fix
-!
-!Revision 1.6  2002/01/23 20:08:29  dcs
-!Bug fix
-!
-!Revision 1.5  2002/01/08 21:44:44  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.4  2001/11/29 19:39:54  helms
-!Updates from DCS including (*) -> (:)
-!
-!Revision 1.3  2001/10/12 20:53:35  rwh24
-!DCS changes and two files added
-!
-!Revision 1.2  2001/09/27 18:32:01  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
@@ -130,7 +88,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
 
   if (associated(ele%descrip)) then
     nl = nl + 1
-    write (li(nl), *), 'Descrip: ', trim(ele%descrip)
+    write (li(nl), *) 'Descrip: ', trim(ele%descrip)
   endif
 
 ! Encode element key and attributes
@@ -251,7 +209,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
                                     calc_method_name(ele%mat6_calc_method)
   write (li(nl+4), '(a, i4)')   ' Integration_order:', ele%integration_order 
   write (li(nl+5), '(a, i4)')   ' Num_steps:        ', ele%num_steps 
-  write (li(nl+6), '(a, l)')    ' Symplectify:      ', ele%symplectify
+  write (li(nl+6), '(a, L)')    ' Symplectify:      ', ele%symplectify
   nl = nl + 6
 
   if (ele%ptc_kind /= 0) then
@@ -315,7 +273,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
             a_name = attribute_name(ring%ele_(j), iv)
           endif
           nl = nl + 1
-          write (li(nl), '(5x, a, i10, 2x, a16, 1pe11.3, 1pe12.3)') &
+          write (li(nl), '(5x, a, i10, 2x, a16, 1p, e11.3, 1p, e12.3)') &
                                 ring%ele_(j)%name, j, a_name, coef
         enddo
       endif
@@ -340,11 +298,11 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
             if (ix == 0) then
               val_str = '  GARBAGE!'
             else
-              write (val_str, '(1pe12.3)') ring%ele_(j)%value(ix)
+              write (val_str, '(1p, e12.3)') ring%ele_(j)%value(ix)
             endif
           endif
           nl = nl + 1  
-          write (li(nl), '(5x, a, i10, 2x, a16, 1pe11.3, a12)') &
+          write (li(nl), '(5x, a, i10, 2x, a16, 1p, e11.3, a12)') &
                              ring%ele_(j)%name, j, a_name, coef, val_str
         enddo
       endif
@@ -371,7 +329,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
   if (any(abs(ele%mat6(1:n,1:n)) >= 1000)) then
     do i = 1, n
       nl = nl + 1
-      write (li(nl), '(1p6e11.3)') (ele%mat6(i, j), j = 1, n)
+      write (li(nl), '(1p, 6e11.3)') (ele%mat6(i, j), j = 1, n)
     enddo
   else
     do i = 1, n

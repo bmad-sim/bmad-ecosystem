@@ -28,6 +28,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/05/02 15:44:04  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.5  2003/01/27 14:40:46  dcs
 !bmad_version = 56
 !
@@ -75,9 +78,9 @@ subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
 
   if (bmad_status%status /= ok$) then
     if (bmad_status%type_out) then
-      type *, 'ERROR IN TWISS_FROM_MAT6: BAD 1-TURN MATRIX: ',  &
+      print *, 'ERROR IN TWISS_FROM_MAT6: BAD 1-TURN MATRIX: ',  &
                                                 status_name(bmad_status%status)
-      type *, '       TWISS PARAMETERS NOT COMPUTED'
+      print *, '       TWISS PARAMETERS NOT COMPUTED'
     endif
     if (bmad_status%status == non_symplectic$) then
       rate1 = 10.0

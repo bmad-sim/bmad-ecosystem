@@ -19,6 +19,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/05/02 15:44:00  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.5  2003/01/27 14:40:33  dcs
 !bmad_version = 56
 !
@@ -59,7 +62,7 @@ subroutine do_mode_flip (ele, ele_flip)
   if (ele%gamma_c >= 1.0) then
     bmad_status%ok = .false.
     if (bmad_status%type_out)  &
-            type *, 'ERROR IN DO_MODE_FLIP: CANNOT MODE FLIP ELEMENT'
+            print *, 'ERROR IN DO_MODE_FLIP: CANNOT MODE FLIP ELEMENT'
     if (bmad_status%exit_on_error) call err_exit
     return
   endif

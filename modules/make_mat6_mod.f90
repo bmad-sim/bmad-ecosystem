@@ -371,7 +371,7 @@ subroutine bbi_slice_calc (n_slice, sig_z, z_slice)
     enddo
     n_slice_old = n_slice
   else
-    type *, 'ERROR IN BBI_SLICE_CALC: N_SLICE IS NEGATIVE:', n_slice
+    print *, 'ERROR IN BBI_SLICE_CALC: N_SLICE IS NEGATIVE:', n_slice
     call err_exit
   endif
 

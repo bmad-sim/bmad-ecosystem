@@ -85,7 +85,7 @@ subroutine integration_timer_fibre (a_fibre, orbit, orbit_max, tol_dp)
   type (universal_taylor) :: ut1(6), ut2(6)
 
   real(dp), intent(in) :: tol_dp, orbit(6), orbit_max(6)
-  real t0, t_del
+  real t0, t_del, secnds
 
   integer i, n_steps0, order, order0
   integer n1_step, n2_step
@@ -101,9 +101,9 @@ subroutine integration_timer_fibre (a_fibre, orbit, orbit_max, tol_dp)
   enddo
   
   print *
-  print '(a, 1pe10.2)', ' Tolerance:', tol_dp
-  print '(a, 1p6e10.2)', ' Orbit    :', (orbit(i), i = 1, 6)
-  print '(a, 1p6e10.2)', ' Orbit_max:', (orbit_max(i), i = 1, 6)
+  print '(a, 1p, e10.2)', ' Tolerance:', tol_dp
+  print '(a, 1p, 6e10.2)', ' Orbit    :', (orbit(i), i = 1, 6)
+  print '(a, 1p, 6e10.2)', ' Orbit_max:', (orbit_max(i), i = 1, 6)
   print *, 'Order Steps      Diff      Time'
 
 ! loop over all orders

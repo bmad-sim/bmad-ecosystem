@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/05/02 15:44:00  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.4  2003/01/27 14:40:35  dcs
 !bmad_version = 56
 !
@@ -51,8 +54,8 @@ subroutine insert_element (ring, insert_ele, insert_index)
 
   ring%n_ele_max = ring%n_ele_max + 1
   if (ring%n_ele_max > n_ele_maxx) then
-    type *, 'ERROR IN INSERT_ELEMENT: NOT ENOUGH RING ELEMENTS!!!'
-    type *, '      YOU NEED TO INCREASE N_ELE_MAXX IN BMAD_STRUCT!!!'
+    print *, 'ERROR IN INSERT_ELEMENT: NOT ENOUGH RING ELEMENTS!!!'
+    print *, '      YOU NEED TO INCREASE N_ELE_MAXX IN BMAD_STRUCT!!!'
     call err_exit
   endif
 
@@ -72,9 +75,9 @@ subroutine insert_element (ring, insert_ele, insert_index)
     ring%n_ele_ring = ring%n_ele_ring + 1
     ring%n_ele_use = ring%n_ele_use + 1
   else
-    type *, 'WARNING FROM INSERT_ELEMENT: YOU ARE INSERTING AN ELEMENT'
-    type *, '        *NOT* INTO THE REGULAR PART OF THE RING STRUCTURE!'
-    type *, '        ELEMENT: ', insert_ele%name
+    print *, 'WARNING FROM INSERT_ELEMENT: YOU ARE INSERTING AN ELEMENT'
+    print *, '        *NOT* INTO THE REGULAR PART OF THE RING STRUCTURE!'
+    print *, '        ELEMENT: ', insert_ele%name
   endif
 
   if (insert_index <= ring%n_ele_symm)  &

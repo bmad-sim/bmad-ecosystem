@@ -482,9 +482,9 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
     n_slice = nint(ele%value(n_slice$))
     if (n_slice < 1) then
-      type *, 'ERROR IN MAKE_MAT6_BMAD: N_SLICE FOR BEAMBEAM ELEMENT IS NEGATIVE'
+      print *, 'ERROR IN MAKE_MAT6_BMAD: N_SLICE FOR BEAMBEAM ELEMENT IS NEGATIVE'
       call type_ele (ele, .true., 0, .false., 0, .false.)
-      call exit
+      stop
     endif
 
     if (ele%value(charge$) == 0 .or. param%n_part == 0) return
@@ -632,17 +632,17 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
     if ((ele%value(s_st1$) < 0.) .or.  &
         (ele%value(s_st1$) + ele%value(l_st1$) > ele%value(s_st2$)) .or.  &
         (ele%value(s_st2$) + ele%value(l_st2$) > length)) then
-      type *, 'ERROR IN MAKE_MAT6_BMAD: STEERINGS MUST NOT OVERLAP AND MUST BE',  &
+      print *, 'ERROR IN MAKE_MAT6_BMAD: STEERINGS MUST NOT OVERLAP AND MUST BE',  &
         ' CONTAINED WITHIN'
-      type *, 'THE ACCEL_SOL ELEMENT!'
+      print *, 'THE ACCEL_SOL ELEMENT!'
       call type_ele(ele, .true., 0, .false., 0, .false.)
-      call exit
+      stop
     endif
 
     call mat_make_unit (mat6)     ! make a unit matrix
     if (ele%value(volt$) /= 0) then
       if (ele%value(rf_wavelength$) == 0) then
-        type *, 'ERROR IN MAKE_MAT6_BMAD: RF IS ON BUT "RF_WAVELENGTH" NOT SET',  &
+        print *, 'ERROR IN MAKE_MAT6_BMAD: RF IS ON BUT "RF_WAVELENGTH" NOT SET',  &
               ' IN ACCEL_SOL!'
         call err_exit
       else
@@ -666,7 +666,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
   case (rbend$)
 
-    type *, 'ERROR IN MAKE_MAT6_BMAD: RBEND ELEMENTS NOT ALLOWED INTERNALLY!'
+    print *, 'ERROR IN MAKE_MAT6_BMAD: RBEND ELEMENTS NOT ALLOWED INTERNALLY!'
     call err_exit
 
 !--------------------------------------------------------
@@ -674,8 +674,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
   case (custom$)
 
-    type *, 'ERROR IN MAKE_MAT6_BMAD: MAT6_CALC_METHOD = BMAD_STANDARD IS NOT'
-    type *, '      ALLOWED FOR A CUSTOM ELEMENT: ', ele%name
+    print *, 'ERROR IN MAKE_MAT6_BMAD: MAT6_CALC_METHOD = BMAD_STANDARD IS NOT'
+    print *, '      ALLOWED FOR A CUSTOM ELEMENT: ', ele%name
     call err_exit
 
 !--------------------------------------------------------
@@ -683,8 +683,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
 
   case default
 
-    type *, 'ERROR IN MAKE_MAT6_BMAD: UNKNOWN ELEMENT KEY:', ele%key
-    type *, '      FOR ELEMENT: ', ele%name
+    print *, 'ERROR IN MAKE_MAT6_BMAD: UNKNOWN ELEMENT KEY:', ele%key
+    print *, '      FOR ELEMENT: ', ele%name
     call err_exit
 
   end select

@@ -1021,7 +1021,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
       print *, 'Number of ring elements:', ring%n_ele_ring
       print *, 'List:                               Key      Length         S'
       do i = 1, ring%n_ele_ring
-        type '(3x, i3, 2a, 3x, a, 2f10.2)', i, ') ', ring%ele_(i)%name,  &
+        print '(3x, i3, 2a, 3x, a, 2f10.2)', i, ') ', ring%ele_(i)%name,  &
           key_name(ring%ele_(i)%key), ring%ele_(i)%value(l$), ring%ele_(i)%s
       enddo
     endif
@@ -1049,7 +1049,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   if (bp_com%error_flag) then
     if (bmad_status%exit_on_error) then
       print *, 'BMAD_PARSER FINISHED. EXITING ON ERRORS'
-      call exit
+      stop
     else
       bmad_status%ok = .false.
       return

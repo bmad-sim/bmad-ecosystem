@@ -9,14 +9,14 @@ module bmad_parser_mod
 ! structure for a decleared variable
 
   type parser_var_struct
-    character*16 name                    ! variable name
+    character(16) name                    ! variable name
     real(rdef) value                     ! variable value
   end type                      
 
 ! structure for holding the contents of lines and lists (sequences)
 
   type seq_ele_struct
-    character*16 name              ! name of element, subline, or sublist
+    character(16) name              ! name of element, subline, or sublist
     integer type                   ! LINE$, LIST$, ELEMENT$
     integer ix_array               ! if an element: pointer to ELE_ array
                                    ! if a list: pointer to SEQ_ array
@@ -25,14 +25,14 @@ module bmad_parser_mod
   end type
 
   type replacement_arg_struct
-    character*16 dummy_name
-    character*16 actual_name
+    character(16) dummy_name
+    character(16) actual_name
   end type
 
 ! Head structure for lines and lists (sequences)
 
   type seq_struct
-    character*16 name                  ! name of sequence
+    character(16) name                  ! name of sequence
     integer type                       ! LINE$, REPLACEMENT_LINE$ or LIST$
     integer ix                         ! current index of element in %ELE
     integer indexx                     ! alphabetical order sorted index
@@ -55,9 +55,9 @@ module bmad_parser_mod
 ! superimpose and overlay elements
 
   type parser_ele_struct
-    character*16 ref_name
-    character*16, pointer :: name_(:)
-    character*16, pointer :: attrib_name_(:)
+    character(16) ref_name
+    character(16), pointer :: name_(:)
+    character(16), pointer :: attrib_name_(:)
     real(rdef), pointer :: coef_(:)
     integer ix_count
     integer ele_pt, ref_pt
@@ -73,7 +73,7 @@ module bmad_parser_mod
 ! component_struct
 
   type component_struct
-    character*16 name
+    character(16) name
     integer ix_ele
   end type
 
@@ -100,7 +100,7 @@ module bmad_parser_mod
     integer i_line, f_unit, n_files
     character*200 current_file_name, file_name_(20)
     character*280 parse_line
-    character*16 parser_name
+    character(16) parser_name
     character*72 debug_line
     logical parser_debug, no_digested, error_flag
     integer iseq_tot, ivar_tot, ivar_init
@@ -112,7 +112,7 @@ module bmad_parser_mod
   type (parser_var_struct)  var_(ivar_maxx)
   type (ele_struct), target :: beam_ele, param_ele
 
-  character*16 :: blank = ' '
+  character(16) :: blank = ' '
 
 !------------------------------------------------------------------------
 contains
@@ -137,12 +137,13 @@ subroutine get_attribute (how, ele, ring, pring, &
   integer i, ic, ix_word, how, ix_word1, ix_word2, ix_word3, ios, ix, i_out
   integer expn(6), ix_attrib
 
-  character*16 word, tilt_word / 'TILT' /, str_ix
+  character(16) :: word, tilt_word = 'TILT', str_ix
   character delim*1, delim1*1, delim2*1, str*80, err_str*40, line*80
-  character*16 super_names(11) / 'SUPERIMPOSE', 'OFFSET', 'REFERENCE',  &
-                'ELE_BEGINNING', 'ELE_CENTER', 'ELE_END',  &
-                'REF_BEGINNING', 'REF_CENTER', 'REF_END', &
-                'COMMON_LORD', ' ' /
+  character(16) :: super_names(11) = (/ &
+                'SUPERIMPOSE  ', 'OFFSET       ', 'REFERENCE    ',  &
+                'ELE_BEGINNING', 'ELE_CENTER   ', 'ELE_END      ',  &
+                'REF_BEGINNING', 'REF_CENTER   ', 'REF_END      ', &
+                'COMMON_LORD  ', '             ' /)
 
   logical delim_found, err_flag
 
@@ -370,8 +371,8 @@ subroutine get_attribute (how, ele, ring, pring, &
 
     call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.) ! (
     if (delim /= ')') then
-      call warning ('CANNOT FIND CLOSING ")" for a "TERM(i)" FOR A WIGGLER", &
-                     FOR: ' // ele%name)
+      call warning ('CANNOT FIND CLOSING ")" for a "TERM(i)" FOR A WIGGLER"', &
+                    'FOR: ' // ele%name)
       return
     endif
 
@@ -499,7 +500,7 @@ subroutine get_attribute (how, ele, ring, pring, &
 
   elseif (i == symplectify$) then
     call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
-    read (word, '(l)', iostat = ios) ele%symplectify
+    read (word, '(L)', iostat = ios) ele%symplectify
     if (ios /= 0 .or. ix_word == 0) then
       call warning ('BAD "SYMPLECTIFY" SWITCH FOR: ' // ele%name)
       return
@@ -686,7 +687,7 @@ subroutine file_stack (how, file_name, finished)
     if (i_level /= 1) i_line_(i_level-1) = bp_com%i_line
     bp_com%i_line = 0
     open (unit = bp_com%f_unit, file = bp_com%current_file_name,  &
-                                     status = 'old', readonly, err = 9000)
+                                 status = 'OLD', action = 'READ', err = 9000)
     bp_com%n_files = bp_com%n_files + 1
     inquire (file = file_name, name = bp_com%file_name_(bp_com%n_files))
   elseif (how == 'pop') then
@@ -730,7 +731,7 @@ subroutine load_parse_line (how, ix_cmd, file_end)
   character*(*) how
   character*140 line, pending_line
 
-  logical cmd_pending, file_end
+  logical :: cmd_pending = .false., file_end
 
 
 !
@@ -743,11 +744,11 @@ subroutine load_parse_line (how, ix_cmd, file_end)
     bp_com%parser_debug = .false.
     bp_com%no_digested = .false.
     read (bp_com%f_unit, '(a)', end = 9000) line
-    if (index(line, '!PARSER_DEBUG')) then
+    if (index(line, '!PARSER_DEBUG') /= 0) then
       bp_com%parser_debug = .true.
       bp_com%debug_line = line
       print *, 'FOUND IN FILE: "!PARSER_DEBUG". DEBUG IS NOW ON'
-    elseif (index(line, '!NO_DIGESTED')) then
+    elseif (index(line, '!NO_DIGESTED') /= 0) then
       bp_com%no_digested = .true.
       print *, 'FOUND IN FILE: "!NO_DIGESTED". NO DIGESTED FILE WILL BE CREATED'
     endif
@@ -1160,10 +1161,10 @@ subroutine word_to_value (word, ring, value)
   type (ring_struct), target ::  ring
   type (ele_struct), pointer :: ele
 
-  integer i, ix1, ix2
+  integer i, ix1, ix2, ix_word
   real(rdef) value
   character*(*) word
-  character*16 name
+  character(16) name
 
 ! see if this is numeric
 
@@ -1174,7 +1175,8 @@ subroutine word_to_value (word, ring, value)
 
 !
 
-  call verify_valid_name(word, len_trim(word))
+  ix_word = len_trim(word)
+  call verify_valid_name (word, ix_word)
 
 ! If word has a "[...]" then it is a element attribute
 
@@ -1309,7 +1311,7 @@ subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
   integer ic, ix_word, ixs, j, k
                              
   character delim*1, word_in*40, word*40
-  character*16 name_(200), attrib_name_(200)
+  character(16) name_(200), attrib_name_(200)
 
   logical delim_found, parsing, err_flag, file_end
                       
@@ -1492,7 +1494,7 @@ subroutine error_exit (what1, what2)
 
   print *, 'FATAL ERROR IN BMAD_PARSER: ', what1
   if (present(what2)) then
-    if (what2 /= ' ') type '(22x, a)', what2
+    if (what2 /= ' ') print '(22x, a)', what2
   endif
   print *, '      IN FILE: ', bp_com%current_file_name(:60)
   print *, '      AT OR BEFORE LINE:', bp_com%i_line
@@ -1519,7 +1521,7 @@ subroutine warning (what1, what2, seq)
 
   if (bmad_status%type_out) then
     print *, 'ERROR IN ', trim(bp_com%parser_name), ': ', what1
-    if (present(what2)) type '(22x, a)', what2
+    if (present(what2)) print '(22x, a)', what2
     if (present(seq)) then
       print *, '      IN FILE: ', trim(seq%file_name)
       print *, '      AT LINE:', seq%ix_line
@@ -1687,7 +1689,7 @@ subroutine add_all_superimpose (ring, ele_in, pele)
   integer ix, i, j, it, nic, nn, i_sup, i_ele, ic
   integer n_inserted, ix_lord, n_con
 
-  character*16 matched_name(200)
+  character(16) matched_name(200)
 
   logical match_wild, have_inserted, create_new
 
@@ -1764,9 +1766,9 @@ subroutine add_all_superimpose (ring, ele_in, pele)
 ! here for common_lord, not scalled multipoles
 
   if (ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
-    type *, 'ERROR IN INSERT_MUTIPLE: ELEMENT ', ring%ele_(i)%name
-    type *, '      IS USED WITH THE "COMMON_LORD" ATTRIBUTE BUT'
-    type *, '      THIS ELEMENT IS NOT A MULIPOLE OR AB_MULTIPOLE'
+    print *, 'ERROR IN INSERT_MUTIPLE: ELEMENT ', ring%ele_(i)%name
+    print *, '      IS USED WITH THE "COMMON_LORD" ATTRIBUTE BUT'
+    print *, '      THIS ELEMENT IS NOT A MULIPOLE OR AB_MULTIPOLE'
     call err_exit
   endif
 
@@ -1792,9 +1794,9 @@ subroutine add_all_superimpose (ring, ele_in, pele)
     if (any (matched_name(1:n_inserted) == ring%ele_(i)%name)) then
       it = ring%ele_(i)%control_type
       if (it /= free$) then
-        type *, 'ERROR IN INSERT_MUTIPLE: SLAVE ', ring%ele_(i)%name
-        type *, '      OF LORD ', ele%name
-        type *, '      IS NOT A "FREE" ELEMENT BUT IS: ', control_name(it)
+        print *, 'ERROR IN INSERT_MUTIPLE: SLAVE ', ring%ele_(i)%name
+        print *, '      OF LORD ', ele%name
+        print *, '      IS NOT A "FREE" ELEMENT BUT IS: ', control_name(it)
         call err_exit
       endif
       j = j + 1
@@ -1810,7 +1812,7 @@ subroutine add_all_superimpose (ring, ele_in, pele)
   enddo
 
   if (j /= n_inserted) then
-    type *, 'ERROR IN INSERT_MUTIPLE: SLAVE NUMBER MISMATCH', j, n_inserted
+    print *, 'ERROR IN INSERT_MUTIPLE: SLAVE NUMBER MISMATCH', j, n_inserted
     call err_exit
   endif
 
@@ -1918,8 +1920,8 @@ subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match)
   integer, optional :: ix2_match
   integer an_indexx(:)
 
-  character*16 name, names(:)
-  character*16 this_name
+  character(16) name, names(:)
+  character(16) this_name
 
 ! simple case
 
@@ -1987,6 +1989,12 @@ recursive subroutine seq_expand1 (seq_, ix_seq, top_level, ring)
               
   logical delim_found, top_level, replacement_line_here, c_delim_found
   logical err_flag
+
+! init
+
+  s_ele%type = 0
+  s_ele%ix_array = 0
+  s_ele%ix_arg = 0
 
 ! save info on what file we are parsing for error messages.
 

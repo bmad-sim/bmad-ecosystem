@@ -22,6 +22,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2003/05/02 15:44:02  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.8  2003/03/31 15:17:41  dcs
 !Bug fixes.
 !
@@ -66,7 +69,7 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 
   nr = ring%n_ele_ring
   if (s_split < ring%ele_(0)%s .or. s_split > ring%ele_(nr)%s) then
-    type *, 'ERROR IN SPLIT_RING: POSITION OF SPLIT NOT WITHIN RING: ', s_split
+    print *, 'ERROR IN SPLIT_RING: POSITION OF SPLIT NOT WITHIN RING: ', s_split
     call err_exit
   endif
 
@@ -178,8 +181,8 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 
   ix_super_lord = ring%n_ele_max + 1
   if (ix_super_lord > n_ele_maxx) then
-    type *, 'ERROR IN SPLIT_RING: NOT ENOUGH RING ELEMENTS!!!'
-    type *, '      YOU NEED TO INCREASE N_ELE_MAXX IN BMAD_STRUCT!!!'
+    print *, 'ERROR IN SPLIT_RING: NOT ENOUGH RING ELEMENTS!!!'
+    print *, '      YOU NEED TO INCREASE N_ELE_MAXX IN BMAD_STRUCT!!!'
     call err_exit
   endif
                   
@@ -242,14 +245,14 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
       do j = ring%ele_(i)%ix1_slave, ring%ele_(i)%ix2_slave
         if (ring%control_(j)%ix_slave == ix_split+1) then
           if (ring%control_(j)%ix_attrib == l$) then
-            type *, 'WARNING IN SPLIT_RING: GROUP: ', ring%ele_(i)%name
-            type *, '        CONTROLS L$ OF SPLIT ELEMENT: ', ele%name
+            print *, 'WARNING IN SPLIT_RING: GROUP: ', ring%ele_(i)%name
+            print *, '        CONTROLS L$ OF SPLIT ELEMENT: ', ele%name
           elseif (ix_super_lord /= 0) then
             ring%control_(j)%ix_slave = ix_super_lord
           else
-            type *, 'ERROR IN SPLIT_RING: GROUP: ', ring%ele_(i)%name
-            type *, '      CONTROLS SPLIT ELEMENT: ', ele%name
-            type *, '      BUT NO LORD WAS MADE!'
+            print *, 'ERROR IN SPLIT_RING: GROUP: ', ring%ele_(i)%name
+            print *, '      CONTROLS SPLIT ELEMENT: ', ele%name
+            print *, '      BUT NO LORD WAS MADE!'
             call err_exit
           endif
         endif
@@ -259,8 +262,8 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 
 
   if (ring%n_control_array > n_control_maxx) then
-    type *, 'ERROR IN SPLIT_RING: NOT ENOUGH CONTROL ELEMENTS !!!'
-    type *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
+    print *, 'ERROR IN SPLIT_RING: NOT ENOUGH CONTROL ELEMENTS !!!'
+    print *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
     call err_exit
   endif
 

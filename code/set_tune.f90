@@ -24,6 +24,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/05/02 15:44:02  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.5  2003/01/27 14:40:43  dcs
 !bmad_version = 56
 !
@@ -116,9 +119,9 @@ subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
 
   enddo
 
-  type *, 'ERROR IN SET_TUNE: CANNOT GET TUNE RIGHT.'
-  type *, '      CURRENT TUNE:', phi_x/twopi, phi_y/twopi
-  type *, '      SET TUNE:    ', phi_x_set/twopi, phi_y_set/twopi
+  print *, 'ERROR IN SET_TUNE: CANNOT GET TUNE RIGHT.'
+  print *, '      CURRENT TUNE:', phi_x/twopi, phi_y/twopi
+  print *, '      SET TUNE:    ', phi_x_set/twopi, phi_y_set/twopi
   ok = .false.
   call err_exit
 

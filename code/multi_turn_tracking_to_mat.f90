@@ -43,7 +43,14 @@ subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, track0, chi)
   type (coord_struct), allocatable, target, save :: d0track(:)
   integer i, n
 
-  external multi_turn_func
+  interface
+    function multi_turn_func (x, n)
+      use precision_def
+      real(rp), intent(in) :: x
+      integer, intent(in) :: n
+      real(rp) :: multi_turn_func(n)
+    end function
+  end interface
 
 ! init
 

@@ -38,6 +38,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/05/02 15:43:59  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.4  2003/01/27 14:40:32  dcs
 !bmad_version = 56
 !
@@ -76,7 +79,7 @@ subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)
   call match_word (in_type_str, type_names, in_type)
 
   if (in_type <= 0) then
-    if (bmad_status%type_out) type *, &
+    if (bmad_status%type_out) print *, &
                 'ERROR IN CONVERT_COORDS: UNKNOWN IN_TYPE_STR: ', in_type_str
     if (bmad_status%exit_on_error) call err_exit
     bmad_status%ok = .false.
@@ -86,7 +89,7 @@ subroutine convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)
   call match_word (out_type_str, type_names, out_type)
 
   if (out_type <= 0) then
-    if (bmad_status%type_out) type *, &
+    if (bmad_status%type_out) print *, &
                'ERROR IN CONVERT_COORDS: UNKNOWN OUT_TYPE_STR: ', out_type_str
     if (bmad_status%exit_on_error) call err_exit
     bmad_status%ok = .false.

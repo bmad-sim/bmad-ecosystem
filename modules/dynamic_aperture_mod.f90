@@ -82,7 +82,7 @@ subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
 ! init setup
 
   if (track_input%x_init == 0 .or. track_input%y_init == 0) then
-    type *, 'ERROR IN DYNAMIC_APERTURE: TRACK_INPUT.X_INIT OR',  &
+    print *, 'ERROR IN DYNAMIC_APERTURE: TRACK_INPUT.X_INIT OR',  &
                                              ' TRACK_INPUT.Y_INIT = 0'
     call err_exit
   endif
@@ -143,7 +143,7 @@ subroutine dynamic_aperture (ring, orb0, theta_xy, track_input, aperture)
 
     if (x1 > 1000*track_input%x_init .or.  &
                               y1 > 1000*track_input%y_init) then
-      type *, 'ERROR IN DYNAMIC_APERTURE: CANNOT FIND APERTURE LIMIT'
+      print *, 'ERROR IN DYNAMIC_APERTURE: CANNOT FIND APERTURE LIMIT'
       call err_exit
     endif
 

@@ -35,7 +35,7 @@ module boris_mod
     integer :: max_step = 10000            ! maximum number of steps allowed
   end type
 
-  type (track_com_struct) track_com
+  type (track_com_struct),save :: track_com
 
   interface 
     subroutine em_field_custom (ele, param, s, orb, field)
@@ -647,9 +647,9 @@ subroutine em_field (ele, param, s_pos, here, field)
 
       coef = t%coef * ele%value(polarity$)
 
-      field%b(1) = field%b(1) + -coef  * (t%kx / t%ky) * s_x * s_y * c_z
-      field%b(2) = field%b(2) +  coef  *                 c_x * c_y * c_z
-      field%b(3) = field%b(3) + -coef  * (t%kz / t%ky) * c_x * s_y * s_z
+      field%b(1) = field%b(1) - coef  * (t%kx / t%ky) * s_x * s_y * c_z
+      field%b(2) = field%b(2) + coef  *                 c_x * c_y * c_z
+      field%b(3) = field%b(3) - coef  * (t%kz / t%ky) * c_x * s_y * s_z
     enddo
 
 ! Elseparator. Nothing to do.

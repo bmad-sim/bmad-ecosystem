@@ -219,8 +219,8 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6)
 
   case default
 
-    type *, 'ERROR IN CALC_MAT6_SYMP_LIE_BMAD: NOT YET IMPLEMENTED:', ele%key
-    type *, '      FOR ELEMENT: ', ele%name
+    print *, 'ERROR IN CALC_MAT6_SYMP_LIE_BMAD: NOT YET IMPLEMENTED:', ele%key
+    print *, '      FOR ELEMENT: ', ele%name
     call err_exit
 
   end select

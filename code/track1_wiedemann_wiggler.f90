@@ -211,8 +211,8 @@ subroutine track_period (i_pole, l_bend, rho_bend, l_drift, factor)
 
     radix = rho**2 - s_center**2
     if (radix < 0) then
-      type *, 'ERROR IN TRACK1_WIEDEMANN_WIGGLER: TRAJECTORY DOES NOT INTERSECT FACE.'
-      type *, '      [THAT IS, THE PARTICLE AMPLITUDE IS TOO LARGE.]'
+      print *, 'ERROR IN TRACK1_WIEDEMANN_WIGGLER: TRAJECTORY DOES NOT INTERSECT FACE.'
+      print *, '      [THAT IS, THE PARTICLE AMPLITUDE IS TOO LARGE.]'
       param%lost = .true.
       return
     endif
@@ -277,8 +277,8 @@ subroutine track_period (i_pole, l_bend, rho_bend, l_drift, factor)
 
     radix = rho**2 - s_center**2
     if (radix < 0) then
-      type *, 'ERROR IN TRACK1_WIEDEMANN_WIGGLER: TRAJECTORY DOES NOT INTERSECT FACE.'
-      type *, '      [THAT IS, THE PARTICLE AMPLITUDE IS TOO LARGE.]'
+      print *, 'ERROR IN TRACK1_WIEDEMANN_WIGGLER: TRAJECTORY DOES NOT INTERSECT FACE.'
+      print *, '      [THAT IS, THE PARTICLE AMPLITUDE IS TOO LARGE.]'
       param%lost = .true.
       return
     endif

@@ -12,7 +12,7 @@ module runge_kutta_mod
     type (coord_struct), pointer :: orb(:) ! position of a point
   end type
 
-  type (runge_kutta_com_struct) rk_com
+  type (runge_kutta_com_struct), save :: rk_com
 
   integer, parameter :: kick_field$ = 2   ! b_field$ is defined in bmad_struct
 
@@ -460,9 +460,9 @@ subroutine field_rk_standard (ele, param, s_pos, here, field, field_type)
 
       coef = t%coef * ele%value(polarity$)
 
-      field(1) = field(1) + -coef  * (t%kx / t%ky) * s_x * s_y * c_z
-      field(2) = field(2) +  coef  *                 c_x * c_y * c_z
-      field(3) = field(3) + -coef  * (t%kz / t%ky) * c_x * s_y * s_z
+      field(1) = field(1) - coef  * (t%kx / t%ky) * s_x * s_y * c_z
+      field(2) = field(2) + coef  *                 c_x * c_y * c_z
+      field(3) = field(3) - coef  * (t%kz / t%ky) * c_x * s_y * s_z
     enddo
 
 ! Quad

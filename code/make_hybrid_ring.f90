@@ -50,6 +50,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.10  2003/05/02 15:44:00  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.9  2003/01/27 14:40:37  dcs
 !bmad_version = 56
 !
@@ -122,13 +125,13 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
   if (r_out%param%symmetry /= ew_antisymmetry$) then       ! normal
     n_ele = r_in%n_ele_ring
     if (n_ele == 0) then
-      type *, 'ERROR IN MAKE_HYBRID_RING: RING_IN.N_ELE_RING = 0!'
+      print *, 'ERROR IN MAKE_HYBRID_RING: RING_IN.N_ELE_RING = 0!'
       call err_exit
     endif
   else                                                 ! use only 1/2 ring
     n_ele = r_in%n_ele_symm
     if (n_ele == 0) then
-      type *, 'ERROR IN MAKE_HYBRID_RING: RING_IN.N_ELE_SYMM = 0!'
+      print *, 'ERROR IN MAKE_HYBRID_RING: RING_IN.N_ELE_SYMM = 0!'
       call err_exit
     endif
   endif
@@ -308,7 +311,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
       if (ix_out(ix) == 0) then
         if (r_out%param%symmetry /= ew_antisymmetry$ .or.  &
                          ix <= n_ele .or. ix > r_in%n_ele_ring) then
-          type '(a, /, 2a, /, 2a)',  &
+          print '(a, /, 2a, /, 2a)',  &
       ' WARNING IN MAKE_HYBRID_RING: SLAVE ELEMENT LIST NOT COMPLETE.',  &
       '         FOR LORD ELEMENT: ', ele_out%name,  &
       '         CANNOT FIND: ', r_in%ele_(ix)%name
@@ -329,7 +332,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
       ic = r_out%ic_(j)
       ix = r_in%control_(ic)%ix_lord
       if (ix == 0) then
-        type *, 'WARNING IN MAKE_HYBRID_RING: LORD ELEMENT ',  &
+        print *, 'WARNING IN MAKE_HYBRID_RING: LORD ELEMENT ',  &
                     'LIST NOT COMPLETE FOR: ', ele_out%name
       endif
     enddo
@@ -339,7 +342,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 ! end
 
   if (r_out%n_ele_ring == 0) then
-    type *, 'ERROR IN MAKE_HYBRID_RING: OUTPUT RING HAS 0 ELEMENTS!'
+    print *, 'ERROR IN MAKE_HYBRID_RING: OUTPUT RING HAS 0 ELEMENTS!'
     call err_exit
   endif
 

@@ -29,10 +29,10 @@ contains
 !   bmad_interface
 !
 ! Input:
-!   mat(:,:) -- Real(rdef): Input matrix array
+!   mat(:,:) -- Real(rp): Input matrix array
 !
 ! Output:
-!   mat_inv(:,:) -- Real(rdef): inverse of mat1
+!   mat_inv(:,:) -- Real(rp): inverse of mat1
 !-
 
 subroutine mat_inverse (mat, mat_inv)
@@ -41,12 +41,12 @@ subroutine mat_inverse (mat, mat_inv)
 
   implicit none
 
-  real(rdef), intent(in) :: mat(:,:)
-  real(rdef), intent(out) :: mat_inv(:,:)
+  real(rp), intent(in) :: mat(:,:)
+  real(rp), intent(out) :: mat_inv(:,:)
 
-  real(rdef), allocatable, save :: mat2(:,:)
+  real(rp), allocatable, save :: mat2(:,:)
   integer, allocatable, save :: indx(:)
-  real(rdef) d
+  real(rp) d
 
   integer n, i, j
 
@@ -87,10 +87,10 @@ end subroutine
 ! Modules Needed:
 !
 ! Input:
-!   mat(:,:) -- Real(rdef): Matrix to check
+!   mat(:,:) -- Real(rp): Matrix to check
 !
 ! Output:
-!   error -- Real(rdef): difference from symplecticity:
+!   error -- Real(rp): difference from symplecticity:
 !             = 0    --> perfect.
 !             = 1e-4 --> Fair, but I wouldn't use for long term tracking.
 !             = 1    --> Terrible.
@@ -102,9 +102,9 @@ subroutine mat_symp_check (mat, error)
 
   integer i, j, n
 
-  real(rdef), intent(in) :: mat(:,:)
-  real(rdef), allocatable, save :: m2(:,:)
-  real(rdef) error
+  real(rp), intent(in) :: mat(:,:)
+  real(rp), allocatable, save :: m2(:,:)
+  real(rp) error
 
   logical :: debug = .false.
 
@@ -113,7 +113,7 @@ subroutine mat_symp_check (mat, error)
   n = ubound(mat, 1)
 
   if (mod(n, 2) /= 0) then
-    type *, 'ERROR IN MAT_SYMP_CHECK: MATRIX DOES NOT HAVE EVEN SIZE'
+    print *, 'ERROR IN MAT_SYMP_CHECK: MATRIX DOES NOT HAVE EVEN SIZE'
     call err_exit
   endif
 
@@ -143,9 +143,10 @@ subroutine mat_symp_check (mat, error)
   error = maxval(abs(m2))
 
   if (debug) then
-    type *, 'MAT_SYMP_CHECK:', error
+    print *, 'MAT_SYMP_CHECK:', error
     do i = 1, n
-      type '(5x, (<n>f11.5))', (max(min(m2(i, j), 999.0), -999.0), j = 1, n)
+      print '(5x, (6f11.5))', &
+                        (max(min(m2(i, j), 999.0_rp), -999.0_rp), j = 1, n)
     enddo
   endif
 
@@ -162,20 +163,20 @@ end subroutine
 ! Modules needed:
 !
 ! Input:
-!   mat_in(:,:) -- Real(rdef): Input matrix to symplectify.
+!   mat_in(:,:) -- Real(rp): Input matrix to symplectify.
 !
 ! Output:
-!   mat_symp(:,:) -- Real(rdef): Symplectic output matrix
+!   mat_symp(:,:) -- Real(rp): Symplectic output matrix
 !-
 
 subroutine mat_symplectify (mat_in, mat_symp)
 
   implicit none
 
-  real(rdef), intent(in)  :: mat_in(:,:)
-  real(rdef), intent(out) :: mat_symp(:,:)
+  real(rp), intent(in)  :: mat_in(:,:)
+  real(rp), intent(out) :: mat_symp(:,:)
 
-  real(rdef), save, allocatable :: m1(:,:), m2(:,:), m3(:,:), m_symetric(:,:)
+  real(rp), save, allocatable :: m1(:,:), m2(:,:), m3(:,:), m_symetric(:,:)
 
   integer n,i,j
 
@@ -184,7 +185,7 @@ subroutine mat_symplectify (mat_in, mat_symp)
   n = ubound(mat_in, 1)
 
   if (ubound(mat_symp, 1) /= n) then
-    type *, 'ERROR IN MAT_SYMPLECTIFY: UNEQUAL MATRIX SIZES.'
+    print *, 'ERROR IN MAT_SYMPLECTIFY: UNEQUAL MATRIX SIZES.'
     call err_exit
   endif
 
@@ -245,20 +246,20 @@ end subroutine
 ! Subroutine to put the dispersion into ELE.MAT6 given the eta vector E_VEC
 !
 ! Input:
-!   E_VEC(4) -- Real(rdef): eta vector
+!   E_VEC(4) -- Real(rp): eta vector
 !
 ! Output:
-!   mat6(6,6) -- Real(rdef): Matrix with 4x4 x-y submatrix already made.
+!   mat6(6,6) -- Real(rp): Matrix with 4x4 x-y submatrix already made.
 !-
 
 subroutine mat6_dispersion (mat6, e_vec)
 
   implicit none
 
-  real(rdef), intent(inout) :: mat6(6,6)
-  real(rdef), intent(in) :: e_vec(:)
+  real(rp), intent(inout) :: mat6(6,6)
+  real(rp), intent(in) :: e_vec(:)
 
-  real(rdef) e2_vec(4)
+  real(rp) e2_vec(4)
 
   integer i
 

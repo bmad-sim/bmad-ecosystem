@@ -56,7 +56,7 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord_)
 ! Error check
 
   if (ix_ele == 0 .or. ix_ele > ring%n_ele_max) then
-    type *, 'ERROR IN RING_MAKE_MAT6: ELEMENT INDEX OUT OF BOUNDS:', ix_ele
+    print *, 'ERROR IN RING_MAKE_MAT6: ELEMENT INDEX OUT OF BOUNDS:', ix_ele
     if (bmad_status%exit_on_error) call err_exit
     return
   endif

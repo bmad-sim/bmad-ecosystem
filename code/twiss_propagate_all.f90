@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/05/02 15:44:04  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.5  2003/03/18 20:38:34  dcs
 !Checks for twiss_propagate1 error.
 !
@@ -75,8 +78,8 @@ subroutine twiss_propagate_all (ring)
     if (ring%ele_(0)%mode_flip .xor. ring%ele_(n_use)%mode_flip) then
       call do_mode_flip (ring%ele_(n_use), ring%ele_(n_use))
       if (bmad_status%type_out .and. .not. bmad_status%ok) then
-        type *, 'ERROR IN TWISS_PROPAGATE_ALL: CANNOT MAKE FINAL FLIP STATE'
-        type *, '      EQUAL TO THE INITIAL'
+        print *, 'ERROR IN TWISS_PROPAGATE_ALL: CANNOT MAKE FINAL FLIP STATE'
+        print *, '      EQUAL TO THE INITIAL'
       endif
     endif
   endif

@@ -18,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/05/02 15:43:59  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.4  2003/01/27 14:40:32  dcs
 !bmad_version = 56
 !
@@ -104,7 +107,7 @@ subroutine compress_ring (ring, ok)
       ix = ring%ic_(i2)
       if (ix_(ix) == 0) then
         if (ele%control_type == super_slave$) then
-          type *, 'ERROR IN COMPRESS_RING: SUPERPOSITION LORD HAS BEEN REMOVED!'
+          print *, 'ERROR IN COMPRESS_RING: SUPERPOSITION LORD HAS BEEN REMOVED!'
           ok = .false.
         endif
       else

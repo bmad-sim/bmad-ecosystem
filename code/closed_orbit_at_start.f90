@@ -46,6 +46,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/05/02 15:43:59  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.6  2003/01/27 14:40:31  dcs
 !bmad_version = 56
 !
@@ -89,14 +92,14 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
   bmad_status%ok = .true.
 
   if (ring%ele_(0)%mat6(6,5) == 0 .and. i_dim == 6) then
-    type *, 'ERROR IN CLOSED_ORBIT_AT_START: CANNOT DO FULL 6-DIMENSIONAL'
-    type *, '      CALCULATION WITH NO RF VOLTAGE!'
+    print *, 'ERROR IN CLOSED_ORBIT_AT_START: CANNOT DO FULL 6-DIMENSIONAL'
+    print *, '      CALCULATION WITH NO RF VOLTAGE!'
     bmad_status%ok = .false. 
     call err_exit
   endif
 
   if (i_dim /= 4 .and. i_dim /= 6) then
-    type *, 'ERROR IN CLOSED_ORBIT_AT_START: BAD I_DIM ARGUMENT:', i_dim
+    print *, 'ERROR IN CLOSED_ORBIT_AT_START: BAD I_DIM ARGUMENT:', i_dim
     bmad_status%ok = .false. 
     call err_exit
   endif
@@ -206,7 +209,7 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
     enddo
                               
     if (i == 101) then
-      if (bmad_status%type_out) type *,  &
+      if (bmad_status%type_out) print *,  &
           'ERROR IN CLOSED_ORBIT_AT_START: NONLINEAR ORBIT NOT CONVERGING!'
       if (bmad_status%exit_on_error) call err_exit
       bmad_status%ok = .false.

@@ -18,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2003/05/02 15:44:01  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.5  2003/01/27 14:40:41  dcs
 !bmad_version = 56
 !
@@ -54,8 +57,8 @@ subroutine quad_beta_ave (ring, ix_ele, beta_x_ave, beta_y_ave)
 
   if (ele%key /= quadrupole$ .and. ele%key /= sol_quad$ .and. &
         ele%key /= wiggler$) then
-    type *, 'ERROR IN QUAD_BETA_AVE: ELEMENT NOT A QUAD, SOL_QUAD OR WIGGLER'
-    type *, '      ', ele%name, '  ', key_name(ele%key)
+    print *, 'ERROR IN QUAD_BETA_AVE: ELEMENT NOT A QUAD, SOL_QUAD OR WIGGLER'
+    print *, '      ', ele%name, '  ', key_name(ele%key)
     call err_exit
   endif
 
@@ -72,9 +75,9 @@ subroutine quad_beta_ave (ring, ix_ele, beta_x_ave, beta_y_ave)
 ! otherwise proceed as normal
 
   if (ele%x%beta == 0 .or. ele%y%beta == 0) then
-    type *, 'ERROR IN QUAD_BETA_AVE: BETA IS ZERO AT END:',  &
+    print *, 'ERROR IN QUAD_BETA_AVE: BETA IS ZERO AT END:',  &
                                              ele%x%beta, ele%y%beta
-    type *, ele%name, '  ', key_name(ele%key)
+    print *, ele%name, '  ', key_name(ele%key)
     call err_exit
   endif
 

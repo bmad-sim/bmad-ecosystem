@@ -16,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/05/02 15:44:02  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.4  2003/01/27 14:40:43  dcs
 !bmad_version = 56
 !
@@ -52,7 +55,7 @@ subroutine set_symmetry (symmetry, ring)
   elseif (symmetry == mobius_symmetry$) then
     ring%n_ele_use = ring%n_ele_ring
   else
-    type *, 'ERROR IN SET_SYMMETRY: UNKNOWN SYMMETRY:', symmetry
+    print *, 'ERROR IN SET_SYMMETRY: UNKNOWN SYMMETRY:', symmetry
     call err_exit
   endif
 

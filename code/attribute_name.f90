@@ -58,6 +58,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
       if (i == group$)    cycle
       if (i == overlay$)  cycle
 
+      attrib_array(i, is_on$)    = 'IS_ON'
       attrib_array(i, x_limit$)  = 'X_LIMIT'
       attrib_array(i, y_limit$)  = 'Y_LIMIT'
       attrib_array(i, aperture$) = 'APERTURE'

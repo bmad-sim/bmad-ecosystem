@@ -279,7 +279,7 @@ subroutine make_mat627 (ele, param, direction, mat627)
 
   case (rbend$) 
 
-    type *, 'ERROR IN MAKE_MAT627: RBEND ELEMENTS NOT ALLOWED INTERNALLY!'
+    print *, 'ERROR IN MAKE_MAT627: RBEND ELEMENTS NOT ALLOWED INTERNALLY!'
     call err_exit
 
 !--------------------------------------------------------
@@ -287,7 +287,7 @@ subroutine make_mat627 (ele, param, direction, mat627)
 
   case default
 
-    type *, 'ERROR IN MAKE_MAT627: UNKNOWN ELEMENT KEY',  &
+    print *, 'ERROR IN MAKE_MAT627: UNKNOWN ELEMENT KEY',  &
                                     ele%key, '  ', key_name(ele%key)
 
   end select

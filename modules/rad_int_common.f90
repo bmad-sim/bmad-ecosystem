@@ -7,6 +7,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/05/02 15:44:35  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.7  2003/01/27 14:41:01  dcs
 !bmad_version = 56
 !
@@ -48,7 +51,7 @@ module rad_int_common
     type (coord_struct) d_orb
   end type
 
-  type (rad_int_common_struct) ric
+  type (rad_int_common_struct), save :: ric
 
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
@@ -107,11 +110,11 @@ function qromb_rad_int (func, a, b, sum, which_int) result (rad_int)
 
   end do
 
-  type *, &
+  print *, &
       'Warning in QROMB_RAD_INT: Radiation integral is not converging: ', &
                                                             which_int
-  type '(a, 1p3e11.2)', '     Error:', dqromb, rad_int, sum
-  type *, '     For element: ', ric%ele%name
+  print '(a, 1p3e11.2)', '     Error:', dqromb, rad_int, sum
+  print *, '     For element: ', ric%ele%name
 
 end function qromb_rad_int
 

@@ -63,6 +63,7 @@ subroutine emitt_calc (ring, what, mode)
   integer ir, what
 
   logical do_bends, do_wigs, do_type_err_message / .true. /
+  logical print_wig_err_message
 
 !----------------------------------------------------------------------
 ! init
@@ -77,6 +78,8 @@ subroutine emitt_calc (ring, what, mode)
   i5b = 0
   m65 = 0.0
 
+  print_wig_err_message = .true.   ! print warning just once.
+
   if (what == bends$) then
     do_bends = .true.
     do_wigs  = .false.
@@ -87,7 +90,7 @@ subroutine emitt_calc (ring, what, mode)
     do_bends = .true.
     do_wigs  = .true.
   else
-    type *, 'ERROR IN EMITT_CALC: UNKNOWN "WHAT" SWITCH:', what
+    print *, 'ERROR IN EMITT_CALC: UNKNOWN "WHAT" SWITCH:', what
     call err_exit
   endif
 
@@ -253,6 +256,15 @@ subroutine emitt_calc (ring, what, mode)
 ! wiggler contribution
 
     elseif (do_wigs .and. ring%ele_(ir)%key == wiggler$) then
+
+      if (ring%ele_(ir)%sub_key == map_type$) then
+        if (print_wig_err_message) then
+          print *, 'WARNING FROM EMITT_CALC: ',&
+                        'I AM NOT UP TO HANDLING "NEW STYLE" WIGGLERS.'
+          print *, '        RESULTS WILL NOT BE VALID.'
+          print_wig_err_message = .false.
+        endif
+      endif
 
       ele = ring%ele_(ir)
       ele0 = ring%ele_(ir-1)

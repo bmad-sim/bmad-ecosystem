@@ -110,9 +110,9 @@ subroutine attribute_bookkeeper (ele, param)
     endif
 
     if (ele%value(sig_x$) == 0 .or. ele%value(sig_y$) == 0) then
-      type *, 'ERROR IN ATTRIBUTE_BOOKKEEPER: ZERO SIGMA IN BEAMBEAM ELEMENT!'
+      print *, 'ERROR IN ATTRIBUTE_BOOKKEEPER: ZERO SIGMA IN BEAMBEAM ELEMENT!'
       call type_ele(ele, .true., 0, .false., 0, .false.)
-      call exit
+      stop
     endif
 
     ele%value(bbi_const$) = &

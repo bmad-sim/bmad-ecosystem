@@ -12,6 +12,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/05/02 15:44:04  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.4  2003/01/27 14:40:47  dcs
 !bmad_version = 56
 !
@@ -36,9 +39,9 @@ subroutine type_coord (coord)
 
 !
 
-  type *, '(X, X''):', coord%x%pos, coord%x%vel
-  type *, '(Y, Y''):', coord%y%pos, coord%y%vel
-  type *, '(Z, Z''):', coord%z%pos, coord%z%vel
+  print *, '(X, X''):', coord%x%pos, coord%x%vel
+  print *, '(Y, Y''):', coord%y%pos, coord%y%vel
+  print *, '(Z, Z''):', coord%z%pos, coord%z%vel
 
   return
   end

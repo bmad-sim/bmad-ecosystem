@@ -21,6 +21,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2003/05/02 15:43:57  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.6  2002/10/29 17:07:12  dcs
 !*** empty log message ***
 !
@@ -59,8 +62,8 @@ subroutine adjust_control_struct (ring, ix_ele)
   n_add = ele%n_slave - (ele%ix2_slave - ele%ix1_slave + 1) 
 
   if (n_add < 0) then
-    type *, 'ERROR IN ADJUST_CONTROL_STRUCT: N_SLAVE < CURRENT ALLOCATION'
-    type *, '      FOR: ', ele%name, ele%n_slave, ele%ix2_slave, ele%ix1_slave
+    print *, 'ERROR IN ADJUST_CONTROL_STRUCT: N_SLAVE < CURRENT ALLOCATION'
+    print *, '      FOR: ', ele%name, ele%n_slave, ele%ix2_slave, ele%ix1_slave
     call err_exit
   endif
 
@@ -87,8 +90,8 @@ subroutine adjust_control_struct (ring, ix_ele)
     ring%n_control_array = iz + n_add
 
     if (ring%n_control_array > n_control_maxx) then
-      type *, 'ERROR IN ADJUST_CONTROL_STRUCT: NOT ENOUGH CONTROL ELEMENTS !!!'
-      type *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
+      print *, 'ERROR IN ADJUST_CONTROL_STRUCT: NOT ENOUGH CONTROL ELEMENTS !!!'
+      print *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
       call err_exit
     endif
 
@@ -99,8 +102,8 @@ subroutine adjust_control_struct (ring, ix_ele)
   n_add = ele%n_lord - (ele%ic2_lord - ele%ic1_lord + 1) 
 
   if (n_add < 0) then
-    type *, 'ERROR IN ADJUST_CONTROL_STRUCT: N_LORD < CURRENT ALLOCATION'
-    type *, '      FOR: ', ele%name, ele%n_lord, ele%ic2_lord, ele%ic1_lord
+    print *, 'ERROR IN ADJUST_CONTROL_STRUCT: N_LORD < CURRENT ALLOCATION'
+    print *, '      FOR: ', ele%name, ele%n_lord, ele%ic2_lord, ele%ic1_lord
     call err_exit
   endif
 
@@ -123,8 +126,8 @@ subroutine adjust_control_struct (ring, ix_ele)
     ring%n_ic_array = ic + n_add
 
     if (ring%n_ic_array > size(ring%ic_)) then
-      type *, 'ERROR IN ADJUST_CONTROL_STRUCT: NOT ENOUGH IC_ CONTROL ELEMENTS !!!'
-      type *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
+      print *, 'ERROR IN ADJUST_CONTROL_STRUCT: NOT ENOUGH IC_ CONTROL ELEMENTS !!!'
+      print *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
       call err_exit
     endif
 

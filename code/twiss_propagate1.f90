@@ -25,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2003/05/02 15:44:04  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.8  2003/03/31 15:17:41  dcs
 !Bug fixes.
 !
@@ -135,12 +138,12 @@ subroutine twiss_propagate1 (ele1, ele2)
 
     else
 
-      if (bmad_status%type_out) type *, 'TWISS_PROPAGATE1: MODE_FLIPPED'
+      if (bmad_status%type_out) print *, 'TWISS_PROPAGATE1: MODE_FLIPPED'
 
       mat2 = matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m
       call mat_det (mat2, det, 2, 2)
       if (det < 0) then
-        type *, 'TWISS_PROPAGATE1: INTERNAL ERROR! (DUE TO ROUNDOFF?)'
+        print *, 'TWISS_PROPAGATE1: INTERNAL ERROR! (DUE TO ROUNDOFF?)'
       endif
       ele2%gamma_c = sqrt(abs(det))
       ele_temp%mat6(1:2,1:2) = &

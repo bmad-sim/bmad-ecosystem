@@ -246,7 +246,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
         bp_com%ivar_tot = bp_com%ivar_tot + 1
         ivar = bp_com%ivar_tot
         if (bp_com%ivar_tot > ivar_maxx) then
-          type *, 'ERROR IN BMAD_PARSER2: NEED TO INCREASE IVAR_MAXX!'
+          print *, 'ERROR IN BMAD_PARSER2: NEED TO INCREASE IVAR_MAXX!'
           call err_exit
         endif
       endif
@@ -290,7 +290,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
       n_max = n_max + 1
       if (n_max > n_ele_maxx) then
-        type *, 'ERROR IN BMAD_PARSER2: NEED TO INCREASE ELEMENT ARRAY!'
+        print *, 'ERROR IN BMAD_PARSER2: NEED TO INCREASE ELEMENT ARRAY!'
         call err_exit
       endif
 
@@ -468,32 +468,32 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
   if (bp_com%parser_debug) then
 
-    type *
-    type *, '----------------------------------------'
-    type *, 'Number of Elements in the Regular Ring:', ring%n_ele_ring
+    print *
+    print *, '----------------------------------------'
+    print *, 'Number of Elements in the Regular Ring:', ring%n_ele_ring
     do i = 1, ring%n_ele_ring
-      type *, '-------------'
-      type *, 'Ele #', i
+      print *, '-------------'
+      print *, 'Ele #', i
       call type_ele (ring%ele_(i), .false., 0, .false., 0, .true., ring)
     enddo
 
-    type *
-    type *, '----------------------------------------'
-    type *, 'Control elements: ', ring%n_ele_max - ring%n_ele_ring
+    print *
+    print *, '----------------------------------------'
+    print *, 'Control elements: ', ring%n_ele_max - ring%n_ele_ring
     do i = ring%n_ele_ring+1, ring%n_ele_max
-      type *, '-------------'
-      type *, 'Ele #', i
+      print *, '-------------'
+      print *, 'Ele #', i
       call type_ele (ring%ele_(i), .false., 0, .false., 0, .true., ring)
     enddo
 
 
-    type *
-    type *, '----------------------------------------'
-    type *, 'Ring Used: ', ring%name
-    type *, 'Number of ring elements:', ring%n_ele_ring
-    type *, 'List:                               Key      Length         S'
+    print *
+    print *, '----------------------------------------'
+    print *, 'Ring Used: ', ring%name
+    print *, 'Number of ring elements:', ring%n_ele_ring
+    print *, 'List:                               Key      Length         S'
     do i = 1, ring%n_ele_ring
-      type '(3x, i3, 2a, 3x, a, 2f10.2)', i, ') ', ring%ele_(i)%name,  &
+      print '(3x, i3, 2a, 3x, a, 2f10.2)', i, ') ', ring%ele_(i)%name,  &
         key_name(ring%ele_(i)%key), ring%ele_(i)%value(l$), ring%ele_(i)%s
     enddo
 
@@ -503,8 +503,8 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 ! error check
 
   if (bp_com%error_flag .and. bmad_status%exit_on_error) then
-    type *, 'BMAD_PARSER2 FINISHED. EXITING ON ERRORS'
-    call exit
+    print *, 'BMAD_PARSER2 FINISHED. EXITING ON ERRORS'
+    stop
   endif
 
   call check_ring_controls (ring, .true.)

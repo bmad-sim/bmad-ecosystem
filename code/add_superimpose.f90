@@ -21,6 +21,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.8  2003/05/02 15:43:57  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.7  2003/03/18 20:36:08  dcs
 !modification for non-zero ring%ele_(0)%s
 !
@@ -123,8 +126,8 @@ subroutine add_superimpose (ring, super_ele, ix_super)
   ix_super = ring%n_ele_max + 1
   ring%n_ele_max = ix_super
   if (ring%n_ele_max > n_ele_maxx) then
-    type *, 'ERROR IN ADD_SUPERIMPOSE: NOT ENOUGH RING ELEMENTS!!!'
-    type *, '      YOU NEED TO INCREASE N_ELE_MAXX IN BMAD_STRUCT !!!'
+    print *, 'ERROR IN ADD_SUPERIMPOSE: NOT ENOUGH RING ELEMENTS!!!'
+    print *, '      YOU NEED TO INCREASE N_ELE_MAXX IN BMAD_STRUCT !!!'
   endif
   ring%ele_(ix_super) = sup_ele
   ring%ele_(ix_super)%control_type = super_lord$
@@ -161,8 +164,8 @@ subroutine add_superimpose (ring, super_ele, ix_super)
     if (setup_lord) then
       ixn = ring%n_ele_max + 1
       if (ring%n_ele_max > n_ele_maxx) then
-        type *, 'ERROR IN ADD_SUPERIMPOSE: NOT ENOUGH RING ELEMENTS!!!'
-        type *, '      YOU NEED TO INCREASE N_ELE_MAXX IN BMAD_STRUCT!!!'
+        print *, 'ERROR IN ADD_SUPERIMPOSE: NOT ENOUGH RING ELEMENTS!!!'
+        print *, '      YOU NEED TO INCREASE N_ELE_MAXX IN BMAD_STRUCT!!!'
       endif
       ring%ele_(ixn) = slave_ele
       ring%ele_(ixn)%control_type = super_lord$
@@ -217,9 +220,9 @@ subroutine add_superimpose (ring, super_ele, ix_super)
 
     ring%ele_(ix_slave)%key = superimpose_key(slave_ele%key, sup_ele%key)
     if (ring%ele_(ix_slave)%key <= 0) then
-      type *, 'ERROR IN ADD_SUPERIMPOSE: BAD SUPERIMPOSE FOR ',  &
+      print *, 'ERROR IN ADD_SUPERIMPOSE: BAD SUPERIMPOSE FOR ',  &
                                         sup_ele%name
-      type *, '      SUPERIMPOSED UPON: ', slave_ele%name
+      print *, '      SUPERIMPOSED UPON: ', slave_ele%name
       call err_exit                    
     endif
 
@@ -255,8 +258,8 @@ subroutine add_superimpose (ring, super_ele, ix_super)
   ring%n_control_array = ring%ele_(ix_super)%ix2_slave
 
   if (ring%n_control_array > n_control_maxx) then
-    type *, 'ERROR IN ADD_SUPERIMPOSE: NOT ENOUGH CONTROL ELEMENTS !!!'
-    type *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
+    print *, 'ERROR IN ADD_SUPERIMPOSE: NOT ENOUGH CONTROL ELEMENTS !!!'
+    print *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
     call err_exit
   endif
 

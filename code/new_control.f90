@@ -15,6 +15,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/05/02 15:44:01  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.4  2003/01/27 14:40:41  dcs
 !bmad_version = 56
 !
@@ -45,9 +48,9 @@ subroutine new_control (ring, ix_ele)
   ix_ele = ring%n_ele_max
 
   if (ix_ele > n_ele_maxx) then
-    type *, 'ERROR IN NEW_CONTROL: NOT ENOUGH RING ELEMENTS!!!'
-    type *, '      YOU NEED TO INCREASE N_ELE_MAXX IN BMAD_STRUCT!!!'
-    call exit
+    print *, 'ERROR IN NEW_CONTROL: NOT ENOUGH RING ELEMENTS!!!'
+    print *, '      YOU NEED TO INCREASE N_ELE_MAXX IN BMAD_STRUCT!!!'
+    stop
   endif
 
   call init_ele (ring%ele_(ix_ele))

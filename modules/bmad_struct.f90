@@ -31,7 +31,7 @@ module bmad_struct
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 
-  integer, parameter :: bmad_inc_version$ = 57
+  integer, parameter :: bmad_inc_version$ = 58
 
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -127,7 +127,6 @@ module bmad_struct
     logical exact_rad_int_calc     ! Exact radiation integral calculation?
     logical B_field_master         ! Calculate K from the B_field?
     logical is_on                  ! For turning element on/off.
-                                   !  Must be last element in ele_struct.
   end type
 
   type control_struct
@@ -303,6 +302,7 @@ module bmad_struct
   integer, parameter :: ptc_kind$ = 46
   integer, parameter :: symplectify$ = 47
   integer, parameter :: descrip$ = 48
+  integer, parameter :: is_on$ = 49
 
 ! Warning: No other attribute parameters can have indexes larger than A0$.
 ! That is: multipole arrays An, Bn, KnL, and Tn must have the largest indexes
@@ -366,8 +366,8 @@ module bmad_struct
   integer, parameter :: electron$   = -1
   integer, parameter :: antiproton$ = -2
 
-  character*16 :: particle_name(-2:2) = &
-       (/ 'ANTIPROTON', 'ELECTRON  ', '??? ', 'POSITRON  ', 'PROTON    ' /)
+  character*16 :: particle_name(-2:2) = (/ 'ANTIPROTON', &
+                  'ELECTRON  ', '???       ', 'POSITRON  ', 'PROTON    ' /)
 
   integer, parameter :: charge_of(-2:2) = (/ -1, -1, 0, 1, 1 /)
   real(rdef), parameter :: mass_of(-2:2) = (/ 0.938279e9, 0.511003e6, 0.0, &
@@ -403,7 +403,7 @@ module bmad_struct
   integer, parameter :: x_plane$ = 1, y_plane$ = 2
   integer, parameter :: z_plane$ = 3, n_plane$ = 4
 
-  character*16 plane_name(5) / 'X', 'Y', 'Z', 'N', ' ' /
+  character(16) :: plane_name(5) = (/ 'X', 'Y', 'Z', 'N', ' ' /)
 
   logical, parameter :: set$ = .true., unset$ = .false.
   integer, parameter :: has_been_inited$ = 123456  ! something random
@@ -421,15 +421,15 @@ module bmad_struct
   integer, parameter :: wiedemann$ = 9, symp_lie_bmad$ = 10, none$ = 11
   integer, parameter :: boris$ = 12, adaptive_boris$ = 13, order_2$ = 14
 
-  character*16, parameter :: calc_method_name(0:14) = (/ &
+  character(16), parameter :: calc_method_name(0:14) = (/ &
       "GARBAGE!      ", "BMAD_Standard ", "Symp_Lie_PTC  ", "Runge_Kutta   ", &
       "Linear        ", "Tracking      ", "Symp_Map      ", "Custom        ", &
       "Taylor        ", "Wiedemann     ", "Symp_Lie_BMAD ", "None          ", &
       "Boris         ", "Adaptive_Boris", "Order_2       " /)
 
   integer, parameter :: map_type$ = 1, periodic_type$ = 2
-  character*16, parameter :: sub_key_name(0:2) = (/ &
-         "GARBAGE!     ", "Map          ", "Periodic      " /)
+  character(16), parameter :: sub_key_name(0:2) = (/ &
+         "GARBAGE!     ", "Map          ", "Periodic     " /)
 
 !
 
@@ -465,7 +465,7 @@ module bmad_struct
     integer :: status         = ok$
   end type
 
-  type (bmad_status_struct) bmad_status
+  type (bmad_status_struct), save :: bmad_status
 
 !-----------------------------------------------------------------------------
 ! For butns.nnnnn files
@@ -678,7 +678,7 @@ module bmad_struct
     logical :: init_needed = .true.
   end type
   
-  type (bmad_com_struct) bmad_com
+  type (bmad_com_struct), save :: bmad_com
 
 ! multi_turn_func_common is for multi_turn_tracking_to_mat.
 

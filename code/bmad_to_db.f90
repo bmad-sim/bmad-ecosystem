@@ -42,6 +42,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.11  2003/05/02 15:43:58  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.10  2003/03/04 16:03:28  dcs
 !VMS port
 !
@@ -168,7 +171,7 @@ subroutine bmad_to_db_main (ring, db)
       if (type_str(13:) /= '    ') then
         read (type_str(13:), *, iostat = ios) ix
         if (ios .ne. 0) then
-          type *, 'ERROR IN BAMD_TO_DB: READ ERROR FOR NODE INDEX: ', type_str
+          print *, 'ERROR IN BAMD_TO_DB: READ ERROR FOR NODE INDEX: ', type_str
         endif
         db%csr_vsp_volt(ix)%bmad_name = ring%ele_(i)%name
         db%csr_vsp_volt(ix)%ix_ring = i
@@ -179,7 +182,7 @@ subroutine bmad_to_db_main (ring, db)
       if (type_str(13:) /= '    ') then
         read (type_str(13:), *, iostat = ios) ix
         if (ios .ne. 0) then
-          type *, 'ERROR IN BAMD_TO_DB: READ ERROR FOR NODE INDEX: ', type_str
+          print *, 'ERROR IN BAMD_TO_DB: READ ERROR FOR NODE INDEX: ', type_str
         endif
         db%csr_hsp_volt(ix)%bmad_name = ring%ele_(i)%name
         db%csr_hsp_volt(ix)%ix_ring = i
@@ -194,7 +197,7 @@ subroutine bmad_to_db_main (ring, db)
 
   gev = 1e-9 * ring%param%beam_energy
   if (gev == 0) then
-    type *, 'ERROR IN BMAD_TO_DB: BEAM ENERGY IS ZERO!'
+    print *, 'ERROR IN BMAD_TO_DB: BEAM ENERGY IS ZERO!'
     call err_exit
   endif
 
@@ -318,8 +321,8 @@ subroutine db_init_it (node, n1, node_name, ix_attrib, node_array, &
 
   iv = vnumbr(node_name)
   if (size(node) < iv) then
-    type *, 'WARNING IN BMAD_TO_DB: ARRAY IS TOO SMALL TO HOLD DATA BASE'
-    type *, '        NODE ELEMENTS: ', node_name
+    print *, 'WARNING IN BMAD_TO_DB: ARRAY IS TOO SMALL TO HOLD DATA BASE'
+    print *, '        NODE ELEMENTS: ', node_name
     iv = size(node)
   endif
 
@@ -331,7 +334,7 @@ subroutine db_init_it (node, n1, node_name, ix_attrib, node_array, &
 
   if (present(cesr_ele)) then
     if (ubound(node, 1)-n1 .ne. ubound(cesr_ele, 1)-1) then
-      type *, 'ERROR IN DB_INIT_IT: ARRAYS DO NOT MATCH FOR: ', node_name
+      print *, 'ERROR IN DB_INIT_IT: ARRAYS DO NOT MATCH FOR: ', node_name
       call err_exit
     endif
     node(:)%ix_ring = cesr_ele(:)%ix_ring
@@ -347,8 +350,8 @@ subroutine db_init_it (node, n1, node_name, ix_attrib, node_array, &
 
   return
 
-9000 type *
-  type *, 'ERROR IN DB_INIT_IT: CANNOT READ INDEX: ', cesr_ele(i)%db_node_name
+9000 print *
+  print *, 'ERROR IN DB_INIT_IT: CANNOT READ INDEX: ', cesr_ele(i)%db_node_name
   call err_exit
 
 end subroutine db_init_it

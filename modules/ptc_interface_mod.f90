@@ -157,13 +157,13 @@ subroutine type_layout (lay)
 !
 
   if (.not. associated(lay%start)) then
-    type *, 'Warning from TYPE_LAYOUT: Layout NOT Associated'
+    print *, 'Warning from TYPE_LAYOUT: Layout NOT Associated'
     return
   endif
 
-  type *, 'Name:         ', lay%name
-  type *, 'N:            ', lay%N,        '  ! Number of Elements'
-  type *, 'LatPos:       ', lay%lastpos,  '  ! Last position'
+  print *, 'Name:         ', lay%name
+  print *, 'N:            ', lay%N,        '  ! Number of Elements'
+  print *, 'LatPos:       ', lay%lastpos,  '  ! Last position'
 
 end subroutine
 
@@ -201,7 +201,7 @@ subroutine ring_to_layout (ring, ptc_layout)
   type (layout), intent(inout) :: ptc_layout
   type (fibre), pointer :: fib
 
-  real*8 energy, kinetic, beta0, p0c, brho
+  real(8) energy, kinetic, beta0, p0c, brho
 
   integer i
 
@@ -278,14 +278,14 @@ subroutine type_map1 (y, type0, n_dim, style)
 !
 
   if (type0) then
-    type *, '0th Order Map:'
-    type '(6f11.5)', (map_coef(y(:), i, style=style), i = 1, n_dim)
-    type *
+    print *, '0th Order Map:'
+    print '(6f11.5)', (map_coef(y(:), i, style=style), i = 1, n_dim)
+    print *
   endif
 
-  type *, '1st Order Map:'
+  print *, '1st Order Map:'
   do i = 1, n_dim
-    type '(6f11.5)', (map_coef(y(:), i, j, style=style), j = 1, n_dim)
+    print '(6f11.5)', (map_coef(y(:), i, j, style=style), j = 1, n_dim)
   enddo
 
 end subroutine
@@ -415,47 +415,47 @@ subroutine type_fibre (fib)
 !
   
   if (.not. associated (fib%mag)) then
-    type *, 'Warning from TYPE_FIBRE: Fibre NOT associated with anything.'
+    print *, 'Warning from TYPE_FIBRE: Fibre NOT associated with anything.'
     return
   endif
 
-  type *, 'Name:        ', fib%mag%name
-  type *, 'Vorname:     ', fib%mag%vorname
-  type *, 'Kind:        ', kind_name(fib%mag%kind)
-  type *, 'Knob:        ', fib%magp%knob
-    type *, 'L:        ', fib%mag%l
+  print *, 'Name:        ', fib%mag%name
+  print *, 'Vorname:     ', fib%mag%vorname
+  print *, 'Kind:        ', kind_name(fib%mag%kind)
+  print *, 'Knob:        ', fib%magp%knob
+    print *, 'L:        ', fib%mag%l
 
   if (fib%mag%kind == kind4) then
-    type *, 'Voltage:  ', fib%mag%volt
-    type *, 'Frequency:', fib%mag%freq
-    type *, 'Voltage:  ', fib%mag%volt
-    type *, 'Phase:    ', fib%mag%phas
-    type *, 'Delta_e:  ', fib%mag%delta_e
-    type *, 'Thin: ', fib%mag%thin
+    print *, 'Voltage:  ', fib%mag%volt
+    print *, 'Frequency:', fib%mag%freq
+    print *, 'Voltage:  ', fib%mag%volt
+    print *, 'Phase:    ', fib%mag%phas
+    print *, 'Delta_e:  ', fib%mag%delta_e
+    print *, 'Thin: ', fib%mag%thin
   endif
 
   if (fib%mag%kind == kind5) then
-    type *, 'KS:       ', fib%mag%b_sol
-    type *, 'Thin:     ', fib%mag%thin
+    print *, 'KS:       ', fib%mag%b_sol
+    print *, 'Thin:     ', fib%mag%thin
   endif
 
   if (fib%mag%kind == kind2 .and. fib%mag%p%b0 /= 0) then
-    type *, 'E1:       ', fib%mag%p%edge(1)
-    type *, 'E2:       ', fib%mag%p%edge(2)
-    type *, 'Rho:      ', fib%mag%p%b0
-    type *, 'L_chord:  ', fib%mag%p%lc
+    print *, 'E1:       ', fib%mag%p%edge(1)
+    print *, 'E2:       ', fib%mag%p%edge(2)
+    print *, 'Rho:      ', fib%mag%p%b0
+    print *, 'L_chord:  ', fib%mag%p%lc
   endif
 
-  type *, 'Integration Order: ', fib%mag%p%method
-  type *, 'Integration Steps: ', fib%mag%p%nst
+  print *, 'Integration Order: ', fib%mag%p%method
+  print *, 'Integration Steps: ', fib%mag%p%nst
 
 
   do i = lbound(fib%mag%bn, 1), ubound(fib%mag%bn, 1)
-    if (fib%mag%bn(i) /= 0) type '(a, i2, a, 5x, 1pd12.3)', &
+    if (fib%mag%bn(i) /= 0) print '(a, i2, a, 5x, 1pd12.3)', &
                                   ' BN(', i, '):', fib%mag%bn(i)
   enddo  
   do i = lbound(fib%mag%an, 1), ubound(fib%mag%an, 1)
-    if (fib%mag%an(i) /= 0) type '(a, i2, a, 5x, 1pd12.3)', &
+    if (fib%mag%an(i) /= 0) print '(a, i2, a, 5x, 1pd12.3)', &
                                   ' AN(', i, '):', fib%mag%an(i)
   enddo  
 
@@ -528,8 +528,8 @@ end subroutine
 !                     Default = False.
 !-
 
-subroutine set_ptc (param, taylor_order, integ_&
-                        order, num_steps, no_cavity, exact_calc) 
+subroutine set_ptc (param, taylor_order, integ_order, &
+                                    num_steps, no_cavity, exact_calc) 
 
   use mad_like
 
@@ -1226,7 +1226,7 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine taylor_inverse (taylor, taylor_inv)
+! Subroutine taylor_inverse (taylor_in, taylor_inv)
 !
 ! Subroutine to invert a taylor map.
 !
@@ -1234,19 +1234,19 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   taylor(6)     -- Taylor_struct: Input taylor map.
+!   taylor_in(6)     -- Taylor_struct: Input taylor map.
 !
 ! Output:
 !   taylor_inv(6) -- Taylor_struct: Inverted taylor map.
 !-
 
-subroutine taylor_inverse (taylor, taylor_inv)
+subroutine taylor_inverse (taylor_in, taylor_inv)
 
   use s_fitting
 
   implicit none
 
-  type (taylor_struct), intent(in) :: taylor(:)
+  type (taylor_struct), intent(in) :: taylor_in(:)
   type (taylor_struct), intent(out) :: taylor_inv(:)
   type (taylor_struct) tlr(6)
   type (real_8) y(6), yc(6)
@@ -1258,7 +1258,7 @@ subroutine taylor_inverse (taylor, taylor_inv)
 ! The inverse operation of PTC ignores constant terms so we have to take
 ! them out and then put them back in.
 
-  call remove_constant_taylor (taylor, tlr, r0, .true.)
+  call remove_constant_taylor (taylor_in, tlr, r0, .true.)
 
   call alloc(da)
   call alloc(y)
@@ -1312,6 +1312,8 @@ end subroutine
 !-
 
 subroutine concat_taylor (taylor1, taylor2, taylor3)
+
+  use s_fitting
 
   implicit none
 
@@ -1652,11 +1654,11 @@ subroutine type_map (y)
   do i = 1, size(y)
     ut = 0
     ut = y(i)%t
-    type *, '!-----------------'
-    type *, '! Term:', i
-    type *, 'Order            Coef    Exponents'
+    print *, '!-----------------'
+    print *, '! Term:', i
+    print *, 'Order            Coef    Exponents'
     do j = 1, ut%n
-      type '(i6, f18.14, 20i3)', sum(ut%j(j,:)), ut%c(j), &
+      print '(i6, f18.14, 20i3)', sum(ut%j(j,:)), ut%c(j), &
                                           (ut%j(j,k), k = 1, ut%nv)
     enddo
     ut = -1
@@ -1800,7 +1802,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
                    sqrt(ele%value(hkick$)**2 + ele%value(vkick$)**2)
     call multipole_ele_to_ab (ele, param%particle, an0, bn0, .false.) 
     if (any(an0 /= 0) .or. any(bn0 /= 0)) then
-      type *, 'ERROR IN ELE_TO_FIBRE: MULTIPOLES IN AN ELSEPARATOR NOT SUPPORTED IN A FIBRE'
+      print *, 'ERROR IN ELE_TO_FIBRE: MULTIPOLES IN AN ELSEPARATOR NOT SUPPORTED IN A FIBRE'
       call err_exit
     endif
 

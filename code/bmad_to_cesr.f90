@@ -25,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2003/05/02 15:43:58  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.8  2003/01/27 14:40:30  dcs
 !bmad_version = 56
 !
@@ -406,8 +409,8 @@ subroutine bmad_to_cesr_err_type (cesr_ele, str)
                                   cesr_ele(i)%name(:5) /= 'DUMMY') then
       bmad_status%ok = .false.
       if (bmad_status%type_out) then
-        type *, 'WARNING FROM BMAD_TO_CESR. ELEMENT: ', cesr_ele(i)%name
-        type *, '        NOT LOADED INTO CESR STRUCT: ', str
+        print *, 'WARNING FROM BMAD_TO_CESR. ELEMENT: ', cesr_ele(i)%name
+        print *, '        NOT LOADED INTO CESR STRUCT: ', str
       endif
     endif
   enddo
@@ -439,7 +442,7 @@ subroutine insert_info (cesr_ele, ele, i_ele)
   if (ele%type(13:) /= '    ') then
     read (ele%type(13:), *, iostat = ios) cesr_ele%ix_db
     if (ios /= 0) then
-      type *, 'ERROR IN INSERT_INFO: READ ERROR FOR NODE INDEX: ', ele%type
+      print *, 'ERROR IN INSERT_INFO: READ ERROR FOR NODE INDEX: ', ele%type
     endif
   endif
 

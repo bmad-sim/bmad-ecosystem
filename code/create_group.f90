@@ -80,6 +80,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.10  2003/05/02 15:43:59  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.9  2003/01/27 14:40:32  dcs
 !bmad_version = 56
 !
@@ -148,9 +151,9 @@ subroutine create_group (ring, ix_ele, n_control, control_)
         ix_min = ixe
         ix_max = ixe
       else
-        type *, 'ERROR IN CREATE_GROUP: A GROUP IS NOT ALLOWED TO CONTROL'
-        type *, '      A ', control_name(ring%ele_(ixe)%control_type)
-        type *, '      YOU TRIED TO CONTROL: ', ring%ele_(ixe)%name
+        print *, 'ERROR IN CREATE_GROUP: A GROUP IS NOT ALLOWED TO CONTROL'
+        print *, '      A ', control_name(ring%ele_(ixe)%control_type)
+        print *, '      YOU TRIED TO CONTROL: ', ring%ele_(ixe)%name
         call err_exit
       endif
 
@@ -178,9 +181,9 @@ subroutine create_group (ring, ix_ele, n_control, control_)
       if (ixa == start_edge$ .or. ixa == accordion_edge$ .or. &
                                        ixa == symmetric_edge$) then
         if (ix1 < 1) then
-          type *, 'ERROR IN CREATE_GROUP: START_EDGE OF CONTROLED'
-          type *, '      ELEMENT IS AT BEGINNING OF RING AND CANNOT BE'
-          type *, '      VARIED FOR GROUP: ', ring%ele_(ix_ele)%name
+          print *, 'ERROR IN CREATE_GROUP: START_EDGE OF CONTROLED'
+          print *, '      ELEMENT IS AT BEGINNING OF RING AND CANNOT BE'
+          print *, '      VARIED FOR GROUP: ', ring%ele_(ix_ele)%name
           call err_exit
         endif
       endif
@@ -188,9 +191,9 @@ subroutine create_group (ring, ix_ele, n_control, control_)
       if (ixa == end_edge$ .or. ixa == accordion_edge$ .or. &
                                         ixa == symmetric_edge$) then
         if (ix2 > ring%n_ele_ring) then
-          type *, 'ERROR IN CREATE_GROUP: END_EDGE OF CONTROLED'
-          type *, '      ELEMENT IS AT END OF RING AND CANNOT BE'
-          type *, '      VARIED FOR GROUP: ', ring%ele_(ix_ele)%name
+          print *, 'ERROR IN CREATE_GROUP: END_EDGE OF CONTROLED'
+          print *, '      ELEMENT IS AT END OF RING AND CANNOT BE'
+          print *, '      VARIED FOR GROUP: ', ring%ele_(ix_ele)%name
           call err_exit
         endif
       endif
@@ -242,8 +245,8 @@ subroutine create_group (ring, ix_ele, n_control, control_)
   ring%n_control_array = n_con
 
   if (ring%n_control_array > n_control_maxx) then
-    type *, 'ERROR IN CREATE_GROUP: NOT ENOUGH CONTROL ELEMENTS !!!'
-    type *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
+    print *, 'ERROR IN CREATE_GROUP: NOT ENOUGH CONTROL ELEMENTS !!!'
+    print *, '      YOU NEED TO INCREASE N_CONTROL_MAXX IN BMAD_STRUCT !!!'
     call err_exit
   endif
 

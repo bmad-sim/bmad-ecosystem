@@ -16,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.10  2003/05/02 15:44:00  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.9  2003/01/27 14:40:35  dcs
 !bmad_version = 56
 !
@@ -88,14 +91,14 @@ subroutine get_lattice_list_vms (lat_list, num_lats, directory)
       num_lats = i - 1
       return
     else
-      type *, 'FIND FILE ERROR:', stat
+      print *, 'FIND FILE ERROR:', stat
       call lib$signal(%val(stat))
       call err_exit
     endif
 
   enddo
 
-  type *, 'GET_LATTICE_LIST: INTERNAL ERROR!'
+  print *, 'GET_LATTICE_LIST: INTERNAL ERROR!'
   call err_exit
 
 #endif

@@ -96,7 +96,7 @@ subroutine twiss_propagate_many (ring, ix_start, ix_end, direction)
 
   case default
 
-    type *, 'ERROR IN TWISS_PROPAGATE_MANY: BAD DIRECTION:', direction
+    print *, 'ERROR IN TWISS_PROPAGATE_MANY: BAD DIRECTION:', direction
     call err_exit
 
   end select

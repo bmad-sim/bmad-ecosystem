@@ -67,7 +67,7 @@ subroutine track_long (ring, orbit_, ix_start, direction, mats627)
 ! track through elements.
 
   print *, 'ERROR IN TRACK_LONG: THIS SUBROUTINE IS OBSOLETE. PLEASE SEE DCS.'
-  call exit
+  stop
 
   ring%param%lost = .false.
 
@@ -82,7 +82,7 @@ subroutine track_long (ring, orbit_, ix_start, direction, mats627)
     orbit_(ring%n_ele_ring) = orbit_(0)
     call track_back (ring%n_ele_ring, ix_start+1)
   else
-    type *, 'ERROR IN TRACK_LONG: BAD DIRECTION:', direction
+    print *, 'ERROR IN TRACK_LONG: BAD DIRECTION:', direction
     call err_exit
   endif
 
@@ -107,8 +107,8 @@ subroutine track_fwd (ix1, ix2)
     endif
 
     if (debug) then
-      type *, ring%ele_(n)%name
-      type *, (orbit_(n)%vec(i), i = 1, 6)
+      print *, ring%ele_(n)%name
+      print *, (orbit_(n)%vec(i), i = 1, 6)
     endif
 
   enddo
@@ -138,8 +138,8 @@ subroutine track_back (ix1, ix2)
     endif
 
     if (debug) then
-      type *, ring%ele_(n)%name
-      type *, (orbit_(n)%vec(i), i = 1, 6)
+      print *, ring%ele_(n)%name
+      print *, (orbit_(n)%vec(i), i = 1, 6)
     endif
 
   enddo

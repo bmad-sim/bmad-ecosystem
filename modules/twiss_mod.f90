@@ -76,7 +76,7 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
   if (error > tol) then
     stat = non_symplectic$
     if (type_out) then
-      type *, 'ERROR IN MAT_SYMP_DECOUPLE: NON-SYMPLECTIC INPUT MATRIX'
+      print *, 'ERROR IN MAT_SYMP_DECOUPLE: NON-SYMPLECTIC INPUT MATRIX'
     endif
     return
   endif
@@ -118,7 +118,7 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
 
 ! Construct C matrix (MGB Eq. 13 with Eq. 14) and symplectic conjugate.
 
-  scaler = -sign(1.0, trace_t0_diff) / (gamma * sqrt(denom))
+  scaler = -sign(1.0_rp, trace_t0_diff) / (gamma * sqrt(denom))
   c = scaler * H
   call mat_symp_conj (c, c_conj, 2, 2)
 
@@ -138,7 +138,7 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
   if (error > tol) then
     stat = non_symplectic$
     if (type_out) then
-      type *, 'ERROR IN MAT_SYMP_DECOUPLE: NON-SYMPLECTIC U MATRIX'
+      print *, 'ERROR IN MAT_SYMP_DECOUPLE: NON-SYMPLECTIC U MATRIX'
     endif
     return
   endif
@@ -155,14 +155,14 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
 
   call twiss_from_mat2 (U(1:2,1:2), det, twiss1, stat, tol, .false.)
   if (stat /= ok$) then
-    if (type_out) type *,  &
+    if (type_out) print *,  &
       'ERROR IN MAT_SYMP_DECOUPLE: UNABLE TO COMPUTE "A" mode TWISS'
     return
   endif
 
   call twiss_from_mat2 (U(3:4,3:4), det, twiss2, stat, tol, .false.)
   if (stat /= ok$) then
-    if (type_out) type *,  &
+    if (type_out) print *,  &
       'ERROR IN MAT_SYMP_DECOUPLE: UNABLE TO COMPUTE "B" mode TWISS'
     return
   endif
@@ -204,7 +204,7 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
   if (error > tol) then
     stat = non_symplectic$
     if (type_out) then
-      type *, 'ERROR IN MAT_SYMP_DECOUPLE: NON-SYMPLECTIC UBAR MATRIX'
+      print *, 'ERROR IN MAT_SYMP_DECOUPLE: NON-SYMPLECTIC UBAR MATRIX'
     endif
     return
   endif
@@ -255,18 +255,18 @@ subroutine twiss_from_mat2 (mat, det, twiss, stat, tol, type_out)
   det = mat(1,1) * mat(2,2) - mat(1,2) * mat(2,1)
 
   if (abs(t_cos) >= 1.0) then
-    if (type_out) type *, 'ERROR IN TWISS_FROM_MAT: UNSTABLE MATRIX'
+    if (type_out) print *, 'ERROR IN TWISS_FROM_MAT: UNSTABLE MATRIX'
     stat = unstable$
     return
   endif
 
   if (abs(det - 1) > tol) then
-    if (type_out) type *,  &
+    if (type_out) print *,  &
                     'WARNING IN TWISS_FROM_MAT: MATRIX DETERMINANT >< 1:', det
     stat = non_symplectic$
   endif
 
-  t_sin = sign(1.0, mat(1,2)) * sqrt(1.0 - t_cos**2)
+  t_sin = sign(1.0_rp, mat(1,2)) * sqrt(1.0 - t_cos**2)
   twiss%phi = atan2(t_sin, t_cos)
   if (twiss%phi < 0) twiss%phi = twiss%phi + twopi
 
@@ -278,7 +278,7 @@ subroutine twiss_from_mat2 (mat, det, twiss, stat, tol, type_out)
     twiss%alpha = (mat(1,1) - mat(2,2)) / (2.0 * t_sin)
     radical = -(1 + twiss%alpha**2) * mat(1,2) / mat(2,1)
     if (radical <= 0) then
-      if (type_out) type *, 'ERROR IN TWISS_FROM_MAT: NON-SYMPLECTIC MATRIX'
+      if (type_out) print *, 'ERROR IN TWISS_FROM_MAT: NON-SYMPLECTIC MATRIX'
       stat = non_symplectic$
       return
     endif
@@ -402,15 +402,15 @@ subroutine transfer_mat_from_twiss (twiss1, twiss2, mat)
 
 !
 
-  sin21 = sin(twiss2.phi - twiss1.phi)
-  cos21 = cos(twiss2.phi - twiss1.phi)
-  b1 = twiss1.beta;  b2 = twiss2.beta
-  a1 = twiss1.alpha; a2 = twiss2.alpha
+  sin21 = sin(twiss2%phi - twiss1%phi)
+  cos21 = cos(twiss2%phi - twiss1%phi)
+  b1 = twiss1%beta;  b2 = twiss2%beta
+  a1 = twiss1%alpha; a2 = twiss2%alpha
 
-        mat(1,1) = sqrt(b2/b1) * (cos21 + a1 * sin21)
-        mat(1,2) = sqrt(b1 * b2) * sin21
-        mat(2,1) = -((a2-a1) * cos21 + (1 + a1 * a2) * sin21) / (sqrt(b1 * b2))
-        mat(2,2) = sqrt(b1/b2) * (cos21 - a2 * sin21)
+  mat(1,1) = sqrt(b2/b1) * (cos21 + a1 * sin21)
+  mat(1,2) = sqrt(b1 * b2) * sin21
+  mat(2,1) = -((a2-a1) * cos21 + (1 + a1 * a2) * sin21) / (sqrt(b1 * b2))
+  mat(2,2) = sqrt(b1/b2) * (cos21 - a2 * sin21)
 
 end subroutine
 

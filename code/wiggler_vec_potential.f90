@@ -62,7 +62,7 @@ subroutine wiggler_vec_potential (ele, energy, here, vec_pot)
         c_x = cosh(t%kx * x)
         s_x = sinh(t%kx * x)
       else
-        type *, 'ERROR IN WIGGLER_VEC_POTENTIAL: UNKNOWN TERM TYPE!'
+        print *, 'ERROR IN WIGGLER_VEC_POTENTIAL: UNKNOWN TERM TYPE!'
         call err_exit
       endif
 

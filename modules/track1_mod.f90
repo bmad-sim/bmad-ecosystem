@@ -204,8 +204,8 @@ subroutine track_a_bend (start, ele, param, end)
 
     radix = b**2 - 4*c
     if (radix < 0) then
-      type *, 'ERROR IN TRACK_A_BEND: TRAJECTORY DOES NOT INTERSECT FACE.'
-      type *, '      [THAT IS, THE PARTICLE AMPLITUDE IS TOO LARGE.]'
+      print *, 'ERROR IN TRACK_A_BEND: TRAJECTORY DOES NOT INTERSECT FACE.'
+      print *, '      [THAT IS, THE PARTICLE AMPLITUDE IS TOO LARGE.]'
       param%lost = .true.
       return
     else

@@ -18,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/05/02 15:44:00  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.4  2003/01/27 14:40:35  dcs
 !bmad_version = 56
 !
@@ -56,7 +59,7 @@ subroutine identify_db_node (db_name, db, db_ptr, ok, type_err)
     return
   enddo
 
-  if (type_err) type *, &
+  if (type_err) print *, &
         'ERROR IN IDENTIFY_DB_NODE: CANNOT FIND DATABASE NODE: ', db_name
   ok = .false.
   return

@@ -16,6 +16,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.11  2003/05/02 15:43:59  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.10  2003/03/18 20:36:44  dcs
 !%num_steps for a slave now proportional to length
 !
@@ -225,8 +228,8 @@ Subroutine makeup_group_slaves (ring, ix_lord)
     if (iv == l$) then
       moved = .true.
       if (ict /= free$ .and. ict /= super_slave$) then
-        type *, 'ERROR IN CONTROL_BOOKKEEPER: A GROUP: ', lord%name
-        type *, '      CONTROLS THE LENGTH OF A LORD ELEMENT: ', slave%name
+        print *, 'ERROR IN CONTROL_BOOKKEEPER: A GROUP: ', lord%name
+        print *, '      CONTROLS THE LENGTH OF A LORD ELEMENT: ', slave%name
         call err_exit
       endif
     endif
@@ -286,8 +289,8 @@ subroutine makeup_super_slave (ring, ix_slave)
   slave => ring%ele_(ix_slave)
                      
   if (slave%control_type /= super_slave$) then
-    type *, 'ERROR IN MAKEUP_SUPER_SLAVE: ELEMENT IS NOT AN SUPER SLAVE:'
-    type *, '      ', slave%name
+    print *, 'ERROR IN MAKEUP_SUPER_SLAVE: ELEMENT IS NOT AN SUPER SLAVE:'
+    print *, '      ', slave%name
     call err_exit
   endif
 
@@ -417,10 +420,10 @@ subroutine makeup_super_slave (ring, ix_slave)
     lord => ring%ele_(ix)
 
     if (lord%control_type /= super_lord$) then
-      type *, 'ERROR IN MAKEUP_SUPER_SLAVE: SUPER_SLAVE HAS A'
-      type *, '      CONTROL ELEMENT THAT IS NOT SUPER_LORD'
-      type *, '      SLAVE: ', slave%name, ix_slave
-      type *, '      LORD:  ', lord%name, ix
+      print *, 'ERROR IN MAKEUP_SUPER_SLAVE: SUPER_SLAVE HAS A'
+      print *, '      CONTROL ELEMENT THAT IS NOT SUPER_LORD'
+      print *, '      SLAVE: ', slave%name, ix_slave
+      print *, '      LORD:  ', lord%name, ix
       call err_exit
     endif
 
@@ -609,8 +612,8 @@ subroutine makeup_overlay_slave (ring, ix_ele)
 
   if (ct /= super_lord$ .and. ct /= overlay_slave$ .and. &
                                                ct /= overlay_lord$) then
-    type *, 'ERROR IN MAKEUP_OVERLAY_SLAVE: ELEMENT IS NOT OF PROPER TYPE.'
-    type *, '      RING INDEX:', ix_ele
+    print *, 'ERROR IN MAKEUP_OVERLAY_SLAVE: ELEMENT IS NOT OF PROPER TYPE.'
+    print *, '      RING INDEX:', ix_ele
     call type_ele (ele, .true., 0, .false., 0, .true., ring)
     call err_exit
   endif
@@ -622,7 +625,7 @@ subroutine makeup_overlay_slave (ring, ix_ele)
     j = ring%ic_(i)
     ix = ring%control_(j)%ix_lord
     if (ring%ele_(ix)%control_type /= overlay_lord$) then
-      type *, 'ERROR IN MAKEUP_OVERLAY_SLAVE:',  &
+      print *, 'ERROR IN MAKEUP_OVERLAY_SLAVE:',  &
                           ' THE LORD IS NOT AN OVERLAY_LORD', ix_ele
       call type_ele (ele, .true., 0, .false., 0, .true., ring)
       call err_exit

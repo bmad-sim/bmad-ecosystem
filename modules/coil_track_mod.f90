@@ -26,10 +26,10 @@ subroutine b_field_mult (ring, coord, first, last, s_pos, b_vector)
       call b_field_loop (coord, ring%ele_(i), s_pos(i - first + 1), b_loop)
       b_vector = b_vector + b_loop
     elseif (ring%ele_(i)%key /= drift$) then
-      type *, 'ERROR IN B_FIELD_MULT.F:'
-      type *, 'COIL CONTAINER DOES NOT KNOW HOW TO USE A ',  &
+      print *, 'ERROR IN B_FIELD_MULT.F:'
+      print *, 'COIL CONTAINER DOES NOT KNOW HOW TO USE A ',  &
         key_name(ring%ele_(i)%key),'.'
-      type *, 'EXITING.'
+      print *, 'EXITING.'
       call err_exit
     endif
   enddo
@@ -57,6 +57,9 @@ end subroutine
 
 !$Id$
 !$Log$
+!Revision 1.3  2003/05/02 15:44:34  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.2  2002/08/23 20:20:23  dcs
 !Modified for VMS port
 !
@@ -201,6 +204,9 @@ end subroutine
 
 !$Id$
 !$Log$
+!Revision 1.3  2003/05/02 15:44:34  dcs
+!F90 standard conforming changes.
+!
 !Revision 1.2  2002/08/23 20:20:23  dcs
 !Modified for VMS port
 !
@@ -221,9 +227,9 @@ function hypergeom (hgcx, arg)
   implicit none
 
   integer hgcx, i
-  real(rdef) arg, arg_power, hypergeom, next_term
+  real(rdef) arg, arg_power, hypergeom, next_term, hgc, i_max
 
-#include "hypergeom.inc"
+!!  #include "hypergeom.inc"
 
   if (hgcx == 1) then
     hypergeom = 1.0
