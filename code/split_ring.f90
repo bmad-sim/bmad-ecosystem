@@ -90,8 +90,8 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 
 ! kill any talyor series
 
-  if (associated (ele1%taylor(1))) call kill_taylor (ele1%taylor)
-  if (associated (ele2%taylor(1))) call kill_taylor (ele2%taylor)
+  if (associated (ele1%taylor(1)%term)) call kill_taylor (ele1%taylor)
+  if (associated (ele2%taylor(1)%term)) call kill_taylor (ele2%taylor)
 
 ! put in correct lengths and s positions
 
