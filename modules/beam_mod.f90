@@ -4,10 +4,12 @@ use bmad_struct
 use bmad_interface
 use wake_mod
 
+integer, parameter :: not_lost$ = -1
+
 type particle_struct
   type (coord_struct) r   ! Center of the particle
   real(rp) charge         ! charge in a particle (Coul).
-  integer :: ix_lost = 0  ! Has the particle been lost in tracking?
+  integer :: ix_lost = not_lost$  ! Has the particle been lost in tracking?
 end type
 
 type bunch_struct
@@ -30,6 +32,7 @@ type beam_init_struct
   real(rp) sig_e       ! e_sigma in dE/E.
   real(rp) sig_e_cut   ! Energy cut in sigmas.
   real(rp) sig_z_cut   ! Z cut in sigmas.
+  real(rp) bunch_charge ! charge in a bunch.
   integer n_particle   ! Number of simulated particles per bunch.
   integer n_bunch      ! Number of bunches.
 end type
@@ -52,8 +55,6 @@ interface assignment (=)
   module procedure bunch_equal_bunch
   module procedure beam_equal_beam
 end interface
-
-integer, parameter :: lost_here$ = -1
 
 contains
 
@@ -102,10 +103,6 @@ subroutine track_beam (ring, beam, ix1, ix2)
 
   do i = i1+1, i2
     call track1_beam (beam, ring%ele_(i), ring%param, beam)
-    do j = 1, size(beam%bunch)
-      where (beam%bunch(j)%particle(:)%ix_lost == lost_here$) &
-                                  beam%bunch(j)%particle(:)%ix_lost = i
-    enddo
   enddo
 
 end subroutine track_beam
@@ -207,7 +204,7 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
                                       ele, param, bunch_end%particle(j))
     enddo
     bunch_end%charge = sum (bunch_end%particle(:)%charge, &
-                            mask = (bunch_end%particle(:)%ix_lost == 0))
+                      mask = (bunch_end%particle(:)%ix_lost == not_lost$))
     return
   endif
 
@@ -253,7 +250,7 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
   enddo
 
   bunch_end%charge = sum (bunch_end%particle(:)%charge, &
-                            mask = (bunch_end%particle(:)%ix_lost == 0))
+                         mask = (bunch_end%particle(:)%ix_lost == not_lost$))
 
 end subroutine track1_bunch
 
@@ -433,7 +430,7 @@ subroutine track1_particle (start, ele, param, end)
   if (ele%key == marker$) return
 
   call track1 (start%r, ele, param, end%r)
-  if (param%lost) end%ix_lost = lost_here$
+  if (param%lost) end%ix_lost = ele%ix_ele
 
   if (end%ix_lost /= 0) then
     end%r%vec = 0
@@ -857,7 +854,7 @@ subroutine calc_bunch_params (bunch, ele, params)
   
 ! centroid and n_particle
 
-  params%n_particle = count(bunch%particle%ix_lost == 0)
+  params%n_particle = count(bunch%particle%ix_lost == not_lost$)
   if (params%n_particle == 0) then
     ! zero everything
     params%centroid%vec = 0.0
@@ -870,23 +867,23 @@ subroutine calc_bunch_params (bunch, ele, params)
   
   do i = 1, 6
     params%centroid%vec(i) = sum(bunch%particle%r%vec(i), &
-                              mask = (bunch%particle%ix_lost == 0))
+                              mask = (bunch%particle%ix_lost == not_lost$))
   enddo
   
   params%centroid%vec = params%centroid%vec / params%n_particle
   
   ! average energy
   avg_energy = sum((1+bunch%particle%r%vec(6)), & 
-                              mask = (bunch%particle%ix_lost == 0))
+                              mask = (bunch%particle%ix_lost == not_lost$))
   avg_energy = avg_energy * ele%value(beam_energy$) / params%n_particle
 
   ! delta spread and center
   avg_delta = sum(bunch%particle%r%vec(6), & 
-                              mask = (bunch%particle%ix_lost == 0))
+                              mask = (bunch%particle%ix_lost == not_lost$))
   avg_delta = avg_delta  / params%n_particle
   
   exp_delta2 = sum((bunch%particle%r%vec(6) - avg_delta)**2, &
-                              mask = (bunch%particle%ix_lost == 0))
+                              mask = (bunch%particle%ix_lost == not_lost$))
   exp_delta2 = exp_delta2 / params%n_particle
   
   ! Projected Parameters
@@ -973,34 +970,34 @@ subroutine find_expectations (bunch, x, p_x, exp_x2, exp_p_x2, exp_x_p_x, &
     return
   endif
 
-  avg_x = sum(x, mask = (bunch%particle%ix_lost == 0))/params%n_particle
-  avg_p_x = sum(p_x, mask = (bunch%particle%ix_lost == 0))/params%n_particle
+  avg_x = sum(x, mask = (bunch%particle%ix_lost == not_lost$))/params%n_particle
+  avg_p_x = sum(p_x, mask = (bunch%particle%ix_lost == not_lost$))/params%n_particle
  
   if (normal_mode_flag) then
     ! take out dispersion
     exp_x_d   = sum((x - avg_x)*(bunch%particle(:)%r%vec(6) - avg_delta),&
-                                                 mask = (bunch%particle%ix_lost == 0))
+                                      mask = (bunch%particle%ix_lost == not_lost$))
     exp_px_d  = sum((p_x - avg_p_x)*(bunch%particle(:)%r%vec(6) - avg_delta),&
-                                                 mask = (bunch%particle%ix_lost == 0))
+                                      mask = (bunch%particle%ix_lost == not_lost$))
     eta   = exp_x_d / exp_delta2
     etap  = exp_px_d / exp_delta2
 
-    exp_x2    = sum((x - avg_x)**2, mask = (bunch%particle%ix_lost == 0))
-    exp_p_x2  = sum((p_x - avg_p_x)**2, mask = (bunch%particle%ix_lost == 0))
-    exp_x_p_x = sum((x - avg_x)*(p_x - avg_p_x), mask = (bunch%particle%ix_lost == 0))
+    exp_x2    = sum((x - avg_x)**2, mask = (bunch%particle%ix_lost == not_lost$))
+    exp_p_x2  = sum((p_x - avg_p_x)**2, mask = (bunch%particle%ix_lost == not_lost$))
+    exp_x_p_x = sum((x - avg_x)*(p_x - avg_p_x), mask = (bunch%particle%ix_lost == not_lost$))
      
     exp_x2    = exp_x2 - 2*eta*exp_x_d + (eta**2)*exp_delta2
     exp_p_x2  = exp_p_x2 - 2*etap*exp_px_d + (etap**2)*exp_delta2
     exp_x_p_x = exp_x_p_x - etap*exp_x_d - eta*exp_px_d + eta*etap*exp_delta2
 
   else
-    exp_x2    = sum((x - avg_x)**2, mask = (bunch%particle%ix_lost == 0))
-    exp_p_x2  = sum((p_x - avg_p_x)**2, mask = (bunch%particle%ix_lost == 0))
-    exp_x_p_x = sum((x - avg_x)*(p_x - avg_p_x), mask = (bunch%particle%ix_lost == 0))
+    exp_x2    = sum((x - avg_x)**2, mask = (bunch%particle%ix_lost == not_lost$))
+    exp_p_x2  = sum((p_x - avg_p_x)**2, mask = (bunch%particle%ix_lost == not_lost$))
+    exp_x_p_x = sum((x - avg_x)*(p_x - avg_p_x), mask = (bunch%particle%ix_lost == not_lost$))
     exp_x_d   = sum((x - avg_x)*(bunch%particle(:)%r%vec(6) - avg_delta),&
-                                                 mask = (bunch%particle%ix_lost == 0))
+                                       mask = (bunch%particle%ix_lost == not_lost$))
     exp_px_d  = sum((p_x - avg_p_x)*(bunch%particle(:)%r%vec(6) - avg_delta),&
-                                                 mask = (bunch%particle%ix_lost == 0))
+                                       mask = (bunch%particle%ix_lost == not_lost$))
   endif
 
   exp_x2    = exp_x2    / params%n_particle 

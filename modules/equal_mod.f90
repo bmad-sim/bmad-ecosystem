@@ -44,7 +44,7 @@ subroutine ele_equal_ele (ele1, ele2)
   type (ele_struct), intent(in) :: ele2
   type (ele_struct) ele_save
 
-  integer i, n_sr1, n_sr2_long, n_sr2_trans, n_lr
+  integer i
 
 ! 1) Save ele1 pointers in ele_save
 ! 2) Set ele1 = ele2.
@@ -135,22 +135,7 @@ subroutine ele_equal_ele (ele1, ele2)
   endif
 
   ele1%wake => ele_save%wake  ! reinstate
-  if (associated (ele2%wake)) then
-    n_sr1       = size(ele2%wake%sr1)
-    n_sr2_long  = size(ele2%wake%sr2_long)
-    n_sr2_trans = size(ele2%wake%sr2_trans)
-    n_lr        = size(ele2%wake%lr)
-    call init_wake (ele1%wake, n_sr1, n_sr2_long, n_sr2_trans, n_lr)
-    ele1%wake%sr_file   = ele2%wake%sr_file
-    ele1%wake%lr_file   = ele2%wake%lr_file
-    ele1%wake%z_cut_sr  = ele2%wake%z_cut_sr
-    ele1%wake%sr1       = ele2%wake%sr1
-    ele1%wake%sr2_long  = ele2%wake%sr2_long
-    ele1%wake%sr2_trans = ele2%wake%sr2_trans
-    ele1%wake%lr        = ele2%wake%lr
-  else
-    call init_wake (ele1%wake, 0, 0, 0, 0)
-  endif
+  call transfer_wake (ele2%wake, ele1%wake)
 
 ! gen_fields are hard because it involves pointers in PTC.
 ! just kill the gen_field in ele1 for now.

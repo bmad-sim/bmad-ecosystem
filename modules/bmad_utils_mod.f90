@@ -1062,6 +1062,52 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Subroutine transfer_wake (wake_in, wake_out)
+!
+! Subroutine to transfer the wake info from one struct to another.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   wake_in -- Wake_struct, pointer: Input wake.
+!
+! Output:
+!   wake_out -- Wake_struct, pointer: Output wake.
+!-
+
+subroutine transfer_wake (wake_in, wake_out)
+
+  implicit none
+
+  type (wake_struct), pointer :: wake_in, wake_out
+  integer n_sr1, n_sr2_long, n_sr2_trans, n_lr
+
+!
+
+  if (associated (wake_in)) then
+    n_sr1       = size(wake_in%sr1)
+    n_sr2_long  = size(wake_in%sr2_long)
+    n_sr2_trans = size(wake_in%sr2_trans)
+    n_lr        = size(wake_in%lr)
+    call init_wake (wake_out, n_sr1, n_sr2_long, n_sr2_trans, n_lr)
+    wake_out%sr_file   = wake_in%sr_file
+    wake_out%lr_file   = wake_in%lr_file
+    wake_out%z_cut_sr  = wake_in%z_cut_sr
+    wake_out%sr1       = wake_in%sr1
+    wake_out%sr2_long  = wake_in%sr2_long
+    wake_out%sr2_trans = wake_in%sr2_trans
+    wake_out%lr        = wake_in%lr
+  else
+    if (associated(wake_out)) call init_wake (wake_out, 0, 0, 0, 0)
+  endif
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Subroutine init_wake (wake, n_sr1, n_sr2_long, n_sr2_trans, n_lr)
 !
 ! Subroutine to initialize a wake struct.
