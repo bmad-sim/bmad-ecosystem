@@ -32,7 +32,7 @@ subroutine track1_symp_lie_ptc (start, ele, param, end)
   type (param_struct), intent(inout) :: param
   type (fibre), pointer :: fibre_ele
 
-  real*8 re(6)
+  real(8) re(6)
   integer charge
 
 ! Construct a PTC fibre out of the ele element.
@@ -47,11 +47,22 @@ subroutine track1_symp_lie_ptc (start, ele, param, end)
     charge = -1
   endif
 
+! Calc the z_patch for a wiggler if it doesn't have it.
+
+  if (ele%key == wiggler$ .and. any(start%vec /= 0) .and. &
+                                      ele%value(z_patch$) == 0) then
+    re = 0                   
+    call ptc_track (fibre_ele, re, DEFAULT, charge)  ! "track" in PTC
+    call vec_ptc_to_bmad (re, end%vec)
+    ele%value(z_patch$) = end%vec(5)
+  endif
+
 ! call the PTC routines to track through the fibre.
 
   call vec_bmad_to_ptc (start%vec, re)  ! convert BMAD coords to PTC coords
   call ptc_track (fibre_ele, re, DEFAULT, charge)  ! "track" in PTC
   call vec_ptc_to_bmad (re, end%vec)
+  if (ele%key == wiggler$) end%vec(5) = end%vec(5) - ele%value(z_patch$)
 
   call kill(fibre_ele)  ! clean up allocated memory.
 
