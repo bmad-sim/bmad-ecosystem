@@ -8,7 +8,8 @@ module ptc_interface_mod
   use multipole_mod
 
   use mad_like, only: kill, set_up, real_8, layout, fibre, &
-        universal_taylor, dp, ptc_track => track, append, ring_l
+        universal_taylor, dp, ptc_track => track, append, ring_l, &
+        hyperbolic_x$, hyperbolic_y$, hyperbolic_xy$
 
   interface assignment (=)
     module procedure real_8_equal_taylor
@@ -57,7 +58,7 @@ contains
 
 function map_coef (y, i, j, k, l, style) result (m_coef)
 
-  use polymorphic_taylor
+  use polymorphic_taylor, only: operator (.sub.), operator(*)
 
   implicit none
 
@@ -92,7 +93,7 @@ function map_coef (y, i, j, k, l, style) result (m_coef)
   call map_index(l)
 
   call map_index(i, ii)
-  m_coef = sgn * y(ii)%t.sub.str(1:n_max)
+  m_coef = sgn * y(ii)%t .sub. str(1:n_max)
 
 !--------------------------------------------------------------
 contains
@@ -352,7 +353,7 @@ end function
 
 subroutine type_fibre (fib)
 
-  use s_status
+  use s_status, only: kind4, kind5, kind2
 
   implicit none
 
@@ -453,7 +454,9 @@ end subroutine
 subroutine set_ptc (param, taylor_order, integ_order, &
                                     num_steps, no_cavity, exact_calc) 
 
-  use mad_like
+  use mad_like, only: make_states, exact_model, always_exactmis, &
+                assignment(=), set_mad, nocavity, default, operator(+), &
+                berz, init
 
   implicit none
 
@@ -614,7 +617,7 @@ end subroutine
 
 subroutine real_8_to_taylor (y8, bmad_taylor, switch_z)
 
-  use polymorphic_taylor
+  use polymorphic_taylor, only: assignment (=), universal_taylor, real_8
 
   implicit none
 
@@ -668,7 +671,7 @@ end subroutine
 
 subroutine taylor_to_real_8 (bmad_taylor, y8, switch_z)
 
-  use polymorphic_taylor
+  use polymorphic_taylor, only: kill, assignment(=)
 
   implicit none
 
@@ -854,7 +857,7 @@ end subroutine
 
 subroutine real_8_init (y, set_taylor)
 
-  use s_fibre_bundle
+  use s_fibre_bundle, only: assignment(=), alloc
 
   implicit none
   
@@ -971,7 +974,7 @@ end subroutine
 
 subroutine concat_real_8 (y1, y2, y3)
 
-  use s_fitting
+  use s_fitting, only: alloc, assignment(=), kill
 
   implicit none
 
@@ -1031,7 +1034,7 @@ end subroutine
 
 subroutine taylor_to_genfield (bmad_taylor, gen_field, c0)
 
-  use s_fitting
+  use s_fitting, only: alloc, kill, assignment(=)
 
   implicit none
 
@@ -1169,7 +1172,7 @@ end subroutine
 
 subroutine taylor_inverse (taylor_in, taylor_inv)
 
-  use s_fitting
+  use s_fitting, only: assignment(=), alloc, kill, operator(**)
 
   implicit none
 
@@ -1251,7 +1254,7 @@ end subroutine
 
 subroutine concat_taylor (taylor1, taylor2, taylor3)
 
-  use s_fitting
+  use s_fitting, only: assignment(=), kill
 
   implicit none
 
@@ -1312,7 +1315,7 @@ end subroutine
 
 subroutine taylor_propagate1 (tlr, ele, param)
 
-  use s_tracking
+  use s_tracking, only: assignment(=), kill, default, alloc
 
   implicit none
 
@@ -1378,7 +1381,7 @@ end subroutine
 
 subroutine ele_to_taylor (ele, param, orb0)
 
-  use s_tracking
+  use s_tracking, only: assignment(=), kill, default, alloc
 
   implicit none
   
@@ -1604,7 +1607,7 @@ end subroutine
 
 subroutine type_map (y)
 
-  use s_fitting
+  use s_fitting, only: assignment(=)
 
   implicit none
 
@@ -1666,7 +1669,9 @@ end subroutine
 
 subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 
-  use mad_like
+  use mad_like, only: el_list, matrix_kick_matrix, drift_kick_drift, kind17, &
+                  kind0, kind2, kind4, kind15, METD, NSTD, copy, &
+                  assignment(=), kind1, kind3, kinduser2, nmax, init_wig_pointers
 
   implicit none
  
