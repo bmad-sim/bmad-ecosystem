@@ -51,18 +51,17 @@ sub searchit {
   if (/^$str\.f90$/) {
     $found_one = 1;
     print "$File::Find::name\n";
-  }
 
 # If in the modules directory then look in the file for a match.
 
-  $found_in_file = 0;
+  } elsif ($file =~ /\.f90$/i) {
 
-  if ($File::Find::name =~ m@modules/[^/]*\.f90$@ || $file =~ /mod\.f90$/) {
+    $found_in_file = 0;
 
     open (F_IN, $file) || die ("Cannot open File: $_");
     while (<F_IN>) {
 
-      if (/^ *interface$/i) {   # skip interface blocks
+      if (/^ *interface *$/i) {   # skip interface blocks
         while (<F_IN>) {
           if (/^ *end interface/i) {last;}
         }
@@ -72,8 +71,7 @@ sub searchit {
             /^ *function /i || /^ *type /i || /^ *elemental subroutine /i ||
             /^ *real\(rp\) *function /i || /^ *interface /i) {
         $name = $';              # strip off "subroutine
-        $name =~ s/\(.*//;       # strip off "(..."
-        if ($name =~ /^\s*$str\s*$/) {
+        if ($name =~ /^\s*$str[ \(\n]/i) {
           if ($found_in_file == 0) {print "Module: $File::Find::name\n";}
           $found_one = 1;
           $found_in_file = 1;
@@ -82,6 +80,28 @@ sub searchit {
             $_ = <F_IN>;
             print "   $_";
           }
+        }
+      }
+    }
+    close (F_IN);
+
+# match to C++ files
+
+  } elsif ($file =~ /\.cpp$/ || $file =~ /\.h$/) {
+
+
+    $found_in_file = 0;
+    open (F_IN, $file) || die ("Cannot open File: $_");
+
+    while (<F_IN>) {
+
+      if (/^ *class +(\w+) +\{ *$/) {     # match to "class xyz {"
+        if ($1 =~ /^$str$/i) {
+          $found_one = 1;
+          if (!$found_in_file) {print "\n$File::Find::name\n";}
+
+          $found_in_file = 1;
+          print $_;
         }
       }
     }

@@ -66,11 +66,11 @@ sub searchit {
 
   $file = $_;
   $str = @ARGV[0];
-  $str =~ s/\*/\.\*/g;   # replace "*" by ".*"
+  $str =~ s/\*/\\w\*/g;   # replace "*" by "\w*" (any word characters)
 
 # See if the file name matches.
 
-  if (/^$str\.f90$/) {
+  if ($file =~ /^$str\.f90$/i) {
 
     print "\n$File::Find::name\n";
     $found_one = 1;
@@ -86,11 +86,7 @@ sub searchit {
         last;
       }
     }
-  }
-
-# If  a module look in the file for a match.
-
-  if ($File::Find::name =~ m@modules/[^/]*\.f90$@ || $file =~ /mod\.f90$/) {
+  } elsif ($file =~ /\.f90$/) {
     $recording = 0;
     @comments = ();     
     open (F_IN, $file) || die ("Cannot open File: $_");
@@ -117,8 +113,7 @@ sub searchit {
              /^ *function /i || /^ *elemental subroutine /i ||
              /^ *real\(rp\) *function /i || /^ *interface /i) {
         $_ = $';     # strip off "subroutine"
-        s/\(.*//;    # strip off "(..."
-        if (/^\s*$str\s*$/) {
+        if (/^\s*$str[ |\(]/i) {
           $found_one = 1;
           print "\n$File::Find::name\n";
           foreach $line (@comments) {print $line;}
@@ -126,15 +121,38 @@ sub searchit {
         @comments = ();
         $recording = 0;
       }
-      elsif (/^ *type *$str\s*$/) {
+      elsif (/^ *type +$str */i) {
         $found_one = 1;
         print "\n$File::Find::name\n";
         print $_;
         while (<F_IN>) {
           print $_;
-          if (/^ *end type/) {last;}
+          if (/^ *end type/i) {last;}
         }
       }
+    }
+    close (F_IN);
+
+# match to C++ files
+
+  } elsif ($file =~ /\.cpp$/ || $file =~ /\.h$/) {
+
+    $in_class = 0;
+    open (F_IN, $file) || die ("Cannot open File: $_");
+
+    while (<F_IN>) {
+
+      if (/^ *class +(\w+) +\{ *$/) {     # match to "class xyz {"
+        if ($1 =~ /^$str$/i) {
+          $in_class = 1;
+          $found_one = 1;
+          print "\n$File::Find::name\n";
+        }
+      }
+
+      if ($in_class) {print $_;}
+      if (m@// +end class@i) {$in_class = 0;}
+
     }
     close (F_IN);
   }
@@ -143,3 +161,4 @@ sub searchit {
   $_ = $file;
 
 }
+
