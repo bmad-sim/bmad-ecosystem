@@ -78,11 +78,13 @@ function attribute_name (ele, ix_att) result (at_name)
       if (i == hom$)          cycle
       if (i == multipole$)    cycle 
       if (i == ab_multipole$) cycle
+
+      attrib_array(i, symplectify$)       = 'SYMPLECTIFY'
+
       if (i == taylor$)       cycle
 
       attrib_array(i, integrator_order$)   = 'INTEGRATION_ORD'
       attrib_array(i, num_steps$)         = 'NUM_STEPS'
-      attrib_array(i, symplectify$)       = 'SYMPLECTIFY'
       attrib_array(i, rel_tol$)           = 'REL_TOL'
       attrib_array(i, abs_tol$)           = 'ABS_TOL'
 
@@ -140,8 +142,8 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(def_beam$, energy_gev$) = 'ENERGY'
     attrib_array(def_beam$, n_part$)     = 'N_PART'
 
-    attrib_array(taylor$, symplectify$) = 'SYMPLECTIFY'
     attrib_array(taylor$, l$)           = 'L'
+    attrib_array(taylor$, symplectify$) = 'SYMPLECTIFY'
 
     attrib_array(match$, l$)             = 'L'
     attrib_array(match$, beta_x0$)       = 'BETA_X0'
@@ -172,7 +174,6 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(i_beam$, tilt$)         = 'TILT'
 
     attrib_array(lcavity$, l$)             = 'L'
-    attrib_array(lcavity$, lrad$)          = 'LRAD'
     attrib_array(lcavity$, energy_start$)  = 'ENERGY_START'
     attrib_array(lcavity$, dphi0$)         = 'DPHI0'
     attrib_array(lcavity$, phi0$)          = 'PHI0'
@@ -215,7 +216,10 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(marker$, y_offset$) = 'Y_OFFSET'
 
     attrib_array(rcollimator$, l$)     = 'L'
+    attrib_array(rcollimator$, is_on$) = null_name
+
     attrib_array(ecollimator$, l$)     = 'L'
+    attrib_array(ecollimator$, is_on$) = null_name
 
     attrib_array(hkicker$, l$)          = 'L'
     attrib_array(hkicker$, tilt$)       = 'TILT'
@@ -382,7 +386,8 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(sol_quad$, radius$)     = 'RADIUS'
     attrib_array(sol_quad$, field_calc$) = 'FIELD_CALC'
 
-    attrib_array(multipole$, tilt$)     = 'TILT'
+    attrib_array(multipole$, l$)         = 'L'
+    attrib_array(multipole$, tilt$)      = 'TILT'
     attrib_array(multipole$, k0l$:k20l$) = (/ 'K0L ', &
                                    'K1L ', 'K2L ', 'K3L ', 'K4L ', 'K5L ', & 
                                    'K6L ', 'K7L ', 'K8L ', 'K9L ', 'K10L', &
@@ -396,13 +401,12 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(multipole$, x_offset$) = 'X_OFFSET'
     attrib_array(multipole$, y_offset$) = 'Y_OFFSET'
     attrib_array(multipole$, s_offset$) = 'S_OFFSET'
-    attrib_array(multipole$, lrad$)     = 'LRAD'
 
+    attrib_array(ab_multipole$, l$)        = 'L'
     attrib_array(ab_multipole$, tilt$)     = 'TILT'
     attrib_array(ab_multipole$, x_offset$) = 'X_OFFSET'
     attrib_array(ab_multipole$, y_offset$) = 'Y_OFFSET'
     attrib_array(ab_multipole$, s_offset$) = 'S_OFFSET'
-    attrib_array(ab_multipole$, lrad$)     = 'LRAD'
 
     attrib_array(accel_sol$, l$)             = 'L'
     attrib_array(accel_sol$, voltage$)       = 'VOLTAGE'
