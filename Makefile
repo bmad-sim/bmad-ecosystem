@@ -15,6 +15,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.5  2004/06/21 03:29:22  js344
+# minor changes
+#
 # Revision 1.4  2004/04/25 19:11:43  dcs
 # Modified.
 #
@@ -66,7 +69,7 @@
 # SRC_EXCLUDE     - Source files to exclude from compilation (just the base 
 #                   file names should be used here)
 #-----------------------------------------------------------------------------
-LIB_SRC_DIRS  := code
+LIB_SRC_DIRS  := ./code ./hook
 OBJ_SRC_DIRS  := program
 CONFIG_DIRS   :=
 LOCAL_INCS    := ../include

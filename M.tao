@@ -62,9 +62,9 @@ MAKEFILE := M.tao
 #           In general, it is recommended to AVOID the use of absolute path 
 #           specifications. 
 #-----------------------------------------------------------------------------
-LIB_SRC_DIRS  := ./code ./modules
+LIB_SRC_DIRS  := ./code ./hook
 OBJ_SRC_DIRS  := ./program
-LOCAL_INCS    := include
+LOCAL_INCS    := ../nclude
 LOCAL_MODS    := ../modules
 
 
