@@ -131,12 +131,12 @@ do
     graph%y  = init_axis
     graph%y2 = init_axis
     graph%y2%draw_numbers = .false.
-    graph%ix_universe = i
+    graph%ix_universe = 1
     graph%clip = .true.
     curve(:)%units_factor = 1
     curve(:)%convert = .false.                             ! set default
     curve(:)%symbol_every = 1
-    curve(:)%ix_universe = 0
+    curve(:)%ix_universe = 1
     curve(:)%draw_line = .true.
     curve(:)%use_y2 = .false.
     curve(:)%symbol = default_symbol
@@ -149,7 +149,7 @@ do
                                                  dash_dot3$, solid$, dotted$ /)
     read (iu, nml = tao_template_graph, err = 9200)
     call out_io (s_blank$, r_name, &
-                    'Init: Read tao_template_graph namelist: ' // graph%name)
+                 'Init: Read tao_template_graph namelist: ' // graph%name)
     if (graph_index /= i) then
       call out_io (s_error$, r_name, &
                                   'BAD "GRAPH_INDEX" FOR: ' // graph%name)
@@ -166,8 +166,15 @@ do
     grph%ix_universe = graph%ix_universe
     grph%clip       = graph%clip
 
+    if (grph%ix_universe < 1 .or. grph%ix_universe > size(s%u)) then
+      call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', grph%ix_universe)
+      call out_io (s_error$, r_name, &
+       'OUT OF RANGE FOR PLOT:GRAPH: ' // trim(plot%name) // ':' // graph%name)
+      call err_exit
+    endif
+
     if (grph%type == 'lat_layout') then
-!     plt%x_axis_type = 's'
+      if (plt%x_axis_type== 'index') plt%x_axis_type = 's'
       lat_layout_here = .true.
     endif
 

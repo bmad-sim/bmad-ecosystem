@@ -28,7 +28,7 @@ contains
 !
 ! Input:
 !   uni     -- Integer: universe where data resides
-!   ix_ele  -- Integer: element to valuate data at
+!   ix_ele  -- Integer: element to evaluate data at
 !-
 
 subroutine tao_load_data_array (u, ix_ele)
@@ -49,7 +49,7 @@ character(20) :: r_name = 'tao_load_data_array'
   ix_data => u%ix_data(ix_ele)
   do i = 1, size(ix_data%ix_datum)
     call tao_evaluate_a_datum (u%data(ix_data%ix_datum(i)), u, u%model, &
-              u%model_orb, ix_ele, u%data(ix_data%ix_datum(i))%model_value)
+              u%model_orb, u%data(ix_data%ix_datum(i))%model_value)
     u%data(ix_data%ix_datum(i))%s = u%model%ele_(ix_ele)%s
   enddo
     
@@ -94,18 +94,28 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_a_datum (datum, u, lattice, orb, ix_ele, datum_value)
+! Subroutine tao_evaluate_a_datum (datum, u, lattice, orb, datum_value)
 !
 ! Subroutine to put the proper data in the specified datum
 ! Data types that require ranges should be evaulated at the ix2 element.
+!
+! Input:
+!   datum   -- Tao_data_struct: What type of datum
+!   u       -- Tao_universe_struct: Which universe to use.
+!   lattice -- Ring_struct: Lattice to use.
+!   orb(0:) -- Coord_struct: Orbit to use.
+!     
+! Output:
+!   datum   -- Tao_data_struct: 
+!     %ix_ele_merit -- For max/min type constraints: Place where value is max/min. 
+!   datum_value -- Real(rp): Value of the datum.
 !-
 
-subroutine tao_evaluate_a_datum (datum, u, lattice, orb, ix_ele, datum_value)
+subroutine tao_evaluate_a_datum (datum, u, lattice, orb, datum_value)
 
 implicit none
 
 type (tao_universe_struct), target :: u
-type (ele_struct), pointer :: ele
 type (tao_data_struct) datum
 type (ring_struct) ::  lattice
 type (coord_struct) :: orb(0:)
@@ -115,7 +125,6 @@ type (taylor_struct), save :: taylor(6)
 
 real(rp) datum_value, mat6(6,6)
 
-integer ix_ele
 integer, save :: ix_save = -1
 integer i, j, k, m, ix, ix1, ix2, expnt(6)
 !integer track_type
@@ -127,12 +136,11 @@ logical found
 
 !
 
-call tao_hook_load_data_array (found, datum, u, lattice, orb, ix_ele, datum_value)
+call tao_hook_load_data_array (found, datum, u, lattice, orb, datum_value)
 if (found) return
 
 ix1 = datum%ix_ele
 ix2 = datum%ix_ele2
-ele => lattice%ele_(ix_ele)
 
 data_type = datum%data_type
 if (data_type(1:2) == 'r:') data_type = 'r:'
@@ -150,9 +158,9 @@ case ('orbit:z')
   call load_it (orb(:)%vec(5))
 
 case ('bpm:x')
-  call tao_read_bpm (orb(ix_ele), lattice%ele_(ix_ele), x$, datum_value)
+  call tao_read_bpm (orb(ix1), lattice%ele_(ix1), x$, datum_value)
 case ('bpm:y')
-  call tao_read_bpm (orb(ix_ele), lattice%ele_(ix_ele), y$, datum_value)
+  call tao_read_bpm (orb(ix1), lattice%ele_(ix1), y$, datum_value)
 
 case ('orbit:p_x')
   call load_it (orb(:)%vec(2))
