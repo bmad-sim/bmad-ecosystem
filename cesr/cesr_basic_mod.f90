@@ -559,7 +559,7 @@ subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
 
   character(len=*), optional :: choice
   character(*) lat_file
-  character(40) lattice, current_lat, lat_list(100)
+  character(40) lattice, current_lat, lat_list(200)
   character(80) line
    
   integer i, num_lats, i_lat, ix, ios
