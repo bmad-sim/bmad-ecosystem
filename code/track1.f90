@@ -38,10 +38,19 @@ subroutine track1 (start, ele, param, end)
 
   type (coord_struct), intent(in)  :: start
   type (coord_struct), intent(out) :: end
+  type (coord_struct) orb
   type (ele_struct),   intent(inout)  :: ele
   type (param_struct), intent(inout) :: param
 
   integer tracking_method
+
+! Radiation damping and/or fluctuations for the 1st half of the element.
+
+  if (param%damping_on .or. param%fluctuations_on) then
+    call track1_radiation (start, ele, param, orb, start_edge$) 
+  else
+    orb = start
+  endif
 
 ! bmad_standard handles the case when the element is turned off.
 
@@ -51,43 +60,49 @@ subroutine track1 (start, ele, param, end)
   select case (tracking_method)
 
   case (bmad_standard$) 
-    call track1_bmad (start, ele, param, end)
+    call track1_bmad (orb, ele, param, end)
 
   case (runge_kutta$) 
-    call track1_runge_kutta (start, ele, param, end)
+    call track1_runge_kutta (orb, ele, param, end)
 
   case (linear$) 
-    call track1_linear (start, ele, param, end)
+    call track1_linear (orb, ele, param, end)
 
   case (custom$) 
-    call track1_custom (start, ele, param, end)
+    call track1_custom (orb, ele, param, end)
 
   case (taylor$) 
-    call track1_taylor (start, ele, param, end)
+    call track1_taylor (orb, ele, param, end)
 
   case (symp_map$) 
-    call track1_symp_map (start, ele, param, end)
+    call track1_symp_map (orb, ele, param, end)
 
   case (symp_lie_bmad$) 
-    call symp_lie_bmad (ele, param, start, end, .false.)
+    call symp_lie_bmad (ele, param, orb, end, .false.)
 
   case (symp_lie_ptc$) 
-    call track1_symp_lie_ptc (start, ele, param, end)
+    call track1_symp_lie_ptc (orb, ele, param, end)
 
   case (wiedemann$) 
-    call track1_wiedemann_wiggler (start, ele, param, end)
+    call track1_wiedemann_wiggler (orb, ele, param, end)
 
   case (adaptive_boris$) 
-    call track1_adaptive_boris (start, ele, param, end)
+    call track1_adaptive_boris (orb, ele, param, end)
 
   case (boris$) 
-    call track1_boris (start, ele, param, end)
+    call track1_boris (orb, ele, param, end)
 
   case default
     print *, 'ERROR IN TRACK1: UNKNOWN TRACKING_METHOD: ', ele%tracking_method
     call err_exit
 
   end select
+
+! Radiation damping and/or fluctuations for the last half of the element
+
+  if (param%damping_on .or. param%fluctuations_on) then
+    call track1_radiation (end, ele, param, end, end_edge$) 
+  endif
 
 ! check for particles outside aperture
 

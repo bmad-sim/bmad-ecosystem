@@ -10,9 +10,8 @@
 !   use bmad
 !
 ! Input:
-!   ring            -- Ring_struct: Ring structure.
-!     %ele_(i_ele)      -- Element whose attribute is to be checked.
-!   i_ele           -- Integer: Index of element in the ring structure.
+!   ele             -- Ele_struct: After this routine finishes Ptr_attrib 
+!                        will point to a variable within this element.
 !   attrib_name     -- Character*16: Name of attribute. Must be uppercase.
 !                       For example: "HKICK".
 !   do_allocation   -- Logical: If True then do an allocation if needed.
