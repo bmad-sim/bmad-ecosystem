@@ -517,7 +517,8 @@ case ('plots')
   enddo
 
   nl=nl+1; lines(nl) = ' '
-  nl=nl+1; lines(nl) = '[Visible] Plot Region <--> Template:' 
+  nl=nl+1; lines(nl) = '[Visible]     Plot Region     <-->  Template' 
+  nl=nl+1; lines(nl) = '---------     -----------           ------------'
   do i = 1, size(s%plot_page%region)
     region => s%plot_page%region(i)
     nl=nl+1; write (lines(nl), '(3x l1, 10x, 3a)') region%visible, &
