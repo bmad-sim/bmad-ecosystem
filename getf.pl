@@ -30,10 +30,32 @@ elsif (-d "../../dcslib")
   {$dcslib_dir="../../dcslib";}
 else
   {$dcslib_dir=$ENV{"CESR_CVSSRC"}."/dcslib";}
+
+if (-d "./recipes_f-90_LEPP")
+  {$recipes_dir="./recipes_f-90_LEPP";}
+elsif (-d "../recipes_f-90_LEPP")
+  {$recipes_dir="../recipes_f-90_LEPP";}
+elsif (-d "../../recipes_f-90_LEPP")
+  {$recipes_dir="../../recipes_f-90_LEPP";}
+else
+  {$recipes_dir=$ENV{"CESR_CVSSRC"}."/recipes_f-90_LEPP";}
+
+if (-d "./forest/basic")
+  {$forest_dir="./forest/basic";}
+elsif (-d "../forest/basic")
+  {$forest_dir="../forest/basic";}
+elsif (-d "../../forest/basic")
+  {$forest_dir="../../forest/basic";}
+else
+  {$forest_dir=$ENV{"CESR_PKG"}."/forest/basic";}
+
  
 find(\&searchit, $bmad_dir);
 find(\&searchit, $dcslib_dir);
 find(\&searchit, $cesr_utils_dir);
+# find(\&searchit, $recipes_dir);
+# find(\&searchit, $forest_dir);
+
 
 if ($found_one == 0) {print "Cannot match String!";}
 print "\n";
