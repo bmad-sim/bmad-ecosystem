@@ -157,13 +157,19 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
 
   logical, optional :: calc_dfield
   logical offset, df_calc
+  character(20) :: r_name = 'em_field'
 
 ! custom field_calc
 
-  if (ele%field_calc == custom$) then
+  select case (ele%field_calc)
+  case (custom$) 
     call em_field_custom (ele, param, s_pos, here, field, calc_dfield)
     return
-  endif
+  case (bmad_standard$)
+  case default
+    call out_io (s_fatal$, r_name, 'BAD FIELD_CALC METHOD FOR ELEMENT: ' // ele%name)
+    call err_exit
+  end select
 
 !----------------------------------------------------------------------------
 ! convert to local coords

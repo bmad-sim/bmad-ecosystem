@@ -530,7 +530,7 @@ module bmad_struct
     real(rp) dE(3,3)      ! electric field gradient
     real(rp) dB(3,3)      ! magnetic field gradient
     real(rp) dkick(3,3)   ! kick gradiant
-    integer  type         ! kick_field$ or eb_field$
+    integer  type         ! kick_field$ or em_field$
   end type
 
 !------------------------------------------------------------------------------
