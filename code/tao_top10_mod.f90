@@ -89,7 +89,7 @@ a_max = max(1.1, maxval(abs(top_delta(:)%value)))
 n = max(0, 6 - int(log10(a_max)))
 
 write (fmt, '(a, i1, a)') &
-    '((1x, a10, i5, 1x, f11.1, 1x), (a8, i5, 1x, 1pe12.3, 1x), (a8, i5, 1x, 0pf11.', n, '))'
+    '((1x, a10, i5, f11.1, 1x), (a8, i5, 1pe12.3, 1x), (a8, i5, 0pf11.', n, '))'
 
 
 nl = 0

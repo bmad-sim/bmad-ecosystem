@@ -415,7 +415,7 @@ case ('lattice')
   write (lines(nl+2), '(29x, a)') &
                      '|              X           |             Y        '
   write (lines(nl+3), '(6x, a, 16x, a)') 'Name', &
-                  'S  |  Beta     Phi  Eta   Orb | Beta     Phi  Eta   Orb'
+                  '   S  |  Beta     Phi  Eta   Orb | Beta     Phi  Eta   Orb'
 
   nl=nl+3
   do ix = ix1, ix2
