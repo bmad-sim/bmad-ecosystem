@@ -1233,8 +1233,8 @@ subroutine init_macro_distribution (beam, init, ele, &
 ! Initialize all bunches
 
   do i = 1, size(beam%bunch)
-    beam%bunch(i)%s_center = (1-i) * init%ds_bunch
     beam%bunch(i) = beam%bunch(1)
+    beam%bunch(i)%s_center = (1-i) * init%ds_bunch
   enddo
 
 !-----------------------------------------------------
