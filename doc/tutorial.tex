@@ -711,7 +711,7 @@ Place the following code in \vn{tao_hook_load_data_array.f90} (in the
     ix1 = datum%ix_ele
     ele => lattice%ele_(ix1)
 
-    datum_value =  (( ele%x%gamma * orb(ix1)%vec(1)**2 + &
+    datum_value =  ( ele%x%gamma * orb(ix1)%vec(1)**2 + &
 		     2 * ele%x%alpha * orb(ix1)%vec(1) * orb(ix1)%vec(2) + &
 		     ele%x%beta * orb(ix1)%vec(2)**2)
     
@@ -719,8 +719,8 @@ Place the following code in \vn{tao_hook_load_data_array.f90} (in the
     ix1 = datum%ix_ele
     ele => lattice%ele_(ix1)
 
-    datum_value = (( ele%y%gamma * orb(ix1)%vec(3)**2 + &
-		     2 * ele%y%alpha * orb(:)%vec(3) * orb(ix1)%vec(4) + &
+    datum_value = ( ele%y%gamma * orb(ix1)%vec(3)**2 + &
+		     2 * ele%y%alpha * orb(ix1)%vec(3) * orb(ix1)%vec(4) + &
 		     ele%y%beta * orb(ix1)%vec(4)**2)
 \end{verbatim}
 %\end{example}
