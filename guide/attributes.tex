@@ -89,6 +89,12 @@ around the entrance point. In terms of rotation angle
   y_pitch = -dphi
 \end{example}
 In both \bmad\ and \mad\ offsets are applied before pitches.
+\begin{figure}
+  \centering
+  \includegraphics{pitch.psfig}
+  \caption{Pitch element attribute}
+  \label{f:pitch}
+\end{figure}
 
 The tilt attribute rotates the element in the $(x, y)$ plane as
 shown in figure~\ref{f:tilt}. For a bend the rotation axis is the
@@ -97,6 +103,12 @@ with the element. A bend with a tilt of $pi/2$ will bend a beam
 upward vertically. The \vn{hkick} and \vn{vkick} attributes are
 not affected by \vn{tilt} except for \vn{Kicker} and \vn{ElSeparator}
 elements
+\begin{figure}
+  \centering
+  \includegraphics{tilt.psfig}
+  \caption{Tilt element attribute}
+  \label{f:tilt}
+\end{figure}
 
 
 The \vn{roll} attribute is only used for bends
