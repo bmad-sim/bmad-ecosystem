@@ -2,9 +2,13 @@
 ! Subroutine check_attrib_free (ele, ix_attrib, ring, err_flag, err_print_flag)
 !
 ! Subroutine to check if an attribute is free to vary.
+!
 ! Attributes that cannot be changed directly are super_slave attributes (since
 ! these attributes are controlled by their super_lords) and attributes that
 ! are controlled by an overlay_lord.
+!
+! Also dependent variables such as the angle of a bend cannot be 
+!   freely variable.
 !
 ! Modules needed:
 !   use bmad
@@ -88,8 +92,58 @@ subroutine check_attrib_free (ele, ix_attrib, ring, err_flag, err_print_flag)
     endif
   endif
 
-! Everything must be OK
+! Everything OK so far
 
   err_flag = .false.
+
+! check if it is a dependent variable.
+
+  select case (ele%key)
+  case (sbend$)
+    if (any(ix_attrib == (/ angle$, l_chord$, rho$ /))) err_flag = .true.
+  case (rfcavity$)
+    if (ix_attrib == rf_wavelength$) err_flag = .true.
+  case (beambeam$)
+    if (ix_attrib == bbi_const$) err_flag = .true.
+  case (wiggler$)
+    if (ix_attrib == k1$ .or. ix_attrib == rho$) err_flag = .true. 
+  end select
+
+  if (err_flag .and. do_print) then
+    print '((1x, a))', &
+            'ERROR IN CHECK_ATTRIB_FREE. THE ATTRIBUTE: ' // &
+                                             attribute_name(ele, ix_attrib), &
+            '      OF ELEMENT: ' // ele%name, &
+            '      IS A DEPENDENT VARIABLE.', &
+            '      YOU CANNOT VARY THIS ATTRIBUTE DIRECTLY.'
+  endif
+
+! b_field_master on means that the b_field and b_gradiant values control
+! the strength.
+
+  if (ele%b_field_master) then
+    select case (ele%key)
+    case (quadrupole$)
+      if (ix_attrib == k1$) err_flag = .true.
+    case (sextupole$)
+      if (ix_attrib == k2$) err_flag = .true.
+    case (octupole$)
+      if (ix_attrib == k3$) err_flag = .true.
+    case (solenoid$)
+      if (ix_attrib == ks$) err_flag = .true.
+    case (sbend$)
+      if (ix_attrib == g$) err_flag = .true.
+    end select
+  endif
+
+  if (err_flag .and. do_print) then
+    print '((1x, a))', &
+            'ERROR IN CHECK_ATTRIB_FREE. THE ATTRIBUTE: ' // &
+                                             attribute_name(ele, ix_attrib), &
+            '      OF ELEMENT: ' // ele%name, &
+            '      IS A DEPENDENT VARIABLE SINCE B_FIELD_MASTER IS ON.', &
+            '      YOU CANNOT VARY THIS ATTRIBUTE DIRECTLY.'
+  endif
+
 
 end subroutine
