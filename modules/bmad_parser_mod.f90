@@ -107,12 +107,12 @@ module bmad_parser_mod
     real(rp), pointer :: var_value(:) => null()        ! variable value
     integer, pointer :: var_indexx(:) => null()        ! variable sort index
     integer n_files
-    character*200 file_name_(20)        ! List of files all opened.
-    character*280 parse_line
+    character(200) file_name_(50)        ! List of files all opened.
+    character(280) parse_line
     character(140) input_line1          ! For debug messages
     character(140) input_line2          ! For debug messages
     character(16) parser_name
-    character*72 debug_line
+    character(72) debug_line
     logical parser_debug, write_digested, error_flag
     integer ivar_tot, ivar_init
     logical input_line_meaningful
