@@ -82,7 +82,7 @@ module local_bmad_struct
     integer i_line, f_unit, n_files
     character*160 parse_line
     character*16 parser_name
-    character*72 current_file_name, file_name_(20)
+    character*200 current_file_name, file_name_(20)
     logical parser_debug, no_digested, error_flag
     integer iseq_tot, ivar_tot, ivar_init
   end type
@@ -98,6 +98,9 @@ module local_bmad_struct
 
 !$Id$
 !$Log$
+!Revision 1.3  2001/10/05 18:24:28  rwh24
+!Increased size of filename variables to 200 chars
+!
 !Revision 1.2  2001/09/27 18:32:13  rwh24
 !UNIX compatibility updates
 !
