@@ -35,6 +35,7 @@ integer n_var, n_data
   call reallocate_real (var_value, n_var)
   if (present(var_del))        call reallocate_real (var_del, n_var)
   if (present(var_data_value)) call reallocate_real (var_data_value, n_var)
+  if (present(var_weight))     call reallocate_real (var_weight, n_var)
 
   j = 0
   do i = 1, size(s%var)

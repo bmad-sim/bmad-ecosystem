@@ -13,8 +13,6 @@ module tao_parameters
   integer, parameter :: n_data_minn = -100   ! min index of datum per d1_data
   integer, parameter :: n_var_maxx = 500     ! max index of datum per v1_var 
   integer, parameter :: n_var_minn = -100    ! min index of datum per v1_var 
-  integer, parameter :: n_d1_data_maxx = 10  ! number of d1_data elements per
-                                             ! d2_data type
   integer, parameter :: n_region_maxx = 10   ! number of plotting regions.
   integer, parameter :: n_curve_maxx = 20    ! number of curves per graph
 

@@ -25,7 +25,7 @@ is shown in Table~\ref{t:commands}
 \end{tabular}
 }
 \caption{Table of \bmad\ elements.}
-\label{t:commands}\center
+\label{t:commands}
 \end{table}
 
 Where noted, a ``*'' star can be put in front of a command. This
@@ -51,15 +51,19 @@ commands. Using the \vn{alias} command without any arguments results
 in a printout of the aliases that have been defined. When using an
 alias up to 9 arguments may be substituted in the \vn{<string>}. The
 i\Th argument is substituted in place of the sub-string ``[i]''.
+arguments that do not have a corresponding ``[i]'' are placed at the end
+of \vn{<string>}
 
 Examples:
 \begin{example}
-    alias xyzzy plot [1] model - base  ! Define xyzzy
-    alias                              ! Show all aliases
-    xyzzy top                          ! Use an alias
+    alias xyzzy plot [1] model  ! Define xyzzy
+    alias                       ! Show all aliases
+    xyzzy top                   ! Use an alias
+    plot top model              ! Equivalent to "xyzzy top"
+    xyzzy top abc               ! Equivalent to "plot top model abc"
 \end{example}
 In the above example ``xyzzy'' is the alias for the string ``plot [1]
-model - base''.  When the command xyzzy is used ``top'' is substituted
+model''.  When the command xyzzy is used ``top'' is substituted
 for ``[1]'' in the string.
 
 %------------------------------------------------------------------------
@@ -429,7 +433,7 @@ Examples:
 \end{example}
 
 %------------------------------------------------------------------------
-\section{Single_mode}
+\section{Single\_mode}
 \label{s:singe_cmd}
 
 Format:

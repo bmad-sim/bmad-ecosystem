@@ -22,29 +22,28 @@ end type
 
 type tao_data_input
   integer ix_min, ix_max        ! min, max index
-  character(16) :: name(n_data_minn:n_data_maxx) = ' ' 
-  character(16) :: ele_name(n_data_minn:n_data_maxx) = ' ' 
-  real(rp) :: default_weight        ! default merit function weight
-  real(rp) :: weight(n_data_minn:n_data_maxx) ! individual weight 
+  character(16) :: name
+  character(16) :: ele_name
+  character(16) :: ele2_name
+  character(16) :: merit_type
+  real(rp) :: weight
 end type
 
 !-------------------------------------------------------------
 ! variable input structures
 
 type tao_v1_var_input
-  character(16) name           ! type of variable
-  character(16) attribute       ! attribute to vary
-  character(16) universe        ! universe variable is: Integer, "all", "common"
+  character(16) name           ! name of variable
 end type
 
 type tao_var_input
-  integer ix_min, ix_max        ! min, max index
-  character(16) :: name(n_var_minn:n_var_maxx) = ' '
-  character(16) :: ele_name(n_var_minn:n_var_maxx) = ' '
-  real(rp) :: default_weight        ! default merit function weight
-  real(rp) :: default_step          ! default "small" step size
-  real(rp) :: weight(n_var_minn:n_var_maxx) 
-  real(rp) :: step(n_var_minn:n_var_maxx)
+  character(16) :: name
+  character(16) :: ele_name
+  character(16) attribute       ! attribute to vary
+  character(16) universe
+  real(rp) :: weight
+  real(rp) :: step
+  character(16) :: merit_type
 end type
 
 !-------------------------------------------------------------

@@ -38,6 +38,9 @@ this_merit = 0
 do j = 1, size(s%var)
 
   var => s%var(j)
+  var%merit = 0
+  var%delta = 0
+
   if (.not. var%useit_opt) cycle
 
   if (s%global%opt_with_ref .and. s%global%opt_with_base) then
@@ -50,14 +53,16 @@ do j = 1, size(s%var)
     value = var%model_value 
   endif
     
-  var%merit = 0
   select case (var%merit_type)
   case ('target')
+    var%delta = value - var%data_value
     var%merit = var%weight * (value - var%data_value)**2
   case ('limit')
     if (var%model_value > var%high_lim) then
+      var%delta = value - var%high_lim
       var%merit = var%weight * (value - var%high_lim)**2
     elseif (var%model_value < var%low_lim) then
+      var%delta = value - var%low_lim
       var%merit = var%weight * (value - var%low_lim)**2
     endif
   case default
@@ -118,9 +123,9 @@ do i = 1, size(s%u)
   do j = 1, size(data)
     select case (data(j)%merit_type)
     case ('target')
-    case ('max')
+    case ('max', 'abs_max')
       if (data(j)%delta < 0) data(j)%delta = 0  ! it's OK to be less
-    case ('min')
+    case ('min', 'abs_min')
       if (data(j)%delta > 0) data(j)%delta = 0  ! it's OK to be more
     case default
       call tao_hook_merit_data (s, i, j, data(j))

@@ -90,7 +90,6 @@ subroutine alias_translate (cmd_line, err)
 
 character(*) cmd_line
 character(100) string
-character(40) alias_arg(9)
 
 integer ic, i, j
 logical err
@@ -100,29 +99,30 @@ logical err
 call string_trim (cmd_line, cmd_line, ic)
 
 do i = 1, tao_com%n_alias
-  if (cmd_line(1:ic) == tao_com%alias(i)%name) then
 
-    alias_arg = ' '
+  if (cmd_line(1:ic) /= tao_com%alias(i)%name) cycle
 
-    do j = 1, 9
-      call string_trim (cmd_line(ic+1:), string, ic)
-      if (ic == 0) exit
-      alias_arg(j) = string(1:ic)
-    enddo
+  ! get actual arguments and replace dummy args with actual args
 
-    cmd_line = tao_com%alias(i)%string
+  string = cmd_line
+  cmd_line = tao_com%alias(i)%string
 
-    do j = 1, 9
-      ix = index (cmd_line, str(j))
-      if (ix /= 0) cmd_line = cmd_line(1:ix-1) // &
-                          trim(alias_arg(i)) // cmd_line(ix+3:)
+  do j = 1, 9
+    ix = index (cmd_line, str(j))
+    if (ix == 0) exit
+    call string_trim (string(ic+1:), string, ic)
+    cmd_line = cmd_line(1:ix-1) // &
+                          trim(string(1:ic)) // cmd_line(ix+3:)
+  enddo
 
-    enddo
+  ! append rest of string
 
-    write (*, '(2a)') 'Alias: ', trim (cmd_line)
-    return
+  call string_trim (string(ic+1:), string, ic)
+  cmd_line = trim(cmd_line) // ' ' // string
 
-  endif
+  write (*, '(2a)') 'Alias: ', trim (cmd_line)
+  return
+
 enddo
 
 end subroutine

@@ -1,4 +1,4 @@
-\chapater{Optimization}
+\chapter{Optimization}
 \label{c:opti}
 
 
@@ -142,42 +142,62 @@ that determine the merit function and the variables that the optimizer can
 vary in order to try to minimize the merit function.
 
 The forth section of the input file gives the constrains. See the above
-example. Valid constraints are:
-<pre>
-  Constraint_name 
-    beta           Twiss parameter
-    alpha          Twiss parameter
-    eta            Dispersion
-    etap           Dispersion derivative
-    phase          Betatron phase
-    orbit          Particle orbit
-    r56            Term in linear transfer matrix
-    t566           Term in 2nd order transfer matrix
-    var_limit      Variable outside set bounds
-    inside_wall    Inside CESR tunnel wall (for ERL)
-    outside_wall   Outside CESR tunnel wall (for ERL)
-    tangent        Floor position
-    position       Floor position 
-    s              Longitudinal length constraint
-    custom         Custom constraint
-</pre>
+example. Valid constraints are given in Table~\ref{t:cons}.
 In order to use a custom constraint someone must write the appropriate routine
 and link it with the Toad program.
 
-Valid constraint types are:
-<pre>
-  Constraint_type  Condition for non-zero contribution
-    Min            actual_value < target_value
-    Max            actual_value > target_value
-    Target         actual_value != target_value
-    Abs_Min        |actual_value| < target_value
-    Abs_Max        |actual_value| > target_value
-</pre>
-The contribution to the merit function if a given constraint has a non-zero
-contribution is: weight * (actual_value - target_value)^2
 
-Note: For tangent_angle, x_position, z_position, and s_position constraints: If
-there is a 2nd "where" then it is assumed that the 1st "where" corresponds to
-an element of ring1 and the 2nd "where" corresponds to an element of ring2.
-The constraint is evaluated by taking the difference of the constraint
-(tangent_angle, x_position, z_position, or s_position) between the two.
+\begin{table}[h]
+\centering
+{\tt
+\begin{tabular}{|l|l|} \hline
+  {\it Constraint\_name}  & {\it Description} \\ \hline 
+    beta           & Twiss parameter                        \\ \hline 
+    alpha          & Twiss parameter                        \\ \hline 
+    eta            & Dispersion                             \\ \hline 
+    etap           & Dispersion derivative                  \\ \hline 
+    phase          & Betatron phase                         \\ \hline 
+    orbit          & Particle orbit                         \\ \hline 
+    r56            & Term in linear transfer matrix         \\ \hline 
+    t566           & Term in 2nd order transfer matrix      \\ \hline 
+    var\_limit     & Variable outside set bounds            \\ \hline 
+    inside\_wall   & Inside CESR tunnel wall                \\ \hline 
+    outside\_wall  & Outside CESR tunnel wall               \\ \hline 
+    tangent        & Floor position                         \\ \hline 
+    position       & Floor position                         \\ \hline 
+    s              & Longitudinal length constraint         \\ \hline 
+    custom         & Custom constraint                      \\ \hline 
+\end{tabular}
+}
+\caption{Constraint List.}
+\label{t:cons}
+\end{table}
+
+The contribution to the merit function if a given constraint has a non-zero
+contribution is
+\Begineq
+  \merit = \weight \cdot (\actual - \target)^2
+\Endeq
+Valid constraint types are given in Table~\ref{t:con_type}.
+\begin{table}[h]
+\centering
+{\tt
+\begin{tabular}{|l|l|} \hline
+  {\it Constraint\_type}  & {\it Condition for non-zero contribution} \\ \hline 
+    min           & $\actual < \target$      \\ \hline 
+    max           & $\actual > \target$      \\ \hline 
+    target        & $\actual \ne \target$    \\ \hline 
+    abs\_min      & $|\actual| < \target$    \\ \hline 
+    abs\_max      & $|\actual| > \target$    \\ \hline 
+\end{tabular}
+}
+\caption{Constraint Type List.}
+\label{t:con_type}
+\end{table}
+
+Note: For \vn{tangent_angle}, \vn{x_position}, \vn{z_position}, and
+\vn{s_position} constraints: If there is a 2nd "where" then it is
+assumed that the 1st "where" corresponds to an element of ring1 and
+the 2nd "where" corresponds to an element of ring2.  The constraint is
+evaluated by taking the difference of the constraint (\vn{tangent_angle},
+\vn{x_position}, \vn{z_position}, or \vn{s_position}) between the two.

@@ -19,6 +19,7 @@ subroutine tao_command (s, command_line, err)
   use tao_mod
   use quick_plot
   use tao_cmd_history_mod
+  use tao_dmerit_mod
 
   implicit none
 
@@ -138,7 +139,7 @@ subroutine tao_command (s, command_line, err)
 
   case ('derivative')
 
-    call tao_dmodel_dvar_calc(s)
+    call tao_dmodel_dvar_calc(s, .true.)
     call out_io (s_blank$, r_name, 'Derivative calculated')
 
 !--------------------------------

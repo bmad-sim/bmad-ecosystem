@@ -19,7 +19,7 @@ the keys and a change in a variable is:
     1 + 10*ib     Q    q    1    !   
     2 + 10*ib     W    w    2    @    
     3 + 10*ib     E    e    3    \#   
-    4 + 10*ib     R    r    4    $   
+    4 + 10*ib     R    r    4    \$   
     5 + 10*ib     T    t    5    %   
     6 + 10*ib     Y    y    6    ^   
     7 + 10*ib     U    u    7    \&
@@ -53,7 +53,7 @@ Go run the default optimizer. The optimizer will run until you type a
 '.' (a period).
 Periodically during the optimization the variable values
 will be written to files, one for each universe, whose name is 
-\vn{tao_opt_vars#.dat}. where \vn{#} is the universe number.
+\vn{tao_opt_vars\#.dat}. where \vn{\#} is the universe number.
 
 \item[G <optimizer>]
 Go run the optimizer with name \vn{<optimizer>}.
@@ -74,16 +74,16 @@ keys 0 through 9) of all the variables by a factor of 2.
 Increase the deltas (the amount that a variable is changed when you use
 the keys 0 through 9) of all the variables by a factor of 2.
 
-\item[left_arrow]
+\item[left\_arrow]
 Shift the active key bank down by 1: ib -> ib - 1
 
-\item[right_arrow]
+\item[right\_arrow]
 Shift the active key bank up by 1: ib -> ib + 1
 
-\item[up_arrow]
+\item[up\_arrow]
 Scale plots by a factor of 0.5.
 
-\item[down_arrow]
+\item[down\_arrow]
 Scale plots by a factor of 2.
 
 \item[<CR>]
@@ -95,11 +95,11 @@ The name of the default input BMAD file is given by p%bmad2_file.  Note: This
 file cannot define a new lattice. It can only set lattice variables (such as
 quad strengths etc.).
 
-\item[/B <file_name>]   
-Read in a BMAD input file whose name is given by <file_name>. See the
-"/b" command for more details. If the first character of <file_name> is
-"@" then the "@" is stripped from  <file_name> and p%bmad2_file is set to
-<file_name>.
+\item[/B <file\_name>]   
+Read in a BMAD input file whose name is given by \vn{<file_name>}. See the
+"/b" command for more details. If the first character of \vn{<file_name>} is
+"@" then the "@" is stripped from  \vn{<file_name>} and p%bmad2_file is set to
+\vn{<file_name>}.
 
 \item[/e <Index or Name>]
 Prints info on a lattice element. If there are two lattices being used
@@ -127,11 +127,11 @@ useful for setting parameters that you can not set any other way (like
 changing the constraint list). Note that on input p%top2_file is set to the
 file name used to start the TOAD.
 
-\item[/T <file_name>]
-Read a TOAD input file whose name is given by <file_name>.
+\item[/T <file\_name>]
+Read a TOAD input file whose name is given by \vn{<file_name>}.
 See the "/t" command for more details.
-If the first character of <file_name> is "@" then the "@" is stripped
-from  <file_name> and p%top2_file is set to <file_name>.
+If the first character of \vn{<file_name>} is "@" then the "@" is stripped
+from  \vn{<file_name>} and p%top2_file is set to \vn{<file_name>}.
 
 \item[/w]
 Write both manual and auto variable values to the default output file. 
@@ -139,11 +139,11 @@ The default output file name is set by p%manual_out_file. This file is in
 BMAD format and you can use the "/b" or "/B" commands to read such a file into
 TOAD.
 
-\item[/W <file_name>]
+\item[/W <file\_name>]
 Write both manual and auto variable values to a file named
-<file_name>. See the "/w" command for more details.
-If the first character of <file_name> is "@" then the "@" is stripped
-from  <file_name> and p%manual_out_file is set to <file_name>. 
+\vn{<file_name>}. See the "/w" command for more details.
+If the first character of \vn{<file_name>} is "@" then the "@" is stripped
+from  \vn{<file_name>} and p%manual_out_file is set to \vn{<file_name>}. 
 
 \item[/x <min> <max>]
 Set the horizontal scale (longitudinal position) min and max values for all
@@ -152,26 +152,26 @@ file. The effective min and max can never be larger than the bounds of the
 lattice itself. Thus to see the entire lattice set min = 0 and max = something
 large. Typing a "<cr>" after typing "/x" will set min = 0 and max = 1e20.
 
-\item[/right_arrow]
+\item[/right\_arrow]
 Set saved ("value0") values to variable values to saved values. 
 The saved values (the value0 column in the display) are initially set to  the
 initial value on startup. There are saved values for both the manual and
 automatic variables. Note that reading in a TOAD input file will reset the
 saved values. If you want to save the values of the variables in this case use
-"/w" to save to a file. Use the "/left_arrow" command to go in the
+"/w" to save to a file. Use the "\vn{/left_arrow}" command to go in the
 reverse direction.
 
-\item[/left_arrow]
+\item[/left\_arrow]
 Paste saved ("value0") values back to the variable values. 
 The saved values (the value0 column in the display) are initially set to the
-initial value  on startup. Use the "/right_arrow" command to go in the
+initial value  on startup. Use the "\vn{/right_arrow}" command to go in the
 reverse direction.
 
-\item[/<digit> up_arrow]
+\item[/<digit> up\_arrow]
 Scale the plot given by <digit> by a factor of 0.5. The bottom most plot
 is number 1, etc. 
 
-\item[/<digit> down_arrow]
+\item[/<digit> down\_arrow]
 Scale the plot given by <digit> by a factor of 2. The bottom most plot is
 number 1, etc. 
 
@@ -185,4 +185,4 @@ that you must type a <CR> at the end.
 Toggle plotting. Whether to plot or not to plot is initially determined by
 plot%enable.
 
-\end{definition}
+\end{description}

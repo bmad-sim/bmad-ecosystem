@@ -41,15 +41,6 @@ type tao_io_struct
   character(100), pointer :: lines(:) => null()
 end type
 
-! structure for making lists of the biggest contributors to the merit function.
-
-type tao_top10_struct
-  character(16) name   ! name of contributor
-  real(rp) value       ! contribution to the merit function
-  integer index        ! index of contributor.
-  logical valid        ! valid entry?
-end type
-
 !-----------------------------------------------------------------------
 ! Plot structures.
 
@@ -161,6 +152,8 @@ end type
 ! %good_ref   -- Like good_data this is set for a reference data set.
 ! %good_user  -- What the user has selected using the use, veto, and restore 
 !                  commands.
+! %good_opt   -- Convenient way to veto data to use with optimization without 
+!                  touching the other logicals.
 ! %good_plot  -- Conveninet way to veto data to plot without 
 !                  touching the other logicals.
 ! %useit_plot -- Datum is valid for plotting:
@@ -173,11 +166,12 @@ end type
 type tao_data_struct
   character(16) name        ! Datum name. Eg: "X Orbit @ Det 10"
   character(16) ele_name    ! Name of the element in the Lattice corresponding to the datum.
-  character(16) ele_name2   ! Name lattice element when there is a range 
-  character(16) :: class = ' ' ! Used with constraint data
+  character(16) ele2_name   ! Name lattice element when there is a range 
+  character(16) :: type = ' ' ! Type of data ("orbit:x", etc.)
   character(16) merit_type  ! 'target', 'max', 'min'
   integer ix_ele            ! Index of the element in the lattice element array.
   integer ix_ele2           ! Index of lattice elment when there is a range.
+  integer ix_ele_merit      ! Index of lattice elment where merit is evaluated.
   integer ix_d1             ! Index number of this datum.
   integer ix_data           ! Index of this datum in the u%data(:) array of data_structs.
   integer ix_dModel         ! Row number in the dModel_dVar derivative matrix.
@@ -196,6 +190,7 @@ type tao_data_struct
   logical good_data         ! See above
   logical good_ref          ! See above
   logical good_user         ! See above
+  logical good_opt          ! See above
   logical useit_plot        ! See above
   logical useit_opt         ! See above
   type (tao_data_hook) hook ! Custom stuff. Defined in tao_hook.f90
@@ -216,12 +211,10 @@ type tao_d1_data_struct
                             ! Pointer to the appropriate section in u%data
 end type
 
-! A d2_data_struct represents all of a class of data. Eg: All orbit data.
+! A d2_data_struct represents all of a type of data. Eg: All orbit data.
 ! The d2_data_struct has pointers to the approprite d1_data_structs
 ! %ix_data and %ix_ref are used if the external data files are 
 !   sequentially numbered.
-! %good_opt   -- Convenient way to veto data to use with optimization without 
-!                  touching the other logicals.
 
 type tao_d2_data_struct
   character(16) name              ! Name to be used with commands.
@@ -236,7 +229,6 @@ type tao_d2_data_struct
   integer ix_ref                  ! Index of the reference data set. 
   logical data_read_in            ! A data set has been read in?
   logical ref_read_in             ! A reference data set has been read in?
-  logical good_opt          ! See above
 end type
 
 !-----------------------------------------------------------------------
@@ -284,12 +276,14 @@ type tao_var_struct
   real(rp) low_lim          ! Low limit for the model_value.
   real(rp) step             ! Sets what is a small step for varying this var.
   real(rp) weight           ! Weight for the merit function term.
+  real(rp) delta            ! Diff used to calculate the merit function term 
   real(rp) merit            ! Merit function Value = weight * delta^2.
   real(rp) dMerit_dVar      ! Merit derivative.     
   character(16) merit_type  ! 'calibration', 'limit'
   logical exists            ! See above
   logical good_var          ! See above
   logical good_user         ! See above
+  logical good_opt          ! See above
   logical useit_opt         ! See above
   logical useit_plot        ! See above
   type (tao_var_hook) hook  ! Custom stuff. Defined in tao_hook.f90
@@ -298,7 +292,6 @@ end type tao_var_struct
 
 ! A v1_var_struct represents, say, all the quadrupole power supplies.
 ! The v1_var_struct has a pointer to a section in the u%var array. 
-! %good_opt   -- Convenient way to veto all variables of a class.
 
 type tao_v1_var_struct
   character(16) :: name = ' '  ! Eg: "quad_k1"
@@ -306,7 +299,6 @@ type tao_v1_var_struct
   type (tao_v1_var_hook) hook  ! Custom stuff. Defined in tao_hook.f90
   type (tao_var_struct), pointer :: v(:) => null() 
                                ! Pointer to the appropriate section in u%var.
-  logical good_opt             ! See above
 end type
 
 !------------------------------------------------------------------------
@@ -344,9 +336,11 @@ end type
 type tao_universe_struct
   type (ring_struct) model, design, base           ! lattice structures
   type (coord_struct), allocatable :: model_orb(:), design_orb(:), base_orb(:)
-  type (tao_d2_data_struct), pointer :: d2_data(:) => null()  ! The data classes 
+  type (tao_d2_data_struct), pointer :: d2_data(:) => null()  ! The data types 
   type (tao_data_struct), pointer :: data(:) => null()        ! array of all data.
   real(rp), pointer :: dModel_dVar(:,:)                       ! Derivative matrix.
+  integer n_d2_data_used
+  integer n_data_used
   logical draw_lat_layout             ! draw this layout?
 end type
 
@@ -357,7 +351,7 @@ type tao_super_universe_struct
   type (tao_global_struct) global                          ! global variables.
   type (tao_plot_struct) :: template_plot(n_template_maxx) ! Templates for the plots.
   type (tao_plot_page_struct) :: plot_page                 ! Defines the plot window.
-  type (tao_v1_var_struct), pointer :: v1_var(:) => null() ! The variable classes
+  type (tao_v1_var_struct), pointer :: v1_var(:) => null() ! The variable types
   type (tao_var_struct), pointer :: var(:) => null()       ! array of all variables.
   type (tao_universe_struct), pointer :: u(:) => null()    ! array of universes.
   type (tao_keyboard_struct), pointer :: key(:)
@@ -365,4 +359,26 @@ type tao_super_universe_struct
   integer n_v1_var_used
 end type
 
-end module                    
+!-----------------------------------------------------------------------
+! Define common variables
+
+type tao_alias_struct
+  character(16) :: name
+  character(100) :: string
+end type
+
+type tao_common_struct
+  type (tao_alias_struct) alias(100)
+  logical opti_init        ! init needed?
+  logical opti_at_limit    ! Variable at limit?
+  character(40) cmd_arg(9) ! Command file arguments.
+  character(100) cmd
+  integer :: n_alias = 0
+  logical :: use_cmd_here  = .false. ! Used for the cmd history stack
+end type
+
+
+type (tao_super_universe_struct):: s
+type (tao_common_struct) tao_com
+
+end module

@@ -24,42 +24,19 @@
 !------------------------------------------------------------------------
 ! Data
 
-d2_data%name       -- Character(16): Some types are recognized by tao:
-                        "orbit"
-                        "phase"
-                        "eta"
-                        "beta"
-                        "coupling"
-                        "cbar"
-                       For types that are not recognized, stub routines must then 
-                         be provided for doing operations like transfering data 
-                         from the model to the data structures.
-d2_data%universe   -- Integer: Universe to apply the data to.
-                         0 ==> All universes (default).
-d1_data%name       -- Character(16): Some types are recognized by tao:
-                       "X" & "Y"                 (in conjunction with "orbit" and "phase")
-                       "11", "12a", "12b", "21"  (in conjunction with "coupling")
-                       "11", "12", "21", & "22"  (in conjunction with "cbar")
-d1_data%name       -- Character(32): Can be any name you want.
-data%default_weight -- Real: Weight for merit function.
-data%ix_min      -- Integer: Lower bound of the data array.
-data%ix_max      -- Integer: Upper bound of the data array.
-data%name(:)     -- Name to be associated with a datum.
-                        Leave blank if datum does not exist.
-data%ele_name(:) -- Lattice element name to be associated with a datum.
-                        Leave blank if datum does not exist.
-data%weight(:)   -- Real: Individual weights can be set to override d1_data%default_weight.
-
-
-&tao_data
+&tao_d2_data
   d2_data%name = "orbit" 
   d2_data%universe = 0  ! apply to all universes
+	n_d1_data = 2
+/
 
-  d1_data(1)%name = "x"  
-  data(1)%default_weight = 1e6
-  data(1)%ix_min = 0 
-  data(1)%ix_max = 99  
-  data(1)%name(0:) = "0W", 
+&tao_d1_data
+	ix_d1_data = 1
+  d1_data%name = "x"  
+  default_weight = 1e6
+  ix_min_data = 0 
+  ix_max_data = 99  
+  data(0:)%name = "0W", 
            "1W",  "2W",  "3W",  "4W",  "5W",  "6W", 
            "7W",  "8W",  "9W", "10W", "11W", "12W", 
           "13W", "14W", "15W", "16W", "17W", "18W", 
@@ -77,7 +54,7 @@ data%weight(:)   -- Real: Individual weights can be set to override d1_data%defa
           "13E", "12E", "11E", "10E",  "9E",  "8E", 
            "7E",  "6E",  "5E",  "4E",  "3E",  "2E", 
            "1E",  "0E"
-  data(1)%ele_name(0:) = "DET_00W",
+  data(0:)%ele_name = "DET_00W",
           "DET_01W", "DET_02W", "DET_03W", "DET_04W", "DET_05W", "DET_06W", 
           "DET_07W", "DET_08W", "DET_09W", "DET_10W", "DET_11W", "DET_12W", 
           "DET_13W", "DET_14W", "DET_15W", "DET_16W", "DET_17W", "DET_18W", 
@@ -95,167 +72,212 @@ data%weight(:)   -- Real: Individual weights can be set to override d1_data%defa
           "DET_13E", "DET_12E", "DET_11E", "DET_10E", "DET_09E", "DET_08E", 
           "DET_07E", "DET_06E", "DET_05E", "DET_04E", "DET_03E", "DET_02E", 
           "DET_01E", "DET_00E"
-
-  d1_data(2)%name = "y"  
-  data(2)%default_weight = 1e6
-  data(2)%ix_min = 0 
-  data(2)%ix_max = 99  
-  data(2)%name(0) = "SAME: orbit:x"
-  data(2)%ele_name(0) = "SAME: orbit:x"
 /
 
+&tao_d1_data
+	ix_d1_data = 2
+  d1_data%name = "y"  
+  default_weight = 1e6
+  ix_min_data = 0 
+  ix_max_data = 99  
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
+/
 
+!---------------------------------------------------
 
 &tao_data
   d2_data%name = "phase" 
   d2_data%universe = 0  ! apply to all universes
+	n_d1_data = 2
+/
 
-  d1_data(1)%name = "x"  
-  data(1)%default_weight = 1e6
-  data(1)%ix_min = 0 
-  data(1)%ix_max = 99  
-  data(1)%name(0) = "SAME: orbit:x"
-  data(1)%ele_name(0) = "SAME: orbit:x"
+&tao_d1_data
+	ix_d1_data = 1
+  d1_data%name = "x"  
+  default_weight = 1e6
+  ix_min_data = 0 
+  ix_max_data = 99  
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
+/
 
-  d1_data(2)%name = "y"  
-  data(2)%default_weight = 1e6
-  data(2)%ix_min = 0 
-  data(2)%ix_max = 99  
-  data(2)%name(0) = "SAME: orbit:x"
-  data(2)%ele_name(0) = "SAME: orbit:x"
+&tao_d1_data
+	ix_d1_data = 2
+  d1_data%name = "y"  
+  default_weight = 1e6
+  ix_min_data = 0 
+  ix_max_data = 99  
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
 /
 
 
-&tao_data
+!---------------------------------------------------
+
+&tao_d2_data
   d2_data%name = "eta" 
   d2_data%universe = 0  ! apply to all universes
-
-  d1_data(1)%name = "x"  
-  data(1)%default_weight = 0
-  data(1)%ix_min = 0 
-  data(1)%ix_max = 99  
-  data(1)%name(0) = "SAME: orbit:x"
-  data(1)%ele_name(0) = "SAME: orbit:x"
-
-  d1_data(2)%name = "y"  
-  data(2)%default_weight = 200
-  data(2)%ix_min = 0 
-  data(2)%ix_max = 99  
-  data(2)%name(0) = "SAME: orbit:x"
-  data(2)%ele_name(0) = "SAME: orbit:x"
+	n_d1_data = 2
 /
 
-&tao_data
+&tao_d1_data
+	ix_d1_data = 1
+  d1_data%name = "x"  
+  default_weight = 0
+  ix_min_data = 0 
+  ix_max_data = 99  
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
+/
+
+&tao_d1_data
+	ix_d1_data = 2
+  d1_data%name = "y"  
+  default_weight = 200
+  ix_min_data = 0 
+  ix_max_data = 99  
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
+/
+
+!---------------------------------------------------
+
+&tao_d2_data
   d2_data%name = "beta" 
   d2_data%universe = 0  ! apply to all universes
-
-  d1_data(1)%name = "x"  
-  data(1)%default_weight = 1
-  data(1)%ix_min = 0 
-  data(1)%ix_max = 99  
-  data(1)%name(0) = "SAME: orbit:x"
-  data(1)%ele_name(0) = "SAME: orbit:x"
-
-  d1_data(2)%name = "y"  
-  data(2)%default_weight = 1
-  data(2)%ix_min = 0 
-  data(2)%ix_max = 99  
-  data(2)%name(0) = "SAME: orbit:x"
-  data(2)%ele_name(0) = "SAME: orbit:x"
+	n_d1_data = 2
 /
 
-&tao_data
+&tao_d1_data
+	ix_d1_data = 1
+  d1_data%name = "x"  
+  default_weight = 1
+  ix_min_data = 0 
+  ix_max_data = 99  
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
+/
+
+&tao_d1_data
+	ix_d1_data = 2
+  d1_data%name = "y"  
+  default_weight = 1
+  ix_min_data = 0 
+  ix_max_data = 99  
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
+/
+
+!---------------------------------------------------
+
+&tao_d2_data
   d2_data%name = "cbar"
   d2_data%universe = 0  ! apply to all universes
-
-  d1_data(1)%name = "11"
-  data(1)%default_weight = 1e3
-  data(1)%ix_min = 0
-  data(1)%ix_max = 99
-  data(1)%name(0) = "SAME: orbit:x"
-  data(1)%ele_name(0) = "SAME: orbit:x"
-
-  d1_data(2)%name = "12"
-  data(2)%default_weight = 1e3
-  data(2)%ix_min = 0
-  data(2)%ix_max = 99
-  data(2)%name(0) = "SAME: orbit:x"
-  data(2)%ele_name(0) = "SAME: orbit:x"
-
-  d1_data(3)%name = "21"
-  data(3)%default_weight = 1e3
-  data(3)%ix_min = 0
-  data(3)%ix_max = 99
-  data(3)%name(0) = "SAME: orbit:x"
-  data(3)%ele_name(0) = "SAME: orbit:x"
-
-  d1_data(4)%name = "22"
-  data(4)%default_weight = 1e3
-  data(4)%ix_min = 0
-  data(4)%ix_max = 99
-  data(4)%name(0) = "SAME: orbit:x"
-  data(4)%ele_name(0) = "SAME: orbit:x"
+	n_d1_data = 4
 /
 
-&tao_data
+&tao_d1_data
+	ix_d1_data = 1
+  d1_data%name = "11"
+  default_weight = 1e3
+  ix_min_data = 0
+  ix_max_data = 99
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
+/
+
+&tao_d1_data
+	ix_d1_data = 2
+  d1_data%name = "12"
+  default_weight = 1e3
+  ix_min_data = 0
+  ix_max_data = 99
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
+/
+
+&tao_d1_data
+	ix_d1_data = 3
+  d1_data%name = "21"
+  default_weight = 1e3
+  ix_min_data = 0
+  ix_max_data = 99
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
+/
+
+&tao_d1_data
+	ix_d1_data = 4
+  d1_data%name = "22"
+  default_weight = 1e3
+  ix_min_data = 0
+  ix_max_data = 99
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
+/
+
+!---------------------------------------------------
+
+&tao_d2_data
   d2_data%name = "coupling" 
   d2_data%universe = 0  ! apply to all universes
+	n_d1_data = 4
+/
 
-  d1_data(1)%name = "11"  
-  data(1)%default_weight = 1e3
-  data(1)%ix_min = 0 
-  data(1)%ix_max = 99  
-  data(1)%name(0) = "SAME: orbit:x"
-  data(1)%ele_name(0) = "SAME: orbit:x"
+&tao_d1_data
+	ix_d1_data = 1
+  d1_data%name = "11"  
+  default_weight = 1e3
+  ix_min_data = 0 
+  ix_max_data = 99  
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
+/
 
-  d1_data(2)%name = "12a"  
-  data(2)%default_weight = 1e3
-  data(2)%ix_min = 0 
-  data(2)%ix_max = 99  
-  data(2)%name(0) = "SAME: orbit:x"
-  data(2)%ele_name(0) = "SAME: orbit:x"
+&tao_d1_data
+	ix_d1_data = 2
+  d1_data%name = "12a"  
+  default_weight = 1e3
+  ix_min_data = 0 
+  ix_max_data = 99  
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
+/
 
-  d1_data(3)%name = "12b"  
-  data(3)%default_weight = 1e3
-  data(3)%ix_min = 0 
-  data(3)%ix_max = 99  
-  data(3)%name(0) = "SAME: orbit:x"
-  data(3)%ele_name(0) = "SAME: orbit:x"
+&tao_d1_data
+	ix_d1_data = 3
+  d1_data%name = "12b"  
+  default_weight = 1e3
+  ix_min_data = 0 
+  ix_max_data = 99  
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
+/
 
-  d1_data(4)%name = "22"  
-  data(4)%default_weight = 1e3
-  data(4)%ix_min = 0 
-  data(4)%ix_max = 99  
-  data(4)%name(0) = "SAME: orbit:x"
-  data(4)%ele_name(0) = "SAME: orbit:x"
+&tao_d1_data
+	ix_d1_data = 4
+  d1_data%name = "22"  
+  default_weight = 1e3
+  ix_min_data = 0 
+  ix_max_data = 99  
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
 /
 
 !------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
 ! variables
-
-v1_var%name        -- Character(16): Name to be used with Tao commands.
-v1_var%attribute    -- Character(16): Attribute that is varied.
-v1_var%universe     -- Integer: Universe to apply the data to. 0 ==> All universes.
-var%default_weight  -- Real: Weight for merit function.
-var%default_step    -- Real: "Small" step size.
-var%ix_min       -- Integer: Lower bound of the variable array.
-var%ix_max       -- Integer: Upper bound of the variable array.
-var%name(:)      -- Name to be associated with a variable.
-                          Leave blank if variable does not exist.
-var%ele_name(:)  -- Lattice element name to be associated with a variable.
-                          Leave blank if variable does not exist.
-var%weight(:)    -- Real: Individual weights can be set to override v1_var%default_weight.
-
 
 &tao_var
   v1_var%name  = "quad_k1"
-  v1_var%universe = "all"
-  v1_var%attribute = "k1"
-  var%default_weight = 1e5
-  var%default_step = 1e-4
-  var%ix_min = 0
-  var%ix_max = 120
-  var%name(0:) = 
+  default_attribute = "k1"
+  default_weight = 1e5
+  default_step = 1e-4
+  ix_min_var = 0
+  ix_max_var = 120
+  var(0:)%name = 
     "Q00W", "    ", "    ", "Q03W", "Q04W", "Q05W", "Q06W", "Q07W", "Q08W", "Q09W", 
     "Q10W", "Q11W", "Q12W", "Q13W", "Q14W", "Q15W", "Q16W", "Q17W", "Q18W", "Q19W", 
     "Q20W", "Q21W", "Q22W", "Q23W", "Q24W", "Q25W", "Q26W", "Q27W", "Q28W", "Q29W", 
@@ -268,7 +290,7 @@ var%weight(:)    -- Real: Individual weights can be set to override v1_var%defau
     "Q09E", "Q08E", "Q07E", "Q06E", "Q05E", "Q04E", "Q03E", "    ", "    ", "Q00E", 
     "    ", "Q49AW", "Q47AW", "Q47AE", "Q49AE", "Q43AW", "Q43AE", "Q08AW", "     ", 
     "    ", "     ", "SC_Q01W" "SC_Q02W", "SC_Q02E", "SC_Q01E"
-  var%ele_name(0:) = 
+  var(0:)%ele_name = 
     "Q00W", "    ", "    ", "Q03W", "Q04W", "Q05W", "Q06W", "Q07W", "Q08W", "Q09W", 
     "Q10W", "Q11W", "Q12W", "Q13W", "Q14W", "Q15W", "Q16W", "Q17W", "Q18W", "Q19W", 
     "Q20W", "Q21W", "Q22W", "Q23W", "Q24W", "Q25W", "Q26W", "Q27W", "Q28W", "Q29W", 
@@ -286,13 +308,12 @@ var%weight(:)    -- Real: Individual weights can be set to override v1_var%defau
 
 &tao_var
   v1_var%name  = "h_steer"
-  v1_var%universe = "all"
-  v1_var%attribute = "hkick"
-  var%default_weight = 1e3
-  var%default_step = 1e-5
-  var%ix_min = 0
-  var%ix_max = 120
-  var%name(1:106) = 
+  default_attribute = "hkick"
+  default_weight = 1e3
+  default_step = 1e-5
+  ix_min_var = 0
+  ix_max_var = 120
+  var(1:106)%name = 
      "H01W", "H02W", "H03W", "H04W", "    ", "    ", "H07W", "    ", "H09W", "H10W",
      "    ", "H12W", "    ", "H14W", "    ", "H16W", "    ", "H18W", "    ", "H20W",
      "    ", "H22W", "    ", "H24W", "    ", "H26W", "    ", "H28W", "    ", "H30W",
@@ -304,7 +325,7 @@ var%weight(:)    -- Real: Individual weights can be set to override v1_var%defau
      "H18E", "    ", "H16E", "    ", "H14E", "    ", "H12E", "    ", "H10E", "    ",
      "H08E", "    ", "    ", "    ", "H04E", "H03E", "H02E", "H01E", "    ", "    ",
      "HB01", "HB02", "HB03", "HB04", "HB05", "HB06"
-  var%ele_name(1:106) = 
+  var(1:106)%ele_name = 
      "H01W", "H02W", "H03W", "H04W", "    ", "    ", "H07W", "    ", "H09W", "H10W",
      "    ", "H12W", "    ", "H14W", "    ", "H16W", "    ", "H18W", "    ", "H20W",
      "    ", "H22W", "    ", "H24W", "    ", "H26W", "    ", "H28W", "    ", "H30W",
@@ -321,13 +342,12 @@ var%weight(:)    -- Real: Individual weights can be set to override v1_var%defau
 
 &tao_var
   v1_var%name  = "v_steer"
-  v1_var%universe = "all"
-  v1_var%attribute = "vkick"
-  var%default_weight = 1e3
-  var%default_step = 1e-5
-  var%ix_min = 0
-  var%ix_max = 120
-  var%name(1:98) =
+  default_attribute = "vkick"
+  default_weight = 1e3
+  default_step = 1e-5
+  ix_min_var = 0
+  ix_max_var = 120
+  var(1:98)%name =
      "V01W", "V02W", "    ", "V04W", "V05W", "V06W", "V07W", "V08W", "V09W", "V10W", 
      "V11W", "    ", "V13W", "    ", "V15W", "    ", "V17W", "    ", "V19W", "    ", 
      "V21W", "    ", "V23W", "    ", "V25W", "    ", "V27W", "    ", "V29W", "    ", 
@@ -338,8 +358,8 @@ var%weight(:)    -- Real: Individual weights can be set to override v1_var%defau
      "    ", "V27E", "    ", "V25E", "    ", "V23E", "    ", "V21E", "    ", "V19E", 
      "    ", "V17E", "    ", "V15E", "    ", "V13E", "    ", "V11E", "    ", "V09E", 
      "V08E", "V07E", "V06E", "V05E", "V04E", "    ", "V02E", "V01E"
-  var%name(111:114) = "SC_V01W", "SC_V02W", "SC_V02E", "SC_V01E"
-  var%ele_name(1:98) =
+  var(111:114)%name = "SC_V01W", "SC_V02W", "SC_V02E", "SC_V01E"
+  var(1:98)%ele_name =
      "V01W", "V02W", "    ", "V04W", "V05W", "V06W", "V07W", "V08W", "V09W", "V10W", 
      "V11W", "    ", "V13W", "    ", "V15W", "    ", "V17W", "    ", "V19W", "    ", 
      "V21W", "    ", "V23W", "    ", "V25W", "    ", "V27W", "    ", "V29W", "    ", 
@@ -350,5 +370,5 @@ var%weight(:)    -- Real: Individual weights can be set to override v1_var%defau
      "    ", "V27E", "    ", "V25E", "    ", "V23E", "    ", "V21E", "    ", "V19E", 
      "    ", "V17E", "    ", "V15E", "    ", "V13E", "    ", "V11E", "    ", "V09E", 
      "V08E", "V07E", "V06E", "V05E", "V04E", "    ", "V02E", "V01E"
-  var%ele_name(111:114) = "SC_V01W", "SC_V02W", "SC_V02E", "SC_V01E"
+  var(111:114)%ele_name = "SC_V01W", "SC_V02W", "SC_V02E", "SC_V01E"
 /

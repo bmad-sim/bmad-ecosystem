@@ -133,7 +133,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_pointer_to_var_in_lattice (s, var, this, ix_uni, err)
+! Subroutine tao_pointer_to_var_in_lattice (var, this, ix_uni, err)
 ! 
 ! Routine to set a pointer to the appropriate variable in a lattice
 !
@@ -144,11 +144,10 @@ end subroutine
 !   err   -- Logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine tao_pointer_to_var_in_lattice (s, var, this, ix_uni, err)
+subroutine tao_pointer_to_var_in_lattice (var, this, ix_uni, err)
 
 implicit none
 
-type (tao_super_universe_struct), target :: s
 type (tao_var_struct) var
 type (tao_universe_struct), pointer :: u
 type (tao_this_var_struct) this
@@ -183,169 +182,6 @@ if (present(err)) err = .false.
 
 this%ix_ele = ie
 this%ix_uni = ix_uni
-
-end subroutine
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine tao_top10_print (s)
-!
-! Routine to print out the top10 contributors to the merit function.
-!
-! Input:
-!   s - Tao_super_universe_struct
-!-
-
-subroutine tao_top10_print (s)
-
-implicit none
-
-type (tao_super_universe_struct) s
-type (tao_top10_struct) top_merit(10)
-type (tao_top10_struct) top_dmerit(10)
-type (tao_top10_struct) top_delta(10)
-
-real(rp) delta, a_max, merit
-integer i, j, n, nl, nu
-
-character(16) name
-character(80) fmt, lines(20)
-character(20) :: r_name = 'tao_top10_print'
-
-! tao_merit also calculates the contrribution of the individual
-! variables and data to the merit function.
-
-merit = tao_merit(s)
-
-! top_merit stores the top contributors to the merit function.
-! top_dmerit stores the top dmerit/dvar values
-! top_delta stores the top |var_model - var_design| 
-
-top_merit(:)%valid  = .false.; top_merit(:)%name  = ' '
-top_dmerit(:)%valid = .false.; top_dmerit(:)%name = ' '
-top_delta(:)%valid  = .false.; top_delta(:)%name  = ' '
-
-nu = size(s%u)
-do i = 1, nu
-  do j = 1, size(s%u(i)%data)
-    if (.not. s%u(i)%data(j)%useit_opt) cycle
-    name = s%u(i)%data(j)%class
-    if (nu > 1) write (name, '(2a, i1)') trim(name), '/', j
-    call tao_to_top10 (top_merit, s%u(i)%data(j)%merit, name, &
-                                                s%u(i)%data(j)%ix_d1, 'max')
-  enddo
-enddo
-
-
-do j = 1, size(s%var)
-  if (.not. s%var(j)%useit_opt) cycle
-  name = s%var(j)%v1%name
-  call tao_to_top10 (top_merit, s%var(j)%merit, name, s%var(j)%ix_v1, 'max')
-  call tao_to_top10 (top_dmerit, s%var(j)%dmerit_dvar, name, &
-                                                      s%var(j)%ix_v1, 'max')
-  delta = s%var(j)%model_value - s%var(j)%design_value
-  call tao_to_top10 (top_delta, delta, name, s%var(j)%ix_v1, 'max')
-enddo
-
-! write results
-
-
-a_max = max(1.1, maxval(abs(top_delta(:)%value)))
-n = max(0, 6 - int(log10(a_max)))
-
-write (fmt, '(a, i1, a)') &
-    '((1x, a10, i3, f10.1, 2x), (a8, i4, 1pe12.3, 2x), a8, i4, 0pf11.', n, ')'
-
-
-nl = 0
-lines(nl+1) = ' '
-lines(nl+2) = '       Top10 merit      |    Top10 derivative     |     Top10 delta'
-lines(nl+3) = '  Name     ix     Value | Name     ix  Derivative |  Name    ix      delta'
-nl = nl + 3
-
-do i = 1, 10
-  nl = nl + 1
-  write (lines(nl), fmt) &
-      top_merit(i)%name,  top_merit(i)%index,  top_merit(i)%value, &
-      top_dmerit(i)%name, top_dmerit(i)%index, top_dmerit(i)%value,  &
-      top_delta(i)%name,  top_delta(i)%index,  top_delta(i)%value
-enddo
-
-nl = nl + 1
-write (lines(nl), *) 'Merit:  ', merit
-
-call out_io (s_blank$, r_name, lines(1:nl))
-
-end subroutine
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine tao_to_top10 (top10, value, name, c_index, order)
-!
-! Routine to order the largest contributors to the merit function in
-! a list. Call this routine for each contributor.
-!
-! Note: Before first calling this routine set:
-!   top10(:)%valid = .false.
-!
-! Input:
-!   value   -- Real(rp): value of the contributor.
-!   name    -- Character(16): Name of the contributor..
-!   c_index -- Integer: Index of the contributor.
-!   order   -- Character(16): Ordering of the list. Possibilities are:
-!                 'max'     -- #1 has the maximum value.
-!                 'min'     -- #1 has the minimum value.
-!                 'abs_max' -- #1 has the maximum aplitude.
-!                 'abs_min' -- #1 has the maximum aplitude.
-!
-! Output:
-!   top10(:) -- Tao_top10_struct: List of top contributors.
-!                 Note that the list is not limited to 10 entries.
-!-
-
-subroutine tao_to_top10 (top10, value, name, c_index, order)
-
-implicit none
-
-type (tao_top10_struct) top10(:)
-
-integer c_index, ix, n
-real(rp) value
-
-character(*) name, order
-character(20) :: r_name = 'tao_to_top10'
-
-! Find where in list the current contributor is.
-
-n = size(top10)
-do ix = n, 1, -1
-  if (.not. top10(ix)%valid) cycle
-  select case (order)
-  case ('max')
-    if (value < top10(ix)%value) exit
-  case ('min')
-    if (value > top10(ix)%value) exit
-  case ('abs_max')  
-    if (abs(value) < abs(top10(ix)%value)) exit
-  case ('abs_min')  
-    if (abs(value) > abs(top10(ix)%value)) exit
-  case default
-    call out_io (s_abort$, r_name, 'BAD "ORDER" ARGUMENT: ' // order)
-  end select
-enddo
-
-ix = ix + 1          ! place to put current contributor.
-if (ix > n) return   ! not big enough to be in list.
-
-! Move the people below the current contributor down to make room and
-! then put the contributor in.
-
-top10(ix+1:n) = top10(ix:n-1) 
-top10(ix) = tao_top10_struct(name, value, c_index, .true.)
 
 end subroutine
 
@@ -436,108 +272,6 @@ enddo
 call out_io (s_error$, r_name, 'GRAPH NOT FOUND: ' // where)
 err = .true.
 nullify(graph)
-
-end subroutine
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine tao_dModel_dVar_calc (s)
-!
-! Subroutine to calculate the dModel_dVar derivative matrix.
-!
-! Input:
-!   s       -- Super_universe_struct.
-!
-! Output:
-!   s       -- Super_universe_struct.
-!    %u(:)%dModel_dVar(:,:)  -- Derivative matrix
-!-
-
-subroutine tao_dModel_dvar_calc (s)
-
-implicit none
-
-type (tao_super_universe_struct), target :: s
-type (tao_universe_struct), pointer :: u
-
-real(rp) model_value
-integer i, j, m, n, k
-integer n_data, n_var
-character(20) :: r_name = 'tao_dmodel_dvar_calc'
-logical reinit
-
-! make sure size of matrix is correct.
-
-reinit = .false.
-
-do i = 1, size(s%u)
-
-  u => s%u(i)
-  n_data = count (u%data%useit_opt)
-  n_var = count (s%var%useit_opt)
-
-  if (.not. associated(u%dModel_dVar)) then
-    allocate (u%dModel_dVar(n_data, n_var))
-    reinit = .true.
-    cycle
-  endif
-
-  if (size(u%dModel_dVar, 1) /= n_data .or. size(u%dModel_dVar, 2) /= n_var) then
-    deallocate (u%dModel_dVar)
-    allocate (u%dModel_dVar(n_data, n_var))
-    reinit = .true.
-    cycle
-  endif
-
-enddo
-
-if (.not. reinit) return
-call out_io (s_info$, r_name, 'Remaking dModel_dVar derivative matrix') 
-
-! Calculate matrix
-
-do i = 1, size(s%u)
-
-  u => s%u(i)
-  n_data = count (u%data%useit_opt)
-  n_var = count (s%var%useit_opt)
-
-  call tao_lattice_calc (s)
-  m = 0
-  do j = 1, size(u%data)
-    if (u%data(j)%useit_opt) cycle
-    m = m + 1
-    u%data(j)%ix_dModel = m
-    u%data(j)%old_value = u%data(j)%delta
-  enddo
-
-
-
-  m = 0
-  do j = 1, size(s%var)
-    if (.not. s%var(j)%useit_opt) cycle
-    m = m + 1
-    s%var(j)%ix_dVar = m
-    if (s%var(j)%step == 0) then
-      call out_io (s_error$, r_name, 'VARIABLE STEP SIZE IS ZERO FOR: ' // s%var(j)%name)
-      call err_exit
-    endif
-    call tao_lattice_calc (s)
-    model_value = s%var(j)%model_value
-    call tao_set_var_model_value (s, s%var(j), model_value + s%var(j)%step)
-    call tao_lattice_calc (s)
-    n = 0
-    do k = 1, size(u%data)
-      if (u%data(k)%useit_opt) cycle
-      n = n + 1
-      u%dModel_dVar(m,n) = (u%data(k)%delta - u%data(k)%old_value) / s%var(j)%step
-    enddo
-    call tao_set_var_model_value (s, s%var(j), model_value)
-  enddo
-
-enddo
 
 end subroutine
 
@@ -644,7 +378,7 @@ do i = 1, size(u%d2_data)
     exit
   endif
   if (i == size(u%d2_data)) then
-    call out_io (s_error$, r_name, "Couldn't find data name")
+    call out_io (s_error$, r_name, "Couldn't find data name: " // name)
     err = .true.
     return
   endif
@@ -703,7 +437,7 @@ end subroutine tao_find_data
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine: tao_find_var (s, err, var_name, v1_ptr, var_number, v_ptr)
+! Subroutine: tao_find_var (err, var_name, v1_ptr, var_number, v_ptr)
 !
 ! find a v1 variable type, and variable data then point to it
 !
@@ -719,7 +453,7 @@ end subroutine tao_find_data
 ! v_ptr:        -- tao_var_struct: (optional) pointer to the variable data point
 !-
 
-subroutine tao_find_var (s, err, var_name, v1_ptr, var_number, v_ptr)
+subroutine tao_find_var (err, var_name, v1_ptr, var_number, v_ptr)
 
 implicit none
 
@@ -826,7 +560,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine tao_set_var_model_value (s, var, value)
+subroutine tao_set_var_model_value (var, value)
 
 implicit none
 

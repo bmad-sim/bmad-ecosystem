@@ -16,6 +16,7 @@ subroutine tao_show_cmd (s, word1, word2, word3, word4)
 
 use tao_mod
 use tao_common
+use tao_top10_mod
 
 implicit none
 
@@ -155,10 +156,11 @@ case ('data')
 
     nl=nl+1; write(lines(nl), amt)  '%Name:              ', d_ptr%name
     nl=nl+1; write(lines(nl), amt)  '%Ele_name:          ', d_ptr%ele_name
-    nl=nl+1; write(lines(nl), amt)  '%Ele_name2:         ', d_ptr%ele_name2
+    nl=nl+1; write(lines(nl), amt)  '%Ele2_name:         ', d_ptr%ele2_name
+    nl=nl+1; write(lines(nl), amt)  '%Type:              ', d_ptr%type
     nl=nl+1; write(lines(nl), imt)  '%Ix_ele:            ', d_ptr%ix_ele
-    nl=nl+1; write(lines(nl), imt)  '%Class:             ', d_ptr%class
     nl=nl+1; write(lines(nl), imt)  '%Ix_ele2:           ', d_ptr%ix_ele2
+    nl=nl+1; write(lines(nl), imt)  '%Ix_ele_merit:      ', d_ptr%ix_ele_merit
     nl=nl+1; write(lines(nl), imt)  '%Ix_dModel:         ', d_ptr%ix_dModel
     nl=nl+1; write(lines(nl), imt)  '%Ix_d1:             ', d_ptr%ix_d1
     nl=nl+1; write(lines(nl), imt)  '%Ix_data:           ', d_ptr%ix_data
@@ -178,9 +180,9 @@ case ('data')
     nl=nl+1; write(lines(nl), lmt)  '%Good_data:         ', d_ptr%good_data
     nl=nl+1; write(lines(nl), lmt)  '%Good_ref:          ', d_ptr%good_ref
     nl=nl+1; write(lines(nl), lmt)  '%Good_user:         ', d_ptr%good_user
+    nl=nl+1; write(lines(nl), lmt)  '%Good_opt:          ', d_ptr%good_opt
     nl=nl+1; write(lines(nl), lmt)  '%Useit_plot:        ', d_ptr%useit_plot
     nl=nl+1; write(lines(nl), lmt)  '%Useit_opt:         ', d_ptr%useit_opt
-    nl=nl+1; write(lines(nl), lmt)  '[d2_data%good_opt:] ', d_ptr%d1%d2%good_opt
 
 ! Else show the d1_data info.
 
@@ -465,23 +467,24 @@ case ('var')
       enddo
     endif
 
-    nl=nl+1; write(lines(nl), fmt)  'Design_value:  ', v_ptr%design_value
-    nl=nl+1; write(lines(nl), fmt)  'Old_value:     ', v_ptr%old_value        
-    nl=nl+1; write(lines(nl), fmt)  'Data_value:    ', v_ptr%data_value       
-    nl=nl+1; write(lines(nl), fmt)  'Ref_value:     ', v_ptr%ref_value        
-    nl=nl+1; write(lines(nl), fmt)  'Target_value:  ', v_ptr%target_value     
-    nl=nl+1; write(lines(nl), fmt)  'High_lim:      ', v_ptr%high_lim   
-    nl=nl+1; write(lines(nl), fmt)  'Low_lim:       ', v_ptr%low_lim    
-    nl=nl+1; write(lines(nl), fmt)  'Step:          ', v_ptr%step             
-    nl=nl+1; write(lines(nl), fmt)  'Weight:        ', v_ptr%weight           
-    nl=nl+1; write(lines(nl), fmt)  'Merit:         ', v_ptr%merit            
-    nl=nl+1; write(lines(nl), fmt)  'DMerit_dVar:   ', v_ptr%dMerit_dVar      
-    nl=nl+1; write(lines(nl), lmt)  'Exists:        ', v_ptr%exists
-    nl=nl+1; write(lines(nl), lmt)  'Good_var:      ', v_ptr%good_var  
-    nl=nl+1; write(lines(nl), lmt)  'Good_user:     ', v_ptr%good_user 
-    nl=nl+1; write(lines(nl), lmt)  'Useit_opt:     ', v_ptr%useit_opt
-    nl=nl+1; write(lines(nl), lmt)  'Useit_plot:    ', v_ptr%useit_plot   
-    nl=nl+1; write(lines(nl), lmt)  '[v1_var%Good_opt:]', v_ptr%v1%good_opt 
+    nl=nl+1; write(lines(nl), fmt)  '%Design_value:  ', v_ptr%design_value
+    nl=nl+1; write(lines(nl), fmt)  '%Old_value:     ', v_ptr%old_value        
+    nl=nl+1; write(lines(nl), fmt)  '%Data_value:    ', v_ptr%data_value       
+    nl=nl+1; write(lines(nl), fmt)  '%Ref_value:     ', v_ptr%ref_value        
+    nl=nl+1; write(lines(nl), fmt)  '%Target_value:  ', v_ptr%target_value     
+    nl=nl+1; write(lines(nl), fmt)  '%High_lim:      ', v_ptr%high_lim   
+    nl=nl+1; write(lines(nl), fmt)  '%Low_lim:       ', v_ptr%low_lim    
+    nl=nl+1; write(lines(nl), fmt)  '%Step:          ', v_ptr%step             
+    nl=nl+1; write(lines(nl), fmt)  '%Weight:        ', v_ptr%weight           
+    nl=nl+1; write(lines(nl), fmt)  '%Ddelta:        ', v_ptr%delta
+    nl=nl+1; write(lines(nl), fmt)  '%Merit:         ', v_ptr%merit            
+    nl=nl+1; write(lines(nl), fmt)  '%DMerit_dVar:   ', v_ptr%dMerit_dVar      
+    nl=nl+1; write(lines(nl), lmt)  '%Exists:        ', v_ptr%exists
+    nl=nl+1; write(lines(nl), lmt)  '%Good_var:      ', v_ptr%good_var  
+    nl=nl+1; write(lines(nl), lmt)  '%Good_user:     ', v_ptr%good_user 
+    nl=nl+1; write(lines(nl), lmt)  '%Good_opt:     ', v_ptr%good_opt 
+    nl=nl+1; write(lines(nl), lmt)  '%Useit_opt:     ', v_ptr%useit_opt
+    nl=nl+1; write(lines(nl), lmt)  '%Useit_plot:    ', v_ptr%useit_plot   
 
 ! check if there is a variable number
 ! if no variable number requested, show it all

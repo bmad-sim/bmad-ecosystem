@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_alias_cmd (s, alias, string)
+! Subroutine tao_alias_cmd (alias, string)
 !
 ! Routine define an alias command.
 ! 
@@ -11,14 +11,11 @@
 !   
 !-
 
-subroutine tao_alias_cmd (s, alias, string)
+subroutine tao_alias_cmd (alias, string)
 
 use tao_mod
-use tao_common
 
 implicit none
-
-type (tao_super_universe_struct) s
 
 character(*) alias
 character(*) string

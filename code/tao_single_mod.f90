@@ -2,7 +2,7 @@ module tao_single_mod
 
 use tao_mod
 use quick_plot
-
+use tao_top10_mod
 
 contains
 

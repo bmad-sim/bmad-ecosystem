@@ -22,6 +22,7 @@ subroutine tao_lm_optimizer (s)
 use tao_mod
 use tao_common
 use nr
+use tao_dmerit_mod
 
 implicit none
 
@@ -41,6 +42,8 @@ integer n_data, n_var
 logical, allocatable, save :: mask_a(:)
 logical :: finished, init_needed = .true.
 
+character(20) :: r_name = 'tao_lm_optimizer'
+character(80) line
 
 ! setup
 
@@ -74,26 +77,29 @@ k = n_var
 do j = 1, size(s%u)
   u => s%u(j)
   do i = 1, size(u%data)
-    if (u%data(i)%useit_opt) then
-      k = k + 1
-      y(k) = 0
-      if (u%data(i)%weight == 0) then
-        sig(k) = 1e10
-      else
-        sig(k) = sqrt(1/u%data(i)%weight)
-      endif
+    if (.not. u%data(i)%useit_opt) cycle
+    k = k + 1
+    y(k) = 0
+    if (u%data(i)%weight == 0) then
+      sig(k) = 1e10
+    else
+      sig(k) = sqrt(1/u%data(i)%weight)
     endif
   enddo
 enddo
 
-call tao_dModel_dVar_calc (s)
+call tao_dModel_dVar_calc (s, .false.)
 
 ! run optimizer mrqmin from Numerical Recipes.
+
+call out_io (s_blank$, r_name, '   Loop      Merit  A_lambda')
 
 do i = 1, s%global%n_opti_cycles
   if (i == s%global%n_opti_cycles) a_lambda = 0  ! tell mrqmin we are finished
   call mrqmin (x, y, sig, a, mask_a, covar, alpha, chi_sq, tao_mrq_func, a_lambda) 
   call tao_mrq_func (x, a, y_fit, dy_da)  ! put a -> model
+  write (line, '(i5, f14.3, 1pe10.2)'), i, tao_merit(s), a_lambda
+  call out_io (s_blank$, r_name, line)
 enddo
 
 end subroutine
