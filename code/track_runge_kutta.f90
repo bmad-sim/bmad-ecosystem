@@ -58,6 +58,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/02/01 16:03:07  dcs
+!*** empty log message ***
+!
 !Revision 1.4  2002/02/01 15:52:34  dcs
 !bmad_common%factor set for 'KICK_FIELD'
 !
@@ -96,7 +99,7 @@ subroutine track_runge_kutta (start, end, s_start, s_end, rel_eps, abs_eps, &
   bmad_common%factor = 0.2997 * param%particle / &
                                        (param%energy * (1 + start%z%vel))
 
-  if (func_type /= 'B_FIELD' .and. func_type/== 'KICK_FIELD') then
+  if (func_type /= 'B_FIELD' .and. func_type/= 'KICK_FIELD') then
     print *, 'ERROR IN TRACK_RUNGE_KUTTA: UNKNOWN "FUNC_TYPE": ', func_type
     call err_exit
   endif
