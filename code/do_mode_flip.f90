@@ -62,7 +62,4 @@ subroutine do_mode_flip (ele, ele_flip)
   ele_flip%x = ele2%x
   ele_flip%y = ele2%y
 
-  call make_v_mats (ele_flip, v_mat, v_inv_mat)
-  call mobius_twiss_calc (ele_flip, v_mat)
-
 end subroutine

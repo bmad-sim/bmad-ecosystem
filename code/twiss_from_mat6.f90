@@ -50,7 +50,6 @@ subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
 ! init
 
   mat4 = mat6(1:4, 1:4)
-  eta_vec = mat6(1:4, 6)
 
 !
 
@@ -88,22 +87,24 @@ subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
     ele%gamma_c = sqrt(1-det)
   endif
 
-! compute normal mode dispersion.
+! compute normal mode and lab dispersion.
 
   forall (i = 1:4) mat4(i,i) = mat4(i,i) - 1
 
   mat4 = matmul (mat4, v)
-  call mat_inverse(mat4, mat4)
-  eta_vec = -matmul(mat4, eta_vec)
+  call mat_inverse (mat4, mat4)
+  eta_vec = -matmul(mat4, mat6(1:4, 6))
 
   ele%x%eta  = eta_vec(1)
   ele%x%etap = eta_vec(2)
   ele%y%eta  = eta_vec(3)
   ele%y%etap = eta_vec(4)
 
-! calculate mobius beta
-
-  call mobius_twiss_calc (ele, v)
+  eta_vec = matmul(v, eta_vec)
+  ele%x%eta_lab  = eta_vec(1)
+  ele%x%etap_lab = eta_vec(2)
+  ele%y%eta_lab  = eta_vec(3)
+  ele%y%etap_lab = eta_vec(4)
 
   bmad_status%ok = .true.
 

@@ -562,15 +562,6 @@ module bmad_interface
   end interface
 
   interface
-    subroutine mobius_twiss_calc (ele, v_mat)
-      use bmad_struct
-      implicit none
-      type (ele_struct) ele
-      real(rp) v_mat(4,4)
-    end subroutine
-  end interface
-
-  interface
     subroutine name_to_list (ring, ele_names, use_ele)
       use bmad_struct
       implicit none

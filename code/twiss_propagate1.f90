@@ -39,6 +39,7 @@ subroutine twiss_propagate1 (ele1, ele2)
   real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
   real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
   real(rp) mat2(2,2), vec(4)
+  real(rp) eta_x(4), eta_a(4)
 
 !---------------------------------------------------------------------
 ! init
@@ -162,9 +163,17 @@ subroutine twiss_propagate1 (ele1, ele2)
     ele2%y%phi = ele2%y%phi - twopi
   endif
 
-! calc MOBIUS_BETA and MOBIUS_ETA
+! calc laboratory dispersions
 
-  call mobius_twiss_calc (ele2, v_mat)
+  call make_v_mats (ele2, v_mat, v_inv_mat)
+  eta_a = (/ ele2%x%eta, ele2%x%etap, &
+                    ele2%y%eta, ele2%y%etap /)
+  eta_x = matmul (v_mat, eta_a)
+  ele2%x%eta_lab  = eta_x(1)
+  ele2%x%etap_lab = eta_x(2)
+  ele2%y%eta_lab  = eta_x(3)
+  ele2%y%etap_lab = eta_x(4)
+
 
 end subroutine
 

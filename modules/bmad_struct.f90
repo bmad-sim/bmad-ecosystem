@@ -546,13 +546,13 @@ module bmad_struct
     integer :: taylor_order = 3              ! 3rd order is default
     integer :: taylor_order_ptc = 0          ! 0 -> not yet set 
     logical :: taylor_order_set = .false.    ! Used by set_taylor_order
-    integer :: real_8_map_init
-    integer :: default_integ_order = 2
-    integer :: default_num_steps = 1
-    logical :: init_needed = .true.
+    integer :: real_8_map_init               ! See PTC doc.
+    integer :: default_integ_order = 2       ! PTC integration order
+    integer :: default_num_steps = 1         ! Number integration steps
+    logical :: canonical_coords = .true.     ! Use (x, px) [not (x, x')]
     logical :: use_liar_lcavity = .false.    ! Liar like tracking?
-    logical :: sr_wakes_on = .true.
-    logical :: lr_wakes_on = .true.
+    logical :: sr_wakes_on = .true.          ! Short range wakefields?
+    logical :: lr_wakes_on = .true.          ! Long range wakefields
   end type
   
   type (bmad_com_struct), save :: bmad_com

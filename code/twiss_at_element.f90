@@ -110,19 +110,19 @@ subroutine zero_ave (ave)
 
   type (ele_struct) ave
 
-  ave%s         = 0
-  ave%x%phi     = 0;   ave%y%phi     = 0
-  ave%x%alpha   = 0;   ave%y%alpha   = 0
-  ave%x%beta    = 0;   ave%y%beta    = 0
-  ave%x%gamma   = 0;   ave%y%gamma   = 0
-  ave%x%eta     = 0;   ave%y%eta     = 0
-  ave%x%etap    = 0;   ave%y%etap    = 0
-  ave%x%sigma   = 0;   ave%y%sigma   = 0
-  ave%x%mobius_beta = 0;   ave%y%mobius_beta = 0
-  ave%x%mobius_eta  = 0;   ave%y%mobius_eta  = 0
-  ave%c_mat     = 0
-  ave%gamma_c   = 0                                            
-  ave%value(l$) = 0
+  ave%s          = 0
+  ave%x%phi      = 0;   ave%y%phi      = 0
+  ave%x%alpha    = 0;   ave%y%alpha    = 0
+  ave%x%beta     = 0;   ave%y%beta     = 0
+  ave%x%gamma    = 0;   ave%y%gamma    = 0
+  ave%x%eta      = 0;   ave%y%eta      = 0
+  ave%x%etap     = 0;   ave%y%etap     = 0
+  ave%x%sigma    = 0;   ave%y%sigma    = 0
+  ave%x%eta_lab  = 0;   ave%y%eta_lab  = 0
+  ave%x%etap_lab = 0;   ave%y%etap_lab = 0
+  ave%c_mat      = 0
+  ave%gamma_c    = 0                                            
+  ave%value(l$)  = 0
 
 end subroutine
 
@@ -136,31 +136,27 @@ subroutine twiss_ave (ave, e1, e2, r)
 
 !
 
-  ave%s         = ave%s         + r * e1%s         + r * e2%s
-  ave%c_mat     = ave%c_mat     + r * e1%c_mat     + r * e2%c_mat
-  ave%gamma_c   = ave%gamma_c   + r * e1%gamma_c   + r * e2%gamma_c
-  ave%x%phi     = ave%x%phi     + r * e1%x%phi     + r * e2%x%phi
-  ave%x%alpha   = ave%x%alpha   + r * e1%x%alpha   + r * e2%x%alpha
-  ave%x%beta    = ave%x%beta    + r * e1%x%beta    + r * e2%x%beta
-  ave%x%gamma   = ave%x%gamma   + r * e1%x%gamma   + r * e2%x%gamma
-  ave%x%eta     = ave%x%eta     + r * e1%x%eta     + r * e2%x%eta
-  ave%x%etap    = ave%x%etap    + r * e1%x%etap    + r * e2%x%etap
-  ave%x%sigma   = ave%x%sigma   + r * e1%x%sigma   + r * e2%x%sigma
-  ave%x%mobius_beta = ave%x%mobius_beta + r * e1%x%mobius_beta + &
-                                                      r * e2%x%mobius_beta
-  ave%x%mobius_eta  = ave%x%mobius_eta  + r * e1%x%mobius_eta  + &
-                                                      r * e2%x%mobius_eta
-  ave%y%phi     = ave%y%phi     + r * e1%y%phi     + r * e2%y%phi
-  ave%y%alpha   = ave%y%alpha   + r * e1%y%alpha   + r * e2%y%alpha
-  ave%y%beta    = ave%y%beta    + r * e1%y%beta    + r * e2%y%beta
-  ave%y%gamma   = ave%y%gamma   + r * e1%y%gamma   + r * e2%y%gamma
-  ave%y%eta     = ave%y%eta     + r * e1%y%eta     + r * e2%y%eta
-  ave%y%etap    = ave%y%etap    + r * e1%y%etap    + r * e2%y%etap
-  ave%y%sigma   = ave%y%sigma   + r * e1%y%sigma   + r * e2%y%sigma
-  ave%y%mobius_beta = ave%y%mobius_beta + r * e1%y%mobius_beta + &
-                                                      r * e2%y%mobius_beta
-  ave%y%mobius_eta  = ave%y%mobius_eta  + r * e1%y%mobius_eta  + &
-                                                      r * e2%y%mobius_eta
+  ave%s          = ave%s          + r * e1%s          + r * e2%s
+  ave%c_mat      = ave%c_mat      + r * e1%c_mat      + r * e2%c_mat
+  ave%gamma_c    = ave%gamma_c    + r * e1%gamma_c    + r * e2%gamma_c
+  ave%x%phi      = ave%x%phi      + r * e1%x%phi      + r * e2%x%phi
+  ave%x%alpha    = ave%x%alpha    + r * e1%x%alpha    + r * e2%x%alpha
+  ave%x%beta     = ave%x%beta     + r * e1%x%beta     + r * e2%x%beta
+  ave%x%gamma    = ave%x%gamma    + r * e1%x%gamma    + r * e2%x%gamma
+  ave%x%eta      = ave%x%eta      + r * e1%x%eta      + r * e2%x%eta
+  ave%x%etap     = ave%x%etap     + r * e1%x%etap     + r * e2%x%etap
+  ave%x%sigma    = ave%x%sigma    + r * e1%x%sigma    + r * e2%x%sigma
+  ave%x%eta_lab  = ave%x%eta_lab  + r * e1%x%eta_lab  + r * e2%x%eta_lab
+  ave%x%etap_lab = ave%x%etap_lab + r * e1%x%etap_lab + r * e2%x%etap_lab
+  ave%y%phi      = ave%y%phi      + r * e1%y%phi      + r * e2%y%phi
+  ave%y%alpha    = ave%y%alpha    + r * e1%y%alpha    + r * e2%y%alpha
+  ave%y%beta     = ave%y%beta     + r * e1%y%beta     + r * e2%y%beta
+  ave%y%gamma    = ave%y%gamma    + r * e1%y%gamma    + r * e2%y%gamma
+  ave%y%eta      = ave%y%eta      + r * e1%y%eta      + r * e2%y%eta
+  ave%y%etap     = ave%y%etap     + r * e1%y%etap     + r * e2%y%etap
+  ave%y%sigma    = ave%y%sigma    + r * e1%y%sigma    + r * e2%y%sigma
+  ave%y%eta_lab  = ave%y%eta_lab  + r * e1%y%eta_lab  + r * e2%y%eta_lab
+  ave%y%etap_lab = ave%y%etap_lab + r * e1%y%etap_lab + r * e2%y%etap_lab
 
 end subroutine
 
