@@ -46,7 +46,8 @@ endif
 
 ! Here if no command file is being used.
 
-write (*, '(2a)', advance = "NO") trim(s%global%prompt_string), '> '
+!write (*, '(2a)', advance = "NO") trim(s%global%prompt_string), '> '
+print '(1x, 2a, $)', trim(s%global%prompt_string), '> '
 read (*, '(a)') cmd_line
 call alias_translate (cmd_line, err)
 

@@ -53,7 +53,8 @@ if (ix == 0) then
 endif
 
 read (ele_name, *, iostat = ios) ix_ele
-if (ios /= 0) then
+if (ios .eq. 0) then
+  !it's a number
   if (ix_ele < 0 .or. ix_ele > lattice%n_ele_max) then
     ix_ele = -1
     call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE: ' // ele_name)

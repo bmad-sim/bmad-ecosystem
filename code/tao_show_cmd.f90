@@ -65,7 +65,7 @@ nl = 0
 
 fmt = '(a, 1pe16.8)'
 imt = '(a, i)'
-lmt = '(a, l)'
+lmt = '(10x, a, l)'
 amt = '(2a)'
 
 show_word1 = word1
@@ -176,14 +176,18 @@ case ('data')
     write(lines(1), '(2a)') 'Data type:    ', d2_ptr%class
     write(lines(2), '(2a)') 'Data sub_class:', d1_ptr%sub_class
     lines(3) = ' '
-    write (lines(4), *) '     Name              Data       Model      Design'
+    write (lines(3), *) '        Name              Data         Model        Design'
     nl = 4
     do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
-      nl=nl+1
-      write(lines(nl), '(i, a, 3es12.4)') i, &
+      if (d1_ptr%d(i)%exists) then
+        nl=nl+1
+        write(lines(nl), '(i, 2x, a7, 3es14.4)') i, &
                d1_ptr%d(i)%name, d1_ptr%d(i)%data_value, &
                d1_ptr%d(i)%model_value, d1_ptr%d(i)%design_value
+      endif
     enddo
+    nl=nl+1
+    write (lines(nl), *) '        Name              Data         Model        Design'
 
 ! else we must have a valid d2_ptr.
 
@@ -444,14 +448,18 @@ case ('var')
 
     write(lines(1), '(2a)') 'Variable class:   ', v1_ptr%class
     lines(2) = ' '
-    write (lines(3), *) '     Name              Data       Model      Design'
+    write (lines(3), *) '        Name              Data         Model        Design'
     nl = 3
     do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
-      nl = nl + 1
-      write(lines(nl), '(i, a, 3es12.4)') i, &
-               v1_ptr%v(i)%name, v1_ptr%v(i)%data_value, &
-               v1_ptr%v(i)%model_value, v1_ptr%v(i)%design_value
+      if (v1_ptr%v(i)%exists) then
+        nl = nl + 1
+        write(lines(nl), '(i, 2x, a7, 3es14.4)') i, &
+                 v1_ptr%v(i)%name, v1_ptr%v(i)%data_value, &
+                 v1_ptr%v(i)%model_value, v1_ptr%v(i)%design_value
+      endif
     enddo
+    nl=nl+1
+    write (lines(nl), *) '        Name              Data         Model        Design'
   endif
 
 ! print out results

@@ -225,7 +225,6 @@ integer i_d2, i_d1
 
 ! now for some family guidance...
 ! point the children to the grandchildren in the big data array
-
     call tao_point_d1_to_data (u%d2_data(nn)%d1(i)%d, &
                                       u%data(n1:n2), data(i)%ix_min, n1)
 
@@ -276,6 +275,9 @@ integer i_d2, i_d1
       u%data(j)%d1 => u%d2_data(nn)%d1(i)  
       if (u%data(j)%weight == 0) u%data(j)%weight = data(i)%default_weight
     enddo
+
+! point the children back to the mother    
+    u%d2_data(nn)%d1(i)%d2 => u%d2_data(nn)
 
   enddo
   
@@ -387,9 +389,10 @@ end subroutine
 !
 ! Routine used for arbitrary data pointer indexing
 !
-! ip	-- tao_data_struct: the pointer
-! ii 	-- tao_data_struct: the data
-! n  	-- integer: starting index for the pointer
+! ip	 -- tao_data_struct: the pointer
+! ii 	 -- tao_data_struct: the data
+! n  	 -- integer: starting index for the pointer
+! n_data -- integer: starting index for the next data point in the big data array
 !-
 
 subroutine tao_point_d1_to_data (ip, ii, n, n_data)
