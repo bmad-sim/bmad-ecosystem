@@ -313,7 +313,7 @@ subroutine sr_long_wake_calc (bunch, ele)
   real(rp) f, f1, f2, z, dz_wake
 
   integer i, j, k, iw, nm, n_wake
-
+  character(20) :: r_name = 'sr_long_wake_calc'
 ! Init
 
   call order_macroparticles_in_z (bunch)
@@ -388,9 +388,15 @@ subroutine sr_long_wake_calc (bunch, ele)
         iw = z / dz_wake
         iw = min (iw, n_wake-1)
         if (z < 0) then
-          print *, 'ERROR IN SR_LONG_WAKE_CALC: MACROPARTICLE Z POSITION HAS'
-          print *, '      SHIFTED ACROSS A SLICE BOUNDARY.'
+          call out_io (s_abort$, r_name, &
+             'MACROPARTICLE Z POSITION HAS SHIFTED ACROSS A SLICE BOUNDARY.')
           call err_exit
+        endif
+        if (iw+1 > n_wake) then
+          call out_io (s_error$, r_name, &
+             'SHORT RANGE WAKE ARRAY FROM FILE: ' // ele%wake%sr_file, &
+             'DOES NOT COVER MACROPARTICLE LENGTH')
+          cycle
         endif
         f2 = z/dz_wake - iw
         f1 = 1 - f2
