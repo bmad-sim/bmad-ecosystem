@@ -291,7 +291,7 @@ void operator>> (lr_wake_struct* f, C_lr_wake& c) {
 
 extern "C" void wake_to_f2_(wake_struct*, Char, Int&, Char, Int&, Int&, Int&);
 extern "C" void sr_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&);
-extern "C" void lr_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Int&, Re&, Int&,
+extern "C" void lr_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&, Re&, Int&,
                                        Re&, Re&, Re&, Re&, Re&);
 
 extern "C" void wake_to_f_(C_wake& c, wake_struct* f) {
