@@ -5,7 +5,8 @@ module macro_particle_mod
 
   type macro_particle_struct
     type (coord_struct) r
-    real(rp) sigma(21)
+    real(rp) sigma(21)        ! Sigma matrix.
+    real(rp) :: sig_z = 0     ! longitudinal bunch length.
     real(rp) k_loss
     real(rp) charge
     real(rp) effective_charge ! effective charge for long sr wake calc
@@ -28,7 +29,7 @@ module macro_particle_mod
   integer, parameter :: s55$ = 19, s56$ = 20, s66$ = 21
 
   type macro_particle_com_struct
-    real(rp) ::  dz_bin = 0.5 ! in units of the spacing between wakefield pts
+    real(rp) ::  dz_bin = 5e-6 ! wakefield bin size.
   end type
 
   type (macro_particle_com_struct), save :: mp_com
@@ -115,27 +116,26 @@ subroutine track1_bunch (bunch, ele, param)
 
 !------------------------------------------------
 ! For an lcavity without a wakefield file use the e_loss attribute 
-! to calculate energy loss. The effective charge of a bunch is:
-!   2*sum[charge_of_previous_bunches] + charge_of_this_bunch
 
   if (.not. associated(ele%wake%sr)) then
     call order_macro_particles_in_z (bunch)
     charge = param%charge
     param%charge = 0
-    do ix = 1, size(bunch%macro)
-      i = bunch%macro(ix)%iz
-      param%charge = param%charge + bunch%macro(i)%charge
+    call sr_long_wake_calc (bunch, ele) ! calc %k_loss factors
+    do i = 1, size(bunch%macro)
+      bmad_com%k_loss = bunch%macro(i)%k_loss
       call track1_macro_particle (bunch%macro(i), ele, param, bunch%macro(i))
-      param%charge = param%charge + bunch%macro(i)%charge
     enddo
     param%charge = charge
+    bmad_com%k_loss = 0
     return
   endif
 
 !------------------------------------------------
 ! This calculation is for an lcavity with full wakefields.
 ! With wakefields put them in at the half way point.
-! First track half way through.
+
+! rf_ele is half the cavity
 
   rf_ele = ele
   rf_ele%value(l$) = ele%value(l$) / 2
@@ -145,25 +145,25 @@ subroutine track1_bunch (bunch, ele, param)
   charge = param%charge
   param%charge = 0
 
-  call sr_long_wake_calc (bunch, ele)
+  call sr_long_wake_calc (bunch, ele) ! calc %k_loss factors
+
+! Track half way through. This includes the longitudinal wakefields
 
   do i = 1, size(bunch%macro)
     bmad_com%k_loss = bunch%macro(i)%k_loss
     call track1_macro_particle (bunch%macro(i), rf_ele, param, bunch%macro(i))
   enddo
 
-! Put in the wakefields
+! Put in the transverse wakefields
 
   rf_ele%value(l$) = ele%value(l$)
   call track1_sr_trans_wake (bunch, rf_ele)
 
-! Track the last half of the lcavity
+! Track the last half of the lcavity. This includes the longitudinal wakes.
 
-  rf_ele%value(l$) = ele%value(l$) / 2
   rf_ele%value(energy_start$) = rf_ele%value(beam_energy$)
   rf_ele%value(beam_energy$) = ele%value(beam_energy$)
 
-  param%charge = 0
   do i = 1, size(bunch%macro)
     bmad_com%k_loss = bunch%macro(i)%k_loss
     call track1_macro_particle (bunch%macro(i), rf_ele, param, bunch%macro(i))
@@ -220,7 +220,7 @@ subroutine sr_long_wake_calc (bunch, ele)
     charge = 0
     do ix = ix0, n_macro
       i = bunch%macro(ix)%iz
-      if (bunch%macro(i)%r%vec(5) < z0 - mp_com%dz_bin * dz_wake) exit
+      if (bunch%macro(i)%r%vec(5) < z0 - mp_com%dz_bin) exit
       charge = charge + bunch%macro(i)%charge 
       z_ave = z_ave + bunch%macro(i)%charge * bunch%macro(i)%r%vec(5)
       ix1 = ix 
@@ -299,7 +299,7 @@ subroutine track1_sr_trans_wake (bunch, ele)
     z_ave = 0
     do ix = ix0, n_macro
       i = bunch%macro(ix)%iz
-      if (bunch%macro(i)%r%vec(5) < z0 - mp_com%dz_bin * dz_wake) exit
+      if (bunch%macro(i)%r%vec(5) < z0 - mp_com%dz_bin) exit
       charge = charge + bunch%macro(i)%charge / 2
 !      bunch%macro(i)%r%vec(6) = bunch%macro(i)%r%vec(6) - &
 !          abs(charge) * ele%wake%sr(0)%long * ele%value(l$) / &
@@ -451,25 +451,45 @@ subroutine track1_macro_particle (start, ele, param, end)
     s_mat6 = matmul(ele%mat6, matmul(s_mat6, transpose(ele%mat6)))
     call mat_to_mp_sigma (s_mat6, end%sigma)
 
+    if (end%sigma(s55$) /= 0) end%sig_z = sqrt(end%sigma(s55$))    
+
 end subroutine
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine order_macro_particles_in_z (bunch)
+! Subroutine order_macro_particles_in_z (bunch, use_sig_z)
 !
 ! Subroutine to order the macro particles longitudinally.
-! This routine is not really meant for general use.
+!
+! Modules needed:
+!   use macro_particle_mod
+!
+! Input:
+!   bunch     -- Bunch_struct: collection of macroparticles.
+!     %macro(i)%r%vec(5) -- Longitudinal position of ith macroparticle.
+!     %macro(i)%sig_z    -- Longitudinal sigma.
+!   use_sig_z -- Logical, optional: If present and True then order using
+!                 %vec(5) + %sig_z
+!
+! Output:
+!   bunch     -- Bunch_struct: collection of macroparticles.
+!     %macro(i)%iz -- Index of macroparticle ordered using %vec(5).
+!                   Order is from large z (head of bunch to small z.
+!                   That is: %macro(1)%iz is the index of the macro 
+!                   particle at the head of the bunch.
 !-
 
-subroutine order_macro_particles_in_z (bunch)
+Subroutine order_macro_particles_in_z (bunch, use_sig_z)
 
   implicit none
 
   type (bunch_struct) bunch
   integer i, j1, j2
-  logical ordered
+  real(rp) sig1, sig2
+  logical ordered, with_sig_z
+  logical, optional :: use_sig_z
 
 ! Init if needed
 
@@ -478,6 +498,12 @@ subroutine order_macro_particles_in_z (bunch)
       bunch%macro(i)%iz = i
     enddo
   endif
+
+  with_sig_z = .false.
+  if (present(use_sig_z)) with_sig_z = use_sig_z
+
+  sig1 = 0
+  sig2 = 0
 
 ! Order is from large z (head of bunch) to small z.
 
@@ -488,7 +514,11 @@ subroutine order_macro_particles_in_z (bunch)
     do i = 1, size(bunch%macro)-1
       j1 = bunch%macro(i)%iz
       j2 = bunch%macro(i+1)%iz
-      if (bunch%macro(j1)%r%vec(5) < bunch%macro(j2)%r%vec(5)) then
+      if (with_sig_z) then
+        sig1 = bunch%macro(j1)%sig_z
+        sig2 = bunch%macro(j2)%sig_z
+      endif
+      if (bunch%macro(j1)%r%vec(5)+sig1 < bunch%macro(j2)%r%vec(5)+sig2) then
         bunch%macro(i:i+1)%iz = bunch%macro(i+1:i:-1)%iz
         ordered = .false.
       endif

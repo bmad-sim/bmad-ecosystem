@@ -6,6 +6,7 @@ module bmad_parser_mod
 
   use ptc_interface_mod
   use bookkeeper_mod
+  use cesr_utils
 
 ! structure for a decleared variable
 
@@ -110,6 +111,7 @@ module bmad_parser_mod
   type bp_com_struct
     type (parser_var_struct), pointer ::  var_(:) => null()
     type (stack_file_struct) current_file
+    type (stack_file_struct) calling_file
     integer n_files
     character*200 file_name_(20)        ! List of files all opened.
     character*280 parse_line
@@ -120,6 +122,8 @@ module bmad_parser_mod
     logical parser_debug, write_digested, error_flag
     integer ivar_tot, ivar_init
     logical input_line_meaningful
+    character(200) :: dirs(3) = (/ &
+                      './           ', './           ', '$BMAD_LAYOUT:' /)
   end type
 
 ! common stuff
@@ -772,19 +776,15 @@ end subroutine
 
 subroutine file_stack (how, file_name_in, finished)
 
-  use cesr_utils
-
   implicit none
 
   integer, parameter :: f_maxx = 10
   type (stack_file_struct), save :: file(0:f_maxx)
 
-  integer i_level, ios
+  integer ix, i_level, ios
 
   character(*) how, file_name_in
   character(200) file_name, basename
-  character(200) :: dirs(3) = (/ &
-                      './           ', './           ', '$BMAD_LAYOUT:' /)
   logical finished, found_it
 
   save i_level
@@ -803,13 +803,14 @@ subroutine file_stack (how, file_name_in, finished)
       print *, 'ERROR: CALL NESTING GREATER THAN 10 LEVELS'
       call err_exit
     endif
-    call splitfilename (file_name_in, file(i_level)%dir, basename)
-    dirs(2) = file(i_level-1)%dir
-    call find_file (file_name_in, found_it, file_name, dirs)
+    ix = splitfilename (file_name_in, file(i_level)%dir, basename)
+    bp_com%dirs(2) = file(i_level-1)%dir
+    call find_file (file_name_in, found_it, file_name, bp_com%dirs)
     file(i_level)%logical_name = file_name_in
     file(i_level)%full_name = file_name
     file(i_level)%f_unit = lunget()
     bp_com%current_file = file(i_level)
+    bp_com%calling_file = file(i_level-1)
     if (i_level /= 1) file(i_level-1)%i_line = bp_com%current_file%i_line
     bp_com%current_file%i_line = 0
 
@@ -1531,10 +1532,13 @@ subroutine read_sr_wake (ele)
 
   character(200) file_name, line
 
+  logical found_it
+
 ! open file
 
   iu = lunget()
-  call fullfilename(ele%wake%sr_file, file_name)
+  bp_com%dirs(2) = bp_com%calling_file%dir
+  call find_file (ele%wake%sr_file, found_it, file_name, bp_com%dirs)
   open (iu, file = file_name, status = 'OLD', action = 'READ', iostat = ios)
   if (ios /= 0) then
     call warning ('CANNOT OPEN WAKE FILE: ' // ele%wake%sr_file, &

@@ -319,13 +319,11 @@ the changes in $p_x$ and $p_y$
 \end{align}
 
 %-----------------------------------------------------------------
-\section{Wakefields}
-\label{s:wakefields}
-
-
-%-----------------------------------------------------------------
 \section{Macroparticles}
 \label{s:macro}
+
+Note: Wakefield and Macroparticle simulation has just been implemented
+in bmad and is still in the testing phase. Use with caution.
 
 A macroparticle\cite{b:transport_appendix} is a bundle of particles
 whose distribution is assumed to be Gaussian in shape. A macroparticle
@@ -345,6 +343,23 @@ as some point $s_1$ the sigma matrix at a different point $s_2$ is
 \Endeq
 where $\Bf M_{21}$ is the Jacobian of the transport map between points
 $s_1$ and $s_2$.
+
+%-----------------------------------------------------------------
+\section{Wakefields}
+\label{s:wakefields}
+
+Note: Wakefield and Macroparticle simulation has just been implemented
+in bmad and is still in the testing phase. Use with caution.
+
+Wakefield modeling follows the Liar program\cite{b:liar}. Wakefields
+are applied in the center of LINAC accelerating cavities
+(\vn{LCavity}). Wakefield effects are divided into short--range
+(within a bunch) and long--range (between bunches).
+
+Only the dipole component of the Short--range wakefield are
+modeled. Quadrupole wakefields can be implemented upon request.
+The short--range longitudinal wakefield component
+
 
 %-----------------------------------------------------------------
 \section{Coupling and Normal Modes}

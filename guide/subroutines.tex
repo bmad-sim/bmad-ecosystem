@@ -776,7 +776,8 @@ extra control elements can be added.
      Subroutine to allocate or re-allocate the ring%ele\_(:) pointer in a ring.
 
 \item[control\_bookkeeper (ring, ix\_ele)] \Newline
-Subroutine to calculate the combined strength of the attributes for controlled elements. 
+Subroutine to calculate the combined strength of the attributes for
+controlled elements.
 
 \item[deallocate\_ring\_pointers (ring)] \Newline 
      Subroutine to deallocate the pointers in a ring.
@@ -802,8 +803,9 @@ order. This may be used for backward tracking through the ring.
 Subroutine to set only those elements on that constitute the "design" 
 lattice. That is, only quadrupoles, bends and wigglers will be set on. 
 
-\item[set\_on (key, ring, on\_switch, orb\_)] \Newline
-Subroutine to turn on or off a set of elements (quadrupoles, rfcavities, etc.) in a ring. 
+\item[set\_on\_off (key, ring, switch, orb\_)] \Newline
+Subroutine to turn on or off a set of elements (quadrupoles,
+rfcavities, etc.) in a ring.
 
 \item[transfer\_ele (ele1, ele2)] \Newline 
      Subroutine to set ele2 = ele1. 
@@ -1096,6 +1098,9 @@ Used by, for example, TRACK\_LONG.
 \item[track1\_627 (start, ele, param, mat627, end)] \Newline
 Particle tracking through a single element. Uses the 2nd order 6x27 transport 
 matrices whenever possible. 
+
+\item[set\_on (key, ring, on\_switch, orb\_)] \Newline
+Subroutine to turn on or off a set of elements (quadrupoles, rfcavities, etc.) in a ring. 
 
 \item[sol\_quad\_mat627\_calc (ks, k1, length, mat627)] \Newline
 Subroutine to calculate the transfer matrix for a combination solenoid/quadrupole element. 
