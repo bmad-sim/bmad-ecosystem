@@ -76,10 +76,16 @@ subroutine check_aperture_limit (orb, ele, param)
       print *, '      AND THE OTHER NOT: ', ele%name
       call err_exit
     endif
-    if ((x_beam / x_lim)**2 + (y_beam / y_lim)**2 > 1) param%lost = .true.
+    if ((x_beam / x_lim)**2 + (y_beam / y_lim)**2 > 1) then
+      param%lost = .true.
+    endif
   else
-    if (abs(x_beam) > x_lim) param%lost = .true.
-    if (abs(y_beam) > y_lim) param%lost = .true.
+    if (abs(x_beam) > x_lim) then
+      param%lost = .true.
+    endif
+    if (abs(y_beam) > y_lim) then
+      param%lost = .true.
+    endif
   endif
 
 end subroutine
