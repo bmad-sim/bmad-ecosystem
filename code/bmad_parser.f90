@@ -104,6 +104,14 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
   call read_digested_bmad_file (digested_file, ring, digested_version)
 
+  ! Must make sure that if use_line is present the digested file has used the 
+  ! correct line
+
+  if (present(use_line)) then
+    call str_upase (name, use_line)
+    if (name /= ring%name) bmad_status%ok = .false.
+  endif
+
   if (bmad_status%ok) then
     call set_taylor_order (ring%input_taylor_order, .false.)
     call set_ptc (ring%beam_energy, ring%param%particle)
@@ -591,7 +599,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
 ! find line corresponding to the "use" statement.
 
-  if (present (use_line)) ring%name = use_line
+  if (present (use_line)) call str_upcase (ring%name, use_line)
   if (ring%name == blank) call error_exit &
             ('NO "USE" STATEMENT FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
 
