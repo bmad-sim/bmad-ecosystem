@@ -463,13 +463,13 @@ Format:
 \begin{example}
   show alias                     
   show constraints
-  show data \{<data_name> <number>\} 
+  show data \{<data_name> <locations>\} 
   show ele <ele_name>
   show global
   show lattice <ele1_name> <ele2_name>
   show optimizer
   show top10
-  show var <class> \{<number>\}
+  show var \{<var_name> <locations>\}
   show plots
 \end{example}
 
@@ -482,7 +482,7 @@ details.
 \item[show constraints]
 Lists data and variable constraints.
 \item[show data]
-Shows data information. If \vn{<data_name>} and \vn{<number>} are not
+Shows data information. If \vn{<data_name>} and \vn{<locations>}} are not
 present shown is a list of d2\_data names.
 \item[show ele]
 This shows information on lattice elements. \vn{<ele_name>} can
@@ -506,7 +506,7 @@ Shows information pertinent to optimization: Data and variables used, etc.
 Shows top contributors to the merit function, dMerit/dVariable
 derivatives, and Largest changes in variable value.
 \item[show var]
-Shows variable information. If \vn{<data_name>} and \vn{<number>} are
+Shows variable information. If \vn{<var_name>} \vn{<locations>}} are
 not present shown is a list of v1\_var classes.
 \end{description}
 
@@ -514,10 +514,12 @@ Examples:
 \begin{example}
   show data
   show data orbit
-  show data orbit:x 35
-  show ele q*          ! list all elements with names beginning with "q".
-  show ele q10w        ! show a particular lattice element
-  show ele 105         ! show element #105 in the lattice
+  show data orbit:x           ! list all orbit:x data elements
+  show data orbit:x 35        ! show details for orbit:x element 35
+  show data orbit:x 35, 86:95 ! list orbit:x elements 35 and 86 through 95
+  show ele q*                 ! list all elements with names beginning with "q".
+  show ele q10w               ! show a particular lattice element
+  show ele 105                ! show element #105 in the lattice
 \end{example}
 
 %% single-mode --------------------------------------------------------------
