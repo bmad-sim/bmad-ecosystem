@@ -36,6 +36,7 @@ subroutine compute_element_energy (lattice)
 
   beam_energy = lattice%ele_(0)%value(beam_energy$)
   call energy_to_kinetic (beam_energy, lattice%param%particle, p0c = p0c)
+  lattice%ele_(0)%value(p0c$) = p0c
 
 ! propagate the energy through the lattice
 
