@@ -2,11 +2,15 @@
 ! Subroutine attribute_bookkeeper (ele, param)
 !
 ! Subroutine to make sure the attributes of an element are self-consistant.
-! Cases:
-!   BEAMBEAM:     bbi_const$ = param%n_part * e_mass * charge$ * r_e / 
+!
+!   BEAMBEAM:     bbi_const$ = param%n_part * e_mass * charge$ * r_e /
 !                                   (2 * pi * param%energy * (sig_x$ + sig_y$)
+!
 !   RFCAVITY:     rf_wavelength$ = param%total_length / harmon$
-!   SBEND, RBEND: angle$ = length$ / rho_design$
+!
+!   SBEND:        angle$ = length$ / rho_design$
+!                 l_chord$ = 2 * rho_design$ * sin(angle$/2)
+!
 !   WIGGLER:      k1$ = -0.5 * (0.2997 * b_max$ / param%energy)**2
 !                 rho$ = 3.3356 * param%energy / b_max$
 !
@@ -25,8 +29,8 @@
 
 !$Id$
 !$Log$
-!Revision 1.2  2002/01/23 16:46:47  dcs
-!Added l_chord to sbend
+!Revision 1.3  2002/01/23 16:52:52  dcs
+!*** empty log message ***
 !
 !Revision 1.1  2002/01/08 21:44:36  dcs
 !Aligned with VMS version  -- DCS
@@ -44,17 +48,17 @@ subroutine attribute_bookkeeper (ele, param)
   type (ele_struct) ele
   type (param_struct) param
 
-  real r, angle
-
+  real r
+  
 !
 
   select case (ele%key)
 
 ! Bends
 
-  case (sbend$, rbend$)
+  case (sbend$)
     ele%value(angle$) = ele%value(l$) / ele%value(rho_design$)
-    ele%value(l_chord$) = 2 * ele%value(rho_design$) * sin(ele%value(angle)/2) 
+    ele%value(l_chord$) = 2 * ele%value(rho_design$) * sin(ele%value(angle$)/2) 
 
 ! RFcavity
 
