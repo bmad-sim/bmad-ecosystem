@@ -20,32 +20,6 @@
 !     split_done -- Logical: True if ring was split.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.10  2003/05/05 14:04:18  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.9  2003/05/02 15:44:02  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.8  2003/03/31 15:17:41  dcs
-!Bug fixes.
-!
-!Revision 1.7  2003/03/18 20:34:09  dcs
-!Updated Documentation.
-!
-!Revision 1.6  2003/01/27 14:40:43  dcs
-!bmad_version = 56
-!
-!Revision 1.5  2002/02/23 20:32:25  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.4  2002/01/08 21:44:43  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.2  2001/09/27 18:31:58  rwh24
-!UNIX compatibility updates
-
 #include "CESR_platform.inc"
 
 subroutine split_ring (ring, s_split, ix_split, split_done)
@@ -102,7 +76,7 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
   endif
 
 ! Insert a new element.
-! Note: Any ring.control_()%ix_ele pointing to ix_split will now 
+! Note: Any ring%control_()%ix_ele pointing to ix_split will now 
 !  point to ix_split+1.
 
   ele%value(l$) = 0       ! so no s recalc with insert_element
@@ -113,6 +87,11 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
   ix = len_trim(ele%name)
   ele1%name = ele%name(:ix) // '\1'
   ele2%name = ele%name(:ix) // '\2'
+
+! kill any talyor series
+
+  if (associated (ele1%taylor(1))) call kill_taylor (ele1%taylor)
+  if (associated (ele2%taylor(1))) call kill_taylor (ele2%taylor)
 
 ! put in correct lengths and s positions
 
