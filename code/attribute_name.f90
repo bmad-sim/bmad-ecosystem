@@ -175,6 +175,7 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(i_beam$, tilt$)         = 'TILT'
 
     attrib_array(lcavity$, l$)             = 'L'
+    attrib_array(lcavity$, lrad$)          = 'LRAD'   ! This is for felv testing.
     attrib_array(lcavity$, energy_start$)  = 'ENERGY_START'
     attrib_array(lcavity$, dphi0$)         = 'DPHI0'
     attrib_array(lcavity$, phi0$)          = 'PHI0'
