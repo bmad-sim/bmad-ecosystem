@@ -299,7 +299,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
       if (ele%n_slave /= 0) then
         write (li(nl+1), '(1x, a, i4)') 'Slaves: Number:', ele%n_slave
         write (li(nl+2), *) &
-          '    Name            Ring_index  Attribute       Coefficient'
+          '    Name             Lat_index  Attribute       Coefficient'
         nl = nl + 2
         do i = ele%ix1_slave, ele%ix2_slave
           j = ring%control_(i)%ix_slave
@@ -326,7 +326,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
       if (ele%n_lord /= 0) then
         write (li(nl+1), '(1x, a, i4)') 'Lords: Number:', ele%n_lord
         write (li(nl+2), *) &
-  '    Name            Ring_index  Attribute       Coefficient       Value'
+  '    Name             Lat_index  Attribute       Coefficient       Value'
         nl = nl + 2
         do i = ele%ic1_lord, ele%ic2_lord
           ic = ring%ic_(i)
