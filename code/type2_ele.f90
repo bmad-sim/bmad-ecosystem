@@ -130,7 +130,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
       i = ele%ix_value
       name = ele%attribute_name
       nl = nl + 1
-      write (li(nl), '(i6, 3x, 2a, 1pe13.5)') i, name, ' =', ele%value(i)
+      write (li(nl), '(i6, 3x, 2a, 1pe15.7)') i, name, ' =', ele%value(i)
 
     else
       do i = 1, n_attrib_maxx
@@ -139,17 +139,17 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
         if (ix == 0) then
           if (ele%value(i) == 0 .and. .not. type_zero_attrib) cycle
           nl = nl + 1
-          write (li(nl), '(i6, 3x, 2a, 1pe13.5)')  i, &
+          write (li(nl), '(i6, 3x, 2a, 1pe15.7)')  i, &
                         attribute_name(ele, i), ' =', ele%value(i)
         else
           if (ele%value(i) == 0 .and. ele%value(ix) == 0 .and. &
                                                  .not. type_zero_attrib) cycle
           nl = nl + 1
           if (ele%value(ix) == ele%value(i)) then
-            write (li(nl), '(i6, 3x, 2a, 1pe13.5)')  i, &
+            write (li(nl), '(i6, 3x, 2a, 1pe15.7)')  i, &
                         attribute_name(ele, i), ' =', ele%value(i)
           else
-            write (li(nl), '(i6, 3x, 2a, 1pe13.5, 4x, a, e13.5)')  i, &
+            write (li(nl), '(i6, 3x, 2a, 1pe15.7, 4x, a, e15.7)')  i, &
                         attribute_name(ele, i), ' =', ele%value(i), &
                         'Total:', ele%value(ix)
           endif
