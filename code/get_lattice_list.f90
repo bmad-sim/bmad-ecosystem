@@ -102,7 +102,7 @@ end subroutine get_lattice_list
 !---------------------------------------------------------------------
 ! unix version
 
-#ifdef CESR_UNIX
+#if defined(CESR_UNIX) || defined(CESR_WINCVF)
 
 subroutine get_lattice_list (lat_list, num_lats, directory)
 

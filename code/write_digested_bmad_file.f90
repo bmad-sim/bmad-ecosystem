@@ -56,7 +56,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   do j = 1, n_file
     fname = file_names(j)
     stat_b = 0
-#ifdef CESR_UNIX
+#if defined(CESR_UNIX) || defined(CESR_WINCVF)
     ierr = stat(fname, stat_b)
 #endif
     write (d_unit) fname, stat_b(10)  ! stat_b(10) = Modification date
