@@ -48,6 +48,7 @@ if (any(s%plot_page%ele_shape(:)%key /= 0)) then
       if (ele%control_type == group_lord$) cycle
       if (ele%control_type == overlay_lord$) cycle
       if (ele%control_type == super_slave$) cycle
+      if (ele%control_type == multipass_lord$) cycle
       do k = 1, size(s%plot_page%ele_shape(:))
         if (s%plot_page%ele_shape(k)%key == 0) cycle
         if (ele%key == s%plot_page%ele_shape(k)%key .and. &
@@ -67,22 +68,24 @@ endif
 plot_loop: do i = 1, size(s%plot_page%region)
 
   plot => s%plot_page%region(i)%plot
-  plot%valid = .true.   ! assume everything OK
 
   if (.not. s%plot_page%region(i)%visible) cycle  ! Don't worry about invisable graphs
 
   if (plot%x_axis_type /= 'index' .and. plot%x_axis_type /= 's' .and. &
       plot%x_axis_type /= 'ele_index') then
     call out_io (s_abort$, r_name, 'BAD X_AXIS_TYPE: ' // plot%x_axis_type)
-    plot%valid = .false.
+    plot%graph%valid = .false.
     cycle
   endif
 
 ! loop over all graphs and curves
 
-  do j = 1, size(plot%graph)
+  graph_loop: do j = 1, size(plot%graph)
 
     graph => plot%graph(j)
+    graph%valid = .true.   ! assume everything OK
+    graph%legend = ' '
+
     if (graph%type /= 'data') cycle ! Don't worry about other types
 
     do k = 1, size(graph%curve)
@@ -93,8 +96,8 @@ plot_loop: do i = 1, size(s%plot_page%region)
             (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index')) then
         call out_io (s_error$, r_name, 'CURVE%DATA_SOURCE = "LAT_LAYOUT" ' // &
                         'AND PLOT%X_AXIS_TYPE = "INDEX" DO NOT GO TOGETHER.')
-        plot%valid = .false.
-        cycle plot_loop
+        graph%valid = .false.
+        cycle graph_loop
       endif
 
       i_uni = s%global%u_view  ! universe where the data comes from
@@ -117,8 +120,8 @@ plot_loop: do i = 1, size(s%plot_page%region)
       case ('data_array')
         call tao_find_data (err, u, curve%data_type, d2_ptr, d1_ptr)
         if (err) then
-          plot%valid = .false.
-          cycle plot_loop
+          graph%valid = .false.
+          cycle graph_loop
         endif
 	
         d1_ptr%d%good_plot = .true.
@@ -134,8 +137,9 @@ plot_loop: do i = 1, size(s%plot_page%region)
           where (d1_ptr%d%s > plot%x%max+eps) d1_ptr%d%good_plot = .false.
         endif
 
-        call tao_useit_data_plot_calc (plot, d1_ptr%d) ! make sure %useit_plot up-to-date
-        n_dat = count (d1_ptr%d%useit_plot)       ! count the number of data points
+        ! make sure %useit_plot up-to-date & count the number of data points
+        call tao_data_useit_plot_calc (graph, d1_ptr%d) 
+        n_dat = count (d1_ptr%d%useit_plot)       
 
         call reassociate_integer (curve%ix_symb, n_dat)
         call reassociate_real (curve%y_symb, n_dat) ! allocate space for the data
@@ -151,16 +155,16 @@ plot_loop: do i = 1, size(s%plot_page%region)
           curve%x_symb = u%model%ele_(d1_ptr%d(curve%ix_symb)%ix_ele)%s
         else
           call out_io (s_error$, r_name, "Unknown axis type!")
-          plot%valid = .false.
-          cycle plot_loop
+          graph%valid = .false.
+          cycle graph_loop
         endif
 
 ! calculate the y-axis data point values.
 
         curve%y_symb = 0
 
-        do m = 1, size(plot%who)
-          select case (plot%who(m)%name)
+        do m = 1, size(graph%who)
+          select case (graph%who(m)%name)
           case (' ') 
             cycle
           case ('model') 
@@ -174,12 +178,12 @@ plot_loop: do i = 1, size(s%plot_page%region)
           case ('meas')    
             value => d1_ptr%d%meas_value
           case default
-            call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // plot%who(m)%name)
-            plot%valid = .false.
-            cycle plot_loop
+            call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // graph%who(m)%name)
+            graph%valid = .false.
+            cycle graph_loop
           end select
           curve%y_symb = curve%y_symb + &
-                   plot%who(m)%sign * pack(value, mask = d1_ptr%d%useit_plot)
+                   graph%who(m)%sign * pack(value, mask = d1_ptr%d%useit_plot)
         enddo
 
         if (curve%convert) curve%y_symb = curve%y_symb * &
@@ -192,8 +196,8 @@ plot_loop: do i = 1, size(s%plot_page%region)
       case ('var_array')
         call tao_find_var (err, curve%data_type, v1_ptr)
         if (err) then
-          plot%valid = .false.
-          cycle plot_loop
+          graph%valid = .false.
+          cycle graph_loop
         endif
 
         ! find which universe we're viewing
@@ -205,8 +209,8 @@ plot_loop: do i = 1, size(s%plot_page%region)
         if (ix_this .eq. -1) then
           call out_io (s_error$, r_name, &
                      "This variable doesn't point to the currently displayed  universe.")
-          plot%valid = .false.
-          cycle plot_loop
+          graph%valid = .false.
+          cycle graph_loop
         endif
       
         v1_ptr%v%good_plot = .true.
@@ -224,7 +228,7 @@ plot_loop: do i = 1, size(s%plot_page%region)
           where (v1_ptr%v%s > plot%x%max+eps) v1_ptr%v%good_plot = .false.
         endif
 
-        call tao_useit_var_plot_calc (plot, v1_ptr%v) ! make sure %useit_plot up-to-date
+        call tao_var_useit_plot_calc (graph, v1_ptr%v) ! make sure %useit_plot up-to-date
         n_dat = count (v1_ptr%v%useit_plot)       ! count the number of data points
 
         call reassociate_integer (curve%ix_symb, n_dat)
@@ -251,8 +255,8 @@ plot_loop: do i = 1, size(s%plot_page%region)
 
         curve%y_symb = 0
 
-        do m = 1, size(plot%who)
-          select case (plot%who(m)%name)
+        do m = 1, size(graph%who)
+          select case (graph%who(m)%name)
           case (' ') 
             cycle
 
@@ -279,13 +283,13 @@ plot_loop: do i = 1, size(s%plot_page%region)
           case ('meas')    
             value => v1_ptr%v%meas_value
           case default
-            call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // plot%who(m)%name)
-            plot%valid = .false.
-            cycle plot_loop
+            call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // graph%who(m)%name)
+            graph%valid = .false.
+            cycle graph_loop
           end select
 
           curve%y_symb = curve%y_symb + &
-                   plot%who(m)%sign * pack(value, mask = v1_ptr%v%useit_plot)
+                   graph%who(m)%sign * pack(value, mask = v1_ptr%v%useit_plot)
         enddo
 
         if (curve%convert) curve%y_symb = curve%y_symb * &
@@ -324,7 +328,7 @@ plot_loop: do i = 1, size(s%plot_page%region)
         datum%data_type = curve%data_type
         datum%ele2_name = curve%ele2_name
 
-        do m = 1, size(plot%who)
+        do m = 1, size(graph%who)
           do ie = 1, n_dat
 
             datum%ix_ele = curve%ix_symb(ie)
@@ -333,7 +337,7 @@ plot_loop: do i = 1, size(s%plot_page%region)
               if (ie == 1) call taylor_make_unit (t_map)
             endif
 
-            select case (plot%who(m)%name)
+            select case (graph%who(m)%name)
             case (' ') 
               cycle
             case ('model')   
@@ -343,11 +347,11 @@ plot_loop: do i = 1, size(s%plot_page%region)
             case ('design')  
               call tao_evaluate_a_datum (datum, u, u%design, u%design_orb, y_val, t_map)
             case default
-              call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // plot%who(m)%name)
-              plot%valid = .false.
-              cycle plot_loop
+              call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // graph%who(m)%name)
+              graph%valid = .false.
+              cycle graph_loop
             end select
-            curve%y_symb(ie) = curve%y_symb(ie) + plot%who(m)%sign * y_val
+            curve%y_symb(ie) = curve%y_symb(ie) + graph%who(m)%sign * y_val
 
             if (datum%data_type(1:3) == 'tt:' .or. datum%data_type(1:2) == 't:') then
               if (datum%ix_ele > datum%ix_ele2) datum%ix_ele2 = datum%ix_ele
@@ -361,18 +365,9 @@ plot_loop: do i = 1, size(s%plot_page%region)
 
       case default
         call out_io (s_error$, r_name, 'UNKNOWN DATA_SOURCE: ' // curve%data_source)
-        plot%valid = .false.
-        cycle plot_loop
+        graph%valid = .false.
+        cycle graph_loop
       end select
-
-!----------------------------------------------------------------------------
-! Renormalize and check for limited graph
-
-      curve%y_symb = curve%y_symb * curve%units_factor
-
-      curve%limited = .false.
-      if (any(curve%y_symb .lt. graph%y%min .or. curve%y_symb .gt. graph%y%max)) &
-        curve%limited = .true.
 
 !----------------------------------------------------------------------------
 ! Calculate the points for drawing the curve through the symbols.
@@ -394,46 +389,55 @@ plot_loop: do i = 1, size(s%plot_page%region)
         curve%y_line = curve%y_symb
       elseif (plot%x_axis_type == 's') then
         smooth_curve = .true.
-        do m = 1, size(plot%who)
-          if (plot%who(m)%name .eq. 'meas' .or. plot%who(m)%name .eq. 'ref' .or. &
+        do m = 1, size(graph%who)
+          if (graph%who(m)%name .eq. 'meas' .or. graph%who(m)%name .eq. 'ref' .or. &
 	      s%global%track_type .ne. 'single') smooth_curve = .false.
         enddo
         if (smooth_curve) then
-          call reassociate_real (curve%y_line, s%global%n_curve_pts) ! allocate data space
-          call reassociate_real (curve%x_line, s%global%n_curve_pts) ! allocate data space
+          ! allocate data space
+          call reassociate_real (curve%y_line, s%global%n_curve_pts) 
+          call reassociate_real (curve%x_line, s%global%n_curve_pts) 
           curve%y_line = 0
-          do m = 1, size(plot%who)
-            select case (plot%who(m)%name)
+          do m = 1, size(graph%who)
+            select case (graph%who(m)%name)
             case (' ') 
               cycle
             case ('model')
-              call s_data_to_plot (u%model, u%model_orb, plot%who(m), curve, err)
-              if (err) cycle plot_loop
+              call s_data_to_plot (u%model, u%model_orb, curve%data_type, &
+                                                       graph%who(m), curve, err)
+              if (err) cycle graph_loop
             case ('base')  
-              call s_data_to_plot (u%base, u%base_orb, plot%who(m), curve, err)
-              if (err) cycle plot_loop
+              call s_data_to_plot (u%base, u%base_orb, curve%data_type, &
+                                                       graph%who(m), curve, err)
+              if (err) cycle graph_loop
             case ('design')  
-              call s_data_to_plot (u%design, u%design_orb, plot%who(m), curve, err)
-              if (err) cycle plot_loop
+              call s_data_to_plot (u%design, u%design_orb, curve%data_type, &
+                                                       graph%who(m), curve, err)
+              if (err) cycle graph_loop
             case default
               call out_io (s_error$, r_name, &
-                              'BAD PLOT "WHO" WITH "S" X-AXIS: ' // plot%who(m)%name)
-              plot%valid = .false.
-              cycle plot_loop
+                       'BAD PLOT "WHO" WITH "S" X-AXIS: ' // graph%who(m)%name)
+              graph%valid = .false.
+              cycle graph_loop
             end select
           enddo
         else
-          call reassociate_real (curve%y_line, n_dat) ! allocate space for the data
-          call reassociate_real (curve%x_line, n_dat) ! allocate space for the data
-          curve%x_line = curve%x_symb
-          curve%y_line = curve%y_symb
+          ! allocate space for the data
+          call reassociate_real (curve%y_line, n_dat) 
+          call reassociate_real (curve%x_line, n_dat) 
+          curve%x_line = curve%x_symb 
+          curve%y_line = curve%y_symb 
         endif
         
       endif
 
 !----------------------------------------------------------------------------
+! Renormalize and check for limited graph
 ! Note: Since there is an arbitrary overall phase, the phase data 
 ! gets renormalized so that the average value is zero.
+
+      curve%y_symb = curve%y_symb * curve%units_factor
+      curve%y_line = curve%y_line * curve%units_factor
 
       if (curve%data_type(1:6) == 'phase:' .and. n_dat /= 0 .and. curve%ele2_name == ' ') then
         f = sum(curve%y_symb) / n_dat
@@ -441,15 +445,18 @@ plot_loop: do i = 1, size(s%plot_page%region)
         curve%y_line = curve%y_line - f 
       endif 
 
+      curve%limited = &
+              any(curve%y_symb .lt. graph%y%min .or. curve%y_symb .gt. graph%y%max)
+
 ! For the title_suffix: strip off leading "+" and enclose in "[ ]".
 
       graph%title_suffix = ' '
-      do m = 1, size(plot%who)
-        if (plot%who(m)%name == ' ') cycle
-        if (plot%who(m)%sign == 1) then
-          graph%title_suffix = trim(graph%title_suffix) // ' + ' // plot%who(m)%name
-        elseif (plot%who(m)%sign == -1) then
-          graph%title_suffix = trim(graph%title_suffix) // ' - ' // plot%who(m)%name
+      do m = 1, size(graph%who)
+        if (graph%who(m)%name == ' ') cycle
+        if (graph%who(m)%sign == 1) then
+          graph%title_suffix = trim(graph%title_suffix) // ' + ' // graph%who(m)%name
+        elseif (graph%who(m)%sign == -1) then
+          graph%title_suffix = trim(graph%title_suffix) // ' - ' // graph%who(m)%name
         endif
       enddo
 
@@ -477,14 +484,15 @@ plot_loop: do i = 1, size(s%plot_page%region)
       endif
 
     enddo
-  enddo
+
+  enddo graph_loop
 enddo plot_loop
 
 
 !----------------------------------------------------------------------------
 contains
 
-subroutine s_data_to_plot (lat, orb, who, curve, err)
+subroutine s_data_to_plot (lat, orb, data_type, who, curve, err)
 
 type (tao_plot_who_struct) who
 type (coord_struct) orb(0:)
@@ -503,11 +511,10 @@ logical err
 
 err = .false.
 
-x1 = max (plot%x%min, u%model%ele_(0)%s)
-x2 = min (plot%x%max, u%model%ele_(u%model%n_ele_use)%s)
+x1 = min (u%model%ele_(u%model%n_ele_use)%s, max (plot%x%min, u%model%ele_(0)%s))
+x2 = min (u%model%ele_(u%model%n_ele_use)%s, max (plot%x%max, u%model%ele_(0)%s))
 s_last = lat%ele_(curve%ix_ele2)%s
 
-data_type = datum%data_type
 if (data_type(1:2) == 'r:') data_type = 'r:'
 if (data_type(1:2) == 't:') data_type = 't:'
 if (data_type(1:3) == 'tt:') data_type = 'tt:'
@@ -555,6 +562,8 @@ do ii = 1, size(curve%x_line)
     value = ele%x%etap
   case ('etap:y')
     value = ele%y%etap
+  case ('beam_energy')
+    value = ele%value(beam_energy$)
   case ('cbar:11')
     call c_to_cbar (ele, cbar)
     value = cbar(1,1)
@@ -570,34 +579,36 @@ do ii = 1, size(curve%x_line)
   case ('r:')
     if (ii == 1) call mat_make_unit (mat6)
     if (s_now < s_last) cycle
-    i = read_this_index (datum%data_type, 3); if (i == 0) return
-    j = read_this_index (datum%data_type, 4); if (j == 0) return
+    i = read_this_index (data_type, 3); if (i == 0) return
+    j = read_this_index (data_type, 4); if (j == 0) return
     call tao_mat6_calc_at_s (lat, mat6, s_last, s_now, unit_start = .false.)
     value = mat6(i, j)
   case ('t:')
     if (ii == 1) call taylor_make_unit (t_map)
     if (s_now < s_last) cycle
-    i = read_this_index (datum%data_type, 3); if (i == 0) return
-    j = read_this_index (datum%data_type, 4); if (j == 0) return
-    k = read_this_index (datum%data_type, 5); if (k == 0) return
+    i = read_this_index (data_type, 3); if (i == 0) return
+    j = read_this_index (data_type, 4); if (j == 0) return
+    k = read_this_index (data_type, 5); if (k == 0) return
     call tao_transfer_map_calc_at_s (lat, t_map, s_last, s_now, unit_start = .false.)
     value = taylor_coef (t_map(i), j, k)
   case ('tt:')
     if (ii == 1) call taylor_make_unit (t_map)
     if (s_now < s_last) cycle
     expnt = 0
-    i = read_this_index (datum%data_type, 4); if (i == 0) return
+    i = read_this_index (data_type, 4); if (i == 0) return
     do j = 5, 15
-      if (datum%data_type(j:j) == ' ') exit
-      k = read_this_index (datum%data_type, j); if (k == 0) return
+      if (data_type(j:j) == ' ') exit
+      k = read_this_index (data_type, j); if (k == 0) return
       expnt(k) = expnt(k) + 1
     enddo
     call tao_transfer_map_calc_at_s (lat, t_map, s_last, s_now, unit_start = .false.)
     value = taylor_coef (t_map(i), expnt)
   case default
-!   call out_io (s_fatal$, r_name, 'DO NOT KNOW ABOUT THIS DATA_TYPE: ' // curve%data_type)
-!   call out_io (s_blank$, r_name, "Will not perfrom any plot smoothing")
+   call out_io (s_fatal$, r_name, &
+                  'DO NOT KNOW ABOUT THIS DATA_TYPE: ' // curve%data_type)
+   call out_io (s_blank$, r_name, "Will not perfrom any plot smoothing")
     err = .true.
+    return
   end select
 
   curve%y_line(ii) = curve%y_line(ii) + who%sign * value

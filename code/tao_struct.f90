@@ -10,7 +10,7 @@
 module tao_struct
 
 use bmad_struct, only: rp, ring_struct, coord_struct, radians$, ele_struct
-use quick_plot, only: qp_line_struct, qp_symbol_struct, qp_axis_struct, qp_rect_struct
+use quick_plot, only: qp_line_struct, qp_symbol_struct, qp_axis_struct, qp_rect_struct, qp_point_struct
 use macroparticle_mod, only: macro_init_struct, macro_beam_struct
 use macro_utils_mod, only: macro_bunch_params_struct
 use beam_mod, only: beam_init_struct, beam_struct, bunch_params_struct
@@ -78,6 +78,7 @@ type tao_curve_struct
   integer ix_ele2              ! Index in lattice of reference element.
   logical use_y2               ! Use y2 axis?
   logical draw_line            ! draw a line through the data points?
+  logical draw_symbols         ! draw a line through the data points?
   logical limited              ! True if at least one data point past limit.
   logical convert              ! Eg: covert coupling to cbar?
 end type
@@ -91,7 +92,9 @@ type tao_graph_struct
   character(16) type           ! "data", "lat_layout", "key_table"
   character(80) title
   character(80) title_suffix 
-  character(80) legend(n_legend_maxx) ! Array for holding descriptive information.
+  character(80) legend(n_legend_maxx) ! Array for holding descriptive info.
+  type (qp_point_struct) legend_origin
+  type (tao_plot_who_struct) who(n_who_maxx)  ! Who to plot. Eg: Data - Design
   type (qp_axis_struct) y      ! Y-axis attributes.
   type (qp_axis_struct) y2     ! Y-axis attributes.
   type (qp_rect_struct) margin ! margin around the graph.
@@ -100,6 +103,7 @@ type tao_graph_struct
   logical clip                 ! clip plot at graph boundary.
   integer box(4)               ! Defines which box the plot is put in.
   integer ix_universe          ! Used for lat_layout plots.
+  logical valid                ! valid if all curve y_dat computed OK.
 end type
 
 ! A plot is collection of graphs.
@@ -108,15 +112,13 @@ end type
 
 type tao_plot_struct
   character(32) :: name = ' '           ! Identifying name
-  type (tao_plot_who_struct) who(10)    ! Who to plot. Eg: Data - Design
   type (tao_graph_struct), pointer :: graph(:) => null() 
-                                  ! individual graphs of a plot
-  type (tao_plot_hook) hook       ! Custom stuff. Defined in tao_hook.f90
-  type (qp_axis_struct) x         ! X-axis parameters.
-  real(rp) x_divisions            ! Nominal number of x-axis divisions.
-  character(16) x_axis_type       ! 'index', 'ele_index', 's'
-  logical independent_graphs      ! Graph y-axis scales independent when using the scale cmd?
-  logical valid                   ! valid if all curve y_dat computed OK.
+                                ! individual graphs of a plot
+  type (tao_plot_hook) hook     ! Custom stuff. Defined in tao_hook.f90
+  type (qp_axis_struct) x       ! X-axis parameters.
+  real(rp) x_divisions          ! Nominal number of x-axis divisions.
+  character(16) x_axis_type     ! 'index', 'ele_index', 's'
+  logical independent_graphs    ! scale cmd scales graphs independently?
 end type
 
 ! A region defines a plot and where to position the plot on the plot page
@@ -322,21 +324,22 @@ end type
 
 type tao_global_struct
   real(rp) :: y_axis_plot_dmin = 1e-4 
-                                     ! Minimum y_max-y_min allowed for a graph.
-  integer :: u_view = 1              ! Which universe we are viewing.
-  integer :: n_opti_cycles = 20      ! number of optimization cycles
-  integer :: ix_key_bank = 0         ! For single mode.
-  integer :: phase_units = radians$  ! Phase units on output.
-  integer :: bunch_to_plot = 1       ! Which bunch to plot
-  integer :: n_curve_pts = 401       ! Number of points for plotting a smooth curve
+                                         ! Minimum y_max-y_min allowed for a graph.
+  integer :: u_view = 1                  ! Which universe we are viewing.
+  integer :: n_opti_cycles = 20          ! number of optimization cycles
+  integer :: ix_key_bank = 0             ! For single mode.
+  integer :: n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
+  integer :: phase_units = radians$      ! Phase units on output.
+  integer :: bunch_to_plot = 1           ! Which bunch to plot
+  integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
   character(16) :: track_type = 'single' ! or 'beam' or 'macro' 
   character(16) :: prompt_string = 'Tao'
-  character(16) :: optimizer = 'de'  ! optimizer to use.
-  type (tao_global_hook) hook        ! Custom stuff. Defined in tao_hook.f90
-  logical :: var_limits_on = .false. ! Respect the variable limits?
-  logical :: plot_on = .true.        ! Do plotting?
-  logical :: opt_with_ref = .false.  ! use reference data in optimization?
-  logical :: opt_with_base = .false. ! use base data in optimization?
+  character(16) :: optimizer = 'de'      ! optimizer to use.
+  type (tao_global_hook) hook            ! Custom stuff. Defined in tao_hook.f90
+  logical :: var_limits_on = .false.     ! Respect the variable limits?
+  logical :: plot_on = .true.            ! Do plotting?
+  logical :: opt_with_ref = .false.      ! use reference data in optimization?
+  logical :: opt_with_base = .false.     ! use base data in optimization?
   logical :: single_mode = .false.
   logical :: optimizer_running 
   logical :: init_opt_wrapper = .true.

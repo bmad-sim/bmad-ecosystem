@@ -28,11 +28,11 @@ on one line using the ``|'' character as a separator.
   plot       & \ref{s:plot}     &  x-axis       & \ref{s:x-axis}  \\ \hline
   quit       & \ref{s:quit}     &  x-scale      & \ref{s:x-scale} \\ \hline
 \end{tabular}}
-\caption{Table of \bmad\ elements.}
+\caption{Table of \tao commands.}
 \label{t:commands}
 \end{table}
 
-%%Don't display this!!! ---------------------------------------------------------------------
+%%Don't display this!!! --------------------------------------------------
 
 Note: For a description of \vn{single mode} commands see
 Chapter~\ref{c:single}. To put \tao into \vn{single mode} use the
@@ -125,7 +125,7 @@ In the above example the argument ``abc'' is substituted for any
 
 Format:
 \begin{example}
-  change ele <name> <attribute> <number>
+  change ele <name_or_number> <attribute> <number>
   change var <name> <locations> <number>
 \end{example}
 
@@ -146,6 +146,8 @@ value is used:
   set_value = design_value + <number>
 \end{example}
 
+
+
 For \vn{change ele}, six additional
 \vn{<components>}s in addition to the element values are:
 \begin{example}
@@ -157,7 +159,7 @@ only the \vn{p_z} component is applicable.
 
 Examples:
 \begin{example}
-  change ele s24e x_offset  0.1  ! Offset element by 0.1
+  change ele 124 x_offset  0.1   ! Offset element #124 by 0.1
   change ele q02w k1 d1.2e-2     ! set the k1 strength of q02w relative to the design
   change var steering 34:36 @1e-3  ! set the steering strength #34-36 to 0.001
   change var steering all @0.0  ! set all steering strengths to 0.0

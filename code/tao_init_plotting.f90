@@ -102,8 +102,6 @@ lat_layout_here = .false.
 
 do
   plot%name = ' '
-  plot%who%name  = ' '                               ! set default
-  plot%who(1) = tao_plot_who_struct('model', +1)     ! set default
   plot%x_axis_type = 'index'
   plot%x = init_axis
   plot%independent_graphs = .false.
@@ -116,7 +114,6 @@ do
   plt%name        = plot%name
   plt%x           = plot%x
   plt%x_divisions = plt%x%major_div
-  plt%who         = plot%who
   plt%x_axis_type = plot%x_axis_type
   plt%independent_graphs = plot%independent_graphs
 
@@ -130,16 +127,20 @@ do
   do i = 1, ng
     graph_index = 0                 ! setup defaults
     graph%type  = 'data'
+    graph%legend_origin = qp_point_struct(1.0_rp, 1.0_rp, '%GRAPH')
     graph%y  = init_axis
     graph%y2 = init_axis
     graph%y2%draw_numbers = .false.
     graph%ix_universe = 0
     graph%clip = .true.
+    graph%who%name  = ' '                               ! set default
+    graph%who(1) = tao_plot_who_struct('model', +1)     ! set default
     curve(:)%units_factor = 1
     curve(:)%convert = .false.                             ! set default
     curve(:)%symbol_every = 1
     curve(:)%ix_universe = 0
     curve(:)%draw_line = .true.
+    curve(:)%draw_symbols = .true.
     curve(:)%use_y2 = .false.
     curve(:)%symbol = default_symbol
     curve(:)%line   = default_line
@@ -159,15 +160,17 @@ do
       call err_exit
     endif
     grph => plt%graph(i)
-    grph%name       = graph%name
-    grph%type       = graph%type
-    grph%box        = graph%box
-    grph%title      = graph%title
-    grph%margin     = graph%margin
-    grph%y          = graph%y
-    grph%y2         = graph%y2
-    grph%ix_universe = graph%ix_universe
-    grph%clip       = graph%clip
+    grph%name          = graph%name
+    grph%type          = graph%type
+    grph%who           = graph%who
+    grph%legend_origin = graph%legend_origin
+    grph%box           = graph%box
+    grph%title         = graph%title
+    grph%margin        = graph%margin
+    grph%y             = graph%y
+    grph%y2            = graph%y2
+    grph%ix_universe   = graph%ix_universe
+    grph%clip          = graph%clip
 
     if (grph%ix_universe < 0 .or. grph%ix_universe > size(s%u)) then
       call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', grph%ix_universe)
@@ -178,6 +181,8 @@ do
 
     if (grph%type == 'lat_layout') then
       lat_layout_here = .true.
+      if (plt%x_axis_type /= 's') call out_io (s_error$, r_name, &
+                            'A lat_layout must have x_axis_type = "s" for a visible plot!')
     endif
 
     if (graph%n_curve == 0) then
@@ -194,6 +199,7 @@ do
       crv%symbol_every      = curve(j)%symbol_every
       crv%ix_universe       = curve(j)%ix_universe
       crv%draw_line         = curve(j)%draw_line
+      crv%draw_symbols      = curve(j)%draw_symbols
       crv%use_y2            = curve(j)%use_y2
       crv%symbol            = curve(j)%symbol
       crv%line              = curve(j)%line

@@ -25,6 +25,7 @@
 subroutine tao_hook_command (command_line, found)
 
   use tao_mod
+  use tao_command_mod
 
   implicit none
 
@@ -94,7 +95,7 @@ subroutine tao_hook_command (command_line, found)
     case ('hook')
       ! split the command line into its separate words
       ! separate words placed in cmd_word(:)
-      call cmd_split(10, .true., err); if (err) return
+      call cmd_split(cmd_line, 10, cmd_word, .true., err); if (err) return
 
       ! send any output to out_io
       call out_io (s_blank$, r_name, &
@@ -121,89 +122,5 @@ subroutine tao_hook_command (command_line, found)
 ! "Overview" chapter for details on what is performed here.
   call tao_cmd_end_calc
 
-  return
-
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-contains
-
-! This routine splits the command into words.
-!
-! Input: 
-!  n_word         -- integer: number of words to split command line into
-!  no_extra_words -- logical: are extra words allowed at the end?
-!  err            -- logical: error in splitting words
-!  separator      -- character(*): a list of characters that, besides a blank space,
-!                                  signify a word boundary. 
-!
-! Output:
-!  cmd_word(n_word) -- character(40): the individual words
-!
-! For example: 
-!   separator = '-+' 
-!   cmd_line = 'model-design'
-! Restult:
-!   cmd_word(1) = 'model'
-!   cmd_word(2) = '-'
-!   cmd_word(3) = 'design'
-!
-! Anything between single or double quotes is treated as a single word.
-!
-
-subroutine cmd_split (n_word, no_extra_words, err, separator)
-
-  integer i, n, n_word, ix_end_quote
-  character(*), optional :: separator
-  logical err
-  logical no_extra_words
-
-!
-
-  cmd_word(:) = ' '
-
-  if (present(separator)) then
-    i = 0
-    do 
-      if (i == len(cmd_line)) exit
-      i = i + 1
-      if (index(separator, cmd_line(i:i)) /= 0) then
-        cmd_line = cmd_line(:i-1) // ' ' // cmd_line(i:i) // ' ' // &
-                                                            cmd_line(i+1:)
-        i = i + 3
-      endif
-    enddo
-  endif
-
-  ix_line = 0
-  ix_end_quote = 0
-  
-  do n = 1, n_word
-    call string_trim (cmd_line(ix_line+1:), cmd_line, ix_line)
-    if (cmd_line(1:1) .eq. '"') then
-      ix_end_quote = index(cmd_line(2:), '"')
-      if (ix_end_quote .eq. 0) ix_end_quote = len(cmd_line)
-      cmd_word(n) = cmd_line(2:ix_end_quote)
-    elseif (cmd_line(1:1) .eq. "'") then
-      ix_end_quote = index(cmd_line(2:), "'")
-      if (ix_end_quote .eq. 0) ix_end_quote = len(cmd_line)
-      cmd_word(n) = cmd_line(2:ix_end_quote)
-    else
-      cmd_word(n) = cmd_line(:ix_line)
-    endif 
-    if (ix_line == 0) return
-  enddo
-
-  cmd_word(n_word) = cmd_line
-
-  if (no_extra_words) then
-    call string_trim (cmd_line(ix_line+1:), cmd_line, ix_line)
-    if (ix_line /= 0) then
-      call out_io (s_error$, r_name, 'EXTRA STUFF ON COMMAND LINE: ' // &
-                                                                  cmd_line)
-      err = .true.
-    endif
-  endif
-
-end subroutine cmd_split
 
 end subroutine tao_hook_command

@@ -60,20 +60,20 @@ do i = 1, size(s%plot_page%region)
   border2%units = '%PAGE'
   call qp_set_layout (page_border = border2)
 
-! For a non-valid plot just print a message
-
-  if (.not. plot%valid) then
-    if (.not. plot%graph(1)%type .eq. 'lat_layout') then
-      call qp_set_box (1, 1, 1, 1)
-      call qp_draw_text ('Error In The Plot Calculation', 0.1_rp, 0.5_rp, '%BOX')
-      cycle
-    endif
-  endif
-
 ! loop over all the graphs of the plot and draw them.
 
   do j = 1, size(plot%graph)
     graph => plot%graph(j)
+
+    ! For a non-valid graph just print a message
+
+    if (.not. graph%valid) then
+      call qp_set_layout (box = graph%box)
+      call qp_draw_text ('Error In The Plot Calculation', &
+                                                       0.1_rp, 0.5_rp, '%BOX')
+      cycle
+    endif
+
     select case (graph%type)
     case ('data')
       call plot_data 
@@ -107,11 +107,16 @@ do k = 1, size(graph%curve)
   curve => graph%curve(k)
   call qp_set_symbol (curve%symbol)
   call qp_set_line ('PLOT', curve%line) 
-  call qp_draw_data (curve%x_symb, curve%y_symb, .false., &
-                                               curve%symbol_every, graph%clip)
-  call qp_draw_data (curve%x_line, curve%y_line, curve%draw_line, &
-                                                           0, graph%clip)
+  if (curve%draw_symbols) call qp_draw_data (curve%x_symb, curve%y_symb, &
+                                      .false., curve%symbol_every, graph%clip)
+  if (curve%draw_line) call qp_draw_data (curve%x_line, curve%y_line, &
+                                               curve%draw_line, 0, graph%clip)
 enddo
+
+! draw the legend if there is one
+
+if (any(graph%legend /= ' ')) call qp_draw_legend (graph%legend, &
+          graph%legend_origin%x, graph%legend_origin%y, graph%legend_origin%units)
 
 end subroutine
 
@@ -187,10 +192,10 @@ subroutine plot_lat_layout
 type (ring_struct), pointer :: lat
 type (ele_struct), pointer :: ele
 
-real(rp) x1, x2, y, s_pos
+real(rp) x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top
 
 integer i, j, k, kk, ix, ix1, ix2, isu
-integer icol, ix_var, ixv
+integer icol, ix_var, ixv, j_label
 
 character(80) str
 
@@ -207,7 +212,10 @@ else
 endif
   
 call qp_set_layout (box = graph%box, margin = graph%margin)
-call qp_set_axis ('Y', -70.0_rp, 30.0_rp, 1, 0)
+call qp_get_layout_attrib ('GRAPH', x1, x2, y1, y2, 'POINTS/GRAPH')
+y_bottom = -(y2 + 12 * (s%global%n_lat_layout_label_rows - 1)) / 2
+y_top = y_bottom + y2
+call qp_set_axis ('Y', y_bottom, y_top, 1, 0)
   
 ! Figure out x axis
 ! If it's not 's' then just draw a vertical line at the proper index
@@ -216,25 +224,30 @@ call qp_set_axis ('Y', -70.0_rp, 30.0_rp, 1, 0)
     ! continue
   elseif (plot%x_axis_type .eq. 'index') then
     ! cannot plot layout in this case!
-    plot%valid = .false.
+    graph%valid = .false.
     return
   elseif (plot%x_axis_type .eq. 'ele_index') then
     ! plot vertical line at ele_index
     ! temporarily turn this off until I get scaling working
-    plot%valid = .false.
+    graph%valid = .false.
     return
   else
     call out_io (s_warn$, r_name, "Unknown x_axis_type")
-    plot%valid = .false.
+    graph%valid = .false.
     return
   endif
     
 ! loop over all elements in the lattice. Only draw those element that
 ! are within bounds.
 
+j_label = 0
+
 do i = 1, lat%n_ele_max
 
   ele => lat%ele_(i)
+  if (ele%control_type == multipass_lord$) cycle
+  if (ele%control_type == super_slave$) cycle
+
   if (plot%x_axis_type .eq. 's') then
     call find_element_ends (lat, i, ix1, ix2)
     x1 = lat%ele_(ix1)%s
@@ -242,14 +255,14 @@ do i = 1, lat%n_ele_max
   elseif (plot%x_axis_type .eq. 'index') then
     ! shouldn't be here!
     call out_io (s_error$, r_name, "Shouldn't be here!")
-    plot%valid = .false.
+    graph%valid = .false.
     return
   elseif (plot%x_axis_type .eq. 'ele_index') then
     x1 = i
     x2 = i
   else
     call out_io (s_warn$, r_name, "Unknown x_axis_type")
-    plot%valid = .false.
+    graph%valid = .false.
     return
   endif
     
@@ -287,9 +300,13 @@ do i = 1, lat%n_ele_max
     call err_exit
   end select
 
-  if (s%global%label_lattice_elements .and. s%plot_page%ele_shape(j)%plot_name) &
-                call qp_draw_text (ele%name, ele%s-ele%value(l$)/2, &
-                -25.0_rp, justify = 'CT')
+  
+  if (s%global%label_lattice_elements .and. s%plot_page%ele_shape(j)%plot_name) then
+    j_label = j_label + 1
+    if (j_label == s%global%n_lat_layout_label_rows) j_label = 0
+    y_off = y_bottom + 12.0_rp * j_label 
+    call qp_draw_text (ele%name, ele%s-ele%value(l$)/2, y_off, justify = 'CB')
+  endif
 
   call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
 
@@ -311,12 +328,12 @@ if (s%global%label_keys) then
         do j = lat%ele_(ix)%ix1_slave, lat%ele_(ix)%ix2_slave
           ix1 = lat%control_(j)%ix_slave
           s_pos = lat%ele_(ix1)%s - lat%ele_(ix1)%value(l$)/2
-          call qp_draw_text (trim(str), s_pos, -50.0_rp, &
+          call qp_draw_text (trim(str), s_pos, y_top, &
                               justify = 'CT', height = 10.0_rp)  
         enddo
       else
         s_pos = lat%ele_(ix)%s - lat%ele_(ix)%value(l$)/2
-        call qp_draw_text (trim(str), s_pos, -50.0_rp, &
+        call qp_draw_text (trim(str), s_pos, y_top, &
                                 justify = 'CT', height = 10.0_rp)  
       endif
     enddo

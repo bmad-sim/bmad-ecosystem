@@ -16,7 +16,7 @@ subroutine tao_command (command_line, err)
 
   use tao_mod
   use quick_plot
-  use tao_cmd_history_mod
+  use tao_command_mod
   use tao_dmerit_mod
   use tao_scale_mod
   use tao_x_scale_mod
@@ -24,7 +24,6 @@ subroutine tao_command (command_line, err)
   use tao_plot_window_mod
 
   implicit none
-
 
   integer i, j
   integer ix, ix_line, ix_cmd, which
@@ -82,15 +81,16 @@ subroutine tao_command (command_line, err)
 
   case ('alias')
 
-    call cmd_split(2, .false., err); if (err) return
+    call cmd_split(cmd_line, 2, cmd_word, .false., err); if (err) return
     call tao_alias_cmd (cmd_word(1), cmd_word(2))
+    return
 
 !--------------------------------
 ! CALL
 
   case ('call')
 
-    call cmd_split(10, .true., err); if (err) return
+    call cmd_split(cmd_line, 10, cmd_word, .true., err); if (err) return
     call tao_call_cmd (cmd_word(1), cmd_word(2:10))
 
 !--------------------------------
@@ -98,7 +98,7 @@ subroutine tao_command (command_line, err)
 
   case ('change')
 
-    call cmd_split (4, .false., err)
+    call cmd_split (cmd_line, 4, cmd_word, .false., err)
     call tao_change_cmd (cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4))
 
 !--------------------------------
@@ -106,7 +106,7 @@ subroutine tao_command (command_line, err)
 
   case ('clip')
 
-    call cmd_split (3, .true., err); if (err) return
+    call cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
     if (cmd_word(2) == ' ') then
       call tao_clip_cmd (cmd_word(1), 0.0_rp, 0.0_rp) 
     else
@@ -144,7 +144,7 @@ subroutine tao_command (command_line, err)
 
   case ('run', 'flatten')
 
-    call cmd_split (1, .true., err); if (err) return
+    call cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
     call tao_run_cmd (cmd_word(1))
 
 !--------------------------------
@@ -152,23 +152,25 @@ subroutine tao_command (command_line, err)
 
   case ('help')
 
-    call cmd_split (1, .true., err); if (err) return
+    call cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
     call tao_help (cmd_word(1))
+    return
 
 !--------------------------------
 ! HISTORY
 
   case ('history')
 
-    call cmd_split (1, .true., err); if (err) return
+    call cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
     call tao_history_cmd (cmd_word(1), err)
+    return
 
 !--------------------------------
 ! OUTPUT
 
   case ('output')
 
-    call cmd_split (1, .true., err); if (err) return
+    call cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
     call tao_output_cmd (cmd_word(1))
 
 !--------------------------------
@@ -176,7 +178,7 @@ subroutine tao_command (command_line, err)
 
   case ('place')
 
-    call cmd_split (3, .true., err); if (err) return
+    call cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
     if (cmd_word(3) /= ' ') then
       call out_io (s_error$, r_name, 'NOT RECOGNIZED: ' // cmd_word(3))
       return
@@ -194,7 +196,7 @@ subroutine tao_command (command_line, err)
       return
     endif
 
-    call cmd_split (9, .false., err, '+-')
+    call cmd_split (cmd_line, 9, cmd_word, .false., err, '+-')
 
     i = 1; j = 1
     do 
@@ -218,7 +220,7 @@ subroutine tao_command (command_line, err)
 
   case ('use', 'veto', 'restore')
 
-    call cmd_split(3, .false., err)
+    call cmd_split(cmd_line, 3, cmd_word, .false., err)
     
     call match_word (cmd_word(1), name$%data_or_var, which)
     
@@ -236,7 +238,7 @@ subroutine tao_command (command_line, err)
 
   case ('reinitialize')
 
-    call cmd_split(2, .false., err)
+    call cmd_split(cmd_line, 2, cmd_word, .false., err)
 
     call out_io (s_warn$, r_name, &
          "Use this command with a little caution. There is a small memory leak somewhere!")
@@ -266,7 +268,7 @@ subroutine tao_command (command_line, err)
 
   case ('set')
 
-    call cmd_split (6, .false., err, '=')
+    call cmd_split (cmd_line, 6, cmd_word, .false., err, '=')
 
     if (((cmd_word(1) == 'data' .or. cmd_word(1) == 'var') .and. &
                   cmd_word(4) /= '=') .or. &
@@ -309,7 +311,7 @@ subroutine tao_command (command_line, err)
 
   case ('scale')
 
-    call cmd_split (3, .true., err); if (err) return
+    call cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
     if (cmd_word(2) == ' ') then
       call tao_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp) 
     else
@@ -328,15 +330,14 @@ subroutine tao_command (command_line, err)
 
   case ('show')
 
-    call cmd_split (3, .false., err)
+    call cmd_split (cmd_line, 3, cmd_word, .false., err)
     if (cmd_word(1) == ' ') then
       call out_io (s_error$, r_name, 'SHOW WHAT?')
       return
     endif
 
-    ! adding extra cmd_words to tao_chow_cmd will break some current show
-    ! commands!
     call tao_show_cmd (cmd_word(1), cmd_word(2), cmd_word(3))
+    return
 
 !--------------------------------
 ! SINGLE-MODE
@@ -345,13 +346,14 @@ subroutine tao_command (command_line, err)
 
     s%global%single_mode = .true.
     call out_io (s_blank$, r_name, 'Entering Single Mode...')
+    return
 
 !--------------------------------
 ! VIEW
 
   case ('view')
 
-    call cmd_split (2, .true., err); if (err) return
+    call cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
     call tao_to_int (cmd_word(1), int1, err); if (err) return
     call tao_view_cmd (int1)
 
@@ -360,7 +362,7 @@ subroutine tao_command (command_line, err)
 
   case ('x-axis')
 
-    call cmd_split (2, .true., err); if (err) return
+    call cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
     call tao_x_axis_cmd (cmd_word(1), cmd_word(2))
 
 !--------------------------------
@@ -368,7 +370,7 @@ subroutine tao_command (command_line, err)
 
   case ('x-scale')
 
-    call cmd_split (3, .true., err); if (err) return
+    call cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
     if (cmd_word(2) == ' ') then
       call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err)
     else
@@ -387,93 +389,10 @@ subroutine tao_command (command_line, err)
 
   end select
 
-! do the standard calculations and plotting after command
+!------------------------------------------------------------------------
+! Do the standard calculations and plotting after command
+
   call tao_cmd_end_calc
-
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-contains
-
-
-! This routine splits the command into words.
-!
-! Input: 
-!  n_word         -- integer: number of words to split command line into
-!  no_extra_words -- logical: are extra words allowed at the end?
-!  err            -- logical: error in splitting words
-!  separator      -- character(*): a list of characters that, besides a blank space,
-!                                  signify a word boundary. 
-!
-! Output:
-!  cmd_word(n_word) -- character(40): the individual words
-!
-! For example: 
-!   separator = '-+' 
-!   cmd_line = 'model-design'
-! Restult:
-!   cmd_word(1) = 'model'
-!   cmd_word(2) = '-'
-!   cmd_word(3) = 'design'
-!
-! Anything between single or double quotes is treated as a single word.
-!
-
-subroutine cmd_split (n_word, no_extra_words, err, separator)
-
-  integer i, n, n_word, ix_end_quote
-  character(*), optional :: separator
-  logical err
-  logical no_extra_words
-
-!
-
-  cmd_word(:) = ' '
-
-  if (present(separator)) then
-    i = 0
-    do 
-      if (i == len(cmd_line)) exit
-      i = i + 1
-      if (index(separator, cmd_line(i:i)) /= 0) then
-        cmd_line = cmd_line(:i-1) // ' ' // cmd_line(i:i) // ' ' // &
-                                                            cmd_line(i+1:)
-        i = i + 3
-      endif
-    enddo
-  endif
-
-  ix_line = 0
-  ix_end_quote = 0
-  
-  do n = 1, n_word
-    call string_trim (cmd_line(ix_line+1:), cmd_line, ix_line)
-    if (cmd_line(1:1) .eq. '"') then
-      ix_end_quote = index(cmd_line(2:), '"')
-      if (ix_end_quote .eq. 0) ix_end_quote = len(cmd_line)
-      cmd_word(n) = cmd_line(2:ix_end_quote)
-    elseif (cmd_line(1:1) .eq. "'") then
-      ix_end_quote = index(cmd_line(2:), "'")
-      if (ix_end_quote .eq. 0) ix_end_quote = len(cmd_line)
-      cmd_word(n) = cmd_line(2:ix_end_quote)
-    else
-      cmd_word(n) = cmd_line(:ix_line)
-    endif 
-    if (ix_line == 0) return
-  enddo
-
-  cmd_word(n_word) = cmd_line
-
-  if (no_extra_words) then
-    call string_trim (cmd_line(ix_line+1:), cmd_line, ix_line)
-    if (ix_line /= 0) then
-      call out_io (s_error$, r_name, 'EXTRA STUFF ON COMMAND LINE: ' // &
-                                                                  cmd_line)
-      err = .true.
-    endif
-  endif
-
-end subroutine cmd_split
-
 
 end subroutine tao_command
 

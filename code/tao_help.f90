@@ -76,7 +76,7 @@ do
   if (line(1:4)  == '\end')       cycle
   if (line(1:6)  == '\vskip')     cycle
   if (line(1:10) == '\centering') cycle
-  if (line(1:10) == '\caption') cycle
+  if (line(1:8)  == '\caption') cycle
   
   if (line(1:14)  == '  {\it Command') then
     call out_io (s_blank$, r_name, &
@@ -85,18 +85,18 @@ do
     cycle
   endif
 
-  call eliminate  ("``", '"')
-  call eliminate  ("''", '"')
-  call eliminate  ("$")
-  call eliminate  ("\{", "{")
-  call eliminate  ("\}", "}")
-  call eliminate  ("\_", "_")
-  call eliminate  ("\tao", "Tao")
+  call substitute  ("``", '"')
+  call substitute  ("''", '"')
+  call substitute  ("$")
+  call substitute  ("\{", "{")
+  call substitute  ("\}", "}")
+  call substitute  ("\_", "_")
+  call substitute  ("\tao", "Tao")
   call eliminate2 ('\item[', ']')
   call eliminate2 ('\vn{', '}')
   call eliminate3 ('\ref{', '&')
   call eliminate3 ('& ref{', '\hline')
-  call eliminate  ('\\ \hline')
+  call substitute  ('\\ \hline')
 
   if (line == ' ') then
     if (blank_line_before) cycle
@@ -109,12 +109,12 @@ do
 
 enddo
 
-!-------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
 contains
 !
-! eliminates a string and optionally replaces it with another
+! substitutes a string and optionally replaces it with another
 
-subroutine eliminate (str1, sub)
+subroutine substitute (str1, sub)
 
 character(*) str1
 character(*), optional :: sub
@@ -137,7 +137,7 @@ enddo
 end subroutine
 
 
-!-------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
 ! contains
 !
 ! eliminates two strings, but only if they both exist on the same line
@@ -160,7 +160,7 @@ enddo
 
 end subroutine
 
-!-------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
 ! contains
 !
 ! eliminates everything between strings, including the strings

@@ -32,7 +32,7 @@ type (coord_struct) orb
 type (ele_struct), pointer :: ele
 type (ele_struct) ele3
 
-real(rp) f_phi
+real(rp) f_phi, s_pos
 
 character(24) :: var_name
 character(24)  :: plane, fmt, imt, lmt, amt, ffmt, iimt
@@ -154,8 +154,9 @@ case ('data')
 ! If just "show data" then show all names
 
     if (show_word2 == ' ') then
-
-      nl=nl+1; write (lines(nl), '(5x, a, 27x, a)') 'd2_Name', 'd1_Name'
+      nl=nl+1; write (lines(nl), '(62x, a)') 'Bounds' 
+      nl=nl+1; write (lines(nl), '(5x, a, 23x, a, 14x, a)') &
+                                             'd2_Name', 'Ix  d1_Name', 'Lower  Upper'
       do i = 1, size(u%d2_data)
         d2_ptr => u%d2_data(i)
         if (d2_ptr%name == ' ') cycle
@@ -229,32 +230,34 @@ case ('data')
       line1 = '        Name                       Data         Model        Design'
       write (lines(3), *) line1
       nl = 3
+
 ! if a range is specified, show the data range   
+
       if (show_word3 .ne. ' ') then
-	allocate (show_here(lbound(d1_ptr%d,1):ubound(d1_ptr%d,1)))
+        allocate (show_here(lbound(d1_ptr%d,1):ubound(d1_ptr%d,1)))
         call location_decode (show_word3, show_here, lbound(d1_ptr%d,1), num_locations)
         if (num_locations .eq. -1) then
           call out_io (s_error$, r_name, "Syntax error in range list!")
-	  deallocate(show_here)
+          deallocate(show_here)
           return
         endif
-	do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
+        do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
           if (.not. (show_here(i) .and. d1_ptr%d(i)%exists)) cycle
           if (nl+2 .gt. max_lines) then
             call out_io (s_blank$, r_name, "Too many elements!")
             call out_io (s_blank$, r_name, "Listing first \i5\ selected elements", max_lines-4)
-	    exit
+            exit
           endif
           nl=nl+1
           write(lines(nl), '(i, 2x, a16, 3es14.4)') i, &
                  d1_ptr%d(i)%name, d1_ptr%d(i)%meas_value, &
                  d1_ptr%d(i)%model_value, d1_ptr%d(i)%design_value
-	enddo
+        enddo
         nl=nl+1
         write (lines(nl), *) line1
-	deallocate(show_here)
-      else	
-	do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
+        deallocate(show_here)
+      else  
+        do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
           if (.not. d1_ptr%d(i)%exists) cycle
           if (nl+2 .gt. max_lines) then
             call out_io (s_blank$, r_name, "Too many elements!")
@@ -274,9 +277,11 @@ case ('data')
 
     else 
 
-      write(lines(1), '(2a)') 'Data type:    ', d2_ptr%name
+      nl=nl+1; write(lines(nl), '(2a)') 'D2_Data type:    ', d2_ptr%name
+      nl=nl+1; write(lines(nl), '(5x, a)') '                   Bounds'
+      nl=nl+1; write(lines(nl), '(5x, a)') 'D1_Data name    lower: Upper' 
       do i = 1, size(d2_ptr%d1)
-        if (nl+1 .gt. max_lines) then
+        if (nl+10 .gt. max_lines) then
           call out_io (s_blank$, r_name, &
               "Found too many d1_data! Listing first \i5\ matches", max_lines-1)
           exit
@@ -284,6 +289,17 @@ case ('data')
         nl=nl+1; write(lines(nl), '(5x, a, i5, a, i5)') d2_ptr%d1(i)%name, &
                   lbound(d2_ptr%d1(i)%d, 1), ':', ubound(d2_ptr%d1(i)%d, 1)
       enddo
+
+      if (any(d2_ptr%descrip /= ' ')) then
+        nl=nl+1; write (lines(nl), *)
+        nl=nl+1; write (lines(nl), '(a)') 'Descrip:'
+        do i = 1, size(d2_ptr%descrip)
+          if (d2_ptr%descrip(i) /= ' ') then
+            nl=nl+1; write (lines(nl), '(i4, 2a)') i, ': ', d2_ptr%descrip(i)
+          endif
+        enddo
+      endif
+
     endif
 
     call out_io (s_blank$, r_name, lines(1:nl))
@@ -451,13 +467,15 @@ case ('lattice')
     if (ix == 0 .or. at_ends) then
       ele3 = ele
       orb = u%model_orb(ix)
+      s_pos = ele3%s
     else
       call twiss_and_track_partial (u%model%ele_(ix-1), ele, &
                 u%model%param, ele%value(l$)/2, ele3, u%model_orb(ix-1), orb)
+      s_pos = ele%s-ele%value(l$)/2
     endif
     nl=nl+1
     write (lines(nl), '(i6, 1x, a16, 1x, a16, f10.3, 2(f7.2, f8.3, f5.1, f8.3))') &
-          ix, ele%name, key_name(ele%key), ele%s-ele%value(l$)/2, &
+          ix, ele%name, key_name(ele%key), s_pos, &
           ele3%x%beta, f_phi*ele3%x%phi, ele3%x%eta, 1000*orb%vec(1), &
           ele3%y%beta, f_phi*ele3%y%phi, ele3%y%eta, 1000*orb%vec(3)
   enddo
@@ -641,17 +659,17 @@ case ('var')
     line1 = '       Name                     Data         Model        Design  Useit_opt'
     write (lines(3), *) line1
     nl = 3
-! if a range is specified, show the variable range   
+    ! if a range is specified, show the variable range   
     if (show_word3 .ne. ' ') then
       allocate (show_here(lbound(v1_ptr%v,1):ubound(v1_ptr%v,1)))
       call location_decode (show_word3, show_here, lbound(v1_ptr%v,1), num_locations)
       if (num_locations .eq. -1) then
         call out_io (s_error$, r_name, "Syntax error in range list!")
         deallocate(show_here)
-	return
+        return
       endif
       do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
-      	if (.not. (show_here(i) .and. v1_ptr%v(i)%exists)) cycle
+        if (.not. (show_here(i) .and. v1_ptr%v(i)%exists)) cycle
         if (nl+2 .gt. max_lines) then
           call out_io (s_blank$, r_name, "Too many elements!")
           call out_io (s_blank$, r_name, "Listing first \i5\ selected elements", max_lines-4)
@@ -665,7 +683,7 @@ case ('var')
       nl=nl+1
       write (lines(nl), *) line1
       deallocate(show_here)
-    else	
+    else
       do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
         if (.not. v1_ptr%v(i)%exists) cycle
         if (nl+2 .gt. max_lines) then

@@ -76,7 +76,7 @@ elseif (what == 'ele_index') then
 elseif (what == 'index') then
 ! if no curves to scale then can't scale to index
   if (.not. associated(plot%graph(1)%curve)) then
-    plot%valid = .false.
+    plot%graph%valid = .false.
     return
   endif
   iu = plot%graph(1)%curve(1)%ix_universe

@@ -7,7 +7,7 @@
 program tao_cl
 
   use tao_mod
-  use tao_cmd_history_mod
+  use tao_command_mod
 
   implicit none
 

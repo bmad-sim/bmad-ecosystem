@@ -150,24 +150,24 @@ the description of the \vn{set} command in Chapter~\ref{c:command}.
 The \vn{tao_global_struct} is
 \begin{example}
   type tao_global_struct
-    real(rp) :: y_axis_plot_dmin = 1e-4 
-                                       ! Minimum y_max-y_min allowed for a graph.
-    integer :: u_view = 1              ! Which universe we are viewing.
-    integer :: n_opti_cycles = 20      ! number of optimization cycles
-    integer :: lun_command_file = 0    ! unit number for a command file.
-                                       !  0 -> no command file.
-    integer :: ix_key_bank = 0         ! For single mode.
-    integer :: phase_units = radians\$  ! Phase units on output.
-    integer :: bunch_to_plot = 1       ! Which bunch to plot
-    integer :: n_curve_pts = 401       ! Number of points for plotting a smooth curve
+    real(rp) :: y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
+    integer :: u_view = 1                  ! Which universe we are viewing.
+    integer :: n_opti_cycles = 20          ! number of optimization cycles
+    integer :: lun_command_file = 0        ! unit number for a command file.
+                                           !  0 -> no command file.
+    integer :: ix_key_bank = 0             ! For single mode.
+    integer :: n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
+    integer :: phase_units = radians\$     ! Phase units on output.
+    integer :: bunch_to_plot = 1           ! Which bunch to plot
+    integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
     character(16) :: track_type = 'single' ! or 'beam' or 'macro' 
     character(16) :: prompt_string = 'Tao'
-    character(16) :: optimizer = 'de'  ! optimizer to use.
-    type (tao_global_hook) hook        ! Custom stuff. Defined in tao_hook.f90
-    logical :: var_limits_on = .false. ! Respect the variable limits?
-    logical :: plot_on = .true.        ! Do plotting?
-    logical :: opt_with_ref = .false.  ! use reference data in optimization?
-    logical :: opt_with_base = .false. ! use base data in optimization?
+    character(16) :: optimizer = 'de'      ! optimizer to use.
+    type (tao_global_hook) hook            ! Custom stuff. Defined in tao_hook.f90
+    logical :: var_limits_on = .false.     ! Respect the variable limits?
+    logical :: plot_on = .true.            ! Do plotting?
+    logical :: opt_with_ref = .false.      ! use reference data in optimization?
+    logical :: opt_with_base = .false.     ! use base data in optimization?
     logical :: single_mode = .false.
     logical :: optimizer_running 
     logical :: init_opt_wrapper = .true.
@@ -779,7 +779,6 @@ Template plots are defined using namelists with a name of
 \begin{example}
   \&tao_template_plot
     plot%name        = "<plot_name>"
-    plot%who(i)      = "<who_to_plot>", <sign>
     plot%x           = <qp_axis_struct>
     plot%x_axis_type = "<x_axis_type>"   ! "index" or "s". Default is "index".
     plot%ix_universe = <number> ! used for lat_layout plots
@@ -791,8 +790,6 @@ For example:
 \begin{example}
   \&tao_template_plot
     plot%name        = "orbit"
-    plot%who(1)      = "model", +1
-    plot%who(2)      = "design", -1
     plot%x%min       =   0
     plot%x%max       = 100
     plot%x%major_div = 10
@@ -823,18 +820,6 @@ the plot.
     s          ! Longitudinal position in the lattice.
 \end{example}
 
-\vn{plot%who(i)} sets what is plotted by default. For example, if 
-\vn{plot%who(i) = model - design} then by default this plot show the \vn{model}
-value minus the \vn{design} value for every data point. Possibilities are:
-\begin{example}
-  model     ! model values.
-  design    ! design values.
-  base      ! Base values
-  meas      ! data values.
-  ref       ! reference data values.
-\end{example}
-If nothing is specified, the default is to plot \vn{model}. 
-
 \vn{n_graph} sets the number of graphs associated with the plot and
 each one needs a \vn{tao_template_graph} namelist to define it. These
 namelists should be placed directly after their respective
@@ -852,11 +837,13 @@ namelists should be placed directly after their respective
     graph%y2              = <qp_axis_struct>
     graph%n_curve         = <number_of_curves>
     graph%clip            = <logical> ! Clip plot at grpah boundary. default = .true.
+    graph%who(i)          = "<who_to_plot>", <sign>
     curve(i)%data_type    = "<data_type>"
     curve(i)%data_source  = "<source_name>" !source for the data curve points
     curve(i)%units_factor = <factor> ! divide data by this value
-    curve(i)%use_y2       = <logical> (not currently inplemented)
+    curve(i)%use_y2       = <logical> 
     curve(i)%draw_line    = <logical>
+    curve(i)%draw_symbols = <logical>
     curve(i)%ix_universe  = <universe_number> ! default = 0 => use viewed universe
     curve(i)%line         = <qp_line_struct>
     curve(i)%symbol       = <qp_symbol_struct>
@@ -879,12 +866,26 @@ For example:
     graph%y%min           = -4
     graph%y%major_div     = 4
     graph%n_curve         = 1
+    graph%who(1)          = "model", +1
+    graph%who(2)          = "design", -1
     curve(1)%data_source  = 'data_array'
     curve(1)%data_type    = "orbit:x"
     curve(1)%units_factor = 1000
     curve(1)%use_y2       = .false.
   /
 \end{example}
+
+\vn{graph%who(i)} sets what is plotted by default. For example, if 
+\vn{graph%who(i) = model - design} then by default the graph will show the \vn{model}
+value. Possibilities are:
+\begin{example}
+  model     ! model values.
+  design    ! design values.
+  base      ! Base values
+  meas      ! data values.
+  ref       ! reference data values.
+\end{example}
+If nothing is specified, the default is to plot \vn{model}. 
 
 \vn{graph%type} is the type of graph. \tao knows about the
 following types:
@@ -914,10 +915,17 @@ source and the \vn{v1_var} type foa \vn{var_array} curve data type.
 This is what points the curve to the proper data so, there needs to be a
 corresponding data or var type defined in the initialization file. 
 
-
 \vn{curve%convert} is a logical that is only used
 with \vn{curve%data_name} = "coupling" and tells \tao to convert the
 coupling data into cbar data before plotting.
+
+\vn{curve%draw_symbols} determines whether a symbol is drawn at the
+data points. The size, shape and color of the symbols is determined by
+\vn{curve%symbol}.
+
+\vn{curve%draw_line} determines whether a curve is drawn through the
+data points. The thickness, style (solid, dashed, etc.), and color
+is determined by \vn{curve%line}
 
 %-----------------------------------------------------------------
 \subsection{Lattice Layout}

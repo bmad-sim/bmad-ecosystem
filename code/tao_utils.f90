@@ -407,7 +407,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_useit_data_plot_calc (plot, data)
+! Subroutine tao_data_useit_plot_calc (graph, data)
 !
 ! Subroutine to set the data for plotting.
 !
@@ -418,18 +418,20 @@ end subroutine
 !     %useit_plot -- True if good for plotting.
 !-
 
-subroutine tao_useit_data_plot_calc (plot, data)
+subroutine tao_data_useit_plot_calc (graph, data)
 
 implicit none
 
-type (tao_plot_struct) plot
+type (tao_graph_struct) graph
 type (tao_data_struct) data(:)
 
 !
 
 data%useit_plot = data%exists .and. data%good_user .and. data%good_plot
-if (any(plot%who%name == 'meas')) data%useit_plot = data%useit_plot .and. data%good_meas
-if (any(plot%who%name == 'ref'))  data%useit_plot = data%useit_plot .and. data%good_ref
+if (any(graph%who%name == 'meas')) &
+                      data%useit_plot = data%useit_plot .and. data%good_meas
+if (any(graph%who%name == 'ref'))  &
+                      data%useit_plot = data%useit_plot .and. data%good_ref
 
 end subroutine
 
@@ -437,7 +439,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_useit_var_plot_calc (plot, var)
+! Subroutine tao_var_useit_plot_calc (graph, var)
 !
 ! Subroutine to set the variables for plotting.
 !
@@ -448,19 +450,19 @@ end subroutine
 !     %useit_plot -- True if good for plotting.
 !-
 
-subroutine tao_useit_var_plot_calc (plot, var)
+subroutine tao_var_useit_plot_calc (graph, var)
 
 implicit none
 
-type (tao_plot_struct) plot
+type (tao_graph_struct) graph
 type (tao_var_struct) var(:)
 
 !
 
 var%useit_plot = var%exists .and. var%good_user .and. var%good_plot &
                                                 .and. var%good_var
-if (any(plot%who%name == 'meas')) var%useit_plot = var%useit_plot
-if (any(plot%who%name == 'ref'))  var%useit_plot = var%useit_plot
+if (any(graph%who%name == 'meas')) var%useit_plot = var%useit_plot
+if (any(graph%who%name == 'ref'))  var%useit_plot = var%useit_plot
 
 end subroutine
 
@@ -793,9 +795,10 @@ implicit none
 
 ! Note: tao_merit calls tao_lattice_calc.
 
-  this_merit =  tao_merit ()         
-  call tao_plot_data_setup ()     ! transfer data to the plotting structures
-  call tao_plot_out ()            ! Update the plotting window
+  this_merit =  tao_merit()         
+  call tao_plot_data_setup()       ! transfer data to the plotting structures
+  call tao_hook_plot_data_setup()
+  call tao_plot_out()              ! Update the plotting window
 
 end subroutine tao_cmd_end_calc
 

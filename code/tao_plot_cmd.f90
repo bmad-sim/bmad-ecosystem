@@ -18,8 +18,9 @@ use tao_mod
 implicit none
 
 type (tao_plot_struct), pointer :: plot
+type (tao_graph_struct), pointer :: graph
 type (tao_plot_region_struct), pointer :: region
-type (tao_plot_who_struct), automatic :: p_who(size(s%template_plot(1)%who))
+type (tao_plot_who_struct) :: p_who(n_who_maxx)
 integer i, j
 integer ix, ix_line, ix_cmd, which, n_word
 
@@ -60,12 +61,21 @@ enddo
 
 if (where == 'all') then
   do i = 1, size(s%plot_page%region)
-    s%plot_page%region(i)%plot%who = p_who
+    do j = 1, size(s%plot_page%region(i)%plot%graph)
+      s%plot_page%region(i)%plot%graph(j)%who = p_who
+    enddo
   enddo
+
 else
-  call tao_find_plot_by_region (err, where, plot)
+  call tao_find_plot_by_region (err, where, plot, graph)
   if (err) return
-  plot%who = p_who
+  if (associated(graph)) then
+    graph%who = p_who
+  else
+    do j = 1, size(plot%graph)
+      plot%graph(j)%who = p_who
+    enddo
+  endif
 endif
 
 err = .false.

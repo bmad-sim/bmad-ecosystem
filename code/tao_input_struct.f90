@@ -78,6 +78,7 @@ type tao_curve_input
   integer symbol_every
   integer ix_universe
   logical draw_line
+  logical draw_symbols
   logical use_y2
   type (qp_line_struct) line
   type (qp_symbol_struct) symbol
@@ -92,6 +93,8 @@ type tao_graph_input
   integer box(4)
   integer ix_universe
   integer n_curve
+  type (qp_point_struct) legend_origin
+  type (tao_plot_who_struct) who(n_who_maxx)
   type (qp_rect_struct) margin
   type (qp_axis_struct) y
   type (qp_axis_struct) y2
@@ -100,7 +103,6 @@ end type
 
 type tao_plot_input
   character(16) name
-  type (tao_plot_who_struct) who(10)
   type (qp_axis_struct) x
   character(16) x_axis_type
   integer n_graph

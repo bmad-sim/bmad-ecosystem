@@ -270,7 +270,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
         endif
       enddo
       
-        call d2_data_stuffit (s%u(i))
+      call d2_data_stuffit (s%u(i))
       enddo uni_loop1
     else
       call d2_data_stuffit (s%u(n_uni))
@@ -289,8 +289,11 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
       data(:)%good_user  = .true.
       read (iu, nml = tao_d1_data, err = 9150)
       if (ix_d1_data /= k) then
-        write (line, '(a, 2i4)') 'IX_D1_DATA MISMATCH:', k, ix_d1_data
-        call out_io (s_abort$, r_name, line, 'FOR: ' // d2_data%name)
+        write (line, '(a, 2i4)') ', k, ix_d1_data'
+        call out_io (s_abort$, r_name, 'ERROR: IX_D1_DATA MISMATCH FOR D2_DATA: ' // d2_data%name, &
+                                       '       THE D1_DATA HAD THE NAME: ' // d1_data%name)
+        call out_io (s_blank$, r_name, '       I EXPECTED IX_D1_DATA TO BE: \i3\', k)
+        call out_io (s_blank$, r_name, '       I READ IX_D1_DATA TO BE: \i3\', ix_d1_data)  
         call err_exit
       endif
       call out_io (s_blank$, r_name, &
@@ -418,6 +421,7 @@ contains
 subroutine init_universe (u)
 
   type (tao_universe_struct) :: u
+  integer i
 
 !
 
@@ -430,6 +434,9 @@ subroutine init_universe (u)
   if (n_d2_data_max /= 0) then
     if (associated(u%d2_data)) deallocate (u%d2_data)
     allocate (u%d2_data(n_d2_data_max))
+    do i = 1, n_d2_data_max
+      u%d2_data(i)%descrip = ' '
+    enddo
     u%d2_data%name = ' '  ! blank name means it doesn't exist
   endif
 
@@ -774,7 +781,7 @@ subroutine var_stuffit (ix_u_in)
         call out_io (s_abort$, r_name, &
                      "Internal error in counting variables")
         call err_exit
-	    endif
+      endif
       enddo found_one_loop
     endif
      
