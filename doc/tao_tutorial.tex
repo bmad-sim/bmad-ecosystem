@@ -61,7 +61,101 @@
 
 \section*{Tao: The Tool for Accelerator Optics}
 
-Many simulation problems fall into one of three categories: 
+The \tao program was developed
+to reduce the time needed to develop working programs. \tao is a
+machine independent program that implements the essential ingredients
+needed to solve simulation problems. To make the
+connection, \tao uses configuration input files that can be tailored to
+specific machines. Additionally, \tao has been built
+to be easily customizable so that extending \tao to solve new and
+different problems is relatively straight forward.
+
+More information can be found at the \bmad web site at
+\begin{example}
+  http://www.lepp.cornell.edu/~dcs/bmad
+\end{example}
+
+Tutorials are always difficult to write. Please send any recommendations 
+for imporvement or notices of out-right errors to:
+\begin{example}
+  Jeff Smith <js344@cornell.edu>
+\end{example}
+}
+
+%----------------------------------------------------------------
+\tableofcontents
+\listoffigures
+%% \listoftables
+
+\setlength{\parskip}{\dPar}
+\setlength{\parindent}{0ex}
+
+\part{``Vanilla'' \tao}
+\label{p:vanilla_tao}
+
+%----------------------------------------------------------------
+\chapter{Before we start}
+\label{c:before_beginning}
+
+\tao is readily customizable. All the bookkeeping has already been done and all
+you need to do custom analysis is write the subroutines perinent to your
+project. However beginners are advised to start with
+``out of the box'' \tao while getting to know the program. This tutorial will
+guide you through the basic features of this ``vanilla'' \tao and then show you
+how to customize \tao for your speciffic purposes.
+
+\section{Getting and Compiling \tao}
+
+\tao is available in the \cesr CVS area. To checkout a copy type `\cmd{cvs co
+tao'} in the directory from where you want to run \tao. If you don't have \cesr
+CVS write permission then type `\cmd{cesrcvs co tao}'. This will check out a copy
+but will not allow you to check in changes to the code. If you aren't at Wilson
+Laboratory then contact David Sagan \cmd{<dcs16@cornell.edu>} to obtain a copy. 
+
+From the newly created \cs{./tao} directory type `\cmd{gmake}' to create the
+libraries and then type `\cmd{gmake -f M.tao}' to create
+the ``vanilla'' \tao program. Vanilla \tao is the basic \tao program without any
+user customizations. If you are using a custom version of \tao then
+follow the compiling directions from the custom \tao author. Keep in mind that
+command syntax and usage may vary between custom versions of \tao (this is a
+\textit{feature} \textbf{not} a bug!).
+
+Once \tao has compiled go to the subdirectory \cs{./program} and type
+\cmd{../../bin/tao} to run ``vanilla'' \tao. This directory contains all the
+configuration files to get everything working. The first time you run the
+program it will need to create a digested \bmad lattice file for the included
+lattice. This may take a few minutes.
+
+\subsection{Customising \tao}
+
+After you are familiar with the basics of \tao you are ready to fully exploit
+the versatility of this wonderful program. See part~\ref{p:custom_tao} to learn
+how to do this.
+
+%----------------------------------------------------------------
+%----------------------------------------------------------------
+\chapter{In the Beginning...}
+\label{c:beginning}
+
+%----------------------------------------------------------------
+\section{There was the the user}
+
+Part~\ref{p:vanilla_tao} assumes you are already familiar with basic particle beam
+dynamics and its formalism. There are several books that introduce the topics
+very well. The best the author has found so far is \textit{The Physics of
+Particle Accelerators} by Klaus Wille. 
+
+\tao is based on the \bmad subroutine library and you should have
+a working knowledge of the conventions used by \bmad. \tao can be used ``out of
+the box'' so an understanding of the nitty-gritty details of \bmad is not
+necessary, however, one should be familiar with the material in Part I
+of the \bmad manual.
+
+First of all, what's \tao good for? Well, everything. It's versatility is that
+it's easily exapandable. Think of it as an accelerator design and analysis
+environment. the entire \bmad library is at your disposal.But even without any 
+customizations \tao will do much analysis. These problems fall into three main
+catagories:
 
 \begin{itemize}
 \item 
@@ -81,93 +175,9 @@ machine, you have "data" that you want to view, and, in the first two
 categories above, you want to match the machine model to the data (in
 designing a lattice the constraints correspond to the data).
 
-Because of this commonality of design, the \tao program was developed
-to reduce the time needed to develop working programs. \tao is a
-machine independent program that implements the essential ingredients
-needed to solve simulation problems. To make the
-connection, \tao uses configuration input files that can be tailored to
-specific machines. Additionally, \tao has been built
-to be easily customizable so that extending \tao to solve new and
-different problems is relatively straight forward.
-
-More information, including the most up--to--date version of this
-tutorial, can be found at the \bmad web site at
-\begin{example}
-  http://www.lepp.cornell.edu/~dcs/bmad
-\end{example}
-
-Tutorials are always difficult to write. Please send any recommendations 
-for imporvement or notices of outright errors to:
-\begin{example}
-  Jeff Smith <js344@cornell.edu>
-\end{example}
-}
-
-%----------------------------------------------------------------
-\tableofcontents
-%% \listoffigures
-%% \listoftables
-
-\setlength{\parskip}{\dPar}
-\setlength{\parindent}{0ex}
-
-%----------------------------------------------------------------
-\chapter{Before we start}
-\label{c:before_beginning}
-
-\tao is readily customizable. However beginners are advised to start with
-``out of the box'' \tao while getting to know the program.
-
-\section{Getting and Compiling \tao}
-
-\tao is available in the \cesr CVS area. To checkout a copy type `\cmd{cvs co
-tao'} in the directory from where you want to run \tao. If you don't have \cesr
-CVS write permission then type `\cmd{cesrcvs co tao}'. This will check out a copy
-but will not allow you to check in changes to the code. If you aren't at Wilson
-Laboratory then contact David Sagan <dcs16@cornell.edu> to obtain a copy. 
-
-From the newly created \cs{./tao} directory type `\cmd{gmake}' to create the
-libraries and then type `\cmd{gmake -f M.tao}' to create
-the ``vanilla'' \tao program. Vanilla \tao is the basic \tao program without any
-user customizations. This tutorial covers to basic usage of this program.
-If you are using a custom version of \tao then
-follow the compiling directions from the custom \tao author. Keep in mind that
-command syntax and usage may vary between custom versions of \tao (this is a
-\textit{feature} \textbf{not} a bug!).
-
-Once \tao has compile go to the subdirectory \cs{./program} and type
-\cmd{../../bin/tao} to run the program. This directory contains all the
-configuration files to get everything working.
-
-\subsection{customising \tao}
-
-If you are creating a custom version of \tao then you are already more advanced than
-the scope of this tutorial! See the \tao Reference Manual for details.
-
-%----------------------------------------------------------------
-%----------------------------------------------------------------
-\chapter{In the Beginning...}
-\label{c:beginning}
-
-%----------------------------------------------------------------
-\section{There was the the user}
-
-This tutorial assumes the reader is already familiar with basic particle beam
-dynamics and its formalism. There are several books that introduce the topics
-very well. The best the author has found so far is \textit{The Physics of
-Particle Accelerators} by Klaus Wille. 
-
-\tao is based on the \bmad subroutins library and the reader is assumed to have
-a working knowledge of the conventions used by \bmad. \tao can be used ``out of
-the box'' so an understanding of the nitty-gritty details of \bmad is not
-necessary, however, one should be familiar with the material in chapters 1 and 2
-of the \bmad manual.
-
-\fbox{introduce the basic things one would want to do with \tao}
-
 This tutorial is designed to get the user up and starting with \tao without
 needing to dredge through the entire reference manual. Full command syntax
-or greater detail on any topic can be found in this manual.
+or greater detail on any topic can be found in the referencereferenc  manual.
 
 %----------------------------------------------------------------
 \section{Then there was the Super-universe}
@@ -176,18 +186,19 @@ Everything known to \tao is placed in an area called the
 \textit{super-universe}. Within the \textit{super-universe} lies one or more
 universes each containing a particular machine lattice. This allows for the user
 to do analysis on multiple machines or multiple configurations of a single
-machine at the same time. 
+machine at the same time. A \textit{super-universe} consists of the following
+parts:
 
 \subsection{A typical universe}
 A universe contains a \bmad lattice plus whatever data one wishes to study
-within this lattice (i.e. twiss parameters, orbit, phase \&etc...\. Actually,
-there are three lattice instances within each universe: the \textbf{design
-lattice}, \textbf{model lattice} and \textbf{base lattice}. All lattice changes
-specified during a session are incurred on the model lattice. The design lattice is
+within this lattice (i.e. twiss parameters, orbit, phase \&etc...) . Actually,
+there are three lattices within each universe: the \textbf{design
+lattice}, \textbf{model lattice} and \textbf{base lattice}. \emph{All lattice changes
+specified during a \tao session are incurred on the model lattice.} The design lattice is
 fixed at initilization time and serves as a reference point for any elemental
 changes incurred during the \tao session. The base lattice also serves as a
 reference point but the user can transfer the model lattice over to the base
-lattice whenever it is desired.
+lattice at any time to create your reference lattice.
 
 Each data point (for example, the horizontal orbit at some detector) has 5 datum
  quantities associated with it: the \textbf{measured data}, \textbf{reference
@@ -195,47 +206,62 @@ data}, \textbf{model data}, \textbf{design data} and \textbf{base data}. The
 model, design and base data areas correspond to the appropriate quantity
 calculated in their respective lattice above. The measured data corresponds to 
 data obtained during a measurement. If doing design work then the desired data
-value would be placed here \( this is also refered to as a constraint during
-optimization\). The reference data is just like the base data except it isn't
-associated or synchronized with a lattice.
+value would be placed here. This data area is also refered to as the constraint during
+optimization. The reference data is for looking at changes in the data with
+respect to a reference.
 
 \subsection{Variables}
 
 Variables control attributes of elements in the model lattice of one or more
-universes. So, a given variable may control a single atribute of one element
-for one or more universes. 
+universes. So, a given variable may control a single attribute of one element
+for one or more universes. These are what you vary in order to change
+your model lattice. You can also change your model lattice by directly changing
+and lattice element parameter. However, if you plan on doing any optimization then 
+you will need to use the variables.
+
+\subsection{Key Bindings}
+
+Key bindings are used in \textit{single mode} where each key
+stroke is interpreted without the user having to press the carriage control key.
+Each group of keys is bound to a different variable and pressing these keys will
+allow you to rapidly change your lattice optics.
 
 \subsection{Other stuff in the Super-universe}
 
-The super-universe also contains information pertaining to global variables and
-plotting. No need to go into the details here. The \tao reference manual goes
-into much more detail.
+The super-universe also contains information pertaining to global environment variables and
+plotting. No need to go into the details here. The \tao reference manual will
+tell you all about this.
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
 \chapter{Initializing \tao}
 \label{c:initializing}
 
-Initialization occurs at startup. There are three files used to initialize \tao.
+Initialization occurs at startup. There are \emph{four} files used to initialize \tao.
   \vspace*{-3ex}
 \begin{description}
+  \item[\textit{your lattice file}] \Newline
+    This is your lattice file. ``Vanilla'' \tao comes with its own for
+demonstration purposes.
   \item[tao.init] \Newline 
-    This is where global parameters are specified and the data and variable
-arrays are specified.
+    This is where global environment variables, data/variable
+arrays and key bindings are specified.
   \item[tao\_plot.init] \Newline
-    This is where the plotting is set up.
-  \item[tao.startup] \Newline
-    this is a command file that is read in after initialization. Any commands you
+    This is where plotting is set up.
+  \item[tao.startup (optional)] \Newline
+    This is a command file that is read in after initialization. Any commands you
 want entered in \tao everytime you start up are put here. This is also a great
 place to define aliases.
 \end{description}
 
 There is no need to go into the details of the initialization files here. If
-using vanilla \tao these are already set up for you in \cs{/tao/program}. These
-initialization files setup \tao for use with a \cesr lattice. If
-using a custom version of \tao then the author will have already set something
+using vanilla \tao these are already set up for you in \cs{tao/program} and will
+setup \tao for use with the included \cesr lattice. If
+using a custom version of \tao then the customized \tao author will have already set something
 up for you to use. If he or she didn't then go complain to him or her for making
-your life difficult and demand proper treatment.
+your life difficult and demand proper treatment. If he or she still refuses to
+do this for you then it looks like you'll need to read part~\ref{p:custom_tao}
+of this tutorial!
 
 \textbf{NOTE: the following chapters will work with vanilla \tao. The commands
 entered and plotting output may be different for custom versions.}
@@ -252,11 +278,12 @@ entered and plotting output may be different for custom versions.}
 When \tao first starts up you will see a plot window and a command prompt. 
 Figure~\ref{f:plot_begin} shows what you will see in the plot window. In the top
 two plots you see the \vn{x} and \vn{y} model lattice orbit data. The horizontal
-axis is the \cesr BPM index. The pretzel and L03 vertical bump can be clearly 
+axis is the \cesr BPM index. The horizontal pretzel and L03 vertical bump can be clearly 
 seen. The slight vertical displacement due to the solenoid can also be seen around 
-the IP. The default particle is the electron. The bottom two plots show the relative 
-particle phase. That is the difference
-between the model and design phases (as specified in the plot title: [model -
+the IP. The orbit data is for the closed orbit electron (this being a storage
+ring). The bottom two plots show the relative 
+particle phase. That is, the difference
+between the model and design phases (as documented in the plot title as [model -
 design]. 
 
 As a first step let's view the absolute model phase. At the \cmd{TAO>} prompt type
@@ -264,7 +291,7 @@ As a first step let's view the absolute model phase. At the \cmd{TAO>} prompt ty
   plot bottom model
 \end{example}
 This will change the data plotted in the bottom two graphs to just the model.
-The plots are now way off scale. To let \tao automatically set the scale type
+The plots are now way off scale. Let \tao automatically set the scale by typing
 \begin{example}
   scale bottom
 \end{example}
@@ -277,6 +304,7 @@ phase by typing
   plot bottom model - design
 \end{example}
 
+
 Let's now look at the beta function by typing
 \begin{example}
   place bottom beta
@@ -285,7 +313,7 @@ Again, we need to rescale the plots by typing
 \begin{example}
   scale bottom
 \end{example}
-We see the periodic beta function where large horizontal beta corresponds to
+We see the periodic FODO beta function where large horizontal beta corresponds to
 small vertical beta and vice versa.
 
 Likewise, we can look at the dispersion in the top two graphs by typing
@@ -297,11 +325,20 @@ The plot window should now look like Figure~\ref{f:plot_eta_beta}.
 
 Now let's look at the coupling (C-matrix) by typing
 \begin{example}
-  place bottom cbar
+  place bottom coupling
   scale bottom
 \end{example}
 We see that there is strong coupling within the CLEO solenoid and virtually no
 coupling anywhere else.
+
+The x-axis is currently the BPM index number. It is sometimes convenient to plot
+the data versus the longitudinal position. This is done by typing
+\begin{figure}
+  x-axis all s
+\end{example}
+The \cmd{all} will apply the change to all plot areas (both top and bottom). In
+any of the above commands the \cmd{top} or \cmd{bottom} coulf have been replaced
+with \cmd{all}.
 
 \begin{figure}
   \centering
@@ -334,8 +371,8 @@ the output should look like:
    5  cbar
    6  coupling
 \end{example}
-There are 6 data types defined. The sixth is the relative amplitude in
-the coupled demension. See the manual for an explanation.
+There are 6 data types defined in the initialization file. The fifth and sixth are 
+closely related. See the manual for an explanation.
 
 To see the data values for the horizontal beta function for \cesr BPMs 1 through
 50 type
@@ -356,14 +393,14 @@ To view the quadrupole k1 values for \cesr quadrupoles 5  and 20 through 30 type
 Again, since we haven't changed any quadrupoles the model values are all at their
 design values.
 
-You can also see details of a particular lattice element. To view the details
+You can also see the details of a particular lattice element. To view the details
 for quadrupole Q05W type
 \begin{example}
   sho ele Q03W
 \end{example}
 
-A list of lattice elements betweem two elements can be shown by typing (for
-example)
+A list of lattice elements between two elements can be shown by typing (for
+example between elements BEGINNING and Q05W)
 \begin{example}
   sho lattice beginning Q05W
 \end{example}
@@ -372,7 +409,7 @@ Command line help is obtained by typing
 \begin{example}
   help <command\_name>
 \end{example}
-where <command\_name> is the command you wish help with.
+where \<command\_name\> is the command you want help with.
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
@@ -498,4 +535,12 @@ optimizer put the quadrupole k1 values back to the design values.
 \chapter{Where to go from here}
 \label{c:where_to_go}
 
+%----------------------------------------------------------------
+%----------------------------------------------------------------
+%----------------------------------------------------------------
+%----------------------------------------------------------------
+\part{Customizing \tao}
+\label{p:custom_tao}
+
+%----------------------------------------------------------------
 \end{document}
