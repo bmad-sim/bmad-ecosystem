@@ -106,8 +106,8 @@ recursive subroutine twiss_at_element (ring, ix_ele, start, end, average)
 
   tot = 0
   do i = ele%ix1_slave, ele%ix2_slave
+    ix = ring%control_(i)%ix_slave
     if (ct == group_lord$ .or. ct == overlay_lord$) then
-      ix = ring%control_(i)%ix_slave
       tot = tot + abs(ring%control_(i)%coef) * ring%ele_(ix)%value(l$)
     else
       tot = tot + ring%ele_(ix)%value(l$)
