@@ -21,11 +21,11 @@ everything after the exclamation mark on the line are ignored.
 Arithmetic expressions can be used in a place where a real value is required.
 The standard operators are defined:
 \begin{ventry}{10em}
-\item[+] Addition
-\item[-] Subtraction
-\item[*] Multiplication
-\item[/] Division
-\item[$\wedge$] Exponentiation
+\item[$a + b$] Addition
+\item[$a - b$] Subtraction
+\item[$a \, \ast \, b$] Multiplication
+\item[$a \; / \; b$] Division
+\item[$a \, \land \, b$] Exponentiation
 \end{ventry}
 The following functions are recognized by \bmad:
 \begin{ventry}{acos(x)}
@@ -53,24 +53,24 @@ Symbolic constants can be defined using the syntax
 \begin{example}
   parameter_name = expression
 \end{example}
-alternatively, to be compatable with MAD, using ``:='' instead of ``='' is accepted
+alternatively, to be compatable with \mad, using ``:='' instead of ``='' is accepted
 \begin{example}
   parameter_name := expression
 \end{example}
-is also accepted. Example:
+Examples:
 \begin{example}
   my_const = sqrt(10.3) * pi^3
   abc      = my_const * 23
 \end{example}
-Unlike MAD, \bmad\ uses immediate substitution so that all constants
+Unlike \mad, \bmad\ uses immediate substitution so that all constants
 in an expression must have been previously defined. For example the
 following is not valid:
 \begin{example}
-  abc      = my_const * 23   ! No: my_const not yet defined.
+  abc      = my_const * 23      ! No: my_const needs to be defined first.
   my_const = sqrt(10.3) * pi^3
 \end{example}
 here the value of \vn{my_const} is not known when the line ``\vn{abc}
-= $\ldots$'' is parsed and so \vn{abc} can not be calculated. Once
+= $\ldots$'' is parsed. Once
 defined, symbolic constants cannot be redefined. For example:
 \begin{example}
   my_const = 1
@@ -95,7 +95,7 @@ For example:
 
 \section{Lattice Elements}
 
-The syntax for defining a lattice element roughly follows MAD:
+The syntax for defining a lattice element roughly follows \mad:
 \begin{example}
   label: keyword [, attributes]
 \end{example}
@@ -106,5 +106,5 @@ The syntax for defining a lattice element roughly follows MAD:
 For example:
 \begin{example}
   q01w: quad, type = "A String", l = 0.6, tilt = pi/2
-  h10e: overlay = \{b08e, b10e\}, hkick
+  h10e: overlay = \{ b08e, b10e \}, hkick
 \end{example}

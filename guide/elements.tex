@@ -4,9 +4,7 @@ A lattice for a storage ring or linac is made up of a collection of
 elements --- Quadrupoles, Bends, etc. This chapter discusses the
 various types of elements available in \bmad.
 
-
-\section{Bmad Element List}
-
+\section{Bmad Elements}
 
 Most element types available in \mad\ are provided in \bmad.
 Additionally, \bmad\ provides a number of element types that are not
@@ -45,13 +43,13 @@ The list of element types known to \bmad\ is shown in Table~\ref{tab:elements}
 \section{AB\_Multipole}
 \label{s:ab_m}
 
-An \vn{AB_Multipole} is a thin lens up to 20th order. The only
+An \vn{AB_Multipole} is a thin multipole lens up to 20th order. The only
 difference between this and a \vn{Multipole} is the input format. 
 
 \begin{table}[h]
 \centering {
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute} & {\sl Description}  & {\sl Attribute} & {\sl Description} \\ \hline
+  {\sl Attribute} & {\sl See Section}  & {\sl Attribute} & {\sl See Section} \\ \hline
   tilt         = Real & \ref{s:offset} &  type               = String  & \ref{s:string} \\ \hline
   x\_offset    = Real & \ref{s:offset} &  alias              = String  & \ref{s:string} \\ \hline
   y\_offset    = Real & \ref{s:offset} &  descrip            = String  & \ref{s:string} \\ \hline
@@ -63,10 +61,36 @@ difference between this and a \vn{Multipole} is the input format.
 \end{tabular}}
 \end{table}
 
+\vn{mat6_calc_method = bmad_standard} is the only acceptable method.
+
+\vn{tracking_method = bmad_standard} is the only acceptable method.
+
+Example:
+\begin{example}
+  abc: ab_multipole, a2 = 0.034e-2, b3 = 5.7e-4
+\end{example}
+
 %-----------------------------------------------------------------
 \section{BeamBeam}
 \label{s:bbi}
 
+A \vn{BeamBeam} element simulates an interaction with an opposing beam traveling in
+the opposite direction (a Beam--Beam Interaction). 
+
+\begin{table}[h]
+\centering {
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute} & {\sl See Section}  & {\sl Attribute} & {\sl See Section} \\ \hline
+  tilt         = Real & \ref{s:offset} &  type               = String  & \ref{s:string} \\ \hline
+  x\_offset    = Real & \ref{s:offset} &  alias              = String  & \ref{s:string} \\ \hline
+  y\_offset    = Real & \ref{s:offset} &  descrip            = String  & \ref{s:string} \\ \hline
+  s\_offset    = Real & \ref{s:offset} &  mat6\_calc\_method = Switch  & \ref{s:track}  \\ \hline
+  x\_limit     = Real & \ref{s:limit}  &  tracking\_method   = Switch  & \ref{s:track}  \\ \hline
+  y\_limit     = Real & \ref{s:limit}  &  is\_on             = Logical & \ref{s:is_on}  \\ \hline
+  aperture     = Real & \ref{s:limit}  &  a$n$, b$n$         = Real    & \ref{s:ab}     \\ \hline  
+  beam\_energy = Real & \ref{s:energy} &  radius             = Real    & \ref{s:ab}     \\ \hline
+\end{tabular}}
+\end{table}
 
 In \bmad, \vn{x_offset} and \vn{y_offset} are used to offset the
 \vn{beambeam} element instead of the \mad\ standard attributes
@@ -85,17 +109,32 @@ not the half-angle).
 \section{Custom}
 \label{s:custom}
 
+A \vn{Custom} element is an element whose properites are defined outside of
+the \bmad\ subroutine library. That is, to use a custom element some programmer
+must write the appropriate custom routines which are then linked with the \bmad\
+subroutines into a program. \bmad\ will call the custom routines at the appropriate
+time to do tracking and transfer matrix calculations. See the programmer who wrote
+the custom routines for more details!
+
+
 %-----------------------------------------------------------------
 \section{Drift}
 \label{s:drift}
+
+A \vn{Drift} element is just a space free and clear.
 
 %-----------------------------------------------------------------
 \section{Ecollimator}
 \label{s:ecol}
 
+An \vn{Ecollimator} is drift with elliptic (as opposed to rectangular)
+collimation. See also \vn{Rcollimator}
+
 %-----------------------------------------------------------------
-\section{Elseperator}
+\section{ElSeperator}
 \label{s:elsep}
+
+A \vn{ElSeperator} is an electric separator.
 
 For an \vn{elseparator}, the kick is determined by \vn{hkick} and
 \vn{vkick}. The \vn{gap} for an \vn{elseparator} is used to compute
@@ -108,6 +147,10 @@ attribute determined by:
 %-----------------------------------------------------------------
 \section{Group}
 \label{s:group}
+
+A \vn{Group} does not represent a physical element. Rather a
+\vn{Group} element's purpose is to control the attributes of other elements.
+This is akin to controls in a Control Room. See ...
 
 %-----------------------------------------------------------------
 \section{Hkicker}
@@ -237,4 +280,3 @@ or the end of the line marks the end of the string. Example:
 %-----------------------------------------------------------------
 \section{An, Bn and Radius attributes}
 \label{s:ab}
-

@@ -95,6 +95,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
   integer i, j, k, ix, ir, key
 
   logical do_alloc
+  logical, parameter :: t = .true., f = .false.
 
 !---------------------------------------------------------------------
 ! Init
@@ -102,8 +103,8 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
   sr_com_save = sr_com
 
-  if (associated(ric%i1_)) then
-    if (size(ric%i1_) < ring%n_ele_max) then 
+  if (allocated(ric%i1_)) then
+    if (ubound(ric%i1_, 1) < ring%n_ele_max) then 
       deallocate (ric%i1_)
       deallocate (ric%i2_)
       deallocate (ric%i3_)
@@ -134,6 +135,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
   ric%i1_ = 0;   ric%i2_ = 0;  ric%i3_ = 0
   ric%i4a_ = 0;  ric%i4b_ = 0
   ric%i5a_ = 0;  ric%i5b_ = 0
+  ric%int_tot = 0
 
   m65 = 0
 
@@ -246,21 +248,15 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
         call transfer_rk_track (rk_com, ric%rk_track(i))
       enddo
 
-      ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rp, ll, i1, 'I1')
-      ric%i2_(ir)  =   qromb_rad_int (eval_i2,  0.0_rp, ll, i2, 'I2')
-      ric%i3_(ir)  =   qromb_rad_int (eval_i3,  0.0_rp, ll, i3, 'I3')
-      ric%i4a_(ir) = ric%i4a_(ir) + &
-                         qromb_rad_int (eval_i4a, 0.0_rp, ll, i2, 'I4A')
-      ric%i4b_(ir) = ric%i4b_(ir) + &
-                         qromb_rad_int (eval_i4b, 0.0_rp, ll, i2, 'I4B')
-      ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rp, ll, i5a, 'I5A')
-      ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rp, ll, i5b, 'I5B')
+! exact integration
+
+      call qromb_rad_int ((/ T, T, T, T, T, T, T /), ir)
 
       cycle
 
     endif
 
-! cycle on new style wigglers.
+! new style wigglers get handled later.
 
     if (key == wiggler$ .and. ric%ele%sub_key == map_type$) cycle
 
@@ -269,16 +265,25 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
     if (key == wiggler$ .and. ric%ele%sub_key == periodic_type$) then
       G_max = sqrt(2*abs(ric%ele%value(k1$)))       ! 1/rho at max B
-      ric%i2_(ir) = ll * G_max**2 / 2
       g3_ave = 4 * G_max**3 / (3 * pi)
+
+      ric%i1_(ir) = 0
+      ric%i2_(ir) = ll * G_max**2 / 2
       ric%i3_(ir) = ll * g3_ave
+      ric%i4a_(ir) = 0   ! Too complicated to calculate. Probably small
+      ric%i4b_(ir) = 0   ! Too complicated to calculate. Probably small
+
       ric%g_x0 = g3_ave**(1.0/3)
       ric%g_y0 = 0
       ric%k1 = 0
       ric%s1 = 0
-      ric%i5a_(ir) = qromb_rad_int (eval_i5a, 0.0_rp, ll, i5a, 'I5A')
-      ric%i5b_(ir) = qromb_rad_int (eval_i5b, 0.0_rp, ll, i5b, 'I5B')
+
+! integrate for periodic_type wigglers
+
+      call qromb_rad_int ((/ F, F, F, F, F, T, T /), ir)
+
       cycle
+
     endif
 
 !
@@ -324,18 +329,13 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
                            ric%eta_b(1) * ric%g2 * tan(ric%ele%value(e2$))
     endif
 
-! Integrate
+! Integrate for quads and bends
 
-    ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rp, ll, i1, 'I1')
-    ric%i4a_(ir) = ric%i4a_(ir) + &
-                         qromb_rad_int (eval_i4a, 0.0_rp, ll, i2, 'I4A')
-    ric%i4b_(ir) = ric%i4b_(ir) + &
-                         qromb_rad_int (eval_i4b, 0.0_rp, ll, i2, 'I4B')
-    ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rp, ll, i5a, 'I5A')
-    ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rp, ll, i5b, 'I5B')
+    call qromb_rad_int ((/ T, F, F, T, T, T, T /), ir)
 
   enddo
 
+!----------------------------------------------------------
 ! For map type wigglers
 
   do ir = 1, ring%n_ele_use
@@ -367,36 +367,24 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
     ric%eta_b1 = &
           matmul(v, (/ 0.0_rp, 0.0_rp, ric%ele%y%eta, ric%ele%y%etap /))
 
-    i1   = sum(ric%i1_(1:ring%n_ele_use))
-    i2   = sum(ric%i2_(1:ring%n_ele_use))
-    i3   = sum(ric%i3_(1:ring%n_ele_use))
-    i5a  = sum(ric%i5a_(1:ring%n_ele_use))
-    i5b  = sum(ric%i5b_(1:ring%n_ele_use))
-
     if (ric%use_cache) ric%cache_ele => cache%ele(ric%ele%ixx)
 
-    ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rp, ll, i1, 'I1')
-    ric%i2_(ir)  =   qromb_rad_int (eval_i2,  0.0_rp, ll, i2, 'I2')
-    ric%i3_(ir)  =   qromb_rad_int (eval_i3,  0.0_rp, ll, i3, 'I3')
-    ric%i4a_(ir) = ric%i4a_(ir) + &
-                         qromb_rad_int (eval_i4a, 0.0_rp, ll, i2, 'I4A')
-    ric%i4b_(ir) = ric%i4b_(ir) + &
-                         qromb_rad_int (eval_i4b, 0.0_rp, ll, i2, 'I4B')
-    ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rp, ll, i5a, 'I5A')
-    ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rp, ll, i5b, 'I5B')
+! radiation integrals calc for the map_type wiggler
+
+    call qromb_rad_int ((/ T, T, T, T, T, T, T /), ir) 
 
   enddo
 
 !---------------------------------------------------------------------
 ! now put everything together
 
-  i1   = sum(ric%i1_(1:ring%n_ele_use))
-  i2   = sum(ric%i2_(1:ring%n_ele_use))
-  i3   = sum(ric%i3_(1:ring%n_ele_use))
-  i4a  = sum(ric%i4a_(1:ring%n_ele_use))
-  i4b  = sum(ric%i4b_(1:ring%n_ele_use))
-  i5a  = sum(ric%i5a_(1:ring%n_ele_use))
-  i5b  = sum(ric%i5b_(1:ring%n_ele_use))
+  i1   = ric%int_tot(1)
+  i2   = ric%int_tot(2)
+  i3   = ric%int_tot(3)
+  i4a  = ric%int_tot(4)
+  i4b  = ric%int_tot(5)
+  i5a  = ric%int_tot(6)
+  i5b  = ric%int_tot(7)
 
   i4z = i4a + i4b
 
