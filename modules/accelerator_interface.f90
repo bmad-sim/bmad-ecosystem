@@ -1,3 +1,5 @@
+#include "CESR_platform.inc"   
+
 module accelerator_interface
 
   use taylor_mod

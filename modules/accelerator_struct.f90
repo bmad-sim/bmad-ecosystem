@@ -1,3 +1,5 @@
+#include "CESR_platform.inc"   
+
 module accelerator_struct
 
   use bmad, bmad_twopi => twopi
