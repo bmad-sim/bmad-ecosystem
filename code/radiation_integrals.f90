@@ -144,6 +144,8 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
 ! Caching
 
+  ric%use_cache = .false.
+
   if (present(ix_cache)) then
 
     if (ix_cache == 0) then
@@ -215,14 +217,11 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
     else  ! ix_cache /= 0
       cache => ric%cache(ix_cache)
 
-    endif
+    endif ! ix_cache /= 0
 
     ric%use_cache = .true.
 
-  else
-    ric%use_cache = .false.
-
-  endif
+  endif ! present(ix_cache)
 
 !---------------------------------------------------------------------
 ! Loop over all elements
