@@ -303,7 +303,7 @@ subroutine tao_single_mode (char)
 
       select case (char2)
 
-! /<- (left arrow): Paste saved variable value to variable
+! /<- (/left-arrow): Paste saved variable value to variable
 
       case ('[D')
         do i = 1, size(s%key)
@@ -311,7 +311,7 @@ subroutine tao_single_mode (char)
           call tao_set_var_model_value (s%var(ix_var), s%key(i)%val0)
         enddo
 
-! /-> (right arrow): Copy variable value to saved
+! /-> (/right-arrow): Copy variable value to saved
 
       case ('[C')
         do i = 1, size(s%key)
@@ -321,6 +321,16 @@ subroutine tao_single_mode (char)
         do i = 1, size(s%var)
           s%var(i)%old_value = s%var(i)%model_value
         enddo
+
+! /^ (/up-arrow): Increase deltas by factor of 10.
+
+      case ('[A')
+        s%key(:)%delta = s%key(:)%delta * 10
+
+! /v (/down-arrow): Increase deltas by factor of 10.
+
+      case ('[B')
+        s%key(:)%delta = s%key(:)%delta / 10
 
 ! /Escape Error:
 

@@ -70,6 +70,8 @@ endif
 if (s%global%lun_command_file /= 0) then
   if (.not. multi_commands_here) then
     read (s%global%lun_command_file, '(a)', end = 8000) cmd_line
+    call string_trim (cmd_line, cmd_line, ix)
+    if (cmd_line(1:5) == 'alias') return
     do i = 1, 9
       ix = index (cmd_line, str(i))
       if (ix /= 0) cmd_line = cmd_line(1:ix-1) // trim(tao_com%cmd_arg(i)) // &
