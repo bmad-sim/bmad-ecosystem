@@ -1,0 +1,93 @@
+\chapter{Elements}
+
+Intro and basic syntax
+
+\section{\mad\ elements recognized by \bmad}
+Most element types available in \mad\ are provided in \bmad.  In some cases, however, the attributes
+associated with a particular element type are not identical.  Table \ref{tab:mad_elements} summarizes the
+element types which \bmad\ inherits from \mad.
+
+\begin{table}\label{tab:mad_elements}\center
+{\tt\begin{tabular}{|l|l|} \hline
+     beambeam      &  type, sig\_x, sig\_y, charge, sig\_z, n\_slice \\ \hline
+     drift         &  type, l \\ \hline
+     elseparator   &  type, l, gap \\ \hline
+     kicker        &  type, l, hkick, vkick, h\_displace, v\_displace \\ \hline
+     marker        &  type \\ \hline
+     multipole     &  type, k$n$l, t$n$ $(0 \le n \le 20)$, tilt \\ \hline
+     octupole      &  type, l, k3, tilt, b\_gradient \\ \hline
+     quadrupole    &  type, l, k1, tilt, b\_gradient \\ \hline
+     rbend         &  type, l, angle, e1, e2, k1, tilt, g, delta\_g, \\
+                   &  roll, rho, b\_field \\ \hline
+     rfcavity      &  type, l, volt, harmon, phi0 (= lag)  \\ \hline
+     sbend         &  type, l, angle, e1, e2, k1, tilt, g, delta\_g, \\
+                   &  roll, rho, b\_field \\ \hline
+     sextupole     &  type, l, k2, tilt, b\_gradient \\ \hline
+     solenoid      &  type, l, ks, b\_field \\ \hline 
+\end{tabular}}
+\caption{Summary of \mad\ element types available in \bmad}
+\end{table}
+
+\subsection{Beambeam}
+In \bmad, {\tt x\_offset} and {\tt y\_offset} are used to offset the {\tt beambeam} element instead of
+the \mad\ standard attributes {\tt xma} and {\tt yma}.
+\begin{itemize}
+\item For a crossing angle use {\tt x\_pitch} and {\tt y\_pitch} (This is the full crossing angle,
+not the half-angle).
+\item {\tt n\_slice} is the number of equal charge chunks which the strong beam is sliced.
+      Default is {\tt n\_slice} = 1.
+\item For slicing, you need a non-zero {\tt sig\_z}.
+\item {\tt charge}=-1: Opposite beam has the opposite charge (default).
+\item {\tt charge}=+1: Opposite beam has the same charge.   
+\end{itemize}
+
+\subsection{Drift}
+\subsection{Elseperator}
+For an {\tt elseparator}, the kick is determined by {\tt hkick} and {\tt vkick}. The {\tt gap} for an
+{\tt elseparator} is used to compute the electric field for a given kick. The voltage is a dependent
+attribute determined by:
+
+Voltage (V) = $10^{-9}$ * {\tt kick} * {\tt E} [Gev] * {\tt gap} [m] / {\tt L} [m] 
+
+\subsection{Kicker}
+\subsection{Marker}
+\subsection{Multipole}
+\subsection{Octupole}
+\subsection{Quadrupole}
+\subsection{Rbend}
+\subsection{Rfcavity}
+\subsection{Sbend}
+\subsection{Sextupole}
+\subsection{Solenoid}
+
+\section{Non-Standard \bmad\ elements}
+\bmad\ provides additional element types corresponding to physical elements, as well as special
+types which control other elements, or represent superimposed or hybrid elements.
+Table \ref{tab:bmad_elements} summarizes element types unique to \bmad.
+
+\begin{table}\label{tab:bmad_elements}\center
+{\tt\begin{tabular}{|l|l|} \hline
+    ab\_multipole  &  type, a$n$, b$n$ $(0 \le n \le 20)$, radius, tilt \\ \hline
+    custom         &  type, l, val1, val2, val3, ..., val12 \\ \hline
+    group          &  type, command, old\_command, coef \\ \hline
+    lcavity        &  type, l, gradient, phi0, rf\_frequency \\ \hline
+    overlay        &  {\sl see chap.~8} \\ \hline
+    sol\_quad      &  type, l, k1, ks, tilt \\ \hline
+    taylor         &  type, {out\_index : coef : e1 e2 e3 e4 e5 e6} \\ \hline
+    wiggler        &  type, l, b\_max, n\_pole, tilt, b$n$ $(n=2,4,6,8)$, radius \\ \hline
+    wiggler        &  type, l, polarity, z\_patch, \\
+                   &  term($i$) = $\{$coef, kx, ky, kz, phi\_z$\}$ \\ \hline
+    patch          &  type, x\_offset, x\_pitch, y\_offset, y\_pitch, z\_offset, \\
+                   &  de\_offset \\ \hline
+\end{tabular}}
+\caption{Summary of element types unique to \bmad}
+\end{table}
+\subsection{Ab{\tt\_}multipole}
+\subsection{Custom}
+\subsection{Group}
+\subsection{Lcavity}
+\subsection{Overlay}
+\subsection{Dol{\tt\_}quad}
+\subsection{Taylor}
+\subsection{Wiggler} Two of these?
+\subsection{Patch}
