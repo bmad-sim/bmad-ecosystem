@@ -357,9 +357,9 @@ subroutine cmd_end_calc
 
 ! Note: tao_merit calls tao_lattice_calc.
 
-  this_merit = tao_merit ()         
-  call tao_plot_data_setup ()     ! transfer data to the plotting structures
-  call tao_plot_out ()            ! Update the plotting window
+  this_merit =  tao_merit ()         
+  if (s%global%plot_on) call tao_plot_data_setup ()     ! transfer data to the plotting structures
+  if (s%global%plot_on) call tao_plot_out ()            ! Update the plotting window
 
 end subroutine
 

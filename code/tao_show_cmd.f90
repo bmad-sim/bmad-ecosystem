@@ -33,8 +33,9 @@ type (ele_struct) ele3
 
 real(rp) f_phi
 
-integer, parameter :: max_lines = 300   ! maximum lines of output
-character(16) :: max_lines_char = '300'   
+! maximum lines of output
+integer, parameter :: max_lines = 200  
+character(16) :: max_lines_char
 
 character(24) :: var_name
 character(24)  :: plane, fmt, imt, lmt, amt, ffmt, iimt
@@ -62,6 +63,8 @@ logical, automatic :: picked(size(s%u))
 
 ! The Show string data is stored in the 'lines' array
 ! and the number of entries is stored in nl
+
+write(max_lines_char, '(i3.3)') max_lines
 
 err = .false.
 
@@ -147,8 +150,8 @@ case ('data')
     if (show_word2 == ' ') then
       do i = 1, size(u%d2_data)
         if (u%d2_data(i)%name == ' ') cycle
-        if ((nl+1) .gt. max_lines) then
-          call out_io (s_abort$, r_name, "Found too many d2_datas! Listing first "// &
+        if (nl .gt. max_lines) then
+          call out_io (s_blank$, r_name, "Found too many d2_datas! Listing first "// &
                                         		max_lines_char // " matches.")
 	        exit
         endif
@@ -207,18 +210,18 @@ case ('data')
 
       write(lines(1), '(2a)') 'Data name: ', trim(d2_ptr%name) // ':' // d1_ptr%name
       lines(2) = ' '
-      line1 = '        Name              Data         Model        Design'
+      line1 = '        Name                       Data         Model        Design'
       write (lines(3), *) line1
       nl = 3
       do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
-        if ((nl+1) .gt. max_lines) then
-        call out_io (s_abort$, r_name, "Found too many datams! Listing first " // &
+        if (nl+2 .gt. max_lines) then
+          call out_io (s_blank$, r_name, "Found too many datams! Listing first " // &
                                    max_lines_char // " matches.")
-        exit
+          exit
         endif
         if (d1_ptr%d(i)%exists) then
           nl=nl+1
-          write(lines(nl), '(i, 2x, a7, 3es14.4)') i, &
+          write(lines(nl), '(i, 2x, a16, 3es14.4)') i, &
                  d1_ptr%d(i)%name, d1_ptr%d(i)%meas_value, &
                  d1_ptr%d(i)%model_value, d1_ptr%d(i)%design_value
         endif
@@ -232,10 +235,10 @@ case ('data')
 
       write(lines(1), '(2a)') 'Data type:    ', d2_ptr%name
       do i = 1, size(d2_ptr%d1)
-        if ((nl+1) .gt. max_lines) then
-        call out_io (s_abort$, r_name, "Found too many d1_data! Listing first " // &
+        if (nl+1 .gt. max_lines) then
+          call out_io (s_blank$, r_name, "Found too many d1_data! Listing first " // &
                                        max_lines_char // " matches.")
-        exit
+          exit
         endif
         nl=nl+1; write(lines(nl), '(5x, a, i3, a, i3)') d2_ptr%d1(i)%name, &
                   lbound(d2_ptr%d1(i)%d, 1), ':', ubound(d2_ptr%d1(i)%d, 1)
@@ -259,9 +262,9 @@ case ('ele')
     nl = 1
     do loc = 1, u%model%n_ele_max
       if (match_wild(u%model%ele_(loc)%name, ele_name)) then
-      if ((nl+1) .gt. max_lines) then
-        call out_io (s_abort$, r_name, "Found too many elements! Listing first "//&
-                    max_lines_char// " matches.")
+      if (nl+1 .gt. max_lines) then
+        call out_io (s_blank$, r_name, "Found too many elements! Listing first "//&
+                    max_lines_char // " matches.")
         exit
       endif
         nl = nl + 1
@@ -466,8 +469,8 @@ case ('var')
     do i = 1, size(s%v1_var)
       v1_ptr => s%v1_var(i)
       if (v1_ptr%name == ' ') cycle
-      if ((nl+1) .gt. max_lines) then
-        call out_io (s_abort$, r_name, "Found too many v1_vars! Listing first "//&
+      if (nl+1 .gt. max_lines) then
+        call out_io (s_blank$, r_name, "Found too many v1_vars! Listing first "//&
                     max_lines_char// " matches")
         exit
       endif
@@ -547,18 +550,18 @@ case ('var')
 
     write(lines(1), '(2a)') 'Variable name:   ', v1_ptr%name
     lines(2) = ' '
-    line1 = '       Name            Data         Model        Design  Useit_opt'
+    line1 = '       Name                     Data         Model        Design  Useit_opt'
     write (lines(3), *) line1
     nl = 3
     do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
       if (v1_ptr%v(i)%exists) then
-        if ((nl+1) .gt. max_lines) then
-          call out_io (s_abort$, r_name, "Found too many variable datams! Listing first "// &
+        if (nl+2 .gt. max_lines) then
+          call out_io (s_blank$, r_name, "Found too many variable datams! Listing first "// &
                     max_lines_char// " matches.")
           exit
         endif
         nl = nl + 1
-        write(lines(nl), '(i6, 2x, a7, 3es14.4, 7x, l)') i, &
+        write(lines(nl), '(i6, 2x, a16, 3es14.4, 7x, l)') i, &
                  v1_ptr%v(i)%name, v1_ptr%v(i)%meas_value, &
                  v1_ptr%v(i)%model_value, v1_ptr%v(i)%design_value, v1_ptr%v(i)%useit_opt
       endif

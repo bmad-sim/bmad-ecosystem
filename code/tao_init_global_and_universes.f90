@@ -45,6 +45,7 @@ subroutine tao_init_global_and_universes (data_and_var_file)
   character(100) line
 
   logical err
+  logical counting, searching
 
   namelist / tao_params / global, n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
          
@@ -317,12 +318,12 @@ subroutine d1_data_stuffit (i_d1, u, n_d2)
 type (tao_universe_struct), target :: u
 integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2
 
-integer i_d1
+integer i_d1, num_hashes
 
 character(20) count_name1, count_name2, ix_char
 character(20) search_string
+character(20) fmt
 
-logical counting, searching
 logical, allocatable :: found_one(:)
 
 !
@@ -333,17 +334,7 @@ u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)  ! point back to the parent
 
 if (index(data(0)%name, 'COUNT:') /= 0) then
   counting = .true.
-  count_name1 = data(0)%name
-  call string_trim (count_name1(7:), count_name1, ix)
-  call string_trim (count_name1, count_name1, ix)
-  ix = index (count_name1, '#')
-  if (ix .eq. 0) then
-  call out_io (s_abort$, r_name, &
-                  "WHEN USING 'SAME:' MUST HAVE '#' WILDCARD IN NAME")
-  call err_exit
-  endif
-  count_name2 = count_name1(ix+1:)
-  count_name1 = count_name1(:ix-1) 
+  call form_count_name (data(0)%name(7:), num_hashes, count_name1, count_name2)
 else
   counting = .false.
   n1 = u%n_data_used + 1
@@ -364,16 +355,9 @@ u%d2_data(n_d2)%d1(i_d1)%name = d1_data%name  ! stuff in the data
 ! and record the element names in the data structs
     
 if (index(data(0)%ele_name, 'SEARCH:') /= 0) then
-  search_string = data(0)%ele_name
-  call string_trim (search_string(8:), search_string, ix)
   allocate (found_one(u%design%n_ele_max))
-  found_one = .false.
-  do j = 1, u%design%n_ele_max
-    if (match_wild(u%design%ele_(j)%name, search_string)) &
-    found_one(j) = .true.
-    ! keep track of element index in lattice
-    !! u%design%ele_(j)%ix_pointer = j
-  enddo
+  call string_trim(data(0)%ele_name(8:), search_string, ix)
+  call find_elements (u, search_string, found_one)
   ! finish finding data array limits
   if (counting) then
     n1 = u%n_data_used + 1
@@ -401,6 +385,10 @@ if (index(data(0)%ele_name, 'SEARCH:') /= 0) then
       jj = jj + 1
     endif
   enddo
+  u%data(n1:n2)%meas_value = 0 
+  u%data(n1:n2)%data_type  = ' '
+  u%data(n1:n2)%merit_type = 'target'  
+  u%data(n1:n2)%good_data  = .false.
 
 elseif (index(data(0)%ele_name, 'SAME:') /= 0) then
   call string_trim (data(0)%ele_name(6:), name, ix)
@@ -409,12 +397,18 @@ elseif (index(data(0)%ele_name, 'SAME:') /= 0) then
     call out_io (s_abort$, r_name, 'CANNOT MATCH "SAME:" NAME: ' // name)
     call err_exit
   endif
-  u%data(n1:n2)%ele_name  = d1_ptr%d%ele_name
-  u%data(n1:n2)%ix_ele    = d1_ptr%d%ix_ele
-  u%data(n1:n2)%ele2_name = d1_ptr%d%ele2_name
-  u%data(n1:n2)%ix_ele2   = d1_ptr%d%ix_ele2
-  u%data(n1:n2)%exists    = d1_ptr%d%exists
-
+  n2 = n1 + size(d1_ptr%d) - 1
+  u%data(n1:n2)%ele_name   = d1_ptr%d%ele_name
+  u%data(n1:n2)%ix_ele     = d1_ptr%d%ix_ele
+  u%data(n1:n2)%ele2_name  = d1_ptr%d%ele2_name
+  u%data(n1:n2)%ix_ele2    = d1_ptr%d%ix_ele2
+  u%data(n1:n2)%exists     = d1_ptr%d%exists
+ 
+  u%data(n1:n2)%meas_value = d1_ptr%d%meas_value
+  u%data(n1:n2)%data_type  = d1_ptr%d%data_type
+  u%data(n1:n2)%merit_type = d1_ptr%d%merit_type
+  u%data(n1:n2)%good_data  = d1_ptr%d%good_data
+  u%data(n1:n2)%weight     = d1_ptr%d%weight
 else
   u%data(n1:n2)%ele_name  = data(ix1:ix2)%ele_name
   u%data(n1:n2)%ele2_name = data(ix1:ix2)%ele2_name
@@ -439,17 +433,19 @@ else
       call err_exit
     endif
     u%data(j)%ix_ele2 = ix
-
   enddo
+  u%data(n1:n2)%meas_value = data(ix1:ix2)%meas_value
+  u%data(n1:n2)%data_type  = data(ix1:ix2)%data_type
+  u%data(n1:n2)%merit_type = data(ix1:ix2)%merit_type
+  u%data(n1:n2)%good_data  = data(ix1:ix2)%good_data
+  u%data(n1:n2)%weight     = data(ix1:ix2)%weight
 endif
 
-u%data(n1:n2)%meas_value = data(ix1:ix2)%meas_value
-u%data(n1:n2)%data_type  = data(ix1:ix2)%data_type
-u%data(n1:n2)%merit_type = data(ix1:ix2)%merit_type
-u%data(n1:n2)%good_data  = data(ix1:ix2)%good_data
 where (u%data(n1:n2)%data_type == ' ') u%data(n1:n2)%data_type = &
                             trim(d2_data%name) // ':' // d1_data%name
 
+
+			    
 
 ! Create data names
 
@@ -460,9 +456,9 @@ if (index(data(0)%name, 'COUNT:') /= 0) then
       call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
       call err_exit
     endif
-    write (ix_char, '(I)') jj
-    u%data(j)%name = trim(count_name1) // trim(ix_char) // count_name2
-  jj = jj + 1
+    write(fmt, '(a,i1.1,a,i1.1,a)') '(a, I', num_hashes, '.', num_hashes, ', a)'
+    write(u%data(j)%name, fmt) trim(count_name1), jj, trim(count_name2)
+    jj = jj + 1
   enddo
 
 elseif (index(data(0)%name, 'SAME:') /= 0) then
@@ -472,12 +468,12 @@ elseif (index(data(0)%name, 'SAME:') /= 0) then
     call out_io (s_abort$, r_name, 'CANNOT MATCH "SAME:" NAME: ' // name)
     call err_exit
   endif
+  n2 = n1 + size(d1_ptr%d) - 1
   u%data(n1:n2)%name = d1_ptr%d%name
 else
   u%data(n1:n2)%name = data(ix1:ix2)%name
 endif
 
-if (.not. counting) u%data(n1:n2)%weight   = data(ix1:ix2)%weight
 
 ! now for some family guidance...
 ! point the children to the grandchildren in the big data array
@@ -498,7 +494,7 @@ enddo
 u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)
 if (allocated(found_one)) deallocate (found_one)  
   
-end subroutine 
+end subroutine d1_data_stuffit
 
 !----------------------------------------------------------------
 !----------------------------------------------------------------
@@ -517,16 +513,18 @@ subroutine var_stuffit (ix_u_in)
 
     ! universe to use
     ix_u = ix_u_in
-    if (var(i)%universe /= ' ') then
-      read (var(i)%universe, *, iostat = ios) ix_u
-      if (ios /= 0) then
-        call out_io (s_abort$, r_name, &
-            'CANNOT READ DEFAULT_UNIVERSE INDEX: ' // default_universe, &
-            'FOR VARIABLE: ' // v1_var%name)
-        call err_exit
+    if (.not. (counting .and. searching)) then
+      if (var(i)%universe /= ' ') then
+        read (var(i)%universe, *, iostat = ios) ix_u
+        if (ios /= 0) then
+          call out_io (s_abort$, r_name, &
+              'CANNOT READ DEFAULT_UNIVERSE INDEX: ' // default_universe, &
+              'FOR VARIABLE: ' // v1_var%name)
+          call err_exit
+        endif
       endif
     endif
-
+     
     allocate (s_var%this(1))
     if (s_var%ele_name == ' ') cycle
     call tao_pointer_to_var_in_lattice (s_var, s_var%this(1), ix_u)
@@ -536,7 +534,7 @@ subroutine var_stuffit (ix_u_in)
     s_var%exists = .true.
   enddo
 
-end subroutine
+end subroutine var_stuffit
 
 
 !----------------------------------------------------------------
@@ -574,26 +572,102 @@ end subroutine
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 ! contains
+!
+! stuff common to all universes
 
 subroutine var_stuffit_common
 
-  integer i, j, nn, n1, n2, ix1, ix2
+character(20) count_name1, count_name2, ix_char
+character(20) fmt, search_string
+
+integer i, j, jj, nn, n1, n2, ix1, ix2, num_hashes, ix
+
+logical, allocatable :: found_one(:)
 
 ! count number of v1 entries
 
   s%n_v1_var_used = s%n_v1_var_used + 1
   nn = s%n_v1_var_used
 
-  n1 = s%n_var_used + 1
-  n2 = s%n_var_used + ix_max_var - ix_min_var + 1
-  ix1 = ix_min_var
-  ix2 = ix_max_var
+  ! are we searching for and couting elements?
+  if (index(var(0)%name, 'COUNT:') /= 0) then
+    counting = .true.
+    call form_count_name (var(0)%name(7:), num_hashes, count_name1, count_name2)
+    if (index(var(0)%ele_name, 'SEARCH:') /= 0) then
+      searching = .true.
+      allocate (found_one(s%u(1)%design%n_ele_max))
+      call string_trim (var(0)%ele_name(8:), search_string, ix)
+      call find_elements (s%u(1), search_string, found_one)
+    else
+      call out_io (s_abort$, r_name, 'If you are counting elements you should &
+                                      also be searching for them')
+      call err_exit
+    endif
+    n1 = s%n_var_used + 1
+    n2 = s%n_var_used + count(found_one)
+    ix1 = ix_min_var
+    ix2 = (count(found_one) - (1-ix_min_var))
+    s%n_var_used = n2
+    !get element names
+    jj = n1
+    do j = 1, size(found_one)
+      if (found_one(j)) then
+        if (jj .gt. n2) then
+          call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
+          call err_exit
+        endif
+        s%var(jj)%ele_name = s%u(1)%design%ele_(j)%name
+        jj = jj + 1
+      endif
+    enddo
+    ! Create var names
+    jj = ix1
+    do j = n1, n2
+      if (jj .gt. ix2) then
+        call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
+        call err_exit
+      endif
+      write(fmt, '(a,i1.1,a,i1.1,a)') '(a, I', num_hashes, '.', num_hashes, ', a)'
+      write(s%var(j)%name, fmt) trim(count_name1), jj, trim(count_name2)
+      jj = jj + 1
+    enddo
+    s%var(n1:n2)%attrib_name = default_attribute
+    s%var(n1:n2)%weight = default_weight
+    s%var(n1:n2)%step = default_step
+    s%var(n1:n2)%merit_type = default_merit_type
+    s%var(n1:n2)%low_lim = default_low_lim
+    s%var(n1:n2)%high_lim = default_high_lim
+  else
+    counting = .false.
+    n1 = s%n_var_used + 1
+    n2 = s%n_var_used + ix_max_var - ix_min_var + 1
+    ix1 = ix_min_var
+    ix2 = ix_max_var
+ 
+    s%n_var_used = n2
+ 
+    s%var(n1:n2)%ele_name = var(ix1:ix2)%ele_name
+    s%var(n1:n2)%name = var(ix1:ix2)%name
 
-  s%n_var_used = n2
-
-  s%var(n1:n2)%ele_name = var(ix1:ix2)%ele_name
-  s%var(n1:n2)%name = var(ix1:ix2)%name
-
+    s%var(n1:n2)%attrib_name = var(ix1:ix2)%attribute
+    where (s%var(n1:n2)%attrib_name == ' ') s%var(n1:n2)%attrib_name = default_attribute
+ 
+    s%var(n1:n2)%weight = var(ix1:ix2)%weight
+    where (s%var(n1:n2)%weight == 0) s%var(n1:n2)%weight = default_weight
+ 
+    s%var(n1:n2)%step = var(ix1:ix2)%step
+    where (s%var(n1:n2)%step == 0) s%var(n1:n2)%step = default_step
+ 
+    s%var(n1:n2)%merit_type = var(ix1:ix2)%merit_type
+    where (s%var(n1:n2)%merit_type == ' ') s%var(n1:n2)%merit_type = default_merit_type
+ 
+    s%var(n1:n2)%low_lim = var(ix1:ix2)%low_lim
+    where (s%var(n1:n2)%low_lim == -1e30) s%var(n1:n2)%low_lim = default_low_lim
+ 
+    s%var(n1:n2)%high_lim = var(ix1:ix2)%high_lim
+    where (s%var(n1:n2)%high_lim == 1e30) s%var(n1:n2)%high_lim = default_high_lim
+  endif
+ 
   s%v1_var(nn)%name = v1_var%name
 
 ! now for some family guidance...
@@ -601,24 +675,57 @@ subroutine var_stuffit_common
 
   call tao_point_v1_to_var (s%v1_var(nn), s%var(n1:n2), ix_min_var, n1)
 
-  s%var(n1:n2)%attrib_name = var(ix1:ix2)%attribute
-  where (s%var(n1:n2)%attrib_name == ' ') s%var(n1:n2)%attrib_name = default_attribute
-
-  s%var(n1:n2)%weight = var(ix1:ix2)%weight
-  where (s%var(n1:n2)%weight == 0) s%var(n1:n2)%weight = default_weight
-
-  s%var(n1:n2)%step = var(ix1:ix2)%step
-  where (s%var(n1:n2)%step == 0) s%var(n1:n2)%step = default_step
-
-  s%var(n1:n2)%merit_type = var(ix1:ix2)%merit_type
-  where (s%var(n1:n2)%merit_type == ' ') s%var(n1:n2)%merit_type = default_merit_type
-
-  s%var(n1:n2)%low_lim = var(ix1:ix2)%low_lim
-  where (s%var(n1:n2)%low_lim == -1e30) s%var(n1:n2)%low_lim = default_low_lim
-
-  s%var(n1:n2)%high_lim = var(ix1:ix2)%high_lim
-  where (s%var(n1:n2)%high_lim == 1e30) s%var(n1:n2)%high_lim = default_high_lim
-
 end subroutine
+
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+! contains
+!
+! this forms the name used in the variable or data where the number of hashes is
+! replaced by the element index
+
+subroutine form_count_name (count_name, num_hashes, count_name1, count_name2)
+
+implicit none
+
+character(*) count_name, count_name1, count_name2
+integer num_hashes, ix
+
+
+  ! 'COUNT:' is 6 characters long
+  call string_trim (count_name, count_name1, ix)
+  ix = index (count_name1, '#')
+  if (ix .eq. 0) then
+    call out_io (s_abort$, r_name, "WHEN USING 'COUNT:' MUST HAVE '#' &
+                    WILDCARD IN NAME")
+    call err_exit
+  endif
+  call tao_count_strings (count_name1, '#', num_hashes)
+  count_name2 = count_name1(ix+num_hashes:)
+  count_name1 = count_name1(:ix-1) 
+
+end subroutine form_count_name
+
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+! contains
+!
+! This searches the lattice for the specified element and flags found_one(:)
+
+subroutine find_elements (u, search_string, found_one)
+
+type (tao_universe_struct) :: u
+character(*) search_string
+logical found_one(:)
+
+integer j
+
+  found_one = .false.
+  do j = 1, u%design%n_ele_max
+    if (match_wild(u%design%ele_(j)%name, search_string)) &
+    found_one(j) = .true.
+  enddo
+
+end subroutine find_elements
 
 end subroutine
