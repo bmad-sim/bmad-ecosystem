@@ -13,101 +13,114 @@
 #######################################################################
 
 
-#print STDERR "\nin makedepend\n";
+#print STDERR "\nin cesrmakedepend\n";
 get_args(@ARGV);
 setup_commands();
 run_command();
 convert_to_cesr();
 
-sub convert_to_cesr
- {
-  open(d_file,">$out_file");
-  foreach $dependency (@dependencies)
-   {
-    chomp $dependency;
-    if(($dependency=~/^(.+?)\.o\s*?:\s+(.+?)[\s\/\\]*?$/))
-     {print d_file "$prefix$1$suffix: $2\n";}
-    elsif(($dependency=~/\s*?(.+?)[\s\\]*?$/))
-		 {
-      $dep=$1;
-      $out_file=~/\.depend\/(.+?)\.d/;
-		  print d_file "$prefix$1$suffix: $dep\n";
-     }
-    else
-     {die "\nunexpected dependency format from compiler: $dependency\n"}
-   }
-  close (d_file);
- }
 
-sub run_command
- {
-  if($cplusplus)
-	 {@dependencies=`$command`;}
-  else
-   {`$command`; exit(0);}
- }
+sub convert_to_cesr {
+    open(d_file,">$out_file");
+    foreach $dependency (@dependencies) {
+        chomp $dependency;
+        if(($dependency=~/^(.+?)\.o\s*?:\s+(.+?)[\s\/\\]*?$/)) {
+            print d_file "$prefix$1$suffix: $2\n";
+        }
+        elsif(($dependency=~/\s*?(.+?)[\s\\]*?$/)) {
+            $dep=$1;
+            $out_file=~/\.depend\/(.+?)\.d/;
+            print d_file "$prefix$1$suffix: $dep\n";
+        }
+        else {
+            die "\nunexpected dependency format from compiler: $dependency\n";
+        }
+    }
+    close (d_file);
+}
 
 
-sub setup_commands
- {
-  @os=`uname`;
-  $command="makedepend @includes -o'$suffix' -p'$prefix' -f$out_file $src_file";
-  if($cplusplus)
-   {
-    if($os[0]=~/osf1/i)
-     {$command="cxx -M @includes $src_file";}
-    elsif($os[0]=~/linux/i)
-		 {$command="g++ -M -Wno-deprecated @includes $src_file";}
-   }
-  elsif($fortran)
-   {    
-    $cesrdep_args="@includes -PRE'$prefix' -SUF'$suffix' -f$out_file $local_mods -MP'$mod_out_dir' $cpp $src_file";
-#    $cesrdep_args=~s/\$/\\\$/g;
-    $command=~s/\$/\\\$/g;
-    $command=$command."; \$CESR_UTIL/cesrdepend ".$cesrdep_args;
-   }
- }
+sub run_command {
+    if($cplusplus) {
+        @dependencies=`$command`;
+    }
+    else {
+        `$command`; exit(0);
+    }
+}
 
-sub get_args
- {
-  @includes=();
-  $local_mods=" ";
-  $mod_out_dir=" ";
-  $cpp=" ";
+
+sub setup_commands {
+    @os=`uname`;
+    $command="makedepend @includes -o'$suffix' -p'$prefix' -f$out_file $src_file";
+    if($cplusplus) {
+        if($os[0]=~/osf1/i) {
+            $command="cxx -M @includes $src_file";
+        }
+        elsif($os[0]=~/linux/i) {
+            $command="g++ -M -Wno-deprecated @includes $src_file";
+        }
+    }
+    elsif($fortran) {
+        $cesrdep_args="@includes -PRE'$prefix' -SUF'$suffix' -f$out_file $local_mods -MP'$mod_out_dir' $cpp $src_file";
+#       $cesrdep_args=~s/\$/\\\$/g;
+        $command=~s/\$/\\\$/g;
+        $command=$command."; \$CESR_UTIL/cesrdepend ".$cesrdep_args;
+    }
+}
+
+
+sub get_args {
+    @includes=();
+    $local_mods=" ";
+    $mod_out_dir=" ";
+    $cpp=" ";
   
-  # parse all command line arguments
-  foreach $arg (@ARGV)
-   {
-    if($arg=~/^-I/)
-     {push(@includes, $arg);}
-    elsif($arg=~/^-MOD(.+)/)
-     {$local_mods="-MOD\"$1\"";}
-    elsif($arg=~/^-MP(.+)/)
-     {$mod_out_dir="$1";}
-    elsif($arg=~/^-cpp(.+)/)
-     {$cpp="-cpp\"$1\"";}
-    elsif($arg=~/^-o(.+)/)
-     {$suffix=$1;}
-    elsif($arg=~/^-p(.+)/)
-     {$prefix=$1;}
-    elsif($arg=~/^-f(.+)/)
-     {$out_file=$1;} 
-    elsif($arg!~/^-/)
-     {$src_file=$arg;}
-   }
-  $cplusplus=0;
-  $c=0;
-  $fortran=0;
+#   Parse all command line arguments
+    foreach $arg (@ARGV) {
+        if($arg=~/^-I/) {
+            push(@includes, $arg);
+        }
+        elsif($arg=~/^-MOD(.+)/) {
+            $local_mods="-MOD\"$1\"";
+        }
+        elsif($arg=~/^-MP(.+)/) {
+            $mod_out_dir="$1";
+        }
+        elsif($arg=~/^-cpp(.+)/) {
+            $cpp="-cpp\"$1\"";
+        }
+        elsif($arg=~/^-o(.+)/) {
+            $suffix=$1;
+        }
+        elsif($arg=~/^-p(.+)/) {
+            $prefix=$1;
+        }
+        elsif($arg=~/^-f(.+)/) {
+            $out_file=$1;
+        } 
+        elsif($arg!~/^-/) {
+            $src_file=$arg;
+        }
+    }
+    $cplusplus=0;
+    $c=0;
+    $fortran=0;
 
-  #check what language the file is in by examining the extension
-  if(($src_file=~/\.cxx/i) or ($src_file=~/\.cpp/i) or ($src_file=~/\.cc/i) or ($src_file=~/\.C/) or ($src_file=~/\.c\+\+/i))
-	 {$cplusplus=1;}
-  elsif(($src_file=~/\.f90/i) or ($src_file=~/\.f/i) or ($src_file=~/\.f95/i) or ($src_file=~/\.f77/i))
-	 {$fortran=1;}
-  elsif($src_file=~/\.c/)
-	 {$c=1;}
-  else{die "\n$src_file: file format not recognized";}
- }
+#   Check what language the file is in by examining the extension
+    if(($src_file=~/\.cxx/i) or ($src_file=~/\.cpp/i) or ($src_file=~/\.cc/i) or ($src_file=~/\.C/) or ($src_file=~/\.c\+\+/i)) {
+        $cplusplus=1;
+    }
+    elsif(($src_file=~/\.f90/i) or ($src_file=~/\.f/i) or ($src_file=~/\.f95/i) or ($src_file=~/\.f77/i)) {
+        $fortran=1;
+    }
+    elsif($src_file=~/\.c/) {
+        $c=1;
+    }
+    else{
+        die "\n$src_file: file format not recognized";
+    }
+}
 
 
 

@@ -10,276 +10,267 @@
 ##################################################################
 
 
-
-
 parse_args();
 $cpp_in_file=$src_file;
 get_used_file_tree();
 print_d_file();
 
 # prints all the information collected into a .d file
-sub print_d_file
- {
-  $mods_to_create_var="";
-  $final_module_var  ="";
-  $final_inc_var     ="";
+sub print_d_file {
+    $mods_to_create_var="";
+    $final_module_var  ="";
+    $final_inc_var     ="";
 
-  if(@final_mod_list or @final_inc_list or @mods_to_create)
-   {
-    foreach $mod (@mods_to_create)
-     {$mods_to_create_var="$mods_to_create_var $mod_out_dir/$mod";}
-    foreach $mod (@final_mod_list)
-     {$final_module_var="$final_module_var $mod";}
-    $src_file=~/(\w+)\.\w{1,3}$/;
-    $src_file=$1;
-    open(F_out, ">>$d_file");
-    foreach $inc (@final_inc_list)
-     {print F_out ("$prefix$src_file$suffix: $inc\n");}    
-    if($final_module_var)
-     {print F_out ("$prefix$src_file$suffix$mods_to_create_var: $final_module_var\n");} 
-    close(F_out);
-   }
- }
+    if(@final_mod_list or @final_inc_list or @mods_to_create) {
+        foreach $mod (@mods_to_create) {
+            $mods_to_create_var="$mods_to_create_var $mod_out_dir/$mod";
+        }
+        foreach $mod (@final_mod_list) {
+            $final_module_var="$final_module_var $mod";
+        }
+        $src_file=~/(\w+)\.\w{1,3}$/;
+        $src_file=$1;
+        open(F_out, ">>$d_file");
+        foreach $inc (@final_inc_list) {
+            print F_out ("$prefix$src_file$suffix: $inc\n");
+        }    
+        if($final_module_var) {
+            print F_out ("$prefix$src_file$suffix$mods_to_create_var: $final_module_var\n");
+        } 
+        close(F_out);
+    }
+}
 
 #search for any included (by a fortran include) files in search directories
-sub find_incs
- {
-	@new_incs=();
-  $src_dir     ="";
-  INC: foreach $inc (@needed_incs)
-	 {
-    #if i've already found this file, go on.
-    if($seen{$inc})
-     {next INC;}
-    #if the include file starts with a ., we know where it is
-    if($inc=~/^\./)
-     {
-      $src_file=~/^(.+)\//;
-      $src_dir=$1;
-     }
-    #if the include file start with a /, we know where it is
-    if(($inc=~/^\//) or ($src_dir ne ""))
-		 {
-      #check if the file exists
-      if(-e $inc)
-       {
-        push(@new_incs,"$src_dir/$inc");
-        #note that we've found it
-        $seen{$inc}++;
-        next INC;
-       }
-      #maybe it has a .f90 extension
-      elsif(-e $inc.f90)
-       {
-        push(@new_incs,"$src_dir/$inc.f90");
-        #note that we've found it
-        $seen{$inc}++;
-        next INC;
-       }
-      #maybe it has a .f extension
-      elsif(-e $inc.f)
-       {
-        push(@new_incs,"$src_dir/$inc.f");
-        #note that we've found it
-        $seen{$inc}++;
-        next INC;
-       }
-      else
-       {die "$src_dir/$inc not found";}
-     }
-    #if the inc file hasn't been found yet, search inc dirs
-    DIR: foreach $dir (@search_dirs_4subs)
-		 {
-      #if inc dir is not a dir, go on.
-      if(!(-d $dir))
-			 {next DIR;}
-      #get a list of all files in inc dir
-      opendir(inc_dir,$dir);
-      @dir_contents=readdir(inc_dir);
-      closedir(inc_dir);
-      #if file to be found has an extension, see if it's in the listing
-      if($inc=~/(.+)\/[\w_]+?\.(\w{1,3})$/)
-			 {
-        #if it is, then put it on the stack containing found incs
-        if(grep {/^$inc/} @dir_contents)
-         {
-          push(@new_incs,"$dir/$inc");
-          #note that we've found it
-          $seen{$inc}++;
+sub find_incs {
+    @new_incs=();
+    $src_dir     ="";
+  INC: foreach $inc (@needed_incs) {
+#     If i've already found this file, go on.
+      if($seen{$inc}) {
           next INC;
-         }
-       }
-      else
-			 {
-        #if the file in inc statement is not found, try extensions .f90 and .f
-        if((grep {(/^$inc$/ and $sfx="") or (/^$inc\.f90$/ and $sfx=".f90") or (/^$inc\.f$/ and $sfx=".f")} @dir_contents))
-         {
-          push(@new_incs,"$dir/$inc$sfx");
-          #note that we've found it
-          $seen{$inc}++;
-          next INC;
-         }
-       }
-      closedir(inc_dir);
-     }
-    #if we're not able to find the inc file, exit program.
-    die "$inc not found!";
-   }
- }
+      }
+#     If the include file starts with a ., we know where it is
+      if($inc=~/^\./) {
+          $src_file=~/^(.+)\//;
+          $src_dir=$1;
+      }
+#     If the include file start with a /, we know where it is
+      if(($inc=~/^\//) or ($src_dir ne "")) {
+#         Check if the file exists
+          if(-e $inc) {
+              push(@new_incs,"$src_dir/$inc");
+#             Note that we've found it
+              $seen{$inc}++;
+              next INC;
+          }
+#         Maybe it has a .f90 extension
+          elsif(-e $inc.f90) {
+              push(@new_incs,"$src_dir/$inc.f90");
+#             Note that we've found it
+              $seen{$inc}++;
+              next INC;
+          }
+#         Maybe it has a .f extension
+          elsif(-e $inc.f) {
+              push(@new_incs,"$src_dir/$inc.f");
+#             Note that we've found it
+              $seen{$inc}++;
+              next INC;
+          }
+          else {
+              die "$src_dir/$inc not found";
+          }
+      }
+#     If the inc file hasn't been found yet, search inc dirs
+    DIR: foreach $dir (@search_dirs_4subs) {
+#       If inc dir is not a dir, go on.
+        if(!(-d $dir)) {
+            next DIR;
+        }
+#       Get a list of all files in inc dir
+        opendir(inc_dir,$dir);
+        @dir_contents=readdir(inc_dir);
+        closedir(inc_dir);
+#       If file to be found has an extension, see if it's in the listing
+        if($inc=~/(.+)\/[\w_]+?\.(\w{1,3})$/) {
+#           If it is, then put it on the stack containing found incs
+            if(grep {/^$inc/} @dir_contents) {
+                push(@new_incs,"$dir/$inc");
+#               Note that we've found it
+                $seen{$inc}++;
+                next INC;
+            }
+        }
+        else {
+#           If the file in inc statement is not found, try extensions .f90 and .f
+            if((grep {(/^$inc$/ and $sfx="") or (/^$inc\.f90$/ and $sfx=".f90") or (/^$inc\.f$/ and $sfx=".f")} @dir_contents)) {
+                push(@new_incs,"$dir/$inc$sfx");
+#               Note that we've found it
+                $seen{$inc}++;
+                next INC;
+            }
+        }
+        closedir(inc_dir);
+    }
+#     If we're not able to find the inc file, exit program.
+      die "$inc not found!";
+  }
+}
 
-# look for any mods specified in the use statements
-sub find_mods
- {
-  #look for every mod on the needed_mods stack
-  MOD: foreach $mod (@needed_mods)
-   {
-    #if we've already found this mod in a previous pass, go on to next mod.
-    if($seen{$mod})
-     {next MOD;}
-    #if the needed mod is a local mod, we're done
-    if(grep{$_ eq $mod} @local_mods)
-     {
-      #put the found mod on the found mods stack
-      push(@new_mods,"$mod_out_dir/$mod");
-      #note that we've found it
-      $seen{$mod}++;
-      next MOD;
-     }
-    #if the mod isn't local, we need to look in search dirs
-    DIR: foreach $dir (@search_dirs_4subs)
-     {
-      #if the directory does not exist, go on to the next dir.
-      if(!(-d $dir))
-			 {next DIR;}
-      opendir(inc_dir,$dir);
-      #if mod is in dir listing, we've found it.
-      if(grep {$_ eq $mod} readdir(inc_dir))
-       {
-        #put it on the 'found' stack
-        push(@new_mods,"$dir/$mod");
-        #note that we've found it
-        $seen{$mod}++;
-        close(inc_dir); 
-        next MOD;
-       }
-      close(inc_dir);
-     }
-    #if we cannot find a needed mod anywhere, quit
-    die "\n$mod not found in search dirs\n";
-   }
- }
+# Look for any mods specified in the use statements
+sub find_mods {
 
-sub get_used_file_tree
- {
-  @needed_incs=();
-  @needed_mods=();
-  get_cpp_out();
-  #go through the file looking for keywords
-  LINE: foreach $line (@cpp_out_file)
-	 {
-    #filter out comment lines- ones that start with ! or c in fixed format
-    if(($line=~/^\s*?!/) or ($fixed_format and ($line=~/^c/i)))
-		 {next LINE;}
-    
-    while($line)
-     {
-      #if include statement, get specified file and put it on 'needed' stack
-      if(($line=~/(.*?)include\s\'(\S+?)\'/i) and ($1!~/!/))
-		   {push(@needed_incs,$2) unless ($seen_inc{$2}++); $line=0;}
-      #if module statement, get name of module
-      elsif(($line=~/^\s*module\s(\S+)/i) and ($1!~/PROCEDURE/i)) 
-       {
-        $alpha=$1;
-        $mod_def=lc($alpha);
-        $mod_def=$mod_def.".mod";
-        $line=0;
-        #if there is a mod definition for a mod that's not local, scream.
-        if(!(grep {$_=~/$mod_def/} @local_mods))
-         {
-          print STDERR "module definition for $mod_def was found in an included file.  This is very BAD, and unsupported at CESR!\n";
-         }
-        #if mod defined is in local mod list, push it onto 'create' stack
-        else
-				 {push(@mods_to_create,$mod_def) unless ($seen_create{lc($mod_def)}++);}
-        #if i'm defining and using the same mod, ignore the use
-        #--this is probably unnecessary, because i check the mods found
-        #  use statements against the creation list, but it's pretty cheap.
-        $index=-1;
-        if(grep {($_ eq $mod_def) and ($index++)} @needed_mods)
-	  		 {$needed_mods[$index]="";}
-       }
-      #if use statement, get name of mod
-      elsif(($line=~/^(\s*?)\buse\s+([\w_]+)[\s;,](.+)/i) or ($line=~/^(\s*?)\buse\s+([\w_]+)$/i))
-	     {
-        #put mod on 'needed' stack, unless i already know i need it or i'm 
-        #creating it
-		    push(@needed_mods,(lc($2).".mod")) unless ($seen_needed{lc($2)}++ || $seen_create{lc($2).".mod"});
-        #throw the rest of the line after the modname into $line, in order to
-        #check for more keywords.  especially more uses
-        $line=$3;
-	     }
-      else
-			 {$line=0;}
-     }
-   }
-  #go look for the mods and incs i've just gotten out of the file
-  find_mods();  
-  find_incs();
-  #put the new mods i've found on the super-list
-  push(@final_mod_list,@new_mods);
-  #make sure that the following recursive call doesn't screw up the array that
-  #i'm looping over (should the namespaces get screwed up, that could get 
-  #very very nasty)
-  my @new_incs2=@new_incs;
-  #call the routine i'm in for each of the inc files that i've just found
-  foreach $new_inc (@new_incs2)
-   {
-		$cpp_in_file=$new_inc;
-    #!!recursive call within a loop!!
-    get_used_file_tree();
-    #put the inc files i've just found on the super list (this happens on
-    #the way up)
-    push(@final_inc_list,$new_inc);
-   } 
- }
+# Look for every mod on the needed_mods stack
+  MOD: foreach $mod (@needed_mods) {
+#     If we've already found this mod in a previous pass, go on to next mod.
+      if($seen{$mod}) {
+          next MOD;
+      }
+#     If the needed mod is a local mod, we're done
+      if(grep{$_ eq $mod} @local_mods) {
+#         Put the found mod on the found mods stack
+          push(@new_mods,"$mod_out_dir/$mod");
+#         Note that we've found it
+          $seen{$mod}++;
+          next MOD;
+      }
+#   If the mod isn't local, we need to look in search dirs
+    DIR: foreach $dir (@search_dirs_4subs) {
+      
+#       If the directory does not exist, go on to the next dir.
+        if(!(-d $dir)) {
+            next DIR;
+        }
+        opendir(inc_dir,$dir);
+#       If mod is in dir listing, we've found it.
+        if(grep {$_ eq $mod} readdir(inc_dir)) {
+#           Put it on the 'found' stack
+            push(@new_mods,"$dir/$mod");
+#           Note that we've found it
+            $seen{$mod}++;
+            close(inc_dir); 
+            next MOD;
+        }
+        close(inc_dir);
+    }
+#     If we cannot find a needed mod anywhere, quit
+      die "\n$mod not found in search dirs\n";
+  }
+}
+
+sub get_used_file_tree {
+    @needed_incs=();
+    @needed_mods=();
+    get_cpp_out();
+# Go through the file looking for keywords
+  LINE: foreach $line (@cpp_out_file) {
+#     Filter out comment lines- ones that start with ! or c in fixed format
+      if(($line=~/^\s*?!/) or ($fixed_format and ($line=~/^c/i))) {
+          next LINE;
+      }
+      while($line) {
+#         If include statement, get specified file and put it on 'needed' stack
+          if(($line=~/(.*?)include\s\'(\S+?)\'/i) and ($1!~/!/)) {
+              push(@needed_incs,$2) unless ($seen_inc{$2}++); $line=0;
+          }
+#         If module statement, get name of module
+          elsif(($line=~/^\s*module\s(\S+)/i) and ($1!~/PROCEDURE/i)) {
+              $alpha=$1;
+              $mod_def=lc($alpha);
+              $mod_def=$mod_def.".mod";
+              $line=0;
+#             If there is a mod definition for a mod that's not local, scream.
+              if(!(grep {$_=~/$mod_def/} @local_mods)) {
+                  print STDERR "module definition for $mod_def was found in an included file.  This is very BAD, and unsupported at CESR!\n";
+              }
+#             If mod defined is in local mod list, push it onto 'create' stack
+              else {
+                  push(@mods_to_create,$mod_def) unless ($seen_create{lc($mod_def)}++);
+              }
+#             If i'm defining and using the same mod, ignore the use
+#             --this is probably unnecessary, because i check the mods found
+#             use statements against the creation list, but it's pretty cheap.
+              $index=-1;
+              if(grep {($_ eq $mod_def) and ($index++)} @needed_mods) {
+                  $needed_mods[$index]="";
+              }
+          }
+#         If use statement, get name of mod
+          elsif(($line=~/^(\s*?)\buse\s+([\w_]+)[\s;,](.+)/i) or ($line=~/^(\s*?)\buse\s+([\w_]+)$/i)) {
+#         Put mod on 'needed' stack, unless i already know i need it or I'm creating it
+              push(@needed_mods,(lc($2).".mod")) unless ($seen_needed{lc($2)}++ || $seen_create{lc($2).".mod"});
+#             Throw the rest of the line after the modname into $line, in order to
+#             check for more keywords.  especially more uses
+              $line=$3;
+          }
+          else {
+              $line=0;
+          }
+      }
+  }
+#   Go look for the mods and incs i've just gotten out of the file
+    find_mods();  
+    find_incs();
+#   Put the new mods i've found on the super-list
+    push(@final_mod_list,@new_mods);
+#   Make sure that the following recursive call doesn't screw up the array that
+#   I'm looping over (should the namespaces get screwed up, that could get 
+#   very very nasty)
+    my @new_incs2=@new_incs;
+#   Call the routine i'm in for each of the inc files that i've just found
+    foreach $new_inc (@new_incs2) {
+        $cpp_in_file=$new_inc;
+#       !!recursive call within a loop!!
+        get_used_file_tree();
+#       Put the inc files i've just found on the super list (this happens on
+#       the way up)
+        push(@final_inc_list,$new_inc);
+    } 
+}
 
 
-sub get_cpp_out
- {
-  @cpp_out_file=split /\n/, `cpp $cpp_flags @search_dirs $cpp_in_file`;
- }
+sub get_cpp_out {
+    @cpp_out_file=split /\n/, `cpp $cpp_flags @search_dirs $cpp_in_file`;
+}
 
-sub parse_args
- {
-  @search_dirs_4subs     =();
-  @search_dirs           =();
-  @local_mods            =();
-  $fixed_format=0;
-  foreach $argument (@ARGV)
-   {
-    if($argument=~/^-I(.+)/)
-     {
-      push(@search_dirs_4subs,$1);
-      push(@search_dirs,$argument);
-     }
-    elsif($argument=~/^-MOD(.*)/)
-     {push(@local_mods,(split /\s/,$1));}
-    elsif($argument=~/^-MP(.*)/)
-     {$mod_out_dir=$1;}
-    elsif($argument=~/^-PRE(.*)/)
-     {$prefix=$1;}
-    elsif($argument=~/^-SUF(.*)/)
-     {$suffix=$1;}
-    elsif($argument=~/^-f(.*)/)
-     {$d_file=$1;}
-    elsif($argument=~/^-cpp(.*)/)
-		 {$cpp_flags=" -C ".$1;}
-    elsif($argument!~/^-/)
-     {$src_file=$argument;}
-   }
-  if($src_file=~/\.f$/i)
-   {$fixed_format=1;}
- }
+
+sub parse_args {
+    @search_dirs_4subs     =();
+    @search_dirs           =();
+    @local_mods            =();
+    $fixed_format=0;
+    foreach $argument (@ARGV) {
+        if($argument=~/^-I(.+)/) {
+            push(@search_dirs_4subs,$1);
+            push(@search_dirs,$argument);
+        }
+        elsif($argument=~/^-MOD(.*)/) {
+            push(@local_mods,(split /\s/,$1));
+        }
+        elsif($argument=~/^-MP(.*)/) {
+            $mod_out_dir=$1;
+        }
+        elsif($argument=~/^-PRE(.*)/) {
+            $prefix=$1;
+        }
+        elsif($argument=~/^-SUF(.*)/) {
+            $suffix=$1;
+        } 
+        elsif($argument=~/^-f(.*)/) {
+            $d_file=$1;
+        }
+        elsif($argument=~/^-cpp(.*)/) {
+            $cpp_flags=" -C ".$1;
+        }
+        elsif($argument!~/^-/) {
+            $src_file=$argument;
+        }
+    }
+    if($src_file=~/\.f$/i) {
+        $fixed_format=1;
+    }
+}
 
 
 
