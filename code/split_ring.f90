@@ -190,8 +190,11 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 ! Need to make a super lord to control the split elements.
 
   ix_super_lord = ring%n_ele_max + 1
-  if (ix_super_lord > ring%n_ele_maxx) call allocate_ring_ele_(ring)
-                  
+  if (ix_super_lord > ring%n_ele_maxx) then
+    call allocate_ring_ele_(ring)
+    ele1 => ring%ele_(ix_split)
+    ele2 => ring%ele_(ix_split+1)
+  endif            
   ring%n_ele_max = ix_super_lord
   ring%ele_(ix_super_lord) = ele
   ring%ele_(ix_super_lord)%control_type = super_lord$
@@ -274,5 +277,7 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 
   call control_bookkeeper (ring, ix_split)
   call control_bookkeeper (ring, ix_split+1)
+
+  call check_ring_controls (ring, .true.)
 
 end subroutine
