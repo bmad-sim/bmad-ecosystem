@@ -237,14 +237,12 @@ A \vn{Drift} element is just a space free and clear.
 {\centering {
 \begin{tabular}{|l|l||l|l||l|l|} \hline
   {\sl Attribute} & {\sl Section}  & {\sl Attribute} & {\sl Section} & {\sl Attribute} & {\sl Section} \\ \hline
-  l        = Real       & \ref{s:l}       &  type = String                & \ref{s:string} & tilt = Real        &  \ref{s:offset}  \\ \hline
-                        &                 &  alias = String               & \ref{s:string} & y\_offset  = Real  &  \ref{s:offset}  \\ \hline
-  rel\_tol = Real       & \ref{s:tol}     &  descrip = String             & \ref{s:string} & s\_offset  = Real  &  \ref{s:offset}  \\ \hline
-  abs\_tol = Real       & \ref{s:tol}     &  mat6\_calc\_method = Switch  & \ref{s:method} & x\_offset  = Real  &  \ref{s:offset}  \\ \hline
-  num\_steps = Integer  & \ref{s:tol}     &  tracking\_method = Switch    & \ref{s:method} & x\_pitch = Real    &  \ref{s:offset}  \\ \hline
-  symplectify = Logical & \ref{s:symp}    &  x\_limit = Real              & \ref{s:limit}  & y\_pitch = Real    &  \ref{s:offset}  \\ \hline
-  integration\_ord = Integer & \ref{s:int}&  y\_limit = Real              & \ref{s:limit}  &                    &                  \\ \hline
-                        &                 &  aperture = Real              & \ref{s:limit}  &                    &                  \\ \hline
+  l        = Real       & \ref{s:l}       &  type = String                & \ref{s:string} & x\_limit = Real              & \ref{s:limit}  & 
+                        &                 &  alias = String               & \ref{s:string} & y\_limit = Real              & \ref{s:limit}  & 
+  rel\_tol = Real       & \ref{s:tol}     &  descrip = String             & \ref{s:string} & aperture = Real              & \ref{s:limit}  & 
+  abs\_tol = Real       & \ref{s:tol}     &  mat6\_calc\_method = Switch  & \ref{s:method} & symplectify = Logical & \ref{s:symp}    &  
+  num\_steps = Integer  & \ref{s:tol}     &  tracking\_method = Switch    & \ref{s:method} & integration\_ord = Integer & \ref{s:int}&  
+                        &                 &  
 \end{tabular}
 }}
 \end{table}
