@@ -65,7 +65,9 @@ subroutine ele_equal_ele (ele1, ele2)
 
   if (associated(ele2%wig_term)) then
     if (associated (ele_save%wig_term)) then
-      if (size(ele_save%wig_term) /= size(ele2%wig_term)) then
+      if (size(ele_save%wig_term) == size(ele2%wig_term)) then
+        ele1%wig_term => ele_save%wig_term
+      else
         deallocate (ele_save%wig_term)
         allocate (ele1%wig_term(size(ele2%wig_term)))
       endif
@@ -79,7 +81,9 @@ subroutine ele_equal_ele (ele1, ele2)
 
   if (associated(ele2%const)) then
     if (associated (ele_save%const)) then
-      if (size(ele_save%const) /= size(ele2%const)) then
+      if (size(ele_save%const) == size(ele2%const)) then
+        ele1%const => ele_save%const
+      else
         deallocate (ele_save%const)
         allocate (ele1%const(size(ele2%const)))
       endif
@@ -94,7 +98,9 @@ subroutine ele_equal_ele (ele1, ele2)
   do i = 1, 6
     if (associated(ele2%taylor(i)%term)) then
       if (associated (ele_save%taylor(i)%term)) then
-        if (size(ele_save%taylor(i)%term) /= size(ele2%taylor(i)%term)) then
+        if (size(ele_save%taylor(i)%term) == size(ele2%taylor(i)%term)) then
+          ele1%taylor(i)%term => ele_save%taylor(i)%term
+        else
           deallocate (ele_save%taylor(i)%term)
           allocate (ele1%taylor(i)%term(size(ele2%taylor(i)%term)))
         endif
@@ -108,7 +114,10 @@ subroutine ele_equal_ele (ele1, ele2)
   enddo
 
   if (associated(ele2%a)) then
-    if (.not. associated (ele_save%a)) then
+    if (associated (ele_save%a)) then
+      ele1%a => ele_save%a 
+      ele1%b => ele_save%b 
+    else
       allocate (ele1%a(0:n_pole_maxx), ele1%b(0:n_pole_maxx))
     endif
     ele1%a = ele2%a
@@ -118,7 +127,11 @@ subroutine ele_equal_ele (ele1, ele2)
   endif
 
   if (associated(ele2%descrip)) then
-    if (.not. associated (ele_save%descrip)) allocate (ele1%descrip)
+    if (associated (ele_save%descrip)) then
+      ele1%descrip => ele_save%descrip
+    else
+      allocate (ele1%descrip)
+    endif
     ele1%descrip = ele2%descrip
   else
     if (associated (ele_save%descrip)) deallocate (ele_save%descrip)

@@ -31,7 +31,7 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
   implicit none
 
   type (ring_struct), target :: ring
-  type (ele_struct)  ele
+  type (ele_struct), save ::  ele
   type (ele_struct), pointer :: ele1, ele2
 
   real(rdef) s_split, len_orig, len1, len2, coef1, coef2, angle0, coef_old
