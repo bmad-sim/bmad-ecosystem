@@ -51,7 +51,7 @@ subroutine ele_to_taylor (ele, orb0, param)
     init_needed = .false.
   endif
 
-  if (bmad_com%taylor_order_ptc == 0) then
+  if (bmad_com%taylor_order_ptc /= bmad_com%taylor_order) then
     call set_ptc (taylor_order = bmad_com%taylor_order)
   endif
 

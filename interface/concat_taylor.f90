@@ -27,7 +27,7 @@ subroutine concat_taylor (taylor1, taylor2, taylor3)
 
 ! set the taylor order in PTC if not already done so
 
-  if (bmad_com%taylor_order_ptc == 0) &
+  if (bmad_com%taylor_order_ptc /= bmad_com%taylor_order) &
                          call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! Allocate temp vars

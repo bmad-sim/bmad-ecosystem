@@ -470,7 +470,7 @@ subroutine concat_real_8 (y1, y2, y3)
 
 ! set the taylor order in PTC if not already done so
 
-  if (bmad_com%taylor_order_ptc == 0) &
+  if (bmad_com%taylor_order_ptc /= bmad_com%taylor_order) &
                          call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! Allocate temp vars
@@ -534,7 +534,7 @@ subroutine taylor_to_genfield (bmad_taylor, gen_field, r0)
 
 ! set the taylor order in PTC if not already done so
 
-  if (bmad_com%taylor_order_ptc == 0) &
+  if (bmad_com%taylor_order_ptc /= bmad_com%taylor_order) &
                          call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! Remove constant terms from the taylor map first. This is probably
