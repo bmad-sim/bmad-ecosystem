@@ -38,6 +38,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.14  2003/01/29 16:14:32  dcs
+!Linac RF bug fix and update.
+!
 !Revision 1.13  2003/01/27 14:40:47  dcs
 !bmad_version = 56
 !
@@ -152,7 +155,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
       i = ele%ix_value
       name = ele%attribute_name
       nl = nl + 1
-      write (li(nl), '(i6, 3x, 2a, 1pe12.4)') i, name, ' =', ele%value(i)
+      write (li(nl), '(i6, 3x, 2a, 1pe13.5)') i, name, ' =', ele%value(i)
 
     else
       do i = 1, n_attrib_maxx
@@ -160,7 +163,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
         if (attribute_name(ele, i) /= null_name) then
           if (ele%value(i) /= 0 .or. type_zero_attrib) then
             nl = nl + 1
-            write (li(nl), '(i6, 3x, 2a, 1pe12.4)')  i, &
+            write (li(nl), '(i6, 3x, 2a, 1pe13.5)')  i, &
                          attribute_name(ele, i), ' =', ele%value(i)
           endif
         endif

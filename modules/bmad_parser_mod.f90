@@ -316,6 +316,8 @@ subroutine get_attribute (how, ele, ring, pring, &
     case ('C22')
       ele%c_mat(2,2) = value
       ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + ele%c_mat(1,2)*ele%c_mat(2,1))
+    case ('ENERGY')
+      ele%value(energy$) = value
     case default
       call warning ('UNKNOWN "BEGINNING" ATTRIBUTE: ' // word)
     end select
@@ -1586,7 +1588,13 @@ subroutine init_bmad_parser_common
   var_(18)%name = 'ANTIPROTON'
   var_(18)%value = antiproton$
 
-  nn = 18
+  var_(19)%name = 'M_ELECTRON'
+  var_(19)%value = m_electron
+
+  var_(20)%name = 'M_PROTON'
+  var_(20)%value = m_proton
+
+  nn = 20
 
   do i = 1, ubound(calc_method_name, 1)
     call str_upcase (var_(nn+i)%name, calc_method_name(i))

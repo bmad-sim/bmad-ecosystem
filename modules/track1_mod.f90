@@ -350,7 +350,7 @@ subroutine track_a_accel_sol (start, ele, param, end)
   call offset_particle (ele, param, end, set$)
 
   if (ele%value(volt$) /= 0) then
-    phase = ele%value(lag$) + end%z%pos  &
+    phase = twopi * ele%value(phase_0$) + end%z%pos  &
                       / (ele%value(rf_wavelength$) * beta_s)
     en_gain = ele%value(volt$) * sin(twopi * phase) / 1.e9
     if ((en_gain + gamma_b * e_mass) <= e_mass) then

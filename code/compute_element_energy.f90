@@ -32,8 +32,7 @@ subroutine compute_element_energy (ring)
 
   if (ring%param%lattice_type /= linac_lattice$) return
 
-  energy = ring%param%beam_energy
-  ring%ele_(0)%value(energy$) = energy
+  energy = ring%ele_(0)%value(energy$)
 
   do i = 1, ring%n_ele_ring
     if (ring%ele_(i)%key == linac_rf_cavity$) then

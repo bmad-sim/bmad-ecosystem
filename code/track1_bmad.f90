@@ -212,8 +212,8 @@ subroutine track1_bmad (start, ele, param, end)
        start%y%vel**2 + end%y%vel**2 + start%y%vel * end%y%vel) / 12
 
     if (ele%value(volt$) /= 0) then
-      phase = ele%value(lag$) + z_ave / ele%value(rf_wavelength$)
-      end%z%vel = end%z%vel + ele%value(volt$) * sin (twopi * phase) / &
+      phase = ele%value(phase_0$) + twopi * z_ave / ele%value(rf_wavelength$)
+      end%z%vel = end%z%vel + ele%value(volt$) * sin (phase) / &
                                                        (1e9 * param%energy)
     endif
          
@@ -233,7 +233,7 @@ subroutine track1_bmad (start, ele, param, end)
       call err_exit
     endif
 
-    phase = twopi * end%z%pos * ele%value(rf_frequency$) / c_light
+    phase = twopi * end%z%pos * ele%value(rf_frequency$) / c_light + ele%value(phase_0$)
     cos_phi = cos(phase)
     gradiant = ele%value(gradiant$) * cos_phi
     e_start = ele%value(energy_start$) * (1 + end%z%vel)

@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.12  2003/01/29 16:14:31  dcs
+!Linac RF bug fix and update.
+!
 !Revision 1.11  2003/01/27 14:40:29  dcs
 !bmad_version = 56
 !
@@ -168,7 +171,8 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(sbend$, hgapx$)      = 'HGAPX'
     attrib_array(sbend$, fint$)       = 'FINT'
     attrib_array(sbend$, fintx$)      = 'FINTX'
-    attrib_array(sbend$, rho$)   = 'RHO'
+    attrib_array(sbend$, rho$)        = 'RHO'
+    attrib_array(sbend$, l_chord$)    = 'L_CHORD'
 
     attrib_array(patch$, x_pitch$)    = 'X_PITCH'
     attrib_array(patch$, y_pitch$)    = 'Y_PITCH'
@@ -191,7 +195,8 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(rbend$, hgapx$)      = 'HGAPX'
     attrib_array(rbend$, fint$)       = 'FINT'
     attrib_array(rbend$, fintx$)      = 'FINTX'
-    attrib_array(rbend$, rho$)   = 'RHO'
+    attrib_array(rbend$, rho$)        = 'RHO'
+    attrib_array(rbend$, l_chord$)    = 'L_CHORD'
 
     attrib_array(quadrupole$, l$)    = 'L'
     attrib_array(quadrupole$, tilt$) = 'TILT'
@@ -211,7 +216,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(rfcavity$, l$)             = 'L'
     attrib_array(rfcavity$, volt$)          = 'VOLT'
     attrib_array(rfcavity$, rf_wavelength$) = 'RF_WAVELENGTH'
-    attrib_array(rfcavity$, lag$)           = 'LAG'
+    attrib_array(rfcavity$, phase_0$)       = 'PHASE_0'
     attrib_array(rfcavity$, harmon$)        = 'HARMON'
 
     attrib_array(elseparator$, l$)      = 'L'
@@ -265,7 +270,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
 
     attrib_array(accel_sol$, l$)             = 'L'
     attrib_array(accel_sol$, volt$)          = 'VOLT'
-    attrib_array(accel_sol$, lag$)           = 'LAG'
+    attrib_array(accel_sol$, phase_0$)       = 'PHASE_0'
     attrib_array(accel_sol$, rf_wavelength$) = 'RF_WAVELENGTH'
     attrib_array(accel_sol$, b_z$)           = 'B_Z'
     attrib_array(accel_sol$, b_x1$)          = 'B_X1'

@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.22  2003/01/29 16:14:48  dcs
+!Linac RF bug fix and update.
+!
 !Revision 1.21  2003/01/27 14:41:01  dcs
 !bmad_version = 56
 !
@@ -295,7 +298,7 @@ module bmad_struct
   integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, g$=5
   integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, delta_g$=6
   integer, parameter :: ks$=7, volt$=7, e1$=7, n_pole$=7, bbi_const$=7
-  integer, parameter :: lag$=8, e2$=8, charge$=8, gap$=8
+  integer, parameter :: e2$=8, charge$=8, gap$=8
   integer, parameter :: n_slice$=9, l_chord$=9, l_pole$=9, rf_frequency$=9
   integer, parameter :: fint$=10, polarity$ = 10, gradiant$=10
   integer, parameter :: fintx$=11, z_patch$ = 11, phase_0$=11
