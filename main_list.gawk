@@ -33,8 +33,9 @@ BEGIN{
       (in_comment != 1)        &&
       (substr($1,1,1) != "\"")    ) {
     file_type = get_filetype();
-    if ((file_type == "c")  ||
-        (file_type == "cc") ||
+    if ((file_type == "c")   ||
+        (file_type == "cc")  ||
+        (file_type == "cpp") ||
         (file_type == "cxx")  ) {
       status = get_basename();
 #     Diagnostic printout
