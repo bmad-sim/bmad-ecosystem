@@ -479,10 +479,11 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     mat6(1,1) = r11 + r12*k1
     mat6(1,2) = r12 
-    mat6(2,1) = r21 + k2 + k2*r12*k1 + r22*k1
+    mat6(2,1) = r21 + k2*r11 + k2*r12*k1 + r22*k1
     mat6(2,2) = r22 + k2*r12
 
     mat6(3:4,3:4) = mat6(1:2,1:2)
+    mat6(6,6) = 1 / e_ratio
 
 ! off-energy corrections
 
