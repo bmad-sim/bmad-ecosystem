@@ -34,35 +34,7 @@
 !       %ok         -- Set False if orbit does not converge.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.9  2003/06/04 17:55:56  dcs
-!Eliminated x%pos, x%vel, etc. from coord_struct.
-!
-!Revision 1.8  2003/01/27 14:40:46  dcs
-!bmad_version = 56
-!
-!Revision 1.7  2002/11/06 06:48:32  dcs
-!Changed arg array
-!
-!Revision 1.6  2002/08/20 20:34:55  dcs
-!symp_lie_bmad / symp_lie_ptc added
-!
-!Revision 1.5  2002/07/16 21:33:58  dcs
-!*** empty log message ***
-!
-!Revision 1.4  2002/02/23 20:32:29  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2001/10/02 18:49:13  rwh24
-!More compatibility updates; also added many explicit variable declarations.
-!
-!Revision 1.2  2001/09/27 18:32:00  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
 
@@ -117,8 +89,8 @@ subroutine twiss_from_tracking (ring, closed_orb_, d_orb, error)
   enddo
 
   call mat_symp_check (mat, error)
-  call mat_symplectify (mat, ring%ele_(0)%mat6)
-  call twiss_from_mat6 (ring%ele_(0)%mat6, ring%ele_(0), &
+  call mat_symplectify (mat, ring%param%t1_mat6)
+  call twiss_from_mat6 (ring%param%t1_mat6, ring%ele_(0), &
                            ring%param%stable, ring%param%growth_rate)
   ring%x%tune = ring%ele_(0)%x%phi
   ring%y%tune = ring%ele_(0)%y%phi

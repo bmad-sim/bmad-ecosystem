@@ -3,7 +3,7 @@
 !
 ! Subroutine to calculate the closed orbit at the beginning of the ring.
 ! The Subroutine works by first guessing the closed orbit based upon 
-! the 1-turn matrix and tracking for 1-turn. 
+! the 1-turn matrix and tracking for 1-turn.
 !
 ! If ITERATE is True the subroutine iteratively uses the current guess
 ! for the closed orbit to converge to the correct answer. If False
@@ -11,15 +11,22 @@
 ! always be set True unless you *know* you have a linear lattice and you
 ! need to save time.
 !
+! Note: This routine uses the 1-turn matrix ring%param%t1_mat4 or 
+! ring%param%t1_mat6 in the computations. If you have changed conditions 
+! significantly enough you might want to force a remake of the 1-turn matrices
+! by calling clear_ring_1turn_mats.
+!
 ! Note: See also closed_orbit_from_tracking as an alternative method
 ! of finding the closed orbit.
+!
+! Note: Use TRACK_ALL to propagate the closed orbit through the rest
+! of the ring.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   ring   -- Ring_struct: Ring
-!     %ele_(0).mat6      -- This must contain the 6x6 1-turn matrix
+!   ring   -- Ring_struct: Ring to track through.
 !   i_dim  -- Integer: Dimensions to use
 !     = 4  Transverse closed orbit at constant energy (dE/E = CO.Z.VEL)
 !     = 6  Full closed orbit for 6x6 matrix.
@@ -35,13 +42,6 @@
 !   co          -- Coord_struct: Closed orbit at the starting point.
 !   bmad_status -- Bmad status common block
 !       %ok         -- Set False if orbit does not converge, True otherwise.
-!
-! Note:
-!     1) You can use TWISS_AT_START if I_DIM = 4 to calculate the 1-turn
-!         matrix in RING%ELE_(0)%MAT6. NOTE: This does not work with I_DIM = 6.
-!     2) Use CLOSED_ORBIT_AT_START to find the beginning closed orbit.
-!     3) Use TRACK_ALL to propagate the closed orbit through the rest
-!         of the ring.
 !-
 
 #include "CESR_platform.inc"
@@ -58,8 +58,8 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
   type (coord_struct)  orbit_end_e_(0:n_ele_maxx), co
   type (coord_struct)  orbit_(0:n_ele_maxx)
 
-  real(rdef) s_mat(6,6), mat1(6,6), mat2(6,6), mat(6,6)
-  real(rdef) amp_co, amp_del, factor / 1.0 /
+  real(rp) s_mat(6,6), mat1(6,6), mat2(6,6), mat(6,6)
+  real(rp) amp_co, amp_del, factor / 1.0 /, t1(6,6)
 
   integer i, j, n, n_ele, i_dim
 
@@ -69,14 +69,26 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
   bmad_status%ok = .true.
 
-  if (ring%ele_(0)%mat6(6,5) == 0 .and. i_dim == 6) then
-    print *, 'ERROR IN CLOSED_ORBIT_AT_START: CANNOT DO FULL 6-DIMENSIONAL'
-    print *, '      CALCULATION WITH NO RF VOLTAGE!'
-    bmad_status%ok = .false. 
-    call err_exit
-  endif
+  n = i_dim
 
-  if (i_dim /= 4 .and. i_dim /= 6) then
+  if (i_dim == 4) then
+    if (all(ring%param%t1_mat4 == 0)) &
+                        call one_turn_matrix (ring, ring%param%t1_mat4)
+    t1(1:4,1:4) = ring%param%t1_mat4
+
+  elseif (i_dim == 6) then
+    if (all(ring%param%t1_mat6 == 0)) &
+                        call one_turn_matrix (ring, ring%param%t1_mat6)
+    t1 = ring%param%t1_mat6
+
+    if (t1(6,5) == 0) then
+      print *, 'ERROR IN CLOSED_ORBIT_AT_START: CANNOT DO FULL 6-DIMENSIONAL'
+      print *, '      CALCULATION WITH NO RF VOLTAGE!'
+      bmad_status%ok = .false. 
+      call err_exit
+    endif
+
+  else 
     print *, 'ERROR IN CLOSED_ORBIT_AT_START: BAD I_DIM ARGUMENT:', i_dim
     bmad_status%ok = .false. 
     call err_exit
@@ -84,7 +96,6 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
           
 ! init
 
-  n = i_dim
   call mat_make_unit(s_mat(1:n,1:n))
   s_mat(2,2) = -1.0
   s_mat(4,4) = -1.0
@@ -122,7 +133,7 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
            ring%ele_(i)%value(hkick$) = -ring%ele_(i)%value(hkick$)
            ring%ele_(i)%value(vkick$) = -ring%ele_(i)%value(vkick$)
          endif
-       endif !separators
+       endif ! separators
      end do
 
      call track_all (ring, orbit_end_e_)
@@ -133,7 +144,7 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
            ring%ele_(i)%value(hkick$) = -ring%ele_(i)%value(hkick$)
            ring%ele_(i)%value(vkick$) = -ring%ele_(i)%value(vkick$)
          endif
-       endif !separators
+       endif ! separators
      end do
 
 ! symmetric ring then
@@ -143,8 +154,8 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
     orbit_(n_ele)%vec(4) = -orbit_(n_ele)%vec(4)
     orbit_end%vec = orbit_(n_ele)%vec - orbit_end_e_(n_ele)%vec
 
-    mat(1:n,1:n) = matmul(ring%ele_(0)%mat6(1:n,1:n), s_mat(1:n,1:n)) - &
-                  matmul (s_mat(1:n,1:n), ring%ele_(0)%mat6(1:n,1:n))
+    mat(1:n,1:n) = matmul(t1(1:n,1:n), s_mat(1:n,1:n)) - &
+                                    matmul (s_mat(1:n,1:n), t1(1:n,1:n))
                    
 !----------------------------------------------------------------------
 ! No symmetry: X = (Mat-1)^-1 * orbit_end
@@ -153,7 +164,7 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
     call track_all (ring, orbit_)
     orbit_end = orbit_(n_ele)
     call mat_make_unit (mat(1:n,1:n))
-    mat(1:n,1:n) = mat(1:n,1:n) - ring%ele_(0)%mat6(1:n,1:n)
+    mat(1:n,1:n) = mat(1:n,1:n) - t1(1:n,1:n)
   endif
 
 !----------------------------------------------------------------------

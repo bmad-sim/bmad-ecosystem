@@ -631,7 +631,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct) ring
-      real(rdef) mat6(6,6)
+      real(rdef) mat6(:,:)
     end subroutine
   end interface
 
@@ -1151,6 +1151,18 @@ module bmad_interface
       type (ring_struct) :: ring
       type (ele_struct) :: ele
       real(rdef) s
+    end subroutine
+  end interface
+
+  interface
+    subroutine twiss_and_track_at_s (ring, s, ele, orb_, here)
+      use bmad_struct
+      implicit none
+      type (ring_struct) :: ring
+      type (ele_struct) :: ele
+      real(rdef) s
+      type (coord_struct), optional :: orb_(0:)
+      type (coord_struct) here
     end subroutine
   end interface
 

@@ -126,7 +126,7 @@ subroutine set_z_tune (ring)
 
   call calc_z_tune (ring)
   if (abs(ring%z%tune) < 0.001 .or. z_tune_wanted == 0) then
-    volt = -z_tune_wanted**2 / (ring%ele_(0)%mat6(5,6) * coef_tot)
+    volt = -z_tune_wanted**2 / (ring%param%t1_mat6(5,6) * coef_tot)
     do i = 1, n_rf
       ring%ele_(ix_rf(i))%value(ix_attrib(i)) = volt
       call ring_make_mat6 (ring, ix_rf(i))

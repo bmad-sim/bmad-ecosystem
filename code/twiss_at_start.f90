@@ -17,13 +17,13 @@
 !
 ! Output:
 !   ring
-!     %ele_(0)%x     -- X Twiss parameters at the start of the ring.
-!     %ele_(0)%y     -- Y Twiss parameters at the start of the ring.
-!     %ele_(0)%mat6  --  Note: Only the linear part is computed.
+!     %param%t1_mat4  --  Note: Only the linear part is computed.
 !                          Matrix Type           ring%param%symmetry
 !                          --------              -----------
 !                          1-turn   (see note)   none$
 !                          1/2-turn (see note)   ew_anti_symmetric$
+!     %ele_(0)%x     -- X Twiss parameters at the start of the ring.
+!     %ele_(0)%y     -- Y Twiss parameters at the start of the ring.
 !     %ele_(0)%c_mat -- Coupling matrix.
 !     %x%tune        -- Fractional part of the tune in radians
 !     %y%tune        -- Fractional part of the tune in radians
@@ -86,11 +86,13 @@ subroutine twiss_at_start (ring)
     endif
   enddo
 
-! put 1-turn matrix into ring%ele_(0)%mat6
+! put 1-turn matrix into ring%param%t1_mat4
 
-  call mat_make_unit(ring%ele_(0)%mat6)
-  ring%ele_(0)%mat6(1:4,1:4) = t0_4
-  call mat6_dispersion (ring%ele_(0)%mat6, eta_vec) ! dispersion to %mat6
+  ring%param%t1_mat4 = t0_4
+  call mat_make_unit (mat6)
+  mat6(1:4,1:4) = t0_4
+
+  call mat6_dispersion (mat6, eta_vec) ! dispersion to %mat6
 
 ! if symmetry then propagate through the east side
 
@@ -100,8 +102,6 @@ subroutine twiss_at_start (ring)
     mat6(1:4,1:4) = matmul (t_e, t0_4)
     eta_vec = (/ 0.0_rp, 2*eta_vec(2), 0.0_rp, 2*eta_vec(4) /)
     mat6(1:4, 6) = matmul(t_e, eta_vec)
-  else
-    mat6 = ring%ele_(0)%mat6
   endif
 
 ! compute twiss parameters

@@ -9,5 +9,6 @@ module bmad
   use dynamic_aperture_mod
   use ptc_interface_mod
   use bookkeeper_mod
+  use radiation_mod
 
 end module

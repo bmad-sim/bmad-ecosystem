@@ -31,7 +31,7 @@ module bmad_struct
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 
-  integer, parameter :: bmad_inc_version$ = 60
+  integer, parameter :: bmad_inc_version$ = 61
 
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -59,7 +59,7 @@ module bmad_struct
 ! P_X and P_Y are the momentum along the x and y-axes.
 
   type coord_struct
-    real(rdef) vec(6)
+    real(rp) vec(6)
   end type
 
 ! Wiggler structures
@@ -69,9 +69,9 @@ module bmad_struct
                   'Garbage ', 'Hyper_Y ', 'Hyper_XY', 'Hyper_X ' /)
 
   type wig_term_struct
-    real(rdef) coef
-    real(rdef) kx, ky, kz
-    real(rdef) phi_z
+    real(rp) coef
+    real(rp) kx, ky, kz
+    real(rp) phi_z
     integer type      ! hyper_y$, hyper_xy$, or hyper_x$
   end type
 
@@ -86,19 +86,19 @@ module bmad_struct
     character*16 alias             ! Another name
     character*16 attribute_name    ! Used by overlays
     type (twiss_struct)  x,y,z         ! Twiss parameters at end of element
-    real(rdef) value(n_attrib_maxx)    ! attribute values
-    real(rdef) gen0(6)                 ! constant part of the genfield map
-    real(rdef) vec0(6)                 ! 0th order transport vector
-    real(rdef) mat6(6,6)               ! 1st order transport matrix 
-    real(rdef) c_mat(2,2)              ! 2x2 C coupling matrix
-    real(rdef) gamma_c                 ! gamma associated with C matrix
-    real(rdef) s                       ! longitudinal position at the end
-    real(rdef) x_position, y_position  ! Floor position of element
-    real(rdef) z_position              ! Elevation of element
-    real(rdef) theta_position          ! Floor orientation angle of element
-    real(rdef) phi_position            ! Angle of attack
-    real(rdef), pointer             :: a(:), b(:)     ! multipoles
-    real(rdef), pointer             :: const(:)       ! Working constants.
+    real(rp) value(n_attrib_maxx)    ! attribute values
+    real(rp) gen0(6)                 ! constant part of the genfield map
+    real(rp) vec0(6)                 ! 0th order transport vector
+    real(rp) mat6(6,6)               ! 1st order transport matrix 
+    real(rp) c_mat(2,2)              ! 2x2 C coupling matrix
+    real(rp) gamma_c                 ! gamma associated with C matrix
+    real(rp) s                       ! longitudinal position at the end
+    real(rp) x_position, y_position  ! Floor position of element
+    real(rp) z_position              ! Elevation of element
+    real(rp) theta_position          ! Floor orientation angle of element
+    real(rp) phi_position            ! Angle of attack
+    real(rp), pointer             :: a(:), b(:)     ! multipoles
+    real(rp), pointer             :: const(:)       ! Working constants.
     character*200, pointer          :: descrip        ! For general use
     type (wig_term_struct), pointer :: wig_term(:)    ! Wiggler Coefs
     type (genfield), pointer        :: gen_field      ! For symp_map$
@@ -135,7 +135,7 @@ module bmad_struct
 ! struct for element to element control
 
   type control_struct
-    real(rdef) coef                ! control coefficient
+    real(rp) coef                ! control coefficient
     integer ix_lord                ! index to lord element
     integer ix_slave               ! index to slave element
     integer ix_attrib              ! index of attribute controlled
@@ -144,27 +144,29 @@ module bmad_struct
 ! parameter and mode structures
 
   type param_struct
-    real(rdef) energy             ! USE BEAM_ENERGY INSTEAD ! energy in GeV.
-    real(rdef) beam_energy        ! beam energy in eV
-    real(rdef) n_part             ! Number of particles in a bunch
-    real(rdef) total_length       ! total_length of ring
-    real(rdef) growth_rate        ! growth rate/turn if not stable
-    integer particle              ! +1 = positrons, -1 = electrons
-    integer symmetry              ! symmetry of the ring (e/w symm, etc.)
-    integer ix_lost               ! If lost at what element?
-    integer lattice_type          ! linac_lattice$, etc...
-    integer ixx                   ! Integer for general use
-    logical stable                ! is closed ring stable?
-    logical aperture_limit_on     ! use apertures in tracking?
-    logical lost                  ! for use in tracking
-    logical damping_on            ! Radiation damping calculation toggle.
-    logical fluctuations_on       ! Radiation fluctuations calculation toggle.
+    real(rp) energy             ! USE BEAM_ENERGY INSTEAD ! energy in GeV.
+    real(rp) beam_energy        ! beam energy in eV
+    real(rp) n_part             ! Number of particles in a bunch
+    real(rp) total_length       ! total_length of ring
+    real(rp) growth_rate        ! growth rate/turn if not stable
+    real(rp) t1_mat6(6,6)       ! Full 1-turn 6x6 matrix
+    real(rp) t1_mat4(4,4)       ! Transverse 1-turn 4x4 matrix (RF off).
+    integer particle            ! +1 = positrons, -1 = electrons
+    integer symmetry            ! symmetry of the ring (e/w symm, etc.)
+    integer ix_lost             ! If lost at what element?
+    integer lattice_type        ! linac_lattice$, etc...
+    integer ixx                 ! Integer for general use
+    logical stable              ! is closed ring stable?
+    logical aperture_limit_on   ! use apertures in tracking?
+    logical lost                ! for use in tracking
+    logical damping_on          ! Radiation damping calculation toggle.
+    logical fluctuations_on     ! Radiation fluctuations calculation toggle.
   end type
 
   type mode_info_struct
-    real(rdef) tune      ! "fractional" tune in radians: 0 < tune < 2pi
-    real(rdef) emit      ! Emittance
-    real(rdef) chrom     ! Chromaticity
+    real(rp) tune      ! "fractional" tune in radians: 0 < tune < 2pi
+    real(rp) emit      ! Emittance
+    real(rp) chrom     ! Chromaticity
   end type
 
   type dummy_parameter_struct
@@ -374,7 +376,7 @@ module bmad_struct
                   'ELECTRON  ', '???       ', 'POSITRON  ', 'PROTON    ' /)
 
   integer, parameter :: charge_of(-2:2) = (/ -1, -1, 0, 1, 1 /)
-  real(rdef), parameter :: mass_of(-2:2) = (/ 0.938279e9, 0.511003e6, 0.0, &
+  real(rp), parameter :: mass_of(-2:2) = (/ 0.938279e9, 0.511003e6, 0.0, &
                                               0.511003e9, 0.938279e9 /)
 
 ! SYMMETRY etc., logical names
@@ -438,19 +440,19 @@ module bmad_struct
 !
 
   type amode_struct
-    real(rdef) emittance
-    real(rdef) synch_int(4:5)
-    real(rdef) j_damp               ! damping partition number
-    real(rdef) alpha_damp           ! damping per turn
-    real(rdef) chrom                ! Chromaticity
-    real(rdef) tune                 ! "Fractional" tune in radians
+    real(rp) emittance
+    real(rp) synch_int(4:5)
+    real(rp) j_damp               ! damping partition number
+    real(rp) alpha_damp           ! damping per turn
+    real(rp) chrom                ! Chromaticity
+    real(rp) tune                 ! "Fractional" tune in radians
   end type
 
   type modes_struct
-    real(rdef) synch_int(3)
-    real(rdef) sig_e
-    real(rdef) sig_z
-    real(rdef) e_loss
+    real(rp) synch_int(3)
+    real(rp) sig_e
+    real(rp) sig_z
+    real(rp) e_loss
     type (amode_struct)  a, b, z
   end type
 
@@ -475,7 +477,7 @@ module bmad_struct
 ! For butns.nnnnn files
 
   type detector_struct
-    real(rdef) x_orb, y_orb
+    real(rp) x_orb, y_orb
     integer amp(4)
     integer type
     logical ok
@@ -499,7 +501,7 @@ module bmad_struct
   integer, parameter :: x55$ = 25, x56$ = 26, x66$ = 27
 
   type mat627_struct
-    real(rdef) m(6,27)
+    real(rp) m(6,27)
   end type
 
 !---------------------------------------------------------------
@@ -507,10 +509,10 @@ module bmad_struct
 ! the element ordering here is similar to what is used by cesrv
 
   type b_struct
-    real(rdef) beta_mid             ! beta at the midpoint
-    real(rdef) beta_ave             ! beta averaged over the element
-    real(rdef) pos_mid              ! position at midpoint
-    real(rdef) pos_inj              ! position in injection lattice
+    real(rp) beta_mid             ! beta at the midpoint
+    real(rp) beta_ave             ! beta averaged over the element
+    real(rp) pos_mid              ! position at midpoint
+    real(rp) pos_inj              ! position in injection lattice
   end type
 
   type cesr_element_struct 
@@ -589,9 +591,9 @@ module bmad_struct
 
   type db_element_struct
     character*16 bmad_name    ! bmad name of element
-    real(rdef) dvar_dcu             ! calibration factor
-    real(rdef) var_theory           ! theory var value
-    real(rdef) var_0                ! extrapolated var value at CU = 0
+    real(rp) dvar_dcu             ! calibration factor
+    real(rp) var_theory           ! theory var value
+    real(rp) var_0                ! extrapolated var value at CU = 0
     integer ix_ring           ! index to element array in ring struct
     integer ix_attrib         ! index to element attribute
     integer ix_cesrv          ! index to cesr_struct arrays
@@ -657,8 +659,8 @@ module bmad_struct
 ! electric and magnetic fields
 
   type em_field_struct
-    real(rdef) E(3)         ! electric field
-    real(rdef) B(3)         ! magnetic field
+    real(rp) E(3)         ! electric field
+    real(rp) B(3)         ! magnetic field
   end type
 
 !------------------------------------------------------------------------------
@@ -674,8 +676,8 @@ module bmad_struct
 
   type bmad_com_struct
     type (coord_struct) :: d_orb  ! for the transfer_mat_from_tracking routine
-    real(rdef) :: beam_energy = 0
-    real(rdef) :: max_aperture_limit = 1e3    
+    real(rp) :: beam_energy = 0
+    real(rp) :: max_aperture_limit = 1e3    
     integer :: taylor_order = 3              ! 3rd order is default
     integer :: taylor_order_ptc = 0          ! 0 -> not yet set 
     logical :: taylor_order_set = .false.    ! Used by set_taylor_order

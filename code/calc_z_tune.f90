@@ -1,36 +1,21 @@
 !+
-! Subroutine calc_z_tune (RING)
+! Subroutine calc_z_tune (ring)
 !
-! Subroutine to calculate the synchrotron tune from the full 6X6 1 turn matrix
+! Subroutine to calculate the synchrotron tune from the full 6X6 1-turn matrix
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!    RING  -- Ring_struct: Ring
+!   ring  -- Ring_struct: Ring
 !
 ! Output:
-!    RING : ring%z%tune  synchrotron tune (radians)
+!   ring -- Ring_struct
+!     %z%tune         -- Synchrotron tune (radians)
+!     %param%t1_mat6  -- 6x6 1-turn matrix.
 !-
 
-!$Id$
-!$Log$
-!Revision 1.5  2003/04/04 16:42:28  dcs
-!z_tune imporovement
-!
-!Revision 1.4  2003/01/27 14:40:31  dcs
-!bmad_version = 56
-!
-!Revision 1.3  2002/02/23 20:32:11  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:48  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
-
 
 subroutine calc_z_tune ( ring)
 
@@ -43,13 +28,13 @@ subroutine calc_z_tune ( ring)
 
   type (ring_struct) ring
 
-  real(rdef) a(6,6), wr(6), wi(6), cos_z
+  real(rp) a(6,6), wr(6), wi(6), cos_z
 
   integer i
 !
 
   call one_turn_matrix (ring, a)
-  ring%ele_(0)%mat6 = a
+  ring%param%t1_mat6 = a
 
   cos_z = (a(5,5) + a(6,6)) / (2 * (a(5,5)*a(6,6) - a(5,6)*a(6,5)))
 

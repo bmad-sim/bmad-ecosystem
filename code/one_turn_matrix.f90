@@ -1,5 +1,5 @@
 !+         
-! Subroutine one_turn_matrix (RING, MAT6)
+! Subroutine one_turn_matrix (ring, t1)
 !
 ! Subroutine to calculate the full 6X6 1 turn matrix
 !
@@ -7,34 +7,17 @@
 !   use bmad
 !
 ! Input:
-!     RING   -- Ring_struct: Ring
+!   ring     -- Ring_struct: Ring
 !
 ! Output:
-!    MAT6(6,6) --  Matrix Type           ring.param.symmetry
-!                  --------              -----------
-!                  1-turn                none$
+!    t1(n,n) -- Real(rp): 1-turn matrix.
+!                   n = 4  -> Transverse matrix esentually with RF off.
+!                   n = 6  -> Full 6x6 matrix.
 !-
-
-!$Id$
-!$Log$
-!Revision 1.5  2003/01/27 14:40:41  dcs
-!bmad_version = 56
-!
-!Revision 1.4  2002/02/23 20:32:22  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2002/01/08 21:44:42  dcs
-!Aligned with VMS version  -- DCS
-!
-!Revision 1.2  2001/09/27 18:31:55  rwh24
-!UNIX compatibility updates
-!
 
 #include "CESR_platform.inc"
 
-
-
-subroutine one_turn_matrix (ring, mat6)
+subroutine one_turn_matrix (ring, t1)
 
   use bmad_struct
   use bmad_interface
@@ -43,14 +26,28 @@ subroutine one_turn_matrix (ring, mat6)
 
   type (ring_struct)  ring
 
-  real(rdef) mat6(6,6)
+  real(rp) t1(:,:)
   integer i
 
-  mat6 = ring%ele_(1)%mat6
-  do i=2,ring%n_ele_use                 
-    mat6 = matmul (ring%ele_(i)%mat6, mat6)
-  end do
-    
+!
+
+  if (size(t1,1) == 4 .and. size(t1,2) == 4) then
+    t1 = ring%ele_(1)%mat6(1:4,1:4)
+    do i=2,ring%n_ele_ring
+      t1 = matmul (ring%ele_(i)%mat6(1:4,1:4), t1)
+    end do
+
+  elseif (size(t1,1) == 6 .and. size(t1,2) == 6) then
+    t1 = ring%ele_(1)%mat6
+    do i=2,ring%n_ele_ring                
+      t1 = matmul (ring%ele_(i)%mat6, t1)
+    end do
+
+  else
+    print *, 'ERROR IN ONE_TURN_MATRIX: MATRIX HAS THE WRONG SIZE:', &
+                                                    size(t1,1), size(t1,2) 
+    call err_exit
+  endif
 
 end subroutine
                                           

@@ -23,7 +23,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine twiss_at_s (ring, s, ele, orb_, here)
+subroutine twiss_and_track_at_s (ring, s, ele, orb_, here)
 
   use bmad_struct
   use bmad_interface
@@ -32,7 +32,7 @@ subroutine twiss_at_s (ring, s, ele, orb_, here)
 
   type (ring_struct) :: ring
   type (ele_struct) :: ele
-  type (coord_struct), optional :: orb_(0:n_ele_maxx)
+  type (coord_struct), optional :: orb_(0:)
   type (coord_struct) here
 
   real(rp) s, s_use

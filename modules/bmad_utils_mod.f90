@@ -320,4 +320,31 @@ subroutine transfer_taylor (ring_in, ring_out, type_out)
 
 end subroutine
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine clear_ring_1turn_mats (ring)
+!
+! Subroutine to clear the 1-turn matrices in the ring structure.
+! This will force any routine dependent upon these to do a remake.
+!
+! Modules needed:
+!   use bmad
+!
+! Output:
+!   ring -- ring_struct: Ring with 1-turn matrices cleared.
+!-
+
+subroutine clear_ring_1turn_mats (ring)
+
+  implicit none
+
+  type (ring_struct) ring
+
+  ring%param%t1_mat4 = 0
+  ring%param%t1_mat6 = 0
+
+end subroutine
+
 end module
