@@ -277,8 +277,10 @@ subroutine transfer_ring_taylors (ring_in, ring_out, type_out, transfered_all)
     endif
   enddo
 
-! go through ring_out and match elements
-! if we have a match transfer the Taylor map.
+! Go through ring_out and match elements.
+! If we have a match transfer the Taylor map.
+! Call attribute_bookkeeper before transfering the taylor map to make sure
+! the check_sum is correct. 
 
   out_loop: do i = 1, ring_out%n_ele_max
 
@@ -291,6 +293,7 @@ subroutine transfer_ring_taylors (ring_in, ring_out, type_out, transfered_all)
       if (equivalent_eles (ele_in, ele_out)) then
         if (type_out) print *, 'TRANSFER_RING_TAYLORS: ', &
              'Reusing Taylor from: ', trim(ele_in%name), '  to: ', ele_out%name
+        call attribute_bookkeeper (ele_out, ring_out%param)
         call transfer_ele_taylor (ele_in, ele_out, bmad_com%taylor_order)
         cycle out_loop
       endif
