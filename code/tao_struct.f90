@@ -382,7 +382,7 @@ type tao_common_struct
 end type
 
 
-type (tao_super_universe_struct):: s
-type (tao_common_struct) tao_com
+type (tao_super_universe_struct), save :: s
+type (tao_common_struct), save :: tao_com
 
 end module

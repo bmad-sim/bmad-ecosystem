@@ -194,7 +194,7 @@ interface
 end interface
  
 interface
-  function tao_merit result (this_merit)
+  function tao_merit () result (this_merit)
     use precision_def
     implicit none
     real(rp) this_merit
