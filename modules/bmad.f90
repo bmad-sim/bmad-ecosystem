@@ -12,5 +12,6 @@ module bmad
   use radiation_mod
   use symp_lie_mod
   use cesr_mod
+  use io_mod
 
 end module

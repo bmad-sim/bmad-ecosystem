@@ -418,6 +418,9 @@ module bmad_struct
   integer, parameter :: linear_lattice$ = 11
   integer, parameter :: circular_lattice$ = 12
 
+  character(16) :: lattice_type(10:12) = &
+        (/ 'LINAC_LATTICE   ', 'LINEAR_LATTICE  ', 'CIRCULAR_LATTICE' /)
+
 ! logicals for MAKE_HYBIRD_RING
 
   logical, parameter :: remove_markers$ = .true., no_remove_markers$ = .false.

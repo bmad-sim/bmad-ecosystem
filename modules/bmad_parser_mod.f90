@@ -274,7 +274,10 @@ subroutine get_attribute (how, ele, ring, pring, &
     if (i == type$ .or. i == alias$) then
       call type_get (ele, i, delim, delim_found)
     else
-      if (how == def$) ele%ix_value = i
+      if (how == def$) then
+        ele%ix_value = i
+        ele%attribute_name = word
+      endif
       if (delim == '=') then  ! value
         call evaluate_value (trim(ele%name) // ' ' // word, value, &
                                 ring, delim, delim_found, err_flag)
@@ -538,13 +541,17 @@ subroutine get_attribute (how, ele, ring, pring, &
     call type_get (ele, i, delim, delim_found)
 
   case (symplectify$) 
-    call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
-    ele%symplectify = evaluate_logical (word, ios)
-    if (ios /= 0 .or. ix_word == 0) then
-      call warning ('BAD "SYMPLECTIFY" SWITCH FOR: ' // ele%name)
-      return
+    if (how == def$ .and. (delim == ',' .or. .not. delim_found)) then
+      ele%symplectify = .true.
+    else
+      call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
+      ele%symplectify = evaluate_logical (word, ios)
+      if (ios /= 0 .or. ix_word == 0) then
+        call warning ('BAD "SYMPLECTIFY" SWITCH FOR: ' // ele%name)
+        return
+      endif
     endif
-
+    
   case (is_on$)
     call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
     ele%is_on = evaluate_logical (word, ios)

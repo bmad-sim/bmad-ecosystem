@@ -256,7 +256,7 @@ subroutine makeup_super_slave (ring, ix_slave)
 ! Super_slave:
 
   slave => ring%ele_(ix_slave)
-                     
+
   if (slave%control_type /= super_slave$) then
     print *, 'ERROR IN MAKEUP_SUPER_SLAVE: ELEMENT IS NOT AN SUPER SLAVE:'
     print *, '      ', slave%name
@@ -301,6 +301,8 @@ subroutine makeup_super_slave (ring, ix_slave)
       
     slave%value = value
     slave%is_on = lord%is_on
+    slave%mat6_calc_method = lord%mat6_calc_method
+    slave%tracking_method  = lord%tracking_method
 
 ! if a wiggler: 
 ! must keep track of where we are in terms of the unsplit wiggler.
@@ -400,6 +402,24 @@ subroutine makeup_super_slave (ring, ix_slave)
     if (ix_con == lord%ix2_slave) then      ! longitudinal ends match
       value(x_limit$) = lord%value(x_limit$)
       value(y_limit$) = lord%value(y_limit$)
+    endif
+
+    if (j == slave%ic1_lord) then
+      slave%mat6_calc_method = lord%mat6_calc_method
+      slave%tracking_method  = lord%tracking_method
+    else
+      if (slave%mat6_calc_method /= lord%mat6_calc_method) then
+        ix = ring%control_(ring%ic_(slave%ic1_lord))%ix_lord
+        print *, 'ERROR IN MAKEUP_SUPER_SLAVE: MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT'
+        print *, '      SUPERPOSITION LORDS: ', trim(lord%name), ', ', trim(ring%ele_(ix)%name)
+        call err_exit
+      endif
+      if (slave%tracking_method /= lord%tracking_method) then
+        ix = ring%control_(ring%ic_(slave%ic1_lord))%ix_lord
+        print *, 'ERROR IN MAKEUP_SUPER_SLAVE: TRACKING_METHOD DOES NOT AGREE FOR DIFFERENT'
+        print *, '      SUPERPOSITION LORDS: ', trim(lord%name), ', ', trim(ring%ele_(ix)%name)
+        call err_exit
+      endif
     endif
 
     if (lord%is_on) then
@@ -715,15 +735,15 @@ subroutine attribute_bookkeeper (ele, param)
 
     select case (ele%key)
     case (quadrupole$)
-       ele%value(B_gradient$) = factor * ele%value(k1$)
+      ele%value(B_gradient$) = factor * ele%value(k1$)
     case (sextupole$)
-       ele%value(B_gradient$) = factor * ele%value(k2$)
+      ele%value(B_gradient$) = factor * ele%value(k2$)
     case (octupole$)
-       ele%value(B_gradient$) = factor * ele%value(k3$)
+      ele%value(B_gradient$) = factor * ele%value(k3$)
     case (solenoid$)
-       ele%value(B_field$) = factor * ele%value(ks$)
+      ele%value(B_field$) = factor * ele%value(ks$)
     case (sbend$)
-       ele%value(B_field$) = factor * ele%value(g$)
+      ele%value(B_field$) = factor * ele%value(g$)
     end select
 
   endif
@@ -850,6 +870,9 @@ subroutine attribute_bookkeeper (ele, param)
   case (rfcavity$)
     check_sum = ele%value(voltage$) + ele%value(phi0$)
 
+  case (elseparator$)
+    check_sum = check_sum + ele%value(hkick$) + ele%value(vkick$)
+
   case default
     return
 
@@ -857,7 +880,7 @@ subroutine attribute_bookkeeper (ele, param)
 
   check_sum = check_sum + ele%value(l$) + ele%value(x_offset$) + &
         ele%value(y_offset$) + ele%value(x_pitch$) + ele%value(y_pitch$) + &
-        ele%num_steps + ele%value(s_offset$)
+        ele%num_steps + ele%value(s_offset$) + ele%value(tilt$)
 
   if (ele%value(check_sum$) /= check_sum) then
 
