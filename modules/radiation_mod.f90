@@ -6,6 +6,12 @@ module radiation_mod
   use bmad_interface
   use runge_kutta_mod
 
+  type synch_rad_com
+    real(rp) :: scale = 1.0   ! used to scale the radiation
+  end type
+
+  type (synch_rad_com), save :: sr_com
+
 contains
 
 !---------------------------------------------------------------------------
@@ -152,7 +158,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
     fact_f = sqrt(fluct_const * s_len * gamma**5 * h3) * this_ran
   endif
 
-  dE_p = (1 + start%vec(6)) * (fact_d + fact_f)  
+  dE_p = (1 + start%vec(6)) * (fact_d + fact_f) * sr_com%scale 
 
   end = start
   end%vec(2) = end%vec(2) * (1 - dE_p)

@@ -1150,7 +1150,7 @@ module bmad_interface
       type (ele_struct) :: ele
       real(rdef) s
       type (coord_struct), optional :: orb_(0:)
-      type (coord_struct) here
+      type (coord_struct), optional :: here
     end subroutine
   end interface
 
