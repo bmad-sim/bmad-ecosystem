@@ -15,20 +15,20 @@ Chapter~\ref{c:single}. To put \tao into \vn{single mode} use the
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Command} & {\it Section}  & {\it Command} & {\it Section} \\ \hline
-  alias      & \ref{s:alias}    &  restore     & \ref{s:restore} \\ \hline
-  call       & \ref{s:call}     &  run         & \ref{s:run}     \\ \hline
-  change     & \ref{s:change}   &  set         & \ref{s:set}     \\ \hline
-  clip       & \ref{s:clip}     &  scale       & \ref{s:scale}   \\ \hline
-  derivative & \ref{s:deriv}    &              &                 \\ \hline
-  exit       & \ref{s:exit}     &  show        & \ref{s:show}    \\ \hline
-  flatten    & \ref{s:flatten}  &  single-mode & \ref{s:sing}    \\ \hline
-  help       & \ref{s:help}     &  use         & \ref{s:use}     \\ \hline
-  history    & \ref{s:history}  &  veto        & \ref{s:veto}    \\ \hline
-  output     & \ref{s:output}   &  view        & \ref{s:view}    \\ \hline
-  place      & \ref{s:place}    &  x-axis      & \ref{s:x-axis}  \\ \hline
-  plot       & \ref{s:plot}     &  x-scale     & \ref{s:x-scale} \\ \hline
-  quit       & \ref{s:quit}     &              &                 \\ \hline
-\end{tabular}
+  alias      & \ref{s:alias}    &  restore      & \ref{s:restore} \\ \hline
+  call       & \ref{s:call}     &  reinitialize & \ref{s:reinit}  \\ \hline
+  change     & \ref{s:change}   &  run          & \ref{s:run}     \\ \hline
+  clip       & \ref{s:clip}     &  set          & \ref{s:set}     \\ \hline
+  derivative & \ref{s:deriv}    &  scale        & \ref{s:scale}   \\ \hline
+  exit       & \ref{s:exit}     &               &                 \\ \hline
+  flatten    & \ref{s:flatten}  &  show         & \ref{s:show}    \\ \hline
+  help       & \ref{s:help}     &  single-mode  & \ref{s:sing}    \\ \hline
+  history    & \ref{s:history}  &  use          & \ref{s:use}     \\ \hline
+  output     & \ref{s:output}   &  veto         & \ref{s:veto}    \\ \hline
+  place      & \ref{s:place}    &  view         & \ref{s:view}    \\ \hline
+  plot       & \ref{s:plot}     &  x-axis       & \ref{s:x-axis}  \\ \hline
+  quit       & \ref{s:quit}     &  x-scale      & \ref{s:x-scale} \\ \hline
+\end{tabular}                      
 }
 \caption{Table of \bmad\ elements.}
 \label{t:commands}
@@ -294,7 +294,7 @@ in the graphs of a given region. Use a ``-'' for baselines.
 Examples:
 \begin{example}
   plot bottom model - design       ! Plot model - design in the bottom region
-  plot top data - model + design - ref 
+  plot top measure - model + design - ref 
 \end{example}
 
 %% quit --------------------------------------------------------------
@@ -329,6 +329,28 @@ Examples:
   restore data orbit:x  23, 34:56 ! unveto orbit:x data.
   restore data orbit;* 34         ! unveto orbit data in all universes.
   restore var quad_k1 67          ! unveto variable
+\end{example}
+
+%% reinitialize -------------------------------------------------------
+\section{Reinitialize}
+\label{s:reinit}
+
+Format:
+\begin{example}
+  reinitialize \{<init_file>\}
+\end{example}
+
+\vskip 0.2in Reinitializes \tao. This can be useful to reset everything to
+initial conditions or to perform analysis with more than one initialization file.
+If \vn{<init_file>} is not given then 
+the current initialization file is used. If \vn{init_file} = \vn{default} then
+the default initialization file \vn{tao.init} is used.
+
+Examples:
+\begin{example}
+  reinitialize 
+  reinit tao_special.init !reinitializes \tao with the initialization file 
+\vn{tao_special.init}
 \end{example}
 
 
@@ -370,19 +392,19 @@ Format:
 
 \vskip 0.2in
 To apply a set to all data or variable classes use ``all''
-in place of \vn{<class>}.
+in place of \vn{<data_name>} or \vn{var_name}.
 
 For the \vn{set data} version of \vn{set} possible 
 \vn{<component>}s that can be set are:
 \begin{example}
   weight      ! Weight for the merit function.
-  data        ! Measured data value.
+  meas        ! Measured data value.
   ref         ! Reference data value.
   good_user   ! Good data from the perspective of the user of the \tao program.
 \end{example}
 Besides a numeric value \vn{<value>} can be:
 \begin{example}
-  data        ! Measured data value.
+  meas        ! Measured data value.
   ref         ! Reference data value.
   model       ! model lattice value.
   base        ! base lattice value.
@@ -401,7 +423,7 @@ For \vn{set var} version of \vn{set} possible
 \end{example}
 Besides a numeric value \vn{<value>} can be:
 \begin{example}
-  data        ! Value when data measurement was made.
+  meas        ! Value when data measurement was made.
   ref         ! Value when reference measurement was made.
   model       ! model lattice value.
   base        ! base lattice value.
@@ -424,7 +446,7 @@ For \vn{set global} the possible
 
 Examples:
 \begin{example}
-  set data all ref = data       ! set all ref data = measured data.
+  set data all ref = meas       ! set all ref data = measured data.
   set var quad\_k1 weight = 0.1 ! set quad\_k1 weights. 
 \end{example}
 
@@ -482,7 +504,7 @@ details.
 \item[show constraints]
 Lists data and variable constraints.
 \item[show data]
-Shows data information. If \vn{<data_name>} and \vn{<locations>}} are not
+Shows data information. If \vn{<data_name>} and \vn{<locations>} are not
 present shown is a list of d2\_data names.
 \item[show ele]
 This shows information on lattice elements. \vn{<ele_name>} can
@@ -506,7 +528,7 @@ Shows information pertinent to optimization: Data and variables used, etc.
 Shows top contributors to the merit function, dMerit/dVariable
 derivatives, and Largest changes in variable value.
 \item[show var]
-Shows variable information. If \vn{<var_name>} \vn{<locations>}} are
+Shows variable information. If \vn{<var_name>} \vn{<locations>} are
 not present shown is a list of v1\_var classes.
 \end{description}
 

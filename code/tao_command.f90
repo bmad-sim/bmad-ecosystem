@@ -33,15 +33,16 @@ subroutine tao_command (command_line, err)
   character(*) :: command_line
   character(140) cmd_line
   character(20) :: r_name = 'tao_command'
-  character(20) :: cmd_word(12)
+  character(40) :: cmd_word(12)
  
   character(16) cmd_name
-  character(16) :: cmd_names(25) = (/  &
-        'quit       ', 'exit       ', 'show       ', 'plot       ', 'place      ', &
-        'clip       ', 'scale      ', 'veto       ', 'use        ', 'restore    ', &
-        'run        ', 'flatten    ', 'output     ', 'change     ', 'set        ', &
-        'call       ', 'view       ', 'alias      ', 'help       ', 'history    ', &
-        'single-mode', '           ', 'x-scale    ', 'x-axis     ', 'derivative ' /)
+  character(16) :: cmd_names(26) = (/  &
+        'quit        ', 'exit        ', 'show        ', 'plot        ', 'place       ', &
+        'clip        ', 'scale       ', 'veto        ', 'use         ', 'restore     ', &
+        'run         ', 'flatten     ', 'output      ', 'change      ', 'set         ', &
+        'call        ', 'view        ', 'alias       ', 'help        ', 'history     ', &
+        'single-mode ', '            ', 'x-scale     ', 'x-axis      ', 'derivative  ', &
+        'reinitialize' /)
 
   logical quit_tao, err
   
@@ -237,6 +238,29 @@ subroutine tao_command (command_line, err)
     endif 
 
 !--------------------------------
+! REINITIALIZE
+
+  case ('reinitialize')
+
+    call cmd_split(2, .false., err)
+    
+    if (cmd_word(1) .eq. ' ') then
+      call out_io (s_info$, r_name, 'Reinitializing with ' // &
+                                         s%global%current_init_file)
+      call tao_init (s%global%current_init_file)
+    elseif (index(cmd_word(1), 'default') .ne. 0) then
+      call out_io (s_info$, r_name, 'Reinitializing with ' // &
+                                         s%global%default_init_file)
+      call tao_init (s%global%default_init_file)
+      s%global%current_init_file = s%global%default_init_file
+    else
+      call out_io (s_info$, r_name, 'Reinitializing with ' // &
+                                         cmd_word(1))
+      call tao_init (cmd_word(1))
+      s%global%current_init_file = cmd_word(1)
+    endif
+      
+!--------------------------------
 ! SET
 
   case ('set')
@@ -358,8 +382,8 @@ subroutine cmd_end_calc
 ! Note: tao_merit calls tao_lattice_calc.
 
   this_merit =  tao_merit ()         
-  if (s%global%plot_on) call tao_plot_data_setup ()     ! transfer data to the plotting structures
-  if (s%global%plot_on) call tao_plot_out ()            ! Update the plotting window
+  call tao_plot_data_setup ()     ! transfer data to the plotting structures
+  call tao_plot_out ()            ! Update the plotting window
 
 end subroutine
 

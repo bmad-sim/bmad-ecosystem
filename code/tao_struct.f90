@@ -265,7 +265,7 @@ type tao_var_struct
   integer ix_var            ! Index number of this var in the u%var array.
   integer ix_dvar           ! Column in the dData_dVar derivative matrix.
   real(rp) model_value      ! Model value.
-  real(rp) base_value      ! Model value.
+  real(rp) base_value       ! Base value.
   real(rp) design_value     ! Design value from the design lattice.
   real(rp) old_value        ! The model_value at some previous time.
   real(rp) meas_value       ! The value when the data measurement was taken.
@@ -329,6 +329,8 @@ type tao_global_struct
   logical :: lattice_recalc = .true.         ! recalculate the lattice?
   character(16) :: valid_plot_who(10) 
   character(40) :: print_command = 'awprint'
+  character(80) :: default_init_file = 'tao.init'
+  character(80) :: current_init_file = 'tao.init'
   character(80) :: var_out_file = 'var#.out'
   character(80) :: opt_var_out_file = 'opt_var#.out'
 end type

@@ -56,7 +56,9 @@ character(1) using
 
 logical, pointer :: l_ptr
 logical, allocatable :: set_it(:)
-logical multiply, divide, can_list
+logical multiply, divide, can_list, change_lattice
+
+change_lattice = .false.
 
 ! parse the list of vars to set.
 ! The result is the set_it(:) array.
@@ -95,6 +97,7 @@ do iv = 1, size(var)
   case ('model')
     r_ptr => var(iv)%model_value
     using = 'r'
+    change_lattice = .true.
   case ('base')
     r_ptr => var(iv)%base_value
     using = 'r'
@@ -122,7 +125,6 @@ do iv = 1, size(var)
   case ('model')
     call check_using (using, 'r', err); if (err) return
     r_ptr = var(iv)%model_value
-    s%global%lattice_recalc = .true.
   case ('base')
     call check_using (using, 'r', err); if (err) return
     r_ptr = var(iv)%base_value
@@ -162,6 +164,12 @@ do iv = 1, size(var)
     endif
   end select
 
+! the model lattice has changed
+  if (change_lattice) then
+    call check_using (using, 'r', err); if (err) return
+    call tao_set_var_model_value (var(iv), r_ptr)
+  endif
+    
 enddo
 
 ! cleanup

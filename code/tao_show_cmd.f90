@@ -507,8 +507,9 @@ case ('var')
 	                               \i5\ matches", max_lines)
         exit
       endif
-      nl = nl+1
-      write (lines(nl), '(i4, 2x, 2a)') i, v1_ptr%name, v1_ptr%name
+        nl=nl+1
+        write(lines(nl), '(5x, a, i5, a, i5)') v1_ptr%name, &
+                  lbound(v1_ptr%v, 1), ':', ubound(v1_ptr%v, 1)
     enddo
     call out_io (s_blank$, r_name, lines(1:nl))
     return

@@ -562,6 +562,13 @@ subroutine var_stuffit_all_uni
 
 
   n = s%n_v1_var_used
+  
+  if (abs(lbound(s%v1_var(n)%v, 1) - ubound(s%v1_var(n)%v, 1)) .gt. 500) then
+    call out_io (s_blank$, r_name, "Initilizing a large number of variables.")
+    call out_io (s_blank$, r_name, "This may take a while...")
+    call out_io (s_blank$, r_name, " ")
+  endif
+
   do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
     s_var => s%v1_var(n)%v(i)
     allocate (s_var%this(size(s%u)))

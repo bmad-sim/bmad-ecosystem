@@ -32,6 +32,7 @@ logical err
 
 err = .true.
 p_who%name = ' '
+p_who%sign = 0
 
 do i = 1, size(who)
 
