@@ -64,7 +64,7 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track_all_beam (ring, beam, ix1, ix2)
+! Subroutine track_beam (ring, beam, ix1, ix2)
 !
 ! Subroutine to track a beam of macroparticles from the end of
 ! ring%ele_(ix1) Through to the end of ring%ele_(ix2).
@@ -73,23 +73,23 @@ contains
 !   use macroparticle_mod
 !
 ! Input:
-!   ring     -- Ring_struct: Lattice to track through.
-!   beam(0:) -- Beam_struct: Beam at end of i^th element.
-!   ix1      -- Integer, optional: Index of starting element (this element 
-!                 is NOT tracked through). Default is 0.
-!   ix2      -- Integer, optional: Index of ending element.
-!                 Default is ring%n_ele_ring.
+!   ring   -- Ring_struct: Lattice to track through.
+!   beam   -- Beam_struct: Beam at end of element ix1.
+!   ix1    -- Integer, optional: Index of starting element (this element 
+!               is NOT tracked through). Default is 0.
+!   ix2    -- Integer, optional: Index of ending element.
+!               Default is ring%n_ele_ring.
 !
 ! Output:
-!   beam(ix1+1:ix2) -- Beam_struct: Beam at end of elements.
+!   beam -- Beam_struct: Beam at end of element ix2.
 !-
 
 subroutine track_all_beam (ring, beam, ix1, ix2)
 
   implicit none
 
-  type (ring_struct), intent(in) :: ring
-  type (beam_struct) :: beam(0:)
+  type (ring_struct) :: ring
+  type (beam_struct) :: beam
 
   integer, optional, intent(in) :: ix1, ix2
   integer i, j, i1, i2
@@ -104,10 +104,8 @@ subroutine track_all_beam (ring, beam, ix1, ix2)
 !
 
   do i = i1+1, i2
-    call reallocate_beam (beam(i), size(beam(i1)%bunch), &
-                size(beam(i1)%bunch(1)%slice), size(beam(i1)%bunch(1)%slice(1)%macro)) 
-    do j = 1, size(beam(i)%bunch)
-      call track1_bunch (beam(i-1)%bunch(j), ring%ele_(i), ring%param, beam(i)%bunch(j))
+    do j = 1, size(beam%bunch)
+      call track1_bunch (beam%bunch(j), ring%ele_(i), ring%param, beam%bunch(j))
     enddo
   enddo
 
