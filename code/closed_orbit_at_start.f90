@@ -96,12 +96,12 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
 
   if (i_dim == 4) then
     if (all(ring%param%t1_no_RF == 0)) &
-                    call one_turn_matrix (ring, .false., ring%param%t1_no_RF)
+                call transfer_matrix_calc (ring, .false., ring%param%t1_no_RF)
     t1 = ring%param%t1_no_RF
 
   elseif (i_dim == 6) then
     if (all(ring%param%t1_with_RF == 0)) &
-                    call one_turn_matrix (ring, .true., ring%param%t1_with_RF)
+                call transfer_matrix_calc (ring, .true., ring%param%t1_with_RF)
     t1 = ring%param%t1_with_RF
 
     if (t1(6,5) == 0) then

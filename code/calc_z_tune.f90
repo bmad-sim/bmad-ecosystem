@@ -33,7 +33,7 @@ subroutine calc_z_tune ( ring)
   integer i
 !
 
-  call one_turn_matrix (ring, .true., a)
+  call transfer_matrix_calc (ring, .true., a)
   ring%param%t1_with_RF = a
 
   cos_z = (a(5,5) + a(6,6)) / (2 * (a(5,5)*a(6,6) - a(5,6)*a(6,5)))

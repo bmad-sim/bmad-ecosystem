@@ -90,13 +90,13 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction)
 
   if (i_dim == 4) then
     if (all(ring%param%t1_no_RF == 0)) &
-                    call one_turn_matrix (ring, .false., ring%param%t1_no_RF)
+                call transfer_matrix_calc (ring, .false., ring%param%t1_no_RF)
     t1 = ring%param%t1_no_RF
     closed_orb(0)%vec(5) = 0
 
   elseif (i_dim == 6) then
     if (all(ring%param%t1_with_RF == 0)) &
-                    call one_turn_matrix (ring, .true., ring%param%t1_with_RF)
+                call transfer_matrix_calc (ring, .true., ring%param%t1_with_RF)
     t1 = ring%param%t1_with_RF
 
     if (t1(6,5) == 0) then
@@ -160,7 +160,7 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction)
       start%vec(1:n) = start%vec(1:n) + del_co%vec(1:n)
     else  ! not converging so remake mat2 matrix
       call ring_make_mat6 (ring, -1, closed_orb)
-      call one_turn_matrix (ring, .true., t1)
+      call transfer_matrix_calc (ring, .true., t1)
       call make_mat2
       amp_del_old = 1e20  ! something large
     endif

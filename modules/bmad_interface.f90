@@ -520,12 +520,23 @@ interface
 end interface
 
 interface
-  subroutine one_turn_matrix (ring, rf_on, mat6)
+  subroutine transfer_matrix_calc (lat, rf_on, t_mat, ix1, ix2)
     use bmad_struct, only: ring_struct, rp
     implicit none
-    type (ring_struct) ring
+    type (ring_struct) lat
     logical, intent(in) :: rf_on
-    real(rp), intent(out) :: mat6(:,:)
+    real(rp), intent(out) :: t_mat(:,:)
+    integer, intent(in), optional :: ix1, ix2
+  end subroutine
+end interface
+
+interface
+  subroutine transfer_map_calc (lat, t_map, ix1, ix2)
+    use bmad_struct, only: ring_struct, rp, taylor_struct
+    implicit none
+    type (ring_struct) lat
+    type (taylor_struct) :: t_map(:)
+    integer, intent(in), optional :: ix1, ix2
   end subroutine
 end interface
 

@@ -25,6 +25,51 @@ module bmad_taylor_mod
     module procedure taylors_equal_taylors
   end interface
 
+!+
+! Function taylor_coef (bmad_taylor, exp)
+! Function taylor_coef (bmad_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9)
+!
+! Function to return the coefficient for a particular taylor term
+! from a Taylor Series.
+!
+! Note: taylor_coef is overloaded by:
+!   taylor_coef1 (bmad_taylor, exp)
+!   taylor_coef2 (bmad_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9)
+! Using the taylor_coef2 form limits obtaining coefficients to 9th order
+! or less. Also: taylor_coef2 does not check that all i1, ..., i9 are between
+! 1 and 6.
+!
+! For example: To get the 2nd order term corresponding to 
+!   y(out) = Coef * p_z(in)^2 
+! [This is somtimes refered to as the T_366 term]
+! The call would be:
+!   type (taylor_struct) bmad_taylor(6)      ! Taylor Map
+!   ...
+!   coef = taylor_coef (bmad_taylor(3), 6, 6)  ! 1st possibility or ...
+!   coef = taylor_coef (bmad_taylor(3), (/ 0, 0, 0, 0, 0, 2 /) )  
+!
+! Modules needed:
+!   use bmad
+!
+! Input (taylor_coef1):
+!   bmad_taylor -- Taylor_struct: Taylor series.
+!   exp(6)      -- Integer: Array of exponent indices.
+!
+! Input (taylor_coef2):
+!   bmad_taylor -- Taylor_struct: Taylor series.
+!   i1, ..., i9 -- Integer, optional: indexes (each between 1 and 6).
+!
+! Output:
+!   taylor_coef -- Real(rp): Coefficient.
+!-
+
+interface taylor_coef
+  module procedure taylor_coef1
+  module procedure taylor_coef2
+end interface
+
+private taylor_coef1, taylor_coef2
+
 contains
 
 !----------------------------------------------------------------------
@@ -106,30 +151,14 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function taylor_coef (bmad_taylor, exp)
+! Function taylor_coef1 (bmad_taylor, exp)
 !
 ! Function to return the coefficient for a particular taylor term
-! from a Taylor Series.
-! For example: To get the term corresponding to 
-!   y_out = Coef * p_z^2 
-! [This is somtimes refered to as the T_366 term]
-! The call would be
-!   type (taylor_struct) bmad_taylor(6)      ! Taylor Map
-!   ...
-!   coef = taylor_coef (bmad_taylor(3), (/ 0, 0, 0, 0, 0, 2 /) )
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   bmad_taylor -- Taylor_struct: Taylor series.
-!   exp(6)      -- Integer: Array of exponent indices.
-!
-! Output:
-!   taylor_coef -- Real(rp): Coefficient.
+! from a Taylor Series. This routine is used by the overloaded function
+! taylor_coef. See taylor_coef for more details.
 !-
 
-function taylor_coef (bmad_taylor, exp) result (coef)
+function taylor_coef1 (bmad_taylor, exp) result (coef)
 
   implicit none
 
@@ -141,6 +170,53 @@ function taylor_coef (bmad_taylor, exp) result (coef)
   integer i
 
 !
+
+  coef = 0
+
+  do i = 1, size(bmad_taylor%term)
+    if (all(bmad_taylor%term(i)%exp == exp)) then
+      coef = bmad_taylor%term(i)%coef
+      return
+    endif
+  enddo
+
+end function
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function taylor_coef2 (bmad_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9)
+!
+! Function to return the coefficient for a particular taylor term
+! from a Taylor Series. This routine is used by the overloaded function
+! taylor_coef. See taylor_coef for more details.
+!-
+
+function taylor_coef2 (bmad_taylor, i1, i2, i3, &
+                            i4, i5, i6, i7, i8, i9) result (coef)
+
+  implicit none
+
+  type (taylor_struct), intent(in) :: bmad_taylor
+
+  real(rp) coef
+
+  integer, intent(in), optional :: i1, i2, i3, i4, i5, i6, i7, i8, i9
+  integer i, exp(6)
+
+!
+
+  exp = 0
+  if (present (i1)) exp(i1) = exp(i1) + 1
+  if (present (i2)) exp(i2) = exp(i2) + 1
+  if (present (i3)) exp(i3) = exp(i3) + 1
+  if (present (i4)) exp(i4) = exp(i4) + 1
+  if (present (i5)) exp(i5) = exp(i5) + 1
+  if (present (i6)) exp(i6) = exp(i6) + 1
+  if (present (i7)) exp(i7) = exp(i7) + 1
+  if (present (i8)) exp(i8) = exp(i8) + 1
+  if (present (i9)) exp(i9) = exp(i9) + 1
 
   coef = 0
 
