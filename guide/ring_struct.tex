@@ -1,15 +1,15 @@
-\chapter{The Ring\_struct}
+\chapter{The ring\_struct}
 \label{c:ring_struct}
 
-The \tn{ring_struct} is the structure that holds all the information 
+The \tn{ring_struct} is the structure that holds of all the information 
 about a lattice.   Despite its name, \bmad\
 makes no assumption about whether an \tn{ring_struct} is circular as
 with a storage ring or open as with a LINAC.
 
 %----------------------------------------------------------------------------
-\section{overview}
+\section{Elements within the ring\_struct}
 
-\begin{figure}[tb]
+\begin{figure}[htb]
 \centering
 \begin{verbatim}
 type ring_struct
@@ -37,19 +37,17 @@ end type
 \label{f:ring_struct}
 \end{figure}
 
-The definition of \tn{ring_struct} is shown in
-figure~\ref{f:ring_struct}. The array \vn{%ele(:)} holds the elements of
-the lattice. This array is always allocated so that the lower bound
-index is zero. \vn{%ele(0)} is essentially a marker element.
+The definition of the \tn{ring_struct} is shown in
+Figure~\ref{f:ring_struct}. The array \vn{%ele(:)} holds the elements of
+the lattice. This array is always allocated with zero as the lower bound.
+\vn{%ele(0)} is a marker element with the name \vn{BEGINNING}.
 \vn{%ele(0)%mat6} is always the unit matrix. \vn{%ele(0:)} is divided up
 into two parts: A ``physical'' part (also called the ``regular'' part)
 and a ``control'' part (also called the ``lord'' part). The physical
 part of this array holds the elements that are tracked through. The
 control part holds the overlay and group elements, and those elements
 that are ``mangled'' when elements are superimposed upon other elements.
-The bounds of these two parts is given in table~\ref{tab:part_extent}.
-Note: The \vn{%ele_init} component is not used by \bmad\ and is available
-for general program use.
+The bounds of these two parts is given in Table~\ref{tab:part_extent}.
 \begin{table}[htb]
 \begin{center}
 \begin{tabular}{|l|l|l|}
@@ -67,15 +65,22 @@ of the array \vn{\%ele(:)}.}
 \end{table}
 Note \vn{%n_ele_use} is identical to \vn{%n_ele_ring}
 
+The \vn{%ele_init} component within the \vn{ring_struct} is not used
+by \bmad\ and is available for general program use.
 
 %----------------------------------------------------------------------------
 \section{Elements Controlling Other Elements}
+\label{s:ring_control}
 
-Generally a programmer does not have to worry about how the lord elements in
-the \vn{%ele(:)} array control other elements. There is a bookkeeping routine
-called \vn{control_bookkeeper} that takes care of that. This routine is
-automatically called when the transfer matrices for the elements is
-computed by \vn{make_mat6}. 
+Generally a programmer does not have to worry about how the lord
+elements in the \vn{%ele(:)} array control other elements. The
+bookkeeping routine \vn{control_bookkeeper} takes care of that. This
+routine is automatically called when the transfer matrices for the
+elements are computed by \vn{ring_make_mat6}. If \vn{ring_make_mat6}
+is not called then \vn{control_bookkeeper} needs to be
+called. \vn{control_bookkeeper} will call \vn{attribute_bookkeeper} so
+the attribute bookkeeping will be taken care of too (see
+Section~\ref{s:dependent}).
 
 The element control information is stored in the \vn{%control_(:)} array, 
 Each element of this array is a \vn{control_struct} structure 
@@ -87,18 +92,52 @@ Each element of this array is a \vn{control_struct} structure
     integer ix_attrib              ! index of attribute controlled
   end type
 \end{example}
-\vn{%ix_lord} and \vn{%ix_slave} give the indexes in the \vn{%ele_(:)} array
-of a lord element and an element it controls. \vn{%coef} stores the coefficient
-that is needed to convert variations of the appropriate lord attribute to
-variations in the slave attribute indexed by \vn{%ix_attrib}. The section
-of the \vn{%control_(:)} array used by a given lord element is given by 
-\vn{%ele_(ix_lord)%ix1_slave} through \vn{%ele_(ix_lord)%ix2_slave}.
+\vn{%ix_lord} and \vn{%ix_slave} give the indices in the \vn{%ele_(:)}
+array of a lord element and an element it controls. A lord element
+\vn{%ele_(i_lord)} has assigned to it a block \vn{%control_(:)}
+elements.  The following example prints the names and controlled
+attributes of the slaves of a particular lord element. If the lord is
+an \vn{overlay} or \vn{group} then \vn{%control_(:)%ix_attrib} and 
+\vn{%control_(:)%coef} give the attribute index of the controlled
+attriube andthe appropriate  coefficient 
+\begin{example}
+  type (ring_struct) ring
+  ...
+  ix1 = ring%ele_(i_lord)%ix1_slave  ! start of block
+  ix2 = ring%ele_(i_lord)%ix2_slave  ! end of block
+  print *, 'Slaves for lord: ', ring%ele_(i_lord)%name
+  do i = ix1, ix2
+    i_slave = ring%control_(i)%ix_slave
+    if (ring%ele_(i_lord)%control_type == super_lord$) then
+      print *, '  ', i, '  ', ring%ele_(i_slave)%name
+    else   ! must be overlay or slave
+      ixa = ring%control_(i)%ix_attrib
+      attrib_name = attribute_name (ring%ele_(i_slave), ixa)
+      print *, '  ', i, '  ', ring%ele_(i_slave)%name, attrib_name
+    endif
+  enddo
+\end{example}
+
+Going backward from a slave to its lords goes through one level of
+indirection using the \vn{%ic_} array as shown in the next example
+\begin{example}
+  ix1 = ring%ele_(i_slave)%ic1_lord
+  ix2 = ring%ele_(i_slave)%ic2_lord
+  print *, 'Lords for slave: ', ring%ele_(i_slave)%name
+  do i = ix1, ix2
+    ix = ring%ic_(i)
+    i_lord = ring%control_(ix)%ix_lord
+    print *, '  ', i, '  ', ring%ele_(i_lord)%name
+  enddo
+\end{example}
+For historical reasons, since a \vn{group} element only makes changes
+in the values of the attributes it controls, \vn{group} elements are
+not included in the list of lords generated by the above example.
 
 %----------------------------------------------------------------------------
 \section{Pointers}
 
-Since the \tn{ring_struct} has pointers within it (plural since the
-\tn{ele_struct} has pointers within it) there is an extra burden on
+Since the \tn{ring_struct} has pointers within it there is an extra burden on
 the programmer to make sure that allocation and deallocation is done
 properly. To this end the equal sign has been overloaded by the
 routine \rn{ring_equal_ring} so that when one writes
@@ -113,11 +152,11 @@ ring will not affect the other.
 Initial allocation of the pointers in a \tn{ring_struct} variable is generally
 handled by the \rn{bmad_parser} and \rn{ring_equal_ring} routines.
 Once allocated,
-Local \tn{ring_struct} variables must have the save attribute or the
+local \tn{ring_struct} variables must have the save attribute or the
 pointers within must be appropriately deallocated before leaving the
 routine.
 \begin{example}
-  type (ring_struct), save :: ring     ! Either this or ...
+  type (ring_struct), save :: ring     ! Either do this at the start or ...
   ...
-  call deallocate_ring_pointers (ring) ! Do this at the end.
+  call deallocate_ring_pointers (ring) ! ... Do this at the end.
 \end{example}

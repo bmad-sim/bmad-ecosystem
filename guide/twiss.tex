@@ -1,0 +1,58 @@
+\chapter{Twiss Parameter and Other Calculations}
+
+
+%-----------------------------------------------------------------------------
+\section{Twiss Parameter Calculations}
+
+The Twiss parameters for an element are stored in the
+\vn{ele_struct}. See Chapter~\ref{c:ele_struct} for more details.
+
+Before any Twiss parameters can be calculated the transfer matrices
+stored in the lattice elements must be computed. \vn{bmad_parser} does
+this automatically about the zero orbit. If, to see nonlinear effects,
+a different orbit needs to be used for the reference, The routine
+\vn{ring_make_mat6} can be used. For example
+\begin{example}
+  type (ring_struct) ring
+  type (coord_struct), allocatable :: orbit(:)
+  call bmad_parser ('my_lattice', ring)
+  call closed_orbit (ring, orbit, 4)
+  call ring_make_mat6 (ring, -1, orbit)
+\end{example}
+This example reads in a lattice, finds the closed orbit which may be
+non--zero due to, say, kicks due to a separator, and then remakes the
+transfer matrices (which are stored in \vn{ring%ele_(i)%mat6} around
+the closed orbit.
+
+Once the transfer matrices are calculated the Twiss parameters at the
+start of the lattice need to be defined. The Twiss parameters at the
+start are in \vn{ring%ele_(0)}. If the lattice is open then generally
+the Twiss parameters are set in the lattice file or may easily be set
+in a program. For example
+\begin{example}
+  ring%ele_(0)%x%beta = 1.2
+  ring%ele_(0)%x%alpha = 0.1
+  ring%ele_(0)%x%gamma = (1 + ring%ele_(0)%x%alpha**2) / ring%ele_(0)%beta
+  ring%ele_(0)%x%eta  = 0
+\end{example}
+Note that \vn{%beta}, \vn{%alpha}, and \vn{%gamma} all must be specified.
+
+If the lattice is closed then \vn{twiss_at_start} may be used to
+calculate the self--consistant starting Twiss parameters. Once the
+starting Twiss parameters are set \vn{twiss_propagate_all} can be used
+to propagate the Twiss parameters to the rest of the elements. Example
+\begin{example}
+  type (ring_struct) ring
+  call bmad_parser ('my_lattice', ring)
+  call twiss_at_start (ring)
+  call twiss_propagate_all (ring)
+\end{example}
+
+%-----------------------------------------------------------------------------
+\section{Optimizers}
+
+Optimzers attempt to solve nonlinar optimization problems. This is good
+for designing lattices and such. 
+
+
+

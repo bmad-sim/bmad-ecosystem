@@ -9,7 +9,7 @@ the appropriate routines a programmer can extend \bmad\ to do customized
 tracking.
 
 %----------------------------------------------------------------------------
-\section{\vn{tracking\_method} Switches}
+\section{tracking\_method Switches}
 \label{s:tkm}
 
 Below are listed the methods for the \vn{tracking_method}
@@ -59,7 +59,7 @@ matrix for an element. Very simple.  Depending upon how the transfer
 matrix was generated this may or may not be symplectic.
 
 \item[\vn{Runge\_Kutta}]
-This uses a 4th order Runge Kutta integration algorithm with adaptive
+This uses a 4\Th\ order Runge Kutta integration algorithm with adaptive
 step size control.  This is essentially the \vn{ODEINT} subroutine
 from Numerical Recipes\cite{b:nr}. This may be slow but it should be
 accurate. This method is non-symplectic.
@@ -107,8 +107,9 @@ that it can be used for long term tracking.
 \end{description}
 
 \vfill \break
+{\vfill}
 
-\begin{table}[th]
+\begin{table}[h]
 \centering {
 \begin{tabular}{|l|c|c|c|c|c|c|c|c|c|c|c|} \hline
 \rule{0pt}{80pt} &
@@ -154,13 +155,13 @@ that it can be used for long term tracking.
   \vn{wiggler} (map type)      & X & D & X & X & X & X & X & X & X & X &   \\ \hline
 \end{tabular}
 }
-\caption{Table of available \vn{tracking\_method}\ switches 
+\caption{Table of available {\bf tracking\_method}\ switches 
 for a given element type. D denotes the default method. X denotes an
 available method.}
 \label{t:track_methods}
 \end{table}
 
-\vfill \break
+\vfill\break
 
 %----------------------------------------------------------------------------
 \section{mat6\_calc\_method Switches}
@@ -236,6 +237,7 @@ is that it is directly related to any tracking results.
 \end{description}
 
 \vfill \break
+\vfill
 
 \begin{table}[th]
 \centering {

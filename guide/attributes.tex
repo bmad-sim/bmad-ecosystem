@@ -12,14 +12,14 @@ variables they are calculated from.
 \centering {
 \begin{tabular}{|l|l|l|} \hline
 {\em Element}  & {\em Dependent Variables}  & {\em Independent Variables}  \\ \hline
-  BeamBeam     & bbi\_const             & 
-                                  charge, sig\_x, sig\_y, beam\_energy, n_part  \\ \hline
-  ElSeparator  & e_field, volt          & hkick, vkick, gap, l, beam\_energy    \\ \hline
-  LCavity      & e\_loss, delta\_e      & gradiant, l                           \\ \hline
-  Rbend, Sbend & rho, angle, l\_cord    & g, l                                  \\ \hline
-  RFCavity     & rf\_wavelength         & harmon, l\_lattice                    \\ \hline
+  BeamBeam     & bbi\_const           & 
+                               charge, sig\_x, sig\_y, beam\_energy, n\_part  \\ \hline
+  ElSeparator  & e\_field, volt       & hkick, vkick, gap, l, beam\_energy    \\ \hline
+  LCavity      & e\_loss, delta\_e    & gradiant, l                           \\ \hline
+  Rbend, Sbend & rho, angle, l\_chord & g, l                                  \\ \hline
+  RFCavity     & rf\_wavelength       & harmon, l\_lattice                    \\ \hline
   Wiggler (periodic type)
-               & k1, rho                & b\_max, beam\_energy                  \\ \hline
+               & k1, rho              & b\_max, beam\_energy                  \\ \hline
 \end{tabular}
 }
 \caption {Table of dependent variables and the independent variables 
@@ -61,12 +61,11 @@ becomes a dependent variable as tabulated in Table~\ref{t:dep_field}.
 \centering {
 \begin{tabular}{|l|l|l|} \hline
   {\em Element} & {\em Strength Attribute} & {\em Field Attrubte} \\ \hline
-  SBend         &   g                        b_field        \\ \hline
-  Solenoid      &   ks                       b_field        \\ \hline
-  Quadrupole    &   k1                       b_gradient     \\ \hline
-  Sextupole     &   k2                       b_gradient     \\ \hline
-  Octupole      &   k3                       b_gradient     \\ \hline
-\end{example}
+  SBend         &   g                        b\_field        \\ \hline
+  Solenoid      &   ks                       b\_field        \\ \hline
+  Quadrupole    &   k1                       b\_gradient     \\ \hline
+  Sextupole     &   k2                       b\_gradient     \\ \hline
+  Octupole      &   k3                       b\_gradient     \\ \hline
 \end{tabular}
 }
 \caption {Field and Strength Attributes.}

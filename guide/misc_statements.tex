@@ -1,0 +1,191 @@
+\chapter{Miscellaneous Statements}
+
+This chapter deals with the statements not covered in the previous chapters.
+
+%-----------------------------------------------------------------------------
+\section{Parameter Statement}
+\label{s:parameter}
+
+The \vn{parameter} statement is used to set the \vn{lattice} name and other variables. 
+The variables that can be set by \vn{parameter} is
+\begin{example}
+  parameter[lattice]      = String 
+  parameter[lattice_type] = Switch      ! default: circular_lattice
+  parameter[taylor_order] = Integer     ! default: 3
+  parameter[beam_energy]  = Real        ! default: 0
+\end{example}
+
+\noindent
+Examples
+\begin{example}
+  parameter[lattice]      = "L9A19C501.FD93S_4S_15KG"
+  parameter[lattice_type] = circular_lattice
+  parameter[taylor_order] = 5
+  parameter[beam_energy]  = 5.6e9    ! eV
+\end{example}
+
+%-----------------------------------------------------------------------------
+\section{Lattice Name and taylor\_order}
+\label{s:beam}
+
+The \vn{lattice} name is stored by \bmad\ for use by a program but it does
+not otherwise effect any \bmad\ routines. 
+Historically it is possible to set the lattice name using the syntax
+\begin{example}
+  lattice = String   ! DO NOT USE THIS SYNTAX
+\end{example}
+This syntax is obsolete since a typographical error is not easily caught.
+
+\noindent
+Valid \vn{lattice_type} switches are
+\begin{example}
+  circular_lattice  ! default
+  linear_lattice
+  linac_lattice
+\end{example}
+a \vn{circular_lattice} is for a closed ring where one expects a periodic
+solution for the Twiss parameters. A \vn{linear_lattice} is not closed
+so that the initial Twiss parameters need to be given, not computed. A
+\vn{linac_lattice} is a linear lattice with \vn{Lcavity} elements.
+
+The Taylor order (cf.~\ref{s:taylor_phys}) is the maximum order for a
+Taylor map.  Historically it is possible to set the Taylor order using
+the syntax
+\begin{example}
+  taylor_order = Integer   ! DO NOT USE THIS SYNTAX
+\end{example}
+This syntax is obsolete since a typographical error is not easily caught.
+
+The \vn{beam_energy} is the reference energy.  Each element in a lattice 
+has an individual reference energy. For a circular or linear lattice all 
+the reference energies are the same. For a linac lattice
+the reference energy changes between RF cavities.
+
+
+%-----------------------------------------------------------------------------
+\section{Beam Statement}
+
+The \vn{Beam} statement is provided for compatibility with \mad. The syntax is
+\begin{example}
+  beam, energy = GeV, particle = Switch, n_part = Real
+\end{example}
+For example
+\begin{example}
+  beam, energy = 5.6  ! Note: Gev to be compatible with \mad
+  beam, particle = electron, n_part = 1.6e10
+\end{example}
+Setting the reference energy using the \vn{energy} attribute is the same
+as using \vn{parameter [beam_energy]}. Valid \vn{particle}
+switches are
+\begin{example}
+  positron  ! default
+  electron
+\end{example}
+
+%-----------------------------------------------------------------------------
+\section{Title Statement}
+The \vn{title} statement sets a title string which can be used by a program. 
+For consistency there are two possible syntaxes
+\begin{example}
+  title, String
+\end{example}
+or
+\begin{example}
+  title
+  String
+\end{example}
+For example
+\begin{example}
+  title
+  "This is a title"
+\end{example}
+
+%-----------------------------------------------------------------------------------
+\section{Call Statement}
+
+It is typically convenient to separate the lattice definition into several files.
+Typically there might be a file (or files) that define the layout of the lattice
+(something that doesn't change often) and a file (or files) that define magnet strengths
+(something that changes more often).
+The \vn{call} is used to read in separated lattice files. The syntax is
+\begin{example}
+  call, filename = String
+\end{example}
+Example
+\begin{example}
+  call, filename = "../layout/my_layout.bmad"
+\end{example}
+\bmad\ will read the called file until a \vn{return} or \vn{end_file} statement is encountered
+or the end of the file is reached.
+
+%-----------------------------------------------------------------------------------
+\section{Return and End\_File statements}
+
+\vn{Return} and \vn{end_file} have identical effect and tell \bmad\ to ignore anything
+beyond the \vn{return} or \vn{end_file} statement in the file.
+
+%-----------------------------------------------------------------------------------
+\section{Beginning Statement}
+
+For non--circular lattices the \vn{beginning} statement can be used to set the Twiss parameters 
+and beam energy at the beginning of the ring 
+\begin{example}
+  beginning[beta_x]  = Real  ! "a" mode beta
+  beginning[alpha_x] = Real  ! "a" mode alpha
+  beginning[phi_x]   = Real  ! "a" mode phase
+  beginning[eta_x]   = Real  ! "a" mode dispersion
+  beginning[etap_x]  = Real  ! "a" mode dispersion derivative.
+  beginning[beta_y]  = Real  ! "b" mode beta
+  beginning[alpha_y] = Real  ! "b" mode alpha
+  beginning[phi_y]   = Real  ! "b" mode phase
+  beginning[eta_y]   = Real  ! "b" mode dispersion
+  beginning[etap_y]  = Real  ! "b" mode dispersion derivative.
+  beginning[cij]     = Real  ! C coupling matrix. i, j = {``1'', or ``2''} 
+  beginning[energy]  = Real  ! Total energy in eV.
+\end{example}
+The \vn{gamma_x}, \vn{gamma_y}, and \vn{gamma_c} (the coupling gamma factor) 
+will be kept consistent with the values set. If not set the default values are all zero. 
+
+For any lattice the \vn{beginning} statement can be used to set the starting floor position 
+(see~\ref{s:global}). The syntax is
+\begin{example}
+  beginning[x_position]     = Real  ! X position
+  beginning[y_position]     = Real  ! Y position
+  beginning[z_position]     = Real  ! Z position
+  beginning[theta_position] = Real  ! Angle on floor
+  beginning[phi_position]   = Real  ! Angle of attack
+\end{example}
+
+%-----------------------------------------------------------------------------------
+\section{Parser\_Debug Statement}
+
+The \vn{parser_debug} statement is used to diagnose problems with the \bmad\ parser 
+routine. That is, it is generally only used by programmers. 
+It is recommended that this
+statement be used with small test lattices since it can generate a lot of output.
+The syntax is
+\begin{example}
+  parser\_debug Switches
+\end{example}
+Valid switches are
+\begin{example}
+  var     ! print variable information
+  seq     ! print sequence information
+  slave   ! print full information on all regular elements
+  lord    ! print full information on all lord elements
+  ring    ! print a list of regular element names, positions, and lengths
+\end{example}
+Example
+\begin{example}
+  parser\_debug var ring
+\end{example}
+
+
+%-----------------------------------------------------------------------------------
+\section{No\_Digested Statement}
+
+The \vn{no_digested} statement if present, will prevent \bmad\ from 
+creating a digested file. This can be helpful for debugging purposes but
+otherwise it is not generally used.
+
+

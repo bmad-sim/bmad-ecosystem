@@ -55,7 +55,7 @@ lost \vn{ring%param%ix_lost} is used to record in what element the
 loss occured.
 
 %----------------------------------------------------------------
-\section{The \vn{coord_struct}}
+\section{The coord\_struct}
 
 For single particle tracking the starting point is the
 \tn{coord_struct} whose definition is 
@@ -113,14 +113,14 @@ routine is called
 \begin{example}
   type (coord_struct), allocatable, save :: orb(:) 
 \end{example}
-Saving the \sn{coord_stuct} is faster but leaves memory tied up. 
+Saving the \vn{coord_stuct} is faster but leaves memory tied up. 
 
 %----------------------------------------------------------------
 \section {Miscelaneous Notes}
 
 Except for \vn{Linear} tracking, none of the \bmad\ tracking routines
 make use of the \vn{ele%mat6} transfer matrix. The reverse, however,
-is not true.  The transfer matrix routines (\vn{ring_make_mat6, etc.)
+is not true.  The transfer matrix routines (\vn{ring_make_mat6}, etc.)
 will do tracking.
 
 For each element the method of tracking may be set either via the

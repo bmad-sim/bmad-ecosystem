@@ -1,9 +1,6 @@
 \chapter{The Ele\_struct}
 \label{c:ele_struct}
 
-%-----------------------------------------------------------------------------
-\section{overview}
-
 This chapter describes the \tn{ele_struct} which is the structure that
 holds all the information about an individual element: quadrupoles,
 separators, wigglers, etc. This structure is somewhat
@@ -16,7 +13,7 @@ definition). Some of the components of the \vn{ele_struct} like \vn{%name},
 \vn{%tracking_method}, etc.\ have an obvious correspondence with 
 attributes set in the lattice file and will not be discussed further.
 
-\begin{figure}[tb]
+\begin{figure}[htb]
 \centering
 \small
 \begin{verbatim}
@@ -53,6 +50,23 @@ attributes set in the lattice file and will not be discussed further.
 \caption{The \tn{ele\_struct}. Only part of the substructure is shown.}
 \label{f:ele_struct}
 \end{figure}
+
+%--------------------------------------------------------------------------
+\section{Initalizing and Element Key}
+
+The \vn{%key} integer component gives the type of element (\vn{quadrupole},
+\vn{RFcavity}, etc.). In general to get the correct index for an element type
+just add a ``\$'' suffix to the type name. The \vn{key_name} array convets
+from integer to the appropriate string. For example
+\begin{example}
+  type (ele_struct) ele
+  call init_ele (ele)                       ! Initialize
+  ele%key = wiggler\$                       ! Turn the element into a quadruple
+  print *, 'This element: ', key_name(ele%key)  ! Prints: 'WIGGLER'
+\end{example}
+The call to \vn{init_ele} is needed since this element is being made up
+from scratch.  The elements that are part of a \vn{ring_stuct} variable
+will get automatically initalized.
 
 %--------------------------------------------------------------------------
 \section{Twiss Parameters, etc.}
@@ -97,24 +111,33 @@ The true horizontal and vertical dispersions are given by \vn{eta_lab}
 and \vn{etap_lab}.
 
 %--------------------------------------------------------------------------
-\section{Attribute Values: Independent and otherwise}
+\section{Attribute Values: Dependent and otherwise}
+\label{s:ele_dep}
 
-Most of the real valued attributes of an element are held in the 
-\vn{%value(:)} array. For example, 
-the value of the \vn{k1} attribute for a quadrupole element is
-stored in \vn{%value(k1\$)} where \vn{k1\$} is an integer parameter. In
-general to get the correct index in \vn{%value(:)} for a given
-attribute just add a ``\$" as a suffix. 
+Most of the real valued attributes of an element are held in the
+\vn{%value(:)} array. For example, the value of the \vn{k1} attribute
+for a quadrupole element is stored in \vn{%value(k1\$)} where
+\vn{k1\$} is an integer parameter. In general to get the correct index
+in \vn{%value(:)} for a given attribute just add a ``\$" as a
+suffix. To convert from an attribute name to its index in the
+\vn{%value} array use the \vn{attriubte_index} routine.  To go back
+from an index in the \vn{%value} array to a name use the
+\vn{attribute_name} routine
+\begin{example}
+  type (ele_struct) ele
+  ele%kye = quadrupole$  ! quadrupole element
+  print *, 'Index for Quadruple K1:  ', attribute_index(ele, 'K1') ! prints: '4' (= k1\$)
+  print *, 'Name for Quadrupole k1\$: ', attrbute_name (ele, k1\$)   ! prints: 'K1' 
+\end{example}
 
 \vn{attribute_bookkeeper} is the routine that makes sure the dependent
 variables (See Section~\ref{s:dependent}) of an element are keep
 up--to--date. \vn{attribute_bookkeeper} is called behind the scenes
-when \vn{make_mat6} is called to make transfer matrices.  Remember
-that in general routines are allowed to assume that the dependent
-variables are consistent with the independent variables. Thus if you
-do not remake that transfer matrices after changing attribute values
-you need to call \vn{attribute_bookkeeper}. \vn{getf
-attribute_bookkeeper} will give you a list of dependent variables.
+when \vn{make_mat6} is called to make transfer matrices. The general
+rule is that elment attributes are changed, and if you don't call
+\vn{make_mat6}, \vn{ring_make_mat6}, or \vn{control_bookkeeper}
+(Section~\ref{s:ring_control}) then you must call
+\vn{attribute_bookkeeper}.
 
 If you are designing a program that will let a user decide what
 attribute to vary use the routine \vn{pointer_to_attribute} which will

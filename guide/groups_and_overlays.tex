@@ -1,18 +1,20 @@
 \chapter {Groups and Overlays: Elements Controlling Other Elements}
 \label{c:groups_and_overlays}
 
-It is possible to have elements controlling the attributes of other elements.
-These ``lord'' elements are meant to mimic the effect of changing a knob in
-the control room. For example, a lord element can be used to simulate the
-effect of a power supply that controls the quadrupole strengths of a gang of
-magnets. A lord element can also simulate a girder that ties together the positions
-of a group of elements. There are two types of lord elements (besides what are
-called superposition lords which are discussed in \ref{s:super}): Groups are
-used to make variations in attributes. For example, to simulate the action
-of a control room knob that changes the tune, a group can be used to vary the
-strength of selected quads in a specified manner. Overlays, on the other hand,
-set the value (not a change in) the attributes they control. A \vn{group} or 
-\vn{overlay} can control other \vn{group} and \vn{overlay} elements. There is no
+It is possible to have elements controlling the attributes of other
+elements.  These ``lord'' elements are meant to mimic the effect of
+changing a knob in the control room. For example, a lord element can
+be used to simulate the effect of a power supply that controls the
+quadrupole strengths of a gang of magnets. A lord element can also
+simulate a girder that ties together the positions of a group of
+elements. There are two types of lord elements (besides what are
+called superposition lords which are discussed in \ref{s:super}):
+Groups are used to make variations in attributes. For example, to
+simulate the action of a control room knob that changes the tune, a
+group can be used to vary the strength of selected quads in a
+specified manner. Overlays, on the other hand, set the value (not a
+change in) the attributes they control. A \vn{group} or \vn{overlay}
+can control other \vn{group} and \vn{overlay} elements. There is no
 limit to the number of levels of a control hierarchy.
 
 %-----------------------------------------------------------------------------
@@ -31,10 +33,11 @@ For example:
   use, this\_line
 \end{example}
 
-In the example the overlay \vn{over1} controls the \vn{hkick} attribute of 
-the "slave" elements \vn{a_ele} and \vn{b_ele}. \vn{over2} controls the hkick attribute of 
-just \vn{b_ele}. \vn{over1} has a \vn{hkick} value of 0.003 and \vn{over2} has been assigned 
-a value for \vn{hkick} of 0.9. 
+In the example the overlay \vn{over1} controls the \vn{hkick}
+attribute of the "slave" elements \vn{a_ele} and
+\vn{b_ele}. \vn{over2} controls the hkick attribute of just
+\vn{b_ele}. \vn{over1} has a \vn{hkick} value of 0.003 and \vn{over2}
+has been assigned a value for \vn{hkick} of 0.9.
 
 There are coefficients associated with the control of a slave element. 
 The default coefficient is 1.0. To specify a coefficient use a slash "/" 
@@ -48,21 +51,22 @@ and for the others the default 1.0 is used. thus
                = 0.906
 \end{example}
 
-An \vn{overlay} will control all elements of a given name. 
-Thus, in the above example, if there are multiple elements in \vn{this_line} with 
-the name \vn{b_ele} then the \vn{over1} and \vn{over2} overlays will control the hkick
-attribute of all of them. 
+An \vn{overlay} will control all elements of a given name.  Thus, in
+the above example, if there are multiple elements in \vn{this_line}
+with the name \vn{b_ele} then the \vn{over1} and \vn{over2} overlays
+will control the hkick attribute of all of them.
 
-Note: Overlays completely determine the value of the attributes that are controlled 
-by the overlay. in the above example, the hkick of 0.05 assigned directly 
-to \vn{a_ele} is overwritten by the overlay action of \vn{over1}. 
+Note: Overlays completely determine the value of the attributes that
+are controlled by the overlay. in the above example, the hkick of 0.05
+assigned directly to \vn{a_ele} is overwritten by the overlay action
+of \vn{over1}.
 
 \noindent The default value for an overlay is 0 so for example
 \begin{example}
   over3: overlay = {c\_ele}, k1
 \end{example}
-will make \vn{c_ele[k1]} = 0. Overlays can also control more than one type of attribute
-as the following example shows
+will make \vn{c_ele[k1]} = 0. Overlays can also control more than one
+type of attribute as the following example shows
 \begin{example}
   over4: overlay = {this\_quad[k1]/3.4, this\_sextupole[k2], ...}, hkick
 \end{example}
