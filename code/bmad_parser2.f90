@@ -1,7 +1,10 @@
 !+
-! Subroutine bmad_parser2 (in_file, ring, orbit_)
+! Subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 !
-! Subroutine to parse (read in) a BMAD input file to modify an existing lattice.
+! Subroutine parse (read in) a BMAD input file.
+! This subrotine assumes that ring already holds an existing lattice.
+! To read in a lattice from scratch use BMAD_PARSER.
+!
 ! With BMAD_PARSER2 you may:
 !     a) Modify the attributes of elements.
 !     b) Define new overlays and groups.
@@ -14,10 +17,12 @@
 !   use bmad
 !
 ! Input:
-!   in_file -- Character*(*): Input file name
-!   ring    -- Ring_struct: Ring with existing layout
+!   in_file     -- Character*(*): Input file name
+!   ring        -- Ring_struct: Ring with existing layout
 !   orbit_(0:n_ele_maxx) -- [Optional] Coord_struct: closed orbit for when
 !                           bmad_parser2 calls ring_make_mat6
+!   make_mats6  -- Logical, optional: Make the 6x6 transport matrices for then
+!                   Elements? Default is True.
 !
 ! Output:
 !   ring    -- Ring_struct: Ring with modifications
@@ -25,6 +30,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/07/16 20:44:00  dcs
+!*** empty log message ***
+!
 !Revision 1.5  2002/06/13 14:54:22  dcs
 !Interfaced with FPP/PTC
 !
@@ -40,7 +48,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine bmad_parser2 (in_file, ring, orbit_)
+subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
   use bmad_parser_mod
 
@@ -61,7 +69,8 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
   character*16 name1, name2
   character delim*1, word_1*32, call_file*200
 
-  logical parsing, delim_found, found, matched_delim
+  logical, optional :: make_mats6
+  logical parsing, delim_found, found, matched_delim, doit
   logical file_end, match_found, err_flag, finished
 
 ! init
@@ -333,6 +342,23 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
 ! the pring structure where storage for the control lists is
                    
       key = ring%ele_(n_max)%key
+
+      if (key == wiggler$) then
+        ring%ele_(n_max)%sub_key = periodic_type$   ! default
+        ring%ele_(n_max)%value(polarity$) = 1.0     ! default
+      endif
+
+      if (key == taylor$) then
+        ring%ele_(n_max)%tracking_method = taylor$  ! default
+        ring%ele_(n_max)%mat6_calc_method = taylor$ ! default
+        call add_taylor_term (ring%ele_(n_max), 1, 1.0_rdef, (/ 1, 0, 0, 0, 0, 0 /))
+        call add_taylor_term (ring%ele_(n_max), 2, 1.0_rdef, (/ 0, 1, 0, 0, 0, 0 /))
+        call add_taylor_term (ring%ele_(n_max), 3, 1.0_rdef, (/ 0, 0, 1, 0, 0, 0 /))
+        call add_taylor_term (ring%ele_(n_max), 4, 1.0_rdef, (/ 0, 0, 0, 1, 0, 0 /))
+        call add_taylor_term (ring%ele_(n_max), 5, 1.0_rdef, (/ 0, 0, 0, 0, 1, 0 /))
+        call add_taylor_term (ring%ele_(n_max), 6, 1.0_rdef, (/ 0, 0, 0, 0, 0, 1 /))
+      endif
+
       if (key == overlay$ .or. key == group$) then
         if (delim /= '=') then
           call warning ('EXPECTING: "=" BUT GOT: ' // delim,  &
@@ -492,7 +518,9 @@ subroutine bmad_parser2 (in_file, ring, orbit_)
 
 ! make matrices for entire ring
 
-  call ring_make_mat6 (ring, -1, orbit_)
+  doit = .true.
+  if (present(make_mats6)) doit = make_mats6
+  if (doit) call ring_make_mat6(ring, -1, orbit_)  ! make transport matrices
   call s_calc (ring)                       ! calc loginitudinal distances
   call ring_geometry (ring)                ! ring layout
 

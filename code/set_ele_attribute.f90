@@ -34,6 +34,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.2  2002/07/16 20:44:01  dcs
+!*** empty log message ***
+!
 !Revision 1.1  2002/06/13 15:07:21  dcs
 !Merged with FPP/PTC
 !
@@ -84,8 +87,10 @@ subroutine set_ele_attribute (ring, i_ele, attrib_name, &
     call control_bookkeeper (ring, i_ele)
   endif
 
-  if (associated(ring%ele_(i_ele)%taylor(1)%term)) call kill_taylor(ring%ele_(i_ele)%taylor)
-  if (associated(ring%ele_(i_ele)%gen_field)) deallocate (ring%ele_(i_ele)%gen_field)
+  if (associated(ring%ele_(i_ele)%taylor(1)%term)) &
+                              call kill_taylor(ring%ele_(i_ele)%taylor)
+  if (associated(ring%ele_(i_ele)%gen_field)) &
+                              call kill_gen_field (ring%ele_(i_ele)%gen_field)
 
   err_flag = .false.
 

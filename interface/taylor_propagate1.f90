@@ -1,7 +1,8 @@
 !+
 ! Subroutine taylor_propagate1 (tlr, ele, param)
 !
-! Subroutine to track a real_8 map through an element
+! Subroutine to track a real_8 taylor map through an element.
+! The alternative routine if ele has a taylor series is concat_taylor.
 !
 ! Modules needed:
 !   use accelerator
@@ -29,13 +30,20 @@ subroutine taylor_propagate1 (tlr, ele, param)
 
   logical :: init_needed = .true.
 
-!
+! set the taylor order in PTC if not already done so
+
+  if (bmad_com%taylor_order_ptc == 0) &
+                         call set_ptc (taylor_order = bmad_com%taylor_order)
+
+! init
 
   if (init_needed) then
     allocate (a_fibre)
     call real_8_init (y)
     init_needed = .false.
   endif
+
+!
 
   y = tlr
 

@@ -194,9 +194,9 @@ subroutine track1_bmad (start, ele, param, end)
 
   case (sbend$)
 
-    call offset_particle (ele, param, end, set$)
 
     if (ele%value(k1$) /= 0) then
+      call offset_particle (ele, param, end, set$)
       e1 = ele%value(e1$)
       e2 = ele%value(e2$)
       if (e1 /= 0) then
@@ -215,12 +215,11 @@ subroutine track1_bmad (start, ele, param, end)
         end%x%vel = end%x%vel + del * end%x%pos
         end%y%vel = end%y%vel - del * end%y%pos
       endif
+      call offset_particle (ele, param, end, unset$)
     else
       call track_bend (end, ele, param, end)
       if (param%lost) return
     endif
-
-    call offset_particle (ele, param, end, unset$)
 
 ! rfcavity
 

@@ -432,13 +432,16 @@ end subroutine
 
 subroutine concat_real_8 (y1, y2, y3)
 
-!  use s_tracking
-  
   implicit none
 
   type (real_8), intent(in) :: y1(:), y2(:)
   type (real_8), intent(out) :: y3(:)
   type (damap) da1, da2, da3
+
+! set the taylor order in PTC if not already done so
+
+  if (bmad_com%taylor_order_ptc == 0) &
+                         call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! Allocate temp vars
 
@@ -498,6 +501,11 @@ subroutine taylor_to_genfield (bmad_taylor, gen_field, r0)
   real(rdef), intent(out) :: r0(6)
 
   integer i, j, k0, n, nn
+
+! set the taylor order in PTC if not already done so
+
+  if (bmad_com%taylor_order_ptc == 0) &
+                         call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! Remove constant terms from the taylor map first. This is probably
 ! not needed but we do it to make sure everything is alright

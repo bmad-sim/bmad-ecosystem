@@ -1,36 +1,51 @@
 !+
-! Subroutine RADIATION_INTEGRALS (RING, ORB_, MODE)
+! Subroutine radiation_integrals (ring, orb_, mode)
 !
 ! Subroutine to calculate the synchrotron radiation integrals along with the
 ! emittance, and energy spread.
 !
-! Modules to use:
+! Modules needed:
 !   use bmad
 !
 ! Input:
-!   RING      -- Ring_struct: Ring to use. The calculation assumes that 
+!   ring      -- Ring_struct: Ring to use. The calculation assumes that 
 !                    the Twiss parameters have been calculated.
-!   ORB_(0:*) -- Coord_struct: Closed orbit.
+!   orb_(0:)  -- Coord_struct: Closed orbit.
 !
 ! Output:
-!   MODE -- Modes_struct: Parameters for the ("horizontal like") a-mode,
+!   mode -- Modes_struct: Parameters for the ("horizontal like") a-mode,
 !                              ("vertical like") b-mode, and the z-mode
-!     %SYNCH_INT(1:3) -- Synchrotron integrals.
-!     %SIG_E          -- Sigma_E/E energy spread
-!     %SIG_Z          -- Bunch Length
-!     %ENERGY_LOSS    -- Energy loss in GeV per turn
-!     %A, %B, %Z      -- Amode_struct: Substructure
-!       %EMITTANCE      -- Emittance
-!       %SYNCH_INT(4:5) -- Synchrotron integrals
-!       %J_DAMP         -- Damping partition factor
-!       %ALPHA_DAMP     -- Exponential damping coefficient per turn
+!     %synch_int(1:3) -- Synchrotron integrals.
+!     %sig_e          -- Sigma_E/E energy spread
+!     %sig_z          -- Bunch Length
+!     %energy_loss    -- Energy loss in GeV per turn
+!     %a, %b, %z      -- Amode_struct: Substructure
+!       %emittance      -- Emittance
+!       %synch_int(4:5) -- Synchrotron integrals
+!       %j_damp         -- Damping partition factor
+!       %alpha_damp     -- Exponential damping coefficient per turn
 !
 ! Notes:
-!     1) %SYNCH_INT(1) = momentum_compaction * ring_length
+!   1) %synch_int(1) = momentum_compaction * ring_length
+!
+!   2) There is a common block where the integrals for the individual elements
+!      are saved. To access this common block a use statement is needed:
+!         use rad_int_common
+!      In the common block:
+!         ric%i1_(:)  -- I1 integral for each element.
+!         ric%i2_(:)  -- I2 integral for each element.
+!         ric%i3_(:)  -- I3 integral for each element.
+!         ric%i4a_(:) -- "A" mode I4 integral for each element.
+!         ric%i4b_(:) -- "B" mode I4 integral for each element.
+!         ric%i5a_(:) -- "A" mode I5 integral for each element.
+!         ric%i5b_(:) -- "B" mode I5 integral for each element.
 !-       
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/07/16 20:44:01  dcs
+!*** empty log message ***
+!
 !Revision 1.4  2002/06/13 14:54:28  dcs
 !Interfaced with FPP/PTC
 !
@@ -53,7 +68,7 @@ subroutine radiation_integrals (ring, orb_, mode)
   implicit none
 
   type (ring_struct), target :: ring
-  type (coord_struct), target :: orb_(0:*), start, end
+  type (coord_struct), target :: orb_(0:), start, end
   type (modes_struct) mode
 
   real(rdef), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
@@ -121,15 +136,15 @@ subroutine radiation_integrals (ring, orb_, mode)
         call transfer_rk_track (rk_com, ric%rk_track(i))
       enddo
 
-      ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rdef, ll, i1)
-      ric%i2_(ir)  =   qromb_rad_int (eval_i2,  0.0_rdef, ll, i2)
-      ric%i3_(ir)  =   qromb_rad_int (eval_i3,  0.0_rdef, ll, i3)
+      ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rdef, ll, i1, 'I1')
+      ric%i2_(ir)  =   qromb_rad_int (eval_i2,  0.0_rdef, ll, i2, 'I2')
+      ric%i3_(ir)  =   qromb_rad_int (eval_i3,  0.0_rdef, ll, i3, 'I3')
       ric%i4a_(ir) = ric%i4a_(ir) + &
-                         qromb_rad_int (eval_i4a, 0.0_rdef, ll, i4a)
+                         qromb_rad_int (eval_i4a, 0.0_rdef, ll, i4a, 'I4A')
       ric%i4b_(ir) = ric%i4b_(ir) + &
-                         qromb_rad_int (eval_i4b, 0.0_rdef, ll, i4b)
-      ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a)
-      ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b)
+                         qromb_rad_int (eval_i4b, 0.0_rdef, ll, i4b, 'I4B')
+      ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a, 'I5A')
+      ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b, 'I5B')
 
       cycle
 
@@ -147,8 +162,8 @@ subroutine radiation_integrals (ring, orb_, mode)
       ric%g_y0 = 0
       ric%k1 = 0
       ric%s1 = 0
-      ric%i5a_(ir) = qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a)
-      ric%i5b_(ir) = qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b)
+      ric%i5a_(ir) = qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a, 'I5A')
+      ric%i5b_(ir) = qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b, 'I5B')
       cycle
     endif
    
@@ -170,15 +185,15 @@ subroutine radiation_integrals (ring, orb_, mode)
       ric%eta_b1 = &
           matmul(v, (/ 0.0_rdef, 0.0_rdef, ric%ele%y%eta, ric%ele%y%etap /))
 
-      ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rdef, ll, i1)
-      ric%i2_(ir)  =   qromb_rad_int (eval_i2,  0.0_rdef, ll, i2)
-      ric%i3_(ir)  =   qromb_rad_int (eval_i3,  0.0_rdef, ll, i3)
+      ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rdef, ll, i1, 'I1')
+      ric%i2_(ir)  =   qromb_rad_int (eval_i2,  0.0_rdef, ll, i2, 'I2')
+      ric%i3_(ir)  =   qromb_rad_int (eval_i3,  0.0_rdef, ll, i3, 'I3')
       ric%i4a_(ir) = ric%i4a_(ir) + &
-                         qromb_rad_int (eval_i4a, 0.0_rdef, ll, i4a)
+                         qromb_rad_int (eval_i4a, 0.0_rdef, ll, i4a, 'I4A')
       ric%i4b_(ir) = ric%i4b_(ir) + &
-                         qromb_rad_int (eval_i4b, 0.0_rdef, ll, i4b)
-      ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a)
-      ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b)
+                         qromb_rad_int (eval_i4b, 0.0_rdef, ll, i4b, 'I4B')
+      ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a, 'I5A')
+      ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b, 'I5B')
 
       cycle
 
@@ -217,7 +232,7 @@ subroutine radiation_integrals (ring, orb_, mode)
 ! edge effects for a bend. In this case we ignore any rolls.
 
     if (key == sbend$) then
-      call propagate_part_way(0.0)
+      call propagate_part_way(0.0_rdef)
       ric%i4a_(ir) = -ric%eta_a(1) * ric%g2 * tan(ric%ele%value(e1$))
       ric%i4b_(ir) = -ric%eta_b(1) * ric%g2 * tan(ric%ele%value(e1$))
       call propagate_part_way(ll)
@@ -229,13 +244,13 @@ subroutine radiation_integrals (ring, orb_, mode)
 
 ! integrate 
 
-    ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rdef, ll, i1)
+    ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rdef, ll, i1, 'I1')
     ric%i4a_(ir) = ric%i4a_(ir) + &
-                         qromb_rad_int (eval_i4a, 0.0_rdef, ll, i4a)
+                         qromb_rad_int (eval_i4a, 0.0_rdef, ll, i4a, 'I4A')
     ric%i4b_(ir) = ric%i4b_(ir) + &
-                         qromb_rad_int (eval_i4b, 0.0_rdef, ll, i4b)
-    ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a)
-    ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b)
+                         qromb_rad_int (eval_i4b, 0.0_rdef, ll, i4b, 'I4B')
+    ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a, 'I5A')
+    ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b, 'I5B')
 
   enddo
 
@@ -294,167 +309,3 @@ subroutine radiation_integrals (ring, orb_, mode)
   endif
 
 end subroutine
-
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-!---------------------------------------------------------------------
-
-subroutine propagate_part_way (s)
-
-  use precision_def
-  use rad_int_common
-
-  implicit none
-
-  type (coord_struct) orb, orb_0
-
-  real(rdef) s, v(4,4), v_inv(4,4), s1, s2, error, f0, f1
-  real(rdef) here(6), kick_0(6), kick_x(6), kick_y(6)
-
-  integer i, ix, n_pts
-
-! exact calc
-
-  if (ric%ele%exact_rad_int_calc) then
-
-    do i = 0, 6
-      n_pts = ric%rk_track(i)%n_pts
-      call bracket_index (ric%rk_track(i)%s(1:n_pts), s, ix)
-
-      if (ix == n_pts) then
-        orb = ric%rk_track(i)%orb(n_pts)
-      else
-        s1 = s - ric%rk_track(i)%s(ix)
-        s2 = ric%rk_track(i)%s(ix+1) - s
-        orb%vec = (s2 * ric%rk_track(i)%orb(ix)%vec + &
-                s1 * ric%rk_track(i)%orb(ix+1)%vec) / (s1 + s2)
-      endif
-
-      if (i == 0) then
-        orb_0 = orb
-        call calc_g_params (orb)
-      else
-        ric%runt%mat6(1:6, i) = (orb%vec - orb_0%vec) / ric%d_orb%vec(i)
-      endif
-    enddo
-
-    call mat_symp_check (ric%runt%mat6, error)
-    call mat_symplectify (ric%runt%mat6, ric%runt%mat6)
-
-    call twiss_propagate1 (ric%ele0, ric%runt)
-
-    call make_v_mats (ric%runt, v, v_inv)
-
-    ric%eta_a = &
-          matmul(v, (/ ric%runt%x%eta, ric%runt%x%etap, 0.0_rdef, 0.0_rdef /))
-    ric%eta_b = &
-          matmul(v, (/ 0.0_rdef, 0.0_rdef, ric%runt%y%eta, ric%runt%y%etap /))
-
-    return
-  endif
-
-! non-exact wiggler calc
-
-  if (ric%ele%key == wiggler$ .and. ric%ele%sub_key == map_type$) then
-!    n_pts = ric%rk_track(i)%n_pts
-!    call bracket_index (ric%rk_track(i)%s(1:n_pts), s, ix)
-
-!    if (ix == n_pts) then
-!      orb = ric%rk_track(i)%orb(n_pts)
-!    else
-!      s1 = s - ric%rk_track(i)%s(ix)
-!      s2 = ric%rk_track(i)%s(ix+1) - s
-!      orb%vec = (s2 * ric%rk_track(i)%orb(ix)%vec + &
-!                s1 * ric%rk_track(i)%orb(ix+1)%vec) / (s1 + s2)
-!    endif
-
-    call calc_g_params (orb)
-
-    f0 = (ric%ele%value(l$) - s) / ric%ele%value(l$)
-    f1 = s / ric%ele%value(l$)
-
-    orb%vec = ric%orb0%vec * f0 + ric%orb1%vec * f1
-
-    ric%eta_a = ric%eta_a0 * f0 + ric%eta_a1 * f1
-    ric%eta_b = ric%eta_b0 * f0 + ric%eta_b1 * f1
-
-    ric%runt%x%beta  = ric%ele0%x%beta  * f0 + ric%ele%x%beta  * f1
-    ric%runt%x%alpha = ric%ele0%x%alpha * f0 + ric%ele%x%alpha * f1
-    ric%runt%x%gamma = ric%ele0%x%gamma * f0 + ric%ele%x%gamma * f1
-    ric%runt%x%eta   = ric%ele0%x%eta   * f0 + ric%ele%x%eta   * f1
-    ric%runt%x%etap  = ric%ele0%x%etap  * f0 + ric%ele%x%etap  * f1
-
-    ric%runt%y%beta  = ric%ele0%y%beta  * f0 + ric%ele%y%beta  * f1
-    ric%runt%y%alpha = ric%ele0%y%alpha * f0 + ric%ele%y%alpha * f1
-    ric%runt%y%gamma = ric%ele0%y%gamma * f0 + ric%ele%y%gamma * f1
-    ric%runt%y%eta   = ric%ele0%y%eta   * f0 + ric%ele%y%eta   * f1
-    ric%runt%y%etap  = ric%ele0%y%etap  * f0 + ric%ele%y%etap  * f1
-
-    return
-  endif
-
-! non-exact calc
-
-  if (s == 0) then
-    ric%runt%x       = ric%ele0%x
-    ric%runt%y       = ric%ele0%y
-    ric%runt%c_mat   = ric%ele0%c_mat
-    ric%runt%gamma_c = ric%ele0%gamma_c
-    orb = ric%orb0
-  elseif (s == ric%ele%value(l$)) then
-    ric%runt = ric%ele
-    orb = ric%orb1
-  else
-    ric%runt = ric%ele
-    ric%runt%value(l$) = s
-    if (ric%ele%key == sbend$) ric%runt%value(e2$) = 0
-    call track1 (ric%orb0, ric%runt, ric%ring%param, orb)
-    call make_mat6 (ric%runt, ric%ring%param, ric%orb0, orb)
-    call twiss_propagate1 (ric%ele0, ric%runt)
-  endif
-
-  call make_v_mats (ric%runt, v, v_inv)
-
-  ric%eta_a = &
-          matmul(v, (/ ric%runt%x%eta, ric%runt%x%etap, 0.0_rdef,   0.0_rdef    /))
-  ric%eta_b = &
-          matmul(v, (/ 0.0_rdef,   0.0_rdef,    ric%runt%y%eta, ric%runt%y%etap /))
-
-  ric%g_x = ric%g_x0 + orb%x%pos * ric%k1 + orb%y%pos * ric%s1
-  ric%g_y = ric%g_y0 - orb%y%pos * ric%k1 + orb%x%pos * ric%s1
-                   
-  ric%dg2_x = 2 * (ric%g_x * ric%k1 + ric%g_y * ric%s1)
-  ric%dg2_y = 2 * (ric%g_x * ric%s1 - ric%g_y * ric%k1) 
-
-  ric%g2 = ric%g_x**2 + ric%g_y**2
-  ric%g = sqrt(ric%g2)
-
-!----------------------------------------------------------------------------
-contains
-
-subroutine calc_g_params (orb)
-
-  type (coord_struct) orb
-  real(rdef) del
-
-  del = 1e-6
-  here = orb%vec
-  call derivs_bmad (ric%ele, ric%ring%param, s, here, kick_0)
-  here(1) = here(1) + del
-  call derivs_bmad (ric%ele, ric%ring%param, s, here, kick_x)
-  here = orb%vec
-  here(3) = here(3) + del
-  call derivs_bmad (ric%ele, ric%ring%param, s, here, kick_y)
-  ric%g_x = -kick_0(2)
-  ric%g_y = -kick_0(4)
-  ric%g2 = ric%g_x**2 + ric%g_y**2
-  ric%g  = sqrt(ric%g2)
-  ric%dg2_x = ((kick_x(2)**2 + kick_x(4)**2) - ric%g2) / del
-  ric%dg2_y = ((kick_y(2)**2 + kick_y(4)**2) - ric%g2) / del
-
-end subroutine
-
-end subroutine
-  
-
-

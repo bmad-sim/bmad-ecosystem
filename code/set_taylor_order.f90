@@ -44,7 +44,7 @@ subroutine set_taylor_order (order, override_flag)
 
   override = .true.
   if (present(override_flag)) override = override_flag
-  if (.not. override_flag .and. bmad_com%taylor_order_set) return
+  if (.not. override .and. bmad_com%taylor_order_set) return
 
 ! set the taylor order.
 

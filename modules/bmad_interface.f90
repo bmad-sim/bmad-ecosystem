@@ -3,6 +3,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.8  2002/07/16 20:44:19  dcs
+!*** empty log message ***
+!
 !Revision 1.7  2002/06/13 14:54:59  dcs
 !Interfaced with FPP/PTC
 !
@@ -65,6 +68,13 @@ module bmad_interface
     subroutine kill_taylor (bmad_taylor)
       use bmad_struct
       type (taylor_struct) bmad_taylor(:)
+    end subroutine
+  end interface
+
+  interface
+    subroutine kill_gen_field (gen_field)
+      use bmad_struct
+      type (genfield), pointer :: gen_field
     end subroutine
   end interface
 
@@ -133,21 +143,23 @@ module bmad_interface
   end interface
 
   interface
-    subroutine bmad_parser (in_file, ring)
+    subroutine bmad_parser (in_file, ring, make_mats6)
       use bmad_struct
       implicit none
-      type (ring_struct) ring
       character*(*) in_file
+      type (ring_struct) ring
+      logical, optional :: make_mats6
     end subroutine
   end interface
 
   interface
-    subroutine bmad_parser2 (in_file, ring, orbit_)
+    subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
       use bmad_struct
       implicit none
+      character*(*) in_file
       type (ring_struct) ring
       type (coord_struct), optional :: orbit_(0:n_ele_maxx)
-      character*(*) in_file
+      logical, optional :: make_mats6
     end subroutine
   end interface
 
@@ -738,7 +750,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       real(rdef), intent(inout) :: mat6(6,6)
-      real(rdef), intent(in) :: e_vec(*)
+      real(rdef), intent(in) :: e_vec(:)
     end subroutine
   end interface    
 
@@ -981,7 +993,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct), target :: ring
-      type (coord_struct), target :: orb_(0:*)
+      type (coord_struct), target :: orb_(0:)
       type (modes_struct) mode
     end subroutine
   end interface
@@ -1079,7 +1091,7 @@ module bmad_interface
     subroutine set_on (key, ring, on_switch, orb_)
       use bmad_struct
       type (ring_struct) ring
-      type (coord_struct), optional :: orb_(0:*)
+      type (coord_struct), optional :: orb_(0:)
       integer key
       logical on_switch
     end subroutine
@@ -1122,10 +1134,10 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct) ring
-      type (coord_struct) orb_(0:*)
+      type (coord_struct) orb_(0:)
       real(rdef) phi_x_set
       real(rdef) phi_y_set
-      real(rdef) dk1(*)
+      real(rdef) dk1(:)
       logical ok
     end subroutine
   end interface
@@ -1135,17 +1147,6 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct), target :: ring
-    end subroutine
-  end interface
-
-  interface
-    subroutine sol_quad_mat_calc (ks, kl, length, order, mat627, orb)
-      use precision_def
-      implicit none
-      real(rdef) ks, kl, length
-      integer order
-      real(rdef) mat627(6,27)
-      real(rdef), optional :: orb(6)
     end subroutine
   end interface
 
@@ -1205,7 +1206,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct) ring
-      type (coord_struct) orbit_(0:*)
+      type (coord_struct) orbit_(0:)
     end subroutine
   end interface
 
@@ -1238,7 +1239,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct)  ring
-      type (coord_struct)  orbit_(0:*)
+      type (coord_struct)  orbit_(0:)
       integer ix_start
       integer ix_end
       integer direction
@@ -1392,7 +1393,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct) ring
-      type (coord_struct) orb(0:*)
+      type (coord_struct) orb(0:)
     end subroutine
   end interface
 
@@ -1587,7 +1588,7 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct) ring
-      logical use_ele(*)
+      logical use_ele(:)
       integer n_in
     end subroutine
   end interface
@@ -1666,65 +1667,6 @@ module bmad_interface
     end subroutine
   end interface
 
-! for make_mat6...
-
-  interface
-    subroutine mat6_multipole (ele, param, c00, factor, mat6, unit_matrix)
-      use bmad_struct
-      implicit none
-      type (ele_struct) ele
-      type (param_struct) param
-      type (coord_struct) c00
-      real(rdef) mat6(6,6)
-      real(rdef) factor
-      logical unit_matrix
-    end subroutine
-  end interface
-
-  interface
-    subroutine quad_mat_calc (k1, length, mat)
-      use precision_def
-      implicit none
-      real(rdef) length
-      real(rdef) mat(2,2)
-      real(rdef) k1
-    end subroutine
-  end interface
-
-  interface
-    subroutine sol_quad_mat6_calc (ks, k1, s_len, m, orb)
-      use bmad_struct
-      implicit none
-      real(rdef) ks
-      real(rdef) k1
-      real(rdef) s_len
-      real(rdef) m(6,6)
-      real(rdef) orb(6)
-    end subroutine
-  end interface
-
-  interface
-    subroutine mat4_multipole (ele, knl, tilt, n, c0, kick_mat)
-      use bmad_struct
-      implicit none
-      type (ele_struct) ele
-      type (coord_struct) c0
-      real(rdef) knl
-      real(rdef) tilt
-      real(rdef) kick_mat(4,4)
-      integer n
-    end subroutine
-  end interface
-
-  interface
-    function mexp (x, m)
-      use precision_def
-      real(rdef) x
-      real(rdef) mexp
-      integer m
-    end function
-  end interface
-
   interface
     subroutine bbi_kick_matrix (ele, orb, s_pos, mat6)
       use bmad_struct
@@ -1733,35 +1675,6 @@ module bmad_interface
       type (coord_struct) orb
       real(rdef) s_pos
       real(rdef) mat6(6,6)
-    end subroutine
-  end interface
-
-  interface
-    subroutine bbi_slice_calc (n_slice, sig_z, z_slice)
-      use precision_def
-      implicit none
-      integer n_slice
-      real(rdef) sig_z
-      real(rdef) z_slice(*)
-    end subroutine
-  end interface
-
-  interface
-    subroutine tilt_mat6 (mat6, tilt)
-      use bmad_struct
-      implicit none
-      real(rdef) tilt
-      real(rdef) mat6(6,6)
-    end subroutine
-  end interface
-
-  interface
-    subroutine solenoid_mat_calc (ks, length, mat4)
-      use precision_def
-      implicit none
-      real(rdef) ks
-      real(rdef) length
-      real(rdef) mat4(4,4)
     end subroutine
   end interface
 

@@ -31,7 +31,7 @@ subroutine deallocate_ele_pointers (ele)
               stat = ix)
     deallocate (ele%descrip, stat = ix)
     deallocate (ele%a, ele%b, stat = ix)
-    deallocate (ele%gen_field)
+    call kill_gen_field (ele%gen_field)
   else
     nullify (ele%wig_term)
     nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &

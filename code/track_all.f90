@@ -25,6 +25,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/07/16 20:44:02  dcs
+!*** empty log message ***
+!
 !Revision 1.4  2002/06/13 14:54:29  dcs
 !Interfaced with FPP/PTC
 !
@@ -45,7 +48,7 @@ subroutine track_all (ring, orbit_)
   implicit none
 
   type (ring_struct)  ring
-  type (coord_struct)  orbit_(0:*)
+  type (coord_struct)  orbit_(0:)
 
   integer n, i
 

@@ -10,10 +10,10 @@
 !
 !   SBEND:        angle$   = length$ * G_design$
 !                 l_chord$ = 2 * sin(angle$/2) / G_design$
-!                 rho_bend = 1 / G_design
+!                 rho = 1 / G_design
 !
 !   WIGGLER:      k1$       = -0.5 * (0.2997 * b_max$ / param%energy)**2
-!                 rho_bend$ = 3.3356 * param%energy / b_max$
+!                 rho$ = 3.3356 * param%energy / b_max$
 !
 !
 ! Modules needed:
@@ -29,6 +29,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/07/16 20:44:00  dcs
+!*** empty log message ***
+!
 !Revision 1.5  2002/06/13 14:54:21  dcs
 !Interfaced with FPP/PTC
 !
@@ -69,9 +72,9 @@ subroutine attribute_bookkeeper (ele, param)
       ele%value(l_chord$) = 2 * sin(ele%value(angle$)/2) / ele%value(g_design$)
     endif
     if (ele%value(g_design$) == 0) then
-      ele%value(rho_bend$) = 0
+      ele%value(rho$) = 0
     else
-      ele%value(rho_bend$) = 1 / ele%value(g$)
+      ele%value(rho$) = 1 / ele%value(g$)
     endif
 
 
@@ -113,9 +116,9 @@ subroutine attribute_bookkeeper (ele, param)
     endif
 
     if (ele%value(b_max$) == 0) then
-      ele%value(rho_bend$) = 0
+      ele%value(rho$) = 0
     else
-      ele%value(rho_bend$) = 3.3356 * param%energy / ele%value(b_max$)
+      ele%value(rho$) = 3.3356 * param%energy / ele%value(b_max$)
     endif
                        
   end select

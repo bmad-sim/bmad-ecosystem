@@ -12,7 +12,7 @@
 !             are to be added to USE_ELE.
 !
 ! Output:
-!     USE_ELE(*) -- Logical array: list RING elements to be not hyberdized
+!     USE_ELE(:) -- Logical array: list RING elements to be not hyberdized
 !                   with MAKE_HYBRID_RING.
 !
 ! Note: If USE_ELE(N_IN) = .false. then no updating is done
@@ -20,6 +20,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/07/16 20:44:03  dcs
+!*** empty log message ***
+!
 !Revision 1.3  2002/02/23 20:32:30  dcs
 !Double/Single Real toggle added
 !
@@ -38,7 +41,7 @@ subroutine update_hybrid_list (ring, n_in, use_ele)
 
   type (ring_struct)  ring
 
-  logical use_ele(*)
+  logical use_ele(:)
 
   integer use_ix(100), ixu
   integer n, ix, n_in, i, j

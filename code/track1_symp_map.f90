@@ -48,7 +48,11 @@ subroutine track1_symp_map (start, ele, param, end)
 
 ! Make the genfield map if needed.
 
-  if (.not. associated(ele%gen_field)) then
+  if (.not. (associated(ele%gen_field) .and. &
+                              associated(ele%taylor(1)%term))) then
+    if (.not. associated(ele%taylor(1)%term)) &
+                              call ele_to_taylor(ele, start, param)
+    call kill_gen_field (ele%gen_field)  ! clean up if necessary
     allocate (ele%gen_field)
     call taylor_to_genfield (ele%taylor, ele%gen_field, r0)
   endif

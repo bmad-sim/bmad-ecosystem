@@ -22,7 +22,8 @@
 
 subroutine make_mat6_runge_kutta (ele, param, c0, c1)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none
 
@@ -42,7 +43,7 @@ subroutine make_mat6_runge_kutta (ele, param, c0, c1)
   ele%tracking_method = runge_kutta$
   ele%symplectify = .false.   ! don't do this twice.
 
-  call transfer_mat_from_tracking (ele, param, c0, c1, bmad_com%d_orb, error)
+  call transfer_mat_from_tracking (ele, param, c0, bmad_com%d_orb, c1, error)
 
   ele%tracking_method = temp_method
   ele%symplectify = temp_symplectify

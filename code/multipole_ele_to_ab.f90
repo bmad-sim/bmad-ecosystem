@@ -22,6 +22,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/07/16 20:44:01  dcs
+!*** empty log message ***
+!
 !Revision 1.3  2002/06/13 14:54:27  dcs
 !Interfaced with FPP/PTC
 !
@@ -120,7 +123,7 @@ subroutine multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)
 
   case (wiggler$)
     const = 2 * ele%value(l$) / &
-                    (pi * ele%value(rho_bend$) * ele%value(n_pole$))
+                    (pi * ele%value(rho$) * ele%value(n_pole$))
     ref_exp = 0
 
   case (solenoid$)

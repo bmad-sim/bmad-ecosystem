@@ -23,7 +23,7 @@ function c_multi (n, m) result (c_out)
   integer in, im
   
   real(rdef) c_out, factorial_n
-  real(rdef), save :: c(n_pole_maxx, n_pole_maxx)
+  real(rdef), save :: c(0:n_pole_maxx, 0:n_pole_maxx)
 
   logical, save :: init_needed = .true.
 

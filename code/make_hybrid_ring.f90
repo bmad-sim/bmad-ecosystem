@@ -1,5 +1,5 @@
 !+
-! Subroutine make_hybrid_ring (ring_in, use_ele,
+! Subroutine make_hybrid_ring (ring_in, keep_ele,
 !                    remove_markers, ring_out, ix_out, use_taylor, orb0_)
 !
 ! Subroutine to concatinate together the elements in a ring to make
@@ -12,17 +12,21 @@
 !
 ! Input:
 !   ring_in        -- Ring_struct: Input ring.
-!   use_ele(n_ele_maxx) 
-!                  -- Logical array: USE_ELE(I) = .true. indicates an element
-!                          that is NOT to be concatenated.
-!   remove_markers -- Logical: If .true. then marker elements in USE_ELE
-!                          are removed from RING_OUT. In this case IX_OUT
-!                          points to the element before the marker
+!   keep_ele(n_ele_maxx) 
+!                  -- Logical array: keep_ele(I) = True indicates an element
+!                        that is NOT to be concatenated. That is, there will be
+!                        a corresponding element in ring_out.
+!   remove_markers -- Logical: If .true. then marker elements in keep_ele
+!                        are removed from RING_OUT. In this case IX_OUT
+!                        points to the element before the marker
 !   ring_out       -- Ring_struct: Ring with hybrid elements.
 !     %param%symmetry -- Integer: See bmad_struct for logical values.
 !   use_taylor     -- Logical, optional: If present and True then the
-!                          hybrid elements will have a taylor series 
-!                          instead of a simple linear matrix.
+!                        hybrid elements will have a taylor series 
+!                        instead of a simple linear matrix. If an element to
+!                        be concatenated has a taylor series then this taylor
+!                        series will be concatenated with the other elements
+!                        in the hybrid element. 
 !   orb0_(0:n_ele_maxx) 
 !                  -- Coord_struct, optional: Central orbit for taylor stuff.
 !
@@ -39,6 +43,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.7  2002/07/16 20:44:01  dcs
+!*** empty log message ***
+!
 !Revision 1.6  2002/06/13 14:54:26  dcs
 !Interfaced with FPP/PTC
 !
@@ -58,7 +65,7 @@
 #include "CESR_platform.inc"
 
 
-subroutine make_hybrid_ring (r_in, use_ele, remove_markers, &
+subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
                                        r_out, ix_out, use_taylor, orb0_)
 
   use accelerator
@@ -66,7 +73,7 @@ subroutine make_hybrid_ring (r_in, use_ele, remove_markers, &
   implicit none
 
   type (ring_struct), target :: r_in, r_out
-  type (coord_struct), optional :: orb0_(0:)
+  type (coord_struct), optional, volatile :: orb0_(0:)
   type (coord_struct) c0, c1
   type (ele_struct), pointer :: ele_in, ele_out
   type (real_8) y8(6)
@@ -76,7 +83,7 @@ subroutine make_hybrid_ring (r_in, use_ele, remove_markers, &
   integer j_in, i_out, ix_out(:), i
   integer n_ele, j, ix, ic, o_key
 
-  logical init_hybrid_needed, remove_markers, use_ele(:), out_symmetry
+  logical init_hybrid_needed, remove_markers, keep_ele(:), out_symmetry
   logical z_decoupled, do_taylor
   logical, optional :: use_taylor
 
@@ -121,7 +128,7 @@ subroutine make_hybrid_ring (r_in, use_ele, remove_markers, &
 
 ! if a match...
 
-    if (use_ele(j_in)) then
+    if (keep_ele(j_in)) then
 
 ! if current out-element is a hybrid then calculate dispersion part of mat6
 
@@ -176,7 +183,7 @@ subroutine make_hybrid_ring (r_in, use_ele, remove_markers, &
         elseif (do_taylor) then
           ele_out%tracking_method = taylor$
           ele_out%mat6_calc_method = taylor$
-          if (ele_in%mat6_calc_method /= taylor$) then  ! construct taylor
+          if (.not. associated(ele_out%taylor(1)%term)) then ! construct taylor
             call ele_to_taylor (ele_out, c0, r_in%param)
           endif
         endif
@@ -192,7 +199,7 @@ subroutine make_hybrid_ring (r_in, use_ele, remove_markers, &
           ele_out%mat6(1:4,1:4) = matmul(ele_in%mat6(1:4,1:4), &
                                                       ele_out%mat6(1:4,1:4))
         elseif (do_taylor) then
-          if (ele_in%mat6_calc_method == taylor$) then
+          if (associated(ele_in%taylor(1)%term)) then
             call concat_taylor (ele_out%taylor, ele_in%taylor, ele_out%taylor)
           else
             call taylor_propagate1 (ele_out%taylor, ele_in, r_in%param)
@@ -233,7 +240,7 @@ subroutine make_hybrid_ring (r_in, use_ele, remove_markers, &
         endif
       endif
 
-    endif ! use_ele
+    endif ! keep_ele
 
   enddo
 
@@ -263,7 +270,7 @@ subroutine make_hybrid_ring (r_in, use_ele, remove_markers, &
 
   do j_in = r_in%n_ele_ring+1, r_in%n_ele_max
     ele_in => r_in%ele_(j_in)    
-    if (use_ele(j_in)) then
+    if (keep_ele(j_in)) then
       i_out = i_out + 1
       ele_out => r_out%ele_(i_out)
       ix_out(j_in) = i_out
@@ -353,7 +360,7 @@ subroutine mat6_dispersion (mat6, e_vec)
   implicit none
 
   real(rdef), intent(inout) :: mat6(6,6)
-  real(rdef), intent(in) :: e_vec(*)
+  real(rdef), intent(in) :: e_vec(:)
 
   real(rdef) e2_vec(4)
 

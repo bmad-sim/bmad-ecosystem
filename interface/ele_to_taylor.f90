@@ -91,9 +91,6 @@ subroutine ele_to_taylor (ele, orb0, param)
   call kill(y)
   call kill(y2)
 
-  if (associated (ele%gen_field)) then
-    call kill (ele%gen_field)
-    deallocate (ele%gen_field)
-  endif
+  if (associated (ele%gen_field)) call kill_gen_field (ele%gen_field)
 
 end subroutine

@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.10  2002/07/16 20:44:19  dcs
+!*** empty log message ***
+!
 !Revision 1.9  2002/06/13 14:54:59  dcs
 !Interfaced with FPP/PTC
 !
@@ -58,7 +61,7 @@ module bmad_struct
 !
 ! IF YOU CHANGE THE RING STRUCTURE YOU MUST INCREASE THE VERSION NUMBER !
 !
-  integer, parameter :: bmad_inc_version$ = 52
+  integer, parameter :: bmad_inc_version$ = 53
 !
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 !
@@ -249,24 +252,25 @@ module bmad_struct
 ! Note: overlay$ == overlay_lord$ 
 
   integer, parameter :: drift$ = 1, sbend$ = 2, quadrupole$ = 3, group$ = 4
-  integer, parameter :: sextupole$ = 5, overlay$ = 6, custom$ = 7
-  integer, parameter :: solenoid$ = 8, rfcavity$ = 9
+  integer, parameter :: sextupole$ = 5, overlay$ = 6, custom$ = 7, taylor$ = 8
+  integer, parameter :: rfcavity$ = 9
   integer, parameter :: elseparator$ = 10, beambeam$ = 11, wiggler$ = 12
   integer, parameter :: sol_quad$ = 13, marker$ = 14, kicker$ = 15
   integer, parameter :: hybrid$ = 16, octupole$ = 17, rbend$ = 18
   integer, parameter :: multipole$ = 19, accel_sol$ = 20
-  integer, parameter :: def_beam$ = 21, ab_multipole$ = 22
-  integer, parameter :: null_ele$ = 23
+  integer, parameter :: def_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23
+  integer, parameter :: null_ele$ = 24
 
-  integer, parameter :: n_key = 23    
+  integer, parameter :: n_key = 24    
 
   character*16 :: key_name(n_key+1) = (/ &
       'DRIFT        ', 'SBEND        ', 'QUADRUPOLE   ', 'GROUP        ', &
-      'SEXTUPOLE    ', 'OVERLAY      ', 'CUSTOM       ', 'SOLENOID     ', &
+      'SEXTUPOLE    ', 'OVERLAY      ', 'CUSTOM       ', 'TAYLOR       ', &
       'RFCAVITY     ', 'ELSEPARATOR  ', 'BEAMBEAM     ', 'WIGGLER      ', &
       'SOL_QUAD     ', 'MARKER       ', 'KICKER       ', 'HYBRID       ', &
       'OCTUPOLE     ', 'RBEND        ', 'MULTIPOLE    ', 'ACCEL_SOL    ', &
-      'DEF_BEAM     ', 'AB_MULTIPOLE ', 'NULL_ELEMENT ', '             ' /)
+      'DEF_BEAM     ', 'AB_MULTIPOLE ', 'SOLENOID     ', 'NULL_ELEMENT ', &
+      '             ' /)
 
 ! Attribute name logical definitions
 ! Note: The following attributes must have unique number assignments:
@@ -291,7 +295,7 @@ module bmad_struct
   integer, parameter :: n_slice$=9, l_chord$=9
   integer, parameter :: fint$=10, polarity$ = 10
   integer, parameter :: fintx$=11
-  integer, parameter :: rho_bend$ = 12
+  integer, parameter :: rho$ = 12
   integer, parameter :: hgap$=13
   integer, parameter :: coef$=14, current$=14, hgapx$=14
   integer, parameter :: roll$=15
@@ -389,16 +393,16 @@ module bmad_struct
 
   integer, parameter :: garbage$ = -9876
 
-! Note: custom$ =7 is taken from the element key list
+! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
 
   integer, parameter :: bmad_standard$ = 1, symp_lie$ = 2, runge_kutta$ = 3 
-  integer, parameter :: linear$ = 4, taylor$ = 5, symp_map$ = 6
-  integer, parameter :: wiedemann$ = 8, tracking$ = 9, none$ = 10
+  integer, parameter :: linear$ = 4, tracking$ = 5, symp_map$ = 6
+  integer, parameter :: wiedemann$ = 9, none$ = 10
 
   character*16, parameter :: calc_method_name(0:10) = (/ &
       "GARBAGE!     ", "BMAD_Standard", "Symp_Lie     ", "Runge_Kutta  ", &
-      "Linear       ", "Taylor       ", "Symp_Map     ", "Custom       ", &
-      "Wiedemann    ", "Tracking     ", "None         " /)
+      "Linear       ", "Tracking     ", "Symp_Map     ", "Custom       ", &
+      "Taylor       ", "Wiedemann    ", "None         " /)
 
   integer, parameter :: map_type$ = 1, periodic_type$ = 2
   character*16, parameter :: sub_key_name(0:2) = (/ &
@@ -462,13 +466,15 @@ module bmad_struct
   type detector_struct
     real(rdef) x_orb, y_orb
     integer amp(4)
+    integer type
+    logical ok
   endtype
 
   type butns_struct
     character*40 lattice
     character*20 date
     character*72 comment(5)
-    type (detector_struct) det(0:99)
+    type (detector_struct) det(0:120)
     integer save_set
     integer file_num
   end type
@@ -620,7 +626,7 @@ module bmad_struct
     type (db_element_struct) :: scir_pos_rd(3*n_scir_cam_maxx)
 ! non data base stuff
     type (db_element_struct) :: quad(0:120) ! combinded csr_quad_cur, etc.
-    type (db_element_struct) :: detector(0:99)
+    type (db_element_struct) :: detector(0:120)
     type (db_element_struct) :: wiggler(1:n_wig_maxx)
     type (db_element_struct) :: scir_cam_rho(n_scir_cam_maxx)
     type (db_element_struct) :: scir_tilt(n_scir_tilt_maxx)

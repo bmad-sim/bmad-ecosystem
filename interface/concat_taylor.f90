@@ -25,6 +25,11 @@ subroutine concat_taylor (taylor1, taylor2, taylor3)
   type (real_8) y1(6), y2(6), y3(6)
   type (damap) da1, da2, da3
 
+! set the taylor order in PTC if not already done so
+
+  if (bmad_com%taylor_order_ptc == 0) &
+                         call set_ptc (taylor_order = bmad_com%taylor_order)
+
 ! Allocate temp vars
 
   call real_8_init (y1)

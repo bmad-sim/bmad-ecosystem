@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/07/16 20:44:01  dcs
+!*** empty log message ***
+!
 !Revision 1.4  2002/02/23 20:32:24  dcs
 !Double/Single Real toggle added
 !
@@ -43,7 +46,7 @@ subroutine set_on (key, ring, on_switch, orb_)
   implicit none
 
   type (ring_struct) ring
-  type (coord_struct), optional :: orb_(0:*)
+  type (coord_struct), optional :: orb_(0:)
 
   integer i, key               
 

@@ -1,8 +1,15 @@
 !+
+! Module rad_int_common
+!
+! Module needed:
+!   use rad_int_common
 !-
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/07/16 20:44:19  dcs
+!*** empty log message ***
+!
 !Revision 1.5  2002/06/13 14:55:00  dcs
 !Interfaced with FPP/PTC
 !
@@ -51,7 +58,7 @@ module rad_int_common
 
 contains
 
-function qromb_rad_int (func, a, b, sum) result (rad_int)
+function qromb_rad_int (func, a, b, sum, which_int) result (rad_int)
 
   use precision_def
   use nrtype; use nrutil, only : nrerror
@@ -67,23 +74,30 @@ function qromb_rad_int (func, a, b, sum) result (rad_int)
     end function func
   end interface
 
-  integer(i4b), parameter :: jmax = 6, jmaxp = jmax+1, k = 5, km = k-1
+  integer(i4b), parameter :: jmax = 14, k = 5, km = k-1
   integer(i4b) :: j
 
   real(rdef), intent(in) :: a, b, sum
   real(rdef) :: rad_int
   real(rdef) :: dqromb
   real(rdef), parameter :: eps = 1.0e-4_rdef, eps2 = 1.0e-6_rdef
-  real(rdef), dimension(jmaxp) :: h, s
+  real(rdef) :: h(0:jmax), s(0:jmax)
 
-  logical :: debug = .false.
+  character*(*) which_int
 
 !
 
-  h(1) = 1.0
+  h(0) = 4.0
+  s(0) = 0.0
 
   do j = 1, jmax
+
+    s(j) = s(j-1)
+    h(j) = h(j-1) / 4
     call trapzd(func, a, b, s(j), j)
+
+    if (ric%ele%key == wiggler$ .and. j < 4) cycle
+
     if (j >=  k) then
       call polint(h(j-km:j), s(j-km:j), 0.0_rdef, rad_int, dqromb)
       if (abs(dqromb) <= eps * abs(rad_int) + eps2 * abs(sum)) return
@@ -91,13 +105,14 @@ function qromb_rad_int (func, a, b, sum) result (rad_int)
       call polint(h(1:j), s(1:j), 0.0_rdef, rad_int, dqromb)
       if (abs(dqromb) <= eps * abs(rad_int) + eps2 * abs(sum)) return
     end if
-    s(j+1) = s(j)
-    h(j+1) = 0.25_rdef * h(j)
+
   end do
 
-  if (debug) then
-    type *, 'Warning in RADIATION_INTEGRALS: Integral does not converge.'
-  endif
+  type *, &
+      'Warning in QROMB_RAD_INT: Radiation integral is not converging: ', &
+                                                            which_int
+  type '(a, 1p3e11.2)', '     Error:', dqromb, rad_int, sum
+  type *, '     For element: ', ric%ele%name
 
 end function qromb_rad_int
 
@@ -205,8 +220,6 @@ function  eval_i4b (s_vec)
   integer i
 
 !
-
-  call propagate_part_way (s_vec)
 
   do i = 1, size(s_vec)
     call propagate_part_way (s_vec(i))
@@ -360,6 +373,163 @@ subroutine bracket_index (s_, s, ix)
     endif
 
   enddo
+
+end subroutine
+
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
+
+subroutine propagate_part_way (s)
+
+  implicit none
+
+  type (coord_struct) orb, orb_0
+
+  real(rdef) s, v(4,4), v_inv(4,4), s1, s2, error, f0, f1
+  real(rdef) here(6), kick_0(6), kick_x(6), kick_y(6)
+
+  integer i, ix, n_pts
+
+! exact calc
+
+  if (ric%ele%exact_rad_int_calc) then
+
+    do i = 0, 6
+      n_pts = ric%rk_track(i)%n_pts
+      call bracket_index (ric%rk_track(i)%s(1:n_pts), s, ix)
+
+      if (ix == n_pts) then
+        orb = ric%rk_track(i)%orb(n_pts)
+      else
+        s1 = s - ric%rk_track(i)%s(ix)
+        s2 = ric%rk_track(i)%s(ix+1) - s
+        orb%vec = (s2 * ric%rk_track(i)%orb(ix)%vec + &
+                s1 * ric%rk_track(i)%orb(ix+1)%vec) / (s1 + s2)
+      endif
+
+      if (i == 0) then
+        orb_0 = orb
+        call calc_g_params (orb)
+      else
+        ric%runt%mat6(1:6, i) = (orb%vec - orb_0%vec) / ric%d_orb%vec(i)
+      endif
+    enddo
+
+    call mat_symp_check (ric%runt%mat6, error)
+    call mat_symplectify (ric%runt%mat6, ric%runt%mat6)
+
+    call twiss_propagate1 (ric%ele0, ric%runt)
+
+    call make_v_mats (ric%runt, v, v_inv)
+
+    ric%eta_a = &
+          matmul(v, (/ ric%runt%x%eta, ric%runt%x%etap, 0.0_rdef, 0.0_rdef /))
+    ric%eta_b = &
+          matmul(v, (/ 0.0_rdef, 0.0_rdef, ric%runt%y%eta, ric%runt%y%etap /))
+
+    return
+  endif
+
+! non-exact wiggler calc
+
+  if (ric%ele%key == wiggler$ .and. ric%ele%sub_key == map_type$) then
+!    n_pts = ric%rk_track(i)%n_pts
+!    call bracket_index (ric%rk_track(i)%s(1:n_pts), s, ix)
+
+!    if (ix == n_pts) then
+!      orb = ric%rk_track(i)%orb(n_pts)
+!    else
+!      s1 = s - ric%rk_track(i)%s(ix)
+!      s2 = ric%rk_track(i)%s(ix+1) - s
+!      orb%vec = (s2 * ric%rk_track(i)%orb(ix)%vec + &
+!                s1 * ric%rk_track(i)%orb(ix+1)%vec) / (s1 + s2)
+!    endif
+
+    f0 = (ric%ele%value(l$) - s) / ric%ele%value(l$)
+    f1 = s / ric%ele%value(l$)
+
+    orb%vec = ric%orb0%vec * f0 + ric%orb1%vec * f1
+    call calc_g_params (orb)
+
+    ric%eta_a = ric%eta_a0 * f0 + ric%eta_a1 * f1
+    ric%eta_b = ric%eta_b0 * f0 + ric%eta_b1 * f1
+
+    ric%runt%x%beta  = ric%ele0%x%beta  * f0 + ric%ele%x%beta  * f1
+    ric%runt%x%alpha = ric%ele0%x%alpha * f0 + ric%ele%x%alpha * f1
+    ric%runt%x%gamma = ric%ele0%x%gamma * f0 + ric%ele%x%gamma * f1
+    ric%runt%x%eta   = ric%ele0%x%eta   * f0 + ric%ele%x%eta   * f1
+    ric%runt%x%etap  = ric%ele0%x%etap  * f0 + ric%ele%x%etap  * f1
+
+    ric%runt%y%beta  = ric%ele0%y%beta  * f0 + ric%ele%y%beta  * f1
+    ric%runt%y%alpha = ric%ele0%y%alpha * f0 + ric%ele%y%alpha * f1
+    ric%runt%y%gamma = ric%ele0%y%gamma * f0 + ric%ele%y%gamma * f1
+    ric%runt%y%eta   = ric%ele0%y%eta   * f0 + ric%ele%y%eta   * f1
+    ric%runt%y%etap  = ric%ele0%y%etap  * f0 + ric%ele%y%etap  * f1
+
+    return
+  endif
+
+! non-exact calc
+
+  if (s == 0) then
+    ric%runt%x       = ric%ele0%x
+    ric%runt%y       = ric%ele0%y
+    ric%runt%c_mat   = ric%ele0%c_mat
+    ric%runt%gamma_c = ric%ele0%gamma_c
+    orb = ric%orb0
+  elseif (s == ric%ele%value(l$)) then
+    ric%runt = ric%ele
+    orb = ric%orb1
+  else
+    ric%runt = ric%ele
+    ric%runt%value(l$) = s
+    if (ric%ele%key == sbend$) ric%runt%value(e2$) = 0
+    call track1 (ric%orb0, ric%runt, ric%ring%param, orb)
+    call make_mat6 (ric%runt, ric%ring%param, ric%orb0, orb)
+    call twiss_propagate1 (ric%ele0, ric%runt)
+  endif
+
+  call make_v_mats (ric%runt, v, v_inv)
+
+  ric%eta_a = &
+      matmul(v, (/ ric%runt%x%eta, ric%runt%x%etap, 0.0_rdef,   0.0_rdef    /))
+  ric%eta_b = &
+      matmul(v, (/ 0.0_rdef,   0.0_rdef,    ric%runt%y%eta, ric%runt%y%etap /))
+
+  ric%g_x = ric%g_x0 + orb%x%pos * ric%k1 + orb%y%pos * ric%s1
+  ric%g_y = ric%g_y0 - orb%y%pos * ric%k1 + orb%x%pos * ric%s1
+                   
+  ric%dg2_x = 2 * (ric%g_x * ric%k1 + ric%g_y * ric%s1)
+  ric%dg2_y = 2 * (ric%g_x * ric%s1 - ric%g_y * ric%k1) 
+
+  ric%g2 = ric%g_x**2 + ric%g_y**2
+  ric%g = sqrt(ric%g2)
+
+!----------------------------------------------------------------------------
+contains
+
+subroutine calc_g_params (orb)
+
+  type (coord_struct) orb
+  real(rdef) del
+
+  del = 1e-6
+  here = orb%vec
+  call derivs_bmad (ric%ele, ric%ring%param, s, here, kick_0)
+  here(1) = here(1) + del
+  call derivs_bmad (ric%ele, ric%ring%param, s, here, kick_x)
+  here = orb%vec
+  here(3) = here(3) + del
+  call derivs_bmad (ric%ele, ric%ring%param, s, here, kick_y)
+  ric%g_x = -kick_0(2)
+  ric%g_y = -kick_0(4)
+  ric%g2 = ric%g_x**2 + ric%g_y**2
+  ric%g  = sqrt(ric%g2)
+  ric%dg2_x = ((kick_x(2)**2 + kick_x(4)**2) - ric%g2) / del
+  ric%dg2_y = ((kick_y(2)**2 + kick_y(4)**2) - ric%g2) / del
+
+end subroutine
 
 end subroutine
 

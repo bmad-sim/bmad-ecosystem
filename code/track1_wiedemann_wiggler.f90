@@ -54,7 +54,7 @@ subroutine track1_wiedemann_wiggler (start, ele, param, end)
 ! check to see if the wiggler is off. 
 ! if so then it just looks like a drift.
 
-  if (ele%value(rho_bend$) == 0) then
+  if (ele%value(rho$) == 0) then
     end%vec(1) = end%vec(1) + ele%value(l$) * end%vec(2) * (1 - end%vec(6))
     end%vec(3) = end%vec(3) + ele%value(l$) * end%vec(4) * (1 - end%vec(6))
     return
@@ -88,7 +88,7 @@ subroutine track1_wiedemann_wiggler (start, ele, param, end)
   l_period = length / n_pole 
   l_bend = 8 * l_period / pi**2
   l_drift = l_period - l_bend
-  rho_bend = 4 * ele%value(rho_bend$) / pi
+  rho_bend = 4 * ele%value(rho$) / pi
   angle = l_bend / rho_bend
 
   k_z = pi / l_period

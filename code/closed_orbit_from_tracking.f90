@@ -18,8 +18,8 @@
 ! Input:
 !   ring     -- Ring_struct: Ring to track through.
 !   i_dim    -- Integer: 
-!       = 4  Transverse closed orbit at constant energy (dE/E = CO.Z.VEL)
-!       = 6  Full closed orbit using the entire transfer 6x6 matrix.
+!       = 2,4  Transverse closed orbit at constant energy (dE/E = CO.Z.VEL)
+!       = 6    Full closed orbit using the entire transfer 6x6 matrix.
 !   eps_rel(:) -- Real(rdef): relative allowed error.
 !   eps_abs(:) -- Real(rdef): absolute allowed error.
 !   init_guess -- [Optional] Coord_struct: Starting guess for the closed 
@@ -40,6 +40,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/07/16 20:44:00  dcs
+!*** empty log message ***
+!
 !Revision 1.5  2002/06/13 14:54:23  dcs
 !Interfaced with FPP/PTC
 !
@@ -53,8 +56,6 @@
 !UNIX compatibility updates
 !
 
-#include "CESR_platform.inc"
-
 
 subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
                                                  eps_rel, eps_abs, init_guess)
@@ -65,17 +66,17 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 
   type (ring_struct) ring
   type (coord_struct), intent(inout) :: closed_orb_(0:n_ele_maxx)
-  type (coord_struct) :: orb_(0:n_ele_maxx)
+  type (coord_struct) :: orb_(0:n_ele_maxx), start(100), end(100)
   type (coord_struct), optional :: init_guess
 
   real(rdef), intent(in) :: eps_rel(:), eps_abs(:)
 
-  real(rdef) amp_co, amp_del, d_orb(6), orb_diff(6), amp(6)
+  real(rdef) amp_co, amp_del, orb_diff(6), amp(6)
   real(rdef) mat6(6,6), mat6_inv(6,6), mat6_unit(6,6)
+  real(rdef) start_mat(6,6), end_mat(6,6)
+  real(rdef) :: error
 
-  real(rdef) :: error, factor = 1
-
-  integer i_dim, i, j, n_ele
+  integer i_dim, i, i1, i2, j, k, jmax, n_ele, j0, jj, nd, nnd, msk(6)
 
   logical is_on(0:n_ele_maxx)
 
@@ -84,10 +85,11 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
   call mat_unit (mat6_unit, 6, 6)
 
   n_ele = ring%n_ele_ring
+  nd = i_dim
 
 ! Turn off RF voltage if i_dim == 4 (for constant delta_E)
 
-  if (i_dim == 4) then
+  if (nd ==2 .or. nd == 4) then
     is_on = .false.
     do i = 1, n_ele
       if (ring%ele_(i)%key == rfcavity$) then
@@ -95,8 +97,8 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
         ring%ele_(i)%is_on = .false.
       endif
     enddo
-  elseif (i_dim /= 6) then
-    type *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: BAD "I_DIM":', i_dim
+  elseif (nd /= 6) then
+    type *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: BAD "I_DIM":', nd
     call err_exit    
   endif
 
@@ -111,57 +113,88 @@ subroutine closed_orbit_from_tracking (ring, closed_orb_, i_dim, &
 !-------------------
 ! iterate until we find the closed orbit
 
-  do j = 1, 100
+  jmax = 100
+  do j = 1, jmax
 
 ! track the current guess
 
     call track_all (ring, closed_orb_)
-    if (.not. bmad_status%ok) exit
+    if (ring%param%lost) exit
+
+! save start and end coords.
+
+    start(j)%vec = closed_orb_(0)%vec
+    end(j)%vec   = closed_orb_(n_ele)%vec
 
 ! is this good enough? if so return.
 
     orb_diff = closed_orb_(n_ele)%vec - closed_orb_(0)%vec
-
-!    amp_co = sum(abs(closed_orb_(0)%vec(1:i_dim)))
-!    amp_del = sum(abs(orb_diff(1:i_dim)))
-!    if (amp_del < amp_co*1.0e-5 + 1.0e-8) then  ! success
-
     amp = max(abs(closed_orb_(0)%vec), abs(closed_orb_(n_ele)%vec))
-    if (all(abs(orb_diff(1:i_dim)) < eps_abs(1:i_dim)) .or. &
-          all(abs(orb_diff(1:i_dim)) < eps_rel(1:i_dim) * amp(1:i_dim))) then
-      if (i_dim == 4) where (is_on(1:n_ele)) ring%ele_(1:n_ele)%is_on = .true.
+
+    if (all( (abs(orb_diff(1:nd)) < eps_abs(1:nd)) .or. &
+             (abs(orb_diff(1:nd)) < eps_rel(1:nd) * amp(1:nd)) )) then
+      if (nd == 2 .or. nd == 4) where (is_on(1:n_ele)) ring%ele_(1:n_ele)%is_on = .true.
       return
     endif
 
-! calculate a new guess based upon tracking nearby orbits.  
-! the delta we use to offset the orbit is based upon the current guess.
+! if we have enough data then form the transfer matrix and invert to get 
+! the new closed orbit guess. 
+! do not use the matrix if it is very non-symplectic.
+!
+! msk is used to mask out any plans where closed_orb_ has converged to
+! the closed orbit. If we do not do this then the computation can blow up.
 
-    d_orb = 1e-4 * amp
-    d_orb = max(d_orb, (/ 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4 /))
+  if (j > nd) then
 
-    do i = 1, i_dim
-      orb_(0) = closed_orb_(0)
-      orb_(0)%vec(i) = orb_(0)%vec(i) + d_orb(i)
-      call track_all (ring, orb_)
-      if (.not. bmad_status%ok) exit
-      mat6(1:6,i) = (orb_(n_ele)%vec - closed_orb_(n_ele)%vec) / d_orb(i)
+    nnd = 0  ! number of unmasked dimensions
+    do i = 2, nd, 2
+      i1 = i-1
+      i2 = i
+      if (.not. all( (abs(orb_diff(i1:i2)) < eps_abs(i1:i2)) .or. &
+                   (abs(orb_diff(i1:i2)) < eps_rel(i1:i2) * amp(i1:i2)) )) then
+        msk(nnd+1:nnd+2) = (/ i1, i2 /)
+        nnd = nnd + 2
+      endif
+     enddo
+
+    do i = 1, nd
+      j0 = j - nd
+      jj = j0 + i
+      end_mat(1:nnd,i) = end(jj)%vec(msk(1:nnd)) - end(j0)%vec(msk(1:nnd))
+      start_mat(1:nnd, i) = &
+                    start(jj)%vec(msk(1:nnd)) - start(j0)%vec(msk(1:nnd))
     enddo
 
-    call mat_symp_check (mat6(1:i_dim,1:i_dim), error)
+    call mat_det(start_mat(1:nnd,1:nnd), error, nnd, nnd)
+    type *, 'det:', error
+    call mat_inverse (start_mat(1:nnd,1:nnd), start_mat(1:nnd, 1:nnd))
+    mat6 = matmul(end_mat(1:nnd,1:nnd), start_mat(1:nnd,1:nnd))
+    call mat_symp_check (mat6(1:nnd,1:nnd), error)
     type *, 'error:', error
-    type '(i4, a, 3p6f11.5)', j, ':', (closed_orb_(0)%vec(i), i = 1, i_dim)
+    type '(i4, a, 3p6f11.5)', j, ':', (closed_orb_(0)%vec(i), i = 1, nd)
 
-    mat6 = mat6_unit - mat6
-    call mat_inverse (mat6(1:i_dim,1:i_dim), mat6_inv(1:i_dim,1:i_dim))
-    closed_orb_(0)%vec(1:i_dim) = closed_orb_(0)%vec(1:i_dim) + &
-                factor * matmul(mat6_inv(1:i_dim,1:i_dim), orb_diff(1:i_dim))
+    if (error < 0.1) then  ! if error is low use matrix
+      mat6(1:nnd,1:nnd) = mat6_unit(1:nnd,1:nnd) - mat6(1:nnd,1:nnd)
+      call mat_inverse (mat6(1:nnd,1:nnd), mat6_inv(1:nnd,1:nnd))
+      closed_orb_(0)%vec(msk(1:nnd)) = closed_orb_(0)%vec(msk(1:nnd)) + &
+                        matmul(mat6_inv(1:nnd,1:nnd), orb_diff(msk(1:nnd)))
+      cycle
+    endif
+
+  endif
+
+
+! if we are here then we did not make a guess using the matrix.
+! The new guess is the average of the start and end orbits.
+
+    closed_orb_(0)%vec = (closed_orb_(0)%vec + closed_orb_(n_ele)%vec) / 2
 
   enddo
 
 ! error
 
   if (bmad_status%type_out) then
-    if (j == 101) then
+    if (j == jmax+1) then
       type *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: ORBIT NOT CONVERGING!'
     else
       type *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: PROBLEM TRACKING ORBIT.'

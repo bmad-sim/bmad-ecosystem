@@ -2,8 +2,11 @@
 ! Subroutine transfer_ele_pointers (ele1, ele2)
 !
 ! Subroutine to transfer the information in the pointers from ele2 to ele1.
-! When finished ele1's pointers will be pointing to a different memory location from
-! ele2's so that the elements are truely separate.
+! When finished ele1's pointers will be pointing to a different memory 
+! location from ele2's so that the elements are truely separate.
+!
+! The exception is the %gen_field which is not transfered because it is
+! part of PTC.
 !
 ! Modules needed:
 !   use bmad
@@ -56,10 +59,10 @@ subroutine transfer_ele_pointers (ele1, ele2)
     ele1%descrip = ele2%descrip
   endif
 
-  if (associated(ele2%gen_field)) then
-    allocate (ele1%gen_field)
-    ele1%gen_field = ele2%gen_field
-  endif
+!  if (associated(ele2%gen_field)) then
+!    allocate (ele1%gen_field)
+!    ele1%gen_field = ele2%gen_field
+!  endif
 
 
 end subroutine   

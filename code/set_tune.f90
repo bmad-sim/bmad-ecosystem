@@ -18,12 +18,15 @@
 !
 ! Output:
 !   ring      -- Ring_struct: Q_tuned ring
-!   orb_(0:*) -- Coord_struct: New closed orbit.
+!   orb_(0:)  -- Coord_struct: New closed orbit.
 !   ok        -- Logical: Set True if everything is ok. False otherwise.
 !-
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/07/16 20:44:02  dcs
+!*** empty log message ***
+!
 !Revision 1.3  2002/02/23 20:32:25  dcs
 !Double/Single Real toggle added
 !
@@ -42,12 +45,12 @@ subroutine set_tune (phi_x_set, phi_y_set, dk1, ring, orb_, ok)
 
   type (ring_struct) ring
   type (ele_struct) ave
-  type (coord_struct) orb_(0:*)
+  type (coord_struct) orb_(0:)
 
   real(rdef) phi_x_set, phi_y_set, dphi_x, dphi_y
   real(rdef) phi_x, phi_y, d_xx, d_xy, d_yx, d_yy, det
-  real(rdef) l_beta_x, l_beta_y, dk_x, dk_y, dk1(*)
-          
+  real(rdef) l_beta_x, l_beta_y, dk_x, dk_y, dk1(:)
+
   integer i, j
 
   logical ok

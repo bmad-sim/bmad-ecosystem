@@ -18,6 +18,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/07/16 20:44:02  dcs
+!*** empty log message ***
+!
 !Revision 1.4  2002/06/13 14:54:30  dcs
 !Interfaced with FPP/PTC
 !
@@ -38,7 +41,7 @@ subroutine twiss_and_track (ring, orb)
   implicit none
 
   type (ring_struct) ring
-  type (coord_struct) orb(0:*), orb0(0:n_ele_maxx)
+  type (coord_struct) orb(0:), orb0(0:n_ele_maxx)
 
 !
 

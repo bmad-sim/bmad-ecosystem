@@ -129,18 +129,65 @@ subroutine get_attribute (how, ele, ring, pring, &
   type (ele_struct)  ele, ele0
   type (wig_term_struct), pointer :: wig_term(:)
 
-  real(rdef) kx, ky, kz, tol, value
+  real(rdef) kx, ky, kz, tol, value, coef
 
-  integer i, ic, ix_word, how, ix_word1, ix_word2, ix_word3, ios, ix
+  integer i, ic, ix_word, how, ix_word1, ix_word2, ix_word3, ios, ix, i_out
+  integer expn(6)
 
   character*16 word, tilt_word / 'TILT' /, str_ix
-  character delim*1, delim1*1, delim2*1, str*80, err_str*40
+  character delim*1, delim1*1, delim2*1, str*80, err_str*40, line*80
   character*16 super_names(11) / 'SUPERIMPOSE', 'OFFSET', 'REFERENCE',  &
                 'ELE_BEGINNING', 'ELE_CENTER', 'ELE_END',  &
                 'REF_BEGINNING', 'REF_CENTER', 'REF_END', &
                 'COMMON_LORD', ' ' /
 
   logical delim_found, err_flag
+
+! taylor
+
+  if (ele%key == taylor$) then
+
+    call get_next_word (str, ix_word, '}', delim, delim_found, .true.)
+    str = trim(str) // delim
+    pcom%parse_line = str // pcom%parse_line
+
+    call get_next_word (word, ix_word, ',{}', delim, delim_found, .true.)
+    if (delim /= '{' .or. ix_word /= 0) then
+      call warning ('BAD TERM FOR TAYLOR ELEMENT: ' // ele%name, &
+                                              'CANNOT PARSE: ' // str)
+      return
+    endif
+
+    call get_next_word (word, ix_word, ',}', delim, delim_found, .true.)
+    read (word, *, iostat = ios) i_out
+    if (delim /= ',' .or. ix_word == 0 .or. ios /= 0) then
+      call warning ('BAD "OUT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name, &
+                                                      'CANNOT PARSE: ' // str)
+      return
+    endif
+
+    call evaluate_value (str, coef, ring, delim, delim_found, err_flag)
+    if (err_flag) return
+
+    call get_next_word (line, ix_word, '},', delim, delim_found, .true.)
+    read (line, *, iostat = ios) expn
+    if (delim /= '}' .or. ix_word == 0 .or. ios /= 0) then
+      call warning ('BAD "EXPONENT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name, &
+                                                      'CANNOT PARSE: ' // str)
+      return
+    endif
+
+    call add_taylor_term (ele, i_out, coef, expn)
+    call get_next_word (word, ix_word, '},', delim, delim_found, .true.)
+
+    if (ix_word /= 0 .or. (delim_found .and. delim /= ',')) then
+      call warning ('BAD TERM ENDING FOR TAYLOR ELEMENT: ' // ele%name, &
+                                                      'CANNOT PARSE: ' // str)
+      return
+    endif
+
+    return
+  endif
 
 ! Get next WORD.
 ! If an overlay or group element then word is just an attribute to control
@@ -496,6 +543,63 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
+
+subroutine add_taylor_term (ele, i_out, coef, expn)
+
+  implicit none
+
+  type (ele_struct) ele
+  type (taylor_term_struct), allocatable :: term(:)
+
+  real(rdef) coef
+
+  integer i_out, expn(6), n, i
+
+
+!
+
+  if (.not. associated(ele%taylor(1)%term)) then
+    allocate (ele%taylor(1)%term(0), ele%taylor(2)%term(0))
+    allocate (ele%taylor(3)%term(0), ele%taylor(4)%term(0))
+    allocate (ele%taylor(5)%term(0), ele%taylor(6)%term(0))
+  endif
+
+  if (i_out < 1 .or. i_out > 6) then
+    call warning ('"OUT" VALUE IN TAYLOR TERM NOT IN RANGE (1 - 6)', &
+                  'FOR TAYLOR ELEMENT: ' // ele%name)
+    return
+  endif
+
+! find if we already have a taylor term like this.
+! if so just substitute in for the new coef
+
+  n = size(ele%taylor(i_out)%term)
+
+  do i = 1, n
+    if (all(ele%taylor(i_out)%term(i)%exp == expn)) then
+      ele%taylor(i_out)%term(i)%coef = coef
+      return
+    endif
+  enddo
+
+! new term
+
+  allocate (term(n+1))
+  term(1:n) = ele%taylor(i_out)%term
+  term(n+1)%coef = coef
+  term(n+1)%exp = expn
+
+  deallocate (ele%taylor(i_out)%term)
+  allocate (ele%taylor(i_out)%term(n+1))
+  ele%taylor(i_out)%term = term
+
+  deallocate(term)
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
 !+
 ! Subroutine get_next_word (word, ix_word,
 !                        delim_list, delim, delim_found, upper_case_word)
@@ -750,7 +854,7 @@ subroutine evaluate_value (err_str, value, &
 
 ! get line to parse
 
-  call get_next_word (line, ix_word, ',}', &
+  call get_next_word (line, ix_word, ',:}', &
                                 final_delim, final_delim_found, .true.)
   if (ix_word == 0) call warning  &
                          ('NO VALUE FOUND FOR: ' // err_str)

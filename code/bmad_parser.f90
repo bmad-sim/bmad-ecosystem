@@ -1,5 +1,5 @@
 !+
-! Subroutine bmad_parser (in_file, ring)
+! Subroutine bmad_parser (in_file, ring, make_mats6)
 !
 ! Subroutine to parse a BMAD input file.
 !
@@ -14,7 +14,9 @@
 !   use bmad
 !
 ! Input:
-!   in_file -- Character: Name of the input file.
+!   in_file    -- Character: Name of the input file.
+!   make_mats6 -- Logical, optional: Make the 6x6 transport matrices for then
+!                   Elements? Default is True.
 !
 ! Output:
 !   ring -- Ring_struct: Ring structure. See bmad_struct.f90 for more details.
@@ -34,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2002/07/16 20:44:00  dcs
+!*** empty log message ***
+!
 !Revision 1.8  2002/06/13 14:54:22  dcs
 !Interfaced with FPP/PTC
 !
@@ -58,7 +63,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine bmad_parser (in_file, ring)
+subroutine bmad_parser (in_file, ring, make_mats6)
 
   use bmad_parser_mod
   use cesr_utils
@@ -72,7 +77,7 @@ subroutine bmad_parser (in_file, ring)
   type (seq_ele_struct), pointer :: s_ele
   type (parser_ring_struct) pring
   type (seq_stack_struct) stack(20)
-  type (ele_struct), pointer :: ele, ele2
+  type (ele_struct), save, pointer :: ele, old_ele(:) => null()
 
   integer ix_word, i_use, i, j, k, n, ix, ixr, ixs, i_ring, it
   integer i_lev, i_key, ic, ix_lord
@@ -89,9 +94,10 @@ subroutine bmad_parser (in_file, ring)
   character delim*1, word_1*40
   character*200 path, basename, full_name, digested_file, call_file
   
-  real(rdef) angle
+  real(rdef) angle, old_energy
 
-  logical parsing, delim_found, matched_delim, arg_list_found
+  logical, optional :: make_mats6
+  logical parsing, delim_found, matched_delim, arg_list_found, doit
   logical file_end, found, err_flag, finished, save_taylor
   logical, save :: init_needed = .true.
 
@@ -116,6 +122,27 @@ subroutine bmad_parser (in_file, ring)
     call set_ptc (ring%param)
     return
   endif
+
+! save all elements that have a taylor series
+
+  old_energy = ring%param%energy
+
+  ix = 0
+  do i = 1, ring%n_ele_max
+    if (associated(ring%ele_(i)%taylor(1)%term)) ix = ix +1
+  enddo
+
+  if (ix /= 0) then
+    if (associated(old_ele)) deallocate(old_ele)
+    allocate(old_ele(ix))
+    ix = 0
+    do i = 1, ring%n_ele_max
+      if (associated(ring%ele_(i)%taylor(1)%term)) then
+        ix = ix +1
+        old_ele(ix) = ring%ele_(i)
+      endif
+    enddo
+  endif  
 
 ! init
 
@@ -468,6 +495,17 @@ subroutine bmad_parser (in_file, ring)
         in_ring%ele_(n_max)%value(polarity$) = 1.0     ! default
       endif
 
+      if (key == taylor$) then
+        in_ring%ele_(n_max)%tracking_method = taylor$  ! default
+        in_ring%ele_(n_max)%mat6_calc_method = taylor$ ! default
+        call add_taylor_term (in_ring%ele_(n_max), 1, 1.0_rdef, (/ 1, 0, 0, 0, 0, 0 /))
+        call add_taylor_term (in_ring%ele_(n_max), 2, 1.0_rdef, (/ 0, 1, 0, 0, 0, 0 /))
+        call add_taylor_term (in_ring%ele_(n_max), 3, 1.0_rdef, (/ 0, 0, 1, 0, 0, 0 /))
+        call add_taylor_term (in_ring%ele_(n_max), 4, 1.0_rdef, (/ 0, 0, 0, 1, 0, 0 /))
+        call add_taylor_term (in_ring%ele_(n_max), 5, 1.0_rdef, (/ 0, 0, 0, 0, 1, 0 /))
+        call add_taylor_term (in_ring%ele_(n_max), 6, 1.0_rdef, (/ 0, 0, 0, 0, 0, 1 /))
+      endif
+
       if (key == overlay$ .or. key == group$) then
         if (delim /= '=') then
           call warning ('EXPECTING: "=" BUT GOT: ' // delim,  &
@@ -725,49 +763,11 @@ subroutine bmad_parser (in_file, ring)
 
   do i = 1, n_ele_ring
 
-    ele => ring%ele_(i)
-    ele2 => in_ring%ele_(ix_ring(i)) 
-
-! Reuse old taylor series if the old element has the same attributes.
-
-    save_taylor = .false.
-    if (ele%pointer_init == has_been_inited$ .and. &
-                                  associated(ele%taylor(1)%term)) then
-      save_taylor = .true.
-      if (any(ele%value /= ele2%value))                     save_taylor = .false.
-      if (ele%num_steps /= ele2%num_steps)                  save_taylor = .false.
-      if (ele%integration_order /= ele2%integration_order)  save_taylor = .false.
-      if (associated(ele%wig_term) .and. associated(ele2%wig_term)) then
-        if (size(ele%wig_term) == size(ele2%wig_term)) then
-          do it = 1, size(ele%wig_term)
-            if (ele%wig_term(it)%coef /= ele2%wig_term(it)%coef) save_taylor = .false.
-            if (ele%wig_term(it)%kx /= ele2%wig_term(it)%kx) save_taylor = .false.
-            if (ele%wig_term(it)%ky /= ele2%wig_term(it)%ky) save_taylor = .false.
-            if (ele%wig_term(it)%kz /= ele2%wig_term(it)%kz) save_taylor = .false.
-            if (ele%wig_term(it)%phi_z /= ele2%wig_term(it)%phi_z) save_taylor = .false.
-          enddo
-        else
-          save_taylor = .false.
-        endif
-      elseif (associated(ele%wig_term) .xor. associated(ele2%wig_term)) then
-        save_taylor = .false.
-      endif
-      if (any(ele%taylor(:)%ref /= 0)) save_taylor = .false.
-      if (bmad_com%taylor_order /= ele%taylor_order) save_taylor = .false.
-    endif
-
-    if (save_taylor) then
-      print *, 'BMAD_PARSER: Reusing Taylor for: ', ele%name
-      do it = 1, 6
-        allocate (ele2%taylor(it)%term(size(ele%taylor(it)%term)))
-        ele2%taylor(it)%term = ele%taylor(it)%term
-      enddo
-    endif
-
 ! Use the name as given in sequence lists since elements can have different 
 ! names from the defining elements. Eg: B01\H2 gets its definition from B01.
 
-    ele = ele2
+    ele => ring%ele_(i)
+    ele = in_ring%ele_(ix_ring(i)) 
     ele%name = name_(i)
 
 ! Convert rbends to sbends
@@ -900,7 +900,59 @@ subroutine bmad_parser (in_file, ring)
   call s_calc (ring)                       ! calc longitudinal distances
   call ring_geometry (ring)                ! ring layout
   call set_ptc (ring%param)
-  call ring_make_mat6(ring, -1)            ! make 6x6 transport matrices
+
+! Reuse the old taylor series if they exist
+! and the old taylor series has the same attributes.
+
+  if (associated(old_ele)) then
+
+    do i = 1, ring%n_ele_max
+
+      if (old_energy /= ring%param%energy) exit
+      
+      ele => ring%ele_(i)
+
+      do j = 1, size(old_ele)
+        if (old_ele(j)%name /= ele%name) cycle
+        if (any(old_ele(j)%value /= ele%value)) cycle
+        if (old_ele(j)%num_steps /= ele%num_steps) cycle
+        if (old_ele(j)%integration_order /= ele%integration_order) cycle
+        if (associated(old_ele(j)%wig_term) .and. &
+                                               associated(ele%wig_term)) then
+          if (size(old_ele(j)%wig_term) /= size(ele%wig_term)) cycle
+          do it = 1, size(old_ele(j)%wig_term)
+            if (old_ele(j)%wig_term(it)%coef /= ele%wig_term(it)%coef) cycle
+            if (old_ele(j)%wig_term(it)%kx /= ele%wig_term(it)%kx) cycle
+            if (old_ele(j)%wig_term(it)%ky /= ele%wig_term(it)%ky) cycle
+            if (old_ele(j)%wig_term(it)%kz /= ele%wig_term(it)%kz) cycle
+            if (old_ele(j)%wig_term(it)%phi_z /= ele%wig_term(it)%phi_z) cycle
+          enddo
+        elseif (associated(old_ele(j)%wig_term) .xor. &
+                                            associated(ele%wig_term)) then
+          cycle
+        endif
+        if (any(old_ele(j)%taylor(:)%ref /= 0)) cycle
+        if (bmad_com%taylor_order /= old_ele(j)%taylor_order) cycle
+        exit
+      enddo
+
+      if (j == size(old_ele) + 1) cycle
+
+      print *, 'BMAD_PARSER: Reusing Taylor for: ', old_ele(j)%name
+      do it = 1, 6
+        allocate (ele%taylor(it)%term(size(old_ele(j)%taylor(it)%term)))
+        ele%taylor(it)%term = old_ele(j)%taylor(it)%term
+      enddo
+
+    enddo
+
+    deallocate(old_ele)
+
+  endif
+
+  doit = .true.
+  if (present(make_mats6)) doit = make_mats6
+  if (doit) call ring_make_mat6(ring, -1)      ! make 6x6 transport matrices
 
 !-------------------------------------------------------------------------
 ! write out if debug is on

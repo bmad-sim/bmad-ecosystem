@@ -23,6 +23,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/07/16 20:44:00  dcs
+!*** empty log message ***
+!
 !Revision 1.5  2002/06/13 14:54:21  dcs
 !Interfaced with FPP/PTC
 !
@@ -73,6 +76,8 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
       attrib_array(i, x_limit$)  = 'X_LIMIT'
       attrib_array(i, y_limit$)  = 'Y_LIMIT'
       attrib_array(i, aperture$) = 'APERTURE'
+
+      if (i == taylor$) cycle
 
       attrib_array(i, hkick$)  = 'HKICK'
       attrib_array(i, vkick$)  = 'VKICK'
@@ -137,7 +142,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(sbend$, hgapx$)      = 'HGAPX'
     attrib_array(sbend$, fint$)       = 'FINT'
     attrib_array(sbend$, fintx$)      = 'FINTX'
-    attrib_array(sbend$, rho_bend$)   = 'RHO_BEND'
+    attrib_array(sbend$, rho$)   = 'RHO'
 
     attrib_array(rbend$, l$)          = 'L'
     attrib_array(rbend$, angle$)      = 'ANGLE'
@@ -152,7 +157,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(rbend$, hgapx$)      = 'HGAPX'
     attrib_array(rbend$, fint$)       = 'FINT'
     attrib_array(rbend$, fintx$)      = 'FINTX'
-    attrib_array(rbend$, rho_bend$)   = 'RHO_BEND'
+    attrib_array(rbend$, rho$)   = 'RHO'
 
     attrib_array(quadrupole$, l$)    = 'L'
     attrib_array(quadrupole$, tilt$) = 'TILT'
@@ -188,7 +193,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(wiggler$, l$)        = 'L'
     attrib_array(wiggler$, k1$)       = 'K1'
     attrib_array(wiggler$, b_max$)    = 'B_MAX'
-    attrib_array(wiggler$, rho_bend$) = 'RHO_BEND'
+    attrib_array(wiggler$, rho$) = 'RHO'
     attrib_array(wiggler$, n_pole$)   = 'N_POLE'
     attrib_array(wiggler$, tilt$)     = 'TILT'
     attrib_array(wiggler$, radius$)   = 'RADIUS'
@@ -262,7 +267,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
   endif                       
 
   if (key == wiggler$ .and. ele%sub_key == map_type$) then
-    if (any (ix_att == (/ k1$, b_max$, rho_bend$, n_pole$, radius$ /) )) &
+    if (any (ix_att == (/ k1$, b_max$, rho$, n_pole$, radius$ /) )) &
                                                     at_name = null_name
   endif
 

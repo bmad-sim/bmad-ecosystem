@@ -47,6 +47,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2002/07/16 20:44:02  dcs
+!*** empty log message ***
+!
 !Revision 1.4  2002/06/13 14:54:29  dcs
 !Interfaced with FPP/PTC
 !
@@ -68,7 +71,7 @@ subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
   implicit none
 
   record / ring_struct / ring
-  record / coord_struct / orbit_(0:*)
+  record / coord_struct / orbit_(0:)
   record / ele_struct / ele            
 
   integer ix_start, ix_end, direction
