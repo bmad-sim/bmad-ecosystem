@@ -918,9 +918,9 @@ subroutine makeup_overlay_and_i_beam_slave (ring, ix_ele)
   ct = ele%control_type
 
   if (ct /= super_lord$ .and. ct /= overlay_slave$ .and. &
-       ct /= overlay_lord$) then
-     call out_io(s_abort$, r_name, 'ELEMENT IS NOT OF PROPER TYPE. RING INDEX: \i\ ', ix_ele)
-     call type_ele (ele, .true., 0, .false., 0, .true., ring)
+           ct /= overlay_lord$ .and. ct /= multipass_lord$) then
+    call out_io(s_abort$, r_name, 'ELEMENT IS NOT OF PROPER TYPE. RING INDEX: \i\ ', ix_ele)
+    call type_ele (ele, .true., 0, .false., 0, .true., ring)
     call err_exit
   endif
 
