@@ -126,7 +126,7 @@ sub searchit {
         @comments = ();
         $recording = 0;
       }
-      elsif (/^ *type *$str/) {
+      elsif (/^ *type *$str\s*$/) {
         $found_one = 1;
         print "\n$File::Find::name\n";
         print $_;
