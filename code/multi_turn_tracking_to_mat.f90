@@ -135,7 +135,8 @@ end subroutine
 
 function multi_turn_func (x, id)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
 
   implicit none                      
 

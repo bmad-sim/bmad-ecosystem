@@ -76,7 +76,9 @@ end subroutine
 
 subroutine do_vsp_eles (ring, i_vsep, ix_, ele_type)
 
-  use bmad
+  use bmad_struct
+  use bmad_interface
+
   implicit none
 
   type (ring_struct)  ring

@@ -121,7 +121,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
   case (sextupole$)
     h = ele%value(k2$) * (start2%vec(1)**2 + start2%vec(3)**2)
     h2 = h**2
-    if (sr_com%fluctuations_on) h3 = h2*h
+    if (sr_com%fluctuations_on) h3 = h2 * abs(h)
 
   case (octupole$)
     h2 = ele%value(k3$)**2 * (start2%vec(1)**2 + start2%vec(3)**2)**3
@@ -131,7 +131,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
     if (ele%value(k1$) == 0) then
       h = ele%value(g$) + ele%value(delta_g$)
       h2 = h**2 
-      if (sr_com%fluctuations_on) h3 = h2*h
+      if (sr_com%fluctuations_on) h3 = h2 * abs(h)
     else
       x_ave = start2%vec(1) + direc * start2%vec(2) * ele%value(l$) / 4
       y_ave = start2%vec(3) + direc * start2%vec(4) * ele%value(l$) / 4
@@ -258,15 +258,15 @@ contains
 subroutine calc_h (h2, h3)
 
   real(rp) h2, h3, k2, k3, kick(6)
-  integer i
+  integer j
 
 ! h2 is the average kick^2 over the element.
 
   h2 = 0; h3 = 0
 
-  do i = 0, ubound(sl_com%s, 1) 
-    call derivs_bmad (ring%ele_(i), ring%param, sl_com%s(i), &
-                                            sl_com%orb(i)%vec, kick)
+  do j = 0, ubound(sl_com%s, 1) 
+    call derivs_bmad (ring%ele_(i), ring%param, sl_com%s(j), &
+                                            sl_com%orb(j)%vec, kick)
 
     k2 = kick(2)**2 + kick(4)**2
     k3 = sqrt(k2)**3
@@ -281,8 +281,8 @@ subroutine calc_h (h2, h3)
 
   enddo
 
-
   h2 = h2 / ubound(sl_com%s, 1) 
+  h3 = h3 / ubound(sl_com%s, 1) 
 
 end subroutine
 

@@ -673,8 +673,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
     c_m = param%particle * c_light * ele%value(b_z$) / m_electron
     gamma_old = param%beam_energy * rel_E / m_electron
     gamma_new = gamma_old + c_e * length
-    call accel_sol_mat_calc (length, c_m, c_e, gamma_old, gamma_new, &
-                                    0.0_rp, 0.0_rp, c0t%vec, mat4, vec_st)
+!!    call accel_sol_mat_calc (length, c_m, c_e, gamma_old, gamma_new, &
+!!                                    0.0_rp, 0.0_rp, c0t%vec, mat4, vec_st)
     mat4 = mat6(1:4,1:4)
 
 !--------------------------------------------------------

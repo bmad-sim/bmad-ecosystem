@@ -127,18 +127,6 @@ module bmad_interface
   end interface
 
   interface
-    subroutine change_basis (coord, ref_energy, ref_z, to_cart, time_disp)
-      use bmad_struct
-      implicit none
-      type (coord_struct) coord
-      real(rp) ref_energy
-      real(rp) ref_z
-      real(rp) time_disp
-      logical to_cart
-    end subroutine
-  end interface
-
-  interface
     subroutine check_ring_controls (ring, exit_on_error)
       use bmad_struct
       implicit none
