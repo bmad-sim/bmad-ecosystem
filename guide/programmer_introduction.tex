@@ -19,32 +19,32 @@ program test
 
   use bmad                 ! Define the structures we need to know about.
   implicit none
-  type (ring_struct) ring  ! This structure holds the lattice info
+  type (ring_struct) lattice  ! This structure holds the lattice info
   integer i, ix
 
 ! Read in a lattice and calculate the twiss parameters.
 
-  call bmad_parser ("bmad_test.lat", ring)    ! Read in a lattice.
-  call twiss_at_start (ring)           ! Calculate starting Twiss params.
-  call twiss_propagate_all (ring)      ! Propagate Twiss parameters
+  call bmad_parser ("bmad_test.lat", lattice)    ! Read in a lattice.
+  call twiss_at_start (lattice)           ! Calculate starting Twiss params.
+  call twiss_propagate_all (lattice)      ! Propagate Twiss parameters
 
 ! Print info on the first 11 elements
 
   print *, ' Ix  Name              Ele_type                   S      Beta_x'
   do i = 0, 10
-    print '(i4, 2x, a, 2x, a, 2f12.4)', i, ring%ele_(i)%name, &
-                    key_name(ring%ele_(i)%key), &
-                    ring%ele_(i)%s, ring%ele_(i)%x%beta
+    print '(i4, 2x, a, 2x, a, 2f12.4)', i, lattice%ele_(i)%name, &
+                    key_name(lattice%ele_(i)%key), &
+                    lattice%ele_(i)%s, lattice%ele_(i)%x%beta
   enddo
 
 ! Find the CLEO_SOL element and print information on it.
 
-  call element_locator ('CLEO_SOL', ring, ix)
+  call element_locator ('CLEO_SOL', lattice, ix)
   print *
   print *, '!---------------------------------------------------------'
   print *, '! Information on element: CLEO_SOL', ix
   print *
-  call type_ele (ring%ele_(ix), .false., 0, .false., 0, .true., ring)
+  call type_ele (lattice%ele_(ix), .false., 0, .false., 0, .true., lattice)
 
 end program
 \end{listing}
@@ -112,7 +112,7 @@ gives the output as shown in Figure~\ref{f:output}.
 
   Control_type: SUPER_LORD
   Slaves: Number:   6
-      Name            Ring_index  Attribute       Coefficient
+      Name             Lat_index  Attribute       Coefficient
       Q00E\CLEO_SOL          865  --------          3.182E-01
       CLEO_SOL\1             866  --------          4.460E-03
       CLEO_SOL\2             868  --------          1.773E-01
