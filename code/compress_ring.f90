@@ -50,7 +50,7 @@ subroutine compress_ring (ring, ok)
   i2 = 0
   do i = 1, ring%n_ele_max
     if (ring%ele_(i)%key == -1) then
-      ix_(i) = garbage$
+      ix_(i) = int_garbage$
     else
       i2 = i2 + 1
       ix_(i) = i2

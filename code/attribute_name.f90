@@ -80,7 +80,7 @@ function attribute_name (ele, ix_att) result (at_name)
       if (i == ab_multipole$) cycle
       if (i == taylor$)       cycle
 
-      attrib_array(i, integration_ord$)   = 'INTEGRATION_ORD'
+      attrib_array(i, integrator_order$)   = 'INTEGRATION_ORD'
       attrib_array(i, num_steps$)         = 'NUM_STEPS'
       attrib_array(i, symplectify$)       = 'SYMPLECTIFY'
       attrib_array(i, rel_tol$)           = 'REL_TOL'

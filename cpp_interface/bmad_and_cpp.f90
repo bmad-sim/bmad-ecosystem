@@ -809,23 +809,24 @@ type (lr_wake_struct), pointer :: f
 type (c_dummy_struct) c_lr_wake
 
 f => f_lr_wake
-call lr_wake_to_c2 (c_lr_wake, f%freq, f%freq_in, f%R_over_Q, f%q, f%m, &
-                     f%norm_sin, f%norm_cos, f%skew_sin, f%skew_cos, f%s_ref)
+call lr_wake_to_c2 (c_lr_wake, f%freq, f%freq_in, f%R_over_Q, f%q, f%angle, &
+         f%norm_sin, f%norm_cos, f%skew_sin, f%skew_cos, f%m, f%polarized)
 
 end subroutine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine lr_wake_to_f2 (f_lr_wake, freq, freq_in, r_over_q, q, m, &
-!                                     n_sin, n_cos, s_cos, s_sin, s_ref)
+! Subroutine lr_wake_to_f2 (f_lr_wake, freq, freq_in, r_over_q, q, angle, &
+!                                   n_sin, n_cos, s_cos, s_sin, m, polarized)
 !
 ! Subroutine used by lr_wake_to_f to convert a C++ C_lr_wake into
 ! a Bmad lr_wake_struct. This routine is not for general use.
 !-
 
-subroutine lr_wake_to_f2 (f_lr_wake, freq, freq_in, r_over_q, q, m, &
-                                      n_sin, n_cos, s_sin, s_cos, s_ref)
+subroutine lr_wake_to_f2 (f_lr_wake, freq, freq_in, r_over_q, q, angle, &
+                                   n_sin, n_cos, s_cos, s_sin, m, polarized)
+
 
 use bmad_and_cpp
 
@@ -833,10 +834,12 @@ implicit none
 
 type (lr_wake_struct) f_lr_wake
 real(rp) freq, freq_in, r_over_q, q, n_sin, n_cos, s_cos, s_sin, s_ref
+real(rp) angle
 integer m
+logical polarized
 
-f_lr_wake = lr_wake_struct(freq, freq_in, r_over_q, q, m, &
-                                       n_sin, n_cos, s_sin, s_cos, s_ref)
+f_lr_wake = lr_wake_struct(freq, freq_in, r_over_q, q, angle, &
+                                   n_sin, n_cos, s_cos, s_sin, m, polarized)
 
 end subroutine
 
@@ -897,8 +900,9 @@ enddo
 
 do i = 1, n_lr
   call lr_wake_in_wake_to_c2 (c_wake, i, f%lr(i)%freq, f%lr(i)%freq_in, &
-           f%lr(i)%r_over_q, f%lr(i)%Q, f%lr(i)%m, f%lr(i)%norm_sin, &
-           f%lr(i)%norm_cos, f%lr(i)%skew_sin, f%lr(i)%skew_cos, f%lr(i)%s_ref)
+         f%lr(i)%r_over_q, f%lr(i)%Q, f%lr(i)%angle, f%lr(i)%norm_sin, &
+         f%lr(i)%norm_cos, f%lr(i)%skew_sin, f%lr(i)%skew_cos, f%lr(i)%m, &
+         f%lr(i)%polarized)
 enddo 
 
 end subroutine
@@ -1016,26 +1020,27 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine lr_wake_in_wake_to_f2 (f_wake, it, freq, freq_in, r_over_q, q, m, &
-!                                          n_sin, n_cos, s_cos, s_sin, s_ref)
+! Subroutine lr_wake_in_wake_to_f2 (f_wake, it, freq, freq_in, r_over_q, q, angle, &
+!                                          n_sin, n_cos, s_cos, s_sin, m, polarized)
 !
 ! Subroutine used by wake_to_f to convert a C++ C_wake into
 ! a Bmad wake_struct. This routine is not for general use.
 !-
 
-subroutine lr_wake_in_wake_to_f2 (f_wake, it, freq, freq_in, r_over_q, q, m, &
-                                          n_sin, n_cos, s_cos, s_sin, s_ref)
+subroutine lr_wake_in_wake_to_f2 (f_wake, it, freq, freq_in, r_over_q, q, angle, &
+                                          n_sin, n_cos, s_cos, s_sin, m, polarized)
 
 use bmad_and_cpp
 
 implicit none
 
 type (wake_struct) f_wake
-real(rp) freq, freq_in, r_over_q, q, n_sin, n_cos, s_cos, s_sin, s_ref
+real(rp) freq, freq_in, r_over_q, q, n_sin, n_cos, s_cos, s_sin, angle
 integer it, m
+logical polarized
 
-f_wake%lr(it) = lr_wake_struct(freq, freq_in, r_over_q, q, m, &
-                                     n_sin, n_cos, s_cos, s_sin, s_ref)
+f_wake%lr(it) = lr_wake_struct(freq, freq_in, r_over_q, q, angle, &
+                              n_sin, n_cos, s_cos, s_sin, m, polarized)
 
 end subroutine
 
@@ -1506,7 +1511,7 @@ call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       f%sub_key, f%control_type, f%ix_value, f%n_slave, f%ix1_slave, &
       f%ix2_slave, f%n_lord, f%ic1_lord, f%ic2_lord, f%ix_pointer, f%ixx, &
       f%ix_ele, f%mat6_calc_method, f%tracking_method, f%field_calc, &
-      f%num_steps, f%integration_ord, f%ptc_kind, f%taylor_order, f%aperture_at, &
+      f%num_steps, f%integrator_order, f%ptc_kind, f%taylor_order, f%aperture_at, &
       f%symplectify, f%mode_flip, f%multipoles_on, f%exact_rad_int_calc, &
       f%field_master, f%is_on, f%internal_logic, f%logic, f%on_an_i_beam)
 
@@ -1606,7 +1611,7 @@ f%mat6_calc_method    = m6_meth
 f%tracking_method     = tk_meth
 f%field_calc          = f_calc
 f%num_steps           = steps
-f%integration_ord     = int_ord
+f%integrator_order     = int_ord
 f%ptc_kind            = ptc
 f%taylor_order        = tlr_ord
 f%aperture_at         = ap_at

@@ -286,19 +286,19 @@ void operator>> (sr2_wake_struct* f, C_sr2_wake& c) {
 //---------------------------------------------------------------------------
 // lr_wake
 
-extern "C" void lr_wake_to_f2_(lr_wake_struct*, Re&, Re&, Re&, Re&, Int&,
-                                                 Re&, Re&, Re&, Re&, Re&);
+extern "C" void lr_wake_to_f2_(lr_wake_struct*, Re&, Re&, Re&, Re&, Re&,
+                                      Re&, Re&, Re&, Re&, Int&, Int&);
 
 extern "C" void lr_wake_to_f_(C_lr_wake& c, lr_wake_struct* f) {
-  lr_wake_to_f2_(f, c.freq, c.freq_in, c.R_over_Q, c.Q, c.m, 
-                     c.norm_sin, c.norm_cos, c.skew_sin, c.skew_cos, c.s_ref);
+  lr_wake_to_f2_(f, c.freq, c.freq_in, c.R_over_Q, c.Q, c.angle, 
+          c.norm_sin, c.norm_cos, c.skew_sin, c.skew_cos, c.m, c.polarized);
 }
 
 extern "C" void lr_wake_to_c2_(C_lr_wake& c, Re& freq, Re& freq_in, 
-                  Re& R_over_Q, Re& Q, Int& m, Re& n_sin, Re& n_cos, 
-                  Re& s_sin, Re& s_cos, Re& s_ref) {
-  c = C_lr_wake(freq, freq_in, R_over_Q, Q, m, 
-                                  n_sin, n_cos, s_sin, s_cos, s_ref);
+                  Re& R_over_Q, Re& Q, Re& ang, Re& n_sin, Re& n_cos, 
+                  Re& s_sin, Re& s_cos, Int& m, Int& pol) {
+  c = C_lr_wake(freq, freq_in, R_over_Q, Q, ang, 
+                    n_sin, n_cos, s_sin, s_cos, m, pol);
 }
 
 void operator>> (C_lr_wake& c, lr_wake_struct* f) {
@@ -316,8 +316,8 @@ extern "C" void wake_to_f2_(wake_struct*, Char, Int&, Char, Int&, Re&, Int&, Int
 extern "C" void sr1_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&);
 extern "C" void sr2_long_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
 extern "C" void sr2_trans_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
-extern "C" void lr_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&, Re&, Int&,
-                                                                 Re&, Re&, Re&, Re&, Re&);
+extern "C" void lr_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&,
+                                                         Re&, Re&, Re&, Re&, Int&, Int&);
 
 extern "C" void wake_to_f_(C_wake& c, wake_struct* f) {
   int n_lr = c.lr.size();
@@ -342,8 +342,8 @@ extern "C" void wake_to_f_(C_wake& c, wake_struct* f) {
   }
   for (int i = 0; i < n_lr; i++) {
     lr_wake_in_wake_to_f2_(f, i+1, c.lr[i].freq, c.lr[i].freq_in, 
-        c.lr[i].R_over_Q, c.lr[i].Q, c.lr[i].m, c.lr[i].norm_sin, 
-        c.lr[i].norm_cos, c.lr[i].skew_sin, c.lr[i].skew_cos, c.lr[i].s_ref);
+        c.lr[i].R_over_Q, c.lr[i].Q, c.lr[i].angle, c.lr[i].norm_sin, 
+        c.lr[i].norm_cos, c.lr[i].skew_sin, c.lr[i].skew_cos, c.lr[i].m, c.lr[i].polarized);
   }
 }
 
@@ -373,8 +373,8 @@ extern "C" void sr2_trans_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& a, Re& d,
 }
 
 extern "C" void lr_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& f, Re& k, 
-                      Re& i, Re& q, Int& m, Re& ns, Re& nc, Re& ss, Re& sc, Re& z) {
-  c.lr[it-1] = C_lr_wake(f, k, i, q, m, ns, nc, ss, sc, z);
+           Re& i, Re& q, Re& ang, Re& ns, Re& nc, Re& ss, Re& sc, Int& m, Int& pol) {
+  c.lr[it-1] = C_lr_wake(f, k, i, q, ang, ns, nc, ss, sc, m, pol);
 }
 
 
@@ -614,7 +614,7 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
     c.sub_key, c.control_type, c.ix_value, c.n_slave, c.ix1_slave, 
     c.ix2_slave, c.n_lord, c.ic1_lord, c.ic2_lord, c.ix_pointer, 
     c.ixx, c.ix_ele, c.mat6_calc_method, c.tracking_method, c.field_calc,
-    c.num_steps, c.integration_ord, c.ptc_kind, c.taylor_order, c.aperture_at,
+    c.num_steps, c.integrator_order, c.ptc_kind, c.taylor_order, c.aperture_at,
     c.symplectify, c.mode_flip, c.multipoles_on, c.exact_rad_int_calc,
     c.field_master, c.is_on, c.internal_logic, c.logic, c.on_an_i_beam);
   for (int i = 0; i < n_wig; i++) {
@@ -666,7 +666,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   c.tracking_method     = tracking;
   c.field_calc          = f_calc;
   c.num_steps           = num_s;
-  c.integration_ord     = int_ord;
+  c.integrator_order     = int_ord;
   c.ptc_kind            = ptc;
   c.taylor_order        = t_ord;
   c.aperture_at         = ap_at;
@@ -767,7 +767,7 @@ C_ele& C_ele::operator= (const C_ele& c) {
   tracking_method     = c.tracking_method;
   field_calc          = c.field_calc;
   num_steps           = c.num_steps;
-  integration_ord     = c.integration_ord;
+  integrator_order     = c.integrator_order;
   ptc_kind            = c.ptc_kind;
   taylor_order        = c.taylor_order;
   aperture_at         = c.aperture_at;

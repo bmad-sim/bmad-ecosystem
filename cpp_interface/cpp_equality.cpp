@@ -97,10 +97,10 @@ bool operator== (const C_sr2_wake& x, const C_sr2_wake& y) {
 
 bool operator== (const C_lr_wake& x, const C_lr_wake& y) {
   return (x.freq == y.freq) && (x.freq_in == y.freq_in) && 
-         (x.R_over_Q == y.R_over_Q) && (x.Q == y.Q) && (x.m == y.m) &&
+         (x.R_over_Q == y.R_over_Q) && (x.Q == y.Q) && (x.angle == y.angle) &&
          (x.norm_sin == y.norm_sin) && (x.norm_cos == y.norm_cos) && 
          (x.skew_sin == y.skew_sin) && (x.skew_cos == y.skew_cos) && 
-         (x.s_ref == y.s_ref);
+         (x.m == y.m) && (x.polarized == y.polarized);
 };
 
 bool operator== (const C_wake& x, const C_wake& y) {
@@ -191,7 +191,7 @@ bool operator== (const C_ele& x, const C_ele& y) {
     (x.ix_pointer == y.ix_pointer) && (x.ixx == y.ixx) && 
     (x.ix_ele == y.ix_ele) && (x.mat6_calc_method == y.mat6_calc_method) && 
     (x.tracking_method == y.tracking_method) && (x.field_calc == y.field_calc) && 
-    (x.num_steps == y.num_steps) && (x.integration_ord == y.integration_ord) && 
+    (x.num_steps == y.num_steps) && (x.integrator_order == y.integrator_order) && 
     (x.ptc_kind == y.ptc_kind) && (x.taylor_order == y.taylor_order) && 
     (x.aperture_at == y.aperture_at) && (x.symplectify == y.symplectify) && 
     (x.mode_flip == y.mode_flip) && (x.multipoles_on == y.multipoles_on) && 
@@ -247,7 +247,7 @@ void ele_comp (const C_ele& x, const C_ele& y) {
       (x.ix_ele == y.ix_ele)) << endl;
   cout << "logic: " << ((x.mat6_calc_method == y.mat6_calc_method) && 
       (x.tracking_method == y.tracking_method) && (x.field_calc == y.field_calc) && 
-      (x.num_steps == y.num_steps) && (x.integration_ord == y.integration_ord) && 
+      (x.num_steps == y.num_steps) && (x.integrator_order == y.integrator_order) && 
       (x.ptc_kind == y.ptc_kind) && (x.taylor_order == y.taylor_order) && 
       (x.aperture_at == y.aperture_at) && (x.symplectify == y.symplectify) && 
       (x.mode_flip == y.mode_flip) && (x.multipoles_on == y.multipoles_on) && 

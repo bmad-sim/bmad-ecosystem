@@ -249,7 +249,7 @@ subroutine type2_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
   endif
 
   if (attribute_index(ele, 'INTEGRATION_ORD') /= 0) then
-    write (li(nl+1), '(a, i4)') ' Integration_ord: ', ele%integration_ord 
+    write (li(nl+1), '(a, i4)') ' Integration_ord: ', ele%integrator_order 
     nl = nl + 1
   endif
 

@@ -192,10 +192,11 @@ logical is_eq
 !
 
 is_eq = (f1%freq == f2%freq) .and. (f1%r_over_q == f2%r_over_q) .and. &
-          (f1%freq_in == f2%freq_in) .and. (f1%Q == f2%Q) .and. &
-          (f1%m == f2%m) .and. (f1%norm_sin == f2%norm_sin) .and. &
-          (f1%norm_cos == f2%norm_cos) .and. (f1%skew_sin == f2%skew_sin) .and. &
-          (f1%skew_cos == f2%skew_cos) .and. (f1%s_ref == f2%s_ref)
+        (f1%freq_in == f2%freq_in) .and. (f1%Q == f2%Q) .and. &
+        (f1%m == f2%m) .and. (f1%norm_sin == f2%norm_sin) .and. &
+        (f1%norm_cos == f2%norm_cos) .and. (f1%skew_sin == f2%skew_sin) .and. &
+        (f1%skew_cos == f2%skew_cos) .and. (f1%angle == f2%angle) .and. &
+        (f1%polarized == f2%polarized)
 
 end function
 
@@ -429,7 +430,7 @@ is_eq = (f1%name == f2%name) .and. (f1%type == f2%type) .and. &
     (f1%tracking_method == f2%tracking_method) .and. &
     (f1%field_calc == f2%field_calc) .and. &
     (f1%num_steps == f2%num_steps) .and. &
-    (f1%integration_ord == f2%integration_ord) .and. &
+    (f1%integrator_order == f2%integrator_order) .and. &
     (f1%ptc_kind == f2%ptc_kind) .and. (f1%taylor_order == f2%taylor_order) .and. &
     (f1%aperture_at == f2%aperture_at) .and. (f1%symplectify .eqv. f2%symplectify) .and. &
     (f1%mode_flip .eqv. f2%mode_flip) .and. (f1%multipoles_on .eqv. f2%multipoles_on) .and. &
@@ -518,7 +519,7 @@ print *, 'logic:      ', (f1%mat6_calc_method == f2%mat6_calc_method) .and. &
     (f1%tracking_method == f2%tracking_method) .and. &
     (f1%field_calc == f2%field_calc) .and. &
     (f1%num_steps == f2%num_steps) .and. &
-    (f1%integration_ord == f2%integration_ord) .and. &
+    (f1%integrator_order == f2%integrator_order) .and. &
     (f1%ptc_kind == f2%ptc_kind) .and. (f1%taylor_order == f2%taylor_order) .and. &
     (f1%aperture_at == f2%aperture_at) .and. (f1%symplectify .eqv. f2%symplectify) .and. &
     (f1%mode_flip .eqv. f2%mode_flip) .and. (f1%multipoles_on .eqv. f2%multipoles_on) .and. &
