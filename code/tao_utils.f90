@@ -474,8 +474,8 @@ end subroutine
 !                                        data_number, d_ptr, print_err)
 !
 ! Routine to set data pointers to the correct data.
-! Note: if, say, data_type = 'orbit' then d1_ptr will be nullified if no
-!  d2_data has a blank name.
+! Note: if, say, data_type = 'orbit' then d1_ptr will be nullified unless there
+! if only one d1_data in which case d1_ptr will point to this.
 !
 ! Input:
 !   u            -- Tao_universe_struct
@@ -563,7 +563,13 @@ do i = 1, size(d2_pointer%d1)
     exit
   endif
   if (i .eq. size(d2_pointer%d1)) then
-    if (d1_name == ' ') return
+    if (d1_name == ' ') then
+      if (size(d2_pointer%d1) .eq. 1) then
+        d1_pointer => d2_pointer%d1(1)
+        if (present(d1_ptr)) d1_ptr => d1_pointer
+      endif
+      return
+    endif
     if (logic_option (.true., print_err)) call out_io (s_error$, r_name, &
                                     "Couldn't find d1_data name: " // d1_name)
     err = .true.

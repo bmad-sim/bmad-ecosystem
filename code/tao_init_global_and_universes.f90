@@ -459,7 +459,7 @@ subroutine init_universe (u)
     u%data(:)%ele_name   = ' '
     u%data(:)%ix_ele     = -1
     u%data(:)%ele2_name  = ' '
-    u%data(:)%ix_ele2    = -1
+    u%data(:)%ix_ele2    = 0 ! by default, data relative to beginning of lattice
   endif
 
 ! This is needed to keep the totalview debugger happy.

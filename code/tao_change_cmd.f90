@@ -312,15 +312,15 @@ integer direction
 select case (where)
   case ('x')
     direction = 1
-  case ('x_p')
+  case ('p_x')
     direction = 2
   case ('y')
     direction = 3
-  case ('y_p')
+  case ('p_y')
     direction = 4
   case ('z')
     direction = 5
-  case ('z_p')
+  case ('p_z')
     direction = 6
   case default
     err = .true.

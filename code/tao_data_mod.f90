@@ -382,6 +382,15 @@ case ('norm_emittance:y')
     datum_value = 0.0
   endif
   
+case ('norm_emittance:z')  
+  if (s%global%track_type .eq. "beam") then
+    datum_value = u%beam%params%z%norm_emitt
+  elseif (s%global%track_type .eq. "macro") then
+    datum_value = 0.0
+  else
+    datum_value = 0.0
+  endif
+  
 case ('norm_emittance:a')
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%a%norm_emitt
