@@ -45,6 +45,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.4  2002/12/17 04:28:37  dcs
+!parser bug fix with "ele[b] = c" redefs and multiple ele elements.
+!
 !Revision 1.3  2002/02/23 20:32:26  dcs
 !Double/Single Real toggle added
 !
@@ -74,6 +77,9 @@ subroutine track_long (ring, orbit_, ix_start, direction, mats627)
   logical debug / .false. /
                             
 ! track through elements.
+
+  print *, 'ERROR IN TRACK_LONG: THIS SUBROUTINE IS OBSOLETE. PLEASE SEE DCS.'
+  call exit
 
   ring%param%lost = .false.
 

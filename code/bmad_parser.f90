@@ -36,6 +36,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.20  2002/12/17 04:28:36  dcs
+!parser bug fix with "ele[b] = c" redefs and multiple ele elements.
+!
 !Revision 1.19  2002/12/13 16:23:31  dcs
 !*** empty log message ***
 !
@@ -124,6 +127,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
   character(1) delim*1
   character(200) path, basename, full_name, digested_file, call_file
   character(40) this_name, word_1
+  character(280) parse_line_save
 
   real(rdef) angle, old_energy
 
@@ -346,31 +350,37 @@ subroutine bmad_parser (in_file, ring, make_mats6)
     if (delim == ':' .and. bp_com%parse_line(1:1) == '=') then  ! old style
       matched_delim = .true.
       bp_com%parse_line = bp_com%parse_line(2:)      ! trim off "="
-      ix = index(word_1, '[')
     elseif (delim == '=') then
       matched_delim = .true.
-      ix = index(word_1, '[')
     endif
 
 ! if an element attribute redef
+
+    found = .false.
+    ix = index(word_1, '[')
 
     if (matched_delim .and. ix /= 0) then
       name = word_1(:ix-1)  
       do i = 0, n_max
         if (in_ring%ele_(i)%name == name) then
+          ix = index(word_1, '[')
           this_name = word_1(ix+1:)    ! name of attribute
           ix = index(this_name, ']')
           this_name = this_name(:ix-1)
           bp_com%parse_line = trim(this_name) // ' = ' // bp_com%parse_line 
+          if (found) then   ! if not first time
+            bp_com%parse_line = parse_line_save
+          else
+            parse_line_save = bp_com%parse_line
+          endif
           call get_attribute (redef$, in_ring%ele_(i), in_ring, pring, &
                                              delim, delim_found, err_flag)
           if (delim_found) call warning ('BAD DELIMITER: ' // delim)
-          cycle parsing_loop
+          found = .true.
         endif
       enddo
 
-      call warning ('ATTRIBUTE REDEFINED FOR ELEMENT: ' // trim(name), &
-                    'BUT I HAVE NOT SEEN THIS NAME BEFORE!')
+      if (.not. found) call warning ('ELEMENT NOT FOUND: ' // this_name, ' ')
       cycle parsing_loop
 
 ! else must be a variable

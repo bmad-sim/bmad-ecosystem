@@ -35,11 +35,11 @@
 !   to the beginning (or vice versa) to get to the end point. 
 !   Also: If IX_START = IX_END then the subroutine will track 1 full turn.
 !
-! Note: Remember that if you are tracking backward and you have calculated
-!   the orbit by tracking forward (with, for example, CLOSED_ORBIT_AT_START)
-!   then you need to reverse velocity signs:
-!           orbit_(ix_start)%x_vel = -orbit_(ix_start)%x_vel 
-!           orbit_(ix_start)%y_vel = -orbit_(ix_start)%y_vel 
+! Note: The coordinate system for tracking backwards is the same as it is
+! for tracking forwards. That is, the +z-direction always points in
+! the direction of increasing s.
+! Thus, in tracking backwards, a particle with positive z lags the reference 
+! particle and a particle with positive p_x has actually a negative x-velocity.
 !
 ! Note: If x_limit (or y_limit) for an element is zero then TRACK_MANY will
 !   take x_limit (or y_limit) as infinite (this is standard BMAD).
@@ -47,6 +47,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.6  2002/12/17 04:28:37  dcs
+!parser bug fix with "ele[b] = c" redefs and multiple ele elements.
+!
 !Revision 1.5  2002/07/16 20:44:02  dcs
 !*** empty log message ***
 !
@@ -61,8 +64,6 @@
 !
 
 #include "CESR_platform.inc"
-
-
 
 subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
 
@@ -95,6 +96,7 @@ subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
       orbit_(0) = orbit_(ring%n_ele_ring) 
       call track_fwd (1, ix_end)
     endif
+
   elseif (direction == -1) then
     if (ix_start > ix_end) then
       call track_back (ix_start, ix_end+1)
@@ -105,6 +107,7 @@ subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
       orbit_(ring%n_ele_ring) = orbit_(0)
       call track_back (ring%n_ele_ring, ix_end+1)
     endif
+
   else
     type *, 'ERROR IN TRACK_MANY: BAD DIRECTION:', direction
     call err_exit
@@ -113,6 +116,7 @@ subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
 contains
 
 !--------------------------------------------------------------------------
+! tracking forward is simple
 
 subroutine track_fwd (ix1, ix2)
 
@@ -142,7 +146,11 @@ end subroutine
 ! TRACK1 thinks it is tracking "forward". However,
 ! tracking backward is equivalent to tracking forwards with the coordinate
 ! transformation s -> -s. Thus any longitudinal component of the
-! magnetic field in an element must flipped in sign. 
+! magnetic or electric field in an element must flipped in sign. 
+
+! For tracking backwards we make a coordinate transformation +z -> -z 
+! Now we can track "forward"
+! At the end we transform back -z -> +z
 
 subroutine track_back (ix1, ix2)
 
@@ -151,6 +159,10 @@ subroutine track_back (ix1, ix2)
   real(rdef) mat_save(6,6)
 
 !
+
+  orbit_(ix1)%x%vel = -orbit_(ix1)%x%vel
+  orbit_(ix1)%y%vel = -orbit_(ix1)%y%vel
+  orbit_(ix1)%z%pos = -orbit_(ix1)%z%pos
 
   do n = ix1, ix2, -1
 
@@ -175,6 +187,9 @@ subroutine track_back (ix1, ix2)
 
     if (ring%param%lost) then
       ring%param%ix_lost = n - 1
+      orbit_(n-1:ix1)%x%vel = -orbit_(n-1:ix1)%x%vel
+      orbit_(n-1:ix1)%y%vel = -orbit_(n-1:ix1)%y%vel
+      orbit_(n-1:ix1)%z%pos = -orbit_(n-1:ix1)%z%pos
       return
     endif
 
@@ -184,6 +199,10 @@ subroutine track_back (ix1, ix2)
     endif
 
   enddo
+
+  orbit_(ix2:ix1)%x%vel = -orbit_(ix2:ix1)%x%vel
+  orbit_(ix2:ix1)%y%vel = -orbit_(ix2:ix1)%y%vel
+  orbit_(ix2:ix1)%z%pos = -orbit_(ix2:ix1)%z%pos
 
 end subroutine
 
