@@ -73,13 +73,17 @@ for dir in ${PATH_LIST}; do
   fi
 done
 if ( [ ${found} -eq 0 ] ) then
-  export PATH=${PATH}:${BMAD_BIN}
+  PATH=${PATH}:${BMAD_BIN}
+  export PATH
 fi
 
 #
 # $Id$
 #
 # $Log$
+# Revision 1.4  2004/11/15 19:42:52  palmer
+# Bug fix for compatibility when running on OSF1.
+#
 # Revision 1.3  2003/11/26 11:43:59  cesrulib
 # Bug fix in BMADENV override capability.
 #
