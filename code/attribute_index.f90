@@ -24,27 +24,7 @@
 !     ix -> k1$
 !-
 
-!$Id$
-!$Log$
-!Revision 1.6  2003/05/02 15:43:58  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.5  2002/10/29 17:07:12  dcs
-!*** empty log message ***
-!
-!Revision 1.4  2002/06/13 14:54:21  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.3  2002/02/23 20:32:10  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:47  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
-
 
 function attribute_index (ele, name) result (at_index)
 
@@ -92,6 +72,7 @@ function attribute_index (ele, name) result (at_index)
 
   name16 = name          ! make sure we have 16 characters
   key = ele%key
+  at_index = 0           ! match not found
 
   if (key == overlay$) then
     do k = 1, n_key
@@ -102,6 +83,7 @@ function attribute_index (ele, name) result (at_index)
         endif
       enddo
     enddo
+
   elseif (key > 0 .and. key <= n_key) then
     do i = 1, attrib_num(key)
       if (attrib_name_array(key, i) == name16) then
@@ -109,11 +91,12 @@ function attribute_index (ele, name) result (at_index)
         return
       endif
     enddo      
+
+    if (key == rfcavity$ .and. name16 == 'LAG') at_index = phi0$
+
   else
     print *, 'ERROR IN ATTRIBUTE_INDEX: BAD KEY', key
     call err_exit
   endif
-
-  at_index = 0         ! match not found
 
 end function
