@@ -6,7 +6,7 @@ module bmad
   use track1_mod
   use boris_mod
   use reverse_mod
-  use integration_timer_mod
   use dynamic_aperture_mod
+  use ptc_interface_mod
 
 end module

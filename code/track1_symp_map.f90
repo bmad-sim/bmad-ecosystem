@@ -24,6 +24,7 @@
 subroutine track1_symp_map (start, ele, param, end)
 
   use ptc_interface_mod
+  use tpsalie_analysis
 
   implicit none
 

@@ -6,10 +6,9 @@ module ptc_interface_mod
   use bmad_struct
   use bmad_interface
   use multipole_mod
-  use mad_like, ptc_pi => pi, ptc_twopi => twopi, ptc_var => var, &
-                is_fpp => is, first_time_fpp => first_time, &
-                table_fpp => table, delta_fpp => delta, mad_tilt => tilt, &
-                ptc_track => track
+
+  use mad_like, only: kill, set_up, real_8, layout, fibre, &
+        universal_taylor, dp, ptc_track => track
 
   interface assignment (=)
     module procedure real_8_equal_taylor
@@ -57,6 +56,8 @@ contains
 !-
 
 function map_coef (y, i, j, k, l, style) result (m_coef)
+
+  use polymorphic_taylor
 
   implicit none
 
@@ -191,6 +192,8 @@ end subroutine
 !-
 
 subroutine ring_to_layout (ring, ptc_layout)
+
+  use s_fibre_bundle, only: append, ring_l
 
   implicit none
 
@@ -355,6 +358,8 @@ end subroutine
 
 function kind_name (this_kind)
 
+  use s_status
+
   implicit none
 
   integer this_kind
@@ -398,6 +403,8 @@ end function
 !-
 
 subroutine type_fibre (fib)
+
+  use s_status
 
   implicit none
 
@@ -523,6 +530,8 @@ end subroutine
 
 subroutine set_ptc (param, taylor_order, integ_&
                         order, num_steps, no_cavity, exact_calc) 
+
+  use mad_like
 
   implicit none
 
@@ -678,6 +687,8 @@ end subroutine
 
 subroutine real_8_to_taylor (y8, bmad_taylor, switch_z)
 
+  use polymorphic_taylor
+
   implicit none
 
   type (real_8), intent(in) :: y8(:)
@@ -729,6 +740,8 @@ end subroutine
 !-
 
 subroutine taylor_to_real_8 (bmad_taylor, y8, switch_z)
+
+  use polymorphic_taylor
 
   implicit none
 
@@ -914,6 +927,8 @@ end subroutine
 
 subroutine real_8_init (y, set_taylor)
 
+  use s_fibre_bundle
+
   implicit none
   
   type (real_8) :: y(:)
@@ -1029,6 +1044,8 @@ end subroutine
 
 subroutine concat_real_8 (y1, y2, y3)
 
+  use s_fitting
+
   implicit none
 
   type (real_8), intent(in) :: y1(:), y2(:)
@@ -1086,6 +1103,8 @@ end subroutine
 !-
 
 subroutine taylor_to_genfield (bmad_taylor, gen_field, r0)
+
+  use s_fitting
 
   implicit none
 
@@ -1223,6 +1242,8 @@ end subroutine
 
 subroutine taylor_inverse (taylor, taylor_inv)
 
+  use s_fitting
+
   implicit none
 
   type (taylor_struct), intent(in) :: taylor(:)
@@ -1351,6 +1372,8 @@ end subroutine
 
 subroutine taylor_propagate1 (tlr, ele, param)
 
+  use s_tracking
+
   implicit none
 
   type (taylor_struct) tlr(:)
@@ -1378,7 +1401,7 @@ subroutine taylor_propagate1 (tlr, ele, param)
 
   y = tlr
 
-  call alloc_fibre (a_fibre)
+  call alloc (a_fibre)
   call ele_to_fibre (ele, a_fibre, param)
   call ptc_track (a_fibre, y, default, +1)  ! "track" in PTC
   call kill (a_fibre)
@@ -1415,6 +1438,8 @@ end subroutine
 
 subroutine ele_to_taylor (ele, orb0, param)
 
+  use s_tracking
+
   implicit none
   
   type (ele_struct), intent(inout) :: ele
@@ -1447,7 +1472,7 @@ subroutine ele_to_taylor (ele, orb0, param)
 
 ! Track with offset
 
-  call alloc_fibre (a_fibre)
+  call alloc (a_fibre)
   call ele_to_fibre (ele, a_fibre, param)
  
   if (present(orb0)) then
@@ -1613,7 +1638,9 @@ end subroutine
 
 subroutine type_map (y)
 
- implicit none
+  use s_fitting
+
+  implicit none
 
   type (real_8), intent(in) :: y(:)
   type (universal_taylor) ut
@@ -1672,6 +1699,8 @@ end subroutine
 !+
 
 subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
+
+  use mad_like
 
   implicit none
  

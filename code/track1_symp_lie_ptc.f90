@@ -22,6 +22,7 @@
 subroutine track1_symp_lie_ptc (start, ele, param, end)
 
   use ptc_interface_mod
+  use s_tracking, only: DEFAULT, alloc_fibre
 
   implicit none
 

@@ -48,6 +48,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.9  2003/03/06 17:47:40  dcs
+!Hiding PTC stuff.
+!
 !Revision 1.8  2003/01/27 14:40:45  dcs
 !bmad_version = 56
 !
@@ -70,6 +73,7 @@ subroutine track_many (ring, orbit_, ix_start, ix_end, direction)
 
   use bmad_struct
   use bmad_interface
+  use reverse_mod
 
   implicit none
 
