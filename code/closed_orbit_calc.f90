@@ -44,6 +44,7 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
   use bmad_struct
   use bmad_interface
   use bookkeeper_mod
+  use radiation_mod
 
   implicit none
 
@@ -55,11 +56,14 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
   real(rp) :: amp_co, amp_del, t1(6,6)
 
   integer i, j, n, n_ele, i_dim, i_max
+  logical fluct_saved
 
 !----------------------------------------------------------------------
-! allocate storage
+! init
 
-  call reallocate_coord (closed_orb, ring%n_ele_max)
+  call reallocate_coord (closed_orb, ring%n_ele_max)  ! allocate if needed
+  fluct_saved = sr_com%fluctuations_on
+  sr_com%fluctuations_on = .false.  ! cannot find closed orbit with fluctuations
 
 ! Error check
 
@@ -115,7 +119,7 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
   i_max = 100  
   do i = 1, i_max
 
-    if (mod(i, 10) == 0) then  ! remake every 10th turn.
+    if (mod(i, 10) == 0) then  ! remake matrix every 10th turn.
       call ring_make_mat6 (ring, -1, closed_orb)
       call one_turn_matrix (ring, .true., t1)
       call mat_make_unit (mat(1:n,1:n))
@@ -147,5 +151,6 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim)
 ! return rf cavities to original state
 
   if (n == 4) call set_on_off (rfcavity$, ring, from_saved$)
+  sr_com%fluctuations_on = fluct_saved  ! restore state
 
 end subroutine
