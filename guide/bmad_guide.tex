@@ -1,31 +1,11 @@
 \documentclass{book}
 \usepackage{graphicx}
+\input{macros.tex}
 
 %\makeatletter    % internal ``@'' commands can now be used. 
 %\@addtoreset{chapter}{part}
 %\makeatother     % Internal ``@'' commands are locked.
 %\renewcommand{\thechapter}{\thepart.\arabic{chapter}}
-
-\newcommand{\ringstruct}{{\bf ring\_struct}}
-\newcommand{\elestruct}{{\bf ele\_struct}}
-\newcommand{\coordstruct}{{\bf coord\_struct}}
-\newcommand{\ringequalring}{{\bf ring\_equal\_ring}}
-\newcommand{\bmadparser}{{\bf bmad\_parser}}
-\newcommand{\genfield}{{\bf gen\_field}}
-
-
-\newcommand{\bmad}{{\bf BMAD}}
-\newcommand{\rp}{{\bf rp}}
-\newcommand{\rdef}{{\bf rdef}}
-
-
-\newcommand{\ele}[2]{{\sl \%ele\_(#1)}}
-\newcommand{\nelemaxx}{{\sl \%n\_ele\_maxx}}
-\newcommand{\nelesymm}{{\sl \%n\_ele\_symm}}
-\newcommand{\neleuse}{{\sl \%n\_ele\_use}}
-\newcommand{\nelering}{{\sl \%n\_ele\_ring}}
-\newcommand{\nelemax}{{\sl \%n\_ele\_max}}
-\newcommand{\pointerinit}{{\sl \%pointer\_init}}                 
 
 
 %----------------------------------------------------------------
@@ -238,237 +218,20 @@ thus more verbose than the {\it listf} command.
 
 
 %----------------------------------------------------------------
-\chapter{The Ele\_struct}
-
-\section{overview}
-
-\elestruct\ is the structure that holds all the information about an
-individual element. The definition of the \elestruct\ is shown in 
-figure~\ref{f:ele_struct}. Substructure definitions are shown in 
-figure~\ref{f:subele_struct}. The subelements of the \elestruct\ are as
-follows:
-\begin{description}
-\item[\%name] This is the element name from the input lattice file.
-\item[\%type] This is the element type name from the input lattice file.
-\item[\%alias] This is the element alias name from the input lattice file.
-\item[\%attribute\_name] This is used by overlays. See below.
-\item[\%x, \%y, \%z] Twiss parameters for the $a$, $b$ and $z$ modes (yes it is 
-known that the labeling is misleading).
-\item[\%value(:)] this array holds the attribute values for the element. 
-For example, the value of the  k1 attribute for a quadrupole element is stored
-in \%value(k1\$) where k1\$ is an integer parameter. In general to get the correct
-index for the \%value(:) for a given attribute just use a "\$" as a suffix.
-\item[\%gen0] Constant part of a \genfield.
-\end{description} 
-
-
-\section{Initializing}
-
-  Dependent and independent variables
-
-  How to locate attributes
-
-  Allocation/deallocation
-
-\section{Element Control}
-
-    * Overlays
-    * Superimpose
-    * Groups
-
-%----------------------------------------------------------------
-\chapter{The Ring\_struct}
-
-\section{overview}
-
-\ringstruct is the structure that holds all the information about a lattice.
-The definition of \ringstruct\ is shown in figure~\ref{f:ring_struct}.
-Substructure definitions are shown in figure~\ref{f:subring_struct} (except for the
-\elestruct\ definition which was defined in the previous section). Despite its
-name, \bmad\ makes no assumption about whether an \ringstruct\ is circular as
-with a storage ring or open as with a LINAC.
-
-\begin{figure}[tb]
-\centering
-\begin{verbatim}
-type ring_struct
-  type (mode_info_struct)  x, y, z  ! tunes, etc.
-  character*16 name            ! Name in USE statement
-  character*40 lattice         ! Lattice
-  character*80 input_file_name ! Lattice input file name
-  character*80 title           ! general title
-  type (param_struct) param    ! parameters
-  integer version              ! Version number
-  integer n_ele_ring           ! number of physical ring elements
-  integer n_ele_symm           ! symmetry point for rings w/symmetry
-  integer n_ele_use            ! number of elements used
-  integer n_ele_max            ! Index of last element used
-  integer n_ele_maxx           ! Index of last element allocated
-  integer n_control_array      ! last index used in CONTROL_ array
-  integer n_ic_array           ! last index used in IC_ array
-  integer input_taylor_order   ! As set in the input file
-  integer ic_(n_control_maxx)  ! index to %control_(:)
-  type (ele_struct), pointer :: ele_(:)    ! Array of ring elements
-  type (ele_struct)  ele_init              ! For use by any program
-  type (control_struct)  control_(n_control_maxx)  ! control list
-end type
-\end{verbatim}
-\caption{Definition of the \ringstruct.}
-\label{f:ring_struct}
-\end{figure}
-
-\begin{figure}[tb]
-\centering
-\begin{verbatim}
-type control_struct
-  real(rp) coef                  ! control coefficient
-  integer ix_lord                ! index to lord element
-  integer ix_slave               ! index to slave element
-  integer ix_attrib              ! index of attribute controlled
-end type
-
-type param_struct
-  real(rp) energy          ! USE BEAM_ENERGY INSTEAD ! energy in GeV.
-  real(rp) beam_energy     ! beam energy in eV
-  real(rp) n_part          ! Number of particles in a bunch
-  real(rp) total_length    ! total_length of ring
-  real(rp) growth_rate     ! growth rate/turn if not stable
-  real(rp) t1_mat6(6,6)    ! Full 1-turn 6x6 matrix
-  real(rp) t1_mat4(4,4)    ! Transverse 1-turn 4x4 matrix (RF off).
-  integer particle         ! +1 = positrons, -1 = electrons
-  integer symmetry         ! symmetry of the ring (e/w symm, etc.)
-  integer ix_lost          ! If lost at what element?
-  integer lattice_type     ! LINAC_lattice$, circular_lattice$, etc.
-  integer ixx              ! Integer for general use
-  logical stable           ! is closed ring stable?
-  logical lost             ! for use in tracking
-  logical aperture_limit_on   ! use apertures in tracking?
-end type
-
-type mode_info_struct
-  real(rp) tune          ! fractional tune in radians: 0 < tune < 2pi
-  real(rp) emit          ! Emittance
-  real(rp) chrom         ! Chromaticity
-end type
-\end{verbatim}
-\caption{Definition of the \ringstruct\ substructures (except the \elestruct).}
-\label{f:sub_ring_struct}
-\end{figure}
-
-The array \ele{0:} holds the elements of the lattice. The
-array is divided up into two parts: A ``physical'' part and a
-``control'' part (Cf.~(ref in lang section). The physical part of this
-array holds the elements that are tracked through. The control part
-holds the superimpose, overlay and group elements. The extent of these
-parts is given in table~\ref{tab:part_extent}. 
-The \ele{:} array always has a lower bound of 0. \ele{0} is essentially
-a marker element. \ele{0}\%mat6 is always the unit matrix.
-
-\begin{table}[tb]
-\begin{center}
-\begin{tabular}{|l|l|l|}
-\hline
-              & \multicolumn{2}{c|} {\em index n}      \\ \hline
-{\em section} & {\em min}         & {\em max}          \\ \hline
-physical      & 0                 & \nelering          \\ \hline
-control       & \nelering+1       & \nelemax           \\ \hline
-\end{tabular} 
-\caption{Extent of the physical and control parts 
-of the array \ele{n}.}
-\end{center}
-\label{tab:part_extent}
-\end{table}
-
-Other indexes within the \ringstruct\ are
-\begin{description}
-\item[\nelemaxx] The index of the upper bound of the \ele{:} array.
-The lower bound is always 0 so the total size of the \ele{:} array is
-\nelemaxx+1.
-\item[\nelesymm] Back in the days when the CESR ring was E/W 
-symmetric \nelesymm\ designated the symmetry point (roughly at \nelering/2). 
-Currently this is seldem used.
-\item[\neleuse] This designates what part of the physical ring to track 
-through. This is the same as \nelering except if there is a symmetry point and \nelesymm\ is non--zero. In this case \neleuse\ = \nelesymm.
-\end{description}
-
-Local \ringstruct variables must have the save attribute or the
-pointers within must be appropriately deallocated before leaving the
-routine.
-
-\section{Pointers}
-
-Since the \ringstruct has pointers within it (plural since the \elestruct\
-has pointers within it) there is an extra burden on the programmer to
-make sure that allocation and deallocation is done properly. To this
-end the equal sign has been overloaded by the routine \ringequalring\
-so that when one writes
-\begin{verbatim}
-    ring1 = ring2
-\end{verbatim}
-the pointers will be handled properly. The result will be that ring1
-will hold the same information as ring2 but the pointers in ring1 will
-point to different locations in physical memory so that changes to one
-ring will not affect the other.
-
-Initial allocation of the pointers in \ringstruct\ is generally
-handeled by \bmadparser\ and \ringequalring\ and so typically not a
-concern of most programmers. Deallocation problems can arise when a
-subroutine has a local \ringstruct\ variable. 
-
-
-
-Generally allocation is handeled
-
-How to allocate \coordstruct\ arrays. see the tracking section
-
-
-%----------------------------------------------------------------
-\chapter{The Coord\_struct}
-
-  Meaning of vec elements
-
-  Meaning of vec elements in PTC.
-
+\include{ele_struct}
+\include{ring_struct}
+\include{coord_struct}
 %----------------------------------------------------------------
 \chapter{Reading and Writing Lattices}
-
 \section{Digested files}
-
 \section{bmad\_parser and bmad\_parser2}
-
 %----------------------------------------------------------------
-\chapter{Tracking}
-
-When using radiation excitation the random number generator is based
-upon the fortran90 intrinsic random\_number. If random\_seed is not called
-then the fluctuations from run to run will be exactly the same.
-
-
-How to allocate coord\_struct arrays. 
-
-  Switches to switch tracking
-
-  Runge Kutta
-
-  Boris
-
-  Custom
-    * how to setup
-
-
-
+\include{tracking}
 %----------------------------------------------------------------
 \chapter{Transfer Matrices}
-
-%----------------------------------------------------------------
 \chapter{Twiss Parameters}
-
-%----------------------------------------------------------------
 \chapter{Interface to FPP/PTC}
-
-%----------------------------------------------------------------
 \chapter{CESR Centric Routines}
-
 %----------------------------------------------------------------
 \chapter{Routines Sorted by Functionality}
 

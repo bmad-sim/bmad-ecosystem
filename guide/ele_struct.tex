@@ -1,0 +1,36 @@
+\chapter{The Ele\_struct}
+\section{overview}
+
+\elestruct\ is the structure that holds all the information about an
+individual element. The definition of the \elestruct\ is shown in 
+figure~\ref{f:ele_struct}. Substructure definitions are shown in 
+figure~\ref{f:subele_struct}. The subelements of the \elestruct\ are as
+follows:
+\begin{description}
+\item[\%name] This is the element name from the input lattice file.
+\item[\%type] This is the element type name from the input lattice file.
+\item[\%alias] This is the element alias name from the input lattice file.
+\item[\%attribute\_name] This is used by overlays. See below.
+\item[\%x, \%y, \%z] Twiss parameters for the $a$, $b$ and $z$ modes (yes it is 
+known that the labeling is misleading).
+\item[\%value(:)] this array holds the attribute values for the element. 
+For example, the value of the  k1 attribute for a quadrupole element is stored
+in \%value(k1\$) where k1\$ is an integer parameter. In general to get the correct
+index for the \%value(:) for a given attribute just use a "\$" as a suffix.
+\item[\%gen0] Constant part of a \genfield.
+\end{description} 
+
+
+\section{Initializing}
+
+  Dependent and independent variables
+
+  How to locate attributes
+
+  Allocation/deallocation
+
+\section{Element Control}
+
+    * Overlays
+    * Superimpose
+    * Groups
