@@ -151,9 +151,9 @@ do arg_list="${arg_list} ${i}";
      TAG=*      ) REL_TAG=`echo $i|cut -d= -f2`;;
      PKG=*      ) PKG=`echo $i|cut -d= -f2`;;
      REL=*      ) REL=`echo $i|cut -d= -f2`;;
-     CESR_GMAKE=*)use_cesr_gmake=`echo $i|cut -d= -f2`;
+     GMAKE=*)use_cesr_gmake=`echo $i|cut -d= -f2`;
                   GMAKE_OVERRIDE=1;;
-     CESR_UTIL=*)use_cesr_util=`echo $i|cut -d= -f2`;
+     UTIL=*)use_cesr_util=`echo $i|cut -d= -f2`;
                  UTIL_OVERRIDE=1;;
      CESR_BIN=*)use_cesr_bin=`echo $i|cut -d= -f2`;;
      *) myprint_help;
@@ -184,7 +184,7 @@ if ( [ $DO_REL -eq 1 -a $DO_CHECKOUT = "do_checkout" ] ) then
     REL_NAME=${RNAME}
     FULL_REL_NAME=${FULL_RNAME}
     FULL_REL_LOG=${FULL_RLOG}
-elif ( [ ${REL} != "" ] ) then
+elif ( [ -n "${REL}" ] ) then
     REL_NAME=${REL}
     FULL_REL_NAME=${BUILD_DIR}/${PLATFORM_TAG}/${REL_NAME}
     FULL_REL_LOG=${BUILD_DIR}/log/${PLATFORM_TAG}/${REL}.log
@@ -199,7 +199,7 @@ if ( [ $DO_PKG -eq 1 ] && [ $DO_CHECKOUT = "do_checkout" ] ) then
     PKG_NAME=${RNAME}
     FULL_PKG_NAME=${FULL_RNAME}
     FULL_PKG_LOG=${FULL_RLOG}
-elif ( [ ${PKG} != "" ] ) then
+elif ( [ -n "${PKG}" ] ) then
     PKG_NAME=${PKG}
     FULL_PKG_NAME=${BUILD_DIR}/${PLATFORM_TAG}/${PKG_NAME}
     FULL_PKG_LOG=${BUILD_DIR}/log/${PLATFORM_TAG}/${PKG}.log
@@ -212,8 +212,15 @@ fi
 BIN_DIR=${use_cesr_bin}
 CESRENV=${BIN_DIR}/cesrenv
 
+
 # Export the environment for the new release
-CESRLIB=${REL_NAME}; CESRLIB_BIN=${BIN_DIR}; . ${BIN_DIR}/cesrdefs
+if ( [ -n "${REL_NAME}" ] ) then 
+    CESRLIB=${REL_NAME}
+else 
+    CESRLIB=devel
+fi
+
+CESRLIB_BIN=${BIN_DIR}; . ${BIN_DIR}/cesrdefs
 
 # Use user-specified CESR_GMAKE and CESR_UTIL areas, if present.
 if ( [ ${GMAKE_OVERRIDE} -eq 1 ] ) then
@@ -481,3 +488,18 @@ else
  fi
 fi
 exit
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
