@@ -793,7 +793,7 @@ subroutine evaluate_value (err_str, value, &
   integer i_lev, i_op, i
 
   integer :: plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
-  integer :: l_parens$ = 5, power$ = 7, chs$ = 8, none$ = 9
+  integer :: l_parens$ = 5, power$ = 7, chs$ = 8, no_delim$ = 9
   integer :: sin$ = 10, cos$ = 11, tan$ = 12
   integer :: asin$ = 13, acos$ = 14, atan$ = 15
   integer :: numeric$ = 100
@@ -969,7 +969,7 @@ subroutine evaluate_value (err_str, value, &
       if (delim_found) then   ! how could this be?
         call error_exit ('INTERNAL ERROR #01: GET HELP', ' ')
       else                    ! must be that we are at the end of the line
-        i_delim = none$
+        i_delim = no_delim$
       endif
     endif
 
@@ -987,7 +987,7 @@ subroutine evaluate_value (err_str, value, &
 ! put the pending operation on the OP_ stack
 
     i_op = i
-    if (i_delim == none$) then
+    if (i_delim == no_delim$) then
       exit parsing_loop
     else
       call pushit (op_, i_op, i_delim)
