@@ -61,6 +61,7 @@ subroutine read_digested_bmad_file (in_file_name, ring, version)
 
   if (version < bmad_inc_version$) then
     if (bmad_status%type_out) print '(1x, a, i4, a, i4)',  &
+     if (bmad_status%type_out) print *,  &
            'READ_DIGESTED_BMAD_FILE: DIGESTED FILE VERSION OUT OF DATE',  &
             version, ' <', bmad_inc_version$
     close (d_unit)
