@@ -1,5 +1,5 @@
 !+
-! Subroutine bmad_to_db (ring, db)
+! Subroutine bmad_to_db (ring, db, calib_date)
 !
 ! Subroutine to return information on the data base that pertains to
 ! CESR elements.
@@ -11,7 +11,12 @@
 !   use bmad
 !
 ! Input:
-!   ring -- Ring_struct: Ring structure
+!   ring       -- Ring_struct: Ring structure
+!   calib_date -- Character(10), optional: Date to use when looking up the 
+!                   calibration constants. 
+!                   calib_date is in the form: "YYYY-MM-DD".
+!                   the present calibrations will be used if calib_date is 
+!                   not present or is "NOW"
 !
 ! Output:
 !   db   -- DB_struct: Data base structure. See the module file 
@@ -39,7 +44,7 @@
 ! Use the DB%NODE(i)%PTR(1)%DB_NAME array to search for a particular node name
 !-
 
-subroutine bmad_to_db (ring, db)
+subroutine bmad_to_db (ring, db, calib_date)
 
   use bmad_struct
   use bmad_interface
@@ -50,27 +55,17 @@ subroutine bmad_to_db (ring, db)
   type (ring_struct) ring
   type (db_struct) db
   type (cesr_element_struct) :: cesr_ele(4)
-
-  call bmad_to_db_main (ring, db)
-
-!-------------------------------------------------------------------------
-contains
-
-subroutine bmad_to_db_main (ring, db)
-
-  implicit none
-
-  type (ring_struct) ring
   type (cesr_struct) cesr
-  type (db_struct) db
 
-  real(rp) h_stren(120), v_stren(120), gev
-  real(rp) k_theory(0:120), k_base(0:120), len_quad(0:120), cu_per_k_gev(0:120)
+  real(rp) h_stren(120), v_stren(120), gev, cu_per_k_gev(0:120)
+  real(rp) k_theory(0:120), k_base(0:120), len_quad(0:120)
   real(rp) quad_tilt(0:120), dk_gev_dcu(0:120)
 
   integer n1, i, ix, ios, cu_theory(0:120), nq100
 
-  character*16 type_str
+  character(*), optional :: calib_date
+  character(16) type_str
+  character(10) this_date
 
 ! general init
 
@@ -126,7 +121,6 @@ subroutine bmad_to_db_main (ring, db)
           'SCIR SKSXCUR',   k1$,    db%node, cesr%skew_sex_(11:11), 11)
 
 !-----------------------------------------------------------------------------
-
 ! find the separators
 
   do i = 1, ring%n_ele_max
@@ -160,6 +154,10 @@ subroutine bmad_to_db_main (ring, db)
 !--------------------------------------------------------------------
 ! get calibrations...
 ! steerings
+!!  call getcs (v_stren, h_stren)
+
+  this_date = 'NOW'
+  if (present(calib_date)) this_date = calib_date
 
   gev = 1e-9 * ring%param%beam_energy
   if (gev == 0) then
@@ -167,7 +165,7 @@ subroutine bmad_to_db_main (ring, db)
     call err_exit
   endif
 
-  call getcs (v_stren, h_stren)
+  call get_steering_strength (h_stren, v_stren, this_date)
   db%csr_horz_cur(:)%dvar_dcu = -1.0e-6 * h_stren(1:98) / gev  
   db%csr_hbnd_cur(:)%dvar_dcu = -1.0e-6 * h_stren(101:106) / gev  
   db%csr_vert_cur(:)%dvar_dcu =  1.0e-6 * v_stren(1:98) / gev  
@@ -242,10 +240,8 @@ subroutine bmad_to_db_main (ring, db)
 
   deallocate( cesr%ix_cesr )
 
-end subroutine
-
 !---------------------------------------------------------------------
-! contains
+contains
                         
 subroutine db_init_it (node, n1, node_name, ix_attrib, node_array, &
                                                       cesr_ele, ix0_cesrv)
