@@ -215,13 +215,22 @@ For any lattice the \vn{beginning} statement can be used to set the starting flo
 \end{example}
 
 %--------------------------------------------------------------------------
-\section{Parser\_Debug Statement}
+\section{Debugging Statements}
 \index{Statement!parser_debug}
+\index{Statement!no_digested}
+\index{Lattice files!parser debugging}
 
-The \vn{parser_debug} statement is used to diagnose problems with the
-\bmad parser routine. That is, it is generally only used by
-programmers.  It is recommended that this statement be used with small
-test lattices since it can generate a lot of output.  The syntax is
+There are two statements, \vn{parser_debug} and \vn{no_digested},
+which can help in debugging the \bmad lattice parser
+itself.  That is, these statements are generally only used by programmers.
+
+The \vn{no_digested} statement if present, will prevent \bmad from 
+creating a digested file. 
+
+The \vn{parser_debug} statement will cause information about the
+lattice to be printed out at the terminal. It is recommended that this
+statement be used with small test lattices since it can generate a lot
+of output. The syntax is
 \begin{example}
   parser\_debug \(<\)switches\(>\)
 \end{example}
@@ -234,18 +243,12 @@ Valid switches are
   lattice ! print a list of lattice element names, positions, and lengths.
   ele <n1> <n2> ...  ! print full info on selected elements.
 \end{example}
-Example
+Here $<n1>$, $<n2>$, etc. are the index of the selected elements in
+the lattice.  Example
 \begin{example}
-  parser\_debug var ring
+  parser\_debug var ring ele 34 78
 \end{example}
 
 
-%--------------------------------------------------------------------------
-\section{No\_Digested Statement}
-\index{Statement!no_digested}
-
-The \vn{no_digested} statement if present, will prevent \bmad from 
-creating a digested file. This can be helpful for debugging purposes but
-otherwise it is not generally used.
 
 
