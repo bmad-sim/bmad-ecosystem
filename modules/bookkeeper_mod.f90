@@ -15,8 +15,9 @@ contains
 ! Subroutine control_bookkeeper (ring, ix_ele)
 !
 ! Subroutine to transfer attibute information from lord to slave elements.
-! It is assumend that the element with index ix_ele is the only element whose
-! attribute values have been changed.
+! If you want to do the bookkeeping for the entire ring you only need to
+! call control_bookkeeper for the lord elements from ring%n_ele_ring+1 
+! through ring%n_ele_max.
 !
 ! Modules needed:
 !   use bmad
