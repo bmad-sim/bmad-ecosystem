@@ -24,7 +24,7 @@ subroutine check_ring_controls (ring, exit_on_error)
   type (ele_struct), pointer :: ele, ele2
 
   integer i_t, j, i_t2, ix, t_type, t2_type, n, cc(100), i
-  integer n_count, ix1, ix2, ii
+  integer n_count, ix1, ix2, ii, key
 
   logical exit_on_error, found_err, good_control(10,10)
   logical i_beam_here
@@ -191,7 +191,25 @@ subroutine check_ring_controls (ring, exit_on_error)
         endif
       endif
 
-    enddo      
+    enddo
+
+
+    if (t_type == super_lord$) then
+      do j = ele%ix1_slave, ele%ix2_slave
+        i_t2 = ring%control_(j)%ix_slave
+        ele2 => ring%ele_(i_t2)  
+        if (ele2%key == sol_quad$) then
+          if (ele%key == solenoid$) cycle
+          if (ele%key == quadrupole$) cycle
+        endif
+        if (ele2%key == ele%key) cycle
+        print *, 'ERROR IN CHECK_RING_CONTROLS: SUPER_LORD: ', ele%name
+        print *, '      WHICH IS A: ', key_name(ele%key)
+        print *, '      CANNOT HAVE A SUPER_SLAVE: ', ele2%name
+        print *, '      WHICH IS A: ', key_name(ele2%key)
+        found_err = .true.
+      enddo
+    endif    
 
 ! check lords
 
