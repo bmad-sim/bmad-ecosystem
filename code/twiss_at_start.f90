@@ -89,7 +89,7 @@ subroutine twiss_at_start (ring)
       call mat_symp_check (t0_4, error)
       write (iu, *) 'Symplectic Check:', error
       do i = 1, 4
-        write (iu, '(4f19.14, 5x, f19.14)') (t0_4(i, j), j = 1, 4), eta_vec(i)
+        write (iu, '(4f15.10, 5x, f15.10)') (t0_4(i, j), j = 1, 4), eta_vec(i)
       enddo
     endif
   enddo
