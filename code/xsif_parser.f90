@@ -381,7 +381,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6)
         ele%value(x_pitch$) = -pdata(dat_indx)
 
       case default
-        write (line, '(a, i8)'), 'UNKNOWN ELEMENT TYPE:', key
+        write (line, '(a, i8)') 'UNKNOWN ELEMENT TYPE:', key
         call xsif_error (line)
         call err_exit
 
