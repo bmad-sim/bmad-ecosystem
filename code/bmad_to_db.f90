@@ -166,10 +166,10 @@ subroutine bmad_to_db (ring, db, calib_date)
   endif
 
   call get_steering_calibrations (h_stren, v_stren, this_date)
-  db%csr_horz_cur(:)%dvar_dcu = -1.0e-6 * h_stren(1:98) / gev  
-  db%csr_hbnd_cur(:)%dvar_dcu = -1.0e-6 * h_stren(101:106) / gev  
-  db%csr_vert_cur(:)%dvar_dcu =  1.0e-6 * v_stren(1:98) / gev  
-  db%scir_vertcur(:)%dvar_dcu =  1.0e-6 * v_stren(111:114) / gev  
+  db%csr_horz_cur(:)%dvar_dcu = 1.0e-6 * h_stren(1:98) / gev  
+  db%csr_hbnd_cur(:)%dvar_dcu = 1.0e-6 * h_stren(101:106) / gev  
+  db%csr_vert_cur(:)%dvar_dcu = 1.0e-6 * v_stren(1:98) / gev  
+  db%scir_vertcur(:)%dvar_dcu = 1.0e-6 * v_stren(111:114) / gev  
 
 ! separator calibration
 
