@@ -79,7 +79,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   real(rp) angle, energy_beam, energy_param, energy_0, rr
 
   logical, optional :: make_mats6, digested_read_ok
-  logical parsing, delim_found, matched_delim, arg_list_found, doit
+  logical parsing, delim_found, matched_delim, arg_list_found, doit, kick_set
   logical file_end, found, err_flag, finished, exit_on_error
   logical detected_expand_lattice_cmd, multipass
 
@@ -894,6 +894,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
     ele => ring%ele_(i)
     ele = in_ring%ele_(ix_ring(i)) 
     ele%name = used_line(i)%name
+    kick_set = (ele%value(hkick$) /= 0) .or. (ele%value(vkick$) /= 0)
 
     select case (ele%key)
 
@@ -959,22 +960,31 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 ! check for inconsistancies
 
     case (solenoid$)
-      if (ele%value(b_field$) /= 0 .and. ele%value(ks$) /= 0) call warning &
-          ('BOTH KS AND B_FIELD SET FOR A SOLENOID: ' // ele%name)
+      if (ele%field_master .and. (ele%value(ks$) /= 0 .or. kick_set)) call warning &
+          ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, 'BOTH STRENGTH (KS, HKICK, ETC.) AND FIELD SET FOR A SOLENOID.')
+
+    case (sol_quad$)
+      if (ele%field_master .and. (ele%value(ks$) /= 0 .or. ele%value(k1$) /= 0 .or. kick_set)) call warning &
+          ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, 'BOTH STRENGTH (K1, HKICK, ETC.) AND FIELD SET FOR A SOL_QUAD.')
 
     case (quadrupole$)
-      if (ele%value(b_gradient$) /= 0 .and. ele%value(k1$) /= 0) call warning &
-          ('BOTH K1 AND B_GRADIENT SET FOR A QUAD: ' // ele%name)
+      if (ele%field_master .and. (ele%value(k1$) /= 0 .or. kick_set)) call warning &
+          ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, 'BOTH STRENGTH (K1, HKICK, ETC.) AND FIELD SET FOR A QUAD.')
 
     case (sextupole$)
-      if (ele%value(b_gradient$) /= 0 .and. ele%value(k2$) /= 0) call warning &
-          ('BOTH K2 AND B_GRADIENT SET FOR A SEXTUPOLE: ' // ele%name)
+      if (ele%field_master .and. (ele%value(k2$) /= 0 .or. kick_set)) call warning &
+          ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, 'BOTH STRENGTH (K2, HKICK, ETC.) AND FIELD SET FOR A SEXTUPOLE.')
 
     case (octupole$)
-      if (ele%value(b_gradient$) /= 0 .and. ele%value(k3$) /= 0) call warning &
-          ('BOTH K3 AND B_GRADIENT SET FOR A OCTUPOLE: ' // ele%name)
+      if (ele%field_master .and. (ele%value(k3$) /= 0 .or. kick_set)) call warning &
+          ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, 'BOTH STRENGTH (K3, HKICK, ETC.) AND FIELD SET FOR A OCTUPOLE.')
+
+    case (hkicker$, vkicker$)
+      if (ele%field_master .and. (ele%value(kick$) /= 0 .or. kick_set)) call warning &
+          ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, 'BOTH STRENGTH AND BL_KICK SET FOR A H/VKICKER.')
 
     end select
+
 
 ! aperture
 
