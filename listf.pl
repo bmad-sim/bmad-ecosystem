@@ -57,7 +57,7 @@ sub searchit {
 
   $found_in_file = 0;
 
-  if (($File::Find::name =~ m@modules/[^/]*\.f90$@)) {
+  if ($File::Find::name =~ m@modules/[^/]*\.f90$@ || $file =~ /mod\.f90$/) {
 
     open (F_IN, $file) || die ("Cannot open File: $_");
     while (<F_IN>) {

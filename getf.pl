@@ -88,9 +88,9 @@ sub searchit {
     }
   }
 
-# If in the modules directory then look in the file for a match.
+# If  a module look in the file for a match.
 
-  if ($File::Find::name =~ m@modules/[^/]*\.f90$@) {
+  if ($File::Find::name =~ m@modules/[^/]*\.f90$@ || $file =~ /mod\.f90$/) {
     $recording = 0;
     @comments = ();     
     open (F_IN, $file) || die ("Cannot open File: $_");
