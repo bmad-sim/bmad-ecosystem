@@ -74,6 +74,7 @@ while (<FILE0>){
        rm_include_cxx();
        rm_home_packages_modules();
        rm_home_modules();
+       rm_home_packages();
        if ($#prereqs >= 0){ 
            convertP(@targets);
            print FILE1 ": ";
@@ -166,7 +167,7 @@ sub rm_home_packages_modules {
     $smlist = join " ",@prereqs;
     @prereqs =  split " " ,$smlist;
 }          
-#this subroutine removes absolute path /home..../modules
+#this subroutine removes absolute path /home..../modules/
 #and changes it to $(MOD_OUT_DIR)
 sub rm_home_modules {
     local($varP,$smlist);
@@ -175,8 +176,20 @@ sub rm_home_modules {
     }
     $smlist = join " ",@prereqs;
     @prereqs =  split " " ,$smlist;
+}
+        
+#this subroutine removes absolute path /home..../packages
+#and changes it to $(PBASE)
+sub rm_home_packages {
+    local($varP,$smlist);
+    foreach $varP (@prereqs){
+        $varP =~ s/\/home.*\/packages\//\$\(PBASE\)\//g;
+        if ($varP =~ /\$\(PBASE\)/) {$varP =~ s/\/include\//\.include\]/};
+        if ($varP =~ /\$\(PBASE\)/) {$varP =~ s/\//\./g};
+    }
+    $smlist = join " ",@prereqs;
+    @prereqs =  split " " ,$smlist;
 }        
-
 #this subroutine generate hash-array %listfilek with info about the exact directory
 #location of the all  source files in the cesr release library
 # example: $listfilek{file.f90} gives vms-format directory where file.f90 lives.
