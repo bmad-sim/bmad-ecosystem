@@ -41,7 +41,7 @@ ix2 = datum%ix_ele2
 ele => lattice%ele_(ix1)
 
 
-! if found = .true. then the data type was foudn here and the standard data
+! if found = .true. then the data type was found here and the standard data
 ! types will not be searched for this datum
 found = .true.
 

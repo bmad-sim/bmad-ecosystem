@@ -21,12 +21,12 @@
 !  universe   -- tao_universe_struct: universe to do calculation in
 !  lattice    -- ring_struct: lattice to use (i.e. model, design, etc...)
 !  orbit      -- coord_struct(0:): orbit structure (i.e. model, design, etc...)
-!  used       -- Logical: is this hook being used for this universe
 !
 ! Output:
 !  universe   -- tao_universe_struct: universe to do calculation in
 !  lattice    -- ring_struct: lattice to use (i.e. model, design, etc...)
 !  orbit      -- coord_struct(0:): orbit structure (i.e. model, design, etc...)
+!  used       -- Logical: is this hook being used for this universe
 !-
 
 subroutine tao_hook_lattice_calc (universe, lattice, orbit, used)

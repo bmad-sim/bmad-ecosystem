@@ -1,7 +1,9 @@
 !+
 ! Subroutine tao_hook_command (cmd_line, found)
 !
-! Put custom Tao commands here.
+! Put custom Tao commands here. These commands are searched before the standard
+! tao commands are searched. This allows for the overwriting of any standard tao
+! command.
 !
 ! This file is already set up so that it is rather simple to add a command. Just
 ! follow the directions. Keep in mind that you don't have to use the included 
