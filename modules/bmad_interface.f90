@@ -61,13 +61,14 @@ interface
 end interface
 
 interface
-  subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
+  subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
     use bmad_struct, only: ring_struct
     implicit none
-    character(*) in_file
+    character(*) lat_file
     type (ring_struct), target :: ring
     logical, optional :: make_mats6
     logical, optional :: digested_read_ok
+    character(*), optional :: use_line
   end subroutine
 end interface
   

@@ -1,13 +1,13 @@
 !+
-! Subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
+! Subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 !
 ! Subroutine to parse a BMAD input file and put the information in ring.
 !
 ! Because of the time it takes to parse a file BMAD_PARSER will save 
 ! RING in a "digested" file with the name:
-!               'digested_' // IN_FILE   ! for single precision BMAD version
-!               'digested8_' // IN_FILE  ! for double precision BMAD version
-! For subsequent calls to the same IN_FILE, BMAD_PARSER will just read in the
+!               'digested_' // lat_file   ! for single precision BMAD version
+!               'digested8_' // lat_file  ! for double precision BMAD version
+! For subsequent calls to the same lat_file, BMAD_PARSER will just read in the
 ! digested file. BMAD_PARSER will always check to see that the digested file
 ! is up-to-date and if not the digested file will not be used.
 !
@@ -15,9 +15,11 @@
 !   use bmad
 !
 ! Input:
-!   in_file    -- Character: Name of the input file.
+!   lat_file   -- Character(*): Name of the input file.
 !   make_mats6 -- Logical, optional: Compute the 6x6 transport matrices for the
 !                   Elements? Default is True.
+!   use_line   -- Character(*), optional: If present then override the use 
+!                   statement in the lattice file and use use_line instead.
 !
 ! Output:
 !   ring -- Ring_struct: Ring structure. See bmad_struct.f90 for more details.
@@ -36,7 +38,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
+subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
   use bmad_parser_mod, except => bmad_parser
   use cesr_utils
@@ -63,7 +65,9 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   integer ix1, ix2, iseq_tot
   integer, pointer :: n_max
 
-  character(*) in_file
+  character(*) lat_file
+  character(*), optional :: use_line
+
   character(1) delim
   character(16) word_2, name
   character(16) :: r_name = 'bmad_parser'
@@ -85,17 +89,17 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
   bp_com%write_digested = .true.
   bp_com%input_line_meaningful = .true.
 
-  call fullfilename (in_file, full_name)
+  call fullfilename (lat_file, full_name)
   inquire (file = full_name, name = full_name)      ! full input file_name
   ix = index(full_name, ';')
   if (ix /= 0) full_name = full_name(:ix-1)
   ring%input_file_name = full_name      ! needed by read_digested_bmad_file
 
-  ix = SplitFileName(in_file, path, basename)
+  ix = SplitFileName(lat_file, path, basename)
   if (rp == 8) then
-    digested_file = in_file(:ix) // 'digested8_' // in_file(ix+1:)
+    digested_file = lat_file(:ix) // 'digested8_' // lat_file(ix+1:)
   else
-    digested_file = in_file(:ix) // 'digested_' // in_file(ix+1:)
+    digested_file = lat_file(:ix) // 'digested_' // lat_file(ix+1:)
   endif
 
   call read_digested_bmad_file (digested_file, ring, digested_version)
@@ -152,7 +156,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
        call out_io (s_info$, r_name, 'Creating new digested file...')
 
   bp_com%error_flag = .false.                 ! set to true on an error
-  call file_stack('push', in_file, finished)  ! open file on stack
+  call file_stack('push', lat_file, finished)  ! open file on stack
   if (.not. bmad_status%ok) return
   iseq_tot = 0                            ! number of sequences encountered
 
@@ -587,6 +591,7 @@ subroutine bmad_parser (in_file, ring, make_mats6, digested_read_ok)
 
 ! find line corresponding to the "use" statement.
 
+  if (present (use_line)) ring%name = use_line
   if (ring%name == blank) call error_exit &
             ('NO "USE" STATEMENT FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
 
