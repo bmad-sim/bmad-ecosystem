@@ -38,7 +38,7 @@ module cesr_db_mod
                                                        
 ! db_struct def
 
-  integer, parameter :: n_csr_sqewsext_maxx = 6
+  integer, parameter :: n_csr_sqewsext_maxx = 8
 
   type db_struct
     type (db_element_struct) :: csr_quad_cur(98)
