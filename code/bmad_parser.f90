@@ -36,17 +36,14 @@
 
 !$Id$
 !$Log$
+!Revision 1.21  2003/01/08 15:50:15  dcs
+!Fixed bug in an error message.
+!
 !Revision 1.20  2002/12/17 04:28:36  dcs
 !parser bug fix with "ele[b] = c" redefs and multiple ele elements.
 !
-!Revision 1.19  2002/12/13 16:23:31  dcs
-!*** empty log message ***
-!
 !Revision 1.18  2002/12/06 01:53:02  dcs
 !Fix rho/g bug in bends
-!
-!Revision 1.17  2002/12/03 18:48:29  dcs
-!*** empty log message ***
 !
 !Revision 1.16  2002/11/27 04:04:06  dcs
 !Correct bug
@@ -54,23 +51,11 @@
 !Revision 1.15  2002/11/26 05:19:31  dcs
 !Modified for BEGINNING floor position entry.
 !
-!Revision 1.14  2002/11/17 01:01:58  dcs
-!*** empty log message ***
-!
 !Revision 1.13  2002/11/16 16:13:54  dcs
 !overlay/group change and make_mat6 bug fix
 !
-!Revision 1.12  2002/09/14 19:45:23  dcs
-!*** empty log message ***
-!
 !Revision 1.11  2002/07/31 14:32:41  dcs
 !Modified so moved digested file handled correctly.
-!
-!Revision 1.10  2002/07/16 21:33:57  dcs
-!*** empty log message ***
-!
-!Revision 1.9  2002/07/16 20:44:00  dcs
-!*** empty log message ***
 !
 !Revision 1.8  2002/06/13 14:54:22  dcs
 !Interfaced with FPP/PTC
@@ -380,7 +365,7 @@ subroutine bmad_parser (in_file, ring, make_mats6)
         endif
       enddo
 
-      if (.not. found) call warning ('ELEMENT NOT FOUND: ' // this_name, ' ')
+      if (.not. found) call warning ('ELEMENT NOT FOUND: ' // name)
       cycle parsing_loop
 
 ! else must be a variable

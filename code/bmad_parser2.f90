@@ -30,6 +30,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.14  2003/01/08 15:50:16  dcs
+!Fixed bug in an error message.
+!
 !Revision 1.13  2002/12/17 04:28:36  dcs
 !parser bug fix with "ele[b] = c" redefs and multiple ele elements.
 !
@@ -259,7 +262,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
         endif
       enddo
 
-      if (.not. found) call warning ('ELEMENT NOT FOUND: ' // this_name, ' ')
+      if (.not. found) call warning ('ELEMENT NOT FOUND: ' // name)
       cycle parsing_loop
 
 ! else must be a variable
