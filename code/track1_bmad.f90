@@ -308,6 +308,8 @@ subroutine track1_bmad (start, ele, param, end)
 
     if (e_end <= 0) then
       param%lost = .true.
+      end%vec(1) = 2 * bmad_com%max_aperture_limit
+      end%vec(3) = 2 * bmad_com%max_aperture_limit
       return
     endif
 

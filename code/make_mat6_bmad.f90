@@ -450,7 +450,6 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     if (e_end <= 0) then
       call out_io (s_fatal$, r_name, 'END ENERGY IS NEGATIVE!')
-      param%lost = .true.
       mat6 = 0   ! garbage.
       return 
     endif

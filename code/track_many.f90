@@ -129,7 +129,14 @@ subroutine track_fwd (ix1, ix2)
 
     if (ring%param%lost) then
       ring%param%ix_lost = n
-      call zero_this_track (n+1, ix2)
+      if (ring%param%end_lost_at == exit_end$) then
+        call zero_this_track (n+1, ix2)
+      elseif (ring%param%end_lost_at == entrance_end$) then
+        call zero_this_track (n, ix2)
+      else
+        call out_io (s_abort$, r_name, 'INTERNAL ERROR')
+        call err_exit
+      endif
       return
     endif
 
@@ -177,14 +184,15 @@ subroutine track_back (ix1, ix2)
     if (ring%param%lost) then
       if (ring%param%end_lost_at == exit_end$) then
         ring%param%end_lost_at = entrance_end$
+        call zero_this_track (ix2-1, n-2)
       elseif (ring%param%end_lost_at == entrance_end$) then
         ring%param%end_lost_at = exit_end$
+        call zero_this_track (ix2-1, n-1)
       else
         call out_io (s_abort$, r_name, 'INTERNAL ERROR')
         call err_exit
       endif
       ring%param%ix_lost = n 
-      call zero_this_track (ix2-1, n-1)
       ix_last = n-1
       exit
     endif

@@ -19,7 +19,7 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine check_aperture_limit (orb, ele, param)
+! Subroutine check_aperture_limit (orb, ele, param, plane_lost)
 !
 ! Subroutine to check if an orbit is outside the aperture.
 !
@@ -42,9 +42,11 @@ contains
 !     %lost -- Set True if the orbit is outside the aperture. 
 !              Note: %lost is NOT set False if the orbit is inside 
 !                the aperture.
+!   plane_lost -- Integer: Plane where particle is lost:
+!                     x_plane$ or y_plane$
 !-
 
-subroutine check_aperture_limit (orb, ele, param)
+subroutine check_aperture_limit (orb, ele, param, plane_lost)
 
   implicit none
 
@@ -53,6 +55,7 @@ subroutine check_aperture_limit (orb, ele, param)
   type (param_struct), intent(inout) :: param
 
   real(rp) x_lim, y_lim, x_beam, y_beam, l2
+  integer plane_lost
 
 !
 
@@ -67,8 +70,8 @@ subroutine check_aperture_limit (orb, ele, param)
   if (x_lim == 0 .and. y_lim == 0) return
 
   l2 = ele%value(l$) / 2
-  x_beam = orb%vec(1) - ele%value(x_offset_tot$)  ! - ele%value(x_pitch$) * l2
-  y_beam = orb%vec(3) - ele%value(y_offset_tot$)  ! - ele%value(y_pitch$) * l2
+  x_beam = orb%vec(1)
+  y_beam = orb%vec(3)
 
   if (ele%key == ecollimator$) then
     if (x_lim == 0 .or. y_lim == 0) then
@@ -78,13 +81,20 @@ subroutine check_aperture_limit (orb, ele, param)
     endif
     if ((x_beam / x_lim)**2 + (y_beam / y_lim)**2 > 1) then
       param%lost = .true.
+      if (abs(x_beam / x_lim) > abs(y_beam / y_lim)) then
+        plane_lost = x_plane$
+      else
+        plane_lost = y_plane$
+      endif
     endif
   else
     if (abs(x_beam) > x_lim) then
       param%lost = .true.
+      plane_lost = x_plane$
     endif
     if (abs(y_beam) > y_lim) then
       param%lost = .true.
+      plane_lost = y_plane$
     endif
   endif
 
@@ -209,6 +219,8 @@ subroutine track_a_bend (start, ele, param, end)
   re_xy = rel_E2 - px**2 - py**2
   if (re_xy < 0.1) then  ! somewhat arbitrary cutoff
     param%lost = .true.
+    end%vec(1) = 2 * bmad_com%max_aperture_limit
+    end%vec(3) = 2 * bmad_com%max_aperture_limit
     return
   endif 
 

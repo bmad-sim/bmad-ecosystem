@@ -147,6 +147,8 @@ subroutine track_it (start, real_track, local_calc_mat6)
                                      'FLOATING OVERFLOW IN WIGGLER TRACKING.'
         print *, '      PARTICLE WILL BE TAGGED AS LOST.'
         param%lost = .true.
+        end%vec(1) = 2 * bmad_com%max_aperture_limit
+        end%vec(3) = 2 * bmad_com%max_aperture_limit
         return
       endif
 
