@@ -417,8 +417,12 @@ end subroutine
 ! Subroutine set_ptc (param, taylor_order, integ_order, &
 !                               num_steps, no_cavity, exact_calc)
 !
-! Subroutine to initialize ptc.
-! Note: This subroutine cannot be used if there are "knobs".
+! Subroutine to initialize PTC.
+! Note: At some point before you use PTC to compute Taylor maps etc.
+!   you have to call set_ptc with a param argument.
+! Note: If you just want to use FPP without PTC then call init directly.
+! Note: This subroutine cannot be used if you want to have "knobs" 
+!   (in the PTC sense).
 ! This subroutine replaces:
 !     make_states
 !     set_mad
@@ -459,11 +463,11 @@ subroutine set_ptc (param, taylor_order, integ_order, &
   real(dp) this_energy
 
   logical, optional :: no_cavity, exact_calc
-  logical, save :: init_needed = .true.
+  logical, save :: make_states_needed = .true.
               
 ! do not call set_mad
 
-  if (init_needed .and. present(param)) then
+  if (make_states_needed .and. present(param)) then
     if (param%particle == positron$ .or. param%particle == electron$) then
       call make_states(.true.)
     else
@@ -471,7 +475,7 @@ subroutine set_ptc (param, taylor_order, integ_order, &
     endif
     EXACT_MODEL = .false.
     ALWAYS_EXACTMIS = .false.
-    init_needed = .false.
+    make_states_needed = .false.
   endif
 
   if (present(exact_calc)) then
@@ -505,8 +509,12 @@ subroutine set_ptc (param, taylor_order, integ_order, &
     endif
   endif
 
+! Do not call init before the call to make_states
+
   if (present(taylor_order)) then  
-    if (bmad_com%taylor_order_ptc /= taylor_order) then
+    if (make_states_needed) then                   ! make_states has not been called
+      bmad_com%taylor_order = taylor_order  ! store the order for next time
+    elseif (bmad_com%taylor_order_ptc /= taylor_order) then
       call init (default, taylor_order, 0, berz, nd2, &
                                                bmad_com%real_8_map_init)
       bmad_com%taylor_order_ptc = taylor_order
