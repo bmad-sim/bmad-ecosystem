@@ -4,6 +4,7 @@ module space_charge_mod
 
 use bmad_struct
 use bmad_interface
+use make_mat6_mod
 
 type space_charge_struct
   type (coord_struct) closed_orb
