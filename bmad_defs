@@ -42,7 +42,7 @@ BMAD_=${BMAD_-/home/cesrulib/cesr_libs/bmad_dist}
 #
 # Specify the BMAD distribution bin area
 #
-BMAD_BIN=${BMAD_BIN-${BMAD_}/bin}
+BMAD_BIN=${BMAD_}/bin
 
 #
 # Get platform/OS tags
@@ -52,7 +52,7 @@ PLATFORM_TAG="`uname -s`_`uname -m`"
 #
 # Export the BMAD environment variable structure
 #
-BMADENV=${BMADENV-${BMAD_BIN}/bmadenv}
+BMADENV=${BMAD_BIN}/bmadenv
 #
 if [ -f $BMADENV ]
 then
@@ -80,6 +80,9 @@ fi
 # $Id$
 #
 # $Log$
+# Revision 1.2  2003/11/26 11:05:40  cesrulib
+# Fix bug in environment setup.
+#
 # Revision 1.1  2003/11/10 02:35:06  palmer
 # Add bmad_def, bmad_defs, bmadenv scripts to set up bmad distribution
 # environment variables.  Modify cesrenv for compatibility with new
