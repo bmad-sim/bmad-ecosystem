@@ -226,28 +226,28 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
     if (ix_wig /= 0) then
       allocate (ele%wig_term(ix_wig))
       do j = 1, ix_wig
-        read (d_unit) ele%wig_term(j)
+        read (d_unit, err = 9200) ele%wig_term(j)
       enddo
     endif
 
     if (ix_const /= 0) then
       allocate (ele%const(ix_const))
-      read (d_unit) ele%const
+      read (d_unit, err = 9300) ele%const
     endif
 
     if (any (ix_r /= 0)) then
       allocate (ele%r(ix_r(1):ix_r(3), ix_r(2):ix_r(4)))
-      read (d_unit) ele%r
+      read (d_unit, err = 9400) ele%r
     endif
 
     if (ix_d /= 0) then
       allocate (ele%descrip)
-      read (d_unit) ele%descrip
+      read (d_unit, err = 9500) ele%descrip
     endif
 
     if (ix_m /= 0) then
       allocate (ele%a(0:n_pole_maxx), ele%b(0:n_pole_maxx))
-      read (d_unit) ele%a, ele%b
+      read (d_unit, err = 9600) ele%a, ele%b
     endif
     
     do j = 1, 6
@@ -255,7 +255,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
       read (d_unit) ele%taylor(j)%ref
       allocate (ele%taylor(j)%term(ix_t(j)))
       do k = 1, ix_t(j)
-        read (d_unit) ele%taylor(j)%term(k)
+        read (d_unit, err = 9700) ele%taylor(j)%term(k)
       enddo
     enddo
 
@@ -264,22 +264,22 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
       if (v75) then
         if (ix_sr1 /= 0) then
           allocate (ele%wake%sr1(0:ix_sr1-1))
-          read (d_unit) ele%wake%sr_file
-          read (d_unit) ele%wake%sr1
+          read (d_unit, err = 9800) ele%wake%sr_file
+          read (d_unit, err = 9810) ele%wake%sr1
         endif
         if (ix_lr /= 0) then
           allocate (ele%wake%lr(0:ix_lr-1))
-          read (d_unit) ele%wake%lr_file
-          read (d_unit) ele%wake%lr
+          read (d_unit, err = 9820) ele%wake%lr_file
+          read (d_unit, err = 9830) ele%wake%lr
         endif
       elseif (v_now) then
-        read (d_unit) ele%wake%sr_file
-        read (d_unit) ele%wake%sr1
-        read (d_unit) ele%wake%sr2_long
-        read (d_unit) ele%wake%sr2_trans
-        read (d_unit) ele%wake%lr_file
-        read (d_unit) ele%wake%lr
-        read (d_unit) ele%wake%z_cut_sr
+        read (d_unit, err = 9800) ele%wake%sr_file
+        read (d_unit, err = 9810) ele%wake%sr1
+        read (d_unit, err = 9840) ele%wake%sr2_long
+        read (d_unit, err = 9850) ele%wake%sr2_trans
+        read (d_unit, err = 9820) ele%wake%lr_file
+        read (d_unit, err = 9830) ele%wake%lr
+        read (d_unit, err = 9860) ele%wake%z_cut_sr
       endif
     endif
 
@@ -310,6 +310,8 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   version = -1
   return
 
+!--------------------------------------------------------------
+
 9100  continue
   if (bmad_status%type_out) then
      call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.')
@@ -318,6 +320,125 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   bmad_status%ok = .false.
   return
 
+9200  continue
+  if (bmad_status%type_out) then
+     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING WIGGLER TERM FOR ELEMENT: ' // ele%name)
+  endif
+  close (d_unit)
+  bmad_status%ok = .false.
+  return
+
+9300  continue
+  if (bmad_status%type_out) then
+     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING IX_CONST TERM FOR ELEMENT: ' // ele%name)
+  endif
+  close (d_unit)
+  bmad_status%ok = .false.
+  return
+
+9400  continue
+  if (bmad_status%type_out) then
+     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING R TERM FOR ELEMENT: ' // ele%name)
+  endif
+  close (d_unit)
+  bmad_status%ok = .false.
+  return
+
+9500  continue
+  if (bmad_status%type_out) then
+     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING DESCRIP TERM FOR ELEMENT: ' // ele%name)
+  endif
+  close (d_unit)
+  bmad_status%ok = .false.
+  return
+
+9600  continue
+  if (bmad_status%type_out) then
+     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING AN,BN TERMS FOR ELEMENT: ' // ele%name)
+  endif
+  close (d_unit)
+  bmad_status%ok = .false.
+  return
+
+9700  continue
+  if (bmad_status%type_out) then
+     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING TAYLOR TERMS FOR ELEMENT: ' // ele%name)
+  endif
+  close (d_unit)
+  bmad_status%ok = .false.
+  return
+
+9800  continue
+  if (bmad_status%type_out) then
+     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING WAKE%SR_FILE FOR ELEMENT: ' // ele%name)
+  endif
+  close (d_unit)
+  bmad_status%ok = .false.
+  return
+
+9810  continue
+  if (bmad_status%type_out) then
+     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING WAKE%SR1 FOR ELEMENT: ' // ele%name)
+  endif
+  close (d_unit)
+  bmad_status%ok = .false.
+  return
+
+9820  continue
+  if (bmad_status%type_out) then
+     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING WAKE%LR_FILE FOR ELEMENT: ' // ele%name)
+  endif
+  close (d_unit)
+  bmad_status%ok = .false.
+  return
+
+9830  continue
+  if (bmad_status%type_out) then
+     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING WAKE%LR FOR ELEMENT: ' // ele%name)
+  endif
+  close (d_unit)
+  bmad_status%ok = .false.
+  return
+
+9840  continue
+  if (bmad_status%type_out) then
+     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING WAKE%SR2_LONG FOR ELEMENT: ' // ele%name)
+  endif
+  close (d_unit)
+  bmad_status%ok = .false.
+  return
+
+9850  continue
+  if (bmad_status%type_out) then
+     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING WAKE%SR2_TRANS FOR ELEMENT: ' // ele%name)
+  endif
+  close (d_unit)
+  bmad_status%ok = .false.
+  return
+
+9860  continue
+  if (bmad_status%type_out) then
+     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING WAKE%Z_CUT_SR FOR ELEMENT: ' // ele%name)
+  endif
+  close (d_unit)
+  bmad_status%ok = .false.
+  return
+
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
 contains
 
 subroutine simplify_path (name_in, name_out)
