@@ -145,9 +145,9 @@ routine \rn{ring_equal_ring} so that when one writes
     ring1 = ring2
 \end{example}
 the pointers will be handled properly. The result will be that ring1
-will hold the same information as ring2 but the pointers in ring1 will
-point to different locations in physical memory so that changes to one
-ring will not affect the other.
+will hold the same information as \vn{ring2} but the pointers in
+\vn{ring1} will point to different locations in physical memory so
+that changes to one ring will not affect the other.
 
 Initial allocation of the pointers in a \tn{ring_struct} variable is generally
 handled by the \rn{bmad_parser} and \rn{ring_equal_ring} routines.
@@ -160,3 +160,5 @@ routine.
   ...
   call deallocate_ring_pointers (ring) ! ... Do this at the end.
 \end{example}
+Using the save attribute will generally be faster but will use more
+memory. Typically using the save attribute will be the best choice.

@@ -24,13 +24,13 @@ limit to the number of levels of a control hierarchy.
 An \vn{overlay} element is used to control the attributes of other elements. 
 For example: 
 \begin{example}
-  over1: overlay = {a\_ele, b\_ele/2.0}, hkick = 0.003
-  over2: overlay = {b\_ele}, hkick
+  over1: overlay = \{a_ele, b_ele/2.0\}, hkick = 0.003
+  over2: overlay = \{b_ele\}, hkick
   over2[hkick] = 0.9
-  a\_ele: quad, hkick = 0.05, ...
-  b\_ele: rbend, ...
-  this\_line: line = ( ... a_ele, ... b_ele, ... )
-  use, this\_line
+  a_ele: quad, hkick = 0.05, ...
+  b_ele: rbend, ...
+  this_line: line = ( ... a_ele, ... b_ele, ... )
+  use, this_line
 \end{example}
 
 In the example the overlay \vn{over1} controls the \vn{hkick}
@@ -63,12 +63,12 @@ of \vn{over1}.
 
 \noindent The default value for an overlay is 0 so for example
 \begin{example}
-  over3: overlay = {c\_ele}, k1
+  over3: overlay = \{c_ele\}, k1
 \end{example}
 will make \vn{c_ele[k1]} = 0. Overlays can also control more than one
 type of attribute as the following example shows
 \begin{example}
-  over4: overlay = {this\_quad[k1]/3.4, this\_sextupole[k2], ...}, hkick
+  over4: overlay = \{this_quad[k1]/3.4, this_sextupole[k2], ...\}, hkick
 \end{example}
 
 
@@ -82,7 +82,7 @@ element is used to make changes in value. This is unlike an
 \vn{overlay} which sets a specific value directly. An example will
 make this clear
 \begin{example}
-  gr: group = {q1}, k1 
+  gr: group = \{q1\}, k1 
   gr[command] = 0.34 
   q1, quad, l = ...
   q1[k1] = 0.57
@@ -102,13 +102,14 @@ attribute and this change will be added to the value of
 \vn{q1[k1]} is. It only knows it has to change it by the change in
 \vn{gr[command]}.
 
-A \vn{group} can be used to control an elements position and length using the attributes
+A \vn{group} can be used to control an elements position and length
+using the attributes
 \begin{example}
-  accordion\_edge  ! Element grows or shrinks symmetrically
-  start_edge       ! Varies element's starting edge s-position
-  end\_edge        ! Varies element's ending edge s-position
-  symmetric\_edge  ! Varies element's overall s-position. Constant length.
-  s\_offset        ! Same as symmetric_edge
+  accordion_edge  ! Element grows or shrinks symmetrically
+  start_edge      ! Varies element's starting edge s-position
+  end_edge        ! Varies element's ending edge s-position
+  symmetric_edge  ! Varies element's overall s-position. Constant length.
+  s_offset        ! Same as symmetric_edge
 \end{example}
 In all cases the total length of the lattice is kept invariant.
 \vn{accordion_edge} varies the edges of an element so that the center
@@ -124,12 +125,12 @@ For example
   q11: quad, l = ...
   d1: drift, l = ...
   d2: drift, l = ...
-  this\_line: line = (... d1, q10, d2, q11, ...)
-  gr2: group = {q10}, start\_edge = 0.1
+  this_line: line = (... d1, q10, d2, q11, ...)
+  gr2: group = \{q10\}, start_edge = 0.1
 \end{example}
 This last line that defines \vn{gr2} is just a shorthand notation for
 \begin{example}
-  gr2: group = {q10}, start\_edge 
+  gr2: group = \{q10\}, start_edge 
   gr2[command] = 0.1
 \end{example}
 The effect will be to lengthen the length of \vn{q10} and shorten the
@@ -138,7 +139,7 @@ length of \vn{d1}.
 The full list of attributes of a group are
 \begin{example}
   command         
-  old\_command     
+  old_command     
   coef            
   type            ! See section \ref{s:string}
   alias           ! See section \ref{s:string}
@@ -152,7 +153,7 @@ Like \vn{overlay}s, coefficients can be specified for the individual
 elements under a \vn{group}'s control and \vn{group}s can control more
 than one type of attribute. For example
 \begin{example}
-  gr3: group = {q1[k1]/-1.0, q2[tilt], oct1/-2.0}, k3
+  gr3: group = \{q1[k1]/-1.0, q2[tilt], oct1/-2.0\}, k3
   gr3[command] = 2.0
   gr3[old_command] = 1.5
 \end{example}

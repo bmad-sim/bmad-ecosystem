@@ -4,10 +4,11 @@
 \section{Dependent and Independent Attributes} 
 \label{s:dependent} 
 
-For convenience \bmad\ computes the values of some attributes based
-upon the values of other attributes. The list of these dependent
-variables is in Table~\ref{t:dependent} along with some of the independent
-variables they are calculated from.
+For convenience, \bmad\ computes the values of some attributes based
+upon the values of other attributes. These dependent variables are
+listed in Table~\ref{t:dependent}. Also shown in
+Table~\ref{t:dependent} are the independent variables they are
+calculated from.
 \begin{table}[h]
 \centering {
 \begin{tabular}{|l|l|l|} \hline
@@ -16,7 +17,7 @@ variables they are calculated from.
                                charge, sig\_x, sig\_y, beam\_energy, n\_part  \\ \hline
   ElSeparator  & e\_field, voltage    & hkick, vkick, gap, l, beam\_energy    \\ \hline
   LCavity      & e\_loss, delta\_e    & gradiant, l                           \\ \hline
-  Rbend, Sbend & rho, angle, l\_chord & g, l                                  \\ \hline
+  RBend, SBend & rho, angle, l\_chord & g, l                                  \\ \hline
   RFCavity     & rf\_wavelength       & harmon, l\_lattice                    \\ \hline
   Wiggler (periodic type)
                & k1, rho              & b\_max, beam\_energy                  \\ \hline
@@ -26,30 +27,34 @@ variables they are calculated from.
 they are calculated from.}
 \label{t:dependent}
 \end{table}
-\vn{bema_energy}, \vn{n_part} and \vn{l_lattice} (lattice length) are
-lattice atributes. Not element attributes. The first two are set by
-the \vn{parameter} statement (See Section~\ref{s:parameter}).
 
-No attempt should be made to set or vary within a program a dependent
+\vn{beam_energy}, \vn{n_part} and \vn{l_lattice} (lattice length) are
+lattice atributes, not element attributes. The first two are set by
+the \vn{parameter} statement (See
+Section~\ref{s:parameter}). \vn{l_lattice} is calculated when the
+lattice is read in.
+
+No attempt should be made to set or vary within a program dependent
 attributes. It should be remarked that this is not an ironclad rule.
 If a program properly bypasses \bmad's attribute bookkeeping routine
-then anything is possible. \bmad\, however, allows for some exceptions
-in primary lattice file if the appropriate independent is left unspecified.
-The list of allowed exceptions is given in Table~\ref{t:dep_except}.
+then anything is possible. In a primary lattice file \bmad\ allows the
+setting of a select group of dependent variables if the appropriate
+independent is left unspecified.  The list of settable dependent
+variables is given in Table~\ref{t:dep_except}.  After reading in the
+lattice \bmad\ will set the appropriate independent variable based
+upon the value of the dependent variable.
 \begin{table}[h]
 \centering {
 \begin{tabular}{|l|l|l|} \hline
 {\em Element}  & {\em Dependent Variable Set}  & {\em Independent Variables Not Set}  \\ \hline
   LCavity      & delta\_e                  & gradiant                           \\ \hline
-  Rbend, Sbend & rho                       & g                                  \\ \hline
-  Rbend, Sbend & angle                     & g                                  \\ \hline
+  RBend, SBend & rho                       & g                                  \\ \hline
+  RBend, SBend & angle                     & g                                  \\ \hline
 \end{tabular}
 }
 \caption {Dependent variables that can be set in a primary lattice file.}
 \label{t:dep_except}
 \end{table}
-After reading in the lattice \bmad\ will set the appropriate
-independent variable based upon the value of the dependent variable.
 
 The normal attribute used to vary the strength of, say, a
 \vn{quadrupole} is \vn{k1}.  It is sometimes convienient to be able to
@@ -61,11 +66,11 @@ becomes a dependent variable as tabulated in Table~\ref{t:dep_field}.
 \centering {
 \begin{tabular}{|l|l|l|} \hline
   {\em Element} & {\em Strength Attribute} & {\em Field Attrubte} \\ \hline
-  SBend         &   g                        b\_field        \\ \hline
-  Solenoid      &   ks                       b\_field        \\ \hline
-  Quadrupole    &   k1                       b\_gradient     \\ \hline
-  Sextupole     &   k2                       b\_gradient     \\ \hline
-  Octupole      &   k3                       b\_gradient     \\ \hline
+  SBend         &   g                      &  b\_field        \\ \hline
+  Solenoid      &   ks                     &  b\_field        \\ \hline
+  Quadrupole    &   k1                     &  b\_gradient     \\ \hline
+  Sextupole     &   k2                     &  b\_gradient     \\ \hline
+  Octupole      &   k3                     &  b\_gradient     \\ \hline
 \end{tabular}
 }
 \caption {Field and Strength Attributes.}
@@ -279,8 +284,14 @@ For example, the linear matrix that comes from expanding a Taylor Map
 around any point that is not the origin of the map is generally not 
 symplectic. The transfer matrix for an element can be symplectified by
 setting the \vn{symplectify} attribute to True. See section \ref{s:symp_method}
-for details on how a matrix is symplectified.
-
+for details on how a matrix is symplectified. The default value of \vn{symplectify} 
+if it is not present is \vn{False}. If it is present without a value then
+it defaults to true. Examples:
+\begin{example}
+  s1: sextupole, l = 0.34                       ! symplecitfy = False
+  s1: sextupole, symplectify = True, l = 0.34   ! symplecitfy = True
+  s1: sextupole, symplectify, l = 0.34          ! symplecitfy = True
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Is\_on Attribute}

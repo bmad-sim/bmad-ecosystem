@@ -23,7 +23,7 @@ vertical direction and the $x$--axis is in the horizontal plane.
 \label{f:local_coords}
 \end{figure}
 
-In \bmad\, a lattice is comprised of a sequence of elements such as
+In \bmad, a lattice is comprised of a sequence of elements such as
 quadrupoles, bends, rfcavities, etc. Each element has an entrance
 point, an exit point, and a reference curve between them. For a bend,
 the reference curve is a segment of a circular arc. For all other
@@ -52,14 +52,14 @@ not} correspond to the orbit that any actual particle could travel.
 \section{Global Reference System}
 \label{s:global}
 
-The golbal reference system describes the reference orbit with respect
-to the laboratory coordinate system.  \bmad, following the \mad\
-convention, uses a Cartesian coordinate system $(X, Y, Z)$ for the
-global reference system, along with three angles $\theta, \phi, \psi$
-used to define the reference orbit's orientation as shown in
-Figure~\ref{f:global_coords}. Conventionally $Y$ is the vertical
-coordinate and $(X, Z)$ are the ``floor'' coordinates.  The three
-angles are defined by the following:
+The global reference system describes the orientation of the reference
+orbit with respect to the laboratory coordinate system.  \bmad,
+following the \mad\ convention, uses a Cartesian coordinate system
+$(X, Y, Z)$ for the global reference system, along with three angles
+$\theta, \phi, \psi$ used to define the reference orbit's orientation
+as shown in Figure~\ref{f:global_coords}. Conventionally $Y$ is the
+vertical coordinate and $(X, Z)$ are the ``floor'' coordinates.  The
+three angles are defined as follows:
 \begin{description}
 \item[$\theta$ Azimuth angle:] Angle in the $(X, Z)$ plane 
 between the $Z$--axis and the projection of the $z$--axis onto the
@@ -88,10 +88,12 @@ horizontal bend with a positive bending angle. This corresponds to $x$
 pointing radially outward. Without any vertical bends, the $Y$ and $y$
 axes will coincide, and $\phi$ and $\psi$ will both be zero.
 
+\vfill
+
 %-----------------------------------------------------------------------------
 \section{Phase Space Coordinate System}
 
-\bmad\ uses the canonical phase space coordinates 
+\bmad uses the canonical phase space coordinates 
 $(x, p_x, y, p_y, z, p_z)$. $x$, $y$, and $z$ are the
 coordinates with respect to the reference particle as explained in
 Section~\ref{s:ref}. $p_x$ and $p_y$ are the normalized momenta

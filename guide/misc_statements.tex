@@ -100,35 +100,54 @@ For example
   "This is a title"
 \end{example}
 
-%-----------------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 \section{Call Statement}
 
-It is typically convenient to separate the lattice definition into several files.
-Typically there might be a file (or files) that define the layout of the lattice
-(something that doesn't change often) and a file (or files) that define magnet strengths
-(something that changes more often).
-The \vn{call} is used to read in separated lattice files. The syntax is
+It is frequently convenient to separate the lattice definition into
+several files.  Typically there might be a file (or files) that define
+the layout of the lattice (something that doesn't change often) and a
+file (or files) that define magnet strengths (something that changes
+more often).  The \vn{call} is used to read in separated lattice
+files. The syntax is
 \begin{example}
   call, filename = String
 \end{example}
-Example
+Example:
 \begin{example}
   call, filename = "../layout/my_layout.bmad"
 \end{example}
-\bmad\ will read the called file until a \vn{return} or \vn{end_file} statement is encountered
-or the end of the file is reached.
+\bmad\ will read the called file until a \vn{return} or \vn{end_file}
+statement is encountered or the end of the file is reached.
 
-%-----------------------------------------------------------------------------------
+The called file will be searched for in multiple directories.
+The search path for files without a directory specification in their name is:
+\begin{example}
+	1) Current directory
+	2) directory of the calling file
+	3) BMAD_LAYOUT (system logical)
+\end{example}
+The first instance where a file is found is used.
+The search path for files with a directory specification in their name
+is relative to the above list. Thus, in the above example, the search
+would be
+\begin{example}
+  1) ../layout/my_layout.bmad  (relative to the current directory)
+  2) ../layout/my_layout.bmad  (relative to the calling file directory)
+  3) \$BMAD_LAYOUT:../layout/my_layout.bmad 
+\end{example}
+
+%--------------------------------------------------------------------------
 \section{Return and End\_File statements}
 
-\vn{Return} and \vn{end_file} have identical effect and tell \bmad\ to ignore anything
-beyond the \vn{return} or \vn{end_file} statement in the file.
+\vn{Return} and \vn{end_file} have identical effect and tell \bmad\ to
+ignore anything beyond the \vn{return} or \vn{end_file} statement in
+the file.
 
-%-----------------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 \section{Beginning Statement}
 
-For non--circular lattices the \vn{beginning} statement can be used to set the Twiss parameters 
-and beam energy at the beginning of the ring 
+For non--circular lattices the \vn{beginning} statement can be used to
+set the Twiss parameters and beam energy at the beginning of the ring
 \begin{example}
   beginning[beta_x]  = Real  ! "a" mode beta
   beginning[alpha_x] = Real  ! "a" mode alpha
@@ -154,18 +173,18 @@ For any lattice the \vn{beginning} statement can be used to set the starting flo
   beginning[z_position]     = Real  ! Z position
   beginning[theta_position] = Real  ! Angle on floor
   beginning[phi_position]   = Real  ! Angle of attack
+  beginning[psi_position]   = Real  ! Roll angle
 \end{example}
 
-%-----------------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 \section{Parser\_Debug Statement}
 
-The \vn{parser_debug} statement is used to diagnose problems with the \bmad\ parser 
-routine. That is, it is generally only used by programmers. 
-It is recommended that this
-statement be used with small test lattices since it can generate a lot of output.
-The syntax is
+The \vn{parser_debug} statement is used to diagnose problems with the
+\bmad\ parser routine. That is, it is generally only used by
+programmers.  It is recommended that this statement be used with small
+test lattices since it can generate a lot of output.  The syntax is
 \begin{example}
-  parser\_debug Switches
+  parser\_debug \(<\)switches\(>\)
 \end{example}
 Valid switches are
 \begin{example}
@@ -181,7 +200,7 @@ Example
 \end{example}
 
 
-%-----------------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 \section{No\_Digested Statement}
 
 The \vn{no_digested} statement if present, will prevent \bmad\ from 

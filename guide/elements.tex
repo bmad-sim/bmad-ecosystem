@@ -448,10 +448,10 @@ Dependent attributes:
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Lcavity}
+\section{LCavity}
 \label{s:lcav}
 
-An \vn{Lcavity} is a LINAC accelerating cavity.
+An \vn{LCavity} is a LINAC accelerating cavity.
 
 \toffset
 \begin{center}
@@ -472,18 +472,23 @@ An \vn{Lcavity} is a LINAC accelerating cavity.
 \end{center}
 \toffset
 
-Tracking through an \vn{LCavity} is modeled using the equations developed by Rosenzweig
-and Serafini\cite{b:rosenzweig}. The various attributes are
+Tracking through an \vn{LCavity} is modeled using the equations
+developed by Rosenzweig and Serafini\cite{b:rosenzweig}. The
+attributes specific to an \vn{LCavity} are
 \begin{example}
-  gradient     ! Accelerating gradient in V/m
-  phi0         ! Phase (in radians/2$pi$) of the reference particle with 
+  gradient     ! Accelerating gradient (V/m).
+  phi0         ! Phase (radians/2\(\pi\)) of the reference particle with 
                !   respect to the RF. phi0 = 0 is on crest.
-  e_loss       ! Loss parameter for short range wakefields in V/Coulomb.
+  e_loss       ! Loss parameter for short range wakefields (V/Coulomb).
+  rf_frequency ! Rf frequency (Hz).
   sr_wake_file ! Short range wake field definition file.
   lr_wake_file ! Long range wake field definition file.
 \end{example}
+The dependent variable \vn{delta_e} attribute can be used in place of
+\vn{gradiant} in a primary lattice file as discussed in Section~\ref{s:dependent}.
 
-The transfer matrix for an \vn{LCavity} with finite \vn{gradient} is never symplectic.
+Note: The transfer matrix for an \vn{LCavity} with finite
+\vn{gradient} is never symplectic.
 
 \vskip0.05in \noindent
 Example:

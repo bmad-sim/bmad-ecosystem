@@ -4,7 +4,7 @@
 \newcommand{\pow}[1]{\cdot 10^{#1}}
 \newcommand{\Bf}[1]{{\bf #1}}
 
-\newcommand{\bmad}{{\sl Bmad}}
+\newcommand{\bmad}{{\sl Bmad}\xspace}
 \newcommand{\mad}{{\sl MAD}}
 
 \newcommand{\eq}[1]{{(\protect\ref{#1})}}
@@ -51,10 +51,18 @@
 \newcommand{\St}{$^{st}$}
 \newcommand{\B}{$\backslash$}
 
+\newlength{\dPar}
+\newlength{\ExBeg}
+\newlength{\ExEnd}
+\setlength{\dPar}{1.5ex}
+\setlength{\ExBeg}{-\dPar}
+\addtolength{\ExBeg}{-1.5ex}
+\setlength{\ExEnd}{-\dPar}
+\addtolength{\ExEnd}{-1.0ex}
 
 \newenvironment{example}
-  {\vspace{-1.5ex} \begin{alltt}}
-  {\end{alltt} \vspace{-1.0ex}}
+  {\vspace{\ExBeg} \begin{alltt}}
+  {\end{alltt} \vspace{\ExEnd}}
 
 \newenvironment{Example}{\vspace{-1.5ex} \begin{alltt}}{\end{alltt}}
 
