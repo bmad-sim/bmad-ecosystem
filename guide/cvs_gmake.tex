@@ -71,19 +71,19 @@ for a \vn{CVS} directory in the current working directory where it can
 read the \vn{CVS/Root} file (see below). If not present it looks for the
 \vn{CVSROOT} environmental variable.
 
-\begin{figure}[htb]
+\begin{figure}[tb]
 \begin{centering}
-%\includegraphics{.eps}
-\caption{Example Project for CVS Importing.}
+\includegraphics{cvs.eps}
+\caption{A) Example Project before Importing to CVS. B) Project when checked--out.}
 \end{centering}
-\label{f:cvs1}
+\label{f:cvs}
 \end{figure}
 
 After creating the root directory go to the directory that holds the
 files you want maintained in \cvs. To import these files into
 \cvs use the command
 \begin{example}
-    cvs -d <root_dir> import -m "<comment>" <project_name> <vendor_tag> <release_tag>
+  cvs -d <root_dir> import -m "<comment>" <project_name> <vendor_tag> <release_tag>
 \end{example}
 Everything in the current directory and subdirectories will be put
 into \cvs under the \vn{<project_name>} name.  \vn{<comment>} is the
@@ -93,7 +93,7 @@ when there is branching. Branching is a way to effectively have
 different repositories (the different branches) for the same
 project. The subject of branching is beyound the scope of this writeup
 and the reader can look at the \cvs man pages for more details.  An
-example import is shown in Figure~\ref{f:cvs1} which shows the
+example import is shown in Figure~\ref{f:cvs}A which shows the
 directory tree for a directory called
 \vn{original_dir}.  Making \vn{original_dir} your working
 directory and using the command
@@ -110,14 +110,6 @@ project you can do multiple imports. Just use a different
 \label{s:cvs_use}
 \index{CVS}
 
-\begin{figure}[htb]
-\begin{centering}
-%\includegraphics{.eps}
-\caption{Example Checked-out CVS Project.}
-\end{centering}
-\label{f:cvs2}
-\end{figure}
-
 After you have imported files to a \cvs repository, or if you are using
 an existing repository, you can check out a local copy of the files in the
 repository by using the command
@@ -130,7 +122,7 @@ Following the example of the previous section the command
   cvs -d /home/dcs/cvs_root co mad
 \end{example}
 will create a \vn{mad} directory in your working directory as shown in
-Figure~\ref{f:cvs2}. The name \vn{mad} has replaced the name
+Figure~\ref{f:cvs}B. The name \vn{mad} has replaced the name
 \vn{original_dir} as the root of the files. There has also been added
 new directories named \vn{CVS}. Each \cvs directory has three files
 called \vn{Entries}, \vn{Repositry} and \vn{Root}. The \vn{Entries}
@@ -589,20 +581,20 @@ file for portability. \vn{Distributions} may be obtained from the
 \section{Compiling and Linking Bmad Programs}
 \label{s:compile}
 
-\begin{figure}[htb]
+\begin{figure}[tb]
 \begin{centering}
-%\includegraphics{.eps}
+\includegraphics{devel_dir.eps}
 \caption{Standard Directory Structure for Bmad Programs.}
 \end{centering}
-\label{f:program_dir}
+\label{f:devel_dir}
 \end{figure}
 
 To facillitate the automatic compiling and linking of programs there
 is a standard directory structure that is used with \bmad as shown in
-Figure~\ref{f:program_dir}. \vn{<devel_dir>} is the root development
+Figure~\ref{f:devel_dir}. \vn{<devel_dir>} is the root development
 directory (names in braces \vn{<..>} means that you choose the name,
 names without braces means that the name is standardized). In
-Figrure~\ref{f:program_dir} \vn{<program1_dir>} and \vn{<program2_dir>}
+Figrure~\ref{f:devel_dir} \vn{<program1_dir>} and \vn{<program2_dir>}
 are directories for developing programs. Although only two program
 directories are shown, there is no limit as to their number. Code
 files can be put in a program directory or in sub--directories. The
@@ -627,19 +619,24 @@ use the command
 \end{example}
 the default \vn{gmake} behavior in this case is to name the executable
 file after the program directory name and not the program file
-name. For example, in Figure~\ref{f:program_dir}, the executable made from
-\vn{test.f90} in \vn{<program2_dir>} is \vn{bin/<program2_dir>}. There
-are actually two different executables: A \vn{production} executable
-and a \vn{debug} one. The \vn{debug} executable has a \vn{_g} appended
-to the name so in this example its name is \vn{bin/<program2_dir>_g}.
-The production executable will run much faster than the debug version
-(roughly a factor of 3 or so). The debug version, however, can be used
-with a debug program to examine the program as it is running. Along
-with the executables, \vn{gmake} will make a \vn{.map} file for each
-executable which shows where each routine that is part of the program
-came from. The \vn{.map} files are are sometimes helpful in debugging
-a program. For example, \vn{bin/<program2_dir>_g.map} is the map file
-associated with \vn{bin/<program2_dir>_g}.
+name. For example, in Figure~\ref{f:devel_dir}, the executable made
+from \vn{test.f90} in \vn{<program2_dir>} is
+\vn{bin/<program2_dir>}. There are actually two different executables:
+A \vn{production} executable and a \vn{debug} one. The \vn{debug}
+executable has a \vn{_g} appended to the name so in this example its
+name is \vn{bin/<program2_dir>_g}.  The production executable will run
+much faster than the debug version (roughly a factor of 3 or so). The
+debug version, however, can be used with a debug program to examine
+the program as it is running.  The debug version of the program, just
+like the production version, can be run without a debugger and this is
+sometimes useful since the debug version will catch errors such as an
+array index out of bounds that the production version would not.
+
+Along with the executables, \vn{gmake} will make a \vn{.map} file for
+each executable which shows where each routine that is part of the
+program came from. The \vn{.map} files are are sometimes helpful in
+debugging a program. For example, \vn{bin/<program2_dir>_g.map} is the
+map file associated with \vn{bin/<program2_dir>_g}.
 
 To save time, if only the \vn{production} executable is needed, the command
 \begin{example}
