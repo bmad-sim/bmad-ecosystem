@@ -32,6 +32,10 @@ setenv PKG_LIB  $CESR_PKG/lib
 setenv PKG_MOD  $CESR_PKG/modules
 setenv PKG_INC  $CESR_PKG/include
 
+setenv PGPLOT_DIR   $CESR_PKG/PGPLOT
+setenv PGPLOT_FONTS $CESR_PKG/PGPLOT
+
+
 #
 #------  CESR libraries  ------
 #
@@ -76,6 +80,9 @@ setenv BMAD_LAYOUT	$CESR_CONFIG/bmad/layout
 # $Id$
 #
 # $Log$
+# Revision 1.9  2003/06/17 16:42:27  palmer
+# Add default PGPLOT environment variables.
+#
 # Revision 1.8  2003/05/27 15:18:20  palmer
 # Add CERN variable definitions.
 #
