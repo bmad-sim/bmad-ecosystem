@@ -8,7 +8,6 @@ BEGIN{
 /program/ {
 	if (tolower($1) == "program") {
     status = get_basename();
-    print "Done"
   }
 }
 
