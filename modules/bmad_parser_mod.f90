@@ -1635,7 +1635,7 @@ subroutine read_lr_wake (ele)
   call read_this_wake (ele%wake%lr_file, n_row, freq_in, r_over_q, q, m)
 
   if (associated(ele%wake%lr)) deallocate (ele%wake%lr)
-  allocate (ele%wake%lr(0:n_row-1))
+  allocate (ele%wake%lr(n_row))
   ele%wake%lr%freq_in   = freq_in(1:n_row)
   ele%wake%lr%freq      = freq_in(1:n_row)
   ele%wake%lr%r_over_q  = r_over_q(1:n_row)

@@ -314,9 +314,9 @@ subroutine grad_loss_sr_wake_calc (bunch, ele)
 
 ! Init
 
-  n_wake = sr_wake_array_size (ele)
+  n_wake = sr_wake_array_ubound (ele)
     
-  if (n_wake == 0) then ! no wake file: just use e_loss$ factor
+  if (n_wake == -1) then ! no wake file: just use e_loss$ factor
     do i = 1, size(bunch%slice)
       bunch%slice(i)%macro(:)%grad_loss_sr_wake = &
                            ele%value(e_loss$) * bunch%charge / ele%value(l$)

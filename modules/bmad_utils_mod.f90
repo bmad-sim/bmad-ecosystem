@@ -1038,7 +1038,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function sr_wake_array_size (ele) result (array_size)
+! Function sr_wake_array_ubound (ele) result (array_ub)
 !
 ! Function to return the size of ele%wake%sr.
 !
@@ -1049,19 +1049,19 @@ end subroutine
 !   ele -- Element_struct: Element to test.
 !
 ! Output:
-!   array_size -- Integer: Set to 0 if array not associated.
+!   array_ub -- Integer: Upper bound. Set to -1 if array not associated.
 !-
 
-function sr_wake_array_size (ele) result (array_size)
+function sr_wake_array_ubound (ele) result (array_ub)
 
   type (ele_struct) ele
-  integer array_size
+  integer array_ub
 
 !
 
-  array_size = 0
+  array_ub = -1
   if (.not. associated(ele%wake)) return
-  if (associated (ele%wake%sr)) array_size = size(ele%wake%sr)
+  if (associated (ele%wake%sr)) array_ub = ubound(ele%wake%sr, 1)
 
 end function
 
@@ -1100,7 +1100,7 @@ end function
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine init_sr_wake (sr_wake, n_term)
+! Subroutine init_sr_wake (sr_wake, n_ub)
 !
 ! Subroutine to initialize a sr_wake array.
 ! Note: Lower bound is zero.
@@ -1110,34 +1110,34 @@ end function
 !
 ! Input:
 !   sr_wake(:) -- Sr_wake_struct: Old structure.
-!   n_term     -- Integer: Number of terms to allocate. 
-!                   0 => pointer will be disassociated.
+!   n_ub       -- Integer: Upper bound of sr_wake(:) to allocate.
+!                   -1 => pointer will be disassociated.
 !
 ! Output:
-!   sr_wake(0:n_term-1) -- Sr_wake_struct: Initalized structure.
+!   sr_wake(0:n_ub) -- Sr_wake_struct: Initalized structure.
 !-
 
-subroutine init_sr_wake (sr_wake, n_term)
+subroutine init_sr_wake (sr_wake, n_ub)
 
   implicit none
 
   type (sr_wake_struct), pointer :: sr_wake(:)
-  integer n_term
+  integer n_ub
 
 !
 
-  if (n_term == 0) then
+  if (n_ub == -1) then
     if (associated (sr_wake)) deallocate (sr_wake)
     return
   endif
 
   if (associated (sr_wake)) then
-    if (size(sr_wake) /= n_term) then
+    if (ubound(sr_wake, 1) /= n_ub) then
       deallocate (sr_wake)
-      allocate (sr_wake(0:n_term-1))
+      allocate (sr_wake(0:n_ub))
     endif
   else
-    allocate (sr_wake(0:n_term-1))
+    allocate (sr_wake(0:n_ub))
   endif
 
 end subroutine
@@ -1180,10 +1180,10 @@ subroutine init_lr_wake (lr_wake, n_term)
   if (associated (lr_wake)) then
     if (size(lr_wake) /= n_term) then
       deallocate (lr_wake)
-      allocate (lr_wake(0:n_term-1))
+      allocate (lr_wake(n_term))
     endif
   else
-    allocate (lr_wake(0:n_term-1))
+    allocate (lr_wake(n_term))
   endif
 
 end subroutine
@@ -1200,8 +1200,8 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   n_sr    -- Integer: Number of terms: wake%sr(0:n_sr-1) 
-!   n_lr    -- Integer: Number of terms: wake%nr(0:n_lr-1)
+!   n_sr    -- Integer: Number of terms: wake%sr(0:n_sr) 
+!   n_lr    -- Integer: Number of terms: wake%nr(n_lr)
 !
 ! Output:
 !   wake    -- Wake_struct, pointer: Initialized structure
@@ -1216,7 +1216,7 @@ subroutine init_wake (wake, n_sr, n_lr)
 
 !
 
-  if (n_sr == 0 .and. n_lr == 0) then
+  if (n_sr == -1 .and. n_lr == 0) then
     if (associated (wake)) then
       if (associated(wake%sr)) deallocate (wake%sr)
       if (associated(wake%lr)) deallocate (wake%lr)

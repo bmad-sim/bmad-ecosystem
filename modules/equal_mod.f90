@@ -134,11 +134,11 @@ subroutine ele_equal_ele (ele1, ele2)
     if (associated (ele_save%descrip)) deallocate (ele_save%descrip)
   endif
 
-  n_sr = sr_wake_array_size(ele2); n_lr = lr_wake_array_size(ele2)
+  n_sr = sr_wake_array_ubound(ele2); n_lr = lr_wake_array_size(ele2)
   ele1%wake => ele_save%wake  ! reinstate
   call init_wake (ele1%wake, n_sr, n_lr)
-  if (n_sr /= 0)  ele1%wake%sr = ele2%wake%sr
-  if (n_lr /= 0)  ele1%wake%lr = ele2%wake%lr
+  if (n_sr /= -1)  ele1%wake%sr = ele2%wake%sr
+  if (n_lr /= 0)   ele1%wake%lr = ele2%wake%lr
   if (associated(ele1%wake)) then
     ele1%wake%sr_file = ele2%wake%sr_file
     ele1%wake%lr_file = ele2%wake%lr_file
