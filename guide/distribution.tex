@@ -95,9 +95,11 @@ single character. For example:
     getf bmad_parser
     getf ring_struct
     getf twiss_at_%
+    getf 'twiss_at_%'
 \end{verbatim}
 The third line in this example will match to the routine
-\rn{twiss_at_s} but not the routine \rn{twiss_at_start}.
+\rn{twiss_at_s} but not the routine \rn{twiss_at_start}. You may or may not
+have to put quotation marks if you use wild card characters.
 
 The \cmd{listf} command is like the \cmd{getf} command except that only
 the file name where a routine or structure is found is printed. The

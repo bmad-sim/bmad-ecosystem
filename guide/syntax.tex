@@ -90,8 +90,8 @@ by using a third file which calls the two
   call, file = 'lattice_file'
   call, file = 'aperture_file'
 \end{example}
-In this case \vn{aperture_file} is considered part of the set of
-primary lattice files.  The reason for making a distinction between
+In this case \vn{aperture_file} is considered to be a
+primary lattice file.  The reason for making a distinction between
 primary and secondary is that there are restrictions, discussed in
 other parts of the manual, on any lattice file used as a secondary
 file.
@@ -221,7 +221,7 @@ defined, symbolic constants cannot be redefined. For example:
 %---------------------------------------------------------------------------
 \section{Element Attributes}
 
-Element attributes can be specified using the syntax
+The values of element attributes can be specified using the syntax
 \begin{example}
   element-name[attribute-name]
 \end{example}
@@ -253,8 +253,12 @@ The syntax for defining a lattice element roughly follows \mad:
 \begin{example}
   label: keyword = \{ list \}, master-attribute [= value] [, attributes]
 \end{example}
+and \vn{I_Beam} elements have the syntax
+\begin{example}
+  label: keyword = \{ list \} [, attributes]
+\end{example}  
 For example:
 \begin{example}
-  q01w: quad, type = "A String", l = 0.6, tilt = pi/2
+  q01w: quadrupole, type = "A String", l = 0.6, tilt = pi/2
   h10e: overlay = \{ b08e, b10e \}, hkick
 \end{example}

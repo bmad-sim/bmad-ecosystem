@@ -8,7 +8,7 @@ The ``reference orbit'' is the path of a ``reference particle'' and is
 used to define a coordinate system for actual particles (whose orbits
 are simulated in \bmad) as shown in Figure~\ref{f:local_coords}. At a
 given time $t$ the reference particle is a distance $s = c \, t$ along
-the reference orbit from the zero position of the reference orbit. The
+the reference orbit from the reference orbit's zero position. The
 origin of the local $(x, y, z)$ coordinate system at time $t$ is at the
 reference particle with the $z$--axis tangent to the reference
 orbit and pointing in the direction of the reference particle
@@ -24,27 +24,28 @@ vertical direction and the $x$--axis is in the horizontal plane.
 \end{figure}
 
 In \bmad, a lattice is comprised of a sequence of elements such as
-quadrupoles, bends, rfcavities, etc. Each element has an entrance
+quadrupoles, bends, RF cavities, etc. Each element has an entrance
 point, an exit point, and a reference curve between them. For a bend,
 the reference curve is a segment of a circular arc. For all other
 elements, the reference curve is a straight line segment.  The
-reference orbit is constructed by arranging the elements so that the
+reference orbit itself is constructed by arranging the elements so that the
 exit point of one element coincides with the entrance point of the
 next with the reference curves forming an arc with no kinks.
-The reference orbit is then the sum of the reference curves. If
+The reference orbit is then the sum of the reference curves. Exceptions
+to this construction method may be made
+by using \vn{patch} elements which can arbitrarily offset the entrance point
+of an element with respect to the exit point of the previous element. 
+See Section~\ref{s:patch}. If
 not specified otherwise, the $s = 0$ position is the entrance
 point of the first element.
 
 Notice that, in a wiggler, the reference orbit, which is a straight
 line, does {\em not} correspond to the orbit that any actual particle
 could travel. Typically the physical entity of an element is centered
-about the reference curve, However, by specifying offsets and pitches
-(See Section~\ref{s:offset}), the center line of an element may be
-arbitrarily oriented with respect to its reference curve. Since the
-reference curve of an element is fixed to the reference curves of the
-neighboring elements, setting a nonzero offset or pitch
-for an element moves the physical magnet and does not affect the
-reference curve. Shifting a physical magnet with respect to its
+about the reference curve. However, by specifying offsets and pitches
+(See Section~\ref{s:offset}), the physical element may be
+arbitrarily offset with respect to its reference curve.
+Shifting a physical magnet with respect to its
 reference curve generally means that the reference curve does {\em
 not} correspond to the orbit that any actual particle could travel.
 
@@ -66,7 +67,7 @@ between the $Z$--axis and the projection of the $z$--axis onto the
 $(X, Z)$ plane. A positive angle of $\theta = \pi/2$ corresponds to the
 projected $z$--axis pointing in the positive $X$ direction.
 \item[$\phi$ Pitch (elevation) angle:] Angle between the $z$--axis 
-and the $Y$--axis. A positive angle of $\phi = \pi/2$ corresponds to
+and the $(X,Z)$ plane. A positive angle of $\phi = \pi/2$ corresponds to
 the $z$--axis pointing in the positive $Y$ direction.
 \item[$\psi$ Roll angle:] Angle of the $x$--axis with respect 
 to the line formed by the
@@ -81,9 +82,9 @@ positive $\psi$ forms a right--handed screw with the $z$--axis.
 \label{f:global_coords}
 \end{figure}
 
-By default, the reference orbit's origin at $s = 0$
-coincides with the
-$(X, Y, Z)$ origin and at $s = 0$ the $x$, $y$, and $z$ axes
+By default, at $s = 0$,
+the reference orbit's origin coincides with the
+$(X, Y, Z)$ origin and the $x$, $y$, and $z$ axes
 correspond to the $X$, $Y$, and $Z$ axes respectively. $\theta$
 decreases as one follows the reference orbit when going through a
 horizontal bend with a positive bending angle. This corresponds to $x$
@@ -104,7 +105,7 @@ Section~\ref{s:ref}. $p_x$ and $p_y$ are the normalized momenta
   p_x = &\frac{P_x}{P_0} \\
   p_y = &\frac{P_y}{P_0}
 \end{align}
-where $P_x$ and $P_y$ are, respectively, the momentum components along the $x$ and
+where $P_x$ and $P_y$ are respectively the momentum components along the $x$ and
 $y$ axes, and $P_0$ is the reference (sometimes called the
 design) momentum. The longitudinal canonical momentum $p_z$ is given by
 \begin{equation}
@@ -130,7 +131,7 @@ and $y' \equiv dy/ds$ is
 $\Bf a = q \, A / c \, P_0$ is the normalized vector potential,
 $g = 1/\rho$ is the curvature function with $\rho$ being the radius
 of curvature of the reference orbit and it has been assumed that the 
-bending is in the $x$--$z$ plane. $g = 0$ in a straight section.
+bending is in the $x$--$z$ plane.
 
 For those programmers using the PTC software package directly (ignore
 this if you don't know what I'm talking about) \'Etienne Forest uses a still

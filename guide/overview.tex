@@ -1,13 +1,14 @@
 \SECTION{Overview}
 
 \bmad\ (Otherwise known as ``Baby MAD" or ``Better MAD" or just plain
-``Be MAD!")  is an subroutine library used for relativistic
+``Be MAD!")  is a subroutine library for relativistic
 charged--particle dynamics simulations in high energy accelerators and
 storage rings. \bmad\ has been developed at Cornell University's
 Laboratory for Elementary Particle Physics and has been in use since
-the 1990's. 
+the mid 1990's. 
 
-Prior to \bmad, simulation programs were written almost from scratch to perform
+Prior to \bmad, simulation programs at Cornell were written almost from 
+scratch to perform
 calculations that were beyond the capability of existing, generally
 available software. This practice was inefficient, leading to much
 duplication of effort.  Since it was time consuming to write
@@ -19,8 +20,8 @@ in Fortran90, were developed to:
 \item Minimize computation times.
 \item Cut down on programming errors, 
 \item Provide a simple mechanism for lattice function calculations
-from within programs (control system or otherwise).
-\item Provide a flexible yet powerful lattice input format.
+from within control system programs.
+\item Provide a flexible and powerful lattice input format.
 \item Standardize sharing of lattice information between 
 programs.
 \end{Itemize}
@@ -35,15 +36,16 @@ matrices, emittances, Twiss parameters, dispersion, coupling, etc. The
 elements that \bmad\ knows about include quadrupoles, RF cavities
 (both storage ring and LINAC accelerating types), solenoids, dipole
 bends, etc. In addition, elements can be defined to control the
-attributes of other elements. This can be used, for example, to
-simulate the action of control room ``knobs'' which vary the strengths
-of multiple magnets in the lattice. Support ``I--beams'' can be
-defined that determine the position of multiple element. 
+attributes of other elements. This can be used to simulate the
+``I--beams'' which physically support components in the accelerator
+ or to easily simulate the action of control room ``knobs''
+that gang together, say, the current going through a set of quadrupoles.
 
 To go beyond the things that \bmad can do, \bmad has been developed
-to maximize flexibility. For example, different tracking methods may
-be defined for a given element type and what the actual tracking
-method used can be chosen at run time.
+in a modular, object oriented, fashion to maximize flexibility. As just one 
+example, each individual element can be assigned a particular tracking method
+in order to maximize speed or accuracy and the tracking methods can be assigned
+via the lattice file or at run time in a program.
 
 
 \vfill
