@@ -2,7 +2,9 @@
 
 ###########################################################
 # ussage: ./main_list.perl file0 file1 file2 ...,
-# Search files for main programs and print file_base_names. 
+# Search files for main programs and print file_base_names.
+# If there is multiple definitions of the "main" in a file it
+# will print filename only once 
 ###########################################################
 
 ###########################################################
@@ -30,7 +32,7 @@ LINE:while (<FILE1>){
     }
     }
     #search for "main" statement and printing file_base_name
-    if ( $_ =~ /^(?:\s*\t*)main/i){
+    if ( $_ =~ /^(?:\s*\t*)(?:\w*\s+\t*){0,2}main\W/i){
         if ($file =~ /(\w+)\.(c|cc|cpp|cxx)\Z/i){ #file_base_name
         print "$1 ";
         last LINE;
