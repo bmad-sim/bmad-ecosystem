@@ -408,7 +408,7 @@ subroutine get_attribute (how, ele, ring, pring, &
       return
     endif
 
-    write (str_ix, '(a, i2, a)') 'TERM(', ix, ')'
+    write (str_ix, '(a, i3, a)') 'TERM(', ix, ')'
 
     if (.not. associated(ele%wig_term)) then
       allocate(ele%wig_term(ix))

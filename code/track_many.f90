@@ -3,6 +3,25 @@
 !
 ! Subroutine to track from one point in the ring to another.
 !
+! Note: A faster way for tracking backward is to use a reversed ring using
+!   ring_reverse. See ring_reverse for more details.
+!
+! Note: Starting and ending points are just after the elements with index
+!   IX_START and IX_END. For example, if DIRECTION = +1 then the first element
+!   tracked through is element ix_start+1. If DIRECTION = -1 then the first
+!   element tracked through is element ix_start.
+!
+! Note: The coordinates for tracking backward are the same as for tracking 
+!   forward: That is, +z always points in the direction of increasing s, not 
+!   in the actual direction that the particle is traveling.
+!
+! Note: If needed the subroutine will track through from the end of the ring
+!   to the beginning (or vice versa) to get to the end point. 
+!   Also: If IX_START = IX_END then the subroutine will track 1 full turn.
+!
+! Note: If x_limit (or y_limit) for an element is zero then TRACK_MANY will
+!   take x_limit (or y_limit) as infinite (this is standard BMAD).
+!
 ! Modules Needed:
 !   use bmad
 !
@@ -25,32 +44,11 @@
 !   orbit_(ix_end) -- Coord_struct: Coordinates at end of tracking 
 !                       Also: the track between IX_START and IX_END
 !                       are filled in.
-!
-! Note: Starting and ending points are just after the elements with index
-!   IX_START and IX_END. For example, if DIRECTION = +1 then the first element
-!   tracked through is element ix_start+1. If DIRECTION = -1 then the first
-!   element tracked through is element ix_start.
-!
-! Note: If needed the subroutine will track through from the end of the ring
-!   to the beginning (or vice versa) to get to the end point. 
-!   Also: If IX_START = IX_END then the subroutine will track 1 full turn.
-!
-! Note: The coordinate system for tracking backwards is the same as it is
-! for tracking forwards. That is, the +z-direction always points in
-! the direction of increasing s.
-! Thus, in tracking backwards, a particle with positive z lags the reference 
-! particle and a particle with positive p_x has actually a negative x-velocity.
-!
-! Note: If x_limit (or y_limit) for an element is zero then TRACK_MANY will
-!   take x_limit (or y_limit) as infinite (this is standard BMAD).
 !-
 
 !$Id$
 !$Log$
-!Revision 1.6  2002/12/17 04:28:37  dcs
-!parser bug fix with "ele[b] = c" redefs and multiple ele elements.
-!
-!Revision 1.5  2002/07/16 20:44:02  dcs
+!Revision 1.7  2003/01/02 16:19:40  dcs
 !*** empty log message ***
 !
 !Revision 1.4  2002/06/13 14:54:29  dcs
@@ -143,54 +141,39 @@ subroutine track_fwd (ix1, ix2)
 end subroutine
 
 !--------------------------------------------------------------------------
-! TRACK1 thinks it is tracking "forward". However,
-! tracking backward is equivalent to tracking forwards with the coordinate
-! transformation s -> -s. Thus any longitudinal component of the
-! magnetic or electric field in an element must flipped in sign. 
-
-! For tracking backwards we make a coordinate transformation +z -> -z 
-! Now we can track "forward"
-! At the end we transform back -z -> +z
+! reverse_ele is used to reverse an element for tracking backwards.
+! However, a reversed element has a different coordinate system so
+! we need to transform to the flipped coordinate system, then track, then
+! flip back to the standard coord system.
 
 subroutine track_back (ix1, ix2)
 
-  integer ix1, ix2
-  logical reverse
-  real(rdef) mat_save(6,6)
+  type (ele_struct) ele
 
-!
+  integer ix1, ix2, ix_last 
+
+! flip to reversed coords
 
   orbit_(ix1)%x%vel = -orbit_(ix1)%x%vel
   orbit_(ix1)%y%vel = -orbit_(ix1)%y%vel
   orbit_(ix1)%z%pos = -orbit_(ix1)%z%pos
 
+! track
+
+  ix_last = ix2-1  ! last index we expect to track.
+
   do n = ix1, ix2, -1
 
-    reverse = .false.
-    if (ring%ele_(n)%key == solenoid$ .or. ring%ele_(n)%key == sol_quad$) &
-                                                            reverse = .true.
-
-    if (reverse) then
-      ring%ele_(n)%value(ks$) = -ring%ele_(n)%value(ks$)
-      mat_save = ring%ele_(n)%mat6
-      call make_mat6 (ring%ele_(n), ring%param, orbit_(n))
-    endif
-
-    call track1 (orbit_(n), ring%ele_(n), ring%param, orbit_(n-1))
-
-    if (reverse) then
-      ring%ele_(n)%value(ks$) = -ring%ele_(n)%value(ks$)
-      ring%ele_(n)%mat6 = mat_save
-    endif
+    ele = ring%ele_(n)
+    call reverse_ele (ele)
+    call track1 (orbit_(n), ele, ring%param, orbit_(n-1))
 
 ! check for lost particles
 
     if (ring%param%lost) then
       ring%param%ix_lost = n - 1
-      orbit_(n-1:ix1)%x%vel = -orbit_(n-1:ix1)%x%vel
-      orbit_(n-1:ix1)%y%vel = -orbit_(n-1:ix1)%y%vel
-      orbit_(n-1:ix1)%z%pos = -orbit_(n-1:ix1)%z%pos
-      return
+      ix_last = n-1
+      exit
     endif
 
     if (debug) then
@@ -200,9 +183,11 @@ subroutine track_back (ix1, ix2)
 
   enddo
 
-  orbit_(ix2:ix1)%x%vel = -orbit_(ix2:ix1)%x%vel
-  orbit_(ix2:ix1)%y%vel = -orbit_(ix2:ix1)%y%vel
-  orbit_(ix2:ix1)%z%pos = -orbit_(ix2:ix1)%z%pos
+! flip back to normal coords
+
+  orbit_(ix_last:ix1)%x%vel = -orbit_(ix_last:ix1)%x%vel
+  orbit_(ix_last:ix1)%y%vel = -orbit_(ix_last:ix1)%y%vel
+  orbit_(ix_last:ix1)%z%pos = -orbit_(ix_last:ix1)%z%pos
 
 end subroutine
 

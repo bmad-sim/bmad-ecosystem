@@ -26,6 +26,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.5  2003/01/02 16:19:40  dcs
+!*** empty log message ***
+!
 !Revision 1.4  2002/06/13 14:54:30  dcs
 !Interfaced with FPP/PTC
 !
@@ -61,6 +64,8 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   ele = ele2
 
   ele%value(l$) = del_s
+  if (ele%key == wiggler$) ele%value(n_pole$) = &
+                              ele2%value(n_pole$) * del_s / ele2%value(l$)
 
   if (present(start)) then
     c0 = start

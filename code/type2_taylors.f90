@@ -41,10 +41,10 @@ subroutine type2_taylors (bmad_taylor, lines, n_lines)
   allocate(lines(n_lines))
   
 
-  write (lines(nl+1), *) 'Taylor Terms:'
-  write (lines(nl+2), *) &
+  write (lines(1), *) 'Taylor Terms:'
+  write (lines(2), *) &
         'Out     Coef              Exponents           Order        Reference'
-  nl = nl+2
+  nl = 2
 
 
   fmt1 = '(i4, a, f20.12, 6i3, i9, f18.9)'

@@ -454,6 +454,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   case (wiggler$)
 
     call mat_make_unit (mat6)     ! make a unit matrix
+    if (length == 0) goto 8000
 
     k1 = ele%value(k1$) / rel_E**2
 

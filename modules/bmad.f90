@@ -9,5 +9,6 @@ module bmad
   use track1_mod
   use dcslib
   use boris_mod
+  use reverse_mod
 
 end module
