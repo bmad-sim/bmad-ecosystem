@@ -47,13 +47,21 @@ module bmad_parser_mod
     integer ix_line               ! line number in filewhere sequence is defined
   end type
 
-! stack structure
+! stack structures
 
   type seq_stack_struct
     integer ix_seq                ! index to seq_(:) array
     integer ix_ele                ! index to seq%ele(:) array
     integer rep_count             ! repetition count
     integer reflect               ! reflection sequence?
+  end type
+
+  type stack_file_struct
+    character(200) logical_name
+    character(200) full_name
+    character(200) :: dir = './'
+    integer i_line
+    integer f_unit
   end type
 
 !-----------------------------------------------------------
@@ -101,10 +109,9 @@ module bmad_parser_mod
 
   type bp_com_struct
     type (parser_var_struct), pointer ::  var_(:) => null()
-    integer i_line, f_unit, n_files
+    type (stack_file_struct) current_file
+    integer n_files
     character*200 file_name_(20)        ! List of files all opened.
-    character*200 current_file_name_in  ! Has possible logical directory
-    character*200 current_file_name     ! Full expanded name.
     character*280 parse_line
     character(140) input_line1          ! For debug messages
     character(140) input_line2          ! For debug messages
@@ -765,15 +772,20 @@ end subroutine
 
 subroutine file_stack (how, file_name_in, finished)
 
+  use cesr_utils
+
   implicit none
 
   integer, parameter :: f_maxx = 10
-  integer lunget, i_line_(f_maxx), f_unit_(f_maxx), i_level, ios
+  type (stack_file_struct), save :: file(0:f_maxx)
 
-  character*(*) how, file_name_in
-  character*200 stack_file_name_in(f_maxx), stack_file_name(f_maxx), file_name
+  integer i_level, ios
 
-  logical finished
+  character(*) how, file_name_in
+  character(200) file_name, basename
+  character(200) :: dirs(3) = (/ &
+                      './           ', './           ', '$BMAD_LAYOUT:' /)
+  logical finished, found_it
 
   save i_level
 
@@ -791,17 +803,17 @@ subroutine file_stack (how, file_name_in, finished)
       print *, 'ERROR: CALL NESTING GREATER THAN 10 LEVELS'
       call err_exit
     endif
-    call fullfilename(file_name_in, file_name)
-    stack_file_name_in(i_level) = file_name_in
-    stack_file_name(i_level) = file_name
-    bp_com%current_file_name_in = file_name_in
-    bp_com%current_file_name = file_name
-    f_unit_(i_level) = lunget()
-    bp_com%f_unit = f_unit_(i_level)
-    if (i_level /= 1) i_line_(i_level-1) = bp_com%i_line
-    bp_com%i_line = 0
+    call splitfilename (file_name_in, file(i_level)%dir, basename)
+    dirs(2) = file(i_level-1)%dir
+    call find_file (file_name_in, found_it, file_name, dirs)
+    file(i_level)%logical_name = file_name_in
+    file(i_level)%full_name = file_name
+    file(i_level)%f_unit = lunget()
+    bp_com%current_file = file(i_level)
+    if (i_level /= 1) file(i_level-1)%i_line = bp_com%current_file%i_line
+    bp_com%current_file%i_line = 0
 
-    open (bp_com%f_unit, file = file_name,  &
+    open (bp_com%current_file%f_unit, file = file_name,  &
                                  status = 'OLD', action = 'READ', iostat = ios)
     if (ios /= 0) then
       print *, 'ERROR IN ', trim(bp_com%parser_name)
@@ -817,15 +829,12 @@ subroutine file_stack (how, file_name_in, finished)
     inquire (file = file_name, name = bp_com%file_name_(bp_com%n_files))
 
   elseif (how == 'pop') then
-    close (unit = bp_com%f_unit)
+    close (unit = bp_com%current_file%f_unit)
     i_level = i_level - 1
     if (i_level < 0) then
       call error_exit ('BAD "RETURN"', ' ')
     elseif (i_level > 0) then
-      bp_com%current_file_name_in = stack_file_name_in(i_level)
-      bp_com%current_file_name = stack_file_name(i_level)
-      bp_com%f_unit = f_unit_(i_level)
-      bp_com%i_line = i_line_(i_level)
+      bp_com%current_file = file(i_level)
     else    ! i_level == 0
       finished = .true.
     endif
@@ -868,8 +877,8 @@ subroutine load_parse_line (how, ix_cmd, file_end)
       line = pending_line
       cmd_pending = .false.
     else
-      read (bp_com%f_unit, '(a)', end = 9000) line
-      bp_com%i_line = bp_com%i_line + 1
+      read (bp_com%current_file%f_unit, '(a)', end = 9000) line
+      bp_com%current_file%i_line = bp_com%current_file%i_line + 1
     endif
 
     if (how == 'continue') then
@@ -1858,8 +1867,8 @@ subroutine error_exit (what1, what2)
   if (present(what2)) then
     if (what2 /= ' ') print '(22x, a)', what2
   endif
-  print *, '      IN FILE: ', bp_com%current_file_name(:60)
-  print *, '      AT OR BEFORE LINE:', bp_com%i_line
+  print *, '      IN FILE: ', trim(bp_com%current_file%full_name)
+  print *, '      AT OR BEFORE LINE:', bp_com%current_file%i_line
   call err_exit
 
 end subroutine
@@ -1894,8 +1903,8 @@ subroutine warning (what1, what2, seq)
       print *, '      IN FILE: ', trim(seq%file_name)
       print *, '      AT LINE:', seq%ix_line
     else
-      print *, '      IN FILE: ', trim(bp_com%current_file_name)
-      print *, '      AT OR BEFORE LINE:', bp_com%i_line
+      print *, '      IN FILE: ', trim(bp_com%current_file%full_name)
+      print *, '      AT OR BEFORE LINE:', bp_com%current_file%i_line
     endif
 
     if (bp_com%input_line_meaningful) then
@@ -2478,8 +2487,8 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
 ! save info on what file we are parsing for error messages.
 
   seq => sequence_(iseq_tot)
-  seq%file_name = bp_com%current_file_name 
-  seq%ix_line = bp_com%i_line
+  seq%file_name = bp_com%current_file%full_name 
+  seq%ix_line = bp_com%current_file%i_line
 
 ! first thing should be a "("
 
