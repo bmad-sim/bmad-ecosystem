@@ -574,12 +574,12 @@ primary lattice file as discussed in Section~\ref{s:depend}.
 
 The kick felt by a particle is 
 \begin{example}
-  dE = voltage * cos(twopi * (phi0 - z * rf_frequency / c_light))
+  dE = gradient * L * cos(twopi * (phi0 - z * rf_frequency / c_light))
 \end{example}
 This is consistent with MAD and LIAR. Note: The MAD8 documentation 
 for an \vn{LCavity} gives essentially
 \begin{example}
-  dE = voltage * cos(twopi * (phi0 + z * rf_frequency / c_light)) ! WRONG
+  dE = gradient * L * cos(twopi * (phi0 + z * rf_frequency / c_light)) ! WRONG
 \end{example}
 This is incorrect.
 
