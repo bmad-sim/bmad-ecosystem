@@ -5,8 +5,12 @@
 ! Subroutine to calculate the "invariant" amplitude of a particle at a 
 ! particular point in its orbit. This routine takes into account dispersion 
 ! and coupling. For uncoupled motion the horizontal motion is
-!     x(s) = sqrt[amp_a * beta_a(s)] * cos[phi(s)] + eta(s) * p_z(s)
+!     x(s) = sqrt[2 * amp_a * beta_a(s)] * cos[phi(s)] + eta(s) * p_z(s)
 ! The amplitude is calculated at the exit end of ele.
+! Notice that with the factor of 2 here the emittance is simply an average 
+! of amp_a over all the particles in a bunch:
+!     emit_a = <amp_a>
+!
 ! The energy normalized amplitudes amp_na and amp_nb are used when the energy
 ! is changing. These are the true invariants. The relationship is:
 !     amp_na = amp_a * gamma_E
@@ -51,14 +55,14 @@ subroutine orbit_amplitude_calc (ele, orb, amp_a, amp_b, &
   a_orb = matmul (v_inv_mat, orb%vec(1:4)) - &
               orb%vec(6) * (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /)
 
-  amp = ele%x%gamma * a_orb(1)**2 + 2 * ele%x%alpha * a_orb(1)*a_orb(2) + &
-                                                      ele%x%beta * a_orb(2)**2
+  amp = (ele%x%gamma * a_orb(1)**2 + 2 * ele%x%alpha * a_orb(1)*a_orb(2) + &
+                                                 ele%x%beta * a_orb(2)**2) / 2
   if (present(amp_a)) amp_a = amp
   if (present(amp_na)) amp_na = &
           amp * ele%value(beam_energy$) * (1 + orb%vec(6)) / mass_of(particle)
 
-  amp = ele%y%gamma * a_orb(3)**2 + 2 * ele%y%alpha * a_orb(3)*a_orb(4) + &
-                                                      ele%y%beta * a_orb(4)**2
+  amp = (ele%y%gamma * a_orb(3)**2 + 2 * ele%y%alpha * a_orb(3)*a_orb(4) + &
+                                                 ele%y%beta * a_orb(4)**2) / 2
   if (present(amp_b)) amp_b = amp
   if (present(amp_nb)) amp_nb = &
           amp * ele%value(beam_energy$) * (1 + orb%vec(6)) / mass_of(particle)
