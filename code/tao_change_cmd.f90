@@ -98,6 +98,16 @@ case ('var')
 
 case ('ele')
 
+  call string_trim (name, name, ix)
+
+  if (ix .gt. 16) then
+    call out_io (s_error$, r_name, 'ELEMENT NAME CANNOT BE &
+  		GREATER THAN 16 CHARACTERS')
+    return
+  endif
+  
+  ele_name = name
+  
   call tao_locate_element (ele_name, u%model, ix_ele)
   if (ix_ele < 0) return
 

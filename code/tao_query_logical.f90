@@ -32,7 +32,9 @@ do
     str = false_sym
   endif
 
-  write (*, '(10a)', advance = 'NO'), trim(prompt), ' (', trim(true_sym), &
+! write (*, '(10a)', advance = 'NO'), trim(prompt), ' (', trim(true_sym), &
+!     '/', trim(false_sym), ') <', trim(str), '> ' 
+  print '(10a, $)', trim(prompt), ' (', trim(true_sym), &
       '/', trim(false_sym), ') <', trim(str), '> ' 
   read  (*, '(a)') ans
 

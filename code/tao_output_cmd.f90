@@ -19,8 +19,12 @@ type (tao_super_universe_struct) s
 character(*) what
 character(20) :: r_name = 'tao_output_cmd'
 
+integer ix
+
 !
 
+call string_trim (what, what, ix)
+call string_trim (what(1:ix), what, ix)
 select case (what)
 
 ! hard
