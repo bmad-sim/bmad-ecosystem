@@ -1921,7 +1921,7 @@ subroutine mad_map_to_taylor (map, taylor)
             taylor(i)%term(nt)%coef = map%t(i,j,k)
             taylor(i)%term(nt)%exp(j) = 2
           else
-            taylor(i)%term(nt)%coef = map%t(i,j,k) / 2
+            taylor(i)%term(nt)%coef = 2 * map%t(i,j,k)
             taylor(i)%term(nt)%exp(j) = 1
             taylor(i)%term(nt)%exp(k) = 1
           endif
