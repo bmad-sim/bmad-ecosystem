@@ -403,8 +403,10 @@ end subroutine
 
 ! This routine splits the command into words.
 !
+! Anything between single or double quotes is treated as a single word.
+!
 ! The separator argument is a list of characters that, besides a blank space,
-!  signify a word boundary.
+!  signify a word boundary. 
 ! For example: 
 !   separator = '-+' 
 !   cmd_line = 'model-design'
@@ -415,7 +417,7 @@ end subroutine
 
 subroutine cmd_split (n_word, no_extra_words, err, separator)
 
-  integer i, n, n_word
+  integer i, n, n_word, ix_end_quote
   character(*), optional :: separator
   logical err
   logical no_extra_words
@@ -438,10 +440,21 @@ subroutine cmd_split (n_word, no_extra_words, err, separator)
   endif
 
   ix_line = 0
+  ix_end_quote = 0
   
   do n = 1, n_word
     call string_trim (cmd_line(ix_line+1:), cmd_line, ix_line)
-    cmd_word(n) = cmd_line(:ix_line)
+    if (cmd_line(1:1) .eq. '"') then
+      ix_end_quote = index(cmd_line(2:), '"')
+      if (ix_end_quote .eq. 0) ix_end_quote = len(cmd_line)
+      cmd_word(n) = cmd_line(2:ix_end_quote)
+    elseif (cmd_line(1:1) .eq. "'") then
+      ix_end_quote = index(cmd_line(2:), "'")
+      if (ix_end_quote .eq. 0) ix_end_quote = len(cmd_line)
+      cmd_word(n) = cmd_line(2:ix_end_quote)
+    else
+      cmd_word(n) = cmd_line(:ix_line)
+    endif 
     if (ix_line == 0) return
   enddo
 
