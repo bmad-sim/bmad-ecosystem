@@ -257,7 +257,7 @@ do i = 1, size(ele%wake%sr2_long)
 
   k = twopi * sr2_long%freq / c_light
   f_exp = sr2_long%damp
-  ff = sr2_long%amp * exp(orbit%vec(5) * f_exp) / ele%value(beam_energy$) 
+  ff = sr2_long%amp * exp(-orbit%vec(5) * f_exp) / ele%value(beam_energy$) 
 
   c = cos (orbit%vec(5) * k)
   s = sin (orbit%vec(5) * k)
@@ -315,7 +315,7 @@ do i = 1, size(ele%wake%sr2_trans)
 
   k = twopi * sr2_trans%freq / c_light
   f_exp = sr2_trans%damp
-  ff = sr2_trans%amp * exp(orbit%vec(5) * f_exp) / ele%value(beam_energy$) 
+  ff = sr2_trans%amp * exp(-orbit%vec(5) * f_exp) / ele%value(beam_energy$) 
 
   c = cos (orbit%vec(5) * k)
   s = sin (orbit%vec(5) * k)
