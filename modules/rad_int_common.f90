@@ -5,31 +5,6 @@
 !   use rad_int_common
 !-
 
-!$Id$
-!$Log$
-!Revision 1.9  2003/06/04 17:56:07  dcs
-!Eliminated x%pos, x%vel, etc. from coord_struct.
-!
-!Revision 1.8  2003/05/02 15:44:35  dcs
-!F90 standard conforming changes.
-!
-!Revision 1.7  2003/01/27 14:41:01  dcs
-!bmad_version = 56
-!
-!Revision 1.5  2002/06/13 14:55:00  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.4  2002/02/23 20:32:32  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.3  2001/10/02 18:50:26  rwh24
-!Extended track_input_struct in bmad_struct.
-!Fixed qromb_rad_int definition in rad_int_common.
-!
-!Revision 1.2  2001/09/27 18:32:13  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
 
 module rad_int_common               
@@ -439,17 +414,6 @@ subroutine propagate_part_way (s)
 ! non-exact wiggler calc
 
   if (ric%ele%key == wiggler$ .and. ric%ele%sub_key == map_type$) then
-!    n_pts = ric%rk_track(i)%n_pts
-!    call bracket_index (ric%rk_track(i)%s(1:n_pts), s, ix)
-
-!    if (ix == n_pts) then
-!      orb = ric%rk_track(i)%orb(n_pts)
-!    else
-!      s1 = s - ric%rk_track(i)%s(ix)
-!      s2 = ric%rk_track(i)%s(ix+1) - s
-!      orb%vec = (s2 * ric%rk_track(i)%orb(ix)%vec + &
-!                s1 * ric%rk_track(i)%orb(ix+1)%vec) / (s1 + s2)
-!    endif
 
     f0 = (ric%ele%value(l$) - s) / ric%ele%value(l$)
     f1 = s / ric%ele%value(l$)

@@ -44,29 +44,7 @@
 !         ric%i5b_(:) -- "B" mode I5 integral for each element.
 !-       
 
-!$Id$
-!$Log$
-!Revision 1.7  2003/03/04 16:03:29  dcs
-!VMS port
-!
-!Revision 1.6  2002/11/04 16:49:26  dcs
-!*** empty log message ***
-!
-!Revision 1.5  2002/07/16 20:44:01  dcs
-!*** empty log message ***
-!
-!Revision 1.4  2002/06/13 14:54:28  dcs
-!Interfaced with FPP/PTC
-!
-!Revision 1.3  2002/02/23 20:32:22  dcs
-!Double/Single Real toggle added
-!
-!Revision 1.2  2001/09/27 18:31:56  rwh24
-!UNIX compatibility updates
-!
-
 #include "CESR_platform.inc"
-
 
 subroutine radiation_integrals (ring, orb_, mode)
                      
@@ -98,12 +76,13 @@ subroutine radiation_integrals (ring, orb_, mode)
 
 !---------------------------------------------------------------------
 ! loop over all elements
+! We do the non-wiggler elements first since we can do this quickly.
 
   ric%ring => ring
 
-  do ir = 1, ring%n_ele_use     
+  do ir = 1, ring%n_ele_use
 
-    ric%ele => ring%ele_(ir)         
+    ric%ele => ring%ele_(ir)
     ric%orb1 => orb_(ir)
 
     if (.not. ric%ele%is_on) cycle
@@ -111,7 +90,7 @@ subroutine radiation_integrals (ring, orb_, mode)
     ric%ele0 => ring%ele_(ir-1)
     ric%orb0 => orb_(ir-1)
 
-    ll = ric%ele%value(l$) 
+    ll = ric%ele%value(l$)
     if (ll == 0) cycle
 
     key = ric%ele%key
@@ -119,7 +98,7 @@ subroutine radiation_integrals (ring, orb_, mode)
     ric%g_x0 = -ric%ele%value(hkick$) / ll
     ric%g_y0 = -ric%ele%value(vkick$) / ll
 
-    if (key == rfcavity$) m65 = m65 + ric%ele%mat6(6,5) 
+    if (key == rfcavity$) m65 = m65 + ric%ele%mat6(6,5)
 
 ! custom
 
@@ -149,15 +128,19 @@ subroutine radiation_integrals (ring, orb_, mode)
       ric%i2_(ir)  =   qromb_rad_int (eval_i2,  0.0_rdef, ll, i2, 'I2')
       ric%i3_(ir)  =   qromb_rad_int (eval_i3,  0.0_rdef, ll, i3, 'I3')
       ric%i4a_(ir) = ric%i4a_(ir) + &
-                         qromb_rad_int (eval_i4a, 0.0_rdef, ll, i4a, 'I4A')
+                         qromb_rad_int (eval_i4a, 0.0_rdef, ll, i2, 'I4A')
       ric%i4b_(ir) = ric%i4b_(ir) + &
-                         qromb_rad_int (eval_i4b, 0.0_rdef, ll, i4b, 'I4B')
+                         qromb_rad_int (eval_i4b, 0.0_rdef, ll, i2, 'I4B')
       ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a, 'I5A')
       ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b, 'I5B')
 
       cycle
 
     endif
+
+! cycle on new style wigglers.
+
+    if (key == wiggler$ .and. ric%ele%sub_key == map_type$) cycle
 
 ! for an old style wiggler we make the approximation that the variation of G is
 ! fast compaired to the variation in eta.
@@ -175,48 +158,17 @@ subroutine radiation_integrals (ring, orb_, mode)
       ric%i5b_(ir) = qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b, 'I5B')
       cycle
     endif
-   
 
-    if (key == wiggler$ .and. ric%ele%sub_key == map_type$) then
-
-!      call track1_runge_kutta (ric%orb0, ric%ele, ric%ring%param, end)
-!      call transfer_rk_track (rk_com, ric%rk_track(0))
-
-      call make_v_mats (ric%ele0, v, v_inv)
-      ric%eta_a0 = &      
-          matmul(v, (/ ric%ele0%x%eta, ric%ele0%x%etap, 0.0_rdef, 0.0_rdef /))
-      ric%eta_b0 = &
-          matmul(v, (/ 0.0_rdef, 0.0_rdef, ric%ele0%y%eta, ric%ele0%y%etap /))
-
-      call make_v_mats (ric%ele, v, v_inv)
-      ric%eta_a1 = &      
-          matmul(v, (/ ric%ele%x%eta, ric%ele%x%etap, 0.0_rdef, 0.0_rdef /))
-      ric%eta_b1 = &
-          matmul(v, (/ 0.0_rdef, 0.0_rdef, ric%ele%y%eta, ric%ele%y%etap /))
-
-      ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rdef, ll, i1, 'I1')
-      ric%i2_(ir)  =   qromb_rad_int (eval_i2,  0.0_rdef, ll, i2, 'I2')
-      ric%i3_(ir)  =   qromb_rad_int (eval_i3,  0.0_rdef, ll, i3, 'I3')
-      ric%i4a_(ir) = ric%i4a_(ir) + &
-                         qromb_rad_int (eval_i4a, 0.0_rdef, ll, i4a, 'I4A')
-      ric%i4b_(ir) = ric%i4b_(ir) + &
-                         qromb_rad_int (eval_i4b, 0.0_rdef, ll, i4b, 'I4B')
-      ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a, 'I5A')
-      ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b, 'I5B')
-
-      cycle
-
-    endif
 
 !
- 
+
     if (ric%g_x0 == 0 .and. ric%g_y0 == 0 .and. &
           key /= quadrupole$ .and. key /= sol_quad$ .and. key /= sbend$) cycle
 
     if (key == sbend$) then
       theta = ric%ele%value(tilt$) + ric%ele%value(roll$)
-      ric%g_x0 = ric%g_x0 + cos(theta) * ric%ele%value(g$) 
-      ric%g_y0 = ric%g_y0 - sin(theta) * ric%ele%value(g$) 
+      ric%g_x0 = ric%g_x0 + cos(theta) * ric%ele%value(g$)
+      ric%g_y0 = ric%g_y0 - sin(theta) * ric%ele%value(g$)
     endif
 
     ric%g2 = ric%g_x0**2 + ric%g_y0**2
@@ -251,13 +203,64 @@ subroutine radiation_integrals (ring, orb_, mode)
                            ric%eta_b(1) * ric%g2 * tan(ric%ele%value(e2$))
     endif
 
-! integrate 
+! integrate
 
     ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rdef, ll, i1, 'I1')
     ric%i4a_(ir) = ric%i4a_(ir) + &
-                         qromb_rad_int (eval_i4a, 0.0_rdef, ll, i4a, 'I4A')
+                         qromb_rad_int (eval_i4a, 0.0_rdef, ll, i2, 'I4A')
     ric%i4b_(ir) = ric%i4b_(ir) + &
-                         qromb_rad_int (eval_i4b, 0.0_rdef, ll, i4b, 'I4B')
+                         qromb_rad_int (eval_i4b, 0.0_rdef, ll, i2, 'I4B')
+    ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a, 'I5A')
+    ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b, 'I5B')
+
+  enddo
+
+! For map type wigglers
+
+  do ir = 1, ring%n_ele_use
+
+    ric%ele => ring%ele_(ir)
+    ric%orb1 => orb_(ir)
+    key = ric%ele%key
+
+    if (key /= wiggler$) cycle
+    if (.not. ric%ele%is_on) cycle
+    if (ric%ele%sub_key == periodic_type$) cycle
+
+    ric%ele0 => ring%ele_(ir-1)
+    ric%orb0 => orb_(ir-1)
+
+    ll = ric%ele%value(l$)
+    if (ll == 0) cycle
+
+    ric%g_x0 = -ric%ele%value(hkick$) / ll
+    ric%g_y0 = -ric%ele%value(vkick$) / ll
+
+    call make_v_mats (ric%ele0, v, v_inv)
+    ric%eta_a0 = &
+          matmul(v, (/ ric%ele0%x%eta, ric%ele0%x%etap, 0.0_rdef, 0.0_rdef /))
+    ric%eta_b0 = &
+          matmul(v, (/ 0.0_rdef, 0.0_rdef, ric%ele0%y%eta, ric%ele0%y%etap /))
+
+    call make_v_mats (ric%ele, v, v_inv)
+    ric%eta_a1 = &
+          matmul(v, (/ ric%ele%x%eta, ric%ele%x%etap, 0.0_rdef, 0.0_rdef /))
+    ric%eta_b1 = &
+          matmul(v, (/ 0.0_rdef, 0.0_rdef, ric%ele%y%eta, ric%ele%y%etap /))
+
+    i1   = sum(ric%i1_(1:ring%n_ele_use))
+    i2   = sum(ric%i2_(1:ring%n_ele_use))
+    i3   = sum(ric%i3_(1:ring%n_ele_use))
+    i5a  = sum(ric%i5a_(1:ring%n_ele_use))
+    i5b  = sum(ric%i5b_(1:ring%n_ele_use))
+
+    ric%i1_(ir)  =   qromb_rad_int (eval_i1,  0.0_rdef, ll, i1, 'I1')
+    ric%i2_(ir)  =   qromb_rad_int (eval_i2,  0.0_rdef, ll, i2, 'I2')
+    ric%i3_(ir)  =   qromb_rad_int (eval_i3,  0.0_rdef, ll, i3, 'I3')
+    ric%i4a_(ir) = ric%i4a_(ir) + &
+                         qromb_rad_int (eval_i4a, 0.0_rdef, ll, i2, 'I4A')
+    ric%i4b_(ir) = ric%i4b_(ir) + &
+                         qromb_rad_int (eval_i4b, 0.0_rdef, ll, i2, 'I4B')
     ric%i5a_(ir) =   qromb_rad_int (eval_i5a, 0.0_rdef, ll, i5a, 'I5A')
     ric%i5b_(ir) =   qromb_rad_int (eval_i5b, 0.0_rdef, ll, i5b, 'I5B')
 
