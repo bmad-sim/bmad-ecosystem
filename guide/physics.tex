@@ -30,7 +30,7 @@ Table~\ref{t:units}.  Note that \mad\ uses different units. For example,
 \section{Constants}
 \label{s:constants}
 
-\bmad\ defines commonly used physical and mathematical constants as
+\bmad\ defines commonly used physical and mathematical constants
 shown in Table~\ref{t:constants}.  All symbols use straight SI units
 except for \vn{e_mass} and \vn{p_mass} which are provided for
 compatibility with \mad.
@@ -66,28 +66,28 @@ compatibility with \mad.
 Start with the assumption that the local magnetic field has no
 longitudinal component (obviously this assumption does not work with,
 say, a solenoid).  Following \mad, the vertical magnetic field is
-expanded in a Taylor Series
+expanded in a Taylor series
 \Begineq
   B_y(x, 0) = \sum_n B_n \, \frac{x^n}{n!}
 \Endeq
-Assuming that the Reference Orbit is locally along a straight line
-(there are correction terms if the Reference Orbit is locally curved) the 
+Assuming that the reference orbit is locally straight 
+(there are correction terms if the Reference Orbit is locally curved), the 
 field up to $3^{rd}$ order is
 \begin{alignat}{5}
   B_x &=           &&B_1 y \plus         &&B_2 \, xy       && \plus && \frac{1}{6} B_3 (3x^2 y - y^3) \plus \ldots \\
   B_y &= B_0 \plus &&B_1 x + \frac{1}{2} &&B_2 (x^2 - y^2) && \plus && \frac{1}{6} B_3 (x^3 - 3x y^2) \plus \ldots
 \end{alignat}
-When specifying magnetic multipole components what is used is the
-normalized integrated multipole $K_nL$
+The normalized integrated multipole $K_nL$ is used When specifying magnetic
+multipole components
 \Begineq
   K_nL = \frac{c \, L \, B_n}{P_0}
 \Endeq
-where $L \, B_n$ is the integrated multipole component over a length
-$L$ and $P_0$ is the nominal beam momentum. Note that often you will see
-$P_0$ written as $B\rho$. This is just an old notation where $\rho$
-is the bending radius of a particle with the nominal energy in a field
-of strength $B$. In terms of the kicks $\Delta p_x$ and $\Delta p_y$
-a particle experineces going through a multipole field is
+$L \, B_n$ is the integrated multipole component over a length $L$,
+and $P_0$ is the nominal beam momentum. Note that $P_0$ is sometimes
+written as $B\rho$. This is just an old notation where $\rho$ is the
+bending radius of a particle with the nominal energy in a field of
+strength $B$. The kicks $\Delta p_x$ and $\Delta p_y$ that a
+particle experineces going through a multipole field is
 \begin{alignat}{5}
   \Delta p_x & = \frac{-L \, B_y}{P_0} \\
              & = -K_0 L \;-\; 
@@ -100,7 +100,7 @@ a particle experineces going through a multipole field is
              && K_2 L \, xy && \plus 
              && \frac{1}{6} K_3L (3x^2 y - y^3) \plus \ldots \nonumber 
 \end{alignat}
-Note that in particular a positive $K_1L$ quadrupole component gives
+A positive $K_1L$ quadrupole component gives
 horizontal focusing and vertical defocusing. 
 
 If the fields associated with a particular $B_n$ multipole component
@@ -113,12 +113,12 @@ field at a point $(x,y)$ can be expressed in complex notation as
 where $(r, \theta)$ are the polar coordinates of the point $(x, y)$.
 
 Another representation of the magnetic field used by \bmad\ divides
-the fields into normal $b_n$ and skew $a_n$ components In terms of
+the fields into normal $b_n$ and skew $a_n$ components. In terms of
 these components the magnetic field is
 \Begineq
   \frac{L}{P_0} \, (B_y + i B_x) = (b_n + i a_n) \, (x + i y)^n
 \Endeq
-The conversion between $a_n$, $b_n$ and $K_nL$, $\phi_n$ is
+The conversion between $(a_n, b_n)$ and $(K_nL, \phi_n)$ is
 \Begineq
   b_n + i a_n = \frac{1}{n!} \, K_nL \, e^{-i(n+1)\phi_n}
 \Endeq
@@ -130,17 +130,17 @@ or
 
 When the $a_n$ and $b_n$ are associated with a physical element (as
 opposed to the $a_n$ and $b_n$ associated with an \vn{ab_multipole}),
-a measurement radius $r_0$ and a scale factor
-$F$ are used to scale the $a_n$ and $b_n$ according to the formula
+a measurement radius $r_0$ and a scale factor $F$ are used to scale
+the $a_n$ and $b_n$ according to the formula
 \begin{align}
   a_n &\rightarrow 
         a_n \cdot F \cdot \frac{r_0^{n_\text{ref}}}{r_0^n} \nonumber \\
   b_n &\rightarrow 
         b_n \cdot F \cdot \frac{r_0^{n_\text{ref}}}{r_0^n}
 \end{align}
-$r_0$ is set by the \vn{radius} attribute of an element. $F$ and $n_\text{ref}$ 
-are set automatically depending upon the type of element as shown in 
-table~\ref{t:ab}
+where $r_0$ is set by the \vn{radius} attribute of an element. $F$ and
+$n_\text{ref}$ are set automatically depending upon the type of
+element as shown in Table~\ref{t:ab}
 
 \begin{table}[h]
 \centering
@@ -167,25 +167,25 @@ table~\ref{t:ab}
 \section{Taylor Maps}
 \label{s:taylor_phys}
 
-A Transport Map ${\cal M}: {\cal R}^6 \rightarrow {\cal R}^6$ through
+A transport map ${\cal M}: {\cal R}^6 \rightarrow {\cal R}^6$ through
 an element or a section of a lattice is a function that maps the
-starting phase space coordinates $\Bf r_{in}$ to the ending
-coordinates $\Bf r_{out}$
+starting phase space coordinates $\Bf r_{\In}$ to the ending
+coordinates $\Bf r_{\Out}$
 \begin{equation}
-  \Bf r_(out) = {\cal M} \, \Bf r_(in)
+  \Bf r_(\Out) = {\cal M} \, \Bf r_(\In)
 \end{equation}
-${\cal M}$ is made up of 6 functions ${\cal M}_i: {\cal R}^6
- \rightarrow {\cal R}$. Each of these functions maps to one of the $r_{out}$
+${\cal M}$ is made up of six functions ${\cal M}_i: {\cal R}^6
+ \rightarrow {\cal R}$. Each of these functions maps to one of the $r_{\Out}$
 coordinates. These functions can be expanded in a Taylor
-series. The Taylor Map corresponding to $\cal M$ is the collection of
-the 6 Taylor series. Each series is in the form
+series. The Taylor map corresponding to $\cal M$ is the collection of
+the six Taylor series. Each series is in the form
 \Begineq
-  r_i(out) = \sum_{j = 1}^N \, C_{ij} \, \prod_{k = 1}^6 \, r_k^{e_{ijk}}(in)
+  r_i(\Out) = \sum_{j = 1}^N \, C_{ij} \, \prod_{k = 1}^6 \, r_k^{e_{ijk}}(\In)
 \Endeq
 Where the $C_{ij}$ are coefficients and the $e_{ijk}$ are integer exponents.
-The order of the Map is
+The order of the map is
 \Begineq
-  \mbox{Map Order} = \max_{i,j} \, \sum_{k = 1}^6 e_{ijk}
+  \mbox{order} = \max_{i,j} \, \sum_{k = 1}^6 e_{ijk}
 \Endeq
 
 %-----------------------------------------------------------------
@@ -234,14 +234,14 @@ As discussed in Section~\ref{s:wig} \bmad\ wiggler elements are split into
 two classes: map type and periodic type.
 
 
-The map type wigglers are modeled using the paper by Sagan, Crittenden, 
+The map type wigglers are modeled using the method of Sagan, Crittenden, 
 and Rubin\cite{b:scr}. In this model the magnetic field is written as 
 a sum of terms $B_i$
 \Begineq
   B(x,y,z) = \sum_i B_i(x, y, z; C, k_x, k_y, k_z, \phi_z)
 \Endeq 
-each term $B_i$ is specified in using 5 numbers: 
-$(C, k_x, k_y, k_z, phi_z)$. A term can take one of three forms. The first
+Each term $B_i$ is specified in using five numbers: 
+$(C, k_x, k_y, k_z, \phi_z)$. A term can take one of three forms: The first
 form is
 \begin{alignat}{4}
   B_x &= -&C &\dfrac{k_x}{k_y} & \sin(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
@@ -256,7 +256,7 @@ The second form is
   B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sinh(\kyy) \sin(\ksss) \CRneg
   & \makebox[1pt][l]{with $k_y^2 = k_s^2 - k_x^2$ ,} &&&  \label{f2}
 \end{alignat}
-and the third form is
+The third form is
 \begin{alignat}{4}
   B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sin(\kyy) \cos(\ksss) \CRNEG
   B_y &=  &C &                 & \cosh(\kxx) \cos(\kyy) \cos(\ksss) \CRNEG
@@ -297,8 +297,8 @@ number generator. The energy lost is
 \Endeq
 where
 \Begineq
-  k_f \equiv \sqrt{\frac{55 \, r_e \, \hbar \, c}{24 \, \sqrt{3} m_e} \, 
-  L_p \, \gamma0^5 \ave{g^3}} \, \xi \, (1 + p_z)
+  k_f \equiv \left( \frac{55 \, r_e \, \hbar \, c}{24 \, \sqrt{3} \, m_e} \, 
+  L_p \, \gamma0^5 \ave{g^3} \right)^{1/2} \, (1 + p_z) \, \xi
 \Endeq
 $\xi$ is a Gaussian distributed random number with unit sigma and zero mean.
 
@@ -323,12 +323,28 @@ the changes in $p_x$ and $p_y$
 \label{s:wakefields}
 
 
-
 %-----------------------------------------------------------------
 \section{Macroparticles}
 \label{s:macro}
 
+A macroparticle\cite{b:transport_appendix} is a bundle of particles
+whose distribution is assumed to be Gaussian in shape. A macroparticle
+is represented by a centroid position $\bfrbar$ and a $6 \times 6$
+$\bfsigma$ matrix which defines the shape of the macroparticle in
+phase space.
 
+$\bfsigma$ is a real, non-negative symmetric matrix. The equation that
+defines the ellipsoid at a distance of $n\sigma$ from the centroid is
+\Begineq
+  (\bfr - \bfrbar)^t \bfsigma\inv (\bfr - \bfrbar) = n
+\Endeq
+where a $t$ superscript denotes the transpose. Given the sigma matrix
+as some point $s_1$ the sigma matrix at a different point $s_2$ is
+\Begineq
+  \bfsigma_2 = \Bf M_{21} \, \bfsigma_1 \, \Bf M_{21}^t
+\Endeq
+where $\Bf M_{21}$ is the Jacobian of the transport map between points
+$s_1$ and $s_2$.
 
 %-----------------------------------------------------------------
 \section{Coupling and Normal Modes}
@@ -336,7 +352,7 @@ the changes in $p_x$ and $p_y$
 
 The coupling formalism used by \bmad\ is taken from the paper of Sagan
 and Rubin\cite{b:coupling}. The main equations are reporduced here.  A
-1--turn map $\bfT(s)$ for the transverse 2--dimensional phase space
+one--turn map $\bfT(s)$ for the transverse two--dimensional phase space
 $\bfx = (x, x', y, y')$ starting and ending at some point $s$ can be
 written as
   \Begineq
@@ -354,7 +370,7 @@ where $\bfV$ is symplectic, and $\bfU$ is of the form
   \Endeq
 Since $\bfU$ is uncoupled the standard Twiss analysis can be
 proformed on the matrices $\bfA$ and $\bfB$. The normal modes
-are labeled $a$ and $b$ and if the 1--turn matrix $\bfT$ is
+are labeled $a$ and $b$ and if the one--turn matrix $\bfT$ is
 uncoupled then $a$ corresponds to the horizontal mode and $b$
 corresponds to the vertical mode. 
 
@@ -418,29 +434,29 @@ with
     \end{pmatrix}
     , \label{g1b0a} 
   \Endeq
-with a similar equation for $\Bf G_b$. With this definition the corresponing
+with a similar equation for $\Bf G_b$. With this definition, the corresponing
 $\Bar\bfA$ and $\Bar\bfB$ (cf.~\Eq{ua00b} are just rotation matrices.
 The relationship between $\bfT$ and $\Bar\bfU$ is 
   \Begineq
-    \bfT = \bfG\inv \, \Bar\bfV \, \Bar\bfU \, \Bar\bfV\inv \, \bfG
+    \bfT = \bfG\inv \, \BAR\bfV \, \BAR\bfU \, \BAR\bfV\inv \, \bfG
     , \label{tgvuv}
   \Endeq
 where
   \Begineq
-    \Bar\bfV = \bfG \, \bfV \, \bfG\inv
+    \BAR\bfV = \bfG \, \bfV \, \bfG\inv
     . \label{vgvg}
   \Endeq
-Using \Eq{gg00g}, $\Bar\bfV$ can be written in the form
+Using \Eq{gg00g}, $\BAR\bfV$ can be written in the form
   \Begineq
-    \Bar\bfV = 
+    \BAR\bfV = 
     \begin{pmatrix}
-      \gamma \bfI & \Bar\bfC \cr -\Bar\bfC^+ & \gamma \bfI
+      \gamma \bfI & \BAR\bfC \cr -\BAR\bfC^+ & \gamma \bfI
     \end{pmatrix}
     , \label{vgicc3}
   \Endeq
-with the normalized matrix $\Bar\bfC$ given by
+with the normalized matrix $\BAR\bfC$ given by
   \Begineq
-    \Bar\bfC = \bfG_a \, \bfC \, \bfG_b\inv
+    \BAR\bfC = \bfG_a \, \bfC \, \bfG_b\inv
     . \label{cgcg}
   \Endeq
 
@@ -452,8 +468,8 @@ the laboratory frame via
   \Endeq 
 In particular the normal mode disperion $\bfeta_a = (\eta_a,
 \eta'_a, \eta_b, \eta'_b)$ is related to the laboratory frame
-disperion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
+dispersion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
   \Begineq
-    {\bfeta_a} = \bfV\inv \, {\bf eta_x}
+    {\bfeta_a} = \bfV\inv \, {\bfeta_x}
     . \label{etaavx}
   \Endeq 

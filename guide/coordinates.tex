@@ -38,29 +38,28 @@ point of the first element.
 Notice that, in a wiggler, the reference orbit, which is a straight
 line, does {\em not} correspond to the orbit that any actual particle
 could travel. Typically the physical entity of an element is centered
-about the reference curve but in general this may not be so. For
-example, by specifying offsets and pitches, the center line of a
-quadrupole magnet may be arbitrarily oriented with respect to its
-reference curve (which is a line segment). Since the reference curve
-of an element is fixed to the reference curves of the preceding and
-following elements, setting a nonzero offset or pitch for an element
-moves the physical magnet and does not affect the reference
-curve. Shifting a physical magnet with respect to its reference curve
-generally means that the reference curve does {\em not} correspond to
-the orbit that any actual particle could travel.
+about the reference curve, However, by specifying offsets and pitches
+(See Section~\ref{s:offset}), the center line of an element may be
+arbitrarily oriented with respect to its reference curve. Since the
+reference curve of an element is fixed to the reference curves of the
+neighboring elements, setting a nonzero offset or pitch
+for an element moves the physical magnet and does not affect the
+reference curve. Shifting a physical magnet with respect to its
+reference curve generally means that the reference curve does {\em
+not} correspond to the orbit that any actual particle could travel.
 
 %-----------------------------------------------------------------------------
 \section{Global Reference System}
 \label{s:global}
 
-The frame of reference that describes a reference orbit in terms of where it
-is in the laboratory is called the global reference system.
-\bmad, following the \mad\ convention, uses a Cartesian coordinate system
-$(X, Y, Z)$ for the global reference system along with three angles
-$\theta, \phi, \psi$ used to define the reference orbit's orientation
-as shown in figure~\ref{f:global_coords}. $Y$ is the vertical
-coordinate and $(X, Z)$ are the ``floor'' coordinates.  The definition
-of the three angles is:
+The golbal reference system describes the reference orbit with respect
+to the laboratory coordinate system.  \bmad, following the \mad\
+convention, uses a Cartesian coordinate system $(X, Y, Z)$ for the
+global reference system, along with three angles $\theta, \phi, \psi$
+used to define the reference orbit's orientation as shown in
+Figure~\ref{f:global_coords}. Conventionally $Y$ is the vertical
+coordinate and $(X, Z)$ are the ``floor'' coordinates.  The three
+angles are defined by the following:
 \begin{description}
 \item[$\theta$ Azimuth angle:] Angle in the $(X, Z)$ plane 
 between the $Z$--axis and the projection of the $z$--axis onto the
@@ -81,39 +80,39 @@ positive $\psi$ forms a right--handed screw with the $s$--axis.
 \label{f:global_coords}
 \end{figure}
 
-By default, the reference orbit's $s = 0$ point coincides with the
+By default, the reference orbit's origin coincides with the
 $(X, Y, Z)$ origin and at $s = 0$ the $x$, $y$, and $z$ axes
 correspond to the $X$, $Y$, and $Z$ axes respectively. $\theta$
 decreases as one follows the reference orbit when going through a
 horizontal bend with a positive bending angle. This corresponds to $x$
 pointing radially outward. Without any vertical bends, the $Y$ and $y$
-axes will coincide and $\phi$ and $\psi$ will both be zero.
+axes will coincide, and $\phi$ and $\psi$ will both be zero.
 
 %-----------------------------------------------------------------------------
 \section{Phase Space Coordinate System}
 
-The canonical phase space coordinates that \bmad\ uses for tracking a
-particle is $(x, p_x, y, p_y, z, p_z)$. $x$, $y$, and $z$ are the
+\bmad\ uses the canonical phase space coordinates 
+$(x, p_x, y, p_y, z, p_z)$. $x$, $y$, and $z$ are the
 coordinates with respect to the reference particle as explained in
-\ref{s:ref}. $p_x$ and $p_y$ are the normalized momentum
+Section~\ref{s:ref}. $p_x$ and $p_y$ are the normalized momenta
 \begin{align}
   p_x = &\frac{P_x}{P_0} \\
   p_y = &\frac{P_y}{P_0}
 \end{align}
-where $P_x$ and $P_y$ are the momentum components along the $x$ and
-$y$ axes respectively and $P_0$ is the reference (sometimes called the
+where $P_x$ and $P_y$ are, respectively, the momentum components along the $x$ and
+$y$ axes, and $P_0$ is the reference (sometimes called the
 design) momentum. The longitudinal canonical momentum $p_z$ is given by
 \begin{equation}
   p_z = \frac{\Delta E}{E_0}
 \end{equation}
-Where $E_0$ is the reference energy and $\Delta E = E - E_0$ is the
+where $E_0$ is the reference energy and $\Delta E = E - E_0$ is the
 deviation of the particle's energy from the reference energy. \mad\ uses
-a slightly different coordinate system. With \mad\ $(z, p_z)$ is
-replaced by $(-c\Delta t, p_t)$. where $\Delta t$ is the time
+a slightly different coordinate system where $(z, p_z)$ is
+replaced by $(-c\Delta t, p_t)$. $\Delta t$ is the time
 difference for a particle to pass a point relative to the reference
 particle and $p_t \equiv \Delta E / P_0 c$. For highly relativistic
-particles the two coordinate systems are the same. For
-non-relativistic particles \bmad\ is not to be trusted in any
+particles the two coordinate systems are identical. For
+non-relativistic particles, \bmad\ is not to be trusted in any
 case. \bmad\ generally uses the small angle (paraxial) approximation
 where it is assumed that $p_x, p_y \ll 1$. With this approximation the
 relationship between the canonical momenta and the slopes $x' \equiv dx/ds$
@@ -127,5 +126,5 @@ of curvature of the reference orbit. $g = 0$ in a straight section.
 
 For those programmers using the PTC software package directly (ignore
 this if you don't know what I'm talking about) \'Etienne Forest uses a still
-different coordinate system. with PTC $(z, p_z)$ is replaced by
+different coordinate system. where  $(z, p_z)$ is replaced by
 $(\Delta E/P_0 c, c \Delta t)$
