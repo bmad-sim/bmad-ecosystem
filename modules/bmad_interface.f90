@@ -3,6 +3,9 @@
 !-
 !$Id$
 !$Log$
+!Revision 1.13  2002/08/23 20:20:23  dcs
+!Modified for VMS port
+!
 !Revision 1.12  2002/08/20 20:35:06  dcs
 !symp_lie_bmad / symp_lie_ptc added
 !
@@ -525,16 +528,6 @@ module bmad_interface
       character*(*) directory
       character*40 lat_list(*)
     end subroutine
-  end interface
-
-  interface
-      function hypergeom(hgcx, arg)
-      use precision_def
-      implicit none
-      integer hgcx
-      real(rdef) arg
-      real(rdef) hypergeom
-    end function
   end interface
 
   interface
@@ -1526,6 +1519,17 @@ module bmad_interface
       use bmad_struct
       implicit none
       type (ring_struct) ring
+    end subroutine
+  end interface
+
+  interface
+    subroutine twiss_propagate_many (ring, ix_start, ix_end, direction)
+      use bmad_struct
+      implicit none
+      type (ring_struct) :: ring
+      integer, intent(in) :: ix_start
+      integer, intent(in) :: ix_end
+      integer, intent(in) :: direction
     end subroutine
   end interface
 

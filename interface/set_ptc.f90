@@ -41,6 +41,8 @@ subroutine set_ptc (param, taylor_order, integ_&
   integer this_method, this_steps
   integer nd2, npara
 
+  real(dp) this_energy
+
   logical, optional :: no_cavity, exact_calc
   logical, save :: init_needed = .true.
               
@@ -81,7 +83,8 @@ subroutine set_ptc (param, taylor_order, integ_&
   if (present(param)) then
     if (bmad_com%energy /= param%energy .or. &
                         present(integ_order) .or. present(num_steps)) then
-      call set_mad (energy = param%energy, method = this_method, &
+      this_energy = param%energy
+      call set_mad (energy = this_energy, method = this_method, &
                                                        step = this_steps)
       bmad_com%energy  = param%energy
     endif

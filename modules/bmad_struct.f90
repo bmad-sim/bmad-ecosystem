@@ -4,6 +4,9 @@
 
 !$Id$
 !$Log$
+!Revision 1.14  2002/08/23 20:20:23  dcs
+!Modified for VMS port
+!
 !Revision 1.13  2002/08/20 20:35:06  dcs
 !symp_lie_bmad / symp_lie_ptc added
 !
@@ -48,7 +51,7 @@ module bmad_struct
 
   use precision_def
   use physical_constants
-  use tpsalie_analysis, pi_fpp => pi, twopi_fpp => twopi
+  use tpsalie_analysis, pi_fpp => pi, twopi_fpp => twopi, var_ptc => var
 
 ! The "regular" elements are in positions: 1 to RING.N_ELE_RING
 ! regular elements are:
