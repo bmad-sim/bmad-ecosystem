@@ -387,7 +387,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
   case (lcavity$)
 
     f = twopi * ele%value(rf_frequency$) / c_light
-    phase = f * c0%z%pos + ele%value(phase_0$)
+    phase = f * c0%z%pos + twopi * ele%value(phi0$)
     mat6(6,5) = -ele%value(gradient$) * ele%value(l$) * f * sin(phase)
 
     cos_phi = cos(phase)
@@ -431,7 +431,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
         type *, '      FOR ELEMENT: ', ele%name
         call err_exit
       else
-        mat6(6,5) = ele%value(volt$) * cos(ele%value(phase_0$)) *  &
+        mat6(6,5) = ele%value(volt$) * cos(twopi*ele%value(phi0$)) *  &
                    twopi / ele%value(rf_wavelength$) /param%beam_energy
       endif
     endif
@@ -619,9 +619,9 @@ subroutine make_mat6_bmad (ele, param, c0, c1)
               ' IN ACCEL_SOL!'
         call err_exit
       else
-        mat6(6,5) = ele%value(volt$) * cos(ele%value(phase_0$)) *  &
+        mat6(6,5) = ele%value(volt$) * cos(twopi*ele%value(phi0$)) *  &
                       twopi / ele%value(rf_wavelength$) /param%beam_energy
-        c_e = ele%value(volt$) * sin(ele%value(phase_0$))  &
+        c_e = ele%value(volt$) * sin(twopi*ele%value(phi0$))  &
               / (m_electron * length)
       endif
     else

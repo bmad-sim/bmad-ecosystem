@@ -1785,7 +1785,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
     else
       el%freq0 = c_light / param%total_length
     endif
-    el%lag = ele%value(phase_0$) / twopi
+    el%lag = ele%value(phi0$)
     el%delta_e = 0
 
   case (elseparator$)

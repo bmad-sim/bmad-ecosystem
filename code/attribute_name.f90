@@ -120,7 +120,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
 
     attrib_array(lcavity$, l$)             = 'L'
     attrib_array(lcavity$, energy_start$)  = 'ENERGY_START'
-    attrib_array(lcavity$, phase_0$)       = 'PHASE_0'
+    attrib_array(lcavity$, phi0$)          = 'PHI0'
     attrib_array(lcavity$, gradient$)      = 'GRADIENT'
     attrib_array(lcavity$, rf_frequency$)  = 'RF_FREQUENCY'
     attrib_array(lcavity$, rf_wavelength$) = 'RF_WAVELENGTH'
@@ -180,17 +180,17 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(quadrupole$, l$)       = 'L'
     attrib_array(quadrupole$, tilt$)    = 'TILT'
     attrib_array(quadrupole$, k1$)      = 'K1'
-    attrib_array(quadrupole$, B_gradiant$) = 'B_GRADIANT'
+    attrib_array(quadrupole$, B_gradient$) = 'B_GRADIENT'
 
     attrib_array(sextupole$, l$)       = 'L'
     attrib_array(sextupole$, tilt$)    = 'TILT'
     attrib_array(sextupole$, k2$)      = 'K2'
-    attrib_array(sextupole$, B_gradiant$) = 'B_GRADIANT'
+    attrib_array(sextupole$, B_gradient$) = 'B_GRADIENT'
 
     attrib_array(octupole$, l$)       = 'L'
     attrib_array(octupole$, tilt$)    = 'TILT'
     attrib_array(octupole$, k3$)      = 'K3'
-    attrib_array(octupole$, B_gradiant$) = 'B_GRADIANT'
+    attrib_array(octupole$, B_gradient$) = 'B_GRADIENT'
 
     attrib_array(solenoid$, l$)       = 'L'
     attrib_array(solenoid$, ks$)      = 'KS'
@@ -199,7 +199,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
     attrib_array(rfcavity$, l$)             = 'L'
     attrib_array(rfcavity$, volt$)          = 'VOLT'
     attrib_array(rfcavity$, rf_wavelength$) = 'RF_WAVELENGTH'
-    attrib_array(rfcavity$, phase_0$)       = 'PHASE_0'
+    attrib_array(rfcavity$, phi0$)          = 'PHI0'
     attrib_array(rfcavity$, harmon$)        = 'HARMON'
 
     attrib_array(elseparator$, l$)      = 'L'
@@ -253,7 +253,7 @@ character*16 function attribute_name (ele, ix_att) result (at_name)
 
     attrib_array(accel_sol$, l$)             = 'L'
     attrib_array(accel_sol$, volt$)          = 'VOLT'
-    attrib_array(accel_sol$, phase_0$)       = 'PHASE_0'
+    attrib_array(accel_sol$, phi0$)          = 'PHI0'
     attrib_array(accel_sol$, rf_wavelength$) = 'RF_WAVELENGTH'
     attrib_array(accel_sol$, b_z$)           = 'B_Z'
     attrib_array(accel_sol$, b_x1$)          = 'B_X1'

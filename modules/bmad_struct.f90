@@ -259,7 +259,7 @@ module bmad_struct
   integer, parameter :: e2$=8, charge$=8, gap$=8
   integer, parameter :: n_slice$=9, l_chord$=9, l_pole$=9, rf_frequency$=9
   integer, parameter :: fint$=10, polarity$ = 10, gradient$=10
-  integer, parameter :: fintx$=11, z_patch$ = 11, phase_0$=11
+  integer, parameter :: fintx$=11, z_patch$ = 11, phi0$=11
   integer, parameter :: rho$ = 12
   integer, parameter :: hgap$=13, energy_start$=13
   integer, parameter :: coef$=14, current$=14, hgapx$=14

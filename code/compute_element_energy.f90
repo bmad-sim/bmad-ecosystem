@@ -39,7 +39,7 @@ subroutine compute_element_energy (ring)
     if (ring%ele_(i)%key == lcavity$) then
       ring%ele_(i)%value(energy_start$) = energy
       energy = energy + ring%ele_(i)%value(gradient$) * &
-          ring%ele_(i)%value(l$) * cos(twopi*ring%ele_(i)%value(phase_0$))
+          ring%ele_(i)%value(l$) * cos(twopi*ring%ele_(i)%value(phi0$))
     endif
     ring%ele_(i)%value(energy$) = energy
   enddo
