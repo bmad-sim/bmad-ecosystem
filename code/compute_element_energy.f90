@@ -24,7 +24,7 @@ subroutine compute_element_energy (ring)
 
   type (ring_struct) ring
 
-  real(rp) beam_energy
+  real(rp) beam_energy, charge
 
   integer i
 
@@ -35,6 +35,9 @@ subroutine compute_element_energy (ring)
     beam_energy = ring%ele_(0)%value(beam_energy$)
     ring%param%beam_energy = beam_energy
 
+    charge = ring%param%charge  ! save charge
+    ring%param%charge = 0
+
     do i = 1, ring%n_ele_ring
       if (ring%ele_(i)%key == lcavity$ .and. ring%ele_(i)%is_on) then
         ring%ele_(i)%value(energy_start$) = beam_energy
@@ -44,13 +47,15 @@ subroutine compute_element_energy (ring)
       ring%ele_(i)%value(beam_energy$) = beam_energy
     enddo
 
+    ring%param%charge = charge
+
     return
 
   endif
 
 ! Otherwise everyone gets the same beam_energy
 
-    ring%ele_(0:ring%n_ele_max)%value(beam_energy$) = ring%param%beam_energy
+  ring%ele_(0:ring%n_ele_max)%value(beam_energy$) = ring%param%beam_energy
 
 
 end subroutine
