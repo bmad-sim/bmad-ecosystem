@@ -280,16 +280,16 @@ class lr_wake_struct {};
 
 class C_lr_wake {
 public:
-  double freq;       // frequency in Hlr_wake
-  double kick;       // Strength in V/C/m^2
-  int  i_cell;       // Index of the cell the mode is in.
+  double freq;       // frequency in Hz
+  double freq_in;    // freq in input file. strength in V/C/m^2
+  double R_over_Q;    // wake strength.
   double Q;          // Quality factor
 
-  C_lr_wake (double f, double k, int ic, double q) :
-      freq(f), kick(k), i_cell(ic), Q(q) {}
+  C_lr_wake (double f, double f_in, double rq, double q) :
+      freq(f), freq_in(f_in), R_over_Q(rq), Q(q) {}
 
   C_lr_wake (double f = 0) :
-      freq(f), kick(0), i_cell(0), Q(0) {}
+      freq(f), freq_in(0), R_over_Q(0), Q(0) {}
 };    // End Class
 
 extern "C" void lr_wake_to_c_(lr_wake_struct*, C_lr_wake&);
@@ -379,6 +379,7 @@ public:
   int end_lost_at;          // entrance_end$ or exit_end$
   int lattice_type;         // linear_lattice$, etc...
   int ixx;                  // Int for general use
+  int ran_seed;             // Random number generator seed
   bool stable;              // is closed ring stable?
   bool aperture_limit_on;   // use apertures in tracking?
   bool lost;                // for use in tracking
@@ -386,15 +387,15 @@ public:
   C_param () : n_part(0), charge(0), total_length(0), growth_rate(0),
       t1_with_RF(V6_array, 6), t1_no_RF(V6_array, 6), 
       particle(0), ix_lost(0), end_lost_at(0), lattice_type(0), ixx(0),
-      stable(1), aperture_limit_on(1), lost(0) {}
+      ran_seed(0), stable(1), aperture_limit_on(1), lost(0) {}
 
   C_param (double np, double ch, double tl, double gr, Real_Matrix t1w,
-    Real_Matrix t1n, int pa, int il, int ela, int lt, int ix, int st,
-    int alo, int lo) :
+    Real_Matrix t1n, int pa, int il, int ela, int lt, int ix, 
+    int st, int r_seed, int alo, int lo) :
         n_part(np), charge(ch), total_length(tl), growth_rate(gr),
         t1_with_RF(t1w), t1_no_RF(t1n), particle(pa), 
         ix_lost(il), end_lost_at(ela), lattice_type(lt), ixx(ix),
-        stable(st), aperture_limit_on(alo), lost(lo) {}
+        ran_seed(r_seed), stable(st), aperture_limit_on(alo), lost(lo) {}
 };    // End Class
 
 extern "C" void param_to_c_(param_struct*, C_param&);
