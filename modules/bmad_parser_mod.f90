@@ -2384,7 +2384,7 @@ subroutine add_all_superimpose (ring, ele_in, pele)
   character(16) matched_name(200), num, name
   character(16), allocatable :: multi_name(:)
 
-  logical match_wild, have_inserted
+  logical have_inserted
 
 ! init
 
