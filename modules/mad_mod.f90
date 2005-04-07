@@ -114,7 +114,7 @@ subroutine make_mad_map (ele, particle, map)
 
     energy%total = ele%value(beam_energy$)
     energy%particle = particle
-    call energy_to_kinetic (energy%total, energy%particle, energy%gamma, &
+    call convert_total_energy_to (energy%total, energy%particle, energy%gamma, &
                                     energy%kinetic, energy%beta, energy%p0c)
 
 ! choose element key

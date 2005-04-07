@@ -24,36 +24,37 @@ contains
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine energy_to_kinetic (energy, particle, 
-!                                           gamma, kinetic, beta, p0c, brho)
+! Subroutine convert_total_energy_to (E_tot, particle, 
+!                                         gamma, kinetic, beta, pc, brho)
 !
-! Subroutine to calculate the kinetic energy, etc. from a particle's energy.
+! Routine to calculate the momentum, etc. from a particle's total energy.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   energy   -- Real(rp): Energy of the particle.
+!   E_tot    -- Real(rp): Total energy of the particle.
 !   particle -- Integer: Type of particle. positron$, etc.
 !
 ! Output:
 !   gamma   -- Real(rp), optional: Gamma factor.
 !   kinetic -- Real(rp), optional: Kinetic energy
 !   beta    -- Real(rp), optional: velocity / c_light
-!   p0c     -- Real(rp), optional: Particle momentum
+!   pc      -- Real(rp), optional: Particle momentum
 !   brho    -- Real(rp), optional: Nominal B_field*rho_bend
 !-
 
-subroutine energy_to_kinetic (energy, particle, &
-                                            gamma, kinetic, beta, p0c, brho)
+subroutine convert_total_energy_to (E_tot, particle, &
+                                         gamma, kinetic, beta, pc, brho)
 
   implicit none
 
-  real(rp), intent(in) :: energy
-  real(rp), intent(out), optional :: kinetic, beta, p0c, brho, gamma
-  real(rp) p0c_new, mc2
+  real(rp), intent(in) :: E_tot
+  real(rp), intent(out), optional :: kinetic, beta, pc, brho, gamma
+  real(rp) pc_new, mc2
 
   integer, intent(in) :: particle
+  character(20) :: r_name = 'convert_total_energy_to'
 
 !
 
@@ -62,22 +63,78 @@ subroutine energy_to_kinetic (energy, particle, &
   elseif (particle == proton$ .or. particle == antiproton$) then
     mc2 = m_proton
   else
-    print *, 'ERROR IN ENERGY_TO_KINETIC: UNKNOWN PARTICLE TYPE:', particle
+    call out_io (s_abort$, r_name, &
+                    'ERROR: UNKNOWN PARTICLE TYPE:\i4\ ', particle)
     call err_exit
   endif
 
-  if (energy < mc2) then
-    print *, 'ERROR IN ENERGY_TO_KINETIC: ENERGY IS LESS THAN REST MASS:', &
-                                                                        energy
+  if (E_tot < mc2) then
+    call out_io (s_abort$, r_name, &
+            'ERROR: TOTAL ENERGY IS LESS THAN REST MASS:\f10.0\ ', E_tot)
     call err_exit
   endif
 
-  p0c_new = sqrt(energy**2 - mc2**2)
-  if (present(p0c))     p0c     = sqrt(energy**2 - mc2**2)
-  if (present(beta))    beta    = p0c_new / energy  
-  if (present(kinetic)) kinetic = energy - mc2
-  if (present(brho))    brho    = p0c_new / c_light
-  if (present(gamma))   gamma   = energy / mc2
+  pc_new = E_tot * sqrt(1.0 - (mc2/E_tot)**2)
+  if (present(pc))     pc     = pc_new
+  if (present(beta))    beta    = pc_new / E_tot  
+  if (present(kinetic)) kinetic = E_tot - mc2
+  if (present(brho))    brho    = pc_new / c_light
+  if (present(gamma))   gamma   = E_tot / mc2
+
+end subroutine
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+ 
+! Subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho)
+!
+! Routine to calculate the energy, etc. from a particle's momentum.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   pc       -- Real(rp): Particle momentum
+!   particle -- Integer: Type of particle. positron$, etc.
+!
+! Output:
+!   E_tot   -- Real(rp), optional: Total energy of the particle.
+!   gamma   -- Real(rp), optional: Gamma factor.
+!   kinetic -- Real(rp), optional: Kinetic energy
+!   beta    -- Real(rp), optional: velocity / c_light
+!   brho    -- Real(rp), optional: Nominal B_field*rho_bend
+!-
+
+subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho)
+
+  implicit none
+
+  real(rp), intent(in) :: pc
+  real(rp), intent(out), optional :: E_tot, kinetic, beta, brho, gamma
+  real(rp) E_tot_new, mc2
+
+  integer, intent(in) :: particle
+  character(20) :: r_name = 'convert_pc_to'
+
+!
+
+  if (particle == positron$ .or. particle == electron$) then
+    mc2 = m_electron
+  elseif (particle == proton$ .or. particle == antiproton$) then
+    mc2 = m_proton
+  else
+    call out_io (s_abort$, r_name, &
+                    'ERROR: UNKNOWN PARTICLE TYPE:\i4\ ', particle)
+    call err_exit
+  endif
+
+  E_tot_new = sqrt(pc**2 + mc2**2)
+  if (present(E_tot))   E_tot   = E_tot_new
+  if (present(beta))    beta    = pc / E_tot_new
+  if (present(kinetic)) kinetic = E_tot_new - mc2
+  if (present(brho))    brho    = pc / c_light
+  if (present(gamma))   gamma   = E_tot_new / mc2
 
 end subroutine
 

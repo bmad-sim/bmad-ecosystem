@@ -479,16 +479,16 @@ subroutine boris_energy_correction (ele, param, here)
 
   select case (ele%key)
   case (lcavity$) 
-    call energy_to_kinetic (ele%value(energy_start$), param%particle, p0c = p0)
-    call energy_to_kinetic (ele%value(beam_energy$), param%particle, p0c = p1)
+    call convert_total_energy_to (ele%value(energy_start$), param%particle, pc = p0)
+    call convert_total_energy_to (ele%value(beam_energy$), param%particle, pc = p1)
     here%vec(2) = here%vec(2) * p0 / p1
     here%vec(4) = here%vec(4) * p0 / p1
     here%vec(6) = ((1 + here%vec(6)) * p0 - p1) / p1
 
   case (custom$)
     e_start = ele%value(beam_energy$)-ele%value(gradient$)*ele%value(l$)
-    call energy_to_kinetic (e_start, param%particle, p0c = p0)
-    call energy_to_kinetic (ele%value(beam_energy$), param%particle, p0c = p1)
+    call convert_total_energy_to (e_start, param%particle, pc = p0)
+    call convert_total_energy_to (ele%value(beam_energy$), param%particle, pc = p1)
     here%vec(2) = here%vec(2) * p0 / p1
     here%vec(4) = here%vec(4) * p0 / p1
     here%vec(6) = ((1 + here%vec(6)) * p0 - p1) / p1
