@@ -36,12 +36,12 @@ subroutine track1_bmad (start, ele, param, end)
   type (ele_struct),   intent(inout)  :: ele
   type (param_struct), intent(inout) :: param
 
-  real(rp) k1, k2, k2l, k3l, length, phase
+  real(rp) k1, k2, k2l, k3l, length, phase, beta_start, beta_end
   real(rp) e2, sig_x, sig_y, kx, ky, coef, bbi_const
   real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
   real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
   real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
-  real(rp) rel_E, ff, k_z
+  real(rp) rel_pc, ff, k_z, pc_start, pc_end
   real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio
   real(rp) alpha, sin_a, cos_a, f, r11, r12, r21, r22
   real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2
@@ -53,7 +53,7 @@ subroutine track1_bmad (start, ele, param, end)
 
   end = start     ! transfer start to end
   length = ele%value(l$)
-  rel_E = 1 + start%vec(6)
+  rel_pc = 1 + start%vec(6)
 
 !-----------------------------------------------
 ! select
@@ -83,10 +83,10 @@ subroutine track1_bmad (start, ele, param, end)
 
   case (patch$)
 
-    rel_E = 1 + end%vec(6)
+    rel_pc = 1 + end%vec(6)
 
-    end%vec(2) = end%vec(2) - ele%value(x_pitch$) * rel_E
-    end%vec(4) = end%vec(4) - ele%value(y_pitch$) * rel_E
+    end%vec(2) = end%vec(2) - ele%value(x_pitch$) * rel_pc
+    end%vec(4) = end%vec(4) - ele%value(y_pitch$) * rel_pc
     end%vec(5) = end%vec(5) + ele%value(x_pitch$) * end%vec(1) + &
                               ele%value(y_pitch$) * end%vec(3) 
 
@@ -158,7 +158,7 @@ subroutine track1_bmad (start, ele, param, end)
                                                                   kx, ky)
       bbi_const = -param%n_part * m_electron * ele%value(charge$) * r_e /  &
                       (2 * pi * ele%value(p0c$) * (sig_x + sig_y))
-      coef = ele%value(bbi_const$) / (n_slice * rel_E)
+      coef = ele%value(bbi_const$) / (n_slice * rel_pc)
       end%vec(2) = end%vec(2) + kx * coef
       end%vec(4) = end%vec(4) + ky * coef
     enddo
@@ -201,7 +201,7 @@ subroutine track1_bmad (start, ele, param, end)
 
     call offset_particle (ele, param, end, set$)
 
-    k1 = ele%value(k1$) / rel_E
+    k1 = ele%value(k1$) / rel_pc
 
     call quad_mat2_calc (-k1, length, mat2, dz_coef)
     end%vec(5) = end%vec(5) + dz_coef(1) * end%vec(1)**2 + &
@@ -296,7 +296,8 @@ subroutine track1_bmad (start, ele, param, end)
     cos_phi = cos(phase)
     gradient = ele%value(gradient$) * cos_phi 
     if (bmad_com%sr_wakes_on) then
-      if (bmad_com%grad_loss_sr_wake /= 0) then  ! use grad_loss_sr_wake and ignore e_loss
+      if (bmad_com%grad_loss_sr_wake /= 0) then  
+        ! use grad_loss_sr_wake and ignore e_loss
         gradient = gradient - bmad_com%grad_loss_sr_wake
       else
         gradient = gradient - ele%value(e_loss$) * param%n_part * &
@@ -304,7 +305,14 @@ subroutine track1_bmad (start, ele, param, end)
       endif
     endif
 
-    e_start = ele%value(energy_start$) * rel_E 
+    if (gradient == 0) then
+      call track_a_drift (end%vec, length)
+      return
+    endif
+
+    pc_start = ele%value(p0c_start$) * rel_pc
+    call convert_pc_to (pc_start, param%particle, &
+                                      E_tot = e_start, beta = beta_start)
     e_end = e_start + gradient * ele%value(l$)
     e_ratio = e_end / e_start
 
@@ -315,16 +323,11 @@ subroutine track1_bmad (start, ele, param, end)
       return
     endif
 
-    if (gradient == 0) then
-      call track_a_drift (end%vec, length)
-      return
-    endif
-
     call offset_particle (ele, param, end, set$)
 
 ! entrence kick
 
-    k1 = -gradient / (2 * e_start)            
+    k1 = -gradient / (2 * pc_start)
     end%vec(2) = end%vec(2) + k1 * end%vec(1)
     end%vec(4) = end%vec(4) + k1 * end%vec(3)
 
@@ -356,14 +359,21 @@ subroutine track1_bmad (start, ele, param, end)
 
 ! exit kick
 
-    k2 = gradient / (2 * e_end) 
+    call convert_total_energy_to (e_end, param%particle, &
+                                             pc = pc_end, beta = beta_end)
+    k2 = gradient / (2 * pc_end) 
     end%vec(2) = end%vec(2) + k2 * end%vec(1)
     end%vec(4) = end%vec(4) + k2 * end%vec(3)
 
-! cleanup
+! final momentum
 
-    end%vec(6) = (e_end - ele%value(beam_energy$)) / ele%value(beam_energy$) 
+    end%vec(6) = (pc_end - ele%value(p0c$)) / ele%value(p0c$) 
     call offset_particle (ele, param, end, unset$)
+
+! correct z for change in velocity
+
+    end%vec(5) = end%vec(5) * (beta_end / beta_start) + beta_end * &
+      ((pc_start - ele%value(p0c_start$)) - (pc_end - ele%value(p0c$))) / gradient
     call end_z_calc
 
 !-----------------------------------------------
@@ -393,7 +403,7 @@ subroutine track1_bmad (start, ele, param, end)
 
     call offset_particle (ele, param, end, set$)
 
-    ks = ele%value(ks$) / rel_E
+    ks = ele%value(ks$) / rel_pc
 
     xp_start = end%vec(2) + ks * end%vec(3) / 2
     yp_start = end%vec(4) - ks * end%vec(1) / 2
@@ -412,8 +422,8 @@ subroutine track1_bmad (start, ele, param, end)
 
     call offset_particle (ele, param, end, set$)
 
-    ks = ele%value(ks$) / rel_E
-    k1 = ele%value(k1$) / rel_E
+    ks = ele%value(ks$) / rel_pc
+    k1 = ele%value(k1$) / rel_pc
     vec0 = 0
     call sol_quad_mat6_calc (ks, k1, length, mat6, vec0, dz4_coef)
     end%vec(5) = end%vec(5) + sum(end%vec(1:4) * matmul(dz4_coef, end%vec(1:4)))   
@@ -444,7 +454,7 @@ subroutine track1_bmad (start, ele, param, end)
 
     k_z = pi * ele%value(n_pole$) / length
     k1 = -0.5 * (c_light * ele%value(b_max$) / &
-                    (ele%value(p0c$) * rel_E))**2
+                    (ele%value(p0c$) * rel_pc))**2
 
     ! 1/2 of the octupole octopole kick at the entrance face.
 
@@ -517,7 +527,7 @@ contains
 
 subroutine end_z_calc
 
-  end%vec(5) = end%vec(5) - (length / rel_E**2) * &
+  end%vec(5) = end%vec(5) - (length / rel_pc**2) * &
         (start%vec(2)**2 + end%vec(2)**2 + start%vec(2) * end%vec(2) + &
          start%vec(4)**2 + end%vec(4)**2 + start%vec(4) * end%vec(4)) / 6
 

@@ -1053,8 +1053,8 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
     call warning ('BEAM ENERGY SET MULTIPLE TIMES ')
   endif
 
-  call energy_to_kinetic (ring%beam_energy, ring%param%particle, &
-                                             p0c = ring%ele_(0)%value(p0c$))
+  call convert_total_energy_to (ring%beam_energy, ring%param%particle, &
+                                             pc = ring%ele_(0)%value(p0c$))
 
 ! make matrices for entire ring
 
