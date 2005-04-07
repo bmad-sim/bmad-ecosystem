@@ -153,7 +153,7 @@ where
   \end{pmatrix}
 \Endeq
 \index{MAD}
-\bmad, agian following \mad, computes $\Bf V$ and $\Bf W$ by starting at the first element of the lattice and iteratively using the equations
+\bmad, again following \mad, computes $\Bf V$ and $\Bf W$ by starting at the first element of the lattice and iteratively using the equations
 \Begineq
   \Bf V_i = \Bf W_{i-1} \, \Bf R_i + \Bf V_{i-1}, \quad 
   \Bf W_i = \Bf W_{i-1} \, \Bf S_i
@@ -249,6 +249,17 @@ Finally, the $\Bf S$ matrix corresponding to a non-zero \vn{y_pitch} is
 \label{s:phase_space_coords}
 \index{Coordinates!phase space|textbf}
 
+\begin{figure}
+\centering 
+\includegraphics{canonical_z.eps} 
+\caption[Interpreting Canonical $z$ at constant velocity.]
+{Interpreting Canonical $z$ at constant velocity: A) The change in $z$
+going through an element of length $L_0$ is $L_0 - L_p$.  B) At
+constant time $z$ is the longitudinal distance between the reference
+particle and the particle.}
+\label{f:canonical_z}
+\end{figure}
+
 \bmad uses the canonical phase space coordinates 
 \Begineq
   \Bf r(s) = (x, p_x, y, p_y, z, p_z)
@@ -266,36 +277,47 @@ the $x$ and $y$ axes, and $P_0$ is the reference (sometimes called the
 design) momentum.
 
 The canonical $z$ coordinate is 
-\Begineq
-  z(s) = s - \beta \, c \, t 
-  \label{zsbct}
-\Endeq
-where $t$ is the time at which the particle is at
-position $s$, and $\beta = v/c$ with $v(s)$ being the velocity at position $s$. 
-Do not confuse the canonical $z$ with the particle's longitudinal coordinate
-in the local reference frame $z$ which is always zero as shown in
-Figure~\ref{f:local_coords}.
-
-A physical interpretation of canonical $z$ is given by
-imagining a reference particle traveling along the reference curve who arrives
-at position $s$ at time $t_0 = s / \beta c$. $z$ is then given by
 \begin{align}
-  z(s) &= -\beta \, c \, (t - t_0) \CRNO
-    &\equiv - \beta \, c \, \Delta t
+  z(s) &= -\beta(s) \, c \, (t(s) - t_0(s)) \CRNO
+    &\equiv - \beta(s) \, c \, \Delta t(s)
+  \label{zbctt}
 \end{align}
-$\Delta t$ being the time difference between when the particle passes
-by a given $s$ position along the reference orbit and when the
-reference particle does. $z$ is then the longitudinal distance between
-the particle and the reference particle when the particle is at $s$
-with positive $z$ indicating that the particle is ahead of the
-reference particle. At constant velocity $z$ can also be interpreted
-as the path length difference between the particle as it passes a
-given $s$ position relative to the path length of the reference
-particle as it passes the same $s$ position. Notice that if a particle
-gets an instantaneous longitudinal kick so that $\beta$ is
-discontinuous then, from \Eq{zsbct}, the discontinuity in the
-reference position will produce a discontinuity in canonical $z$ even
-though the particle itself does not move in space.
+$t$ is the time at which the particle is at position $s$, $t_0$ is the
+time at which the reference particle is at position $s$, and $\beta$ is
+$v/c$ with $v$ being the velocity. At constant velocity (for
+example, at high energy where $\beta = 1$), $\beta(s)$ is independent
+of $s$ and $\beta \, c \, t$ is just the path length. Thus, the change in
+$z$ going through an element is
+\Begineq
+  \Delta z = L_0 - L_p
+\Endeq
+where, as shown in Figure~\ref{f:canonical_z}A, $L_0$ is the path
+length of the reference particle (which is just the length of the
+element) and $L_p$ is the path length of the particle in traversing the
+element. At constant $\beta$, another way of interpreting canonical $z$
+is that, at constant time, $z$ is the longitudinal distance between the
+particle and the reference particle as shown in
+Figure~\ref{f:canonical_z}B. Positive $z$ indicates that the particle
+is ahead of the reference particle.
+
+Do not confuse the canonical $z$ with the $z$ that is the particle's
+longitudinal coordinate in the local reference frame as shown in
+Figure~\ref{f:local_coords}. By construction, this latter $z$ is
+always zero.
+
+Notice that if a particle gets an instantaneous longitudinal kick so
+that $\beta$ is discontinuous then, from \Eq{zbctt}, canonical $z$ is
+discontinuous even though the particle itself does not move in
+space. In general, from \Eq{zbctt}, The value of $z$ for a particle at
+$s_2$ is related to the value of $z$ for the particle at $s_1$ by
+\Begineq
+  z_2 = \frac{\beta_2}{\beta_1} \, z_1 - 
+  \beta_2 \, c \, (\Delta t_2 - \Delta t_1)
+  \label{zbbzb}
+\Endeq
+$\Delta t_2 - \Delta t_1$ can be interpreted at the difference in
+transit time, between the particle and the reference particle, in going
+from $s_1$ to $s_2$.
 
 The longitudinal canonical momentum $p_z$ is given by
 \begin{equation}
@@ -312,16 +334,16 @@ particle's energy from the reference energy.
 
 \index{Coordinates!phase space!MAD convention}
 \index{MAD!phase space convention}
-\mad uses a slightly different coordinate system where $(z, p_z)$ is
+\mad uses a different coordinate system where $(z, p_z)$ is
 replaced by $(-c\Delta t, p_t)$ where $p_t \equiv \Delta E / P_0
 c$. For highly relativistic particles the two coordinate systems are
 identical.
 
-\vn{Bmad_standard} (\sref{c:methods} tracking and transfer matrix calculations
-use the small angle (paraxial) approximation
-where it is assumed that $p_x, p_y \ll 1$. With this approximation, the
-relationship, between the canonical momenta and the slopes $x' \equiv dx/ds$
-and $y' \equiv dy/ds$ is
+\vn{Bmad_standard} (\sref{c:methods}) tracking and transfer matrix
+calculations use the small angle (paraxial) approximation where it is
+assumed that $p_x, p_y \ll 1$. With this approximation, the
+relationship, between the canonical momenta and the slopes $x' \equiv
+dx/ds$ and $y' \equiv dy/ds$ is
 \begin{align}
   x' &\approx \frac{p_x - a_x}{1 + p_z} (1 + g x) \\
   y' &\approx \frac{p_y - a_y}{1 + p_z} (1 + g x) 
@@ -332,6 +354,14 @@ $\Bf a = q \, A / c \, P_0$ is the normalized vector potential, $g =
 curvature of the reference orbit and it has been assumed that the
 bending is in the $x$--$z$ plane. 
 
+With the paraxial approximation, and in the relativistic limit, the
+change in $z$ with position is
+\Begineq
+  \frac{dz}{ds} = -g \, x - \frac{1}{2} (x'^2 + y'^2)
+\Endeq
+This shows that in a linac, without any bends, the $z$ of a particle
+always decreases.
+
 \index{Coordinates!phase space!PTC convention}
 \index{FPP/PTC!phase space convention}
 For those programmers using the PTC\index{PTC/FPP}
@@ -339,4 +369,4 @@ software package directly (ignore
 this if you don't know what I'm talking about) \'Etienne Forest uses,
 by default, a different coordinate system where $(z, p_z)$ is replaced
 by $(p_z, -z)$. However, PTC also has the ability to switch to the
-coordinate system $(p_t, c \Delta t)$.
+$(p_t, c \Delta t)$ coordinate system .

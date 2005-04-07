@@ -1518,9 +1518,13 @@ Dummy routine for the radiation\_integrals calculation for CUSTOM elements.
 \item[em\_field (ele, param, s\_pos, here, field)] \Newline
 Subroutine to calculate the E and B fields for an element. 
 
-\index{Routine!energy_to_kinetic}
-\item[energy\_to\_kinetic (energy, particle, gamma, kinetic, beta, p0c, brho)] \Newline
-Subroutine to calculate the kinetic energy, etc. from a particle's energy. 
+\index{Routine!convert_total_energy_to}
+\item[convert\_total\_energy\_to (E\_tot, particle, gamma, kinetic, beta, pc, brho)] \Newline
+Subroutine to calculate the momentum, etc. from a particle's toal energy. 
+
+\index{Routine!convert_pc_to}
+\item[convert\_pc\_to (pc, particle, E\_tot, gamma, kinetic, beta, brho)] \Newline
+Subroutine to calculate the energy, etc. from a particle's momentum. 
 
 \index{Routine!field_interpolate_3d}
 \item[field\_interpolate\_3d (position, field\_mesh, deltas)] \Newline

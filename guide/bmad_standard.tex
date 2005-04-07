@@ -8,6 +8,7 @@ tracking (\sref{s:xfer} are meant to be quick. To this end the
 paraxial approximation (\Eq{xpa1p}) is always used.
 
 
+%-----------------------------------------
 \index{Drift} 
 \subsection{Drift}
 The Hamiltonian for a drift is
@@ -37,3 +38,30 @@ The Jacobian is
     0 & 0                             & 0 & 1
   \end{pmatrix}
 \Endeq
+
+
+%-----------------------------------------
+\index{LCavity}
+\subsection{LCavity}
+
+The traversal time across a cavity is
+\Begineq
+  t_L = \int_0^L \frac{ds}{\beta \, c}
+\Endeq
+Writing
+\Begineq
+  \frac{1}{\beta} = \frac{E}{cP} = \frac{E}{sqrt{E^2 - m^2c^4}}
+\Endeq
+and assuming a constant gradient $G$ so that $E$ increases linearly
+with length, the transit time is
+\Begineq
+  t_L = \frac{P_2 - P_1}{G}
+\Endeq
+Using this in \Eq{zbbzb} gives the change in $z$
+\Begineq
+  z_2 = \frac{\beta_2}{\beta_1} \, z_1 + 
+  \beta_2 \, c \frac{P_{01} p_{z1} - P_{02} p_{z2}}{G}
+\Endeq
+where $P_{01}$ and $P_{02}$ are the reference momentum at the entrance
+and exits of the \vn{LCavity}, and $p_{z1}$ and $p_{z2}$ are the
+reference momentum.
