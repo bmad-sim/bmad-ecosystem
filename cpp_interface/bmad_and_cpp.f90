@@ -1378,7 +1378,7 @@ end subroutine
 !-
 
 subroutine bmad_com_to_f2 (orb, ap, kl, rel, abs, to, do, ds, cc, liar, &
-                sr, lr, sym, a_book, sc_on, rad_d, rad_f)
+                sr, lr, sym, a_book, sc_on, rad_d, rad_f, ref_e)
 
 use bmad_and_cpp
 
