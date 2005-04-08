@@ -218,7 +218,20 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
         endif
       enddo
 
-      if (.not. found) call warning ('ELEMENT NOT FOUND: ' // name)
+      ! If bmad_parser2 has been called from bmad_parser then check if the
+      ! element was just not used in the lattice. If so then just ignore it.
+      if (.not. found) then
+        if (bp_com%bmad_parser_calling) then
+          do i = 0, bp_com%old_ring%n_ele_max
+            if (bp_com%old_ring%ele_(i)%name == name) then
+              bp_com%parse_line = ' '  ! discard rest of statement
+              cycle parsing_loop       ! goto next statement
+            endif
+          enddo
+        endif
+        call warning ('ELEMENT NOT FOUND: ' // name)
+      endif
+
       cycle parsing_loop
 
 ! else must be a variable

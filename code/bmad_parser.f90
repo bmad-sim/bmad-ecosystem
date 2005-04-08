@@ -1116,7 +1116,10 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   if (detected_expand_lattice_cmd) then
     exit_on_error = bmad_status%exit_on_error
     bmad_status%exit_on_error = .false.
+    bp_com%bmad_parser_calling = .true.
+    bp_com%old_ring => in_ring
     call bmad_parser2 ('FROM: BMAD_PARSER', ring)
+    bp_com%bmad_parser_calling = .false.
     bmad_status%exit_on_error = exit_on_error
   endif
 

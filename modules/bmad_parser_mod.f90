@@ -131,6 +131,7 @@ integer, parameter :: n_parse_line = 280
 type bp_com_struct
   type (stack_file_struct) current_file
   type (stack_file_struct) calling_file
+  type (ring_struct), pointer :: old_ring
   character(16), pointer :: var_name(:) => null()    ! variable name
   real(rp), pointer :: var_value(:) => null()        ! variable value
   integer, pointer :: var_indexx(:) => null()        ! variable sort index
@@ -141,6 +142,7 @@ type bp_com_struct
   character(n_parse_line) input_line2          ! For debug messages
   character(16) parser_name
   character(72) debug_line
+  logical :: bmad_parser_calling = .false.     ! used for expand_lattice
   logical parser_debug, write_digested, error_flag
   integer ivar_tot, ivar_init
   logical input_line_meaningful
