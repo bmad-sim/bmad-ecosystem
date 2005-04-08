@@ -53,6 +53,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   real(rp) alpha, sin_a, cos_a, f, phase, E, pxy2, dE0
   real(rp) g_tot, b1, rho, ct, st, x, px, y, py, z, pz, Dxy, Dy, px_t
   real(rp) Dxy_t, dpx_t, df_dpy, df_dE, kx_1, ky_1, kx_2, ky_2
+  real(rp) mc2, pc_start, pc_end, p0c_start, p0c_end
+  real(rp) dcP2_dz1, dbeta1_dpz1, dbeta2_dpz2, beta_start, beta_end
 
   integer i, n_slice, key
 
@@ -86,7 +88,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 ! Electric Separator or Kicker.
 
   key = ele%key
-  if (.not. ele%is_on) key = drift$
+  if (.not. ele%is_on .and. key /= lcavity$) key = drift$
   if (any (key == (/ drift$, elseparator$, kicker$, rcollimator$, &
           ecollimator$, monitor$, instrument$, hkicker$, vkicker$ /) )) then
 
@@ -435,13 +437,14 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     f = twopi * ele%value(rf_frequency$) / c_light
     phase = twopi * (ele%value(phi0$)+ele%value(dphi0$)) - f * c0%vec(5)
-    mat6(6,5) = ele%value(gradient$) * ele%value(l$) * f * sin(phase) / &
-                                ele%value(p0c$)
 
     cos_phi = cos(phase)
     gradient = ele%value(gradient$) * cos_phi 
+    if (.not. ele%is_on) gradient = 0
+
     if (bmad_com%sr_wakes_on) then
-      if (bmad_com%grad_loss_sr_wake /= 0) then  ! use grad_loss_sr_wake and ignore e_loss
+      if (bmad_com%grad_loss_sr_wake /= 0) then  
+        ! use grad_loss_sr_wake and ignore e_loss
         gradient = gradient - bmad_com%grad_loss_sr_wake
       else
         gradient = gradient - ele%value(e_loss$) * param%n_part * &
@@ -455,20 +458,42 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       return
     endif
 
-    e_start = ele%value(energy_start$) * (1 + c0%vec(6))
+    p0c_start = ele%value(p0c_start$) 
+    pc_start = p0c_start * (1 + c0%vec(6))
+    call convert_pc_to (pc_start, param%particle, &
+                                      E_tot = e_start, beta = beta_start)
     e_end = e_start + gradient * ele%value(l$)
-
     if (e_end <= 0) then
       call out_io (s_fatal$, r_name, 'END ENERGY IS NEGATIVE!')
       mat6 = 0   ! garbage.
       return 
     endif
-
+    call convert_total_energy_to (e_end, param%particle, &
+                                             pc = pc_end, beta = beta_end)
+    p0c_end = ele%value(p0c$)
     e_ratio = e_end / e_start
+
+    mat6(6,5) = (e_end / pc_end) * ele%value(gradient$) * ele%value(l$) * &
+                                              f * sin(phase) / ele%value(p0c$) 
+    mat6(6,6) = e_end * pc_start * p0c_start / (e_start * pc_end * p0c_end)
+
+    mc2 = mass_of(param%particle)
+    dcP2_dz1 = mat6(6,5) * p0c_end
+    dbeta1_dpz1 = p0c_start * mc2**2 / e_start**3
+    dbeta2_dpz2 = p0c_end * mc2**2 / e_end**3
+
+    mat6(5,5) = beta_end / beta_start + &
+                mat6(6,5) * dbeta2_dpz2 * c1%vec(5) / beta_end - &
+                beta_end * dcP2_dz1 / gradient + &
+                dcP2_dz1 * beta_end * (pc_end - pc_start) * pc_end / &
+                                            (length * gradient**2 * e_end)
+    mat6(5,6) = -beta_end * c0%vec(5) * dbeta1_dpz1 / beta_start**2 + &
+                c1%vec(5) * mat6(6,6) * dbeta2_dpz2 / beta_end - &
+                beta_end * (p0c_end * mat6(6,6) - p0c_start) / gradient
 
 ! entrence kick
 
-    k1 = -gradient / (2 * e_start)
+    k1 = -gradient / (2 * pc_start)
 
 ! body 
 
@@ -490,7 +515,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
 ! exit kick
 
-    k2 = +gradient / (2 * e_end)
+    k2 = +gradient / (2 * pc_end)
 
 ! put everything together
 
@@ -500,7 +525,6 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(2,2) = r22 + k2*r12
 
     mat6(3:4,3:4) = mat6(1:2,1:2)
-    mat6(6,6) = 1 / e_ratio
 
 ! off-energy corrections
 

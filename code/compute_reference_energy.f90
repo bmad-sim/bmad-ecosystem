@@ -50,6 +50,7 @@ subroutine compute_reference_energy (lattice, compute)
 
   do i = 1, lattice%n_ele_use
     ele => lattice%ele_(i)
+
     if (ele%key == lcavity$) then
       ele%value(energy_start$) = beam_energy
       ele%value(p0c_start$) = pc
@@ -60,6 +61,12 @@ subroutine compute_reference_energy (lattice, compute)
         if (bmad_com%sr_wakes_on) beam_energy = beam_energy - &
                    ele%value(e_loss$) * lattice%param%n_part * e_charge
         call convert_total_energy_to (beam_energy, lattice%param%particle, pc = pc)
+      endif
+      if (beam_energy == ele%value(energy_start$)) then
+        ele%value(dt_ref$) = 0
+      else
+        ele%value(dt_ref$) = (pc - ele%value(p0c_start$)) * ele%value(l$) / &
+                                           (beam_energy - ele%value(energy_start$))
       endif
 
     elseif (ele%key == custom$) then

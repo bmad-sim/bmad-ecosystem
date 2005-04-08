@@ -56,11 +56,12 @@ subroutine track1_bmad (start, ele, param, end)
   rel_pc = 1 + start%vec(6)
 
 !-----------------------------------------------
-! select
+! Select
+! If element is off looks like a drift. LCavities will still do wakefields.
 
   key = ele%key
   if (key == sol_quad$ .and. ele%value(k1$) == 0) key = solenoid$
-  if (.not. ele%is_on) key = drift$  ! if element is off looks like a drift
+  if (.not. ele%is_on .and. key /= lcavity$) key = drift$  
 
   select case (key)
 
@@ -295,6 +296,8 @@ subroutine track1_bmad (start, ele, param, end)
                         end%vec(5) * ele%value(rf_frequency$) / c_light)
     cos_phi = cos(phase)
     gradient = ele%value(gradient$) * cos_phi 
+    if (.not. ele%is_on) gradient = 0
+
     if (bmad_com%sr_wakes_on) then
       if (bmad_com%grad_loss_sr_wake /= 0) then  
         ! use grad_loss_sr_wake and ignore e_loss
@@ -314,6 +317,8 @@ subroutine track1_bmad (start, ele, param, end)
     call convert_pc_to (pc_start, param%particle, &
                                       E_tot = e_start, beta = beta_start)
     e_end = e_start + gradient * ele%value(l$)
+    call convert_total_energy_to (e_end, param%particle, &
+                                             pc = pc_end, beta = beta_end)
     e_ratio = e_end / e_start
 
     if (e_end <= 0) then
@@ -359,8 +364,6 @@ subroutine track1_bmad (start, ele, param, end)
 
 ! exit kick
 
-    call convert_total_energy_to (e_end, param%particle, &
-                                             pc = pc_end, beta = beta_end)
     k2 = gradient / (2 * pc_end) 
     end%vec(2) = end%vec(2) + k2 * end%vec(1)
     end%vec(4) = end%vec(4) + k2 * end%vec(3)
@@ -373,7 +376,7 @@ subroutine track1_bmad (start, ele, param, end)
 ! correct z for change in velocity
 
     end%vec(5) = end%vec(5) * (beta_end / beta_start) + beta_end * &
-      ((pc_start - ele%value(p0c_start$)) - (pc_end - ele%value(p0c$))) / gradient
+                    (ele%value(dt_ref$) - (pc_end - pc_start) / gradient)
     call end_z_calc
 
 !-----------------------------------------------
