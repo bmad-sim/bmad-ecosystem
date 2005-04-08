@@ -1,10 +1,38 @@
+\documentclass{book}
+
+\usepackage{graphicx}
+\usepackage{moreverb}
+\usepackage{amsmath}
+\usepackage{alltt}
+\usepackage{rotating}
+\usepackage{subfigure}
+\usepackage{toc}
+\usepackage{xspace}
+\usepackage{makeidx}
+
+\input{macros.tex}
+
+\setlength{\textwidth}{6.25in}
+\setlength{\hoffset}{0.0in}
+\setlength{\oddsidemargin}{0.25in}
+\setlength{\evensidemargin}{0.0in}
+\setlength{\textheight}{8.5in}
+\setlength{\topmargin}{0in}
+
+\makeindex
+
+\begin{document}
+
+\setlength{\parskip}{\dPar}
+\setlength{\parindent}{0ex}
+
 %-----------------------------------------------------------------
 \section{Bmad\_Standard Matrix calculations and Tracking}
 \label{s:bmad_standard}
 
 
 \vn{Bmad_standard} transfer matrix calculations (\sref{s:tkm})
-tracking (\sref{s:xfer} are meant to be quick. To this end the
+tracking (\sref{s:xfer}) are meant to be quick. To this end the
 paraxial approximation (\Eq{xpa1p}) is always used.
 
 
@@ -50,18 +78,45 @@ The traversal time across a cavity is
 \Endeq
 Writing
 \Begineq
-  \frac{1}{\beta} = \frac{E}{cP} = \frac{E}{sqrt{E^2 - m^2c^4}}
+  \frac{1}{\beta} = \frac{E}{cP} = \frac{E}{\sqrt{E^2 - m^2c^4}}
 \Endeq
-and assuming a constant gradient $G$ so that $E$ increases linearly
-with length, the transit time is
+and assuming a constant gradient $G$, so that $E$ increases linearly
+with length, the transit time is easily computed to be
 \Begineq
   t_L = \frac{P_2 - P_1}{G}
 \Endeq
 Using this in \Eq{zbbzb} gives the change in $z$
 \Begineq
   z_2 = \frac{\beta_2}{\beta_1} \, z_1 + 
-  \beta_2 \, c \frac{P_{01} p_{z1} - P_{02} p_{z2}}{G}
+  \beta_2 \, c \left[ \frac{P_{02} - P_{01}}{G_0} - \frac{P_2 - P_1}{G} \right]
 \Endeq
 where $P_{01}$ and $P_{02}$ are the reference momentum at the entrance
-and exits of the \vn{LCavity}, and $p_{z1}$ and $p_{z2}$ are the
-reference momentum.
+and exits of the \vn{LCavity} with $G_0$ the reference gradient. 
+
+The derivatives are straight forword if tedious
+\begin{align}
+  m(5,5) &= \frac{dz_2}{dz_1} = 
+    \frac{\beta_2}{\beta_1} + 
+    \frac{z_2 \, m(6,5)}{\beta_2} \frac{d\beta_2}{dp_{z2}} - 
+    \frac{\beta_2}{G} \frac{dcP_2}{dz_1} +
+    \frac{\beta_2 \, c \, (P_2 - P_1) \, c P_2}{L \, G^2 \, E_2} 
+      \frac{dcP_2}{dz_1} \CRNO
+  m(5,6) &= \frac{dz_2}{dp_{z1}} = 
+    \frac{-\beta_2 \, z_1}{\beta_1^2} \frac{d\beta_1}{dp_{z1}} + 
+    \frac{z_2 \, m(6,6)}{\beta_2} \frac{d\beta_2}{dp_{z2}} -
+    \frac{\beta_2 ( c P_{02} \, m(6,6) - c P_{01})}{G} \CRNO
+  m(6,5) &= \frac{dp_{z2}}{dz1} =
+    \frac{E_2}{cP_2 \, cP_{02}} \frac{cP_1 \, cP_{01}}{E_1}  \\
+  m(6,6) &= \frac{dp_{z2}}{dp_{z1}} = 
+    \frac{E_2}{cP_2} \frac{G \, L}{c P_{02}} \frac{2 \, \pi \, f \, \sin\phi}{c}
+    \nonumber
+\end{align}
+where
+\begin{align}
+  \frac{d\beta_1}{dp_{z1}}  &= \frac{(mc^2)^2}{E_1^3} \, cP_{01} \CRNO
+  \frac{d\beta_2}{dp_{z2}}  &= \frac{(mc^2)^2}{E_2^3} \, cP_{02} \\
+  \frac{dcP_2}{dz_1}        &= m(6,5) \, cP_{02}  \nonumber
+\end{align}
+%-----------------------------------------------------------------
+
+\end{document}
