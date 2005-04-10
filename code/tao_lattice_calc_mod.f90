@@ -335,6 +335,8 @@ character(20) :: r_name = "macro_track"
 
 real(rp) :: value1, value2, m_particle
 
+logical post
+
   u => s%u(uni)
   beam => u%macro_beam%beam
   macro_init => u%macro_beam%macro_init
@@ -427,7 +429,12 @@ real(rp) :: value1, value2, m_particle
   enddo
 
   ! only post total lost if no extraction or extracting to a turned off lattice
-  if (extract_at_ix_ele == -1 .or. .not. s%u(uni+1)%is_on) then
+  post = .false.
+  if (extract_at_ix_ele == -1) post = .true.
+  if (uni .lt. size(s%u)) then
+    if (.not. s%u(uni+1)%is_on) post = .true.
+  endif
+  if (post) then
     n_lost = 0 
     do n_bunch = 1, size(beam%bunch)
       do n_slice = 1, size(beam%bunch(n_bunch)%slice)

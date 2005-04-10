@@ -115,6 +115,7 @@ if (x_max == x_min) then
       do k = 1, size(plot%graph(j)%curve)
         curve_here = .true.
         n = size(plot%graph(j)%curve(k)%x_symb)
+        if (n .eq. 0) cycle ! no data
         x1 = min (x1, plot%graph(j)%curve(k)%x_symb(1))
         x2 = max (x2, plot%graph(j)%curve(k)%x_symb(n))
       enddo

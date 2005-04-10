@@ -113,6 +113,15 @@ do
   call out_io (s_blank$, r_name, &
                   'Init: Read tao_template_plot namelist: ' // plot%name)
   ip = ip + 1
+
+  if (ip .gt. n_template_maxx) then
+    call out_io (s_warn$, r_name, &
+            "Number of plot templates exceeds maximum of \I2\ ", n_template_maxx)
+    call out_io (s_blank$, r_name, &
+                "Only first \I2\ will be used", n_template_maxx)
+    exit
+  endif
+  
   plt => s%template_plot(ip)
   plt%name        = plot%name
   plt%x           = plot%x
