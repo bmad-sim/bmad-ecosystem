@@ -1030,10 +1030,11 @@ interface
 end interface
 
 interface
-  subroutine twiss_propagate_all (ring)
+  subroutine twiss_propagate_all (ring, set_match)
     use bmad_struct, only: ring_struct
     implicit none
     type (ring_struct) ring
+    logical, optional :: set_match
   end subroutine
 end interface
 
