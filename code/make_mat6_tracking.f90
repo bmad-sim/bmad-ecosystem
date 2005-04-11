@@ -39,7 +39,7 @@ subroutine make_mat6_tracking (ele, param, c0, c1)
   type (coord_struct) :: c0, c1, start1, end1, end2
   type (param_struct)  param
 
-  real (rp) del_orb(6)
+  real(rp) del_orb(6)
   integer i
 
 !
