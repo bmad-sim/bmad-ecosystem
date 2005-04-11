@@ -280,7 +280,10 @@ subroutine track1_bmad (start, ele, param, end)
 ! Ultra-relativistic formalism from:
 !       J. Rosenzweig and L. Serafini
 !       Phys Rev E, Vol. 49, p. 1599, (1994)
-! with b_0 = b_-1 = 1
+! with b_0 = b_-1 = 1. The extra factors of beta are included to make the 
+! transverse determinate (beta_i*gamma_i)/(beta_f*gamma_f) which it should
+! be at low energies.
+!
 ! bp_com%grad_loss_sr_wake is an internal variable used with macroparticles.
 ! It accounts for the longitudinal short-range wakefields between macroparticles.
 ! Without macroparticles it should be zero.
@@ -349,9 +352,9 @@ subroutine track1_bmad (start, ele, param, end)
       sin_a = sin(alpha)
       f = gradient / (2 * sqrt_2 * cos_phi)
       r11 =  cos_a
-      r12 =  sin_a * e_start / f
-      r21 = -sin_a * f / e_end
-      r22 =  cos_a * e_start / e_end
+      r12 =  sin_a * beta_start * e_start / f
+      r21 = -sin_a * f / (e_end * beta_end)
+      r22 =  cos_a * beta_start * e_start / (e_end * beta_end)
     endif
 
     x_pos = end%vec(1)

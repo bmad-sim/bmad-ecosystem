@@ -423,13 +423,20 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     call add_multipoles_and_s_offset
 
 !--------------------------------------------------------
-! linac rf cavity
+! LCavity: Linac rf cavity
+! Ultra-relativistic formalism from:
+!       J. Rosenzweig and L. Serafini
+!       Phys Rev E, Vol. 49, p. 1599, (1994)
+! with b_0 = b_-1 = 1. The extra factors of beta are included to make the 
+! transverse determinate (beta_i*gamma_i)/(beta_f*gamma_f) which it should
+! be at low energies.
 !
 ! One must keep in mind that we are NOT using good canonical coordinates since
 !   the energy of the reference particle is changing.
 ! This means that the resulting matrix will NOT be symplectic.
 ! Since things are very complicated we simplify things by ignoring the
 !   off-axis corrections to mat6.
+!
 ! bmad_com%grad_loss_sr_wake is an internal variable used with macroparticles.
 !   It should be zero otherwise.
 
@@ -508,9 +515,9 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       sin_a = sin(alpha)
       f = gradient / (2 * sqrt_2 * cos_phi)   ! body matrix
       r11 =  cos_a
-      r12 =  sin_a * e_start / f
-      r21 = -sin_a * f / e_end
-      r22 =  cos_a * e_start / e_end
+      r12 =  sin_a * beta_start * e_start / f
+      r21 = -sin_a * f / (e_end * beta_end)
+      r22 =  cos_a * beta_start * e_start / (e_end * beta_end)
     endif
 
 ! exit kick
