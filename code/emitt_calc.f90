@@ -48,17 +48,17 @@ subroutine emitt_calc (ring, what, mode)
   type (modes_struct)  mode
   type (ele_struct)  ele0, ele
 
-  real :: c_gam = 4.425e-5, c_q = 3.84e-13
-  real energy_loss, k_1, k_2, k_3, k_4, k_5
-  real i1, i2, i3, i4a, i4b, i4z, i5a, i5b, gamma2_factor
-  real g, e1, e2, sin_kl, cos_kl, tan_e1, tan_e2
-  real c11, c12, c21, c22, kl, ll, gamma_c, k1, g3_ave, energy
-  real eta_x0, etap_x0, eta_a0, etap_a0, eta_b0, etap_b0
-  real i4a_bend, i4z_bend, end_4a, end_4
-  real gamma_a0, beta_a0, alpha_a0, gamma_b0, beta_b0, alpha_b0
-  real eta_x_int, eta_x20(2), t1, t2, t3, G_max
-  real eta_ax0, etap_ax0, m1, m2, n1, n2, beta_eff, alpha_eff, gamma_eff
-  real arg, m65
+  real(rp) :: c_gam = 4.425e-5, c_q = 3.84e-13
+  real(rp) energy_loss, k_1, k_2, k_3, k_4, k_5
+  real(rp) i1, i2, i3, i4a, i4b, i4z, i5a, i5b, gamma2_factor
+  real(rp) g, e1, e2, sin_kl, cos_kl, tan_e1, tan_e2
+  real(rp) c11, c12, c21, c22, kl, ll, gamma_c, k1, g3_ave, energy
+  real(rp) eta_x0, etap_x0, eta_a0, etap_a0, eta_b0, etap_b0
+  real(rp) i4a_bend, i4z_bend, end_4a, end_4
+  real(rp) gamma_a0, beta_a0, alpha_a0, gamma_b0, beta_b0, alpha_b0
+  real(rp) eta_x_int, eta_x20(2), t1, t2, t3, G_max
+  real(rp) eta_ax0, etap_ax0, m1, m2, n1, n2, beta_eff, alpha_eff, gamma_eff
+  real(rp) arg, m65
 
   integer ir, what
 
