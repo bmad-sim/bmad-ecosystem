@@ -163,10 +163,6 @@ Subroutine to propagate partially through ELE2 the Twiss parameters and the orbi
 \item[twiss\_at\_element (ring, ix\_ele, start, end, average)] \Newline
 Subroutine to return the Twiss parameters at the beginning, end, or the average of an element. 
 
-\index{Routine!twiss_propagate_many}
-\item[twiss\_propagate\_many (ring, ix\_start, ix\_end, direction)] \Newline
-Subroutine to propagate the Twiss parameters from one element in the ring to another. 
-
 \index{Routine!twiss_and_track_at_s}
 \item[twiss\_and\_track\_at\_s (ring, s, ele, orb\_, here)] \Newline
 Subroutine to calculate the Twiss parameters and orbit at a particular longitudinal position. 
@@ -185,8 +181,12 @@ the Twiss parameters and the transfer matrices.
 Subroutine to propagate the Twiss parameters from the end of ELE1 to the end of ELE2. 
 
 \index{Routine!twiss_propagate_all}
-\item[twiss\_propagate\_all (ring)] \Newline
+\item[twiss\_propagate\_all (ring, set_match)] \Newline
 Subroutine to propagate the Twiss parameters from the start to the end. 
+
+\index{Routine!twiss_propagate_many}
+\item[twiss\_propagate\_many (ring, ix\_start, ix\_end, direction)] \Newline
+Subroutine to propagate the Twiss parameters from one element in the ring to another. 
 
 \index{Routine!twiss_to_1_turn_mat}
 \item[twiss\_to\_1\_turn\_mat (twiss, phi, mat2)] \Newline
