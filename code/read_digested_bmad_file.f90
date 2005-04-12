@@ -91,7 +91,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
   if (version < bmad_inc_version$) then
     if (bmad_status%type_out) call out_io (s_warn$, r_name, &
-           (/ 'DIGESTED FILE VERSION OUT OF DATE \i4\ < \i4\ ' /),  &
+           (/ 'DIGESTED FILE VERSION OUT OF DATE \i4\ > \i4\ ' /),  &
             i_array = (/ bmad_inc_version$, version /) )
     if (v_old) then 
       allocate (file_names(n_files))
