@@ -33,7 +33,7 @@ subroutine compute_reference_energy (lattice, compute)
 
   type (ring_struct) lattice
   type (ele_struct), pointer :: ele, lord, slave
-  real(rp) beam_energy, pc, phase
+  real(rp) beam_energy, p0c, phase
 
   integer i, j, k, ix
   logical, optional :: compute
@@ -43,8 +43,8 @@ subroutine compute_reference_energy (lattice, compute)
   if (.not. logic_option(bmad_com%compute_ref_energy, compute)) return
 
   beam_energy = lattice%ele_(0)%value(beam_energy$)
-  call convert_total_energy_to (beam_energy, lattice%param%particle, pc = pc)
-  lattice%ele_(0)%value(p0c$) = pc
+  call convert_total_energy_to (beam_energy, lattice%param%particle, pc = p0c)
+  lattice%ele_(0)%value(p0c$) = p0c
 
 ! propagate the energy through the lattice
 
@@ -53,29 +53,31 @@ subroutine compute_reference_energy (lattice, compute)
 
     if (ele%key == lcavity$) then
       ele%value(energy_start$) = beam_energy
-      ele%value(p0c_start$) = pc
+      ele%value(p0c_start$) = p0c
       if (ele%is_on) then
         phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
         beam_energy = beam_energy + ele%value(gradient$) * &
                                                   ele%value(l$) * cos(phase)
         if (bmad_com%sr_wakes_on) beam_energy = beam_energy - &
                    ele%value(e_loss$) * lattice%param%n_part * e_charge
-        call convert_total_energy_to (beam_energy, lattice%param%particle, pc = pc)
+        call convert_total_energy_to (beam_energy, &
+                                             lattice%param%particle, pc = p0c)
       endif
       if (beam_energy == ele%value(energy_start$)) then
-        ele%value(dt_ref$) = 0
+        ele%value(dt_ref$) = ele%value(l$) * p0c / beam_energy
       else
-        ele%value(dt_ref$) = (pc - ele%value(p0c_start$)) * ele%value(l$) / &
-                                           (beam_energy - ele%value(energy_start$))
+        ele%value(dt_ref$) = (p0c - ele%value(p0c_start$)) * ele%value(l$) / &
+                                       (beam_energy - ele%value(energy_start$))
       endif
 
     elseif (ele%key == custom$) then
       beam_energy = beam_energy + ele%value(gradient$) * ele%value(l$)
-      call convert_total_energy_to (beam_energy, lattice%param%particle, pc = pc)
+      call convert_total_energy_to (beam_energy, &
+                                             lattice%param%particle, pc = p0c)
     endif
 
     ele%value(beam_energy$) = beam_energy
-    ele%value(p0c$) = pc
+    ele%value(p0c$) = p0c
 
   enddo
 

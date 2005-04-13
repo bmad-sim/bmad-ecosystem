@@ -41,7 +41,7 @@ subroutine track1_bmad (start, ele, param, end)
   real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
   real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
   real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
-  real(rp) rel_pc, ff, k_z, pc_start, pc_end
+  real(rp) rel_pc, ff, k_z, pc_start, pc_end, dt_ref, dE
   real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio
   real(rp) alpha, sin_a, cos_a, f, r11, r12, r21, r22
   real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2
@@ -378,8 +378,15 @@ subroutine track1_bmad (start, ele, param, end)
 
 ! correct z for change in velocity
 
+    dE = ele%value(beam_energy$) - ele%value(energy_start$)
+    if (dE == 0) then
+      dt_ref = length * ele%value(p0c$) / ele%value(beam_energy$) 
+    else
+      dt_ref = (ele%value(p0c$) - ele%value(p0c_start$)) * length / dE
+    endif                      
+
     end%vec(5) = end%vec(5) * (beta_end / beta_start) + beta_end * &
-                    (ele%value(dt_ref$) - (pc_end - pc_start) / gradient)
+                    (dt_ref - (pc_end - pc_start) / gradient)
     call end_z_calc
 
 !-----------------------------------------------
