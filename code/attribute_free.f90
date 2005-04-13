@@ -189,9 +189,10 @@ recursive subroutine check_this_attribute_free (ele2, ix_attrib)
 
   if (.not. free) then
     call print_error (ele2, &
-                   'THE ATTRIBUTE: ' // attribute_name(ele2, ix_attrib), &
-                   'OF ELEMENT: ' // ele2%name, &
-                   'IS A DEPENDENT VARIABLE SINCE FIELD_MASTER IS ON.')
+             'THE ATTRIBUTE: ' // attribute_name(ele2, ix_attrib), &
+             'OF ELEMENT: ' // ele2%name, &
+             'IS A DEPENDENT VARIABLE SINCE FIELD_MASTER IS ' // &
+                                             on_off_logic (ele2%field_master))
     return
   endif
 
@@ -229,5 +230,23 @@ subroutine print_error (ele2, l1, l2, l3)
   if (present(l3)) print '(5x, a)', trim(l3)
 
 end subroutine
+
+!-------------------------------------------------------
+! contains
+
+function on_off_logic (logic) result (name)
+
+  logical logic
+  character(3) name
+
+!
+
+  if (logic) then
+    name = 'ON'
+  else
+    name = 'OFF'
+  endif
+
+end function
 
 end function

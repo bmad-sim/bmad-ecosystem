@@ -51,9 +51,11 @@ subroutine compute_reference_energy (lattice, compute)
   do i = 1, lattice%n_ele_use
     ele => lattice%ele_(i)
 
-    if (ele%key == lcavity$) then
+    select case (ele%key)
+    case (lcavity$) 
       ele%value(energy_start$) = beam_energy
       ele%value(p0c_start$) = p0c
+
       if (ele%is_on) then
         phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
         beam_energy = beam_energy + ele%value(gradient$) * &
@@ -63,6 +65,7 @@ subroutine compute_reference_energy (lattice, compute)
         call convert_total_energy_to (beam_energy, &
                                              lattice%param%particle, pc = p0c)
       endif
+
       if (beam_energy == ele%value(energy_start$)) then
         ele%value(dt_ref$) = ele%value(l$) * p0c / beam_energy
       else
@@ -70,11 +73,11 @@ subroutine compute_reference_energy (lattice, compute)
                                        (beam_energy - ele%value(energy_start$))
       endif
 
-    elseif (ele%key == custom$) then
+    case (custom$) 
       beam_energy = beam_energy + ele%value(gradient$) * ele%value(l$)
       call convert_total_energy_to (beam_energy, &
                                              lattice%param%particle, pc = p0c)
-    endif
+    end select
 
     ele%value(beam_energy$) = beam_energy
     ele%value(p0c$) = p0c
