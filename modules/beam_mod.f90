@@ -241,6 +241,7 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
 
   rf_ele%value(l$)            = ele%value(l$) / 2
   rf_ele%value(energy_start$) = rf_ele%value(beam_energy$)
+  rf_ele%value(p0c_start$)    = rf_ele%value(p0c$)
   rf_ele%value(beam_energy$)  = ele%value(beam_energy$)
   rf_ele%value(p0c$)          = ele%value(p0c$)
 
