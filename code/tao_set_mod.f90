@@ -62,6 +62,8 @@ select case (component)
     u_set_this => u%model
   case ('base')
     u_set_this => u%base
+  case ('design')
+    u_set_this => u%design
   case default
     call out_io (s_error$, r_name, 'BAD LATTICE: ' // component)
     err = .true.
