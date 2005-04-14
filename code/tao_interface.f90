@@ -300,11 +300,9 @@ interface
 end interface
 
 interface
-  subroutine tao_show_cmd (show_word1, show_word2, show_word3)
+  recursive subroutine tao_show_cmd (what, stuff)
     implicit none
-    character(*) :: show_word1
-    character(*) :: show_word2
-    character(*) :: show_word3
+    character(*) :: what, stuff
   end subroutine
 end interface
  

@@ -332,10 +332,12 @@ type tao_global_struct
   integer :: phase_units = radians$      ! Phase units on output.
   integer :: bunch_to_plot = 1           ! Which bunch to plot
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
+  integer :: n_write_file = 0
   character(16) :: track_type = 'single' ! or 'beam' or 'macro' 
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer = 'de'      ! optimizer to use.
   character(16) :: default_key_merit_type
+  character(80) :: write_file = 'tao_show.dat'
   type (tao_global_hook) hook            ! Custom stuff. Defined in tao_hook.f90
   logical :: var_limits_on = .false.     ! Respect the variable limits?
   logical :: plot_on = .true.            ! Do plotting?

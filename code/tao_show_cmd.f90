@@ -1,21 +1,19 @@
 !+
-! Subroutine tao_show_cmd (word1, word2, word3)
+! Subroutine tao_show_cmd (what, stuff)
 !
-! Show information on variable, parameters, elements, etc...
-!
+! Show information on variable, parameters, elements, etc.
 !
 ! Input:
-!   word1 -- Character(*):
-!   word2 -- Character(*):
-!   word3 -- Character(*):
-!   word4 -- Character(*):
+!   what  -- Character(*): What to show.
+!   stuff -- Character(*): ParticularStuff to show.
 !-
 
-subroutine tao_show_cmd (word1, word2, word3)
+recursive subroutine tao_show_cmd (what, stuff)
 
-use tao_mod
-use tao_top10_mod
-use tao_single_mod
+use tao_mod, except1 => tao_show_cmd
+use tao_top10_mod, except2 => tao_show_cmd
+use tao_single_mod, except3 => tao_show_cmd
+use tao_command_mod, only: tao_cmd_split
 
 implicit none
 
@@ -35,25 +33,27 @@ type (ele_struct) ele3
 
 real(rp) f_phi, s_pos
 
+character(*) :: what, stuff
 character(24) :: var_name
 character(24)  :: plane, fmt, imt, lmt, amt, ffmt, iimt
-character(*) :: word1, word2, word3
-character(40) :: show_word1, show_word2, show_word3
+character(80) :: word(2)
 character(8) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
 character(80), pointer :: ptr_lines(:)
+character(100) file_name
 character(16) ele_name, name, sub_name
 
-character(16) :: show_names(10) = (/ &
+character(16) :: show_names(11) = (/ &
    'data       ', 'var        ', 'global     ', 'alias      ', 'top10      ', &
-   'optimizer  ', 'ele        ', 'lattice    ', 'constraints', 'plot       ' /)
+   'optimizer  ', 'ele        ', 'lattice    ', 'constraints', 'plot       ', &
+   'write      ' /)
 
 character(200), allocatable, save :: lines(:)
 character(100) line1, line2
 character(4) null_word
 
 integer :: data_number, ix_plane
-integer nl, loc
+integer nl, loc, ixl, iu
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju
 integer num_locations
 
@@ -79,10 +79,6 @@ iimt = '(a, i0, a, i8)'
 lmt  = '(a, l)'
 amt  = '(2a)'
 
-show_word1 = word1
-show_word2 = word2
-show_word3 = word3
-
 u => s%u(s%global%u_view)
 
 if (s%global%phase_units == radians$) f_phi = 1
@@ -91,24 +87,47 @@ if (s%global%phase_units == cycles$)  f_phi = 1 / twopi
 
 ! find what to show
 
-ix1 = index(show_word1, '/')
-if (ix1 /= 0) show_word1 = show_word1(:ix1-1) // ' ' // show_word1(ix1:)
-
-call string_trim (show_word1, show_word1, ix)
-if (ix == 0) then
+if (what == ' ') then
   call out_io (s_error$, r_name, 'SHOW WHAT?')
   return
-else
-  call match_word (show_word1, show_names, ix)
-  if (ix == 0) then
-    call out_io (s_error$, r_name, 'SHOW WHAT? WORD NOT RECOGNIZED: ' // show_word1)
-    return
-  endif
-  show_name = show_names(ix)
 endif
 
+call match_word (what, show_names, ix)
+if (ix == 0) then
+  call out_io (s_error$, r_name, 'SHOW WHAT? WORD NOT RECOGNIZED: ' // what)
+  return
+endif
 
-select case (show_name)
+call tao_cmd_split (stuff, 2, word, .false., err)
+
+
+select case (show_names(ix))
+
+!----------------------------------------------------------------------
+! write
+
+case ('write')
+
+  iu = lunget()
+  file_name = s%global%write_file
+  ix = index(file_name, '*')
+  if (ix /= 0) then
+    s%global%n_write_file = s%global%n_write_file + 1
+    write (file_name, '(a, i3.3, a)') file_name(1:ix-1), &
+                      s%global%n_write_file, trim(file_name(ix+1:))
+  endif
+
+  open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN')
+  call output_direct (iu)  ! tell out_io to write to a file
+
+  call out_io (s_blank$, r_name, ' ', 'Tao> show ' // stuff, ' ')
+  call tao_show_cmd (word(1), word(2))  ! recursive
+
+  call output_direct (0)  ! reset to not write to a file
+  close (iu)
+  call out_io (s_blank$, r_name, 'Written to file: ' // file_name)
+
+  return
 
 !----------------------------------------------------------------------
 ! alias
@@ -138,7 +157,7 @@ case ('constraints')
 
 case ('data')
 
-  call tao_pick_universe (show_word2, show_word2, picked, err)
+  call tao_pick_universe (word(1), word(1), picked, err)
   if (err) return
 
   u_loop: do ju = 1, size(s%u)
@@ -154,7 +173,7 @@ case ('data')
 
 ! If just "show data" then show all names
 
-    if (show_word2 == ' ') then
+    if (word(1) == ' ') then
       nl=nl+1; write (lines(nl), '(62x, a)') 'Bounds' 
       nl=nl+1; write (lines(nl), '(5x, a, 23x, a, 14x, a)') &
                                         'd2_Name', 'Ix  d1_Name', 'Lower  Upper'
@@ -176,13 +195,13 @@ case ('data')
 
 ! get pointers to the data
 
-    call string_trim (show_word3, show_word3, ix)
+    call string_trim (word(2), word(2), ix)
     ! are we looking at a range of locations?
-    if ((show_word3 .eq. ' ') .or. (index(trim(show_word3), ' ') .ne. 0) &
-                                           .or. index(show_word3, ':') .ne. 0) then
-      call tao_find_data (err, u, show_word2, d2_ptr, d1_ptr, null_word, d_ptr)
+    if ((word(2) .eq. ' ') .or. (index(trim(word(2)), ' ') .ne. 0) &
+                                           .or. index(word(2), ':') .ne. 0) then
+      call tao_find_data (err, u, word(1), d2_ptr, d1_ptr, null_word, d_ptr)
     else
-      call tao_find_data (err, u, show_word2, d2_ptr, d1_ptr, show_word3, d_ptr)
+      call tao_find_data (err, u, word(1), d2_ptr, d1_ptr, word(2), d_ptr)
     endif
     if (err) return
 
@@ -238,10 +257,10 @@ case ('data')
 ! if a range is specified, show the data range   
 
       allocate (show_here(lbound(d1_ptr%d,1):ubound(d1_ptr%d,1)))
-      if (show_word3 == ' ') then
+      if (word(2) == ' ') then
         show_here = .true.
       else
-        call location_decode (show_word3, show_here, lbound(d1_ptr%d,1), num_locations)
+        call location_decode (word(2), show_here, lbound(d1_ptr%d,1), num_locations)
         if (num_locations .eq. -1) then
           call out_io (s_error$, r_name, "Syntax error in range list!")
           deallocate(show_here)
@@ -303,7 +322,7 @@ case ('data')
 
 case ('ele')
 
-  call str_upcase (ele_name, show_word2)
+  call str_upcase (ele_name, word(1))
 
   if (index(ele_name, '*') /= 0 .or. index(ele_name, '%') /= 0) then
     write (lines(1), *) 'Matches to name:'
@@ -396,7 +415,7 @@ case ('global')
 
 case ('lattice')
   
-  if (show_word2 .eq. ' ') then
+  if (word(1) .eq. ' ') then
     nl=nl+1; write (lines(nl), '(a, i3)') 'Universe: ', s%global%u_view
     nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Regular elements:', &
                                           1, '  through', u%model%n_ele_use
@@ -412,11 +431,11 @@ case ('lattice')
   endif
   
   allocate (show_here(0:u%model%n_ele_use))
-  if (show_word2 == 'all') then
+  if (word(1) == 'all') then
     show_here = .true.
   else
-    show_word3 = trim(show_word2) // trim(show_word3)
-    call location_decode (show_word3, show_here, 0, num_locations)
+    word(2) = trim(word(1)) // trim(word(2))
+    call location_decode (word(2), show_here, 0, num_locations)
     if (num_locations .eq. -1) then
       call out_io (s_error$, r_name, "Syntax error in range list!")
       deallocate(show_here)
@@ -500,7 +519,7 @@ case ('optimizer')
 
 case ('plot')
 
-  if (show_word2 == ' ') then
+  if (word(1) == ' ') then
 
     nl=nl+1; lines(nl) = '   '
     nl=nl+1; lines(nl) = 'Template Plots: Graphs'
@@ -531,18 +550,18 @@ case ('plot')
 !
 
   found = .false.
-  ix = index(word2, ':')
+  ix = index(word(1), ':')
   if (ix == 0) then
-    name = word2(:ix-1)
-    sub_name = word2(ix+1:)
+    name = word(1)(:ix-1)
+    sub_name = word(1)(ix+1:)
   else
-    name = word2
+    name = word(1)
     sub_name = ' '
   endif
 
   do i = 1, size(s%template_plot)
     plot => s%template_plot(i)
-    if (plot%name /= word2) cycle
+    if (plot%name /= word(1)) cycle
     if (sub_name == ' ') then
       found = .true.
     else
@@ -556,7 +575,7 @@ case ('plot')
 
   do i = 1, size(s%plot_page%region)
     region => s%plot_page%region(i)
-    if (region%name /= word2) cycle
+    if (region%name /= word(1)) cycle
     found = .true.
   enddo
 
@@ -582,7 +601,7 @@ case ('var')
 
 ! If just "show var" then show all namees
 
-  if (show_word2 == ' ') then
+  if (word(1) == ' ') then
     write (lines(1), '(5x, a)') '                  Bounds'
     write (lines(2), '(5x, a)') 'Name            Lower  Upper'
     nl = 2
@@ -600,13 +619,13 @@ case ('var')
 
 ! get pointers to the variables
 
-  call string_trim (show_word3, show_word3, ix)
+  call string_trim (word(2), word(2), ix)
 ! are we looking at a range of locations?
-  if ((show_word3 .eq. ' ') .or. (index(trim(show_word3), ' ') .ne. 0) &
-                                       .or. index(show_word3, ':') .ne. 0) then
-    call tao_find_var(err, show_word2, v1_ptr, null_word, v_ptr) 
+  if ((word(2) .eq. ' ') .or. (index(trim(word(2)), ' ') .ne. 0) &
+                                       .or. index(word(2), ':') .ne. 0) then
+    call tao_find_var(err, word(1), v1_ptr, null_word, v_ptr) 
   else
-    call tao_find_var(err, show_word2, v1_ptr, show_word3, v_ptr) 
+    call tao_find_var(err, word(1), v1_ptr, word(2), v_ptr) 
   endif
   if (err) return
 
@@ -677,9 +696,9 @@ case ('var')
     write (lines(3), *) line1
     nl = 3
     ! if a range is specified, show the variable range   
-    if (show_word3 .ne. ' ') then
+    if (word(2) .ne. ' ') then
       allocate (show_here(lbound(v1_ptr%v,1):ubound(v1_ptr%v,1)))
-      call location_decode (show_word3, show_here, lbound(v1_ptr%v,1), num_locations)
+      call location_decode (word(2), show_here, lbound(v1_ptr%v,1), num_locations)
       if (num_locations .eq. -1) then
         call out_io (s_error$, r_name, "Syntax error in range list!")
         deallocate(show_here)

@@ -173,8 +173,8 @@ case ('ele')
     !check if this is a linear lattice
     if ((u%model%param%lattice_type .eq. circular_lattice$) .and. &
         where .ne.'p_z') then
-      call out_io (s_warn$, r_name, "This is a circular lattice!")
-      call out_io (s_blank$, r_name, "So only changing the p_z orbit will do anything")
+      call out_io (s_warn$, r_name, "This is a circular lattice!", &
+                        "So only changing the p_z orbit will do anything")
       return
     endif
     !check if we are changing the beginning element
@@ -187,11 +187,12 @@ case ('ele')
   case default  
     call pointer_to_attribute (u%design%ele_(ix_ele), where, .true., &
                                                          attrib_ptr, ixa, err)
+    if (err) return
+    if (.not. attribute_free (u%model%ele_(ix_ele), ixa, u%model, .true.)) return
     design_value = attrib_ptr
  
     call pointer_to_attribute (u%model%ele_(ix_ele), where, .true., &
                                                          attrib_ptr, ixa, err)
-    if (err) return
  
     old_value = attrib_ptr
  

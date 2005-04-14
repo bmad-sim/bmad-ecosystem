@@ -201,21 +201,23 @@ subroutine tao_cmd_split (cmd_line, n_word, cmd_word, no_extra_words, err, separ
   character(*), optional :: separator
   character(*) cmd_word(:)
   character(16) :: r_name = 'tao_cmd_split'
+  character(200) line
   logical err
   logical no_extra_words
 
 !
 
   cmd_word(:) = ' '
+  line = cmd_line
 
   if (present(separator)) then
     i = 0
     do 
-      if (i == len(cmd_line)) exit
+      if (i == len(line)) exit
       i = i + 1
-      if (index(separator, cmd_line(i:i)) /= 0) then
-        cmd_line = cmd_line(:i-1) // ' ' // cmd_line(i:i) // ' ' // &
-                                                            cmd_line(i+1:)
+      if (index(separator, line(i:i)) /= 0) then
+        line = line(:i-1) // ' ' // line(i:i) // ' ' // &
+                                                            line(i+1:)
         i = i + 3
       endif
     enddo
@@ -225,28 +227,27 @@ subroutine tao_cmd_split (cmd_line, n_word, cmd_word, no_extra_words, err, separ
   ix_end_quote = 0
   
   do n = 1, n_word
-    call string_trim (cmd_line(ix_line+1:), cmd_line, ix_line)
-    if (cmd_line(1:1) .eq. '"') then
-      ix_end_quote = index(cmd_line(2:), '"')
-      if (ix_end_quote .eq. 0) ix_end_quote = len(cmd_line)
-      cmd_word(n) = cmd_line(2:ix_end_quote)
-    elseif (cmd_line(1:1) .eq. "'") then
-      ix_end_quote = index(cmd_line(2:), "'")
-      if (ix_end_quote .eq. 0) ix_end_quote = len(cmd_line)
-      cmd_word(n) = cmd_line(2:ix_end_quote)
+    call string_trim (line(ix_line+1:), line, ix_line)
+    if (line(1:1) .eq. '"') then
+      ix_end_quote = index(line(2:), '"')
+      if (ix_end_quote .eq. 0) ix_end_quote = len(line)
+      cmd_word(n) = line(2:ix_end_quote)
+    elseif (line(1:1) .eq. "'") then
+      ix_end_quote = index(line(2:), "'")
+      if (ix_end_quote .eq. 0) ix_end_quote = len(line)
+      cmd_word(n) = line(2:ix_end_quote)
     else
-      cmd_word(n) = cmd_line(:ix_line)
+      cmd_word(n) = line(:ix_line)
     endif 
     if (ix_line == 0) return
   enddo
 
-  cmd_word(n_word) = cmd_line
+  cmd_word(n_word) = line
 
   if (no_extra_words) then
-    call string_trim (cmd_line(ix_line+1:), cmd_line, ix_line)
+    call string_trim (line(ix_line+1:), line, ix_line)
     if (ix_line /= 0) then
-      call out_io (s_error$, r_name, 'EXTRA STUFF ON COMMAND LINE: ' // &
-                                                                  cmd_line)
+      call out_io (s_error$, r_name, 'EXTRA STUFF ON COMMAND LINE: ' // line)
       err = .true.
     endif
   endif

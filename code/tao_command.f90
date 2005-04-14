@@ -34,16 +34,15 @@ subroutine tao_command (command_line, err)
   character(*) :: command_line
   character(140) cmd_line
   character(20) :: r_name = 'tao_command'
-  character(40) :: cmd_word(12)
+  character(80) :: cmd_word(12)
  
   character(16) cmd_name
-  character(16) :: cmd_names(26) = (/  &
+  character(16) :: cmd_names(25) = (/  &
         'quit        ', 'exit        ', 'show        ', 'plot        ', 'place       ', &
         'clip        ', 'scale       ', 'veto        ', 'use         ', 'restore     ', &
         'run         ', 'flatten     ', 'output      ', 'change      ', 'set         ', &
         'call        ', 'view        ', 'alias       ', 'help        ', 'history     ', &
-        'single-mode ', '            ', 'x-scale     ', 'x-axis      ', 'derivative  ', &
-        'reinitialize' /)
+        'single-mode ', 'reinitialize', 'x-scale     ', 'x-axis      ', 'derivative  ' /)
 
   logical quit_tao, err
   
@@ -331,13 +330,8 @@ subroutine tao_command (command_line, err)
 
   case ('show')
 
-    call tao_cmd_split (cmd_line, 3, cmd_word, .false., err)
-    if (cmd_word(1) == ' ') then
-      call out_io (s_error$, r_name, 'SHOW WHAT?')
-      return
-    endif
-
-    call tao_show_cmd (cmd_word(1), cmd_word(2), cmd_word(3))
+    call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
+    call tao_show_cmd (cmd_word(1), cmd_word(2))
     return
 
 !--------------------------------
