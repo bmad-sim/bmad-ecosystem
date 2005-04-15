@@ -53,7 +53,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   character(280) parse_line_save
 
   logical, optional :: make_mats6
-  logical parsing, delim_found, found, matched_delim, doit
+  logical parsing, delim_found, found, doit
   logical file_end, err_flag, finished
 
 ! init
@@ -180,32 +180,28 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
       endif
     endif
 
-! variable definition or element redef
-! Note: "var := num" is old-style variable definition syntax.
+! Variable definition or element redef...
 
-    matched_delim = .false.
-    if (delim == ':' .and. bp_com%parse_line(1:1) == '=') then  ! old style
-      matched_delim = .true.
-      bp_com%parse_line = bp_com%parse_line(2:)      ! trim off "="
-    elseif (delim == '=') then
-      matched_delim = .true.
-    endif
+! if an element attribute redef.
 
-! if an element attribute redef...
+    if (delim == '[') then
 
-    found = .false.
-    ix = index(word_1, '[')
+      call get_next_word (word_2, ix_word, ']', delim, delim_found, .true.)
+      if (.not. delim_found) then
+        call warning ('OPENING "[" FOUND WITHOUT MATCHING "]"')
+        cycle parsing_loop
+      endif
 
-    if (matched_delim .and. ix /= 0) then
-      name = word_1(:ix-1)
+      call get_next_word (this_name, ix_word, ':=', delim, delim_found, .true.)
+      if (.not. delim_found .or. ix_word /= 0) then
+        call warning ('MALFORMED ELEMENT ATTRIBUTE REDEFINITION')
+        cycle parsing_loop
+      endif
+
       do i = 0, n_max
-        if (ring%ele_(i)%name == name .or. &
-                          key_name(ring%ele_(i)%key) == name) then
-          ix = index(word_1, '[')
-          this_name = word_1(ix+1:)    ! name of attribute
-          ix = index(this_name, ']')
-          this_name = this_name(:ix-1)
-          bp_com%parse_line = trim(this_name) // ' = ' // bp_com%parse_line 
+        if (ring%ele_(i)%name == word_1 .or. &
+                          key_name(ring%ele_(i)%key) == word_1) then
+          bp_com%parse_line = trim(word_2) // ' = ' // bp_com%parse_line 
           if (found) then   ! if not first time
             bp_com%parse_line = parse_line_save
           else
@@ -223,20 +219,20 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
       if (.not. found) then
         if (bp_com%bmad_parser_calling) then
           do i = 0, bp_com%old_ring%n_ele_max
-            if (bp_com%old_ring%ele_(i)%name == name) then
+            if (bp_com%old_ring%ele_(i)%name == word_1) then
               bp_com%parse_line = ' '  ! discard rest of statement
               cycle parsing_loop       ! goto next statement
             endif
           enddo
         endif
-        call warning ('ELEMENT NOT FOUND: ' // name)
+        call warning ('ELEMENT NOT FOUND: ' // word_1)
       endif
 
       cycle parsing_loop
 
 ! else must be a variable
 
-    elseif (matched_delim) then
+    elseif (delim == '=') then
 
       call parser_add_variable (word_1, ring)
       cycle parsing_loop

@@ -337,12 +337,32 @@ subroutine get_attribute (how, ele, ring, pring, &
     return
   endif
 
+! Long-range wake
+
+  if (word == 'LR' .and. delim == '(') then
+
+    call get_next_word (word, ix_word, '=', delim, delim_found, .true.)
+    if (.not. delim_found) then
+      call warning ('NO "=" SIGN FOUND', 'FOR ELEMENT: ' // ele%name)
+      return
+    endif
+    call pointer_to_attribute (ele, 'LR(' // word, .false., r_ptr, i, err_flag, .false.)
+    if (err_flag) then
+      call warning ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
+      return
+    endif
+    call evaluate_value (trim(ele%name) // ' ' // word, value, &
+                                      ring, delim, delim_found, err_flag)
+    r_ptr = value
+    return
+  endif
+
 ! if not an overlay then see if it is an ordinary attribute.
 ! if not an ordinary attribute then might be a superimpose switch
 
-  i = attribute_index(ele, word)
+  ix_attrib = attribute_index(ele, word)
 
-  if (i < 1) then          ! if not an ordinary attribute...
+  if (ix_attrib < 1) then          ! if not an ordinary attribute...
 
     if (ix_word == 0) then  ! no word
       call warning  &
@@ -350,8 +370,8 @@ subroutine get_attribute (how, ele, ring, pring, &
       return
     else
       if (word(:ix_word) == 'REF') word = 'REFERENCE' ! allowed abbrev
-      call match_word (word, super_names, i)
-      if (i < 1) then
+      call match_word (word, super_names, ix_attrib)
+      if (ix_attrib < 1) then
         call warning  &
             ('BAD ATTRIBUTE NAME: ' // word, 'FOR ELEMENT: ' // ele%name)
         return
@@ -364,7 +384,7 @@ subroutine get_attribute (how, ele, ring, pring, &
     endif
 
     ic = ele%ixx
-    select case (super_names(i))
+    select case (super_names(ix_attrib))
     case ('SUPERIMPOSE')
       ele%control_type = super_lord$
     case ('REF_BEGINNING')
@@ -401,7 +421,7 @@ subroutine get_attribute (how, ele, ring, pring, &
 
 ! wiggler term attribute
 
-  if (i == term$) then
+  if (ix_attrib == term$) then
 
     err_flag = .true. ! assume the worst
 
@@ -550,10 +570,10 @@ subroutine get_attribute (how, ele, ring, pring, &
 ! The TYPE, ALIAS, and DESCRIP attributes are special because their "values"
 ! are character strings
 
-  select case (i)
+  select case (ix_attrib)
 
   case(type$, alias$, descrip$, sr_wake_file$, lr_wake_file$)
-    call type_get (ele, i, delim, delim_found)
+    call type_get (ele, ix_attrib, delim, delim_found)
 
   case (symplectify$) 
     if (how == def$ .and. (delim == ',' .or. .not. delim_found)) then
@@ -581,32 +601,32 @@ subroutine get_attribute (how, ele, ring, pring, &
                                       ring, delim, delim_found, err_flag)
     if (err_flag) return
 
-    if (i >= a0$ .and. i <= b20$) then  ! multipole attribute
+    if (ix_attrib >= a0$ .and. ix_attrib <= b20$) then  ! multipole attribute
         if (.not. associated(ele%a)) call multipole_init (ele)
-        if (i >= b0$) then
-          ele%b(i-b0$) = value
+        if (ix_attrib >= b0$) then
+          ele%b(ix_attrib-b0$) = value
         else
-          ele%a(i-a0$) = value
+          ele%a(ix_attrib-a0$) = value
         endif
-    elseif (i == mat6_calc_method$) then
+    elseif (ix_attrib == mat6_calc_method$) then
       ele%mat6_calc_method = nint(value)
-    elseif (i == field_calc$) then
+    elseif (ix_attrib == field_calc$) then
       ele%field_calc = nint(value)
-    elseif (i == tracking_method$) then
+    elseif (ix_attrib == tracking_method$) then
       ele%tracking_method = nint(value)
-    elseif (i == num_steps$) then
+    elseif (ix_attrib == num_steps$) then
       ele%num_steps = nint(value)
-    elseif (i == integrator_order$) then
+    elseif (ix_attrib == integrator_order$) then
       ele%integrator_order = nint(value)
-    elseif (i == ptc_kind$) then
+    elseif (ix_attrib == ptc_kind$) then
       ele%ptc_kind = nint(value)
-    elseif (i == aperture_at$) then
+    elseif (ix_attrib == aperture_at$) then
       ele%aperture_at = nint(value)
-    elseif (i == ran_seed$) then
+    elseif (ix_attrib == ran_seed$) then
       call ran_seed (nint(value))  ! init random number generator
     else
-      ele%value(i) = value
-      if (any (i == (/ b_field$, b_gradient$, e_field$, e_field$, &
+      ele%value(ix_attrib) = value
+      if (any (ix_attrib == (/ b_field$, b_gradient$, e_field$, e_field$, &
                 bl_hkick$, bl_vkick$, bl_kick$ /))) ele%field_master = .true.
     endif
 
@@ -783,6 +803,15 @@ subroutine get_next_word (word, ix_word, delim_list, &
     if (upper_case_word) call str_upcase (word, word)
   else
     call str_upcase (word, word)
+  endif
+
+! Note: "var := num" is old-style variable definition syntax.
+! If delim is ":" and next char is "=" then use "=" as the delim
+
+  if (delim == ':' .and. index(delim_list, '=') /= 0 .and. &
+                                          bp_com%parse_line(1:1) == '=') then
+    delim = '='
+    bp_com%parse_line = bp_com%parse_line(2:)
   endif
 
 end subroutine
@@ -1047,13 +1076,13 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
 
   integer i_lev, i_op, i
 
-  integer op_(200), ix_word, i_delim, i2, ix0
+  integer op_(200), ix_word, i_delim, i2, ix_word2
 
   real(rp) value
 
   character(*) err_str
   character(1) delim
-  character(40) word, word0
+  character(40) word, word2
 
   logical delim_found, split, ran_function_pending
   logical err_flag
@@ -1092,6 +1121,9 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
     if (ran_function_pending .and. (ix_word /= 0 .or. delim /= ')')) &
           call error_exit ('RAN AND RAN_GAUSS DO NOT TAKE AN ARGUMENT', 'FOR: ' // err_str)
 
+!--------------------------
+! Preliminary: If we have split up something that should have not been split
+! then put it back together again...
 
 ! just make sure we are not chopping a number in two, e.g. "3.5e-7" should not
 ! get split at the "-" even though "-" is a delimiter
@@ -1110,53 +1142,62 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
 ! If still SPLIT = .TRUE. then we need to unsplit
 
     if (split) then
-      word0 = word(:ix_word) // delim
-      ix0 = ix_word + 1
-      call get_next_word (word, ix_word, '+-*/()^,:}', delim, delim_found)
-      word = word0(:ix0) // word
-      ix_word = ix_word + ix0
+      word = word(:ix_word) // delim
+      call get_next_word (word2, ix_word2, '+-*/()^,:}', delim, delim_found)
+      word = word(:ix_word+1) // word2
+      ix_word = ix_word + ix_word2
     endif
 
+! Something like "lcav[lr(2).freq]" will get split on the "("
+
+    if (delim == '(' .and. index(word, '[LR') /= 0) then
+      call get_next_word (word2, ix_word2, '+-*/(^,:}', delim, delim_found)
+      word = word(:ix_word) // '(' // word2
+      ix_word = ix_word + ix_word2
+    endif
+
+!---------------------------
 ! Now see what we got...
 
-! for a "(" delim
+! For a "(" delim we must have a function
 
     if (delim == '(') then
 
       ran_function_pending = .false.
       if (ix_word /= 0) then
-        if (word == 'SIN') then
+        select case (word)
+        case ('SIN') 
           call pushit (op_, i_op, sin$)
-        elseif (word == 'COS') then
+        case ('COS') 
           call pushit (op_, i_op, cos$)
-        elseif (word == 'TAN') then
+        case ('TAN') 
           call pushit (op_, i_op, tan$)
-        elseif (word == 'ASIN') then
+        case ('ASIN') 
           call pushit (op_, i_op, asin$)
-        elseif (word == 'ACOS') then
+        case ('ACOS') 
           call pushit (op_, i_op, acos$)
-        elseif (word == 'ATAN') then
+        case ('ATAN') 
           call pushit (op_, i_op, atan$)
-        elseif (word == 'ABS') then
+        case ('ABS') 
           call pushit (op_, i_op, abs$)
-        elseif (word == 'SQRT') then
+        case ('SQRT') 
           call pushit (op_, i_op, sqrt$)
-        elseif (word == 'LOG') then
+        case ('LOG') 
           call pushit (op_, i_op, log$)
-        elseif (word == 'EXP') then
+        case ('EXP') 
           call pushit (op_, i_op, exp$)
-        elseif (word == 'RAN') then
+        case ('RAN') 
           call pushit (op_, i_op, ran$)
           ran_function_pending = .true.
-        elseif (word == 'RAN_GAUSS') then
+        case ('RAN_GAUSS') 
           call pushit (op_, i_op, ran_gauss$)
           ran_function_pending = .true.
-        else
+        case default
           call warning ('UNEXPECTED CHARACTERS ON RHS BEFORE "(": ' // word,  &
                                                   'FOR: ' // err_str)
           err_flag = .true.
           return
-        endif
+        end select
       endif
 
       call pushit (op_, i_op, l_parens$)
@@ -1996,7 +2037,7 @@ subroutine verify_valid_name (name, ix_name)
 
   character(*) name
   character(27) :: letters = '\ABCDEFGHIJKLMNOPQRSTUVWXYZ' 
-  character(40) :: valid_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]'
+  character(43) :: valid_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]().'
   character(1), parameter :: tab = achar(9)
 
   logical OK
@@ -2042,8 +2083,20 @@ subroutine verify_valid_name (name, ix_name)
                    0) call warning ('INVALID: BAD BRACKETS: ' // name)
     if (ix2 /= len(name)) then
       if (name(ix2+1:ix2+1) /= ' ') call warning  &
-                    ('INVALID: NOTHING IN BRACKETS: ' // name)
+                    ('INVALID: SOMETHING AFTER CLOSING "]" BRACKET: ' // name)
     endif
+  endif
+
+! check for non matched "(" ")" pairs
+
+  ix1 = index(name, '(')
+  ix2 = index(name, ')')
+  if (ix1 /= 0 .or. ix2 /= 0) then
+    if (ix1 == 0) call warning ('UNMATCHED PARENTHESIS: ' // name)
+    if (ix2 <= ix1+1) call warning  &
+                    ('INVALID: REVERSED PARENTHESES: ' // name)
+    if (index(name(ix1+1:), '(') /= 0 .or. index(name(ix2+1:), ')') /=  &
+                   0) call warning ('INVALID: BAD PARENTHESES: ' // name)
   endif
 
 ! check for more than 16 characters

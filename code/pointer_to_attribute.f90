@@ -3,7 +3,7 @@
 !                            ptr_attrib, ix_attrib, err_flag, err_print_flag)
 !
 ! Returns a pointer to an attribute of an element with name attrib_name.
-! Note: use attribute_free to see if the attribute may be
+! Note: Use attribute_free to see if the attribute may be
 !   varied independently.
 !
 ! Modules needed:
@@ -23,7 +23,8 @@
 ! Output:
 !   ptr_attrib -- Real(rp), pointer: Pointer to the attribute.
 !                     Pointer will be deassociated if there is a problem.
-!   ix_attrib  -- Ineger: Index to the attribute.
+!   ix_attrib  -- Ineger: If applicable then this is the index to the 
+!                     attribute in the ele%value(:) array.
 !   err_flag   -- Logical: Set True if attribtute not found or attriubte
 !                     cannot be changed directly.
 !-
@@ -39,13 +40,15 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
   implicit none
 
   type (ele_struct), target :: ele
+  type (lr_wake_struct), allocatable :: lr(:)
 
   real(rp), pointer :: ptr_attrib
 
-  integer ix_attrib
+  integer ix_attrib, ix_d, n, ios, n_lr
 
   character(*) attrib_name
   character(16) a_name
+  character(24) :: r_name = 'pointer_to_attribute'
 
   logical err_flag, do_allocation, do_print
   logical, optional :: err_print_flag
@@ -55,12 +58,52 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
   err_flag = .true.
   nullify (ptr_attrib)
 
-  do_print = .true.
-  if (present(err_print_flag)) do_print = err_print_flag
+  do_print = logic_option (.true., err_print_flag)
+  call str_upcase (a_name, attrib_name)
+  ix_attrib = 0
+
+! Check to see if the attribute is a long-range wake
+
+  if (a_name(1:3) == 'LR(') then
+    ix_d = index(a_name, ').')
+    if (ix_d == 0) goto 9000 ! Error message and return
+    read (a_name(4:ix_d-1), *, iostat = ios) n
+    if (ios /= 0) goto 9000
+    if (n < 0) goto 9000
+
+    if (.not. associated (ele%wake)) then
+      if (.not. do_allocation) goto 9100
+      call init_wake (ele%wake, 0, 0, 0, n)
+    endif
+
+    n_lr = size(ele%wake%lr)
+    if (n_lr < n) then
+      if (.not. do_allocation) goto 9100
+      allocate (lr(n_lr))
+      lr = ele%wake%lr
+      deallocate (ele%wake%lr)
+      allocate (ele%wake%lr(n))
+      ele%wake%lr = lr_wake_struct (0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, &
+                                    0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0, .false.)
+      ele%wake%lr(1:n_lr) = lr
+      deallocate (lr)
+    endif
+
+    select case (a_name(ix_d+2:))
+    case ('FREQ');      ptr_attrib => ele%wake%lr(n)%freq
+    case ('R_OVER_Q');  ptr_attrib => ele%wake%lr(n)%r_over_q
+    case ('Q');         ptr_attrib => ele%wake%lr(n)%q
+!    case ('M');         ptr_attrib => ele%wake%lr(n)%m
+    case ('ANGLE');     ptr_attrib => ele%wake%lr(n)%angle
+    case default;       goto 9000
+    end select    
+
+    err_flag = .false.
+    return
+
+  endif
 
 ! Init_ele is special in that its attributes go in special places.
-
-  call str_upcase (a_name, attrib_name)
 
   if (ele%key == init_ele$) then
     select case (a_name)
@@ -109,12 +152,7 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
     case ('S')
       ptr_attrib => ele%s
     case default
-      if (do_print) then
-        print *, 'ERROR IN POINTER_TO_ATTRIBUTE: BAD ATTRIBTE NAME: ', &
-                                                               a_name
-        print *, '      FOR: ', trim(ele%name)
-        return
-      endif
+      goto 9000 ! Error message and return
     end select
     err_flag = .false.
     return
@@ -133,8 +171,8 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
         allocate(ele%a(0:n_pole_maxx), ele%b(0:n_pole_maxx))
         ele%a = 0; ele%b = 0
       else
-        if (do_print) print *, 'ERROR IN POINTER_TO_ATTRIBUTE: ', &
-                            'MULTIPOLE NOT ALLOCATED FOR ELEMENT: ', ele%name
+        if (do_print) call out_io (s_error$, r_name, &
+                        'MULTIPOLE NOT ALLOCATED FOR ELEMENT: ' // ele%name)
         return
       endif
     endif
@@ -146,11 +184,7 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
     endif
 
   elseif (ix_attrib < 1 .or. ix_attrib > n_attrib_maxx) then
-    if (do_print) then
-      print *, 'ERROR IN POINTER_TO_ATTRIBUTE: INVALID ATTRIBUTE: ', a_name
-      print *, '      FOR THIS ELEMENT: ', ele%name
-    endif
-    return
+    goto 9000 ! Error message and return
 
 ! otherwise must be in ele%value(:) array
 
@@ -160,5 +194,19 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
 
 
   err_flag = .false.
+  return
+
+! Error message and return
+
+9000 continue
+  if (do_print) call out_io (s_error$, r_name, &
+          'INVALID ATTRIBUTE: ' // a_name, 'FOR THIS ELEMENT: ' // ele%name)
+  return
+
+9100 continue
+  if (do_print) call out_io (s_error$, r_name, &
+                 'WAKE ATTRIBUTE NOT ALLOCATED: ' // a_name, &
+                 'FOR THIS ELEMENT: ' // ele%name)
+  return
 
 end subroutine

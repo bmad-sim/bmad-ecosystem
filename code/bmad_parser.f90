@@ -79,7 +79,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   real(rp) angle, energy_beam, energy_param, energy_0, rr
 
   logical, optional :: make_mats6, digested_read_ok
-  logical parsing, delim_found, matched_delim, arg_list_found, doit, kick_set
+  logical parsing, delim_found, arg_list_found, doit, kick_set
   logical file_end, found, err_flag, finished, exit_on_error
   logical detected_expand_lattice_cmd, multipass
 
@@ -200,7 +200,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 ! get a line from the input file and parse out the first word
 
     call load_parse_line ('normal', 1, file_end)  ! load an input line
-    call get_next_word (word_1, ix_word, ':(,)= ', delim, delim_found, .true.)
+    call get_next_word (word_1, ix_word, '[:](,)= ', delim, delim_found, .true.)
     if (file_end) then
       word_1 = 'END_FILE'
       ix_word = 8
@@ -320,38 +320,35 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
       cycle parsing_loop
     endif
 
-! variable definition or element redef.
-! Note: "var := num" is old-style variable definition syntax.
-
-    matched_delim = .false.
-    if (delim == ':' .and. bp_com%parse_line(1:1) == '=') then  ! old style
-      matched_delim = .true.
-      bp_com%parse_line = bp_com%parse_line(2:)      ! trim off "="
-    elseif (delim == '=') then
-      matched_delim = .true.
-    endif
+! variable definition or element redef...
 
 ! if an element attribute redef
 
     found = .false.
-    ix = index(word_1, '[')
+    if (delim == '[') then
 
-    if (matched_delim .and. ix /= 0) then
-      name = word_1(:ix-1)  
+      call get_next_word (word_2, ix_word, ']', delim, delim_found, .true.)
+      if (.not. delim_found) then
+        call warning ('OPENING "[" FOUND WITHOUT MATCHING "]"')
+        cycle parsing_loop
+      endif
+
+      call get_next_word (this_name, ix_word, ':=', delim, delim_found, .true.)
+      if (.not. delim_found .or. ix_word /= 0) then
+        call warning ('MALFORMED ELEMENT ATTRIBUTE REDEFINITION')
+        cycle parsing_loop
+      endif
+
       do i = 0, n_max+1
 
         if (i == n_max+1) then
-          ele => param_ele
+          if (i == n_max+1) ele => param_ele
         else
           ele => in_ring%ele_(i)
         endif
 
-        if (ele%name == name .or. key_name(ele%key) == name) then
-          ix = index(word_1, '[')
-          this_name = word_1(ix+1:)    ! name of attribute
-          ix = index(this_name, ']')
-          this_name = this_name(:ix-1)
-          bp_com%parse_line = trim(this_name) // ' = ' // bp_com%parse_line 
+        if (ele%name == word_1 .or. key_name(ele%key) == word_1) then
+          bp_com%parse_line = trim(word_2) // ' = ' // bp_com%parse_line 
           if (found) then   ! if not first time
             bp_com%parse_line = parse_line_save
           else
@@ -365,12 +362,12 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
       enddo
 
-      if (.not. found) call warning ('ELEMENT NOT FOUND: ' // name)
+      if (.not. found) call warning ('ELEMENT NOT FOUND: ' // word_1)
       cycle parsing_loop
 
 ! else must be a variable
 
-    elseif (matched_delim) then
+    elseif (delim == '=') then
 
       call parser_add_variable (word_1, in_ring)
       cycle parsing_loop
