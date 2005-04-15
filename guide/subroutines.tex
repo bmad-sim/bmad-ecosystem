@@ -367,10 +367,6 @@ tracking 7 particle with different starting conditions.
 \item[drift\_mat6\_calc (mat6, length, start, end)] \Newline
 Subroutine to calculate a drift transfer matrix with a possible kick. 
 
-\index{Routine!init_wake}
-\item[init\_wake (wake, n\_sr, n\_lr)] \Newline 
-Subroutine to initialize a wake struct.
-
 \index{Routine!mat6_dispersion}
 \item[mat6\_dispersion (mat6, e\_vec)] \Newline
 Subroutine to put the dispersion into ELE%MAT6 given the dispersion vector E\_VEC 
@@ -604,6 +600,10 @@ Subroutine to track a particle through an element.
 
 \begin{description}
 
+\index{Routine!init_wake}
+\item[init\_wake (wake, n\_sr, n\_lr)] \Newline 
+Subroutine to initialize a wake struct.
+
 \index{Routine!lr_wake_apply_kick}
 \item[lr\_wake\_apply\_kick (ele, s\_ref, orbit)] \Newline 
 Subroutine to apply the long-range wake kick to a particle.
@@ -633,6 +633,14 @@ a passing (macro)particle.
 \index{Routine!sr2_trans_wake_apply_kick}
 \item[sr2\_trans\_wake\_apply\_kick (ele, orbit)] \Newline 
 Subroutine to put in the kick for the short-range wakes
+
+\index{Routine!track1_sr_wake}
+\item[track1\_sr\_wake (bunch, ele)] \Newline 
+Subroutine to apply the short range wake fields to a bunch. 
+
+\index{Routine!track1_lr_wake}
+\item[track1\_lr\_wake (bunch, ele)] \Newline 
+Subroutine to put in the long-range wakes for particle tracking.
 
 \end{description}
 
