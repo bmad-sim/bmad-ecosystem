@@ -231,16 +231,24 @@ solenoid/quadrupole element as one could expect. \vn{S{\B}1} is the part
 of \vn{S} that is outside \vn{Q} so this element is just a
 solenoid. Finally, \vn{D\B} is the rest of the drift outside \vn{S}.
 
+\begin{figure}
+\centering 
+\includegraphics{superimpose.eps} 
+\caption[Superposition Illustration.]
+{Illustration of a superposition.}
+\label{f:superimpose}
+\end{figure}
+
 With the lattice broken up like this \bmad has constructed something
 that can be easily analyzed. However, the original elements \vn{Q} and
-\vn{S} still exist within the lord section of the lattice. \bmad has bookkeeping
-routines so that if a change is made to the \vn{Q} or \vn{S} elements then these
-changes can get propagated to the corresponding slaves.  It does
-not matter which element is superimposed. Thus, in the above example,
-\vn{S} could have been put in the Beam Line (with a drift before it)
-and \vn{Q} could then have been superimposed on top and the result
-would have been the same (except that the split elements could have
-different names).
+\vn{S} still exist within the lord section of the lattice. \bmad has
+bookkeeping routines so that if a change is made to the \vn{Q} or
+\vn{S} elements then these changes can get propagated to the
+corresponding slaves.  It does not matter which element is
+superimposed. Thus, in the above example, \vn{S} could have been put
+in the Beam Line (with a drift before it) and \vn{Q} could then have
+been superimposed on top and the result would have been the same
+(except that the split elements could have different names).
 
 Superpositions are restricted in that \bmad may not have an
 appropriate element for the superimposed fields. For example, a
@@ -262,10 +270,14 @@ The resulting lattice (first part) would be
 \end{example}
 and the second part of the lattice would have the \vn{Q} element.
  
-The placement of a superimposed element is determined by three
-factors: A point on the superimposed element, a reference point in the
+A superposition is illustrated in Fugure~\ref{f:superimpose} The
+placement of a superimposed element is determined by three factors: A
+reference point on the superimposed element, a reference point in the
 lattice line, and an offset between the points. The attributes that
-determine these three quantities are:
+determine these three quantities are: 
+\index{Ref}\index{Offset}
+\index{Ref_beginning}\index{Ref_center}\index{Ref_end}
+\index{Ele_beginning}\index{Ele_center}\index{Ele_end}
 \begin{example}
   ref = <element name in lattice>
   offset = <length>      (default = 0)
@@ -276,18 +288,23 @@ determine these three quantities are:
   ele_center             (default)
   ele_end
 \end{example}
-\vn{ele_beginning} \vn{ele_center} \vn{ele_end} makes the point on the
-superimposed element the beginning edge, the center, or the
-end edge respectively. If neither of these attributes are
-given the default is to use the element center.
+\vn{ref} sets the reference element. If \vn{ref} is not present then
+the start of the lattice is used. \vn{ref_beginning}, \vn{ref_center}
+or \vn{ref_end} can be used to indicate where on the reference element
+the reference point is. Default is \vn{ref_center}. Similarly,
+\vn{ele_beginning}, \vn{ele_center}, or \vn{ele_end} can be used to
+indicate the reference point on the superimposed element at the
+beginning (entrance) edge, the center, or the end (exit) edge
+respectively. If neither of these attributes are given the default is
+to use the element center. \vn{offset} is the longitudinal offset
+between the reference point on the reference element and the reference
+point on the superimposed element. The default if not present is zero.
 
 Superposition may be done with any element except \vn{drift},
-and \vn{Group}, \vn{Overlay}, and \vn{I_Beam} control elements.
-Additionally, \vn{Superpose} may not be used with \vn{close}.
-
-If the lattice is circular (\sref{s:param}) then a superimposed lattice 
-that extends beyound either end of the lattice will be wrapped around. For 
-linear lattices the lattice will be expanded in length to accomodate 
+\vn{Group}, \vn{Overlay}, and \vn{I_Beam} control elements.  If the
+lattice is circular (\sref{s:param}) then a superimposed element that
+extends beyound either end of the lattice will be wrapped around. For
+linear lattices, the lattice will be expanded in length to accomodate
 such an element.
 
 %-----------------------------------------------------------------------------
