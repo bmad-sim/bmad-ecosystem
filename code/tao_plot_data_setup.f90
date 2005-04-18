@@ -32,7 +32,7 @@ real(rp), pointer :: value(:)
 integer i, ii, j, k, m, n_dat, i_uni, ie, jj
 integer ix_this, ix
 
-logical err, smooth_curve
+logical err, smooth_curve, found
 
 character(20) :: r_name = 'tao_plot_data_setup'
 character(12)  :: u_view_char
@@ -85,6 +85,9 @@ plot_loop: do i = 1, size(s%plot_page%region)
     graph => plot%graph(j)
     graph%valid = .true.   ! assume everything OK
     graph%legend = ' '
+
+    call tao_hook_graph_data_setup (plot, graph, found)
+    if (found) cycle
 
     if (graph%type /= 'data') cycle ! Don't worry about other types
 

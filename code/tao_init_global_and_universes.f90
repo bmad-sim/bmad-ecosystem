@@ -35,9 +35,9 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   type (tao_var_input) var(n_var_minn:n_var_maxx)
   type (tao_global_struct) global
   type (tao_d1_data_struct), pointer :: d1_ptr
-  type (beam_init_struct) beam_init(n_universe_maxx)
-  type (macro_init_struct) macro_init(n_universe_maxx)
-  type (tao_coupled_uni_input) coupled(n_universe_maxx)
+  type (beam_init_struct) beam_init
+  type (macro_init_struct) macro_init
+  type (tao_coupled_uni_input) coupled
 
   real(rp) :: default_weight        ! default merit function weight
   real(rp) :: default_step          ! default "small" step size
@@ -45,7 +45,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
 
   integer ios, iu, i, j, k, ix, n_uni
   integer n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
-  integer n, n_universes, iostat, universe
+  integer n, n_universes, iostat, universe, ix_universe
   integer ix_min_var, ix_max_var, n_d1_data
   integer ix_min_data, ix_max_data, ix_d1_data
   integer, parameter :: ele_name$ = 1, ele_key$ = 2
@@ -60,18 +60,18 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   logical err, free
   logical counting, searching
   logical sr_wakes_on, lr_wakes_on
-  logical calc_emittance(n_universe_maxx)
+  logical calc_emittance
   logical, allocatable :: found_one(:), mask(:)
 
 
   namelist / tao_params / global, n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
   
-  namelist / tao_coupled_uni_init / coupled
+  namelist / tao_coupled_uni_init / ix_universe, coupled
   
-  namelist / tao_beam_init / sr_wakes_on, lr_wakes_on, &
+  namelist / tao_beam_init / ix_universe, sr_wakes_on, lr_wakes_on, &
                              calc_emittance, beam_init
          
-  namelist / tao_macro_init / sr_wakes_on, lr_wakes_on, &
+  namelist / tao_macro_init / ix_universe, sr_wakes_on, lr_wakes_on, &
                              calc_emittance, macro_init
          
   namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe
@@ -93,7 +93,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   global%default_key_merit_type = 'limit'
 
   call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
-  if (iu .eq. 0) then
+  if (iu == 0) then
     call out_io (s_abort$, r_name, "Error opening init file")
     call err_exit
   endif
@@ -139,102 +139,143 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
     s%u(i)%coupling%from_uni = -1
     s%u(i)%coupling%from_uni_s = -1
     s%u(i)%coupling%from_uni_ix_ele = -1
-    coupled(i)%from_universe = -1
-    coupled(i)%at_element = ' '
-    coupled(i)%at_ele_index = -1
-    coupled(i)%at_s = -1
-    coupled(i)%match_to_design = .false.
   enddo
-  read (iu, nml = tao_coupled_uni_init, iostat = ios)
-  close (iu)
-  if (ios .eq. 0) then
-    call out_io (s_blank$, r_name, 'Init: Read tao_coupled_uni_init namelist')
-    do i = 1, size(s%u)
-      call init_coupled_uni (s%u(i), coupled(i), i)
-    enddo
-  else
-    call out_io (s_blank$, r_name, "Init: No coupled universes initialization")
-  endif
+
+  do
+    ix_universe = -1
+    coupled%from_universe = -1
+    coupled%at_element = ' '
+    coupled%at_ele_index = -1
+    coupled%at_s = -1
+    coupled%match_to_design = .false.
+    read (iu, nml = tao_coupled_uni_init, iostat = ios)
+
+    if (ios == 0) then
+      if (ix_universe == -1) then
+        call out_io (s_abort$, r_name, &
+              'INIT: READ TAO_COUPLED_UNI_INIT NAMELIST HAS NOT SET IX_UNIVERSE!')
+        call err_exit
+      endif
+      call out_io (s_blank$, r_name, &
+        'Init: Read tao_coupled_uni_init namelist for universe \i3\ ', ix_universe)
+      i = ix_universe
+      call init_coupled_uni (s%u(i), coupled, i)
+      cycle
+    elseif (ios > 0) then
+      call out_io (s_abort$, r_name, 'INIT: TAO_COUPLED_UNI_INIT NAMELIST READ ERROR!')
+      call err_exit
+    endif
+
+    close (iu)
+    exit
+
+  enddo
+
 
 !-----------------------------------------------------------------------
 ! Init Beam
 
   ! Do not initialize both beam and macro
-  if (trim(s%global%track_type) .eq. 'beam') then
+  if (s%global%track_type == 'beam') then
     call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
     ! defaults
-    do i = 1, size(s%u)
-      beam_init(i)%a_norm_emitt  = 0.0
-      beam_init(i)%b_norm_emitt  = 0.0
-      beam_init(i)%dPz_dz = 0.0
-      beam_init(i)%center(:) = 0.0
-      beam_init(i)%bunch_charge = 0.0
-      beam_init(i)%ds_bunch = 1
-      beam_init(i)%sig_z   = 0.0
-      beam_init(i)%sig_e   = 0.0
-      beam_init(i)%sig_e_cut = 1
-      beam_init(i)%sig_z_cut = 1
-      beam_init(i)%sig_trans_cut = 1
-      beam_init(i)%n_bunch = 1
-      beam_init(i)%n_particle  = 1
+    do 
+      ix_universe = -1
+      beam_init%a_norm_emitt  = 0.0
+      beam_init%b_norm_emitt  = 0.0
+      beam_init%dPz_dz = 0.0
+      beam_init%center(:) = 0.0
+      beam_init%bunch_charge = 0.0
+      beam_init%ds_bunch = 1
+      beam_init%sig_z   = 0.0
+      beam_init%sig_e   = 0.0
+      beam_init%sig_e_cut = 1
+      beam_init%sig_z_cut = 1
+      beam_init%sig_trans_cut = 1
+      beam_init%n_bunch = 1
+      beam_init%n_particle  = 1
       ! by default, no wake data file needed
-      calc_emittance(i) = .false.
+      calc_emittance = .false.
+      read (iu, nml = tao_beam_init, iostat = ios)
+
+      if (ios == 0) then
+        if (ix_universe == -1) then
+          call out_io (s_abort$, r_name, &
+                'INIT: READ TAO_BEAM_INIT NAMELIST HAS NOT SET IX_UNIVERSE!')
+          call err_exit
+        endif
+        call out_io (s_blank$, r_name, &
+              'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
+        bmad_com%sr_wakes_on = .false.
+        bmad_com%lr_wakes_on = .false.
+        if (sr_wakes_on) bmad_com%sr_wakes_on = .true.
+        if (lr_wakes_on) bmad_com%lr_wakes_on = .true.
+        i = ix_universe
+        call init_beam(s%u(i), beam_init, calc_emittance)
+        cycle
+      elseif (ios > 0) then
+        call out_io (s_abort$, r_name, 'INIT: TAO_BEAM_INIT NAMELIST READ ERROR!')
+        call err_exit
+      endif
+
+      close (iu)
+      exit
+
     enddo
-    read (iu, nml = tao_beam_init, iostat = ios)
-    close (iu)
-    if (ios .eq. 0) then
-      call out_io (s_blank$, r_name, 'Init: Read tao_beam_init namelist')
-      bmad_com%sr_wakes_on = .false.
-      bmad_com%lr_wakes_on = .false.
-      if (sr_wakes_on) bmad_com%sr_wakes_on = .true.
-      if (lr_wakes_on) bmad_com%lr_wakes_on = .true.
-      do i = 1, size(s%u)
-        call init_beam(s%u(i), beam_init(i), calc_emittance(i))
-      enddo
-    else
-      call out_io (s_fatal$, r_name, "tao_beam_init namelist error")
-      call err_exit
-    endif
+
 
 !-----------------------------------------------------------------------
 ! Init macroparticles
  
-  elseif(trim(s%global%track_type) .eq. 'macro') then
+  elseif(s%global%track_type == 'macro') then
     call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
     ! defaults
-    do i = 1, size(s%u)
-      macro_init(i)%x%norm_emit  = 0.0
-      macro_init(i)%y%norm_emit  = 0.0
-      macro_init(i)%dPz_dz = 0.0
-      macro_init(i)%center(:) = 0.0
-      macro_init(i)%ds_bunch = 1
-      macro_init(i)%sig_z   = 10e-6
-      macro_init(i)%sig_e   = 10e-3
-      macro_init(i)%sig_e_cut = 3
-      macro_init(i)%sig_z_cut = 3
-      macro_init(i)%n_bunch = 1
-      macro_init(i)%n_slice = 1
-      macro_init(i)%n_macro = 1
-      macro_init(i)%n_part  = 1e10
+    do
+      ix_universe = -1
+      macro_init%x%norm_emit  = 0.0
+      macro_init%y%norm_emit  = 0.0
+      macro_init%dPz_dz = 0.0
+      macro_init%center(:) = 0.0
+      macro_init%ds_bunch = 1
+      macro_init%sig_z   = 10e-6
+      macro_init%sig_e   = 10e-3
+      macro_init%sig_e_cut = 3
+      macro_init%sig_z_cut = 3
+      macro_init%n_bunch = 1
+      macro_init%n_slice = 1
+      macro_init%n_macro = 1
+      macro_init%n_part  = 1e10
       ! by default, no wake data file needed
-      calc_emittance(i) = .false.
+      calc_emittance = .false.
+      read (iu, nml = tao_macro_init, iostat = ios)
+      if (ios == 0) then
+        if (ix_universe == -1) then
+          call out_io (s_abort$, r_name, &
+                'INIT: READ TAO_MACRO_INIT NAMELIST HAS NOT SET IX_UNIVERSE!')
+          call err_exit
+        endif
+        call out_io (s_blank$, r_name, &
+              'Init: Read tao_macro_init namelist for universe \i3\ ', ix_universe)
+        bmad_com%sr_wakes_on = .false.
+        bmad_com%lr_wakes_on = .false.
+        if (sr_wakes_on) bmad_com%sr_wakes_on = .true.
+        if (lr_wakes_on) bmad_com%lr_wakes_on = .true.
+        do i = 1, size(s%u)
+          call init_macro(s%u(i), macro_init, calc_emittance)
+        enddo
+        cycle
+      elseif (ios > 0) then
+        call out_io (s_abort$, r_name, 'INIT: TAO_MACRO_INIT NAMELIST READ ERROR!')
+        call err_exit
+      endif
+
+      close (iu)
+      exit
+
     enddo
-    read (iu, nml = tao_macro_init, iostat = ios)
-    close (iu)
-    if (ios .eq. 0) then
-      call out_io (s_blank$, r_name, 'Init: Read tao_macro_init namelist')
-      bmad_com%sr_wakes_on = .false.
-      bmad_com%lr_wakes_on = .false.
-      if (sr_wakes_on) bmad_com%sr_wakes_on = .true.
-      if (lr_wakes_on) bmad_com%lr_wakes_on = .true.
-      do i = 1, size(s%u)
-        call init_macro(s%u(i), macro_init(i), calc_emittance(i))
-      enddo
-    else
-      call out_io (s_fatal$, r_name, "tao_macro_init namelist error")
-      call err_exit
-    endif
+
   endif
+
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -266,7 +307,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
 
         ! check if this data type has already been defined for this universe
       do k = 1, size(s%u(i)%d2_data)
-        if (trim(s%u(i)%d2_data(k)%name) .eq. trim(d2_data%name)) then
+        if (trim(s%u(i)%d2_data(k)%name) == trim(d2_data%name)) then
           mask(i) = .false.
           cycle uni_loop1
         endif
@@ -340,6 +381,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
     var%universe = ' '
     var%low_lim = default_low_lim
     var%high_lim = default_high_lim
+    var%good_user = .true.
 
     read (iu, nml = tao_var, iostat = ios, err = 9200)
     if (ios < 0) exit         ! exit on end-of-file
@@ -551,7 +593,7 @@ if (index(data(0)%name, 'COUNT:') /= 0) then
   counting = .true.
   call form_count_name (data(0)%name(7:), num_hashes, count_name1, count_name2)
 ! if using SAME: then use the specified d1_data to count datums below...
-elseif (index(data(0)%ele_name, 'SAME:') .eq. 0) then
+elseif (index(data(0)%ele_name, 'SAME:') == 0) then
   counting = .false.
   n1 = u%n_data_used + 1
   n2 = u%n_data_used + ix_max_data - ix_min_data + 1
@@ -680,7 +722,7 @@ else
 endif
 
 ! use default_data_type if given, if not, auto-generate the data_type
-if (default_data_type .eq. ' ') then
+if (default_data_type == ' ') then
   where (u%data(n1:n2)%data_type == ' ') u%data(n1:n2)%data_type = &
                             trim(d2_data%name) // ':' // d1_data%name
 else
@@ -784,7 +826,7 @@ subroutine var_stuffit (ix_u_in)
         j_save = j+1
         exit found_one_loop
       endif
-      if (j .eq. size(found_one)) then
+      if (j == size(found_one)) then
         call out_io (s_abort$, r_name, &
                      "Internal error in counting variables")
         call err_exit
@@ -878,7 +920,7 @@ integer num_ele, ios, ixx1, ixx2
       searching = .true.
       ! search through all universes specified
       num_ele = 0
-      if (default_universe .eq. 'gang' .or. default_universe .eq. 'clone') then
+      if (default_universe == 'gang' .or. default_universe == 'clone') then
       do iu = 1, size(s%u)
         num_ele = num_ele + s%u(iu)%design%n_ele_max 
       enddo
@@ -970,9 +1012,9 @@ integer num_ele, ios, ixx1, ixx2
  
     s%n_var_used = n2
  
-    s%var(n1:n2)%ele_name = var(ix1:ix2)%ele_name
-    s%var(n1:n2)%name = var(ix1:ix2)%name
-
+    s%var(n1:n2)%ele_name    = var(ix1:ix2)%ele_name
+    s%var(n1:n2)%name        = var(ix1:ix2)%name
+    s%var(n1:n2)%good_user   = var(ix1:ix2)%good_user
     s%var(n1:n2)%attrib_name = var(ix1:ix2)%attribute
 
     where (s%var(n1:n2)%attrib_name == ' ') s%var(n1:n2)%attrib_name = default_attribute
@@ -1000,13 +1042,6 @@ integer num_ele, ios, ixx1, ixx2
 
   call tao_point_v1_to_var (s%v1_var(nn), s%var(n1:n2), ix_min_var, n1)
 
-! if (abs(lbound(s%v1_var(s%n_v1_var_used)%v, 1) - &
-!                         ubound(s%v1_var(s%n_v1_var_used)%v, 1)) .gt. 1000) then
-!   call out_io (s_blank$, r_name, "Initilizing a large number of variables.")
-!   call out_io (s_blank$, r_name, "This may take a while...")
-!   call out_io (s_blank$, r_name, " ")
-! endif
-
 end subroutine
 
 !----------------------------------------------------------------
@@ -1028,7 +1063,7 @@ character(32) search_string
 
 ix2 = 0
 
-if (uni .eq. 0) then
+if (uni == 0) then
   do jj = 1, size(s%u)
     ix1 = ix2 + 1
     ix2 = s%u(jj)%design%n_ele_max
@@ -1076,7 +1111,7 @@ integer num_hashes, ix
   ! 'COUNT:' is 6 characters long
   call string_trim (count_name, count_name1, ix)
   ix = index (count_name1, '#')
-  if (ix .eq. 0) then
+  if (ix == 0) then
     call out_io (s_abort$, r_name, &
           "WHEN USING 'COUNT:' MUST HAVE '#' WILDCARD IN NAME")
     call err_exit
@@ -1105,16 +1140,16 @@ logical found_one(:)
 integer j
 
   found_one = .false.
-  if (attribute .eq. ele_name$) then
+  if (attribute == ele_name$) then
     do j = 1, u%design%n_ele_max
       if (match_wild(u%design%ele_(j)%name, search_string)) &
       found_one(j) = .true.
     enddo
-  elseif (attribute .eq. ele_key$) then
+  elseif (attribute == ele_key$) then
     found_key = 0
     call upcase_string(search_string)
     do j = 1, size(key_name)
-      if (key_name(j)(1:len(trim(search_string))) .eq. search_string) then
+      if (key_name(j)(1:len(trim(search_string))) == search_string) then
 !      if (index(key_name(j), trim(search_string)) .ne. 0) then
       found_key = found_key + 1
              key = j
@@ -1125,7 +1160,7 @@ integer j
       call err_exit
     endif
     do j = 1, u%design%n_ele_max
-      if (u%design%ele_(j)%key .eq. key) &
+      if (u%design%ele_(j)%key == key) &
       found_one(j) = .true.
     enddo
   else 
@@ -1156,10 +1191,7 @@ character(16) ele_name
 
 integer j, ix
 
-  if (coupled%from_universe .eq. 0 .or. coupled%at_element .eq. "none") then
-    u%coupling%coupled = .false.
-    return
-  endif
+!
 
   if (coupled%from_universe .ge. this_uni_index) then
     call out_io (s_abort$, r_name, &
@@ -1185,19 +1217,19 @@ integer j, ix
       call out_io (s_blank$, r_name, &
               "Will use element name.")
     endif
-    if (ele_name .eq. "end") then
+    if (ele_name == "end") then
       u%coupling%from_uni_s  = from_uni%design%ele_(from_uni%design%n_ele_use)%s
       u%coupling%from_uni_ix_ele = from_uni%design%n_ele_use
     else
       ! using element name 
       ! find last element with name
       do j = from_uni%design%n_ele_use, 0, -1
-        if (ele_name(1:ix) .eq. trim(from_uni%design%ele_(j)%name)) then
+        if (ele_name(1:ix) == trim(from_uni%design%ele_(j)%name)) then
           u%coupling%from_uni_s = from_uni%design%ele_(j)%s
           u%coupling%from_uni_ix_ele = j
           return
         endif
-        if (j .eq. 0) then
+        if (j == 0) then
           call out_io (s_abort$, r_name, &
                       "Couldn't find coupling element in universe \I\ ", &
                     coupled%from_universe)
@@ -1243,9 +1275,8 @@ type (beam_init_struct) beam_init
 logical calc_emittance
 
 !
-  if (s%global%track_type .eq. 'single' ) return
   
-  if (u%design%param%lattice_type .eq. circular_lattice$) then
+  if (u%design%param%lattice_type == circular_lattice$) then
     call out_io (s_blank$, r_name, "***")
     call out_io (s_blank$, r_name, &
                  "Beam tracking through a circular lattice.")
@@ -1271,7 +1302,7 @@ logical calc_emittance
   u%design_orb(0)%vec = beam_init%center
 
   ! No initialization for a circular lattice
-  if (u%design%param%lattice_type .eq. circular_lattice$) return
+  if (u%design%param%lattice_type == circular_lattice$) return
   
   ! This is just to get things allocated
   call init_beam_distribution (u%design%ele_(0), beam_init, u%beam%beam, .true., .true.)
@@ -1297,9 +1328,8 @@ type (macro_init_struct) macro_init
 logical calc_emittance
 
 !
-  if (s%global%track_type .eq. 'single') return
 
-  if (u%design%param%lattice_type .eq. circular_lattice$) then
+  if (u%design%param%lattice_type == circular_lattice$) then
     call out_io (s_blank$, r_name, "***")
     call out_io (s_blank$, r_name, &
                  "Macroparticle tracking through a circular lattice.")
@@ -1325,7 +1355,7 @@ logical calc_emittance
   u%design_orb(0)%vec = macro_init%center
 
   ! Don't initialize beams in circular lattice
-  if (u%design%param%lattice_type .eq. circular_lattice$) return
+  if (u%design%param%lattice_type == circular_lattice$) return
     
   ! This is just to get things allocated
   call init_macro_distribution (u%macro_beam%beam, macro_init, u%design%ele_(0), .true.)
@@ -1372,7 +1402,7 @@ integer j, k, ix_ele
   ! allocate ix_ele array for each element
   do j = 0, u%design%n_ele_max
     if (associated(u%ix_data(j)%ix_datum)) deallocate (u%ix_data(j)%ix_datum)
-    if (ele(j) .eq. 0) cycle
+    if (ele(j) == 0) cycle
     allocate (u%ix_data(j)%ix_datum(ele(j)))
   enddo
 

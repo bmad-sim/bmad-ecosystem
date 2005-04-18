@@ -164,6 +164,13 @@ interface
 end interface
 
 interface
+  subroutine tao_hook_init (init_file_name)
+    implicit none
+    character(*) init_file_name
+  end subroutine
+end interface
+
+interface
   subroutine tao_init (init_file)
     implicit none
     character(*) init_file

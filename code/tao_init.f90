@@ -22,46 +22,34 @@ subroutine tao_init (init_file)
   character(*) init_file
   character(200) lattice_file, plot_file, data_file, var_file, file_name
   character(200) single_mode_file, startup_file
-  character(n_universe_maxx) :: r_name = 'tao_init'
+  character(16) :: r_name = 'tao_init'
   integer i, j, n_universes, iu, ix
 
   namelist / tao_start / lattice_file, startup_file, &
-               data_file, var_file, plot_file, n_universes
+               data_file, var_file, plot_file, single_mode_file, n_universes
 
 ! Find namelist files
 
-  lattice_file = ' '      ! set default
-  plot_file = ' '         ! set default
-  data_file = ' '         ! set default
-  var_file = ' '          ! set default
-  single_mode_file = ' '
-  startup_file = 'tao.startup'
-  n_universes = 1         ! set default
+  lattice_file     = init_file      ! set default
+  plot_file        = init_file      ! set default
+  data_file        = init_file      ! set default
+  var_file         = init_file      ! set default
+  single_mode_file = init_file      ! set default
+  startup_file     = 'tao.startup'  ! set default
+  n_universes = 1                   ! set default
   call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
   read (iu, nml = tao_start)
   close (iu)
 
-  if (n_universes .gt. n_universe_maxx) then
-    call out_io (s_abort$, r_name, "Too many universe! Maximum number of &
-                    & universes: \i\ ", n_universe_maxx)
-    call err_exit
-  endif
-  
   if (associated(s%u)) call deallocate_everything ()
   allocate (s%u(n_universes))
-
-  if (lattice_file == ' ')      lattice_file      = init_file
-  if (plot_file == ' ')         plot_file         = init_file
-  if (data_file == ' ')         data_file         = init_file
-  if (var_file == ' ')          var_file          = init_file
-  if (single_mode_file == ' ')  single_mode_file  = init_file
 
 ! Init
 
   call tao_init_design_lattice (lattice_file) 
   call tao_init_global_and_universes (init_file, data_file, var_file)
   call tao_init_single_mode (single_mode_file)
-  call tao_hook_init ()
+  call tao_hook_init (init_file)
 
 ! check variables
 ! check if vars are good
@@ -126,52 +114,54 @@ contains
 
 subroutine deallocate_everything ()
 
-implicit none
+  implicit none
 
-integer i, j, k, istat
+  type (tao_plot_struct), pointer :: plot
+  type (tao_curve_struct), pointer :: curve
+
+  integer i, j, k, istat
 
 ! Variables  
+
   if (associated (s%v1_var)) then
-    do i = 1, size(s%v1_var)
-      nullify(s%v1_var(i)%v)
-    enddo
     deallocate(s%v1_var, stat=istat)
   endif
   
   if (associated (s%var)) then
     do i = lbound(s%var,1), ubound(s%var,1)
-      do j = 1, size(s%var(i)%this)
-        nullify(s%var(i)%this(j)%model_ptr)
-        nullify(s%var(i)%this(j)%base_ptr)
-      enddo
-      nullify(s%var(i)%v1)
       deallocate(s%var(i)%this, stat=istat)
     enddo
     deallocate(s%var, stat=istat)
   endif
- 
+
 ! Keytable 
+
   if (associated (s%key)) deallocate(s%key, stat=istat)
 
 ! plotting  
+
   nullify(s%plot_page%region)
 
   do i = 1, size(s%template_plot)
-    if (.not. associated (s%template_plot(i)%graph)) cycle
-    do j = 1, size(s%template_plot(i)%graph)
-      do k = 1, size(s%template_plot(i)%graph(j)%curve)
-        deallocate(s%template_plot(i)%graph(j)%curve(k)%x_line, stat=istat)
-        deallocate(s%template_plot(i)%graph(j)%curve(k)%y_line, stat=istat)
-        deallocate(s%template_plot(i)%graph(j)%curve(k)%x_symb, stat=istat)
-        deallocate(s%template_plot(i)%graph(j)%curve(k)%y_symb, stat=istat)
-        deallocate(s%template_plot(i)%graph(j)%curve(k)%ix_symb, stat=istat)
+    plot => s%template_plot(i)
+    if (.not. associated (plot%graph)) cycle
+    do j = 1, size(plot%graph)
+      if (.not. associated (plot%graph(j)%curve)) cycle
+      do k = 1, size(plot%graph(j)%curve)
+        curve => plot%graph(j)%curve(k)
+        if (associated(curve%x_line)) deallocate(curve%x_line, stat=istat)
+        if (associated(curve%y_line)) deallocate(curve%y_line, stat=istat)
+        if (associated(curve%x_symb)) deallocate(curve%x_symb, stat=istat)
+        if (associated(curve%y_symb)) deallocate(curve%y_symb, stat=istat)
+        if (associated(curve%ix_symb)) deallocate(curve%ix_symb, stat=istat)
       enddo
-      deallocate(s%template_plot(i)%graph(j)%curve, stat=istat)
+      deallocate(plot%graph(j)%curve, stat=istat)
     enddo
-    deallocate(s%template_plot(i)%graph, stat=istat)
+    deallocate(plot%graph, stat=istat)
   enddo
 
 ! Universes 
+
   if (associated (s%u)) then
     do i = 1, size(s%u)
       ! Orbits

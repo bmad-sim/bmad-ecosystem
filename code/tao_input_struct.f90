@@ -49,6 +49,7 @@ type tao_var_input
   real(rp) low_lim
   real(rp) high_lim
   character(16) :: merit_type
+  logical :: good_user
 end type
 
 !-------------------------------------------------------------

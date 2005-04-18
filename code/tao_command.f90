@@ -330,7 +330,7 @@ subroutine tao_command (command_line, err)
 
   case ('show')
 
-    call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
+    call tao_cmd_split (cmd_line, 2, cmd_word, .false., err); if (err) return
     call tao_show_cmd (cmd_word(1), cmd_word(2))
     return
 

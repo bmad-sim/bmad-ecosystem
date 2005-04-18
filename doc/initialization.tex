@@ -188,25 +188,25 @@ Universes can be coupled together. This can be useful, for example, to attach a
 damping ring a pre-acclerator to a linac. The syntax is as follows:
 \begin{example}
   &tao_coupled_uni_init
-    coupled(i)%from_universe   = <universe_number> ! coupled from this universe
-    coupled(i)%at_element      = <ele_name>         ! coupled at end of element 
-    coupled(i)%at_ele_index    = <ele_index>        ! coupled at end of ele with this index
-    coupled(i)%at_s            = <number>           ! coupled at poisiton s 
-    coupled(i)%match_to_design = <logical>         ! match optics to design parameters
+    ix_universe                = <Integer>         ! Universe index.
+    coupled%from_universe   = <universe_number> ! coupled from this universe
+    coupled%at_element      = <ele_name>        ! coupled at end of element 
+    coupled%at_ele_index    = <ele_index>       ! coupled at end of ele with this index
+    coupled%at_s            = <number>          ! coupled at poisiton s 
+    coupled%match_to_design = <logical>         ! match optics to design parameters
   /
 \end{example}
-where \vn{i} refers to the universe to be coupled. Any of \vn{at_element},
-\vn{at_ele_index} or
-\vn{at_s} must be specified but not more than one. These refer to the location in the
-lattice where the beam/particle is extracted into this universe. 
-The injection is always at the begining of
-the lattice \vn{i}. Setting \vn{from_universe} = \vn{i}
-will not work to make a circular lattice. This must be set in the lattice file.
-If there are more than one element named \vn{<ele_name>} then the last element
-named as such will be used. If \vn{ele_name = "end"} then the end of the injection 
-lattice will be used as
-the coupling point. If \vn{universe_number = 0} then universe \vn{i} is not
-injetced into from any other universe
+\vn{ix_universe} refers to the universe to be coupled. Any of
+\vn{at_element}, \vn{at_ele_index} or \vn{at_s} must be specified but
+not more than one. These refer to the location in the lattice where
+the beam/particle is extracted into this universe.  The injection is
+always at the begining of the lattice \vn{i}. Setting
+\vn{from_universe} = \vn{i} will not work to make a circular
+lattice. This must be set in the lattice file.  If there are more than
+one element named \vn{<ele_name>} then the last element named as such
+will be used. If \vn{ele_name = "end"} then the end of the injection
+lattice will be used as the coupling point. If \vn{universe_number =
+0} then universe \vn{i} is not injetced into from any other universe
 
 \vn{match_to_design} will set up a coupling element that will match the design twiss
 parameters between the two lattices. This is performed by first finding the
@@ -234,11 +234,15 @@ not 1 or 2.
 Example:
 \begin{example}
   &tao_coupled_uni_init
-    coupled(1)%from_universe = 0      ! no injection into this universe
-    coupled(1)%at_element    = "none"
-    coupled(2)%from_universe = 1      ! inject beam/particle form universe 1
-    coupled(2)%at_element    = "end"  ! inject from the end of universe 1
-    coupled(2)%match_to_design = T    ! match the design lattice optics
+    ix_universe = 1
+    coupled%from_universe = 0      ! no injection into this universe
+    coupled%at_element    = "none"
+  /
+  &tao_coupled_uni_init
+    ix_universe = 2
+    coupled%from_universe = 1      ! inject beam/particle form universe 1
+    coupled%at_element    = "end"  ! inject from the end of universe 1
+    coupled%match_to_design = T    ! match the design lattice optics
   /
 \end{example}
 
@@ -250,28 +254,29 @@ A particle beam is initialized in the \vn{tao_beam_init} namelist block.
 The syntax is as follows:
 \begin{example}
   &tao_beam_init
-    sr_wakes_on             = <ligical>   ! turn on short range wakes
+    ix_universe             = <integer>
+    sr_wakes_on             = <logical>   ! turn on short range wakes
                                           ! default = F
     lr_wakes_on             = <logical>   ! turn on long range wakes
                                           ! default = F
-    calc_emittance(i)       = <logical>   ! calculate emittance for rings
-    beam_init(i)%a_norm_emit    = <number> ! A-mode emittance
-    beam_init(i)%b_norm_emit    = <number> ! B-mode emittance
-    beam_init(i)%dPz_dZ     = <number>      ! Energy-Z correlation
-    beam_init(i)%center    = <number>*6 ! Bunch center offset relative to
-                                         ! reference particle (BMAD coords)
-    beam_init(i)%sig_e     = <number>   ! e_sigma in eV
-    beam_init(i)%sig_z     = <number>   ! Z sigma in m
-    beam_init(i)%sig_e_cut = <number>   ! Energy cut in sigmas
-    beam_init(i)%sig_z_cut = <number>   ! Z cut in sigmas
-    beam_init(i)%sig_trans_cut = <number> ! transverse dimension cut
-    beam_init(i)%n_bunch   = <integer>  ! Number of bunches
-    beam_init(i)%ds_bunch  = <number>   ! distance between bunches (meters)
-    beam_init(i)%n_particle = <number>  ! Number of particles per bunch
-    beam_init(i)%bunch_charge = <number> ! charge per bunch (Coulombs)
+    calc_emittance          = <logical>   ! calculate emittance for rings
+    beam_init%a_norm_emit   = <number>    ! A-mode emittance
+    beam_init%b_norm_emit   = <number>    ! B-mode emittance
+    beam_init%dPz_dZ        = <number>    ! Energy-Z correlation
+    beam_init%center        = <number>*6  ! Bunch center offset relative to
+                                          ! reference particle (BMAD coords)
+    beam_init%sig_e         = <number>    ! e_sigma in eV
+    beam_init%sig_z         = <number>    ! Z sigma in m
+    beam_init%sig_e_cut     = <number>    ! Energy cut in sigmas
+    beam_init%sig_z_cut     = <number>    ! Z cut in sigmas
+    beam_init%sig_trans_cut = <number>    ! transverse dimension cut
+    beam_init%n_bunch       = <integer>   ! Number of bunches
+    beam_init%ds_bunch      = <number>    ! distance between bunches (meters)
+    beam_init%n_particle    = <number>    ! Number of particles per bunch
+    beam_init%bunch_charge  = <number>    ! charge per bunch (Coulombs)
   /
 \end{example}
-where \vn{i} refers to the universe index. See \bmad documentation on what the
+\vn{ix_universe} refers to the universe index. See \bmad documentation on what the
 \vn{beam_init} parameters refer to. Wakefields can only be turned on or off for all
 universes and not for each universe individually. The charge per particle is set
 to $\vn{bunch_charge} / \vn{n_particle}$ and is used when calculating
@@ -307,28 +312,28 @@ A macroparticle beam is initialized in the \vn{tao_macro_init} namelist block.
 The syntax is as follows:
 \begin{example}
   &tao_macro_init
+    ix_universe             = <Integer>   ! Universe index.
     sr_wakes_on             = <ligical>   ! turn on short range wakes
                                           ! default = F
     lr_wakes_on             = <logical>   ! turn on long range wakes
                                           ! default = F
     calc_emittance          = <logical>   ! calculate emittance for rings
-    macro_init(i)%x%norm_emit    = <number> 
-    macro_init(i)%y%norm_emit    = <number> 
-    beam_init(i)%dPz_dZ     = <number>   ! Energy-Z correlation
-    macro_init(i)%center    = <number>*6 ! Bunch center offset relative to
-                                         ! reference particle (BMAD coords)
-    macro_init(i)%sig_e     = <number>   ! e_sigma in eV
-    macro_init(i)%sig_z     = <number>   ! Z sigma in m
-    macro_init(i)%sig_e_cut = <number>   ! Energy cut in sigmas
-    macro_init(i)%sig_z_cut = <number>   ! Z cut in sigmas
-    macro_init(
-    macro_init(i)%n_bunch   = <integer>  ! Number of bunches
-    macro_init(i)%n_slice   = <integer>  ! Number of slices per bunch
-    macro_init(i)%n_macro   = <integer>  ! Number of macroparticles per slice
-    macro_init(i)%n_part    = <number>   ! Number of particles per bunch
+    macro_init%x%norm_emit  = <number> 
+    macro_init%y%norm_emit  = <number> 
+    beam_init%dPz_dZ        = <number>    ! Energy-Z correlation
+    macro_init%center       = <number>*6  ! Bunch center offset relative to
+                                          ! reference particle (BMAD coords)
+    macro_init%sig_e        = <number>    ! e_sigma in eV
+    macro_init%sig_z        = <number>    ! Z sigma in m
+    macro_init%sig_e_cut    = <number>    ! Energy cut in sigmas
+    macro_init%sig_z_cut    = <number>    ! Z cut in sigmas
+    macro_init%n_bunch      = <integer>   ! Number of bunches
+    macro_init%n_slice      = <integer>   ! Number of slices per bunch
+    macro_init%n_macro      = <integer>   ! Number of macroparticles per slice
+    macro_init%n_part       = <number>    ! Number of particles per bunch
   /
 \end{example}
-where \vn{i} refers to the universe index. See \bmad documentation on what the
+\vn{ix_universe} refers to the universe index. See \bmad documentation on what the
 \vn{macro_init} parameters refer to. Wakefields can only be turned on or off for all
 universes and not for each universe individually.
 
@@ -386,6 +391,7 @@ format for this is
     var(i)%low_lim     = <number>            ! Lower variable value limit
     var(i)%high_lim    = <number>            ! Upper variable value limit
     var(i)%merit_type  = "<merit_type_name>" ! Sets how the merit is calculated.
+    var(i)%good_user   = <logical>           ! Good optimization variable?
   /
 \end{example}
 Example:
