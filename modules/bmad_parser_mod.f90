@@ -2071,6 +2071,18 @@ subroutine verify_valid_name (name, ix_name)
   if (.not. OK) call warning ('INVALID NAME: UNRECOGNIZED CHARACTERS IN: ' &
                                    // name)
 
+! check for non matched "(" ")" pairs
+
+  ix1 = index(name, '(')
+  ix2 = index(name, ')')
+  if (ix1 /= 0 .or. ix2 /= 0) then
+    if (ix1 == 0) call warning ('UNMATCHED PARENTHESIS: ' // name)
+    if (ix2 <= ix1+1) call warning  &
+                    ('INVALID: REVERSED PARENTHESES: ' // name)
+    if (index(name(ix1+1:), '(') /= 0 .or. index(name(ix2+1:), ')') /=  &
+                   0) call warning ('INVALID: BAD PARENTHESES: ' // name)
+  endif
+
 ! check for non matched "[" "]" pairs
 
   ix1 = index(name, '[')
@@ -2085,18 +2097,6 @@ subroutine verify_valid_name (name, ix_name)
       if (name(ix2+1:ix2+1) /= ' ') call warning  &
                     ('INVALID: SOMETHING AFTER CLOSING "]" BRACKET: ' // name)
     endif
-  endif
-
-! check for non matched "(" ")" pairs
-
-  ix1 = index(name, '(')
-  ix2 = index(name, ')')
-  if (ix1 /= 0 .or. ix2 /= 0) then
-    if (ix1 == 0) call warning ('UNMATCHED PARENTHESIS: ' // name)
-    if (ix2 <= ix1+1) call warning  &
-                    ('INVALID: REVERSED PARENTHESES: ' // name)
-    if (index(name(ix1+1:), '(') /= 0 .or. index(name(ix2+1:), ')') /=  &
-                   0) call warning ('INVALID: BAD PARENTHESES: ' // name)
   endif
 
 ! check for more than 16 characters
