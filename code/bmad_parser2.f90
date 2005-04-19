@@ -93,7 +93,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 ! get a line from the input file and parse out the first word
 
     call load_parse_line ('normal', 1, file_end)  ! load an input line
-    call get_next_word (word_1, ix_word, ':(,)=', delim, delim_found, .true.)
+    call get_next_word (word_1, ix_word, '[:](,)=', delim, delim_found, .true.)
     if (file_end) then
       word_1 = 'END_FILE'
       ix_word = 8
