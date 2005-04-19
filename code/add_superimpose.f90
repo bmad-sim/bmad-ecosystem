@@ -142,8 +142,7 @@ subroutine add_superimpose (ring, super_ele, ix_super)
 
 ! if element overlays a drift then just insert it in the regular ring list
 
-  if (ix2_split == ix1_split + 1 .and.  &
-                              ring%ele_(ix2_split)%key == drift$) then
+  if (ix2_split == ix1_split + 1 .and. ring%ele_(ix2_split)%key == drift$) then
     ix_super = ix2_split
     ring%ele_(ix_super) = sup_ele
     ring%ele_(ix_super)%control_type = free$
@@ -221,7 +220,7 @@ subroutine add_superimpose (ring, super_ele, ix_super)
 
     else
       ring%ele_(ix_slave)%n_lord = slave_ele%n_lord + 1
-      call adjust_control_struct (ring, ix_slave)
+      call add_lattice_control_structs (ring, ix_slave)
     endif
 
     if (slave_ele%key == drift$) then

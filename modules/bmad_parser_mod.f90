@@ -2353,7 +2353,7 @@ subroutine add_this_multipass (ring, ixm)
   lord = ring%ele_(ixm(1))  ! Set attributes equal to first slave.
   lord%control_type = multipass_lord$
   lord%n_slave = n_multipass
-  call adjust_control_struct (ring, ix_lord)
+  call add_lattice_control_structs (ring, ix_lord)
 
 ! Setup bookkeeping between lord and slaves
 
@@ -2370,7 +2370,7 @@ subroutine add_this_multipass (ring, ixm)
     endif
     slave%n_lord = 1
     write (slave%name, '(2a, i1)') trim(slave%name), '\', i   ! '
-    call adjust_control_struct (ring, ix_slave)
+    call add_lattice_control_structs (ring, ix_slave)
     if (slave%control_type /= super_lord$) slave%control_type = multipass_slave$
     ixic = slave%ic1_lord
     ring%ic_(ixic) = ixc

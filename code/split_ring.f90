@@ -169,7 +169,7 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
       ring%control_(icon)%coef = coef2
 
       ring%ele_(ix_lord)%n_slave = ring%ele_(ix_lord)%n_slave + 1
-      call adjust_control_struct (ring, ix_lord)
+      call add_lattice_control_structs (ring, ix_lord)
 
       ix2 = ring%ele_(ix_lord)%ix2_slave
       ring%control_(ix2)%ix_slave = ix_split

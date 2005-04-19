@@ -105,7 +105,7 @@ subroutine create_i_beam (ring, ix_i_beam, ix_slave, ele_init)
 ! update controller info for the slave ele
 
     slave%n_lord = slave%n_lord + 1
-    call adjust_control_struct (ring, ixs)
+    call add_lattice_control_structs (ring, ixs)
     ixc = slave%ic2_lord
     ring%ic_(ixc) = i
 

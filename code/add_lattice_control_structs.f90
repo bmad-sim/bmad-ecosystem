@@ -1,5 +1,5 @@
 !+
-! Subroutine adjust_control_struct (ring, ix_ele)
+! Subroutine add_lattice_control_structs (ring, ix_ele)
 ! 
 ! Subroutine to adjust the control structure of a ring so that extra control
 ! elements can be added.
@@ -23,10 +23,10 @@
 
 #include "CESR_platform.inc"
 
-subroutine adjust_control_struct (ring, ix_ele)
+subroutine add_lattice_control_structs (ring, ix_ele)
 
   use bmad_struct
-  use bmad_interface, except => adjust_control_struct
+  use bmad_interface, except => add_lattice_control_structs
   use nrutil, only: reallocate
 
   implicit none
@@ -43,7 +43,7 @@ subroutine adjust_control_struct (ring, ix_ele)
   n_add = ele%n_slave - (ele%ix2_slave - ele%ix1_slave + 1) 
 
   if (n_add < 0) then
-    print *, 'ERROR IN ADJUST_CONTROL_STRUCT: N_SLAVE < CURRENT ALLOCATION'
+    print *, 'ERROR IN ADD_LATTICE_CONTROL_STRUCTS: N_SLAVE < CURRENT ALLOCATION'
     print *, '      FOR: ', ele%name, ele%n_slave, ele%ix2_slave, ele%ix1_slave
     call err_exit
   endif
@@ -82,7 +82,7 @@ subroutine adjust_control_struct (ring, ix_ele)
   n_add = ele%n_lord - (ele%ic2_lord - ele%ic1_lord + 1) 
 
   if (n_add < 0) then
-    print *, 'ERROR IN ADJUST_CONTROL_STRUCT: N_LORD < CURRENT ALLOCATION'
+    print *, 'ERROR IN ADD_LATTICE_CONTROL_STRUCTS: N_LORD < CURRENT ALLOCATION'
     print *, '      FOR: ', ele%name, ele%n_lord, ele%ic2_lord, ele%ic1_lord
     call err_exit
   endif

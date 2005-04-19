@@ -84,7 +84,7 @@ subroutine check_ring_controls (ring, exit_on_error)
     if (.not. any( (/ free$, super_slave$, overlay_slave$, i_beam_lord$, &
                       super_lord$, overlay_lord$, group_lord$, multipass_lord$, &
                       multipass_slave$ /) == t_type)) then
-      print *, 'ERROR IN CHECK_RING_CONTROLS: ELEMENT: ', ele%name
+      print *, 'ERROR IN CHECK_RING_CONTROLS: ELEMENT: ', ele%name, i_t
       print *, '      HAS UNKNOWN CONTROL INDEX: ', t_type
       found_err = .true.
     endif
@@ -222,9 +222,9 @@ subroutine check_ring_controls (ring, exit_on_error)
           if (ele%key == quadrupole$) cycle
         endif
         if (ele2%key == ele%key) cycle
-        print *, 'ERROR IN CHECK_RING_CONTROLS: SUPER_LORD: ', ele%name
+        print *, 'ERROR IN CHECK_RING_CONTROLS: SUPER_LORD: ', ele%name, i_t
         print *, '      WHICH IS A: ', key_name(ele%key)
-        print *, '      CANNOT HAVE A SUPER_SLAVE: ', ele2%name
+        print *, '      CANNOT HAVE A SUPER_SLAVE: ', ele2%name, i_t2
         print *, '      WHICH IS A: ', key_name(ele2%key)
         found_err = .true.
       enddo

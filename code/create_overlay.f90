@@ -118,7 +118,7 @@ subroutine create_overlay (ring, ix_overlay, attrib_name, contl)
 ! update controller info for the slave ele
 
     slave%n_lord = slave%n_lord + 1
-    call adjust_control_struct (ring, ix_slave)
+    call add_lattice_control_structs (ring, ix_slave)
     ixc = slave%ic2_lord
     ring%ic_(ixc) = i
 

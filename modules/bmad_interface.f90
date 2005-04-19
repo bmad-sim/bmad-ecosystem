@@ -1130,11 +1130,20 @@ interface
 end interface
 
 interface
-  subroutine adjust_control_struct (ring, ix_ele)
+  subroutine add_lattice_control_structs (ring, ix_ele)
     use bmad_struct, only: ring_struct
     implicit none
     type (ring_struct), target :: ring
     integer ix_ele
+  end subroutine
+end interface
+
+interface
+  subroutine delete_lattice_control_struct (ring, ix_con)
+    use bmad_struct, only: ring_struct
+    implicit none
+    type (ring_struct), target :: ring
+    integer ix_con
   end subroutine
 end interface
 
