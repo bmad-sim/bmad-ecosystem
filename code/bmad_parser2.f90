@@ -184,6 +184,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
 ! if an element attribute redef.
 
+    found = .false.
     if (delim == '[') then
 
       call get_next_word (word_2, ix_word, ']', delim, delim_found, .true.)
