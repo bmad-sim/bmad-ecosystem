@@ -348,13 +348,44 @@ function superimpose_key (key1, key2) result (key12)
     return
   endif
 
-  select case (key1)
-  case (drift$)
+  if (key1 == drift$) then
     key12 = key2
     return
+  endif
 
-  case (kicker$, rcollimator$, monitor$, instrument$)
+  if (key2 == drift$) then
+    key12 = key1
+    return
+  endif
+
+  if (any(key1 == (/ rcollimator$, monitor$, instrument$ /))) then
     key12 = key2
+    return
+  endif
+
+  if (any(key2 == (/ rcollimator$, monitor$, instrument$ /))) then
+    key12 = key1
+    return
+  endif
+
+  if (any(key1 == (/ kicker$, hkicker$, vkicker$ /))) then
+    if (any(key2 == (/ kicker$, hkicker$, vkicker$ /))) then
+      key12 = kicker$
+    else
+      key12 = key2
+    endif
+    return
+  endif
+
+  if (any(key2 == (/ kicker$, hkicker$, vkicker$ /))) then
+    key12 = key1
+    return
+  endif
+
+
+!
+
+  select case (key1)
 
   case (quadrupole$,  solenoid$, sol_quad$) 
     select case (key2)
@@ -375,10 +406,5 @@ function superimpose_key (key1, key2) result (key12)
   end select
 
 !
-
-  select case (key2)
-  case (drift$, kicker$, rcollimator$, monitor$, instrument$)
-    key12 = key1
-  end select
 
 end function

@@ -21,7 +21,7 @@ subroutine check_ring_controls (ring, exit_on_error)
   implicit none
        
   type (ring_struct), target :: ring
-  type (ele_struct), pointer :: ele, ele2
+  type (ele_struct), pointer :: ele, slave, lord
 
   integer i_t, j, i_t2, ix, t_type, t2_type, n, cc(100), i
   integer ix1, ix2, ii
@@ -187,23 +187,23 @@ subroutine check_ring_controls (ring, exit_on_error)
         cycle
       endif
 
-      ele2 => ring%ele_(i_t2)  
-      t2_type = ele2%control_type      
+      slave => ring%ele_(i_t2)  
+      t2_type = slave%control_type      
 
       if (.not. good_control(t_type, t2_type) .and. &
                         ring%control_(j)%ix_attrib /= l$) then
         print *, 'ERROR IN CHECK_RING_CONTROLS: LORD: ', ele%name, i_t
         print *, '      WHICH IS A: ', control_name(t_type)
-        print *, '      HAS A SLAVE: ', ele2%name, i_t2
+        print *, '      HAS A SLAVE: ', slave%name, i_t2
         print *, '      WHICH IS A: ', control_name(t2_type)
         found_err = .true.
       endif
 
       if (t_type /= group_lord$ .and. t_type /= i_beam_lord$) then
-        n = ele2%ic2_lord - ele2%ic1_lord + 1
-        cc(1:n) = (/ (ring%ic_(i), i = ele2%ic1_lord, ele2%ic2_lord) /)
+        n = slave%ic2_lord - slave%ic1_lord + 1
+        cc(1:n) = (/ (ring%ic_(i), i = slave%ic1_lord, slave%ic2_lord) /)
         if (.not. any(ring%control_(cc(1:n))%ix_lord == i_t)) then
-          print *, 'ERROR IN CHECK_RING_CONTROLS: SLAVE: ', ele2%name, i_t2
+          print *, 'ERROR IN CHECK_RING_CONTROLS: SLAVE: ', slave%name, i_t2
           print *, '      WHICH IS A: ', control_name(t2_type)
           print *, '      DOES NOT HAVE A POINTER TO ITS LORD: ', ele%name, i_t
           found_err = .true.
@@ -211,24 +211,6 @@ subroutine check_ring_controls (ring, exit_on_error)
       endif
 
     enddo
-
-
-    if (t_type == super_lord$) then
-      do j = ele%ix1_slave, ele%ix2_slave
-        i_t2 = ring%control_(j)%ix_slave
-        ele2 => ring%ele_(i_t2)  
-        if (ele2%key == sol_quad$) then
-          if (ele%key == solenoid$) cycle
-          if (ele%key == quadrupole$) cycle
-        endif
-        if (ele2%key == ele%key) cycle
-        print *, 'ERROR IN CHECK_RING_CONTROLS: SUPER_LORD: ', ele%name, i_t
-        print *, '      WHICH IS A: ', key_name(ele%key)
-        print *, '      CANNOT HAVE A SUPER_SLAVE: ', ele2%name, i_t2
-        print *, '      WHICH IS A: ', key_name(ele2%key)
-        found_err = .true.
-      enddo
-    endif    
 
 ! check lords
 
@@ -268,13 +250,13 @@ subroutine check_ring_controls (ring, exit_on_error)
         found_err = .true.
       endif
 
-      ele2 => ring%ele_(i_t2)
-      t2_type = ele2%control_type
+      lord => ring%ele_(i_t2)
+      t2_type = lord%control_type
 
       if (.not. good_control(t2_type, t_type)) then
         print *, 'ERROR IN CHECK_RING_CONTROLS: SLAVE: ', ele%name, i_t
         print *, '      WHICH IS A: ', control_name(t_type)
-        print *, '      HAS A LORD: ', ele2%name, i_t2
+        print *, '      HAS A LORD: ', lord%name, i_t2
         print *, '      WHICH IS A: ', control_name(t2_type)
         found_err = .true.
       endif

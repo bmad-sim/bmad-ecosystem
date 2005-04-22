@@ -105,9 +105,13 @@ based upon the local beta functions at the sextupoles.
 \section{Custom Elements}
 \label{s:custom_ele}
 \index{Twiss parameters!calculation with custom elements}
+\index{Custom}
 
 There are up to six routines that must be written to implement a custom 
 element they are:
+\index{Routine!custom_emitt_calc}\index{Routine!custom_radiation_integrals}
+\index{Routine!em_field_custom}\index{Routine!field_rk_custom}
+\index{Routine!make_mat6_custom}\index{Routine!track1_custom}
 \begin{example}
    custom_emitt_calc            ! only needed if emitt_calc is called in a program.
    custom_radiation_integrals   ! only needed if radiation_integrals is called.

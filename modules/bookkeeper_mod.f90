@@ -390,7 +390,7 @@ subroutine makeup_super_slave (ring, ix_slave)
   integer i, ix_con, j, ix, ix_slave
 
   real(rp) tilt, k_x, k_y, x_kick, y_kick, ks, k1, coef
-  real(rp) x_o, y_o, x_p, y_p, s_slave, s_del, k2, k3
+  real(rp) x_o, y_o, x_p, y_p, s_slave, s_del, k2, k3, c, s
   real(rp) sin_n, cos_n, a(0:n_pole_maxx), b(0:n_pole_maxx)
   real(rp) knl(0:n_pole_maxx), t(0:n_pole_maxx), value(n_attrib_maxx)
   real(rp) a_tot(0:n_pole_maxx), b_tot(0:n_pole_maxx)
@@ -437,8 +437,12 @@ subroutine makeup_super_slave (ring, ix_slave)
     value = lord%value
     value(check_sum$) = slave%value(check_sum$) ! do not change the check_sum
     value(l$) = slave%value(l$)                 ! do not change slave length
-    value(hkick$) = lord%value(hkick$) * coef
-    value(vkick$) = lord%value(vkick$) * coef
+    if (lord%key == hkicker$ .or. lord%key == vkicker$) then
+      value(kick$) = lord%value(kick$) * coef
+    else
+      value(hkick$) = lord%value(hkick$) * coef
+      value(vkick$) = lord%value(vkick$) * coef
+    endif
     slave%num_steps = lord%num_steps * coef + 1
     if (slave%key == rfcavity$) value(voltage$) = lord%value(voltage$) * coef
 
@@ -591,9 +595,23 @@ subroutine makeup_super_slave (ring, ix_slave)
 
     if (.not. lord%is_on) cycle
 
-    x_kick = x_kick + lord%value(hkick$) * coef
-    y_kick = y_kick + lord%value(vkick$) * coef
     tilt = lord%value(tilt_tot$)
+
+    if (lord%key == hkicker$) then
+      x_kick = x_kick + lord%value(kick$) * cos(tilt) * coef
+      y_kick = y_kick + lord%value(kick$) * sin(tilt) * coef
+    elseif (lord%key == vkicker$) then
+      x_kick = x_kick - lord%value(kick$) * sin(tilt) * coef
+      y_kick = y_kick + lord%value(kick$) * cos(tilt) * coef
+    elseif (lord%key == kicker$) then
+      c = cos(tilt) * coef
+      s = sin(tilt) * coef
+      x_kick = x_kick + c * lord%value(hkick$) - s * lord%value(vkick$)
+      y_kick = y_kick + s * lord%value(hkick$) + c * lord%value(vkick$)
+    else
+      x_kick = x_kick + lord%value(hkick$) * coef
+      y_kick = y_kick + lord%value(vkick$) * coef
+    endif
 
     if (associated(lord%a)) then
       call multipole_ele_to_kt (lord, +1, knl, t, .true.)
@@ -666,6 +684,9 @@ subroutine makeup_super_slave (ring, ix_slave)
                  'CODING NOT YET IMPLEMENTED FOR A: ' // key_name(slave%key))
       call err_exit
 
+! hkicker, vkicker, kicker
+
+    case (hkicker$, vkicker$, kicker$)
 
 ! default
 
@@ -681,8 +702,27 @@ subroutine makeup_super_slave (ring, ix_slave)
 !------------------------------
 ! stuff sums into slave element
 
-  value(hkick$) = x_kick
-  value(vkick$) = y_kick
+  if (x_kick == 0 .and. y_kick == 0) then
+    if (slave%key == hkicker$ .or. slave%key == vkicker$) then
+      value(kick$) = 0
+    else
+      value(hkick$) = 0
+      value(vkick$) = 0
+    endif
+  elseif (slave%key == hkicker$) then
+    value(kick$) = sqrt(x_kick**2 + y_kick**2)
+    value(tilt$) = atan2(y_kick, x_kick)
+  elseif (slave%key == vkicker$) then
+    value(kick$) = sqrt(x_kick**2 + y_kick**2)
+    value(tilt$) = atan2(-x_kick, y_kick)
+  elseif (slave%key == kicker$) then
+    value(tilt$) = 0
+    value(hkick$) = x_kick
+    value(vkick$) = y_kick
+  else
+    value(hkick$) = x_kick
+    value(vkick$) = y_kick
+  endif
 
   slave%value = value
 
