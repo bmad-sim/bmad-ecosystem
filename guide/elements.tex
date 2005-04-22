@@ -69,8 +69,7 @@ difference between this and a \vn{Multipole} is the input format.
 See~\sref{s:multip} for more details. For \vn{a$n$}
 and \vn{b$n$}, $n$ is in the range 0 through 20.
 
-\index{x_pitch}
-\index{y_pitch}
+\index{X_pitch}\index{Y_pitch}
 The length \vn{l} is a fictitious length that is used for synchrotron
 radiation computations and affects the longitudinal position of the
 next element but does not affect any tracking or transfer map
@@ -133,7 +132,7 @@ is assumed to be Gaussian in shape. In the \vn{bmad_standard}
 calculation the beam--beam kick is computed using the
 Bassetti--Erskine complex error function formula\cite{b:talman}
 
-\index{n_part!in BeamBeam element}
+\index{N_part!in BeamBeam element}
 \vn{n_part} is the nominal number of particles of the strong
 beam. \vn{n_part} is set using the \vn{parameter} command
 (\sref{s:param}) and is thus common to all \vn{BeamBeam} elements.  To
@@ -217,10 +216,10 @@ Example:
 \index{Dks_ds}
 \index{G}
 \index{Bend_tilt}
-\index{angle}
-\index{rho}
-\index{k1}
-\index{ks}
+\index{Angle}
+\index{Rho}
+\index{K1}
+\index{KS}
 Attributes specific to a \vn{Bend_Sol_Quad} element are:
 \begin{example}
   g         = <Real>    ! Bend strength 1/rho
@@ -754,8 +753,8 @@ attributes specific to an \vn{Lcavity} are
 \index{E_loss}
 \index{Rf_frequency}
 \index{Delta_e}
-\index{Sr_wake_file}
-\index{Lr_wake_file}
+\index{SR_wake_file}
+\index{LR_wake_file}
 \begin{example}
   gradient     = <Real>   ! Accelerating gradient (V/m).
   phi0         = <Real>   ! Phase (radians/2\(\pi\)) of the reference particle with 
@@ -1167,7 +1166,7 @@ Example:
 \end{center}
 \toffset
 
-\index{RF_frequency}\index{Harmon}\index{Voltage}\index{phi0}\index{dphi0}
+\index{RF_frequency}\index{Harmon}\index{Voltage}\index{Phi0}\index{Dphi0}
 Attributes specific to an \vn{RFcavity} are:
 \begin{example}
   rf_frequency = <Real>    ! Frequency
@@ -1292,7 +1291,7 @@ Example:
 \end{center}
 \toffset
 
-\index{k1}\index{ks}\index{b_field}\index{B_gradient}
+\index{K1}\index{KS}\index{B_field}\index{B_gradient}
 Attributes specific to a \vn{Sol_Quad} element are:
 \begin{example}
   k1         = <Real>    ! Quadrupole strength.
