@@ -91,6 +91,12 @@ function attribute_name (ele, ix_att) result (at_name)
       if (i == hkicker$)      cycle
       if (i == vkicker$)      cycle
       if (i == custom$)       cycle
+
+      attrib_array(i, hkick$)  = 'HKICK'
+      attrib_array(i, vkick$)  = 'VKICK'
+      attrib_array(i, bl_hkick$) = 'BL_HKICK'
+      attrib_array(i, bl_vkick$) = 'BL_VKICK'
+
       if (i == drift$)        cycle
       if (i == kicker$)       cycle
       if (i == monitor$)      cycle
@@ -105,11 +111,6 @@ function attribute_name (ele, ix_att) result (at_name)
 
       attrib_array(i, x_pitch$)   = 'X_PITCH'
       attrib_array(i, y_pitch$)   = 'Y_PITCH'
-
-      attrib_array(i, hkick$)  = 'HKICK'
-      attrib_array(i, vkick$)  = 'VKICK'
-      attrib_array(i, bl_hkick$) = 'BL_HKICK'
-      attrib_array(i, bl_vkick$) = 'BL_VKICK'
 
     enddo
 
@@ -238,8 +239,6 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(vkicker$, bl_kick$)    = 'BL_KICK'
 
     attrib_array(kicker$, l$)           = 'L'
-    attrib_array(kicker$, hkick$)       = 'HKICK'
-    attrib_array(kicker$, vkick$)       = 'VKICK'
     attrib_array(kicker$, tilt$)        = 'TILT'
     attrib_array(kicker$, h_displace$)  = 'H_DISPLACE'
     attrib_array(kicker$, v_displace$)  = 'V_DISPLACE'

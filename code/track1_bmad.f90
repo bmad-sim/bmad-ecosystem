@@ -77,7 +77,9 @@ subroutine track1_bmad (start, ele, param, end)
 
   case (drift$, rcollimator$, ecollimator$, monitor$, instrument$) 
 
+    if (ele%is_on) call offset_particle (ele, param, end, set$, .false.)
     call track_a_drift (end%vec, length)
+    if (ele%is_on) call offset_particle (ele, param, end, unset$, .false.)
 
 !-----------------------------------------------
 ! patch
@@ -312,7 +314,9 @@ subroutine track1_bmad (start, ele, param, end)
     endif
 
     if (gradient == 0) then
+      if (ele%is_on) call offset_particle (ele, param, end, set$, .false.)
       call track_a_drift (end%vec, length)
+      if (ele%is_on) call offset_particle (ele, param, end, unset$, .false.)
       return
     endif
 

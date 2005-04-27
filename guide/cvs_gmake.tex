@@ -86,8 +86,10 @@ into the \cvs repository use the command
 \begin{example}
   cvs -d <root_dir> import -m "<comment>" <project_name> <vendor_tag> <release_tag>
 \end{example}
-Everything in the current directory and subdirectories will be put
-into \cvs under the \vn{<project_name>} name.  \vn{<comment>} is the
+Everything in the current working directory and subdirectories will be
+put into \cvs under the \vn{<project_name>} name. The name of the
+working directory is not used by CVS in the import process but
+subdirectory names are preserved in the import. \vn{<comment>} is the
 comment string associated with the initial source
 files. \vn{<vendor_tag>} and \vn{<release_tag>} are tags important
 when there is branching. Branching is a way to effectively have
@@ -95,16 +97,21 @@ different repositories (the different branches) for the same
 project. The subject of branching is beyond the scope of this writeup
 and the reader can look at the \cvs man pages for more details.  An
 example import is shown in Figure~\ref{f:cvs}A which shows the
-directory tree for a directory called
-\vn{original_dir}.  Making \vn{original_dir} your working
-directory and using the command
+directory tree for a directory called \vn{original_dir}.  Making
+\vn{original_dir} your working directory and using the command
 \begin{example}
     cvs -d /home/dcs/cvs_root import -m "start here" mad garbage1 garbage2
 \end{example}
 imports the 4 files in \vn{original_dir} into the repository and
 associates these with the name \vn{mad}. If you have more than one
 project you can do multiple imports. Just use a different
-\vn{<project_name>} for each import.
+\vn{<project_name>} for each import. 
+
+Note: Since \cvs will import all the files it finds it is important
+that ``extraneous'' files not be present. For example, compiled object
+files should not be put in the repository and should therefore be
+deleted before an import. If necessary the files to be imported can be
+copied to a temporary directory for the import.
 
 %----------------------------------------------------------------------------
 \section{Using CVS}
@@ -378,7 +385,8 @@ The \vn{?} indicates that \vn{new_file} is not in the repository. The
 updating the repository (see below). Notice that having a local file
 with no corresponding repository file is not necessarily an error
 since there may be local files that are not meant to be in the
-repository.
+repository. For example, compiled object files are generally never but
+in the repository.
 
 The command to delete a file is
 \begin{example}
