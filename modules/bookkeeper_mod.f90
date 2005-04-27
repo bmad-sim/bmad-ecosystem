@@ -1116,6 +1116,7 @@ subroutine attribute_bookkeeper (ele, param)
       ele%value(kick$) = factor * ele%value(BL_kick$)
     case (vkicker$)
       ele%value(kick$) = factor * ele%value(BL_kick$)
+    case (drift$, monitor$, instrument$, ecollimator$, rcollimator$)
     case default
        call out_io(s_abort$,r_name,' "FIELD_MASTER" NOT IMPLEMENTED FOR: ' // trim(ele%name))
       call err_exit
