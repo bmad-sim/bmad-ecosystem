@@ -81,8 +81,9 @@ subroutine tao_init (init_file)
     enddo
   enddo
 
-! set up design and base lattices
+! set up model and base lattices
 
+  ! must first transfer to model lattice for tao_lattice_calc to run
   do i = 1, size(s%u)
     s%u(i)%model = s%u(i)%design; s%u(i)%model_orb = s%u(i)%design_orb
   enddo
@@ -196,8 +197,8 @@ subroutine deallocate_everything ()
       deallocate(s%u(i)%data, stat=istat)
  
       ! ix_data
-      do j = 0, size(s%u(i)%ix_data)
-      if (associated(s%u(i)%ix_data(j)%ix_datum)) deallocate(s%u(i)%ix_data(j)%ix_datum)
+      do j = 0, ubound(s%u(i)%ix_data,1)
+        if (associated(s%u(i)%ix_data(j)%ix_datum)) deallocate(s%u(i)%ix_data(j)%ix_datum)
       enddo
       deallocate(s%u(i)%ix_data)
       

@@ -416,6 +416,11 @@ end subroutine
 ! Output:
 !   data     -- Tao_data_struct:
 !     %useit_plot -- True if good for plotting.
+!                  = %exists & %good_plot (w/o measured & reference data)
+!                  = %exists & %good_plot & %good_user & %good_meas (w/ meas data)
+!                  = %exists & %good_plot & %good_user & %good_ref (w/ reference data)
+!                  = %exists & %good_plot & %good_user & %good_meas & %good_ref 
+!                                                        (w/ measured & reference data)
 !-
 
 subroutine tao_data_useit_plot_calc (graph, data)
@@ -427,11 +432,11 @@ type (tao_data_struct) data(:)
 
 !
 
-data%useit_plot = data%exists .and. data%good_user .and. data%good_plot
+data%useit_plot = data%exists .and. data%good_plot
 if (any(graph%who%name == 'meas')) &
-                      data%useit_plot = data%useit_plot .and. data%good_meas
+         data%useit_plot = data%useit_plot .and. data%good_user .and. data%good_meas
 if (any(graph%who%name == 'ref'))  &
-                      data%useit_plot = data%useit_plot .and. data%good_ref
+         data%useit_plot = data%useit_plot .and. data%good_user .and. data%good_ref
 
 end subroutine
 

@@ -575,13 +575,19 @@ end subroutine tao_evaluate_a_datum
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine tao_read_bpm
+! Subroutine tao_read_bpm (orb, ele, axis, reading)
 !
 ! Find the reading on a bpm given the orbit at the BPM and the BPM offsets
+!
+! This routine will only give a nonzero reading for BMAD monitors and
+! instruments.
+!
+! The BPM noise is in the ele%r(1,1) entry
 !
 ! Input: 
 !  orb      -- Coord_struct: Orbit position at BPM
 !  ele      -- Ele_struct: the BPM
+!  noise    -- real(rp): BPM gaussian noise (in meters)
 !  axis     -- Integer: x$ or y$
 !
 ! Output:
@@ -591,10 +597,13 @@ end subroutine tao_evaluate_a_datum
 
 subroutine tao_read_bpm (orb, ele, axis, reading)
 
+use random_mod
+
 type (coord_struct) orb
 type (ele_struct) ele
 
 real(rp) reading
+real(rp) ran_num
 
 integer axis
 
@@ -607,13 +616,22 @@ logical err
     return
   endif
 
+  call ran_gauss (ran_num)
+  
   if (axis .eq. x$) then
-    reading =  (orb%vec(1) - ele%value(x_offset_tot$)) * cos(ele%value(tilt_tot$)) + &
-               (orb%vec(3) - ele%value(y_offset_tot$)) * sin(ele%value(tilt_tot$))              
+    reading = ele%r(1,1)*ran_num + &
+               (orb%vec(1) - ele%value(x_offset_tot$) + ele%r(1,2)) * &
+                                           cos(ele%value(tilt_tot$) + ele%r(1,4)) + &
+               (orb%vec(3) - ele%value(y_offset_tot$) + ele%r(1,3)) * &
+                                           sin(ele%value(tilt_tot$) + ele%r(1,4))              
   elseif (axis .eq. y$) then
-    reading = -(orb%vec(1) - ele%value(x_offset_tot$)) * sin(ele%value(tilt_tot$)) + &
-               (orb%vec(3) - ele%value(y_offset_tot$)) * cos(ele%value(tilt_tot$))  
+    reading = ele%r(1,1)*ran_num + &
+              -(orb%vec(1) - ele%value(x_offset_tot$) + ele%r(1,2)) * &
+                                           sin(ele%value(tilt_tot$) + ele%r(1,4)) + &
+               (orb%vec(3) - ele%value(y_offset_tot$) + ele%r(1,3)) * &
+                                           cos(ele%value(tilt_tot$) + ele%r(1,4))  
   else
+    reading = 0.0
     call out_io (s_warn$, r_name, &
                  "This axis not supported for BPM reading!")
   endif

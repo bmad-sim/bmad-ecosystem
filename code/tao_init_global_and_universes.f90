@@ -22,6 +22,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   use tao_input_struct
   use macroparticle_mod
   use bmad_parser_mod
+  use random_mod
   
   implicit none
 
@@ -41,7 +42,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
 
   real(rp) :: default_weight        ! default merit function weight
   real(rp) :: default_step          ! default "small" step size
-  real(rp) default_low_lim, default_high_lim
+  real(rp) default_low_lim, default_high_lim, default_bpm_noise
 
   integer ios, iu, i, j, k, ix, n_uni
   integer n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
@@ -74,7 +75,8 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   namelist / tao_macro_init / ix_universe, sr_wakes_on, lr_wakes_on, &
                              calc_emittance, macro_init
          
-  namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe
+  namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe, &
+                           default_bpm_noise
   
   namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, &
                            ix_max_data, default_weight, default_data_type
@@ -122,6 +124,11 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
 
   s%n_var_used = 0
   s%n_v1_var_used = 0       ! size of s%v1_var(:) array
+
+!-----------------------------------------------------------------------
+! Seed random number generator
+
+  call ran_seed (s%global%random_seed)
 
 !-----------------------------------------------------------------------
 ! allocate lattice coord_structs and equate model and base to design
@@ -290,6 +297,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
     d2_data%name = ' '
     universe = 0
     default_merit_type = 'target'
+    default_bpm_noise = 0.0
     read (iu, nml = tao_d2_data, iostat = ios, err = 9100)
     if (ios < 0) exit         ! exit on end-of-file
     call out_io (s_blank$, r_name, &
@@ -328,7 +336,8 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
       data(:)%ele_name   = ' '
       data(:)%ele2_name  = ' '
       data(:)%meas_value = real_garbage$  ! used to tag when %meas_value is set in file
-      data(:)%weight     = 0
+      data(:)%weight     = 0.0
+      data(:)%bpm_noise  = real_garbage$
       data(:)%good_user  = .true.
       read (iu, nml = tao_d1_data, err = 9150)
       if (ix_d1_data /= k) then
@@ -731,7 +740,16 @@ else
 endif
 
 
-                      
+! set bpm noise (only applicable to bpm data
+if (d2_data%name .eq. "bpm") then
+  do j = n1, n2
+    u%design%ele_(u%data(j)%ix_ele)%r(1,1) = default_bpm_noise
+  enddo
+  do j = lbound(data,1), ubound(data,1)
+    if (data(j)%bpm_noise .ne. real_garbage$) &
+      u%design%ele_(u%data(n1+j-ix1)%ix_ele)%r(1,1) = data(j)%bpm_noise
+  enddo
+endif                   
 
 ! Create data names
 
@@ -1192,6 +1210,10 @@ character(16) ele_name
 integer j, ix
 
 !
+  if (coupled%from_universe .eq. 0 .or. coupled%at_element .eq. "none") then
+    u%coupling%coupled = .false.
+    return
+  endif
 
   if (coupled%from_universe .ge. this_uni_index) then
     call out_io (s_abort$, r_name, &

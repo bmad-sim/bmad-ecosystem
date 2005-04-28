@@ -25,7 +25,7 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
   character(*) tao_design_lattice_file
   character(200) complete_file_name
   character(40) :: r_name = 'tao_init_design_lattice'
-  integer i, iu, ios, version, taylor_order
+  integer i, j, iu, ios, version, taylor_order
 
   logical custom_init
 
@@ -54,6 +54,21 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
 
   custom_init = .false.
   call tao_hook_init_design_lattice (design_lattice, custom_init)
+
+  ! Initialize BPM noise and calibration array
+  ! This must be performed or tao_read_bpm will crash.
+  ! r(1,:) is for bpm callibration
+  ! r(2,:) is for saving ele parameters
+  do i = 1, size(s%u)
+    do j = 1, s%u(i)%design%n_ele_max
+      if (s%u(i)%design%ele_(j)%key .eq. monitor$ .or. s%u(i)%design%ele_(j)%key .eq. instrument$) then
+        allocate(s%u(i)%design%ele_(j)%r(2,4))
+        s%u(i)%design%ele_(j)%r = 0.0
+      endif
+    enddo
+  enddo
+
+  
   if (custom_init) return
 
   

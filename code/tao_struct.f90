@@ -168,11 +168,14 @@ end type
 ! %good_plot  -- Conveninet way to veto data to plot without 
 !                  touching the other logicals.
 ! %useit_plot -- Datum is valid for plotting:
-!                  = %exists & %good_dat & %good_user & %good_plot (w/o reference data)
-!                  = %exists & %good_dat & %good_user & %good_plot & %good_ref (otherwise)
+!                  = %exists & %good_plot (w/o measured & reference data)
+!                  = %exists & %good_plot & %good_user & %good_meas (w/ meas data)
+!                  = %exists & %good_plot & %good_user & %good_ref (w/ reference data)
+!                  = %exists & %good_plot & %good_user & %good_meas & %good_ref 
+!                                                        (w/ measured & reference data)
 ! %useit_opt  -- Datum is valid for optimizing (minimizing the merit function):
-!                  = %exists & %good_dat & %good_user & %good_opt (w/o reference data)
-!                  = %exists & %good_dat & %good_user & %good_opt & %good_ref (otherwise)
+!                  = %exists & %good_meas & %good_user & %good_opt (w/o reference data)
+!                  = %exists & %good_meas & %good_user & %good_opt & %good_ref (otherwise)
 
 type tao_data_struct
   character(32) name        ! Datum name. Eg: "X Orbit @ Det 10"
@@ -332,6 +335,7 @@ type tao_global_struct
   integer :: phase_units = radians$      ! Phase units on output.
   integer :: bunch_to_plot = 1           ! Which bunch to plot
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
+  integer :: random_seed = 0             ! use system clock by default
   integer :: n_write_file = 0
   character(16) :: track_type = 'single' ! or 'beam' or 'macro' 
   character(16) :: prompt_string = 'Tao'

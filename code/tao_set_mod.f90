@@ -2,32 +2,33 @@ module tao_set_mod
 
 use tao_mod
 use quick_plot
+use tao_lattice_calc_mod
 
 contains
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
-! Subroutine tao_set_lattice_cmd (universe, component, set_value)
+! Subroutine tao_set_lattice_cmd (universe, set_lattice, to_lattice)
 !
-! Sets a lattice equal to another. This will also recalculate the data in
-! the lattice.
+! Sets a lattice equal to another. This will also update the data structs
+! If the 
 !
 ! Input:
-!   universe    -- Character(*): Which universe in the form *;n where
-!                  n is the universe number, any word can be before the ';'
-!   component   -- Character(*): Which component to set.
-!   set_value   -- Character(*): What value to set to.
+!   universe     -- Character(*): Which universe in the form *;n where
+!                    n is the universe number, any word can be before the ';'
+!   set_lattice  -- Character(*):
+!   to_lattice   -- Character(*):
 !
 !  Output:
-!    su(n)      -- ring_struct: changes specified lattice in specified universe 
+!    s%u(n)      -- ring_struct: changes specified lattice in specified universe 
 !-
 
-subroutine tao_set_lattice_cmd (universe, component, set_value)
+subroutine tao_set_lattice_cmd (universe, set_lattice, to_lattice)
 
 implicit none
 
-character(*) universe, component, set_value
+character(*) universe, set_lattice, to_lattice
 character(20) :: r_name = 'tao_set_lattice_cmd'
 
 integer i
@@ -44,46 +45,59 @@ do i = 1, size(s%u)
   if (err) return
 enddo
 
-s%global%lattice_recalc = .true.
-
 !-------------------------------------------
 contains
 
 subroutine set_lat (u)
 
+implicit none
+
 type (tao_universe_struct), target :: u
-type (ring_struct), pointer :: u_set_this
-type (ring_struct), pointer :: u_to_this
+type (ring_struct), pointer :: set_this_lat
+type (ring_struct), pointer :: to_this_lat
+real(rp), pointer :: set_this_data(:)
+real(rp), pointer :: to_this_data(:)
 
 err = .false.
 
-select case (component)
+select case (set_lattice)
   case ('model')
-    u_set_this => u%model
+    set_this_lat => u%model
+    set_this_data => u%data%model_value
   case ('base')
-    u_set_this => u%base
+    set_this_lat => u%base
+    set_this_data => u%data%base_value
   case ('design')
-    u_set_this => u%design
+    set_this_lat => u%design
+    set_this_data => u%data%design_value
   case default
-    call out_io (s_error$, r_name, 'BAD LATTICE: ' // component)
+    call out_io (s_error$, r_name, 'BAD LATTICE: ' // set_lattice)
     err = .true.
     return
 end select
 
-select case (set_value)
+select case (to_lattice)
   case ('model')
-    u_to_this => u%model
+    ! make sure model data is up to date
+    s%global%lattice_recalc = .true.
+    call tao_lattice_calc ()
+    to_this_lat => u%model
+    to_this_data => u%data%model_value
   case ('base')
-    u_to_this => u%base
+    to_this_lat => u%base
+    to_this_data => u%data%base_value
   case ('design')
-    u_to_this => u%design
+    to_this_lat => u%design
+    to_this_data => u%data%design_value
   case default
-    call out_io (s_error$, r_name, 'BAD LATTICE: ' // component)
+    call out_io (s_error$, r_name, 'BAD LATTICE: ' // to_lattice)
     err = .true.
     return
 end select
   
-u_set_this = u_to_this
+set_this_lat = to_this_lat
+
+set_this_data = to_this_data
 
 end subroutine set_lat
 
