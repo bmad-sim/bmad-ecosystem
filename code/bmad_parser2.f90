@@ -430,6 +430,7 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
 ! make matrices for entire ring
 
+  call lattice_bookkeeper (ring)
   call compute_reference_energy (ring, .true.)
   doit = .true.
   if (present(make_mats6)) doit = make_mats6

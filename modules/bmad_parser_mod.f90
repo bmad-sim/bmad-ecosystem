@@ -572,7 +572,7 @@ subroutine get_attribute (how, ele, ring, pring, &
 
   select case (ix_attrib)
 
-  case(type$, alias$, descrip$, sr_wake_file$, lr_wake_file$)
+  case(type$, alias$, descrip$, sr_wake_file$, lr_wake_file$, lattice$)
     call type_get (ele, ix_attrib, delim, delim_found)
 
   case (symplectify$) 
@@ -1615,7 +1615,7 @@ subroutine type_get (ele, ix_type, delim, delim_found)
     ele%type = type_name
   case (alias$)
     ele%alias = type_name
-  case (descrip$)
+  case (descrip$, lattice$)
     if (.not. associated(ele%descrip)) allocate (ele%descrip) 
     ele%descrip = type_name
   case (sr_wake_file$) 
@@ -1949,7 +1949,7 @@ subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
   character delim*1, word_in*40, word*40
   character(16) name_(200), attrib_name_(200)
 
-  logical delim_found, parsing, err_flag, file_end
+  logical delim_found, err_flag, file_end
                       
 !
 
@@ -1958,12 +1958,18 @@ subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
           ('BAD ' // control_name(ele%control_type) // 'SPEC: ' // word_in,  &
           'FOR ELEMENT: ' // ele%name)
 
-!
+! loop over all names in "{...}" list
 
-  parsing = .true.
-  do while (parsing)
+  do 
 
     call get_next_word (word_in, ix_word, '{,}/', delim, delim_found, .true.)
+
+    ! If "{}" with no slaves... 
+    if (delim == '}' .and. ix_word == 0 .and. ele%n_slave == 0) then
+      call get_next_word (word, ix_word, ',=:', delim, delim_found, .true.)
+      exit
+    endif
+
     ele%n_slave = ele%n_slave + 1
     ixs = ele%n_slave
     word = word_in
@@ -1999,12 +2005,12 @@ subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
     endif
 
     if (delim == '}') then
-      parsing = .false.
       call get_next_word (word, ix_word, ',=:', delim, delim_found, .true.)
+      exit
     elseif (delim /= ',') then
       call warning ('BAD ' // control_name(ele%control_type) //  &
               'SPEC: ' // word_in, 'FOR: ' // ele%name)
-      parsing = .false.
+      exit
     endif
                           
   enddo

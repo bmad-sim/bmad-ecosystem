@@ -376,7 +376,8 @@ module bmad_struct
   integer, parameter :: b0$  = 100, t0$  = 100
   integer, parameter :: b20$ = 120, t20$ = 120 ! this is n_attrib_special_maxx 
 
-  integer, parameter :: n_attrib_special_maxx = 120
+  integer, parameter :: lattice$ = 121
+  integer, parameter :: n_attrib_special_maxx = 121
 
   character(16), parameter :: null_name = 'NULL' 
   character(16), parameter :: blank_name = ' '

@@ -853,6 +853,14 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
     ring%param%n_part = param_ele%value(n_part$)
   endif
 
+! The lattice name from a "parameter[lattice] = ..." line is 
+! stored the param_ele%descrip string
+
+  if (associated(param_ele%descrip)) then
+    ring%lattice = param_ele%descrip
+    deallocate (param_ele%descrip)
+  endif
+
 ! New way of doing things
 
   ring%param%lattice_type = nint(param_ele%value(lattice_type$))

@@ -145,6 +145,8 @@ subroutine write_bmad_lattice_file (bmad_file, ring)
 
     ele => ring%ele_(i)
 
+    if (ele%key == null_ele$) cycle
+
     if (i == ring%n_ele_use+1) then
       write (iu, *)
       write (iu, *) '!-------------------------------------------------------'
@@ -254,6 +256,8 @@ subroutine write_bmad_lattice_file (bmad_file, ring)
 
     do j = 1, n_attrib_maxx
 
+! Exclude dependent variables
+
       if (j == check_sum$ .and. ele%key /= patch$) cycle
       if (j == beam_energy$) cycle
       if (j == p0c$) cycle
@@ -274,6 +278,8 @@ subroutine write_bmad_lattice_file (bmad_file, ring)
       case (lcavity$)
         if (j == e_loss$) cycle
         if (j == delta_e$) cycle
+        if (j == p0c_start$) cycle
+        if (j == energy_start$) cycle
       case (wiggler$)
         if (j == k1$) cycle
         if (j == rho$) cycle
@@ -293,14 +299,48 @@ subroutine write_bmad_lattice_file (bmad_file, ring)
           if (j == k3$) cycle
         case (solenoid$)
           if (j == ks$) cycle
+        case (sol_quad$) 
+          if (j == ks$) cycle
+          if (j == k1$) cycle
         case (sbend$)
           if (j == g$) cycle
+        case (hkicker$)
+          if (j == kick$) cycle
+        case (vkicker$)
+          if (j == kick$) cycle
         end select
+
+        if (j == hkick$) cycle
+        if (j == vkick$) cycle
+
       else
-        if (j == b_field$) cycle
-        if (j == e_field$) cycle
+        select case (ele%key)
+        case (quadrupole$)
+          if (j == b_gradient$) cycle
+        case (sextupole$)
+          if (j == b_gradient$) cycle
+        case (octupole$)
+          if (j == b_gradient$) cycle
+        case (solenoid$)
+          if (j == b_field$) cycle
+        case (sol_quad$) 
+          if (j == b_field$) cycle
+          if (j == b_gradient$) cycle
+        case (sbend$)
+          if (j == b_field$) cycle
+        case (hkicker$)
+          if (j == bl_kick$) cycle
+        case (vkicker$)
+          if (j == bl_kick$) cycle
+        end select
+
+        if (j == bl_hkick$) cycle
+        if (j == bl_vkick$) cycle
+
       endif
       
+!
+
       if (ele%value(j) == 0) cycle
       line = trim(line) // ', ' // trim(attribute_name(ele, j)) // &
                                                   ' = ' // str(ele%value(j))
