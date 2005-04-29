@@ -23,19 +23,18 @@ type beam_struct
 end type
 
 type beam_init_struct
-  real(rp) a_norm_emitt ! a-mode emittance
-  real(rp) b_norm_emitt ! b-mode emittance
-  real(rp) :: dPz_dz = 0  ! Correlation of Pz with long position.
+  real(rp) a_norm_emitt     ! a-mode emittance
+  real(rp) b_norm_emitt     ! b-mode emittance
+  real(rp) :: dPz_dz = 0    ! Correlation of Pz with long position.
   real(rp) :: center(6) = 0 ! Bench center offset relative to reference.
-  real(rp) ds_bunch    ! Distance between bunches.
-  real(rp) sig_z       ! Z sigma in m.
-  real(rp) sig_e       ! e_sigma in dE/E.
-  real(rp) sig_e_cut   ! Energy cut in sigmas.
-  real(rp) sig_z_cut   ! Z cut in sigmas.
-  real(rp) sig_trans_cut ! Transverse sigma cutoff
-  real(rp) bunch_charge ! charge in a bunch.
-  integer n_particle   ! Number of simulated particles per bunch.
-  integer n_bunch      ! Number of bunches.
+  real(rp) ds_bunch         ! Distance between bunches.
+  real(rp) sig_z            ! Z sigma in m.
+  real(rp) sig_e            ! e_sigma in dE/E.
+  real(rp) bunch_charge     ! charge in a bunch.
+  integer n_particle        ! Number of simulated particles per bunch.
+  integer n_bunch           ! Number of bunches.
+  logical :: renorm_center = .true.    ! Renormalize centroid?
+  logical :: renorm_sigma = .false.    ! Renormalize sigma?
 end type
 
 type bunch_param_struct
@@ -710,21 +709,14 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_beam_distribution (ele, beam_init, beam, renormalize, random_dist)
+! Subroutine init_beam_distribution (ele, beam_init, beam)
 !
 ! Subroutine to initialize a distribution of particles matched to
 ! the Twiss parameters, centroid position, and Energy - z correlation
 ! as specified. Coupling in the element ele is incorporated into the
 ! distribution
 !
-! If using a random distribution with a small number of pazrticles statistical
-! error create a beam distribution off from what is specified in beam_init.
-! Therefore, the random particle distributions are created until one with a and
-! b mode emittances within 1% of the beam_init specification is created. Only
-! the a and b mode emittances are checked for agrrement with the beam_init
-! specification.
-!
-! Make sure: dpz_dz < mode%sigE_E / mode%sig_z
+! Note: Make sure: beam_init%dpz_dz < mode%sigE_E / mode%sig_z
 !
 ! Modules needed:
 !   use random_mod
@@ -733,20 +725,17 @@ end subroutine
 ! Input:
 !   ele         -- Ele_struct: element to initialize distribution at
 !   beam_init   -- beam_init_struct
-!   beam        -- beam_struct
-!   renormalize -- Logical: If True then distribution is rescaled to
+!     %renorm_center -- Logical: If True then distribution is rescaled to
 !                   the desired centroid (to take care of
 !                   possible statistical errors in distribution).
-!   random_dist -- Logical: If True then a random gaussian distribution will be
-!                  used. Otherwise the inverse error function will be used to get 
-!                  an ordered distribution.
+!     %renorm_sigma  -- Logical: If True then rescale the distribution to the desired sigmas.
 !
 ! Output:
 !   beam        -- beam_struct
 !
 !-
  
-subroutine init_beam_distribution (ele, beam_init, beam, renormalize, random_dist)
+subroutine init_beam_distribution (ele, beam_init, beam)
  
   use random_mod
   use bmad
@@ -758,217 +747,123 @@ subroutine init_beam_distribution (ele, beam_init, beam, renormalize, random_dis
   type (beam_struct), target :: beam
   type (bunch_struct), pointer :: bunch
   type (bunch_params_struct) :: params
+  type (particle_struct), pointer :: p
   
   real(rp) dpz_dz, denom
   real(rp) a_emitt, b_emitt
-  real(rp) ave(6), sigma(6), sigma_cut(6), dpz_dz2, a, b
+  real(rp) ave(6), sigma(6), a, b
   real(rp) center(6), r(6), v_mat(4,4), v_inv(4,4)
-  real(rp) y, phi(6)
-  real(rp) :: tol = 1.0e-6_rp
-  real(rp) :: sigma_tol = 0.01 ! 1% of design sigma
-  real(rp) :: emitt_tol = 0.01 ! 1% of design emittance
-  real(rp) :: x_domain = 50.0 ! something really big
-  real(rp) a_factor, b_factor
+  real(rp) y, alpha(6), sig_mat(6,6)
 
-  integer i,j,i_p
-  integer n_ellipse, n_ellipse_parts, i_part, n_more, n_too_many, n_factor
+  integer i, j, k
   
-  logical renormalize, random_dist
-
   character(22) :: r_name = "init_beam_distribution"
 
-!
+! generate random numbers
 
   call reallocate_beam (beam, beam_init%n_bunch, beam_init%n_particle)
-  
-  denom = (1 + beam_init%center(6)) * ele%value(beam_energy$)
-  a_emitt = beam_init%a_norm_emitt * m_electron / denom
-  b_emitt = beam_init%b_norm_emitt * m_electron / denom
-  
-  sigma_cut(1:4) = beam_init%sig_trans_cut
-  sigma_cut(5)   = beam_init%sig_z_cut
-  sigma_cut(6)   = beam_init%sig_e_cut
-                                                 
-  center = beam_init%center
-  dpz_dz = beam_init%dpz_dz
-  
-  call make_v_mats(ele,v_mat,v_inv)
-
-  bunch => beam%bunch(1)
-
-  if (random_dist) then
-    do ! do until foun distribution within tollerance
-
-      ave = 0.
  
-      sigma(1) = sqrt(a_emitt * ele%x%beta)
-      sigma(2) = sqrt(a_emitt / ele%x%beta)
-      sigma(3) = sqrt(b_emitt * ele%y%beta)
-      sigma(4) = sqrt(b_emitt / ele%y%beta)
-      sigma(5) = beam_init%sig_z
-      sigma(6) = beam_init%sig_e
-     
-      a = dpz_dz * sigma(5) / sigma(6)
-      if (a > 1)  then
-        call out_io (s_abort$, r_name, &
-                     "dpz_dz MUST be < mode%sigE_E / mode%sig_z")
-        call err_exit
-      endif
-     
-      b = sqrt(1-a**2)
-     
-      call ran_seed(0)
-     
-      do i = 1, beam_init%n_particle
-        do j = 1, 6
-          do
-            call ran_gauss(r(j))
-            if (abs(r(j)) .le. sigma_cut(j)) exit
-          enddo
-        enddo
-         
-        !Initialize the Distribution
-        bunch%particle(i)%r%vec(1) = sigma(1) *  r(1)
-        bunch%particle(i)%r%vec(2) = - sigma(2) * (r(2) + r(1) * ele%x%alpha)
-        bunch%particle(i)%r%vec(3) = sigma(3) *  r(3)
-        bunch%particle(i)%r%vec(4) = - sigma(4) * (r(4) + r(3) * ele%y%alpha)
-        bunch%particle(i)%r%vec(5) = sigma(5) *  r(5)
-        bunch%particle(i)%r%vec(6) = sigma(6) * (r(6) * b + r(5) * a)
-      
-        !Include Dispersion
-        bunch%particle(i)%r%vec(1:4) =  bunch%particle(i)%r%vec(1:4) + bunch%particle(i)%r%vec(6) * &
-             (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /)
-      
-        !Include Coupling
-        bunch%particle(i)%r%vec(1:4) = matmul(v_mat, bunch%particle(i)%r%vec(1:4))
-      
-        !Calculate the Distribution Centroid
-        ave = ave + bunch%particle(i)%r%vec
-      end do
-     
-      ! check distribution for fit to beam_init
-      call calc_bunch_params (bunch, ele, params)
-      if (abs(params%a%norm_emitt - beam_init%a_norm_emitt) < &
-                                      emitt_tol*beam_init%a_norm_emitt .and. &
-          abs(params%b%norm_emitt - beam_init%b_norm_emitt) < &
-                                      emitt_tol*beam_init%b_norm_emitt) exit
-    enddo
-  else ! ordered distribution
-    n_ellipse = int(sqrt(real(beam_init%n_particle)))
-    n_ellipse_parts = n_ellipse
-    
-    ! fudge particle distribution so total number of particles is correct
-    n_too_many = 0
-    do 
-      n_more = beam_init%n_particle - (n_ellipse * n_ellipse_parts - n_too_many)
-      if (n_more .eq. 0) exit
-      n_factor = int(n_more / n_ellipse_parts)
-      if (n_factor .eq. 0) then
-        ! only one more ellipse
-        n_ellipse = n_ellipse + 1
-        n_too_many = n_ellipse_parts - n_more
-      else
-        ! several more ellipses
-        n_ellipse = n_ellipse + n_factor
-      endif
-    enddo
-      
-    sigma(1:2) = a_emitt
-    sigma(3:4) = b_emitt
-    sigma(5) = beam_init%sig_z
-    sigma(6) = beam_init%sig_e
-    
-    a = dpz_dz * sigma(5) / sigma(6)
-    if (a > 1)  then
-      call out_io (s_abort$, r_name, &
-                   "dpz_dz MUST be < mode%sigE_E / mode%sig_z")
-      call err_exit
-    endif
-    
-    b = sqrt(1-a**2)
- 
-    i_part = 0
-    do i = 1, n_ellipse
-!     y = (2.0*real(i) - 1.0) / (4.0 * real(n_ellipse))
-      y = (2.0*real(i) - 1) / (2.0*real(n_ellipse))
-      do j = 1, 6
-!       r(j) = -2.0 * log(1 - y)
-!       r(j) = inverse(probability_funct, y, -x_domain, x_domain, tol)
-        r(j) = inverse(epsilon_funct, y, 0.0_rp, x_domain, tol)
-      enddo
-
-      do j = 1, n_ellipse_parts
-        i_part = i_part + 1
- 
-        phi(:) = (2.0*pi / real(n_ellipse_parts)) * real(j-1)
-         
-        if (i .eq. n_ellipse .and. n_too_many .ne. 0) then
-          if (j .eq. (n_ellipse_parts - n_too_many + 1) ) exit
-          phi(:) = (2.0*pi / real(n_ellipse_parts - n_too_many)) * (real(j-1))
-        endif
-        
-        !Initialize the Distribution
-        bunch%particle(i_part)%r%vec(1) = sqrt(sigma(1) * r(1)*ele%x%beta) * cos(phi(1))
-        bunch%particle(i_part)%r%vec(2) = &
-            - sqrt(sigma(1) * r(1) / ele%x%beta) * (ele%x%alpha * cos(phi(1)) + sin(phi(1)))
-
-        bunch%particle(i_part)%r%vec(3) = sqrt(sigma(3) * r(3)*ele%y%beta) * cos(phi(3))
-        bunch%particle(i_part)%r%vec(4) = &
-            - sqrt(sigma(3) * r(3) / ele%y%beta) * (ele%y%alpha * cos(phi(3)) + sin(phi(3)))
-
-        bunch%particle(i_part)%r%vec(5) = sigma(5) * r(5) * cos(phi(5))
-        bunch%particle(i_part)%r%vec(6) = &
-            sigma(6) * r(5) * (a * cos(phi(5)) + b * sin(phi(5)))
-     
-        !Include Dispersion
-        bunch%particle(i_part)%r%vec(1:4) =  bunch%particle(i_part)%r%vec(1:4) + &
-            bunch%particle(i_part)%r%vec(6) * (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /)
-     
-        !Include Coupling
-        bunch%particle(i_part)%r%vec(1:4) = matmul(v_mat, bunch%particle(i_part)%r%vec(1:4))
-     
-        !Calculate the Distribution Centroid
-        ave = ave + bunch%particle(i_part)%r%vec
-      enddo
-    end do
-
-    ! Now scale to get correct beam sizes
-    do 
-      call calc_bunch_params (bunch, ele, params)
-!     if (abs(params%a%sigma - sqrt(a_emitt * ele%x%beta)) < &
-!                                     sigma_tol*sqrt(a_emitt * ele%x%beta)) exit
-!     a_factor = sqrt(a_emitt * ele%x%beta) / params%a%sigma
-      if (abs(params%a%norm_emitt - beam_init%a_norm_emitt) < &
-                                      sigma_tol*beam_init%a_norm_emitt) exit
-      a_factor = beam_init%a_norm_emitt / params%a%norm_emitt
-      bunch%particle(:)%r%vec(1) = bunch%particle(:)%r%vec(1) * sqrt(a_factor)
-      bunch%particle(:)%r%vec(2) = bunch%particle(:)%r%vec(2) * sqrt(a_factor)
-    enddo
-      
-    
-  endif
+  call ran_seed(0)
+  do i = 1, beam_init%n_particle
+    p => bunch%particle(i)
+    call ran_gauss(r)
+    p%r%vec = r
+    ave = ave + r
+    forall (j=1:6, k=1:6) sig_mat(j,k) = r(j) * r(k)
+  enddo  
 
   ave = ave / beam_init%n_particle
      
-  ! Recenter the Distribution
-  if (renormalize) then
+! Zero the average for now
+
+  do i = 1, beam_init%n_particle
+    bunch%particle(i)%r%vec = bunch%particle(i)%r%vec - ave
+  enddo
+
+! Renomalize the sigmas
+
+  if (beam_init%renorm_sigma) then
+    forall (j = 1:6, k = 1:6) sig_mat(j,k) = &
+                  sig_mat(j,k) / beam_init%n_particle - ave(j) * ave(k)
+    forall (j = 1:6) alpha(j) = sqrt(1/sig_mat(j,j))
+    forall (j = 1:6, k = 1:6) sig_mat(j,k) = sig_mat(j,k) * alpha(j) * alpha(k)
+    do i = 1, beam_init%n_particle
+      p => bunch%particle(i)
+      p%r%vec = p%r%vec * alpha
+      do j = 1, 6
+        do k = j+1, 6
+          p%r%vec(j) = p%r%vec(j) - sig_mat(j,k) * p%r%vec(k)
+        enddo
+      enddo
+    enddo
+  endif
+
+! Put in the non-zero center
+
+  if (.not. beam_init%renorm_center) then
     do i = 1, beam_init%n_particle
       bunch%particle(i)%r%vec = bunch%particle(i)%r%vec - ave
     enddo
   endif
 
-  bunch%particle(:)%ix_lost = not_lost$
-  
-  ! move to specified center
-  center(1:4) = matmul(v_mat, center(1:4))
-  do i = 1, beam_init%n_particle
-    bunch%particle(i)%r%vec = bunch%particle(i)%r%vec + center
-  end do
+! Now scale by the emittances, etc.
 
-  ! set particle charge
-  bunch%particle(:)%charge = beam_init%bunch_charge / beam_init%n_particle
+  denom = (1 + beam_init%center(6)) * ele%value(beam_energy$)
+  a_emitt = beam_init%a_norm_emitt * m_electron / denom
+  b_emitt = beam_init%b_norm_emitt * m_electron / denom
   
-  ! init all bunches
+  center = beam_init%center
+  dpz_dz = beam_init%dpz_dz
+  
+  call make_v_mats(ele, v_mat, v_inv)
+
+  bunch => beam%bunch(1)
+
+  sigma(1) = sqrt(a_emitt * ele%x%beta)
+  sigma(2) = sqrt(a_emitt / ele%x%beta)
+  sigma(3) = sqrt(b_emitt * ele%y%beta)
+  sigma(4) = sqrt(b_emitt / ele%y%beta)
+  sigma(5) = beam_init%sig_z
+  sigma(6) = beam_init%sig_e
+
+  a = dpz_dz * sigma(5) / sigma(6)
+
+  if (a > 1)  then
+    call out_io (s_abort$, r_name, "dpz_dz MUST be < mode%sigE_E / mode%sig_z")
+    call err_exit
+  endif
+     
+  b = sqrt(1-a**2)
+     
+!
+
+  do i = 1, beam_init%n_particle
+
+    p => bunch%particle(i)
+    r = p%r%vec
+
+    p%r%vec(1) = sigma(1) *  r(1)
+    p%r%vec(2) = - sigma(2) * (r(2) + r(1) * ele%x%alpha)
+    p%r%vec(3) = sigma(3) *  r(3)
+    p%r%vec(4) = - sigma(4) * (r(4) + r(3) * ele%y%alpha)
+    p%r%vec(5) = sigma(5) *  r(5)
+    p%r%vec(6) = sigma(6) * (r(6) * b + r(5) * a)
+      
+    ! Include Dispersion
+    p%r%vec(1:4) =  p%r%vec(1:4) + &
+              p%r%vec(6) * (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /)
+      
+    ! Include Coupling
+    p%r%vec(1:4) = matmul(v_mat, p%r%vec(1:4))
+      
+  end do
+     
+! set particle charge
+
+  bunch%particle(:)%charge = beam_init%bunch_charge / beam_init%n_particle
+  bunch%particle(:)%ix_lost = not_lost$
+    
+! init all bunches
   
   bunch%s_center = 0.0
 
