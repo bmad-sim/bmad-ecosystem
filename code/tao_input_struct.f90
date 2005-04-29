@@ -87,6 +87,7 @@ type tao_curve_input
   type (qp_symbol_struct) symbol
   logical convert  
   character(16) ele2_name
+  integer ix_ele2
 end type
 
 type tao_graph_input

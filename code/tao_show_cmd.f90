@@ -288,7 +288,7 @@ case ('data')
 
     else 
 
-      call re_allocate (lines, len(lines(1)), nl+100+size(d1_ptr%d))
+      call re_allocate (lines, len(lines(1)), nl+100+size(d2_ptr%d1))
 
       nl=nl+1; write(lines(nl), '(2a)') 'D2_Data type:    ', d2_ptr%name
       nl=nl+1; write(lines(nl), '(5x, a)') '                   Bounds'

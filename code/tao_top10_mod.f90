@@ -65,7 +65,7 @@ do i = 1, nu
   do j = 1, size(s%u(i)%data)
     if (.not. s%u(i)%data(j)%useit_opt) cycle
     name = s%u(i)%data(j)%data_type
-    if (nu > 1) write (name, '(2a, i1)') trim(name), ';', i
+    if (nu > 1) write (name, '(2a, i0)') trim(name), ';', i
     call tao_to_top10 (top_merit, s%u(i)%data(j)%merit, name, &
                                                 s%u(i)%data(j)%ix_d1, 'max')
   enddo

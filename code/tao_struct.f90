@@ -63,6 +63,7 @@ type tao_curve_struct
   character(16) :: data_source             ! "lat_layout", "data_array", etc...
   character(16) :: data_type = ' '         ! "orbit:x", etc.
   character(16) :: ele2_name               ! Reference element.
+  type (beam_struct) beam                  ! for phase-space plotting
   real(rp), pointer :: x_line(:) => null() ! coords for drawing a curve
   real(rp), pointer :: y_line(:) => null()
   real(rp), pointer :: x_symb(:) => null() ! coords for drawing the symbols
@@ -88,7 +89,7 @@ end type
 
 type tao_graph_struct
   character(16) name           ! Name identifying the graph
-  character(16) type           ! "data", "lat_layout", "key_table"
+  character(16) type           ! "data", "lat_layout", "key_table", or "phase_space"
   character(80) title
   character(80) title_suffix 
   character(80) legend(n_legend_maxx) ! Array for holding descriptive info.

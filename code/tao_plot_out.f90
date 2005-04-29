@@ -82,7 +82,7 @@ do i = 1, size(s%plot_page%region)
     endif
 
     select case (graph%type)
-    case ('data')
+    case ('data', 'phase_space')
       call plot_data 
     case ('lat_layout')
       call plot_lat_layout  

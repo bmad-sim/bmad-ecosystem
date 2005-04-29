@@ -2,9 +2,9 @@
 \label{c:init}
 
 \tao is customized for specific machines and specific calculations
-using input files and custom software routines. Writing custom software is
-covered in the programmer's guide section. This chapter covers the
-input files. 
+using input files and custom software routines. Writing custom
+software is covered in the programmer's guide section. This chapter
+covers the input files.
 
 In general the input files tell \tao:
 \begin{example}
@@ -19,10 +19,10 @@ looks in a directory pointed to by the environmental variable
 
 Initialization parameters are read in from a file using Fortran
 namelist input. Fortran namelist breaks up the input file into
-blocks. The first line of a namelist block starts with an ampersand ``\&''
-followed by the block identifying name. Variables are assigned using
-an equal sign ``='' and the end of the block is denoted by a slash ``/''
-For example:
+blocks. The first line of a namelist block starts with an ampersand
+``\&'' followed by the block identifying name. Variables are assigned
+using an equal sign ``='' and the end of the block is denoted by a
+slash ``/'' For example:
 \begin{example}
   \&this_block_name
     var1 = 0.123   ! exclamation marks are used for comments
@@ -40,8 +40,9 @@ Note: string variables are case sensitive.
 \section{Beginning Initialization}
 \label{s:init_global} 
 
-The initialization starts with an initialization file named \vn{tao.init}. 
-\vn{tao.init} needs to have a \vn{tao_start} namelist block with the following syntax:
+The initialization starts with an initialization file named
+\vn{tao.init}.  \vn{tao.init} needs to have a \vn{tao_start} namelist
+block with the following syntax:
 \begin{example}
   \&tao_start
     lattice_file      = "<file_name>"  ! Default = this file.
@@ -55,10 +56,11 @@ The initialization starts with an initialization file named \vn{tao.init}.
   /
 \end{example}
 \vn{n_universes} is the number of universes to be created.
-\vn{startup_single_mode} determines if \vn{tao} starts in single mode. The other
-parameters specify which files to find the other initialization namelists. The
-following sections describe each of these initialization namelists and their
-locations are listed in table \ref{t:init_files}.
+\vn{startup_single_mode} determines if \vn{tao} starts in single
+mode. The other parameters specify which files to find the other
+initialization namelists. The following sections describe each of
+these initialization namelists and their locations are listed in table
+\ref{t:init_files}.
 
 \begin{table}[h]
 \centering {\tt
@@ -208,27 +210,30 @@ will be used. If \vn{ele_name = "end"} then the end of the injection
 lattice will be used as the coupling point. If \vn{universe_number =
 0} then universe \vn{i} is not injetced into from any other universe
 
-\vn{match_to_design} will set up a coupling element that will match the design twiss
-parameters between the two lattices. This is performed by first finding the
-design twiss parameters for the extraction point for the first lattice then by
-use of a \bmad \vn{match} element match those twiss parameters to the design
-beginning twiss parameters for the second lattice. The matching element is not
-inserted into either lattice. Instead, it resides in the \tao coupling structure and
-is tracked through separately. Note that the matching element is not an
-extraction kicker element. If an extraction kicker element is needed then it
-should be added to either the extraction point of the first lattice or the
-beginning of the second lattice.
+\vn{match_to_design} will set up a coupling element that will match
+the design twiss parameters between the two lattices. This is
+performed by first finding the design twiss parameters for the
+extraction point for the first lattice then by use of a \bmad
+\vn{match} element match those twiss parameters to the design
+beginning twiss parameters for the second lattice. The matching
+element is not inserted into either lattice. Instead, it resides in
+the \tao coupling structure and is tracked through separately. Note
+that the matching element is not an extraction kicker element. If an
+extraction kicker element is needed then it should be added to either
+the extraction point of the first lattice or the beginning of the
+second lattice.
 
-When using coupled lattices then statements in the lattice file for the lattice
-begin injected into that refer to the \vn{BEGINNING} element are only used when setting
-up the coupling element, otherwise the injected particle/beam is used to set up
-the \vn{BEGINNING} element. This goes for the \vn{tao_macro_init} namestruct in
-the initialization file also.
+When using coupled lattices then statements in the lattice file for
+the lattice begin injected into that refer to the \vn{BEGINNING}
+element are only used when setting up the coupling element, otherwise
+the injected particle/beam is used to set up the \vn{BEGINNING}
+element. This goes for the \vn{tao_macro_init} namestruct in the
+initialization file also.
 
 If the coupling point is not the end of a lattice the standard lattice
-calculations will still be performed through to the end of the lattice.
-A universe can only inject into a universe with a
-greater universe index, so for example, universe 3 can inject into 4 or 5 but
+calculations will still be performed through to the end of the
+lattice.  A universe can only inject into a universe with a greater
+universe index, so for example, universe 3 can inject into 4 or 5 but
 not 1 or 2.
 
 Example:
@@ -276,19 +281,20 @@ The syntax is as follows:
     beam_init%bunch_charge  = <number>    ! charge per bunch (Coulombs)
   /
 \end{example}
-\vn{ix_universe} refers to the universe index. See \bmad documentation on what the
-\vn{beam_init} parameters refer to. Wakefields can only be turned on or off for all
-universes and not for each universe individually. The charge per particle is set
-to $\vn{bunch_charge} / \vn{n_particle}$ and is used when calculating
-wakefield affects.
+\vn{ix_universe} refers to the universe index. See \bmad documentation
+on what the \vn{beam_init} parameters refer to. Wakefields can only be
+turned on or off for all universes and not for each universe
+individually. The charge per particle is set to $\vn{bunch_charge} /
+\vn{n_particle}$ and is used when calculating wakefield affects.
 
-The twiss parameters at the beginning of the lattice are used in intitiating the
-beam distribution.
-For circular lattices the twiss parameters will be found from the closed orbit,
-and the emittance will be calculated using the \bmad routine
-\vn{radiation_integrals} unless \vn{calc_emittance = F} in which case the emittance
-specified in the initialization will be used. The state of \vn{calc_emittance}
-has no effect on Linear lattices where the initial emittance must be specified.
+The twiss parameters at the beginning of the lattice are used in
+intitiating the beam distribution.  For circular lattices the twiss
+parameters will be found from the closed orbit, and the emittance will
+be calculated using the \bmad routine \vn{radiation_integrals} unless
+\vn{calc_emittance = F} in which case the emittance specified in the
+initialization will be used. The state of \vn{calc_emittance} has no
+effect on Linear lattices where the initial emittance must be
+specified.
 
 The default is single particle tracking. To turn on particle tracking the
 \vn{global%track_type} perameter must be set to 'beam.' This can be placed in
@@ -333,21 +339,23 @@ The syntax is as follows:
     macro_init%n_part       = <number>    ! Number of particles per bunch
   /
 \end{example}
-\vn{ix_universe} refers to the universe index. See \bmad documentation on what the
-\vn{macro_init} parameters refer to. Wakefields can only be turned on or off for all
-universes and not for each universe individually.
+\vn{ix_universe} refers to the universe index. See \bmad documentation
+on what the \vn{macro_init} parameters refer to. Wakefields can only
+be turned on or off for all universes and not for each universe
+individually.
 
-The twiss parameters at the beginning of the lattice are used in intitiating the
-beam distribution.
-For circular lattices the twiss parameters will be found from the closed orbit,
-and the emittance will be calculated using the \bmad routine
-\vn{radiation_integrals} unless \vn{calc_emittance = F} in which case the emittance
-specified in the initialization will be used. The state of \vn{calc_emittance}
-has no effect on Linear lattices where the initial emittance must be specified.
+The twiss parameters at the beginning of the lattice are used in
+intitiating the beam distribution.  For circular lattices the twiss
+parameters will be found from the closed orbit, and the emittance will
+be calculated using the \bmad routine \vn{radiation_integrals} unless
+\vn{calc_emittance = F} in which case the emittance specified in the
+initialization will be used. The state of \vn{calc_emittance} has no
+effect on Linear lattices where the initial emittance must be
+specified.
 
-The default is single particle tracking. To turn on macroparticle tracking the
-\vn{global%track_type} perameter must be set to 'macro.' This can be placed in
-the \vn{tao_params} namelist above, for example,
+The default is single particle tracking. To turn on macroparticle
+tracking the \vn{global%track_type} perameter must be set to 'macro.'
+This can be placed in the \vn{tao_params} namelist above, for example,
 \begin{example}
   \&tao_params
     n_v1_var_max  = 5
@@ -411,15 +419,15 @@ Example:
 
 A \vn{tao_var} block is needed for each variable array to be defined.
 \vn{v1_var%name} is the name of the array to be used with \tao
-commands. The \vn{var(i)} array of variables has an index \vn{i} that runs
-from \vn{ix_min_var} to \vn{ix_max_var}. Each variable has a name 
-\vn{var(i)%name} to which it can be refered to in \tao commands. 
-A lattice element name \vn{var(i)%ele_name} and the element's attribute to vary
-\vn{var(i)%attribute} needs to specified. Not all elements need to 
-\vn{exist} and the element names of non--existant elements should be undefined
-or set to a name with only spaces in it. For those variables where
-\vn{var(i)%attribute} is not specified in the namelist the \vn{default_attribute}
-will be used. 
+commands. The \vn{var(i)} array of variables has an index \vn{i} that
+runs from \vn{ix_min_var} to \vn{ix_max_var}. Each variable has a name
+\vn{var(i)%name} to which it can be refered to in \tao commands.  A
+lattice element name \vn{var(i)%ele_name} and the element's attribute
+to vary \vn{var(i)%attribute} needs to specified. Not all elements
+need to \vn{exist} and the element names of non--existant elements
+should be undefined or set to a name with only spaces in it. For those
+variables where \vn{var(i)%attribute} is not specified in the namelist
+the \vn{default_attribute} will be used.
 
 
 \vn{var(i)%step} establishes what a ``small'' variation of the
@@ -443,18 +451,18 @@ simultaneously. \vn{"clone"} means that an array of variables will be
 duplicated, one for each universe.  To differentiate variables from
 different universes \vn{;n} will be appended to each \vn{v1_var%name}
 where \vn{n} is the universe number.  For example, if \vn{v1_var%name}
-is \vn{quad_k1} then the variable block name for the second universe will
-be \vn{quad_k1;2}. The default if both \vn{default_universe} and all
-\vn{var(i)%universe} are not given is for \vn{default_universe} to be
-\vn{"gang"}
+is \vn{quad_k1} then the variable block name for the second universe
+will be \vn{quad_k1;2}. The default if both \vn{default_universe} and
+all \vn{var(i)%universe} are not given is for \vn{default_universe} to
+be \vn{"gang"}
 
-\vn{var(i)%weight} gives
-the weight coefficient for the contribution of a variable to the merit function. 
-If not present then the default weight of \vn{default_weight} is used.
-\vn{var(i)%low_lim} and \vn{var(i)%high_lim} give the lower and upper bounds
-outside of which the value of a variable should not go. If not present 
-\vn{default_low_lim} and \vn{default_high_lim} are used. If these are not
-present as well then by default
+\vn{var(i)%weight} gives the weight coefficient for the contribution
+of a variable to the merit function.  If not present then the default
+weight of \vn{default_weight} is used.  \vn{var(i)%low_lim} and
+\vn{var(i)%high_lim} give the lower and upper bounds outside of which
+the value of a variable should not go. If not present
+\vn{default_low_lim} and \vn{default_high_lim} are used. If these are
+not present as well then by default
 \begin{example}
   low_lim  = -1e30
   high_lim =  1e30
@@ -465,20 +473,21 @@ Possible values are:
   "limit"       ! Default
   "target"      
 \end{example}
-For details on \vn{limit} and \vn{target} constraints see the chapter on Optimization.
+For details on \vn{limit} and \vn{target} constraints see the chapter
+on Optimization.
 
-\tao can search for the elements in the lattice to be associated with 
-each variable type, Likewise, the names for data points can be automatically
-generated by using the syntax:
+\tao can search for the elements in the lattice to be associated with
+each variable type, Likewise, the names for data points can be
+automatically generated by using the syntax:
 
 \begin{example}
   var(0)%name = "COUNT: <name_string>###"
   var(0)%ele_name = "SEARCH: <search_string>"
 \end{example}
-Where \vn{<name_string>} is used in the generation of the variable name and the
-hashes is replaced by the variable number in the series starting with
-\vn{ix_min_var} (as an integer whose length is equal to the number of 
-hashes). \vn{<search_string>} can contain the wildcards
+Where \vn{<name_string>} is used in the generation of the variable
+name and the hashes is replaced by the variable number in the series
+starting with \vn{ix_min_var} (as an integer whose length is equal to
+the number of hashes). \vn{<search_string>} can contain the wildcards
 \vn{*} and \vn{%}. For example:
 \begin{example}
   &tao_var
@@ -491,12 +500,13 @@ hashes). \vn{<search_string>} can contain the wildcards
   /
 \end{example}
 
-This will search for all lattice elements whose names contain 'Q' followed
-by any set of characters and will name the data elements as 'Q\_'
-followed by the variable number in the v1\_var array starting with 0001. 
+This will search for all lattice elements whose names contain 'Q'
+followed by any set of characters and will name the data elements as
+'Q\_' followed by the variable number in the v1\_var array starting
+with 0001.
 
-Variables can also be searched using the \bmad element \textit{key} attribute
-using the syntax:
+Variables can also be searched using the \bmad element \textit{key}
+attribute using the syntax:
 
 \begin{example}
   var(0)%name = "COUNT: <name_string>###"
@@ -605,9 +615,9 @@ Alternatively one can specify a datum in a single line. For example:
 \vn{ix_min_data} and \vn{ix_max_data} give the bounds for the
 \vn{data(i)} structure array that is associated with the \vn{d1_data}
 structure. \vn{data(:)%name} gives the names of the data points and
-\vn{data(:)%ele_name} gives the lattice element names associated
-with the data points.  If elements in the \vn{data} array do not exist
-the corresponding \vn{var%name} and \vn{data%ele_name} should be left
+\vn{data(:)%ele_name} gives the lattice element names associated with
+the data points.  If elements in the \vn{data} array do not exist the
+corresponding \vn{var%name} and \vn{data%ele_name} should be left
 blank. Lists of names can be reused using the syntax:
 \begin{example}
   data(0)%name = "SAME: <d2_name:d1_name>"
@@ -652,8 +662,8 @@ This will search for all lattice elements whose names contain 'BPM' followed
 by any set of characters and will name the data elements as 'BPM\_'
 followed by the data number in the d1\_data array starting with 0001. 
 
-Data elements can also be searched using the \bmad element \textit{key} attribute
-using the syntax:
+Data elements can also be searched using the \bmad element
+\textit{key} attribute using the syntax:
 
 \begin{example}
   data(0)%name = "COUNT: <name_string>###"
@@ -672,13 +682,13 @@ Where \vn{<key>} is the \bmad \textit{key} attribute. For example:
 \end{example}
 will search for all monitor elements in the lattice.
 
-If \vn{data(j)%data_type} is not given and \vn{default_data_type} is
-not specified then the \vn{d2_data} name and the \vn{d1_data} name
-nare combined for each datum to form the datum's \vn{type}. Certain
+If \vn{data(j)%data_type} is not given, and \vn{default_data_type} is
+not specified, then the \vn{d2_data} name and the \vn{d1_data} name
+are combined for each datum to form the datum's \vn{type}. Certain
 types are recognized by \tao. These are given by
 Table~\ref{t:con_type}. Custom data types not specified in this table
 must have a corresponding definition in
-\textit{tao\_hook\_load\_data\_array.f90}. See
+\vn{tao_hook_load_data_array.f90}. See
 Chapter~\ref{c:prog_customizing} for details.
 
 \vn{data(:)%weight} gives the weight coefficient for a variable in the
@@ -799,9 +809,9 @@ For example:
   /
 \end{example}
 
-\vn{plot%x} sets the properties of the horizontal axis. For more information
-see the \vn{Quick Plot} documentation on the \vn{qp_axis_struct}. The major
-components are
+\vn{plot%x} sets the properties of the horizontal axis. For more
+information see the \vn{Quick Plot} documentation on the
+\vn{qp_axis_struct}. The major components are
 \begin{example}
   min        ! Left edge value.
   max        ! Right edge value.
@@ -814,7 +824,8 @@ components are
 \vn{plot%name} is the name that is used with \tao commands to identify
 the plot.  
 
-\vn{plot%x_axis_type} sets what is plotted along the \vn{x-axis}. Possibilities are:
+\vn{plot%x_axis_type} sets what is plotted along the
+\vn{x-axis}. Possibilities are:
 \begin{example}
     index      ! Data Index
     ele_index  ! Element lattice number index
@@ -876,9 +887,9 @@ For example:
   /
 \end{example}
 
-\vn{graph%who(i)} sets what is plotted by default. For example, if 
-\vn{graph%who(i) = model - design} then by default the graph will show the \vn{model}
-value. Possibilities are:
+\vn{graph%who(i)} sets what is plotted by default. For example, if
+\vn{graph%who(i) = model - design} then by default the graph will show
+the \vn{model} value. Possibilities are:
 \begin{example}
   model     ! model values.
   design    ! design values.
@@ -891,9 +902,10 @@ If nothing is specified, the default is to plot \vn{model}.
 \vn{graph%type} is the type of graph. \tao knows about the
 following types:
 \begin{example}
-  data       ! Data plots (default) 
-  lat_layout ! Schematic showing placement of the lattice elements.
-  key_table  ! Key binding table for single mode.
+  data         ! Data plots (default) 
+  lat_layout   ! Schematic showing placement of the lattice elements.
+  key_table    ! Key binding table for single mode.
+  phase_space  ! Phase space plots
 \end{example}
 
 \vn{graph%box} sets the layout of the box which the \vn{graph} is
@@ -902,19 +914,38 @@ documentation in the \bmad reference manual. In the above example the
 graph divides the region into two vertically stacked boxes and places
 itself into the bottom one. 
 
-The \vn{curve} structure is used to define the number and types of 
-curves to plot in each graph. \vn{data_source} is the type of information
-for the source of the data points. There are the following types of 
-data sources:
+The \vn{curve} structure is used to define the number and types of
+curves to plot in each graph. \vn{curve%data_source} is the type of
+information for the source of the data points. There are the following
+types of data sources:
 \begin{example}
   data_array   ! d1_data is the source of the curve points.
   var_array    ! v1_var is the source of the curve points.
   lat_layout   ! the lattice is the source.
 \end{example}
-\vn{data_type} corresponds to the \vn{d1_data} type for a \vn{data_array} curve data
-source and the \vn{v1_var} type foa \vn{var_array} curve data type. 
-This is what points the curve to the proper data so, there needs to be a
-corresponding data or var type defined in the initialization file. 
+
+For a curve with the \vn{curve%data_source} set to \vn{data_array} the
+possible \vn{curve%data_type} values are the same as the possible
+\vn{d1_data%type} values as given in \sref{s:data_types}. If the
+\vn{curve%data_source} is \vn{var_array} then the possible
+\vn{curve%data_type} values are any of the \vn{v1_var} names. This is
+what points the curve to the proper data so there needs to be a
+corresponding data or var type defined in the initialization file.  If
+\vn{graph%type} is \vn{phase_space} then \vn{curve%data_source}
+determines what planes are plotted. A plane is either:
+\begin{example}
+  x
+  p_x
+  y
+  p_y
+  z
+  p_z
+\end{example}
+For example:
+\begin{example}
+  curve%data_type = "x-p_x"  ! x-axis - y-axis
+\end{example}
+The dash \vn{-} is manditory as the spearator between the plane names. 
 
 \vn{curve%convert} is a logical that is only used
 with \vn{curve%data_name} = "coupling" and tells \tao to convert the

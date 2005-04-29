@@ -89,292 +89,387 @@ plot_loop: do i = 1, size(s%plot_page%region)
     call tao_hook_graph_data_setup (plot, graph, found)
     if (found) cycle
 
-    if (graph%type /= 'data') cycle ! Don't worry about other types
+    select case (graph%type)
+    case ('phase_space'); call phase_space_plot_data_setup ()
+    case ('data');        call data_plot_data_setup()
+    end select
 
-    do k = 1, size(graph%curve)
+  enddo graph_loop
+enddo plot_loop
 
-      curve => graph%curve(k)
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+contains
 
-      if (curve%data_source == 'lat_layout' .and. &
-            (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index')) then
-        call out_io (s_error$, r_name, 'CURVE%DATA_SOURCE = "LAT_LAYOUT" ' // &
-                        'AND PLOT%X_AXIS_TYPE = "INDEX" DO NOT GO TOGETHER.')
-        graph%valid = .false.
-        cycle graph_loop
-      endif
+subroutine phase_space_plot_data_setup ()
 
-      i_uni = s%global%u_view  ! universe where the data comes from
-      if (curve%ix_universe /= 0) i_uni = curve%ix_universe 
-      u => s%u(i_uni)
-      
-      if (curve%ele2_name /= ' ') then
-        call element_locator (curve%ele2_name, u%design, curve%ix_ele2)
-        if (curve%ix_ele2 < 0) then
-          curve%ix_ele2 = 0
-          call out_io (s_error$, r_name, &
+integer n, m, ib, ix1_ax, ix2_ax
+
+!
+
+do k = 1, size(graph%curve)
+  curve => graph%curve(k)
+
+  ! find phase space axes to plot
+
+  ix = index(curve%data_type, '-')
+  if (ix == 0) then
+    call out_io (s_abort$, r_name, 'INVALID PHASE_SPACE CURVE DATA_TYPE: ' // &
+                                                                  curve%data_type)
+    call err_exit
+  endif
+  call phase_space_axis (curve%data_type(:ix-1), ix1_ax, err); if (err) return
+  call phase_space_axis (curve%data_type(ix+1:), ix2_ax, err); if (err) return
+
+  ! fill the curve data arrays
+
+  if (associated (curve%ix_symb)) deallocate (curve%ix_symb)
+  if (associated (curve%x_line))  deallocate (curve%x_line)
+  if (associated (curve%y_line))  deallocate (curve%y_line)
+
+  n = 0
+  do ib = 1,  size(curve%beam%bunch)
+    n = size(curve%beam%bunch(ib)%particle)
+  enddo
+
+  n = 0
+  call re_associate (curve%x_symb, n)
+  call re_associate (curve%y_symb, n)
+  do ib = 1, size(curve%beam%bunch)
+    m = size(curve%beam%bunch(ib)%particle)
+    curve%x_symb(n+1:n+m) = curve%beam%bunch(ib)%particle(:)%r%vec(ix1_ax)
+    curve%y_symb(n+1:n+m) = curve%beam%bunch(ib)%particle(:)%r%vec(ix2_ax)
+    n = n + m
+  enddo
+
+enddo
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+subroutine phase_space_axis (data_type, ix_axis, err)
+
+character(*) data_type
+integer ix_axis
+logical err
+
+!
+
+select case (data_type)
+case ('x');   ix_axis = 1
+case ('p_x'); ix_axis = 2
+case ('y');   ix_axis = 3
+case ('p_y'); ix_axis = 4
+case ('z');   ix_axis = 5
+case ('p_z'); ix_axis = 6
+case default
+  call out_io (s_abort$, r_name, 'BAD PHASE_SPACE CURVE DATA_TYPE: ' // &
+                                                                  curve%data_type)
+  call err_exit
+end select
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+subroutine data_plot_data_setup ()
+
+do k = 1, size(graph%curve)
+
+  curve => graph%curve(k)
+
+  if (curve%data_source == 'lat_layout' .and. &
+        (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index')) then
+    call out_io (s_error$, r_name, 'CURVE%DATA_SOURCE = "LAT_LAYOUT" ' // &
+                    'AND PLOT%X_AXIS_TYPE = "INDEX" DO NOT GO TOGETHER.')
+    graph%valid = .false.
+    return
+  endif
+
+  i_uni = s%global%u_view  ! universe where the data comes from
+  if (curve%ix_universe /= 0) i_uni = curve%ix_universe 
+  u => s%u(i_uni)
+
+  if (curve%ele2_name /= ' ') then
+    call element_locator (curve%ele2_name, u%design, curve%ix_ele2)
+    if (curve%ix_ele2 < 0) then
+      curve%ix_ele2 = 0
+      call out_io (s_error$, r_name, &
                   'Curve%ele2_name cannot be found in lattice: ' // curve%ele2_name)
-        endif
-      endif
+    endif
+  endif
+
+!----------------------------------------------------------------------------
+! select the source
+
+  select case (curve%data_source)
 
 !----------------------------------------------------------------------------
 ! data_source is a data array
 
-      select case (curve%data_source)
-      case ('data_array')
-        call tao_find_data (err, u, curve%data_type, d2_ptr, d1_ptr)
-        if (err) then
-          call out_io (s_error$, r_name, &
+  case ('data_array')
+    call tao_find_data (err, u, curve%data_type, d2_ptr, d1_ptr)
+    if (err) then
+      call out_io (s_error$, r_name, &
                 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
-          graph%valid = .false.
-          cycle graph_loop
-        endif
+      graph%valid = .false.
+      return
+    endif
 	
-        d1_ptr%d%good_plot = .true.
-        eps = 1e-4 * (plot%x%max - plot%x%min)
-        if (plot%x_axis_type == 'index') then
-          where (d1_ptr%d%ix_d1 < plot%x%min-eps) d1_ptr%d%good_plot = .false.
-          where (d1_ptr%d%ix_d1 > plot%x%max+eps) d1_ptr%d%good_plot = .false.
-        elseif (plot%x_axis_type == 'ele_index') then
-          where (d1_ptr%d%ix_ele < plot%x%min-eps) d1_ptr%d%good_plot = .false.
-          where (d1_ptr%d%ix_ele > plot%x%max+eps) d1_ptr%d%good_plot = .false.
-        else ! s
-          where (d1_ptr%d%s < plot%x%min-eps) d1_ptr%d%good_plot = .false.
-          where (d1_ptr%d%s > plot%x%max+eps) d1_ptr%d%good_plot = .false.
-        endif
+    d1_ptr%d%good_plot = .true.
+    eps = 1e-4 * (plot%x%max - plot%x%min)
+    if (plot%x_axis_type == 'index') then
+      where (d1_ptr%d%ix_d1 < plot%x%min-eps) d1_ptr%d%good_plot = .false.
+      where (d1_ptr%d%ix_d1 > plot%x%max+eps) d1_ptr%d%good_plot = .false.
+    elseif (plot%x_axis_type == 'ele_index') then
+      where (d1_ptr%d%ix_ele < plot%x%min-eps) d1_ptr%d%good_plot = .false.
+      where (d1_ptr%d%ix_ele > plot%x%max+eps) d1_ptr%d%good_plot = .false.
+    else ! s
+      where (d1_ptr%d%s < plot%x%min-eps) d1_ptr%d%good_plot = .false.
+      where (d1_ptr%d%s > plot%x%max+eps) d1_ptr%d%good_plot = .false.
+    endif
 
-        ! make sure %useit_plot up-to-date & count the number of data points
-        call tao_data_useit_plot_calc (graph, d1_ptr%d) 
-        n_dat = count (d1_ptr%d%useit_plot)       
+    ! make sure %useit_plot up-to-date & count the number of data points
+    call tao_data_useit_plot_calc (graph, d1_ptr%d) 
+    n_dat = count (d1_ptr%d%useit_plot)       
 
-        call reassociate_integer (curve%ix_symb, n_dat)
-        call reassociate_real (curve%y_symb, n_dat) ! allocate space for the data
-        call reassociate_real (curve%x_symb, n_dat) ! allocate space for the data
+    call reassociate_integer (curve%ix_symb, n_dat)
+    call reassociate_real (curve%y_symb, n_dat) ! allocate space for the data
+    call reassociate_real (curve%x_symb, n_dat) ! allocate space for the data
 
-        curve%ix_symb = pack(d1_ptr%d%ix_d1, mask = d1_ptr%d%useit_plot)
+    curve%ix_symb = pack(d1_ptr%d%ix_d1, mask = d1_ptr%d%useit_plot)
 
-        if (plot%x_axis_type == 'index') then
-          curve%x_symb = curve%ix_symb
-        elseif (plot%x_axis_type == 'ele_index') then
-          curve%x_symb = d1_ptr%d(curve%ix_symb)%ix_ele
-        elseif (plot%x_axis_type == 's') then
-          curve%x_symb = u%model%ele_(d1_ptr%d(curve%ix_symb)%ix_ele)%s
-        else
-          call out_io (s_error$, r_name, "Unknown axis type!")
-          graph%valid = .false.
-          cycle graph_loop
-        endif
+    if (plot%x_axis_type == 'index') then
+      curve%x_symb = curve%ix_symb
+    elseif (plot%x_axis_type == 'ele_index') then
+      curve%x_symb = d1_ptr%d(curve%ix_symb)%ix_ele
+    elseif (plot%x_axis_type == 's') then
+      curve%x_symb = u%model%ele_(d1_ptr%d(curve%ix_symb)%ix_ele)%s
+    else
+      call out_io (s_error$, r_name, "Unknown axis type!")
+      graph%valid = .false.
+      return
+    endif
 
 ! calculate the y-axis data point values.
 
-        curve%y_symb = 0
+    curve%y_symb = 0
 
-        do m = 1, size(graph%who)
-          select case (graph%who(m)%name)
-          case (' ') 
-            cycle
-          case ('model') 
-            value => d1_ptr%d%model_value
-          case ('base')  
-            value => d1_ptr%d%base_value
-          case ('design')  
-            value => d1_ptr%d%design_value
-          case ('ref')     
-            value => d1_ptr%d%ref_value
-          case ('meas')    
-            value => d1_ptr%d%meas_value
-          case default
-            call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // graph%who(m)%name)
-            graph%valid = .false.
-            cycle graph_loop
-          end select
-          curve%y_symb = curve%y_symb + &
+    do m = 1, size(graph%who)
+      select case (graph%who(m)%name)
+      case (' ') 
+        cycle
+      case ('model') 
+        value => d1_ptr%d%model_value
+      case ('base')  
+        value => d1_ptr%d%base_value
+      case ('design')  
+        value => d1_ptr%d%design_value
+      case ('ref')     
+        value => d1_ptr%d%ref_value
+      case ('meas')    
+        value => d1_ptr%d%meas_value
+      case default
+        call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // graph%who(m)%name)
+        graph%valid = .false.
+        return
+      end select
+      curve%y_symb = curve%y_symb + &
                    graph%who(m)%sign * pack(value, mask = d1_ptr%d%useit_plot)
-        enddo
+    enddo
 
-        if (curve%convert) curve%y_symb = curve%y_symb * &
+    if (curve%convert) curve%y_symb = curve%y_symb * &
                            pack(d1_ptr%d%conversion_factor, d1_ptr%d%useit_plot)
 
 
 !----------------------------------------------------------------------------
 ! data_source is a var array
 
-      case ('var_array')
-        call tao_find_var (err, curve%data_type, v1_ptr)
-        if (err) then
-          graph%valid = .false.
-          cycle graph_loop
-        endif
+  case ('var_array')
+    call tao_find_var (err, curve%data_type, v1_ptr)
+    if (err) then
+      graph%valid = .false.
+      return
+    endif
 
-        ! find which universe we're viewing
+    ! find which universe we're viewing
 
-        ix_this = -1
-        do jj = 1, size(v1_ptr%v(1)%this)
-          if (v1_ptr%v(1)%this(jj)%ix_uni .eq. s%global%u_view) ix_this = jj
-        enddo
-        if (ix_this .eq. -1) then
-          call out_io (s_error$, r_name, &
+    ix_this = -1
+    do jj = 1, size(v1_ptr%v(1)%this)
+      if (v1_ptr%v(1)%this(jj)%ix_uni .eq. s%global%u_view) ix_this = jj
+    enddo
+    if (ix_this .eq. -1) then
+      call out_io (s_error$, r_name, &
                      "This variable doesn't point to the currently displayed  universe.")
-          graph%valid = .false.
-          cycle graph_loop
-        endif
+      graph%valid = .false.
+      return
+    endif
       
-        v1_ptr%v%good_plot = .true.
-        eps = 1e-4 * (plot%x%max - plot%x%min)
-        if (plot%x_axis_type == 'index') then
-          where (v1_ptr%v%ix_v1 < plot%x%min-eps) v1_ptr%v%good_plot = .false.
-          where (v1_ptr%v%ix_v1 > plot%x%max+eps) v1_ptr%v%good_plot = .false.
-        elseif (plot%x_axis_type == 'ele_index') then
-          do jj = lbound(v1_ptr%v, 1), ubound(v1_ptr%v,1)
-            if (v1_ptr%v(jj)%this(ix_this)%ix_ele < plot%x%min-eps) v1_ptr%v%good_plot = .false.
-            if (v1_ptr%v(jj)%this(ix_this)%ix_ele > plot%x%max+eps) v1_ptr%v%good_plot = .false.
-          enddo
-        else
-          where (v1_ptr%v%s < plot%x%min-eps) v1_ptr%v%good_plot = .false.
-          where (v1_ptr%v%s > plot%x%max+eps) v1_ptr%v%good_plot = .false.
-        endif
+    v1_ptr%v%good_plot = .true.
+    eps = 1e-4 * (plot%x%max - plot%x%min)
+    if (plot%x_axis_type == 'index') then
+      where (v1_ptr%v%ix_v1 < plot%x%min-eps) v1_ptr%v%good_plot = .false.
+      where (v1_ptr%v%ix_v1 > plot%x%max+eps) v1_ptr%v%good_plot = .false.
+    elseif (plot%x_axis_type == 'ele_index') then
+      do jj = lbound(v1_ptr%v, 1), ubound(v1_ptr%v,1)
+        if (v1_ptr%v(jj)%this(ix_this)%ix_ele < plot%x%min-eps) v1_ptr%v%good_plot = .false.
+        if (v1_ptr%v(jj)%this(ix_this)%ix_ele > plot%x%max+eps) v1_ptr%v%good_plot = .false.
+      enddo
+    else
+      where (v1_ptr%v%s < plot%x%min-eps) v1_ptr%v%good_plot = .false.
+      where (v1_ptr%v%s > plot%x%max+eps) v1_ptr%v%good_plot = .false.
+    endif
 
-        call tao_var_useit_plot_calc (graph, v1_ptr%v) ! make sure %useit_plot up-to-date
-        n_dat = count (v1_ptr%v%useit_plot)       ! count the number of data points
+    call tao_var_useit_plot_calc (graph, v1_ptr%v) ! make sure %useit_plot up-to-date
+    n_dat = count (v1_ptr%v%useit_plot)       ! count the number of data points
 
-        call reassociate_integer (curve%ix_symb, n_dat)
-        call reassociate_real (curve%y_symb, n_dat) ! allocate space for the data
-        call reassociate_real (curve%x_symb, n_dat) ! allocate space for the data
+    call reassociate_integer (curve%ix_symb, n_dat)
+    call reassociate_real (curve%y_symb, n_dat) ! allocate space for the data
+    call reassociate_real (curve%x_symb, n_dat) ! allocate space for the data
 
-        curve%ix_symb = pack(v1_ptr%v%ix_v1, mask = v1_ptr%v%useit_plot)
+    curve%ix_symb = pack(v1_ptr%v%ix_v1, mask = v1_ptr%v%useit_plot)
 
-        plot%x%label = plot%x_axis_type
+    plot%x%label = plot%x_axis_type
 
-        if (plot%x_axis_type == 'index') then
-          curve%x_symb = curve%ix_symb
-        elseif (plot%x_axis_type == 'ele_index') then
-          do jj = lbound(curve%ix_symb,1), ubound(curve%ix_symb,1)
-            curve%x_symb(jj) = v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele
-          enddo
-        elseif (plot%x_axis_type == 's') then
-          do jj = lbound(curve%ix_symb,1), ubound(curve%ix_symb,1)
-            curve%x_symb(jj) = u%model%ele_(v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele)%s
-          enddo
-        endif
+    if (plot%x_axis_type == 'index') then
+      curve%x_symb = curve%ix_symb
+    elseif (plot%x_axis_type == 'ele_index') then
+      do jj = lbound(curve%ix_symb,1), ubound(curve%ix_symb,1)
+        curve%x_symb(jj) = v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele
+      enddo
+    elseif (plot%x_axis_type == 's') then
+      do jj = lbound(curve%ix_symb,1), ubound(curve%ix_symb,1)
+        curve%x_symb(jj) = u%model%ele_(v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele)%s
+      enddo
+    endif
 
 ! calculate the y-axis data point values.
 
-        curve%y_symb = 0
+    curve%y_symb = 0
 
-        do m = 1, size(graph%who)
-          select case (graph%who(m)%name)
-          case (' ') 
-            cycle
+    do m = 1, size(graph%who)
+      select case (graph%who(m)%name)
+      case (' ') 
+        cycle
 
-          ! set value to whatever it is in currently viewed universe
-          case ('model') 
-            do jj = lbound(v1_ptr%v,1), ubound(v1_ptr%v,1)
-              if (associated(v1_ptr%v(jj)%this(ix_this)%model_ptr)) &
+      ! set value to whatever it is in currently viewed universe
+      case ('model') 
+        do jj = lbound(v1_ptr%v,1), ubound(v1_ptr%v,1)
+          if (associated(v1_ptr%v(jj)%this(ix_this)%model_ptr)) &
                       v1_ptr%v(jj)%plot_model_value = v1_ptr%v(jj)%this(ix_this)%model_ptr
-            enddo
-            value => v1_ptr%v%plot_model_value
-
-          ! set value to whatever it is in currently viewed universe
-          case ('base')  
-            do jj = lbound(v1_ptr%v,1), ubound(v1_ptr%v,1)
-              if (associated(v1_ptr%v(jj)%this(ix_this)%base_ptr)) &
-                      v1_ptr%v(jj)%plot_base_value = v1_ptr%v(jj)%this(ix_this)%base_ptr
-            enddo
-            value => v1_ptr%v%plot_base_value
-
-          case ('design')  
-            value => v1_ptr%v%design_value
-          case ('ref')     
-            value => v1_ptr%v%ref_value
-          case ('meas')    
-            value => v1_ptr%v%meas_value
-          case default
-            call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // graph%who(m)%name)
-            graph%valid = .false.
-            cycle graph_loop
-          end select
-
-          curve%y_symb = curve%y_symb + &
-                   graph%who(m)%sign * pack(value, mask = v1_ptr%v%useit_plot)
         enddo
+        value => v1_ptr%v%plot_model_value
 
-        if (curve%convert) curve%y_symb = curve%y_symb * &
+      ! set value to whatever it is in currently viewed universe
+      case ('base')  
+        do jj = lbound(v1_ptr%v,1), ubound(v1_ptr%v,1)
+          if (associated(v1_ptr%v(jj)%this(ix_this)%base_ptr)) &
+                      v1_ptr%v(jj)%plot_base_value = v1_ptr%v(jj)%this(ix_this)%base_ptr
+        enddo
+        value => v1_ptr%v%plot_base_value
+
+      case ('design')  
+        value => v1_ptr%v%design_value
+      case ('ref')     
+        value => v1_ptr%v%ref_value
+      case ('meas')    
+        value => v1_ptr%v%meas_value
+      case default
+        call out_io (s_error$, r_name, 'BAD PLOT "WHO": ' // graph%who(m)%name)
+        graph%valid = .false.
+        return
+      end select
+
+      curve%y_symb = curve%y_symb + &
+                   graph%who(m)%sign * pack(value, mask = v1_ptr%v%useit_plot)
+    enddo
+
+    if (curve%convert) curve%y_symb = curve%y_symb * &
                            pack(v1_ptr%v%conversion_factor, v1_ptr%v%useit_plot)
 
 
 !----------------------------------------------------------------------------
 ! data source is from the lattice_layout
 
-      case ('lat_layout')
+  case ('lat_layout')
  
-        eps = 1e-4 * (plot%x%max - plot%x%min)
-        u%base%ele_(:)%logic = (u%base%ele_(:)%ix_pointer > 0) .and. &
+    eps = 1e-4 * (plot%x%max - plot%x%min)
+    u%base%ele_(:)%logic = (u%base%ele_(:)%ix_pointer > 0) .and. &
             (u%base%ele_(:)%s >= plot%x%min-eps) .and. (u%base%ele_(:)%s <= plot%x%max+eps)
-        n_dat = count (u%base%ele_(:)%logic)
+    n_dat = count (u%base%ele_(:)%logic)
 
-        call reassociate_integer (curve%ix_symb, n_dat)
-        call reassociate_real (curve%y_symb, n_dat) ! allocate space for the data
-        call reassociate_real (curve%x_symb, n_dat) ! allocate space for the data
+    call reassociate_integer (curve%ix_symb, n_dat)
+    call reassociate_real (curve%y_symb, n_dat) ! allocate space for the data
+    call reassociate_real (curve%x_symb, n_dat) ! allocate space for the data
 
-        curve%ix_symb = pack(u%base%ele_(:)%ix_pointer, mask = u%base%ele_(:)%logic)
+    curve%ix_symb = pack(u%base%ele_(:)%ix_pointer, mask = u%base%ele_(:)%logic)
 
-        if (plot%x_axis_type == 'index') then
-          curve%x_symb = curve%ix_symb
-        elseif (plot%x_axis_type == 'ele_index') then
-          curve%x_symb = curve%ix_symb
-        elseif (plot%x_axis_type == 's') then
-          curve%x_symb = u%model%ele_(curve%ix_symb)%s
-        endif
+    if (plot%x_axis_type == 'index') then
+      curve%x_symb = curve%ix_symb
+    elseif (plot%x_axis_type == 'ele_index') then
+      curve%x_symb = curve%ix_symb
+    elseif (plot%x_axis_type == 's') then
+      curve%x_symb = u%model%ele_(curve%ix_symb)%s
+    endif
 
 ! calculate the y-axis data point values.
 
-        curve%y_symb = 0
-        datum%ix_ele2 = curve%ix_ele2
-        datum%merit_type = 'target'
-        datum%data_type = curve%data_type
-        datum%ele2_name = curve%ele2_name
+    curve%y_symb = 0
+    datum%ix_ele2 = curve%ix_ele2
+    datum%merit_type = 'target'
+    datum%data_type = curve%data_type
+    datum%ele2_name = curve%ele2_name
 
-        do m = 1, size(graph%who)
-          do ie = 1, n_dat
+    do m = 1, size(graph%who)
+      do ie = 1, n_dat
 
-            datum%ix_ele = curve%ix_symb(ie)
+        datum%ix_ele = curve%ix_symb(ie)
 
-            if (datum%data_type(1:3) == 'tt:' .or. datum%data_type(1:2) == 't:') then
-              if (ie == 1) call taylor_make_unit (t_map)
-            endif
+        if (datum%data_type(1:3) == 'tt:' .or. datum%data_type(1:2) == 't:') then
+          if (ie == 1) call taylor_make_unit (t_map)
+        endif
 
-            select case (graph%who(m)%name)
-            case (' ') 
-              cycle
-            case ('model')   
-              call tao_evaluate_a_datum (datum, u, u%model, u%model_orb, y_val, t_map)
-            case ('base')  
-              call tao_evaluate_a_datum (datum, u, u%base, u%base_orb, y_val, t_map)
-            case ('design')  
-              call tao_evaluate_a_datum (datum, u, u%design, u%design_orb, y_val, t_map)
-            case default
-              call out_io (s_error$, r_name, &
+        select case (graph%who(m)%name)
+        case (' ') 
+          cycle
+        case ('model')   
+          call tao_evaluate_a_datum (datum, u, u%model, u%model_orb, y_val, t_map)
+        case ('base')  
+          call tao_evaluate_a_datum (datum, u, u%base, u%base_orb, y_val, t_map)
+        case ('design')  
+          call tao_evaluate_a_datum (datum, u, u%design, u%design_orb, y_val, t_map)
+        case default
+          call out_io (s_error$, r_name, &
                           'BAD PLOT "WHO" FOR LAT_LAYOUT DATA_SOURCE: ' // graph%who(m)%name, &
                           '    FOR DATA_TYPE: ' // curve%data_type)
-              graph%valid = .false.
-              cycle graph_loop
-            end select
-            curve%y_symb(ie) = curve%y_symb(ie) + graph%who(m)%sign * y_val
+          graph%valid = .false.
+          return
+        end select
+        curve%y_symb(ie) = curve%y_symb(ie) + graph%who(m)%sign * y_val
 
-            if (datum%data_type(1:3) == 'tt:' .or. datum%data_type(1:2) == 't:') then
-              if (datum%ix_ele > datum%ix_ele2) datum%ix_ele2 = datum%ix_ele
-            endif
+        if (datum%data_type(1:3) == 'tt:' .or. datum%data_type(1:2) == 't:') then
+          if (datum%ix_ele > datum%ix_ele2) datum%ix_ele2 = datum%ix_ele
+        endif
 
-          enddo
-        enddo
+      enddo
+    enddo
 
 !----------------------------------------------------------------------------
 ! Bad data_source
 
-      case default
-        call out_io (s_error$, r_name, 'UNKNOWN DATA_SOURCE: ' // curve%data_source)
-        graph%valid = .false.
-        cycle graph_loop
-      end select
+  case default
+    call out_io (s_error$, r_name, 'UNKNOWN DATA_SOURCE: ' // curve%data_source)
+    graph%valid = .false.
+    return
+  end select
 
 !----------------------------------------------------------------------------
 ! Calculate the points for drawing the curve through the symbols.
@@ -384,111 +479,110 @@ plot_loop: do i = 1, size(s%plot_page%region)
 ! plotting model, base or design data. It's the same as the symbol points otherwise.
 ! Smoothing will only be performed if performing single particle tracking.
 
-      if (plot%x_axis_type == 'index') then
-        call reassociate_real (curve%y_line, n_dat) ! allocate space for the data
-        call reassociate_real (curve%x_line, n_dat) ! allocate space for the data
-        curve%x_line = curve%x_symb
-        curve%y_line = curve%y_symb
-      elseif (plot%x_axis_type == 'ele_index') then
-        call reassociate_real (curve%y_line, n_dat) ! allocate space for the data
-        call reassociate_real (curve%x_line, n_dat) ! allocate space for the data
-        curve%x_line = curve%x_symb
-        curve%y_line = curve%y_symb
-      elseif (plot%x_axis_type == 's') then
-        smooth_curve = .true.
-        do m = 1, size(graph%who)
-          if (graph%who(m)%name .eq. 'meas' .or. graph%who(m)%name .eq. 'ref' .or. &
-	      s%global%track_type .ne. 'single') smooth_curve = .false.
-        enddo
-        if (smooth_curve) then
-          ! allocate data space
-          call reassociate_real (curve%y_line, s%global%n_curve_pts) 
-          call reassociate_real (curve%x_line, s%global%n_curve_pts) 
-          curve%y_line = 0
-          do m = 1, size(graph%who)
-            select case (graph%who(m)%name)
-            case (' ') 
-              cycle
-            case ('model')
-              call s_data_to_plot (u%model, u%model_orb, curve%data_type, &
+  if (plot%x_axis_type == 'index') then
+    call reassociate_real (curve%y_line, n_dat) ! allocate space for the data
+    call reassociate_real (curve%x_line, n_dat) ! allocate space for the data
+    curve%x_line = curve%x_symb
+    curve%y_line = curve%y_symb
+  elseif (plot%x_axis_type == 'ele_index') then
+    call reassociate_real (curve%y_line, n_dat) ! allocate space for the data
+    call reassociate_real (curve%x_line, n_dat) ! allocate space for the data
+    curve%x_line = curve%x_symb
+    curve%y_line = curve%y_symb
+  elseif (plot%x_axis_type == 's') then
+    smooth_curve = .true.
+    do m = 1, size(graph%who)
+      if (graph%who(m)%name .eq. 'meas' .or. graph%who(m)%name .eq. 'ref' .or. &
+   s%global%track_type .ne. 'single') smooth_curve = .false.
+    enddo
+    if (smooth_curve) then
+      ! allocate data space
+      call reassociate_real (curve%y_line, s%global%n_curve_pts) 
+      call reassociate_real (curve%x_line, s%global%n_curve_pts) 
+      curve%y_line = 0
+      do m = 1, size(graph%who)
+        select case (graph%who(m)%name)
+        case (' ') 
+          cycle
+        case ('model')
+          call s_data_to_plot (u%model, u%model_orb, curve%data_type, &
                                                        graph%who(m), curve, err)
-              if (err) cycle graph_loop
-            case ('base')  
-              call s_data_to_plot (u%base, u%base_orb, curve%data_type, &
+          if (err) return
+        case ('base')  
+          call s_data_to_plot (u%base, u%base_orb, curve%data_type, &
                                                        graph%who(m), curve, err)
-              if (err) cycle graph_loop
-            case ('design')  
-              call s_data_to_plot (u%design, u%design_orb, curve%data_type, &
+          if (err) return
+        case ('design')  
+          call s_data_to_plot (u%design, u%design_orb, curve%data_type, &
                                                        graph%who(m), curve, err)
-              if (err) cycle graph_loop
-            case default
-              call out_io (s_error$, r_name, &
+          if (err) return
+        case default
+          call out_io (s_error$, r_name, &
                        'BAD PLOT "WHO" WITH "S" X-AXIS: ' // graph%who(m)%name)
-              graph%valid = .false.
-              cycle graph_loop
-            end select
-          enddo
-        else
-          ! allocate space for the data
-          call reassociate_real (curve%y_line, n_dat) 
-          call reassociate_real (curve%x_line, n_dat) 
-          curve%x_line = curve%x_symb 
-          curve%y_line = curve%y_symb 
-        endif
+          graph%valid = .false.
+          return
+        end select
+      enddo
+    else
+      ! allocate space for the data
+      call reassociate_real (curve%y_line, n_dat) 
+      call reassociate_real (curve%x_line, n_dat) 
+      curve%x_line = curve%x_symb 
+      curve%y_line = curve%y_symb 
+    endif
         
-      endif
+  endif
 
 !----------------------------------------------------------------------------
 ! Renormalize and check for limited graph
 ! Note: Since there is an arbitrary overall phase, the phase data 
 ! gets renormalized so that the average value is zero.
 
-      curve%y_symb = curve%y_symb * curve%units_factor
-      curve%y_line = curve%y_line * curve%units_factor
+  curve%y_symb = curve%y_symb * curve%units_factor
+  curve%y_line = curve%y_line * curve%units_factor
 
-      if (curve%data_type(1:6) == 'phase:' .and. n_dat /= 0 .and. curve%ele2_name == ' ') then
-        f = sum(curve%y_symb) / n_dat
-        curve%y_symb = curve%y_symb - f
-        curve%y_line = curve%y_line - f 
-      endif 
+  if (curve%data_type(1:6) == 'phase:' .and. n_dat /= 0 .and. curve%ele2_name == ' ') then
+    f = sum(curve%y_symb) / n_dat
+    curve%y_symb = curve%y_symb - f
+    curve%y_line = curve%y_line - f 
+  endif 
 
-      curve%limited = &
-              any(curve%y_symb .lt. graph%y%min .or. curve%y_symb .gt. graph%y%max)
+  curve%limited = any(curve%y_symb .lt. graph%y%min .or. curve%y_symb .gt. graph%y%max)
 
 ! For the title_suffix: strip off leading "+" and enclose in "[ ]".
 
-      graph%title_suffix = ' '
-      do m = 1, size(graph%who)
-        if (graph%who(m)%name == ' ') cycle
-        if (graph%who(m)%sign == 1) then
-          graph%title_suffix = trim(graph%title_suffix) // ' + ' // graph%who(m)%name
-        elseif (graph%who(m)%sign == -1) then
-          graph%title_suffix = trim(graph%title_suffix) // ' - ' // graph%who(m)%name
-        endif
-      enddo
+  graph%title_suffix = ' '
+  do m = 1, size(graph%who)
+    if (graph%who(m)%name == ' ') cycle
+    if (graph%who(m)%sign == 1) then
+      graph%title_suffix = trim(graph%title_suffix) // ' + ' // graph%who(m)%name
+    elseif (graph%who(m)%sign == -1) then
+      graph%title_suffix = trim(graph%title_suffix) // ' - ' // graph%who(m)%name
+    endif
+  enddo
 
-      if (graph%title_suffix(2:2) == '+') graph%title_suffix = graph%title_suffix(4:)
+  if (graph%title_suffix(2:2) == '+') graph%title_suffix = graph%title_suffix(4:)
 
-      graph%title_suffix = '[' // trim(graph%title_suffix) // ']'
+  graph%title_suffix = '[' // trim(graph%title_suffix) // ']'
 
 ! attach x-axis type to title suffix 	 
   	 
-       if (plot%x_axis_type .eq. 'index') then 	 
-         graph%title_suffix = trim(graph%title_suffix) // ', X-axis: index, ' 	 
-       elseif (plot%x_axis_type .eq. 'ele_index') then 	 
-         graph%title_suffix = trim(graph%title_suffix) // ', X-axis: ele_index, ' 	 
-       elseif (plot%x_axis_type .eq. 's') then 	 
-         graph%title_suffix = trim(graph%title_suffix) // ', X-axis: s, ' 	 
-       endif 	 
+   if (plot%x_axis_type .eq. 'index') then 	 
+     graph%title_suffix = trim(graph%title_suffix) // ', X-axis: index, ' 	 
+   elseif (plot%x_axis_type .eq. 'ele_index') then 	 
+     graph%title_suffix = trim(graph%title_suffix) // ', X-axis: ele_index, ' 	 
+   elseif (plot%x_axis_type .eq. 's') then 	 
+     graph%title_suffix = trim(graph%title_suffix) // ', X-axis: s, ' 	 
+   endif 	 
 
-    enddo
+enddo
 
-  enddo graph_loop
-enddo plot_loop
-
+end subroutine
 
 !----------------------------------------------------------------------------
-contains
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
 
 subroutine s_data_to_plot (lat, orb, data_type, who, curve, err)
 
