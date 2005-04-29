@@ -272,13 +272,12 @@ The syntax is as follows:
                                           ! reference particle (BMAD coords)
     beam_init%sig_e         = <number>    ! e_sigma in eV
     beam_init%sig_z         = <number>    ! Z sigma in m
-    beam_init%sig_e_cut     = <number>    ! Energy cut in sigmas
-    beam_init%sig_z_cut     = <number>    ! Z cut in sigmas
-    beam_init%sig_trans_cut = <number>    ! transverse dimension cut
     beam_init%n_bunch       = <integer>   ! Number of bunches
     beam_init%ds_bunch      = <number>    ! distance between bunches (meters)
     beam_init%n_particle    = <number>    ! Number of particles per bunch
     beam_init%bunch_charge  = <number>    ! charge per bunch (Coulombs)
+    beam_init%renorm_center = <logical>   ! Default is .true.
+    beam_init%renorm_sigma  = <logical>   ! Default is .false.
   /
 \end{example}
 \vn{ix_universe} refers to the universe index. See \bmad documentation
@@ -319,7 +318,7 @@ The syntax is as follows:
 \begin{example}
   &tao_macro_init
     ix_universe             = <Integer>   ! Universe index.
-    sr_wakes_on             = <ligical>   ! turn on short range wakes
+    sr_wakes_on             = <logical>   ! turn on short range wakes
                                           ! default = F
     lr_wakes_on             = <logical>   ! turn on long range wakes
                                           ! default = F

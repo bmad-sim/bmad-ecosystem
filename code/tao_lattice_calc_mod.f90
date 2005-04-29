@@ -255,8 +255,7 @@ if (.not. u%coupling%coupled) then
       beam_init%center  = orb(extract_at_ix_ele)%vec
       ! other beam_init parameters will be as in init.tao, or as above
       call init_beam_distribution (lat%ele_(extract_at_ix_ele), &
-                               beam_init, s%u(i_uni)%coupling%injecting_beam, &
-                               .true., .true.)
+                               beam_init, s%u(i_uni)%coupling%injecting_beam)
     endif
     return
   elseif (lat%param%lattice_type == linear_lattice$) then
@@ -267,7 +266,7 @@ if (.not. u%coupling%coupled) then
                    "This lattice type not yet implemented for beam tracking!")
     call err_exit
   endif
-    call init_beam_distribution (lat%ele_(0), beam_init, beam, .true., .true.)
+    call init_beam_distribution (lat%ele_(0), beam_init, beam)
 endif
 
 ! Calculate save points if doing a phase space plot

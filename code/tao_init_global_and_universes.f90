@@ -196,9 +196,8 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
       beam_init%ds_bunch = 1
       beam_init%sig_z   = 0.0
       beam_init%sig_e   = 0.0
-      beam_init%sig_e_cut = 1
-      beam_init%sig_z_cut = 1
-      beam_init%sig_trans_cut = 1
+      beam_init%renorm_center = .true.
+      beam_init%renorm_sigma = .false.
       beam_init%n_bunch = 1
       beam_init%n_particle  = 1
       ! by default, no wake data file needed
@@ -1327,10 +1326,9 @@ logical calc_emittance
   if (u%design%param%lattice_type == circular_lattice$) return
   
   ! This is just to get things allocated
-  call init_beam_distribution (u%design%ele_(0), beam_init, u%beam%beam, .true., .true.)
+  call init_beam_distribution (u%design%ele_(0), beam_init, u%beam%beam)
   if (u%coupling%coupled) &
-    call init_beam_distribution (u%design%ele_(0), beam_init, u%coupling%injecting_beam, &
-                                 .true., .true.)
+    call init_beam_distribution (u%design%ele_(0), beam_init, u%coupling%injecting_beam)
 
 end subroutine init_beam
 
