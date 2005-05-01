@@ -324,6 +324,11 @@ subroutine track1_bmad (start, ele, param, end)
     call convert_pc_to (pc_start, param%particle, &
                                       E_tot = e_start, beta = beta_start)
     e_end = e_start + gradient * ele%value(l$)
+    if (e_end < mass_of(param%particle)) then
+      param%lost = .true.
+      return
+    endif
+
     call convert_total_energy_to (e_end, param%particle, &
                                              pc = pc_end, beta = beta_end)
     e_ratio = e_end / e_start
