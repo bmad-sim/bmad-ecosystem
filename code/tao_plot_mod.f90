@@ -1,3 +1,16 @@
+module tao_plot_mod
+
+use tao_mod
+use quick_plot
+use tao_single_mod
+use tao_plot_window_mod
+
+
+contains
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
 !+
 ! Subroutine tao_plot_out ()
 !
@@ -7,11 +20,6 @@
 !-
 
 subroutine tao_plot_out ()
-
-use tao_mod
-use quick_plot
-use tao_single_mod
-use tao_plot_window_mod
 
 implicit none
 
@@ -24,6 +32,8 @@ real(rp) location(4), dx, dy
 integer i, j, k
 character(16) :: r_name = 'tao_plot_out'
 character(3) view_str
+
+logical found
 
 ! inits
 
@@ -81,15 +91,18 @@ do i = 1, size(s%plot_page%region)
       cycle
     endif
 
+    call tao_hook_plot_graph (plot, graph, found)
+    if (found) cycle
+
     select case (graph%type)
     case ('data', 'phase_space')
-      call plot_data 
+      call tao_plot_data (plot, graph)
     case ('lat_layout')
       call plot_lat_layout  
     case ('key_table')
       call plot_key_table
     case default
-      call out_io (s_fatal$, r_name, 'UNKNOWN PLOT TYPE: ' // graph%type)
+      call out_io (s_fatal$, r_name, 'UNKNOWN GRAPH TYPE: ' // graph%type)
     end select
   enddo
 
@@ -97,38 +110,6 @@ enddo
 
 !--------------------------------------------------------------------------
 contains
-
-subroutine plot_data
-
-call qp_set_layout (box = graph%box, margin = graph%margin)
-call qp_set_layout (x_axis = plot%x, y_axis = graph%y, y2_axis = graph%y2)
-call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
-call qp_draw_axes
-
-if (any(graph%curve%limited) .and. graph%clip) &
-  call qp_draw_text ('**Limited**', -0.18_rp, -0.15_rp, '%/GRAPH/RT', color = red$) 
-
-! loop over all the curves of the graph and draw them
-
-do k = 1, size(graph%curve)
-  curve => graph%curve(k)
-  call qp_set_symbol (curve%symbol)
-  call qp_set_line ('PLOT', curve%line) 
-  if (curve%draw_symbols) call qp_draw_data (curve%x_symb, curve%y_symb, &
-                                      .false., curve%symbol_every, graph%clip)
-  if (curve%draw_line) call qp_draw_data (curve%x_line, curve%y_line, &
-                                               curve%draw_line, 0, graph%clip)
-enddo
-
-! draw the legend if there is one
-
-if (any(graph%legend /= ' ')) call qp_draw_legend (graph%legend, &
-          graph%legend_origin%x, graph%legend_origin%y, graph%legend_origin%units)
-
-end subroutine
-
-!--------------------------------------------------------------------------
-! contains
 
 subroutine plot_key_table
 
@@ -385,3 +366,49 @@ endif
 end subroutine
 
 end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+
+subroutine tao_plot_data (plot, graph)
+
+implicit none
+
+type (tao_plot_struct) plot
+type (tao_graph_struct), target :: graph
+type (tao_curve_struct), pointer :: curve
+
+integer k
+
+!
+
+call qp_set_layout (box = graph%box, margin = graph%margin)
+call qp_set_layout (x_axis = plot%x, y_axis = graph%y, y2_axis = graph%y2)
+call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
+call qp_draw_axes
+
+if (any(graph%curve%limited) .and. graph%clip) &
+  call qp_draw_text ('**Limited**', -0.18_rp, -0.15_rp, '%/GRAPH/RT', color = red$) 
+
+! loop over all the curves of the graph and draw them
+
+do k = 1, size(graph%curve)
+  curve => graph%curve(k)
+  call qp_set_symbol (curve%symbol)
+  call qp_set_line ('PLOT', curve%line) 
+  if (curve%draw_symbols) call qp_draw_data (curve%x_symb, curve%y_symb, &
+                                      .false., curve%symbol_every, graph%clip)
+  if (curve%draw_line) call qp_draw_data (curve%x_line, curve%y_line, &
+                                               curve%draw_line, 0, graph%clip)
+enddo
+
+! draw the legend if there is one
+
+if (any(graph%legend /= ' ')) call qp_draw_legend (graph%legend, &
+          graph%legend_origin%x, graph%legend_origin%y, graph%legend_origin%units)
+
+end subroutine
+
+end module

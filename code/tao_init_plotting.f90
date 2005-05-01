@@ -184,6 +184,8 @@ do
     grph%y2            = graph%y2
     grph%ix_universe   = graph%ix_universe
     grph%clip          = graph%clip
+    grph%title_suffix = ' '
+    grph%legend = ' '
 
     if (grph%ix_universe < 0 .or. grph%ix_universe > size(s%u)) then
       call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', grph%ix_universe)

@@ -319,7 +319,9 @@ enddo
 
 post = .false.
 if (extract_at_ix_ele == -1) post = .true.
-if (uni .lt. size(s%u) .and. .not. s%u(uni+1)%is_on) post = .true.
+if (uni < size(s%u)) then
+  if (.not. s%u(uni+1)%is_on) post = .true.
+endif
 
 if (post) then
   n_lost = 0 

@@ -98,6 +98,16 @@ interface
 end interface
  
 interface
+  subroutine tao_hook_plot_graph (plot, graph, found)
+    use tao_struct, only: tao_plot_struct, tao_graph_struct
+    implicit none
+    type (tao_plot_struct) plot
+    type (tao_graph_struct) graph
+    logical found
+  end subroutine
+end interface
+ 
+interface
   subroutine tao_hook_load_data_array (found, datum, u, lattice, orb, datum_value)
     use tao_struct, only: tao_data_struct, tao_universe_struct
     use bmad_struct, only: ring_struct, coord_struct
@@ -276,7 +286,7 @@ interface
 end interface
  
 interface
-  subroutine tao_plot_out ()
+  subroutine tao_cmd_end_calc ()
     implicit none
   end subroutine
 end interface

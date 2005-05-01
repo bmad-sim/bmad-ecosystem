@@ -108,8 +108,12 @@ integer n, m, ib, ix1_ax, ix2_ax
 
 !
 
+graph%valid = .false.
+
 do k = 1, size(graph%curve)
+
   curve => graph%curve(k)
+  if (.not. associated(curve%beam%bunch)) return
 
   ! find phase space axes to plot
 
@@ -144,6 +148,8 @@ do k = 1, size(graph%curve)
   enddo
 
 enddo
+
+graph%valid = .true.
 
 end subroutine
 

@@ -12,6 +12,9 @@ subroutine tao_output_cmd (what, who)
 use tao_mod
 use quick_plot
 use tao_single_mod
+use tao_plot_mod
+
+implicit none
 
 character(*) what, who
 character(16) action
