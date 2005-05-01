@@ -762,6 +762,7 @@ subroutine init_beam_distribution (ele, beam_init, beam)
 ! generate random numbers
 
   call reallocate_beam (beam, beam_init%n_bunch, beam_init%n_particle)
+  bunch => beam%bunch(1)
  
   call ran_seed(0)
   do i = 1, beam_init%n_particle
@@ -816,8 +817,6 @@ subroutine init_beam_distribution (ele, beam_init, beam)
   dpz_dz = beam_init%dpz_dz
   
   call make_v_mats(ele, v_mat, v_inv)
-
-  bunch => beam%bunch(1)
 
   sigma(1) = sqrt(a_emitt * ele%x%beta)
   sigma(2) = sqrt(a_emitt / ele%x%beta)
