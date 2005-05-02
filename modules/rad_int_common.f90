@@ -88,7 +88,7 @@ subroutine qromb_rad_int (ele0, ele, do_int, ir)
   implicit none
 
   type (ele_struct) ele0, ele
-  type (ele_struct) runt
+  type (ele_struct), save :: runt
 
   integer, parameter :: jmax = 14
   integer j, j0, n, n_pts, ir
@@ -117,7 +117,7 @@ subroutine qromb_rad_int (ele0, ele, do_int, ir)
   
   ll = ele%value(l$)
 
-  call transfer_ele(ele, runt)  ! faster then ele = ele
+  runt = ele
   if (runt%tracking_method  == taylor$) runt%tracking_method  = bmad_standard$
   if (runt%mat6_calc_method == taylor$) runt%mat6_calc_method = bmad_standard$
 
