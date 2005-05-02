@@ -240,8 +240,13 @@ relative particle phase, that is, the difference between the model and design
 phases (as documented in the plot title as [model - design]). Two plot regions
 are defined in ``vanilla'' \tao \vn{top} and \vn{bottom}.
 
+<<<<<<< tutorial.tex
+As a first step let's view the absolute model phase. At the \cmd{TAO>} prompt type
+\index{Commands!plot}
+=======
 As a first step let's view the absolute model phase. At the \cmd{TAO>} prompt type
 \index{Commands!plot|(}
+>>>>>>> 1.12
 \begin{example}
   plot bottom model
 \end{example}
@@ -262,7 +267,7 @@ phase by typing
 
 
 Let's now look at the beta function by typing
-\index{Commands!place!(}
+\index{Commands!place}
 \begin{example}
   place bottom beta
 \end{example}
@@ -316,8 +321,8 @@ initializing plotting). Type the following to view the quadrupole k1 values:
 \begin{example}
   place bottom quad_k1
 \end{example}
-\index{Commands!plot!)}
-\index{Commands!place!)}
+\index{Commands!plot}
+\index{Commands!place}
 
 \begin{figure}
   \centering
@@ -345,7 +350,7 @@ initializing plotting). Type the following to view the quadrupole k1 values:
 
 Anything in the super-universe can be displayed using the \cmd{show} command. To
 get a list of the data elements currently defined in \tao type
-\index{Commands!show|(}
+\index{Commands!show}
 \begin{example}
   show data
 \end{example}
@@ -449,7 +454,7 @@ to a file by typing
 \begin{example}
   show write <what_to_show>
 \end{example}
-\index{Commands!show|)}
+\index{Commands!show}
 
 A list of all intrinsic \vn{tao} commands can be found by typing
 \index{Commands!help}
@@ -484,7 +489,7 @@ omitted):
 \end{example}
 
 The k1 value can be increased by 0.01 units for quadrupole Q05W by typing
-\index{Commands!change|(}
+\index{Commands!change}
 \begin{example}
   change var quad\_k1 5 0.01
   scale
@@ -510,7 +515,7 @@ by modifying the lattice element directly by typing
 By modifying the element directly with the \cmd{change ele} command you can
 modify alomst any attribute of the element listed in the output of \cmd{show ele Q05W}.
 The ``d'' before the value is used to set the variable relative to the design value.
-\index{Commands!change|)}
+\index{Commands!change}
 
 If you've changed the lattice around a lot using variables, a great way to set
 all variables back to their design values is to type

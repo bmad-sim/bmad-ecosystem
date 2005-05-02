@@ -1,15 +1,15 @@
-\chapter{Optimization}
+\chapter{Optimization}\index{Optimization}
 \label{c:opti}
 
 %------------------------------------------------------------------------
-\section{Lattice Corrections}
+\section{Lattice Corrections}\index{Optimization!Lattice Corrections}
 
 Examples of lattice corrections include flattening the orbit and
 adjusting quadrupoles to correct the measured betatron phase. The
 general idea is to vary an appropriate set of \vn{variables} with the
 aim of minimizing a merit function \vn{M} that is a measure of how
 well \vn{data_model}, the data as calculated from the \vn{model} fits
-\vn{data_meas}, the measured data
+\vn{data_meas}, the measured data\index{Optimization!Merit Function}
 \Begineq
   {\cal M} \equiv \sum_{i} w_i \,
     \bigl[ \data\_\model(i) -  \data\_\meas(i) \bigr]^2 + 
@@ -32,14 +32,14 @@ the number of constraints (number of terms in the merit function) is
 always larger than the number of variables and degeneracies can never
 occur. 
 
-The algorithm used to vary the \vn{var_model} variables to minimize
-\vn{M} is called an \vn{optimizer}. In \vn{command line mode} the
-\vn{run} command is used to invoke an \vn{optimizer}. In \vn{single
-mode} the \vn{g} key starts an optimizer and the \vn{.} key stops it.
-Running an optimizer is also called ``fitting'' since one is trying to
-get the \vn{data_model} to be equal to the \vn{data_meas}. With orbits
-this is also called ``flattening'' since one generally wants to end up
-with an orbit that is on--axis.
+\index{Optimization!Optimizer}The algorithm used to vary the \vn{var_model}
+variables to minimize \vn{M} is called an \vn{optimizer}. In \vn{command line
+mode} the \vn{run} command is used to invoke an \vn{optimizer}. In \vn{single
+mode} the \vn{g} key starts an optimizer and the \vn{.} key stops it.  Running
+an optimizer is also called ``fitting'' since one is trying to get the
+\vn{data_model} to be equal to the \vn{data_meas}. With orbits this is also
+called ``flattening'' since one generally wants to end up with an orbit that is
+on--axis.
 
 In a correction one wants to change the machine variables so that the
 measured data corresponds to the design values \vn{data_design}. Thus
@@ -101,7 +101,8 @@ process is controlled by the \vn{use}, \vn{veto}, \vn{restore}, and
 \vn{clip} commands.
 
 %------------------------------------------------------------------------
-\section{Lattice Design}
+\section{Lattice Design}\index{Optimization!Lattice Design}
+\index{Optimization!Constraints}
 
 Lattice design is the process of calculating \vn{variable} strengths
 to meet a number of criteria called constraints. For example, one
@@ -131,7 +132,7 @@ optimization process is in deciding what the values should be for any
 \vn{target} or \vn{limit}.
 
 %------------------------------------------------------------------------
-\section{Generalized Design}
+\section{Generalized Design}\index{Optimization!Generalized Merit function}
 
 Since lattice design and lattice corrections are similar, \tao
 combines the two into one generalized correction process. In this
@@ -165,6 +166,7 @@ data is \vn{target}.
 \label{t:con_type}
 \end{table}
 
+\index{Optimization! Optimize with Reference}
 The form of \vn{delta} is determined by two global logicals called
 \vn{opt_with_ref} and \vn{opt_with_base} as shown in
 Table~\ref{t:d_i}. 

@@ -2,7 +2,7 @@
 \label{c:data_types}
 
 %------------------------------------------------------------------------
-\section{How \tao Handles Data}
+\section{How \tao Handles Data}\index{Data}
 
 As explained in chapter~\ref{c:overview}, \tao has special structures to hold
 data to be analyzed. Any lattice or beam parameters that are needed to be
@@ -52,6 +52,7 @@ If there is no \vn{ele2} associated with a datum then the model value is
   model_value = \(\phi\sb{x}\)(ele) - \(\phi\sb{x}\)(0)
 \end{example}
 where $\phi_x(0)$ is the phase at the 0\Th element (which is always at 0 radians).
+\index{Data!Relative}
 
 For datums with \vn{non-relative} \vn{data_types} if there is also an
 associated \vn{ele2} element then the \vn{model} value is dependent
@@ -75,7 +76,7 @@ model value is determined by Table~\ref{t:eval2} where \vn{i} goes from the
 \end{table}
 
 %------------------------------------------------------------------------
-\section{\tao Data Types}
+\section{\tao Data Types}\index{Data!Data Types}
 \label{s:data_types}
 
 Table~\cite{t:data_types} lists the predefined data types in \tao.
@@ -85,6 +86,7 @@ In \bmad the twiss parameters are calculated about a reference orbit so the
 centroid orbit (or particle orbit for single particle tracking) is also used.
 A ``B'' means the beam particle distribution determines the data type. A ``X''
 means this data type is not available for this tracking type.
+\index{Data!Calculation Method}
 
 \begin{table}[ht] 
 \centering 

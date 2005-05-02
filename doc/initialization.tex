@@ -1,4 +1,4 @@
-\chapter{Tao Initialization}
+\chapter{Tao Initialization}\index{Initialization}
 \label{c:init}
 
 \tao is customized for specific machines and specific calculations
@@ -86,7 +86,7 @@ these initialization namelists and their locations are listed in table
 
 
 %-----------------------------------------------------------------
-\section{Lattice Initialization}
+\section{Lattice Initialization}\index{Initialization!Lattice}
 \label{s:init_lat} 
 
 The \vn{lattice_file} variable in the \vn{tao_start} namelist is the
@@ -120,7 +120,7 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Initializing Globals}
+\section{Initializing Globals}\index{Initialization!Globals}
 \label{s:globals} 
 
 Global variables are initialized in the \vn{data_and_var_file} using a
@@ -191,7 +191,7 @@ end type
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Initializing Coupled Universes}
+\section{Initializing Coupled Universes}\index{Initialization!Coupling}
 \label{s:coupled_uni}
 
 Universes can be coupled together. This can be useful, for example, to attach a
@@ -260,7 +260,7 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Initializing Particle Beams}
+\section{Initializing Particle Beams}\index{Initialization!Beams}
 \label{s:beam_init}
 
 A particle beam is initialized in the \vn{tao_beam_init} namelist block.
@@ -318,7 +318,7 @@ the \vn{tao_params} namelist above, for example,
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Initializing Macroparticle Beams}
+\section{Initializing Macroparticle Beams}\index{Initialization!Macroparticle Beams}
 \label{s:macro_init}
 
 A macroparticle beam is initialized in the \vn{tao_macro_init} namelist block.
@@ -375,7 +375,7 @@ This can be placed in the \vn{tao_params} namelist above, for example,
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Initializing Variables}
+\section{Initializing Variables}\index{Initialization!Variables}
 \label{s:init_var} 
 
 \vn{Variable}s are initialized using the \vn{tao_var} namelist. The
@@ -534,7 +534,8 @@ will search for all quadrupole elements in the lattice.
 
 
 %-----------------------------------------------------------------
-\section{Initializing Data and Constraints}
+\section{Initializing Data and
+Constraints}\index{Initialization!Data\index{Initialization!Constaints}}
 \label{s:init_data} 
 
 Data is initialized using the \vn{tao_d2_data} namelist block whose format is
@@ -708,10 +709,10 @@ merit function. If not present then the default weight of
 If not present then \vn{default_bpm_noise} is used.
 
 %-----------------------------------------------------------------
-\section{Initializing Plotting}
+\section{Initializing Plotting}\index{Initialization!Plotting}
 \label{s:init_plot} 
 
-\subsection{Plot Window}
+\subsection{Plot Window}\index{Initialization!Plotting!Plot Window}
 
 \begin{figure}
   \centering
@@ -786,7 +787,7 @@ likes.
 \vn{place(i)} determines the initial placement of plots.
 
 %-----------------------------------------------------------------
-\subsection{Templates}
+\subsection{Templates}\index{Initialization!Plotting!Templates}
 
 As shown in Figure~\ref{f:plot}, a ``plot'' is made up of a collection
 of ``graphs'' and a graph consists of axes plus a set of ``curves''.
@@ -972,7 +973,7 @@ data points. The thickness, style (solid, dashed, etc.), and color
 is determined by \vn{curve%line}
 
 %-----------------------------------------------------------------
-\subsection{Lattice Layout}
+\subsection{Lattice Layout}\index{Initialization!Lattice Layout}
 
 A lattice layout template plot may be defined that draws the lattice
 along a straight line with figures for the various elements.
@@ -1068,7 +1069,7 @@ the element name is to be printed underneath the figure.
 
 
 %-----------------------------------------------------------------
-\section{Initializing Key Bindings for Single Mode}
+\section{Initializing Key Bindings for Single Mode}\index{Initialization!Key Bindings}
 \label{s:init_single} 
 
 For single mode the bindings of variables to keys is defined with a
