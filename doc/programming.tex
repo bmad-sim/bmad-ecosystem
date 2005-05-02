@@ -156,16 +156,6 @@ lattice and macroparticles in another.
 
 \subsection{tao\_hook\_load\_data\_array}\index{Customizing!tao\_hook\_load\_data\_array}
 
-The standard lattice calculation can be performed for single particle, particle
-beam or macroparticle tracking and will recalculate the orbit, transfer
-matrices, twiss perameters and load the data arrays. If something else needs to
-be performed whenever the lattice is recalculated then it is placed here. A
-custom lattice calculation can be performed on any lattice separately, this
-allows for the possibility of, for example, tracking a single particle for one
-lattice and macroparticles in another.
-
-\subsection{tao\_hook\_load\_data\_array}
-
 Any custom data types are defined and calculated here. If a non-standard data
 type is listed in the intialization files then a corresponding data type must
 be placed in this routine. The tutorial uses this hook routine when
