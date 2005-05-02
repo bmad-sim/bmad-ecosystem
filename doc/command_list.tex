@@ -113,11 +113,11 @@ Examples:
 In the above example the argument ``abc'' is substituted for any
 ``[1]'' appearing the file and ``def'' is substituted for any
 ``[2]''.
-
+\Newline
 
 \begin{example}
   do i 1 100
-    call set_qaud_misalignemnts
+    call set_quad_misalignemnt [i] ! command file to misalign quadrupoles
     zero_quad [i] ! this would be a user supplied command to zero quad number [i]
   enddo
 \end{example}
@@ -179,17 +179,16 @@ Format:
   clip \{<where> <limit1> <limit2>\}
 \end{example}
 
-\vskip 0.2in 
-\vn{clip} vetoes data points for plotting and optimizing. The points
-vetoed are those points whose $y$ values are outside a certain range
-defined by \vn{<limit1>} \vn{<limit2>}. If neither \vn{<limit1>} nor
-\vn{<limit2>} is present then the clip range is taken to be outside
-the graph minimum and maximum $y$--axis values. If only \vn{<limit1>}
-is present then the clip range is outside the range from
--\vn{<limit1>} to +\vn{<limit1>}. If both are present than the range
-is from \vn{<limit1>} to \vn{<limit2>}.  The graphs that are clipped
-is determined by the \vn{<where>} switch.  If \vn{<where>} is not
-present all graphs are scaled.
+\vskip 0.2in \vn{clip} vetoes data points for optimizing. If points are vetoed
+and either measured or reference data is being plotted then the points clipped
+will no longer be plotted. The points vetoed are those points whose $y$ values
+are outside a certain range defined by \vn{<limit1>} \vn{<limit2>}. If neither
+\vn{<limit1>} nor \vn{<limit2>} is present then the clip range is taken to be
+outside the graph minimum and maximum $y$--axis values. If only \vn{<limit1>} is
+present then the clip range is outside the range from -\vn{<limit1>} to
++\vn{<limit1>}. If both are present than the range is from \vn{<limit1>} to
+\vn{<limit2>}.  The graphs that are clipped is determined by the \vn{<where>}
+switch.  If \vn{<where>} is not present all graphs are scaled.
 
 Examples
 \begin{example}

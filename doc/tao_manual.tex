@@ -8,6 +8,7 @@
 \usepackage{subfigure}
 \usepackage{toc}
 \usepackage{xspace}
+\usepackage{makeidx}
 
 \input{macros.tex}
 
@@ -16,6 +17,8 @@
 \setlength{\evensidemargin}{0.00in}
 \setlength{\textheight}{8.5in}
 \setlength{\topmargin}{0in}
+
+\makeindex
 
 \begin{document}
 
@@ -42,7 +45,7 @@
 
 \include{tutorial}
 
-\part{Reference Guide}
+\part{Reference Guide}\label{ref_guide}
 
 \include{overview}
 \include{data_types}
@@ -55,5 +58,7 @@
 \part{Programmer's Guide}
 
 \include{programming}
+
+\printindex
 
 \end{document}

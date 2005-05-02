@@ -11,7 +11,7 @@ type can be any type of parameter that is not necessarily measurable in a real
 world machine. For example, there is an orbit data type and a BPM data type. The
 orbit data is the real x,y,z position of a particle in the lab frame whereas the BPM
 data is the x and y reading on a simulated beam position monitor that includes
-any offsets and tilts.
+any offsets, tilts and noise.
 
 \tao includes many different data types already predefined and
 these can be classified into three main catagories:
@@ -25,8 +25,8 @@ these can be classified into three main catagories:
 \end{enumerate}
 For a given data type the method used to calculate the datum can vary depending
 on the tracking type. For {\it single} particle tracking all data is found from
-the lattice parameters. For \textit{particle bunch} or \textit{macroparticle
-bunch} tracking some of the datums  are found from the
+the lattice parameters except for the orbit data. For \textit{particle bunch} or
+\textit{macroparticle bunch} tracking some of the datums  are found from the
 particle distribution using the appropriate \bmad routines. For example, with
 single particle tracking the beta function is found from the lattice transport
 matrix, however, with particle or macroparticle tracking the beta function is
@@ -38,9 +38,9 @@ The next section will describe how each predefined data type is calculated.
 Custom data types need not fall into one of the above catagories and can be any
 real number as calculated in the appropriate hook routine.
 
-Also associated with a datum are one or two lattice elements called
+Also associated with a datum are two lattice elements called
 \vn{ele} and \vn{ele2}. The \vn{data_types} are divided into two
-categories: Those that are \vn{relative} and those who are not.  A
+categories: Those that are \vn{relative} and those that are not.  A
 \vn{relative} \vn{data_type} means that the \vn{model} value for that
 datum is determined by a difference between elements. For example, for
 \vn{phase:x} the \vn{model} value is
@@ -51,7 +51,7 @@ If there is no \vn{ele2} associated with a datum then the model value is
 \begin{example}
   model_value = \(\phi\sb{x}\)(ele) - \(\phi\sb{x}\)(0)
 \end{example}
-where $\phi_x(0)$ is the phase at the 0\Th element (which is always 0).
+where $\phi_x(0)$ is the phase at the 0\Th element (which is always at 0 radians).
 
 For datums with \vn{non-relative} \vn{data_types} if there is also an
 associated \vn{ele2} element then the \vn{model} value is dependent
@@ -78,11 +78,13 @@ model value is determined by Table~\ref{t:eval2} where \vn{i} goes from the
 \section{\tao Data Types}
 \label{s:data_types}
 
-The predefined \vn{data types} are given in table~\ref{t:data_types}.
-
+Table~\cite{t:data_types} lists the predefined data types in \tao.
 Table~\ref{t:data_calc_method} lists how each data type is calculated depending
-on the tracking type.
-\textbf{More to be written here!}
+on the tracking type. A ``L'' means that the lattice determines the data type.
+In \bmad the twiss parameters are calculated about a reference orbit so the
+centroid orbit (or particle orbit for single particle tracking) is also used.
+A ``B'' means the beam particle distribution determines the data type. A ``X''
+means this data type is not available for this tracking type.
 
 \begin{table}[ht] 
 \centering 

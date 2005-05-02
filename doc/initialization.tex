@@ -6,7 +6,7 @@ using input files and custom software routines. Writing custom
 software is covered in the programmer's guide section. This chapter
 covers the input files.
 
-In general the input files tell \tao:
+In general, the input files tell \tao:
 \begin{example}
   1) What the "standard" variables should be.
   2) What the "standard" data is.
@@ -147,39 +147,47 @@ Example:
 \vn{n_d2_data_max} and \vn{n_v1_var_max} are the maximum number of
 \vn{d2_data} and \vn{v1_var} structures needed. \vn{n_data_max} is the
 maximum number of datums needed and \vn{n_var_max} is the maximum
-total number variables used. For a list of \vn{global} elements see
-the description of the \vn{set} command in Chapter~\ref{c:command}.
+total number variables used. Below is the \vn{tao_global_struct} Fortran structure.
 
-The \vn{tao_global_struct} is
 \begin{example}
-  type tao_global_struct
-    real(rp) :: y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
-    integer :: u_view = 1                  ! Which universe we are viewing.
-    integer :: n_opti_cycles = 20          ! number of optimization cycles
-    integer :: n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
-    integer :: phase_units = radians\$     ! Phase units on output.
-    integer :: bunch_to_plot = 1           ! Which bunch to plot
-    integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
-    character(16) :: track_type = 'single' ! or 'beam' or 'macro' 
-    character(16) :: prompt_string = 'Tao'
-    character(16) :: optimizer = 'de'      ! optimizer to use.
-    character(16) :: default_key_merit_type = 'limit'
-    type (tao_global_hook) hook            ! Custom stuff. Defined in tao_hook.f90
-    logical :: var_limits_on = .false.     ! Respect the variable limits?
-    logical :: plot_on = .true.            ! Do plotting?
-    logical :: opt_with_ref = .false.      ! use reference data in optimization?
-    logical :: opt_with_base = .false.     ! use base data in optimization?
-    logical :: single_mode = .false.       ! Startup in single mode?
-    logical :: label_lattice_elements = .true. ! For lat_layout plots
-    logical :: label_keys = .true.             ! For lat_layout plots
-    logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
-    character(16) :: valid_plot_who(10)        ! model, base, ref etc...
-    character(40) :: print_command = 'awprint'
-    character(80) :: default_init_file = 'tao.init'
-    character(80) :: current_init_file = 'tao.init'
-    character(80) :: var_out_file = 'var#.out'
-    character(80) :: opt_var_out_file = 'opt_var#.out'
-  end type
+type tao_global_struct
+  real(rp) :: y_axis_plot_dmin = 1e-4 
+                                         ! Minimum y_max-y_min allowed for a graph.
+  integer :: u_view = 1                  ! Which universe we are viewing.
+  integer :: n_opti_cycles = 20          ! number of optimization cycles
+  integer :: ix_key_bank = 0             ! For single mode.
+  integer :: n_key_table_max = 0         ! Maximum key table index.
+  integer :: n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
+  integer :: phase_units = radians\$      ! Phase units on output.
+  integer :: bunch_to_plot = 1           ! Which bunch to plot
+  integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
+  integer :: random_seed = 0             ! use system clock by default
+  integer :: n_write_file = 0
+  character(16) :: track_type = 'single' ! or 'beam' or 'macro' 
+  character(16) :: prompt_string = 'Tao'
+  character(16) :: optimizer = 'de'      ! optimizer to use.
+  character(16) :: default_key_merit_type
+  character(80) :: write_file = 'tao_show.dat'
+  type (tao_global_hook) hook            ! Custom stuff. Defined in tao_hook.f90
+  logical :: var_limits_on = .false.     ! Respect the variable limits?
+  logical :: plot_on = .true.            ! Do plotting?
+  logical :: opt_with_ref = .false.      ! use reference data in optimization?
+  logical :: opt_with_base = .false.     ! use base data in optimization?
+  logical :: single_mode = .false.
+  logical :: optimizer_running 
+  logical :: init_opt_wrapper = .true.
+  logical :: label_lattice_elements = .true. ! For lat_layout plots
+  logical :: label_keys = .true.             ! For lat_layout plots
+  logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
+  logical :: lattice_recalc = .true.         ! recalculate the lattice?
+  logical :: init_plot_needed = .true.       ! reinitialize plotting?
+  character(16) :: valid_plot_who(10)        ! model, base, ref etc...
+  character(40) :: print_command = 'awprint'
+  character(80) :: default_init_file = 'tao.init'
+  character(80) :: current_init_file = 'tao.init'
+  character(80) :: var_out_file = 'var#.out'
+  character(80) :: opt_var_out_file = 'opt_var#.out'
+end type
 \end{example}
 
 %-----------------------------------------------------------------
@@ -230,7 +238,7 @@ the injected particle/beam is used to set up the \vn{BEGINNING}
 element. This goes for the \vn{tao_macro_init} namestruct in the
 initialization file also.
 
-If the coupling point is not the end of a lattice the standard lattice
+Even if the coupling point is not the end of a lattice the standard lattice
 calculations will still be performed through to the end of the
 lattice.  A universe can only inject into a universe with a greater
 universe index, so for example, universe 3 can inject into 4 or 5 but
@@ -472,7 +480,7 @@ Possible values are:
   "limit"       ! Default
   "target"      
 \end{example}
-For details on \vn{limit} and \vn{target} constraints see the chapter
+For details on \vn{limit} and \vn{target} constraints see Chapter~\ref{c:opti}
 on Optimization.
 
 \tao can search for the elements in the lattice to be associated with
@@ -536,6 +544,7 @@ Data is initialized using the \vn{tao_d2_data} namelist block whose format is
     universe     = <integer>      ! Universe variables belong in.
                                         !   0 => all universes (default).
     default_merit_type = "<merit_type>" ! Sets how the merit is calculated.
+    default_bpm_noise  = <number>       ! RMS noise on bpms
     n_d1_data          = <integer>      ! Number associated d1_data arrays.
   /
 \end{example}
@@ -562,7 +571,9 @@ are:
   abs_max
   abs_min
 \end{example}
-See the chapter on optimization for more details.  
+See Chapter~\ref{c:opti} on optimization for more details.\vn{default_bpm_noise}
+gives the RMS noise on \vn{bpm} data types. All other data types ignore this
+parameter.
 
 \vn{n_d1_data} defines how many \vn{d1_data} structures are associated
 with the \vn{d2_data} staructure. For each \vn{n_d1_data} structure
@@ -583,6 +594,7 @@ there must be a \vn{tao_d1_data} namelist which has the form:
     data(j)%merit_type = "<merit_type>" ! Sets how the merit is calculated.
     data(j)%meas_value = "<number>"     ! Datum "measured" value
     data(j)%weight     = "<weight>"     ! Merit function weight.
+    data(j)%bpm_noise  = <number"       ! RMS bpm noise
     data(j)%good_user  = Logical        ! Use for optimization and plotting?
   /
 \end{example}
@@ -692,7 +704,8 @@ Chapter~\ref{c:prog_customizing} for details.
 
 \vn{data(:)%weight} gives the weight coefficient for a variable in the
 merit function. If not present then the default weight of
-\vn{default_weight} is used.
+\vn{default_weight} is used. \vn{bpm_noise} gives the RMS bpm noise on this bpm.
+If not present then \vn{default_bpm_noise} is used.
 
 %-----------------------------------------------------------------
 \section{Initializing Plotting}
