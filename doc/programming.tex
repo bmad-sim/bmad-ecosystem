@@ -89,7 +89,7 @@ is in a separate file called \vn{tao/hook/<hook_routine_name>.f90}. See these
 files for subroutine headers and plenty of comments throughout the dummy code to aid
 in the modification of these subroutines.
 
-\subsection{tao\_hook\_command}\index{Customizing!tao\_hook\_commad}
+\subsection{tao\_hook\_command}\index{Customizing!tao_hook_commad}
 
 Any custom commands are placed here. The dummy subroutine already has a bit of
 code that replicates what is performed in \vn{tao_command}. Commands placed here
@@ -117,18 +117,18 @@ After the lattice and all global and universe structures are intialized then
 paricular, if any custom hook structures need to be initialized, here's the
 place to do it.
 
-\subsection{tao\_hook\_graph\_data\_setup}\index{Customizing!tao\_hook\_graph\_data\_setup}
+\subsection{tao\_hook\_graph\_data\_setup}\index{Customizing!tao_hook_graph_data_setup}
 
 Use this to setup custom graph data for a plot.
 
-\subsection{tao\_hook\_init}\index{Customizing!tao\_hook\_init}
+\subsection{tao\_hook\_init}\index{Customizing!tao_hook_init}
 
 After the lattice and all global and universe structures are intialized then
 \vn{tao_hook_init} is called. Here, any further intializations can be added. In
 paricular, if any custom hook structures need to be initialized, here's the
 place to do it.
 
-\subsection{tao\_hook\_init\_design\_lattice}\index{Customizing!tao\_hook\_init\_design\_lattice}
+\subsection{tao\_hook\_init\_design\_lattice}\index{Customizing!tao_hook_init_design_lattice}
 
 This will do a custom lattice initialialization. The standard lattice
 initialization just calls \vn{bmad_parser} or \vn{xsif_parser}. If anything more
@@ -144,7 +144,7 @@ structures will break. If new elements need to be inserted then modify this
 routine and recompile. You can alternatively create a custom initialization file
 used by this routine that reads in any elements to be inserted.
 
-\subsection{tao\_hook\_lattice\_calc}\index{Customizing!tao\_hook\_lattice\_calc}
+\subsection{tao\_hook\_lattice\_calc}\index{Customizing!tao_hook_lattice_calc}
 
 The standard lattice calculation can be performed for single particle, particle
 beam or macroparticle tracking and will recalculate the orbit, transfer
@@ -154,7 +154,7 @@ custom lattice calculation can be performed on any lattice separately, this
 allows for the possibility of, for example, tracking a single particle for one
 lattice and macroparticles in another.
 
-\subsection{tao\_hook\_load\_data\_array}\index{Customizing!tao\_hook\_load\_data\_array}
+\subsection{tao\_hook\_load\_data\_array}\index{Customizing!tao_hook_load_data_array}
 
 Any custom data types are defined and calculated here. If a non-standard data
 type is listed in the intialization files then a corresponding data type must
@@ -194,7 +194,7 @@ array (from 0 to \vn{n_ele_max}) is passed to \vn{load_it} for each \vn{orbit:x}
 If the only merit type that is going to be used is \vn{target} then \vn{load_it}
 can be ignored.
 
-\subsection{tao\_hook\_merit\_data}\index{Customizing!tao\_hook\_merit\_data}
+\subsection{tao\_hook\_merit\_data}\index{Customizing!tao_hook_merit_data}
 
 A custom data merit type can be defined here. Table~\ref{t:con_type} lists the
 standard merit types. If a custom merit type is used then \vn{load_it} in
@@ -203,19 +203,19 @@ type, additionally, all standard data types may need to be overridden in
 \vn{tao_hook_load_data_array} in order for the custom \vn{load_it} to be used.
 See \vn{tao/code/tao_merit.f90} for how the standard merit types are calculated.
 
-\subsection{tao\_hook\_merit\_var}\index{Customizing!tao\_hook\_merit\_var}
+\subsection{tao\_hook\_merit\_var}\index{Customizing!tao_hook_merit_var}
 
 This hook will allow for a custom variable merit type. However, since
 there is no corresponding data transfer, no \vn{load_it} routine needs to be modified.
 See \vn{tao/code/tao_merit.f90} for how the standard merit types are calculated.
 
-\subsection{tao\_hook\_optimizer}\index{Customizing!tao\_hook\_optimizer}
+\subsection{tao\_hook\_optimizer}\index{Customizing!tao_hook_optimizer}
 
 If a non standard optimizer is needed then it can be implemented here. See the
 \vn{tao/code/tao_*_optimizer.f90} files for how the standard optimizers are
 implemented.
 
-\subsection{tao\_hook\_plot\_data\_setup}\index{Customizing!tao\_hook\_plot\_data\_setup}
+\subsection{tao\_hook\_plot\_data\_setup}\index{Customizing!tao_hook_plot_data_setup}
 
 Use this routine to overide the \vn{tao_plot_data_setup} routine which
 essentially transfers the information from the \vn{s%u(:)%data} arrays to the
@@ -223,14 +223,14 @@ essentially transfers the information from the \vn{s%u(:)%data} arrays to the
 useful if you want to make a plot that isn't simply the information in a data
 or variable array.
 
-\subsection{tao\_hook\_post\_process\_data}\index{Customizing!tao\_hook\_post\_process\_data}
+\subsection{tao\_hook\_post\_process\_data}\index{Customizing!tao_hook_post_process_data}
 
 Here can be placed anything that needs to be done after the data arrays are
 loaded. This routine is called immediately after the data arrays are called and
 before the optimizer or plotting is done, so any final modifications to the
 lattice or data can be performed here.
 
-\subsection{tao\_hook\_mod}\index{Customizing!tao\_hook\_mod}
+\subsection{tao\_hook\_mod}\index{Customizing!tao_hook_mod}
 
 Here any custom structures are defined. In the dummy hook routine there are
 already a number of structures defined. These are used in
