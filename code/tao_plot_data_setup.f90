@@ -11,40 +11,27 @@
 subroutine tao_plot_data_setup ()
 
 use tao_mod
-use tao_data_mod
 
 implicit none
 
 type (tao_plot_struct), pointer :: plot
-type (tao_universe_struct), pointer :: u
 type (tao_graph_struct), pointer :: graph
-type (tao_curve_struct), pointer :: curve
-type (tao_d2_data_struct), pointer :: d2_ptr
-type (tao_d1_data_struct), pointer :: d1_ptr
-type (tao_v1_var_struct) , pointer :: v1_ptr
-type (tao_data_struct) datum
 type (ele_struct), pointer :: ele
-type (taylor_struct) t_map(6)
 
-real(rp) f, x1, x2, y_val, eps
-real(rp), pointer :: value(:)
+integer ii, k, m, n_dat, i_uni, ie, jj
+integer ix_this, ix, ir, jg
 
-integer i, ii, j, k, m, n_dat, i_uni, ie, jj
-integer ix_this, ix
-
-logical err, smooth_curve, found
-
+logical found
 character(20) :: r_name = 'tao_plot_data_setup'
-character(12)  :: u_view_char
 
 ! Find which elements are to be drawn for a lattice layout.
 
 if (any(s%plot_page%ele_shape(:)%key /= 0)) then
-  do i = 1, size(s%u)
-    s%u(i)%model%ele_(:)%ix_pointer = 0
-    s%u(i)%base%ele_(:)%ix_pointer = 0
-    do j = 1, s%u(i)%model%n_ele_max
-      ele => s%u(i)%model%ele_(j)
+  do i_uni = 1, size(s%u)
+    s%u(i_uni)%model%ele_(:)%ix_pointer = 0
+    s%u(i_uni)%base%ele_(:)%ix_pointer = 0
+    do ie = 1, s%u(i_uni)%model%n_ele_max
+      ele => s%u(i_uni)%model%ele_(ie)
       if (ele%control_type == group_lord$) cycle
       if (ele%control_type == overlay_lord$) cycle
       if (ele%control_type == super_slave$) cycle
@@ -54,8 +41,8 @@ if (any(s%plot_page%ele_shape(:)%key /= 0)) then
         if (ele%key == s%plot_page%ele_shape(k)%key .and. &
                  match_wild(ele%name, s%plot_page%ele_shape(k)%ele_name)) then
           ele%ix_pointer = k
-          s%u(i)%base%ele_(j)%ix_pointer = j
-          s%u(i)%base%ele_(j-1)%ix_pointer = j-1
+          s%u(i_uni)%base%ele_(ie)%ix_pointer = ie
+          s%u(i_uni)%base%ele_(ie-1)%ix_pointer = ie-1
           exit
         endif
       enddo
@@ -65,11 +52,12 @@ endif
 
 ! setup the plots
 
-plot_loop: do i = 1, size(s%plot_page%region)
+plot_loop: do ir = 1, size(s%plot_page%region)
 
-  plot => s%plot_page%region(i)%plot
+  plot => s%plot_page%region(ir)%plot
 
-  if (.not. s%plot_page%region(i)%visible) cycle  ! Don't worry about invisable graphs
+  ! Don't worry about invisable graphs
+  if (.not. s%plot_page%region(ir)%visible) cycle  
 
   if (plot%x_axis_type /= 'index' .and. plot%x_axis_type /= 's' .and. &
       plot%x_axis_type /= 'ele_index') then
@@ -80,9 +68,9 @@ plot_loop: do i = 1, size(s%plot_page%region)
 
 ! loop over all graphs and curves
 
-  graph_loop: do j = 1, size(plot%graph)
+  graph_loop: do jg = 1, size(plot%graph)
 
-    graph => plot%graph(j)
+    graph => plot%graph(jg)
     graph%valid = .true.   ! assume everything OK
     graph%legend = ' '
 
@@ -90,21 +78,34 @@ plot_loop: do i = 1, size(s%plot_page%region)
     if (found) cycle
 
     select case (graph%type)
-    case ('phase_space'); call phase_space_plot_data_setup ()
-    case ('data');        call data_plot_data_setup()
+    case ('phase_space'); call tao_phase_space_plot_data_setup (plot, graph)
+    case ('data');        call tao_data_plot_data_setup(plot, graph)
     end select
 
   enddo graph_loop
 enddo plot_loop
 
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-contains
+end subroutine
 
-subroutine phase_space_plot_data_setup ()
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 
-integer n, m, ib, ix1_ax, ix2_ax
+subroutine tao_phase_space_plot_data_setup (plot, graph)
+
+use tao_mod
+
+implicit none
+
+type (tao_plot_struct) plot
+type (tao_graph_struct) graph
+type (tao_curve_struct), pointer :: curve
+
+integer k, n, m, ib, ix1_ax, ix2_ax, ix
+
+logical err
+
+character(30) :: r_name = 'tao_phase_space_plot_data_setup'
 
 !
 
@@ -123,8 +124,8 @@ do k = 1, size(graph%curve)
                                                                   curve%data_type)
     call err_exit
   endif
-  call phase_space_axis (curve%data_type(:ix-1), ix1_ax, err); if (err) return
-  call phase_space_axis (curve%data_type(ix+1:), ix2_ax, err); if (err) return
+  call tao_phase_space_axis (curve%data_type(:ix-1), ix1_ax, err); if (err) return
+  call tao_phase_space_axis (curve%data_type(ix+1:), ix2_ax, err); if (err) return
 
   ! fill the curve data arrays
 
@@ -156,13 +157,17 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
-! contains
 
-subroutine phase_space_axis (data_type, ix_axis, err)
+subroutine tao_phase_space_axis (data_type, ix_axis, err)
+
+use tao_mod
+
+implicit none
 
 character(*) data_type
 integer ix_axis
 logical err
+character(16) :: r_name = 'phase_space_axis'
 
 !
 
@@ -174,8 +179,7 @@ case ('p_y'); ix_axis = 4
 case ('z');   ix_axis = 5
 case ('p_z'); ix_axis = 6
 case default
-  call out_io (s_abort$, r_name, 'BAD PHASE_SPACE CURVE DATA_TYPE: ' // &
-                                                                  curve%data_type)
+  call out_io (s_abort$, r_name, 'BAD PHASE_SPACE CURVE DATA_TYPE: ' // data_type)
   call err_exit
 end select
 
@@ -184,9 +188,37 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
-! contains
 
-subroutine data_plot_data_setup ()
+subroutine tao_data_plot_data_setup (plot, graph)
+
+use tao_data_mod
+use tao_mod
+
+implicit none
+
+type (tao_plot_struct) plot
+type (tao_graph_struct) graph
+type (tao_curve_struct), pointer :: curve
+type (tao_universe_struct), pointer :: u
+type (tao_d2_data_struct), pointer :: d2_ptr
+type (tao_d1_data_struct), pointer :: d1_ptr
+type (tao_v1_var_struct) , pointer :: v1_ptr
+type (tao_data_struct) datum
+type (taylor_struct) t_map(6)
+
+real(rp) f, x1, x2, y_val, eps
+real(rp), pointer :: value(:)
+
+integer ii, k, m, n_dat, i_uni, ie, jj
+integer ix_this, ix, ir, jg
+
+logical err, smooth_curve, found
+
+character(12)  :: u_view_char
+character(30) :: r_name = 'tao_data_plot_data_setup'
+
+
+!
 
 do k = 1, size(graph%curve)
 
@@ -583,12 +615,10 @@ do k = 1, size(graph%curve)
 
 enddo
 
-end subroutine
-
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
-! contains
+contains 
 
 subroutine s_data_to_plot (lat, orb, data_type, who, curve, err)
 
@@ -721,3 +751,4 @@ enddo
 end subroutine
 
 end subroutine
+

@@ -64,15 +64,15 @@ if (region%plot%x%min == region%plot%x%max) then
   call tao_x_scale_cmd (where, 0.0_rp, 0.0_rp, err)
 else
   ax => region%plot%x
-  call qp_calc_axis_places (ax%min, ax%max, ax%major_div, ax%places)
+  call qp_calc_axis_places (ax)
 endif
 
 if (associated (region%plot%graph)) then
   do i = 1, size (region%plot%graph)
     ax => region%plot%graph(i)%y
-    call qp_calc_axis_places (ax%min, ax%max, ax%major_div, ax%places)
+    call qp_calc_axis_places (ax)
     ax => region%plot%graph(i)%y2
-    call qp_calc_axis_places (ax%min, ax%max, ax%major_div, ax%places)
+    call qp_calc_axis_places (ax)
   enddo
 endif
 

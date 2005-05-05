@@ -90,8 +90,7 @@ if (y_min == y_max .and. .not. plot%independent_graphs) then  ! if auto scale wa
   this_max = maxval (plot%graph(:)%y%max)
   do i = 1, size(plot%graph)
     graph => plot%graph(i)
-    call qp_calc_axis_scale (this_min, this_max, graph%y%major_div, &
-                graph%y%bounds, graph%y%places, graph%y%min, graph%y%max)
+    call qp_calc_axis_scale (this_min, this_max, graph%y)
   enddo
 endif
 
@@ -124,9 +123,7 @@ if (y_min == y_max) then
     endif
   enddo
 
-  call qp_calc_axis_scale (this_min, this_max, graph%y%major_div, &
-                graph%y%bounds, graph%y%places, graph%y%min, graph%y%max)
-  if (graph%y%places < 0) graph%y%places = 0
+  call qp_calc_axis_scale (this_min, this_max, graph%y)
   return
 
 endif
@@ -135,8 +132,7 @@ endif
 
 graph%y%min = y_min
 graph%y%max = y_max
-call qp_calc_axis_places (y_min, y_max, graph%y%major_div, graph%y%places)
-if (graph%y%places < 0) graph%y%places = 0
+call qp_calc_axis_places (graph%y)
 
 end subroutine
 

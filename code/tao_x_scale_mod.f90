@@ -88,7 +88,7 @@ end subroutine
 subroutine tao_x_scale_plot (plot, x_min, x_max)
 
 type (tao_plot_struct) plot
-integer j, k, n
+integer j, k, n, p1, p2
 real(rp) x_min, x_max
 real(rp) x1, x2
 logical curve_here
@@ -140,8 +140,9 @@ endif
 
 ! calculate divisions and places
 
-call qp_calc_and_set_axis ('X', x1, x2, &
-          nint(0.7 * plot%x_divisions), nint(1.3 * plot%x_divisions), 'GENERAL')
+p1 = nint(0.7 * plot%x_divisions)  ! Used to be 8
+p2 = nint(1.3 * plot%x_divisions)  ! Used to be 15
+call qp_calc_and_set_axis ('X', x1, x2, p1, p2, 'GENERAL', plot%x%type)
 call qp_get_axis ('X', plot%x%min, plot%x%max, plot%x%major_div, plot%x%places)
 
 end subroutine 

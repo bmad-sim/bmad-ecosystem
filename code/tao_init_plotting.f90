@@ -157,7 +157,7 @@ do
     curve(:)%symbol = default_symbol
     curve(:)%line   = default_line
     curve(:)%ele2_name   = ' '
-    curve(:)%ix_ele2 = -1
+    curve(:)%ix_ele2 = 0
     curve(2:7)%symbol%type = (/ times$, square$, plus$, triangle$, &
                                   x_symbol$, diamond$ /)
     curve(2:7)%symbol%color = (/ blue$, red$, green$, cyan$, magenta$, yellow$ /)

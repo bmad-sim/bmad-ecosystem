@@ -58,7 +58,7 @@ subroutine set_axis (plot)
 
 type (tao_plot_struct) plot
 type (tao_d1_data_struct), pointer :: d1_ptr
-integer iu, n
+integer iu, n, p1, p2
 real(rp) minn, maxx
 
 !
@@ -88,9 +88,9 @@ elseif (what == 'index') then
   maxx = ubound(d1_ptr%d, 1)
 endif
 
-!call qp_calc_and_set_axis ('X', minn, maxx, 8, 15, 'GENERAL')
-call qp_calc_and_set_axis ('X', minn, maxx, &
-          nint(0.7 * plot%x_divisions), nint(1.3 * plot%x_divisions), 'GENERAL')
+p1 = nint(0.7 * plot%x_divisions)  ! Used to be 8
+p2 = nint(1.3 * plot%x_divisions)  ! Used to be 15
+call qp_calc_and_set_axis ('X', minn, maxx, p1, p2, 'GENERAL', plot%x%type)
 call qp_get_axis ('X', a_min = plot%x%min, a_max = plot%x%max)
 
 
