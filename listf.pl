@@ -73,6 +73,7 @@ print "\n";
 
 sub searchit {
 
+  if (/\#/) {return;}
   $file = $_;
 
 # If a f90 file look in the file for a match.

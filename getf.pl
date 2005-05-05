@@ -104,6 +104,8 @@ print "\n";
 
 sub searchit {
 
+
+  if (/\#/) {return;}
   $file = $_;
 
 # See if the file name matches.
