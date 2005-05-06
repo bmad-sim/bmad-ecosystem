@@ -122,12 +122,16 @@ subroutine qromb_rad_int (ele0, ele, do_int, ir)
   if (runt%mat6_calc_method == taylor$) runt%mat6_calc_method = bmad_standard$
 
 
-! loop until integrals converge
+! Loop until integrals converge.
+! There are up to 7 integrals that are calculated:
+!          I1, I2, I3, I4a, I4b, I5a, I5b
+! ri(k) holds the info for the k^th integral.
 
   do j = 1, jmax
 
     ri(:)%h(j) = ri(:)%h(j-1) / 4
 
+!---------------
 ! This is trapzd from Num. Rec.
 
     if (j == 1) then
@@ -167,10 +171,14 @@ subroutine qromb_rad_int (ele0, ele, do_int, ir)
 
     ri(:)%sum(j) = (ri(:)%sum(j-1) + ds * i_sum(:)) / 2
 
-! back to qromb
+!--------------
+! Back to qromb.
+! For j >= 3 we test if the integral calculation has converged.
+! Exception: Since wigglers have a periodic field, the calculation can 
+! fool itself if we stop before j = 5.
 
     if (j < 3) cycle
-    if (ele%key == wiggler$ .and. j < 4) cycle
+    if (ele%key == wiggler$ .and. j < 5) cycle
 
     j0 = max(j-4, 1)
 
@@ -184,6 +192,8 @@ subroutine qromb_rad_int (ele0, ele, do_int, ir)
       if (abs(dint) > d0)  complete = .false.
       if (d0 /= 0) d_max = abs(dint) / d0
     enddo
+
+! If we have convergance or we are giving up (when j = jmax) then ...
 
     if (complete .or. j == jmax) then
 
@@ -211,7 +221,7 @@ subroutine qromb_rad_int (ele0, ele, do_int, ir)
 
   end do
 
-! should not be here
+! We should not be here
 
   print *, 'QROMB_RAD_INT: Note: Radiation Integral is not converging', d_max
   print *, '     For element: ', ele%name
