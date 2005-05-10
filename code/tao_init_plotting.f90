@@ -70,14 +70,13 @@ plot_page%title(1)%y = 0.996
 plot_page%title(2)%y = 0.97
 plot_page%title(:)%units = '%PAGE'
 plot_page%text_scale = 1
+call out_io (s_blank$, r_name, 'Init: Reading tao_plot_page namelist')
 read (iu, nml = tao_plot_page, err = 9000)
-call out_io (s_blank$, r_name, 'Init: Read tao_plot_page namelist')
 
 page => s%plot_page
 page%size = plot_page%size
 page%border = plot_page%border
 page%text_scale = plot_page%text_scale
-call qp_set_qp_parameters (text_scale = page%text_scale)
 
 ! title
 
@@ -279,6 +278,7 @@ do i = 1, size(place)
 enddo
 
 call tao_create_plot_window
+call qp_set_qp_parameters (text_scale = page%text_scale)
 
 return
 

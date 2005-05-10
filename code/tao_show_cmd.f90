@@ -26,9 +26,10 @@ type (tao_var_struct), pointer :: v_ptr
 type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: graph
 type (tao_plot_region_struct), pointer :: region
-type (coord_struct) orb
 
+type (lr_wake_struct), pointer :: lr
 type (ele_struct), pointer :: ele
+type (coord_struct) orb
 type (ele_struct) ele3
 
 real(rp) f_phi, s_pos
@@ -43,13 +44,14 @@ character(80), pointer :: ptr_lines(:)
 character(100) file_name
 character(16) ele_name, name, sub_name
 
-character(16) :: show_names(11) = (/ &
+character(16) :: show_names(12) = (/ &
    'data       ', 'var        ', 'global     ', 'alias      ', 'top10      ', &
    'optimizer  ', 'ele        ', 'lattice    ', 'constraints', 'plot       ', &
-   'write      ' /)
+   'write      ', 'hom        ' /)
 
 character(200), allocatable, save :: lines(:)
 character(100) line1, line2
+character(9) angle
 character(4) null_word
 
 integer :: data_number, ix_plane
@@ -102,6 +104,28 @@ call tao_cmd_split (stuff, 2, word, .false., err)
 
 
 select case (show_names(ix))
+
+!----------------------------------------------------------------------
+! hom
+
+case ('hom')
+
+  nl=nl+1; lines(nl) = '       #        Freq         R/Q           Q   m  Polarization_Angle'
+  do i = 1, size(u%model%ele_)
+    ele => u%model%ele_(i)
+    if (ele%key /= lcavity$) cycle
+    if (ele%control_type == multipass_slave$) cycle
+    nl=nl+1; write (lines(nl), '(a, i6)') ele%name, i
+    do j = 1, size(ele%wake%lr)
+      lr => ele%wake%lr(j)
+      angle = '-'
+      if (lr%polarized) write (angle, '(f9.4)') lr%angle
+      nl=nl+1; write (lines(nl), '(i8, 3es12.4, i4, a)') j, &
+                  lr%freq, lr%R_over_Q, lr%Q, lr%m, angle
+    enddo
+  enddo
+
+  call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------
 ! write
