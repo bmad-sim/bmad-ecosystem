@@ -767,7 +767,12 @@ subroutine read_butns_file (butns_num, nonlinear_calc, butns, db, &
   endif
 
   read (iu, '(a)') line_in
-  butns%lattice = line_in(61:)
+  if (butns_num >= 100000) then
+     butns%lattice = line_in(62:)
+  else
+     butns%lattice = line_in(61:)
+  endif
+
   butns%date = line_in(30:)                     ! get date
   read (line_in(54:), *) butns%save_set
 
