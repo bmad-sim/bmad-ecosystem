@@ -1,6 +1,6 @@
 !+
 ! Subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, 
-!                    type_mat6, type_taylor, twiss_out, type_control, lattice)
+!                    type_mat6, type_taylor, twiss_out, type_control, lattice, type_wake)
 !
 ! Subroutine to put information on an element in a string array. 
 ! See also the subroutine: type_ele.
@@ -16,19 +16,23 @@
 !                         = 0   => Do not type ele%mat6
 !                         = 4   => Type 4X4 xy submatrix
 !                         = 6   => Type full 6x6 matrix (Default)
-!   type_taylor    -- Logical, optional: Type out taylor series?
-!                       if ele%taylor is not allocated then this is ignored.
+!   type_taylor    -- Logical, optional: Print out taylor map terms?
+!                       If ele%taylor is not allocated then this is ignored.
 !                       Default is False.
 !   twiss_out      -- Integer, optional: Print the Twiss parameters at the 
 !                         element end?
-!                       = 0         => Do not type the Twiss parameters
-!                       = radians$  => Type Twiss, phi in radians (Default).
-!                       = degrees$  => Type Twiss, phi in degrees.
-!                       = cycles$   => Type Twiss, phi in radians/2pi.
-!   type_control   -- Logical, optional: If true then type control status.
+!                       = 0         => Do not print the Twiss parameters
+!                       = radians$  => Print Twiss, phi in radians (Default).
+!                       = degrees$  => Print Twiss, phi in degrees.
+!                       = cycles$   => Print Twiss, phi in radians/2pi.
+!   type_control   -- Logical, optional: If True then print control status.
 !                       Default is False if lattice is not present. Otherwise True.
-!   lattice           -- Ring_struct, optional: Needed for control typeout.
-!              
+!   lattice        -- Ring_struct, optional: Needed for control typeout.
+!   type_wake      -- Logical, optional: If True then print the long-range and 
+!                       short-range wakes information. If False then just print
+!                       how many terms the wake has. Default is True.
+!                       If ele%wake is not allocated then this is ignored.
+!
 ! Output       
 !   lines(:)     -- Character(80), pointer: Character array to hold the 
 !                     output. The array size of lines(:) will be set by
@@ -40,7 +44,7 @@
 #include "CESR_platform.inc"
 
 subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
-                        type_mat6, type_taylor, twiss_out, type_control, lattice)
+                  type_mat6, type_taylor, twiss_out, type_control, lattice, type_wake)
 
   use bmad_struct
   use bmad_interface, except => type2_ele
@@ -51,6 +55,9 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
   type (ele_struct), target, intent(in) :: ele
   type (ring_struct), optional, intent(in) :: lattice
   type (wig_term_struct), pointer :: term
+  type (lr_wake_struct), pointer :: lr
+  type (sr1_wake_struct), pointer :: sr1
+  type (sr2_wake_struct), pointer :: sr2
 
   integer, optional, intent(in) :: type_mat6, twiss_out
   integer, intent(out) :: n_lines
@@ -66,9 +73,10 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
   character(80), pointer :: li(:), li2(:)
   character(16) a_name, name
   character(12) val_str
+  character(9) angle
   character(2) str_i
 
-  logical, optional, intent(in) :: type_taylor
+  logical, optional, intent(in) :: type_taylor, type_wake
   logical, optional, intent(in) :: type_control, type_zero_attrib
   logical type_zero
 
@@ -96,46 +104,38 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
   nl = 1
 
   if (ele%type /= blank_name) then
-    nl = nl + 1
-    write (li(nl), *) 'Element Type: "', ele%type, '"'
+    nl=nl+1; write (li(nl), *) 'Element Type: "', ele%type, '"'
   endif
 
   if (ele%alias /= blank_name) then
-    nl = nl + 1
-    write (li(nl), *) 'Element Alias: "', ele%alias, '"'
+    nl=nl+1; write (li(nl), *) 'Element Alias: "', ele%alias, '"'
   endif
 
   if (associated(ele%descrip)) then
-    nl = nl + 1
-    write (li(nl), *) 'Descrip: ', trim(ele%descrip)
+    nl=nl+1; write (li(nl), *) 'Descrip: ', trim(ele%descrip)
   endif
 
 ! Encode element key and attributes
 
   if (ele%key <= 0) then
-    nl = nl + 1
-    write (li(nl), *) 'Key: UNKNOWN!', ele%key
+    nl=nl+1; write (li(nl), *) 'Key: UNKNOWN!', ele%key
 
   else
 
-    nl = nl + 1
-    write (li(nl), *) 'Key: ', key_name(ele%key)
+    nl=nl+1; write (li(nl), *) 'Key: ', key_name(ele%key)
 
     if (ele%sub_key /= 0) then
-      nl = nl + 1
-      write (li(nl), *) 'Sub Key: ', sub_key_name(ele%sub_key)
+      nl=nl+1; write (li(nl), *) 'Sub Key: ', sub_key_name(ele%sub_key)
     endif
 
     if (.not. type_zero) then
-      nl = nl + 1
-      write (li(nl), *) 'Attribute values [Only non-zero values shown]:'
+      nl=nl+1; write (li(nl), *) 'Attribute values [Only non-zero values shown]:'
     endif
 
     if (ct == overlay_lord$) then
       i = ele%ix_value
       name = ele%attribute_name
-      nl = nl + 1
-      write (li(nl), '(i6, 3x, 2a, 1pe15.7)') i, name, ' =', ele%value(i)
+      nl=nl+1; write (li(nl), '(i6, 3x, 2a, 1pe15.7)') i, name, ' =', ele%value(i)
 
     else
       do i = 1, n_attrib_maxx
@@ -143,14 +143,12 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
         ix = pos_tot(i)
         if (ix == 0) then
           if (ele%value(i) == 0 .and. .not. type_zero) cycle
-          nl = nl + 1
-          write (li(nl), '(i6, 3x, 2a, 1pe15.7)')  i, &
+          nl=nl+1; write (li(nl), '(i6, 3x, 2a, 1pe15.7)')  i, &
                         attribute_name(ele, i), ' =', ele%value(i)
         else
           if (ele%value(i) == 0 .and. ele%value(ix) == 0 .and. &
                                                  .not. type_zero) cycle
-          nl = nl + 1
-          write (li(nl), '(i6, 3x, 2a, 1pe15.7, 4x, a, e15.7)')  i, &
+          nl=nl+1; write (li(nl), '(i6, 3x, 2a, 1pe15.7, 4x, a, e15.7)')  i, &
                         attribute_name(ele, i), ' =', ele%value(i), &
                         'Total:', ele%value(ix)
         endif
@@ -203,8 +201,7 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
 ! wiggler terms
 
   if (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
-    nl = nl + 1
-    write (li(nl), '(a, 6x, a, 3(9x, a), 7x, a)') ' Term#', &
+    nl=nl+1; write (li(nl), '(a, 6x, a, 3(9x, a), 7x, a)') ' Term#', &
                               'Coef', 'K_x', 'K_y', 'K_z', 'phi_z   Type'
     do i = 1, size(ele%wig_term)
       term => ele%wig_term(i)
@@ -217,54 +214,44 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
 ! Encode on/off status and s_position
 
   if (.not. ele%is_on) then
-    nl = nl + 1
-    write (li(nl), *) '*** Note: Element is turned OFF ***'
+    nl=nl+1; write (li(nl), *) '*** Note: Element is turned OFF ***'
   endif
 
   if (.not. ele%multipoles_on) then
-    nl = nl + 1
-    write (li(nl), *) '*** Note: Element Multipoles are turned OFF ***'
+    nl=nl+1; write (li(nl), *) '*** Note: Element Multipoles are turned OFF ***'
   endif
 
-  nl = nl + 1
-  write (li(nl), '(1x, a, f13.4)') 'S:', ele%s
+  nl=nl+1; write (li(nl), '(1x, a, f13.4)') 'S:', ele%s
 
 ! Encode methods, etc.
 
-  write (li(nl+1), *) ' '
-  nl = nl + 1
+  nl=nl+1; write (li(nl), *) ' '
 
   if (attribute_index(ele, 'TRACKING_METHOD') /= 0) then
-    write (li(nl+1), '(2a)') ' Tracking_method:  ', &
+    nl=nl+1; write (li(nl), '(2a)') ' Tracking_method:  ', &
                                     calc_method_name(ele%tracking_method)
-    nl = nl + 1
   endif
 
   if (attribute_index(ele, 'MAT6_CALC_METHOD') /= 0) then
-    write (li(nl+1), '(2a)') ' Mat6_calc_method: ', &
+    nl=nl+1; write (li(nl), '(2a)') ' Mat6_calc_method: ', &
                                     calc_method_name(ele%mat6_calc_method)
-    nl = nl + 1
   endif
 
   if (attribute_index(ele, 'FIELD_CALC') /= 0) then
-    write (li(nl+1), '(2a)') ' Field_calc:       ', &
+    nl=nl+1; write (li(nl), '(2a)') ' Field_calc:       ', &
                                     calc_method_name(ele%field_calc)
-    nl = nl + 1
   endif
 
   if (attribute_index(ele, 'INTEGRATION_ORD') /= 0) then
-    write (li(nl+1), '(a, i4)') ' Integration_ord: ', ele%integrator_order 
-    nl = nl + 1
+    nl=nl+1; write (li(nl), '(a, i4)') ' Integration_ord: ', ele%integrator_order 
   endif
 
   if (attribute_index(ele, 'NUM_STEPS') /= 0) then
-    write (li(nl+1), '(a, i4)') ' Num_steps:       ', ele%num_steps 
-    nl = nl + 1
+    write (li(nl), '(a, i4)') ' Num_steps:       ', ele%num_steps 
   endif
 
   if (attribute_index(ele, 'SYMPLECTIFY') /= 0) then
-    write (li(nl+1), '(a, l1)') ' Symplectify:       ', ele%symplectify
-    nl = nl + 1
+    nl=nl+1; write (li(nl), '(a, l1)') ' Symplectify:       ', ele%symplectify
   endif
   
 ! Encode lord info
@@ -296,15 +283,12 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
       call err_exit
     endif
 
-    nl = nl + 1
-    write (li(nl), *) ' '
+    nl=nl+1; write (li(nl), *) ' '
 
     if (ct <= 0) then
-      nl = nl + 1
-      write (li(nl), *) 'Control_type: UNKNOWN!', ct
+      nl=nl+1; write (li(nl), *) 'Control_type: UNKNOWN!', ct
     else
-      nl = nl + 1
-      write (li(nl), *) 'Control_type: ', control_name(ct)
+      nl=nl+1; write (li(nl), *) 'Control_type: ', control_name(ct)
 
       if (ele%n_slave /= 0) then
         write (li(nl+1), '(1x, a, i4)') 'Slaves: Number:', ele%n_slave
@@ -330,8 +314,7 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
               a_name = attribute_name(lattice%ele_(j), iv)
             endif
           end select
-          nl = nl + 1
-          write (li(nl), '(5x, a, i10, 2x, a16, 1p, e11.3, 1p, e12.3)') &
+          nl=nl+1; write (li(nl), '(5x, a, i10, 2x, a16, 1p, e11.3, 1p, e12.3)') &
                                 lattice%ele_(j)%name, j, a_name, coef
         enddo
       endif
@@ -360,8 +343,7 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
               write (val_str, '(1p, e12.3)') lattice%ele_(j)%value(ix)
             endif
           endif
-          nl = nl + 1  
-          write (li(nl), '(5x, a, i10, 2x, a16, 1p, e11.3, a12)') &
+          nl=nl+1; write (li(nl), '(5x, a, i10, 2x, a16, 1p, e11.3, a12)') &
                              lattice%ele_(j)%name, j, a_name, coef, val_str
         enddo
       endif
@@ -379,46 +361,115 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
   n = integer_option (6, type_mat6)
 
   if (n /= 0) then
-    nl = nl + 1
-    write (li(nl), *)
+    nl=nl+1; write (li(nl), *)
   endif
 
   if (any(abs(ele%mat6(1:n,1:n)) >= 1000)) then
     do i = 1, n
-      nl = nl + 1
-      write (li(nl), '(1p, 6e11.3)') (ele%mat6(i, j), j = 1, n)
+      nl=nl+1; write (li(nl), '(1p, 6e11.3)') (ele%mat6(i, j), j = 1, n)
     enddo
   else
     do i = 1, n
-      nl = nl + 1
-      write (li(nl), '(6f10.5)') (ele%mat6(i, j), j = 1, n)
+      nl=nl+1; write (li(nl), '(6f10.5)') (ele%mat6(i, j), j = 1, n)
     enddo
   endif
 
 ! Encode taylor series
 
-  if (logic_option(.false., type_taylor) .and. associated(ele%taylor(1)%term)) then
-    write (li(nl+1), *)
-    nl = nl + 1
-    call type2_taylors (ele%taylor, li2, nt)
-    n_max = nl + nt
-    n_lines = n_max
-    allocate (lines(n_max))
-    do i = 1, nt
-      lines(i+nl) = li2(i)
-    enddo
-    deallocate (li2)
-  else
-    allocate(lines(nl))
-    n_lines = nl
+  if (associated(ele%taylor(1)%term)) then
+    nl=nl+1; write (li(nl), *)
+    if (logic_option(.false., type_taylor)) then
+      call type2_taylors (ele%taylor, li2, nt)
+      call re_associate (li,  len(li(1)), nl+nt+100)
+      li(1+nl:nt+nl) = li2(1:nt)
+      deallocate (li2)
+      nl = nl + nt
+    else
+      ct = 0
+      do i = 1, 6
+        ct = ct + size(ele%taylor(i)%term)
+      enddo
+      nl=nl+1; write (li(nl), *) 'Taylor map total number of terms:', ct
+    endif
+  endif
+
+! Encode HOM info
+
+  if (associated(ele%wake)) then
+
+    if (size(ele%wake%sr1) /= 0) then
+      nl=nl+1; write (li(nl), *)
+      if (logic_option (.true., type_wake)) then
+        call re_associate (li,  len(li(1)), nl+size(ele%wake%sr1)+100)
+        nl=nl+1; li(nl) = 'Short-range wake table:'
+        nl=nl+1; li(nl) = &
+            '   #           Z   Longitudinal     Transverse'
+        do i = 1, size(ele%wake%sr1)
+          sr1 => ele%wake%sr1(i)
+          nl=nl+1; write (li(nl), '(i4, es12.4, 2es15.4)') i, sr1%z, sr1%long, sr1%trans
+        enddo
+      else
+        nl=nl+1; write (li(nl), *) 'Number of short-range wake table rows:', size(ele%wake%sr1)
+      endif
+    endif
+
+    if (size(ele%wake%sr2_long) /= 0) then
+      nl=nl+1; write (li(nl), *)
+      if (logic_option (.true., type_wake)) then
+        nl=nl+1; li(nl) = 'Short-range pseudo modes:'
+        nl=nl+1; li(nl) = &
+            '   #        Amp        Damp           K         Phi'
+        do i = 1, size(ele%wake%sr2_long)
+          sr2 => ele%wake%sr2_long(i)
+          nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, sr2%amp, sr2%damp, sr2%k, sr2%phi
+        enddo
+      else
+        nl=nl+1; write (li(nl), *) &
+                  'Number of short-range longitudinal pseudo modes:', size(ele%wake%sr2_long)
+      endif
+    endif
+
+    if (size(ele%wake%sr2_trans) /= 0) then
+      nl=nl+1; write (li(nl), *)
+      if (logic_option (.true., type_wake)) then
+        nl=nl+1; li(nl) = 'Short-range pseudo modes:'
+        nl=nl+1; li(nl) = &
+            '   #        Amp        Damp           K         Phi'
+        do i = 1, size(ele%wake%sr2_trans)
+          sr2 => ele%wake%sr2_trans(i)
+          nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, sr2%amp, sr2%damp, sr2%k, sr2%phi
+        enddo
+      else
+        nl=nl+1; write (li(nl), *) &
+                  'Number of short-range transitudinal pseudo-modes:', size(ele%wake%sr2_trans)
+      endif
+    endif
+
+    if (size(ele%wake%lr) /= 0) then
+      nl=nl+1; write (li(nl), *)
+      if (logic_option (.true., type_wake)) then
+        nl=nl+1; li(nl) = 'Long-range HOM modes:'
+        nl=nl+1; li(nl) = &
+            '   #        Freq         R/Q           Q   m  Polarization_Angle'
+        do i = 1, size(ele%wake%lr)
+          lr => ele%wake%lr(i)
+          angle = '-'
+          if (lr%polarized) write (angle, '(f9.4)') lr%angle
+          nl=nl+1; write (li(nl), '(i4, 3es12.4, i4, a)') i, &
+                  lr%freq, lr%R_over_Q, lr%Q, lr%m, angle
+        enddo
+      else
+        nl=nl+1; write (li(nl), *) 'Number of long-range HOM modes:', size(ele%wake%lr)
+      endif
+    endif
+
   endif
 
 ! finish
 
-  do i = 1, nl
-    lines(i) = li(i)
-  enddo
-  
+  allocate(lines(nl))
+  n_lines = nl
+  lines(1:nl) = li(1:nl)
   deallocate (li)
   
 end subroutine
