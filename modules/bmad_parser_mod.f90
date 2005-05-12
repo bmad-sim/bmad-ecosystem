@@ -2139,6 +2139,7 @@ subroutine preparse_element_init (ele)
   if (ele%key == taylor$) then
     ele%tracking_method = taylor$  ! default
     ele%mat6_calc_method = taylor$ ! default
+    ele%taylor_order = 999         ! make large.
     call add_taylor_term (ele, 1, 1.0_rp, (/ 1, 0, 0, 0, 0, 0 /))
     call add_taylor_term (ele, 2, 1.0_rp, (/ 0, 1, 0, 0, 0, 0 /))
     call add_taylor_term (ele, 3, 1.0_rp, (/ 0, 0, 1, 0, 0, 0 /))
