@@ -62,10 +62,10 @@ subroutine cesr_crossings(i_train, j_car, species, n_trains_tot, n_cars, &
   implicit none
 
   integer, intent(in) :: i_train, j_car, species, n_trains_tot, n_cars         
-  integer, optional, intent(in) :: train_spacing(1:10)
-  integer, optional, intent(in) :: n_car_spacing(1:10)
-  integer, optional, intent(out) :: ptrain(1:900)
-  integer, optional, intent(out) :: pcar(1:900)
+  integer, optional, intent(in) :: train_spacing(:)
+  integer, optional, intent(in) :: n_car_spacing(:)
+  integer, optional, intent(out) :: ptrain(:)
+  integer, optional, intent(out) :: pcar(:)
   integer :: i, j, k, p, pp, tnumber, bnumber, trlength, ierr            
   integer :: bunch_tot                                  
   real(rp) :: n_bucket
