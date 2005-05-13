@@ -67,11 +67,11 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction)
   type (coord_struct), allocatable, target ::  closed_orb(:)
   type (coord_struct), pointer :: start, end
 
-  real(rp) mat2(6,6), mat(6,6)
-  real(rp) :: amp_co, amp_del, t1(6,6), amp_del_old
+  real(rp) mat2(6,6), t1(6,6)
+  real(rp) :: amp_co, amp_del, amp_del_old, i1_int
 
   integer, optional :: direction
-  integer i, n, n_ele, i_dim, i_max, dir, i1_int
+  integer i, n, n_ele, i_dim, i_max, dir, nc
   logical fluct_saved, aperture_saved
 
 !----------------------------------------------------------------------
@@ -105,13 +105,15 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction)
 !----------------------------------------------------------------------
 ! Further init
 
+  n = i_dim  ! dimension of transfer matrix
+  nc = i_dim ! number of dimensions to compare.
+
   select case (i_dim)
 
 ! Constant energy case
 ! Turn off RF voltage if i_dim == 4 (for constant delta_E)
 
   case (4, 5)
-    n = 4
     if (all(ring%param%t1_no_RF == 0)) &
                 call transfer_matrix_calc (ring, .false., ring%param%t1_no_RF)
     t1 = ring%param%t1_no_RF
@@ -119,21 +121,24 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction)
     call set_on_off (rfcavity$, ring, save_state$)
     call set_on_off (rfcavity$, ring, off$)
 
-    call make_mat2
+    call make_mat2 
 
     if (i_dim == 5) then  ! crude I1 integral calculation
+      n = 4   ! Still only compute the transfer matrix for the transverse
+      nc = 6  ! compare all 6 coords.
       i1_int = 0
       do i = 1, ring%n_ele_use
         ele => ring%ele_(i)
-        if (ele%key == sbend$) i1_int = i1_int + ele%value(l$) * &
+        if (ele%key == sbend$) then
+          i1_int = i1_int + ele%value(l$) * &
               ele%value(g$) * (ring%ele_(i-1)%x%eta_lab + ele%x%eta_lab) / 2
+        endif
       enddo
     endif
 
 ! Variable energy case: i_dim = 6
 
   case (6)
-    n = 6
     if (all(ring%param%t1_with_RF == 0)) &
                 call transfer_matrix_calc (ring, .true., ring%param%t1_with_RF)
     t1 = ring%param%t1_with_RF
@@ -145,7 +150,7 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction)
       call err_exit
     endif
 
-    call make_mat2
+    call make_mat2 
 
 ! Error
 
@@ -188,15 +193,18 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction)
 
     del_orb%vec = end%vec - start%vec
     del_co%vec(1:n) = matmul(mat2(1:n,1:n), del_orb%vec(1:n)) 
-    if (i_dim == 5) del_co%vec(5) = del_orb%vec(5) / i1_int
+    if (i_dim == 5) then
+      del_co%vec(5) = 0
+      del_co%vec(6) = del_orb%vec(5) / i1_int      
+    endif
 
-    amp_co = sum(abs(start%vec(1:i_dim)))
-    amp_del = sum(abs(del_co%vec(1:i_dim)))                                  
+    amp_co = sum(abs(start%vec(1:nc)))
+    amp_del = sum(abs(del_co%vec(1:nc)))                                  
 
     if (amp_del < amp_co * bmad_com%rel_tollerance + bmad_com%abs_tollerance) exit
 
     if (amp_del < amp_del_old) then
-      start%vec(1:i_dim) = start%vec(1:i_dim) + del_co%vec(1:i_dim)
+      start%vec(1:nc) = start%vec(1:nc) + del_co%vec(1:nc)
     else  ! not converging so remake mat2 matrix
       call ring_make_mat6 (ring, -1, closed_orb)
       call transfer_matrix_calc (ring, .true., t1)
@@ -219,6 +227,10 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction)
 contains
 
 subroutine make_mat2 
+
+  real(rp) mat(6,6)
+
+!
 
   if (dir == -1) call mat_inverse (t1(1:n,1:n), t1(1:n,1:n))
   call mat_make_unit (mat(1:n,1:n))
