@@ -85,6 +85,7 @@ sub get_args {
     $local_mods=" ";
     $mod_out_dir=" ";
     $cpp=" ";
+    $CASE="l";
 
 #   Parse all command line arguments
     foreach $arg (@ARGV) {
@@ -120,6 +121,9 @@ sub get_args {
         }
         elsif($arg=~/^-f(.+)/) {
             $out_file=$1;
+        } 
+        elsif($arg=~/^-CASE(.+)/) {
+            $CASE=$1;
         } 
         elsif($arg!~/^-/) {
             $src_file=$arg;
@@ -357,7 +361,13 @@ sub find_incs {
 
 # Look for any mods specified in the use statements
 sub find_mods {
-
+#*********************
+# if module basefilename is upper case 
+if ($CASE eq "u"){
+    for ($i=0;$i <= $#needed_mods;$i++){
+        $needed_mods[$i]=~s/(\w+)\.mod/\U$1\E.mod/g
+    }
+}
 # Look for every mod on the needed_mods stack
   MOD: foreach $mod (@needed_mods) {
 #     If we've already found this mod in a previous pass, go on to next mod.
@@ -413,7 +423,7 @@ sub get_used_file_tree {
               $mod_def=$mod_def.".mod";
               $line=0;
 #             If there is a mod definition for a mod that's not local, scream.
-              if(!(grep {$_=~/$mod_def/} @local_mods)) {
+              if(!(grep {$_=~/$mod_def/i} @local_mods)) {
                   print STDERR "module definition for $mod_def was found in an included file.  This is very BAD, and unsupported at CESR!\n";
               }
 #             If mod defined is in local mod list, push it onto 'create' stack

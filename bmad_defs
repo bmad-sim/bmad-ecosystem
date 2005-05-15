@@ -50,6 +50,28 @@ BMAD_BIN=${BMAD_}/bin
 PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -m`"
 
 #
+# Set BMAD fortran compiler:
+# BMADF90 = intel (or lahey, hp, absoft, ibm, gnu)
+# intel   -- ifort          
+# lahey   -- lf95         default on Linux_i686
+# hp      -- f77/f90/f95  default on OSF1_alpha
+# ibm     -- xlf
+# absoft  -- f95          default on Darwin_powerpc
+# gnu     -- g77/g95
+#
+if ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then 
+  BMADF90=${BMADF90:-intel}
+fi
+if ( [ "${PLATFORM_TAG}" = "Linux_i686" ] ) then 
+  BMADF90=${BMADF90:-lahey}
+fi
+if ( [ "${PLATFORM_TAG}" = "OSF1_alpha" ] ) then
+  BMADF90=${BMADF90:-hp}
+fi
+if ( [ "${PLATFORM_TAG}" = "Darwin_powerpc" ] ) then 
+  BMADF90=${BMADF90:-absoft}
+fi
+#
 # Export the BMAD environment variable structure
 #
 BMADENV=${BMADENV:-${BMAD_BIN}/bmadenv}
@@ -77,10 +99,35 @@ if ( [ ${found} -eq 0 ] ) then
   export PATH
 fi
 
+unset BMADF90
+unset BMADENV
 #
 # $Id$
 #
 # $Log$
+# Revision 1.6  2005/05/15 01:32:29  cesrulib
+# New environment variables and some changes have been introduced in order
+# make switches between FORTRAN compilers more easy.
+# These variables are:
+# CESR_F90 for standard release and
+# BMAD_F90   for bmad distribution.
+# The value of CESR_F90 (or BMAD_F90) depending on platform may be:
+#  value   --  compiler    --  platform:
+#
+#  intel   --  ifort       --  (test in progress on Linux_i686)
+#  lahey   --  lf95        --  default on Linux_i686
+#  hp      --  f77/f90/f95 --  default on OSF1_alpha
+#  ibm     --  xlf
+#  absoft  --  f95         --  default on Darwin_powerpc (test in progress)
+#  gnu     --  g77/g95
+#
+# List of files with the change:
+# util/
+# cesrdefs cesrdef cesrenv do_release f90_mod_list.perl cesrmakedepend
+# bmad_defs bmad_def bmadenv do_bmad_dist
+# Gmake/
+# M.tail M.release M.distribution
+#
 # Revision 1.5  2004/11/16 16:01:37  palmer
 # Update environment variable structure including support for Windows and
 # new naming conventions.

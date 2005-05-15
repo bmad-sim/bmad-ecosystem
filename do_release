@@ -241,6 +241,7 @@ else
     CESRLIB=devel
 fi
 
+CESRF90=${CESR_F90}
 CESRLIB_BIN=${BIN_DIR}; . ${BIN_DIR}/cesrdefs
 
 # Use user-specified CESR_GMAKE and CESR_UTIL areas, if present.

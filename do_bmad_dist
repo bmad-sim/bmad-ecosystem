@@ -179,6 +179,7 @@ BMADENV=${BIN_DIR}/bmadenv
 
 
 # Export the environment for the BMAD distribution
+BMADF90=${BMAD_F90}
 BMAD_=${FULL_DIST_NAME}; . ${BIN_DIR}/bmad_defs
 
 
