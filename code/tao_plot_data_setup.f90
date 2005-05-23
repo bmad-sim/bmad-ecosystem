@@ -124,6 +124,7 @@ do k = 1, size(graph%curve)
                                                                   curve%data_type)
     call err_exit
   endif
+  err = .false.
   call tao_phase_space_axis (curve%data_type(:ix-1), ix1_ax, err); if (err) return
   call tao_phase_space_axis (curve%data_type(ix+1:), ix2_ax, err); if (err) return
 
@@ -138,9 +139,10 @@ do k = 1, size(graph%curve)
     n = size(curve%beam%bunch(ib)%particle)
   enddo
 
-  n = 0
   call re_associate (curve%x_symb, n)
   call re_associate (curve%y_symb, n)
+
+  n = 0
   do ib = 1, size(curve%beam%bunch)
     m = size(curve%beam%bunch(ib)%particle)
     curve%x_symb(n+1:n+m) = curve%beam%bunch(ib)%particle(:)%r%vec(ix1_ax)
@@ -181,6 +183,7 @@ case ('p_z'); ix_axis = 6
 case default
   call out_io (s_abort$, r_name, 'BAD PHASE_SPACE CURVE DATA_TYPE: ' // data_type)
   call err_exit
+  err = .true.
 end select
 
 end subroutine
@@ -236,14 +239,8 @@ do k = 1, size(graph%curve)
   if (curve%ix_universe /= 0) i_uni = curve%ix_universe 
   u => s%u(i_uni)
 
-  if (curve%ele2_name /= ' ') then
-    call element_locator (curve%ele2_name, u%design, curve%ix_ele2)
-    if (curve%ix_ele2 < 0) then
-      curve%ix_ele2 = 0
-      call out_io (s_error$, r_name, &
-                  'Curve%ele2_name cannot be found in lattice: ' // curve%ele2_name)
-    endif
-  endif
+  call tao_locate_element (curve%ele2_name, u%design, curve%ix_ele2, .true.)
+  if (curve%ix_ele2 < 0) curve%ix_ele2 = 0
 
 !----------------------------------------------------------------------------
 ! select the source

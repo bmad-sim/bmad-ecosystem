@@ -98,6 +98,8 @@ subroutine tao_init (init_file)
   enddo
 
   call tao_init_plotting (plot_file)
+  if (s%global%lattice_recalc) call tao_lattice_calc 
+
   call tao_plot_data_setup ()  ! transfer data to the plotting structures
   call tao_plot_out ()         ! Update the plotting window
 

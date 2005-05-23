@@ -124,7 +124,7 @@ do
   plt => s%template_plot(ip)
   plt%name        = plot%name
   plt%x           = plot%x
-  plt%x_divisions = plt%x%major_div
+  plt%x_divisions = plot%x%major_div
   plt%x_axis_type = plot%x_axis_type
   plt%independent_graphs = plot%independent_graphs
 
@@ -185,6 +185,8 @@ do
     grph%clip          = graph%clip
     grph%title_suffix = ' '
     grph%legend = ' '
+
+    if (graph%type == 'phase_space') s%global%lattice_recalc = .true.
 
     if (grph%ix_universe < 0 .or. grph%ix_universe > size(s%u)) then
       call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', grph%ix_universe)

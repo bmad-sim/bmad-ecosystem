@@ -156,19 +156,21 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_locate_element (string, lattice, ix_ele) 
+! Subroutine tao_locate_element (string, lattice, ix_ele, ignore_blank) 
 !
 ! Subroutine to find a lattice element.
 !
 ! Input:
-!   string  -- Character(*): String with element name
-!   lattice -- Ring_struct: Lattice to search
+!   string  -- Character(*): String with element name or index
+!   lattice -- Ring_struct: Lattice to search.
+!   ignore_blank -- Logical, optional: If present and true then do nothing if
+!     string is blank. otherwise treated as an error.
 !
 ! Output:
 !   ix_ele  -- Integer: Index of element. Set to -1 if element not found.
 !-
 
-subroutine tao_locate_element (string, lattice, ix_ele)
+subroutine tao_locate_element (string, lattice, ix_ele, ignore_blank)
 
 implicit none
 
@@ -180,10 +182,14 @@ character(*) string
 character(16) ele_name
 character(20) :: r_name = 'tao_locate_element'
 
+logical, optional :: ignore_blank
+
 ! If it is a number translate it:
 
 call str_upcase (ele_name, string)
 call string_trim (ele_name, ele_name, ix)
+
+if (ix == 0 .and. logic_option(.false., ignore_blank)) return
 
 if (ix == 0) then
   ix_ele = -1

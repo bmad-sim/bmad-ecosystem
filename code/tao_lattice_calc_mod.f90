@@ -187,10 +187,11 @@ type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
 type (modes_struct) :: modes
 type (tao_graph_struct), pointer :: graph
+type (tao_curve_struct), pointer :: curve
 
 integer uni, what_lat
 integer j, i_uni, n_ps, ip, ig, ic
-integer n_bunch, n_part
+integer n_bunch, n_part, i_uni_to
 integer extract_at_ix_ele, n_lost
 
 character(20) :: r_name = "tao_beam_track"
@@ -217,12 +218,12 @@ all_lost_already = .false.
 ! Find if injecting into another lattice
 
 extract_at_ix_ele = -1
-inject_loop: do i_uni = uni+1, size(s%u)
-  if (s%u(i_uni)%coupling%coupled) then
-    if (s%u(i_uni)%coupling%from_uni == uni) then
-      if (s%u(i_uni)%coupling%from_uni_ix_ele .ne. -1) then
-        extract_at_ix_ele = s%u(i_uni)%coupling%from_uni_ix_ele
-        exit inject_loop ! save i_uni for coupled universe
+inject_loop: do i_uni_to = uni+1, size(s%u)
+  if (s%u(i_uni_to)%coupling%coupled) then
+    if (s%u(i_uni_to)%coupling%from_uni == uni) then
+      if (s%u(i_uni_to)%coupling%from_uni_ix_ele .ne. -1) then
+        extract_at_ix_ele = s%u(i_uni_to)%coupling%from_uni_ix_ele
+        exit inject_loop ! save i_uni_to for coupled universe
       else
         call out_io (s_abort$, r_name, &
            "Must specify an element when coupling lattices with a beam.")
@@ -255,7 +256,7 @@ if (.not. u%coupling%coupled) then
       beam_init%center  = orb(extract_at_ix_ele)%vec
       ! other beam_init parameters will be as in init.tao, or as above
       call init_beam_distribution (lat%ele_(extract_at_ix_ele), &
-                               beam_init, s%u(i_uni)%coupling%injecting_beam)
+                               beam_init, s%u(i_uni_to)%coupling%injecting_beam)
     endif
     return
   elseif (lat%param%lattice_type == linear_lattice$) then
@@ -272,15 +273,21 @@ endif
 ! Calculate save points if doing a phase space plot
 
   n_ps = 0
-  do ip = 1, size(s%template_plot)
-    do ig = 1, size(s%template_plot(ip)%graph)
-      graph => s%template_plot(ip)%graph(ig)
+  do ip = 1, size(s%plot_page%region)
+    if (.not. s%plot_page%region(ip)%visible) cycle
+    do ig = 1, size(s%plot_page%region(ip)%plot%graph)
+      graph => s%plot_page%region(ip)%plot%graph(ig)
       if (graph%type /= 'phase_space') cycle
       do ic = 1, size(graph%curve)
-        if (graph%curve(ic)%ix_universe /= uni) cycle
+        curve => graph%curve(ic)
+        i_uni = curve%ix_universe
+        if (i_uni == 0) i_uni = s%global%u_view
+        if (i_uni /= uni) cycle
+        call tao_locate_element (curve%ele2_name, s%u(i_uni)%design, curve%ix_ele2, .true.)
+        if (curve%ix_ele2 < 0) return
         n_ps = n_ps + 1
-        phase_space(n_ps)%beam => graph%curve(ic)%beam
-        phase_space(n_ps)%ix_ele = graph%curve(ic)%ix_ele2
+        phase_space(n_ps)%beam => curve%beam
+        phase_space(n_ps)%ix_ele = curve%ix_ele2
       enddo
     enddo
   enddo
@@ -297,12 +304,14 @@ do j = 1, lat%n_ele_use
  
   ! Save beam at location if injecting into another lattice
   if (extract_at_ix_ele == j) then
-    call beam_equal_beam (s%u(i_uni)%coupling%injecting_beam, beam)
+    call beam_equal_beam (s%u(i_uni_to)%coupling%injecting_beam, beam)
   endif
 
   ! save for phase space plot
   do ip = 1, n_ps
-    if (phase_space(ip)%ix_ele == j) phase_space(ip)%beam = beam
+    if (phase_space(ip)%ix_ele == j) then
+      phase_space(ip)%beam = beam
+    endif
   enddo
 
   ! compute centroid orbit
