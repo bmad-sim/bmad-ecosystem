@@ -1198,16 +1198,26 @@ subroutine beam_equal_beam (beam1, beam2)
   type (beam_struct), intent(in)    :: beam2
 
   integer i, j, n_bun, n_particle
+  logical allocate_this
 
-!
+! The following rule must be observed: If beam%bunch is associated then
+! beam%bunch%particle must be also.
 
   n_bun = size(beam2%bunch)
 
-  if (size(beam1%bunch) /= size(beam2%bunch)) then
-    do i = 1, size(beam1%bunch)
-      deallocate (beam1%bunch(i)%particle)
-    enddo
-    deallocate (beam1%bunch)
+  allocate_this = .true.
+  if (associated(beam1%bunch)) then
+    if (size(beam1%bunch) /= size(beam2%bunch)) then
+      do i = 1, size(beam1%bunch)
+        deallocate (beam1%bunch(i)%particle)
+      enddo
+      deallocate (beam1%bunch)
+    else
+      allocate_this = .false.
+    endif
+  endif
+
+  if (allocate_this) then
     allocate (beam1%bunch(n_bun))
     do i = 1, n_bun
       n_particle = size(beam2%bunch(i)%particle)
