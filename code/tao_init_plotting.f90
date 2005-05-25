@@ -146,6 +146,9 @@ do
     graph%clip = .true.
     graph%who%name  = ' '                               ! set default
     graph%who(1) = tao_plot_who_struct('model', +1)     ! set default
+    do j = 1, size(curve)
+      write (curve(j)%name, '(i0)') j
+    enddo
     curve(:)%units_factor = 1
     curve(:)%convert = .false.                             ! set default
     curve(:)%symbol_every = 1
@@ -220,7 +223,7 @@ do
       crv%symbol            = curve(j)%symbol
       crv%line              = curve(j)%line
       crv%convert           = curve(j)%convert
-
+      crv%name              = curve(j)%name
       crv%ele2_name         = curve(j)%ele2_name
       call str_upcase (crv%ele2_name, crv%ele2_name)
       crv%ix_ele2           = curve(j)%ix_ele2

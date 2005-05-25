@@ -35,14 +35,20 @@ subroutine tao_command (command_line, err)
   character(140) cmd_line
   character(20) :: r_name = 'tao_command'
   character(80) :: cmd_word(12)
- 
-  character(16) cmd_name
+  character(16) cmd_name, set_word
+
   character(16) :: cmd_names(25) = (/  &
         'quit        ', 'exit        ', 'show        ', 'plot        ', 'place       ', &
         'clip        ', 'scale       ', 'veto        ', 'use         ', 'restore     ', &
         'run         ', 'flatten     ', 'output      ', 'change      ', 'set         ', &
         'call        ', 'view        ', 'alias       ', 'help        ', 'history     ', &
         'single-mode ', 'reinitialize', 'x-scale     ', 'x-axis      ', 'derivative  ' /)
+
+  character(16) :: set_names(7) = (/ &
+        'data        ', 'var         ', 'lattice     ', 'global      ', 'plot_page   ', &
+        'universe    ', 'curve       ' /)
+
+
 
   logical quit_tao, err
   
@@ -270,17 +276,26 @@ subroutine tao_command (command_line, err)
 
     call tao_cmd_split (cmd_line, 6, cmd_word, .false., err, '=')
 
-    if (((cmd_word(1) == 'data' .or. cmd_word(1) == 'var') .and. &
-                  cmd_word(4) /= '=') .or. &
-                  (cmd_word(1) == 'global' .and. cmd_word(3) /= '=') .or. &
-                  (cmd_word(1) == 'plot'   .and. cmd_word(3) /= '=') .or. &
-		  (cmd_word(1)(1:7) == 'lattice' .and. cmd_word(3) /= '=')) then
+    call match_word (cmd_word(1), set_names, ix)
+    if (ix == 0) then
+      call out_io (s_error$, r_name, 'NOT RECOGNIZED: ' // cmd_word(1))
+      return
+    endif
+
+    set_word = set_names(ix)
+
+    if ( (set_word == 'curve'   .and. cmd_word(4) /= '=') .or. &
+         (set_word == 'data'    .and. cmd_word(4) /= '=') .or. &
+         (set_word == 'var'     .and. cmd_word(4) /= '=') .or. &
+         (set_word == 'global'  .and. cmd_word(3) /= '=') .or. &
+         (set_word == 'plot'    .and. cmd_word(3) /= '=') .or. &
+		     (set_word == 'lattice' .and. cmd_word(3) /= '=')) then
       call out_io (s_error$, r_name, 'SYNTAX PROBLEM. "=" NOT IN CORRECT PLACE.')
       return
     endif
 
 
-    select case (cmd_word(1))
+    select case (set_word)
     case ('data')
       call tao_set_data_cmd (cmd_word(2), &
                               cmd_word(3), cmd_word(5), cmd_word(6)) 
@@ -288,12 +303,13 @@ subroutine tao_command (command_line, err)
       call tao_set_var_cmd (cmd_word(2), &
                               cmd_word(3), cmd_word(5), cmd_word(6)) 
     case ('lattice')
-      call tao_set_lattice_cmd (cmd_word(1), &
-                              cmd_word(2), cmd_word(4)) 
+      call tao_set_lattice_cmd (cmd_word(2), cmd_word(4)) 
+    case ('curve')
+      call tao_set_curve_cmd (cmd_word(2), cmd_word(3), cmd_word(5)) 
     case ('global')
       call tao_set_global_cmd (cmd_word(2), cmd_word(4))
-    case ('plot')
-      call tao_set_plot_cmd (cmd_word(2), cmd_word(4), cmd_word(5))
+    case ('plot_page')
+      call tao_set_plot_page_cmd (cmd_word(2), cmd_word(4), cmd_word(5))
     case ('universe')
       call tao_to_int (cmd_word(2), uni, err)
       if (err) return
@@ -302,8 +318,6 @@ subroutine tao_command (command_line, err)
       else
         call tao_set_uni_cmd (uni, cmd_word(3), .false.)
       endif
-    case default
-      call out_io (s_error$, r_name, 'NOT RECOGNIZED: ' // cmd_word(1))
     end select
 
 !--------------------------------

@@ -165,7 +165,7 @@ case ('ele')
   ele_name = name
   
   u => s%u(s%global%u_view)
-  call tao_locate_element (ele_name, u%model, ix_ele)
+  call tao_locate_element (ele_name, s%global%u_view, ix_ele)
   if (ix_ele < 0) return
 
   select case (where)

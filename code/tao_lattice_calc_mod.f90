@@ -283,7 +283,7 @@ endif
         i_uni = curve%ix_universe
         if (i_uni == 0) i_uni = s%global%u_view
         if (i_uni /= uni) cycle
-        call tao_locate_element (curve%ele2_name, s%u(i_uni)%design, curve%ix_ele2, .true.)
+        call tao_locate_element (curve%ele2_name, i_uni, curve%ix_ele2, .true.)
         if (curve%ix_ele2 < 0) return
         n_ps = n_ps + 1
         phase_space(n_ps)%beam => curve%beam

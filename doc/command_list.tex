@@ -425,7 +425,7 @@ Format:
   set data <data_name> <component> = <value> \{<locations>\}
   set global <component> = <value>
   set lattice <component> = <value>
-  set plot <component> = <value1> \{<value2>\}
+  set plot_page <component> = <value1> \{<value2>\}
   set universe <universe> <on/off> <recalculate>
   set var <var_name> <component> = <value> \{<locations>\}
 \end{example}
@@ -511,7 +511,7 @@ For \vn{set global} the possible
 \end{example}
 \vskip 0.2in
 
-For \vn{set plot} the possible 
+For \vn{set plot_page} the possible 
 \vn{<component>}s that can be set are:
 \begin{example}
   title        = <string>          ! Set the plot title text
@@ -545,7 +545,7 @@ Examples:
   set data all ref = meas         ! set all ref data = measured data in current universe.
   set data orbit:x;2 base = model ! set the ref orbit:x data in universe 2 to meas
   set var quad\_k1 weight = 0.1   ! set quad\_k1 weights. 
-  set lattice;0 model = design    ! resets the model lattice to the design in all universes
+  set lattice model;0 = design    ! resets the model lattice to the design in all universes
 \end{example}
 
 %% scale --------------------------------------------------------------

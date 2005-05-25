@@ -78,8 +78,10 @@ plot_loop: do ir = 1, size(s%plot_page%region)
     if (found) cycle
 
     select case (graph%type)
-    case ('phase_space'); call tao_phase_space_plot_data_setup (plot, graph)
-    case ('data');        call tao_data_plot_data_setup(plot, graph)
+    case ('phase_space')
+      call tao_phase_space_plot_data_setup (plot, graph)
+    case ('data')
+      call tao_data_plot_data_setup(plot, graph)
     end select
 
   enddo graph_loop
@@ -105,9 +107,22 @@ integer k, n, m, ib, ix1_ax, ix2_ax, ix
 
 logical err
 
+character(16) name
 character(30) :: r_name = 'tao_phase_space_plot_data_setup'
 
-!
+! Set up the graph suffix
+
+curve => graph%curve(1)
+name = curve%ele2_name
+if (name == ' ') then
+  ix = curve%ix_universe
+  if (ix == 0) ix = s%global%u_view
+  name = s%u(ix)%model%ele_(curve%ix_ele2)%name
+endif
+
+write (graph%title_suffix, '(a, i0, 3a)') '[', curve%ix_ele2, ': ', trim(name), ']'
+
+! loop over all curves
 
 graph%valid = .false.
 
@@ -220,8 +235,34 @@ logical err, smooth_curve, found
 character(12)  :: u_view_char
 character(30) :: r_name = 'tao_data_plot_data_setup'
 
+! For the title_suffix: strip off leading "+" and enclose in "[ ]".
 
-!
+  graph%title_suffix = ' '
+  do m = 1, size(graph%who)
+    if (graph%who(m)%name == ' ') cycle
+    if (graph%who(m)%sign == 1) then
+      graph%title_suffix = trim(graph%title_suffix) // ' + ' // graph%who(m)%name
+    elseif (graph%who(m)%sign == -1) then
+      graph%title_suffix = trim(graph%title_suffix) // ' - ' // graph%who(m)%name
+    endif
+  enddo
+
+  if (graph%title_suffix(2:2) == '+') graph%title_suffix = graph%title_suffix(4:)
+
+  graph%title_suffix = '[' // trim(graph%title_suffix) // ']'
+
+! attach x-axis type to title suffix 	 
+  	 
+   if (plot%x_axis_type .eq. 'index') then 	 
+     graph%title_suffix = trim(graph%title_suffix) // ', X-axis: index, ' 	 
+   elseif (plot%x_axis_type .eq. 'ele_index') then 	 
+     graph%title_suffix = trim(graph%title_suffix) // ', X-axis: ele_index, ' 	 
+   elseif (plot%x_axis_type .eq. 's') then 	 
+     graph%title_suffix = trim(graph%title_suffix) // ', X-axis: s, ' 	 
+   endif 	 
+
+!-------------------------------------------------------------------------------
+! Loop over all curves in the graph
 
 do k = 1, size(graph%curve)
 
@@ -239,7 +280,7 @@ do k = 1, size(graph%curve)
   if (curve%ix_universe /= 0) i_uni = curve%ix_universe 
   u => s%u(i_uni)
 
-  call tao_locate_element (curve%ele2_name, u%design, curve%ix_ele2, .true.)
+  call tao_locate_element (curve%ele2_name, i_uni, curve%ix_ele2, .true.)
   if (curve%ix_ele2 < 0) curve%ix_ele2 = 0
 
 !----------------------------------------------------------------------------
@@ -583,32 +624,6 @@ do k = 1, size(graph%curve)
   endif 
 
   curve%limited = any(curve%y_symb .lt. graph%y%min .or. curve%y_symb .gt. graph%y%max)
-
-! For the title_suffix: strip off leading "+" and enclose in "[ ]".
-
-  graph%title_suffix = ' '
-  do m = 1, size(graph%who)
-    if (graph%who(m)%name == ' ') cycle
-    if (graph%who(m)%sign == 1) then
-      graph%title_suffix = trim(graph%title_suffix) // ' + ' // graph%who(m)%name
-    elseif (graph%who(m)%sign == -1) then
-      graph%title_suffix = trim(graph%title_suffix) // ' - ' // graph%who(m)%name
-    endif
-  enddo
-
-  if (graph%title_suffix(2:2) == '+') graph%title_suffix = graph%title_suffix(4:)
-
-  graph%title_suffix = '[' // trim(graph%title_suffix) // ']'
-
-! attach x-axis type to title suffix 	 
-  	 
-   if (plot%x_axis_type .eq. 'index') then 	 
-     graph%title_suffix = trim(graph%title_suffix) // ', X-axis: index, ' 	 
-   elseif (plot%x_axis_type .eq. 'ele_index') then 	 
-     graph%title_suffix = trim(graph%title_suffix) // ', X-axis: ele_index, ' 	 
-   elseif (plot%x_axis_type .eq. 's') then 	 
-     graph%title_suffix = trim(graph%title_suffix) // ', X-axis: s, ' 	 
-   endif 	 
 
 enddo
 

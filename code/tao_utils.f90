@@ -156,13 +156,13 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_locate_element (string, lattice, ix_ele, ignore_blank) 
+! Subroutine tao_locate_element (string, ix_universe, ix_ele, ignore_blank) 
 !
 ! Subroutine to find a lattice element.
 !
 ! Input:
-!   string  -- Character(*): String with element name or index
-!   lattice -- Ring_struct: Lattice to search.
+!   string       -- Character(*): String with element name or index
+!   ix_universe  -- Integer: Universe to search. 0 => search s%global%u_view.
 !   ignore_blank -- Logical, optional: If present and true then do nothing if
 !     string is blank. otherwise treated as an error.
 !
@@ -170,13 +170,11 @@ end subroutine
 !   ix_ele  -- Integer: Index of element. Set to -1 if element not found.
 !-
 
-subroutine tao_locate_element (string, lattice, ix_ele, ignore_blank)
+subroutine tao_locate_element (string, ix_universe, ix_ele, ignore_blank)
 
 implicit none
 
-type (ring_struct) lattice
-
-integer ix_ele, ios, ix
+integer ix_ele, ios, ix, ix_universe
 
 character(*) string
 character(16) ele_name
@@ -197,17 +195,21 @@ if (ix == 0) then
   return
 endif
 
+ix = ix_universe
+if (ix == 0) ix = s%global%u_view
+
 read (ele_name, *, iostat = ios) ix_ele
 if (ios .eq. 0) then
   !it's a number
-  if (ix_ele < 0 .or. ix_ele > lattice%n_ele_max) then
+  if (ix_ele < 0 .or. ix_ele > s%u(ix)%model%n_ele_max) then
     ix_ele = -1
     call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE: ' // ele_name)
   endif
   return
 endif
 
-call element_locator (ele_name, lattice, ix_ele)
+call element_locator (ele_name, s%u(ix)%model, ix_ele)
+
 if (ix_ele < 0) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // string)
 
 end subroutine
@@ -281,37 +283,120 @@ end subroutine tao_pointer_to_var_in_lattice
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_find_plot_by_region (err, where, plot, graph, region)
+! Subroutine tao_find_plot_by_region (err, where, plot, graph, curve, region, print_flag)
 !
 ! Routine to find a plot using the region name.
 ! Optionally find a graph of the plot.
 ! A region name is something like: where = "top"
-! A graph name is something like: where = "top:x"
-!
+! A graph name is something like: where  = "top:x"
+! A curve name is something like: where  = "top:x:1"
+
 ! Input:
-!   where    -- Character(*): Name to match to.
+!   where      -- Character(*): Name to match to.
+!   print_flag -- Logical, optional: If present and False then surpress error
+!                   messages. Default is True.
 !
 ! Output:
+!   err      -- logical: Set True on error. False otherwise.
 !   plot     -- Tao_plot_struct, pointer, optional: Pointer to the appropriate plot.
 !   graph    -- Tao_graph_struct, pointer, optional: Pointer to the appropriate graph.
+!   curve    -- Tao_curve_struct, pointer, optional: Pointer to the appropriate curve.
 !   region   -- Tao_plot_region_struct, pointer, optional: Region found.
 !-
 
-subroutine tao_find_plot_by_region (err, where, plot, graph, region)
+subroutine tao_find_plot_by_region (err, where, plot, graph, curve, region, print_flag)
 
 implicit none
 
 type (tao_plot_region_struct), pointer, optional :: region
 type (tao_plot_struct), pointer, optional :: plot
 type (tao_graph_struct), pointer, optional :: graph
-type (tao_plot_region_struct), pointer :: rgn
+type (tao_curve_struct), pointer, optional :: curve
+type (tao_plot_region_struct), pointer :: this_region
+
+integer i, ix
+
+character(*) where
+character(32) plot_name, graph_name
+character(28) :: r_name = 'tao_find_plot_by_region'
+
+logical, optional :: print_flag
+logical err
+
+! Parse where argument
+
+err = .false.
+
+ix = index(where, ':')
+if (ix == 0) then
+  plot_name = where
+  graph_name = ' '
+else
+  plot_name = where(1:ix-1)
+  graph_name = where(ix+1:)
+endif
+
+! Match plot name to region
+
+do i = 1, size(s%plot_page%region)
+
+  this_region => s%plot_page%region(i)
+  if (plot_name == this_region%name) exit
+
+  if (i == size(s%plot_page%region)) then
+    if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
+                                             'PLOT LOCATION NOT FOUND: ' // plot_name)
+    err = .true.
+    return
+  endif
+
+enddo
+
+if (present(region)) region => this_region
+if (present(plot)) plot => this_region%plot
+
+! Find the graph and/or curve
+
+call tao_find_graph_or_curve_from_plot (err, graph_name, this_region%plot, &
+                                                            graph, curve, print_flag)
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_find_template_plot (err, where, plot, graph, curve, print_flag)
+!
+! Routine to find a template plot using the template name.
+! A plot name is something like: where = "top"
+!
+! Input:
+!   where    -- Character(*): Name to match to.
+!   print_flag -- Logical, optional: If present and False then surpress error
+!                   messages. Default is True.
+!
+! Output:
+!   plot     -- Tao_plot_struct, pointer, optional: Pointer to the appropriate plot.
+!   graph    -- Tao_graph_struct, pointer, optional: Pointer to the appropriate graph.
+!   curve    -- Tao_curve_struct, pointer, optional: Pointer to the appropriate curve.
+!-
+
+subroutine tao_find_template_plot (err, where, plot, graph, curve, print_flag)
+
+implicit none
+
+type (tao_plot_struct), pointer, optional :: plot
+type (tao_graph_struct), pointer, optional :: graph
+type (tao_curve_struct), pointer, optional :: curve
 
 integer i, j, ix
 
 character(*) where
-character(16) plot_name, graph_name
-character(28) :: r_name = 'tao_find_plot_by_region'
+character(32) plot_name, graph_name
+character(28) :: r_name = 'tao_find_template_plot'
 
+logical, optional :: print_flag
 logical err
 
 ! Find plot
@@ -327,38 +412,22 @@ else
   graph_name = where(ix+1:)
 endif
 
-do i = 1, size(s%plot_page%region)
-
-  rgn => s%plot_page%region(i)
-  if (plot_name == rgn%name) exit
-
-  if (i == size(s%plot_page%region)) then
-    call out_io (s_error$, r_name, 'PLOT LOCATION NOT FOUND: ' // plot_name)
-    err = .true.
-    return
+do i = 1, size(s%template_plot)
+  if (plot_name == s%template_plot(i)%name) then
+    if (present(plot)) plot => s%template_plot(i)
+    exit
   endif
-
 enddo
 
-if (present(region)) region => rgn
-if (present(plot)) plot => rgn%plot
-
-! Find graph
-
-if (.not. present(graph)) return 
-if (graph_name == ' ')  then
-  nullify(graph)
+if (i == size(s%template_plot) + 1) then
+  if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
+                                                  'PLOT LOCATION NOT FOUND: ' // where)
+  err = .true.
   return
 endif
 
-do j = 1, size(rgn%plot%graph)
-  graph => rgn%plot%graph(j)
-  if (graph_name == graph%name) return
-enddo
-
-call out_io (s_error$, r_name, 'GRAPH NOT FOUND: ' // where)
-err = .true.
-nullify(graph)
+call tao_find_graph_or_curve_from_plot (err, graph_name, s%template_plot(i), &
+                                                               graph, curve, print_flag)
 
 end subroutine
 
@@ -366,45 +435,82 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_find_template_plot (err, where, plot)
+! Subroutine tao_find_graph_or_curve_from_plot (err, where, plot, graph, curve, print_flag)
 !
-! Routine to find a template plot using the template name.
-! A plot name is something like: where = "top"
+! Subroutine to find a graph or curve of a given plot.
 !
 ! Input:
 !   where    -- Character(*): Name to match to.
+!   plot     -- Tao_plot_struct: Plot containing graph and/or curve.
+!   print_flag -- Logical, optional: If present and False then surpress error
+!                   messages. Default is True.
 !
 ! Output:
-!   plot     -- Tao_plot_struct, pointer: Pointer to the appropriate plot.
+!   err      -- logical: Set True on error. False otherwise.
+!   graph    -- Tao_graph_struct, pointer, optional: Pointer to the appropriate graph.
+!   curve    -- Tao_curve_struct, pointer, optional: Pointer to the appropriate curve.
 !-
 
-subroutine tao_find_template_plot (err, where, plot)
+subroutine tao_find_graph_or_curve_from_plot (err, where, plot, graph, curve, print_flag)
 
-implicit none
-
-type (tao_plot_struct), pointer :: plot
+type (tao_plot_struct) :: plot
+type (tao_graph_struct), pointer, optional :: graph
+type (tao_curve_struct), pointer, optional :: curve
+type (tao_graph_struct), pointer :: this_graph
 
 integer i, j, ix
 
 character(*) where
-character(28) :: r_name = 'tao_find_template_plot'
+character(32) plot_name, graph_name, curve_name
+character(28) :: r_name = 'tao_find_graph_or_curve_from_plot'
 
+logical, optional :: print_flag
 logical err
 
-! Find plot
+!
 
-err = .false.
+if (present(graph)) nullify(graph)
+if (present(curve)) nullify(curve)
 
-do i = 1, size(s%template_plot)
+ix = index(where, ':')
+if (ix == 0) then
+  graph_name = where
+  curve_name = ' '
+else
+  graph_name = where(1:ix-1)
+  curve_name = where(ix+1:)
+endif
 
-  if (where == s%template_plot(i)%name) then
-    plot => s%template_plot(i)
-    return
+if (graph_name == ' ') return
+
+do j = 1, size(plot%graph)
+  this_graph => plot%graph(j)
+  if (graph_name == this_graph%name) then
+    if (present(graph)) graph => this_graph
+    exit
   endif
-
 enddo
 
-call out_io (s_error$, r_name, 'PLOT LOCATION NOT FOUND: ' // where)
+if (j == size(plot%graph) + 1) then
+  if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
+                                                  'GRAPH NOT FOUND: ' // where)
+  err = .true.
+endif
+
+! Find the curve
+
+if (curve_name == ' ') return
+if (.not. present(curve)) return
+
+do j = 1, size(this_graph%curve)
+  if (curve_name == this_graph%curve(j)%name) then
+    curve => this_graph%curve(j)
+    return
+  endif
+enddo
+
+if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
+                                                  'CURVE NOT FOUND: ' // where)
 err = .true.
 
 end subroutine

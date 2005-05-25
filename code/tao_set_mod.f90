@@ -9,26 +9,26 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
-! Subroutine tao_set_lattice_cmd (universe, set_lattice, to_lattice)
+! Subroutine tao_set_lattice_cmd (set_lattice, to_lattice)
 !
 ! Sets a lattice equal to another. This will also update the data structs
 ! If the 
 !
 ! Input:
-!   universe     -- Character(*): Which universe in the form *;n where
-!                    n is the universe number, any word can be before the ';'
-!   set_lattice  -- Character(*):
-!   to_lattice   -- Character(*):
+!   set_lattice -- Character(*): Maybe: 'model', 'design', or 'base' with 
+!                     optional ';n' at end to indicate the universe
+!   to_lattice  -- Character(*): Maybe: 'model', 'design', or 'base' 
 !
 !  Output:
-!    s%u(n)      -- ring_struct: changes specified lattice in specified universe 
+!    s%u(n) -- ring_struct: changes specified lattice in specified universe 
 !-
 
-subroutine tao_set_lattice_cmd (universe, set_lattice, to_lattice)
+subroutine tao_set_lattice_cmd (set_lattice, to_lattice)
 
 implicit none
 
-character(*) universe, set_lattice, to_lattice
+character(*) set_lattice, to_lattice
+character(16) set_lat_name
 character(20) :: r_name = 'tao_set_lattice_cmd'
 
 integer i
@@ -36,7 +36,7 @@ integer i
 logical, automatic :: this_u(size(s%u))
 logical err
 
-call tao_pick_universe (universe, universe, this_u, err)
+call tao_pick_universe (set_lattice, set_lat_name, this_u, err)
 if (err) return
 
 do i = 1, size(s%u)
@@ -60,7 +60,7 @@ real(rp), pointer :: to_this_data(:)
 
 err = .false.
 
-select case (set_lattice)
+select case (set_lat_name)
   case ('model')
     set_this_lat => u%model
     set_this_data => u%data%model_value
@@ -155,7 +155,7 @@ end subroutine tao_set_global_cmd
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
-! Subroutine tao_set_plot_cmd (component, set_value)
+! Subroutine tao_set_plot_page_cmd (component, set_value)
 !
 !  Set various aspects of the plotting window
 !
@@ -167,13 +167,13 @@ end subroutine tao_set_global_cmd
 !    s%plot_page  -- tao_plot_page_struct:
 !-
 
-subroutine tao_set_plot_cmd (component, set_value1, set_value2)
+subroutine tao_set_plot_page_cmd (component, set_value1, set_value2)
 
 implicit none
 
 character(*) component, set_value1
 character(*), optional :: set_value2
-character(20) :: r_name = 'tao_set_plot_cmd'
+character(20) :: r_name = 'tao_set_plot_page_cmd'
 
 real(rp) x, y
 integer ix
@@ -201,7 +201,59 @@ select case (component)
 
 end select
 
-end subroutine tao_set_plot_cmd
+end subroutine tao_set_plot_page_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_set_curve_cmd (curve_name, component, set_value)
+!
+! Routine to set var values.
+!
+! Input:
+!   curve_name -- Character(*): Which curve to set.
+!   component  -- Character(*): Which component to set.
+!   set_value  -- Character(*): What value to set it to.
+!-
+
+subroutine tao_set_curve_cmd (curve_name, component, set_value)
+
+implicit none
+
+type (tao_curve_struct), pointer :: curve
+
+integer i, ios
+
+character(*) curve_name, component, set_value
+character(20) :: r_name = 'tao_set_curve_cmd'
+
+logical err
+
+!
+
+call tao_find_plot_by_region (err, curve_name, curve = curve)
+if (err) return
+
+select case (component)
+
+  case ('ele2_name')
+    curve%ele2_name = set_value
+
+  case ('ix_ele2')
+    read (set_value, '(i)', iostat = ios) i
+    if (ios /= 0) then
+      call out_io (s_error$, r_name, 'BAD IX_ELE2 VALUE')
+      return
+    endif
+    curve%ix_ele2 = i      
+    curve%ele2_name = ' '
+
+end select
+
+s%global%lattice_recalc = .true.
+
+end subroutine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------

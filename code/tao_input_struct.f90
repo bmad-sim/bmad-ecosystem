@@ -75,6 +75,7 @@ type tao_plot_page_input
 end type
 
 type tao_curve_input
+  character(16) name
   character(16) data_source
   character(16) data_type
   real(rp) units_factor

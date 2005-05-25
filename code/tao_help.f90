@@ -93,7 +93,7 @@ do
   call substitute  ("\_", "_")
   call substitute  ("\tao", "Tao")
   call eliminate2 ('\item[', ']')
-  call eliminate2 ('\vn{', '}')
+  call eliminate2 ('\vn{', '}', '"', '"')
   call eliminate3 ('\ref{', '&')
   call eliminate3 ('& ref{', '\hline')
   call substitute  ('\\ \hline')
@@ -142,9 +142,10 @@ end subroutine
 !
 ! eliminates two strings, but only if they both exist on the same line
 
-subroutine eliminate2 (str1, str2)
+subroutine eliminate2 (str1, str2, sub1, sub2)
 
 character(*) str1, str2
+character(*), optional :: sub1, sub2
 integer n1, n2
 
 n1 = len(str1)
@@ -155,7 +156,11 @@ do
   if (ix == 0) return
   ix2 = index (line(ix+1:), str2) + ix
   if (ix2 == 0) return
-  line = line(1:ix-1) // line(ix+n1:ix2-1) // line(ix2+n2:)
+  if (present(sub1)) then
+    line = line(1:ix-1) // sub1 // line(ix+n1:ix2-1) // sub2 // line(ix2+n2:)    
+  else
+    line = line(1:ix-1) // line(ix+n1:ix2-1) // line(ix2+n2:)
+  endif
 enddo
 
 end subroutine

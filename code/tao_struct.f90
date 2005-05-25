@@ -60,6 +60,7 @@ end type
 ! for example the horizontal orbit is one curve.
 
 type tao_curve_struct
+  character(16) :: name                    ! Name identifying the curve.
   character(16) :: data_source             ! "lat_layout", "data_array", etc...
   character(16) :: data_type = ' '         ! "orbit:x", etc.
   character(16) :: ele2_name               ! Reference element.

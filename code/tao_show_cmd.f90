@@ -123,7 +123,9 @@ case ('hom')
       nl=nl+1; write (lines(nl), '(i8, 3es12.4, i4, a)') j, &
                   lr%freq, lr%R_over_Q, lr%Q, lr%m, angle
     enddo
+    nl=nl+1; lines(nl) = ' '
   enddo
+  nl=nl+1; lines(nl) = '       #        Freq         R/Q           Q   m  Polarization_Angle'
 
   call out_io (s_blank$, r_name, lines(1:nl))
 
@@ -365,7 +367,7 @@ case ('ele')
 
   else  
 
-    call tao_locate_element (ele_name, u%model, loc)
+    call tao_locate_element (ele_name, s%global%u_view, loc)
     if (loc < 0) return
 
     write (lines(nl+1), *) 'Element #', loc
@@ -543,14 +545,18 @@ case ('optimizer')
 
 case ('plot')
 
+! word(1) is blank => print overall info
+
   if (word(1) == ' ') then
 
     nl=nl+1; lines(nl) = '   '
-    nl=nl+1; lines(nl) = 'Template Plots: Graphs'
+    nl=nl+1; lines(nl) = '  Template Plots:   Graphs'
     do i = 1, size(s%template_plot)
       plot => s%template_plot(i)
       if (plot%name == ' ') cycle
-      nl=nl+1; write (lines(nl), '(4x, 2a)') trim(plot%name), ' :'
+      ix = len(name) - len_trim(plot%name) + 1
+      name(ix:) = trim(plot%name)
+      nl=nl+1; write (lines(nl), '(4x, 2a)') name, ' :'
       if (associated(plot%graph)) then
         do j = 1, size(plot%graph)
           nl=nl+1; write (lines(nl), '(20x, a)') plot%graph(j)%name
@@ -571,41 +577,27 @@ case ('plot')
     return
   endif
 
-!
+! Find particular plot, graph, or curve
 
-  found = .false.
-  ix = index(word(1), ':')
-  if (ix == 0) then
-    name = word(1)(:ix-1)
-    sub_name = word(1)(ix+1:)
-  else
-    name = word(1)
-    sub_name = ' '
+  call tao_find_template_plot (err, word(1), plot, graph, curve, print_flag = .false.)
+  if (err) call tao_find_plot_by_region (err, word(1), plot, graph, curve)
+  if (err) return
+
+! print info on particular plot, graph, or curve
+
+  if (associated(curve)) then
+    nl=nl+1; lines(nl) = 'Plot:  ' // plot%name
+    nl=nl+1; lines(nl) = 'Graph: ' // graph%name
+    nl=nl+1; lines(nl) = 'Curve: ' // curve%name
+    
+
+  elseif (associated(graph)) then
+
+
+  elseif (associated(plot)) then
+
+
   endif
-
-  do i = 1, size(s%template_plot)
-    plot => s%template_plot(i)
-    if (plot%name /= word(1)) cycle
-    if (sub_name == ' ') then
-      found = .true.
-    else
-      do j = 1, size(plot%graph)
-        graph => plot%graph(i)
-        if (graph%name /= sub_name) cycle
-        found = .true.
-      enddo
-    endif
-  enddo
-
-  do i = 1, size(s%plot_page%region)
-    region => s%plot_page%region(i)
-    if (region%name /= word(1)) cycle
-    found = .true.
-  enddo
-
-  if (.not. found) then
-    nl=1; lines(1) = 'Cannot match name to a template plot or plot region.'
-  endif 
 
   call out_io (s_blank$, r_name, lines(1:nl))
 
