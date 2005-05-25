@@ -25,6 +25,7 @@ type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: v_ptr
 type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: graph
+type (tao_curve_struct), pointer :: curve
 type (tao_plot_region_struct), pointer :: region
 
 type (lr_wake_struct), pointer :: lr
