@@ -327,8 +327,7 @@ end type
 ! global switches
 
 type tao_global_struct
-  real(rp) :: y_axis_plot_dmin = 1e-4 
-                                         ! Minimum y_max-y_min allowed for a graph.
+  real(rp) :: y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
   integer :: u_view = 1                  ! Which universe we are viewing.
   integer :: n_opti_cycles = 20          ! number of optimization cycles
   integer :: ix_key_bank = 0             ! For single mode.
@@ -338,11 +337,11 @@ type tao_global_struct
   integer :: bunch_to_plot = 1           ! Which bunch to plot
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
   integer :: random_seed = 0             ! use system clock by default
-  integer :: n_write_file = 0
+  integer :: n_write_file = 0            ! used for indexing 'show write' files
   character(16) :: track_type = 'single' ! or 'beam' or 'macro' 
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer = 'de'      ! optimizer to use.
-  character(16) :: default_key_merit_type
+  character(16) :: default_key_merit_type 
   character(80) :: write_file = 'tao_show.dat'
   type (tao_global_hook) hook            ! Custom stuff. Defined in tao_hook.f90
   logical :: var_limits_on = .false.     ! Respect the variable limits?
@@ -359,8 +358,8 @@ type tao_global_struct
   logical :: init_plot_needed = .true.       ! reinitialize plotting?
   character(16) :: valid_plot_who(10)        ! model, base, ref etc...
   character(40) :: print_command = 'awprint'
-  character(80) :: default_init_file = 'tao.init'
-  character(80) :: current_init_file = 'tao.init'
+  character(80) :: default_init_file = 'tao.init'!used with 'reinitialize' command
+  character(80) :: current_init_file = 'tao.init'!used with 'reinitialize' command
   character(80) :: var_out_file = 'var#.out'
   character(80) :: opt_var_out_file = 'opt_var#.out'
 end type

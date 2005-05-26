@@ -849,6 +849,8 @@ integer i
 
 !
 
+if (.not. (var%exists .and. var%good_var)) return
+
 var%model_value = value
 do i = 1, size(var%this)
   var%this(i)%model_ptr = value
@@ -929,6 +931,8 @@ end subroutine tao_lat_bookkeeper
 ! Subroutine tao_to_real (str, r_real, err)
 ! 
 ! Converts a string to a real number
+!
+!  If the string str is blank then r_real = 0.0
 !-
 
 subroutine tao_to_real (str, r_real, err)
@@ -941,6 +945,12 @@ character(12) :: r_name = "tao_to_real"
 
 !
 
+  call string_trim (str, str, ios)
+  if (ios .eq. 0) then
+    r_real = 0.0
+    return
+  endif
+ 
   err = .false.
   read (str, *, iostat = ios) r_real
 
@@ -959,6 +969,8 @@ end subroutine
 ! Subroutine tao_to_int (str, i_int, err)
 ! 
 ! Converts a string to an integer
+!
+! If the string str is blank then i_int = 0
 !-
 
 subroutine tao_to_int (str, i_int, err)
@@ -970,6 +982,12 @@ character(12) :: r_name = "tao_to_int"
 
 !
 
+  call string_trim (str, str, ios)
+  if (ios .eq. 0) then
+    i_int = 0
+    return
+  endif
+ 
   err = .false.
   read (str, *, iostat = ios) i_int
 

@@ -8,19 +8,13 @@
 ! particular universe. In that case, only set used to TRUE when that universe is
 ! passed.
 !
-!  Keep in mind that the standard Tao data types assume twiss_and_track
-! is called. If you do custom tracking then somehow the lattice orbit and
-! twiss parameters need to be updated or the standard TAO data types are liable to break! 
+!  Tao_lattice_calc finds the lattice parameters and then calls
+! tao_load_data_array for every element as the beam is being tracked. If you do
+! custom tracking then be sure to also calculate the lattice parameters and
+! load the data arrays or TAO is liable to break!
 !
-!  See tao/code/tao_lattice_calc_mod.f90 for how the standard lattice calculation is
-! performed. All bookkeeping is performed in tao_lattice_calc so all you need to do
-! here is the actual lattice calculation for whatever universe, lattice and
-! orbit is passed to it. 
-!
-!  However, if coupled lattices are used then the injection needs to be taken 
-! care of in here. Coupled lattice injection is complex so look through 
-! tao_lattice_calc_mod.f90 thoroughly, expecially if using macroparticles!
-! The routines in tao_lattice_calc_mod can be useful.
+!  See tao/code/tao_lattice_calc_mod.f90 for how the standard lattice
+! calculation is performed. 
 !
 ! Input:
 !  universe   -- tao_universe_struct: universe to do calculation in

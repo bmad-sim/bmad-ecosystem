@@ -111,7 +111,7 @@ logical, automatic :: used(size(s%u))
         call tao_macro_track (i, lattice, orbit)
       enddo
     else
-      call out_io (s_fatal$, r_name, &
+      call out_io (s_error$, r_name, &
                      "This tracking type has yet to be implemented!")
       call out_io (s_blank$, r_name, &
                      "No tracking or twiss calculations will be perfomred.")

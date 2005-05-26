@@ -709,7 +709,7 @@ case ('var')
 
     write(lines(1), '(2a)') 'Variable name:   ', v1_ptr%name
     lines(2) = ' '
-    line1 = '       Name                     Data         Model        Design  Useit_opt'
+    line1 = '       Name                     Meas         Model        Design  Useit_opt'
     write (lines(3), *) line1
     nl = 3
     ! if a range is specified, show the variable range   
