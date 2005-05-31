@@ -625,7 +625,7 @@ logical err
                (orb%vec(3) - ele%value(y_offset_tot$) + ele%r(1,3)) * &
                                            sin(ele%value(tilt_tot$) + ele%r(1,4))              
   elseif (axis .eq. y$) then
-    reading = ele%r(1,1)*ran_num + &
+    reading = ele%r(1,1)*ran_num &
               -(orb%vec(1) - ele%value(x_offset_tot$) + ele%r(1,2)) * &
                                            sin(ele%value(tilt_tot$) + ele%r(1,4)) + &
                (orb%vec(3) - ele%value(y_offset_tot$) + ele%r(1,3)) * &
