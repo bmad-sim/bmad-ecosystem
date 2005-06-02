@@ -52,8 +52,8 @@ PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -m`"
 #
 # Set BMAD fortran compiler:
 # BMADF90 = intel (or lahey, hp, absoft, ibm, gnu)
-# intel   -- ifort          
-# lahey   -- lf95         default on Linux_i686
+# intel   -- ifort        default on Linux_i686          
+# lahey   -- lf95         supported on Linux_i686
 # hp      -- f77/f90/f95  default on OSF1_alpha
 # ibm     -- xlf
 # absoft  -- f95          default on Darwin_powerpc
@@ -63,7 +63,7 @@ if ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then
   BMADF90=${BMADF90:-intel}
 fi
 if ( [ "${PLATFORM_TAG}" = "Linux_i686" ] ) then 
-  BMADF90=${BMADF90:-lahey}
+  BMADF90=${BMADF90:-intel}
 fi
 if ( [ "${PLATFORM_TAG}" = "OSF1_alpha" ] ) then
   BMADF90=${BMADF90:-hp}
@@ -105,6 +105,9 @@ unset BMADENV
 # $Id$
 #
 # $Log$
+# Revision 1.7  2005/06/02 18:32:52  cesrulib
+# Intel ifort is default on Linux now...
+#
 # Revision 1.6  2005/05/15 01:32:29  cesrulib
 # New environment variables and some changes have been introduced in order
 # make switches between FORTRAN compilers more easy.
