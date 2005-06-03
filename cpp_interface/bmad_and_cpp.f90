@@ -1515,8 +1515,9 @@ call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       f%sub_key, f%control_type, f%ix_value, f%n_slave, f%ix1_slave, &
       f%ix2_slave, f%n_lord, f%ic1_lord, f%ic2_lord, f%ix_pointer, f%ixx, &
       f%ix_ele, f%mat6_calc_method, f%tracking_method, f%field_calc, &
-      f%num_steps, f%integrator_order, f%ptc_kind, f%taylor_order, f%aperture_at, &
-      f%symplectify, f%mode_flip, f%multipoles_on, f%exact_rad_int_calc, &
+      f%num_steps, f%integrator_order, f%ptc_kind, f%taylor_order, &
+      f%aperture_at, f%coupler_at, f%symplectify, f%mode_flip, &
+      f%multipoles_on, f%exact_rad_int_calc, &
       f%field_master, f%is_on, f%internal_logic, f%logic, f%on_an_i_beam)
 
 if (associated(f%r)) deallocate(r_arr)
@@ -1536,10 +1537,10 @@ end subroutine
 !    n_attrib, x, y, z, floor, val, g0, v0, m6, c2, gam, s, r_arr, nr1, nr2, &
 !    a, b, n_ab, const, n_const, des, n_des, gen, tlr1, tlr2, tlr3, tlr4, &
 !    tlr5, tlr6, wake, n_sr1, n_sr2_long, n_sr2_trans, n_lr, n_wig, key, sub, &
-!    con_tp, ixv, nsl, ix1s, &
-!    ix2s, nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, &
-!    int_ord, ptc, tlr_ord, ap_at, symp, mode, mult, ex_rad, f_master, &
-!    on, intern, logic, i_beam)
+!    con_tp, ixv, nsl, ix1s, ix2s, nlrd, ic1_l, ic2_l, &
+!    ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, int_ord, &
+!    ptc, tlr_ord, aperture_at, coupler_at, symp, mode, mult, ex_rad,  &
+!    f_master, on, intern, logic, i_beam)
 !
 ! Subroutine used by ele_to_f to convert a C++ C_ele into
 ! a Bmad ele_struct. This routine is not for general use.
@@ -1549,10 +1550,10 @@ subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, &
     n_attrib, x, y, z, floor, val, g0, v0, m6, c2, gam, s, r_arr, nr1, nr2, &
     a, b, n_ab, const, n_const, des, n_des, gen, tlr1, tlr2, tlr3, tlr4, &
     tlr5, tlr6, wake, n_sr1, n_sr2_long, n_sr2_trans, n_lr, n_wig, key, sub, &
-    con_tp, ixv, nsl, ix1s, &
-    ix2s, nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, &
-    int_ord, ptc, tlr_ord, ap_at, symp, mode, mult, ex_rad, f_master, &
-    on, intern, logic, i_beam)   
+    con_tp, ixv, nsl, ix1s, ix2s, &
+    nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, &
+    int_ord, ptc, tlr_ord, aperture_at, coupler_at, symp, mode, mult, ex_rad, &
+    f_master, on, intern, logic, i_beam)   
 
 use bmad_and_cpp
 use multipole_mod
@@ -1566,9 +1567,9 @@ type (genfield), target :: gen
 
 integer n_nam, nr1, nr2, n_ab, n_const, key, sub, con_tp, ixv, nsl, ix1s, &
     ix2s, nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, &
-    int_ord, ptc, tlr_ord, ap_at, symp, mode, mult, ex_rad, f_master, on, &
-    intern, logic, i_beam, n_typ, n_ali, n_attrib, n_des, n_wig, n_sr1, n_sr2_long, &
-    n_sr2_trans, n_lr
+    int_ord, ptc, tlr_ord, aperture_at, symp, mode, mult, ex_rad, f_master, &
+    on, intern, logic, i_beam, n_typ, n_ali, n_attrib, n_des, &
+    n_wig, n_sr1, n_sr2_long, n_sr2_trans, n_lr, coupler_at
 
 real(rp) val(n_attrib_maxx), g0(6), v0(6), m6(36), c2(4), gam, s
 real(rp) a(n_ab), b(n_ab), r_arr(nr1*nr2), const(n_const)
@@ -1618,7 +1619,8 @@ f%num_steps           = steps
 f%integrator_order     = int_ord
 f%ptc_kind            = ptc
 f%taylor_order        = tlr_ord
-f%aperture_at         = ap_at
+f%aperture_at         = aperture_at
+f%coupler_at          = coupler_at
 f%symplectify         = f_logic(symp)
 f%mode_flip           = f_logic(mode)
 f%multipoles_on       = f_logic(mult)

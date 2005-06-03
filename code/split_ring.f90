@@ -120,9 +120,32 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
 
   case default
     call out_io (s_abort$, r_name, 'BAD ELE%APERTURE_AT VALUE: ' // &
-                                     aperture_at_name(ele%aperture_at))
+                                     element_end_name(ele%aperture_at))
     call err_exit
   end select
+
+! correct coupler location
+
+  if (ele%key == lcavity$) then
+    select case (ele%coupler_at)
+    case (entrance_end$) 
+      ele2%value(coupler_strength$) = 0
+
+    case (exit_end$)
+      ele1%value(coupler_strength$) = 0
+
+    case (both_ends$)
+      ele1%coupler_at = entrance_end$
+      ele2%coupler_at = exit_end$
+
+    case (no_end$)
+
+    case default
+      call out_io (s_abort$, r_name, 'BAD ELE%COUPLER_AT VALUE: ' // &
+                                       element_end_name(ele%coupler_at))
+      call err_exit
+    end select
+  endif
 
 !-------------------------------------------------------------
 ! Now to correct the slave/lord bookkeeping...

@@ -46,6 +46,7 @@ subroutine track1_bmad (start, ele, param, end)
   real(rp) alpha, sin_a, cos_a, f, r11, r12, r21, r22
   real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2
   real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3)
+  real(rp) dp_coupler, dp_x_coupler, dp_y_coupler
 
   integer i, n, n_slice, key
 
@@ -348,6 +349,27 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(2) = end%vec(2) + k1 * end%vec(1)
     end%vec(4) = end%vec(4) + k1 * end%vec(3)
 
+! coupler kick
+
+    if (ele%value(coupler_strength$) /= 0) then
+
+      dp_coupler = ele%value(gradient$) * ele%value(coupler_strength$) * &
+                              cos(phase + twopi * ele%value(coupler_phase$))
+      dp_x_coupler = dp_coupler * cos (twopi * ele%value(coupler_angle$))
+      dp_y_coupler = dp_coupler * sin (twopi * ele%value(coupler_angle$))
+
+      if (ele%coupler_at == both_ends$) then
+        dp_x_coupler = dp_x_coupler / 2
+        dp_y_coupler = dp_y_coupler / 2
+      endif
+
+      if (ele%coupler_at == entrance_end$ .or. ele%coupler_at == both_ends$) then
+        end%vec(2) = end%vec(2) + dp_x_coupler / pc_start
+        end%vec(4) = end%vec(4) + dp_y_coupler / pc_start
+      endif
+
+    endif
+
 ! track body
 
     if (bmad_com%use_liar_lcavity) then  ! use liar formula
@@ -373,6 +395,15 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(2) = r21 * x_pos + r22 * end%vec(2)
     end%vec(3) = r11 * y_pos + r12 * end%vec(4)
     end%vec(4) = r21 * y_pos + r22 * end%vec(4)
+
+! coupler kick
+
+    if (ele%value(coupler_strength$) /= 0) then
+      if (ele%coupler_at == exit_end$ .or. ele%coupler_at == both_ends$) then
+        end%vec(2) = end%vec(2) + dp_x_coupler / pc_end
+        end%vec(4) = end%vec(4) + dp_y_coupler / pc_end
+      endif
+    endif
 
 ! exit kick
 

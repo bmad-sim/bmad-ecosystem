@@ -132,7 +132,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
             ele%taylor_order, ele%symplectify, ele%mode_flip, &
             ele%multipoles_on, ele%exact_rad_int_calc, ele%Field_master, &
             ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
-            ele%on_an_i_beam
+            ele%coupler_at, ele%on_an_i_beam
 
     do j = 1, ix_wig
       write (d_unit) ele%wig_term(j)

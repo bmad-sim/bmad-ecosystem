@@ -820,6 +820,7 @@ subroutine init_ele (ele)
 
   ele%field_master = .false.
   ele%aperture_at = exit_end$
+  ele%coupler_at  = exit_end$
 
   call deallocate_ele_pointers (ele)
 

@@ -585,7 +585,7 @@ extern "C" void ele_to_f2_(ele_struct*, Char, Int&, Char, Int&, Char, Int&, Char
   ReArr, ReArr, Re&, Re&, ReArr, Int&, Int&, ReArr, ReArr, Int&, ReArr, Int&, 
   Char, Int&, void*, C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, 
   C_taylor&, C_wake&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, 
-  Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, 
+  Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&,
   Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&);
 
 extern "C" void wig_term_in_ele_to_f2_(ele_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Int&);
@@ -614,12 +614,13 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
     c.x, c.y, c.z, c.floor, &c.value[1], &c.gen0[0], &c.vec0[0], mat6, c_mat, 
     c.gamma_c, c.s, r_arr, nr1, nr2, &c.a[0], &c.b[0], n_ab, &c.const_arr[0], 
     n_const, des, n_des, c.gen_field, c.taylor[0], c.taylor[1], c.taylor[2], 
-    c.taylor[3], c.taylor[4], c.taylor[5], c.wake, n_sr1, n_sr2_long, n_sr2_trans, 
-    n_lr, n_wig, c.key, 
+    c.taylor[3], c.taylor[4], c.taylor[5], c.wake, n_sr1, n_sr2_long, 
+    n_sr2_trans, n_lr, n_wig, c.key, 
     c.sub_key, c.control_type, c.ix_value, c.n_slave, c.ix1_slave, 
     c.ix2_slave, c.n_lord, c.ic1_lord, c.ic2_lord, c.ix_pointer, 
     c.ixx, c.ix_ele, c.mat6_calc_method, c.tracking_method, c.field_calc,
-    c.num_steps, c.integrator_order, c.ptc_kind, c.taylor_order, c.aperture_at,
+    c.num_steps, c.integrator_order, c.ptc_kind, c.taylor_order, 
+    c.aperture_at, c.coupler_at,
     c.symplectify, c.mode_flip, c.multipoles_on, c.exact_rad_int_calc,
     c.field_master, c.is_on, c.internal_logic, c.logic, c.on_an_i_beam);
   for (int i = 0; i < n_wig; i++) {
@@ -633,15 +634,17 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
 extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
     char* attrib, twiss_struct* x, twiss_struct* y, twiss_struct* z,
     floor_position_struct* floor, ReArr val, ReArr gen0, ReArr vec0,
-    ReArr mat6, ReArr c_mat, Re& gamma_c, Re& s, ReArr r_arr, Int& nr1, Int& nr2,
+    ReArr mat6, ReArr c_mat, Re& gamma_c, Re& s, ReArr r_arr, Int& nr1, 
+    Int& nr2,
     ReArr a, ReArr b, Int& n_ab, ReArr const_arr, Int& n_const, char* descrip, 
     void* gen, taylor_struct* tlr0, taylor_struct* tlr1, taylor_struct* tlr2,
     taylor_struct* tlr3, taylor_struct* tlr4, taylor_struct* tlr5, 
     wake_struct* wake, Int& wake_here, Int& n_wig, Int& key, Int& sub_key, 
     Int& control, Int& ix_v, Int& n_s, Int& ix1_s, Int& ix2_s, Int& n_l, 
     Int& ic1_l, Int& ic2_l, Int& ix_p, Int& ixx, Int& ix_e, Int& mat6_calc, 
-    Int& tracking, Int& f_calc, Int& num_s, Int& int_ord, Int& ptc, Int& t_ord, 
-    Int& ap_at, Int& symp, Int& flip, Int& multi, Int& rad, Int& f_master, Int& is_on, 
+    Int& tracking, Int& f_calc, Int& num_s, Int& int_ord, 
+    Int& ptc, Int& t_ord, Int& aperture_at, Int& coupler_at, Int& symp, 
+    Int& flip, Int& multi, Int& rad, Int& f_master, Int& is_on, 
     Int& internal, Int& logic, Int& i_beam) {
 
   c.name                = name;
@@ -674,7 +677,8 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   c.integrator_order     = int_ord;
   c.ptc_kind            = ptc;
   c.taylor_order        = t_ord;
-  c.aperture_at         = ap_at;
+  c.aperture_at         = aperture_at;
+  c.coupler_at          = coupler_at;
   c.symplectify         = symp;
   c.mode_flip           = flip;
   c.multipoles_on       = multi;

@@ -366,6 +366,7 @@ subroutine makeup_multipass_slave (ring, ix_slave)
   slave%num_steps        = lord%num_steps      
   slave%is_on            = lord%is_on
   slave%aperture_at      = lord%aperture_at
+  slave%coupler_at       = lord%coupler_at
 
 end subroutine
 
@@ -448,6 +449,11 @@ subroutine makeup_super_slave (ring, ix_slave)
 
     slave%aperture_at = no_end$
     call compute_slave_aperture (value, slave, lord, ix_con)
+
+    if (slave%key == lcavity$) then
+      slave%coupler_at = no_end$
+      call compute_slave_coupler (value, slave, lord, ix_con)
+    endif
 
 ! s_del is the distance between lord and slave centers
 
@@ -574,6 +580,7 @@ subroutine makeup_super_slave (ring, ix_slave)
     endif
 
     call compute_slave_aperture (value, slave, lord, ix_con)
+    if (slave%key == lcavity$) call compute_slave_coupler (value, slave, lord, ix_con)
 
     if (j == slave%ic1_lord) then
       slave%mat6_calc_method = lord%mat6_calc_method
@@ -929,6 +936,48 @@ subroutine compute_slave_aperture (value, slave, lord, ix_con)
     value(x_limit$) = 0
     value(y_limit$) = 0
     value(aperture$) = 0
+  endif
+
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine compute_slave_coupler (value, slave, lord, ix_con)
+!
+! This routine is not meant for general use.
+!-
+
+subroutine compute_slave_coupler (value, slave, lord, ix_con)
+
+  use bmad_struct
+
+  implicit none
+
+  type (ele_struct) slave, lord
+  real(rp) value(n_attrib_maxx)
+  integer ix_con
+
+!
+
+  select case (lord%coupler_at)
+  case (exit_end$) 
+    if (ix_con == lord%ix2_slave) slave%coupler_at = exit_end$
+  case (entrance_end$)
+    if (ix_con == lord%ix1_slave) slave%coupler_at = entrance_end$
+  case (both_ends$)
+    if (ix_con == lord%ix1_slave .and. ix_con == lord%ix2_slave) then
+      slave%coupler_at = both_ends$
+    elseif (ix_con == lord%ix1_slave) then
+      slave%coupler_at = entrance_end$
+    elseif (ix_con == lord%ix2_slave) then 
+      slave%coupler_at = exit_end$
+    endif
+  end select
+
+  if (slave%coupler_at == no_end$) then
+    value(coupler_strength$) = 0
   endif
 
 end subroutine

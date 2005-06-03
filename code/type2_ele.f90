@@ -1,6 +1,6 @@
 !+
-! Subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, 
-!                    type_mat6, type_taylor, twiss_out, type_control, lattice, type_wake)
+! Subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, 
+!                      type_taylor, twiss_out, type_control, lattice, type_wake)
 !
 ! Subroutine to put information on an element in a string array. 
 ! See also the subroutine: type_ele.
@@ -26,7 +26,7 @@
 !                       = degrees$  => Print Twiss, phi in degrees.
 !                       = cycles$   => Print Twiss, phi in radians/2pi.
 !   type_control   -- Logical, optional: If True then print control status.
-!                       Default is False if lattice is not present. Otherwise True.
+!                       Default: False if lattice is not present. Otherwise True.
 !   lattice        -- Ring_struct, optional: Needed for control typeout.
 !   type_wake      -- Logical, optional: If True then print the long-range and 
 !                       short-range wakes information. If False then just print
@@ -43,8 +43,8 @@
 
 #include "CESR_platform.inc"
 
-subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
-                  type_mat6, type_taylor, twiss_out, type_control, lattice, type_wake)
+subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
+                        type_taylor, twiss_out, type_control, lattice, type_wake)
 
   use bmad_struct
   use bmad_interface, except => type2_ele
@@ -155,7 +155,11 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, &
       enddo
 
       nl=nl+1; write (li(nl), '(9x, 2a)') 'APERTURE_AT      = ', &
-                                  aperture_at_name(ele%aperture_at)
+                                  element_end_name(ele%aperture_at)
+      if (ele%key == lcavity$) then
+        nl=nl+1; write (li(nl), '(9x, 2a)') 'COUPLER_AT      = ', &
+                                  element_end_name(ele%coupler_at)
+      endif
 
       if (associated(ele%a)) then
         particle = +1

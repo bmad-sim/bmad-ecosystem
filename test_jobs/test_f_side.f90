@@ -220,6 +220,7 @@ ele_in%integrator_order = 71
 ele_in%ptc_kind = 72
 ele_in%taylor_order = 73
 ele_in%aperture_at = 74
+ele_in%coupler_at = 75
 ele_in%symplectify = T
 ele_in%mode_flip = F
 ele_in%multipoles_on = T

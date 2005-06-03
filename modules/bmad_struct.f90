@@ -19,7 +19,7 @@ module bmad_struct
 ! INCREASE THE VERSION NUMBER !
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-  integer, parameter :: bmad_inc_version$ = 77
+  integer, parameter :: bmad_inc_version$ = 78
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -160,7 +160,8 @@ module bmad_struct
     integer integrator_order        ! For Etiennes' PTC: 2, 4, or 6.
     integer ptc_kind               ! For setting the ptc kind type.
     integer taylor_order           ! Order of the taylor series.
-    integer aperture_at            ! Where aperture is applied. exit_end$, ...
+    integer aperture_at            ! Aperture location: exit_end$, ...
+    integer coupler_at             ! Lcavity coupler location: exit_end$, ...
     logical symplectify            ! Symplectify mat6 matrices.
     logical mode_flip              ! Have the normal modes traded places?
     logical multipoles_on          ! For turning multipoles on/off
@@ -348,6 +349,10 @@ module bmad_struct
   integer, parameter :: s_offset_tot$=43
   integer, parameter :: p0c$ = 44
   integer, parameter :: BL_kick$ = 45
+  integer, parameter :: coupler_strength$ = 46
+  integer, parameter :: coupler_phase$ = 47
+  integer, parameter :: coupler_angle$ = 48
+  integer, parameter :: kick_tilt$ = 49
 
   integer, parameter :: sr_wake_file$ = 50 ! this is 1 + n_attrib_maxx
   integer, parameter :: lr_wake_file$ = 51
@@ -374,10 +379,11 @@ module bmad_struct
   integer, parameter :: a20$ =  90, k20l$ =  90
 
   integer, parameter :: b0$  = 100, t0$  = 100
-  integer, parameter :: b20$ = 120, t20$ = 120 ! this is n_attrib_special_maxx 
+  integer, parameter :: b20$ = 120, t20$ = 120 
 
   integer, parameter :: lattice$ = 121
-  integer, parameter :: n_attrib_special_maxx = 121
+  integer, parameter :: coupler_at$ = 122
+  integer, parameter :: n_attrib_special_maxx = 122
 
   character(16), parameter :: null_name = 'NULL' 
   character(16), parameter :: blank_name = ' '
@@ -463,7 +469,7 @@ module bmad_struct
 
   integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3
   integer, parameter :: no_end$ = 4
-  character(16), parameter :: aperture_at_name(0:4) = (/ "GARBAGE!    ", &
+  character(16), parameter :: element_end_name(0:4) = (/ "GARBAGE!    ", &
       "Entrance_End", "Exit_End    ", "Both_Ends   ", "No_End      " /)
 
 ! The linac_mode_struct is basically the synchrotron integrals with the

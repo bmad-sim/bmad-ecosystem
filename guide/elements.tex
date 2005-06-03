@@ -758,9 +758,9 @@ attributes specific to an \vn{Lcavity} are
 \index{LR_wake_file}
 \begin{example}
   gradient     = <Real>   ! Accelerating gradient (V/m).
-  phi0         = <Real>   ! Phase (radians/2\(\pi\)) of the reference particle with 
+  phi0         = <Real>   ! Phase (rad/2\(\pi\)) of the reference particle with 
                           !   respect to the RF. phi0 = 0 is on crest.
-  dphi0        = <Real>   ! Used to shift the phase with respect to a multipass lord.
+  dphi0        = <Real>   ! Phase with respect to a multipass lord (rad/2\(\pi\)).
   e_loss       = <Real>   ! Loss parameter for short range wakefields (V/Coulomb).
   rf_frequency = <Real>   ! Rf frequency (Hz).
   delta_e                 ! Change in energy of an on-crest particle. 
@@ -771,33 +771,69 @@ attributes specific to an \vn{Lcavity} are
 The dependent variable \vn{delta_e} attribute can be used in place of
 \vn{gradient} as discussed in \sref{s:depend}.
 
-The kick felt by a particle is 
+The energy kick felt by a particle is 
 \begin{example}
-  dE = gradient * L * cos(twopi * (phi - z * rf_frequency / c_light)) - 
-                                                   e_loss * n_part * e_charge 
+  dE = gradient * L * cos(twopi * (phi_ref + phi(z)) - e_loss * n_part * e_charge 
 \end{example}
-This is consistent with MAD and LIAR. Note: The MAD8 documentation 
-for an \vn{Lcavity} has a wrong sign. Essentially the MAD8 documentation gives
+\index{Multipass}
+where
 \begin{example}
-  dE = gradient * L * cos(twopi * (phi + z * rf_frequency / c_light)) ! WRONG
+  phi_ref = phi0 + dphi0
+  phi(z) = -z * rf_frequency / c_light
 \end{example}
-This is incorrect. The \vn{e_loss} attribute represents the energy loss due to 
-short--range wakefields. \vn{n_part} is set using the \vn{parameter} statement 
-(\sref{s:param}) and represents the number of particles in a bunch. 
+\vn{dphi0} is only to be used to shift the phase with respect to a \vn{multipass}
+lord. See \sref{s:multipass}.
+
+The \vn{e_loss} attribute in the formula for \vn{dE} represents the
+energy loss due to short--range wakefields. \vn{n_part} is set using
+the \vn{parameter} statement (\sref{s:param}) and represents the
+number of particles in a bunch. \vn{e_charge} is the charge on an
+electron (Table~\ref{t:constants}). Notice that the energy kick is
+independent of the sign of the charge of the particle
 
 The energy change of the reference particle is just the energy change for a 
 particle with $z = 0$. Thus
 \begin{example}
-  dE(reference) = gradient * L * cos(twopi * phi) - e_loss * n_part * e_charge
+  dE(reference) = gradient * L * cos(twopi * phi_ref) - e_loss * n_part * e_charge
 \end{example}
 
-\index{Multipass}
-In the above equations \vn{phi} = \vn{phi0} + \vn{dphi0}. \vn{dphi0}
-is only to be used to shift the phase with respect to a \vn{multipass}
-lord. See \sref{s:multipass}.
+The energy kick for a \bmad \vn{Lcavity} is consistent with MAD and
+LIAR. Note: The MAD8 documentation for an \vn{Lcavity} has a wrong
+sign. Essentially the MAD8 documentation gives
+\begin{example}
+  dE = gradient * L * cos(twopi * (phi_ref - phi(z))) ! WRONG
+\end{example}
+This is incorrect. 
 
 Note: The transfer matrix for an \vn{Lcavity} with finite
-\vn{gradient} is never symplectic.
+\vn{gradient} is never symplectic. See \sref{s:phase_space_coords}.
+
+\index{Coupler_at}
+\index{Coupler_strength}
+\index{Coupler_angle}
+\index{Coupler_phase}
+The attributes that characterize the dipole transverse kick due to a
+coupler port are:
+\begin{example}
+  coupler_at       = <Switch> ! What end the coupler is at
+  coupler_strength = <Real>   ! Normalized strength
+  coupler_angle    = <Real>   ! Polarization angle (rad/2\(\pi\))
+  coupler_phase    = <Real>   ! Phase angle with respect to the RF (rad/2(\(\pi\))
+\end{example}
+The possible \vn{coupler_at} settings are:
+\begin{example}
+  entrance_end
+  exit_end  ! default
+  both_ends
+\end{example}
+For \vn{coupler_angle} = 0 the transverse kick due to the coupler is
+\begin{example}
+  dp_x = gradient * coupler_strength * 
+                        cos(twopi * (phi_ref + coupler_phase + phi(z))) / (c * P_0) 
+  dp_y = 0
+\end{example}
+
+
 
 \index{Wakefields!in Lcavity}
 The formulas used to compute the wakefield are given in
@@ -1181,14 +1217,20 @@ An \vn{RFcavity} is an RF cavity without acceleration generally used
 in a storage ring.
 
 The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
-\mad. The kick felt by a particle is 
+\mad. The energy kick felt by a particle is 
 \begin{example}
-  dE = voltage * sin(twopi * (phi + z * rf_frequency / c_light))
+  dE = e_charge * voltage * sin(twopi * (phi_ref - phi(z)))
 \end{example}
 \index{Multipass}
-Here \vn{phi} = \vn{phi0} + \vn{dphi0}. \vn{dphi0}
-is only to be used to shift the phase with respect to a \vn{multipass}
-lord. See \sref{s:multipass}.
+where
+\begin{example}
+  phi_ref = phi0 + dphi0
+  phi(z) = -z * rf_frequency / c_light
+\end{example}
+\vn{dphi0} is only to be used to shift the phase with respect to a
+\vn{multipass} lord. See \sref{s:multipass}. \vn{e_charge} is the
+charge on an electron (Table~\ref{t:constants}). Notice that the
+energy kick is independent of the sign of the charge of the particle
 
 If \vn{harmon} is non--zero then \vn{rf_frequency} is a dependent
 attribute calculated by

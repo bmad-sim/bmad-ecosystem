@@ -177,6 +177,7 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(i_beam$, tilt$)         = 'TILT'
 
     attrib_array(lcavity$, l$)             = 'L'
+    attrib_array(lcavity$, tilt$)          = 'TILT'
     attrib_array(lcavity$, lrad$)          = 'LRAD'   ! This is for felv testing.
     attrib_array(lcavity$, p0c_start$)     = 'P0C_START'
     attrib_array(lcavity$, energy_start$)  = 'ENERGY_START'
@@ -190,6 +191,10 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(lcavity$, lr_wake_file$)  = 'LR_WAKE_FILE'
     attrib_array(lcavity$, field_calc$)    = 'FIELD_CALC'
     attrib_array(lcavity$, freq_spread$)   = 'FREQ_SPREAD'
+    attrib_array(lcavity$, coupler_at$)       = 'COUPLER_AT'
+    attrib_array(lcavity$, coupler_strength$) = 'COUPLER_STRENGTH'
+    attrib_array(lcavity$, coupler_angle$)    = 'COUPLER_ANGLE'
+    attrib_array(lcavity$, coupler_phase$)    = 'COUPLER_PHASE'
 
     attrib_array(group$, command$)        = 'COMMAND'
     attrib_array(group$, old_command$)    = 'OLD_COMMAND'

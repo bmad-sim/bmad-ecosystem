@@ -55,6 +55,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   real(rp) Dxy_t, dpx_t, df_dpy, df_dE, kx_1, ky_1, kx_2, ky_2
   real(rp) mc2, pc_start, pc_end, p0c_start, p0c_end
   real(rp) dcP2_dz1, dbeta1_dpz1, dbeta2_dpz2, beta_start, beta_end
+  real(rp) dp_coupler, dp_x_coupler, dp_y_coupler
 
   integer i, n_slice, key
 
@@ -539,6 +540,40 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(:,4) = mat6(:,4) / (1 + c0%vec(6))
     mat6(2,:) = (1 + c1%vec(6)) * mat6(2,:) 
     mat6(4,:) = (1 + c1%vec(6)) * mat6(4,:)
+
+! coupler kicks
+! dp_x_coupler ~ (2,5) matrix term
+! dp_y_coupler ~ (4,5) matrix term
+
+    if (ele%value(coupler_strength$) /= 0) then
+
+      dp_coupler = ele%value(gradient$) * ele%value(coupler_strength$) * &
+                              f * sin(phase + twopi * ele%value(coupler_phase$))
+      dp_x_coupler = dp_coupler * cos (twopi * ele%value(coupler_angle$))
+      dp_y_coupler = dp_coupler * sin (twopi * ele%value(coupler_angle$))
+
+      if (ele%coupler_at == both_ends$) then
+        dp_x_coupler = dp_x_coupler / 2
+        dp_y_coupler = dp_y_coupler / 2
+      endif
+
+      if (ele%coupler_at == entrance_end$ .or. ele%coupler_at == both_ends$) then
+        mat6(:,5) = mat6(:,5) + &
+            (mat6(:,2) * dp_x_coupler + mat6(:,4) * dp_y_coupler) / p0c_start
+      endif
+
+      if (ele%coupler_at == exit_end$ .or. ele%coupler_at == both_ends$) then
+        mat6(2,:) = mat6(2,:) + dp_x_coupler * mat6(5,:) / p0c_end
+        mat6(4,:) = mat6(4,:) + dp_y_coupler * mat6(5,:) / p0c_end
+      endif
+
+    endif
+
+! multipoles and s_offset
+
+    if (ele%value(tilt_tot$) /= 0) then
+      call tilt_mat6 (mat6, ele%value(tilt_tot$))
+    endif
 
     call add_multipoles_and_s_offset
 

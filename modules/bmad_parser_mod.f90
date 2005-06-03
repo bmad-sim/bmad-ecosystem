@@ -622,6 +622,8 @@ subroutine get_attribute (how, ele, ring, pring, &
       ele%ptc_kind = nint(value)
     elseif (ix_attrib == aperture_at$) then
       ele%aperture_at = nint(value)
+    elseif (ix_attrib == coupler_at$) then
+      ele%coupler_at = nint(value)
     elseif (ix_attrib == ran_seed$) then
       call ran_seed (nint(value))  ! init random number generator
     else
@@ -2247,7 +2249,7 @@ subroutine init_bmad_parser_common
 
   nn = 20  ! number of "constant" variables
   bp_com%ivar_init = nn + ubound(calc_method_name, 1) + &
-                                             ubound(aperture_at_name, 1)
+                                             ubound(element_end_name, 1)
   bp_com%ivar_tot = bp_com%ivar_init
 
   nt = bp_com%ivar_tot
@@ -2319,9 +2321,9 @@ subroutine init_bmad_parser_common
     bp_com%var_value(nn) = i
   enddo
 
-  do i = 1, ubound(aperture_at_name, 1)
+  do i = 1, ubound(element_end_name, 1)
     nn = nn + 1
-    call str_upcase (bp_com%var_name(nn), aperture_at_name(i))
+    call str_upcase (bp_com%var_name(nn), element_end_name(i))
     bp_com%var_value(nn) = i
   enddo
 

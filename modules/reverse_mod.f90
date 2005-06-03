@@ -145,6 +145,16 @@ subroutine reverse_ele (ele)
     ele%aperture_at = entrance_end$
   endif
 
+! Flip coupler limit position
+
+  if (ele%key == lcavity$) then
+    if (ele%coupler_at == entrance_end$) then
+      ele%coupler_at = exit_end$
+    elseif (ele%coupler_at == exit_end$) then
+      ele%coupler_at = entrance_end$
+    endif
+  endif
+
 ! Flip longitudinal attributes
 
   ele%value(x_pitch$) = -ele%value(x_pitch$)
