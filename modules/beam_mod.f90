@@ -764,7 +764,6 @@ subroutine init_beam_distribution (ele, beam_init, beam)
   call reallocate_beam (beam, beam_init%n_bunch, beam_init%n_particle)
   bunch => beam%bunch(1)
  
-  call ran_seed(0)
   do i = 1, beam_init%n_particle
     p => bunch%particle(i)
     call ran_gauss(r)
