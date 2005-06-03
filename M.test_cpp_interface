@@ -16,6 +16,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.4  2005/06/03 18:49:26  dcs
+# cxx -> g++
+#
 # Revision 1.3  2005/01/21 13:53:12  palmer
 # Update bmad makefiles for addition of test_job area with sources for a
 # standard test program.
@@ -210,7 +213,8 @@ SYM_UNDEFS :=
 #-------------------------------------
 BUILD_EXE := Y
 
-LINK_COMPILER := cxx
+#LINK_COMPILER := cxx
+LINK_COMPILER := g++
 
 #------------------------------------------------
 # Include the standard CESR M.tail makefile
