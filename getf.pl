@@ -114,7 +114,13 @@ sub searchit {
 
     print "\n$File::Find::name\n";
     $found_one = 1;
-    open (F_IN, $_) || die ("Cannot open File: $_");
+
+    $stat = open (F_IN, $file);
+    if (! $stat) {
+      print STDOUT "Cannot open File: $file\n"; 
+      $_ = $file;
+      return;
+    }
 
     $found = 0;
 
@@ -129,7 +135,14 @@ sub searchit {
   } elsif ($file =~ /\.f90$/) {
     $recording = 0;
     @comments = ();     
-    open (F_IN, $file) || die ("Cannot open File: $_");
+
+    $stat = open (F_IN, $file);
+    if (! $stat) {
+      print STDOUT "Cannot open File: $file\n"; 
+      $_ = $file;
+      return;
+    }
+
     while (<F_IN>) {
 
       if (/^ *interface *$/i) {    # skip interface blocks
@@ -202,7 +215,13 @@ sub searchit {
   } elsif ($file =~ /\.cpp$/ || $file =~ /\.h$/) {
 
     $in_class = 0;
-    open (F_IN, $file) || die ("Cannot open File: $_");
+
+    $stat = open (F_IN, $file);
+    if (! $stat) {
+      print STDOUT "Cannot open File: $file\n"; 
+      $_ = $file;
+      return;
+    }
 
     while (<F_IN>) {
 

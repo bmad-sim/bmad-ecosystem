@@ -82,7 +82,13 @@ sub searchit {
 
     $found_in_file = 0;
 
-    open (F_IN, $file) || die ("Cannot open File: $_");
+    $stat = open (F_IN, $file); 
+    if (! $stat) {
+      print STDOUT "Cannot open File: $file\n"; 
+      $_ = $file;
+      return;
+    }
+
     while (<F_IN>) {
 
       if (/^ *interface *$/i) {   # skip interface blocks
@@ -141,7 +147,13 @@ sub searchit {
 
 
     $found_in_file = 0;
-    open (F_IN, $file) || die ("Cannot open File: $_");
+
+    $stat = open (F_IN, $file);
+    if (! $stat) {
+      print STDOUT "Cannot open File: $file\n"; 
+      $_ = $file;
+      return;
+    }
 
     while (<F_IN>) {
 
