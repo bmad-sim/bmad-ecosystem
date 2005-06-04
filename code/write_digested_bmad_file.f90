@@ -37,7 +37,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
   integer stat_b(12), stat, n_wake
   integer ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, ierr
-  integer, automatic :: ix_wake(ring%n_ele_max)
+  integer :: ix_wake(ring%n_ele_max)
 
   character(*) digested_name
   character(*), optional :: file_names(:)
