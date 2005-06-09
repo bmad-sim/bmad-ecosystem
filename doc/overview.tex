@@ -22,14 +22,15 @@ the \vn{super_universe} and is the sum of everything \tao knows.
 %------------------------------------------------------------------------
 \section{Lattices}\index{Lattice}\index{Universe!Lattice}
 
-A \vn{lattice} consists of a machine description (the strength and placement of elements)
-along with the beam orbit through them. There are actually three types of lattices:
+A \vn{lattice} consists of a machine description (the strength and
+placement of elements) along with the beam orbit through them. There
+are actually three types of lattices:
   \vspace*{-3ex}
   \begin{description}
   \item[Design Lattice] \Newline 
 The \vn{design} lattice is the particular lattice that one wants the
-actual physical machine to conform to. The \vn{design} lattice is fixed. Nothing is
-alowed to vary in this lattice.
+actual physical machine to conform to. The \vn{design} lattice is
+fixed. Nothing is alowed to vary in this lattice.
   \item[Model Lattice] \Newline
 All \tao commands to vary lattice variables vary quantities in the
 \vn{model} lattice. In particular, things like orbit correction
@@ -54,31 +55,35 @@ is desired to fit all the data simultaneously.
 %------------------------------------------------------------------------
 \section{Data}\index{Data}\index{Universe!Data}
 
-Blocks of like data are associated with what are called \vn{d1_data} structures
-and sets of \vn{d1_data} structures are collected into what are called
-\vn{d2_data} structures. For example, a \vn{d1_data} structure is typically
-associated with the horizontal orbit data and another \vn{d1_data} structure is
-typically associated with the vertical orbit data. These two structures can then
-be collected into a \vn{d2_data} structure representing all orbit data. The
-\vn{d1_data} and \vn{d2_data} structures are defined in the \tao initialization
-file (cf.~Chapter~\ref{c:init}).  When issuing \tao commands, all the data
-associated with a \vn{d2_data} structure is specified using the \vn{d2_data}
-structure's \vn{name}.  The data associated with a \vn{d1_data} structure is
-specified using the format \vn{d2_name:d1_name}. For example, if a \vn{d2_data}
-structure has the name ``\vn{orbit}'', and one of its \vn{d1_data} structures
-has the name ``\vn{x}'', then \tao commands that refer to the data in this
-\vn{d1_data} structure use the name ``\vn{orbit:x}''. Sometimes there is only
-one \vn{d1_data} structure for a given \vn{d2_data} structure. In this case the
-data can be referred to simply by using the \vn{d2_data} structure's name.
+Blocks of like data are associated with what are called \vn{d1_data}
+structures and sets of \vn{d1_data} structures are collected into what
+are called \vn{d2_data} structures. For example, a \vn{d1_data}
+structure is typically associated with the horizontal orbit data and
+another \vn{d1_data} structure is typically associated with the
+vertical orbit data. These two structures can then be collected into a
+\vn{d2_data} structure representing all orbit data. The \vn{d1_data}
+and \vn{d2_data} structures are defined in the \tao initialization
+file (cf.~Chapter~\ref{c:init}).  When issuing \tao commands, all the
+data associated with a \vn{d2_data} structure is specified using the
+\vn{d2_data} structure's \vn{name}.  The data associated with a
+\vn{d1_data} structure is specified using the format
+\vn{d2_name:d1_name}. For example, if a \vn{d2_data} structure has the
+name ``\vn{orbit}'', and one of its \vn{d1_data} structures has the
+name ``\vn{x}'', then \tao commands that refer to the data in this
+\vn{d1_data} structure use the name ``\vn{orbit:x}''. Sometimes there
+is only one \vn{d1_data} structure for a given \vn{d2_data}
+structure. In this case the data can be referred to simply by using
+the \vn{d2_data} structure's name.
 
 Each data point (for example, the horizontal orbit at some
 detector) has a number of quantities associated with it:
   \vspace*{-3ex}
   \begin{description}
   \item[Measured Data] \Newline 
-The data as obtained from some measurement. This is what is used when running the optimizer.
-When doing lattice design the measured \vn{data} corresponds to
-a constraint (See chapter~\ref{c:opti} on optimization for more details).
+The data as obtained from some measurement. This is what is used when
+running the optimizer.  When doing lattice design the measured
+\vn{data} corresponds to a constraint (See chapter~\ref{c:opti} on
+optimization for more details).
   \item[Reference Data] \Newline
 Reference data obtained from some reference measurement. For example,
 a measurement before some variable is varied could be designated as
@@ -99,14 +104,14 @@ Use the \vn{show data} command to view information about any data type.
 %------------------------------------------------------------------------
 \section{Variables}\index{Variables}
 
-Blocks of variables are associated with what is called a
-\vn{v1_var} structure and each of these structures has a \vn{name}
-with which to refer to them in \tao commands. A given variable may
-control a single attribute of one element in a \vn{model} lattice
-of a single universe or it can be configured to simultaneously
-control an element attribute across multiple universes. Any one variable 
-cannot control more than one attribute of one element. However, a variable
-may control an overlay or group element, which in turn controls numerous elements.
+Blocks of variables are associated with what is called a \vn{v1_var}
+structure and each of these structures has a \vn{name} with which to
+refer to them in \tao commands. A given variable may control a single
+attribute of one element in a \vn{model} lattice of a single universe
+or it can be configured to simultaneously control an element attribute
+across multiple universes. Any one variable cannot control more than
+one attribute of one element. However, a variable may control an
+overlay or group element, which in turn controls numerous elements.
 
 Each individual variable has a number of values associated with it:
   \vspace*{-3ex}
@@ -163,12 +168,13 @@ of \vn{template plots}. A \vn{template} defines what type of data is
 to be plotted (orbit, coupling, etc.), how many \vn{graphs} there are,
 what the scales are for the \vn{graph} axes, how the \vn{graph}s are
 laid out, etc.  The plot initialization file also defines a set of
-\vn{region}s within the \vn{page}. Any \vn{template plot} can be placed in any region.
- Using the \vn{place} command  
-(see Chapter~\ref{c:command} for a full descriptions of all commands) one
-can assign a particular \vn{template plot} to a particular region for plotting.
-The relationship between \vn{region}, \vn{plot}, \vn{graph}, and
-\vn{curve} is shown graphically in Figure~\ref{f:plot}.
+\vn{region}s within the \vn{page}. Any \vn{template plot} can be
+placed in any region. Using the \vn{place} command (see
+Chapter~\ref{c:command} for a full descriptions of all commands) one
+can assign a particular \vn{template plot} to a particular region for
+plotting.  The relationship between \vn{region}, \vn{plot},
+\vn{graph}, and \vn{curve} is shown graphically in
+Figure~\ref{f:plot}.
 
 Figures~\ref{f:plot_page1} and \ref{f:plot_page2} show examples of a
 plot \vn{page}. Figure~\ref{f:plot_page1} was generated by defining
@@ -183,35 +189,38 @@ placed in the \vn{top} region and the phase \vn{template plot} was
 placed in the \vn{bottom} region. The horizontal axis numbering is by
 detector \vn{index}.  Displayed plots are referred to by the
 \vn{region} name (\vn{top} and \vn{bottom} in this case). Individual
-graphs are referred to using the nomenclature
-\vn{region:graph}. Thus, in this example, the horizontal orbit graph
+graphs and curves are referred to using the nomenclature
+\vn{region:graph:curve}. Thus, in this example, the horizontal orbit graph
 would be referred to as \vn{top:x}.  Using the \vn{plot} command one
 can then specify \vn{who} is plotted. \vn{who} refers to
 \vn{measured}, \vn{reference}, \vn{model}, \vn{base}, and/or
 \vn{design} data.  Notice that the same \vn{template plot} can be
 assigned to different \vn{regions} and the plots in different
 \vn{regions} can have different scales for their axes or different
-\vn{who}. In the example in Figure~\ref{f:plot_page1}, \vn{who} for the
-\vn{top} plot is \vn{model} and for the \vn{bottom} plot it is
-\vn{model-design}.
+\vn{who}. In the example in Figure~\ref{f:plot_page1}, \vn{who} for
+the \vn{top} plot is \vn{model} and for the \vn{bottom} plot it is
+\vn{model - design}.
 
-The \vn{use}, \vn{veto}, \vn{restore}, and \vn{clip} commands are used to
-control what data is used in fitting the model to the data in the optimization
-process (see Chapter~\ref{c:opti}). The general rule is that these commands only
-effect measured and reference data. If plotting \vn{model}, \vn{design} and/or
-\vn{base} data then the data will always been displayed. If plotting \vn{meas}
-and/or \vn{ref} data then the data displayed will vary with these commands.
-\vn{meas} or \vn{ref} data vetoed for display is also vetoed for fitting.
-However, measured data that is off the vetical or horizontal scale may still be
-used by the optimizer unless vetoed with the \vn{veto} or \vn{clip} command.  If
-there are data points off the vertical scale  then ``**Limited**'' will appear
-in the upper right-hand corner of the graph. If plotting measured data then
-these points off scale will still be used by the optimizer.
+The \vn{use}, \vn{veto}, \vn{restore}, and \vn{clip} commands are used
+to control what data is used in fitting the model to the data in the
+optimization process (see Chapter~\ref{c:opti}). The general rule is
+that these commands only effect measured and reference data. If
+plotting \vn{model}, \vn{design} and/or \vn{base} data then the data
+will always been displayed. If plotting \vn{meas} and/or \vn{ref} data
+then the data displayed will vary with these commands.  \vn{meas} or
+\vn{ref} data vetoed for display is also vetoed for fitting.  However,
+measured data that is off the vetical or horizontal scale may still be
+used by the optimizer unless vetoed with the \vn{veto} or \vn{clip}
+command.  If there are data points off the vertical scale then
+``**Limited**'' will appear in the upper right-hand corner of the
+graph. If plotting measured data then these points off scale will
+still be used by the optimizer.
 
-The \vn{x-axis} and \vn{x-scale} commands are used to set the axis type and
-scale for each graph. The axis type can be either \vn{index}, \vn{ele_index} or
-\vn{s} which corresponds to the data index number, element index number and
-longitudinal poisition in the lattice (from element 0) respectively.
+The \vn{x-axis} and \vn{x-scale} commands are used to set the axis
+type and scale for each graph. The axis type can be either \vn{index},
+\vn{ele_index} or \vn{s} which corresponds to the data index number,
+element index number and longitudinal poisition in the lattice (from
+element 0) respectively.
 
 Figure~\ref{f:plot_page2} shows another example of a plot \vn{page}.
 In this case the \vn{page} was generated by again defining two
@@ -268,16 +277,18 @@ called a \vn{key table}.
 %------------------------------------------------------------------------
 \section{Tracking Types}\index{Tracking!Types}
 
-The are three types of tracking implemented in \tao: single particle tracking,
-many particle multi-bunch tracking and macroparticle multi-bunch tracking.
-Single particle tracking is just that, the tracking of a single particle through
-the lattice. Many particle multi-bunch tracking creates a gaussian distribution
-of particles at the beginning of the lattice and tracks each particle trhbough
-the lattice, including any wakefields. Macroparticle tracking takes a beam
-distribution and tracks the centroids and sigmas of the ``macro-particles''
-through the lattice, including any wakefields.  Single particle tracking is used
-by default. See Section~\ref{s:beam_init}~or~\ref{s:macro_init} for details on
-setting up particle bunch and macroparticle bunch tracking.
+The are three types of tracking implemented in \tao: single particle
+tracking, many particle multi-bunch tracking and macroparticle
+multi-bunch tracking.  Single particle tracking is just that, the
+tracking of a single particle through the lattice. Many particle
+multi-bunch tracking creates a gaussian distribution of particles at
+the beginning of the lattice and tracks each particle trhbough the
+lattice, including any wakefields. Macroparticle tracking takes a beam
+distribution and tracks the centroids and sigmas of the
+``macro-particles'' through the lattice, including any wakefields.
+Single particle tracking is used by default. See
+Section~\ref{s:beam_init}~or~\ref{s:macro_init} for details on setting
+up particle bunch and macroparticle bunch tracking.
 
 %------------------------------------------------------------------------
 \section{Lattice Calculation}\index{Lattice!calculation of}
@@ -297,22 +308,24 @@ affected by commands such as \vn{use, veto,} and \vn{restore} and any
 changes in the status of elements in the ring (e.g. if any elements
 have been turned off).
   \item 
-If changes have been made to the lattice (e.g. variables changed) then the model
-lattice for all universes will be recalculated. The \vn{model} orbit, linear
-transfer matrices and twiss parameters are recalculated for every element. All
-data types will also be calculated at each element specified in the
-initialiation file.  For single particle tracking the linear transfer matrices
-and twiss parameters are found about the tracked orbit. For particle bunch and
-macroparticle bunch tracking the linear transfer matrices and twiss parameters
-are calculated from the beam distribution.  Tracking is performed using the
-tracking method defined for each element (i.e. Bmad Standard, Symplectic Lie,
-etc...). See the \bmad Reference manual for details on tracking and finding the
-linear transfer matrices and twiss parameters.
+If changes have been made to the lattice (e.g. variables changed) then
+the model lattice for all universes will be recalculated. The
+\vn{model} orbit, linear transfer matrices and twiss parameters are
+recalculated for every element. All data types will also be calculated
+at each element specified in the initialiation file.  For single
+particle tracking the linear transfer matrices and twiss parameters
+are found about the tracked orbit. For particle bunch and
+macroparticle bunch tracking the linear transfer matrices and twiss
+parameters are calculated from the beam distribution.  Tracking is
+performed using the tracking method defined for each element
+(i.e. Bmad Standard, Symplectic Lie, etc...). See the \bmad Reference
+manual for details on tracking and finding the linear transfer
+matrices and twiss parameters.
   \item 
-The \vn{model} data is recalculated from the \vn{model} orbit, linear transfer
-matrices, twiss parameters, particle beam information and global lattice
-parameters.  Any custom  data type calculations are performed \textit{before}
-the standard \tao data types are calculated.
+The \vn{model} data is recalculated from the \vn{model} orbit, linear
+transfer matrices, twiss parameters, particle beam information and
+global lattice parameters.  Any custom data type calculations are
+performed \textit{before} the standard \tao data types are calculated.
   \item 
 Any user specified data post-processing is performed in
 \vn{tao_hook_post_process_data}.

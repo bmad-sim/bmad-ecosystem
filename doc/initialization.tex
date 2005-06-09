@@ -853,7 +853,7 @@ namelists should be placed directly after their respective
 \begin{example}
   \&tao_template_graph
     graph_index           = <number>
-    graph%name            = "<name>"
+    graph%name            = "<graph_name>"
     graph%type            = "<graph_type>"
     graph%box             = <ix>, <iy>, <ix_tot>, <iy_tot>
     graph%title           = "<label>''
@@ -863,6 +863,7 @@ namelists should be placed directly after their respective
     graph%n_curve         = <number_of_curves>
     graph%clip            = <logical> ! Clip plot at grpah boundary. default = .true.
     graph%who(i)          = "<who_to_plot>", <sign>
+    curve(i)%name         = "<curve_name>"
     curve(i)%data_type    = "<data_type>"
     curve(i)%data_source  = "<source_name>" !source for the data curve points
     curve(i)%units_factor = <factor> ! divide data by this value
@@ -899,6 +900,11 @@ For example:
     curve(1)%use_y2       = .false.
   /
 \end{example}
+
+\vn{graph%name} and \vn{curve%name} define names to be used with
+commands. The default names are just the index of the graph or
+curve. Thus, in the example above, the name of the curve defaults to
+\vn{1} and it would be referred to as \vn{orbit:x:1}.
 
 \vn{graph%who(i)} sets what is plotted by default. For example, if
 \vn{graph%who(i) = model - design} then by default the graph will show

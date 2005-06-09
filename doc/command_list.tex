@@ -422,6 +422,7 @@ Examples:
 
 Format:
 \begin{example}
+  set curve <curve> <component> = <value>
   set data <data_name> <component> = <value> \{<locations>\}
   set global <component> = <value>
   set lattice <component> = <value>
@@ -434,8 +435,13 @@ Format:
 To apply a set to all data or variable classes use ``all''
 in place of \vn{<data_name>} or \vn{var_name}. \\
 
-For the \vn{set data} version of \vn{set} possible 
-\vn{<component>}s that can be set are:
+For \vn{set curve}, the \vn{<component>}s that can be set are:
+\begin{example}
+  ele2_name   ! Name of reference element
+  ix_ele2     ! Index of reference element
+\end{example}
+
+For \vn{set data}, the \vn{<component>}s that can be set are:
 \begin{example}
   weight      ! Weight for the merit function.
   meas        ! Measured data value.
@@ -452,8 +458,7 @@ Besides a numeric value \vn{<value>} can be:
 \end{example}
 \vskip 0.2in
 
-For \vn{set var} version of \vn{set} possible 
-\vn{<component>}s that can be set are:
+For \vn{set var}, the \vn{<component>}s that can be set are:
 \begin{example}
   weight     ! Weight for the merit function.
   step       ! Sets what a "small" variation of the variable is.
@@ -472,8 +477,7 @@ Besides a numeric value \vn{<value>} can be:
 \end{example}
 \vskip 0.2in
 
-For \vn{set lattice} version of \vn{set} possible 
-\vn{<component>}s that can be set are:
+For \vn{set lattice}, the \vn{<component>}s that can be set are:
 \begin{example}
   model      ! Model lattice value.
   base       ! Base lattice value
@@ -486,8 +490,7 @@ For \vn{set lattice} version of \vn{set} possible
 \end{example}
 \vskip 0.2in
 
-For \vn{set global} the possible 
-\vn{<component>}s that can be set are:
+For \vn{set global}, the \vn{<component>}s that can be set are:
 \begin{example}
   y_axis_plot_dmin  = <number> ! Minimum y_max-y_min allowed for a graph.
   n_opti_cycles     = <number> ! Number of optimization cycles
@@ -511,8 +514,7 @@ For \vn{set global} the possible
 \end{example}
 \vskip 0.2in
 
-For \vn{set plot_page} the possible 
-\vn{<component>}s that can be set are:
+For \vn{set plot_page}, the \vn{<component>}s that can be set are:
 \begin{example}
   title        = <string>          ! Set the plot title text
   subtitle     = <string>          ! Set the subtitle text
@@ -523,22 +525,23 @@ the plot page. This can be useful for referencing a noteworthy part of a graph
 data.
 \vskip 0.2in
 
-\vn{set universe} will turn the specified universe on or off. Turning a universe
-off is useful to speed up lattice calculations when this universe is not being
-used. Or, if many changes are to be performed to a universe and there is no need
-to do any lattice calculations between commands then turning off all universes
-will speed things up. Turn off all universe with the command \vn{set universe 0
-off}. This flag only affects the lattice calculation. Issueing \vn{change, use,
-veto,} etc...
-commands to a turned off uinverse will still affect the universe, however any
-lattice calculations will not be performed until the universe is turned back on.
-To recalculate the turned on lattices when issueing a \vn{set universe} command
-then use \vn{set universe <universe> <on/off> recalc}. Otherwise, no lattice
-calculation will be performed until an appropriate command is called afterwards.
-If optimizing while one or more universes are turned off then the variables
-associated with that universe will still be included in the merit function but
-not the data for that universe. The variables will still vary in the turned off
-universe.
+\vn{set universe} will turn the specified universe on or off. Turning
+a universe off is useful to speed up lattice calculations when this
+universe is not being used. Or, if many changes are to be performed to
+a universe and there is no need to do any lattice calculations between
+commands then turning off all universes will speed things up. Turn off
+all universe with the command \vn{set universe 0 off}. This flag only
+affects the lattice calculation. Issueing \vn{change, use, veto,}
+etc...  commands to a turned off uinverse will still affect the
+universe, however any lattice calculations will not be performed until
+the universe is turned back on.  To recalculate the turned on lattices
+when issueing a \vn{set universe} command then use \vn{set universe
+  <universe> <on/off> recalc}. Otherwise, no lattice calculation will
+be performed until an appropriate command is called afterwards.  If
+optimizing while one or more universes are turned off then the
+variables associated with that universe will still be included in the
+merit function but not the data for that universe. The variables will
+still vary in the turned off universe.
 
 Examples:
 \begin{example}
