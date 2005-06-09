@@ -36,6 +36,8 @@ if (any(s%plot_page%ele_shape(:)%key /= 0)) then
       if (ele%control_type == overlay_lord$) cycle
       if (ele%control_type == super_slave$) cycle
       if (ele%control_type == multipass_lord$) cycle
+      if (ie > s%u(i_uni)%model%n_ele_use .and. &
+                                ele%control_type == free$) cycle
       do k = 1, size(s%plot_page%ele_shape(:))
         if (s%plot_page%ele_shape(k)%key == 0) cycle
         if (ele%key == s%plot_page%ele_shape(k)%key .and. &

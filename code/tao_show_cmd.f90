@@ -551,16 +551,17 @@ case ('plot')
   if (word(1) == ' ') then
 
     nl=nl+1; lines(nl) = '   '
-    nl=nl+1; lines(nl) = '  Template Plots:   Graphs'
+    nl=nl+1; lines(nl) = '  Template Plots :   Graphs'
     do i = 1, size(s%template_plot)
       plot => s%template_plot(i)
       if (plot%name == ' ') cycle
       ix = len(name) - len_trim(plot%name) + 1
+      name = ' '
       name(ix:) = trim(plot%name)
-      nl=nl+1; write (lines(nl), '(4x, 2a)') name, ' :'
+      nl=nl+1; write (lines(nl), '(2a)') name, ' :'
       if (associated(plot%graph)) then
         do j = 1, size(plot%graph)
-          nl=nl+1; write (lines(nl), '(20x, a)') plot%graph(j)%name
+          nl=nl+1; write (lines(nl), '(21x, a)') plot%graph(j)%name
         enddo
       endif
     enddo

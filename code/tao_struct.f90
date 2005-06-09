@@ -15,7 +15,6 @@ use macroparticle_mod, only: macro_init_struct, macro_beam_struct
 use macro_utils_mod, only: macro_bunch_params_struct
 use beam_mod, only: beam_init_struct, beam_struct, bunch_params_struct
 use tao_parameters
-use tao_hook_mod
 
 !-----------------------------------------------------------------------
 ! misc.
@@ -73,7 +72,6 @@ type tao_curve_struct
   real(rp) units_factor        ! conversion from internal to plotting units.
   type (qp_line_struct) line   ! Line attributes
   type (qp_symbol_struct) symbol ! Symbol attributes
-  type (tao_curve_hook) hook   ! Custom stuff. Defined in tao_hook.f90.
   integer ix_universe          ! universe to take the data from. 0 => use s%global%u_view
   integer symbol_every         ! symbol every how many points.
   integer ix_ele2              ! Index in lattice of reference element.
@@ -100,7 +98,6 @@ type tao_graph_struct
   type (qp_axis_struct) y2     ! Y-axis attributes.
   type (qp_rect_struct) margin ! margin around the graph.
   type (tao_curve_struct), pointer :: curve(:) => null()
-  type (tao_graph_hook) hook   ! Custom stuff. Defined in tao_hook.f90.
   logical clip                 ! clip plot at graph boundary.
   integer box(4)               ! Defines which box the plot is put in.
   integer ix_universe          ! Used for lat_layout plots.
@@ -115,7 +112,6 @@ type tao_plot_struct
   character(32) :: name = ' '           ! Identifying name
   type (tao_graph_struct), pointer :: graph(:) => null() 
                                 ! individual graphs of a plot
-  type (tao_plot_hook) hook     ! Custom stuff. Defined in tao_hook.f90
   type (qp_axis_struct) x       ! X-axis parameters.
   real(rp) x_divisions          ! Nominal number of x-axis divisions.
   character(16) x_axis_type     ! 'index', 'ele_index', 's'
@@ -143,7 +139,6 @@ end type
 type tao_plot_page_struct               
   type (tao_title_struct) title(2)   ! Titles at top of page.
   type (tao_plot_region_struct), pointer :: region(:) => null() 
-  type (tao_plot_page_hook) hook     ! Custom stuff. Defined in tao_hook.f90
   type (qp_rect_struct) border       ! Border around plots edge of page.
   type (tao_ele_shape_struct) ele_shape(20)
   character(80) ps_scale             ! scaling when creating PS files.
@@ -211,7 +206,6 @@ type tao_data_struct
   logical good_plot         ! See above
   logical useit_plot        ! See above
   logical useit_opt         ! See above
-  type (tao_data_hook) hook ! Custom stuff. Defined in tao_hook.f90
   type (tao_d1_data_struct), pointer :: d1 => null() 
                             ! Pointer to the parent d1_data_struct 
 end type tao_data_struct
@@ -223,7 +217,6 @@ end type tao_data_struct
 type tao_d1_data_struct
   character(16) name        ! Eg: "X", etc.
   integer ix_data           ! index of the 0th element in u%data.
-  type (tao_d1_data_hook) hook  ! Custom stuff. Defined in tao_hook.f90
   type (tao_d2_data_struct), pointer :: d2 => null() ! ptr to parent d2_data
   type (tao_data_struct), pointer :: d(:) => null()  
                             ! Pointer to the appropriate section in u%data
@@ -241,7 +234,6 @@ type tao_d2_data_struct
   character(20) data_date         ! Data measurement date.
   character(20) ref_date          ! Reference data measurement date.
   character(80) Descrip(n_descrip_maxx) ! Array for descriptive information.
-  type (tao_d2_data_hook) hook    ! Custom stuff. Defined in tao_hook.f90
   type (tao_d1_data_struct), pointer :: d1(:) => null() ! Points to children 
   integer ix_data                 ! Index of the data set.
   integer ix_ref                  ! Index of the reference data set. 
@@ -308,7 +300,6 @@ type tao_var_struct
   logical good_plot         ! See above
   logical useit_opt         ! See above
   logical useit_plot        ! See above
-  type (tao_var_hook) hook  ! Custom stuff. Defined in tao_hook_mod.f90
   type (tao_v1_var_struct), pointer :: v1 => null() ! Pointer to the parent.
 end type tao_var_struct  
 
@@ -318,7 +309,6 @@ end type tao_var_struct
 type tao_v1_var_struct
   character(16) :: name = ' '  ! Eg: "quad_k1"
   integer ix_var0              ! Index of the 0th element in s%var
-  type (tao_v1_var_hook) hook  ! Custom stuff. Defined in tao_hook.f90
   type (tao_var_struct), pointer :: v(:) => null() 
                                ! Pointer to the appropriate section in s%var.
 end type
@@ -343,7 +333,6 @@ type tao_global_struct
   character(16) :: optimizer = 'de'      ! optimizer to use.
   character(16) :: default_key_merit_type 
   character(80) :: write_file = 'tao_show.dat'
-  type (tao_global_hook) hook            ! Custom stuff. Defined in tao_hook.f90
   logical :: var_limits_on = .false.     ! Respect the variable limits?
   logical :: plot_on = .true.            ! Do plotting?
   logical :: opt_with_ref = .false.      ! use reference data in optimization?

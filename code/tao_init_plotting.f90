@@ -136,6 +136,7 @@ do
   endif
 
   do i = 1, ng
+    write (graph%name, '(i0)') i
     graph_index = 0                 ! setup defaults
     graph%type  = 'data'
     graph%legend_origin = qp_point_struct(1.0_rp, 1.0_rp, '%GRAPH')
