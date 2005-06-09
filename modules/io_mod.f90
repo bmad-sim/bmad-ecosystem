@@ -463,7 +463,7 @@ function str(rel) result (str_out)
   if (pl > 5) then
     fmt = '(2a, i1)'
     if (pl > 9) fmt = '(2a, i2)'
-    write (str_out, fmt) trim(rchomp(rel/10**pl, 0)), 'E', pl
+    write (str_out, fmt) trim(rchomp(rel/10.0**pl, 0)), 'E', pl
 
   elseif (pl > -3) then
     str_out = rchomp(rel, pl)
@@ -471,7 +471,7 @@ function str(rel) result (str_out)
   else
     fmt = '(2a, i2)'
     if (pl < -9)  fmt = '(2a, i3)'
-    write (str_out, fmt) trim(rchomp(rel*10**(-pl), 0)), 'E', pl
+    write (str_out, fmt) trim(rchomp(rel*10.0**(-pl), 0)), 'E', pl
 
   endif
 
