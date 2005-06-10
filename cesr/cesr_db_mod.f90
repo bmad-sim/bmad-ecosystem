@@ -675,15 +675,14 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine READ_BUTNS_FILE (butns_num, nonlinear_calc, butns, db, 
+! Subroutine read_butns_file (butns_num, nonlinear_calc, butns, db, 
 !                                                         read_ok, type_err)
 !
 ! Subroutine to read the raw information from a BUTNS.nnnnn file and convert
 ! it to orbit x-y positions.
 !
 ! Modules Needed:
-!   use bmad_struct
-!   use bmad_interface
+!   use cesr_mod
 !
 ! Input:
 !   butns_num      -- Integer: Number in BUTNS.nnnnn file name.
@@ -700,6 +699,7 @@ end subroutine
 !       %file_num   -- Integer: Equal to butns_num.
 !       %turn       -- Integer: Turn number for injection orbits. 0 otherwise.
 !       %comment(5) -- Character(72): Comment.
+!       %det(0:99)%ok     -- Logical: Was there a valid orbit reading?
 !       %det(0:99)%amp(4) -- Integer: raw button numbers.
 !       %det(0:99)%x_orb  -- Real: Horizontal orbit in meters.
 !       %det(0:99)%y_orb  -- Real: Horizontal orbit in meters.
