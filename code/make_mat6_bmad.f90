@@ -547,6 +547,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     if (ele%value(coupler_strength$) /= 0) then
 
+      f = twopi * ele%value(rf_frequency$) / c_light
       dp_coupler = ele%value(gradient$) * ele%value(coupler_strength$) * &
                               f * sin(phase + twopi * ele%value(coupler_phase$))
       dp_x_coupler = dp_coupler * cos (twopi * ele%value(coupler_angle$))

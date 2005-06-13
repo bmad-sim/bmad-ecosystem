@@ -1473,6 +1473,7 @@ subroutine word_to_value (word, ring, value)
                                     bp_com%var_indexx, bp_com%ivar_tot, i)
     if (i == 0) then
       call warning ('VARIABLE USED BUT NOT YET DEFINED: ' // word)
+      value = 0
     else
       value = bp_com%var_value(i)
     endif
