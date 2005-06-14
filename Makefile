@@ -15,8 +15,11 @@
 # $Id$
 #
 # $Log$
-# Revision 1.1  2005/06/14 14:59:02  cesrulib
-# Initial revision
+# Revision 1.2  2005/06/14 15:46:13  cesrulib
+# *** empty log message ***
+#
+# Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+# Beam Simulation Code
 #
 # Revision 1.1.1.1  2005/06/09 00:14:31  cesrulib
 # First version of ilcv simulation in repository
@@ -64,11 +67,11 @@ LIB_SRC_DIRS  := code
 OBJ_SRC_DIRS  := tune_scan dynamic_aperture freq_map closed_orbit 
 CONFIG_DIRS   := 
 LOCAL_INCS    :=
-SRC_EXCLUDE   := beambeam_scan.f90
+SRC_EXCLUDE   := beambeam_scan.f90 # only with lahey it can be compiled
 M_FILE_LIST   := M.tune_scan M.dynamic_aperture M.freq_map M.closed_orbit
 ifeq "$(CESR_F90)" "lahey"
   SRC_EXCLUDE  :=
-#  M_FILE_LIST  += M.beambeam
+#  M_FILE_LIST  += M.beambeam  
   OBJ_SRC_DIRS += beambeam
 endif
 
