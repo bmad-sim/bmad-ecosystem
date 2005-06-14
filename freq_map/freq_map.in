@@ -1,0 +1,27 @@
+&parameters
+    Qx = 0.53
+    Qy = 0.59
+    Qz = -0.1
+    x0 = 0.0
+    y0 = 0.0
+    x1 = 0.003
+    y1 = 0.0004
+    e0 = 0.0
+    e1 = 0.0
+    dx = 0.0006
+    dy = 0.00008
+    de = 0.001
+    lat_file = 'hibetainj_20040628_v01.lat'
+    n_turn = 1024
+    particle = 1
+    i_train = 1
+    j_car = 1
+    n_trains_tot = 9
+    n_cars = 4
+    current = 1.
+    lrbbi = .false.
+    beambeam_ip = .false.
+    close_pretz = .false.
+    close_vert = .false.
+    go = .true.
+/

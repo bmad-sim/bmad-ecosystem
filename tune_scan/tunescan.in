@@ -1,0 +1,38 @@
+&parameters
+    Q_x_init = 0.54       !tune to high horizontal with pretzel off
+    Q_y_init = 0.6
+    Q_x0 = 0.52
+    Q_y0 = 0.55
+    Q_z0 = -0.055
+    Q_x1 = 0.58
+    Q_y1 = 0.61
+    Q_z1 = -0.055
+    dQ_x = 0.015
+    dQ_y = 0.015
+    dQ_z = 0.0
+    Q_z  = -0.055
+    lat_file = 'hibetainj_20040628_v01.lat'
+    n_turn = 1000
+    n_part = 1
+    init(1)%vec(1) =  0.0025
+    init(1)%vec(2) =  0.0
+    init(1)%vec(3) =  0.000035
+    init(1)%vec(4) =  0.0
+    init(1)%vec(5) =  0.0
+    init(1)%vec(6) =  0.001
+    particle = 1
+    i_train = 1
+    j_car = 1
+    n_trains_tot = 1
+    n_cars = 1
+    current = 2.
+    lrbbi = .false.
+    beambeam_ip = .false.
+    close_pretz = .false.
+    close_vert = .false.
+    rec_taylor = .false.
+    slices = 5
+/
+
+
+

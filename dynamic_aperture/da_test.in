@@ -1,0 +1,25 @@
+ &input
+    lat_file = 'hibetainj_20040628_v01.lat'
+    n_turn   = 10
+    n_xy_pts = 37
+    point_range = 1 37
+    n_energy_pts = 3
+    x_init   = 0.01
+    y_init   = 0.001
+    energy =  0.0 0.003 0.006
+    accuracy = 0.00001
+    aperture_multiplier = 1.
+    qx_ini = 0.53
+    qy_ini = 0.6
+    qx  = 0.518
+    qy = 0.584
+    qz = -0.089
+    particle = 1
+    i_train = 1
+    j_car = 1
+    n_trains_tot = 9
+    n_cars = 4
+    current = 2.0
+ /
+
+
