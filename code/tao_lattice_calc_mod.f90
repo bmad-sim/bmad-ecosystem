@@ -273,24 +273,26 @@ endif
 ! Calculate save points if doing a phase space plot
 
   n_ps = 0
-  do ip = 1, size(s%plot_page%region)
-    if (.not. s%plot_page%region(ip)%visible) cycle
-    do ig = 1, size(s%plot_page%region(ip)%plot%graph)
-      graph => s%plot_page%region(ip)%plot%graph(ig)
-      if (graph%type /= 'phase_space') cycle
-      do ic = 1, size(graph%curve)
-        curve => graph%curve(ic)
-        i_uni = curve%ix_universe
-        if (i_uni == 0) i_uni = s%global%u_view
-        if (i_uni /= uni) cycle
-        call tao_locate_element (curve%ele2_name, i_uni, curve%ix_ele2, .true.)
-        if (curve%ix_ele2 < 0) return
-        n_ps = n_ps + 1
-        phase_space(n_ps)%beam => curve%beam
-        phase_space(n_ps)%ix_ele = curve%ix_ele2
+  if (associated(s%plot_page%region)) then
+    do ip = 1, size(s%plot_page%region)
+      if (.not. s%plot_page%region(ip)%visible) cycle
+      do ig = 1, size(s%plot_page%region(ip)%plot%graph)
+        graph => s%plot_page%region(ip)%plot%graph(ig)
+        if (graph%type /= 'phase_space') cycle
+        do ic = 1, size(graph%curve)
+          curve => graph%curve(ic)
+          i_uni = curve%ix_universe
+          if (i_uni == 0) i_uni = s%global%u_view
+          if (i_uni /= uni) cycle
+          call tao_locate_element (curve%ele2_name, i_uni, curve%ix_ele2, .true.)
+          if (curve%ix_ele2 < 0) return
+          n_ps = n_ps + 1
+          phase_space(n_ps)%beam => curve%beam
+          phase_space(n_ps)%ix_ele = curve%ix_ele2
+        enddo
       enddo
     enddo
-  enddo
+  endif
 
 ! beginning element calculations
 

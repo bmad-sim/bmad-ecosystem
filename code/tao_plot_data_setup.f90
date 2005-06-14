@@ -147,15 +147,15 @@ do k = 1, size(graph%curve)
 
   ! fill the curve data arrays
 
-  if (associated (curve%ix_symb)) deallocate (curve%ix_symb)
-  if (associated (curve%x_line))  deallocate (curve%x_line)
-  if (associated (curve%y_line))  deallocate (curve%y_line)
+  if (associated (curve%ix_symb)) deallocate (curve%ix_symb, curve%x_symb, curve%y_symb)
+  if (associated (curve%x_line))  deallocate (curve%x_line, curve%y_line)
 
   n = 0
   do ib = 1,  size(curve%beam%bunch)
     n = size(curve%beam%bunch(ib)%particle)
   enddo
 
+  call re_associate (curve%ix_symb, n)
   call re_associate (curve%x_symb, n)
   call re_associate (curve%y_symb, n)
 

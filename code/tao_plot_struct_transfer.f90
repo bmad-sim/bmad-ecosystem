@@ -32,9 +32,10 @@ if (associated(plot_out%graph)) then
     if (.not. associated(plot_out%graph(i)%curve)) cycle
     do j = 1, size(plot_out%graph(i)%curve)
       c_out => plot_out%graph(i)%curve(j)
-      if (.not. associated(c_out%x_symb)) cycle
-      deallocate (c_out%x_symb, c_out%y_symb, c_out%ix_symb)
-      deallocate (c_out%y_line, c_out%x_line)
+      if (associated(c_out%x_symb)) &
+                      deallocate (c_out%x_symb, c_out%y_symb, c_out%ix_symb)
+      if (associated(c_out%x_line)) &
+                      deallocate (c_out%y_line, c_out%x_line)
     enddo
     deallocate (plot_out%graph(i)%curve)
   enddo
