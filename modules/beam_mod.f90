@@ -764,12 +764,14 @@ subroutine init_beam_distribution (ele, beam_init, beam)
   call reallocate_beam (beam, beam_init%n_bunch, beam_init%n_particle)
   bunch => beam%bunch(1)
  
+  sig_mat = 0
+  ave = 0
   do i = 1, beam_init%n_particle
     p => bunch%particle(i)
     call ran_gauss(r)
     p%r%vec = r
     ave = ave + r
-    forall (j=1:6, k=1:6) sig_mat(j,k) = r(j) * r(k)
+    forall (j=1:6, k=1:6) sig_mat(j,k) = sig_mat(j,k) + r(j) * r(k)
   enddo  
 
   ave = ave / beam_init%n_particle
