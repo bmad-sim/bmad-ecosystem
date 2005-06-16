@@ -7,72 +7,87 @@
 \section{Before we start...}
 \label{s:before_beginning}
 
-\tao is readily customizable. All the bookkeeping is taken care of automatically
-and all you need to do custom analysis is write the subroutines pertinent to
-your project. However beginners are advised to start with ``out of the box''
-\tao while getting to know the program. This tutorial starts here and will then
-show you how to customize \tao for your specific purposes.
+\tao is readily customizable. All the bookkeeping is taken care of
+automatically and all you need to do custom analysis is write the
+subroutines pertinent to your project. However beginners are advised
+to start with ``out of the box'' \tao while getting to know the
+program. This tutorial starts here and will then show you how to
+customize \tao for your specific purposes.
 
 \subsection{Getting and Compiling \tao}\index{Compiling Tao}
 \label{s:get_and_compile}
 
-\index{CVS}\tao is available in the \cesr CVS area. If at Wilson Laboratory, checkout a
-copy with `\cmd{cvs co tao'} in the directory from where you want to run \tao,
-hereto referred to as \vn{ROOT}. If you don't have \cesr CVS write permission
-then type `\cmd{cesrcvs co tao}'. This will check out a copy but will not allow
-you to check in changes to the code. If you aren't at Wilson Laboratory then the
-source files can be
-obtained at
+The following instructions are for Cornell people. If you are not at
+Cornell then the source files can be obtained at:
 \begin{example}
-www.lepp.cornell.edu/bmad
+  http://www.lepp.cornell.edu/bmad
 \end{example}
-or contact David Sagan \cmd{<dcs16@cornell.edu>} or Jeff Smith 
-\cmd{<js344@cornell.edu>} to obtain a copy. 
 
-First you want to make sure your environmental variables are set
-correctly.  If you are at Cornell and using the bash shell put the
-following in your \vn{.login} file:
+In any case help may be obtained by contacting David Sagan
+\cmd{<dcs16@cornell.edu>} or Jeff Smith \cmd{<js344@cornell.edu>}.
+
+Before running \tao at Cornell the appropriate environmental variables
+must be set. The way \tao is develped is that the source code is kept
+in a central ``repository'' which is controlled by a software package
+called \vn{CVS}. Every so often (typically about once a week) a copy
+of the source code in the repository is made and a version of \tao is
+compiled from this copy. This is called a ``release''. There are two
+major releases: One called ``devel'' is made from the very latest
+code. There is also a ``current'' release which comes from older
+code. The general idea is that devel should have the latest stuff but
+current should be more stable (have less bugs). In practice, since
+\tao is new and the bugs are still being worked out, the devel release
+is typically less buggy and hence is devel is what is recomended. To
+set the environmental variables to point to the devel release do the
+following.  If you are using the bash shell put the following in your
+\vn{.login} file:
 \begin{example}
-  if [ "$MY_PLATFORM" = "Linux" ]; then
-    CESRLIB=devel_ifort
-    . /home/cesrulib/bin/cesrdefs
-  else
-    CESRLIB=devel
-    . /home/cesrulib/bin/cesrdefs
-  fi
+  CESRLIB=devel
+  . /home/cesrulib/bin/cesrdefs
 \end{example}
 If you are using tcsh put in your \vn{.login} file: 
 \begin{example} 
-  if ( $OSTYPE == 'linux' ) then
-    setenv CESRLIB devel_ifort
-    source /home/cesrulib/bin/cesrdef
-  else
-    setenv CESRLIB devel
-    source /home/cesrulib/bin/cesrdef
-  endif
+  setenv CESRLIB devel
+  source /home/cesrulib/bin/cesrdef
 \end{example}
-If you are not at Cornell see your local expert.
+This sets the appropriate environmental variables to point to the
+``devel'' ``release
 
-From the newly created \cs{ROOT/tao} directory type `\cmd{gmake}' to create the
-libraries and then type `\cmd{gmake -f M.tao}' to create
-the ``vanilla'' \tao program. Vanilla \tao is the basic \tao program without any
-user customizations. If you are using a custom version of \tao then
-follow the compiling directions from the custom \tao author. Keep in mind that
-command syntax and usage may vary between custom versions of \tao (this is a
-\textit{feature}, \textbf{not} a bug!).
+After setting up the environmental variables \tao is run with the command
+\begin{example}
+  \$CESR_EXE/tao
+\end{example}
+If there has been a bug fix that you need which is in the CVS
+repository but not yet in the devel release, you need to create and
+use a local copy of \tao. To checkout a copy of \tao from the CVS
+repository use the command \cmd{'cesrcvs co tao'} in the directory
+from where you want to run \tao, (hereto referred to as \vn{ROOT}). This
+will check out a copy but will not allow you to check in changes to
+the code.  Basically the only time a local copy of \tao is needed is
+when there have been changes made to CVS that are needed that haven't
+found their way to the released version.
 
-Once \tao has compiled go to the subdirectory \cs{ROOT/tao/program} and type
-\cmd{../../bin/tao} to run ``vanilla'' \tao. This directory contains all the
-configuration files to get everything working. The first time you run the
-program it will need to create a digested \bmad lattice file for the included
-lattice. This may take a few minutes.
+From the newly created \cs{ROOT/tao} directory type `\cmd{gmake}' to
+create the libraries and then type `\cmd{gmake -f M.tao}' to create
+the ``vanilla'' \tao program. Vanilla \tao is the basic \tao program
+without any user customizations. If you are using a custom version of
+\tao then follow the compiling directions from the custom \tao
+author. Keep in mind that command syntax and usage may vary between
+custom versions of \tao (this is a \textit{feature}, \textbf{not} a
+bug!).
+
+Once \tao has compiled go to the subdirectory \cs{ROOT/tao/program}
+and type \cmd{../../bin/tao} to run ``vanilla'' \tao. This directory
+contains all the configuration files to get everything working. The
+first time you run the program it will need to create a digested \bmad
+lattice file for the included lattice. This may take a few minutes.
 
 \subsection{Customizing \tao}\index{customizing Tao}
 
-After you are familiar with the basics of \tao you are ready to fully exploit
-the versatility of this wonderful program. See Chapter~\ref{c:custom_tao} to learn
-how to do this. But here we will first explore the basic functionality of the
-program.
+After you are familiar with the basics of \tao you are ready to fully
+exploit the versatility of this wonderful program. See
+Chapter~\ref{c:custom_tao} to learn how to do this. But here we will
+first explore the basic functionality of the program.
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
@@ -82,23 +97,23 @@ program.
 %----------------------------------------------------------------
 \subsection{there was the user.}
 
-This tutorial assumes you are already familiar with basic particle beam
-dynamics and its formalism. There are several books that introduce the topics
-very well. The best the author has found so far is \textit{The Physics of
-Particle Accelerators} by Klaus Wille. 
+This tutorial assumes you are already familiar with basic particle
+beam dynamics and its formalism. There are several books that
+introduce the topics very well. The best the author has found so far
+is \textit{The Physics of Particle Accelerators} by Klaus Wille.
 
-\tao is based on the \bmad subroutine library and you should have
-a working knowledge of the conventions used by \bmad. \tao can be used ``out of
-the box'' so an understanding of the nitty-gritty details of \bmad is not
-necessary, however, one should be familiar with the material in Part I
-of the \bmad manual. This part will also summarize the particle beam dynamics
-used by \tao.
+\tao is based on the \bmad subroutine library and you should have a
+working knowledge of the conventions used by \bmad. \tao can be used
+``out of the box'' so an understanding of the nitty-gritty details of
+\bmad is not necessary, however, one should be familiar with the
+material in Part I of the \bmad manual. This part will also summarize
+the particle beam dynamics used by \tao.
 
-So, what's \tao good for? A large variety of applications. It's versatility is that
-it's easily expandable. Think of it as an accelerator design and analysis
-environment. The entire \bmad library is at your disposal. But even without any 
-customizations \tao will do much analysis. These problems fall into three main
-categories:
+So, what's \tao good for? A large variety of applications. It's
+versatility is that it's easily expandable. Think of it as an
+accelerator design and analysis environment. The entire \bmad library
+is at your disposal. But even without any customizations \tao will do
+much analysis. These problems fall into three main categories:
 
 \begin{itemize}
 \item 
@@ -119,68 +134,71 @@ machine, you have "data" that you want to view, and, in the first two
 categories above, you want to match the machine model to the data (in
 designing a lattice the constraints correspond to the data).
 
-This tutorial is designed to informally get you, the user, up and running with \tao without
-needing to dredge through the entire reference manual. Full command syntax
-or greater detail on any topic can be found in Part~\ref{ref_guide} and above.
+This tutorial is designed to informally get you, the user, up and
+running with \tao without needing to dredge through the entire
+reference manual. Full command syntax or greater detail on any topic
+can be found in Part~\ref{ref_guide} and above.
 
 %----------------------------------------------------------------
 \subsection{Then there was the Super-universe.}\index{Super-universe}
 
 Everything known to \tao is placed in an area called the
-\textit{super-universe}. Within the \textit{super-universe} lies one or more
-universes each containing a particular machine lattice. This allows for the user
-to do analysis on multiple machines or multiple configurations of a single
-machine at the same time. A \textit{super-universe} consists of the following
-parts:
+\textit{super-universe}. Within the \textit{super-universe} lies one
+or more universes each containing a particular machine lattice. This
+allows for the user to do analysis on multiple machines or multiple
+configurations of a single machine at the same time. A
+\textit{super-universe} consists of the following parts:
 
 \begin{enumerate}
 
 \item \textbf{A typical universe}\index{Universe}
-\Newline A universe contains a \bmad lattice
-plus whatever data one wishes to study within this lattice (i.e. twiss
-parameters, orbit, phase \&etc...). Actually, there are three lattices within
-each universe: the \textbf{design lattice}, \textbf{model lattice} and
-\textbf{base lattice}. \emph{All lattice changes specified during a \tao session
-are incurred on the model lattice.} The design lattice is set at initialization
-time and serves as a reference point for any elemental changes incurred during
-the \tao session. The base lattice also serves as a user specified reference
-point. The user can transfer the model lattice over to the base or design
-lattice at any time to create a reference lattice.
+\Newline A universe contains a \bmad lattice plus whatever data one
+wishes to study within this lattice (i.e. twiss parameters, orbit,
+phase \&etc...). Actually, there are three lattices within each
+universe: the \textbf{design lattice}, \textbf{model lattice} and
+\textbf{base lattice}. \emph{All lattice changes specified during a
+\tao session are incurred on the model lattice.} The design lattice is
+set at initialization time and serves as a reference point for any
+elemental changes incurred during the \tao session. The base lattice
+also serves as a user specified reference point. The user can transfer
+the model lattice over to the base or design lattice at any time to
+create a reference lattice.
 
-Each data point (for example, the horizontal orbit at some detector) has 5 datum
- quantities associated with it: the \textbf{measured data}, \textbf{reference
-data}, \textbf{model data}, \textbf{design data} and \textbf{base data}. The
-model, design and base data correspond to the appropriate quantity
-calculated in its respective lattice above. The measured data corresponds to 
-data obtained during a measurement. If doing design work then the desired or
-goal
-value would be placed here. This data area is also referred to as the constraint during
-optimization. The reference data is for observing changes in the data with
-respect to a reference.
+Each data point (for example, the horizontal orbit at some detector)
+has 5 datum quantities associated with it: the \textbf{measured data},
+\textbf{reference data}, \textbf{model data}, \textbf{design data} and
+\textbf{base data}. The model, design and base data correspond to the
+appropriate quantity calculated in its respective lattice above. The
+measured data corresponds to data obtained during a measurement. If
+doing design work then the desired or goal value would be placed
+here. This data area is also referred to as the constraint during
+optimization. The reference data is for observing changes in the data
+with respect to a reference.
 
 \item \textbf{Variables}\index{Variables} \Newline
-Variables control attributes of elements in the model lattice of one or more
-universes. They are not the same thing as attributes in lattice elements.
-Instead, they \textit{control} attributes in lattice elements. They are
-more akin to \bmad \textit{overlays}. A given variable may control a single 
-attribute of one element
-in one or more universes. If you want a variable to control a collection of
-elements like a \bmad \textit{group} then you need to insert the appropriate
-group in your lattice. Variables are what you vary in order to change
-your model lattice. You can also change your model lattice by directly changing
-and lattice element attribute. However, if you plan on doing any optimization then 
-you will need to use variables.
+Variables control attributes of elements in the model lattice of one
+or more universes. They are not the same thing as attributes in
+lattice elements.  Instead, they \textit{control} attributes in
+lattice elements. They are more akin to \bmad \textit{overlays}. A
+given variable may control a single attribute of one element in one or
+more universes. If you want a variable to control a collection of
+elements like a \bmad \textit{group} then you need to insert the
+appropriate group in your lattice. Variables are what you vary in
+order to change your model lattice. You can also change your model
+lattice by directly changing and lattice element attribute. However,
+if you plan on doing any optimization then you will need to use
+variables.
 
 \item \textbf{Key Bindings}\index{Key bindings} \Newline
-Key bindings are used in \textit{single mode} where each key
-stroke is interpreted without the user having to press the carriage control key.
-Each group of keys is bound to a different variable and pressing these keys will
-allow you to rapidly change your lattice optics.
+Key bindings are used in \textit{single mode} where each key stroke is
+interpreted without the user having to press the carriage control key.
+Each group of keys is bound to a different variable and pressing these
+keys will allow you to rapidly change your lattice optics.
 
 \item \textbf{Other things in the Super-universe} \Newline
-The super-universe also contains information pertaining to global environment variables and
-plotting. No need to go into the details here. Part III will
-tell you all about these other structures.
+The super-universe also contains information pertaining to global
+environment variables and plotting. No need to go into the details
+here. Part III will tell you all about these other structures.
 \end{enumerate}
 
 %----------------------------------------------------------------
@@ -188,7 +206,8 @@ tell you all about these other structures.
 \section{Initializing \tao}\index{Initializing!Files}
 \label{s:initializing}
 
-Initialization occurs at startup. There are \emph{six} files used to initialize \tao.
+Initialization occurs at startup. There are \emph{six} files used to
+initialize \tao.
   \vspace*{-3ex}
 \begin{enumerate}
   \item \textbf{\textit{your lattice file}} \Newline
@@ -203,19 +222,20 @@ demonstration purposes.
   \item \textbf{tap\_var.init} \Newline
     This is where variables are initialized.
   \item \textbf{tao.startup (optional)} \Newline
-    This is a command file that is read in after initialization. Any commands you
+    This is a command file that is read in after initialization. 
+Any commands you
 want entered in \tao every time you start up are put here.
 \end{enumerate}
 \textbf{tao\_plot.init}, \textbf{tao\_data.init} and \textbf{tao\_var.init} do
 not need to be separate files and can all reside in \textbf{tao.init}.
 
-There is no need to go into the details of the initialization files here. If
-using Vanilla \tao these are already set up for you in \cs{ROOT/tao/program} and
-will setup \tao for use with the included \cesr lattice. If using a custom
-version of \tao then the customized \tao author should have already set
-something up for you to use. If not then it looks like you'll need to read
-Chapter~\ref{c:custom_tao} of this tutorial and make your own initialization
-files.
+There is no need to go into the details of the initialization files
+here. If using Vanilla \tao these are already set up for you in
+\cs{ROOT/tao/program} and will setup \tao for use with the included
+\cesr lattice. If using a custom version of \tao then the customized
+\tao author should have already set something up for you to use. If
+not then it looks like you'll need to read Chapter~\ref{c:custom_tao}
+of this tutorial and make your own initialization files.
 
 \textbf{NOTE: the following sections will work with vanilla \tao. The commands
 entered and plotting output may be different for custom versions.}
@@ -229,18 +249,21 @@ entered and plotting output may be different for custom versions.}
 %----------------------------------------------------------------
 \subsection{The Plotting Window}\index{Plotting}
 
-When \tao first starts up you will see a plot window and a command prompt.
-Figure~\ref{f:plot_begin} shows what you will see in the plot window. In the top
-two plots you see the \vn{x} and \vn{y} model lattice orbit data. The horizontal
-axis is the \cesr BPM index. The horizontal pretzel and L03 vertical bump in
-CESR can be clearly seen. The slight vertical displacement due to the solenoid
-compensation can also be seen around the IP. The orbit data is for a closed
-orbit electron (this being a storage ring). The bottom two plots show the
-relative particle phase, that is, the difference between the model and design
-phases (as documented in the plot title as [model - design]). Two plot regions
-are defined in ``vanilla'' \tao \vn{top} and \vn{bottom}.
+When \tao first starts up you will see a plot window and a command
+prompt.  Figure~\ref{f:plot_begin} shows what you will see in the plot
+window. In the top two plots you see the \vn{x} and \vn{y} model
+lattice orbit data. The horizontal axis is the \cesr BPM index. The
+horizontal pretzel and L03 vertical bump in CESR can be clearly
+seen. The slight vertical displacement due to the solenoid
+compensation can also be seen around the IP. The orbit data is for a
+closed orbit electron (this being a storage ring). The bottom two
+plots show the relative particle phase, that is, the difference
+between the model and design phases (as documented in the plot title
+as [model - design]). Two plot regions are defined in ``vanilla'' \tao
+\vn{top} and \vn{bottom}.
 
-As a first step let's view the absolute model phase. At the \cmd{TAO>} prompt type
+As a first step let's view the absolute model phase. At the \cmd{TAO>}
+prompt type
 \index{Commands!plot}
 \begin{example}
   plot bottom model
@@ -251,11 +274,11 @@ The plots are now way off scale. Let \tao automatically set the scale by typing
 \begin{example}
   scale bottom
 \end{example}
-As expected, the phase increases approximately linearly as the particle travels
-through the ring. Zero phase is halfway through the ring (at L03 in \cesr lingo).
-This is always true. Absolute phase is arbitrary so \tao sets the average
-phase to zero when generating the data. Lets' set this back to relative
-phase by typing
+As expected, the phase increases approximately linearly as the
+particle travels through the ring. Zero phase is halfway through the
+ring (at L03 in \cesr lingo).  This is always true. Absolute phase is
+arbitrary so \tao sets the average phase to zero when generating the
+data. Lets' set this back to relative phase by typing
 \begin{example}
   plot bottom model - design
 \end{example}
@@ -271,8 +294,8 @@ Again, we need to rescale the plots by typing
 \begin{example}
   scale bottom
 \end{example}
-We see the periodic FODO beta function where large horizontal beta corresponds to
-small vertical beta and vice versa.
+We see the periodic FODO beta function where large horizontal beta
+corresponds to small vertical beta and vice versa.
 
 Likewise, we can look at the dispersion in the top two graphs by typing
 \index{Commands!scale}
@@ -293,26 +316,28 @@ coupling outside the interaction region type
 \begin{example}
   scale bottom -0.01 0.01
 \end{example}
-The \vn{**Limited**} displayed in red on the bottom plots tells us that there are data
-points outside the ploted region.  We now see that there is a small amount of
-coupling at the L03 region (BPM indices 45-55) and a few other places along the
-ring. Your plot window should now look
-like Figure~\ref{f:plot_coupling_no_IR}.
+The \vn{**Limited**} displayed in red on the bottom plots tells us
+that there are data points outside the ploted region.  We now see that
+there is a small amount of coupling at the L03 region (BPM indices
+45-55) and a few other places along the ring. Your plot window should
+now look like Figure~\ref{f:plot_coupling_no_IR}.
 
-The x-axis is currently the BPM index number. It is sometimes convenient to plot
-the data versus longitudinal position. This is done by typing
+The x-axis is currently the BPM index number. It is sometimes
+convenient to plot the data versus longitudinal position. This is done
+by typing
 \index{Commands!x-axis}
 \begin{example}
   x-axis all s
 \end{example}
 
-The \cmd{all} will apply the change to all plot areas (both top and bottom). In
-any of the above commands \cmd{top} or \cmd{bottom} could have been replaced
-with \cmd{all}.
+The \cmd{all} will apply the change to all plot areas (both top and
+bottom). In any of the above commands \cmd{top} or \cmd{bottom} could
+have been replaced with \cmd{all}.
 
-Variables can also be plotted provided the proper plot template has been set up
-in the plot initialization file (See Section~\ref{s:init_plot} for details on
-initializing plotting). Type the following to view the quadrupole k1 values:
+Variables can also be plotted provided the proper plot template has
+been set up in the plot initialization file (See
+Section~\ref{s:init_plot} for details on initializing plotting). Type
+the following to view the quadrupole k1 values:
 \begin{example}
   place bottom quad_k1
 \end{example}
@@ -377,42 +402,45 @@ the output should look like:
                                     4  22a                    0    99
 
 \end{example}
-There are 6 data types defined in the initialization file. The fifth and sixth are 
-closely related. See Part II for an explanation of the two coupling data types.
-For the first four data types there are two data dimensions defined
-corresponding to the horizontal and vertcal planes. Coupling is parameterized by
-a 2x2 matrix so there are four ``dimensions'' for these two data types. the
-``Bounds'' columns refer to the lower and upper indices on the datums. there are
-100 BPMs in CESR so there are 100 data points.
+There are 6 data types defined in the initialization file. The fifth
+and sixth are closely related. See Part II for an explanation of the
+two coupling data types.  For the first four data types there are two
+data dimensions defined corresponding to the horizontal and vertcal
+planes. Coupling is parameterized by a 2x2 matrix so there are four
+``dimensions'' for these two data types. the ``Bounds'' columns refer
+to the lower and upper indices on the datums. there are 100 BPMs in
+CESR so there are 100 data points.
 
-To see the data values for the horizontal beta function for \cesr BPMs 1 through
-50 type
+To see the data values for the horizontal beta function for \cesr BPMs
+1 through 50 type
 \begin{example}
   show data beta:x 1:50
 \end{example}
-Since we haven't changed any elements in the lattice yet the model values equal
-the design values. Also note that \vn{beta:x} is actually the a-mode betatron
-function. In regions with little or no coupling, the a-mode is almost completely
-in the horizontal plane.
+Since we haven't changed any elements in the lattice yet the model
+values equal the design values. Also note that \vn{beta:x} is actually
+the a-mode betatron function. In regions with little or no coupling,
+the a-mode is almost completely in the horizontal plane.
 
-A significant point: The convention in \bmad is to label the twiss parameters as
-\vn{x} and \vn{y} but they are actually the \vn{a} and \vn{b} normal modes. So
-in regions of strong coupling \vn{beta:x} does not correspond to \vn{orbit:x}
-which is always in the true horizontal lab frame.  However, if you wish, you can
-re-label your twiss data planes as \vn{a} and \vn{b}.  Section~\ref{c:init}
-shows you how to do this. Keep in mind that lattice twiss parameters are defined
-\textit{only for uncoupled betatron motion} so this is all that is provided as
-data types for single particle tracking.  However, true lab-frame  \vn{x} and
-\vn{y} twiss parameters can be defined for a distribution of particles so for
-particle or macroparticle beam tracking true lab-frame \vn{x} and \vn{y} twiss
-parameters can be calculated and are provided as data types for those tracking
-types. See the \bmad manual for how to convert from normal mode coordinates to
-lab-frame coordinates.
+A significant point: The convention in \bmad is to label the twiss
+parameters as \vn{x} and \vn{y} but they are actually the \vn{a} and
+\vn{b} normal modes. So in regions of strong coupling \vn{beta:x} does
+not correspond to \vn{orbit:x} which is always in the true horizontal
+lab frame.  However, if you wish, you can re-label your twiss data
+planes as \vn{a} and \vn{b}.  Section~\ref{c:init} shows you how to do
+this. Keep in mind that lattice twiss parameters are defined
+\textit{only for uncoupled betatron motion} so this is all that is
+provided as data types for single particle tracking.  However, true
+lab-frame \vn{x} and \vn{y} twiss parameters can be defined for a
+distribution of particles so for particle or macroparticle beam
+tracking true lab-frame \vn{x} and \vn{y} twiss parameters can be
+calculated and are provided as data types for those tracking
+types. See the \bmad manual for how to convert from normal mode
+coordinates to lab-frame coordinates.
 
-This tutorial uses single particle tracking and the twiss parameters are found
-about the orbit of the tracked particle. there are two other tracking types:
-particle beam and macroparticle beam tracking. these tracking types will not be
-explored in this tutorial.
+This tutorial uses single particle tracking and the twiss parameters
+are found about the orbit of the tracked particle. there are two other
+tracking types: particle beam and macroparticle beam tracking. these
+tracking types will not be explored in this tutorial.
 
 You can also view variables by typing
 \begin{example}
@@ -422,19 +450,20 @@ To view the quadrupole k1 values for \cesr quadrupoles 5  and 20 through 30 type
 \begin{example}
   sho var quad\_k1 5 20:30
 \end{example}
-Again, since we haven't changed any quadrupoles the model values are all at their
-design values.
+Again, since we haven't changed any quadrupoles the model values are
+all at their design values.
 
-You can also see the details of a particular lattice element. To view the details
-for quadrupole Q05W type
+You can also see the details of a particular lattice element. To view
+the details for quadrupole Q05W type
 \begin{example}
   sho ele Q05W
 \end{example}
 
 \vn{show var} and \vn{show ele} show two completely different types of
-structures in \tao. Elements are the actual lattice elements as known to \bmad. 
-Variables are native \tao structures that act kind of like \bmad
-\textit{overlays} and only indirectly control the lattice elements.
+structures in \tao. Elements are the actual lattice elements as known
+to \bmad.  Variables are native \tao structures that act kind of like
+\bmad \textit{overlays} and only indirectly control the lattice
+elements.
 
 A list of lattice elements between two elements can be shown by typing 
 \begin{example}

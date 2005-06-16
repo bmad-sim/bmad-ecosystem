@@ -24,7 +24,7 @@ blocks. The first line of a namelist block starts with an ampersand
 using an equal sign ``='' and the end of the block is denoted by a
 slash ``/'' For example:
 \begin{example}
-  \&this_block_name
+  &this_block_name
     var1 = 0.123   ! exclamation marks are used for comments
     var2 = 0.456
   /
@@ -38,13 +38,25 @@ Note: string variables are case sensitive.
 
 %-----------------------------------------------------------------
 \section{Beginning Initialization}
+\index{Initialization!beginning}
 \label{s:init_global} 
 
+
+\index{tao_start}
+\index{tao.init}
+\index{lattice_file}
+\index{data_file}
+\index{var_file}
+\index{plot_file}
+\index{single_mode_file}
+\index{startup_file}
+\index{n_universes}
+\index{startup_single_mode}
 The initialization starts with an initialization file named
 \vn{tao.init}.  \vn{tao.init} needs to have a \vn{tao_start} namelist
 block with the following syntax:
 \begin{example}
-  \&tao_start
+  &tao_start
     lattice_file      = "<file_name>"  ! Default = this file.
     data_file         = "<file_name>"  ! Default = this file.
     var_file          = "<file_name>"  ! Default = this file.
@@ -62,6 +74,19 @@ initialization namelists. The following sections describe each of
 these initialization namelists and their locations are listed in table
 \ref{t:init_files}.
 
+\index{tao_design_lattice}
+\index{tao_params}
+\index{tao_coupled_uni_init}
+\index{tao_beam_init}
+\index{tao_macro_init}
+\index{tao_var}
+\index{tao_d2_data}
+\index{tao_d1_data}
+\index{tao_plot_page}
+\index{tao_template_plot}
+\index{tao_template_graph}
+\index{element_shapes}
+\index{key_bindings}
 \begin{table}[h]
 \centering {\tt
 \begin{tabular}{|l|l|l|l|} \hline
@@ -93,8 +118,12 @@ The \vn{lattice_file} variable in the \vn{tao_start} namelist is the
 name of the file with the \vn{tao_design_lattice} namelist that
 defines where the lattice input files are. The \vn{tao_design_lattice}
 namelist has the form
+\index{tao_design_lattice}
+\index{design_lattice}
+\index{design_lattice!file}
+\index{design_lattice!parser}
 \begin{example}
-  \&tao_design_lattice
+  &tao_design_lattice
     taylor_order = <num>
     design_lattice(i)%file = "<lattice_file>"
     design_lattice(i)%parser = "<parser>"
@@ -105,6 +134,7 @@ the Taylor order set in the lattice files. \vn{i} refers to the
 universe index, \vn{<lattice_file>} is the name of an input lattice
 file and \vn{<parser>} is the name of the parser to use. Possible
 choices for \vn{<parser>} are:
+\index{bmad}\index{xsif}\index{digested}
 \begin{example}
   bmad      ! For a standard bmad lattice file. This is the default.
   xsif      ! For an xsif lattice file.
@@ -113,7 +143,7 @@ choices for \vn{<parser>} are:
 
 Example:
 \begin{example}
-  \&tao_design_lattice
+  &tao_design_lattice
     design_lattice(1)%file = "this.lat"          ! Default: Use the bmad parser 
     design_lattice(2)      = "that.lat", "xsif"  ! For universe \#2
   /
@@ -125,8 +155,14 @@ Example:
 
 Global variables are initialized in the \vn{data_and_var_file} using a
 namelist block named \vn{tao_params} The syntax of this block is:
+\index{tao_params}
+\index{n_v1_var_max}
+\index{n_d2_data_max}
+\index{n_data_max}
+\index{n_var_max}
+\index{global}
 \begin{example}
-  \&tao_params
+  &tao_params
     n_v1_var_max  = <integer>   ! number of v1 data structures.
     n_d2_data_max = <integer>   ! number of d2 data structures.
     n_data_max    = <integer>   ! Total number of data points
@@ -136,7 +172,7 @@ namelist block named \vn{tao_params} The syntax of this block is:
 \end{example}
 Example:
 \begin{example}
-  \&tao_params
+  &tao_params
     n_v1_var_max  = 5
     n_d2_data_max = 6
     n_data_max    = 2000
@@ -196,6 +232,13 @@ end type
 
 Universes can be coupled together. This can be useful, for example, to attach a
 damping ring a pre-acclerator to a linac. The syntax is as follows:
+\index{tao_coupled_uni_init}
+\index{coupled}
+\index{coupled!from_universe}
+\index{coupled!at_element}
+\index{coupled!at_ele_index}
+\index{coupled!at_s}
+\index{coupled!match_to_design}
 \begin{example}
   &tao_coupled_uni_init
     ix_universe                = <Integer>         ! Universe index.
@@ -265,6 +308,24 @@ Example:
 
 A particle beam is initialized in the \vn{tao_beam_init} namelist block.
 The syntax is as follows:
+\index{tao_beam_init}    
+\index{ix_universe}
+\index{sr_wakes_on}
+\index{lr_wakes_on}
+\index{calc_emittance}
+\index{beam_init}
+\index{beam_init!a_norm_emit}
+\index{beam_init!b_norm_emit}
+\index{beam_init!dPz_dZ}
+\index{beam_init!center}
+\index{beam_init!sig_e}
+\index{beam_init!sig_z}
+\index{beam_init!n_bunch}
+\index{beam_init!ds_bunch}
+\index{beam_init!n_particle}
+\index{beam_init!bunch_charge}
+\index{beam_init!renorm_center}
+\index{beam_init!renorm_sigma}
 \begin{example}
   &tao_beam_init
     ix_universe             = <integer>
@@ -307,7 +368,7 @@ The default is single particle tracking. To turn on particle tracking the
 \vn{global%track_type} perameter must be set to 'beam.' This can be placed in
 the \vn{tao_params} namelist above, for example,
 \begin{example}
-  \&tao_params
+  &tao_params
     n_v1_var_max  = 5
     n_d2_data_max = 6
     n_data_max    = 2000
@@ -323,6 +384,24 @@ the \vn{tao_params} namelist above, for example,
 
 A macroparticle beam is initialized in the \vn{tao_macro_init} namelist block.
 The syntax is as follows:
+\index{tao_macro_init}
+\index{ix_universe}
+\index{sr_wakes_on}
+\index{lr_wakes_on}
+\index{calc_emittance}
+\index{macro_init}
+\index{macro_init!x!norm_emit}
+\index{macro_init!y!norm_emit}
+\index{beam_init!dPz_dZ}
+\index{macro_init!center}
+\index{macro_init!sig_e}
+\index{macro_init!sig_z}
+\index{macro_init!sig_e_cut}
+\index{macro_init!sig_z_cut}
+\index{macro_init!n_bunch}
+\index{macro_init!n_slice}
+\index{macro_init!n_macro}
+\index{macro_init!n_part}
 \begin{example}
   &tao_macro_init
     ix_universe             = <Integer>   ! Universe index.
@@ -364,7 +443,7 @@ The default is single particle tracking. To turn on macroparticle
 tracking the \vn{global%track_type} perameter must be set to 'macro.'
 This can be placed in the \vn{tao_params} namelist above, for example,
 \begin{example}
-  \&tao_params
+  &tao_params
     n_v1_var_max  = 5
     n_d2_data_max = 6
     n_data_max    = 2000
@@ -380,8 +459,29 @@ This can be placed in the \vn{tao_params} namelist above, for example,
 
 \vn{Variable}s are initialized using the \vn{tao_var} namelist. The
 format for this is
+\index{tao_var}
+\index{v1_var!name}
+\index{default_universe}
+\index{default_attribute}
+\index{default_weight}
+\index{default_step}
+\index{default_merit_type}
+\index{default_low_lim}
+\index{default_high_lim}
+\index{ix_min_var}
+\index{ix_max_var}
+\index{var!name}
+\index{var!ele_name}
+\index{var!attribute}
+\index{var!universe}
+\index{var!weight}
+\index{var!step}
+\index{var!low_lim}
+\index{var!high_lim}
+\index{var!merit_type}
+\index{var!good_user}
 \begin{example}
-  \&tao_var
+  &tao_var
     v1_var%name        = "<var_array_name>"  ! Variable array name.
     default_universe   = "<integer>"         ! Universe variables belong in.
     default_attribute  = "<attribute_name>"  ! Attribute to control.
@@ -411,7 +511,7 @@ format for this is
 \end{example}
 Example:
 \begin{example}
-  \&tao_var
+  &tao_var
     v1_var%name      = "v_steer"   ! vertical steerings
     default_universe  = "clone"
     default_attribute = "vkick"     ! vertical kick attribute
@@ -447,6 +547,7 @@ used.
 lattice element lives in. If \vn{var(i)%universe} is not present 
 \vn{default_universe} is used instead. In addition to a number 
 \vn{default_universe} can have values:
+\index{gang}\index{clone}
 \begin{example}
   "gang"     -- Multiple universe control (default).
   "clone"    -- Make a var array block for each universe.
@@ -476,6 +577,7 @@ not present as well then by default
 \end{example}
 \vn{var(i)%merit_type} determines how the merit contribution is calculated.
 Possible values are:
+\index{limit}\index{target}
 \begin{example}
   "limit"       ! Default
   "target"      
@@ -535,12 +637,18 @@ will search for all quadrupole elements in the lattice.
 
 %-----------------------------------------------------------------
 \section{Initializing Data and
-Constraints}\index{Initialization!Data\index{Initialization!Constaints}}
+Constraints}\index{Initialization!Data}\index{Initialization!Constaints}
 \label{s:init_data} 
 
 Data is initialized using the \vn{tao_d2_data} namelist block whose format is
+\index{tao_d2_data}
+\index{d2_data!name}
+\index{universe}
+\index{default_merit_type}
+\index{default_bpm_noise}
+\index{n_d1_data}
 \begin{example}
-  \&tao_d2_data
+  &tao_d2_data
     d2_data%name = "<d2_name>"    ! d2_data name.
     universe     = <integer>      ! Universe variables belong in.
                                         !   0 => all universes (default).
@@ -552,7 +660,7 @@ Data is initialized using the \vn{tao_d2_data} namelist block whose format is
 For example:
 For example:
 \begin{example}
-  \&tao_d2_data
+  &tao_d2_data
     d2_data%name = "orbit"
     universe     = 0  ! apply to all universes
     n_d1_data    = 2
@@ -565,22 +673,43 @@ value of zero means that a \vn{d2_data} structure is set up in each
 universe. \vn{default_merit_type} determines how the merit function
 terms are calculated for the individual datum points. Possibilities
 are:
+\index{target}
+\index{max}
+\index{min}
+\index{abs_max}
+\index{abs_min}
 \begin{example}
-  target
-  max
-  min
-  abs_max
-  abs_min
+  "target"
+  "max"
+  "min"
+  "abs_max"
+  "abs_min"
 \end{example}
-See Chapter~\ref{c:opti} on optimization for more details.\vn{default_bpm_noise}
-gives the RMS noise on \vn{bpm} data types. All other data types ignore this
-parameter.
+See Chapter~\ref{c:opti} on optimization for more
+details.\vn{default_bpm_noise} gives the RMS noise on \vn{bpm} data
+types. All other data types ignore this parameter.
 
 \vn{n_d1_data} defines how many \vn{d1_data} structures are associated
 with the \vn{d2_data} staructure. For each \vn{n_d1_data} structure
 there must be a \vn{tao_d1_data} namelist which has the form:
+\index{tao_d1_data}
+\index{ix_d1_data}
+\index{d1_data!name}
+\index{default_data_type}
+\index{default_weight}
+\index{ix_min_data}
+\index{ix_max_data}
+\index{data!name}
+\index{data!data_type}
+\index{data!ele_name}
+\index{data!ele2_name}
+\index{data!merit_type}
+\index{data!meas_value}
+\index{data!weight}
+\index{data!bpm_noise}
+\index{data!good_user}
 \begin{example}
-  \&tao_d1_data
+  &tao_d1_data
     ix_d1_data         = <integer>      ! d1_data index
     d1_data%name       = "<d1_name>"    ! d1_data name.
     default_data_type  = <type_name>    ! Eg: orbit:x, beam_energy, etc...
@@ -601,7 +730,7 @@ there must be a \vn{tao_d1_data} namelist which has the form:
 \end{example}
 For example:
 \begin{example}
-  \&tao_d1_data
+  &tao_d1_data
     ix_d1_data        = 1 
     d1_data%name      = "x"  
     default_weight    = 1e6
@@ -615,7 +744,7 @@ Alternatively one can specify a datum in a single line. For example:
 \begin{example}
   !         name   data_      ele_      ele2_    merit_   meas_    weight good_
   !                  type       name      name     type     value           user
-  \&tao_d1_data
+  &tao_d1_data
   data( 1) = ' '   'beta:x'   'Q09_1'   'Q16_1'  'max'      30      0.1     T
   data( 2) = ' '   'beta:y'   'Q09_1'   'Q16_1'  'max'      30      0.1     T
   data( 3) = ' '   'floor:x'  'end'     ' '      'target'    3      0.01    T       
@@ -623,21 +752,26 @@ Alternatively one can specify a datum in a single line. For example:
   /
 \end{example}
 
-
 \vn{ix_min_data} and \vn{ix_max_data} give the bounds for the
 \vn{data(i)} structure array that is associated with the \vn{d1_data}
 structure. \vn{data(:)%name} gives the names of the data points and
 \vn{data(:)%ele_name} gives the lattice element names associated with
-the data points.  If elements in the \vn{data} array do not exist the
+the data points. A range of elements can be specified by giving an
+\vn{ele2_name} that is not a blank string. Thus, in the above example,
+the value of \vn{data(1)} is the maximum horizontal beta in the range
+between the end of element \vn{Q09_1} to the end of element \vn{Q16_1}.
+
+If elements in the \vn{data} array do not exist the
 corresponding \vn{var%name} and \vn{data%ele_name} should be left
 blank. Lists of names can be reused using the syntax:
+\index{SAME:}
 \begin{example}
   data(0)%name = "SAME: <d2_name:d1_name>"
   data(0)%ele_name = "SAME: <d2_name:d1_name>"
 \end{example}
 For example:
 \begin{example}
-  \&tao_d1_data
+  &tao_d1_data
     ix_d1_data       = 2
     d1_data%name     = "y"  
     ...
@@ -650,6 +784,7 @@ For example:
 each data type, Likewise, the names for data points can be automatically
 generated by using the syntax:
 
+\index{COUNT}
 \begin{example}
   data(0)%name = "COUNT: <name_string>###"
   data(0)%ele_name = "SEARCH: <search_string>"
@@ -659,8 +794,9 @@ hashes is replaced by the data number in the series starting with
 \vn{ix_min_data} (as an integer whose length is equal to the number of 
 hashes). \vn{<search_string>} can contain the wildcards
 \vn{*} and \vn{%}. For example:
+\index{SEARCH}
 \begin{example}
-  \&tao_d1_data
+  &tao_d1_data
     ix_d1_data       = 1
     d1_data%name     = "x"
     ix_min_data      = 1  
@@ -677,13 +813,14 @@ followed by the data number in the d1\_data array starting with 0001.
 Data elements can also be searched using the \bmad element
 \textit{key} attribute using the syntax:
 
+\index{SEARCH_KEY}
 \begin{example}
   data(0)%name = "COUNT: <name_string>###"
   data(0)%ele_name = "SEARCH_KEY: <key>"
 \end{example}
 Where \vn{<key>} is the \bmad \textit{key} attribute. For example:
 \begin{example}
-  \&tao_d1_data
+  &tao_d1_data
     ix_d1_data       = 1
     d1_data%name     = "x"
     ix_min_data      = 1  
@@ -726,20 +863,28 @@ Plotting is defined by an initialization file named
 name of \vn{tao_plot_page}. This block sets the size of the plot
 window (also called the plot page) and defines the ``regions'' where
 plots go. The syntax of this block is:
+\index{tao_plot_page}    
+\index{plot_page!size}
+\index{plot_page!border}
+\index{plot_page!text_height}
+\index{plot_page!title}
+\index{region!name}
+\index{region!location}
+\index{place}
 \begin{example}
-  \&tao_plot_page
+  &tao_plot_page
     plot_page%size        = <x_size>, <y_size>         ! size in POINTS 
     plot_page%border      = <b_x1>, <b_x2>, <b_y1>, <b_y2>, "<units>"
     plot_page%text_height = <text_height>              !height in POINTS
     plot_page%title(i)    = <string>, {<x>, <y>, "<justify>", "<units>"}
     region(i)%name        = "<region_name>"
     region(i)%location    = <l_x1>, <l_x2>, <l_y1>, <l_y2>  ! % plot area
-    place(i)%             = "<region>", "<template>"
+    place(i)              = "<region>", "<template>"
   /
 \end{example}
 For example:
 \begin{example}
-  \&tao_plot_page
+  &tao_plot_page
     plot_page%size        = 700, 800           ! Points
     plot_page%border      = 0, 0, 0, 50, "POINTS"  
     plot_page%text_height = 12.0
@@ -800,8 +945,15 @@ command and this will produce a visible plot.
 
 Template plots are defined using namelists with a name of
 \vn{tao_template_graph}. The general syntax is:
+\index{tao_template_plot}
+\index{plot!name}
+\index{plot!x}
+\index{plot!x_axis_type}
+\index{plot!ix_universe}
+\index{plot!n_graph}
+\index{plot!independent_graphs}
 \begin{example}
-  \&tao_template_plot
+  &tao_template_plot
     plot%name        = "<plot_name>"
     plot%x           = <qp_axis_struct>
     plot%x_axis_type = "<x_axis_type>"   ! "index" or "s". Default is "index".
@@ -812,7 +964,7 @@ Template plots are defined using namelists with a name of
 \end{example}
 For example:
 \begin{example}
-  \&tao_template_plot
+  &tao_template_plot
     plot%name        = "orbit"
     plot%x%min       =   0
     plot%x%max       = 100
@@ -825,6 +977,11 @@ For example:
 \vn{plot%x} sets the properties of the horizontal axis. For more
 information see the \vn{Quick Plot} documentation on the
 \vn{qp_axis_struct}. The major components are
+\index{qp_axis_struct!min}
+\index{qp_axis_struct!max}
+\index{qp_axis_struct!major_div}
+\index{qp_axis_struct!minor_div}
+\index{qp_axis_struct!label}
 \begin{example}
   min        ! Left edge value.
   max        ! Right edge value.
@@ -839,10 +996,13 @@ the plot.
 
 \vn{plot%x_axis_type} sets what is plotted along the
 \vn{x-axis}. Possibilities are:
+\index{index}
+\index{ele_index}
+\index{s}
 \begin{example}
-    index      ! Data Index
-    ele_index  ! Element lattice number index
-    s          ! Longitudinal position in the lattice.
+    "index"      ! Data Index
+    "ele_index"  ! Element lattice number index
+    "s"          ! Longitudinal position in the lattice.
 \end{example}
 
 \vn{n_graph} sets the number of graphs associated with the plot and
@@ -851,7 +1011,7 @@ namelists should be placed directly after their respective
 \vn{tao_teamplate_graph} namelists. The general format of the
 \vn{tao_template_graph} namelist is:
 \begin{example}
-  \&tao_template_graph
+  &tao_template_graph
     graph_index           = <number>
     graph%name            = "<graph_name>"
     graph%type            = "<graph_type>"
@@ -880,7 +1040,7 @@ namelists should be placed directly after their respective
 \end{example}
 For example:
 \begin{example}
-  \&tao_template_graph
+  &tao_template_graph
     graph_index           = 1
     graph%name            = "x"
     graph%type            = "data"
@@ -909,22 +1069,31 @@ curve. Thus, in the example above, the name of the curve defaults to
 \vn{graph%who(i)} sets what is plotted by default. For example, if
 \vn{graph%who(i) = model - design} then by default the graph will show
 the \vn{model} value. Possibilities are:
+\index{model}
+\index{design}
+\index{base}
+\index{meas}
+\index{ref}
 \begin{example}
-  model     ! model values.
-  design    ! design values.
-  base      ! Base values
-  meas      ! data values.
-  ref       ! reference data values.
+  "model"     ! model values.
+  "design"    ! design values.
+  "base"      ! Base values
+  "meas"      ! data values.
+  "ref"       ! reference data values.
 \end{example}
 If nothing is specified, the default is to plot \vn{model}. 
 
 \vn{graph%type} is the type of graph. \tao knows about the
 following types:
+\index{data}
+\index{lat_layout}
+\index{key_table}
+\index{phase_space}
 \begin{example}
-  data         ! Data plots (default) 
-  lat_layout   ! Schematic showing placement of the lattice elements.
-  key_table    ! Key binding table for single mode.
-  phase_space  ! Phase space plots
+  "data"         ! Data plots (default) 
+  "lat_layout"   ! Schematic showing placement of the lattice elements.
+  "key_table"    ! Key binding table for single mode.
+  "phase_space"  ! Phase space plots
 \end{example}
 
 \vn{graph%box} sets the layout of the box which the \vn{graph} is
@@ -933,32 +1102,41 @@ documentation in the \bmad reference manual. In the above example the
 graph divides the region into two vertically stacked boxes and places
 itself into the bottom one. 
 
+\index{data_array}
+\index{var_array}
+\index{lat_layout}
 The \vn{curve} structure is used to define the number and types of
 curves to plot in each graph. \vn{curve%data_source} is the type of
 information for the source of the data points. There are the following
 types of data sources:
 \begin{example}
-  data_array   ! d1_data is the source of the curve points.
-  var_array    ! v1_var is the source of the curve points.
-  lat_layout   ! the lattice is the source.
+  "data_array"   ! d1_data is the source of the curve points.
+  "var_array"    ! v1_var is the source of the curve points.
+  "lat_layout"   ! the lattice is the source.
 \end{example}
 
-For a curve with the \vn{curve%data_source} set to \vn{data_array} the
+For a curve with the \vn{curve%data_source} set to \vn{"data_array"} the
 possible \vn{curve%data_type} values are the same as the possible
 \vn{d1_data%type} values as given in \sref{s:data_types}. If the
-\vn{curve%data_source} is \vn{var_array} then the possible
+\vn{curve%data_source} is \vn{"var_array"} then the possible
 \vn{curve%data_type} values are any of the \vn{v1_var} names. This is
 what points the curve to the proper data so there needs to be a
 corresponding data or var type defined in the initialization file.  If
-\vn{graph%type} is \vn{phase_space} then \vn{curve%data_source}
+\vn{graph%type} is \vn{"phase_space"} then \vn{curve%data_source}
 determines what planes are plotted. A plane is either:
+\index{x}
+\index{p_x}
+\index{y}
+\index{p_y}
+\index{z}
+\index{p_z}
 \begin{example}
-  x
-  p_x
-  y
-  p_y
-  z
-  p_z
+  "x"
+  "p_x"
+  "y"
+  "p_y"
+  "z"
+  "p_z"
 \end{example}
 For example:
 \begin{example}
@@ -984,15 +1162,30 @@ is determined by \vn{curve%line}
 A lattice layout template plot may be defined that draws the lattice
 along a straight line with figures for the various elements.
 The \vn{tao_template_plot} needed to define a lattice layout looks like:
+\index{tao_template_plot}
+\index{plot!name}
+\index{plot!box_layout}
+\index{plot!x!min}
+\index{plot!x!max}
+\index{plot!n_graph}
+\index{tao_template_graph}
+\index{graph_index}
+\index{graph!name}
+\index{graph!type}
+\index{graph!title}
+\index{graph!box}
+\index{graph!ix_universe}
+\index{graph!margin}
+\index{graph!n_curve}
 \begin{example}
-  \&tao_template_plot
+  &tao_template_plot
     plot%name        = "<plot_name>"
     plot%box_layout  = <ix>, <iy> 
     plot%x%min       = <number>
     plot%x%max       = <number>
     plot%n_graph     = <number>
   /
-  \&tao_template_graph
+  &tao_template_graph
     graph_index       = <number>
     graph%name        = <name>
     graph%type        = "lat_layout"
@@ -1005,14 +1198,14 @@ The \vn{tao_template_plot} needed to define a lattice layout looks like:
 \end{example}
 Example:
 \begin{example}
-  \&tao_template_plot
+  &tao_template_plot
     plot%name       = 'layout'
     plot%x%min      =   0
     plot%x%max      = 100
     plot%n_graph    = 1
   /
 
-  \&tao_template_graph
+  &tao_template_graph
     graph_index       = 1
     graph%name        = 'u1'
     graph%type        = 'lat_layout'
@@ -1023,18 +1216,19 @@ Example:
   /
 \end{example}
 
-
+\index{element_shapes}
+\index{shape}
 In addition the shapes to be drawn for the various lattice elements need to
 be defined using an \vn{element_shapes} namelist whose syntax is:
 \begin{example}
-  \&element_shapes 
+  &element_shapes 
     shape(i) = "<key>", "<name>", "<shape>", "<color>", 
                                       "<v_size>", "<print_Label>"
   /
 \end{example}
 For Example:                 
 \begin{example}
-  \&element_shapes
+  &element_shapes
     shape(1) = "Quadrupole", "Q*",      "Box",  "Red",      30,   T 
     shape(2) = "Quadrupole", "*",       "XBox", "Red",      30,   F 
     shape(3) = "SBend",      "*",       "Box",  "Blue",     15 
@@ -1051,12 +1245,23 @@ all quadrupoles whose name begins with ``Q'' and \vn{shape(2)} will
 match all quadrupoles. If an element matches more than one shape the
 first shape matched will be used. \vn{<shape>} is the shape of the
 figure drawn. Valid Shapes are:
+\index{BOX}
+\index{XBOX}
 \begin{example}
   "BOX"           -- Rectangular box
   "XBOX"          -- Rectangular box with an x through it.
 \end{example}
 
 \vn{<color>} is the color of the shape. Good colors to use are:
+\index{BLACK}
+\index{RED}
+\index{ORANGE}
+\index{MAGENTA}
+\index{YELLOW}
+\index{GREEN}
+\index{CYAN}
+\index{BLUE}
+\index{PURPLE}
 \begin{example}
   "BLACK"
   "RED"
@@ -1081,15 +1286,17 @@ the element name is to be printed underneath the figure.
 For single mode the bindings of variables to keys is defined with a
 \vn{key_bindings} namelist. There is a maximun of 500 key bingdings.
 The syntax is:
+\index{key_bindings}
+\index{key}
 \begin{example}
-  \&key_bindings
+  &key_bindings
     key(i) = <ele_name> <attrib_name> <delta> <universe> 
           <small_step> <low_lim> <high_lim> <weight> <good_opt> <merit_type>
   /
 \end{example}
 For example:
 \begin{example}
-  \&key_bindings
+  &key_bindings
   key(1) = "Q1"   "K1"    0.01 "U:0" 1e-5  -10  10  10  T
   key(2) = "DRFT" "L"     0.1  "U:1" 1e-3    0   3   1  F
   key(3) = "Q3"   "TILT"  0.01 "U:2" 1e-5   -1   1   3  T "target"
@@ -1110,8 +1317,8 @@ If \vn{merit_type} is \vn{"limit"} then \vn{<low_lim>} and
 \vn{<high_lim>} establish limits and if the value of the variable goes
 outside these limits then the contribution to the merit function is
 given by
+\index{merit function}
 \begin{example}
   merit = <weight> * (var_value - <high_lim>)^2  ! For var_value > <high_lim>
   merit = <weight> * (<low_lim> - var_value)^2   ! Fro <low_lim> > var_value
 \end{example}
-

@@ -230,7 +230,7 @@ real(rp) f, x1, x2, y_val, eps
 real(rp), pointer :: value(:)
 
 integer ii, k, m, n_dat, i_uni, ie, jj
-integer ix_this, ix, ir, jg
+integer ix_this, ix, ir, jg, i, i_max, i_min
 
 logical err, smooth_curve, found
 
@@ -239,29 +239,29 @@ character(30) :: r_name = 'tao_data_plot_data_setup'
 
 ! For the title_suffix: strip off leading "+" and enclose in "[ ]".
 
-  graph%title_suffix = ' '
-  do m = 1, size(graph%who)
-    if (graph%who(m)%name == ' ') cycle
-    if (graph%who(m)%sign == 1) then
-      graph%title_suffix = trim(graph%title_suffix) // ' + ' // graph%who(m)%name
-    elseif (graph%who(m)%sign == -1) then
-      graph%title_suffix = trim(graph%title_suffix) // ' - ' // graph%who(m)%name
-    endif
-  enddo
+graph%title_suffix = ' '
+do m = 1, size(graph%who)
+  if (graph%who(m)%name == ' ') cycle
+  if (graph%who(m)%sign == 1) then
+    graph%title_suffix = trim(graph%title_suffix) // ' + ' // graph%who(m)%name
+  elseif (graph%who(m)%sign == -1) then
+    graph%title_suffix = trim(graph%title_suffix) // ' - ' // graph%who(m)%name
+  endif
+enddo
 
-  if (graph%title_suffix(2:2) == '+') graph%title_suffix = graph%title_suffix(4:)
+if (graph%title_suffix(2:2) == '+') graph%title_suffix = graph%title_suffix(4:)
 
-  graph%title_suffix = '[' // trim(graph%title_suffix) // ']'
+graph%title_suffix = '[' // trim(graph%title_suffix) // ']'
 
-! attach x-axis type to title suffix 	 
-  	 
-   if (plot%x_axis_type .eq. 'index') then 	 
-     graph%title_suffix = trim(graph%title_suffix) // ', X-axis: index, ' 	 
-   elseif (plot%x_axis_type .eq. 'ele_index') then 	 
-     graph%title_suffix = trim(graph%title_suffix) // ', X-axis: ele_index, ' 	 
-   elseif (plot%x_axis_type .eq. 's') then 	 
-     graph%title_suffix = trim(graph%title_suffix) // ', X-axis: s, ' 	 
-   endif 	 
+! attach x-axis type to title suffix 
+ 
+ if (plot%x_axis_type .eq. 'index') then
+   graph%title_suffix = trim(graph%title_suffix) // ', X-axis: index, '
+ elseif (plot%x_axis_type .eq. 'ele_index') then
+   graph%title_suffix = trim(graph%title_suffix) // ', X-axis: ele_index, '
+ elseif (plot%x_axis_type .eq. 's') then
+   graph%title_suffix = trim(graph%title_suffix) // ', X-axis: s, '
+ endif  
 
 !-------------------------------------------------------------------------------
 ! Loop over all curves in the graph
@@ -269,14 +269,6 @@ character(30) :: r_name = 'tao_data_plot_data_setup'
 do k = 1, size(graph%curve)
 
   curve => graph%curve(k)
-
-  if (curve%data_source == 'lat_layout' .and. &
-        (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index')) then
-    call out_io (s_error$, r_name, 'CURVE%DATA_SOURCE = "LAT_LAYOUT" ' // &
-                    'AND PLOT%X_AXIS_TYPE = "INDEX" DO NOT GO TOGETHER.')
-    graph%valid = .false.
-    return
-  endif
 
   i_uni = s%global%u_view  ! universe where the data comes from
   if (curve%ix_universe /= 0) i_uni = curve%ix_universe 
@@ -301,7 +293,7 @@ do k = 1, size(graph%curve)
       graph%valid = .false.
       return
     endif
-	
+
     d1_ptr%d%good_plot = .true.
     eps = 1e-4 * (plot%x%max - plot%x%min)
     if (plot%x_axis_type == 'index') then
@@ -478,23 +470,29 @@ do k = 1, size(graph%curve)
 ! data source is from the lattice_layout
 
   case ('lat_layout')
- 
-    eps = 1e-4 * (plot%x%max - plot%x%min)
-    u%base%ele_(:)%logic = (u%base%ele_(:)%ix_pointer > 0) .and. &
+
+    if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
+      i_min = max(1, floor(plot%x%min))
+      i_max = min(u%base%n_ele_use, ceiling(plot%x%max)) 
+      n_dat = max(0, i_max+1-i_min)
+    elseif (plot%x_axis_type == 's') then
+      ! %ix_pointer has been set to the element index for displayed elements
+      eps = 1e-4 * (plot%x%max - plot%x%min)             ! a small number
+      u%base%ele_(:)%logic = (u%base%ele_(:)%ix_pointer > 0) .and. &
             (u%base%ele_(:)%s >= plot%x%min-eps) .and. (u%base%ele_(:)%s <= plot%x%max+eps)
-    n_dat = count (u%base%ele_(:)%logic)
+      n_dat = count (u%base%ele_(:)%logic)
+    endif
 
     call reassociate_integer (curve%ix_symb, n_dat)
     call reassociate_real (curve%y_symb, n_dat) ! allocate space for the data
     call reassociate_real (curve%x_symb, n_dat) ! allocate space for the data
 
-    curve%ix_symb = pack(u%base%ele_(:)%ix_pointer, mask = u%base%ele_(:)%logic)
 
-    if (plot%x_axis_type == 'index') then
-      curve%x_symb = curve%ix_symb
-    elseif (plot%x_axis_type == 'ele_index') then
+    if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
+      if (n_dat > 0) curve%ix_symb = (/ (i, i = i_min, i_max) /)
       curve%x_symb = curve%ix_symb
     elseif (plot%x_axis_type == 's') then
+      curve%ix_symb = pack(u%base%ele_(:)%ix_pointer, mask = u%base%ele_(:)%logic)
       curve%x_symb = u%model%ele_(curve%ix_symb)%s
     endif
 
@@ -562,16 +560,18 @@ do k = 1, size(graph%curve)
     call reassociate_real (curve%x_line, n_dat) ! allocate space for the data
     curve%x_line = curve%x_symb
     curve%y_line = curve%y_symb
+
   elseif (plot%x_axis_type == 'ele_index') then
     call reassociate_real (curve%y_line, n_dat) ! allocate space for the data
     call reassociate_real (curve%x_line, n_dat) ! allocate space for the data
     curve%x_line = curve%x_symb
     curve%y_line = curve%y_symb
+
   elseif (plot%x_axis_type == 's') then
     smooth_curve = .true.
     do m = 1, size(graph%who)
       if (graph%who(m)%name .eq. 'meas' .or. graph%who(m)%name .eq. 'ref' .or. &
-   s%global%track_type .ne. 'single') smooth_curve = .false.
+          s%global%track_type .ne. 'single') smooth_curve = .false.
     enddo
     if (smooth_curve) then
       ! allocate data space
