@@ -772,6 +772,7 @@ subroutine read_butns_file (butns_num, nonlinear_calc, butns, db, &
   else
      butns%lattice = line_in(61:)
   endif
+  call string_trim (butns%lattice, butns%lattice, ix)
 
   butns%date = line_in(30:)                     ! get date
   read (line_in(54:), *) butns%save_set
