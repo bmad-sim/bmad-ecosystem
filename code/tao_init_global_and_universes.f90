@@ -974,10 +974,10 @@ integer num_ele, ios, ixx1, ixx2
     ! if num_ele .ne. 0 then searching through multiple universes
     jj = n1
     if (num_ele .ne. 0) then
-      ixx2 = 0
+      ixx2 = 1
       do iu = 1, size(s%u)
-      ixx1 = ixx2 + 1
-        ixx2 = ixx1 + s%u(iu)%design%n_ele_max
+        ixx1 = ixx2
+        ixx2 = ixx1 + s%u(iu)%design%n_ele_max - 1
         do j = 1, size(found_one(ixx1:ixx2))
           if (found_one(ixx1+j-1)) then
             if (jj .gt. n2) then

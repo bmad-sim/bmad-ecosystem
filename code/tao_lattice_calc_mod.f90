@@ -679,10 +679,10 @@ character(20) :: r_name = "inject_particle"
 
   !track through coupling element
   if (u%coupling%use_coupling_ele) then
-    call make_mat6 (u%coupling%coupling_ele, s%u(u%coupling%from_uni)%design%param)
+    call make_mat6 (u%coupling%coupling_ele, s%u(u%coupling%from_uni)%model%param)
     call twiss_propagate1 (extract_ele, u%coupling%coupling_ele)
     call track1 (pos, u%coupling%coupling_ele, &
-                    s%u(u%coupling%from_uni)%design%param, pos)
+                    s%u(u%coupling%from_uni)%model%param, pos)
     u%coupling%coupling_ele%value(beam_energy$) = extract_ele%value(beam_energy$)
     u%coupling%coupling_ele%floor = extract_ele%floor
     extract_ele = u%coupling%coupling_ele
