@@ -1,5 +1,5 @@
  &input
-    lat_file = 'hibetainj_20040628_v01.lat'
+    lat_file = '$BMAD_LAT/bmad_hibetainj_20040628_v01.lat'
     n_turn   = 10
     n_xy_pts = 37
     point_range = 1 37
