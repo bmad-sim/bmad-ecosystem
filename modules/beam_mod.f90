@@ -752,59 +752,90 @@ subroutine init_beam_distribution (ele, beam_init, beam)
   real(rp) dpz_dz, denom
   real(rp) a_emitt, b_emitt
   real(rp) ave(6), sigma(6), a, b
-  real(rp) center(6), r(6), v_mat(4,4), v_inv(4,4)
+  real(rp) r(6), v_mat(4,4), v_inv(4,4)
   real(rp) y, alpha(6), sig_mat(6,6)
 
-  integer i, j, k
+  integer i, j, j2, n
   
   character(22) :: r_name = "init_beam_distribution"
 
-! generate random numbers
+! Generate a set of random numbers.
 
   call reallocate_beam (beam, beam_init%n_bunch, beam_init%n_particle)
   bunch => beam%bunch(1)
  
   sig_mat = 0
   ave = 0
-  do i = 1, beam_init%n_particle
-    p => bunch%particle(i)
+  do n = 1, beam_init%n_particle
+    p => bunch%particle(n)
     call ran_gauss(r)
     p%r%vec = r
     ave = ave + r
-    forall (j=1:6, k=1:6) sig_mat(j,k) = sig_mat(j,k) + r(j) * r(k)
+    forall (i=1:6, j=1:6) sig_mat(i,j) = sig_mat(i,j) + r(i) * r(j)
   enddo  
 
   ave = ave / beam_init%n_particle
-     
+  sig_mat = sig_mat / beam_init%n_particle
+
+! Now the distribution of bunch%particle(:)%r%vec(n) for fixed n has
+! on average, unit sigma and the distribution for n = n1 is uncorrelated
+! with the distribution for n = n2, n1 /= n2.
+
+! However, since we are dealing with a finite number of particles, 
+! the sigmas of the distributions will not be exactly 1, and there will 
+! be some correlation between distributions.
+! If beam_init%renorm_sigma = True then take this out.
+
 ! Zero the average for now
 
-  do i = 1, beam_init%n_particle
-    bunch%particle(i)%r%vec = bunch%particle(i)%r%vec - ave
+  do n = 1, beam_init%n_particle
+    bunch%particle(n)%r%vec = bunch%particle(n)%r%vec - ave
   enddo
 
-! Renomalize the sigmas
-
   if (beam_init%renorm_sigma) then
-    forall (j = 1:6, k = 1:6) sig_mat(j,k) = &
-                  sig_mat(j,k) / beam_init%n_particle - ave(j) * ave(k)
-    forall (j = 1:6) alpha(j) = sqrt(1/sig_mat(j,j))
-    forall (j = 1:6, k = 1:6) sig_mat(j,k) = sig_mat(j,k) * alpha(j) * alpha(k)
-    do i = 1, beam_init%n_particle
-      p => bunch%particle(i)
-      p%r%vec = p%r%vec * alpha
-      do j = 1, 6
-        do k = j+1, 6
-          p%r%vec(j) = p%r%vec(j) - sig_mat(j,k) * p%r%vec(k)
+    ! This accounts for subtracting off the average
+    forall (i = 1:6, j = 1:6) sig_mat(i,j) = sig_mat(i,j) - ave(i) * ave(j)
+
+    ! To renormalize we want to make sig_mat = the unit matrix.
+    ! The first step is to zero the off-diagonal elements.
+    ! We have to do this in the correct order otherwise zeroing one element
+    ! might unzero others that have already been zeroed.
+    do i = 5, 1, -1
+      do j = i+1, 6
+        b = -sig_mat(i,j) / sig_mat(j,j)
+        ! Transform the distribution
+        do n = 1, beam_init%n_particle
+          p => bunch%particle(i)
+          p%r%vec(i) = p%r%vec(i) + b * p%r%vec(j)
+        enddo
+        ! Since we have transformed the distribution we need to transform
+        ! sig_mat to keep things consistant.
+        sig_mat(i,i) = sig_mat(i,i) + 2 * b * sig_mat(i,j) + b**2 * sig_mat(j,j)
+        do j2 = 1, 6
+          if (j2 == i) cycle
+          sig_mat(i,j2) = sig_mat(i,j2) + b * sig_mat(j ,j2)
+          sig_mat(j2,i) = sig_mat(i,j2)
         enddo
       enddo
     enddo
+
+    ! Now we make the diagonal elements unity
+
+    forall (i = 1:6) alpha(i) = sqrt(1/sig_mat(i,i))
+    do n = 1, beam_init%n_particle
+      p => bunch%particle(i)
+      p%r%vec = p%r%vec * alpha
+    enddo
+
   endif
 
-! Put in the non-zero center
+! In general, since we are dealing with a finite number of particles, 
+! the averages will not be zero.
+! Put back the non-zero center if beam_init%renorm_center = False.
 
   if (.not. beam_init%renorm_center) then
     do i = 1, beam_init%n_particle
-      bunch%particle(i)%r%vec = bunch%particle(i)%r%vec - ave
+      bunch%particle(i)%r%vec = bunch%particle(i)%r%vec + ave
     enddo
   endif
 
@@ -814,7 +845,6 @@ subroutine init_beam_distribution (ele, beam_init, beam)
   a_emitt = beam_init%a_norm_emitt * m_electron / denom
   b_emitt = beam_init%b_norm_emitt * m_electron / denom
   
-  center = beam_init%center
   dpz_dz = beam_init%dpz_dz
   
   call make_v_mats(ele, v_mat, v_inv)
@@ -855,6 +885,8 @@ subroutine init_beam_distribution (ele, beam_init, beam)
       
     ! Include Coupling
     p%r%vec(1:4) = matmul(v_mat, p%r%vec(1:4))
+
+    p%r%vec = p%r%vec + beam_init%center
       
   end do
      
