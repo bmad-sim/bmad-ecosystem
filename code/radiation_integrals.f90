@@ -324,6 +324,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
 ! integrate for periodic_type wigglers
 
+      if (ric%use_cache) ric%cache_ele => cache%ele(ele%ixx)
       call qromb_rad_int (ele0, ele, (/ F, F, F, F, F, T, T /), ir)
 
       cycle
@@ -336,9 +337,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
     if (ric%g_x0 == 0 .and. ric%g_y0 == 0 .and. &
           key /= quadrupole$ .and. key /= sol_quad$ .and. key /= sbend$) cycle
 
-    if (ric%use_cache) ric%cache_ele => cache%ele(ele%ixx)
- 
-   if (key == sbend$) then
+    if (key == sbend$) then
       theta = ele%value(tilt_tot$) + ele%value(roll$)
       ric%g_x0 = ric%g_x0 + cos(theta) * ele%value(g$)
       ric%g_y0 = ric%g_y0 - sin(theta) * ele%value(g$)
@@ -378,6 +377,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
 ! Integrate for quads and bends
 
+    if (ric%use_cache) ric%cache_ele => cache%ele(ele%ixx)
     call qromb_rad_int (ele0, ele, (/ T, F, F, T, T, T, T /), ir)
 
   enddo
@@ -414,10 +414,9 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
     ric%eta_b1 = &
           matmul(v, (/ 0.0_rp, 0.0_rp, ele%y%eta, ele%y%etap /))
 
+ ! radiation integrals calc for the map_type wiggler
+
     if (ric%use_cache) ric%cache_ele => cache%ele(ele%ixx)
-
-! radiation integrals calc for the map_type wiggler
-
     call qromb_rad_int (ele0, ele, (/ T, T, T, T, T, T, T /), ir) 
 
   enddo
