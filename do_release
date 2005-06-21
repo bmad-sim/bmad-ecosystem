@@ -481,10 +481,9 @@ if ( [ $LNX -eq 1 ] ) then
 else
  if ( [ ${build_pkg_status} -eq 0 -a ${build_rel_status} -eq 0 ] ) then
      echo "`date`: Installation completed successfully on ${PLATFORM_TAG} !";
+     KEY_END=0;
      if ( [ $LNX_HOST = $CURRENT_HOST ] ) then 
         echo "0">$LNX_FILE_STATUS
-        else
-        KEY_END=0;
      fi   
      if ( [ $DO_TAG_RELEASE -eq 1 ] ) then
         echo " Tagging with tag ${REL_NAME}";
