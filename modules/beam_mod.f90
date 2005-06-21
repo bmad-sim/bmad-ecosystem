@@ -34,7 +34,7 @@ type beam_init_struct
   integer n_particle        ! Number of simulated particles per bunch.
   integer n_bunch           ! Number of bunches.
   logical :: renorm_center = .true.    ! Renormalize centroid?
-  logical :: renorm_sigma = .false.    ! Renormalize sigma?
+  logical :: renorm_sigma = .true.     ! Renormalize sigma?
 end type
 
 type bunch_param_struct
@@ -793,6 +793,13 @@ subroutine init_beam_distribution (ele, beam_init, beam)
   enddo
 
   if (beam_init%renorm_sigma) then
+
+    if (beam_init%n_particle < 7) then
+      call out_io (s_abort$, r_name, &
+          'INITIALIZATION WITH RENORM_SIGMA MUST USE AT LEAST 7 PARTICLES!')
+      call err_exit
+    endif
+
     ! This accounts for subtracting off the average
     forall (i = 1:6, j = 1:6) sig_mat(i,j) = sig_mat(i,j) - ave(i) * ave(j)
 
@@ -805,7 +812,7 @@ subroutine init_beam_distribution (ele, beam_init, beam)
         b = -sig_mat(i,j) / sig_mat(j,j)
         ! Transform the distribution
         do n = 1, beam_init%n_particle
-          p => bunch%particle(i)
+          p => bunch%particle(n)
           p%r%vec(i) = p%r%vec(i) + b * p%r%vec(j)
         enddo
         ! Since we have transformed the distribution we need to transform
@@ -823,7 +830,7 @@ subroutine init_beam_distribution (ele, beam_init, beam)
 
     forall (i = 1:6) alpha(i) = sqrt(1/sig_mat(i,i))
     do n = 1, beam_init%n_particle
-      p => bunch%particle(i)
+      p => bunch%particle(n)
       p%r%vec = p%r%vec * alpha
     enddo
 
@@ -834,8 +841,8 @@ subroutine init_beam_distribution (ele, beam_init, beam)
 ! Put back the non-zero center if beam_init%renorm_center = False.
 
   if (.not. beam_init%renorm_center) then
-    do i = 1, beam_init%n_particle
-      bunch%particle(i)%r%vec = bunch%particle(i)%r%vec + ave
+    do n = 1, beam_init%n_particle
+      bunch%particle(n)%r%vec = bunch%particle(n)%r%vec + ave
     enddo
   endif
 
@@ -936,26 +943,27 @@ end function
 !  use beam_mod
 !
 ! Input:
-!  bunch     -- Bunch_struct
-!  ele       -- ele_struct: element to find parameters at
+!   bunch     -- Bunch_struct
+!   ele       -- ele_struct: element to find parameters at
 !
-! Output     -- bunch_params_struct
-!                 %x%alpha; %x%beta; %x%gamma
-!                 %x%sigma; %x%p_sigma
-!                 %x%emitt; %x%dpx_dx
-!                 %y%alpha; %y%beta; %y%gamma
-!                 %y%sigma; %y%p_sigma
-!                 %y%emitt; %y%dpx_dx
-!                 %z%alpha; %z%beta; %z%gamma
-!                 %z%sigma; %z%p_sigma
-!                 %z%emitt; %z%dpx_dx
-!                 %a%alpha; %a%beta; %a%gamma
-!                 %a%sigma; %a%p_sigma
-!                 %a%emitt; %a%dpx_dx
-!                 %b%alpha; %b%beta; %b%gamma
-!                 %b%sigma; %b%p_sigma
-!                 %b%emitt; %b%dpx_dx
-!                 %centroid
+! Output     
+!   params -- bunch_params_struct:
+!     %x%alpha; %x%beta; %x%gamma
+!     %x%sigma; %x%p_sigma
+!     %x%emitt; %x%dpx_dx
+!     %y%alpha; %y%beta; %y%gamma
+!     %y%sigma; %y%p_sigma
+!     %y%emitt; %y%dpx_dx
+!     %z%alpha; %z%beta; %z%gamma
+!     %z%sigma; %z%p_sigma
+!     %z%emitt; %z%dpx_dx
+!     %a%alpha; %a%beta; %a%gamma
+!     %a%sigma; %a%p_sigma
+!     %a%emitt; %a%dpx_dx
+!     %b%alpha; %b%beta; %b%gamma
+!     %b%sigma; %b%p_sigma
+!     %b%emitt; %b%dpx_dx
+!     %centroid
 !-
 
 subroutine calc_bunch_params (bunch, ele, params)
@@ -1141,7 +1149,7 @@ subroutine param_stuffit (param, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
 
   emitt = SQRT(exp_x2*exp_p_x2 - exp_x_p_x**2)
 
-  param%alpha = exp_x_p_x / emitt
+  param%alpha = -exp_x_p_x / emitt
   param%beta  = exp_x2 / emitt
   param%gamma = exp_p_x2 / emitt
   
