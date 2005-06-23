@@ -224,7 +224,6 @@ subroutine bmad_to_cesr (ring, cesr)
   cesr%rf_(rf_e1$)%name = 'RF_E1'
   cesr%rf_(rf_e2$)%name = 'RF_E2'
 
-
   cesr%skew_sex_(1)%name = 'SK_SEX_07W'
   cesr%skew_sex_(2)%name = 'SK_SEX_23W'
   cesr%skew_sex_(3)%name = 'SK_SEX_23E'
@@ -234,7 +233,6 @@ subroutine bmad_to_cesr (ring, cesr)
   cesr%skew_sex_(7)%name = 'SK_SEX_12W'
   cesr%skew_sex_(8)%name = 'SK_SEX_12E'
   cesr%skew_sex_(11)%name = 'SK_SEX_02E'
-
 
   cesr%wig_(wig_w$)%name = 'WIG_W'
   cesr%wig_(wig_e$)%name = 'WIG_E'
@@ -267,8 +265,6 @@ subroutine bmad_to_cesr (ring, cesr)
   cesr%scir_tilt_(scir_tilt_e$)%name    = 'SC_TILT_E'
   cesr%scir_tilt_(scir_tilt_sk_w$)%name = 'SC_TILT_SK_W'
   cesr%scir_tilt_(scir_tilt_sk_e$)%name = 'SC_TILT_SK_E'
-
-  cesr%skew_sex_(11)%name = 'SK_SEX_02E'
 
 !-------------------------------------------------------------
 ! Load elements from RING to CESR
