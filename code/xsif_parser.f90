@@ -642,12 +642,15 @@ subroutine read_xsif_wake (wake, file_name, this)
     allocate (wake(0:n-1))
   endif
 
+! Signs:
+!   In Bmad +z is pointing forward. In LIAR this is the opposite.
+!   Bmad also has a different sign convention for the transverse wake.
 
-  wake%z = s_(1:n)
+  wake%z = -s_(1:n)  
   if (this == 'LONG') then
     wake%long = field(1:n)
   elseif (this == 'TRANS') then
-    wake%trans = field(1:n)
+    wake%trans = -field(1:n)
   else
     call xsif_error ('INTERNAL ERROR!')
     call err_exit
