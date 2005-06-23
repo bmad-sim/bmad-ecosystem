@@ -47,7 +47,7 @@ subroutine chrom_calc (ring, delta_e, chrom_x, chrom_y)
   if (delta_e <= 0) delta_e = 1.0e-4
 
   ring2 = ring
-  call set_on_off (rfcavity$, ring, off$)
+  call set_on_off (rfcavity$, ring2, off$)
 
   nt = ring%n_ele_use
 
