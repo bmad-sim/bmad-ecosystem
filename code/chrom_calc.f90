@@ -28,48 +28,50 @@ subroutine chrom_calc (ring, delta_e, chrom_x, chrom_y)
 
   use bmad_struct
   use bmad_interface, except => chrom_calc
+  use bookkeeper_mod
 
   implicit none
 
   type (ring_struct)  ring
   type (ring_struct), save :: ring2
-  type (coord_struct), allocatable, save :: coord_(:)
+  type (coord_struct), allocatable, save :: orb(:)
 
   real(rp) high_tune_x, high_tune_y, low_tune_x, low_tune_y
   real(rp) delta_e, chrom_x, chrom_y
+  integer nt
 
 !
 
-  call reallocate_coord (coord_, ring%n_ele_max)
+  call reallocate_coord (orb, ring%n_ele_max)
 
   if (delta_e <= 0) delta_e = 1.0e-4
+
   ring2 = ring
+  call set_on_off (rfcavity$, ring, off$)
+
+  nt = ring%n_ele_use
 
 ! lower energy tune
 
-  coord_(0)%vec(6) = -delta_e
-  call closed_orbit_at_start (ring2, coord_(0), 4, .true.)
-  call track_all (ring2, coord_)
-  call ring_make_mat6 (ring2, -1, coord_)
+  orb(0)%vec(6) = -delta_e
+  call closed_orbit_calc (ring2, orb, 4)
+  call ring_make_mat6 (ring2, -1, orb)
 
   call twiss_at_start (ring2)
-  low_tune_x = ring2%x%tune / twopi
-  if (low_tune_x < 0) low_tune_x = 1 + low_tune_x
-  low_tune_y = ring2%y%tune / twopi
-  if (low_tune_y < 0) low_tune_y = 1 + low_tune_y
+  call twiss_propagate_all (ring2)
+  low_tune_x = ring2%ele_(nt)%x%phi / twopi
+  low_tune_y = ring2%ele_(nt)%y%phi / twopi
 
 ! higher energy tune
 
-  coord_(0)%vec(6) = delta_e
-  call closed_orbit_at_start (ring2, coord_(0), 4, .true.)
-  call track_all (ring2, coord_)
-  call ring_make_mat6 (ring2, -1, coord_)
+  orb(0)%vec(6) = delta_e
+  call closed_orbit_calc (ring2, orb, 4)
+  call ring_make_mat6 (ring2, -1, orb)
 
   call twiss_at_start (ring2)
-  high_tune_x = ring2%x%tune / twopi
-  if (high_tune_x < 0) high_tune_x = 1 + high_tune_x
-  high_tune_y = ring2%y%tune / twopi
-  if (high_tune_y < 0) high_tune_y = 1 + high_tune_y
+  call twiss_propagate_all (ring2)
+  high_tune_x = ring2%ele_(nt)%x%phi / twopi
+  high_tune_y = ring2%ele_(nt)%y%phi / twopi
 
 ! compute the chrom
 
