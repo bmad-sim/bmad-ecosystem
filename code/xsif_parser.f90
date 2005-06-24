@@ -576,7 +576,7 @@ subroutine read_xsif_wake (wake, file_name, this)
 
   type (sr1_wake_struct), pointer :: wake(:)
 
-  real(rp) s_(1000), field(1000), ds
+  real(rp) s_pos(1000), field(1000), ds
 
   integer iu, k, n, ios, ix
 
@@ -600,7 +600,7 @@ subroutine read_xsif_wake (wake, file_name, this)
     call string_trim(line, line, ix)
     if (ix == 0) cycle
     n = n + 1
-    read (line, *, iostat = ios) k, s_(n), field(n)
+    read (line, *, iostat = ios) k, s_pos(n), field(n)
     if (ios /= 0) then
       call xsif_error ('CANNOT READ WAKEFILE: ' // file_name, &
                                       'CANNOT READ LINE: ' // line)
@@ -614,18 +614,23 @@ subroutine read_xsif_wake (wake, file_name, this)
     call err_exit
   endif
 
+! Signs: In Bmad +z is pointing forward. In LIAR this is the opposite.
+
+  s_pos = -s_pos
+
 ! Check that the wake is ordered correctly.
 
-  ds = s_(n) / (n - 1)
+  ds = s_pos(n) / (n - 1)
   do i = 1, n
-    if (abs(s_(i) - ds * (i - 1)) > 1e-4 * ds) then
+    if (abs(s_pos(i) - ds * (i - 1)) > -1e-4 * ds) then
       write (line, '(a, i5)') 'NOT UNIFORMLY ASSENDING. PROBLEM IS INDEX:', i
       call xsif_error ('"S" VALUES IN WAKE FILE: ' // file_name, line)
       call err_exit
     endif
   enddo
 
-!
+! If we have already read in one wake file check for consistancey between
+! the current file and the previous one.
 
   if (associated(wake)) then
     if (size(wake) /= n) then
@@ -633,7 +638,7 @@ subroutine read_xsif_wake (wake, file_name, this)
                                     'FOR ELEMENT: ' // ele%name)
       call err_exit
     endif
-    if (abs(ds - wake(n-1)%z / (n-1)) > 1e-4 * ds) then
+    if (abs(ds - wake(n-1)%z / (n-1)) > -1e-4 * ds) then
       call xsif_error ('WAKE FILES HAVE DIFFERENT dZ BETWEEN POINTS.', &
                                                   'FOR ELEMENT: ' // ele%name)
       call err_exit
@@ -642,11 +647,10 @@ subroutine read_xsif_wake (wake, file_name, this)
     allocate (wake(0:n-1))
   endif
 
-! Signs:
-!   In Bmad +z is pointing forward. In LIAR this is the opposite.
-!   Bmad also has a different sign convention for the transverse wake.
+! Load wake structure.
+! Signs: Bmad has a different sign convention for the transverse wake.
 
-  wake%z = -s_(1:n)  
+  wake%z = s_pos(1:n)  
   if (this == 'LONG') then
     wake%long = field(1:n)
   elseif (this == 'TRANS') then
