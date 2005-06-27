@@ -11,6 +11,7 @@ use tao_data_mod
 use tao_calc_params_mod
 use macroparticle_mod
 use beam_mod
+use random_mod
 
 integer, parameter :: design$ = 1
 integer, parameter :: model$ = 2
@@ -254,7 +255,7 @@ if (.not. u%coupling%coupled) then
     ! transfer extracted particle info into macro_init
     if (extract_at_ix_ele .ne. -1) then
       beam_init%center  = orb(extract_at_ix_ele)%vec
-      ! other beam_init parameters will be as in init.tao, or as above
+      ! other beam_init parameters will be as in tao.init, or as above
       call init_beam_distribution (lat%ele_(extract_at_ix_ele), &
                                beam_init, s%u(i_uni_to)%coupling%injecting_beam)
     endif

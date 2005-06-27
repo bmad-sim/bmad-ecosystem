@@ -72,8 +72,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   namelist / tao_beam_init / ix_universe, sr_wakes_on, lr_wakes_on, &
                              calc_emittance, beam_init
          
-  namelist / tao_macro_init / ix_universe, sr_wakes_on, lr_wakes_on, &
-                             calc_emittance, macro_init
+  namelist / tao_macro_init / ix_universe, sr_wakes_on, lr_wakes_on, calc_emittance, macro_init
          
   namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe, &
                            default_bpm_noise
@@ -188,6 +187,8 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
     ! defaults
     do 
       ix_universe = -1
+      sr_wakes_on = .false.
+      lr_wakes_on = .false.
       beam_init%a_norm_emitt  = 0.0
       beam_init%b_norm_emitt  = 0.0
       beam_init%dPz_dz = 0.0
@@ -197,7 +198,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
       beam_init%sig_z   = 0.0
       beam_init%sig_e   = 0.0
       beam_init%renorm_center = .true.
-      beam_init%renorm_sigma = .false.
+      beam_init%renorm_sigma = .true.
       beam_init%n_bunch = 1
       beam_init%n_particle  = 1
       ! by default, no wake data file needed
@@ -238,6 +239,8 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
     ! defaults
     do
       ix_universe = -1
+      sr_wakes_on = .false.
+      lr_wakes_on = .false.
       macro_init%x%norm_emit  = 0.0
       macro_init%y%norm_emit  = 0.0
       macro_init%dPz_dz = 0.0
@@ -266,9 +269,8 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
         bmad_com%lr_wakes_on = .false.
         if (sr_wakes_on) bmad_com%sr_wakes_on = .true.
         if (lr_wakes_on) bmad_com%lr_wakes_on = .true.
-        do i = 1, size(s%u)
-          call init_macro(s%u(i), macro_init, calc_emittance)
-        enddo
+        i = ix_universe
+        call init_macro(s%u(i), macro_init, calc_emittance)
         cycle
       elseif (ios > 0) then
         call out_io (s_abort$, r_name, 'INIT: TAO_MACRO_INIT NAMELIST READ ERROR!')
@@ -1370,7 +1372,7 @@ logical calc_emittance
                 "Calc_emittance is only applicable to circular lattices!")
     call out_io (s_blank$, r_name, "***")
   endif
-  
+
   u%macro_beam%macro_init = macro_init
   u%design_orb(0)%vec = macro_init%center
 
