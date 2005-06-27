@@ -31,6 +31,10 @@ type beam_init_struct
   real(rp) sig_z            ! Z sigma in m.
   real(rp) sig_e            ! e_sigma in dE/E.
   real(rp) bunch_charge     ! charge in a bunch.
+  real(rp) :: center_jitter(6) = 0.0 ! Bunch center rms jitter
+  real(rp) :: emitt_jitter(2)  = 0.0 ! a and b bunch emittance rms jitter normalized to emittance
+  real(rp) :: sig_z_jitter     = 0.0 ! bunch length RMS jitter 
+  real(rp) :: sig_e_jitter     = 0.0 ! energy spread RMS jitter 
   integer n_particle        ! Number of simulated particles per bunch.
   integer n_bunch           ! Number of bunches.
   logical :: renorm_center = .true.    ! Renormalize centroid?
@@ -754,6 +758,8 @@ subroutine init_beam_distribution (ele, beam_init, beam)
   real(rp) ave(6), sigma(6), a, b
   real(rp) r(6), v_mat(4,4), v_inv(4,4)
   real(rp) y, alpha(6), sig_mat(6,6)
+  real(rp) center(6) ! includes jitter
+  real(rp) ran(6)
 
   integer i, j, j2, n
   
@@ -846,11 +852,18 @@ subroutine init_beam_distribution (ele, beam_init, beam)
     enddo
   endif
 
-! Now scale by the emittances, etc.
+! Put in beam jitter
+  call ran_gauss(ran)
+  center = beam_init%center + beam_init%center_jitter*ran
+  
+! Now scale by the emittances, etc. and put in jitter
 
-  denom = (1 + beam_init%center(6)) * ele%value(beam_energy$)
-  a_emitt = beam_init%a_norm_emitt * m_electron / denom
-  b_emitt = beam_init%b_norm_emitt * m_electron / denom
+  call ran_gauss(ran(1:4)) ! ran(3:4) for z and e jitter used below
+  denom = (1 + center(6)) * ele%value(beam_energy$)
+  a_emitt = beam_init%a_norm_emitt*(1+beam_init%emitt_jitter(1)*ran(1)) &
+                                                      * m_electron / denom
+  b_emitt = beam_init%b_norm_emitt*(1+beam_init%emitt_jitter(2)*ran(2)) &
+                                                      * m_electron / denom
   
   dpz_dz = beam_init%dpz_dz
   
@@ -860,8 +873,8 @@ subroutine init_beam_distribution (ele, beam_init, beam)
   sigma(2) = sqrt(a_emitt / ele%x%beta)
   sigma(3) = sqrt(b_emitt * ele%y%beta)
   sigma(4) = sqrt(b_emitt / ele%y%beta)
-  sigma(5) = beam_init%sig_z
-  sigma(6) = beam_init%sig_e
+  sigma(5) = beam_init%sig_z * (1 + beam_init%sig_z_jitter*ran(3))
+  sigma(6) = beam_init%sig_e * (1 + beam_init%sig_e_jitter*ran(4))
 
   a = dpz_dz * sigma(5) / sigma(6)
 
@@ -893,7 +906,7 @@ subroutine init_beam_distribution (ele, beam_init, beam)
     ! Include Coupling
     p%r%vec(1:4) = matmul(v_mat, p%r%vec(1:4))
 
-    p%r%vec = p%r%vec + beam_init%center
+    p%r%vec = p%r%vec + center
       
   end do
      
