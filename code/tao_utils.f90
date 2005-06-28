@@ -10,6 +10,23 @@ use tao_struct
 use tao_interface
 use bmad
 
+! used for parsing expressions
+integer, private :: plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
+integer, private :: l_parens$ = 5, r_parens$ = 6, power$ = 7
+integer, private :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
+integer, private :: sin$ = 11, cos$ = 12, tan$ = 13
+integer, private :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
+integer, private :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
+integer, private :: numeric$ = 100
+
+integer, private :: eval_level(22) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 /)
+
+type eval_stack_struct
+  integer type
+  real(rp) value
+end type
+
 contains
 
 !----------------------------------------------------------------------------
@@ -924,43 +941,432 @@ character(20) :: r_name = "tao_lat_bookkeeper"
 
 end subroutine tao_lat_bookkeeper
 
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
 !+
-! Subroutine tao_to_real (str, r_real, err)
-! 
-! Converts a string to a real number
+! Subroutine tao_to_real (word, value, err_flag)
 !
-!  If the string str is blank then r_real = 0.0
+! mathematically evaluates a character expression.
+!
+! Input:
+!  expression   -- character(*): arithmetic expression
+!  
+! Output:
+!  value        -- real(rp): value of arithmetic expression
+!  err_flag     -- Logical: TRUE on error
 !-
 
-subroutine tao_to_real (str, r_real, err)
+subroutine tao_to_real (expression, value, err_flag)
 
-character(*) str
-real(rp) r_real
-integer ios
-logical err
-character(12) :: r_name = "tao_to_real"
+use random_mod
 
-!
+implicit none
 
-  call string_trim (str, str, ios)
+type (eval_stack_struct) stk(200)
+
+integer i_lev, i_op, i, ios
+
+integer op_(200), ix_word, i_delim, i2, ix_word2
+
+real(rp) value
+
+character(*), intent(in) :: expression
+character(100) phrase
+character(1) delim
+character(40) word, word2
+character(16) :: r_name = "parse_expression"
+
+logical delim_found, split, ran_function_pending
+logical err_flag
+
+! Don't destroy the input expression
+  if (len(expression) .gt. len(phrase)) then
+    call out_io (s_warn$, r_name, &
+      "Expression cannot be longer than /I3/ characters", len(phrase))
+    err_flag = .true.
+    return
+  endif
+  read (expression, '(a)') phrase
+
+! if phrase is blank then return 0.0
+  call string_trim (phrase, phrase, ios)
   if (ios .eq. 0) then
-    r_real = 0.0
+    value = 0.0
     return
   endif
  
-  err = .false.
-  read (str, *, iostat = ios) r_real
+! The general idea is to rewrite the phrase on a stack in reverse polish.
+! Reverse polish means that the operand goes last so that 2 * 3 is writen 
+! on the stack as: [2, 3, *]
 
-  if (ios /= 0) then
-    call out_io (s_error$, r_name, 'EXPECTING REAL NUMBER: ' // str)
-    err = .true.
+! The stack is called: stk
+! Since operations move towards the end of the stack we need a separate
+! stack called op_ which keeps track of what operations have not yet
+! been put on stk.
+
+! init
+
+  err_flag = .false.
+  i_lev = 0
+  i_op = 0
+  ran_function_pending = .false.
+
+! parsing loop to build up the stack.
+
+  parsing_loop: do
+
+! get a word
+
+    call word_read (phrase, '+-*/()^,:} ', word, ix_word, delim, &
+                    delim_found, phrase)
+    call str_upcase (word, word)
+!   call get_next_word (word, ix_word, '+-*/()^,:} ', delim, delim_found)
+
+    if (delim == '*' .and. word(1:1) == '*') then
+      call out_io (s_warn$, r_name, 'EXPONENTIATION SYMBOL IS "^" AS OPPOSED TO "**" for!')
+      err_flag = .true.
+      return
+    endif
+
+    if (ran_function_pending .and. (ix_word /= 0 .or. delim /= ')')) then
+          call out_io (s_warn$, r_name, &
+             'RAN AND RAN_GAUSS DO NOT TAKE AN ARGUMENT')
+      err_flag = .true.
+      return
+    endif
+
+!--------------------------
+! Preliminary: If we have split up something that should have not been split
+! then put it back together again...
+
+! just make sure we are not chopping a number in two, e.g. "3.5e-7" should not
+! get split at the "-" even though "-" is a delimiter
+
+    split = .true.         ! assume initially that we have a split number
+    if (ix_word == 0) then
+      split = .false.
+    elseif (word(ix_word:ix_word) /= 'E') then
+      split = .false.
+    endif
+    if (delim(1:1) /= '-' .and. delim(1:1) /= '+') split = .false.
+    do i = 1, ix_word-1
+      if (index('.0123456789', word(i:i)) == 0) split = .false.
+    enddo
+
+! If still SPLIT = .TRUE. then we need to unsplit
+
+    if (split) then
+      word = word(:ix_word) // delim
+      call word_read (phrase, '+-*/()^,:}', word2, ix_word2, delim, &
+                    delim_found, phrase)
+      call str_upcase (word2, word2)
+      word = word(:ix_word+1) // word2
+      ix_word = ix_word + ix_word2
+    endif
+
+! Something like "lcav[lr(2).freq]" will get split on the "("
+
+    if (delim == '(' .and. index(word, '[LR') /= 0) then
+      call word_read (phrase, '+-*/(^,:}', word2, ix_word2, delim, &
+                    delim_found, phrase)
+      call str_upcase (word2, word2)
+      word = word(:ix_word) // '(' // word2
+      ix_word = ix_word + ix_word2
+    endif
+
+!---------------------------
+! Now see what we got...
+
+! For a "(" delim we must have a function
+
+    if (delim == '(') then
+
+      ran_function_pending = .false.
+      if (ix_word /= 0) then
+        select case (word)
+        case ('SIN') 
+          call pushit (op_, i_op, sin$)
+        case ('COS') 
+          call pushit (op_, i_op, cos$)
+        case ('TAN') 
+          call pushit (op_, i_op, tan$)
+        case ('ASIN') 
+          call pushit (op_, i_op, asin$)
+        case ('ACOS') 
+          call pushit (op_, i_op, acos$)
+        case ('ATAN') 
+          call pushit (op_, i_op, atan$)
+        case ('ABS') 
+          call pushit (op_, i_op, abs$)
+        case ('SQRT') 
+          call pushit (op_, i_op, sqrt$)
+        case ('LOG') 
+          call pushit (op_, i_op, log$)
+        case ('EXP') 
+          call pushit (op_, i_op, exp$)
+        case ('RAN') 
+          call pushit (op_, i_op, ran$)
+          ran_function_pending = .true.
+        case ('RAN_GAUSS') 
+          call pushit (op_, i_op, ran_gauss$)
+          ran_function_pending = .true.
+        case default
+          call out_io (s_warn$, r_name, &
+               'UNEXPECTED CHARACTERS ON RHS BEFORE "(": ')
+          err_flag = .true.
+          return
+        end select
+      endif
+
+      call pushit (op_, i_op, l_parens$)
+      cycle parsing_loop
+
+! for a unary "-"
+
+    elseif (delim == '-' .and. ix_word == 0) then
+      call pushit (op_, i_op, unary_minus$)
+      cycle parsing_loop
+
+! for a unary "+"
+
+      call pushit (op_, i_op, unary_plus$)
+      cycle parsing_loop
+
+! for a ")" delim
+
+    elseif (delim == ')') then
+      if (ix_word == 0) then
+        if (.not. ran_function_pending) call out_io (s_warn$, r_name, &
+              'CONSTANT OR VARIABLE MISSING BEFORE ")"')
+        err_flag = .true.
+        return
+      else
+        read (word, *, iostat = ios) value
+        if (ios .ne. 0) then
+          call out_io (s_warn$, r_name, &
+                "This doesn't seem to be a number: /a/", word)
+          err_flag = .true.
+          return
+        endif
+        call pushit (stk%type, i_lev, numeric$)
+        stk(i_lev)%value = value
+      endif
+
+      do
+        do i = i_op, 1, -1     ! release pending ops
+          if (op_(i) == l_parens$) exit          ! break do loop
+          call pushit (stk%type, i_lev, op_(i))
+        enddo
+
+        if (i == 0) then
+          call out_io (s_warn$, r_name, 'UNMATCHED ")" ON RHS')
+          err_flag = .true.
+          return
+        endif
+
+        i_op = i - 1
+
+        call word_read (phrase, '+-*/()^,:}', word, ix_word, delim, &
+                    delim_found, phrase)
+        call str_upcase (word, word)
+        if (ix_word /= 0) then
+          call out_io (s_warn$, r_name, &
+                   'UNEXPECTED CHARACTERS ON RHS AFTER ")"')
+          err_flag = .true.
+          return
+        endif
+
+        if (delim /= ')') exit  ! if no more ')' then no need to release more
+      enddo
+
+
+      if (delim == '(') then
+        call out_io (s_warn$, r_name,  &
+                    '")(" CONSTRUCT DOES NOT MAKE SENSE')
+        err_flag = .true.
+        return
+      endif
+
+! For binary "+-/*^" delims
+
+    else
+      if (ix_word == 0) then
+        call out_io (s_warn$, r_name, 'CONSTANT OR VARIABLE MISSING')
+        err_flag = .true.
+        return
+      endif
+      read (word, *, iostat = ios) value
+      if (ios .ne. 0) then
+        call out_io (s_warn$, r_name, &
+              "This doesn't seem to be a number: /a/", word)
+        err_flag = .true.
+        return
+      endif
+      call pushit (stk%type, i_lev, numeric$)
+      stk(i_lev)%value = value
+    endif
+
+! If we are here then we have an operation that is waiting to be identified
+
+    if (.not. delim_found) delim = ':'
+
+    select case (delim)
+    case ('+')
+      i_delim = plus$
+    case ('-')
+      i_delim = minus$
+    case ('*')
+      i_delim = times$
+    case ('/')
+      i_delim = divide$
+    case (')')
+      i_delim = r_parens$
+    case ('^')
+      i_delim = power$
+    case (',', '}', ':')
+      i_delim = no_delim$
+    case default
+        call out_io (s_error$, r_name, 'INTERNAL ERROR')
+        call err_exit
+    end select
+
+! now see if there are operations on the OP_ stack that need to be transferred
+! to the STK_ stack
+
+    do i = i_op, 1, -1
+      if (eval_level(op_(i)) >= eval_level(i_delim)) then
+        if (op_(i) == l_parens$) then
+          call out_io (s_warn$, r_name, 'UNMATCHED "("')
+          err_flag = .true.
+          return
+        endif
+        call pushit (stk%type, i_lev, op_(i))
+      else
+        exit
+      endif
+    enddo
+
+! put the pending operation on the OP_ stack
+
+    i_op = i
+    if (i_delim == no_delim$) then
+      exit parsing_loop
+    else
+      call pushit (op_, i_op, i_delim)
+    endif
+
+  enddo parsing_loop
+
+!------------------------------------------------------------------
+! now go through the stack and perform the operations
+
+  if (i_op /= 0) then
+    call out_io (s_warn$, r_name, 'UNMATCHED "("')
+    err_flag = .true.
     return
   endif
 
-end subroutine
+  if (i_lev == 0) then
+    call out_io (s_warn$, r_name, 'NO VALUE FOUND')
+    err_flag = .true.
+    return
+  endif
+
+  i2 = 0
+  do i = 1, i_lev
+    if (stk(i)%type == numeric$) then
+      i2 = i2 + 1
+      stk(i2)%value = stk(i)%value
+    elseif (stk(i)%type == unary_minus$) then
+      stk(i2)%value = -stk(i2)%value
+    elseif (stk(i)%type == unary_plus$) then
+      stk(i2)%value = stk(i2)%value
+    elseif (stk(i)%type == plus$) then
+      stk(i2-1)%value = stk(i2-1)%value + stk(i2)%value
+      i2 = i2 - 1
+    elseif (stk(i)%type == minus$) then
+      stk(i2-1)%value = stk(i2-1)%value - stk(i2)%value
+      i2 = i2 - 1
+    elseif (stk(i)%type == times$) then
+      stk(i2-1)%value = stk(i2-1)%value * stk(i2)%value
+      i2 = i2 - 1
+    elseif (stk(i)%type == divide$) then
+      if (stk(i2)%value == 0) then
+        call out_io  (s_warn$, r_name, 'DIVIDE BY 0 ON RHS')
+        err_flag = .true.
+        return
+      endif
+      stk(i2-1)%value= stk(i2-1)%value / stk(i2)%value
+      i2 = i2 - 1
+    elseif (stk(i)%type == power$) then
+      stk(i2-1)%value = stk(i2-1)%value**stk(i2)%value
+      i2 = i2 - 1
+    elseif (stk(i)%type == sin$) then
+      stk(i2)%value = sin(stk(i2)%value)
+    elseif (stk(i)%type == cos$) then
+      stk(i2)%value = cos(stk(i2)%value)
+    elseif (stk(i)%type == tan$) then
+      stk(i2)%value = tan(stk(i2)%value)
+    elseif (stk(i)%type == asin$) then
+      stk(i2)%value = asin(stk(i2)%value)
+    elseif (stk(i)%type == acos$) then
+      stk(i2)%value = acos(stk(i2)%value)
+    elseif (stk(i)%type == atan$) then
+      stk(i2)%value = atan(stk(i2)%value)
+    elseif (stk(i)%type == abs$) then
+      stk(i2)%value = abs(stk(i2)%value)
+    elseif (stk(i)%type == sqrt$) then
+      stk(i2)%value = sqrt(stk(i2)%value)
+    elseif (stk(i)%type == log$) then
+      stk(i2)%value = log(stk(i2)%value)
+    elseif (stk(i)%type == exp$) then
+      stk(i2)%value = exp(stk(i2)%value)
+    elseif (stk(i)%type == ran$) then
+      i2 = i2 + 1
+      call ran_uniform(stk(i2)%value)
+    elseif (stk(i)%type == ran_gauss$) then
+      i2 = i2 + 1
+      call ran_gauss(stk(i2)%value)
+    else
+      call out_io (s_warn$, r_name, 'INTERNAL ERROR')
+      err_flag = .true.
+      return
+    endif
+  enddo
+
+
+  if (i2 /= 1) call out_io (s_warn$, r_name, 'INTERNAL ERROR')
+
+  value = stk(1)%value
+
+
+contains
+
+!-------------------------------------------------------------------------
+
+subroutine pushit (stack, i_lev, value)
+
+  implicit none
+
+  integer stack(:), i_lev, value
+
+  character(6) :: r_name = "pushit"
+
+!
+
+  i_lev = i_lev + 1
+
+  if (i_lev > size(stack)) then
+    call out_io (s_warn$, r_name, 'STACK OVERFLOW.')
+    call err_exit
+  endif
+
+  stack(i_lev) = value
+
+end subroutine pushit
+                       
+end subroutine tao_to_real
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

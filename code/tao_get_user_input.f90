@@ -189,7 +189,7 @@ end subroutine
 
 subroutine do_loop
 
-integer, save :: indx, indx_start, indx_end ! for do loops
+integer, save :: indx, indx_start, indx_end, indx_step ! for do loops
 
 character(6) do_word ! 'do' or 'enddo'
 character(10) indx_name ! do loop index name
@@ -217,6 +217,13 @@ integer, save :: loop_line_count
     call string_trim (cmd_line(ix+1:), cmd_line, ix)
     read (cmd_line(1:ix), '(I)') indx_end
     indx = indx_start - 1 ! add one before first loop below
+    ! finally index stepsize
+    call string_trim (cmd_line(ix+1:), cmd_line, ix)
+    if (ix .ne. 0) then ! specify index stepsize
+      read (cmd_line(1:ix), '(I)') indx_step
+    else
+      indx_step = 1
+    endif
 
     ! count loop statements so I know how many records to backspace on 'ENDDO"
     loop_line_count = 0
@@ -245,12 +252,13 @@ integer, save :: loop_line_count
                    "ENDDO found without correspoding DO statement")
       return
     endif
-    indx = indx + 1
-    if (indx .le. indx_end) then
+    indx = indx + indx_step
+    if (indx .le. indx_end .and. indx_step .gt. 0) then
       ! rewind
       do i = 1, loop_line_count+1
         backspace (tao_com%lun_command_file(tao_com%nest_level))
       enddo
+    elseif (indx .ge. indx_end .and. indx_step .lt. 0) then
     else
       in_loop = .false.
     endif

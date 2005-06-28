@@ -1,7 +1,7 @@
 module tao_command_mod
 
 use output_mod
-use tao_struct
+use tao_mod
 
 type cmd_history_struct  ! record the command history
   character(100) cmd     ! the command
@@ -204,6 +204,7 @@ subroutine tao_cmd_split (cmd_line, n_word, cmd_word, no_extra_words, err, separ
   character(200) line
   logical err
   logical no_extra_words
+  real(rp) value
 
 !
 

@@ -32,9 +32,41 @@ on one line using the ``$|$'' character as a separator.
 \label{t:commands}
 \end{table}
 
-%%Don't display this!!! --------------------------------------------------
+%%Don't display anything after this by default!!! ---------------------
 
-Note: For a description of \vn{single mode} commands see
+\index{Arithmetic expressions} 
+The \tao command prompt parser can handle arithmetic expressions. 
+Arithmetic expressions can be used in a place where a real value is required.
+The standard operators are defined: \hfil\break
+\hspace*{0.15in}
+\begin{tabular}{ll}
+  $a + b$           & Addition        \\
+  $a - b$           & Subtraction     \\
+  $a \, \ast \, b$  & Multiplication  \\
+  $a \; / \; b$     & Division        \\
+  $a \, \land \, b$ & Exponentiation  \\
+\end{tabular} \newline
+The following intrinsic functions are also recognized: \hfil\break
+\index{Intrinsic functions}
+\hspace*{0.15in}
+\begin{tabular}{ll}
+  \vn{sqrt}(x)      & Square Root    \\
+  \vn{log}(x)       & Logarithm      \\
+  \vn{exp}(x)       & Exponential    \\
+  \vn{sin}(x)       & Sine           \\
+  \vn{cos}(x)       & Cosine         \\
+  \vn{tan}(x)       & Tangent        \\
+  \vn{asin}(x)      & Arc sine       \\
+  \vn{acos}(x)      & Arc cosine     \\
+  \vn{atan}(x)      & Arc Tangent    \\
+  \vn{abs}(x)       & Absolute Value \\
+  \vn{ran}()        & Random number between 0 and 1 \\
+  \vn{ran_gauss}()  & Gaussian distributed random number with unit RMS \\
+\end{tabular} \newline
+Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator. 
+Setting the seed is described in Section~\ref{s:globals}.
+
+For a description of \vn{single mode} commands see
 Chapter~\ref{c:single}. To put \tao into \vn{single mode} use the
 \vn{single_mode} command. 
 
@@ -95,14 +127,15 @@ nested command files can use this argument list.
 
 Do loops are allowed with the following syntax:
 \begin{example}
-  do i 1 100
+  do <var> <begin> <end> <step> 
     ...
-    tao command [i]
+    tao command [<var>]
     ...
   enddo
 \end{example}
 The loop index can be used as a variable in the loop body but must be
-bracketed.  Nested loops are not allowed, but nested command files are
+bracketed.  The step size can be any integer positive or negative but not zero.
+Nested loops are not allowed, but nested command files are
 allowed in do loops provided there are no do loops in the nested
 command files.
 

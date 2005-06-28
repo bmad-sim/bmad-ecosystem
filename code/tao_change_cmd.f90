@@ -279,13 +279,7 @@ subroutine to_number
     return
   endif
 
-  read (num, *, iostat = ios) change_number
-  if (ios /= 0) then
-    call out_io (s_error$, r_name, 'BAD NUMBER: ' // num)
-    return
-  endif
-
-  err = .false.
+  call tao_to_real (num, change_number, err)
 
 end subroutine
 
