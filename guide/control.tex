@@ -130,6 +130,11 @@ attribute and this change will be added to the value of
 \vn{q1[k1]} is. It only knows it has to change it by the change in
 \vn{gr[command]}.
 
+\index{Accordian_edge}
+\index{start_edge}
+\index{end_edge}
+\index{symmetric_edge}
+\index{s_offset}
 A \vn{group} can be used to control an elements position and length
 using the attributes
 \begin{example}
@@ -137,17 +142,23 @@ using the attributes
   start_edge      ! Varies element's starting edge s-position
   end_edge        ! Varies element's ending edge s-position
   symmetric_edge  ! Varies element's overall s-position. Constant length.
-  s_offset        ! Same as symmetric_edge
+  s_offset        ! Similar to symmetric_edge
 \end{example}
+With \vn{accordian_edge}, \vn{start_edge}, \vn{end_edge}, and
+\vn{symmetric_edge} the longitudinal position of an elements edges are
+varied. This is done by appropriate control of the element's length
+and the lengths of the elements to either side. With \vn{s_offset} the
+physical element is offset from its reference position
+(\sref{s:offset}) and the elements on either side are untouched.
 In all cases the total length of the lattice is kept invariant.
-\vn{accordion_edge} varies the edges of an element so that the center
-of the element is fixed but the length varies. with
-\vn{accordion_edge} a change of, say, 0.1 in a \vn{group}'s
-\vn{command} attribute moves both edges of the element by 0.1 meters
-so that the length of the element changes by 0.2 meters. To keep the
-total lattice length invariant the lengths of the elements to either
-side are varied accordingly.
-For example
+
+As an example, consider \vn{accordion_edge} which varies the edges of
+an element so that the center of the element is fixed but the length
+varies. With \vn{accordion_edge} a change of, say, 0.1 in a
+\vn{group}'s \vn{command} attribute moves both edges of the element by
+0.1 meters so that the length of the element changes by 0.2 meters. To
+keep the total lattice length invariant the lengths of the elements to
+either side are varied accordingly.  For example
 \begin{example}
   q10: quad, l = ...
   q11: quad, l = ...
@@ -164,6 +175,12 @@ This last line that defines \vn{gr2} is just a shorthand notation for
 The effect will be to lengthen the length of \vn{q10} and shorten the
 length of \vn{d1}.
 
+\index{Old_command}
+\index{Command}
+\index{coef}
+\index{type}
+\index{alias}
+\index{descrip}
 The full list of attributes of a group are
 \begin{example}
   command         

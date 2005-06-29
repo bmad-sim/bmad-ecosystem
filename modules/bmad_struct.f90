@@ -305,10 +305,10 @@ module bmad_struct
 
   integer, parameter :: l$=1
   integer, parameter :: tilt$=2, command$=2
-  integer, parameter :: old_command$=3, angle$=3, kick$=3, dt_ref$=3
+  integer, parameter :: old_command$=3, angle$=3, kick$=3, dt_ref$=3, gradient_err$=3
   integer, parameter :: k1$=4, sig_x$=4, harmon$=4, h_displace$=4, e_loss$=4
-  integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, g$=5
-  integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, delta_g$=6
+  integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, g$=5, phi0_err$=5
+  integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, g_err$=6
   integer, parameter :: dks_ds$=6, lrad$=6   ! lrad is for felv testing.
   integer, parameter :: ks$=7, voltage$=7, n_pole$=7, bbi_const$=7
   integer, parameter :: e1$=8, charge$=8, gap$=8, dphi0$=8

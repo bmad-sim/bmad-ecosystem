@@ -298,10 +298,10 @@ subroutine track1_bmad (start, ele, param, end)
       call err_exit
     endif
 
-    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) - &
+    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
                         end%vec(5) * ele%value(rf_frequency$) / c_light)
     cos_phi = cos(phase)
-    gradient = ele%value(gradient$) * cos_phi 
+    gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi 
     if (.not. ele%is_on) gradient = 0
 
     if (bmad_com%sr_wakes_on) then

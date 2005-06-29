@@ -758,9 +758,11 @@ attributes specific to an \vn{Lcavity} are
 \index{LR_wake_file}
 \begin{example}
   gradient     = <Real>   ! Accelerating gradient (V/m).
+  gradient_err = <Real>   ! Accelerating gradient error (V/m).
   phi0         = <Real>   ! Phase (rad/2\(\pi\)) of the reference particle with 
                           !   respect to the RF. phi0 = 0 is on crest.
   dphi0        = <Real>   ! Phase with respect to a multipass lord (rad/2\(\pi\)).
+  phi0_err     = <Real>   ! Phase error (rad/2\(\pi\))
   e_loss       = <Real>   ! Loss parameter for short range wakefields (V/Coulomb).
   rf_frequency = <Real>   ! Rf frequency (Hz).
   delta_e                 ! Change in energy of an on-crest particle. 
@@ -773,12 +775,15 @@ The dependent variable \vn{delta_e} attribute can be used in place of
 
 The energy kick felt by a particle is 
 \begin{example}
-  dE = gradient * L * cos(twopi * (phi_ref + phi(z)) - e_loss * n_part * e_charge 
+  dE = gradient_tot * L * cos(twopi * (phi_ref + phi_err + phi(z)) - 
+                                                     e_loss * n_part * e_charge 
 \end{example}
 \index{Multipass}
 where
 \begin{example}
+  gradient_tot = gradient + gradient_err
   phi_ref = phi0 + dphi0
+  phi_err = phi0_err
   phi(z) = -z * rf_frequency / c_light
 \end{example}
 \vn{dphi0} is only to be used to shift the phase with respect to a \vn{multipass}
@@ -792,7 +797,7 @@ electron (Table~\ref{t:constants}). Notice that the energy kick is
 independent of the sign of the charge of the particle
 
 The energy change of the reference particle is just the energy change for a 
-particle with $z = 0$. Thus
+particle with $z = 0$ and no phase or gradient errors. Thus
 \begin{example}
   dE(reference) = gradient * L * cos(twopi * phi_ref) - e_loss * n_part * e_charge
 \end{example}

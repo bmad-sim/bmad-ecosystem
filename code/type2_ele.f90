@@ -154,10 +154,10 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
         endif
       enddo
 
-      nl=nl+1; write (li(nl), '(9x, 2a)') 'APERTURE_AT      = ', &
+      nl=nl+1; write (li(nl), '(9x, 2a)')   'APERTURE_AT      = ', &
                                   element_end_name(ele%aperture_at)
       if (ele%key == lcavity$) then
-        nl=nl+1; write (li(nl), '(9x, 2a)') 'COUPLER_AT      = ', &
+        nl=nl+1; write (li(nl), '(9x, 2a)') 'COUPLER_AT       = ', &
                                   element_end_name(ele%coupler_at)
       endif
 
@@ -333,7 +333,7 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
           j = lattice%control_(ic)%ix_lord
           coef = lattice%control_(ic)%coef
           ct = ele%control_type
-          if (ct == super_slave$ .or. ct == multipass_lord$ .or. &
+          if (ct == super_slave$ .or. ct == multipass_slave$ .or. &
                             lattice%ele_(j)%control_type == i_beam_lord$) then
             a_name = '--------'
             val_str = '    --------'

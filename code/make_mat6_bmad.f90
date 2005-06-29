@@ -146,7 +146,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       return
     endif
 
-    g_tot = ele%value(g$) + ele%value(delta_g$)
+    g_tot = ele%value(g$) + ele%value(g_err$)
 
     if (g_tot == 0) then
       call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
@@ -444,10 +444,10 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   case (lcavity$)
 
     f = twopi * ele%value(rf_frequency$) / c_light
-    phase = twopi * (ele%value(phi0$)+ele%value(dphi0$)) - f * c0%vec(5)
+    phase = twopi * (ele%value(phi0$)+ele%value(dphi0$)+ele%value(phi0_err$)) - f * c0%vec(5)
 
     cos_phi = cos(phase)
-    gradient = ele%value(gradient$) * cos_phi 
+    gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi 
     if (.not. ele%is_on) gradient = 0
 
     if (bmad_com%sr_wakes_on) then

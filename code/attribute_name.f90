@@ -195,6 +195,9 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(lcavity$, coupler_strength$) = 'COUPLER_STRENGTH'
     attrib_array(lcavity$, coupler_angle$)    = 'COUPLER_ANGLE'
     attrib_array(lcavity$, coupler_phase$)    = 'COUPLER_PHASE'
+    attrib_array(lcavity$, gradient_err$)     = 'GRADIENT_ERR'
+    attrib_array(lcavity$, phi0_err$)         = 'PHI0_ERR'
+
 
     attrib_array(group$, command$)        = 'COMMAND'
     attrib_array(group$, old_command$)    = 'OLD_COMMAND'
@@ -237,12 +240,14 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(hkicker$, kick$)       = 'KICK'
     attrib_array(hkicker$, field_calc$) = 'FIELD_CALC'
     attrib_array(hkicker$, bl_kick$)    = 'BL_KICK'
+    attrib_array(Hkicker$, s_offset$)   = 'S_OFFSET'
 
     attrib_array(vkicker$, l$)          = 'L'
     attrib_array(vkicker$, tilt$)       = 'TILT'
     attrib_array(vkicker$, kick$)       = 'KICK'
     attrib_array(vkicker$, field_calc$) = 'FIELD_CALC'
     attrib_array(vkicker$, bl_kick$)    = 'BL_KICK'
+    attrib_array(vkicker$, s_offset$)   = 'S_OFFSET'
 
     attrib_array(kicker$, l$)           = 'L'
     attrib_array(kicker$, tilt$)        = 'TILT'
@@ -250,6 +255,7 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(kicker$, v_displace$)  = 'V_DISPLACE'
     attrib_array(kicker$, radius$)      = 'RADIUS'
     attrib_array(kicker$, field_calc$)  = 'FIELD_CALC'
+    attrib_array(kicker$, s_offset$)    = 'S_OFFSET'
 
     attrib_array(sbend$, l$)          = 'L'
     attrib_array(sbend$, angle$)      = 'ANGLE'
@@ -259,7 +265,7 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(sbend$, h2$)         = 'H2'
     attrib_array(sbend$, k1$)         = 'K1'
     attrib_array(sbend$, g$)          = 'G'
-    attrib_array(sbend$, delta_g$)    = 'DELTA_G'
+    attrib_array(sbend$, g_err$)      = 'G_ERR'
     attrib_array(sbend$, tilt$)       = 'TILT'
     attrib_array(sbend$, roll$)       = 'ROLL'
     attrib_array(sbend$, hgap$)       = 'HGAP'
@@ -304,7 +310,7 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(rbend$, h2$)         = 'H2'
     attrib_array(rbend$, k1$)         = 'K1'
     attrib_array(rbend$, g$)          = 'G'
-    attrib_array(rbend$, delta_g$)    = 'DELTA_G'
+    attrib_array(rbend$, g_err$)      = 'G_ERR'
     attrib_array(rbend$, tilt$)       = 'TILT'
     attrib_array(rbend$, roll$)       = 'ROLL'
     attrib_array(rbend$, hgap$)       = 'HGAP'

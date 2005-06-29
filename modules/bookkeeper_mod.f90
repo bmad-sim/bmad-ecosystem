@@ -1314,7 +1314,7 @@ subroutine attribute_bookkeeper (ele, param)
     check_sum = ele%value(ks$)
 
   case (sbend$)
-    check_sum = ele%value(g$) + ele%value(delta_g$) + ele%value(e1$) + &
+    check_sum = ele%value(g$) + ele%value(g_err$) + ele%value(e1$) + &
         ele%value(e2$)
 
   case (sextupole$)
@@ -1324,11 +1324,14 @@ subroutine attribute_bookkeeper (ele, param)
     check_sum = ele%value(k3$) + ele%value(tilt$)
 
   case (rfcavity$)
-    check_sum = ele%value(voltage$) + ele%value(phi0$)
+    check_sum = ele%value(voltage$) + ele%value(phi0$) 
 
   case (elseparator$)
     check_sum = check_sum + ele%value(hkick$) + ele%value(vkick$)
 
+  case (lcavity$)
+    check_sum = ele%value(gradient$) + ele%value(phi0$) + ele%value(gradient_err$) + &
+                ele%value(phi0_err$)
   case default
     return
 

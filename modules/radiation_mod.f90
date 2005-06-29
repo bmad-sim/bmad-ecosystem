@@ -170,13 +170,13 @@ subroutine track1_radiation (start, ele, param, end, edge)
 
   case (sbend$)
     if (ele%value(k1$) == 0) then
-      g = ele%value(g$) + ele%value(delta_g$)
+      g = ele%value(g$) + ele%value(g_err$)
       g2 = g**2 
       if (bmad_com%radiation_fluctuations_on) g3 = g2 * abs(g)
     else
       x_ave = start2%vec(1) + direc * start2%vec(2) * ele%value(l$) / 4
       y_ave = start2%vec(3) + direc * start2%vec(4) * ele%value(l$) / 4
-      g_x = ele%value(g$) + ele%value(delta_g$) + ele%value(k1$) * x_ave
+      g_x = ele%value(g$) + ele%value(g_err$) + ele%value(k1$) * x_ave
       g_y = ele%value(k1$) * y_ave
       g2 = g_x**2 + g_y**2
       if (bmad_com%radiation_fluctuations_on) g3 = sqrt(g2)**3

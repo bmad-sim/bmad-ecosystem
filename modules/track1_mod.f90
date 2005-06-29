@@ -170,9 +170,9 @@ subroutine track_a_bend (start, ele, param, end)
 
   if (ele%value(g$) == 0) then
     end = start
-    end%vec(2) = end%vec(2) + length * ele%value(delta_g$) / 2
+    end%vec(2) = end%vec(2) + length * ele%value(g_err$) / 2
     call track_a_drift (end%vec, ele%value(l$))
-    end%vec(2) = end%vec(2) + length * ele%value(delta_g$) / 2
+    end%vec(2) = end%vec(2) + length * ele%value(g_err$) / 2
     return
   endif
 
@@ -190,7 +190,7 @@ subroutine track_a_bend (start, ele, param, end)
 
   length = ele%value(l$)
   g0 = ele%value(g$)
-  dg = ele%value(delta_g$)
+  dg = ele%value(g_err$)
   g_tot = g0 + dg
   b1 = g_tot
   angle = ele%value(g$) * length
@@ -270,7 +270,7 @@ subroutine track_bend_edge (orb, ele, start_edge, reverse, kx, ky)
 
 ! Track through the entrence face. Treat as thin lens.
 
-  g = ele%value(g$) + ele%value(delta_g$)
+  g = ele%value(g$) + ele%value(g_err$)
   if (reverse) g = -g
 
   if (start_edge) then

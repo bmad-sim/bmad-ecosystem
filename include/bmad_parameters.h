@@ -33,10 +33,10 @@ namespace Bmad {
           ETA_X1 = 16, ETAP_X1 = 17, ETA_Y1 = 18, ETAP_Y1 = 19;
   const int L=1;
   const int TILT=2, COMMAND=2;
-  const int OLD_COMMAND=3, ANGLE=3, KICK=3, DT_REF=3;
+  const int OLD_COMMAND=3, ANGLE=3, KICK=3, DT_REF=3, GRADIENT_ERR=3;
   const int K1=4, SIG_X=4, HARMON=4, H_DISPLACE=4, E_LOSS=4;
-  const int K2=5, SIG_Y=5, B_MAX=5, V_DISPLACE=5, G=5;
-  const int K3=6, SIG_Z=6, RF_WAVELENGTH=6, DELTA_G=6;
+  const int K2=5, SIG_Y=5, B_MAX=5, V_DISPLACE=5, G=5, PHI0_ERR=5;
+  const int K3=6, SIG_Z=6, RF_WAVELENGTH=6, G_ERR=6;
   const int DKS_DS=6, LRAD=6;
   const int KS=7, VOLTAGE=7, N_POLE=7, BBI_CONST=7;
   const int E1=8, CHARGE=8, GAP=8, DPHI0=8;
@@ -79,7 +79,7 @@ namespace Bmad {
   const int BL_KICK = 45;
   const int COUPLER_STRENGTH = 46;
   const int COUPLER_PHASE = 47;
-  const int COUPLER_POLARIZATION = 48;
+  const int COUPLER_ANGLE = 48;
   const int KICK_TILT = 49;
   const int SR_WAKE_FILE = 50;
   const int LR_WAKE_FILE = 51;

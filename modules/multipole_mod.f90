@@ -260,7 +260,7 @@ subroutine multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)
   select case (ele%key)
 
   case (sbend$, rbend$)
-    const = ele%value(l$) * (ele%value(g$) + ele%value(delta_g$))
+    const = ele%value(l$) * (ele%value(g$) + ele%value(g_err$))
     ref_exp = 0
 
   case (elseparator$, kicker$)
