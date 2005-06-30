@@ -177,9 +177,8 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
       do i = 1, ring%n_ele_use
         key = ring%ele_(i)%key
         if (key == quadrupole$ .or. key == sol_quad$ .or. key == sbend$ .or. &
-              (key == wiggler$ .and. ring%ele_(i)%sub_key == map_type$) .or. &
-               ring%ele_(i)%value(hkick$) /= 0 .or. &
-               ring%ele_(i)%value(vkick$) /= 0) then
+                 key == wiggler$ .or. ring%ele_(i)%value(hkick$) /= 0 .or. &
+                 ring%ele_(i)%value(vkick$) /= 0) then
           j = j + 1
           ring%ele_(i)%ixx = j
         else
