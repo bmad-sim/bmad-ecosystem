@@ -66,13 +66,6 @@ subroutine compute_reference_energy (lattice, compute)
                                              lattice%param%particle, pc = p0c)
       endif
 
-      if (beam_energy == ele%value(energy_start$)) then
-        ele%value(dt_ref$) = ele%value(l$) * p0c / beam_energy
-      else
-        ele%value(dt_ref$) = (p0c - ele%value(p0c_start$)) * ele%value(l$) / &
-                                       (beam_energy - ele%value(energy_start$))
-      endif
-
     case (custom$) 
       beam_energy = beam_energy + ele%value(gradient$) * ele%value(l$)
       call convert_total_energy_to (beam_energy, &

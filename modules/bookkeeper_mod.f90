@@ -341,7 +341,6 @@ subroutine makeup_multipass_slave (ring, ix_slave)
     slave%value(dphi0$)        = val(dphi0$)
     slave%value(energy_start$) = val(energy_start$)
     slave%value(p0c_start$)    = val(p0c_start$)
-    slave%value(dt_ref$)       = val(dt_ref$)
   endif
 
   slave%value(beam_energy$) = val(beam_energy$)

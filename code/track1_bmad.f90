@@ -420,7 +420,7 @@ subroutine track1_bmad (start, ele, param, end)
 
     dE = ele%value(beam_energy$) - ele%value(energy_start$)
     if (dE == 0) then
-      dt_ref = length * ele%value(p0c$) / ele%value(beam_energy$) 
+      dt_ref = length * ele%value(beam_energy$) / ele%value(p0c$)
     else
       dt_ref = (ele%value(p0c$) - ele%value(p0c_start$)) * length / dE
     endif                      
