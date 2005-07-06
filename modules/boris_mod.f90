@@ -12,7 +12,7 @@
 ! coordinate system:
 !   (x, P_x, y, P_y, ct, U)
 ! While the Bmad coordinate system is:
-!   (x, P_x/P_0, y, P_y/P_0, s-beta*c*t, dP/P_0)
+!   (x, P_x/P_0, y, P_y/P_0, beta*c*dt, dP/P_0)
 !-
 
 #include "CESR_platform.inc"      
@@ -216,8 +216,8 @@ end subroutine track1_adaptive_boris
 !+
 ! Subroutine track1_boris (start, ele, param, end, track, s_start, s_end)
 !
-! Subroutine to do Boris tracking.
-! For more information on Boris tracking see the boris_mod documentation.
+! Subroutine to do Boris tracking. For more information on Boris tracking 
+! see the boris_mod module documentation.
 ! 
 ! Modules needed:
 !   use bmad
@@ -332,7 +332,7 @@ end subroutine
 !
 ! Note: Coordinates are with respect to the element coordinate frame.
 !
-! For more information on Boris tracking see the boris_mod documentation.
+! For more information on Boris tracking see the boris_mod module documentation.
 !
 ! Modules needed:
 !   use bmad
@@ -359,27 +359,27 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
   type (em_field_struct) :: field
 
   real(rp), intent(in) :: s, ds
-  real(rp) :: f, p_z, d2, alpha, dxv, dyv, ds2_f, charge, U_rel, p_rel
-  real(rp) :: r(3,3), w(3), ex, ey, ex2, ey2, exy, bz, bz2, m_rel, beta
+  real(rp) :: f, p_z, d2, alpha, dxv, dyv, ds2_f, charge, U_tot, p_tot
+  real(rp) :: r(3,3), w(3), ex, ey, ex2, ey2, exy, bz, bz2, mass, old_beta, beta
 
 !
 
   charge = charge_of(param%particle)
-  m_rel = mass_of(param%particle) / ele%value(p0c$)
+  mass = mass_of(param%particle) / ele%value(p0c$)
 
   end = start
 
 ! 1) Push the position 1/2 step
 
-  p_rel = 1 + end%vec(6)
-  p_z = sqrt(p_rel**2 - end%vec(2)**2 - end%vec(4)**2)
+  p_tot = 1 + end%vec(6)
+  p_z = sqrt(p_tot**2 - end%vec(2)**2 - end%vec(4)**2)
   ds2_f = ds / (2 * p_z)
-  U_rel = sqrt (p_rel**2 + m_rel**2)
-  beta = p_rel / U_rel  ! particle velocity: v/c
+  U_tot = sqrt (p_tot**2 + mass**2)
+  old_beta = p_tot / U_tot  ! particle velocity: v/c
 
   end%vec(1) = end%vec(1) + ds2_f * end%vec(2) 
   end%vec(3) = end%vec(3) + ds2_f * end%vec(4)
-  end%vec(5) = end%vec(5) + ds2_f * (p_z - p_rel) 
+  end%vec(5) = end%vec(5) + ds2_f * (p_z - p_tot) 
 
 ! 2) Evaluate the fields.
 
@@ -396,9 +396,9 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
 
   end%vec(2) = end%vec(2) - field%b(2) * f
   end%vec(4) = end%vec(4) + field%b(1) * f
-  U_rel = U_rel + field%e(3) * f / c_light
-  p_rel = sqrt (U_rel**2 - m_rel**2)
-  p_z = sqrt(p_rel**2 - end%vec(2)**2 - end%vec(4)**2)
+  U_tot = U_tot + field%e(3) * f / c_light
+  p_tot = sqrt (U_tot**2 - mass**2)
+  p_z = sqrt(p_tot**2 - end%vec(2)**2 - end%vec(4)**2)
 
 ! 4) Push the momenta a full step using the "R" matrix.
 
@@ -423,27 +423,32 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
     r(2,1:3) = (/ -bz + d2*exy,     d2 * (ey2 - bz2), ey - d2*bz*ex    /)
     r(3,1:3) = (/ ex - d2*bz*ey,    ey + d2*bz*ex,    d2 * (ex2 + ey2) /)
 
-    w = (/ end%vec(2), end%vec(4), U_rel /)
+    w = (/ end%vec(2), end%vec(4), U_tot /)
     w = w + alpha * matmul(r, w)
-    end%vec(2:4:2) = w(1:2); U_rel = w(3)
+    end%vec(2:4:2) = w(1:2); U_tot = w(3)
   endif
 
 ! 5) Push the momenta a 1/2 step using only the "b" term.
 
   end%vec(2) = end%vec(2) - field%b(2) * f
   end%vec(4) = end%vec(4) + field%b(1) * f
-  U_rel = U_rel + field%e(3) * f / c_light
-  p_rel = sqrt (U_rel**2 - m_rel**2)
+  U_tot = U_tot + field%e(3) * f / c_light
+  p_tot = sqrt (U_tot**2 - mass**2)
+
+! Since beta changes in steps 2-5 we need to update vec(5)
+
+  beta = p_tot / U_tot
+  end%vec(5) = end%vec(5) * beta / old_beta
 
 ! 6) Push the position 1/2 step.
 
-  p_z = sqrt(p_rel**2 - end%vec(2)**2 - end%vec(4)**2)
+  p_z = sqrt(p_tot**2 - end%vec(2)**2 - end%vec(4)**2)
   ds2_f = ds / (2 * p_z)
 
   end%vec(1) = end%vec(1) + ds2_f * end%vec(2) 
   end%vec(3) = end%vec(3) + ds2_f * end%vec(4)
-  end%vec(5) = end%vec(5) + ds2_f * (p_z - p_rel) 
-  end%vec(6) = p_rel - 1
+  end%vec(5) = end%vec(5) + ds2_f * (p_z - p_tot) 
+  end%vec(6) = p_tot - 1
 
 end subroutine
 
