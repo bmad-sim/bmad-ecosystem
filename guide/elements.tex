@@ -297,7 +297,7 @@ Example:
 \end{center}
 \toffset
 
-\index{G}\index{B_field}\index{Delta_g}\index{Angle}
+\index{G}\index{B_field}\index{g_err}\index{Angle}
 \index{L_chord}\index{Angle}\index{H1}\index{H2}
 \index{E1}\index{E2}\index{Fint}\index{Fintx}
 \index{Hgap}\index{Hgapx}\index{Roll}\index{K1}
@@ -305,7 +305,7 @@ Attributes specific to a \vn{Rbend} and \vn{Sbend} elements are:
 \begin{example}
   g           = <Real>     ! Design bend strength (= 1/rho).
   b_field     = <Real>     ! Field strength (= P_0 g / q) (\sref{s:depend}).
-  delta_g     = <Real>     ! Bend strength error (\sref{s:depend}).
+  g_err       = <Real>     ! Bend strength error (\sref{s:depend}).
   angle       = <Real>     ! Bend angle. A settable dependent variable (\sref{s:depend}).
   rho         = <Real>     ! Bend radius. A settable dependent variable (\sref{s:depend}).
   e1, e2      = <Real>     ! Face angles.
@@ -356,15 +356,15 @@ bend towards negative $x$ values (see Figure~\ref{f:local_coords}).
   \item[k1]
 \index{K1}
 The quadrupole strength.
-  \item[g, delta\_g, rho]
+  \item[g, g\_err, rho]
 \index{G}
 \index{Rho}
-\index{Delta_g}
+\index{g_err}
 The design bending radius which determines the reference coordinate
 system is \vn{rho} (see \sref{s:ref}).  \vn{g} = 1/\vn{rho} is
 the curvature function and is proportional to the design dipole
 magnetic field. The true field strength is given by
-\vn{g}~+~\vn{delta_g} so changing \vn{delta_g} leaves the design orbit
+\vn{g}~+~\vn{g_err} so changing \vn{g_err} leaves the design orbit
 unchanged but varies a particle's orbit.
   \item[fint, fintx, hgap, hgapx]\index{Fint}\index{Fintx}
 The field integrals for the entrance and
@@ -771,7 +771,11 @@ attributes specific to an \vn{Lcavity} are
   lr_wake_file = <String> ! Long range wake field definition file.
 \end{example}
 The dependent variable \vn{delta_e} attribute can be used in place of
-\vn{gradient} as discussed in \sref{s:depend}.
+\vn{gradient} as discussed in \sref{s:depend}.  \vn{delta_e} is a
+dependent attribute and is defined to be
+\begin{example}
+  delta_e = gradient * L
+\end{example}
 
 The energy kick felt by a particle is 
 \begin{example}
@@ -937,12 +941,6 @@ redefined using the notation
 Example:
 \begin{example}
   lcav[lr(2).freq] = 1.1 * lcav[lr(2).freq] ! Raise frequency by 10\%
-\end{example}
-
-\vn{delta_e} is a dependent attribute and is
-defined to be
-\begin{example}
-  delta_e = gradient * L
 \end{example}
 
 Example:

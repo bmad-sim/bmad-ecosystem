@@ -27,19 +27,65 @@
 \setlength{\parindent}{0ex}
 
 %-----------------------------------------------------------------
-\section{Bmad\_Standard Matrix calculations and Tracking}
+\section{Bmad\_Standard Transfer Map Calculations}
 \label{s:bmad_standard}
 
+Without any electric fields, the Hamiltonian is
+\Begineq
+  H = p_z - (1 + g \, x) \sqrt{(1 + p_z)^2 - (p_x - a_x)^2 - (p_y - a_y)^2} - 
+  (1 + g \, x) \, a_s
+  \label{h1gx1}
+\Endeq
+Here $(x, p_x, y, p_y, z, p_z)$ are the canonical coordinates
+(\sref{s:phase_space_coords}), $g = 1/\rho$ with $\rho$ being the
+local radius of curvature of the reference particle, and
+$\Bf a(x,y,s)$ is the normalized vector potential which is related to
+the vector potential $\Bf A(x,y,s)$ via
+\Begineq
+  \Bf a = \frac{q \, \Bf A}{P_0 \, c}
+\Endeq
+Assuming mid--plane symmetry of the magnetic field, so
+that $a_x$ and $a_y$ can set to zero\cite{b:madphysics}, The vector
+potential up to second order is (cf.~\Eq{byx0b})
+\Begineq
+  a_s = -k_0 \left( x - \frac{g \, x^2}{2 (1 + g\, x)} \right) -
+  \frac{1}{2} k_1 \left( x^2 - y^2 \right)
+\Endeq
 
-\vn{Bmad_standard} transfer matrix calculations (\sref{s:tkm})
-tracking (\sref{s:xfer}) are meant to be quick. To this end the
-paraxial approximation (\Eq{xpa1p}) is always used.
+\vn{Bmad_standard} transfer map (\sref{s:xfer}) and (\sref{s:tkm})
+calculations are meant to be quick. To this end the paraxial
+approximation (\Eq{xpa1p}) is generally used.  Using the paraxial
+approximation, \Eq{h1gx1} becomes
+\Begineq
+  H = \frac{(p_x - a_x)^2}{2 (1 + p_z)} + \frac{(p_y - a_y)^2}{2 (1 + p_z)} - 
+  (1 + g \, x) \, a_s 
+  \label{hpapa}
+\Endeq
+
+The change in $z$, once the transverse trajectory is
+known, is obtained from integrating \Eq{hpapa} 
+\Begineq
+  z \rightarrow z - \frac{1}{2 (1 + p_z)^2} \int \! ds \, 
+  \left[ (p_x - a_x)^2 + (p_y - a_y)^2 \right] - \int \! ds \, g \, x
+  \label{zz121p}
+\Endeq
+
 
 
 %-----------------------------------------
-\index{Drift} 
+\subsection{BeamBeam}
+\index{BeamBeam}
+
+
+%-----------------------------------------
+\subsection{Bend\_Sol\_Quad}
+\index{Bend_Sol_Quad}
+
+%-----------------------------------------
 \subsection{Drift}
-The Hamiltonian for a drift is
+\index{Drift} 
+
+A drift has $\Bf a = 0$ and $g = 0$. The Hamiltonian for a drift is
 \Begineq
   H = \frac{p_x^2 + p_y^2}{2 (1 + p_z)} 
 \Endeq
@@ -67,10 +113,23 @@ The Jacobian is
   \end{pmatrix}
 \Endeq
 
+%-----------------------------------------
+\subsection{Kicker, HKicker, Vkicker, Elseparator}
+\index{Kicker}
+\index{HKicker}
+\index{VKicker}
+\index{Elseparator}
+
 
 %-----------------------------------------
-\index{LCavity}
 \subsection{LCavity}
+\index{LCavity}
+
+For an \vn{LCavity} the problem is simplified by using $(-ct, E)$ for
+the longitudinal coordinates. With this, The Hamiltonian is
+\Begineq
+  H = 
+\Endeq
 
 The traversal time across a cavity is
 \Begineq
@@ -117,6 +176,156 @@ where
   \frac{d\beta_2}{dp_{z2}}  &= \frac{(mc^2)^2}{E_2^3} \, cP_{02} \\
   \frac{dcP_2}{dz_1}        &= m(6,5) \, cP_{02}  \nonumber
 \end{align}
-%-----------------------------------------------------------------
+
+%-----------------------------------------
+\subsection{Octupole}
+\index{Octupole}
+
+%-----------------------------------------
+\subsection{Quadrupole}
+\index{Quadrupole}
+
+The \vn{bmad_standard} calculates the transfer map through an upright
+quadrupole and then transforms that map to the laboratory frame.
+
+The Hamiltonian for an upright quadrupole is
+\Begineq
+  H = \frac{p_x^2 + p_y^2}{2 (1 + p_z)} + \frac{k_1}{2} (x^2 - y^2)
+\Endeq
+This is simply solved
+\begin{align}
+  x   &\rightarrow c_x \, x + \frac{s_x}{\om} \frac{p_x}{1 + p_z} \CRNO
+  p_x &\rightarrow \tau_x \, \om \, \, (1 + p_z) \, s_x \, x + c_x \, p_x \CRNO
+  y   &\rightarrow c_y \, y + \frac{s_y}{\om} \frac{p_y}{1 + p_z} \CRNO
+  p_y &\rightarrow \tau_y \, \om \, \, (1 + p_z) \, s_y \, y + c_y \, p_y \CRNO
+  z   &\rightarrow z_{11} \, x^2 + z_{12} \, x \, p_x + z_{22} \, p_x^2 + 
+                   z_{33} \, y^2 + z_{34} \, y \, p_y + z_{44} \, p_y^2 \CRNO
+  p_z &\rightarrow p_z \nonumber
+\end{align}
+where 
+\Begineq
+  \om \equiv \sqrt{\frac{|k_1|}{1 + p_z}}
+\Endeq
+and
+\begin{alignat}{3}
+         &\hspace*{5ex}  && k_1 > 0          &\hspace*{5ex}& k_1 < 0 \CRNO
+     c_x &=   && \cos  (\om \, L) && \cosh (\om \, L) \CRNO
+     s_x &=   && \sin  (\om \, L) && \sinh (\om \, L) \CRNO
+     c_y &=   && \cosh (\om \, L) && \cos  (\om \, L) \\
+     s_y &=   && \sinh (\om \, L) && \sin  (\om \, L) \CRNO
+  \tau_x &=   && {-}1             && {+}1             \CRNO
+  \tau_y &=   && {+}1             && {-}1             \nonumber
+\end{alignat}
+with this
+\begin{align}
+  z_{11} &= \frac{-\tau_x \,\, \om}{4} \, (\om \, L - c_x \, s_x) \CRNO
+  z_{12} &= \frac{-\tau_x}{2 \, (1 + p_z)} \, s_x^2 \CRNO
+  z_{22} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + \frac{c_x \, s_x}{\om}) \CRNO
+  z_{33} &= \frac{-\tau_y \,\, \om}{4} \, (\om \, L - c_y \, s_y) \CRNO
+  z_{34} &= \frac{-\tau_y}{2 \, (1 + p_z)} \, s_y^2 \CRNO
+  z_{44} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + \frac{c_y \, s_y}{\om}) \nonumber
+\end{align}
+
+
+%-----------------------------------------
+\subsection{RFcavity}
+\index{RFcavity}
+
+%-----------------------------------------
+\subsection{Sbend, Fringe Effects}
+\index{Sbend}
+
+
+%-----------------------------------------
+\subsection{Sbend, No k\_1}
+\index{Sbend}
+
+
+
+%-----------------------------------------
+\subsection{Sbend, Finite k\_1}
+\index{Sbend}
+
+The Hamiltonian is
+\Begineq
+  H = (k_0 - g) x - g \, x \, p_z + 
+  \frac{1}{2}\left( (k_1 + g \, k_0) x^2 - k_1 \, y^2 \right)
+  \frac{p_x^2 + p_y^2}{2 (1 + p_z)} 
+\Endeq
+
+This is simply solved
+\begin{align}
+  x   &\rightarrow c_x \, (x - x_c) + \frac{s_x}{\om_x} \frac{p_x}{1 + p_z} + x_c \CRNO
+  p_x &\rightarrow \tau_x \, \om_x \, \, (1 + p_z) \, s_x \, (x -x_c) + c_x \, p_x \CRNO
+  y   &\rightarrow c_y \, y + \frac{s_y}{\om_y} \frac{p_y}{1 + p_z} \CRNO
+  p_y &\rightarrow \tau_y \, \om_y \, \, (1 + p_z) \, s_y \, y + c_y \, p_y \CRNO
+  z   &\rightarrow z_{11} \, (x-x_c)^2 + z_{12} \, (x-x_c) \, p_x + z_{22} \, p_x^2 + 
+                   z_{33} \, y^2 + z_{34} \, y \, p_y + z_{44} \, p_y^2 +
+                   z_{0} + z_{1} (x - x_c) + z_{2} p_x \CRNO
+  p_z &\rightarrow p_z \nonumber
+\end{align}
+where 
+\begin{align}
+  k_x &= k_1 + g \, k_0 \CRNO
+  x_c &= \frac{k_0 - g \, (1 + p_z)}{k_x} \\
+  \om_x &\equiv \sqrt{\frac{|k_x|}{1 + p_z}} \CRNO
+  \om_y &\equiv \sqrt{\frac{|k_1|}{1 + p_z}} \CRNO
+\end{align}
+and
+\begin{alignat}{3}
+         &\hspace*{5ex}  && k_x > 0          &\hspace*{5ex}& k_x < 0 \CRNO
+     c_x &=   && \cos  (\om \, L) && \cosh (\om \, L) \\
+     s_x &=   && \sin  (\om \, L) && \sinh (\om \, L) \CRNO
+  \tau_x &=   && {-}1             && {+}1             \CRNO
+\end{alignat}
+and
+\begin{alignat}{3}
+         &\hspace*{5ex}  && k_1 > 0          &\hspace*{5ex}& k_1 < 0 \CRNO
+     c_y &=   && \cosh (\om \, L) && \cos  (\om \, L) \\
+     s_y &=   && \sinh (\om \, L) && \sin  (\om \, L) \CRNO
+  \tau_y &=   && {+}1             && {-}1             \nonumber
+\end{alignat}
+with this
+\begin{align}
+  z_0    &= - g \, x_c \, L \CRNO
+  z_1    &= \frac{-g}{s_x}{\om_x} \CRNO
+  z_3    &= \frac{-\tao_x \, g \, c_x}{\om_x} \, \frac{p_x}{1 + p_z} \\
+  z_{11} &= \frac{-\tau_x \,\, \om_x}{4} \, (\om_x \, L - c_x \, s_x) \CRNO
+  z_{12} &= \frac{-\tau_x}{2 \, (1 + p_z)} \, s_x^2 \CRNO
+  z_{22} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + \frac{c_x \, s_x}{\om_x}) \CRNO
+  z_{33} &= \frac{-\tau_y \,\, \om_y}{4} \, (\om_y \, L - c_y \, s_y) \CRNO
+  z_{34} &= \frac{-\tau_y}{2 \, (1 + p_z)} \, s_y^2 \CRNO
+  z_{44} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + \frac{c_y \, s_y}{\om_y}) \nonumber
+\end{align}
+
+
+%-----------------------------------------
+\subsection{Sextupole}
+\index{Sextupole}
+
+%-----------------------------------------
+\subsection{Sol\_Quad}
+\index{Sol_Quad}
+
+%-----------------------------------------
+\subsection{Solenoid}
+\index{Solenoid}
+
+%-----------------------------------------
+\subsection{Wiggler, Map\_type}
+\index{Wiggler}
+
+
+
+%-----------------------------------------
+\subsection{Wiggler, Periodic Type}
+\index{Wiggler}
+
+The horizontal motion looks like a drift with a superimposed
+sinusoidal oscillation. It is assumed that there is an integer number
+of periods in the oscillation so that the exit horizontal coordinates
+can be calculated from the initial coordinates using the equations for
+a drift. The vertical motion is a quadratic superimposed with a
+octupole. Vertical motion is calculated using a kick-drift-kick model.
 
 \end{document}
