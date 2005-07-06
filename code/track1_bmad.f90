@@ -170,7 +170,6 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(3) = end%vec(3) - end%vec(4) * s_pos
 
     call offset_particle (ele, param, end, unset$)  
-    call end_z_calc
 
 !-----------------------------------------------
 ! octupole
