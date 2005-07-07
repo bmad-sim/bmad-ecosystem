@@ -194,11 +194,11 @@ The Hamiltonian for an upright quadrupole is
 \Endeq
 This is simply solved
 \begin{align}
-  x   &\rightarrow c_x \, x + \frac{s_x}{\om} \frac{p_x}{1 + p_z} \CRNO
-  p_x &\rightarrow \tau_x \, \om \, \, (1 + p_z) \, s_x \, x + c_x \, p_x \CRNO
-  y   &\rightarrow c_y \, y + \frac{s_y}{\om} \frac{p_y}{1 + p_z} \CRNO
-  p_y &\rightarrow \tau_y \, \om \, \, (1 + p_z) \, s_y \, y + c_y \, p_y \CRNO
-  z   &\rightarrow z_{11} \, x^2 + z_{12} \, x \, p_x + z_{22} \, p_x^2 + 
+  x   &\rightarrow c_x \, x + s_x \, \frac{p_x}{1 + p_z} \CRNO
+  p_x &\rightarrow \tau_x \, \om^2 \, \, (1 + p_z) \, s_x \, x + c_x \, p_x \CRNO
+  y   &\rightarrow c_y \, y + s_y \, \frac{p_y}{1 + p_z} \CRNO
+  p_y &\rightarrow \tau_y \, \om^2 \, \, (1 + p_z) \, s_y \, y + c_y \, p_y \CRNO
+  z   &\rightarrow z + z_{11} \, x^2 + z_{12} \, x \, p_x + z_{22} \, p_x^2 + 
                    z_{33} \, y^2 + z_{34} \, y \, p_y + z_{44} \, p_y^2 \CRNO
   p_z &\rightarrow p_z \nonumber
 \end{align}
@@ -210,20 +210,20 @@ and
 \begin{alignat}{3}
          &\hspace*{5ex}  && k_1 > 0          &\hspace*{5ex}& k_1 < 0 \CRNO
      c_x &=   && \cos  (\om \, L) && \cosh (\om \, L) \CRNO
-     s_x &=   && \sin  (\om \, L) && \sinh (\om \, L) \CRNO
+     s_x &=   && \frac{\sin  (\om \, L)}{\om} && \frac{\sinh (\om \, L)}{\om} \CRNO
      c_y &=   && \cosh (\om \, L) && \cos  (\om \, L) \\
-     s_y &=   && \sinh (\om \, L) && \sin  (\om \, L) \CRNO
+     s_y &=   && \frac{\sinh (\om \, L)}{\om} && \frac{\sin  (\om \, L)}{\om} \CRNO
   \tau_x &=   && {-}1             && {+}1             \CRNO
   \tau_y &=   && {+}1             && {-}1             \nonumber
 \end{alignat}
 with this
 \begin{align}
-  z_{11} &= \frac{-\tau_x \,\, \om}{4} \, (\om \, L - c_x \, s_x) \CRNO
-  z_{12} &= \frac{-\tau_x}{2 \, (1 + p_z)} \, s_x^2 \CRNO
-  z_{22} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + \frac{c_x \, s_x}{\om}) \CRNO
-  z_{33} &= \frac{-\tau_y \,\, \om}{4} \, (\om \, L - c_y \, s_y) \CRNO
-  z_{34} &= \frac{-\tau_y}{2 \, (1 + p_z)} \, s_y^2 \CRNO
-  z_{44} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + \frac{c_y \, s_y}{\om}) \nonumber
+  z_{11} &= \frac{\tau_x \,\, \om^2}{4} \, (L - c_x \, s_x) \CRNO
+  z_{12} &= \frac{-\tau_x \,\, \om^2}{2 \, (1 + p_z)} \, s_x^2 \CRNO
+  z_{22} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + c_x \, s_x) \CRNO
+  z_{33} &= \frac{\tau_y \,\, \om^2}{4} \, (L - c_y \, s_y) \CRNO
+  z_{34} &= \frac{-\tau_y \,\, \om^2}{2 \, (1 + p_z)} \, s_y^2 \CRNO
+  z_{44} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + c_y \, s_y) \nonumber
 \end{align}
 
 
@@ -249,53 +249,53 @@ with this
 The Hamiltonian is
 \Begineq
   H = (k_0 - g) x - g \, x \, p_z + 
-  \frac{1}{2}\left( (k_1 + g \, k_0) x^2 - k_1 \, y^2 \right)
+  \frac{1}{2}\left( (k_1 + g \, k_0) x^2 - k_1 \, y^2 \right) +
   \frac{p_x^2 + p_y^2}{2 (1 + p_z)} 
 \Endeq
 
 This is simply solved
 \begin{align}
-  x   &\rightarrow c_x \, (x - x_c) + \frac{s_x}{\om_x} \frac{p_x}{1 + p_z} + x_c \CRNO
-  p_x &\rightarrow \tau_x \, \om_x \, \, (1 + p_z) \, s_x \, (x -x_c) + c_x \, p_x \CRNO
-  y   &\rightarrow c_y \, y + \frac{s_y}{\om_y} \frac{p_y}{1 + p_z} \CRNO
-  p_y &\rightarrow \tau_y \, \om_y \, \, (1 + p_z) \, s_y \, y + c_y \, p_y \CRNO
-  z   &\rightarrow z_{11} \, (x-x_c)^2 + z_{12} \, (x-x_c) \, p_x + z_{22} \, p_x^2 + 
-                   z_{33} \, y^2 + z_{34} \, y \, p_y + z_{44} \, p_y^2 +
-                   z_{0} + z_{1} (x - x_c) + z_{2} p_x \CRNO
+  x   &\rightarrow c_x \, (x - x_c) + s_x \, \frac{p_x}{1 + p_z} + x_c \CRNO
+  p_x &\rightarrow \tau_x \, \om_x^2 \, \, (1 + p_z) \, s_x \, (x -x_c) + c_x \, p_x \CRNO
+  y   &\rightarrow c_y \, y + s_y \, \frac{p_y}{1 + p_z} \CRNO
+  p_y &\rightarrow \tau_y \, \om_y^2 \, \, (1 + p_z) \, s_y \, y + c_y \, p_y \CRNO
+  z   &\rightarrow z + z_0 + z_1 (x - x_c) + z_2 p_x + \CRNO
+      &\hspace*{20ex} z_{11} \, (x-x_c)^2 + z_{12} \, (x-x_c) \, p_x + z_{22} \, p_x^2 + 
+                   z_{33} \, y^2 + z_{34} \, y \, p_y + z_{44} \, p_y^2 \CRNO
   p_z &\rightarrow p_z \nonumber
 \end{align}
 where 
 \begin{align}
   k_x &= k_1 + g \, k_0 \CRNO
-  x_c &= \frac{k_0 - g \, (1 + p_z)}{k_x} \\
+  x_c &= \frac{g \, (1 + p_z) - k_0}{k_x} \\
   \om_x &\equiv \sqrt{\frac{|k_x|}{1 + p_z}} \CRNO
   \om_y &\equiv \sqrt{\frac{|k_1|}{1 + p_z}} \CRNO
 \end{align}
 and
 \begin{alignat}{3}
          &\hspace*{5ex}  && k_x > 0          &\hspace*{5ex}& k_x < 0 \CRNO
-     c_x &=   && \cos  (\om \, L) && \cosh (\om \, L) \\
-     s_x &=   && \sin  (\om \, L) && \sinh (\om \, L) \CRNO
+     c_x &=   && \cos  (\om_x \, L) && \cosh (\om_x \, L) \\
+     s_x &=   && \frac{\sin  (\om_x \, L)}{\om_x} && \frac{\sinh (\om_x \, L)}{\om_x} \CRNO
   \tau_x &=   && {-}1             && {+}1             \CRNO
 \end{alignat}
 and
 \begin{alignat}{3}
          &\hspace*{5ex}  && k_1 > 0          &\hspace*{5ex}& k_1 < 0 \CRNO
-     c_y &=   && \cosh (\om \, L) && \cos  (\om \, L) \\
-     s_y &=   && \sinh (\om \, L) && \sin  (\om \, L) \CRNO
+     c_y &=   && \cosh (\om_y \, L) && \cos  (\om_y \, L) \\
+     s_y &=   && \frac{\sinh (\om_y \, L)}{\om_y} && \frac{\sin  (\om_y \, L)}{\om_y} \CRNO
   \tau_y &=   && {+}1             && {-}1             \nonumber
 \end{alignat}
 with this
 \begin{align}
   z_0    &= - g \, x_c \, L \CRNO
-  z_1    &= \frac{-g}{s_x}{\om_x} \CRNO
-  z_3    &= \frac{-\tao_x \, g \, c_x}{\om_x} \, \frac{p_x}{1 + p_z} \\
-  z_{11} &= \frac{-\tau_x \,\, \om_x}{4} \, (\om_x \, L - c_x \, s_x) \CRNO
-  z_{12} &= \frac{-\tau_x}{2 \, (1 + p_z)} \, s_x^2 \CRNO
-  z_{22} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + \frac{c_x \, s_x}{\om_x}) \CRNO
-  z_{33} &= \frac{-\tau_y \,\, \om_y}{4} \, (\om_y \, L - c_y \, s_y) \CRNO
-  z_{34} &= \frac{-\tau_y}{2 \, (1 + p_z)} \, s_y^2 \CRNO
-  z_{44} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + \frac{c_y \, s_y}{\om_y}) \nonumber
+  z_1    &= -g \, s_x \CRNO
+  z_2    &= \frac{\tau_x \, g}{1 + p_z} \, \frac(1 - c_x}{\om_x^2} \\
+  z_{11} &= \frac{\tau_x \,\, \om_x^2}{4} \, (L - c_x \, s_x) \CRNO
+  z_{12} &= \frac{-\tau_x \,\, \om_x^2}{2 \, (1 + p_z)} \, s_x^2 \CRNO
+  z_{22} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + c_x \, s_x) \CRNO
+  z_{33} &= \frac{\tau_y \,\, \om_y^2}{4} \, (L - c_y \, s_y) \CRNO
+  z_{34} &= \frac{-\tau_y \,\, \om_y^2}{2 \, (1 + p_z)} \, s_y^2 \CRNO
+  z_{44} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + c_y \, s_y) \nonumber
 \end{align}
 
 
