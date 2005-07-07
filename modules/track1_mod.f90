@@ -157,29 +157,25 @@ end subroutine
 
 subroutine track_a_bend (start, ele, param, end)
 
+  implicit none
+
   type (coord_struct), intent(in)  :: start
   type (coord_struct), intent(out) :: end
   type (ele_struct),   intent(inout)  :: ele
   type (param_struct), intent(inout) :: param
 
   real(rp) b1, angle, ct, st, x, px, y, py, z, pz, dpx_t
-  real(rp) rel_E, rel_E2, Dxy, Dy, px_t, factor, rho, g0, dg
-  real(rp) length, g_tot, dE, re_xy
+  real(rp) rel_p, rel_p2, Dxy, Dy, px_t, factor, rho, g, dg
+  real(rp) length, g_tot, dP, re_xy
+  real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, z_2, s_y, c_y, r(6)
 
 ! simple case
 
   if (ele%value(g$) == 0) then
     end = start
-    end%vec(2) = end%vec(2) + length * ele%value(g_err$) / 2
+    end%vec(2) = end%vec(2) - length * ele%value(g_err$) / 2
     call track_a_drift (end%vec, ele%value(l$))
-    end%vec(2) = end%vec(2) + length * ele%value(g_err$) / 2
-    return
-  endif
-
-! with k1 == 0 use the MAD 2nd order map.
-
-  if (ele%value(k1$) /= 0) then
-    call track1_mad (start, ele, param, end)
+    end%vec(2) = end%vec(2) - length * ele%value(g_err$) / 2
     return
   endif
 
@@ -187,65 +183,75 @@ subroutine track_a_bend (start, ele, param, end)
 
   end = start
   call offset_particle (ele, param, end, set$, set_canonical = .false.)
-
-  length = ele%value(l$)
-  g0 = ele%value(g$)
-  dg = ele%value(g_err$)
-  g_tot = g0 + dg
-  b1 = g_tot
-  angle = ele%value(g$) * length
-  rho = 1 / g0
-  dE = start%vec(6)
-  rel_E  = 1 + dE
-  rel_E2 = rel_E**2
-
   call track_bend_edge (end, ele, .true., .false.)
 
+  length = ele%value(l$)
+  g = ele%value(g$)
+  dg = ele%value(g_err$)
+  g_tot = g + dg
+  b1 = g_tot
+  angle = ele%value(g$) * length
+  rho = 1 / g
+  dP = start%vec(6)
+  rel_p  = 1 + dP
+  rel_p2 = rel_p**2
+  k_1 = ele%value(k1$)
+
+! with k1 /= 0 use small angle approximation
+
+  if (k_1 /= 0) then
+
+    call sbend_body_with_k1_map (g, dg, length, k_1, end%vec, end = end%vec)
+
+!-----------------------------------------------------------------------
 ! Track through main body...
 ! Use Eqs (12.18) from Etienne Forest: Beam Dynamics.
 
-  ct = cos(angle)
-  st = sin(angle)
+  else
 
-  x  = end%vec(1)
-  px = end%vec(2)
-  y  = end%vec(3)
-  py = end%vec(4)
-  z  = end%vec(5)
-  pz = end%vec(6)
+    ct = cos(angle)
+    st = sin(angle)
+
+    x  = end%vec(1)
+    px = end%vec(2)
+    y  = end%vec(3)
+    py = end%vec(4)
+    z  = end%vec(5)
+    pz = end%vec(6)
  
-  re_xy = rel_E2 - px**2 - py**2
-  if (re_xy < 0.1) then  ! somewhat arbitrary cutoff
-    param%lost = .true.
-    end%vec(1) = 2 * bmad_com%max_aperture_limit
-    end%vec(3) = 2 * bmad_com%max_aperture_limit
-    return
-  endif 
+    re_xy = rel_p2 - px**2 - py**2
+    if (re_xy < 0.1) then  ! somewhat arbitrary cutoff
+      param%lost = .true.
+      end%vec(1) = 2 * bmad_com%max_aperture_limit
+      end%vec(3) = 2 * bmad_com%max_aperture_limit
+      return
+    endif 
 
-  Dxy = sqrt(re_xy)
-  Dy  = sqrt(rel_E2 - py**2)
+    Dxy = sqrt(re_xy)
+    Dy  = sqrt(rel_p2 - py**2)
 
-  px_t = px*ct + (Dxy - b1*(rho+x))*st
-  dpx_t = -px*st/rho + (dxy - b1*(rho+x))*ct/rho
+    px_t = px*ct + (Dxy - b1*(rho+x))*st
+    dpx_t = -px*st/rho + (dxy - b1*(rho+x))*ct/rho
 
-  if (abs(px) > Dy .or. abs(px_t) > Dy) then
-    param%lost = .true.
-    return
-  endif    
+    if (abs(px) > Dy .or. abs(px_t) > Dy) then
+      param%lost = .true.
+      return
+    endif    
 
-  factor = (asin(px/Dy) - asin(px_t/Dy)) / b1
+    factor = (asin(px/Dy) - asin(px_t/Dy)) / b1
 
-  end%vec(1) = (sqrt(rel_E2 - px_t**2 -py**2) - rho*dpx_t - rho*b1) / b1
-  end%vec(2) = px_t
-  end%vec(3) = y + py * (angle/b1 + factor)
-  end%vec(4) = py
-  end%vec(5) = end%vec(5) + length * (dg - g0*dE) / g_tot - rel_E * factor
-  end%vec(6) = pz
+    end%vec(1) = (sqrt(rel_p2 - px_t**2 -py**2) - rho*dpx_t - rho*b1) / b1
+    end%vec(2) = px_t
+    end%vec(3) = y + py * (angle/b1 + factor)
+    end%vec(4) = py
+    end%vec(5) = end%vec(5) + length * (dg - g*dP) / g_tot - rel_p * factor
+    end%vec(6) = pz
+
+  endif
 
 ! Track through the exit face. Treat as thin lens.
 
   call track_bend_edge (end, ele, .false., .false.)
-
   call offset_particle (ele, param, end, unset$, set_canonical = .false.)
 
 end subroutine

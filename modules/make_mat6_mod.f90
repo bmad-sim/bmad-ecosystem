@@ -107,7 +107,7 @@ subroutine sol_quad_mat6_calc (ks_in, k1_in, s_len, m, orb, dz_coef)
   real(rp) m(6,6)
   real(rp) orb(6)
 
-  real(rp) ks2, s, c, snh, csh, rel_E, ks_in, k1_in
+  real(rp) ks2, s, c, snh, csh, rel_p, ks_in, k1_in
   real(rp) darg1, alpha, alpha2, beta, beta2, f, q, r, a, b
   real(rp) df, dalpha2, dalpha, dbeta2, dbeta, darg
   real(rp) dC, dCsh, dS, dSnh, dq, dr, da, db
@@ -117,11 +117,12 @@ subroutine sol_quad_mat6_calc (ks_in, k1_in, s_len, m, orb, dz_coef)
   real(rp) t4(4,4), ts(4,4), xp_start, xp_end, yp_start, yp_end
   real(rp), optional :: dz_coef(4,4)
 
-! Calc
+! Calculation is done in (x, x', y, y') coordinates and then converted
+! to (x, p_x, y, p_y) coordinates.
 
-  rel_E = 1 + orb(6)
-  k1 = k1_in / rel_E
-  ks = ks_in / rel_E
+  rel_p = 1 + orb(6)
+  k1 = k1_in / rel_p
+  ks = ks_in / rel_p
 
   ks2 = ks**2
   ks3 = ks2 * ks 
@@ -256,20 +257,20 @@ subroutine sol_quad_mat6_calc (ks_in, k1_in, s_len, m, orb, dz_coef)
 
 ! energy corrections
 
-  m(1,2) = m(1,2) / rel_E
-  m(1,4) = m(1,4) / rel_E
+  m(1,2) = m(1,2) / rel_p
+  m(1,4) = m(1,4) / rel_p
 
-  m(2,1) = m(2,1) * rel_E
-  m(2,3) = m(2,3) * rel_E
+  m(2,1) = m(2,1) * rel_p
+  m(2,3) = m(2,3) * rel_p
 
-  m(3,2) = m(3,2) / rel_E
-  m(3,4) = m(3,4) / rel_E
+  m(3,2) = m(3,2) / rel_p
+  m(3,4) = m(3,4) / rel_p
 
-  m(4,1) = m(4,1) * rel_E
-  m(4,3) = m(4,3) * rel_E
+  m(4,1) = m(4,1) * rel_p
+  m(4,3) = m(4,3) * rel_p
 
-  m(1,6) = m(1,6) / rel_E
-  m(3,6) = m(3,6) / rel_E
+  m(1,6) = m(1,6) / rel_p
+  m(3,6) = m(3,6) / rel_p
 
 ! The m(5,x) terms follow from the symplectic condition.
 
@@ -284,7 +285,176 @@ subroutine sol_quad_mat6_calc (ks_in, k1_in, s_len, m, orb, dz_coef)
   yp_start = orb(4) - ks_in * orb(1) / 2
   xp_end = sum(orb(1:4) * m(2,1:4)) + ks_in * orb(3) / 2
   yp_end = sum(orb(1:4) * m(4,1:4)) - ks_in * orb(1) / 2
-  m(5,6) = s_len * (xp_start**2 + yp_start**2 +xp_end**2 + yp_end**2) / (2 * rel_E**3)
+  m(5,6) = s_len * (xp_start**2 + yp_start**2 +xp_end**2 + yp_end**2) / (2 * rel_p**3)
+
+end subroutine
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine sbend_body_with_k1_map (g, g_err, length, k_1, start, end, mat6)
+!
+! Subroutine to calculate the transfer matrix and/or ending coordinates for a 
+! sbend with a finite k1 but without a tilt.
+!
+! Modules Needed:
+!   use bmad
+!
+! Input:
+!   g        -- Real(rp): 1/rho. rho = radius of curvature of reference orbit.
+!   g_err    -- Real(rp): Actual bend field proportional to (g + g_err)
+!   length   -- Real(rp): Length of the bend.
+!   k_1      -- Real(rp): focusing strength.
+!   start(6) -- Real(rp): Orbit at beginning of the bend.
+!
+! Output:
+!   mat6(6,6)  -- Real(rp), optional: Transfer matrix across the sol_quad.
+!   end(6)     -- Real(rp), optional: Ending coordinates.
+!-
+
+subroutine sbend_body_with_k1_map (g, g_err, length, k_1, start, end, mat6)
+
+  implicit none
+
+  real(rp) g, g_err, length, start(6)
+  real(rp), optional :: end(6), mat6(6,6)
+  real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, s_y, c_y, r(6)
+  real(rp) z0, z1, z2, z11, z12, z22, z33, z34, z44
+  real(rp) dom_x, dom_xx, dx_c, dc_x, ds_x, dom_y, dom_yy, dc_y, ds_y, dcs_x, dcs_y
+  real(rp) g_tot, rel_p, rel_p2
+
+!
+
+  g_tot = g + g_err
+  rel_p = (1 + start(6))
+  rel_p2 = rel_p**2
+  
+
+  k_x = k_1 + g * g_tot
+  x_c = (g * rel_p - g_tot) / k_x
+
+  om_x = sqrt(abs(k_x) / rel_p)
+  om_y = sqrt(abs(k_1) / rel_p)
+
+  tau_x = -sign (1.0_rp, k_x)
+  tau_y =  sign (1.0_rp, k_1)
+
+  arg = om_x * length
+  if (arg < 1e-6) then
+    s_x = (1 + tau_x * arg**2 / 6) * length
+    c_x = 1 + tau_x * arg**2 / 2
+    z2 = g * length**2 / (2 * rel_p)
+  elseif (k_x > 0) then
+    s_x = sin(arg) / om_x
+    c_x = cos(arg)
+    z2 = tau_x * g * (1 - c_x) / (rel_p * om_x**2)
+  else
+    s_x = sinh(arg) / om_x
+    c_x = cosh(arg)
+    z2 = tau_x * g * (1 - c_x) / (rel_p * om_x**2)
+  endif
+
+  arg = om_y * length
+  if (arg < 1e-6) then
+    s_y = (1 + tau_y * arg**2 / 6) * length
+    c_y = 1 + tau_y * arg**2 / 2
+  elseif (k_1 < 0) then
+    s_y = sin(om_y * length) / om_y
+    c_y = cos(om_y * length)
+  else
+    s_y = sinh(om_y * length) / om_y
+    c_y = cosh(om_y * length)
+  endif
+
+  r = start
+  r(1) = r(1) - x_c
+
+!
+
+  z0  = -g * x_c * Length
+  z1  = -g * s_x
+  z11 = tau_x * om_x**2 * (length - c_x * s_x) / 4
+  z12 = -tau_x * om_x**2 * s_x**2 / (2 * rel_p) 
+  z22 = -(length + c_x * s_x) / (4 * rel_p2) 
+  z33 = tau_y * om_y**2 * (length - c_y * s_y) / 4
+  z34 = -tau_y * om_y**2 * s_y**2 / (2 * rel_p) 
+  z44 = -(length + c_y * s_y) / (4 * rel_p2)
+
+! Jacobian matrix
+
+  if (present(mat6)) then
+
+    dom_x = -om_x / (2 * rel_p)
+    dom_xx = -1 / (2 * rel_p)  ! [d(om_x) / d(p_z)] / om_x
+    dx_c = g / k_x
+    dc_x = tau_x * s_x * om_x * dom_x * length
+    ds_x = (c_x * length - s_x) * dom_xx 
+
+    dom_y = -om_y / (2 * rel_p)
+    dom_yy = -1 / (2 * rel_p)  ! [d(om_y) / d(p_z)] / om_y
+    dc_y = tau_y * s_y * om_y * dom_y * length
+    ds_y = (c_y * length - s_y) * dom_yy
+
+    dcs_x = c_x * ds_x + dc_x * s_x
+    dcs_y = c_y * ds_y + dc_y * s_y
+
+    mat6 = 0
+
+    mat6(1,1) = c_x
+    mat6(1,2) = s_x / rel_p
+    mat6(1,6) = dx_c * (1 - c_x) + dc_x * r(1) + &
+              ds_x * r(2) / rel_p - s_x * r(2) / rel_p2
+    mat6(2,1) = tau_x * om_x**2 * rel_p * s_x
+    mat6(2,2) = c_x
+    mat6(2,6) = tau_x * r(1) * 2 * om_x * dom_x * rel_p * s_x + &
+                tau_x * r(1) * om_x**2 * s_x + &
+                tau_x * r(1) * om_x**2 * rel_p * ds_x - &
+                tau_x * dx_c * om_x**2 * rel_p * s_x + dc_x * r(2)
+
+    mat6(3,3) = c_y
+    mat6(3,4) = s_y / rel_p
+    mat6(3,6) = dc_y * r(3) + ds_y * r(4) / rel_p - s_y * r(4) / rel_p2
+    mat6(4,3) = tau_y * om_y**2 * rel_p * s_y
+    mat6(4,4) = c_y
+    mat6(4,6) = tau_y * r(3) * 2 * om_y * dom_y * rel_p * s_y + &
+                tau_y * r(3) * om_y**2 * s_y + &
+                tau_y * r(3) * om_y**2 * rel_p * ds_y + &
+                dc_y * r(4)
+
+    mat6(5,1) = z1 + 2 * z11 * r(1) +     z12 * r(2)  
+    mat6(5,2) = z2 +     z12 * r(1) + 2 * z22 * r(2)
+    mat6(5,3) =      2 * z33 * r(3) +     z34 * r(4)  
+    mat6(5,4) =          z34 * r(3) + 2 * z44 * r(4)
+    mat6(5,5) = 1
+    mat6(5,6) = -dx_c * (z1 + 2 * z11 * r(1) + z12 * r(2)) - & 
+                g * length * dx_c - g * ds_x * r(1) - &           ! dz0 & dz1
+                tau_x * g * dc_x * r(2) / (om_x**2 * rel_p) - &   ! dz2
+                (z11 / rel_p + tau_x * om_x**2 * dcs_x / 4) * r(1)**2 - &
+                (2 * z12 / rel_p + tau_x * om_x**2 * s_x * ds_x / rel_p) * r(1) * r(2) - &
+                (2 * z22 / rel_p + dcs_x / (4 * rel_p2)) * r(2)**2 - &
+                (z33 / rel_p + tau_y * om_y**2 * dcs_y / 4) * r(3)**2 - &
+                (2 * z34 / rel_p + tau_y * om_y**2 * s_y * ds_y / rel_p) * r(3) * r(4) - &
+                (2 * z44 / rel_p + dcs_y / (4 * rel_p2)) * r(4)**2
+
+    mat6(6,6) = 1
+
+  endif
+
+! Ending coords
+
+  if (present(end)) then
+    end(1) = c_x * r(1) + s_x * r(2) / rel_p + x_c
+    end(2) = tau_x * om_x**2 * rel_p * s_x * r(1) + c_x * r(2)
+    end(3) = c_y * r(3) + s_y * r(4) / rel_p
+    end(4) = tau_y * om_y**2 * rel_p * s_y * r(3) + c_y * r(4)
+    end(5) = r(5) + z0 + z1 * r(1) + z2 * r(2) + &
+                    z11 * r(1)**2 + z12 * r(1) * r(2) + z22 * r(2)**2 + &
+                    z33 * r(3)**2 + z34 * r(3) * r(4) + z44 * r(4)**2 
+  endif
+
+
+
 
 end subroutine
 
@@ -584,7 +754,7 @@ subroutine drift_mat6_calc (mat6, length, start, end)
   real(rp) start(:)
   real(rp), optional :: end(:)
   real(rp) ave(6)
-  real(rp) mat6(:,:), length, rel_E, len_E2, len_E3
+  real(rp) mat6(:,:), length, rel_p, len_p2, len_p3
 
 !
 
@@ -598,21 +768,21 @@ subroutine drift_mat6_calc (mat6, length, start, end)
     ave = start
   endif
 
-  rel_E = 1 + ave(6)
-  len_E2 = length / rel_E**2
-  len_E3 = len_E2 / rel_E
+  rel_p = 1 + ave(6)
+  len_p2 = length / rel_p**2
+  len_p3 = len_p2 / rel_p
 
-  mat6(1,2) = length / rel_E
-  mat6(3,4) = length / rel_E
-  mat6(1,6) = -ave(2) * len_E2
-  mat6(3,6) = -ave(4) * len_E2
-  mat6(5,2) = -ave(2) * len_E2
-  mat6(5,4) = -ave(4) * len_E2
+  mat6(1,2) = length / rel_p
+  mat6(3,4) = length / rel_p
+  mat6(1,6) = -ave(2) * len_p2
+  mat6(3,6) = -ave(4) * len_p2
+  mat6(5,2) = -ave(2) * len_p2
+  mat6(5,4) = -ave(4) * len_p2
   if (present(end)) then
     mat6(5,6) = (start(2)**2 + start(2)*end(2) + end(2)**2 + &
-                 start(4)**2 + start(4)*end(4) + end(4)**2) * len_E3 / 3
+                 start(4)**2 + start(4)*end(4) + end(4)**2) * len_p3 / 3
   else
-    mat6(5,6) = (start(2)**2 + start(4)**2) * len_E3
+    mat6(5,6) = (start(2)**2 + start(4)**2) * len_p3
   endif
 
 end subroutine

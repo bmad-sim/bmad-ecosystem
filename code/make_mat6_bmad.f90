@@ -36,13 +36,13 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   real(rp), pointer :: mat6(:,:)
 
   real(rp) mat6_m(6,6), mat4(4,4), kmat1(4,4), kmat2(4,4)
-  real(rp) angle, k1, ks, length, e2
+  real(rp) angle, k1, ks, length, e2, g, g_err
   real(rp) k2l, k3l, c2, s2, cs, ks2, del_l
   real(rp) factor, kmat6(6,6), drift(6,6)
   real(rp) s_pos, s_pos_old, z_slice(100)
   real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
   real(rp) c_e, c_m, gamma_old, gamma_new
-  real(rp) arg, rel_E, rel_E2, dE, r11, r12, r21, r22
+  real(rp) arg, rel_p, rel_p2, r11, r12, r21, r22
   real(rp) cy, sy, k2, s_off, x_pitch, y_pitch, y_ave, k_z
   real(rp) dz_x(3), dz_y(3), xp_start, yp_start
   real(rp) t5_11, t5_14, t5_22, t5_23, t5_33, t5_34, t5_44
@@ -52,7 +52,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   real(rp) cos_phi, gradient, e_start, e_end, e_ratio
   real(rp) alpha, sin_a, cos_a, f, phase, E, pxy2, dE0
   real(rp) g_tot, b1, rho, ct, st, x, px, y, py, z, pz, Dxy, Dy, px_t
-  real(rp) Dxy_t, dpx_t, df_dpy, df_dE, kx_1, ky_1, kx_2, ky_2
+  real(rp) Dxy_t, dpx_t, df_dpy, df_dp, kx_1, ky_1, kx_2, ky_2
   real(rp) mc2, pc_start, pc_end, p0c_start, p0c_end
   real(rp) dcP2_dz1, dbeta1_dpz1, dbeta2_dpz2, beta_start, beta_end
   real(rp) dp_coupler, dp_x_coupler, dp_y_coupler
@@ -69,7 +69,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
   length = ele%value(l$)
   mat6 => ele%mat6
-  rel_E = 1 + c0%vec(6)  ! E/E_0
+  rel_p = 1 + c0%vec(6)  ! E/E_0
 
   if (.not. logic_option (.false., end_in)) then
     call track1 (c0, ele, param, c1)
@@ -141,13 +141,11 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
   case (sbend$)
 
-    if (ele%value(k1$) /= 0) then
-      call make_mat6_mad (ele, param, c0, c1)
-      return
-    endif
-
-    g_tot = ele%value(g$) + ele%value(g_err$)
-
+    k1 = ele%value(k1$)
+    g = ele%value(g$)
+    g_err = ele%value(g_err$)
+    g_tot = g + g_err
+  
     if (g_tot == 0) then
       call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
       return
@@ -159,15 +157,18 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     call track_bend_edge (c11, ele, .false., .true., kx_2, ky_2)  ! track backwards
 
 ! Body
-! Used: Eqs (12.18) from Etienne Forest: Beam Dynamics.
 
-    if (length /= 0) then
+    if (k1 /= 0) then
+      call sbend_body_with_k1_map (g, g_err, length, k1, c00%vec, mat6 = mat6)
+
+    elseif (length /= 0) then
+
+      ! Used: Eqs (12.18) from Etienne Forest: Beam Dynamics.
 
       b1 = g_tot
-      angle = ele%value(g$) * length
-      dE = c0%vec(6)
-      rel_E  = 1 + dE
-      rel_E2 = rel_E**2
+      angle = g * length
+      rel_p  = 1 + c0%vec(6)
+      rel_p2 = rel_p**2
 
       ct = cos(angle)
       st = sin(angle)
@@ -179,8 +180,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       z  = c00%vec(5)
       pz = c00%vec(6)
  
-      Dxy = sqrt(rel_E2 - px**2 - py**2)
-      Dy  = sqrt(rel_E2 - py**2)
+      Dxy = sqrt(rel_p2 - px**2 - py**2)
+      Dy  = sqrt(rel_p2 - py**2)
 
       if (ele%value(g$) == 0) then
         px_t = px - b1 * length
@@ -191,28 +192,28 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
         dpx_t = -px*st/rho + (Dxy - b1*(rho+x))*ct/rho
       endif
 
-      Dxy_t = sqrt(rel_E2 - px_t**2 - py**2)
+      Dxy_t = sqrt(rel_p2 - px_t**2 - py**2)
       factor = (angle + asin(px/Dy) - asin(px_t/Dy)) / b1
       df_dpy = px/(Dxy*Dy**2) - px_t/(Dxy_t*Dy**2) + st/(Dxy*Dxy_t)
-      df_dE = rel_E * (-px/(Dxy*Dy**2) - st/(Dxy*Dxy_t) + px_t/(Dxy_t*Dy**2))
+      df_dp = rel_p * (-px/(Dxy*Dy**2) - st/(Dxy*Dxy_t) + px_t/(Dxy_t*Dy**2))
 
       mat6(1,1) = px_t * st / Dxy_t + ct
       mat6(1,2) = -px_t * (ct - px*st/Dxy) / (b1 * Dxy_t) + st/b1 + px*ct/(b1*Dxy)
       mat6(1,4) = (-py + px_t*py*st/Dxy) / (b1 * Dxy_t) + py*ct/(b1*Dxy)
-      mat6(1,6) = (rel_E - px_t*rel_E*st/Dxy) / (b1 * Dxy_t) - rel_E*ct/(b1*Dxy)
+      mat6(1,6) = (rel_p - px_t*rel_p*st/Dxy) / (b1 * Dxy_t) - rel_p*ct/(b1*Dxy)
       mat6(2,1) = -b1 * st
       mat6(2,2) = ct - px * st / Dxy
       mat6(2,4) = -py * st / Dxy
-      mat6(2,6) = rel_E * st / Dxy
+      mat6(2,6) = rel_p * st / Dxy
       mat6(3,1) = py * st / Dxy_t
       mat6(3,2) = py * (1/ Dxy - ct/Dxy_t + px*st/(Dxy*Dxy_t)) / b1
       mat6(3,3) = 1
       mat6(3,4) = factor + py**2 * df_dpy / b1
-      mat6(3,6) = py * df_dE / b1
-      mat6(5,1) = -rel_E * st / Dxy_t
-      mat6(5,2) = -rel_E * (1/Dxy - ct/Dxy_t + px*st/(Dxy*Dxy_t)) / b1
-      mat6(5,4) = -rel_E * py * df_dpy / b1
-      mat6(5,6) = -factor - rel_E * df_dE / b1
+      mat6(3,6) = py * df_dp / b1
+      mat6(5,1) = -rel_p * st / Dxy_t
+      mat6(5,2) = -rel_p * (1/Dxy - ct/Dxy_t + px*st/(Dxy*Dxy_t)) / b1
+      mat6(5,4) = -rel_p * py * df_dpy / b1
+      mat6(5,6) = -factor - rel_p * df_dp / b1
 
     endif
 
@@ -238,24 +239,24 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     call offset_particle (ele, param, c00, set$)
     call offset_particle (ele, param, c11, set$, s_pos = length)
 
-    k1 = ele%value(k1$) / rel_E
+    k1 = ele%value(k1$) / rel_p
 
     call quad_mat2_calc (-k1, length, mat6(1:2,1:2), dz_x)
     call quad_mat2_calc ( k1, length, mat6(3:4,3:4), dz_y)
 
-    mat6(1,2) = mat6(1,2) / rel_E
-    mat6(2,1) = mat6(2,1) * rel_E
+    mat6(1,2) = mat6(1,2) / rel_p
+    mat6(2,1) = mat6(2,1) * rel_p
 
-    mat6(3,4) = mat6(3,4) / rel_E
-    mat6(4,3) = mat6(4,3) * rel_E
+    mat6(3,4) = mat6(3,4) / rel_p
+    mat6(4,3) = mat6(4,3) * rel_p
 
 ! The mat6(i,6) terms are constructed so that mat6 is sympelctic
 
     if (any(c00%vec(1:4) /= 0)) then
       mat6(5,1) = 2 * c00%vec(1) * dz_x(1) +     c00%vec(2) * dz_x(2)
-      mat6(5,2) =    (c00%vec(1) * dz_x(2) + 2 * c00%vec(2) * dz_x(3)) / rel_E
+      mat6(5,2) =    (c00%vec(1) * dz_x(2) + 2 * c00%vec(2) * dz_x(3)) / rel_p
       mat6(5,3) = 2 * c00%vec(3) * dz_y(1) +     c00%vec(4) * dz_y(2)
-      mat6(5,4) =    (c00%vec(3) * dz_y(2) + 2 * c00%vec(4) * dz_y(3)) / rel_E
+      mat6(5,4) =    (c00%vec(3) * dz_y(2) + 2 * c00%vec(4) * dz_y(3)) / rel_p
     endif
 
     if (any(mat6(5,1:4) /= 0)) then
@@ -269,7 +270,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     mat6(5,6) = (c0%vec(2)**2 + c0%vec(2)*c1%vec(2) + c1%vec(2)**2 + &
                  c0%vec(4)**2 + c0%vec(4)*c1%vec(4) + c1%vec(4)**2) * &
-                 length / (3 * rel_E**3)
+                 length / (3 * rel_p**3)
 
 ! tilt and multipoles
 
@@ -346,21 +347,21 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     call offset_particle (ele, param, c00, set$)
     call offset_particle (ele, param, c11, set$, s_pos = length)
 
-    ks = ele%value(ks$) / rel_E
+    ks = ele%value(ks$) / rel_p
 
     call solenoid_mat_calc (ks, length, mat6(1:4,1:4))
 
-    mat6(1,2) = mat6(1,2) / rel_E
-    mat6(1,4) = mat6(1,4) / rel_E
+    mat6(1,2) = mat6(1,2) / rel_p
+    mat6(1,4) = mat6(1,4) / rel_p
 
-    mat6(2,1) = mat6(2,1) * rel_E
-    mat6(2,3) = mat6(2,3) * rel_E
+    mat6(2,1) = mat6(2,1) * rel_p
+    mat6(2,3) = mat6(2,3) * rel_p
 
-    mat6(3,2) = mat6(3,2) / rel_E
-    mat6(3,4) = mat6(3,4) / rel_E
+    mat6(3,2) = mat6(3,2) / rel_p
+    mat6(3,4) = mat6(3,4) / rel_p
 
-    mat6(4,1) = mat6(4,1) * rel_E
-    mat6(4,3) = mat6(4,3) * rel_E
+    mat6(4,1) = mat6(4,1) * rel_p
+    mat6(4,3) = mat6(4,3) * rel_p
 
 
     c2 = mat6(1,1)
@@ -401,9 +402,9 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 ! the mat6(i,6) terms are constructed so that mat6 is sympelctic
 
     mat6(5,1) =  2 * c00%vec(1) * t5_11 + c00%vec(4) * t5_14
-    mat6(5,2) = (2 * c00%vec(2) * t5_22 + c00%vec(3) * t5_23) / rel_E
+    mat6(5,2) = (2 * c00%vec(2) * t5_22 + c00%vec(3) * t5_23) / rel_p
     mat6(5,3) =  2 * c00%vec(3) * t5_33 + c00%vec(2) * t5_23
-    mat6(5,4) = (2 * c00%vec(4) * t5_44 + c00%vec(1) * t5_14) / rel_E
+    mat6(5,4) = (2 * c00%vec(4) * t5_44 + c00%vec(1) * t5_14) / rel_p
 
     mat6(1,6) = mat6(5,2) * mat6(1,1) - mat6(5,1) * mat6(1,2) + &
                     mat6(5,4) * mat6(1,3) - mat6(5,3) * mat6(1,4)
@@ -419,7 +420,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     ks2 = ele%value(ks$) / 2
     xp_start = (c0%vec(2) + ks2 * c0%vec(3)) 
     yp_start = (c0%vec(4) - ks2 * c0%vec(1)) 
-    mat6(5,6) = length * (xp_start**2 + yp_start**2 ) / rel_E**3
+    mat6(5,6) = length * (xp_start**2 + yp_start**2 ) / rel_p**3
 
     call add_multipoles_and_s_offset
 
@@ -708,7 +709,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     endif
 
     k1 = -0.5 * (c_light * ele%value(b_max$) / &
-                    (ele%value(p0c$) * rel_E))**2
+                    (ele%value(p0c$) * rel_p))**2
 
 ! octuple correction to k1
 
@@ -818,7 +819,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       c_e = 0.0
     endif
     c_m = param%particle * c_light * ele%value(b_z$) / m_electron
-    gamma_old = ele%value(p0c$) * rel_E / m_electron
+    gamma_old = ele%value(p0c$) * rel_p / m_electron
     gamma_new = gamma_old + c_e * length
 !!    call accel_sol_mat_calc (length, c_m, c_e, gamma_old, gamma_new, &
 !!                                    0.0_rp, 0.0_rp, c00%vec, mat4, vec_st)
