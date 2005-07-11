@@ -133,7 +133,7 @@ PKG_OBJS   :=
 LOCAL_FFLAGS   :=
 LOCAL_CFLAGS   :=
 LOCAL_CXXFLAGS :=
-LOCAL_LFLAGS   := -L/usr/lib  -L/usr/lib/gcc-lib/i386-redhat-linux/3.2.3 -llammpio -llamf77mpi -lmpi -llam -laio -laio -lutil -lpthread
+LOCAL_LFLAGS   = -L/usr/lib  -L/usr/lib/gcc-lib/i386-redhat-linux/$(GCC_VERS)
 
 
 #--------------------------------------------------------------
@@ -157,7 +157,7 @@ LOCAL_LFLAGS   := -L/usr/lib  -L/usr/lib/gcc-lib/i386-redhat-linux/3.2.3 -llammp
 LOCAL_LIBS :=
 CESR_LIBS  := bsim bmadz bmad dcslib cesr_utils recipes_f-90_LEPP
 PKG_LIBS   := forest pgplot
-SYS_LIBS   :=
+SYS_LIBS   := lammpio lamf77mpi mpi lam aio aio util pthread
 CERN_LIBS  :=
 
 
