@@ -94,9 +94,9 @@ subroutine track1_radiation (start, ele, param, end, edge)
 
   integer, intent(in) :: edge
 
-  real(rp), save :: z_start
+  real(rp), save :: h_bar, fluct_const, z_start
   real(rp) s_len, g, g2, g3, g_x, g_y, this_ran
-  real(rp) x_ave, y_ave, gamma_0, dE_p, h_bar, fluct_const, fact_d, fact_f
+  real(rp) x_ave, y_ave, gamma_0, dE_p, fact_d, fact_f
 
   integer direc
 
