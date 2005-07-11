@@ -19,8 +19,11 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2005/07/11 14:56:55  sni2
+! added damping control to infile
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
@@ -104,7 +107,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   real(rdef) :: Qx_in , Qy_in
   real(rdef), parameter :: j_print_dist=10000
   integer :: t_count, k, p_unit, e_unit, ti_unit, t_unit, g_unit
-  integer :: damping/20000/
+  integer :: damping
   integer :: mem_mean
   character*5 fit
   logical :: fit_sig, fit_var
@@ -123,6 +126,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   t_wait = 0.0
   t_send = 0.0
   t_count = 0
+  damping = scan_params%damping
 !######################
 
   call reallocate_coord(sib_co_,ring%n_ele_max)
@@ -766,7 +770,7 @@ subroutine size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb_, p
   real(rdef) :: Qx_in , Qy_in
   real(rdef), parameter :: j_print_dist=10000
   integer :: t_count, k, p_unit, e_unit, ti_unit, t_unit, g_unit
-  integer :: damping/20000/
+  integer :: damping
   integer :: mem_mean
   logical :: fit_sig, fit_var
   character*80 params_file, times_file, turns_file, ends_file, dist_file, final_pos_file, in_file
@@ -778,6 +782,8 @@ subroutine size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb_, p
 
   call reallocate_coord(end_coord_, scan_params%n_part)
   param_mean(:) = 0.0
+
+  damping = scan_params%damping
 
   fit_sig = .false.
   fit_var = .false.

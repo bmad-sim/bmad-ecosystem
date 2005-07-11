@@ -17,8 +17,11 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2005/07/11 14:56:56  sni2
+! added damping control to infile
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
@@ -50,5 +53,6 @@ module scan_parameters
     type(coord_struct) final_pos_in ! gives final postion to which closed orbit will converge
     type(coord_struct) init(100)  !initial coordinate for single particle scan
     logical parallel !defines whether code is run in parallel
+    integer damping  ! number of turns after which beam resizing begins
  end type scan_params_struct
 end module
