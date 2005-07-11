@@ -19,8 +19,11 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2005/07/11 14:56:37  sni2
+! added damping control to infile, fixed elfile bug
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
@@ -78,7 +81,7 @@ program beambeam_luminosity
 
 !SIBREN
   integer ierr,rank,size,status(MPI_STATUS_SIZE)
-  integer sib_i
+  integer sib_i, lun, damping
 
 !ANDREW
   character*5 fit
@@ -91,7 +94,7 @@ program beambeam_luminosity
                 i_train, j_car, n_trains_tot, n_cars, current, &
                 lrbbi, beambeam_ip, close_pretz,  &
                 close_vert, slices, rec_taylor, n_part, min_sig, Q_x_init, Q_y_init, &
-                coupling_sb, coupling_wb, radiation, sig_in, go, final_pos_in
+                coupling_sb, coupling_wb, radiation, sig_in, go, final_pos_in, damping
 
 
 global_rank = 0
@@ -155,6 +158,7 @@ size=2
   min_sig = 0.
   coupling_sb = 0.01
   coupling_wb = 0.
+  damping = 20000
   radiation = .false.
   scan_params%sig_in(1:3) = 0.0
   scan_params%final_pos_in%vec(1:4) = 0.0
@@ -192,6 +196,7 @@ size=2
   scan_params%fit        =    fit
   scan_params%final_pos_in%vec(1:4) = final_pos_in(1:4)
   scan_params%parallel   =    parallel
+  scan_params%damping    =    damping
 
 !SIBREN
 if(scan_params%parallel)then
@@ -215,7 +220,8 @@ end if
   endif
 
   if(.not.((trim(go)=='.true.').or.(trim(go)=='.false.'))) then
-     open(UNIT=6,FILE=trim(go),STATUS="OLD")
+     lun=lunget()
+     open(UNIT=lun,FILE=trim(go),STATUS="OLD")
   end if
 
   do while (.not. (trim(go)=='.true.'))
@@ -227,7 +233,7 @@ end if
         if(trim(go)=='.false.') then
            read(*, '(a)') line
         else
-           read(6, '(a)') line
+           read(lun, '(a)') line
         end if
         
         ix = index(line, '!')
@@ -262,7 +268,9 @@ end if
      
   end do
 
-
+  if(.not.((trim(go)=='.true.').or.(trim(go)=='.false.'))) then
+     close(unit=lun)
+  end if
 
   ix = index(file_name,'.')
   out_file = file_name(1:ix)//'hed'
