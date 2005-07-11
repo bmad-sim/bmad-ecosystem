@@ -852,9 +852,17 @@ subroutine init_beam_distribution (ele, beam_init, beam)
     enddo
   endif
 
-! Put in beam jitter
+! Put in beam jitter, include alpha correlations
   call ran_gauss(ran)
-  center = beam_init%center + beam_init%center_jitter*ran
+  center(1) = beam_init%center(1) + beam_init%center_jitter(1)*ran(1)
+  center(2) = beam_init%center(2) + beam_init%center_jitter(2)*ran(2) + &
+                   ele%x%alpha * beam_init%center_jitter(1)*ran(1)
+  center(3) = beam_init%center(3) + beam_init%center_jitter(3)*ran(3)
+  center(4) = beam_init%center(4) + beam_init%center_jitter(4)*ran(4) + &
+                   ele%y%alpha * beam_init%center_jitter(3)*ran(3)
+  center(5) = beam_init%center(5) + beam_init%center_jitter(5)*ran(5)
+  center(6) = beam_init%center(6) + beam_init%center_jitter(6)*ran(6) + &
+                   beam_init%dpz_dz * beam_init%center_jitter(5)*ran(5)
   
 ! Now scale by the emittances, etc. and put in jitter
 
