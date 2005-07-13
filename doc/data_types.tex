@@ -93,8 +93,10 @@ means this data type is not available for this tracking type.
 {\tt
 \begin{tabular}{|l|l|l|} \hline
   {\it Data\_Type}        & {\it Description}                 &          \\ \hline 
-    beta:x, beta:y        & Twiss parameter                   &          \\ \hline 
-    alpha:x, alpha:y      & Twiss parameter                   &          \\ \hline 
+    beta:x, beta:y        & Projected Beta Function           &          \\ \hline 
+    beta:a, beta:b        & Normal-Mode Beta Function         &          \\ \hline 
+    alpha:x, alpha:y      & Projected Alpha Function          &          \\ \hline 
+    alpha:a, alpha:b      & Normal-Mode Alpha Function        &          \\ \hline 
     eta:x, eta:y          & Dispersion                        &          \\ \hline 
     etap:x, etap:y        & Dispersion derivative             &          \\ \hline 
     phase:x, phase:y      & Betatron phase                    & relative \\ \hline 
@@ -138,10 +140,10 @@ means this data type is not available for this tracking type.
     beam\_energy          & Beam energy                       &          \\ \hline
     \begin{tabular}{@{}l}  
       norm\_emittance:x \\ 
-      norm\_emittance:y 
-      norm\_emittance:z 
-      norm\_emittance:a 
-      norm\_emittance:b 
+      norm\_emittance:y \\
+      norm\_emittance:z \\
+      norm\_emittance:a \\
+      norm\_emittance:b \\
     \end{tabular} 
                           & Normalized emittance              &          \\ \hline 
     \begin{tabular}{@{}l}   
@@ -150,6 +152,14 @@ means this data type is not available for this tracking type.
       bunch\_sigma:z, bunch\_sigma:p\_z \\
     \end{tabular} 
                           & Bunch size                        &          \\ \hline 
+    \begin{tabular}{@{}l}  
+      dpx\_dx \\ 
+      dpy\_dy \\
+      dpz\_dz \\
+      dpa\_da \\
+      dpb\_db \\
+    \end{tabular} 
+                          & <x p\_x> / <x\^2> \& Etc...       &          \\ \hline 
 \end{tabular}
 } 
 \label{t:data_types}
@@ -188,6 +198,7 @@ means this data type is not available for this tracking type.
     \vn{beam_energy}      &   L    &   L  &   L   \\ \hline  
     \vn{norm_emittance}   &   L\footnote{Uses the Courant-Snyder Invariant}    &   B  &   B   \\ \hline
     \vn{bunch_sigma}      &   X    &   B  &   B   \\ \hline
+    \vn{dpx_dx,dpy_dy,...}&   X    &   B  &   B   \\ \hline
 \end{tabular}
 }
 \caption{Data\_type Calculation method. L means this data type uses lattice parameters, B

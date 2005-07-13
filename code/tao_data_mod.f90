@@ -185,6 +185,15 @@ case ('beta:x')
     datum_value = u%macro_beam%params%x%beta
   endif
     
+case ('beta:a')
+  if (s%global%track_type .eq. "single") then
+    call load_it (lattice%ele_(:)%x%beta)
+  elseif (s%global%track_type .eq. "beam") then
+    datum_value = u%beam%params%a%beta
+  elseif (s%global%track_type .eq. "macro") then
+    datum_value = u%macro_beam%params%a%beta
+  endif
+    
 case ('beta:y')
   if (s%global%track_type .eq. "single") then
     call load_it (lattice%ele_(:)%y%beta)
@@ -192,6 +201,15 @@ case ('beta:y')
     datum_value = u%beam%params%y%beta
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%y%beta
+  endif
+
+case ('beta:b')
+  if (s%global%track_type .eq. "single") then
+    call load_it (lattice%ele_(:)%y%beta)
+  elseif (s%global%track_type .eq. "beam") then
+    datum_value = u%beam%params%b%beta
+  elseif (s%global%track_type .eq. "macro") then
+    datum_value = u%macro_beam%params%b%beta
   endif
 
 case ('alpha:x')
@@ -203,6 +221,15 @@ case ('alpha:x')
     datum_value = u%macro_beam%params%x%alpha
   endif
   
+case ('alpha:a')
+  if (s%global%track_type .eq. "single") then
+    call load_it (lattice%ele_(:)%x%alpha)
+  elseif (s%global%track_type .eq. "beam") then
+    datum_value = u%beam%params%a%alpha
+  elseif (s%global%track_type .eq. "macro") then
+    datum_value = u%macro_beam%params%a%alpha
+  endif
+  
 case ('alpha:y')
   if (s%global%track_type .eq. "single") then
     call load_it (lattice%ele_(:)%y%alpha)
@@ -210,6 +237,15 @@ case ('alpha:y')
     datum_value = u%beam%params%y%alpha
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%y%alpha
+  endif
+
+case ('alpha:b')
+  if (s%global%track_type .eq. "single") then
+    call load_it (lattice%ele_(:)%y%alpha)
+  elseif (s%global%track_type .eq. "beam") then
+    datum_value = u%beam%params%b%alpha
+  elseif (s%global%track_type .eq. "macro") then
+    datum_value = u%macro_beam%params%b%alpha
   endif
 
 case ('eta:x')
@@ -411,11 +447,47 @@ case ('norm_emittance:b')
                                amp_nb = datum_value, particle = electron$)
   endif
   
+case ('dpx_dx') 
+  if (s%global%track_type .eq. "beam") then
+    datum_value = u%beam%params%x%dpx_dx
+  elseif (s%global%track_type .eq. "macro") then
+    datum_value = u%macro_beam%params%x%dpx_dx
+  else
+    datum_value = 0.0
+  endif
+
+case ('dpy_dy') 
+  if (s%global%track_type .eq. "beam") then
+    datum_value = u%beam%params%y%dpx_dx
+  elseif (s%global%track_type .eq. "macro") then
+    datum_value = u%macro_beam%params%y%dpx_dx
+  else
+    datum_value = 0.0
+  endif
+
 case ('dpz_dz') 
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%z%dpx_dx
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%z%dpx_dx
+  else
+    datum_value = 0.0
+  endif
+
+case ('dpa_da') 
+  if (s%global%track_type .eq. "beam") then
+    datum_value = u%beam%params%a%dpx_dx
+  elseif (s%global%track_type .eq. "macro") then
+    datum_value = u%macro_beam%params%a%dpx_dx
+  else
+    datum_value = 0.0
+  endif
+
+case ('dpb_db') 
+  if (s%global%track_type .eq. "beam") then
+    datum_value = u%beam%params%b%dpx_dx
+  elseif (s%global%track_type .eq. "macro") then
+    datum_value = u%macro_beam%params%b%dpx_dx
   else
     datum_value = 0.0
   endif

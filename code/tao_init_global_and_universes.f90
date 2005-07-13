@@ -60,7 +60,6 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
 
   logical err, free
   logical counting, searching
-  logical sr_wakes_on, lr_wakes_on
   logical calc_emittance
   logical, allocatable :: found_one(:), mask(:)
 
@@ -69,10 +68,9 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   
   namelist / tao_coupled_uni_init / ix_universe, coupled
   
-  namelist / tao_beam_init / ix_universe, sr_wakes_on, lr_wakes_on, &
-                             calc_emittance, beam_init
+  namelist / tao_beam_init / ix_universe, calc_emittance, beam_init
          
-  namelist / tao_macro_init / ix_universe, sr_wakes_on, lr_wakes_on, calc_emittance, macro_init
+  namelist / tao_macro_init / ix_universe, calc_emittance, macro_init
          
   namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe, &
                            default_bpm_noise
@@ -187,8 +185,6 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
     ! defaults
     do 
       ix_universe = -1
-      sr_wakes_on = .false.
-      lr_wakes_on = .false.
       beam_init%a_norm_emitt  = 0.0
       beam_init%b_norm_emitt  = 0.0
       beam_init%dPz_dz = 0.0
@@ -201,7 +197,6 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
       beam_init%renorm_sigma = .true.
       beam_init%n_bunch = 1
       beam_init%n_particle  = 1
-      ! by default, no wake data file needed
       calc_emittance = .false.
       read (iu, nml = tao_beam_init, iostat = ios)
 
@@ -213,10 +208,6 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
         endif
         call out_io (s_blank$, r_name, &
               'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
-        bmad_com%sr_wakes_on = .false.
-        bmad_com%lr_wakes_on = .false.
-        if (sr_wakes_on) bmad_com%sr_wakes_on = .true.
-        if (lr_wakes_on) bmad_com%lr_wakes_on = .true.
         i = ix_universe
         call init_beam(s%u(i), beam_init, calc_emittance)
         cycle
@@ -239,8 +230,6 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
     ! defaults
     do
       ix_universe = -1
-      sr_wakes_on = .false.
-      lr_wakes_on = .false.
       macro_init%x%norm_emit  = 0.0
       macro_init%y%norm_emit  = 0.0
       macro_init%dPz_dz = 0.0
@@ -254,7 +243,6 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
       macro_init%n_slice = 1
       macro_init%n_macro = 1
       macro_init%n_part  = 1e10
-      ! by default, no wake data file needed
       calc_emittance = .false.
       read (iu, nml = tao_macro_init, iostat = ios)
       if (ios == 0) then
@@ -265,10 +253,6 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
         endif
         call out_io (s_blank$, r_name, &
               'Init: Read tao_macro_init namelist for universe \i3\ ', ix_universe)
-        bmad_com%sr_wakes_on = .false.
-        bmad_com%lr_wakes_on = .false.
-        if (sr_wakes_on) bmad_com%sr_wakes_on = .true.
-        if (lr_wakes_on) bmad_com%lr_wakes_on = .true.
         i = ix_universe
         call init_macro(s%u(i), macro_init, calc_emittance)
         cycle

@@ -187,24 +187,22 @@ total number variables used. Below is the \vn{tao_global_struct} Fortran structu
 
 \begin{example}
 type tao_global_struct
-  real(rp) :: y_axis_plot_dmin = 1e-4 
-                                         ! Minimum y_max-y_min allowed for a graph.
+  real(rp) :: y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
   integer :: u_view = 1                  ! Which universe we are viewing.
   integer :: n_opti_cycles = 20          ! number of optimization cycles
   integer :: ix_key_bank = 0             ! For single mode.
   integer :: n_key_table_max = 0         ! Maximum key table index.
   integer :: n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
-  integer :: phase_units = radians\$      ! Phase units on output.
+  integer :: phase_units = radians\$     ! Phase units on output.
   integer :: bunch_to_plot = 1           ! Which bunch to plot
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
   integer :: random_seed = 0             ! use system clock by default
-  integer :: n_write_file = 0
+  integer :: n_write_file = 0            ! used for indexing 'show write' files
   character(16) :: track_type = 'single' ! or 'beam' or 'macro' 
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer = 'de'      ! optimizer to use.
   character(16) :: default_key_merit_type
   character(80) :: write_file = 'tao_show.dat'
-  type (tao_global_hook) hook            ! Custom stuff. Defined in tao_hook.f90
   logical :: var_limits_on = .false.     ! Respect the variable limits?
   logical :: plot_on = .true.            ! Do plotting?
   logical :: opt_with_ref = .false.      ! use reference data in optimization?
@@ -217,6 +215,10 @@ type tao_global_struct
   logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
   logical :: lattice_recalc = .true.         ! recalculate the lattice?
   logical :: init_plot_needed = .true.       ! reinitialize plotting?
+  logical :: radiation_damping_on = .false.       ! is radiation damping turned on?
+  logical :: radiation_fluctuations_on = .false.  ! is radiation fluctuations turned on?
+  logical :: sr_wakes_on  = .true.                ! Short Range Wakefields
+  logical :: lr_wakes_on  = .true.                ! Long Range Wakefields
   character(16) :: valid_plot_who(10)        ! model, base, ref etc...
   character(40) :: print_command = 'awprint'
   character(80) :: default_init_file = 'tao.init'
@@ -310,8 +312,6 @@ A particle beam is initialized in the \vn{tao_beam_init} namelist block.
 The syntax is as follows:
 \index{tao_beam_init}    
 \index{ix_universe}
-\index{sr_wakes_on}
-\index{lr_wakes_on}
 \index{calc_emittance}
 \index{beam_init}
 \index{beam_init!a_norm_emit}
@@ -333,10 +333,6 @@ The syntax is as follows:
 \begin{example}
   &tao_beam_init
     ix_universe             = <integer>
-    sr_wakes_on             = <logical>   ! turn on short range wakes
-                                          ! default = F
-    lr_wakes_on             = <logical>   ! turn on long range wakes
-                                          ! default = F
     calc_emittance          = <logical>   ! calculate emittance for rings
     beam_init%a_norm_emit   = <number>    ! A-mode emittance
     beam_init%b_norm_emit   = <number>    ! B-mode emittance
@@ -357,11 +353,10 @@ The syntax is as follows:
     beam_init%siz_e_jitter  = <number>    ! bunch energy spread rms jitter (dE/E)
   /
 \end{example}
-\vn{ix_universe} refers to the universe index. See \bmad documentation
-on what the \vn{beam_init} parameters refer to. Wakefields can only be
-turned on or off for all universes and not for each universe
-individually. The charge per particle is set to $\vn{bunch_charge} /
-\vn{n_particle}$ and is used when calculating wakefield affects.
+\vn{ix_universe} refers to the universe index. See \bmad documentation on what
+the \vn{beam_init} parameters refer to.  The charge per particle is set to
+$\vn{bunch_charge} / \vn{n_particle}$ and is used when calculating wakefield
+effects.
 
 The twiss parameters at the beginning of the lattice are used in
 intitiating the beam distribution.  For circular lattices the twiss
@@ -394,8 +389,6 @@ A macroparticle beam is initialized in the \vn{tao_macro_init} namelist block.
 The syntax is as follows:
 \index{tao_macro_init}
 \index{ix_universe}
-\index{sr_wakes_on}
-\index{lr_wakes_on}
 \index{calc_emittance}
 \index{macro_init}
 \index{macro_init!x!norm_emit}
@@ -413,10 +406,6 @@ The syntax is as follows:
 \begin{example}
   &tao_macro_init
     ix_universe             = <Integer>   ! Universe index.
-    sr_wakes_on             = <logical>   ! turn on short range wakes
-                                          ! default = F
-    lr_wakes_on             = <logical>   ! turn on long range wakes
-                                          ! default = F
     calc_emittance          = <logical>   ! calculate emittance for rings
     macro_init%x%norm_emit  = <number> 
     macro_init%y%norm_emit  = <number> 
@@ -434,9 +423,7 @@ The syntax is as follows:
   /
 \end{example}
 \vn{ix_universe} refers to the universe index. See \bmad documentation
-on what the \vn{macro_init} parameters refer to. Wakefields can only
-be turned on or off for all universes and not for each universe
-individually.
+on what the \vn{macro_init} parameters refer to.
 
 The twiss parameters at the beginning of the lattice are used in
 intitiating the beam distribution.  For circular lattices the twiss

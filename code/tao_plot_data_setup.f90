@@ -701,12 +701,20 @@ do ii = 1, size(curve%x_line)
   case ('alpha:y')
     value = ele%y%alpha
   case ('eta:x')
-    value = ele%x%eta
+    value = ele%x%eta_lab
   case ('eta:y')
-    value = ele%y%eta
+    value = ele%y%eta_lab
   case ('etap:x')
-    value = ele%x%etap
+    value = ele%x%etap_lab
   case ('etap:y')
+    value = ele%y%etap_lab
+  case ('eta:a')
+    value = ele%x%eta
+  case ('eta:b')
+    value = ele%y%eta
+  case ('etap:a')
+    value = ele%x%etap
+  case ('etap:b')
     value = ele%y%etap
   case ('beam_energy')
     value = ele%value(beam_energy$)
