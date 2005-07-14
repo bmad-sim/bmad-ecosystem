@@ -44,6 +44,13 @@ the vector potential $\Bf A(x,y,s)$ via
 \Begineq
   \Bf a = \frac{q \, \Bf A}{P_0 \, c}
 \Endeq
+The equations of motion are
+\begin{align}
+  \frac{dq_i}{ds} &= \frac{\partial H}{\partial p_i} \CRNO
+  \frac{dp_i}{ds} &= -\frac{\partial H}{\partial q_i}
+  \label{rshp}
+\end{align}
+
 Assuming mid--plane symmetry of the magnetic field, so
 that $a_x$ and $a_y$ can set to zero\cite{b:madphysics}, The vector
 potential up to second order is (cf.~\Eq{byx0b})
@@ -63,13 +70,29 @@ approximation, \Eq{h1gx1} becomes
 \Endeq
 
 The change in $z$, once the transverse trajectory is
-known, is obtained from integrating \Eq{hpapa} 
+known, is obtained from symplectic integration of \Eq{hpapa} 
 \Begineq
   z \rightarrow z - \frac{1}{2 (1 + p_z)^2} \int \! ds \, 
   \left[ (p_x - a_x)^2 + (p_y - a_y)^2 \right] - \int \! ds \, g \, x
   \label{zz121p}
 \Endeq
+Using the equtions of motion \Eqs{rshp} this can also be rewritten as
+\Begineq
+  z \rightarrow z - \frac{1}{2} \int \! ds \, 
+  \left[ \left( \frac{dx}{ds} \right)^2 + \left( \frac{dy}{ds} \right)^2 \right] - 
+  \int \! ds \, g \, x
+  \label{zz12sx}
+\Endeq
 
+For elements without electric fields the transfer map
+for a given coordinate $r_i$ may be expanded in a Taylor series
+\Begineq
+  r_i \rightarrow m_i + \sum_{j = 1}^4 m_{ij} \, r_j + 
+  \sum_{j = 1}^4 \sum_{k = j}^4 m_{ijk} \, r_j \, r_k + \ldots
+\Endeq
+where the map coeficients $m_{ij\cdots}$ are functions of $p_z$.  For
+linear elements the transfer map is linear for the transverse
+coordinates and quadratic for $z$.
 
 
 %-----------------------------------------
@@ -91,27 +114,13 @@ A drift has $\Bf a = 0$ and $g = 0$. The Hamiltonian for a drift is
 \Endeq
 This gives the map
 \begin{align}
-  x   &\rightarrow x + \frac{l \, p_x}{1 + p_z} \CRNO
+  x   &\rightarrow x + \frac{L \, p_x}{1 + p_z} \CRNO
   p_x &\rightarrow p_x  \CRNO
-  y   &\rightarrow y + \frac{l \, p_y}{1 + p_z} \CRNO
+  y   &\rightarrow y + \frac{L \, p_y}{1 + p_z} \CRNO
   p_y &\rightarrow p_y  \\
-  z   &\rightarrow z - \frac{l \, (p_x^2 + p_y^2)}{2 (1 + p_z)^2} \CRNO
+  z   &\rightarrow z - \frac{L \, (p_x^2 + p_y^2)}{2 (1 + p_z)^2} \CRNO
   p_z &\rightarrow p_z \nonumber
 \end{align}
-The Jacobian is 
-\Begineq
-  \begin{pmatrix}
-    x \\ p_x \\ z \\ p_z
-  \end{pmatrix}
-  = 
-  \begin{pmatrix}
-    1 & \frac{l}{1 + p_z}             & 0 & \frac{-l \, p_x}{(1 + p_z)^2} \\
-    0 & 1                             & 0 & 0 \\
-    0 & -\frac{l \, p_x}{(1 + p_z)^2} & 1 & 
-                              \frac{l \, (p_x^2 + p_y^2)}{(1 + p_z)^3} \\
-    0 & 0                             & 0 & 1
-  \end{pmatrix}
-\Endeq
 
 %-----------------------------------------
 \subsection{Kicker, HKicker, Vkicker, Elseparator}
@@ -198,8 +207,8 @@ This is simply solved
   p_x &\rightarrow \tau_x \, \om^2 \, \, (1 + p_z) \, s_x \, x + c_x \, p_x \CRNO
   y   &\rightarrow c_y \, y + s_y \, \frac{p_y}{1 + p_z} \CRNO
   p_y &\rightarrow \tau_y \, \om^2 \, \, (1 + p_z) \, s_y \, y + c_y \, p_y \CRNO
-  z   &\rightarrow z + z_{11} \, x^2 + z_{12} \, x \, p_x + z_{22} \, p_x^2 + 
-                   z_{33} \, y^2 + z_{34} \, y \, p_y + z_{44} \, p_y^2 \CRNO
+  z   &\rightarrow z + m_{511} \, x^2 + m_{512} \, x \, p_x + m_{522} \, p_x^2 + 
+                   m_{533} \, y^2 + m_{534} \, y \, p_y + m_{544} \, p_y^2 \CRNO
   p_z &\rightarrow p_z \nonumber
 \end{align}
 where 
@@ -207,24 +216,25 @@ where
   \om \equiv \sqrt{\frac{|k_1|}{1 + p_z}}
 \Endeq
 and
-\begin{alignat}{3}
-         &\hspace*{5ex}  && k_1 > 0          &\hspace*{5ex}& k_1 < 0 \CRNO
-     c_x &=   && \cos  (\om \, L) && \cosh (\om \, L) \CRNO
-     s_x &=   && \frac{\sin  (\om \, L)}{\om} && \frac{\sinh (\om \, L)}{\om} \CRNO
-     c_y &=   && \cosh (\om \, L) && \cos  (\om \, L) \\
-     s_y &=   && \frac{\sinh (\om \, L)}{\om} && \frac{\sin  (\om \, L)}{\om} \CRNO
-  \tau_x &=   && {-}1             && {+}1             \CRNO
+\begin{alignat}{6}
+         &\hspace*{3ex}  && k_1 > 0          &\hspace*{3ex}& k_1 < 0 & \qqquad
+         &\hspace*{3ex}  && k_1 > 0          &\hspace*{3ex}& k_1 < 0 \CRNO
+     c_x &=   && \cos  (\om \, L) && \cosh (\om \, L) & \qqquad
+     c_y &=   && \cosh (\om \, L) && \cos  (\om \, L) \CRNO
+     s_x &=   && \frac{\sin  (\om \, L)}{\om} && \frac{\sinh (\om \, L)}{\om} & \qqquad
+     s_y &=   && \frac{\sinh (\om \, L)}{\om} && \frac{\sin  (\om \, L)}{\om} \\
+  \tau_x &=   && {-}1             && {+}1             & \qqquad
   \tau_y &=   && {+}1             && {-}1             \nonumber
 \end{alignat}
 with this
-\begin{align}
-  z_{11} &= \frac{\tau_x \,\, \om^2}{4} \, (L - c_x \, s_x) \CRNO
-  z_{12} &= \frac{-\tau_x \,\, \om^2}{2 \, (1 + p_z)} \, s_x^2 \CRNO
-  z_{22} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + c_x \, s_x) \CRNO
-  z_{33} &= \frac{\tau_y \,\, \om^2}{4} \, (L - c_y \, s_y) \CRNO
-  z_{34} &= \frac{-\tau_y \,\, \om^2}{2 \, (1 + p_z)} \, s_y^2 \CRNO
-  z_{44} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + c_y \, s_y) \nonumber
-\end{align}
+\begin{alignat}{2}
+  m_{511} &= \frac{\tau_x \,\, \om^2}{4} \, (L - c_x \, s_x) & \qqquad
+  m_{533} &= \frac{\tau_y \,\, \om^2}{4} \, (L - c_y \, s_y) \CRNO
+  m_{512} &= \frac{-\tau_x \,\, \om^2}{2 \, (1 + p_z)} \, s_x^2 & \qqquad
+  m_{534} &= \frac{-\tau_y \,\, \om^2}{2 \, (1 + p_z)} \, s_y^2 \CRNO
+  m_{522} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + c_x \, s_x) & \qqquad
+  m_{544} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + c_y \, s_y) \nonumber
+\end{alignat}{2}
 
 
 %-----------------------------------------
@@ -259,45 +269,41 @@ This is simply solved
   p_x &\rightarrow \tau_x \, \om_x^2 \, \, (1 + p_z) \, s_x \, (x -x_c) + c_x \, p_x \CRNO
   y   &\rightarrow c_y \, y + s_y \, \frac{p_y}{1 + p_z} \CRNO
   p_y &\rightarrow \tau_y \, \om_y^2 \, \, (1 + p_z) \, s_y \, y + c_y \, p_y \CRNO
-  z   &\rightarrow z + z_0 + z_1 (x - x_c) + z_2 p_x + \CRNO
-      &\hspace*{20ex} z_{11} \, (x-x_c)^2 + z_{12} \, (x-x_c) \, p_x + z_{22} \, p_x^2 + 
-                   z_{33} \, y^2 + z_{34} \, y \, p_y + z_{44} \, p_y^2 \CRNO
+  z   &\rightarrow z + m_5 + m_{51} (x - x_c) + m_{52} p_x + \CRNO
+      &\hspace*{20ex} m_{511} \, (x-x_c)^2 + m_{512} \, (x-x_c) \, p_x + m_{522} \, p_x^2 + 
+                   m_{533} \, y^2 + m_{534} \, y \, p_y + m_{544} \, p_y^2 \CRNO
   p_z &\rightarrow p_z \nonumber
 \end{align}
 where 
-\begin{align}
-  k_x &= k_1 + g \, k_0 \CRNO
-  x_c &= \frac{g \, (1 + p_z) - k_0}{k_x} \\
+\begin{alignat}{2}
+  k_x &= k_1 + g \, k_0 & \qqquad
   \om_x &\equiv \sqrt{\frac{|k_x|}{1 + p_z}} \CRNO
+  x_c &= \frac{g \, (1 + p_z) - k_0}{k_x} & \qqquad
   \om_y &\equiv \sqrt{\frac{|k_1|}{1 + p_z}} \CRNO
-\end{align}
-and
-\begin{alignat}{3}
-         &\hspace*{5ex}  && k_x > 0          &\hspace*{5ex}& k_x < 0 \CRNO
-     c_x &=   && \cos  (\om_x \, L) && \cosh (\om_x \, L) \\
-     s_x &=   && \frac{\sin  (\om_x \, L)}{\om_x} && \frac{\sinh (\om_x \, L)}{\om_x} \CRNO
-  \tau_x &=   && {-}1             && {+}1             \CRNO
 \end{alignat}
 and
-\begin{alignat}{3}
-         &\hspace*{5ex}  && k_1 > 0          &\hspace*{5ex}& k_1 < 0 \CRNO
-     c_y &=   && \cosh (\om_y \, L) && \cos  (\om_y \, L) \\
+\begin{alignat}{6}
+         &\hspace*{3ex}  && k_x > 0          &\hspace*{3ex}& k_x < 0 & \qqquad
+         &\hspace*{3ex}  && k_1 > 0          &\hspace*{3ex}& k_1 < 0 \CRNO
+     c_x &=   && \cos  (\om_x \, L)               && \cosh (\om_x \, L) & \qqquad
+     c_y &=   && \cosh (\om_y \, L)               && \cos  (\om_y \, L) \\
+     s_x &=   && \frac{\sin  (\om_x \, L)}{\om_x} && \frac{\sinh (\om_x \, L)}{\om_x} & \qqquad
      s_y &=   && \frac{\sinh (\om_y \, L)}{\om_y} && \frac{\sin  (\om_y \, L)}{\om_y} \CRNO
+  \tau_x &=   && {-}1             && {+}1             & \qqquad
   \tau_y &=   && {+}1             && {-}1             \nonumber
 \end{alignat}
 with this
-\begin{align}
-  z_0    &= - g \, x_c \, L \CRNO
-  z_1    &= -g \, s_x \CRNO
-  z_2    &= \frac{\tau_x \, g}{1 + p_z} \, \frac(1 - c_x}{\om_x^2} \\
-  z_{11} &= \frac{\tau_x \,\, \om_x^2}{4} \, (L - c_x \, s_x) \CRNO
-  z_{12} &= \frac{-\tau_x \,\, \om_x^2}{2 \, (1 + p_z)} \, s_x^2 \CRNO
-  z_{22} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + c_x \, s_x) \CRNO
-  z_{33} &= \frac{\tau_y \,\, \om_y^2}{4} \, (L - c_y \, s_y) \CRNO
-  z_{34} &= \frac{-\tau_y \,\, \om_y^2}{2 \, (1 + p_z)} \, s_y^2 \CRNO
-  z_{44} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + c_y \, s_y) \nonumber
-\end{align}
-
+\begin{alignat}{2}
+  m_5     &= -g \, x_c \, L & \qqquad & \CRNO
+  m_{51}  &= -g \, s_x & \qqquad
+  m_{52}  &= \frac{\tau_x \, g}{1 + p_z} \, \frac{1 - c_x}{\om_x^2} \CRNO
+  m_{511} &= \frac{\tau_x \,\, \om_x^2}{4} \, (L - c_x \, s_x) & \qqquad
+  m_{533} &= \frac{\tau_y \,\, \om_y^2}{4} \, (L - c_y \, s_y) \CRNO
+  m_{512} &= \frac{-\tau_x \,\, \om_x^2}{2 \, (1 + p_z)} \, s_x^2 & \qqquad
+  m_{534} &= \frac{-\tau_y \,\, \om_y^2}{2 \, (1 + p_z)} \, s_y^2 \CRNO
+  m_{522} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + c_x \, s_x) & \qqquad
+  m_{544} &= \frac{-1}{4 \, (1 + p_z)^2} \, (L + c_y \, s_y) \nonumber
+\end{alignat}
 
 %-----------------------------------------
 \subsection{Sextupole}
@@ -307,9 +313,93 @@ with this
 \subsection{Sol\_Quad}
 \index{Sol_Quad}
 
+The Hamiltonian is
+\Begineq
+  H = \frac{(p_x + \frac{k_s }{2}\, y)^2}{2 (1 + p_z)} + 
+  \frac{(p_y - \frac{k_s}{2} \, x)^2}{2 (1 + p_z)} + \frac{k_1}{2} (x^2 - y^2)
+\Endeq
+Solving the equations of motion gives
+\begin{align}
+  x   &\rightarrow m_{11} \, x + m_{12} \, p_x + m_{13} \, y + m_{14} \, p_y \CRNO
+  p_x &\rightarrow m_{21} \, x + m_{22} \, p_x + m_{23} \, y + m_{24} \, p_y \CRNO
+  y   &\rightarrow m_{31} \, x + m_{32} \, p_x + m_{33} \, y + m_{34} \, p_y \CRNO
+  p_y &\rightarrow m_{41} \, x + m_{42} \, p_x + m_{43} \, y + m_{44} \, p_y \CRNO
+  z   &\rightarrow z + \sum_{j = 1}^4 \sum_{k = j}^4 m_{5jk} \, r_j \, r_k  \CRNO
+  p_z &\rightarrow p_z \nonumber
+\end{align}
+where
+\begin{alignat}{2}
+  m_{11} &= \frac{1}{2 \, f} \, \left( f_{0+} \, c + f_{0-} \, c_h \right) & \qqquad
+  m_{12} &= \frac{1}{2 \, f \, \kone \, (1 + p_z)} \, 
+            \left( f_{-+} \, \om_+ \,  s - f_{+-} \, \om_- \, s_h \right) \CRNO
+  m_{13} &= \frac{\ks}{4 \, f \, \kone} \, 
+            \left( -f_{--} \, \om_+ \, s + f_{++} \, \om_- \, s_h \right) & \qqquad
+  m_{14} &= \frac{\ks}{f \, (1 + p_z)} \, \left( -c + c_h \right) \CRNO
+  m_{21} &= \frac{-(1 + p_z)}{8 \, f} \, 
+            \left( \frac{\kappa_1}{\om_+} \, s + \frac{\kappa_2}{\om_-} s_h \right) & \qqquad
+  m_{22} &= m_{11} \\
+  m_{23} &= \frac{\ks^3 \, (1 + p_z)}{f} \, \left( c - c_h \right) & \qqquad
+  m_{24} &= \frac{\ks}{4 \, f} \, 
+            \left( \frac{f_{++}}{\om_+} \, s + \frac{f_{--}}{\om_-} \, s_h \right) \CRNO
+  m_{31} &= -m_{24} & \qqquad
+  m_{32} &= -m_{14} \CRNO
+  m_{33} &= \frac{1}{2 \, f} \, \left( f_{0-} \, c + f_{0+} \, c_h \right) & \qqquad
+  m_{34} &= \frac{1}{2 \, f \, (1 + p_z)} \, 
+            \left( \frac{f_{+-}}{\om_+} \, s + \frac{f_{-+}}{\om_-} \, s_h \right) \CRNO
+  m_{41} &= -m_{23} & \qqquad
+  m_{42} &= -m_{13} \CRNO
+  m_{43} &= \frac{1 + p_z}{8 \, f \, \kone} \, 
+            \left( -\kappa_2 \, \om_+ \, s + \kappa_1 \, \om_- \, s_h \right) & \qqquad
+  m_{44} &= m_{33} \nonumber
+\end{alignat}
+and
+\begin{alignat}{2}
+  \kone      &= \frac{k_1}{1 + p_z} & \qqquad 
+  \ks        &= \frac{k_s}{1 + p_z} \CRNO
+  f          &= \sqrt{\ks^4 + 4 \, \kone^2} & \qqquad
+  f_{\pm0}   &= f \pm \ks^2 \CRNO
+  f_{0\pm}   &= f \pm 2 \, \kone & \qqquad
+  f_{\pm\pm} &= f \pm \ks^2 \pm 2 \, \kone \CRNO
+  \om_+      &= \sqrt{\frac{f_{+0}}{2}} & \qqquad
+  \om_-      &= \sqrt{\frac{f_{-0}}{2}} \\
+  s          &= \sin (\om_+ \, L) & \qqquad
+  s_h        &= \sinh (\om_- \, L) \CRNO
+  c          &= \cos (\om_+ \, L) & \qqquad
+  c_h        &= \cosh (\om_- \, L) \CRNO
+  \kappa_1   &= \ks^2 \, f_{+-} + 4 \, \kone \, f_{++} & \qqquad
+  \kappa_2   &= \ks^2 \, f_{-+} + 4 \, \kone \, f_{--} \nonumber
+\end{alignat}
+
+The $m_{5jk}$ terms are obtained via \Eq{zz121p}
+\Begineq
+  m_{5jk} = - \frac{1}{2 (1 + p_z)^2} \int \! ds \, 
+  \left[ (p_x - a_x)^2 + (p_y - a_y)^2 \right] - \int \! ds \,
+\Endeq
+
 %-----------------------------------------
 \subsection{Solenoid}
 \index{Solenoid}
+
+The Hamiltonian is
+\Begineq
+  H = \frac{ \left( p_x + \frac{k_s}{2} \, y \right)^2}{2 \, (1 + p_z)} + 
+  \frac{ \left( p_y - \frac{k_s}{2} \, x \right)^2}{2 \, (1 + p_z)} 
+\Endeq
+The solution is
+\begin{align}
+  x   &\rightarrow \frac{1 + c}{2} \, x + \frac{s}{k_s} \, p_x +
+           \frac{s}{2} \, y + \frac{1 - c}{2 \, k_s} \, p_y \CRNO
+  p_x &\rightarrow \frac{-k_s \, s}{4} \, x + \frac{1 + c}{2} \, p_x - 
+           \frac{k_s \, (1 - c)}{4} \, y + \frac{s}{2} \, p_y \CRNO
+  y   &\rightarrow \frac{-s}{2} \, x - \frac{1 - c}{2 \, k_s} \, p_x +
+           \frac{1 + c}{2} \, y + \frac{s}{k_s} \, p_y \\      
+  p_y &\rightarrow \frac{k_s \, (1 - c)}{4} \, x + \frac{-s}{2} \, p_x -
+            \frac{k_s \, s}{4} \, y + \frac{1 + c}{2} \, p_y \CRNO 
+  z   &\rightarrow z + \frac{L}{2 \, (1 + p_z)^2} \, 
+                   \left[ \left( p_x + \frac{k_s}{2} \, y \right)^2 +
+                          \left( p_y - \frac{k_s}{2} \, x \right)^2 \right] \CRNO
+  p_z &\rightarrow p_z \nonumber
+\end{align}
 
 %-----------------------------------------
 \subsection{Wiggler, Map\_type}

@@ -140,4 +140,32 @@ through the lattice input file or within a program. Additionally a
 routine \vn{em_field_custom} must be linked with any program using the
 custom calculations.
 
+%-----------------------------------------------------------------------------
+\section{Particle Information}
+\label{s:particle}
+\index{Particle!information}
 
+In a \vn{ring_struct} structure the particle type is stored in the
+integer variable \vn{%param%particle}. The value of this variable will
+correspond to one of the constants:
+\index{positron}\index{electron}\index{proton}\index{antiproton}
+\begin{example}
+  positron\$
+  electron\$
+  proton\$
+  antiproton\$
+\end{example}
+To print the name of the particle use the function
+\vnr{particle_name}. A particles mass and charge can be obtained from
+the functions \vnr{mass_of} and \vnr{charge_of} respectively. 
+\vn{charge_of} returns the particle's charge in units of the fundamental
+electron charge. Example:
+\begin{example}
+  type (ring_struct) lat
+  call bmad_parser (input_file_name, lat)
+  print *, 'Beam Particles are: ', particle_name(lat%param%particle)
+  if (lat%param%particle == proton\$) print *, 'I do not like protons!'
+  print *, 'Particle mass (eV):    ', mass_of(lat%param%particle)
+  print *, 'Particle charge (Coul):', &
+                          e_charge * charge_of(lat%param%particle)
+\end{example}
