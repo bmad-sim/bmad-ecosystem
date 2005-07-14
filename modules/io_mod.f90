@@ -999,7 +999,7 @@ subroutine element_out (ele)
 
 ! wiggler or solquad must be a matrix
 
-  case (wiggler$, sol_quad$)
+  case (wiggler$, sol_quad$, match$)
 
     write (iu, '(2a)') trim(name), ': matrix, &'
     write (iu, '(5x, 6(a, es13.5))') 'rm(1,1) =', ele%mat6(1,1),  &
