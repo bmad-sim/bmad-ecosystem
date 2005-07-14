@@ -44,7 +44,7 @@ subroutine track1_bmad (start, ele, param, end)
   real(rp) rel_pc, ff, k_z, pc_start, pc_end, dt_ref, dE
   real(rp) x_pos, y_pos, cos_phi, gradient, e_start, e_end, e_ratio
   real(rp) alpha, sin_a, cos_a, f, r11, r12, r21, r22
-  real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2
+  real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp0, xp1, yp0, yp1
   real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3)
   real(rp) dp_coupler, dp_x_coupler, dp_y_coupler
 
@@ -426,7 +426,16 @@ subroutine track1_bmad (start, ele, param, end)
 
     end%vec(5) = end%vec(5) * (beta_end / beta_start) + beta_end * &
                     (dt_ref - (pc_end - pc_start) / gradient)
-    call end_z_calc
+
+! This assumes a uniform change in slope.
+
+    xp0 = start%vec(2) / rel_pc
+    xp1 = end%vec(2) / (1 + end%vec(6))
+    yp0 = start%vec(4) / rel_pc
+    yp1 = end%vec(4) / (1 + end%vec(6))
+
+    end%vec(5) = end%vec(5) - (length / 6) * &
+            (xp0**2 + xp1**2 + xp0*xp1 + yp0**2 + yp1**2 + yp0*yp1)
 
 !-----------------------------------------------
 ! sextupole
