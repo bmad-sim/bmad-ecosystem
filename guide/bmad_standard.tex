@@ -76,7 +76,7 @@ known, is obtained from symplectic integration of \Eq{hpapa}
   \left[ (p_x - a_x)^2 + (p_y - a_y)^2 \right] - \int \! ds \, g \, x
   \label{zz121p}
 \Endeq
-Using the equtions of motion \Eqs{rshp} this can also be rewritten as
+Using the equations of motion \Eqs{rshp} this can also be rewritten as
 \Begineq
   z \rightarrow z - \frac{1}{2} \int \! ds \, 
   \left[ \left( \frac{dx}{ds} \right)^2 + \left( \frac{dy}{ds} \right)^2 \right] - 
@@ -90,7 +90,7 @@ for a given coordinate $r_i$ may be expanded in a Taylor series
   r_i \rightarrow m_i + \sum_{j = 1}^4 m_{ij} \, r_j + 
   \sum_{j = 1}^4 \sum_{k = j}^4 m_{ijk} \, r_j \, r_k + \ldots
 \Endeq
-where the map coeficients $m_{ij\cdots}$ are functions of $p_z$.  For
+where the map coefficients $m_{ij\cdots}$ are functions of $p_z$.  For
 linear elements the transfer map is linear for the transverse
 coordinates and quadratic for $z$.
 
@@ -123,7 +123,7 @@ This gives the map
 \end{align}
 
 %-----------------------------------------
-\subsection{Kicker, HKicker, Vkicker, Elseparator}
+\subsection{Kicker, Hkicker, Vkicker, Elseparator}
 \index{Kicker}
 \index{HKicker}
 \index{VKicker}
@@ -161,7 +161,7 @@ Using this in \Eq{zbbzb} gives the change in $z$
 where $P_{01}$ and $P_{02}$ are the reference momentum at the entrance
 and exits of the \vn{LCavity} with $G_0$ the reference gradient. 
 
-The derivatives are straight forword if tedious
+The derivatives are straight forward if tedious
 \begin{align}
   m(5,5) &= \frac{dz_2}{dz_1} = 
     \frac{\beta_2}{\beta_1} + 
@@ -330,13 +330,13 @@ Solving the equations of motion gives
 where
 \begin{alignat}{2}
   m_{11} &= \frac{1}{2 \, f} \, \left( f_{0+} \, c + f_{0-} \, c_h \right) & \qqquad
-  m_{12} &= \frac{1}{2 \, f \, \kone \, (1 + p_z)} \, 
-            \left( f_{-+} \, \om_+ \,  s - f_{+-} \, \om_- \, s_h \right) \CRNO
-  m_{13} &= \frac{\ks}{4 \, f \, \kone} \, 
-            \left( -f_{--} \, \om_+ \, s + f_{++} \, \om_- \, s_h \right) & \qqquad
+  m_{12} &= \frac{1}{2 \, f \, (1 + p_z)} \, 
+            \left( \frac{f_{++}}{\om_+} \,  s + \frac{f_{--}}{\om_-} \, s_h \right) \CRNO
+  m_{13} &= \frac{\ks}{4 \, f} \, 
+            \left( \frac{f_{+-}}{\om_+} \, s +\frac{f_{-+}}{\om_-} \, s_h \right) & \qqquad
   m_{14} &= \frac{\ks}{f \, (1 + p_z)} \, \left( -c + c_h \right) \CRNO
   m_{21} &= \frac{-(1 + p_z)}{8 \, f} \, 
-            \left( \frac{\kappa_1}{\om_+} \, s + \frac{\kappa_2}{\om_-} s_h \right) & \qqquad
+            \left( \frac{\xi_{1+}}{\om_+} \, s + \frac{\xi_{2+}}{\om_-} s_h \right) & \qqquad
   m_{22} &= m_{11} \\
   m_{23} &= \frac{\ks^3 \, (1 + p_z)}{f} \, \left( c - c_h \right) & \qqquad
   m_{24} &= \frac{\ks}{4 \, f} \, 
@@ -348,33 +348,52 @@ where
             \left( \frac{f_{+-}}{\om_+} \, s + \frac{f_{-+}}{\om_-} \, s_h \right) \CRNO
   m_{41} &= -m_{23} & \qqquad
   m_{42} &= -m_{13} \CRNO
-  m_{43} &= \frac{1 + p_z}{8 \, f \, \kone} \, 
-            \left( -\kappa_2 \, \om_+ \, s + \kappa_1 \, \om_- \, s_h \right) & \qqquad
+  m_{43} &= \frac{-(1 + p_z)}{8 \, f} \, 
+            \left( \frac{\xi_{1-}}{\om_+} \, s + \frac{\xi_{2-}}{\om_-} \, s_h \right) & \qqquad
   m_{44} &= m_{33} \nonumber
 \end{alignat}
 and
 \begin{alignat}{2}
-  \kone      &= \frac{k_1}{1 + p_z} & \qqquad 
-  \ks        &= \frac{k_s}{1 + p_z} \CRNO
-  f          &= \sqrt{\ks^4 + 4 \, \kone^2} & \qqquad
-  f_{\pm0}   &= f \pm \ks^2 \CRNO
-  f_{0\pm}   &= f \pm 2 \, \kone & \qqquad
-  f_{\pm\pm} &= f \pm \ks^2 \pm 2 \, \kone \CRNO
-  \om_+      &= \sqrt{\frac{f_{+0}}{2}} & \qqquad
-  \om_-      &= \sqrt{\frac{f_{-0}}{2}} \\
-  s          &= \sin (\om_+ \, L) & \qqquad
-  s_h        &= \sinh (\om_- \, L) \CRNO
-  c          &= \cos (\om_+ \, L) & \qqquad
-  c_h        &= \cosh (\om_- \, L) \CRNO
-  \kappa_1   &= \ks^2 \, f_{+-} + 4 \, \kone \, f_{++} & \qqquad
-  \kappa_2   &= \ks^2 \, f_{-+} + 4 \, \kone \, f_{--} \nonumber
+  \kone        &= \frac{k_1}{1 + p_z} & \qqquad 
+  \ks          &= \frac{k_s}{1 + p_z} \CRNO
+  f            &= \sqrt{\ks^4 + 4 \, \kone^2} & \qqquad
+  f_{\pm0}     &= f \pm \ks^2 \CRNO
+  f_{0\pm}     &= f \pm 2 \, \kone & \qqquad
+  f_{\pm\pm}   &= f \pm \ks^2 \pm 2 \, \kone \CRNO
+  \om_+        &= \sqrt{\frac{f_{+0}}{2}} & \qqquad
+  \om_-        &= \sqrt{\frac{f_{-0}}{2}} \\
+  s            &= \sin (\om_+ \, L) & \qqquad
+  s_h          &= \sinh (\om_- \, L) \CRNO
+  c            &= \cos (\om_+ \, L) & \qqquad
+  c_h          &= \cosh (\om_- \, L) \CRNO
+  \xi_{1\pm} &= \ks^2 \, f_{+\mp} \pm 4 \, \kone \, f_{+\pm} & \qqquad
+  \xi_{2\pm} &= \ks^2 \, f_{-\pm} \pm 4 \, \kone \, f_{-\mp} \nonumber
 \end{alignat}
 
 The $m_{5jk}$ terms are obtained via \Eq{zz121p}
+\begin{align}
+  m_{5jk} = - \frac{\tau_{jk}}{2 (1 + p_z)^2} \int \! ds \, 
+  & \left[ 
+    \left( m_{2j} + \frac{k_s}{2} \, m_{3j} \right) \, 
+    \left( m_{2k} + \frac{k_s}{2} \, m_{3k} \right)   
+  \right. + \\
+  & \hspace*{15ex} \left.
+    \left( m_{4j} - \frac{k_s}{2} \, m_{1j} \right) \, 
+    \left( m_{4k} - \frac{k_s}{2} \, m_{1k} \right) 
+  \right] \nonumber
+\end{align}
+where
 \Begineq
-  m_{5jk} = - \frac{1}{2 (1 + p_z)^2} \int \! ds \, 
-  \left[ (p_x - a_x)^2 + (p_y - a_y)^2 \right] - \int \! ds \,
+  \tau_{jk} = 
+  \begin{cases}
+    1 & j = k \\
+    2 & j \ne k 
+  \end{cases}
 \Endeq
+The needed integrals involve the product of two trigonometric or
+hyperbolic functions. These integrals are trivial to do but the
+explicit equations for $m_{5jk}$ are quite long and in the interests of
+brevity are not reproduced here.
 
 %-----------------------------------------
 \subsection{Solenoid}
