@@ -71,8 +71,8 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   call init_ele (ring%ele_init)  ! init pointers
   call deallocate_ring_pointers (ring)
 
-! read the digested file.
-! some old versions can be read even though they are not the current version
+! Read the digested file.
+! Some old versions can be read even though they are not the current version.
 
   d_unit = lunget()
   bmad_status%ok = .true.
@@ -122,6 +122,14 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
   do i = 1, n_files
     read (d_unit, err = 9100) fname(1), idate_old
+
+    if (fname(1) == '!RAN FUNCTION WAS CALLED') then
+      if (bmad_status%type_out) call out_io(s_warn$, r_name, &
+                'NOTE: RANDOM NUMBER FUNCTION WAS USED IN LATTICE FILE.')
+      bmad_status%ok = .false.
+      cycle
+    endif
+
     call simplify_path (fname(1), fname(1))
     if (v_old) file_names(i) = fname(1)  ! fake out
     ix = index(fname(1), ';')
@@ -133,22 +141,21 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 #ifndef CESR_VMS 
       ierr = stat(fname(2), stat_b)
 #endif
-    endif
-    inquire (file = fname(2), exist = found_it, name = fname(3))
-    call simplify_path (fname(3), fname(3))
-    if (.not. found_it .or. fname(1) /= fname(3) .or. &
+     endif
+     inquire (file = fname(2), exist = found_it, name = fname(3))
+     call simplify_path (fname(3), fname(3))
+     if (.not. found_it .or. fname(1) /= fname(3) .or. &
                                              stat_b(10) /= idate_old) then
-      if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$ ,r_name, &
-              'NOTE: DIGESTED FILE OUT OF DATE.')
+       if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$, &
+                                      r_name, 'NOTE: DIGESTED FILE OUT OF DATE.')
+       bmad_status%ok = .false.
+     endif
+     if (i == 1 .and. fname(2) /= input_file_name) then
+       if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$, &
+                                          r_name, ' NOTE: MOVED DIGESTED FILE.')
+       bmad_status%ok = .false.
+     endif
 
-      bmad_status%ok = .false.
-    endif
-    if (i == 1 .and. fname(2) /= input_file_name) then
-      if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$, r_name, &
-                    ' NOTE: MOVED DIGESTED FILE.')
-
-      bmad_status%ok = .false.
-    endif
    enddo
 
 ! we read (and write) the ring in pieces since it is

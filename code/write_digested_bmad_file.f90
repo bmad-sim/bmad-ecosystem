@@ -24,6 +24,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   use bmad_struct
   use bmad_interface, except => write_digested_bmad_file
   use equality_mod, only: operator(==)
+  use bmad_parser_mod
 
   implicit none
 
@@ -48,7 +49,10 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
 
   external stat
 
-! write input file names to the digested file
+! Write input file names to the digested file
+! The idea is that read_digested_bmad_file can look at these files and see
+! if a file has been modified since the digested file has been created.
+! Additionally record if one of the random number functions was called.
 
   n_file = 0
   if (present(n_files)) n_file = n_files
@@ -58,7 +62,13 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   call fullfilename (digested_name, fname)
   open (unit = d_unit, file = fname, form = 'unformatted', err = 9000)
 
-  write (d_unit, err = 9010) n_file, bmad_inc_version$
+  if (bp_com%ran_function_was_called) then
+    write (d_unit, err = 9010) n_file+1, bmad_inc_version$
+    fname = '!RAN FUNCTION WAS CALLED'
+    write (d_unit) fname, 0
+  else
+    write (d_unit, err = 9010) n_file, bmad_inc_version$
+  endif
 
   do j = 1, n_file
     fname = file_names(j)
@@ -69,7 +79,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
     write (d_unit) fname, stat_b(10)  ! stat_b(10) = Modification date
   enddo
 
-! write the ring structure to the digested file. We do this in pieces
+! Write the ring structure to the digested file. We do this in pieces
 ! since the whole structure is too big to write in 1 statement.
 
   write (d_unit) &

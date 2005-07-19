@@ -136,18 +136,19 @@ type bp_com_struct
   real(rp), pointer :: var_value(:) => null()        ! variable value
   integer, pointer :: var_indexx(:) => null()        ! variable sort index
   integer num_lat_files               ! Number of files opened
+  integer ivar_tot, ivar_init
   character(200) lat_file_names(50)   ! List of all files used to create lat
   character(n_parse_line) parse_line
   character(n_parse_line) input_line1          ! For debug messages
   character(n_parse_line) input_line2          ! For debug messages
   character(16) parser_name
   character(72) debug_line
-  logical :: bmad_parser_calling = .false.     ! used for expand_lattice
-  logical parser_debug, write_digested, error_flag
-  integer ivar_tot, ivar_init
-  logical input_line_meaningful
   character(200) :: dirs(3) = (/ &
                       './           ', './           ', '$BMAD_LAYOUT:' /)
+  logical :: bmad_parser_calling = .false.     ! used for expand_lattice
+  logical parser_debug, write_digested, error_flag
+  logical input_line_meaningful
+  logical ran_function_was_called
 end type
 
 !
@@ -626,6 +627,7 @@ subroutine get_attribute (how, ele, ring, pring, &
       ele%coupler_at = nint(value)
     elseif (ix_attrib == ran_seed$) then
       call ran_seed (nint(value))  ! init random number generator
+      bp_com%ran_function_was_called = .true.
     else
       ele%value(ix_attrib) = value
       if (any (ix_attrib == (/ b_field$, b_gradient$, e_field$, e_field$, &
@@ -1191,9 +1193,11 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
         case ('RAN') 
           call pushit (op_, i_op, ran$)
           ran_function_pending = .true.
+          bp_com%ran_function_was_called = .true.
         case ('RAN_GAUSS') 
           call pushit (op_, i_op, ran_gauss$)
           ran_function_pending = .true.
+          bp_com%ran_function_was_called = .true.
         case default
           call warning ('UNEXPECTED CHARACTERS ON RHS BEFORE "(": ' // word,  &
                                                   'FOR: ' // err_str)

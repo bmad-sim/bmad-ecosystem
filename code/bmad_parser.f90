@@ -89,6 +89,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   bp_com%parser_name = 'BMAD_PARSER'  ! Used for error messages.
   bp_com%write_digested = .true.
   bp_com%input_line_meaningful = .true.
+  bp_com%ran_function_was_called = .false.
 
   call fullfilename (lat_file, full_name)
   inquire (file = full_name, name = full_name)      ! full input file_name
@@ -957,6 +958,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
       if (ele%value(freq_spread$) /= 0 .and. associated(ele%wake)) then
         do n = 1, size(ele%wake%lr)
           call ran_gauss (rr)
+          bp_com%ran_function_was_called = .true.
           ele%wake%lr(n)%freq = ele%wake%lr(n)%freq * &
                                             (1 + ele%value(freq_spread$) * rr)
         enddo
