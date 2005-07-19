@@ -330,26 +330,26 @@ Solving the equations of motion gives
 where
 \begin{alignat}{2}
   m_{11} &= \frac{1}{2 \, f} \, \left( f_{0+} \, c + f_{0-} \, c_h \right) & \qqquad
+  m_{31} &= -m_{24} \CRNO
   m_{12} &= \frac{1}{2 \, f \, (1 + p_z)} \, 
-            \left( \frac{f_{++}}{\om_+} \,  s + \frac{f_{--}}{\om_-} \, s_h \right) \CRNO
+            \left( \frac{f_{++}}{\om_+} \,  s + \frac{f_{--}}{\om_-} \, s_h \right) & \qqquad
+  m_{32} &= -m_{14} \CRNO
   m_{13} &= \frac{\ks}{4 \, f} \, 
             \left( \frac{f_{+-}}{\om_+} \, s +\frac{f_{-+}}{\om_-} \, s_h \right) & \qqquad
-  m_{14} &= \frac{\ks}{f \, (1 + p_z)} \, \left( -c + c_h \right) \CRNO
-  m_{21} &= \frac{-(1 + p_z)}{8 \, f} \, 
-            \left( \frac{\xi_{1+}}{\om_+} \, s + \frac{\xi_{2+}}{\om_-} s_h \right) & \qqquad
-  m_{22} &= m_{11} \\
-  m_{23} &= \frac{\ks^3 \, (1 + p_z)}{f} \, \left( c - c_h \right) & \qqquad
-  m_{24} &= \frac{\ks}{4 \, f} \, 
-            \left( \frac{f_{++}}{\om_+} \, s + \frac{f_{--}}{\om_-} \, s_h \right) \CRNO
-  m_{31} &= -m_{24} & \qqquad
-  m_{32} &= -m_{14} \CRNO
-  m_{33} &= \frac{1}{2 \, f} \, \left( f_{0-} \, c + f_{0+} \, c_h \right) & \qqquad
+  m_{33} &= \frac{1}{2 \, f} \, \left( f_{0-} \, c + f_{0+} \, c_h \right) \CRNO
+  m_{14} &= \frac{\ks}{f \, (1 + p_z)} \, \left( -c + c_h \right) & \qqquad
   m_{34} &= \frac{1}{2 \, f \, (1 + p_z)} \, 
             \left( \frac{f_{+-}}{\om_+} \, s + \frac{f_{-+}}{\om_-} \, s_h \right) \CRNO
-  m_{41} &= -m_{23} & \qqquad
+  m_{21} &= \frac{-(1 + p_z)}{8 \, f} \, 
+            \left( \frac{\xi_{1+}}{\om_+} \, s + \frac{\xi_{2+}}{\om_-} s_h \right) & \qqquad
+  m_{41} &= -m_{23} \CRNO
+  m_{22} &= m_{11} & \qqquad
   m_{42} &= -m_{13} \CRNO
+  m_{23} &= \frac{\ks^3 \, (1 + p_z)}{4 \, f} \, \left( c - c_h \right) & \qqquad
   m_{43} &= \frac{-(1 + p_z)}{8 \, f} \, 
-            \left( \frac{\xi_{1-}}{\om_+} \, s + \frac{\xi_{2-}}{\om_-} \, s_h \right) & \qqquad
+            \left( \frac{\xi_{1-}}{\om_+} \, s + \frac{\xi_{2-}}{\om_-} \, s_h \right) \CRNO
+  m_{24} &= \frac{\ks}{4 \, f} \, 
+            \left( \frac{f_{++}}{\om_+} \, s + \frac{f_{--}}{\om_-} \, s_h \right) & \qqquad
   m_{44} &= m_{33} \nonumber
 \end{alignat}
 and
@@ -418,6 +418,11 @@ The solution is
                    \left[ \left( p_x + \frac{k_s}{2} \, y \right)^2 +
                           \left( p_y - \frac{k_s}{2} \, x \right)^2 \right] \CRNO
   p_z &\rightarrow p_z \nonumber
+\end{align}
+where
+\begin{align}
+  c &= \cos \left( \frac{k_s}{2} \, L \right) \CRNO
+  s &= \sin \left( \frac{k_s}{2} \, L \right)
 \end{align}
 
 %-----------------------------------------

@@ -104,6 +104,16 @@ If \bmad is not able to create a digested file (typically because it
 does not have write permission in the directory), an error message will
 be generated but otherwise program operation will be normal.
 
+\index{Intrinsic functions!ran}
+\index{Intrinsic functions!ran_gauss}
+\index{Ran_seed!parameter statement}
+Digested files contain the names of the lattice files used to create
+them. If a lattice file has been modified since the digested file has
+been created then the the lattice files will be reread and a new
+digested file will be generated. Additionally, if any of the random
+number functions are used in the process of creating the lattice the
+digested file will be ignored.
+
 Digested files can also be used for easy transport of lattices between
 programs or between sessions of a program. For example, using one
 program you might read in a lattice, make some adjustments (say to model
