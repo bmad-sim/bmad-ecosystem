@@ -356,7 +356,7 @@ subroutine track1_sr_wake (bunch, ele)
     k_start = i_sr2
     do k = k_start, j-1
       leader => bunch%particle(k)
-      if (leader%r%vec(5) - particle%r%vec(5) < z_sr1_max) then
+      if (particle%r%vec(5) - leader%r%vec(5) > z_sr1_max) then
         ! use sr1 table to add to particle j the wake of particle k
         call sr1_apply_kick (ele, leader%r, leader%charge, particle%r)
       else
