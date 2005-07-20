@@ -55,17 +55,6 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
   custom_init = .false.
   call tao_hook_init_design_lattice (design_lattice, custom_init)
 
-  ! Initialize calibration array
-  ! This must be performed or tao_read_bpm will crash.
-  ! r(1,:) is for bpm and steering callibration
-  ! r(2,:) is for saving ele parameters
-  do i = 1, size(s%u)
-    do j = 1, s%u(i)%design%n_ele_max
-        allocate(s%u(i)%design%ele_(j)%r(2,4))
-        s%u(i)%design%ele_(j)%r = 0.0
-    enddo
-  enddo
-
   
   if (custom_init) return
 
@@ -87,6 +76,17 @@ subroutine tao_init_design_lattice (tao_design_lattice_file)
                                                 design_lattice(i)%parser)
       call err_exit
     end select
+  enddo
+
+  ! Initialize calibration array
+  ! This must be performed or tao_read_bpm will crash.
+  ! r(1,:) is for bpm and steering callibration
+  ! r(2,:) is for saving ele parameters
+  do i = 1, size(s%u)
+    do j = 1, s%u(i)%design%n_ele_max
+        allocate(s%u(i)%design%ele_(j)%r(2,4))
+        s%u(i)%design%ele_(j)%r = 0.0
+    enddo
   enddo
 
   ! TAO does its own bookkeeping

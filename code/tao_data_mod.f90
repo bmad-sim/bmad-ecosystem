@@ -683,6 +683,11 @@ character(20) :: r_name = "tao_read_bpm"
 
 logical err
 
+  if (.not. ele%is_on) then
+    reading = 0.0
+    return
+  endif
+
   if (ele%key .ne. monitor$ .and. ele%key .ne. instrument$) then
     reading = 0.0
     return
