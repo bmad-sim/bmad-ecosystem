@@ -58,8 +58,7 @@ do i = 1, size(ele%wake%lr)
 
   k = twopi * lr%freq / c_light
   f_exp = k / (2 * lr%Q)
-  ff = charge * lr%r_over_q * (c_light / 2) * exp(-ds * f_exp) / &
-                                                    ele%value(p0c$) 
+  ff = charge * lr%r_over_q * c_light * exp(-ds * f_exp) / ele%value(p0c$) 
 
   c = cos (ds * k)
   s = sin (ds * k)

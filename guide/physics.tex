@@ -934,10 +934,11 @@ modes are used.
 %-----------------------------
 \subsection{Long--Range Wakes}
 
-Following Chao\cite{b:chao}, The long--range wakefields are characterized
-by a set of cavity modes. The wake function $W$ for a mode is given by
+Following Chao\cite{b:chao} Eq.~2.88, The long--range wakefields are
+characterized by a set of cavity modes. The wake function $W$ for a
+mode is given by
 \Begineq
-  W(z) = \frac{c}{2} \, \left( \frac{R}{Q} \right) \,\,
+  W(z) = c \, \left( \frac{R}{Q} \right) \,\,
   e^{k z/ 2 Q} \, \sin (k \, z)
 \Endeq
 where the wake number $k$ is related to the mode frequency $\omega$ by
@@ -999,14 +1000,14 @@ and $b_{\sin}$. For a mode of order $m$, a particle passing through at
 a distance $z_w$ with respect to the reference particle will produce
 wake components
 \begin{alignat}{2}
-  a_{\cos} &=  &\frac{c}{2} \, \left( \frac{R}{Q} \right) \,
+  a_{\cos} &=  &c \, \left( \frac{R}{Q} \right) \,
     e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \sin(m \theta_w) \CRNO
-  a_{\sin} &= -&\frac{c}{2} \, \left( \frac{R}{Q} \right) \,
+  a_{\sin} &= -&c \, \left( \frac{R}{Q} \right) \,
     e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \sin(m \theta_w) 
     \label{ac2rq} \\
-  b_{\cos} &= -&\frac{c}{2} \, \left( \frac{R}{Q} \right) \,
+  b_{\cos} &= -&c \, \left( \frac{R}{Q} \right) \,
     e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \cos(m \theta_w) \CRNO
-  b_{\sin} &=  &\frac{c}{2} \, \left( \frac{R}{Q} \right) \,
+  b_{\sin} &=  &c \, \left( \frac{R}{Q} \right) \,
     e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \cos(m \theta_w) \nonumber
 \end{alignat}
 These are added to the existing wake components. To calculate the kick
@@ -1037,22 +1038,22 @@ same frequency. In this case one has to consider a mode's polarization
 angle $\phi$. Equations \eq{akz2q} and \eq{ppcmbar} are unchanged and
 in place of \Eq{ac2rq}, the contribution of a particle to a mode is
 \begin{alignat}{2}
-  a_{\cos} &=  &\frac{c}{2} \, \left( \frac{R}{Q} \right) \,
+  a_{\cos} &=  &c \, \left( \frac{R}{Q} \right) \,
     e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \left[ 
     \sin(m \theta_w) \, \sin^2(m \phi) + 
     \cos(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
     \CRNO
-  a_{\sin} &= -&\frac{c}{2} \, \left( \frac{R}{Q} \right) \,
+  a_{\sin} &= -&c \, \left( \frac{R}{Q} \right) \,
     e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \left[
     \sin(m \theta_w) \, \sin^2(m \phi) + 
     \cos(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
     \\
-  b_{\cos} &= -&\frac{c}{2} \, \left( \frac{R}{Q} \right) \,
+  b_{\cos} &= -&c \, \left( \frac{R}{Q} \right) \,
     e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \left[
     \cos(m \theta_w) \, \cos^2(m \phi) + 
     \sin(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
     \CRNO
-  b_{\sin} &=  &\frac{c}{2} \, \left( \frac{R}{Q} \right) \,
+  b_{\sin} &=  &c \, \left( \frac{R}{Q} \right) \,
     e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \left[
     \cos(m \theta_w) \, \cos^2(m \phi) + 
     \sin(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
