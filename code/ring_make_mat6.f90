@@ -46,9 +46,12 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord)
   type (ele_struct), pointer :: ele
 
   integer, optional :: ix_ele
-  integer i, j, ie, i1, ix_taylor(100), n_taylor, i_ele
+  integer i, j, ie, i1, n_taylor, i_ele
+  integer, save, allocatable :: ix_taylor(:)
 
 ! Error check
+
+  if (.not. allocated(ix_taylor)) allocate(ix_taylor(200))
 
   i_ele = integer_option (-1, ix_ele)
 
@@ -99,6 +102,8 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord)
           enddo
         endif
         n_taylor = n_taylor + 1
+        if (n_taylor > size(ix_taylor)) &
+                           call re_allocate (ix_taylor, 2*size(ix_taylor))
         ix_taylor(n_taylor) = i
       endif
 
