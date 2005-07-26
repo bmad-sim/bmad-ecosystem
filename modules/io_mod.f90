@@ -721,7 +721,7 @@ subroutine bmad_to_mad (mad_file, ring, ix_start, ix_end)
   ie2 = ring%n_ele_use
   if (present(ix_end)) ie2 = ix_end
 
-  allocate (name_list(ie2-ie1+1)) ! list of unique names
+  allocate (name_list(2*(ie2-ie1+1))) ! list of unique names
   n_list = 0                     ! number of names stored in the list
 
 
