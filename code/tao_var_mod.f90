@@ -8,7 +8,8 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_get_vars (var_value, var_del, var_weight, var_meas_value)
+! Subroutine tao_get_vars (var_value, var_step, var_delta, var_weight, &
+!                          var_meas_value, var_ix_dVar)
 !
 ! Subroutine to get the values of the variables used in optimization and put them
 ! in an array. It is important that the variables in different universes be the same.
@@ -16,24 +17,24 @@ contains
 ! Input:
 ! 
 ! Output:
-!   var_value(:)       -- Real, allocatable, optional: Variable values.
+!   var_value(:)       -- Real, allocatable, optional: Variable model values.
 !   var_step(:)        -- Real, allocatable, optional: Variable step sizes.
 !   var_delta(:)       -- Real, allocatable, optional: Variable Merit deltas.
 !   var_weight(:)      -- Real, allocatable, optional: Variable weights in the merit function.
 !   var_meas_value(:)  -- Real, allocatable, optional: Variable values when the data was taken.
+!   var_ix_dVar(:)     -- Real, allocatable, optional: Variable ix_dVar indices
 !-
 
-subroutine tao_get_vars (var_value, var_step, var_delta, var_weight, var_meas_value)
+subroutine tao_get_vars (var_value, var_step, var_delta, var_weight, &
+                         var_meas_value, var_ix_dVar)
 
 implicit none
 
-type (tao_var_struct), pointer :: var(:)
-
 real(rp), allocatable, optional :: var_value(:), var_meas_value(:), var_delta(:)
-real(rp), allocatable, optional :: var_step(:), var_weight(:)
+real(rp), allocatable, optional :: var_step(:), var_weight(:), var_ix_dVar(:)
 
-integer i, j, k
-integer n_var, n_data
+integer i, j
+integer n_var
 
 ! 
 
@@ -43,6 +44,7 @@ integer n_var, n_data
   if (present(var_step))       call reallocate_real (var_step, n_var)
   if (present(var_meas_value)) call reallocate_real (var_meas_value, n_var)
   if (present(var_weight))     call reallocate_real (var_weight, n_var)
+  if (present(var_ix_dVar))    call reallocate_real (var_ix_dVar, n_var)
 
   j = 0
   do i = 1, size(s%var)
@@ -53,6 +55,7 @@ integer n_var, n_data
     if (present(var_step))         var_step(j)       = s%var(i)%step
     if (present(var_weight))       var_weight(j)     = s%var(i)%weight
     if (present(var_meas_value))   var_meas_value(j) = s%var(i)%meas_value
+    if (present(var_ix_dVar))      var_ix_dVar(j)    = s%var(i)%ix_dVar
   enddo
 
 

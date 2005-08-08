@@ -348,7 +348,8 @@ if (post) then
   do n_bunch = 1, size(beam%bunch)
     n_lost = n_lost + count(beam%bunch(n_bunch)%particle%ix_lost /= not_lost$)
   enddo
-  call out_io (s_blank$, r_name, &
+  if (n_lost .ne. 0) &
+    call out_io (s_blank$, r_name, &
       "Total number of lost particles by the end of universe \I2\: \I5\.", &
                                   i_array = (/uni, n_lost /))
 endif
@@ -491,8 +492,9 @@ logical post
   enddo
       enddo
     enddo
-    call out_io (s_blank$, r_name, &
-      "Total number of lost macroparticles by the end of universe \I2\: \I5\.", &
+    if (n_lost .ne. 0) &
+      call out_io (s_blank$, r_name, &
+        "Total number of lost macroparticles by the end of universe \I2\: \I5\.", &
                                   i_array = (/uni, n_lost /))
   endif
   

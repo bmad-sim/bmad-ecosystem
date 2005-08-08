@@ -86,18 +86,19 @@ merit_value = tao_merit ()
 s%var%old_value = s%var%delta
 
 s_var_size = size(s%var)
-jj = 10
+jj = 1
 
 do j = 1, s_var_size
 
+  if (.not. s%var(j)%useit_opt) cycle
+  
 ! let user see progress
 
-!  if (modulo(j * 10, s_var_size) .eq. 0) then
-!    call out_io (s_blank$, r_name, " \i3\% done...", jj)
-!    jj = jj + 10
-!  endif
+   if (modulo(jj * 10, n_var) .eq. 0) then
+     call out_io (s_blank$, r_name, " \i3\% done...", (jj/n_var)*100)
+     jj = jj + 1
+   endif
 
-  if (.not. s%var(j)%useit_opt) cycle
   nv = s%var(j)%ix_dvar
   if (s%var(j)%step == 0) then
     call out_io (s_error$, r_name, 'VARIABLE STEP SIZE IS ZERO FOR: ' // s%var(j)%name)

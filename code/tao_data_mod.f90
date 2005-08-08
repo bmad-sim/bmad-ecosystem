@@ -17,6 +17,63 @@ type (this_coupling_struct), save, allocatable, target :: cc(:)
 
 contains
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_get_data (data_value, data_weight, data_meas_value, dat_ix_dModel)
+!
+! Subroutine to get the values of the data used in optimization and put them
+! in an array. The data is ordered starting with the first universe
+!
+! Input:
+! 
+! Output:
+!   data_value(:)       -- Real, allocatable, optional: Data model values.
+!   data_weight(:)      -- Real, allocatable, optional: Data  weights in the merit function.
+!   data_meas_value(:)  -- Real, allocatable, optional: Data values when the data was taken.
+!   data_ix_dModel(:)   -- Real, allocatable, optional: Data ix_dModel indices
+!-
+
+subroutine tao_get_data (data_value, data_weight, data_meas_value, data_ix_dModel)
+
+implicit none
+
+real(rp), allocatable, optional :: data_value(:), data_meas_value(:), data_weight(:)
+real(rp), allocatable, optional :: data_ix_dModel(:)
+
+integer i, j, iu
+integer n_data
+
+! 
+  
+  
+  n_data = 0
+  do iu = 1, size(s%u)
+    if (.not. s%u(iu)%is_on) cycle
+    n_data  = n_data + count(s%u(iu)%data(:)%useit_opt)
+  enddo
+  if (present(data_value))      call reallocate_real (data_value, n_data)
+  if (present(data_meas_value)) call reallocate_real (data_meas_value, n_data)
+  if (present(data_weight))     call reallocate_real (data_weight, n_data)
+  if (present(data_ix_dModel))  call reallocate_real (data_ix_dModel, n_data)
+
+  j = 0
+  do iu = 1, size(s%u)
+    if (.not. s%u(iu)%is_on) cycle
+    do i = 1, size(s%u(iu)%data)
+      if (.not. s%u(iu)%data(i)%useit_opt) cycle
+      j = j + 1
+      if (present(data_value))        data_value(j)      = s%u(iu)%data(i)%model_value
+      if (present(data_weight))       data_weight(j)     = s%u(iu)%data(i)%weight
+      if (present(data_meas_value))   data_meas_value(j) = s%u(iu)%data(i)%meas_value
+      if (present(data_ix_dModel))    data_ix_dModel(j)  = s%u(iu)%data(i)%ix_dModel
+    enddo
+  enddo
+
+
+end subroutine
+
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
