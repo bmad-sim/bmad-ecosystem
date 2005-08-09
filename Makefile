@@ -15,6 +15,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.6  2005/08/09 13:37:04  cesrulib
+# M.tao is added to extra make file list
+#
 # Revision 1.5  2004/06/21 03:29:22  js344
 # minor changes
 #
@@ -76,6 +79,7 @@ LOCAL_INCS    := ../include
 LOCAL_MODS    := ../modules
 SRC_EXCLUDE   :=
 
+M_FILE_LIST   := M.tao
 
 #-----------------------------------------------------------------------------
 # "EXTRA" variables can be specified at the command line or hardwired here.  
