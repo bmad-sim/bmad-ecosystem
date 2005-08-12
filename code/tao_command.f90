@@ -141,7 +141,7 @@ subroutine tao_command (command_line, err)
     quit_tao = .false.
     call tao_query_logical ('y', 'n', 'Quit?', quit_tao)
     if (.not. quit_tao) return
-    call tao_destroy_plot_window
+    if (s%global%plot_on) call tao_destroy_plot_window
     stop
  
 !--------------------------------
@@ -183,6 +183,11 @@ subroutine tao_command (command_line, err)
 ! PLACE
 
   case ('place')
+
+    if (.not. s%global%plot_on) then
+      call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
+      return
+    endif
 
     call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
     if (cmd_word(3) /= ' ') then
@@ -325,6 +330,11 @@ subroutine tao_command (command_line, err)
 
   case ('scale')
 
+    if (.not. s%global%plot_on) then
+      call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
+      return
+    endif
+
     call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
     if (cmd_word(2) == ' ') then
       call tao_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp) 
@@ -371,6 +381,11 @@ subroutine tao_command (command_line, err)
 
   case ('x-axis')
 
+    if (.not. s%global%plot_on) then
+      call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
+      return
+    endif
+
     call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
     call tao_x_axis_cmd (cmd_word(1), cmd_word(2))
 
@@ -378,6 +393,11 @@ subroutine tao_command (command_line, err)
 ! X_SCALE
 
   case ('x-scale')
+
+    if (.not. s%global%plot_on) then
+      call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
+      return
+    endif
 
     call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
     if (cmd_word(2) == ' ') then

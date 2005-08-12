@@ -284,7 +284,7 @@ do i = 1, size(place)
 enddo
 
 call tao_create_plot_window
-call qp_set_qp_parameters (text_scale = page%text_scale)
+if (s%global%plot_on) call qp_set_qp_parameters (text_scale = page%text_scale)
 
 return
 
