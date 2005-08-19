@@ -1,33 +1,35 @@
  ! BMAD input file 
  ! 
- !+ 
- ! Fri Jun 25 11:18:51 2004 => Documented by latdoc. 
- ! 				Emittance(nm rad) 
- ! Qx	Qy	Fx	Fy	e+	e- 
- ! 10.52	9.58	202.8	225.8	126.0	136.1 
- ! 
- ! Bx*	By*	Eta*	Alphax*	Alphay*	Eta'*	Cr_ang(mrad) 
- ! 0.85	0.012	-0.001	0.071	-0.036	-0.000	-3.464 
- ! 
- ! Bx	By	Eta	Alphax	Alphay	Eta' -> all at IP_L3 
- ! 2.75	7.257	-0.483	-0.092	0.065	0.009 
- ! 
- ! IP_L0 disp.: e+ x:-1.59e-04 y:2.08e-06   e- x:-1.59e-04 y:-2.08e-06 
- ! 
- ! IP_L0 cbar: -2.8e-04   -1.6e-03   IP_L3 cbar:  1.1e-03    9.7e-04 
- !             -7.4e-02   -1.7e-03               -1.5e-03    3.3e-04 
- ! 
- ! Peak Arc Betas: e+ Bx:40.9 By:44.5   e- Bx:41.2 By:48.6 
- ! H_Sep Bx: 08w:28.23  08e:28.23  45w:14.44  45e:14.44 
- ! V_Sep By: 48w:11.77  48e:11.77 
- ! 
- ! 9x4 info: Pr_apert:4.44e-02  Effic:0.62  I_bunch:4.89  B_param_i:3.04 
- ! 34w: e+ Bx:40.24  e- Bx:40.24  e+ Eta:0.91   Ring sigma_sep:6.97 
- ! 34e: e+ Bx:34.05  e- Bx:34.05  e- Eta:0.77 
- ! 
- ! Full turn 4x4 det: 2.61 
- ! Chrom x:-1.61  y:1.92    Tonality x:-0.06  y:0.35 
- !- 
+!+
+! Thu Jul 14 11:14:51 2005 => Documented by latdoc.
+! 				Emittance(nm rad)
+! Qx	Qy	Fx	Fy	e+	e-
+! 10.52	9.58	202.8	225.0	129.4	138.4
+!
+! Bx*	By*	Eta*	Alphax*	Alphay*	Eta'*	Cr_ang(mrad)
+! 0.84	0.012	-0.003	0.025	-0.001	0.001	-3.455
+!
+! Bx	By	Eta	Alphax	Alphay	Eta' -> all at IP_L3
+! 2.80	7.078	-0.483	-0.054	0.075	0.019
+!
+! IP_L0 disp.: e+ x:-1.73e-04 y:2.06e-06   e- x:-1.53e-04 y:-2.06e-06
+!
+! IP_L0 cbar: -3.6e-04   -1.8e-03   IP_L3 cbar:  1.0e-03    1.1e-03
+!             -7.4e-02   -1.5e-03               -1.7e-03    2.8e-04
+!
+! Peak Arc Betas: e+ Bx:38.8 By:43.7   e- Bx:41.6 By:51.5
+! H_Sep Bx: 08w:35.54  08e:35.54  45w:13.83  45e:13.83
+! V_Sep By: 48w:12.10  48e:12.10
+!
+! 9x5 info: Pr_apert:4.47e-02  Effic:0.54  I_bunch:3.94  B_param_i:2.52
+! 34w: e+ Bx:37.83  e- Bx:33.37  e+ Eta:0.98   Ring sigma_sep:6.25
+! 34e: e+ Bx:36.34  e- Bx:40.68  e- Eta:0.83
+!
+! Full turn 4x4 det: 1.94  Momentum_comp: 1.13e-02
+! sync_beta_path x:-6.9e-10  y:1.4e-06  _volt x:-4.1e-09  y:1.4e-06
+! max dbeta(dE) x:36.69 y:69.75  dbeta(dPretz) x:6.44e-02 y:3.99e-02
+! Chrom x:1.86  y:2.11    Tonality x:-0.05  y:0.38
+!-
 
  lattice := 12WIG_20050626
  beam, energy =   1.885 
