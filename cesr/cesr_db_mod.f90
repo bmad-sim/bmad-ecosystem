@@ -39,6 +39,7 @@ module cesr_db_mod
 ! db_struct def
 
   integer, parameter :: n_csr_sqewsext_maxx = 8
+  integer, parameter :: n_nir_shuntcur_maxx = 4
 
   type db_struct
     type (db_element_struct) :: csr_quad_cur(98)
@@ -55,8 +56,9 @@ module cesr_db_mod
     type (db_element_struct) :: scir_quadcur(n_scir_quad_maxx)
     type (db_element_struct) :: scir_skqucur(n_scir_quad_maxx)
     type (db_element_struct) :: scir_vertcur(n_scir_quad_maxx)
+    type (db_element_struct) :: nir_shuntcur(n_nir_shuntcur_maxx)
     type (db_element_struct) :: ir_sksxcur(1)
-    type (db_node_struct) :: node(15)  ! does not include stuff below
+    type (db_node_struct) :: node(16)  ! does not include stuff below
 ! in db but without corresponding BMAD element
     type (db_element_struct) :: scir_pos_stp(n_scir_cam_maxx)
     type (db_element_struct) :: scir_enc_cnt(n_scir_cam_maxx)
@@ -159,6 +161,9 @@ subroutine bmad_to_db (ring, db, calib_date)
 
   call db_init_it (db%csr_quad_cur, lbound(db%csr_quad_cur, 1), &
           'CSR QUAD CUR',    k1$,    db%node, cesr%quad_(1:98), 1)
+
+  call db_init_it (db%nir_shuntcur, lbound(db%nir_shuntcur, 1), &
+          'NIR SHUNTCUR',    k1$,    db%node, cesr%quad_(48:51), 1)
 
   call db_init_it (db%csr_qadd_cur, lbound(db%csr_qadd_cur, 1), &
           'CSR QADD CUR',    k1$,    db%node, cesr%quad_(101:nq100), 101)
@@ -311,6 +316,10 @@ subroutine bmad_to_db (ring, db, calib_date)
   db%csr_quad_cur = db%quad(1:98)
   db%csr_qadd_cur = db%quad(101:nq100)
   db%scir_quadcur = db%quad(111:114)
+
+  call nir_shuntcur_calib (db%nir_shuntcur%dvar_dcu)
+  db%nir_shuntcur%dvar_dcu = &
+                    db%nir_shuntcur%dvar_dcu * db%quad(48:51)%dvar_dcu
 
 ! Things not part of the CESR DB
 
