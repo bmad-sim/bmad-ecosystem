@@ -470,7 +470,7 @@ subroutine makeup_super_slave (ring, ix_slave)
     slave%mat6_calc_method = lord%mat6_calc_method
     slave%tracking_method  = lord%tracking_method
 
-! if a wiggler: 
+! If a wiggler: 
 ! must keep track of where we are in terms of the unsplit wiggler.
 ! This is for anything which does not try to make a homogeneous approximation.
 ! l_original is the length of the unsplit original wiggler.
@@ -502,7 +502,18 @@ subroutine makeup_super_slave (ring, ix_slave)
 
     endif
 
-! if an sbend:
+! If a custom element: 
+! Must keep track of where we are in terms of the unsplit element.
+! See wiggler above for more details.
+
+    if (slave%key == custom$) then
+      slave%value(l_original$) = lord%value(l$)
+      slave%value(l_start$)    = (slave%s - slave%value(l$)) - &
+                                                   (lord%s - lord%value(l$))
+      slave%value(l_end$)      = slave%value(l_start$) + slave%value(l$)
+    endif
+
+! If an sbend:
 !     1) renormalize the angles
 !     2) zero the face angles next to the split
 
