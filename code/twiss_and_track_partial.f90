@@ -5,6 +5,10 @@
 ! Subroutine to propagate partially through ELE2 the twiss parameters and the
 ! orbit. See also twiss_and_track_at_s.
 !
+! Note: This routine works by passing to the tracking and Twiss calculation
+! routines an element with %value(l$) = del_s. For custom elements, 
+! the true length of ele2 is passed in %value(l_original$).
+!
 ! Modules needed:
 !   use bmad
 !
