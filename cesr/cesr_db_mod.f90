@@ -371,8 +371,10 @@ subroutine db_init_it (node, n1, node_name, ix_attrib, node_array, &
     node(i)%db_ele_name = ' '           
     node(i)%dvar_dcu = 0
     node(i)%var_theory = 0
+    node(i)%var_0 = 0
     node(i)%cu_high_lim = 0
     node(i)%cu_low_lim = 0
+    node(i)%ix = 0
   enddo
 
   iv = vnumbr(node_name)
@@ -459,6 +461,7 @@ subroutine non_db_set (db_ele, cesr_ele, ix_attrib, ix0_cesrv)
   db_ele(:)%var_0 = 0
   db_ele(:)%cu_high_lim = 0
   db_ele(:)%cu_low_lim = 0
+  db_ele(:)%ix = 0
   forall (i = 1:size(db_ele, 1)) db_ele(i)%ix_cesrv = i + ix0_cesrv - 1
 
 end subroutine non_db_set
