@@ -124,7 +124,7 @@ sub searchit {
         $count = 1;
         while (<F_IN>) {
           if (/^ *type *\(/i) {next;}   # ignore "type (" constructs
-          if (/^ *end /i) {
+          if (/^ *end/i) {
             $_ = $';  
             if (/^ *subroutine/i || /^ *function/i ||
                 /^ *type/i || /^ *interface/i) {$count = $count - 1;}
