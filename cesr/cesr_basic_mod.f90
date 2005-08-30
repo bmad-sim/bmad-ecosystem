@@ -52,6 +52,7 @@ module cesr_basic_mod
   integer, parameter :: n_scir_cam_maxx = 10
   integer, parameter :: n_scir_quad_maxx = 4
   integer, parameter :: n_scir_tilt_maxx = 8
+  integer, parameter :: n_nir_shuntcur_maxx = 4
 
 ! %ix_cesr is a pointer to cesr_struct for given type
 
@@ -70,6 +71,8 @@ module cesr_basic_mod
     type (cesr_element_struct) solenoid       ! solenoid struct
     type (cesr_element_struct) scir_cam_rho_(n_scir_cam_maxx)
     type (cesr_element_struct) scir_tilt_(n_scir_tilt_maxx)
+    type (cesr_element_struct) nir_shuntcur(n_nir_shuntcur_maxx)
+
     integer ix_ip_l3                     ! pointer to IP_L3
     integer, pointer :: ix_cesr(:) => null() 
   end type
@@ -139,7 +142,7 @@ subroutine bmad_to_cesr (ring, cesr)
   character(4) cc4
   character(16) hsteer_name(0:120), vsteer_name(0:99)
 
-  integer j, i
+  integer i, j, ix
 
 ! load names
 
@@ -266,6 +269,11 @@ subroutine bmad_to_cesr (ring, cesr)
   cesr%scir_tilt_(scir_tilt_sk_w$)%name = 'SC_TILT_SK_W'
   cesr%scir_tilt_(scir_tilt_sk_e$)%name = 'SC_TILT_SK_E'
 
+  cesr%nir_shuntcur(1)%name = 'NIR_SHUNTCUR___1'
+  cesr%nir_shuntcur(1)%name = 'NIR_SHUNTCUR___2'
+  cesr%nir_shuntcur(1)%name = 'NIR_SHUNTCUR___3'
+  cesr%nir_shuntcur(1)%name = 'NIR_SHUNTCUR___4'
+
 !-------------------------------------------------------------
 ! Load elements from RING to CESR
 
@@ -373,8 +381,7 @@ subroutine bmad_to_cesr (ring, cesr)
     endif
 
 
-! horz and vert steering overlays
-! scir cam and tilts
+! overlays: horz & vert steerings, scir cam & tilts, etc.
 
     if (ele%key == overlay_lord$) then
 
@@ -419,6 +426,14 @@ subroutine bmad_to_cesr (ring, cesr)
         enddo
       endif
 
+      elseif (ele%name(1:12) == 'NIR_SHUNTCUR') then
+        do j = 1, size(cesr%nir_shuntcur)
+          if (ele%name == cesr%nir_shuntcur(j)%name) then
+            call insert_info (cesr%nir_shuntcur(j), ele, i)
+            cycle ele_loop
+          endif
+        enddo     
+
     endif
 
 ! rf
@@ -452,6 +467,18 @@ subroutine bmad_to_cesr (ring, cesr)
 
   enddo ele_loop
            
+
+!-------------------------------------------------------------------
+! Point to quad overlay instead of quad for nir_shuntcur quads
+
+  do i = ring%n_ele_use+1, ring%n_ele_max
+    ele = ring%ele_(i)
+    if (ele%type(1:12) == 'CSR QUAD CUR') then
+      read (ele%type(13:16), *) ix
+      call insert_info (cesr%quad_(ix), ele, i)
+    endif
+  enddo
+
 !-------------------------------------------------------------------
 ! check that we have loaded everything...
 ! do not check Q01 and Q02's
@@ -702,39 +729,48 @@ subroutine create_vsp_volt_elements (ring, ele_type)
 
   type (ring_struct)  ring
 
+  type vsp_index_struct
+    integer ix(3)
+  end type
+  type (vsp_index_struct) vsp_index(2)
+
   integer ele_type
-  integer :: ix_west(3) = (/ 1, 3, 4 /), ix_east(3) = (/ 2, 5, 6 /)
-  integer i
+  integer i, j
 
-  character(16) :: vsep_west = 'V_SEP_48W', vsep_east = 'V_SEP_48E'
+  character(16) :: vsep_name(2) = (/ 'V_SEP_48W', 'V_SEP_48E' /)
 
-  logical found_west
+  logical found_vsp(2)
+
+! Setup
+
+  vsp_index(1)%ix = (/ 1, 3, 4 /)
+  vsp_index(2)%ix = (/ 2, 5, 6 /)
 
 ! find vseps
 
-  found_west = .false.
+  found_vsp = .false.
 
   do i = 1, ring%n_ele_ring
-
-    if (ring%ele_(i)%name == vsep_west) then
-      found_west = .true.
-      call do_vsp_eles (ring, i, ix_west, ele_type)
-                 
-    elseif (ring%ele_(i)%name == vsep_east) then
-      call do_vsp_eles (ring, i, ix_east, ele_type)
-      if (.not. found_west) then
-        print *, 'ERROR IN CREATE_VSP_VOLT_ELEMENTS: CANNOT FIND WEST VSEP!'
-        if (bmad_status%exit_on_error) call err_exit
-        bmad_status%ok = .false.
+    do j = 1, 2
+      if (ring%ele_(i)%name == vsep_name(j)) then
+        found_vsp(j) = .true.
+        call do_vsp_eles (ring, i, vsp_index(j)%ix, ele_type)
       endif
-      return
-    endif
-
+    enddo
   enddo
 
-  print *, 'ERROR IN CREATE_VSP_VOLT_ELEMENTS: CANNOT FIND EAST VSEP!'
-  if (bmad_status%exit_on_error) call err_exit
-  bmad_status%ok = .false.
+! check that the separators were found.
+
+  do j = 1, 2
+    if (.not. found_vsp(j)) then
+      print *, 'ERROR IN CREATE_VSP_VOLT_ELEMENTS: CANNOT FIND: ', &
+                                                            vsep_name(j)
+      if (bmad_status%exit_on_error) call err_exit
+      bmad_status%ok = .false.
+    endif
+  enddo
+
+  bmad_status%ok = .true.
 
 end subroutine
 
@@ -742,7 +778,7 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 
-subroutine do_vsp_eles (ring, i_vsep, ix_, ele_type)
+subroutine do_vsp_eles (ring, i_vsep, vsp_index, ele_type)
 
   use bmad_struct
   use bmad_interface
@@ -752,7 +788,7 @@ subroutine do_vsp_eles (ring, i_vsep, ix_, ele_type)
   type (ring_struct)  ring
   type (control_struct)  contl(1)
 
-  integer i_vsep, ix_(3), ele_type, i, i_con
+  integer i_vsep, vsp_index(3), ele_type, i, i_con
 
   real(rp) vkick
 
@@ -773,8 +809,8 @@ subroutine do_vsp_eles (ring, i_vsep, ix_, ele_type)
   do i = 1, 3
 
     call new_control (ring, i_con)
-    write (ring%ele_(i_con)%name, '(a, i1)') 'VSP_VOLT_', ix_(i)
-    write (ring%ele_(i_con)%type, '(a, i4)') 'CSR VSP VOLT', ix_(i)
+    write (ring%ele_(i_con)%name, '(a, i1)') 'VSP_VOLT_', vsp_index(i)
+    write (ring%ele_(i_con)%type, '(a, i4)') 'CSR VSP VOLT', vsp_index(i)
 
     if (ele_type == group$) then
       call create_group (ring, i_con, contl(1:1))
@@ -790,5 +826,124 @@ subroutine do_vsp_eles (ring, i_vsep, ix_, ele_type)
 
 end subroutine
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine create_nir_shuntcur_elements (ring, ele_type)
+!
+! Subroutine to create Bmad lattice elements corresponding to the 
+! NIR_SHUNTCUR data base elements.
+! For each of the 4 north IR quads two overlays controlling the k1 attribute
+! are setup. One for the corresponding CSR_QUAD_CUR node and the other
+! for the corresponding NIR_SHUNTCUR node
+!
+! Use BMAD_TO_DB or BMAD_TO_CESR to find where the elements are located.
+!
+! Modules Needed:
+!   use bmad
+!
+! Input:
+!   ring     -- Ring_struct: Ring to be modified
+!   ele_type -- Integer: Type of elements to make
+!                   = group$      ! make group controller elements
+!                   = overlay$    ! make overlay controller elements
+!
+! Output:
+!   ring -- Ring_struct: Modified ring.
+!-
+
+subroutine create_nir_shuntcur_elements (ring)
+
+  use bmad
+
+  implicit none
+
+  type (ring_struct)  ring
+
+  integer i, j
+
+
+  character(16) :: nir_quad_name(4) = (/ 'Q48W', 'Q49W', 'Q49E', 'Q48E' /)
+
+  logical found_quad(4) 
+
+! find vseps
+
+  found_quad = .false.
+
+  do i = 1, ring%n_ele_max
+    do j = 1, 4
+      if (ring%ele_(i)%name == nir_quad_name(j)) then
+        found_quad(j) = .true.
+        call do_setup_nir_shuntcur (ring%ele_(i), i, j)
+      endif
+    enddo
+  enddo
+
+  do j = 1, 4
+    if (.not. found_quad(j)) then
+      print *, 'ERROR IN CREATE_NIR_SHUNTCUR_ELEMENTS: CANNOT FIND: ', &
+                                                             nir_quad_name(j)
+      if (bmad_status%exit_on_error) call err_exit
+      bmad_status%ok = .false.
+    endif
+  enddo
+
+!-----------------------------------------------------------------------
+contains
+
+subroutine do_setup_nir_shuntcur (quad, ix_quad, ix_nir)
+
+  implicit none
+
+  type (ele_struct) quad
+  type (control_struct)  contl(1)
+
+  integer ix_quad, ix_nir, ix_lord, i, i_con
+
+  real(rp) k1
+
+!
+                 
+  do i = quad%ic1_lord, quad%ic2_lord
+    ix_lord = ring%control_(ring%ic_(i))%ix_lord
+    if (ring%ele_(ix_lord)%control_type == overlay_lord$ .and. &
+        ring%ele_(ix_lord)%ix_value == k1$) then
+      print *, 'ERROR IN CREATE_NIR_SHUNTCUR_ELEMENTS: VSEP NOT FREE!', ix_quad
+      return
+    endif
+  enddo
+
+  contl(1)%ix_attrib = k1$
+  contl(1)%coef = 1.0
+  contl(1)%ix_slave = ix_quad
+  k1 = ring%ele_(ix_quad)%value(k1$)
+
+! create control for CSR_QUAD_CUR
+
+  call new_control (ring, i_con)
+  call create_overlay (ring, i_con, 'K1', contl(1:1))
+  ring%ele_(i_con)%value(k1$) = k1
+  ring%ele_(i_con)%type = ring%ele_(ix_quad)%type
+  ring%ele_(i_con)%name = ring%ele_(i_con)%type
+  do j = 1, len(ring%ele_(i_con)%name)
+     if (ring%ele_(i_con)%name(j:j) == ' ') ring%ele_(i_con)%name(j:j) = '_'
+  enddo
+  ring%ele_(ix_quad)%type = ' '
+
+! Create control for NIR_SHUNTCUR
+
+  call new_control (ring, i_con)
+  call create_overlay (ring, i_con, 'K1', contl(1:1))
+  write (ring%ele_(i_con)%type, '(a12, i4)') 'NIR SHUNTCUR', ix_nir
+  ring%ele_(i_con)%name = ring%ele_(i_con)%type
+  do j = 1, len(ring%ele_(i_con)%name)
+     if (ring%ele_(i_con)%name(j:j) == ' ') ring%ele_(i_con)%name(j:j) = '_'
+  enddo
+
+end subroutine
+
+end subroutine
 
 end module

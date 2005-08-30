@@ -39,7 +39,6 @@ module cesr_db_mod
 ! db_struct def
 
   integer, parameter :: n_csr_sqewsext_maxx = 8
-  integer, parameter :: n_nir_shuntcur_maxx = 4
 
   type db_struct
     type (db_element_struct) :: csr_quad_cur(98)
@@ -163,7 +162,7 @@ subroutine bmad_to_db (ring, db, calib_date)
           'CSR QUAD CUR',    k1$,    db%node, cesr%quad_(1:98), 1)
 
   call db_init_it (db%nir_shuntcur, lbound(db%nir_shuntcur, 1), &
-          'NIR SHUNTCUR',    k1$,    db%node, cesr%quad_(48:51), 1)
+          'NIR SHUNTCUR',    k1$,    db%node, cesr%nir_shuntcur, 1)
 
   call db_init_it (db%csr_qadd_cur, lbound(db%csr_qadd_cur, 1), &
           'CSR QADD CUR',    k1$,    db%node, cesr%quad_(101:nq100), 101)
