@@ -82,7 +82,7 @@ module cesr_basic_mod
     integer amp(4)
     integer type
     logical ok
-  endtype
+  end type
 
   type butns_struct
     character(40) lattice
@@ -551,8 +551,6 @@ end subroutine
 !               to load the RING structure.
 !-
 
-#include "CESR_platform.inc"
-               
 subroutine choose_cesr_lattice (lattice, lat_file, current_lat, ring, choice)
 
   implicit none
@@ -697,8 +695,6 @@ end subroutine
 ! Output:
 !   ring -- Ring_struct: Modified ring.
 !-
-
-#include "CESR_platform.inc"
 
 subroutine create_vsp_volt_elements (ring, ele_type)
 
