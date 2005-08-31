@@ -900,7 +900,7 @@ subroutine do_setup_nir_shuntcur (quad, ix_quad, ix_nir)
   type (ele_struct) quad
   type (control_struct)  contl(1)
 
-  integer ix_quad, ix_nir, ix_lord, i, i_con
+  integer ix_quad, ix_nir, ix_lord, i, j, i_con
 
   real(rp) k1
 
