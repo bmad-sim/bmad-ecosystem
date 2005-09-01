@@ -408,7 +408,7 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
         nl=nl+1; li(nl) = 'Short-range wake table:'
         nl=nl+1; li(nl) = &
             '   #           Z   Longitudinal     Transverse'
-        do i = 1, size(ele%wake%sr1)
+        do i = 0, ubound(ele%wake%sr1,1)
           sr1 => ele%wake%sr1(i)
           nl=nl+1; write (li(nl), '(i4, es12.4, 2es15.4)') i, sr1%z, sr1%long, sr1%trans
         enddo
