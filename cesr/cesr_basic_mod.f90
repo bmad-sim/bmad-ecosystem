@@ -270,9 +270,9 @@ subroutine bmad_to_cesr (ring, cesr)
   cesr%scir_tilt_(scir_tilt_sk_e$)%name = 'SC_TILT_SK_E'
 
   cesr%nir_shuntcur(1)%name = 'NIR_SHUNTCUR___1'
-  cesr%nir_shuntcur(1)%name = 'NIR_SHUNTCUR___2'
-  cesr%nir_shuntcur(1)%name = 'NIR_SHUNTCUR___3'
-  cesr%nir_shuntcur(1)%name = 'NIR_SHUNTCUR___4'
+  cesr%nir_shuntcur(2)%name = 'NIR_SHUNTCUR___2'
+  cesr%nir_shuntcur(3)%name = 'NIR_SHUNTCUR___3'
+  cesr%nir_shuntcur(4)%name = 'NIR_SHUNTCUR___4'
 
 !-------------------------------------------------------------
 ! Load elements from RING to CESR
@@ -424,7 +424,6 @@ subroutine bmad_to_cesr (ring, cesr)
             cycle ele_loop
           endif
         enddo
-      endif
 
       elseif (ele%name(1:12) == 'NIR_SHUNTCUR') then
         do j = 1, size(cesr%nir_shuntcur)
@@ -433,6 +432,8 @@ subroutine bmad_to_cesr (ring, cesr)
             cycle ele_loop
           endif
         enddo     
+
+      endif
 
     endif
 
