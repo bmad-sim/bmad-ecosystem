@@ -20,7 +20,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine cbar_to_c (ele, cbar_mat)
+subroutine cbar_to_c (cbar_mat, ele)
 
   use bmad_struct
   
