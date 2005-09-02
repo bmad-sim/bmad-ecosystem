@@ -200,7 +200,7 @@ tracking method is specified by the \vn{bmad_standard\$}
 parameter.
 
 \index{Ele_struct!%mat6}
-It should be noted that except for \vntm{Linear} tracking, none of the
+It should be noted that except for \vni{Linear} tracking, none of the
 \bmad tracking routines make use of the \vn{ele%mat6} transfer
 matrix. The reverse, however, is not true.  The transfer matrix
 routines (\vn{lattice_make_mat6}, etc.)  will do tracking.
@@ -222,10 +222,10 @@ this can be overridden using the routine \vnr{set_taylor_order}. The
 routine \vnr{taylor_coef} can be used to get the coefficient of any
 given term.
 
-\index{Tracking method!Symp_Lie_Bmad}
-\index{Tracking method!Symp_Lie_PTC}
-\index{Tracking method!Symp_Map}
-\index{Tracking method!Taylor}
+\index{Symp_Lie_Bmad}
+\index{Symp_Lie_PTC}
+\index{Symp_Map}
+\index{Taylor}
 \index{Taylor!deallocating}
 Transfer Taylor maps for an element are generated as needed when the
 \vn{ele%tracking_method} or \vn{ele%mat6_calc_method} is set to

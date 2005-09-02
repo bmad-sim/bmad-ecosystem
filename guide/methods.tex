@@ -36,12 +36,12 @@ uniform and you know what a good step size is you can save time by using
 a fixed step size.
 
 \begin{description}
-\index{Tracking method!Adaptive_Boris}
+\index{Adaptive_Boris}
 \item[\vn{Adaptive\_Boris}]
 Second order Boris integration\cite{b:boris} with adaptive step size control.
 This should be nearly symplectic but slow.
 
-\index{Tracking method!Boris}
+\index{Boris}
 \item[\vn{Boris}]
 Second order Boris Integration\cite{b:boris}. Like \vn{Runge_Kutta},
 \vn{Boris} does tracking by integrating the equation of
@@ -49,11 +49,11 @@ motion. \vn{Boris} handles both electric and magnetic fields and does
 not assume that the particle is ultra--relativistic. \vn{Boris} preserves
 conserved quantities more accurately than \vn{Runge_Kutta}.
 
-\index{Tracking method!Bmad_Standard}
+\index{Bmad_Standard}
 \item[\vn{Bmad\_Standard}]
 Uses formulas for tracking. The emphasis here is on speed.
 
-\index{Tracking method!Custom}
+\index{Custom}
 \item[\vn{Custom}]
 This method will call a routine \vn{track1_custom} which must be
 supplied by the programmer implementing the custom tracking. The
@@ -61,53 +61,53 @@ default \vn{track1_custom} supplied with the \bmad\ release will print
 an error message and stop the program if it is called which probably
 indicates a program linking problem.
 
-\index{Tracking method!Linear}
+\index{Linear}
 \item[\vn{Linear}]
 Linear just uses the 0th order vector with the 1st order 6x6 transfer
 matrix for an element. Very simple.  Depending upon how the transfer
 matrix was generated this may or may not be symplectic.
 
-\index{Tracking method!MAD}
+\index{MAD!tracking method}
 \item[\vn{MAD}]
 This uses the MAD 2nd order transfer map.
 
-\index{Tracking method!None}
+\index{None}
 \item[\vn{None}]
 This prevents the transfer matrix from being recomputed.
 Using \vn{None} in the input file is generally not a good idea since
 it prevents the matrix from being computed in the first place.
 Typically \vn{None} is used internally in a program to prevent recomputation.
 
-\index{Tracking method!Runge_Kutta}
+\index{Runge_Kutta}
 \item[\vn{Runge\_Kutta}]
 This uses a 4\Th\ order Runge Kutta integration algorithm with adaptive
 step size control.  This is essentially the \vn{ODEINT} subroutine
 from Numerical Recipes\cite{b:nr}. This may be slow but it should be
 accurate. This method is non-symplectic.
 
-\index{Tracking method!Symp_Lie_Bmad}
+\index{Symp_Lie_Bmad}
 \item[\vn{Symp\_Lie\_Bmad}]
 Symplectic tracking using a Hamiltonian with Lie operation techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
 \bmad\ routine. By bypassing some of the generality inherent in PTC's routines
 \vn{Symp_Lie_Bmad} achieves about a factor of 10 improvement in speed over
-\vn{Symp_Lie_PTC}. However, \vn{Symp_lie_Bmad} is
+\vn{Symp_Lie_PTC}. However, \vn{Symp_Lie_Bmad} is
 currently only implemented for Wigglers.
 
-\index{Tracking method!Symp_Lie_PTC}
+\index{Symp_Lie_PTC}
 \item[\vn{Symp\_Lie\_PTC}]
 Symplectic tracking using a Hamiltonian with Lie operator techniques.
 This uses Etienne's PTC software for the calculation. This method is
 symplectic but can be slow.
 
-\index{Tracking method!Symp_Map}
+\index{Symp_Map}
 \item[\vn{Symp\_Map}]
 This uses a partially inverted, implicit Taylor map. The calculation
 uses Etienne's PTC software.  Since the map is implicit, a Newton
 search method must be used. This will slow things down from the Taylor
 method but this is guaranteed symplectic.
 
-\index{Tracking method!Taylor}
+\index{Taylor}
 \item[\vn{Taylor}]
 This uses a Taylor map generated from Etienne's PTC
 package. Generating the map may take time but once you have it it
@@ -116,7 +116,7 @@ that you have to worry about the accuracy if you do tracking at points
 that are far from the expansion point about which the map was
 made. This method is non-symplectic away from the expansion point. 
 
-\index{Tracking method!Wiedemann}
+\index{Wiedemann}
 \item[\vn{Wiedemann}]
 This is Wiedemann's hard edge model of a wiggler
 \cite{wiedemann}. This model divides a wiggler pole into a constant 
@@ -225,11 +225,11 @@ integration order does not necessarily imply higher accuracy.
 
 \begin{description}
 
-\index{Mat6_calc_method!Bmad_Standard}
+\index{Bmad_Standard}
 \item[\vn{Bmad\_Standard}]
 Uses formulas for the calculation. The emphasis here is on speed
 
-\index{Mat6_calc_method!Custom}
+\index{Custom}
 \item[\vn{Custom}]
 This method will call a routine \vn{make_mat6_custom} which must be
 supplied by the programmer implementing the custom transfer matrix
@@ -237,33 +237,33 @@ calculation. The default \vn{make_mat6_custom} supplied with the
 \bmad\ release will print an error message and stop the program if it
 is called which probably indicates a program linking problem.
 
-\index{Mat6_calc_method!MAD}
+\index{MAD!Mat6_calc_method}
 \item[\vn{MAD}]
 This uses the MAD 2nd transfer map.
 
-\index{Mat6_calc_method!None}
+\index{None}
 \item[\vn{None}]
 This prevents the transfer matrix from being recomputed.
 Using \vn{None} in the input file is generally not a good idea since
 it prevents the matrix from being computed in the first place.
 Typically \vn{None} is used internally in a program to prevent recomputation.
 
-\index{Mat6_calc_method!Symp_lie_Bmad}
+\index{Symp_Lie_Bmad}
 \item[\vn{Symp\_Lie\_Bmad}]
 A Symplectic calculation using a Hamiltonian with Lie operator techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
 \bmad\ routine. By bypassing some of the generality inherent in PTC's routines
 \vn{Symp_Lie_Bmad} achieves about a factor of 10 improvement in speed over
-\vn{Symp_Lie_PTC}. However, \vn{Symp_lie_Bmad} is
+\vn{Symp_Lie_PTC}. However, \vn{Symp_Lie_Bmad} is
 currently only implemented for Wigglers.
 
-\index{Mat6_calc_method!Symp_Lie_PTC}
+\index{Symp_Lie_PTC}
 \item[\vn{Symp\_Lie\_PTC}]
 Symplectic integration using a Hamiltonian and Lie operators.
 This uses Etienne's PTC software for the calculation.
 This method is symplectic but can be slow.
 
-\index{Mat6_calc_method!Taylor}
+\index{Taylor}
 \item[\vn{Taylor}]
 This uses a Taylor map generated from Etienne's PTC
 package. Generating the map may take time but once you have it it
@@ -272,7 +272,7 @@ that you have to worry about the accuracy if you do a calculation at points
 that are far from the expansion point about which the map was
 made. This method is non-symplectic away from the expansion point. 
 
-\index{Mat6_calc_method!Tracking}
+\index{Tracking}
 \item[\vn{Tracking}]
 This uses the tracking method set by \vn{tracking_method} to track 6
 particles around the central orbit. This method is susceptible to inaccuracies
@@ -365,35 +365,36 @@ Example:
 One way to create a transfer map through an element is to divide the
 element up into slices and then to propagate the transfer map slice by
 slice.  There are several ways to do this integration. The
-\vntm{Boris} and \vntm{Runge_Kutta} methods integrate the equations of
+\vni{Boris} and \vni{Runge_Kutta} methods integrate the equations of
 motion to give the 0\Th order Taylor map which just represents a
 particle's orbit.  Symplectic
 integration\index{Symplectic!integration} using Lie algebraic
 techniques, on the other hand, can generate Taylor maps to any order.
 The \vn{num_steps} attribute determines the number of slices. This
-is applicable to \vn{Boris}, \vntm{Symp_Lie_Bmad}, and
-\vntm{Symp_Lie_PTC} integration.
+is applicable to \vn{Boris}, \vni{Symp_Lie_Bmad}, and
+\vni{Symp_Lie_PTC} integration.
 
-\index{Integration_ord}
+\index{Integration_order}
 \index{Num_steps}
 \vn{integrator_order} is the order of the integration formula for 
 \vn{Symp_Lie_PTC}. Possible values are
 \begin{example}
   integrator_order = 2 (default), 4, or 6
 \end{example}
-Essentially, an integration order of $n$ means that the error in an 
-integration step scales as $dz^{n+1}$ where $dz$ is the slice thickness.
-For a given number of steps a higher order will give more accurate results
-but a higher order integrator will take more time per step. It turns out
-that for wigglers, after adjusting \vn{num_steps} for a given accuracy, 
-the order 2 integrator is the fastest. This is not surprising given the
-highly nonlinear nature of a wiggler. Note that \vntm{Symp_Lie_Bmad} always
-uses a order 2 integrator.
+Essentially, an integration order of $n$ means that the error in an
+integration step scales as $dz^{n+1}$ where $dz$ is the slice
+thickness.  For a given number of steps a higher order will give more
+accurate results but a higher order integrator will take more time per
+step. It turns out that for wigglers, after adjusting \vn{num_steps}
+for a given accuracy, the order 2 integrator is the fastest. This is
+not surprising given the highly nonlinear nature of a wiggler. Note
+that \vni{Symp_Lie_Bmad} always uses an order 2 integrator
+independent of the setting of \vn{integration_order}.
 
 \index{Num_steps}
 \index{Rel_tol}
 \index{Abs_tol}
-\vntm{Adaptive_Boris} and \vntm{Runge_Kutta} use adaptive step
+\vni{Adaptive_Boris} and \vni{Runge_Kutta} use adaptive step
 control independent of \vn{num_steps}. These methods use the \vn{rel_tol} and
 \vn{abs_tol} attributes to try to keep the estimated error of the integration
 such that
@@ -404,7 +405,7 @@ lowering the error bounds makes for greater accuracy (as long as round-off
 doesn't hurt) but for slower tracking. 
 
 \index{Field_calc}
-\vntm{Boris}, \vntm{Adaptive_Boris}, and \vntm{Runge_Kutta} tracking all use
+\vni{Boris}, \vni{Adaptive_Boris}, and \vni{Runge_Kutta} tracking all use
 as input the electric and magnetic fields of an element. How the EM fields
 are calculated is determined by the \vn{field_calc} attribute for an element.
 Possible values for \vn{field_calc} are:
@@ -418,7 +419,7 @@ Possible values for \vn{field_calc} are:
 need the appropriate custom routine. See \sref{s:custom_field} for more
 details.
 
-\vntm{Boris} (Both \vn{Boris} and \vntm{Adaptive_Boris}) tracking does not
+\vni{Boris} (Both \vn{Boris} and \vni{Adaptive_Boris}) tracking does not
 assume that a particle is relativistic so \vn{Boris} tracking can be
 used with non--relativistic particles. The phase space coordinates
 used in \vn{Boris} tracking are not the usual \bmad coordinates Rather
