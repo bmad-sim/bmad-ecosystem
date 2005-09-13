@@ -112,7 +112,7 @@ contains
 ! deallocated in the calling function!
 !
 ! Modules Needed:
-!   use bmad
+!   use cesr_basic_mod
 !
 ! Input:
 !   ring      -- Ring_struct: Ring to parse.
@@ -558,7 +558,7 @@ end subroutine
 ! list to choose from.
 !                                                               
 ! Modules Needed:
-!   use bmad
+!   use cesr_basic_mod
 !
 ! Input:
 !   current_lat -- Character(40): Name of current lattice (will be stared in
@@ -712,7 +712,7 @@ end subroutine
 ! Use BMAD_TO_DB or BMAD_TO_CESR to find where the elements are located.
 !
 ! Modules Needed:
-!   use bmad
+!   use cesr_basic_mod
 !
 ! Input:
 !   ring     -- Ring_struct: Ring to be modified
@@ -842,7 +842,7 @@ end subroutine
 ! Use BMAD_TO_DB or BMAD_TO_CESR to find where the elements are located.
 !
 ! Modules Needed:
-!   use bmad
+!   use cesr_basic_mod
 !
 ! Input:
 !   ring     -- Ring_struct: Ring to be modified
