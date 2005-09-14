@@ -42,6 +42,9 @@ module cesr_basic_mod
   end type
 
   integer, parameter :: n_quad_maxx = 120
+  integer, parameter :: n_det_maxx = 120
+  integer, parameter :: n_sex_maxx = 120
+  integer, parameter :: n_steer_maxx = 120
   integer, parameter :: n_oct_maxx = 4
   integer, parameter :: n_hbnd_maxx = 6
   integer, parameter :: n_rf_maxx = 4
@@ -57,17 +60,17 @@ module cesr_basic_mod
 ! %ix_cesr is a pointer to cesr_struct for given type
 
   type cesr_struct
-    type (cesr_element_struct) quad_(0:120)
-    type (cesr_element_struct) skew_quad_(0:120)
-    type (cesr_element_struct) sex_(0:120)
-    type (cesr_element_struct) det_(0:120)
+    type (cesr_element_struct) quad_(0:n_quad_maxx)
+    type (cesr_element_struct) skew_quad_(0:n_quad_maxx)
+    type (cesr_element_struct) sex_(0:n_sex_maxx)
+    type (cesr_element_struct) det_(0:n_det_maxx)
     type (cesr_element_struct) skew_sex_(n_skew_sex_maxx)
     type (cesr_element_struct) oct_(n_oct_maxx)
     type (cesr_element_struct) rf_(n_rf_maxx)
     type (cesr_element_struct) wig_(n_wig_maxx)
     type (cesr_element_struct) sep_(n_sep_maxx)
-    type (cesr_element_struct) h_steer_(0:120)
-    type (cesr_element_struct) v_steer_(0:120)
+    type (cesr_element_struct) h_steer_(0:n_steer_maxx)
+    type (cesr_element_struct) v_steer_(0:n_steer_maxx)
     type (cesr_element_struct) solenoid       ! solenoid struct
     type (cesr_element_struct) scir_cam_rho_(n_scir_cam_maxx)
     type (cesr_element_struct) scir_tilt_(n_scir_tilt_maxx)
@@ -96,6 +99,66 @@ module cesr_basic_mod
     integer file_num
     integer turn    ! turn number for injection data
   end type
+
+!-----------------------------------------------------------------------------
+! For phase 
+
+ integer, parameter :: det_all_maxx = 99
+
+  type a_cesr_freq_struct 
+    real tune
+    real shake
+    logical reflection
+  end type
+
+  type cesr_freq_struct 
+    type (a_cesr_freq_struct) x, y
+    real rev
+  end type
+
+  type cesr_phase_params_struct 
+    integer species                            
+    real current
+    character(60) comment
+    integer unit, single_unit
+    character(60) file_name, raw_file_name
+    character(40) lattice
+    integer save_set
+    logical :: debug
+  endtype        
+
+  type cesr_but_struct 
+    real phase
+    real amp
+    logical ok
+  end type
+
+  type cesr_det_xy_struct 
+    real amp
+    real phase
+  end type
+
+  type cesr_det_plane_struct 
+    type (cesr_but_struct) but(4)
+    type (cesr_det_xy_struct) x, y
+    real phase_meas
+    real rms_phase_meas
+    real phase_design
+    real beta_design
+    real cbar11                
+    real cbar12
+    real cbar22
+    integer n_buts
+    logical ok     
+    logical shake
+    integer system_id   ! 0 = old_system, 1 = new_system
+  end type
+
+  type cesr_det_dc_position_struct
+    real x, y
+    real signal(4)
+  end type
+
 
 contains
 
