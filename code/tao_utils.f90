@@ -178,35 +178,43 @@ end subroutine
 ! Subroutine to find a lattice element.
 !
 ! Input:
-!   string       -- Character(*): String with element name or index
+!   string       -- Character(*): String with element name or index locations
 !   ix_universe  -- Integer: Universe to search. 0 => search s%global%u_view.
 !   ignore_blank -- Logical, optional: If present and true then do nothing if
 !     string is blank. otherwise treated as an error.
 !
 ! Output:
-!   ix_ele  -- Integer: Index of element. Set to -1 if element not found.
+!   ix_ele  -- Integer(:), allocatable: Index array of elements. 
+!                         ix_ele(1) = -1 if element not found.
 !-
 
 subroutine tao_locate_element (string, ix_universe, ix_ele, ignore_blank)
 
 implicit none
 
-integer ix_ele, ios, ix, ix_universe
+integer ios, ix, ix_universe, ix_ele_temp, num, i, i_ix_ele
+integer, allocatable :: ix_ele(:)
 
 character(*) string
 character(16) ele_name
 character(20) :: r_name = 'tao_locate_element'
 
 logical, optional :: ignore_blank
+logical, allocatable, save :: here(:)
 
 ! If it is a number translate it:
 
 call str_upcase (ele_name, string)
 call string_trim (ele_name, ele_name, ix)
 
-if (ix == 0 .and. logic_option(.false., ignore_blank)) return
+if (ix == 0 .and. logic_option(.false., ignore_blank)) then
+  call reallocate_integer (ix_ele, 1)
+  ix_ele = -1
+  return
+endif
 
 if (ix == 0) then
+  call reallocate_integer (ix_ele, 1)
   ix_ele = -1
   call out_io (s_error$, r_name, 'ELEMENT NAME IS BLANK')
   return
@@ -215,19 +223,39 @@ endif
 ix = ix_universe
 if (ix == 0) ix = s%global%u_view
 
-read (ele_name, *, iostat = ios) ix_ele
-if (ios .eq. 0) then
+read (ele_name, *, iostat = ios) ix_ele_temp
+if (ios .eq. 0 .and. index(ele_name,":") .eq. 0 .and. index(ele_name,",") .eq. 0) then
   !it's a number
-  if (ix_ele < 0 .or. ix_ele > s%u(ix)%model%n_ele_max) then
-    ix_ele = -1
+  call reallocate_integer (ix_ele, 1)
+  ix_ele(1) = ix_ele_temp
+  if (ix_ele(1) < 0 .or. ix_ele(1) > s%u(ix)%model%n_ele_max) then
+    ix_ele(1) = -1
     call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE: ' // ele_name)
   endif
   return
 endif
 
-call element_locator (ele_name, s%u(ix)%model, ix_ele)
+read (ele_name(1:1), *, iostat = ios) ix_ele_temp
+if (ios .eq. 0) then
+  ! must be an array of numbers
+  if (allocated (here)) deallocate(here)
+  allocate(here(0:s%u(ix)%model%n_ele_max))
+  call location_decode(ele_name, here, 0, num) 
+  call reallocate_integer (ix_ele, num)
+  i_ix_ele = 1
+  do i = 0, ubound(here,1)
+    if (here(i)) then
+      ix_ele(i_ix_ele) = i
+      i_ix_ele = i_ix_ele + 1
+    endif
+  enddo
+  return
+endif
 
-if (ix_ele < 0) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // string)
+call reallocate_integer (ix_ele, 1)
+call element_locator (ele_name, s%u(ix)%model, ix_ele(1))
+
+if (ix_ele(1) < 0) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // string)
 
 end subroutine
 

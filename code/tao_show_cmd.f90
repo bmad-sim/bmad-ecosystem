@@ -59,6 +59,7 @@ integer :: data_number, ix_plane
 integer nl, loc, ixl, iu
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju
 integer num_locations
+integer, allocatable, save :: ix_ele(:)
 
 logical err, found, at_ends
 logical show_all, name_found
@@ -67,6 +68,7 @@ logical, allocatable :: show_here(:)
 
 !
 
+call reallocate_integer (ix_ele,1)
 call re_allocate (lines, 200, 500)
 null_word = 'null'
 
@@ -368,7 +370,8 @@ case ('ele')
 
   else  
 
-    call tao_locate_element (ele_name, s%global%u_view, loc)
+    call tao_locate_element (ele_name, s%global%u_view, ix_ele)
+    loc = ix_ele(1)
     if (loc < 0) return
 
     write (lines(nl+1), *) 'Element #', loc

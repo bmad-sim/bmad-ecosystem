@@ -202,6 +202,7 @@ integer uni, what_lat
 integer j, i_uni, n_ps, ip, ig, ic
 integer n_bunch, n_part, i_uni_to
 integer extract_at_ix_ele, n_lost
+integer, allocatable, save :: ix_ele(:)
 
 character(20) :: r_name = "tao_beam_track"
 
@@ -217,6 +218,8 @@ end type
 type (phase_space_beam) phase_space(100)
 
 !
+
+call reallocate_integer (ix_ele,1)
 
 u => s%u(uni)
 beam => u%beam%beam
@@ -293,7 +296,8 @@ endif
           i_uni = curve%ix_universe
           if (i_uni == 0) i_uni = s%global%u_view
           if (i_uni /= uni) cycle
-          call tao_locate_element (curve%ele2_name, i_uni, curve%ix_ele2, .true.)
+          call tao_locate_element (curve%ele2_name, i_uni, ix_ele, .true.)
+          curve%ix_ele2 = ix_ele(1)
           if (curve%ix_ele2 < 0) return
           n_ps = n_ps + 1
           phase_space(n_ps)%beam => curve%beam

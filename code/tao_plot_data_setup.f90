@@ -231,11 +231,14 @@ real(rp), pointer :: value(:)
 
 integer ii, k, m, n_dat, i_uni, ie, jj
 integer ix_this, ix, ir, jg, i, i_max, i_min
+integer, allocatable, save :: ix_ele(:)
 
 logical err, smooth_curve, found
 
 character(12)  :: u_view_char
 character(30) :: r_name = 'tao_data_plot_data_setup'
+
+call reallocate_integer (ix_ele, 1)
 
 ! For the title_suffix: strip off leading "+" and enclose in "[ ]".
 
@@ -274,7 +277,8 @@ do k = 1, size(graph%curve)
   if (curve%ix_universe /= 0) i_uni = curve%ix_universe 
   u => s%u(i_uni)
 
-  call tao_locate_element (curve%ele2_name, i_uni, curve%ix_ele2, .true.)
+  call tao_locate_element (curve%ele2_name, i_uni, ix_ele, .true.)
+  curve%ix_ele2 = ix_ele(1)
   if (curve%ix_ele2 < 0) curve%ix_ele2 = 0
 
 !----------------------------------------------------------------------------

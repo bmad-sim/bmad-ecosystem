@@ -36,7 +36,8 @@ real(rp), allocatable :: new_var_value(:)
 real(rp), allocatable :: design_var_value(:)
 real(rp), allocatable :: var_delta(:)
 
-integer nl, i, ix_ele, ixa, ix, err_num, n
+integer nl, i, ixa, ix, err_num, n
+integer, allocatable, save :: ix_ele(:)
 
 character(*) who, name, where, num_str
 character(80) num
@@ -166,7 +167,7 @@ case ('ele')
   
   u => s%u(s%global%u_view)
   call tao_locate_element (ele_name, s%global%u_view, ix_ele)
-  if (ix_ele < 0) return
+  if (ix_ele(1) < 0) return
 
   select case (where)
   case ('x', 'p_x', 'y', 'p_y', 'z', 'p_z')
@@ -178,37 +179,53 @@ case ('ele')
       return
     endif
     !check if we are changing the beginning element
-    if (ix_ele .ne. 0) then
+    if (ix_ele(1) .ne. 0 .or. size(ix_ele) .ne. 1) then
       call out_io (s_warn$, r_name, &
           "Changing the orbit is only applicable for the BEGINNING element!")
       return
     endif
-    call change_orbit (u%design_orb(ix_ele), u%model_orb(ix_ele))
+    call change_orbit (u%design_orb(ix_ele(1)), u%model_orb(ix_ele(1)))
   case default  
-    call pointer_to_attribute (u%design%ele_(ix_ele), where, .true., &
-                                                         attrib_ptr, ixa, err)
-    if (err) return
-    if (.not. attribute_free (u%model%ele_(ix_ele), ixa, u%model, .true.)) return
-    design_value = attrib_ptr
- 
-    call pointer_to_attribute (u%model%ele_(ix_ele), where, .true., &
-                                                         attrib_ptr, ixa, err)
- 
-    old_value = attrib_ptr
- 
-    if (absolute_num) then
-      attrib_ptr = change_number
-    elseif (rel_to_design) then
-      attrib_ptr = design_value + change_number
-    else
-      attrib_ptr = attrib_ptr + change_number
-    endif
- 
-    new_value = attrib_ptr
+    do i = 1, size(ix_ele)
+      call pointer_to_attribute (u%design%ele_(ix_ele(i)), where, .true., &
+                                                           attrib_ptr, ixa, err)
+      if (err) then
+        if (size(ix_ele) .eq. 1) then
+          return
+        else
+          cycle
+        endif
+      endif
+      if (.not. attribute_free (u%model%ele_(ix_ele(i)), ixa, u%model, .true.)) then
+        if (size(ix_ele) .eq. 1) then
+          return
+        else
+          cycle
+        endif
+      endif
+      design_value = attrib_ptr
+     
+      call pointer_to_attribute (u%model%ele_(ix_ele(i)), where, .true., &
+                                                           attrib_ptr, ixa, err)
+      old_value = attrib_ptr
+     
+      if (absolute_num) then
+        attrib_ptr = change_number
+      elseif (rel_to_design) then
+        attrib_ptr = design_value + change_number
+      else
+        attrib_ptr = attrib_ptr + change_number
+      endif
+     
+      new_value = attrib_ptr
+    enddo
+
   end select
 
   s%global%lattice_recalc = .true.
 
+  ! don't print results if changing multiple elements
+  if (size(ix_ele) .ne. 1) return
 
   !----------------------------------
   ! print results
