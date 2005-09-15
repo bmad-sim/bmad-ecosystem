@@ -103,8 +103,6 @@ module cesr_basic_mod
 !-----------------------------------------------------------------------------
 ! For phase 
 
- integer, parameter :: det_all_maxx = 99
-
   type a_cesr_freq_struct 
     real tune
     real shake
