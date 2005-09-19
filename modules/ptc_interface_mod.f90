@@ -9,7 +9,6 @@ module ptc_interface_mod
 
   use definition, only: real_8, universal_taylor
   use s_def_all_kinds, only: fibre, layout
-  use mad_like, only: kill, ptc_track => track
 
   interface assignment (=)
     module procedure real_8_equal_taylor
@@ -263,7 +262,7 @@ end subroutine
 subroutine ring_to_layout (ring, ptc_layout)
 
   use s_fibre_bundle, only: ring_l, append, lp
-  use mad_like, only: set_up
+  use mad_like, only: set_up, kill
 
   implicit none
 
@@ -1384,6 +1383,7 @@ end subroutine
 subroutine taylor_propagate1 (tlr, ele, param)
 
   use s_tracking, only: assignment(=), kill, default, alloc
+  use mad_like, only: ptc_track => track
 
   implicit none
 
@@ -1450,6 +1450,7 @@ end subroutine
 subroutine ele_to_taylor (ele, param, orb0)
 
   use s_tracking, only: assignment(=), kill, default, alloc
+  use mad_like, only: ptc_track => track
 
   implicit none
   

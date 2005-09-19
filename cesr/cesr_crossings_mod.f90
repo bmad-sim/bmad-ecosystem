@@ -1,3 +1,5 @@
+#include "CESR_platform.inc"
+
 module cesr_crossings_mod
 
   use bmad_struct
@@ -52,8 +54,6 @@ contains
 !   pcar(:)         --  Integer: Car associated with this crossing.
 !
 !-
-
-#include "CESR_platform.inc"
 
 subroutine cesr_crossings(i_train, j_car, species, n_trains_tot, n_cars, &
                           cross_positions, ptrain, pcar, &
@@ -290,8 +290,6 @@ end subroutine cesr_crossings
 !   cross_positions -- Real(rp): Array of positions of crossing points,
 !       measured clockwise from IP:=0, and normalized to be between 0 and 1.
 !-
-
-#include "CESR_platform.inc"
 
 subroutine LRBBI_crossings(n_bucket, oppos_buckets, cross_positions)
 
