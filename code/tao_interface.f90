@@ -317,13 +317,6 @@ interface
 end interface
 
 interface
-  recursive subroutine tao_show_cmd (what, stuff)
-    implicit none
-    character(*) :: what, stuff
-  end subroutine
-end interface
- 
-interface
   subroutine tao_single_mode (char)
     implicit none
     character(1) :: char

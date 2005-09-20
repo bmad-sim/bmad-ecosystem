@@ -8,11 +8,17 @@
 !   stuff -- Character(*): ParticularStuff to show.
 !-
 
+module tao_show_mod
+
+contains
+
+!--------------------------------------------------------------------
+
 recursive subroutine tao_show_cmd (what, stuff)
 
-use tao_mod, except1 => tao_show_cmd
-use tao_top10_mod, except2 => tao_show_cmd
-use tao_single_mod, except3 => tao_show_cmd
+use tao_mod
+use tao_top10_mod
+use tao_single_mod
 use tao_command_mod, only: tao_cmd_split
 
 implicit none
@@ -808,3 +814,5 @@ logical :: found_one = .false.
 end subroutine show_ele_data
 
 end subroutine tao_show_cmd
+
+end module

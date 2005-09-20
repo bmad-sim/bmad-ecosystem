@@ -22,6 +22,7 @@ subroutine tao_command (command_line, err)
   use tao_x_scale_mod
   use tao_set_mod
   use tao_plot_window_mod
+  use tao_show_mod
 
   implicit none
 
