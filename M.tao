@@ -16,6 +16,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.8  2005/09/20 22:09:21  js344
+# executable now called 'tao' instead of tao_cl
+#
 # Revision 1.7  2005/08/08 22:41:42  palmer
 # Bug fix.
 #
@@ -137,11 +140,14 @@ endif
 # Generate the executable name - the default is $(JOB) unless  
 # MAIN_FILE has been explicitly specified
 #-------------------------------------------------------------
-ifeq "$(strip $(MAIN_FILE))" ""
-	EXE = $(localbin)/$(JOB)
-else
-  EXE = $(localbin)/$(basename $(notdir $(MAIN_FILE)))
-endif
+#ifeq "$(strip $(MAIN_FILE))" ""
+#	EXE = $(localbin)/$(JOB)
+#else
+#  EXE = $(localbin)/$(basename $(notdir $(MAIN_FILE)))
+#endif
+
+# always use tao
+  EXE = $(localbin)/tao
 
 
 #------------------------------------------------------------------------------
