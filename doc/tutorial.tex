@@ -27,7 +27,7 @@ In any case help may be obtained by contacting David Sagan
 \cmd{<dcs16@cornell.edu>} or Jeff Smith \cmd{<js344@cornell.edu>}.
 
 Before running \tao at Cornell the appropriate environmental variables
-must be set. The way \tao is develped is that the source code is kept
+must be set. The way \tao is developed is that the source code is kept
 in a central ``repository'' which is controlled by a software package
 called \vn{CVS}. Every so often (typically about once a week) a copy
 of the source code in the repository is made and a version of \tao is
@@ -37,7 +37,7 @@ code. There is also a ``current'' release which comes from older
 code. The general idea is that devel should have the latest stuff but
 current should be more stable (have less bugs). In practice, since
 \tao is new and the bugs are still being worked out, the devel release
-is typically less buggy and hence is devel is what is recomended. To
+is typically less buggy and hence is devel is what is recommended. To
 set the environmental variables to point to the devel release do the
 following.  If you are using the bash shell put the following in your
 \vn{.login} file:
@@ -61,11 +61,21 @@ If there has been a bug fix that you need which is in the CVS
 repository but not yet in the devel release, you need to create and
 use a local copy of \tao. To checkout a copy of \tao from the CVS
 repository use the command \cmd{'cesrcvs co tao'} in the directory
-from where you want to run \tao, (hereto referred to as \vn{ROOT}). This
-will check out a copy but will not allow you to check in changes to
-the code.  Basically the only time a local copy of \tao is needed is
-when there have been changes made to CVS that are needed that haven't
-found their way to the released version.
+from where you want to run \tao, (hereto referred to as
+\vn{ROOT}). The checked out copy of \tao will be put in a directory
+\cs{ROOT/tao}. Basically the only time a local copy of \tao is needed
+is when there have been changes made to CVS that are needed that
+haven't found their way to the released version. Once you have created
+a local copy of \tao you may need to update it from time to time when
+changes to the repository have been made by the maintainers of
+\tao. To do this use the command \cmd{'cesrcvs update'} in the
+\cs{ROOT/tao} directory. Note: Unless you are a maintainer, you do not
+have privileges to modify the repository.
+
+
+
+If you already have a
+local copy of \tao and want to update
 
 From the newly created \cs{ROOT/tao} directory type `\cmd{gmake}' to
 create the libraries and then type `\cmd{gmake -f M.tao}' to create
@@ -317,8 +327,8 @@ coupling outside the interaction region type
   scale bottom -0.01 0.01
 \end{example}
 The \vn{**Limited**} displayed in red on the bottom plots tells us
-that there are data points outside the ploted region.  We now see that
-there is a small amount of coupling at the L03 region (BPM indices
+that there are data points outside the plotted region.  We now see that
+there is a small amount of coupling at the L03 region (BPM indexes
 45-55) and a few other places along the ring. Your plot window should
 now look like Figure~\ref{f:plot_coupling_no_IR}.
 
@@ -405,10 +415,10 @@ the output should look like:
 There are 6 data types defined in the initialization file. The fifth
 and sixth are closely related. See Part II for an explanation of the
 two coupling data types.  For the first four data types there are two
-data dimensions defined corresponding to the horizontal and vertcal
+data dimensions defined corresponding to the horizontal and vertical
 planes. Coupling is parameterized by a 2x2 matrix so there are four
 ``dimensions'' for these two data types. the ``Bounds'' columns refer
-to the lower and upper indices on the datums. there are 100 BPMs in
+to the lower and upper indexes on the datums. there are 100 BPMs in
 CESR so there are 100 data points.
 
 To see the data values for the horizontal beta function for \cesr BPMs
@@ -537,7 +547,7 @@ by modifying the lattice element directly by typing
   change ele Q05W k1 d0.0
 \end{example}
 By modifying the element directly with the \cmd{change ele} command you can
-modify alomst any attribute of the element listed in the output of \cmd{show ele Q05W}.
+modify almost any attribute of the element listed in the output of \cmd{show ele Q05W}.
 The ``d'' before the value is used to set the variable relative to the design value.
 \index{Commands!change}
 
@@ -748,7 +758,7 @@ modifying the ``hook'' routines will ensure that custom changes will have a
 minimum impact on the specialized routines that will be written by various
 people. 
 
-\tao is written in Fortran 95 and a knowledge of fortran is required. However,
+\tao is written in Fortran 95 and a knowledge of Fortran is required. However,
 if you know C then Fortran can be learned in a coupled of days. Because of the
 interoperability between C and Fortran once the wrapper routines are written to
 interface with \tao the rest of your coding can, in principle all be done in C.
@@ -840,7 +850,7 @@ to
 \begin{example}
   #MAKEFILE := M.tao !using default name for Makefile
 \end{example}
-Notice that this line is just being commented out with a `\#'. You sare now ready
+Notice that this line is just being commented out with a `\#'. You are now ready
 to make your customizations to the hook routines.
 
 This example will only require the modification of one file:
