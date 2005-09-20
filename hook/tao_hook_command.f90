@@ -45,7 +45,7 @@ subroutine tao_hook_command (command_line, found)
 
   !*********
   ! put your list of hook commands in here
-  character(16) :: cmd_names(1) = (/ 'hook            '/)
+  character(16) :: cmd_names(1) = (/ 'echo            '/)
   !*********
   
   logical quit_tao, err
@@ -90,17 +90,17 @@ subroutine tao_hook_command (command_line, found)
 
   
 !--------------------------------
-! HOOK
+! ECHO
   
-    case ('hook')
+    case ('echo')
       ! split the command line into its separate words
       ! separate words placed in cmd_word(:)
       call tao_cmd_split(cmd_line, 10, cmd_word, .true., err); if (err) return
 
       ! send any output to out_io
-      call out_io (s_blank$, r_name, &
-       "This is just a dummy command for illustration purposes")
-      call out_io (s_blank$, r_name, "I will just echo anything you tell me!")
+!     call out_io (s_blank$, r_name, &
+!      "This is just a dummy command for illustration purposes")
+!     call out_io (s_blank$, r_name, "I will just echo anything you tell me!")
       call out_io (s_blank$, r_name, "***")
       do i = 1, size(cmd_word)
         if (cmd_word(i) .ne. ' ') &  
