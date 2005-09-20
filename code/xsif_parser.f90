@@ -1,10 +1,13 @@
 !+
-! Subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
+! Subroutine xsif_parser (xsif_file, lat, make_mats6, use_line)
 !
 ! Subroutine to parse an XSIF (extended standard input format) lattice file.
 ! XSIF is used by, for example, LIAR.
 ! Error messages will be recorded in a local file: 'xsif.err'.
 ! Standard output messages will be recorded in a local file: 'xsif.out'
+!
+! Note: The presence of an LCavity element in the input file (even if it is not
+! used in the lattice) will make lat%lattice_type = linear_lattice$.
 !
 ! Modules needed:
 !   use bmad
@@ -17,13 +20,12 @@
 !                   statement in the lattice file and use use_line instead.
 !
 ! Output:
-!   ring         -- Ring_struct: Structure holding the lattice information.
-!     %lattice_type  -- Set = circular_lattice$ unless there are LCavities.
+!   lat         -- Ring_struct: Structure holding the lattice information.
 !   bmad_status  -- Bmad status common block.
 !     %ok            -- Set True if parsing is successful. False otherwise.
 !-
 
-subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
+subroutine xsif_parser (xsif_file, lat, make_mats6, use_line)
 
   use xsif_inout
   use xsif_interfaces
@@ -34,7 +36,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
 
   implicit none
 
-  type (ring_struct), target :: ring
+  type (ring_struct), target :: lat
   type (ele_struct), pointer :: ele
 
   integer xsif_unit, err_unit, std_out_unit, internal_unit
@@ -48,6 +50,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
   character(*), optional :: use_line
   character(100) name1, name2, line
   character(200) full_name
+  character(16) :: r_name = 'xsif_parser'
 
   logical, optional :: make_mats6
   logical echo_output, err_flag
@@ -113,21 +116,33 @@ subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
     return
   endif
 
-! Allocate elements
+! Init the lattice and look for an LCavity which means this is 
+! a linear lattice.
 
-  call init_ring (ring, npos2-npos1+100)
-  ring%param%lattice_type = circular_lattice$
+  call init_ring (lat, npos2-npos1+100)
+  lat%param%lattice_type = circular_lattice$
 
-  do i = 0, ubound(ring%ele_, 1)
-    call init_ele (ring%ele_(i))
+  do ie = 1, maxelm
+    if (ietyp(ie) == mad_lcav) then
+      lat%param%lattice_type = linear_lattice$
+      call out_io (s_info$, r_name, &
+            'LCavity is present. This implies a Linear Lattice')
+      exit
+    endif
   enddo
 
-  ring%param%particle = positron$
-  ring%ele_(0)%value(beam_energy$) = 0
+! Allocate elements
 
-  ring%ele_(0)%name = 'BEGINNING'     ! Beginning element
-  ring%ele_(0)%key = init_ele$
-  call mat_make_unit (ring%ele_(0)%mat6)
+  do i = 0, ubound(lat%ele_, 1)
+    call init_ele (lat%ele_(i))
+  enddo
+
+  lat%param%particle = positron$
+  lat%ele_(0)%value(beam_energy$) = 0
+
+  lat%ele_(0)%name = 'BEGINNING'     ! Beginning element
+  lat%ele_(0)%key = init_ele$
+  call mat_make_unit (lat%ele_(0)%mat6)
 
 ! Transfer elements to the ring_struct
 
@@ -135,9 +150,9 @@ subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
 
   do ie = npos1, npos2-1
 
-    if (item(ie) > maxelm ) cycle
-
     indx = item(ie) 
+    if (indx > maxelm) cycle
+
     dat_indx = iedat(indx,1)
     key = ietyp(indx)
 
@@ -374,7 +389,6 @@ subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
         enddo
 
       case (mad_lcav)
-        ring%param%lattice_type = linear_lattice$
         call add_ele (lcavity$)
         ele%value(l$)            = pdata(dat_indx)
         ele%value(gradient$)     = pdata(dat_indx+2) * 1e6 / ele%value(l$)
@@ -403,7 +417,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
           ele%wake%z_sr2_max = 0
         endif
 
-        ring%param%lattice_type = linear_lattice$
+        lat%param%lattice_type = linear_lattice$
 
       case (mad_inst, mad_blmo, mad_prof, mad_wire, mad_slmo, mad_imon)
         call add_ele (instrument$)
@@ -440,7 +454,7 @@ subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
 
   if (ibeta0_ptr /= 0) then
     dat_indx = iedat(ibeta0_ptr, 1)
-    ele => ring%ele_(0)
+    ele => lat%ele_(0)
     ele%x%beta  = pdata(dat_indx)
     ele%x%alpha = pdata(dat_indx+1)
     ele%x%phi   = pdata(dat_indx+2)
@@ -460,25 +474,25 @@ subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
 
   if (ibeam_ptr /= 0) then
     dat_indx = iedat(ibeam_ptr, 1)
-    ele => ring%ele_(0)
+    ele => lat%ele_(0)
     select case (nint(pdata(dat_indx)))  ! particle type
     case (0) ! default
-      ring%param%particle = positron$
+      lat%param%particle = positron$
     case (1)
-      ring%param%particle = positron$
+      lat%param%particle = positron$
     case (2)
-      ring%param%particle = electron$
+      lat%param%particle = electron$
     case (3)
-      ring%param%particle = proton$
+      lat%param%particle = proton$
     case (4)
-      ring%param%particle = antiproton$
+      lat%param%particle = antiproton$
     case default
       write (line, '(a, i8)') 'UNKNOWN PARTICLE TYPE:', nint(pdata(dat_indx))
       call xsif_error (line)
       call err_exit
     end select
 
-    ring%param%n_part = pdata(dat_indx+14)
+    lat%param%n_part = pdata(dat_indx+14)
 
     if (pdata(dat_indx+3) /= 0) ele%value(beam_energy$) = &
                                                   pdata(dat_indx+3) * 1e9
@@ -487,27 +501,27 @@ subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
 ! Global stuff
 
   inquire (file = xsif_file, name = full_name) 
-  ring%input_file_name = full_name    
+  lat%input_file_name = full_name    
 
-  ring%name = ' '
-  ring%lattice = ' '
+  lat%name = ' '
+  lat%lattice = ' '
 
-  ring%n_ele_use  = i_ele
-  ring%n_ele_ring = i_ele
-  ring%n_ele_max  = i_ele
+  lat%n_ele_use  = i_ele
+  lat%n_ele_ring = i_ele
+  lat%n_ele_max  = i_ele
 
-  ring%version            = bmad_inc_version$
-  ring%param%aperture_limit_on  = .true.
-  ring%n_ic_max           = 0                     
-  ring%n_control_max      = 0    
+  lat%version            = bmad_inc_version$
+  lat%param%aperture_limit_on  = .true.
+  lat%n_ic_max           = 0                     
+  lat%n_control_max      = 0    
 
-  call set_taylor_order (ring%input_taylor_order, .false.)
-  call set_ptc (ring%beam_energy, ring%param%particle)
+  call set_taylor_order (lat%input_taylor_order, .false.)
+  call set_ptc (lat%beam_energy, lat%param%particle)
 
 ! Element cleanup
 
-  call compute_reference_energy (ring)
-  do i = 1, ring%n_ele_max
+  call compute_reference_energy (lat)
+  do i = 1, lat%n_ele_max
     if (ele%key == elseparator$) then
       if (ele%value(beam_energy$) == 0) cycle
       ele%value(vkick$) = ele%value(e_field$) * ele%value(l$) / &
@@ -517,9 +531,9 @@ subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
 
 ! last
 
-  call s_calc (ring)
-  call ring_geometry (ring)
-  if (logic_option (.true., make_mats6)) call ring_make_mat6 (ring, -1)
+  call s_calc (lat)
+  call ring_geometry (lat)
+  if (logic_option (.true., make_mats6)) call ring_make_mat6 (lat, -1)
   err_flag = .false.
   call xsif_io_close
 
@@ -531,7 +545,7 @@ subroutine add_ele (key)
   integer key
 
   i_ele = i_ele + 1
-  ele => ring%ele_(i_ele)
+  ele => lat%ele_(i_ele)
   ele%key = key
   ele%name = kelem(indx)
   ele%type = ketyp(indx)
