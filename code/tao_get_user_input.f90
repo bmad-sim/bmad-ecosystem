@@ -20,8 +20,12 @@ use single_char_input_mod
 implicit none
 
 
-integer i, ix
+integer i, ix, ix2
+integer, save, allocatable :: indx(:), indx_start(:), indx_end(:), indx_step(:) ! for do loops
+integer, save, allocatable :: loop_line_count(:) ! lines in each nested loop
+integer, save :: in_loop = 0 ! in loop nest level
 
+character(10), save, allocatable :: indx_name(:) ! do loop index name
 character(*) :: cmd_line
 character(*), optional :: prompt_str
 character(80) prompt_string
@@ -185,48 +189,48 @@ end subroutine
 !-------------------------------------------------------------------------
 ! contains
 !
-! Right now, no nested do loops
+! This routine has gotten ugly and should be re-written
 
 subroutine do_loop
 
-integer, save :: indx, indx_start, indx_end, indx_step ! for do loops
+integer enddo_count ! for getting the line number count correct with nested loops
+integer :: inner_loop_count =0
 
 character(6) do_word ! 'do' or 'enddo'
-character(10) indx_name ! do loop index name
 character(15) indx_char
 character(8) :: r_name = "do_loop"
 
-logical, save :: in_loop = .false.
-
-integer, save :: loop_line_count
+1001 continue
 
   do_word = ' '
   call string_trim (cmd_line, cmd_line, ix)
   if (ix .le. len(do_word)) &
     call str_upcase(do_word(1:ix), cmd_line(1:ix))
   if (ix .eq. 2 .and. do_word(1:3) .eq. "DO ") then
-    in_loop = .true.
+    call set_loop_nest_level (in_loop + 1)
     ! next word is loop index
-    indx_name = ' '
+    indx_name(in_loop) = ' '
     call string_trim (cmd_line(ix+1:), cmd_line, ix)
-    indx_name(1:ix) = cmd_line(1:ix)
+    indx_name(in_loop) = cmd_line(1:ix)
     ! now index start
     call string_trim (cmd_line(ix+1:), cmd_line, ix)
-    read (cmd_line(1:ix), '(I)') indx_start
+    read (cmd_line(1:ix), '(I)') indx_start(in_loop)
     ! now index end
     call string_trim (cmd_line(ix+1:), cmd_line, ix)
-    read (cmd_line(1:ix), '(I)') indx_end
-    indx = indx_start - 1 ! add one before first loop below
+    read (cmd_line(1:ix), '(I)') indx_end(in_loop)
+    indx(in_loop) = indx_start(in_loop) - 1 ! add one before first loop below
     ! finally index stepsize
     call string_trim (cmd_line(ix+1:), cmd_line, ix)
     if (ix .ne. 0) then ! specify index stepsize
-      read (cmd_line(1:ix), '(I)') indx_step
+      read (cmd_line(1:ix), '(I)') indx_step(in_loop)
     else
-      indx_step = 1
+      indx_step(in_loop) = 1
     endif
 
     ! count loop statements so I know how many records to backspace on 'ENDDO"
-    loop_line_count = 0
+    loop_line_count(in_loop) = 0
+    enddo_count = 0
+    inner_loop_count = 0
     do 
       read (tao_com%lun_command_file(tao_com%nest_level), '(a)', end = 9000) cmd_line
       write (*, '(3a)') trim(prompt_string), ': ', trim(cmd_line)
@@ -234,11 +238,42 @@ integer, save :: loop_line_count
       do_word = ' '
       if (ix .le. len(do_word)) &
         call str_upcase(do_word(1:ix), cmd_line(1:ix))
-      if (ix .eq. 5 .and. do_word(1:6) .eq. "ENDDO ") exit
-      if (ix .eq. 2 .and. do_word(1:3) .eq. "DO ") &
-        call out_io (s_error$, r_name, "Nested do loops not allowed!")
-      loop_line_count = loop_line_count + 1
+        if (ix .eq. 5 .and. do_word(1:6) .eq. "ENDDO ") then
+          if (enddo_count .eq. 0) then
+            exit
+          else
+            enddo_count = enddo_count - 1
+          endif
+      endif
+      if (ix .eq. 2 .and. do_word(1:3) .eq. "DO ") then
+        inner_loop_count = inner_loop_count + 1
+        enddo_count = enddo_count + 1
+      endif
+      loop_line_count(in_loop) = loop_line_count(in_loop) + 1
     enddo
+
+    if (inner_loop_count .ne. 0) then
+      ! There's an inner loop so rewind to beginning of first inner loop
+      do i = 1, loop_line_count(in_loop) + 1
+        backspace (tao_com%lun_command_file(tao_com%nest_level))
+        backspace (tao_com%lun_command_file(tao_com%nest_level))
+        read (tao_com%lun_command_file(tao_com%nest_level), '(a)', end = 9000) cmd_line
+        call string_trim (cmd_line, cmd_line, ix)
+        do_word = ' '
+        if (ix .le. len(do_word)) &
+          call str_upcase(do_word(1:ix), cmd_line(1:ix))
+        if (ix .eq. 2 .and. do_word(1:3) .eq. "DO ") then
+          inner_loop_count = inner_loop_count - 1
+          if (inner_loop_count .eq. 0) then
+            indx(in_loop) = indx(in_loop) + indx_step(in_loop)
+            goto 1001
+          endif
+        endif
+        if (i .eq. loop_line_count(in_loop) + 1) then
+          call out_io (s_error$, r_name, "Internal Error in routine!")
+        endif
+      enddo
+    endif
   endif
 
   ! check if hit 'ENDDO'
@@ -247,46 +282,93 @@ integer, save :: loop_line_count
   if (ix .le. len(do_word)) &
     call str_upcase(do_word(1:ix), cmd_line(1:ix))
   if (ix .eq. 5 .and. do_word(1:6) .eq. "ENDDO ") then
-    if (.not. in_loop) then
+    if (in_loop .eq. 0) then
       call out_io (s_error$, r_name, &
                    "ENDDO found without correspoding DO statement")
       return
     endif
-    indx = indx + indx_step
-    if (indx .le. indx_end .and. indx_step .gt. 0) then
+    indx(in_loop) = indx(in_loop) + indx_step(in_loop)
+    if (indx(in_loop) .le. indx_end(in_loop) .and. indx_step(in_loop) .gt. 0) then
       ! rewind
-      do i = 1, loop_line_count+1
+      do i = 1, loop_line_count(in_loop) + 1
         backspace (tao_com%lun_command_file(tao_com%nest_level))
       enddo
-    elseif (indx .ge. indx_end .and. indx_step .lt. 0) then
+    elseif (indx(in_loop) .ge. indx_end(in_loop) .and. indx_step(in_loop) .lt. 0) then
+      call out_io (s_error$, r_name, &
+        "negative step size in loops not yet implemented: will ignore loop")
     else
-      in_loop = .false.
+      ! looped correct number of times, now exit loop
+      call set_loop_nest_level (in_loop - 1)
+      if (in_loop .ge. 1) then
+        read (tao_com%lun_command_file(tao_com%nest_level), '(a)', end = 9000) cmd_line
+        goto 1001
+      else
+      endif
     endif
     ! read next line
-    read (tao_com%lun_command_file(tao_com%nest_level), '(a)', end = 9000) cmd_line
+    read (tao_com%lun_command_file(tao_com%nest_level), '(a)', end = 9100) cmd_line
+    goto 1001
   endif
   
-  ! insert index name variable
-  if (in_loop) then
-    ix = index (cmd_line, '[' // trim(indx_name) // ']')
-    if (ix /= 0) then
-      write (indx_char, '(I)') indx
-      cmd_line = cmd_line(1:ix-1) // trim(indx_char) // &
-                                cmd_line(ix+len_trim(indx_char):)
-    endif
+  ! insert index name variables for each loop
+  if (in_loop .ne. 0) then
+    do i = 1, in_loop
+      do 
+        ix = index (cmd_line, '[' // trim(indx_name(i)) // ']')
+        if (ix /= 0) then
+          write (indx_char, '(I)') indx(i)
+          call string_trim(indx_char, indx_char, ix2)
+          ix2 = len(trim(indx_char))+2
+          write (cmd_line, *) cmd_line(1:ix-1), trim(indx_char), &
+                                    trim(cmd_line(ix+ix2:))
+        else
+          exit
+        endif
+      enddo
+    enddo
   endif
 
   return
 
   ! No 'ENDDO' statement
   9000 continue
-  call out_io (s_error$, r_name, "No corresponding 'enddo' statment found")
+  call out_io (s_error$, r_name, &
+       "No corresponding 'enddo' statment found, loop will be ignored")
+  9100 continue
   close (tao_com%lun_command_file(tao_com%nest_level))
   tao_com%lun_command_file(tao_com%nest_level) = 0 
   tao_com%nest_level = tao_com%nest_level - 1 ! signal that the file has been closed
-  in_loop = .false.
+  in_loop = 0
 
+  ! don't send last 'ENDDO' to tao_command.f90
+  call string_trim (cmd_line, cmd_line, ix)
+  do_word = ' '
+  if (ix .le. len(do_word)) &
+    call str_upcase(do_word(1:ix), cmd_line(1:ix))
+  if (ix .eq. 5 .and. do_word(1:6) .eq. "ENDDO ") cmd_line = " "
+    
 end subroutine do_loop
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+! contains
+!
+
+subroutine set_loop_nest_level (level)
+
+implicit none
+
+integer level
+  
+  in_loop = level
+  call reallocate_integer (loop_line_count, in_loop)
+  call reallocate_integer (indx, in_loop)
+  call reallocate_integer (indx_start, in_loop)
+  call reallocate_integer (indx_end, in_loop)
+  call reallocate_integer (indx_step, in_loop)
+  call reallocate_string (indx_name, 10, in_loop)
+
+end subroutine set_loop_nest_level
 
 end subroutine tao_get_user_input
 

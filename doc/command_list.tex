@@ -133,11 +133,10 @@ Do loops are allowed with the following syntax:
     ...
   enddo
 \end{example}
-The loop index can be used as a variable in the loop body but must be
+\vn{<var>} can be any character string up to 10 characters long.
+The \vn{<var>} can be used as a variable in the loop body but must be
 bracketed.  The step size can be any integer positive or negative but not zero.
-Nested loops are not allowed, but nested command files are
-allowed in do loops provided there are no do loops in the nested
-command files.
+Nested loops are allowed. Command files can be called within do loops.
 
 Examples:
 \begin{example}
@@ -151,7 +150,7 @@ In the above example the argument ``abc'' is substituted for any
 \begin{example}
   do i 1 100
     call set_quad_misalignemnt [i] ! command file to misalign quadrupoles
-    zero_quad [i] ! this would be a user supplied command to zero quad number [i]
+    zero_quad 1e-5*2^([i]-1) ! this would be some user supplied command to zero quad number [i]
   enddo
 \end{example}
 
