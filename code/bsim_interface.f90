@@ -17,6 +17,9 @@
 ! $Id$
 !
 ! $Log$
+! Revision 1.5  2005/09/21 20:59:07  dcs
+! more changes to get around compiler bug.
+!
 ! Revision 1.4  2005/09/21 20:35:58  dcs
 ! Put beambeam_setup in scan_parameters module.
 !
@@ -69,7 +72,7 @@ module bsim_interface
        use precision_def
        implicit none
        real(rp), dimension(1:,1:), intent(in) ::  parameters
-       character*60, intent(in) ::  in_file
+       character(*), intent(in) ::  in_file
      end subroutine writefile
   end interface
   
@@ -101,7 +104,7 @@ module bsim_interface
        type (coord_struct) coord_(:)
        type (ele_struct) ele
        real(rp) sig(3), a_out(3)
-       character*60 in_file
+       character(*) in_file
      end subroutine histogram
   end interface
   

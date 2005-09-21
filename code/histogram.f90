@@ -19,8 +19,11 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2005/09/21 20:59:07  dcs
+! more changes to get around compiler bug.
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
@@ -51,7 +54,7 @@ subroutine histogram (ele, coord_, in_file, sig, a_out)
   integer psize
   integer unit
   
-  character*60 in_file
+  character(*) in_file
   
   nbin=10
   nsig=3

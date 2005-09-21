@@ -19,8 +19,11 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2005/09/21 20:59:07  dcs
+! more changes to get around compiler bug.
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
@@ -34,7 +37,7 @@ subroutine writefile(in_file, parameters)
   
   implicit none
   real(rdef), dimension(1:,1:), intent(in) ::  parameters
-  character*60, intent(in) ::  in_file
+  character(*), intent(in) ::  in_file
   
 
 
