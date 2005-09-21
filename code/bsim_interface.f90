@@ -17,6 +17,9 @@
 ! $Id$
 !
 ! $Log$
+! Revision 1.4  2005/09/21 20:35:58  dcs
+! Put beambeam_setup in scan_parameters module.
+!
 ! Revision 1.3  2005/09/21 20:19:06  dcs
 ! another try to get around compiler bug.
 !
@@ -55,7 +58,6 @@ module bsim_interface
      end subroutine close_vertical
   end interface
   
-  
   interface
      subroutine read_turns()
        implicit none
@@ -79,20 +81,6 @@ module bsim_interface
        real(RP), dimension(1:,1:), intent(inout):: parameters
      end subroutine gfit3D
   end interface
-  
-  interface
-     subroutine beambeam_setup (ring, particle,  current, scan_params, slices)
-       use bmad_struct, only: ring_struct, rp
-       use scan_parameters, only: scan_params_struct
-       implicit none
-       type ( ring_struct ) ring
-       type (scan_params_struct) scan_params
-       integer particle
-       integer, optional, intent(in) :: slices
-       real(rp) current
-     end subroutine beambeam_setup
-  end interface
-  
   
   interface
      subroutine gaussian_dist (ele, mode, coupling, min_sig, coord_)
