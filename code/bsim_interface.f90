@@ -17,6 +17,9 @@
 ! $Id$
 !
 ! $Log$
+! Revision 1.3  2005/09/21 20:19:06  dcs
+! another try to get around compiler bug.
+!
 ! Revision 1.2  2005/09/20 20:25:22  dcs
 ! cleaned up use statements.
 !
@@ -79,7 +82,7 @@ module bsim_interface
   
   interface
      subroutine beambeam_setup (ring, particle,  current, scan_params, slices)
-       use bmadz_struct, only: ring_struct, rp
+       use bmad_struct, only: ring_struct, rp
        use scan_parameters, only: scan_params_struct
        implicit none
        type ( ring_struct ) ring
