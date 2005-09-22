@@ -85,6 +85,18 @@ $!
 $! gmake --directory=[.cvssrc.toad] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
+$! building nonlin_bpm
+$!--------------------------------------------------
+$!  
+$ gmake --directory=[.cvssrc.nonlin_bpm] "''par1'" "''par2'"
+$!
+$!--------------------------------------------------
+$! building BeamInstSupport
+$!--------------------------------------------------
+$!  
+$ gmake --directory=[.cvssrc.BEAMINSTSUPPORT] "''par1'" "''par2'"
+$!
+$!--------------------------------------------------
 $ set def 'crsdir'
 $ EXIT
 
