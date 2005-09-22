@@ -11,6 +11,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.5  2005/09/22 14:54:12  cesrulib
+# Fixed bug so it can run locally
+#
 # Revision 1.4  2004/12/22 19:45:05  cesrulib
 # workdisk -> cesr_porting
 #
@@ -30,7 +33,8 @@
 # The following must be explicitly set when building under VMS
 #-----------------------------------------------------------------------------
 LIBNAME  := bmad
-RELEASE  := 
+RELEASE  :=
+PACKAGE  := PACKAGES
 
 # absrcdir (absolute source directory) and CESRLIB MUST be set 
 # The following clase allows 
@@ -93,8 +97,24 @@ OLB_SRC_DIRS  := [.modules] [.code] [.cesr]
 MOD_SRC_DIRS  := 
 OBJ_SRC_DIRS  :=
 CFG_SRC_DIRS  := [.lat] [.layout]
-LOCAL_INCS    := [.include] [-.include]
+LOCAL_INCS    := [.include]
 
+
+LOCAL_MODS    :=
+localmod      :=
+locallib      :=
+localconfig   :=
+localbin      :=
+OBJ_OUT_DIR   :=
+
+ifeq "$(strip $(RELEASE))" ""
+ LOCAL_MODS    := [-.modules]
+ localmod      := [--.modules]
+ locallib      := [--.lib]
+ localconfig   := [--.config]
+ localbin      := [--.bin]
+ OBJ_OUT_DIR   := [--.lib]
+endif
 
 # These variables must be specified if one need to compile
 # the library in local area
@@ -105,13 +125,6 @@ LOCAL_INCS    := [.include] [-.include]
 #localconfig   := [--.config]
 #localbin      :=
 #OBJ_OUT_DIR   := [--.lib]
-
-LOCAL_MODS    :=
-localmod      :=
-locallib      :=
-localconfig   :=
-localbin      :=
-OBJ_OUT_DIR   :=
 
 #-----------------------------------------------------------------------------
 # "EXTRA" variables can be specified at the command line or hardwired here.  
