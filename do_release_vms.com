@@ -97,6 +97,12 @@ $!
 $ gmake --directory=[.cvssrc.BEAMINSTSUPPORT] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
+$! building MPMnet
+$!--------------------------------------------------
+$!  
+$ gmake --directory=[.cvssrc.MPMnet] "''par1'" "''par2'"
+$!
+$!--------------------------------------------------
 $ set def 'crsdir'
 $ EXIT
 
