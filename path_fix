@@ -21,7 +21,7 @@ foreach $file (@ARGV)
 	 {
 		s/ \/disk(.+?)\// \/cdat\/$host\/disk$1\//g;
 		s/ \/a\/(.+?)\// \//g;
-    s/\.\.\/include/\$\(CESR_INC\)/g;
+    s/^\s*\.\.\/include/\$\(CESR_INC\)/g;
     s/\/\S*\/$cesrlib\/cvssrc\/include/\$\(CESR_INC\)/g;
     s/\/\S*\/$cesrlib\/modules/\$\(CESR_MOD\)/g;
     s/\/\S*\/$cesrlib\/packages/\$\(CESR_PKG\)/g;
@@ -31,3 +31,12 @@ foreach $file (@ARGV)
 	close(F_out);
 	rename "temp.out", $file;
  }
+
+
+
+
+
+
+
+
+
