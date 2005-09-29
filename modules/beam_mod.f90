@@ -722,6 +722,11 @@ end subroutine
 !
 ! Note: Make sure: beam_init%dpz_dz < mode%sigE_E / mode%sig_z
 !
+! Note: To get good results, It is important to make sure that for 
+! circular rings that beam_init%center is the correct closed orbit. 
+! The closed orbit will shift if, for example, radiation damping is
+! turned on.
+!
 ! Modules needed:
 !   use random_mod
 !   use bmad
