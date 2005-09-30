@@ -6,13 +6,13 @@ module radiation_mod
   use bmad_interface
   use runge_kutta_mod
 
-  type synch_rad_com
+  type synch_rad_com_struct
     real(rp) :: scale = 1.0               ! used to scale the radiation
     real(rp) :: i2 = 0, i3 = 0            ! radiation integrals
     logical :: i_calc_on = .false.        ! For calculating i2 and i3    
   end type
 
-  type (synch_rad_com), save, private :: sr_com
+  type (synch_rad_com_struct), save :: synch_rad_com
 
 contains
 
@@ -211,16 +211,16 @@ subroutine track1_radiation (start, ele, param, end, edge)
     fact_f = sqrt(fluct_const * s_len * gamma_0**5 * g3) * this_ran
   endif
 
-  dE_p = (1 + start%vec(6)) * (fact_d + fact_f) * sr_com%scale 
+  dE_p = (1 + start%vec(6)) * (fact_d + fact_f) * synch_rad_com%scale 
 
   end = start
   end%vec(2) = end%vec(2) * (1 - dE_p)
   end%vec(4) = end%vec(4) * (1 - dE_p)
   end%vec(6) = end%vec(6)  - dE_p * (1 + end%vec(6))
 
-  if (sr_com%i_calc_on) then
-    sr_com%i2 = sr_com%i2 + g2 * s_len
-    sr_com%i3 = sr_com%i3 + g3 * s_len
+  if (synch_rad_com%i_calc_on) then
+    synch_rad_com%i2 = synch_rad_com%i2 + g2 * s_len
+    synch_rad_com%i3 = synch_rad_com%i3 + g3 * s_len
   endif
 
 end subroutine
