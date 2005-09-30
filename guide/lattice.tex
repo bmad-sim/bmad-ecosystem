@@ -20,10 +20,19 @@ documentation which can be found at:
   http://www-project.slac.stanford.edu/
               lc/ilc/TechNotes/LCCNotes/PDF/LCC-0060%20rev.1.pdf
 \end{example}
+\index{Lattice_type!parameter statement}
+\index{LCavity!and lattice_type}
+Since XSIF does not have a \vn{lattice_type} statement
+(\sref{s:param}), the type of the lattice (whether circular or linear)
+is determined by the presence or absence of any \vn{LCavity} elements
+in the XSIF file. This is independent of whether \vn{LCavity} elements
+are actually used in the lattice.
+
 Since XSIF is separately documented it will not be discussed in detail
 here and throughout this manual, unless explicitly stated otherwise,
 the lattice format under discussion will always pertain to the \bmad
-standard format. Note: One point that is not covered in the XSIF
+standard format. One feature of the \bmad implementation of XSIF
+Note: One point that is not covered in the XSIF
 documentation is that for a \vn{MATRIX} element, unlike \mad, the
 \vn{R$ii$} terms (the diagonal terms of the linear matrix) are not
 unity by default. Thus
