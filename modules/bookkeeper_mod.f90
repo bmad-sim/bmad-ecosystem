@@ -15,7 +15,7 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine control_bookkeeper (ring, ix_ele)
+! Subroutine control_bookkeeper (lattice, ix_ele)
 !
 ! Subroutine to transfer attibute information from lord to slave elements.
 ! This subroutine will call attribute_bookkeeper.
@@ -26,17 +26,17 @@ contains
 !   use bmad
 !
 ! Input:
-!   ring   -- Ring_struct: Ring to be used
+!   lattice   -- Ring_struct: lattice to be used
 !   ix_ele -- Integer, optional: Index of element whose attribute values 
 !               have been changed. If not present bookkeeping will be done 
 !               for all elements.
 !-
 
-subroutine control_bookkeeper (ring, ix_ele)
+subroutine control_bookkeeper (lattice, ix_ele)
 
   implicit none
 
-  type (ring_struct), target :: ring
+  type (ring_struct), target :: lattice
   type (ele_struct), pointer :: lord, slave
 
   integer, optional :: ix_ele
@@ -51,12 +51,12 @@ subroutine control_bookkeeper (ring, ix_ele)
 ! The group lords must be done last since their slaves don't know about them.
 
   else
-    do ie = ring%n_ele_use+1, ring%n_ele_max
-      if (ring%ele_(ie)%control_type /= group_lord$) call this_bookkeeper (ie)
+    do ie = lattice%n_ele_use+1, lattice%n_ele_max
+      if (lattice%ele_(ie)%control_type /= group_lord$) call this_bookkeeper (ie)
     enddo
 
-    do ie = ring%n_ele_use+1, ring%n_ele_max
-      if (ring%ele_(ie)%control_type == group_lord$) call this_bookkeeper (ie)
+    do ie = lattice%n_ele_use+1, lattice%n_ele_max
+      if (lattice%ele_(ie)%control_type == group_lord$) call this_bookkeeper (ie)
     enddo
 
   endif
@@ -71,9 +71,9 @@ subroutine this_bookkeeper (ix_ele)
 
 ! Attribute bookkeeping for this element
 
-  call attribute_bookkeeper (ring%ele_(ix_ele), ring%param)
-  if (ring%ele_(ix_ele)%n_slave == 0 .and. &
-            ring%ele_(ix_ele)%n_lord == 0) return  ! nothing more to do
+  call attribute_bookkeeper (lattice%ele_(ix_ele), lattice%param)
+  if (lattice%ele_(ix_ele)%n_slave == 0 .and. &
+            lattice%ele_(ix_ele)%n_lord == 0) return  ! nothing more to do
 
 ! Make a list of slave elements to update.
 ! we do not need to update free elements of group lords.
@@ -85,10 +85,10 @@ subroutine this_bookkeeper (ix_ele)
   do
     ix1 = ix1 + 1
     ix_lord = ix_slaves(ix1)
-    lord => ring%ele_(ix_lord)
+    lord => lattice%ele_(ix_lord)
     do j = lord%ix1_slave, lord%ix2_slave
-      ix = ring%control_(j)%ix_slave
-      if (lord%control_type == group_lord$ .and. ring%ele_(ix)%control_type == free$) cycle
+      ix = lattice%control_(j)%ix_slave
+      if (lord%control_type == group_lord$ .and. lattice%ele_(ix)%control_type == free$) cycle
       if (ix == ix_slaves(ix2)) cycle   ! do not use duplicates
       ix2 = ix2 + 1
       ix_slaves(ix2) = ix
@@ -105,30 +105,30 @@ subroutine this_bookkeeper (ix_ele)
   do j = 1, ix2
 
     ix = ix_slaves(j)
-    slave => ring%ele_(ix)
+    slave => lattice%ele_(ix)
 
     if (slave%control_type == group_lord$) then
-      call makeup_group_slaves (ring, ix)
-      call attribute_bookkeeper (slave, ring%param)
+      call makeup_group_slaves (lattice, ix)
+      call attribute_bookkeeper (slave, lattice%param)
 
     elseif (slave%control_type == super_lord$ .and. slave%n_lord > 0) then
-      k =  ring%ic_(slave%ic1_lord)
-      lord => ring%ele_(ring%control_(k)%ix_lord)
+      k =  lattice%ic_(slave%ic1_lord)
+      lord => lattice%ele_(lattice%control_(k)%ix_lord)
       if (lord%control_type == multipass_lord$) then
-        call makeup_multipass_slave (ring, ix)
+        call makeup_multipass_slave (lattice, ix)
       else
-        call adjust_super_lord_s_position (ring, ix)
-        call makeup_overlay_and_i_beam_slave (ring, ix)
+        call adjust_super_lord_s_position (lattice, ix)
+        call makeup_overlay_and_i_beam_slave (lattice, ix)
       endif
-      call attribute_bookkeeper (slave, ring%param)
+      call attribute_bookkeeper (slave, lattice%param)
 
     elseif (slave%control_type == multipass_lord$ .and. slave%n_lord > 0) then
-      call makeup_overlay_and_i_beam_slave (ring, ix)
-      call attribute_bookkeeper (slave, ring%param)
+      call makeup_overlay_and_i_beam_slave (lattice, ix)
+      call attribute_bookkeeper (slave, lattice%param)
 
     elseif (slave%control_type == overlay_lord$ .and. slave%n_lord > 0) then
-      call makeup_overlay_and_i_beam_slave (ring, ix)
-      call attribute_bookkeeper (slave, ring%param)
+      call makeup_overlay_and_i_beam_slave (lattice, ix)
+      call attribute_bookkeeper (slave, lattice%param)
 
     endif
 
@@ -139,19 +139,19 @@ subroutine this_bookkeeper (ix_ele)
   do j = 1, ix2
 
     ix = ix_slaves(j)
-    slave => ring%ele_(ix)       
+    slave => lattice%ele_(ix)       
 
     if (slave%control_type == super_slave$) then
-      call makeup_super_slave (ring, ix)
-      call attribute_bookkeeper (slave, ring%param)
+      call makeup_super_slave (lattice, ix)
+      call attribute_bookkeeper (slave, lattice%param)
 
     elseif (slave%control_type == overlay_slave$) then
-      call makeup_overlay_and_i_beam_slave (ring, ix)
-      call attribute_bookkeeper (slave, ring%param)
+      call makeup_overlay_and_i_beam_slave (lattice, ix)
+      call attribute_bookkeeper (slave, lattice%param)
 
     elseif (slave%control_type == multipass_slave$) then
-      call makeup_multipass_slave (ring, ix)
-      call attribute_bookkeeper (slave, ring%param)
+      call makeup_multipass_slave (lattice, ix)
+      call attribute_bookkeeper (slave, lattice%param)
 
     endif
 
@@ -165,7 +165,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine lattice_bookkeeper (ring)
+! Subroutine lattice_bookkeeper (lattice)
 !
 ! Subroutine to do a complete bookkeeping job on a lattice.
 !
@@ -173,26 +173,27 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   ring   -- Ring_struct: Lattice needing bookkeeping.
+!   lattice   -- Ring_struct: Lattice needing bookkeeping.
 !
 ! Output:
-!   ring   -- Ring_struct: Lattice with bookkeeping done.
+!   lattice   -- Ring_struct: Lattice with bookkeeping done.
 !-
 
-subroutine lattice_bookkeeper (ring)
+subroutine lattice_bookkeeper (lattice)
 
   implicit none
 
-  type (ring_struct) ring
+  type (ring_struct) lattice
   integer i
 
 !
 
-  call control_bookkeeper (ring)
-  call compute_reference_energy (ring)
+  call s_calc (lattice)
+  call control_bookkeeper (lattice)
+  call compute_reference_energy (lattice)
 
-  do i = 1, ring%n_ele_use
-    call attribute_bookkeeper (ring%ele_(i), ring%param)
+  do i = 1, lattice%n_ele_use
+    call attribute_bookkeeper (lattice%ele_(i), lattice%param)
   enddo
 
 end subroutine
@@ -201,17 +202,17 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine adjust_super_lord_s_position (ring, ix_lord)
+! Subroutine adjust_super_lord_s_position (lattice, ix_lord)
 !
 ! Subroutine to adjust the positions of the slaves of a super_lord due
 ! to changes in the lord's s_offset.
 !-
 
-Subroutine adjust_super_lord_s_position (ring, ix_lord)
+Subroutine adjust_super_lord_s_position (lattice, ix_lord)
 
   implicit none
 
-  type (ring_struct), target :: ring
+  type (ring_struct), target :: lattice
   type (ele_struct), pointer :: lord, slave 
 
   integer ix_lord, ix
@@ -222,7 +223,7 @@ Subroutine adjust_super_lord_s_position (ring, ix_lord)
 
 !
 
-  lord => ring%ele_(ix_lord)
+  lord => lattice%ele_(ix_lord)
 
   if (lord%control_type /= super_lord$) then
      call out_io (s_abort$, r_name, 'ELEMENT IS NOT A LORD! ' // lord%name)
@@ -233,8 +234,8 @@ Subroutine adjust_super_lord_s_position (ring, ix_lord)
 ! Adjust end position.
 
   s_end = lord%s + lord%value(s_offset$)
-  ix = ring%control_(lord%ix2_slave)%ix_slave
-  slave => ring%ele_(ix)
+  ix = lattice%control_(lord%ix2_slave)%ix_slave
+  slave => lattice%ele_(ix)
   s_start = slave%s - slave%value(l$)
   slave%value(l$) = s_end - s_start
   slave%s = s_end
@@ -242,11 +243,11 @@ Subroutine adjust_super_lord_s_position (ring, ix_lord)
 ! Adjust start position
 
   s_start = s_end - lord%value(l$)
-  if (s_start < 0) s_start = s_start + ring%param%total_length
-  ix = ring%control_(lord%ix1_slave)%ix_slave
-  slave => ring%ele_(ix)
+  if (s_start < 0) s_start = s_start + lattice%param%total_length
+  ix = lattice%control_(lord%ix1_slave)%ix_slave
+  slave => lattice%ele_(ix)
   s_start2 = slave%s - slave%value(l$)
-  if (s_start < 0) s_start = s_start + ring%param%total_length 
+  if (s_start < 0) s_start = s_start + lattice%param%total_length 
   slave%value(l$) = slave%value(l$) + s_start2 - s_start
 
 end subroutine
@@ -255,16 +256,16 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_group_slaves (ring, ix_slave)
+! Subroutine makeup_group_slaves (lattice, ix_slave)
 !
 ! Subroutine to calculate the attributes of group slave elements
 !-
 
-Subroutine makeup_group_slaves (ring, ix_lord)   
+Subroutine makeup_group_slaves (lattice, ix_lord)   
 
   implicit none
 
-  type (ring_struct), target :: ring
+  type (ring_struct), target :: lattice
   type (ele_struct), pointer :: lord, slave
 
   real(rp) delta, coef
@@ -277,7 +278,7 @@ Subroutine makeup_group_slaves (ring, ix_lord)
 
 !
 
-  lord => ring%ele_(ix_lord)
+  lord => lattice%ele_(ix_lord)
 
   delta = lord%value(command$) - lord%value(old_command$)    ! change
   lord%value(old_command$) = lord%value(command$) ! save old
@@ -286,10 +287,10 @@ Subroutine makeup_group_slaves (ring, ix_lord)
 
   do i = lord%ix1_slave, lord%ix2_slave
 
-    ix = ring%control_(i)%ix_slave
-    iv = ring%control_(i)%ix_attrib
-    ict = ring%ele_(ix)%control_type
-    slave => ring%ele_(ix)
+    ix = lattice%control_(i)%ix_slave
+    iv = lattice%control_(i)%ix_attrib
+    ict = lattice%ele_(ix)%control_type
+    slave => lattice%ele_(ix)
 
     if (iv == l$) then
       moved = .true.
@@ -299,11 +300,11 @@ Subroutine makeup_group_slaves (ring, ix_lord)
         call err_exit
       endif
     endif
-    coef = ring%control_(i)%coef
+    coef = lattice%control_(i)%coef
     slave%value(iv) = slave%value(iv) + delta * coef
   enddo
 
-  if (moved) call s_calc (ring)       ! recompute s distances
+  if (moved) call s_calc (lattice)       ! recompute s distances
 
 
 end subroutine
@@ -312,17 +313,17 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_multipass_slave (ring, ix_slave)
+! Subroutine makeup_multipass_slave (lattice, ix_slave)
 !
 ! Subroutine to calcualte the attributes of multipass slave elements.
 ! This routine is not meant for general use.
 !-
 
-subroutine makeup_multipass_slave (ring, ix_slave)
+subroutine makeup_multipass_slave (lattice, ix_slave)
 
   implicit none
 
-  type (ring_struct), target :: ring
+  type (ring_struct), target :: lattice
   type (ele_struct), pointer :: lord, slave
 
   real(rp) s, val(n_attrib_maxx)
@@ -330,9 +331,9 @@ subroutine makeup_multipass_slave (ring, ix_slave)
 
 !
 
-  slave => ring%ele_(ix_slave)
-  j =  ring%ic_(slave%ic1_lord)
-  lord => ring%ele_(ring%control_(j)%ix_lord)
+  slave => lattice%ele_(ix_slave)
+  j =  lattice%ic_(slave%ic1_lord)
+  lord => lattice%ele_(lattice%control_(j)%ix_lord)
 
   val = slave%value
 
@@ -373,17 +374,17 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_super_slave (ring, ix_slave)
+! Subroutine makeup_super_slave (lattice, ix_slave)
 !
 ! Subroutine to calcualte the attributes of superposition slave elements.
 ! This routine is not meant for general use.
 !-
          
-subroutine makeup_super_slave (ring, ix_slave)
+subroutine makeup_super_slave (lattice, ix_slave)
 
   implicit none
 
-  type (ring_struct), target :: ring
+  type (ring_struct), target :: lattice
   type (ele_struct), pointer :: lord, slave
   type (ele_struct), save :: sol_quad
 
@@ -413,7 +414,7 @@ subroutine makeup_super_slave (ring, ix_slave)
 
 ! Super_slave:
 
-  slave => ring%ele_(ix_slave)
+  slave => lattice%ele_(ix_slave)
 
   if (slave%control_type /= super_slave$) then
      call out_io(s_abort$, r_name, "ELEMENT IS NOT AN SUPER SLAVE: " // slave%name)
@@ -429,10 +430,10 @@ subroutine makeup_super_slave (ring, ix_slave)
 
   if (slave%n_lord == 1) then
 
-    ix_con = ring%ic_(slave%ic1_lord)  
-    ix = ring%control_(ix_con)%ix_lord
-    lord => ring%ele_(ix)
-    coef = ring%control_(ix_con)%coef  ! = len_slave / len_lord
+    ix_con = lattice%ic_(slave%ic1_lord)  
+    ix = lattice%control_(ix_con)%ix_lord
+    lord => lattice%ele_(ix)
+    coef = lattice%control_(ix_con)%coef  ! = len_slave / len_lord
 
     value = lord%value
     value(check_sum$) = slave%value(check_sum$) ! do not change the check_sum
@@ -458,7 +459,7 @@ subroutine makeup_super_slave (ring, ix_slave)
 
     s_del = (slave%s - slave%value(l$)/2) - &
                   (lord%s + lord%value(s_offset$) - lord%value(l$)/2)
-    s_del = modulo2 (s_del, ring%param%total_length/2)
+    s_del = modulo2 (s_del, lattice%param%total_length/2)
     value(x_pitch$) = value(x_pitch_tot$)
     value(y_pitch$) = value(y_pitch_tot$)
     value(x_offset$) = value(x_offset_tot$) + s_del * value(x_pitch_tot$)
@@ -576,10 +577,10 @@ subroutine makeup_super_slave (ring, ix_slave)
 
   do j = slave%ic1_lord, slave%ic2_lord
 
-    ix_con = ring%ic_(j)
-    ix = ring%control_(ix_con)%ix_lord
-    coef = ring%control_(ix_con)%coef
-    lord => ring%ele_(ix)
+    ix_con = lattice%ic_(j)
+    ix = lattice%control_(ix_con)%ix_lord
+    coef = lattice%control_(ix_con)%coef
+    lord => lattice%ele_(ix)
 
     if (lord%control_type /= super_lord$) then
       call out_io (s_abort$, r_name, &
@@ -597,15 +598,15 @@ subroutine makeup_super_slave (ring, ix_slave)
       slave%tracking_method  = lord%tracking_method
     else
       if (slave%mat6_calc_method /= lord%mat6_calc_method) then
-        ix = ring%control_(ring%ic_(slave%ic1_lord))%ix_lord
+        ix = lattice%control_(lattice%ic_(slave%ic1_lord))%ix_lord
         call out_io(s_abort$, r_name, 'MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT', &
-             'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(ring%ele_(ix)%name))
+             'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lattice%ele_(ix)%name))
         call err_exit
       endif
       if (slave%tracking_method /= lord%tracking_method) then
-        ix = ring%control_(ring%ic_(slave%ic1_lord))%ix_lord
+        ix = lattice%control_(lattice%ic_(slave%ic1_lord))%ix_lord
         call out_io(s_abort$, r_name, ' TRACKING_METHOD DOES NOT AGREE FOR DIFFERENT', &
-             'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(ring%ele_(ix)%name))
+             'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lattice%ele_(ix)%name))
         call err_exit
       endif
     endif
@@ -670,7 +671,7 @@ subroutine makeup_super_slave (ring, ix_slave)
       y_p = lord%value(y_pitch_tot$);  y_o = lord%value(y_offset_tot$)
 
       s_del = s_slave - (lord%s + lord%value(s_offset_tot$) - lord%value(l$)/2)
-      s_del = modulo2 (s_del, ring%param%total_length/2)
+      s_del = modulo2 (s_del, lattice%param%total_length/2)
 
       ks = lord%value(ks$)
 
@@ -872,7 +873,7 @@ subroutine makeup_super_slave (ring, ix_slave)
     sol_quad%value(ks$) = ks
     sol_quad%value(k1$) = k1
     sol_quad%value(l$)  = l_slave
-    call make_mat6 (sol_quad, ring%param)
+    call make_mat6 (sol_quad, lattice%param)
     T_tot = sol_quad%mat6(1:4,1:4)
 
     r_off = matmul (T_end, l_slave * t_1 / 2 - t_2) 
@@ -996,16 +997,16 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_overlay_and_i_beam_slave (ring, ix_ele)
+! Subroutine makeup_overlay_and_i_beam_slave (lattice, ix_ele)
 !
 ! This routine is not meant for general use.
 !-
 
-subroutine makeup_overlay_and_i_beam_slave (ring, ix_ele)
+subroutine makeup_overlay_and_i_beam_slave (lattice, ix_ele)
 
   implicit none
 
-  type (ring_struct), target :: ring
+  type (ring_struct), target :: lattice
   type (ele_struct), pointer :: ele, i_beam
 
   real(rp) value(n_attrib_maxx), coef, ds
@@ -1016,13 +1017,13 @@ subroutine makeup_overlay_and_i_beam_slave (ring, ix_ele)
 
 !
                                
-  ele => ring%ele_(ix_ele)
+  ele => lattice%ele_(ix_ele)
   ct = ele%control_type
 
   if (ct /= super_lord$ .and. ct /= overlay_slave$ .and. &
            ct /= overlay_lord$ .and. ct /= multipass_lord$) then
-    call out_io(s_abort$, r_name, 'ELEMENT IS NOT OF PROPER TYPE. RING INDEX: \i\ ', ix_ele)
-    call type_ele (ele, .true., 0, .false., 0, .true., ring)
+    call out_io(s_abort$, r_name, 'ELEMENT IS NOT OF PROPER TYPE. lattice INDEX: \i\ ', ix_ele)
+    call type_ele (ele, .true., 0, .false., 0, .true., lattice)
     call err_exit
   endif
 
@@ -1031,11 +1032,11 @@ subroutine makeup_overlay_and_i_beam_slave (ring, ix_ele)
   ele%on_an_i_beam = .false.
 
   do i = ele%ic1_lord, ele%ic2_lord
-    j = ring%ic_(i)
-    ix = ring%control_(j)%ix_lord
+    j = lattice%ic_(i)
+    ix = lattice%control_(j)%ix_lord
 
-    if (ring%ele_(ix)%control_type == i_beam_lord$) then
-      i_beam => ring%ele_(ix)
+    if (lattice%ele_(ix)%control_type == i_beam_lord$) then
+      i_beam => lattice%ele_(ix)
       ds = (ele%s - ele%value(l$)/2) - i_beam%value(s_center$) 
       ele%value(x_offset_tot$) = ele%value(x_offset$) + &
                      ds * i_beam%value(x_pitch$) + i_beam%value(x_offset$)
@@ -1049,16 +1050,16 @@ subroutine makeup_overlay_and_i_beam_slave (ring, ix_ele)
       cycle
     endif
 
-    if (ring%ele_(ix)%control_type /= overlay_lord$) then
+    if (lattice%ele_(ix)%control_type /= overlay_lord$) then
       call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY_LORD \i\ ', ix_ele)
-      call type_ele (ele, .true., 0, .false., 0, .true., ring)
+      call type_ele (ele, .true., 0, .false., 0, .true., lattice)
       call err_exit
     endif     
 
-    coef = ring%control_(j)%coef
-    iv = ring%control_(j)%ix_attrib
-    icom = ring%ele_(ix)%ix_value
-    value(iv) = value(iv) + ring%ele_(ix)%value(icom)*coef
+    coef = lattice%control_(j)%coef
+    iv = lattice%control_(j)%ix_attrib
+    icom = lattice%ele_(ix)%ix_value
+    value(iv) = value(iv) + lattice%ele_(ix)%value(icom)*coef
     used(iv) = .true.
   enddo
 
@@ -1371,42 +1372,42 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine transfer_ring_taylors (ring_in, ring_out, 
+! Subroutine transfer_ring_taylors (lattice_in, lattice_out, 
 !                                              type_out, transfered_all)
 !
-! Subroutine to transfer the taylor maps from the elements of one ring to
-! the elements of another. The elements are matched between the rings so 
-! that the appropriate element in ring_out will get the correct Taylor map
-! even if the order of the elements is different in the 2 rings.
+! Subroutine to transfer the taylor maps from the elements of one lattice to
+! the elements of another. The elements are matched between the lattices so 
+! that the appropriate element in lattice_out will get the correct Taylor map
+! even if the order of the elements is different in the 2 lattices.
 !
 ! Note: The transfered Taylor map will be truncated to bmad_com%taylor_order.
-! Note: If the taylor_order of an element in ring_in is less than 
+! Note: If the taylor_order of an element in lattice_in is less than 
 !   bmad_com%taylor_order then it will not be used.  
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   ring_in   -- Ring_struct: Input ring with Taylor maps.
+!   lattice_in   -- Ring_struct: Input lattice with Taylor maps.
 !   type_out  -- Logical: If True then print a message for each Taylor map
 !                 transfered.
 !
 ! Output:
-!   ring_out  -- Ring_struct: Ring to receive the Taylor maps.
+!   lattice_out  -- Ring_struct: lattice to receive the Taylor maps.
 !   transfered_all -- Logical, optional: Set True if a Taylor map is found
-!                 for all elements in ring_out that need one. False otherwise.
+!                 for all elements in lattice_out that need one. False otherwise.
 !-
 
-subroutine transfer_ring_taylors (ring_in, ring_out, type_out, transfered_all)
+subroutine transfer_ring_taylors (lattice_in, lattice_out, type_out, transfered_all)
 
   implicit none
 
-  type (ring_struct), target, intent(in) :: ring_in
-  type (ring_struct), target, intent(inout) :: ring_out
+  type (ring_struct), target, intent(in) :: lattice_in
+  type (ring_struct), target, intent(inout) :: lattice_out
   type (ele_struct), pointer :: ele_in, ele_out
 
   integer i, j
-  integer n_in, ix_in(ubound(ring_in%ele_, 1))
+  integer n_in, ix_in(ubound(lattice_in%ele_, 1))
  
   logical, intent(in)  :: type_out
   logical, optional :: transfered_all
@@ -1417,44 +1418,44 @@ subroutine transfer_ring_taylors (ring_in, ring_out, type_out, transfered_all)
 
   if (present(transfered_all)) transfered_all = .true.
 
-  if (ring_in%ele_(0)%value(beam_energy$) /= &
-                              ring_out%ele_(0)%value(beam_energy$)) then
+  if (lattice_in%ele_(0)%value(beam_energy$) /= &
+                              lattice_out%ele_(0)%value(beam_energy$)) then
     if (type_out) then
        call out_io (s_warn$, r_name, &
-              'THE RING ENERGIES ARE DIFFERENT. TAYLOR MAPS NOT TRANSFERED.')
+              'THE lattice ENERGIES ARE DIFFERENT. TAYLOR MAPS NOT TRANSFERED.')
     endif
     if (present(transfered_all)) transfered_all = .false.
     return
   endif
 
-! Find the taylor series in the first ring.
+! Find the taylor series in the first lattice.
 
   n_in = 0
-  do i = 1, ring_in%n_ele_max
-    if (associated(ring_in%ele_(i)%taylor(1)%term)) then
-      if (bmad_com%taylor_order > ring_in%ele_(i)%taylor_order) cycle
+  do i = 1, lattice_in%n_ele_max
+    if (associated(lattice_in%ele_(i)%taylor(1)%term)) then
+      if (bmad_com%taylor_order > lattice_in%ele_(i)%taylor_order) cycle
       n_in = n_in + 1
       ix_in(n_in) = i
     endif
   enddo
 
-! Go through ring_out and match elements.
+! Go through lattice_out and match elements.
 ! If we have a match transfer the Taylor map.
 ! Call attribute_bookkeeper before transfering the taylor map to make sure
 ! the check_sum is correct. 
 
-  out_loop: do i = 1, ring_out%n_ele_max
+  out_loop: do i = 1, lattice_out%n_ele_max
 
-    ele_out => ring_out%ele_(i)
+    ele_out => lattice_out%ele_(i)
 
     do j = 1, n_in
 
-      ele_in => ring_in%ele_(ix_in(j))
+      ele_in => lattice_in%ele_(ix_in(j))
 
       if (equivalent_eles (ele_in, ele_out)) then
         if (type_out) call out_io (s_info$, r_name, &
             ' Reusing Taylor from: ' // trim(ele_in%name) // '  to: ' //  ele_out%name)
-        call attribute_bookkeeper (ele_out, ring_out%param)
+        call attribute_bookkeeper (ele_out, lattice_out%param)
         call transfer_ele_taylor (ele_in, ele_out, bmad_com%taylor_order)
         cycle out_loop
       endif
@@ -1475,11 +1476,11 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine set_on_off (key, ring, switch, orb_)
+! Subroutine set_on_off (key, lattice, switch, orb_)
 !
 ! Subroutine to turn on or off a set of elements (quadrupoles, rfcavities,
-! etc.) in a ring. An element that is turned off acts like a drift.
-! RING_MAKE_MAT6 will be called to remake ring%ele_()%mat6.
+! etc.) in a lattice. An element that is turned off acts like a drift.
+! RING_MAKE_MAT6 will be called to remake lattice%ele_()%mat6.
 !
 !
 ! Modules needed:
@@ -1488,7 +1489,7 @@ end subroutine
 ! Input:
 !   key      -- Integer: Key name of elements to be turned on or off.
 !                  [Key = quadrupole$, etc.]
-!   ring     -- Ring_struct: Ring structure holding the elements
+!   lattice     -- Ring_struct: lattice structure holding the elements
 !   switch   -- Integer: 
 !                 on$            => Turn elements on.  
 !                 off$           => Turn elements off. 
@@ -1498,19 +1499,19 @@ end subroutine
 !   orb_(0:) -- Coord_struct, optional: Needed for ring_make_mat6
 !
 ! Output:
-!   ring -- Ring_struct: Modified ring.
+!   lattice -- Ring_struct: Modified lattice.
 !-
 
 #include "CESR_platform.inc"
                                     
-subroutine set_on_off (key, ring, switch, orb_)
+subroutine set_on_off (key, lattice, switch, orb_)
 
   use bmad_struct
   use bmad_interface
 
   implicit none
 
-  type (ring_struct) ring
+  type (ring_struct) lattice
   type (coord_struct), optional :: orb_(0:)
 
   integer i, key               
@@ -1520,26 +1521,26 @@ subroutine set_on_off (key, ring, switch, orb_)
 
 !
 
-  do i = 1, ring%n_ele_max
+  do i = 1, lattice%n_ele_max
 
-    if (ring%ele_(i)%key /= key) cycle
+    if (lattice%ele_(i)%key /= key) cycle
 
     select case (switch)
     case (on$) 
-      ring%ele_(i)%is_on = .true.
+      lattice%ele_(i)%is_on = .true.
     case (off$)
-      ring%ele_(i)%is_on = .false.
+      lattice%ele_(i)%is_on = .false.
     case (save_state$)
-      ring%ele_(i)%internal_logic = ring%ele_(i)%is_on
+      lattice%ele_(i)%internal_logic = lattice%ele_(i)%is_on
       cycle
     case (restore_state$)
-      ring%ele_(i)%is_on = ring%ele_(i)%internal_logic
+      lattice%ele_(i)%is_on = lattice%ele_(i)%internal_logic
     case default
       call out_io (s_abort$, r_name, 'BAD SWITCH: \i\ ', switch)
       call err_exit
     end select
 
-    call ring_make_mat6(ring, i, orb_)
+    call ring_make_mat6(lattice, i, orb_)
 
   enddo
 
