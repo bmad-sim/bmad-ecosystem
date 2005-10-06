@@ -64,8 +64,11 @@ subroutine add_superimpose (ring, super_ele, ix_super)
   s1 = sup_ele%s - sup_ele%value(l$)
   s2 = sup_ele%s                 
 
-  if (s1 < s1_lat .and. ring%param%lattice_type == circular_lattice$) &
-                                      s1 = s1 + ring%param%total_length
+  if (s1 < s1_lat) then
+    if (ring%param%lattice_type == linear_lattice$) call out_io (s_warn$, &
+           r_name, 'superimpose is being wrapped around for: ' // sup_ele%name)
+    s1 = s1 + ring%param%total_length
+  endif
 
   if (s2 < s1_lat .or. s1 > s2_lat) then
     call out_io (s_abort$, r_name, 'SUPERIMPOSE POSITION BEYOUND END OF LATTICE')
