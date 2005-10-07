@@ -9,7 +9,10 @@ integer, parameter :: not_lost$ = -1
 type particle_struct
   type (coord_struct) r   ! Center of the particle
   real(rp) charge         ! charge in a particle (Coul).
-  integer :: ix_lost = not_lost$  ! Has the particle been lost in tracking?
+  integer :: ix_z = 0     ! Index for ordering the particles longitudinally.
+                          !   particle(1)%ix_z is index of head particle.
+  integer :: ix_lost = not_lost$  ! When the particle been lost in tracking
+                                  !   ix_lost set to index of element where lost.
 end type
 
 type bunch_struct
@@ -284,9 +287,10 @@ subroutine track1_sr_wake (bunch, ele)
   type (bunch_struct), target :: bunch
   type (ele_struct) ele
   type (particle_struct), pointer :: particle, leader
+  type (particle_struct), pointer :: p(:)
 
   real(rp) dz_sr1, sr02, z_sr1_max
-  integer i, j, k, n, i_sr2, n_sr1, n_sr2_long, n_sr2_trans, k_start
+  integer i, j, k, i1, i2, i_sr2, n_sr1, n_sr2_long, n_sr2_trans, k_start
 
   logical wake_here
   character(16) :: r_name = 'track1_sr_wake'
@@ -294,12 +298,14 @@ subroutine track1_sr_wake (bunch, ele)
 !-----------------------------------
 ! If there is no wake for this element then just use the e_loss attribute.
 
+  p => bunch%particle
+
   n_sr1 = size(ele%wake%sr1) 
   n_sr2_long = size(ele%wake%sr2_long)
   n_sr2_trans = size(ele%wake%sr2_trans)
 
   if (n_sr1 == 0 .and. n_sr2_long == 0 .and. n_sr2_trans == 0) then 
-    bunch%particle(:)%r%vec(6) = bunch%particle(:)%r%vec(6) - &
+    p(:)%r%vec(6) = p(:)%r%vec(6) - &
                        ele%value(e_loss$) * bunch%charge / ele%value(p0c$) 
     return 
   endif
@@ -309,8 +315,9 @@ subroutine track1_sr_wake (bunch, ele)
 
   call order_particles_in_z (bunch)  
   if (size(ele%wake%sr2_long) /= 0) then
-    n = size(bunch%particle)
-    if (bunch%particle(1)%r%vec(5) - bunch%particle(n)%r%vec(5) > ele%wake%z_sr2_max) then
+    i1 = p(1)%ix_z 
+    i2 = p(size(p))%ix_z
+    if (p(i1)%r%vec(5) - p(i2)%r%vec(5) > ele%wake%z_sr2_max) then
       call out_io (s_abort$, r_name, &
           'Bunch longer than SR2 wake can handle for element: ' // ele%name)
       call err_exit
@@ -339,8 +346,8 @@ subroutine track1_sr_wake (bunch, ele)
 
   i_sr2 = 1  ! index of next particle to be added to the sr2 wake sums.
 
-  do j = 1, size(bunch%particle)
-    particle => bunch%particle(j)
+  do j = 1, size(p)
+    particle => p(p(j)%ix_z)
     ! apply longitudinal self wake
 
     if (z_sr1_max < 0) then
@@ -355,7 +362,7 @@ subroutine track1_sr_wake (bunch, ele)
 
     k_start = i_sr2
     do k = k_start, j-1
-      leader => bunch%particle(k)
+      leader => p(p(k)%ix_z)
       if ((particle%r%vec(5) - leader%r%vec(5)) > z_sr1_max) then
         ! use sr1 table to add to particle j the wake of particle k
         call sr1_apply_kick (ele, leader%r, leader%charge, particle%r)
@@ -424,7 +431,8 @@ subroutine track1_lr_wake (bunch, ele)
 ! Give the particles a kick
 
   do k = 1, size(bunch%particle)
-    particle => bunch%particle(k)
+    j = bunch%particle(k)%ix_z
+    particle => bunch%particle(j)
     if (particle%ix_lost /= not_lost$) cycle
     call lr_wake_apply_kick (ele, bunch%s_center, particle%r)
   enddo
@@ -432,7 +440,8 @@ subroutine track1_lr_wake (bunch, ele)
 ! Add the wakes left by this bunch to the existing wakes.
 
   do k = 1, size(bunch%particle)
-    particle => bunch%particle(k)
+    j = bunch%particle(k)%ix_z
+    particle => bunch%particle(j)
     if (particle%ix_lost /= not_lost$) cycle
     call lr_wake_add_to (ele, bunch%s_center, particle%r, particle%charge)
   enddo
@@ -506,8 +515,9 @@ end subroutine
 ! Output:
 !   bunch     -- bunch_struct: collection of particles.
 !     %particle(j) -- particle ordered using %vec(5).
-!                   Order is from large z (head of bunch) to small z.
-!                   That is: %particle(1) is the particle at the bunch head. 
+!                     Order is from large z (head of bunch) to small z.
+!                     That is: %particle(1)%ix_z is the particle at the bunch head. 
+!       %ix_z        -- Index for the ordering
 !-
 
 Subroutine order_particles_in_z (bunch)
@@ -517,20 +527,27 @@ Subroutine order_particles_in_z (bunch)
   type (bunch_struct), target :: bunch
   type (particle_struct), pointer :: particle(:)
   type (particle_struct) temp
-  integer i, k, nm
+  integer i, k, nm, i0, i1
   real(rp) z1, z2
   logical ordered
 
-! Order is from large z (head of bunch) to small z.
+! Init if needed
 
   particle => bunch%particle
   nm = size(particle)
 
+  if (particle(1)%ix_z == 0) then
+    forall (i = 1:nm) particle(i)%ix_z = i
+  endif
+
+! Order is from large z (head of bunch) to small z.
+
   do
     ordered = .true.
     do i = 1, nm-1
-      if (particle(i)%r%vec(5) < particle(i+1)%r%vec(5)) then
-        particle(i:i+1) = particle(i+1:i:-1)
+      i0 = particle(i)%ix_z; i1 = particle(i+1)%ix_z
+      if (particle(i0)%r%vec(5) < particle(i1)%r%vec(5)) then
+        particle(i:i+1)%ix_z = particle(i+1:i:-1)%ix_z
         ordered = .false.
       endif
     enddo
