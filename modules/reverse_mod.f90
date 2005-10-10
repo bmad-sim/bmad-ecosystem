@@ -48,28 +48,32 @@ subroutine ring_reverse (ring_in, ring_rev)
 
   type (ring_struct), intent(in) :: ring_in
   type (ring_struct), intent(out), target :: ring_rev
+  type (ring_struct), save :: lat
   type (ele_struct), pointer :: lord
   type (control_struct), pointer :: con
 
   integer i, n, i1, i2, nr, n_con
   integer :: ix_con(size(ring_in%control_))
 
-! transfer
+! Transfer info from ring_in to ring_rev.
+! the lat lattice is used since the actual arguments of ring_in and ring_rev
+! may be the same
 
   n_con = size(ring_in%control_)
 
-  ring_rev = ring_in
+  lat = ring_in 
+  ring_rev = lat
 
   nr = ring_rev%n_ele_use
-  ring_rev%ele_(1:nr) = ring_in%ele_(nr:1:-1)
+  ring_rev%ele_(1:nr) = lat%ele_(nr:1:-1)
 
-! flip longitudinal stuff, maps
+! Flip longitudinal stuff, maps
 
   do i = 1, ring_rev%n_ele_max
     call reverse_ele (ring_rev%ele_(i))
   enddo
 
-! correct control information
+! Correct control information
 
   do i = 1, ring_rev%n_control_max
     con => ring_rev%control_(i)
@@ -77,7 +81,7 @@ subroutine ring_reverse (ring_in, ring_rev)
     if (con%ix_lord <= nr)  con%ix_lord  = nr+1-con%ix_lord
   enddo
 
-! slaves of a super lord must be in assending sequence.
+! Slaves of a super lord must be in assending sequence.
 ! ix_con keeps track of the switching.
 ! Also: adjust s-position of lords.
 
@@ -97,6 +101,9 @@ subroutine ring_reverse (ring_in, ring_rev)
   ring_rev%ic_(1:n) = ix_con(ring_rev%ic_(1:n))
 
 ! Cleanup
+
+  ring_rev%param%t1_with_RF = 0  ! Init
+  ring_rev%param%t1_no_RF = 0    ! Init
 
   call s_calc (ring_rev) 
   call check_ring_controls (ring_rev, .true.)
