@@ -3,7 +3,12 @@
 !                                                     start, end, body_only)
 !
 ! Subroutine to propagate partially through ELE2 the twiss parameters and the
-! orbit. See also twiss_and_track_at_s.
+! orbit. 
+!
+! This routine assumes that the end point is inside the element so
+! for bends a finite e2 exit pole face angle is always ignored.
+!
+! See also twiss_and_track_at_s.
 !
 ! Note: This routine works by passing to the tracking and Twiss calculation
 ! routines an element with %value(l$) = del_s. For custom elements, 
