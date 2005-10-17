@@ -175,14 +175,7 @@ subroutine reverse_ele (ele)
   case (solenoid$, sol_quad$)
     ele%value(ks$) = -ele%value(ks$)
 
-  case (rfcavity$)
-    ele%value(phi0$)  = -ele%value(phi0$)
-    ele%value(dphi0$) = -ele%value(dphi0$)
-
   case (lcavity$)
-    ele%value(phi0$)         = -ele%value(phi0$)
-    ele%value(phi0_err$)     = -ele%value(phi0_err$)
-    ele%value(dphi0$)        = -ele%value(dphi0$)
     ele%value(gradient$)     = -ele%value(gradient$) 
     ele%value(gradient_err$) = -ele%value(gradient_err$) 
 
