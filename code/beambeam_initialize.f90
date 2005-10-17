@@ -19,8 +19,12 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2005/10/17 14:59:02  dlr
+! missing optional arguments to close_pretzel and close_vert give error. Include
+! arguments
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
@@ -45,6 +49,7 @@
   type (coord_struct), allocatable, save :: co_(:), orb_(:)
   type (coord_struct), allocatable, save :: start(:), end(:)
   type (coord_struct) orb, delta_ip
+  type (coord_struct) final_pos_in, final_pos_out
   type (modes_struct) mode
   type (ele_struct) beambeam_ele
   type (scan_params_struct) scan_params
@@ -179,7 +184,9 @@
 
 
   if(scan_params%close_pretz)then
-    call close_pretzel (ring, i_dim) 
+    final_pos_in%vec(:) = 0.
+    final_pos_out%vec(:) = 0.
+    call close_pretzel (ring, i_dim, final_pos_in, final_pos_out) 
     call twiss_at_start(ring)
     call closed_orbit_at_start(ring, co_(0), i_dim, .true.)
     call track_all(ring, co_)
@@ -188,7 +195,7 @@
     type*,' after close pretzel but before close vertical: '
     type '(1x,3(a9,f12.4))','    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi,'   Qz = ',ring%z%tune/twopi
  endif
- if(scan_params%close_vert)call close_vertical(ring,i_dim)
+ if(scan_params%close_vert)call close_vertical(ring,i_dim, final_pos_in, final_pos_out)
 
     call twiss_at_start(ring)
 
@@ -234,7 +241,7 @@
       deallocate(dk1)
 
       if(scan_params%close_pretz)then
-        call close_pretzel (ring, i_dim)
+        call close_pretzel (ring, i_dim, final_pos_in, final_pos_out)
 !        call twiss_at_start(ring)
         call closed_orbit_at_start(ring, co_(0), i_dim, .true.)
         call track_all(ring, co_)
@@ -245,7 +252,7 @@
     type '(1x,3(a9,f12.4))','    Qx = ',ring%x%tune/twopi,'    Qy = ',ring%y%tune/twopi,'   Qz = ',ring%z%tune/twopi
       endif
       if(scan_params%close_vert)then
-        call close_vertical(ring,i_dim)
+        call close_vertical(ring,i_dim, final_pos_in, final_pos_out)
 !        call twiss_at_start(ring)
         call closed_orbit_at_start(ring, co_(0), i_dim, .true.)
         call track_all(ring, co_)
