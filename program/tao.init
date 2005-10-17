@@ -15,7 +15,7 @@
 !------------------------------------------------------------------------
 
 &tao_params
-  global%plot_on = .false.
+  global%plot_on = .true.
   n_d2_data_max = 6  ! orbit, phase, coupling, cbar, beta, and eta.
   n_v1_var_max  = 5  ! quadrupoles, steerings, etc...
   n_data_max = 2000
