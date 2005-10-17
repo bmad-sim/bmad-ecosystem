@@ -36,8 +36,9 @@ type (qp_symbol_struct) default_symbol
 type (qp_line_struct) default_line
 type (qp_axis_struct) init_axis
 
-integer iu, i, j, ip, n, ng, ios
+integer iu, i, j, ip, n, ng, ios, i_uni
 integer graph_index
+integer, allocatable :: ix_ele(:)
 
 character(200) file_name, plot_file
 character(20) :: r_name = 'tao_init_plotting'
@@ -190,8 +191,6 @@ do
     grph%title_suffix = ' '
     grph%legend = ' '
 
-    if (graph%type == 'phase_space') s%global%lattice_recalc = .true.
-
     if (grph%ix_universe < 0 .or. grph%ix_universe > size(s%u)) then
       call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', grph%ix_universe)
       call out_io (s_blank$, r_name, &
@@ -228,6 +227,15 @@ do
       crv%ele2_name         = curve(j)%ele2_name
       call str_upcase (crv%ele2_name, crv%ele2_name)
       crv%ix_ele2           = curve(j)%ix_ele2
+
+      i_uni = crv%ix_universe
+      if (i_uni == 0) i_uni = s%global%u_view
+      if (crv%ele2_name .eq. ' ') then
+        crv%ele2_name = s%u(i_uni)%design%ele_(crv%ix_ele2)%name
+      else
+        call tao_locate_element (crv%ele2_name, i_uni, ix_ele, .true.)
+        crv%ix_ele2 = ix_ele(1)
+      endif
 
     enddo
   enddo

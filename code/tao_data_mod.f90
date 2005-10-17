@@ -410,16 +410,16 @@ case ('i5b_e6')
 
 case ('r:')
   if (ix1 < ix2) return
-  i = read_this_index (datum%data_type, 3); if (i == 0) return
-  j = read_this_index (datum%data_type, 4); if (j == 0) return
+  i = tao_read_this_index (datum%data_type, 3); if (i == 0) return
+  j = tao_read_this_index (datum%data_type, 4); if (j == 0) return
   call transfer_matrix_calc (lattice, .true., mat6, ix2, ix1)
   datum_value = mat6(i, j)
 
 case ('t:')
   if (ix1 < ix2) return
-  i = read_this_index (datum%data_type, 3); if (i == 0) return
-  j = read_this_index (datum%data_type, 4); if (j == 0) return
-  k = read_this_index (datum%data_type, 5); if (k == 0) return
+  i = tao_read_this_index (datum%data_type, 3); if (i == 0) return
+  j = tao_read_this_index (datum%data_type, 4); if (j == 0) return
+  k = tao_read_this_index (datum%data_type, 5); if (k == 0) return
   if (present(taylor_in)) then
     call tao_transfer_map_calc (lattice, taylor_in, ix2, ix1, unit_start = .false.)
     datum_value = taylor_coef (taylor_in(i), j, k)
@@ -431,10 +431,10 @@ case ('t:')
 case ('tt:')
   if (ix1 < ix2) return
   expnt = 0
-  i = read_this_index (datum%data_type, 4); if (i == 0) return
+  i = tao_read_this_index (datum%data_type, 4); if (i == 0) return
   do j = 5, 15
     if (datum%data_type(j:j) == ' ') exit
-    k = read_this_index (datum%data_type, j); if (k == 0) return
+    k = tao_read_this_index (datum%data_type, j); if (k == 0) return
     expnt(k) = expnt(k) + 1
   enddo
   if (present(taylor_in)) then
@@ -771,24 +771,6 @@ logical err
   endif
     
 end subroutine tao_read_bpm
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-
-function read_this_index (name, ixc) result (ix)
-
-  character(*) name
-  integer ix, ixc
-  character(20) :: r_name = 'read_this_index'
-
-  ix = index('123456', name(ixc:ixc))
-  if (ix == 0) then
-    call out_io (s_abort$, r_name, 'BAD INDEX CONSTRAINT: ' // name)
-    call err_exit
-  endif
-
-end function
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------

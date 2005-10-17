@@ -896,6 +896,17 @@ integer i
 
 if (.not. (var%exists .and. var%good_var)) return
 
+! check if hit variable limit
+if (s%global%var_limits_on) then
+  if (value .lt. var%low_lim) then
+    call out_io (s_blank$, ' ', "Hit lower limit of variable.")
+    value = var%low_lim
+  elseif (value .gt. var%high_lim) then
+    call out_io (s_blank$, ' ', "Hit upper limit of variable.")
+    value = var%high_lim
+  endif
+endif
+
 var%model_value = value
 do i = 1, size(var%this)
   var%this(i)%model_ptr = value
@@ -1432,5 +1443,50 @@ character(12) :: r_name = "tao_to_int"
   endif
 
 end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function tao_read_this_index (name, ixc) result (ix)
+!
+! Returns the integer value in the array <name> at position <ixc>. This is used
+! for finding a 6-dimensional index reference so any value at <ixc> greater than
+! 6 returns an error.
+!
+! Input:
+!  name     -- Character(*): character array holding the index
+!  ixc      -- Integer: location within <name> to evaluate
+!
+! Output:
+!  ix       -- Integer: Index at <name>(<ixc>:<ixc>)
+!
+! Example:
+!      name = r:26
+!      ixc  = 3
+!
+! Gives:
+!      ix = 3
+!
+! Example:
+!      name = mat_94
+!      ixc  = 7
+! Gives:
+!      Error: "BAD INDEX CONSTRAINT: mat_94"
+!-
+
+function tao_read_this_index (name, ixc) result (ix)
+
+  character(*) name
+  integer ix, ixc
+  character(20) :: r_name = 'tao_read_this_index'
+
+  ix = index('123456', name(ixc:ixc))
+  if (ix == 0) then
+    call out_io (s_abort$, r_name, 'BAD INDEX CONSTRAINT: ' // name)
+    call err_exit
+  endif
+
+end function
 
 end module tao_utils

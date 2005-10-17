@@ -455,8 +455,12 @@ case ('lattice')
     nl=nl+1; write (lines(nl), '(a, i3)') 'Universe: ', s%global%u_view
     nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Regular elements:', &
                                           1, '  through', u%model%n_ele_use
-    nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Lord elements:   ', &
+    if (u%model%n_ele_max .gt. u%model%n_ele_use) then
+      nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Lord elements:   ', &
                         u%model%n_ele_use+1, '  through', u%model%n_ele_max
+    else
+      nl=nl+1; write (lines(nl), '(a)') "there are NO Lord elements"
+    endif
     if (u%is_on) then
       nl=nl+1; write (lines(nl), '(a)') 'This universe is turned ON'
     else

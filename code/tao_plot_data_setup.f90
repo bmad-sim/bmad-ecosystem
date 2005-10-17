@@ -313,6 +313,13 @@ do k = 1, size(graph%curve)
 
     ! make sure %useit_plot up-to-date & count the number of data points
     call tao_data_useit_plot_calc (graph, d1_ptr%d) 
+    if (plot%x_axis_type == 's') then
+      ! veto non-regular elements when plotting s
+      forall (m = lbound(d1_ptr%d,1):ubound(d1_ptr%d,1), &
+                     d1_ptr%d(m)%ix_ele .gt. u%model%n_ele_use)
+        d1_ptr%d(m)%useit_plot = .false.
+      endforall
+    endif
     n_dat = count (d1_ptr%d%useit_plot)       
 
     call reassociate_integer (curve%ix_symb, n_dat)
@@ -589,15 +596,15 @@ do k = 1, size(graph%curve)
         case ('model')
           call s_data_to_plot (u%model, u%model_orb, curve%data_type, &
                                                        graph%who(m), curve, err)
-          if (err) return
+          if (err) smooth_curve = .false.
         case ('base')  
           call s_data_to_plot (u%base, u%base_orb, curve%data_type, &
                                                        graph%who(m), curve, err)
-          if (err) return
+          if (err) smooth_curve = .false.
         case ('design')  
           call s_data_to_plot (u%design, u%design_orb, curve%data_type, &
                                                        graph%who(m), curve, err)
-          if (err) return
+          if (err) smooth_curve = .false.
         case default
           call out_io (s_error$, r_name, &
                        'BAD PLOT "WHO" WITH "S" X-AXIS: ' // graph%who(m)%name)
@@ -605,7 +612,8 @@ do k = 1, size(graph%curve)
           return
         end select
       enddo
-    else
+    endif
+    if (.not. smooth_curve) then
       ! allocate space for the data
       call reassociate_real (curve%y_line, n_dat) 
       call reassociate_real (curve%x_line, n_dat) 
@@ -650,7 +658,8 @@ type (taylor_struct) t_map(6)
 
 real(rp) cbar(2,2), s_last, s_now, value, mat6(6,6)
 integer i, j, k, expnt(6)
-character(16) data_type
+character(16), intent(in) ::  data_type
+character(16) data_type_select
 logical err
 
 !
@@ -665,21 +674,23 @@ else
   s_last = lat%ele_(curve%ix_ele2)%s
 endif
 
-if (data_type(1:2) == 'r:') data_type = 'r:'
-if (data_type(1:2) == 't:') data_type = 't:'
-if (data_type(1:3) == 'tt:') data_type = 'tt:'
+data_type_select = data_type
+if (data_type_select(1:2) == 'r:') data_type_select = 'r:'
+if (data_type_select(1:2) == 't:') data_type_select = 't:'
+if (data_type_select(1:3) == 'tt:') data_type_select = 'tt:'
 
 !
 
 do ii = 1, size(curve%x_line)
 
   s_now = x1 + (ii-1) * (x2-x1) / (size(curve%x_line)-1)
+  if (s_now .ge. lat%ele_(lat%n_ele_use)%s) s_now = lat%ele_(lat%n_ele_use)%s - 1e-9
   curve%x_line(ii) = s_now
   value = 0
 
   call twiss_and_track_at_s (lat, curve%x_line(ii), ele, orb, here)
 
-  select case (data_type)
+  select case (data_type_select)
   case ('orbit:x')
     value = here%vec(1)
   case ('orbit:y')
@@ -696,13 +707,13 @@ do ii = 1, size(curve%x_line)
     value = ele%x%phi
   case ('phase:y')
     value = ele%y%phi
-  case ('beta:x')
+  case ('beta:x', 'beta:a')
     value = ele%x%beta
-  case ('beta:y')
+  case ('beta:y', 'beta:b')
     value = ele%y%beta
-  case ('alpha:x')
+  case ('alpha:x', 'alpha:a')
     value = ele%x%alpha
-  case ('alpha:y')
+  case ('alpha:y', 'alpha:b')
     value = ele%y%alpha
   case ('eta:x')
     value = ele%x%eta_lab
@@ -737,33 +748,33 @@ do ii = 1, size(curve%x_line)
   case ('r:')
     if (ii == 1) call mat_make_unit (mat6)
     if (s_now < s_last) cycle
-    i = read_this_index (data_type, 3); if (i == 0) return
-    j = read_this_index (data_type, 4); if (j == 0) return
+    i = tao_read_this_index (data_type, 3); if (i == 0) return
+    j = tao_read_this_index (data_type, 4); if (j == 0) return
     call tao_mat6_calc_at_s (lat, mat6, s_last, s_now, unit_start = .false.)
     value = mat6(i, j)
   case ('t:')
     if (ii == 1) call taylor_make_unit (t_map)
     if (s_now < s_last) cycle
-    i = read_this_index (data_type, 3); if (i == 0) return
-    j = read_this_index (data_type, 4); if (j == 0) return
-    k = read_this_index (data_type, 5); if (k == 0) return
+    i = tao_read_this_index (data_type, 3); if (i == 0) return
+    j = tao_read_this_index (data_type, 4); if (j == 0) return
+    k = tao_read_this_index (data_type, 5); if (k == 0) return
     call tao_transfer_map_calc_at_s (lat, t_map, s_last, s_now, unit_start = .false.)
     value = taylor_coef (t_map(i), j, k)
   case ('tt:')
     if (ii == 1) call taylor_make_unit (t_map)
     if (s_now < s_last) cycle
     expnt = 0
-    i = read_this_index (data_type, 4); if (i == 0) return
+    i = tao_read_this_index (data_type, 4); if (i == 0) return
     do j = 5, 15
       if (data_type(j:j) == ' ') exit
-      k = read_this_index (data_type, j); if (k == 0) return
+      k = tao_read_this_index (data_type, j); if (k == 0) return
       expnt(k) = expnt(k) + 1
     enddo
     call tao_transfer_map_calc_at_s (lat, t_map, s_last, s_now, unit_start = .false.)
     value = taylor_coef (t_map(i), expnt)
   case default
    call out_io (s_fatal$, r_name, &
-                  'DO NOT KNOW ABOUT THIS DATA_TYPE: ' // curve%data_type)
+                  'DO NOT KNOW ABOUT THIS DATA_TYPE: ' // data_type)
    call out_io (s_blank$, r_name, "Will not perfrom any plot smoothing")
     err = .true.
     return

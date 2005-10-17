@@ -318,7 +318,7 @@ character(8) :: r_name = "do_loop"
         if (ix /= 0) then
           write (indx_char, '(I)') indx(i)
           call string_trim(indx_char, indx_char, ix2)
-          ix2 = len(trim(indx_char))+2
+          ix2 = len(trim(indx_name(i)))+2
           write (cmd_line, *) cmd_line(1:ix-1), trim(indx_char), &
                                     trim(cmd_line(ix+ix2:))
         else

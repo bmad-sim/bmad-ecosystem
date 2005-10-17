@@ -171,20 +171,11 @@ case ('ele')
 
   select case (where)
   case ('x', 'p_x', 'y', 'p_y', 'z', 'p_z')
-    !check if this is a linear lattice
-    if ((u%model%param%lattice_type .eq. circular_lattice$) .and. &
-        where .ne.'p_z') then
-      call out_io (s_warn$, r_name, "This is a circular lattice!", &
-                        "So only changing the p_z orbit will do anything")
-      return
-    endif
-    !check if we are changing the beginning element
-    if (ix_ele(1) .ne. 0 .or. size(ix_ele) .ne. 1) then
-      call out_io (s_warn$, r_name, &
-          "Changing the orbit is only applicable for the BEGINNING element!")
-      return
-    endif
     call change_orbit (u%design_orb(ix_ele(1)), u%model_orb(ix_ele(1)))
+    if (err) return
+  case ('beta_x', 'beta_y', 'alpha_x', 'alpha_y', 'eta_x', 'eta_y', 'etap_x, etap_y')
+    call change_twiss ()
+    if (err) return
   case default  
     do i = 1, size(ix_ele)
       call pointer_to_attribute (u%design%ele_(ix_ele(i)), where, .true., &
@@ -317,6 +308,24 @@ real(rp), pointer :: design_ptr, model_ptr
 
 integer direction
 
+err = .false.
+
+!check if this is a linear lattice
+if ((u%model%param%lattice_type .eq. circular_lattice$) .and. &
+    where .ne.'p_z') then
+  call out_io (s_warn$, r_name, "This is a circular lattice!", &
+                    "So only changing the p_z orbit will do anything")
+  err = .true.
+  return
+endif
+!check if we are changing the beginning element
+if (ix_ele(1) .ne. 0 .or. size(ix_ele) .ne. 1) then
+  call out_io (s_warn$, r_name, &
+      "Changing the orbit is only applicable for the BEGINNING element!")
+  err = .true.
+  return
+endif
+
 !point to correct direction
 select case (where)
   case ('x')
@@ -357,8 +366,91 @@ err = .false.
 
 end subroutine change_orbit
 
-end subroutine tao_change_cmd
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+!
+! This changes the beginning twiss_parameters for a linear lattice
 
+subroutine change_twiss ()
 
+implicit none
 
+real(rp), pointer :: design_ptr, model_ptr
 
+  err = .false.
+
+  !check if this is a linear lattice
+  if ((u%model%param%lattice_type .eq. circular_lattice$)) then
+    call out_io (s_warn$, r_name, "This is a circular lattice!", &
+                      "Twiss parameters cannot be changed!")
+    err = .true.
+    return
+  endif
+  !check if we are changing the beginning element
+  if (ix_ele(1) .ne. 0 .or. size(ix_ele) .ne. 1) then
+    call out_io (s_warn$, r_name, &
+        "Changing the twiss parameters is only applicable for the BEGINNING element!")
+    err = .true.
+    return
+  endif
+
+  select case (where)
+
+    case ('beta_x')
+      model_ptr  => u%model%ele_(0)%x%beta
+      design_ptr => u%design%ele_(0)%x%beta
+
+    case ('beta_y')
+      model_ptr  => u%model%ele_(0)%y%beta
+      design_ptr => u%design%ele_(0)%x%beta
+
+    case ('alpha_x')
+      model_ptr  => u%model%ele_(0)%x%alpha
+      design_ptr => u%design%ele_(0)%x%beta
+
+    case ('alpha_y')
+      model_ptr  => u%model%ele_(0)%y%alpha
+      design_ptr => u%design%ele_(0)%x%beta
+
+    case ('eta_x')
+      model_ptr  => u%model%ele_(0)%x%eta
+      design_ptr => u%design%ele_(0)%x%beta
+
+    case ('eta_y')
+      model_ptr => u%model%ele_(0)%y%eta
+      design_ptr => u%design%ele_(0)%x%beta
+
+    case ('etap_x')
+      model_ptr  => u%model%ele_(0)%x%etap
+      design_ptr => u%design%ele_(0)%x%beta
+
+    case ('etap_y')
+      model_ptr  => u%model%ele_(0)%y%etap
+      design_ptr => u%design%ele_(0)%x%beta
+
+    case default
+      err = .true.
+      return
+      
+  end select
+
+  !do the change
+  design_value = design_ptr
+  old_value  = model_ptr
+  
+  if (absolute_num) then
+    model_ptr = change_number
+  elseif (rel_to_design) then
+    model_ptr = design_value + change_number
+  else
+    model_ptr = model_ptr + change_number
+  endif
+  
+  new_value = model_ptr
+
+  err = .false.
+
+end subroutine change_twiss
+
+end subroutine tao_change_cmd 

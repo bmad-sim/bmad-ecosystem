@@ -12,6 +12,8 @@
 !  Output:
 !-
 
+#include "CESR_platform.inc"
+
 subroutine tao_command (command_line, err)
 
   use tao_mod
@@ -38,12 +40,13 @@ subroutine tao_command (command_line, err)
   character(80) :: cmd_word(12)
   character(16) cmd_name, set_word
 
-  character(16) :: cmd_names(25) = (/  &
+  character(16) :: cmd_names(26) = (/  &
         'quit        ', 'exit        ', 'show        ', 'plot        ', 'place       ', &
         'clip        ', 'scale       ', 'veto        ', 'use         ', 'restore     ', &
         'run         ', 'flatten     ', 'output      ', 'change      ', 'set         ', &
         'call        ', 'view        ', 'alias       ', 'help        ', 'history     ', &
-        'single-mode ', 'reinitialize', 'x-scale     ', 'x-axis      ', 'derivative  ' /)
+        'single-mode ', 'reinitialize', 'x-scale     ', 'x-axis      ', 'derivative  ', &
+        'spawn       '/)
 
   character(16) :: set_names(7) = (/ &
         'data        ', 'var         ', 'lattice     ', 'global      ', 'plot_page   ', &
@@ -52,7 +55,6 @@ subroutine tao_command (command_line, err)
 
 
   logical quit_tao, err
-  
 
 ! blank line => nothing to do
 
@@ -367,6 +369,22 @@ subroutine tao_command (command_line, err)
     s%global%single_mode = .true.
     call out_io (s_blank$, r_name, 'Entering Single Mode...')
     return
+
+!--------------------------------
+! SPAWN
+
+  case ('spawn')
+#ifdef CESR_LINUX
+      call system (cmd_line)
+      return
+#endif
+#ifdef CESR_UNIX
+      call system (cmd_line)
+      return
+#endif
+
+  call out_io (s_error$, r_name, "Spawn only works on linux and unix")
+ 
 
 !--------------------------------
 ! VIEW

@@ -19,9 +19,9 @@ on one line using the ``$|$'' character as a separator.
   change     & \ref{s:change}   &  run          & \ref{s:run}     \\ \hline
   clip       & \ref{s:clip}     &  set          & \ref{s:set}     \\ \hline
   derivative & \ref{s:deriv}    &  scale        & \ref{s:scale}   \\ \hline
-  exit       & \ref{s:exit}     &               &                 \\ \hline
-  flatten    & \ref{s:flatten}  &  show         & \ref{s:show}    \\ \hline
-  help       & \ref{s:help}     &  single-mode  & \ref{s:sing}    \\ \hline
+  exit       & \ref{s:exit}     &  show         & \ref{s:show}    \\ \hline 
+  flatten    & \ref{s:flatten}  &  single-mode  & \ref{s:sing}    \\ \hline
+  help       & \ref{s:help}     &  spawn        & \ref{s:spawn}   \\ \hline
   history    & \ref{s:history}  &  use          & \ref{s:use}     \\ \hline
   output     & \ref{s:output}   &  veto         & \ref{s:veto}    \\ \hline
   place      & \ref{s:place}    &  view         & \ref{s:view}    \\ \hline
@@ -183,14 +183,18 @@ value is used:
 
 
 
-For \vn{change ele}, six additional
+For \vn{change ele}, 14 additional
 \vn{<components>}s in addition to the element values are:
 \begin{example}
   \{x, y, z\}           ! position 
   \{p_x, p_y, p_z\}  ! velocity
+  \{beta_x, beta_y, alpha_x, alpha_y\} ! twiss parameters
+  \{eta_x, eta_y,etap_x, etap_y\}      ! twiss parameters
 \end{example}
+These can only change the beginning element.
 Any orbit dimension can be changed for linear lattices, for circular lattices
-only the \vn{p_z} component is applicable.
+only the \vn{p_z} component is applicable. Only linear lattices can have their 
+beginning twiss parameters changed.
 
 Examples:
 \begin{example}
@@ -720,6 +724,27 @@ Format:
 
 \vskip 0.2in 
 This command puts \tao into \vn{single mode}. 
+
+%% spawn --------------------------------------------------------------
+\section{Spawn}\index{Commands!spawn}
+\lable{s:spawn}
+
+Format:
+\begin{example}
+  spawn <shell_command>
+\end{example}
+
+\vskip 0.2in
+Use the \vn{spawn} command to pass a command to the command shell.  The users
+default shell is used. \vn{spawn} only works in Linux and Unix environments.
+
+Examples:
+\begin{example}
+  spawn gv quick_plot.ps &      ! view a postcript file with ghostview
+                                ! (and return to the TAO prompt)
+  spawn tcsh                    ! launch a new tcsh shell 
+                                ! (type 'exit' to return to TAO)
+\end{example}
 
 %% use --------------------------------------------------------------
 \section{Use}\index{Commands!Use}

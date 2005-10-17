@@ -39,7 +39,7 @@ type (tao_top10_struct) top_delta(10)
 real(rp) delta, a_max, merit
 integer i, j, n, nl, nu
 
-character(16) name
+character(18) name
 character(100) fmt, lines(20)
 character(20) :: r_name = 'tao_top10_print'
 

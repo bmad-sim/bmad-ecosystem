@@ -333,8 +333,9 @@ type tao_global_struct
   character(16) :: optimizer = 'de'      ! optimizer to use.
   character(16) :: default_key_merit_type 
   character(80) :: write_file = 'tao_show.dat'
-  logical :: var_limits_on = .false.     ! Respect the variable limits?
+  logical :: var_limits_on = .true.      ! Respect the variable limits?
   logical :: plot_on = .true.            ! Do plotting?
+  logical :: auto_scale = .false.        ! Automatically scale and x-scale the plots?
   logical :: opt_with_ref = .false.      ! use reference data in optimization?
   logical :: opt_with_base = .false.     ! use base data in optimization?
   logical :: single_mode = .false.

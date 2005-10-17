@@ -20,11 +20,15 @@ subroutine tao_init (init_file)
   type (tao_var_struct), pointer :: var_ptr
   type (tao_this_var_struct), pointer :: this
 
+  real(rp), pointer :: ptr_attrib
+
   character(*) init_file
   character(200) lattice_file, plot_file, data_file, var_file, file_name
   character(200) single_mode_file, startup_file
   character(16) :: r_name = 'tao_init'
   integer i, j, n_universes, iu, ix
+
+  logical err
 
   namelist / tao_start / lattice_file, startup_file, &
                data_file, var_file, plot_file, single_mode_file, n_universes
@@ -63,8 +67,9 @@ subroutine tao_init (init_file)
     do j = 1, size(var_ptr%this)
       this => var_ptr%this(j)
       u => s%u(this%ix_uni)
-      ix = attribute_index (u%model%ele_(this%ix_ele), var_ptr%attrib_name)
-      if (ix < 1) then
+      call pointer_to_attribute (u%model%ele_(this%ix_ele), var_ptr%attrib_name, &
+                                 .false., ptr_attrib, ix, err, .false.)
+      if (err) then
         call out_io (s_abort$, r_name, &
                 'Error: Attribute not recognized: ' // var_ptr%attrib_name, &
                 '       For element: ' // u%model%ele_(this%ix_ele)%name, &
@@ -82,6 +87,8 @@ subroutine tao_init (init_file)
     enddo
   enddo
 
+  call tao_init_plotting (plot_file)
+  
 ! set up model and base lattices
 
   ! must first transfer to model lattice for tao_lattice_calc to run
@@ -96,9 +103,6 @@ subroutine tao_init (init_file)
     s%u(i)%data%design_value = s%u(i)%data%model_value
     s%u(i)%data%base_value = s%u(i)%data%model_value
   enddo
-
-  call tao_init_plotting (plot_file)
-  if (s%global%lattice_recalc) call tao_lattice_calc 
 
   call tao_plot_data_setup ()  ! transfer data to the plotting structures
   call tao_plot_out ()         ! Update the plotting window

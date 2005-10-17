@@ -223,7 +223,8 @@ implicit none
 
 type (tao_curve_struct), pointer :: curve
 
-integer i, ios
+integer i, ios, i_uni
+integer, allocatable :: ix_ele(:)
 
 character(*) curve_name, component, set_value
 character(20) :: r_name = 'tao_set_curve_cmd'
@@ -235,10 +236,15 @@ logical err
 call tao_find_plot_by_region (err, curve_name, curve = curve)
 if (err) return
 
+i_uni = curve%ix_universe
+if (i_uni == 0) i_uni = s%global%u_view
+
 select case (component)
 
   case ('ele2_name')
     curve%ele2_name = set_value
+    call tao_locate_element (curve%ele2_name, i_uni, ix_ele, .true.)
+    curve%ix_ele2 = ix_ele(1)
 
   case ('ix_ele2')
     read (set_value, '(i)', iostat = ios) i
@@ -247,8 +253,13 @@ select case (component)
       return
     endif
     curve%ix_ele2 = i      
-    curve%ele2_name = ' '
+    curve%ele2_name = s%u(i_uni)%model%ele_(curve%ix_ele2)%name
 
+  case default
+    
+    call out_io (s_error$, r_name, "BAD CURVE COMPONENT")
+    return
+    
 end select
 
 s%global%lattice_recalc = .true.

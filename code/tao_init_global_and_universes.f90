@@ -315,8 +315,9 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
     do k = 1, n_d1_data
       default_weight = 0      ! set default
       default_data_type  = ' '
+      data(:)%data_type  = default_data_type
+      data(:)%merit_type = default_merit_type 
       data(:)%name       = ' '
-      data(:)%data_type  = ' '
       data(:)%merit_type = ' '
       data(:)%ele_name   = ' '
       data(:)%ele2_name  = ' '
@@ -396,7 +397,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
       do i = 1, size(s%u)
         call var_stuffit_common
         write (s%v1_var(s%n_v1_var_used)%name, '(2a, i0)') &
-                                s%v1_var(s%n_v1_var_used)%name, ';', i
+                                trim(s%v1_var(s%n_v1_var_used)%name), ';', i
         call var_stuffit (i)
       enddo
 
@@ -666,16 +667,12 @@ elseif (index(data(0)%ele_name, 'SAME:') /= 0) then
     call err_exit
   endif
   u%data(n1:n2)%data_type  = default_data_type
+  u%data(n1:n2)%merit_type = default_merit_type 
   u%data(n1:n2)%ele_name   = d1_ptr%d%ele_name
   u%data(n1:n2)%ix_ele     = d1_ptr%d%ix_ele
   u%data(n1:n2)%ele2_name  = d1_ptr%d%ele2_name
   u%data(n1:n2)%ix_ele2    = d1_ptr%d%ix_ele2
   u%data(n1:n2)%exists     = d1_ptr%d%exists
- 
-  u%data(n1:n2)%meas_value = d1_ptr%d%meas_value
-  u%data(n1:n2)%merit_type = d1_ptr%d%merit_type
-  u%data(n1:n2)%good_meas  = d1_ptr%d%good_meas
-  u%data(n1:n2)%weight     = d1_ptr%d%weight
 else
   u%data(n1:n2)%ele_name  = data(ix1:ix2)%ele_name
   u%data(n1:n2)%ele2_name = data(ix1:ix2)%ele2_name
