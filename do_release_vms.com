@@ -101,6 +101,7 @@ $! building MPMnet
 $!--------------------------------------------------
 $!  
 $ gmake --directory=[.cvssrc.MPMnet] "''par1'" "''par2'"
+$ gmake --directory=[.cvssrc.MPMnet] --file=MAKEFILE_MPMEQ.VMS  "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
 $ set def 'crsdir'
