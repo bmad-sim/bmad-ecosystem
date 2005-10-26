@@ -2,32 +2,40 @@
 ! Trying to increase bunch separation at the IP                                 
 ! while getting beta h* the same.                                               
 ! Now including IP_L0 in the lrbbi calculation.                                 
-!+                                                                              
-! Mon Sep 27 02:27:34 2004 => Documented by latdoc.                             
-! 				Emittance(nm rad)                                                         
-! Qx	Qy	Fx	Fy	e+	e-                                                             
-! 10.55	9.60	214.5	234.0	111.7	115.4                                            
-!                                                                               
-! Bx*	By*	Eta*	Alphax*	Alphay*	Eta'*	Cr_ang(mrad)                               
-! 1.24	0.031	0.401	0.271	0.143	0.064	-2.203                                     
-!                                                                               
-! Bx	By	Eta	Alphax	Alphay	Eta' -> all at IP_L3                                  
-! 8.18	2.857	0.251	0.046	-0.198	0.004                                           
-!                                                                               
-! IP_L0 disp.: e+ x:5.13e-05 y:7.03e-05   e- x:2.36e-05 y:-7.03e-05             
-!                                                                               
-! IP_L0 cbar:  2.2e-02   -1.5e-01   IP_L3 cbar:  1.2e-04    1.4e-04             
-!             -5.5e-02   -4.1e-02               -3.7e-04   -2.1e-04             
-!                                                                               
-! Peak Arc Betas: e+ Bx:40.0 By:58.1   e- Bx:40.0 By:56.7                       
-!                                                                               
-! 9x4 info: Pr_apert:3.84e-02  Effic:0.50  I_bunch:9.33  B_param_i:10.42        
-! 34w: e+ Bx:39.18  e- Bx:39.35  e+ Eta:2.52   Ring sigma_sep:8.82              
-! 34e: e+ Bx:38.94  e- Bx:39.60  e- Eta:2.28                                    
-!                                                                               
-! Full turn 4x4 det: 0.55                                                       
-! Chrom x:1.44  y:0.68    Tonality x:-0.17  y:-0.07                             
-!-                                                                              
+!+
+! Wed Oct 26 11:13:04 2005 => Documented by latdoc.
+! 				Emittance(nm rad)
+! Qx	Qy	Fx	Fy	e+	e-
+! 10.55	9.60	214.5	233.2	106.6	111.6
+!
+! Bx*	By*	Eta*	Alphax*	Alphay*	Eta'*	Cr_ang(mrad)
+! 1.25	0.030	0.408	0.107	0.124	0.068	-2.357
+!
+! Bx*	By*	Eta*	Alphax*	Alphay* -> Positron-Electron
+! -0.08	0.000	-0.036	-0.236	0.022
+!
+! Bx	By	Eta	Alphax	Alphay	Eta' -> all at IP_L3
+! 7.14	2.991	0.190	0.270	-0.114	0.024
+!
+! IP_L0 disp.: e+ x:9.84e-05 y:7.11e-05   e- x:2.46e-04 y:-7.09e-05
+!
+! IP_L0 cbar:  1.9e-02   -1.5e-01   IP_L3 cbar:  7.5e-04   -1.1e-04
+!             -5.8e-02   -1.7e-02                1.1e-04    2.9e-04
+!
+! Peak Arc Betas: e+ Bx:49.3 By:56.1   e- Bx:47.0 By:52.9
+! H_Sep Bx: 08w:17.38  08e:17.38  45w:19.33  45e:19.33
+! V_Sep By: 48w:14.04  48e:14.04
+!
+! 9x5 info: Pr_apert:3.91e-02  Effic:0.46  I_bunch:9.42  B_param_i:8.49
+! Worst e+ x disp:1.82e-02  at: Q10W
+! 34w: e+ Bx:38.18  e- Bx:46.95  e+ Eta:2.73   Ring sigma_sep:6.86
+! 34e: e+ Bx:47.95  e- Bx:39.25  e- Eta:2.53
+!
+! Full turn 4x4 det: 0.33  Momentum_comp: 1.11e-02
+! sync_beta_path x:-1.0e-09  y:1.1e-07  _volt x:-1.1e-09  y:1.1e-07
+! max dbeta(dE) x:30.81 y:40.30  dbeta(dPretz) x:2.79e-01 y:1.14e-01
+! Chrom x:1.89  y:1.78    Tonality x:0.02  y:-0.28
+!-
                                                                                 
 !lattice := chess_040928_0800                                       
 lattice := chess_20050208 
