@@ -18,7 +18,7 @@ SC_Q02W: QUADRUPOLE, L =  0.661500, Type = "SCIR QUADCUR   2"
 SC_SK_Q02W: QUADRUPOLE, L =  0.680000, SUPERIMPOSE, REF = SC_Q02W, &
         TYPE = "SCIR SKQUCUR   2" 
 DET_01W: MARKER, ALIAS = "1W" 
-SC_SOL_W: SOLENOID, L =  1.117600, TYPE = "SCSOL CONTRL   1" 
+SC_SOL_W: SOLENOID, L =  0.829200, TYPE = "SCSOL CONTRL   1" 
 HVKICK_01W: KICKER, L =  0.172700 
 DET_02W: MARKER, ALIAS = "2W" 
 SK_Q02W: QUADRUPOLE, TILT = PI/4, L =  0.172700, Type = "CSR SQEWQUAD   2" 
@@ -456,7 +456,7 @@ SK_Q03E: QUADRUPOLE, TILT = PI/4, L =  0.172700, Type = "CSR SQEWQUAD  96"
 SK_Q02E: QUADRUPOLE, TILT = PI/4, L =  0.172700, Type = "CSR SQEWQUAD  97" 
 DET_02E: MARKER, ALIAS = "2E" 
 HVKICK_01E: KICKER, L =  0.172700 
-SC_SOL_E: SOLENOID, L =  1.117600, TYPE = "SCSOL CONTRL   6" 
+SC_SOL_E: SOLENOID, L =  0.829200, TYPE = "SCSOL CONTRL   6" 
 DET_01E: MARKER, ALIAS = "1E" 
 SK_SEX_02E: SEXTUPOLE, TILT = PI/6, L =  0.072000 
 SC_Q02E: QUADRUPOLE, L =  0.661500, Type = "SCIR QUADCUR   3" 
@@ -475,8 +475,8 @@ d002: drift, l =   0.062250
 d003: drift, l =   0.161000
 d004: drift, l =   0.250500
 d005: drift, l =   1.192000
-d006: drift, l =   0.035000
-d007: drift, l =   0.639296
+d006: drift, l =   0.179200
+d007: drift, l =   0.783496
 d008: drift, l =   0.815000
 d009: drift, l =   1.750300
 d010: drift, l =   0.103300
@@ -913,8 +913,8 @@ d440: drift, l =   0.422383
 d441: drift, l =   0.102300
 d442: drift, l =   1.752300
 d443: drift, l =   0.815000
-d444: drift, l =   0.639291
-d445: drift, l =   0.035000
+d444: drift, l =   0.783491
+d445: drift, l =   0.179200
 d446: drift, l =   0.588000
 d447: drift, l =   0.532000
 d448: drift, l =   0.250500
