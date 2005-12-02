@@ -1,6 +1,6 @@
 
 
-\chapter{``Vanilla'' \tao}
+\chapter{``Vanilla'' Tao}
 \label{c:vanilla_tao}
 
 %----------------------------------------------------------------
@@ -14,7 +14,8 @@ to start with ``out of the box'' \tao while getting to know the
 program. This tutorial starts here and will then show you how to
 customize \tao for your specific purposes.
 
-\subsection{Getting and Compiling \tao}\index{Compiling Tao}
+\subsection{Getting and Compiling Tao}
+\index{Compiling Tao}
 \label{s:get_and_compile}
 
 The following instructions are for Cornell people. If you are not at
@@ -92,7 +93,8 @@ contains all the configuration files to get everything working. The
 first time you run the program it will need to create a digested \bmad
 lattice file for the included lattice. This may take a few minutes.
 
-\subsection{Customizing \tao}\index{customizing Tao}
+\subsection{Customizing Tao}
+\index{customizing Tao}
 
 After you are familiar with the basics of \tao you are ready to fully
 exploit the versatility of this wonderful program. See
@@ -213,7 +215,8 @@ here. Part III will tell you all about these other structures.
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
-\section{Initializing \tao}\index{Initializing!Files}
+\section{Initializing Tao}
+\index{Initializing!Files}
 \label{s:initializing}
 
 Initialization occurs at startup. There are \emph{six} files used to
@@ -253,7 +256,7 @@ entered and plotting output may be different for custom versions.}
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
-\section{Getting information from \tao}
+\section{Getting information from Tao}
 \label{s:get_info}
 
 %----------------------------------------------------------------
@@ -743,7 +746,7 @@ fancy!
 %----------------------------------------------------------------
 %----------------------------------------------------------------
 %----------------------------------------------------------------
-\chapter{Customizing \tao}\index{Customizing}
+\chapter{Customizing Tao}\index{Customizing}
 \label{c:custom_tao}
 
 %----------------------------------------------------------------
@@ -771,7 +774,8 @@ very good idea to have a copy of \vn{bmad_struct.f90} handy as this contains
 most of the structures used by \bmad.
 
 %----------------------------------------------------------------
-\section{Compiling your custom \tao}\index{Customizing!Compiling}
+\section{Compiling your custom Tao}
+\index{Customizing!Compiling}
 
 The \tao libraries can be compiled without compiling an executable. Here is
 where this comes in handy. Since the standard \tao subroutines have already been
@@ -886,8 +890,8 @@ initialization files used for this tutorial.
   cp ROOT/tao/program/*.lat ROOT/my_tao
 \end{example}
 
-In \cmd{ROOT/my_tao/tao.init} add the following lines to the data declarations
-section
+In \cmd{ROOT/my_tao/tao.init} add the following lines to the data
+declarations section
 \begin{example}
   &tao_d2_data
     d2_data%name = "particle_emittance" 
@@ -917,8 +921,8 @@ section
 \end{example}
 and increase \vn{n_d2_data_max} to 7 in the \vn{tao_params} declaration.
 
-In \cmd{ROOT/my_tao/tao_plot.init} add the following lines to the end of the
-file
+In \cmd{ROOT/my_tao/tao_plot.init} add the following lines to the end
+of the file
 \begin{example}
   &tao_template_plot
     plot%name = 'particle_emittance'

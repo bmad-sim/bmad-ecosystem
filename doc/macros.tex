@@ -30,6 +30,7 @@
 \newcommand{\Eqs}[1]{{Eqs.~(\protect\ref{#1})}}
 
 \newcommand{\vn}{\ttcmd}           % For variable names
+\newcommand{\vni}{\ttcmdindx}
 \newcommand{\cs}{\ttcmd}           % For code source
 \newcommand{\cmd}{\ttcmd}          % For Unix commands
 \newcommand{\rn}{\ttcmd}           % For Routine names
@@ -56,6 +57,9 @@
 
 \newcommand\slcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \doslcmd}
 \newcommand\doslcmd[1]{\textsl{#1}\endgroup}
+
+\newcommand\ttcmdindx{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmdindx}
+\newcommand\dottcmdindx[1]{\texttt{#1}\endgroup\index{#1}}
 
 \newcommand{\St}{$^{st}$\xspace}
 \newcommand{\Nd}{$^{nd}$\xspace}

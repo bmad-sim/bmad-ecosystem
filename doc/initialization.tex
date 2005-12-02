@@ -155,19 +155,18 @@ Example:
 
 Global variables are initialized in the \vn{data_and_var_file} using a
 namelist block named \vn{tao_params} The syntax of this block is:
-\index{tao_params}
-\index{n_v1_var_max}
-\index{n_d2_data_max}
-\index{n_data_max}
-\index{n_var_max}
-\index{global}
+\index{tao_params}\index{n_v1_var_max}\index{n_d2_data_max}
+\index{n_data_max}\index{n_var_max}\index{global}\index{bmad_com}
+\index{csr_com}
 \begin{example}
   &tao_params
     n_v1_var_max  = <integer>   ! number of v1 data structures.
     n_d2_data_max = <integer>   ! number of d2 data structures.
     n_data_max    = <integer>   ! Total number of data points
     n_var_max     = <integer>   ! Total number of variables.
-    global        = <tao_global_struct> ! global parameters
+    global        = <tao_global_struct>  ! global parameters
+    bmad_com      = <bmad_com_struct> ! Bmad global parameters
+    csr_com       = <csr_common_struct>  ! CSR global parameters
   /
 \end{example}
 Example:
@@ -183,8 +182,20 @@ Example:
 \vn{n_d2_data_max} and \vn{n_v1_var_max} are the maximum number of
 \vn{d2_data} and \vn{v1_var} structures needed. \vn{n_data_max} is the
 maximum number of datums needed and \vn{n_var_max} is the maximum
-total number variables used. Below is the \vn{tao_global_struct} Fortran structure.
+total number variables used. 
 
+The \vn{tao_global_struct} structure contains \tao global parameters.
+\index{y_axis_plot_dmin}\index{u_view}\index{n_opti_cycles}\index{ix_key_bank}
+\index{n_key_table_max}\index{n_lat_layout_label_rows}\index{phase_units}
+\index{bunch_to_plot}\index{n_curve_pts}\index{random_seed}\index{n_write_file}
+\index{track_type}\index{prompt_string}\index{optimizer}
+\index{default_key_merit_type}\index{write_file}\index{var_limits_on}
+\index{plot_on}\index{auto_scale}\index{opt_with_ref}\index{opt_with_base}
+\index{single_mode}\index{optimizer_running}\index{ logical :: init_opt_wrapper}
+\index{label_lattice_elements}\index{label_keys}\index{derivative_recalc}
+\index{lattice_recalc}\index{init_plot_needed}
+\index{valid_plot_who}\index{print_command}\index{default_init_file}
+\index{current_init_file}\index{var_out_file}\index{opt_var_out_file}
 \begin{example}
 type tao_global_struct
   real(rp) :: y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
@@ -198,7 +209,7 @@ type tao_global_struct
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
   integer :: random_seed = 0             ! use system clock by default
   integer :: n_write_file = 0            ! used for indexing 'show write' files
-  character(16) :: track_type = 'single' ! or 'beam' or 'macro' 
+  character(16) :: track_type = 'single' ! or 'beam', 'csr', or 'macro' 
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer = 'de'      ! optimizer to use.
   character(16) :: default_key_merit_type
@@ -216,10 +227,6 @@ type tao_global_struct
   logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
   logical :: lattice_recalc = .true.         ! recalculate the lattice?
   logical :: init_plot_needed = .true.       ! reinitialize plotting?
-  logical :: radiation_damping_on = .false.       ! is radiation damping turned on?
-  logical :: radiation_fluctuations_on = .false.  ! is radiation fluctuations turned on?
-  logical :: sr_wakes_on  = .true.                ! Short Range Wakefields
-  logical :: lr_wakes_on  = .true.                ! Long Range Wakefields
   character(16) :: valid_plot_who(10)        ! model, base, ref etc...
   character(40) :: print_command = 'awprint'
   character(80) :: default_init_file = 'tao.init'
@@ -228,6 +235,41 @@ type tao_global_struct
   character(80) :: opt_var_out_file = 'opt_var#.out'
 end type
 \end{example}
+
+The \vn{bmad_com_struct} holds bmad global variables. 
+\index{radiation_damping_on}
+\index{radiation_fluctuations_on}\index{sr_wakes_on}\index{lr_wakes_on}
+\begin{example}
+  type bmad_com_struct
+    real(rp) :: d_orb(6) = 1e-5  ! for the make_mat6_tracking routine
+    real(rp) :: max_aperture_limit = 1e3    
+    real(rp) :: rel_tollerance = 1e-5
+    real(rp) :: abs_tollerance = 1e-8
+    integer :: taylor_order = 3              ! 3rd order is default
+    logical :: use_liar_lcavity = .false.    ! Liar like tracking?
+    logical :: sr_wakes_on = .true.          ! Short range wakefields?
+    logical :: lr_wakes_on = .true.          ! Long range wakefields
+    logical :: mat6_track_symmetric = .true. ! symmetric offsets
+    logical :: auto_bookkeeper = .true.      ! Automatic bookkeeping?
+    logical :: radiation_damping_on = .false.       ! Damping toggle.
+    logical :: radiation_fluctuations_on = .false.  ! Fluctuations toggle.
+    logical :: compute_ref_energy = .true.          ! Enable recomputation?
+    logical :: trans_space_charge_on = .false.      ! Space charge switch
+    logical :: coherent_synch_rad_on = .false.      ! Longitudinal csr 
+  end type
+\end{example}
+
+The \vn{csr_common_struct} holds global variables for the coherent
+synchrotron radiation calculations.
+\begin{example}
+  type csr_common_struct
+    real(rp) ds_track_step                   ! Tracking step size
+    logical :: lcsr_component_on = .true.    ! Longitudinal csr component
+    logical :: lsc_component_on = .true.     ! Longitudinal space charge component
+    logical :: tsc_component_on = .true.     ! Transverse space charge component
+  end type
+\end{example}
+
 
 %-----------------------------------------------------------------
 \section{Initializing Coupled Universes}\index{Initialization!Coupling}
@@ -523,7 +565,7 @@ Example:
 A \vn{tao_var} block is needed for each variable array to be defined.
 \vn{v1_var%name} is the name of the array to be used with \tao
 commands. The \vn{var(i)} array of variables has an index \vn{i} that
-runs from \vn{ix_min_var} to \vn{ix_max_var}. Each variable has a name
+runs from \vni{ix_min_var} to \vni{ix_max_var}. Each variable has a name
 \vn{var(i)%name} to which it can be refered to in \tao commands.  A
 lattice element name \vn{var(i)%ele_name} and the element's attribute
 to vary \vn{var(i)%attribute} needs to specified. Not all elements
@@ -584,14 +626,14 @@ on Optimization.
 \tao can search for the elements in the lattice to be associated with
 each variable type, Likewise, the names for data points can be
 automatically generated by using the syntax:
-
+\index{COUNT}
 \begin{example}
   var(0)%name = "COUNT: <name_string>###"
   var(0)%ele_name = "SEARCH: <search_string>"
 \end{example}
 Where \vn{<name_string>} is used in the generation of the variable
 name and the hashes is replaced by the variable number in the series
-starting with \vn{ix_min_var} (as an integer whose length is equal to
+starting with \vni{ix_min_var} (as an integer whose length is equal to
 the number of hashes). \vn{<search_string>} can contain the wildcards
 \vn{*} and \vn{%}. For example:
 \begin{example}
@@ -682,7 +724,7 @@ are:
   "abs_min"
 \end{example}
 See Chapter~\ref{c:opti} on optimization for more
-details.\vn{default_bpm_noise} gives the RMS noise on \vn{bpm} data
+details.\vni{default_bpm_noise} gives the RMS noise on \vn{bpm} data
 types. All other data types ignore this parameter.
 
 \vn{n_d1_data} defines how many \vn{d1_data} structures are associated
@@ -827,8 +869,9 @@ Where \vn{<key>} is the \bmad \textit{key} attribute. For example:
 \end{example}
 will search for all monitor elements in the lattice.
 
-If \vn{data(j)%data_type} is not given, and \vn{default_data_type} is
-not specified, then the \vn{d2_data} name and the \vn{d1_data} name
+\index{data!data_type}
+If \vn{data(j)%data_type} is not given, and \vni{default_data_type} is
+not specified, then the \vni{d2_data} name and the \vni{d1_data} name
 are combined for each datum to form the datum's \vn{type}. Certain
 types are recognized by \tao. These are given by
 Table~\ref{t:con_type}. Custom data types not specified in this table
@@ -836,10 +879,11 @@ must have a corresponding definition in
 \vn{tao_hook_load_data_array.f90}. See
 Chapter~\ref{c:prog_customizing} for details.
 
+\index{data%weight}
 \vn{data(:)%weight} gives the weight coefficient for a variable in the
 merit function. If not present then the default weight of
-\vn{default_weight} is used. \vn{bpm_noise} gives the RMS bpm noise on this bpm.
-If not present then \vn{default_bpm_noise} is used.
+\vni{default_weight} is used. \vn{bpm_noise} gives the RMS bpm noise on
+this bpm.  If not present then \vn{default_bpm_noise} is used.
 
 %-----------------------------------------------------------------
 \section{Initializing Plotting}\index{Initialization!Plotting}
@@ -1006,6 +1050,14 @@ each one needs a \vn{tao_template_graph} namelist to define it. These
 namelists should be placed directly after their respective
 \vn{tao_teamplate_graph} namelists. The general format of the
 \vn{tao_template_graph} namelist is:
+\index{tao_template_graph}\index{graph!y}\index{curve!name}
+\index{graph_index}\index{graph}\index{graph!name}\index{curve}
+\index{graph!type}\index{graph!box}\index{graph!title}\index{graph!margin}
+\index{graph!y2}\index{graph!n_curve}\index{graph!clip}\index{graph!who}
+\index{curve!data_type}\index{curve!data_source}\index{curve!units_factor}
+\index{curve!use_y2}\index{curve!line}\index{curve!ele2_name}
+\index{curve!draw_line}\index{curve!draw_symbols}\index{curve!ix_universe}
+\index{curve!symbol}\index{curve!symbol_every}\index{curve!convert}
 \begin{example}
   &tao_template_graph
     graph_index           = <number>
@@ -1065,11 +1117,7 @@ curve. Thus, in the example above, the name of the curve defaults to
 \vn{graph%who(i)} sets what is plotted by default. For example, if
 \vn{graph%who(i) = model - design} then by default the graph will show
 the \vn{model} value. Possibilities are:
-\index{model}
-\index{design}
-\index{base}
-\index{meas}
-\index{ref}
+\index{model}\index{design}\index{base}\index{meas}\index{ref}
 \begin{example}
   "model"     ! model values.
   "design"    ! design values.
@@ -1081,10 +1129,7 @@ If nothing is specified, the default is to plot \vn{model}.
 
 \vn{graph%type} is the type of graph. \tao knows about the
 following types:
-\index{data}
-\index{lat_layout}
-\index{key_table}
-\index{phase_space}
+\index{data}\index{lat_layout}\index{key_table}\index{phase_space}
 \begin{example}
   "data"         ! Data plots (default) 
   "lat_layout"   ! Schematic showing placement of the lattice elements.
@@ -1098,9 +1143,8 @@ documentation in the \bmad reference manual. In the above example the
 graph divides the region into two vertically stacked boxes and places
 itself into the bottom one. 
 
-\index{data_array}
-\index{var_array}
-\index{lat_layout}
+\index{data_array}\index{var_array}\index{lat_layout}
+\index{curve!data_source}
 The \vn{curve} structure is used to define the number and types of
 curves to plot in each graph. \vn{curve%data_source} is the type of
 information for the source of the data points. There are the following
@@ -1111,6 +1155,7 @@ types of data sources:
   "lat_layout"   ! the lattice is the source.
 \end{example}
 
+\index{curve!data_source}
 For a curve with the \vn{curve%data_source} set to \vn{"data_array"} the
 possible \vn{curve%data_type} values are the same as the possible
 \vn{d1_data%type} values as given in \sref{s:data_types}. If the
@@ -1120,12 +1165,7 @@ what points the curve to the proper data so there needs to be a
 corresponding data or var type defined in the initialization file.  If
 \vn{graph%type} is \vn{"phase_space"} then \vn{curve%data_source}
 determines what planes are plotted. A plane is either:
-\index{x}
-\index{p_x}
-\index{y}
-\index{p_y}
-\index{z}
-\index{p_z}
+\index{x}\index{p_x}\index{y}\index{p_y}\index{z}\index{p_z}
 \begin{example}
   "x"
   "p_x"
@@ -1158,21 +1198,11 @@ is determined by \vn{curve%line}
 A lattice layout template plot may be defined that draws the lattice
 along a straight line with figures for the various elements.
 The \vn{tao_template_plot} needed to define a lattice layout looks like:
-\index{tao_template_plot}
-\index{plot!name}
-\index{plot!box_layout}
-\index{plot!x!min}
-\index{plot!x!max}
-\index{plot!n_graph}
-\index{tao_template_graph}
-\index{graph_index}
-\index{graph!name}
-\index{graph!type}
-\index{graph!title}
-\index{graph!box}
-\index{graph!ix_universe}
-\index{graph!margin}
-\index{graph!n_curve}
+\index{tao_template_plot}\index{plot!name}\index{plot!box_layout}
+\index{plot!x!min}\index{plot!x!max}\index{plot!n_graph}
+\index{tao_template_graph}\index{graph_index}\index{graph!name}
+\index{graph!type}\index{graph!title}\index{graph!box}
+\index{graph!ix_universe}\index{graph!margin}\index{graph!n_curve}
 \begin{example}
   &tao_template_plot
     plot%name        = "<plot_name>"
@@ -1241,23 +1271,15 @@ all quadrupoles whose name begins with ``Q'' and \vn{shape(2)} will
 match all quadrupoles. If an element matches more than one shape the
 first shape matched will be used. \vn{<shape>} is the shape of the
 figure drawn. Valid Shapes are:
-\index{BOX}
-\index{XBOX}
+\index{box}\index{xbox}
 \begin{example}
   "BOX"           -- Rectangular box
   "XBOX"          -- Rectangular box with an x through it.
 \end{example}
 
 \vn{<color>} is the color of the shape. Good colors to use are:
-\index{BLACK}
-\index{RED}
-\index{ORANGE}
-\index{MAGENTA}
-\index{YELLOW}
-\index{GREEN}
-\index{CYAN}
-\index{BLUE}
-\index{PURPLE}
+\index{black}\index{Red}\index{orange}\index{magenta}\index{yellow}
+\index{green}\index{cyan}\index{blue}\index{purple}
 \begin{example}
   "BLACK"
   "RED"

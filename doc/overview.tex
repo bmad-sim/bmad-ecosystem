@@ -277,18 +277,23 @@ called a \vn{key table}.
 %------------------------------------------------------------------------
 \section{Tracking Types}\index{Tracking!Types}
 
+\index{track_type}
+\index{tao_global_struct}
 The are three types of tracking implemented in \tao: single particle
 tracking, many particle multi-bunch tracking and macroparticle
-multi-bunch tracking.  Single particle tracking is just that, the
+multi-bunch tracking. Single particle tracking is just that, the
 tracking of a single particle through the lattice. Many particle
 multi-bunch tracking creates a gaussian distribution of particles at
-the beginning of the lattice and tracks each particle trhbough the
+the beginning of the lattice and tracks each particle through the
 lattice, including any wakefields. Macroparticle tracking takes a beam
 distribution and tracks the centroids and sigmas of the
 ``macro-particles'' through the lattice, including any wakefields.
-Single particle tracking is used by default. See
-Section~\ref{s:beam_init}~or~\ref{s:macro_init} for details on setting
-up particle bunch and macroparticle bunch tracking.
+Single particle tracking is used by default. The
+\vn{global%track_type} parameter, which is set in the \vn{tao_params}
+namelist input, is used to set the tracking set the
+\vn{tao_global_struct} (see \sref{s:globals}) sets the tracking
+method. See \sref{s:beam_init}~or~\sref{s:macro_init} for details on
+setting up particle bunch and macroparticle bunch tracking.
 
 %------------------------------------------------------------------------
 \section{Lattice Calculation}\index{Lattice!calculation of}
