@@ -169,15 +169,18 @@ When the $a_n$ and $b_n$ are associated with a physical element (as
 opposed to the $a_n$ and $b_n$ associated with an \vn{AB_Multipole} element),
 a measurement radius $r_0$ and a scale factor $F$ are used to scale
 the $a_n$ and $b_n$ according to the formula
-\begin{align}
-  a_n &\rightarrow 
-        a_n \cdot F \cdot \frac{r_0^{n_\text{ref}}}{r_0^n} \nonumber \\
-  b_n &\rightarrow 
-        b_n \cdot F \cdot \frac{r_0^{n_\text{ref}}}{r_0^n}
-\end{align}
-where $r_0$ is set by the \vn{radius} attribute of an element. $F$ and
-$n_\text{ref}$ are set automatically depending upon the type of
-element as shown in Table~\ref{t:ab}.
+\Begineq
+  \bigl[ a_n (\text{actual}), b_n (\text{actual}) \bigr] &=
+  \bigl[ a_n (\text{input}), b_n (\text{input}) \bigr] 
+  \cdot F \cdot \frac{r_0^{n_\text{ref}}}{r_0^n} 
+  \label{ababf}
+\Endeq
+$a_n(\text{input})$ and $b_n(\text{input})$ are the multipole values as given in the
+lattice file. $a_n(\text{actual})$ and $b_n(\text{actual})$ are the multipole values
+that are used in any simulation calculations. $r_0$ is set by the
+\vn{radius} attribute of an element. $F$ and $n_\text{ref}$ are set
+automatically depending upon the type of element as shown in
+Table~\ref{t:ab}.
 
 \index{AB_Multipole}
 \index{Multipole}
@@ -716,6 +719,7 @@ the laboratory frame via
     {\bf a} = \bfV\inv \, {\bf x}
     . \label{avx}
   \Endeq 
+\index{Dispersion}
 In particular the normal mode dispersion $\bfeta_a = (\eta_a,
 \eta'_a, \eta_b, \eta'_b)$ is related to the laboratory frame
 dispersion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
@@ -749,6 +753,7 @@ at some point $s = s_1$, the sigma matrix at a different point $s_2$ is
 where $\Bf M_{21}$ is the Jacobian of the transport map between points
 $s_1$ and $s_2$.
 
+\index{dispersion}
 The Twiss parameters can be calculated from the sigma matrix. The
 dispersion is given by
 \begin{align}
@@ -1084,6 +1089,7 @@ coupling between the horizontal and vertical
 planes\cite{b:helm,b:jowett}.  With coupling the equations need to be
 generalized.
 
+\index{dispersion}
 In the general case the curvature function $\Bf G = (G_x, G_y)$, which
 points away from the center of curvature of the particle's orbit (see
 Figure~\ref{f:local_coords}), does not lie in the horizontal
@@ -1111,10 +1117,11 @@ where $\calh_a$ is
     \calh_a = \gamma_a \, \eta_a^2 + 2 \, \alpha_a \, \eta_a \, \eta_a' + 
       \beta_a \eta_a'^2 
   \Endeq
+\index{dispersion}
 with a similar equation for $\calh_b$. Here $\bfeta\two_a =
 (\eta_{ax}, \eta_{ay})$, and $\bfeta\two_b = (\eta_{bx}, \eta_{by})$
 are the dispersion vectors for the $a$ and $b$ modes respectively in
-$x--y$ space (these 2--vectors are not to be confused with the
+$x$--$y$ space (these 2--vectors are not to be confused with the
 dispersion 4--vectors used in the previous section). The position
 dependence of the curvature function is:
   \Begineqs
