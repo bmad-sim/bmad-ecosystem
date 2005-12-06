@@ -146,6 +146,7 @@ close (iu)
 
 if (ios == 0) then
   s%global = global
+  if (trim(who) .eq. 'track_type') s%global%lattice_recalc = .true.
 else
   call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
 endif

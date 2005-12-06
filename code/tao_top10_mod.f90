@@ -89,15 +89,15 @@ a_max = max(1.1, maxval(abs(top_delta(:)%value)))
 n = max(0, 6 - int(log10(a_max)))
 
 write (fmt, '(a, i1, a)') &
-   '((1x, a10, i5, f11.1, 3x), (a8, i5, 1pe12.3, 3x), (a8, i5, 0pf11.', n, '))'
+   '((1x, a20, i5, f11.1, 3x), (a10, i5, 1pe12.3, 3x), (a10, i5, 0pf11.', n, '))'
 
 
 nl = 0
 lines(nl+1) = ' '
 lines(nl+2) = &
-  '       Top10 merit          |     Top10 derivative      |      Top10 delta'
+  '       Top10 merit                    |      Top10 derivative       |       Top10 delta'
 lines(nl+3) = &
-  ' Name         ix      Value | Name       ix  Derivative | Name       ix     delta'
+  ' Name                   ix      Value | Name         ix  Derivative | Name         ix     delta'
 nl = nl + 3
 
 do i = 1, 10

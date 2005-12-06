@@ -3,6 +3,7 @@ module tao_data_mod
 use tao_mod
 use macroparticle_mod
 use macro_utils_mod
+use spin_mod
 
 ! These are data types specific to macroparticles
 
@@ -180,6 +181,7 @@ type (coord_struct) :: orb(0:)
 type (modes_struct) mode
 type (taylor_struct), save :: taylor(6)
 type (taylor_struct), optional :: taylor_in(6)
+type (spin_polar_struct) polar
 
 real(rp) datum_value, mat6(6,6)
 
@@ -601,6 +603,35 @@ case ('sigma:p_z')
     datum_value = u%macro_beam%params%z%p_sigma
   else
     datum_value = 0.0
+  endif
+  
+case ('spin:theta')
+  if (s%global%track_type .eq. "beam") then
+    datum_value = u%beam%params%spin%theta
+  elseif (s%global%track_type .eq. "macro") then
+    datum_value = 0.0
+  else
+    call spinor_to_polar (orb(ix1), polar)
+    datum_value = polar%theta
+  endif
+  
+case ('spin:phi')
+  if (s%global%track_type .eq. "beam") then
+    datum_value = u%beam%params%spin%phi
+  elseif (s%global%track_type .eq. "macro") then
+    datum_value = 0.0
+  else
+    call spinor_to_polar (orb(ix1), polar)
+    datum_value = polar%phi
+  endif
+  
+case ('spin:polarity')
+  if (s%global%track_type .eq. "beam") then
+    datum_value = u%beam%params%spin%polarization
+  elseif (s%global%track_type .eq. "macro") then
+    datum_value = 0.0
+  else
+    datum_value = 1.0
   endif
   
 case default

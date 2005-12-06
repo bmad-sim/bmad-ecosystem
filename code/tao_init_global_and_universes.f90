@@ -23,6 +23,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   use macroparticle_mod
   use bmad_parser_mod
   use random_mod
+  use spin_mod
   
   implicit none
 
@@ -39,6 +40,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   type (beam_init_struct) beam_init
   type (macro_init_struct) macro_init
   type (tao_coupled_uni_input) coupled
+  type (spin_polar_struct) spin
 
   real(rp) :: default_weight        ! default merit function weight
   real(rp) :: default_step          ! default "small" step size
@@ -64,7 +66,8 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   logical, allocatable :: found_one(:), mask(:)
 
 
-  namelist / tao_params / global, n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
+  namelist / tao_params / global, n_data_max, n_var_max, n_d2_data_max, n_v1_var_max, &
+                          spin
   
   namelist / tao_coupled_uni_init / ix_universe, coupled
   
@@ -524,6 +527,7 @@ subroutine init_lattices ()
     allocate (s%u(i)%model_orb(0:n), s%u(i)%design_orb(0:n), s%u(i)%base_orb(0:n))
     ! Specify initial conditions
     s%u(i)%design_orb(0)%vec = 0.0
+    call polar_to_spinor (spin, s%u(i)%design_orb(0))
     call init_ring (s%u(i)%model, s%u(i)%design%n_ele_max)
     call init_ring (s%u(i)%base, s%u(i)%design%n_ele_max)
     s%u(i)%model = s%u(i)%design

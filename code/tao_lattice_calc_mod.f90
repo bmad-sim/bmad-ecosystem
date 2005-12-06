@@ -72,6 +72,9 @@ logical, automatic :: used(size(s%u))
   bmad_com%sr_wakes_on = s%global%sr_wakes_on
   bmad_com%lr_wakes_on = s%global%lr_wakes_on
   
+  ! spin tracking
+  bmad_com%spin_tracking_on = s%global%spin_tracking_on
+  
   ! do a custom lattice calculation if desired
   if (s%global%lattice_recalc) then
     do i = 1, size(s%u)

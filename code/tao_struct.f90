@@ -350,6 +350,7 @@ type tao_global_struct
   logical :: radiation_fluctuations_on = .false.  ! is radiation fluctuations turned on?
   logical :: sr_wakes_on  = .true.                ! Short Range Wakefields
   logical :: lr_wakes_on  = .true.                ! Long Range Wakefields
+  logical :: spin_tracking_on = .true.            ! Do particle spin tracking
   character(16) :: valid_plot_who(10)        ! model, base, ref etc...
   character(40) :: print_command = 'awprint'
   character(80) :: default_init_file = 'tao.init'!used with 'reinitialize' command
