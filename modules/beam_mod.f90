@@ -1,83 +1,80 @@
 module beam_mod
 
-use bmad_struct
-use bmad_interface
 use wake_mod
-use spin_mod
-use random_mod
-
-integer, parameter :: not_lost$ = -1
-
-type particle_struct
-  type (coord_struct) r   ! Center of the particle
-  real(rp) charge         ! charge in a particle (Coul).
-  integer :: ix_z = 0     ! Index for ordering the particles longitudinally.
-                          !   particle(1)%ix_z is index of head particle.
-  integer :: ix_lost = not_lost$  ! When the particle been lost in tracking
-                                  !   ix_lost set to index of element where lost.
-end type
-
-type bunch_struct
-  type (particle_struct), pointer :: particle(:) => null()
-  real(rp) charge   ! total charge in a bunch (Coul).
-  real(rp) s_center ! longitudinal center of bunch (m).
-end type
-
-type beam_struct
-  type (bunch_struct), pointer :: bunch(:) => null()
-end type
-
-type beam_spin_struct
-  real(rp) :: polarization = 1.0 ! i.e. 80% polarized
-  real(rp) :: theta = 0.0  ! polar coordinates
-  real(rp) :: phi = 0.0    ! polar coordinates
-end type
-
-type beam_init_struct
-  real(rp) a_norm_emitt     ! a-mode emittance
-  real(rp) b_norm_emitt     ! b-mode emittance
-  real(rp) :: dPz_dz = 0    ! Correlation of Pz with long position.
-  real(rp) :: center(6) = 0 ! Bench center offset relative to reference.
-  real(rp) ds_bunch         ! Distance between bunches.
-  real(rp) sig_z            ! Z sigma in m.
-  real(rp) sig_e            ! e_sigma in dE/E.
-  real(rp) bunch_charge     ! charge in a bunch.
-  real(rp) :: center_jitter(6) = 0.0 ! Bunch center rms jitter
-  real(rp) :: emitt_jitter(2)  = 0.0 ! a and b bunch emittance rms jitter normalized to emittance
-  real(rp) :: sig_z_jitter     = 0.0 ! bunch length RMS jitter 
-  real(rp) :: sig_e_jitter     = 0.0 ! energy spread RMS jitter 
-  type(beam_spin_struct)  spin       ! Initialize the spin
-  integer n_particle        ! Number of simulated particles per bunch.
-  integer n_bunch           ! Number of bunches.
-  logical :: renorm_center = .true.    ! Renormalize centroid?
-  logical :: renorm_sigma = .true.     ! Renormalize sigma?
-  logical :: preserve_dist = .false.   ! use the same grid distributon each time
-  logical :: init_spin     = .false.   ! initialize beam spinors
-end type
-
-type bunch_param_struct
-  real(rp) beta, alpha, gamma
-  real(rp) eta, etap
-  real(rp) sigma, p_sigma
-  real(rp) dpx_dx ! x x' correlation
-  real(rp) norm_emitt ! normalized emittance
-end type
-
-type bunch_params_struct
-  type (bunch_param_struct) :: x, y, z, a, b
-  type (coord_struct) :: centroid  ! Lab frame
-  type (beam_spin_struct) :: spin  ! polarization
-  integer n_particle               ! all non-lost particles
-end type
+use csr_mod
 
 interface assignment (=)
   module procedure bunch_equal_bunch
   module procedure beam_equal_beam
 end interface
 
-! How close to polarization vector for particle to be polarized?
-real(rp), parameter, private ::  sigma_theta = 1e-3 ! 1 milliradian
-real(rp), parameter, private ::  sigma_phi = 1e-3
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine track1_beam 
+!
+! Subroutine to track a beam of particles through a single element.
+!
+! This routine is an overloaded name for:
+!   track1_beam_lat (beam_start, lat, ix_ele, beam_end)
+!   track1_beam_ele (beam_start, ele, param, beam_end)
+!
+! Note: For the purposes of the wake calculation it is assumed that the
+! bunches are ordered with %bunch(1) being the head bunch (largest s).
+!
+! Note: If longitudinal space charge is on then track1_beam_lat must be used.
+!
+! Modules needed:
+!   use beam_mod
+!
+! Input:
+!   beam_start  -- Beam_struct: Starting beam position.
+!   lat         -- Ring_struct: Lattice containing element to be tracked through.
+!   ix_ele      -- Integer: Index of element to track through.
+!   ele         -- Ele_struct: Element to be tracked through.
+!   param       -- Param_struct: General parameters.
+!
+! Output:
+!   beam_end    -- beam_struct: Ending beam position.
+!-
+
+interface track1_beam
+  module procedure track1_beam_ele
+  module procedure track1_beam_lat
+end interface
+
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine track1_bunch
+!
+! Subroutine to track a bunch of particles through an element.
+!
+! This routine is an overloaded name for:
+!   track1_bunch_lat (beam_start, lat, ix_ele, beam_end)
+!   track1_bunch_ele (beam_start, ele, param, beam_end)
+!
+! Modules needed:
+!   use beam_mod
+!
+! Input:
+!   bunch_start -- bunch_struct: Starting bunch position.
+!   lat         -- Ring_struct: Lattice containing element to be tracked through.
+!   ix_ele      -- Integer: Index of element to track through.
+!   ele         -- Ele_struct: Element to be tracked through.
+!   param       -- Param_struct: General parameters.
+!
+! Output:
+!   bunch_end -- Bunch_struct: Ending bunch position.
+!-
+
+interface track1_bunch
+  module procedure track1_bunch_ele
+  module procedure track1_bunch_lat
+end interface
 
 contains
 
@@ -85,31 +82,31 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track_beam (ring, beam, ix1, ix2)
+! Subroutine track_beam (lat, beam, ix1, ix2)
 !
 ! Subroutine to track a beam of particles from the end of
-! ring%ele_(ix1) Through to the end of ring%ele_(ix2).
+! lat%ele_(ix1) Through to the end of lat%ele_(ix2).
 !
 ! Modules needed:
 !   use beam_mod
 !
 ! Input:
-!   ring   -- Ring_struct: Lattice to track through.
+!   lat    -- Ring_struct: Lattice to track through.
 !   beam   -- Beam_struct: Beam at end of element ix1.
 !   ix1    -- Integer, optional: Index of starting element (this element 
 !               is NOT tracked through). Default is 0.
 !   ix2    -- Integer, optional: Index of ending element.
-!               Default is ring%n_ele_use.
+!               Default is lat%n_ele_use.
 !
 ! Output:
 !   beam   -- beam_struct: Beam at end of element ix2.
 !-
 
-subroutine track_beam (ring, beam, ix1, ix2)
+subroutine track_beam (lat, beam, ix1, ix2)
 
   implicit none
 
-  type (ring_struct) :: ring
+  type (ring_struct) :: lat
   type (beam_struct) :: beam
 
   integer, optional, intent(in) :: ix1, ix2
@@ -119,13 +116,13 @@ subroutine track_beam (ring, beam, ix1, ix2)
 
   i1 = 0
   if (present(ix1)) i1 = ix1
-  i2 = ring%n_ele_use
+  i2 = lat%n_ele_use
   if (present(ix2)) i2 = ix2
 
 ! Loop over all elements in the lattice
 
   do i = i1+1, i2
-    call track1_beam (beam, ring%ele_(i), ring%param, beam)
+    call track1_beam (beam, lat, i, beam)
   enddo
 
 end subroutine track_beam
@@ -134,12 +131,60 @@ end subroutine track_beam
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_beam (beam_start, ele, param, beam_end)
+! Subroutine track1_beam_lat (beam_start, lat, ix_ele, beam_end)
 !
 ! Subroutine to track a beam of particles through a single element.
 !
-! Note: For the purposes of the wake calculation it is assumed that the
-! bunches are ordered with %bunch(1) being the head bunch (largest s).
+! Note: This routine is overloaded by the routine track1_beam. See this
+! routine for more details.
+!
+! Modules needed:
+!   use beam_mod
+!
+! Input:
+!   beam_start  -- Beam_struct: Starting beam position.
+!   lat         -- Ring_struct: Lattice containing element to be tracked through.
+!   ix_ele      -- Integer: Index of element to track through.
+!
+! Output:
+!   beam_end    -- beam_struct: Ending beam position.
+!-
+
+subroutine track1_beam_lat (beam_start, lat, ix_ele, beam_end)
+
+  implicit none
+
+  type (beam_struct) beam_start
+  type (beam_struct) :: beam_end
+  type (ring_struct) :: lat
+
+  integer i, ix_ele, n_mode
+
+! zero the long-range wakes if they exist.
+
+  if (associated(lat%ele_(ix_ele)%wake)) then
+    lat%ele_(ix_ele)%wake%lr%norm_sin = 0; lat%ele_(ix_ele)%wake%lr%norm_cos = 0
+    lat%ele_(ix_ele)%wake%lr%skew_sin = 0; lat%ele_(ix_ele)%wake%lr%skew_cos = 0
+  endif
+
+! loop over all bunches in a beam
+
+  do i = 1, size(beam_start%bunch)
+    call track1_bunch (beam_start%bunch(i), lat, ix_ele, beam_end%bunch(i))
+  enddo
+
+end subroutine track1_beam_lat
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine track1_beam_ele (beam_start, ele, param, beam_end)
+!
+! Subroutine to track a beam of particles through a single element.
+!
+! Note: This routine is overloaded by the routine track1_beam. See this
+! routine for more details.
 !
 ! Modules needed:
 !   use beam_mod
@@ -153,7 +198,7 @@ end subroutine track_beam
 !   beam_end    -- beam_struct: ending beam position.
 !-
 
-subroutine track1_beam (beam_start, ele, param, beam_end)
+subroutine track1_beam_ele (beam_start, ele, param, beam_end)
 
   implicit none
 
@@ -177,15 +222,66 @@ subroutine track1_beam (beam_start, ele, param, beam_end)
     call track1_bunch (beam_start%bunch(i), ele, param, beam_end%bunch(i))
   enddo
 
-end subroutine track1_beam
+end subroutine track1_beam_ele
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
+! Subroutine track1_bunch_lat (bunch_start, lat, ix_ele, bunch_end)
 !
 ! Subroutine to track a bunch of particles through an element.
+!
+! Note: This routine is overloaded by the routine track1_bunch. See this
+! routine for more details.
+!
+! Modules needed:
+!   use beam_mod
+!
+! Input:
+!   bunch_start -- bunch_struct: Starting bunch position.
+!   lat         -- Ring_struct: Lattice containing element to be tracked through.
+!   ix_ele      -- Integer: Index of element to track through.
+!
+! Output:
+!   bunch_end -- Bunch_struct: Ending bunch position.
+!-
+
+subroutine track1_bunch_lat (bunch_start, lat, ix_ele, bunch_end)
+
+  implicit none
+
+  type (bunch_struct) bunch_start, bunch_end
+  type (ring_struct), target :: lat
+  type (ele_struct), pointer :: ele
+  type (ele_struct), save :: rf_ele
+
+  real(rp) charge
+  integer i, j, n, ix_ele
+
+!------------------------------------------------
+! space charge tracking will also include wakes if they are on too.
+
+  if (bmad_com%coherent_synch_rad_on) then
+    call track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end)
+
+  else
+    call track1_bunch_ele (bunch_start, lat%ele_(ix_ele), lat%param, bunch_end)
+
+  endif
+
+end subroutine track1_bunch_lat
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine track1_bunch_ele (bunch_start, ele, param, bunch_end)
+!
+! Subroutine to track a bunch of particles through an element.
+!
+! Note: This routine is overloaded by the routine track1_bunch. See this
+! routine for more details.
 !
 ! Modules needed:
 !   use beam_mod
@@ -199,7 +295,8 @@ end subroutine track1_beam
 !   bunch_end -- Bunch_struct: Ending bunch position.
 !-
 
-Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
+subroutine track1_bunch_ele (bunch_start, ele, param, bunch_end)
+
 
   implicit none
 
@@ -211,20 +308,33 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
   real(rp) charge
   integer i, j, n
 
+  character(20) :: r_name = 'track1_bunch_ele'
+
+! It is not possible to calculate space charge from this
+
+  if (bmad_com%coherent_synch_rad_on) then
+    call out_io (s_abort$, r_name, 'CANNOT COMPUTE CSR WITHOUT ENTIRE LATTICE!')
+    call err_exit
+  endif
+
 ! Charge and center
 
   bunch_end%s_center = bunch_start%s_center
   bunch_end%charge   = bunch_start%charge
 
 !------------------------------------------------
-! Without wakefields just track through
+! Without wakefields just track through.
 
   if (ele%key /= lcavity$ .or. .not. associated(ele%wake) .or. &
             (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
+
     do j = 1, size(bunch_start%particle)
       call track1_particle (bunch_start%particle(j), &
                                       ele, param, bunch_end%particle(j))
     enddo
+
+
+
     bunch_end%charge = sum (bunch_end%particle(:)%charge, &
                       mask = (bunch_end%particle(:)%ix_lost == not_lost$))
     return
@@ -275,7 +385,7 @@ Subroutine track1_bunch (bunch_start, ele, param, bunch_end)
   bunch_end%charge = sum (bunch_end%particle(:)%charge, &
                          mask = (bunch_end%particle(:)%ix_lost == not_lost$))
 
-end subroutine track1_bunch
+end subroutine track1_bunch_ele
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -461,53 +571,6 @@ subroutine track1_lr_wake (bunch, ele)
     if (particle%ix_lost /= not_lost$) cycle
     call lr_wake_add_to (ele, bunch%s_center, particle%r, particle%charge)
   enddo
-
-
-end subroutine
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine track1_particle (start, ele, param, end)
-!
-! Subroutine to track a particle through an element.
-!
-! Modules needed:
-!   use beam_mod
-!
-! Input:
-!   start  -- struct: Starting coords.
-!   ele    -- Ele_struct: Element to track through.
-!   param  -- Param_struct: Global parameters.
-!
-! Output:
-!   end    -- struct: Ending coords.
-!-
-
-subroutine track1_particle (start, ele, param, end)
-
-  implicit none
-
-  type (particle_struct) :: start
-  type (particle_struct) :: end
-  type (ele_struct) :: ele
-  type (param_struct), intent(inout) :: param
-
-! transfer z-order index, charge, etc
-
-  end = start
-  if (start%ix_lost /= not_lost$) return
-  if (ele%key == marker$) return
-
-  call track1 (start%r, ele, param, end%r)
-  if (param%lost) end%ix_lost = ele%ix_ele
-
-  if (end%ix_lost /= not_lost$) then
-    end%r%vec = 0
-    end%charge = 0
-    return
-  endif
 
 end subroutine
 
@@ -760,22 +823,17 @@ end subroutine
 ! The closed orbit will shift if, for example, radiation damping is
 ! turned on.
 !
+! Modules needed:
+!   use random_mod
+!   use bmad
+!
 ! Input:
 !   ele         -- Ele_struct: element to initialize distribution at
 !   beam_init   -- beam_init_struct
 !     %renorm_center -- Logical: If True then distribution is rescaled to
-!                    the desired centroid (to take care of
-!                    possible statistical errors in distribution).
-!                    (default is True)
+!                   the desired centroid (to take care of
+!                   possible statistical errors in distribution).
 !     %renorm_sigma  -- Logical: If True then rescale the distribution to the desired sigmas.
-!                    (default is True)
-!     %preserve_dist -- Logical: If True then if first call to routine the
-!                    distribution is saved. Each next call to routine will just 
-!                    load this same distribution
-!                    (default is False)
-!     %init_spin     -- Logical: If True then the particle spinors will be
-!                    initialized with the parameters in beam_init%spin
-!                    (default is False)
 !
 ! Output:
 !   beam        -- beam_struct
@@ -784,6 +842,9 @@ end subroutine
  
 subroutine init_beam_distribution (ele, beam_init, beam)
  
+  use random_mod
+  use bmad
+  
   implicit none
 
   type (ele_struct) ele
@@ -800,47 +861,26 @@ subroutine init_beam_distribution (ele, beam_init, beam)
   real(rp) y, alpha(6), sig_mat(6,6)
   real(rp) center(6) ! includes jitter
   real(rp) ran(6)
-  real(rp), save, allocatable :: ran_save(:,:)
 
   integer i, j, j2, n
   
   character(22) :: r_name = "init_beam_distribution"
-
-  logical, save :: init = .true.
 
 ! Generate a set of random numbers.
 
   call reallocate_beam (beam, beam_init%n_bunch, beam_init%n_particle)
   bunch => beam%bunch(1)
  
-! if preserve_dist and first call to routine then make a distribution
-  if (beam_init%preserve_dist) then
-    if (init) then
-      if (allocated(ran_save)) deallocate(ran_save)
-      allocate (ran_save(beam_init%n_particle,6))
-    endif
-  endif
-
-  
   sig_mat = 0
   ave = 0
   do n = 1, beam_init%n_particle
     p => bunch%particle(n)
-    if (beam_init%preserve_dist .and. init) then
-      call ran_gauss(r)
-      ran_save(n,:) = r
-    elseif (beam_init%preserve_dist .and. .not. init) then
-      r = ran_save(n,:)
-    else
-      call ran_gauss(r)
-    endif
+    call ran_gauss(r)
     p%r%vec = r
     ave = ave + r
     forall (i=1:6, j=1:6) sig_mat(i,j) = sig_mat(i,j) + r(i) * r(j)
   enddo  
 
-  if (beam_init%preserve_dist .and. init) init = .false.
-      
   ave = ave / beam_init%n_particle
   sig_mat = sig_mat / beam_init%n_particle
 
@@ -984,9 +1024,6 @@ subroutine init_beam_distribution (ele, beam_init, beam)
   bunch%particle(:)%charge = beam_init%bunch_charge / beam_init%n_particle
   bunch%particle(:)%ix_lost = not_lost$
     
-! particle spin
-  call init_spin_distribution (beam_init, bunch)
-  
 ! init all bunches
   
   bunch%s_center = 0.0
@@ -999,57 +1036,22 @@ subroutine init_beam_distribution (ele, beam_init, beam)
 end subroutine init_beam_distribution
 
 !--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine init_spin_distribution (beam_init, bunch)
+! This is the inverse 2 dimensional gaussian in action angle coords integrated
+! out to x, that is to say:
 !
-! Initializes a spin distribution according to init_beam%spin
-!
-! Input:
-!  beam_init -- (beam_init_struct): 
-!           %spin  -- (spin_init_struct): spin parameters
-!
-! Output:
-!  bunch          -- (bunch_struct)
-!-
 
-subroutine init_spin_distribution (beam_init, bunch)
+function epsilon_funct(x)
 
-implicit none
+  use precision_def
 
-type (beam_init_struct) beam_init
-type (bunch_struct) bunch
-type (spin_polar_struct) :: polar
+  implicit none
 
-real(rp) :: rang, ranl, sigma, vec(3), polarizationvec(3)
+  real(rp) epsilon_funct, x
 
-integer i
+  epsilon_funct =  1.0 - (2.0 + x) / 2.0  * exp(-x / 2.0)
 
-  polar%xi = 0.0 ! spinor phase is zero
-
-  sigma = acos(beam_init%spin%polarization)
-
-  if (beam_init%spin%polarization .ne. 1.0) then
-    call out_io (s_error$, "init_spin_distribution", &
-        "Right now, will only set 100% polarization")
-  endif
-  
-  do i = 1, size(bunch%particle)
-    ! First set up aroun theta = 0
-!   call ran_gauss (rang)
-!   call ran_uniform (ranl)
-!   polar%theta = sigma * rang
-!   polar%phi = 2.0 * pi * ranl
-
-    polar%theta = beam_init%spin%theta
-    polar%phi = beam_init%spin%phi
-
-    call polar_to_spinor (polar, bunch%particle(i)%r)
-  enddo
-
-end subroutine init_spin_distribution
-
+end function
+ 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -1084,8 +1086,6 @@ end subroutine init_spin_distribution
 !     %b%sigma; %b%p_sigma
 !     %b%emitt; %b%dpx_dx
 !     %centroid
-!     %n_particle ! # particle not lost
-!     %spin
 !-
 
 subroutine calc_bunch_params (bunch, ele, params)
@@ -1118,13 +1118,8 @@ subroutine calc_bunch_params (bunch, ele, params)
   endif
   
   do i = 1, 6
-    if (i .eq. 2 .or. i .eq. 4) then
-      params%centroid%vec(i) = sum(bunch%particle%r%vec(i) / (1 + bunch%particle%r%vec(6)), &
+    params%centroid%vec(i) = sum(bunch%particle%r%vec(i), &
                               mask = (bunch%particle%ix_lost == not_lost$))
-    else
-      params%centroid%vec(i) = sum(bunch%particle%r%vec(i), &
-                              mask = (bunch%particle%ix_lost == not_lost$))
-   endif
   enddo
   
   params%centroid%vec = params%centroid%vec / params%n_particle
@@ -1145,15 +1140,13 @@ subroutine calc_bunch_params (bunch, ele, params)
   
   ! Projected Parameters
   ! X
-  call find_expectations (bunch, bunch%particle(:)%r%vec(1), &
-                          bunch%particle(:)%r%vec(2) / (1 + bunch%particle(:)%r%vec(6)), &
+  call find_expectations (bunch, bunch%particle(:)%r%vec(1), bunch%particle(:)%r%vec(2), &
                           exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d, .false.)
 
   call param_stuffit (params%x, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
      
   ! Y
-  call find_expectations (bunch, bunch%particle(:)%r%vec(3), &
-                          bunch%particle(:)%r%vec(4) / (1 + bunch%particle(:)%r%vec(6)), &
+  call find_expectations (bunch, bunch%particle(:)%r%vec(3), bunch%particle(:)%r%vec(4), &
                           exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d, .false.)
 
   call param_stuffit (params%y, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
@@ -1191,7 +1184,6 @@ subroutine calc_bunch_params (bunch, ele, params)
 
   call param_stuffit (params%b, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
      
-  if (bmad_com%spin_tracking_on) call calc_spin_params ()
   
 contains
 !----------------------------------------------------------------------
@@ -1294,52 +1286,6 @@ subroutine param_stuffit (param, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
   param%dpx_dx = exp_x_p_x / exp_x2
 
 end subroutine param_stuffit
-
-!----------------------------------------------------------------------
-! contains
-
-subroutine calc_spin_params ()
-
-implicit none
-
-type (spin_polar_struct) polar, ave_polar
-
-real(rp) angle
-
-! polarization vector
-
-  params%spin%theta = 0.0
-  params%spin%phi   = 0.0
-
-  do i = 1, size(bunch%particle)
-    if (bunch%particle(i)%ix_lost .ne. not_lost$) cycle
-    call spinor_to_polar (bunch%particle(i)%r, polar)
-    params%spin%theta = params%spin%theta + polar%theta 
-    params%spin%phi = params%spin%phi + polar%phi
-  enddo
-
-  params%spin%theta = params%spin%theta / params%n_particle
-  params%spin%phi = params%spin%phi / params%n_particle
-
-  ave_polar%xi = 0.0
-  ave_polar%theta = params%spin%theta
-  ave_polar%phi = params%spin%phi
-  
-! polarization
-
-  params%spin%polarization = 0.0
-
-  
-  do i = 1, size(bunch%particle)
-    if (bunch%particle(i)%ix_lost .ne. not_lost$) cycle
-    call spinor_to_polar (bunch%particle(i)%r, polar)
-    params%spin%polarization = params%spin%polarization + &
-               cos(angle_between_polars (polar, ave_polar))
-  enddo
-
-  params%spin%polarization = params%spin%polarization / params%n_particle
-    
-end subroutine calc_spin_params
 
 end subroutine calc_bunch_params
   

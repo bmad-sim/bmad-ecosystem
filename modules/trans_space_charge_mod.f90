@@ -1,12 +1,12 @@
 #include "CESR_platform.inc"
 
-module space_charge_mod
+module trans_space_charge_mod
 
 use bmad_struct
 use bmad_interface
 use make_mat6_mod
 
-type space_charge_struct
+type trans_space_charge_struct
   type (coord_struct) closed_orb
   real(rp) kick_const
   real(rp) sig_x
@@ -17,14 +17,14 @@ type space_charge_struct
   real(rp) sig_z
 endtype    
 
-type space_charge_common_struct
-  type (space_charge_struct), allocatable :: v(:)
+type trans_space_charge_common_struct
+  type (trans_space_charge_struct), allocatable :: v(:)
 end type
 
 ! sc_com%v(i) holds the parameters for the space_charge calculation
 ! at lattice element i.
 
-type (space_charge_common_struct), save, private, target :: sc_com
+type (trans_space_charge_common_struct), save, private, target :: trans_sc_com
 
 contains
 
@@ -32,17 +32,17 @@ contains
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine setup_space_charge_calc (calc_on, lattice, mode, closed_orb)
+! Subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
 !
-! Subroutine to initialize constants needed by the space charge 
+! Subroutine to initialize constants needed by the transverse space charge 
 ! tracking routine track1_space_charge. This routine must be called if 
 ! the lattice or any of the other input parameters are changed.
 !
 ! Modules needed:
-!   use space_charge_mod
+!   use trans_space_charge_mod
 !
 ! Input:
-!   calc_on    -- Logical: True turns on the space_charge calculation.
+!   calc_on    -- Logical: True turns on the space charge calculation.
 !   lattice    -- Ring_struct: Lattice for tracking.
 !     %param%n_part -- Number of particles in a bunch
 !   mode       -- modes_struct: Structure holding the beam info.
@@ -54,14 +54,14 @@ contains
 !                       the closed orbit is taken to be zero. 
 !-
 
-subroutine setup_space_charge_calc (calc_on, lattice, mode, closed_orb)
+subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
 
   implicit none
 
   type (ring_struct), target :: lattice
   type (coord_struct), optional :: closed_orb(0:)
   type (modes_struct) mode
-  type (space_charge_struct), pointer :: v
+  type (trans_space_charge_struct), pointer :: v
   type (ele_struct), pointer :: ele
   type (twiss_struct) a, b
 
@@ -73,16 +73,16 @@ subroutine setup_space_charge_calc (calc_on, lattice, mode, closed_orb)
 
 ! Transfer some data to the common block for later use
 
-  bmad_com%space_charge_on = calc_on
+  bmad_com%trans_space_charge_on = calc_on
 
 ! Allocate space in the common block.
 
   n_use = lattice%n_ele_use
   m = 0
-  if (allocated(sc_com%v)) m = size(sc_com%v)
+  if (allocated(trans_sc_com%v)) m = size(trans_sc_com%v)
   if (m /= n_use) then
-    if (allocated(sc_com%v)) deallocate(sc_com%v)
-    allocate (sc_com%v(n_use))
+    if (allocated(trans_sc_com%v)) deallocate(trans_sc_com%v)
+    allocate (trans_sc_com%v(n_use))
   endif
 
 !------------------------------
@@ -91,7 +91,7 @@ subroutine setup_space_charge_calc (calc_on, lattice, mode, closed_orb)
   do i = 1, n_use
 
     ele => lattice%ele_(i)
-    v => sc_com%v(i)
+    v => trans_sc_com%v(i)
 
     v%sig_z = mode%sig_z
 
@@ -154,7 +154,7 @@ subroutine setup_space_charge_calc (calc_on, lattice, mode, closed_orb)
 !   "Space Charge Problems in the TESLA Damping Ring"
 !   EPAC 2000, Vienna.
 ! The extra factor of 4pi comes from the normalization of 
-!   the bbi_kick routine used in track1_space_charge.
+!   the bbi_kick routine used in track1_trans_space_charge.
 
     g3 = (ele%value(p0c$) / mass_of(lattice%param%particle))**3
     v%kick_const = length * r_e *  lattice%param%n_part / &
@@ -168,16 +168,16 @@ end subroutine
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine track1_space_charge (start, ele, param, end)
+! Subroutine track1_trans_space_charge (start, ele, param, end)
 !
 ! Routine to apply the space charge kick to a particle at the end of 
-! an element. The routine setup_space_charge_calc must be called
+! an element. The routine setup_trans_space_charge_calc must be called
 ! initially before any tracking is done. This routine assumes a Gaussian 
 ! bunch and is only valid with relativistic particles where the effect
 ! of the space charge is small.
 !
 ! Modules needed:
-!   use space_charge_mod
+!   use trans_space_charge_mod
 !
 ! Input:
 !   start  -- Coord_struct: Starting position
@@ -188,7 +188,7 @@ end subroutine
 !   end   -- Coord_struct: End position
 !-
 
-subroutine track1_space_charge (start, ele, param, end)
+subroutine track1_trans_space_charge (start, ele, param, end)
 
   implicit none
 
@@ -196,7 +196,7 @@ subroutine track1_space_charge (start, ele, param, end)
   type (coord_struct), intent(out) :: end
   type (ele_struct),   intent(inout)  :: ele
   type (param_struct), intent(inout) :: param
-  type (space_charge_struct), pointer :: v
+  type (trans_space_charge_struct), pointer :: v
 
   real(rp) x, y, x_rel, y_rel, kx_rot, ky_rot
   real(rp) kx, ky, kick_const
@@ -204,7 +204,7 @@ subroutine track1_space_charge (start, ele, param, end)
 ! Init
 
   end = start
-  v => sc_com%v(ele%ix_ele)
+  v => trans_sc_com%v(ele%ix_ele)
 
 ! Rotate into frame where beam is not tilted.
 
@@ -234,16 +234,16 @@ end subroutine
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine make_mat6_space_charge (ele, param)
+! Subroutine make_mat6_trans_space_charge (ele, param)
 !
 ! Routine to add the space charge kick to the element transfer matrix.
-! The routine setup_space_charge_calc must be called
+! The routine setup_trans_space_charge_calc must be called
 ! initially before any tracking is done. This routine assumes a Gaussian 
 ! bunch and is only valid with relativistic particles where the effect
 ! of the space charge is small.
 !
 ! Modules needed:
-!   use space_charge_mod
+!   use trans_space_charge_mod
 !
 ! Input:
 !   start  -- Coord_struct: Starting position
@@ -254,20 +254,20 @@ end subroutine
 !   end   -- Coord_struct: End position
 !-
 
-subroutine make_mat6_space_charge (ele, param)
+subroutine make_mat6_trans_space_charge (ele, param)
 
   implicit none
 
   type (ele_struct),   intent(inout)  :: ele
   type (param_struct), intent(inout) :: param
-  type (space_charge_struct), pointer :: v
+  type (trans_space_charge_struct), pointer :: v
 
   real(rp) kx_rot, ky_rot, kick_const, sc_kick_mat(6,6)
 
 ! Setup the space charge kick matrix and concatenate it with the 
 ! existing element transfer matrix.
 
-  v => sc_com%v(ele%ix_ele)
+  v => trans_sc_com%v(ele%ix_ele)
 
   call mat_make_unit (sc_kick_mat)
 

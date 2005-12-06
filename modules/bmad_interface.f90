@@ -586,12 +586,12 @@ interface
 end interface
 
 interface
-  subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, track0, chi)
+  subroutine multi_turn_tracking_to_mat (track, i_dim, mat1, map0, track0, chi)
     use bmad_struct, only: rp, coord_struct
     implicit none
     type (coord_struct), intent(in), target :: track(:)
     type (coord_struct), intent(out) :: track0
-    real(rp), intent(out) :: mat1(:,:)
+    real(rp), intent(out) :: mat1(:,:), map0(:)
     real(rp), intent(out) :: chi
     integer, intent(in) :: i_dim
   end subroutine

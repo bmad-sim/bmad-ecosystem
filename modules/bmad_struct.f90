@@ -486,13 +486,13 @@ module bmad_struct
   end type
 
   type linac_mode_struct
-    real(rp) i2_E4        ! Integral: g^2 * gamma^4
-    real(rp) i3_E7        ! Integral: g^3 * gamma^7
-    real(rp) i5a_E6       ! Integral: (g^3 * H_a) * gamma^6
-    real(rp) i5b_E6       ! Integral: (g^3 * H_b) * gamma^6
-    real(rp) sig_E1       ! Energy spread after 1 pass (eV)
-    real(rp) emittance_a  ! a mode emittance at end of linac
-    real(rp) emittance_b  ! b mode emittance at end of linac
+    real(rp) i2_E4            ! Integral: g^2 * gamma^4
+    real(rp) i3_E7            ! Integral: g^3 * gamma^7
+    real(rp) i5a_E6           ! Integral: (g^3 * H_a) * gamma^6
+    real(rp) i5b_E6           ! Integral: (g^3 * H_b) * gamma^6
+    real(rp) sig_E1           ! Energy spread after 1 pass (eV)
+    real(rp) a_emittance_end  ! a mode emittance at end of linac
+    real(rp) b_emittance_end  ! b mode emittance at end of linac
   end type
 
   type modes_struct
@@ -586,17 +586,18 @@ module bmad_struct
     real(rp) :: rel_tollerance = 1e-3
     real(rp) :: abs_tollerance = 1e-6
 #endif
-    integer :: taylor_order = 3              ! 3rd order is default
-    integer :: default_integ_order = 2       ! PTC integration order
-    integer :: default_num_steps = 10        ! Number integration steps
-    logical :: canonical_coords = .true.     ! Use (x, px) [not (x, x')]
-    logical :: use_liar_lcavity = .false.    ! Liar like tracking?
-    logical :: sr_wakes_on = .true.          ! Short range wakefields?
-    logical :: lr_wakes_on = .true.          ! Long range wakefields
-    logical :: mat6_track_symmetric = .true. ! symmetric offsets
-    logical :: auto_bookkeeper = .true.      ! Automatic bookkeeping?
-    logical :: space_charge_on = .false.     ! Space charge kick in tracking.
-    logical :: spin_tracking_on = .false.    ! spin tracking?
+    integer :: taylor_order = 3                ! 3rd order is default
+    integer :: default_integ_order = 2         ! PTC integration order
+    integer :: default_num_steps = 10          ! Number integration steps
+    logical :: canonical_coords = .true.       ! Use (x, px) [not (x, x')]
+    logical :: use_liar_lcavity = .false.      ! Liar like tracking?
+    logical :: sr_wakes_on = .true.            ! Short range wakefields?
+    logical :: lr_wakes_on = .true.            ! Long range wakefields
+    logical :: mat6_track_symmetric = .true.   ! symmetric offsets
+    logical :: auto_bookkeeper = .true.        ! Automatic bookkeeping?
+    logical :: trans_space_charge_on = .false. ! Space charge switch
+    logical :: coherent_synch_rad_on = .false. ! csr 
+    logical :: spin_tracking_on = .false.      ! spin tracking?
     logical :: radiation_damping_on = .false.       ! Damping toggle.
     logical :: radiation_fluctuations_on = .false.  ! Fluctuations toggle.
     logical :: compute_ref_energy = .true.          ! Enable recomputation?
