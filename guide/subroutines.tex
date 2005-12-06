@@ -23,6 +23,7 @@ general interest.
  	Tracking, Closed Orbit                  & \ref{r:track}      \\ \hline
   Macroparticle Tracking                  & \ref{r:macro}      \\ \hline
   Particle Distribution Tracking          & \ref{r:part_dist}  \\ \hline
+  Spin Tracking                           & \ref{r:spin_track} \\ \hline
   Wake Fields                             & \ref{r:wake}       \\ \hline
  	Low Level Tracking Routines             & \ref{r:low_track}  \\ \hline
  	Particle Coordinate Stuff               & \ref{r:coord}      \\ \hline
@@ -590,6 +591,53 @@ Subroutine to track a particle through an element.
 \item[track\_beam (ring, beam, ix1, ix2)] \Newline 
      Subroutine to track a beam of macroparticles from the end of
      ring%ele\_(ix1) Through to the end of ring%ele\_(ix2).
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Spin Tracking}
+\label{r:spin_track}    
+\index{Spin tracking!list of routines}
+
+\begin{description}
+
+\index{Routine!spinor_to_polar}
+\item[spinor\_to\_polar (coord, polar)] \Newline 
+Subroutine to convert a spinor into polar coordinates.
+
+\index{Routine!polar_to_vec}
+\item[polar\_to\_vec (polar, vec)] \Newline
+Subroutine to convert a spin vector from polar coordinates to cartesian coordinates.
+
+\index{Routine!polar_to_spinor}
+\item[polar\_to\_spinor (polar, coord)] \Newline
+Subroutine to convert a spin vector in polar coordinates to a spinor.
+
+\index{Routine!vec_to_polar}
+\item[vec\_to\_polar (vec, polar, phase)] \Newline
+Subroutine to convert a spin vector from cartesian coordinates to polar coordinates 
+preserving the complex phase.
+
+\index{Routine!spinor_to_vec}
+\item[spinor\_to\_vec (coord, vec)] \Newline
+Subroutine to convert a spinor to a spin vector in cartesian coordinates.
+
+\index{Routine!vec_to_spinor}
+\item[vec\_to\_spinor (vec, coord, phase)] \Newline
+Subroutine to convert a spin vector in cartesian coordinates to a spinor using
+the specified complex phase.
+
+\index{Routine!angle_between_polars}
+\item[angle\_between\_polars (polar1, polar2)] \Newline
+Function to return the angle between two spin vectors in polar coordinates.
+
+\index{Routine!quaternion_track}
+\item[quaternion\_track (a, start, end)] \Newline
+Subrotuine to track the spin with the Euler four-vector quaternion a.
+
+\index{Routine!track1_spin}
+\item[track1\_spin (start, ele, param, end)] \Newline
+Subroutine to track the particle spin through one element.
 
 \end{description}
 

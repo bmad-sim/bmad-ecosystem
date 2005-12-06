@@ -33,6 +33,7 @@ module bmad_struct
 
   type coord_struct   ! coordinates at a single point
     real(rp) vec(6)   ! (x, p_x, y, p_y, z, p_z)
+    complex(rp) spin(2) ! particle spin in spinor notation
   end type
 
   type orbit_struct                            ! an entire orbit.
@@ -595,6 +596,7 @@ module bmad_struct
     logical :: mat6_track_symmetric = .true. ! symmetric offsets
     logical :: auto_bookkeeper = .true.      ! Automatic bookkeeping?
     logical :: space_charge_on = .false.     ! Space charge kick in tracking.
+    logical :: spin_tracking_on = .false.    ! spin tracking?
     logical :: radiation_damping_on = .false.       ! Damping toggle.
     logical :: radiation_fluctuations_on = .false.  ! Fluctuations toggle.
     logical :: compute_ref_energy = .true.          ! Enable recomputation?

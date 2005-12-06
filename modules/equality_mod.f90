@@ -27,7 +27,7 @@ logical is_eq
 
 !
 
-is_eq = all(f1%vec == f2%vec)
+is_eq = (all(f1%vec == f2%vec) .and. all(f1%spin == f2%spin))
 
 end function
 

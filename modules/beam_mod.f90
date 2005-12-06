@@ -3,6 +3,8 @@ module beam_mod
 use bmad_struct
 use bmad_interface
 use wake_mod
+use spin_mod
+use random_mod
 
 integer, parameter :: not_lost$ = -1
 
@@ -25,6 +27,12 @@ type beam_struct
   type (bunch_struct), pointer :: bunch(:) => null()
 end type
 
+type beam_spin_struct
+  real(rp) :: polarization = 1.0 ! i.e. 80% polarized
+  real(rp) :: theta = 0.0  ! polar coordinates
+  real(rp) :: phi = 0.0    ! polar coordinates
+end type
+
 type beam_init_struct
   real(rp) a_norm_emitt     ! a-mode emittance
   real(rp) b_norm_emitt     ! b-mode emittance
@@ -38,10 +46,13 @@ type beam_init_struct
   real(rp) :: emitt_jitter(2)  = 0.0 ! a and b bunch emittance rms jitter normalized to emittance
   real(rp) :: sig_z_jitter     = 0.0 ! bunch length RMS jitter 
   real(rp) :: sig_e_jitter     = 0.0 ! energy spread RMS jitter 
+  type(beam_spin_struct)  spin       ! Initialize the spin
   integer n_particle        ! Number of simulated particles per bunch.
   integer n_bunch           ! Number of bunches.
   logical :: renorm_center = .true.    ! Renormalize centroid?
   logical :: renorm_sigma = .true.     ! Renormalize sigma?
+  logical :: preserve_dist = .false.   ! use the same grid distributon each time
+  logical :: init_spin     = .false.   ! initialize beam spinors
 end type
 
 type bunch_param_struct
@@ -55,6 +66,7 @@ end type
 type bunch_params_struct
   type (bunch_param_struct) :: x, y, z, a, b
   type (coord_struct) :: centroid  ! Lab frame
+  type (beam_spin_struct) :: spin  ! polarization
   integer n_particle               ! all non-lost particles
 end type
 
@@ -62,6 +74,10 @@ interface assignment (=)
   module procedure bunch_equal_bunch
   module procedure beam_equal_beam
 end interface
+
+! How close to polarization vector for particle to be polarized?
+real(rp), parameter, private ::  sigma_theta = 1e-3 ! 1 milliradian
+real(rp), parameter, private ::  sigma_phi = 1e-3
 
 contains
 
@@ -744,17 +760,22 @@ end subroutine
 ! The closed orbit will shift if, for example, radiation damping is
 ! turned on.
 !
-! Modules needed:
-!   use random_mod
-!   use bmad
-!
 ! Input:
 !   ele         -- Ele_struct: element to initialize distribution at
 !   beam_init   -- beam_init_struct
 !     %renorm_center -- Logical: If True then distribution is rescaled to
-!                   the desired centroid (to take care of
-!                   possible statistical errors in distribution).
+!                    the desired centroid (to take care of
+!                    possible statistical errors in distribution).
+!                    (default is True)
 !     %renorm_sigma  -- Logical: If True then rescale the distribution to the desired sigmas.
+!                    (default is True)
+!     %preserve_dist -- Logical: If True then if first call to routine the
+!                    distribution is saved. Each next call to routine will just 
+!                    load this same distribution
+!                    (default is False)
+!     %init_spin     -- Logical: If True then the particle spinors will be
+!                    initialized with the parameters in beam_init%spin
+!                    (default is False)
 !
 ! Output:
 !   beam        -- beam_struct
@@ -763,9 +784,6 @@ end subroutine
  
 subroutine init_beam_distribution (ele, beam_init, beam)
  
-  use random_mod
-  use bmad
-  
   implicit none
 
   type (ele_struct) ele
@@ -782,26 +800,47 @@ subroutine init_beam_distribution (ele, beam_init, beam)
   real(rp) y, alpha(6), sig_mat(6,6)
   real(rp) center(6) ! includes jitter
   real(rp) ran(6)
+  real(rp), save, allocatable :: ran_save(:,:)
 
   integer i, j, j2, n
   
   character(22) :: r_name = "init_beam_distribution"
+
+  logical, save :: init = .true.
 
 ! Generate a set of random numbers.
 
   call reallocate_beam (beam, beam_init%n_bunch, beam_init%n_particle)
   bunch => beam%bunch(1)
  
+! if preserve_dist and first call to routine then make a distribution
+  if (beam_init%preserve_dist) then
+    if (init) then
+      if (allocated(ran_save)) deallocate(ran_save)
+      allocate (ran_save(beam_init%n_particle,6))
+    endif
+  endif
+
+  
   sig_mat = 0
   ave = 0
   do n = 1, beam_init%n_particle
     p => bunch%particle(n)
-    call ran_gauss(r)
+    if (beam_init%preserve_dist .and. init) then
+      call ran_gauss(r)
+      ran_save(n,:) = r
+    elseif (beam_init%preserve_dist .and. .not. init) then
+      r = ran_save(n,:)
+    else
+      call ran_gauss(r)
+    endif
     p%r%vec = r
     ave = ave + r
     forall (i=1:6, j=1:6) sig_mat(i,j) = sig_mat(i,j) + r(i) * r(j)
   enddo  
 
+  if (beam_init%preserve_dist .and. init) init = .false.
+      
   ave = ave / beam_init%n_particle
   sig_mat = sig_mat / beam_init%n_particle
 
@@ -945,6 +984,9 @@ subroutine init_beam_distribution (ele, beam_init, beam)
   bunch%particle(:)%charge = beam_init%bunch_charge / beam_init%n_particle
   bunch%particle(:)%ix_lost = not_lost$
     
+! particle spin
+  call init_spin_distribution (beam_init, bunch)
+  
 ! init all bunches
   
   bunch%s_center = 0.0
@@ -957,22 +999,57 @@ subroutine init_beam_distribution (ele, beam_init, beam)
 end subroutine init_beam_distribution
 
 !--------------------------------------------------------------------------
-! This is the inverse 2 dimensional gaussian in action angle coords integrated
-! out to x, that is to say:
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine init_spin_distribution (beam_init, bunch)
 !
+! Initializes a spin distribution according to init_beam%spin
+!
+! Input:
+!  beam_init -- (beam_init_struct): 
+!           %spin  -- (spin_init_struct): spin parameters
+!
+! Output:
+!  bunch          -- (bunch_struct)
+!-
 
-function epsilon_funct(x)
+subroutine init_spin_distribution (beam_init, bunch)
 
-  use precision_def
+implicit none
 
-  implicit none
+type (beam_init_struct) beam_init
+type (bunch_struct) bunch
+type (spin_polar_struct) :: polar
 
-  real(rp) epsilon_funct, x
+real(rp) :: rang, ranl, sigma, vec(3), polarizationvec(3)
 
-  epsilon_funct =  1.0 - (2.0 + x) / 2.0  * exp(-x / 2.0)
+integer i
 
-end function
- 
+  polar%xi = 0.0 ! spinor phase is zero
+
+  sigma = acos(beam_init%spin%polarization)
+
+  if (beam_init%spin%polarization .ne. 1.0) then
+    call out_io (s_error$, "init_spin_distribution", &
+        "Right now, will only set 100% polarization")
+  endif
+  
+  do i = 1, size(bunch%particle)
+    ! First set up aroun theta = 0
+!   call ran_gauss (rang)
+!   call ran_uniform (ranl)
+!   polar%theta = sigma * rang
+!   polar%phi = 2.0 * pi * ranl
+
+    polar%theta = beam_init%spin%theta
+    polar%phi = beam_init%spin%phi
+
+    call polar_to_spinor (polar, bunch%particle(i)%r)
+  enddo
+
+end subroutine init_spin_distribution
+
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -1007,6 +1084,8 @@ end function
 !     %b%sigma; %b%p_sigma
 !     %b%emitt; %b%dpx_dx
 !     %centroid
+!     %n_particle ! # particle not lost
+!     %spin
 !-
 
 subroutine calc_bunch_params (bunch, ele, params)
@@ -1039,8 +1118,13 @@ subroutine calc_bunch_params (bunch, ele, params)
   endif
   
   do i = 1, 6
-    params%centroid%vec(i) = sum(bunch%particle%r%vec(i), &
+    if (i .eq. 2 .or. i .eq. 4) then
+      params%centroid%vec(i) = sum(bunch%particle%r%vec(i) / (1 + bunch%particle%r%vec(6)), &
                               mask = (bunch%particle%ix_lost == not_lost$))
+    else
+      params%centroid%vec(i) = sum(bunch%particle%r%vec(i), &
+                              mask = (bunch%particle%ix_lost == not_lost$))
+   endif
   enddo
   
   params%centroid%vec = params%centroid%vec / params%n_particle
@@ -1061,13 +1145,15 @@ subroutine calc_bunch_params (bunch, ele, params)
   
   ! Projected Parameters
   ! X
-  call find_expectations (bunch, bunch%particle(:)%r%vec(1), bunch%particle(:)%r%vec(2), &
+  call find_expectations (bunch, bunch%particle(:)%r%vec(1), &
+                          bunch%particle(:)%r%vec(2) / (1 + bunch%particle(:)%r%vec(6)), &
                           exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d, .false.)
 
   call param_stuffit (params%x, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
      
   ! Y
-  call find_expectations (bunch, bunch%particle(:)%r%vec(3), bunch%particle(:)%r%vec(4), &
+  call find_expectations (bunch, bunch%particle(:)%r%vec(3), &
+                          bunch%particle(:)%r%vec(4) / (1 + bunch%particle(:)%r%vec(6)), &
                           exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d, .false.)
 
   call param_stuffit (params%y, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
@@ -1105,6 +1191,7 @@ subroutine calc_bunch_params (bunch, ele, params)
 
   call param_stuffit (params%b, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
      
+  if (bmad_com%spin_tracking_on) call calc_spin_params ()
   
 contains
 !----------------------------------------------------------------------
@@ -1207,6 +1294,52 @@ subroutine param_stuffit (param, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
   param%dpx_dx = exp_x_p_x / exp_x2
 
 end subroutine param_stuffit
+
+!----------------------------------------------------------------------
+! contains
+
+subroutine calc_spin_params ()
+
+implicit none
+
+type (spin_polar_struct) polar, ave_polar
+
+real(rp) angle
+
+! polarization vector
+
+  params%spin%theta = 0.0
+  params%spin%phi   = 0.0
+
+  do i = 1, size(bunch%particle)
+    if (bunch%particle(i)%ix_lost .ne. not_lost$) cycle
+    call spinor_to_polar (bunch%particle(i)%r, polar)
+    params%spin%theta = params%spin%theta + polar%theta 
+    params%spin%phi = params%spin%phi + polar%phi
+  enddo
+
+  params%spin%theta = params%spin%theta / params%n_particle
+  params%spin%phi = params%spin%phi / params%n_particle
+
+  ave_polar%xi = 0.0
+  ave_polar%theta = params%spin%theta
+  ave_polar%phi = params%spin%phi
+  
+! polarization
+
+  params%spin%polarization = 0.0
+
+  
+  do i = 1, size(bunch%particle)
+    if (bunch%particle(i)%ix_lost .ne. not_lost$) cycle
+    call spinor_to_polar (bunch%particle(i)%r, polar)
+    params%spin%polarization = params%spin%polarization + &
+               cos(angle_between_polars (polar, ave_polar))
+  enddo
+
+  params%spin%polarization = params%spin%polarization / params%n_particle
+    
+end subroutine calc_spin_params
 
 end subroutine calc_bunch_params
   

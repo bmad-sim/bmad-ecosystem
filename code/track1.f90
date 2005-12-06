@@ -33,6 +33,7 @@ subroutine track1 (start, ele, param, end)
   use mad_mod, only: track1_mad
   use boris_mod, only: track1_boris, track1_adaptive_boris
   use space_charge_mod
+  use spin_mod
 
   implicit none
 
@@ -127,6 +128,10 @@ subroutine track1 (start, ele, param, end)
 ! space charge
 
   if (bmad_com%space_charge_on) call track1_space_charge (end, ele, param, end)
+
+! spin tracking
+
+  if (bmad_com%spin_tracking_on) call track1_spin (orb, ele, param, end)
 
 ! check for particles outside aperture
 
