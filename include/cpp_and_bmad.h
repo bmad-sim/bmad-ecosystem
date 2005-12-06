@@ -505,17 +505,17 @@ public:
   double i5a_E6;       // Integral: (g^3*  H_a)*  gamma^6
   double i5b_E6;       // Integral: (g^3*  H_b)*  gamma^6
   double sig_E1;       // Energy spread after 1 pass (eV)
-  double emittance_a;  // a mode emittance at end of linac
-  double emittance_b;  // b mode emittance at end of linac
+  double a_emittance_end;  // a mode emittance at end of linac
+  double b_emittance_end;  // b mode emittance at end of linac
 
   C_linac_mode () :
       i2_E4(0), i3_E7(0), i5a_E6(0), i5b_E6(0), sig_E1(0),
-      emittance_a(0), emittance_b(0) {}
+      a_emittance_end(0), b_emittance_end(0) {}
 
   C_linac_mode (double i2, double i3, double i5a, double i5b, double sig,
                                                        double a, double b) :
       i2_E4(i2), i3_E7(i3), i5a_E6(i5a), i5b_E6(i5b), sig_E1(sig),
-      emittance_a(a), emittance_b(b) {}
+      a_emittance_end(a), b_emittance_end(b) {}
 
 };    // End Class
 
@@ -587,7 +587,8 @@ public:
   bool lr_wakes_on;              // Long range wakefields
   bool mat6_track_symmetric;     // symmetric offsets
   bool auto_bookkeeper;          // Automatic bookkeeping when elements change?
-  bool space_charge_on;
+  bool trans_space_charge_on;
+  bool coherent_synch_rad_on;
   bool spin_tracking_on;
   bool radiation_damping_on;
   bool radiation_fluctuations_on;
@@ -598,24 +599,26 @@ public:
   C_bmad_com (ReArr orb, double max_ap, double kl, double rel_t,
                 double abs_t, int to, int io, int steps, int cc,
                 int liar, int sr, int lr, int sym, int a_book,
-                int sc_on, int st_on, int rad_d, int rad_f, int cre) :
+                int tsc_on, int csr_on, int st_on, int rad_d, int rad_f, int cre) :
       d_orb(orb, 6), max_aperture_limit(max_ap), grad_loss_sr_wake(kl), 
       rel_tollerance(rel_t), abs_tollerance(abs_t), taylor_order(to), 
       default_integ_order(io), default_num_steps(steps), canonical_coords(cc), 
       use_liar_lcavity(liar), sr_wakes_on(sr), lr_wakes_on(lr), 
-      mat6_track_symmetric(sym), auto_bookkeeper(a_book), space_charge_on(sc_on),
+      mat6_track_symmetric(sym), auto_bookkeeper(a_book), 
+      trans_space_charge_on(tsc_on), coherent_synch_rad_on(csr_on),
       spin_tracking_on(st_on), radiation_damping_on(rad_d), 
       radiation_fluctuations_on(rad_f), compute_ref_energy(cre) {}
 
   C_bmad_com (Real_Array orb, double max_ap, double kl, double rel_t,
                 double abs_t, int to, int io, int steps, int cc,
                 int liar, int sr, int lr, int sym, int a_book,
-                int sc_on, int st_on, int rad_d, int rad_f, int cre) :
+                int tsc_on, int csr_on, int st_on, int rad_d, int rad_f, int cre) :
       d_orb(orb), max_aperture_limit(max_ap), grad_loss_sr_wake(kl), 
       rel_tollerance(rel_t), abs_tollerance(abs_t), taylor_order(to), 
       default_integ_order(io), default_num_steps(steps), canonical_coords(cc), 
       use_liar_lcavity(liar), sr_wakes_on(sr), lr_wakes_on(lr), 
-      mat6_track_symmetric(sym), auto_bookkeeper(a_book), space_charge_on(sc_on),
+      mat6_track_symmetric(sym), auto_bookkeeper(a_book), 
+      trans_space_charge_on(tsc_on), coherent_synch_rad_on(csr_on),
       spin_tracking_on(st_on), radiation_damping_on(rad_d), 
       radiation_fluctuations_on(rad_f), compute_ref_energy(cre) {}
 

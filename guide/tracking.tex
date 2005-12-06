@@ -239,6 +239,16 @@ routine \vnr{ele_to_taylor}. This routine will kill any old Taylor map
 before making any new one. To kill a Taylor map (which frees up the
 memory it takes up) use the routine \vnr{kill_taylor}.
 
+To test whether a \vn{taylor_struct} variable has an associated Taylor
+map. That is, to test whether memory has been allocated for the map,
+use the Fortran associated function:
+\begin{example}
+  type (bmad_taylor) taylor(6)
+  ...
+  if (associated(taylor(1)%term)) then  ! If has a map ...
+    ...
+\end{example}
+
 To concatinate the Taylor maps in a set of elements the routine
 \vnr{concat_taylor} can be used
 \begin{example}
