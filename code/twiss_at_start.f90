@@ -42,27 +42,16 @@ subroutine twiss_at_start (ring)
   type (ring_struct)  ring
 
   real(rp) eta_vec(4), t0_4(4,4), mat6(6,6), error
-  real(rp), save :: flip_mat(4,4), t_e(4,4), t_w_inv(4,4)
 
   integer i, j, n, iu, n_lines
 
   logical :: debug = .false. 
-  logical :: init_needed = .true. 
 
   character(80), pointer :: lines(:)
 
-! init
+! init one turn. T0 is the transverse part of the matrix
 
   bmad_status%ok = .false.             ! assume the worst
-
-  if (init_needed) then
-    call mat_make_unit(flip_mat)
-    flip_mat(1,1) = -1
-    flip_mat(4,4) = -1
-    init_needed = .false.
-  endif
-
-! init one turn. T0 is the transverse part of the matrix
 
   call mat_make_unit (t0_4)       ! form unit matrix
   eta_vec = 0
@@ -111,5 +100,3 @@ subroutine twiss_at_start (ring)
   ring%ele_(0)%y%phi = 0
 
 end subroutine
-
-

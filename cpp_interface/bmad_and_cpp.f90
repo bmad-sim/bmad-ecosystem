@@ -1243,7 +1243,7 @@ type (c_dummy_struct) c_linac_mode
 
 f => f_linac_mode
 call linac_mode_to_c2 (c_linac_mode, f%i2_E4, f%i3_E7, f%i5a_E6, f%i5b_E6, &
-                                           f%sig_E1, f%emittance_a, f%emittance_b)
+                                f%sig_E1, f%a_emittance_end, f%b_emittance_end)
 
 end subroutine
 
@@ -1361,7 +1361,8 @@ call bmad_com_to_c2 (c_bmad_com, &
       c_logic(f%canonical_coords), c_logic(f%use_liar_lcavity), &
       c_logic(f%sr_wakes_on), c_logic(f%lr_wakes_on), &
       c_logic(f%mat6_track_symmetric), c_logic(f%auto_bookkeeper), & 
-      c_logic(f%space_charge_on), c_logic(f%spin_tracking_on), &
+      c_logic(f%trans_space_charge_on), c_logic(f%coherent_synch_rad_on), &
+      c_logic(f%spin_tracking_on), &
       c_logic(f%radiation_damping_on), c_logic(f%radiation_fluctuations_on), &
       c_logic(f%compute_ref_energy))
 
@@ -1371,7 +1372,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !+
 ! Subroutine bmad_com_to_f2 (orb, ap, kl, rel, abs, to, do, ds, cc, liar, &
-!                sr, lr, sym, a_book, sc_on, st_on, rad_d, rad_f, ref_e)
+!                sr, lr, sym, a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e)
 !
 ! Subroutine used by bmad_com_to_f to transfer the data from a C++ 
 ! C_bmad_com variable into the Bmad bmad_com_stuct common block.
@@ -1379,19 +1380,20 @@ end subroutine
 !-
 
 subroutine bmad_com_to_f2 (orb, ap, kl, rel, abs, to, do, ds, cc, liar, &
-                sr, lr, sym, a_book, sc_on, st_on, rad_d, rad_f, ref_e)
+                sr, lr, sym, a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e)
 
 use bmad_and_cpp
 
 implicit none
 
 real(rp) orb(6), ap, kl, rel, abs
-integer to, do, ds, cc, liar, sr, lr, sym, a_book, sc_on, st_on, rad_d, rad_f, ref_e
+integer to, do, ds, cc, liar, sr, lr, sym, a_book, tsc_on, csr_on
+integer st_on, rad_d, rad_f, ref_e
 
 bmad_com = bmad_com_struct(orb, ap, kl, rel, abs, to, do, ds, &
     f_logic(cc), f_logic(liar), f_logic(sr), f_logic(lr), f_logic(sym), &
-    f_logic(a_book), f_logic(sc_on), f_logic(st_on), f_logic(rad_d), f_logic(rad_f), &
-    f_logic(ref_e))
+    f_logic(a_book), f_logic(tsc_on), f_logic(csr_on), f_logic(st_on), &
+    f_logic(rad_d), f_logic(rad_f), f_logic(ref_e))
 
 end subroutine
 

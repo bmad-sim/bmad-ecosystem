@@ -48,7 +48,7 @@ subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
   type (ele_struct) :: ele
 
   real(rp), intent(out) :: growth_rate, chi
-  real(rp) a_vec(4), v_mat(4,4), v_inv_mat(4,4)
+  real(rp) a_vec(4), v_mat(4,4), v_inv_mat(4,4), map0(6)
 
   integer, intent(in) :: i_dim
   logical, intent(out) :: stable
@@ -59,8 +59,9 @@ subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
 ! get 1-turn matrix and symplectify
 
   call mat_make_unit (ele%mat6)
-  call multi_turn_tracking_to_mat (track, i_dim, ele%mat6(1:i_dim,1:i_dim), &
-                                                                 track0, chi)
+  call multi_turn_tracking_to_mat (track, i_dim, &
+                    ele%mat6(1:i_dim,1:i_dim), map0, track0, chi)
+  ele%vec0 = track0%vec
   call mat_symplectify (ele%mat6(1:i_dim,1:i_dim), ele%mat6(1:i_dim,1:i_dim))
 
 ! get twiss parameters

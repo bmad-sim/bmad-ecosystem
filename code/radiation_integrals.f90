@@ -49,13 +49,13 @@
 !       %j_damp         -- Damping partition factor
 !       %alpha_damp     -- Exponential damping coefficient per turn
 !     %lin            -- Linac version of the integrals.
-!       %i2_E4          -- Integral: g^2 * gamma^4
-!       %i3_E7          -- Integral: g^3 * gamma^7
-!       %i5a_E6         -- Integral: (g^3 * H_a) * gamma^6
-!       %i5b_E6         -- Integral: (g^3 * H_b) * gamma^6
-!       %sig_E1         -- Energy spread after 1 pass (eV)
-!       %emittance_a    -- a-mode emittance at end of linac
-!       %emittance_b    -- b-mode emittance at end of linac
+!       %i2_E4           -- Integral: g^2 * gamma^4
+!       %i3_E7           -- Integral: g^3 * gamma^7
+!       %i5a_E6          -- Integral: (g^3 * H_a) * gamma^6
+!       %i5b_E6          -- Integral: (g^3 * H_b) * gamma^6
+!       %sig_E1          -- Energy spread after 1 pass (eV)
+!       %a_emittance_end -- a-mode emittance at end of linac
+!       %b_emittance_end -- b-mode emittance at end of linac
 !   ix_cache -- Integer, optional: Cache pointer. If ix_cache = 0 at input then
 !                   ix_cache is set to a unique number. Otherwise ix_cache 
 !                   is not changed.
@@ -444,8 +444,8 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
   enddo
 
   mode%lin%sig_E1 = mc2 * sqrt (4 * c_q * r_e * mode%lin%i3_E7 / 3)
-  mode%lin%emittance_a = 2 * c_q * r_e * mode%lin%i5a_e6 / (3 * gamma_f)
-  mode%lin%emittance_b = 2 * c_q * r_e * mode%lin%i5b_e6 / (3 * gamma_f)
+  mode%lin%a_emittance_end = 2 * c_q * r_e * mode%lin%i5a_e6 / (3 * gamma_f)
+  mode%lin%b_emittance_end = 2 * c_q * r_e * mode%lin%i5b_e6 / (3 * gamma_f)
 
 ! Normal integrals
 

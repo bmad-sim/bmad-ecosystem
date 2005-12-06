@@ -140,8 +140,8 @@ bool operator== (const C_amode& x, const C_amode& y) {
 bool operator== (const C_linac_mode& x, const C_linac_mode& y) {
   return (x.i2_E4 == y.i2_E4) && (x.i3_E7 == y.i3_E7) && 
          (x.i5a_E6 == y.i5a_E6) && (x.i5b_E6 == y.i5b_E6) && 
-         (x.sig_E1 == y.sig_E1) &&
-         (x.emittance_a == y.emittance_a) && (x.emittance_b == y.emittance_b);
+         (x.sig_E1 == y.sig_E1) && (x.a_emittance_end == y.a_emittance_end) && 
+         (x.b_emittance_end == y.b_emittance_end);
 };
 
 bool operator== (const C_modes& x, const C_modes& y) {
@@ -164,6 +164,12 @@ bool operator== (const C_bmad_com& x, const C_bmad_com& y) {
       (x.use_liar_lcavity == y.use_liar_lcavity) && 
       (x.sr_wakes_on == y.sr_wakes_on) &&  (x.lr_wakes_on == y.lr_wakes_on) &&  
       (x.mat6_track_symmetric ==  y.mat6_track_symmetric) &&
+      (x.auto_bookkeeper == y.auto_bookkeeper) &&
+      (x.trans_space_charge_on == y.trans_space_charge_on) &&
+      (x.coherent_synch_rad_on == y.coherent_synch_rad_on) &&
+      (x.spin_tracking_on == y.spin_tracking_on) &&
+      (x.radiation_damping_on == y.radiation_damping_on) &&
+      (x.radiation_fluctuations_on == y.radiation_fluctuations_on) &&
       (x.compute_ref_energy == y.compute_ref_energy);
 }
 

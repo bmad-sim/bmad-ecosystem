@@ -88,7 +88,7 @@ subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
     ele%gamma_c = sqrt(1-det)
   endif
 
-! compute normal mode and lab dispersion.
+! Compute normal mode and lab dispersion.
 
   forall (i = 1:4) mat4(i,i) = mat4(i,i) - 1
 

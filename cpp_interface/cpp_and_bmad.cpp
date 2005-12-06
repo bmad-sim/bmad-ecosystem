@@ -484,7 +484,7 @@ extern "C" void linac_mode_to_f2_(linac_mode_struct*, Re&, Re&, Re&, Re&, Re&, R
 
 extern "C" void linac_mode_to_f_(C_linac_mode& c, linac_mode_struct* f) {
   linac_mode_to_f2_(f, c.i2_E4, c.i3_E7, c.i5a_E6, c.i5b_E6, c.sig_E1, 
-                                               c.emittance_a, c.emittance_b);
+                                               c.a_emittance_end, c.b_emittance_end);
 }
 
 extern "C" void linac_mode_to_c2_(C_linac_mode& c, Re& i2, Re& i3, Re& i5a, 
@@ -528,25 +528,26 @@ void operator>> (modes_struct* f, C_modes& c) {
 // bmad_com
 
 extern "C" void bmad_com_to_f2_(ReArr, Re&, Re&, Re&, Re&, 
-     Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&,
-     Int&);
+     Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, 
+     Int&, Int&, Int&);
 
 extern "C" void bmad_com_to_f_(C_bmad_com& c) {
   bmad_com_to_f2_(&c.d_orb[0], c.max_aperture_limit, c.grad_loss_sr_wake, 
     c.rel_tollerance, c.abs_tollerance, c.taylor_order, 
     c.default_integ_order, c.default_num_steps, c.canonical_coords, 
     c.use_liar_lcavity, c.sr_wakes_on, c.lr_wakes_on, c.mat6_track_symmetric,
-    c.auto_bookkeeper, c. space_charge_on, c.spin_tracking_on, 
+    c.auto_bookkeeper, c.trans_space_charge_on, c.coherent_synch_rad_on, 
+    c.spin_tracking_on, 
     c.radiation_damping_on, c.radiation_fluctuations_on, c.compute_ref_energy);
 }
 
 extern "C" void bmad_com_to_c2_(C_bmad_com& c, 
               ReArr orb, Re& ap, Re& kl, Re& rel, 
               Re& abs, Int& to, Int& dflt_ord, Int& ds, Int& cc, Int& liar, 
-              Int& sr, Int& lr, Int& sym, Int& a_book, Int& sc_on, Int& st_on,
-              Int& rad_d, Int& rad_f, Int& ref_e) {
+              Int& sr, Int& lr, Int& sym, Int& a_book, Int& tsc_on, Int& csr_on, 
+              Int& st_on, Int& rad_d, Int& rad_f, Int& ref_e) {
   c = C_bmad_com (orb, ap, kl, rel, abs, to, dflt_ord, ds, cc, liar, sr, 
-                  lr, sym, a_book, sc_on, st_on, rad_d, rad_f, ref_e);
+                  lr, sym, a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e);
 }
 
 //---------------------------------------------------------------------------

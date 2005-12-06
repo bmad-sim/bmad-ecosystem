@@ -39,7 +39,7 @@ subroutine make_mat6 (ele, param, start, end, end_in)
   use bookkeeper_mod, only: attribute_bookkeeper
   use mad_mod, only: make_mat6_mad
   use em_field_mod, only: track_com
-  use space_charge_mod
+  use trans_space_charge_mod
 
   implicit none
 
@@ -116,7 +116,8 @@ subroutine make_mat6 (ele, param, start, end, end_in)
 
 ! Add space charge effects
 
-  if (bmad_com%space_charge_on) call make_mat6_space_charge (ele, param)
+  if (bmad_com%trans_space_charge_on) &
+                  call make_mat6_trans_space_charge (ele, param)
 
 ! symplectify if wanted
 
