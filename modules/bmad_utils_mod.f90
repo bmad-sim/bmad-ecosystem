@@ -411,11 +411,11 @@ function equivalent_eles (ele1, ele2) result (equiv)
   if (ele1%name /= ele2%name .and. any(ele1%taylor%ref /= 0)) return
 
   vmask = .true.
-  if (ele1%key == wiggler$ .and. ele1%sub_key == map_type$) &
-      vmask((/k1$, rho$, b_max$, z_patch$, p0c$, check_sum$/)) = .false.
+  if (ele1%key == wiggler$ .and. ele1%sub_key == map_type$) then
+    vmask((/k1$, rho$, b_max$, z_patch$, p0c$, check_sum$/)) = .false.
+  endif
   if (any(ele1%value /= ele2%value .and. vmask)) return
 
-  if (ele1%num_steps /= ele2%num_steps) return
   if (ele1%integrator_order /= ele2%integrator_order) return
 
   if (associated(ele1%wig_term) .neqv. associated(ele2%wig_term)) return
@@ -785,7 +785,7 @@ subroutine init_ele (ele)
   ele%sub_key = 0
 
   ele%value(:) = 0
-
+  ele%closed_orb = 0
 
   ele%control_type = free$
   ele%ix_value = 0
@@ -808,9 +808,9 @@ subroutine init_ele (ele)
   ele%mat6_calc_method = bmad_standard$
   ele%tracking_method  = bmad_standard$
   ele%field_calc       = bmad_standard$
-  ele%num_steps        = bmad_com%default_num_steps
   ele%integrator_order  = bmad_com%default_integ_order
-  ele%ptc_kind = 0
+  ele%ptc_kind  = 0
+  ele%num_steps = 0
 
   ele%is_on = .true.
   ele%multipoles_on = .true.

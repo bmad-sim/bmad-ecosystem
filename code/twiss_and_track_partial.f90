@@ -106,8 +106,6 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
     ele%value(e2$) = 0  
   end select
 
-  ele%num_steps = max(nint(ele%num_steps * del_s / l_orig), 1)
-
   call track1 (c0, ele, param, c1)
 
   if (present(end)) end = c1

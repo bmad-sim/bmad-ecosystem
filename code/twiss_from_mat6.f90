@@ -1,5 +1,5 @@
 !+
-! Subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
+! Subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
 !
 ! Subroutine to calculate the Twiss parameters from a 1-turn matrix.
 ! Note: The 1-turn matrix needs to be formed with the RF turned off.
@@ -8,7 +8,8 @@
 !   use bmad
 !
 ! Input:
-!   mat6(6,6)   -- Real(rp): 6x6 1-turn matrix
+!   mat6(6,6)   -- Real(rp): 6x6 matrix (linear part) of the 1-turn map.
+!   map0(6)     -- Real(rp): 0th order part of the 1-turn map.
 !
 ! Output:
 !   ele         -- Ele_struct: Structure holding the Twiss parameters.
@@ -28,7 +29,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
+subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
 
   use bmad_struct
   use bmad_interface, except => twiss_from_mat6
@@ -36,12 +37,12 @@ subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
   implicit none
 
   type (ele_struct) :: ele
-  real(rp), intent(in) :: mat6(6,6)
+  real(rp), intent(in) :: mat6(:,:), map0(:)
   real(rp), intent(out) :: growth_rate
   logical, intent(out) :: stable
 
-  real(rp) mat4(4,4), eta_vec(4)
-  real(rp) u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4)
+  real(rp) mat4(4,4), eta_vec(4), vec(4), orb(4)
+  real(rp) u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4), v_inv(4,4)
   real(rp) det, rate1, rate2
   real(rp) :: tol = 1.0e-3
 
@@ -81,7 +82,7 @@ subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
 
 ! here if everything normal so load twiss parameters
 
-  if(ele%x%beta /= 0. .and. ele%y%beta /= 0.)then
+  if (ele%x%beta /= 0 .and. ele%y%beta /= 0) then
     ele%mode_flip = .false.
     ele%c_mat = v(1:2,3:4)
     call mat_det (ele%c_mat, det)
@@ -90,22 +91,30 @@ subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
 
 ! Compute normal mode and lab dispersion.
 
-  forall (i = 1:4) mat4(i,i) = mat4(i,i) - 1
-
-  mat4 = matmul (mat4, v)
+  mat4 = -mat4
+  forall (i = 1:4) mat4(i,i) = mat4(i,i) + 1
   call mat_inverse (mat4, mat4)
-  eta_vec = -matmul(mat4, mat6(1:4, 6))
 
-  ele%x%eta  = eta_vec(1)
-  ele%x%etap = eta_vec(2)
-  ele%y%eta  = eta_vec(3)
-  ele%y%etap = eta_vec(4)
+  orb = matmul(mat4, map0(1:4))
+  ele%closed_orb(1:4) = orb
 
-  eta_vec = matmul(v, eta_vec)
+  vec(1) = mat6(1,6) + mat6(1,2) * orb(2) + mat6(1,4) * orb(4)
+  vec(2) = mat6(2,6) - mat6(2,1) * orb(1) - mat6(2,3) * orb(3) - map0(2)
+  vec(3) = mat6(3,6) + mat6(3,2) * orb(2) + mat6(3,4) * orb(4)
+  vec(4) = mat6(4,6) - mat6(4,1) * orb(1) - mat6(4,3) * orb(3) - map0(4)
+  eta_vec = matmul(mat4, vec)
+
   ele%x%eta_lab  = eta_vec(1)
   ele%x%etap_lab = eta_vec(2)
   ele%y%eta_lab  = eta_vec(3)
   ele%y%etap_lab = eta_vec(4)
+
+  call mat_symp_conj (v, v_inv)
+  eta_vec = matmul(v_inv, eta_vec)
+  ele%x%eta  = eta_vec(1)
+  ele%x%etap = eta_vec(2)
+  ele%y%eta  = eta_vec(3)
+  ele%y%etap = eta_vec(4)
 
   bmad_status%ok = .true.
 

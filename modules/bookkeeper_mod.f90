@@ -1304,6 +1304,11 @@ subroutine attribute_bookkeeper (ele, param)
 
   end select
 
+! num_steps
+
+  if (ele%value(ds_step$) /= 0) ele%num_steps = abs(nint(ele%value(l$) / ele%value(ds_step$)))
+  if (ele%num_steps == 0) ele%num_steps = 1
+
 ! We need to kill the Taylor Map, etc. if things have changed.
 ! calculate a check sum to see if things have changed.
 ! ele%value(check_sum$) == 0 means that the check_sum has never been 

@@ -617,6 +617,7 @@ subroutine get_attribute (how, ele, ring, pring, &
       ele%tracking_method = nint(value)
     elseif (ix_attrib == num_steps$) then
       ele%num_steps = nint(value)
+      ele%value(ds_step$) = abs(ele%value(l$) * ele%num_steps)
     elseif (ix_attrib == integrator_order$) then
       ele%integrator_order = nint(value)
     elseif (ix_attrib == ptc_kind$) then

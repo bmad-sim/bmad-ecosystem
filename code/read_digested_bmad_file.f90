@@ -43,7 +43,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   character(200), allocatable :: file_names(:)
   character(25) :: r_name = 'read_digested_bmad_file'
 
-  logical found_it, v75, v76, v77, v_old, v_now
+  logical found_it, v75, v76, v77, v78, v_old, v_now
 
   type old_param_struct
     real(rp) garbage2           ! Saved for future use.
@@ -87,8 +87,9 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   v75 = (version == 75)
   v76 = (version == 76)
   v77 = (version == 77)
-  v_old = v75 .or. v76 .or. v77
-  v_now = (version == bmad_inc_version$)  ! v78
+  v78 = (version == 78)
+  v_old = v75 .or. v76 .or. v77 .or. v78
+  v_now = (version == bmad_inc_version$)  ! v79
 
   if (version < bmad_inc_version$) then
     if (bmad_status%type_out) call out_io (s_warn$, r_name, &
@@ -239,7 +240,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
-            ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            ele%y, ele%z, ele%value(1:49), ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
             ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -250,6 +251,22 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
             ele%multipoles_on, ele%exact_rad_int_calc, ele%Field_master, &
             ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
             ele%on_an_i_beam
+
+    elseif (v78) then
+      read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+            ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, &
+            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
+            ele%y, ele%z, ele%value(1:49), ele%gen0, ele%vec0, ele%mat6, &
+            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
+            ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
+            ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+            ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+            ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
+            ele%num_steps, ele%integrator_order, ele%ptc_kind, &
+            ele%taylor_order, ele%symplectify, ele%mode_flip, &
+            ele%multipoles_on, ele%exact_rad_int_calc, ele%Field_master, &
+            ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
+            ele%coupler_at, ele%on_an_i_beam
 
     elseif (v_now) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
@@ -324,7 +341,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
             read (d_unit, err = 9820) ele%wake%lr_file
             read (d_unit, err = 9830) ele%wake%lr
           endif
-        elseif (v76 .or. v77 .or. v_now) then
+        elseif (v76 .or. v77 .or. v78 .or. v_now) then
           read (d_unit, err = 9800) ele%wake%sr_file
           read (d_unit, err = 9810) ele%wake%sr1
           read (d_unit, err = 9840) ele%wake%sr2_long

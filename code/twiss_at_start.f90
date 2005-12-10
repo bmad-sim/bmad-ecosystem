@@ -39,9 +39,10 @@ subroutine twiss_at_start (ring)
 
   implicit none
 
-  type (ring_struct)  ring
+  type (ring_struct), target :: ring
+  type (ele_struct), pointer :: ele
 
-  real(rp) eta_vec(4), t0_4(4,4), mat6(6,6), error
+  real(rp) eta_vec(4), t0_4(4,4), mat6(6,6), error, map0(4)
 
   integer i, j, n, iu, n_lines
 
@@ -55,8 +56,11 @@ subroutine twiss_at_start (ring)
 
   call mat_make_unit (t0_4)       ! form unit matrix
   eta_vec = 0
+  map0 = 0
 
-! propagate around ring
+! Propagate the transfer map around ring. 
+! Since the RF is taken to be off we use a trick so we only have to multiply
+! 4x4 matrices.
 
   if (debug) then
     iu = lunget()
@@ -64,12 +68,14 @@ subroutine twiss_at_start (ring)
   endif
 
   do n = 1, ring%n_ele_use
-    eta_vec = matmul (ring%ele_(n)%mat6(1:4,1:4), eta_vec)
-    eta_vec = eta_vec + ring%ele_(n)%mat6(1:4,6)
-    t0_4 = matmul (ring%ele_(n)%mat6(1:4,1:4), t0_4)
+    ele => ring%ele_(n)
+    eta_vec = matmul (ele%mat6(1:4,1:4), eta_vec)
+    eta_vec = eta_vec + ele%mat6(1:4,6)
+    map0 = matmul (ele%mat6(1:4,1:4), map0) + ele%vec0(1:4)
+    t0_4 = matmul (ele%mat6(1:4,1:4), t0_4)
     if (debug) then
       write (iu, *) '!------------------------------------', n
-      call type2_ele (ring%ele_(n), lines, n_lines, .false., 0, .false., 0)
+      call type2_ele (ele, lines, n_lines, .false., 0, .false., 0)
       do i = 1, n_lines
         write (iu, *) lines(i)
       enddo
@@ -77,22 +83,23 @@ subroutine twiss_at_start (ring)
       call mat_symp_check (t0_4, error)
       write (iu, *) 'Symplectic Check:', error
       do i = 1, 4
-        write (iu, '(4f15.10, 5x, f15.10)') (t0_4(i, j), j = 1, 4), eta_vec(i)
+        write (iu, '(4f15.10, 5x, 2f15.10)') (t0_4(i, j), j = 1, 4), &
+                                                      eta_vec(i), map0(i)
       enddo
     endif
   enddo
 
-! put 1-turn matrix into ring%param%t1_no_RF
+! Put 1-turn matrix into ring%param%t1_no_RF
 
   call mat_make_unit (mat6)
   mat6(1:4,1:4) = t0_4
 
-  call mat6_dispersion (mat6, eta_vec) ! dispersion to %mat6
+  call mat6_dispersion (eta_vec, mat6) ! dispersion to %mat6
   ring%param%t1_no_RF = mat6
 
 ! compute twiss parameters
 
-  call twiss_from_mat6 (mat6, ring%ele_(0), &
+  call twiss_from_mat6 (mat6, map0, ring%ele_(0), &
                                   ring%param%stable, ring%param%growth_rate)
   ring%x%tune = ring%ele_(0)%x%phi
   ring%y%tune = ring%ele_(0)%y%phi

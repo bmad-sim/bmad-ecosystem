@@ -220,7 +220,7 @@ set by \vn{integrator_order}.  \vn{integrator_order} = n where $n$ is
 allowed by PTC to be 2, 4, or 6. With an integration order of $n$ the
 error in an integration step scales as $dz^n$ where $dz$ is step
 size. The step size $dz$ is set by the length of the element and the
-value of \vn{num_steps}. Remember, as in ordinary integration, higher
+value of \vn{ds_step}. Remember, as in ordinary integration, higher
 integration order does not necessarily imply higher accuracy.
 
 \begin{description}
@@ -346,36 +346,42 @@ denotes an available method.}
 \label{s:integ}
 \index{Transfer map}
 
+\index{Ds_step}
+\index{Num_steps}
 When calculating transfer (Taylor) maps and tracking through integration
 there are a number of attributes that can affect the calculation. They are
 \begin{example}
-  num_steps = <Integer>         ! Number of integration steps
-  integration_ord = <Integer>   ! Integrator order
+  ds_step = <Real>              ! Integration step length
+  num_steps = <Integer>         ! Number of integration steps.
+  integrator_order = <Integer>  ! Integrator order
   rel_tol = <Real>              ! Relative tolerance
   abs_tol = <Real>              ! Absolute tolerance
-  field_calc = Switch         ! How the field is calculated
+  field_calc = Switch           ! How the field is calculated
 \end{example}
 Example:
 \begin{example}
   q1: quadrupole, l = 0.6, tracking_method = bmad_standard, &
-        mat6_calc_method = symp_lie_ptc, num_steps = 20, field_calc = custom
+        mat6_calc_method = symp_lie_ptc, ds_step = 0.2, field_calc = custom
 \end{example}
 
+\index{Ds_step}
 \index{Num_steps}
+\index{Taylor}
 One way to create a transfer map through an element is to divide the
 element up into slices and then to propagate the transfer map slice by
-slice.  There are several ways to do this integration. The
-\vni{Boris} and \vni{Runge_Kutta} methods integrate the equations of
-motion to give the 0\Th order Taylor map which just represents a
-particle's orbit.  Symplectic
-integration\index{Symplectic!integration} using Lie algebraic
-techniques, on the other hand, can generate Taylor maps to any order.
-The \vn{num_steps} attribute determines the number of slices. This
-is applicable to \vn{Boris}, \vni{Symp_Lie_Bmad}, and
+slice.  There are several ways to do this integration. The \vni{Boris}
+and \vni{Runge_Kutta} methods integrate the equations of motion to
+give the 0\Th order Taylor map which just represents a particle's
+orbit.  Symplectic integration\index{Symplectic!integration} using Lie
+algebraic techniques, on the other hand, can generate Taylor maps to
+any order.  The \vn{ds_step} attribute determines the slice thickness.
+Alternatively, \vn{num_steps} attribute can be used in place of
+\vn{ds_step} to specify the number of slices.
+This is applicable to \vn{Boris}, \vni{Symp_Lie_Bmad}, and
 \vni{Symp_Lie_PTC} integration.
 
-\index{Integration_order}
-\index{Num_steps}
+\index{Integrater_order}
+\index{Ds_step}
 \vn{integrator_order} is the order of the integration formula for 
 \vn{Symp_Lie_PTC}. Possible values are
 \begin{example}
@@ -385,17 +391,17 @@ Essentially, an integration order of $n$ means that the error in an
 integration step scales as $dz^{n+1}$ where $dz$ is the slice
 thickness.  For a given number of steps a higher order will give more
 accurate results but a higher order integrator will take more time per
-step. It turns out that for wigglers, after adjusting \vn{num_steps}
+step. It turns out that for wigglers, after adjusting \vn{ds_step}
 for a given accuracy, the order 2 integrator is the fastest. This is
 not surprising given the highly nonlinear nature of a wiggler. Note
 that \vni{Symp_Lie_Bmad} always uses an order 2 integrator
-independent of the setting of \vn{integration_order}.
+independent of the setting of \vn{integrator_order}.
 
-\index{Num_steps}
+\index{Ds_step}
 \index{Rel_tol}
 \index{Abs_tol}
 \vni{Adaptive_Boris} and \vni{Runge_Kutta} use adaptive step
-control independent of \vn{num_steps}. These methods use the \vn{rel_tol} and
+control independent of \vn{ds_step}. These methods use the \vn{rel_tol} and
 \vn{abs_tol} attributes to try to keep the estimated error of the integration
 such that
 \begin{example}

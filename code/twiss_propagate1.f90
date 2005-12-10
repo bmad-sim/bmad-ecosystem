@@ -31,13 +31,14 @@ subroutine twiss_propagate1 (ele1, ele2)
   use bmad_interface, except => twiss_propagate1
 
   implicit none
-  type (ele_struct)  ele1, ele2
+  type (ele_struct), target :: ele1, ele2
   type (ele_struct), save :: ele_temp
 
+  real(rp), pointer :: mat6(:,:), orb(:)
   real(rp) v_mat(4,4), v_inv_mat(4,4), y_inv(2,2), det
   real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
   real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
-  real(rp) mat2(2,2), eta_x(4), eta_a(4)
+  real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), pz_2
   real(rp) mat4(4,4), det_factor, det_original
 
 !---------------------------------------------------------------------
@@ -60,8 +61,10 @@ subroutine twiss_propagate1 (ele1, ele2)
   if (ele2%key == marker$) then
     ele2%x = ele1%x
     ele2%y = ele1%y
+    ele2%z = ele1%z
     ele2%gamma_c = ele1%gamma_c
     ele2%c_mat = ele1%c_mat
+    ele2%closed_orb = ele1%closed_orb
     return
   endif
 
@@ -146,13 +149,6 @@ subroutine twiss_propagate1 (ele1, ele2)
 
   endif
 
-! calculate components in transfer matrix for dispersion calc
-! effective_mat6(i,6) = V_2^-1(i,j) * ele2.mat6(j,6)
-
-  call make_v_mats (ele2, v_mat, v_inv_mat)
-  ele_temp%mat6(1:4,6) = matmul(v_inv_mat(1:4,1:4), ele2%mat6(1:4,6))
-  ele_temp%mat6(6,1:6) = ele2%mat6(6,1:6)
-
 !---------------------------------------------------------------------
 ! Propagate twiss.
 
@@ -170,16 +166,47 @@ subroutine twiss_propagate1 (ele1, ele2)
     ele2%y%phi = ele2%y%phi - twopi
   endif
 
-! Calc laboratory dispersions.
+!----------------------------------------------------
+! Dispersion calc.
+! p_z2 is p_z at end of ele2 assuming p_z = 1 at end of ele1.
+! This is just 1.0 (except for RF cavities).
+
+  eta1_vec = (/ ele1%x%eta_lab, ele1%x%etap_lab, &
+           ele1%y%eta_lab, ele1%y%etap_lab, ele1%z%eta_lab, 1.0_rp /)
+
+  if (ele2%key == rfcavity$) then
+    eta1_vec(5) = 0
+    pz_2 = dot_product (ele2%mat6(6,1:4), eta1_vec(1:4)) + 1
+  else
+    pz_2 = dot_product (ele2%mat6(6,:), eta1_vec)
+  endif
+
+  mat6 => ele2%mat6
+  orb => ele1%closed_orb
+
+  eta_vec(1:5) = matmul (ele2%mat6(1:5,:), eta1_vec) / pz_2
+  eta_vec(1) = eta_vec(1) + mat6(1,2) * orb(2) + mat6(1,4) * orb(4)
+  eta_vec(2) = eta_vec(2) - mat6(2,1) * orb(1) - mat6(2,3) * orb(3) - ele2%vec0(2)
+  eta_vec(3) = eta_vec(3) + mat6(3,2) * orb(2) + mat6(3,4) * orb(4)
+  eta_vec(4) = eta_vec(4) - mat6(4,1) * orb(1) - mat6(4,3) * orb(3) - ele2%vec0(4)
+
+  ele2%x%eta_lab  = eta_vec(1)
+  ele2%x%etap_lab = eta_vec(2)
+  ele2%y%eta_lab  = eta_vec(3)
+  ele2%y%etap_lab = eta_vec(4)
+  ele2%z%eta_lab  = eta_vec(5)
 
   call make_v_mats (ele2, v_mat, v_inv_mat)
-  eta_a = (/ ele2%x%eta, ele2%x%etap, &
-                    ele2%y%eta, ele2%y%etap /)
-  eta_x = matmul (v_mat, eta_a)
-  ele2%x%eta_lab  = eta_x(1)
-  ele2%x%etap_lab = eta_x(2)
-  ele2%y%eta_lab  = eta_x(3)
-  ele2%y%etap_lab = eta_x(4)
+  eta_vec(1:4) = matmul (v_inv_mat, eta_vec(1:4))
+
+  ele2%x%eta  = eta_vec(1)
+  ele2%x%etap = eta_vec(2)
+  ele2%y%eta  = eta_vec(3)
+  ele2%y%etap = eta_vec(4)
+  ele2%z%eta  = ele2%z%eta_lab
+
+  ele2%closed_orb(1:4) = &
+          matmul(ele2%mat6(1:4,1:4), ele1%closed_orb(1:4)) + ele2%vec0(1:4)
 
 end subroutine
 
@@ -214,7 +241,6 @@ subroutine twiss_decoupled_propagate (ele1, ele2)
 
   real(rp) m11, m12, m21, m22, a1, b1, g1, del_phi
   real(rp) a2, b2, g2, mat4(4,4), det, det_factor
-  real(rp) pz_2, eta1_vec(6)
 
 !----------------------------------------------------
 ! Linac rf matrices need to be renormalized.
@@ -229,22 +255,8 @@ subroutine twiss_decoupled_propagate (ele1, ele2)
   endif
 
 !----------------------------------------------------
-! Longitudinal eta.
-! p_z2 is p_z at end of ele2 assuming p_z = 1 at end of ele1.
-! Except for RF cavities this is just 1.
-
-  eta1_vec = (/ ele1%x%eta_lab, ele1%x%etap_lab, &
-           ele1%y%eta_lab, ele1%y%etap_lab, ele1%z%eta_lab, 1.0_rp /)
-
-  pz_2 = dot_product (ele2%mat6(6,:), eta1_vec)
-
-  ele2%z%eta = dot_product (ele2%mat6(6,:), eta1_vec) / pz_2
-  ele2%z%eta_lab = ele2%z%eta
-
-!----------------------------------------------------
 ! Basic equation is given by Bovet 2.5.b page 16
 ! Propagate A mode ("X") of ele1
-! Notice that the unnormalized matrix is used in the dispersion computation.
 
   m11 = mat4(1,1) / det_factor
   m12 = mat4(1,2) / det_factor
@@ -267,25 +279,16 @@ subroutine twiss_decoupled_propagate (ele1, ele2)
     ele2%x%beta = b2
     ele2%x%alpha = a2
     ele2%x%gamma = g2
-    ele2%x%eta  = (mat4(1,1) * ele1%x%eta + mat4(1,2) * ele1%x%etap + &
-                                                       ele2%mat6(1,6)) / pz_2
-    ele2%x%etap = (mat4(2,1) * ele1%x%eta + mat4(2,2) * ele1%x%etap + &
-                                                       ele2%mat6(2,6)) / pz_2
     ele2%x%phi = ele1%x%phi + del_phi
   else
     ele2%y%beta = b2
     ele2%y%alpha = a2
     ele2%y%gamma = g2
-    ele2%y%eta  = (mat4(1,1) * ele1%x%eta + mat4(1,2) * ele1%x%etap + &
-                                                       ele2%mat6(3,6)) / pz_2
-    ele2%y%etap = (mat4(2,1) * ele1%x%eta + mat4(2,2) * ele1%x%etap + &
-                                                       ele2%mat6(4,6)) / pz_2
     ele2%y%phi = ele1%x%phi + del_phi
   endif
 
 !-----------------------------------------------------
 ! Propagate B mode ("Y") of ele1
-! Notice that the unnormalized matrix is used in the dispersion computation.
 
   m11 = mat4(3,3) / det_factor
   m12 = mat4(3,4) / det_factor
@@ -308,19 +311,11 @@ subroutine twiss_decoupled_propagate (ele1, ele2)
     ele2%y%beta = b2
     ele2%y%alpha = a2
     ele2%y%gamma = g2
-    ele2%y%eta  = (mat4(3,3) * ele1%y%eta + mat4(3,4) * ele1%y%etap + &
-                                                       ele2%mat6(3,6)) / pz_2
-    ele2%y%etap = (mat4(4,3) * ele1%y%eta + mat4(4,4) * ele1%y%etap + &
-                                                       ele2%mat6(4,6)) / pz_2
     ele2%y%phi = ele1%y%phi + del_phi
   else
     ele2%x%beta = b2
     ele2%x%alpha = a2
     ele2%x%gamma = g2
-    ele2%x%eta  = (mat4(3,3) * ele1%y%eta + mat4(3,4) * ele1%y%etap + &
-                                                       ele2%mat6(1,6)) / pz_2
-    ele2%x%etap = (mat4(4,3) * ele1%y%eta + mat4(4,4) * ele1%y%etap + &
-                                                       ele2%mat6(2,6)) / pz_2
     ele2%x%phi = ele1%y%phi + del_phi
   endif
 

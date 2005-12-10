@@ -99,9 +99,10 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
   real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
   real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f
   real(rp) v(4,4), v_inv(4,4), f0, f1, s, mc2, gamma, gamma4, gamma6
+  real(rp) ds
 
   integer, optional :: ix_cache
-  integer i, j, k, ir, key
+  integer i, j, k, ir, key, n_step
 
   logical do_alloc
   logical, parameter :: t = .true., f = .false.
@@ -196,9 +197,11 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
         cache%ele(j)%ix_ele = i
 
         if (key == wiggler$ .and. ele%sub_key == map_type$) then
-          cache%ele(j)%ds = ele%value(l$) / ele%num_steps
-          allocate (cache%ele(j)%v(0:ele%num_steps))
-          do k = 0, ele%num_steps
+          call compute_even_steps (ele%value(ds_step$), ele%value(l$), &
+                                      bmad_com%default_ds_step, ds, n_step)
+          cache%ele(j)%ds = ds
+          allocate (cache%ele(j)%v(0:n_step))
+          do k = 0, n_step
             s = k * cache%ele(j)%ds
             f0 = (ele%value(l$) - s) / ele%value(l$)
             f1 = s / ele%value(l$)

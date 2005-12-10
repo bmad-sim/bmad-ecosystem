@@ -241,22 +241,22 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine mat6_dispersion (mat6, e_vec)
+! Subroutine mat6_dispersion (e_vec, mat6)
 !
-! Subroutine to put the dispersion into ELE.MAT6 given the eta vector E_VEC
+! Subroutine to put the dispersion into ele.mat6 given the eta vector e_vec
 !
 ! Input:
-!   E_VEC(4) -- Real(rp): eta vector
+!   e_vec(4) -- Real(rp): eta vector
 !
 ! Output:
 !   mat6(6,6) -- Real(rp): Matrix with 4x4 x-y submatrix already made.
 !-
 
-subroutine mat6_dispersion (mat6, e_vec)
+subroutine mat6_dispersion (e_vec, mat6)
 
   implicit none
 
-  real(rp), intent(inout) :: mat6(6,6)
+  real(rp), intent(inout) :: mat6(:,:)
   real(rp), intent(in) :: e_vec(:)
 
   real(rp) e2_vec(4)

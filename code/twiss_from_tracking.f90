@@ -51,7 +51,7 @@ subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb)
 
   real(rp), optional, intent(in) :: d_orb(:)
   real(rp), intent(out) :: error
-  real(rp) delta(0:6)
+  real(rp) delta(0:6), r(6), r0(6), r1(6)
 
   type multi_orb_struct
     type (coord_struct), allocatable :: orb(:) 
@@ -62,6 +62,8 @@ subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb)
   integer i, j, n_ele
 
 ! Init
+
+  error = .true.  ! Assume the worst
 
   do i = -6, 6
     call reallocate_coord (mo(i)%orb, ring%n_ele_max)
@@ -79,6 +81,11 @@ subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb)
 
 ! track offset particles
 
+  mo(0)%orb(0) = ref_orb0 
+  call track_all (ring, mo(0)%orb)
+  if (.not. bmad_status%ok) return
+  r = mo(0)%orb(n_ele)%vec - mo(0)%orb(0)%vec
+
   do i = 1, 6
     mo(i)%orb(0) = ref_orb0 
     mo(i)%orb(0)%vec(i) = ref_orb0%vec(i) + delta(i)
@@ -91,42 +98,42 @@ subroutine twiss_from_tracking (ring, ref_orb0, error, d_orb)
     mat(:,i) = (mo(i)%orb(n_ele)%vec - mo(-i)%orb(n_ele)%vec) / (2*delta(i))
   enddo
 
-! find 1-turn matrix and twiss at starting point
-
-  call mat_symp_check (mat, error)
-  call mat_symplectify (mat, mat)
-  call twiss_from_mat6 (mat, ring%ele_(0), &
-                           ring%param%stable, ring%param%growth_rate)
-  ring%x%tune = ring%ele_(0)%x%phi
-  ring%y%tune = ring%ele_(0)%y%phi
-  ring%param%t1_no_RF = mat
-
-  if (.not. ring%param%stable) return
-
 ! compute the element transfer matrices.
 ! mat0 is the transfer matrix from the start to the beginning of element #j
 ! mat  is the transfer matrix from the start to the end of element #j
 ! mat1 is the transfer matrix through element #j
 
   call mat_make_unit (mat0)  
+  r0 = 0
 
   do j = 1, n_ele
 
     do i = 1, 6
       mat(:,i) = (mo(i)%orb(j)%vec - mo(-i)%orb(j)%vec) / (2*delta(i))
     enddo
+    call mat_symplectify (mat, mat)
+
+    r = mo(0)%orb(j)%vec - matmul(mat, mo(0)%orb(0)%vec)
 
     call mat_symp_conj (mat0, mat_inv)   ! symp_conj is the inverse
     mat1 = matmul (mat, mat_inv)
-    call mat_symplectify (mat1, ring%ele_(j)%mat6)
-    mat0 = matmul (ring%ele_(j)%mat6, mat0)
+
+    ring%ele_(j)%mat6 = mat1
+    ring%ele_(j)%vec0 = r - matmul(mat1, r0)
+
+    r0 = r
+    mat0 = mat
 
   enddo
 
 ! Now compute the twiss parameters.
 ! And turn the RF back on.
 
+  call twiss_at_start (ring)
+  if (.not. bmad_status%ok) return
+
   call twiss_propagate_all (ring)
   call set_on_off (rfcavity$, ring, restore_state$)
+  error = .false.
 
 end subroutine

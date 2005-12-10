@@ -60,7 +60,7 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track)
   real(rp), pointer :: mat6(:,:)
   real(rp), parameter :: z0 = 0, z1 = 1
 
-  integer i, j
+  integer i, j, n_step
 
   logical calc_mat6
 
@@ -103,16 +103,17 @@ subroutine track_it (start, real_track, local_calc_mat6)
 
 ! init
 
-  ds = ele%value(l$) / ele%num_steps
+  call compute_even_steps (ele%value(ds_step$), ele%value(l$), &
+                                      bmad_com%default_ds_step, ds, n_step)
   ds2 = ds / 2
 
   s = 0   ! longitudianl position
 
   if (track%save_track) then
-    call allocate_saved_orbit (track, ele%num_steps)
+    call allocate_saved_orbit (track, n_step)
     track%pt(0)%s = 0
     track%pt(0)%orb = start
-    track%n_pt = ele%num_steps
+    track%n_pt = n_step
     if (local_calc_mat6) track%pt(0)%mat6 = mat6
   endif
 
@@ -138,7 +139,7 @@ subroutine track_it (start, real_track, local_calc_mat6)
 
 ! loop over all steps
 
-    do i = 1, ele%num_steps
+    do i = 1, n_step
 
 ! s half step
 
@@ -212,7 +213,7 @@ subroutine track_it (start, real_track, local_calc_mat6)
 
 ! loop over all steps
 
-    do i = 1, ele%num_steps
+    do i = 1, n_step
 
       s = s + ds2
       ks_tot_2 = (ele%value(ks$) + ele%value(dks_ds$) * s) / 2

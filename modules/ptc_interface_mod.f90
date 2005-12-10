@@ -471,7 +471,7 @@ end subroutine
 !------------------------------------------------------------------------
 !+
 ! Subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
-!                               num_steps, no_cavity, exact_calc, exact_misalign)
+!                               n_step, no_cavity, exact_calc, exact_misalign)
 !
 ! Subroutine to initialize PTC.
 ! Note: At some point before you use PTC to compute Taylor maps etc.
@@ -496,7 +496,7 @@ end subroutine
 !   integ_order  -- Integer, optional: Default Order for the drift-kick-drift 
 !                     sympletic integrator. Possibilities are: 2, 4, or 6
 !                     Default = 2
-!   num_steps    -- Integer, optional: Default Number of integration steps.
+!   n_step       -- Integer, optional: Default Number of integration steps.
 !                     Default = 1
 !   no_cavity    -- Logical, optional: No RF Cavity exists? 
 !                     Default = False.
@@ -511,7 +511,7 @@ end subroutine
 !-
 
 subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
-                                    num_steps, no_cavity, exact_calc, exact_misalign) 
+                                    n_step, no_cavity, exact_calc, exact_misalign) 
 
   use mad_like, only: make_states, exact_model, always_exactmis, &
                 assignment(=), nocavity, default, operator(+), &
@@ -519,7 +519,7 @@ subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
 
   implicit none
 
-  integer, optional :: integ_order, particle, num_steps, taylor_order
+  integer, optional :: integ_order, particle, n_step, taylor_order
   integer this_method, this_steps
   integer nd2
 
@@ -559,16 +559,15 @@ subroutine set_ptc (beam_energy, particle, taylor_order, integ_order, &
     this_method = bmad_com%default_integ_order
   endif
 
-  if (present (num_steps)) then
-    this_steps = num_steps
-    bmad_com%default_num_steps = num_steps
+  if (present (n_step)) then
+    this_steps = n_step
   else
-    this_steps = bmad_com%default_num_steps
+    this_steps = 10
   endif
 
   if (params_present) then
     if (init_needed .or. old_beam_energy /= beam_energy .or. &
-                        present(integ_order) .or. present(num_steps)) then
+                        present(integ_order) .or. present(n_step)) then
       this_energy = 1e-9 * beam_energy
       if (this_energy == 0) then
         call out_io (s_fatal$, r_name, 'BEAM_ENERGY IS 0.')
@@ -1436,7 +1435,7 @@ end subroutine
 ! Input:
 !   ele   -- Element_struct: 
 !     %integrator_order  -- Order for the symplectic integrator: 2, 4, or 6.
-!     %num_steps          -- Number of integrater steps.
+!     %value(ds_step$)   -- Integrater step size.
 !   orb0  -- Coord_struct, optional: Starting coords around which the Taylor series 
 !              is evaluated.
 !   param -- Param_struct: 
@@ -1734,10 +1733,7 @@ end subroutine
 !                    Overrides ele%integrator_order.
 !                    default = 2 (if not set with set_ptc).
 !   steps       -- Integer, optional: Number of integration steps.
-!                    Overrides ele%num_steps.
-!                    If ele%num_steps = 0 and steps is not present
-!                    then the default is used. The default = 10 if not
-!                    set with set_ptc. 
+!                    Overrides ele%value(ds_step$).
 !
 ! Output:
 !   fiber -- Fibre: PTC fibre element.
@@ -1779,7 +1775,8 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 !  ptc_key%list%lc   = ele%value(l$)
 
   ptc_key%tiltd = ele%value(tilt_tot$)
-  ptc_key%nstep = ele%num_steps
+  ptc_key%nstep = nint(ele%value(l$) / ele%value(ds_step$))
+  if (ptc_key%nstep == 0) ptc_key%nstep = 1
   if (present(steps)) ptc_key%nstep = steps
   ptc_key%method = ele%integrator_order  
   if (present(integ_order)) ptc_key%method = integ_order

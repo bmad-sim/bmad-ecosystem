@@ -367,7 +367,7 @@ is_eq = all(f1%d_orb == f2%d_orb) .and. &
       (f1%abs_tollerance == f2%abs_tollerance) .and. &
       (f1%taylor_order == f2%taylor_order) .and. &
       (f1%default_integ_order == f2%default_integ_order) .and. &
-      (f1%default_num_steps == f2%default_num_steps) .and.  &
+      (f1%default_ds_step == f2%default_ds_step) .and.  &
       (f1%canonical_coords .eqv. f2%canonical_coords) .and. &
       (f1%use_liar_lcavity .eqv. f2%use_liar_lcavity) .and. &
       (f1%sr_wakes_on .eqv. f2%sr_wakes_on) .and.  &

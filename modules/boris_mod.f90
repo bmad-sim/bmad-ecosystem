@@ -229,7 +229,7 @@ end subroutine track1_adaptive_boris
 !                         field. Note: BMAD does no supply em_field_custom.
 !                           == custom$ then use em_field_custom
 !                           /= custom$ then use em_field
-!     %num_steps      -- number of steps to take
+!     %value(ds_step$) -- Step size.
 !   param    -- Param_struct: Beam parameters.
 !     %particle    -- Particle type [positron$, or electron$]
 !   track      -- Track_struct: Structure holding the track information.
@@ -257,7 +257,7 @@ subroutine track1_boris (start, ele, param, end, track, s_start, s_end)
   real(rp), optional, intent(in) :: s_start, s_end
   real(rp) s1, s2, s_sav, ds, s
 
-  integer i
+  integer i, n_step
 
 ! init
 
@@ -273,13 +273,8 @@ subroutine track1_boris (start, ele, param, end, track, s_start, s_end)
     s2 = ele%value(l$)
   endif
 
-  if (ele%num_steps == 0) then
-    print *, 'ERROR IN TRACK1_BORIS: ELEMENT HAS ZERO "NUM_STEPS": ', ele%name
-    call err_exit
-  endif
-
-  s = s1
-  ds = (s2-s1) / ele%num_steps
+  call compute_even_steps (ele%value(ds_step$), s2-s1, &
+                              bmad_com%default_ds_step, ds, n_step)
 
 ! go to local coords
 
@@ -299,14 +294,16 @@ subroutine track1_boris (start, ele, param, end, track, s_start, s_end)
 ! if we are saving the trajectory then allocate enough space in the arrays
 
   if (track%save_track) then
-    s_sav = s - 2.0_rp * track%ds_save
-    call allocate_saved_orbit (track, loc_ele%num_steps+1)
+    s_sav = s1 - 2.0_rp * track%ds_save
+    call allocate_saved_orbit (track, n_step+1)
     call save_a_step (track, loc_ele, param, s, here%vec, s_sav)
   endif
 
 ! track through the body
 
-  do i = 1, loc_ele%num_steps
+  s = s1
+
+  do i = 1, n_step
     call track1_boris_partial (here, loc_ele, param, s, ds, here)
     s = s + ds
     if (track%save_track) call save_a_step (track, loc_ele, param, s, here%vec, s_sav)

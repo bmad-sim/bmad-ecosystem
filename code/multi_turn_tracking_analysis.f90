@@ -83,7 +83,7 @@ subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
 
   elseif (i_dim == 4) then
 
-    call twiss_from_mat6 (ele%mat6, ele, stable, growth_rate)
+    call twiss_from_mat6 (ele%mat6, map0, ele, stable, growth_rate)
     call make_v_mats (ele, v_mat, v_inv_mat)
 
     ele%x%sigma = 0

@@ -113,7 +113,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 
       if (i_out /= 0) then
         if (ele_out%key == hybrid$ .and. z_decoupled) &
-                        call mat6_dispersion (ele_out%mat6, e_vec)
+                        call mat6_dispersion (e_vec, ele_out%mat6)
       endif
 
 ! on to the next out-element which is a simple element
@@ -237,7 +237,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 ! end cleanup
 
   if (ele_out%key == hybrid$ .and. z_decoupled)  &
-                          call mat6_dispersion (ele_out%mat6, e_vec)
+                          call mat6_dispersion (e_vec, ele_out%mat6)
 
   call transfer_ring_parameters (r_in, r_out)
   r_out%n_ele_use  = i_out

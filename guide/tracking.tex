@@ -276,9 +276,12 @@ using symplectic integration.
     call call taylor_propagate1 (taylor, lat%ele_(i), lat%param)
   enddo
 \end{example}
+\index{Ds_step}
+\index{Integrator_order}
 Symplectic integration is typically much slower than concatination.
 The number of slices used for the integration is given by
-\vn{%ele%num_steps}. The order of the integrator
+\vn{%ele%value(n_step\$)}. The order of the integrator is given by
+\vn{%ele%integrator_order}
 
 %----------------------------------------------------------------
 \section{Macroparticle Tracking}

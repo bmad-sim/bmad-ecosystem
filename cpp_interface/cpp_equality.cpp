@@ -159,7 +159,7 @@ bool operator== (const C_bmad_com& x, const C_bmad_com& y) {
       (x.abs_tollerance == y.abs_tollerance) && 
       (x.taylor_order == y.taylor_order) && 
       (x.default_integ_order == y.default_integ_order) && 
-      (x.default_num_steps == y.default_num_steps) &&  
+      (x.default_ds_step == y.default_ds_step) &&  
       (x.canonical_coords == y.canonical_coords) && 
       (x.use_liar_lcavity == y.use_liar_lcavity) && 
       (x.sr_wakes_on == y.sr_wakes_on) &&  (x.lr_wakes_on == y.lr_wakes_on) &&  

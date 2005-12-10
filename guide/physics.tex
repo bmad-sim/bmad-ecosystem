@@ -1238,5 +1238,96 @@ at the end of the linac is
   \Endeqs
 Where $\gamma_f$ is the final gamma
 
-
-% LocalWords:  rcr
+%-----------------------------------------------------------------   
+ \section{Spin Dynamics}   
+ \label{s:spin_dyn}   
+ \index{Spin tracking!Spin dynamics}   
+    
+ The matrix representation of the observable corresponding to the measurement of   
+ spin along the unit vector $\Bf u$ in the ${ |+> = \left(\begin{matrix}1 \\ 0   
+ \end{matrix} \right), |-> =  \left(\begin{matrix} 0 \\ 1 \end{matrix} \right) }$ 
+basis is   
+   \Begineqs   
+     S_{\Bf u} &=& \mathbf{S \cdot u} \\   
+               &=& \frac{\hbar}{2} \sigma_{x} \sin \theta \cos \phi +   
+                   \frac{\hbar}{2} \sigma_{y} \sin \theta \sin \phi +   
+                   \frac{\hbar}{2} \sigma_{z} \cos \theta \\   
+               &=& \frac{\hbar}{2} \left(   
+                    \begin{matrix}   
+                      \cos \theta            & \sin \theta e^{- i \phi} \\   
+                      \sin \theta e^{i \phi} & - \cos \theta   
+                    \end{matrix} \right)   
+   \Endeqs   
+ where $\theta$ and $\phi$ are the polar angles characterizing the vector $\Bf u$   
+ and $\sigma_{x,y,z}$ are the three pauli matrices.   
+ The expectation value of this operator representing the spin of a particle   
+ satisfies the equation of motion of a classical spin vector in the particle's   
+ instantaneous rest frame. The classical spin vector $\Bf s$ is described for   
+ time $t$ in the   
+ laboratory frame by the Thomas-Bargmann-Michel-Telegdi (T-BMT) equation,   
+   \Begineqs   
+     \frac{\mathrm{d}}{\mathrm{d}t} \Bf s &=& \Bf \Omega_{BMT} (\mathbf{r,p,t})   
+     \mathbf{ \times  s}, \\   
+             \Omega_{BMT}(\mathbf{r,p,t}) &=& - \frac{q}{m \gamma} \left[\left(1   
+             + G \gamma \right) \Bf B - \frac{G \Bf p \cdot \Bf B}{\left( \gamma   
+             + 1\right) m^{2} c^{2}} \Bf p - \frac{1}{m c^{2}}\left(G +   
+             \frac{1}{1 + \gamma}\right)\mathbf{ p \times  E}\right],   
+   \Endeqs   
+ where $\Bf E (\Bf r ,t)$ and $\Bf B (\Bf r ,t)$ are the electric and magnetic   
+ fields in the laboratory frame, $\Bf p$ and $\gamma$ are the particle's momentum   
+ and relativistic gamma factor in the laboratory frame, $q$ and $m$ are the   
+ particle's charge and mass, and $G = \frac{\left(g-2\right)}{2}$ is the   
+ particle's anaomalous gyro-magnetic g-factor which is $1.793$ for protons and   
+ $0.00116$ for electrons and positrons.   
+    
+ For a distribution of spins the polarization $P$ along the unit vector $\Bf u$ is
+ defined as the absolute   
+ value of the average expectation value of the spin over all N particles times   
+ $\frac{2}{\hbar}$,   
+   \Begineqs   
+     P &=& \frac{2}{\hbar} \| \frac{1}{N} \sum_{j=1}^{N}<+|S_{\Bf u}|+> \| \\   
+       &=& \| \frac{1}{N} \sum_{j=1}^{N} \cos \theta \|.   
+   \Endeqs   
+    
+ It is more efficient to use the SU(2) representation rather than SO(3) when   
+ describing rotations of spin. In the SU(2) representation, a spin $\Bf s$ is   
+ written as a spinor $\Psi = \left( \psi_{1}, \psi_{2} \right)^{T}$ where   
+ $\psi_{1,2}$ are complex numbers and   
+   \Begineqs   
+                     \Bf s &=& \Psi^{\dagger} \Bf \sigma \Psi \\   
+     \leftrightarrow \Psi  &=& \frac{1}{\sqrt{2 \left(s_{3}+1\right)}}   
+              \left( \begin{matrix} 1+s_{3} \\ s_{1}+i s_{2} \end{matrix}   
+              \right),   
+   \Endeqs   
+ or in polar coordinates,   
+   \Begineqs   
+     \Psi &=& \left( \begin{matrix} \psi_{1} \\ \psi_{2} \end{matrix} \right)   
+          = e^{i \xi} \left( \begin{matrix} \cos \frac{\phi}{2}\\   
+                      \sin \frac{\phi}{2} e^{i \phi}   
+                      \end{matrix} \right) \\   
+          \leftrightarrow   
+     \Bf s &=& \left( \begin{matrix} \sin \theta \cos \phi \\   
+                                     \sin \theta \sin \phi \\   
+                                     \cos \theta \end{matrix} \right).   
+   \Endeqs   
+ The $\xi$ being an extra phase factor. Due to the unitarity of the spin vector,   
+ $|\psi_{1}|^{2} + |\psi_{2}|^{2} = 1$.   
+    
+ In spinor notation the T-BMT equation can be written   
+   \Begineq   
+     \frac{\mathrm{d}}{\mathrm{d} t} \Psi = - \frac{i}{2} \left( \Bf \sigma \cdot   
+     \Bf \Omega \right) \Psi.   
+   \Endeq   
+ The solution leads to a rotation of the spin vector by an angle   
+ $\alpha$ around a unit vector $\Bf e$ represented as   
+   \Begineqs   
+     \Psi &=& e^{-i \frac{\alpha}{2} \Bf e \cdot \Bf \sigma} \Psi_{i} \\   
+          &=& \left( a_{0} \Bf 1_{2} - i \boldsymbol{a} \cdot \Bf \sigma \right) \Psi_{i} \\   
+          &=& \Bf A \Psi_{i}.   
+   \Endeqs   
+ The SU(2) matrix $\Bf A$ is called a \textit{quaternion} and has the   
+ normalization condition $a_{0}^{2} + \boldsymbol{a}^{2} = 1$. The three components   
+ $\left(a_{1}, a_{2}, a_{3}\right)$, along with the normalization condition,   
+ describes the transport of spin between any two points in an accelerator. 
+ 
+% LocalWords: rcr

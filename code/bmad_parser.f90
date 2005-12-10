@@ -1000,6 +1000,14 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
       ele%value(y_limit$) = ele%value(aperture$)
     endif
 
+! set ds_step if not already set.
+
+    if (ele%num_steps > 0) then
+      ele%value(ds_step$) = abs(ele%value(l$) / ele%num_steps)
+    elseif (ele%value(ds_step$) == 0) then
+      ele%value(ds_step$) = bmad_com%default_ds_step
+    endif
+
   enddo
 
 ! First work on multipass before overlays, groups, and usuperimpose. 

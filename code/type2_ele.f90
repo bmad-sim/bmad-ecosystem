@@ -246,8 +246,8 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
                                     calc_method_name(ele%field_calc)
   endif
 
-  if (attribute_index(ele, 'INTEGRATION_ORD') /= 0) then
-    nl=nl+1; write (li(nl), '(a, i4)') ' Integration_ord: ', ele%integrator_order 
+  if (attribute_index(ele, 'INTEGRATOR_ORDER') /= 0) then
+    nl=nl+1; write (li(nl), '(a, i4)') ' Integrator_order:', ele%integrator_order 
   endif
 
   if (attribute_index(ele, 'NUM_STEPS') /= 0) then

@@ -60,12 +60,12 @@ function attribute_name (ele, ix_att) result (at_name)
       if (i == overlay$)  cycle
       if (i == i_beam$)   cycle
 
-      attrib_array(i, x_limit$)     = 'X_LIMIT'
-      attrib_array(i, y_limit$)     = 'Y_LIMIT'
-      attrib_array(i, aperture$)    = 'APERTURE'
-      attrib_array(i, aperture_at$) = 'APERTURE_AT'
-      attrib_array(i, beam_energy$) = 'BEAM_ENERGY'
-      attrib_array(i, p0c$)         = 'P0C'
+      attrib_array(i, x_limit$)           = 'X_LIMIT'
+      attrib_array(i, y_limit$)           = 'Y_LIMIT'
+      attrib_array(i, aperture$)          = 'APERTURE'
+      attrib_array(i, aperture_at$)       = 'APERTURE_AT'
+      attrib_array(i, beam_energy$)       = 'BEAM_ENERGY'
+      attrib_array(i, p0c$)               = 'P0C'
       attrib_array(i, mat6_calc_method$)  = 'MAT6_CALC_METHOD'
       attrib_array(i, tracking_method$)   = 'TRACKING_METHOD'
 
@@ -83,8 +83,9 @@ function attribute_name (ele, ix_att) result (at_name)
 
       if (i == taylor$)       cycle
 
-      attrib_array(i, integrator_order$)   = 'INTEGRATION_ORD'
+      attrib_array(i, integrator_order$)  = 'INTEGRATOR_ORDER'
       attrib_array(i, num_steps$)         = 'NUM_STEPS'
+      attrib_array(i, ds_step$)           = 'DS_STEP'
       attrib_array(i, rel_tol$)           = 'REL_TOL'
       attrib_array(i, abs_tol$)           = 'ABS_TOL'
 
@@ -92,8 +93,8 @@ function attribute_name (ele, ix_att) result (at_name)
       if (i == vkicker$)      cycle
       if (i == custom$)       cycle
 
-      attrib_array(i, hkick$)  = 'HKICK'
-      attrib_array(i, vkick$)  = 'VKICK'
+      attrib_array(i, hkick$)    = 'HKICK'
+      attrib_array(i, vkick$)    = 'VKICK'
       attrib_array(i, bl_hkick$) = 'BL_HKICK'
       attrib_array(i, bl_vkick$) = 'BL_VKICK'
 

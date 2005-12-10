@@ -575,12 +575,12 @@ class C_bmad_com {
 public:
   Real_Array d_orb;              // for the make_mat6_tracking routine
   double max_aperture_limit;   
-  double grad_loss_sr_wake;                 // Internal var for LCavities.
+  double grad_loss_sr_wake;      // Internal var for LCavities.
+  double default_ds_step;        // Number integration steps
   double rel_tollerance; 
   double abs_tollerance; 
   int taylor_order;              // 3rd order is default
   int default_integ_order;       // PTC integration order
-  int default_num_steps;         // Number integration steps
   bool canonical_coords;         // Use (x, px) [not (x, x')]
   bool use_liar_lcavity;         // Liar like tracking?
   bool sr_wakes_on;              // Short range wakefields?
@@ -596,26 +596,26 @@ public:
 
   C_bmad_com () : d_orb(double(0), 6) {bmad_com_to_c_(*this);}
 
-  C_bmad_com (ReArr orb, double max_ap, double kl, double rel_t,
-                double abs_t, int to, int io, int steps, int cc,
+  C_bmad_com (double max_ap, ReArr orb, double kl, double steps, 
+                double rel_t, double abs_t, int to, int io, int cc,
                 int liar, int sr, int lr, int sym, int a_book,
                 int tsc_on, int csr_on, int st_on, int rad_d, int rad_f, int cre) :
       d_orb(orb, 6), max_aperture_limit(max_ap), grad_loss_sr_wake(kl), 
       rel_tollerance(rel_t), abs_tollerance(abs_t), taylor_order(to), 
-      default_integ_order(io), default_num_steps(steps), canonical_coords(cc), 
+      default_integ_order(io), default_ds_step(steps), canonical_coords(cc), 
       use_liar_lcavity(liar), sr_wakes_on(sr), lr_wakes_on(lr), 
       mat6_track_symmetric(sym), auto_bookkeeper(a_book), 
       trans_space_charge_on(tsc_on), coherent_synch_rad_on(csr_on),
       spin_tracking_on(st_on), radiation_damping_on(rad_d), 
       radiation_fluctuations_on(rad_f), compute_ref_energy(cre) {}
 
-  C_bmad_com (Real_Array orb, double max_ap, double kl, double rel_t,
-                double abs_t, int to, int io, int steps, int cc,
+  C_bmad_com (double max_ap, Real_Array orb, double kl, double steps, 
+                double rel_t, double abs_t, int to, int io, int cc,
                 int liar, int sr, int lr, int sym, int a_book,
                 int tsc_on, int csr_on, int st_on, int rad_d, int rad_f, int cre) :
       d_orb(orb), max_aperture_limit(max_ap), grad_loss_sr_wake(kl), 
       rel_tollerance(rel_t), abs_tollerance(abs_t), taylor_order(to), 
-      default_integ_order(io), default_num_steps(steps), canonical_coords(cc), 
+      default_integ_order(io), default_ds_step(steps), canonical_coords(cc), 
       use_liar_lcavity(liar), sr_wakes_on(sr), lr_wakes_on(lr), 
       mat6_track_symmetric(sym), auto_bookkeeper(a_book), 
       trans_space_charge_on(tsc_on), coherent_synch_rad_on(csr_on),

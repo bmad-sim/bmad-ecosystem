@@ -541,12 +541,13 @@ interface
 end interface
 
 interface
-  subroutine transfer_matrix_calc (lat, rf_on, t_mat, ix1, ix2)
+  subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2)
     use bmad_struct, only: ring_struct, rp
     implicit none
     type (ring_struct) lat
     logical, intent(in) :: rf_on
-    real(rp), intent(out) :: t_mat(:,:)
+    real(rp), intent(out) :: xfer_mat(:,:)
+    real(rp), intent(out), optional :: xfer_vec(:)
     integer, intent(in), optional :: ix1, ix2
   end subroutine
 end interface
@@ -1000,11 +1001,11 @@ interface
 end interface
 
 interface
-  subroutine twiss_from_mat6 (mat6, ele, stable, growth_rate)
+  subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
     use bmad_struct, only: ele_struct, rp
     implicit none
     type (ele_struct) :: ele
-    real(rp), intent(in) :: mat6(6,6)
+    real(rp), intent(in) :: mat6(:,:), map0(:)
     real(rp), intent(out) :: growth_rate
     logical, intent(out) :: stable
   end subroutine

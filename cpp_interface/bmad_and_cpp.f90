@@ -1355,9 +1355,9 @@ type (c_dummy_struct) c_bmad_com
 
 f = bmad_com
 call bmad_com_to_c2 (c_bmad_com, &
-      f%d_orb, f%max_aperture_limit, f%grad_loss_sr_wake, &
-      f%rel_tollerance, f%abs_tollerance, f%taylor_order, &
-      f%default_integ_order, f%default_num_steps, &
+      f%max_aperture_limit, f%d_orb, f%grad_loss_sr_wake, &
+      f%default_ds_step, f%rel_tollerance, f%abs_tollerance, &
+      f%taylor_order, f%default_integ_order, &
       c_logic(f%canonical_coords), c_logic(f%use_liar_lcavity), &
       c_logic(f%sr_wakes_on), c_logic(f%lr_wakes_on), &
       c_logic(f%mat6_track_symmetric), c_logic(f%auto_bookkeeper), & 
@@ -1371,7 +1371,8 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine bmad_com_to_f2 (orb, ap, kl, rel, abs, to, do, ds, cc, liar, &
+! Subroutine bmad_com_to_f2 (max_ap, orb, grad_loss, ds_step, rel, 
+!                abs, taylor_ord, dflt_integ, cc, liar, &
 !                sr, lr, sym, a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e)
 !
 ! Subroutine used by bmad_com_to_f to transfer the data from a C++ 
@@ -1379,18 +1380,20 @@ end subroutine
 ! This routine is not for general use.
 !-
 
-subroutine bmad_com_to_f2 (orb, ap, kl, rel, abs, to, do, ds, cc, liar, &
+subroutine bmad_com_to_f2 (max_ap, orb, grad_loss, ds_step, rel, &
+                abs, taylor_ord, dflt_integ, cc, liar, &
                 sr, lr, sym, a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e)
 
 use bmad_and_cpp
 
 implicit none
 
-real(rp) orb(6), ap, kl, rel, abs
-integer to, do, ds, cc, liar, sr, lr, sym, a_book, tsc_on, csr_on
-integer st_on, rad_d, rad_f, ref_e
+real(rp) orb(6), max_ap, grad_loss, rel, abs, ds_step
+integer taylor_ord, dflt_integ, cc, liar, sr, lr, sym
+integer st_on, rad_d, rad_f, ref_e, a_book, tsc_on, csr_on
 
-bmad_com = bmad_com_struct(orb, ap, kl, rel, abs, to, do, ds, &
+bmad_com = bmad_com_struct(max_ap, orb, grad_loss, ds_step, &
+    rel, abs, taylor_ord, dflt_integ, &
     f_logic(cc), f_logic(liar), f_logic(sr), f_logic(lr), f_logic(sym), &
     f_logic(a_book), f_logic(tsc_on), f_logic(csr_on), f_logic(st_on), &
     f_logic(rad_d), f_logic(rad_f), f_logic(ref_e))

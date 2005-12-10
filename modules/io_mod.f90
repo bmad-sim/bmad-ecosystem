@@ -353,8 +353,6 @@ subroutine write_bmad_lattice_file (bmad_file, ring)
             ', mat6_calc_method = ' // calc_method_name(ele%mat6_calc_method)
     if (ele%tracking_method /= bmad_standard$) line = trim(line) // &
             ', tracking_method = ' // calc_method_name(ele%tracking_method)
-    if (ele%num_steps /=ele_init%num_steps) write (line, '(2a, i3)') trim(line), &
-            ', num_steps =', ele%num_steps
     if (ele%symplectify) line = trim(line) // ', symplectify'
     if (.not. ele%is_on) line = trim(line) // ', is_on = False'
     call write_out (line, iu, .false.)  
