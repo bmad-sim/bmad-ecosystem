@@ -2,17 +2,12 @@ module beam_mod
 
 use wake_mod
 use csr_mod
+use spin_mod
 
 interface assignment (=)
   module procedure bunch_equal_bunch
   module procedure beam_equal_beam
 end interface
-
-
-! How close to polarization vector for particle to be polarized?	
-
- real(rp), parameter, private ::  sigma_theta = 1e-3 ! 1 milliradian
- real(rp), parameter, private ::  sigma_phi = 1e-3
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

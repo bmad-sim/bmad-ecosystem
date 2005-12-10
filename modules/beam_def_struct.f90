@@ -5,6 +5,12 @@ use bmad_interface
 
 integer, parameter :: not_lost$ = -1
 
+type beam_spin_struct
+  real(rp) :: polarization = 1.0 ! i.e. 80% polarized
+  real(rp) :: theta = 0.0  ! polar coordinates
+  real(rp) :: phi = 0.0    ! polar coordinates
+end type
+
 type particle_struct
   type (coord_struct) r   ! Center of the particle
   real(rp) charge         ! charge in a particle (Coul).
@@ -37,10 +43,13 @@ type beam_init_struct
   real(rp) :: emitt_jitter(2)  = 0.0 ! a and b bunch emittance rms jitter normalized to emittance
   real(rp) :: sig_z_jitter     = 0.0 ! bunch length RMS jitter 
   real(rp) :: sig_e_jitter     = 0.0 ! energy spread RMS jitter 
+  type(beam_spin_struct)  spin       ! Initialize the spin
   integer n_particle        ! Number of simulated particles per bunch.
   integer n_bunch           ! Number of bunches.
   logical :: renorm_center = .true.    ! Renormalize centroid?
   logical :: renorm_sigma = .true.     ! Renormalize sigma?
+  logical :: preserve_dist = .false.   ! use the same grid distributon each time
+  logical :: init_spin     = .false.   ! initialize beam spinors
 end type
 
 type bunch_param_struct
@@ -54,8 +63,14 @@ end type
 type bunch_params_struct
   type (bunch_param_struct) :: x, y, z, a, b
   type (coord_struct) :: centroid  ! Lab frame
+  type (beam_spin_struct) :: spin  ! polarization
   integer n_particle               ! all non-lost particles
 end type
+
+! How close to polarization vector for particle to be polarized?	
+
+ real(rp), parameter, private ::  sigma_theta = 1e-3 ! 1 milliradian
+ real(rp), parameter, private ::  sigma_phi = 1e-3
 
 contains
 
