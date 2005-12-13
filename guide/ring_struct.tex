@@ -156,13 +156,13 @@ these matrices as input for calculations.
 
 \bmad has two routines for searching for an element in a lattice:
 \begin{example}
-  \vnr{element_locator}((ele_name, ring, ix_ele) ! locate by name
+  \vnr{element_locator}(ele_name, ring, ix_ele) ! locate by name
   \vnr{elements_locator}(key, ring, indx)        ! locate by key
 \end{example}
 \vn{element_locator} searches the \vn{ring%ele_(:)} array for an
 element of the correct name. Alternatively, \vn{elements_locator}
 searches for all elements of a given key and returns an array of
-indexes. To see how simple searching a lattice is condider the heart
+indexes. To see how simple searching a lattice is consider the heart
 of \vn{element_locator}:
 \begin{example}
   do ix_ele = 0, ring%n_ele_max
@@ -170,8 +170,8 @@ of \vn{element_locator}:
   enddo
 \end{example}
 
-Once an element or elements are identified in the lattice
-Changing an element attribute generally involves changing values in the 
+Once an element or elements are identified in the lattice,
+changing an element attribute generally involves changing values in the 
 \vn{ring%ele_(i)%value(:)} array. This is done using the 
 \vnr{set_ele_attribute} routine. For example:
 \begin{example}
