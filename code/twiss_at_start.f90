@@ -89,6 +89,8 @@ subroutine twiss_at_start (ring)
     endif
   enddo
 
+  if (debug) close (iu)
+
 ! Put 1-turn matrix into ring%param%t1_no_RF
 
   call mat_make_unit (mat6)

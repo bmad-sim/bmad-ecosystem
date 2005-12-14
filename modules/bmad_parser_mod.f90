@@ -580,21 +580,17 @@ subroutine get_attribute (how, ele, ring, pring, &
     if (how == def$ .and. (delim == ',' .or. .not. delim_found)) then
       ele%symplectify = .true.
     else
-      call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
-      ele%symplectify = evaluate_logical (word, ios)
-      if (ios /= 0 .or. ix_word == 0) then
-        call warning ('BAD "SYMPLECTIFY" SWITCH FOR: ' // ele%name)
-        return
-      endif
+      call get_logical ('SYMPLECTIFY', ele%symplectify)
+      if (ios /= 0 .or. ix_word == 0) return
     endif
     
   case (is_on$)
-    call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
-    ele%is_on = evaluate_logical (word, ios)
-    if (ios /= 0 .or. ix_word == 0) then
-      call warning ('BAD "IS_ON" SWITCH FOR: ' // ele%name)
-      return
-    endif
+    call get_logical ('IS_ON', ele%is_on)
+    if (ios /= 0 .or. ix_word == 0) return
+
+  case (exact_rad_int$)
+    call get_logical ('EXACT_RAD_INT', ele%exact_rad_int_calc)
+    if (ios /= 0 .or. ix_word == 0) return
 
   case default   ! normal attribute
 
@@ -639,6 +635,24 @@ subroutine get_attribute (how, ele, ring, pring, &
   end select
 
   err_flag = .false.
+
+!--------------------------------------------------------
+contains
+
+subroutine get_logical (name, this_logic)
+
+  character(*) name
+  logical this_logic
+
+!
+
+  call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
+  this_logic = evaluate_logical (word, ios)
+  if (ios /= 0 .or. ix_word == 0) then
+    call warning ('BAD "' // trim(name) // '" SWITCH FOR: ' // ele%name)
+  endif
+
+end subroutine
 
 end subroutine
 

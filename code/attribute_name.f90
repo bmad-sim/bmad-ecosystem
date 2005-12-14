@@ -83,6 +83,7 @@ function attribute_name (ele, ix_att) result (at_name)
 
       if (i == taylor$)       cycle
 
+      attrib_array(i, exact_rad_int$)     = 'EXACT_RAD_INT'
       attrib_array(i, integrator_order$)  = 'INTEGRATOR_ORDER'
       attrib_array(i, num_steps$)         = 'NUM_STEPS'
       attrib_array(i, ds_step$)           = 'DS_STEP'

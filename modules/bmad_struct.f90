@@ -379,6 +379,7 @@ integer, parameter :: end_edge$ =74
 integer, parameter :: accordion_edge$ =75
 integer, parameter :: lattice$ = 76
 integer, parameter :: coupler_at$ = 77
+integer, parameter :: exact_rad_int$ = 78
 
 integer, parameter :: a0$  =  80, k0l$  =  80
 integer, parameter :: a20$ = 100, k20l$ = 100
