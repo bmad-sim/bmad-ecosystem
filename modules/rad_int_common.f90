@@ -232,7 +232,7 @@ end subroutine
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine bracket_index (s_arr, i_min, s, ix)
+! Subroutine bracket_index (s_arr, i_min, i_max, s, ix)
 !
 ! Subroutine to find the index ix so that s_arr(ix) <= s < s_arr(ix+1).
 ! If s <  s_arr(i_min) then ix = i_min - 1
@@ -243,13 +243,14 @@ end subroutine
 ! Input:
 !   s_arr(i_min:) -- Real(rp): Sequence of real numbers.
 !   i_min         -- Integer: lower bound of s_arr
+!   i_max         -- Integer: upper bound of s_arr
 !   s             -- Real(rp): Number to bracket.
 !
 ! Output:
 !   ix    -- Integer: Index so that s_arr(ix) <= s < s_arr(ix+1).
 !-
 
-subroutine bracket_index (s_arr, i_min, s, ix)
+subroutine bracket_index (s_arr, i_min, i_max, s, ix)
 
   implicit none
 
@@ -259,8 +260,6 @@ subroutine bracket_index (s_arr, i_min, s, ix)
   integer ix, n1, n2, n3
 
 !
-
-  i_max = ubound(s_arr, 1)
 
   if (s < s_arr(i_min)) then
     ix = i_min - 1
@@ -319,7 +318,7 @@ subroutine propagate_part_way (ele0, ele, runt, s, j_loop, n_pt)
     do i = 0, 6
       n1 = lbound(ric%track(i)%pt, 1)
       n2 = ric%track(i)%n_pt
-      call bracket_index (ric%track(i)%pt(:)%s, n1, s, ix)
+      call bracket_index (ric%track(i)%pt(:)%s, n1, n2, s, ix)
 
       if (ix == n2) then
         orb = ric%track(i)%pt(n2)%orb

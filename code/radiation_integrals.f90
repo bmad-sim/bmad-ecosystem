@@ -115,6 +115,8 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
   bmad_com%radiation_fluctuations_on = .false.
   bmad_com%radiation_damping_on = .false.
 
+  ric%track(:)%save_track = .true.   ! Needed for exact_rad_int_calc
+
   if (allocated(ric%i1_)) then
     if (ubound(ric%i1_, 1) < ring%n_ele_max) then 
       deallocate (ric%i1_)
@@ -245,6 +247,8 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
     ele => ring%ele_(ir)
     if (.not. ele%is_on) cycle
 
+    if (ric%use_cache .and. ele%ixx > 0) ric%cache_ele => cache%ele(ele%ixx)
+
     ele0 => ring%ele_(ir-1)
     ric%orb0 => orb_(ir-1)
     ric%orb1 => orb_(ir)
@@ -326,7 +330,6 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 
 ! integrate for periodic_type wigglers
 
-      if (ric%use_cache) ric%cache_ele => cache%ele(ele%ixx)
       call qromb_rad_int (ele0, ele, (/ F, F, F, F, F, T, T /), ir)
 
       cycle
