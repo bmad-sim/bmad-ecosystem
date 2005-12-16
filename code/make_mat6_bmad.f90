@@ -660,6 +660,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       call bbi_slice_calc (n_slice, ele%value(sig_z$), z_slice)
 
       s_pos = 0          ! start at IP
+      orb = c00
       orb%vec(2) = c00%vec(2) - ele%value(x_pitch_tot$)
       orb%vec(4) = c00%vec(4) - ele%value(y_pitch_tot$)
       call mat_make_unit (mat4)
