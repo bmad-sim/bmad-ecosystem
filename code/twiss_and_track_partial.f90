@@ -32,6 +32,8 @@
 !   ele3 -- Ele_struct, optional: Structure for the Twiss results at DEL_S.
 !     %x             -- X Twiss parameters
 !     %y             -- Y Twiss parametser
+!     %mat6(6,6)     -- Transfer matrix (1st order part of xfer map).
+!     %vec0(6)       -- 0th order part of the transfer map.
 !     %value(l$)     -- Set to DEL_S
 !   end  -- Coord_struct, optional: End position at DEL_S.
 !-
