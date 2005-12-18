@@ -161,7 +161,7 @@ do
     curve(:)%symbol = default_symbol
     curve(:)%line   = default_line
     curve(:)%ele2_name   = ' '
-    curve(:)%ix_ele2 = 0
+    curve(:)%ix_ele2 = -1
     curve(2:7)%symbol%type = (/ times$, square$, plus$, triangle$, &
                                   x_symbol$, diamond$ /)
     curve(2:7)%symbol%color = (/ blue$, red$, green$, cyan$, magenta$, yellow$ /)
@@ -230,11 +230,19 @@ do
 
       i_uni = crv%ix_universe
       if (i_uni == 0) i_uni = s%global%u_view
-      if (crv%ele2_name .eq. ' ') then
-        crv%ele2_name = s%u(i_uni)%design%ele_(crv%ix_ele2)%name
-      else
-        call tao_locate_element (crv%ele2_name, i_uni, ix_ele, .true.)
+ 
+      ! Find the ele2 info if either ele2_name or ix_ele2 has been set.
+      ! If plotting something like the phase then the default is for ele2 to be the beginning element.
+
+      if (crv%ele2_name == ' ' .and. crv%ix_ele2 >= 0) then ! if ix_ele2 has been set ...
+        crv%ele2_name = s%u(i_uni)%design%ele_(crv%ix_ele2)%name ! then find the name
+      elseif (crv%ele2_name /= ' ') then                    ! if ele2_name has been set ...
+        call tao_locate_element (crv%ele2_name, i_uni, ix_ele, .true.) ! then find the index
         crv%ix_ele2 = ix_ele(1)
+      elseif (crv%data_type(1:5) == 'phase' .or. crv%data_type(1:2) == 'r:' .or. &
+              crv%data_type(1:2) == 't:' .or. crv%data_type(1:3) == 'tt:') then
+        crv%ix_ele2 = 0
+        crv%ele2_name = s%u(i_uni)%design%ele_(0)%name
       endif
 
     enddo

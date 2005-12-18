@@ -183,7 +183,7 @@ type (taylor_struct), save :: taylor(6)
 type (taylor_struct), optional :: taylor_in(6)
 type (spin_polar_struct) polar
 
-real(rp) datum_value, mat6(6,6)
+real(rp) datum_value, mat6(6,6), vec0(6)
 
 integer, save :: ix_save = -1
 integer i, j, k, m, ix, ix1, ix2, expnt(6)
@@ -414,7 +414,7 @@ case ('r:')
   if (ix1 < ix2) return
   i = tao_read_this_index (datum%data_type, 3); if (i == 0) return
   j = tao_read_this_index (datum%data_type, 4); if (j == 0) return
-  call transfer_matrix_calc (lattice, .true., mat6, ix2, ix1)
+  call transfer_matrix_calc (lattice, .true., mat6, vec0, ix2, ix1)
   datum_value = mat6(i, j)
 
 case ('t:')
@@ -448,16 +448,39 @@ case ('tt:')
   endif
 
 case ('floor:x')
-  datum_value = lattice%ele_(ix1)%floor%x - lattice%ele_(ix2)%floor%x
+  if (ix2 >= 0) then
+    datum_value = lattice%ele_(ix1)%floor%x - lattice%ele_(ix2)%floor%x
+  else
+    datum_value = lattice%ele_(ix1)%floor%x
+  endif
+
 case ('floor:y')
-  datum_value = lattice%ele_(ix1)%floor%y - lattice%ele_(ix2)%floor%y
+  if (ix2 >= 0) then
+    datum_value = lattice%ele_(ix1)%floor%y - lattice%ele_(ix2)%floor%y
+  else
+    datum_value = lattice%ele_(ix1)%floor%y 
+  endif
+
 case ('floor:z')
-  datum_value = lattice%ele_(ix1)%floor%z - lattice%ele_(ix2)%floor%z
+  if (ix2 >= 0) then
+    datum_value = lattice%ele_(ix1)%floor%z - lattice%ele_(ix2)%floor%z
+  else
+    datum_value = lattice%ele_(ix1)%floor%z 
+  endif
+
 case ('floor:theta')
-  datum_value = lattice%ele_(ix1)%floor%theta - lattice%ele_(ix2)%floor%theta
+  if (ix2 >= 0) then
+    datum_value = lattice%ele_(ix1)%floor%theta - lattice%ele_(ix2)%floor%theta
+  else
+    datum_value = lattice%ele_(ix1)%floor%theta 
+  endif
 
 case ('s_position') 
-  datum_value = lattice%ele_(ix1)%s - lattice%ele_(ix2)%s
+  if (ix2 >= 0) then
+    datum_value = lattice%ele_(ix1)%s - lattice%ele_(ix2)%s
+  else
+    datum_value = lattice%ele_(ix1)%s 
+  endif
 
 case ('norm_emittance:x')
   if (s%global%track_type .eq. "beam") then

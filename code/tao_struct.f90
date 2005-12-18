@@ -13,7 +13,7 @@ use bmad_struct, only: rp, ring_struct, coord_struct, radians$, ele_struct
 use quick_plot, only: qp_line_struct, qp_symbol_struct, qp_axis_struct, qp_rect_struct, qp_point_struct
 use macroparticle_mod, only: macro_init_struct, macro_beam_struct
 use macro_utils_mod, only: macro_bunch_params_struct
-use beam_mod, only: beam_init_struct, beam_struct, bunch_params_struct
+use beam_def_struct, only: beam_init_struct, beam_struct, bunch_params_struct
 use tao_parameters
 
 !-----------------------------------------------------------------------
@@ -346,11 +346,6 @@ type tao_global_struct
   logical :: derivative_recalc = .true.      ! Recalc before each optimizer run?
   logical :: lattice_recalc = .true.         ! recalculate the lattice?
   logical :: init_plot_needed = .true.       ! reinitialize plotting?
-  logical :: radiation_damping_on = .false.       ! is radiation damping turned on?
-  logical :: radiation_fluctuations_on = .false.  ! is radiation fluctuations turned on?
-  logical :: sr_wakes_on  = .true.                ! Short Range Wakefields
-  logical :: lr_wakes_on  = .true.                ! Long Range Wakefields
-  logical :: spin_tracking_on = .true.            ! Do particle spin tracking
   character(16) :: valid_plot_who(10)        ! model, base, ref etc...
   character(40) :: print_command = 'awprint'
   character(80) :: default_init_file = 'tao.init'!used with 'reinitialize' command

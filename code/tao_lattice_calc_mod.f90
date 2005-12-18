@@ -64,17 +64,6 @@ logical, automatic :: used(size(s%u))
     call tao_set_data_useit_opt
   endif
   
-  ! radiation damping and excitation
-  bmad_com%radiation_damping_on = s%global%radiation_damping_on
-  bmad_com%radiation_fluctuations_on = s%global%radiation_fluctuations_on
-  
-  ! wakefields
-  bmad_com%sr_wakes_on = s%global%sr_wakes_on
-  bmad_com%lr_wakes_on = s%global%lr_wakes_on
-  
-  ! spin tracking
-  bmad_com%spin_tracking_on = s%global%spin_tracking_on
-  
   ! do a custom lattice calculation if desired
   if (s%global%lattice_recalc) then
     do i = 1, size(s%u)

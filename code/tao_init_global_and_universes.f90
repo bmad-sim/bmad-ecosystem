@@ -23,6 +23,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   use macroparticle_mod
   use bmad_parser_mod
   use random_mod
+  use csr_mod, only: csr_com
   use spin_mod
   
   implicit none
@@ -35,7 +36,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   type (tao_var_struct), pointer :: var_ptr
   type (tao_this_var_struct), pointer :: this
   type (tao_var_input) var(n_var_minn:n_var_maxx)
-  type (tao_global_struct) global
+  type (tao_global_struct) global, default_global
   type (tao_d1_data_struct), pointer :: d1_ptr
   type (beam_init_struct) beam_init
   type (macro_init_struct) macro_init
@@ -66,8 +67,8 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   logical, allocatable :: found_one(:), mask(:)
 
 
-  namelist / tao_params / global, n_data_max, n_var_max, n_d2_data_max, n_v1_var_max, &
-                          spin
+  namelist / tao_params / global, bmad_com, csr_com, &
+          n_data_max, n_var_max, n_d2_data_max, n_v1_var_max, spin
   
   namelist / tao_coupled_uni_init / ix_universe, coupled
   
@@ -90,8 +91,8 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
 ! Init lattaces
 ! read global structure from tao_params namelist
 
-  global%valid_plot_who(1:5) = &
-                (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  ' /)
+  global = default_global         ! establish defaults
+  global%valid_plot_who(1:5) = (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  ' /)
   global%default_key_merit_type = 'limit'
 
   call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
@@ -104,7 +105,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   call out_io (s_blank$, r_name, 'Init: Read tao_params namelist')
   close (iu)
 
-  s%global = global  ! transfer global to s
+  s%global = global  ! transfer global to s%global
   
   n = size(s%u)
   do i = 1, size(s%u)
