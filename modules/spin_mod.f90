@@ -36,7 +36,8 @@ logical :: init_pauli_vector = .true. ! Does pauli vector needs to be set up?
 ! taylor maps for elements
 ! Keeping map allocationg between calls should speed things up
 ! So, a map for each element is required
-type (spin_map_struct), target :: maps(n_key)
+
+type (spin_map_struct), save, target :: maps(n_key)
 
 private initialize_pauli_vector
 
