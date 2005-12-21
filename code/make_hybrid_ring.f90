@@ -53,6 +53,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 
   use ptc_interface_mod, except => make_hybrid_ring
   use bmad_utils_mod
+  use nrutil, only: reallocate
 
   implicit none
 
