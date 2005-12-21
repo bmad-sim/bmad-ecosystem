@@ -27,6 +27,7 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
   use bmad_struct
   use bmad_interface, except => split_ring
   use bookkeeper_mod, only: control_bookkeeper
+  use nrutil, only: reallocate
 
   implicit none
 
