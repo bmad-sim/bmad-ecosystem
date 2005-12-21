@@ -2455,6 +2455,8 @@ end subroutine
 
 subroutine add_all_superimpose (ring, ele_in, pele)
 
+  use nrutil, only: reallocate
+
   implicit none
 
   type (ring_struct), target :: ring
