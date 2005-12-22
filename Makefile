@@ -15,6 +15,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.3  2005/12/22 21:46:16  mjf7
+# Adding dlr program analyzer to cvs
+#
 # Revision 1.2  2005/06/14 15:46:13  cesrulib
 # *** empty log message ***
 #
@@ -63,12 +66,12 @@
 # SRC_EXCLUDE     - Source files to exclude from compilation (just the base 
 #                   file names should be used here)
 #-----------------------------------------------------------------------------
-LIB_SRC_DIRS  := code
-OBJ_SRC_DIRS  := tune_scan dynamic_aperture freq_map closed_orbit 
-CONFIG_DIRS   := 
-LOCAL_INCS    :=
-SRC_EXCLUDE   := beambeam_scan.f90 # only with lahey it can be compiled
-M_FILE_LIST   := M.tune_scan M.dynamic_aperture M.freq_map M.closed_orbit
+LIB_SRC_DIRS := code
+OBJ_SRC_DIRS := tune_scan dynamic_aperture freq_map closed_orbit analyzer
+CONFIG_DIRS  := 
+LOCAL_INCS   :=
+SRC_EXCLUDE  := beambeam_scan.f90 # only with lahey it can be compiled
+M_FILE_LIST  := M.tune_scan M.dynamic_aperture M.freq_map M.closed_orbit M.analyzer
 ifeq "$(CESR_F90)" "lahey"
   SRC_EXCLUDE  :=
 #  M_FILE_LIST  += M.beambeam  
