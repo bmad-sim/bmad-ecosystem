@@ -964,6 +964,15 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
         enddo
       endif
 
+! for a periodic_type wiggler n_pole is a dependent attribute
+
+    case (wiggler$)
+      if (ele%sub_key == periodic_type$) then
+        if (ele%value(kz$) == 0 .and. ele%value(l$) /= 0) then
+          ele%value(kz$) = pi * ele%value(n_pole$) / ele%value(l$)
+        endif
+      endif
+
 ! check for inconsistancies
 
     case (solenoid$)

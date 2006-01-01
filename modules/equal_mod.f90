@@ -134,6 +134,17 @@ subroutine ele_equal_ele (ele1, ele2)
     if (associated (ele_save%descrip)) deallocate (ele_save%descrip)
   endif
 
+  if (associated(ele2%trans_sc)) then
+    if (associated (ele_save%trans_sc)) then
+      ele1%trans_sc => ele_save%trans_sc
+    else
+      allocate (ele1%trans_sc)
+    endif
+    ele1%trans_sc = ele2%trans_sc
+  else
+    if (associated (ele_save%trans_sc)) deallocate (ele_save%trans_sc)
+  endif
+
   ele1%wake => ele_save%wake  ! reinstate
   call transfer_wake (ele2%wake, ele1%wake)
 

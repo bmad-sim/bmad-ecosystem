@@ -285,6 +285,13 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
             ele%coupler_at, ele%on_an_i_beam
     endif
 
+    ! kz$ attribute did not exist before now.
+    if (v_old) then
+      if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$) then
+        if (ele%value(l$) /= 0) ele%value(kz$) = pi * ele%value(n_pole$) / ele%value(l$)
+      endif
+    endif
+
     if (ix_wig /= 0) then
       allocate (ele%wig_term(ix_wig))
       do j = 1, ix_wig

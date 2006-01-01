@@ -6,16 +6,19 @@ use make_mat6_mod
 use beam_def_struct
 use bookkeeper_mod, only: attribute_bookkeeper
 
-type csr_local_cache_struct
-  real(rp) gamma, gamma2
-  real(rp) g, v1, v3, w2, theta, c_const
+!
+
+type csr_values_struct
+  real(rp) g, v1, v3, w2, theta
 end type
 
-type csr_bin1_struct   ! structure for a single bin
-  real(rp) x0, y0      ! Center of the particle distrubution
-  real(rp) z1_edge     ! Left (min z) edge of bin
-  real(rp) z2_edge     ! Right (max z) edge of bin
-  real(rp) z           ! z at center of bin.
+! Binning structures for the csr calculation.
+
+type csr_beam_bin_struct   ! Sub-Structure for binning particle averages
+  real(rp) x0, y0      ! Transverse center of the particle distrubution
+  real(rp) z0_edge     ! Left (min z) edge of bin
+  real(rp) z1_edge     ! Right (max z) edge of bin
+  real(rp) z_center    ! z at center of bin.
   real(rp) sig_x       ! particle's RMS width
   real(rp) sig_y       ! particle's RMS width
   real(rp) lsc_d0
@@ -24,29 +27,19 @@ type csr_bin1_struct   ! structure for a single bin
   real(rp) dcharge_ds  ! charge derivative
 end type
 
-type csr_bin_struct             ! Structure for the bins
-  real(rp) dz_bin                 ! Bin width
-  integer :: n_bin_particle = 2   ! Longitudinal particle length / dz_bin
-  integer n_bin                   ! Number of bins used
-  real(rp) gamma, gamma2
-  type (csr_bin1_struct), allocatable :: bin1(:)  ! Array of bins
-end type
-
-type csr_cache1_struct
+type csr_kick_bin_struct ! Sub-structure for csr calculation cache
   real(rp) I_csr
   real(rp) phi
-  real(rp) z        ! Distance between source and kicked particles.
-  real(rp) s_prime  ! Source point
+  real(rp) d             ! Distance between source point and end of element.
+  real(rp) dz_particles  ! Distance between source and kicked particles.
+  real(rp) s_prime       ! Source point location.
 end type
 
-type csr_cache_struct
-  type (csr_cache1_struct), allocatable :: cache1(:) ! Array of caches
-end type
-
-type csr_particle_bin_struct ! Structure for dividing a particle into bins
-  integer ix0_bin                     ! index of first bin
-  real(rp), allocatable :: charge(:)  ! how much charge in n^th bin
-  real(rp), allocatable :: dcharge_ds(:)   
+type csr_bin_struct    ! Structurture for binning particle averages
+  integer n_bin             ! Number of bins used
+  real(rp) gamma, gamma2    ! Relativistic gamma factor.
+  type (csr_beam_bin_struct), allocatable :: beam1(:)  
+  type (csr_kick_bin_struct), allocatable :: kick1(:) ! Array of caches
 end type
 
 !
@@ -62,14 +55,15 @@ type tsc_struct   ! transverse space charge structure
   real(rp) sig_z
 endtype    
 
-! sc_com%v(i) holds the parameters for the transverse space charge calculation
-! at lattice element i.
+!
 
-type csr_common_struct
-  real(rp) ds_track_step                   ! Tracking step size
-  logical :: lcsr_component_on = .true.    ! Longitudinal csr component
-  logical :: lsc_component_on = .true.     ! Longitudinal space charge component
-  logical :: tsc_component_on = .true.     ! Transverse space charge component
+type csr_common_struct                  ! Common block for csr calc
+  real(rp) :: ds_track_step = 0         ! Tracking step size
+  real(rp) :: dz_bin = 0                ! Bin width
+  integer :: particle_bin_span = 2      ! Longitudinal particle length / dz_bin
+  logical :: lcsr_component_on = .true. ! Longitudinal csr component
+  logical :: lsc_component_on = .true.  ! Longitudinal space charge component
+  logical :: tsc_component_on = .true.  ! Transverse space charge component
 end type
 
 type (csr_common_struct), save, target :: csr_com
@@ -82,17 +76,16 @@ contains
 !+
 ! Subroutine track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end)
 !
-! Routine to track a bunch of particles through and element with
-! csr radiation effects.
+! Routine to track a bunch of particles through the element lat%ele_(ix_ele)
+! with csr radiation effects.
 !
 ! Modules needed:
 !   use csr_mod
 !
 ! Input:
-!   bunch_start -- bunch_struct: Starting bunch position.
-!   ele         -- Ele_struct: The element to track through.
-!   param       -- Param_struct: General parameters.
-!   bin         -- Csr_bin_struct: Binning information.
+!   bunch_start -- Bunch_struct: Starting bunch position.
+!   lat         -- Ring_struct: Lattice.
+!   ix_ele      -- Integer: lat%ele_(ix_ele) is the element to track through.
 !
 ! Output:
 !   bunch_end -- Bunch_struct: Ending bunch position.
@@ -107,7 +100,6 @@ type (bunch_struct), target :: bunch_start, bunch_end
 type (particle_struct), pointer :: pt
 type (ele_struct), pointer :: ele
 type (ele_struct), save :: runt
-type (csr_cache_struct) cache
 type (csr_bin_struct) bin
 
 real(rp) ds_step, gamma, s_travel
@@ -123,21 +115,30 @@ call convert_total_energy_to (ele%value(beam_energy$), lat%param%particle, gamma
 
 bunch_end = bunch_start
 
+! n_step is the number of steps to take when tracking through the element.
+! ds_step is the step length.
+
+if (csr_com%dz_bin == 0) then
+  call out_io (s_fatal$, r_name, 'DZ_BIN NOT SET!')
+  call err_exit
+endif
+
 if (csr_com%ds_track_step == 0) then
   call out_io (s_fatal$, r_name, 'DS_TRACK_STEP NOT SET!')
   call err_exit
-else
-  n_step = ele%value(l$) / csr_com%ds_track_step
 endif
 
+n_step = ele%value(l$) / csr_com%ds_track_step
 ds_step = ele%value(l$) / n_step
+
+! runt is the element that is tracked through at each step.
 
 runt = ele
 runt%value(l$) = ds_step
 call attribute_bookkeeper (runt, lat%param)
-bmad_com%auto_bookkeeper = .false.   
+bmad_com%auto_bookkeeper = .false.   ! make things go faster
 
-! Loop over tracking steps
+! Loop over the tracking steps
 
 do i = 1, n_step
 
@@ -153,22 +154,22 @@ do i = 1, n_step
 
   s_travel = ds_step * (i - 1)
 
-  if (csr_com%lcsr_component_on .or. csr_com%lcsr_component_on) then
+  if (csr_com%lcsr_component_on .or. csr_com%lsc_component_on) then
     call csr_bin_particles (bunch_end%particle, bin)    
-    call csr_cache_setup (lat, ix_ele, s_travel, bin, cache)
+    call csr_kick_calc_bin_setup (lat, ix_ele, s_travel, bin)
   endif
 
-  ! kick the particles
+  ! loop over all particles
 
   do j = 1, size(bunch_end%particle)
-
     pt => bunch_end%particle(j)
+
     ! csr kick
 
     if (csr_com%lsc_component_on) call lsc_kick (bin, pt)
-    if (csr_com%lcsr_component_on) call lcsr_kick (bin, pt, cache)
+    if (csr_com%lcsr_component_on) call lcsr_kick (bin, pt)
 
-    ! track through element
+    ! track through the runt
 
     call track1_particle (pt, runt, lat%param, pt)
 
@@ -186,180 +187,192 @@ end subroutine
 !+
 ! Subroutine csr_bin_particles (particle, bin)
 !
-! Routine to
+! Routine to bin the particles longitudinally in s. 
+!
+! To avoid noise in the cacluation, every particle is considered to have a 
+! triangular distribution with a base length  given by 
+!   csr_com%particle_bin_span * csr_com%dz_bin. 
+! That is, particles will, in general, overlap multiple bins. 
 !
 ! Modules needed:
 !   use csr_mod
 !
 ! Input:
 !   particle(:) -- Particle_struct: Array of particles
+!   bin         -- Csr_bin_struct: The bins.
+!     %dz_bin     -- Bin longitudinal length
+!     %particle_bin_span   -- Particle length / dz_bin. Default is particle_bin_span = 2.
 !
 ! Output:
-!   bin(:)  -- Csr_bin_struct: The bins.
-!   dbin(:) -- Csr_bin_struct: The bin differntial.
+!   bin     -- Csr_bin_struct: The bin structure.
+!     %n_bin    -- Number of bins.
+!     %beam1(1:) -- Array of bins.
 !-
 
 subroutine csr_bin_particles (particle, bin)
 
 implicit none
 
+type this_local_struct   ! Temporary structure 
+  real(rp) :: charge     ! how much charge of particle in bin
+  real(rp) :: x0, y0     ! particle center
+  integer ib             ! bin index
+end type
+
 type (particle_struct), target :: particle(:)
 type (particle_struct), pointer :: p
 type (csr_bin_struct), target :: bin
-type (csr_particle_bin_struct), save, allocatable :: pbin(:)
-type (csr_bin1_struct), pointer :: b1
+type (this_local_struct), save, allocatable :: tloc(:)
+type (csr_beam_bin_struct), pointer :: beam1
 
-real(rp) z_min, z_max, f, dz_particle, dz, z_center
-real(rp) zp_center, zp0, zp1, dz_bin2, zb0, zb1
+real(rp) z_min, z_max, f, dz_particle, dz
+real(rp) zp_center, zp0, zp1, dz_bin2, zb0, zb1, charge, dcharge_ds
 
-integer i, j, np, np_bin, ix0, ib
+integer i, j, n, np, np_bin, ix0, ib, ic
 
 ! Init bins...
-! z_min is the minimum z value at which there is charge.
+! z_min/z_max is the minimum/maximum z value at which there is charge.
 
 np = size(particle)
-dz_particle = bin%n_bin_particle * bin%dz_bin
+dz_particle = csr_com%particle_bin_span * csr_com%dz_bin
 z_min = minval(particle(:)%r%vec(5)) - dz_particle / 2.0
 z_max = maxval(particle(:)%r%vec(5)) + dz_particle / 2.0
+dz_bin2 = csr_com%dz_bin / 2
 
-! renormalize so z_max - z_min = integer
-! The left edge of bin%bin1(1) is at z_min
-! The right edge of bin%bin1(n_bin) is at z_max
+! renormalize so z_max - z_min = integer * csr_com%dz_bin
+! The left edge of bin%beam1(1) is at z_min
+! The right edge of bin%beam1(n_bin) is at z_max
 
-dz = int((z_max - z_min + 1) / bin%dz_bin) - (z_max - z_min) / bin%dz_bin
-z_min = z_min - dz / 2
-z_max = z_max + dz / 2
+dz = csr_com%dz_bin - mod(z_max - z_min, csr_com%dz_bin)
+z_min = z_min - dz / 2 - csr_com%dz_bin / 2
+z_max = z_max + dz / 2 + csr_com%dz_bin / 2
 
-bin%n_bin = nint((z_max - z_min) / bin%dz_bin)
+bin%n_bin = nint((z_max - z_min) / csr_com%dz_bin)
 
-if (allocated(bin%bin1)) then
-  if (size(bin%bin1, 1) < bin%n_bin) deallocate (bin%bin1)
+! allocate memeory for the bins
+
+if (allocated(bin%beam1)) then
+  if (size(bin%beam1, 1) < bin%n_bin) deallocate (bin%beam1)
 endif
 
-if (.not. allocated(bin%bin1)) allocate (bin%bin1(bin%n_bin))
+if (.not. allocated(bin%beam1)) &
+    allocate (bin%beam1(bin%n_bin), bin%kick1(-1:bin%n_bin))
+
+! Fill in some z information
 
 do i = 1, bin%n_bin
-  bin%bin1(i)%z1_edge = z_min + (i - 1) * bin%dz_bin
-  bin%bin1(i)%z = bin%bin1(i)%z1_edge + bin%dz_bin / 2
-  bin%bin1(i)%z2_edge = bin%bin1(i)%z1_edge + bin%dz_bin
+  bin%beam1(i)%z0_edge  = z_min + (i - 1) * csr_com%dz_bin
+  bin%beam1(i)%z_center = bin%beam1(i)%z0_edge + csr_com%dz_bin / 2
+  bin%beam1(i)%z1_edge  = bin%beam1(i)%z0_edge + csr_com%dz_bin
 enddo
 
-! Init pbin structure...
-! For each particle(i) there is a pbin(i) holding the information of
-! how the particle is distributed in the bins.
-! Each particle is distributed longitudinally in a triangular fashion
+! Init the tloc structure...
+! Each particle is distributed longitudinally in a triangular fashion.
+! The tloc records how much charge for a given particle is in a bin.
 
-if (allocated(pbin)) then
-  if (size(pbin) < size(particle) .or. &
-                    size(pbin(1)%charge) < bin%n_bin_particle + 1) then
-    do i = 1, size(pbin)
-      deallocate (pbin(i)%charge, pbin(i)%dcharge_ds)
-    enddo
-    deallocate (pbin)
-  endif
+n = size(particle) * (csr_com%particle_bin_span + 2)
+if (allocated(tloc)) then
+  if (size(tloc) < n) deallocate (tloc)
 endif
 
-if (.not. allocated(pbin)) then
-  allocate (pbin(size(particle)))
-  do i = 1, size(pbin)
-    allocate (pbin(i)%charge(bin%n_bin_particle+1))
-  enddo  
-endif
+if (.not. allocated(tloc)) allocate (tloc(n))
+tloc%ib = -1
 
+! Compute the particle distribution center in each bin
+
+bin%beam1(:)%charge = 0
+bin%beam1(:)%dcharge_ds = 0
+bin%beam1(:)%x0 = 0
+bin%beam1(:)%y0 = 0
+bin%beam1(:)%sig_x = 0
+bin%beam1(:)%sig_y = 0
+
+
+f = 2.0 / dz_particle**2
+
+ic = 0
 do i = 1, np
   p => particle(i)
   if (.not. (p%ix_lost == not_lost$)) cycle
   zp_center = p%r%vec(5) ! center of particle
-  zp0 = z_center - dz_particle / 2.0     ! particle left edge 
-  zp1 = z_center + dz_particle / 2.0     ! particle right edge 
-  ix0 = int(zp0 - z_min)                 ! left most bin index
-  pbin(i)%ix0_bin = ix0
-  f = 2.0 / dz_particle**2
-  dz_bin2 = bin%dz_bin / 2
-  do j = 0, bin%n_bin_particle
-    zb0 = bin%bin1(j+ix0)%z1_edge
-    zb1 = bin%bin1(j+ix0)%z2_edge   ! edges of the bin
-    pbin(i)%charge(j+1) = charge_in_bin (zb0, zb1)
-    pbin(i)%dcharge_ds = (charge_in_bin (zb0+dz_bin2, zb1+dz_bin2) - &
-                    charge_in_bin (zb0-dz_bin2, zb1-dz_bin2)) / bin%dz_bin
-  enddo
-enddo
-
-! Compute the particle distribution center in each bin
-
-bin%bin1(:)%charge = 0
-bin%bin1(:)%dcharge_ds = 0
-bin%bin1(:)%x0 = 0
-bin%bin1(:)%y0 = 0
-bin%bin1(:)%sig_x = 0
-bin%bin1(:)%sig_y = 0
-
-do i = 1, np
-  p => particle(i)
-  if (.not. (p%ix_lost == not_lost$)) cycle
-  do j = 0, bin%n_bin_particle
-    ib = j + pbin(i)%ix0_bin
-    b1 => bin%bin1(ib)
-    b1%charge = b1%charge + pbin(i)%charge(j+1)
-    b1%dcharge_ds = b1%dcharge_ds + pbin(i)%dcharge_ds(j+1)
-    b1%x0 = b1%x0 + p%r%vec(1) * pbin(i)%charge(j+1)
-    b1%y0 = b1%y0 + p%r%vec(3) * pbin(i)%charge(j+1)
+  zp0 = zp_center - dz_particle / 2       ! particle left edge 
+  zp1 = zp_center + dz_particle / 2       ! particle right edge 
+  ix0 = nint((zp0 - z_min) / csr_com%dz_bin)  ! left most bin index
+  do j = 0, csr_com%particle_bin_span+1
+    ib = j + ix0
+    beam1 => bin%beam1(ib)
+    zb0 = bin%beam1(ib)%z0_edge
+    zb1 = bin%beam1(ib)%z1_edge   ! edges of the bin
+    charge = charge_in_bin (zb0, zb1)
+    dcharge_ds = (charge_in_bin (zb0+dz_bin2, zb1+dz_bin2) - &
+                    charge_in_bin (zb0-dz_bin2, zb1-dz_bin2)) / csr_com%dz_bin
+    beam1%charge = beam1%charge + charge
+    beam1%dcharge_ds = beam1%dcharge_ds + dcharge_ds
+    beam1%x0 = beam1%x0 + p%r%vec(1) * charge
+    beam1%y0 = beam1%y0 + p%r%vec(3) * charge
+    ic = ic + 1
+    tloc(ic)%charge = charge
+    tloc(ic)%x0 = p%r%vec(1)
+    tloc(ic)%y0 = p%r%vec(3)
+    tloc(ic)%ib = ib
   enddo
 enddo
 
 do ib = 1, bin%n_bin
-  if (bin%bin1(ib)%charge == 0) cycle
-  bin%bin1(ib)%x0 = bin%bin1(ib)%x0 / bin%bin1(ib)%charge
-  bin%bin1(ib)%y0 = bin%bin1(ib)%y0 / bin%bin1(ib)%charge
+  if (bin%beam1(ib)%charge == 0) cycle
+  bin%beam1(ib)%x0 = bin%beam1(ib)%x0 / bin%beam1(ib)%charge
+  bin%beam1(ib)%y0 = bin%beam1(ib)%y0 / bin%beam1(ib)%charge
 enddo
 
 ! Compute the particle distribution sigmas in each bin
 ! Abs is used instead of the usual formula to lessen the effect
 ! of non-Gaussian tails
 
-do i = 1, np
-  p => particle(i)
-  if (.not. (p%ix_lost == not_lost$)) cycle
-  do j = 0, bin%n_bin_particle
-    ib = j + pbin(i)%ix0_bin
-    b1 => bin%bin1(ib)
-    b1%sig_x = b1%sig_x + abs(p%r%vec(1) - b1%x0) * pbin(i)%charge(j+1)
-    b1%sig_y = b1%sig_y + abs(p%r%vec(3) - b1%y0) * pbin(i)%charge(j+1)
-  enddo
+do ic = 1, size(tloc)
+  if (tloc(ic)%ib < 0) cycle
+  beam1 => bin%beam1(tloc(ic)%ib)
+  beam1%sig_x = beam1%sig_x + abs(tloc(ic)%x0 - beam1%x0) * tloc(ic)%charge
+  beam1%sig_y = beam1%sig_y + abs(tloc(ic)%y0 - beam1%y0) * tloc(ic)%charge
 enddo
 
 f = sqrt(pi/2)
 do ib = 1, bin%n_bin
-  b1 => bin%bin1(ib)
-  if (b1%charge == 0) cycle
-  b1%sig_x = f * b1%sig_x / b1%charge
-  b1%sig_y = f * b1%sig_y / b1%charge
-  b1%lsc_d0 = b1%sig_x * b1%sig_y
-  b1%lsc_d1 = (b1%sig_x**2 + b1%sig_y**2) / (b1%sig_x + b1%sig_y)
+  beam1 => bin%beam1(ib)
+  if (beam1%charge == 0) cycle
+  beam1%sig_x = f * beam1%sig_x / beam1%charge
+  beam1%sig_y = f * beam1%sig_y / beam1%charge
+  beam1%lsc_d0 = beam1%sig_x * beam1%sig_y
+  if (beam1%sig_x == 0 .and. beam1%sig_y == 0) then
+    beam1%lsc_d1 = 0
+  else
+    beam1%lsc_d1 = (beam1%sig_x**2 + beam1%sig_y**2) / &
+                                        (beam1%sig_x + beam1%sig_y)
+  endif
 enddo
 
 !-------------------------------------------
 contains
 
-function charge_in_bin (z1_bin, z2_bin) result (charge)
+function charge_in_bin (z0_bin, z1_bin) result (charge)
 
-real(rp) z1_bin, z2_bin, charge, z0, z1
+real(rp) z0_bin, z1_bin, charge, z1, z2
 
 ! Integrate over left triangular half of particle distribution
 
-z0 = max(zp0, zb0)        ! left integration edge
-z1 = min(zp_center, zb1)  ! right integration edge
-if (z1 > z0) then         ! If left particle half is in bin ...
-  charge = f * p%charge * ((z1 - zb0)**2 - (z0 - zb0)**2)
+z1 = max(zp0, z0_bin)        ! left integration edge
+z2 = min(zp_center, z1_bin)  ! right integration edge
+if (z2 > z1) then            ! If left particle half is in bin ...
+  charge = f * p%charge * ((z2 - zp0)**2 - (z1 - zp0)**2)
 else
   charge = 0
 endif
 
 ! Integrate over right triangular half of particle distribution
-z0 = max(zp_center, zb0)  ! left integration edge
-z1 = min(zp1, zb1)        ! right integration edge
-if (z1 > z0) then         ! If right particle half is in bin ...
-  charge = charge + f * p%charge * ((zb1 - z0)**2 - (zb1 - z1)**2)
+
+z1 = max(zp_center, z0_bin)  ! left integration edge
+z2 = min(zp1, z1_bin)        ! right integration edge
+if (z2 > z1) then         ! If right particle half is in bin ...
+  charge = charge + f * p%charge * ((z1 - zp1)**2 - (z2 - zp1)**2)
 endif
 
 end function
@@ -370,7 +383,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine subroutine csr_cache_setup (lat, ix_ele, s_travel, bin, cache)
+! Subroutine subroutine csr_kick_calc_bin_setup (lat, ix_ele, s_travel, bin)
 !
 ! Routine to cache intermediate values needed for the csr calculations.
 !
@@ -378,128 +391,129 @@ end subroutine
 !   use csr_mod
 !
 ! Input:
+!   lat       -- Ring_struct: Lattice.
+!   ix_ele    -- Integer: lat%ele_(ix_ele) is the element to set up cache for.
+!   s_travel  -- Real(rp): Distance between the beginning of the element we are
+!          tracking through and the kick point (which is within this element). 
+!   bin       -- Csr_bin_struct: Binned particle averages.
+!     %beam1(:)   -- bin array of particle averages.
 !
 ! Output:
-!
+!   bin     -- Csr_bin_struct: Binned particle averages.
+!     %kick1(:) -- CSR kick calculation bin array. 
 !-
 
-subroutine csr_cache_setup (lat, ix_ele, s_travel, bin, cache)
+subroutine csr_kick_calc_bin_setup (lat, ix_ele, s_travel, bin)
 
 implicit none
 
-type (csr_bin_struct) bin
-type (csr_cache_struct), target :: cache
+type (csr_bin_struct), target :: bin
 type (ring_struct), target :: lat
-type (ele_struct), pointer :: ele
-type (csr_cache1_struct), pointer :: c1
-type (csr_local_cache_struct) p
+type (csr_kick_bin_struct), pointer :: kick1
+type (csr_values_struct) val
 
-real(rp) c_const, s0, s_travel, s, s_boundary, d
+real(rp) s_travel, s_kick, s0_kick_ele
 
-integer i, ix_ele, n_ele
+integer i, ix_ele, n_ele_pp
 
 character(16) :: r_name = 'csr_cache_setup'
 
-! The "P' element" is the element containing the source point P'.
-! The "P element" is the element containing the kick point P.
+! The kick point P is fixed.
+! The source point P' varies from bin to bin.
+! n_ele_pp is the number of elements between P' and P excluding the 
+! elements containing P and P'. n_ele_pp will be incremented by
+! next_element_params_calc as we go from one bin to the next.
 
-n_ele = 0   
-call next_element_calc (n_ele, p)
-s = s_boundary + s_travel  ! s value at point P.
+n_ele_pp = -1
+call next_element_params_calc (n_ele_pp, s0_kick_ele, val)
+s_kick = s0_kick_ele + s_travel  ! absolute s value at point P.
+
+call convert_total_energy_to (lat%ele_(ix_ele)%value(beam_energy$), &
+                                               lat%param%particle, bin%gamma)
+bin%gamma2 = bin%gamma**2
+
+! special case
+
+bin%kick1(-1)%dz_particles = -1 * csr_com%dz_bin
+bin%kick1(-1)%I_csr = 0
+
+! Loop over all kick1 bins
 
 do i = 0, bin%n_bin
 
-  c1 => cache%cache1(i)
-  c1%z = i * bin%dz_bin
+  kick1 => bin%kick1(i)
+  kick1%dz_particles = i * csr_com%dz_bin
 
-  ! first point is easy
-
-  if (i == 0) then
-    c1%phi = 0 
-    c1%I_csr = 0
-    c1%s_prime = s0 
-    cycle
-  endif
-
-  ! calculate where we are
+  ! Calculate what element the kick point is in.
 
   do
-    d = d_calc_csr(c1%z, p)
-    c1%s_prime = s0 - d
-    if (c1%s_prime > s_boundary) exit  ! If in element exit loop
-    call next_element_calc (n_ele, p)
+    kick1%d = d_calc_csr(kick1%dz_particles, val, bin)
+    kick1%s_prime = s_kick - (kick1%d + val%v1)     ! s value at P'
+    if (kick1%s_prime > s0_kick_ele) exit       ! If in element exit loop
+    call next_element_params_calc (n_ele_pp, s0_kick_ele, val)
   enddo
 
   ! calculate csr
   
-  c1%I_csr = I_csr (c1%z, d, p)
+  kick1%I_csr = I_csr (kick1%dz_particles, kick1%d, val, bin)
 
 enddo
 
 !-----------------------------------------------
 contains
 
-subroutine next_element_calc(n_ele, p)
+subroutine next_element_params_calc (n_ele_pp, s0_kick_ele, val)
 
-type (csr_local_cache_struct) p
+type (csr_values_struct) val
+type (ele_struct), pointer :: ele
 
-integer i, n_ele, ix_e
+integer i, n_ele_pp, ix_source
 
-real(rp), save :: I0_csr
-real(rp) dphi, zz, dd
+real(rp) dphi, s0_kick_ele
 real(rp) g_i(100), d_i(100)
 
-!
+! n_ele_pp is the number of elements between P' and P excluding the 
+! P and P' elements
+! Assume a drift before the first element if needed.
 
-n_ele = n_ele + 1          ! Number of elements including the P and P' elements
-ix_e = ix_ele + 1 - n_ele  ! Index of current P' element
-if (ix_e == 0) then
-  call out_io (s_fatal$, r_name, 'CSR CALC EXTENDS BACK BEFORE BEGINNING OF LATTICE!')
-  call err_exit
+n_ele_pp = n_ele_pp + 1
+ix_source = ix_ele - n_ele_pp  ! Index of current P' element
+
+ele => lat%ele_(ix_source)  ! Pointer to the P' element
+
+! Assume a drift before the first element if needed.
+
+if (ix_source == 0) then
+  s0_kick_ele = -1e20  ! something large and negative
+else
+  s0_kick_ele = lat%ele_(ix_source-1)%s  ! s value at beginning edge of the P' element
 endif
 
-s_boundary = lat%ele_(ix_e-1)%s  ! s value at beginning edge of the P' element
-
-ele => lat%ele_(ix_e)  ! Pointer to the P' element
-
-call convert_total_energy_to (ele%value(beam_energy$), lat%param%particle, p%gamma)
-p%gamma2 = p%gamma**2
-
 ! calculate new values for d and g for this element and store in arrays
+! d_i(i) is the length of the ith element
+! g_i(i) is the bending radius of the ith element
 
-p%g = 0
-if (ele%key == sbend$) p%g = ele%value(g$)
-g_i(n_ele) = p%g
+val%g = 0
+if (ele%key == sbend$) val%g = ele%value(g$)
+g_i(n_ele_pp+1) = val%g
 
-d_i(n_ele) = ele%value(l$)
-if (n_ele == 1) d_i(n_ele) = s_travel
+d_i(n_ele_pp+1) = ele%value(l$)
+
+if (n_ele_pp == 0) d_i(1) = s_travel
 
 ! calculate new v1, v3, etc.
 
-p%v1 = 0; p%v3 = 0
-p%w2 = 0
-p%theta = 0
+val%v1 = 0; val%v3 = 0
+val%w2 = 0
+val%theta = 0
 
-do i = 1, n_ele-1
+do i = n_ele_pp, 1, -1
   dphi = d_i(i) * g_i(i)
-  p%v1 = p%v1 + d_i(i)
-  p%v3 = p%v3 - d_i(i) * (3*p%theta**2 + 3*p%theta*dphi + dphi**2) / 6
-  p%w2 = p%w2 + d_i(i) * (p%theta + dphi/2)
-  p%theta = p%theta + dphi
+  val%v1 = val%v1 + d_i(i)
+  val%v3 = val%v3 + d_i(i) * (val%theta**2 + val%theta*dphi + dphi**2 / 3) / 2
+  val%w2 = val%w2 + d_i(i) * (val%theta + dphi/2)
+  val%theta = val%theta + dphi
 enddo
-
-! Calculate change in p%c_const at boundary
-
-if (n_ele == 1) then
-  p%c_const = 0
-else
-  zz = z_calc_csr (0.0_rp, p)
-  p%c_const = p%c_const + (I0_csr - I_csr(zz, 0.0_rp, p))
-endif
-
-dd = d_i(n_ele)
-zz = z_calc_csr (dd, p)
-I0_csr = I_csr(zz, dd, p)   ! calculate for next time.
 
 end subroutine
 
@@ -509,36 +523,45 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function I_csr
+! Function I_csr (z, d, val, bin) result (I_this)
 !
-! Routine to
+! Routine to calculate the CSR kick integral.
 !
 ! Modules needed:
 !   use csr_mod
 !
 ! Input:
+!   z   -- Real(rp): Distance between source and kicked particles.
+!   d   -- Real(rp): Distance between source and kick points.
+!   val -- Csr_values_struct: Other parameters needed in the calculation.
+!   bin -- Csr_bin_struct:
 !
 ! Output:
-!
+!   I_this -- Real(rp): CSR kick integral.
 !-
 
-function I_csr (z, d, p) result (i_this)
+function I_csr (z, d, val, bin) result (i_this)
 
 implicit none
 
-type (csr_local_cache_struct) p
+type (csr_values_struct) val
+type (csr_bin_struct) bin
 
 real(rp) z, d
 real(rp) phi, t, a, k, i_this
 
 !
 
-  phi = p%g * d
-  t = p%gamma * (d + p%v1)
-  a = p%gamma2 * (p%w2 + phi * p%v1 + phi * d / 2)
-  k = p%gamma * (p%theta + phi)
-  I_this = -2 * p%gamma * (t + a * k) / (t**2 + a**2) + &
-                                          1 / (p%gamma2 * z) + p%c_const
+  if (z <= 0) then
+    I_this = 0
+    return
+  endif
+
+  phi = val%g * d
+  t = bin%gamma * (d + val%v1)
+  a = bin%gamma2 * (val%w2 + phi * val%v1 + phi * d / 2)
+  k = bin%gamma * (val%theta + phi)
+  I_this = -2 * bin%gamma * (t + a * k) / (t**2 + a**2) + 1 / (bin%gamma2 * z) 
 
 end function
 
@@ -546,37 +569,51 @@ end function
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function z_calc_csr
+! Function z_calc_csr (d, val, bin, dz_dd) result (z_this)
 !
-! Routine to
+! Routine to calculate the distance between the source particle and the
+! kicked particle.
 !
 ! Modules needed:
 !   use csr_mod
 !
 ! Input:
+!   d   -- Real(rp): Distance between the source point and the kick point.
+!   val -- Csr_values_struct: Other parameters needed in the calculation.
+!   bin -- Csr_bin_struct:
 !
 ! Output:
-!
+!   z_this -- Real(rp), Distance between source and kick particles.
+!   dz_dd  -- Real(rp), optional: Derivative: dz/dp.
 !-
 
-function z_calc_csr (d, p, dz_dd) result (z_this)
+function z_calc_csr (d, val, bin, dz_dd) result (z_this)
 
 implicit none
 
-type (csr_local_cache_struct) p
+type (csr_values_struct) val
+type (csr_bin_struct) bin
+
 real(rp) d, phi, z_this, v1d, w2d
 real(rp), optional :: dz_dd
 
-!
+! Special case
 
-phi = p%g * d
-v1d = p%v1 + d
-w2d = 2*p%w2 - phi*d
-z_this = v1d / (2 * p%gamma2) - (p%v3 - phi**2 / 6 + w2d**2/(8*v1d))
-
-if (present(dz_dd)) then
-  dz_dd = 1 / (2 * p%gamma2) - (3*phi*p%g + phi*w2d/(4*v1d) - phi*w2d**2/(8*v1d**2))
+if (val%v1 == 0 .and. d == 0) then
+  z_this = 0
+  if (present(dz_dd)) dz_dd = 1 / (2 * bin%gamma2)
+  return
 endif
+
+! General case
+
+phi = val%g * d
+v1d = val%v1 + d
+w2d = 2*val%w2 - phi*d
+z_this = v1d / (2 * bin%gamma2) + (val%v3 + phi**2 * d / 6 - w2d**2/(8*v1d))
+
+if (present(dz_dd)) dz_dd = 1 / (2 * bin%gamma2) + &
+                      (phi**2/2 + phi*w2d/(2*v1d) + w2d**2/(8*v1d**2))
 
 end function
 
@@ -584,53 +621,70 @@ end function
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function d_calc_csr
+! Function d_calc_csr (dz_particles, val, bin) result (d_this)
 !
-! Routine to
+! Routine to calculate the distance between source and kick points.
 !
 ! Modules needed:
 !   use csr_mod
 !
 ! Input:
+!   dz_particles -- Real(rp): Distance between source and kicked particles
+!   val          -- Csr_valuse_struct: 
+!   bin          -- Csr_bin_struct:
 !
 ! Output:
-!
+!   d_this -- Real(rp): Distance between source and kick points.
 !-
 
-function d_calc_csr (z_target, p) result (d_this)
+function d_calc_csr (dz_particles, val, bin) result (d_this)
 
 implicit none
 
-type (csr_local_cache_struct) p
-real(rp) z_target, z1, z2, dz_dd, dz1_dd, dz2_dd
-real(rp) eps, d_this, delta_d_old, delta_d, z_this, d
-real(rp), save :: d1 = 0, d2
+type (csr_values_struct) val
+type (csr_bin_struct) bin
+
+real(rp) dz_particles, z1, z2, dz_dd, dz1_dd, dz2_dd
+real(rp) eps, d_this, delta_d_old, delta_d, z_this, d_old
+real(rp) d1, d2, a, b, c
 
 integer j
 
 character(8) :: r_name = 'd_calc_csr'
 
-! Use Newton's method until root is bracketed.
+! If not in a bend then can do the calculation exactly
 
-eps = 1e-10 * abs(z_target) + 1e-14
+if (val%g == 0) then
+  a = 1 / bin%gamma2
+  b = 2 * (val%v3 - dz_particles)
+  c = -val%w2**2
+  d_this = (-b + sqrt(b**2 - 4 * a * c)) / (2 * a) - val%v1
+  return
+endif
+
+! Use Newton's method until root is bracketed.
+! Initial d1 is just an approximate guess to get in the ball park.
+
+eps = 1e-10 * abs(dz_particles) + 1e-14
 z2 = 0
+d1 = min(2 * bin%gamma2 * dz_particles, (6 * dz_particles / val%g**2) ** (0.3333))
 
 do 
 
-  z1 = z_calc_csr (d1, p, dz1_dd) - z_target
-  if (z1 * z2 < 0) exit  ! have bracket
+  z1 = z_calc_csr (d1, val, bin, dz1_dd) - dz_particles
   if (abs(z1) < eps) then
     d_this = d1
     return
   endif
+  if (z1 * z2 < 0) exit  ! have bracket
 
   d2 = d1 - z1 / dz1_dd 
-  z2 = z_calc_csr (d, p, dz2_dd) - z_target
-  if (z1 * z2 < 0) exit  ! have bracket
+  z2 = z_calc_csr (d2, val, bin, dz2_dd) - dz_particles
   if (abs(z2) < eps) then
     d_this = d2
     return
   endif
+  if (z1 * z2 < 0) exit  ! have bracket
 
   d1 = d2 - z2 / dz2_dd 
 
@@ -645,13 +699,13 @@ if (z1 > 0) then
 endif
 
 d_this = (d1 + d2) / 2
-delta_d_old = abs (d1 - d2)
+delta_d_old = abs (d2 - d1)
 delta_d     = delta_d_old
-z_this = z_calc_csr(d_this, p, dz_dd) - z_target
+z_this = z_calc_csr(d_this, val, bin, dz_dd) - dz_particles
 
 do j = 1, 100
 
-  ! Bisect if Newton out of range or not decre4asing fast enough
+  ! Bisect if Newton out of range or not decreasing fast enough
 
   if (((d_this-d2)*dz_dd-z_this) * ((d_this-d1)*dz_dd-z_this) > 0 .or. &
                               abs(2*z_this) > abs(delta_d_old * dz_dd)) then
@@ -662,14 +716,14 @@ do j = 1, 100
 
   else
     delta_d_old = delta_d
-    delta_d = d_this / dz_dd
-    d = d_this
+    delta_d = z_this / dz_dd
+    d_old = d_this
     d_this = d_this - delta_d
-    if (d_this == d) return
+    if (d_this == d_old) return
   endif
 
   if (abs(z_this) < eps) return
-  z_this = z_calc_csr(d_this, p, dz_dd) - z_target
+  z_this = z_calc_csr(d_this, val, bin, dz_dd) - dz_particles
 
   if (z_this < 0) then
     d1 = d_this
@@ -690,15 +744,19 @@ end function
 !+
 ! Subroutine lsc_kick (bin, particle)
 !
-! Routine to
+! Routine to calculate the longitudinal space charge kick.
 !
 ! Modules needed:
 !   use csr_mod
 !
 ! Input:
+!   bin -- Csr_beam_bin_struct: Binned beam
+!   particle -- Particle_struct: Particle to kick.
+!     %r%vec(6) -- Initial particle energy.
 !
 ! Output:
-!
+!   particle -- Particle_struct: Particle to kick.
+!     %r%vec(6) -- Final particle energy.
 !-
 
 subroutine lsc_kick (bin, particle)
@@ -706,10 +764,10 @@ subroutine lsc_kick (bin, particle)
 implicit none
 
 type (csr_bin_struct), target :: bin
-type (csr_bin1_struct), pointer :: b1
+type (csr_beam_bin_struct), pointer :: beam1
 type (particle_struct) particle
 
-real(rp) x, y, sx, sy, a, b, c, zb_center, abs_z, sg, zz
+real(rp) x, y, sx, sy, a, b, dz, sg, f
 
 integer i
 
@@ -717,30 +775,35 @@ integer i
 
 do i = 1, bin%n_bin
 
-  b1 => bin%bin1(i)
+  beam1 => bin%beam1(i)
+  if (beam1%charge == 0) cycle
 
-  x = particle%r%vec(1) - b1%x0
-  y = particle%r%vec(3) - b1%y0
-  abs_z = abs(particle%r%vec(5) - zb_center) 
-  sg = bin%gamma * abs_z
-  sx = b1%sig_x
-  sy = b1%sig_y
-  a = sx * sy * exp(((x/sx)**2 + (y/sy)**2) / 2)
-  b = bin%gamma * (sx**2 + sy**2) / (sx + sy)
-  c = bin%gamma2
+  x = particle%r%vec(1) - beam1%x0
+  y = particle%r%vec(3) - beam1%y0
+  dz = abs(particle%r%vec(5) - beam1%z_center) 
+  sg = bin%gamma * abs(dz)
+  sx = beam1%sig_x
+  sy = beam1%sig_y
+  if (sx == 0 .or. sy == 0) then
+    a = 0
+    b = 0
+  else
+    a = sx * sy * exp(((x/sx)**2 + (y/sy)**2) / 2)
+    b = bin%gamma * (sx**2 + sy**2) / (sx + sy)
+  endif
 
-!
+  f = beam1%charge / (a + b * sg + bin%gamma2 * sg**2)   
 
-  if (particle%r%vec(5) < b1%z1_edge) then
-    particle%r%vec(6) = particle%r%vec(6) - b1%charge / (a + b * sg + c * sg**2)   
+! If the particle position is within the bin then use a linear interpolation.
+
+  if (particle%r%vec(5) < beam1%z0_edge) then
+    particle%r%vec(6) = particle%r%vec(6) - f
    
-  elseif (particle%r%vec(5) > b1%z2_edge) then
-    particle%r%vec(6) = particle%r%vec(6) + b1%charge / (a + b * sg + c * sg**2) 
+  elseif (particle%r%vec(5) > beam1%z1_edge) then
+    particle%r%vec(6) = particle%r%vec(6) + f
 
-  elseif (particle%r%vec(5) > zb_center) then
-    zz = b1%z2_edge - particle%r%vec(5)
-
-  else  ! particle%r%vec(5) < zb_center
+  else
+    particle%r%vec(6) = particle%r%vec(6) + f * (2 * dz / csr_com%dz_bin)
 
   endif
 
@@ -752,53 +815,59 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine lcsr_kick (bin, particle, cache)
+! Subroutine lcsr_kick (bin, particle)
 !
-! Routine to
+! Routine to calculate the longitudinal coherent synchrotron radiation kick.
 !
 ! Modules needed:
 !   use csr_mod
 !
-! Input:
+!   bin -- Csr_beam_bin_struct: Binned beam
+!   particle -- Particle_struct: Particle to kick.
+!     %r%vec(6) -- Initial particle energy.
 !
 ! Output:
-!
+!   particle -- Particle_struct: Particle to kick.
+!     %r%vec(6) -- Final particle energy.
 !-
 
-subroutine lcsr_kick (bin, particle, cache)
+subroutine lcsr_kick (bin, particle)
 
 implicit none
 
 type (csr_bin_struct) bin
 type (particle_struct) particle
-type (csr_cache_struct) cache
 
 real(rp) dz_bin, zp, r1, r2, dz, I_csr
 
-integer i, ix_bin, i0, i_del, id
+integer i, i0, i_del
 
-!
+! the longitudinal csr kick is computed via integrating:
+!    dcharge_ds * I_csr 
+! The trick here is to compute for a given bin%beam1(i)%dchearge_ds the
+! corresponding j for bin%kick1(j)%I_csr.
+! We actually use a weighted average between %kick1(j)%I_csr and %kick1(j+1)%I_csr
+! so that the integral varies smoothly as a function of particle%r%vec(5).
 
 zp = particle%r%vec(5)
-i0 = int((zp - bin%bin1(1)%z1_edge) / bin%dz_bin) + 1
-i_del = nint((zp - bin%bin1(1)%z) / bin%dz_bin)
-r2 = (zp - bin%bin1(1)%z) / bin%dz_bin - i_del
+i0 = int((zp - bin%beam1(1)%z0_edge) / csr_com%dz_bin) + 1
+r2 = modulo2 ((zp - bin%beam1(1)%z_center) / csr_com%dz_bin, 0.5_rp)
 
 if (r2 > 0) then
-  id = 1
+  i_del = i0
+  r1 = 1 - r2
 else
-  id = -1
-  r2 = -r2
+  i_del = i0 - 1
+  r1 = -r2
+  r2 = 1 - r1
 endif
 
-r1 = 1 - r2
+! Loop over all bins and integrate. We take advantage of the fact that 
+! I_csr = 0 for source particles ahead of the kicked particle.
 
-! loop over all bins
-
-do i = i0, bin%n_bin
-  dz = zp - bin%bin1(ix_bin)%z 
-  I_csr = cache%cache1(i+i_del)%I_csr * r1 + cache%cache1(i+i_del+id)%I_csr * r2
-  particle%r%vec(6) = particle%r%vec(6) + I_csr * bin%bin1(i)%dcharge_ds
+do i = 1, i0
+  I_csr = bin%kick1(i_del-i)%I_csr * r1 + bin%kick1(i_del-i+1)%I_csr * r2
+  particle%r%vec(6) = particle%r%vec(6) + I_csr * bin%beam1(i)%dcharge_ds
 enddo
 
 end subroutine

@@ -1017,8 +1017,9 @@ subroutine init_beam_distribution (ele, beam_init, beam)
 
   a = dpz_dz * sigma(5) / sigma(6)
 
-  if (a > 1)  then
-    call out_io (s_abort$, r_name, "dpz_dz MUST be < mode%sigE_E / mode%sig_z")
+  if (abs(a) > 1)  then
+    call out_io (s_abort$, r_name, &
+              "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
     call err_exit
   endif
      

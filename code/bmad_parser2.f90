@@ -418,10 +418,19 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
 
   do i = 1, ele_num
     ele => r_temp%ele_(i)
-    if (ele%control_type == super_lord$) then
-      ixx = ele%ixx
-      call add_all_superimpose (ring, ele, pring%ele(ixx))
-    endif
+    if (ele%control_type /= super_lord$) cycle
+
+    select case (ele%key)
+    case (wiggler$)
+      if (ele%sub_key == periodic_type$) then
+        if (ele%value(kz$) == 0 .and. ele%value(l$) /= 0) then
+          ele%value(kz$) = pi * ele%value(n_pole$) / ele%value(l$)
+        endif
+      endif
+    end select
+
+    ixx = ele%ixx
+    call add_all_superimpose (ring, ele, pring%ele(ixx))
   enddo
 
 ! Go through and create the overlay, i_beam, and group lord elements.

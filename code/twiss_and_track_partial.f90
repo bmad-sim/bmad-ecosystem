@@ -56,7 +56,8 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   type (coord_struct) c0, c1
   type (param_struct) param
 
-  real(rp) del_s, l_orig
+  real(rp) del_s, l_orig, ratio
+  integer track, mat6
   logical, optional :: body_only
   character(24) :: r_name = 'twiss_and_track_partial'
   character(80) line
@@ -74,7 +75,9 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
 ! Easy case when ele2 has zero length
 
   if (l_orig == 0) then
+
     if (present(ele3)) ele3 = ele2
+
     if (present(end)) then
       if (present(start)) then
         end = start 
@@ -82,7 +85,9 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
         end%vec = 0
       endif
     endif
+
     return
+
   endif
 
 ! The only real complication comes with a dipole where we have to negate
@@ -91,6 +96,11 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
 
   ele = ele2
   ele%value(l$) = del_s
+  ratio = del_s / l_orig
+  ele%value(hkick$) = ele2%value(hkick$) * ratio
+  ele%value(vkick$) = ele2%value(vkick$) * ratio
+  if (ele%key == hkicker$ .or. ele%key == vkicker$) &
+                        ele%value(kick$) = ele2%value(kick$) * ratio
 
   if (present(start)) then
     c0 = start
@@ -98,14 +108,23 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
     c0%vec = 0
   endif
 
+  track = ele%tracking_method
+  mat6 = ele%mat6_calc_method
+
   select case (ele%key)
   case (wiggler$) 
-    ele%value(n_pole$) = ele2%value(n_pole$) * del_s / l_orig
-    if (ele%tracking_method == taylor$) ele%tracking_method = symp_lie_bmad$
-    if (ele%mat6_calc_method == taylor$) ele%mat6_calc_method = symp_lie_bmad$
+    if (track == taylor$ .or. track == symp_map$ .or. track == symp_lie_ptc$) &
+                                                  ele%tracking_method = symp_lie_bmad$
+    if (mat6 == taylor$ .or. track == symp_map$ .or. track == symp_lie_ptc$) &
+                                                  ele%mat6_calc_method = symp_lie_bmad$
   case (sbend$)
+    if (track == taylor$ .or. track == symp_map$) ele%tracking_method = bmad_standard$
+    if (mat6 == taylor$ .or. track == symp_map$)  ele%mat6_calc_method = bmad_standard$
     if (logic_option(.false., body_only)) ele%value(e1$) = 0
     ele%value(e2$) = 0  
+  case default
+    if (track == taylor$ .or. track == symp_map$) ele%tracking_method = bmad_standard$
+    if (mat6 == taylor$ .or. track == symp_map$)  ele%mat6_calc_method = bmad_standard$
   end select
 
   call track1 (c0, ele, param, c1)

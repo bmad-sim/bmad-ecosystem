@@ -12,39 +12,41 @@ module rad_int_common
   use ptc_interface_mod
   use runge_kutta_mod
 
-! The "cache" is for saving values for g, etc through a wiggler to speed
-! up the calculation
+! The "cache" is for saving values for g, etc through an element to speed
+! up the calculation.
 
-  type wig_cache_struct
-    real(rp) g
-    real(rp) g2
-    real(rp) g_x, g_y
-    real(rp) dg2_x, dg2_y
-  end type
-
-  type quad_bend_cache_struct
-    real(rp) mat6(6,6)
+  type track_point_cache_struct
     type (coord_struct) orb
+    real(rp) mat6(6,6)
+    real(rp) vec0(6)
+    real(rp) g, g2          ! bending strength (1/bending_radius)
+    real(rp) g_x0, g_y0     ! components on the reference orb.
+    real(rp) g_x, g_y       ! components in x-y plane
+    real(rp) dg2_x, dg2_y   ! bending strength gradiant
+    real(rp) k1, s1         ! quad and skew quad components
   end type
 
   type ele_cache_struct
-    type (wig_cache_struct), allocatable :: v(:)
-    type (quad_bend_cache_struct) qb(3)
-    real(rp) ds
+    type (track_point_cache_struct), allocatable :: pt(:)
+    real(rp) del_z
     integer ix_ele
   end type
 
   type rad_int_cache_struct
     type (ele_cache_struct), allocatable :: ele(:)
-    logical :: set = .false.
+    logical :: set = .false.   ! is being used?
   end type
 
 ! This structure stores the radiation integrals for the individual elements
+! eta_a(4) is the a-mode dispersion in the lab frame.
 
   type rad_int_common_struct
-    real(rp) g_x0, g_y0, k1, s1
+    type (ring_struct), pointer :: ring
+    type (coord_struct), pointer :: orb0, orb1
+    type (rad_int_cache_struct) cache(10)         ! up to 10 separate caches
+    type (ele_cache_struct), pointer :: cache_ele ! pointer to cache in use
+    type (track_point_cache_struct) pt
     real(rp) eta_a(4), eta_b(4), eta_a0(4), eta_a1(4), eta_b0(4), eta_b1(4)
-    real(rp) g, g2, g_x, g_y, dg2_x, dg2_y 
     real(rp), allocatable :: i1_(:) 
     real(rp), allocatable :: i2_(:) 
     real(rp), allocatable :: i3_(:) 
@@ -54,12 +56,6 @@ module rad_int_common
     real(rp), allocatable :: i5b_(:) 
     real(rp), allocatable :: n_steps(:)      ! number of qromb steps needed
     real(rp) :: int_tot(7)
-    type (ring_struct), pointer :: ring
-    type (coord_struct), pointer :: orb0, orb1
-    type (track_struct) :: track(0:6)
-    type (coord_struct) d_orb
-    type (rad_int_cache_struct) cache(10)
-    type (ele_cache_struct), pointer :: cache_ele
     logical use_cache
   end type
 
@@ -76,7 +72,16 @@ contains
 ! Function to do integration using Romberg's method on the 7 radiation 
 ! integrals.
 ! This is a modified version of QROMB from Num. Rec.
-! See the Num. Rec. book for further details
+! See the Num. Rec. book for further details.
+!
+! This routine is only meant to be called by radiation_integrals and
+! is not meant for general use.
+!
+! There are up to 7 integrals that are calculated:
+!          I1, I2, I3, I4a, I4b, I5a, I5b
+! If do_int(1:7) is False for an integral that means that the integral has
+! been calculated by the calling routine using a formula and therefore does
+! not have to be done by this routine.
 !-
 
 subroutine qromb_rad_int (ele0, ele, do_int, ir)
@@ -94,7 +99,7 @@ subroutine qromb_rad_int (ele0, ele, do_int, ir)
   integer j, j0, n, n_pts, ir
 
   real(rp) :: eps_int, eps_sum
-  real(rp) :: ll, ds, s0, s_pos, dint, d0, d_max
+  real(rp) :: ll, del_z, l_ref, z_pos, dint, d0, d_max
   real(rp) i_sum(7), rad_int(7)
 
   logical do_int(7), complete
@@ -123,8 +128,6 @@ subroutine qromb_rad_int (ele0, ele, do_int, ir)
 
 
 ! Loop until integrals converge.
-! There are up to 7 integrals that are calculated:
-!          I1, I2, I3, I4a, I4b, I5a, I5b
 ! ri(k) holds the info for the k^th integral.
 
   do j = 1, jmax
@@ -132,44 +135,44 @@ subroutine qromb_rad_int (ele0, ele, do_int, ir)
     ri(:)%h(j) = ri(:)%h(j-1) / 4
 
 !---------------
-! This is trapzd from Num. Rec.
+! This is trapzd from Numerical Recipes
 
     if (j == 1) then
       n_pts = 2
-      ds = ll
-      s0 = 0
+      del_z = ll
+      l_ref = 0
     else
       n_pts = 2**(j-2)
-      ds = ll / n_pts
-      s0 = ds / 2
+      del_z = ll / n_pts
+      l_ref = del_z / 2
     endif
 
     i_sum = 0
 
     do n = 1, n_pts
-      s_pos = s0 + (n-1) * ds
-      call propagate_part_way (ele0, ele, runt, s_pos, j, n)
-      i_sum(1) = i_sum(1) + ric%g_x * (ric%eta_a(1) + ric%eta_b(1)) + &
-                            ric%g_y * (ric%eta_a(3) + ric%eta_b(3))
-      i_sum(2) = i_sum(2) + ric%g2
-      i_sum(3) = i_sum(3) + ric%g2 * ric%g
+      z_pos = l_ref + (n-1) * del_z
+      call propagate_part_way (ele0, ele, runt, z_pos, j, n)
+      i_sum(1) = i_sum(1) + ric%pt%g_x * (ric%eta_a(1) + ric%eta_b(1)) + &
+                            ric%pt%g_y * (ric%eta_a(3) + ric%eta_b(3))
+      i_sum(2) = i_sum(2) + ric%pt%g2
+      i_sum(3) = i_sum(3) + ric%pt%g2 * ric%pt%g
       i_sum(4) = i_sum(4) + &
-                ric%g2 * (ric%g_x * ric%eta_a(1) + ric%g_y * ric%eta_a(3)) + &
-                         (ric%dg2_x * ric%eta_a(1) + ric%dg2_y * ric%eta_a(3)) 
+                ric%pt%g2 * (ric%pt%g_x * ric%eta_a(1) + ric%pt%g_y * ric%eta_a(3)) + &
+                         (ric%pt%dg2_x * ric%eta_a(1) + ric%pt%dg2_y * ric%eta_a(3)) 
       i_sum(5) = i_sum(5) + &
-                ric%g2 * (ric%g_x * ric%eta_b(1) + ric%g_y * ric%eta_b(3)) + &
-                         (ric%dg2_x * ric%eta_b(1) + ric%dg2_y * ric%eta_b(3))
+                ric%pt%g2 * (ric%pt%g_x * ric%eta_b(1) + ric%pt%g_y * ric%eta_b(3)) + &
+                         (ric%pt%dg2_x * ric%eta_b(1) + ric%pt%dg2_y * ric%eta_b(3))
       i_sum(6) = i_sum(6) + &
-                    ric%g2 * ric%g * (runt%x%gamma * runt%x%eta**2 + &
+                    ric%pt%g2 * ric%pt%g * (runt%x%gamma * runt%x%eta**2 + &
                     2 * runt%x%alpha * runt%x%eta * runt%x%etap + &
                     runt%x%beta * runt%x%etap**2)
       i_sum(7) = i_sum(7) + &
-                    ric%g2 * ric%g * (runt%y%gamma * runt%y%eta**2 + &
+                    ric%pt%g2 * ric%pt%g * (runt%y%gamma * runt%y%eta**2 + &
                     2 * runt%y%alpha * runt%y%eta * runt%y%etap + &
                     runt%y%beta * runt%y%etap**2)
     enddo
 
-    ri(:)%sum(j) = (ri(:)%sum(j-1) + ds * i_sum(:)) / 2
+    ri(:)%sum(j) = (ri(:)%sum(j-1) + del_z * i_sum(:)) / 2
 
 !--------------
 ! Back to qromb.
@@ -193,11 +196,15 @@ subroutine qromb_rad_int (ele0, ele, do_int, ir)
       if (d0 /= 0) d_max = abs(dint) / d0
     enddo
 
-! If we have convergance or we are giving up (when j = jmax) then ...
+! If we have convergance or we are giving up (when j = jmax) then 
+! stuff the results in the proper places.
 
     if (complete .or. j == jmax) then
 
       ric%n_steps(ir) = j
+
+      ! Note that ric%i... may already contain a contribution from edge
+      ! affects (Eg bend face angles) so add it on to rad_int(i)
 
       ric%i1_(ir)  = ric%i1_(ir)  + rad_int(1)
       ric%i2_(ir)  = ric%i2_(ir)  + rad_int(2)
@@ -299,71 +306,99 @@ end subroutine
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 
-subroutine propagate_part_way (ele0, ele, runt, s, j_loop, n_pt)
+subroutine propagate_part_way (ele0, ele, runt, z_here, j_loop, n_pt)
 
   implicit none
 
   type (coord_struct) orb, orb_0
   type (ele_struct) ele0, ele
-  type (ele_struct) runt
+  type (ele_struct) runt, e0, e1
+  type (track_point_cache_struct) pt0, pt1
 
-  real(rp) s, v(4,4), v_inv(4,4), s1, s2, error, f0, f1
+  real(rp) z_here, v(4,4), v_inv(4,4), s1, s2, error
+  real(rp) f0, f1, del_z
 
+  integer i0, i1
   integer i, ix, j_loop, n_pt, n, n1, n2
 
-! exact calc
+!--------------------------------------
+! For caching or map_type wiggers
 
-  if (ele%exact_rad_int_calc) then
+  if (ric%use_cache) then
 
-    do i = 0, 6
-      n1 = lbound(ric%track(i)%pt, 1)
-      n2 = ric%track(i)%n_pt
-      call bracket_index (ric%track(i)%pt(:)%s, n1, n2, s, ix)
-
-      if (ix == n2) then
-        orb = ric%track(i)%pt(n2)%orb
-      else
-        s1 = s - ric%track(i)%pt(ix)%s
-        s2 = ric%track(i)%pt(ix+1)%s - s
-        orb%vec = (s2 * ric%track(i)%pt(ix)%orb%vec + &
-                s1 * ric%track(i)%pt(ix+1)%orb%vec) / (s1 + s2)
-      endif
-
-      if (i == 0) then
-        orb_0 = orb
-        call calc_g_params (ele, s, orb)
-      else
-        runt%mat6(1:6, i) = (orb%vec - orb_0%vec) / ric%d_orb%vec(i)
-      endif
-    enddo
-
-    call mat_symp_check (runt%mat6, error)
-    call mat_symplectify (runt%mat6, runt%mat6)
-
-    call twiss_propagate1 (ele0, runt)
-
-    call make_v_mats (runt, v, v_inv)
-
-    ric%eta_a = &
-          matmul(v, (/ runt%x%eta, runt%x%etap, 0.0_rp, 0.0_rp /))
-    ric%eta_b = &
-          matmul(v, (/ 0.0_rp, 0.0_rp, runt%y%eta, runt%y%etap /))
-
-    return
-  endif
-
-! non-exact wiggler calc
-
-  if (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
-
-    f0 = (ele%value(l$) - s) / ele%value(l$)
-    f1 = s / ele%value(l$)
+    del_z = ric%cache_ele%del_z
+    i0 = int(z_here/del_z)
+    i1 = i0 + 1
+    if (i1 > ubound(ric%cache_ele%pt, 1)) i1 = i0  ! can happen with roundoff
+    f1 = (z_here - del_z*i0) / del_z 
+    f0 = 1 - f1
+    pt0 = ric%cache_ele%pt(i0)
+    pt1 = ric%cache_ele%pt(i1)
 
     orb%vec = ric%orb0%vec * f0 + ric%orb1%vec * f1
-    call calc_g_params (ele, s, orb)
+
+    ! g factors have been already calculated for non-wiggler elements.
+    if (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
+      ric%pt%g      = f0 * pt0%g     + f1 * pt1%g
+      ric%pt%g2     = f0 * pt0%g2    + f1 * pt1%g2
+      ric%pt%g_x    = f0 * pt0%g_x   + f1 * pt1%g_x
+      ric%pt%g_y    = f0 * pt0%g_y   + f1 * pt1%g_y
+      ric%pt%dg2_x  = f0 * pt0%dg2_x + f1 * pt1%dg2_x
+      ric%pt%dg2_y  = f0 * pt0%dg2_y + f1 * pt1%dg2_y
+    else
+      ric%pt%g_x = ric%pt%g_x0 + orb%vec(1) * ric%pt%k1 + orb%vec(3) * ric%pt%s1
+      ric%pt%g_y = ric%pt%g_y0 - orb%vec(3) * ric%pt%k1 + orb%vec(1) * ric%pt%s1
+      ric%pt%dg2_x = 2 * (ric%pt%g_x * ric%pt%k1 + ric%pt%g_y * ric%pt%s1)
+      ric%pt%dg2_y = 2 * (ric%pt%g_x * ric%pt%s1 - ric%pt%g_y * ric%pt%k1) 
+      ric%pt%g2 = ric%pt%g_x**2 + ric%pt%g_y**2
+      ric%pt%g = sqrt(ric%pt%g2)
+    endif
+
+    runt%mat6 = pt0%mat6
+    runt%vec0 = pt0%vec0
+    call twiss_propagate1 (ele0, runt)
+    e0%x = runt%x; e0%y = runt%y
+    call make_v_mats (runt, v, v_inv)
+    ric%eta_a0 = &
+      matmul(v, (/ runt%x%eta, runt%x%etap, 0.0_rp,   0.0_rp    /))
+    ric%eta_b0 = &
+      matmul(v, (/ 0.0_rp,   0.0_rp,    runt%y%eta, runt%y%etap /))
+
+    runt%mat6 = pt1%mat6
+    runt%vec0 = pt1%vec0
+    call twiss_propagate1 (ele0, runt)
+    e1%x = runt%x; e1%y = runt%y
+    call make_v_mats (runt, v, v_inv)
+    ric%eta_a1 = &
+      matmul(v, (/ runt%x%eta, runt%x%etap, 0.0_rp,   0.0_rp    /))
+    ric%eta_b1 = &
+      matmul(v, (/ 0.0_rp,   0.0_rp,    runt%y%eta, runt%y%etap /))
+
+    runt%x%beta  = e0%x%beta  * f0 + e1%x%beta  * f1
+    runt%x%alpha = e0%x%alpha * f0 + e1%x%alpha * f1
+    runt%x%gamma = e0%x%gamma * f0 + e1%x%gamma * f1
+    runt%x%eta   = e0%x%eta   * f0 + e1%x%eta   * f1
+    runt%x%etap  = e0%x%etap  * f0 + e1%x%etap  * f1
+
+    runt%y%beta  = e0%y%beta  * f0 + e1%y%beta  * f1
+    runt%y%alpha = e0%y%alpha * f0 + e1%y%alpha * f1
+    runt%y%gamma = e0%y%gamma * f0 + e1%y%gamma * f1
+    runt%y%eta   = e0%y%eta   * f0 + e1%y%eta   * f1
+    runt%y%etap  = e0%y%etap  * f0 + e1%y%etap  * f1
 
     ric%eta_a = ric%eta_a0 * f0 + ric%eta_a1 * f1
     ric%eta_b = ric%eta_b0 * f0 + ric%eta_b1 * f1
+
+    return
+
+  ! map type wiggler with no caching case
+  elseif (ele%key == wiggler$ .and. ele%sub_key == map_type$) then 
+
+    f0 = (ele%value(l$) - z_here) / ele%value(l$)
+    f1 = z_here / ele%value(l$)
+
+    orb%vec = ric%orb0%vec * f0 + ric%orb1%vec * f1
+    call calc_wiggler_g_params (ele, z_here, orb, ric%pt)
 
     runt%x%beta  = ele0%x%beta  * f0 + ele%x%beta  * f1
     runt%x%alpha = ele0%x%alpha * f0 + ele%x%alpha * f1
@@ -377,36 +412,40 @@ subroutine propagate_part_way (ele0, ele, runt, s, j_loop, n_pt)
     runt%y%eta   = ele0%y%eta   * f0 + ele%y%eta   * f1
     runt%y%etap  = ele0%y%etap  * f0 + ele%y%etap  * f1
 
+    ric%eta_a = ric%eta_a0 * f0 + ric%eta_a1 * f1
+    ric%eta_b = ric%eta_b0 * f0 + ric%eta_b1 * f1
+
     return
+
   endif
 
-! non-exact calc
+!--------------------------------------
+! Not a map type wiggler and No caching involved case.
 
-  if (j_loop == 1 .and. n_pt == 1) then  ! s = 0
+  if (j_loop == 1 .and. n_pt == 1) then  ! z_here = 0
     runt%x       = ele0%x
     runt%y       = ele0%y
     runt%c_mat   = ele0%c_mat
     runt%gamma_c = ele0%gamma_c
     orb = ric%orb0
-  elseif (j_loop == 1 .and. n_pt == 2) then  ! s = l$
+
+  elseif (j_loop == 1 .and. n_pt == 2) then  ! z_here = l$
     runt%x       = ele%x
     runt%y       = ele%y
     runt%c_mat   = ele%c_mat
     runt%gamma_c = ele%gamma_c
     orb = ric%orb1
+
   else
-    if (ric%use_cache .and. (j_loop == 2 .or. j_loop == 3)) then
-      n = j_loop + n_pt - 2
-      runt%mat6 = ric%cache_ele%qb(n)%mat6
-      orb = ric%cache_ele%qb(n)%orb
-    else
-      runt%value(l$) = s
-      if (ele%key == sbend$) runt%value(e2$) = 0
-      call track1 (ric%orb0, runt, ric%ring%param, orb)
-      call make_mat6 (runt, ric%ring%param, ric%orb0, orb, .true.)
-    endif
+    runt%value(l$) = z_here
+    if (ele%key == sbend$) runt%value(e2$) = 0
+    call track1 (ric%orb0, runt, ric%ring%param, orb)
+    call make_mat6 (runt, ric%ring%param, ric%orb0, orb, .true.)
     call twiss_propagate1 (ele0, runt)
+
   endif
+
+!
 
   call make_v_mats (runt, v, v_inv)
 
@@ -415,14 +454,14 @@ subroutine propagate_part_way (ele0, ele, runt, s, j_loop, n_pt)
   ric%eta_b = &
       matmul(v, (/ 0.0_rp,   0.0_rp,    runt%y%eta, runt%y%etap /))
 
-  ric%g_x = ric%g_x0 + orb%vec(1) * ric%k1 + orb%vec(3) * ric%s1
-  ric%g_y = ric%g_y0 - orb%vec(3) * ric%k1 + orb%vec(1) * ric%s1
-                   
-  ric%dg2_x = 2 * (ric%g_x * ric%k1 + ric%g_y * ric%s1)
-  ric%dg2_y = 2 * (ric%g_x * ric%s1 - ric%g_y * ric%k1) 
+  ric%pt%g_x = ric%pt%g_x0 + orb%vec(1) * ric%pt%k1 + orb%vec(3) * ric%pt%s1
+  ric%pt%g_y = ric%pt%g_y0 - orb%vec(3) * ric%pt%k1 + orb%vec(1) * ric%pt%s1
 
-  ric%g2 = ric%g_x**2 + ric%g_y**2
-  ric%g = sqrt(ric%g2)
+  ric%pt%dg2_x = 2 * (ric%pt%g_x * ric%pt%k1 + ric%pt%g_y * ric%pt%s1)
+  ric%pt%dg2_y = 2 * (ric%pt%g_x * ric%pt%s1 - ric%pt%g_y * ric%pt%k1) 
+
+  ric%pt%g2 = ric%pt%g_x**2 + ric%pt%g_y**2
+  ric%pt%g = sqrt(ric%pt%g2)
 
 end subroutine
 
@@ -430,50 +469,31 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine calc_g_params (ele, s, orb)
+subroutine calc_wiggler_g_params (ele, z, orb, pt)
 
   implicit none
 
   type (coord_struct) orb
-  type (wig_cache_struct) v0, v1
+  type (track_point_cache_struct) pt
   type (ele_struct) ele
 
-  real(rp) dk(3,3), s, ds
-  real(rp) kick_0(6), f0, f1
-
-  integer i0, i1
-
-! Using the cache is faster if we have one.
-
-  if (ric%use_cache) then
-    ds = ric%cache_ele%ds
-    i0 = int(s/ds)
-    i1 = i0 + 1
-    if (i1 > ubound(ric%cache_ele%v, 1)) i1 = i0  ! can happen with roundoff
-    f1 = (s - ds*i0) / ds 
-    f0 = 1 - f1
-    v0 = ric%cache_ele%v(i0)
-    v1 = ric%cache_ele%v(i1)
-    ric%g      = f0 * v0%g     + f1 * v1%g
-    ric%g2     = f0 * v0%g2    + f1 * v1%g2
-    ric%g_x    = f0 * v0%g_x   + f1 * v1%g_x
-    ric%g_y    = f0 * v0%g_y   + f1 * v1%g_y
-    ric%dg2_x  = f0 * v0%dg2_x + f1 * v1%dg2_x
-    ric%dg2_y  = f0 * v0%dg2_y + f1 * v1%dg2_y
-    return
-  endif
+  real(rp) dk(3,3), z
+  real(rp) kick_0(6)
 
 ! Standard non-cache calc.
 
-  call derivs_bmad (ele, ric%ring%param, s, orb%vec, kick_0, dk)
+  call derivs_bmad (ele, ric%ring%param, z, orb%vec, kick_0, dk)
 
-  ric%g_x = -kick_0(2)
-  ric%g_y = -kick_0(4)
-  ric%g2 = ric%g_x**2 + ric%g_y**2
-  ric%g  = sqrt(ric%g2)
-
-  ric%dg2_x = 2*kick_0(2)*dk(1,1) + 2*kick_0(4)*dk(2,1) 
-  ric%dg2_y = 2*kick_0(2)*dk(1,2) + 2*kick_0(4)*dk(2,2) 
+  pt%g_x = -kick_0(2)
+  pt%g_y = -kick_0(4)
+  pt%g_x0 = -kick_0(2)
+  pt%g_y0 = -kick_0(4)
+  pt%k1 = dk(1,1)
+  pt%s1 = dk(2,1)
+  pt%g2 = pt%g_x**2 + pt%g_y**2
+  pt%g  = sqrt(pt%g2)
+  pt%dg2_x = 2*kick_0(2)*dk(1,1) + 2*kick_0(4)*dk(2,1) 
+  pt%dg2_y = 2*kick_0(2)*dk(1,2) + 2*kick_0(4)*dk(2,2) 
 
 end subroutine
 

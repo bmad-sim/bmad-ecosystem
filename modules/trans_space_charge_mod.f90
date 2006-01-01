@@ -6,26 +6,6 @@ use bmad_struct
 use bmad_interface
 use make_mat6_mod
 
-type trans_space_charge_struct
-  type (coord_struct) closed_orb
-  real(rp) kick_const
-  real(rp) sig_x
-  real(rp) sig_y
-  real(rp) phi      ! Rotation angle to go from lab frame to rotated frame.
-  real(rp) sin_phi
-  real(rp) cos_phi
-  real(rp) sig_z
-endtype    
-
-type trans_space_charge_common_struct
-  type (trans_space_charge_struct), allocatable :: v(:)
-end type
-
-! sc_com%v(i) holds the parameters for the space_charge calculation
-! at lattice element i.
-
-type (trans_space_charge_common_struct), save, private, target :: trans_sc_com
-
 contains
 
 !---------------------------------------------------------------------
@@ -61,7 +41,7 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
   type (ring_struct), target :: lattice
   type (coord_struct), optional :: closed_orb(0:)
   type (modes_struct) mode
-  type (trans_space_charge_struct), pointer :: v
+  type (trans_space_charge_struct), pointer :: sc
   type (ele_struct), pointer :: ele
   type (twiss_struct) a, b
 
@@ -77,36 +57,29 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
 
 ! Allocate space in the common block.
 
-  n_use = lattice%n_ele_use
-  m = 0
-  if (allocated(trans_sc_com%v)) m = size(trans_sc_com%v)
-  if (m /= n_use) then
-    if (allocated(trans_sc_com%v)) deallocate(trans_sc_com%v)
-    allocate (trans_sc_com%v(n_use))
-  endif
-
 !------------------------------
 ! Loop over all lattice elements
 
-  do i = 1, n_use
+  do i = 1, lattice%n_ele_use
 
     ele => lattice%ele_(i)
-    v => trans_sc_com%v(i)
+    if (.not. associated(ele%trans_sc)) allocate(ele%trans_sc)
+    sc => ele%trans_sc
 
-    v%sig_z = mode%sig_z
+    sc%sig_z = mode%sig_z
 
 ! Save the reference closed orbit.
 
     if (present(closed_orb)) then
-      v%closed_orb = closed_orb(i)
+      sc%closed_orb = closed_orb(i)
     else
-      v%closed_orb%vec = 0
+      sc%closed_orb%vec = 0
     endif
 
 ! Due to coupling the beam ellipse may be rotated in the x-y plane.
 ! phi is this rotation angle.
 ! In the rotated frame the beam, by construction is decoupled.
-! v%sig_x and v%sig_y are the x and y sigmas in the rotated frame.
+! sc%sig_x and sc%sig_y are the x and y sigmas in the rotated frame.
 
     c11 = ele%c_mat(1,1); c12 = ele%c_mat(1,2); c22 = ele%c_mat(2,2)
     a = ele%x
@@ -130,16 +103,16 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
 
     phi = atan2(2 * xy_ave, xx_ave - yy_ave) / 2
 
-    v%phi = phi
-    v%cos_phi = cos(phi)
-    v%sin_phi = sin(phi)
+    sc%phi = phi
+    sc%cos_phi = cos(phi)
+    sc%sin_phi = sin(phi)
 
     xx_rot_ave = (xx_ave + yy_ave + cos(2*phi) * (xx_ave - yy_ave) + &
                                                2 * sin(2*phi) * xy_ave) / 2
     yy_rot_ave = xx_ave + yy_ave - xx_rot_ave
 
-    v%sig_x = sqrt(xx_rot_ave)
-    v%sig_y = sqrt(yy_rot_ave)
+    sc%sig_x = sqrt(xx_rot_ave)
+    sc%sig_y = sqrt(yy_rot_ave)
 
 ! The length over which the space charge acts is taken to be half 
 ! the length of the element + half the length of the next element.
@@ -157,8 +130,8 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
 !   the bbi_kick routine used in track1_trans_space_charge.
 
     g3 = (ele%value(p0c$) / mass_of(lattice%param%particle))**3
-    v%kick_const = length * r_e *  lattice%param%n_part / &
-        (sqrt(twopi**3) * g3 * (v%sig_x + v%sig_y) * mode%sig_z)
+    sc%kick_const = length * r_e *  lattice%param%n_part / &
+        (sqrt(twopi**3) * g3 * (sc%sig_x + sc%sig_y) * mode%sig_z)
 
   enddo
 
@@ -194,9 +167,9 @@ subroutine track1_trans_space_charge (start, ele, param, end)
 
   type (coord_struct), intent(in)  :: start
   type (coord_struct), intent(out) :: end
-  type (ele_struct),   intent(inout)  :: ele
+  type (ele_struct), target, intent(inout)  :: ele
   type (param_struct), intent(inout) :: param
-  type (trans_space_charge_struct), pointer :: v
+  type (trans_space_charge_struct), pointer :: sc
 
   real(rp) x, y, x_rel, y_rel, kx_rot, ky_rot
   real(rp) kx, ky, kick_const
@@ -204,24 +177,26 @@ subroutine track1_trans_space_charge (start, ele, param, end)
 ! Init
 
   end = start
-  v => trans_sc_com%v(ele%ix_ele)
+  if (.not. associated(ele%trans_sc)) return
+
+  sc => ele%trans_sc
 
 ! Rotate into frame where beam is not tilted.
 
-  x = end%vec(1) - v%closed_orb%vec(1)
-  y = end%vec(3) - v%closed_orb%vec(3)
+  x = end%vec(1) - sc%closed_orb%vec(1)
+  y = end%vec(3) - sc%closed_orb%vec(3)
 
-  x_rel =  (x * v%cos_phi + y * v%sin_phi) / v%sig_x
-  y_rel = (-x * v%sin_phi + y * v%cos_phi) / v%sig_y
+  x_rel =  (x * sc%cos_phi + y * sc%sin_phi) / sc%sig_x
+  y_rel = (-x * sc%sin_phi + y * sc%cos_phi) / sc%sig_y
 
-  call bbi_kick (x_rel, y_rel, v%sig_y/v%sig_x, kx_rot, ky_rot)
+  call bbi_kick (x_rel, y_rel, sc%sig_y/sc%sig_x, kx_rot, ky_rot)
 
 ! Transform the kick back to the lab coords and apply.
 
-  kx = kx_rot * v%cos_phi - ky_rot * v%sin_phi
-  ky = kx_rot * v%sin_phi + ky_rot * v%cos_phi
+  kx = kx_rot * sc%cos_phi - ky_rot * sc%sin_phi
+  ky = kx_rot * sc%sin_phi + ky_rot * sc%cos_phi
 
-  kick_const = v%kick_const * exp(-0.5 * (end%vec(5)/v%sig_z)**2) 
+  kick_const = sc%kick_const * exp(-0.5 * (end%vec(5)/sc%sig_z)**2) 
 
 ! The negative sign is due to the bbi kick assuming beams of opposite sign.
 
@@ -258,25 +233,26 @@ subroutine make_mat6_trans_space_charge (ele, param)
 
   implicit none
 
-  type (ele_struct),   intent(inout)  :: ele
+  type (ele_struct), target, intent(inout)  :: ele
   type (param_struct), intent(inout) :: param
-  type (trans_space_charge_struct), pointer :: v
+  type (trans_space_charge_struct), pointer :: sc
 
   real(rp) kx_rot, ky_rot, kick_const, sc_kick_mat(6,6)
 
 ! Setup the space charge kick matrix and concatenate it with the 
 ! existing element transfer matrix.
 
-  v => trans_sc_com%v(ele%ix_ele)
+  if (.not. associated(ele%trans_sc)) return
+  sc => ele%trans_sc
 
   call mat_make_unit (sc_kick_mat)
 
-  kx_rot = 4 * pi * v%kick_const / v%sig_x
-  ky_rot = 4 * pi * v%kick_const / v%sig_y
+  kx_rot = 4 * pi * sc%kick_const / sc%sig_x
+  ky_rot = 4 * pi * sc%kick_const / sc%sig_y
   sc_kick_mat(2,1) = kx_rot 
   sc_kick_mat(4,3) = ky_rot 
 
-  call tilt_mat6(sc_kick_mat, -v%phi)
+  call tilt_mat6(sc_kick_mat, -sc%phi)
 
   ele%mat6 = matmul (sc_kick_mat, ele%mat6)
 

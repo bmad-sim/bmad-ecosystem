@@ -1,5 +1,5 @@
 !+
-! Subroutine radiation_integrals (ring, orb_, mode, ix_cache)
+! Subroutine radiation_integrals (ring, orbit, mode, ix_cache)
 !
 ! Subroutine to calculate the synchrotron radiation integrals along with the
 ! emittance, and energy spread.
@@ -30,9 +30,9 @@
 !   use bmad
 !
 ! Input:
-!   ring      -- Ring_struct: Ring to use. The calculation assumes that 
+!   ring       -- Ring_struct: Ring to use. The calculation assumes that 
 !                    the Twiss parameters have been calculated.
-!   orb_(0:)  -- Coord_struct: Closed orbit.
+!   orbit(0:)  -- Coord_struct: Closed orbit.
 !   ix_cache   -- Integer, optional: Cache pointer.
 !                              == 0 --> Create a new cache.
 !                              /= 0 --> Use the corresponding cache. 
@@ -79,27 +79,28 @@
 
 #include "CESR_platform.inc"
 
-subroutine radiation_integrals (ring, orb_, mode, ix_cache)
+subroutine radiation_integrals (ring, orbit, mode, ix_cache)
 
   use nr
   use rad_int_common, except => radiation_integrals
   use radiation_mod
+  use symp_lie_mod, only: symp_lie_bmad
   
   implicit none
 
   type (ring_struct), target :: ring
   type (ele_struct), save :: runt
   type (ele_struct), pointer :: ele, ele0
-  type (coord_struct), target :: orb_(0:), start, end, c2
+  type (coord_struct), target :: orbit(0:), start, end, c2
   type (modes_struct) mode
   type (bmad_com_struct) bmad_com_save
   type (rad_int_cache_struct), pointer :: cache
+  type (track_struct) track
 
   real(rp), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
   real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
   real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f
-  real(rp) v(4,4), v_inv(4,4), f0, f1, s, mc2, gamma, gamma4, gamma6
-  real(rp) ds
+  real(rp) v(4,4), v_inv(4,4), f0, f1, del_z, z_here, mc2, gamma, gamma4, gamma6
 
   integer, optional :: ix_cache
   integer i, j, k, ir, key, n_step
@@ -114,8 +115,7 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
   bmad_com_save = bmad_com
   bmad_com%radiation_fluctuations_on = .false.
   bmad_com%radiation_damping_on = .false.
-
-  ric%track(:)%save_track = .true.   ! Needed for exact_rad_int_calc
+  bmad_com%trans_space_charge_on = .false.
 
   if (allocated(ric%i1_)) then
     if (ubound(ric%i1_, 1) < ring%n_ele_max) then 
@@ -176,56 +176,60 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
         call err_exit
       endif
 
-      j = 0
+      ! Count number of elements to cache & allocate memory.
+
+      j = 0  ! number of elements to cache
       do i = 1, ring%n_ele_use
         key = ring%ele_(i)%key
         if (key == quadrupole$ .or. key == sol_quad$ .or. key == sbend$ .or. &
                  key == wiggler$ .or. ring%ele_(i)%value(hkick$) /= 0 .or. &
                  ring%ele_(i)%value(vkick$) /= 0) then
           j = j + 1
-          ring%ele_(i)%ixx = j
+          ring%ele_(i)%ixx = j  ! mark element for caching
         else
-          ring%ele_(i)%ixx = -1
+          ring%ele_(i)%ixx = -1 ! do not cache this element
         endif          
       enddo
-      allocate (cache%ele(j))
+      allocate (cache%ele(j))  ! allocate cache memory
 
-      j = 0
+      ! Now cache the information
+
+      j = 0 
       do i = 1, ring%n_ele_use
+
         if (ring%ele_(i)%ixx == -1) cycle
-        ele => ring%ele_(i)
-        key = ele%key
+
         j = j + 1
         cache%ele(j)%ix_ele = i
+        ele => ring%ele_(i)
 
-        if (key == wiggler$ .and. ele%sub_key == map_type$) then
-          call compute_even_steps (ele%value(ds_step$), ele%value(l$), &
-                                      bmad_com%default_ds_step, ds, n_step)
-          cache%ele(j)%ds = ds
-          allocate (cache%ele(j)%v(0:n_step))
-          do k = 0, n_step
-            s = k * cache%ele(j)%ds
-            f0 = (ele%value(l$) - s) / ele%value(l$)
-            f1 = s / ele%value(l$)
-            start%vec = orb_(i-1)%vec * f0 + orb_(i)%vec * f1
-            call calc_g_params (ele, s, start)
-            cache%ele(j)%v(k)%g     = ric%g
-            cache%ele(j)%v(k)%g2    = ric%g2
-            cache%ele(j)%v(k)%g_x   = ric%g_x
-            cache%ele(j)%v(k)%g_y   = ric%g_y
-            cache%ele(j)%v(k)%dg2_x = ric%dg2_x
-            cache%ele(j)%v(k)%dg2_y = ric%dg2_y
+        call compute_even_steps (ele%value(ds_step$), ele%value(l$), &
+                                      bmad_com%default_ds_step, del_z, n_step)
+        cache%ele(j)%del_z = del_z
+        allocate (cache%ele(j)%pt(0:n_step))
+        if (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
+          track%save_track = .true.
+          call symp_lie_bmad (ele, ring%param, orbit(i-1), &
+                                end, calc_mat6 = .true., track = track)
+          do k = 0, track%n_pt
+            z_here = track%pt(k)%s 
+            end = track%pt(k)%orb
+            call calc_wiggler_g_params (ele, z_here, end, cache%ele(j)%pt(k))
+            cache%ele(j)%pt(k)%orb = end
+            cache%ele(j)%pt(k)%mat6 = track%pt(k)%mat6
+            cache%ele(j)%pt(k)%vec0 = track%pt(k)%vec0
           enddo
-          cycle
-        endif
 
-        runt = ele
-        if (key == sbend$) runt%value(e2$) = 0
-        if (runt%tracking_method == taylor$) runt%tracking_method = bmad_standard$
-        if (runt%mat6_calc_method == taylor$) runt%mat6_calc_method = bmad_standard$
-        call cache_quad_bend (runt, ele%value(l$)/2,   i, cache%ele(j)%qb(1))
-        call cache_quad_bend (runt, ele%value(l$)/4,   i, cache%ele(j)%qb(2))
-        call cache_quad_bend (runt, 3*ele%value(l$)/4, i, cache%ele(j)%qb(3))
+        else
+          do k = 0, n_step
+            z_here = k * cache%ele(j)%del_z
+            call twiss_and_track_partial (ring%ele_(i-1), ele, ring%param, &
+                                            z_here, runt, orbit(i-1), end)
+            cache%ele(j)%pt(k)%orb = end
+            cache%ele(j)%pt(k)%mat6 = runt%mat6
+            cache%ele(j)%pt(k)%vec0 = runt%vec0
+          enddo
+        endif
 
       enddo
       
@@ -250,8 +254,8 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
     if (ric%use_cache .and. ele%ixx > 0) ric%cache_ele => cache%ele(ele%ixx)
 
     ele0 => ring%ele_(ir-1)
-    ric%orb0 => orb_(ir-1)
-    ric%orb1 => orb_(ir)
+    ric%orb0 => orbit(ir-1)
+    ric%orb1 => orbit(ir)
 
     key = ele%key
 
@@ -270,41 +274,19 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
                           set_canonical = .false., set_multipoles = .false.)
       call offset_particle (ele, ring%param, c2, unset$, &
                           set_canonical = .false., set_multipoles = .false.)
-      ric%g_x0 = -c2%vec(2) / ll
-      ric%g_y0 = -c2%vec(4) / ll
+      ric%pt%g_x0 = -c2%vec(2) / ll
+      ric%pt%g_y0 = -c2%vec(4) / ll
     else
-      ric%g_x0 = 0
-      ric%g_y0 = 0
+      ric%pt%g_x0 = 0
+      ric%pt%g_y0 = 0
     endif
 
 ! custom
 
     if (key == custom$) then
-      call custom_radiation_integrals (ring, ir, orb_)
+      call custom_radiation_integrals (ring, ir, orbit)
       cycle
     endif
-
-! exact calculation involves runge_kutta tracking.
-
-    if (ele%exact_rad_int_calc) then
-
-      ric%d_orb%vec = (/ 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-5 /)
-
-      call track1_runge_kutta (ric%orb0, ele, ric%ring%param, ric%orb1, ric%track(0))
-
-      do i = 1, 6
-        start = ric%orb0
-        start%vec(i) = start%vec(i) + ric%d_orb%vec(i)
-        call track1_runge_kutta (start, ele, ric%ring%param, end, ric%track(i))
-      enddo
-
-! exact integration
-
-      call qromb_rad_int (ele0, ele, (/ T, T, T, T, T, T, T /), ir)
-
-      cycle
-
-    endif    ! ele%exact_rad_int_calc
 
 ! new style wigglers get handled later.
 
@@ -323,12 +305,12 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
       ric%i4a_(ir) = 0   ! Too complicated to calculate. Probably small
       ric%i4b_(ir) = 0   ! Too complicated to calculate. Probably small
 
-      ric%g_x0 = g3_ave**(1.0/3)
-      ric%g_y0 = 0
-      ric%k1 = 0
-      ric%s1 = 0
+      ric%pt%g_x0 = g3_ave**(1.0/3)
+      ric%pt%g_y0 = 0
+      ric%pt%k1 = 0
+      ric%pt%s1 = 0
 
-! integrate for periodic_type wigglers
+! Integrate for periodic_type wigglers
 
       call qromb_rad_int (ele0, ele, (/ F, F, F, F, F, T, T /), ir)
 
@@ -339,45 +321,45 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
 ! Only possibilities left are quad, sol_quad and sbend elements, or there
 ! is a non-zero bend angle.
 
-    if (ric%g_x0 == 0 .and. ric%g_y0 == 0 .and. &
+    if (ric%pt%g_x0 == 0 .and. ric%pt%g_y0 == 0 .and. &
           key /= quadrupole$ .and. key /= sol_quad$ .and. key /= sbend$) cycle
 
     if (key == sbend$) then
       theta = ele%value(tilt_tot$) + ele%value(roll$)
-      ric%g_x0 = ric%g_x0 + cos(theta) * ele%value(g$)
-      ric%g_y0 = ric%g_y0 - sin(theta) * ele%value(g$)
+      ric%pt%g_x0 = ric%pt%g_x0 + cos(theta) * ele%value(g$)
+      ric%pt%g_y0 = ric%pt%g_y0 - sin(theta) * ele%value(g$)
     endif
 
-    ric%g2 = ric%g_x0**2 + ric%g_y0**2
-    ric%g = sqrt(ric%g2)
+    ric%pt%g2 = ric%pt%g_x0**2 + ric%pt%g_y0**2
+    ric%pt%g = sqrt(ric%pt%g2)
 
-    ric%i2_(ir)  = ric%g2 * ll
-    ric%i3_(ir)  = ric%g2 * ric%g * ll
+    ric%i2_(ir)  = ric%pt%g2 * ll
+    ric%i3_(ir)  = ric%pt%g2 * ric%pt%g * ll
 
     if (key == quadrupole$ .or. key == sol_quad$) then
       theta = ele%value(tilt_tot$)
-      ric%k1 = ele%value(k1$) * cos(2*theta)
-      ric%s1 = ele%value(k1$) * sin(2*theta)
+      ric%pt%k1 = ele%value(k1$) * cos(2*theta)
+      ric%pt%s1 = ele%value(k1$) * sin(2*theta)
     elseif (key == sbend$) then
       theta = ele%value(tilt_tot$) + ele%value(roll$)
-      ric%k1 = ele%value(k1$) * cos(2*theta)
-      ric%s1 = ele%value(k1$) * sin(2*theta)
+      ric%pt%k1 = ele%value(k1$) * cos(2*theta)
+      ric%pt%s1 = ele%value(k1$) * sin(2*theta)
     else
-      ric%k1 = 0
-      ric%s1 = 0
+      ric%pt%k1 = 0
+      ric%pt%s1 = 0
     endif
 
 ! Edge effects for a bend. In this case we ignore any rolls.
 
     if (key == sbend$) then
       call propagate_part_way (ele0, ele, runt, 0.0_rp, 1, 1)
-      ric%i4a_(ir) = -ric%eta_a(1) * ric%g2 * tan(ele%value(e1$))
-      ric%i4b_(ir) = -ric%eta_b(1) * ric%g2 * tan(ele%value(e1$))
+      ric%i4a_(ir) = -ric%eta_a(1) * ric%pt%g2 * tan(ele%value(e1$))
+      ric%i4b_(ir) = -ric%eta_b(1) * ric%pt%g2 * tan(ele%value(e1$))
       call propagate_part_way (ele0, ele, runt, ll, 1, 2)
       ric%i4a_(ir) = ric%i4a_(ir) - &
-                           ric%eta_a(1) * ric%g2 * tan(ele%value(e2$))
+                           ric%eta_a(1) * ric%pt%g2 * tan(ele%value(e2$))
       ric%i4b_(ir) = ric%i4a_(ir) - &
-                           ric%eta_b(1) * ric%g2 * tan(ele%value(e2$))
+                           ric%eta_b(1) * ric%pt%g2 * tan(ele%value(e2$))
     endif
 
 ! Integrate for quads and bends
@@ -398,14 +380,14 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
     if (.not. ele%is_on) cycle
 
     ele0 => ring%ele_(ir-1)
-    ric%orb0 => orb_(ir-1)
-    ric%orb1 => orb_(ir)
+    ric%orb0 => orbit(ir-1)
+    ric%orb1 => orbit(ir)
 
     ll = ele%value(l$)
     if (ll == 0) cycle
 
-    ric%g_x0 = -ele%value(hkick$) / ll
-    ric%g_y0 = -ele%value(vkick$) / ll
+    ric%pt%g_x0 = -ele%value(hkick$) / ll
+    ric%pt%g_y0 = -ele%value(vkick$) / ll
 
     call make_v_mats (ele0, v, v_inv)
     ric%eta_a0 = &
@@ -509,22 +491,5 @@ subroutine radiation_integrals (ring, orb_, mode, ix_cache)
   mode%z%emittance = mode%sig_z * mode%sigE_E
 
   bmad_com = bmad_com_save
-
-!---------------------------------------------------------------------------
-contains
-
-subroutine cache_quad_bend (runt, s, ir, qb)
-
-  type (quad_bend_cache_struct) qb
-  type (ele_struct) runt
-  real(rp) s
-  integer ir
-
-  runt%value(l$) = s
-  call track1 (orb_(ir-1), runt, ring%param, qb%orb)
-  call make_mat6 (runt, ring%param, orb_(ir-1), qb%orb, .true.)
-  qb%mat6 = runt%mat6
-
-end subroutine
 
 end subroutine

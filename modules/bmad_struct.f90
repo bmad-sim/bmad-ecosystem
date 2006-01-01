@@ -110,6 +110,20 @@ type floor_position_struct
   real(rp) theta, phi, psi    ! angular orientation
 end type
 
+! Transverse space charge structure. This structure contains information
+! about the beam as a whole.
+
+type trans_space_charge_struct
+  type (coord_struct) closed_orb   ! beam orbit
+  real(rp) kick_const
+  real(rp) sig_x
+  real(rp) sig_y
+  real(rp) phi      ! Rotation angle to go from lab frame to rotated frame.
+  real(rp) sin_phi
+  real(rp) cos_phi
+  real(rp) sig_z
+endtype    
+
 ! Ele_struct:
 ! REMEMBER: If this struct is changed you have to:
 !     Increase bmad_inc_version by 1.
@@ -142,6 +156,7 @@ type ele_struct
   type (taylor_struct) :: taylor(6)                ! Taylor terms
   type (wake_struct), pointer :: wake => null()    ! Wakefields
   type (wig_term_struct), pointer :: wig_term(:) => null()   ! Wiggler Coefs
+  type (trans_space_charge_struct), pointer :: trans_sc => null()
   integer key                    ! key value
   integer sub_key                ! For wigglers: map_type$, periodic_type$
   integer control_type           ! SUPER_SLAVE$, OVERLAY_LORD$, etc.
@@ -319,7 +334,7 @@ integer, parameter :: fint$=10, polarity$=10, gradient$=10
 integer, parameter :: fintx$=11, z_patch$=11, phi0$=11
 integer, parameter :: rho$=12, s_center$=12, p0c_start$=12
 integer, parameter :: hgap$=13, energy_start$=13
-integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14
+integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14, kz$=14
 integer, parameter :: roll$=15, quad_tilt$=15, freq_spread$=15
 integer, parameter :: l_original$=16, l_chord$=16, bend_tilt$=16
 integer, parameter :: l_start$=17, h1$=17, x_quad$=17
@@ -548,9 +563,10 @@ end type
 ! track%pt(0:n)  goes from 0 to n = track%n_pt
 
 type track_point_struct
-  real(rp) s
-  type (coord_struct) orb ! position of a point
-  real(rp) mat6(6,6)      ! transfer matrix from beginning.
+  real(rp) s              ! Longitudinal distance from beginning of element.
+  type (coord_struct) orb ! position of a point.
+  real(rp) vec0(6)        ! 0th order part of xfer map from the beginning.
+  real(rp) mat6(6,6)      ! 1st order part of xfer map (transfer matrix).
 end type
 
 type track_struct
@@ -581,7 +597,7 @@ type bmad_com_struct
   real(rp) :: max_aperture_limit = 1e3       ! Max Aperture.
   real(rp) :: d_orb(6)           = 1e-5      ! for the make_mat6_tracking routine.
   real(rp) :: grad_loss_sr_wake  = 0         ! Internal var for LCavities.
-  real(rp) :: default_ds_step    = 0.1       ! Integration step size.  
+  real(rp) :: default_ds_step    = 0.2       ! Integration step size.  
 #if defined(CESR_F90_DOUBLE)
   real(rp) :: rel_tollerance = 1e-5
   real(rp) :: abs_tollerance = 1e-8

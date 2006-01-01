@@ -12,9 +12,8 @@ contains
 !+
 ! Subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track)
 !
-! Subroutine to track through an element (which gives the 0th order 
-! taylor series) and optionally make the 6x6 transfer matrix (1st order 
-! taylor series) as well.
+! Subroutine to track through an element (which gives the 0th order map) 
+! and optionally make the 6x6 transfer matrix (1st order map) as well.
 !
 ! Modules needed:
 !   use bmad
@@ -29,7 +28,8 @@ contains
 !
 ! Output:
 !   ele    -- Ele_struct: Element with transfer matrix.
-!     %mat6  -- 6x6 transfer matrix.
+!     %mat6(6,6) -- 6x6 transfer matrix.
+!     %vec0(6)   -- 0th order part of the transfer matrix.
 !   end    -- Coord_struct: Coordinates at the end of element.
 !   track      -- Track_struct: Structure holding the track information.
 !-
@@ -69,10 +69,12 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track)
   if (ele%key == wiggler$ .and. any(start%vec /= 0) .and. &
                                       ele%value(z_patch$) == 0) then
     start0%vec = 0
-    call track_it (start0, .false., .false.)
+    call track_it (start0, real_track = .false., local_calc_mat6 = .false.)
   endif
 
-  call track_it (start, .true., calc_mat6)
+! now do the real tracking
+
+  call track_it (start, real_track = .true., local_calc_mat6 = calc_mat6)
 
 !----------------------------------------------------------------------------
 contains
@@ -84,8 +86,6 @@ subroutine track_it (start, real_track, local_calc_mat6)
 
 ! init
 
-  if (local_calc_mat6) mat6 => ele%mat6
-
   rel_E = (1 + start%vec(6))
   rel_E2 = rel_E**2
   rel_E3 = rel_E**3
@@ -96,6 +96,7 @@ subroutine track_it (start, real_track, local_calc_mat6)
 ! element offset 
 
   if (local_calc_mat6) then
+    mat6 => ele%mat6
     call drift_mat6_calc (mat6, ele%value(s_offset_tot$), end%vec)
   endif
 
@@ -114,7 +115,11 @@ subroutine track_it (start, real_track, local_calc_mat6)
     track%pt(0)%s = 0
     track%pt(0)%orb = start
     track%n_pt = n_step
-    if (local_calc_mat6) track%pt(0)%mat6 = mat6
+    if (local_calc_mat6) then
+      track%pt(0)%mat6 = mat6
+      track%pt(0)%vec0(1:5) = end%vec(1:5) - matmul (mat6(1:5,:), start%vec)
+      track%pt(0)%vec0(6) = 0
+    endif
   endif
 
 !------------------------------------------------------------------
@@ -185,7 +190,11 @@ subroutine track_it (start, real_track, local_calc_mat6)
       if (track%save_track) then
         track%pt(i)%s = s
         track%pt(i)%orb = end
-        if (local_calc_mat6) track%pt(i)%mat6 = mat6
+        if (local_calc_mat6) then
+          track%pt(i)%mat6 = mat6
+          track%pt(i)%vec0(1:5) = end%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)
+          track%pt(i)%vec0(6) = 0
+        endif
       endif
 
     enddo
@@ -230,7 +239,11 @@ subroutine track_it (start, real_track, local_calc_mat6)
       if (track%save_track) then
         track%pt(i)%s = s
         track%pt(i)%orb = end
-        if (local_calc_mat6) track%pt(i)%mat6 = mat6
+        if (local_calc_mat6) then
+          track%pt(i)%mat6 = mat6
+          track%pt(i)%vec0(1:5) = end%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)
+          track%pt(i)%vec0(6) = 0
+        endif
       endif
 
     enddo
