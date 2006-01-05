@@ -817,7 +817,7 @@ end subroutine
 ! as specified. Coupling in the element ele is incorporated into the
 ! distribution
 !
-! Note: Make sure: beam_init%dpz_dz < mode%sigE_E / mode%sig_z
+! Note: Make sure: |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
 !
 ! Note: To get good results, It is important to make sure that for 
 ! circular rings that beam_init%center is the correct closed orbit. 
