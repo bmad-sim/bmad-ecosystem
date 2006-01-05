@@ -34,6 +34,7 @@ module rad_int_common
 
   type rad_int_cache_struct
     type (ele_cache_struct), allocatable :: ele(:)
+    integer, allocatable :: ix_ele(:)
     logical :: set = .false.   ! is being used?
   end type
 

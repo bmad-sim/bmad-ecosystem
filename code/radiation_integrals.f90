@@ -178,6 +178,8 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
 
       ! Count number of elements to cache & allocate memory.
 
+      allocate (cache%ix_ele(ring%n_ele_ring))
+
       j = 0  ! number of elements to cache
       do i = 1, ring%n_ele_use
         key = ring%ele_(i)%key
@@ -185,9 +187,9 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
                  key == wiggler$ .or. ring%ele_(i)%value(hkick$) /= 0 .or. &
                  ring%ele_(i)%value(vkick$) /= 0) then
           j = j + 1
-          ring%ele_(i)%ixx = j  ! mark element for caching
+          cache%ix_ele(i) = j  ! mark element for caching
         else
-          ring%ele_(i)%ixx = -1 ! do not cache this element
+          cache%ix_ele(i) = -1 ! do not cache this element
         endif          
       enddo
       allocate (cache%ele(j))  ! allocate cache memory
@@ -197,7 +199,7 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
       j = 0 
       do i = 1, ring%n_ele_use
 
-        if (ring%ele_(i)%ixx == -1) cycle
+        if (cache%ix_ele(i) == -1) cycle
 
         j = j + 1
         cache%ele(j)%ix_ele = i
@@ -251,7 +253,9 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
     ele => ring%ele_(ir)
     if (.not. ele%is_on) cycle
 
-    if (ric%use_cache .and. ele%ixx > 0) ric%cache_ele => cache%ele(ele%ixx)
+    if (ric%use_cache) then
+      if (cache%ix_ele(ir) > 0) ric%cache_ele => cache%ele(cache%ix_ele(ir))
+    endif
 
     ele0 => ring%ele_(ir-1)
     ric%orb0 => orbit(ir-1)
@@ -364,7 +368,8 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
 
 ! Integrate for quads and bends
 
-    if (ric%use_cache) ric%cache_ele => cache%ele(ele%ixx)
+    if (ric%use_cache) ric%cache_ele => cache%ele(cache%ix_ele(ir))
+
     call qromb_rad_int (ele0, ele, (/ T, F, F, T, T, T, T /), ir)
 
   enddo
@@ -403,7 +408,8 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
 
  ! radiation integrals calc for the map_type wiggler
 
-    if (ric%use_cache) ric%cache_ele => cache%ele(ele%ixx)
+    if (ric%use_cache) ric%cache_ele => cache%ele(cache%ix_ele(ir))
+
     call qromb_rad_int (ele0, ele, (/ T, T, T, T, T, T, T /), ir) 
 
   enddo
