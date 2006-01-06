@@ -517,6 +517,7 @@ type modes_struct
   real(rp) sigE_E        ! SigmaE/E
   real(rp) sig_z         ! Sigma_Z
   real(rp) e_loss        ! Energy loss / turn (eV)
+  real(rp) pz_aperture   ! pz aperture limit
   type (amode_struct)  a, b, z
   type (linac_mode_struct) lin
 end type
