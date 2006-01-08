@@ -57,9 +57,9 @@ C_amode           c_amode_in(1, 2, 3, 4, 5, 6, 7);
 C_amode           c_amode_out(11, 12, 13, 14, 15, 16, 17);
 C_linac_mode      c_linac_mode_in(1, 2, 3, 4, 5, 6, 7);
 C_linac_mode      c_linac_mode_out(11, 12, 13, 14, 15, 16, 17);
-C_modes           c_modes_in(1, 2, 3, 4, 5, 6, 
+C_modes           c_modes_in(1, 2, 3, 4, 5, 6, 7,
                       c_amode_in, c_amode_out, c_amode_in, c_linac_mode_in);
-C_modes           c_modes_out(11, 12, 13, 14, 15, 16, 
+C_modes           c_modes_out(11, 12, 13, 14, 15, 16, 17, 
                       c_amode_out, c_amode_out, c_amode_in, c_linac_mode_out);
 C_bmad_com        c_bmad_com_in;
 C_bmad_com        c_bmad_com_out;

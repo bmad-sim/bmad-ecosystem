@@ -175,9 +175,9 @@ amode_out  = amode_struct (11.0_rp, (/12.0_rp, 13.0_rp/), 14.0_rp, 15.0_rp, 16.0
 linac_mode_in  = linac_mode_struct (1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp, 5.0_rp, 6.0_rp, 7.0_rp)
 linac_mode_out = linac_mode_struct (11.0_rp, 12.0_rp, 13.0_rp, 14.0_rp, 15.0_rp, 16.0_rp, 17.0_rp)
 
-modes_in  = modes_struct ((/1.0_rp, 2.0_rp, 3.0_rp/), 4.0_rp, 5.0_rp, 6.0_rp, &
+modes_in  = modes_struct ((/1.0_rp, 2.0_rp, 3.0_rp/), 4.0_rp, 5.0_rp, 6.0_rp, 7.0_rp, &
                   amode_in, amode_out, amode_in, linac_mode_in)
-modes_out = modes_struct ((/11.0_rp, 12.0_rp, 13.0_rp/), 14.0_rp, 15.0_rp, 16.0_rp, &
+modes_out = modes_struct ((/11.0_rp, 12.0_rp, 13.0_rp/), 14.0_rp, 15.0_rp, 16.0_rp, 17.0_rp, &
                   amode_out, amode_out, amode_in, linac_mode_out)
 
 bmad_com_in  = bmad_com_struct (2.0_rp, vec6_a, 3_rp, 4.0_rp, 5.0_rp, 6.0_rp, &

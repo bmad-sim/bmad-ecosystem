@@ -147,7 +147,8 @@ bool operator== (const C_linac_mode& x, const C_linac_mode& y) {
 bool operator== (const C_modes& x, const C_modes& y) {
   return (x.synch_int1 == y.synch_int1) && (x.synch_int2 == y.synch_int2) && 
          (x.synch_int3 == y.synch_int3) && (x.sigE_E == y.sigE_E) && 
-         (x.sig_z == y.sig_z) && (x.e_loss == y.e_loss) && (x.a == y.a) && 
+         (x.sig_z == y.sig_z) && (x.e_loss == y.e_loss) && 
+         (x.pz_aperture == y.pz_aperture) && (x.a == y.a) && 
          (x.b == y.b) && (x.z == y.z) && (x.lin == y.lin);
 }
 

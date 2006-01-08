@@ -341,7 +341,8 @@ logical is_eq
 !
 
 is_eq = all(f1%synch_int == f2%synch_int) .and. (f1%sige_e == f2%sige_e) .and. &
- (f1%sig_z == f2%sig_z) .and. (f1%e_loss == f2%e_loss) .and. (f1%a == f2%a) .and. &
+ (f1%sig_z == f2%sig_z) .and. (f1%e_loss == f2%e_loss) .and. &
+ (f1%pz_aperture == f2%pz_aperture) .and. (f1%a == f2%a) .and. &
  (f1%b == f2%b) .and. (f1%z == f2%z) .and. (f1%lin == f2%lin)
 
 end function

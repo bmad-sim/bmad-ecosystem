@@ -503,17 +503,18 @@ void operator>> (linac_mode_struct* f, C_linac_mode& c) {
 //---------------------------------------------------------------------------
 // modes
 
-extern "C" void modes_to_f2_(modes_struct*, Re&, Re&, Re&, Re&, Re&, Re&, 
+extern "C" void modes_to_f2_(modes_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&,
                               C_amode, C_amode, C_amode, C_linac_mode);
 
 extern "C" void modes_to_f_(C_modes& c, modes_struct* f) {
   modes_to_f2_(f, c.synch_int1, c.synch_int2, c.synch_int3,
-                            c.sigE_E, c.sig_z, c.e_loss, c.a, c.b, c.z, c.lin);
+            c.sigE_E, c.sig_z, c.e_loss, c.pz_aperture, c.a, c.b, c.z, c.lin);
 }
 
 extern "C" void modes_to_c2_(C_modes& c, Re& i1, Re& i2, Re& i3, Re& sige, 
-       Re& sig_z, Re& e_loss, C_amode a, C_amode b, C_amode z, C_linac_mode lin) {
-  c = C_modes(i1, i2, i3, sige, sig_z, e_loss, a, b, z, lin);
+       Re& sig_z, Re& e_loss, Re& pz, 
+       C_amode a, C_amode b, C_amode z, C_linac_mode lin) {
+  c = C_modes(i1, i2, i3, sige, sig_z, e_loss, pz, a, b, z, lin);
 }
 
 void operator>> (C_modes& c, modes_struct* f) {
