@@ -826,7 +826,6 @@ end subroutine
 !
 ! Modules needed:
 !   use beam_mod
-!   use random_mod
 !
 ! Input:
 !   ele         -- Ele_struct: element to initialize distribution at
