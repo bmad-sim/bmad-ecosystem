@@ -51,7 +51,9 @@ subroutine release_rad_int_cache (ix_cache)
   enddo
 
   deallocate (ric%cache(ix_cache)%ele)
+  deallocate (ric%cache(ix_cache)%ix_ele)
 
+  ric%cache(ix_cache)%set = .false.
   ix_cache = 0
 
 end subroutine
