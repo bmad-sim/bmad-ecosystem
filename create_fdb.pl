@@ -50,11 +50,11 @@ sub deal_c{
       next LINE if $in_comment == 1;
       #search for function statement and printing function name
 #      if ( $_ =~ /^(?:\s*\t*)(?:\w+\s+\t*){1,3}(\w+)\W/){
-      if ( $_ =~ /^(?:\s*\t*)(?:(?:void|int|char|float|double|bool|wchar_t|signed|unsigned|long|short)\*?\s+\t*){1,3}\*?(\w+)(?:\[.*\])?(?:\s*\t*\(.*)/i){
+      if ( $_ =~ /^(?:\s*\t*)(?:(?:void|int|char|float|double|bool|wchar_t|signed|unsigned|long|short|extern|\"C\")\*?\s+\t*){1,3}\*?(\w+)(?:\[.*\])?(?:\s*\t*\(.*)/i){
               print FILE1 "$x : $dir : $1\n"; #basic definition
               $found_function=1;
       }
-      if ( $_ =~ /^(?:\s*\t*)(?:(?:void|int|char|float|double|bool|wchar_t|signed|unsigned|long|short)\*?\s+\t*){1,3}\(\*?(\w+)(?:\[.*\])?\)(?:\s*\t*\(.*)/i){
+      if ( $_ =~ /^(?:\s*\t*)(?:(?:void|int|char|float|double|bool|wchar_t|signed|unsigned|long|short|extern|\"C\")\*?\s+\t*){1,3}\(\*?(\w+)(?:\[.*\])?\)(?:\s*\t*\(.*)/i ){
               print FILE1 "$x : $dir : $1\n";#definition type int* (*func_name)(...)
               $found_function=1;
       }
