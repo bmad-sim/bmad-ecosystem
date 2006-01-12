@@ -169,6 +169,10 @@ end subroutine
 !
 ! Subroutine to do a complete bookkeeping job on a lattice.
 !
+! This this routine does a complete job of bookking and could be unacceptably
+! slow if used, for example, in the inner loop of an optimizer. In this case
+! consider using only control_bookkeeper instead.
+!
 ! Modules needed:
 !   use bmad
 !
@@ -189,6 +193,7 @@ subroutine lattice_bookkeeper (lattice)
 !
 
   call s_calc (lattice)
+  call ring_geometry (lattice)
   call control_bookkeeper (lattice)
   call compute_reference_energy (lattice)
 
