@@ -55,17 +55,22 @@ subroutine MAKE_LRBBI(master_ring_oppos, ring, ix_LRBBI, master_ix_LRBBI_oppos)
   real(rp) :: sigma_z
   real(rp) :: e_spread, emit_x, emit_y
   real(rp) :: sigma_x(master_ring_oppos%n_ele_use), sigma_y(master_ring_oppos%n_ele_use)
+  real(rp) :: n_part
 
   integer :: i,j
   integer, dimension(:,:) :: ix_LRBBI
   integer, dimension(:,:) :: master_ix_LRBBI_oppos
   
+  character*12 type
+
 ! init
 
   call reallocate_coord (orbit_oppos_, master_ring_oppos%n_ele_max)
 
 ! calc master_ring_opps parameters
 
+  n_part = master_ring_oppos%param%n_part
+!  master_ring_oppos%param%n_part = 0.
   call twiss_at_start(master_ring_oppos)
   call twiss_propagate_all(master_ring_oppos)
   call closed_orbit_at_start(master_ring_oppos, orbit_oppos_(0), 4, .true.)
@@ -79,12 +84,15 @@ subroutine MAKE_LRBBI(master_ring_oppos, ring, ix_LRBBI, master_ix_LRBBI_oppos)
 !
 
   do i = 1, size(ring)
+    if(ring(i)%param%particle == positron$) type = 'POSITRON'
+    if(ring(i)%param%particle == electron$) type = 'ELECTRON'
     do j = 1, size(ix_LRBBI,2)
       if (ix_LRBBI(i,j) == 0) cycle
       ring(i)%ele_(ix_LRBBI(i,j))%name = "LRBBI"
       ring(i)%ele_(ix_LRBBI(i,j))%key = beambeam$
       ring(i)%ele_(ix_LRBBI(i,j))%value(charge$) = -1
       ring(i)%ele_(ix_LRBBI(i,j))%value(n_slice$) = 1
+      ring(i)%ele_(ix_LRBBI(i,j))%type = type
     enddo
   enddo
 
@@ -118,5 +126,6 @@ subroutine MAKE_LRBBI(master_ring_oppos, ring, ix_LRBBI, master_ix_LRBBI_oppos)
     enddo
         
   enddo
+
 
 end subroutine
