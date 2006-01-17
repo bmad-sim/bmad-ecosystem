@@ -26,8 +26,6 @@ synch_rad_com_struct -> synch_rad_common_struct
 add: ring%param%s_start
 add: ring%param%s_end
 
-add: ele%value(kick_tilt$)
-
 -----------------
 
      subroutine transfer_ring_taylors (lattice_in, lattice_out, type_out, transfered_all)

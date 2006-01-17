@@ -42,8 +42,9 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
   use bmad_parser_mod, except => bmad_parser
   use cesr_utils
+  use multipole_mod
   use random_mod
-  
+
   implicit none
 
   type (ring_struct), target :: ring, in_ring
@@ -76,10 +77,10 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   character(200) path, basename, full_name, digested_file
   character(280) parse_line_save
 
-  real(rp) angle, energy_beam, energy_param, energy_0, rr
+  real(rp) energy_beam, energy_param, energy_0
 
   logical, optional :: make_mats6, digested_read_ok
-  logical parsing, delim_found, arg_list_found, doit, kick_set
+  logical parsing, delim_found, arg_list_found, doit
   logical file_end, found, err_flag, finished, exit_on_error
   logical detected_expand_lattice_cmd, multipass
 
@@ -890,133 +891,22 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
     ring%param%lattice_type = linear_lattice$
   endif
 
-! transfer the ele information from the in_ring to ring
+! Do bookkeeping for settable dependent variables.
 
-  do i = 1, n_ele_use
+  do i = 1, n_max
+    ele => in_ring%ele_(i)
+    call settable_dep_var_bookkeeping (ele)
+  enddo
 
+! Transfer the ele information from the in_ring to ring
 ! Use the name as given in sequence lists since elements can have different 
 ! names from the defining elements. Eg: B01\H2 gets its definition from B01.
 
+
+  do i = 1, n_ele_use
     ele => ring%ele_(i)
     ele = in_ring%ele_(ix_ring(i)) 
     ele%name = used_line(i)%name
-    kick_set = (ele%value(hkick$) /= 0) .or. (ele%value(vkick$) /= 0)
-
-    select case (ele%key)
-
-! Convert rbends to sbends and evaluate G if needed.
-! Needed is the length and either: angle, G, or rho.
-
-    case (sbend$, rbend$) 
-
-      ele%sub_key = ele%key  ! save input format.
-      angle = ele%value(angle$) 
-
-      if (ele%value(b_field$) /= 0 .and. ele%value(g$) /= 0) call warning &
-          ('BOTH G AND B_FIELD SET FOR A BEND: ' // ele%name)
-
-      if (ele%value(g$) /= 0 .and. ele%value(rho$) /= 0) &
-            call warning ('BOTH G AND RHO SPECIFIED FOR BEND: ' // ele%name)
-      if (ele%value(rho$) /= 0) ele%value(g$) = 1 / ele%value(rho$)
-
-      if (ele%value(g$) /= 0 .and. angle /= 0) call warning &
-            ('BOTH ANGLE AND G OR RHO SPECIFIED FOR BEND: ' // ele%name)
-
-      if (ele%key == rbend$) then
-        ele%value(l_chord$) = ele%value(l$)
-        
-        if (angle /= 0) then
-          ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
-        elseif (ele%value(g$) /= 0 .and. ele%value(l_chord$) == 0) then
-          angle = ele%value(g$) * ele%value(l_chord$) / 2
-          ele%value(l$) = ele%value(l_chord$) * asin(angle)/ angle
-        endif
-        ele%value(e1$) = ele%value(e1$) + angle / 2
-        ele%value(e2$) = ele%value(e2$) + angle / 2
-        ele%key = sbend$
-      endif
-
-      if (ele%value(angle$) /= 0) ele%value(g$) = &
-                                        ele%value(angle$) / ele%value(l$) 
-
-      ! If fintx or hgapx are real_garbage then they have not been set.
-      ! If so, set their valuse to fint and hgap.
-
-      if (ele%value(hgapx$) == real_garbage$) ele%value(hgapx$) = ele%value(hgap$)
-      if (ele%value(fintx$) == real_garbage$) ele%value(fintx$) = ele%value(fint$)
-
-! Accept Use of Delta_E for lcavities and vary the mode frequencies.
-
-    case (lcavity$) 
-
-      if (ele%value(delta_e$) /= 0) then
-        if (ele%value(gradient$) /= 0) call warning &
-                ('BOTH DELTA_E AND GRADIENT NON-ZERO FOR A LCAVITY:', ele%name)
-        ele%value(gradient$) = ele%value(delta_e$) / ele%value(l$)
-      endif
-
-      if (ele%value(freq_spread$) /= 0 .and. associated(ele%wake)) then
-        do n = 1, size(ele%wake%lr)
-          call ran_gauss (rr)
-          bp_com%ran_function_was_called = .true.
-          ele%wake%lr(n)%freq = ele%wake%lr(n)%freq * &
-                                            (1 + ele%value(freq_spread$) * rr)
-        enddo
-      endif
-
-! for a periodic_type wiggler n_pole is a dependent attribute
-
-    case (wiggler$)
-      if (ele%sub_key == periodic_type$) then
-        if (ele%value(kz$) == 0 .and. ele%value(l$) /= 0) then
-          ele%value(kz$) = pi * ele%value(n_pole$) / ele%value(l$)
-        endif
-      endif
-
-! check for inconsistancies
-
-    case (solenoid$)
-      if (ele%field_master .and. (ele%value(ks$) /= 0 .or. kick_set)) call warning &
-          ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, 'BOTH STRENGTH (KS, HKICK, ETC.) AND FIELD SET FOR A SOLENOID.')
-
-    case (sol_quad$)
-      if (ele%field_master .and. (ele%value(ks$) /= 0 .or. ele%value(k1$) /= 0 .or. kick_set)) call warning &
-          ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, 'BOTH STRENGTH (K1, HKICK, ETC.) AND FIELD SET FOR A SOL_QUAD.')
-
-    case (quadrupole$)
-      if (ele%field_master .and. (ele%value(k1$) /= 0 .or. kick_set)) call warning &
-          ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, 'BOTH STRENGTH (K1, HKICK, ETC.) AND FIELD SET FOR A QUAD.')
-
-    case (sextupole$)
-      if (ele%field_master .and. (ele%value(k2$) /= 0 .or. kick_set)) call warning &
-          ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, 'BOTH STRENGTH (K2, HKICK, ETC.) AND FIELD SET FOR A SEXTUPOLE.')
-
-    case (octupole$)
-      if (ele%field_master .and. (ele%value(k3$) /= 0 .or. kick_set)) call warning &
-          ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, 'BOTH STRENGTH (K3, HKICK, ETC.) AND FIELD SET FOR A OCTUPOLE.')
-
-    case (hkicker$, vkicker$)
-      if (ele%field_master .and. (ele%value(kick$) /= 0 .or. kick_set)) call warning &
-          ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, 'BOTH STRENGTH AND BL_KICK SET FOR A H/VKICKER.')
-
-    end select
-
-
-! aperture
-
-    if (ele%value(aperture$) /= 0) then
-      ele%value(x_limit$) = ele%value(aperture$)
-      ele%value(y_limit$) = ele%value(aperture$)
-    endif
-
-! set ds_step if not already set.
-
-    if (ele%num_steps > 0) then
-      ele%value(ds_step$) = abs(ele%value(l$) / ele%num_steps)
-    elseif (ele%value(ds_step$) == 0) then
-      ele%value(ds_step$) = bmad_com%default_ds_step
-    endif
-
   enddo
 
 ! First work on multipass before overlays, groups, and usuperimpose. 

@@ -27,6 +27,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
   use bmad_struct
   use bmad_interface, except => read_digested_bmad_file
+  use multipole_mod
 
   implicit none
 
@@ -43,7 +44,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   character(200), allocatable :: file_names(:)
   character(25) :: r_name = 'read_digested_bmad_file'
 
-  logical found_it, v75, v76, v77, v78, v_old, v_now
+  logical found_it, v75, v76, v77, v78, v79, v_old, v_now
 
   type old_param_struct
     real(rp) garbage2           ! Saved for future use.
@@ -88,8 +89,9 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   v76 = (version == 76)
   v77 = (version == 77)
   v78 = (version == 78)
-  v_old = v75 .or. v76 .or. v77 .or. v78
-  v_now = (version == bmad_inc_version$)  ! v79
+  v79 = (version == 79)
+  v_old = v75 .or. v76 .or. v77 .or. v78 .or. v79
+  v_now = (version == bmad_inc_version$)  ! v80
 
   if (version < bmad_inc_version$) then
     if (bmad_status%type_out) call out_io (s_warn$, r_name, &
@@ -268,7 +270,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
             ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
             ele%coupler_at, ele%on_an_i_beam
 
-    elseif (v_now) then
+    elseif (v79 .or. v_now) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
@@ -285,8 +287,18 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
             ele%coupler_at, ele%on_an_i_beam
     endif
 
+!
+
+    ! In an sbend g$ got moved to make way for k2$
+    if (v75 .or. v76 .or. v77 .or. v78 .or. v79) then
+      if (ele%key == sbend$) then
+        ele%value(7) = ele%value(5)
+        ele%value(5) = 0
+      endif
+    endif
+
     ! kz$ attribute did not exist before now.
-    if (v_old) then
+    if (v75 .or. v76 .or. v77 .or. v78) then
       if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$) then
         if (ele%value(l$) /= 0) ele%value(kz$) = pi * ele%value(n_pole$) / ele%value(l$)
       endif
@@ -315,7 +327,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
     endif
 
     if (ix_m /= 0) then
-      allocate (ele%a(0:n_pole_maxx), ele%b(0:n_pole_maxx))
+      call multipole_init (ele)
       read (d_unit, err = 9600) ele%a, ele%b
     endif
     
@@ -348,7 +360,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
             read (d_unit, err = 9820) ele%wake%lr_file
             read (d_unit, err = 9830) ele%wake%lr
           endif
-        elseif (v76 .or. v77 .or. v78 .or. v_now) then
+        elseif (v76 .or. v77 .or. v78 .or. v79 .or. v_now) then
           read (d_unit, err = 9800) ele%wake%sr_file
           read (d_unit, err = 9810) ele%wake%sr1
           read (d_unit, err = 9840) ele%wake%sr2_long

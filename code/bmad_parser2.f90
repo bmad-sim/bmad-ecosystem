@@ -404,13 +404,11 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
   r_temp%ele_(1:ele_num) = ring%ele_(n_max_old+1:n_max)
   n_max = n_max_old
 
-! If fintx or hgapx are real_garbage then they have not been set.
-! If so, set their valuse to fint and hgap.
+! Do bookkeeping for settable dependent variables.
 
   do i = 1, ele_num
     ele => r_temp%ele_(i)
-    if (ele%value(hgapx$) == real_garbage$) ele%value(hgapx$) = ele%value(hgap$)
-    if (ele%value(fintx$) == real_garbage$) ele%value(fintx$) = ele%value(fint$)
+    call settable_dep_var_bookkeeping (ele)
   enddo
 
 ! Put in the new elements...

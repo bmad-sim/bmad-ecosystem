@@ -752,7 +752,7 @@ subroutine makeup_super_slave (lattice, ix_slave)
   if (any(a_tot /= 0) .or. any(b_tot /= 0)) then
     call multipole_init(slave)
     call multipole_ab_to_kt(a_tot, b_tot, knl, t)
-    call multipole_kt_to_ab(knl/k1, t-tilt, a, b)
+    call multipole_kt_to_ab(knl*slave%value(l$), t-tilt, a, b)
     slave%a = a
     slave%b = b
     slave%value(radius$) = 1
@@ -1112,6 +1112,7 @@ end subroutine
 !     angle$   = L$ * G$
 !     l_chord$ = 2 * sin(Angle$/2) / G$
 !     rho$     = 1 / G$
+!     k2$      = 2 * B(2) / L$
 !
 ! WIGGLER:    
 !     k1$  = -0.5 * (c_light * b_max$ / p0c$)**2
@@ -1230,16 +1231,25 @@ subroutine attribute_bookkeeper (ele, param)
 ! Bends
 
   case (sbend$)
+
     ele%value(angle$) = ele%value(l$) * ele%value(g$)
+
     if (ele%value(l$) == 0 .or. ele%value(g$) == 0) then
       ele%value(l_chord$) = 0
     else
       ele%value(l_chord$) = 2 * sin(ele%value(angle$)/2) / ele%value(g$)
     endif
+
     if (ele%value(g$) == 0) then
       ele%value(rho$) = 0
     else
       ele%value(rho$) = 1 / ele%value(g$)
+    endif
+
+    if (ele%value(l$) /= 0 .and. associated(ele%a)) then
+      ele%value(k2$) = 2 * ele%b(2) / ele%value(l$)
+    else
+      ele%value(k2$) = 0
     endif
 
 ! Lcavity

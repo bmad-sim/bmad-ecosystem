@@ -36,6 +36,7 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
 
   use bmad_struct
   use bmad_interface, except => pointer_to_attribute
+  use multipole_mod
 
   implicit none
 
@@ -168,8 +169,7 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
 
     if (.not. associated(ele%a)) then
       if (do_allocation) then
-        allocate(ele%a(0:n_pole_maxx), ele%b(0:n_pole_maxx))
-        ele%a = 0; ele%b = 0
+        call multipole_init (ele)
       else
         if (do_print) call out_io (s_error$, r_name, &
                         'MULTIPOLE NOT ALLOCATED FOR ELEMENT: ' // ele%name)

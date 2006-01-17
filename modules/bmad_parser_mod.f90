@@ -3365,4 +3365,159 @@ subroutine parser_set_ele_defaults (ele)
 
 end subroutine
 
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine settable_dep_var_bookkeeping (ele)
+!
+! Subroutine initialize dependent variables in an element.
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine settable_dep_var_bookkeeping (ele)
+
+use random_mod
+
+implicit none
+
+type (ele_struct) ele
+
+real(rp) angle, rr
+integer n
+logical kick_set
+
+!
+
+kick_set = (ele%value(hkick$) /= 0) .or. (ele%value(vkick$) /= 0)
+
+select case (ele%key)
+
+! Convert rbends to sbends and evaluate G if needed.
+! Needed is the length and either: angle, G, or rho.
+
+case (sbend$, rbend$) 
+
+  ele%sub_key = ele%key  ! save input format.
+  angle = ele%value(angle$) 
+
+  if (ele%value(b_field$) /= 0 .and. ele%value(g$) /= 0) call warning &
+          ('BOTH G AND B_FIELD SET FOR A BEND: ' // ele%name)
+
+  if (ele%value(g$) /= 0 .and. ele%value(rho$) /= 0) &
+            call warning ('BOTH G AND RHO SPECIFIED FOR BEND: ' // ele%name)
+  if (ele%value(rho$) /= 0) ele%value(g$) = 1 / ele%value(rho$)
+
+  if (ele%value(g$) /= 0 .and. angle /= 0) call warning &
+            ('BOTH ANGLE AND G OR RHO SPECIFIED FOR BEND: ' // ele%name)
+
+  if (ele%key == rbend$) then
+    ele%value(l_chord$) = ele%value(l$)
+        
+    if (angle /= 0) then
+      ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
+    elseif (ele%value(g$) /= 0 .and. ele%value(l_chord$) == 0) then
+      angle = ele%value(g$) * ele%value(l_chord$) / 2
+      ele%value(l$) = ele%value(l_chord$) * asin(angle)/ angle
+    endif
+    ele%value(e1$) = ele%value(e1$) + angle / 2
+    ele%value(e2$) = ele%value(e2$) + angle / 2
+    ele%key = sbend$
+  endif
+
+  if (ele%value(angle$) /= 0) ele%value(g$) = ele%value(angle$) / ele%value(l$) 
+
+  ! If fintx or hgapx are real_garbage then they have not been set.
+  ! If so, set their valuse to fint and hgap.
+
+  if (ele%value(hgapx$) == real_garbage$) ele%value(hgapx$) = ele%value(hgap$)
+  if (ele%value(fintx$) == real_garbage$) ele%value(fintx$) = ele%value(fint$)
+
+  if (ele%value(k2$) /= 0) then
+    call multipole_init (ele)
+    ele%b(2) = ele%value(k2$) * ele%value(l$) / 2
+  endif
+
+! Accept Use of Delta_E for lcavities and vary the mode frequencies.
+
+case (lcavity$) 
+
+  if (ele%value(delta_e$) /= 0) then
+    if (ele%value(gradient$) /= 0) call warning &
+                ('BOTH DELTA_E AND GRADIENT NON-ZERO FOR A LCAVITY:', ele%name)
+    ele%value(gradient$) = ele%value(delta_e$) / ele%value(l$)
+  endif
+
+  if (ele%value(freq_spread$) /= 0 .and. associated(ele%wake)) then
+    do n = 1, size(ele%wake%lr)
+      call ran_gauss (rr)
+      bp_com%ran_function_was_called = .true.
+      ele%wake%lr(n)%freq = ele%wake%lr(n)%freq * (1 + ele%value(freq_spread$) * rr)
+    enddo
+  endif
+
+! for a periodic_type wiggler n_pole is a dependent attribute
+
+case (wiggler$)
+  if (ele%sub_key == periodic_type$) then
+    if (ele%value(kz$) == 0 .and. ele%value(l$) /= 0) then
+      ele%value(kz$) = pi * ele%value(n_pole$) / ele%value(l$)
+    endif
+  endif
+
+! check for inconsistancies
+
+case (solenoid$)
+  if (ele%field_master .and. (ele%value(ks$) /= 0 .or. kick_set)) call warning &
+      ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
+       'BOTH STRENGTH (KS, HKICK, ETC.) AND FIELD SET FOR A SOLENOID.')
+
+case (sol_quad$)
+  if (ele%field_master .and. (ele%value(ks$) /= 0 .or. &
+                            ele%value(k1$) /= 0 .or. kick_set)) call warning &
+      ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
+       'BOTH STRENGTH (K1, HKICK, ETC.) AND FIELD SET FOR A SOL_QUAD.')
+
+case (quadrupole$)
+  if (ele%field_master .and. (ele%value(k1$) /= 0 .or. kick_set)) call warning &
+      ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
+       'BOTH STRENGTH (K1, HKICK, ETC.) AND FIELD SET FOR A QUAD.')
+
+case (sextupole$)
+  if (ele%field_master .and. (ele%value(k2$) /= 0 .or. kick_set)) call warning &
+      ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
+       'BOTH STRENGTH (K2, HKICK, ETC.) AND FIELD SET FOR A SEXTUPOLE.')
+
+case (octupole$)
+  if (ele%field_master .and. (ele%value(k3$) /= 0 .or. kick_set)) call warning &
+      ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
+       'BOTH STRENGTH (K3, HKICK, ETC.) AND FIELD SET FOR A OCTUPOLE.')
+
+case (hkicker$, vkicker$)
+  if (ele%field_master .and. (ele%value(kick$) /= 0 .or. kick_set)) call warning &
+      ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
+       'BOTH STRENGTH AND BL_KICK SET FOR A H/VKICKER.')
+
+end select
+
+
+! aperture
+
+if (ele%value(aperture$) /= 0) then
+  ele%value(x_limit$) = ele%value(aperture$)
+  ele%value(y_limit$) = ele%value(aperture$)
+endif
+
+! set ds_step if not already set.
+
+if (ele%num_steps > 0) then
+  ele%value(ds_step$) = abs(ele%value(l$) / ele%num_steps)
+elseif (ele%value(ds_step$) == 0) then
+  ele%value(ds_step$) = bmad_com%default_ds_step
+endif
+
+end subroutine
+
 end module
