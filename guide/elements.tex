@@ -314,6 +314,7 @@ Attributes specific to a \vn{Rbend} and \vn{Sbend} elements are:
   h1, h2      = <Real>     ! Face curvature.
   roll        = <Real>     ! See \ref{s:offset}.
   k1          = <Real>     ! Quadrupole strength.
+  k2          = <Real>     ! Sextupole strength. A settable dependent variable (\sref{s:depend}).
   l_chord                  ! Chord length. Dependent attribute. See \sref{s:l}.
 \end{example}
 
@@ -356,6 +357,13 @@ bend towards negative $x$ values (see Figure~\ref{f:local_coords}).
   \item[k1]
 \index{K1}
 The quadrupole strength.
+  \item[k2]
+\index{K2}
+The sextupole strength. This is a settable dependent attribute (\sref{s:depend}). 
+\vn{k2} is dependent upon the \vn{b2} multipole attribute via:
+\Begineq
+  k_2 = 2 \, b_2 / l
+\Endeq 
   \item[g, g\_err, rho]
 \index{G}
 \index{Rho}
