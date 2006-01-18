@@ -1,62 +1,78 @@
 #!/usr/bin/perl
+# modify to use File::Spec for transparent use on VMS
+# 2006.01.18 mjf
 
 use File::Find;
+use File::Spec::Functions;
+
+# Following two lines should be uncommented on VMS to check the master_list:
+#my @args = ("r [cesr.master_list]list_list.exe", @ARGV);
+#system(@args) == 0 or die "system @args failed: $?\n";
 
 $found_one = 0;
 
-if (-d "./bmad/modules")
-  {$bmad_dir="./bmad";}
-elsif (-d "../bmad/modules")
-  {$bmad_dir="../bmad";}
-elsif (-d "../../bmad/modules")
-  {$bmad_dir="../../bmad";}
-else
-  {$bmad_dir=$ENV{"CESR_CVSSRC"}."/bmad";}
+my $curdir = curdir();
+my $updir  = updir();
 
-if (-d "./cesr_utils/modules")
-  {$cesr_utils_dir="./cesr_utils";}
-elsif (-d "../cesr_utils/modules")
-  {$cesr_utils_dir="../cesr_utils";}
-elsif (-d "../../cesr_utils/modules")
-  {$cesr_utils_dir="../../cesr_utils";}
-else
-  {$cesr_utils_dir=$ENV{"CESR_CVSSRC"}."/cesr_utils";}
+if (-d catdir( $curdir, "bmad", "modules" )) {
+  $bmad_dir = catdir( $curdir, "bmad" );
+} elsif (-d catdir( $updir, "bmad", "modules" )) {
+  $bmad_dir = catdir( $updir, "bmad" );
+} elsif (-d catdir( $updir, "$updir", "bmad", "modules" )) {
+  $bmad_dir = catdir( $updir, "$updir", "bmad" );
+} else {
+  $bmad_dir = catdir( $ENV{"CESR_CVSSRC"}, "bmad" );
+}
 
-if (-d "./dcslib/modules")
-  {$dcslib_dir="./dcslib";}
-elsif (-d "../dcslib/modules")
-  {$dcslib_dir="../dcslib";}
-elsif (-d "../../dcslib/modules")
-  {$dcslib_dir="../../dcslib";}
-else
-  {$dcslib_dir=$ENV{"CESR_CVSSRC"}."/dcslib";}
+if (-d catdir( $curdir, "cesr_utils", "modules" )) {
+  $cesr_utils_dir = catdir( $curdir, "cesr_utils" );
+} elsif (-d catdir( $updir, "cesr_utils", "modules" )) {
+  $cesr_utils_dir = catdir( $updir, "cesr_utils" );
+} elsif (-d catdir( $updir, "$updir", "cesr_utils", "modules" )) {
+  $cesr_utils_dir = catdir( $updir, "$updir", "cesr_utils" );
+} else {
+  $cesr_utils_dir = catdir( $ENV{"CESR_CVSSRC"}, "cesr_utils" );
+}
 
-if (-d "./recipes_f-90_LEPP")
-  {$recipes_dir="./recipes_f-90_LEPP";}
-elsif (-d "../recipes_f-90_LEPP")
-  {$recipes_dir="../recipes_f-90_LEPP";}
-elsif (-d "../../recipes_f-90_LEPP")
-  {$recipes_dir="../../recipes_f-90_LEPP";}
-else
-  {$recipes_dir=$ENV{"CESR_CVSSRC"}."/recipes_f-90_LEPP";}
+if (-d catdir( $curdir, "dcslib", "modules" )) {
+  $dcslib_dir = catdir( $curdir, "dcslib" );
+} elsif (-d catdir( $updir, "dcslib", "modules" )) {
+  $dcslib_dir = catdir( $updir, "dcslib" );
+} elsif (-d catdir( $updir, "$updir", "dcslib", "modules" )) {
+  $dcslib_dir = catdir( $updir, "$updir", "dcslib" );
+} else {
+  $dcslib_dir = catdir( $ENV{"CESR_CVSSRC"}, "dcslib" );
+}
 
-if (-d "./forest/basic")
-  {$forest_dir="./forest/basic";}
-elsif (-d "../forest/basic")
-  {$forest_dir="../forest/basic";}
-elsif (-d "../../forest/basic")
-  {$forest_dir="../../forest/basic";}
-else
-  {$forest_dir=$ENV{"CESR_PKG"}."/forest/basic";}
+if (-d catdir( $curdir, "recipes_f-90_LEPP" )) {
+  $recipes_dir = catdir( $curdir, "recipes_f-90_LEPP" );
+} elsif (-d catdir( $updir, "recipes_f-90_LEPP" )) {
+  $recipes_dir = catdir( $updir, "recipes_f-90_LEPP" );
+} elsif (-d catdir( $updir, "$updir", "recipes_f-90_LEPP" )) {
+  $recipes_dir = catdir( $updir, "$updir", "recipes_f-90_LEPP" );
+} else {
+  $recipes_dir = catdir( $ENV{"CESR_CVSSRC"}, "recipes_f-90_LEPP" );
+}
 
-if (-d "./tao/code")
-  {$tao_dir="./tao";}
-elsif (-d "../tao/code")
-  {$tao_dir="../tao";}
-elsif (-d "../../tao/code")
-  {$tao_dir="../../tao";}
-else
-  {$tao_dir=$ENV{"CESR_CVSSRC"}."/tao";}
+if (-d catdir( $curdir, "forest", "basic" )) {
+  $forest_dir = catdir( $curdir, "forest", "basic" );
+} elsif (-d catdir( $updir, "forest", "basic" )) {
+  $forest_dir = catdir( $updir, "forest", "basic" );
+} elsif (-d catdir( $updir, "$updir", "forest", "basic" )) {
+  $forest_dir = catdir( $updir, "$updir", "forest", "basic" );
+} else {
+  $forest_dir = catdir( $ENV{"CESR_PKG"}, "forest", "basic" );
+}
+
+if (-d catdir( $curdir, "tao", "code" )) {
+  $tao_dir = catdir( $curdir, "tao" );
+} elsif (-d catdir( $updir, "tao", "code" )) {
+  $tao_dir = catdir( $updir, "tao" );
+} elsif (-d catdir( $updir, "$updir", "tao", "code" )) {
+  $tao_dir = catdir( $updir, "$updir", "tao" );
+} else {
+  $tao_dir = catdir( $ENV{"CESR_CVSSRC"}, "tao" );
+}
 
 $str = @ARGV[0];
 $str =~ s/\*/\\w\*/g;  # replace "*" by "\w*"
