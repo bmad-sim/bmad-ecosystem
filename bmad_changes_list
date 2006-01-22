@@ -19,6 +19,8 @@ bmad_com_struct -> bmad_common_struct
 bp_com_struct -> bp_common_struct
 ptc_com_struct -> ptc_common_struct
 synch_rad_com_struct -> synch_rad_common_struct
+modes_struct -> normal_modes_struct
+mode_struct  -> normal_mode_struct
 
 
 -----------------

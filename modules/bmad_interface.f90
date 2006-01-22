@@ -978,7 +978,7 @@ interface
     use bmad_struct, only: ring_struct, ele_struct, rp, coord_struct
     implicit none
     type (ring_struct) :: ring
-    type (ele_struct) :: ele
+    type (ele_struct), optional :: ele
     real(rp) s
     type (coord_struct), optional :: orb_(0:)
     type (coord_struct), optional :: here

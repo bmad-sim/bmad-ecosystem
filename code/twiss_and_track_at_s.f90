@@ -1,5 +1,5 @@
 !+
-! Subroutine twiss_and_track_at_s (ring, s, ele, orb, here)
+! Subroutine twiss_and_track_at_s (ring, s, ele, orb, orb_at_s)
 ! 
 ! Subroutine to return the twiss parameters and particle orbit at a 
 ! given longitudinal position. See also twiss_and_track_partial.
@@ -15,19 +15,21 @@
 !   ring -- Ring_struct: Ring holding the lattice.
 !   s    -- Real(rp): Longitudinal position. If s is negative the
 !            the position is taken to be ring%param%total_length - s.
-!   orb(0:n_ele_max) -- Coord_struct: Orbit through the ring.
+!   orb(0:n_ele_max) -- Coord_struct, optional: Orbit through the ring.
 !                           (usually the closed orbit)
 !
 ! Output:
-!   ele  -- Ele_struct: Element structure holding the Twiss parameters.
+!   ele  -- Ele_struct, optional: Element structure holding the Twiss parameters.
 !             if orb is not given then the Twiss parameters are calculated
 !             with respect to the zero orbit.
-!   here -- Coord_struct, optional: Particle position at the position s.
+!   orb_at_s -- Coord_struct, optional: Particle position at the position s.
+!             If orb_at_s is present then this routine assumes that orb is
+!             present.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine twiss_and_track_at_s (ring, s, ele, orb, here)
+subroutine twiss_and_track_at_s (ring, s, ele, orb, orb_at_s)
 
   use bmad_struct
   use bmad_interface, except => twiss_and_track_at_s
@@ -35,9 +37,9 @@ subroutine twiss_and_track_at_s (ring, s, ele, orb, here)
   implicit none
 
   type (ring_struct) :: ring
-  type (ele_struct) :: ele
+  type (ele_struct), optional :: ele
   type (coord_struct), optional :: orb(0:)
-  type (coord_struct), optional :: here
+  type (coord_struct), optional :: orb_at_s
 
   real(rp) s, s_use
 
@@ -60,20 +62,31 @@ subroutine twiss_and_track_at_s (ring, s, ele, orb, here)
 ! Propagate to position
 
   do i = 1, ring%n_ele_use
-    if (abs(ring%ele_(i)%s - s_use) < 1e-5) then
-      ele = ring%ele_(i)
-      here = orb(i)
-      return
-    elseif (ring%ele_(i)%s > s_use) then
-      if (present(orb)) then
-        call twiss_and_track_partial (ring%ele_(i-1), ring%ele_(i), &
-                   ring%param, s_use-ring%ele_(i-1)%s, ele, orb(i-1), here)
-      else
-        call twiss_and_track_partial (ring%ele_(i-1), ring%ele_(i), &
-                   ring%param, s_use-ring%ele_(i-1)%s, ele)
-      endif
+
+    ! Test if we have the correct element. The factor of 1e-5 is for roundoff.
+
+    if (s_use - ring%ele_(i)%s < 1e-5) cycle
+
+    ! If close enough to edge of element just use element info.
+
+    if (s_use - ring%ele_(i)%s < -1e-5) then
+      if (present(ele)) ele = ring%ele_(i)
+      if (present(orb_at_s)) orb_at_s = orb(i)
       return
     endif
+
+    ! Normal case where we need to partially track through
+
+    if (present(orb)) then
+      call twiss_and_track_partial (ring%ele_(i-1), ring%ele_(i), &
+                   ring%param, s_use-ring%ele_(i-1)%s, ele, orb(i-1), orb_at_s)
+    else
+      call twiss_and_track_partial (ring%ele_(i-1), ring%ele_(i), &
+                   ring%param, s_use-ring%ele_(i-1)%s, ele)
+    endif
+
+    return
+
   enddo
 
 end subroutine
