@@ -49,28 +49,28 @@ integer n_data
 ! 
   
   
-  n_data = 0
-  do iu = 1, size(s%u)
-    if (.not. s%u(iu)%is_on) cycle
-    n_data  = n_data + count(s%u(iu)%data(:)%useit_opt)
-  enddo
-  if (present(data_value))      call reallocate_real (data_value, n_data)
-  if (present(data_meas_value)) call reallocate_real (data_meas_value, n_data)
-  if (present(data_weight))     call reallocate_real (data_weight, n_data)
-  if (present(data_ix_dModel))  call reallocate_real (data_ix_dModel, n_data)
+n_data = 0
+do iu = 1, size(s%u)
+  if (.not. s%u(iu)%is_on) cycle
+  n_data  = n_data + count(s%u(iu)%data(:)%useit_opt)
+enddo
+if (present(data_value))      call reallocate_real (data_value, n_data)
+if (present(data_meas_value)) call reallocate_real (data_meas_value, n_data)
+if (present(data_weight))     call reallocate_real (data_weight, n_data)
+if (present(data_ix_dModel))  call reallocate_real (data_ix_dModel, n_data)
 
-  j = 0
-  do iu = 1, size(s%u)
-    if (.not. s%u(iu)%is_on) cycle
-    do i = 1, size(s%u(iu)%data)
-      if (.not. s%u(iu)%data(i)%useit_opt) cycle
-      j = j + 1
-      if (present(data_value))        data_value(j)      = s%u(iu)%data(i)%model_value
-      if (present(data_weight))       data_weight(j)     = s%u(iu)%data(i)%weight
-      if (present(data_meas_value))   data_meas_value(j) = s%u(iu)%data(i)%meas_value
-      if (present(data_ix_dModel))    data_ix_dModel(j)  = s%u(iu)%data(i)%ix_dModel
-    enddo
+j = 0
+do iu = 1, size(s%u)
+  if (.not. s%u(iu)%is_on) cycle
+  do i = 1, size(s%u(iu)%data)
+    if (.not. s%u(iu)%data(i)%useit_opt) cycle
+    j = j + 1
+    if (present(data_value))        data_value(j)      = s%u(iu)%data(i)%model_value
+    if (present(data_weight))       data_weight(j)     = s%u(iu)%data(i)%weight
+    if (present(data_meas_value))   data_meas_value(j) = s%u(iu)%data(i)%meas_value
+    if (present(data_ix_dModel))    data_ix_dModel(j)  = s%u(iu)%data(i)%ix_dModel
   enddo
+enddo
 
 
 end subroutine
@@ -99,17 +99,19 @@ integer uni, ix_ele
 integer i
 character(20) :: r_name = 'tao_load_data_array'
 
-  if (ix_ele .eq. 0) call tao_data_coupling_init (u) 
-  
-  ! find which datums to evaluate here
-  if (.not. associated(u%ix_data(ix_ele)%ix_datum)) return
+!
 
-  ix_data => u%ix_data(ix_ele)
-  do i = 1, size(ix_data%ix_datum)
-    call tao_evaluate_a_datum (u%data(ix_data%ix_datum(i)), u, u%model, &
+if (ix_ele .eq. 0) call tao_data_coupling_init (u) 
+  
+! find which datums to evaluate here
+if (.not. associated(u%ix_data(ix_ele)%ix_datum)) return
+
+ix_data => u%ix_data(ix_ele)
+do i = 1, size(ix_data%ix_datum)
+  call tao_evaluate_a_datum (u%data(ix_data%ix_datum(i)), u, u%model, &
               u%model_orb, u%data(ix_data%ix_datum(i))%model_value)
-    u%data(ix_data%ix_datum(i))%s = u%model%ele_(ix_ele)%s
-  enddo
+  u%data(ix_data%ix_datum(i))%s = u%model%ele_(ix_ele)%s
+enddo
     
 
 end subroutine tao_load_data_array
@@ -196,7 +198,7 @@ logical found
 
 !
 
-call tao_hook_load_data_array (found, datum, u, lattice, orb, datum_value)
+call tao_hook_evaluate_a_datum (found, datum, u, lattice, orb, datum_value)
 if (found) return
 
 ix1 = datum%ix_ele

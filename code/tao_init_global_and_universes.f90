@@ -156,6 +156,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
     coupled%at_ele_index = -1
     coupled%at_s = -1
     coupled%match_to_design = .false.
+
     read (iu, nml = tao_coupled_uni_init, iostat = ios)
 
     if (ios == 0) then
@@ -171,7 +172,10 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
       cycle
     elseif (ios > 0) then
       call out_io (s_abort$, r_name, 'INIT: TAO_COUPLED_UNI_INIT NAMELIST READ ERROR!')
-      call err_exit
+      rewind (iu)
+      do
+        read (iu, nml = tao_coupled_uni_init)  ! generate an error message
+      enddo
     endif
 
     close (iu)
@@ -217,7 +221,10 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
         cycle
       elseif (ios > 0) then
         call out_io (s_abort$, r_name, 'INIT: TAO_BEAM_INIT NAMELIST READ ERROR!')
-        call err_exit
+        rewind (iu)
+        do
+          read (iu, nml = tao_beam_init)  ! generate an error message
+        enddo
       endif
 
       close (iu)
@@ -258,11 +265,14 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
         call out_io (s_blank$, r_name, &
               'Init: Read tao_macro_init namelist for universe \i3\ ', ix_universe)
         i = ix_universe
-        call init_macro(s%u(i), macro_init, calc_emittance)
+        call init_macro(s%u(i), macro_init, calc_emittance)  ! generate an error message
         cycle
       elseif (ios > 0) then
         call out_io (s_abort$, r_name, 'INIT: TAO_MACRO_INIT NAMELIST READ ERROR!')
-        call err_exit
+        rewind (iu)
+        do
+          read (iu, nml = tao_macro_init)  ! generate an error message
+        enddo
       endif
 
       close (iu)

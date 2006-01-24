@@ -9,7 +9,7 @@
 
 module tao_struct
 
-use bmad_struct, only: rp, ring_struct, coord_struct, radians$, ele_struct
+use bmad_struct, only: rp, ring_struct, coord_struct, radians$, ele_struct, modes_struct
 use quick_plot, only: qp_line_struct, qp_symbol_struct, qp_axis_struct, qp_rect_struct, qp_point_struct
 use macroparticle_mod, only: macro_init_struct, macro_beam_struct
 use macro_utils_mod, only: macro_bunch_params_struct
@@ -410,6 +410,7 @@ end type
 type tao_universe_struct
   type (ring_struct) model, design, base           ! lattice structures
   type (coord_struct), allocatable :: model_orb(:), design_orb(:), base_orb(:)
+  type (modes_struct) synch_int                    ! Synchrotron integrals stuff
   type (tao_macro_beam_struct) macro_beam          ! macroparticle beam 
   type (tao_beam_struct) beam                      ! particle beam
   type (tao_coupled_uni_struct)   :: coupling      !used for coupled lattices

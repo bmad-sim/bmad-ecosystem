@@ -108,7 +108,7 @@ interface
 end interface
  
 interface
-  subroutine tao_hook_load_data_array (found, datum, u, lattice, orb, datum_value)
+  subroutine tao_hook_evaluate_a_datum (found, datum, u, lattice, orb, datum_value)
     use tao_struct, only: tao_data_struct, tao_universe_struct
     use bmad_struct, only: ring_struct, coord_struct
     use precision_def, only: rp

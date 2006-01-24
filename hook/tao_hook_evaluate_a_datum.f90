@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_hook_load_data_array (found, datum, u, lattice, orb, datum_value)
+! Subroutine tao_hook_evaluate_a_datum (found, datum, u, lattice, orb, datum_value)
 !
 !  See the Programmer's manual for how to add custom data types here.
 !
@@ -15,7 +15,7 @@
 !  Found         -- Logical: TRUE if  this datum is evaluated in this subroutine.
 !-
 
-subroutine tao_hook_load_data_array (found, datum, u, lattice, orb, datum_value)
+subroutine tao_hook_evaluate_a_datum (found, datum, u, lattice, orb, datum_value)
 
 use tao_mod
 
@@ -32,7 +32,7 @@ logical found
 integer ix1, ix2
 type (ele_struct), pointer :: ele
 
-character(20) :: r_name = 'tao_hook_load_data_array'
+character(20) :: r_name = 'tao_hook_evaluate_a_datum'
 !
 
 ! ix1 is the first index associated with element
@@ -101,4 +101,4 @@ if (datum%merit_type(1:4) == 'abs_') datum_value = abs(vec(ix_m))
 
 end subroutine load_it
 
-end subroutine tao_hook_load_data_array
+end subroutine tao_hook_evaluate_a_datum
