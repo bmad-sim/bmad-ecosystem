@@ -81,48 +81,46 @@ endif
 ! This can be slow for large lattices so only do it if the lattice changed.
 
 if (s%global%lattice_recalc) then
-  if (s%global%track_type == 'single') then
-    do i = 1, size(s%u)
-      if (.not. s%u(i)%is_on .or. hook_used(i)) cycle
-      lattice => s%u(i)%model
-      orbit => s%u(i)%model_orb
-      ! set up matching element
-      if (initing_design) call tao_match_lats_init (s%u(i))
+
+  do i = 1, size(s%u)
+    if (.not. s%u(i)%is_on .or. hook_used(i)) cycle
+    lattice => s%u(i)%model
+    orbit => s%u(i)%model_orb
+    ! set up matching element
+    if (initing_design) call tao_match_lats_init (s%u(i))
+
+    select case (s%global%track_type)
+    case ('single') 
       call tao_inject_particle (s%u(i), lattice, orbit)
       call tao_lat_bookkeeper (s%u(i), lattice)
-       call tao_single_track (i, lattice, orbit)
-    enddo
-  elseif (s%global%track_type == 'beam') then
-    do i = 1, size(s%u)
-      if (.not. s%u(i)%is_on .or. hook_used(i)) cycle
-      lattice => s%u(i)%model
-      orbit => s%u(i)%model_orb
-      ! set up matching element
-      if (initing_design) call tao_match_lats_init (s%u(i))
+      call tao_single_track (i, lattice, orbit)
+    case ('beam') 
       call tao_inject_beam (s%u(i), lattice, orbit)
       call tao_lat_bookkeeper (s%u(i), lattice)
       call tao_beam_track (i, lattice, orbit)
-    enddo
-  elseif (s%global%track_type == 'macro') then
-    do i = 1, size(s%u)
-      if (.not. s%u(i)%is_on .or. hook_used(i)) cycle
-      lattice => s%u(i)%model
-      orbit => s%u(i)%model_orb
-      ! set up matching element
-      if (initing_design) call tao_match_lats_init (s%u(i))
+    case ('macro')
       call tao_inject_macro_beam (s%u(i), lattice, orbit)
       call tao_lat_bookkeeper (s%u(i), lattice)
       call tao_macro_track (i, lattice, orbit)
-    enddo
-  else
-    call out_io (s_error$, r_name, &
+    case default
+      call out_io (s_error$, r_name, &
                      "This tracking type has yet to be implemented!")
-    call out_io (s_blank$, r_name, &
+      call out_io (s_blank$, r_name, &
                      "No tracking or twiss calculations will be perfomred.")
-  endif
+    end select
+
+    if (s%u(i)%do_synch_rad_int_calc) &
+                       call radiation_integrals (lattice, orbit, s%u(i)%modes)
+
+    call tao_load_data_array (s%u(i), -1)
+
+  enddo
+
   ! do any post-processing
+
   call tao_hook_post_process_data ()
   s%global%lattice_recalc = .false.
+
 endif
 
 end subroutine tao_lattice_calc
@@ -201,7 +199,7 @@ integer, allocatable, save :: ix_ele(:)
 
 character(20) :: r_name = "tao_beam_track"
 
-real(rp) :: value1, value2, m_particle
+real(rp) :: value1, value2, f
 
 logical post
 
@@ -233,7 +231,7 @@ inject_loop: do i_uni_to = uni+1, size(s%u)
         exit inject_loop ! save i_uni_to for coupled universe
       else
         call out_io (s_abort$, r_name, &
-           "Must specify an element when coupling lattices with a beam.")
+             "Must specify an element when coupling lattices with a beam.")
         call err_exit
       endif
     endif
@@ -249,13 +247,10 @@ if (.not. u%coupling%coupled) then
     if (u%beam%calc_emittance) then
       call radiation_integrals (lat, orb, modes)
       if (extract_at_ix_ele .ne. -1) then
-        m_particle = mass_of(lat%param%particle)
-        beam_init%a_norm_emitt  = modes%a%emittance * &
-                    ((lat%ele_(extract_at_ix_ele)%value(beam_energy$)* &
-                    (1+orb(extract_at_ix_ele)%vec(6))) / m_particle)
-        beam_init%b_norm_emitt  = modes%b%emittance * &
-                    ((lat%ele_(extract_at_ix_ele)%value(beam_energy$)* &
-                    (1+orb(extract_at_ix_ele)%vec(6))) / m_particle)
+        f = lat%ele_(extract_at_ix_ele)%value(beam_energy$) * &
+                    (1+orb(extract_at_ix_ele)%vec(6)) / mass_of(lat%param%particle)
+        beam_init%a_norm_emitt  = modes%a%emittance * f
+        beam_init%b_norm_emitt  = modes%b%emittance * f
       endif
     endif
     ! transfer extracted particle info into macro_init
@@ -379,7 +374,7 @@ integer extract_at_ix_ele, n_lost
 
 character(20) :: r_name = "macro_track"
 
-real(rp) :: value1, value2, m_particle
+real(rp) :: value1, value2, f
 
 logical post
 
@@ -416,19 +411,10 @@ if (.not. u%coupling%coupled) then
     if (u%macro_beam%calc_emittance) then
       call radiation_integrals (lat, orb, modes)
       if (extract_at_ix_ele .ne. -1) then
-  if (lat%param%particle == electron$ .or. &
-      lat%param%particle == positron$) then
-    m_particle = m_electron
-  elseif (lat%param%particle == proton$ .or. &
-          lat%param%particle == antiproton$) then
-    m_particle = m_proton
-  endif
-        macro_init%x%norm_emit  = modes%a%emittance * &
-                    ((lat%ele_(extract_at_ix_ele)%value(beam_energy$)* &
-                    (1+orb(extract_at_ix_ele)%vec(6))) / m_particle)
-        macro_init%y%norm_emit  = modes%b%emittance * &
-                    ((lat%ele_(extract_at_ix_ele)%value(beam_energy$)* &
-                    (1+orb(extract_at_ix_ele)%vec(6))) / m_particle)
+        f = lat%ele_(extract_at_ix_ele)%value(beam_energy$) * &
+                    (1+orb(extract_at_ix_ele)%vec(6)) / mass_of(lat%param%particle)
+        macro_init%x%norm_emit  = modes%a%emittance * f
+        macro_init%y%norm_emit  = modes%b%emittance * f
       endif
     endif
     !transfer extracted particle info into macro_init

@@ -2,15 +2,15 @@
 ! Subroutine tao_init_global_and_universes (init_file, data_file, var_file)
 !
 ! Subroutine to initialize the tao structures.
-! If init_file, data_file or var_file is not in the current directory then it will be searched
-! for in the directory:
+! If init_file, data_file or var_file is not in the current directory then it 
+! will be searched for in the directory:
 !   TAO_INIT_DIR
 !
 ! Input:
 !   init_file      -- Character(*): Tao initialization file.
 !   data_file      -- Character(*): Tao data initialization file.
 !   var_file       -- Character(*): Tao variable initialization file.
-
+!
 ! Output:
 !-
 
@@ -794,7 +794,15 @@ enddo
 
 u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)
 if (allocated(found_one)) deallocate (found_one)  
-  
+
+! do we need to do the radiation integrals?
+
+u%do_synch_rad_int_calc = .false.
+do j = lbound(u%data, 1), ubound(u%data, 1)
+  if (u%data(j)%data_type(1:10) == 'emittance:') &
+                                    u%do_synch_rad_int_calc = .true. 
+enddo
+
 end subroutine d1_data_stuffit
 
 !----------------------------------------------------------------
@@ -1378,7 +1386,8 @@ logical calc_emittance
   ! This is just to get things allocated
   call init_macro_distribution (u%macro_beam%beam, macro_init, u%design%ele_(0), .true.)
   if (u%coupling%coupled) &
-    call init_macro_distribution (u%coupling%injecting_macro_beam, macro_init, u%design%ele_(0), .true.)
+    call init_macro_distribution (u%coupling%injecting_macro_beam, &
+                                             macro_init, u%design%ele_(0), .true.)
 
   ! keep track of where macros are lost
   if (associated (u%macro_beam%ix_lost)) deallocate (u%macro_beam%ix_lost)
@@ -1399,29 +1408,33 @@ implicit none
 
 type (tao_universe_struct) u
 
-integer, automatic :: ele(0:u%design%n_ele_max)
-integer, automatic :: ix_next(0:u%design%n_ele_max)
+integer, automatic :: n_data(-1:u%design%n_ele_max)
+integer, automatic :: ix_next(-1:u%design%n_ele_max)
 
 integer j, k, ix_ele
 
-  ele(:) = 0
+  n_data(:) = 0
 
   ! allocate the ix_data array
   if (associated(u%ix_data)) deallocate(u%ix_data)
-  allocate(u%ix_data(0:u%design%n_ele_max))
+  allocate(u%ix_data(-1:u%design%n_ele_max))
 
   ! find number of datums at each element
   do j = 1, size(u%data)
     if (.not. u%data(j)%exists) cycle
-    ix_ele = max(u%data(j)%ix_ele, u%data(j)%ix_ele2)
-    ele(ix_ele) = ele(ix_ele) + 1
+    if (u%data(j)%ix_ele == -1) then
+      ix_ele = -1
+    else
+      ix_ele = max(u%data(j)%ix_ele, u%data(j)%ix_ele2)
+    endif
+    n_data(ix_ele) = n_data(ix_ele) + 1
   enddo
   
   ! allocate ix_ele array for each element
-  do j = 0, u%design%n_ele_max
+  do j = lbound(u%ix_data, 1), ubound(u%ix_data, 1)
     if (associated(u%ix_data(j)%ix_datum)) deallocate (u%ix_data(j)%ix_datum)
-    if (ele(j) == 0) cycle
-    allocate (u%ix_data(j)%ix_datum(ele(j)))
+    if (n_data(j) == 0) cycle
+    allocate (u%ix_data(j)%ix_datum(n_data(j)))
   enddo
 
   ! used for keeping track of current datum index in each ix_ele element
@@ -1430,7 +1443,11 @@ integer j, k, ix_ele
   ! setup ix_ele array for each element
   do j = 1, size(u%data)
     if (.not. u%data(j)%exists) cycle
-    ix_ele = max(u%data(j)%ix_ele, u%data(j)%ix_ele2)
+    if (u%data(j)%ix_ele == -1) then
+      ix_ele = -1
+    else
+      ix_ele = max(u%data(j)%ix_ele, u%data(j)%ix_ele2)
+    endif
     u%ix_data(ix_ele)%ix_datum(ix_next(ix_ele)) = j
     ix_next(ix_ele) = ix_next(ix_ele) + 1
   enddo

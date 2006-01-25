@@ -93,10 +93,13 @@ subroutine tao_load_data_array (u, ix_ele)
 
 implicit none
 
-type (tao_universe_struct) :: u
-type (tao_ix_data_struct), pointer :: ix_data
+type (tao_universe_struct), target :: u
+type (tao_data_struct), pointer :: datum
+
+integer, pointer :: ix_datum(:)
 integer uni, ix_ele
 integer i
+
 character(20) :: r_name = 'tao_load_data_array'
 
 !
@@ -106,13 +109,15 @@ if (ix_ele .eq. 0) call tao_data_coupling_init (u)
 ! find which datums to evaluate here
 if (.not. associated(u%ix_data(ix_ele)%ix_datum)) return
 
-ix_data => u%ix_data(ix_ele)
-do i = 1, size(ix_data%ix_datum)
-  call tao_evaluate_a_datum (u%data(ix_data%ix_datum(i)), u, u%model, &
-              u%model_orb, u%data(ix_data%ix_datum(i))%model_value)
-  u%data(ix_data%ix_datum(i))%s = u%model%ele_(ix_ele)%s
+ix_datum => u%ix_data(ix_ele)%ix_datum
+do i = 1, size(ix_datum)
+  datum => u%data(ix_datum(i))
+  call tao_evaluate_a_datum (datum, u, u%model, &
+                          u%model_orb, datum%model_value)
+  if (datum%ix_ele_merit > -1) datum%s = &
+                                    u%model%ele_(datum%ix_ele_merit)%s
 enddo
-    
+
 
 end subroutine tao_load_data_array
 
@@ -203,7 +208,8 @@ if (found) return
 
 ix1 = datum%ix_ele
 ix2 = datum%ix_ele2
-datum_value = 0  ! default
+datum_value = 0           ! default
+datum%ix_ele_merit = ix1  ! default
 
 data_type = datum%data_type
 if (data_type(1:2) == 'r:') data_type = 'r:'
@@ -510,7 +516,13 @@ case ('norm_emittance:z')
   else
     datum_value = 0.0
   endif
-  
+
+case ('emittance:a')
+  datum_value = u%modes%a%emittance  
+
+case ('emittance:b')
+  datum_value = u%modes%b%emittance
+
 case ('norm_emittance:a')
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%a%norm_emitt
