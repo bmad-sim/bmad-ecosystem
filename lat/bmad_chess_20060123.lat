@@ -251,7 +251,7 @@ raw_pretzing_1 : group = {H_SEP_08W/5.31309E-04, H_SEP_08E/-4.49176E-04, &
                    H_SEP_45W/-6.03564E-04, H_SEP_45E/6.035642E-04}, HKICK
 raw_pretzing_1[type]:="CSR PRETZING   1"
 
-raw_pretzing_13 : group = {H_SEP_08W/5.31309E-04, H_SEP_08E/-4.49176E-04}, HKICK
+raw_pretzing_13 : group = {H_SEP_08W/5.31309E-04, H_SEP_08E/4.49176E-04}, HKICK
 raw_pretzing_13[type]:="CSR PRETZING  13"
 
 XQUNE1 : group={ &
