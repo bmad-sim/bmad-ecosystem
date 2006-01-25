@@ -20,6 +20,7 @@
 module boris_mod
 
   use em_field_mod
+  use spin_mod
 
 contains
 
@@ -82,6 +83,7 @@ subroutine track1_adaptive_boris (start, ele, param, end, track, s_start, s_end)
   real(rp) :: ds, s, s_sav, rel_tol, abs_tol, sqrt_N
   real(rp), parameter :: err_5 = 0.0324, safety = 0.9
   real(rp) :: s1, s2, scale_orb, err_max, ds_temp, rel_tol_N, abs_tol_N
+  real(rp) :: scale_spin
 
   integer :: n_step
 
@@ -161,9 +163,14 @@ subroutine track1_adaptive_boris (start, ele, param, end, track, s_start, s_end)
       call track1_boris_partial (orb2, loc_ele, param, s+ds/2, ds/2, orb2)
       call track1_boris_partial (here, loc_ele, param, s, ds, orb1) 
       scale_orb = maxval((abs(orb1%vec) + abs(orb2%vec))) / 2
+      scale_spin = maxval((abs(orb1%spin) + abs(orb2%spin))) / 2.0
 
       err_max = maxval(abs(orb2%vec - orb1%vec) / &
                                        (scale_orb*rel_tol_N + abs_tol_N))
+      if (err_max .lt. maxval(abs(orb2%spin - orb1%spin) / &
+                                       (scale_spin*rel_tol_N + abs_tol_N))) &
+              err_max = maxval(abs(orb2%spin - orb1%spin) / &
+                                       (scale_spin*rel_tol_N + abs_tol_N))
       if (err_max <= 1) exit
 
       ds_temp = safety * ds / sqrt(err_max)
@@ -333,12 +340,15 @@ end subroutine
 !
 ! Modules needed:
 !   use bmad
+!   use spin_mod
+!   use em_field_mod
 !
 ! Input:
 !   start -- Coord_struct: Starting coordinates.
 !   ele   -- Ele_struct: Element that we are tracking through.
 !   param -- Param_struct: 
 !     %particle    -- Particle type [positron$, electron$, etc.]
+!     %spin_tracking_on -- If True then also track the spin
 !   s     -- Real(rp): Starting point relative to element beginning.
 !   ds    -- Real(rp): step size
 !
@@ -358,6 +368,9 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
   real(rp), intent(in) :: s, ds
   real(rp) :: f, p_z, d2, alpha, dxv, dyv, ds2_f, charge, U_tot, p_tot
   real(rp) :: r(3,3), w(3), ex, ey, ex2, ey2, exy, bz, bz2, mass, old_beta, beta
+  real(rp) :: Omega(3)
+
+  complex(rp) :: dspin_dz(2), quaternion(2,2)
 
 !
 
@@ -387,6 +400,19 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
     call err_exit
   endif
 
+! 2.5) Push the spin 1/2 step
+       ! This uses the momentum at the beginning 
+       !  and the fields at (ds/2)
+  if (bmad_com%spin_tracking_on) then
+    ! this uses a modified Omega' = -Omega/v_z
+    Omega = spin_omega_at (field, start, ele, param, s+ds/2)
+    quaternion = (i_imaginary/2.0_rp)*&
+        (pauli(1)%sigma*Omega(1) + pauli(2)%sigma*Omega(2) + pauli(3)%sigma*Omega(3))
+!   quaternion = normalized_quaternion (quaternion)
+    dspin_dz = matmul(quaternion, start%spin)
+    end%spin = start%spin + dspin_dz * (ds/2.0_rp)
+  endif
+  
 ! 3) Push the momenta a 1/2 step using only the "b" term.
 
   f = ds * charge * c_light / (2 * ele%value(p0c$))
@@ -447,6 +473,19 @@ subroutine track1_boris_partial (start, ele, param, s, ds, end)
   end%vec(5) = end%vec(5) + ds2_f * (p_z - p_tot) 
   end%vec(6) = p_tot - 1
 
+! 6.5) Push the spin 1/2 step
+       ! This uses the momentum at the end 
+       !  and the fields at (ds/2)
+  if (bmad_com%spin_tracking_on) then
+    ! this uses a modified Omega' = -Omega/v_z
+    Omega = spin_omega_at (field, end, ele, param, s+ds)
+    quaternion = (i_imaginary/2.0_rp)*&
+        (pauli(1)%sigma*Omega(1) + pauli(2)%sigma*Omega(2) + pauli(3)%sigma*Omega(3))
+!   quaternion = normalized_quaternion (quaternion)
+    dspin_dz = matmul(quaternion, end%spin)
+    end%spin = end%spin + dspin_dz * (ds/2.0_rp)
+  endif
+  
 end subroutine
 
 !-------------------------------------------------------------------------

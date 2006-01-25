@@ -152,6 +152,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
   real(rp) :: x, y, s, s_pos, f, dk(3,3)
   real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
   real(rp) :: cos_ang, sin_ang, s_rel, sgn_x, dc_x, dc_y
+  real(rp) phase, gradient, dEz_dz, theta, phi, r, E_r, B_phi
 
   integer i
 
@@ -289,6 +290,21 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
     endif
 
 !------------------------------------------
+! Sextupole 
+
+  case (sextupole$)
+
+    f = ele%value(p0c$) / c_light
+    field%b(1) = x * y * ele%value(k2$) * f
+    field%b(2) = 1.0
+    field%b(2) = (1/2.0) * ele%value(k2$) * f * (x**2 - y**2)
+
+    if (df_calc) then
+      print *, 'ERROR IN EM_FIELD: dFIELD NOT YET IMPLEMENTED FOR SEXTUPOLE!'
+      call err_exit
+    endif
+
+!------------------------------------------
 ! Sol_quad
 
   case (sol_quad$)
@@ -313,6 +329,64 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
 
     if (df_calc) then
       print *, 'ERROR IN EM_FIELD: dFIELD NOT YET IMPLEMENTED FOR SOLENOID!'
+      call err_exit
+    endif
+
+!------------------------------------------
+! Lcavity
+!
+! This is taken from the gradient as calculated in
+!       J. Rosenzweig and L. Serafini
+!       Phys Rev E, Vol. 49, p. 1599, (1994)
+!
+! Right now only works at relativistic energies
+
+   case (lcavity$)
+
+     !***
+     ! This is taken from track1_bmad
+     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
+                        here%vec(5) * ele%value(rf_frequency$) / c_light)
+     gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos(phase)
+     if (.not. ele%is_on) gradient = 0
+     
+     if (bmad_com%sr_wakes_on) then
+       if (bmad_com%grad_loss_sr_wake /= 0) then  
+         ! use grad_loss_sr_wake and ignore e_loss
+         gradient = gradient - bmad_com%grad_loss_sr_wake
+       else
+         gradient = gradient - ele%value(e_loss$) * param%n_part * &
+                                                     e_charge / ele%value(l$)
+       endif
+     endif
+     !***
+
+     gradient =  charge_of (param%particle) * gradient
+     ! This gives the averave gradient, I need the maximum gradient  
+     gradient = (pi/2.0) * gradient
+                                                                     
+     ! only use first pi phase of sine wave                                
+     s = modulo (s, c_light/(2.0*ele%value(rf_frequency$)))          
+                                                                     
+                                                                     
+     f = s * twopi * ele%value(rf_frequency$) / c_light              
+     dEz_dz = (f/s) * gradient * cos (f + phase)                     
+     theta = atan(y/x)                                               
+     r = sqrt(x**2 + y**2)                                           
+     E_r =  - (r/2.0) * dEz_dz                                       
+     B_phi = (r/(2.0*c_light)) * dEz_dz                              
+                                                                     
+                                                                     
+     field%E(1) = E_r * cos (theta)                                  
+     field%E(2) = E_r * sin (theta)
+     field%E(3) = gradient * sin (f + phase)
+    
+     phi = pi - theta
+     field%B(1) =   B_phi * cos (phi)
+     field%B(2) = - B_phi * sin (phi)
+
+    if (df_calc) then
+      print *, 'ERROR IN EM_FIELD: dFIELD NOT YET IMPLEMENTED FOR LCAVITY!'
       call err_exit
     endif
 

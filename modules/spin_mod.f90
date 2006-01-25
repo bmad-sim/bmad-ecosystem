@@ -41,6 +41,9 @@ type (spin_map_struct), save, target :: maps(n_key)
 
 private initialize_pauli_vector
 
+real(rp), parameter :: g_factor_of(-2:2) = (/ g_factor_proton, g_factor_electron, 0.0_rp, &
+                                            g_factor_electron, g_factor_proton /)
+
 contains
 
 !--------------------------------------------------------------------------
@@ -59,6 +62,8 @@ contains
 subroutine initialize_pauli_vector ()
 
 implicit none
+ 
+  if (.not. init_pauli_vector) return
 
   pauli(1)%sigma(1,1) = ( 0.0,  0.0)
   pauli(1)%sigma(2,1) = ( 1.0,  0.0)
@@ -296,7 +301,7 @@ complex(rp) complex(3), complex2(2)
 
 integer i
 
-  if (init_pauli_vector) call initialize_pauli_vector
+  call initialize_pauli_vector
 
 ! complex2 = conjg(coord%spin)
 ! 
@@ -419,7 +424,7 @@ real(rp) a(4)
 
 complex(rp) a_quat(2,2) ! The quaternion from the Euler parameters
 
-  if (init_pauli_vector) call initialize_pauli_vector
+  call initialize_pauli_vector
 
   a_quat(1,:) = (/ (1.0d0, 0.0d0), (0.0d0, 0.0d0) /) 
   a_quat(2,:) = (/ (0.0d0, 0.0d0), (1.0d0, 0.0d0) /)
@@ -478,13 +483,12 @@ real(rp) g_factor, m_particle
 
 integer key
 
-  if (param%particle .eq. electron$ .or. param%particle .eq. positron$) then
-    g_factor = g_factor_electron
-    m_particle = m_electron
-  elseif (param%particle .eq. proton$ .or. param%particle .eq. antiproton$) then
-    g_factor = g_factor_proton
-    m_particle = m_proton
-  endif
+! Boris tracking does it's own spin tracking
+  if (ele%tracking_method .eq. boris$ .or. &
+      ele%tracking_method .eq. adaptive_boris$) return
+
+  m_particle = mass_of(param%particle)
+  g_factor = g_factor_of(param%particle)
 
   end%spin = start%spin     ! transfer start to end
   
@@ -758,5 +762,161 @@ end subroutine compute_quaternion
 
 end subroutine track1_spin
 
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function spin_omega_at (field, coord, ele, param), result (omega)
+!
+! Return the modified T-BMT spin omega vector.
+!
+! Omega = - Omega_TBMT / v_z
+!
+! Modules needed:
+!   use bmad
+!   use em_field_mod
+!
+! Input :
+!   field      -- em_field_struct: E and B fields
+!   coord      -- coord_struct: particle momentum
+!   ele        -- ele_struct: element evauluated in
+!      %value(beam_energy$) -- reaL(rp): needed to find momentum
+!   param      -- Param_struct: Beam parameters.
+!     %particle     -- Type of particle used
+!   omega(3)   -- Real(rp): Omega in cartesian coordinates
+!   s          -- Real(rp): evaluate at position s in element
+!-
+
+function spin_omega_at (field, coord, ele, param, s) result (omega)
+
+implicit none
+
+type (em_field_struct) :: field
+type (coord_struct) :: coord
+type (ele_struct) :: ele
+type (param_struct) :: param
+
+real(rp) omega(3),  p_vec(3)
+real(rp) g_factor, charge, m_particle, p_z, gamma0
+real(rp) s, e_particle, pc, phase, cos_phi, gradient
+
+  call initialize_pauli_vector
+
+  ! FIX_ME!!!
+  ! get e_particle and pc at position in element
+  if (ele%key .eq. lcavity$) then
+    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
+                        coord%vec(5) * ele%value(rf_frequency$) / c_light)
+    cos_phi = cos(phase)
+    gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi 
+    if (.not. ele%is_on) gradient = 0
+    if (bmad_com%sr_wakes_on) then
+      if (bmad_com%grad_loss_sr_wake /= 0) then  
+        ! use grad_loss_sr_wake and ignore e_loss
+        gradient = gradient - bmad_com%grad_loss_sr_wake
+      else
+        gradient = gradient - ele%value(e_loss$) * param%n_part * &
+                                                    e_charge / ele%value(l$)
+      endif
+    endif
+    pc = ele%value(p0c_start$) * (1 + coord%vec(6))
+    call convert_pc_to (pc, param%particle, E_tot = e_particle)
+    e_particle = e_particle + gradient*s
+  else
+    pc = ele%value(p0c$) * (1 + coord%vec(6))
+    call convert_pc_to (pc, param%particle, E_tot = e_particle)
+  endif
+  
+  ! want everything in units of Ev
+  g_factor = g_factor_of (param%particle)
+  charge = charge_of(param%particle)
+  m_particle = mass_of(param%particle)
+  gamma0 = e_particle / m_particle
+  p_z = (ele%value(p0c$)/c_light)*&
+                     sqrt((1 + coord%vec(6))**2 - coord%vec(2)**2 - coord%vec(4)**2)
+  p_vec(1:2) = (ele%value(p0c$)/c_light)*(/ coord%vec(2), coord%vec(4) /)
+  p_vec(3) = p_z
+  
+  omega = (1 + g_factor*gamma0) * field%B
+
+  omega = omega - ( g_factor*dot_product(p_vec,field%B)   /&
+                    ((gamma0+1)*(m_particle**2/c_light**2))  )*p_vec
+  
+  omega = omega - (1/m_particle) * (g_factor + 1/(1+gamma0))*&
+                     cross_product(p_vec,field%E)
+
+  omega = (charge/p_z)*omega
+                    
+end function spin_omega_at
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function cross_product (vec1, vec2)
+!
+! Returns the cross product of vec1 x vec2
+!
+! Modules needed:
+!   use bmad
+!
+! Input :
+!   vec1(3)      -- Real(rp)
+!   vec2(3)      -- Real(rp)
+!-
+
+function cross_product (vec1, vec2) result (vec)
+
+implicit none
+
+real(rp) :: vec1(3), vec2(3), vec(3)
+
+  vec(1) = vec1(2)*vec2(3) - vec1(3)*vec2(2)
+  vec(2) = vec1(3)*vec2(1) - vec1(1)*vec2(3)
+  vec(3) = vec1(1)*vec2(2) - vec1(2)*vec2(1)
+
+end function cross_product  
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function normalized_quaternion (quat)
+!
+! Returns the normalized quaternion (preserves the spin unitarity)
+!
+! Modules needed:
+!   use bmad
+!
+! Input :
+!   quat(2,2)       -- complex(rp): the quaternion to normalize
+!-
+
+function normalized_quaternion (quat) result (quat_norm)
+
+implicit none
+
+complex(rp) quat(2,2), q11, q21, q12, q22, quat_norm(2,2)
+
+real(rp) a(0:4) ! Euler four-vector
+
+  q11 = quat(1,1)
+  q21 = quat(2,1)
+  q21 = quat(1,2)
+  q22 = quat(2,2)
+
+  a(0) = (0.0, 0.0)
+  a(1) = (i_imaginary/2) *  (q12 + q21)
+  a(2) = (1/2) * (q21 - q12)
+  a(3) = (i_imaginary/2) * (q11 - q22)
+
+  a(0) = sqrt(1.0 - (a(1)**2 + a(2)**2 + a(3)**2))
+
+  quat_norm(1,1) = a(0) - i_imaginary * a(3)
+  quat_norm(2,1) = - i_imaginary * a(1) + a(2)
+  quat_norm(1,2) = - i_imaginary * a(1) - a(2)
+  quat_norm(2,2) = a(0) + i_imaginary * a(3)
+
+end function normalized_quaternion
 
 end module spin_mod

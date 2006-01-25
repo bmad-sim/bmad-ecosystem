@@ -496,6 +496,19 @@ damping or excitation breaks this symmetry.
 \label{s:part_track}
 \index{Tracking!particle distributions}
 
-Initializing a distribution of particles to conform to some initial
-set of Twiss parameters and emittances can be done using the routine
-\vnr{init_beam_distribution}.
+Initializing a distribution of particles to conform to some initial set of
+Twiss parameters and emittances can be done using the routine
+\vnr{init_beam_distribution}. Tracking is then performed similarily to
+macroparticle trakcing.
+
+%----------------------------------------------------------------
+\section{Spin Tracking}
+\label{s:spin_track}
+\index{Tracking!spin}
+
+Spin tracking has been implemented for \vn{bmad_standard}, \vn{boris} and
+\vn{adaptive_boris} tracking methods. To turn spin tracking on use the
+\vn{bmad_com%spin_tracking_on} flag. Then, after properly initializing the spin
+in the \vn{coord_struct}, calls to \vn{track1} will track both the
+particle orbit and the spin.
+
