@@ -453,6 +453,7 @@ type tao_common_struct
   logical opti_at_limit    ! Variable at limit?
   character(40) cmd_arg(9) ! Command file arguments.
   character(100) cmd
+  character(16) :: init_name = "Tao"  !label for initialization
   integer :: n_alias = 0
   integer :: nest_level = 0 ! for nested command files
               ! unit numbers for a command files. 0 -> no command file.

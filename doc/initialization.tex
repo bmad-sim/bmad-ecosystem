@@ -64,15 +64,15 @@ block with the following syntax:
     single_mode_file  = "<file_name>"  ! Default = this file.
     startup_file      = "<file_name>"  ! Default = "tao.startup"
     n_universes       = <integer>            ! Number of universes. Default = 1.
-    startup_single_mode = Logical            ! Default is False.
+    init_name      = "<init_name>" !Default = 'Tao"
   /
 \end{example}
-\vn{n_universes} is the number of universes to be created.
-\vn{startup_single_mode} determines if \vn{tao} starts in single
-mode. The other parameters specify which files to find the other
-initialization namelists. The following sections describe each of
-these initialization namelists and their locations are listed in table
-\ref{t:init_files}.
+\vn{n_universes} is the number of universes to be created.  \vn{init_name} is
+for naming the initialization. This is useful to distinguish between multiple
+initialization files with custom versions of \tao.  The other parameters specify
+which files to find the other initialization namelists. The following sections
+describe each of these initialization namelists and their locations are listed
+in table \ref{t:init_files}.
 
 \index{tao_design_lattice}
 \index{tao_params}

@@ -26,12 +26,14 @@ subroutine tao_init (init_file)
   character(200) lattice_file, plot_file, data_file, var_file, file_name
   character(200) single_mode_file, startup_file
   character(16) :: r_name = 'tao_init'
+  character(16) init_name
   integer i, j, n_universes, iu, ix
 
   logical err
 
   namelist / tao_start / lattice_file, startup_file, &
-               data_file, var_file, plot_file, single_mode_file, n_universes
+               data_file, var_file, plot_file, single_mode_file, &
+               n_universes, init_name
 
 ! Find namelist files
 
@@ -41,10 +43,13 @@ subroutine tao_init (init_file)
   var_file         = init_file      ! set default
   single_mode_file = init_file      ! set default
   startup_file     = 'tao.startup'  ! set default
-  n_universes = 1                   ! set default
+  n_universes      = 1              ! set default
+  init_name        = "Tao"          ! set default
   call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
   read (iu, nml = tao_start)
   close (iu)
+
+  tao_com%init_name = init_name
 
   if (associated(s%u)) call deallocate_everything ()
   allocate (s%u(n_universes))
