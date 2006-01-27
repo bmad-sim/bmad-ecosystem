@@ -65,11 +65,11 @@ subroutine twiss_and_track_at_s (ring, s, ele, orb, orb_at_s)
 
     ! Test if we have the correct element. The factor of 1e-5 is for roundoff.
 
-    if (s_use - ring%ele_(i)%s < 1e-5) cycle
+    if (s_use - ring%ele_(i)%s > 1e-5) cycle
 
     ! If close enough to edge of element just use element info.
 
-    if (s_use - ring%ele_(i)%s < -1e-5) then
+    if (s_use - ring%ele_(i)%s > -1e-5) then
       if (present(ele)) ele = ring%ele_(i)
       if (present(orb_at_s)) orb_at_s = orb(i)
       return
