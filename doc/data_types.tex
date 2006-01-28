@@ -4,13 +4,14 @@
 %------------------------------------------------------------------------
 \section{How Tao Handles Data}\index{Data}
 
-As explained in chapter~\ref{c:overview}, \tao has special structures to hold
-data to be analyzed. Any lattice or beam parameters that are needed to be
-analyzed or plotted must have a data type defined for it. In general, a data
-type can be any type of parameter that is not necessarily measurable in a real
-world machine. For example, there is an orbit data type and a BPM data type. The
-orbit data is the real x,y,z position of a particle in the lab frame whereas the BPM
-data is the x and y reading on a simulated beam position monitor that includes
+As explained in chapter~\ref{c:overview}, \tao has special structures
+to hold data to be analyzed. Any lattice or beam parameters that are
+needed to be analyzed or plotted must have a data type defined for
+it. In general, a data type can be any type of parameter that is not
+necessarily measurable in a real world machine. For example, there is
+an orbit data type and a BPM data type. The orbit data is the real
+x,y,z position of a particle in the lab frame whereas the BPM data is
+the x and y reading on a simulated beam position monitor that includes
 any offsets, tilts and noise.
 
 \tao includes many different data types already predefined and
@@ -23,25 +24,28 @@ these can be classified into three main catagories:
   \item \textbf{Bunch Properties} \Newline
     For example bunch sigmas, emittance and beam twiss parameters.
 \end{enumerate}
-For a given data type the method used to calculate the datum can vary depending
-on the tracking type. For {\it single} particle tracking all data is found from
-the lattice parameters except for the orbit data. For \textit{particle bunch} or
-\textit{macroparticle bunch} tracking some of the datums  are found from the
-particle distribution using the appropriate \bmad routines. For example, with
-single particle tracking the beta function is found from the lattice transport
-matrix, however, with particle or macroparticle tracking the beta function is
-found from the particle distribution using the formula
+For a given data type the method used to calculate the datum can vary
+depending on the tracking type. For {\it single} particle tracking all
+data is found from the lattice parameters except for the orbit
+data. For \textit{particle bunch} or \textit{macroparticle bunch}
+tracking some of the datums are found from the particle distribution
+using the appropriate \bmad routines. For example, with single
+particle tracking the beta function is found from the lattice
+transport matrix, however, with particle or macroparticle tracking the
+beta function is found from the particle distribution using the
+formula
 \begin{equation}
   \beta = \frac{<x^{2}>}{\sqrt{<x^{2}> <x'^{2}> - <x x'>^{2}}}.
 \end{equation}
-The next section will describe how each predefined data type is calculated.
-Custom data types need not fall into one of the above catagories and can be any
-real number as calculated in the appropriate hook routine.
+The next section will describe how each predefined data type is
+calculated.  Custom data types need not fall into one of the above
+catagories and can be any real number as calculated in the appropriate
+ook routine.
 
 Also associated with a datum are two lattice elements called
-\vn{ele} and \vn{ele2}. The \vn{data_types} are divided into two
-categories: Those that are \vn{relative} and those that are not.  A
-\vn{relative} \vn{data_type} means that the \vn{model} value for that
+\vni{ele} and \vni{ele2}. The \vni{data_types} are divided into two
+categories: Those that are \vni{relative} and those that are not.  A
+\vni{relative} \vni{data_type} means that the \vni{model} value for that
 datum is determined by a difference between elements. For example, for
 \vn{phase:x} the \vn{model} value is
 \begin{example}
@@ -51,12 +55,13 @@ If there is no \vn{ele2} associated with a datum then the model value is
 \begin{example}
   model_value = \(\phi\sb{x}\)(ele) - \(\phi\sb{x}\)(0)
 \end{example}
-where $\phi_x(0)$ is the phase at the 0\Th element (which is always at 0 radians).
+where $\phi_x(0)$ is the phase at the 0\Th element (which is always at
+0 radians).
 \index{Data!Relative}
 
-For datums with \vn{non-relative} \vn{data_types} if there is also an
-associated \vn{ele2} element then the \vn{model} value is dependent
-upon the \vn{merit_type}. For example, with a \vn{beta:x} \vn{data_type} the
+For datums with \vni{non-relative} \vn{data_types} if there is also an
+associated \vni{ele2} element then the \vn{model} value is dependent
+upon the \vni{merit_type}. For example, with a \vn{beta:x} \vn{data_type} the
 model value is determined by Table~\ref{t:eval2} where \vn{i} goes from the
 \vn{ele} index to the \vn{ele2} index.
 \begin{table}[ht]
@@ -64,11 +69,11 @@ model value is determined by Table~\ref{t:eval2} where \vn{i} goes from the
 {\tt
 \begin{tabular}{|l|l|l|} \hline
   {\it Merit\_Type}       & {\it Model Value} \\ \hline 
-  \vn{min}     & $\min \beta_x(i)$ \\ \hline 
-  \vn{max}     & $\min \beta_x(i)$ \\ \hline 
-  \vn{abs_min} & $\min |\beta_x(i)|$ \\ \hline 
-  \vn{abs_max} & $\min |\beta_x(i)|$ \\ \hline 
-  \vn{target}  & {\it Error}   \\ \hline 
+  \vni{min}     & $\min \beta_x(i)$ \\ \hline 
+  \vni{max}     & $\min \beta_x(i)$ \\ \hline 
+  \vni{abs_min} & $\min |\beta_x(i)|$ \\ \hline 
+  \vni{abs_max} & $\min |\beta_x(i)|$ \\ \hline 
+  \vni{target}  & {\it Error}   \\ \hline 
 \end{tabular}
 }
 \caption{\vn{Model} evaluation.}
@@ -143,6 +148,11 @@ means this data type is not available for this tracking type.
     i5a\_e6, i5b\_e6      & Normalized I5 radiation integral  &          \\ \hline
     s\_position           & longitudinal length constraint    & relative \\ \hline 
     beam\_energy          & Beam energy                       &          \\ \hline
+    \begin{tabular}{@{}l}
+      emittance:a  \\
+      emittance:b  \\
+    \end{tabular}
+                          & Emittance for a ring              &          \\ \hline
     \begin{tabular}{@{}l}  
       norm\_emittance:x \\ 
       norm\_emittance:y \\
@@ -174,42 +184,44 @@ means this data type is not available for this tracking type.
 \vfill \break
 {\vfill}
 
+\index{i5a_e6}\index{i5b_e6}\index{dpx_dx}\index{dpy_dy}
 \index{Element!table of data calculation methods}
 \begin{table}[ht] 
 \centering {
 \begin{tabular}{|l|c|c|c|} \hline
 \rule{0pt}{80pt} 
-\vn{Data_Type}       &
-\begin{sideways}\vn{Single}\end{sideways} &
-\begin{sideways}\vn{Particle Beam}\end{sideways} &
-\begin{sideways}\vn{Macroparticle Beam}\end{sideways} 
+\vni{Data_Type}       &
+\begin{sideways}\vni{Single}\end{sideways} &
+\begin{sideways}\vni{Particle Beam}\end{sideways} &
+\begin{sideways}\vni{Macroparticle Beam}\end{sideways} 
 \\ \hline
 %   data type             & Single & Beam & Macroparticle
-    \vn{beta}             &   L    &   B  &   B   \\ \hline
-    \vn{alpha}            &   L    &   B  &   B   \\ \hline
-    \vn{eta}              &   L    &   B  &   B   \\ \hline
-    \vn{etap}             &   L    &   B  &   B   \\ \hline
-    \vn{phase}            &   L    &   L  &   L   \\ \hline
-    \vn{orbit}            &   B    &   B  &   B   \\ \hline
-    \vn{bpm}              &   B    &   B  &   B   \\ \hline
-    \vn{spin}             &   B    &   B  &   X   \\ \hline
-    \vn{cbar}             &   L    &   L  &   L   \\ \hline
-    \vn{coupling}         &   L    &   L  &   L   \\ \hline
-    \vn{floor}            &   L    &   L  &   L   \\ \hline
-    \vn{r}                &   L    &   L  &   L   \\ \hline
-    \vn{t}                &   L    &   L  &   L   \\ \hline
-    \vn{tt}               &   L    &   L  &   L   \\ \hline
-    \vn{i5a_e6, i5b_e6}   &   L    &   L  &   L   \\ \hline      
-    \vn{s_position}       &   L    &   L  &   L   \\ \hline           
-    \vn{beam_energy}      &   L    &   L  &   L   \\ \hline  
-    \vn{norm_emittance}   &   L\footnote{Uses the Courant-Snyder Invariant}    &   B  &   B   \\ \hline
-    \vn{bunch_sigma}      &   X    &   B  &   B   \\ \hline
-    \vn{dpx_dx,dpy_dy,...}&   X    &   B  &   B   \\ \hline
+    \vni{beta}             &   L    &   B  &   B   \\ \hline
+    \vni{alpha}            &   L    &   B  &   B   \\ \hline
+    \vni{eta}              &   L    &   B  &   B   \\ \hline
+    \vni{etap}             &   L    &   B  &   B   \\ \hline
+    \vni{phase}            &   L    &   L  &   L   \\ \hline
+    \vni{orbit}            &   B    &   B  &   B   \\ \hline
+    \vni{bpm}              &   B    &   B  &   B   \\ \hline
+    \vni{spin}             &   B    &   B  &   X   \\ \hline
+    \vni{cbar}             &   L    &   L  &   L   \\ \hline
+    \vni{coupling}         &   L    &   L  &   L   \\ \hline
+    \vni{floor}            &   L    &   L  &   L   \\ \hline
+    \vni{r}                &   L    &   L  &   L   \\ \hline
+    \vni{t}                &   L    &   L  &   L   \\ \hline
+    \vni{tt}               &   L    &   L  &   L   \\ \hline
+    \vn{i5a_e6, i5b_e6}    &   L    &   L  &   L   \\ \hline      
+    \vni{s_position}       &   L    &   L  &   L   \\ \hline           
+    \vni{beam_energy}      &   L    &   L  &   L   \\ \hline  
+    \vni{norm_emittance}   &   L\footnote{Uses the Courant-Snyder Invariant} 
+                                    &   B  &   B   \\ \hline
+    \vni{bunch_sigma}      &   X    &   B  &   B   \\ \hline
+    \vn{dpx_dx,dpy_dy,...} &   X    &   B  &   B   \\ \hline
 \end{tabular}
 }
-\caption{Data\_type Calculation method. L means this data type uses lattice parameters, B
-means this data type uses beam parameters. X mean this data is unavailable for
-this tracking type.}
+\caption{Data\_type Calculation method. L means this data type uses 
+lattice parameters, B means this data type uses beam parameters. 
+X mean this data is unavailable for this tracking type.}
 \label{t:data_calc_method}
 \end{table}
 

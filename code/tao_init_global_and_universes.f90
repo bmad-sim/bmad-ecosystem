@@ -691,7 +691,14 @@ elseif (index(data(0)%ele_name, 'SAME:') /= 0) then
 else
   u%data(n1:n2)%ele_name  = data(ix1:ix2)%ele_name
   u%data(n1:n2)%ele2_name = data(ix1:ix2)%ele2_name
+  u%data(n1:n2)%data_type  = data(ix1:ix2)%data_type
+
   do j = n1, n2
+    if (u%data(j)%data_type(1:10) == 'emittance:') then
+      u%data(j)%exists = .true.
+      cycle
+    endif
+
     if (u%data(j)%ele_name == ' ') cycle
     call str_upcase (u%data(j)%ele_name, u%data(j)%ele_name)
     call element_locator (u%data(j)%ele_name, u%design, ix)
@@ -713,8 +720,8 @@ else
     endif
     u%data(j)%ix_ele2 = ix
   enddo
+
   u%data(n1:n2)%meas_value = data(ix1:ix2)%meas_value
-  u%data(n1:n2)%data_type  = data(ix1:ix2)%data_type
   u%data(n1:n2)%merit_type = data(ix1:ix2)%merit_type
   u%data(n1:n2)%good_user  = data(ix1:ix2)%good_user
   u%data(n1:n2)%weight     = data(ix1:ix2)%weight
