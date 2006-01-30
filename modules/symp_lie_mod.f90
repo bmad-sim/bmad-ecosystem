@@ -2,13 +2,27 @@
 
 module symp_lie_mod
 
-  use bmad_struct
-  use bmad_interface
-  use make_mat6_mod
-  use em_field_mod   
+use bmad_struct
+use bmad_interface
+use make_mat6_mod
+use em_field_mod   
+
+type save_coef_struct
+  real(rp) coef, dx_coef, dy_coef
+end type
+
+type save_computations_struct
+  type (save_coef_struct) a_y, dint_a_y_dx, da_z_dx, da_z_dy
+  real(rp) c_x, s_x, c_y, s_y, c_z, s_z, s_x_kx, s_y_ky, c1_ky2
+end type
+
+private track_it, save_coef_struct, save_computations_struct
 
 contains
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 !+
 ! Subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track)
 !
@@ -38,29 +52,10 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track)
 
   implicit none
 
-  type save_coef_struct
-    real(rp) coef, dx_coef, dy_coef
-  end type
-
-  type save_computations_struct
-    type (save_coef_struct) a_y, dint_a_y_dx, da_z_dx, da_z_dy
-    real(rp) c_x, s_x, c_y, s_y, c_z, s_z, s_x_kx, s_y_ky, c1_ky2
-  end type
-
-  type (save_computations_struct), allocatable, save :: tm(:)
-
   type (ele_struct), target :: ele
   type (coord_struct) :: start, end, start0
   type (param_struct)  param
-  type (wig_term_struct), pointer :: wt
   type (track_struct) track
-
-  real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6)
-  real(rp) g_x, g_y, k1_norm, k1_skew, x_q, y_q, ks_tot_2
-  real(rp), pointer :: mat6(:,:)
-  real(rp), parameter :: z0 = 0, z1 = 1
-
-  integer i, j, n_step
 
   logical calc_mat6
 
@@ -69,20 +64,37 @@ subroutine symp_lie_bmad (ele, param, start, end, calc_mat6, track)
   if (ele%key == wiggler$ .and. any(start%vec /= 0) .and. &
                                       ele%value(z_patch$) == 0) then
     start0%vec = 0
-    call track_it (start0, real_track = .false., local_calc_mat6 = .false.)
+    call track_it (ele, param, start0, end, .false., track, .false.)
   endif
 
 ! now do the real tracking
 
-  call track_it (start, real_track = .true., local_calc_mat6 = calc_mat6)
+  call track_it (ele, param, start, end, calc_mat6, track, .true.)
+
+end subroutine
 
 !----------------------------------------------------------------------------
-contains
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 
-subroutine track_it (start, real_track, local_calc_mat6)
+subroutine track_it (ele, param, start, end, calc_mat6, track, real_track)
 
-  type (coord_struct) start
-  logical real_track, local_calc_mat6, err
+  type (save_computations_struct), allocatable, save :: tm(:)
+
+  type (ele_struct), target :: ele
+  type (coord_struct) :: start, end
+  type (param_struct)  param
+  type (wig_term_struct), pointer :: wt
+  type (track_struct) track
+
+  real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6), x_pitch, y_pitch
+  real(rp) g_x, g_y, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds
+  real(rp), pointer :: mat6(:,:)
+  real(rp), parameter :: z0 = 0, z1 = 1
+
+  integer i, j, n_step
+
+  logical calc_mat6, real_track, err
 
 ! init
 
@@ -93,9 +105,12 @@ subroutine track_it (start, real_track, local_calc_mat6)
   end = start
   err = .false.
 
+  x_pitch = ele%value(x_pitch_tot$)
+  y_pitch = ele%value(y_pitch_tot$)
+
 ! element offset 
 
-  if (local_calc_mat6) then
+  if (calc_mat6) then
     mat6 => ele%mat6
     call drift_mat6_calc (mat6, ele%value(s_offset_tot$), end%vec)
   endif
@@ -112,14 +127,8 @@ subroutine track_it (start, real_track, local_calc_mat6)
 
   if (track%save_track) then
     call allocate_saved_orbit (track, n_step)
-    track%pt(0)%s = 0
-    track%pt(0)%orb = start
     track%n_pt = n_step
-    if (local_calc_mat6) then
-      track%pt(0)%mat6 = mat6
-      track%pt(0)%vec0(1:5) = end%vec(1:5) - matmul (mat6(1:5,:), start%vec)
-      track%pt(0)%vec0(6) = 0
-    endif
+    call save_this_track_pt (0, 0.0_rp)
   endif
 
 !------------------------------------------------------------------
@@ -139,7 +148,7 @@ subroutine track_it (start, real_track, local_calc_mat6)
       allocate (tm(size(ele%wig_term)))
     endif
 
-    call update_wig_coefs (local_calc_mat6)
+    call update_wig_coefs (calc_mat6)
     call update_wig_y_terms (err); if (err) return
 
 ! loop over all steps
@@ -152,50 +161,42 @@ subroutine track_it (start, real_track, local_calc_mat6)
 
 ! Drift_1 = P_x^2 / (2 * (1 + dE))
 
-      call apply_p_x (local_calc_mat6)
+      call apply_p_x (calc_mat6)
 
 ! Drift_2 = (P_y - a_y)**2 / (2 * (1 + dE))
 
       call update_wig_x_s_terms (err); if (err) return
-      call apply_wig_exp_int_ay (-1, local_calc_mat6)
-      call apply_p_y (local_calc_mat6)
+      call apply_wig_exp_int_ay (-1, calc_mat6)
+      call apply_p_y (calc_mat6)
       call update_wig_y_terms (err); if (err) return
-      call apply_wig_exp_int_ay (+1, local_calc_mat6)
+      call apply_wig_exp_int_ay (+1, calc_mat6)
 
 ! Kick = a_z
 
       end%vec(2) = end%vec(2) + ds * da_z_dx()
       end%vec(4) = end%vec(4) + ds * da_z_dy()
 
-      if (local_calc_mat6) then
+      if (calc_mat6) then
         mat6(2,1:6) = mat6(2,1:6) + ds * da_z_dx__dx() * mat6(1,1:6) + ds * da_z_dx__dy() * mat6(3,1:6)
         mat6(4,1:6) = mat6(4,1:6) + ds * da_z_dy__dx() * mat6(1,1:6) + ds * da_z_dy__dy() * mat6(3,1:6)
       endif 
 
 ! Drift_2
 
-      call apply_wig_exp_int_ay (-1, local_calc_mat6)
-      call apply_p_y (local_calc_mat6)
+      call apply_wig_exp_int_ay (-1, calc_mat6)
+      call apply_p_y (calc_mat6)
       call update_wig_y_terms (err); if (err) return
-      call apply_wig_exp_int_ay (+1, local_calc_mat6)
+      call apply_wig_exp_int_ay (+1, calc_mat6)
 
 ! Drift_1
 
-      call apply_p_x (local_calc_mat6)
+      call apply_p_x (calc_mat6)
 
 ! s half step
 
       s = s + ds2
 
-      if (track%save_track) then
-        track%pt(i)%s = s
-        track%pt(i)%orb = end
-        if (local_calc_mat6) then
-          track%pt(i)%mat6 = mat6
-          track%pt(i)%vec0(1:5) = end%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)
-          track%pt(i)%vec0(6) = 0
-        endif
-      endif
+      if (track%save_track) call save_this_track_pt (i, s)
 
     enddo
 
@@ -211,40 +212,54 @@ subroutine track_it (start, real_track, local_calc_mat6)
 !----------------------------------------------------------------------------
 ! bend_sol_quad
 
-  case (bend_sol_quad$)
+  case (bend_sol_quad$, solenoid$, quadrupole$)
 
-    g_x = ele%value(g$) * cos (ele%value(bend_tilt$))
-    g_y = ele%value(g$) * sin (ele%value(bend_tilt$))
-    k1_norm = ele%value(k1$) * cos (2 * ele%value(quad_tilt$))
-    k1_skew = ele%value(k1$) * sin (2 * ele%value(quad_tilt$))
-    x_q = ele%value(x_quad$)
-    y_q = ele%value(y_quad$)
+    if (ele%key == bend_sol_quad$) then
+      g_x = ele%value(g$) * cos (ele%value(bend_tilt$))
+      g_y = ele%value(g$) * sin (ele%value(bend_tilt$))
+      k1_norm = ele%value(k1$) * cos (2 * ele%value(quad_tilt$))
+      k1_skew = ele%value(k1$) * sin (2 * ele%value(quad_tilt$))
+      x_q = ele%value(x_quad$)
+      y_q = ele%value(y_quad$)
+      ks = ele%value(ks$)
+      dks_ds = ele%value(dks_ds$)
+    elseif (ele%key == solenoid$) then
+      g_x = 0
+      g_y = 0
+      k1_norm = 0
+      k1_skew = 0
+      x_q = 0
+      y_q = 0
+      ks = ele%value(ks$)
+      dks_ds = 0
+    elseif (ele%key == quadrupole$) then
+      g_x = 0
+      g_y = 0
+      k1_norm = ele%value(k1$) 
+      k1_skew = 0
+      x_q = 0
+      y_q = 0
+      ks = 0
+      dks_ds = 0
+    endif
 
 ! loop over all steps
 
     do i = 1, n_step
 
       s = s + ds2
-      ks_tot_2 = (ele%value(ks$) + ele%value(dks_ds$) * s) / 2
+      ks_tot_2 = (ks + dks_ds * s) / 2
 
-      call bsq_drift1 (local_calc_mat6)
-      call bsq_drift2 (local_calc_mat6)
-      call bsq_kick (local_calc_mat6)
-      call bsq_drift2 (local_calc_mat6)
-      call bsq_drift1 (local_calc_mat6)
+      call bsq_drift1 (calc_mat6)
+      call bsq_drift2 (calc_mat6)
+      call bsq_kick (calc_mat6)
+      call bsq_drift2 (calc_mat6)
+      call bsq_drift1 (calc_mat6)
 
       s = s + ds2
-      ks_tot_2 = (ele%value(ks$) + ele%value(dks_ds$) * s) / 2
+      ks_tot_2 = (ks + dks_ds * s) / 2
 
-      if (track%save_track) then
-        track%pt(i)%s = s
-        track%pt(i)%orb = end
-        if (local_calc_mat6) then
-          track%pt(i)%mat6 = mat6
-          track%pt(i)%vec0(1:5) = end%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)
-          track%pt(i)%vec0(6) = 0
-        endif
-      endif
+      if (track%save_track) call save_this_track_pt (i, s)
 
     enddo
 
@@ -261,7 +276,7 @@ subroutine track_it (start, real_track, local_calc_mat6)
 
 ! element offset
 
-  if (local_calc_mat6) then
+  if (calc_mat6) then
     call drift_mat6_calc (m6, -ele%value(s_offset_tot$), end%vec)
     mat6(1,1:6) = mat6(1,1:6) + m6(1,2) * mat6(2,1:6) + m6(1,6) * mat6(6,1:6)
     mat6(3,1:6) = mat6(3,1:6) + m6(3,4) * mat6(4,1:6) + m6(3,6) * mat6(6,1:6)
@@ -272,11 +287,18 @@ subroutine track_it (start, real_track, local_calc_mat6)
 
   if (real_track) call offset_particle (ele, param, end, unset$, set_canonical = .false.)
 
-end subroutine
+! Correct for finite pitches & calc vec0
+
+  if (x_pitch /= 0 .or. y_pitch /= 0) call correct_for_pitch (end, mat6)
+
+  if (calc_mat6) then
+    ele%vec0(1:5) = end%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)
+    ele%vec0(6) = 0
+  endif
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
-! contains
+contains
 
 subroutine err_set (err)
 
@@ -294,6 +316,69 @@ subroutine err_set (err)
 end subroutine
 
 !----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+subroutine save_this_track_pt (ix, s)
+
+  real(rp) s
+  integer ix
+
+!
+
+  track%pt(ix)%s = s
+  track%pt(ix)%orb = end
+
+  if (calc_mat6) track%pt(ix)%mat6 = mat6
+
+  if (x_pitch /= 0 .or. y_pitch /= 0) call correct_for_pitch (track%pt(ix)%orb, track%pt(ix)%mat6)
+
+  if (calc_mat6) then
+    track%pt(ix)%vec0(1:5) = end%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)
+    track%pt(ix)%vec0(6) = 0
+  endif
+ 
+  
+end subroutine  
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+subroutine correct_for_pitch (orb, mat)
+
+  type (coord_struct) orb
+  real(rp) mat(6,6)
+
+
+  orb%vec(5) = orb%vec(5) - &
+            (orb%vec(1) - start%vec(1)) * x_pitch - x_pitch**2 * ele%value(l$)/2 - &
+            (orb%vec(3) - start%vec(3)) * y_pitch - y_pitch**2 * ele%value(l$)/2 
+
+  if (calc_mat6) then
+    mat(5,1) = mat(5,1) - x_pitch * (mat(1,1) - 1) 
+    mat(5,2) = mat(5,2) - x_pitch *  mat(1,2)
+    mat(5,3) = mat(5,3) - x_pitch *  mat(1,3)
+    mat(5,4) = mat(5,4) - x_pitch *  mat(1,4)
+
+    mat(5,1) = mat(5,1) - y_pitch *  mat(3,1)
+    mat(5,2) = mat(5,2) - y_pitch *  mat(3,2)
+    mat(5,3) = mat(5,3) - y_pitch * (mat(3,3) - 1)
+    mat(5,4) = mat(5,4) - y_pitch *  mat(3,4)
+
+    mat(1,6) = mat(5,2) * mat(1,1) - mat(5,1) * mat(1,2) + &
+                    mat(5,4) * mat(1,3) - mat(5,3) * mat(1,4)
+    mat(2,6) = mat(5,2) * mat(2,1) - mat(5,1) * mat(2,2) + &
+                    mat(5,4) * mat(2,3) - mat(5,3) * mat(2,4)
+    mat(3,6) = mat(5,4) * mat(3,3) - mat(5,3) * mat(3,4) + &
+                    mat(5,2) * mat(3,1) - mat(5,1) * mat(3,2)
+    mat(4,6) = mat(5,4) * mat(4,3) - mat(5,3) * mat(4,4) + &
+                    mat(5,2) * mat(4,1) - mat(5,1) * mat(4,2)
+  endif
+
+end subroutine
+
 !----------------------------------------------------------------------------
 ! contains
 
