@@ -519,6 +519,16 @@ RAW_VNOSEING_2: GROUP = {Q49W/ 0.018687,Q49E/-0.013751,Q48W/-0.002393, &
         Q47AE/-0.002524,Q46W/ 0.003134,Q46E/-0.003541 }, K1, &
          Type = "CSR VNOSEING   2"
 
+! Added zenthing 2 to change beta at 34E
+! 2006.01.31 mjf
+RAW_ZENTHING_2  : GROUP = {Q26E/ 0.012896,Q27E/-0.023072,Q28E/ 0.007962, &
+        Q29E/-0.021034,Q30E/-0.010732,Q31E/ 0.010872,Q32E/-0.042987, &
+        Q33E/ 0.016576,Q34E/ 0.014292,Q35E/ 0.010408,Q36E/ 0.033577, &
+        Q37E/-0.016457,Q38E/ 0.009003,Q39E/ 0.010327,Q40E/-0.024995}, K1, &
+         Type = "CSR ZENTHING   2"
+ 
+
+
 use, cesr
 
  ! Vars not in original file
