@@ -287,7 +287,7 @@ sc_sol_e[ks] = 2.6361163079342892E-01
 
  fact20 = 0.2
  fact = 0.8
- fact1=10.*18./19.*18./20.*18./16.6
+ fact1= 9.24540266328472
  H_SEP_08W[HKICK] =   2.8504818146255666E-05 *fact1
  H_SEP_08E[HKICK] =  -2.2648360986606600E-05 *fact1
 
@@ -303,6 +303,14 @@ V_SEP_48E[VKICK]:= -9.8121850418849115E-04
 !V_SEP_48W[VKICK]=  -0.00098122
 !V_SEP_48E[VKICK]=  -0.00098122
 
+!pretzing_1,13 updated 2006.02.01 mjf
+raw_pretzing_1 : group = {H_SEP_08W/2.635385E-04, H_SEP_45W/-7.59173E-04, &
+          H_SEP_45E/7.59173E-04, H_SEP_08E/-2.09393E-04}, HKICK
+
+ raw_pretzing_1[type]:="CSR PRETZING   1"
+
+raw_pretzing_13 : group = {H_SEP_08W/0.2635385E-03, H_SEP_08E/0.209393E-03}, HKICK
+ raw_pretzing_13[type]:="CSR PRETZING  13"
 
 
 
@@ -321,14 +329,6 @@ V_SEP_48E[VKICK]:= -9.8121850418849115E-04
  RF_E1[HARMON] := 1281
  RF_E2[HARMON] := 1281
 
-!pretzing_1 updated 12/6/05 dlr
-raw_pretzing_1 : group = {H_SEP_08W/2.700456E-04, H_SEP_45W/-7.779E-04, &
-          H_SEP_45E/7.779E-04, H_SEP_08E/-2.1456E-04}, HKICK
-
- raw_pretzing_1[type]:="CSR PRETZING   1"
-
-raw_pretzing_13 : group = {H_SEP_08W/0.27004560E-03, H_SEP_08E/0.21456E-03}, HKICK
- raw_pretzing_13[type]:="CSR PRETZING  13"
 
 !2006.01.16
 k2h=0.608
