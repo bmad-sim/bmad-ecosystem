@@ -20,6 +20,78 @@ end interface
 
 contains
 
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine mat6_add_pitch (ele, orb0, vec0, mat6)
+!
+! Subroutine to modify a first order transfer map to include the affect
+! of an element pitch. It is assumed that on input the transfer map
+! does not include the affect of any pitches.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele       -- Ele_struct: Element with pitches
+!     %value(x_pitch$) -- Horizontal pitch
+!     %value(y_pitch$) -- Vertical pitch
+!   orb0      -- Coord_struct: Starting coordinates around which the tranfer
+!             map was made.
+!   vec0(6)   -- Real(rp): 0th order part of the transfer map.
+!   mat6(6,6) -- Real(rp): 1st order part of the transfer map (Jacobian).
+!
+! Output:
+!   vec0(6)   -- Real(rp): 0th order xfer map with pitches.
+!   mat6(6,6) -- Real(rp): 1st order xfer map with pitches.
+!-
+
+subroutine mat6_add_pitch (ele, orb0, vec0, mat6)
+
+implicit none
+
+type (ele_struct) ele
+type (coord_struct) orb0 
+
+real(rp) vec0(:), mat6(:,:)
+real(rp) x_pitch, y_pitch, end(6)
+
+!
+
+if (ele%value(x_pitch$) == 0 .and. ele%value(y_pitch$) == 0) return
+
+x_pitch = ele%value(x_pitch$)
+y_pitch = ele%value(y_pitch$)
+
+end = vec0 + matmul(mat6, orb0%vec)
+end(5) = end(5) - &
+            (end(1) - orb0%vec(1)) * x_pitch - x_pitch**2 * ele%value(l$)/2 - &
+            (end(3) - orb0%vec(3)) * y_pitch - y_pitch**2 * ele%value(l$)/2 
+
+mat6(5,1) = mat6(5,1) - x_pitch * (mat6(1,1) - 1) 
+mat6(5,2) = mat6(5,2) - x_pitch *  mat6(1,2)
+mat6(5,3) = mat6(5,3) - x_pitch *  mat6(1,3)
+mat6(5,4) = mat6(5,4) - x_pitch *  mat6(1,4)
+
+mat6(5,1) = mat6(5,1) - y_pitch *  mat6(3,1)
+mat6(5,2) = mat6(5,2) - y_pitch *  mat6(3,2)
+mat6(5,3) = mat6(5,3) - y_pitch * (mat6(3,3) - 1)
+mat6(5,4) = mat6(5,4) - y_pitch *  mat6(3,4)
+
+mat6(1,6) = mat6(5,2) * mat6(1,1) - mat6(5,1) * mat6(1,2) + &
+                    mat6(5,4) * mat6(1,3) - mat6(5,3) * mat6(1,4)
+mat6(2,6) = mat6(5,2) * mat6(2,1) - mat6(5,1) * mat6(2,2) + &
+                    mat6(5,4) * mat6(2,3) - mat6(5,3) * mat6(2,4)
+mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4) + &
+                    mat6(5,2) * mat6(3,1) - mat6(5,1) * mat6(3,2)
+mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4) + &
+                    mat6(5,2) * mat6(4,1) - mat6(5,1) * mat6(4,2)
+
+
+
+end subroutine
+
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -815,7 +887,7 @@ subroutine init_ele (ele)
   ele%is_on = .true.
   ele%multipoles_on = .true.
   ele%symplectify = .false.
-  ele%exact_rad_int_calc = .false.
+  ele%map_with_offsets = .true.
   ele%on_an_i_beam = .false.
 
   ele%field_master = .false.
@@ -1066,7 +1138,7 @@ end subroutine
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
-! Subroutine match_ele_to_mat6 (ele, mat6, vec0)
+! Subroutine match_ele_to_mat6 (ele, vec0, mat6)
 !
 ! Subroutine to make the 6 x 6 transfer matrix from the twiss parameters
 ! at the entrance and exit ends of the element.
@@ -1079,11 +1151,11 @@ end subroutine
 !     %value(beta_x0$) -- Beta_x at the start
 !
 ! Output:
-!   mat6(6,6) -- Real(rp): Transfer matrix.
 !   vec0(6)   -- Real(rp): Currently just set to zero.
+!   mat6(6,6) -- Real(rp): Transfer matrix.
 !-
 
-subroutine match_ele_to_mat6 (ele, mat6, vec0)
+subroutine match_ele_to_mat6 (ele, vec0, mat6)
 
   implicit none
 

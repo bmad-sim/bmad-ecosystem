@@ -1352,10 +1352,10 @@ subroutine attribute_bookkeeper (ele, param)
         ele%value(e2$)
 
   case (sextupole$)
-    check_sum = ele%value(k2$) + ele%value(tilt$)
+    check_sum = ele%value(k2$)
 
   case (octupole$)
-    check_sum = ele%value(k3$) + ele%value(tilt$)
+    check_sum = ele%value(k3$)
 
   case (rfcavity$)
     check_sum = ele%value(voltage$) + ele%value(phi0$) 
@@ -1371,9 +1371,11 @@ subroutine attribute_bookkeeper (ele, param)
 
   end select
 
-  check_sum = check_sum + ele%value(l$) + ele%value(x_offset$) + &
+  check_sum = check_sum + ele%value(l$) + ele%value(ds_step$)
+
+  if (ele%map_with_offsets) check_sum = check_sum + ele%value(x_offset$) + &
         ele%value(y_offset$) + ele%value(x_pitch$) + ele%value(y_pitch$) + &
-        ele%num_steps + ele%value(s_offset$) + ele%value(tilt$)
+        ele%value(s_offset$) + ele%value(tilt$)
 
   if (ele%value(check_sum$) /= check_sum) then
 

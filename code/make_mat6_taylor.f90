@@ -13,7 +13,8 @@
 !
 ! Output:
 !   ele    -- Ele_struct: Element with transfer matrix.
-!     %mat6  -- 6x6 transfer matrix.
+!     %vec0  -- 0th order map component
+!     %mat6  -- 1st order map component (6x6 transfer matrix).
 !-
 
 #include "CESR_platform.inc"
@@ -31,7 +32,10 @@ subroutine make_mat6_taylor (ele, param, c0)
 !
 
   if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, param, c0)
-  call taylor_to_mat6 (ele%taylor, c0%vec, ele%mat6)
+
+  call taylor_to_mat6 (ele%taylor, c0%vec, ele%vec0, ele%mat6)
+  if (.not. ele%map_with_offsets) &
+                            call mat6_add_pitch (ele, c0, ele%vec0, ele%mat6)
 
 end subroutine
 

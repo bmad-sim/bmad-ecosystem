@@ -140,7 +140,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
             ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
             ele%num_steps, ele%integrator_order, ele%ptc_kind, &
             ele%taylor_order, ele%symplectify, ele%mode_flip, &
-            ele%multipoles_on, ele%exact_rad_int_calc, ele%Field_master, &
+            ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
             ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
             ele%coupler_at, ele%on_an_i_beam
 

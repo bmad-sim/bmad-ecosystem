@@ -106,7 +106,7 @@ subroutine track1_bmad (start, ele, param, end)
 
   case (match$)
 
-    call match_ele_to_mat6 (ele, mat6, vec0)
+    call match_ele_to_mat6 (ele, vec0, mat6)
     end%vec = matmul (mat6, end%vec) + vec0
 
 !-----------------------------------------------
@@ -564,7 +564,7 @@ subroutine track1_bmad (start, ele, param, end)
 
   case (taylor$)
 
-    call track_taylor (start%vec, ele%taylor, end%vec)
+    call track1_taylor (start, ele, param, end)
 
 !-----------------------------------------------
 ! unknown

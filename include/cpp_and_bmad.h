@@ -717,7 +717,7 @@ public:
   bool symplectify;             // Symplectify mat6 matrices.
   bool mode_flip;               // Have the normal modes traded places?
   bool multipoles_on;           // For turning multipoles on/off
-  bool exact_rad_int_calc;      // Exact radiation integral calculation?
+  bool map_with_offsets;      // Exact radiation integral calculation?
   bool field_master;            // Calculate strength from the field value?
   bool is_on;                   // For turning element on/off.
   bool internal_logic;          // For Bmad internal use only.

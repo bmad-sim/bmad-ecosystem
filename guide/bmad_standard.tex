@@ -26,6 +26,10 @@
 \setlength{\parskip}{\dPar}
 \setlength{\parindent}{0ex}
 
+\newcommand{\bfr}{{\bf r}}
+\newcommand{\bfM}{{\bf M}}
+\newcommand{\bfK}{{\bf K}}
+
 %-----------------------------------------------------------------
 \section{Bmad\_Standard Transfer Map Calculations}
 \label{s:bmad_standard}
@@ -441,5 +445,16 @@ of periods in the oscillation so that the exit horizontal coordinates
 can be calculated from the initial coordinates using the equations for
 a drift. The vertical motion is a quadratic superimposed with a
 octupole. Vertical motion is calculated using a kick-drift-kick model.
+
+%-----------------------------------------
+\subsection{Offset Transformation of a First Order Map}
+\index{x_pitch}\index{y_pitch}\index{tilt}
+
+Given a first order map
+\Begineq
+  \bfr \rightarrow \bfr \, \bfM + \bfK
+\Endeq
+
+
 
 \end{document}

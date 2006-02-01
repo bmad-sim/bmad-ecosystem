@@ -22,6 +22,7 @@
 !
 ! Output:
 !   ele    -- Ele_struct: Element with transfer matrix.
+!     %vec0  -- 0th order map component
 !     %mat6  -- 6x6 transfer matrix.
 !   c1     -- Coord_struct: Coordinates at the end of element.
 !-
@@ -65,6 +66,8 @@ subroutine make_mat6_tracking (ele, param, c0, c1)
       ele%mat6(1:6, i) = (end1%vec - c1%vec) / del_orb(i)
     enddo
   endif
+
+    ele%vec0 = c1%vec - matmul(ele%mat6, c0%vec)
 
 end subroutine
 

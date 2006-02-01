@@ -52,7 +52,7 @@ subroutine transfer_map_calc (lat, t_map, ix1, ix2)
   if (associated(lat%ele_(i1)%taylor(1)%term)) then
     t_map = lat%ele_(i1)%taylor
   else
-    call mat6_to_taylor (lat%ele_(i1)%mat6, lat%ele_(i1)%vec0, t_map)
+    call mat6_to_taylor (lat%ele_(i1)%vec0, lat%ele_(i1)%mat6, t_map)
   endif
 
   if (i2 < i1) then

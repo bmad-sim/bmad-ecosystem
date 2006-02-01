@@ -427,7 +427,7 @@ subroutine type_fibre (fib)
   print *, 'Vorname:     ', fib%mag%vorname
   print *, 'Kind:        ', kind_name(fib%mag%kind)
   print *, 'Knob:        ', fib%magp%knob
-    print *, 'L:        ', fib%mag%l
+  print *, 'L:           ', fib%mag%l
 
   if (fib%mag%kind == kind4) then
     print *, 'Voltage:  ', fib%mag%volt
@@ -1486,7 +1486,7 @@ subroutine ele_to_taylor (ele, param, orb0)
 
   if (ele%key == lcavity$) then
     call make_mat6 (ele, param)
-    call mat6_to_taylor (ele%mat6, ele%vec0, ele%taylor)
+    call mat6_to_taylor (ele%vec0, ele%mat6, ele%taylor)
     return
   endif
 
@@ -1714,7 +1714,7 @@ end subroutine
 !+                                
 ! Subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 !
-! Subroutine to convert a BMAD element to a PTC fibre element.
+! Subroutine to convert a Bmad element to a PTC fibre element.
 ! This subroutine allocates fresh storage for the fibre so after calling
 ! this routine you need to deallocate at some point with:
 !       call kill (fiber)
@@ -1725,7 +1725,9 @@ end subroutine
 !   use ptc_interface_mod
 !
 ! Input:
-!   ele    -- Ele_struct: BMAD element.
+!   ele    -- Ele_struct: Bmad element.
+!     %map_with_offsets -- If False then the values for x_pitch, x_offset, 
+!                           tilt, etc. for the  fiber element will be zero.
 !   param       -- param_struct: 
 !     %beam_energy     -- Beam energy (for wigglers).
 !   integ_order -- Integer, optional: Order for the 
@@ -1774,7 +1776,12 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 !  ptc_key%list%ld   = ele%value(l$)
 !  ptc_key%list%lc   = ele%value(l$)
 
-  ptc_key%tiltd = ele%value(tilt_tot$)
+  if (ele%map_with_offsets) then
+    ptc_key%tiltd = ele%value(tilt_tot$)
+  else
+    ptc_key%tiltd = 0
+  endif
+
   ptc_key%nstep = nint(ele%value(l$) / ele%value(ds_step$))
   if (ptc_key%nstep == 0) ptc_key%nstep = 1
   if (present(steps)) ptc_key%nstep = steps
@@ -1958,26 +1965,23 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 
 ! Misalignments:
 ! in PTC the reference point for the offsets is the beginning of the element.
-! In BMAD the reference point is the center of the element..
+! In Bmad the reference point is the center of the element..
 
-  x_off = ele%value(x_offset_tot$)
-  y_off = ele%value(y_offset_tot$)
-  x_pitch = ele%value(x_pitch_tot$)
-  y_pitch = ele%value(y_pitch_tot$)
+  if (ele%map_with_offsets) then
+    x_off = ele%value(x_offset_tot$)
+    y_off = ele%value(y_offset_tot$)
+    x_pitch = ele%value(x_pitch_tot$)
+    y_pitch = ele%value(y_pitch_tot$)
 
-  if (x_off /= 0 .or. y_off /= 0 .or. x_pitch /= 0 .or. y_pitch /= 0) then
-
-    mis_rot = (/ x_off, y_off, 0.0_rp, -y_pitch, -x_pitch,  0.0_rp /)
-
-    angle = 0
-    angle(3) = -fiber%mag%p%tiltd
-
-    omega = fiber%chart%f%o
-    basis = fiber%chart%f%mid
-
-    call geo_rot(basis, angle, 1, basis)                 ! PTC call
-    call misalign_fibre (fiber, mis_rot, omega, basis)   ! PTC call
-
+    if (x_off /= 0 .or. y_off /= 0 .or. x_pitch /= 0 .or. y_pitch /= 0) then
+      mis_rot = (/ x_off, y_off, 0.0_rp, -y_pitch, -x_pitch,  0.0_rp /)
+      angle = 0
+      angle(3) = -fiber%mag%p%tiltd
+      omega = fiber%chart%f%o
+      basis = fiber%chart%f%mid
+      call geo_rot(basis, angle, 1, basis)                 ! PTC call
+      call misalign_fibre (fiber, mis_rot, omega, basis)   ! PTC call
+    endif
   endif
 
 end subroutine

@@ -381,7 +381,9 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
 ! Encode taylor series
 
   if (associated(ele%taylor(1)%term)) then
-    nl=nl+1; write (li(nl), *)
+    nl=nl+1; li(nl) = ' '
+    nl=nl+1; write (li(nl), '(a, l1)') &
+                        'map_with_offsets: ', ele%map_with_offsets
     if (logic_option(.false., type_taylor)) then
       call type2_taylors (ele%taylor, li2, nt)
       call re_associate (li,  len(li(1)), nl+nt+100)

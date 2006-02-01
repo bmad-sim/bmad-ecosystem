@@ -39,6 +39,18 @@ subroutine track1_taylor (start, ele, param, end)
     call ele_to_taylor(ele, param, start)
   endif
 
-  call track_taylor (start%vec, ele%taylor, end%vec)
+! If the Taylor map does not have the offsets included then do the appropriate
+! tracking.
+
+  if (ele%map_with_offsets) then  ! simple case
+    call track_taylor (start%vec, ele%taylor, end%vec)
+
+  else
+    call offset_particle (ele, param, end, set$, &
+                          set_canonical = .false., set_multipoles = .false.)
+    call track_taylor (start%vec, ele%taylor, end%vec)
+    call offset_particle (ele, param, end, unset$, &
+                          set_canonical = .false., set_multipoles = .false.)
+  endif
 
 end subroutine

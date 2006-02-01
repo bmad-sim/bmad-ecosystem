@@ -84,7 +84,7 @@ subroutine make_mat6 (ele, param, start, end, end_in)
 
   case (taylor$)
     call make_mat6_taylor (ele, param, a_start)
-    if (.not. end_input) call track_taylor (a_start%vec, ele%taylor, a_end%vec)
+    if (.not. end_input) call track1_taylor (a_start, ele, param, a_end)
 
   case (custom$) 
     call make_mat6_custom (ele, param, a_start, a_end)
@@ -94,7 +94,7 @@ subroutine make_mat6 (ele, param, start, end, end_in)
 
   case (symp_lie_ptc$)
     call make_mat6_symp_lie_ptc (ele, param, a_start)
-    if (.not. end_input) call track_taylor (a_start%vec, ele%taylor, a_end%vec)
+    if (.not. end_input) call track1_taylor (a_start, ele, param, a_end)
 
   case (symp_lie_bmad$)
     call symp_lie_bmad (ele, param, a_start, a_end, .true., track_com)
@@ -123,9 +123,8 @@ subroutine make_mat6 (ele, param, start, end, end_in)
 
   if (ele%symplectify) call mat_symplectify (ele%mat6, ele%mat6)
 
-! Make the 0th order transfer vector
+! 
 
-  ele%vec0 = a_end%vec - matmul(ele%mat6, a_start%vec)
   if (present(end) .and. .not. end_input) end = a_end
 
 end subroutine

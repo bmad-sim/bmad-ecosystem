@@ -547,7 +547,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine taylor_to_mat6 (a_taylor, c0, mat6)
+! Subroutine taylor_to_mat6 (a_taylor, r_in, vec0, mat6)
 !
 ! Subroutine to calculate, from a Taylor map and about some trajectory:
 !   The 1st order (Jacobian) transfer matrix.
@@ -557,54 +557,72 @@ end subroutine
 !
 ! Input:
 !   a_taylor(6) -- Taylor_struct: Taylor map.
-!   c0          -- Coord_struct: Coordinates at the input. 
+!   r_in        -- Coord_struct: Coordinates at the input. 
 !
 ! Output:
-!   mat6(6,6) -- Real(rp): 1st order transfer matrix.
+!   vec0(6)   -- Real(rp): 0th order tranfsfer map
+!   mat6(6,6) -- Real(rp): 1st order transfer map (6x6 matrix).
 !-
 
-subroutine taylor_to_mat6 (a_taylor, c0, mat6)
+subroutine taylor_to_mat6 (a_taylor, r_in, vec0, mat6)
 
   implicit none
 
   type (taylor_struct), target, intent(in) :: a_taylor(6)
-  real(rp), intent(in) :: c0(:)
+  real(rp), intent(in) :: r_in(:)
   type (taylor_term_struct), pointer :: term
 
-  real(rp), intent(out) :: mat6(6,6)
-  real(rp) prod
+  real(rp), intent(out) :: mat6(6,6), vec0(6)
+  real(rp) prod, t(6), t_out, r_out
 
   integer i, j, k, l
 
 ! mat6 calc
 
   mat6 = 0
-  
+  vec0 = 0
+
   do i = 1, 6
-    do j = 1, 6
-      do k = 1, size(a_taylor(i)%term)
 
-        term => a_taylor(i)%term(k)
+    r_out = 0
 
+    terms: do k = 1, size(a_taylor(i)%term)
+      term => a_taylor(i)%term(k)
+ 
+      t_out = term%coef
+      do l = 1, 6
+        if (term%exp(l) == 0) cycle
+        t(l) = r_in(l) ** term%exp(l)
+        t_out = t_out * t(l)
+      enddo
+
+      r_out = r_out + t_out
+ 
+      do j = 1, 6
+ 
         if (term%exp(j) == 0) cycle
-        if (term%exp(j) > 1 .and. c0(j) == 0) cycle
+        if (term%exp(j) > 1 .and. r_in(j) == 0) cycle
 
         if (term%exp(j) > 1)then
-          prod = term%coef * term%exp(j) * c0(j) ** (term%exp(j)-1)
-        else
+          prod = term%coef * term%exp(j) * r_in(j) ** (term%exp(j)-1)
+        else  ! term%exp(j) == 1
           prod = term%coef
         endif
 
         do l = 1, 6
           if (term%exp(l) == 0) cycle
           if (l == j) cycle
-          prod = prod * c0(l) ** term%exp(l)
+          prod = prod * t(l)
         enddo
 
         mat6(i,j) = mat6(i,j) + prod
 
       enddo
-    enddo
+
+    enddo terms
+
+    vec0(i) = r_out - sum(mat6(i,:) * r_in)
+
   enddo
 
 end subroutine
@@ -613,7 +631,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine mat6_to_taylor (mat6, vec0, bmad_taylor)
+! Subroutine mat6_to_taylor (vec0, mat6, bmad_taylor)
 !
 ! Subroutine to form a first order Taylor map from the 6x6 transfer
 ! matrix and the 0th order transfer vector.
@@ -622,14 +640,14 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   mat6(6,6) -- 6x6 transfer matrix.
 !   vec0(6)   -- 0th order transfer vector.
+!   mat6(6,6) -- 6x6 transfer matrix.
 !
 ! Output:
 !   bmad_taylor(6) -- Taylor_struct: first order taylor map.
 !-
 
-subroutine mat6_to_taylor (mat6, vec0, bmad_taylor)
+subroutine mat6_to_taylor (vec0, mat6, bmad_taylor)
 
   implicit none
 

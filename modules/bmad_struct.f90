@@ -157,37 +157,37 @@ type ele_struct
   type (wake_struct), pointer :: wake => null()    ! Wakefields
   type (wig_term_struct), pointer :: wig_term(:) => null()   ! Wiggler Coefs
   type (trans_space_charge_struct), pointer :: trans_sc => null()
-  integer key                    ! key value
-  integer sub_key                ! For wigglers: map_type$, periodic_type$
-  integer control_type           ! SUPER_SLAVE$, OVERLAY_LORD$, etc.
-  integer ix_value               ! Pointer for attribute to control
-  integer n_slave                ! Number of slaves
-  integer ix1_slave              ! Start index for slave elements
-  integer ix2_slave              ! Stop  index for slave elements
-  integer n_lord                 ! Number of lords
-  integer ic1_lord               ! Start index for lord elements
-  integer ic2_lord               ! Stop  index for lord elements
-  integer ix_pointer             ! For general use. Not used by Bmad.
-  integer ixx                    ! Index for Bmad internal use
-  integer ix_ele                 ! Index in ring%ele_(:) array
-  integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
-  integer tracking_method        ! bmad_standard$, taylor$, etc.
-  integer field_calc             ! Used with Boris, Runge-Kutta integrators.
-  integer num_steps              ! number of slices for DA_maps
-  integer integrator_order        ! For Etiennes' PTC: 2, 4, or 6.
-  integer ptc_kind               ! For setting the ptc kind type.
-  integer taylor_order           ! Order of the taylor series.
-  integer aperture_at            ! Aperture location: exit_end$, ...
-  integer coupler_at             ! Lcavity coupler location: exit_end$, ...
-  logical symplectify            ! Symplectify mat6 matrices.
-  logical mode_flip              ! Have the normal modes traded places?
-  logical multipoles_on          ! For turning multipoles on/off
-  logical exact_rad_int_calc     ! Exact radiation integral calculation?
-  logical field_master           ! Calculate strength from the field value?
-  logical is_on                  ! For turning element on/off.
-  logical internal_logic         ! For Bmad internal use only.
-  logical logic                  ! For general use. Not used by Bmad.
-  logical on_an_i_beam           ! Have an I_Beam overlay_lord?
+  integer key                ! key value
+  integer sub_key            ! For wigglers: map_type$, periodic_type$
+  integer control_type       ! SUPER_SLAVE$, OVERLAY_LORD$, etc.
+  integer ix_value           ! Pointer for attribute to control
+  integer n_slave            ! Number of slaves
+  integer ix1_slave          ! Start index for slave elements
+  integer ix2_slave          ! Stop  index for slave elements
+  integer n_lord             ! Number of lords
+  integer ic1_lord           ! Start index for lord elements
+  integer ic2_lord           ! Stop  index for lord elements
+  integer ix_pointer         ! For general use. Not used by Bmad.
+  integer ixx                ! Index for Bmad internal use
+  integer ix_ele             ! Index in ring%ele_(:) array
+  integer mat6_calc_method   ! bmad_standard$, taylor$, etc.
+  integer tracking_method    ! bmad_standard$, taylor$, etc.
+  integer field_calc         ! Used with Boris, Runge-Kutta integrators.
+  integer num_steps          ! number of slices for DA_maps
+  integer integrator_order   ! For Etiennes' PTC: 2, 4, or 6.
+  integer ptc_kind           ! For setting the ptc kind type.
+  integer taylor_order       ! Order of the taylor series.
+  integer aperture_at        ! Aperture location: exit_end$, ...
+  integer coupler_at         ! Lcavity coupler location: exit_end$, ...
+  logical symplectify        ! Symplectify mat6 matrices.
+  logical mode_flip          ! Have the normal modes traded places?
+  logical multipoles_on      ! For turning multipoles on/off
+  logical map_with_offsets   ! Taylor map calculated with element offsets?
+  logical field_master       ! Calculate strength from the field value?
+  logical is_on              ! For turning element on/off.
+  logical internal_logic     ! For Bmad internal use only.
+  logical logic              ! For general use. Not used by Bmad.
+  logical on_an_i_beam       ! Have an I_Beam overlay_lord?
 end type
 
 ! struct for element to element control
@@ -394,7 +394,7 @@ integer, parameter :: end_edge$ =74
 integer, parameter :: accordion_edge$ =75
 integer, parameter :: lattice$ = 76
 integer, parameter :: coupler_at$ = 77
-integer, parameter :: exact_rad_int$ = 78
+integer, parameter :: map_with_offsets$ = 78
 
 integer, parameter :: a0$  =  80, k0l$  =  80
 integer, parameter :: a20$ = 100, k20l$ = 100

@@ -7,7 +7,9 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/adjust_control_struct/add_lattice_control_structs/g;
+    s/map_no_offsets/map_with_offsets/g;
+    s/MAP_NO_OFFSETS/MAP_WITH_OFFSETS/g;
+    s/exact_rad_int_calc/map_with_offsets/g;
 
     {print (F_OUT);}
 

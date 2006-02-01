@@ -80,10 +80,10 @@ function attribute_name (ele, ix_att) result (at_name)
       if (i == ab_multipole$) cycle
 
       attrib_array(i, symplectify$)       = 'SYMPLECTIFY'
+      attrib_array(i, map_with_offsets$)    = 'MAP_WITH_OFFSETS'
 
       if (i == taylor$)       cycle
 
-      attrib_array(i, exact_rad_int$)     = 'EXACT_RAD_INT'
       attrib_array(i, integrator_order$)  = 'INTEGRATOR_ORDER'
       attrib_array(i, num_steps$)         = 'NUM_STEPS'
       attrib_array(i, ds_step$)           = 'DS_STEP'
@@ -148,7 +148,12 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(def_beam$, n_part$)     = 'N_PART'
 
     attrib_array(taylor$, l$)           = 'L'
-    attrib_array(taylor$, symplectify$) = 'SYMPLECTIFY'
+    attrib_array(taylor$, x_offset$)    = 'X_OFFSET'   
+    attrib_array(taylor$, y_offset$)    = 'Y_OFFSET'   
+    attrib_array(taylor$, s_offset$)    = 'S_OFFSET'   
+    attrib_array(taylor$, x_pitch$)     = 'X_PITCH'   
+    attrib_array(taylor$, y_pitch$)     = 'Y_PITCH'   
+    attrib_array(taylor$, tilt$)        = 'TILT' 
 
     attrib_array(match$, l$)             = 'L'
     attrib_array(match$, beta_x0$)       = 'BETA_X0'

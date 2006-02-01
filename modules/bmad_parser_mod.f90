@@ -588,8 +588,8 @@ subroutine get_attribute (how, ele, ring, pring, &
     call get_logical ('IS_ON', ele%is_on)
     if (ios /= 0 .or. ix_word == 0) return
 
-  case (exact_rad_int$)
-    call get_logical ('EXACT_RAD_INT', ele%exact_rad_int_calc)
+  case (map_with_offsets$)
+    call get_logical ('MAP_WITH_OFFSETS', ele%map_with_offsets)
     if (ios /= 0 .or. ix_word == 0) return
 
   case default   ! normal attribute

@@ -15,6 +15,7 @@
 !
 ! Output:
 !   ele    -- Ele_struct: Element with transfer matrix.
+!     %vec0  -- 0th order map component
 !     %mat6  -- 6x6 transfer matrix.
 !   c1     -- Coord_struct: Coordinates at the end of element.
 !-
@@ -83,6 +84,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   c11 = c1
 
   call mat_make_unit (mat6)
+  ele%vec0 = 0
 
 !--------------------------------------------------------
 ! drift or element is off or
@@ -95,6 +97,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
     call add_multipoles_and_s_offset
+    ele%vec0 = c1%vec - matmul(mat6, c0%vec)
     return
   endif
 
@@ -115,7 +118,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 ! Match
 
   case (match$)
-    call match_ele_to_mat6 (ele, ele%mat6, ele%vec0)
+    call match_ele_to_mat6 (ele, ele%vec0, ele%mat6)
 
 !--------------------------------------------------------
 ! Patch
@@ -230,6 +233,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     endif
 
     call add_multipoles_and_s_offset
+    ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
 ! quadrupole
@@ -279,6 +283,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     endif
 
     call add_multipoles_and_s_offset
+    ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
 ! Sextupole.
@@ -309,6 +314,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     endif
 
     call add_multipoles_and_s_offset
+    ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
 ! octupole
@@ -338,6 +344,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     endif
 
     call add_multipoles_and_s_offset
+    ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
 ! solenoid
@@ -423,6 +430,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat6(5,6) = length * (xp_start**2 + yp_start**2 ) / rel_p**3
 
     call add_multipoles_and_s_offset
+    ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
 ! LCavity: Linac rf cavity
@@ -578,6 +586,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     endif
 
     call add_multipoles_and_s_offset
+    ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
 ! rf cavity
@@ -686,13 +695,14 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     endif
 
     call add_multipoles_and_s_offset
+    ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
 ! taylor
 
   case (taylor$)
 
-    call taylor_to_mat6 (ele%taylor, c0%vec, ele%mat6)
+    call make_mat6_taylor (ele, param, c0)
 
 !--------------------------------------------------------
 ! wiggler
@@ -751,6 +761,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     endif
 
     call add_multipoles_and_s_offset
+    ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
 ! solenoid/quad
@@ -767,6 +778,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     endif
 
     call add_multipoles_and_s_offset
+    ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
 ! multipole
@@ -787,6 +799,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       ele%mat6(5,1) = -ele%mat6(2,6)
       ele%mat6(5,3) = -ele%mat6(4,6)
     endif
+
+    ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
 ! accelerating solenoid with steerings
@@ -827,6 +841,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
     mat4 = mat6(1:4,1:4)
 
     call add_multipoles_and_s_offset
+    ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
 ! rbends are not allowed internally

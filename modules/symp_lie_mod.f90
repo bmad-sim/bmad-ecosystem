@@ -177,8 +177,10 @@ subroutine track_it (ele, param, start, end, calc_mat6, track, real_track)
       end%vec(4) = end%vec(4) + ds * da_z_dy()
 
       if (calc_mat6) then
-        mat6(2,1:6) = mat6(2,1:6) + ds * da_z_dx__dx() * mat6(1,1:6) + ds * da_z_dx__dy() * mat6(3,1:6)
-        mat6(4,1:6) = mat6(4,1:6) + ds * da_z_dy__dx() * mat6(1,1:6) + ds * da_z_dy__dy() * mat6(3,1:6)
+        mat6(2,1:6) = mat6(2,1:6) + ds * da_z_dx__dx() * mat6(1,1:6) + &
+                                                  ds * da_z_dx__dy() * mat6(3,1:6)
+        mat6(4,1:6) = mat6(4,1:6) + ds * da_z_dy__dx() * mat6(1,1:6) + &
+                                                  ds * da_z_dy__dy() * mat6(3,1:6)
       endif 
 
 ! Drift_2
@@ -280,7 +282,8 @@ subroutine track_it (ele, param, start, end, calc_mat6, track, real_track)
     call drift_mat6_calc (m6, -ele%value(s_offset_tot$), end%vec)
     mat6(1,1:6) = mat6(1,1:6) + m6(1,2) * mat6(2,1:6) + m6(1,6) * mat6(6,1:6)
     mat6(3,1:6) = mat6(3,1:6) + m6(3,4) * mat6(4,1:6) + m6(3,6) * mat6(6,1:6)
-    mat6(5,1:6) = mat6(5,1:6) + m6(5,2) * mat6(2,1:6) + m6(5,4) * mat6(4,1:6) + m6(5,6) * mat6(6,1:6)
+    mat6(5,1:6) = mat6(5,1:6) + m6(5,2) * mat6(2,1:6) + m6(5,4) * mat6(4,1:6) + &
+                                                                   m6(5,6) * mat6(6,1:6)
 
     if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
@@ -331,7 +334,8 @@ subroutine save_this_track_pt (ix, s)
 
   if (calc_mat6) track%pt(ix)%mat6 = mat6
 
-  if (x_pitch /= 0 .or. y_pitch /= 0) call correct_for_pitch (track%pt(ix)%orb, track%pt(ix)%mat6)
+  if (x_pitch /= 0 .or. y_pitch /= 0) &
+                          call correct_for_pitch (track%pt(ix)%orb, track%pt(ix)%mat6)
 
   if (calc_mat6) then
     track%pt(ix)%vec0(1:5) = end%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)

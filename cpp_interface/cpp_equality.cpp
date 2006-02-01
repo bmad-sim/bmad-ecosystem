@@ -205,7 +205,7 @@ bool operator== (const C_ele& x, const C_ele& y) {
     (x.aperture_at == y.aperture_at) && (x.coupler_at == y.coupler_at) && 
     (x.symplectify == y.symplectify) && 
     (x.mode_flip == y.mode_flip) && (x.multipoles_on == y.multipoles_on) && 
-    (x.exact_rad_int_calc == y.exact_rad_int_calc) && 
+    (x.map_with_offsets == y.map_with_offsets) && 
     (x.field_master == y.field_master) && 
     (x.is_on == y.is_on) && (x.internal_logic == y.internal_logic) && 
     (x.logic == y.logic) && (x.on_an_i_beam == y.on_an_i_beam);
@@ -262,7 +262,7 @@ void ele_comp (const C_ele& x, const C_ele& y) {
       (x.aperture_at == y.aperture_at) && (x.coupler_at == y.coupler_at) && 
       (x.symplectify == y.symplectify) && 
       (x.mode_flip == y.mode_flip) && (x.multipoles_on == y.multipoles_on) && 
-      (x.exact_rad_int_calc == y.exact_rad_int_calc) && 
+      (x.map_with_offsets == y.map_with_offsets) && 
       (x.field_master == y.field_master) && 
       (x.is_on == y.is_on) && (x.internal_logic == y.internal_logic) && 
       (x.logic == y.logic) && (x.on_an_i_beam == y.on_an_i_beam)) << endl;

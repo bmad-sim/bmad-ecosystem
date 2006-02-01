@@ -623,7 +623,7 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
     c.ixx, c.ix_ele, c.mat6_calc_method, c.tracking_method, c.field_calc,
     c.num_steps, c.integrator_order, c.ptc_kind, c.taylor_order, 
     c.aperture_at, c.coupler_at,
-    c.symplectify, c.mode_flip, c.multipoles_on, c.exact_rad_int_calc,
+    c.symplectify, c.mode_flip, c.multipoles_on, c.map_with_offsets,
     c.field_master, c.is_on, c.internal_logic, c.logic, c.on_an_i_beam);
   for (int i = 0; i < n_wig; i++) {
     wig_term_in_ele_to_f2_(f, i+1, c.wig_term[i].coef, 
@@ -684,7 +684,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   c.symplectify         = symp;
   c.mode_flip           = flip;
   c.multipoles_on       = multi;
-  c.exact_rad_int_calc  = rad;
+  c.map_with_offsets  = rad;
   c.field_master        = f_master;
   c.is_on               = is_on;
   c.internal_logic      = internal;
@@ -785,7 +785,7 @@ C_ele& C_ele::operator= (const C_ele& c) {
   symplectify         = c.symplectify;
   mode_flip           = c.mode_flip;
   multipoles_on       = c.multipoles_on;
-  exact_rad_int_calc  = c.exact_rad_int_calc;
+  map_with_offsets  = c.map_with_offsets;
   field_master        = c.field_master;
   is_on               = c.is_on;
   internal_logic      = c.internal_logic;

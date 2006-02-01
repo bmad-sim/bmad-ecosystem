@@ -13,6 +13,7 @@
 !
 ! Output:
 !   ele    -- Ele_struct: Element with transfer matrix.
+!     %vec0  -- 0th order map component
 !     %mat6  -- 6x6 transfer matrix.
 !-
 
@@ -31,7 +32,7 @@ subroutine make_mat6_symp_lie_ptc (ele, param, c0)
 !
 
   call ele_to_taylor(ele, param, c0)
-  call taylor_to_mat6 (ele%taylor, c0%vec, ele%mat6)
+  call taylor_to_mat6 (ele%taylor, c0%vec, ele%vec0, ele%mat6)
 
 
 end subroutine

@@ -72,11 +72,12 @@ subroutine make_mat6_mad (ele, param, c0, c1)
   if (.not. associated(ele%taylor(1)%term)) then
     call make_mad_map (ele, param%particle, map)
     call mad_map_to_taylor (map, ele%taylor)
+    ele%map_with_offsets = .true.
   endif
 
 ! make the trasfer map.
 
-  call taylor_to_mat6 (ele%taylor, c0%vec, ele%mat6)
+  call taylor_to_mat6 (ele%taylor, c0%vec, ele%vec0, ele%mat6)
   call track_taylor (c0%vec, ele%taylor, c1%vec)
 
 end subroutine

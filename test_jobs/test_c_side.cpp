@@ -178,7 +178,7 @@ void init_all_c_structs () {
   c_ele_in.symplectify = T;
   c_ele_in.mode_flip = F;
   c_ele_in.multipoles_on = T;
-  c_ele_in.exact_rad_int_calc = F;
+  c_ele_in.map_with_offsets = F;
   c_ele_in.field_master = T;
   c_ele_in.is_on = F;
   c_ele_in.internal_logic = T;
