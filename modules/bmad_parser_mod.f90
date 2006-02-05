@@ -533,6 +533,7 @@ subroutine get_attribute (how, ele, ring, pring, &
 ! otherwise it is an error
 
   if (delim /= '=')  then
+    err_flag = .false.
     if (word == tilt_word) then
       select case (ele%key)
       case (sbend$, rbend$)

@@ -1,5 +1,5 @@
 !+
-! Subroutine make_mat6_taylor (ele, param, c0)
+! Subroutine make_mat6_taylor (ele, param, orb_in)
 !
 ! Subroutine to make the 6x6 transfer matrix for an element. 
 !
@@ -9,7 +9,7 @@
 ! Input:
 !   ele    -- Ele_struct: Element with transfer matrix
 !   param  -- Param_struct: Parameters are needed for some elements.
-!   c0     -- Coord_struct: Coordinates at the beginning of element. 
+!   orb_in -- Coord_struct: Coordinates at the beginning of element. 
 !
 ! Output:
 !   ele    -- Ele_struct: Element with transfer matrix.
@@ -19,23 +19,37 @@
 
 #include "CESR_platform.inc"
 
-subroutine make_mat6_taylor (ele, param, c0)
+subroutine make_mat6_taylor (ele, param, orb_in)
 
-  use ptc_interface_mod, except => make_mat6_taylor
+use ptc_interface_mod, except => make_mat6_taylor
+use make_mat6_mod, only: tilt_mat6
 
-  implicit none
+implicit none
 
-  type (ele_struct), target :: ele
-  type (coord_struct) :: c0
-  type (param_struct)  param
+type (ele_struct), target :: ele
+type (coord_struct) :: orb0, orb_in, orb_out
+type (param_struct)  param
 
 !
 
-  if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, param, c0)
+if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, param, orb_in)
 
-  call taylor_to_mat6 (ele%taylor, c0%vec, ele%vec0, ele%mat6)
-  if (.not. ele%map_with_offsets) &
-                            call mat6_add_pitch (ele, c0, ele%vec0, ele%mat6)
+if (ele%map_with_offsets) then
+  call taylor_to_mat6 (ele%taylor, orb_in%vec, ele%vec0, ele%mat6)
+
+else
+  orb0 = orb_in
+  call offset_particle (ele, param, orb0, set$, set_canonical = .false.)
+  call taylor_to_mat6 (ele%taylor, orb0%vec, ele%vec0, ele%mat6, orb_out%vec)
+  call offset_particle (ele, param, orb_out, unset$, set_canonical = .false.)
+
+  if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (ele%mat6, ele%value(tilt_tot$))
+
+  call mat6_add_pitch (ele, ele%mat6)
+
+  ele%vec0 = orb_out%vec - matmul(ele%mat6, orb_in%vec)
+
+endif
 
 end subroutine
 

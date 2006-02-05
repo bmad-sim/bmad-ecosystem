@@ -547,7 +547,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine taylor_to_mat6 (a_taylor, r_in, vec0, mat6)
+! Subroutine taylor_to_mat6 (a_taylor, r_in, vec0, mat6, r_out)
 !
 ! Subroutine to calculate, from a Taylor map and about some trajectory:
 !   The 1st order (Jacobian) transfer matrix.
@@ -562,18 +562,20 @@ end subroutine
 ! Output:
 !   vec0(6)   -- Real(rp): 0th order tranfsfer map
 !   mat6(6,6) -- Real(rp): 1st order transfer map (6x6 matrix).
+!   r_out(6)  -- Coord_struct, optional: Coordinates at output.
 !-
 
-subroutine taylor_to_mat6 (a_taylor, r_in, vec0, mat6)
+subroutine taylor_to_mat6 (a_taylor, r_in, vec0, mat6, r_out)
 
   implicit none
 
   type (taylor_struct), target, intent(in) :: a_taylor(6)
   real(rp), intent(in) :: r_in(:)
+  real(rp), optional :: r_out(:)
   type (taylor_term_struct), pointer :: term
 
   real(rp), intent(out) :: mat6(6,6), vec0(6)
-  real(rp) prod, t(6), t_out, r_out
+  real(rp) prod, t(6), t_out, out(6)
 
   integer i, j, k, l
 
@@ -581,10 +583,9 @@ subroutine taylor_to_mat6 (a_taylor, r_in, vec0, mat6)
 
   mat6 = 0
   vec0 = 0
+  out = 0
 
   do i = 1, 6
-
-    r_out = 0
 
     terms: do k = 1, size(a_taylor(i)%term)
       term => a_taylor(i)%term(k)
@@ -596,7 +597,7 @@ subroutine taylor_to_mat6 (a_taylor, r_in, vec0, mat6)
         t_out = t_out * t(l)
       enddo
 
-      r_out = r_out + t_out
+      out(i) = out(i) + t_out
  
       do j = 1, 6
  
@@ -621,9 +622,11 @@ subroutine taylor_to_mat6 (a_taylor, r_in, vec0, mat6)
 
     enddo terms
 
-    vec0(i) = r_out - sum(mat6(i,:) * r_in)
+    vec0(i) = out(i) - sum(mat6(i,:) * r_in)
 
   enddo
+
+  if (present(r_out)) r_out = out
 
 end subroutine
 

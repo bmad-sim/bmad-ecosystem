@@ -195,7 +195,6 @@ subroutine track1_bmad (start, ele, param, end)
                     (3*end%vec(3)*end%vec(1)**2 - end%vec(3)**3) / 12
 
     call offset_particle (ele, param, end, unset$, set_canonical = .false.)  
-    call z_pitch_correction
 
 !-----------------------------------------------
 ! quadrupole
@@ -221,7 +220,6 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(3:4) = matmul(mat2, end%vec(3:4))
 
     call offset_particle (ele, param, end, unset$)  
-    call z_pitch_correction
 
 !-----------------------------------------------
 ! sbend
@@ -275,7 +273,6 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(6) = pz + dE0 + k*pxy2*L * (-1/(4*E2) + dE0/6) 
          
     call offset_particle (ele, param, end, unset$, set_canonical = .false.)
-    call z_pitch_correction
 
 !-----------------------------------------------
 ! LCavity: Linac rf cavity
@@ -455,7 +452,6 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(4) = end%vec(4) + k2l * end%vec(1) * end%vec(3) / 2
 
     call offset_particle (ele, param, end, unset$, set_canonical = .false.)
-    call z_pitch_correction
 
 !-----------------------------------------------
 ! solenoid
@@ -474,7 +470,6 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(1:4) = matmul (mat4, end%vec(1:4))
 
     call offset_particle (ele, param, end, unset$)
-    call z_pitch_correction
 
 !-----------------------------------------------
 ! sol_quad
@@ -491,7 +486,6 @@ subroutine track1_bmad (start, ele, param, end)
     end%vec(1:4) = matmul (mat6(1:4,1:4), end%vec(1:4))
 
     call offset_particle (ele, param, end, unset$)
-    call z_pitch_correction
 
 !-----------------------------------------------
 ! wiggler:
@@ -591,23 +585,6 @@ subroutine end_z_calc
   end%vec(5) = end%vec(5) - (length / rel_pc**2) * &
         (start%vec(2)**2 + end%vec(2)**2 + start%vec(2) * end%vec(2) + &
          start%vec(4)**2 + end%vec(4)**2 + start%vec(4) * end%vec(4)) / 6
-
-end subroutine
-
-!-------------------------------------------------------------------
-
-subroutine z_pitch_correction
-
-  real(rp) x_pitch, y_pitch
-
-  x_pitch = ele%value(x_pitch_tot$)
-  y_pitch = ele%value(y_pitch_tot$)
-
-  if (x_pitch /= 0) end%vec(5) = end%vec(5) + length*x_pitch**2/2 - &
-                   x_pitch * (end%vec(1) - start%vec(1))
-
-  if (y_pitch /= 0) end%vec(5) = end%vec(5) + length*y_pitch**2/2 - &
-                   y_pitch * (end%vec(3) - start%vec(3))
 
 end subroutine
 

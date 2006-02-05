@@ -139,7 +139,7 @@ subroutine ring_geometry (ring)
 
       case (patch$)
 
-        angle = ele%value(x_pitch$)            ! x_pitch is negative MAD yrot
+        angle = ele%value(x_pitch_tot$)            ! x_pitch is negative MAD yrot
         if (angle /= 0) then
           s_ang = sin(angle); c_ang = cos(angle)
           s_mat(1,:) = (/  c_ang,  0.0_dp, s_ang /)
@@ -148,7 +148,7 @@ subroutine ring_geometry (ring)
           w_mat = matmul(w_mat, s_mat)
         endif
      
-        angle = ele%value(y_pitch$)            ! 
+        angle = ele%value(y_pitch_tot$)           ! 
         if (angle /= 0) then
           s_ang = sin(angle); c_ang = cos(angle)
           s_mat(1,:) = (/ 1.0_dp,  0.0_dp, 0.0_dp /)

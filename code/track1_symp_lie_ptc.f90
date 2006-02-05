@@ -40,7 +40,7 @@ subroutine track1_symp_lie_ptc (start, ele, param, end)
 ! A fibre is PTC's structure analogous to BMAD's ele_struct.  
 
   call alloc_fibre (fibre_ele)
-  call ele_to_fibre (ele, fibre_ele, param)
+  call ele_to_fibre (ele, fibre_ele, param, .true.)
 
   if (param%particle > 0) then
     charge = +1

@@ -45,7 +45,7 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   real(rp) c_e, c_m, gamma_old, gamma_new
   real(rp) arg, rel_p, rel_p2, r11, r12, r21, r22
   real(rp) cy, sy, k2, s_off, x_pitch, y_pitch, y_ave, k_z
-  real(rp) dz_x(3), dz_y(3), xp_start, yp_start
+  real(rp) dz_x(3), dz_y(3), ddz_x(3), ddz_y(3), xp_start, yp_start
   real(rp) t5_11, t5_14, t5_22, t5_23, t5_33, t5_34, t5_44
   real(rp) t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
   real(rp) t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
@@ -245,8 +245,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 
     k1 = ele%value(k1$) / rel_p
 
-    call quad_mat2_calc (-k1, length, mat6(1:2,1:2), dz_x)
-    call quad_mat2_calc ( k1, length, mat6(3:4,3:4), dz_y)
+    call quad_mat2_calc (-k1, length, mat6(1:2,1:2), dz_x, ddz_x)
+    call quad_mat2_calc ( k1, length, mat6(3:4,3:4), dz_y, ddz_y)
 
     mat6(1,2) = mat6(1,2) / rel_p
     mat6(2,1) = mat6(2,1) * rel_p
@@ -261,6 +261,12 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       mat6(5,2) =    (c00%vec(1) * dz_x(2) + 2 * c00%vec(2) * dz_x(3)) / rel_p
       mat6(5,3) = 2 * c00%vec(3) * dz_y(1) +     c00%vec(4) * dz_y(2)
       mat6(5,4) =    (c00%vec(3) * dz_y(2) + 2 * c00%vec(4) * dz_y(3)) / rel_p
+      mat6(5,6) = c00%vec(1)**2 * ddz_x(1) / rel_p + &
+                  c00%vec(1)*c1%vec(2) * ddz_x(2) / rel_p + &
+                  c00%vec(2)**2 * ddz_x(3) / rel_p + &
+                  c00%vec(3)**2 * ddz_y(1) / rel_p + &
+                  c00%vec(3)*c1%vec(4) * ddz_y(2) / rel_p + &
+                  c00%vec(4)**2 * ddz_y(3) / rel_p 
     endif
 
     if (any(mat6(5,1:4) /= 0)) then
@@ -269,12 +275,6 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
       mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4)
       mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4)
     endif
-
-! mat6(5,6) is calculated using the formula for a drift
-
-    mat6(5,6) = (c0%vec(2)**2 + c0%vec(2)*c1%vec(2) + c1%vec(2)**2 + &
-                 c0%vec(4)**2 + c0%vec(4)*c1%vec(4) + c1%vec(4)**2) * &
-                 length / (3 * rel_p**3)
 
 ! tilt and multipoles
 
@@ -453,7 +453,8 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
   case (lcavity$)
 
     f = twopi * ele%value(rf_frequency$) / c_light
-    phase = twopi * (ele%value(phi0$)+ele%value(dphi0$)+ele%value(phi0_err$)) - f * c0%vec(5)
+    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + &
+                              ele%value(phi0_err$)) - f * c0%vec(5)
 
     cos_phi = cos(phase)
     gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi 
@@ -899,31 +900,7 @@ subroutine add_multipoles_and_s_offset
 
 ! pitch corrections
 
-  x_pitch = ele%value(x_pitch_tot$)
-  y_pitch = ele%value(y_pitch_tot$)
-
-  if (x_pitch /= 0 .or. y_pitch /= 0) then
-    mat6(5,1) = mat6(5,1) - x_pitch * (mat6(1,1) - 1) 
-    mat6(5,2) = mat6(5,2) - x_pitch *  mat6(1,2)
-    mat6(5,3) = mat6(5,3) - x_pitch *  mat6(1,3)
-    mat6(5,4) = mat6(5,4) - x_pitch *  mat6(1,4)
-
-    mat6(5,1) = mat6(5,1) - y_pitch *  mat6(3,1)
-    mat6(5,2) = mat6(5,2) - y_pitch *  mat6(3,2)
-    mat6(5,3) = mat6(5,3) - y_pitch * (mat6(3,3) - 1)
-    mat6(5,4) = mat6(5,4) - y_pitch *  mat6(3,4)
-
-    mat6(1,6) = mat6(5,2) * mat6(1,1) - mat6(5,1) * mat6(1,2) + &
-                    mat6(5,4) * mat6(1,3) - mat6(5,3) * mat6(1,4)
-    mat6(2,6) = mat6(5,2) * mat6(2,1) - mat6(5,1) * mat6(2,2) + &
-                    mat6(5,4) * mat6(2,3) - mat6(5,3) * mat6(2,4)
-    mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4) + &
-                    mat6(5,2) * mat6(3,1) - mat6(5,1) * mat6(3,2)
-    mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4) + &
-                    mat6(5,2) * mat6(4,1) - mat6(5,1) * mat6(4,2)
-
-  endif
-
+  call mat6_add_pitch (ele, ele%mat6)
 
 end subroutine
 

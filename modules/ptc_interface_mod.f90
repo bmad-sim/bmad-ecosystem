@@ -280,7 +280,7 @@ subroutine ring_to_layout (ring, ptc_layout)
 
   do i = 1, ring%n_ele_use
     allocate (fib)
-    call ele_to_fibre (ring%ele_(i), fib, ring%param)
+    call ele_to_fibre (ring%ele_(i), fib, ring%param, .true.)
     call append (ptc_layout, fib)
     call kill (fib)
   enddo
@@ -1412,7 +1412,7 @@ subroutine taylor_propagate1 (tlr, ele, param)
   y = tlr
 
   call alloc (a_fibre)
-  call ele_to_fibre (ele, a_fibre, param)
+  call ele_to_fibre (ele, a_fibre, param, .true.)
   call ptc_track (a_fibre, y, default, +1)  ! "track" in PTC
   call kill (a_fibre)
 
@@ -1424,7 +1424,7 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine ele_to_taylor (ele, param, orb0)
+! Subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
 !
 ! Subroutine to make a taylor map for an element. 
 ! The order of the map is set by set_ptc
@@ -1436,17 +1436,20 @@ end subroutine
 !   ele   -- Element_struct: 
 !     %integrator_order  -- Order for the symplectic integrator: 2, 4, or 6.
 !     %value(ds_step$)   -- Integrater step size.
+!     %map_with_offsets  -- Make Taylor map with element offsets, pitches, and tilt?
 !   orb0  -- Coord_struct, optional: Starting coords around which the Taylor series 
 !              is evaluated.
 !   param -- Param_struct: 
 !     %beam_energy -- Needed for wigglers.
+!   map_with_offsets -- Logical, optional: If present then overrides 
+!                         ele%map_with_offsets.
 !
 ! Output:
 !   ele -- Element_struct:
 !     %taylor(6)  -- Taylor maps.
 !-
 
-subroutine ele_to_taylor (ele, param, orb0)
+subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
 
   use s_tracking, only: assignment(=), kill, default, alloc
   use mad_like, only: ptc_track => track
@@ -1466,7 +1469,8 @@ subroutine ele_to_taylor (ele, param, orb0)
   
   integer i
   
-  logical :: init_needed = .true.
+  logical, optional :: map_with_offsets
+  logical :: init_needed = .true., use_offsets
 
 ! Init
 
@@ -1493,7 +1497,8 @@ subroutine ele_to_taylor (ele, param, orb0)
 ! Track with offset
 
   call alloc (a_fibre)
-  call ele_to_fibre (ele, a_fibre, param)
+  use_offsets = logic_option(ele%map_with_offsets, map_with_offsets)
+  call ele_to_fibre (ele, a_fibre, param, use_offsets)
  
   if (present(orb0)) then
     ele%taylor(:)%ref = orb0%vec
@@ -1712,7 +1717,7 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
+! Subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
 !
 ! Subroutine to convert a Bmad element to a PTC fibre element.
 ! This subroutine allocates fresh storage for the fibre so after calling
@@ -1730,6 +1735,7 @@ end subroutine
 !                           tilt, etc. for the  fiber element will be zero.
 !   param       -- param_struct: 
 !     %beam_energy     -- Beam energy (for wigglers).
+!   use_offsets -- Logical: Does fiber include element offsets, pitches and tilt?
 !   integ_order -- Integer, optional: Order for the 
 !                    sympletic integrator. Possibilities are: 2, 4, or 6
 !                    Overrides ele%integrator_order.
@@ -1741,7 +1747,7 @@ end subroutine
 !   fiber -- Fibre: PTC fibre element.
 !+
 
-subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
+subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
 
   use sagan_wiggler, only: hyperbolic_x$, hyperbolic_y$, hyperbolic_xy$
   use madx_keywords, only: keywords, zero_key, create_fibre, geo_rot
@@ -1763,7 +1769,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
   integer n, key, n_term, exception
   integer, optional :: integ_order, steps
 
-  logical kick_here
+  logical kick_here, use_offsets
 
 !
 
@@ -1776,7 +1782,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 !  ptc_key%list%ld   = ele%value(l$)
 !  ptc_key%list%lc   = ele%value(l$)
 
-  if (ele%map_with_offsets) then
+  if (use_offsets) then
     ptc_key%tiltd = ele%value(tilt_tot$)
   else
     ptc_key%tiltd = 0
@@ -1967,7 +1973,7 @@ subroutine ele_to_fibre (ele, fiber, param, integ_order, steps)
 ! in PTC the reference point for the offsets is the beginning of the element.
 ! In Bmad the reference point is the center of the element..
 
-  if (ele%map_with_offsets) then
+  if (use_offsets) then
     x_off = ele%value(x_offset_tot$)
     y_off = ele%value(y_offset_tot$)
     x_pitch = ele%value(x_pitch_tot$)

@@ -286,13 +286,12 @@ subroutine track_it (ele, param, start, end, calc_mat6, track, real_track)
                                                                    m6(5,6) * mat6(6,1:6)
 
     if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (mat6, ele%value(tilt_tot$))
+    if (x_pitch /= 0 .or. y_pitch /= 0) call mat6_add_pitch (ele, mat6)
   endif
 
   if (real_track) call offset_particle (ele, param, end, unset$, set_canonical = .false.)
 
 ! Correct for finite pitches & calc vec0
-
-  if (x_pitch /= 0 .or. y_pitch /= 0) call correct_for_pitch (end, mat6)
 
   if (calc_mat6) then
     ele%vec0(1:5) = end%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)
@@ -334,8 +333,7 @@ subroutine save_this_track_pt (ix, s)
 
   if (calc_mat6) track%pt(ix)%mat6 = mat6
 
-  if (x_pitch /= 0 .or. y_pitch /= 0) &
-                          call correct_for_pitch (track%pt(ix)%orb, track%pt(ix)%mat6)
+  if (x_pitch /= 0 .or. y_pitch /= 0) call mat6_add_pitch (ele, track%pt(ix)%mat6)
 
   if (calc_mat6) then
     track%pt(ix)%vec0(1:5) = end%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)
@@ -344,44 +342,6 @@ subroutine save_this_track_pt (ix, s)
  
   
 end subroutine  
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! contains
-
-subroutine correct_for_pitch (orb, mat)
-
-  type (coord_struct) orb
-  real(rp) mat(6,6)
-
-
-  orb%vec(5) = orb%vec(5) - &
-            (orb%vec(1) - start%vec(1)) * x_pitch - x_pitch**2 * ele%value(l$)/2 - &
-            (orb%vec(3) - start%vec(3)) * y_pitch - y_pitch**2 * ele%value(l$)/2 
-
-  if (calc_mat6) then
-    mat(5,1) = mat(5,1) - x_pitch * (mat(1,1) - 1) 
-    mat(5,2) = mat(5,2) - x_pitch *  mat(1,2)
-    mat(5,3) = mat(5,3) - x_pitch *  mat(1,3)
-    mat(5,4) = mat(5,4) - x_pitch *  mat(1,4)
-
-    mat(5,1) = mat(5,1) - y_pitch *  mat(3,1)
-    mat(5,2) = mat(5,2) - y_pitch *  mat(3,2)
-    mat(5,3) = mat(5,3) - y_pitch * (mat(3,3) - 1)
-    mat(5,4) = mat(5,4) - y_pitch *  mat(3,4)
-
-    mat(1,6) = mat(5,2) * mat(1,1) - mat(5,1) * mat(1,2) + &
-                    mat(5,4) * mat(1,3) - mat(5,3) * mat(1,4)
-    mat(2,6) = mat(5,2) * mat(2,1) - mat(5,1) * mat(2,2) + &
-                    mat(5,4) * mat(2,3) - mat(5,3) * mat(2,4)
-    mat(3,6) = mat(5,4) * mat(3,3) - mat(5,3) * mat(3,4) + &
-                    mat(5,2) * mat(3,1) - mat(5,1) * mat(3,2)
-    mat(4,6) = mat(5,4) * mat(4,3) - mat(5,3) * mat(4,4) + &
-                    mat(5,2) * mat(4,1) - mat(5,1) * mat(4,2)
-  endif
-
-end subroutine
 
 !----------------------------------------------------------------------------
 ! contains

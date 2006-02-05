@@ -31,9 +31,9 @@ subroutine make_mat6_symp_lie_ptc (ele, param, c0)
 
 !
 
-  call ele_to_taylor(ele, param, c0)
+  call ele_to_taylor(ele, param, c0, .true.)
   call taylor_to_mat6 (ele%taylor, c0%vec, ele%vec0, ele%mat6)
-
+  call kill_taylor (ele%taylor)
 
 end subroutine
 

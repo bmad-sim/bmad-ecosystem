@@ -12,7 +12,7 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine quad_mat2_calc (k1, length, mat2, dz_coef)
+! Subroutine quad_mat2_calc (k1, length, mat2, z_coef, dz_dpz_coef)
 !
 ! Subroutine to calculate the 2x2 transfer matrix for a quad for
 ! one plane. 
@@ -28,24 +28,28 @@ contains
 !
 ! Output:
 !   mat2(2,2)  -- Real(rp): Transfer matrix.
-!   dz_coef(3) -- Real(rp), optional: Coefficients for calculating the
+!   z_coef(3)  -- Real(rp), optional: Coefficients for calculating the
 !                 the change in z position:
-!                   dz = Integral [-x'^2/2 ds]
+!                   z = Integral [-x'^2/2 ds]
 !                      = c(1) * x_0^2 + c(2) * x_0 * x'_0 + c(3) * x'_0^2 
+!   dz_dpz_coef(3) -- Real(rp), optional: Coefficients for calculating the
+!                     the mat6(5,6) Jacobian matrix element:
+!                       dz_dpz = c(1) * x_0^2 + 
+!                                 c(2) * x_0 * x'_0 + c(3) * x'_0^2 
 !-
 
-subroutine quad_mat2_calc (k1, length, mat2, dz_coef)
+subroutine quad_mat2_calc (k1, length, mat2, z_coef, dz_dpz_coef)
 
   implicit none
 
-  real(rp) length, mat2(2,2), cx, sx
-  real(rp) k1, sqrt_k, arg, arg2
-  real(rp), optional :: dz_coef(3)
+  real(rp) length, mat2(:,:), cx, sx
+  real(rp) k1, omega, arg, arg2, zc(3), dsx, dcx
+  real(rp), optional :: z_coef(3), dz_dpz_coef(3)
 
 !
 
-  sqrt_k = sqrt(abs(k1))
-  arg = sqrt_k * length
+  omega = sqrt(abs(k1))
+  arg = omega * length
 
   if (arg < 1e-10) then
     arg2 = k1 * length**2
@@ -53,10 +57,10 @@ subroutine quad_mat2_calc (k1, length, mat2, dz_coef)
     sx = (1 - arg2 / 6) * length
   elseif (k1 < 0) then       ! focus
     cx = cos(arg)
-    sx = sin(arg) / sqrt_k
+    sx = sin(arg) / omega
   else                       ! defocus
     cx = cosh(arg)
-    sx = sinh(arg) / sqrt_k
+    sx = sinh(arg) / omega
   endif
 
   mat2(1,1) = cx
@@ -64,10 +68,31 @@ subroutine quad_mat2_calc (k1, length, mat2, dz_coef)
   mat2(2,1) = k1 * sx
   mat2(2,2) = cx
 
-  if (present(dz_coef)) then
-    dz_coef(1) = k1 * (-cx * sx + length) / 4
-    dz_coef(2) = -k1 * sx**2 / 2
-    dz_coef(3) = -(cx * sx + length) / 4
+!
+
+  if (present(z_coef) .or. present(dz_dpz_coef)) then
+    zc(1) = k1 * (-cx * sx + length) / 4
+    zc(2) = -k1 * sx**2 / 2
+    zc(3) = -(cx * sx + length) / 4
+    if (present(z_coef)) z_coef = zc
+  endif
+
+!
+
+  if (present(dz_dpz_coef)) then
+
+    if (arg < 1e-10) then
+      dsx = arg2 * length / 6
+      dcx = arg2 / 2
+    else
+      dsx = (sx - length * cx) / 2
+      dcx = k1 * sx * length / 2
+    endif
+
+    dz_dpz_coef(1) = -zc(1) + k1 * (cx * dsx + dcx * sx) / 4
+    dz_dpz_coef(2) = -2 * zc(2) + k1 * sx * dsx
+    dz_dpz_coef(3) = -2 * zc(3) - (cx * dsx + dcx * sx) / 4
+
   endif
 
 end subroutine

@@ -24,10 +24,11 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine mat6_add_pitch (ele, orb0, vec0, mat6)
+! Subroutine mat6_add_pitch (ele, mat6)
 !
-! Subroutine to modify a first order transfer map to include the affect
-! of an element pitch. It is assumed that on input the transfer map
+! Subroutine to modify a first order transfer matrix to include the affect
+! of an element pitch. Note that this routine does not correct the 0th order
+! part of the map. It is assumed that on input the transfer map
 ! does not include the affect of any pitches.
 !
 ! Modules needed:
@@ -35,39 +36,29 @@ contains
 !
 ! Input:
 !   ele       -- Ele_struct: Element with pitches
-!     %value(x_pitch$) -- Horizontal pitch
-!     %value(y_pitch$) -- Vertical pitch
-!   orb0      -- Coord_struct: Starting coordinates around which the tranfer
-!             map was made.
-!   vec0(6)   -- Real(rp): 0th order part of the transfer map.
+!     %value(x_pitch_tot$) -- Horizontal pitch
+!     %value(y_pitch_tot$) -- Vertical pitch
 !   mat6(6,6) -- Real(rp): 1st order part of the transfer map (Jacobian).
 !
 ! Output:
-!   vec0(6)   -- Real(rp): 0th order xfer map with pitches.
 !   mat6(6,6) -- Real(rp): 1st order xfer map with pitches.
 !-
 
-subroutine mat6_add_pitch (ele, orb0, vec0, mat6)
+subroutine mat6_add_pitch (ele, mat6)
 
 implicit none
 
 type (ele_struct) ele
-type (coord_struct) orb0 
-
-real(rp) vec0(:), mat6(:,:)
-real(rp) x_pitch, y_pitch, end(6)
+real(rp) mat6(:,:), x_pitch, y_pitch
 
 !
 
-if (ele%value(x_pitch$) == 0 .and. ele%value(y_pitch$) == 0) return
+if (ele%value(x_pitch_tot$) == 0 .and. ele%value(y_pitch_tot$) == 0) return
 
-x_pitch = ele%value(x_pitch$)
-y_pitch = ele%value(y_pitch$)
+x_pitch = ele%value(x_pitch_tot$)
+y_pitch = ele%value(y_pitch_tot$)
 
-end = vec0 + matmul(mat6, orb0%vec)
-end(5) = end(5) - &
-            (end(1) - orb0%vec(1)) * x_pitch - x_pitch**2 * ele%value(l$)/2 - &
-            (end(3) - orb0%vec(3)) * y_pitch - y_pitch**2 * ele%value(l$)/2 
+mat6(5,6) = mat6(5,6) - mat6(5,2) * x_pitch - mat6(5,4) * y_pitch
 
 mat6(5,1) = mat6(5,1) - x_pitch * (mat6(1,1) - 1) 
 mat6(5,2) = mat6(5,2) - x_pitch *  mat6(1,2)
@@ -87,8 +78,6 @@ mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4) + &
                     mat6(5,2) * mat6(3,1) - mat6(5,1) * mat6(3,2)
 mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4) + &
                     mat6(5,2) * mat6(4,1) - mat6(5,1) * mat6(4,2)
-
-
 
 end subroutine
 

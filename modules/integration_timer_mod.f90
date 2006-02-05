@@ -59,7 +59,7 @@ subroutine integration_timer_ele (ele, param, start, orb_max, tol)
 !
 
   call alloc_fibre (a_fibre)
-  call ele_to_fibre (ele, a_fibre, param)
+  call ele_to_fibre (ele, a_fibre, param, .true.)
 
   call vec_bmad_to_ptc (start%vec, orbit)
   call vec_bmad_to_ptc (orb_max%vec, orbit_max)

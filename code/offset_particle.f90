@@ -61,7 +61,7 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
 
   real(rp), optional, intent(in) :: s_pos
   real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-  real(rp) del_x_vel, del_y_vel, angle, s_here
+  real(rp) del_x_vel, del_y_vel, angle, s_here, xp, yp
 
   integer n
 
@@ -143,12 +143,14 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
       else
         s_here = -ele%value(l$) / 2
       endif
-      coord%vec(1) = coord%vec(1) - ele%value(x_offset_tot$) -  &
-                                       ele%value(x_pitch_tot$) * s_here
-      coord%vec(2) = coord%vec(2) - ele%value(x_pitch_tot$) * E_rel
-      coord%vec(3) = coord%vec(3) - ele%value(y_offset_tot$) -  &
-                                         ele%value(y_pitch_tot$) * s_here
-      coord%vec(4) = coord%vec(4) - ele%value(y_pitch_tot$) * E_rel
+      xp = ele%value(x_pitch_tot$)
+      yp = ele%value(y_pitch_tot$)
+      coord%vec(1) = coord%vec(1) - ele%value(x_offset_tot$) - xp * s_here
+      coord%vec(2) = coord%vec(2) - xp * E_rel
+      coord%vec(3) = coord%vec(3) - ele%value(y_offset_tot$) - yp * s_here
+      coord%vec(4) = coord%vec(4) - yp * E_rel
+      coord%vec(5) = coord%vec(5) + xp * coord%vec(1) + yp * coord%vec(3) - &
+                                    (xp**2 + yp**2) * ele%value(l$) / 4
     endif
 
 ! Set: HV kicks for quads, etc.
@@ -291,12 +293,14 @@ subroutine offset_particle (ele, param, coord, set, set_canonical, &
       else
         s_here = ele%value(l$) / 2
       endif
-      coord%vec(1) = coord%vec(1) + ele%value(x_offset_tot$) + &
-                                       ele%value(x_pitch_tot$) * s_here
-      coord%vec(2) = coord%vec(2) + ele%value(x_pitch_tot$) * E_rel
-      coord%vec(3) = coord%vec(3) + ele%value(y_offset_tot$) +  &
-                                         ele%value(y_pitch_tot$) * s_here
-      coord%vec(4) = coord%vec(4) + ele%value(y_pitch_tot$) * E_rel
+      xp = ele%value(x_pitch_tot$)
+      yp = ele%value(y_pitch_tot$)
+      coord%vec(5) = coord%vec(5) - xp * coord%vec(1) - yp * coord%vec(3) - &
+                                    (xp**2 + yp**2) * ele%value(l$) / 4
+      coord%vec(1) = coord%vec(1) + ele%value(x_offset_tot$) + xp * s_here
+      coord%vec(2) = coord%vec(2) + xp * E_rel
+      coord%vec(3) = coord%vec(3) + ele%value(y_offset_tot$) + yp * s_here
+      coord%vec(4) = coord%vec(4) + yp * E_rel
     endif
 
     if (ele%value(s_offset_tot$) /= 0) &
