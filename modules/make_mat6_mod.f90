@@ -681,14 +681,17 @@ subroutine tilt_mat6 (mat6, tilt)
   implicit none
 
   real(rp) tilt, mat6(6,6), mm(6,6)
-  real(rp) c, s
+  real(rp), save :: old_tilt = 0, c = 1, s = 0
 
 !
 
   if (tilt == 0) return
 
-  c = cos(tilt)
-  s = sin(tilt)
+  if (tilt /= old_tilt) then
+    c = cos(tilt)
+    s = sin(tilt)
+    old_tilt = tilt
+  endif
 
   mm(1,1:6) = c * mat6(1,1:6) - s * mat6(3,1:6)
   mm(2,1:6) = c * mat6(2,1:6) - s * mat6(4,1:6)
