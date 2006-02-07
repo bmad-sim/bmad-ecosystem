@@ -125,10 +125,10 @@ if (x_max == x_min) then
 
   elseif (plot%x_axis_type == "ele_index") then
     x1 = 0
-    x2 = s%u(s%global%u_view)%design%n_ele_use 
+    x2 = s%u(s%global%u_view)%model%lat%n_ele_use 
   elseif (plot%x_axis_type == "s") then
     x1 = 0
-    x2 = maxval (s%u(:)%model%param%total_length)
+    x2 = maxval (s%u(:)%model%lat%param%total_length)
   endif
 
 ! not auto scale

@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_hook_lattice_calc (universe, lattice, orbit, used)
+! Subroutine tao_hook_lattice_calc (universe, tao_lat, used)
 !
 !  This hook is used to do custom lattice calculations. This routine is only called if
 ! the lattice needs to be recalculated. If this hook is used then set used to
@@ -18,17 +18,15 @@
 !
 ! Input:
 !  universe   -- tao_universe_struct: universe to do calculation in
-!  lattice    -- ring_struct: lattice to use (i.e. model, design, etc...)
-!  orbit      -- coord_struct(0:): orbit structure (i.e. model, design, etc...)
+!  tao_lat    -- Tao_lattice_struct: Lattice and orbit to use (i.e. model, design, etc...)
 !
 ! Output:
 !  universe   -- tao_universe_struct: universe to do calculation in
-!  lattice    -- ring_struct: lattice to use (i.e. model, design, etc...)
-!  orbit      -- coord_struct(0:): orbit structure (i.e. model, design, etc...)
+!  tao_lat    -- Tao_lattice_struct: Lattice and orbit to use (i.e. model, design, etc...)
 !  used       -- Logical: is this hook being used for this universe
 !-
 
-subroutine tao_hook_lattice_calc (universe, lattice, orbit, used)
+subroutine tao_hook_lattice_calc (universe, tao_lat, used)
 
 use tao_mod
 use tao_lattice_calc_mod
@@ -37,8 +35,7 @@ use tao_data_mod
 implicit none
 
 type (tao_universe_struct) :: universe
-type (ring_struct) :: lattice
-type (coord_struct) :: orbit(0:)
+type (tao_lattice_struct) :: tao_lat
 logical used
 
 integer i

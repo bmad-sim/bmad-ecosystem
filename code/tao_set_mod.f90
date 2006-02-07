@@ -53,8 +53,8 @@ subroutine set_lat (u)
 implicit none
 
 type (tao_universe_struct), target :: u
-type (ring_struct), pointer :: set_this_lat
-type (ring_struct), pointer :: to_this_lat
+type (tao_lattice_struct), pointer :: set_this_lat
+type (tao_lattice_struct), pointer :: to_this_lat
 real(rp), pointer :: set_this_data(:)
 real(rp), pointer :: to_this_data(:)
 
@@ -95,7 +95,9 @@ select case (to_lattice)
     return
 end select
   
-set_this_lat = to_this_lat
+set_this_lat%lat = to_this_lat%lat
+set_this_lat%orb = to_this_lat%orb
+set_this_lat%modes = to_this_lat%modes
 
 set_this_data = to_this_data
 
@@ -254,7 +256,7 @@ select case (component)
       return
     endif
     curve%ix_ele2 = i      
-    curve%ele2_name = s%u(i_uni)%model%ele_(curve%ix_ele2)%name
+    curve%ele2_name = s%u(i_uni)%model%lat%ele_(curve%ix_ele2)%name
 
   case default
     

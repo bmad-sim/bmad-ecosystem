@@ -531,18 +531,18 @@ subroutine init_lattices ()
   integer i
 
   do i = 1, size(s%u)
-    n = s%u(i)%design%n_ele_max
-    if (allocated(s%u(i)%model_orb)) deallocate (s%u(i)%model_orb)
-    if (allocated(s%u(i)%design_orb)) deallocate (s%u(i)%design_orb)
-    if (allocated(s%u(i)%base_orb)) deallocate (s%u(i)%base_orb)
-    allocate (s%u(i)%model_orb(0:n), s%u(i)%design_orb(0:n), s%u(i)%base_orb(0:n))
+    n = s%u(i)%design%lat%n_ele_max
+    if (allocated(s%u(i)%model%orb)) deallocate (s%u(i)%model%orb)
+    if (allocated(s%u(i)%design%orb)) deallocate (s%u(i)%design%orb)
+    if (allocated(s%u(i)%base%orb)) deallocate (s%u(i)%base%orb)
+    allocate (s%u(i)%model%orb(0:n), s%u(i)%design%orb(0:n), s%u(i)%base%orb(0:n))
     ! Specify initial conditions
-    s%u(i)%design_orb(0)%vec = 0.0
-    call polar_to_spinor (spin, s%u(i)%design_orb(0))
-    call init_ring (s%u(i)%model, s%u(i)%design%n_ele_max)
-    call init_ring (s%u(i)%base, s%u(i)%design%n_ele_max)
-    s%u(i)%model = s%u(i)%design
-    s%u(i)%base  = s%u(i)%design
+    s%u(i)%design%orb(0)%vec = 0.0
+    call polar_to_spinor (spin, s%u(i)%design%orb(0))
+    call init_ring (s%u(i)%model%lat, s%u(i)%design%lat%n_ele_max)
+    call init_ring (s%u(i)%base%lat, s%u(i)%design%lat%n_ele_max)
+    s%u(i)%model%lat = s%u(i)%design%lat
+    s%u(i)%base%lat  = s%u(i)%design%lat
   enddo
   
 end subroutine init_lattices
@@ -623,7 +623,7 @@ u%d2_data(n_d2)%d1(i_d1)%name = d1_data%name  ! stuff in the data
 ! and record the element names in the data structs
     
 if (index(data(0)%ele_name, 'SEARCH') .ne. 0) then
-  allocate (found_one(u%design%n_ele_max))
+  allocate (found_one(u%design%lat%n_ele_max))
   if (index(data(0)%ele_name, 'SEARCH_KEY:') .ne. 0) then
     call string_trim(data(0)%ele_name(12:), search_string, ix)
     call find_elements (u, search_string, ele_key$, found_one)
@@ -655,7 +655,7 @@ if (index(data(0)%ele_name, 'SEARCH') .ne. 0) then
         call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
         call err_exit
       endif
-      u%data(jj)%ele_name = u%design%ele_(j)%name
+      u%data(jj)%ele_name = u%design%lat%ele_(j)%name
       u%data(jj)%ix_ele   = j
       u%data(jj)%exists   = .true.
       jj = jj + 1
@@ -694,14 +694,16 @@ else
   u%data(n1:n2)%data_type  = data(ix1:ix2)%data_type
 
   do j = n1, n2
-    if (u%data(j)%data_type(1:10) == 'emittance:') then
+    if (u%data(j)%data_type(1:10) == 'emittance:' .or. &
+        u%data(j)%data_type(1:13) == 'chromaticity:' .or. &
+        u%data(j)%data_type(1:13) == 'unstable_ring') then
       u%data(j)%exists = .true.
       cycle
     endif
 
     if (u%data(j)%ele_name == ' ') cycle
     call str_upcase (u%data(j)%ele_name, u%data(j)%ele_name)
-    call element_locator (u%data(j)%ele_name, u%design, ix)
+    call element_locator (u%data(j)%ele_name, u%design%lat, ix)
     if (ix < 0) then
       call out_io (s_abort$, r_name, 'ELEMENT NOT LOCATED: ' // &
                                                        u%data(j)%ele_name)
@@ -712,7 +714,7 @@ else
 
     if (u%data(j)%ele2_name == ' ') cycle
     call str_upcase (u%data(j)%ele2_name, u%data(j)%ele2_name)
-    call element_locator (u%data(j)%ele2_name, u%design, ix)
+    call element_locator (u%data(j)%ele2_name, u%design%lat, ix)
     if (ix < 0) then
       call out_io (s_abort$, r_name, 'ELEMENT2 NOT LOCATED: ' // &
                                                        u%data(j)%ele2_name)
@@ -747,11 +749,11 @@ endif
 ! set bpm noise (only applicable to bpm data
 if (d2_data%name .eq. "bpm") then
   do j = n1, n2
-    u%design%ele_(u%data(j)%ix_ele)%r(1,1) = default_bpm_noise
+    u%design%lat%ele_(u%data(j)%ix_ele)%r(1,1) = default_bpm_noise
   enddo
   do j = lbound(data,1), ubound(data,1)
     if (data(j)%bpm_noise .ne. real_garbage$) &
-      u%design%ele_(u%data(n1+j-ix1)%ix_ele)%r(1,1) = data(j)%bpm_noise
+      u%design%lat%ele_(u%data(n1+j-ix1)%ix_ele)%r(1,1) = data(j)%bpm_noise
   enddo
 endif                   
 
@@ -805,9 +807,13 @@ if (allocated(found_one)) deallocate (found_one)
 ! do we need to do the radiation integrals?
 
 u%do_synch_rad_int_calc = .false.
+u%do_chrom_calc         = .false.
+
 do j = lbound(u%data, 1), ubound(u%data, 1)
   if (u%data(j)%data_type(1:10) == 'emittance:') &
                                     u%do_synch_rad_int_calc = .true. 
+  if (u%data(j)%data_type(1:13) == 'chromaticity:') &
+                                    u%do_chrom_calc = .true.
 enddo
 
 end subroutine d1_data_stuffit
@@ -903,7 +909,7 @@ subroutine var_stuffit_all_uni
         call tao_pointer_to_var_in_lattice (s_var, s_var%this(iu), iu)
       enddo
     else
-      found_one_loop: do j = j_save, size(found_one(1:s%u(1)%design%n_ele_max))
+      found_one_loop: do j = j_save, size(found_one(1:s%u(1)%design%lat%n_ele_max))
         if (found_one(j)) then
           do iu = 1, size(s%u)
             call tao_pointer_to_var_in_lattice (s_var, s_var%this(iu), iu, &
@@ -952,7 +958,7 @@ integer num_ele, ios, ixx1, ixx2
       num_ele = 0
       if (default_universe == 'gang' .or. default_universe == 'clone') then
       do iu = 1, size(s%u)
-        num_ele = num_ele + s%u(iu)%design%n_ele_max 
+        num_ele = num_ele + s%u(iu)%design%lat%n_ele_max 
       enddo
         if (allocated(found_one)) deallocate (found_one)  
         allocate (found_one(num_ele))
@@ -970,7 +976,7 @@ integer num_ele, ios, ixx1, ixx2
           call err_exit
       endif
         if (allocated(found_one)) deallocate (found_one)  
-      allocate (found_one(s%u(iu)%design%n_ele_max))
+      allocate (found_one(s%u(iu)%design%lat%n_ele_max))
       call search_for_vars (iu, found_one)
       endif
     else
@@ -990,15 +996,15 @@ integer num_ele, ios, ixx1, ixx2
       ixx2 = 1
       do iu = 1, size(s%u)
         ixx1 = ixx2
-        ixx2 = ixx1 + s%u(iu)%design%n_ele_max - 1
+        ixx2 = ixx1 + s%u(iu)%design%lat%n_ele_max - 1
         do j = 1, size(found_one(ixx1:ixx2))
           if (found_one(ixx1+j-1)) then
             if (jj .gt. n2) then
               call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
               call err_exit
             endif
-            s%var(jj)%ele_name = s%u(iu)%design%ele_(j)%name
-            s%var(jj)%s = s%u(iu)%design%ele_(j)%s
+            s%var(jj)%ele_name = s%u(iu)%design%lat%ele_(j)%name
+            s%var(jj)%s = s%u(iu)%design%lat%ele_(j)%s
             jj = jj + 1
           endif
         enddo
@@ -1010,8 +1016,8 @@ integer num_ele, ios, ixx1, ixx2
             call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
             call err_exit
           endif
-          s%var(jj)%ele_name = s%u(iu)%design%ele_(j)%name
-          s%var(jj)%s = s%u(iu)%design%ele_(j)%s
+          s%var(jj)%ele_name = s%u(iu)%design%lat%ele_(j)%name
+          s%var(jj)%s = s%u(iu)%design%lat%ele_(j)%s
           jj = jj + 1
         endif
       enddo
@@ -1096,7 +1102,7 @@ ix2 = 0
 if (uni == 0) then
   do jj = 1, size(s%u)
     ix1 = ix2 + 1
-    ix2 = s%u(jj)%design%n_ele_max
+    ix2 = s%u(jj)%design%lat%n_ele_max
     if (index(var(0)%ele_name, 'SEARCH_KEY:') .ne. 0) then
       call string_trim(var(0)%ele_name(12:), search_string, ix)
       call find_elements (s%u(jj), search_string, ele_key$, found_one(ix1:ix2))
@@ -1171,8 +1177,8 @@ integer j
 
   found_one = .false.
   if (attribute == ele_name$) then
-    do j = 1, u%design%n_ele_max
-      if (match_wild(u%design%ele_(j)%name, search_string)) &
+    do j = 1, u%design%lat%n_ele_max
+      if (match_wild(u%design%lat%ele_(j)%name, search_string)) &
       found_one(j) = .true.
     enddo
   elseif (attribute == ele_key$) then
@@ -1189,8 +1195,8 @@ integer j
       call out_io (s_abort$, r_name, "Ambiguous or non-existant key name")
       call err_exit
     endif
-    do j = 1, u%design%n_ele_max
-      if (u%design%ele_(j)%key == key) &
+    do j = 1, u%design%lat%n_ele_max
+      if (u%design%lat%ele_(j)%key == key) &
       found_one(j) = .true.
     enddo
   else 
@@ -1252,14 +1258,14 @@ integer j, ix
               "Will use element name.")
     endif
     if (ele_name == "end") then
-      u%coupling%from_uni_s  = from_uni%design%ele_(from_uni%design%n_ele_use)%s
-      u%coupling%from_uni_ix_ele = from_uni%design%n_ele_use
+      u%coupling%from_uni_s  = from_uni%design%lat%ele_(from_uni%design%lat%n_ele_use)%s
+      u%coupling%from_uni_ix_ele = from_uni%design%lat%n_ele_use
     else
       ! using element name 
       ! find last element with name
-      do j = from_uni%design%n_ele_use, 0, -1
-        if (ele_name(1:ix) == trim(from_uni%design%ele_(j)%name)) then
-          u%coupling%from_uni_s = from_uni%design%ele_(j)%s
+      do j = from_uni%design%lat%n_ele_use, 0, -1
+        if (ele_name(1:ix) == trim(from_uni%design%lat%ele_(j)%name)) then
+          u%coupling%from_uni_s = from_uni%design%lat%ele_(j)%s
           u%coupling%from_uni_ix_ele = j
           return
         endif
@@ -1278,7 +1284,7 @@ integer j, ix
       call out_io (s_blank$, r_name, &
               "Will use element index.")
     endif
-      u%coupling%from_uni_s = from_uni%design%ele_(coupled%at_ele_index)%s
+      u%coupling%from_uni_s = from_uni%design%lat%ele_(coupled%at_ele_index)%s
       u%coupling%from_uni_ix_ele = coupled%at_ele_index
   else
     ! using s position
@@ -1310,7 +1316,7 @@ logical calc_emittance
 
 !
   
-  if (u%design%param%lattice_type == circular_lattice$) then
+  if (u%design%lat%param%lattice_type == circular_lattice$) then
     call out_io (s_blank$, r_name, "***")
     call out_io (s_blank$, r_name, &
                  "Beam tracking through a circular lattice.")
@@ -1333,15 +1339,15 @@ logical calc_emittance
   endif
   
   u%beam%beam_init = beam_init
-  u%design_orb(0)%vec = beam_init%center
+  u%design%orb(0)%vec = beam_init%center
 
   ! No initialization for a circular lattice
-  if (u%design%param%lattice_type == circular_lattice$) return
+  if (u%design%lat%param%lattice_type == circular_lattice$) return
   
   ! This is just to get things allocated
-  call init_beam_distribution (u%design%ele_(0), beam_init, u%beam%beam)
+  call init_beam_distribution (u%design%lat%ele_(0), beam_init, u%beam%beam)
   if (u%coupling%coupled) &
-    call init_beam_distribution (u%design%ele_(0), beam_init, u%coupling%injecting_beam)
+    call init_beam_distribution (u%design%lat%ele_(0), beam_init, u%coupling%injecting_beam)
 
 end subroutine init_beam
 
@@ -1362,7 +1368,7 @@ logical calc_emittance
 
 !
 
-  if (u%design%param%lattice_type == circular_lattice$) then
+  if (u%design%lat%param%lattice_type == circular_lattice$) then
     call out_io (s_blank$, r_name, "***")
     call out_io (s_blank$, r_name, &
                  "Macroparticle tracking through a circular lattice.")
@@ -1385,16 +1391,16 @@ logical calc_emittance
   endif
 
   u%macro_beam%macro_init = macro_init
-  u%design_orb(0)%vec = macro_init%center
+  u%design%orb(0)%vec = macro_init%center
 
   ! Don't initialize beams in circular lattice
-  if (u%design%param%lattice_type == circular_lattice$) return
+  if (u%design%lat%param%lattice_type == circular_lattice$) return
     
   ! This is just to get things allocated
-  call init_macro_distribution (u%macro_beam%beam, macro_init, u%design%ele_(0), .true.)
+  call init_macro_distribution (u%macro_beam%beam, macro_init, u%design%lat%ele_(0), .true.)
   if (u%coupling%coupled) &
     call init_macro_distribution (u%coupling%injecting_macro_beam, &
-                                             macro_init, u%design%ele_(0), .true.)
+                                             macro_init, u%design%lat%ele_(0), .true.)
 
   ! keep track of where macros are lost
   if (associated (u%macro_beam%ix_lost)) deallocate (u%macro_beam%ix_lost)
@@ -1415,8 +1421,8 @@ implicit none
 
 type (tao_universe_struct) u
 
-integer, automatic :: n_data(-1:u%design%n_ele_max)
-integer, automatic :: ix_next(-1:u%design%n_ele_max)
+integer, automatic :: n_data(-1:u%design%lat%n_ele_max)
+integer, automatic :: ix_next(-1:u%design%lat%n_ele_max)
 
 integer j, k, ix_ele
 
@@ -1424,7 +1430,7 @@ integer j, k, ix_ele
 
   ! allocate the ix_data array
   if (associated(u%ix_data)) deallocate(u%ix_data)
-  allocate(u%ix_data(-1:u%design%n_ele_max))
+  allocate(u%ix_data(-1:u%design%lat%n_ele_max))
 
   ! find number of datums at each element
   do j = 1, size(u%data)

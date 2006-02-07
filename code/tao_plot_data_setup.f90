@@ -28,23 +28,23 @@ character(20) :: r_name = 'tao_plot_data_setup'
 
 if (any(s%plot_page%ele_shape(:)%key /= 0)) then
   do i_uni = 1, size(s%u)
-    s%u(i_uni)%model%ele_(:)%ix_pointer = 0
-    s%u(i_uni)%base%ele_(:)%ix_pointer = 0
-    do ie = 1, s%u(i_uni)%model%n_ele_max
-      ele => s%u(i_uni)%model%ele_(ie)
+    s%u(i_uni)%model%lat%ele_(:)%ix_pointer = 0
+    s%u(i_uni)%base%lat%ele_(:)%ix_pointer = 0
+    do ie = 1, s%u(i_uni)%model%lat%n_ele_max
+      ele => s%u(i_uni)%model%lat%ele_(ie)
       if (ele%control_type == group_lord$) cycle
       if (ele%control_type == overlay_lord$) cycle
       if (ele%control_type == super_slave$) cycle
       if (ele%control_type == multipass_lord$) cycle
-      if (ie > s%u(i_uni)%model%n_ele_use .and. &
+      if (ie > s%u(i_uni)%model%lat%n_ele_use .and. &
                                 ele%control_type == free$) cycle
       do k = 1, size(s%plot_page%ele_shape(:))
         if (s%plot_page%ele_shape(k)%key == 0) cycle
         if (ele%key == s%plot_page%ele_shape(k)%key .and. &
                  match_wild(ele%name, s%plot_page%ele_shape(k)%ele_name)) then
           ele%ix_pointer = k
-          s%u(i_uni)%base%ele_(ie)%ix_pointer = ie
-          s%u(i_uni)%base%ele_(ie-1)%ix_pointer = ie-1
+          s%u(i_uni)%base%lat%ele_(ie)%ix_pointer = ie
+          s%u(i_uni)%base%lat%ele_(ie-1)%ix_pointer = ie-1
           exit
         endif
       enddo
@@ -119,7 +119,7 @@ name = curve%ele2_name
 if (name == ' ') then
   ix = curve%ix_universe
   if (ix == 0) ix = s%global%u_view
-  name = s%u(ix)%model%ele_(curve%ix_ele2)%name
+  name = s%u(ix)%model%lat%ele_(curve%ix_ele2)%name
 endif
 
 write (graph%title_suffix, '(a, i0, 3a)') '[', curve%ix_ele2, ': ', trim(name), ']'
@@ -316,7 +316,7 @@ do k = 1, size(graph%curve)
     if (plot%x_axis_type == 's') then
       ! veto non-regular elements when plotting s
       forall (m = lbound(d1_ptr%d,1):ubound(d1_ptr%d,1), &
-                     d1_ptr%d(m)%ix_ele .gt. u%model%n_ele_use)
+                     d1_ptr%d(m)%ix_ele .gt. u%model%lat%n_ele_use)
         d1_ptr%d(m)%useit_plot = .false.
       endforall
     endif
@@ -333,7 +333,7 @@ do k = 1, size(graph%curve)
     elseif (plot%x_axis_type == 'ele_index') then
       curve%x_symb = d1_ptr%d(curve%ix_symb)%ix_ele
     elseif (plot%x_axis_type == 's') then
-      curve%x_symb = u%model%ele_(d1_ptr%d(curve%ix_symb)%ix_ele)%s
+      curve%x_symb = u%model%lat%ele_(d1_ptr%d(curve%ix_symb)%ix_ele)%s
     else
       call out_io (s_error$, r_name, "Unknown axis type!")
       graph%valid = .false.
@@ -428,7 +428,7 @@ do k = 1, size(graph%curve)
       enddo
     elseif (plot%x_axis_type == 's') then
       do jj = lbound(curve%ix_symb,1), ubound(curve%ix_symb,1)
-        curve%x_symb(jj) = u%model%ele_(v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele)%s
+        curve%x_symb(jj) = u%model%lat%ele_(v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele)%s
       enddo
     endif
 
@@ -484,14 +484,14 @@ do k = 1, size(graph%curve)
 
     if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
       i_min = max(1, floor(plot%x%min))
-      i_max = min(u%base%n_ele_use, ceiling(plot%x%max)) 
+      i_max = min(u%base%lat%n_ele_use, ceiling(plot%x%max)) 
       n_dat = max(0, i_max+1-i_min)
     elseif (plot%x_axis_type == 's') then
       ! %ix_pointer has been set to the element index for displayed elements
       eps = 1e-4 * (plot%x%max - plot%x%min)             ! a small number
-      u%base%ele_(:)%logic = (u%base%ele_(:)%ix_pointer > 0) .and. &
-            (u%base%ele_(:)%s >= plot%x%min-eps) .and. (u%base%ele_(:)%s <= plot%x%max+eps)
-      n_dat = count (u%base%ele_(:)%logic)
+      u%base%lat%ele_(:)%logic = (u%base%lat%ele_(:)%ix_pointer > 0) .and. &
+            (u%base%lat%ele_(:)%s >= plot%x%min-eps) .and. (u%base%lat%ele_(:)%s <= plot%x%max+eps)
+      n_dat = count (u%base%lat%ele_(:)%logic)
     endif
 
     call reassociate_integer (curve%ix_symb, n_dat)
@@ -503,8 +503,8 @@ do k = 1, size(graph%curve)
       if (n_dat > 0) curve%ix_symb = (/ (i, i = i_min, i_max) /)
       curve%x_symb = curve%ix_symb
     elseif (plot%x_axis_type == 's') then
-      curve%ix_symb = pack(u%base%ele_(:)%ix_pointer, mask = u%base%ele_(:)%logic)
-      curve%x_symb = u%model%ele_(curve%ix_symb)%s
+      curve%ix_symb = pack(u%base%lat%ele_(:)%ix_pointer, mask = u%base%lat%ele_(:)%logic)
+      curve%x_symb = u%model%lat%ele_(curve%ix_symb)%s
     endif
 
 ! calculate the y-axis data point values.
@@ -528,11 +528,11 @@ do k = 1, size(graph%curve)
         case (' ') 
           cycle
         case ('model')   
-          call tao_evaluate_a_datum (datum, u, u%model, u%model_orb, y_val, t_map)
+          call tao_evaluate_a_datum (datum, u, u%model, y_val, t_map)
         case ('base')  
-          call tao_evaluate_a_datum (datum, u, u%base, u%base_orb, y_val, t_map)
+          call tao_evaluate_a_datum (datum, u, u%base, y_val, t_map)
         case ('design')  
-          call tao_evaluate_a_datum (datum, u, u%design, u%design_orb, y_val, t_map)
+          call tao_evaluate_a_datum (datum, u, u%design, y_val, t_map)
         case default
           call out_io (s_error$, r_name, &
                           'BAD PLOT "WHO" FOR LAT_LAYOUT DATA_SOURCE: ' // graph%who(m)%name, &
@@ -594,15 +594,15 @@ do k = 1, size(graph%curve)
         case (' ') 
           cycle
         case ('model')
-          call s_data_to_plot (u%model, u%model_orb, curve%data_type, &
+          call s_data_to_plot (u%model%lat, u%model%orb, curve%data_type, &
                                                        graph%who(m), curve, err)
           if (err) smooth_curve = .false.
         case ('base')  
-          call s_data_to_plot (u%base, u%base_orb, curve%data_type, &
+          call s_data_to_plot (u%base%lat, u%base%orb, curve%data_type, &
                                                        graph%who(m), curve, err)
           if (err) smooth_curve = .false.
         case ('design')  
-          call s_data_to_plot (u%design, u%design_orb, curve%data_type, &
+          call s_data_to_plot (u%design%lat, u%design%orb, curve%data_type, &
                                                        graph%who(m), curve, err)
           if (err) smooth_curve = .false.
         case default
@@ -666,8 +666,8 @@ logical err
 
 err = .false.
 
-x1 = min (u%model%ele_(u%model%n_ele_use)%s, max (plot%x%min, u%model%ele_(0)%s))
-x2 = min (u%model%ele_(u%model%n_ele_use)%s, max (plot%x%max, u%model%ele_(0)%s))
+x1 = min (u%model%lat%ele_(u%model%lat%n_ele_use)%s, max (plot%x%min, u%model%lat%ele_(0)%s))
+x2 = min (u%model%lat%ele_(u%model%lat%n_ele_use)%s, max (plot%x%max, u%model%lat%ele_(0)%s))
 if (curve%ix_ele2 < 0) then
   s_last = 0
 else

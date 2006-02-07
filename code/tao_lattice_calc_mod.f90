@@ -44,10 +44,10 @@ implicit none
 
 logical, optional :: init_design
 
-type (ring_struct), pointer :: lattice
-type (coord_struct), pointer :: orbit(:)
+type (tao_lattice_struct), pointer :: this
 
 integer i, j
+real(rp) :: delta_e = 0
 
 character(20) :: r_name = "tao_lattice_calc"
 
@@ -69,10 +69,9 @@ endif
 ! do a custom lattice calculation if desired
 if (s%global%lattice_recalc) then
   do i = 1, size(s%u)
-    lattice => s%u(i)%model
-    orbit => s%u(i)%model_orb
-    call tao_lat_bookkeeper (s%u(i), lattice)
-    call tao_hook_lattice_calc (s%u(i), lattice, orbit, hook_used(i))
+    this => s%u(i)%model
+    call tao_lat_bookkeeper (s%u(i), this)
+    call tao_hook_lattice_calc (s%u(i), this, hook_used(i))
   enddo
   if (.not. any(.not. hook_used)) s%global%lattice_recalc = .false.
 endif
@@ -84,24 +83,23 @@ if (s%global%lattice_recalc) then
 
   do i = 1, size(s%u)
     if (.not. s%u(i)%is_on .or. hook_used(i)) cycle
-    lattice => s%u(i)%model
-    orbit => s%u(i)%model_orb
+    this => s%u(i)%model
     ! set up matching element
     if (initing_design) call tao_match_lats_init (s%u(i))
 
     select case (s%global%track_type)
     case ('single') 
-      call tao_inject_particle (s%u(i), lattice, orbit)
-      call tao_lat_bookkeeper (s%u(i), lattice)
-      call tao_single_track (i, lattice, orbit)
+      call tao_inject_particle (s%u(i), this)
+      call tao_lat_bookkeeper (s%u(i), this)
+      call tao_single_track (i, this)
     case ('beam') 
-      call tao_inject_beam (s%u(i), lattice, orbit)
-      call tao_lat_bookkeeper (s%u(i), lattice)
-      call tao_beam_track (i, lattice, orbit)
+      call tao_inject_beam (s%u(i), this)
+      call tao_lat_bookkeeper (s%u(i), this)
+      call tao_beam_track (i, this)
     case ('macro')
-      call tao_inject_macro_beam (s%u(i), lattice, orbit)
-      call tao_lat_bookkeeper (s%u(i), lattice)
-      call tao_macro_track (i, lattice, orbit)
+      call tao_inject_macro_beam (s%u(i), this)
+      call tao_lat_bookkeeper (s%u(i), this)
+      call tao_macro_track (i, this)
     case default
       call out_io (s_error$, r_name, &
                      "This tracking type has yet to be implemented!")
@@ -110,7 +108,8 @@ if (s%global%lattice_recalc) then
     end select
 
     if (s%u(i)%do_synch_rad_int_calc) &
-                       call radiation_integrals (lattice, orbit, s%u(i)%modes)
+                       call radiation_integrals (this%lat, this%orb, this%modes)
+    if (s%u(i)%do_chrom_calc) call chrom_calc (this%lat, delta_e, this%a%chrom, this%b%chrom)
 
     call tao_load_data_array (s%u(i), -1)
 
@@ -129,21 +128,25 @@ end subroutine tao_lattice_calc
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine tao_single_track (uni, lat, orb)
+subroutine tao_single_track (uni, tao_lat)
 
 implicit none
 
-type (ring_struct) lat
-type (coord_struct) :: orb(0:)
+type (tao_lattice_struct), target :: tao_lat
+type (ring_struct), pointer :: lat
 
 integer uni, i, ii
 
 character(20) :: r_name = "tao_single_track"
 
+!
+
+lat => tao_lat%lat
+
 if (lat%param%lattice_type == circular_lattice$) then
   call ring_make_mat6 (lat, -1)
   call twiss_at_start (lat)
-  call closed_orbit_at_start (lat, orb(0), 4, .true.)
+  call closed_orbit_at_start (lat, tao_lat%orb(0), 4, .true.)
 endif
 
 lat%param%ix_lost = not_lost$
@@ -152,12 +155,12 @@ if (lat%param%lattice_type == circular_lattice$) call twiss_at_start (lat)
 call tao_load_data_array (s%u(uni), 0)
 
 do i = 1, lat%n_ele_use
-  call track1 (orb(i-1), lat%ele_(i), lat%param, orb(i))
+  call track1 (tao_lat%orb(i-1), lat%ele_(i), lat%param, tao_lat%orb(i))
 
   if (lat%param%lost) then
     lat%param%ix_lost = i
     do ii = i+1, lat%n_ele_use
-      orb(ii)%vec = 0
+      tao_lat%orb(ii)%vec = 0
     enddo
     return
   endif
@@ -178,12 +181,12 @@ end subroutine tao_single_track
 ! Right now, there is no beam tracking in rings. If extracting from a
 ! ring then the beam is generated at the extraction point.
 
-subroutine tao_beam_track (uni, lat, orb)
+subroutine tao_beam_track (uni, tao_lat)
 
 implicit none
 
-type (ring_struct) :: lat
-type (coord_struct) :: orb(0:)
+type (tao_lattice_struct) tao_lat
+type (ring_struct), pointer :: lat
 type (tao_universe_struct), pointer :: u
 type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
@@ -217,6 +220,7 @@ call reallocate_integer (ix_ele,1)
 u => s%u(uni)
 beam => u%beam%beam
 beam_init => u%beam%beam_init
+lat => tao_lat%lat
 
 all_lost_already = .false.
 
@@ -243,19 +247,19 @@ enddo inject_loop
 if (.not. u%coupling%coupled) then
   ! no beam tracking in rings
   if (lat%param%lattice_type == circular_lattice$) then
-    call tao_single_track (uni, lat, orb) 
+    call tao_single_track (uni, tao_lat) 
     if (u%beam%calc_emittance) then
-      call radiation_integrals (lat, orb, modes)
+      call radiation_integrals (lat, tao_lat%orb, modes)
       if (extract_at_ix_ele .ne. -1) then
         f = lat%ele_(extract_at_ix_ele)%value(beam_energy$) * &
-                    (1+orb(extract_at_ix_ele)%vec(6)) / mass_of(lat%param%particle)
+                    (1+tao_lat%orb(extract_at_ix_ele)%vec(6)) / mass_of(lat%param%particle)
         beam_init%a_norm_emitt  = modes%a%emittance * f
         beam_init%b_norm_emitt  = modes%b%emittance * f
       endif
     endif
     ! transfer extracted particle info into macro_init
     if (extract_at_ix_ele .ne. -1) then
-      beam_init%center  = orb(extract_at_ix_ele)%vec
+      beam_init%center  = tao_lat%orb(extract_at_ix_ele)%vec
       ! other beam_init parameters will be as in tao.init, or as above
       call init_beam_distribution (lat%ele_(extract_at_ix_ele), &
                                beam_init, s%u(i_uni_to)%coupling%injecting_beam)
@@ -263,7 +267,7 @@ if (.not. u%coupling%coupled) then
     return
   elseif (lat%param%lattice_type == linear_lattice$) then
     ! set initial beam centroid
-    beam_init%center = orb(0)%vec
+    beam_init%center = tao_lat%orb(0)%vec
   else
     call out_io (s_error$, r_name, &
                    "This lattice type not yet implemented for beam tracking!")
@@ -318,7 +322,7 @@ do j = 1, lat%n_ele_use
   enddo
 
   ! compute centroid orbit
-  call tao_find_beam_centroid (beam, orb(j), uni, j)
+  call tao_find_beam_centroid (beam, tao_lat%orb(j), uni, j)
 
   ! Find lattice and beam parameters
   call tao_calc_params (u, j)
@@ -354,20 +358,20 @@ end subroutine tao_beam_track
 ! Right now, there is no macroparticle tracking in rings. If extracting from a
 ! ring then the macroparticle beam is generated at the extraction point.
 
-subroutine tao_macro_track (uni, lat, orb)
+subroutine tao_macro_track (uni, tao_lat)
 
 use macro_utils_mod
 
 implicit none
 
-integer uni, what_lat
-type (ring_struct) :: lat
-type (coord_struct) :: orb(0:)
+type (tao_lattice_struct) tao_lat
+type (ring_struct), pointer :: lat
 type (tao_universe_struct), pointer :: u
 type (macro_beam_struct), pointer :: beam
 type (macro_init_struct), pointer :: macro_init
 type (modes_struct) :: modes
 
+integer uni, what_lat
 integer j, i_uni
 integer n_bunch, n_slice, n_macro
 integer extract_at_ix_ele, n_lost
@@ -383,6 +387,7 @@ logical post
 u => s%u(uni)
 beam => u%macro_beam%beam
 macro_init => u%macro_beam%macro_init
+lat => tao_lat%lat
 
 all_lost_already = .false.
 
@@ -407,19 +412,19 @@ enddo inject_loop
 if (.not. u%coupling%coupled) then
   ! no macroparticle tracking in rings
   if (lat%param%lattice_type == circular_lattice$ ) then
-    call tao_single_track (uni, lat, orb) 
+    call tao_single_track (uni, tao_lat) 
     if (u%macro_beam%calc_emittance) then
-      call radiation_integrals (lat, orb, modes)
+      call radiation_integrals (lat, tao_lat%orb, modes)
       if (extract_at_ix_ele .ne. -1) then
         f = lat%ele_(extract_at_ix_ele)%value(beam_energy$) * &
-                    (1+orb(extract_at_ix_ele)%vec(6)) / mass_of(lat%param%particle)
+                    (1+tao_lat%orb(extract_at_ix_ele)%vec(6)) / mass_of(lat%param%particle)
         macro_init%x%norm_emit  = modes%a%emittance * f
         macro_init%y%norm_emit  = modes%b%emittance * f
       endif
     endif
     !transfer extracted particle info into macro_init
     if (extract_at_ix_ele .ne. -1) then
-      macro_init%center  = orb(extract_at_ix_ele)%vec
+      macro_init%center  = tao_lat%orb(extract_at_ix_ele)%vec
       ! other macro_init parameters will be as in init.tao, or as above
       call init_macro_distribution (s%u(i_uni)%coupling%injecting_macro_beam, &
                                 macro_init, lat%ele_(extract_at_ix_ele), .true.)
@@ -427,7 +432,7 @@ if (.not. u%coupling%coupled) then
     return
   elseif (lat%param%lattice_type == linear_lattice$) then
     ! set initial beam centroid
-    macro_init%center = orb(0)%vec
+    macro_init%center = tao_lat%orb(0)%vec
   else
     call out_io (s_error$, r_name, &
                    "This lattice type not yet implemented for macroparticles!")
@@ -453,7 +458,7 @@ do j = 1, lat%n_ele_use
   endif
     
   ! compute centroid orbit
-  call tao_find_macro_beam_centroid (beam, orb(j), uni, j, u%macro_beam)
+  call tao_find_macro_beam_centroid (beam, tao_lat%orb(j), uni, j, u%macro_beam)
 
   ! Find lattice and beam parameters
   call tao_calc_params (u, j)
@@ -647,13 +652,13 @@ end subroutine tao_find_macro_beam_centroid
 ! whatever the user has specified. As always, tracking only occure in the model
 ! lattice.
 
-subroutine tao_inject_particle (u, lat, orbit)
+subroutine tao_inject_particle (u, tao_lat)
 
 implicit none
 
 type (tao_universe_struct) u
-type (ring_struct) lat
-type (coord_struct) orbit(0:)
+type (tao_lattice_struct) tao_lat
+type (ring_struct), pointer :: lat
 
 type (ele_struct), save :: extract_ele
 type (coord_struct) pos
@@ -661,6 +666,8 @@ type (coord_struct) pos
 character(20) :: r_name = "inject_particle"
 
 !
+
+lat => tao_lat%lat
 
 if (.not. u%coupling%coupled) return
     
@@ -675,16 +682,16 @@ endif
 call init_ele (extract_ele)
   
 ! get particle perameters from previous universe at position s
-call twiss_and_track_at_s (s%u(u%coupling%from_uni)%model, &
+call twiss_and_track_at_s (s%u(u%coupling%from_uni)%model%lat, &
                              u%coupling%from_uni_s, extract_ele, &
-                             s%u(u%coupling%from_uni)%model_orb, pos)
+                             s%u(u%coupling%from_uni)%model%orb, pos)
 
 ! track through coupling element
 if (u%coupling%use_coupling_ele) then
-  call make_mat6 (u%coupling%coupling_ele, s%u(u%coupling%from_uni)%model%param)
+  call make_mat6 (u%coupling%coupling_ele, s%u(u%coupling%from_uni)%model%lat%param)
   call twiss_propagate1 (extract_ele, u%coupling%coupling_ele)
   call track1 (pos, u%coupling%coupling_ele, &
-                    s%u(u%coupling%from_uni)%model%param, pos)
+                    s%u(u%coupling%from_uni)%model%lat%param, pos)
   u%coupling%coupling_ele%value(beam_energy$) = extract_ele%value(beam_energy$)
   u%coupling%coupling_ele%floor = extract_ele%floor
   extract_ele = u%coupling%coupling_ele
@@ -698,7 +705,7 @@ lat%ele_(0)%value(beam_energy$) = extract_ele%value(beam_energy$)
 lat%ele_(0)%c_mat   = extract_ele%c_mat
 lat%ele_(0)%gamma_c = extract_ele%gamma_c
 lat%ele_(0)%floor   = extract_ele%floor
-orbit(0)      = pos
+tao_lat%orb(0)      = pos
         
 end subroutine tao_inject_particle
 
@@ -709,13 +716,13 @@ end subroutine tao_inject_particle
 ! preparation for tracking. The lattice where the extraction occurs will have
 ! already been calculated.
 
-subroutine tao_inject_beam (u, lat, orbit)
+subroutine tao_inject_beam (u, tao_lat)
 
 implicit none
  
+type (tao_lattice_struct) tao_lat
+type (ring_struct), pointer :: lat
 type (tao_universe_struct) u
-type (ring_struct) lat
-type (coord_struct) orbit(0:)
 type (ele_struct), save :: extract_ele
 
 type (param_struct), pointer :: param
@@ -725,6 +732,8 @@ integer n_bunch, n_part
 character(20) :: r_name = "tao_inject_beam"
 
 !
+
+lat => tao_lat%lat
 
 if (.not. u%coupling%coupled) return
    
@@ -738,11 +747,11 @@ endif
   
 ! beam from previous universe at end of extracting element should already be set
 ! but we still need the twiss parameters and everything else
-extract_ele = s%u(u%coupling%from_uni)%model%ele_(u%coupling%from_uni_ix_ele)
+extract_ele = s%u(u%coupling%from_uni)%model%lat%ele_(u%coupling%from_uni_ix_ele)
 
 !track through coupling element
 if (u%coupling%use_coupling_ele) then
-  param => s%u(u%coupling%from_uni)%model%param
+  param => s%u(u%coupling%from_uni)%model%lat%param
   call make_mat6 (u%coupling%coupling_ele, param)
   call twiss_propagate1 (extract_ele, u%coupling%coupling_ele)
   call track1_beam (u%coupling%injecting_beam, u%coupling%coupling_ele, &
@@ -761,7 +770,7 @@ lat%ele_(0)%c_mat   = extract_ele%c_mat
 lat%ele_(0)%gamma_c = extract_ele%gamma_c
 lat%ele_(0)%floor   = extract_ele%floor
 call beam_equal_beam (u%beam%beam, u%coupling%injecting_beam)
-call tao_find_beam_centroid (u%coupling%injecting_beam, orbit(0))
+call tao_find_beam_centroid (u%coupling%injecting_beam, tao_lat%orb(0))
 
 end subroutine tao_inject_beam
 
@@ -772,13 +781,13 @@ end subroutine tao_inject_beam
 ! preparation for tracking. The lattice where the extraction occurs will have
 ! already been calculated.
 
-subroutine tao_inject_macro_beam (u, lat, orbit)
+subroutine tao_inject_macro_beam (u, tao_lat)
 
 implicit none
  
 type (tao_universe_struct) u
-type (ring_struct) lat
-type (coord_struct) orbit(0:)
+type (tao_lattice_struct), target :: tao_lat
+type (ring_struct), pointer :: lat
 type (ele_struct), save :: extract_ele
 
 type (param_struct), pointer :: param
@@ -788,6 +797,8 @@ integer n_bunch, n_slice, n_macro
 character(20) :: r_name = "tao_inject_macro_beam"
 
 !
+
+lat => tao_lat%lat
 
 if (.not. u%coupling%coupled) return
    
@@ -801,11 +812,11 @@ endif
   
 ! beam from previous universe at end of element should already be set
 ! but we still need the twiss parameters and everything else
-extract_ele = s%u(u%coupling%from_uni)%model%ele_(u%coupling%from_uni_ix_ele)
+extract_ele = s%u(u%coupling%from_uni)%model%lat%ele_(u%coupling%from_uni_ix_ele)
 
 !track through coupling element
 if (u%coupling%use_coupling_ele) then
-  param => s%u(u%coupling%from_uni)%model%param
+  param => s%u(u%coupling%from_uni)%model%lat%param
   call make_mat6 (u%coupling%coupling_ele, param)
   call twiss_propagate1 (extract_ele, u%coupling%coupling_ele)
   call track1_macro_beam (u%coupling%injecting_macro_beam, u%coupling%coupling_ele, &
@@ -824,7 +835,7 @@ lat%ele_(0)%c_mat   = extract_ele%c_mat
 lat%ele_(0)%gamma_c = extract_ele%gamma_c
 lat%ele_(0)%floor   = extract_ele%floor
 u%macro_beam%beam = u%coupling%injecting_macro_beam
-call tao_find_macro_beam_centroid (u%coupling%injecting_macro_beam, orbit(0))
+call tao_find_macro_beam_centroid (u%coupling%injecting_macro_beam, tao_lat%orb(0))
 
 ! deterine if macroparticle already lost
 do n_bunch = 1, size(u%coupling%injecting_macro_beam%bunch)
@@ -883,19 +894,19 @@ endif
 if (u%coupling%match_to_design) then
   ! get twiss parameters from extracted lattice
   if (s%global%track_type == 'single') then
-    call twiss_and_track_at_s (s%u(u%coupling%from_uni)%design, &
+    call twiss_and_track_at_s (s%u(u%coupling%from_uni)%design%lat, &
                      u%coupling%from_uni_s, extract_ele, &
-                     s%u(u%coupling%from_uni)%design_orb, extract_pos)
+                     s%u(u%coupling%from_uni)%design%orb, extract_pos)
   elseif (s%global%track_type == 'beam') then
-    extract_ele = s%u(u%coupling%from_uni)%design%ele_(u%coupling%from_uni_ix_ele)
+    extract_ele = s%u(u%coupling%from_uni)%design%lat%ele_(u%coupling%from_uni_ix_ele)
   elseif (s%global%track_type == 'macro') then
-    extract_ele = s%u(u%coupling%from_uni)%design%ele_(u%coupling%from_uni_ix_ele)
+    extract_ele = s%u(u%coupling%from_uni)%design%lat%ele_(u%coupling%from_uni_ix_ele)
   endif
     
   ! get twiss parameters for injected lattice
   ! This is performed before the standard lattice calculation so the design
   ! twiss parameters in ele_(0) will still be as set in the lattice file.
-  inject_ele = u%design%ele_(0)
+  inject_ele = u%design%lat%ele_(0)
 else
   call out_io (s_warn$, r_name, &
                 "The coupling element will only match the design lattices")
@@ -925,7 +936,7 @@ coupling_ele%value(dphi_x$)   = mod(inject_ele%x%phi - extract_ele%x%phi,twopi)
 coupling_ele%value(dphi_y$)   = mod(inject_ele%y%phi - extract_ele%y%phi,twopi)
   
 ! it's a linear element so no orbit need be passed
-call make_mat6 (coupling_ele, s%u(u%coupling%from_uni)%design%param)
+call make_mat6 (coupling_ele, s%u(u%coupling%from_uni)%design%lat%param)
   
 end subroutine  tao_match_lats_init
  

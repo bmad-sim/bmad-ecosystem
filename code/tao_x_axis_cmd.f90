@@ -67,12 +67,12 @@ plot%x_axis_type = what
 iu = s%global%u_view
 
 if (what == 's') then
-  minn = s%u(iu)%model%ele_(0)%s
-  n = s%u(iu)%model%n_ele_use
-  maxx = s%u(iu)%model%param%total_length
+  minn = s%u(iu)%model%lat%ele_(0)%s
+  n = s%u(iu)%model%lat%n_ele_use
+  maxx = s%u(iu)%model%lat%param%total_length
 elseif (what == 'ele_index') then
   minn = 0
-  maxx = s%u(s%global%u_view)%design%n_ele_use 
+  maxx = s%u(s%global%u_view)%model%lat%n_ele_use 
 elseif (what == 'index') then
 ! if no curves to scale then can't scale to index
   if (.not. associated(plot%graph(1)%curve)) then

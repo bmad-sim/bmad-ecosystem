@@ -39,22 +39,26 @@ type (ring_struct), pointer :: lat
 
 integer ix_ele
 
-lat => u%model
+!
 
-if (s%global%track_type .eq. "single" .or. &
-      u%model%param%lattice_type .eq. circular_lattice$) then
-  call make_mat6 (lat%ele_(ix_ele), lat%param, u%model_orb(ix_ele-1), &
-                    u%model_orb(ix_ele), .true.)
+lat => u%model%lat
+
+if (s%global%track_type == "single" .or. &
+                    lat%param%lattice_type == circular_lattice$) then
+  call make_mat6 (lat%ele_(ix_ele), lat%param, u%model%orb(ix_ele-1), &
+                    u%model%orb(ix_ele), .true.)
   call twiss_propagate1 (lat%ele_(ix_ele-1), lat%ele_(ix_ele))
-elseif (s%global%track_type .eq. "beam") then
-  call make_mat6 (lat%ele_(ix_ele), lat%param, u%model_orb(ix_ele-1), &
-                    u%model_orb(ix_ele), .true.)
+elseif (s%global%track_type == "beam") then
+
+  call make_mat6 (lat%ele_(ix_ele), lat%param, u%model%orb(ix_ele-1), &
+                    u%model%orb(ix_ele), .true.)
   call twiss_propagate1 (lat%ele_(ix_ele-1), lat%ele_(ix_ele))
   call calc_bunch_params (u%beam%beam%bunch(s%global%bunch_to_plot), &
                                 lat%ele_(ix_ele), u%beam%params)
-elseif (s%global%track_type .eq. "macro") then
-  call make_mat6 (lat%ele_(ix_ele), lat%param, u%model_orb(ix_ele-1), &
-                    u%model_orb(ix_ele), .true.)
+
+elseif (s%global%track_type == "macro") then
+  call make_mat6 (lat%ele_(ix_ele), lat%param, u%model%orb(ix_ele-1), &
+                    u%model%orb(ix_ele), .true.)
   call twiss_propagate1 (lat%ele_(ix_ele-1), lat%ele_(ix_ele))
   call calc_macro_bunch_params (u%macro_beam%beam%bunch(s%global%bunch_to_plot), &
                                 lat%ele_(ix_ele), u%macro_beam%params)

@@ -72,16 +72,16 @@ subroutine tao_init (init_file)
     do j = 1, size(var_ptr%this)
       this => var_ptr%this(j)
       u => s%u(this%ix_uni)
-      call pointer_to_attribute (u%model%ele_(this%ix_ele), var_ptr%attrib_name, &
+      call pointer_to_attribute (u%model%lat%ele_(this%ix_ele), var_ptr%attrib_name, &
                                  .false., ptr_attrib, ix, err, .false.)
       if (err) then
         call out_io (s_abort$, r_name, &
                 'Error: Attribute not recognized: ' // var_ptr%attrib_name, &
-                '       For element: ' // u%model%ele_(this%ix_ele)%name, &
-                '       Which is a: ' // key_name(u%model%ele_(this%ix_ele)%key))
+                '       For element: ' // u%model%lat%ele_(this%ix_ele)%name, &
+                '       Which is a: ' // key_name(u%model%lat%ele_(this%ix_ele)%key))
         call err_exit
       endif
-      if (.not. attribute_free (u%model%ele_(this%ix_ele), ix, u%model)) then
+      if (.not. attribute_free (u%model%lat%ele_(this%ix_ele), ix, u%model%lat)) then
         call out_io (s_abort$, r_name, &
                 'Error: Variable trying to control an attribute that is not free to vary.', &
                 '       Variable:  ' // var_ptr%name, &
@@ -98,13 +98,13 @@ subroutine tao_init (init_file)
 
   ! must first transfer to model lattice for tao_lattice_calc to run
   do i = 1, size(s%u)
-    s%u(i)%model = s%u(i)%design; s%u(i)%model_orb = s%u(i)%design_orb
+    s%u(i)%model = s%u(i)%design; s%u(i)%model%orb = s%u(i)%design%orb
   enddo
   s%global%lattice_recalc = .true.
   call tao_lattice_calc (.true.) ! .true. => init design lattice
   do i = 1, size(s%u)
-    s%u(i)%design = s%u(i)%model; s%u(i)%design_orb = s%u(i)%model_orb
-    s%u(i)%base  = s%u(i)%design; s%u(i)%base_orb  = s%u(i)%design_orb
+    s%u(i)%design = s%u(i)%model; s%u(i)%design%orb = s%u(i)%model%orb
+    s%u(i)%base  = s%u(i)%design; s%u(i)%base%orb  = s%u(i)%design%orb
     s%u(i)%data%design_value = s%u(i)%data%model_value
     s%u(i)%data%base_value = s%u(i)%data%model_value
   enddo
@@ -178,9 +178,9 @@ subroutine deallocate_everything ()
   if (associated (s%u)) then
     do i = 1, size(s%u)
       ! Orbits
-      deallocate(s%u(i)%model_orb, stat=istat)
-      deallocate(s%u(i)%design_orb, stat=istat)
-      deallocate(s%u(i)%base_orb, stat=istat)
+      deallocate(s%u(i)%model%orb, stat=istat)
+      deallocate(s%u(i)%design%orb, stat=istat)
+      deallocate(s%u(i)%base%orb, stat=istat)
       
       ! Beams
       deallocate (s%u(i)%macro_beam%ix_lost, stat=istat)
@@ -218,9 +218,9 @@ subroutine deallocate_everything ()
       deallocate(s%u(i)%dmodel_dvar, stat=istat)
  
       ! Lattices
-      call deallocate_ring_pointers (s%u(i)%model)
-      call deallocate_ring_pointers (s%u(i)%design)
-      call deallocate_ring_pointers (s%u(i)%base)
+      call deallocate_ring_pointers (s%u(i)%model%lat)
+      call deallocate_ring_pointers (s%u(i)%design%lat)
+      call deallocate_ring_pointers (s%u(i)%base%lat)
     enddo
   endif
     

@@ -120,8 +120,8 @@ select case (show_names(ix))
 case ('hom')
 
   nl=nl+1; lines(nl) = '       #        Freq         R/Q           Q   m  Polarization_Angle'
-  do i = 1, size(u%model%ele_)
-    ele => u%model%ele_(i)
+  do i = 1, size(u%model%lat%ele_)
+    ele => u%model%lat%ele_(i)
     if (ele%key /= lcavity$) cycle
     if (ele%control_type == multipass_slave$) cycle
     nl=nl+1; write (lines(nl), '(a, i6)') ele%name, i
@@ -362,10 +362,10 @@ case ('ele')
   if (index(ele_name, '*') /= 0 .or. index(ele_name, '%') /= 0) then
     write (lines(1), *) 'Matches to name:'
     nl = 1
-    do loc = 1, u%model%n_ele_max
-      if (.not. match_wild(u%model%ele_(loc)%name, ele_name)) cycle
+    do loc = 1, u%model%lat%n_ele_max
+      if (.not. match_wild(u%model%lat%ele_(loc)%name, ele_name)) cycle
       if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
-      nl=nl+1; write (lines(nl), '(i8, 2x, a)') loc, u%model%ele_(loc)%name
+      nl=nl+1; write (lines(nl), '(i8, 2x, a)') loc, u%model%lat%ele_(loc)%name
       name_found = .true.
     enddo
     if (.not. name_found) then
@@ -384,14 +384,14 @@ case ('ele')
     nl = nl + 1
 
     ! Show the element info
-    call type2_ele (u%model%ele_(loc), ptr_lines, n, .true., 6, .false., &
-                                        s%global%phase_units, .true., u%model)
+    call type2_ele (u%model%lat%ele_(loc), ptr_lines, n, .true., 6, .false., &
+                                        s%global%phase_units, .true., u%model%lat)
     if (size(lines) < nl+n+100) call re_allocate (lines, len(lines(1)), nl+n+100)
     lines(nl+1:nl+n) = ptr_lines(1:n)
     nl = nl + n
     deallocate (ptr_lines)
 
-    orb = u%model_orb(loc)
+    orb = u%model%orb(loc)
     fmt = '(2x, a, 3p2f11.4)'
     write (lines(nl+1), *) ' '
     write (lines(nl+2), *)   'Orbit: [mm, mrad]'
@@ -404,8 +404,8 @@ case ('ele')
     call show_ele_data (u, loc, lines, nl)
 
     found = .false.
-    do i = loc + 1, u%model%n_ele_max
-      if (u%model%ele_(i)%name /= ele_name) cycle
+    do i = loc + 1, u%model%lat%n_ele_max
+      if (u%model%lat%ele_(i)%name /= ele_name) cycle
       if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
       if (found) then
         nl=nl+1; write (lines(nl), *)
@@ -454,10 +454,10 @@ case ('lattice')
   if (word(1) .eq. ' ') then
     nl=nl+1; write (lines(nl), '(a, i3)') 'Universe: ', s%global%u_view
     nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Regular elements:', &
-                                          1, '  through', u%model%n_ele_use
-    if (u%model%n_ele_max .gt. u%model%n_ele_use) then
+                                          1, '  through', u%model%lat%n_ele_use
+    if (u%model%lat%n_ele_max .gt. u%model%lat%n_ele_use) then
       nl=nl+1; write (lines(nl), '(a, i5, a, i5)') 'Lord elements:   ', &
-                        u%model%n_ele_use+1, '  through', u%model%n_ele_max
+                        u%model%lat%n_ele_use+1, '  through', u%model%lat%n_ele_max
     else
       nl=nl+1; write (lines(nl), '(a)') "there are NO Lord elements"
     endif
@@ -470,7 +470,7 @@ case ('lattice')
     return
   endif
   
-  allocate (show_here(0:u%model%n_ele_use))
+  allocate (show_here(0:u%model%lat%n_ele_use))
   if (word(1) == 'all') then
     show_here = .true.
   else
@@ -501,14 +501,14 @@ case ('lattice')
   do ix = lbound(show_here,1), ubound(show_here,1)
     if (.not. show_here(ix)) cycle
     if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
-    ele => u%model%ele_(ix)
+    ele => u%model%lat%ele_(ix)
     if (ix == 0 .or. at_ends) then
       ele3 = ele
-      orb = u%model_orb(ix)
+      orb = u%model%orb(ix)
       s_pos = ele3%s
     else
-      call twiss_and_track_partial (u%model%ele_(ix-1), ele, &
-                u%model%param, ele%value(l$)/2, ele3, u%model_orb(ix-1), orb)
+      call twiss_and_track_partial (u%model%lat%ele_(ix-1), ele, &
+                u%model%lat%param, ele%value(l$)/2, ele3, u%model%orb(ix-1), orb)
       s_pos = ele%s-ele%value(l$)/2
     endif
     nl=nl+1

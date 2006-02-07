@@ -171,14 +171,14 @@ case ('ele')
 
   select case (where)
   case ('x', 'p_x', 'y', 'p_y', 'z', 'p_z')
-    call change_orbit (u%design_orb(ix_ele(1)), u%model_orb(ix_ele(1)))
+    call change_orbit (u%design%orb(ix_ele(1)), u%model%orb(ix_ele(1)))
     if (err) return
   case ('beta_x', 'beta_y', 'alpha_x', 'alpha_y', 'eta_x', 'eta_y', 'etap_x, etap_y')
     call change_twiss ()
     if (err) return
   case default  
     do i = 1, size(ix_ele)
-      call pointer_to_attribute (u%design%ele_(ix_ele(i)), where, .true., &
+      call pointer_to_attribute (u%design%lat%ele_(ix_ele(i)), where, .true., &
                                                            attrib_ptr, ixa, err)
       if (err) then
         if (size(ix_ele) .eq. 1) then
@@ -187,7 +187,7 @@ case ('ele')
           cycle
         endif
       endif
-      if (.not. attribute_free (u%model%ele_(ix_ele(i)), ixa, u%model, .true.)) then
+      if (.not. attribute_free (u%model%lat%ele_(ix_ele(i)), ixa, u%model%lat, .true.)) then
         if (size(ix_ele) .eq. 1) then
           return
         else
@@ -196,7 +196,7 @@ case ('ele')
       endif
       design_value = attrib_ptr
      
-      call pointer_to_attribute (u%model%ele_(ix_ele(i)), where, .true., &
+      call pointer_to_attribute (u%model%lat%ele_(ix_ele(i)), where, .true., &
                                                            attrib_ptr, ixa, err)
       old_value = attrib_ptr
      
@@ -311,7 +311,7 @@ integer direction
 err = .false.
 
 !check if this is a linear lattice
-if ((u%model%param%lattice_type .eq. circular_lattice$) .and. &
+if ((u%model%lat%param%lattice_type .eq. circular_lattice$) .and. &
     where .ne.'p_z') then
   call out_io (s_warn$, r_name, "This is a circular lattice!", &
                     "So only changing the p_z orbit will do anything")
@@ -381,7 +381,7 @@ real(rp), pointer :: design_ptr, model_ptr
   err = .false.
 
   !check if this is a linear lattice
-  if ((u%model%param%lattice_type .eq. circular_lattice$)) then
+  if ((u%model%lat%param%lattice_type .eq. circular_lattice$)) then
     call out_io (s_warn$, r_name, "This is a circular lattice!", &
                       "Twiss parameters cannot be changed!")
     err = .true.
@@ -398,36 +398,36 @@ real(rp), pointer :: design_ptr, model_ptr
   select case (where)
 
     case ('beta_x')
-      model_ptr  => u%model%ele_(0)%x%beta
-      design_ptr => u%design%ele_(0)%x%beta
+      model_ptr  => u%model%lat%ele_(0)%x%beta
+      design_ptr => u%design%lat%ele_(0)%x%beta
 
     case ('beta_y')
-      model_ptr  => u%model%ele_(0)%y%beta
-      design_ptr => u%design%ele_(0)%x%beta
+      model_ptr  => u%model%lat%ele_(0)%y%beta
+      design_ptr => u%design%lat%ele_(0)%x%beta
 
     case ('alpha_x')
-      model_ptr  => u%model%ele_(0)%x%alpha
-      design_ptr => u%design%ele_(0)%x%beta
+      model_ptr  => u%model%lat%ele_(0)%x%alpha
+      design_ptr => u%design%lat%ele_(0)%x%beta
 
     case ('alpha_y')
-      model_ptr  => u%model%ele_(0)%y%alpha
-      design_ptr => u%design%ele_(0)%x%beta
+      model_ptr  => u%model%lat%ele_(0)%y%alpha
+      design_ptr => u%design%lat%ele_(0)%x%beta
 
     case ('eta_x')
-      model_ptr  => u%model%ele_(0)%x%eta
-      design_ptr => u%design%ele_(0)%x%beta
+      model_ptr  => u%model%lat%ele_(0)%x%eta
+      design_ptr => u%design%lat%ele_(0)%x%beta
 
     case ('eta_y')
-      model_ptr => u%model%ele_(0)%y%eta
-      design_ptr => u%design%ele_(0)%x%beta
+      model_ptr => u%model%lat%ele_(0)%y%eta
+      design_ptr => u%design%lat%ele_(0)%x%beta
 
     case ('etap_x')
-      model_ptr  => u%model%ele_(0)%x%etap
-      design_ptr => u%design%ele_(0)%x%beta
+      model_ptr  => u%model%lat%ele_(0)%x%etap
+      design_ptr => u%design%lat%ele_(0)%x%beta
 
     case ('etap_y')
-      model_ptr  => u%model%ele_(0)%y%etap
-      design_ptr => u%design%ele_(0)%x%beta
+      model_ptr  => u%model%lat%ele_(0)%y%etap
+      design_ptr => u%design%lat%ele_(0)%x%beta
 
     case default
       err = .true.

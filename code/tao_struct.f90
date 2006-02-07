@@ -405,12 +405,24 @@ type tao_macro_beam_struct
 end type
 
 !-----------------------------------------------------------------------
+
+type tao_lat_mode_struct
+  real(rp) chrom
+  real(rp) growth_rate
+end type
+
+type tao_lattice_struct
+  type (ring_struct) lat                           ! lattice structures
+  type (coord_struct), allocatable :: orb(:)
+  type (modes_struct) modes                        ! Synchrotron integrals stuff
+  type (tao_lat_mode_struct) a, b
+end type
+
+!-----------------------------------------------------------------------
 ! A universe is a snapshot of a machine
 
 type tao_universe_struct
-  type (ring_struct) model, design, base           ! lattice structures
-  type (coord_struct), allocatable :: model_orb(:), design_orb(:), base_orb(:)
-  type (modes_struct) modes                        ! Synchrotron integrals stuff
+  type (tao_lattice_struct) model, design, base
   type (tao_macro_beam_struct) macro_beam          ! macroparticle beam 
   type (tao_beam_struct) beam                      ! particle beam
   type (tao_coupled_uni_struct)   :: coupling      !used for coupled lattices
@@ -421,6 +433,7 @@ type tao_universe_struct
   integer n_d2_data_used
   integer n_data_used
   logical do_synch_rad_int_calc
+  logical do_chrom_calc
   logical is_on                                    ! universe turned on
 end type
 

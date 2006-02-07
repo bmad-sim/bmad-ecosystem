@@ -231,7 +231,7 @@ subroutine tao_single_mode (char)
 
       found = .false.
       do i = n1, n2
-        ring => s%u(i)%model
+        ring => s%u(i)%model%lat
         do j = 0, ring%n_ele_max
           if (ring%ele_(j)%name /= str .and. j /= ie) cycle
           write (*, *) '!---------------------------------------------------'
@@ -249,10 +249,9 @@ subroutine tao_single_mode (char)
 
     case ('l')
       do i = 1, size(s%u)
-        ring => s%u(i)%model
+        ring => s%u(i)%model%lat
         write (*, *)
         write (*, *) 'Ring: ', ring%lattice, i
-        ring => s%u(i)%model
         write (*, *) 'Ix  Name                   S  Beta_x  Beta_y'
         do j = 1, ring%n_ele_ring
           write (*, '(i3, 2x, a, f8.2, 2f8.2)') j, ring%ele_(j)%name, &

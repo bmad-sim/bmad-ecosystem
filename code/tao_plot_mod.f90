@@ -227,9 +227,9 @@ call qp_set_layout (x_axis = plot%x, margin = graph%margin)
 isu = graph%ix_universe
 ! if garph%ix_universe .eq. 0 then graph currently viewed universe
 if (isu .eq. 0) then
-  lat => s%u(s%global%u_view)%model
+  lat => s%u(s%global%u_view)%model%lat
 else
-  lat => s%u(isu)%model
+  lat => s%u(isu)%model%lat
 endif
   
 call qp_set_layout (box = graph%box, margin = graph%margin)

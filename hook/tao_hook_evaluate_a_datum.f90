@@ -1,21 +1,19 @@
 !+
-! Subroutine tao_hook_evaluate_a_datum (found, datum, u, lattice, orb, datum_value)
+! Subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value)
 !
 !  See the Programmer's manual for how to add custom data types here.
 !
 ! Input:
-!  datum         -- tao_data_struct: the current datum to evaluate
-!  u             -- tao_universe_struct: universe this datum is in
-!  lattice       -- ring_struct: lattice associated with datum
-!  orb           -- coord_struct(:): particle orbit in lattice
+!   datum        -- tao_data_struct: the current datum to evaluate
+!   tao_lat      -- Tao_lattice_struct: Lattice to use.
 !
 ! Output:
-!  datum_value   -- real(rp): which datum value to compute (model_value,
+!   datum_value  -- real(rp): which datum value to compute (model_value,
 !                             design_value, etc...)
-!  Found         -- Logical: TRUE if  this datum is evaluated in this subroutine.
+!   Found        -- Logical: TRUE if  this datum is evaluated in this subroutine.
 !-
 
-subroutine tao_hook_evaluate_a_datum (found, datum, u, lattice, orb, datum_value)
+subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value)
 
 use tao_mod
 
@@ -23,8 +21,7 @@ implicit none
 
 type (tao_universe_struct) u
 type (tao_data_struct) datum
-type (ring_struct) lattice
-type (coord_struct) orb(0:)
+type (tao_lattice_struct) tao_lat
 
 real(rp) datum_value
 logical found

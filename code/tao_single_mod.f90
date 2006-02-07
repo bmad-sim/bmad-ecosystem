@@ -157,18 +157,18 @@ do i = 1, size(s%u)
     con(nc)%name = trim(data%d1%d2%name) // ':' // data%d1%name
     if (size(s%u) > 1) write (con(nc)%name, '(2a, i0)') &
                                      trim(con(nc)%name), ';', i
-    con(nc)%loc1 = s%u(i)%model%ele_(data%ix_ele)%name
+    con(nc)%loc1 = s%u(i)%model%lat%ele_(data%ix_ele)%name
     ie = data%ix_ele2
     if (ie < 1) then
       con(nc)%loc2 = ' '
     else
-      con(nc)%loc2 = s%u(i)%model%ele_(ie)%name
+      con(nc)%loc2 = s%u(i)%model%lat%ele_(ie)%name
     endif
     ie = data%ix_ele_merit
     if (ie < 0) then
       con(nc)%max_loc = ' '
     else
-      con(nc)%max_loc = s%u(i)%model%ele_(ie)%name
+      con(nc)%max_loc = s%u(i)%model%lat%ele_(ie)%name
     endif
     con(nc)%target_value = data%meas_value
     con(nc)%actual_value = data%model_value
@@ -184,7 +184,7 @@ do i = 1, size(s%var(:))
   nc = nc + 1
   con(nc)%name = var%v1%name
   iu = var%this(1)%ix_uni
-  con(nc)%loc1 = s%u(iu)%model%ele_(var%this(1)%ix_ele)%name
+  con(nc)%loc1 = s%u(iu)%model%lat%ele_(var%this(1)%ix_ele)%name
   con(nc)%loc2 = ' '
   if (var%merit_type == 'target') then
     con(nc)%target_value = var%meas_value

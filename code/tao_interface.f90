@@ -108,15 +108,13 @@ interface
 end interface
  
 interface
-  subroutine tao_hook_evaluate_a_datum (found, datum, u, lattice, orb, datum_value)
-    use tao_struct, only: tao_data_struct, tao_universe_struct
-    use bmad_struct, only: ring_struct, coord_struct
+  subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value)
+    use tao_struct, only: tao_data_struct, tao_universe_struct, tao_lattice_struct
     use precision_def, only: rp
     implicit none
     type (tao_data_struct) datum
     type (tao_universe_struct) u
-    type (ring_struct) lattice
-    type (coord_struct) orb(0:)
+    type (tao_lattice_struct) tao_lat
     real(rp) datum_value
     logical found
   end subroutine
@@ -153,13 +151,11 @@ interface
 end interface
  
 interface
-  subroutine tao_hook_lattice_calc (universe, lattice, orbit, used)
-    use tao_struct, only: tao_universe_struct
-    use bmad_struct, only: ring_struct, coord_struct
+  subroutine tao_hook_lattice_calc (universe, tao_lat, used)
+    use tao_struct, only: tao_universe_struct, tao_lattice_struct
     implicit none
     type (tao_universe_struct) :: universe
-    type (ring_struct) :: lattice
-    type (coord_struct) :: orbit(0:)
+    type (tao_lattice_struct) :: tao_lat
     logical used
   end subroutine
 end interface
