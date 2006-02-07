@@ -317,7 +317,7 @@ subroutine propagate_part_way (ele0, ele, runt, z_here, j_loop, n_pt)
   type (track_point_cache_struct) pt0, pt1
 
   real(rp) z_here, v(4,4), v_inv(4,4), s1, s2, error
-  real(rp) f0, f1, del_z
+  real(rp) f0, f1, del_z, c, s, x, y
 
   integer i0, i1
   integer i, ix, j_loop, n_pt, n, n1, n2
@@ -355,8 +355,19 @@ subroutine propagate_part_way (ele0, ele, runt, z_here, j_loop, n_pt)
       ric%pt%g = sqrt(ric%pt%g2)
     endif
 
+    if (.not. ele%map_with_offsets) then
+      c = cos(ele%value(tilt_tot$)); s = sin(ele%value(tilt_tot$)) 
+      x = ric%pt%g_x; y = ric%pt%g_y
+      ric%pt%g_x = c * x - s * y
+      ric%pt%g_y = s * x + c * y
+      x = ric%pt%dg2_x; y = ric%pt%dg2_y
+      ric%pt%dg2_x = c * x - s * y
+      ric%pt%dg2_y = s * x + c * y
+    endif
+
     runt%mat6 = pt0%mat6
     runt%vec0 = pt0%vec0
+    if (.not. ele%map_with_offsets) call mat6_add_offsets (ele, ric%orb0)
     call twiss_propagate1 (ele0, runt)
     e0%x = runt%x; e0%y = runt%y
     call make_v_mats (runt, v, v_inv)
@@ -367,6 +378,7 @@ subroutine propagate_part_way (ele0, ele, runt, z_here, j_loop, n_pt)
 
     runt%mat6 = pt1%mat6
     runt%vec0 = pt1%vec0
+    if (.not. ele%map_with_offsets) call mat6_add_offsets (ele, ric%orb0)
     call twiss_propagate1 (ele0, runt)
     e1%x = runt%x; e1%y = runt%y
     call make_v_mats (runt, v, v_inv)

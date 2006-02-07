@@ -419,7 +419,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
       dk(3,:) = field%dB(3,:)
 
       field%dB(:,1) = dk(:,1) * cos_ang - dk(:,2) * sin_ang
-      field%dB(:,2) = dk(:,1) * sin_ang - dk(:,2) * cos_ang
+      field%dB(:,2) = dk(:,1) * sin_ang + dk(:,2) * cos_ang
       field%dB(:,3) = dk(:,3) 
 
       dk(1,:) = cos_ang * field%dE(1,:) - sin_ang * field%dE(2,:)
@@ -427,7 +427,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
       dk(3,:) = field%dE(3,:)
 
       field%dE(:,1) = dk(:,1) * cos_ang - dk(:,2) * sin_ang
-      field%dE(:,2) = dk(:,1) * sin_ang - dk(:,2) * cos_ang
+      field%dE(:,2) = dk(:,1) * sin_ang + dk(:,2) * cos_ang
       field%dE(:,3) = dk(:,3) 
 
     endif

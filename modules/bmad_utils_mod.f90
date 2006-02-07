@@ -13,12 +13,93 @@
 module bmad_utils_mod
 
 use bmad_struct
+use make_mat6_mod
 
 interface reallocate
   module procedure reallocate_control_
 end interface
 
 contains
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine zero_ele_offsets (ele)
+!
+! Subroutine to zero the offsets, pitches and tilt of an element.
+!
+! Modules needed:
+!   use bmad
+!
+! Output:
+!   ele -- Ele_struct: Element with no (mis)orientation.
+!-
+
+subroutine zero_ele_offsets (ele)
+
+implicit none
+
+type (ele_struct) ele
+
+ele%value(tilt$) = 0
+ele%value(x_pitch$) = 0
+ele%value(y_pitch$) = 0
+ele%value(x_offset$) = 0
+ele%value(y_offset$) = 0
+
+ele%value(tilt_tot$) = 0
+ele%value(x_pitch_tot$) = 0
+ele%value(y_pitch_tot$) = 0
+ele%value(x_offset_tot$) = 0
+ele%value(y_offset_tot$) = 0
+
+end subroutine
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine mat6_add_offsets (ele, orb_in)
+!
+! Subroutine to add in the affect of an element's orientation in space to
+! to the computed Jacobian matrix.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele       -- Ele_struct: Element with given orientation.
+!     %vec0(6)   -- Real(rp): 0th order part of the transfer map.
+!     %mat6(6,6) -- Real(rp): 1st order part of the transfer map (Jacobian).
+!   orb_in   -- Coord_struct: Coordinates of reference trajectory at the 
+!                   beginning of the element about which the Jacobian was made.
+!
+! Output:
+!   ele       -- Ele_struct: Element with given orientation.
+!     %vec0(6)   -- Real(rp): 0th order part of the transfer map.
+!     %mat6(6,6) -- Real(rp): 1st order xfer map.
+!-
+
+subroutine mat6_add_offsets (ele, orb_in)
+
+implicit none
+
+type (ele_struct) ele
+type (coord_struct) orb_in
+
+real (rp) orb_out(6)
+
+!
+
+orb_out = ele%vec0 + matmul(ele%mat6, orb_in%vec)
+
+if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (ele%mat6, ele%value(tilt_tot$))
+call mat6_add_pitch (ele, ele%mat6)
+
+ele%vec0 = orb_out - matmul(ele%mat6, orb_in%vec)
+
+end subroutine
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------

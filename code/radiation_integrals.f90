@@ -91,6 +91,7 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
   type (ring_struct), target :: ring
   type (ele_struct), save :: runt
   type (ele_struct), pointer :: ele, ele0
+  type (ele_struct) :: ele2
   type (coord_struct), target :: orbit(0:), start, end, c2
   type (modes_struct) mode
   type (bmad_com_struct) bmad_com_save
@@ -203,20 +204,22 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
 
         j = j + 1
         cache%ele(j)%ix_ele = i
-        ele => ring%ele_(i)
 
-        call compute_even_steps (ele%value(ds_step$), ele%value(l$), &
+        ele2 = ring%ele_(i)
+        if (.not. ele2%map_with_offsets) call zero_ele_offsets (ele2)
+
+        call compute_even_steps (ele2%value(ds_step$), ele2%value(l$), &
                                       bmad_com%default_ds_step, del_z, n_step)
         cache%ele(j)%del_z = del_z
         allocate (cache%ele(j)%pt(0:n_step))
-        if (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
+        if (ele2%key == wiggler$ .and. ele2%sub_key == map_type$) then
           track%save_track = .true.
-          call symp_lie_bmad (ele, ring%param, orbit(i-1), &
-                                end, calc_mat6 = .true., track = track)
+          call symp_lie_bmad (ele2, ring%param, orbit(i-1), end, &
+                                          calc_mat6 = .true., track = track)
           do k = 0, track%n_pt
             z_here = track%pt(k)%s 
             end = track%pt(k)%orb
-            call calc_wiggler_g_params (ele, z_here, end, cache%ele(j)%pt(k))
+            call calc_wiggler_g_params (ele2, z_here, end, cache%ele(j)%pt(k))
             cache%ele(j)%pt(k)%orb = end
             cache%ele(j)%pt(k)%mat6 = track%pt(k)%mat6
             cache%ele(j)%pt(k)%vec0 = track%pt(k)%vec0
@@ -225,7 +228,7 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
         else
           do k = 0, n_step
             z_here = k * cache%ele(j)%del_z
-            call twiss_and_track_partial (ring%ele_(i-1), ele, ring%param, &
+            call twiss_and_track_partial (ring%ele_(i-1), ele2, ring%param, &
                                             z_here, runt, orbit(i-1), end)
             cache%ele(j)%pt(k)%orb = end
             cache%ele(j)%pt(k)%mat6 = runt%mat6
