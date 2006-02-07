@@ -820,6 +820,11 @@ subroutine get_next_word (word, ix_word, delim_list, &
   call word_read (bp_com%parse_line, delim_list,  &
                          word, ix_word, delim, delim_found, bp_com%parse_line)
 
+  if (len(word) < ix_word) then
+    call warning ('BAD WORD: ' // bp_com%parse_line)
+    ix_word = len(word)
+  endif
+
   if (present(upper_case_word)) then
     if (upper_case_word) call str_upcase (word, word)
   else
