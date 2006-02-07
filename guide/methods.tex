@@ -2,6 +2,8 @@
 \label{c:methods}
 
 \index{Element!class}
+\index{Tracking_method}
+\index{mat6_calc_method}
 Typically, there are several ways to do tracking and transfer matrix
 calculations for a given element class within \bmad. What method is
 used is selected on an element--by--element basis using the attributes
@@ -10,17 +12,32 @@ used is selected on an element--by--element basis using the attributes
   mat6_calc_method = Switch  ! Method for 6x6 transfer matrix calculation.
 \end{example}
 These switches are discussed in more detail in sections \sref{s:tkm} 
-and \sref{s:xfer}.
+and \sref{s:xfer}. Example:
+\begin{example}
+  q2: quadrupole, tracking_method = boris
+  q2[tracking_method] = boris
+  quadrupole[tracking_method] = boris
+\end{example}
+The first two lines of this example have exactly the same effect in
+terms of setting the \vn{tracking_method}. The third line shows how to
+set the \vn{tracking_method} for an entire class of elements.
+
+\index{Sympliectify}
+\index{Map_with_offsets}
+Two attributes that can affect the way the transfer matrix is
+calculated are \vn{symplectify} and \vn{map_with_offsets}. These are
+discussed in \sref{s:symp} and \sref{s:mapoff} respectively.
+
 
 %----------------------------------------------------------------------------
 \section{tracking\_method Switches}
 \label{s:tkm}
 \index{Tracking method|textbf}
 
-Below are listed the methods for the \vn{tracking_method}
-attribute with an explanation of what the different methods do. A
-table giving which methods are available with which element classes is give
-in Table~\ref{t:track_methods}. 
+The algorithm used for single particle tracking through a given
+element is set by that element's \vn{tracking_method} attribute. A
+table giving which methods are available with which element classes is
+give in Table~\ref{t:track_methods}.
 
 A note on terminology: Adaptive step size control used with the
 \vn{Adaptive_Boris} and \vn{Runge_Kutta} integrators means that 
@@ -114,7 +131,10 @@ package. Generating the map may take time but once you have it it
 should be very fast. One possible problem with using a Taylor map is
 that you have to worry about the accuracy if you do tracking at points
 that are far from the expansion point about which the map was
-made. This method is non-symplectic away from the expansion point. 
+made. This method is non-symplectic away from the expansion
+point. Whether the Taylor map is generated taking into account the
+offset an element has is governed by the \vn{map_with_offsets}
+attribute (\sref{s:mapoff}).
 
 \index{Wiedemann}
 \item[\vn{Wiedemann}]
@@ -199,10 +219,11 @@ denotes an available method.}
 \label{s:xfer}
 \index{Mat6_calc_method|textbf}
 
-Below are listed the methods for the \vn{mat6_calc_method}
-attribute with an explanation of what the different methods do. A
-table giving which methods are available with which element classes is give
-in Table~\ref{t:mat6_methods}. 
+
+The \vn{mat6_calc_method} attribute sets how the 6x6 Jacobian transfer
+matrix for a given element is computed. A table giving which methods
+are available with which element classes is give in
+Table~\ref{t:mat6_methods}.
 
 For methods that do not necessarily produce a symplectic matrix the
 \vn{symplectify} attribute of an element can be set to \vn{True} to
@@ -268,9 +289,12 @@ This method is symplectic but can be slow.
 This uses a Taylor map generated from Etienne's PTC
 package. Generating the map may take time but once you have it it
 should be very fast. One possible problem with using a Taylor map is
-that you have to worry about the accuracy if you do a calculation at points
-that are far from the expansion point about which the map was
-made. This method is non-symplectic away from the expansion point. 
+that you have to worry about the accuracy if you do a calculation at
+points that are far from the expansion point about which the map was
+made. This method is non-symplectic away from the expansion
+point. Whether the Taylor map is generated taking into account the
+offset an element has is governed by the \vn{map_with_offsets}
+attribute (\sref{s:mapoff}).
 
 \index{Tracking}
 \item[\vn{Tracking}]
@@ -344,7 +368,7 @@ denotes an available method.}
 %-----------------------------------------------------------------
 \section{Transfer Maps via Integration}
 \label{s:integ}
-\index{Transfer map}
+\index{Transfer map|textbf}
 
 \index{Ds_step}
 \index{Num_steps}
@@ -437,3 +461,49 @@ At high energy $s-ct = z$ which is the distance of the particle from the
 reference particle and $cP_0 = vE_0/C = E_0$ so that $dE/cP_0 = dE/E$ giving
 the standard \bmad coordinates.
 
+%-----------------------------------------------------------------
+\section{Symplectify Attribute}
+\label{s:symp}
+\index{Symplectify|textbf}
+
+The \vn{symplectify} attribute
+\begin{example}
+  symplectify = <Logical>
+\end{example}
+is used to make the transfer matrix for an element symplectic. The
+linear transport matrix may be non--symplectic for a number of
+reasons.  For example, the linear matrix that comes from expanding a
+Taylor Map around any point that is not the origin of the map is
+generally not symplectic. The transfer matrix for an element can be
+symplectified by setting the \vn{symplectify} attribute to True. See
+section \ref{s:symp_method} for details on how a matrix is
+symplectified. The default value of \vn{symplectify}, if it is not
+present, is \vn{False}. If it is present without a value then it
+defaults to true. Examples:
+\begin{example}
+  s1: sextupole, l = 0.34                       ! symplectify = False
+  s1: sextupole, symplectify = True, l = 0.34   ! symplectify = True
+  s1: sextupole, symplectify, l = 0.34          ! symplectify = True
+\end{example}
+
+%-----------------------------------------------------------------
+\section{Map\_with\_offsets Attribute}
+\label{s:mapoff}
+\index{Map_with_offsets|textbf}
+
+The \vn{map_with_offsets} attribute sets whether the Taylor map
+generated for an element includes the affect due to the elements
+(mis)orientation in space. That is, the affect of any pitches, offsets
+or tilt (\sref{s:offset}). The default is \vn{True} which means that
+the Taylor map will include such effects. 
+
+How \vn{map_with_offsets} is set will not affect the results of
+tracking or the Jacobian matrix calculation. What is affected is the
+speed of the calculations. With \vn{map_with_offsets} set to \vn{True}
+the Taylor map will have to be recalculated each time an element is
+reoriented in space. On the other hand, with \vn{map_with_offsets} set
+to \vn{False} each tracking and Jacobian matrix calculation will
+include the extra computation involving the effect of the
+orientation. Thus if an element's orientation is fixed it is faster to
+set \vn{map_with_offsets} to \vn{True} and if the orientation is
+varying it is faster to set \vn{map_with_offsets} to \vn{False}.

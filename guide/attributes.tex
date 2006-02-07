@@ -385,31 +385,6 @@ the length \vn{l} is not the same as the path length for a particle
 with the reference energy starting on the reference orbit.
 
 %-----------------------------------------------------------------
-\section{Symplectify Attribute}
-\label{s:symp}
-\index{Symplectify}
-
-The \vn{symplectify} attribute
-\begin{example}
-  symplectify = <Logical>
-\end{example}
-is used to make the transfer matrix for an element symplectic. The
-linear transport matrix may be non--symplectic for a number of
-reasons.  For example, the linear matrix that comes from expanding a
-Taylor Map around any point that is not the origin of the map is
-generally not symplectic. The transfer matrix for an element can be
-symplectified by setting the \vn{symplectify} attribute to True. See
-section \ref{s:symp_method} for details on how a matrix is
-symplectified. The default value of \vn{symplectify}, if it is not
-present, is \vn{False}. If it is present without a value then it
-defaults to true. Examples:
-\begin{example}
-  s1: sextupole, l = 0.34                       ! symplectify = False
-  s1: sextupole, symplectify = True, l = 0.34   ! symplectify = True
-  s1: sextupole, symplectify, l = 0.34          ! symplectify = True
-\end{example}
-
-%-----------------------------------------------------------------
 \section{Is\_on Attribute}
 \label{s:is_on}
 \index{Is_on}

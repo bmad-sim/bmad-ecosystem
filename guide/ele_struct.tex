@@ -32,18 +32,19 @@ generally hidden  by the \bmad bookkeeping routines.
     real(rp), pointer :: b(:) => null()           ! normal multipole component
     type (wake_struct), pointer :: wake => null() ! Wakefields
     type (taylor_struct) :: taylor(6)             ! Taylor terms
-    integer key                       ! key value
-    integer sub_key                   ! For wigglers: map_type$, periodic_type$
-    integer control_type              ! SUPER_SLAVE$, OVERLAY_LORD$, etc.
-    integer mat6_calc_method          ! bmad_standard$, taylor$, etc.
-    integer tracking_method           ! bmad_standard$, taylor$, etc.
-    integer field_calc                ! Used with integrators (Runge-Kutta et. al)
-    integer num_steps                 ! number of slices for DA_maps
-    integer integrator_order           ! For Etiennes' PTC: 2, 4, or 6.
-    logical symplectify               ! Symplectify mat6 matrices.
-    logical exact_rad_int_calc        ! Exact radiation integral calculation?
-    logical field_master              ! Calculate strength from the field value?
-    logical is_on                     ! For turning element on/off.
+    integer key                  ! key value
+    integer sub_key              ! For wigglers: map_type$, periodic_type$
+    integer control_type         ! SUPER_SLAVE$, OVERLAY_LORD$, etc.
+    integer mat6_calc_method     ! bmad_standard$, taylor$, etc.
+    integer tracking_method      ! bmad_standard$, taylor$, etc.
+    integer field_calc           ! Used with integrators (Runge-Kutta et. al)
+    integer num_steps            ! number of slices for DA_maps
+    integer integrator_order     ! For Etiennes' PTC: 2, 4, or 6.
+    logical symplectify          ! Symplectify mat6 matrices.
+    logical exact_rad_int_calc   ! Exact radiation integral calculation?
+    logical map_with_offsets     ! Taylor map calculated with element offsets?
+    logical field_master         ! Calculate strength from the field value?
+    logical is_on                ! For turning element on/off.
   end type
 \end{verbatim}
 \caption[The \vn{ele\_struct}.]{The \vn{ele\_struct}. Only part of the 
