@@ -902,7 +902,7 @@ real(rp) a(0:4) ! Euler four-vector
 
   q11 = quat(1,1)
   q21 = quat(2,1)
-  q21 = quat(1,2)
+  q12 = quat(1,2)
   q22 = quat(2,2)
 
   a(0) = (0.0, 0.0)
