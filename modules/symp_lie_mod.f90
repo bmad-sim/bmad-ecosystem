@@ -94,7 +94,7 @@ subroutine track_it (ele, param, start, end, calc_mat6, track, real_track)
 
   integer i, j, n_step
 
-  logical calc_mat6, real_track, err
+  logical calc_mat6, real_track, err, save_track
 
 ! init
 
@@ -107,6 +107,8 @@ subroutine track_it (ele, param, start, end, calc_mat6, track, real_track)
 
   x_pitch = ele%value(x_pitch_tot$)
   y_pitch = ele%value(y_pitch_tot$)
+
+  save_track = track%save_track .and. real_track
 
 ! element offset 
 
@@ -125,7 +127,7 @@ subroutine track_it (ele, param, start, end, calc_mat6, track, real_track)
 
   s = 0   ! longitudianl position
 
-  if (track%save_track) then
+  if (save_track) then
     call allocate_saved_orbit (track, n_step)
     track%n_pt = n_step
     call save_this_track_pt (0, 0.0_rp)
@@ -198,7 +200,7 @@ subroutine track_it (ele, param, start, end, calc_mat6, track, real_track)
 
       s = s + ds2
 
-      if (track%save_track) call save_this_track_pt (i, s)
+      if (save_track) call save_this_track_pt (i, s)
 
     enddo
 
@@ -261,7 +263,7 @@ subroutine track_it (ele, param, start, end, calc_mat6, track, real_track)
       s = s + ds2
       ks_tot_2 = (ks + dks_ds * s) / 2
 
-      if (track%save_track) call save_this_track_pt (i, s)
+      if (save_track) call save_this_track_pt (i, s)
 
     enddo
 
@@ -330,7 +332,8 @@ subroutine save_this_track_pt (ix, s)
 
   track%pt(ix)%s = s
   track%pt(ix)%orb = end
-
+  call offset_particle (ele, param, track%pt(ix)%orb, unset$, set_canonical = .false.)
+  
   if (calc_mat6) track%pt(ix)%mat6 = mat6
 
   if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (mat6, ele%value(tilt_tot$))
@@ -341,7 +344,6 @@ subroutine save_this_track_pt (ix, s)
     track%pt(ix)%vec0(6) = 0
   endif
  
-  
 end subroutine  
 
 !----------------------------------------------------------------------------
