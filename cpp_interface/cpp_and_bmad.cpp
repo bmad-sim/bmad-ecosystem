@@ -36,17 +36,16 @@ template <class T> void operator<< (valarray< valarray<T> >& mat1,
 }
 
 //---------------------------------------------------------------------------
+ void operator<< (Real_Array&, const double*);
+ void operator<< (Real_Matrix&, const double*);
+ void operator<< (Int_Array&, const int*);
 
-template void operator<< (Real_Array&, const double*);
-template void operator<< (Real_Matrix&, const double*);
-template void operator<< (Int_Array&, const int*);
+ void operator<< (Real_Array&, const Real_Array&);
+ void operator<< (Real_Matrix&, const Real_Matrix&);
+ void operator<< (Int_Array&, const Int_Array&);
 
-template void operator<< (Real_Array&, const Real_Array&);
-template void operator<< (Real_Matrix&, const Real_Matrix&);
-template void operator<< (Int_Array&, const Int_Array&);
-
-template void operator<< (C_taylor_array&, const C_taylor_array&);
-template void operator<< (C_wig_term_array&, const C_wig_term_array&);
+ void operator<< (C_taylor_array&, const C_taylor_array&);
+ void operator<< (C_wig_term_array&, const C_wig_term_array&);
 
 //---------------------------------------------------------------------------
 
