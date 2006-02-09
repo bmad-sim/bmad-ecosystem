@@ -336,11 +336,11 @@ subroutine save_this_track_pt (ix, s)
   
   if (calc_mat6) track%pt(ix)%mat6 = mat6
 
-  if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (mat6, ele%value(tilt_tot$))
+  if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (track%pt(ix)%mat6, ele%value(tilt_tot$))
   if (x_pitch /= 0 .or. y_pitch /= 0) call mat6_add_pitch (ele, track%pt(ix)%mat6)
 
   if (calc_mat6) then
-    track%pt(ix)%vec0(1:5) = end%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)
+    track%pt(ix)%vec0(1:5) = track%pt(ix)%orb%vec(1:5) - matmul (mat6(1:5,1:6), start%vec)
     track%pt(ix)%vec0(6) = 0
   endif
  
