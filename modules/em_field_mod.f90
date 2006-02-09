@@ -149,7 +149,7 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
   type (wig_term_struct), pointer :: t
   type (em_field_struct), intent(out) :: field
 
-  real(rp) :: x, y, s, s_pos, f, dk(3,3)
+  real(rp) :: x, y, xx, yy, s, s_pos, f, dk(3,3)
   real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
   real(rp) :: cos_ang, sin_ang, s_rel, sgn_x, dc_x, dc_y
   real(rp) phase, gradient, dEz_dz, theta, phi, r, E_r, B_phi
@@ -192,8 +192,9 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
   if (ele%value(tilt_tot$) /= 0) then
     cos_ang = cos(ele%value(tilt_tot$))
     sin_ang = sin(ele%value(tilt_tot$))
-    x =  cos_ang * x + sin_ang * y
-    y = -sin_ang * x + cos_ang * y
+    xx = x; yy = y
+    x =  cos_ang * xx + sin_ang * yy
+    y = -sin_ang * xx + cos_ang * yy
   endif
 
   field%e = 0
@@ -265,6 +266,10 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
         field%dB(1,2) = field%dB(1,2) - f  * (t%kx / t%ky) * s_x * c_y * c_z * sgn_x
         field%dB(2,2) = field%dB(2,2) + f  *                 c_x * s_y * c_z * dc_y
         field%dB(3,2) = field%dB(3,2) - f  * (t%kz / t%ky) * c_x * c_y * s_z 
+        f = coef * t%kz
+        field%dB(1,3) = field%dB(1,3) + f  * (t%kx / t%ky) * s_x * s_y * s_z * sgn_x
+        field%dB(2,3) = field%dB(2,3) - f  *                 c_x * c_y * s_z * dc_y
+        field%dB(3,3) = field%dB(3,3) - f  * (t%kz / t%ky) * c_x * s_y * c_z 
       endif
 
     enddo
@@ -439,6 +444,117 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
     field%E(1) = field%E(1) + ele%value(x_pitch_tot$) * field%E(3)
     field%E(2) = field%E(2) + ele%value(y_pitch_tot$) * field%E(3)
   endif
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine derivs_bmad (ele, param, s, r, dr_ds, dkick)
+!
+! Subroutine to essentially calculate the kick felt by a particle in a
+! element. This routine is used by the Runge-Kutta integrater.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele   -- Ele_struct: Element being tracked thorugh.
+!   param -- Param_struct: Lattice parameters.
+!   s     -- Real(rp): Distance from the start of the element to the particle.
+!   r(6)  -- Real(rp): Position vector: (x, x', y, y', z, Pz)
+!
+! Output:
+!   dr_ds(6) -- Real(rp):Kick vector: 
+!                 (dx/ds, dx'/ds, dy/ds, dy'/ds, dz/ds, dPz/ds)
+!   dkick(3,3) -- Real(rp), optional: dKick/dx
+!-
+
+subroutine derivs_bmad (ele, param, s, r, dr_ds, dkick)
+
+  implicit none
+
+  type (ele_struct) ele
+  type (param_struct) param
+  type (em_field_struct) field
+
+  real(rp), intent(in) :: s         ! s-position
+  real(rp), intent(in) :: r(6)      ! (x, x', y, y', z, z')
+  real(rp), intent(out) :: dr_ds(6)
+  real(rp), optional :: dkick(3,3)
+
+  type (coord_struct) here
+
+  real(rp) energy
+  real(rp) vel_x, vel_y, vel_s, dvel_x, dvel_y, dvel_s, f
+
+! calculate the field
+
+  here%vec = r
+  if (present (dkick)) then
+    call em_field (ele, param, s, here, field, .true.)
+  else
+    call em_field (ele, param, s, here, field, .false.)
+  endif
+
+! if this is a kick field then field gives us directly dr_ds
+
+  if (field%type == kick_field$) then
+    dr_ds(1) = r(2)    ! dx/ds =
+    dr_ds(2) = field%kick(1)
+    dr_ds(3) = r(4)
+    dr_ds(4) = field%kick(2)
+    dr_ds(5) = -(r(2)**2 + r(4)**2) / 2
+    dr_ds(6) = field%kick(3)
+    return
+  endif
+
+! Here for field%type = em_field
+! The computation (up to some constant factors):
+!     x' = dx/ds = v_x / v_s
+!     dx'/ds = (dv_x/dt * v_s - v_s * dv_s/dt) / v_s^3  ! ds/dt == v_s
+! where
+!   dv_x/dt = v_y * B_s - v_s * B_y
+!   dv_y/dt = v_s * B_x - v_x * B_s
+!   dv_s/dt = v_x * B_y - v_y * B_x
+
+  if (field%type == em_field$) then
+    vel_x = r(2)                              ! proportional to x-velosity
+    vel_y = r(4)                              ! proportional to y-velosity
+    vel_s = 1/sqrt(1 + r(2)**2 + r(4)**2)     ! proportional to s-velosity
+
+    f = param%particle / c_light
+    dvel_x = vel_y * field%B(3) - vel_s * field%B(2) + field%E(1) * f
+    dvel_y = vel_s * field%B(1) - vel_x * field%B(3) + field%E(2) * f
+    dvel_s = vel_x * field%B(2) - vel_y * field%B(1)
+
+    energy = (ele%value(beam_energy$) * (1 + r(6)))
+    f = c_light / energy
+
+    dr_ds(1) = r(2)
+    dr_ds(2) = f * (dvel_x * vel_s - vel_x * dvel_s) / vel_s**3
+    dr_ds(3) = r(4)
+    dr_ds(4) = f * (dvel_y * vel_s - vel_y * dvel_s) / vel_s**3
+    dr_ds(5) = -(r(2)**2 + r(4)**2) / 2
+    dr_ds(6) = field%E(3) / energy
+
+! We make the small angle approximation for the dkick calc
+
+    if (present(dkick)) then
+      dkick = 0
+      f = c_light / (energy * vel_s**2)
+      dkick(1,1) = f * (vel_y * field%dB(3,1) - vel_s * field%dB(2,1)) 
+      dkick(1,2) = f * (vel_y * field%dB(3,2) - vel_s * field%dB(2,2)) 
+      dkick(2,1) = f * (vel_s * field%dB(1,1) - vel_x * field%dB(3,1)) 
+      dkick(2,2) = f * (vel_s * field%dB(1,2) - vel_x * field%dB(3,2)) 
+    endif
+
+    return
+  endif
+  
+  print *, 'ERROR IN DERIVS: UNKNOWN FIELD_TYPE: ', field%type
+  call err_exit
 
 end subroutine
 
