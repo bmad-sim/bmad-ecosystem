@@ -134,6 +134,10 @@ LOCAL_FFLAGS   :=
 LOCAL_CFLAGS   :=
 LOCAL_CXXFLAGS :=
 LOCAL_LFLAGS   :=
+ifeq "$(CESR_PLATFORM)" "CYGWIN_NT_i686"
+   LOCAL_FFLAGS   := 
+   LOCAL_LFLAGS   :=
+endif
 
 
 #--------------------------------------------------------------

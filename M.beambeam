@@ -134,7 +134,10 @@ LOCAL_FFLAGS   :=
 LOCAL_CFLAGS   :=
 LOCAL_CXXFLAGS :=
 LOCAL_LFLAGS   = -L/usr/lib  -L/usr/lib/gcc-lib/i386-redhat-linux/$(GCC_VERS)
-
+ifeq "$(CESR_PLATFORM)" "CYGWIN_NT_i686"
+   LOCAL_FFLAGS   := 
+   LOCAL_LFLAGS   := -L/cygdrive/c/PROGRA~1/MPIPro/lib
+endif
 
 #--------------------------------------------------------------
 # Provide the list of libraries required for linking this job.
@@ -160,6 +163,9 @@ PKG_LIBS   := forest pgplot
 SYS_LIBS   := lammpio lamf77mpi mpi lam aio aio util pthread
 CERN_LIBS  :=
 
+ifeq "$(CESR_PLATFORM)" "CYGWIN_NT_i686"
+   SYS_LIBS   := MPIPro
+endif
 
 #-------------------------------------------------------------
 # Undefined symbols that must be forced to load when linking.
