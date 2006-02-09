@@ -24,6 +24,9 @@
  $Id$
 
  $Log$
+ Revision 1.6  2006/02/09 21:31:06  cesrulib
+ windows porting
+
  Revision 1.5  2004/01/13 20:03:46  cesrulib
  Eliminate cast problem for gcc compiler.
 
@@ -44,6 +47,7 @@
 
 #include "CESR_platform.h"
 
+#if defined(CESR_UNIX) || defined(CESR_LINUX)
 #include <dirent.h>
 #include <string.h>
 #include <stdio.h>
@@ -141,3 +145,5 @@ int c_match_wild(const char *pattern, const char *str)
   /* Should never get here */
   return -1;
 }
+
+#endif
