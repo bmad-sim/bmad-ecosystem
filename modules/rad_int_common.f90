@@ -501,8 +501,6 @@ subroutine calc_wiggler_g_params (ele, z, orb, pt)
   pt%g_y = -kick_0(4)
   pt%g_x0 = -kick_0(2)
   pt%g_y0 = -kick_0(4)
-  pt%k1 = dk(1,1)
-  pt%s1 = dk(2,1)
   pt%g2 = pt%g_x**2 + pt%g_y**2
   pt%g  = sqrt(pt%g2)
   pt%dg2_x = 2*kick_0(2)*dk(1,1) + 2*kick_0(4)*dk(2,1) 
