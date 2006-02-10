@@ -60,51 +60,6 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine mat6_add_offsets (ele, orb_in)
-!
-! Subroutine to add in the affect of an element's orientation in space to
-! to the computed Jacobian matrix.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   ele       -- Ele_struct: Element with given orientation.
-!     %vec0(6)   -- Real(rp): 0th order part of the transfer map.
-!     %mat6(6,6) -- Real(rp): 1st order part of the transfer map (Jacobian).
-!   orb_in   -- Coord_struct: Coordinates of reference trajectory at the 
-!                   beginning of the element about which the Jacobian was made.
-!
-! Output:
-!   ele       -- Ele_struct: Element with given orientation.
-!     %vec0(6)   -- Real(rp): 0th order part of the transfer map.
-!     %mat6(6,6) -- Real(rp): 1st order xfer map.
-!-
-
-subroutine mat6_add_offsets (ele, orb_in)
-
-implicit none
-
-type (ele_struct) ele
-type (coord_struct) orb_in
-
-real (rp) orb_out(6)
-
-!
-
-orb_out = ele%vec0 + matmul(ele%mat6, orb_in%vec)
-
-if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (ele%mat6, ele%value(tilt_tot$))
-call mat6_add_pitch (ele, ele%mat6)
-
-ele%vec0 = orb_out - matmul(ele%mat6, orb_in%vec)
-
-end subroutine
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
 ! Subroutine mat6_add_pitch (ele, mat6)
 !
 ! Subroutine to modify a first order transfer matrix to include the affect
