@@ -378,7 +378,7 @@ subroutine propagate_part_way (ele0, ele, runt, z_here, j_loop, n_pt)
 
     runt%mat6 = pt1%mat6
     runt%vec0 = pt1%vec0
-    if (.not. ele%map_with_offsets) call mat6_add_offsets (ele)
+    if (.not. ele%map_with_offsets) call mat6_add_offsets (runt)
     call twiss_propagate1 (ele0, runt)
     e1%x = runt%x; e1%y = runt%y
     call make_v_mats (runt, v, v_inv)
