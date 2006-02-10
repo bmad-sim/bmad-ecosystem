@@ -496,6 +496,13 @@ interface
 end interface
 
 interface
+  subroutine mat6_add_offsets (ele)
+    use bmad_struct, only: ele_struct
+    type (ele_struct) ele
+  end subroutine
+end interface
+
+interface
   subroutine mark_LRBBI(master_ring, master_ring_oppos, ring, crossings)
     use bmad_struct, only: ring_struct, rp
     implicit none
