@@ -91,6 +91,10 @@ In \bmad the twiss parameters are calculated about a reference orbit so the
 centroid orbit (or particle orbit for single particle tracking) is also used.
 A ``B'' means the beam particle distribution determines the data type. A ``X''
 means this data type is not available for this tracking type.
+
+Data types marked \vn{global} do not have any particular elements
+associated with them.
+
 \index{Data!Calculation Method}
 
 \begin{table}[ht] 
@@ -148,11 +152,17 @@ means this data type is not available for this tracking type.
     i5a\_e6, i5b\_e6      & Normalized I5 radiation integral  &          \\ \hline
     s\_position           & longitudinal length constraint    & relative \\ \hline 
     beam\_energy          & Beam energy                       &          \\ \hline
+    unstable\_ring        & Nonzero if a ring is unstable     & global   \\ \hline
     \begin{tabular}{@{}l}
       emittance:a  \\
       emittance:b  \\
     \end{tabular}
-                          & Emittance for a ring              &          \\ \hline
+                          & Emittance for a ring              & global   \\ \hline
+    \begin{tabular}{@{}l}
+      chrom:a  \\
+      chrom:b  \\
+    \end{tabular}
+                          & Chromaticity for a ring           & global   \\ \hline
     \begin{tabular}{@{}l}  
       norm\_emittance:x \\ 
       norm\_emittance:y \\
