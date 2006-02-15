@@ -4,6 +4,7 @@ use tao_mod
 use macroparticle_mod
 use macro_utils_mod
 use spin_mod
+use utilities_mod
 
 ! These are data types specific to macroparticles
 
@@ -520,11 +521,14 @@ case ('emittance:a')
 case ('emittance:b')
   datum_value = tao_lat%modes%b%emittance
 
-case ('chromaticity:a')
+case ('chrom:a')
   datum_value = tao_lat%a%chrom
 
-case ('chromaticity:b')
+case ('chrom:b')
   datum_value = tao_lat%b%chrom
+
+case ('unstable_ring')
+  datum_value = tao_lat%lat%param%growth_rate
 
 case ('norm_emittance:a')
   if (s%global%track_type .eq. "beam") then
@@ -890,8 +894,6 @@ end subroutine tao_read_bpm
 subroutine tao_transfer_map_calc (lat, t_map, ix1, ix2, &
                                       integrate, one_turn, unit_start)
 
-  use bmad_struct
-  use bmad_interface
   use ptc_interface_mod, only: concat_taylor, ele_to_taylor, taylor_propagate1
 
   implicit none

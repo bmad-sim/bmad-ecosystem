@@ -9,6 +9,7 @@ module tao_utils
 use tao_struct
 use tao_interface
 use bmad
+use output_mod
 
 ! used for parsing expressions
 integer, private :: plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4

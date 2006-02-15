@@ -98,9 +98,9 @@ do i = 1, size(s%plot_page%region)
     case ('data', 'phase_space')
       call tao_plot_data (plot, graph)
     case ('lat_layout')
-      call plot_lat_layout  
+      call tao_plot_lat_layout (plot, graph)
     case ('key_table')
-      call plot_key_table
+      call tao_plot_key_table (plot, graph)
     case default
       call out_io (s_fatal$, r_name, 'UNKNOWN GRAPH TYPE: ' // graph%type)
     end select
@@ -108,11 +108,16 @@ do i = 1, size(s%plot_page%region)
 
 enddo
 
+end subroutine
+
 !--------------------------------------------------------------------------
-contains
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
 
-subroutine plot_key_table
+subroutine tao_plot_key_table (plot, graph)
 
+type (tao_plot_struct) :: plot
+type (tao_graph_struct) :: graph
 type (tao_var_struct), pointer :: var
 type (tao_keyboard_struct), pointer :: key
 
@@ -122,6 +127,8 @@ real(rp) :: dy_key, text_scale
 character(80) str, fmt, fmt2, str2
 character(12) model_str, val0_str, delta_str
 character(4) exp_str
+character(24) :: r_name = 'tao_plot_key_table'
+
 
 !
 
@@ -206,10 +213,13 @@ enddo
 end subroutine
 
 !--------------------------------------------------------------------------
-! contains
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
 
-subroutine plot_lat_layout
+subroutine tao_plot_lat_layout (plot, graph)
 
+type (tao_plot_struct) :: plot
+type (tao_graph_struct) :: graph
 type (ring_struct), pointer :: lat
 type (ele_struct), pointer :: ele
 
@@ -219,6 +229,7 @@ integer i, j, k, kk, ix, ix1, ix2, isu
 integer icol, ix_var, ixv, j_label
 
 character(80) str
+character(20) :: r_name = 'tao_plot_lat_layout'
 
 ! Each graph is a separate lattice layout (presumably for different universes). 
 ! setup the placement of the graph on the plot page.
@@ -362,8 +373,6 @@ if (s%global%label_keys) then
     enddo
   enddo
 endif
-
-end subroutine
 
 end subroutine
 

@@ -288,7 +288,6 @@ end subroutine
 
 subroutine tao_set_var_cmd (name, component, set_value, list)
 
-use tao_mod
 use quick_plot
 
 implicit none
@@ -486,7 +485,6 @@ end subroutine tao_set_var_cmd
 
 subroutine tao_set_data_cmd (name, component, set_value, list)
 
-use tao_mod
 use quick_plot
 
 implicit none

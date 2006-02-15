@@ -10,11 +10,17 @@
 module tao_struct
 
 use bmad_struct, only: rp, ring_struct, coord_struct, radians$, ele_struct, modes_struct
+use equal_mod
 use quick_plot, only: qp_line_struct, qp_symbol_struct, qp_axis_struct, qp_rect_struct, qp_point_struct
 use macroparticle_mod, only: macro_init_struct, macro_beam_struct
 use macro_utils_mod, only: macro_bunch_params_struct
 use beam_def_struct, only: beam_init_struct, beam_struct, bunch_params_struct
 use tao_parameters
+
+interface assignment (=)
+  module procedure tao_lat_equal_tao_lat
+end interface
+
 
 !-----------------------------------------------------------------------
 ! misc.
@@ -477,5 +483,25 @@ end type
 
 type (tao_super_universe_struct), save, target :: s
 type (tao_common_struct), save :: tao_com
+
+!-----------------------------------------------------------------------
+contains
+
+subroutine tao_lat_equal_tao_lat (lat1, lat2)
+
+  implicit none
+
+  type (tao_lattice_struct), intent(inout) :: lat1
+  type (tao_lattice_struct), intent(in) :: lat2
+
+!
+
+  lat1%lat   = lat2%lat
+  lat1%orb   = lat2%orb
+  lat1%modes = lat2%modes
+  lat1%a     = lat2%a
+  lat1%b     = lat2%b
+
+end subroutine
 
 end module

@@ -695,7 +695,7 @@ else
 
   do j = n1, n2
     if (u%data(j)%data_type(1:10) == 'emittance:' .or. &
-        u%data(j)%data_type(1:13) == 'chromaticity:' .or. &
+        u%data(j)%data_type(1:13) == 'chrom:' .or. &
         u%data(j)%data_type(1:13) == 'unstable_ring') then
       u%data(j)%exists = .true.
       cycle
@@ -812,7 +812,7 @@ u%do_chrom_calc         = .false.
 do j = lbound(u%data, 1), ubound(u%data, 1)
   if (u%data(j)%data_type(1:10) == 'emittance:') &
                                     u%do_synch_rad_int_calc = .true. 
-  if (u%data(j)%data_type(1:13) == 'chromaticity:') &
+  if (u%data(j)%data_type(1:13) == 'chrom:') &
                                     u%do_chrom_calc = .true.
 enddo
 

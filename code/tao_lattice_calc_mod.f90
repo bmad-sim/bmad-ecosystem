@@ -185,7 +185,7 @@ subroutine tao_beam_track (uni, tao_lat)
 
 implicit none
 
-type (tao_lattice_struct) tao_lat
+type (tao_lattice_struct), target :: tao_lat
 type (ring_struct), pointer :: lat
 type (tao_universe_struct), pointer :: u
 type (beam_struct), pointer :: beam
@@ -364,7 +364,7 @@ use macro_utils_mod
 
 implicit none
 
-type (tao_lattice_struct) tao_lat
+type (tao_lattice_struct), target :: tao_lat
 type (ring_struct), pointer :: lat
 type (tao_universe_struct), pointer :: u
 type (macro_beam_struct), pointer :: beam
@@ -657,7 +657,7 @@ subroutine tao_inject_particle (u, tao_lat)
 implicit none
 
 type (tao_universe_struct) u
-type (tao_lattice_struct) tao_lat
+type (tao_lattice_struct), target :: tao_lat
 type (ring_struct), pointer :: lat
 
 type (ele_struct), save :: extract_ele
@@ -720,7 +720,7 @@ subroutine tao_inject_beam (u, tao_lat)
 
 implicit none
  
-type (tao_lattice_struct) tao_lat
+type (tao_lattice_struct), target :: tao_lat
 type (ring_struct), pointer :: lat
 type (tao_universe_struct) u
 type (ele_struct), save :: extract_ele

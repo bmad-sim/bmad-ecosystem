@@ -7,10 +7,12 @@
 
 module tao_mod
 
+  use bmad_struct
+  use bmad_interface
+  use dcslib
+  use cesr_utils
   use tao_struct
   use tao_interface
   use tao_utils
-  use bmad_struct
-  use bmad_interface
 
 end module
