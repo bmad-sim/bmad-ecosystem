@@ -278,9 +278,10 @@ subroutine bmad_parser2 (in_file, ring, orbit_, make_mats6)
       ring%ele_(n_max)%ixx = last_con
 
       do i = 1, n_max-1
-        if (ring%ele_(n_max)%name == ring%ele_(i)%name)  &
-                         call warning ('DUPLICATE ELEMENT NAME ' //  &
-                         ring%ele_(n_max)%name, ' ')
+        if (ring%ele_(n_max)%name == ring%ele_(i)%name) then
+          call warning ('DUPLICATE ELEMENT NAME ' // ring%ele_(n_max)%name, ' ')
+          exit
+        endif
       enddo
 
 ! check for valid element key name
