@@ -504,16 +504,20 @@ function equivalent_eles (ele1, ele2) result (equiv)
 
   if (ele1%key /= ele2%key) return
   if (ele1%sub_key /= ele2%sub_key) return
-
+  if (ele1%map_with_offsets /= ele2%map_with_offsets) return
+  if (ele1%integrator_order /= ele2%integrator_order) return
   if (ele1%name /= ele2%name .and. any(ele1%taylor%ref /= 0)) return
 
   vmask = .true.
   if (ele1%key == wiggler$ .and. ele1%sub_key == map_type$) then
-    vmask((/k1$, rho$, b_max$, z_patch$, p0c$, check_sum$/)) = .false.
+    vmask( (/ k1$, rho$, b_max$, z_patch$, p0c$, check_sum$ /) ) = .false.
+  endif
+  if (.not. ele1%map_with_offsets) then
+    vmask( (/ x_offset$, y_offset$, s_offset$, tilt$, x_pitch$, &
+              y_pitch$, x_offset_tot$, y_offset_tot$, s_offset_tot$, &
+              tilt_tot$, x_pitch_tot$, y_pitch_tot$/) ) = .false.
   endif
   if (any(ele1%value /= ele2%value .and. vmask)) return
-
-  if (ele1%integrator_order /= ele2%integrator_order) return
 
   if (associated(ele1%wig_term) .neqv. associated(ele2%wig_term)) return
   if (associated(ele1%wig_term)) then
