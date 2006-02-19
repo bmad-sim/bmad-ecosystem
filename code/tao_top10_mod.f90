@@ -77,9 +77,9 @@ do j = 1, size(s%var)
   name = s%var(j)%v1%name
   call tao_to_top10 (top_merit, s%var(j)%merit, name, s%var(j)%ix_v1, 'max')
   call tao_to_top10 (top_dmerit, s%var(j)%dmerit_dvar, name, &
-                                                      s%var(j)%ix_v1, 'max')
+                                                      s%var(j)%ix_v1, 'abs_max')
   delta = s%var(j)%model_value - s%var(j)%design_value
-  call tao_to_top10 (top_delta, delta, name, s%var(j)%ix_v1, 'max')
+  call tao_to_top10 (top_delta, delta, name, s%var(j)%ix_v1, 'abs_max')
 enddo
 
 ! write results

@@ -29,6 +29,9 @@ character(40) :: r_name = 'tao_run_cmd', my_opti
 
 !
 
+call tao_set_var_useit_opt()
+call tao_set_data_useit_opt()
+
 if (.not. any (which /= (/ '      ', 'de    ', 'lm    ', 'custom' /))) then
   call out_io (s_error$, r_name, 'OPTIMIZER NOT RECOGNIZED: ' // which)
   return

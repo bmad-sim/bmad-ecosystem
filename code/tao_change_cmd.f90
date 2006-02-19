@@ -125,8 +125,9 @@ case ('var')
 
   do i = lbound(action_logic,1), ubound(action_logic,1)
     if (.not. action_logic(i)) cycle
+    delta = new_var_value(i)-old_var_value(i)
     nl=nl+1; write (lines(nl), fmt) i, old_var_value(i), '  ->', &
-          new_var_value(i), new_var_value(i)-old_var_value(i), &
+           new_var_value(i), delta, &
 			     old_var_value(i)-design_var_value(i), &
 			     new_var_value(i)-design_var_value(i)
   enddo
@@ -138,10 +139,13 @@ case ('var')
     fmt = '(5x, 2(a, f13.6), f13.6)'
   endif
 
-  nl=nl+1;lines(nl) = ' '
-  write (lines(nl), fmt) 'Merit:      ', &
+  nl=nl+1; lines(nl) = ' '
+  nl=nl+1; write (lines(nl), fmt) 'Merit:      ', &
                         old_merit, '  ->', new_merit, new_merit-old_merit
-  nl=nl+1;lines(nl) = ' '
+  if (delta /= 0) then
+    nl=nl+1; write (lines(nl), '(5x, a, es11.3)') 'dMerit/dVar:', &
+                                     (new_merit-old_merit) / delta
+  endif
 
   call out_io (s_blank$, r_name, lines(1:nl))
 

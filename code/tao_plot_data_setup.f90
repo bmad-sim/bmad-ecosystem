@@ -131,7 +131,10 @@ graph%valid = .false.
 do k = 1, size(graph%curve)
 
   curve => graph%curve(k)
-  if (.not. associated(curve%beam%bunch)) return
+  if (.not. associated(curve%beam%bunch)) then
+    call out_io (s_abort$, r_name, 'NO ASSOCIATED BEAM WITH PHASE_SPACE PLOTTING.')
+    return
+  endif
 
   ! find phase space axes to plot
 

@@ -1021,17 +1021,21 @@ logical delim_found, split, ran_function_pending
 logical err_flag
 
 ! Don't destroy the input expression
+
+  err_flag = .true.
+
   if (len(expression) .gt. len(phrase)) then
     call out_io (s_warn$, r_name, &
       "Expression cannot be longer than /I3/ characters", len(phrase))
-    err_flag = .true.
     return
   endif
   read (expression, '(a)') phrase
 
 ! if phrase is blank then return 0.0
   call string_trim (phrase, phrase, ios)
-  if (ios .eq. 0) then
+  if (ios == 0) then
+    call out_io (s_warn$, r_name, &
+      "Expression is blank", len(phrase))
     value = 0.0
     return
   endif
