@@ -470,8 +470,8 @@ subroutine track1_spin (start, ele, param, end)
 implicit none
 
 type (coord_struct), intent(in) :: start
-type (coord_struct), intent(out) :: end
-type (ele_struct), intent(in) :: ele
+type (coord_struct) :: end
+type (ele_struct) :: ele
 type (param_struct), intent(in) :: param
 type (spin_map_struct), pointer :: map
 

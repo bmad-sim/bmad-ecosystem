@@ -48,7 +48,7 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
   real(rp) c11, c12, c22, g, g2, xx_ave, xy_ave, yy_ave, phi
   real(rp) xx_rot_ave, yy_rot_ave, a_emit, b_emit, length, g3
 
-  integer i, m, n_use
+  integer i, m
   logical calc_on
 
 ! Transfer some data to the common block for later use
@@ -119,7 +119,7 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)
 
     length = (ele%value(l$) + lattice%ele_(i+1)%value(l$)) / 2
     if (i == 1) length = ele%value(l$) + lattice%ele_(i+1)%value(l$) / 2
-    if (i == n_use) length = ele%value(l$) / 2
+    if (i == lattice%n_ele_use) length = ele%value(l$) / 2
 
 ! Calculate the kick constant.
 ! Taken from:
