@@ -19,6 +19,9 @@
 ! $Id$
 !
 ! $Log$
+! Revision 1.4  2006/02/21 21:33:55  ajl59
+! Fixed use of MPI causing error on turn 20500
+!
 ! Revision 1.3  2005/09/21 20:59:07  dcs
 ! more changes to get around compiler bug.
 !
@@ -479,8 +482,8 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
         do sib_i=1,size
            onepart(1:6)=start(sib_i)%vec
            onepart(7)=0
-           call MPI_SEND(onepart,7,mpi_type,sib_i,sib_i,MPI_COMM_WORLD,ierr)
            call MPI_SEND(transmit,2,MPI_LOGICAL,sib_i,go,MPI_COMM_WORLD,ierr)
+           call MPI_SEND(onepart,7,mpi_type,sib_i,sib_i,MPI_COMM_WORLD,ierr)
            list(sib_i)=1
         enddo
      else
@@ -538,14 +541,14 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
            sib_i=0
            found_flag=.false.
 !we scan through the list of particles, if one is not processed(i.e. list(particle number) == 0), we send it out
-           do while(sib_i.lt.(scan_params%n_part+1))
+           do while(sib_i.lt.(scan_params%n_part))
               sib_i = sib_i + 1
               if(list(sib_i)==0) then
                  onepart(1:6) = start(sib_i)%vec
                  onepart(7) = sib_j - 1
                  t1 = MPI_Wtime()
-                 call MPI_SEND(onepart,7,mpi_type,status(MPI_SOURCE),sib_i,MPI_COMM_WORLD,ierr)
                  call MPI_SEND(transmit,2,MPI_LOGICAL,status(MPI_SOURCE),go,MPI_COMM_WORLD,ierr)
+                 call MPI_SEND(onepart,7,mpi_type,status(MPI_SOURCE),sib_i,MPI_COMM_WORLD,ierr)
                  t2 = MPI_Wtime()
                  t_send = (t_send*(sib_i-1)+(t2-t1))/sib_i
                  list(sib_i) = 1
