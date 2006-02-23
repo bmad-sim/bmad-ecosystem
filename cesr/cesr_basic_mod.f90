@@ -56,6 +56,7 @@ module cesr_basic_mod
   integer, parameter :: n_scir_quad_maxx = 4
   integer, parameter :: n_scir_tilt_maxx = 8
   integer, parameter :: n_nir_shuntcur_maxx = 4
+  integer, parameter :: n_sc_sol_maxx = 2
 
 ! %ix_cesr is a pointer to cesr_struct for given type
 
@@ -75,6 +76,7 @@ module cesr_basic_mod
     type (cesr_element_struct) scir_cam_rho_(n_scir_cam_maxx)
     type (cesr_element_struct) scir_tilt_(n_scir_tilt_maxx)
     type (cesr_element_struct) nir_shuntcur(n_nir_shuntcur_maxx)
+    type (cesr_element_struct) scsol_cur_(n_sc_sol_maxx)
 
     integer ix_ip_l3                     ! pointer to IP_L3
     integer, pointer :: ix_cesr(:) => null() 
@@ -212,6 +214,7 @@ subroutine bmad_to_cesr (ring, cesr)
 
   cesr%quad_(:)%ix_ring         = 0
   cesr%skew_quad_(:)%ix_ring    = 0
+  cesr%scsol_cur_(:)%ix_ring    = 0
   cesr%skew_sex_(:)%ix_ring     = 0
   cesr%sep_(:)%ix_ring          = 0
   cesr%sex_(:)%ix_ring          = 0
@@ -227,6 +230,7 @@ subroutine bmad_to_cesr (ring, cesr)
   cesr%quad_(:)%name         = 'DUMMY'            ! assume nothing here
   cesr%skew_quad_(:)%name    = 'DUMMY'
   cesr%skew_sex_(:)%name     = 'DUMMY'
+  cesr%scsol_cur_(:)%name    = 'DUMMY'
   cesr%sep_(:)%name          = 'DUMMY'
   cesr%sex_(:)%name          = 'DUMMY'
   cesr%det_(:)%name          = 'DUMMY'
@@ -300,7 +304,7 @@ subroutine bmad_to_cesr (ring, cesr)
 
   cesr%wig_(wig_w$)%name = 'WIG_W'
   cesr%wig_(wig_e$)%name = 'WIG_E'
- 
+
   cesr%solenoid%name = 'CLEO_SOL'
 
 ! phase_iii
@@ -334,6 +338,10 @@ subroutine bmad_to_cesr (ring, cesr)
   cesr%nir_shuntcur(2)%name = 'NIR_SHUNTCUR___2'
   cesr%nir_shuntcur(3)%name = 'NIR_SHUNTCUR___3'
   cesr%nir_shuntcur(4)%name = 'NIR_SHUNTCUR___4'
+
+  cesr%scsol_cur_(1)%name = 'SCS03W'
+  cesr%scsol_cur_(2)%name = 'SCS03E'
+
 
 !-------------------------------------------------------------
 ! Load elements from RING to CESR
@@ -527,6 +535,17 @@ subroutine bmad_to_cesr (ring, cesr)
       cycle ele_loop
     endif
 
+! There should be a better way to do the following:
+    if (ele%name == cesr%scsol_cur_(1)%name) then
+      cesr%solenoid%ix_ring = i
+      cycle ele_loop
+    endif
+
+    if (ele%name == cesr%scsol_cur_(2)%name) then
+      cesr%solenoid%ix_ring = i
+      cycle ele_loop
+    endif
+
   enddo ele_loop
            
 
@@ -558,6 +577,7 @@ subroutine bmad_to_cesr (ring, cesr)
   call bmad_to_cesr_err_type (cesr%rf_,          'RF CAVITY')
   call bmad_to_cesr_err_type (cesr%scir_cam_rho_,    'SCIR CAM')
   call bmad_to_cesr_err_type (cesr%scir_tilt_,   'SCIR TILT')
+  call bmad_to_cesr_err_type (cesr%scsol_cur_,   'SC SOL CUR')
 
 !----------------------------------------------------------------
 contains

@@ -51,6 +51,7 @@ module cesr_db_mod
     type (db_element_struct) :: csr_sext_cur(98)
     type (db_element_struct) :: csr_octu_cur(n_oct_maxx)
     type (db_element_struct) :: csr_sqewquad(98)
+    type (db_element_struct) :: csr_scsolcur(2)
     type (db_element_struct) :: csr_sqewsext(n_csr_sqewsext_maxx)
     type (db_element_struct) :: scir_quadcur(n_scir_quad_maxx)
     type (db_element_struct) :: scir_skqucur(n_scir_quad_maxx)
@@ -194,6 +195,9 @@ subroutine bmad_to_db (ring, db, calib_date)
   call db_init_it (db%csr_sqewquad, lbound(db%csr_sqewquad, 1), &
           'CSR SQEWQUAD',    k1$,    db%node, cesr%skew_quad_(1:98), 1)
                            
+  call db_init_it (db%csr_sqewquad, lbound(db%csr_scsolcur, 1), &
+          'SCSOL CONTRL',    k1$,    db%node, cesr%scsol_cur_(1:n_sc_sol_maxx), 1)
+                           
   call db_init_it (db%scir_skqucur, lbound(db%scir_skqucur, 1), &
           'SCIR SKQUCUR',    k1$,    db%node, cesr%skew_quad_(111:114), 111)
                            
@@ -319,6 +323,14 @@ subroutine bmad_to_db (ring, db, calib_date)
   call nir_shuntcur_calib (db%nir_shuntcur%dvar_dcu)
   db%nir_shuntcur%dvar_dcu = &
                     db%nir_shuntcur%dvar_dcu * db%quad(48:51)%dvar_dcu
+
+! sc solenoid calibration
+
+  call sc_sol_calib (db%csr_scsolcur(:)%dvar_dcu)
+  db%csr_scsolcur(:)%dvar_dcu = db%csr_scsolcur(:)%dvar_dcu / gev
+
+  call get_ele_theory (ring, db%csr_scsolcur) 
+
 
 ! Things not part of the CESR DB
 
