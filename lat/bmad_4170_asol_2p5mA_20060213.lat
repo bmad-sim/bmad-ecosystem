@@ -39,7 +39,7 @@
  lattice := 4170_asol_2p5mA_20060213
  beam, energy =   2.085
 
- call, file = BMAD_LAYOUT:layout_antisol_2006_01_23_19kg.bmad
+ call, file = BMAD_LAYOUT:layout_antisol_2006_02_23_19kg.bmad
 
  taylor_order = 3
 
@@ -283,9 +283,9 @@ sc_SK_q01W[K1] = 1.4311712048446973E-01
 sc_SK_q01E[K1] = 1.4311712048446973E-01
 
 
-!sc_sol_ew: overlay = {sc_sol_w, sc_sol_e}, ks =   2.6367426454775833E-01
-sc_sol_w[ks] = 2.6367426454775833E-01
-sc_sol_e[ks] = 2.6367426454775833E-01
+!scs03: overlay = {scs03w, scs03e}, ks =   2.6367426454775833E-01
+scs03w[ks] = 2.6367426454775833E-01
+scs03e[ks] = 2.6367426454775833E-01
 
  fact20 = 0.2
  fact = 0.8
