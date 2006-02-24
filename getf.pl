@@ -6,8 +6,8 @@ use File::Find;
 use File::Spec::Functions;
 
 # Following two lines should be uncommented on VMS to check the master_list:
-#my @args = ("r [cesr.master_list]type_header.exe", @ARGV);
-#system(@args) == 0 or die "system @args failed: $?\n";
+#my @args = ("type_header", @ARGV);
+#system(@args) == 0 or warn "system @args failed: $!\n";
 
 $found_one = 0;
 
