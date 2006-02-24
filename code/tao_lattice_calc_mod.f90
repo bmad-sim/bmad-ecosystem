@@ -89,15 +89,15 @@ if (s%global%lattice_recalc) then
 
     select case (s%global%track_type)
     case ('single') 
-      call tao_inject_particle (s%u(i), this)
+      call tao_inject_particle (s%u(i), this%lat, this%orb)
       call tao_lat_bookkeeper (s%u(i), this)
       call tao_single_track (i, this)
     case ('beam') 
-      call tao_inject_beam (s%u(i), this)
+      call tao_inject_beam (s%u(i), this%lat, this%orb)
       call tao_lat_bookkeeper (s%u(i), this)
       call tao_beam_track (i, this)
     case ('macro')
-      call tao_inject_macro_beam (s%u(i), this)
+      call tao_inject_macro_beam (s%u(i), this%lat, this%orb)
       call tao_lat_bookkeeper (s%u(i), this)
       call tao_macro_track (i, this)
     case default
@@ -652,13 +652,13 @@ end subroutine tao_find_macro_beam_centroid
 ! whatever the user has specified. As always, tracking only occure in the model
 ! lattice.
 
-subroutine tao_inject_particle (u, tao_lat)
+subroutine tao_inject_particle (u, lat, orb)
 
 implicit none
 
 type (tao_universe_struct) u
-type (tao_lattice_struct), target :: tao_lat
-type (ring_struct), pointer :: lat
+type (ring_struct) lat
+type (coord_struct) orb(0:)
 
 type (ele_struct), save :: extract_ele
 type (coord_struct) pos
@@ -666,8 +666,6 @@ type (coord_struct) pos
 character(20) :: r_name = "inject_particle"
 
 !
-
-lat => tao_lat%lat
 
 if (.not. u%coupling%coupled) return
     
@@ -705,7 +703,7 @@ lat%ele_(0)%value(beam_energy$) = extract_ele%value(beam_energy$)
 lat%ele_(0)%c_mat   = extract_ele%c_mat
 lat%ele_(0)%gamma_c = extract_ele%gamma_c
 lat%ele_(0)%floor   = extract_ele%floor
-tao_lat%orb(0)      = pos
+orb(0)      = pos
         
 end subroutine tao_inject_particle
 
@@ -716,13 +714,13 @@ end subroutine tao_inject_particle
 ! preparation for tracking. The lattice where the extraction occurs will have
 ! already been calculated.
 
-subroutine tao_inject_beam (u, tao_lat)
+subroutine tao_inject_beam (u, lat, orb)
 
 implicit none
  
-type (tao_lattice_struct), target :: tao_lat
-type (ring_struct), pointer :: lat
+type (ring_struct) lat
 type (tao_universe_struct) u
+type (coord_struct) orb(0:)
 type (ele_struct), save :: extract_ele
 
 type (param_struct), pointer :: param
@@ -732,8 +730,6 @@ integer n_bunch, n_part
 character(20) :: r_name = "tao_inject_beam"
 
 !
-
-lat => tao_lat%lat
 
 if (.not. u%coupling%coupled) return
    
@@ -770,7 +766,7 @@ lat%ele_(0)%c_mat   = extract_ele%c_mat
 lat%ele_(0)%gamma_c = extract_ele%gamma_c
 lat%ele_(0)%floor   = extract_ele%floor
 call beam_equal_beam (u%beam%beam, u%coupling%injecting_beam)
-call tao_find_beam_centroid (u%coupling%injecting_beam, tao_lat%orb(0))
+call tao_find_beam_centroid (u%coupling%injecting_beam, orb(0))
 
 end subroutine tao_inject_beam
 
@@ -781,13 +777,13 @@ end subroutine tao_inject_beam
 ! preparation for tracking. The lattice where the extraction occurs will have
 ! already been calculated.
 
-subroutine tao_inject_macro_beam (u, tao_lat)
+subroutine tao_inject_macro_beam (u, lat, orb)
 
 implicit none
  
 type (tao_universe_struct) u
-type (tao_lattice_struct), target :: tao_lat
-type (ring_struct), pointer :: lat
+type (coord_struct) orb(0:)
+type (ring_struct) lat
 type (ele_struct), save :: extract_ele
 
 type (param_struct), pointer :: param
@@ -797,8 +793,6 @@ integer n_bunch, n_slice, n_macro
 character(20) :: r_name = "tao_inject_macro_beam"
 
 !
-
-lat => tao_lat%lat
 
 if (.not. u%coupling%coupled) return
    
@@ -835,7 +829,7 @@ lat%ele_(0)%c_mat   = extract_ele%c_mat
 lat%ele_(0)%gamma_c = extract_ele%gamma_c
 lat%ele_(0)%floor   = extract_ele%floor
 u%macro_beam%beam = u%coupling%injecting_macro_beam
-call tao_find_macro_beam_centroid (u%coupling%injecting_macro_beam, tao_lat%orb(0))
+call tao_find_macro_beam_centroid (u%coupling%injecting_macro_beam, orb(0))
 
 ! deterine if macroparticle already lost
 do n_bunch = 1, size(u%coupling%injecting_macro_beam%bunch)
