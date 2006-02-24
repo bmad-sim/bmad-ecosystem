@@ -1,5 +1,5 @@
 !+
-! Subroutine xsif_parser (xsif_file, lat, make_mats6, use_line)
+! Subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
 !
 ! Subroutine to parse an XSIF (extended standard input format) lattice file.
 ! XSIF is used by, for example, LIAR.
@@ -25,8 +25,9 @@
 !     %ok            -- Set True if parsing is successful. False otherwise.
 !-
 
-subroutine xsif_parser (xsif_file, lat, make_mats6, use_line)
+subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
 
+  use xsif_lat_file_names_mod
   use xsif_inout
   use xsif_interfaces
   use xsif_elements
@@ -41,20 +42,39 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, use_line)
 
   integer xsif_unit, err_unit, std_out_unit, internal_unit
   integer i, ie, ierr, dat_indx, err_lcl, i_ele, indx, key
-  integer ip0, n, it, ix, iep, id
-  integer xsif_io_setup, parchk, ix1, ix2
+  integer ip0, n, it, ix, iep, id, n_names
+  integer xsif_io_setup, parchk, ix1, ix2, digested_version
 
   real(rp) k2, angle
 
   character(*) :: xsif_file
   character(*), optional :: use_line
+  character(16) name
   character(100) name1, name2, line
   character(200) full_name
+  character(200) full_lat_file_name, digested_file
+  character(200), allocatable :: file_names(:)
   character(16) :: r_name = 'xsif_parser'
 
-  logical, optional :: make_mats6
+  logical, optional :: make_mats6, digested_read_ok
   logical echo_output, err_flag
 
+! See if the digested file is OK
+
+  call form_digested_bmad_file_name (xsif_file, digested_file, full_lat_file_name)
+  call read_digested_bmad_file (digested_file, lat, digested_version)
+
+  if (present(use_line)) then
+    call str_upcase (name, use_line)
+    if (name /= lat%name) bmad_status%ok = .false.
+  endif
+
+  if (bmad_status%ok) then
+    if (present(digested_read_ok)) digested_read_ok = .true.
+    return
+  endif
+
+  if (present(digested_read_ok)) digested_read_ok = .false.
 
 ! Init the xsif routines.
 ! If XSIF_IO_SETUP returns bad status it means that one of the file-open 
@@ -514,6 +534,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, use_line)
   lat%param%aperture_limit_on  = .true.
   lat%n_ic_max           = 0                     
   lat%n_control_max      = 0    
+  lat%name = ktext  ! ktext is global xsif variable
 
   call set_taylor_order (lat%input_taylor_order, .false.)
   call set_ptc (lat%beam_energy, lat%param%particle)
@@ -536,6 +557,16 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, use_line)
   if (logic_option (.true., make_mats6)) call ring_make_mat6 (lat, -1)
   err_flag = .false.
   call xsif_io_close
+
+! Make a digested file
+
+  call file_name_list_show (file_names, n_names)
+  do i = 1, n_names
+    call fullfilename (file_names(i), file_names(i))
+    inquire (file = file_names(i), name = file_names(i))
+  enddo
+  call write_digested_bmad_file (digested_file, lat, n_names, file_names) 
+  deallocate (file_names)
 
 !------------------------------------------------------------------------
 contains

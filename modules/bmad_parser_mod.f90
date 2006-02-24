@@ -3526,4 +3526,50 @@ endif
 
 end subroutine
 
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine form_digested_bmad_file_name (lat_file, digested_file, full_lat_file)
+!
+! Subroutine to form the standard name of the Bmad digested file. 
+! The standard digested file name has 'digested_' (single precision Bmad) or 
+! 'digested8_' (standard double precision Bmad) prepended to the file name.
+!
+! Modules needed:
+!   use bmad_parser_mod
+!
+! Input:
+!   lat_file -- Character(200): Input lattice file name.
+!
+! Output:
+!   digested_file -- Character(200): Name of the digested file.
+!   full_lat_file  -- Character(200), optional: Input lattice file name with full directory
+!
+!-
+
+subroutine form_digested_bmad_file_name (lat_file, digested_file, full_lat_file)
+
+  character(*) lat_file, digested_file
+  character(*), optional :: full_lat_file
+  character(200) path, basename
+
+  integer ix
+
+!
+
+  call fullfilename (lat_file, full_lat_file)
+  inquire (file = full_lat_file, name = full_lat_file)  ! full input file_name
+  ix = index(full_lat_file, ';')
+  if (ix /= 0) full_lat_file = full_lat_file(:ix-1)
+
+  ix = SplitFileName(lat_file, path, basename)
+  if (rp == 8) then
+    digested_file = lat_file(:ix) // 'digested8_' // lat_file(ix+1:)
+  else
+    digested_file = lat_file(:ix) // 'digested_' // lat_file(ix+1:)
+  endif
+
+end subroutine
+
 end module

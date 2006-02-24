@@ -74,7 +74,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   character(16) word_2, name, multipass_line
   character(16) :: r_name = 'bmad_parser'
   character(40) this_name, word_1
-  character(200) path, basename, full_name, digested_file
+  character(200) full_lat_file_name, digested_file
   character(280) parse_line_save
 
   real(rp) energy_beam, energy_param, energy_0
@@ -92,19 +92,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   bp_com%input_line_meaningful = .true.
   bp_com%ran_function_was_called = .false.
 
-  call fullfilename (lat_file, full_name)
-  inquire (file = full_name, name = full_name)      ! full input file_name
-  ix = index(full_name, ';')
-  if (ix /= 0) full_name = full_name(:ix-1)
-  ring%input_file_name = full_name      ! needed by read_digested_bmad_file
-
-  ix = SplitFileName(lat_file, path, basename)
-  if (rp == 8) then
-    digested_file = lat_file(:ix) // 'digested8_' // lat_file(ix+1:)
-  else
-    digested_file = lat_file(:ix) // 'digested_' // lat_file(ix+1:)
-  endif
-
+  call form_digested_bmad_file_name (lat_file, digested_file, full_lat_file_name)
   call read_digested_bmad_file (digested_file, ring, digested_version)
 
   ! Must make sure that if use_line is present the digested file has used the 
@@ -836,7 +824,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   call allocate_ring_ele_(ring, n_ele_use+100)
 
   ring%version            = bmad_inc_version$
-  ring%input_file_name    = full_name             ! save input file
+  ring%input_file_name    = full_lat_file_name             ! save input file
   ring%param%particle     = nint(beam_ele%value(particle$))
   ring%n_ele_use          = n_ele_use
   ring%n_ele_ring         = n_ele_use

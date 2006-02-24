@@ -42,7 +42,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
 
   character(*) digested_name
   character(*), optional :: file_names(:)
-  character(200) fname
+  character(200) fname, full_digested_name
   character(32) :: r_name = 'write_digested_bmad_file'
 
   logical write_wake
@@ -59,16 +59,30 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
 
   d_unit = lunget()
 
-  call fullfilename (digested_name, fname)
-  open (unit = d_unit, file = fname, form = 'unformatted', err = 9000)
+  call fullfilename (digested_name, full_digested_name)
+  inquire (file = full_digested_name, name = full_digested_name)
+  open (unit = d_unit, file = full_digested_name, form = 'unformatted', err = 9000)
+
+! Ran function called?
 
   if (bp_com%ran_function_was_called) then
-    write (d_unit, err = 9010) n_file+1, bmad_inc_version$
+    write (d_unit, err = 9010) n_file+2, bmad_inc_version$
     fname = '!RAN FUNCTION WAS CALLED'
     write (d_unit) fname, 0
   else
-    write (d_unit, err = 9010) n_file, bmad_inc_version$
+    write (d_unit, err = 9010) n_file+1, bmad_inc_version$
   endif
+
+! Write digested file name
+
+  stat_b = 0
+#ifndef CESR_VMS 
+  ierr = stat(full_digested_name, stat_b)
+#endif
+  fname = '!DIGESTED:' // full_digested_name
+  write (d_unit) fname, stat_b(10)  ! stat_b(10) = Modification date
+ 
+! write other file names.
 
   do j = 1, n_file
     fname = file_names(j)

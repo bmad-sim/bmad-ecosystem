@@ -1176,13 +1176,14 @@ interface
 end interface
 
 interface
-  subroutine xsif_parser (xsif_file, ring, make_mats6, use_line)
+  subroutine xsif_parser (xsif_file, ring, make_mats6, digested_read_ok, use_line)
     use bmad_struct, only: ring_struct
     implicit none
     character(*) xsif_file
     character(*), optional :: use_line
     type (ring_struct), target :: ring
     logical, optional :: make_mats6
+    logical, optional :: digested_read_ok
   end subroutine
 end interface
 

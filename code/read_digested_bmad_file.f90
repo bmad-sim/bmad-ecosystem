@@ -1,10 +1,10 @@
 !+
-! Subroutine read_digested_bmad_file (digested_name, ring, version)
+! Subroutine read_digested_bmad_file (digested_name, lat, version)
 !
 ! Subroutine to read in a digested file. The subroutine will check that
 ! the version of the digested file is up to date and that the digested file
 ! is current with respect to the original BMAD files that were used. [See
-! write_digested_bmad_file]
+! write_digested_bmad_file.]
 !
 ! Note: This subroutine also reads in the common structures for BMAD_PARSER2
 !
@@ -12,11 +12,13 @@
 !   use bmad
 !
 ! Input:
-!   digested_name -- Character(*): Name of the digested file
+!   digested_name -- Character(*): Name of the digested file.
 !
 ! Output:
-!   ring        -- Ring_struct: Output structure
-!   version     -- Integer: Version number of RING.
+!   lat         -- Ring_struct: Output lattice structure
+!   version     -- Integer: bmad_inc_version number stored in the lattice file.
+!                   If the file is current this number should be the same 
+!                   as the global parameter bmad_inc_version$.
 !   bmad_status -- Bmad_status_struct: Common block status structure.
 !     %ok           -- Set .false. if read failure.
 !-
@@ -40,7 +42,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   integer stat_b(12), idate_old
 
   character(*) digested_name
-  character(200) fname(3), input_file_name
+  character(200) fname1, fname2, fname3, input_file_name, full_digested_name
   character(200), allocatable :: file_names(:)
   character(25) :: r_name = 'read_digested_bmad_file'
 
@@ -79,8 +81,9 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   bmad_status%ok = .true.
   ring%n_ele_use = 0
 
-  call fullfilename (digested_name, input_file_name)
-  open (unit = d_unit, file = input_file_name, status = 'old',  &
+  call fullfilename (digested_name, full_digested_name)
+  inquire (file = full_digested_name, name = full_digested_name)
+  open (unit = d_unit, file = full_digested_name, status = 'old',  &
                      form = 'unformatted', action = 'READ', err = 9000)
 
   read (d_unit, err = 9100) n_files, version
@@ -121,41 +124,44 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 ! if the digested file is out of date then we still read in the file since
 ! we can possibly reuse the taylor series.
 
-  call simplify_path(ring%input_file_name, input_file_name)
-
   do i = 1, n_files
-    read (d_unit, err = 9100) fname(1), idate_old
+    read (d_unit, err = 9100) fname1, idate_old
+      
+    if (fname1(1:10) == '!DIGESTED:') then
+      fname1 = fname1(11:)
+      if (fname1 /= full_digested_name) then
+        if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$, &
+                                          r_name, ' NOTE: MOVED DIGESTED FILE.')
+        bmad_status%ok = .false.
+      endif
+      cycle
+   endif
 
-    if (fname(1) == '!RAN FUNCTION WAS CALLED') then
+    if (fname1 == '!RAN FUNCTION WAS CALLED') then
       if (bmad_status%type_out) call out_io(s_warn$, r_name, &
                 'NOTE: RANDOM NUMBER FUNCTION WAS USED IN LATTICE FILE.')
       bmad_status%ok = .false.
       cycle
     endif
 
-    call simplify_path (fname(1), fname(1))
-    if (v_old) file_names(i) = fname(1)  ! fake out
-    ix = index(fname(1), ';')
+    call simplify_path (fname1, fname1)
+    if (v_old) file_names(i) = fname1  ! fake out
+    ix = index(fname1, ';')
     stat_b = 0
     if (ix > 0) then    ! has VMS version number
-      fname(2) = fname(1)(:ix-1)
+      fname2 = fname1(:ix-1)
     else
-      fname(2) = fname(1)
+      fname2 = fname1
 #ifndef CESR_VMS 
-      ierr = stat(fname(2), stat_b)
+      ierr = stat(fname2, stat_b)
 #endif
      endif
-     inquire (file = fname(2), exist = found_it, name = fname(3))
-     call simplify_path (fname(3), fname(3))
-     if (.not. found_it .or. fname(1) /= fname(3) .or. &
+     inquire (file = fname2, exist = found_it, name = fname3)
+     call simplify_path (fname3, fname3)
+     if (.not. found_it .or. fname1 /= fname3 .or. &
                                              stat_b(10) /= idate_old) then
        if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$, &
                                       r_name, 'NOTE: DIGESTED FILE OUT OF DATE.')
-       bmad_status%ok = .false.
-     endif
-     if (i == 1 .and. fname(2) /= input_file_name) then
-       if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$, &
-                                          r_name, ' NOTE: MOVED DIGESTED FILE.')
        bmad_status%ok = .false.
      endif
 
