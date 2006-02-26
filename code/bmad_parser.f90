@@ -55,7 +55,8 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   type (seq_ele_struct), pointer :: s_ele, this_seq_ele
   type (parser_ring_struct) pring
   type (seq_stack_struct) stack(20)
-  type (ele_struct), save, pointer :: ele, old_ele(:) => null()
+  type (ele_struct), save, pointer :: ele
+  type (ele_struct), allocatable, save :: old_ele(:) 
   type (used_seq_struct), allocatable, save ::  used_line(:), used2(:)
 
   integer, allocatable :: ix_ring(:)
@@ -125,22 +126,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
 ! save all elements that have a taylor series
 
-  ix = 0
-  do i = 1, ring%n_ele_max
-    if (associated(ring%ele_(i)%taylor(1)%term)) ix = ix +1
-  enddo
-
-  if (ix /= 0) then
-    if (associated(old_ele)) deallocate(old_ele)
-    allocate(old_ele(ix))
-    ix = 0
-    do i = 1, ring%n_ele_max
-      if (associated(ring%ele_(i)%taylor(1)%term)) then
-        ix = ix +1
-        old_ele(ix) = ring%ele_(i)
-      endif
-    enddo
-  endif  
+  call save_taylor_elements (ring, old_ele)
 
 ! here if not OK bmad_status. So we have to do everything from scratch...
 ! init variables.
@@ -974,28 +960,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 ! Reuse the old taylor series if they exist
 ! and the old taylor series has the same attributes.
 
-  if (associated(old_ele)) then
-
-    do i = 1, ring%n_ele_max
-
-      ele => ring%ele_(i)
-      call attribute_bookkeeper (ele, ring%param) ! for equivalent_eles test
-
-      do j = 1, size(old_ele)
-        if (any(old_ele(j)%taylor(:)%ref /= 0)) cycle
-        if (bmad_com%taylor_order > old_ele(j)%taylor_order) cycle
-        if (.not. equivalent_eles (old_ele(j), ele)) cycle
-        exit
-      enddo
-
-      if (j == size(old_ele) + 1) cycle
-      call out_io (s_info$, r_name, 'Reusing Taylor for: ' // old_ele(j)%name)
-      call transfer_ele_taylor (old_ele(j), ele, bmad_com%taylor_order)
-    enddo
-
-    deallocate(old_ele)
-
-  endif
+  call reuse_taylor_elements (ring, old_ele)
 
 ! global computations
 

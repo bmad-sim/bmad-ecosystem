@@ -71,6 +71,8 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
 
   if (bmad_status%ok) then
     if (present(digested_read_ok)) digested_read_ok = .true.
+    call set_taylor_order (lat%input_taylor_order, .false.)
+    call set_ptc (lat%beam_energy, lat%param%particle)
     return
   endif
 

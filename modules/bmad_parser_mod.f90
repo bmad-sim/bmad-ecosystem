@@ -3572,4 +3572,94 @@ subroutine form_digested_bmad_file_name (lat_file, digested_file, full_lat_file)
 
 end subroutine
 
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine save_taylor_elements (lat, ele_array)
+!
+! Subroutine to save the taylor maps in a lattice.
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine save_taylor_elements (lat, ele_array)
+
+  implicit none
+
+  type (ring_struct) lat
+  type (ele_struct), allocatable :: ele_array(:) 
+
+  integer i, ix
+
+!
+
+  ix = 0
+  do i = 1, lat%n_ele_max
+    if (associated(lat%ele_(i)%taylor(1)%term)) ix = ix + 1
+  enddo
+
+  if (ix /= 0) then
+    if (allocated(ele_array)) deallocate(ele_array)
+    allocate(ele_array(ix))
+    ix = 0
+    do i = 1, lat%n_ele_max
+      if (associated(lat%ele_(i)%taylor(1)%term)) then
+        ix = ix + 1
+        ele_array(ix) = lat%ele_(i)
+      endif
+    enddo
+  endif  
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine reuse_taylor_elements (lat, ele_array)
+!
+! Subroutine to reuse saved taylor maps in a lattice.
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine reuse_taylor_elements (lat, ele_array)
+
+  implicit none
+
+  type (ring_struct), target :: lat
+  type (ele_struct), pointer :: ele
+  type (ele_struct), allocatable :: ele_array(:) 
+
+  integer i, j
+
+! Reuse the old taylor series if they exist
+! and the old taylor series has the same attributes.
+
+  if (.not. allocated(ele_array)) return
+
+  do i = 1, lat%n_ele_max
+
+    ele => lat%ele_(i)
+    call attribute_bookkeeper (ele, lat%param) ! for equivalent_eles test
+
+    do j = 1, size(ele_array)
+      if (any(ele_array(j)%taylor(:)%ref /= 0)) cycle
+      if (bmad_com%taylor_order > ele_array(j)%taylor_order) cycle
+      if (.not. equivalent_eles (ele_array(j), ele)) cycle
+      exit
+    enddo
+
+    if (j == size(ele_array) + 1) cycle
+    call out_io (s_info$, bp_com%parser_name, 'Reusing Taylor for: ' // ele_array(j)%name)
+    call transfer_ele_taylor (ele_array(j), ele, bmad_com%taylor_order)
+  enddo
+
+  deallocate(ele_array)
+
+end subroutine
+
 end module

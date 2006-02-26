@@ -49,6 +49,8 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord)
   integer i, j, ie, i1, n_taylor, i_ele
   integer, save, allocatable :: ix_taylor(:)
 
+  logical transferred
+
 ! Error check
 
   if (.not. allocated(ix_taylor)) allocate(ix_taylor(200))
@@ -89,6 +91,7 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord)
       ele => ring%ele_(i)
 
       if (ele%mat6_calc_method == taylor$ .and. ele%key == wiggler$) then
+        transferred = .false.
         if (.not. associated(ele%taylor(1)%term)) then
           do j = 1, n_taylor
             ie = ix_taylor(j)
@@ -98,13 +101,16 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord)
             endif
             call transfer_ele_taylor (ring%ele_(ie), ele, &
                                                  ring%ele_(ie)%taylor_order)
+            transferred = .true.
             exit
           enddo
         endif
-        n_taylor = n_taylor + 1
-        if (n_taylor > size(ix_taylor)) &
+        if (.not. transferred .and. associated(ele%taylor(1)%term)) then
+          n_taylor = n_taylor + 1
+          if (n_taylor > size(ix_taylor)) &
                            call re_allocate (ix_taylor, 2*size(ix_taylor))
-        ix_taylor(n_taylor) = i
+          ix_taylor(n_taylor) = i
+        endif
       endif
 
       if (present(coord)) then
