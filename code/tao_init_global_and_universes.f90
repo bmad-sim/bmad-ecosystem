@@ -486,6 +486,7 @@ subroutine init_universe (u)
   u%is_on = .true.          ! turn universe on
   u%n_d2_data_used = 0      ! size of s%u(i)%d2_data(:) array
   u%n_data_used = 0         ! size of s%u(i)%data(:) array
+  u%ix_rad_int_cache = 0
 
 ! allocate and set defaults
 

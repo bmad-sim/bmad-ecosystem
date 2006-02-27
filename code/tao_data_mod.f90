@@ -407,13 +407,11 @@ case ('cbar:22')
   call load_it (cc%cbar(2,2), coupling_here = .true.)
 
 case ('i5a_e6')
-  call radiation_integrals (tao_lat%lat, tao_lat%orb, mode)
-  datum_value = mode%lin%i5a_e6
+  datum_value = tao_lat%modes%lin%i5a_e6
   datum%ix_ele_merit = tao_lat%lat%n_ele_use
 
 case ('i5b_e6')
-  call radiation_integrals (tao_lat%lat, tao_lat%orb, mode)
-  datum_value = mode%lin%i5b_e6
+  datum_value = tao_lat%modes%lin%i5b_e6
   datum%ix_ele_merit = tao_lat%lat%n_ele_use
 
 case ('r:')

@@ -107,8 +107,8 @@ if (s%global%lattice_recalc) then
                      "No tracking or twiss calculations will be perfomred.")
     end select
 
-    if (s%u(i)%do_synch_rad_int_calc) &
-                       call radiation_integrals (this%lat, this%orb, this%modes)
+    if (s%u(i)%do_synch_rad_int_calc)  call radiation_integrals (this%lat, &
+                                           this%orb, this%modes, s%u(i)%ix_rad_int_cache)
     if (s%u(i)%do_chrom_calc) call chrom_calc (this%lat, delta_e, this%a%chrom, this%b%chrom)
 
     call tao_load_data_array (s%u(i), -1)
@@ -414,7 +414,7 @@ if (.not. u%coupling%coupled) then
   if (lat%param%lattice_type == circular_lattice$ ) then
     call tao_single_track (uni, tao_lat) 
     if (u%macro_beam%calc_emittance) then
-      call radiation_integrals (lat, tao_lat%orb, modes)
+      call radiation_integrals (lat, tao_lat%orb, modes, u%ix_rad_int_cache)
       if (extract_at_ix_ele .ne. -1) then
         f = lat%ele_(extract_at_ix_ele)%value(beam_energy$) * &
                     (1+tao_lat%orb(extract_at_ix_ele)%vec(6)) / mass_of(lat%param%particle)
