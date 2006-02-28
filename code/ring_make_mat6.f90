@@ -105,7 +105,7 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord)
             exit
           enddo
         endif
-        if (.not. transferred .and. associated(ele%taylor(1)%term)) then
+        if (.not. transferred) then
           n_taylor = n_taylor + 1
           if (n_taylor > size(ix_taylor)) &
                            call re_allocate (ix_taylor, 2*size(ix_taylor))
