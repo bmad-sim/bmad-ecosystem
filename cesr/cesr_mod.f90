@@ -4,7 +4,7 @@
 ! This module holds all the CESR specific type definitions.
 !-
 
-#include "CESR_platform.inc"
+!#include "CESR_platform.inc"
 
 module cesr_mod
 

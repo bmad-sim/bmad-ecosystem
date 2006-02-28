@@ -76,7 +76,7 @@ module cesr_basic_mod
     type (cesr_element_struct) scir_cam_rho_(n_scir_cam_maxx)
     type (cesr_element_struct) scir_tilt_(n_scir_tilt_maxx)
     type (cesr_element_struct) nir_shuntcur(n_nir_shuntcur_maxx)
-    type (cesr_element_struct) scsol_cur_(n_sc_sol_maxx)
+    type (cesr_element_struct) scsol_cur_(5*n_sc_sol_maxx)
 
     integer ix_ip_l3                     ! pointer to IP_L3
     integer, pointer :: ix_cesr(:) => null() 
@@ -340,7 +340,7 @@ subroutine bmad_to_cesr (ring, cesr)
   cesr%nir_shuntcur(4)%name = 'NIR_SHUNTCUR___4'
 
   cesr%scsol_cur_(1)%name = 'SCS03W'
-  cesr%scsol_cur_(2)%name = 'SCS03E'
+  cesr%scsol_cur_(6)%name = 'SCS03E'
 
 
 !-------------------------------------------------------------
@@ -535,16 +535,13 @@ subroutine bmad_to_cesr (ring, cesr)
       cycle ele_loop
     endif
 
-! There should be a better way to do the following:
-    if (ele%name == cesr%scsol_cur_(1)%name) then
-      cesr%solenoid%ix_ring = i
-      cycle ele_loop
-    endif
-
-    if (ele%name == cesr%scsol_cur_(2)%name) then
-      cesr%solenoid%ix_ring = i
-      cycle ele_loop
-    endif
+! SC anti-solenoids
+    do j = 1, 5*n_sc_sol_maxx
+      if (ele%name == cesr%scsol_cur_(j)%name) then
+        cesr%scsol_cur_(j)%ix_ring = i
+        cycle ele_loop
+      endif
+    enddo
 
   enddo ele_loop
            

@@ -51,14 +51,14 @@ module cesr_db_mod
     type (db_element_struct) :: csr_sext_cur(98)
     type (db_element_struct) :: csr_octu_cur(n_oct_maxx)
     type (db_element_struct) :: csr_sqewquad(98)
-    type (db_element_struct) :: csr_scsolcur(2)
+    type (db_element_struct) :: csr_scsolcur(5*n_sc_sol_maxx)
     type (db_element_struct) :: csr_sqewsext(n_csr_sqewsext_maxx)
     type (db_element_struct) :: scir_quadcur(n_scir_quad_maxx)
     type (db_element_struct) :: scir_skqucur(n_scir_quad_maxx)
     type (db_element_struct) :: scir_vertcur(n_scir_quad_maxx)
     type (db_element_struct) :: nir_shuntcur(n_nir_shuntcur_maxx)
     type (db_element_struct) :: ir_sksxcur(1)
-    type (db_node_struct) :: node(16)  ! does not include stuff below
+    type (db_node_struct) :: node(17)  ! does not include stuff below
 ! in db but without corresponding BMAD element
     type (db_element_struct) :: scir_pos_stp(n_scir_cam_maxx)
     type (db_element_struct) :: scir_enc_cnt(n_scir_cam_maxx)
@@ -195,14 +195,15 @@ subroutine bmad_to_db (ring, db, calib_date)
   call db_init_it (db%csr_sqewquad, lbound(db%csr_sqewquad, 1), &
           'CSR SQEWQUAD',    k1$,    db%node, cesr%skew_quad_(1:98), 1)
                            
-  call db_init_it (db%csr_sqewquad, lbound(db%csr_scsolcur, 1), &
-          'SCSOL CONTRL',    k1$,    db%node, cesr%scsol_cur_(1:n_sc_sol_maxx), 1)
+  call db_init_it (db%csr_scsolcur, lbound(db%csr_scsolcur, 1), &
+          'SCSOL CONTRL',    ks$,    db%node, cesr%scsol_cur_(1:10), 1)
                            
   call db_init_it (db%scir_skqucur, lbound(db%scir_skqucur, 1), &
           'SCIR SKQUCUR',    k1$,    db%node, cesr%skew_quad_(111:114), 111)
                            
   call db_init_it (db%csr_sqewsext, lbound(db%csr_sqewsext, 1), &
-          'CSR SQEWSEXT',    k2$,    db%node, cesr%skew_sex_(1:n_csr_sqewsext_maxx), 1)
+          'CSR SQEWSEXT',    k2$,    db%node, &
+	  cesr%skew_sex_(1:n_csr_sqewsext_maxx), 1)
 
   call db_init_it (db%scir_vertcur, lbound(db%scir_vertcur, 1), &
           'SCIR VERTCUR', vkick$, db%node, cesr%v_steer_(111:114), 111)
@@ -342,6 +343,7 @@ subroutine bmad_to_db (ring, db, calib_date)
 
   deallocate( cesr%ix_cesr )
 
+
 !---------------------------------------------------------------------
 contains
                         
@@ -392,6 +394,7 @@ subroutine db_init_it (node, n1, node_name, ix_attrib, node_array, &
   if (size(node) < iv) then
     print *, 'WARNING IN BMAD_TO_DB: ARRAY IS TOO SMALL TO HOLD DATA BASE'
     print *, '        NODE ELEMENTS: ', node_name
+    call err_exit
     iv = size(node)
   endif
 
@@ -613,7 +616,7 @@ subroutine db_group_to_bmad_group (group_name, group_num, &
   implicit none              
 
   type (ring_struct) ring                                       
-  type (control_struct) con_(100)
+  type (control_struct) con_(150)
   type (db_struct) db
 
   integer n_con, group_num, ix_ele, biggrp_set, ix, ixs(1), csr_set

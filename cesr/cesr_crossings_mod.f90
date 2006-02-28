@@ -1,4 +1,4 @@
-#include "CESR_platform.inc"
+!#include "CESR_platform.inc"
 
 module cesr_crossings_mod
 
