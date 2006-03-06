@@ -241,6 +241,10 @@ case ('phase:x')
 case ('phase:y')
   datum_value = tao_lat%lat%ele_(ix1)%y%phi - tao_lat%lat%ele_(ix2)%y%phi
 
+case ('phase_diff')
+  datum_value = (tao_lat%lat%ele_(ix1)%x%phi - tao_lat%lat%ele_(ix2)%x%phi) - &
+                (tao_lat%lat%ele_(ix1)%y%phi - tao_lat%lat%ele_(ix2)%y%phi)
+
 case ('beta:x')
   if (s%global%track_type .eq. "single") then
     call load_it (tao_lat%lat%ele_(:)%x%beta)
