@@ -241,9 +241,9 @@ case ('phase:x')
 case ('phase:y')
   datum_value = tao_lat%lat%ele_(ix1)%y%phi - tao_lat%lat%ele_(ix2)%y%phi
 
-case ('phase_diff')
-  datum_value = (tao_lat%lat%ele_(ix1)%x%phi - tao_lat%lat%ele_(ix2)%x%phi) - &
-                (tao_lat%lat%ele_(ix1)%y%phi - tao_lat%lat%ele_(ix2)%y%phi)
+case ('phase_frac_diff')
+  datum_value = modulo (tao_lat%lat%ele_(ix1)%x%phi - tao_lat%lat%ele_(ix2)%x%phi, 1.0_rp) - &
+                modulo (tao_lat%lat%ele_(ix1)%y%phi - tao_lat%lat%ele_(ix2)%y%phi, 1.0_rp)
 
 case ('beta:x')
   if (s%global%track_type .eq. "single") then
