@@ -49,7 +49,7 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord)
   integer i, j, ie, i1, n_taylor, i_ele
   integer, save, allocatable :: ix_taylor(:)
 
-  logical transferred
+  logical transferred, want_taylor
 
 ! Error check
 
@@ -81,7 +81,7 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord)
     if (bmad_com%auto_bookkeeper) call control_bookkeeper (ring)
 
 ! now make the transfer matrices.
-! for speed if an element needs a taylor series then check if we can use
+! for speed if a element needs a taylor series then check if we can use
 ! one from a previous element.
 
     n_taylor = 0  ! number of taylor series found
@@ -89,8 +89,12 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord)
     do i = 1, ring%n_ele_use
 
       ele => ring%ele_(i)
+      want_taylor = (ele%mat6_calc_method == taylor$) .or. &
+                    (ele%mat6_calc_method == symp_map$) .or. &
+                    (ele%tracking_method == taylor$) .or. &
+                    (ele%tracking_method == symp_map$)
 
-      if (ele%mat6_calc_method == taylor$ .and. ele%key == wiggler$) then
+      if (want_taylor) then
         transferred = .false.
         if (.not. associated(ele%taylor(1)%term)) then
           do j = 1, n_taylor
@@ -105,12 +109,6 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord)
             exit
           enddo
         endif
-        if (.not. transferred) then
-          n_taylor = n_taylor + 1
-          if (n_taylor > size(ix_taylor)) &
-                           call re_allocate (ix_taylor, 2*size(ix_taylor))
-          ix_taylor(n_taylor) = i
-        endif
       endif
 
       if (present(coord)) then
@@ -118,6 +116,16 @@ recursive subroutine ring_make_mat6 (ring, ix_ele, coord)
       else
         call make_mat6(ele, ring%param)
       endif
+
+      ! save this taylor in the list if it is a new one. 
+
+      if (want_taylor .and. .not. transferred) then
+        n_taylor = n_taylor + 1
+        if (n_taylor > size(ix_taylor)) &
+                         call re_allocate (ix_taylor, 2*size(ix_taylor))
+        ix_taylor(n_taylor) = i
+      endif
+
     enddo
 
     return
