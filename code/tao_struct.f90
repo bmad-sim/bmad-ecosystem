@@ -68,7 +68,7 @@ type tao_curve_struct
   character(16) :: name                    ! Name identifying the curve.
   character(16) :: data_source             ! "lat_layout", "data_array", etc...
   character(16) :: data_type = ' '         ! "orbit:x", etc.
-  character(16) :: ele2_name               ! Reference element.
+  character(16) :: ele_ref_name            ! Reference element.
   type (beam_struct) beam                  ! for phase-space plotting
   real(rp), pointer :: x_line(:) => null() ! coords for drawing a curve
   real(rp), pointer :: y_line(:) => null()
@@ -80,7 +80,7 @@ type tao_curve_struct
   type (qp_symbol_struct) symbol ! Symbol attributes
   integer ix_universe          ! universe to take the data from. 0 => use s%global%u_view
   integer symbol_every         ! symbol every how many points.
-  integer ix_ele2              ! Index in lattice of reference element.
+  integer ix_ele_ref           ! Index in lattice of reference element.
   logical use_y2               ! Use y2 axis?
   logical draw_line            ! draw a line through the data points?
   logical draw_symbols         ! draw a line through the data points?

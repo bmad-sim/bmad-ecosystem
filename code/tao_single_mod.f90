@@ -115,7 +115,7 @@ real(rp) value, this_merit
 integer i, j, n, iunit, nc, ir, n_max
 integer ir1, ir2, iu, ie, nl
 integer, allocatable :: ixm(:)
-integer ns_name, ns_l1, ns_l2
+integer n_name, n_d2_d1_name, n_loc1, n_loc2
 
 character(*) form
 character(16) location, con_var, max_loc, loc1, loc2
@@ -126,6 +126,7 @@ character(200), allocatable, save :: line(:)
 character(200) l1
 
 type constraint_struct
+  character(32) d2_d1_name
   character(32) name
   character(16) loc1, loc2, max_loc
   real(rp) target_value
@@ -154,10 +155,15 @@ do i = 1, size(s%u)
     data => s%u(i)%data(j)
     if (.not. data%useit_opt) cycle
     nc = nc + 1
-    con(nc)%name = trim(data%d1%d2%name) // ':' // data%d1%name
-    if (size(s%u) > 1) write (con(nc)%name, '(2a, i0)') &
-                                     trim(con(nc)%name), ';', i
-    con(nc)%loc1 = s%u(i)%model%lat%ele_(data%ix_ele)%name
+    con(nc)%name = data%name
+    con(nc)%d2_d1_name = trim(data%d1%d2%name) // ':' // data%d1%name
+    if (size(s%u) > 1) write (con(nc)%d2_d1_name, '(2a, i0)') &
+                                     trim(con(nc)%d2_d1_name), ';', i
+    if (data%ix_ele < 0) then
+      con(nc)%loc1 = ' '
+    else
+      con(nc)%loc1 = s%u(i)%model%lat%ele_(data%ix_ele)%name
+    endif
     ie = data%ix_ele2
     if (ie < 1) then
       con(nc)%loc2 = ' '
@@ -182,7 +188,8 @@ do i = 1, size(s%var(:))
   if (.not. var%useit_opt) cycle
 !!  if (var%merit == 0) cycle
   nc = nc + 1
-  con(nc)%name = var%v1%name
+  con(nc)%d2_d1_name = var%v1%name
+  con(nc)%name       = var%name
   iu = var%this(1)%ix_uni
   con(nc)%loc1 = s%u(iu)%model%lat%ele_(var%this(1)%ix_ele)%name
   con(nc)%loc2 = ' '
@@ -226,34 +233,36 @@ endif
 
 ! find string widths
 
-ns_name = 9;  ns_l1 = 8;  ns_l2 = 8
+n_d2_d1_name = 9;  n_name = 1; n_loc1 = 8;  n_loc2 = 8
 
 do j = 1, n_max
   i = ixm(j)
-  ns_name = max(ns_name, len_trim(con(i)%name))
-  ns_l1 = max(ns_l1, len_trim(con(i)%loc1))
-  ns_l2 = max(ns_l2, len_trim(con(i)%loc2))
+  n_d2_d1_name = max(n_d2_d1_name, len_trim(con(i)%d2_d1_name))
+  n_name = max(n_name, len_trim(con(i)%name))
+  n_loc1 = max(n_loc1, len_trim(con(i)%loc1))
+  n_loc2 = max(n_loc2, len_trim(con(i)%loc2))
 enddo
 
 !
 
 l1 = 'Constraint'
-n=8+ns_name;            l1(n:) = 'Where1'
-n=len_trim(l1)+ns_l1-4; l1(n:) = 'Where2'
-n=len_trim(l1)+ns_l2-2; l1(n:) = 'Target       Value     Merit   Max'
+n=8+n_d2_d1_name+2+n_name; l1(n:) = 'Where1'
+n=len_trim(l1)+n_loc1-4;   l1(n:) = 'Where2'
+n=len_trim(l1)+n_loc2-2;   l1(n:) = 'Target       Value     Merit   Max'
 
 nl=nl+1; line(nl) = ' '
 nl=nl+1; line(nl) = l1
 
 !
 
-fmt = '(a, i5, 2x, a, 1x, a, 1pe10.2, 1pe12.3, e10.2, 2x, a)'
+fmt = '(a, i5, 2x, a, 2x, a, 1x, a, 1pe10.2, 1pe12.3, e10.2, 2x, a)'
 
 call re_allocate (line, 200, nl+n_max+100)
 do j = 1, n_max
   i = ixm(j)
-  nl=nl+1; write (line(nl), fmt) con(i)%name(1:ns_name), con(i)%ix, &
-            con(i)%loc1(1:ns_l1), con(i)%loc2(1:ns_l2), con(i)%target_value, &
+  nl=nl+1; write (line(nl), fmt) con(i)%d2_d1_name(1:n_d2_d1_name), con(i)%ix, &
+            con(i)%name(1:n_name), &
+            con(i)%loc1(1:n_loc1), con(i)%loc2(1:n_loc2), con(i)%target_value, &
             con(i)%actual_value, con(i)%merit, con(i)%max_loc
 end do
 nl=nl+1; line(nl) = l1

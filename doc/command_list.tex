@@ -473,8 +473,8 @@ in place of \vn{<data_name>} or \vn{var_name}. \\
 
 For \vn{set curve}, the \vn{<component>}s that can be set are:
 \begin{example}
-  ele2_name   ! Name of reference element
-  ix_ele2     ! Index of reference element
+  ele_ref_name   ! Name of reference element
+  ix_ele_ref     ! Index of reference element
 \end{example}
 
 For \vn{set data}, the \vn{<component>}s that can be set are:
@@ -622,9 +622,11 @@ Format:
 \begin{example}
   show alias                     
   show constraints
+  show curve <curve_name>
   show data \{<data_name> <locations>\} 
   show ele <ele_name>
   show global
+  show graph <graph_name>
   show hom
   show lattice <locations>
   show optimizer
@@ -654,6 +656,9 @@ details.
   \item[show constraints]
 Lists data and variable constraints.
 
+  \item[show curve]
+Lists attributes of a curve. 
+
   \item[show data]
 Shows data information. If \vn{<data_name>} and \vn{<locations>} are not
 present shown is a list of d2\_data names.
@@ -672,13 +677,17 @@ lattice list will be shown.
   \item[show global]
 Shows global information.
 
+  \item[show graph]
+Lists attributes of a graph. 
+
   \item[show hom]
 Shows long--rang higher order mode information for linac accelerating cavities.
 
   \item[show lattice]
 Shows Twiss and orbit data for the \vn{model} lattice at the specified
-regular element locations. If \vn{<locations>} is \vn{all} then the entire lattice will be shown. If \vn{<locations>} is not present then the
-length of the lattice will be shown.
+regular element locations. If \vn{<locations>} is \vn{all} then the
+entire lattice will be shown. If \vn{<locations>} is not present then
+the length of the lattice will be shown.
 
   \item[show optimizer]
 Shows information pertinent to optimization: Data and variables used, etc.
@@ -698,6 +707,8 @@ available templates.
 
 Examples:
 \begin{example}
+  show curve r2:g1:c3         ! Show the attributes of a curve named "c3" which is 
+                              !   in the graph "g1" which is plotted in region "r2".
   show data                   ! lists d2_data arrays.
   show write data             ! Same as previous except results are also written
                               !   to a file.
@@ -705,8 +716,7 @@ Examples:
   show data orbit:x           ! list all orbit:x data elements
   show data orbit:x 35        ! show details for orbit:x element 35
   show data orbit:x 35 86:95  ! list orbit:x elements 35 and 86 through 95
-  show data orbit:x 1:100:5   ! list every fifth orbit:x element between 1 and
-100
+  show data orbit:x 1:100:5   ! list every fifth orbit:x element between 1 and 100  
   show ele q*                 ! list all elements with names beginning with "q".
   show ele q10w               ! show a particular lattice element
   show ele 105                ! show element #105 in the lattice

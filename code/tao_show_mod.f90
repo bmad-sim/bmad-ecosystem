@@ -51,10 +51,10 @@ character(80), pointer :: ptr_lines(:)
 character(100) file_name
 character(16) ele_name, name, sub_name
 
-character(16) :: show_names(12) = (/ &
+character(16) :: show_names(14) = (/ &
    'data       ', 'var        ', 'global     ', 'alias      ', 'top10      ', &
    'optimizer  ', 'ele        ', 'lattice    ', 'constraints', 'plot       ', &
-   'write      ', 'hom        ' /)
+   'write      ', 'hom        ', 'graph      ', 'curve      ' /)
 
 character(200), allocatable, save :: lines(:)
 character(100) line1, line2
@@ -83,12 +83,12 @@ err = .false.
 lines = " "
 nl = 0
 
-fmt  = '(a, es16.8)'
+fmt  = '(a, 9es16.8)'
 ffmt = '(a, i0, a, es16.8)'
-imt  = '(a, i8)'
+imt  = '(a, 9i8)'
 iimt = '(a, i0, a, i8)'
-lmt  = '(a, l)'
-amt  = '(2a)'
+lmt  = '(a, 9l)'
+amt  = '(9a)'
 
 u => s%u(s%global%u_view)
 
@@ -592,7 +592,7 @@ case ('plot')
     return
   endif
 
-! Find particular plot, graph, or curve
+! Find particular plot
 
   call tao_find_template_plot (err, word(1), plot, graph, curve, print_flag = .false.)
   if (err) call tao_find_plot_by_region (err, word(1), plot, graph, curve)
@@ -600,20 +600,85 @@ case ('plot')
 
 ! print info on particular plot, graph, or curve
 
-  if (associated(curve)) then
-    nl=nl+1; lines(nl) = 'Plot:  ' // plot%name
-    nl=nl+1; lines(nl) = 'Graph: ' // graph%name
-    nl=nl+1; lines(nl) = 'Curve: ' // curve%name
-    
-
-  elseif (associated(graph)) then
-
-
-  elseif (associated(plot)) then
-
-
+  if (.not. associated(plot)) then
+    call out_io (s_error$, r_name, 'This is not a graph')
+    return
   endif
 
+  nl=nl+1; lines(nl) = 'Plot:  ' // plot%name
+  nl=nl+1; write (lines(nl), amt) 'x_axis_type:              ', plot%x_axis_type
+  nl=nl+1; write (lines(nl), fmt) 'x_divisions:              ', plot%x_divisions
+  nl=nl+1; write (lines(nl), lmt) 'independent_graphs:       ', plot%independent_graphs
+    
+  nl=nl+1; write (lines(nl), *) 'Graphs:'
+  do i = 1, size(plot%graph)
+    nl=nl+1; write (lines(nl), amt) '   ', plot%graph(i)%name
+  enddo
+
+  call out_io (s_blank$, r_name, lines(1:nl))
+
+!----------------------------------------------------------------------
+! graph
+
+
+case ('graph')
+
+  call tao_find_template_plot (err, word(1), plot, graph, curve, print_flag = .false.)
+  if (err) call tao_find_plot_by_region (err, word(1), plot, graph, curve)
+  if (err) return
+  if (.not. associated(graph)) then
+    call out_io (s_error$, r_name, 'This is not a graph')
+    return
+  endif
+
+  nl=nl+1; lines(nl) = 'Plot:  ' // plot%name
+  nl=nl+1; lines(nl) = 'Graph: ' // graph%name
+  nl=nl+1; lines(nl) = ' '
+  nl=nl+1; write (lines(nl), amt) 'type:                     ', graph%type
+  nl=nl+1; write (lines(nl), amt) 'title:                    ', trim(graph%title)
+  nl=nl+1; write (lines(nl), amt) 'title_suffix:             ', trim(graph%title_suffix)
+  nl=nl+1; write (lines(nl), imt) 'box:                      ', graph%box
+  nl=nl+1; write (lines(nl), imt) 'ix_universe:              ', graph%ix_universe
+  nl=nl+1; write (lines(nl), lmt) 'clip:                     ', graph%clip
+  nl=nl+1; write (lines(nl), lmt) 'valid:                    ', graph%valid
+  nl=nl+1; write (lines(nl), *) 'Curves:'
+
+  do i = 1, size(graph%curve)
+    nl=nl+1; write (lines(nl), amt) '   ', graph%curve(i)%name
+  enddo
+
+  call out_io (s_blank$, r_name, lines(1:nl))
+
+!----------------------------------------------------------------------
+! curve
+
+case ('curve')
+
+  call tao_find_template_plot (err, word(1), plot, graph, curve, print_flag = .false.)
+  if (err) call tao_find_plot_by_region (err, word(1), plot, graph, curve)
+  if (err) return
+  if (.not. associated(curve)) then
+    call out_io (s_error$, r_name, 'This is not a curve')
+    return
+  endif
+
+  nl=nl+1; lines(nl) = 'Plot:  ' // plot%name
+  nl=nl+1; lines(nl) = 'Graph: ' // graph%name
+  nl=nl+1; lines(nl) = 'Curve: ' // curve%name
+  nl=nl+1; lines(nl) = ' '
+  nl=nl+1; write (lines(nl), amt) 'data_source:              ', curve%data_source
+  nl=nl+1; write (lines(nl), amt) 'data_type:                ', curve%data_type  
+  nl=nl+1; write (lines(nl), amt) 'ele_ref_name:             ', curve%ele_ref_name
+  nl=nl+1; write (lines(nl), fmt) 'units_factor:             ', curve%units_factor
+  nl=nl+1; write (lines(nl), imt) 'ix_universe:              ', curve%ix_universe
+  nl=nl+1; write (lines(nl), imt) 'symbol_every:             ', curve%symbol_every
+  nl=nl+1; write (lines(nl), imt) 'ix_ele_ref:               ', curve%ix_ele_ref
+  nl=nl+1; write (lines(nl), lmt) 'use_y2:                   ', curve%use_y2
+  nl=nl+1; write (lines(nl), lmt) 'draw_line:                ', curve%draw_line
+  nl=nl+1; write (lines(nl), lmt) 'draw_symbols:             ', curve%draw_symbols
+  nl=nl+1; write (lines(nl), lmt) 'limited:                  ', curve%limited
+  nl=nl+1; write (lines(nl), lmt) 'convert:                  ', curve%convert
+    
   call out_io (s_blank$, r_name, lines(1:nl))
 
 !----------------------------------------------------------------------

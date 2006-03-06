@@ -238,25 +238,29 @@ logical err
 
 call tao_find_plot_by_region (err, curve_name, curve = curve)
 if (err) return
+if (.not. associated(curve)) then
+  call out_io (s_error$, r_name, 'CURVE NOT SPECIFIED')
+  return
+endif
 
 i_uni = curve%ix_universe
 if (i_uni == 0) i_uni = s%global%u_view
 
 select case (component)
 
-  case ('ele2_name')
-    curve%ele2_name = set_value
-    call tao_locate_element (curve%ele2_name, i_uni, ix_ele, .true.)
-    curve%ix_ele2 = ix_ele(1)
+  case ('ele_ref_name')
+    curve%ele_ref_name = set_value
+    call tao_locate_element (curve%ele_ref_name, i_uni, ix_ele, .true.)
+    curve%ix_ele_ref = ix_ele(1)
 
-  case ('ix_ele2')
+  case ('ix_ele_ref')
     read (set_value, '(i)', iostat = ios) i
     if (ios /= 0) then
-      call out_io (s_error$, r_name, 'BAD IX_ELE2 VALUE')
+      call out_io (s_error$, r_name, 'BAD IX_ELE_REF VALUE')
       return
     endif
-    curve%ix_ele2 = i      
-    curve%ele2_name = s%u(i_uni)%model%lat%ele_(curve%ix_ele2)%name
+    curve%ix_ele_ref = i      
+    curve%ele_ref_name = s%u(i_uni)%model%lat%ele_(curve%ix_ele_ref)%name
 
   case default
     
@@ -266,6 +270,39 @@ select case (component)
 end select
 
 s%global%lattice_recalc = .true.
+
+end subroutine
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_set_graph_cmd (name, component, set_value)
+!
+! Routine to set var values.
+!
+! Input:
+!   name       -- Character(*): Which graph to set.
+!   component  -- Character(*): Which component to set.
+!   set_value  -- Character(*): What value to set it to.
+!
+!  Output:
+!-
+
+subroutine tao_set_graph_cmd (name, component, set_value)
+
+implicit none
+
+character(*) name, component, set_value
+character(20) :: r_name = 'tao_set_var_cmd'
+
+logical err
+
+! Locate the graph
+
+print *, 'Not yet implemented'
+
+
 
 end subroutine
 
@@ -287,8 +324,6 @@ end subroutine
 !-
 
 subroutine tao_set_var_cmd (name, component, set_value, list)
-
-use quick_plot
 
 implicit none
 
@@ -484,8 +519,6 @@ end subroutine tao_set_var_cmd
 !-
 
 subroutine tao_set_data_cmd (name, component, set_value, list)
-
-use quick_plot
 
 implicit none
 

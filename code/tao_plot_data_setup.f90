@@ -115,14 +115,14 @@ character(30) :: r_name = 'tao_phase_space_plot_data_setup'
 ! Set up the graph suffix
 
 curve => graph%curve(1)
-name = curve%ele2_name
+name = curve%ele_ref_name
 if (name == ' ') then
   ix = curve%ix_universe
   if (ix == 0) ix = s%global%u_view
-  name = s%u(ix)%model%lat%ele_(curve%ix_ele2)%name
+  name = s%u(ix)%model%lat%ele_(curve%ix_ele_ref)%name
 endif
 
-write (graph%title_suffix, '(a, i0, 3a)') '[', curve%ix_ele2, ': ', trim(name), ']'
+write (graph%title_suffix, '(a, i0, 3a)') '[', curve%ix_ele_ref, ': ', trim(name), ']'
 
 ! loop over all curves
 
@@ -280,9 +280,9 @@ do k = 1, size(graph%curve)
   if (curve%ix_universe /= 0) i_uni = curve%ix_universe 
   u => s%u(i_uni)
 
-  call tao_locate_element (curve%ele2_name, i_uni, ix_ele, .true.)
-  curve%ix_ele2 = ix_ele(1)
-  if (curve%ix_ele2 < 0) curve%ix_ele2 = 0
+  call tao_locate_element (curve%ele_ref_name, i_uni, ix_ele, .true.)
+  curve%ix_ele_ref = ix_ele(1)
+  if (curve%ix_ele_ref < 0) curve%ix_ele_ref = 0
 
 !----------------------------------------------------------------------------
 ! select the source
@@ -513,10 +513,10 @@ do k = 1, size(graph%curve)
 ! calculate the y-axis data point values.
 
     curve%y_symb = 0
-    datum%ix_ele2 = curve%ix_ele2
+    datum%ix_ele2 = curve%ix_ele_ref
     datum%merit_type = 'target'
     datum%data_type = curve%data_type
-    datum%ele2_name = curve%ele2_name
+    datum%ele2_name = curve%ele_ref_name
 
     do m = 1, size(graph%who)
       do ie = 1, n_dat
@@ -634,7 +634,7 @@ do k = 1, size(graph%curve)
   curve%y_symb = curve%y_symb * curve%units_factor
   curve%y_line = curve%y_line * curve%units_factor
 
-  if (curve%data_type(1:6) == 'phase:' .and. n_dat /= 0 .and. curve%ele2_name == ' ') then
+  if (curve%data_type(1:6) == 'phase:' .and. n_dat /= 0 .and. curve%ele_ref_name == ' ') then
     f = sum(curve%y_symb) / n_dat
     curve%y_symb = curve%y_symb - f
     curve%y_line = curve%y_line - f 
@@ -671,10 +671,10 @@ err = .false.
 
 x1 = min (u%model%lat%ele_(u%model%lat%n_ele_use)%s, max (plot%x%min, u%model%lat%ele_(0)%s))
 x2 = min (u%model%lat%ele_(u%model%lat%n_ele_use)%s, max (plot%x%max, u%model%lat%ele_(0)%s))
-if (curve%ix_ele2 < 0) then
+if (curve%ix_ele_ref < 0) then
   s_last = 0
 else
-  s_last = lat%ele_(curve%ix_ele2)%s
+  s_last = lat%ele_(curve%ix_ele_ref)%s
 endif
 
 data_type_select = data_type

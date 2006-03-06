@@ -58,6 +58,12 @@ if (err) return
 call tao_plot_struct_transfer (template, region%plot)
 region%visible = .true.
 
+! If the plot has a phase_space curve then recalculate the lattice
+
+do i = 1, size(template%graph)
+  if (template%graph(i)%type == 'phase_space') s%global%lattice_recalc = .true.
+enddo
+
 ! auto scale and calculate places
 
 if (region%plot%x%min == region%plot%x%max) then

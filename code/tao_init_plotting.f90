@@ -160,8 +160,8 @@ do
     curve(:)%use_y2 = .false.
     curve(:)%symbol = default_symbol
     curve(:)%line   = default_line
-    curve(:)%ele2_name   = ' '
-    curve(:)%ix_ele2 = -1
+    curve(:)%ele_ref_name   = ' '
+    curve(:)%ix_ele_ref = -1
     curve(2:7)%symbol%type = (/ times$, square$, plus$, triangle$, &
                                   x_symbol$, diamond$ /)
     curve(2:7)%symbol%color = (/ blue$, red$, green$, cyan$, magenta$, yellow$ /)
@@ -224,25 +224,25 @@ do
       crv%line              = curve(j)%line
       crv%convert           = curve(j)%convert
       crv%name              = curve(j)%name
-      crv%ele2_name         = curve(j)%ele2_name
-      call str_upcase (crv%ele2_name, crv%ele2_name)
-      crv%ix_ele2           = curve(j)%ix_ele2
+      crv%ele_ref_name      = curve(j)%ele_ref_name
+      call str_upcase (crv%ele_ref_name, crv%ele_ref_name)
+      crv%ix_ele_ref        = curve(j)%ix_ele_ref
 
       i_uni = crv%ix_universe
       if (i_uni == 0) i_uni = s%global%u_view
  
-      ! Find the ele2 info if either ele2_name or ix_ele2 has been set.
-      ! If plotting something like the phase then the default is for ele2 to be the beginning element.
+      ! Find the ele_ref info if either ele_ref_name or ix_ele_ref has been set.
+      ! If plotting something like the phase then the default is for ele_ref to be the beginning element.
 
-      if (crv%ele2_name == ' ' .and. crv%ix_ele2 >= 0) then ! if ix_ele2 has been set ...
-        crv%ele2_name = s%u(i_uni)%design%lat%ele_(crv%ix_ele2)%name ! then find the name
-      elseif (crv%ele2_name /= ' ') then                    ! if ele2_name has been set ...
-        call tao_locate_element (crv%ele2_name, i_uni, ix_ele, .true.) ! then find the index
-        crv%ix_ele2 = ix_ele(1)
+      if (crv%ele_ref_name == ' ' .and. crv%ix_ele_ref >= 0) then ! if ix_ele_ref has been set ...
+        crv%ele_ref_name = s%u(i_uni)%design%lat%ele_(crv%ix_ele_ref)%name ! then find the name
+      elseif (crv%ele_ref_name /= ' ') then                    ! if ele_ref_name has been set ...
+        call tao_locate_element (crv%ele_ref_name, i_uni, ix_ele, .true.) ! then find the index
+        crv%ix_ele_ref = ix_ele(1)
       elseif (crv%data_type(1:5) == 'phase' .or. crv%data_type(1:2) == 'r:' .or. &
               crv%data_type(1:2) == 't:' .or. crv%data_type(1:3) == 'tt:') then
-        crv%ix_ele2 = 0
-        crv%ele2_name = s%u(i_uni)%design%lat%ele_(0)%name
+        crv%ix_ele_ref = 0
+        crv%ele_ref_name = s%u(i_uni)%design%lat%ele_(0)%name
       endif
 
     enddo

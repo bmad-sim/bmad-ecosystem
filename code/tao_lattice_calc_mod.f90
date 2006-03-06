@@ -290,10 +290,10 @@ endif
           i_uni = curve%ix_universe
           if (i_uni == 0) i_uni = s%global%u_view
           if (i_uni /= uni) cycle
-          if (curve%ix_ele2 < 0) return
+          if (curve%ix_ele_ref < 0) return
           n_ps = n_ps + 1
           phase_space(n_ps)%beam => curve%beam
-          phase_space(n_ps)%ix_ele = curve%ix_ele2
+          phase_space(n_ps)%ix_ele = curve%ix_ele_ref
         enddo
       enddo
     enddo
