@@ -60,8 +60,8 @@ subroutine compute_reference_energy (lattice, compute)
         phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
         beam_energy = beam_energy + ele%value(gradient$) * &
                                                   ele%value(l$) * cos(phase)
-        if (bmad_com%sr_wakes_on) beam_energy = beam_energy - &
-                   ele%value(e_loss$) * lattice%param%n_part * e_charge
+        beam_energy = beam_energy - &
+                          ele%value(e_loss$) * lattice%param%n_part * e_charge
         call convert_total_energy_to (beam_energy, &
                                              lattice%param%particle, pc = p0c)
       endif

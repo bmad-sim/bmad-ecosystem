@@ -901,20 +901,19 @@ table will be used to calculate the wake kick for this pair. If $dz$
 is larger than $z_{cut}$ the pseudo modes will be used. The pseudo
 modes are valid from $z_{cut}$ to \vn{z_max}. 
 
-In the first section with the table of wake vs. $z$, the first column
-is the longitudinal distance $z$. $z$ must start at 0 and must
-increment by the a constant amount from row to row. $z$ is negative
-since the wake extends behind a particle. The second column is the
-longitudinal wake function in $V/C/m$. The third column is the
-transverse wake in $V/C/m^2$. Any additional columns are ignored.
-Wakefield formulas are to be found in \sref{s:wakefields}.  The
-wakefield file is only used with macroparticle tracking.  When the
-short--range wakefield file is used with macroparticle tracking the
-\vn{e_loss} attribute is ignored. However, even in this case, a finite
-\vn{e_loss} value will affect the reference energy. Since the
-quantities like quadrupole k1 strengths and bend strengths are
-referenced to the reference energy, The value of \vn{e_loss} will
-affect the results even with a short--range wakefield file.
+In the first section with the table of wake vs. $z$, the first column is the
+longitudinal distance $z$. $z$ must start at 0 and must increment by the a
+constant amount from row to row. $z$ is negative since the wake extends behind
+a particle. The second column is the longitudinal wake function in $V/C/m$. The
+third column is the transverse wake in $V/C/m^2$. Any additional columns are
+ignored.  Wakefield formulas are to be found in \sref{s:wakefields}.  The
+wakefield file is only used with macroparticle and particle distribution
+tracking.  When the short--range wakefield file is used with either of these
+the \vn{e_loss} attribute is ignored. However, even in this case, a finite
+\vn{e_loss} value will affect the reference energy. Since the quantities like
+quadrupole k1 strengths and bend strengths are referenced to the reference
+energy, The value of \vn{e_loss} will affect the results even with a
+short--range wakefield file.
 
 The input file name for the long--range wakefields is specified using
 the \vn{lr_wake_file} attribute. The file gives the

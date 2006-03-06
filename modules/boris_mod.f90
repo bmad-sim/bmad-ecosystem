@@ -125,7 +125,7 @@ subroutine track1_adaptive_boris (start, ele, param, end, track, s_start, s_end)
   loc_ele%value(tilt$)     = 0
 
   here = start
-  call boris_energy_correction (ele, param, here)
+  call boris_energy_correction (ele, param, here, .false.)
   call offset_particle (ele, param, here, set$, set_canonical = .false.)
   call track_solenoid_edge (loc_ele, param, set$, here)
 
@@ -204,6 +204,7 @@ subroutine track1_adaptive_boris (start, ele, param, end, track, s_start, s_end)
       if (track%save_track) call save_a_step (track, loc_ele, param, s, here%vec, s_sav)
       call track_solenoid_edge (loc_ele, param, unset$, here)
       call offset_particle (ele, param, here, unset$, set_canonical = .false.)
+      call boris_energy_correction (ele, param, here, .true.)
       end = here
       return
     end if
@@ -294,7 +295,7 @@ subroutine track1_boris (start, ele, param, end, track, s_start, s_end)
   loc_ele%value(tilt$)     = 0
 
   here = start
-  call boris_energy_correction (ele, param, here)
+  call boris_energy_correction (ele, param, here, .false.)
   call offset_particle (ele, param, here, set$, set_canonical = .false.)
   call track_solenoid_edge (loc_ele, param, set$, here)
 
@@ -320,6 +321,8 @@ subroutine track1_boris (start, ele, param, end, track, s_start, s_end)
 
   call track_solenoid_edge (loc_ele, param, unset$, here)
   call offset_particle (ele, param, here, unset$, set_canonical = .false.)
+  call boris_energy_correction (ele, param, here, .true.)
+
 
   end = here
 
@@ -492,20 +495,26 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine boris_energy_correction (ele, param, here)
+! Subroutine boris_energy_correction (ele, param, here, final_correction)
 !
 ! Subroutine to correct the orbit due to a change in the reference energy
 ! from the start of the element to the end.
 !
+! This will also adjust the final particle energy due to small differences
+! betweent he numerically tracked energy change and the average gradient
+! parameter for each cavity.
+!
 ! Input:
-!   ele   -- Ele_struct: Element being tracked through.
-!   param -- Param_struct:
+!   ele               -- Ele_struct: Element being tracked through.
+!   param             -- Param_struct:
+!   final_correction  -- If True, then will adjust the final vec(6) component to
+!         what it should be for the average gradient in the cavity.
 !
 ! Output:
 !   here  -- Coord_struct: Coordinates to correct.
 !-
 
-subroutine boris_energy_correction (ele, param, here)
+subroutine boris_energy_correction (ele, param, here, final_correction)
 
   implicit none
 
@@ -514,27 +523,43 @@ subroutine boris_energy_correction (ele, param, here)
   type (coord_struct) :: here
 
   real(rp) p0, p1, e_start
+  real(rp), save :: vec6_start
   character(24) :: r_name = 'boris_energy_correction'
+
+  logical final_correction
 
 !
 
-  select case (ele%key)
-  case (lcavity$) 
-    call convert_total_energy_to (ele%value(energy_start$), param%particle, pc = p0)
-    call convert_total_energy_to (ele%value(beam_energy$), param%particle, pc = p1)
-    here%vec(2) = here%vec(2) * p0 / p1
-    here%vec(4) = here%vec(4) * p0 / p1
-    here%vec(6) = ((1 + here%vec(6)) * p0 - p1) / p1
-
-  case (custom$)
-    e_start = ele%value(beam_energy$)-ele%value(gradient$)*ele%value(l$)
-    call convert_total_energy_to (e_start, param%particle, pc = p0)
-    call convert_total_energy_to (ele%value(beam_energy$), param%particle, pc = p1)
-    here%vec(2) = here%vec(2) * p0 / p1
-    here%vec(4) = here%vec(4) * p0 / p1
-    here%vec(6) = ((1 + here%vec(6)) * p0 - p1) / p1
-
-  end select
+  if (.not. final_correction) then
+    select case (ele%key)
+    case (lcavity$) 
+      vec6_start = here%vec(6)
+      call convert_total_energy_to (ele%value(energy_start$), param%particle, pc = p0)
+      call convert_total_energy_to (ele%value(beam_energy$), param%particle, pc = p1)
+      here%vec(2) = here%vec(2) * p0 / p1
+      here%vec(4) = here%vec(4) * p0 / p1
+      here%vec(6) = ((1 + here%vec(6)) * p0 - p1) / p1
+ 
+    case (custom$)
+      vec6_start = here%vec(6)
+      e_start = ele%value(beam_energy$)-ele%value(gradient$)*ele%value(l$)
+      call convert_total_energy_to (e_start, param%particle, pc = p0)
+      call convert_total_energy_to (ele%value(beam_energy$), param%particle, pc = p1)
+      here%vec(2) = here%vec(2) * p0 / p1
+      here%vec(4) = here%vec(4) * p0 / p1
+      here%vec(6) = ((1 + here%vec(6)) * p0 - p1) / p1
+ 
+    end select
+  else
+    select case (ele%key)
+    case (lcavity$) 
+      ! no longitudinal dynamics in lcavities can be studied!
+!     here%vec(6) = 0.0
+    case (custom$)
+      ! no longitudinal dynamics in lcavities can be studied!
+!     here%vec(6) = 0.0
+    end select
+  endif
 
 end subroutine
 

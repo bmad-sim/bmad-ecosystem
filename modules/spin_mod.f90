@@ -470,6 +470,7 @@ subroutine track1_spin (start, ele, param, end)
 implicit none
 
 type (coord_struct), intent(in) :: start
+type (coord_struct) :: temp
 type (coord_struct) :: end
 type (ele_struct) :: ele
 type (param_struct), intent(in) :: param
@@ -699,7 +700,9 @@ integer key
 
   end select
 
-  call offset_particle (ele, param, end, set$, set_canonical = .false., &
+  temp = end
+
+  call offset_particle (ele, param, temp, set$, set_canonical = .false., &
                         set_hvkicks = .false.)
 
   call compute_quaternion (map%gamma1, a(1))
@@ -709,11 +712,13 @@ integer key
   
   a(4) = sqrt(1.0 - (a(1)**2 + a(2)**2 + a(3)**2))
   
-  call quaternion_track (a, start, end)
+  call quaternion_track (a, start, temp)
   
-  call offset_particle (ele, param, end, unset$, set_canonical = .false., & 
+  call offset_particle (ele, param, temp, unset$, set_canonical = .false., & 
                         set_hvkicks = .false.)
     
+  end%spin = temp%spin
+
 contains
 
 !-------------------------------------------------------------------------

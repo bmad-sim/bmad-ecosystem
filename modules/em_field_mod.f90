@@ -376,10 +376,14 @@ subroutine em_field (ele, param, s_pos, here, field, calc_dfield)
                                                                      
      f = s * twopi * ele%value(rf_frequency$) / c_light              
      dEz_dz = (f/s) * gradient * cos (f + phase)                     
-     theta = atan(y/x)                                               
+     if (x .eq. 0.0) then
+       theta = 0.0
+     else
+       theta = atan(y/x)   
+     endif
      r = sqrt(x**2 + y**2)                                           
      E_r =  - (r/2.0) * dEz_dz                                       
-     B_phi = (r/(2.0*c_light)) * dEz_dz                              
+     B_phi = (r/(2.0*(c_light**2))) * dEz_dz                              
                                                                      
                                                                      
      field%E(1) = E_r * cos (theta)                                  

@@ -373,6 +373,7 @@ elemental subroutine coord_equal_coord (coord1, coord2)
   type (coord_struct), intent(in) :: coord2
 
   coord1%vec = coord2%vec
+  coord1%spin = coord2%spin
  
 end subroutine
 
