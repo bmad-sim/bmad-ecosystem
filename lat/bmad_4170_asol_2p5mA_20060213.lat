@@ -640,6 +640,18 @@ RAW_SCMATING_4  : GROUP = {SC_SK_Q01W/-0.000053,SC_SK_Q01E/-0.000034, &
         Q08W/ 0.000000,Q08E/ 0.000000,Q09W/ 0.000000,Q09E/ 0.000000}, K1, &
          Type = "CSR SCMATING   4"
 
+! 2006.03.06 mjf
+!  Call, file = /a/lnx209/nfs/cesr/user/mjf7/des/knobs/scmating/sm7/bmad.
+RAW_SCMATING_7  : GROUP = {SC_Q01W/-0.001963,SC_Q01E/-0.001963, &
+        SC_Q02W/ 0.001707,SC_Q02E/ 0.001707,SC_SK_Q01W/-0.000410, &
+        SC_SK_Q01E/-0.000410,SC_SK_Q02W/ 0.000329,SC_SK_Q02E/ 0.000329, &
+        SK_Q02W/ 0.000019,SK_Q03W/ 0.000019,SK_Q02E/-0.000019, &
+        SK_Q03E/-0.000019,Q03W/-0.014102,Q03E/-0.009016,Q04W/-0.010050, &
+        Q04E/-0.008952,Q05W/ 0.002983,Q05E/ 0.006560,Q06W/ 0.001954, &
+        Q06E/ 0.002407,Q07W/ 0.005001,Q07E/ 0.004662}, K1, &
+         Type = "CSR SCMATING   7"
+
+
 ! 2006.03.02 mjf
 !  Call, file = /a/lnx209/nfs/cesr/user/mjf7/des/knobs/zenthing/zt2/bmad.
 raw_zenthing_2  : group = {q26w/-0.00114939,q26e/-0.00114939, &
@@ -658,6 +670,37 @@ q38w/-0.00994499,q38e/-0.00994499, &
 q39w/-0.00003473,q39e/-0.00003473, &
 q40w/ 0.01877196,q40e/ 0.01877196}, K1, &
 Type = "CSR ZENTHING   2"
+
+
+! 2006.03.06 mjf
+!  Call, file = /a/lnx209/nfs/cesr/user/mjf7/des/knobs/betasing/bs1/bmad.
+RAW_BETASING_1  : GROUP = {Q03W/-0.012878,Q04W/-0.002994,Q05W/-0.001118, &
+        Q06W/-0.002039,Q07W/ 0.005095,Q08W/ 0.001337,Q09W/ 0.002334, &
+        Q10W/-0.000676,Q03E/-0.010954,Q04E/ 0.003262,Q05E/-0.000833, &
+        Q06E/ 0.000590,Q07E/ 0.007104,Q08E/-0.002601,Q09E/ 0.005051, &
+        Q10E/-0.001232}, K1, &
+         Type = "CSR BETASING   1"
+
+
+! 2006.03.06 mjf
+!  Call, file = /a/lnx209/nfs/cesr/user/mjf7/des/knobs/betasing/bs2/bmad.
+RAW_BETASING_2  : GROUP = {Q03W/-0.003396,Q04W/ 0.020452,Q05W/-0.001842, &
+        Q06W/-0.018426,Q07W/ 0.000988,Q08W/ 0.015999,Q09W/-0.003949, &
+        Q10W/-0.003863,Q03E/ 0.002586,Q04E/ 0.019119,Q05E/-0.001469, &
+        Q06E/-0.014317,Q07E/-0.000456,Q08E/ 0.012359,Q09E/ 0.000296, &
+        Q10E/-0.003565}, K1, &
+         Type = "CSR BETASING   2"
+
+! 2006.03.06 mjf
+!  Call, file = /a/lnx209/nfs/cesr/user/mjf7/des/knobs/betasing/bs3/bmad.
+RAW_BETASING_3  : GROUP = {Q04W/-0.014274,Q04E/ 0.017075,Q05W/ 0.043183, &
+        Q05E/-0.068018,Q06W/-0.022331,Q06E/ 0.018090,Q07W/ 0.029209, &
+        Q07E/-0.013739,Q08W/-0.002343,Q08E/-0.005487,Q09W/ 0.002211, &
+        Q09E/-0.000023}, K1, &
+         Type = "CSR BETASING   3"
+
+
+
 
  use, cesr
 
