@@ -694,7 +694,10 @@ else
   u%data(n1:n2)%ele2_name = data(ix1:ix2)%ele2_name
   u%data(n1:n2)%data_type  = data(ix1:ix2)%data_type
 
+  ! Find elements associated with the data
+
   do j = n1, n2
+
     if (u%data(j)%data_type(1:10) == 'emittance:' .or. &
         u%data(j)%data_type(1:6)  == 'chrom:' .or. &
         u%data(j)%data_type(1:13) == 'unstable_ring') then
@@ -723,6 +726,8 @@ else
     endif
     u%data(j)%ix_ele2 = ix
   enddo
+
+  ! Transfer info from the input structure
 
   u%data(n1:n2)%meas_value = data(ix1:ix2)%meas_value
   u%data(n1:n2)%merit_type = data(ix1:ix2)%merit_type

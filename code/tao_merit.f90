@@ -74,18 +74,40 @@ do i = 1, size(s%u)
   data%merit = 0
   data%delta = 0
 
-  if (s%global%opt_with_ref .and. s%global%opt_with_base) then
-    where (data%useit_opt) data%delta = data%model_value - &
-            data%meas_value + data%ref_value - data%base_value
-  elseif (s%global%opt_with_ref) then
-    where (data%useit_opt) data%delta = data%model_value - &
-            data%meas_value + data%ref_value - data%design_value
-  elseif (s%global%opt_with_base) then
-    where (data%useit_opt) data%delta = data%model_value - &
-                                data%meas_value - data%base_value
-  else
-    where (data%useit_opt) data%delta = data%model_value - data%meas_value 
-  endif
+  do j = 1, size(data)
+    if (.not. data(j)%useit_opt) return
+    if (s%global%opt_with_ref .and. s%global%opt_with_base) then
+      if (data(j)%merit_type(1:3) == 'abs') then
+        data(j)%delta = abs(data(j)%model_value) - &
+            data(j)%meas_value + data(j)%ref_value - data(j)%base_value
+      else
+        data(j)%delta = data(j)%model_value - &
+            data(j)%meas_value + data(j)%ref_value - data(j)%base_value
+      endif
+    elseif (s%global%opt_with_ref) then
+      if (data(j)%merit_type(1:3) == 'abs') then
+        data(j)%delta = abs(data(j)%model_value) - &
+            data(j)%meas_value + data(j)%ref_value - data(j)%design_value
+      else
+        data(j)%delta = data(j)%model_value - &
+            data(j)%meas_value + data(j)%ref_value - data(j)%design_value
+      endif
+    elseif (s%global%opt_with_base) then
+      if (data(j)%merit_type(1:3) == 'abs') then
+        data(j)%delta = abs(data(j)%model_value) - &
+                                data(j)%meas_value - data(j)%base_value
+      else
+        data(j)%delta = data(j)%model_value - &
+                                data(j)%meas_value - data(j)%base_value
+      endif
+    else
+      if (data(j)%merit_type(1:3) == 'abs') then
+        data(j)%delta = abs(data(j)%model_value) - data(j)%meas_value 
+      else
+        data(j)%delta = data(j)%model_value - data(j)%meas_value 
+      endif
+    endif
+  enddo
 
 ! For phase data, since there is an arbitrary overall phase,
 ! we choose to make the average delta zero.
