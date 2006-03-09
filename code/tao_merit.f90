@@ -75,7 +75,7 @@ do i = 1, size(s%u)
   data%delta = 0
 
   do j = 1, size(data)
-    if (.not. data(j)%useit_opt) return
+    if (.not. data(j)%useit_opt) cycle
     if (s%global%opt_with_ref .and. s%global%opt_with_base) then
       if (data(j)%merit_type(1:3) == 'abs') then
         data(j)%delta = abs(data(j)%model_value) - &
