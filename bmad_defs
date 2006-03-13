@@ -38,7 +38,7 @@
 # THE FOLLOWING LINE SHOULD BE MODIFIED TO REFLECT THE 
 # USER'S LOCAL INSTALLATION
 BMAD_=${BMAD_-/home/cesrulib/cesr_libs/bmad_dist}
-
+#BMAD_=/cygdrive/w/cesr_libs/bmad_dist
 #
 # Specify the BMAD distribution bin area
 #
@@ -61,6 +61,10 @@ PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -m`"
 #
 if ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then 
   BMADF90=${BMADF90:-intel}
+# set physical disk for BMAD library area (here w:)
+# and  disk  for your local  working area (here c:) 
+     export BMAD_PD=w
+     export LOCAL_PD=c
 fi
 if ( [ "${PLATFORM_TAG}" = "Linux_i686" ] ) then 
   BMADF90=${BMADF90:-intel}
@@ -105,6 +109,12 @@ unset BMADENV
 # $Id$
 #
 # $Log$
+# Revision 1.8  2006/03/13 18:53:25  cesrulib
+# merging with win_port
+#
+# Revision 1.7.2.1  2006/02/15 20:42:03  cesrulib
+# windows porting BMAD environment added
+#
 # Revision 1.7  2005/06/02 18:32:52  cesrulib
 # Intel ifort is default on Linux now...
 #

@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 #-*-perl-*-
 #
 # this script changes any instances of /disk1/blah or /a/cesr38/cdat/cesr38/disk1/blah in the include file paths to /cdat/cesr38/disk1/blah
@@ -11,7 +11,7 @@ foreach $file (@ARGV)
   $cesrlib= `printenv |grep CESR_REL`;
   chomp $cesrlib;
   $cesrlib=~s/.*$cesrplatf\///g;
-#  print "$cesrlib,\n";
+#  print "*****************$cesrlib,\n";
 	$file=~s/^-f//;
 	$host=`hostname | cut -d. -f1`;
 	chomp $host;
@@ -21,22 +21,13 @@ foreach $file (@ARGV)
 	 {
 		s/ \/disk(.+?)\// \/cdat\/$host\/disk$1\//g;
 		s/ \/a\/(.+?)\// \//g;
-    s/^\s*\.\.\/include/\$\(CESR_INC\)/g;
-    s/\/\S*\/$cesrlib\/cvssrc\/include/\$\(CESR_INC\)/g;
-    s/\/\S*\/$cesrlib\/modules/\$\(CESR_MOD\)/g;
-    s/\/\S*\/$cesrlib\/packages/\$\(CESR_PKG\)/g;
+   # s/\.\.\/include/\$\(CESR_INC\)/g;
+    s/(?:\s\w\:)??\/\S*\/$cesrlib\/cvssrc\/include/\$\(CESR_INC\)/g;
+    s/(?:\s\w\:)??\/\S*\/$cesrlib\/modules/\$\(CESR_MOD\)/g;
+    s/(?:\s\w\:)??\/\S*\/$cesrlib\/packages/ \$\(CESR_PKG\)/g;
 		print (F_out);
    }
 	close(F_in);
 	close(F_out);
 	rename "temp.out", $file;
  }
-
-
-
-
-
-
-
-
-

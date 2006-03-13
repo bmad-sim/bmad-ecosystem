@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl 
 #
 ########################################################################
 ##
@@ -62,7 +62,7 @@ sub run_command {
 
 sub setup_commands {
     @os=`uname`;
-    $command="makedepend @includes -o'$suffix' -p'$prefix' -f$out_file $src_file";
+    $command="makedepend @includes $cpp -o'$suffix' -p'$prefix' -f$out_file $src_file";
     if($cplusplus) {
         if($os[0]=~/osf1/i) {
             $command="cxx -M @includes $src_file";
@@ -164,13 +164,13 @@ sub get_args {
 ##            MAP  11/09/03
 ##################################################################
 sub cesr_make_depend {
-#    print "arguments: $_[0]\n";
+#   print "arguments: $_[0]\n";
 #    print "1: $_[0]\n";
     @ARGUMENTOS= split(/\s+/,$_[0]);
     @local_mods= split(/\s+/,$local_mods0);
     $cpp_flags=$cpp;
 parse_args(@ARGUMENTOS);
-#    print "2: $ARGUMENTOS[15]\n $cpp_file\n";
+#  print "2: $ARGUMENTOS[15]\n $cpp_file\n";
 cpp_setup2();
 #    print "eto cpp_command: $cpp_command\n";
 #    print "a eto cpp_ftail: $cpp_ftail\n";
@@ -334,7 +334,7 @@ sub find_incs {
         @dir_contents=readdir(inc_dir);
         closedir(inc_dir);
 #       If file to be found has an extension, see if it's in the listing
-        if($inc=~/(.+)\/[\w_]+?\.(\w{1,3})$/) {
+        if($inc=~/(.+)\.(\w{1,3})$/) {
 #           If it is, then put it on the stack containing found incs
             if(grep {/^$inc/} @dir_contents) {
                 push(@new_incs,"$dir/$inc");
@@ -363,11 +363,14 @@ sub find_incs {
 sub find_mods {
 #*********************
 # if module basefilename is upper case 
+
 if ($CASE eq "u"){
     for ($i=0;$i <= $#needed_mods;$i++){
-        $needed_mods[$i]=~s/(\w+)\.mod/\U$1\E.mod/g
+        $needed_mods[$i]=~s/(\w+)\.mod/\U$1\E.mod/g;
     }
 }
+
+
 # Look for every mod on the needed_mods stack
   MOD: foreach $mod (@needed_mods) {
 #     If we've already found this mod in a previous pass, go on to next mod.
@@ -384,7 +387,6 @@ if ($CASE eq "u"){
       }
 #   If the mod isn't local, we need to look in search dirs
     DIR: foreach $dir (@search_dirs_4subs) {
-      
 #       If the directory does not exist, go on to the next dir.
         if(!(-d $dir)) {
             next DIR;
@@ -411,6 +413,8 @@ sub get_used_file_tree {
     @needed_mods=();
 # Go through the file looking for keywords
   LINE: foreach $line (@stripped_lines) {
+      chomp($line);
+      $line =~ s/\r//g;
       while($line) {
 #         If include statement, get specified file and put it on 'needed' stack
           if(($line=~/(.*?)include\s\'(\S+?)\'/i) and ($1!~/!/)) {
@@ -440,6 +444,7 @@ sub get_used_file_tree {
           }
 #         If use statement, get name of mod
           elsif(($line=~/^(\s*?)\buse\s+([\w_]+)[\s;,](.+)/i) or ($line=~/^(\s*?)\buse\s+([\w_]+)$/i)) {
+
 #         Put mod on 'needed' stack, unless i already know i need it or I'm creating it
               push(@needed_mods,(lc($2).".mod")) unless ($seen_needed{lc($2)}++ || $seen_create{lc($2).".mod"});
 #             Throw the rest of the line after the modname into $line, in order to
@@ -507,6 +512,7 @@ sub get_input {
     close(CPP_FILE);
     
 #   Delete the CPP intermediate file
+
     unlink($cpp_file);
 }
 

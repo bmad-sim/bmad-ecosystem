@@ -50,7 +50,13 @@ fi
 #
 BASE_DIR_DEF=/home/cesrulib
 if ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then 
-  BASE_DIR_DEF=//lns101/cesrulib
+     BASE_DIR_DEF=/cygdrive/c/user_local/cesrulib
+#    BASE_DIR_DEF=/cygdrive/w
+#
+# set physical disk for CESR library area (here w:)
+# and  disk  for your local  working area (here c:) 
+     export CESR_PD=w
+     export LOCAL_PD=c
 fi
 
 CESRLIB_BASE=${CESRLIB_BASE:-${BASE_DIR_DEF}}
@@ -119,10 +125,20 @@ unset CONST
 unset CESR_
 unset CESRENV
 unset CESRF90
+
 #
 # $Id$
 #
 # $Log$
+# Revision 1.9  2006/03/13 18:53:26  cesrulib
+# merging with win_port
+#
+# Revision 1.8.2.2  2006/02/15 20:42:03  cesrulib
+# windows porting BMAD environment added
+#
+# Revision 1.8.2.1  2006/02/10 21:11:43  cesrulib
+# windows porting
+#
 # Revision 1.8  2005/06/02 18:32:52  cesrulib
 # Intel ifort is default on Linux now...
 #
