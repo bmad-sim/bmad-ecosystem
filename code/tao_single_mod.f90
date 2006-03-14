@@ -42,7 +42,7 @@ do i = 1, size(s%u)
   do j = 1, size(s%var)
     if (.not. s%var(j)%exists) cycle
     if (.not. any (s%var(j)%this(:)%ix_uni == i)) cycle
-    write (iu, '(4a, g14.8)')  trim(s%var(j)%ele_name), &
+    write (iu, '(4a, es22.14)')  trim(s%var(j)%ele_name), &
               '[', trim(s%var(j)%attrib_name), '] = ', s%var(j)%model_value
   enddo
     
