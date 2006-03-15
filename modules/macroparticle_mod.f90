@@ -3,6 +3,7 @@ module macroparticle_mod
 use bmad_struct
 use bmad_interface
 use wake_mod
+use beam_def_struct
 
 ! Remember: If any of the macroparticle structures change you will need to modify:
 !   mp_beam_equal_mp_beam, mp_slice_equal_mp_slice, and mp_bunch_equal_mp_bunch
@@ -30,12 +31,6 @@ end type
 type macro_beam_struct
   type (macro_bunch_struct), pointer :: bunch(:) => null()
 end type
-
-integer, parameter :: s11$ = 1, s12$ = 2, s13$ = 3, s14$ =  4, s15$ =  5
-integer, parameter :: s16$ = 6, s22$ = 7, s23$ = 8, s24$ = 9
-integer, parameter :: s25$ = 10, s26$ = 11, s33$ = 12, s34$ = 13, s35$ = 14
-integer, parameter :: s36$ = 15, s44$ = 16, s45$ = 17, s46$ = 18
-integer, parameter :: s55$ = 19, s56$ = 20, s66$ = 21
 
 type macro_init_twiss_struct
   real(rp) norm_emit

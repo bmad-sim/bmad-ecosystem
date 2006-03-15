@@ -422,8 +422,11 @@ subroutine track1_sr_wake (bunch, ele)
   logical wake_here
   character(16) :: r_name = 'track1_sr_wake'
 
+  if (.not. associated(ele%wake)) return
+  
 !-----------------------------------
-! If there is no wake for this element then just use the e_loss attribute.
+! If there is no wake for this element or the sr wakes are turned off then just 
+! use the e_loss attribute.
 
   p => bunch%particle
 
@@ -431,7 +434,8 @@ subroutine track1_sr_wake (bunch, ele)
   n_sr2_long = size(ele%wake%sr2_long)
   n_sr2_trans = size(ele%wake%sr2_trans)
 
-  if (n_sr1 == 0 .and. n_sr2_long == 0 .and. n_sr2_trans == 0) then 
+  if (n_sr1 == 0 .and. n_sr2_long == 0 .and. n_sr2_trans == 0 .or. &
+                                          .not. bmad_com%sr_wakes_on) then 
     p(:)%r%vec(6) = p(:)%r%vec(6) - &
                        ele%value(e_loss$) * bunch%charge / ele%value(p0c$) 
     return 
@@ -547,6 +551,9 @@ subroutine track1_lr_wake (bunch, ele)
 
   integer n_mode, j, k
 
+  if (.not. bmad_com%lr_wakes_on) return
+  if (.not. associated(ele%wake)) return
+  
 ! Check to see if we need to do any calc
 
   if (.not. associated(ele%wake)) return
@@ -1140,19 +1147,19 @@ end subroutine init_spin_distribution
 ! Output     
 !   params -- bunch_params_struct:
 !     %x%alpha; %x%beta; %x%gamma
-!     %x%sigma; %x%p_sigma
+!     %x%sigma
 !     %x%emitt; %x%dpx_dx
 !     %y%alpha; %y%beta; %y%gamma
-!     %y%sigma; %y%p_sigma
+!     %y%sigma
 !     %y%emitt; %y%dpx_dx
 !     %z%alpha; %z%beta; %z%gamma
-!     %z%sigma; %z%p_sigma
+!     %z%sigma
 !     %z%emitt; %z%dpx_dx
 !     %a%alpha; %a%beta; %a%gamma
-!     %a%sigma; %a%p_sigma
+!     %a%sigma
 !     %a%emitt; %a%dpx_dx
 !     %b%alpha; %b%beta; %b%gamma
-!     %b%sigma; %b%p_sigma
+!     %b%sigma
 !     %b%emitt; %b%dpx_dx
 !     %centroid
 !     %n_particle ! # particle not lost
@@ -1166,17 +1173,15 @@ subroutine calc_bunch_params (bunch, ele, params)
   type (bunch_struct), intent(in) :: bunch
   type (ele_struct), intent(in) :: ele
   type (bunch_params_struct) params
-  type (coord_struct), allocatable, save :: a_mode(:)
+  type (particle_struct), allocatable, save :: a_mode(:)
 
   real(rp) exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d
   real(rp) avg_energy 
-  real(rp) avg_delta, exp_delta2
   real(rp) v_mat(4,4), v_inv_mat(4,4)
 
   integer i
   
-! centroid and n_particle
-
+  ! n_particle and centroid
   params%n_particle = count(bunch%particle%ix_lost == not_lost$)
   if (params%n_particle == 0) then
     ! zero everything
@@ -1188,53 +1193,36 @@ subroutine calc_bunch_params (bunch, ele, params)
     call zero_plane (params%b)
   endif
   
-  do i = 1, 6
-    if (i .eq. 2 .or. i .eq. 4) then
-      params%centroid%vec(i) = sum(bunch%particle%r%vec(i) / (1 + bunch%particle%r%vec(6)), &
-                              mask = (bunch%particle%ix_lost == not_lost$))
-    else
-      params%centroid%vec(i) = sum(bunch%particle%r%vec(i), &
-                              mask = (bunch%particle%ix_lost == not_lost$))
-   endif
-  enddo
-  
-  params%centroid%vec = params%centroid%vec / params%n_particle
-  
-  ! average energy
+ ! average energy
   avg_energy = sum((1+bunch%particle%r%vec(6)), & 
                               mask = (bunch%particle%ix_lost == not_lost$))
   avg_energy = avg_energy * ele%value(beam_energy$) / params%n_particle
 
-  ! delta spread and center
-  avg_delta = sum(bunch%particle%r%vec(6), & 
-                              mask = (bunch%particle%ix_lost == not_lost$))
-  avg_delta = avg_delta  / params%n_particle
+  ! convert to geometric coords
+  call switch_to_geometric (bunch%particle, set$)
   
-  exp_delta2 = sum((bunch%particle%r%vec(6) - avg_delta)**2, &
+  do i = 1, 6
+    params%centroid%vec(i) = sum(bunch%particle%r%vec(i), &
                               mask = (bunch%particle%ix_lost == not_lost$))
-  exp_delta2 = exp_delta2 / params%n_particle
+  enddo
   
+  params%centroid%vec = params%centroid%vec / params%n_particle
+  
+  ! Find sigma matrix
+  call find_sigma (bunch%particle, params%sigma)
+
+  !***
   ! Projected Parameters
   ! X
-  call find_expectations (bunch, bunch%particle(:)%r%vec(1), &
-                          bunch%particle(:)%r%vec(2) / (1 + bunch%particle(:)%r%vec(6)), &
-                          exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d, .false.)
-
-  call param_stuffit (params%x, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
-     
+  call param_stuffit (params%x, params%sigma(s11$), params%sigma(s22$), params%sigma(s12$), &
+                      params%sigma(s16$), params%sigma(s26$))
   ! Y
-  call find_expectations (bunch, bunch%particle(:)%r%vec(3), &
-                          bunch%particle(:)%r%vec(4) / (1 + bunch%particle(:)%r%vec(6)), &
-                          exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d, .false.)
-
-  call param_stuffit (params%y, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
-  
+  call param_stuffit (params%y, params%sigma(s33$), params%sigma(s44$), params%sigma(s34$), &
+                      params%sigma(s36$), params%sigma(s46$))
   ! Z
-  call find_expectations (bunch, bunch%particle(:)%r%vec(5), bunch%particle(:)%r%vec(6), &
-                          exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d, .false.)
-
-  call param_stuffit (params%z, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
-  
+  call param_stuffit (params%z, params%sigma(s55$), params%sigma(s66$), params%sigma(s56$), &
+                      params%sigma(s56$), params%sigma(s66$))
+     
   !***
   ! Normal-Mode Parameters
   
@@ -1247,22 +1235,48 @@ subroutine calc_bunch_params (bunch, ele, params)
     allocate(a_mode(size(bunch%particle)))
   endif
   do i = 1, size(a_mode)
-    a_mode(i)%vec(1:4) = matmul(v_inv_mat, bunch%particle(i)%r%vec(1:4))
+    a_mode(i)%r%vec(1:4) = matmul(v_inv_mat, bunch%particle(i)%r%vec(1:4))
   enddo 
   
+  call find_sigma (a_mode, params%sigma_normal)
+  
+  ! Take out linear dispersion for normal mode sigma
+  ! x
+  params%sigma_normal(s11$) = params%sigma_normal(s11$) &
+                             - 2*params%x%eta*params%sigma_normal(s16$) &
+                             + (params%x%eta**2)*params%sigma_normal(s66$)
+  params%sigma_normal(s22$) = params%sigma_normal(s22$) &
+                             - 2*params%x%etap*params%sigma_normal(s26$) &
+                             + (params%x%etap**2)*params%sigma_normal(s66$)
+  params%sigma_normal(s12$) = params%sigma_normal(s12$) &
+                             - params%x%etap*params%sigma_normal(s16$) &
+                             - params%x%eta*params%sigma_normal(s26$) &
+                             + params%x%eta*params%x%etap*params%sigma_normal(s66$)
+  ! y
+  params%sigma_normal(s33$) = params%sigma_normal(s33$) &
+                             - 2*params%y%eta*params%sigma_normal(s36$) &
+                             + (params%y%eta**2)*params%sigma_normal(s66$)
+  params%sigma_normal(s44$) = params%sigma_normal(s44$) &
+                             - 2*params%y%etap*params%sigma_normal(s46$) &
+                             + (params%y%etap**2)*params%sigma_normal(s66$)
+  params%sigma_normal(s34$) = params%sigma_normal(s34$) &
+                             - params%y%etap*params%sigma_normal(s36$) &
+                             - params%y%eta*params%sigma_normal(s46$) &
+                             + params%y%eta*params%y%etap*params%sigma_normal(s66$)
+                             
   ! A
-  call find_expectations (bunch, a_mode(:)%vec(1), a_mode(:)%vec(2), &
-                          exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d,  .true.)
-
-  call param_stuffit (params%a, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
-     
+  call param_stuffit (params%a, params%sigma_normal(s11$), params%sigma_normal(s22$), &
+                      params%sigma_normal(s12$), params%sigma_normal(s16$), &
+                      params%sigma_normal(s26$))
   ! B
-  call find_expectations (bunch, a_mode(:)%vec(3), a_mode(:)%vec(4), &
-                          exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d, .true.)
+  call param_stuffit (params%b, params%sigma_normal(s33$), params%sigma_normal(s44$), &
+                      params%sigma_normal(s34$), params%sigma_normal(s36$), &
+                      params%sigma_normal(s46$))
 
-  call param_stuffit (params%b, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
-     
   if (bmad_com%spin_tracking_on) call calc_spin_params ()
+  
+  ! convert back to cannonical coords
+  call switch_to_geometric (bunch%particle, unset$)
   
 contains
 !----------------------------------------------------------------------
@@ -1277,65 +1291,96 @@ subroutine zero_plane (param)
   param%gamma      = 0.0
   param%eta        = 0.0
   param%etap       = 0.0
-  param%sigma      = 0.0
-  param%p_sigma    = 0.0
-  param%dpx_dx     = 0.0
   param%norm_emitt = 0.0
 
 end subroutine zero_plane
   
 !----------------------------------------------------------------------
-subroutine find_expectations (bunch, x, p_x, exp_x2, exp_p_x2, exp_x_p_x, &
-                              exp_x_d, exp_px_d, normal_mode_flag)
+! contains
+! This assumes no vector potential or curvature function
+subroutine switch_to_geometric (particle, set)
 
   implicit none
 
-  type (bunch_struct), intent(in) :: bunch
-  real(rp), intent(in)  :: x(:)
-  real(rp), intent(in)  :: p_x(:)
-  real(rp), intent(out) ::  exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d
-  real(rp) avg_x, avg_p_x, eta, etap
-  
+  type (particle_struct) particle(:)
+
   integer i
 
-  logical normal_mode_flag
+  logical set
 
-  if (size(x) .ne. size(p_x)) then
-    exp_x2     = 0.0
-    exp_p_x2   = 0.0
-    exp_x_p_x = 0.0
-    return
+  if (set .eq. set$) then
+      particle(:)%r%vec(2) = particle(:)%r%vec(2) / (1 + particle(:)%r%vec(6))
+      particle(:)%r%vec(4) = particle(:)%r%vec(4) / (1 + particle(:)%r%vec(6))
+  elseif (set .eq. unset$) then
+      particle(:)%r%vec(2) = particle(:)%r%vec(2) * (1 + particle(:)%r%vec(6))
+      particle(:)%r%vec(4) = particle(:)%r%vec(4) * (1 + particle(:)%r%vec(6))
+  else
+    call out_io (s_error$, "switch_to_geometric", "bad set$ or unset$")
   endif
 
-  avg_x = sum(x, mask = (bunch%particle%ix_lost == not_lost$))/params%n_particle
-  avg_p_x = sum(p_x, mask = (bunch%particle%ix_lost == not_lost$))/params%n_particle
- 
-  ! take out dispersion
-  exp_x_d   = sum((x - avg_x)*(bunch%particle(:)%r%vec(6) - avg_delta),&
-                                    mask = (bunch%particle%ix_lost .eq. not_lost$))
-  exp_px_d  = sum((p_x - avg_p_x)*(bunch%particle(:)%r%vec(6) - avg_delta),&
-                                    mask = (bunch%particle%ix_lost .eq. not_lost$))
-  exp_x2    = sum((x - avg_x)**2, mask = (bunch%particle%ix_lost .eq. not_lost$))
-  exp_p_x2  = sum((p_x - avg_p_x)**2, mask = (bunch%particle%ix_lost .eq. not_lost$))
-  exp_x_p_x = sum((x - avg_x)*(p_x - avg_p_x), mask = (bunch%particle%ix_lost .eq. not_lost$))
-   
-  exp_x2    = exp_x2    / params%n_particle 
-  exp_p_x2  = exp_p_x2  / params%n_particle
-  exp_x_p_x = exp_x_p_x / params%n_particle
-  exp_x_d   = exp_x_d   / params%n_particle
-  exp_px_d  = exp_px_d  / params%n_particle
-  
-  
-  if (normal_mode_flag) then
-    eta   = exp_x_d / exp_delta2
-    etap  = exp_px_d / exp_delta2
+end subroutine switch_to_geometric  
 
-    exp_x2    = exp_x2 - 2*eta*exp_x_d + (eta**2)*exp_delta2
-    exp_p_x2  = exp_p_x2 - 2*etap*exp_px_d + (etap**2)*exp_delta2
-    exp_x_p_x = exp_x_p_x - etap*exp_x_d - eta*exp_px_d + eta*etap*exp_delta2
-  endif
+!----------------------------------------------------------------------
+! contains
+subroutine find_sigma (particle, sigma)
 
-end subroutine find_expectations
+  implicit none
+
+  type (particle_struct) :: particle(:)
+  real(rp) sigma(21)
+  real(rp) avg(6), x_eta, x_etap, y_eta, y_etap
+
+  integer i
+
+  do i = 1, 6
+    avg(i) = sum(particle(:)%r%vec(i), mask = (particle(:)%ix_lost &
+                     == not_lost$)) / params%n_particle
+  enddo
+
+  sigma(s11$) = exp_calc (particle, 1, 1, avg)
+  sigma(s12$) = exp_calc (particle, 1, 2, avg)
+  sigma(s13$) = exp_calc (particle, 1, 3, avg)
+  sigma(s14$) = exp_calc (particle, 1, 4, avg)
+  sigma(s15$) = exp_calc (particle, 1, 5, avg)
+  sigma(s16$) = exp_calc (particle, 1, 6, avg)
+  sigma(s22$) = exp_calc (particle, 2, 2, avg)
+  sigma(s23$) = exp_calc (particle, 2, 3, avg)
+  sigma(s24$) = exp_calc (particle, 2, 4, avg)
+  sigma(s25$) = exp_calc (particle, 2, 5, avg)
+  sigma(s26$) = exp_calc (particle, 2, 6, avg)
+  sigma(s33$) = exp_calc (particle, 3, 3, avg)
+  sigma(s34$) = exp_calc (particle, 3, 4, avg)
+  sigma(s35$) = exp_calc (particle, 3, 5, avg)
+  sigma(s36$) = exp_calc (particle, 3, 6, avg)
+  sigma(s44$) = exp_calc (particle, 4, 4, avg)
+  sigma(s45$) = exp_calc (particle, 4, 5, avg)
+  sigma(s46$) = exp_calc (particle, 4, 6, avg)
+  sigma(s55$) = exp_calc (particle, 5, 5, avg)
+  sigma(s56$) = exp_calc (particle, 5, 6, avg)
+  sigma(s66$) = exp_calc (particle, 6, 6, avg)
+
+
+end subroutine find_sigma 
+                                    
+!----------------------------------------------------------------------
+! contains
+function exp_calc (particle, ix1, ix2, avg) result (sigma)
+
+  implicit none
+
+  type (particle_struct) particle(:)
+  real(rp) avg(:)
+  real(rp) sigma
+
+  integer ix1, ix2
+                                    
+  sigma = sum((particle(:)%r%vec(ix1) - avg(ix1)) * &
+                               (particle(:)%r%vec(ix2) - avg(ix2)),&
+                                    mask = (particle%ix_lost .eq. not_lost$))
+
+  sigma = sigma / params%n_particle
+
+end function exp_calc
 
 !----------------------------------------------------------------------
 ! contains
@@ -1354,15 +1399,10 @@ subroutine param_stuffit (param, exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d)
   param%beta  = exp_x2 / emitt
   param%gamma = exp_p_x2 / emitt
   
-  param%eta   = exp_x_d / exp_delta2
-  param%etap  = exp_px_d / exp_delta2
+  param%eta   = exp_x_d / params%sigma(s66$)
+  param%etap  = exp_px_d / params%sigma(s66$)
 
   param%norm_emitt = (avg_energy/m_electron) * emitt
-
-  param%sigma = SQRT(exp_x2)
-  param%p_sigma = SQRT(exp_p_x2)
-
-  param%dpx_dx = exp_x_p_x / exp_x2
 
 end subroutine param_stuffit
 

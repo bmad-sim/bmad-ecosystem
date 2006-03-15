@@ -3,6 +3,13 @@ module beam_def_struct
 use bmad_struct
 use bmad_interface
 
+! Sigma matrix elements (21 total)
+integer, parameter :: s11$ = 1, s12$ = 2, s13$ = 3, s14$ =  4, s15$ =  5
+integer, parameter :: s16$ = 6, s22$ = 7, s23$ = 8, s24$ = 9
+integer, parameter :: s25$ = 10, s26$ = 11, s33$ = 12, s34$ = 13, s35$ = 14
+integer, parameter :: s36$ = 15, s44$ = 16, s45$ = 17, s46$ = 18
+integer, parameter :: s55$ = 19, s56$ = 20, s66$ = 21
+
 integer, parameter :: not_lost$ = -1
 
 type beam_spin_struct
@@ -55,8 +62,6 @@ end type
 type bunch_param_struct
   real(rp) beta, alpha, gamma
   real(rp) eta, etap
-  real(rp) sigma, p_sigma
-  real(rp) dpx_dx ! x x' correlation
   real(rp) norm_emitt ! normalized emittance
 end type
 
@@ -64,6 +69,8 @@ type bunch_params_struct
   type (bunch_param_struct) :: x, y, z, a, b
   type (coord_struct) :: centroid  ! Lab frame
   type (beam_spin_struct) :: spin  ! polarization
+  real(rp) sigma(21) ! projected sigma matrix
+  real(rp) sigma_normal(21) ! normal mode sigma matrix
   integer n_particle               ! all non-lost particles
 end type
 

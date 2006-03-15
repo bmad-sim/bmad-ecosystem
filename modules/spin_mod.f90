@@ -722,8 +722,6 @@ integer key
 contains
 
 !-------------------------------------------------------------------------
-! With this routine I don't have to worry about reallocating. They should only
-! be allocatred once for each program
 subroutine allocate_map (map, n_gamma1, n_gamma2, n_gamma3, n_kappa)
 
 implicit none
@@ -732,11 +730,48 @@ type (spin_map_struct) map
 integer n_gamma1, n_gamma2, n_gamma3, n_kappa
     
   
-  if (.not. associated (map%gamma1)) then
-    if (n_gamma1 .ne. 0) allocate(map%gamma1(n_gamma1))
-    if (n_gamma2 .ne. 0) allocate(map%gamma2(n_gamma2))
-    if (n_gamma3 .ne. 0) allocate(map%gamma3(n_gamma3))
-    if (n_kappa  .ne. 0) allocate(map%kappa(n_kappa))
+  if (n_gamma1 .eq. 0) then
+    if (associated (map%gamma1)) deallocate (map%gamma1)
+  else
+    if (.not. associated (map%gamma1)) then
+      allocate(map%gamma1(n_gamma1))
+    elseif (size(map%gamma1) .ne. n_gamma1) then
+      deallocate(map%gamma1)
+      allocate(map%gamma1(n_gamma1))
+    endif
+  endif
+
+  if (n_gamma2 .eq. 0) then
+    if (associated (map%gamma2)) deallocate (map%gamma2)
+  else
+    if (.not. associated (map%gamma2)) then
+      allocate(map%gamma2(n_gamma2))
+    elseif (size(map%gamma2) .ne. n_gamma2) then
+      deallocate(map%gamma2)
+      allocate(map%gamma2(n_gamma2))
+    endif
+  endif
+
+  if (n_gamma3 .eq. 0) then
+    if (associated (map%gamma3)) deallocate (map%gamma3)
+  else
+    if (.not. associated (map%gamma3)) then
+      allocate(map%gamma3(n_gamma3))
+    elseif (size(map%gamma3) .ne. n_gamma3) then
+      deallocate(map%gamma3)
+      allocate(map%gamma3(n_gamma3))
+    endif
+  endif
+
+  if (n_kappa .eq. 0) then
+    if (associated (map%kappa)) deallocate (map%kappa)
+  else
+    if (.not. associated (map%kappa)) then
+      allocate(map%kappa(n_kappa))
+    elseif (size(map%kappa) .ne. n_kappa) then
+      deallocate(map%kappa)
+      allocate(map%kappa(n_kappa))
+    endif
   endif
 
 end subroutine allocate_map

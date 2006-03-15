@@ -56,15 +56,13 @@ subroutine compute_reference_energy (lattice, compute)
       ele%value(energy_start$) = beam_energy
       ele%value(p0c_start$) = p0c
 
-      if (ele%is_on) then
-        phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
-        beam_energy = beam_energy + ele%value(gradient$) * &
-                                                  ele%value(l$) * cos(phase)
-        beam_energy = beam_energy - &
-                          ele%value(e_loss$) * lattice%param%n_part * e_charge
-        call convert_total_energy_to (beam_energy, &
-                                             lattice%param%particle, pc = p0c)
-      endif
+      phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
+      beam_energy = beam_energy + ele%value(gradient$) * &
+                                                ele%value(l$) * cos(phase)
+      beam_energy = beam_energy - &
+                        ele%value(e_loss$) * lattice%param%n_part * e_charge
+      call convert_total_energy_to (beam_energy, &
+                                           lattice%param%particle, pc = p0c)
 
     case (custom$) 
       beam_energy = beam_energy + ele%value(gradient$) * ele%value(l$)

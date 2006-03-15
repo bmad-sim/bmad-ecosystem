@@ -193,6 +193,9 @@ integer iw, n_sr1
 
 !
 
+if (.not. bmad_com%sr_wakes_on) return
+if (.not. associated(ele%wake)) return
+
 z = follower%vec(5) - leader%vec(5)
 n_sr1 = size(ele%wake%sr1) - 1
 dz = ele%wake%sr1(n_sr1)%z / n_sr1
