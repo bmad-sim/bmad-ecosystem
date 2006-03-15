@@ -1,0 +1,66 @@
+\chapter{Miscellaneous Programming}
+
+%-----------------------------------------------------------------------------
+\section{Common Structures}
+\label{s:common_struct}
+
+\index{Bmad_com}
+\index{Bmad_status}
+
+There are two common structures used by Bmad for communication between
+routines. These are \vn{bmad_com} which is a \vn{bmad_com_struct}
+structure and \vn{bmad_status} which is a \vn{bamd_status_struct}
+structure.
+
+\index{max_aperture_limit}\index{d_orb(6)}
+\index{grad_loss_sr_wake}\index{default_ds_step}
+\index{rel_tollerance}\index{abs_tollerance}
+\index{taylor_order}\index{default_integ_order}
+\index{canonical_coords}\index{use_liar_lcavity}
+\index{sr_wakes_on}\index{lr_wakes_on}
+\index{mat6_track_symmetric}\index{auto_bookkeeper}
+\index{trans_space_charge_on}\index{coherent_synch_rad_on}
+\index{spin_tracking_on}\index{radiation_damping_on}
+\index{radiation_fluctuations_on}\index{compute_ref_energy}
+The \vn{bmad_com_struct} structure is:
+\begin{example}
+  type bmad_com_struct
+    real(rp) :: max_aperture_limit = 1e3       ! Max Aperture.
+    real(rp) :: d_orb(6)           = 1e-5      ! for the make_mat6_tracking routine.
+    real(rp) :: grad_loss_sr_wake  = 0         ! Internal var for LCavities.
+    real(rp) :: default_ds_step    = 0.2       ! Integration step size.  
+    real(rp) :: rel_tollerance = 1e-5
+    real(rp) :: abs_tollerance = 1e-8
+    integer :: taylor_order = 3                ! 3rd order is default
+    integer :: default_integ_order = 2         ! PTC integration order
+    logical :: canonical_coords = .true.       ! Use (x, px) [not (x, x')]
+    logical :: use_liar_lcavity = .false.      ! Liar like tracking?
+    logical :: sr_wakes_on = .true.            ! Short range wakefields?
+    logical :: lr_wakes_on = .true.            ! Long range wakefields
+    logical :: mat6_track_symmetric = .true.   ! symmetric offsets
+    logical :: auto_bookkeeper = .true.        ! Automatic bookkeeping?
+    logical :: trans_space_charge_on = .false. ! Space charge switch
+    logical :: coherent_synch_rad_on = .false. ! csr 
+    logical :: spin_tracking_on = .false.      ! spin tracking?
+    logical :: radiation_damping_on = .false.       ! Damping toggle.
+    logical :: radiation_fluctuations_on = .false.  ! Fluctuations toggle.
+    logical :: compute_ref_energy = .true.          ! Enable recomputation?
+  end type
+\end{example}
+
+
+\index{status}\index{ok}
+\index{type_out}\index{sub_type_out}
+\index{exit_on_error}
+The \vn{bmad_status_struct} structure is:
+type bmad_status_struct
+  integer :: status         = ok\$     ! Computation status 
+  logical :: ok             = .true.   ! Error flag
+  logical :: type_out       = .true.   ! Print error messages?
+  logical :: sub_type_out   = .true.   ! 
+  logical :: exit_on_error  = .true.   ! Exit program on error?
+end type
+
+
+
+
