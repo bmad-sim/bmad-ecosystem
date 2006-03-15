@@ -963,6 +963,7 @@ subroutine init_ele (ele)
 ! This is needed because of a compiler and/or totalview bug
 
   allocate (ele%r(1,1))
+  ele%r = 0.0
 end subroutine
 
 !----------------------------------------------------------------------
