@@ -5,6 +5,7 @@
 !
 ! Input:
 !   datum        -- tao_data_struct: the current datum to evaluate
+!   u            -- tao_universe_struct: universe this datum is in
 !   tao_lat      -- Tao_lattice_struct: Lattice to use.
 !
 ! Output:

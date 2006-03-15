@@ -163,6 +163,8 @@ end subroutine
 !
 ! Subroutine to put the proper data in the specified datum
 !
+! If datum results in NaN then datum_value = tiny(1.0_rp)
+!
 ! Input:
 !   datum        -- Tao_data_struct: What type of datum
 !   u            -- Tao_universe_struct: Which universe to use.
@@ -188,14 +190,14 @@ type (taylor_struct), save :: taylor(6)
 type (taylor_struct), optional :: taylor_in(6)
 type (spin_polar_struct) polar
 
-real(rp) datum_value, mat6(6,6), vec0(6)
+real(rp) datum_value, mat6(6,6), vec0(6), angle
 
 integer, save :: ix_save = -1
 integer i, j, k, m, ix, ix1, ix2, expnt(6)
 !integer track_type
 
 character(20) :: r_name = 'tao_evaluate_a_datum'
-character(16) data_type
+character(32) data_type
 
 logical found
 
@@ -213,6 +215,7 @@ data_type = datum%data_type
 if (data_type(1:2) == 'r:') data_type = 'r:'
 if (data_type(1:2) == 't:') data_type = 't:'
 if (data_type(1:3) == 'tt:') data_type = 'tt:'
+if (data_type(1:5) == 'wire:') data_type = 'wire:'
 
 
 select case (data_type)
@@ -554,7 +557,7 @@ case ('norm_emittance:b')
   
 case ('dpx_dx') 
   if (s%global%track_type .eq. "beam") then
-    datum_value = u%beam%params%x%dpx_dx
+    datum_value = u%beam%params%sigma(s12$) / u%beam%params%sigma(s11$)
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%x%dpx_dx
   else
@@ -563,7 +566,7 @@ case ('dpx_dx')
 
 case ('dpy_dy') 
   if (s%global%track_type .eq. "beam") then
-    datum_value = u%beam%params%y%dpx_dx
+    datum_value = u%beam%params%sigma(s34$) / u%beam%params%sigma(s33$)
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%y%dpx_dx
   else
@@ -572,7 +575,7 @@ case ('dpy_dy')
 
 case ('dpz_dz') 
   if (s%global%track_type .eq. "beam") then
-    datum_value = u%beam%params%z%dpx_dx
+    datum_value = u%beam%params%sigma(s56$) / u%beam%params%sigma(s55$)
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%z%dpx_dx
   else
@@ -581,7 +584,7 @@ case ('dpz_dz')
 
 case ('dpa_da') 
   if (s%global%track_type .eq. "beam") then
-    datum_value = u%beam%params%a%dpx_dx
+    datum_value = u%beam%params%sigma_normal(s12$) / u%beam%params%sigma_normal(s11$)
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%a%dpx_dx
   else
@@ -590,7 +593,7 @@ case ('dpa_da')
 
 case ('dpb_db') 
   if (s%global%track_type .eq. "beam") then
-    datum_value = u%beam%params%b%dpx_dx
+    datum_value = u%beam%params%sigma_normal(s34$) / u%beam%params%sigma_normal(s33$)
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%b%dpx_dx
   else
@@ -599,7 +602,7 @@ case ('dpb_db')
 
 case ('sigma:x')  
   if (s%global%track_type .eq. "beam") then
-    datum_value = u%beam%params%x%sigma
+    datum_value = SQRT(u%beam%params%sigma(s11$))
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%x%sigma
   else
@@ -608,7 +611,7 @@ case ('sigma:x')
   
 case ('sigma:p_x')  
   if (s%global%track_type .eq. "beam") then
-    datum_value = u%beam%params%x%p_sigma
+    datum_value = SQRT(u%beam%params%sigma(s22$))
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%x%p_sigma
   else
@@ -617,7 +620,7 @@ case ('sigma:p_x')
   
 case ('sigma:y')  
   if (s%global%track_type .eq. "beam") then
-    datum_value = u%beam%params%y%sigma
+    datum_value = SQRT(u%beam%params%sigma(s33$))
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%y%sigma
   else
@@ -626,7 +629,7 @@ case ('sigma:y')
   
 case ('sigma:p_y')  
   if (s%global%track_type .eq. "beam") then
-    datum_value = u%beam%params%y%p_sigma
+    datum_value = SQRT(u%beam%params%sigma(s44$))
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%y%p_sigma
   else
@@ -635,7 +638,7 @@ case ('sigma:p_y')
   
 case ('sigma:z')  
   if (s%global%track_type .eq. "beam") then
-    datum_value = u%beam%params%z%sigma
+    datum_value = SQRT(u%beam%params%sigma(s55$))
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%z%sigma
   else
@@ -644,9 +647,28 @@ case ('sigma:z')
   
 case ('sigma:p_z')  
   if (s%global%track_type .eq. "beam") then
-    datum_value = u%beam%params%z%p_sigma
+    datum_value = SQRT(u%beam%params%sigma(s66$))
   elseif (s%global%track_type .eq. "macro") then
     datum_value = u%macro_beam%params%z%p_sigma
+  else
+    datum_value = 0.0
+  endif
+  
+case ('sigma:xy')  
+  if (s%global%track_type .eq. "beam") then
+    datum_value = u%beam%params%sigma(s13$)
+  elseif (s%global%track_type .eq. "macro") then
+    datum_value = 0.0
+  else
+    datum_value = 0.0
+  endif
+  
+case ('wire:')  
+  if (s%global%track_type .eq. "beam") then
+    read (data_type(6:), '(a)') angle
+    datum_value = tao_do_wire_scan (angle, u%beam%beam)
+  elseif (s%global%track_type .eq. "macro") then
+    datum_value = 0.0
   else
     datum_value = 0.0
   endif
@@ -686,6 +708,8 @@ case default
   return
 
 end select
+
+  if (isnan(datum_value)) datum_value = tiny(1.0_rp)
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1279,5 +1303,55 @@ subroutine tao_ele_at_s (lat, s, ix_ele)
 
 end subroutine
 
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+         
+! Subroutine tao_do_wire_scane (theta, beam) result (moment)
+!
+! Returns the beam's second moment using the wire along the specified angle.
+! Keep in mind that the actual correlation axis is 90 degrees off of the 
+! wire angle
+!
+! This simulates a fast wire scanner that performs the scane over only one
+! bunch. Obviously, this isn't realistic. Any dynamic effects will not be
+! accounted for!
+!
+! Input:
+!  theta   -- Real(rp): wire angle wrt x axis (in degrees)
+!  beam    -- Beam_struct: contains the beam distribution
+!
+! Output:
+!  sigma_uv -- Real(rp): second moment along axis specified by angle.
+!-
+
+function tao_do_wire_scan (theta, beam) result (moment)
+
+implicit none
+
+type (beam_struct) beam
+real(rp), allocatable, save :: dist(:)
+
+real(rp) theta, theta_rad, moment
+
+  ! angle in radians and correlation angle is 90 off from wire angle
+  theta_rad = (theta - 90) * (2.0*pi / 360.0)
+
+  if (.not. allocated (dist)) then
+    allocate (dist(size(beam%bunch(1)%particle)))
+  elseif (size(dist) .ne. size(beam%bunch(1)%particle)) then
+    deallocate (dist)
+    allocate (dist(size(beam%bunch(1)%particle)))
+  endif
+
+  ! Rotating the wire scanner is equivalent to rotating the beam by -theta
+
+  dist =  beam%bunch(1)%particle%r%vec(1) * cos(-theta_rad ) &
+        + beam%bunch(1)%particle%r%vec(3) * sin(-theta_rad)
+  
+  moment =  sum (dist*dist, mask = (beam%bunch(1)%particle%ix_lost .eq. not_lost$)) &
+          / count (beam%bunch(1)%particle%ix_lost .eq. not_lost$)
+
+end function tao_do_wire_scan
 
 end module tao_data_mod

@@ -92,6 +92,14 @@ centroid orbit (or particle orbit for single particle tracking) is also used.
 A ``B'' means the beam particle distribution determines the data type. A ``X''
 means this data type is not available for this tracking type.
 
+\vn{wire} data simulates the measurement of a wire scanner. The angle specified
+is the angle of the wire with respect to the horizontal axis. The measurement
+then measures the second momment $<uu>$ along an axis which is 90 degrees off of
+the wire axis. For example, \vn{wire:90} is a wire scanner oriented in the
+vertical direction and measures the second moment of the beam along the
+horizontal axis, $<xx>$. The resultant data is not the beam size, but the beam
+size squared.
+
 Data types marked \vn{global} do not have any particular elements
 associated with them.
 
@@ -109,11 +117,13 @@ associated with them.
     eta:x, eta:y          & Dispersion                        &          \\ \hline 
     etap:x, etap:y        & Dispersion derivative             &          \\ \hline 
     phase:x, phase:y      & Betatron phase                    & relative \\ \hline 
-    phase_frac_diff       & Fractional phase difference (x-y) & relative \\ \hline
+    phase\_frac\_diff     & Fractional phase difference (x-y) & relative \\ \hline
     orbit:x, orbit:y      & Transverse orbit                  &          \\ \hline 
     orbit:p\_x, orbit:p\_y& Tranverse momenta                 &          \\ \hline 
     orbit:z, orbit:z\_p   & Longitudinal orbit and momenta    &          \\ \hline 
     bpm:x, bpm:y          & Transverse BPM reading            &          \\ \hline 
+    wire:<angle>          & Wire Scanner with wire angle <angle>
+                                                              &          \\ \hline
     \begin{tabular}{@{}l}     
       spin:polarization, \\ 
       spin:theta, spin:phi 
@@ -214,6 +224,7 @@ associated with them.
     \vni{phase}            &   L    &   L  &   L   \\ \hline
     \vni{orbit}            &   B    &   B  &   B   \\ \hline
     \vni{bpm}              &   B    &   B  &   B   \\ \hline
+    \vni{wire}             &   X    &   B  &   X   \\ \hline
     \vni{spin}             &   B    &   B  &   X   \\ \hline
     \vni{cbar}             &   L    &   L  &   L   \\ \hline
     \vni{coupling}         &   L    &   L  &   L   \\ \hline

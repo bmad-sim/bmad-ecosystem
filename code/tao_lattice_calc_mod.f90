@@ -236,6 +236,7 @@ inject_loop: do i_uni_to = uni+1, size(s%u)
       else
         call out_io (s_abort$, r_name, &
              "Must specify an element when coupling lattices with a beam.")
+    ! set initial beam centroid
         call err_exit
       endif
     endif
@@ -265,15 +266,11 @@ if (.not. u%coupling%coupled) then
                                beam_init, s%u(i_uni_to)%coupling%injecting_beam)
     endif
     return
-  elseif (lat%param%lattice_type == linear_lattice$) then
-    ! set initial beam centroid
-    beam_init%center = tao_lat%orb(0)%vec
-  else
+  elseif (lat%param%lattice_type .ne. linear_lattice$) then
     call out_io (s_error$, r_name, &
                    "This lattice type not yet implemented for beam tracking!")
     call err_exit
   endif
-    call init_beam_distribution (lat%ele_(0), beam_init, beam)
 endif
 
 ! Calculate save points if doing a phase space plot
@@ -323,6 +320,8 @@ do j = 1, lat%n_ele_use
 
   ! compute centroid orbit
   call tao_find_beam_centroid (beam, tao_lat%orb(j), uni, j)
+
+  if (all_lost_already) exit
 
   ! Find lattice and beam parameters
   call tao_calc_params (u, j)
@@ -430,18 +429,11 @@ if (.not. u%coupling%coupled) then
                                 macro_init, lat%ele_(extract_at_ix_ele), .true.)
     endif
     return
-  elseif (lat%param%lattice_type == linear_lattice$) then
-    ! set initial beam centroid
-    macro_init%center = tao_lat%orb(0)%vec
-  else
+  elseif (lat%param%lattice_type .ne. linear_lattice$) then
     call out_io (s_error$, r_name, &
                    "This lattice type not yet implemented for macroparticles!")
     call err_exit
   endif
-    
-  call init_macro_distribution (beam, macro_init, lat%ele_(0), .true.)
-    
-  u%macro_beam%ix_lost(:,:,:) = not_lost$
 endif
 
 ! beginning element calculations
@@ -459,6 +451,8 @@ do j = 1, lat%n_ele_use
     
   ! compute centroid orbit
   call tao_find_macro_beam_centroid (beam, tao_lat%orb(j), uni, j, u%macro_beam)
+
+  if (all_lost_already) exit
 
   ! Find lattice and beam parameters
   call tao_calc_params (u, j)
@@ -713,6 +707,8 @@ end subroutine tao_inject_particle
 ! This will inject a beam from a previous universe into this universe in
 ! preparation for tracking. The lattice where the extraction occurs will have
 ! already been calculated.
+!
+! If there is no coupling between lattice then this will initialize the beam
 
 subroutine tao_inject_beam (u, lat, orb)
 
@@ -731,43 +727,47 @@ character(20) :: r_name = "tao_inject_beam"
 
 !
 
-if (.not. u%coupling%coupled) return
+if (.not. u%coupling%coupled) then
+  u%beam%beam_init%center = u%model%orb(0)%vec
+  call init_beam_distribution (lat%ele_(0), u%beam%beam_init, u%beam%beam)
+else
    
-if (.not. s%u(u%coupling%from_uni)%is_on) then
-  call out_io (s_error$, r_name, &
-    "Injecting from a turned off universe! This will not do!")
-  call out_io (s_blank$, r_name, &
-    "No injection will be performed.")
-  return
+  if (.not. s%u(u%coupling%from_uni)%is_on) then
+    call out_io (s_error$, r_name, &
+      "Injecting from a turned off universe! This will not do!")
+    call out_io (s_blank$, r_name, &
+      "No injection will be performed.")
+    return
+  endif
+  
+  ! beam from previous universe at end of extracting element should already be set
+  ! but we still need the twiss parameters and everything else
+  extract_ele = s%u(u%coupling%from_uni)%model%lat%ele_(u%coupling%from_uni_ix_ele)
+  
+  !track through coupling element
+  if (u%coupling%use_coupling_ele) then
+    param => s%u(u%coupling%from_uni)%model%lat%param
+    call make_mat6 (u%coupling%coupling_ele, param)
+    call twiss_propagate1 (extract_ele, u%coupling%coupling_ele)
+    call track1_beam (u%coupling%injecting_beam, u%coupling%coupling_ele, &
+                        param, u%coupling%injecting_beam)
+    u%coupling%coupling_ele%value(beam_energy$) = extract_ele%value(beam_energy$)
+    u%coupling%coupling_ele%floor = extract_ele%floor
+    extract_ele = u%coupling%coupling_ele
+  endif
+    
+  ! transfer to this lattice
+  lat%ele_(0)%x = extract_ele%x
+  lat%ele_(0)%y = extract_ele%y
+  lat%ele_(0)%z = extract_ele%z
+  lat%ele_(0)%value(beam_energy$) = extract_ele%value(beam_energy$)
+  lat%ele_(0)%c_mat   = extract_ele%c_mat
+  lat%ele_(0)%gamma_c = extract_ele%gamma_c
+  lat%ele_(0)%floor   = extract_ele%floor
+  call beam_equal_beam (u%beam%beam, u%coupling%injecting_beam)
+  call tao_find_beam_centroid (u%coupling%injecting_beam, orb(0))
 endif
   
-! beam from previous universe at end of extracting element should already be set
-! but we still need the twiss parameters and everything else
-extract_ele = s%u(u%coupling%from_uni)%model%lat%ele_(u%coupling%from_uni_ix_ele)
-
-!track through coupling element
-if (u%coupling%use_coupling_ele) then
-  param => s%u(u%coupling%from_uni)%model%lat%param
-  call make_mat6 (u%coupling%coupling_ele, param)
-  call twiss_propagate1 (extract_ele, u%coupling%coupling_ele)
-  call track1_beam (u%coupling%injecting_beam, u%coupling%coupling_ele, &
-                      param, u%coupling%injecting_beam)
-  u%coupling%coupling_ele%value(beam_energy$) = extract_ele%value(beam_energy$)
-  u%coupling%coupling_ele%floor = extract_ele%floor
-  extract_ele = u%coupling%coupling_ele
-endif
-  
-! transfer to this lattice
-lat%ele_(0)%x = extract_ele%x
-lat%ele_(0)%y = extract_ele%y
-lat%ele_(0)%z = extract_ele%z
-lat%ele_(0)%value(beam_energy$) = extract_ele%value(beam_energy$)
-lat%ele_(0)%c_mat   = extract_ele%c_mat
-lat%ele_(0)%gamma_c = extract_ele%gamma_c
-lat%ele_(0)%floor   = extract_ele%floor
-call beam_equal_beam (u%beam%beam, u%coupling%injecting_beam)
-call tao_find_beam_centroid (u%coupling%injecting_beam, orb(0))
-
 end subroutine tao_inject_beam
 
 !------------------------------------------------------------------------------
@@ -776,6 +776,8 @@ end subroutine tao_inject_beam
 ! This will inject a beam from a previous universe into this universe in
 ! preparation for tracking. The lattice where the extraction occurs will have
 ! already been calculated.
+!
+! If there is no coupling between lattice then this will initialize the beam
 
 subroutine tao_inject_macro_beam (u, lat, orb)
 
@@ -794,52 +796,57 @@ character(20) :: r_name = "tao_inject_macro_beam"
 
 !
 
-if (.not. u%coupling%coupled) return
-   
-if (.not. s%u(u%coupling%from_uni)%is_on) then
-  call out_io (s_error$, r_name, &
-    "Injecting from a turned off universe! This will not do!")
-  call out_io (s_blank$, r_name, &
-    "No injection will be performed")
-  return
-endif
+if (.not. u%coupling%coupled) then
+  u%macro_beam%macro_init%center = u%model%orb(0)%vec
+  call init_macro_distribution (u%macro_beam%beam, u%macro_beam%macro_init, &
+                                lat%ele_(0), .true.)
+  u%macro_beam%ix_lost(:,:,:) = not_lost$
+else
+  if (.not. s%u(u%coupling%from_uni)%is_on) then
+    call out_io (s_error$, r_name, &
+      "Injecting from a turned off universe! This will not do!")
+    call out_io (s_blank$, r_name, &
+      "No injection will be performed")
+    return
+  endif
   
-! beam from previous universe at end of element should already be set
-! but we still need the twiss parameters and everything else
-extract_ele = s%u(u%coupling%from_uni)%model%lat%ele_(u%coupling%from_uni_ix_ele)
-
-!track through coupling element
-if (u%coupling%use_coupling_ele) then
-  param => s%u(u%coupling%from_uni)%model%lat%param
-  call make_mat6 (u%coupling%coupling_ele, param)
-  call twiss_propagate1 (extract_ele, u%coupling%coupling_ele)
-  call track1_macro_beam (u%coupling%injecting_macro_beam, u%coupling%coupling_ele, &
-                                            param, u%coupling%injecting_macro_beam)
-  u%coupling%coupling_ele%value(beam_energy$) = extract_ele%value(beam_energy$)
-  u%coupling%coupling_ele%floor = extract_ele%floor
-  extract_ele = u%coupling%coupling_ele
-endif
+  ! beam from previous universe at end of element should already be set
+  ! but we still need the twiss parameters and everything else
+  extract_ele = s%u(u%coupling%from_uni)%model%lat%ele_(u%coupling%from_uni_ix_ele)
   
-! transfer to this lattice
-lat%ele_(0)%x = extract_ele%x
-lat%ele_(0)%y = extract_ele%y
-lat%ele_(0)%z = extract_ele%z
-lat%ele_(0)%value(beam_energy$) = extract_ele%value(beam_energy$)
-lat%ele_(0)%c_mat   = extract_ele%c_mat
-lat%ele_(0)%gamma_c = extract_ele%gamma_c
-lat%ele_(0)%floor   = extract_ele%floor
-u%macro_beam%beam = u%coupling%injecting_macro_beam
-call tao_find_macro_beam_centroid (u%coupling%injecting_macro_beam, orb(0))
-
-! deterine if macroparticle already lost
-do n_bunch = 1, size(u%coupling%injecting_macro_beam%bunch)
-  do n_slice = 1, size(u%coupling%injecting_macro_beam%bunch(n_bunch)%slice)
-    do n_macro = 1, size(u%coupling%injecting_macro_beam%bunch(n_bunch)%slice(n_slice)%macro)
-if (u%coupling%injecting_macro_beam%bunch(n_bunch)%slice(n_slice)%macro(n_macro)%lost) &
-  u%macro_beam%ix_lost(n_bunch, n_slice, n_macro) = 0
+  !track through coupling element
+  if (u%coupling%use_coupling_ele) then
+    param => s%u(u%coupling%from_uni)%model%lat%param
+    call make_mat6 (u%coupling%coupling_ele, param)
+    call twiss_propagate1 (extract_ele, u%coupling%coupling_ele)
+    call track1_macro_beam (u%coupling%injecting_macro_beam, u%coupling%coupling_ele, &
+                                              param, u%coupling%injecting_macro_beam)
+    u%coupling%coupling_ele%value(beam_energy$) = extract_ele%value(beam_energy$)
+    u%coupling%coupling_ele%floor = extract_ele%floor
+    extract_ele = u%coupling%coupling_ele
+  endif
+    
+  ! transfer to this lattice
+  lat%ele_(0)%x = extract_ele%x
+  lat%ele_(0)%y = extract_ele%y
+  lat%ele_(0)%z = extract_ele%z
+  lat%ele_(0)%value(beam_energy$) = extract_ele%value(beam_energy$)
+  lat%ele_(0)%c_mat   = extract_ele%c_mat
+  lat%ele_(0)%gamma_c = extract_ele%gamma_c
+  lat%ele_(0)%floor   = extract_ele%floor
+  u%macro_beam%beam = u%coupling%injecting_macro_beam
+  call tao_find_macro_beam_centroid (u%coupling%injecting_macro_beam, orb(0))
+  
+  ! deterine if macroparticle already lost
+  do n_bunch = 1, size(u%coupling%injecting_macro_beam%bunch)
+    do n_slice = 1, size(u%coupling%injecting_macro_beam%bunch(n_bunch)%slice)
+      do n_macro = 1, size(u%coupling%injecting_macro_beam%bunch(n_bunch)%slice(n_slice)%macro)
+  if (u%coupling%injecting_macro_beam%bunch(n_bunch)%slice(n_slice)%macro(n_macro)%lost) &
+    u%macro_beam%ix_lost(n_bunch, n_slice, n_macro) = 0
+      enddo
     enddo
   enddo
-enddo
+endif
   
 end subroutine tao_inject_macro_beam
 
