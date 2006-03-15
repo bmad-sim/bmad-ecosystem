@@ -1,0 +1,20 @@
+#!/bin/sh
+##############################################
+# linux only
+# This script tunes environment variables for lahey
+# compiler agains built cesr library. Usage:
+#               . cesr_lahey_set <library>
+# where <library> is CESR release library
+#          Example:
+#               . cesr_lahey_set cesr_2006_0313_lahey
+#
+#if <library> is empty (no argument)
+#then it will be tuned against devel_lahey
+#                    
+###############################################
+. /nfs/opt/lf9562/bash_setup
+if ( [ $# -eq 0 ] ) then
+ CESRF90=lahey; CESRLIB=devel_lahey;. /home/cesrulib/bin/cesrdefs
+else
+  CESRF90=lahey; CESRLIB=$1;. /home/cesrulib/bin/cesrdefs
+fi
