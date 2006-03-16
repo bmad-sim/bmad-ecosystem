@@ -1,5 +1,5 @@
 !+                           
-! Subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction)
+! Subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction, exit_on_error)
 !
 ! Subroutine to calculate the closed orbit for a circular machine.
 ! Closed_orbit_calc uses the 1-turn transfer matrix to converge upon a  
@@ -37,10 +37,12 @@
 !                       +1 --> forwad (default), -1 --> backward.
 !                       The closed orbit will be dependent on direction only
 !                       in the case that radiation damping is turned on.
+!   exit_on_error   -- Logical, optional: If True then subroutine will terminate 
+!                         programif the orbit does not converge. Default is
+!                         determined by bmad_status%exit_on_error
 !
 !   bmad_status -- Bmad status common block
-!     %exit_on_error -- If True then subroutine will terminate program
-!                         if the orbit does not converge.
+!     %exit_on_error -- Default for exit_on_error argument.
 !     %type_out      -- If True then the subroutine will type out
 !                         a warning message if the orbit does not converge.
 !
@@ -53,7 +55,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction)
+subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction, exit_on_error)
 
   use bmad_struct
   use bmad_interface, except => closed_orbit_calc
@@ -72,6 +74,8 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction)
 
   integer, optional :: direction
   integer i, n, n_ele, i_dim, i_max, dir, nc
+
+  logical, optional :: exit_on_error
   logical fluct_saved, aperture_saved
 
 !----------------------------------------------------------------------
@@ -186,7 +190,7 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction)
           print *, 'ERROR IN CLOSED_ORBIT_CALC: NONLINEAR ORBIT NOT CONVERGING!'
         endif
       endif
-      if (bmad_status%exit_on_error) call err_exit
+      if (logic_option(bmad_status%exit_on_error, exit_on_error)) call err_exit
       bmad_status%ok = .false.
       exit
     endif
