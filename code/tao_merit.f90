@@ -1,15 +1,17 @@
 !+
-! function tao_merit () result (this_merit)
+! function tao_merit (calc_ok) result (this_merit)
 ! 
 ! function to calculate the merit.
 !
 ! Input:
 !
 ! Output:
+!   calc_ok    -- Logical, optional: Set False if there was an error in the 
+!                   calculation like a particle was lost or a ring is unstable.
 !   this_merit -- Real(rp): Merit value.
 !-
 
-function tao_merit () result (this_merit)
+function tao_merit (calc_ok) result (this_merit)
 
 use tao_mod
 use tao_lattice_calc_mod
@@ -23,11 +25,14 @@ type (tao_d1_data_struct), pointer :: d1
 real(rp) this_merit, ave, value
 
 integer i, j, n
-logical err
+
+logical, optional :: calc_ok
+logical err, ok
 
 ! make sure all calculations are up to date.
 
-call tao_lattice_calc ()
+call tao_lattice_calc (ok)
+if (present(calc_ok)) calc_ok = ok
 
 !----------------------------------------
 ! Merit contribution from the variables.

@@ -33,7 +33,7 @@ integer i, j, k, jj
 integer n_data, n_var, nd, nv
 integer s_var_size, current_s_var_point
 character(20) :: r_name = 'tao_dmodel_dvar_calc'
-logical reinit, force_calc
+logical reinit, force_calc, calc_ok
 
 ! make sure size of matrices are correct.
 
@@ -82,7 +82,11 @@ call out_io (s_blank$, r_name, ' ')
 
 ! Calculate matrices
 
-merit_value = tao_merit ()
+merit_value = tao_merit (calc_ok)
+if (.not. calc_ok) then
+  call out_io (s_error$, r_name, 'BASE MODEL CALCULATION HAS PROBLEMS', ' ')
+endif
+
 s%var%old_value = s%var%delta
 
 s_var_size = size(s%var)
@@ -106,7 +110,12 @@ do j = 1, s_var_size
   endif
   model_value = s%var(j)%model_value
   call tao_set_var_model_value (s%var(j), model_value + s%var(j)%step)
-  merit_value = tao_merit ()
+  merit_value = tao_merit (calc_ok)
+
+  if (.not. calc_ok) then
+    call out_io (s_error$, r_name, &
+         'VARIABLE STEP SIZE IS TOO LARGE FOR: ' // s%var(j)%name, ' ')
+  endif
 
   do i = 1, size(s%u)
     u => s%u(i)
@@ -121,6 +130,7 @@ do j = 1, s_var_size
 
 enddo
 
+merit_value = tao_merit () ! to reset all values
 
 end subroutine
 

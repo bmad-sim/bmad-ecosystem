@@ -29,7 +29,7 @@ subroutine tao_init (init_file)
   character(16) init_name
   integer i, j, n_universes, iu, ix
 
-  logical err
+  logical err, calc_ok
 
   namelist / tao_start / lattice_file, startup_file, &
                data_file, var_file, plot_file, single_mode_file, &
@@ -101,7 +101,7 @@ subroutine tao_init (init_file)
     s%u(i)%model = s%u(i)%design; s%u(i)%model%orb = s%u(i)%design%orb
   enddo
   s%global%lattice_recalc = .true.
-  call tao_lattice_calc (.true.) ! .true. => init design lattice
+  call tao_lattice_calc (calc_ok, .true.) ! .true. => init design lattice
   do i = 1, size(s%u)
     s%u(i)%design = s%u(i)%model; s%u(i)%design%orb = s%u(i)%model%orb
     s%u(i)%base  = s%u(i)%design; s%u(i)%base%orb  = s%u(i)%design%orb

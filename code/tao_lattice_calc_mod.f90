@@ -24,7 +24,7 @@ contains
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_lattice_calc (init_design)
+! Subroutine tao_lattice_calc (calc_ok, init_design)
 !
 ! Routine to calculate the lattice functions and TAO data. 
 ! Always tracks through the model lattice. 
@@ -33,12 +33,14 @@ contains
 ! design lattices.
 ! 
 ! Input:
-!  init_design      -- Logical: (optional) To initialize design lattices
+!   init_design -- Logical, optional: To initialize design lattices
 !
 ! Output:
+!   calc_ok -- Logical: Set False if there was an error in the 
+!                calculation like a particle was lost or a ring is unstable.
 !-
 
-subroutine tao_lattice_calc (init_design)
+subroutine tao_lattice_calc (calc_ok, init_design)
 
 implicit none
 
@@ -54,8 +56,12 @@ character(20) :: r_name = "tao_lattice_calc"
 logical initing_design
 ! hook_used refers to if a custom lattice calculation is performed
 logical, automatic :: hook_used(size(s%u))
+logical :: calc_ok
+logical this_calc_ok
 
 !
+
+calc_ok = .true.
 
 hook_used(:) = .false.
 initing_design = logic_option (.false., init_design)
@@ -91,21 +97,23 @@ if (s%global%lattice_recalc) then
     case ('single') 
       call tao_inject_particle (s%u(i), this%lat, this%orb)
       call tao_lat_bookkeeper (s%u(i), this)
-      call tao_single_track (i, this)
+      call tao_single_track (i, this, this_calc_ok)
     case ('beam') 
       call tao_inject_beam (s%u(i), this%lat, this%orb)
       call tao_lat_bookkeeper (s%u(i), this)
-      call tao_beam_track (i, this)
+      call tao_beam_track (i, this, this_calc_ok)
     case ('macro')
       call tao_inject_macro_beam (s%u(i), this%lat, this%orb)
       call tao_lat_bookkeeper (s%u(i), this)
-      call tao_macro_track (i, this)
+      call tao_macro_track (i, this, this_calc_ok)
     case default
       call out_io (s_error$, r_name, &
                      "This tracking type has yet to be implemented!")
       call out_io (s_blank$, r_name, &
                      "No tracking or twiss calculations will be perfomred.")
     end select
+
+    if (.not. this_calc_ok) calc_ok = .false.
 
     if (s%u(i)%do_synch_rad_int_calc)  call radiation_integrals (this%lat, &
                                            this%orb, this%modes, s%u(i)%ix_rad_int_cache)
@@ -128,7 +136,7 @@ end subroutine tao_lattice_calc
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine tao_single_track (uni, tao_lat)
+subroutine tao_single_track (uni, tao_lat, calc_ok)
 
 implicit none
 
@@ -139,19 +147,28 @@ integer uni, i, ii
 
 character(20) :: r_name = "tao_single_track"
 
+logical calc_ok
+
 !
 
 lat => tao_lat%lat
+calc_ok = .true.
 
 if (lat%param%lattice_type == circular_lattice$) then
-  call ring_make_mat6 (lat, -1)
+  call closed_orbit_calc (lat, tao_lat%orb, 4, exit_on_error = .false.)
+  if (.not. bmad_status%ok) then
+    calc_ok = .false.
+    do i = 0, ubound(tao_lat%orb, 1)
+      tao_lat%orb(i)%vec = (/ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
+    enddo
+  endif
+  call ring_make_mat6 (lat, -1, tao_lat%orb)
   call twiss_at_start (lat)
-  call closed_orbit_at_start (lat, tao_lat%orb(0), 4, .true.)
+  if (.not. bmad_status%ok) calc_ok = .false.
 endif
 
 lat%param%ix_lost = not_lost$
 
-if (lat%param%lattice_type == circular_lattice$) call twiss_at_start (lat)
 call tao_load_data_array (s%u(uni), 0)
 
 do i = 1, lat%n_ele_use
@@ -159,6 +176,7 @@ do i = 1, lat%n_ele_use
 
   if (lat%param%lost) then
     lat%param%ix_lost = i
+    calc_ok = .false.
     do ii = i+1, lat%n_ele_use
       tao_lat%orb(ii)%vec = 0
     enddo
@@ -181,7 +199,7 @@ end subroutine tao_single_track
 ! Right now, there is no beam tracking in rings. If extracting from a
 ! ring then the beam is generated at the extraction point.
 
-subroutine tao_beam_track (uni, tao_lat)
+subroutine tao_beam_track (uni, tao_lat, calc_ok)
 
 implicit none
 
@@ -204,7 +222,7 @@ character(20) :: r_name = "tao_beam_track"
 
 real(rp) :: value1, value2, f
 
-logical post
+logical post, calc_ok
 
 type phase_space_beam
   type (beam_struct), pointer :: beam
@@ -214,6 +232,8 @@ end type
 type (phase_space_beam) phase_space(100)
 
 !
+
+calc_ok = .true.
 
 call reallocate_integer (ix_ele,1)
 
@@ -248,7 +268,7 @@ enddo inject_loop
 if (.not. u%coupling%coupled) then
   ! no beam tracking in rings
   if (lat%param%lattice_type == circular_lattice$) then
-    call tao_single_track (uni, tao_lat) 
+    call tao_single_track (uni, tao_lat, calc_ok) 
     if (u%beam%calc_emittance) then
       call radiation_integrals (lat, tao_lat%orb, modes)
       if (extract_at_ix_ele .ne. -1) then
@@ -357,7 +377,7 @@ end subroutine tao_beam_track
 ! Right now, there is no macroparticle tracking in rings. If extracting from a
 ! ring then the macroparticle beam is generated at the extraction point.
 
-subroutine tao_macro_track (uni, tao_lat)
+subroutine tao_macro_track (uni, tao_lat, calc_ok)
 
 use macro_utils_mod
 
@@ -379,9 +399,11 @@ character(20) :: r_name = "macro_track"
 
 real(rp) :: value1, value2, f
 
-logical post
+logical post, calc_ok
 
 !
+
+calc_ok = .true.
 
 u => s%u(uni)
 beam => u%macro_beam%beam
@@ -411,7 +433,7 @@ enddo inject_loop
 if (.not. u%coupling%coupled) then
   ! no macroparticle tracking in rings
   if (lat%param%lattice_type == circular_lattice$ ) then
-    call tao_single_track (uni, tao_lat) 
+    call tao_single_track (uni, tao_lat, calc_ok) 
     if (u%macro_beam%calc_emittance) then
       call radiation_integrals (lat, tao_lat%orb, modes, u%ix_rad_int_cache)
       if (extract_at_ix_ele .ne. -1) then

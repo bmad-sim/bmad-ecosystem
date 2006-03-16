@@ -225,10 +225,11 @@ interface
 end interface
  
 interface
-  function tao_merit () result (this_merit)
+  function tao_merit (calc_ok) result (this_merit)
     use precision_def
     implicit none
     real(rp) this_merit
+    logical, optional :: calc_ok
   end function
 end interface
  

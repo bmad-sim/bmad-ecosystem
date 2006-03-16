@@ -57,6 +57,9 @@ type (tao_lattice_struct), pointer :: set_this_lat
 type (tao_lattice_struct), pointer :: to_this_lat
 real(rp), pointer :: set_this_data(:)
 real(rp), pointer :: to_this_data(:)
+logical calc_ok
+
+!
 
 err = .false.
 
@@ -80,7 +83,7 @@ select case (to_lattice)
   case ('model')
     ! make sure model data is up to date
     s%global%lattice_recalc = .true.
-    call tao_lattice_calc ()
+    call tao_lattice_calc (calc_ok)
     to_this_lat => u%model
     to_this_data => u%data%model_value
   case ('base')

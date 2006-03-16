@@ -285,12 +285,12 @@ do k = 1, size(graph%curve)
   if (curve%ix_ele_ref < 0) curve%ix_ele_ref = 0
 
 !----------------------------------------------------------------------------
-! select the source
+! Calculate where the symbols are to be drawn on the graph.
 
   select case (curve%data_source)
 
 !----------------------------------------------------------------------------
-! data_source is a data array
+! Case: data_source is a data array
 
   case ('data_array')
     call tao_find_data (err, u, curve%data_type, d2_ptr, d1_ptr)
@@ -375,7 +375,7 @@ do k = 1, size(graph%curve)
 
 
 !----------------------------------------------------------------------------
-! data_source is a var array
+! Case: data_source is a var array
 
   case ('var_array')
     call tao_find_var (err, curve%data_type, v1_ptr)
@@ -481,7 +481,7 @@ do k = 1, size(graph%curve)
 
 
 !----------------------------------------------------------------------------
-! data source is from the lattice_layout
+! Case: data source is from the lattice_layout
 
   case ('lat_layout')
 
@@ -553,7 +553,7 @@ do k = 1, size(graph%curve)
     enddo
 
 !----------------------------------------------------------------------------
-! Bad data_source
+! Case: Bad data_source
 
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATA_SOURCE: ' // curve%data_source)
@@ -562,7 +562,7 @@ do k = 1, size(graph%curve)
   end select
 
 !----------------------------------------------------------------------------
-! Calculate the points for drawing the curve through the symbols.
+! Now calculate the points for drawing the curve through the symbols.
 ! If the x-axis is by index or ele_index then these points are the same as the symbol points.
 ! That is, for x-axis = index or ele_index the line is piece-wise linear between the symbols.
 ! If the axis is by s-value then the line is a "smooth" curve with n_curve_pts points if
