@@ -335,7 +335,7 @@ integer, parameter :: fintx$=11, z_patch$=11, phi0$=11
 integer, parameter :: rho$=12, s_center$=12, p0c_start$=12
 integer, parameter :: hgap$=13, energy_start$=13
 integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14, kz$=14
-integer, parameter :: roll$=15, quad_tilt$=15, freq_spread$=15
+integer, parameter :: roll$=15, quad_tilt$=15, freq_spread$=15, x_ray_line_len$=15
 integer, parameter :: l_original$=16, l_chord$=16, bend_tilt$=16
 integer, parameter :: l_start$=17, h1$=17, x_quad$=17
 integer, parameter :: l_end$=18, h2$=18, y_quad$=18
