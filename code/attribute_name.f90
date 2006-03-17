@@ -16,9 +16,9 @@
 !
 ! Example:
 !   ele%key = sbend$
-!   name = attribute_name (ele, K1$)
+!   name = attribute_name (ele, k1$)
 ! Result:
-!   name -> 'k1'
+!   name -> 'K1'
 !-
 
 #include "CESR_platform.inc"
@@ -370,19 +370,20 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(beambeam$, tilt$)        = 'TILT'
     attrib_array(beambeam$, field_calc$)  = 'FIELD_CALC'
 
-    attrib_array(wiggler$, l$)          = 'L'
-    attrib_array(wiggler$, k1$)         = 'K1'
-    attrib_array(wiggler$, kz$)         = 'KZ'
-    attrib_array(wiggler$, b_max$)      = 'B_MAX'
-    attrib_array(wiggler$, rho$)        = 'RHO'
-    attrib_array(wiggler$, n_pole$)     = 'N_POLE'
-    attrib_array(wiggler$, tilt$)       = 'TILT'
-    attrib_array(wiggler$, radius$)     = 'RADIUS'
-    attrib_array(wiggler$, term$)       = 'TERM'
-    attrib_array(wiggler$, polarity$)   = 'POLARITY'
-    attrib_array(wiggler$, z_patch$)    = 'Z_PATCH'
-    attrib_array(wiggler$, radius$)     = 'RADIUS'
-    attrib_array(wiggler$, field_calc$) = 'FIELD_CALC'
+    attrib_array(wiggler$, l$)              = 'L'
+    attrib_array(wiggler$, k1$)             = 'K1'
+    attrib_array(wiggler$, kz$)             = 'KZ'
+    attrib_array(wiggler$, b_max$)          = 'B_MAX'
+    attrib_array(wiggler$, rho$)            = 'RHO'
+    attrib_array(wiggler$, n_pole$)         = 'N_POLE'
+    attrib_array(wiggler$, tilt$)           = 'TILT'
+    attrib_array(wiggler$, radius$)         = 'RADIUS'
+    attrib_array(wiggler$, term$)           = 'TERM'
+    attrib_array(wiggler$, polarity$)       = 'POLARITY'
+    attrib_array(wiggler$, z_patch$)        = 'Z_PATCH'
+    attrib_array(wiggler$, radius$)         = 'RADIUS'
+    attrib_array(wiggler$, field_calc$)     = 'FIELD_CALC'
+    attrib_array(wiggler$, x_ray_line_len$) = 'X_RAY_LINE_LEN'
 
     attrib_array(sol_quad$, l$)          = 'L'
     attrib_array(sol_quad$, k1$)         = 'K1'
