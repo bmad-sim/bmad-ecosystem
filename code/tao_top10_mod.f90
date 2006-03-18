@@ -9,7 +9,7 @@ use tao_dmerit_mod
 ! structure for making lists of the biggest contributors to the merit function.
 
 type tao_top10_struct
-  character(16) name   ! name of contributor
+  character(32) name   ! name of contributor
   real(rp) value       ! contribution to the merit function
   integer index        ! index of contributor.
   logical valid        ! valid entry?
@@ -35,11 +35,12 @@ implicit none
 type (tao_top10_struct) top_merit(10)
 type (tao_top10_struct) top_dmerit(10)
 type (tao_top10_struct) top_delta(10)
+type (tao_data_struct), pointer :: data
 
 real(rp) delta, a_max, merit
 integer i, j, n, nl, nu
 
-character(18) name
+character(32) name
 character(100) fmt, lines(20)
 character(20) :: r_name = 'tao_top10_print'
 
@@ -63,11 +64,11 @@ top_delta(:)%value = 0; top_delta(:)%index = 0
 nu = size(s%u)
 do i = 1, nu
   do j = 1, size(s%u(i)%data)
-    if (.not. s%u(i)%data(j)%useit_opt) cycle
-    name = s%u(i)%data(j)%data_type
+    data => s%u(i)%data(j)
+    if (.not. data%useit_opt) cycle
+    name = trim(data%d1%d2%name) // ':' // data%d1%name
     if (nu > 1) write (name, '(2a, i0)') trim(name), ';', i
-    call tao_to_top10 (top_merit, s%u(i)%data(j)%merit, name, &
-                                                s%u(i)%data(j)%ix_d1, 'max')
+    call tao_to_top10 (top_merit, data%merit, name, data%ix_d1, 'max')
   enddo
 enddo
 
@@ -84,26 +85,22 @@ enddo
 
 ! write results
 
+call tao_show_constraints (0, 'TOP10')
 
 a_max = max(1.1, maxval(abs(top_delta(:)%value)))
 n = max(0, 6 - int(log10(a_max)))
 
-write (fmt, '(a, i1, a)') &
-   '((1x, a20, i5, f11.1, 3x), (a10, i5, 1pe12.3, 3x), (a10, i5, 0pf11.', n, '))'
-
+write (fmt, '(a, i1, a)') '((a10, i5, 1pe12.3, 3x), (a10, i5, 0pf11.', n, '))'
 
 nl = 0
 lines(nl+1) = ' '
-lines(nl+2) = &
-  '       Top10 merit                    |      Top10 derivative       |       Top10 delta'
-lines(nl+3) = &
-  ' Name                   ix      Value | Name         ix  Derivative | Name         ix     delta'
+lines(nl+2) = '      Top10 derivative       |       Top10 delta'
+lines(nl+3) = ' Name         ix  Derivative | Name         ix     delta'
 nl = nl + 3
 
 do i = 1, 10
   nl = nl + 1
   write (lines(nl), fmt) &
-      top_merit(i)%name,  top_merit(i)%index,  top_merit(i)%value, &
       top_dmerit(i)%name, top_dmerit(i)%index, top_dmerit(i)%value,  &
       top_delta(i)%name,  top_delta(i)%index,  top_delta(i)%value
 enddo
@@ -184,5 +181,193 @@ top10(ix) = tao_top10_struct(name, value, c_index, .true.)
 
 end subroutine
 
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+
+subroutine tao_show_constraints (iunit, form)
+
+use nr
+
+implicit none
+
+type (tao_top10_struct) top_merit(10)
+type (tao_var_struct), pointer :: var
+type (tao_data_struct), pointer :: data
+
+real(rp) value, this_merit
+
+integer i, j, n, iunit, nc, ir, n_max
+integer ir1, ir2, iu, ie, nl
+integer, allocatable :: ixm(:)
+integer n_name, n_d2_d1_name, n_loc1, n_loc2
+
+character(*) form
+character(16) location, con_var, max_loc, loc1, loc2
+character(80) fmt
+character(1) plane
+character(24) :: r_name = 'tao_show_constraints'
+character(200), allocatable, save :: line(:)
+character(200) l1
+
+type constraint_struct
+  character(32) d2_d1_name
+  character(32) name
+  character(16) loc1, loc2, max_loc
+  real(rp) target_value
+  real(rp) actual_value
+  real(rp) merit
+  integer ix
+end type
+
+type (constraint_struct), allocatable :: con(:)
+
+!
+
+call re_allocate (line, 200, 100)
+this_merit = tao_merit()
+top_merit(:)%valid  = .false.; top_merit(:)%name  = ' '
+
+nc = count (s%var(:)%useit_opt)
+do i = 1, size(s%u)
+  nc = nc + count (s%u(i)%data(:)%useit_opt)
+enddo
+allocate (con(nc), ixm(nc))
+
+nc = 0
+do i = 1, size(s%u)
+  do j = 1, size(s%u(i)%data)
+    data => s%u(i)%data(j)
+    if (.not. data%useit_opt) cycle
+    nc = nc + 1
+    con(nc)%name = data%name
+    con(nc)%d2_d1_name = trim(data%d1%d2%name) // ':' // data%d1%name
+    if (size(s%u) > 1) write (con(nc)%d2_d1_name, '(2a, i0)') &
+                                     trim(con(nc)%d2_d1_name), ';', i
+    if (data%ix_ele < 0) then
+      con(nc)%loc1 = ' '
+    else
+      con(nc)%loc1 = s%u(i)%model%lat%ele_(data%ix_ele)%name
+    endif
+    ie = data%ix_ele2
+    if (ie < 1) then
+      con(nc)%loc2 = ' '
+    else
+      con(nc)%loc2 = s%u(i)%model%lat%ele_(ie)%name
+    endif
+    ie = data%ix_ele_merit
+    if (ie < 0) then
+      con(nc)%max_loc = ' '
+    else
+      con(nc)%max_loc = s%u(i)%model%lat%ele_(ie)%name
+    endif
+    con(nc)%target_value = data%meas_value
+    con(nc)%actual_value = data%model_value
+    con(nc)%merit = data%merit
+    con(nc)%ix = data%ix_d1
+  enddo
+enddo
+
+do i = 1, size(s%var(:))
+  var => s%var(i)
+  if (.not. var%useit_opt) cycle
+!!  if (var%merit == 0) cycle
+  nc = nc + 1
+  con(nc)%d2_d1_name = var%v1%name
+  con(nc)%name       = var%name
+  iu = var%this(1)%ix_uni
+  con(nc)%loc1 = s%u(iu)%model%lat%ele_(var%this(1)%ix_ele)%name
+  con(nc)%loc2 = ' '
+  if (var%merit_type == 'target') then
+    con(nc)%target_value = var%meas_value
+  elseif (var%merit_type == 'limit') then
+    if (abs(var%model_value - var%high_lim) < &
+                  abs(var%model_value - var%low_lim)) then
+      con(nc)%target_value = var%high_lim
+    else
+      con(nc)%target_value = var%low_lim
+    endif
+  else
+    call out_io (s_abort$, r_name, 'UNKNOWN VARIABLE MERIT_TYPE: ' // &
+                                                            var%merit_type)
+  endif
+  con(nc)%actual_value = var%model_value
+  con(nc)%merit = var%merit
+  con(nc)%max_loc = ' '
+  con(nc)%ix = var%ix_v1
+enddo
+
+!
+
+if (form == 'TOP10') then
+  call indexx(con(1:nc)%merit, ixm(1:nc))
+  n_max = min(nc, 10)
+  ixm(1:n_max) = ixm(nc:nc-n_max+1:-1)
+  line(1) = ' '
+  line(2) = '! Top 10'
+  nl = 2
+elseif (form == 'ALL') then
+  n_max = nc
+  forall (i = 1:n_max) ixm(i) = i
+  nl = 0
+else
+  call out_io (s_abort$, r_name, &
+              'ERROR IN SHOW_CONSTRAINTS: UNKNOWN FORM: ' // form)
+  call err_exit
+endif
+
+! find string widths
+
+n_d2_d1_name = 9;  n_name = 1; n_loc1 = 8;  n_loc2 = 8
+
+do j = 1, n_max
+  i = ixm(j)
+  n_d2_d1_name = max(n_d2_d1_name, len_trim(con(i)%d2_d1_name))
+  n_name = max(n_name, len_trim(con(i)%name))
+  n_loc1 = max(n_loc1, len_trim(con(i)%loc1))
+  n_loc2 = max(n_loc2, len_trim(con(i)%loc2))
+enddo
+
+!
+
+l1 = 'Constraint'
+n=8+n_d2_d1_name+2+n_name; l1(n:) = 'Where1'
+n=len_trim(l1)+n_loc1-4;   l1(n:) = 'Where2'
+n=len_trim(l1)+n_loc2-2;   l1(n:) = 'Target       Value     Merit   Max'
+
+nl=nl+1; line(nl) = ' '
+nl=nl+1; line(nl) = l1
+
+!
+
+fmt = '(a, i5, 2x, a, 2x, a, 1x, a, 1pe10.2, 1pe12.3, e10.2, 2x, a)'
+
+call re_allocate (line, 200, nl+n_max+100)
+do j = 1, n_max
+  i = ixm(j)
+  nl=nl+1; write (line(nl), fmt) con(i)%d2_d1_name(1:n_d2_d1_name), con(i)%ix, &
+            con(i)%name(1:n_name), &
+            con(i)%loc1(1:n_loc1), con(i)%loc2(1:n_loc2), con(i)%target_value, &
+            con(i)%actual_value, con(i)%merit, con(i)%max_loc
+end do
+nl=nl+1; line(nl) = l1
+
+!
+
+nl=nl+1; line(nl) = ' '
+nl=nl+1; write (line(nl), '(1x, a, 1pe12.6)') &
+                                  'figure of merit: ', this_merit
+
+!
+
+do i = 1, nl
+  if (iunit == 0) then
+    call out_io (s_blank$, r_name, line(i))
+  else
+    write (iunit, *) trim(line(i))
+  endif
+enddo
+
+end subroutine
 
 end module
