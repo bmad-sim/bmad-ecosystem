@@ -709,7 +709,7 @@ case default
 
 end select
 
-  if (isnan(datum_value)) datum_value = tiny(1.0_rp)
+!  if (isnan(datum_value)) datum_value = tiny(1.0_rp)
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
