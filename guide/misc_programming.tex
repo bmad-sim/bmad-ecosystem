@@ -7,6 +7,8 @@
 \index{Bmad_com}
 \index{Bmad_status}
 
+{\bf NOTE: THIS CHAPTER IS UNDER CONSTRUCTION!}
+
 There are two common structures used by Bmad for communication between
 routines. These are \vn{bmad_com} which is a \vn{bmad_com_struct}
 structure and \vn{bmad_status} which is a \vn{bamd_status_struct}
@@ -53,6 +55,7 @@ The \vn{bmad_com_struct} structure is:
 \index{type_out}\index{sub_type_out}
 \index{exit_on_error}
 The \vn{bmad_status_struct} structure is:
+\begin{example}
 type bmad_status_struct
   integer :: status         = ok\$     ! Computation status 
   logical :: ok             = .true.   ! Error flag
@@ -60,6 +63,7 @@ type bmad_status_struct
   logical :: sub_type_out   = .true.   ! 
   logical :: exit_on_error  = .true.   ! Exit program on error?
 end type
+\end{example}
 
 
 
