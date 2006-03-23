@@ -572,7 +572,7 @@ the model lattice to reflect the change so all the bookkeeping is done for you.
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
-\section{Running the Optimizer}\index{Optimizer!Running}
+\section{Running the Optimizer}\index{Optimization!running the optimizer}
 \label{s:optimizer}
 
 There are two non-linear optimizers included with \tao: Levenburg - Marquardt,
@@ -598,8 +598,9 @@ it fails.
 \subsection{Fix a Messed Up lattice}
 \label{ss:fix_it}
 
-Let's mess the lattice up a little and see if the optimizer can ``fix'' the
-lattice. First transfer the ``correct'' or \vn{design} lattice to the \vn{meas} data area.
+Let's mess the lattice up a little and see if the optimizer can
+``fix'' the lattice. First transfer the ``correct'' or \vn{design}
+lattice to the \vn{meas} data area.
 \begin{example}
   set data all meas = design
 \end{example}

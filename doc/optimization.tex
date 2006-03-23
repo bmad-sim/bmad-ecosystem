@@ -32,14 +32,15 @@ the number of constraints (number of terms in the merit function) is
 always larger than the number of variables and degeneracies can never
 occur. 
 
-\index{Optimization!Optimizer}The algorithm used to vary the \vn{var_model}
-variables to minimize \vn{M} is called an \vn{optimizer}. In \vn{command line
-mode} the \vn{run} command is used to invoke an \vn{optimizer}. In \vn{single
-mode} the \vn{g} key starts an optimizer and the \vn{.} key stops it.  Running
-an optimizer is also called ``fitting'' since one is trying to get the
-\vn{data_model} to be equal to the \vn{data_meas}. With orbits this is also
-called ``flattening'' since one generally wants to end up with an orbit that is
-on--axis.
+\index{Optimization!Optimizer}
+The algorithm used to vary the \vn{var_model} variables to minimize
+\vn{M} is called an \vn{optimizer}. In \vn{command line mode} the
+\vn{run} command is used to invoke an \vn{optimizer}. In \vn{single
+mode} the \vn{g} key starts an optimizer and the \vn{.} key stops it.
+Running an optimizer is also called ``fitting'' since one is trying to
+get the \vn{data_model} to be equal to the \vn{data_meas}. With orbits
+this is also called ``flattening'' since one generally wants to end up
+with an orbit that is on--axis.
 
 In a correction one wants to change the machine variables so that the
 measured data corresponds to the design values \vn{data_design}. Thus
