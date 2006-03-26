@@ -69,6 +69,16 @@ end type
 
 type (csr_common_struct), save, target :: csr_com
 
+interface 
+  subroutine save_bunch_track (bunch, ele, s_travel)
+    use beam_def_struct, only: bunch_struct, ele_struct, rp
+    implicit none
+    type (bunch_struct) bunch
+    type (ele_struct) ele
+    real(rp) s_travel
+  end subroutine
+end interface
+
 contains
 
 !----------------------------------------------------------------------------
@@ -107,6 +117,7 @@ real(rp) s_travel
 integer i, j, nb, ix_ele, n_step
 
 character(20) :: r_name = 'track1_bunch_sc'
+logical auto_bookkeeper
 
 ! Init
 
@@ -134,6 +145,8 @@ bin%ds_track_step = ele%value(l$) / n_step
 runt = ele
 runt%value(l$) = bin%ds_track_step
 call attribute_bookkeeper (runt, lat%param)
+
+auto_bookkeeper = bmad_com%auto_bookkeeper ! save state
 bmad_com%auto_bookkeeper = .false.   ! make things go faster
 
 ! Loop over the tracking steps
@@ -173,9 +186,11 @@ do i = 1, n_step
 
   enddo
 
+  call save_bunch_track (bunch_end, ele, s_travel)
+
 enddo
 
-bmad_com%auto_bookkeeper = .false.   
+bmad_com%auto_bookkeeper = auto_bookkeeper  ! restore state
 
 end subroutine
 

@@ -122,13 +122,14 @@ interface
 end interface
 
 interface
-  subroutine chrom_calc (ring, delta_e, chrom_x, chrom_y)
+  subroutine chrom_calc (ring, delta_e, chrom_x, chrom_y, exit_on_error)
     use bmad_struct, only: ring_struct, rp
     implicit none
     type (ring_struct) ring
     real(rp) delta_e
     real(rp) chrom_x
     real(rp) chrom_y
+    logical, optional :: exit_on_error
   end subroutine
 end interface
 
@@ -654,12 +655,11 @@ interface
 end interface
 
 interface
-  function attribute_free (ele, ix_attrib, ring, err_print_flag) result (free)
+  function attribute_free (ix_ele, ix_attrib, lat, err_print_flag) result (free)
     use bmad_struct, only: ring_struct, ele_struct
     implicit none
-    type (ring_struct) :: ring
-    type (ele_struct) :: ele
-    integer ix_attrib
+    type (ring_struct), target :: lat
+    integer ix_ele, ix_attrib
     logical free
     logical, optional :: err_print_flag
   end function
