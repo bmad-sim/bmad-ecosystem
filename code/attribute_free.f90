@@ -1,9 +1,9 @@
 !+
-! Function attribute_free (ele, ix_attrib, ring, err_print_flag) result (free)
+! Function attribute_free (ix_ele, ix_attrib, lat, err_print_flag) result (free)
 !
 ! Subroutine to check if an attribute is free to vary.
 !
-! Attributes that cannot be changed directly are super_slave attributes (since
+! Attributes that cannot be changed directly include super_slave attributes (since
 ! these attributes are controlled by their super_lords) and attributes that
 ! are controlled by an overlay_lord.
 !
@@ -14,9 +14,9 @@
 !   use bmad
 !
 ! Input:
-!   ele             -- Ele_struct: Element
-!   ix_attrib       -- Integer: Index to the attribute in ele%value() array.
-!   ring            -- Ring_struct: Ring structure.
+!   ix_ele          -- Integer: Index of element in lat%ele_(:) array.
+!   ix_attrib       -- Integer: Index to the attribute in ele%value(:) array.
+!   lat             -- Ring_struct: Lattice structure.
 !   err_print_flag  -- Logical, optional: If present and False then supress
 !                       printing of an error message if attribute is not free.
 !
@@ -28,83 +28,78 @@
 #include "CESR_platform.inc"
 
 
-function attribute_free (ele, ix_attrib, ring, err_print_flag) result (free)
+function attribute_free (ix_ele, ix_attrib, lat, err_print_flag) result (free)
 
   use bmad_struct
   use bmad_interface
 
   implicit none
 
-  type (ring_struct) :: ring
-  type (ele_struct) :: ele
+  type (ring_struct), target :: lat
 
-  integer ix_attrib, i, ir, ix
+  integer ix_attrib, ix_ele, ix_ele0, ix_attrib0
 
   logical free, do_print
   logical, optional :: err_print_flag
+  character(16) :: r_name = 'attribute_free'
 
-! init
+! init & check
+
+  do_print = logic_option (err_print_flag, .true.)
+  ix_ele0 = ix_ele
+  ix_attrib0 = ix_attrib
+  call check_this_attribute_free (ix_ele, ix_attrib)
+
+!-------------------------------------------------------------------------
+contains
+
+recursive subroutine check_this_attribute_free (ix_ele, ix_attrib, ix_lord)
+
+  type (ele_struct), pointer :: ele
+  integer ix_ele, ix_attrib, i, ir, ix
+  integer, optional :: ix_lord
+
+! super_slaves attributes cannot be varied
 
   free = .false.
-  do_print = logic_option (err_print_flag, .true.)
+  ele => lat%ele_(ix_ele)
 
 ! if the attribute is controled by an overlay lord then it cannot be varied
 
   do i = ele%ic1_lord, ele%ic2_lord
-    ix = ring%ic_(i)
-    ir = ring%control_(ix)%ix_lord
-    if (ring%ele_(ir)%control_type == overlay_lord$) then
-      if (ring%control_(ix)%ix_attrib == ix_attrib) then
-        call print_error (ele, &
-            'THE ATTRIBUTE: ' // attribute_name(ele, ix_attrib), &
-            'OF ELEMENT: ' // ele%name, &
-            'IS CONTROLLED BY OVERLAY_LORD: ' // ring%ele_(ir)%name)
+    ix = lat%ic_(i)
+    ir = lat%control_(ix)%ix_lord
+    if (present(ix_lord)) then
+      if (ix_lord == ir) cycle
+    endif
+    if (lat%ele_(ir)%control_type == overlay_lord$) then
+      if (lat%control_(ix)%ix_attrib == ix_attrib) then
+        call print_error (ix_ele, ix_attrib, &
+            'IT IS CONTROLLED BY THE OVERLAY_LORD: ' // lat%ele_(ir)%name)
         return
       endif
     endif
   enddo
 
-! further checking
-
-  call check_this_attribute_free (ele, ix_attrib)
-
-!-------------------------------------------------------------------------
-contains
-
-recursive subroutine check_this_attribute_free (ele2, ix_attrib)
-
-  type (ele_struct) ele2
-  integer ix_attrib, i
-
-! super_slaves attributes cannot be varied
-
-  free = .false.
-
-  if (ele2%control_type == super_slave$) then
-    call print_error (ele2, &
-            'TRYING TO VARY AN ATTRIBUTE OF: ' // ele2%name, &
-            'WHICH IS A SUPER_SLAVE WILL NOT WORK.', &
-            'VARY THE ATTRIBUTE OF ONE OF ITS SUPER_LORDS INSTEAD.')
+  if (ele%control_type == super_slave$) then
+    call print_error (ix_ele, ix_attrib, 'THIS ELEMENT IS A SUPER_SLAVE.')
     return
   endif
 
 ! only one particular attribute of an overlay lord is allowed to be adjusted
 
-  if (ele2%control_type == overlay_lord$) then
-    if (ix_attrib /= ele2%ix_value) then
-      call print_error (ele2, &
-                     'OVERLAYS HAVE ONLY ONE ATTRIBUTE TO VARY.', &
-                     'FOR THE OVERLAY: ' // trim(ele2%name), &
-                     'THAT ATTRIBUTE IS: ' // ele2%attribute_name)
+  if (ele%control_type == overlay_lord$) then
+    if (ix_attrib /= ele%ix_value) then
+      call print_error (ix_ele, ix_attrib, &
+             'FOR THIS OVERLAY ELEMENT THE ATTRIBUTE TO VARY IS: ' // ele%attribute_name)
       return
     endif
   endif
 
-  if (ele2%control_type == group_lord$) then
+  if (ele%control_type == group_lord$) then
     if (ix_attrib /= command$ .and. ix_attrib /= old_command$) then
-      call print_error (ele2, &
-                     'GROUPS CAN ONLY VARY THE COMMAND OR OLD_COMMAND ATTRIBUTE.', &
-                     'FOR THE GROUP: ' // trim(ele2%name))
+      call print_error (ix_ele, ix_attrib, &
+            'FOR THIS GROUP ELEMENT THE ATTRIBUTE TO VARY IS: "COMMAND" OR "OLD_COMMAND"')
       return
     endif
   endif
@@ -115,11 +110,11 @@ recursive subroutine check_this_attribute_free (ele2, ix_attrib)
 
 ! check if it is a dependent variable.
 
-  select case (ele2%key)
+  select case (ele%key)
   case (sbend$)
     if (any(ix_attrib == (/ angle$, l_chord$, rho$ /))) free = .false.
   case (rfcavity$)
-    if (ix_attrib == rf_frequency$ .and. ele2%value(harmon$) /= 0) free = .false.
+    if (ix_attrib == rf_frequency$ .and. ele%value(harmon$) /= 0) free = .false.
   case (beambeam$)
     if (ix_attrib == bbi_const$) free = .false.
   case (wiggler$)
@@ -131,18 +126,15 @@ recursive subroutine check_this_attribute_free (ele2, ix_attrib)
   end select
 
   if (.not.free) then
-    call print_error (ele2, &
-                   'THE ATTRIBUTE: ' // attribute_name(ele2, ix_attrib), &
-                   'OF ELEMENT: ' // ele2%name, &
-                   'IS A DEPENDENT VARIABLE.')
+    call print_error (ix_ele, ix_attrib, 'THE ATTRIBUTE IS A DEPENDENT VARIABLE.')
     return
   endif
 
 ! field_master on means that the b_field and b_gradient values control
 ! the strength.
 
-  if (ele2%field_master) then
-    select case (ele2%key)
+  if (ele%field_master) then
+    select case (ele%key)
     case (quadrupole$)
       if (ix_attrib == k1$) free = .false.
     case (sextupole$)
@@ -164,7 +156,7 @@ recursive subroutine check_this_attribute_free (ele2, ix_attrib)
     if (ix_attrib == vkick$) free = .false.
 
   else
-    select case (ele2%key)
+    select case (ele%key)
     case (quadrupole$)
       if (ix_attrib == b_gradient$) free = .false.
     case (sextupole$)
@@ -188,20 +180,18 @@ recursive subroutine check_this_attribute_free (ele2, ix_attrib)
   endif
 
   if (.not. free) then
-    call print_error (ele2, &
-             'THE ATTRIBUTE: ' // attribute_name(ele2, ix_attrib), &
-             'OF ELEMENT: ' // ele2%name, &
-             'IS A DEPENDENT VARIABLE SINCE FIELD_MASTER IS ' // &
-                                             on_off_logic (ele2%field_master))
+    call print_error (ix_ele, ix_attrib, &
+         'THE ATTRIBUTE IS A DEPENDENT VARIABLE SINCE THE FIELD_MASTER ATTRIBUTE IS ' // &
+                                             on_off_logic (ele%field_master))
     return
   endif
 
 ! check slaves
 
-  if (ele2%control_type == group_lord$ .or. ele2%control_type == overlay_lord$) then
-    do i = ele2%ix1_slave, ele2%ix2_slave
-      call check_this_attribute_free (ring%ele_(ring%control_(i)%ix_slave), &
-                                                       ring%control_(i)%ix_attrib)
+  if (ele%control_type == group_lord$ .or. ele%control_type == overlay_lord$) then
+    do i = ele%ix1_slave, ele%ix2_slave
+      call check_this_attribute_free (lat%control_(i)%ix_slave, &
+                                               lat%control_(i)%ix_attrib, ix_ele)
       if (.not. free) return
     enddo
   endif
@@ -211,23 +201,32 @@ end subroutine
 !-------------------------------------------------------
 ! contains
 
-subroutine print_error (ele2, l1, l2, l3)
+subroutine print_error (ix_ele, ix_attrib, l1)
 
-  type (ele_struct) ele2
-  character(*) l1, l2
-  character(*), optional :: l3
+  integer ix_ele, ix_attrib
+  character(*) l1
+  character(80) li(8)
 
 !
 
   if (.not. do_print) return
 
-  print *, 'ERROR IN ATTRIBUTE_FREE:'
-  if (ele2%name /= ele%name) then
-    print *, '      THE GROUP/OVERLAY LORD: ', ele%name    
+  li(1) = 'ERROR IN ATTRIBUTE_FREE:'
+  li(2) = '     THE ATTRIBUTE: ' // attribute_name(lat%ele_(ix_ele0), ix_attrib0)
+  li(3) = '     OF THE ELEMENT: ' // lat%ele_(ix_ele0)%name
+
+  if (ix_ele == ix_ele0) then
+    li(4) = '   IS NOT FREE TO VARY SINCE:'
+    li(5) = '     ' // l1
+    call out_io (s_error$, r_name, li(1:5))   
+  else 
+    li(4) = '   IS NOT FREE TO VARY SINCE IT IS TRYING TO CONTROL:'
+    li(5) = '     THE ATTRIBUTE: ' // attribute_name(lat%ele_(ix_ele), ix_attrib)
+    li(6) = '     OF THE ELEMENT: ' // lat%ele_(ix_ele)%name
+    li(7) = '   AND THIS IS NOT FREE TO VARY SINCE:'
+    li(8) = '     ' // l1
+    call out_io (s_error$, r_name, li)        
   endif
-  print '(5x, a)', trim(l1)
-  print '(5x, a)', trim(l2)
-  if (present(l3)) print '(5x, a)', trim(l3)
 
 end subroutine
 
