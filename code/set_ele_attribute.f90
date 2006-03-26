@@ -70,7 +70,7 @@ subroutine set_ele_attribute (ring, i_ele, attrib_name, &
   call pointer_to_attribute (ele, attrib_name, .true., &
                                              ptr_attrib, ix_attrib, err_flag)
   if (err_flag) return
-  if (.not. attribute_free (ele, ix_attrib, ring)) return
+  if (.not. attribute_free (i_ele, ix_attrib, ring)) return
 
 ! Setting the attribute value is trivial
 
