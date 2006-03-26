@@ -81,7 +81,7 @@ subroutine tao_init (init_file)
                 '       Which is a: ' // key_name(u%model%lat%ele_(this%ix_ele)%key))
         call err_exit
       endif
-      if (.not. attribute_free (u%model%lat%ele_(this%ix_ele), ix, u%model%lat)) then
+      if (.not. attribute_free (this%ix_ele, ix, u%model%lat)) then
         call out_io (s_abort$, r_name, &
                 'Error: Variable trying to control an attribute that is not free to vary.', &
                 '       Variable:  ' // var_ptr%name, &

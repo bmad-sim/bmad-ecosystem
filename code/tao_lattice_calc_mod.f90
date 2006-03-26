@@ -117,7 +117,8 @@ if (s%global%lattice_recalc) then
 
     if (s%u(i)%do_synch_rad_int_calc)  call radiation_integrals (this%lat, &
                                            this%orb, this%modes, s%u(i)%ix_rad_int_cache)
-    if (s%u(i)%do_chrom_calc) call chrom_calc (this%lat, delta_e, this%a%chrom, this%b%chrom)
+    if (s%u(i)%do_chrom_calc) call chrom_calc (this%lat, delta_e, &
+                                    this%a%chrom, this%b%chrom, exit_on_error = .false.)
 
     call tao_load_data_array (s%u(i), -1)
 

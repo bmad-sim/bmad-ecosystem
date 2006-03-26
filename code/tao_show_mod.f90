@@ -258,7 +258,7 @@ case ('data')
       nl=nl+1; write(lines(nl), fmt)  '%Ref_value:         ', d_ptr%ref_value
       nl=nl+1; write(lines(nl), fmt)  '%Model_value:       ', d_ptr%model_value
       nl=nl+1; write(lines(nl), fmt)  '%base_value:        ', d_ptr%base_value
-      nl=nl+1; write(lines(nl), fmt)  '%Delta:             ', d_ptr%delta
+      nl=nl+1; write(lines(nl), fmt)  '%delta_merit:       ', d_ptr%delta_merit
       nl=nl+1; write(lines(nl), fmt)  '%Design_value:      ', d_ptr%design_value
       nl=nl+1; write(lines(nl), fmt)  '%Old_value:         ', d_ptr%old_value
       nl=nl+1; write(lines(nl), fmt)  '%Fit_value:         ', d_ptr%fit_value
@@ -770,7 +770,7 @@ case ('var')
     nl=nl+1; write(lines(nl), fmt)  '%Low_lim:         ', v_ptr%low_lim
     nl=nl+1; write(lines(nl), fmt)  '%Step:            ', v_ptr%step
     nl=nl+1; write(lines(nl), fmt)  '%Weight:          ', v_ptr%weight
-    nl=nl+1; write(lines(nl), fmt)  '%Delta:           ', v_ptr%delta
+    nl=nl+1; write(lines(nl), fmt)  '%delta_merit:     ', v_ptr%delta_merit
     nl=nl+1; write(lines(nl), amt)  '%Merit_type:      ', v_ptr%merit_type
     nl=nl+1; write(lines(nl), fmt)  '%Merit:           ', v_ptr%merit
     nl=nl+1; write(lines(nl), fmt)  '%dMerit_dVar:     ', v_ptr%dMerit_dVar

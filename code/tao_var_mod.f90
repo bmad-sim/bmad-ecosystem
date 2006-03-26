@@ -51,7 +51,7 @@ integer n_var
     if (.not. s%var(i)%useit_opt) cycle
     j = j + 1
     if (present(var_value))        var_value(j)      = s%var(i)%model_value
-    if (present(var_delta))        var_delta(j)      = s%var(i)%delta
+    if (present(var_delta))        var_delta(j)      = s%var(i)%delta_merit
     if (present(var_step))         var_step(j)       = s%var(i)%step
     if (present(var_weight))       var_weight(j)     = s%var(i)%weight
     if (present(var_meas_value))   var_meas_value(j) = s%var(i)%meas_value

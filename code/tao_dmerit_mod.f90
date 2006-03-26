@@ -37,6 +37,9 @@ logical reinit, force_calc, calc_ok
 
 ! make sure size of matrices are correct.
 
+call tao_set_var_useit_opt
+call tao_set_data_useit_opt
+
 reinit = force_calc
 
 do i = 1, size(s%u)
@@ -62,7 +65,7 @@ do i = 1, size(s%u)
     nd = nd + 1
     if (u%data(j)%ix_dModel /= nd) reinit = .true.
     u%data(j)%ix_dModel = nd
-    u%data(j)%old_value = u%data(j)%delta
+    u%data(j)%old_value = u%data(j)%delta_merit
   enddo
 
 enddo
@@ -87,7 +90,7 @@ if (.not. calc_ok) then
   call out_io (s_error$, r_name, 'BASE MODEL CALCULATION HAS PROBLEMS', ' ')
 endif
 
-s%var%old_value = s%var%delta
+s%var%old_value = s%var%delta_merit
 
 s_var_size = size(s%var)
 jj = 1
@@ -122,7 +125,7 @@ do j = 1, s_var_size
     do k = 1, size(u%data)
       if (.not. u%data(k)%useit_opt) cycle
       nd = u%data(k)%ix_dmodel
-      u%dModel_dVar(nd,nv) = (u%data(k)%delta - u%data(k)%old_value) / s%var(j)%step
+      u%dModel_dVar(nd,nv) = (u%data(k)%delta_merit - u%data(k)%old_value) / s%var(j)%step
     enddo
   enddo
 
@@ -156,7 +159,7 @@ s%var(:)%dmerit_dvar = 0
 do i = 1, size(s%var)
 
   if (.not. s%var(i)%useit_opt) cycle
-  s%var(i)%dmerit_dvar = 2 * s%var(i)%weight * s%var(i)%delta
+  s%var(i)%dmerit_dvar = 2 * s%var(i)%weight * s%var(i)%delta_merit
   nv = s%var(i)%ix_dvar
 
   do j = 1, size(s%u)
@@ -165,7 +168,7 @@ do i = 1, size(s%var)
       if (.not. data%useit_opt) cycle
       nd = data%ix_dmodel
       s%var(i)%dmerit_dvar = s%var(i)%dmerit_dvar + 2 * data%weight * &
-                                   s%u(j)%dmodel_dvar(nd,nv) * data%delta
+                                   s%u(j)%dmodel_dvar(nd,nv) * data%delta_merit
     enddo
   enddo
 

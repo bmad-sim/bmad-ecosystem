@@ -42,25 +42,25 @@ this_merit = 0
 do j = 1, size(s%var)
 
   var => s%var(j)
-  var%delta = 0
+  var%delta_merit = 0
   var%merit = 0
 
   if (.not. var%useit_opt) cycle
 
   select case (var%merit_type)
   case ('target')
-    var%delta = var%model_value - var%meas_value
+    var%delta_merit = var%model_value - var%meas_value
   case ('limit')
     if (var%model_value > var%high_lim) then
-      var%delta = var%model_value - var%high_lim
+      var%delta_merit = var%model_value - var%high_lim
     elseif (var%model_value < var%low_lim) then
-      var%delta = var%model_value - var%low_lim
+      var%delta_merit = var%model_value - var%low_lim
     endif
   case default
     call tao_hook_merit_var (i, j, var)
   end select
 
-  var%merit = var%weight * var%delta**2
+  var%merit = var%weight * var%delta_merit**2
   this_merit = this_merit + var%merit
 
 enddo
@@ -77,39 +77,39 @@ do i = 1, size(s%u)
   
   data => s%u(i)%data
   data%merit = 0
-  data%delta = 0
+  data%delta_merit = 0
 
   do j = 1, size(data)
     if (.not. data(j)%useit_opt) cycle
     if (s%global%opt_with_ref .and. s%global%opt_with_base) then
       if (data(j)%merit_type(1:3) == 'abs') then
-        data(j)%delta = abs(data(j)%model_value) - &
+        data(j)%delta_merit = abs(data(j)%model_value) - &
             data(j)%meas_value + data(j)%ref_value - data(j)%base_value
       else
-        data(j)%delta = data(j)%model_value - &
+        data(j)%delta_merit = data(j)%model_value - &
             data(j)%meas_value + data(j)%ref_value - data(j)%base_value
       endif
     elseif (s%global%opt_with_ref) then
       if (data(j)%merit_type(1:3) == 'abs') then
-        data(j)%delta = abs(data(j)%model_value) - &
+        data(j)%delta_merit = abs(data(j)%model_value) - &
             data(j)%meas_value + data(j)%ref_value - data(j)%design_value
       else
-        data(j)%delta = data(j)%model_value - &
+        data(j)%delta_merit = data(j)%model_value - &
             data(j)%meas_value + data(j)%ref_value - data(j)%design_value
       endif
     elseif (s%global%opt_with_base) then
       if (data(j)%merit_type(1:3) == 'abs') then
-        data(j)%delta = abs(data(j)%model_value) - &
+        data(j)%delta_merit = abs(data(j)%model_value) - &
                                 data(j)%meas_value - data(j)%base_value
       else
-        data(j)%delta = data(j)%model_value - &
+        data(j)%delta_merit = data(j)%model_value - &
                                 data(j)%meas_value - data(j)%base_value
       endif
     else
       if (data(j)%merit_type(1:3) == 'abs') then
-        data(j)%delta = abs(data(j)%model_value) - data(j)%meas_value 
+        data(j)%delta_merit = abs(data(j)%model_value) - data(j)%meas_value 
       else
-        data(j)%delta = data(j)%model_value - data(j)%meas_value 
+        data(j)%delta_merit = data(j)%model_value - data(j)%meas_value 
       endif
     endif
   enddo
@@ -121,8 +121,8 @@ do i = 1, size(s%u)
   if (.not. err) then
     n = count(d1%d%useit_opt)
     if (n /= 0) then
-      ave = sum(d1%d%delta, mask = d1%d%useit_opt) / n
-      d1%d%delta = d1%d%delta - ave
+      ave = sum(d1%d%delta_merit, mask = d1%d%useit_opt) / n
+      d1%d%delta_merit = d1%d%delta_merit - ave
     endif
   endif
 
@@ -130,8 +130,8 @@ do i = 1, size(s%u)
   if (.not. err) then
     n = count(d1%d%useit_opt)
     if (n /= 0) then
-      ave = sum(d1%d%delta, mask = d1%d%useit_opt) / count(d1%d%useit_opt)
-      d1%d%delta = d1%d%delta - ave
+      ave = sum(d1%d%delta_merit, mask = d1%d%useit_opt) / count(d1%d%useit_opt)
+      d1%d%delta_merit = d1%d%delta_merit - ave
     endif
   endif
 
@@ -141,15 +141,15 @@ do i = 1, size(s%u)
     select case (data(j)%merit_type)
     case ('target')
     case ('max', 'abs_max')
-      if (data(j)%delta < 0) data(j)%delta = 0  ! it's OK to be less
+      if (data(j)%delta_merit < 0) data(j)%delta_merit = 0  ! it's OK to be less
     case ('min', 'abs_min')
-      if (data(j)%delta > 0) data(j)%delta = 0  ! it's OK to be more
+      if (data(j)%delta_merit > 0) data(j)%delta_merit = 0  ! it's OK to be more
     case default
       call tao_hook_merit_data (i, j, data(j))
     end select
   enddo
 
-  where (data%useit_opt) data%merit = data%weight * data%delta**2
+  where (data%useit_opt) data%merit = data%weight * data%delta_merit**2
   this_merit = this_merit + sum (data%merit, mask = data%useit_opt)
 
 enddo

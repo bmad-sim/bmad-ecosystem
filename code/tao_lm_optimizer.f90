@@ -180,7 +180,7 @@ do j = 1, size(s%u)
   do i = 1, size(u%data)
     if (.not. u%data(i)%useit_opt) cycle
     k = k + 1
-    y_fit(k) = u%data(i)%delta
+    y_fit(k) = u%data(i)%delta_merit
     im = u%data(i)%ix_dModel
     nn = 0
     do n = 1, size(s%var)

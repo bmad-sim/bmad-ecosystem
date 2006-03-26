@@ -191,7 +191,7 @@ case ('ele')
           cycle
         endif
       endif
-      if (.not. attribute_free (u%model%lat%ele_(ix_ele(i)), ixa, u%model%lat, .true.)) then
+      if (.not. attribute_free (ix_ele(i), ixa, u%model%lat, .true.)) then
         if (size(ix_ele) .eq. 1) then
           return
         else

@@ -66,7 +66,7 @@ end type
 
 type tao_curve_struct
   character(16) :: name                    ! Name identifying the curve.
-  character(16) :: data_source             ! "lat_layout", "data_array", etc...
+  character(16) :: data_source             ! "calculation", "data_array", or "var_array"
   character(16) :: data_type = ' '         ! "orbit:x", etc.
   character(16) :: ele_ref_name            ! Reference element.
   type (beam_struct) beam                  ! for phase-space plotting
@@ -155,6 +155,19 @@ type tao_plot_page_struct
 end type
 
 !-----------------------------------------------------------------------
+! This structure is used to store data generated from tao_lattice_calc that
+! will eventually be used to draw a smooth curve.
+! For example: With CSR, this structure can be used to store the beam energy 
+! as a function of longitudinal position within an element. 
+! The point is that it would be very time intensive if tao_plot_data_setup had
+! to try to recalculate this data everytime.
+
+type tao_data_array_struct
+  real(rp) value
+  real(rp) s
+end type
+
+!-----------------------------------------------------------------------
 ! The data_struct defines the fundamental data structure representing 
 ! one datum point.
 ! The universe_struct will hold an array of data_struct structures: u%data(:).
@@ -199,11 +212,14 @@ type tao_data_struct
   real(rp) old_value        ! The model_value at some previous time.
   real(rp) base_value       ! The value as calculated from the base model.
   real(rp) fit_value        ! The value as calculated from a fitting procedure.
-  real(rp) delta            ! Diff used to calculate the merit function term 
+  real(rp) delta_merit      ! Diff used to calculate the merit function term 
   real(rp) weight           ! Weight for the merit function term
   real(rp) merit            ! Merit function term value: weight * delta^2
   real(rp) conversion_factor ! Typically used to convert coupling to cbar
   real(rp) s                ! longitudinal position of ele.
+  type (tao_data_array_struct), allocatable :: model__array(:)
+  type (tao_data_array_struct), allocatable :: design_array(:)
+  type (tao_data_array_struct), allocatable :: base_array(:)
   logical exists            ! See above
   logical good_meas         ! See above
   logical good_ref          ! See above
@@ -293,7 +309,7 @@ type tao_var_struct
   real(rp) low_lim          ! Low limit for the model_value.
   real(rp) step             ! Sets what is a small step for varying this var.
   real(rp) weight           ! Weight for the merit function term.
-  real(rp) delta            ! Diff used to calculate the merit function term.
+  real(rp) delta_merit      ! Diff used to calculate the merit function term.
   real(rp) merit            ! merit_term = weight * delta^2.
   real(rp) dMerit_dVar      ! Merit derivative.     
   real(rp) conversion_factor! Not currently used for anything

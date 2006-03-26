@@ -483,7 +483,7 @@ do k = 1, size(graph%curve)
 !----------------------------------------------------------------------------
 ! Case: data source is from the lattice_layout
 
-  case ('lat_layout')
+  case ('calculation')
 
     if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
       i_min = max(1, floor(plot%x%min))
@@ -493,7 +493,8 @@ do k = 1, size(graph%curve)
       ! %ix_pointer has been set to the element index for displayed elements
       eps = 1e-4 * (plot%x%max - plot%x%min)             ! a small number
       u%base%lat%ele_(:)%logic = (u%base%lat%ele_(:)%ix_pointer > 0) .and. &
-            (u%base%lat%ele_(:)%s >= plot%x%min-eps) .and. (u%base%lat%ele_(:)%s <= plot%x%max+eps)
+                                 (u%base%lat%ele_(:)%s >= plot%x%min-eps) .and. &
+                                 (u%base%lat%ele_(:)%s <= plot%x%max+eps)
       n_dat = count (u%base%lat%ele_(:)%logic)
     endif
 
@@ -506,11 +507,12 @@ do k = 1, size(graph%curve)
       if (n_dat > 0) curve%ix_symb = (/ (i, i = i_min, i_max) /)
       curve%x_symb = curve%ix_symb
     elseif (plot%x_axis_type == 's') then
-      curve%ix_symb = pack(u%base%lat%ele_(:)%ix_pointer, mask = u%base%lat%ele_(:)%logic)
+      curve%ix_symb = pack(u%base%lat%ele_(:)%ix_pointer, &
+                                                  mask = u%base%lat%ele_(:)%logic)
       curve%x_symb = u%model%lat%ele_(curve%ix_symb)%s
     endif
 
-! calculate the y-axis data point values.
+    ! calculate the y-axis data point values.
 
     curve%y_symb = 0
     datum%ix_ele2 = curve%ix_ele_ref
@@ -538,8 +540,8 @@ do k = 1, size(graph%curve)
           call tao_evaluate_a_datum (datum, u, u%design, y_val, t_map)
         case default
           call out_io (s_error$, r_name, &
-                          'BAD PLOT "WHO" FOR LAT_LAYOUT DATA_SOURCE: ' // graph%who(m)%name, &
-                          '    FOR DATA_TYPE: ' // curve%data_type)
+                  'BAD PLOT "WHO" FOR LAT_LAYOUT DATA_SOURCE: ' // graph%who(m)%name, &
+                  '    FOR DATA_TYPE: ' // curve%data_type)
           graph%valid = .false.
           return
         end select
@@ -569,45 +571,48 @@ do k = 1, size(graph%curve)
 ! plotting model, base or design data. It's the same as the symbol points otherwise.
 ! Smoothing will only be performed if performing single particle tracking.
 
-  if (plot%x_axis_type == 'index') then
+  select case (plot%x_axis_type)
+  case ('index')
     call reassociate_real (curve%y_line, n_dat) ! allocate space for the data
     call reassociate_real (curve%x_line, n_dat) ! allocate space for the data
     curve%x_line = curve%x_symb
     curve%y_line = curve%y_symb
 
-  elseif (plot%x_axis_type == 'ele_index') then
+  case ('ele_index')
     call reassociate_real (curve%y_line, n_dat) ! allocate space for the data
     call reassociate_real (curve%x_line, n_dat) ! allocate space for the data
     curve%x_line = curve%x_symb
     curve%y_line = curve%y_symb
 
-  elseif (plot%x_axis_type == 's') then
+  case ('s')
+
     smooth_curve = .true.
     do m = 1, size(graph%who)
       if (graph%who(m)%name .eq. 'meas' .or. graph%who(m)%name .eq. 'ref' .or. &
           s%global%track_type .ne. 'single') smooth_curve = .false.
     enddo
+
     if (smooth_curve) then
+
       ! allocate data space
+
       call reassociate_real (curve%y_line, s%global%n_curve_pts) 
       call reassociate_real (curve%x_line, s%global%n_curve_pts) 
       curve%y_line = 0
+
       do m = 1, size(graph%who)
         select case (graph%who(m)%name)
         case (' ') 
           cycle
         case ('model')
-          call s_data_to_plot (u%model%lat, u%model%orb, curve%data_type, &
+          call calc_data_at_s (u%model%lat, u%model%orb, curve%data_type, &
                                                        graph%who(m), curve, err)
-          if (err) smooth_curve = .false.
         case ('base')  
-          call s_data_to_plot (u%base%lat, u%base%orb, curve%data_type, &
+          call calc_data_at_s (u%base%lat, u%base%orb, curve%data_type, &
                                                        graph%who(m), curve, err)
-          if (err) smooth_curve = .false.
         case ('design')  
-          call s_data_to_plot (u%design%lat, u%design%orb, curve%data_type, &
+          call calc_data_at_s (u%design%lat, u%design%orb, curve%data_type, &
                                                        graph%who(m), curve, err)
-          if (err) smooth_curve = .false.
         case default
           call out_io (s_error$, r_name, &
                        'BAD PLOT "WHO" WITH "S" X-AXIS: ' // graph%who(m)%name)
@@ -616,6 +621,7 @@ do k = 1, size(graph%curve)
         end select
       enddo
     endif
+
     if (.not. smooth_curve) then
       ! allocate space for the data
       call reassociate_real (curve%y_line, n_dat) 
@@ -623,8 +629,8 @@ do k = 1, size(graph%curve)
       curve%x_line = curve%x_symb 
       curve%y_line = curve%y_symb 
     endif
-        
-  endif
+
+  end select
 
 !----------------------------------------------------------------------------
 ! Renormalize and check for limited graph
@@ -649,7 +655,7 @@ enddo
 !----------------------------------------------------------------------------
 contains 
 
-subroutine s_data_to_plot (lat, orb, data_type, who, curve, err)
+subroutine calc_data_at_s (lat, orb, data_type, who, curve, err)
 
 type (tao_plot_who_struct) who
 type (coord_struct) orb(0:)
