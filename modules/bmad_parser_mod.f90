@@ -700,6 +700,15 @@ subroutine get_called_file (delim)
         endif
         call_file(ix:ix) = ' '
       endif
+      if (call_file(1:1) == "'") then
+        call_file = call_file(2:)
+        ix = index(call_file, "'")
+        if (ix == 0 .or. ix /= len_trim(call_file)) then
+          call warning ("MISSING SINGLE QUOTE MARK (') FOR CALL STATEMENT")
+          return
+        endif
+        call_file(ix:ix) = ' '
+      endif
       call file_stack ('push', call_file, finished)
       if (.not. bmad_status%ok) return
     endif
