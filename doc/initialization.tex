@@ -1148,7 +1148,7 @@ documentation in the \bmad reference manual. In the above example the
 graph divides the region into two vertically stacked boxes and places
 itself into the bottom one. 
 
-\index{data_array}\index{var_array}\index{lat_layout}
+\index{data_array}\index{var_array}\index{calculation}
 \index{curve!data_source}
 The \vn{curve} structure is used to define the number and types of
 curves to plot in each graph. \vn{curve%data_source} is the type of
@@ -1157,7 +1157,7 @@ types of data sources:
 \begin{example}
   "data_array"   ! d1_data is the source of the curve points.
   "var_array"    ! v1_var is the source of the curve points.
-  "lat_layout"   ! the lattice is the source.
+  "calculation"  ! The curve points are computed directly from the lattice.
 \end{example}
 
 \index{curve!data_source}
