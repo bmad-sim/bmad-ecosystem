@@ -366,6 +366,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   enddo
 
   if (allocated(mask)) deallocate(mask)
+  close (iu)
 
 !-----------------------------------------------------------------------
 ! Init vars

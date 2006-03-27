@@ -290,7 +290,7 @@ if (lat_layout_here) then
 
 endif
 
-close (1)
+close (iu)
 
 ! initial placement of plots
 

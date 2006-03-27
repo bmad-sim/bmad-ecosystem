@@ -39,11 +39,11 @@ type (ele_struct), pointer :: ele
 type (coord_struct) orb
 type (ele_struct) ele3
 
-real(rp) f_phi, s_pos
+real(rp) f_phi, s_pos, l_lat
 
 character(*) :: what, stuff
 character(24) :: var_name
-character(24)  :: plane, fmt, imt, lmt, amt, ffmt, iimt
+character(24)  :: plane, fmt, fmt2, fmt3, imt, lmt, amt, rmt, irmt, iimt
 character(80) :: word(2)
 character(8) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
@@ -83,8 +83,8 @@ err = .false.
 lines = " "
 nl = 0
 
-fmt  = '(a, 9es16.8)'
-ffmt = '(a, i0, a, es16.8)'
+rmt  = '(a, 9es16.8)'
+irmt = '(a, i0, a, es16.8)'
 imt  = '(a, 9i8)'
 iimt = '(a, i0, a, i8)'
 lmt  = '(a, 9l)'
@@ -254,18 +254,18 @@ case ('data')
       nl=nl+1; write(lines(nl), imt)  '%Ix_dModel:         ', d_ptr%ix_dModel
       nl=nl+1; write(lines(nl), imt)  '%Ix_d1:             ', d_ptr%ix_d1
       nl=nl+1; write(lines(nl), imt)  '%Ix_data:           ', d_ptr%ix_data
-      nl=nl+1; write(lines(nl), fmt)  '%meas_value:        ', d_ptr%meas_value
-      nl=nl+1; write(lines(nl), fmt)  '%Ref_value:         ', d_ptr%ref_value
-      nl=nl+1; write(lines(nl), fmt)  '%Model_value:       ', d_ptr%model_value
-      nl=nl+1; write(lines(nl), fmt)  '%base_value:        ', d_ptr%base_value
-      nl=nl+1; write(lines(nl), fmt)  '%delta_merit:       ', d_ptr%delta_merit
-      nl=nl+1; write(lines(nl), fmt)  '%Design_value:      ', d_ptr%design_value
-      nl=nl+1; write(lines(nl), fmt)  '%Old_value:         ', d_ptr%old_value
-      nl=nl+1; write(lines(nl), fmt)  '%Fit_value:         ', d_ptr%fit_value
-      nl=nl+1; write(lines(nl), fmt)  '%Merit:             ', d_ptr%merit
-      nl=nl+1; write(lines(nl), fmt)  '%Conversion_factor: ', d_ptr%conversion_factor
-      nl=nl+1; write(lines(nl), fmt)  '%S:                 ', d_ptr%s
-      nl=nl+1; write(lines(nl), fmt)  '%Weight:            ', d_ptr%weight
+      nl=nl+1; write(lines(nl), rmt)  '%meas_value:        ', d_ptr%meas_value
+      nl=nl+1; write(lines(nl), rmt)  '%Ref_value:         ', d_ptr%ref_value
+      nl=nl+1; write(lines(nl), rmt)  '%Model_value:       ', d_ptr%model_value
+      nl=nl+1; write(lines(nl), rmt)  '%base_value:        ', d_ptr%base_value
+      nl=nl+1; write(lines(nl), rmt)  '%delta_merit:       ', d_ptr%delta_merit
+      nl=nl+1; write(lines(nl), rmt)  '%Design_value:      ', d_ptr%design_value
+      nl=nl+1; write(lines(nl), rmt)  '%Old_value:         ', d_ptr%old_value
+      nl=nl+1; write(lines(nl), rmt)  '%Fit_value:         ', d_ptr%fit_value
+      nl=nl+1; write(lines(nl), rmt)  '%Merit:             ', d_ptr%merit
+      nl=nl+1; write(lines(nl), rmt)  '%Conversion_factor: ', d_ptr%conversion_factor
+      nl=nl+1; write(lines(nl), rmt)  '%S:                 ', d_ptr%s
+      nl=nl+1; write(lines(nl), rmt)  '%Weight:            ', d_ptr%weight
       nl=nl+1; write(lines(nl), amt)  '%Merit_type:        ', d_ptr%merit_type
       nl=nl+1; write(lines(nl), lmt)  '%Exists:            ', d_ptr%exists
       nl=nl+1; write(lines(nl), lmt)  '%Good_meas:         ', d_ptr%good_meas
@@ -466,6 +466,59 @@ case ('lattice')
     else
       nl=nl+1; write (lines(nl), '(a)') 'This universe is turned OFF'
     endif
+ 
+    write (lines(nl+1), *)
+    write (lines(nl+2), '(17x, a)') '       X          |            Y'
+    write (lines(nl+3), '(17x, a)') 'Model     Design  |     Model     Design'
+    fmt = '(1x, a10, 1p 2e11.3, 2x, 2e11.3, 2x, a)'
+    fmt2 = '(1x, a10, 2f11.3, 2x, 2f11.3, 2x, a)'
+    fmt3 = '(1x, a10, 2f11.4, 2x, 2f11.4, 2x, a)'
+    f_phi = 1 / twopi
+    l_lat = u%model%lat%param%total_length
+    n = u%model%lat%n_ele_use
+    write (lines(nl+4), fmt2) 'Q', f_phi*u%model%lat%ele_(n)%x%phi, &
+            f_phi*u%design%lat%ele_(n)%x%phi, f_phi*u%model%lat%ele_(n)%y%phi, &
+            f_phi*u%design%lat%ele_(n)%y%phi,  '! Tune'
+    write (lines(nl+5), fmt2) 'Chrom', u%model%a%chrom, & 
+            u%design%a%chrom, u%model%b%chrom, u%design%b%chrom, '! dQ/(dE/E)'
+    write (lines(nl+6), fmt2) 'J_damp', u%model%modes%a%j_damp, &
+          u%design%modes%a%j_damp, u%model%modes%b%j_damp, &
+          u%design%modes%b%j_damp, '! Damping Partition #'
+    write (lines(nl+7), fmt) 'Emittance', u%model%modes%a%emittance, &
+          u%design%modes%a%emittance, u%model%modes%b%emittance, &
+          u%design%modes%b%emittance, '! Meters'
+    write (lines(nl+8), fmt) 'Alpha_damp', u%model%modes%a%alpha_damp, &
+          u%design%modes%a%alpha_damp, u%model%modes%b%alpha_damp, &
+          u%design%modes%b%alpha_damp, '! Damping per turn'
+    write (lines(nl+9), fmt) 'I4', u%model%modes%a%synch_int(4), &
+          u%design%modes%a%synch_int(4), u%model%modes%b%synch_int(4), &
+          u%design%modes%b%synch_int(4), '! Radiation Integral'
+    write (lines(nl+10), fmt) 'I5', u%model%modes%a%synch_int(5), &
+          u%design%modes%a%synch_int(5), u%model%modes%b%synch_int(5), &
+          u%design%modes%b%synch_int(5), '! Radiation Integral'
+    nl = nl + 10
+
+    write (lines(nl+1), *)
+    write (lines(nl+2), '(19x, a)') 'Model     Design'
+    fmt = '(1x, a12, 1p2e11.3, 3x, a)'
+    write (lines(nl+3), fmt) 'Sig_E/E:', u%model%modes%sigE_E, &
+              u%design%modes%sigE_E
+    write (lines(nl+4), fmt) 'Energy Loss:', u%model%modes%e_loss, &
+              u%design%modes%e_loss, '! Energy_Loss (eV / Turn)'
+    write (lines(nl+5), fmt) 'J_damp:', u%model%modes%z%j_damp, &
+          u%design%modes%z%j_damp, '! Longitudinal Damping Partition #'
+    write (lines(nl+6), fmt) 'Alpha_damp:', u%model%modes%z%alpha_damp, &
+          u%design%modes%z%alpha_damp, '! Longitudinal Damping per turn'
+    write (lines(nl+7), fmt) 'Alpha_p:', u%model%modes%synch_int(1)/l_lat, &
+                 u%design%modes%synch_int(1)/l_lat, '! Momentum Compaction'
+    write (lines(nl+8), fmt) 'I1:', u%model%modes%synch_int(1), &
+                 u%design%modes%synch_int(1), '! Radiation Integral'
+    write (lines(nl+9), fmt) 'I2:', u%model%modes%synch_int(2), &
+                 u%design%modes%synch_int(2), '! Radiation Integral'
+    write (lines(nl+10), fmt) 'I3:', u%model%modes%synch_int(3), &
+                 u%design%modes%synch_int(3), '! Radiation Integral'
+    nl = nl + 10
+
     call out_io (s_blank$, r_name, lines(1:nl))
     return
   endif
@@ -747,16 +800,16 @@ case ('var')
                                                             v_ptr%this(i)%ix_uni
         nl=nl+1; write(lines(nl), iimt)  '%this(', i, ')%Ix_ele:        ', v_ptr%this(i)%ix_ele
         if (associated (v_ptr%this(i)%model_ptr)) then
-          nl=nl+1; write(lines(nl), ffmt)  '%this(', i, ')%Model_ptr:   ', &
+          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Model_ptr:   ', &
                                                             v_ptr%this(i)%model_ptr
         else
-          nl=nl+1; write(lines(nl), ffmt)  '%this(', i, ')%Model_ptr:   <not associated>'
+          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Model_ptr:   <not associated>'
         endif
         if (associated (v_ptr%this(i)%base_ptr)) then
-          nl=nl+1; write(lines(nl), ffmt)  '%this(', i, ')%Base_ptr:    ', &
+          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Base_ptr:    ', &
                                                             v_ptr%this(i)%base_ptr
         else
-          nl=nl+1; write(lines(nl), ffmt)  '%this(', i, ')%Base_ptr:    <not associated>'
+          nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Base_ptr:    <not associated>'
         endif
       enddo
     endif

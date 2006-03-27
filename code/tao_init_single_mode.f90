@@ -42,6 +42,7 @@ subroutine tao_init_single_mode (single_mode_file)
 
   call tao_open_file ('TAO_INIT_DIR', single_mode_file, iu, file_name)
   read (iu, nml = key_bindings, iostat = ios)
+  close (iu)
   if (ios < 0) then
     call out_io (s_blank$, r_name, 'Init: No key_bindings namelist found')
     return 
@@ -50,7 +51,6 @@ subroutine tao_init_single_mode (single_mode_file)
     return 
   endif
   call out_io (s_blank$, r_name, 'Init: Read key_bindings namelist')
-  close (iu)
 
 ! associate keys with elements and attributes.
 
