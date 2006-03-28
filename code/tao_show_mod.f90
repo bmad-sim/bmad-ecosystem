@@ -40,6 +40,7 @@ type (coord_struct) orb
 type (ele_struct) ele3
 
 real(rp) f_phi, s_pos, l_lat
+real(rp) :: delta_e = 0
 
 character(*) :: what, stuff
 character(24) :: var_name
@@ -466,7 +467,16 @@ case ('lattice')
     else
       nl=nl+1; write (lines(nl), '(a)') 'This universe is turned OFF'
     endif
- 
+
+    call radiation_integrals (u%model%lat, &
+                                  u%model%orb, u%model%modes, u%ix_rad_int_cache)
+    call radiation_integrals (u%design%lat, &
+                                  u%design%orb, u%design%modes, u%ix_rad_int_cache)
+    call chrom_calc (u%model%lat, delta_e, &
+                        u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)
+    call chrom_calc (u%design%lat, delta_e, &
+                        u%design%a%chrom, u%design%b%chrom, exit_on_error = .false.)
+
     write (lines(nl+1), *)
     write (lines(nl+2), '(17x, a)') '       X          |            Y'
     write (lines(nl+3), '(17x, a)') 'Model     Design  |     Model     Design'
