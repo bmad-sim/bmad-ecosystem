@@ -231,14 +231,7 @@ case ('data')
 
 ! get pointers to the data
 
-    call string_trim (word(2), word(2), ix)
-    ! are we looking at a range of locations?
-    if ((word(2) .eq. ' ') .or. (index(trim(word(2)), ' ') .ne. 0) &
-                                           .or. index(word(2), ':') .ne. 0) then
-      call tao_find_data (err, u, word(1), d2_ptr, d1_ptr, null_word, d_ptr)
-    else
-      call tao_find_data (err, u, word(1), d2_ptr, d1_ptr, word(2), d_ptr)
-    endif
+    call tao_find_data (err, u, word(1), d2_ptr, d1_ptr, d_ptr)
     if (err) return
 
 ! If d_ptr points to something then show the datum info.

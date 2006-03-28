@@ -553,6 +553,7 @@ subroutine set_data (u)
 type (tao_universe_struct), target :: u
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
+type (tao_data_struct), pointer :: d_ptr
 
 integer j
 
@@ -560,10 +561,15 @@ integer j
 
 if (name == 'all') then
   call set_this_data (u%data, .false.)
+
 else
-  call tao_find_data(err, u, name, d2_ptr, d1_ptr)  
+
+  call tao_find_data(err, u, name, d2_ptr, d1_ptr, d_ptr)  
   if (err) return
-  if (associated(d1_ptr)) then
+
+  if (associated(d_ptr)) then
+    call set_this_data (d_ptr%d1%d, .true., d_ptr%ix_d1)
+  elseif (associated(d1_ptr)) then
     call set_this_data (d1_ptr%d, .true.)
   else
     do j = 1, size(d2_ptr%d1)
@@ -571,6 +577,7 @@ else
       if (err) return
     enddo
   endif
+
 endif
 
 call tao_set_data_useit_opt ()
@@ -580,7 +587,7 @@ end subroutine set_data
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine set_this_data (data, can_list)
+subroutine set_this_data (data, can_list, index)
 
 type (tao_data_struct), target :: data(:)
 
@@ -588,6 +595,7 @@ real(rp), pointer :: r_ptr(:)
 real(rp) value
 
 integer n_set, n1, n2, ix, ios
+integer, optional :: index
 
 character(1) using
 
@@ -599,8 +607,14 @@ logical multiply, divide, can_list
 
 err = .true.
 
-n1 = data(1)%ix_d1
-n2 = n1 + size(data) - 1
+if (present(index)) then
+  n1 = index
+  n2 = index
+else
+  n1 = data(1)%ix_d1
+  n2 = n1 + size(data) - 1
+endif
+
 allocate (set_it(n1:n2), good(n1:n2))
 
 if (list == ' ') then
@@ -613,25 +627,25 @@ else
   if (n_set < 0) return
 endif
 
-set_it = set_it .and. data(:)%exists
+set_it = set_it .and. data(n1:n2)%exists
 
 ! select component
 
 select case (component)
 case ('weight')
-  r_ptr => data(:)%weight
+  r_ptr => data(n1:n2)%weight
   using = 'r'
 case ('meas')
-  r_ptr => data(:)%meas_value
+  r_ptr => data(n1:n2)%meas_value
   using = 'r'
 case ('ref')
-  r_ptr => data(:)%ref_value
+  r_ptr => data(n1:n2)%ref_value
   using = 'r'
 case ('good_user')
-  l_ptr => data(:)%good_user
+  l_ptr => data(n1:n2)%good_user
   using = 'l'
 case ('good_meas')
-  l_ptr => data(:)%good_meas
+  l_ptr => data(n1:n2)%good_meas
   using = 'l'
 case default
   call out_io (s_error$, r_name, 'UNKNOWN COMPONENT NAME: ' // component)
@@ -643,24 +657,24 @@ end select
 select case (set_value)
 case ('meas')
   call check_using (using, 'r', err); if (err) return
-  where (set_it) r_ptr = data(:)%meas_value
-  good = data(:)%good_meas
+  where (set_it) r_ptr = data(n1:n2)%meas_value
+  good = data(n1:n2)%good_meas
 case ('ref')
   call check_using (using, 'r', err); if (err) return
-  where (set_it) r_ptr = data(:)%ref_value
-  good = data(:)%good_ref
+  where (set_it) r_ptr = data(n1:n2)%ref_value
+  good = data(n1:n2)%good_ref
 case ('model')
   call check_using (using, 'r', err); if (err) return
-  where (set_it) r_ptr = data(:)%model_value
-  good = data(:)%exists
+  where (set_it) r_ptr = data(n1:n2)%model_value
+  good = data(n1:n2)%exists
 case ('base')
   call check_using (using, 'r', err); if (err) return
-  where (set_it) r_ptr = data(:)%base_value
-  good = data(:)%exists
+  where (set_it) r_ptr = data(n1:n2)%base_value
+  good = data(n1:n2)%exists
 case ('design')
   call check_using (using, 'r', err); if (err) return
-  where (set_it) r_ptr = data(:)%design_value
-  good = data(:)%exists
+  where (set_it) r_ptr = data(n1:n2)%design_value
+  good = data(n1:n2)%exists
 case ('f', 'F')
   call check_using (using, 'l', err); if (err) return
   where (set_it) l_ptr = .false.
@@ -692,16 +706,16 @@ case default
   else
     where (set_it) r_ptr = value
   endif
-  good = data(:)%exists
+  good = data(n1:n2)%exists
 end select
 
 ! set good
 
 select case (component)
 case ('meas')
-  where (set_it) data(:)%good_meas = good
+  where (set_it) data(n1:n2)%good_meas = good
 case ('ref')
-  where (set_it) data(:)%good_ref = good
+  where (set_it) data(n1:n2)%good_ref = good
 end select
 
 ! cleanup

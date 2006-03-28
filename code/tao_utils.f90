@@ -633,8 +633,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_find_data (err, u, data_type, d2_ptr, d1_ptr, &
-!                                        data_number, d_ptr, print_err)
+! Subroutine tao_find_data (err, u, data_type, d2_ptr, d1_ptr, d_ptr, print_err)
 !
 ! Routine to set data pointers to the correct data.
 ! Note: if, say, data_type = 'orbit' then d1_ptr will be nullified unless there
@@ -642,9 +641,7 @@ end subroutine
 !
 ! Input:
 !   u            -- Tao_universe_struct
-!   data_type    -- Character(*): the data name type. Eg: "orbit:x"
-!   data_number  -- Character(*), optional: the data point index.
-!                     If data_number = 'null' then d_ptr will be nullified.
+!   data_type    -- Character(*): the data name type. Eg: "orbit:x:3"
 !   print_err    -- Logical, optional: Print error message if data is 
 !                     not found? Default is True.
 !
@@ -655,8 +652,7 @@ end subroutine
 !   d_ptr   -- tao_data_struct, optional: pointer to the data point
 !-
 
-subroutine tao_find_data (err, u, data_type, d2_ptr, d1_ptr, &
-                                    data_number, d_ptr, print_err)
+subroutine tao_find_data (err, u, data_type, d2_ptr, d1_ptr, d_ptr, print_err)
 
 implicit none
 
@@ -667,10 +663,9 @@ type (tao_data_struct), pointer, optional    :: d_ptr
 type (tao_d2_data_struct), pointer :: d2_pointer
 type (tao_d1_data_struct), pointer :: d1_pointer
 
-character(*)                                :: data_type
-character(*), optional                      :: data_number
+character(*) :: data_type
 character(20) :: r_name = 'tao_find_data'
-character(16) name, d2_name, d1_name
+character(16) d2_name, d1_name, d_name
 
 integer :: data_num, ios
 integer i, ix, ix_plane
@@ -688,26 +683,34 @@ if (present(d_ptr)) nullify(d_ptr)
 
 ix = index(data_type, ':')
 if (ix == 0) then
-  name = data_type
+  d2_name = data_type
   d1_name = ' '
 else
-  name = data_type(1:ix-1)
+  d2_name = data_type(1:ix-1)
   d1_name = data_type(ix+1:)
+endif
+
+ix = index(d1_name, ':')
+if (ix == 0) then
+  d_name = ' '
+else
+  d_name = d1_name(ix+1:)
+  d1_name = d1_name(1:ix-1)
 endif
 
 ! Point to the correct d2 data type 
 
-call string_trim (name, name, ix) ! Strip off all whitespace
+call string_trim (d2_name, d2_name, ix) ! Strip off all whitespace
 
 do i = 1, size(u%d2_data)
-  if (name == u%d2_data(i)%name) then
+  if (d2_name == u%d2_data(i)%name) then
     d2_pointer => u%d2_data(i) 
     if (present(d2_ptr)) d2_ptr => d2_pointer
     exit
   endif
   if (i == size(u%d2_data)) then
     if (logic_option (.true., print_err)) &
-          call out_io (s_error$, r_name, "Couldn't find d2_data name: " // name)
+          call out_io (s_error$, r_name, "Couldn't find d2_data name: " // d2_name)
     err = .true.
     return
   endif
@@ -715,7 +718,7 @@ enddo
 
 ! strip off all whitespace
 
-call string_trim (d1_name, name, ix)
+call string_trim (d1_name, d1_name, ix)
   
 ! point to the correct d1 data type
 
@@ -742,17 +745,24 @@ enddo
 
 ! point to data point
 
-if (.not. present(data_number)) return
-if (data_number == 'null') return
+if (.not. present(d_ptr)) return
+if (d_name == ' ') return
 
-read (data_number, '(i)', iostat = ios) data_num
+do i = lbound(d1_pointer%d, 1), ubound(d1_pointer%d, 1)
+  if (d_name == d1_pointer%d(i)%name) then
+    d_ptr => d1_pointer%d(i)
+    return
+  endif
+enddo
+
+read (d_name, '(i)', iostat = ios) data_num
 if (ios /= 0) then
-  call out_io (s_error$, r_name, "BAD DATA_NUMBER: " // data_number)
+  call out_io (s_error$, r_name, "BAD DATA NAME OR NUMBER: " // d_name)
   err = .true.
   return  
 endif
 if (data_num < lbound(d1_ptr%d, 1) .or. data_num > ubound(d1_ptr%d, 1)) then
-  call out_io (s_error$, r_name, "DATA NUMBER OUT OF RANGE: " // data_number)
+  call out_io (s_error$, r_name, "DATA NUMBER OUT OF RANGE: " // d_name)
   err = .true.
   return  
 endif
