@@ -394,7 +394,8 @@ integer k
 !
 
 call qp_set_layout (box = graph%box, margin = graph%margin)
-call qp_set_layout (x_axis = plot%x, y_axis = graph%y, y2_axis = graph%y2)
+call qp_set_layout (x_axis = plot%x, x2_mirrors_x = .true.)
+call qp_set_layout (y_axis = graph%y, y2_axis = graph%y2, y2_mirrors_y = graph%y2_mirrors_y)
 call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
 call qp_draw_axes
 

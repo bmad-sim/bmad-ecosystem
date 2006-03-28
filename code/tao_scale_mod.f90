@@ -92,6 +92,13 @@ if (y_min == y_max .and. .not. plot%independent_graphs) then  ! if auto scale wa
     graph => plot%graph(i)
     call qp_calc_axis_scale (this_min, this_max, graph%y)
   enddo
+
+  this_min = minval (plot%graph(:)%y2%min)
+  this_max = maxval (plot%graph(:)%y2%max)
+  do i = 1, size(plot%graph)
+    graph => plot%graph(i)
+    call qp_calc_axis_scale (this_min, this_max, graph%y2)
+  enddo
 endif
 
 end subroutine
@@ -103,7 +110,7 @@ end subroutine
 subroutine tao_scale_graph (graph, y_min, y_max)
 
 type (tao_graph_struct) graph
-real(rp) y_min, y_max, this_min, this_max
+real(rp) y_min, y_max, this_min, this_max, this_min2, this_max2
 integer i
 
 ! If y_min = y_max then autoscale: That is we need to find the 
@@ -115,15 +122,22 @@ if (y_min == y_max) then
 
   this_min =  1e30
   this_max = -1e30
+  this_min2 =  1e30
+  this_max2 = -1e30
 
   do i = 1, size(graph%curve)
-    if (associated(graph%curve(i)%y_symb)) then
+    if (.not. associated(graph%curve(i)%y_symb)) cycle
+    if (graph%curve(i)%use_y2) then
+      this_min2 = min(this_min, minval(graph%curve(i)%y_symb))
+      this_max2 = max(this_max, maxval(graph%curve(i)%y_symb))
+    else
       this_min = min(this_min, minval(graph%curve(i)%y_symb))
       this_max = max(this_max, maxval(graph%curve(i)%y_symb))
     endif
   enddo
 
   call qp_calc_axis_scale (this_min, this_max, graph%y)
+  call qp_calc_axis_scale (this_min2, this_max2, graph%y2)
   return
 
 endif
@@ -133,6 +147,10 @@ endif
 graph%y%min = y_min
 graph%y%max = y_max
 call qp_calc_axis_places (graph%y)
+
+graph%y2%min = y_min
+graph%y2%max = y_max
+call qp_calc_axis_places (graph%y2)
 
 end subroutine
 

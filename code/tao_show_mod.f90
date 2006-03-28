@@ -43,8 +43,8 @@ real(rp) f_phi, s_pos, l_lat
 
 character(*) :: what, stuff
 character(24) :: var_name
-character(24)  :: plane, fmt, fmt2, fmt3, imt, lmt, amt, rmt, irmt, iimt
-character(80) :: word(2)
+character(24)  :: plane, imt, lmt, amt, rmt, irmt, iimt
+character(80) :: word(2), fmt, fmt2, fmt3
 character(8) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
 character(80), pointer :: ptr_lines(:)

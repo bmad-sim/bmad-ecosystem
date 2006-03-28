@@ -108,6 +108,7 @@ type tao_graph_struct
   integer box(4)               ! Defines which box the plot is put in.
   integer ix_universe          ! Used for lat_layout plots.
   logical valid                ! valid if all curve y_dat computed OK.
+  logical y2_mirrors_y         ! Y2-axis same as Y-axis?
 end type
 
 ! A plot is collection of graphs.

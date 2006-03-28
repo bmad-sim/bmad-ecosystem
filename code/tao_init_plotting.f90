@@ -190,6 +190,7 @@ do
     grph%clip          = graph%clip
     grph%title_suffix = ' '
     grph%legend = ' '
+    grph%y2_mirrors_y = .true.
 
     if (grph%ix_universe < 0 .or. grph%ix_universe > size(s%u)) then
       call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', grph%ix_universe)
@@ -220,6 +221,7 @@ do
       crv%draw_line         = curve(j)%draw_line
       crv%draw_symbols      = curve(j)%draw_symbols
       crv%use_y2            = curve(j)%use_y2
+!      if (crv%use_y2) grph%y2_mirrors_y = .false.
       crv%symbol            = curve(j)%symbol
       crv%line              = curve(j)%line
       crv%convert           = curve(j)%convert
