@@ -64,13 +64,15 @@ recursive subroutine check_this_attribute_free (ix_ele, ix_attrib, ix_lord)
   free = .false.
   ele => lat%ele_(ix_ele)
 
-! if the attribute is controled by an overlay lord then it cannot be varied
+! If the attribute is controled by an overlay lord then it cannot be varied.
+! Exception: Multiple overlays can control the same attribute.
 
   do i = ele%ic1_lord, ele%ic2_lord
     ix = lat%ic_(i)
     ir = lat%control_(ix)%ix_lord
     if (present(ix_lord)) then
       if (ix_lord == ir) cycle
+      if (lat%ele_(ix_lord)%control_type == overlay_lord$) cycle
     endif
     if (lat%ele_(ir)%control_type == overlay_lord$) then
       if (lat%control_(ix)%ix_attrib == ix_attrib) then
