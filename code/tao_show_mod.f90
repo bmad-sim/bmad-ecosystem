@@ -663,7 +663,7 @@ case ('plot')
 
   nl=nl+1; lines(nl) = 'Plot:  ' // plot%name
   nl=nl+1; write (lines(nl), amt) 'x_axis_type:              ', plot%x_axis_type
-  nl=nl+1; write (lines(nl), fmt) 'x_divisions:              ', plot%x_divisions
+  nl=nl+1; write (lines(nl), rmt) 'x_divisions:              ', plot%x_divisions
   nl=nl+1; write (lines(nl), lmt) 'independent_graphs:       ', plot%independent_graphs
     
   nl=nl+1; write (lines(nl), *) 'Graphs:'
@@ -725,7 +725,7 @@ case ('curve')
   nl=nl+1; write (lines(nl), amt) 'data_source:              ', curve%data_source
   nl=nl+1; write (lines(nl), amt) 'data_type:                ', curve%data_type  
   nl=nl+1; write (lines(nl), amt) 'ele_ref_name:             ', curve%ele_ref_name
-  nl=nl+1; write (lines(nl), fmt) 'units_factor:             ', curve%units_factor
+  nl=nl+1; write (lines(nl), rmt) 'units_factor:             ', curve%units_factor
   nl=nl+1; write (lines(nl), imt) 'ix_universe:              ', curve%ix_universe
   nl=nl+1; write (lines(nl), imt) 'symbol_every:             ', curve%symbol_every
   nl=nl+1; write (lines(nl), imt) 'ix_ele_ref:               ', curve%ix_ele_ref
@@ -792,8 +792,8 @@ case ('var')
     nl=nl+1; write(lines(nl), imt)  'Ix_var:        ', v_ptr%ix_var
     nl=nl+1; write(lines(nl), imt)  'Ix_dvar:       ', v_ptr%ix_dvar           
     nl=nl+1; write(lines(nl), imt)  'Ix_v1:         ', v_ptr%ix_v1
-    nl=nl+1; write(lines(nl), fmt)  'Model_value:   ', v_ptr%model_value
-    nl=nl+1; write(lines(nl), fmt)  'Base_value:    ', v_ptr%base_value
+    nl=nl+1; write(lines(nl), rmt)  'Model_value:   ', v_ptr%model_value
+    nl=nl+1; write(lines(nl), rmt)  'Base_value:    ', v_ptr%base_value
 
     if (.not. associated (v_ptr%this)) then
       nl=nl+1; write(lines(nl), imt)  'this(:) -- Not associated!'
@@ -817,19 +817,19 @@ case ('var')
       enddo
     endif
 
-    nl=nl+1; write(lines(nl), fmt)  '%Design_value:    ', v_ptr%design_value
-    nl=nl+1; write(lines(nl), fmt)  '%Old_value:       ', v_ptr%old_value
-    nl=nl+1; write(lines(nl), fmt)  '%Meas_value:      ', v_ptr%meas_value
-    nl=nl+1; write(lines(nl), fmt)  '%Ref_value:       ', v_ptr%ref_value
-    nl=nl+1; write(lines(nl), fmt)  '%Correction_value:', v_ptr%correction_value
-    nl=nl+1; write(lines(nl), fmt)  '%High_lim:        ', v_ptr%high_lim
-    nl=nl+1; write(lines(nl), fmt)  '%Low_lim:         ', v_ptr%low_lim
-    nl=nl+1; write(lines(nl), fmt)  '%Step:            ', v_ptr%step
-    nl=nl+1; write(lines(nl), fmt)  '%Weight:          ', v_ptr%weight
-    nl=nl+1; write(lines(nl), fmt)  '%delta_merit:     ', v_ptr%delta_merit
+    nl=nl+1; write(lines(nl), rmt)  '%Design_value:    ', v_ptr%design_value
+    nl=nl+1; write(lines(nl), rmt)  '%Old_value:       ', v_ptr%old_value
+    nl=nl+1; write(lines(nl), rmt)  '%Meas_value:      ', v_ptr%meas_value
+    nl=nl+1; write(lines(nl), rmt)  '%Ref_value:       ', v_ptr%ref_value
+    nl=nl+1; write(lines(nl), rmt)  '%Correction_value:', v_ptr%correction_value
+    nl=nl+1; write(lines(nl), rmt)  '%High_lim:        ', v_ptr%high_lim
+    nl=nl+1; write(lines(nl), rmt)  '%Low_lim:         ', v_ptr%low_lim
+    nl=nl+1; write(lines(nl), rmt)  '%Step:            ', v_ptr%step
+    nl=nl+1; write(lines(nl), rmt)  '%Weight:          ', v_ptr%weight
+    nl=nl+1; write(lines(nl), rmt)  '%delta_merit:     ', v_ptr%delta_merit
     nl=nl+1; write(lines(nl), amt)  '%Merit_type:      ', v_ptr%merit_type
-    nl=nl+1; write(lines(nl), fmt)  '%Merit:           ', v_ptr%merit
-    nl=nl+1; write(lines(nl), fmt)  '%dMerit_dVar:     ', v_ptr%dMerit_dVar
+    nl=nl+1; write(lines(nl), rmt)  '%Merit:           ', v_ptr%merit
+    nl=nl+1; write(lines(nl), rmt)  '%dMerit_dVar:     ', v_ptr%dMerit_dVar
     nl=nl+1; write(lines(nl), lmt)  '%Exists:          ', v_ptr%exists
     nl=nl+1; write(lines(nl), lmt)  '%Good_var:        ', v_ptr%good_var
     nl=nl+1; write(lines(nl), lmt)  '%Good_user:       ', v_ptr%good_user
