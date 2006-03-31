@@ -357,15 +357,20 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
 
 ! Encode Twiss info
 
-  call type2_twiss (ele, li(nl+1:), nl2, twiss_out)
-  nl = nl + nl2
+  if (integer_option(radians$, twiss_out) /= 0) then
+    nl=nl+1; lines(nl) = ' '
+    nl=nl+1; lines(nl) = 'Twiss at end of element:'
+    call type2_twiss (ele, li(nl+1:), nl2, twiss_out)
+    nl = nl + nl2
+  endif
 
 ! Encode mat6 info
 
   n = integer_option (6, type_mat6)
 
   if (n /= 0) then
-    nl=nl+1; write (li(nl), *)
+    nl=nl+1; li(nl) = ' '
+    nl=nl+1; li(nl) = 'Transfer Matrix:'
   endif
 
   if (any(abs(ele%mat6(1:n,1:n)) >= 1000)) then

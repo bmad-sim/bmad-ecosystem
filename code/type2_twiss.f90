@@ -63,14 +63,13 @@ subroutine type2_twiss (ele, lines, n_lines, frequency_units)
    return
   end select
 
-  write (lines(1), *) ' '
-  write (lines(2), '(10x, a)')  &
+  write (lines(1), '(10x, a)')  &
             'Beta     Alpha     Gamma       Phi        Eta       Etap'
-  lines(3) = trim(str) // '        (m)        (-)'
-  write (lines(4), fmt) ' X:', ele%x%beta,  &
+  lines(2) = trim(str) // '        (m)        (-)'
+  write (lines(3), fmt) ' X:', ele%x%beta,  &
           ele%x%alpha, ele%x%gamma, coef*ele%x%phi, ele%x%eta, ele%x%etap
-  write (lines(5), fmt) ' Y:', ele%y%beta,  &
+  write (lines(4), fmt) ' Y:', ele%y%beta,  &
           ele%y%alpha, ele%y%gamma, coef*ele%y%phi, ele%y%eta, ele%y%etap
-  n_lines = 5
+  n_lines = 4
 
 end subroutine
