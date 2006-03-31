@@ -164,9 +164,59 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine sr1_apply_kick (ele, leader, charge, follower)
+! Subroutine sr1_add_long_kick (ele, leader, charge, follower)
 !
-! Subroutine to put in the kick for the short-range wakes.
+! Subroutine to add the component of the gradient loss from the leading particle
+! on the following particle.
+!
+! Modules needed:
+!   use wake_mod
+!
+! Input:
+!   ele      -- Ele_struct: Element with wakes.
+!   leader   -- Coord_struct: Coordinates of the leading particle.
+!   charge   -- Real(rp): Charge of leader particle (in Coul).
+!   follower -- Coord_struct: Starting coords of particle to kick.
+!
+! Output:
+!   bmad_com%grad_loss_sr_wake -- Read(rp): adds the effects of the 
+!                                  specified leader
+!-
+
+subroutine sr1_add_long_kick (ele, leader, charge, follower)
+
+implicit none
+
+type (ele_struct) ele
+type (coord_struct) leader, follower
+
+real(rp) z, dz, f1, f2, charge, fact
+
+integer iw, n_sr1
+
+if (.not. bmad_com%sr_wakes_on) return
+if (.not. associated(ele%wake)) return
+
+z = follower%vec(5) - leader%vec(5)
+n_sr1 = size(ele%wake%sr1) - 1
+dz = ele%wake%sr1(n_sr1)%z / n_sr1
+
+iw = z / dz     ! integer part of z/dz
+f2 = z/dz - iw  ! fractional part of z/dz
+f1 = 1 - f2
+
+bmad_com%grad_loss_sr_wake = bmad_com%grad_loss_sr_wake &
+      + (ele%wake%sr1(iw)%long*f1 + ele%wake%sr1(iw+1)%long*f2) * charge 
+
+end subroutine sr1_add_long_kick
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine sr1_apply_trans_kick (ele, leader, charge, follower)
+!
+! Subroutine to put in the transverse kick for the short-range wakes.
 !
 ! Modules needed:
 !   use wake_mod
@@ -181,7 +231,7 @@ end subroutine
 !   follower -- Coord_struct: coords after the kick.
 !+
 
-subroutine sr1_apply_kick (ele, leader, charge, follower)
+subroutine sr1_apply_trans_kick (ele, leader, charge, follower)
 
 implicit none
 
@@ -208,10 +258,6 @@ fact = (ele%wake%sr1(iw)%trans*f1 + ele%wake%sr1(iw+1)%trans*f2) * &
                               charge * ele%value(l$) / ele%value(p0c$)
 follower%vec(2) = follower%vec(2) - fact * leader%vec(1)
 follower%vec(4) = follower%vec(4) - fact * leader%vec(3)
-
-fact = (ele%wake%sr1(iw)%long*f1 + ele%wake%sr1(iw+1)%long*f2) * &
-                              charge * ele%value(l$) / ele%value(p0c$)
-follower%vec(6) = follower%vec(6) - fact 
 
 end subroutine
 

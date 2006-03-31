@@ -284,6 +284,10 @@ end subroutine track1_bunch_lat
 ! Note: This routine is overloaded by the routine track1_bunch. See this
 ! routine for more details.
 !
+! Each particle experiences a different longitudinal short-range wakefield.
+! bmad_com%grad_loss_sr_wake is used to tell track1_bmad the appropriate loss
+! for each particle.
+!
 ! Modules needed:
 !   use beam_mod
 !
@@ -320,8 +324,7 @@ subroutine track1_bunch_ele (bunch_start, ele, param, bunch_end)
 
 ! Charge and center
 
-  bunch_end%s_center = bunch_start%s_center
-  bunch_end%charge   = bunch_start%charge
+  bunch_end = bunch_start
 
 !------------------------------------------------
 ! Without wakefields just track through.
@@ -343,7 +346,7 @@ subroutine track1_bunch_ele (bunch_start, ele, param, bunch_end)
 
 !------------------------------------------------
 ! This calculation is for an lcavity with wakefields.
-! Put the wakefield kicks at the half way point.
+! Put the sr wakefield transverse kicks at the half way point.
 
 ! rf_ele is half the cavity
 
@@ -355,22 +358,25 @@ subroutine track1_bunch_ele (bunch_start, ele, param, bunch_end)
             (ele%value(p0c_start$) + ele%value(p0c$)) / 2
   rf_ele%value(e_loss$) = 0
 
-! Track half way through. 
-! This includes the short-range longitudinal wakefields
+! Track half way through. This includes the sr longitudinal wakes 
 
-  do j = 1, size(bunch_start%particle)
-    call track1_particle (bunch_start%particle(j), &
-                                    rf_ele, param, bunch_end%particle(j))
+  call order_particles_in_z (bunch_end)
+  do j = 1, size(bunch_end%particle)
+    call add_sr_long_wake (rf_ele, bunch_end, j-1, bunch_end%particle(j)%ix_z)
+    call track1_particle (bunch_end%particle(bunch_end%particle(j)%ix_z), &
+                          rf_ele, param, &
+                          bunch_end%particle(bunch_end%particle(j)%ix_z))
   enddo
 
-! Put in the short-range transverse wakefields
+  bmad_com%grad_loss_sr_wake = 0.0
+
+! Put in the transverse wakefields
 
   rf_ele%value(l$) = ele%value(l$)  ! restore the correct length for the moment
   call track1_sr_wake (bunch_end, rf_ele)
   call track1_lr_wake (bunch_end, rf_ele)
 
-! Track the last half of the lcavity. 
-! This includes the short-range longitudinal wakes.
+! Track the last half of the lcavity.  This includes the sr longitudinal wakes 
 
   rf_ele%value(l$)            = ele%value(l$) / 2
   rf_ele%value(energy_start$) = rf_ele%value(beam_energy$)
@@ -378,15 +384,87 @@ subroutine track1_bunch_ele (bunch_start, ele, param, bunch_end)
   rf_ele%value(beam_energy$)  = ele%value(beam_energy$)
   rf_ele%value(p0c$)          = ele%value(p0c$)
 
-  do j = 1, size(bunch_start%particle)
-    call track1_particle (bunch_end%particle(j), &
-                                    rf_ele, param, bunch_end%particle(j))
+  call order_particles_in_z (bunch_end)
+  do j = 1, size(bunch_end%particle)
+    call add_sr_long_wake (rf_ele, bunch_end, j-1, bunch_end%particle(j)%ix_z)
+    call track1_particle (bunch_end%particle(bunch_end%particle(j)%ix_z), &
+                          rf_ele, param, &
+                          bunch_end%particle(bunch_end%particle(j)%ix_z))
   enddo
+
+  bmad_com%grad_loss_sr_wake = 0.0
 
   bunch_end%charge = sum (bunch_end%particle(:)%charge, &
                          mask = (bunch_end%particle(:)%ix_lost == not_lost$))
 
+  bmad_com%grad_loss_sr_wake = 0.0
+
 end subroutine track1_bunch_ele
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine add_sr_long_wake (ele, bunch, num_in_front, follower)
+!
+! Adds the longitudinal wake for all particles in front of the follower.
+!
+! Input:
+!  ele      -- Ele_struct: Element with wakefields.
+!  bunch    -- Bunch_struct: Bunch of particles
+!  num_in_front -- Integer: number of particles in front of this one
+!                   This will be the bunch%particle index number right before
+!                   the follower
+!  follower -- Integer: index of particle wakes being applied to.
+!
+! Output:
+!  bmad_com%grad_loss_sr_wake -- Real(rp): net gradient loss due to the leaders.
+!-
+
+subroutine add_sr_long_wake (ele, bunch, num_in_front, ix_follower)
+
+implicit none
+
+type (ele_struct) ele
+type (bunch_struct) bunch
+type (coord_struct), pointer :: leader
+
+integer ix_follower, i, num_in_front
+integer n_sr1, n_sr2_long, n_sr2_trans, k_start
+
+  bmad_com%grad_loss_sr_wake = 0.0
+
+!-----------------------------------
+! If there is no wake for this element or the sr wakes are turned off then just 
+! use the e_loss attribute (as set in track1_bmad).
+
+  n_sr1 = size(ele%wake%sr1) 
+  n_sr2_long = size(ele%wake%sr2_long)
+  n_sr2_trans = size(ele%wake%sr2_trans)
+
+  if (n_sr1 == 0 .and. n_sr2_long == 0 .and. n_sr2_trans == 0 .or. &
+                                          .not. bmad_com%sr_wakes_on) then 
+    bmad_com%grad_loss_sr_wake = 0.0
+    return 
+  endif
+
+  if (n_sr1 > 0) then
+    ! the self wake only sees the charge of each real particle, not the "macro"
+    ! charge of the simulated particle
+    bmad_com%grad_loss_sr_wake = bmad_com%grad_loss_sr_wake &
+                        + ele%wake%sr1(0)%long * e_charge / 2.0
+  endif
+
+!-----------------------------------
+! add up all wakes from front of bunch to follower
+  do i = 1, num_in_front
+    call sr1_add_long_kick (ele, bunch%particle(bunch%particle(i)%ix_z)%r, &
+               bunch%particle(bunch%particle(i)%ix_z)%charge, &
+               bunch%particle(ix_follower)%r)
+  enddo
+
+end subroutine add_sr_long_wake
+
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -424,23 +502,8 @@ subroutine track1_sr_wake (bunch, ele)
 
   if (.not. associated(ele%wake)) return
   
-!-----------------------------------
-! If there is no wake for this element or the sr wakes are turned off then just 
-! use the e_loss attribute.
-
   p => bunch%particle
-
-  n_sr1 = size(ele%wake%sr1) 
-  n_sr2_long = size(ele%wake%sr2_long)
-  n_sr2_trans = size(ele%wake%sr2_trans)
-
-  if (n_sr1 == 0 .and. n_sr2_long == 0 .and. n_sr2_trans == 0 .or. &
-                                          .not. bmad_com%sr_wakes_on) then 
-    p(:)%r%vec(6) = p(:)%r%vec(6) - &
-                       ele%value(e_loss$) * bunch%charge / ele%value(p0c$) 
-    return 
-  endif
-
+  
 !-----------------------------------
 ! error check and zero wake sums and order particles in z
 
@@ -464,13 +527,11 @@ subroutine track1_sr_wake (bunch, ele)
 
 !
 
+  n_sr1 = size(ele%wake%sr1) 
   z_sr1_max = 0
   if (n_sr1 > 0) then
     z_sr1_max = ele%wake%sr1(n_sr1-1)%z
     dz_sr1 = z_sr1_max / (n_sr1 - 1)
-    ! the self wake only sees the charge of each real particle, not the4 "macro"
-    ! charge of the simulated particle
-    sr02 = ele%wake%sr1(0)%long * e_charge * ele%value(l$) / (2 * ele%value(p0c$))
   endif
 
 ! loop over all particles in the bunch and apply the wake
@@ -481,9 +542,7 @@ subroutine track1_sr_wake (bunch, ele)
     particle => p(p(j)%ix_z)
     ! apply longitudinal self wake
 
-    if (z_sr1_max < 0) then
-      particle%r%vec(6) = particle%r%vec(6) - sr02 / (1 + particle%r%vec(6))
-    else
+    if (z_sr1_max .ge. 0) then
       call sr2_long_self_wake_apply_kick (ele, particle%charge, particle%r)
     endif
 
@@ -496,7 +555,7 @@ subroutine track1_sr_wake (bunch, ele)
       leader => p(p(k)%ix_z)
       if ((particle%r%vec(5) - leader%r%vec(5)) > z_sr1_max) then
         ! use sr1 table to add to particle j the wake of particle k
-        call sr1_apply_kick (ele, leader%r, leader%charge, particle%r)
+        call sr1_apply_trans_kick (ele, leader%r, leader%charge, particle%r)
       else
         ! add contribution of particle(k) to wake sums
         i_sr2 = k  ! update i_sr2
@@ -1178,6 +1237,7 @@ subroutine calc_bunch_params (bunch, ele, params)
   real(rp) exp_x2, exp_p_x2, exp_x_p_x, exp_x_d, exp_px_d
   real(rp) avg_energy 
   real(rp) v_mat(4,4), v_inv_mat(4,4)
+  real(rp) eta, etap
 
   integer i
   
@@ -1214,14 +1274,14 @@ subroutine calc_bunch_params (bunch, ele, params)
   !***
   ! Projected Parameters
   ! X
-  call param_stuffit (params%x, params%sigma(s11$), params%sigma(s22$), params%sigma(s12$), &
-                      params%sigma(s16$), params%sigma(s26$))
+  call param_stuffit (params%x, params%sigma(s11$), params%sigma(s22$), &
+                      params%sigma(s12$), params%sigma(s16$), params%sigma(s26$))
   ! Y
-  call param_stuffit (params%y, params%sigma(s33$), params%sigma(s44$), params%sigma(s34$), &
-                      params%sigma(s36$), params%sigma(s46$))
+  call param_stuffit (params%y, params%sigma(s33$), params%sigma(s44$), &
+                      params%sigma(s34$), params%sigma(s36$), params%sigma(s46$))
   ! Z
-  call param_stuffit (params%z, params%sigma(s55$), params%sigma(s66$), params%sigma(s56$), &
-                      params%sigma(s56$), params%sigma(s66$))
+  call param_stuffit (params%z, params%sigma(s55$), params%sigma(s66$), &
+                      params%sigma(s56$), params%sigma(s56$), params%sigma(s66$))
      
   !***
   ! Normal-Mode Parameters
@@ -1236,33 +1296,39 @@ subroutine calc_bunch_params (bunch, ele, params)
   endif
   do i = 1, size(a_mode)
     a_mode(i)%r%vec(1:4) = matmul(v_inv_mat, bunch%particle(i)%r%vec(1:4))
+    ! longitudinal plane doesn't change
+    a_mode(i)%r%vec(5:6) = bunch%particle(i)%r%vec(5:6)
   enddo 
   
   call find_sigma (a_mode, params%sigma_normal)
   
   ! Take out linear dispersion for normal mode sigma
   ! x
+  eta  = params%sigma_normal(s16$) / params%sigma_normal(s66$)
+  etap = params%sigma_normal(s26$) / params%sigma_normal(s66$)
   params%sigma_normal(s11$) = params%sigma_normal(s11$) &
-                             - 2*params%x%eta*params%sigma_normal(s16$) &
-                             + (params%x%eta**2)*params%sigma_normal(s66$)
+                             - 2*eta*params%sigma_normal(s16$) &
+                             + (eta**2)*params%sigma_normal(s66$)
   params%sigma_normal(s22$) = params%sigma_normal(s22$) &
-                             - 2*params%x%etap*params%sigma_normal(s26$) &
-                             + (params%x%etap**2)*params%sigma_normal(s66$)
+                             - 2*etap*params%sigma_normal(s26$) &
+                             + (etap**2)*params%sigma_normal(s66$)
   params%sigma_normal(s12$) = params%sigma_normal(s12$) &
-                             - params%x%etap*params%sigma_normal(s16$) &
-                             - params%x%eta*params%sigma_normal(s26$) &
-                             + params%x%eta*params%x%etap*params%sigma_normal(s66$)
+                             - etap*params%sigma_normal(s16$) &
+                             - eta*params%sigma_normal(s26$) &
+                             + eta*etap*params%sigma_normal(s66$)
   ! y
+  eta  = params%sigma_normal(s36$) / params%sigma_normal(s66$)
+  etap = params%sigma_normal(s46$) / params%sigma_normal(s66$)
   params%sigma_normal(s33$) = params%sigma_normal(s33$) &
-                             - 2*params%y%eta*params%sigma_normal(s36$) &
-                             + (params%y%eta**2)*params%sigma_normal(s66$)
+                             - 2*eta*params%sigma_normal(s36$) &
+                             + (eta**2)*params%sigma_normal(s66$)
   params%sigma_normal(s44$) = params%sigma_normal(s44$) &
-                             - 2*params%y%etap*params%sigma_normal(s46$) &
-                             + (params%y%etap**2)*params%sigma_normal(s66$)
+                             - 2*etap*params%sigma_normal(s46$) &
+                             + (etap**2)*params%sigma_normal(s66$)
   params%sigma_normal(s34$) = params%sigma_normal(s34$) &
-                             - params%y%etap*params%sigma_normal(s36$) &
-                             - params%y%eta*params%sigma_normal(s46$) &
-                             + params%y%eta*params%y%etap*params%sigma_normal(s66$)
+                             - etap*params%sigma_normal(s36$) &
+                             - eta*params%sigma_normal(s46$) &
+                             + eta*params%y%etap*params%sigma_normal(s66$)
                              
   ! A
   call param_stuffit (params%a, params%sigma_normal(s11$), params%sigma_normal(s22$), &

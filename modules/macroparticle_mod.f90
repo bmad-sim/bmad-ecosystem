@@ -230,7 +230,7 @@ Subroutine track1_macro_bunch (bunch_start, ele, param, bunch_end)
   rf_ele%value(beam_energy$) = &
             (ele%value(energy_start$) + ele%value(beam_energy$)) / 2
   rf_ele%value(p0c$) = &
-            (ele%value(p0c$) + ele%value(p0c$)) / 2
+            (ele%value(p0c_start$) + ele%value(p0c$)) / 2
 
 ! param%charge is used with e_loss$ when there is
 
