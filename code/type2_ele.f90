@@ -358,8 +358,8 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
 ! Encode Twiss info
 
   if (integer_option(radians$, twiss_out) /= 0) then
-    nl=nl+1; lines(nl) = ' '
-    nl=nl+1; lines(nl) = 'Twiss at end of element:'
+    nl=nl+1; li(nl) = ' '
+    nl=nl+1; li(nl) = 'Twiss at end of element:'
     call type2_twiss (ele, li(nl+1:), nl2, twiss_out)
     nl = nl + nl2
   endif
