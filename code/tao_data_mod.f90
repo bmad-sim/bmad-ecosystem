@@ -5,6 +5,8 @@ use macroparticle_mod
 use macro_utils_mod
 use spin_mod
 use utilities_mod
+use random_mod
+
 
 ! These are data types specific to macroparticles
 
@@ -666,7 +668,7 @@ case ('sigma:xy')
 case ('wire:')  
   if (s%global%track_type .eq. "beam") then
     read (data_type(6:), '(a)') angle
-    datum_value = tao_do_wire_scan (angle, u%beam%beam)
+    datum_value = tao_do_wire_scan (tao_lat%lat%ele_(ix1), angle, u%beam%beam)
   elseif (s%global%track_type .eq. "macro") then
     datum_value = 0.0
   else
@@ -814,6 +816,12 @@ end subroutine tao_evaluate_a_datum
 !
 ! The BPM noise is in the ele%r(1,1) entry
 !
+! The ele%r array is used for noise and steering calibration: 
+!  r(1,1) = bpm noise (rms)
+!  r(1,2) = horizontal alignment calibration
+!  r(1,3) = vertical alignment calibration
+!  r(1,4) = bpm tilt callibration
+!
 ! Input: 
 !  orb      -- Coord_struct: Orbit position at BPM
 !  ele      -- Ele_struct: the BPM
@@ -826,8 +834,6 @@ end subroutine tao_evaluate_a_datum
 !-
 
 subroutine tao_read_bpm (orb, ele, axis, reading)
-
-use random_mod
 
 type (coord_struct) orb
 type (ele_struct) ele
@@ -1201,6 +1207,7 @@ subroutine tao_mat6_calc_at_s (lat, mat6, s1, s2, one_turn, unit_start)
     call transfer_this (ss1, ss2)
   endif
 
+
 !--------------------------------------------------------
 ! Known problems:
 !   1) map type wigglers not treated properly.
@@ -1307,7 +1314,7 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+         
-! Subroutine tao_do_wire_scane (theta, beam) result (moment)
+! Subroutine tao_do_wire_scane (ele, theta, beam) result (moment)
 !
 ! Returns the beam's second moment using the wire along the specified angle.
 ! Keep in mind that the actual correlation axis is 90 degrees off of the 
@@ -1317,25 +1324,32 @@ end subroutine
 ! bunch. Obviously, this isn't realistic. Any dynamic effects will not be
 ! accounted for!
 !
+! The ele%r array is used for wire scanner resolution:
+!  ele%r(1,1) = relatice wire resolution RMS (i.e. 0.1 => 10%)
+!  ele%r(1,4) = wire angle error in radians rms
+!
 ! Input:
 !  theta   -- Real(rp): wire angle wrt x axis (in degrees)
 !  beam    -- Beam_struct: contains the beam distribution
 !
 ! Output:
-!  sigma_uv -- Real(rp): second moment along axis specified by angle.
+!  moment  -- Real(rp): second moment along axis specified by angle.
 !-
 
-function tao_do_wire_scan (theta, beam) result (moment)
+function tao_do_wire_scan (ele, theta, beam) result (moment)
 
 implicit none
 
+type (ele_struct) ele
 type (beam_struct) beam
 real(rp), allocatable, save :: dist(:)
 
-real(rp) theta, theta_rad, moment
+real(rp) theta, theta_rad, moment, ran_num(2)
 
+  call ran_gauss (ran_num)
+  
   ! angle in radians and correlation angle is 90 off from wire angle
-  theta_rad = (theta - 90) * (2.0*pi / 360.0)
+  theta_rad = ele%r(1,4)*ran_num(1) + (theta - 90) * (2.0*pi / 360.0)
 
   if (.not. allocated (dist)) then
     allocate (dist(size(beam%bunch(1)%particle)))
@@ -1349,7 +1363,8 @@ real(rp) theta, theta_rad, moment
   dist =  beam%bunch(1)%particle%r%vec(1) * cos(-theta_rad ) &
         + beam%bunch(1)%particle%r%vec(3) * sin(-theta_rad)
   
-  moment =  sum (dist*dist, mask = (beam%bunch(1)%particle%ix_lost .eq. not_lost$)) &
+  moment = (1 + ele%r(1,1)*ran_num(2)) * sum (dist*dist, &
+                 mask = (beam%bunch(1)%particle%ix_lost .eq. not_lost$)) &
           / count (beam%bunch(1)%particle%ix_lost .eq. not_lost$)
 
 end function tao_do_wire_scan

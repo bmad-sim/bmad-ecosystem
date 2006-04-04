@@ -29,7 +29,7 @@ type tao_data_input
   character(16) :: merit_type
   real(rp) :: meas_value
   real(rp) :: weight
-  real(rp) :: bpm_noise ! only valid for bpm data
+  real(rp) :: data_noise ! not used by most data types
   logical :: good_user
 end type
 

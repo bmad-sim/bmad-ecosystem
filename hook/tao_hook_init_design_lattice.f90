@@ -60,7 +60,7 @@ subroutine tao_hook_init_design_lattice (design_lattice_file, custom_init)
 ! enddo
 
 ! ! Initialize calibration array
-! ! This must be performed or tao_read_bpm will crash.
+! ! This must be performed or tao_read_bpm and tao_do_wire_scan will crash.
 ! ! r(1,:) is for bpm and steering callibration
 ! ! r(2,:) is for saving ele parameters
 ! do i = 1, size(s%u)

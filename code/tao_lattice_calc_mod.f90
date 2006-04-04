@@ -90,6 +90,11 @@ if (s%global%lattice_recalc) then
   do i = 1, size(s%u)
     if (.not. s%u(i)%is_on .or. hook_used(i)) cycle
     this => s%u(i)%model
+    ! zero data array
+    s%u(i)%data%model_value = tiny(1.0_rp)
+    do j = 1, 6
+      this%orb%vec(i) = 0.0
+    enddo
     ! set up matching element
     if (initing_design) call tao_match_lats_init (s%u(i))
 
