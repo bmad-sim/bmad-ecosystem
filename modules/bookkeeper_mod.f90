@@ -1012,7 +1012,7 @@ subroutine makeup_overlay_and_i_beam_slave (lattice, ix_ele)
   implicit none
 
   type (ring_struct), target :: lattice
-  type (ele_struct), pointer :: ele, i_beam
+  type (ele_struct), pointer :: slave, lord
 
   real(rp) value(n_attrib_maxx), coef, ds
   integer i, j, ix, iv, ix_ele, icom, ct
@@ -1022,63 +1022,65 @@ subroutine makeup_overlay_and_i_beam_slave (lattice, ix_ele)
 
 !
                                
-  ele => lattice%ele_(ix_ele)
-  ct = ele%control_type
+  slave => lattice%ele_(ix_ele)
+  ct = slave%control_type
 
   if (ct /= super_lord$ .and. ct /= overlay_slave$ .and. &
            ct /= overlay_lord$ .and. ct /= multipass_lord$) then
     call out_io(s_abort$, r_name, 'ELEMENT IS NOT OF PROPER TYPE. lattice INDEX: \i\ ', ix_ele)
-    call type_ele (ele, .true., 0, .false., 0, .true., lattice)
+    call type_ele (slave, .true., 0, .false., 0, .true., lattice)
     call err_exit
   endif
 
   value = 0
   used = .false.
-  ele%on_an_i_beam = .false.
+  slave%on_an_i_beam = .false.
 
-  do i = ele%ic1_lord, ele%ic2_lord
+  do i = slave%ic1_lord, slave%ic2_lord
     j = lattice%ic_(i)
     ix = lattice%control_(j)%ix_lord
+    lord => lattice%ele_(ix)
 
-    if (lattice%ele_(ix)%control_type == i_beam_lord$) then
-      i_beam => lattice%ele_(ix)
-      ds = (ele%s - ele%value(l$)/2) - i_beam%value(s_center$) 
-      ele%value(x_offset_tot$) = ele%value(x_offset$) + &
-                     ds * i_beam%value(x_pitch$) + i_beam%value(x_offset$)
-      ele%value(y_offset_tot$) = ele%value(y_offset$) + &
-                     ds * i_beam%value(y_pitch$) + i_beam%value(y_offset$)
-      ele%value(s_offset_tot$) = ele%value(s_offset$) + i_beam%value(s_offset$)
-      ele%value(x_pitch_tot$)  = ele%value(x_pitch$)  + i_beam%value(x_pitch$)
-      ele%value(y_pitch_tot$)  = ele%value(y_pitch$)  + i_beam%value(y_pitch$)
-      ele%value(tilt_tot$)     = ele%value(tilt$)     + i_beam%value(tilt$)
-      ele%on_an_i_beam = .true.
+    if (lord%control_type == multipass_lord$) cycle
+
+    if (lord%control_type == i_beam_lord$) then
+      ds = (slave%s - slave%value(l$)/2) - lord%value(s_center$) 
+      slave%value(x_offset_tot$) = slave%value(x_offset$) + &
+                     ds * lord%value(x_pitch$) + lord%value(x_offset$)
+      slave%value(y_offset_tot$) = slave%value(y_offset$) + &
+                     ds * lord%value(y_pitch$) + lord%value(y_offset$)
+      slave%value(s_offset_tot$) = slave%value(s_offset$) + lord%value(s_offset$)
+      slave%value(x_pitch_tot$)  = slave%value(x_pitch$)  + lord%value(x_pitch$)
+      slave%value(y_pitch_tot$)  = slave%value(y_pitch$)  + lord%value(y_pitch$)
+      slave%value(tilt_tot$)     = slave%value(tilt$)     + lord%value(tilt$)
+      slave%on_an_i_beam = .true.
       cycle
     endif
 
-    if (lattice%ele_(ix)%control_type /= overlay_lord$) then
+    if (lord%control_type /= overlay_lord$) then
       call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY_LORD \i\ ', ix_ele)
-      call type_ele (ele, .true., 0, .false., 0, .true., lattice)
+      call type_ele (slave, .true., 0, .false., 0, .true., lattice)
       call err_exit
     endif     
 
     coef = lattice%control_(j)%coef
     iv = lattice%control_(j)%ix_attrib
-    icom = lattice%ele_(ix)%ix_value
-    value(iv) = value(iv) + lattice%ele_(ix)%value(icom)*coef
+    icom = lord%ix_value
+    value(iv) = value(iv) + lord%value(icom)*coef
     used(iv) = .true.
   enddo
 
-  where (used) ele%value = value
+  where (used) slave%value = value
 
 ! If no i_beam then simply transfer tilt to tilt_tot, etc.
 
-  if (.not. ele%on_an_i_beam) then
-    ele%value(tilt_tot$)     = ele%value(tilt$)
-    ele%value(x_offset_tot$) = ele%value(x_offset$)
-    ele%value(y_offset_tot$) = ele%value(y_offset$)
-    ele%value(s_offset_tot$) = ele%value(s_offset$)
-    ele%value(x_pitch_tot$)  = ele%value(x_pitch$)
-    ele%value(y_pitch_tot$)  = ele%value(y_pitch$)
+  if (.not. slave%on_an_i_beam) then
+    slave%value(tilt_tot$)     = slave%value(tilt$)
+    slave%value(x_offset_tot$) = slave%value(x_offset$)
+    slave%value(y_offset_tot$) = slave%value(y_offset$)
+    slave%value(s_offset_tot$) = slave%value(s_offset$)
+    slave%value(x_pitch_tot$)  = slave%value(x_pitch$)
+    slave%value(y_pitch_tot$)  = slave%value(y_pitch$)
   endif
 
 end subroutine
