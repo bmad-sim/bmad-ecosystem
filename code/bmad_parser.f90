@@ -1054,9 +1054,14 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
       print *
       print *, '----------------------------------------'
       print *, 'Lattice Used: ', ring%name
-      print *, 'Number of lattice elements:', ring%n_ele_max
+      print *, 'Number of lattice elements:', ring%n_ele_use
       print *, 'List:                               Key      Length         S'
       do i = 1, ring%n_ele_use
+        print '(2x, i4, 2a, 3x, a, 2f10.2)', i, ') ', ring%ele_(i)%name,  &
+          key_name(ring%ele_(i)%key), ring%ele_(i)%value(l$), ring%ele_(i)%s
+      enddo
+      print *, '---- Lord Elements ----'
+      do i = ring%n_ele_use+1, ring%n_ele_max
         print '(2x, i4, 2a, 3x, a, 2f10.2)', i, ') ', ring%ele_(i)%name,  &
           key_name(ring%ele_(i)%key), ring%ele_(i)%value(l$), ring%ele_(i)%s
       enddo
