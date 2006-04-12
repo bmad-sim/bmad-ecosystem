@@ -3219,7 +3219,7 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
             endif
           endif
           k2 = k2 + 1
-          if (k2 > ix1-1) exit
+          if (k2 > ix1) exit
           k = r_indexx(k2)
           if (ring%ele_(k)%name /= name) exit ! exit loop if no more matches
         enddo
