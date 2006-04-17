@@ -27,7 +27,7 @@
 
 &tao_d2_data
   d2_data%name = "orbit" 
-  universe = '*'  ! apply to all universes
+  universe = 0  ! apply to all universes
   n_d1_data = 2
 /
 
@@ -83,15 +83,15 @@
   default_weight = 1e6
   ix_min_data = 0 
   ix_max_data = 99  
-  data(0)%name = "SAME: orbit.x"
-  data(0)%ele_name = "SAME: orbit.x"
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
 /
 
 !---------------------------------------------------
 
 &tao_d2_data
   d2_data%name = "phase" 
-  universe = '*'  ! apply to all universes
+  universe = 0  ! apply to all universes
   n_d1_data = 2
 /
 
@@ -101,8 +101,8 @@
   default_weight = 1e6
   ix_min_data = 0 
   ix_max_data = 99  
-  data(0)%name = "SAME: orbit.x"
-  data(0)%ele_name = "SAME: orbit.x"
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
 /
 
 &tao_d1_data
@@ -111,8 +111,8 @@
   default_weight = 1e6
   ix_min_data = 0 
   ix_max_data = 99  
-  data(0)%name = "SAME: orbit.x"
-  data(0)%ele_name = "SAME: orbit.x"
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
 /
 
 
@@ -120,7 +120,7 @@
 
 &tao_d2_data
   d2_data%name = "eta" 
-  universe = '*'  ! apply to all universes
+  universe = 0  ! apply to all universes
   n_d1_data = 2
 /
 
@@ -130,8 +130,8 @@
   default_weight = 0
   ix_min_data = 0 
   ix_max_data = 99  
-  data(0)%name = "SAME: orbit.x"
-  data(0)%ele_name = "SAME: orbit.x"
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
 /
 
 &tao_d1_data
@@ -140,15 +140,15 @@
   default_weight = 200
   ix_min_data = 0 
   ix_max_data = 99  
-  data(0)%name = "SAME: orbit.x"
-  data(0)%ele_name = "SAME: orbit.x"
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
 /
 
 !---------------------------------------------------
 
 &tao_d2_data
   d2_data%name = "beta" 
-  universe = '*'  ! apply to all universes
+  universe = 0  ! apply to all universes
   n_d1_data = 2
 /
 
@@ -158,8 +158,8 @@
   default_weight = 1
   ix_min_data = 0 
   ix_max_data = 99  
-  data(0)%name = "SAME: orbit.x"
-  data(0)%ele_name = "SAME: orbit.x"
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
 /
 
 &tao_d1_data
@@ -168,15 +168,15 @@
   default_weight = 1
   ix_min_data = 0 
   ix_max_data = 99  
-  data(0)%name = "SAME: orbit.x"
-  data(0)%ele_name = "SAME: orbit.x"
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
 /
 
 !---------------------------------------------------
 
 &tao_d2_data
   d2_data%name = "cbar"
-  universe = '*'  ! apply to all universes
+  universe = 0  ! apply to all universes
   n_d1_data = 4
 /
 
@@ -186,8 +186,8 @@
   default_weight = 1e3
   ix_min_data = 0
   ix_max_data = 99
-  data(0)%name = "SAME: orbit.x"
-  data(0)%ele_name = "SAME: orbit.x"
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
 /
 
 &tao_d1_data
@@ -196,8 +196,8 @@
   default_weight = 1e3
   ix_min_data = 0
   ix_max_data = 99
-  data(0)%name = "SAME: orbit.x"
-  data(0)%ele_name = "SAME: orbit.x"
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
 /
 
 &tao_d1_data
@@ -206,8 +206,8 @@
   default_weight = 1e3
   ix_min_data = 0
   ix_max_data = 99
-  data(0)%name = "SAME: orbit.x"
-  data(0)%ele_name = "SAME: orbit.x"
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
 /
 
 &tao_d1_data
@@ -216,15 +216,15 @@
   default_weight = 1e3
   ix_min_data = 0
   ix_max_data = 99
-  data(0)%name = "SAME: orbit.x"
-  data(0)%ele_name = "SAME: orbit.x"
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
 /
 
 !---------------------------------------------------
 
 &tao_d2_data
   d2_data%name = "coupling" 
-  universe = '*'  ! apply to all universes
+  universe = 0  ! apply to all universes
   n_d1_data = 4
 /
 
@@ -234,8 +234,8 @@
   default_weight = 1e3
   ix_min_data = 0 
   ix_max_data = 99  
-  data(0)%name = "SAME: orbit.x"
-  data(0)%ele_name = "SAME: orbit.x"
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
 /
 
 &tao_d1_data
@@ -244,8 +244,8 @@
   default_weight = 1e3
   ix_min_data = 0 
   ix_max_data = 99  
-  data(0)%name = "SAME: orbit.x"
-  data(0)%ele_name = "SAME: orbit.x"
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
 /
 
 &tao_d1_data
@@ -254,8 +254,8 @@
   default_weight = 1e3
   ix_min_data = 0 
   ix_max_data = 99  
-  data(0)%name = "SAME: orbit.x"
-  data(0)%ele_name = "SAME: orbit.x"
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
 /
 
 &tao_d1_data
@@ -264,8 +264,8 @@
   default_weight = 1e3
   ix_min_data = 0 
   ix_max_data = 99  
-  data(0)%name = "SAME: orbit.x"
-  data(0)%ele_name = "SAME: orbit.x"
+  data(0)%name = "SAME: orbit:x"
+  data(0)%ele_name = "SAME: orbit:x"
 /
 
 !------------------------------------------------------------------------

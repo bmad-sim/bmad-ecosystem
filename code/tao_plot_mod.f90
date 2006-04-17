@@ -2,6 +2,7 @@ module tao_plot_mod
 
 use tao_mod
 use quick_plot
+use tao_single_mod
 use tao_plot_window_mod
 
 
@@ -321,19 +322,6 @@ do i = 1, lat%n_ele_max
   case ('BOX')
     call qp_draw_rectangle (x1, x2,  -y, y, color = icol)
 
-  case ('VAR_HEIGHT_BOX')
-    select case (ele%key)
-    case (quadrupole$)
-      y = y * ele%value(k1$)
-    case (sextupole$)
-      y = y * ele%value(k2$)
-    case (octupole$)
-      y = y * ele%value(k3$)
-    case (solenoid$)
-      y = y * ele%value(ks$)
-    end select
-    call qp_draw_rectangle (x1, x2,  -y, y, color = icol)
-
   case ('XBOX')
     call qp_draw_rectangle (x1, x2,  -y, y, color = icol)
     call qp_draw_line (x1, x2,  y, -y, color = icol)
@@ -351,7 +339,7 @@ do i = 1, lat%n_ele_max
     y_off = y_bottom + 12.0_rp * j_label 
     height = 0.8 * s%plot_page%text_height 
     call qp_draw_text (ele%name, ele%s-ele%value(l$)/2, y_off, &
-                                 height = height, justify = 'CB', ANGLE = 90.0_rp)
+                                        height = height, justify = 'CB')
   endif
 
   call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
@@ -432,39 +420,5 @@ if (any(graph%legend /= ' ')) call qp_draw_legend (graph%legend, &
           graph%legend_origin%x, graph%legend_origin%y, graph%legend_origin%units)
 
 end subroutine
-
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-
-function tao_var_uni_string (var) result (str)
-
-implicit none
-
-type (tao_var_struct) var
-character(10) str
-integer i, iu, ct
-logical uni(100)
-
-!
-
-iu = size(s%u)
-uni = .false.
-
-do i = 1, size (var%this)
-  uni(var%this(i)%ix_uni) = .true.
-enddo
-
-ct = count(uni(1:iu))
-
-if (ct == 1) then
-  write (str, '(i2)') var%this(1)%ix_uni
-elseif (ct == iu) then
-  str = 'All'
-else
-  str = '?'
-endif
-
-end function
 
 end module

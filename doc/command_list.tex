@@ -198,11 +198,11 @@ beginning twiss parameters changed.
 
 Examples:
 \begin{example}
-  change ele 124 x_offset  0.1     ! Offset element #124 by 0.1
-  change ele q02w k1 d1.2e-2       ! set the k1 strength of q02w relative to the design
-  change var steering[34:36] @1e-3 ! set the steering strength #34-36 to 0.001
-  change var steering[*] @0.0      ! set all steering strengths to 0.0
-  change ele beginning x @0.001    ! set beggining x position to 1 mm
+  change ele 124 x_offset  0.1   ! Offset element #124 by 0.1
+  change ele q02w k1 d1.2e-2     ! set the k1 strength of q02w relative to the design
+  change var steering 34:36 @1e-3  ! set the steering strength #34-36 to 0.001
+  change var steering all @0.0  ! set all steering strengths to 0.0
+  change ele beginning x @0.001 ! set beggining x position to 1 mm
 \end{example}
 
 
@@ -228,7 +228,7 @@ switch.  If \vn{<where>} is not present all graphs are scaled.
 
 Examples
 \begin{example}
-  clip top.x -3  7  ! clip the x graph in the top region
+  clip top:x -3  7  ! clip the x graph in the top region
   clip bottom       ! clip the graphs in the bottom region
 \end{example}
 
@@ -397,10 +397,11 @@ and \vn{veto} commands.
 
 Examples:
 \begin{example}
-  restore data orbit.x[23,34:56]   ! unveto orbit:x data.
-  restore data orbit.x[23,34:56:2] ! unveto orbit:x 23 and even datums between 34 and 56
-  restore data *@orbit[34]         ! unveto orbit data in all universes.
-  restore var quad_k1[67]          ! unveto variable
+  restore data orbit:x  23, 34:56   ! unveto orbit:x data.
+  restore data orbit:x  23, 34:56:2 ! unveto orbit:x 34 and even datums between
+34 and 56
+  restore data orbit;* 34           ! unveto orbit data in all universes.
+  restore var quad_k1 67            ! unveto variable
 \end{example}
 
 %% reinitialize -------------------------------------------------------
@@ -581,10 +582,10 @@ still vary in the turned off universe.
 
 Examples:
 \begin{example}
-  set data *|ref = *|meas                   ! set all ref data = measured data in current universe.
-  set data 2@orbit.x|base = 2@orbit.x|model ! set the ref orbit:x data in universe 2 to meas
-  set var quad\_k1 weight = 0.1             ! set quad\_k1 weights. 
-  set lattice *&|model = *&|design          ! resets model lattice to the design in all universes
+  set data all ref = meas         ! set all ref data = measured data in current universe.
+  set data orbit:x;2 base = model ! set the ref orbit:x data in universe 2 to meas
+  set var quad\_k1 weight = 0.1   ! set quad\_k1 weights. 
+  set lattice model;0 = design    ! resets the model lattice to the design in all universes
 \end{example}
 
 %% scale --------------------------------------------------------------
@@ -707,16 +708,16 @@ available templates.
 
 Examples:
 \begin{example}
-  show curve r2.g1.c3         ! Show the attributes of a curve named "c3" which is 
+  show curve r2:g1:c3         ! Show the attributes of a curve named "c3" which is 
                               !   in the graph "g1" which is plotted in region "r2".
   show data                   ! lists d2_data arrays.
   show write data             ! Same as previous except results are also written
                               !   to a file.
   show data orbit             ! Show orbit data.
-  show data orbit.x           ! list all orbit.x data elements
-  show data orbit.x[35]       ! show details for orbit.x element 35
-  show data orbit.x[35,86:95] ! list orbit.x elements 35 and 86 through 95
-  show data orbit.x[1:100:5]  ! list every fifth orbit.x element between 1 and 100  
+  show data orbit:x           ! list all orbit:x data elements
+  show data orbit:x 35        ! show details for orbit:x element 35
+  show data orbit:x 35 86:95  ! list orbit:x elements 35 and 86 through 95
+  show data orbit:x 1:100:5   ! list every fifth orbit:x element between 1 and 100  
   show ele q*                 ! list all elements with names beginning with "q".
   show ele q10w               ! show a particular lattice element
   show ele 105                ! show element #105 in the lattice
@@ -773,11 +774,11 @@ commands.
 
 Examples:
 \begin{example}
-  use data orbit.x[23,34:56]   ! use orbit.x data.
-  use data *@orbit[34]         ! use orbit data in all universes.
-  use var quad_k1[67]          ! use variable
-  use var quad_k1[30:60:10]    ! use variables 30, 40, 50 and 60
-  use data *                   ! use all data
+  use data orbit:x  23, 34:56  ! use orbit:x data.
+  use data orbit;* 34          ! use orbit data in all universes.
+  use var quad_k1 67           ! use variable
+  use var quad_k1 30:60:10     ! use variables 30, 40, 50 and 60
+  use data all                 ! use all data
 \end{example}
 
 
@@ -797,15 +798,15 @@ The \vn{veto} command vetoes data or variables. See also the
 
 Examples:
 \begin{example}
-  veto data orbit.x[23,34:56]  ! veto orbit:x data.
-  veto data *@orbit.*[34]      ! veto orbit data in all universes.
-  veto var quad_k1[67]         ! veto variable
-  veto var quad_k1[30:60:10]   ! veto variables 30, 40, 50 and 60
-  veto data *                  ! veto all data
-  veto data *[10:20]           ! veto all data from index 10 to 20 (see note)
+  veto data orbit:x  23, 34:56 ! veto orbit:x data.
+  veto data orbit;* 34         ! veto orbit data in all universes.
+  veto var quad_k1 67          ! veto variable
+  veto var quad_k1 30:60:10    ! veto variables 30, 40, 50 and 60
+  veto data all                ! veto all data
+  veto data all 10:20          ! veto all data from index 10 to 20 (see note)
 \end{example}
 
-Note: The command `\cmd{veto data *.*[10:20]}' will veto all d1\_data elements
+Note: The command `\cmd{veto data all 10:20}' will veto all d1\_data elements
 within the range 10:20 \textit{using the index convention for each d1\_data
 structure separately}. This may produce curious results if the
 indexes for the d1\_data structures do not all point to the same lattice

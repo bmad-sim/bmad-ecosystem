@@ -10,8 +10,8 @@
 subroutine tao_output_cmd (what, who)
 
 use tao_mod
-use tao_top10_mod
 use quick_plot
+use tao_single_mod
 use tao_plot_mod
 
 implicit none
@@ -68,7 +68,7 @@ case ('ps')
 ! variables
 
 case ('var')
-  call tao_var_write (s%global%var_out_file)
+  call tao_var_write (s%global%var_out_file, .true.)
 
 ! error
 

@@ -253,6 +253,7 @@ of this tutorial and make your own initialization files.
 \textbf{NOTE: the following sections will work with vanilla \tao. The commands
 entered and plotting output may be different for custom versions.}
 
+
 %----------------------------------------------------------------
 %----------------------------------------------------------------
 \section{Getting information from Tao}
@@ -280,9 +281,8 @@ prompt type
 \begin{example}
   plot bottom model
 \end{example}
-This will change the data plotted in the bottom two graphs to just the
-model.  The plots are now way off scale. Let \tao automatically set
-the scale by typing
+This will change the data plotted in the bottom two graphs to just the model.
+The plots are now way off scale. Let \tao automatically set the scale by typing
 \index{Commands!scale}
 \begin{example}
   scale bottom
@@ -310,8 +310,7 @@ Again, we need to rescale the plots by typing
 We see the periodic FODO beta function where large horizontal beta
 corresponds to small vertical beta and vice versa.
 
-Likewise, we can look at the dispersion in the top two graphs by
-typing
+Likewise, we can look at the dispersion in the top two graphs by typing
 \index{Commands!scale}
 \begin{example}
   place top eta
@@ -324,9 +323,9 @@ Now let's look at the coupling (C-matrix) by typing
   place bottom coupling
   scale bottom
 \end{example}
-We see that there is strong coupling within the CLEO solenoid and
-virtually no coupling anywhere else. To zoom in the scale so that we
-can see the residual coupling outside the interaction region type
+We see that there is strong coupling within the CLEO solenoid and virtually no
+coupling anywhere else. To zoom in the scale so that we can see the residual
+coupling outside the interaction region type
 \begin{example}
   scale bottom -0.01 0.01
 \end{example}
@@ -382,9 +381,8 @@ the following to view the quadrupole k1 values:
 %----------------------------------------------------------------
 \subsection{The \cmd{Show} Command}
 
-Anything in the super-universe can be displayed using the \cmd{show}
-command. To get a list of the data elements currently defined in \tao
-type
+Anything in the super-universe can be displayed using the \cmd{show} command. To
+get a list of the data elements currently defined in \tao type
 \index{Commands!show}
 \begin{example}
   show data
@@ -429,17 +427,17 @@ CESR so there are 100 data points.
 To see the data values for the horizontal beta function for \cesr BPMs
 1 through 50 type
 \begin{example}
-  show data beta.x[1:50]
+  show data beta:x 1:50
 \end{example}
 Since we haven't changed any elements in the lattice yet the model
-values equal the design values. Also note that \vn{beta.x} is actually
+values equal the design values. Also note that \vn{beta:x} is actually
 the a-mode betatron function. In regions with little or no coupling,
 the a-mode is almost completely in the horizontal plane.
 
 A significant point: The convention in \bmad is to label the twiss
 parameters as \vn{x} and \vn{y} but they are actually the \vn{a} and
-\vn{b} normal modes. So in regions of strong coupling \vn{beta.x} does
-not correspond to \vn{orbit.x} which is always in the true horizontal
+\vn{b} normal modes. So in regions of strong coupling \vn{beta:x} does
+not correspond to \vn{orbit:x} which is always in the true horizontal
 lab frame.  However, if you wish, you can re-label your twiss data
 planes as \vn{a} and \vn{b}.  Section~\ref{c:init} shows you how to do
 this. Keep in mind that lattice twiss parameters are defined
@@ -461,10 +459,9 @@ You can also view variables by typing
 \begin{example}
   show var
 \end{example}
-To view the quadrupole k1 values for \cesr quadrupoles 5 and 20
-through 30 type
+To view the quadrupole k1 values for \cesr quadrupoles 5  and 20 through 30 type
 \begin{example}
-  sho var quad\_k1[5,20:30]
+  sho var quad\_k1 5 20:30
 \end{example}
 Again, since we haven't changed any quadrupoles the model values are
 all at their design values.
@@ -485,12 +482,12 @@ A list of lattice elements between two elements can be shown by typing
 \begin{example}
   sho lattice 0:20
 \end{example}
-This will show a list of all the lattice elements between and
-including elements 0 and 20. Twiss parameters and orbit information at
-each element is also provided.
+This will show a list of all the lattice elements between and including elements
+0 and 20. Twiss parameters and orbit information at each element is also
+provided.
 
-Anything printed to the display using the \vn{show} command can also
-be printed to a file by typing
+Anything printed to the display using the \vn{show} command can also be printed
+to a file by typing
 \begin{example}
   show write <what_to_show>
 \end{example}
@@ -501,8 +498,8 @@ A list of all intrinsic \vn{tao} commands can be found by typing
 \begin{example}
   help
 \end{example}
-This will not list any custom commands. Detailed help on any
-individual command can be found with
+This will not list any custom commands. Detailed help on any individual command
+can be found with
 \begin{example}
   help <command\_name>
 \end{example}
@@ -534,12 +531,11 @@ The k1 value can be increased by 0.01 units for quadrupole Q05W by typing
   change var quad\_k1 5 0.01
   scale
 \end{example}
-Note the information returned on the command line after the command
-and the relative changes in beta and phase in the plot window. This is
-a vertically focusing quadrupole so the vertical beta and phase is
-affected more than the horizontal. The \cmd{0.01} at the end of the
-command tells \tao to change this variable by 0.01 units. If you want
-to set a variable to a particular value then use a ``@'' before the
+Note the information returned on the command line after the command and the relative changes in
+beta and phase in the plot window. This is a vertically focusing quadrupole so
+the vertical beta and phase is affected more than the horizontal. The \cmd{0.01}
+at the end of the command tells \tao to change this variable by 0.01 units. If
+you want to set a variable to a particular value then use a ``@'' before the
 value. So, to change this quadrupole k1 to -0.348 type
 \begin{example}
   change var quad\_k1 5 @-0.348
@@ -548,8 +544,8 @@ value. So, to change this quadrupole k1 to -0.348 type
 \subsection{Putting things back where you found them}
 \label{ss:put_it_back}
 
-Let's put this quadrupole back where we found it. We can also modify
-the quadrupole by modifying the lattice element directly by typing
+Let's put this quadrupole back where we found it. We can also modify the quadrupole
+by modifying the lattice element directly by typing
 \begin{example}
   change ele Q05W k1 d0.0
 \end{example}
@@ -559,15 +555,15 @@ output of \cmd{show ele Q05W}.  The ``d'' before the value is used to
 set the variable relative to the design value.
 \index{Commands!change}
 
-If you've changed the lattice around a lot using variables, a great
-way to set all variables back to their design values is to type
+If you've changed the lattice around a lot using variables, a great way to set
+all variables back to their design values is to type
 \index{Commands!set}
 \begin{example}
   set var all model = design
 \end{example}
-This only works if you just changed variables. If you changed any
-elements directly with the \cmd{change ele} command then this will not
-work. To set every attribute of every element back to the design type
+This only works if you just changed variables. If you changed any elements
+directly with the \cmd{change ele} command then this will not work. To set
+every attribute of every element back to the design type
 \begin{example}
   set lattice model = design
 \end{example}
@@ -630,8 +626,8 @@ Now specify what variables and data to use in the optimization. First type
 \begin{example}
   show top10
 \end{example}
-to see what data is effecting the merit function the most. The merit
-function is defined by
+to see what data is effecting the merit function the most. The merit function is
+defined by
 \Begineq
   {\cal M} \equiv \sum_{i} w_i \,
     \bigl[ \data_\model(i) -  \data_\meas(i) \bigr]^2 + 
@@ -640,11 +636,10 @@ function is defined by
   \label{eq:merit}
 \Endeq
 where $w_{i}$ and $w_{j}$ are the weights given to each component.
-The optimizer tries to minimize the merit function by changing the
-model to look like the measured data. From the \vn{top10} output we
-see that the beta function is effecting the merit function the
-most. Since we are looking at beta and phase let's only use that data
-in the optimization.
+The optimizer tries to minimize the merit function by changing the model to look
+like the measured data. From the \vn{top10} output we see that the beta function is effecting 
+the merit function the most. Since we
+are looking at beta and phase let's only use that data in the optimization.
 \begin{example}
   veto data all
   use  data beta all
@@ -655,12 +650,11 @@ We also know that we need to change quadrupoles to correct the lattice.
   veto var all         ! veto all the data
   restore var quad\_k1 all ! restore just the quad\_k1 data
 \end{example}
-Note that we need to specify what data and variables we will be using
-beforehand in the initialization files. This is already taken care of
-in the demo initialization files. You can view these files to see how
-the data and variables were initialized. Raw lattice elements cannot
-be used by the included optimizer but there is no such restriction on
-custom optimizers.
+Note that we need to specify what data and variables we will be using beforehand in the
+initialization files. This is already taken care of in the demo initialization
+files. You can view these files to see how the data and variables were
+initialized. Raw lattice elements cannot be used by the included optimizer but
+there is no such restriction on custom optimizers.
 
 Now let's see if we have the optimizer set up correctly.
 \begin{example}
@@ -671,59 +665,52 @@ Whoops! we want to use the Levenburg - Marquardt optimizer so
   set global optimizer = lm
   sho opt
 \end{example}
-The second command is short-hand. Most \tao commands can be shortened
-to the least number of characters needed to distinguish the command
-from all others.
+The second command is short-hand. Most \tao commands can be shortened to the
+least number of characters needed to distinguish the command from all others.
 
-Now we're ready to run the optimizer or ``fit'' the model to the
-`measured' data.
+Now we're ready to run the optimizer or ``fit'' the model to the `measured' data.
 \begin{example}
   run
 \end{example}
-You see the optimizer going through its cycles and it did it! The
-model is now ``fitted.'' We can see what changes where done to the
-quadrupoles by typing
+You see the optimizer going through its cycles and it did it! The model is now
+``fitted.'' We can see what changes where done to the quadrupoles by typing
 \begin{example}
   sho var quad\_k1
 \end{example}
-The optimizer came very close to finding the ``design''
-lattice. However, it changed more quadrupoles than just 10, 21 and
-67. This isn't surprising. The optimizer finds the minimum of the
-merit function and there are potentially many minimums, or
-degeneracies.  It does it's best not to get stuck in a local minimum
-and as we can see by the plotted data, the minimum found is very close
--- virtually identical -- to the design lattice optics.  A good hint
-as to what variables will be adjusted is the output of \cmd{show
-top10}.  The top 3 derivatives were not the quadrupoles we
-adjusted. Nevertheless, the final result was a darn near perfect
-match!
+The optimizer came very close to finding the ``design'' lattice. However, it
+changed more quadrupoles than just 10, 21 and 67. This isn't surprising. The
+optimizer finds the minimum of the merit function and there are potentially many
+minimums, or degeneracies.  It does it's best not to get stuck in a local
+minimum and as we can see by the plotted data, the minimum found is very close
+-- virtually identical -- to the design lattice optics.  A good hint as to what
+variables will be adjusted is the output of \cmd{show top10}.  The top 3
+derivatives were not the quadrupoles we adjusted. Nevertheless, the final result
+was a darn near perfect match!
 
 \subsection{Now Not Using all of the Variables}
 \label{ss:fix_it_not_all}
 
-Alternatively, we could have used only a subsection of the
-quadrupoles. Say we know approximately which quadrupoles should be
-adjusted. We can then specify these variables ranges.
+Alternatively, we could have used only a subsection of the quadrupoles. Say we
+know approximately which quadrupoles should be adjusted. We can then specify these
+variables ranges.
 \begin{example}
-  change var quad\_k1[10]   0.001
-  change var quad\_k1[21]  -0.001
-  change var quad\_k1[67]  -0.005
+  change var quad\_k1 10 0.001
+  change var quad\_k1 21 -0.001
+  change var quad\_k1 67 -0.005
   scale
-  use var quad\_k1[8:12,20:25,65:70]
+  use var quad\_k1 8:12 20:25 65:70
   run
-  sho var quad\_k1[8:12,20:25,65:70]
+  sho var quad\_k1 8:12 20:25 65:70
 \end{example}
-Different quadrupoles than the ones we initially changed were still
-adjusted by the optimizer. The end result is again very close to the
-design lattice.
+Different quadrupoles than the ones we initially changed were still adjusted
+by the optimizer. The end result is again very close to the design lattice.
 
 \subsection{Lattice Design}
 \label{ss:lattice_design}
 
-You may wish to constrain beam parameters instead of ``fitting'' to
-data. For example, you could want the beta function not to exceed a
-value in a certain part of the machine. \tao will also perform this
-type of optimization.
+You may wish to constrain beam parameters instead of ``fitting'' to data. For
+example, you could want the beta function not to exceed a value in a certain
+part of the machine. \tao will also perform this type of optimization.
 
 \fbox{this subsection is yet to be completed!} 
 
@@ -732,16 +719,15 @@ type of optimization.
 \section{Single Mode}\index{Single Mode}
 \label{s:single_mode}
 
-Single mode utilizes a simple single character interface to the \tao
-model lattice.  By simply typing single predefined characters the
-specified element parameter will be changed by a certain amount. This
-allows the user to quickly converge on a neighborhood around the
-minimum of a multidimensional non-linear function space. However,
-finding the exact minimum can be difficult to do by hand. Once the
-neighborhood is found the optimizer can be used to narrow in on the
-optimum configuration without requiring it to run all around the
-parameter space, which is very inefficient and time consuming for
-complex parameter spaces.
+Single mode utilizes a simple single character interface to the \tao model
+lattice.  By simply typing single predefined characters the specified element
+parameter will be changed by a certain amount. This allows the user to quickly
+converge on a neighborhood around the minimum of a multidimensional non-linear
+function space. However, finding the exact minimum can be difficult to do by
+hand. Once the neighborhood is found the optimizer can be used to narrow in on
+the optimum configuration without requiring it to run all around the parameter
+space, which is very inefficient and time consuming for complex parameter
+spaces.
 
 \fbox{this section is yet to be completed!} 
 
@@ -750,17 +736,17 @@ complex parameter spaces.
 \section{Where to go from here}
 \label{s:where_to_go}
 
-You now have an understanding of the basic abilities of \tao. After
-this tutorial, Part II of the \tao Manual should be legible and
-useful.  The Reference Guide will provide the details of everything
-mentioned in this tutorial.  It goes into detail of setting up your
-own initialization files and how to use the optimizer. It also
-includes a complete command reference with command syntax.
+You now have an understanding of the basic abilities of \tao. After this
+tutorial, Part II of the \tao Manual should be legible and useful.
+The Reference Guide will provide the details of everything mentioned in this tutorial. 
+It goes into detail of setting up your own initialization
+files and how to use the optimizer. It also includes a complete command
+reference with command syntax.
 
-However, you're not yet ready to customize \tao, but this is where the
-true versatility of \tao lies. So, onward to the next section and
-learn how to write your own custom routines to perform whatever
-accelerator calculations that strikes your fancy!
+However, you're not yet ready to customize \tao, but this is where the true versatility
+of \tao lies. So, onward to the next section and learn how to write your
+own custom routines to perform whatever accelerator calculations that strikes your
+fancy!
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
@@ -772,68 +758,61 @@ accelerator calculations that strikes your fancy!
 %----------------------------------------------------------------
 \section{It's all a matter of Hooks}\index{Customizing!Hooks}
 
-The golden rule when extending \tao is that you are only allowed to
-replace routines or redefine structures that have the name ``hook'' in
-them.  If you have the source code then it's within your power to
-modify any routine in \tao as much as you like. However, as time goes
-by, and revisions are made to the \tao routines to extend the
-usefulness of \tao and to eliminate bugs, only modifying the ``hook''
-routines will ensure that custom changes will have a minimum impact on
-the specialized routines that will be written by various people.
+The golden rule when extending \tao is that you are only allowed to replace
+routines or redefine structures that have the name ``hook'' in them.  If you
+have the source code then it's within your power to modify any routine in \tao
+as much as you like. However, as time goes by, and revisions are made to the
+\tao routines to extend the usefulness of \tao and to eliminate bugs, only
+modifying the ``hook'' routines will ensure that custom changes will have a
+minimum impact on the specialized routines that will be written by various
+people. 
 
-\tao is written in Fortran 95 and a knowledge of Fortran is
-required. However, if you know C then Fortran can be learned in a
-coupled of days. Because of the interoperability between C and Fortran
-once the wrapper routines are written to interface with \tao the rest
-of your coding can, in principle all be done in C.
+\tao is written in Fortran 95 and a knowledge of Fortran is required. However,
+if you know C then Fortran can be learned in a coupled of days. Because of the
+interoperability between C and Fortran once the wrapper routines are written to
+interface with \tao the rest of your coding can, in principle all be done in C.
 
-\tao relies on extensive use of pointers and logical flags. However,
-all of the structures you will need to use are contained in the
-\vn{tao_struct.f90} module. This module is heavily documented and
-provides all the information needed to use the intrinsic \tao
-structures on your customizations. It is also a very good idea to have
-a copy of \vn{bmad_struct.f90} handy as this contains most of the
-structures used by \bmad.
+\tao relies on extensive use of pointers and logical flags. However, all of the
+structures you will need to use are contained in the \vn{tao_struct.f90}
+module. This module is heavily documented and provides all the information
+needed to use the intrinsic \tao structures on your customizations. It is also a
+very good idea to have a copy of \vn{bmad_struct.f90} handy as this contains
+most of the structures used by \bmad.
 
 %----------------------------------------------------------------
 \section{Compiling your custom Tao}
 \index{Customizing!Compiling}
 
-The \tao libraries can be compiled without compiling an
-executable. Here is where this comes in handy. Since the standard \tao
-subroutines have already been made into libraries, all you need to do
-is compile and link your custom routines with the standard \tao
-subroutines into an executable.
+The \tao libraries can be compiled without compiling an executable. Here is
+where this comes in handy. Since the standard \tao subroutines have already been
+made into libraries, all you need to do is compile and link your custom
+routines with the standard \tao subroutines into an executable.
 
-There are 11 ``hook'' files located in the \cmd{ROOT/tao/hook}
-directory. These are the files you can customize. There are two
-options here.
+There are 11 ``hook'' files located in the \cmd{ROOT/tao/hook} directory. These are
+the files you can customize. There are two options here. 
 \begin{enumerate}
   \item Change the files directly in \cmd{ROOT/tao/hook}, adding any extra
     files you may need, then recompile from the \cmd{ROOT/tao} directory with
   \cmd{gmake -f M.tao}.  \label{cust_option_one}
   \item Copy the hook files to a separate directory say \cmd{ROOT/my_tao},
-    adding any extra files you may need, then write a Makefile to 
-    compile and link these
+    adding any extra files you may need, then write a Makefile to compile and link these
     routines to the main \tao library. \label{cust_option_two}
 \end{enumerate}
-Option~\ref{cust_option_two} is HIGHLY recommended because it keeps
-the \tao distribution tree undisturbed and reserves the possibility to
-create multiple custom \tao programs using the same vanilla \tao
-library. This option is used in the following example.
+Option~\ref{cust_option_two} is HIGHLY recommended because it keeps the \tao
+distribution tree undisturbed and reserves the possibility to create multiple
+custom \tao programs using the same vanilla \tao library. This option is used in
+the following example.
 
 %----------------------------------------------------------------
 \section{An Example}\index{Customizing!Example}
 
-As an example let's include a new data type called
-\vn{particle_emittance}. This will be the non-normalized x and y
-emittance as found from the Courant-Snyder invariant. This data type
-will behave just like any other data type (i.e.  \vn{orbit},
-\vn{phase} etc...). First, we should copy all the hook files to a
-separate directory, call it \cmd{ROOT/my_tao}. Also include the main
-program file from the \cmd{ROOT/tao/program} directory.  (replace
-\vn{ROOT} with whatever top directory you placed the \vn{tao}
-directory.)
+As an example let's include a new data type called \vn{particle_emittance}. This
+will be the non-normalized x and y emittance as found from the Courant-Snyder
+invariant. This data type will behave just like any other data type (i.e.
+\vn{orbit}, \vn{phase} etc...). First, we should copy all the hook files to a
+separate directory, call it \cmd{ROOT/my_tao}. Also include the main program file
+from the \cmd{ROOT/tao/program} directory.  (replace \vn{ROOT} with whatever top
+directory you placed the \vn{tao} directory.)
 \begin{example}
   mkdir ROOT/my_tao
   cp ROOT/tao/hook/*.f90 ROOT/my_tao
@@ -854,18 +833,16 @@ to
   LIB\_SRC\_DIRS :=
   OBJ\_SRC\_DIRS := ./
 \end{example}
-This Makefile will tell gmake to use the tao library that has already
-been created (from \cmd{../tao/code} but the actual library is located
-at \cmd{../lib/libtao.a})
+This Makefile will tell gmake to use the tao library that has already been created (from 
+\cmd{../tao/code} but the actual library is located at \cmd{../lib/libtao.a})
  and then to compile
-all of the hook files, including the main program file
-(\cmd{my_tao_cl.f90}) into object files (everything in \cmd{./}, the
-current directory).  Routines and declarations in object files always
-override similarly named code in the \tao libraries so this allows for
-your local hook files to override the dummy hook files in the \tao
-library. The only downside to this method is it clutters your
-\cmd{my_tao} directory with object files. You can always remove these
-object files with \cmd{gmake clean}.
+all of the hook files, including the main program file (\cmd{my_tao_cl.f90})
+into object files (everything in \cmd{./}, the current directory).  Routines and
+declarations in object files always override similarly named code in the \tao
+libraries so this allows for your local hook files to override the dummy hook
+files in the \tao library. The only downside to this method is it clutters your
+\cmd{my_tao} directory with object files. You can always remove these object files
+with \cmd{gmake clean}.
 
 There are two more lines to alter. change
 \begin{example}
@@ -883,8 +860,8 @@ to
 \begin{example}
   #MAKEFILE := M.tao !using default name for Makefile
 \end{example}
-Notice that this line is just being commented out with a `\#'. You are
-now ready to make your customizations to the hook routines.
+Notice that this line is just being commented out with a `\#'. You are now ready
+to make your customizations to the hook routines.
 
 This example will only require the modification of one file:
 \vn{tao_hook_load_data_array.f90}. The formula for single particle emittance is
@@ -907,9 +884,9 @@ Place the following code in \vn{tao_hook_load_data_array.f90} in the
 		     2 * ele%y%alpha * orb(ix1)%vec(3) * orb(ix1)%vec(4) + &
 		     ele%y%beta * orb(ix1)%vec(4)**2)
 \end{verbatim}
-This defines what is to be calculated for each \vn{particle_emittance}
-datum.  There are two transverse coordinates, so two definitions need
-to be made, one for each dimension.
+This defines what is to be calculated for each \vn{particle_emittance} datum.
+There are two transverse coordinates, so two definitions need to be made, one for
+each dimension.
 
 Now you just need to declare the data types in the \cmd{tao.init} and
 \cmd{tao_plot.init} files. For the sake of this example, modify the
@@ -997,9 +974,8 @@ of the file
 \end{example}
 These namelists are described in detail in Chapter~\ref{c:init}.
 
-We are now ready to compile and then run the program. The \tao library
-should have already been created (in section~\ref{s:get_and_compile})
-so all you need to do is
+We are now ready to compile and then run the program. The \tao library should have
+already been created (in section~\ref{s:get_and_compile}) so all you need to do is
 \begin{example}
   cd ROOT/my_tao
   gmake
@@ -1015,10 +991,10 @@ After your custom \tao initializes type
 \end{example}
 Your plot should look like Figure~\ref{f:plot_emittance}.
 
-The emittance (as calculated) is not constant. This is due to
-dispersion and coupling throughout the ring. \bmad provides a routine
-to find the particle emittance from the twiss parameters that includes
-dispersion and coupling called \vn{orbit_amplitude_calc}.
+The emittance (as calculated) is not constant. This is due to dispersion and
+coupling throughout the ring. \bmad provides a routine to find the particle
+emittance from the twiss parameters that includes dispersion and coupling called
+\vn{orbit_amplitude_calc}.
 
 \begin{figure}
   \centering
@@ -1029,7 +1005,7 @@ dispersion and coupling called \vn{orbit_amplitude_calc}.
 
 \Section{Other Customizations}
 
-The above example just illustrates one of the customizations you can
-perform on \tao.  Part III, Programmer's Guide lays out all of the
-hook files and provides pointers for various customizations.
+The above example just illustrates one of the customizations you can perform on \tao.
+Part III, Programmer's Guide lays out all of the hook files and provides pointers
+for various customizations.
 

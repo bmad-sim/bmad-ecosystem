@@ -18,6 +18,7 @@ recursive subroutine tao_show_cmd (what, stuff)
 
 use tao_mod
 use tao_top10_mod
+use tao_single_mod
 use tao_command_mod, only: tao_cmd_split
 
 implicit none
@@ -28,12 +29,10 @@ type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_data_struct), pointer :: d_ptr
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: v_ptr
-type (tao_var_array_struct), allocatable, save, target :: v_array(:)
 type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
 type (tao_plot_region_struct), pointer :: region
-type (tao_data_array_struct), allocatable, save :: d_array(:)
 
 type (lr_wake_struct), pointer :: lr
 type (ele_struct), pointer :: ele
@@ -53,14 +52,15 @@ character(80), pointer :: ptr_lines(:)
 character(100) file_name
 character(16) ele_name, name, sub_name
 
-character(16) :: show_names(15) = (/ &
-   'data        ', 'var         ', 'global      ', 'alias       ', 'top10       ', &
-   'optimizer   ', 'ele         ', 'lattice     ', 'constraints ', 'plot        ', &
-   'write       ', 'hom         ', 'graph       ', 'curve       ', 'opt_vars    ' /)
+character(16) :: show_names(14) = (/ &
+   'data       ', 'var        ', 'global     ', 'alias      ', 'top10      ', &
+   'optimizer  ', 'ele        ', 'lattice    ', 'constraints', 'plot       ', &
+   'write      ', 'hom        ', 'graph      ', 'curve      ' /)
 
 character(200), allocatable, save :: lines(:)
 character(100) line1, line2
 character(9) angle
+character(4) null_word
 
 integer :: data_number, ix_plane
 integer nl, loc, ixl, iu
@@ -77,6 +77,7 @@ logical, allocatable :: show_here(:)
 
 call reallocate_integer (ix_ele,1)
 call re_allocate (lines, 200, 500)
+null_word = 'null'
 
 err = .false.
 
@@ -109,30 +110,17 @@ if (ix == 0) then
   return
 endif
 
-if (ix < 0) then
-  call out_io (s_error$, r_name, 'SHOW WHAT? AMBIGUOUS: ' // what)
-  return
-endif
-
 call tao_cmd_split (stuff, 2, word, .false., err)
 
 
 select case (show_names(ix))
 
 !----------------------------------------------------------------------
-! optimized_vars
-
-case ('opt_vars')
-
-  call tao_var_write (' ')
-
-!----------------------------------------------------------------------
 ! hom
 
 case ('hom')
 
-  nl=nl+1; lines(nl) = &
-        '       #        Freq         R/Q           Q   m  Polarization_Angle'
+  nl=nl+1; lines(nl) = '       #        Freq         R/Q           Q   m  Polarization_Angle'
   do i = 1, size(u%model%lat%ele_)
     ele => u%model%lat%ele_(i)
     if (ele%key /= lcavity$) cycle
@@ -205,146 +193,158 @@ case ('constraints')
 
 case ('data')
 
+  call tao_pick_universe (word(1), word(1), picked, err)
+  if (err) return
 
-  nl=nl+1; write(lines(nl), *) ' '
+  u_loop: do ju = 1, size(s%u)
+
+    if (.not. picked(ju)) cycle
+    if (.not. associated (s%u(ju)%d2_data)) return 
+    u => s%u(ju)
+
+    if (size(s%u) > 1) then
+      nl=nl+1; write(lines(nl), *) ' '
+      nl=nl+1; write(lines(nl), *) 'Universe:', ju
+    endif
 
 ! If just "show data" then show all names
 
-  if (word(1) == ' ') then
-
-    u => s%u(s%global%u_view)
-
-    if (size(s%u) > 1) then
-      nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', s%global%u_view
-    endif
-
-    nl=nl+1; write (lines(nl), '(62x, a)') 'Bounds' 
-    nl=nl+1; write (lines(nl), '(5x, a, 23x, a, 14x, a)') &
+    if (word(1) == ' ') then
+      nl=nl+1; write (lines(nl), '(62x, a)') 'Bounds' 
+      nl=nl+1; write (lines(nl), '(5x, a, 23x, a, 14x, a)') &
                                         'd2_Name', 'Ix  d1_Name', 'Lower  Upper'
-    do i = 1, size(u%d2_data)
-      d2_ptr => u%d2_data(i)
-      if (d2_ptr%name == ' ') cycle
-      nl=nl+1; write (lines(nl), '(5x, a)') d2_ptr%name
-      do j = lbound(d2_ptr%d1, 1), ubound(d2_ptr%d1, 1)
-        d1_ptr => d2_ptr%d1(j)
-        name = d1_ptr%name
-        if (name == ' ') name = '<blank>'
-        nl=nl+1; write (lines(nl), '(32x, i5, 2x, a, 2x, 2i6)') &
+      do i = 1, size(u%d2_data)
+        d2_ptr => u%d2_data(i)
+        if (d2_ptr%name == ' ') cycle
+        nl=nl+1; write (lines(nl), '(5x, a)') d2_ptr%name
+        do j = lbound(d2_ptr%d1, 1), ubound(d2_ptr%d1, 1)
+          d1_ptr => d2_ptr%d1(j)
+          name = d1_ptr%name
+          if (name == ' ') name = '<blank>'
+          nl=nl+1; write (lines(nl), '(32x, i5, 2x, a, 2x, 2i6)') &
                         j, name, lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
+        enddo
       enddo
-    enddo
-    call out_io (s_blank$, r_name, lines(1:nl))
-    return
-  endif
+      call out_io (s_blank$, r_name, lines(1:nl))
+      cycle u_loop
+    endif
 
 ! get pointers to the data
 
-  call tao_find_data (err, word(1), d2_ptr, d1_ptr, d_array, blank_is_null = .true.)
-  if (err) return
+    call tao_find_data (err, u, word(1), d2_ptr, d1_ptr, d_ptr)
+    if (err) return
 
 ! If d_ptr points to something then show the datum info.
 
-  if (allocated(d_array)) then
-    d_ptr => d_array(1)%d
-    if (size(s%u) > 1) then
-      nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d_ptr%d1%d2%ix_uni
-    endif
-    nl=nl+1; write(lines(nl), amt)  '%Name:              ', d_ptr%name
-    nl=nl+1; write(lines(nl), amt)  '%Ele_name:          ', d_ptr%ele_name
-    nl=nl+1; write(lines(nl), amt)  '%Ele2_name:         ', d_ptr%ele2_name
-    nl=nl+1; write(lines(nl), amt)  '%Data_type:         ', d_ptr%data_type
-    nl=nl+1; write(lines(nl), imt)  '%Ix_ele:            ', d_ptr%ix_ele
-    nl=nl+1; write(lines(nl), imt)  '%Ix_ele2:           ', d_ptr%ix_ele2
-    nl=nl+1; write(lines(nl), imt)  '%Ix_ele_merit:      ', d_ptr%ix_ele_merit
-    nl=nl+1; write(lines(nl), imt)  '%Ix_dModel:         ', d_ptr%ix_dModel
-    nl=nl+1; write(lines(nl), imt)  '%Ix_d1:             ', d_ptr%ix_d1
-    nl=nl+1; write(lines(nl), imt)  '%Ix_data:           ', d_ptr%ix_data
-    nl=nl+1; write(lines(nl), rmt)  '%meas_value:        ', d_ptr%meas_value
-    nl=nl+1; write(lines(nl), rmt)  '%Ref_value:         ', d_ptr%ref_value
-    nl=nl+1; write(lines(nl), rmt)  '%Model_value:       ', d_ptr%model_value
-    nl=nl+1; write(lines(nl), rmt)  '%base_value:        ', d_ptr%base_value
-    nl=nl+1; write(lines(nl), rmt)  '%delta_merit:       ', d_ptr%delta_merit
-    nl=nl+1; write(lines(nl), rmt)  '%Design_value:      ', d_ptr%design_value
-    nl=nl+1; write(lines(nl), rmt)  '%Old_value:         ', d_ptr%old_value
-    nl=nl+1; write(lines(nl), rmt)  '%Fit_value:         ', d_ptr%fit_value
-    nl=nl+1; write(lines(nl), rmt)  '%Merit:             ', d_ptr%merit
-    nl=nl+1; write(lines(nl), rmt)  '%Conversion_factor: ', d_ptr%conversion_factor
-    nl=nl+1; write(lines(nl), rmt)  '%S:                 ', d_ptr%s
-    nl=nl+1; write(lines(nl), rmt)  '%Weight:            ', d_ptr%weight
-    nl=nl+1; write(lines(nl), amt)  '%Merit_type:        ', d_ptr%merit_type
-    nl=nl+1; write(lines(nl), lmt)  '%Exists:            ', d_ptr%exists
-    nl=nl+1; write(lines(nl), lmt)  '%Good_meas:         ', d_ptr%good_meas
-    nl=nl+1; write(lines(nl), lmt)  '%Good_ref:          ', d_ptr%good_ref
-    nl=nl+1; write(lines(nl), lmt)  '%Good_user:         ', d_ptr%good_user
-    nl=nl+1; write(lines(nl), lmt)  '%Good_opt:          ', d_ptr%good_opt
-    nl=nl+1; write(lines(nl), lmt)  '%Good_plot:         ', d_ptr%good_plot
-    nl=nl+1; write(lines(nl), lmt)  '%Useit_plot:        ', d_ptr%useit_plot
-    nl=nl+1; write(lines(nl), lmt)  '%Useit_opt:         ', d_ptr%useit_opt
+    if (associated(d_ptr)) then
+
+      nl=nl+1; write(lines(nl), amt)  '%Name:              ', d_ptr%name
+      nl=nl+1; write(lines(nl), amt)  '%Ele_name:          ', d_ptr%ele_name
+      nl=nl+1; write(lines(nl), amt)  '%Ele2_name:         ', d_ptr%ele2_name
+      nl=nl+1; write(lines(nl), amt)  '%Data_type:         ', d_ptr%data_type
+      nl=nl+1; write(lines(nl), imt)  '%Ix_ele:            ', d_ptr%ix_ele
+      nl=nl+1; write(lines(nl), imt)  '%Ix_ele2:           ', d_ptr%ix_ele2
+      nl=nl+1; write(lines(nl), imt)  '%Ix_ele_merit:      ', d_ptr%ix_ele_merit
+      nl=nl+1; write(lines(nl), imt)  '%Ix_dModel:         ', d_ptr%ix_dModel
+      nl=nl+1; write(lines(nl), imt)  '%Ix_d1:             ', d_ptr%ix_d1
+      nl=nl+1; write(lines(nl), imt)  '%Ix_data:           ', d_ptr%ix_data
+      nl=nl+1; write(lines(nl), rmt)  '%meas_value:        ', d_ptr%meas_value
+      nl=nl+1; write(lines(nl), rmt)  '%Ref_value:         ', d_ptr%ref_value
+      nl=nl+1; write(lines(nl), rmt)  '%Model_value:       ', d_ptr%model_value
+      nl=nl+1; write(lines(nl), rmt)  '%base_value:        ', d_ptr%base_value
+      nl=nl+1; write(lines(nl), rmt)  '%delta_merit:       ', d_ptr%delta_merit
+      nl=nl+1; write(lines(nl), rmt)  '%Design_value:      ', d_ptr%design_value
+      nl=nl+1; write(lines(nl), rmt)  '%Old_value:         ', d_ptr%old_value
+      nl=nl+1; write(lines(nl), rmt)  '%Fit_value:         ', d_ptr%fit_value
+      nl=nl+1; write(lines(nl), rmt)  '%Merit:             ', d_ptr%merit
+      nl=nl+1; write(lines(nl), rmt)  '%Conversion_factor: ', d_ptr%conversion_factor
+      nl=nl+1; write(lines(nl), rmt)  '%S:                 ', d_ptr%s
+      nl=nl+1; write(lines(nl), rmt)  '%Weight:            ', d_ptr%weight
+      nl=nl+1; write(lines(nl), amt)  '%Merit_type:        ', d_ptr%merit_type
+      nl=nl+1; write(lines(nl), lmt)  '%Exists:            ', d_ptr%exists
+      nl=nl+1; write(lines(nl), lmt)  '%Good_meas:         ', d_ptr%good_meas
+      nl=nl+1; write(lines(nl), lmt)  '%Good_ref:          ', d_ptr%good_ref
+      nl=nl+1; write(lines(nl), lmt)  '%Good_user:         ', d_ptr%good_user
+      nl=nl+1; write(lines(nl), lmt)  '%Good_opt:          ', d_ptr%good_opt
+      nl=nl+1; write(lines(nl), lmt)  '%Good_plot:         ', d_ptr%good_plot
+      nl=nl+1; write(lines(nl), lmt)  '%Useit_plot:        ', d_ptr%useit_plot
+      nl=nl+1; write(lines(nl), lmt)  '%Useit_opt:         ', d_ptr%useit_opt
 
 ! Else show the d1_data info.
 
-  elseif (associated(d1_ptr)) then
+    elseif (associated(d1_ptr)) then
 
-    if (size(s%u) > 1) then
-      nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d1_ptr%d2%ix_uni
-    endif
-    
-    nl=nl+1; write(lines(nl), '(2a)') 'Data name: ', trim(d2_ptr%name) // '.' // d1_ptr%name
+      write(lines(1), '(2a)') 'Data name: ', trim(d2_ptr%name) // ':' // d1_ptr%name
+      lines(2) = ' '
+      nl = 2
 
-    line1 = '                                                                  |   Useit'
-    line2 = '     Name                     Meas         Model        Design    | Opt  Plot'
-    nl=nl+1; lines(nl) = line1
-    nl=nl+1; lines(nl) = line2
+      line1 = '                                                                  |   Useit'
+      line2 = '     Name                     Data         Model        Design    | Opt  Plot'
+      nl=nl+1; lines(nl) = line1
+      nl=nl+1; lines(nl) = line2
 
 ! if a range is specified, show the data range   
 
-    call re_allocate (lines, len(lines(1)), nl+100+size(d1_ptr%d))
+      allocate (show_here(lbound(d1_ptr%d,1):ubound(d1_ptr%d,1)))
+      if (word(2) == ' ') then
+        show_here = .true.
+      else
+        call location_decode (word(2), show_here, lbound(d1_ptr%d,1), num_locations)
+        if (num_locations .eq. -1) then
+          call out_io (s_error$, r_name, "Syntax error in range list!")
+          deallocate(show_here)
+          return
+        endif
+      endif
 
-    do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
-      if (.not. d1_ptr%d(i)%exists) cycle
-      if (size(lines) > nl + 50) call re_allocate (lines, len(lines(1)), nl+100)
-      nl=nl+1; write(lines(nl), '(i5, 2x, a16, 3es14.4, 2l6)') i, &
+      call re_allocate (lines, len(lines(1)), nl+100+size(d1_ptr%d))
+
+      do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
+        if (.not. (show_here(i) .and. d1_ptr%d(i)%exists)) cycle
+        if (size(lines) > nl + 50) call re_allocate (lines, len(lines(1)), nl+100)
+        nl=nl+1; write(lines(nl), '(i5, 2x, a16, 3es14.4, 2l6)') i, &
                      d1_ptr%d(i)%name, d1_ptr%d(i)%meas_value, &
                      d1_ptr%d(i)%model_value, d1_ptr%d(i)%design_value, &
                      d1_ptr%d(i)%useit_opt, d1_ptr%d(i)%useit_plot
-    enddo
+      enddo
 
-    nl=nl+1; lines(nl) = line2
-    nl=nl+1; lines(nl) = line1
+      deallocate(show_here)
+
+      nl=nl+1; lines(nl) = line2
+      nl=nl+1; lines(nl) = line1
 
 ! else we must have a valid d2_ptr.
 
-  else 
+    else 
 
-    call re_allocate (lines, len(lines(1)), nl+100+size(d2_ptr%d1))
+      call re_allocate (lines, len(lines(1)), nl+100+size(d2_ptr%d1))
 
-    if (size(s%u) > 1) then
-      nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d2_ptr%ix_uni
-    endif
-    nl=nl+1; write(lines(nl), '(2a)') 'D2_Data type:    ', d2_ptr%name
-    nl=nl+1; write(lines(nl), '(5x, a)') '                   Bounds'
-    nl=nl+1; write(lines(nl), '(5x, a)') 'D1_Data name    lower: Upper' 
+      nl=nl+1; write(lines(nl), '(2a)') 'D2_Data type:    ', d2_ptr%name
+      nl=nl+1; write(lines(nl), '(5x, a)') '                   Bounds'
+      nl=nl+1; write(lines(nl), '(5x, a)') 'D1_Data name    lower: Upper' 
 
-    do i = 1, size(d2_ptr%d1)
-      if (size(lines) > nl + 50) call re_allocate (lines, len(lines(1)), nl+100)
-      nl=nl+1; write(lines(nl), '(5x, a, i5, a, i5)') d2_ptr%d1(i)%name, &
-                  lbound(d2_ptr%d1(i)%d, 1), '.', ubound(d2_ptr%d1(i)%d, 1)
-    enddo
-
-    if (any(d2_ptr%descrip /= ' ')) then
-      call re_allocate (lines, len(lines(1)), nl+100+size(d2_ptr%descrip))
-      nl=nl+1; write (lines(nl), *)
-      nl=nl+1; write (lines(nl), '(a)') 'Descrip:'
-      do i = 1, size(d2_ptr%descrip)
-        if (d2_ptr%descrip(i) /= ' ') then
-          nl=nl+1; write (lines(nl), '(i4, 2a)') i, ': ', d2_ptr%descrip(i)
-        endif
+      do i = 1, size(d2_ptr%d1)
+        if (size(lines) > nl + 50) call re_allocate (lines, len(lines(1)), nl+100)
+        nl=nl+1; write(lines(nl), '(5x, a, i5, a, i5)') d2_ptr%d1(i)%name, &
+                  lbound(d2_ptr%d1(i)%d, 1), ':', ubound(d2_ptr%d1(i)%d, 1)
       enddo
+
+      if (any(d2_ptr%descrip /= ' ')) then
+        call re_allocate (lines, len(lines(1)), nl+100+size(d2_ptr%descrip))
+        nl=nl+1; write (lines(nl), *)
+        nl=nl+1; write (lines(nl), '(a)') 'Descrip:'
+        do i = 1, size(d2_ptr%descrip)
+          if (d2_ptr%descrip(i) /= ' ') then
+            nl=nl+1; write (lines(nl), '(i4, 2a)') i, ': ', d2_ptr%descrip(i)
+          endif
+        enddo
+      endif
+
     endif
 
-  endif
+    call out_io (s_blank$, r_name, lines(1:nl))
 
-  call out_io (s_blank$, r_name, lines(1:nl))
+  enddo u_loop
 
 !----------------------------------------------------------------------
 ! ele
@@ -773,14 +773,17 @@ case ('var')
 
   call string_trim (word(2), word(2), ix)
 ! are we looking at a range of locations?
-
-  call tao_find_var(err, word(1), v1_ptr, v_array, blank_is_null = .true.) 
+  if ((word(2) .eq. ' ') .or. (index(trim(word(2)), ' ') .ne. 0) &
+                                       .or. index(word(2), ':') .ne. 0) then
+    call tao_find_var(err, word(1), v1_ptr, null_word, v_ptr) 
+  else
+    call tao_find_var(err, word(1), v1_ptr, word(2), v_ptr) 
+  endif
+  if (err) return
 
 ! v_ptr is valid then show the variable info.
 
-  if (allocated(v_array)) then
-
-    v_ptr => v_array(1)%v
+  if (associated(v_ptr)) then
 
     nl=nl+1; write(lines(nl), amt)  'Name:          ', v_ptr%name        
     nl=nl+1; write(lines(nl), amt)  'Alias:         ', v_ptr%alias       
@@ -837,7 +840,7 @@ case ('var')
 ! check if there is a variable number
 ! if no variable number requested, show a range
 
-  elseif (associated(v1_ptr)) then
+  else
 
     write(lines(1), '(2a)') 'Variable name:   ', v1_ptr%name
     lines(2) = ' '
@@ -845,20 +848,37 @@ case ('var')
     write (lines(3), *) line1
     nl = 3
     ! if a range is specified, show the variable range   
-    do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
-      if (.not. v1_ptr%v(i)%exists) cycle
-      if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
-      nl=nl+1
-      write(lines(nl), '(i6, 2x, a16, 3es14.4, 7x, l)') i, &
+    if (word(2) .ne. ' ') then
+      allocate (show_here(lbound(v1_ptr%v,1):ubound(v1_ptr%v,1)))
+      call location_decode (word(2), show_here, lbound(v1_ptr%v,1), num_locations)
+      if (num_locations .eq. -1) then
+        call out_io (s_error$, r_name, "Syntax error in range list!")
+        deallocate(show_here)
+        return
+      endif
+      do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
+        if (.not. (show_here(i) .and. v1_ptr%v(i)%exists)) cycle
+        if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
+        nl=nl+1
+        write(lines(nl), '(i6, 2x, a16, 3es14.4, 7x, l)') i, &
                  v1_ptr%v(i)%name, v1_ptr%v(i)%meas_value, &
                  v1_ptr%v(i)%model_value, v1_ptr%v(i)%design_value, v1_ptr%v(i)%useit_opt
-    enddo
-    nl=nl+1
-    write (lines(nl), *) line1
-
-  else
-    lines(1) = '???'
-    nl = 1
+      enddo 
+      nl=nl+1
+      write (lines(nl), *) line1
+      deallocate(show_here)
+    else
+      do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
+        if (.not. v1_ptr%v(i)%exists) cycle
+        if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
+        nl=nl+1
+        write(lines(nl), '(i6, 2x, a16, 3es14.4, 7x, l)') i, &
+                 v1_ptr%v(i)%name, v1_ptr%v(i)%meas_value, &
+                 v1_ptr%v(i)%model_value, v1_ptr%v(i)%design_value, v1_ptr%v(i)%useit_opt
+      enddo
+      nl=nl+1
+      write (lines(nl), *) line1
+    endif
   endif
 
 ! print out results

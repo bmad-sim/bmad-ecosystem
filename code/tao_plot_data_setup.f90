@@ -293,7 +293,7 @@ do k = 1, size(graph%curve)
 ! Case: data_source is a data array
 
   case ('data_array')
-    call tao_find_data (err, curve%data_type, d2_ptr, d1_ptr, ix_uni = i_uni)
+    call tao_find_data (err, u, curve%data_type, d2_ptr, d1_ptr)
     if (err) then
       call out_io (s_error$, r_name, &
                 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
@@ -525,7 +525,7 @@ do k = 1, size(graph%curve)
 
         datum%ix_ele = curve%ix_symb(ie)
 
-        if (datum%data_type(1:3) == 'tt.' .or. datum%data_type(1:2) == 't.') then
+        if (datum%data_type(1:3) == 'tt:' .or. datum%data_type(1:2) == 't:') then
           if (ie == 1) call taylor_make_unit (t_map)
         endif
 
@@ -547,7 +547,7 @@ do k = 1, size(graph%curve)
         end select
         curve%y_symb(ie) = curve%y_symb(ie) + graph%who(m)%sign * y_val
 
-        if (datum%data_type(1:3) == 'tt.' .or. datum%data_type(1:2) == 't.') then
+        if (datum%data_type(1:3) == 'tt:' .or. datum%data_type(1:2) == 't:') then
           if (datum%ix_ele > datum%ix_ele2) datum%ix_ele2 = datum%ix_ele
         endif
 
@@ -640,7 +640,7 @@ do k = 1, size(graph%curve)
   curve%y_symb = curve%y_symb * curve%units_factor
   curve%y_line = curve%y_line * curve%units_factor
 
-  if (curve%data_type(1:6) == 'phase.' .and. n_dat /= 0 .and. curve%ele_ref_name == ' ') then
+  if (curve%data_type(1:6) == 'phase:' .and. n_dat /= 0 .and. curve%ele_ref_name == ' ') then
     f = sum(curve%y_symb) / n_dat
     curve%y_symb = curve%y_symb - f
     curve%y_line = curve%y_line - f 
@@ -684,9 +684,9 @@ else
 endif
 
 data_type_select = data_type
-if (data_type_select(1:2) == 'r.') data_type_select = 'r.'
-if (data_type_select(1:2) == 't.') data_type_select = 't.'
-if (data_type_select(1:3) == 'tt.') data_type_select = 'tt.'
+if (data_type_select(1:2) == 'r:') data_type_select = 'r:'
+if (data_type_select(1:2) == 't:') data_type_select = 't:'
+if (data_type_select(1:3) == 'tt:') data_type_select = 'tt:'
 
 !
 
@@ -700,68 +700,68 @@ do ii = 1, size(curve%x_line)
   call twiss_and_track_at_s (lat, curve%x_line(ii), ele, orb, here)
 
   select case (data_type_select)
-  case ('orbit.x')
+  case ('orbit:x')
     value = here%vec(1)
-  case ('orbit.y')
+  case ('orbit:y')
     value = here%vec(3)
-  case ('orbit.z')
+  case ('orbit:z')
     value = here%vec(5)
-  case ('orbit.p_x')
+  case ('orbit:p_x')
     value = here%vec(2)
-  case ('orbit.p_y')
+  case ('orbit:p_y')
     value = here%vec(4)
-  case ('orbit.p_z')
+  case ('orbit:p_z')
     value = here%vec(6)
-  case ('phase.x')
+  case ('phase:x')
     value = ele%x%phi
-  case ('phase.y')
+  case ('phase:y')
     value = ele%y%phi
-  case ('beta.x', 'beta.a')
+  case ('beta:x', 'beta:a')
     value = ele%x%beta
-  case ('beta.y', 'beta.b')
+  case ('beta:y', 'beta:b')
     value = ele%y%beta
-  case ('alpha.x', 'alpha.a')
+  case ('alpha:x', 'alpha:a')
     value = ele%x%alpha
-  case ('alpha.y', 'alpha.b')
+  case ('alpha:y', 'alpha:b')
     value = ele%y%alpha
-  case ('eta.x')
+  case ('eta:x')
     value = ele%x%eta_lab
-  case ('eta.y')
+  case ('eta:y')
     value = ele%y%eta_lab
-  case ('etap.x')
+  case ('etap:x')
     value = ele%x%etap_lab
-  case ('etap.y')
+  case ('etap:y')
     value = ele%y%etap_lab
-  case ('eta.a')
+  case ('eta:a')
     value = ele%x%eta
-  case ('eta.b')
+  case ('eta:b')
     value = ele%y%eta
-  case ('etap.a')
+  case ('etap:a')
     value = ele%x%etap
-  case ('etap.b')
+  case ('etap:b')
     value = ele%y%etap
   case ('beam_energy')
     value = ele%value(beam_energy$)
-  case ('cbar.11')
+  case ('cbar:11')
     call c_to_cbar (ele, cbar)
     value = cbar(1,1)
-  case ('cbar.12')
+  case ('cbar:12')
     call c_to_cbar (ele, cbar)
     value = cbar(1,2)
-  case ('cbar.21')
+  case ('cbar:21')
     call c_to_cbar (ele, cbar)
     value = cbar(2,1)
-  case ('cbar.22')
+  case ('cbar:22')
     call c_to_cbar (ele, cbar)
     value = cbar(2,2)
-  case ('r.')
+  case ('r:')
     if (ii == 1) call mat_make_unit (mat6)
     if (s_now < s_last) cycle
     i = tao_read_this_index (data_type, 3); if (i == 0) return
     j = tao_read_this_index (data_type, 4); if (j == 0) return
     call tao_mat6_calc_at_s (lat, mat6, s_last, s_now, unit_start = .false.)
     value = mat6(i, j)
-  case ('t.')
+  case ('t:')
     if (ii == 1) call taylor_make_unit (t_map)
     if (s_now < s_last) cycle
     i = tao_read_this_index (data_type, 3); if (i == 0) return
@@ -769,7 +769,7 @@ do ii = 1, size(curve%x_line)
     k = tao_read_this_index (data_type, 5); if (k == 0) return
     call tao_transfer_map_calc_at_s (lat, t_map, s_last, s_now, unit_start = .false.)
     value = taylor_coef (t_map(i), j, k)
-  case ('tt.')
+  case ('tt:')
     if (ii == 1) call taylor_make_unit (t_map)
     if (s_now < s_last) cycle
     expnt = 0

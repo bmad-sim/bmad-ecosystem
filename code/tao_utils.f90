@@ -12,20 +12,20 @@ use bmad
 use output_mod
 
 ! used for parsing expressions
-integer, parameter, private :: plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
-integer, parameter, private :: l_parens$ = 5, r_parens$ = 6, power$ = 7
-integer, parameter, private :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
-integer, parameter, private :: sin$ = 11, cos$ = 12, tan$ = 13
-integer, parameter, private :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
-integer, parameter, private :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
-integer, parameter, private :: numeric$ = 100
+integer, private :: plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
+integer, private :: l_parens$ = 5, r_parens$ = 6, power$ = 7
+integer, private :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
+integer, private :: sin$ = 11, cos$ = 12, tan$ = 13
+integer, private :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
+integer, private :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
+integer, private :: numeric$ = 100
 
-integer, parameter, private :: eval_level(22) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+integer, private :: eval_level(22) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
                             9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 /)
 
 type eval_stack_struct
   integer type
-  real(rp), allocatable :: value(:)
+  real(rp) value
 end type
 
 contains
@@ -37,16 +37,16 @@ contains
 ! Subroutine tao_pick_universe (data_type_in, data_type_out, picked, err)
 !
 ! Subroutine to pick what universe the data name is comming from.
-! If data_type_in begins with "*@" choose all universes.
-! If data_type_in begins with "n@" then choose universe n.
+! If data_type_in ends in ";*" or ";0" choose all universes.
+! If data_type_in ends in ";n" then choose universe n.
 ! If not then choose universe s%global%u_view.
-! data_type_out is data_type_in without any "n@"
+! data_type_out is data_type_in without any ";n"
 !
 ! Input:
 !   data_type_in -- Character(*): data name.
 !
 ! Output:
-!   data_type_out -- Character(*): data_type_in without any "n@" beginning.
+!   data_type_out -- Character(*): data_type_in without any ";n" ending.
 !   picked(:)     -- Logica: Array showing picked universes.
 !   err           -- Logical: Set True if an error is detected.
 !-
@@ -57,9 +57,9 @@ implicit none
 
 character(*) data_type_in, data_type_out
 character(20) :: r_name = 'tao_pick_universe'
-character(8) uni
+character(1) char
 
-integer ix, n, ios, iu
+integer ix, n
 
 logical picked(:)
 logical err
@@ -69,40 +69,40 @@ logical err
 err = .false.
 picked = .false.
 
-! No "@" then simply choose s%global%u_view
+! No ";" then simply choose s%global%u_view
 
-ix = index (data_type_in, '@')
+ix = index (data_type_in, ';')
 if (ix == 0) then
   picked (s%global%u_view) = .true.
   data_type_out = data_type_in
   return
 endif
 
-! Here whn "@" is found...
+! Here whn ";" is found...
 
-uni = data_type_in(:ix-1)
+if (data_type_in(ix+2:) /= ' ') then
+  call out_io (s_error$, r_name, 'BAD DATA NAME: ' // data_type_in)
+  err = .true.
+  return
+endif
 
-if (uni == '*') then
+char = data_type_in(ix+1:ix+1)
+
+if (char == '*' .or. char == '0') then
   picked = .true.
   data_type_out = data_type_in(:ix-1)
   return
 endif
 
-read (uni, '(i)', iostat = ios) iu
-if (ios /= 0) then
-  call out_io (s_error$, r_name, "BAD UNIVERSE NUMBER: " // data_type_in)
-  err = .true.
-  return
-endif
-if (iu == 0) iu = s%global%u_view
-if (iu < 1 .or. iu > size(s%u)) then
-  call out_io (s_error$, r_name, "BAD UNIVERSE NUMBER: " // data_type_in)
-  err = .true.
+n = index ('123456789', char)
+if (n /= 0) then
+  picked(n) = .true.
+  data_type_out = data_type_in(:ix-1)
   return
 endif
 
-data_type_out = data_type_in(ix+1:)
-picked(iu) = .true.
+err = .true.
+call out_io (s_error$, r_name, 'BAD UNIVERSE ENCODING IN DATA NAME: ' // data_type_in)
 
 end subroutine
 
@@ -334,8 +334,8 @@ end subroutine tao_pointer_to_var_in_lattice
 ! Routine to find a plot using the region name.
 ! Optionally find a graph of the plot.
 ! A region name is something like: where = "top"
-! A graph name is something like: where  = "top.x"
-! A curve name is something like: where  = "top.x.1"
+! A graph name is something like: where  = "top:x"
+! A curve name is something like: where  = "top:x:1"
 
 ! Input:
 !   where      -- Character(*): Name to match to.
@@ -373,7 +373,7 @@ logical err
 
 err = .false.
 
-ix = index(where, '.')
+ix = index(where, ':')
 if (ix == 0) then
   plot_name = where
   graph_name = ' '
@@ -449,7 +449,7 @@ logical err
 
 err = .false.
 
-ix = index(where, '.')
+ix = index(where, ':')
 if (ix == 0) then
   plot_name = where
   graph_name = ' '
@@ -518,7 +518,7 @@ logical err
 if (present(graph)) nullify(graph)
 if (present(curve)) nullify(curve)
 
-ix = index(where, '.')
+ix = index(where, ':')
 if (ix == 0) then
   graph_name = where
   curve_name = ' '
@@ -633,429 +633,141 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_find_data (err, data_name, d2_ptr, d1_ptr, d_array, 
-!        r_array, l_array, ix_uni, print_err, all_elements, blank_is_null, component)
+! Subroutine tao_find_data (err, u, data_type, d2_ptr, d1_ptr, d_ptr, print_err)
 !
-! Routine to set data pointers to the correct data structures. 
-!
-! The r_array will be used if the component is one of:
-!   model, base, design, meas, ref, old, fit, weight
-! The l_array will be used if the component is one of:
-!   exists, good_meas, good_ref, good_user, good_opt, good_plot
-! 
-! Setting all_elements = .true. forces something like:
-!   data_name = 'orbit.x[3:10]'
-! to behave like
-!   data_name = 'orbit.x' (= 'orbit.x[*]')
-! That is, all elements of orbit.x are selected
-!
-! Normally 'orbit.x[*]' is synonymous with 'orbit.x' and in both cases d_array
-! will contain all the elements of the data array. If blank_is_null = .true.
-! then 'orbit.x' will be treated as if no elements are specified and d_array
-! will be nullified.
-!
-! Example:
-!   data_name = '*@orbit.x'
-! In this case d2_ptr and d1_ptr will be nullifed since the data can refer to
-! more than one universe. 
-! r_array & l_array will also be nullified since there is no data component specified.
-!
-! Example:
-!   data_name = 'orbit'
-! In this case the default universe will be used. The d1_ptr will be nullified 
-! unless there is only one d1_data struct associated with 'orbit'. 
-! r_array & l_array will also be nullified since there is no data component specified.
-!
-! Example:
-!   data_name = '2@orbit.x[3,7:9]|meas'
-! The measured values for the 3rd, 7th, 8th and 9th elements of orbit.x in universe #2.
-! r_arrray will be allocated and l_array will be nullified.
+! Routine to set data pointers to the correct data.
+! Note: if, say, data_type = 'orbit' then d1_ptr will be nullified unless there
+! if only one d1_data in which case d1_ptr will point to this.
 !
 ! Input:
-!   data_name    -- Character(*): The data name type. Eg: "3@orbit.x[2:5,10]|meas"
-!   ix_uni       -- Integer, optional: Index of default universe to use.
-!                     If ix_uni = 0 then "viewed" universe will be used.
-!                     Also, if not present then the "viewed" universe will be used.
+!   u            -- Tao_universe_struct
+!   data_type    -- Character(*): the data name type. Eg: "orbit:x:3"
 !   print_err    -- Logical, optional: Print error message if data is 
 !                     not found? Default is True.
-!   all_elements -- Logical, optional: If present and True then override element 
-!                     selection and d_array will point to all elements.
-!   blank_is_null -- Logical, optional: See above for sxpanation.
 !
 ! Output:
-!   err        -- Logical: Err condition
-!   d2_ptr     -- Tao_d2_data_struct, optional, Pointer: to the d2 data
-!   d1_ptr     -- Tao_d1_data_struct, optional: Pointer to the d1 data
-!   d_array(:) -- Tao_data_array_struct, allocatable, optional: Pointers to all the matching
-!                   tao_data_structs.
-!   r_array(:) -- Tao_real_array_struct, allocatable, optional: Pointers to all the 
-!                   corresponding values.
-!   l_array(:) -- Tao_logical_array_struct, allocatable, optional: Pointers logical data
-!   component  -- Character(*), optional: Name of the component. E.G: 'good_user'
-!                   set to ' ' if no component present.
+!   err     -- logical: err condition
+!   d2_ptr  -- tao_d2_data_struct, optional, pointer: to the d2 data
+!   d1_ptr  -- tao_d1_data_struct, optional: pointer to the d1 data
+!   d_ptr   -- tao_data_struct, optional: pointer to the data point
 !-
 
-subroutine tao_find_data (err, data_name, d2_ptr, d1_ptr, d_array, &
-           r_array, l_array, ix_uni, print_err, all_elements, blank_is_null, component)
+subroutine tao_find_data (err, u, data_type, d2_ptr, d1_ptr, d_ptr, print_err)
 
 implicit none
 
+type (tao_universe_struct), target           :: u
 type (tao_d2_data_struct), pointer, optional :: d2_ptr
 type (tao_d1_data_struct), pointer, optional :: d1_ptr
-type (tao_data_array_struct), allocatable, optional    :: d_array(:)
-type (tao_real_array_struct), allocatable, optional    :: r_array(:)
-type (tao_logical_array_struct), allocatable, optional    :: l_array(:)
+type (tao_data_struct), pointer, optional    :: d_ptr
+type (tao_d2_data_struct), pointer :: d2_pointer
+type (tao_d1_data_struct), pointer :: d1_pointer
 
-character(*) :: data_name
-character(*), optional :: component
+character(*) :: data_type
 character(20) :: r_name = 'tao_find_data'
-character(60) dat_name, component_name
-character(16), parameter :: real_components(8) = &
-          (/ 'model ', 'base  ', 'design', 'meas  ', 'ref   ', &
-             'old   ', 'fit   ', 'weight' /)
-character(16), parameter :: logic_components(6) = &
-          (/ 'exists   ', 'good_meas', 'good_ref ', 'good_user', 'good_opt ', &
-             'good_plot' /)
+character(16) d2_name, d1_name, d_name
 
-integer, optional :: ix_uni
 integer :: data_num, ios
-integer i, ix, iu
+integer i, ix, ix_plane
 
-logical err, component_here, this_err, print_error
-logical, optional :: print_err, all_elements, blank_is_null
+logical err
+logical, optional :: print_err
 
-! Init
+! init
 
-print_error = logic_option(.true., print_err)
+err = .false.
 
 if (present(d2_ptr)) nullify(d2_ptr)
 if (present(d1_ptr)) nullify(d1_ptr)
-if (present(d_array)) then
-  if (allocated (d_array)) deallocate (d_array)
-endif
-if (present(r_array)) then
-  if (allocated (r_array)) deallocate (r_array)
-endif
-if (present(l_array)) then
-  if (allocated (l_array)) deallocate (l_array)
-endif
+if (present(d_ptr)) nullify(d_ptr)
 
-err = .true.
-
-! Select meas, ref, etc.
-
-ix = index(data_name, '|')
-if (ix == 0) then  ! not present
-  component_here = .false.
-  component_name = ' '
-  dat_name = data_name
-else
-  component_here = .true.
-  component_name = data_name(ix+1:)
-  dat_name = data_name(:ix-1)
-endif
-if (present(component)) component = component_name
-
-call string_trim (dat_name, dat_name, ix)
-
-if (component_here) then
-  call string_trim (component_name, component_name, ix)
-  if (.not. any(component_name == real_components) .and. &
-      .not. any(component_name == logic_components)) then
-    if (print_error) call out_io (s_error$, r_name, "BAD COMPONENT NAME: " // data_name)
-    return            
-  endif
-endif
-
-! Select universe
-
-ix = index(dat_name, '@')
-
-if (ix == 0) then ! No universe specified. Use default
-  iu = integer_option (s%global%u_view, ix_uni)
-  if (iu == 0) iu = s%global%u_view
-  if (iu < 1 .or. iu > size(s%u)) then
-    if (print_error) call out_io (s_error$, r_name, "BAD UNIVERSE NUMBER: " // data_name)
-    return
-  endif
-  call find_this_d2 (s%u(iu), dat_name, this_err)
-
-else ! read universe number
-
-  if (dat_name(:ix-1) == '*') then
-    do i = 1, size(s%u)
-      call find_this_d2 (s%u(i), dat_name(ix+1:), this_err)
-      if (this_err) return
-    enddo
-    if (present(d2_ptr)) nullify(d2_ptr)
-    if (present(d1_ptr)) nullify(d1_ptr)
-
-  else
-    read (dat_name(:ix-1), '(i)', iostat = ios) iu
-    if (ios /= 0) then
-      if (print_error) call out_io (s_error$, r_name, "BAD UNIVERSE NUMBER: " // data_name)
-      return
-    endif
-    if (iu == 0) iu = s%global%u_view
-    if (iu < 1 .or. iu > size(s%u)) then
-      if (print_error) call out_io (s_error$, r_name, "BAD UNIVERSE NUMBER: " // data_name)
-      return
-    endif
-    call find_this_d2 (s%u(iu), dat_name(ix+1:), this_err)
-  endif
-endif
-
-! error check
-
-if (err) then
-  if (print_error) call out_io (s_error$, r_name, "Couldn't find data: " // data_name)
-  return
-endif
-
-!----------------------------------------------------------------------------
-contains
-
-subroutine find_this_d2 (uu, name, this_err)
-
-type (tao_universe_struct) uu
-integer i, ix
-character(*) name
-character(40) d1_name, d2_name
-logical this_err
-
-! Everything before a period is the d2 name.
-! if no period then must be something like name = "orbit" and everything is the d2 name.
-
-ix = index(name, '.')
+ix = index(data_type, ':')
 if (ix == 0) then
-  d2_name = name
-  d1_name = '*'
+  d2_name = data_type
+  d1_name = ' '
 else
-  d2_name = name(1:ix-1)
-  d1_name = name(ix+1:)
+  d2_name = data_type(1:ix-1)
+  d1_name = data_type(ix+1:)
 endif
 
-! loop over matching d2 names
-
-do i = 1, size(uu%d2_data)
-  if (d2_name == '*') then
-    call find_this_d1 (uu%d2_data(i), d1_name, this_err)
-    if (this_err) return
-  elseif (d2_name == uu%d2_data(i)%name) then
-    if (present(d2_ptr)) d2_ptr => uu%d2_data(i)
-    call find_this_d1 (uu%d2_data(i), d1_name, this_err)
-    exit
-  endif
-enddo
-
-end subroutine
-
-!----------------------------------------------------------------------------
-! contains
-
-subroutine find_this_d1 (d2, name, this_err)
-
-type (tao_d2_data_struct) :: d2
-integer i, ix
-character(*) name
-character(40) d1_name, d_name
-logical this_err
-
-! Everything before a '[' is the d1 name.
-
-ix = index(name, '[')
-
+ix = index(d1_name, ':')
 if (ix == 0) then
-  d1_name = name
   d_name = ' '
 else
-  d1_name = name(1:ix-1)
-  d_name = name(ix+1:)
-  ix = index(d_name, ']')
-  if (ix == 0) then
-    if (print_error) call out_io (s_error$, r_name, "NO MATCHING ']': " // data_name)
-    this_err = .true.
-    return
-  endif
-  if (d_name(ix+1:) /= ' ') then
-    if (print_error) call out_io (s_error$, r_name, "GARBAGE AFTER ']': " // data_name)
-    this_err = .true.
-    return
-  endif
-  d_name = d_name(:ix-1)
+  d_name = d1_name(ix+1:)
+  d1_name = d1_name(1:ix-1)
 endif
 
-do i = 1, size(d2%d1)
-  if (d1_name == '*') then
-    call find_this_data (d2%d1(i), d_name, this_err)
-    if (this_err) return
-  elseif (d1_name == d2%d1(i)%name) then
-    if (present(d1_ptr)) d1_ptr => d2%d1(i)
-    call find_this_data (d2%d1(i), d_name, this_err)
+! Point to the correct d2 data type 
+
+call string_trim (d2_name, d2_name, ix) ! Strip off all whitespace
+
+do i = 1, size(u%d2_data)
+  if (d2_name == u%d2_data(i)%name) then
+    d2_pointer => u%d2_data(i) 
+    if (present(d2_ptr)) d2_ptr => d2_pointer
     exit
+  endif
+  if (i == size(u%d2_data)) then
+    if (logic_option (.true., print_err)) &
+          call out_io (s_error$, r_name, "Couldn't find d2_data name: " // d2_name)
+    err = .true.
+    return
   endif
 enddo
 
-end subroutine
+! strip off all whitespace
 
-!----------------------------------------------------------------------------
-! contains
+call string_trim (d1_name, d1_name, ix)
+  
+! point to the correct d1 data type
 
-subroutine find_this_data (d1, name, this_err)
-
-type (tao_d1_data_struct) :: d1
-type (tao_data_array_struct), allocatable, save :: da(:)
-type (tao_real_array_struct), allocatable, save :: ra(:)
-type (tao_logical_array_struct), allocatable, save :: la(:)
-
-integer i, j, nd, nl, i1, i2, num
-
-character(*) name
-character(40) d1_name, d_name
-
-logical this_err
-logical, allocatable, save :: list(:)
-
-!
-
-if (allocated(list)) deallocate(list)
-i1 = lbound(d1%d, 1)
-i2 = ubound(d1%d, 1)
-allocate (list(i1:i2))
-this_err = .false.
-
-if (logic_option(.false., blank_is_null) .and. name == ' ') then
-  err = .false. 
-  return
-
-elseif (logic_option(.false., all_elements) .or. name == '*' .or. name == ' ') then
-  list = .true.
-
-else
-  call location_decode (name, list, i1, num)
-  if (num <  1) then
-    call out_io (s_error$, r_name, "BAD DATA NUMBER(S): " // d_name)
-    this_err = .true.
+do i = 1, size(d2_pointer%d1)
+  if (d1_name == d2_pointer%d1(i)%name) then
+    d1_pointer => d2_pointer%d1(i)
+    if (present(d1_ptr)) d1_ptr => d1_pointer
+    exit
+  endif
+  if (i .eq. size(d2_pointer%d1)) then
+    if (d1_name == ' ') then
+      if (size(d2_pointer%d1) .eq. 1) then
+        d1_pointer => d2_pointer%d1(1)
+        if (present(d1_ptr)) d1_ptr => d1_pointer
+      endif
+      return
+    endif
+    if (logic_option (.true., print_err)) call out_io (s_error$, r_name, &
+                                    "Couldn't find d1_data name: " // d1_name)
+    err = .true.
     return  
   endif
-endif
+enddo
 
-err = .false.
-nl = count(list)
+! point to data point
 
-! data array
+if (.not. present(d_ptr)) return
+if (d_name == ' ') return
 
-if (present(d_array)) then
-
-  if (allocated(d_array)) then
-    nd = size(d_array)
-    allocate (da(nd))
-    deallocate(d_array)
-    allocate (d_array(nl+nd))
-    j = nd
-    d_array(1:nd) = da
-    deallocate(da)
-  else
-    allocate (d_array(nl))
-    j = 0
+do i = lbound(d1_pointer%d, 1), ubound(d1_pointer%d, 1)
+  if (d_name == d1_pointer%d(i)%name) then
+    d_ptr => d1_pointer%d(i)
+    return
   endif
+enddo
 
-  do i = i1, i2
-    if (list(i)) then
-      j = j + 1
-      d_array(j)%d => d1%d(i)
-    endif
-  enddo
-
+read (d_name, '(i)', iostat = ios) data_num
+if (ios /= 0) then
+  call out_io (s_error$, r_name, "BAD DATA NAME OR NUMBER: " // d_name)
+  err = .true.
+  return  
+endif
+if (data_num < lbound(d1_ptr%d, 1) .or. data_num > ubound(d1_ptr%d, 1)) then
+  call out_io (s_error$, r_name, "DATA NUMBER OUT OF RANGE: " // d_name)
+  err = .true.
+  return  
 endif
 
-! real component array
-
-if (present(r_array) .and.  any(component_name == real_components)) then
-
-  if (allocated(r_array)) then
-    nd = size(r_array)
-    allocate (ra(nd))
-    deallocate(r_array)
-    allocate (r_array(nl+nd))
-    j = nd
-    r_array(1:nd) = ra
-    deallocate(ra)
-  else
-    allocate (r_array(nl))
-    j = 0
-  endif
-
-  do i = i1, i2
-    if (list(i)) then
-      j = j + 1
-      select case (component_name)
-      case ('model')
-        r_array(j)%r => d1%d(i)%model_value
-      case ('base')
-        r_array(j)%r => d1%d(i)%base_value
-      case ('design')
-        r_array(j)%r => d1%d(i)%design_value
-      case ('meas')
-        r_array(j)%r => d1%d(i)%meas_value
-      case ('ref')
-        r_array(j)%r => d1%d(i)%ref_value
-      case ('old')
-        r_array(j)%r => d1%d(i)%old_value
-      case ('fit')
-        r_array(j)%r => d1%d(i)%fit_value
-      case ('weight')
-        r_array(j)%r => d1%d(i)%weight
-      case default
-        call out_io (s_fatal$, r_name, "INTERNAL ERROR: REAL")
-      end select
-    endif
-  enddo
-
-endif
-
-! logical component array
-
-if (present(l_array) .and. any(component_name == logic_components)) then
-
-  if (allocated(l_array) .and. component_here) then
-    nd = size(l_array)
-    allocate (la(nd))
-    deallocate(l_array)
-    allocate (l_array(nl+nd))
-    j = nd
-    l_array(1:nd) = la
-    deallocate(la)
-  else
-    allocate (l_array(nl))
-    j = 0
-  endif
-
-  do i = i1, i2
-    if (list(i)) then
-      j = j + 1
-      select case (component_name)
-      case ('exists')
-        l_array(j)%l => d1%d(i)%exists
-      case ('good_meas')
-        l_array(j)%l => d1%d(i)%good_meas
-      case ('good_ref')
-        l_array(j)%l => d1%d(i)%good_ref
-      case ('good_user')
-        l_array(j)%l => d1%d(i)%good_user
-      case ('good_opt')
-        l_array(j)%l => d1%d(i)%good_opt
-      case ('good_plot')
-        l_array(j)%l => d1%d(i)%good_plot
-      case default
-        call out_io (s_fatal$, r_name, "INTERNAL ERROR: LOGIC")
-      end select
-    endif
-  enddo
-
-endif
-
-end subroutine
+if (present(d_ptr)) d_ptr => d1_pointer%d(data_num)
 
 end subroutine tao_find_data
 
@@ -1063,320 +775,87 @@ end subroutine tao_find_data
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine: tao_find_var (err, var_name, v1_ptr, v_array, r_array, l_array,  
-!                             print_err, all_elements, blank_is_null, component)
+! Subroutine: tao_find_var (err, var_name, v1_ptr, var_number, v_ptr)
 !
-! Find a v1 variable type, and variable data then point to it.
+! find a v1 variable type, and variable data then point to it
 !
-! The r_array will be used if the component is one of:
-!   model, base, design, meas, ref, old, step, weight, high_lim, low_lim 
-! The l_array will be used if the component is one of:
-!   exists, good_var, good_user, good_opt, good_plot
-! 
-! Setting all_elements = .true. forces something like:
-!   data_name = 'quad_k1[3:10]'
-! to behave like
-!   data_name = 'quad_k1' (= 'quad_k1[*]')
-! That is, all elements of quad_k1 are selected
+!Input:
+! u    -- tao_universe_struct
+! var_name     -- character(*): the v1_var name
+! var_number    -- integer: (optional) the variable data point.
+!                     If var_number = 'null' then d_ptr will be nullified.
 !
-! Normally 'quad_k1[*]' is synonymous with 'quad_k1' and in both cases v_array
-! will contain all the elements of the data array. If blank_is_null = .true.
-! then 'quad_k1' will be treated as if no elements are specified and v_array
-! will be nullified.
-!
-! Example:
-!   var_name = 'quad_k1[3]|design'
-!
-! Input:
-!   var_name     -- Character(*): Name of the variable.
-!   print_err    -- Logical, optional: Print error message if data is 
-!                     not found? Default is True.
-!   all_elements -- Logical, optional: If present and True then override element 
-!                     selection and v_array will point to all elements.
-!   blank_is_null -- Logical, optional: See above for sxpanation.
-!
-! Output:
-!   err        -- Logical: err condition
-!   v1_ptr     -- Tao_v1_var_struct: pointer to the v1 variable
-!   v_array(:) -- Tao_var_array_struct, allocatable, optional: Pointers to the 
-!                   variable data point
-!   r_array(:) -- Tao_real_array_struct, allocatable, optional: Pointers to all the 
-!                   corresponding values.
-!   l_array(:) -- Tao_logical_array_struct, allocatable, optional: Pointers logical data.
-!   component  -- Character(*), optional: Name of the component. E.G: 'good_user'
-!                   set to ' ' if no component present.
+!Output:
+! err    -- logical: err condition
+! v1_ptr:  -- tao_v1_var_struct: pointer to the v1 variable
+! v_ptr:        -- tao_var_struct: (optional) pointer to the variable data point
 !-
 
-subroutine tao_find_var (err, var_name, v1_ptr, v_array, r_array, l_array, &
-                               print_err, all_elements, blank_is_null, component)
+subroutine tao_find_var (err, var_name, v1_ptr, var_number, v_ptr)
 
 implicit none
 
-type (tao_v1_var_struct), pointer, optional :: v1_ptr
-type (tao_var_array_struct), allocatable, optional    :: v_array(:)
-type (tao_real_array_struct), allocatable, optional    :: r_array(:)
-type (tao_logical_array_struct), allocatable, optional    :: l_array(:)
+logical err
+type (tao_v1_var_struct), pointer, optional  :: v1_ptr
+type (tao_v1_var_struct), pointer :: v1
+type (tao_var_struct), pointer, optional     :: v_ptr
+
+character(*)                                 :: var_name
+character(*), optional                       :: var_number
+character(20) :: r_name = 'tao_find_var'
+character(32) v_name
 
 integer i, ix, n_var, ios
 
-character(16), parameter :: real_components(10) = &
-          (/ 'model   ', 'base    ', 'design  ', 'meas    ', 'ref     ', &
-             'old     ', 'step    ', 'weight  ', 'high_lim', 'low_lim ' /)
-character(16), parameter :: logic_components(5) = &
-          (/ 'exists   ', 'good_var ', 'good_user', 'good_opt ', 'good_plot' /)
+err = .false.
 
-character(*) :: var_name
-character(*), optional :: component
-character(20) :: r_name = 'tao_find_var'
-character(40) v1_name, v_name, component_name
-
-logical, optional :: print_err, all_elements, blank_is_null
-logical err, component_here, this_err, print_error
-
-! Init
-
-print_error = logic_option(.true., print_err)
+! Strip off all whitespace
 
 if (present(v1_ptr)) nullify (v1_ptr)
-if (present(v_array)) then
-  if (allocated (v_array)) deallocate (v_array)
-endif
-if (present(r_array)) then
-  if (allocated (r_array)) deallocate (r_array)
-endif
-if (present(l_array)) then
-  if (allocated (l_array)) deallocate (l_array)
-endif
+if (present(v_ptr)) nullify (v_ptr)
 
-err = .true.
-
-! Select meas, ref, etc.
-
-ix = index(var_name, '|')
-if (ix == 0) then  ! not present
-  component_here = .false.
-  component_name = ' '   ! garbage
-  v1_name = var_name
-else
-  component_here = .true.
-  component_name = var_name(ix+1:)
-  v1_name = var_name(:ix-1)
-endif
-if (present(component)) component = component_name
-
-call string_trim (v1_name, v1_name, ix)
-call string_trim (component_name, component_name, ix)
-
-if (component_here) then
-  if (.not. any(component_name == real_components) .and. &
-      .not. any(component_name == logic_components)) then
-    if (print_error) call out_io (s_error$, r_name, "BAD COMPONENT NAME: " // var_name)
-    return            
-  endif
-endif
-
-! split on '['
-
-ix = index(var_name, '[')
-if (ix == 0) then
-  v_name = ' '
-else
-  v_name  = v1_name(ix+1:)
-  v1_name = v1_name(1:ix-1)
-  ix = index(v_name, ']')
-  if (ix == 0) then
-    if (print_error) call out_io (s_error$, r_name, "NO MATCHING ']': " // var_name)
-    this_err = .true.
-    return
-  endif
-  if (v_name(ix+1:) /= ' ') then
-    if (print_error) call out_io (s_error$, r_name, "GARBAGE AFTER ']': " // var_name)
-    this_err = .true.
-    return
-  endif
-  v_name = v_name(:ix-1)
-endif
-
-call string_trim(v1_name, v1_name, ix)
+call string_trim(var_name, v_name, ix)
 if (ix == 0) then
   err = .true.
-  if (print_error) call out_io (s_error$, r_name, 'VARIABLE NAME IS BLANK')
+  call out_io (s_error$, r_name, 'VARIABLE NAME NAME IS BLANK')
   return
 endif
 
-! Point to the correct v1 var type 
+! Point to the correct v1 data type 
 
-do i = 1, size(s%v1_var)
-  if (v1_name == '*') then
-    call find_this_var (s%v1_var(i), v_name, this_err)
-    if (this_err) return
-  elseif (v1_name == s%v1_var(i)%name) then
-    if (present(v1_ptr)) v1_ptr => s%v1_var(i)
-    call find_this_var (s%v1_var(i), v_name, this_err)
-    exit
-  endif
-enddo
+  do i = 1, size(s%v1_var)
+    if (v_name == s%v1_var(i)%name) then
+      v1 => s%v1_var(i) 
+      if (present(v1_ptr)) v1_ptr => s%v1_var(i) 
+      exit
+    endif
+    if (i .eq. size(s%v1_var)) then
+      call out_io (s_error$, r_name, &
+                        "COULD NOT FIND VARIABLE NAME: " // v_name)
+      err = .true.
+      return
+    endif
+  enddo
 
-!----------------------------------------------------------------------------
-contains
+! point to variable data point
 
-subroutine find_this_var (v1, name, this_err)
+  if (.not. present(var_number)) return
+  if (var_number == 'null') return
 
-type (tao_v1_var_struct) :: v1
-type (tao_var_array_struct), allocatable, save :: va(:)
-type (tao_real_array_struct), allocatable, save :: ra(:)
-type (tao_logical_array_struct), allocatable, save :: la(:)
-
-integer i, j, nd, nl, i1, i2, num
-
-character(*) name
-character(40) v1_name, v_name
-
-logical this_err
-logical, allocatable, save :: list(:)
-
-!
-
-if (allocated(list)) deallocate(list)
-i1 = lbound(v1%v, 1)
-i2 = ubound(v1%v, 1)
-allocate (list(i1:i2))
-this_err = .false.
-
-if (logic_option(.false., blank_is_null) .and. name == ' ') then
-  err = .false. 
-  return
-
-elseif (logic_option(.false., all_elements) .or. name == '*' .or. name == ' ') then
-  list = .true.
-
-else
-  call location_decode (name, list, i1, num)
-  if (num <  1) then
-    call out_io (s_error$, r_name, "BAD DATA NUMBER(S): " // var_name)
-    this_err = .true.
+  read (var_number, '(i)', iostat = ios) n_var
+  if (ios /= 0) then
+    call out_io (s_error$, r_name, "BAD VAR_NUMBER: " // var_number)
+    err = .true.
     return  
   endif
-endif
-
-err = .false.
-nl = count(list)
-
-! real array
-
-if (present(v_array)) then
-
-  if (allocated(v_array)) then
-    nd = size(v_array)
-    allocate (va(nd))
-    deallocate(v_array)
-    allocate (v_array(nl+nd))
-    j = nd
-    v_array(1:nd) = va
-    deallocate(va)
-  else
-    allocate (v_array(nl))
-    j = 0
+  if (n_var < lbound(v1%v, 1) .or. n_var > ubound(v1%v, 1)) then
+    call out_io (s_error$, r_name, &
+                                "VAR_NUMBER OUT OF RANGE: " // var_number)
+    err = .true.
+    return  
   endif
 
-  do i = i1, i2
-    if (list(i)) then
-      j = j + 1
-      v_array(j)%v => v1%v(i)
-    endif
-  enddo
-
-endif
-
-! real component array
-
-if (present(r_array) .and.  any(component_name == real_components)) then
-
-  if (allocated(r_array)) then
-    nd = size(r_array)
-    allocate (ra(nd))
-    deallocate(r_array)
-    allocate (r_array(nl+nd))
-    j = nd
-    r_array(1:nd) = ra
-    deallocate(ra)
-  else
-    allocate (r_array(nl))
-    j = 0
-  endif
-
-  do i = i1, i2
-    if (list(i)) then
-      j = j + 1
-      select case (component_name)
-      case ('model')
-        r_array(j)%r => v1%v(i)%model_value
-      case ('base')
-        r_array(j)%r => v1%v(i)%base_value
-      case ('design')
-        r_array(j)%r => v1%v(i)%design_value
-      case ('meas')
-        r_array(j)%r => v1%v(i)%meas_value
-      case ('ref')
-        r_array(j)%r => v1%v(i)%ref_value
-      case ('old')
-        r_array(j)%r => v1%v(i)%old_value
-      case ('step')
-        r_array(j)%r => v1%v(i)%step
-      case ('weight')
-        r_array(j)%r => v1%v(i)%weight
-      case ('high_lim')
-        r_array(j)%r => v1%v(i)%high_lim
-      case ('low_lim')
-        r_array(j)%r => v1%v(i)%low_lim
-      case default
-        call out_io (s_fatal$, r_name, "INTERNAL ERROR: REAL")
-      end select
-    endif
-  enddo
-
-endif
-
-! logical component array
-
-if (present(l_array) .and. any(component_name == logic_components)) then
-
-  if (allocated(l_array) .and. component_here) then
-    nd = size(l_array)
-    allocate (la(nd))
-    deallocate(l_array)
-    allocate (l_array(nl+nd))
-    j = nd
-    l_array(1:nd) = la
-    deallocate(la)
-  else
-    allocate (l_array(nl))
-    j = 0
-  endif
-
-  do i = i1, i2
-    if (list(i)) then
-      j = j + 1
-      select case (component_name)
-      case ('exists')
-        l_array(j)%l => v1%v(i)%exists
-      case ('good_var')
-        l_array(j)%l => v1%v(i)%good_var
-      case ('good_user')
-        l_array(j)%l => v1%v(i)%good_user
-      case ('good_opt')
-        l_array(j)%l => v1%v(i)%good_opt
-      case ('good_plot')
-        l_array(j)%l => v1%v(i)%good_plot
-      case default
-        call out_io (s_fatal$, r_name, "INTERNAL ERROR: LOGIC")
-      end select
-    endif
-  enddo
-
-endif
-
-end subroutine
+  if (present(v_ptr)) v_ptr => v1%v(n_var)
 
 end subroutine tao_find_var
 
@@ -1414,15 +893,6 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
-!+
-! Subroutine tao_set_var_model_value (var, value)
-!
-! Subroutine to set the value for a model variable and do the necessary bookkeeping.
-!
-! Input:
-!   var   -- Tao_var_struct: Variable to set
-!   value -- Real(rp): Value to set to
-!-
 
 subroutine tao_set_var_model_value (var, value)
 
@@ -1525,50 +995,19 @@ end subroutine tao_lat_bookkeeper
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_to_real (expression, value, err_flag)
+! Subroutine tao_to_real (word, value, err_flag)
 !
-! Mathematically evaluates a character expression.
+! mathematically evaluates a character expression.
 !
 ! Input:
-!   expression   -- character(*): arithmetic expression
+!  expression   -- character(*): arithmetic expression
 !  
 ! Output:
-!   value        -- real(rp): Value of arithmetic expression.
-!   err_flag     -- Logical: TRUE on error.
+!  value        -- real(rp): value of arithmetic expression
+!  err_flag     -- Logical: TRUE on error
 !-
 
 subroutine tao_to_real (expression, value, err_flag)
-
-character(*), intent(in) :: expression
-real(rp) value
-real(rp), allocatable :: vec(:)
-logical err_flag
-
-!
-
-call tao_to_real_vector (expression, vec, err_flag)
-if (err_flag) return
-value = vec(1)
-
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine tao_to_real_vector (expression, value, err_flag)
-!
-! Mathematically evaluates a character expression.
-!
-! Input:
-!   expression   -- character(*): arithmetic expression
-!  
-! Output:
-!   value(:)     -- real(rp): Value of arithmetic expression.
-!   err_flag     -- Logical: TRUE on error.
-!-
-
-subroutine tao_to_real_vector (expression, value, err_flag)
 
 use random_mod
 
@@ -1576,42 +1015,40 @@ implicit none
 
 type (eval_stack_struct) stk(200)
 
-integer i_lev, i_op, i, ios, n, n_size, p2, p2_1
-integer ptr(-1:200)
+integer i_lev, i_op, i, ios
 
 integer op_(200), ix_word, i_delim, i2, ix_word2
 
-real(rp), allocatable :: value(:)
+real(rp) value
 
 character(*), intent(in) :: expression
 character(100) phrase
 character(1) delim
 character(40) word, word2
-character(16) :: r_name = "tao_to_real_vector"
+character(16) :: r_name = "parse_expression"
 
 logical delim_found, split, ran_function_pending
-logical err_flag, err
+logical err_flag
 
 ! Don't destroy the input expression
 
-err_flag = .true.
+  err_flag = .true.
 
-if (len(expression) .gt. len(phrase)) then
-  call out_io (s_warn$, r_name, &
-    "Expression cannot be longer than /I3/ characters", len(phrase))
-  return
-endif
-phrase = expression
+  if (len(expression) .gt. len(phrase)) then
+    call out_io (s_warn$, r_name, &
+      "Expression cannot be longer than /I3/ characters", len(phrase))
+    return
+  endif
+  read (expression, '(a)') phrase
 
 ! if phrase is blank then return 0.0
-
-call string_trim (phrase, phrase, ios)
-if (ios == 0) then
-  call out_io (s_warn$, r_name, &
-    "Expression is blank", len(phrase))
-  value = 0.0
-  return
-endif
+  call string_trim (phrase, phrase, ios)
+  if (ios == 0) then
+    call out_io (s_warn$, r_name, &
+      "Expression is blank", len(phrase))
+    value = 0.0
+    return
+  endif
  
 ! The general idea is to rewrite the phrase on a stack in reverse polish.
 ! Reverse polish means that the operand goes last so that 2 * 3 is writen 
@@ -1624,10 +1061,10 @@ endif
 
 ! init
 
-err_flag = .false.
-i_lev = 0
-i_op = 0
-ran_function_pending = .false.
+  err_flag = .false.
+  i_lev = 0
+  i_op = 0
+  ran_function_pending = .false.
 
 ! parsing loop to build up the stack.
 
@@ -1635,21 +1072,23 @@ ran_function_pending = .false.
 
 ! get a word
 
-  call word_read (phrase, '+-*/()^,:}[ ', word, ix_word, delim, &
+    call word_read (phrase, '+-*/()^,:} ', word, ix_word, delim, &
                     delim_found, phrase)
+    call str_upcase (word, word)
+!   call get_next_word (word, ix_word, '+-*/()^,:} ', delim, delim_found)
 
-  if (delim == '*' .and. word(1:1) == '*') then
-    call out_io (s_warn$, r_name, 'EXPONENTIATION SYMBOL IS "^" AS OPPOSED TO "**" for!')
-    err_flag = .true.
-    return
-  endif
+    if (delim == '*' .and. word(1:1) == '*') then
+      call out_io (s_warn$, r_name, 'EXPONENTIATION SYMBOL IS "^" AS OPPOSED TO "**" for!')
+      err_flag = .true.
+      return
+    endif
 
-  if (ran_function_pending .and. (ix_word /= 0 .or. delim /= ')')) then
-        call out_io (s_warn$, r_name, &
-                   'RAN AND RAN_GAUSS DO NOT TAKE AN ARGUMENT')
-    err_flag = .true.
-    return
-  endif
+    if (ran_function_pending .and. (ix_word /= 0 .or. delim /= ')')) then
+          call out_io (s_warn$, r_name, &
+             'RAN AND RAN_GAUSS DO NOT TAKE AN ARGUMENT')
+      err_flag = .true.
+      return
+    endif
 
 !--------------------------
 ! Preliminary: If we have split up something that should have not been split
@@ -1658,377 +1097,303 @@ ran_function_pending = .false.
 ! just make sure we are not chopping a number in two, e.g. "3.5e-7" should not
 ! get split at the "-" even though "-" is a delimiter
 
-  split = .true.         ! assume initially that we have a split number
-  if (ix_word == 0) then
-    split = .false.
-  elseif (word(ix_word:ix_word) /= 'E' .and. word(ix_word:ix_word) /= 'e' ) then
-    split = .false.
-  endif
-  if (delim(1:1) /= '-' .and. delim(1:1) /= '+') split = .false.
-  do i = 1, ix_word-1
-    if (index('.0123456789', word(i:i)) == 0) split = .false.
-  enddo
+    split = .true.         ! assume initially that we have a split number
+    if (ix_word == 0) then
+      split = .false.
+    elseif (word(ix_word:ix_word) /= 'E') then
+      split = .false.
+    endif
+    if (delim(1:1) /= '-' .and. delim(1:1) /= '+') split = .false.
+    do i = 1, ix_word-1
+      if (index('.0123456789', word(i:i)) == 0) split = .false.
+    enddo
 
 ! If still SPLIT = .TRUE. then we need to unsplit
 
-  if (split) then
-    word = word(:ix_word) // delim
-    call word_read (phrase, '+-*/()^,:}', word2, ix_word2, delim, &
-                    delim_found, phrase)
-    word = word(:ix_word+1) // word2
-    ix_word = ix_word + ix_word2
-  endif
-
-! Something like "lcav[lr(2).freq]" will get split on the "["
-
-  if (delim == '[') then
-    call word_read (phrase, ']', word2, ix_word2, delim, &
-                    delim_found, phrase)
-    if (.not. delim_found) then
-      call out_io (s_warn$, r_name, "NO MATCHING ']' FOR OPENING '[':" // expression)
-      err_flag = .true.
-      return
-    endif
-    word = word(:ix_word) // '[' // trim(word2) // ']'
-    ix_word = ix_word + ix_word2 + 2
-    if (phrase(1:1) /= ' ') then  ! even more...
+    if (split) then
+      word = word(:ix_word) // delim
       call word_read (phrase, '+-*/()^,:}', word2, ix_word2, delim, &
-                                                  delim_found, phrase)
-      word = word(:ix_word) // trim(word2)       
-      ix_word = ix_word + ix_word2 
+                    delim_found, phrase)
+      call str_upcase (word2, word2)
+      word = word(:ix_word+1) // word2
+      ix_word = ix_word + ix_word2
     endif
-  endif
 
-  call str_upcase (word2, word)
+! Something like "lcav[lr(2).freq]" will get split on the "("
+
+    if (delim == '(' .and. index(word, '[LR') /= 0) then
+      call word_read (phrase, '+-*/(^,:}', word2, ix_word2, delim, &
+                    delim_found, phrase)
+      call str_upcase (word2, word2)
+      word = word(:ix_word) // '(' // word2
+      ix_word = ix_word + ix_word2
+    endif
 
 !---------------------------
 ! Now see what we got...
 
 ! For a "(" delim we must have a function
 
-  if (delim == '(') then
+    if (delim == '(') then
 
-    ran_function_pending = .false.
-    if (ix_word /= 0) then
-      select case (word2)
-      case ('SIN') 
-        call pushit (op_, i_op, sin$)
-      case ('COS') 
-        call pushit (op_, i_op, cos$)
-      case ('TAN') 
-        call pushit (op_, i_op, tan$)
-      case ('ASIN') 
-        call pushit (op_, i_op, asin$)
-      case ('ACOS') 
-        call pushit (op_, i_op, acos$)
-      case ('ATAN') 
-        call pushit (op_, i_op, atan$)
-      case ('ABS') 
-        call pushit (op_, i_op, abs$)
-      case ('SQRT') 
-        call pushit (op_, i_op, sqrt$)
-      case ('LOG') 
-        call pushit (op_, i_op, log$)
-      case ('EXP') 
-        call pushit (op_, i_op, exp$)
-      case ('RAN') 
-        call pushit (op_, i_op, ran$)
-        ran_function_pending = .true.
-      case ('RAN_GAUSS') 
-        call pushit (op_, i_op, ran_gauss$)
-        ran_function_pending = .true.
-      case default
-        call out_io (s_warn$, r_name, &
+      ran_function_pending = .false.
+      if (ix_word /= 0) then
+        select case (word)
+        case ('SIN') 
+          call pushit (op_, i_op, sin$)
+        case ('COS') 
+          call pushit (op_, i_op, cos$)
+        case ('TAN') 
+          call pushit (op_, i_op, tan$)
+        case ('ASIN') 
+          call pushit (op_, i_op, asin$)
+        case ('ACOS') 
+          call pushit (op_, i_op, acos$)
+        case ('ATAN') 
+          call pushit (op_, i_op, atan$)
+        case ('ABS') 
+          call pushit (op_, i_op, abs$)
+        case ('SQRT') 
+          call pushit (op_, i_op, sqrt$)
+        case ('LOG') 
+          call pushit (op_, i_op, log$)
+        case ('EXP') 
+          call pushit (op_, i_op, exp$)
+        case ('RAN') 
+          call pushit (op_, i_op, ran$)
+          ran_function_pending = .true.
+        case ('RAN_GAUSS') 
+          call pushit (op_, i_op, ran_gauss$)
+          ran_function_pending = .true.
+        case default
+          call out_io (s_warn$, r_name, &
                'UNEXPECTED CHARACTERS ON RHS BEFORE "(": ')
-        err_flag = .true.
-        return
-      end select
-    endif
+          err_flag = .true.
+          return
+        end select
+      endif
 
-    call pushit (op_, i_op, l_parens$)
-    cycle parsing_loop
+      call pushit (op_, i_op, l_parens$)
+      cycle parsing_loop
 
 ! for a unary "-"
 
-  elseif (delim == '-' .and. ix_word == 0) then
-    call pushit (op_, i_op, unary_minus$)
-    cycle parsing_loop
+    elseif (delim == '-' .and. ix_word == 0) then
+      call pushit (op_, i_op, unary_minus$)
+      cycle parsing_loop
 
 ! for a unary "+"
 
-    call pushit (op_, i_op, unary_plus$)
-    cycle parsing_loop
+      call pushit (op_, i_op, unary_plus$)
+      cycle parsing_loop
 
 ! for a ")" delim
 
-  elseif (delim == ')') then
-    if (ix_word == 0) then
-      if (.not. ran_function_pending) call out_io (s_warn$, r_name, &
+    elseif (delim == ')') then
+      if (ix_word == 0) then
+        if (.not. ran_function_pending) call out_io (s_warn$, r_name, &
               'CONSTANT OR VARIABLE MISSING BEFORE ")"')
-      err_flag = .true.
-      return
-    else
-      call pushit (stk%type, i_lev, numeric$)
-      call read_this_value (word, stk(i_lev))
-      if (err_flag) return
-    endif
+        err_flag = .true.
+        return
+      else
+        read (word, *, iostat = ios) value
+        if (ios .ne. 0) then
+          call out_io (s_warn$, r_name, &
+                "This doesn't seem to be a number: /a/", word)
+          err_flag = .true.
+          return
+        endif
+        call pushit (stk%type, i_lev, numeric$)
+        stk(i_lev)%value = value
+      endif
 
-    do
-      do i = i_op, 1, -1     ! release pending ops
-        if (op_(i) == l_parens$) exit          ! break do loop
-        call pushit (stk%type, i_lev, op_(i))
+      do
+        do i = i_op, 1, -1     ! release pending ops
+          if (op_(i) == l_parens$) exit          ! break do loop
+          call pushit (stk%type, i_lev, op_(i))
+        enddo
+
+        if (i == 0) then
+          call out_io (s_warn$, r_name, 'UNMATCHED ")" ON RHS')
+          err_flag = .true.
+          return
+        endif
+
+        i_op = i - 1
+
+        call word_read (phrase, '+-*/()^,:}', word, ix_word, delim, &
+                    delim_found, phrase)
+        call str_upcase (word, word)
+        if (ix_word /= 0) then
+          call out_io (s_warn$, r_name, &
+                   'UNEXPECTED CHARACTERS ON RHS AFTER ")"')
+          err_flag = .true.
+          return
+        endif
+
+        if (delim /= ')') exit  ! if no more ')' then no need to release more
       enddo
 
-      if (i == 0) then
-        call out_io (s_warn$, r_name, 'UNMATCHED ")" ON RHS')
+
+      if (delim == '(') then
+        call out_io (s_warn$, r_name,  &
+                    '")(" CONSTRUCT DOES NOT MAKE SENSE')
         err_flag = .true.
         return
       endif
-
-      i_op = i - 1
-
-      call word_read (phrase, '+-*/()^,:}', word, ix_word, delim, &
-                    delim_found, phrase)
-      if (ix_word /= 0) then
-        call out_io (s_warn$, r_name, &
-                   'UNEXPECTED CHARACTERS ON RHS AFTER ")"')
-        err_flag = .true.
-        return
-      endif
-
-      if (delim /= ')') exit  ! if no more ')' then no need to release more
-    enddo
-
-
-    if (delim == '(') then
-      call out_io (s_warn$, r_name, '")(" CONSTRUCT DOES NOT MAKE SENSE')
-      err_flag = .true.
-      return
-    endif
 
 ! For binary "+-/*^" delims
 
-  else
-    if (ix_word == 0) then
-      call out_io (s_warn$, r_name, 'CONSTANT OR VARIABLE MISSING')
-      err_flag = .true.
-      return
+    else
+      if (ix_word == 0) then
+        call out_io (s_warn$, r_name, 'CONSTANT OR VARIABLE MISSING')
+        err_flag = .true.
+        return
+      endif
+      read (word, *, iostat = ios) value
+      if (ios .ne. 0) then
+        call out_io (s_warn$, r_name, &
+              "This doesn't seem to be a number: /a/", word)
+        err_flag = .true.
+        return
+      endif
+      call pushit (stk%type, i_lev, numeric$)
+      stk(i_lev)%value = value
     endif
-    call pushit (stk%type, i_lev, numeric$)
-    call read_this_value (word, stk(i_lev))
-    if (err_flag) return
-  endif
 
 ! If we are here then we have an operation that is waiting to be identified
 
-  if (.not. delim_found) delim = ':'
+    if (.not. delim_found) delim = ':'
 
-  select case (delim)
-  case ('+')
-    i_delim = plus$
-  case ('-')
-    i_delim = minus$
-  case ('*')
-    i_delim = times$
-  case ('/')
-    i_delim = divide$
-  case (')')
-    i_delim = r_parens$
-  case ('^')
-    i_delim = power$
-  case (',', '}', ':')
-    i_delim = no_delim$
-  case default
-      call out_io (s_error$, r_name, 'INTERNAL ERROR')
-      call err_exit
-  end select
+    select case (delim)
+    case ('+')
+      i_delim = plus$
+    case ('-')
+      i_delim = minus$
+    case ('*')
+      i_delim = times$
+    case ('/')
+      i_delim = divide$
+    case (')')
+      i_delim = r_parens$
+    case ('^')
+      i_delim = power$
+    case (',', '}', ':')
+      i_delim = no_delim$
+    case default
+        call out_io (s_error$, r_name, 'INTERNAL ERROR')
+        call err_exit
+    end select
 
 ! now see if there are operations on the OP_ stack that need to be transferred
 ! to the STK_ stack
 
-  do i = i_op, 1, -1
-    if (eval_level(op_(i)) >= eval_level(i_delim)) then
-      if (op_(i) == l_parens$) then
-        call out_io (s_warn$, r_name, 'UNMATCHED "("')
-        err_flag = .true.
-        return
+    do i = i_op, 1, -1
+      if (eval_level(op_(i)) >= eval_level(i_delim)) then
+        if (op_(i) == l_parens$) then
+          call out_io (s_warn$, r_name, 'UNMATCHED "("')
+          err_flag = .true.
+          return
+        endif
+        call pushit (stk%type, i_lev, op_(i))
+      else
+        exit
       endif
-      call pushit (stk%type, i_lev, op_(i))
-    else
-      exit
-    endif
-  enddo
+    enddo
 
 ! put the pending operation on the OP_ stack
 
-  i_op = i
-  if (i_delim == no_delim$) then
-    exit parsing_loop
-  else
-    call pushit (op_, i_op, i_delim)
-  endif
+    i_op = i
+    if (i_delim == no_delim$) then
+      exit parsing_loop
+    else
+      call pushit (op_, i_op, i_delim)
+    endif
 
-enddo parsing_loop
+  enddo parsing_loop
 
 !------------------------------------------------------------------
-! Now go through the stack and perform the operations...
-! First some error checks
+! now go through the stack and perform the operations
 
-if (i_op /= 0) then
-  call out_io (s_warn$, r_name, 'UNMATCHED "("')
-  err_flag = .true.
-  return
-endif
-
-if (i_lev == 0) then
-  call out_io (s_warn$, r_name, 'NO VALUE FOUND')
-  err_flag = .true.
-  return
-endif
-
-n_size = 1
-do i = 1, i_lev
-  if (stk(i)%type /= numeric$) cycle
-  n = size(stk(i)%value)
-  if (n == 1) cycle
-  if (n_size == 1) n_size = n
-  if (n /= n_size) then
-    call out_io (s_warn$, r_name, 'ARRAY SIZE MISMATCH')
+  if (i_op /= 0) then
+    call out_io (s_warn$, r_name, 'UNMATCHED "("')
     err_flag = .true.
     return
   endif
-enddo
 
-!
+  if (i_lev == 0) then
+    call out_io (s_warn$, r_name, 'NO VALUE FOUND')
+    err_flag = .true.
+    return
+  endif
 
-i2 = 0  ! stack pointer
-do i = 1, i_lev
-
-  p2   = ptr(i2)
-  p2_1 = ptr(i2-1)
-
-  select case (stk(i)%type)
-  case (numeric$) 
-    i2 = i2 + 1
-    ptr(i2) = i
-
-  case (unary_minus$) 
-    stk(i2)%value = -stk(i2)%value
-
-  case (unary_plus$) 
-    stk(i2)%value = stk(i2)%value
-
-  case (plus$) 
-    if (size(stk(p2)%value) < size(stk(p2_1)%value)) then
-      stk(p2_1)%value = stk(p2_1)%value + stk(p2)%value(1)
-    elseif (size(stk(p2)%value) > size(stk(p2_1)%value)) then
-      stk(p2)%value = stk(p2_1)%value(1) + stk(p2)%value
-      ptr(i2-1) = i2
+  i2 = 0
+  do i = 1, i_lev
+    if (stk(i)%type == numeric$) then
+      i2 = i2 + 1
+      stk(i2)%value = stk(i)%value
+    elseif (stk(i)%type == unary_minus$) then
+      stk(i2)%value = -stk(i2)%value
+    elseif (stk(i)%type == unary_plus$) then
+      stk(i2)%value = stk(i2)%value
+    elseif (stk(i)%type == plus$) then
+      stk(i2-1)%value = stk(i2-1)%value + stk(i2)%value
+      i2 = i2 - 1
+    elseif (stk(i)%type == minus$) then
+      stk(i2-1)%value = stk(i2-1)%value - stk(i2)%value
+      i2 = i2 - 1
+    elseif (stk(i)%type == times$) then
+      stk(i2-1)%value = stk(i2-1)%value * stk(i2)%value
+      i2 = i2 - 1
+    elseif (stk(i)%type == divide$) then
+      if (stk(i2)%value == 0) then
+        call out_io  (s_warn$, r_name, 'DIVIDE BY 0 ON RHS')
+        err_flag = .true.
+        return
+      endif
+      stk(i2-1)%value= stk(i2-1)%value / stk(i2)%value
+      i2 = i2 - 1
+    elseif (stk(i)%type == power$) then
+      stk(i2-1)%value = stk(i2-1)%value**stk(i2)%value
+      i2 = i2 - 1
+    elseif (stk(i)%type == sin$) then
+      stk(i2)%value = sin(stk(i2)%value)
+    elseif (stk(i)%type == cos$) then
+      stk(i2)%value = cos(stk(i2)%value)
+    elseif (stk(i)%type == tan$) then
+      stk(i2)%value = tan(stk(i2)%value)
+    elseif (stk(i)%type == asin$) then
+      stk(i2)%value = asin(stk(i2)%value)
+    elseif (stk(i)%type == acos$) then
+      stk(i2)%value = acos(stk(i2)%value)
+    elseif (stk(i)%type == atan$) then
+      stk(i2)%value = atan(stk(i2)%value)
+    elseif (stk(i)%type == abs$) then
+      stk(i2)%value = abs(stk(i2)%value)
+    elseif (stk(i)%type == sqrt$) then
+      stk(i2)%value = sqrt(stk(i2)%value)
+    elseif (stk(i)%type == log$) then
+      stk(i2)%value = log(stk(i2)%value)
+    elseif (stk(i)%type == exp$) then
+      stk(i2)%value = exp(stk(i2)%value)
+    elseif (stk(i)%type == ran$) then
+      i2 = i2 + 1
+      call ran_uniform(stk(i2)%value)
+    elseif (stk(i)%type == ran_gauss$) then
+      i2 = i2 + 1
+      call ran_gauss(stk(i2)%value)
     else
-      stk(p2_1)%value = stk(p2_1)%value + stk(p2)%value
-    endif
-    i2 = i2 - 1
-
-  case (minus$) 
-    if (size(stk(p2)%value) < size(stk(p2_1)%value)) then
-      stk(p2_1)%value = stk(p2_1)%value - stk(p2)%value(1)
-    elseif (size(stk(p2)%value) > size(stk(p2_1)%value)) then
-      stk(p2)%value = stk(p2_1)%value(1) - stk(p2)%value
-      ptr(i2-1) = i2
-    else
-      stk(p2_1)%value = stk(p2_1)%value - stk(p2)%value
-    endif
-    i2 = i2 - 1
-
-  case (times$) 
-    if (size(stk(p2)%value) < size(stk(p2_1)%value)) then
-      stk(p2_1)%value = stk(p2_1)%value * stk(p2)%value(1)
-    elseif (size(stk(p2)%value) > size(stk(p2_1)%value)) then
-      stk(p2)%value = stk(p2_1)%value(1) * stk(p2)%value
-      ptr(i2-1) = i2
-    else
-      stk(p2_1)%value = stk(p2_1)%value * stk(p2)%value
-    endif
-    i2 = i2 - 1
-
-  case (divide$) 
-    if (any(stk(i2)%value == 0)) then
-      call out_io  (s_warn$, r_name, 'DIVIDE BY 0 ON RHS')
+      call out_io (s_warn$, r_name, 'INTERNAL ERROR')
       err_flag = .true.
       return
     endif
-    if (size(stk(p2)%value) < size(stk(p2_1)%value)) then
-      stk(p2_1)%value = stk(p2_1)%value / stk(p2)%value(1)
-    elseif (size(stk(p2)%value) > size(stk(p2_1)%value)) then
-      stk(p2)%value = stk(p2_1)%value(1) / stk(p2)%value
-      ptr(i2-1) = i2
-    else
-      stk(p2_1)%value = stk(p2_1)%value / stk(p2)%value
-    endif
-    i2 = i2 - 1
-
-  case (power$) 
-    if (size(stk(p2)%value) < size(stk(p2_1)%value)) then
-      stk(p2_1)%value = stk(p2_1)%value ** stk(p2)%value(1)
-    elseif (size(stk(p2)%value) > size(stk(p2_1)%value)) then
-      stk(p2)%value = stk(p2_1)%value(1) ** stk(p2)%value
-      ptr(i2-1) = i2
-    else
-      stk(p2_1)%value = stk(p2_1)%value ** stk(p2)%value
-    endif
-    i2 = i2 - 1
-
-  case (sin$) 
-    stk(i2)%value = sin(stk(i2)%value)
-
-  case (cos$) 
-    stk(i2)%value = cos(stk(i2)%value)
-
-  case (tan$) 
-    stk(i2)%value = tan(stk(i2)%value)
-
-  case (asin$) 
-    stk(i2)%value = asin(stk(i2)%value)
-
-  case (acos$) 
-    stk(i2)%value = acos(stk(i2)%value)
-
-  case (atan$) 
-    stk(i2)%value = atan(stk(i2)%value)
-
-  case (abs$) 
-    stk(i2)%value = abs(stk(i2)%value)
-
-  case (sqrt$) 
-    stk(i2)%value = sqrt(stk(i2)%value)
-
-  case (log$) 
-    stk(i2)%value = log(stk(i2)%value)
-
-  case (exp$) 
-    stk(i2)%value = exp(stk(i2)%value)
-
-  case (ran$) 
-    i2 = i2 + 1
-    call ran_uniform(stk(i2)%value)
-
-  case (ran_gauss$) 
-    i2 = i2 + 1
-    call ran_gauss(stk(i2)%value)
-
-  case default
-    call out_io (s_warn$, r_name, 'INTERNAL ERROR')
-    err_flag = .true.
-    return
-  end select
-enddo
+  enddo
 
 
-if (i2 /= 1) call out_io (s_warn$, r_name, 'INTERNAL ERROR')
+  if (i2 /= 1) call out_io (s_warn$, r_name, 'INTERNAL ERROR')
 
-if (allocated(value)) deallocate (value)
-allocate (value(n_size))
-value = stk(ptr(1))%value
+  value = stk(1)%value
+
 
 contains
 
@@ -2036,69 +1401,26 @@ contains
 
 subroutine pushit (stack, i_lev, value)
 
-implicit none
+  implicit none
 
-integer stack(:), i_lev, value
+  integer stack(:), i_lev, value
 
-character(6) :: r_name = "pushit"
+  character(6) :: r_name = "pushit"
 
 !
 
-i_lev = i_lev + 1
+  i_lev = i_lev + 1
 
-if (i_lev > size(stack)) then
-  call out_io (s_warn$, r_name, 'STACK OVERFLOW.')
-  call err_exit
-endif
+  if (i_lev > size(stack)) then
+    call out_io (s_warn$, r_name, 'STACK OVERFLOW.')
+    call err_exit
+  endif
 
-stack(i_lev) = value
+  stack(i_lev) = value
 
 end subroutine pushit
                        
-!---------------------------------------------------------------------------
-! contains
-
-subroutine read_this_value (str, stack)
-
-character(*) str
-type (eval_stack_struct) stack
-type (tao_real_array_struct), allocatable :: r_array(:)
-
-!
-
-if (allocated(stack%value)) deallocate (stack%value)
-
-if (is_real(str)) then
-  allocate (stack%value(1))
-  read (str, *, iostat = ios) stack%value(1)
-  if (ios /= 0) then
-    call out_io (s_warn$, r_name, "This doesn't seem to be a number: " // str)
-    err_flag = .true.
-    return
-  endif
-
-else
-  call tao_find_data (err_flag, str, r_array = r_array, print_err = .false.)
-  if (.not. allocated(r_array)) &
-        call tao_find_var (err_flag, str, r_array = r_array, print_err = .false.)
-
-  if (allocated(r_array)) then
-    n = size(r_array)
-    allocate (stack%value(n))
-    do i = 1, n
-      stack%value(i) = r_array(i)%r
-    enddo
-  else
-    call out_io (s_warn$, r_name, "This doesn't seem to be datum or variable value: " // str)
-    err_flag = .true.
-    return
-  endif
-
-endif
-
-end subroutine
-
-end subroutine tao_to_real_vector
+end subroutine tao_to_real
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -2179,214 +1501,6 @@ function tao_read_this_index (name, ixc) result (ix)
     call out_io (s_abort$, r_name, 'BAD INDEX CONSTRAINT: ' // name)
     call err_exit
   endif
-
-end function
-
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+
-! Function is_real (string, ignore) result (good)
-!
-! Function to test if a string represents a real number.
-! If the ignore argument is present and True then only the first "word" 
-! will be considered and the rest of the line will be ignored. 
-! For example:
-!   print *, is_real('12.3 45.7', .true)   ! Result: True
-!   print *, is_real('12.3 45.7')          ! Result: False
-!
-! Input:
-!   string -- Character(*): Character string to check
-!   ignore -- Logical, optional: Ignore everything after the first word?
-!               Default is False.
-!
-! Output:
-!   good -- Logical: Set True if string represents a real number. 
-!                    Set False otherwise.
-!-
-
-function is_real (string, ignore) result (good)
-
-implicit none
-
-character(*) string
-logical good, digit_found, point_found, exponent_found
-logical, optional :: ignore
-integer i
-
-! first skip beginning white space
-
-good = .false.
-
-i = 1
-do
-  if (string(i:i) /= ' ') exit
-  i = i + 1
-  if (i > len(string)) return
-enddo
-
-! look for beginning "+" or "-" sign
-
-if (string(i:i) == '+' .or. string(i:i) == '-') then
-  i = i + 1
-  if (i > len(string)) return
-endif
-
-! look for a digit, '.', or 'e'
-
-digit_found = .false.
-point_found = .false.
-exponent_found = .false.
-
-do
-  if (index ('1234567890', string(i:i)) /= 0) then
-    digit_found = .true.
-  elseif (string(i:i) == '.') then
-    if (point_found) return  ! cannot have two of '.'
-    point_found = .true.
-  elseif (string(i:i) == 'e' .or. string(i:i) == 'E') then
-    exponent_found = .true.
-    exit
-  elseif (string(i:i) == ' ') then
-    exit
-  else
-    return
-  endif
-
-  i = i + 1
-  if (i > len(string)) then
-    good = digit_found
-    return
-  endif
-enddo
-
-if (.not. digit_found) return
-
-! Parse the rest of the exponent if needed
-
-if (exponent_found) then
-
-  digit_found = .false.
-
-  if (string(i:i) == '+' .or. string(i:i) == '-') then
-    i = i + 1
-    if (i > len(string)) return
-  endif
-
-  do
-    if (index ('1234567890', string(i:i)) /= 0) then
-      digit_found = .true.
-    elseif (string(i:i) == ' ') then
-      exit
-    else
-      return
-    endif
-
-    i = i + 1
-    if (i > len(string)) then
-      good = digit_found
-      return
-    endif
-  enddo
-
-  if (.not. digit_found) return
-
-endif
-
-! look for something more
-
-good = .true.
-
-if (.not. logic_option(.false., ignore)) then ! if not ignore
-  if (string(i:) /= ' ') then
-    good = .false.
-    return
-  endif
-endif
-
-end function
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+
-! Function is_logical (string, ignore) result (good)
-!
-! Function to test if a string represents a logical.
-! Accepted possibilities are (individual characters can be either case):
-!   .TRUE.  .FALSE. 
-!    TRUE    FALSE
-!    T       F
-! If the ignore argument is present and True then only the first "word" 
-! will be considered and the rest of the line will be ignored. 
-! For example:
-!   print *, is_logical('F F', .true.)  ! Result: True
-!   print *, is_logical('F F')          ! Result: False
-!
-! Input:
-!   string -- Character(*): Character string to check
-!   ignore -- Logical, optional: Ignore everything after the first word?
-!               Default is False.
-!
-! Output:
-!   good -- Logical: Set True if string represents a logical. 
-!                    Set False otherwise.
-!-
-
-function is_logical (string, ignore) result (good)
-
-implicit none
-
-character(*) string
-character(8) tf
-logical good
-logical, optional :: ignore
-integer i
-
-! first skip beginning white space
-
-good = .false.
-
-i = 1
-do
-  if (string(i:i) /= ' ') exit
-  i = i + 1
-  if (i > len(string)) return
-enddo
-
-! check first word
-
-tf = string(i:)
-call str_upcase (tf, tf)
-
-if (tf == '.TRUE. ') then
-  i = i + 6
-elseif (tf == 'TRUE ') then
-  i = i + 4
-elseif (tf == 'T ') then
-  i = i + 1
-elseif (tf == '.FALSE. ') then
-  i = i + 7
-elseif (tf == 'FALSE ') then
-  i = i + 5
-elseif (tf == 'F ') then
-  i = i + 1
-else
-  return
-endif
-
-good = .true.
-if (i > len(string)) return
-
-! check for garbage after the first word
-
-if (.not. logic_option(.false., ignore)) then ! if not ignore
-  if (string(i:) /= ' ') then
-    good = .false.
-    return
-  endif
-endif
 
 end function
 

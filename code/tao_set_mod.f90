@@ -297,7 +297,7 @@ subroutine tao_set_graph_cmd (name, component, set_value)
 implicit none
 
 character(*) name, component, set_value
-character(20) :: r_name = 'tao_set_graph_cmd'
+character(20) :: r_name = 'tao_set_var_cmd'
 
 logical err
 
@@ -313,219 +313,432 @@ end subroutine
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_var_cmd (var_str, set_str)
+! Subroutine tao_set_var_cmd (name, component, set_value, list)
 !
 ! Routine to set var values.
 !
 ! Input:
-!   var_str  -- Character(*): Which var name to set.
-!   set_str  -- Character(*): What value to set it to.
+!   name       -- Character(*): Which var name to set.
+!   component  -- Character(*): Which component to set.
+!   set_value  -- Character(*): What value to set it to.
+!   list       -- Character(*): If not blank then gives which indexes to apply to.
 !
 !  Output:
 !-
 
-subroutine tao_set_var_cmd (var_str, set_str)
+subroutine tao_set_var_cmd (name, component, set_value, list)
 
 implicit none
 
 type (tao_v1_var_struct), pointer :: v1_ptr
-type (tao_real_array_struct), allocatable, save    :: r_dat(:), r_set(:)
-type (tao_logical_array_struct), allocatable, save :: l_dat(:), l_set(:)
-type (tao_var_array_struct), allocatable, save     :: v_array(:)
 
-real(rp), allocatable :: r_value(:)
-real(rp) value
 integer i, j
 
-character(*) var_str, set_str
+character(*) name, component, set_value, list
 character(20) :: r_name = 'tao_set_var_cmd'
-character(20) set_is, component
 
-logical err, l_value, err_flag
+logical err
 
-! Decode set_str.
-! It might be a number or it might be a datum value.
+! Find the var to set
 
-if (is_logical(set_str)) then
-  read (set_str, *) l_value
-  set_is = 'LOGICAL-SCALER'
+if (name == 'all') then
+  call set_this_var (s%var, .false.)
 else
-  call tao_find_var (err, set_str, &
-                r_array=r_set, l_array=l_set, print_err = .false.)
-  if (allocated(l_set)) then
-    set_is = 'LOGICAL-VECTOR'
-  else
-    set_is = 'REAL'
-    call tao_to_real_vector (set_str, r_value, err_flag)
-    if (err_flag) then
-      call out_io (s_error$, r_name, 'BAD SET VALUE ' // set_str)
-      return
-    endif
-  endif
+  call tao_find_var(err, name, v1_ptr)  
+  if (err) return
+  call set_this_var (v1_ptr%v, .true.)
 endif
+
+
+!----------------------------------------------------------------------------
+contains
+
+subroutine set_this_var (var, can_list)
+
+type (tao_var_struct), target :: var(:)
+
+real(rp), pointer :: r_ptr
+real(rp) value
+
+integer n_set, n1, n2, iv, ix, ios
+
+character(1) using
+
+logical, pointer :: l_ptr
+logical, allocatable :: set_it(:)
+logical multiply, divide, can_list, change_lattice
+
+change_lattice = .false.
+
+! parse the list of vars to set.
+! The result is the set_it(:) array.
+
+n1 = var(1)%ix_v1
+n2 = n1 + size(var) - 1
+allocate (set_it(n1:n2))
+
+if (list == ' ') then
+  set_it = .true.
+elseif (.not. can_list) then
+  call out_io (s_error$, r_name, 'A LIST DOES NOT MAKE SENSE HERE.')
+  err = .true.
+  return
+else
+  call location_decode (list, set_it, n1, n_set)
+endif
+
+! loop over all vars and do the sets.
+
+do iv = 1, size(var)
+
+  ix = var(iv)%ix_v1  ! input index.
+  if (.not. set_it(ix)) cycle
+  if (.not. var(iv)%exists) cycle
+
+! select component
+
+  select case (component)
+  case ('weight')
+    r_ptr => var(iv)%weight
+    using = 'r'
+  case ('step')
+    r_ptr => var(iv)%step
+    using = 'r'
+  case ('model')
+    r_ptr => var(iv)%model_value
+    using = 'r'
+    change_lattice = .true.
+  case ('base')
+    r_ptr => var(iv)%base_value
+    using = 'r'
+  case ('good_user')
+    l_ptr => var(iv)%good_user
+    using = 'l'
+  case ('good_var')
+    l_ptr => var(iv)%good_var
+    using = 'l'
+  case default
+    err = .true.
+    call out_io (s_error$, r_name, 'UNKNOWN COMPONENT NAME: ' // component)
+    return
+  end select
 
 ! select value and set.
 
-call tao_find_var (err, var_str, v_array = v_array, r_array=r_dat, &
-                                    l_array=l_dat, component = component)
-if (err) return
-
-if (allocated(r_dat)) then
-  if (set_is /= 'REAL') then
-    call out_io (s_error$, r_name, 'BAD: REAL = LOGICAL: ' // &
-                                          var_str // ' = ' // set_str)
-    return
-  endif
-
-  if (size(r_value) > 1 .and. size(r_dat) /= size(r_value)) then
-    call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH: ' // &
-                                          var_str // ' = ' // set_str)
-    return
-  endif
-
-  do i = 1, size(r_dat)
-    if (size(r_value) == 1) then
-      value = r_value(1)
-    else
-      value = r_value(i)
+  select case (set_value)
+  case ('meas')
+    call check_using (using, 'r', err); if (err) return
+    r_ptr = var(iv)%meas_value
+  case ('ref')
+    call check_using (using, 'r', err); if (err) return
+    r_ptr = var(iv)%ref_value
+  case ('model')
+    call check_using (using, 'r', err); if (err) return
+    r_ptr = var(iv)%model_value
+  case ('base')
+    call check_using (using, 'r', err); if (err) return
+    r_ptr = var(iv)%base_value
+  case ('design')
+    call check_using (using, 'r', err); if (err) return
+    r_ptr = var(iv)%design_value
+  case ('f', 'F')
+    call check_using (using, 'l', err); if (err) return
+    l_ptr = .false.
+  case ('t', 'T')
+    call check_using (using, 'l', err); if (err) return
+    l_ptr = .true.
+  case default
+    call check_using (using, 'r', err); if (err) return
+    multiply = .false.
+    divide = .false.
+    ix = 1
+    if (set_value(1:1) == '*') then
+      multiply = .true.
+      ix = 2
+    elseif (set_value(1:1) == '/') then
+      divide = .true.
+      ix = 2
     endif
-    r_dat(i)%r = value
-    if (component == 'model') call tao_set_var_model_value (v_array(i)%v, value)
-  enddo
+    read (set_value(ix:), *, iostat = ios) value
+    if (ios /= 0 .or. set_value(ix:) == ' ') then
+      err = .true.
+      call out_io (s_error$, r_name, 'BAD VALUE: ' // set_value)
+      return
+    endif
+    if (multiply) then
+      r_ptr = r_ptr * value
+    elseif (divide) then
+      r_ptr = r_ptr / value
+    else
+      r_ptr = value
+    endif
+  end select
 
-!
-
-elseif (allocated(l_dat)) then
-  if (set_is(1:7) /= 'LOGICAL') then
-    call out_io (s_error$, r_name, 'BAD: LOGICAL = REAL: ' // &
-                                          var_str // ' = ' // set_str)
+! the model lattice has changed
+  if (change_lattice) then
+    call check_using (using, 'r', err); if (err) return
+    call tao_set_var_model_value (var(iv), r_ptr)
   endif
+    
+enddo
 
-  do i = 1, size(l_dat)
-    if (set_is == 'LOGICAL-SCALER') then
-      l_dat(i)%l = l_value
-    elseif (set_is == 'LOGICAL-VECTOR') then
-      if (size(l_set) == 1) then
-        l_dat(i)%l = l_set(1)%l
-      elseif (size(l_set) == size(l_dat)) then
-        l_dat(i)%l = l_set(i)%l
-      else
-        call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH: ' // &
-                                          var_str // ' = ' // set_str)
-        return
-      endif   
-    endif 
-  enddo
+! cleanup
 
-else
-  call out_io (s_error$, r_name, 'BAD DATA NAME ' // var_str)
+deallocate (set_it)
+
+end subroutine set_this_var
+
+!----------------------------------------------------------------------------
+! contains
+
+subroutine check_using (using, should_be_using, err)
+character(1) using, should_be_using
+logical err
+
+err = .false.
+if (using /= should_be_using) then
+  err = .true.
+  call out_io (s_error$, r_name, 'VARIABLE COMPONENT/SET_VALUE TYPE MISMATCH.')
 endif
 
-end subroutine tao_set_var_cmd
+end subroutine check_using
 
+end subroutine tao_set_var_cmd
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_data_cmd (data_str, set_str)
+! Subroutine tao_set_data_cmd (name, component, set_value, list)
 !
 ! Routine to set data values.
 !
 ! Input:
-!   data_str -- Character(*): Which data name to set.
-!   set_str  -- Character(*): What value to set it to.
+!   name       -- Character(*): Which data name to set.
+!   component  -- Character(*): Which component to set.
+!   set_value  -- Character(*): What value to set it to.
+!   list       -- Character(*): If not blank then gives which indexes to apply to.
 !
 !  Output:
 !-
 
-subroutine tao_set_data_cmd (data_str, set_str)
+subroutine tao_set_data_cmd (name, component, set_value, list)
 
 implicit none
 
-type (tao_real_array_struct), allocatable, save    :: r_dat(:), r_set(:)
-type (tao_logical_array_struct), allocatable, save :: l_dat(:), l_set(:)
 
-real(rp), allocatable :: r_value(:)
 integer i
 
-character(*) data_str, set_str
-character(20) set_is
+character(*) name, component, set_value, list
 character(20) :: r_name = 'tao_set_data_cmd'
 
-logical err, l_value
-
-! Decode set_str.
-! It might be a number or it might be a datum value.
-
-if (is_logical(set_str)) then
-  read (set_str, *) l_value
-  set_is = 'LOGICAL-SCALER'
-else
-  call tao_find_data (err, set_str, &
-                r_array=r_set, l_array=l_set, print_err = .false.)
-  if (allocated(l_set)) then
-    set_is = 'LOGICAL-VECTOR'
-  else
-    set_is = 'REAL'
-    call tao_to_real_vector (set_str, r_value, err)
-    if (err) then
-      call out_io (s_error$, r_name, 'BAD SET VALUE ' // set_str)
-      return
-    endif
-  endif
-endif
-
-! select value and set.
-
-call tao_find_data (err, data_str, r_array=r_dat, l_array=l_dat)
-if (err) return
-
-if (allocated(r_dat)) then
-  if (set_is /= 'REAL') then
-    call out_io (s_error$, r_name, 'BAD: REAL = LOGICAL: ' // &
-                                          data_str // ' = ' // set_str)
-    return
-  endif
-
-  if (size(r_value) > 1 .and. size(r_dat) /= size(r_value)) then
-    call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH: ' // &
-                                          data_str // ' = ' // set_str)
-    return
-  endif
-
-  do i = 1, size(r_dat)
-    if (size(r_value) == 1) then
-      r_dat(i)%r = r_value(1)
-    else
-      r_dat(i)%r = r_value(i)
-    endif
-  enddo
+logical, automatic :: this_u(size(s%u))
+logical err
 
 !
 
-elseif (allocated(l_dat)) then
-  do i = 1, size(l_dat)
-    if (set_is == 'LOGICAL-SCALER') then
-      l_dat(i)%l = l_value
-    elseif (set_is == 'LOGICAL-VECTOR') then
-      if (size(l_set) == 1) then
-        l_dat(i)%l = l_set(1)%l
-      elseif (size(l_set) == size(l_dat)) then
-        l_dat(i)%l = l_set(i)%l
-      else
-        call out_io (s_error$, r_name, 'ARRAY SIZE MISMATCH: ' // &
-                                          data_str // ' = ' // set_str)
-        return
-      endif    
-    else
-      call out_io (s_error$, r_name, 'BAD: LOGICAL = REAL: ' // &
-                                          data_str // ' = ' // set_str)
-    endif
-  enddo
+call tao_pick_universe (name, name, this_u, err)
+if (err) return
+
+do i = 1, size(s%u)
+  if (.not. this_u(i)) cycle
+  call set_data (s%u(i))
+  if (err) return
+enddo
+
+!----------------------------------------------------------------------------
+contains
+
+subroutine set_data (u)
+
+type (tao_universe_struct), target :: u
+type (tao_d2_data_struct), pointer :: d2_ptr
+type (tao_d1_data_struct), pointer :: d1_ptr
+type (tao_data_struct), pointer :: d_ptr
+
+integer j
+
+! Find the data to set
+
+if (name == 'all') then
+  call set_this_data (u%data, .false.)
 
 else
-  call out_io (s_error$, r_name, 'BAD DATA NAME ' // data_str)
+
+  call tao_find_data(err, u, name, d2_ptr, d1_ptr, d_ptr)  
+  if (err) return
+
+  if (associated(d_ptr)) then
+    call set_this_data (d_ptr%d1%d, .true., d_ptr%ix_d1)
+  elseif (associated(d1_ptr)) then
+    call set_this_data (d1_ptr%d, .true.)
+  else
+    do j = 1, size(d2_ptr%d1)
+      call set_this_data (d2_ptr%d1(j)%d, .true.)
+      if (err) return
+    enddo
+  endif
+
 endif
+
+call tao_set_data_useit_opt ()
+
+end subroutine set_data
+
+!----------------------------------------------------------------------------
+! contains
+
+subroutine set_this_data (data, can_list, index)
+
+type (tao_data_struct), target :: data(:)
+
+real(rp), pointer :: r_ptr(:)
+real(rp) value
+
+integer n_set, n1, n2, ix, ios
+integer, optional :: index
+
+character(1) using
+
+logical, pointer :: l_ptr(:)
+logical, allocatable :: set_it(:), good(:)
+logical multiply, divide, can_list
+
+! parse the list of data to set
+
+err = .true.
+
+if (present(index)) then
+  n1 = index
+  n2 = index
+else
+  n1 = data(1)%ix_d1
+  n2 = n1 + size(data) - 1
+endif
+
+allocate (set_it(n1:n2), good(n1:n2))
+
+if (list == ' ') then
+  set_it = .true.
+elseif (.not. can_list) then
+  call out_io (s_error$, r_name, 'A LIST DOES NOT MAKE SENSE HERE.')
+  return
+else
+  call location_decode (list, set_it, n1, n_set)
+  if (n_set < 0) return
+endif
+
+set_it = set_it .and. data(n1:n2)%exists
+
+! select component
+
+select case (component)
+case ('weight')
+  r_ptr => data(n1:n2)%weight
+  using = 'r'
+case ('meas')
+  r_ptr => data(n1:n2)%meas_value
+  using = 'r'
+case ('ref')
+  r_ptr => data(n1:n2)%ref_value
+  using = 'r'
+case ('good_user')
+  l_ptr => data(n1:n2)%good_user
+  using = 'l'
+case ('good_meas')
+  l_ptr => data(n1:n2)%good_meas
+  using = 'l'
+case default
+  call out_io (s_error$, r_name, 'UNKNOWN COMPONENT NAME: ' // component)
+  return
+end select
+
+! select value and set.
+
+select case (set_value)
+case ('meas')
+  call check_using (using, 'r', err); if (err) return
+  where (set_it) r_ptr = data(n1:n2)%meas_value
+  good = data(n1:n2)%good_meas
+case ('ref')
+  call check_using (using, 'r', err); if (err) return
+  where (set_it) r_ptr = data(n1:n2)%ref_value
+  good = data(n1:n2)%good_ref
+case ('model')
+  call check_using (using, 'r', err); if (err) return
+  where (set_it) r_ptr = data(n1:n2)%model_value
+  good = data(n1:n2)%exists
+case ('base')
+  call check_using (using, 'r', err); if (err) return
+  where (set_it) r_ptr = data(n1:n2)%base_value
+  good = data(n1:n2)%exists
+case ('design')
+  call check_using (using, 'r', err); if (err) return
+  where (set_it) r_ptr = data(n1:n2)%design_value
+  good = data(n1:n2)%exists
+case ('f', 'F')
+  call check_using (using, 'l', err); if (err) return
+  where (set_it) l_ptr = .false.
+case ('t', 'T')
+  call check_using (using, 'l', err); if (err) return
+  where (set_it) l_ptr = .true.
+case default
+  call check_using (using, 'r', err); if (err) return
+  multiply = .false.
+  divide = .false.
+  ix = 1
+  if (set_value(1:1) == '*') then
+    multiply = .true.
+    ix = 2
+  elseif (set_value(1:1) == '/') then
+    divide = .true.
+    ix = 2
+  endif
+  read (set_value(ix:), *, iostat = ios) value
+  if (ios /= 0 .or. set_value(ix:) == ' ') then
+    call out_io (s_error$, r_name, 'BAD VALUE: ' // set_value)
+    deallocate (set_it)
+    return
+  endif
+  if (multiply) then
+    where (set_it) r_ptr = r_ptr * value
+  elseif (divide) then
+    where (set_it) r_ptr = r_ptr / value
+  else
+    where (set_it) r_ptr = value
+  endif
+  good = data(n1:n2)%exists
+end select
+
+! set good
+
+select case (component)
+case ('meas')
+  where (set_it) data(n1:n2)%good_meas = good
+case ('ref')
+  where (set_it) data(n1:n2)%good_ref = good
+end select
+
+! cleanup
+
+err = .false.
+deallocate (set_it)
+
+end subroutine set_this_data
+
+!----------------------------------------------------------------------------
+! contains
+
+subroutine check_using (using, should_be_using, err)
+character(1) using, should_be_using
+logical err
+
+err = .false.
+if (using /= should_be_using) then
+  err = .true.
+  call out_io (s_error$, r_name, 'VARIABLE COMPONENT/SET_VALUE TYPE MISMATCH.')
+endif
+
+end subroutine check_using
 
 end subroutine tao_set_data_cmd
 

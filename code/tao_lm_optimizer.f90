@@ -19,7 +19,6 @@ subroutine tao_lm_optimizer ()
 
 use tao_mod
 use tao_dmerit_mod
-use tao_top10_mod
 use tao_var_mod
 use single_char_input_mod
 use nr
@@ -94,12 +93,7 @@ finished = .false.
 call out_io (s_blank$, r_name, '   Loop      Merit   A_lambda')
 
 do i = 1, s%global%n_opti_cycles+1
-
-  if (finished .or. i == s%global%n_opti_cycles+1) then
-    a_lambda = 0  ! tell mrqmin we are finished
-    call tao_var_write (s%global%var_out_file)
-  endif
-
+  if (finished .or. i == s%global%n_opti_cycles+1) a_lambda = 0  ! tell mrqmin we are finished
   call mrqmin (x, y, sig, a, mask_a, covar, alpha, chi_sq, tao_mrq_func, a_lambda) 
   call tao_mrq_func (x, a, y_fit, dy_da)  ! put a -> model
   write (line, '(i5, es14.4, es10.2)') i, tao_merit(), a_lambda

@@ -321,18 +321,20 @@ interface
 end interface
 
 interface
-  subroutine tao_use_data (action, data_name)
+  subroutine tao_use_data (action, data_type, range)
     implicit none
-    character(*) :: action
-    character(*) :: data_name
+    character(*)                :: action
+    character(*)                :: data_type
+    character(*)                :: range
   end subroutine
 end interface
 
 interface
-  subroutine tao_use_var (action, var_name)
+  subroutine tao_use_var (action, var_name, range)
     implicit none
-    character(*) :: action
-    character(*) :: var_name
+    character(*)                :: action
+    character(*)                :: var_name
+    character(*)                :: range
   end subroutine
 end interface
  

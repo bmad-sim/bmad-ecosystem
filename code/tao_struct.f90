@@ -34,7 +34,7 @@ type tao_ele_shape_struct    ! for the element layout plot
   character(16) ele_name     ! element name
   character(16) shape        ! plot shape
   character(16) color        ! plot color
-  real(rp) dy_pix            ! plot vertical height 
+  integer dy_pix             ! plot vertical height 
   Logical :: plot_name = .true.
   integer key                ! Element key index to match to
 end type
@@ -67,7 +67,7 @@ end type
 type tao_curve_struct
   character(16) :: name                    ! Name identifying the curve.
   character(16) :: data_source             ! "calculation", "data_array", or "var_array"
-  character(16) :: data_type = ' '         ! "orbit.x", etc.
+  character(16) :: data_type = ' '         ! "orbit:x", etc.
   character(16) :: ele_ref_name            ! Reference element.
   type (beam_struct) beam                  ! for phase-space plotting
   real(rp), pointer :: x_line(:) => null() ! coords for drawing a curve
@@ -163,7 +163,7 @@ end type
 ! The point is that it would be very time intensive if tao_plot_data_setup had
 ! to try to recalculate this data everytime.
 
-type tao_value_array_struct
+type tao_data_array_struct
   real(rp) value
   real(rp) s
 end type
@@ -198,7 +198,7 @@ type tao_data_struct
   character(32) name        ! Datum name. Eg: "X Orbit @ Det 10"
   character(16) ele_name    ! Name of the element in the Lattice corresponding to the datum.
   character(16) ele2_name   ! Name lattice element when there is a range 
-  character(32) data_type   ! Type of data: "orbit.x", etc.
+  character(32) data_type   ! Type of data: "orbit:x", etc.
   character(16) merit_type  ! Type of constraint: 'target', 'max', 'min', etc.
   integer ix_ele            ! Index of the element in the lattice element array.
   integer ix_ele2           ! Index of lattice elment when there is a range or reference.
@@ -218,9 +218,9 @@ type tao_data_struct
   real(rp) merit            ! Merit function term value: weight * delta^2
   real(rp) conversion_factor ! Typically used to convert coupling to cbar
   real(rp) s                ! longitudinal position of ele.
-  type (tao_value_array_struct), allocatable :: model__array(:)
-  type (tao_value_array_struct), allocatable :: design_array(:)
-  type (tao_value_array_struct), allocatable :: base_array(:)
+  type (tao_data_array_struct), allocatable :: model__array(:)
+  type (tao_data_array_struct), allocatable :: design_array(:)
+  type (tao_data_array_struct), allocatable :: base_array(:)
   logical exists            ! See above
   logical good_meas         ! See above
   logical good_ref          ! See above
@@ -256,31 +256,12 @@ type tao_d2_data_struct
   character(200) ref_file_name    ! Reference file name.
   character(20) data_date         ! Data measurement date.
   character(20) ref_date          ! Reference data measurement date.
-  character(80) descrip(n_descrip_maxx) ! Array for descriptive information.
+  character(80) Descrip(n_descrip_maxx) ! Array for descriptive information.
   type (tao_d1_data_struct), pointer :: d1(:) => null() ! Points to children 
-  integer ix_uni                  ! Index of universe this is in.
   integer ix_data                 ! Index of the data set.
   integer ix_ref                  ! Index of the reference data set. 
   logical data_read_in            ! A data set has been read in?
   logical ref_read_in             ! A reference data set has been read in?
-end type
-
-! A tao_data_array_struct is just a pointer to a tao_data_struct.
-! This is used to construct arrays of tao_data_structs.
-
-type tao_data_array_struct
-  type (tao_data_struct), pointer :: d
-end type
-
-! A tao_real_array_struct is just a pointer to a real number.
-! This is used to construct arrays of reals.
-
-type tao_real_array_struct
-  real(rp), pointer :: r
-end type
-
-type tao_logical_array_struct
-  logical, pointer :: l
 end type
 
 !-----------------------------------------------------------------------
@@ -354,14 +335,6 @@ type tao_v1_var_struct
   type (tao_var_struct), pointer :: v(:) => null() 
                                ! Pointer to the appropriate section in s%var.
 end type
-
-! A tao_var_array_struct is just a pointer to a tao_var_struct.
-! This is used to construct arrays of tao_var_structs.
-
-type tao_var_array_struct
-  type (tao_var_struct), pointer :: v
-end type
-
 
 !------------------------------------------------------------------------
 ! global switches
@@ -480,7 +453,6 @@ type tao_universe_struct
   type (tao_data_struct), pointer :: data(:) => null()        ! array of all data.
   type (tao_ix_data_struct), pointer :: ix_data(:) ! which data to evaluate at this ele
   real(rp), pointer :: dModel_dVar(:,:) => null()             ! Derivative matrix.
-  integer ix_uni                                   ! Universe index.
   integer n_d2_data_used
   integer n_data_used
   integer ix_rad_int_cache

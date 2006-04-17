@@ -49,13 +49,13 @@ if (len_trim(where) == 0 .or. where(1:3) == 'all') then
 endif
 
 ! locate the plot by the region name given by the where argument.
-! If where has a '.' then we are dealing with just one graph of the plot.
+! If where has a ':' then we are dealing with just one graph of the plot.
 ! Otherwise we scale all the graphs of the plot.
 
 call tao_find_plot_by_region (err, where, plot, graph)
 if (err) return
 
-ix = index(where, '.')
+ix = index(where, ':')
 if (ix == 0) then                ! If all the graphs of a plot...
   call tao_scale_plot (plot, y_min, y_max)
 else                          ! else just the one graph...

@@ -80,8 +80,9 @@ elseif (what == 'index') then
     return
   endif
   iu = plot%graph(1)%curve(1)%ix_universe
-  call tao_find_data (err, &
-         plot%graph(1)%curve(1)%data_type, d1_ptr = d1_ptr, ix_uni = iu)
+  if (iu == 0) iu = s%global%u_view
+  call tao_find_data (err, s%u(iu), &
+               plot%graph(1)%curve(1)%data_type, d1_ptr = d1_ptr)
   if (err) return
   minn = lbound(d1_ptr%d, 1)
   maxx = ubound(d1_ptr%d, 1)
