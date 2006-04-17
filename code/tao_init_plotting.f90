@@ -195,7 +195,7 @@ do
     if (grph%ix_universe < 0 .or. grph%ix_universe > size(s%u)) then
       call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', grph%ix_universe)
       call out_io (s_blank$, r_name, &
-       'OUT OF RANGE FOR PLOT:GRAPH: ' // trim(plot%name) // ':' // graph%name)
+       'OUT OF RANGE FOR PLOT:GRAPH: ' // trim(plot%name) // '.' // graph%name)
       call err_exit
     endif
 
@@ -241,8 +241,8 @@ do
       elseif (crv%ele_ref_name /= ' ') then                    ! if ele_ref_name has been set ...
         call tao_locate_element (crv%ele_ref_name, i_uni, ix_ele, .true.) ! then find the index
         crv%ix_ele_ref = ix_ele(1)
-      elseif (crv%data_type(1:5) == 'phase' .or. crv%data_type(1:2) == 'r:' .or. &
-              crv%data_type(1:2) == 't:' .or. crv%data_type(1:3) == 'tt:') then
+      elseif (crv%data_type(1:5) == 'phase' .or. crv%data_type(1:2) == 'r.' .or. &
+              crv%data_type(1:2) == 't.' .or. crv%data_type(1:3) == 'tt.') then
         crv%ix_ele_ref = 0
         crv%ele_ref_name = s%u(i_uni)%design%lat%ele_(0)%name
       endif

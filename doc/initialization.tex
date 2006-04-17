@@ -809,8 +809,8 @@ corresponding \vn{var%name} and \vn{data%ele_name} should be left
 blank. Lists of names can be reused using the syntax:
 \index{SAME:}
 \begin{example}
-  data(0)%name = "SAME: <d2_name:d1_name>"
-  data(0)%ele_name = "SAME: <d2_name:d1_name>"
+  data(0)%name = "SAME: <d2_name.d1_name>"
+  data(0)%ele_name = "SAME: <d2_name.d1_name>"
 \end{example}
 For example:
 \begin{example}
@@ -818,8 +818,8 @@ For example:
     ix_d1_data       = 2
     d1_data%name     = "y"  
     ...
-    data(0)%name     = "SAME: orbit:x"
-    data(0)%ele_name = "SAME: orbit:x"
+    data(0)%name     = "SAME: orbit.x"
+    data(0)%ele_name = "SAME: orbit.x"
   /
 \end{example}
 
@@ -1108,7 +1108,7 @@ For example:
     graph%who(1)          = "model", +1
     graph%who(2)          = "design", -1
     curve(1)%data_source  = 'data_array'
-    curve(1)%data_type    = "orbit:x"
+    curve(1)%data_type    = "orbit.x"
     curve(1)%units_factor = 1000
     curve(1)%use_y2       = .false.
   /
@@ -1117,7 +1117,7 @@ For example:
 \vn{graph%name} and \vn{curve%name} define names to be used with
 commands. The default names are just the index of the graph or
 curve. Thus, in the example above, the name of the curve defaults to
-\vn{1} and it would be referred to as \vn{orbit:x:1}.
+\vn{1} and it would be referred to as \vn{orbit.x[1]}.
 
 \vn{graph%who(i)} sets what is plotted by default. For example, if
 \vn{graph%who(i) = model - design} then by default the graph will show
@@ -1278,9 +1278,14 @@ first shape matched will be used. \vn{<shape>} is the shape of the
 figure drawn. Valid Shapes are:
 \index{box}\index{xbox}
 \begin{example}
-  "BOX"           -- Rectangular box
-  "XBOX"          -- Rectangular box with an x through it.
+  "BOX"             -- Rectangular box
+  "XBOX"            -- Rectangular box with an x through it.
+  "VAR_HEIGHT_BOX"  -- Rectangular box with variable height.
 \end{example}
+The height of a \vn{VAR_HEIGHT_BOX} is proportional to the element
+strength. For example, for a quadrupole the height is proportional to
+the \vn{K1} focusing strength. Not all elements can be used with a
+\vn{VAR_HEIGHT_BOX}.
 
 \vn{<color>} is the color of the shape. Good colors to use are:
 \index{black}\index{Red}\index{orange}\index{magenta}\index{yellow}

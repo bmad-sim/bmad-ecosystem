@@ -50,7 +50,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
 
   integer ios, iu, i, j, k, ix, n_uni
   integer n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
-  integer n, n_universes, iostat, universe, ix_universe
+  integer n, n_universes, iostat, ix_universe
   integer ix_min_var, ix_max_var, n_d1_data
   integer ix_min_data, ix_max_data, ix_d1_data
   integer, parameter :: ele_name$ = 1, ele_key$ = 2
@@ -58,7 +58,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   character(*) init_file, data_file, var_file
   character(40) :: r_name = 'tao_init_global_and_universes'
   character(200) file_name
-  character(16) name,  default_universe, default_data_type
+  character(16) name,  universe, default_universe, default_data_type
   character(16) default_merit_type, default_attribute
   character(100) line
 
@@ -111,6 +111,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   n = size(s%u)
   do i = 1, size(s%u)
     call init_universe (s%u(i))
+    s%u(i)%ix_uni = i
   enddo
 
   if (associated(s%var)) deallocate (s%var)
@@ -283,7 +284,6 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
 
   endif
 
-
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 ! Init data
@@ -295,22 +295,15 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
   do 
     mask(:) = .true.      ! set defaults
     d2_data%name = ' '
-    universe = 0
+    universe = '*'
     default_merit_type = 'target'
     default_data_noise = 0.0
     read (iu, nml = tao_d2_data, iostat = ios, err = 9100)
     if (ios < 0) exit         ! exit on end-of-file
     call out_io (s_blank$, r_name, &
                       'Init: Read tao_d2_data namelist: ' // d2_data%name)
-
-    n_uni = universe      ! universe to use 
-    if (n_uni > size(s%u)) then
-      call out_io (s_abort$, r_name, &
-          'BAD UNIVERSE NUMBER IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
-      call err_exit
-    endif
-
-    if (n_uni == 0) then
+    
+    if (universe == '*') then
       uni_loop1: do i = 1, size(s%u)
 
         ! check if this data type has already been defined for this universe
@@ -321,10 +314,21 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
         endif
       enddo
       
-      call d2_data_stuffit (s%u(i))
+      call d2_data_stuffit (s%u(i), i)
       enddo uni_loop1
     else
-      call d2_data_stuffit (s%u(n_uni))
+      read (universe, *, iostat = ios) n_uni
+      if (ios /= 0 .or. n_uni > size(s%u)) then
+        call out_io (s_abort$, r_name, &
+            'BAD UNIVERSE NUMBER IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
+        call err_exit
+      endif
+      if (n_uni == 0) then
+        call out_io (s_error$, r_name, &
+            '"UNIVERSE == 0" MUST BE REPLACED BY "UNIVERSE = *" IN TAO_D2_DATA NAMELIST: ' // d2_data%name)
+        call err_exit
+      endif
+      call d2_data_stuffit (s%u(n_uni), n_uni)
     endif
 
     do k = 1, n_d1_data
@@ -351,7 +355,7 @@ subroutine tao_init_global_and_universes (init_file, data_file, var_file)
       endif
       call out_io (s_blank$, r_name, &
                       'Init: Read tao_d1_data namelist: ' // d1_data%name)
-      if (n_uni == 0) then          ! 0 => use all universes
+      if (universe == '*') then          ! * => use all universes
         uni_loop2: do i = 1, size(s%u)
 
           ! check if this data type has already been defined for this universe
@@ -555,11 +559,11 @@ end subroutine init_lattices
 !----------------------------------------------------------------
 ! contains
 
-subroutine d2_data_stuffit (u)
+subroutine d2_data_stuffit (u, ix_uni)
 
 type (tao_universe_struct), target :: u
 
-integer nn
+integer nn, ix_uni
 
 ! Setup another d2_data structure.
 
@@ -573,6 +577,7 @@ integer nn
   endif
 
   u%d2_data(nn)%name = d2_data%name 
+  u%d2_data(nn)%ix_uni = ix_uni
 
 ! allocate memory for the u%d1_data structures
 
@@ -671,8 +676,8 @@ if (index(data(0)%ele_name, 'SEARCH') .ne. 0) then
 
 elseif (index(data(0)%ele_name, 'SAME:') /= 0) then
   call string_trim (data(0)%ele_name(6:), name, ix)
-  call tao_find_data (err, u, name, d1_ptr = d1_ptr)
-  if (err) then
+  call tao_find_data (err, name, d1_ptr = d1_ptr, ix_uni = u%ix_uni)
+  if (err .or. .not. associated(d1_ptr)) then
     call out_io (s_abort$, r_name, 'CANNOT MATCH "SAME:" NAME: ' // name)
     call err_exit
   endif
@@ -700,8 +705,8 @@ else
 
   do j = n1, n2
 
-    if (u%data(j)%data_type(1:10) == 'emittance:' .or. &
-        u%data(j)%data_type(1:6)  == 'chrom:' .or. &
+    if (u%data(j)%data_type(1:10) == 'emittance.' .or. &
+        u%data(j)%data_type(1:6)  == 'chrom.' .or. &
         u%data(j)%data_type(1:13) == 'unstable_ring') then
       u%data(j)%exists = .true.
       cycle
@@ -747,7 +752,7 @@ endif
 ! use default_data_type if given, if not, auto-generate the data_type
 if (default_data_type == ' ') then
   where (u%data(n1:n2)%data_type == ' ') u%data(n1:n2)%data_type = &
-                            trim(d2_data%name) // ':' // d1_data%name
+                            trim(d2_data%name) // '.' // d1_data%name
 else
   where (u%data(n1:n2)%data_type == ' ') u%data(n1:n2)%data_type = &
                                                     default_data_type
@@ -781,7 +786,7 @@ if (index(data(0)%name, 'COUNT:') /= 0) then
 
 elseif (index(data(0)%name, 'SAME:') /= 0) then
   call string_trim (data(0)%name(6:), name, ix)
-  call tao_find_data (err, u, name, d1_ptr = d1_ptr)
+  call tao_find_data (err, name, d1_ptr = d1_ptr, ix_uni = u%ix_uni)
   if (err) then
     call out_io (s_abort$, r_name, 'CANNOT MATCH "SAME:" NAME: ' // name)
     call err_exit
@@ -818,9 +823,9 @@ u%do_synch_rad_int_calc = .false.
 u%do_chrom_calc         = .false.
 
 do j = lbound(u%data, 1), ubound(u%data, 1)
-  if (u%data(j)%data_type(1:10) == 'emittance:') &
+  if (u%data(j)%data_type(1:10) == 'emittance.') &
                                     u%do_synch_rad_int_calc = .true. 
-  if (u%data(j)%data_type(1:6) == 'chrom:') &
+  if (u%data(j)%data_type(1:6) == 'chrom.') &
                                     u%do_chrom_calc = .true.
 enddo
 

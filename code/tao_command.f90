@@ -239,9 +239,9 @@ subroutine tao_command (command_line, err)
     call match_word (cmd_word(1), name$%data_or_var, which)
     
     if (which .eq. data$) then
-      call tao_use_data (cmd_name, cmd_word(2), cmd_word(3))
+      call tao_use_data (cmd_name, cmd_word(2))
     elseif (which .eq. variable$) then
-      call tao_use_var (cmd_name, cmd_word(2), cmd_word(3))
+      call tao_use_var (cmd_name, cmd_word(2))
     else
       call out_io (s_error$, r_name, "Use/veto/restore what? data or variable?")
       return
@@ -293,8 +293,8 @@ subroutine tao_command (command_line, err)
     set_word = set_names(ix)
 
     if ( (set_word == 'curve'     .and. cmd_word(4) /= '=') .or. &
-         (set_word == 'data'      .and. cmd_word(4) /= '=') .or. &
-         (set_word == 'var'       .and. cmd_word(4) /= '=') .or. &
+         (set_word == 'data'      .and. cmd_word(3) /= '=') .or. &
+         (set_word == 'var'       .and. cmd_word(3) /= '=') .or. &
          (set_word == 'global'    .and. cmd_word(3) /= '=') .or. &
          (set_word == 'plot_page' .and. cmd_word(3) /= '=') .or. &
          (set_word == 'graph'     .and. cmd_word(3) /= '=') .or. &
@@ -306,11 +306,9 @@ subroutine tao_command (command_line, err)
 
     select case (set_word)
     case ('data')
-      call tao_set_data_cmd (cmd_word(2), &
-                              cmd_word(3), cmd_word(5), cmd_word(6)) 
+      call tao_set_data_cmd (cmd_word(2), cmd_word(4))
     case ('var')
-      call tao_set_var_cmd (cmd_word(2), &
-                              cmd_word(3), cmd_word(5), cmd_word(6)) 
+      call tao_set_var_cmd (cmd_word(2), cmd_word(4))
     case ('lattice')
       call tao_set_lattice_cmd (cmd_word(2), cmd_word(4)) 
     case ('curve')

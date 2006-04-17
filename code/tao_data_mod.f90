@@ -214,43 +214,43 @@ datum_value = 0           ! default
 datum%ix_ele_merit = ix1  ! default
 
 data_type = datum%data_type
-if (data_type(1:2) == 'r:') data_type = 'r:'
-if (data_type(1:2) == 't:') data_type = 't:'
-if (data_type(1:3) == 'tt:') data_type = 'tt:'
-if (data_type(1:5) == 'wire:') data_type = 'wire:'
+if (data_type(1:2) == 'r.') data_type = 'r.'
+if (data_type(1:2) == 't.') data_type = 't.'
+if (data_type(1:3) == 'tt.') data_type = 'tt.'
+if (data_type(1:5) == 'wire.') data_type = 'wire.'
 
 
 select case (data_type)
 
-case ('orbit:x')
+case ('orbit.x')
   call load_it (tao_lat%orb(:)%vec(1))
-case ('orbit:y')
+case ('orbit.y')
   call load_it (tao_lat%orb(:)%vec(3))
-case ('orbit:z')
+case ('orbit.z')
   call load_it (tao_lat%orb(:)%vec(5))
 
-case ('bpm:x')
+case ('bpm.x')
   call tao_read_bpm (tao_lat%orb(ix1), tao_lat%lat%ele_(ix1), x$, datum_value)
-case ('bpm:y')
+case ('bpm.y')
   call tao_read_bpm (tao_lat%orb(ix1), tao_lat%lat%ele_(ix1), y$, datum_value)
 
-case ('orbit:p_x')
+case ('orbit.p_x')
   call load_it (tao_lat%orb(:)%vec(2))
-case ('orbit:p_y')
+case ('orbit.p_y')
   call load_it (tao_lat%orb(:)%vec(4))
-case ('orbit:p_z')
+case ('orbit.p_z')
   call load_it (tao_lat%orb(:)%vec(6))
 
-case ('phase:x')
+case ('phase.x')
   datum_value = tao_lat%lat%ele_(ix1)%x%phi - tao_lat%lat%ele_(ix2)%x%phi
-case ('phase:y')
+case ('phase.y')
   datum_value = tao_lat%lat%ele_(ix1)%y%phi - tao_lat%lat%ele_(ix2)%y%phi
 
 case ('phase_frac_diff')
   datum_value = modulo (tao_lat%lat%ele_(ix1)%x%phi - tao_lat%lat%ele_(ix2)%x%phi, twopi) - &
                 modulo (tao_lat%lat%ele_(ix1)%y%phi - tao_lat%lat%ele_(ix2)%y%phi, twopi)
 
-case ('beta:x')
+case ('beta.x')
   if (s%global%track_type .eq. "single") then
     call load_it (tao_lat%lat%ele_(:)%x%beta)
   elseif (s%global%track_type .eq. "beam") then
@@ -259,7 +259,7 @@ case ('beta:x')
     datum_value = u%macro_beam%params%x%beta
   endif
     
-case ('beta:a')
+case ('beta.a')
   if (s%global%track_type .eq. "single") then
     call load_it (tao_lat%lat%ele_(:)%x%beta)
   elseif (s%global%track_type .eq. "beam") then
@@ -268,7 +268,7 @@ case ('beta:a')
     datum_value = u%macro_beam%params%a%beta
   endif
     
-case ('beta:y')
+case ('beta.y')
   if (s%global%track_type .eq. "single") then
     call load_it (tao_lat%lat%ele_(:)%y%beta)
   elseif (s%global%track_type .eq. "beam") then
@@ -277,7 +277,7 @@ case ('beta:y')
     datum_value = u%macro_beam%params%y%beta
   endif
 
-case ('beta:b')
+case ('beta.b')
   if (s%global%track_type .eq. "single") then
     call load_it (tao_lat%lat%ele_(:)%y%beta)
   elseif (s%global%track_type .eq. "beam") then
@@ -286,7 +286,7 @@ case ('beta:b')
     datum_value = u%macro_beam%params%b%beta
   endif
 
-case ('alpha:x')
+case ('alpha.x')
   if (s%global%track_type .eq. "single") then
     call load_it (tao_lat%lat%ele_(:)%x%alpha)
   elseif (s%global%track_type .eq. "beam") then
@@ -295,7 +295,7 @@ case ('alpha:x')
     datum_value = u%macro_beam%params%x%alpha
   endif
   
-case ('alpha:a')
+case ('alpha.a')
   if (s%global%track_type .eq. "single") then
     call load_it (tao_lat%lat%ele_(:)%x%alpha)
   elseif (s%global%track_type .eq. "beam") then
@@ -304,7 +304,7 @@ case ('alpha:a')
     datum_value = u%macro_beam%params%a%alpha
   endif
   
-case ('alpha:y')
+case ('alpha.y')
   if (s%global%track_type .eq. "single") then
     call load_it (tao_lat%lat%ele_(:)%y%alpha)
   elseif (s%global%track_type .eq. "beam") then
@@ -313,7 +313,7 @@ case ('alpha:y')
     datum_value = u%macro_beam%params%y%alpha
   endif
 
-case ('alpha:b')
+case ('alpha.b')
   if (s%global%track_type .eq. "single") then
     call load_it (tao_lat%lat%ele_(:)%y%alpha)
   elseif (s%global%track_type .eq. "beam") then
@@ -322,7 +322,7 @@ case ('alpha:b')
     datum_value = u%macro_beam%params%b%alpha
   endif
 
-case ('eta:x')
+case ('eta.x')
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%x%eta
   elseif (s%global%track_type .eq. "macro") then
@@ -331,7 +331,7 @@ case ('eta:x')
     call load_it (tao_lat%lat%ele_(:)%x%eta_lab)
   endif
 
-case ('eta:y')
+case ('eta.y')
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%y%eta
   elseif (s%global%track_type .eq. "macro") then
@@ -340,7 +340,7 @@ case ('eta:y')
     call load_it (tao_lat%lat%ele_(:)%y%eta_lab)
   endif
 
-case ('etap:x')
+case ('etap.x')
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%x%etap
   elseif (s%global%track_type .eq. "macro") then
@@ -349,7 +349,7 @@ case ('etap:x')
     call load_it (tao_lat%lat%ele_(:)%x%etap_lab)
   endif
 
-case ('etap:y')
+case ('etap.y')
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%y%etap
   elseif (s%global%track_type .eq. "macro") then
@@ -358,7 +358,7 @@ case ('etap:y')
     call load_it (tao_lat%lat%ele_(:)%y%etap_lab)
   endif
 
-case ('eta:a')
+case ('eta.a')
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%a%eta
   elseif (s%global%track_type .eq. "macro") then
@@ -367,7 +367,7 @@ case ('eta:a')
     call load_it (tao_lat%lat%ele_(:)%x%eta)
   endif
 
-case ('eta:b')
+case ('eta.b')
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%b%eta
   elseif (s%global%track_type .eq. "macro") then
@@ -376,7 +376,7 @@ case ('eta:b')
     call load_it (tao_lat%lat%ele_(:)%y%eta)
   endif
 
-case ('etap:a')
+case ('etap.a')
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%a%etap
   elseif (s%global%track_type .eq. "macro") then
@@ -385,7 +385,7 @@ case ('etap:a')
     call load_it (tao_lat%lat%ele_(:)%x%etap)
   endif
 
-case ('etap:b')
+case ('etap.b')
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%b%etap
   elseif (s%global%track_type .eq. "macro") then
@@ -397,22 +397,22 @@ case ('etap:b')
 case ('beam_energy')
   call load_it (tao_lat%lat%ele_(:)%value(beam_energy$))
   
-case ('coupling:11b')
+case ('coupling.11b')
   call load_it (cc%coupling11, cc%f_11, coupling_here = .true.)
-case ('coupling:12a')
+case ('coupling.12a')
   call load_it (cc%coupling12a, cc%f_12a, coupling_here = .true.)
-case ('coupling:12b')
+case ('coupling.12b')
   call load_it (cc%coupling12b, cc%f_12b, coupling_here = .true.)
-case ('coupling:22a')
+case ('coupling.22a')
   call load_it (cc%coupling22, cc%f_22, coupling_here = .true.)
 
-case ('cbar:11')
+case ('cbar.11')
   call load_it (cc%cbar(1,1), coupling_here = .true.)
-case ('cbar:12')
+case ('cbar.12')
   call load_it (cc%cbar(1,2), coupling_here = .true.)
-case ('cbar:21')
+case ('cbar.21')
   call load_it (cc%cbar(1,2), coupling_here = .true.)
-case ('cbar:22')
+case ('cbar.22')
   call load_it (cc%cbar(2,2), coupling_here = .true.)
 
 case ('i5a_e6')
@@ -423,14 +423,14 @@ case ('i5b_e6')
   datum_value = tao_lat%modes%lin%i5b_e6
   datum%ix_ele_merit = tao_lat%lat%n_ele_use
 
-case ('r:')
+case ('r.')
   if (ix1 < ix2) return
   i = tao_read_this_index (datum%data_type, 3); if (i == 0) return
   j = tao_read_this_index (datum%data_type, 4); if (j == 0) return
   call transfer_matrix_calc (tao_lat%lat, .true., mat6, vec0, ix2, ix1)
   datum_value = mat6(i, j)
 
-case ('t:')
+case ('t.')
   if (ix1 < ix2) return
   i = tao_read_this_index (datum%data_type, 3); if (i == 0) return
   j = tao_read_this_index (datum%data_type, 4); if (j == 0) return
@@ -443,7 +443,7 @@ case ('t:')
     datum_value = taylor_coef (taylor(i), j, k)
   endif
 
-case ('tt:')
+case ('tt.')
   if (ix1 < ix2) return
   expnt = 0
   i = tao_read_this_index (datum%data_type, 4); if (i == 0) return
@@ -460,28 +460,28 @@ case ('tt:')
     datum_value = taylor_coef (taylor(i), expnt)
   endif
 
-case ('floor:x')
+case ('floor.x')
   if (ix2 >= 0) then
     datum_value = tao_lat%lat%ele_(ix1)%floor%x - tao_lat%lat%ele_(ix2)%floor%x
   else
     datum_value = tao_lat%lat%ele_(ix1)%floor%x
   endif
 
-case ('floor:y')
+case ('floor.y')
   if (ix2 >= 0) then
     datum_value = tao_lat%lat%ele_(ix1)%floor%y - tao_lat%lat%ele_(ix2)%floor%y
   else
     datum_value = tao_lat%lat%ele_(ix1)%floor%y 
   endif
 
-case ('floor:z')
+case ('floor.z')
   if (ix2 >= 0) then
     datum_value = tao_lat%lat%ele_(ix1)%floor%z - tao_lat%lat%ele_(ix2)%floor%z
   else
     datum_value = tao_lat%lat%ele_(ix1)%floor%z 
   endif
 
-case ('floor:theta')
+case ('floor.theta')
   if (ix2 >= 0) then
     datum_value = tao_lat%lat%ele_(ix1)%floor%theta - tao_lat%lat%ele_(ix2)%floor%theta
   else
@@ -495,7 +495,7 @@ case ('s_position')
     datum_value = tao_lat%lat%ele_(ix1)%s 
   endif
 
-case ('norm_emittance:x')
+case ('norm_emittance.x')
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%x%norm_emitt
   elseif (s%global%track_type .eq. "macro") then
@@ -504,7 +504,7 @@ case ('norm_emittance:x')
     datum_value = 0.0
   endif
   
-case ('norm_emittance:y')  
+case ('norm_emittance.y')  
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%y%norm_emitt
   elseif (s%global%track_type .eq. "macro") then
@@ -513,7 +513,7 @@ case ('norm_emittance:y')
     datum_value = 0.0
   endif
   
-case ('norm_emittance:z')  
+case ('norm_emittance.z')  
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%z%norm_emitt
   elseif (s%global%track_type .eq. "macro") then
@@ -522,22 +522,22 @@ case ('norm_emittance:z')
     datum_value = 0.0
   endif
 
-case ('emittance:a')
+case ('emittance.a')
   datum_value = tao_lat%modes%a%emittance  
 
-case ('emittance:b')
+case ('emittance.b')
   datum_value = tao_lat%modes%b%emittance
 
-case ('chrom:a')
+case ('chrom.a')
   datum_value = tao_lat%a%chrom
 
-case ('chrom:b')
+case ('chrom.b')
   datum_value = tao_lat%b%chrom
 
 case ('unstable_ring')
   datum_value = tao_lat%lat%param%growth_rate
 
-case ('norm_emittance:a')
+case ('norm_emittance.a')
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%a%norm_emitt
   elseif (s%global%track_type .eq. "macro") then
@@ -547,7 +547,7 @@ case ('norm_emittance:a')
                                amp_na = datum_value, particle = electron$)
   endif
   
-case ('norm_emittance:b')  
+case ('norm_emittance.b')  
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%b%norm_emitt
   elseif (s%global%track_type .eq. "macro") then
@@ -602,7 +602,7 @@ case ('dpb_db')
     datum_value = 0.0
   endif
 
-case ('sigma:x')  
+case ('sigma.x')  
   if (s%global%track_type .eq. "beam") then
     datum_value = SQRT(u%beam%params%sigma(s11$))
   elseif (s%global%track_type .eq. "macro") then
@@ -611,7 +611,7 @@ case ('sigma:x')
     datum_value = 0.0
   endif
   
-case ('sigma:p_x')  
+case ('sigma.p_x')  
   if (s%global%track_type .eq. "beam") then
     datum_value = SQRT(u%beam%params%sigma(s22$))
   elseif (s%global%track_type .eq. "macro") then
@@ -620,7 +620,7 @@ case ('sigma:p_x')
     datum_value = 0.0
   endif
   
-case ('sigma:y')  
+case ('sigma.y')  
   if (s%global%track_type .eq. "beam") then
     datum_value = SQRT(u%beam%params%sigma(s33$))
   elseif (s%global%track_type .eq. "macro") then
@@ -629,7 +629,7 @@ case ('sigma:y')
     datum_value = 0.0
   endif
   
-case ('sigma:p_y')  
+case ('sigma.p_y')  
   if (s%global%track_type .eq. "beam") then
     datum_value = SQRT(u%beam%params%sigma(s44$))
   elseif (s%global%track_type .eq. "macro") then
@@ -638,7 +638,7 @@ case ('sigma:p_y')
     datum_value = 0.0
   endif
   
-case ('sigma:z')  
+case ('sigma.z')  
   if (s%global%track_type .eq. "beam") then
     datum_value = SQRT(u%beam%params%sigma(s55$))
   elseif (s%global%track_type .eq. "macro") then
@@ -647,7 +647,7 @@ case ('sigma:z')
     datum_value = 0.0
   endif
   
-case ('sigma:p_z')  
+case ('sigma.p_z')  
   if (s%global%track_type .eq. "beam") then
     datum_value = SQRT(u%beam%params%sigma(s66$))
   elseif (s%global%track_type .eq. "macro") then
@@ -656,7 +656,7 @@ case ('sigma:p_z')
     datum_value = 0.0
   endif
   
-case ('sigma:xy')  
+case ('sigma.xy')  
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%sigma(s13$)
   elseif (s%global%track_type .eq. "macro") then
@@ -665,7 +665,7 @@ case ('sigma:xy')
     datum_value = 0.0
   endif
   
-case ('wire:')  
+case ('wire.')  
   if (s%global%track_type .eq. "beam") then
     read (data_type(6:), '(a)') angle
     datum_value = tao_do_wire_scan (tao_lat%lat%ele_(ix1), angle, u%beam%beam)
@@ -675,7 +675,7 @@ case ('wire:')
     datum_value = 0.0
   endif
   
-case ('spin:theta')
+case ('spin.theta')
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%spin%theta
   elseif (s%global%track_type .eq. "macro") then
@@ -685,7 +685,7 @@ case ('spin:theta')
     datum_value = polar%theta
   endif
   
-case ('spin:phi')
+case ('spin.phi')
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%spin%phi
   elseif (s%global%track_type .eq. "macro") then
@@ -695,7 +695,7 @@ case ('spin:phi')
     datum_value = polar%phi
   endif
   
-case ('spin:polarity')
+case ('spin.polarity')
   if (s%global%track_type .eq. "beam") then
     datum_value = u%beam%params%spin%polarization
   elseif (s%global%track_type .eq. "macro") then
