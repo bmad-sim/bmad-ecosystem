@@ -34,7 +34,7 @@ integer err_num
 
 character(3) select_all
 character(12) :: r_name = "tao_use_data"
-character(16) d_name, d1_name
+character(40) d_name, d1_name
 character(200) line
 
 ! decipher action
