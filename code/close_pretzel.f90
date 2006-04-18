@@ -24,8 +24,11 @@
 ! $Id$
 !
 ! $Log$
-! Revision 1.1  2005/06/14 14:59:02  cesrulib
-! Initial revision
+! Revision 1.2  2006/04/18 22:16:15  ajl59
+! added "use bmadz_interface" to stop fail out at beambeam_separation's new optional argument
+!
+! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
+! Beam Simulation Code
 !
 !
 !........................................................................
@@ -36,7 +39,8 @@ subroutine close_pretzel (ring, i_dim, final_pos_in, final_pos_out)
   
   use bmad_interface
   use bmadz_mod
-  
+  use bmadz_interface
+
   implicit none
   
   type ( ring_struct ) ring
