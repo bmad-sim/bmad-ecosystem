@@ -97,28 +97,39 @@ subroutine use_d2_data ()
 
 ! find locations
  
-n1 = lbound(d2_ptr%d1(1)%d, 1)
-n2 = ubound(d2_ptr%d1(1)%d, 1)
-allocate(action_logic(n1:n2))
-line = locations
-call location_decode (line, action_logic, n1, err_num) 
-if (err_num == -1) return
-
 ! set d%good_user based on action and action_logic
 
 if (associated(d1_ptr)) then
+  n1 = lbound(d1_ptr%d, 1)
+  n2 = ubound(d1_ptr%d, 1)
+  allocate(action_logic(n1:n2))
+  line = locations
+  call location_decode (line, action_logic, n1, err_num) 
+  if (err_num == -1) then
+    deallocate(action_logic)
+    return
+  endif
   call use (d1_ptr)
+  deallocate(action_logic)
+
 else
   do i = 1, size(d2_ptr%d1)
-    call use (d2_ptr%d1(i))
-    if (err) then
+    n1 = lbound(d2_ptr%d1(i)%d, 1)
+    n2 = ubound(d2_ptr%d1(i)%d, 1)
+    allocate(action_logic(n1:n2))
+    line = locations
+    call location_decode (line, action_logic, n1, err_num) 
+    if (err_num == -1) then
       deallocate(action_logic)
       return
     endif
+    call use (d2_ptr%d1(i))
+    deallocate(action_logic)
+    if (err) return
   enddo
+
 endif
 
-deallocate(action_logic)
 
 ! Optimizer bookkeeping and Print out changes.
 call tao_set_data_useit_opt()
