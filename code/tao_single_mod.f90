@@ -28,7 +28,8 @@ ix_hash = index (out_file, '#')
 do i = 1, size(s%u)
 
   file_name = out_file
-  if (ix_hash /= 0) write (file_name(ix_hash:ix_hash), '(i0)') i
+  if (ix_hash /= 0) write (file_name, '(a, i0, a)') &
+                      file_name(1:ix_hash-1), i, file_name(ix_hash+1:)
 
   iu = lunget()
   open (iu, file = file_name, carriagecontrol = 'list', iostat = ios)
