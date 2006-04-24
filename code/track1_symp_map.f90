@@ -23,34 +23,58 @@
 
 subroutine track1_symp_map (start, ele, param, end)
 
-  use ptc_interface_mod, except => track1_symp_map
-  use tpsalie_analysis, only: assignment(=), operator(*), lnv
+use ptc_interface_mod, except => track1_symp_map
+use tpsalie_analysis, only: assignment(=), operator(*), lnv
 
-  implicit none
+implicit none
 
-  type (coord_struct), intent(in)  :: start
-  type (coord_struct), intent(out) :: end
-  type (ele_struct),   intent(inout)  :: ele
-  type (param_struct), intent(inout) :: param
+type (coord_struct), intent(in)  :: start
+type (coord_struct), intent(out) :: end
+type (coord_struct) start2
+type (ele_struct),   intent(inout)  :: ele
+type (param_struct), intent(inout) :: param
 
-  real(dp) re(lnv)
+real(dp) re(lnv)
+
+! Put in offsets if needed.
+
+start2 = start
+
+if (ele%map_with_offsets) then  ! simple case
+  call track1_this_body
+
+else
+  call offset_particle (ele, param, start2, set$, &
+                          set_canonical = .false., set_multipoles = .false.)
+  call track1_this_body
+  call offset_particle (ele, param, end, unset$, &
+                          set_canonical = .false., set_multipoles = .false.)
+endif
+
+
+!---------------------------------------------------------------------
+contains
+
+subroutine track1_this_body
 
 ! Make the genfield map if needed.
 
-  if (.not. (associated(ele%gen_field) .and. &
+if (.not. (associated(ele%gen_field) .and. &
                               associated(ele%taylor(1)%term))) then
-    if (.not. associated(ele%taylor(1)%term)) &
-                              call ele_to_taylor(ele, param, start)
-    call kill_gen_field (ele%gen_field)  ! clean up if necessary
-    allocate (ele%gen_field)
-    call taylor_to_genfield (ele%taylor, ele%gen_field, ele%gen0)
-  endif
+  if (.not. associated(ele%taylor(1)%term)) &
+                              call ele_to_taylor(ele, param, start2)
+  call kill_gen_field (ele%gen_field)  ! clean up if necessary
+  allocate (ele%gen_field)
+  call taylor_to_genfield (ele%taylor, ele%gen_field, ele%gen0)
+endif
 
 ! track and add the constant term back in
 
-  call vec_bmad_to_ptc (start%vec, re(1:6))
-  re = ele%gen_field * re
-  call vec_ptc_to_bmad (re(1:6), end%vec)
-  end%vec = end%vec + ele%gen0
+call vec_bmad_to_ptc (start2%vec, re(1:6))
+re = ele%gen_field * re
+call vec_ptc_to_bmad (re(1:6), end%vec)
+end%vec = end%vec + ele%gen0
+
+end subroutine
 
 end subroutine
