@@ -1108,13 +1108,14 @@ interface
 end interface
 
 interface
-  subroutine type2_twiss (ele, lines, n_lines, frequency_units)
+  subroutine type2_twiss (ele, lines, n_lines, frequency_units, compact_format)
     use bmad_struct, only: ele_struct
     implicit none
     type (ele_struct) ele
     integer, optional :: frequency_units
     integer n_lines
     character(*) lines(:)
+    logical, optional :: compact_format
   end subroutine
 end interface
  

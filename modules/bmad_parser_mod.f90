@@ -1188,7 +1188,7 @@ subroutine evaluate_value (err_str, value, ring, delim, delim_found, err_flag)
     if (delim == '(' .and. index(word, '[LR') /= 0) then
       call get_next_word (word2, ix_word2, '+-*/(^,:}', delim, delim_found)
       word = word(:ix_word) // '(' // word2
-      ix_word = ix_word + ix_word2
+      ix_word = ix_word + ix_word2 + 1
     endif
 
 !---------------------------
