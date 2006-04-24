@@ -118,12 +118,14 @@ if (s%global%lattice_recalc) then
                      "No tracking or twiss calculations will be perfomred.")
     end select
 
-    if (.not. this_calc_ok) calc_ok = .false.
-
-    if (s%u(i)%do_synch_rad_int_calc)  call radiation_integrals (this%lat, &
+    if (this_calc_ok) then
+      if (s%u(i)%do_synch_rad_int_calc)  call radiation_integrals (this%lat, &
                                            this%orb, this%modes, s%u(i)%ix_rad_int_cache)
-    if (s%u(i)%do_chrom_calc) call chrom_calc (this%lat, delta_e, &
+      if (s%u(i)%do_chrom_calc) call chrom_calc (this%lat, delta_e, &
                                     this%a%chrom, this%b%chrom, exit_on_error = .false.)
+    else
+      calc_ok = .false.
+    endif
 
     call tao_load_data_array (s%u(i), -1)
 
@@ -170,7 +172,10 @@ if (lat%param%lattice_type == circular_lattice$) then
   endif
   call ring_make_mat6 (lat, -1, tao_lat%orb)
   call twiss_at_start (lat)
-  if (.not. bmad_status%ok) calc_ok = .false.
+  if (.not. bmad_status%ok) then
+    calc_ok = .false.
+    return
+  endif
 endif
 
 lat%param%ix_lost = not_lost$
