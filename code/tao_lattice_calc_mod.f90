@@ -93,7 +93,7 @@ if (s%global%lattice_recalc) then
     ! zero data array
     s%u(i)%data%model_value = tiny(1.0_rp)
     do j = 1, 6
-      this%orb%vec(i) = 0.0
+      this%orb%vec(j) = 0.0
     enddo
     ! set up matching element
     if (initing_design) call tao_match_lats_init (s%u(i))

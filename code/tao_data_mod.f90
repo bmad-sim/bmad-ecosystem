@@ -219,6 +219,17 @@ if (data_type(1:2) == 't:') data_type = 't:'
 if (data_type(1:3) == 'tt:') data_type = 'tt:'
 if (data_type(1:5) == 'wire:') data_type = 'wire:'
 
+if (data_type == 'r:' .or. data_type == 't:' .or. data_type == 'tt:') then
+  if (ix1 < ix2 .and. tao_lat%lat%param%lattice_type == linear_lattice$) then
+    call out_io (s_error$, r_name, &
+                'ERROR: ELEMENTS ARE REVERSED FOR: ' // datum%data_type, &
+                'STARTING ELEMENT: ' // tao_lat%lat%ele_(ix2)%name, &
+                'IS AFTER ENDING ELEMENT: ' // tao_lat%lat%ele_(ix1)%name)
+    return
+  endif
+endif
+
+!---------------------------------------------------------------
 
 select case (data_type)
 
@@ -424,7 +435,6 @@ case ('i5b_e6')
   datum%ix_ele_merit = tao_lat%lat%n_ele_use
 
 case ('r:')
-  if (ix1 < ix2) return
   i = tao_read_this_index (datum%data_type, 3); if (i == 0) return
   j = tao_read_this_index (datum%data_type, 4); if (j == 0) return
   call transfer_matrix_calc (tao_lat%lat, .true., mat6, vec0, ix2, ix1)
