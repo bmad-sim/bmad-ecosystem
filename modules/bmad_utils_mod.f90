@@ -668,7 +668,8 @@ end subroutine
 ! Subroutine to reallocate an allocatable  coord_struct array to at least:
 !     coord(0:n_coord)
 ! Note: The old coordinates are not saved except for coord(0).
-!  If at input coord is not allocated then coord(0)%vec is set to zero.
+! If, at input, coord(:) is not allocated then coord(0)%vec is set to zero.
+! In any case, coord(n)%vec for n > 0 is set to zero.
 !
 ! Modules needed:
 !   use bmad
@@ -703,8 +704,7 @@ subroutine reallocate_coord (coord, n_coord)
     endif
   else
     allocate (coord(0:n_coord))
-    coord(0)%vec = 0
-    do i = 1, n_coord
+    do i = 0, n_coord
       coord(i)%vec = 0
     enddo
   endif
