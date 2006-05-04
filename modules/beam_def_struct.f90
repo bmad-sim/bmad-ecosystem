@@ -69,8 +69,9 @@ type bunch_params_struct
   type (bunch_param_struct) :: x, y, z, a, b
   type (coord_struct) :: centroid  ! Lab frame
   type (beam_spin_struct) :: spin  ! polarization
-  real(rp) sigma(21) ! projected sigma matrix
-  real(rp) sigma_normal(21) ! normal mode sigma matrix
+  real(rp) sigma(21)               ! projected sigma matrix
+  real(rp) sigma_normal(21)        ! normal mode sigma matrix
+  real(rp) s                       ! Longitudinal position.
   integer n_particle               ! all non-lost particles
 end type
 
