@@ -26,17 +26,17 @@ type macro_bunch_param_struct
   real(rp) sigma, p_sigma
   real(rp) dpx_dx ! x x' correlation
   real(rp) norm_emitt ! normalized emittance
-endtype
+end type
 
 type macro_bunch_params_struct
   type (macro_bunch_param_struct) :: x, y, z, a, b
   type (coord_struct) :: centroid !Lab frame
   real(rp) :: charge ! bunch charge NOT including lost particles
-endtype
+end type
 
 type macro_beam_params_struct
   type (macro_bunch_params_struct), pointer :: bunch(:) => null()
-endtype
+end type
 
 contains
 
