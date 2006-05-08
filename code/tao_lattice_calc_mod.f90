@@ -13,6 +13,10 @@ use macroparticle_mod
 use beam_mod
 use random_mod
 
+!
+
+type (tao_lattice_struct), pointer :: this_bunch_track_lat ! for save_bunch_track routine
+
 integer, parameter :: design$ = 1
 integer, parameter :: model$ = 2
 
@@ -241,6 +245,11 @@ type phase_space_beam
 end type
 
 type (phase_space_beam) phase_space(100)
+
+! Initialize moment structure
+
+this_bunch_track_lat => tao_lat
+tao_lat%n_bunch_params2 = 0
 
 !
 
@@ -975,3 +984,55 @@ call make_mat6 (coupling_ele, s%u(u%coupling%from_uni)%design%lat%param)
 end subroutine  tao_match_lats_init
  
 end module tao_lattice_calc_mod
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine save_bunch_track (bunch, ele, s_travel)
+!
+! Custom routine to record bunch statistics.
+! This routine is called by the bmad routine track1_bunch_csr.
+!-
+
+subroutine save_bunch_track (bunch, ele, s_travel)
+
+use tao_lattice_calc_mod
+
+implicit none
+
+type (tao_lattice_struct), pointer :: t_lat
+type (bunch_params_struct), allocatable :: tm(:)
+type (bunch_struct) bunch
+type (ele_struct) ele
+
+real(rp) s_travel
+integer n
+
+! Make sure we have room in the array for the data
+
+t_lat => this_bunch_track_lat
+n = t_lat%n_bunch_params2
+
+if (allocated(t_lat%bunch_params2)) then
+  if (n+1 > size(t_lat%bunch_params2)) then
+    allocate(tm(n))
+    tm = t_lat%bunch_params2
+    deallocate (t_lat%bunch_params2)
+    allocate (t_lat%bunch_params2(max(10, 2*n)))
+    t_lat%bunch_params2(1:n) = tm
+    deallocate (tm)
+  endif
+
+else
+  allocate(t_lat%bunch_params2(10))
+endif
+
+!
+
+n = n + 1
+t_lat%n_bunch_params2 = n
+t_lat%bunch_params2(n)%s = ele%s + s_travel
+call calc_bunch_params (bunch, ele, t_lat%bunch_params2(n))
+
+end subroutine

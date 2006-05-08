@@ -1,6 +1,5 @@
 module tao_top10_mod
 
-
 use tao_struct
 use tao_interface
 use cesr_utils
@@ -66,8 +65,8 @@ do i = 1, nu
   do j = 1, size(s%u(i)%data)
     data => s%u(i)%data(j)
     if (.not. data%useit_opt) cycle
-    name = trim(data%d1%d2%name) // ':' // data%d1%name
-    if (nu > 1) write (name, '(2a, i0)') trim(name), ';', i
+    name = trim(data%d1%d2%name) // '.' // data%d1%name
+    if (nu > 1) write (name, '(i0, 2a)') i, '@', trim(name)
     call tao_to_top10 (top_merit, data%merit, name, data%ix_d1, 'max')
   enddo
 enddo
@@ -241,7 +240,7 @@ do i = 1, size(s%u)
     if (.not. data%useit_opt) cycle
     nc = nc + 1
     con(nc)%name = data%name
-    con(nc)%d2_d1_name = trim(data%d1%d2%name) // ':' // data%d1%name
+    con(nc)%d2_d1_name = trim(data%d1%d2%name) // '.' // data%d1%name
     if (size(s%u) > 1) write (con(nc)%d2_d1_name, '(2a, i0)') &
                                      trim(con(nc)%d2_d1_name), ';', i
     if (data%ix_ele < 0) then
@@ -249,7 +248,7 @@ do i = 1, size(s%u)
     else
       con(nc)%loc1 = s%u(i)%model%lat%ele_(data%ix_ele)%name
     endif
-    ie = data%ix_ele2
+    ie = data%ix_ele0
     if (ie < 1) then
       con(nc)%loc2 = ' '
     else
@@ -358,11 +357,94 @@ nl=nl+1; line(nl) = ' '
 nl=nl+1; write (line(nl), '(1x, a, 1pe12.6)') &
                                   'figure of merit: ', this_merit
 
+
+call tao_write_out (iunit, line, nl)
+
+end subroutine
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+
+subroutine tao_var_write (out_file)
+
+implicit none
+
+
+integer i, j, iu, ix, ios, ix_hash
+character(*) out_file
+character(200) file_name, str(1)
+character(20) :: r_name = 'tao_var_write'
+
+!
+
+ix_hash = index (out_file, '#')
+
+do i = 1, size(s%u)
+
+  file_name = out_file
+  if (ix_hash /= 0) write (file_name, '(a, i0, a)') &
+                  file_name(1:ix_hash-1), i, trim(file_name(ix_hash+1:))
+
+  if (file_name == ' ') then
+    iu = 0
+  else
+    iu = lunget()
+    open (iu, file = file_name, carriagecontrol = 'list', recl = 100, iostat = ios)
+    if (ios /= 0) then
+      call out_io (s_error$, r_name, &
+            'ERROR IN VAR_WRITE: CANNOT OPEN FILE: ' // file_name)
+      return
+    endif
+  endif
+
+  do j = 1, size(s%var)
+    if (.not. s%var(j)%exists) cycle
+    if (.not. any (s%var(j)%this(:)%ix_uni == i)) cycle
+    write (str(1), '(4a, es22.14)')  trim(s%var(j)%ele_name), &
+              '[', trim(s%var(j)%attrib_name), '] = ', s%var(j)%model_value
+    call tao_write_out (iu, str, 1)
+  enddo
+  
+  if (iu /= 0) then
+    call tao_write_out (iu, (/ '        ', 'end_file', '      ' /), 3)
+    call tao_show_constraints (iu, 'ALL')
+    call tao_show_constraints (iu, 'TOP10')
+    close (iu)
+    call out_io (s_blank$, r_name, 'Written: ' // file_name)
+  endif
+
+enddo
+
+end subroutine
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine tao_write_out (iunit, line, nl)
+!
+! Subroutine to write out a series of lines to a file or to the terminal.
+! It is assumed that any file has already been opened.
+!
+! Input:
+!   iunit   -- Integer: File unit to write to. 0 => print to the terminal.
+!   line(:) -- Character(*): A series of lines.
+!   nl      -- Integer: The number of lines to write.
+!-
+
+subroutine tao_write_out (iunit, line, nl)
+
+implicit none
+
+integer iunit, i, nl
+character(*) line(:)
+
 !
 
 do i = 1, nl
   if (iunit == 0) then
-    call out_io (s_blank$, r_name, line(i))
+    call out_io (s_blank$, ' ', line(i))
   else
     write (iunit, *) trim(line(i))
   endif

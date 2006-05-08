@@ -4,11 +4,11 @@ subroutine tao_single_mode (char)
   use tao_interface
   use tao_utils
   use quick_plot
-  use tao_single_mod
   use single_char_input_mod
   use tao_scale_mod
   use tao_x_scale_mod
   use tao_plot_window_mod
+  use tao_top10_mod
 
   implicit none
 
@@ -161,7 +161,7 @@ subroutine tao_single_mode (char)
 ! Escape Error:
 
   case default
-    write (*, *) 'What is this your typing?', char2
+    write (*, *) 'What is this you are typing?', char2
 
   end select
 
@@ -186,7 +186,7 @@ subroutine tao_single_mode (char)
       endif
 
     case default
-      write (*, *) 'What is this your typing?', iachar(char)
+      write (*, *) 'What is this you are typing?', iachar(char)
 
     end select
 
@@ -291,7 +291,7 @@ subroutine tao_single_mode (char)
 ! /w: Output to default file.
 
     case ('w')
-      call tao_var_write (s%global%var_out_file, .true.)
+      call tao_var_write (s%global%var_out_file)
 
 ! /x: Scale horizontal axis
 
@@ -353,14 +353,14 @@ subroutine tao_single_mode (char)
 ! /Escape Error:
 
       case default
-        write (*, *) 'What is this your typing?', char2
+        write (*, *) 'What is this you are typing?', char2
 
       end select
 
 ! / Error:
 
     case default
-      write (*, *) 'What is this your typing?', iachar(char)
+      write (*, *) 'What is this you are typing?', iachar(char)
 
     end select
 
@@ -373,7 +373,7 @@ subroutine tao_single_mode (char)
 ! Error:
 
   case default
-    write (*, *) 'What is this your typing?', iachar(char)
+    write (*, *) 'What is this you are typing?', iachar(char)
 
   end select
 

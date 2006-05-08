@@ -181,28 +181,26 @@ value is used:
   set_value = design_value + <number>
 \end{example}
 
-
-
-For \vn{change ele}, 14 additional
-\vn{<components>}s in addition to the element values are:
+For linear lattices, \vn{change ele beginning <coordinate>} 
+can be use to vary the starting coordinates where \vn{<coordinate>} is one of: 
 \begin{example}
-  \{x, y, z\}           ! position 
-  \{p_x, p_y, p_z\}  ! velocity
-  \{beta_x, beta_y, alpha_x, alpha_y\} ! twiss parameters
-  \{eta_x, eta_y,etap_x, etap_y\}      ! twiss parameters
+  (x, p_x, y, p_y, z, p_z)
 \end{example}
-These can only change the beginning element.
-Any orbit dimension can be changed for linear lattices, for circular lattices
-only the \vn{p_z} component is applicable. Only linear lattices can have their 
-beginning twiss parameters changed.
+For circular lattices only the \vn{p_z} component is applicable. 
+Also for linear lattices, \vn{change ele beginning <twiss>} can be used to
+vary the starting Twiss parameters where \vn{<twiss>} is one of:  
+\begin{example}
+  beta_x, beta_y, alpha_x, alpha_y 
+  eta_x, eta_y,etap_x, etap_y    
+\end{example}
 
 Examples:
 \begin{example}
-  change ele 124 x_offset  0.1   ! Offset element #124 by 0.1
-  change ele q02w k1 d1.2e-2     ! set the k1 strength of q02w relative to the design
-  change var steering 34:36 @1e-3  ! set the steering strength #34-36 to 0.001
-  change var steering all @0.0  ! set all steering strengths to 0.0
-  change ele beginning x @0.001 ! set beggining x position to 1 mm
+  change ele 124 x_offset  0.1     ! Offset element #124 by 0.1
+  change ele q02w k1 d1.2e-2       ! set the k1 strength of q02w relative to the design
+  change var steering[34:36] @1e-3 ! set the steering strength #34-36 to 0.001
+  change var steering[*] @0.0      ! set all steering strengths to 0.0
+  change ele beginning x @0.001    ! set beggining x position to 1 mm
 \end{example}
 
 
@@ -228,7 +226,7 @@ switch.  If \vn{<where>} is not present all graphs are scaled.
 
 Examples
 \begin{example}
-  clip top:x -3  7  ! clip the x graph in the top region
+  clip top.x -3  7  ! clip the x graph in the top region
   clip bottom       ! clip the graphs in the bottom region
 \end{example}
 
@@ -314,15 +312,25 @@ Examples
 
 Format:
 \begin{example}
-  output hard              ! print the plot window to a printer.
-  output ps \{<file_name>\}  ! create a postscript file of the plot window.
-  output gif \{<file_name>\} ! create a gif file of the plot window.
-  output var               ! Write a Bmad file of variable values.
+  output hard                    ! print the plot window to a printer.
+  output ps \{<file_name>\}        ! create a postscript file of the plot window.
+  output gif \{<file_name>\}       ! create a gif file of the plot window.
+  output var                     ! Write a Bmad file of variable values.
+  output lattice \{<file_name>\}   ! Write a Bmad lattice file of the model
+  output digested \{<file_name>\}  ! Write a digested Bmad lattice file of the model.
 \end{example}
 
 \vskip 0.2in \vn{Output} creates various files. If \vn{<file_name>} is
-not given then the default \vn{quick_plot.ps} or \vn{quick_plot.gif}
-is used. Note: PGPLOT does a poor job producing gif files consider
+not given then the defaults are:
+\begin{example}
+  quick_plot.ps                   ! output ps
+  quick_plot.gif                  ! output gif
+  lat_universe_#.bmad             ! output lattice
+  digested8_lat_universe_#.bmad   ! output digested
+\end{example}
+where \vn{\#} is replaced by the universe number.
+
+Note: PGPLOT does a poor job producing gif files so consider
 making a postscript file instead and using the pstogif unix command to
 convert.
 
@@ -397,11 +405,10 @@ and \vn{veto} commands.
 
 Examples:
 \begin{example}
-  restore data orbit:x  23, 34:56   ! unveto orbit:x data.
-  restore data orbit:x  23, 34:56:2 ! unveto orbit:x 34 and even datums between
-34 and 56
-  restore data orbit;* 34           ! unveto orbit data in all universes.
-  restore var quad_k1 67            ! unveto variable
+  restore data orbit.x[23,34:56]   ! unveto orbit.x data.
+  restore data orbit.x[23,34:56:2] ! unveto orbit.x 23 and even datums between 34 and 56
+  restore data *@orbit[34]         ! unveto orbit data in all universes.
+  restore var quad_k1[67]          ! unveto variable
 \end{example}
 
 %% reinitialize -------------------------------------------------------
@@ -460,16 +467,16 @@ Examples:
 Format:
 \begin{example}
   set curve <curve> <component> = <value>
-  set data <data_name> <component> = <value> \{<locations>\}
+  set data <data_name>|<component> = <value>
   set global <component> = <value>
   set lattice <component> = <value>
   set plot_page <component> = <value1> \{<value2>\}
   set universe <universe> <on/off> <recalculate>
-  set var <var_name> <component> = <value> \{<locations>\}
+  set var <var_name>|<component> = <value>
 \end{example}
 
 \vskip 0.2in
-To apply a set to all data or variable classes use ``all''
+To apply a set to all data or variable classes use ``*''
 in place of \vn{<data_name>} or \vn{var_name}. \\
 
 For \vn{set curve}, the \vn{<component>}s that can be set are:
@@ -480,37 +487,38 @@ For \vn{set curve}, the \vn{<component>}s that can be set are:
 
 For \vn{set data}, the \vn{<component>}s that can be set are:
 \begin{example}
-  weight      ! Weight for the merit function.
+  base        ! Base model value
+  design      ! Design model value
   meas        ! Measured data value.
   ref         ! Reference data value.
-  good_user   ! Good data from the perspective of the user of the \tao program.
+  weight      ! Weight for the merit function.
+  exists      ! Valid datum for computations?
+  good_meas   ! A valid measurement has been taken?
+  good_ref    ! A valid reference measurement has been taken?
+  good_opt    ! Good for using in the merit function for optimization?
+  good_plot   ! Good for using in a plot?
+  good_user   ! This is what is set by the use, veto, and restore commands.
 \end{example}
-Besides a numeric value \vn{<value>} can be:
+Besides a numeric value \vn{<value>} can be any of the above along with:
 \begin{example}
   meas        ! Measured data value.
-  ref         ! Reference data value.
-  model       ! model lattice value.
-  base        ! base lattice value.
-  design      ! design lattice value
 \end{example}
 \vskip 0.2in
 
 For \vn{set var}, the \vn{<component>}s that can be set are:
 \begin{example}
-  weight     ! Weight for the merit function.
-  step       ! Sets what a "small" variation of the variable is.
   model      ! Model lattice value.
-  base       ! Base lattice value
-  good_user  ! A Good variable from the perspective of the user of the \tao program
-  good_var   ! 
-\end{example}
-Besides a numeric value \vn{<value>} can be:
-\begin{example}
-  meas        ! Value when data measurement was made.
-  ref         ! Value when reference measurement was made.
-  model       ! model lattice value.
-  base        ! base lattice value.
-  design      ! design lattice value
+  base        ! Base model value
+  design      ! Design model value
+  meas        ! Value at the time of a measurement.
+  ref         ! Value at the time of a reference measurement.
+  weight      ! Weight for the merit function.
+  exists      ! Does this variable actually correspond to something?
+  good_var    ! The optimizer can be allowed to vary it
+  good_opt    ! Good for using in the merit function for optimization?
+  good_plot   ! Good for using in a plot?
+  good_user   ! This is what is set by the use, veto, and restore commands.
+  step       ! Sets what a "small" variation of the variable is.
 \end{example}
 \vskip 0.2in
 
@@ -566,14 +574,16 @@ data.
 a universe off is useful to speed up lattice calculations when this
 universe is not being used. Or, if many changes are to be performed to
 a universe and there is no need to do any lattice calculations between
-commands then turning off all universes will speed things up. Turn off
-all universe with the command \vn{set universe 0 off}. This flag only
-affects the lattice calculation. Issueing \vn{change, use, veto,}
-etc...  commands to a turned off uinverse will still affect the
+commands then turning off all universes will speed things up. To turn off 
+the currently viewed universe use the command \vn{set universe 0 off}. 
+To turn off all universes use the command \vn{set universe * off}. 
+This flag only affects the lattice calculation. 
+Issueing \vn{change, use, veto,} etc...  commands to a turned off uinverse
+will still affect the
 universe, however any lattice calculations will not be performed until
 the universe is turned back on.  To recalculate the turned on lattices
 when issueing a \vn{set universe} command then use \vn{set universe
-  <universe> <on/off> recalc}. Otherwise, no lattice calculation will
+<universe> <on/off> recalc}. Otherwise, no lattice calculation will
 be performed until an appropriate command is called afterwards.  If
 optimizing while one or more universes are turned off then the
 variables associated with that universe will still be included in the
@@ -582,10 +592,10 @@ still vary in the turned off universe.
 
 Examples:
 \begin{example}
-  set data all ref = meas         ! set all ref data = measured data in current universe.
-  set data orbit:x;2 base = model ! set the ref orbit:x data in universe 2 to meas
-  set var quad\_k1 weight = 0.1   ! set quad\_k1 weights. 
-  set lattice model;0 = design    ! resets the model lattice to the design in all universes
+  set data *|ref = *|meas                   ! set all ref data = measured data in current universe.
+  set data 2@orbit.x|base = 2@orbit.x|model ! set the ref orbit.x data in universe 2 to meas
+  set var quad\_k1 weight = 0.1             ! set quad\_k1 weights. 
+  set lattice *&|model = *&|design          ! resets model lattice to the design in all universes
 \end{example}
 
 %% scale --------------------------------------------------------------
@@ -609,7 +619,7 @@ or \vn{<where>} is ``all'' then all graphs are scaled.
 
 Examples:
 \begin{example}
-  scale top:x -3  7  ! scale the x graph in the top region
+  scale top.x -3  7  ! scale the x graph in the top region
   scale bottom       ! scale the graphs in the bottom region
   scale              ! scale everything
 \end{example}
@@ -708,16 +718,16 @@ available templates.
 
 Examples:
 \begin{example}
-  show curve r2:g1:c3         ! Show the attributes of a curve named "c3" which is 
+  show curve r2.g1.c3         ! Show the attributes of a curve named "c3" which is 
                               !   in the graph "g1" which is plotted in region "r2".
   show data                   ! lists d2_data arrays.
   show write data             ! Same as previous except results are also written
                               !   to a file.
   show data orbit             ! Show orbit data.
-  show data orbit:x           ! list all orbit:x data elements
-  show data orbit:x 35        ! show details for orbit:x element 35
-  show data orbit:x 35 86:95  ! list orbit:x elements 35 and 86 through 95
-  show data orbit:x 1:100:5   ! list every fifth orbit:x element between 1 and 100  
+  show data orbit.x           ! list all orbit.x data elements
+  show data orbit.x[35]       ! show details for orbit.x element 35
+  show data orbit.x[35,86:95] ! list orbit.x elements 35 and 86 through 95
+  show data orbit.x[1:100:5]  ! list every fifth orbit.x element between 1 and 100  
   show ele q*                 ! list all elements with names beginning with "q".
   show ele q10w               ! show a particular lattice element
   show ele 105                ! show element #105 in the lattice
@@ -763,8 +773,8 @@ Examples:
 
 Format:
 \begin{example}
-  use data  <data_name> <locations>
-  use var <var_name> <locations>
+  use data  <data_name>
+  use var <var_name>
 \end{example}
 
 \vskip 0.2in 
@@ -774,11 +784,12 @@ commands.
 
 Examples:
 \begin{example}
-  use data orbit:x  23, 34:56  ! use orbit:x data.
-  use data orbit;* 34          ! use orbit data in all universes.
-  use var quad_k1 67           ! use variable
-  use var quad_k1 30:60:10     ! use variables 30, 40, 50 and 60
-  use data all                 ! use all data
+  use data orbit.x             ! use orbit.x data in the viewed universe.
+  use data *@orbit[34]         ! use element 34 orbit data in all universes.
+  use var quad_k1[67]          ! use variable.
+  use var quad_k1[30:60:10]    ! use variables 30, 40, 50 and 60.
+  use data *                   ! use all data in the viewed universe.
+  use data *@*                 ! use all data in all universes.
 \end{example}
 
 
@@ -798,15 +809,15 @@ The \vn{veto} command vetoes data or variables. See also the
 
 Examples:
 \begin{example}
-  veto data orbit:x  23, 34:56 ! veto orbit:x data.
-  veto data orbit;* 34         ! veto orbit data in all universes.
-  veto var quad_k1 67          ! veto variable
-  veto var quad_k1 30:60:10    ! veto variables 30, 40, 50 and 60
-  veto data all                ! veto all data
-  veto data all 10:20          ! veto all data from index 10 to 20 (see note)
+  veto data orbit.x[23,34:56]  ! veto orbit.x data.
+  veto data *@orbit.*[34]      ! veto orbit data in all universes.
+  veto var quad_k1[67]         ! veto variable
+  veto var quad_k1[30:60:10]   ! veto variables 30, 40, 50 and 60
+  veto data *                  ! veto all data
+  veto data *[10:20]           ! veto all data from index 10 to 20 (see note)
 \end{example}
 
-Note: The command `\cmd{veto data all 10:20}' will veto all d1\_data elements
+Note: The command `\cmd{veto data *.*[10:20]}' will veto all d1\_data elements
 within the range 10:20 \textit{using the index convention for each d1\_data
 structure separately}. This may produce curious results if the
 indexes for the d1\_data structures do not all point to the same lattice
@@ -852,7 +863,7 @@ for \vn{<axis_type>} are:
 Note that \vn{index} only makes sense for data that has an index
 associated with it. Also, if a data point has more that one element associated
 with it \vn{ele_index} will plot the first element index (\vn{ix_ele} not
-\vn{ix_ele2}).
+\vn{ix_ele0}).
 
 Examples:
 \begin{example}

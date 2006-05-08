@@ -26,7 +26,7 @@ contains
 !      mat6
 !      c_mat
 !  u%maco_beam%macro_params  -- macro_bunch_params_struct
-!  u%beam%params             -- bunch_struct_params
+!  u%%model%bunch_params(ix_ele)         -- bunch_struct_params
 !
 !-
 
@@ -54,7 +54,7 @@ elseif (s%global%track_type == "beam") then
                     u%model%orb(ix_ele), .true.)
   call twiss_propagate1 (lat%ele_(ix_ele-1), lat%ele_(ix_ele))
   call calc_bunch_params (u%beam%beam%bunch(s%global%bunch_to_plot), &
-                                lat%ele_(ix_ele), u%beam%params)
+                                lat%ele_(ix_ele), u%model%bunch_params(ix_ele))
 
 elseif (s%global%track_type == "macro") then
   call make_mat6 (lat%ele_(ix_ele), lat%param, u%model%orb(ix_ele-1), &

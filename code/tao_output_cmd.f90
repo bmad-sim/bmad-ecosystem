@@ -10,17 +10,19 @@
 subroutine tao_output_cmd (what, who)
 
 use tao_mod
+use tao_top10_mod
 use quick_plot
-use tao_single_mod
 use tao_plot_mod
+use io_mod
 
 implicit none
 
 character(*) what, who
 character(16) action
 character(20) :: r_name = 'tao_output_cmd'
+character(100) file_name
 
-integer ix
+integer i, ix
 
 !
 
@@ -68,7 +70,27 @@ case ('ps')
 ! variables
 
 case ('var')
-  call tao_var_write (s%global%var_out_file, .true.)
+  call tao_var_write (s%global%var_out_file)
+
+case ('lattice')
+  file_name = who
+  if (file_name == ' ') file_name = 'lat_universe_#.bmad'
+  do i = 1, size(s%u)
+    ix = index(file_name, '#')
+    if (ix /= 0) write (file_name, '(a, i0, a)') file_name(1:ix-1), i, trim(file_name(ix+1:))
+    call write_bmad_lattice_file (file_name, s%u(i)%model%lat)
+    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+  enddo
+
+case ('digested')
+  file_name = who
+  if (file_name == ' ') file_name = 'digested_lat_universe_#.bmad'
+  do i = 1, size(s%u)
+    ix = index(file_name, '#')
+    if (ix /= 0) write (file_name, '(a, i0, a)') file_name(1:ix-1), i, trim(file_name(ix+1:))
+    call write_digested_bmad_file (file_name, s%u(i)%model%lat)
+    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+  enddo
 
 ! error
 

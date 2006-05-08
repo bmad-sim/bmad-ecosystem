@@ -34,7 +34,7 @@ type tao_ele_shape_struct    ! for the element layout plot
   character(16) ele_name     ! element name
   character(16) shape        ! plot shape
   character(16) color        ! plot color
-  integer dy_pix             ! plot vertical height 
+  real(rp) dy_pix            ! plot vertical height 
   Logical :: plot_name = .true.
   integer key                ! Element key index to match to
 end type
@@ -67,7 +67,7 @@ end type
 type tao_curve_struct
   character(16) :: name                    ! Name identifying the curve.
   character(16) :: data_source             ! "calculation", "data_array", or "var_array"
-  character(16) :: data_type = ' '         ! "orbit:x", etc.
+  character(16) :: data_type = ' '         ! "orbit.x", etc.
   character(16) :: ele_ref_name            ! Reference element.
   type (beam_struct) beam                  ! for phase-space plotting
   real(rp), pointer :: x_line(:) => null() ! coords for drawing a curve
@@ -156,19 +156,6 @@ type tao_plot_page_struct
 end type
 
 !-----------------------------------------------------------------------
-! This structure is used to store data generated from tao_lattice_calc that
-! will eventually be used to draw a smooth curve.
-! For example: With CSR, this structure can be used to store the beam energy 
-! as a function of longitudinal position within an element. 
-! The point is that it would be very time intensive if tao_plot_data_setup had
-! to try to recalculate this data everytime.
-
-type tao_data_array_struct
-  real(rp) value
-  real(rp) s
-end type
-
-!-----------------------------------------------------------------------
 ! The data_struct defines the fundamental data structure representing 
 ! one datum point.
 ! The universe_struct will hold an array of data_struct structures: u%data(:).
@@ -197,11 +184,11 @@ end type
 type tao_data_struct
   character(32) name        ! Datum name. Eg: "X Orbit @ Det 10"
   character(16) ele_name    ! Name of the element in the Lattice corresponding to the datum.
-  character(16) ele2_name   ! Name lattice element when there is a range 
-  character(32) data_type   ! Type of data: "orbit:x", etc.
+  character(16) ele0_name   ! Name lattice element when there is a range 
+  character(32) data_type   ! Type of data: "orbit.x", etc.
   character(16) merit_type  ! Type of constraint: 'target', 'max', 'min', etc.
   integer ix_ele            ! Index of the element in the lattice element array.
-  integer ix_ele2           ! Index of lattice elment when there is a range or reference.
+  integer ix_ele0           ! Index of lattice elment when there is a range or reference.
   integer ix_ele_merit      ! Index of lattice elment where merit is evaluated.
   integer ix_d1             ! Index number in u%d2_data(i)%d1_data(j)%d(:) array.
   integer ix_data           ! Index of this datum in the u%data(:) array of data_structs.
@@ -218,9 +205,6 @@ type tao_data_struct
   real(rp) merit            ! Merit function term value: weight * delta^2
   real(rp) conversion_factor ! Typically used to convert coupling to cbar
   real(rp) s                ! longitudinal position of ele.
-  type (tao_data_array_struct), allocatable :: model__array(:)
-  type (tao_data_array_struct), allocatable :: design_array(:)
-  type (tao_data_array_struct), allocatable :: base_array(:)
   logical exists            ! See above
   logical good_meas         ! See above
   logical good_ref          ! See above
@@ -256,12 +240,31 @@ type tao_d2_data_struct
   character(200) ref_file_name    ! Reference file name.
   character(20) data_date         ! Data measurement date.
   character(20) ref_date          ! Reference data measurement date.
-  character(80) Descrip(n_descrip_maxx) ! Array for descriptive information.
+  character(80) descrip(n_descrip_maxx) ! Array for descriptive information.
   type (tao_d1_data_struct), pointer :: d1(:) => null() ! Points to children 
+  integer ix_uni                  ! Index of universe this is in.
   integer ix_data                 ! Index of the data set.
   integer ix_ref                  ! Index of the reference data set. 
   logical data_read_in            ! A data set has been read in?
   logical ref_read_in             ! A reference data set has been read in?
+end type
+
+! A tao_data_array_struct is just a pointer to a tao_data_struct.
+! This is used to construct arrays of tao_data_structs.
+
+type tao_data_array_struct
+  type (tao_data_struct), pointer :: d
+end type
+
+! A tao_real_array_struct is just a pointer to a real number.
+! This is used to construct arrays of reals.
+
+type tao_real_array_struct
+  real(rp), pointer :: r
+end type
+
+type tao_logical_array_struct
+  logical, pointer :: l
 end type
 
 !-----------------------------------------------------------------------
@@ -336,11 +339,21 @@ type tao_v1_var_struct
                                ! Pointer to the appropriate section in s%var.
 end type
 
+! A tao_var_array_struct is just a pointer to a tao_var_struct.
+! This is used to construct arrays of tao_var_structs.
+
+type tao_var_array_struct
+  type (tao_var_struct), pointer :: v
+end type
+
+
 !------------------------------------------------------------------------
 ! global switches
 
 type tao_global_struct
   real(rp) :: y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
+  real(rp) :: lm_opt_deriv_reinit = -1   ! Reinit derivative matrix cutoff
+  real(rp) :: de_lm_step_ratio = 1       ! Scaling for step sizes between DE and LM optimizers.
   integer :: u_view = 1                  ! Which universe we are viewing.
   integer :: n_opti_cycles = 20          ! number of optimization cycles
   integer :: ix_key_bank = 0             ! For single mode.
@@ -371,8 +384,8 @@ type tao_global_struct
   logical :: init_plot_needed = .true.       ! reinitialize plotting?
   character(16) :: valid_plot_who(10)        ! model, base, ref etc...
   character(40) :: print_command = 'awprint'
-  character(80) :: default_init_file = 'tao.init'!used with 'reinitialize' command
-  character(80) :: current_init_file = 'tao.init'!used with 'reinitialize' command
+  character(80) :: default_init_file = 'tao.init' ! used with 'reinitialize' command
+  character(80) :: current_init_file = 'tao.init' ! used with 'reinitialize' command
   character(80) :: var_out_file = 'var#.out'
   character(80) :: opt_var_out_file = 'opt_var#.out'
 end type
@@ -410,7 +423,6 @@ type tao_beam_struct
   type (beam_struct) beam
   type (beam_init_struct) :: beam_init ! beam distrubution
                                        !  at beginning of lattice
-  type (bunch_params_struct) :: params
   logical calc_emittance               ! for a ring calculate emittance
 end type
 
@@ -428,6 +440,9 @@ type tao_macro_beam_struct
 end type
 
 !-----------------------------------------------------------------------
+! The %bunch_params(:) array has a 1-to-1 correspondence with the lattice elements.
+! The %bunch_params2(:) array, if used, is for drawing smooth data lines and has 
+! a lot more elements than the %bunch_params(:) array
 
 type tao_lat_mode_struct
   real(rp) chrom
@@ -439,6 +454,9 @@ type tao_lattice_struct
   type (coord_struct), allocatable :: orb(:)
   type (modes_struct) modes                        ! Synchrotron integrals stuff
   type (tao_lat_mode_struct) a, b
+  type (bunch_params_struct), allocatable :: bunch_params(:)
+  type (bunch_params_struct), allocatable :: bunch_params2(:)
+  integer n_bunch_params2                          ! bunch_params2 array size.
 end type
 
 !-----------------------------------------------------------------------
@@ -453,6 +471,7 @@ type tao_universe_struct
   type (tao_data_struct), pointer :: data(:) => null()        ! array of all data.
   type (tao_ix_data_struct), pointer :: ix_data(:) ! which data to evaluate at this ele
   real(rp), pointer :: dModel_dVar(:,:) => null()             ! Derivative matrix.
+  integer ix_uni                                   ! Universe index.
   integer n_d2_data_used
   integer n_data_used
   integer ix_rad_int_cache

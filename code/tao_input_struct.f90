@@ -24,8 +24,8 @@ end type
 type tao_data_input
   character(32) :: name
   character(32) :: data_type
+  character(32) :: ele0_name
   character(32) :: ele_name
-  character(32) :: ele2_name
   character(16) :: merit_type
   real(rp) :: meas_value
   real(rp) :: weight

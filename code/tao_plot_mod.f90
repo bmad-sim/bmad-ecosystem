@@ -2,7 +2,6 @@ module tao_plot_mod
 
 use tao_mod
 use quick_plot
-use tao_single_mod
 use tao_plot_window_mod
 
 
@@ -29,7 +28,9 @@ type (tao_curve_struct), pointer :: curve
 type (qp_rect_struct) border1, border2
 
 real(rp) location(4), dx, dy
+
 integer i, j, k
+
 character(16) :: r_name = 'tao_plot_out'
 character(3) view_str
 
@@ -223,13 +224,14 @@ type (tao_graph_struct) :: graph
 type (ring_struct), pointer :: lat
 type (ele_struct), pointer :: ele
 
-real(rp) x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top, height
+real(rp) r, x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top, height
 
 integer i, j, k, kk, ix, ix1, ix2, isu
 integer icol, ix_var, ixv, j_label
 
 character(80) str
 character(20) :: r_name = 'tao_plot_lat_layout'
+character(16) shape
 
 ! Each graph is a separate lattice layout (presumably for different universes). 
 ! setup the placement of the graph on the plot page.
@@ -315,12 +317,35 @@ do i = 1, lat%n_ele_max
 
   call qp_translate_to_color_index (s%plot_page%ele_shape(j)%color, icol)
 
-  y =  s%plot_page%ele_shape(j)%dy_pix/2
+  y = s%plot_page%ele_shape(j)%dy_pix/2
+
+  shape = s%plot_page%ele_shape(j)%shape
+
+  if (shape == 'VAR_BOX' .or. shape == 'ASYM_VAR_BOX') then
+    select case (ele%key)
+    case (quadrupole$)
+      r = ele%value(k1$)
+    case (sextupole$)
+      r = ele%value(k2$)
+    case (octupole$)
+      r = ele%value(k3$)
+    case (solenoid$)
+      r = ele%value(ks$)
+    end select
+  end if
+
+
 
   select case (s%plot_page%ele_shape(j)%shape)
 
   case ('BOX')
     call qp_draw_rectangle (x1, x2,  -y, y, color = icol)
+
+  case ('VAR_BOX')
+    call qp_draw_rectangle (x1, x2,  -y*r, y*r, color = icol)
+
+  case ('ASYM_VAR_BOX')
+    call qp_draw_rectangle (x1, x2,  0.0_rp, y*r, color = icol)
 
   case ('XBOX')
     call qp_draw_rectangle (x1, x2,  -y, y, color = icol)
@@ -339,7 +364,7 @@ do i = 1, lat%n_ele_max
     y_off = y_bottom + 12.0_rp * j_label 
     height = 0.8 * s%plot_page%text_height 
     call qp_draw_text (ele%name, ele%s-ele%value(l$)/2, y_off, &
-                                        height = height, justify = 'CB')
+                                 height = height, justify = 'CB', ANGLE = 90.0_rp)
   endif
 
   call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
@@ -420,5 +445,39 @@ if (any(graph%legend /= ' ')) call qp_draw_legend (graph%legend, &
           graph%legend_origin%x, graph%legend_origin%y, graph%legend_origin%units)
 
 end subroutine
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+
+function tao_var_uni_string (var) result (str)
+
+implicit none
+
+type (tao_var_struct) var
+character(10) str
+integer i, iu, ct
+logical uni(100)
+
+!
+
+iu = size(s%u)
+uni = .false.
+
+do i = 1, size (var%this)
+  uni(var%this(i)%ix_uni) = .true.
+enddo
+
+ct = count(uni(1:iu))
+
+if (ct == 1) then
+  write (str, '(i2)') var%this(1)%ix_uni
+elseif (ct == iu) then
+  str = 'All'
+else
+  str = '?'
+endif
+
+end function
 
 end module

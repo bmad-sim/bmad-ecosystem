@@ -2,7 +2,8 @@
 \label{c:data_types}
 
 %------------------------------------------------------------------------
-\section{How Tao Handles Data}\index{Data}
+\section{How Tao Handles Data}
+\index{Data}
 
 As explained in chapter~\ref{c:overview}, \tao has special structures
 to hold data to be analyzed. Any lattice or beam parameters that are
@@ -43,15 +44,15 @@ catagories and can be any real number as calculated in the appropriate
 ook routine.
 
 Also associated with a datum are two lattice elements called
-\vni{ele} and \vni{ele2}. The \vni{data_types} are divided into two
+\vni{ele} and \vni{ele0}. The \vni{data_types} are divided into two
 categories: Those that are \vni{relative} and those that are not.  A
 \vni{relative} \vni{data_type} means that the \vni{model} value for that
 datum is determined by a difference between elements. For example, for
-\vn{phase:x} the \vn{model} value is
+\vn{phase.x} the \vn{model} value is
 \begin{example}
-  model_value = \(\phi\sb{x}\)(ele) - \(\phi\sb{x}\)(ele2)
+  model_value = \(\phi\sb{x}\)(ele) - \(\phi\sb{x}\)(ele0)
 \end{example}
-If there is no \vn{ele2} associated with a datum then the model value is
+If there is no \vn{ele0} associated with a datum then the model value is
 \begin{example}
   model_value = \(\phi\sb{x}\)(ele) - \(\phi\sb{x}\)(0)
 \end{example}
@@ -60,10 +61,10 @@ where $\phi_x(0)$ is the phase at the 0\Th element (which is always at
 \index{Data!Relative}
 
 For datums with \vni{non-relative} \vn{data_types} if there is also an
-associated \vni{ele2} element then the \vn{model} value is dependent
-upon the \vni{merit_type}. For example, with a \vn{beta:x} \vn{data_type} the
-model value is determined by Table~\ref{t:eval2} where \vn{i} goes from the
-\vn{ele} index to the \vn{ele2} index.
+associated \vni{ele0} element then the \vn{model} value is dependent
+upon the \vni{merit_type}. For example, with a \vn{beta.x}
+\vn{data_type} the model value is determined by Table~\ref{t:eval2}
+where \vn{i} goes from the \vn{ele} index to the \vn{ele0} index.
 \begin{table}[ht]
 \centering
 {\tt
@@ -110,51 +111,51 @@ associated with them.
 {\tt
 \begin{tabular}{|l|l|l|} \hline
   {\it Data\_Type}        & {\it Description}                 &          \\ \hline 
-    beta:x, beta:y        & Projected Beta Function           &          \\ \hline 
-    beta:a, beta:b        & Normal-Mode Beta Function         &          \\ \hline 
-    alpha:x, alpha:y      & Projected Alpha Function          &          \\ \hline 
-    alpha:a, alpha:b      & Normal-Mode Alpha Function        &          \\ \hline 
-    eta:x, eta:y          & Dispersion                        &          \\ \hline 
-    etap:x, etap:y        & Dispersion derivative             &          \\ \hline 
-    phase:x, phase:y      & Betatron phase                    & relative \\ \hline 
+    beta.x, beta.y        & Projected Beta Function           &          \\ \hline 
+    beta.a, beta.b        & Normal-Mode Beta Function         &          \\ \hline 
+    alpha.x, alpha.y      & Projected Alpha Function          &          \\ \hline 
+    alpha.a, alpha.b      & Normal-Mode Alpha Function        &          \\ \hline 
+    eta.x, eta.y          & Dispersion                        &          \\ \hline 
+    etap.x, etap.y        & Dispersion derivative             &          \\ \hline 
+    phase.x, phase.y      & Betatron phase                    & relative \\ \hline 
     phase\_frac\_diff     & Fractional phase difference (x-y) & relative \\ \hline
-    orbit:x, orbit:y      & Transverse orbit                  &          \\ \hline 
-    orbit:p\_x, orbit:p\_y& Tranverse momenta                 &          \\ \hline 
-    orbit:z, orbit:z\_p   & Longitudinal orbit and momenta    &          \\ \hline 
-    bpm:x, bpm:y          & Transverse BPM reading            &          \\ \hline 
-    wire:<angle>          & Wire Scanner with wire angle <angle>
+    orbit.x, orbit.y      & Transverse orbit                  &          \\ \hline 
+    orbit.p\_x, orbit.p\_y& Tranverse momenta                 &          \\ \hline 
+    orbit.z, orbit.z\_p   & Longitudinal orbit and momenta    &          \\ \hline 
+    bpm.x, bpm.y          & Transverse BPM reading            &          \\ \hline 
+    wire.<angle>          & Wire Scanner with wire angle <angle>
                                                               &          \\ \hline
     \begin{tabular}{@{}l}     
-      spin:polarization, \\ 
-      spin:theta, spin:phi 
+      spin.polarization, \\ 
+      spin.theta, spin.phi 
     \end{tabular} 
                           & Particle spin                     &          \\ \hline 
     \begin{tabular}{@{}l}     
-      cbar:11, cbar:12, \\ 
-      cbar:21, cbar:22 
+      cbar.11, cbar.12, \\ 
+      cbar.21, cbar.22 
     \end{tabular} 
                           & Coupling                         &          \\ \hline 
     \begin{tabular}{@{}l}   
-      coupling:11b, coupling:12a, \\ 
-      coupling:12b, coupling:22a 
+      coupling.11b, coupling.12a, \\ 
+      coupling.12b, coupling.22a 
     \end{tabular} 
                           & Coupling                         &          \\ \hline 
-    floor:x, floor:y, floor:z
+    floor.x, floor.y, floor.z
                           & Global (``floor'') position      & relative \\ \hline 
-    floor:theta           & Global (``floor'') angle         & relative \\ \hline 
-    r:$ij$                & 
+    floor.theta           & Global (``floor'') angle         & relative \\ \hline 
+    r.$ij$                & 
                            \begin{tabular}{l}
                              Term in linear transfer map \\
                              $1 \le i,j \le 6$
                            \end{tabular}
                                                              & relative \\ \hline 
-    t:$ijk$               & 
+    t.$ijk$               & 
                            \begin{tabular}{l}
                              Term in 2\Nd order transfer map \\
                               $1 \le i,j,k \le 6$
                            \end{tabular} 
                                                              & relative \\ \hline 
-    tt:$ijklm\ldots$      & 
+    tt.$ijklm\ldots$      & 
                            \begin{tabular}{l}
                              Term in n\Th order transfer map \\
                               $1 \le i,j,k,\ldots \le 6$
@@ -165,27 +166,27 @@ associated with them.
     beam\_energy          & Beam energy                       &          \\ \hline
     unstable\_ring        & Nonzero if a ring is unstable     & global   \\ \hline
     \begin{tabular}{@{}l}
-      emittance:a  \\
-      emittance:b  \\
+      emittance.a  \\
+      emittance.b  \\
     \end{tabular}
                           & Emittance for a ring              & global   \\ \hline
     \begin{tabular}{@{}l}
-      chrom:a  \\
-      chrom:b  \\
+      chrom.a  \\
+      chrom.b  \\
     \end{tabular}
                           & Chromaticity for a ring           & global   \\ \hline
     \begin{tabular}{@{}l}  
-      norm\_emittance:x \\ 
-      norm\_emittance:y \\
-      norm\_emittance:z \\
-      norm\_emittance:a \\
-      norm\_emittance:b \\
+      norm\_emittance.x \\ 
+      norm\_emittance.y \\
+      norm\_emittance.z \\
+      norm\_emittance.a \\
+      norm\_emittance.b \\
     \end{tabular} 
                           & Normalized emittance              &          \\ \hline 
     \begin{tabular}{@{}l}   
-      bunch\_sigma:x, bunch\_sigma:p\_x \\ 
-      bunch\_sigma:y, bunch\_sigma:p\_y \\
-      bunch\_sigma:z, bunch\_sigma:p\_z \\
+      sigma.x, sigma.p\_x \\ 
+      sigma.y, sigma.p\_y \\
+      sigma.z, sigma.p\_z \\
     \end{tabular} 
                           & Bunch size                        &          \\ \hline 
     \begin{tabular}{@{}l}  

@@ -41,6 +41,8 @@ subroutine tao_init_single_mode (single_mode_file)
   key%merit_type = s%global%default_key_merit_type
 
   call tao_open_file ('TAO_INIT_DIR', single_mode_file, iu, file_name)
+  call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
+
   read (iu, nml = key_bindings, iostat = ios)
   close (iu)
   if (ios < 0) then
@@ -93,10 +95,19 @@ subroutine tao_init_single_mode (single_mode_file)
     s%var(n)%merit_type  = key(i)%merit_type
     s%var(n)%exists      = .true.
 
-    read (key(i)%universe, *, iostat = ios) ix_u
-    if (ios /= 0) then
-      call out_io (s_abort$, r_name, 'BAD UNIVERSE INDEX FOR KEY: ' // key(i)%ele_name)
-      call err_exit
+    if (key(i)%universe == '*') then
+      ix_u = 0
+    else
+      read (key(i)%universe, *, iostat = ios) ix_u
+      if (ios /= 0) then
+        call out_io (s_abort$, r_name, 'BAD UNIVERSE INDEX FOR KEY: ' // key(i)%ele_name)
+        call err_exit
+      endif
+      if (ix_u == 0) then
+        call out_io (s_abort$, r_name, &
+            'UNIVERSE INDEX "0" NEEDS TO BE REPLACED BY "*" FOR KEY: ' // key(i)%ele_name)
+        call err_exit
+      endif
     endif
 
     if (ix_u == 0) then

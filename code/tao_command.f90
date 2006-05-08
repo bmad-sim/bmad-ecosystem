@@ -25,6 +25,7 @@ subroutine tao_command (command_line, err)
   use tao_set_mod
   use tao_plot_window_mod
   use tao_show_mod
+  use tao_change_mod
 
   implicit none
 
@@ -41,16 +42,16 @@ subroutine tao_command (command_line, err)
   character(16) cmd_name, set_word
 
   character(16) :: cmd_names(26) = (/  &
-        'quit        ', 'exit        ', 'show        ', 'plot        ', 'place       ', &
-        'clip        ', 'scale       ', 'veto        ', 'use         ', 'restore     ', &
-        'run         ', 'flatten     ', 'output      ', 'change      ', 'set         ', &
-        'call        ', 'view        ', 'alias       ', 'help        ', 'history     ', &
-        'single-mode ', 'reinitialize', 'x-scale     ', 'x-axis      ', 'derivative  ', &
-        'spawn       '/)
+    'quit        ', 'exit        ', 'show        ', 'plot        ', 'place       ', &
+    'clip        ', 'scale       ', 'veto        ', 'use         ', 'restore     ', &
+    'run         ', 'flatten     ', 'output      ', 'change      ', 'set         ', &
+    'call        ', 'view        ', 'alias       ', 'help        ', 'history     ', &
+    'single-mode ', 'reinitialize', 'x-scale     ', 'x-axis      ', 'derivative  ', &
+    'spawn       '/)
 
   character(16) :: set_names(8) = (/ &
-        'data        ', 'var         ', 'lattice     ', 'global      ', 'plot_page   ', &
-        'universe    ', 'curve       ', 'graph       ' /)
+    'data        ', 'var         ', 'lattice     ', 'global      ', 'plot_page   ', &
+    'universe    ', 'curve       ', 'graph       ' /)
 
 
 
@@ -107,7 +108,16 @@ subroutine tao_command (command_line, err)
   case ('change')
 
     call tao_cmd_split (cmd_line, 4, cmd_word, .false., err)
-    call tao_change_cmd (cmd_word(1), cmd_word(2), cmd_word(3), cmd_word(4))
+
+    if (cmd_word(1) == 'var') then
+      call tao_change_var (cmd_word(2), cmd_word(3))
+    elseif (cmd_word(1) == 'ele') then
+      call tao_change_ele (cmd_word(2), cmd_word(3), cmd_word(4))
+    else
+      call out_io (s_error$, r_name, &
+             'ERROR: CHANGE WHO? (SHOULD BE "ele" OR "var")')
+    endif
+
 
 !--------------------------------
 ! CLIP
@@ -239,9 +249,9 @@ subroutine tao_command (command_line, err)
     call match_word (cmd_word(1), name$%data_or_var, which)
     
     if (which .eq. data$) then
-      call tao_use_data (cmd_name, cmd_word(2), cmd_word(3))
+      call tao_use_data (cmd_name, cmd_word(2))
     elseif (which .eq. variable$) then
-      call tao_use_var (cmd_name, cmd_word(2), cmd_word(3))
+      call tao_use_var (cmd_name, cmd_word(2))
     else
       call out_io (s_error$, r_name, "Use/veto/restore what? data or variable?")
       return
@@ -282,7 +292,7 @@ subroutine tao_command (command_line, err)
 
   case ('set')
 
-    call tao_cmd_split (cmd_line, 6, cmd_word, .false., err, '=')
+    call tao_cmd_split (cmd_line, 5, cmd_word, .false., err, '=')
 
     call match_word (cmd_word(1), set_names, ix)
     if (ix == 0) then
@@ -293,8 +303,8 @@ subroutine tao_command (command_line, err)
     set_word = set_names(ix)
 
     if ( (set_word == 'curve'     .and. cmd_word(4) /= '=') .or. &
-         (set_word == 'data'      .and. cmd_word(4) /= '=') .or. &
-         (set_word == 'var'       .and. cmd_word(4) /= '=') .or. &
+         (set_word == 'data'      .and. cmd_word(3) /= '=') .or. &
+         (set_word == 'var'       .and. cmd_word(3) /= '=') .or. &
          (set_word == 'global'    .and. cmd_word(3) /= '=') .or. &
          (set_word == 'plot_page' .and. cmd_word(3) /= '=') .or. &
          (set_word == 'graph'     .and. cmd_word(3) /= '=') .or. &
@@ -306,12 +316,13 @@ subroutine tao_command (command_line, err)
 
     select case (set_word)
     case ('data')
-      call tao_set_data_cmd (cmd_word(2), &
-                              cmd_word(3), cmd_word(5), cmd_word(6)) 
+      cmd_word(4) = trim(cmd_word(4)) // cmd_word(5)
+      call tao_set_data_cmd (cmd_word(2), cmd_word(4))
     case ('var')
-      call tao_set_var_cmd (cmd_word(2), &
-                              cmd_word(3), cmd_word(5), cmd_word(6)) 
+      cmd_word(4) = trim(cmd_word(4)) // cmd_word(5)
+      call tao_set_var_cmd (cmd_word(2), cmd_word(4))
     case ('lattice')
+      cmd_word(4) = trim(cmd_word(4)) // cmd_word(5)
       call tao_set_lattice_cmd (cmd_word(2), cmd_word(4)) 
     case ('curve')
       call tao_set_curve_cmd (cmd_word(2), cmd_word(3), cmd_word(5)) 
@@ -322,12 +333,11 @@ subroutine tao_command (command_line, err)
     case ('graph')
       call tao_set_graph_cmd (cmd_word(2), cmd_word(4), cmd_word(5))
     case ('universe')
-      call tao_to_int (cmd_word(2), uni, err)
-      if (err) return
+      
       if (cmd_word(4) .eq. "recalc") then
-        call tao_set_uni_cmd (uni, cmd_word(3), .true.)
+        call tao_set_uni_cmd (cmd_word(2), cmd_word(3), .true.)
       else
-        call tao_set_uni_cmd (uni, cmd_word(3), .false.)
+        call tao_set_uni_cmd (cmd_word(2), cmd_word(3), .false.)
       endif
     end select
 

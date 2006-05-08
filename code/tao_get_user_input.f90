@@ -14,7 +14,6 @@
 subroutine tao_get_user_input (cmd_line, prompt_str)
 
 use tao_mod
-use tao_single_mod
 use single_char_input_mod
 
 implicit none
@@ -174,7 +173,7 @@ subroutine check_for_multi_commands
 
   if (cmd_line(1:5) == 'alias') return
 
-  ix = index (cmd_line, '|')
+  ix = index (cmd_line, ';')
   if (ix /= 0) then
     multi_commands_here = .true.
     saved_line = cmd_line(ix+1:)

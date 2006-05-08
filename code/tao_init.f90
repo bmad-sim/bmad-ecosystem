@@ -25,9 +25,10 @@ subroutine tao_init (init_file)
   character(*) init_file
   character(200) lattice_file, plot_file, data_file, var_file, file_name
   character(200) single_mode_file, startup_file
+  character(40) name1, name2
   character(16) :: r_name = 'tao_init'
   character(16) init_name
-  integer i, j, n_universes, iu, ix
+  integer i, j, i2, j2, n_universes, iu, ix
 
   logical err, calc_ok
 
@@ -91,6 +92,30 @@ subroutine tao_init (init_file)
       endif
     enddo
   enddo
+
+! make sure two variables do not vary the same attribute
+
+  do i = 1, size(s%var)
+    do j = 1, size(s%var(i)%this)
+      do i2 = i, size(s%var)
+        do j2 = 1, size(s%var(i2)%this)
+          if (i == i2 .and. j == j2) cycle
+          if (associated (s%var(i)%this(j)%model_ptr, &
+                            s%var(i2)%this(j2)%model_ptr)) then
+            write (name1, '(2a, i0, a)') trim(s%var(i)%v1%name), '[', s%var(i)%ix_v1, ']'  
+            write (name2, '(2a, i0, a)') trim(s%var(i2)%v1%name), '[', s%var(i2)%ix_v1, ']'  
+            call out_io (s_fatal$, r_name, &
+               'ERROR: VARIABLE:     ' // name1, &
+               '       AND VARIABLE: ' // name2, &
+               '       CONTROL THE SAME EXACT THING.')
+            call err_exit
+          endif
+        enddo
+      enddo
+    enddo
+  enddo
+
+! plotting
 
   call tao_init_plotting (plot_file)
   

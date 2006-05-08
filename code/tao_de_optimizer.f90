@@ -16,8 +16,8 @@
 subroutine tao_de_optimizer ()
 
 use tao_mod
+use tao_top10_mod
 use tao_var_mod
-use tao_single_mod
 use opti_mod
 
 implicit none
@@ -39,6 +39,7 @@ tao_com%opti_init = .true.
 ! put the variable values into an array for the optimizer
 
 call tao_get_vars (var_vec, var_step = var_step)
+var_step = var_step * s%global%de_lm_step_ratio
 n_var = size(var_vec)
 
 population = max(5*n_var, 20)
@@ -59,7 +60,7 @@ call out_io (s_blank$, r_name, line)
 write (line, *) 'Merit end:', merit_end
 call out_io (s_blank$, r_name, line)
 
-call tao_var_write (s%global%opt_var_out_file, .true.)
+call tao_var_write (s%global%opt_var_out_file)
 
 end subroutine
 
@@ -98,7 +99,7 @@ integer i, end_flag
 integer :: iter = 0
 integer t0(8), t1(8), t_del(8), t_delta
 
-character(80) line
+character(80) line, line2, stars
 character(20) :: r_name = 'tao_de_optimizer'
 character(1) char
 
@@ -128,17 +129,12 @@ enddo
 
 !
 
+stars = '****************************************************'
+
 call tao_set_vars (var_vec)
 
 this_merit = tao_merit ()
 merit_min = min(merit_min, this_merit)
-
-if(bmad_status%status /= ok$) then
-  write (line, *) 'Bmad Error flag is set! Bmad_status =', bmad_status%status
-  call out_io (s_warn$, r_name, &
-    '****************************************************', line, &
-    '****************************************************')
-endif
 
 if (mod(iter, 1000) == 0) then
   call date_and_time (values = t1)
@@ -150,19 +146,21 @@ endif
 
 if (this_merit <= 0.98*merit_min_type .or. t_delta > 10) then
   write (line, *) ' So far the minimum is ', merit_min
-  call out_io (s_blank$, r_name, &
-    '****************************************************', line, &
-    '****************************************************')
+  if (bmad_status%status == ok$) then
+    call out_io (s_blank$, r_name, stars, line, stars)
+  else
+    write (line2, *) 'Bmad_status%status is ', status_name(bmad_status%status)
+    call out_io (s_blank$, r_name, stars, line, line2, stars)
+  endif
+
   call date_and_time (values = t0)
   t_delta = 0
   merit_min_type = merit_min
 endif
 
 if (this_merit < 1e-10) then
-  call out_io (s_blank$, r_name, &
-    '****************************************************', &
-    ' MERIT < 1E-10 ==> AT MINIMUM. QUITING HERE.', &
-    '****************************************************')
+  call out_io (s_blank$, r_name, stars, &
+                ' MERIT < 1E-10 ==> AT MINIMUM. QUITING HERE.', stars)
   end_flag = 1
 endif
 

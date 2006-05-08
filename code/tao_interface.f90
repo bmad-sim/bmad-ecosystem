@@ -32,13 +32,6 @@ interface
 end interface
  
 interface
-  subroutine tao_change_cmd (who, name, where, num_str)
-    implicit none
-    character(*) :: who, name, where, num_str
-  end subroutine
-end interface
- 
-interface
   subroutine tao_clip_cmd (where, value1, value2)
     use precision_def
     implicit none
@@ -321,20 +314,18 @@ interface
 end interface
 
 interface
-  subroutine tao_use_data (action, data_type, range)
+  subroutine tao_use_data (action, data_name)
     implicit none
-    character(*)                :: action
-    character(*)                :: data_type
-    character(*)                :: range
+    character(*) :: action
+    character(*) :: data_name
   end subroutine
 end interface
 
 interface
-  subroutine tao_use_var (action, var_name, range)
+  subroutine tao_use_var (action, var_name)
     implicit none
-    character(*)                :: action
-    character(*)                :: var_name
-    character(*)                :: range
+    character(*) :: action
+    character(*) :: var_name
   end subroutine
 end interface
  

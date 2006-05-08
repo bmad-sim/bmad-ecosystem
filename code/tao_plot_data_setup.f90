@@ -261,11 +261,11 @@ graph%title_suffix = '[' // trim(graph%title_suffix) // ']'
 
 ! attach x-axis type to title suffix 
  
- if (plot%x_axis_type .eq. 'index') then
+ if (plot%x_axis_type == 'index') then
    graph%title_suffix = trim(graph%title_suffix) // ', X-axis: index, '
- elseif (plot%x_axis_type .eq. 'ele_index') then
+ elseif (plot%x_axis_type == 'ele_index') then
    graph%title_suffix = trim(graph%title_suffix) // ', X-axis: ele_index, '
- elseif (plot%x_axis_type .eq. 's') then
+ elseif (plot%x_axis_type == 's') then
    graph%title_suffix = trim(graph%title_suffix) // ', X-axis: s, '
  endif  
 
@@ -293,7 +293,7 @@ do k = 1, size(graph%curve)
 ! Case: data_source is a data array
 
   case ('data_array')
-    call tao_find_data (err, u, curve%data_type, d2_ptr, d1_ptr)
+    call tao_find_data (err, curve%data_type, d2_ptr, d1_ptr, ix_uni = i_uni)
     if (err) then
       call out_io (s_error$, r_name, &
                 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
@@ -388,9 +388,9 @@ do k = 1, size(graph%curve)
 
     ix_this = -1
     do jj = 1, size(v1_ptr%v(1)%this)
-      if (v1_ptr%v(1)%this(jj)%ix_uni .eq. s%global%u_view) ix_this = jj
+      if (v1_ptr%v(1)%this(jj)%ix_uni == s%global%u_view) ix_this = jj
     enddo
-    if (ix_this .eq. -1) then
+    if (ix_this == -1) then
       call out_io (s_error$, r_name, &
                      "This variable doesn't point to the currently displayed  universe.")
       graph%valid = .false.
@@ -515,17 +515,17 @@ do k = 1, size(graph%curve)
     ! calculate the y-axis data point values.
 
     curve%y_symb = 0
-    datum%ix_ele2 = curve%ix_ele_ref
+    datum%ix_ele0 = curve%ix_ele_ref
     datum%merit_type = 'target'
     datum%data_type = curve%data_type
-    datum%ele2_name = curve%ele_ref_name
+    datum%ele0_name = curve%ele_ref_name
 
     do m = 1, size(graph%who)
       do ie = 1, n_dat
 
         datum%ix_ele = curve%ix_symb(ie)
 
-        if (datum%data_type(1:3) == 'tt:' .or. datum%data_type(1:2) == 't:') then
+        if (datum%data_type(1:3) == 'tt.' .or. datum%data_type(1:2) == 't.') then
           if (ie == 1) call taylor_make_unit (t_map)
         endif
 
@@ -547,8 +547,8 @@ do k = 1, size(graph%curve)
         end select
         curve%y_symb(ie) = curve%y_symb(ie) + graph%who(m)%sign * y_val
 
-        if (datum%data_type(1:3) == 'tt:' .or. datum%data_type(1:2) == 't:') then
-          if (datum%ix_ele > datum%ix_ele2) datum%ix_ele2 = datum%ix_ele
+        if (datum%data_type(1:3) == 'tt.' .or. datum%data_type(1:2) == 't.') then
+          if (datum%ix_ele < datum%ix_ele0) datum%ix_ele0 = datum%ix_ele
         endif
 
       enddo
@@ -586,10 +586,9 @@ do k = 1, size(graph%curve)
 
   case ('s')
 
-    smooth_curve = .true.
+    smooth_curve = (s%global%track_type == 'single')
     do m = 1, size(graph%who)
-      if (graph%who(m)%name .eq. 'meas' .or. graph%who(m)%name .eq. 'ref' .or. &
-          s%global%track_type .ne. 'single') smooth_curve = .false.
+      if (graph%who(m)%name == 'meas' .or. graph%who(m)%name == 'ref') smooth_curve = .false.
     enddo
 
     if (smooth_curve) then
@@ -605,14 +604,11 @@ do k = 1, size(graph%curve)
         case (' ') 
           cycle
         case ('model')
-          call calc_data_at_s (u%model%lat, u%model%orb, curve%data_type, &
-                                                       graph%who(m), curve, err)
+          call calc_data_at_s (u%model, curve%data_type, graph%who(m), curve, err)
         case ('base')  
-          call calc_data_at_s (u%base%lat, u%base%orb, curve%data_type, &
-                                                       graph%who(m), curve, err)
+          call calc_data_at_s (u%base, curve%data_type, graph%who(m), curve, err)
         case ('design')  
-          call calc_data_at_s (u%design%lat, u%design%orb, curve%data_type, &
-                                                       graph%who(m), curve, err)
+          call calc_data_at_s (u%design, curve%data_type, graph%who(m), curve, err)
         case default
           call out_io (s_error$, r_name, &
                        'BAD PLOT "WHO" WITH "S" X-AXIS: ' // graph%who(m)%name)
@@ -640,7 +636,7 @@ do k = 1, size(graph%curve)
   curve%y_symb = curve%y_symb * curve%units_factor
   curve%y_line = curve%y_line * curve%units_factor
 
-  if (curve%data_type(1:6) == 'phase:' .and. n_dat /= 0 .and. curve%ele_ref_name == ' ') then
+  if (curve%data_type(1:6) == 'phase.' .and. n_dat /= 0 .and. curve%ele_ref_name == ' ') then
     f = sum(curve%y_symb) / n_dat
     curve%y_symb = curve%y_symb - f
     curve%y_line = curve%y_line - f 
@@ -651,15 +647,15 @@ do k = 1, size(graph%curve)
 enddo
 
 !----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
 contains 
 
-subroutine calc_data_at_s (lat, orb, data_type, who, curve, err)
+subroutine calc_data_at_s (tao_lat, data_type, who, curve, err)
 
+type (tao_lattice_struct), target :: tao_lat
 type (tao_plot_who_struct) who
-type (coord_struct) orb(0:)
-type (ring_struct) lat
+type (bunch_params_struct), pointer :: bunch_params
+type (coord_struct), pointer :: orb(:)
+type (ring_struct), pointer :: lat
 type (ele_struct) ele
 type (coord_struct) here
 type (tao_curve_struct) curve
@@ -669,11 +665,15 @@ real(rp) cbar(2,2), s_last, s_now, value, mat6(6,6)
 integer i, j, k, expnt(6)
 character(16), intent(in) ::  data_type
 character(16) data_type_select
+character(20) ::r_name = 'calc_data_at_s'
 logical err
 
 !
 
 err = .false.
+
+lat => tao_lat%lat
+orb => tao_lat%orb
 
 x1 = min (u%model%lat%ele_(u%model%lat%n_ele_use)%s, max (plot%x%min, u%model%lat%ele_(0)%s))
 x2 = min (u%model%lat%ele_(u%model%lat%n_ele_use)%s, max (plot%x%max, u%model%lat%ele_(0)%s))
@@ -684,9 +684,9 @@ else
 endif
 
 data_type_select = data_type
-if (data_type_select(1:2) == 'r:') data_type_select = 'r:'
-if (data_type_select(1:2) == 't:') data_type_select = 't:'
-if (data_type_select(1:3) == 'tt:') data_type_select = 'tt:'
+if (data_type_select(1:2) == 'r.') data_type_select = 'r.'
+if (data_type_select(1:2) == 't.') data_type_select = 't.'
+if (data_type_select(1:3) == 'tt.') data_type_select = 'tt.'
 
 !
 
@@ -697,71 +697,85 @@ do ii = 1, size(curve%x_line)
   curve%x_line(ii) = s_now
   value = 0
 
-  call twiss_and_track_at_s (lat, curve%x_line(ii), ele, orb, here)
+  select case (s%global%track_type)
+  case ('single')   
+    call twiss_and_track_at_s (lat, s_now, ele, orb, here)
+  case ('beam')
+    call find_nearest_bunch_params (tao_lat, s_now, bunch_params)
+    orb = bunch_params%centroid
+  case default
+    call out_io (s_fatal$, r_name, &
+            'I DO NOT KNOW HOW TO HANDLE THIS TRACK TYPE: ' // s%global%track_type)
+    call err_exit
+  end select
+
+!
 
   select case (data_type_select)
-  case ('orbit:x')
+  case ('orbit.x')
     value = here%vec(1)
-  case ('orbit:y')
+  case ('orbit.y')
     value = here%vec(3)
-  case ('orbit:z')
+  case ('orbit.z')
     value = here%vec(5)
-  case ('orbit:p_x')
+  case ('orbit.p_x')
     value = here%vec(2)
-  case ('orbit:p_y')
+  case ('orbit.p_y')
     value = here%vec(4)
-  case ('orbit:p_z')
+  case ('orbit.p_z')
     value = here%vec(6)
-  case ('phase:x')
+  case ('phase.x')
     value = ele%x%phi
-  case ('phase:y')
+  case ('phase.y')
     value = ele%y%phi
-  case ('beta:x', 'beta:a')
+  case ('beta.x', 'beta.a')
     value = ele%x%beta
-  case ('beta:y', 'beta:b')
+  case ('beta.y', 'beta.b')
     value = ele%y%beta
-  case ('alpha:x', 'alpha:a')
+  case ('alpha.x', 'alpha.a')
     value = ele%x%alpha
-  case ('alpha:y', 'alpha:b')
+  case ('alpha.y', 'alpha.b')
     value = ele%y%alpha
-  case ('eta:x')
+  case ('eta.x')
     value = ele%x%eta_lab
-  case ('eta:y')
+  case ('eta.y')
     value = ele%y%eta_lab
-  case ('etap:x')
+  case ('etap.x')
     value = ele%x%etap_lab
-  case ('etap:y')
+  case ('etap.y')
     value = ele%y%etap_lab
-  case ('eta:a')
+  case ('eta.a')
     value = ele%x%eta
-  case ('eta:b')
+  case ('eta.b')
     value = ele%y%eta
-  case ('etap:a')
+  case ('etap.a')
     value = ele%x%etap
-  case ('etap:b')
+  case ('etap.b')
     value = ele%y%etap
   case ('beam_energy')
-    value = ele%value(beam_energy$)
-  case ('cbar:11')
+    value = ele%value(beam_energy$) * (1 + here%vec(6))
+  case ('cbar.11')
     call c_to_cbar (ele, cbar)
     value = cbar(1,1)
-  case ('cbar:12')
+  case ('cbar.12')
     call c_to_cbar (ele, cbar)
     value = cbar(1,2)
-  case ('cbar:21')
+  case ('cbar.21')
     call c_to_cbar (ele, cbar)
     value = cbar(2,1)
-  case ('cbar:22')
+  case ('cbar.22')
     call c_to_cbar (ele, cbar)
     value = cbar(2,2)
-  case ('r:')
+  case ('sigma.p_z')
+    value = sqrt(bunch_params%sigma(s33$))
+  case ('r.')
     if (ii == 1) call mat_make_unit (mat6)
     if (s_now < s_last) cycle
     i = tao_read_this_index (data_type, 3); if (i == 0) return
     j = tao_read_this_index (data_type, 4); if (j == 0) return
     call tao_mat6_calc_at_s (lat, mat6, s_last, s_now, unit_start = .false.)
     value = mat6(i, j)
-  case ('t:')
+  case ('t.')
     if (ii == 1) call taylor_make_unit (t_map)
     if (s_now < s_last) cycle
     i = tao_read_this_index (data_type, 3); if (i == 0) return
@@ -769,7 +783,7 @@ do ii = 1, size(curve%x_line)
     k = tao_read_this_index (data_type, 5); if (k == 0) return
     call tao_transfer_map_calc_at_s (lat, t_map, s_last, s_now, unit_start = .false.)
     value = taylor_coef (t_map(i), j, k)
-  case ('tt:')
+  case ('tt.')
     if (ii == 1) call taylor_make_unit (t_map)
     if (s_now < s_last) cycle
     expnt = 0
@@ -793,6 +807,31 @@ do ii = 1, size(curve%x_line)
   s_last = s_now
 
 enddo
+
+end subroutine
+
+!----------------------------------------------------------------------------
+! contains 
+
+subroutine find_nearest_bunch_params (tao_lat, s, bunch_params)
+
+type (tao_lattice_struct), target :: tao_lat
+type (bunch_params_struct), pointer :: bunch_params
+real(rp) s
+
+!
+
+if (.not. allocated(tao_lat%bunch_params2)) then
+  call out_io (s_fatal$, r_name, 'BUNCH_PARAMS2 NOT ALLOCATED.')
+  call err_exit
+endif
+
+call bracket_index (tao_lat%bunch_params2(:)%s, 1, tao_lat%n_bunch_params2, s, ix)
+if (abs(tao_lat%bunch_params(ix)%s - s) < abs(tao_lat%bunch_params(ix+1)%s - s)) then
+  bunch_params => tao_lat%bunch_params(ix)
+else
+  bunch_params => tao_lat%bunch_params(ix+1)
+endif
 
 end subroutine
 

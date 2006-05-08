@@ -27,7 +27,7 @@ type (tao_lattice_struct) tao_lat
 real(rp) datum_value
 logical found
 
-integer ix1, ix2
+integer ix1, ix0
 type (ele_struct), pointer :: ele
 
 character(20) :: r_name = 'tao_hook_evaluate_a_datum'
@@ -35,8 +35,8 @@ character(20) :: r_name = 'tao_hook_evaluate_a_datum'
 
 ! ix1 is the first index associated with element
 ix1 = datum%ix_ele
-! if there is only one element associated with the element then ix2 = -1
-ix2 = datum%ix_ele2
+! if there is only one element associated with the element then ix0 = -1
+ix0 = datum%ix_ele0
 
 
 ! if found = .true. then the data type was found here and the standard data
@@ -68,7 +68,7 @@ integer ix_m, i
 
 !
 
-if (ix2 < 0) then
+if (ix0 < 0) then
   ix_m = ix1
 
 !
@@ -77,13 +77,13 @@ else
 
   select case (datum%merit_type)
   case ('min')
-    ix_m = minloc (vec(ix1:ix2), 1) + ix1 - 1
+    ix_m = minloc (vec(ix0:ix1), 1) + ix0 - 1
   case ('max')
-    ix_m = maxloc (vec(ix1:ix2), 1) + ix1 - 1
+    ix_m = maxloc (vec(ix0:ix1), 1) + ix0 - 1
   case ('abs_min')
-    ix_m = minloc (abs(vec(ix1:ix2)), 1) + ix1 - 1
+    ix_m = minloc (abs(vec(ix0:ix1)), 1) + ix0 - 1
   case ('abs_max')
-    ix_m = maxloc (abs(vec(ix1:ix2)), 1) + ix1 - 1
+    ix_m = maxloc (abs(vec(ix0:ix1)), 1) + ix0 - 1
   case default
     call out_io (s_abort$, r_name, 'BAD MERIT_TYPE: ' // datum%merit_type, &
                                    'FOR DATUM: ' // datum%data_type)
