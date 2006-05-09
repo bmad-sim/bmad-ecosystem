@@ -11,7 +11,8 @@ module tao_struct
 
 use bmad_struct, only: rp, ring_struct, coord_struct, radians$, ele_struct, modes_struct
 use equal_mod
-use quick_plot, only: qp_line_struct, qp_symbol_struct, qp_axis_struct, qp_rect_struct, qp_point_struct
+use quick_plot, only: qp_line_struct, qp_symbol_struct, qp_axis_struct, &
+                      qp_rect_struct, qp_point_struct
 use macroparticle_mod, only: macro_init_struct, macro_beam_struct
 use macro_utils_mod, only: macro_bunch_params_struct
 use beam_def_struct, only: beam_init_struct, beam_struct, bunch_params_struct
@@ -75,7 +76,8 @@ type tao_curve_struct
   real(rp), pointer :: x_symb(:) => null() ! coords for drawing the symbols
   real(rp), pointer :: y_symb(:) => null()
   integer, pointer :: ix_symb(:) => null() ! corresponding index in d1_data%d(:) array.
-  real(rp) units_factor        ! conversion from internal to plotting units.
+  real(rp) x_axis_scale_factor ! x-axis conversion from internal to plotting units.
+  real(rp) y_axis_scale_factor ! y-axis conversion from internal to plotting units.
   type (qp_line_struct) line   ! Line attributes
   type (qp_symbol_struct) symbol ! Symbol attributes
   integer ix_universe          ! universe to take the data from. 0 => use s%global%u_view

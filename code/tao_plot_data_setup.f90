@@ -229,7 +229,7 @@ type (tao_v1_var_struct) , pointer :: v1_ptr
 type (tao_data_struct) datum
 type (taylor_struct) t_map(6)
 
-real(rp) f, x1, x2, y_val, eps
+real(rp) f, y_val, eps
 real(rp), pointer :: value(:)
 
 integer ii, k, m, n_dat, i_uni, ie, jj
@@ -586,7 +586,8 @@ do k = 1, size(graph%curve)
 
   case ('s')
 
-    smooth_curve = (s%global%track_type == 'single')
+    smooth_curve = (s%global%track_type == 'single') .or. &
+                      (s%global%track_type == 'beam' .and. allocated(u%model%bunch_params2))
     do m = 1, size(graph%who)
       if (graph%who(m)%name == 'meas' .or. graph%who(m)%name == 'ref') smooth_curve = .false.
     enddo
@@ -633,8 +634,10 @@ do k = 1, size(graph%curve)
 ! Note: Since there is an arbitrary overall phase, the phase data 
 ! gets renormalized so that the average value is zero.
 
-  curve%y_symb = curve%y_symb * curve%units_factor
-  curve%y_line = curve%y_line * curve%units_factor
+  curve%x_symb = curve%x_symb * curve%x_axis_scale_factor
+  curve%y_symb = curve%y_symb * curve%y_axis_scale_factor
+  curve%x_line = curve%x_line * curve%x_axis_scale_factor
+  curve%y_line = curve%y_line * curve%y_axis_scale_factor
 
   if (curve%data_type(1:6) == 'phase.' .and. n_dat /= 0 .and. curve%ele_ref_name == ' ') then
     f = sum(curve%y_symb) / n_dat
@@ -661,8 +664,8 @@ type (coord_struct) here
 type (tao_curve_struct) curve
 type (taylor_struct) t_map(6)
 
-real(rp) cbar(2,2), s_last, s_now, value, mat6(6,6)
-integer i, j, k, expnt(6)
+real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6)
+integer i, j, k, expnt(6), ix_ele
 character(16), intent(in) ::  data_type
 character(16) data_type_select
 character(20) ::r_name = 'calc_data_at_s'
@@ -702,7 +705,9 @@ do ii = 1, size(curve%x_line)
     call twiss_and_track_at_s (lat, s_now, ele, orb, here)
   case ('beam')
     call find_nearest_bunch_params (tao_lat, s_now, bunch_params)
-    orb = bunch_params%centroid
+    call ele_at_s (lat, s_now, ix_ele)
+    ele = lat%ele_(ix_ele)
+    here = bunch_params%centroid
   case default
     call out_io (s_fatal$, r_name, &
             'I DO NOT KNOW HOW TO HANDLE THIS TRACK TYPE: ' // s%global%track_type)
@@ -754,6 +759,8 @@ do ii = 1, size(curve%x_line)
     value = ele%y%etap
   case ('beam_energy')
     value = ele%value(beam_energy$) * (1 + here%vec(6))
+  case ('%beam_energy')
+    value = here%vec(6)
   case ('cbar.11')
     call c_to_cbar (ele, cbar)
     value = cbar(1,1)
@@ -767,7 +774,7 @@ do ii = 1, size(curve%x_line)
     call c_to_cbar (ele, cbar)
     value = cbar(2,2)
   case ('sigma.p_z')
-    value = sqrt(bunch_params%sigma(s33$))
+    value = sqrt(bunch_params%sigma(s66$))
   case ('r.')
     if (ii == 1) call mat_make_unit (mat6)
     if (s_now < s_last) cycle
@@ -818,6 +825,7 @@ subroutine find_nearest_bunch_params (tao_lat, s, bunch_params)
 type (tao_lattice_struct), target :: tao_lat
 type (bunch_params_struct), pointer :: bunch_params
 real(rp) s
+integer ix
 
 !
 
@@ -827,10 +835,10 @@ if (.not. allocated(tao_lat%bunch_params2)) then
 endif
 
 call bracket_index (tao_lat%bunch_params2(:)%s, 1, tao_lat%n_bunch_params2, s, ix)
-if (abs(tao_lat%bunch_params(ix)%s - s) < abs(tao_lat%bunch_params(ix+1)%s - s)) then
-  bunch_params => tao_lat%bunch_params(ix)
+if (abs(tao_lat%bunch_params2(ix)%s - s) < abs(tao_lat%bunch_params2(ix+1)%s - s)) then
+  bunch_params => tao_lat%bunch_params2(ix)
 else
-  bunch_params => tao_lat%bunch_params(ix+1)
+  bunch_params => tao_lat%bunch_params2(ix+1)
 endif
 
 end subroutine

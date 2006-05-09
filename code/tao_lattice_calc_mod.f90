@@ -1032,7 +1032,7 @@ endif
 
 n = n + 1
 t_lat%n_bunch_params2 = n
-t_lat%bunch_params2(n)%s = ele%s + s_travel
+t_lat%bunch_params2(n)%s = ele%s - ele%value(l$) + s_travel
 call calc_bunch_params (bunch, ele, t_lat%bunch_params2(n))
 
 end subroutine

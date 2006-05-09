@@ -415,6 +415,9 @@ case ('etap.b')
 case ('beam_energy')
   call load_it (lat%ele_(0:n_lat)%value(beam_energy$) * &
                                         (1+tao_lat%orb(0:n_lat)%vec(6)))
+
+case ('%beam_energy')
+  call load_it (tao_lat%orb(0:n_lat)%vec(6))
   
 case ('coupling.11b')
   call load_it (cc%coupling11, cc%f_11, coupling_here = .true.)

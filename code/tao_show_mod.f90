@@ -753,7 +753,8 @@ case ('curve')
   nl=nl+1; write (lines(nl), amt) 'data_source:              ', curve%data_source
   nl=nl+1; write (lines(nl), amt) 'data_type:                ', curve%data_type  
   nl=nl+1; write (lines(nl), amt) 'ele_ref_name:             ', curve%ele_ref_name
-  nl=nl+1; write (lines(nl), rmt) 'units_factor:             ', curve%units_factor
+  nl=nl+1; write (lines(nl), rmt) 'x_axis_scale_factor:      ', curve%x_axis_scale_factor
+  nl=nl+1; write (lines(nl), rmt) 'y_axis_scale_factor:      ', curve%y_axis_scale_factor
   nl=nl+1; write (lines(nl), imt) 'ix_universe:              ', curve%ix_universe
   nl=nl+1; write (lines(nl), imt) 'symbol_every:             ', curve%symbol_every
   nl=nl+1; write (lines(nl), imt) 'ix_ele_ref:               ', curve%ix_ele_ref

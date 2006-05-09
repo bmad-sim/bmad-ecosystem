@@ -78,7 +78,8 @@ type tao_curve_input
   character(16) name
   character(16) data_source
   character(16) data_type
-  real(rp) units_factor
+  real(rp) x_axis_scale_factor
+  real(rp) y_axis_scale_factor
   integer symbol_every
   integer ix_universe
   logical draw_line

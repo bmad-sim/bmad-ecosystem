@@ -151,7 +151,8 @@ do
     do j = 1, size(curve)
       write (curve(j)%name, '(i0)') j
     enddo
-    curve(:)%units_factor = 1
+    curve(:)%x_axis_scale_factor = 1
+    curve(:)%y_axis_scale_factor = 1
     curve(:)%convert = .false.                             ! set default
     curve(:)%symbol_every = 1
     curve(:)%ix_universe = 0
@@ -213,22 +214,23 @@ do
 
     do j = 1, graph%n_curve
       crv => grph%curve(j)
-      crv%data_source       = curve(j)%data_source
-      crv%data_type         = curve(j)%data_type
-      crv%units_factor      = curve(j)%units_factor
-      crv%symbol_every      = curve(j)%symbol_every
-      crv%ix_universe       = curve(j)%ix_universe
-      crv%draw_line         = curve(j)%draw_line
-      crv%draw_symbols      = curve(j)%draw_symbols
-      crv%use_y2            = curve(j)%use_y2
+      crv%data_source         = curve(j)%data_source
+      crv%data_type           = curve(j)%data_type
+      crv%x_axis_scale_factor = curve(j)%x_axis_scale_factor
+      crv%y_axis_scale_factor = curve(j)%y_axis_scale_factor
+      crv%symbol_every        = curve(j)%symbol_every
+      crv%ix_universe         = curve(j)%ix_universe
+      crv%draw_line           = curve(j)%draw_line
+      crv%draw_symbols        = curve(j)%draw_symbols
+      crv%use_y2              = curve(j)%use_y2
 !      if (crv%use_y2) grph%y2_mirrors_y = .false.
-      crv%symbol            = curve(j)%symbol
-      crv%line              = curve(j)%line
-      crv%convert           = curve(j)%convert
-      crv%name              = curve(j)%name
-      crv%ele_ref_name      = curve(j)%ele_ref_name
+      crv%symbol              = curve(j)%symbol
+      crv%line                = curve(j)%line
+      crv%convert             = curve(j)%convert
+      crv%name                = curve(j)%name
+      crv%ele_ref_name        = curve(j)%ele_ref_name
       call str_upcase (crv%ele_ref_name, crv%ele_ref_name)
-      crv%ix_ele_ref        = curve(j)%ix_ele_ref
+      crv%ix_ele_ref          = curve(j)%ix_ele_ref
 
       i_uni = crv%ix_universe
       if (i_uni == 0) i_uni = s%global%u_view

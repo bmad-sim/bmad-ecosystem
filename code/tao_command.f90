@@ -41,13 +41,13 @@ subroutine tao_command (command_line, err)
   character(80) :: cmd_word(12)
   character(16) cmd_name, set_word
 
-  character(16) :: cmd_names(26) = (/  &
+  character(16) :: cmd_names(27) = (/  &
     'quit        ', 'exit        ', 'show        ', 'plot        ', 'place       ', &
     'clip        ', 'scale       ', 'veto        ', 'use         ', 'restore     ', &
     'run         ', 'flatten     ', 'output      ', 'change      ', 'set         ', &
     'call        ', 'view        ', 'alias       ', 'help        ', 'history     ', &
     'single-mode ', 'reinitialize', 'x-scale     ', 'x-axis      ', 'derivative  ', &
-    'spawn       '/)
+    'spawn       ', 'xy-scale    ' /)
 
   character(16) :: set_names(8) = (/ &
     'data        ', 'var         ', 'lattice     ', 'global      ', 'plot_page   ', &
@@ -387,13 +387,10 @@ subroutine tao_command (command_line, err)
 ! SPAWN
 
   case ('spawn')
-#ifdef CESR_LINUX
-      call system (cmd_line)
-      return
-#endif
-#ifdef CESR_UNIX
-      call system (cmd_line)
-      return
+
+#if defined (CESR_LINUX) || defined (CESR_UNIX)
+    call system (cmd_line)
+    return
 #endif
 
   call out_io (s_error$, r_name, "Spawn only works on linux and unix")
@@ -409,7 +406,7 @@ subroutine tao_command (command_line, err)
     call tao_view_cmd (int1)
 
 !--------------------------------
-! X_AXIS
+! X-AXIS
 
   case ('x-axis')
 
@@ -422,7 +419,7 @@ subroutine tao_command (command_line, err)
     call tao_x_axis_cmd (cmd_word(1), cmd_word(2))
 
 !--------------------------------
-! X_SCALE
+! X-SCALE
 
   case ('x-scale')
 
@@ -438,6 +435,32 @@ subroutine tao_command (command_line, err)
       call tao_to_real (cmd_word(2), value1, err); if (err) return
       call tao_to_real (cmd_word(3), value2, err); if (err) return
       call tao_x_scale_cmd (cmd_word(1), value1, value2, err)
+    endif
+
+!--------------------------------
+! XY-SCALE
+
+  case ('xy-scale')
+
+    if (.not. s%global%plot_on) then
+      call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
+      return
+    endif
+
+    call tao_cmd_split (cmd_line, 3, cmd_word, .true., err); if (err) return
+    if (cmd_word(2) == ' ') then
+      call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err)
+      call tao_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp) 
+    else
+      call tao_to_real (cmd_word(2), value1, err);  if (err) return
+      if (cmd_word(3) /= ' ') then
+        call tao_to_real (cmd_word(3), value2, err);  if (err) return
+      else
+        value2 = value1
+        value1 = -value1
+      endif
+      call tao_x_scale_cmd (cmd_word(1), value1, value2, err)
+      call tao_scale_cmd (cmd_word(1), value1, value2)
     endif
 
 !--------------------------------
