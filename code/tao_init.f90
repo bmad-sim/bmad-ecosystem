@@ -104,11 +104,11 @@ subroutine tao_init (init_file)
                             s%var(i2)%this(j2)%model_ptr)) then
             write (name1, '(2a, i0, a)') trim(s%var(i)%v1%name), '[', s%var(i)%ix_v1, ']'  
             write (name2, '(2a, i0, a)') trim(s%var(i2)%v1%name), '[', s%var(i2)%ix_v1, ']'  
-            call out_io (s_fatal$, r_name, &
+            call out_io (s_error$, r_name, &
                'ERROR: VARIABLE:     ' // name1, &
                '       AND VARIABLE: ' // name2, &
-               '       CONTROL THE SAME EXACT THING.')
-            call err_exit
+               '       CONTROL THE SAME EXACT THING!', &
+               '       YOU HAVE BEEN WARNED!!!')            
           endif
         enddo
       enddo
