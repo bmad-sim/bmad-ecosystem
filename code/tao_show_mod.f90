@@ -485,6 +485,15 @@ case ('lattice')
       nl=nl+1; write (lines(nl), '(a)') 'This universe is turned OFF'
     endif
 
+    if (.not. u%model%lat%param%stable .or. .not. u%model%lat%param%stable) then
+      nl=nl+1; write (lines(nl), '(a, l)') 'Model lattice stability: ', &
+                                                            u%model%lat%param%stable
+      nl=nl+1; write (lines(nl), '(a, l)') 'Design lattice stability:', &
+                                                            u%design%lat%param%stable
+      call out_io (s_blank$, r_name, lines(1:nl))
+      return
+    endif
+ 
     call radiation_integrals (u%model%lat, &
                                   u%model%orb, u%model%modes, u%ix_rad_int_cache)
     call radiation_integrals (u%design%lat, &
@@ -493,7 +502,7 @@ case ('lattice')
                         u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)
     call chrom_calc (u%design%lat, delta_e, &
                         u%design%a%chrom, u%design%b%chrom, exit_on_error = .false.)
-
+    
     write (lines(nl+1), *)
     write (lines(nl+2), '(17x, a)') '       X          |            Y'
     write (lines(nl+3), '(17x, a)') 'Model     Design  |     Model     Design'
