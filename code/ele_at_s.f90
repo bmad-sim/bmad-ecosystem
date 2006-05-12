@@ -5,7 +5,8 @@
 ! That is, ix_ele is choisen such that:
 !     lat%ele_(ix_ele-1)%s < s <= lat%ele_(ix_ele)%s
 !
-! Note: s is evaluated modulo the lattice length:
+! Note: For a circular lattice s is evaluated modulo the 
+! lattice length:
 !     s -> s - lat_length * floor(s/lat_length)
 !
 ! Modules needed:
@@ -28,11 +29,21 @@ subroutine ele_at_s (lat, s, ix_ele)
   type (ring_struct) lat
   real(rp) s, ss, ll
   integer ix_ele, n1, n2, n3
+  character(16) :: r_name = 'ele_at_s'
 
 !
 
   ll = lat%param%total_length
-  ss = s - ll * floor(s/ll)
+
+  if (lat%param%lattice_type == circular_lattice$) then
+    ss = s - ll * floor((s-lat%ele_(0)%s)/ll)
+  else
+    ss = s
+    if (s < lat%ele_(0)%s .or. s > lat%ele_(lat%n_ele_use)%s) then
+      call out_io (s_fatal$, r_name, 'S POSITION OUT OF BOUNDS \f10.2\ ' , s)
+      call err_exit
+    endif
+  endif
 
   n1 = 0
   n3 = lat%n_ele_use
