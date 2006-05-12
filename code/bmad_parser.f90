@@ -815,9 +815,11 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   ring%n_ele_use          = n_ele_use
   ring%n_ele_ring         = n_ele_use
   ring%n_ele_max          = n_ele_use
-  ring%param%aperture_limit_on  = .true.
   ring%n_ic_max           = 0                     
   ring%n_control_max      = 0    
+  ring%param%growth_rate  = 0
+  ring%param%stable            = .true.
+  ring%param%aperture_limit_on = .true.
 
   ring%ele_(0) = in_ring%ele_(0)    ! Beginning element
 
