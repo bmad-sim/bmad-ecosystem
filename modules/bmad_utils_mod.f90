@@ -462,6 +462,7 @@ subroutine init_ring (ring, n)
   ring%name = ' '
   ring%lattice = ' '
   ring%input_file_name = ' '
+  ring%param%stable = .true.
 
 end subroutine
 

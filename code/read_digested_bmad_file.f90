@@ -392,6 +392,8 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
   close (d_unit)
 
+  ring%param%stable = .true.  ! Assume this 
+
   return
 
 !------------------
