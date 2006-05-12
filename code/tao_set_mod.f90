@@ -247,6 +247,7 @@ subroutine tao_set_curve_cmd (curve_name, component, set_value)
 implicit none
 
 type (tao_curve_struct), pointer :: curve
+type (tao_graph_struct), pointer :: graph
 
 integer i, ios, i_uni
 integer, allocatable :: ix_ele(:)
@@ -258,31 +259,50 @@ logical err
 
 !
 
-call tao_find_plot_by_region (err, curve_name, curve = curve)
+call tao_find_plot_by_region (err, curve_name, graph = graph, curve = curve)
 if (err) return
-if (.not. associated(curve)) then
-  call out_io (s_error$, r_name, 'CURVE NOT SPECIFIED')
+
+if (associated(curve)) then
+  call set_this_curve (curve)
+elseif (associated(graph)) then
+  do i = 1, size(graph%curve)
+    call set_this_curve (graph%curve(i))
+  enddo
+else
+  call out_io (s_error$, r_name, 'CURVE OR GRAPH NOT SPECIFIED')
   return
 endif
 
-i_uni = curve%ix_universe
+!---------------------------------------------
+contains
+
+subroutine set_this_curve (this_curve)
+
+type (tao_curve_struct) this_curve
+
+i_uni = this_curve%ix_universe
 if (i_uni == 0) i_uni = s%global%u_view
 
 select case (component)
 
   case ('ele_ref_name')
-    curve%ele_ref_name = set_value
-    call tao_locate_element (curve%ele_ref_name, i_uni, ix_ele, .true.)
-    curve%ix_ele_ref = ix_ele(1)
+    this_curve%ele_ref_name = set_value
+    call tao_locate_element (this_curve%ele_ref_name, i_uni, ix_ele, .true.)
+    if (ix_ele(1) < 0) return
+    this_curve%ix_ele_ref = ix_ele(1)
 
   case ('ix_ele_ref')
     read (set_value, '(i)', iostat = ios) i
     if (ios /= 0) then
-      call out_io (s_error$, r_name, 'BAD IX_ELE_REF VALUE')
+      call out_io (s_error$, r_name, 'BAD IX_ELE_REF VALUE.')
       return
     endif
-    curve%ix_ele_ref = i      
-    curve%ele_ref_name = s%u(i_uni)%model%lat%ele_(curve%ix_ele_ref)%name
+    if (i < 0 .or. i > s%u(i_uni)%model%lat%n_ele_max) then
+      call out_io (s_error$, r_name, 'BAD IX_ELE_REF VALUE OUT OF RANGE.')
+      return
+    endif
+    this_curve%ix_ele_ref = i      
+    this_curve%ele_ref_name = s%u(i_uni)%model%lat%ele_(this_curve%ix_ele_ref)%name
 
   case default
     
@@ -292,6 +312,8 @@ select case (component)
 end select
 
 s%global%lattice_recalc = .true.
+
+end subroutine
 
 end subroutine
 

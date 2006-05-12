@@ -43,7 +43,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
   curve(1)%data_type   = 'orbit.x'
-  curve(1)%units_factor = 1000
+  curve(1)%y_axis_scale_factor = 1000
 /
 
 &tao_template_graph
@@ -59,7 +59,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
   curve(1)%data_type   = 'orbit.y'
-  curve(1)%units_factor = 1000
+  curve(1)%y_axis_scale_factor = 1000
 /
 
 !----------------------------------------------------------------
@@ -89,7 +89,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%who(2) = 'design', -1
   curve(1)%data_source = 'data_array'
   curve(1)%data_type = 'phase.x'
-  curve(1)%units_factor = 57.29578
+  curve(1)%y_axis_scale_factor = 57.29578
 /
 
 &tao_template_graph
@@ -107,7 +107,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%who(2) = 'design', -1
   curve(1)%data_source = 'data_array'
   curve(1)%data_type = 'phase.y'
-  curve(1)%units_factor = 57.29578
+  curve(1)%y_axis_scale_factor = 57.29578
 /
 
 !----------------------------------------------------------------
@@ -135,7 +135,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
   curve(1)%data_type   = 'beta.x'
-  curve(1)%units_factor = 1
+  curve(1)%y_axis_scale_factor = 1
 /
 
 &tao_template_graph
@@ -151,7 +151,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
   curve(1)%data_type   = 'beta.y'
-  curve(1)%units_factor = 1
+  curve(1)%y_axis_scale_factor = 1
 /
 
 !----------------------------------------------------------------
@@ -179,7 +179,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
   curve(1)%data_type   = 'eta.x'
-  curve(1)%units_factor = 1
+  curve(1)%y_axis_scale_factor = 1
 /
 
 &tao_template_graph
@@ -195,7 +195,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
   curve(1)%data_type = 'eta.y'
-  curve(1)%units_factor = 1
+  curve(1)%y_axis_scale_factor = 1
 /
 
 !----------------------------------------------------------------
@@ -223,7 +223,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
   curve(1)%data_type   = 'coupling.22a'
-  curve(1)%units_factor = 1
+  curve(1)%y_axis_scale_factor = 1
   curve(1)%convert = .true.
 /
 
@@ -240,7 +240,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
   curve(1)%data_type   = 'coupling.12a'
-  curve(1)%units_factor = 1
+  curve(1)%y_axis_scale_factor = 1
   curve(1)%convert = .true.
 /
 
@@ -257,7 +257,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%n_curve = 1
   curve(1)%data_source = 'data_array'
   curve(1)%data_type   = 'coupling.11b'
-  curve(1)%units_factor = 1
+  curve(1)%y_axis_scale_factor = 1
   curve(1)%convert = .true.
 /
 
@@ -286,5 +286,5 @@ Templates define the basics of, say, how to display an orbit.
   graph%n_curve = 1
   curve(1)%data_source = 'var_array'
   curve(1)%data_type = 'quad_k1'
-  curve(1)%units_factor = 1
+  curve(1)%y_axis_scale_factor = 1
 /

@@ -16,9 +16,10 @@ implicit none
 
 type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: graph
+type (tao_curve_struct), pointer :: curve
 type (ele_struct), pointer :: ele
 
-integer ii, k, m, n_dat, i_uni, ie, jj
+integer i, ii, k, m, n_dat, i_uni, ie, jj
 integer ix_this, ix, ir, jg
 
 logical found
@@ -85,6 +86,22 @@ plot_loop: do ir = 1, size(s%plot_page%region)
     case ('data')
       call tao_data_plot_data_setup(plot, graph)
     end select
+
+    ! Renormalize and check for limited graph
+
+    if (associated (graph%curve)) then
+      do i = 1, size(graph%curve)
+        curve => graph%curve(i)
+        if (associated(curve%x_symb)) then
+            curve%x_symb = curve%x_symb * curve%x_axis_scale_factor
+            curve%y_symb = curve%y_symb * curve%y_axis_scale_factor
+        endif
+        if (associated(curve%x_line)) then
+          curve%x_line = curve%x_line * curve%x_axis_scale_factor
+          curve%y_line = curve%y_line * curve%y_axis_scale_factor
+        endif
+      enddo
+    endif
 
   enddo graph_loop
 enddo plot_loop
@@ -229,7 +246,7 @@ type (tao_v1_var_struct) , pointer :: v1_ptr
 type (tao_data_struct) datum
 type (taylor_struct) t_map(6)
 
-real(rp) f, y_val, eps
+real(rp) f, y_val, eps, ax_min, ax_max
 real(rp), pointer :: value(:)
 
 integer ii, k, m, n_dat, i_uni, ie, jj
@@ -616,7 +633,12 @@ do k = 1, size(graph%curve)
           graph%valid = .false.
           return
         end select
+        if (err) then
+          graph%valid = .false.
+          return
+        endif
       enddo
+
     endif
 
     if (.not. smooth_curve) then
@@ -630,14 +652,8 @@ do k = 1, size(graph%curve)
   end select
 
 !----------------------------------------------------------------------------
-! Renormalize and check for limited graph
 ! Note: Since there is an arbitrary overall phase, the phase data 
 ! gets renormalized so that the average value is zero.
-
-  curve%x_symb = curve%x_symb * curve%x_axis_scale_factor
-  curve%y_symb = curve%y_symb * curve%y_axis_scale_factor
-  curve%x_line = curve%x_line * curve%x_axis_scale_factor
-  curve%y_line = curve%y_line * curve%y_axis_scale_factor
 
   if (curve%data_type(1:6) == 'phase.' .and. n_dat /= 0 .and. curve%ele_ref_name == ' ') then
     f = sum(curve%y_symb) / n_dat
@@ -645,7 +661,9 @@ do k = 1, size(graph%curve)
     curve%y_line = curve%y_line - f 
   endif 
 
-  curve%limited = any(curve%y_symb .lt. graph%y%min .or. curve%y_symb .gt. graph%y%max)
+  ax_min = graph%y%min + 1e-6 * (graph%y%min - graph%y%max)
+  ax_max = graph%y%max + 1e-6 * (graph%y%max - graph%y%min)
+  curve%limited = any(curve%y_symb .lt. ax_min .or. curve%y_symb .gt. ax_max)
 
 enddo
 
@@ -677,6 +695,11 @@ err = .false.
 
 lat => tao_lat%lat
 orb => tao_lat%orb
+
+if (lat%param%lattice_type == circular_lattice$ .and. .not. lat%param%stable) then
+  err = .true.
+  return
+endif
 
 x1 = min (u%model%lat%ele_(u%model%lat%n_ele_use)%s, max (plot%x%min, u%model%lat%ele_(0)%s))
 x2 = min (u%model%lat%ele_(u%model%lat%n_ele_use)%s, max (plot%x%max, u%model%lat%ele_(0)%s))

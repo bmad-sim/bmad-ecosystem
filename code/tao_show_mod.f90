@@ -684,20 +684,56 @@ case ('plot')
 
 ! print info on particular plot, graph, or curve
 
-  if (.not. associated(plot)) then
+  if (associated(curve)) then
+    nl=nl+1; lines(nl) = 'Full name:  ' // trim(plot%name) // '.' // &
+                                               trim(graph%name) // '.' // curve%name
+    nl=nl+1; write (lines(nl), amt) 'name:                  ', curve%name
+    nl=nl+1; write (lines(nl), amt) 'data_source:           ', curve%data_source
+    nl=nl+1; write (lines(nl), amt) 'data_type:             ', curve%data_type
+    nl=nl+1; write (lines(nl), amt) 'ele_ref_name:          ', curve%ele_ref_name
+    nl=nl+1; write (lines(nl), imt) 'ix_ele_ref:            ', curve%ix_ele_ref
+    nl=nl+1; write (lines(nl), imt) 'ix_universe:           ', curve%ix_universe
+    nl=nl+1; write (lines(nl), imt) 'symbol_every:          ', curve%symbol_every
+    nl=nl+1; write (lines(nl), imt) 'x_axis_scale_factor:   ', curve%x_axis_scale_factor
+    nl=nl+1; write (lines(nl), imt) 'y_axis_scale_factor:   ', curve%y_axis_scale_factor
+    nl=nl+1; write (lines(nl), lmt) 'use_y2:                ', curve%use_y2
+    nl=nl+1; write (lines(nl), lmt) 'draw_line:             ', curve%draw_line
+    nl=nl+1; write (lines(nl), lmt) 'draw_symbols:          ', curve%draw_symbols
+    nl=nl+1; write (lines(nl), lmt) 'limited:               ', curve%limited
+    nl=nl+1; write (lines(nl), lmt) 'convert:               ', curve%convert
+    
+
+  elseif (associated(graph)) then
+    nl=nl+1; lines(nl) = 'Full name:  ' // trim(plot%name) // '.' // graph%name
+    nl=nl+1; write (lines(nl), amt) 'name:                  ', graph%name
+    nl=nl+1; write (lines(nl), amt) 'type:                  ', graph%type
+    nl=nl+1; write (lines(nl), amt) 'title:                 ', graph%title
+    nl=nl+1; write (lines(nl), amt) 'title_suffix:          ', graph%title_suffix
+    nl=nl+1; write (lines(nl), imt) 'box:                   ', graph%box
+    nl=nl+1; write (lines(nl), imt) 'ix_universe:           ', graph%ix_universe
+    nl=nl+1; write (lines(nl), imt) 'box:                   ', graph%box
+    nl=nl+1; write (lines(nl), lmt) 'valid:                 ', graph%valid
+    nl=nl+1; write (lines(nl), lmt) 'y2_mirrors_y:          ', graph%y2_mirrors_y
+    nl=nl+1; lines(nl) = 'Curves:'
+    do i = 1, size(graph%curve)
+      nl=nl+1; write (lines(nl), amt) '   ', graph%curve(i)%name
+    enddo
+
+  elseif (associated(plot)) then
+    nl=nl+1; lines(nl) = 'Plot:  ' // plot%name
+    nl=nl+1; write (lines(nl), amt) 'x_axis_type:              ', plot%x_axis_type
+    nl=nl+1; write (lines(nl), rmt) 'x_divisions:              ', plot%x_divisions
+    nl=nl+1; write (lines(nl), lmt) 'independent_graphs:       ', plot%independent_graphs
+    
+    nl=nl+1; write (lines(nl), *) 'Graphs:'
+    do i = 1, size(plot%graph)
+      nl=nl+1; write (lines(nl), amt) '   ', plot%graph(i)%name
+    enddo
+
+  else
     call out_io (s_error$, r_name, 'This is not a graph')
     return
   endif
-
-  nl=nl+1; lines(nl) = 'Plot:  ' // plot%name
-  nl=nl+1; write (lines(nl), amt) 'x_axis_type:              ', plot%x_axis_type
-  nl=nl+1; write (lines(nl), rmt) 'x_divisions:              ', plot%x_divisions
-  nl=nl+1; write (lines(nl), lmt) 'independent_graphs:       ', plot%independent_graphs
-    
-  nl=nl+1; write (lines(nl), *) 'Graphs:'
-  do i = 1, size(plot%graph)
-    nl=nl+1; write (lines(nl), amt) '   ', plot%graph(i)%name
-  enddo
 
   call out_io (s_blank$, r_name, lines(1:nl))
 
