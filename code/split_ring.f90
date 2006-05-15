@@ -170,7 +170,7 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
     ele1%ic1_lord = ixc + 1
     ele1%ic2_lord = n_ic2
     ring%n_ic_max = n_ic2
-    if (n_ic2 > size(ring%ic_)) ring%ic_ => reallocate (ring%ic_, n_ic2+500)
+    if (n_ic2 > size(ring%ic_)) call reassociate (ring%ic_, n_ic2+500)
 
     do j = 1, ele%n_lord
 
@@ -224,8 +224,7 @@ subroutine split_ring (ring, s_split, ix_split, split_done)
   ring%ele_(ix_super_lord)%control_type = super_lord$
   ring%ele_(ix_super_lord)%value(l$) = len_orig
   ixc = ring%n_control_max + 1
-  if (ixc+1 > size(ring%control_)) &
-                      ring%control_ => reallocate (ring%control_, ixc+500)
+  if (ixc+1 > size(ring%control_)) call reassociate (ring%control_, ixc+500)
   ring%ele_(ix_super_lord)%ix1_slave = ixc
   ring%ele_(ix_super_lord)%ix2_slave = ixc + 1
   ring%ele_(ix_super_lord)%n_slave = 2

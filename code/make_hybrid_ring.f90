@@ -300,7 +300,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 ! correct r_out%ic_ array
 
   n_ic = 0
-  r_out%ic_ => reallocate (r_out%ic_, size(r_out%control_))
+  call reassociate (r_out%ic_, size(r_out%control_))
 
   do i_out = 1, r_out%n_ele_max
     
