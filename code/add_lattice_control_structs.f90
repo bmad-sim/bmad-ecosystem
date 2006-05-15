@@ -27,7 +27,6 @@ subroutine add_lattice_control_structs (ring, ix_ele)
 
   use bmad_struct
   use bmad_interface, except => add_lattice_control_structs
-  use nrutil, only: reallocate
 
   implicit none
 

@@ -2470,8 +2470,6 @@ end subroutine
 
 subroutine add_all_superimpose (ring, ele_in, pele)
 
-  use nrutil, only: reallocate
-
   implicit none
 
   type (ring_struct), target :: ring
@@ -2639,7 +2637,7 @@ subroutine add_all_superimpose (ring, ele_in, pele)
       j = j + 1
       ring%ele_(i)%control_type = super_slave$
       nic = ring%n_ic_max + 1
-      if (nic > size(ring%ic_)) call reassociate (ring%ic_, nic+500)
+      if (nic > size(ring%ic_)) call re_associate (ring%ic_, nic+500)
       ring%ele_(i)%n_lord = 1
       ring%ele_(i)%ic1_lord = nic
       ring%ele_(i)%ic2_lord = nic

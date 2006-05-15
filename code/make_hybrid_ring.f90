@@ -53,7 +53,6 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 
   use ptc_interface_mod, except => make_hybrid_ring
   use bmad_utils_mod
-  use nrutil, only: reallocate
 
   implicit none
 
@@ -300,7 +299,7 @@ subroutine make_hybrid_ring (r_in, keep_ele, remove_markers, &
 ! correct r_out%ic_ array
 
   n_ic = 0
-  call reassociate (r_out%ic_, size(r_out%control_))
+  call re_associate (r_out%ic_, size(r_out%control_))
 
   do i_out = 1, r_out%n_ele_max
     

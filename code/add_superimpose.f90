@@ -25,7 +25,6 @@ subroutine add_superimpose (ring, super_ele, ix_super)
 
   use bmad_struct
   use bmad_interface, except => add_superimpose
-  use nrutil, only: reallocate
 
   implicit none
 
@@ -218,7 +217,7 @@ subroutine add_superimpose (ring, super_ele, ix_super)
       ring%ele_(ix_slave)%ic2_lord = ic + 1
       ring%ele_(ix_slave)%n_lord = 2
       ring%n_ic_max = ic + 1
-      if (ic+1 > size(ring%ic_)) ring%ic_ => reallocate (ring%ic_, ic+500)
+      if (ic+1 > size(ring%ic_)) call re_associate (ring%ic_, ic+500)
       ring%ic_(ic) = ixc 
 
     else
