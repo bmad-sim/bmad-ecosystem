@@ -90,7 +90,7 @@ subroutine add_lattice_control_structs (ring, ix_ele)
 
     n_ic = ring%n_ic_max
     n_ic2 = n_ic + n_add
-    if (n_ic2 > size(ring%ic_)) ring%ic_ => reallocate(ring%ic_, n_ic2+500)
+    if (n_ic2 > size(ring%ic_)) call re_associate(ring%ic_, n_ic2+500)
 
     i2 = ele%ic2_lord
 
