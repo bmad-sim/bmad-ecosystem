@@ -726,7 +726,7 @@ case ('spin.polarity')
 case default
 
   call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
-  return
+  stop
 
 end select
 

@@ -40,6 +40,10 @@ subroutine tao_single_mode (char)
       ix_key = index(set_char(i), char)
       this_factor = delta_factor(i)
       ix = ix_key + s%global%ix_key_bank
+      if (ix > size(s%key)) then
+        call out_io (s_error$, r_name, 'KEY NOT BOUND TO VARIABLE.')
+        return
+      endif
       ix_var = s%key(ix)%ix_var
       if (ix_var == 0) cycle
       value = s%var(ix_var)%model_value + this_factor * s%key(ix)%delta
