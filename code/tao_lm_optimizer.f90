@@ -125,6 +125,7 @@ do i = 1, s%global%n_opti_cycles+1
 
   if (s%global%lm_opt_deriv_reinit > 0 .and. a_lambda > s%global%lm_opt_deriv_reinit) then
     call tao_dmodel_dvar_calc (.true.)
+    a_lambda = 1
   endif
 
 enddo
