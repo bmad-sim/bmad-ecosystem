@@ -53,7 +53,7 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
   character(100) name1, name2, line
   character(200) full_name
   character(200) full_lat_file_name, digested_file
-  character(200), allocatable :: file_names(:)
+  character(200), allocatable, save :: file_names(:)
   character(16) :: r_name = 'xsif_parser'
 
   logical, optional :: make_mats6, digested_read_ok
