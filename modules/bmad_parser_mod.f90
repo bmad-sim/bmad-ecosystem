@@ -3525,10 +3525,12 @@ endif
 
 ! set ds_step if not already set.
 
-if (ele%num_steps > 0) then
-  ele%value(ds_step$) = abs(ele%value(l$) / ele%num_steps)
-elseif (ele%value(ds_step$) == 0) then
-  ele%value(ds_step$) = bmad_com%default_ds_step
+if (attribute_index(ele, 'DS_STEP') > 0) then
+  if (ele%num_steps > 0) then
+    ele%value(ds_step$) = abs(ele%value(l$) / ele%num_steps)
+  elseif (ele%value(ds_step$) == 0) then
+    ele%value(ds_step$) = bmad_com%default_ds_step
+  endif
 endif
 
 end subroutine

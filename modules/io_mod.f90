@@ -345,7 +345,12 @@ subroutine write_bmad_lattice_file (bmad_file, ring)
       line = trim(line) // ', ' // trim(attribute_name(ele, j)) // &
                                                   ' = ' // str(ele%value(j))
 
-      if (attribute_name(ele, j) == null_name) print *, 'Null: ', ele%name, j
+      if (attribute_name(ele, j) == null_name) then
+        print *, 'ERROR IN WRITE_BMAD_LATTICE_FILE:'
+        print *, '      ELEMENT: ', ele%name
+        print *, '      HAS AN UNKNOWN ATTRIBUTE INDEX:', j
+        stop
+      endif
 
     enddo
 
