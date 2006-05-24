@@ -477,6 +477,7 @@ type tao_universe_struct
   integer n_d2_data_used
   integer n_data_used
   integer ix_rad_int_cache
+  integer ixx                                      ! scratch variable
   logical do_synch_rad_int_calc
   logical do_chrom_calc
   logical is_on                                    ! universe turned on

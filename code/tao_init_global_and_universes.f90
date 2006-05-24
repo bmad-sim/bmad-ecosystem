@@ -441,7 +441,7 @@ do
       call var_stuffit_common
       write (s%v1_var(s%n_v1_var_used)%name, '(2a, i0)') &
                                 trim(s%v1_var(s%n_v1_var_used)%name), ';', i
-      call var_stuffit (i)
+      call var_stuffit_1_uni (i)
     enddo
 
   elseif (default_universe == 'gang') then
@@ -461,7 +461,7 @@ do
       endif
     endif
     call var_stuffit_common
-    call var_stuffit (n)
+    call var_stuffit_1_uni (n)
   endif
 
 enddo
@@ -863,10 +863,10 @@ end subroutine d1_data_stuffit
 !----------------------------------------------------------------
 ! contains
 
-subroutine var_stuffit (ix_u_in)
+subroutine var_stuffit_1_uni (ix_u_in)
 
 type (tao_var_struct), pointer :: s_var
-integer i, j, ix_u, n, ios, ix_u_in, j_save
+integer i, j, ix_u, n, ios, ix_u_in, j_save, ie, n_ele
 
 ! point the children back to the mother
 
@@ -876,8 +876,8 @@ do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
   s_var => s%v1_var(n)%v(i)
 
   if (associated(s_var%this)) deallocate (s_var%this)
-  allocate (s_var%this(1))
   if (s_var%ele_name == ' ') then
+    allocate (s_var%this(0))
     s_var%exists = .false.
     cycle
   endif
@@ -894,19 +894,25 @@ do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
         call err_exit
       endif
     endif
-    call tao_pointer_to_var_in_lattice (s_var, s_var%this(1), ix_u)
+    call tao_locate_elements (s_var, ix_u, n_ele)
+    allocate (s_var%this(n_ele))
+    do ie = 1, n_ele
+      call tao_pointer_to_var_in_lattice (s_var, s_var%this(ie), ix_u, &
+                                      ix_ele = s%u(ix_u)%model%lat%ele_(ie)%ixx)
+    enddo
   else ! use found_one array
     found_one_loop: do j = j_save, size(found_one)
-    if (found_one(j)) then
-      call tao_pointer_to_var_in_lattice (s_var, s_var%this(1), ix_u, ix_ele = j)
-      j_save = j+1
-      exit found_one_loop
-    endif
-    if (j == size(found_one)) then
-      call out_io (s_abort$, r_name, &
+      if (found_one(j)) then
+        allocate (s_var%this(1))
+        call tao_pointer_to_var_in_lattice (s_var, s_var%this(1), ix_u, ix_ele = j)
+        j_save = j+1
+        exit found_one_loop
+      endif
+      if (j == size(found_one)) then
+        call out_io (s_abort$, r_name, &
                      "Internal error in counting variables")
-      call err_exit
-    endif
+        call err_exit
+      endif
     enddo found_one_loop
   endif
      
@@ -916,8 +922,7 @@ do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
   s_var%exists = .true.
 enddo
 
-end subroutine var_stuffit
-
+end subroutine var_stuffit_1_uni
 
 !----------------------------------------------------------------
 !----------------------------------------------------------------
@@ -927,7 +932,7 @@ subroutine var_stuffit_all_uni
 
 type (tao_var_struct), pointer :: s_var
 
-integer i, j, n1, n2, iu, j_save
+integer i, j, n1, n2, iu, j_save, n_tot, n_ele, ie
 logical err
 
 ! point the children back to the mother
@@ -939,18 +944,31 @@ j_save = 1
 do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
   s_var => s%v1_var(n)%v(i)
   if (associated(s_var%this)) deallocate (s_var%this)
-  allocate (s_var%this(size(s%u)))
   if (s_var%ele_name == ' ') then
+    allocate (s_var%this(0))
     s_var%exists = .false.
     cycle
   endif
   if (.not. (counting .and. searching)) then
+    n_tot = 0
     do iu = 1, size(s%u)
-      call tao_pointer_to_var_in_lattice (s_var, s_var%this(iu), iu)
+      call tao_locate_elements (s_var, iu, n_ele)
+      s%u(iu)%ixx = n_ele
+      n_tot = n_tot + n_ele
+    enddo
+    allocate (s_var%this(n_tot))
+    n_tot = 0
+    do iu = 1, size(s%u)
+      do ie = 1, s%u(iu)%ixx
+        call tao_pointer_to_var_in_lattice (s_var, s_var%this(ie+n_tot), iu, &
+                                          ix_ele = s%u(iu)%model%lat%ele_(ie)%ixx)
+      enddo
+      n_tot = n_tot + s%u(iu)%ixx
     enddo
   else
     found_one_loop: do j = j_save, size(found_one(1:s%u(1)%design%lat%n_ele_max))
       if (found_one(j)) then
+        allocate (s_var%this(size(s%u)))
         do iu = 1, size(s%u)
           call tao_pointer_to_var_in_lattice (s_var, s_var%this(iu), iu, ix_ele = j)
         enddo

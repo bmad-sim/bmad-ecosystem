@@ -328,6 +328,38 @@ end subroutine tao_pointer_to_var_in_lattice
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Subroutine tao_locate_elements (var, ix_u, n_ele)
+!
+! Routine to locate the elements with name s_var%ele_name.
+!-
+
+subroutine tao_locate_elements (var, ix_u, n_ele)
+
+implicit none
+
+type (tao_var_struct) var
+type (ring_struct), pointer :: lat
+
+integer ix_u, n_ele, iv
+
+!
+
+lat => s%u(ix_u)%model%lat
+
+n_ele = 0
+do iv = 0, lat%n_ele_max
+  if (var%ele_name == lat%ele_(iv)%name) then
+    n_ele = n_ele + 1
+    lat%ele_(n_ele)%ixx = iv
+  endif
+enddo
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Subroutine tao_find_plot_by_region (err, where, plot, graph, curve, region, print_flag)
 !
 ! Routine to find a plot using the region name.
