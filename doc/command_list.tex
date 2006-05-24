@@ -312,23 +312,24 @@ Examples
 
 Format:
 \begin{example}
-  output hard                    ! print the plot window to a printer.
-  output ps \{<file_name>\}        ! create a postscript file of the plot window.
-  output gif \{<file_name>\}       ! create a gif file of the plot window.
-  output var                     ! Write a Bmad file of variable values.
-  output lattice \{<file_name>\}   ! Write a Bmad lattice file of the model
   output digested \{<file_name>\}  ! Write a digested Bmad lattice file of the model.
+  output gif \{<file_name>\}       ! create a gif file of the plot window.
+  output hard                    ! print the plot window to a printer.
+  output lattice \{<file_name>\}   ! Write a Bmad lattice file of the model
+  output ps \{<file_name>\}        ! create a postscript file of the plot window.
+  output var \{<file_name>\}       ! Write a Bmad file of variable values.
 \end{example}
 
 \vskip 0.2in \vn{Output} creates various files. If \vn{<file_name>} is
 not given then the defaults are:
 \begin{example}
-  quick_plot.ps                   ! output ps
+  digested8_lat_universe_#.bmad   ! output digested
   quick_plot.gif                  ! output gif
   lat_universe_#.bmad             ! output lattice
-  digested8_lat_universe_#.bmad   ! output digested
+  quick_plot.ps                   ! output ps
+  global%var_out_file             ! optput var
 \end{example}
-where \vn{\#} is replaced by the universe number.
+where \vn{\#} is replaced by the universe number. 
 
 Note: PGPLOT does a poor job producing gif files so consider
 making a postscript file instead and using the pstogif unix command to
@@ -708,8 +709,9 @@ Shows top contributors to the merit function, dMerit/dVariable
 derivatives, and Largest changes in variable value.
 
   \item[show var]
-Shows variable information. If \vn{<var_name>} \vn{<locations>} is
-not present shown is a list of v1\_var classes.
+Shows variable information. If \vn{<var_name>} \vn{<locations>} is not
+present shown is a list of v1\_var classes. If \vn{<var_name>} is
+\vn{*} then the variables will be printed in Bmad lattice format.
 
   \item[show plot]
 Shows which templates are being plotted and in which regions and also all
@@ -732,6 +734,7 @@ Examples:
   show ele q10w               ! show a particular lattice element
   show ele 105                ! show element #105 in the lattice
   show lattice 50:100         ! show lattice elements 50 to 100
+  show var *                  ! list variables in Bmad lattice format.
 \end{example}
 
 %% single-mode --------------------------------------------------------------

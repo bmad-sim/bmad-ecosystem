@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_output_cmd (what, who)
+! Subroutine tao_output_cmd (what, file_name)
 !
 ! 
 ! Input:
@@ -7,7 +7,7 @@
 !  Output:
 !-
 
-subroutine tao_output_cmd (what, who)
+subroutine tao_output_cmd (what, file_name)
 
 use tao_mod
 use tao_top10_mod
@@ -17,10 +17,10 @@ use io_mod
 
 implicit none
 
-character(*) what, who
+character(*) what, file_name
 character(16) action
 character(20) :: r_name = 'tao_output_cmd'
-character(100) file_name
+character(100) file_name2
 
 integer i, ix
 
@@ -51,7 +51,7 @@ case ('hard')
 
 case ('gif')
   call qp_open_page ('GIF', x_len = s%plot_page%size(1), &
-           y_len = s%plot_page%size(2), units = 'POINTS', plot_file = who)
+           y_len = s%plot_page%size(2), units = 'POINTS', plot_file = file_name)
   call tao_plot_out ()   ! Update the plotting window
   call qp_close_page
   call qp_select_page (s%plot_page%id_window)  ! Back to X-windows
@@ -61,7 +61,7 @@ case ('gif')
 ! ps
 
 case ('ps')
-  call qp_open_page ('PS', plot_file = who)
+  call qp_open_page ('PS', plot_file = file_name)
   call tao_plot_out ()   ! Update the plotting window
   call qp_close_page
   call qp_select_page (s%plot_page%id_window)  ! Back to X-windows
@@ -70,26 +70,30 @@ case ('ps')
 ! variables
 
 case ('var')
-  call tao_var_write (s%global%var_out_file)
+  if (file_name == ' ') then
+    call tao_var_write (s%global%var_out_file)
+  else
+    call tao_var_write (file_name)
+  endif
 
 case ('lattice')
-  file_name = who
-  if (file_name == ' ') file_name = 'lat_universe_#.bmad'
+  file_name2 = file_name
+  if (file_name2 == ' ') file_name2 = 'lat_universe_#.bmad'
   do i = 1, size(s%u)
-    ix = index(file_name, '#')
-    if (ix /= 0) write (file_name, '(a, i0, a)') file_name(1:ix-1), i, trim(file_name(ix+1:))
-    call write_bmad_lattice_file (file_name, s%u(i)%model%lat)
-    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+    ix = index(file_name2, '#')
+    if (ix /= 0) write (file_name2, '(a, i0, a)') file_name2(1:ix-1), i, trim(file_name2(ix+1:))
+    call write_bmad_lattice_file (file_name2, s%u(i)%model%lat)
+    call out_io (s_info$, r_name, 'Writen: ' // file_name2)
   enddo
 
 case ('digested')
-  file_name = who
-  if (file_name == ' ') file_name = 'digested_lat_universe_#.bmad'
+  file_name2 = file_name
+  if (file_name2 == ' ') file_name2 = 'digested_lat_universe_#.bmad'
   do i = 1, size(s%u)
-    ix = index(file_name, '#')
-    if (ix /= 0) write (file_name, '(a, i0, a)') file_name(1:ix-1), i, trim(file_name(ix+1:))
-    call write_digested_bmad_file (file_name, s%u(i)%model%lat)
-    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+    ix = index(file_name2, '#')
+    if (ix /= 0) write (file_name2, '(a, i0, a)') file_name2(1:ix-1), i, trim(file_name2(ix+1:))
+    call write_digested_bmad_file (file_name2, s%u(i)%model%lat)
+    call out_io (s_info$, r_name, 'Writen: ' // file_name2)
   enddo
 
 ! error

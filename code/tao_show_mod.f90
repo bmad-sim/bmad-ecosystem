@@ -827,6 +827,11 @@ case ('var')
 
 ! If just "show var" then show all namees
 
+  if (word(1) == '*') then
+    call tao_var_write (' ')
+    return
+  endif
+
   if (word(1) == ' ') then
     write (lines(1), '(5x, a)') '                  Bounds'
     write (lines(2), '(5x, a)') 'Name            Lower  Upper'
