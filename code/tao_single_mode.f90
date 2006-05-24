@@ -62,39 +62,6 @@ subroutine tao_single_mode (char)
   case ('?')
     call tao_help ('keys')
 
-! z: Quit single character input mode.
-
-  case ('z')
-    s%global%single_mode = .false.
-    call out_io (s_blank$, r_name, ' ', 'Entering line mode...')
-
-! Z: Quit tao.
-
-  case ('Z')
-    doit = .false.
-    call tao_query_logical ('y', 'n', 'Quit?', doit)
-    if (.not. doit) return
-    call tao_destroy_plot_window
-    stop
-
-! v: Set variable at given value
-
-  case ('v')
-    write (*, '(a, $)', advance = "NO") ' Enter Key# and Value: '
-    read (*, *, iostat = ios) ix, value
-    if (ios /= 0) then
-      write (*, *) 'ERROR: I DO NOT UNDERSTAND THIS. NOTHING CHANGED.'
-      return
-    endif
-    if (ix == 0) ix = 10
-    if (ix < 0 .or. ix > 10) then
-      write (*, *) 'ERROR KEY NUMBER OUT OF RANGE (0 - 9).'
-      return
-    endif
-    ix = ix + s%global%ix_key_bank
-    ix_var = s%key(ix)%ix_var
-    call tao_set_var_model_value (s%var(ix_var), value)
-
 ! g: Go run optimizer.
 
   case ('g')
@@ -116,6 +83,44 @@ subroutine tao_single_mode (char)
     write (*, *)
     call tao_show_constraints (0, 'ALL')
     call tao_show_constraints (0, 'TOP10')
+
+! v: Set variable at given value
+
+  case ('v')
+    write (*, '(a, $)', advance = "NO") ' Enter Key# and Value: '
+    read (*, *, iostat = ios) ix, value
+    if (ios /= 0) then
+      write (*, *) 'ERROR: I DO NOT UNDERSTAND THIS. NOTHING CHANGED.'
+      return
+    endif
+    if (ix == 0) ix = 10
+    if (ix < 0 .or. ix > 10) then
+      write (*, *) 'ERROR KEY NUMBER OUT OF RANGE (0 - 9).'
+      return
+    endif
+    ix = ix + s%global%ix_key_bank
+    ix_var = s%key(ix)%ix_var
+    call tao_set_var_model_value (s%var(ix_var), value)
+
+! V: Show variables
+
+  case ('V')
+    call tao_var_write (' ')
+
+! z: Quit single character input mode.
+
+  case ('z')
+    s%global%single_mode = .false.
+    call out_io (s_blank$, r_name, ' ', 'Entering line mode...')
+
+! Z: Quit tao.
+
+  case ('Z')
+    doit = .false.
+    call tao_query_logical ('y', 'n', 'Quit?', doit)
+    if (.not. doit) return
+    call tao_destroy_plot_window
+    stop
 
 ! CR: Do nothing
 

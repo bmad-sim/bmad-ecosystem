@@ -42,12 +42,6 @@ can be used to change the deltas for the variables.
 \item[?]
 Type a short help message.
 
-\item[z] 
-Go back to \vn{line mode}
-
-\item[Z] 
-Exit \tao
-                                        
 \item[g]
 Go run the default optimizer. The optimizer will run until you type a
 '.' (a period).  Periodically during the optimization the variable
@@ -62,6 +56,16 @@ Set variable value. \vn{<digit>} is between 0 and 9 corresponding to a
 variable of the current bank. \vn{<value>} is the value to set the
 variable to.
 
+\item[V]
+Show variable values in bmad compatable lattice format. See also the
+\vn{/w} command.
+
+\item[z] 
+Go back to \vn{line mode}
+
+\item[Z] 
+Exit \tao
+                                        
 \item[$<$]
 Reduce the deltas (the amount that a variable is changed when you use
 the keys 0 through 9) of all the variables by a factor of 2.
@@ -98,9 +102,9 @@ Print a list of the lattice elements with Twiss parameters.
 Switch the viewed universe.
 
 \item[/w]
-Write variable values to the default output file.
-The default output file name is set by \vn{global%var_out}. This file is
-in BMAD format.
+Write variable values to the default output file.  The default output
+file name is set by \vn{global%var_out}. This file is in BMAD
+format. See also the \vn{V} command.
 
 \item[/x $<$min$>$ $<$max$>$]
 Set the horizontal scale (longitudinal position) min and max values
