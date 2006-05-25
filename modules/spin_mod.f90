@@ -513,6 +513,8 @@ integer key
 
   case (elseparator$, kicker$, hkicker$, vkicker$) 
 
+    return
+
 !-----------------------------------------------
 ! quadrupole
 

@@ -47,12 +47,14 @@ ele%value(x_pitch$) = 0
 ele%value(y_pitch$) = 0
 ele%value(x_offset$) = 0
 ele%value(y_offset$) = 0
+ele%value(s_offset$) = 0
 
 ele%value(tilt_tot$) = 0
 ele%value(x_pitch_tot$) = 0
 ele%value(y_pitch_tot$) = 0
 ele%value(x_offset_tot$) = 0
 ele%value(y_offset_tot$) = 0
+ele%value(s_offset_tot$) = 0
 
 end subroutine
 

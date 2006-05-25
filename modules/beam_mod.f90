@@ -348,6 +348,13 @@ endif
 ! This calculation is for an lcavity with wakefields.
 ! Put the sr wakefield transverse kicks at the half way point.
 
+! first offset the cavity
+! wakes applied in cononical coords so don't do canonical coord conversion
+do i = 1, size(bunch_end%particle)
+  call offset_particle (ele, param, bunch_end%particle(i)%r, set$, &
+      set_canonical = .false.)
+enddo
+
 ! rf_ele is half the cavity
 
 rf_ele = ele
@@ -358,14 +365,22 @@ rf_ele%value(p0c$) = &
             (ele%value(p0c_start$) + ele%value(p0c$)) / 2
 rf_ele%value(e_loss$) = 0
 
+
+! zero all offsets and kicks (offsetting already performed above)
+call zero_ele_offsets (rf_ele)
+rf_ele%value(hkick$) = 0.0
+rf_ele%value(vkick$) = 0.0
+if (associated(ele%a)) deallocate(ele%a)
+    
 ! Track half way through. This includes the sr longitudinal wakes 
 
 call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
+  if (bunch_end%particle(j)%ix_lost .ne. not_lost$) cycle
   call add_sr_long_wake (rf_ele, bunch_end, j-1, bunch_end%particle(j)%ix_z)
   call track1_particle (bunch_end%particle(bunch_end%particle(j)%ix_z), &
-                          rf_ele, param, &
-                          bunch_end%particle(bunch_end%particle(j)%ix_z))
+                        rf_ele, param, &
+                        bunch_end%particle(bunch_end%particle(j)%ix_z))
 enddo
 
 bmad_com%grad_loss_sr_wake = 0.0
@@ -376,7 +391,7 @@ rf_ele%value(l$) = ele%value(l$)  ! restore the correct length for the moment
 call track1_sr_wake (bunch_end, rf_ele)
 call track1_lr_wake (bunch_end, rf_ele)
 
-! Track the last half of the lcavity. This includes the sr longitudinal wakes 
+! Track the last half of the lcavity.  This includes the sr longitudinal wakes 
 
 rf_ele%value(l$)            = ele%value(l$) / 2
 rf_ele%value(energy_start$) = rf_ele%value(beam_energy$)
@@ -386,10 +401,11 @@ rf_ele%value(p0c$)          = ele%value(p0c$)
 
 call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
+  if (bunch_end%particle(j)%ix_lost .ne. not_lost$) cycle
   call add_sr_long_wake (rf_ele, bunch_end, j-1, bunch_end%particle(j)%ix_z)
   call track1_particle (bunch_end%particle(bunch_end%particle(j)%ix_z), &
-                          rf_ele, param, &
-                          bunch_end%particle(bunch_end%particle(j)%ix_z))
+                        rf_ele, param, &
+                        bunch_end%particle(bunch_end%particle(j)%ix_z))
 enddo
 
 bmad_com%grad_loss_sr_wake = 0.0
@@ -399,6 +415,13 @@ bunch_end%charge = sum (bunch_end%particle(:)%charge, &
 
 bmad_com%grad_loss_sr_wake = 0.0
 
+! unset the cavity offset
+! wakes applied in cononical coords so don't do canonical coord conversion
+do i = 1, size(bunch_end%particle)
+  call offset_particle (ele, param, bunch_end%particle(i)%r, unset$, &
+      set_canonical = .false.)
+enddo
+      
 end subroutine track1_bunch_ele
 
 !--------------------------------------------------------------------------
@@ -442,7 +465,7 @@ n_sr1 = size(ele%wake%sr1)
 n_sr2_long = size(ele%wake%sr2_long)
 n_sr2_trans = size(ele%wake%sr2_trans)
 
-if (n_sr1 == 0 .and. n_sr2_long == 0 .and. n_sr2_trans == 0 .or. &
+if ((n_sr1 == 0 .and. n_sr2_long == 0 .and. n_sr2_trans == 0) .or. &
                                           .not. bmad_com%sr_wakes_on) then 
   bmad_com%grad_loss_sr_wake = 0.0
   return 
@@ -454,16 +477,17 @@ endif
 if (n_sr1 > 0) then
   bmad_com%grad_loss_sr_wake = bmad_com%grad_loss_sr_wake &
                         + ele%wake%sr1(0)%long * e_charge / 2.0
-endif
 
 !-----------------------------------
 ! add up all wakes from front of bunch to follower
-
-do i = 1, num_in_front
-  call sr1_add_long_kick (ele, bunch%particle(bunch%particle(i)%ix_z)%r, &
+  do i = 1, num_in_front
+    if (bunch%particle(bunch%particle(i)%ix_z)%ix_lost .eq. not_lost$) &
+      call sr1_add_long_kick (ele, bunch%particle(bunch%particle(i)%ix_z)%r, &
                bunch%particle(bunch%particle(i)%ix_z)%charge, &
                bunch%particle(ix_follower)%r)
-enddo
+  enddo
+
+endif
 
 end subroutine add_sr_long_wake
 

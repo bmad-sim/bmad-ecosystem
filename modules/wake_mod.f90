@@ -205,6 +205,8 @@ iw = z / dz     ! integer part of z/dz
 f2 = z/dz - iw  ! fractional part of z/dz
 f1 = 1 - f2
 
+if (iw .lt. 0 .or. iw .gt. ubound(ele%wake%sr1,1)) return
+
 bmad_com%grad_loss_sr_wake = bmad_com%grad_loss_sr_wake &
       + (ele%wake%sr1(iw)%long*f1 + ele%wake%sr1(iw+1)%long*f2) * charge 
 
