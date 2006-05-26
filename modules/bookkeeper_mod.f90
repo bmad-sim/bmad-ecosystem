@@ -497,10 +497,7 @@ subroutine makeup_super_slave (lattice, ix_slave)
           allocate (slave%wig_term(size(lord%wig_term)))
         endif
         do i = 1, size(lord%wig_term)
-          slave%wig_term(i)%coef = lord%wig_term(i)%coef
-          slave%wig_term(i)%kx = lord%wig_term(i)%kx
-          slave%wig_term(i)%ky = lord%wig_term(i)%ky
-          slave%wig_term(i)%kz = lord%wig_term(i)%kz
+          slave%wig_term(i) = lord%wig_term(i)
           slave%wig_term(i)%phi_z = lord%wig_term(i)%phi_z + &
                                lord%wig_term(i)%kz * slave%value(l_start$)
         enddo
