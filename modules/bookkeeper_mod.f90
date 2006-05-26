@@ -493,7 +493,7 @@ subroutine makeup_super_slave (lattice, ix_slave)
       if (associated(lord%wig_term)) then
         if (.not. associated (slave%wig_term) .or. &
                 size(slave%wig_term) /= size(lord%wig_term)) then
-          deallocate (slave%wig_term)
+          if (associated (slave%wig_term)) deallocate (slave%wig_term)
           allocate (slave%wig_term(size(lord%wig_term)))
         endif
         do i = 1, size(lord%wig_term)
@@ -504,6 +504,8 @@ subroutine makeup_super_slave (lattice, ix_slave)
           slave%wig_term(i)%phi_z = lord%wig_term(i)%phi_z + &
                                lord%wig_term(i)%kz * slave%value(l_start$)
         enddo
+      else
+        if (associated (slave%wig_term)) deallocate (slave%wig_term)
       endif
 
     endif
