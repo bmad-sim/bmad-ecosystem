@@ -397,7 +397,7 @@ else
     set_is = 'LOGICAL-VECTOR'
   else
     set_is = 'REAL'
-    call tao_to_real_vector (set_str, r_value, err_flag)
+    call tao_to_real_vector (set_str, 'VAR', r_value, err_flag)
     if (err_flag) then
       call out_io (s_error$, r_name, 'BAD SET VALUE ' // set_str)
       return
@@ -508,7 +508,7 @@ else
     set_is = 'LOGICAL-VECTOR'
   else
     set_is = 'REAL'
-    call tao_to_real_vector (set_str, r_value, err)
+    call tao_to_real_vector (set_str, 'DATA', r_value, err)
     if (err) then
       call out_io (s_error$, r_name, 'BAD SET VALUE ' // set_str)
       return

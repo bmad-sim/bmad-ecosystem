@@ -1590,7 +1590,7 @@ logical err_flag
 
 !
 
-call tao_to_real_vector (expression, vec, err_flag)
+call tao_to_real_vector (expression, 'BOTH', vec, err_flag)
 if (err_flag) return
 value = vec(1)
 
@@ -1600,19 +1600,22 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_to_real_vector (expression, value, err_flag)
+! Subroutine tao_to_real_vector (expression, wild_type, value, err_flag)
 !
 ! Mathematically evaluates a character expression.
 !
 ! Input:
-!   expression   -- character(*): arithmetic expression
+!   expression   -- Character(*): Arithmetic expression.
+!   wild_type    -- Character(*): If something like "*|meas" is in the 
+!                     expression does this refer to data or variables? 
+!                     Possibilities are "DATA", "VAR", and "BOTH"
 !  
 ! Output:
-!   value(:)     -- real(rp): Value of arithmetic expression.
+!   value(:)     -- Real(rp): Value of arithmetic expression.
 !   err_flag     -- Logical: TRUE on error.
 !-
 
-subroutine tao_to_real_vector (expression, value, err_flag)
+subroutine tao_to_real_vector (expression, wild_type, value, err_flag)
 
 use random_mod
 
@@ -1623,18 +1626,18 @@ type (eval_stack_struct) stk(200)
 integer i_lev, i_op, i, ios, n, n_size, p2, p2_1
 integer ptr(-1:200)
 
-integer op_(200), ix_word, i_delim, i2, ix_word2
+integer op_(200), ix_word, i_delim, i2, ix, ix_word2, ixb
 
 real(rp), allocatable :: value(:)
 
-character(*), intent(in) :: expression
+character(*), intent(in) :: expression, wild_type
 character(100) phrase
 character(1) delim
 character(40) word, word2
 character(16) :: r_name = "tao_to_real_vector"
 
 logical delim_found, split, ran_function_pending
-logical err_flag, err
+logical err_flag, err, wild
 
 ! Don't destroy the input expression
 
@@ -1657,7 +1660,7 @@ if (ios == 0) then
   return
 endif
  
-! The general idea is to rewrite the phrase on a stack in reverse polish.
+! General idea: Create a reverse polish stack that represents the expression.
 ! Reverse polish means that the operand goes last so that 2 * 3 is writen 
 ! on the stack as: [2, 3, *]
 
@@ -1675,18 +1678,18 @@ ran_function_pending = .false.
 
 ! parsing loop to build up the stack.
 
-  parsing_loop: do
+parsing_loop: do
 
 ! get a word
 
   call word_read (phrase, '+-*/()^,:}[ ', word, ix_word, delim, &
                     delim_found, phrase)
 
-  if (delim == '*' .and. word(1:1) == '*') then
-    call out_io (s_warn$, r_name, 'EXPONENTIATION SYMBOL IS "^" AS OPPOSED TO "**" for!')
-    err_flag = .true.
-    return
-  endif
+!  if (delim == '*' .and. word(1:1) == '*') then
+!    call out_io (s_warn$, r_name, 'EXPONENTIATION SYMBOL IS "^" AS OPPOSED TO "**"')
+!    err_flag = .true.
+!    return
+!  endif
 
   if (ran_function_pending .and. (ix_word /= 0 .or. delim /= ')')) then
         call out_io (s_warn$, r_name, &
@@ -1708,7 +1711,7 @@ ran_function_pending = .false.
   elseif (word(ix_word:ix_word) /= 'E' .and. word(ix_word:ix_word) /= 'e' ) then
     split = .false.
   endif
-  if (delim(1:1) /= '-' .and. delim(1:1) /= '+') split = .false.
+  if (delim /= '-' .and. delim /= '+') split = .false.
   do i = 1, ix_word-1
     if (index('.0123456789', word(i:i)) == 0) split = .false.
   enddo
@@ -1743,7 +1746,35 @@ ran_function_pending = .false.
     endif
   endif
 
-  call str_upcase (word2, word)
+! If delim = "*" then see if this is being used as a wildcard
+
+  if (delim == '*') then
+    ixb = index(phrase, '|')
+    if (ixb /= 0) then
+      wild = .true.
+      if (index(phrase(1:ixb), '+') /= 0) wild = .false.
+      if (index(phrase(1:ixb), '-') /= 0) wild = .false.
+      if (index(phrase(1:ixb), '/') /= 0) wild = .false.
+      if (index(phrase(1:ixb), '^') /= 0) wild = .false.
+      if (index(phrase(1:ixb), '(') /= 0) wild = .false.
+      ix = index(phrase(1:ixb), '*')
+      if (ix /= 0) then
+        if (ix == 1) then
+          wild = .false.
+        elseif (phrase(ix-1:ix-1) /= '.' .and. phrase(ix-1:ix-1) /= '@') then
+          wild = .false.
+        endif
+      endif
+      if (wild) then
+        word = word(:ix_word) // '*' // phrase(1:ixb)
+        phrase = phrase(ixb+1:)
+        call word_read (phrase, '+-*/()^,:}', word2, ix_word2, delim, &
+                                                  delim_found, phrase)
+        word = trim(word) // trim(word2)       
+        ix_word = len_trim(word)
+      endif
+    endif
+  endif
 
 !---------------------------
 ! Now see what we got...
@@ -1754,6 +1785,7 @@ ran_function_pending = .false.
 
     ran_function_pending = .false.
     if (ix_word /= 0) then
+      call str_upcase (word2, word)
       select case (word2)
       case ('SIN') 
         call pushit (op_, i_op, sin$)
@@ -2122,9 +2154,11 @@ if (is_real(str)) then
   endif
 
 else
-  call tao_find_data (err_flag, str, r_array = r_array, print_err = .false.)
-  if (.not. allocated(r_array)) &
-        call tao_find_var (err_flag, str, r_array = r_array, print_err = .false.)
+  if (allocated(r_array)) deallocate(r_array)
+  if (wild_type == 'DATA' .or. wild_type == 'BOTH') &
+               call tao_find_data (err_flag, str, r_array = r_array, print_err = .false.)
+  if (.not. allocated(r_array) .and. (wild_type == 'VAR' .or. wild_type == 'BOTH')) &
+               call tao_find_var (err_flag, str, r_array = r_array, print_err = .false.)
 
   if (allocated(r_array)) then
     n = size(r_array)

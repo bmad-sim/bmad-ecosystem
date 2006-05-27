@@ -323,7 +323,7 @@ case ('data')
       d_ptr => d_array(i)%d
       if (.not. d_ptr%exists) cycle
       if (size(lines) > nl + 50) call re_allocate (lines, len(lines(1)), nl+100)
-      nl=nl+1; write(lines(nl), '(i5, 2x, a16, 3es14.4, 2l6)') d_ptr%ix_data, &
+      nl=nl+1; write(lines(nl), '(i5, 2x, a16, 3es14.4, 2l6)') d_ptr%ix_d1, &
                      d_ptr%name, d_ptr%meas_value, d_ptr%model_value, &
                      d_ptr%design_value, d_ptr%useit_opt, d_ptr%useit_plot
     enddo
