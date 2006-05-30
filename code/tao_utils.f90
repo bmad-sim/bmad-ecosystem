@@ -740,7 +740,7 @@ type (tao_logical_array_struct), allocatable, optional    :: l_array(:)
 character(*) :: data_name
 character(*), optional :: component
 character(20) :: r_name = 'tao_find_data'
-character(60) dat_name, component_name
+character(80) dat_name, component_name
 character(16), parameter :: real_components(8) = &
           (/ 'model ', 'base  ', 'design', 'meas  ', 'ref   ', &
              'old   ', 'fit   ', 'weight' /)
@@ -851,7 +851,7 @@ subroutine find_this_d2 (uu, name, this_err)
 type (tao_universe_struct) uu
 integer i, ix
 character(*) name
-character(40) d1_name, d2_name
+character(80) d1_name, d2_name
 logical this_err
 
 ! Everything before a period is the d2 name.
@@ -889,7 +889,7 @@ subroutine find_this_d1 (d2, name, this_err)
 type (tao_d2_data_struct) :: d2
 integer i, ix
 character(*) name
-character(40) d1_name, d_name
+character(80) d1_name, d_name
 logical this_err
 
 ! Everything before a '[' is the d1 name.
@@ -942,7 +942,7 @@ type (tao_logical_array_struct), allocatable, save :: la(:)
 integer i, j, nd, nl, i1, i2, num
 
 character(*) name
-character(40) d1_name, d_name
+character(80) d1_name, d_name
 
 logical this_err
 logical, allocatable, save :: list(:)
@@ -1162,7 +1162,7 @@ character(16), parameter :: logic_components(5) = &
 character(*) :: var_name
 character(*), optional :: component
 character(20) :: r_name = 'tao_find_var'
-character(40) v1_name, v_name, component_name
+character(80) v1_name, v_name, component_name
 
 logical, optional :: print_err, all_elements, blank_is_null
 logical err, component_here, this_err, print_error
@@ -1271,7 +1271,7 @@ type (tao_logical_array_struct), allocatable, save :: la(:)
 integer i, j, nd, nl, i1, i2, num
 
 character(*) name
-character(40) v1_name, v_name
+character(80) v1_name, v_name
 
 logical this_err
 logical, allocatable, save :: list(:)
