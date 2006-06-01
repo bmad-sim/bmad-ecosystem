@@ -247,10 +247,10 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
             fac = sqrt(-2 * ele2%value(k1$))
             do k = 0, n_step
               z_here = k * del_z
-              c = fac * cos (kz * z_here)
+              c = fac * cos (kz * z_here) 
               s = fac * sin (kz * z_here)
               cache%ele(j)%pt(k)%orb%vec = &
-                (/ c / kz**2, -s / kz, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp /)
+                (/ (c - fac) / kz**2, -s / kz, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp /)
               call mat_make_unit(cache%ele(j)%pt(k)%mat6)
               cache%ele(j)%pt(k)%mat6(1,6) = -cache%ele(j)%pt(k)%orb%vec(1)
               cache%ele(j)%pt(k)%mat6(2,6) = -cache%ele(j)%pt(k)%orb%vec(2)
