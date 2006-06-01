@@ -507,7 +507,11 @@ subroutine track1_bmad (start, ele, param, end)
 
     call offset_particle (ele, param, end, set$)
 
-    k_z = ele%value(kz$)
+    if (ele%value(l_pole$) == 0) then
+      k_z = 0
+    else
+      k_z = pi / ele%value(l_pole$)
+    endif
     k1 = -0.5 * (c_light * ele%value(b_max$) / &
                     (ele%value(p0c$) * rel_pc))**2
 

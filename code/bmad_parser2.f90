@@ -463,8 +463,8 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
     select case (ele%key)
     case (wiggler$)
       if (ele%sub_key == periodic_type$) then
-        if (ele%value(kz$) == 0 .and. ele%value(l$) /= 0) then
-          ele%value(kz$) = pi * ele%value(n_pole$) / ele%value(l$)
+        if (ele%value(l_pole$) == 0 .and. ele%value(n_pole$) /= 0) then
+          ele%value(l_pole$) = ele%value(l$) / ele%value(n_pole$) 
         endif
       endif
     end select

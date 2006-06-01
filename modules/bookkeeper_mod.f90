@@ -1118,7 +1118,7 @@ end subroutine
 ! WIGGLER:    
 !     k1$  = -0.5 * (c_light * b_max$ / p0c$)**2
 !     rho$ = p0c$ / (c_light * b_max$)
-!     n_pole$ = kz$ * L$ / pi
+!     n_pole$ = L$ / l_pole$
 !
 ! Modules needed:
 !   use bmad
@@ -1319,7 +1319,11 @@ subroutine attribute_bookkeeper (ele, param)
       ele%value(rho$) = ele%value(p0c$) / (c_light * ele%value(b_max$))
     endif
 
-    ele%value(n_pole$) = ele%value(kz$) * ele%value(l$) / pi
+    if (ele%value(l_pole$) == 0) then
+      ele%value(n_pole$) = 0
+    else
+      ele%value(n_pole$) = ele%value(l$) / ele%value(l_pole$)
+    endif
 
   end select
 

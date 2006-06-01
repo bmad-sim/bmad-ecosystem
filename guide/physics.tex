@@ -515,24 +515,35 @@ Maxwell's equations are satisfied. Since the field is given by
 analytic equations, Lie algebraic techniques can be use to construct
 Taylor maps to arbitrary order.
 
-``Periodic type'' wigglers are defined by specifying the maximum field
-on--axis (\vn{b_max}) and the number of poles (\vn{n_pole}). This type
-of wiggler is considered to have infinitely wide poles so with
+``Periodic type'' wigglers use a simplified model where the magnetic
+field components are
+\begin{alignat}{1}
+  B_y &= \hphantom{-} B_{\max} \, \cosh(k_z \, y) \, \cos(k_z \, z) \CRNO
+  B_z &= -B_{\max} \, \sinh(k_z \, y) \, \sin(k_z \, z) 
+\end{alignat}
+where $B_{\max}$ is the maximum field on the centerline and $k$ is
+given in terms of the pole length (\vn{l_pole}) by
+\Begineq
+  k_z = \frac{\pi}{l_{\mbox{pole}}}
+\Endeq
+This type of wiggler has infinitely wide poles. With
 \vn{bmad_standard} tracking and transfer matrix calculations the
-horizontal motion looks like a drift. The vertical motion is modeled
-as a combination focusing quadrupole and focusing octupole
+vertical focusing is assumed small so averaged over a period the
+horizontal motion looks like a drift and the vertical motion is
+modeled as a combination focusing quadrupole and focusing octupole
 giving a kick\cite{b:corbett}
 \Begineq
   \frac{dp_y}{ds} = k_1 \left( y + \frac{2}{3} \, k_z^2 \, y^3 \right)
 \Endeq
 where
 \begin{alignat}{1}
-  k_1 &= \frac{-1}{2} \, \left( \frac{c \, b_{max}}{P_0 \, (1 + p_z)} \right)^2 \CRNO
-  k_z &= \frac{2 \, \pi}{\lambda} = \frac{\pi \, n_{pole}}{l}
-   \nonumber
+  k_1 &= \frac{-1}{2} \, \left( \frac{c \, B_{\max}}{P_0 \, (1 + p_z)} \right)^2 
 \end{alignat}
-with $k_1$ being the linear focusing constant, $\lambda$ the period,
-and $l$ the wiggler length.
+with $k_1$ being the linear focusing constant. For radiation
+calculations the true horizontal trajectory with $y = 0$ is needed
+\Begineq
+  x = \frac{\sqrt{2 \, |k_1|}}{k_z^2} \, \cos (k_z \, z)
+\Endeq
 
 %-----------------------------------------------------------------
 \section{Synchrotron Radiation Damping and Excitation}
@@ -589,7 +600,7 @@ the changes in $p_x$ and $p_y$
 \end{align}
 
 The above formalism does not take into account the fact that radiation is 
-emitted with a 1/gamma angular distribution. This means that the calculated
+emitted with a $1/\gamma$ angular distribution. This means that the calculated
 vertical emittance for a lattice with
 bends only in the horizontal plane and without any coupling elements such as
 skew quadrupoles will be zero. Typically, in practice, the vertical emittance

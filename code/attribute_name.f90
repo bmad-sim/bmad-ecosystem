@@ -372,7 +372,7 @@ function attribute_name (ele, ix_att) result (at_name)
 
     attrib_array(wiggler$, l$)              = 'L'
     attrib_array(wiggler$, k1$)             = 'K1'
-    attrib_array(wiggler$, kz$)             = 'KZ'
+    attrib_array(wiggler$, l_pole$)         = 'L_POLE'
     attrib_array(wiggler$, b_max$)          = 'B_MAX'
     attrib_array(wiggler$, rho$)            = 'RHO'
     attrib_array(wiggler$, n_pole$)         = 'N_POLE'

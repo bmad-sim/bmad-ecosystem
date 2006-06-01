@@ -102,9 +102,12 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
   real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
   real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f
   real(rp) v(4,4), v_inv(4,4), f0, f1, del_z, z_here, mc2, gamma, gamma4, gamma6
+  real(rp) kz, fac, c, s
 
   integer, optional :: ix_cache
   integer i, j, k, ir, key, n_step
+
+  character(20) :: r_name = 'radiation_integrals'
 
   logical do_alloc
   logical, parameter :: t = .true., f = .false.
@@ -208,24 +211,56 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
         ele2 = ring%ele_(i)
         if (.not. ele2%map_with_offsets) call zero_ele_offsets (ele2)
 
-        call compute_even_steps (ele2%value(ds_step$), ele2%value(l$), &
+        if (ele2%key == wiggler$ .and. ele2%sub_key == periodic_type$) then
+          n_step = 10
+          del_z = 2 * ele2%value(l_pole$) / n_step
+        else
+          call compute_even_steps (ele2%value(ds_step$), ele2%value(l$), &
                                       bmad_com%default_ds_step, del_z, n_step)
+        endif
+
         cache%ele(j)%del_z = del_z
         allocate (cache%ele(j)%pt(0:n_step))
-        if (ele2%key == wiggler$ .and. ele2%sub_key == map_type$) then
-          track%save_track = .true.
-          call symp_lie_bmad (ele2, ring%param, orbit(i-1), end, &
-                                          calc_mat6 = .true., track = track)
-          do k = 0, track%n_pt
-            z_here = track%pt(k)%s 
-            end = track%pt(k)%orb
-            call calc_wiggler_g_params (ele2, z_here, end, cache%ele(j)%pt(k))
-            cache%ele(j)%pt(k)%orb = end
-            cache%ele(j)%pt(k)%mat6 = track%pt(k)%mat6
-            cache%ele(j)%pt(k)%vec0 = track%pt(k)%vec0
-          enddo
 
-        else
+        if (ele2%key == wiggler$) then
+          if (ele2%sub_key == map_type$) then
+            track%save_track = .true.
+            call symp_lie_bmad (ele2, ring%param, orbit(i-1), end, &
+                                          calc_mat6 = .true., track = track)
+            do k = 0, track%n_pt
+              z_here = track%pt(k)%s 
+              end = track%pt(k)%orb
+              call calc_wiggler_g_params (ele2, z_here, end, cache%ele(j)%pt(k))
+              cache%ele(j)%pt(k)%orb  = end
+              cache%ele(j)%pt(k)%mat6 = track%pt(k)%mat6
+              cache%ele(j)%pt(k)%vec0 = track%pt(k)%vec0
+            enddo
+
+          else  ! periodic_type$
+            if (ele2%value(l_pole$) == 0) then
+              call out_io (s_error$, r_name, &
+                              'ERROR: PERIODIC_TYPE WIGGLER: ' // ele2%name, &
+                              '       HAS L_POLE = 0')
+              cycle
+            endif
+            kz = pi / ele2%value(l_pole$)
+            fac = sqrt(-2 * ele2%value(k1$))
+            do k = 0, n_step
+              z_here = k * del_z
+              c = fac * cos (kz * z_here)
+              s = fac * sin (kz * z_here)
+              cache%ele(j)%pt(k)%orb%vec = &
+                (/ c / kz**2, -s / kz, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp /)
+              call mat_make_unit(cache%ele(j)%pt(k)%mat6)
+              cache%ele(j)%pt(k)%mat6(1,6) = -cache%ele(j)%pt(k)%orb%vec(1)
+              cache%ele(j)%pt(k)%mat6(2,6) = -cache%ele(j)%pt(k)%orb%vec(2)
+              cache%ele(j)%pt(k)%vec0 = cache%ele(j)%pt(k)%orb%vec
+              cache%ele(j)%pt(k)%g = abs(c)
+              cache%ele(j)%pt(k)%g2 = c**2
+            enddo
+          endif
+
+        else  ! non wiggler elements
           do k = 0, n_step
             z_here = k * cache%ele(j)%del_z
             call twiss_and_track_partial (ring%ele_(i-1), ele2, ring%param, &
@@ -305,8 +340,7 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
     if (key == wiggler$ .and. ele%sub_key == periodic_type$) then
       G_max = sqrt(2*abs(ele%value(k1$)))       ! 1/rho at max B
       g3_ave = 4 * G_max**3 / (3 * pi)
-
-      ric%i1_(ir) = 0
+      ric%i1_(ir) = - ele%value(k1$) * (ele%value(l_pole$) / pi)**2
       ric%i2_(ir) = ll * G_max**2 / 2
       ric%i3_(ir) = ll * g3_ave
       ric%i4a_(ir) = 0   ! Too complicated to calculate. Probably small
@@ -314,13 +348,10 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
 
       ric%pt%g_x0 = g3_ave**(1.0/3)
       ric%pt%g_y0 = 0
-      ric%pt%k1 = 0
-      ric%pt%s1 = 0
-
-! Integrate for periodic_type wigglers
+      ric%pt%k1   = 0
+      ric%pt%s1   = 0
 
       call qromb_rad_int (ele0, ele, (/ F, F, F, F, F, T, T /), ir)
-
       cycle
 
     endif
@@ -408,8 +439,6 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
           matmul(v, (/ ele%x%eta, ele%x%etap, 0.0_rp, 0.0_rp /))
     ric%eta_b1 = &
           matmul(v, (/ 0.0_rp, 0.0_rp, ele%y%eta, ele%y%etap /))
-
- ! radiation integrals calc for the map_type wiggler
 
     if (ric%use_cache) ric%cache_ele => cache%ele(cache%ix_ele(ir))
 

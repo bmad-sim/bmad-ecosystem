@@ -1448,7 +1448,8 @@ Example \vn{Taylor} element definition:
 A \vn{Wiggler} is basically a periodic array of alternating bends.
 There are two types of wigglers. Those that that are described using a
 magnetic field map (``map type'') and those that are described
-assuming a periodic field (``periodic type''). 
+assuming a periodic field (``periodic type''). See
+\sref{s:wiggler_phys} for more details.
 
 \index{Polarity}
 \index{Term (for a Wiggler)}
@@ -1474,8 +1475,9 @@ For the periodic type \vn{Wiggler}s the attributes are:
 \index{K1}\index{Rho}
 \begin{example}  
   b_max    = <Real>  ! Maximum magnetic field (in T) on the wiggler centerline. 
-  n_pole   = <Real>  ! The number of poles. The period is then L / (2 * N_POLE). 
   polarity = <Real>  ! Used to scale the field strength.
+  l_pole   = <Real>  ! Wiggler pole length. The period is then 2 * l_pole.
+  n_pole   = <Real>  ! The number of poles (L / L_POLE). A settable Dependent attribute (\sref{s:depend}).
   k1                 ! Vertical focusing strength. Dependent attribute (\sref{s:depend}).
   rho                ! Bending radius. Dependent attribute (\sref{s:depend}).
 \end{example}

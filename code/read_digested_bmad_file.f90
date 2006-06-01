@@ -303,10 +303,10 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
       endif
     endif
 
-    ! kz$ attribute did not exist before now.
-    if (v75 .or. v76 .or. v77 .or. v78) then
+    ! l_pole$ attribute did not exist before now.
+    if (v75 .or. v76 .or. v77 .or. v78 .or. v79) then
       if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$) then
-        if (ele%value(l$) /= 0) ele%value(kz$) = pi * ele%value(n_pole$) / ele%value(l$)
+        if (ele%value(n_pole$) /= 0) ele%value(l_pole$) = ele%value(l$) / ele%value(n_pole$)
       endif
     endif
 

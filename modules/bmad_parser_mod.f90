@@ -3475,8 +3475,8 @@ case (lcavity$)
 
 case (wiggler$)
   if (ele%sub_key == periodic_type$) then
-    if (ele%value(kz$) == 0 .and. ele%value(l$) /= 0) then
-      ele%value(kz$) = pi * ele%value(n_pole$) / ele%value(l$)
+    if (ele%value(l_pole$) == 0 .and. ele%value(n_pole$) /= 0) then
+      ele%value(l_pole$) = ele%value(l$) / ele%value(n_pole$) 
     endif
   endif
 
@@ -3525,7 +3525,7 @@ endif
 
 ! set ds_step if not already set.
 
-if (attribute_index(ele, 'DS_STEP') > 0) then
+if (attribute_index(ele, 'DS_STEP') > 0) then  ! If this is an attribute for this element...
   if (ele%num_steps > 0) then
     ele%value(ds_step$) = abs(ele%value(l$) / ele%num_steps)
   elseif (ele%value(ds_step$) == 0) then

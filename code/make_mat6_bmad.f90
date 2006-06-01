@@ -726,7 +726,11 @@ subroutine make_mat6_bmad (ele, param, c0, c1, end_in)
 ! octuple correction to k1
 
     y_ave = (c00%vec(3) + c11%vec(3)) / 2
-    k_z = ele%value(kz$)
+    if (ele%value(l_pole$) == 0) then
+      k_z = 0
+    else
+      k_z = pi / ele%value(l_pole$)
+    endif
     k1 = k1 * (1 + 2 * (k_z * y_ave)**2)
 
 !

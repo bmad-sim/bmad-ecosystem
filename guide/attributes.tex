@@ -35,7 +35,7 @@ lattice is read in.
  \vn{Lcavity}                 & \vn{e_loss}, \vn{delta_e}    & \vn{gradient}, \vn{l}                           \HH
  \vn{Rbend}, \vn{Sbend} & \vn{rho}, \vn{angle}, \vn{l_chord} & \vn{g}, \vn{l}                                  \HH
  \vn{Wiggler} (periodic type) & \vn{k1}, \vn{rho}            & \vn{b_max}, \vn{beam_energy}                    \HH
-                              & \vn{num_steps}               & \vn{ds_step}                                    \HH
+ All elements                 & \vn{num_steps}               & \vn{ds_step}                                    \HH
 \end{tabular}
 }
 \caption[Table of dependent variables.]{Table of dependent variables and 
@@ -61,12 +61,13 @@ that it will never be set by the bookkeeping routine.
 \begin{table}[h]
 \centering {
 \begin{tabular}{|l|l|l|} \hline
-{\em Element}            & {\em Dependent Variable Set}  &  {\em Independent Variables Not Set} \HH
-  \vn{Lcavity}           & \vn{delta_e}       & \vn{gradient}  \HH
-  \vn{Rbend}, \vn{Sbend} & \vn{rho}           & \vn{g}         \HH
-  \vn{Rbend}, \vn{Sbend} & \vn{angle}         & \vn{g}         \HH
-  \vn{Rbend}, \vn{Sbend} & \vn{k2}            & \vn{b2}        \HH
-  \vn{RFcavity}          & \vn{rf_frequency}  & \vn{harmon}    \HH
+{\em Element}                  & {\em Dependent Variable Set}  &  {\em Independent Variables Not Set} \HH
+  \vn{Lcavity}                 & \vn{delta_e}       & \vn{gradient}  \HH
+  \vn{Rbend}, \vn{Sbend}       & \vn{rho}           & \vn{g}         \HH
+  \vn{Rbend}, \vn{Sbend}       & \vn{angle}         & \vn{g}         \HH
+  \vn{Rbend}, \vn{Sbend}       & \vn{k2}            & \vn{b2}        \HH
+  \vn{RFcavity}                & \vn{rf_frequency}  & \vn{harmon}    \HH
+  \vn{Wiggler} (periodic type) & \vn{n_pole}        & \vn{l_pole}    \HH
 \end{tabular}
 }
 \caption {Dependent variables that can be set in a primary lattice file.}
