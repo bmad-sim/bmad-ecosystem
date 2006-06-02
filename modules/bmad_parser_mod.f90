@@ -2900,7 +2900,7 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
 
   real(rp) rcount
 
-  character(20) word
+  character(40) word
   character(1) delim, c_delim
   character(40) str, name
 
