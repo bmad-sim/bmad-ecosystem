@@ -7,7 +7,7 @@
 !   use bmad
 !
 ! Input:
-!   ele_name -- Character(16): Name of the element to find.
+!   ele_name -- Character(40): Name of the element to find.
 !   ring     -- Ring_struct: Lattice to search through.
 !
 ! Output:

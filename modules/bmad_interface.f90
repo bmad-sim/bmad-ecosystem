@@ -55,7 +55,7 @@ interface
   function attribute_name(ele, index)
     use bmad_struct, only: ele_struct
     implicit none
-    character(16) attribute_name
+    character(40) attribute_name
     type (ele_struct) ele
     integer index
   end function

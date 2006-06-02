@@ -61,7 +61,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
   integer, allocatable :: ix_ring(:)
   integer, allocatable :: seq_indexx(:), in_indexx(:)
-  character(16), allocatable ::  in_name(:), seq_name(:)
+  character(40), allocatable ::  in_name(:), seq_name(:)
 
   integer ix_word, i_use, i, j, k, n, ix, i_lev, ixm(100)
   integer n_ele_use, digested_version, key, n0_multi
@@ -72,7 +72,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   character(*), optional :: use_line
 
   character(1) delim
-  character(16) word_2, name, multipass_line
+  character(40) word_2, name, multipass_line
   character(16) :: r_name = 'bmad_parser'
   character(40) this_name, word_1
   character(200) full_lat_file_name, digested_file

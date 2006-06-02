@@ -65,7 +65,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
   character(*) lat_file
   character(*), optional :: digested_file_name
   character(1) delim 
-  character(16) word_2, name
+  character(40) word_2, name
   character(16) :: r_name = 'bmad_parser2'
   character(32) word_1
   character(40) this_name

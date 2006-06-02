@@ -21,8 +21,8 @@ use bookkeeper_mod
 ! since sequences can be nested, can itself be a line or a list.
 
 type seq_ele_struct
-  character(16) name             ! name of element, subline, or sublist
-  character(16), pointer :: actual_arg(:) => null()
+  character(40) name             ! name of element, subline, or sublist
+  character(40), pointer :: actual_arg(:) => null()
   integer type                   ! LINE$, REPLACEMENT_LINE$, LIST$, ELEMENT$
   integer ix_ele                 ! if an element: pointer to ELE_ array
                                  ! if a list: pointer to SEQ_ array
@@ -32,10 +32,10 @@ type seq_ele_struct
 end type
 
 type seq_struct
-  character(16) name                 ! name of sequence
+  character(40) name                 ! name of sequence
   type (seq_ele_struct), pointer :: ele(:) => null()
-  character(16), pointer :: dummy_arg(:) => null()
-  character(16), pointer :: corresponding_actual_arg(:) => null()
+  character(40), pointer :: dummy_arg(:) => null()
+  character(40), pointer :: corresponding_actual_arg(:) => null()
   integer type                       ! LINE$, REPLACEMENT_LINE$ or LIST$
   integer ix                         ! current index of element in %ELE
   integer indexx                     ! alphabetical order sorted index
@@ -45,8 +45,8 @@ type seq_struct
 end type
 
 type used_seq_struct
-  character(16) :: name = ' '           ! name of sequence
-  character(16) :: multipass_line = ' ' ! name of root multipass line
+  character(40) :: name = ' '           ! name of sequence
+  character(40) :: multipass_line = ' ' ! name of root multipass line
   integer :: ix_multipass = 0           ! index used to sort elements
 end type    
 
@@ -94,9 +94,9 @@ type eval_stack_struct
 end type
 
 type parser_ele_struct
-  character(16) ref_name
-  character(16), pointer :: name_(:) => null()
-  character(16), pointer :: attrib_name_(:) => null()
+  character(40) ref_name
+  character(40), pointer :: name_(:) => null()
+  character(40), pointer :: attrib_name_(:) => null()
   real(rp), pointer :: coef_(:) => null()
   real(rp) s
   integer ix_count
@@ -132,7 +132,7 @@ type bp_com_struct
   type (stack_file_struct) current_file
   type (stack_file_struct) calling_file
   type (ring_struct), pointer :: old_ring
-  character(16), pointer :: var_name(:) => null()    ! variable name
+  character(40), pointer :: var_name(:) => null()    ! variable name
   real(rp), pointer :: var_value(:) => null()        ! variable value
   integer, pointer :: var_indexx(:) => null()        ! variable sort index
   integer num_lat_files               ! Number of files opened
@@ -141,7 +141,7 @@ type bp_com_struct
   character(n_parse_line) parse_line
   character(n_parse_line) input_line1          ! For debug messages
   character(n_parse_line) input_line2          ! For debug messages
-  character(16) parser_name
+  character(40) parser_name
   character(72) debug_line
   character(200) :: dirs(3) = (/ &
                       './           ', './           ', '$BMAD_LAYOUT:' /)
@@ -156,7 +156,7 @@ end type
 type (bp_com_struct), save :: bp_com
 type (ele_struct), target, save :: beam_ele, param_ele
 
-character(16) :: blank = ' '
+character(40) :: blank = ' '
 
 contains
 
@@ -192,9 +192,10 @@ subroutine get_attribute (how, ele, ring, pring, &
   integer i, ic, ix_word, how, ix_word1, ix_word2, ios, ix, i_out
   integer expn(6), ix_attrib
 
-  character(16) :: word, tilt_word = 'TILT', str_ix
-  character delim*1, delim1*1, delim2*1, str*80, err_str*40, line*80
-  character(16) :: super_names(12) = (/ &
+  character(40) :: word, tilt_word = 'TILT', str_ix
+  character(1) delim, delim1, delim2
+  character(80) str, err_str, line
+  character(40) :: super_names(12) = (/ &
                 'SUPERIMPOSE  ', 'OFFSET       ', 'REFERENCE    ',  &
                 'ELE_BEGINNING', 'ELE_CENTER   ', 'ELE_END      ',  &
                 'REF_BEGINNING', 'REF_CENTER   ', 'REF_END      ', &
@@ -1484,7 +1485,7 @@ subroutine word_to_value (word, ring, value)
   real(rp) value
   real(rp), pointer :: ptr
   character(*) word
-  character(16) name
+  character(40) name
   logical err_flag
 
 ! see if this is numeric
@@ -1619,7 +1620,7 @@ subroutine type_get (ele, ix_type, delim, delim_found)
   type (ele_struct)  ele
 
   integer ix, ix_word, ix_type
-  character(16)  word
+  character(40)  word
   character(1)   delim, str_end
   character(200) type_name
   logical delim_found
@@ -1985,7 +1986,7 @@ subroutine get_overlay_group_names (ele, ring, pring, delim, delim_found)
   integer ic, ix_word, ixs, j, k
                              
   character delim*1, word_in*40, word*40
-  character(16) name_(200), attrib_name_(200)
+  character(40) name_(200), attrib_name_(200)
 
   logical delim_found, err_flag, file_end
                       
@@ -2143,13 +2144,13 @@ subroutine verify_valid_name (name, ix_name)
     endif
   endif
 
-! check for more than 16 characters
+! check for more than 40 characters
 
-  if (ix1 == 0 .and. ix_name > 16)  &
-            call warning ('NAME HAS > 16 CHARACTERS: ' // name)
+  if (ix1 == 0 .and. ix_name > 40)  &
+            call warning ('NAME HAS > 40 CHARACTERS: ' // name)
 
   if (ix1 > 17 .or. ix2 - ix1 > 17)  &
-            call warning ('NAME HAS > 16 CHARACTERS: ' // name)
+            call warning ('NAME HAS > 40 CHARACTERS: ' // name)
 
 end subroutine
 
@@ -2435,7 +2436,7 @@ subroutine reallocate_bp_com_var()
 
   implicit none
 
-  character(16) :: var_name_temp(size(bp_com%var_name))
+  character(40) :: var_name_temp(size(bp_com%var_name))
   real(rp) :: var_value_temp(size(bp_com%var_value))
   integer :: var_indexx_temp(size(bp_com%var_indexx))
 
@@ -2481,8 +2482,8 @@ subroutine add_all_superimpose (ring, ele_in, pele)
   integer n_inserted, n_con
   integer, allocatable :: ixs(:)
 
-  character(16) matched_name(200), num, name
-  character(16), allocatable :: multi_name(:)
+  character(40) matched_name(200), num, name
+  character(40), allocatable :: multi_name(:)
 
   logical have_inserted
 
@@ -2745,8 +2746,8 @@ end subroutine
 ! This subroutine is not intended for general use.
 !
 ! Input:
-!   name         -- Character(16): Name to match to.
-!   names(:)     -- Character(16): Array of names.
+!   name         -- Character(40): Name to match to.
+!   names(:)     -- Character(40): Array of names.
 !   an_indexx(:) -- Integer: Sorted index for names(:) array.
 !                     names(an_indexx(i)) is in alphabetical order.
 !   n_max        -- Integer: Use only names(1:n_max) part of array.
@@ -2774,8 +2775,8 @@ subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match)
   integer, optional :: ix2_match
   integer an_indexx(:)
 
-  character(16) name, names(:)
-  character(16) this_name
+  character(40) name, names(:)
+  character(40) this_name
 
 ! simple case
 
@@ -2846,7 +2847,7 @@ subroutine get_sequence_args (seq_name, arg_list, delim, err_flag)
   character(*), pointer :: arg_list(:)
   character(*) seq_name
   character(1) delim
-  character(16) name(20), word
+  character(40) name(20), word
 
   logical delim_found, err_flag
 
@@ -2900,8 +2901,9 @@ recursive subroutine seq_expand1 (sequence_, iseq_tot, ring, top_level)
   real(rp) rcount
 
   character(20) word
-  character delim*1, str*16, name*16, c_delim*1
-              
+  character(1) delim, c_delim
+  character(40) str, name
+
   logical delim_found, replacement_line_here, c_delim_found
   logical err_flag, top_level
 
@@ -3143,8 +3145,8 @@ subroutine parser_add_lord (in_ring, n2, pring, ring)
   integer ix_lord, ix_slave(1000), k_slave, k_slave_original
   integer, allocatable, save :: r_indexx(:)
 
-  character(16), allocatable :: name_(:)
-  character(16) name, name1, slave_name, attrib_name
+  character(40), allocatable :: name_(:)
+  character(40) name, name1, slave_name, attrib_name
 
 ! setup
 ! in_ring has the lords that are to be added to ring.

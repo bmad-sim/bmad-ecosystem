@@ -69,9 +69,9 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
   real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
   real(rp) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 
-  character(80), pointer :: lines(:)
-  character(80), pointer :: li(:), li2(:)
-  character(16) a_name, name
+  character(100), pointer :: lines(:)
+  character(100), pointer :: li(:), li2(:)
+  character(40) a_name, name
   character(12) val_str
   character(9) angle
   character(2) str_i
@@ -318,7 +318,7 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
               a_name = attribute_name(lattice%ele_(j), iv)
             endif
           end select
-          nl=nl+1; write (li(nl), '(5x, a, i10, 2x, a16, 1p, e11.3, 1p, e12.3)') &
+          nl=nl+1; write (li(nl), '(5x, a, i10, 2x, a20, es11.3, es12.3)') &
                                 lattice%ele_(j)%name, j, a_name, coef
         enddo
       endif
@@ -347,7 +347,7 @@ subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
               write (val_str, '(1p, e12.3)') lattice%ele_(j)%value(ix)
             endif
           endif
-          nl=nl+1; write (li(nl), '(5x, a, i10, 2x, a16, 1p, e11.3, a12)') &
+          nl=nl+1; write (li(nl), '(5x, a, i10, 2x, a20, es11.3, a12)') &
                              lattice%ele_(j)%name, j, a_name, coef, val_str
         enddo
       endif

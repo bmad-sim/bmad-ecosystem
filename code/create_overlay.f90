@@ -10,7 +10,7 @@
 ! Input:
 !   ring        -- Ring_struct: Ring to modify.
 !   ix_overlay  -- Integer: Index of overlay element.
-!   attrib_name -- Character(16): Name of attribute in the overlay that is
+!   attrib_name -- Character(40): Name of attribute in the overlay that is
 !                     to be varied.
 !   contl(:)      -- Control_struct: control info. 1 element for each slave.
 !     %ix_slave   -- Index of element to control
@@ -57,7 +57,7 @@ subroutine create_overlay (ring, ix_overlay, attrib_name, contl)
   integer ix_slave, n_slave, ix_attrib, slave_type
 
   character(*) attrib_name
-  character(16) at_name
+  character(40) at_name
 
 ! Mark element as an overlay lord
 

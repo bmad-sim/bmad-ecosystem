@@ -34,8 +34,8 @@ function attribute_name (ele, ix_att) result (at_name)
 
   integer i, key, ix_att
 
-  character(16) attrib_array(n_key, n_attrib_special_maxx)
-  character(16) at_name
+  character(40) attrib_array(n_key, n_attrib_special_maxx)
+  character(40) at_name
 
   logical, save :: init_needed = .true.
 

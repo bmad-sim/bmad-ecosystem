@@ -35,7 +35,7 @@ subroutine insert_LRBBI (ring, oppos_ring, cross_positions, ix_LRBBI)
   integer, dimension(:), intent(inout) :: ix_LRBBI
 
   real(rp) :: s_split
-  character(16) :: call_it
+  character(40) :: call_it
   integer :: ix_ele, ix_split, ix_split_oppos, ierr, i
   logical :: split_done
 

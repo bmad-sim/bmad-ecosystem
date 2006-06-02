@@ -19,7 +19,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 80
+integer, parameter :: bmad_inc_version$ = 81
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -133,10 +133,10 @@ endtype
 !     Modify ele_equal_ele
 
 type ele_struct
-  character(16) name              ! name of element.
-  character(16) type              ! type name.
-  character(16) alias             ! Another name.
-  character(16) attribute_name    ! Used by overlays.
+  character(40) name              ! name of element.
+  character(40) type              ! type name.
+  character(40) alias             ! Another name.
+  character(40) attribute_name    ! Used by overlays.
   type (twiss_struct)  x,y,z       ! Twiss parameters at end of element
   type (floor_position_struct) floor  ! Global floor position at end of ele.
   real(rp) value(n_attrib_maxx)    ! attribute values.
@@ -236,7 +236,7 @@ end type
 !     ring_equal_ring
 
 type ring_struct
-  character(16) name               ! Name of ring given by USE statement
+  character(40) name               ! Name of ring given by USE statement
   character(40) lattice            ! Lattice
   character(200) input_file_name   ! Name of the lattice input file
   character(80) title              ! General title
@@ -404,8 +404,8 @@ integer, parameter :: b20$ = 130, t20$ = 130
 
 integer, parameter :: n_attrib_special_maxx = 130
 
-character(16), parameter :: null_name = 'NULL' 
-character(16), parameter :: blank_name = ' '
+character(40), parameter :: null_name = 'NULL' 
+character(40), parameter :: blank_name = ' '
 
 ! electron/positron
 

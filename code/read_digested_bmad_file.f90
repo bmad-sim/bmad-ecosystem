@@ -46,28 +46,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   character(200), allocatable :: file_names(:)
   character(25) :: r_name = 'read_digested_bmad_file'
 
-  logical found_it, v75, v76, v77, v78, v79, v_old, v_now
-
-  type old_param_struct
-    real(rp) garbage2           ! Saved for future use.
-    real(rp) n_part             ! Particles/bunch (for BeamBeam elements).
-    real(rp) garbage            ! Saved for future use.
-    real(rp) total_length       ! total_length of ring
-    real(rp) growth_rate        ! growth rate/turn if not stable
-    real(rp) t1_with_RF(6,6)    ! Full 1-turn matrix with RF on.
-    real(rp) t1_no_RF(6,6)      ! Full 1-turn matrix with RF off.
-    integer particle            ! positron$, electron$, etc.
-    integer ix_lost             ! Index of element particle was lost at.
-    integer end_lost_at         ! entrance_end$ or exit_end$
-    integer lattice_type        ! linear_lattice$, etc...
-    integer ixx                 ! Integer for general use
-    integer ran_seed            ! Random number seed used.
-    logical stable              ! is closed ring stable?
-    logical aperture_limit_on   ! use apertures in tracking?
-    logical lost                ! for use in tracking
-  end type
-
-  type (old_param_struct) old_param
+  logical found_it, v76, v77, v78, v79, v80, v_old, v_now
 
 ! init all elements in ring
 
@@ -88,12 +67,12 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
   read (d_unit, err = 9100) n_files, version
 
-  v75 = (version == 75)
   v76 = (version == 76)
   v77 = (version == 77)
   v78 = (version == 78)
   v79 = (version == 79)
-  v_old = v75 .or. v76 .or. v77 .or. v78 .or. v79
+  v80 = (version == 80)
+  v_old = v76 .or. v77 .or. v78 .or. v79 .or. v80
   v_now = (version == bmad_inc_version$)  ! v80
 
   if (version < bmad_inc_version$) then
@@ -170,33 +149,11 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 ! we read (and write) the ring in pieces since it is
 ! too big to write in one piece
 
-  if (v75) then
-    read (d_unit, err = 9100)  &   
-          ring%name, ring%lattice, ring%input_file_name, ring%title, &
-          ring%x, ring%y, ring%z, old_param, ring%version, ring%n_ele_use, &
-          ring%n_ele_ring, ring%n_ele_max, &
-          ring%n_control_max, ring%n_ic_max, ring%input_taylor_order
-    ring%param%n_part            = old_param%n_part
-    ring%param%total_length      = old_param%total_length
-    ring%param%growth_rate       = old_param%growth_rate
-    ring%param%t1_with_RF(6,6)   = old_param%t1_with_RF(6,6)
-    ring%param%t1_no_RF(6,6)     = old_param%t1_no_RF(6,6)
-    ring%param%particle          = old_param%particle
-    ring%param%ix_lost           = old_param%ix_lost
-    ring%param%end_lost_at       = old_param%end_lost_at
-    ring%param%lattice_type      = old_param%lattice_type
-    ring%param%ixx               = old_param%ixx
-    ring%param%stable            = old_param%stable
-    ring%param%aperture_limit_on = old_param%aperture_limit_on
-    ring%param%lost              = old_param%lost
-    
-  else
-    read (d_unit, err = 9100)  &   
+  read (d_unit, err = 9100)  &   
           ring%name, ring%lattice, ring%input_file_name, ring%title, &
           ring%x, ring%y, ring%z, ring%param, ring%version, ring%n_ele_use, &
           ring%n_ele_ring, ring%n_ele_max, &
           ring%n_control_max, ring%n_ic_max, ring%input_taylor_order
-  endif
 
   call allocate_ring_ele_(ring, ring%n_ele_max+100)
   allocate (ring%control_(ring%n_control_max+100))
@@ -207,28 +164,10 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
   do i = 0, ring%n_ele_max
 
     ele => ring%ele_(i)
-    if (v75) then
-      read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-                              dum1, ix_sr1, dum2, ix_lr, &
-            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
-            ele%y, ele%z, ele%value(1:41), ele%gen0, ele%vec0, ele%mat6, &
-            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-            ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
-            ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-            ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-            ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-            ele%num_steps, ele%integrator_order, ele%ptc_kind, &
-            ele%taylor_order, ele%symplectify, ele%mode_flip, &
-            ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-            ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
-            ele%on_an_i_beam
-      ix_sr2_long = 0
-      ix_sr2_trans = 0
-
-    elseif (v76) then
+    if (v76) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, &
-            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
+            ele%name(1:16), ele%type(1:16), ele%alias(1:16), ele%attribute_name(1:16), ele%x, &
             ele%y, ele%z, ele%value(1:41), ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
@@ -247,7 +186,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
     elseif (v77) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, &
-            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
+            ele%name(1:16), ele%type(1:16), ele%alias(1:16), ele%attribute_name(1:16), ele%x, &
             ele%y, ele%z, ele%value(1:49), ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
@@ -263,7 +202,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
     elseif (v78) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, &
-            ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
+            ele%name(1:16), ele%type(1:16), ele%alias(1:16), ele%attribute_name(1:16), ele%x, &
             ele%y, ele%z, ele%value(1:49), ele%gen0, ele%vec0, ele%mat6, &
             ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
             ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
@@ -276,7 +215,22 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
             ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
             ele%coupler_at, ele%on_an_i_beam
 
-    elseif (v79 .or. v_now) then
+    elseif (v79 .or. v80) then
+      read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+            ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, &
+            ele%name(1:16), ele%type(1:16), ele%alias(1:16), ele%attribute_name(1:16), ele%x, &
+            ele%y, ele%z, ele%value, ele%gen0, ele%vec0, ele%mat6, &
+            ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
+            ele%is_on, ele%sub_key, ele%control_type, ele%ix_value, &
+            ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+            ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+            ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
+            ele%num_steps, ele%integrator_order, ele%ptc_kind, &
+            ele%taylor_order, ele%symplectify, ele%mode_flip, &
+            ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
+            ele%logic, ele%internal_logic, ele%field_calc, ele%aperture_at, &
+            ele%coupler_at, ele%on_an_i_beam
+    elseif (v_now) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, &
             ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, &
@@ -296,7 +250,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 !
 
     ! In an sbend g$ got moved to make way for k2$
-    if (v75 .or. v76 .or. v77 .or. v78 .or. v79) then
+    if (v76 .or. v77 .or. v78 .or. v79) then
       if (ele%key == sbend$) then
         ele%value(7) = ele%value(5)
         ele%value(5) = 0
@@ -304,7 +258,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
     endif
 
     ! l_pole$ attribute did not exist before now.
-    if (v75 .or. v76 .or. v77 .or. v78 .or. v79) then
+    if (v76 .or. v77 .or. v78 .or. v79 .or. v80) then
       if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$) then
         if (ele%value(n_pole$) /= 0) ele%value(l_pole$) = ele%value(l$) / ele%value(n_pole$)
       endif
@@ -355,26 +309,13 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
       else
         call init_wake (ele%wake, ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr)
-        if (v75) then
-          if (ix_sr1 /= 0) then
-            allocate (ele%wake%sr1(0:ix_sr1-1))
-            read (d_unit, err = 9800) ele%wake%sr_file
-            read (d_unit, err = 9810) ele%wake%sr1
-          endif
-          if (ix_lr /= 0) then
-            allocate (ele%wake%lr(0:ix_lr-1))
-            read (d_unit, err = 9820) ele%wake%lr_file
-            read (d_unit, err = 9830) ele%wake%lr
-          endif
-        elseif (v76 .or. v77 .or. v78 .or. v79 .or. v_now) then
-          read (d_unit, err = 9800) ele%wake%sr_file
-          read (d_unit, err = 9810) ele%wake%sr1
-          read (d_unit, err = 9840) ele%wake%sr2_long
-          read (d_unit, err = 9850) ele%wake%sr2_trans
-          read (d_unit, err = 9820) ele%wake%lr_file
-          read (d_unit, err = 9830) ele%wake%lr
-          read (d_unit, err = 9860) ele%wake%z_sr2_max
-        endif
+        read (d_unit, err = 9800) ele%wake%sr_file
+        read (d_unit, err = 9810) ele%wake%sr1
+        read (d_unit, err = 9840) ele%wake%sr2_long
+        read (d_unit, err = 9850) ele%wake%sr2_trans
+        read (d_unit, err = 9820) ele%wake%lr_file
+        read (d_unit, err = 9830) ele%wake%lr
+        read (d_unit, err = 9860) ele%wake%z_sr2_max
       endif
     endif
 
