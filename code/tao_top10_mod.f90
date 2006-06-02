@@ -8,7 +8,7 @@ use tao_dmerit_mod
 ! structure for making lists of the biggest contributors to the merit function.
 
 type tao_top10_struct
-  character(32) name   ! name of contributor
+  character(40) name   ! name of contributor
   real(rp) value       ! contribution to the merit function
   integer index        ! index of contributor.
   logical valid        ! valid entry?
@@ -39,7 +39,7 @@ type (tao_data_struct), pointer :: data
 real(rp) delta, a_max, merit
 integer i, j, n, nl, nu
 
-character(32) name
+character(40) name
 character(100) fmt, lines(20)
 character(20) :: r_name = 'tao_top10_print'
 
@@ -125,7 +125,7 @@ end subroutine
 !
 ! Input:
 !   value   -- Real(rp): value of the contributor.
-!   name    -- Character(16): Name of the contributor..
+!   name    -- Character(40): Name of the contributor..
 !   c_index -- Integer: Index of the contributor.
 !   order   -- Character(16): Ordering of the list. Possibilities are:
 !                 'max'     -- #1 has the maximum value.
@@ -202,7 +202,7 @@ integer, allocatable :: ixm(:)
 integer n_name, n_d2_d1_name, n_loc1, n_loc0
 
 character(*) form
-character(16) location, con_var, max_loc, loc1, loc0
+character(40) location, con_var, max_loc, loc1, loc0
 character(80) fmt
 character(1) plane
 character(24) :: r_name = 'tao_show_constraints'
@@ -211,8 +211,8 @@ character(200) l1
 
 type constraint_struct
   character(40) d2_d1_name
-  character(32) name
-  character(16) loc1, loc0, max_loc
+  character(40) name
+  character(40) loc1, loc0, max_loc
   real(rp) target_value
   real(rp) actual_value
   real(rp) merit

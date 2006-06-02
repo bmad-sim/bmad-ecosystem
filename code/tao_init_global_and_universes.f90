@@ -58,8 +58,8 @@ integer, parameter :: ele_name$ = 1, ele_key$ = 2
 character(*) init_file, data_file, var_file
 character(40) :: r_name = 'tao_init_global_and_universes'
 character(200) file_name
-character(16) name,  universe, default_universe, default_data_type
-character(16) default_merit_type, default_attribute
+character(40) name,  universe, default_universe, default_data_type
+character(40) default_merit_type, default_attribute
 character(100) line
 
 logical err, free
@@ -625,7 +625,7 @@ integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2
 integer i_d1, num_hashes
 
 character(20) count_name1, count_name2, ix_char
-character(32) search_string
+character(40) search_string
 character(20) fmt
 
 !
@@ -1158,7 +1158,7 @@ implicit none
 
 integer uni, jj, ix1, ix2
 logical :: found_one(:)
-character(32) search_string
+character(40) search_string
 
 ix2 = 0
 
@@ -1288,7 +1288,7 @@ type (tao_universe_struct), pointer ::  from_uni
 type (tao_coupled_uni_input) coupled 
 integer this_uni_index
 
-character(16) ele_name
+character(40) ele_name
 
 integer j, ix
 

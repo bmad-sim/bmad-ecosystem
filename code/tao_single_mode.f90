@@ -398,7 +398,7 @@ subroutine scale_it_all (ix_plot, factor, a_min, a_max)
   real(rdef), optional :: a_min, a_max
 
   integer ix_plot
-  character(32) name
+  character(40) name
 
 ! if factor = 0 then use min/max
 

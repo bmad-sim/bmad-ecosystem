@@ -31,8 +31,8 @@ end interface
 !----------------------------------------------------------------------
 
 type tao_ele_shape_struct    ! for the element layout plot
-  character(16) key_name     ! Element key name
-  character(16) ele_name     ! element name
+  character(40) key_name     ! Element key name
+  character(40) ele_name     ! element name
   character(16) shape        ! plot shape
   character(16) color        ! plot color
   real(rp) dy_pix            ! plot vertical height 
@@ -66,10 +66,10 @@ end type
 ! for example the horizontal orbit is one curve.
 
 type tao_curve_struct
-  character(16) :: name                    ! Name identifying the curve.
-  character(16) :: data_source             ! "calculation", "data_array", or "var_array"
-  character(16) :: data_type = ' '         ! "orbit.x", etc.
-  character(16) :: ele_ref_name            ! Reference element.
+  character(40) :: name                    ! Name identifying the curve.
+  character(40) :: data_source             ! "calculation", "data_array", or "var_array"
+  character(40) :: data_type = ' '         ! "orbit.x", etc.
+  character(40) :: ele_ref_name            ! Reference element.
   type (beam_struct) beam                  ! for phase-space plotting
   real(rp), pointer :: x_line(:) => null() ! coords for drawing a curve
   real(rp), pointer :: y_line(:) => null()
@@ -95,8 +95,8 @@ end type
 ! contain both overlayed horizontal and vertical orbits.
 
 type tao_graph_struct
-  character(16) name           ! Name identifying the graph
-  character(16) type           ! "data", "lat_layout", "key_table", or "phase_space"
+  character(40) name           ! Name identifying the graph
+  character(40) type           ! "data", "lat_layout", "key_table", or "phase_space"
   character(80) title
   character(80) title_suffix 
   character(80) legend(n_legend_maxx) ! Array for holding descriptive info.
@@ -118,7 +118,7 @@ end type
 ! One for Cbar12, and one for Cbar22.
 
 type tao_plot_struct
-  character(32) :: name = ' '           ! Identifying name
+  character(40) :: name = ' '           ! Identifying name
   type (tao_graph_struct), pointer :: graph(:) => null() 
                                 ! individual graphs of a plot
   type (qp_axis_struct) x       ! X-axis parameters.
@@ -133,7 +133,7 @@ end type
 ! Eg: %location = (0.0, 1.0, 0.5, 1.0) gives the top half of the page inside the border.
 
 type tao_plot_region_struct
-  character(16) name             ! Eg: 'top', 'bottom'.
+  character(40) name             ! Eg: 'top', 'bottom'.
   type (tao_plot_struct) plot    ! Plot associated with this region
   real(rp) location(4)           ! location on page.
   logical visible                ! To draw or not to draw.
@@ -184,10 +184,10 @@ end type
 !                  = %exists & %good_meas & %good_user & %good_opt & %good_ref (otherwise)
 
 type tao_data_struct
-  character(32) name        ! Datum name. Eg: "X Orbit @ Det 10"
-  character(16) ele_name    ! Name of the element in the Lattice corresponding to the datum.
-  character(16) ele0_name   ! Name lattice element when there is a range 
-  character(32) data_type   ! Type of data: "orbit.x", etc.
+  character(40) name        ! Datum name. Eg: "X Orbit @ Det 10"
+  character(40) ele_name    ! Name of the element in the Lattice corresponding to the datum.
+  character(40) ele0_name   ! Name lattice element when there is a range 
+  character(40) data_type   ! Type of data: "orbit.x", etc.
   character(16) merit_type  ! Type of constraint: 'target', 'max', 'min', etc.
   integer ix_ele            ! Index of the element in the lattice element array.
   integer ix_ele0           ! Index of lattice elment when there is a range or reference.
@@ -224,7 +224,7 @@ end type tao_data_struct
 !   the u%data array. 
 
 type tao_d1_data_struct
-  character(16) name        ! Eg: "X", etc.
+  character(40) name        ! Eg: "X", etc.
   integer ix_data           ! index of the 0th element in u%data.
   type (tao_d2_data_struct), pointer :: d2 => null() ! ptr to parent d2_data
   type (tao_data_struct), pointer :: d(:) => null()  
@@ -237,7 +237,7 @@ end type
 !   sequentially numbered.
 
 type tao_d2_data_struct
-  character(32) name              ! Name to be used with commands.
+  character(40) name              ! Name to be used with commands.
   character(200) data_file_name   ! Data file name .
   character(200) ref_file_name    ! Reference file name.
   character(20) data_date         ! Data measurement date.
@@ -294,10 +294,10 @@ type tao_this_var_struct
 end type  
 
 type tao_var_struct
-  character(32) name        ! Variable name.
-  character(16) alias       ! Short alias name.
-  character(16) ele_name    ! Associated lattice element name.
-  character(16) attrib_name ! Name of the attribute to vary.
+  character(40) name        ! Variable name.
+  character(40) alias       ! Short alias name.
+  character(40) ele_name    ! Associated lattice element name.
+  character(40) attrib_name ! Name of the attribute to vary.
   type (tao_this_var_struct), pointer :: this(:) => null()
   integer ix_v1             ! Index of this var in the s%v1_var(i)%v(:) array.
   integer ix_var            ! Index number of this var in the s%var(:) array.
@@ -335,7 +335,7 @@ end type tao_var_struct
 ! The v1_var_struct has a pointer to a section in the s%var array. 
 
 type tao_v1_var_struct
-  character(16) :: name = ' '  ! Eg: "quad_k1"
+  character(40) :: name = ' '  ! Eg: "quad_k1"
   integer ix_var0              ! Index of the 0th element in s%var
   type (tao_var_struct), pointer :: v(:) => null() 
                                ! Pointer to the appropriate section in s%var.
@@ -502,7 +502,7 @@ end type
 ! Define common variables
 
 type tao_alias_struct
-  character(16) :: name
+  character(40) :: name
   character(100) :: string
 end type
 

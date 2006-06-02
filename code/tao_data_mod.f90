@@ -199,7 +199,7 @@ integer, save :: ix_save = -1
 integer i, j, k, m, n, ix, ix1, ix0, expnt(6), n_lat
 
 character(20) :: r_name = 'tao_evaluate_a_datum'
-character(32) data_type
+character(40) data_type
 
 logical found
 

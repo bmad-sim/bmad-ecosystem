@@ -196,7 +196,7 @@ integer ios, ix, ix_universe, ix_ele_temp, num, i, i_ix_ele
 integer, allocatable :: ix_ele(:)
 
 character(*) string
-character(16) ele_name
+character(40) ele_name
 character(20) :: r_name = 'tao_locate_element'
 
 logical, optional :: ignore_blank
@@ -394,7 +394,7 @@ type (tao_plot_region_struct), pointer :: this_region
 integer i, ix
 
 character(*) where
-character(32) plot_name, graph_name
+character(40) plot_name, graph_name
 character(28) :: r_name = 'tao_find_plot_by_region'
 
 logical, optional :: print_flag
@@ -470,7 +470,7 @@ type (tao_curve_struct), pointer, optional :: curve
 integer i, j, ix
 
 character(*) where
-character(32) plot_name, graph_name
+character(40) plot_name, graph_name
 character(28) :: r_name = 'tao_find_template_plot'
 
 logical, optional :: print_flag
@@ -538,7 +538,7 @@ type (tao_graph_struct), pointer :: this_graph
 integer i, j, ix
 
 character(*) where
-character(32) plot_name, graph_name, curve_name
+character(40) plot_name, graph_name, curve_name
 character(28) :: r_name = 'tao_find_graph_or_curve_from_plot'
 
 logical, optional :: print_flag
@@ -1108,9 +1108,9 @@ end subroutine tao_find_data
 !   exists, good_var, good_user, good_opt, good_plot
 ! 
 ! Setting all_elements = .true. forces something like:
-!   data_name = 'quad_k1[3:10]'
+!   var_name = 'quad_k1[3:10]'
 ! to behave like
-!   data_name = 'quad_k1' (= 'quad_k1[*]')
+!   var_name = 'quad_k1' (= 'quad_k1[*]')
 ! That is, all elements of quad_k1 are selected
 !
 ! Normally 'quad_k1[*]' is synonymous with 'quad_k1' and in both cases v_array

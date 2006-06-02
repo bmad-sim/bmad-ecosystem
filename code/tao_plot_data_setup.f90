@@ -126,7 +126,7 @@ integer k, n, m, ib, ix1_ax, ix2_ax, ix
 
 logical err
 
-character(16) name
+character(40) name
 character(30) :: r_name = 'tao_phase_space_plot_data_setup'
 
 ! Set up the graph suffix
@@ -684,8 +684,8 @@ type (taylor_struct) t_map(6)
 
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6)
 integer i, j, k, expnt(6), ix_ele
-character(16), intent(in) ::  data_type
-character(16) data_type_select
+character(40), intent(in) ::  data_type
+character(40) data_type_select
 character(20) ::r_name = 'calc_data_at_s'
 logical err
 

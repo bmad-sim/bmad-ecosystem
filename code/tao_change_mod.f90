@@ -161,7 +161,7 @@ integer, allocatable, save :: ix_ele(:)
 character(*) name, attribute, num_str
 character(80) num
 character(20) :: r_name = 'tao_change_ele'
-character(16) ele_name, abs_or_rel
+character(40) ele_name, abs_or_rel
 character(40) fmt
 character(100) l1
 character(200), allocatable, save :: lines(:)

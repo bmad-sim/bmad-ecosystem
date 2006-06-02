@@ -51,7 +51,7 @@ character(8) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
 character(80), pointer :: ptr_lines(:)
 character(100) file_name
-character(16) ele_name, name, sub_name
+character(40) ele_name, name, sub_name
 
 character(16) :: show_names(15) = (/ &
    'data        ', 'var         ', 'global      ', 'alias       ', 'top10       ', &
@@ -224,26 +224,15 @@ case ('data')
         nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', iu
       endif
 
-      nl=nl+1; write (lines(nl), '(62x, a)') 'Bounds' 
-      nl=nl+1; write (lines(nl), '(5x, a, 23x, a, 14x, a)') &
-                                        'd2_Name', 'Ix  d1_Name', 'Lower  Upper'
-      nl=nl+1; write (lines(nl), '(5x, a, 23x, a, 14x, a)') &
-                                          '-------', '--  -------', '-----  -----'
       do i = 1, size(u%d2_data)
         d2_ptr => u%d2_data(i)
         if (d2_ptr%name == ' ') cycle
+        nl=nl+1; lines(nl) = ' '
         do j = lbound(d2_ptr%d1, 1), ubound(d2_ptr%d1, 1)
           d1_ptr => d2_ptr%d1(j)
-          name = d1_ptr%name
-          if (name == ' ') name = '<blank>'
-          if (j == lbound(d2_ptr%d1, 1)) then
-            nl=nl+1; lines(nl) = ' '
-            write (lines(nl+1), '(5x, a)') d2_ptr%name
-          else
-            lines(nl+1) = ' '
-          endif
-          nl=nl+1; write (lines(nl)(33:), '(i5, 2x, a, 2x, 2i6)') &
-                          j, name, lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
+          nl=nl+1; write (lines(nl), '(i5, 2x, 4a, i0, a, i0, a)') j, &
+                      trim(d2_ptr%name), '.', trim(d1_ptr%name), &
+                      '[', lbound(d1_ptr%d, 1), ':', ubound(d1_ptr%d, 1), ']'
         enddo
       enddo
     enddo
@@ -310,8 +299,8 @@ case ('data')
     
     nl=nl+1; write(lines(nl), '(2a)') 'Data name: ', trim(d2_ptr%name) // '.' // d1_ptr%name
 
-    line1 = '                                                                  |   Useit'
-    line2 = '     Name                     Meas         Model        Design    | Opt  Plot'
+    line1 = '                                                                      |   Useit'
+    line2 = '     Name                         Meas         Model        Design    | Opt  Plot'
     nl=nl+1; lines(nl) = line1
     nl=nl+1; lines(nl) = line2
 
@@ -323,7 +312,7 @@ case ('data')
       d_ptr => d_array(i)%d
       if (.not. d_ptr%exists) cycle
       if (size(lines) > nl + 50) call re_allocate (lines, len(lines(1)), nl+100)
-      nl=nl+1; write(lines(nl), '(i5, 2x, a16, 3es14.4, 2l6)') d_ptr%ix_d1, &
+      nl=nl+1; write(lines(nl), '(i5, 2x, a20, 3es14.4, 2l6)') d_ptr%ix_d1, &
                      d_ptr%name, d_ptr%meas_value, d_ptr%model_value, &
                      d_ptr%design_value, d_ptr%useit_opt, d_ptr%useit_plot
     enddo
@@ -833,15 +822,15 @@ case ('var')
   endif
 
   if (word(1) == ' ') then
-    write (lines(1), '(5x, a)') '                  Bounds'
-    write (lines(2), '(5x, a)') 'Name            Lower  Upper'
+    write (lines(1), '(5x, a)') '                      Bounds'
+    write (lines(2), '(5x, a)') 'Name                Lower  Upper'
     nl = 2
     do i = 1, size(s%v1_var)
       v1_ptr => s%v1_var(i)
       if (v1_ptr%name == ' ') cycle
       if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200)
       nl=nl+1
-      write(lines(nl), '(5x, a, i5, i7)') v1_ptr%name, &
+      write(lines(nl), '(5x, a20, i5, i7)') v1_ptr%name, &
                   lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
     enddo
     call out_io (s_blank$, r_name, lines(1:nl))
@@ -979,13 +968,13 @@ type (tao_data_struct), pointer :: datum
 character(*) :: lines(:)
 integer i_ele, nl, i
 
-character(30) :: dmt = "(a, 3(1x, es15.5)) "
+character(30) :: dmt = "(a20, 3(1x, es15.5)) "
 
 logical :: found_one = .false.
 
   nl=nl+1; write (lines(nl), '(a)') "  "
   nl=nl+1; write (lines(nl), '(a)') &
-        "   Data Type                     |  Model Value  |  Design Value |  Base Value"
+        "   Data Type                         |  Model Value  |  Design Value |  Base Value"
 
   do i = 1, size(u%data)
     if (u%data(i)%ix_ele .eq. i_ele) then
@@ -1004,7 +993,7 @@ logical :: found_one = .false.
 
   nl=nl+1; write (lines(nl), '(a)') "  "
   nl=nl+1; write (lines(nl), '(a)') &
-        "   Data Type                     |  Model Value  |  Design Value |  Base Value"
+        "   Data Type                         |  Model Value  |  Design Value |  Base Value"
 
 
 end subroutine show_ele_data

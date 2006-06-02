@@ -14,18 +14,18 @@ use bmad_interface
 ! data input structures
 
 type tao_d2_data_input
-  character(16) name           ! name of data
+  character(40) name           ! name of data
 end type
 
 type tao_d1_data_input
-  character(16) name           ! type of data
+  character(40) name           ! type of data
 end type
 
 type tao_data_input
-  character(32) :: name
-  character(32) :: data_type
-  character(32) :: ele0_name
-  character(32) :: ele_name
+  character(40) :: name
+  character(40) :: data_type
+  character(40) :: ele0_name
+  character(40) :: ele_name
   character(16) :: merit_type
   real(rp) :: meas_value
   real(rp) :: weight
@@ -37,13 +37,13 @@ end type
 ! variable input structures
 
 type tao_v1_var_input
-  character(16) name           ! name of variable
+  character(40) name           ! name of variable
 end type
 
 type tao_var_input
-  character(32) :: name
-  character(32) :: ele_name
-  character(16) attribute       ! attribute to vary
+  character(40) :: name
+  character(40) :: ele_name
+  character(40) attribute       ! attribute to vary
   character(16) universe
   real(rp) :: weight
   real(rp) :: step
@@ -57,13 +57,13 @@ end type
 ! plot input structures
 
 type tao_region_input
-  character(16) name             ! Eg: 'top', 'bottom'.
+  character(40) name             ! Eg: 'top', 'bottom'.
   real(rp) location(4)           ! location on page.
 end type
 
 type tao_place_input
-  character(16) region
-  character(16) plot
+  character(40) region
+  character(40) plot
 end type
 
 type tao_plot_page_input
@@ -75,9 +75,9 @@ type tao_plot_page_input
 end type
 
 type tao_curve_input
-  character(16) name
-  character(16) data_source
-  character(16) data_type
+  character(40) name
+  character(40) data_source
+  character(40) data_type
   real(rp) x_axis_scale_factor
   real(rp) y_axis_scale_factor
   integer symbol_every
@@ -88,13 +88,13 @@ type tao_curve_input
   type (qp_line_struct) line
   type (qp_symbol_struct) symbol
   logical convert  
-  character(16) ele_ref_name
+  character(40) ele_ref_name
   integer ix_ele_ref
 end type
 
 type tao_graph_input
-  character(16) name
-  character(16) type
+  character(40) name
+  character(40) type
   character(80) title
   integer box(4)
   integer ix_universe
@@ -108,7 +108,7 @@ type tao_graph_input
 end type 
 
 type tao_plot_input
-  character(16) name
+  character(40) name
   type (qp_axis_struct) x
   character(16) x_axis_type
   integer n_graph
@@ -125,15 +125,15 @@ end type
 
 type tao_coupled_uni_input
   integer from_universe
-  character(16) at_element !coupled at end of element
+  character(40) at_element !coupled at end of element
   integer at_ele_index ! coupled at end of element
   real(rp) :: at_s ! coupled at position s
   logical match_to_design
 end type
 
 type tao_key_input
-  character(16) ele_name
-  character(16) attrib_name
+  character(40) ele_name
+  character(40) attrib_name
   real(rp) delta
   character(16) universe
   real(rp) small_step
