@@ -48,7 +48,7 @@ subroutine twiss_at_start (ring)
 
   logical :: debug = .false. 
 
-  character(80), pointer :: lines(:)
+  character(100), pointer :: lines(:)
 
 ! init one turn. T0 is the transverse part of the matrix
 

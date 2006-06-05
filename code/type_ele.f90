@@ -52,7 +52,7 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor,  &
 
   logical, optional :: type_control, type_zero_attrib, type_taylor, type_wake
 
-  character(80), pointer :: lines(:) 
+  character(100), pointer :: lines(:) 
 
 !
 

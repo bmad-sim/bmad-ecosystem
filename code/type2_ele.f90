@@ -34,7 +34,7 @@
 !                       If ele%wake is not allocated then this is ignored.
 !
 ! Output       
-!   lines(:)     -- Character(80), pointer: Character array to hold the 
+!   lines(:)     -- Character(100), pointer: Character array to hold the 
 !                     output. The array size of lines(:) will be set by
 !                     this subroutine. Note: You need to deallocate lines
 !                     between each call to type2_ele.

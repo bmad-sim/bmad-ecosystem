@@ -1103,7 +1103,7 @@ interface
     integer, optional, intent(in) :: twiss_type
     logical, optional, intent(in) :: type_control, type_taylor
     logical, optional, intent(in) :: type_zero_attrib, type_wake
-    character(80), pointer :: lines(:)
+    character(100), pointer :: lines(:)
   end subroutine
 end interface
 
