@@ -23,7 +23,7 @@ integer i, ix, ix2
 integer, save, allocatable :: indx(:), indx_start(:), indx_end(:), indx_step(:) ! for do loops
 integer, save, allocatable :: loop_line_count(:) ! lines in each nested loop
 integer, save :: in_loop = 0 ! in loop nest level
-
+integer ios
 character(10), save, allocatable :: indx_name(:) ! do loop index name
 character(*) :: cmd_line
 character(*), optional :: prompt_str
@@ -44,14 +44,18 @@ prompt_string = s%global%prompt_string
 if (present(prompt_str)) prompt_string = prompt_str
 
 if (init_needed) then
+#ifndef CESR_WINCVF
   call init_tty_char
+#endif
   init_needed = .false.
 endif
 
 ! If single character input wanted then...
 
 if (s%global%single_mode) then
+
   call get_a_char (cmd_line(1:1), .true., (/ ' ' /))  ! ignore blanks
+
   return
 endif
 
@@ -113,7 +117,14 @@ endif
 if (.not. multi_commands_here) then
   cmd_line = ' '
   tag = trim(prompt_string) // '> ' // achar(0)
+!***************
+#ifndef CESR_WINCVF
   call read_line (trim(tag), cmd_line)
+#else
+  write(*,'(a)',advance = 'NO') trim(tag)
+  read (*, '(a)', iostat = ios) cmd_line
+#endif
+
 endif
 call alias_translate (cmd_line, err)
 call check_for_multi_commands
