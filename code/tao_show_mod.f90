@@ -49,7 +49,7 @@ character(24)  :: plane, imt, lmt, amt, rmt, irmt, iimt
 character(80) :: word(2), fmt, fmt2, fmt3
 character(8) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
-character(80), pointer :: ptr_lines(:)
+character(100), pointer :: ptr_lines(:)
 character(100) file_name
 character(40) ele_name, name, sub_name
 
