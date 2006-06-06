@@ -891,6 +891,8 @@ subroutine file_stack (how, file_name_in, finished)
       bp_com%num_lat_files = 0           ! total number of files opened
       bp_com%error_flag = .false.  ! set to true on an error
       bp_com%parser_debug = .false.
+      bp_com%current_file%full_name = ' '
+      bp_com%input_line_meaningful = .false.
       call init_bmad_parser_common
     endif
 
@@ -905,23 +907,26 @@ subroutine file_stack (how, file_name_in, finished)
     file(i_level)%logical_name = file_name_in
     file(i_level)%full_name = file_name
     file(i_level)%f_unit = lunget()
-    bp_com%current_file = file(i_level)
-    bp_com%calling_file = file(i_level-1)
-    if (i_level /= 1) file(i_level-1)%i_line = bp_com%current_file%i_line
-    bp_com%current_file%i_line = 0
 
-    open (bp_com%current_file%f_unit, file = file_name,  &
+    open (file(i_level)%f_unit, file = file_name,  &
                                  status = 'OLD', action = 'READ', iostat = ios)
     if (ios /= 0 .or. .not. found_it) then
-      print *, 'ERROR IN ', trim(bp_com%parser_name)
-      print *, '      UNABLE TO OPEN FILE: ', trim(file_name)
-      if (file_name_in /= file_name)  print *, &
-              '       THIS FROM THE LOGICAL FILE NAME: ', trim(file_name_in)
+      if (file_name_in == file_name)  then
+        call warning ('UNABLE TO OPEN FILE: ' // file_name)
+      else
+        call warning ('UNABLE TO OPEN FILE: ' // file_name, &
+                      'THIS FROM THE LOGICAL FILE NAME: ' // file_name_in)
+      endif
       if (bmad_status%exit_on_error) call err_exit
       bmad_status%ok = .false.
       bp_com%error_flag = .true.
       return
     endif
+
+    bp_com%current_file = file(i_level)
+    bp_com%calling_file = file(i_level-1)
+    if (i_level /= 1) file(i_level-1)%i_line = bp_com%current_file%i_line
+    bp_com%current_file%i_line = 0
 
     bp_com%num_lat_files = bp_com%num_lat_files + 1 
     inquire (file = file_name, name = bp_com%lat_file_names(bp_com%num_lat_files))
@@ -2250,7 +2255,7 @@ subroutine warning (what1, what2, seq)
     if (present(seq)) then
       print *, '      IN FILE: ', trim(seq%file_name)
       print *, '      AT LINE:', seq%ix_line
-    else
+    elseif (bp_com%current_file%full_name /= ' ') then
       print *, '      IN FILE: ', trim(bp_com%current_file%full_name)
       print *, '      AT OR BEFORE LINE:', bp_com%current_file%i_line
     endif

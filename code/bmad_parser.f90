@@ -90,8 +90,6 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 
   bp_com%parser_name = 'BMAD_PARSER'  ! Used for error messages.
   bp_com%write_digested = .true.
-  bp_com%input_line_meaningful = .true.
-  bp_com%ran_function_was_called = .false.
 
   call form_digested_bmad_file_name (lat_file, digested_file, full_lat_file_name)
   call read_digested_bmad_file (digested_file, ring, digested_version)
@@ -144,6 +142,9 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
   call file_stack('push', lat_file, finished)  ! open file on stack
   if (.not. bmad_status%ok) return
   iseq_tot = 0                            ! number of sequences encountered
+
+  bp_com%input_line_meaningful = .true.
+  bp_com%ran_function_was_called = .false.
 
   call init_ele (in_ring%ele_(0))
   in_ring%ele_(0)%name = 'BEGINNING'     ! Beginning element
@@ -318,7 +319,7 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
       do i = 0, n_max+1
 
         if (i == n_max+1) then
-          if (i == n_max+1) ele => param_ele
+          ele => param_ele
         else
           ele => in_ring%ele_(i)
         endif
@@ -424,6 +425,11 @@ subroutine bmad_parser (lat_file, ring, make_mats6, digested_read_ok, use_line)
 ! if not line or list then must be an element
 
     else
+
+      if (word_1 == 'BEGINNING' .or. word_1 == 'BEAM' .or. word_1 == 'BEAM_START') then
+        call warning ('ELEMENT NAME CORRESPONDS TO A RESERVED WORD: ' // word_1)
+        cycle parsing_loop
+      endif
 
       n_max = n_max + 1
       if (n_max > ubound(in_ring%ele_, 1)) then

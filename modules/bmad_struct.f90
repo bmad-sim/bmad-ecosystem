@@ -242,6 +242,10 @@ type ring_struct
   character(80) title              ! General title
   type (mode_info_struct) x, y, z  ! Tunes, etc.
   type (param_struct) param        ! Parameters
+  type (ele_struct)  ele_init      ! For use by any program
+  type (ele_struct), pointer ::  ele_(:) => null()        ! Array of elements
+  type (control_struct), pointer :: control_(:) => null() ! control list
+  type (coord_struct) beam_start   ! Starting coords
   integer version                  ! Version number
   integer n_ele_use                ! Number of regular ring elements
   integer n_ele_ring               ! OBSOLETE: Identical to n_ele_use.
@@ -249,9 +253,6 @@ type ring_struct
   integer n_control_max            ! Last index used in CONTROL_ array
   integer n_ic_max                 ! Last index used in IC_ array
   integer input_taylor_order       ! As set in the input file
-  type (ele_struct)  ele_init      ! For use by any program
-  type (ele_struct), pointer ::  ele_(:) => null()        ! Array of elements
-  type (control_struct), pointer :: control_(:) => null() ! control list
   integer, pointer :: ic_(:) => null()                ! index to %control_(:)
   real(rp), pointer :: beam_energy ! points to ring%ele_(0)%value(beam_energy$)
 end type
@@ -277,10 +278,11 @@ integer, parameter :: null_ele$ = 27, init_ele$ = 28, hom$ = 29
 integer, parameter :: match$ = 30, monitor$ = 31, instrument$ = 32
 integer, parameter :: hkicker$ = 33, vkicker$ = 34, rcollimator$ = 35
 integer, parameter :: ecollimator$ = 36, i_beam$ = 37, bend_sol_quad$ = 38
+integer, parameter :: def_beam_start$ = 39
 
-integer, parameter :: n_key = 38
+integer, parameter :: n_key = 39
 
-character(16) :: key_name(n_key+1) = (/ &
+character(16) :: key_name(n_key) = (/ &
     'DRIFT        ', 'SBEND        ', 'QUADRUPOLE   ', 'GROUP        ', &
     'SEXTUPOLE    ', 'OVERLAY      ', 'CUSTOM       ', 'TAYLOR       ', &
     'RFCAVITY     ', 'ELSEPARATOR  ', 'BEAMBEAM     ', 'WIGGLER      ', &
@@ -290,7 +292,7 @@ character(16) :: key_name(n_key+1) = (/ &
     'LCAVITY      ', 'DEF_PARAMETER', 'NULL_ELE     ', 'INIT_ELE     ', &
     'HOM          ', 'MATCH        ', 'MONITOR      ', 'INSTRUMENT   ', &
     'HKICKER      ', 'VKICKER      ', 'RCOLLIMATOR  ', 'ECOLLIMATOR  ', &
-    'I_BEAM       ', 'BEND_SOL_QUAD', '             ' /)
+    'I_BEAM       ', 'BEND_SOL_QUAD', 'BEAM_START   ' /)
 
 ! Attribute name logical definitions
 ! Note: The following attributes must have unique number assignments:
@@ -312,6 +314,8 @@ integer, parameter :: beta_x0$ = 2, alpha_x0$ = 3, beta_y0$ = 4, &
           alpha_y1$ = 9, dphi_x$ = 10, dphi_y$ = 11, &
           eta_x0$ = 12, etap_x0$ = 13, eta_y0$ = 14, etap_y0$ = 15, &
           eta_x1$ = 16, etap_x1$ = 17, eta_y1$ = 18, etap_y1$ = 19
+
+! integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
 
 !  integer, parameter :: x_position$ = 2, y_position$ = 3, z_position$ = 4, &
 !          theta_position$ = 5, phi_position$ = 6, psi_position$ = 7, &
@@ -582,6 +586,16 @@ type track_struct
   integer :: n_bad
   integer :: n_ok
 end type
+
+!------------------------------------------------------------------------------
+! misc
+
+! A real_array_struct is just a pointer to a real number.
+! This is used to construct arrays of reals.
+
+type real_array_struct
+  real(rp), pointer :: r
+end type 
 
 !------------------------------------------------------------------------------
 ! common stuff

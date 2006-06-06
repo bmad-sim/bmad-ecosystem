@@ -2,9 +2,9 @@
 ! Subroutine pointer_to_attribute (ele, attrib_name, do_allocation,
 !                            ptr_attrib, ix_attrib, err_flag, err_print_flag)
 !
-! Returns a pointer to an attribute of an element with name attrib_name.
-! Note: Use attribute_free to see if the attribute may be
-!   varied independently.
+! Returns a pointer to an attribute of an element ele with attribute name attrib_name.
+! Note: Use attribute_free to see if the attribute may be varied independently.
+! Note: Alternatively consider the routine pointers_to_attribute.
 !
 ! Modules needed:
 !   use bmad

@@ -655,6 +655,21 @@ interface
 end interface
 
 interface
+  Subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
+                    ptr, ix_attrib, cannot_vary_flag, err_print_flag)
+    use bmad_struct, only: ring_struct, real_array_struct
+    implicit none
+    type (ring_struct) lat
+    type (real_array_struct), allocatable :: ptr(:)
+    integer ix_attrib
+    character(*) ele_name, attrib_name
+    logical cannot_vary_flag
+    logical do_allocation
+    logical, optional :: err_print_flag
+  end subroutine
+end interface
+
+interface
   function attribute_free (ix_ele, ix_attrib, lat, err_print_flag) result (free)
     use bmad_struct, only: ring_struct, ele_struct
     implicit none
