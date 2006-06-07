@@ -113,9 +113,11 @@ subroutine tao_command (command_line, err)
       call tao_change_var (cmd_word(2), cmd_word(3))
     elseif (cmd_word(1) == 'ele') then
       call tao_change_ele (cmd_word(2), cmd_word(3), cmd_word(4))
+    elseif (cmd_word(1) == 'bunch_start') then
+      call tao_change_ele ('bunch_start', cmd_word(2), cmd_word(3))
     else
       call out_io (s_error$, r_name, &
-             'ERROR: CHANGE WHO? (SHOULD BE "ele" OR "var")')
+             'Error: Change who? (should be: "ele", "bunch_start", or "var")')
     endif
 
 

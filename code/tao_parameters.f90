@@ -24,7 +24,7 @@ module tao_parameters
 						  
 ! the name struct
   
-  integer, parameter :: x$ = 1, y$ = 2, z$ = 3, a$ = 4, b$ = 5, xy$ = 6
+  integer, parameter :: a$ = 4, b$ = 5, xy_plane$ = 6
   integer, parameter :: data$ = 1, variable$ = 2
   integer, parameter :: use$ = 1, veto$ = 2, restore$ = 3
   

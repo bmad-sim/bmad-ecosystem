@@ -123,15 +123,14 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_change_ele (name, attribute, num_str)
+! Subroutine tao_change_ele (ele_name, attrib_name, num_str)
 !
 ! Routine to change a variable in the model lattice.
 !
 ! Input:
-!   who       -- Character(*): 'var' or 'ele'
-!   name      -- Character(*): Name of variable or element.
-!   attribute -- Character(*): Attribute name of element.
-!   num_str   -- Character(*): Change in value. 
+!   ele_name    -- Character(*): Name of variable or element.
+!   attrib_name -- Character(*): Attribute name of element.
+!   num_str     -- Character(*): Change in value. 
 !                                A '@' signifies a absolute set.
 !                                A 'd' signifies a set relative design.        
 !
@@ -139,7 +138,7 @@ end subroutine
 !    %u(s%global%u_view)%model -- model lattice where the variable lives.
 !-
 
-subroutine tao_change_ele (name, attribute, num_str)
+subroutine tao_change_ele (ele_name, attrib_name, num_str)
 
 use tao_mod
 use quick_plot
@@ -147,28 +146,26 @@ use quick_plot
 implicit none
 
 type (tao_universe_struct), pointer :: u
-type (tao_v1_var_struct), pointer :: v1_ptr
-type (tao_var_struct), pointer :: var
+type (real_array_struct), allocatable, save :: d_ptr(:), m_ptr(:)
 
-real(rp) change_number, model_value, old_merit, new_merit, max_val
-real(rp) old_value, new_value, design_value, delta
+real(rp) change_number
 
-real(rp), pointer :: attrib_ptr, design_ptr
-
-integer nl, i, ixa, ix, err_num, n
-integer, allocatable, save :: ix_ele(:)
-
-character(*) name, attribute, num_str
-character(80) num
+character(*) ele_name, attrib_name, num_str
+character(40) e_name, a_name, fmt
 character(20) :: r_name = 'tao_change_ele'
-character(40) ele_name, abs_or_rel
-character(40) fmt
-character(100) l1
 character(200), allocatable, save :: lines(:)
+character(20) abs_or_rel
+
+real(rp) new_merit, old_merit, old_value, new_value, delta
+
+integer i, ix, ix_a, nl
+integer, allocatable :: ix_ele(:)
 
 logical err
 
 !-------------------------------------------------
+
+u => s%u(s%global%u_view)
 
 call re_allocate (lines, 200, 200)
 call to_number (num_str, change_number, abs_or_rel, err);  if (err) return
@@ -177,67 +174,51 @@ nl = 0
 
 ! 
 
-call string_trim (name, name, ix)
+call string_trim (ele_name, e_name, ix)
+call string_trim (attrib_name, a_name, ix)
+call str_upcase (e_name, e_name)
+call str_upcase (a_name, a_name)
 
-if (ix .gt. 16) then
-  call out_io (s_error$, r_name, &
-                   'ELEMENT NAME CANNOT BE GREATER THAN 16 CHARACTERS')
-  return
-endif
-  
-ele_name = name
-  
-u => s%u(s%global%u_view)
-call tao_locate_element (ele_name, s%global%u_view, ix_ele)
-if (ix_ele(1) < 0) return
+call pointers_to_attribute (u%design%lat, e_name, a_name, .true., &
+                                                d_ptr, err, .true., ix_ele, ix_a)
+if (err) return
 
-select case (attribute)
-case ('x', 'p_x', 'y', 'p_y', 'z', 'p_z')
-  call change_orbit (u%design%orb(ix_ele(1)), u%model%orb(ix_ele(1)))
-  if (err) return
-case default  
-  do i = 1, size(ix_ele)
-    call pointer_to_attribute (u%design%lat%ele_(ix_ele(i)), attribute, .true., &
-                                                           attrib_ptr, ixa, err)
-    if (err) then
-      if (size(ix_ele) .eq. 1) then
-        return
-      else
-        cycle
-      endif
-    endif
-    if (.not. attribute_free (ix_ele(i), ixa, u%model%lat, .true.)) return
-    design_value = attrib_ptr
-     
-    call pointer_to_attribute (u%model%lat%ele_(ix_ele(i)), attribute, .true., &
-                                                           attrib_ptr, ixa, err)
-    old_value = attrib_ptr
+call pointers_to_attribute (u%model%lat, e_name, a_name, .true., &
+                                                m_ptr, err, .true., ix_ele, ix_a)
+if (err) return
+
+do i = 1, size(d_ptr)
+  if (ix_ele(i) < 0) cycle  ! bunch_start variables are always free
+  if (.not. attribute_free (ix_ele(i), ix_a, u%model%lat, .true.)) return
+end do
+
+do i = 1, size(d_ptr)
+
+    old_value = m_ptr(i)%r
      
     if (abs_or_rel == 'ABS') then
-      attrib_ptr = change_number
+      m_ptr(i)%r = change_number
     elseif (abs_or_rel == 'REL') then
-      attrib_ptr = design_value + change_number
+      m_ptr(i)%r = d_ptr(i)%r + change_number
     else
-      attrib_ptr = attrib_ptr + change_number
+      m_ptr(i)%r = m_ptr(i)%r + change_number
     endif
      
-    new_value = attrib_ptr
+    new_value = m_ptr(i)%r
   enddo
-
-end select
 
 s%global%lattice_recalc = .true.
 
 ! don't print results if changing multiple elements
 
-if (size(ix_ele) /= 1) return
+if (size(d_ptr) /= 1) return
 
 !----------------------------------
 ! print results
 
 new_merit = tao_merit()
 delta = new_value - old_value
-if (max(abs(old_value), abs(new_value), abs(design_value)) > 100) then
+if (max(abs(old_value), abs(new_value), abs(d_ptr(1)%r)) > 100) then
   fmt = '(5x, 2(a, f12.0), f12.0)'
 else
   fmt = '(5x, 2(a, f12.6), f12.6)'
@@ -245,8 +226,8 @@ endif
 
 nl=nl+1;write (lines(nl), '(27x, a)') 'Old              New      Delta'
 nl=nl+1;write (lines(nl), fmt) 'Value:       ', old_value, '  ->', new_value, delta
-nl=nl+1;write (lines(nl), fmt) 'Value-Design:', old_value-design_value, &
-                                  '  ->', new_value-design_value
+nl=nl+1;write (lines(nl), fmt) 'Value-Design:', old_value-d_ptr(1)%r, &
+                                  '  ->', new_value-d_ptr(1)%r
 
 if (max(abs(old_merit), abs(new_merit)) > 100) then
   fmt = '(5x, 2(a, f13.2), f13.2)'
@@ -261,82 +242,6 @@ nl=nl+1;if (delta /= 0) write (lines(nl), '(a, es12.3)') &
                          'dMerit/dValue:  ', (new_merit-old_merit) / delta
 
 call out_io (s_blank$, r_name, lines(1:nl))
-
-!----------------------------------------------------------------------------
-! this changes the orbit in a save area which is then injected into model_orb(0)
-! at lattice calc time
-
-contains
-
-subroutine change_orbit (design_orb, model_orb)
-
-implicit none
-
-type (coord_struct), target :: design_orb, model_orb 
-
-real(rp), pointer :: design_ptr, model_ptr
-
-integer direction
-
-err = .false.
-
-!check if this is a linear lattice
-
-if ((u%model%lat%param%lattice_type .eq. circular_lattice$) .and. &
-    attribute .ne.'p_z') then
-  call out_io (s_warn$, r_name, "This is a circular lattice!", &
-                    "So only changing the p_z orbit will do anything")
-  err = .true.
-  return
-endif
-!check if we are changing the beginning element
-if (ix_ele(1) .ne. 0 .or. size(ix_ele) .ne. 1) then
-  call out_io (s_warn$, r_name, &
-      "Changing the orbit is only applicable for the BEGINNING element!")
-  err = .true.
-  return
-endif
-
-!point to correct direction
-select case (attribute)
-  case ('x')
-    direction = 1
-  case ('p_x')
-    direction = 2
-  case ('y')
-    direction = 3
-  case ('p_y')
-    direction = 4
-  case ('z')
-    direction = 5
-  case ('p_z')
-    direction = 6
-  case default
-    err = .true.
-    return
-end select
-
-design_ptr => design_orb%vec(direction)
-model_ptr  => model_orb%vec(direction)
-
-!do the change
-
-design_value = design_ptr
-old_value  = model_ptr
-
-if (abs_or_rel == 'ABS') then
-  model_ptr = change_number
-elseif (abs_or_rel == 'REL') then
-  model_ptr = design_value + change_number
-else
-  model_ptr = model_ptr + change_number
-endif
-
-new_value = model_ptr
-
-err = .false.
-
-end subroutine change_orbit
 
 end subroutine tao_change_ele
 

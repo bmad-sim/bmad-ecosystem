@@ -28,7 +28,7 @@ subroutine tao_init (init_file)
   character(40) name1, name2
   character(16) :: r_name = 'tao_init'
   character(16) init_name
-  integer i, j, i2, j2, n_universes, iu, ix
+  integer i, j, i2, j2, n_universes, iu, ix, ix_attrib
 
   logical err, calc_ok
 
@@ -74,7 +74,7 @@ subroutine tao_init (init_file)
       this => var_ptr%this(j)
       u => s%u(this%ix_uni)
       call pointer_to_attribute (u%model%lat%ele_(this%ix_ele), var_ptr%attrib_name, &
-                                 .false., ptr_attrib, ix, err, .false.)
+                                 .false., ptr_attrib, err, .false., ix_attrib)
       if (err) then
         call out_io (s_abort$, r_name, &
                 'Error: Attribute not recognized: ' // var_ptr%attrib_name, &
@@ -82,7 +82,7 @@ subroutine tao_init (init_file)
                 '       Which is a: ' // key_name(u%model%lat%ele_(this%ix_ele)%key))
         call err_exit
       endif
-      if (.not. attribute_free (this%ix_ele, ix, u%model%lat)) then
+      if (.not. attribute_free (this%ix_ele, ix_attrib, u%model%lat)) then
         call out_io (s_abort$, r_name, &
                 'Error: Variable trying to control an attribute that is not free to vary.', &
                 '       Variable:  ' // var_ptr%name, &

@@ -310,12 +310,15 @@ character(30) :: r_name = 'tao_pointer_to_var_in_lattice'
 
   ! locate attribute
 
-  call pointer_to_attribute (u%model%lat%ele_(ie), var%attrib_name, .true., this%model_ptr, ix, error)
-  call pointer_to_attribute (u%base%lat%ele_(ie),  var%attrib_name, .true., this%base_ptr,  ix, error)
+  call pointer_to_attribute (u%model%lat%ele_(ie), var%attrib_name, .true., &
+                                                                 this%model_ptr, error)
   if (error) then
     if (present(err)) return
     call err_exit
   endif
+
+  call pointer_to_attribute (u%base%lat%ele_(ie),  var%attrib_name, .true., &
+                                                                 this%base_ptr,  error)
 
   if (present(err)) err = .false.
 

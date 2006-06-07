@@ -13,7 +13,7 @@ while (<FC>) {
 close (FC);
 if (! $found) {die ("Revision line not found in: cover_page.tex\n");}
 
-
+`latex tao_manual`;
 `dvips -P pdf -o tao_manual.ps tao_manual`; 
 `ps2pdf tao_manual.ps`;
 `mv tao_manual.pdf tao_manual-$rev.pdf`; 

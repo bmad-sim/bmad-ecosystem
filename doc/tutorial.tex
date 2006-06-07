@@ -563,7 +563,7 @@ If you've changed the lattice around a lot using variables, a great
 way to set all variables back to their design values is to type
 \index{Commands!set}
 \begin{example}
-  set var all model = design
+  set var *|model = *|design
 \end{example}
 This only works if you just changed variables. If you changed any
 elements directly with the \cmd{change ele} command then this will not
@@ -611,7 +611,7 @@ Let's mess the lattice up a little and see if the optimizer can
 ``fix'' the lattice. First transfer the ``correct'' or \vn{design}
 lattice to the \vn{meas} data area.
 \begin{example}
-  set data all meas = design
+  set data *.*|meas = *.*|design
 \end{example}
 Now mess up the lattice a bit. We'll be messing with quadrupoles so
 plot beta and phase.
@@ -646,14 +646,14 @@ see that the beta function is effecting the merit function the
 most. Since we are looking at beta and phase let's only use that data
 in the optimization.
 \begin{example}
-  veto data all
-  use  data beta all
-  use  data phase all
+  veto data *
+  use  data beta
+  use  data phase
 \end{example}
 We also know that we need to change quadrupoles to correct the lattice.
 \begin{example}
-  veto var all         ! veto all the data
-  restore var quad\_k1 all ! restore just the quad\_k1 data
+  veto var *          ! veto all the data
+  restore var quad\_k1 ! restore just the quad\_k1 data
 \end{example}
 Note that we need to specify what data and variables we will be using
 beforehand in the initialization files. This is already taken care of

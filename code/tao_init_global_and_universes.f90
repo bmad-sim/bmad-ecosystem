@@ -895,6 +895,11 @@ do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
       endif
     endif
     call tao_locate_elements (s_var, ix_u, n_ele)
+    if (n_ele == 0) then
+      call out_io (s_error$, r_name, 'ELEMENT DOES NOT EXIST: ' // s_var%ele_name)
+      s_var%exists = .false.
+      cycle
+    endif
     allocate (s_var%this(n_ele))
     do ie = 1, n_ele
       call tao_pointer_to_var_in_lattice (s_var, s_var%this(ie), ix_u, &
@@ -941,7 +946,7 @@ logical err
 n = s%n_v1_var_used
 j_save = 1
   
-do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
+s_loop: do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
   s_var => s%v1_var(n)%v(i)
   if (associated(s_var%this)) deallocate (s_var%this)
   if (s_var%ele_name == ' ') then
@@ -953,6 +958,11 @@ do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
     n_tot = 0
     do iu = 1, size(s%u)
       call tao_locate_elements (s_var, iu, n_ele)
+      if (n_ele == 0) then
+        call out_io (s_error$, r_name, 'ELEMENT DOES NOT EXIST: ' // s_var%ele_name)
+        s_var%exists = .false.
+        cycle s_loop
+      endif
       s%u(iu)%ixx = n_ele
       n_tot = n_tot + n_ele
     enddo
@@ -981,7 +991,7 @@ do i = lbound(s%v1_var(n)%v, 1), ubound(s%v1_var(n)%v, 1)
   s_var%design_value = s_var%this(1)%model_ptr
   s_var%base_value = s_var%this(1)%base_ptr
   s_var%exists = .true.
-enddo
+enddo s_loop
 
 end subroutine
 

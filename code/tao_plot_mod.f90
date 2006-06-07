@@ -125,7 +125,8 @@ type (tao_keyboard_struct), pointer :: key
 integer i, j, k, n, m, p, j_ele, j_att, ix_var
 real(rp) :: y, norm, v
 real(rp) :: dy_key, text_scale
-character(80) str, fmt, fmt2, str2
+character(120) str, str2
+character(60) fmt, fmt2
 character(12) model_str, val0_str, delta_str
 character(4) exp_str
 character(24) :: r_name = 'tao_plot_key_table'
