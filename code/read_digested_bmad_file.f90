@@ -25,7 +25,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine read_digested_bmad_file (digested_name, ring, version)
+subroutine read_digested_bmad_file (digested_name, lat, version)
 
   use bmad_struct
   use bmad_interface, except => read_digested_bmad_file
@@ -33,11 +33,11 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
   implicit none
 
-  type (ring_struct), target, intent(inout) :: ring
+  type (ring_struct), target, intent(inout) :: lat
   type (ele_struct), pointer :: ele
   
   integer d_unit, n_files, version, i, j, k, ix, dum1, dum2
-  integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
+  integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6), ios
   integer ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, ierr, stat
   integer stat_b(12), idate_old
 
@@ -48,17 +48,17 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
   logical found_it, v76, v77, v78, v79, v80, v_old, v_now
 
-! init all elements in ring
+! init all elements in lat
 
-  call init_ele (ring%ele_init)  ! init pointers
-  call deallocate_ring_pointers (ring)
+  call init_ele (lat%ele_init)  ! init pointers
+  call deallocate_ring_pointers (lat)
 
 ! Read the digested file.
 ! Some old versions can be read even though they are not the current version.
 
   d_unit = lunget()
   bmad_status%ok = .true.
-  ring%n_ele_use = 0
+  lat%n_ele_use = 0
 
   call fullfilename (digested_name, full_digested_name)
   inquire (file = full_digested_name, name = full_digested_name)
@@ -146,24 +146,24 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
    enddo
 
-! we read (and write) the ring in pieces since it is
+! we read (and write) the lat in pieces since it is
 ! too big to write in one piece
 
   read (d_unit, err = 9100)  &   
-          ring%name, ring%lattice, ring%input_file_name, ring%title, &
-          ring%x, ring%y, ring%z, ring%param, ring%version, ring%n_ele_use, &
-          ring%n_ele_ring, ring%n_ele_max, &
-          ring%n_control_max, ring%n_ic_max, ring%input_taylor_order
+          lat%name, lat%lattice, lat%input_file_name, lat%title, &
+          lat%x, lat%y, lat%z, lat%param, lat%version, lat%n_ele_use, &
+          lat%n_ele_ring, lat%n_ele_max, &
+          lat%n_control_max, lat%n_ic_max, lat%input_taylor_order
 
-  call allocate_ring_ele_(ring, ring%n_ele_max+100)
-  allocate (ring%control_(ring%n_control_max+100))
-  allocate (ring%ic_(ring%n_ic_max+100))
+  call allocate_ring_ele_(lat, lat%n_ele_max+100)
+  allocate (lat%control_(lat%n_control_max+100))
+  allocate (lat%ic_(lat%n_ic_max+100))
 
 !
 
-  do i = 0, ring%n_ele_max
+  do i = 0, lat%n_ele_max
 
-    ele => ring%ele_(i)
+    ele => lat%ele_(i)
     if (v76) then
       read (d_unit, err = 9100) ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
             ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr, &
@@ -305,7 +305,7 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
     if (ix_sr1 /= 0 .or. ix_sr2_long /= 0 .or. ix_sr2_trans /= 0 .or. ix_lr /= 0) then
       if (ix_lr < 0) then
-        call transfer_wake (ring%ele_(abs(ix_lr))%wake, ele%wake)
+        call transfer_wake (lat%ele_(abs(ix_lr))%wake, ele%wake)
 
       else
         call init_wake (ele%wake, ix_sr1, ix_sr2_long, ix_sr2_trans, ix_lr)
@@ -323,17 +323,19 @@ subroutine read_digested_bmad_file (digested_name, ring, version)
 
 !
 
-  do i = 1, ring%n_control_max
-    read (d_unit, err = 9100) ring%control_(i)
+  do i = 1, lat%n_control_max
+    read (d_unit, err = 9100) lat%control_(i)
   enddo
 
-  do i = 1, ring%n_ic_max
-    read (d_unit, err = 9100) ring%ic_(i)
+  do i = 1, lat%n_ic_max
+    read (d_unit, err = 9100) lat%ic_(i)
   enddo
+
+  read (d_unit, iostat = ios) lat%bunch_start
 
   close (d_unit)
 
-  ring%param%stable = .true.  ! Assume this 
+  lat%param%stable = .true.  ! Assume this 
 
   return
 

@@ -187,7 +187,7 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
 
   enddo
 
-! write the control info
+! write the control info, etc
 
   do i = 1, ring%n_control_max
     write (d_unit) ring%control_(i)
@@ -196,6 +196,8 @@ subroutine write_digested_bmad_file (digested_name, ring,  &
   do i = 1, ring%n_ic_max
     write (d_unit) ring%ic_(i)
   enddo
+
+  write (d_unit) ring%bunch_start
 
   close (d_unit)
 
