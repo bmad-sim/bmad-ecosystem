@@ -154,7 +154,6 @@ end type
 !
 
 type (bp_com_struct), save :: bp_com
-type (ele_struct), target, save :: beam_ele, param_ele
 
 character(40) :: blank = ' '
 
@@ -185,6 +184,7 @@ subroutine get_attribute (how, ele, ring, pring, &
   type (parser_ring_struct) pring
   type (ele_struct), target ::  ele, ele0
   type (wig_term_struct), pointer :: wig_term(:)
+  type (real_array_struct), allocatable, save :: r_ptrs(:)
 
   real(rp) kx, ky, kz, tol, value, coef
   real(rp), pointer :: r_ptr
@@ -320,7 +320,7 @@ subroutine get_attribute (how, ele, ring, pring, &
     call evaluate_value (trim(ele%name) // ' ' // word, value, &
                                       ring, delim, delim_found, err_flag) 
     if (err_flag) return
-    call pointer_to_attribute (ele, word, .false., r_ptr, ix_attrib, err_flag)
+    call pointer_to_attribute (ele, word, .false., r_ptr, err_flag)
     if (err_flag) then
       bp_com%error_flag = .true.
       return
@@ -339,6 +339,22 @@ subroutine get_attribute (how, ele, ring, pring, &
     return
   endif
 
+! bunch_start element
+
+  if (ele%key == def_bunch_start$) then
+    call evaluate_value (trim(ele%name) // ' ' // word, value, &
+                                      ring, delim, delim_found, err_flag) 
+    if (err_flag) return
+    call pointers_to_attribute (ring, ele%name, word, .false., r_ptrs, err_flag)
+    if (err_flag) then
+      bp_com%error_flag = .true.
+      return
+    endif
+
+    r_ptrs(1)%r = value
+    return
+  endif
+
 ! Long-range wake
 
   if (word == 'LR' .and. delim == '(') then
@@ -348,7 +364,7 @@ subroutine get_attribute (how, ele, ring, pring, &
       call warning ('NO "=" SIGN FOUND', 'FOR ELEMENT: ' // ele%name)
       return
     endif
-    call pointer_to_attribute (ele, 'LR(' // word, .false., r_ptr, i, err_flag, .false.)
+    call pointer_to_attribute (ele, 'LR(' // word, .false., r_ptr, err_flag, .false.)
     if (err_flag) then
       call warning ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
       return
@@ -1485,12 +1501,12 @@ subroutine word_to_value (word, ring, value)
 
   type (ring_struct), target ::  ring
   type (ele_struct), pointer :: ele
+  type (real_array_struct), allocatable, save :: ptr(:)
 
   integer i, ix1, ix2, ix_word, ios, ix
   real(rp) value
-  real(rp), pointer :: ptr
   character(*) word
-  character(40) name
+  character(40) attrib_name, ele_name
   logical err_flag
 
 ! see if this is numeric
@@ -1523,39 +1539,20 @@ subroutine word_to_value (word, ring, value)
 
 ! Here if word does have a "[...]" then is a element attribute
 
-  name = word(:ix1-1)    ! name of attribute
-
-  if (name == beam_ele%name) then
-    ele => beam_ele
-
-  else
-    do i = 0, ring%n_ele_max
-      if (ring%ele_(i)%name == name) then
-        ele => ring%ele_(i)
-        exit
-      endif
-    enddo
-
-    if (i == ring%n_ele_max + 1) then
-      call warning ('ELEMENT NOT DEFINED: ' // name)
-      value = 0
-      return
-    endif
-
-  endif
+  ele_name = word(:ix1-1)    ! name of attribute
 
   ix2 = index(word, ']')
-  name = word(ix1+1:ix2-1)
+  attrib_name = word(ix1+1:ix2-1)
 
-  if (name == 'S' .and. bp_com%parser_name /= 'BMAD_PARSER2') then
+  if (attrib_name == 'S' .and. bp_com%parser_name /= 'BMAD_PARSER2') then
     call warning ('"S" ATTRIBUTE CAN ONLY BE USED WITH BMAD_PARSER2')
   endif
 
-  call pointer_to_attribute (ele, name, .false., ptr, ix, err_flag, .false.)
+  call pointers_to_attribute (ring, ele_name, attrib_name, .false., ptr, err_flag, .false.)
   if (err_flag) then
-    call warning('BAD ATTRIBUTE NAME: ' // word)
+    call warning('BAD ATTRIBUTE: ' // word)
   else
-    value = ptr
+    value = ptr(1)%r
   endif
 
   return

@@ -48,8 +48,9 @@ function attribute_name (ele, ix_att) result (at_name)
 
     do i = 1, n_key
                                     
-      if (i == def_beam$)      cycle
-      if (i == def_parameter$) cycle
+      if (i == def_beam$)       cycle
+      if (i == def_parameter$)  cycle
+      if (i == def_bunch_start$) cycle
 
       attrib_array(i, type$)     = 'TYPE'
       attrib_array(i, alias$)    = 'ALIAS'
@@ -146,6 +147,13 @@ function attribute_name (ele, ix_att) result (at_name)
     attrib_array(def_beam$, particle$)   = 'PARTICLE'
     attrib_array(def_beam$, energy_gev$) = 'ENERGY'
     attrib_array(def_beam$, n_part$)     = 'N_PART'
+
+    attrib_array(def_bunch_start$, x$)     = 'X'
+    attrib_array(def_bunch_start$, p_x$)   = 'P_X'
+    attrib_array(def_bunch_start$, y$)     = 'Y'
+    attrib_array(def_bunch_start$, p_y$)   = 'P_Y'
+    attrib_array(def_bunch_start$, z$)     = 'Z'
+    attrib_array(def_bunch_start$, p_z$)   = 'P_Z'
 
     attrib_array(taylor$, l$)           = 'L'
     attrib_array(taylor$, x_offset$)    = 'X_OFFSET'   

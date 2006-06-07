@@ -54,6 +54,7 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
   type (ring_struct), target :: lat
   type (ring_struct), save :: lat2
   type (ele_struct), pointer :: ele
+  type (ele_struct), target, save :: beam_ele, param_ele, bunch_start_ele
   type (coord_struct), optional :: orbit_(0:)
   type (parser_ring_struct) plat
   type (ele_struct), allocatable, save :: old_ele(:) 
@@ -90,12 +91,14 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
 
   call allocate_pring (lat, plat)
 
+  call init_ele(beam_ele)
   beam_ele%name = 'BEAM'              ! fake beam element
   beam_ele%key = def_beam$            ! "definition of beam"
   beam_ele%value(particle$)   = lat%param%particle 
   beam_ele%value(energy_gev$) = 0
   beam_ele%value(n_part$)     = lat%param%n_part
 
+  call init_ele (param_ele)
   param_ele%name = 'PARAMETER'
   param_ele%key = def_parameter$
   param_ele%value(lattice_type$) = lat%param%lattice_type
@@ -103,7 +106,11 @@ subroutine bmad_parser2 (lat_file, lat, orbit_, make_mats6, &
   param_ele%value(taylor_order$) = lat%input_taylor_order
   param_ele%value(n_part$)       = lat%param%n_part
 
-! See if a digested bmad file is available
+  call init_ele (bunch_start_ele)
+  bunch_start_ele%name = 'BUNCH_START'
+  bunch_start_ele%key = def_bunch_start$
+
+! see if a digested bmad file is available
 
   if (present(digested_file_name)) then
     digested_name = digested_file_name

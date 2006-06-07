@@ -466,6 +466,8 @@ subroutine init_ring (ring, n)
   ring%input_file_name = ' '
   ring%param%stable = .true.
 
+  ring%bunch_start%vec = 0
+
 end subroutine
 
 !----------------------------------------------------------------------------

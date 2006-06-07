@@ -68,7 +68,7 @@ subroutine set_ele_attribute (ring, i_ele, attrib_name, &
   ele => ring%ele_(i_ele)
 
   call pointer_to_attribute (ele, attrib_name, .true., &
-                                             ptr_attrib, ix_attrib, err_flag)
+                                             ptr_attrib, err_flag, ix_attrib=ix_attrib)
   if (err_flag) return
   if (.not. attribute_free (i_ele, ix_attrib, ring)) return
 

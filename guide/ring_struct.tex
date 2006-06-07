@@ -21,16 +21,17 @@ type ring_struct
   character*80 input_file_name ! Lattice input file name
   character*80 title           ! From TITLE statement
   type (param_struct) param    ! parameters
-  integer version              ! Version number for digested files
-  integer n_ele_use            ! number of physical lattice elements
-  integer n_ele_max            ! Index of last element used
-  integer n_control_array      ! last index used in CONTROL_ array
-  integer n_ic_array           ! last index used in IC_ array
-  integer input_taylor_order   ! As set in the input file
-  integer ic_(n_control_maxx)  ! index to %control_(:)
   type (ele_struct), pointer :: ele_(:)    ! Array of lattice elements
   type (ele_struct)  ele_init              ! For use by any program
   type (control_struct)  control_(n_control_maxx)  ! control list
+  type (coord_struct) bunch_start  ! Starting coordinates.
+  integer version                  ! Version number for digested files
+  integer n_ele_use                ! number of physical lattice elements
+  integer n_ele_max                ! Index of last element used
+  integer n_control_array          ! last index used in CONTROL_ array
+  integer n_ic_array               ! last index used in IC_ array
+  integer input_taylor_order       ! As set in the input file
+  integer ic_(n_control_maxx)      ! index to %control_(:)
   real(rp), pointer :: beam_energy ! = %ele_(0)%value(beam_energy$)
 end type
 \end{verbatim}
@@ -77,10 +78,10 @@ The \vn{%ele_init} component within the \vn{ring_struct} is not used
 by \bmad\ and is available for general program use.
 
 %----------------------------------------------------------------------------
-\section{Param\_struct Structure}
+\section{Param\_struct Component}
 \index{Param_struct}
 
-The \vn{%param} variable within the \vn{ring_struct} is a
+The \vn{%param} component within the \vn{ring_struct} is a
 \vn{param_struct} structure whose definition is shown in
 Figure~\ref{f:param_struct}
 \begin{figure}[htb]
@@ -149,6 +150,17 @@ growth rate per turn of the unstable mode.  \vn{%param%t1_with_RF} and
 \vn{%param%t1_no_RF} are set by various routines. Other routines use
 these matrices as input for calculations.
 
+%----------------------------------------------------------------------------
+\section{Bunch\_start Component}
+\label{s:ring_bunch_start}
+
+The \vn{%bunch_start} component within the \vn{ring_struct} is a
+\vn{coord_struct} structure for holding the information obtained from
+\vn{bunch_start} statements (\sref{s:bunch_start}) in a \bmad lattice
+file. 
+
+This component is not used in any standard \bmad calculation. It is up
+to an individual program to use as desired.
 
 %----------------------------------------------------------------------------
 \section{Finding Elements and Changing Their Value}

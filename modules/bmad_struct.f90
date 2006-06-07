@@ -245,7 +245,7 @@ type ring_struct
   type (ele_struct)  ele_init      ! For use by any program
   type (ele_struct), pointer ::  ele_(:) => null()        ! Array of elements
   type (control_struct), pointer :: control_(:) => null() ! control list
-  type (coord_struct) beam_start   ! Starting coords
+  type (coord_struct) bunch_start  ! Starting coords
   integer version                  ! Version number
   integer n_ele_use                ! Number of regular ring elements
   integer n_ele_ring               ! OBSOLETE: Identical to n_ele_use.
@@ -278,7 +278,7 @@ integer, parameter :: null_ele$ = 27, init_ele$ = 28, hom$ = 29
 integer, parameter :: match$ = 30, monitor$ = 31, instrument$ = 32
 integer, parameter :: hkicker$ = 33, vkicker$ = 34, rcollimator$ = 35
 integer, parameter :: ecollimator$ = 36, i_beam$ = 37, bend_sol_quad$ = 38
-integer, parameter :: def_beam_start$ = 39
+integer, parameter :: def_bunch_start$ = 39
 
 integer, parameter :: n_key = 39
 
@@ -292,7 +292,7 @@ character(16) :: key_name(n_key) = (/ &
     'LCAVITY      ', 'DEF_PARAMETER', 'NULL_ELE     ', 'INIT_ELE     ', &
     'HOM          ', 'MATCH        ', 'MONITOR      ', 'INSTRUMENT   ', &
     'HKICKER      ', 'VKICKER      ', 'RCOLLIMATOR  ', 'ECOLLIMATOR  ', &
-    'I_BEAM       ', 'BEND_SOL_QUAD', 'BEAM_START   ' /)
+    'I_BEAM       ', 'BEND_SOL_QUAD', 'BUNCH_START  ' /)
 
 ! Attribute name logical definitions
 ! Note: The following attributes must have unique number assignments:
@@ -315,7 +315,7 @@ integer, parameter :: beta_x0$ = 2, alpha_x0$ = 3, beta_y0$ = 4, &
           eta_x0$ = 12, etap_x0$ = 13, eta_y0$ = 14, etap_y0$ = 15, &
           eta_x1$ = 16, etap_x1$ = 17, eta_y1$ = 18, etap_y1$ = 19
 
-! integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
+integer, parameter :: x$ = 1, p_x$ = 2, y$ = 3, p_y$ = 4, z$ = 5, p_z$ = 6
 
 !  integer, parameter :: x_position$ = 2, y_position$ = 3, z_position$ = 4, &
 !          theta_position$ = 5, phi_position$ = 6, psi_position$ = 7, &

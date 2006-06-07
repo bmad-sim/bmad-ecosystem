@@ -1,6 +1,6 @@
 !+
 ! Subroutine pointer_to_attribute (ele, attrib_name, do_allocation,
-!                            ptr_attrib, ix_attrib, err_flag, err_print_flag)
+!                            ptr_attrib, err_flag, err_print_flag, ix_attrib)
 !
 ! Returns a pointer to an attribute of an element ele with attribute name attrib_name.
 ! Note: Use attribute_free to see if the attribute may be varied independently.
@@ -23,16 +23,15 @@
 ! Output:
 !   ptr_attrib -- Real(rp), pointer: Pointer to the attribute.
 !                     Pointer will be deassociated if there is a problem.
-!   ix_attrib  -- Ineger: If applicable then this is the index to the 
+!   err_flag   -- Logical: Set True if attribtute not found. False otherwise.
+!   ix_attrib  -- Ineger, optional: If applicable then this is the index to the 
 !                     attribute in the ele%value(:) array.
-!   err_flag   -- Logical: Set True if attribtute not found or attriubte
-!                     cannot be changed directly.
 !-
 
 #include "CESR_platform.inc"
 
 Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
-                  ptr_attrib, ix_attrib, err_flag, err_print_flag)
+                  ptr_attrib, err_flag, err_print_flag, ix_attrib)
 
   use bmad_struct
   use bmad_interface, except => pointer_to_attribute
@@ -45,7 +44,8 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
 
   real(rp), pointer :: ptr_attrib
 
-  integer ix_attrib, ix_d, n, ios, n_lr
+  integer, optional :: ix_attrib
+  integer ix_d, n, ios, n_lr, ix_a
 
   character(*) attrib_name
   character(40) a_name
@@ -61,7 +61,7 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
 
   do_print = logic_option (.true., err_print_flag)
   call str_upcase (a_name, attrib_name)
-  ix_attrib = 0
+  if (present(ix_attrib)) ix_attrib = 0
 
 ! Check to see if the attribute is a long-range wake
 
@@ -161,11 +161,12 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
 
 ! Get attribute index
 
-  ix_attrib = attribute_index (ele, a_name)
+  ix_a = attribute_index (ele, a_name)
+  if (present(ix_attrib)) ix_attrib = ix_a
 
 ! multipole?
 
-  if (ix_attrib >= a0$ .and. ix_attrib <= b20$) then   ! multipole attribute
+  if (ix_a >= a0$ .and. ix_a <= b20$) then   ! multipole attribute
 
     if (.not. associated(ele%a)) then
       if (do_allocation) then
@@ -177,19 +178,19 @@ Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
       endif
     endif
 
-    if (ix_attrib >= b0$) then
-      ptr_attrib => ele%b(ix_attrib-b0$)
+    if (ix_a >= b0$) then
+      ptr_attrib => ele%b(ix_a-b0$)
     else
-      ptr_attrib => ele%a(ix_attrib-a0$)
+      ptr_attrib => ele%a(ix_a-a0$)
     endif
 
-  elseif (ix_attrib < 1 .or. ix_attrib > n_attrib_maxx) then
+  elseif (ix_a < 1 .or. ix_a > n_attrib_maxx) then
     goto 9000 ! Error message and return
 
 ! otherwise must be in ele%value(:) array
 
   else
-    ptr_attrib => ele%value(ix_attrib)
+    ptr_attrib => ele%value(ix_a)
   endif
 
 

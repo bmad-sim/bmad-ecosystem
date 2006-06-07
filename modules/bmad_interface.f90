@@ -641,31 +641,32 @@ end interface
 
 interface
   Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
-                    ptr_attrib, ix_attrib, cannot_vary_flag, err_print_flag)
+                    ptr_attrib, err_flag, err_print_flag, ix_attrib)
     use bmad_struct, only: ele_struct, rp
     implicit none
     type (ele_struct), target :: ele
     real(rp), pointer :: ptr_attrib
-    integer ix_attrib
     character(*) attrib_name
-    logical cannot_vary_flag
+    logical err_flag
     logical do_allocation
     logical, optional :: err_print_flag
+    integer, optional :: ix_attrib
   end subroutine
 end interface
 
 interface
   Subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
-                    ptr, ix_attrib, cannot_vary_flag, err_print_flag)
+                    ptr_array, err_flag, err_print_flag, ix_eles, ix_attrib)
     use bmad_struct, only: ring_struct, real_array_struct
     implicit none
     type (ring_struct) lat
-    type (real_array_struct), allocatable :: ptr(:)
-    integer ix_attrib
+    type (real_array_struct), allocatable :: ptr_array(:)
     character(*) ele_name, attrib_name
-    logical cannot_vary_flag
+    logical err_flag
     logical do_allocation
     logical, optional :: err_print_flag
+    integer, optional, allocatable :: ix_eles(:)
+    integer, optional :: ix_attrib
   end subroutine
 end interface
 
