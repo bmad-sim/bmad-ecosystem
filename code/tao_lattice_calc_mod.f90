@@ -298,7 +298,7 @@ if (.not. u%coupling%coupled) then
     endif
     ! transfer extracted particle info into macro_init
     if (extract_at_ix_ele .ne. -1) then
-      beam_init%center  = tao_lat%orb(extract_at_ix_ele)%vec
+      beam_init%center  = tao_lat%lat%bunch_start%vec
       ! other beam_init parameters will be as in tao.init, or as above
       call init_beam_distribution (lat%ele_(extract_at_ix_ele), &
                                beam_init, s%u(i_uni_to)%coupling%injecting_beam)
@@ -463,7 +463,7 @@ if (.not. u%coupling%coupled) then
     endif
     !transfer extracted particle info into macro_init
     if (extract_at_ix_ele .ne. -1) then
-      macro_init%center  = tao_lat%orb(extract_at_ix_ele)%vec
+      macro_init%center  = tao_lat%lat%bunch_start%vec
       ! other macro_init parameters will be as in init.tao, or as above
       call init_macro_distribution (s%u(i_uni)%coupling%injecting_macro_beam, &
                                 macro_init, lat%ele_(extract_at_ix_ele), .true.)
@@ -768,7 +768,7 @@ character(20) :: r_name = "tao_inject_beam"
 !
 
 if (.not. u%coupling%coupled) then
-  u%beam%beam_init%center = u%model%orb(0)%vec
+  u%beam%beam_init%center = u%model%lat%bunch_start%vec
   call init_beam_distribution (lat%ele_(0), u%beam%beam_init, u%beam%beam)
 else
    
@@ -837,7 +837,7 @@ character(20) :: r_name = "tao_inject_macro_beam"
 !
 
 if (.not. u%coupling%coupled) then
-  u%macro_beam%macro_init%center = u%model%orb(0)%vec
+  u%macro_beam%macro_init%center = u%model%lat%bunch_start%vec
   call init_macro_distribution (u%macro_beam%beam, u%macro_beam%macro_init, &
                                 lat%ele_(0), .true.)
   u%macro_beam%ix_lost(:,:,:) = not_lost$
