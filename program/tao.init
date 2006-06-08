@@ -23,41 +23,6 @@
 /
 
 !------------------------------------------------------------------------
-!------------------------------------------------------------------------
-
-&tao_d2_data
-  d2_data%name = "my_cons"
-  n_d1_data = 1
-/
-
-&tao_d1_data
-  ix_d1_data = 1
-  d1_data%name = "a"
-  default_weight = 1
-  ix_min_data = 0
-  ix_max_data = 99
-  data( 1) = '' 'beta.x'           ''       'IP_L0'       'target'   1.266   1.0E1
-  data( 2) = '' 'beta.y'           ''       'IP_L0'       'target'   27.25   5.0E1
-  data( 3) = '' 'beta.x'           'IP_L0'  'IP_L0_END'   'max'      50.0    4.0E13
-  data( 4) = '' 'beta.y'           'IP_L0'  'IP_L0_END'   'max'      55.0    4.0E13
-  data( 5) = '' 'alpha.x'          ''       'IP_L0_END'   'abs_max'  0.001   1.0E16
-  data( 6) = '' 'alpha.y'          ''       'IP_L0_END'   'abs_max'  0.001   1.0E16
-  data( 7) = '' 'alpha.x'          ''       'IP_L3'       'abs_max'  0.001   1.0E16
-  data( 8) = '' 'alpha.y'          ''       'IP_L3'       'abs_max'  0.001   1.0E16
-  data( 9) = '' 'eta.x'            'Q03W'   'Q03E'        'abs_max'  1.5     2.0E14
-  data(10) = '' 'eta.x'            'Q03W'   'Q03E'        'abs_max'  3.0     1.0E6
-  data(11) = '' 'etap.x'           ''       'IP_L3'       'abs_max'  0.0     1.0E16
-  data(12) = '' 'etap.x'           ''       'IP_L0_END'   'abs_max'  0.0     1.0E13
-  data(13) = '' 'phase.x'          'IP_L0'  'IP_L0_END'   'target'   14.53   1.0E17
-  data(14) = '' 'phase.y'          'IP_L0'  'IP_L0_END'   'target'   9.58    1.0E1
-  data(15) = '' 'emittance.a'      ''       ''            'max'      6.0E-9  5.0E23
-  data(16) = '' 'chrom.a'          ''       ''            'target'   1.0     1.0
-  data(17) = '' 'chrom.b'          ''       ''            'target'   1.0     1.0
-  data(18) = '' 'unstable_ring'    ''       ''            'target'   0.0     1.0E16
-  data(19) = '' 'phase_frac_diff'  'IP_L0'  'IP_L0_END'   'target'   14.53   1.0E17
-/ 
-
-!------------------------------------------------------------------------
 ! Data
 
 &tao_d2_data

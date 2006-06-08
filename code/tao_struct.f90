@@ -309,8 +309,6 @@ type tao_var_struct
   real(rp) meas_value       ! The value when the data measurement was taken.
   real(rp) ref_value        ! Value when the reference measurement was taken.
   real(rp) correction_value ! Value determined by a fit to correct the lattice.
-  real(rp) plot_model_value ! the value being plotted (if plotting model)
-  real(rp) plot_base_value  ! the value being plotted (if plotting base)
   real(rp) high_lim         ! High limit for the model_value.
   real(rp) low_lim          ! Low limit for the model_value.
   real(rp) step             ! Sets what is a small step for varying this var.

@@ -42,7 +42,7 @@ character(20) abs_or_rel
 character(100) l1, num, fmt
 character(200), allocatable, save :: lines(:)
 
-logical err
+logical err, exists
 
 !-------------------------------------------------
 
@@ -55,6 +55,18 @@ call tao_find_var (err, name, v_array = v_array)
 if (err) return
 if (.not. allocated(v_array)) then
   call out_io (s_error$, r_name, 'BAD VARIABLE NAME: ' // name)
+  return
+endif
+
+! We need at least one variable to exist.
+
+exists = .false.
+do i = 1, size(v_array)
+  if (v_array(i)%v%exists) exists = .true.
+enddo
+
+if (.not. exists) then
+  call out_io (s_error$, r_name, 'VARIABLE DOES NOT EXIST')
   return
 endif
 
@@ -86,7 +98,7 @@ else
   fmt = '(5x, I5, 2x, f12.6, a, 4f12.6)'
 endif
 
-l1 = '     Index         Old              New       Delta  Old-Design  New-Design'
+l1 = '     Index           Old             New       Delta  Old-Design  New-Design'
 nl=nl+1; lines(nl) = l1
 
 n = size(v_array)
@@ -94,6 +106,7 @@ call re_allocate (lines, len(lines(1)), n+100)
 
 do i = 1, size(v_array)
   var => v_array(i)%v
+  if (.not. var%exists) cycle
   delta = var%model_value - var%old_value
   nl=nl+1; write (lines(nl), fmt) i, var%old_value, '  ->', &
        var%model_value, delta, var%old_value - var%design_value, &
@@ -102,14 +115,14 @@ enddo
 nl=nl+1; lines(nl) = l1
 
 if (max(abs(old_merit), abs(new_merit)) > 100) then
-  fmt = '(5x, 2(a, f13.2), f13.2)'
+  fmt = '(5x, 2(a, es15.6), es15.6)'
 else
   fmt = '(5x, 2(a, f13.6), f13.6)'
 endif
 
 nl=nl+1; lines(nl) = ' '
-nl=nl+1; write (lines(nl), fmt) 'Merit:      ', &
-                        old_merit, '  ->', new_merit, new_merit-old_merit
+nl=nl+1; write (lines(nl), fmt) 'Merit:      ', old_merit, '  ->', new_merit
+nl=nl+1; write (lines(nl), fmt) 'dMerit:     ', new_merit-old_merit
 if (delta /= 0) then
   nl=nl+1; write (lines(nl), '(5x, a, es11.3)') 'dMerit/dVar:', &
                                      (new_merit-old_merit) / delta

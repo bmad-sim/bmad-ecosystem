@@ -642,31 +642,31 @@ case ('plot')
   if (word(1) == ' ') then
 
     nl=nl+1; lines(nl) = ' '
-    nl=nl+1; lines(nl) = 'Templates:    Plot.Graph'
-    nl=nl+1; lines(nl) = '         --------- ----------'
+    nl=nl+1; lines(nl) = 'Templates:        Plot.Graph'
+    nl=nl+1; lines(nl) = '             --------- ----------'
     do i = 1, size(s%template_plot)
       plot => s%template_plot(i)
       if (plot%name == ' ') cycle
-      nl=nl+1; lines(nl) = ' '
-      ix = len(name) - len_trim(plot%name) + 1
+      ix = 21 - len_trim(plot%name)
       name = ' '
       name(ix:) = trim(plot%name)
       if (associated(plot%graph)) then
         do j = 1, size(plot%graph)
-          nl=nl+1; write (lines(nl), '(2x, 3a)') name, '.', plot%graph(j)%name
+          nl=nl+1; write (lines(nl), '(2x, 3a)') name(1:20), '.', plot%graph(j)%name
           name = ' '
         enddo
       else
-        nl=nl+1; write (lines(nl), '(2x, 2a)') name, '.'
+        nl=nl+1; write (lines(nl), '(2x, 2a)') name(1:20), '.'
       endif
+      nl=nl+1; lines(nl) = ' '
     enddo
 
     nl=nl+1; lines(nl) = ' '
-    nl=nl+1; lines(nl) = '[Visible]     Plot Region     <-->  Template' 
-    nl=nl+1; lines(nl) = '---------     -----------           ------------'
+    nl=nl+1; lines(nl) = '[Visible]     Plot Region         <-->  Template' 
+    nl=nl+1; lines(nl) = '---------     -----------               ------------'
     do i = 1, size(s%plot_page%region)
       region => s%plot_page%region(i)
-      nl=nl+1; write (lines(nl), '(3x l1, 10x, 3a)') region%visible, &
+      nl=nl+1; write (lines(nl), '(3x l1, 10x, a20, 2a)') region%visible, &
                                     region%name, '<-->  ', region%plot%name
     enddo
 

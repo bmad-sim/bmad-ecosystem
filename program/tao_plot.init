@@ -280,8 +280,8 @@ Templates define the basics of, say, how to display an orbit.
   graph%title = 'Quadrupole K1 (1/m^2)'
   graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
   graph%y%label = 'k1'
-  graph%y%max =  0.1
-  graph%y%min = -0.1
+  graph%y%max =  2
+  graph%y%min = -6
   graph%y%major_div = 4
   graph%n_curve = 1
   curve(1)%data_source = 'var_array'

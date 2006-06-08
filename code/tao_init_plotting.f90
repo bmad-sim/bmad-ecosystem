@@ -236,14 +236,18 @@ do
       if (i_uni == 0) i_uni = s%global%u_view
  
       ! Find the ele_ref info if either ele_ref_name or ix_ele_ref has been set.
-      ! If plotting something like the phase then the default is for ele_ref to be the beginning element.
+      ! If plotting something like the phase then the default is for ele_ref 
+      ! to be the beginning element.
 
       if (crv%ele_ref_name == ' ' .and. crv%ix_ele_ref >= 0) then ! if ix_ele_ref has been set ...
         crv%ele_ref_name = s%u(i_uni)%design%lat%ele_(crv%ix_ele_ref)%name ! then find the name
       elseif (crv%ele_ref_name /= ' ') then                    ! if ele_ref_name has been set ...
         call tao_locate_element (crv%ele_ref_name, i_uni, ix_ele, .true.) ! then find the index
         crv%ix_ele_ref = ix_ele(1)
-      elseif (crv%data_type(1:5) == 'phase' .or. crv%data_type(1:2) == 'r.' .or. &
+      elseif (crv%data_type(1:5) == 'phase') then
+        crv%ix_ele_ref = 0
+        crv%ele_ref_name = '-' ! So plot_data_setup knows it can set the average plotted phase to 0.
+      elseif (crv%data_type(1:2) == 'r.' .or. &
               crv%data_type(1:2) == 't.' .or. crv%data_type(1:3) == 'tt.') then
         crv%ix_ele_ref = 0
         crv%ele_ref_name = s%u(i_uni)%design%lat%ele_(0)%name

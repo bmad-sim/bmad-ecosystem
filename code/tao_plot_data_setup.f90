@@ -20,7 +20,7 @@ type (tao_curve_struct), pointer :: curve
 type (ele_struct), pointer :: ele
 
 integer i, ii, k, m, n_dat, i_uni, ie, jj
-integer ix_this, ix, ir, jg
+integer ix, ir, jg
 
 logical found
 character(20) :: r_name = 'tao_plot_data_setup'
@@ -245,12 +245,13 @@ type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_v1_var_struct) , pointer :: v1_ptr
 type (tao_data_struct) datum
 type (taylor_struct) t_map(6)
+type (tao_var_struct), pointer :: v_ptr
 
-real(rp) f, y_val, eps, ax_min, ax_max
+real(rp) f, y_val, eps, ax_min, ax_max, gs
 real(rp), pointer :: value(:)
 
-integer ii, k, m, n_dat, i_uni, ie, jj
-integer ix_this, ix, ir, jg, i, i_max, i_min
+integer ii, k, m, n_dat, i_uni, ie, jj, iv, ic
+integer ix, ir, jg, i, i_max, i_min, ix_this
 integer, allocatable, save :: ix_ele(:)
 
 logical err, smooth_curve, found
@@ -297,7 +298,7 @@ do k = 1, size(graph%curve)
   if (curve%ix_universe /= 0) i_uni = curve%ix_universe 
   u => s%u(i_uni)
 
-  call tao_locate_element (curve%ele_ref_name, i_uni, ix_ele, .true.)
+  if (curve%ele_ref_name /= '-') call tao_locate_element (curve%ele_ref_name, i_uni, ix_ele, .true.)
   curve%ix_ele_ref = ix_ele(1)
   if (curve%ix_ele_ref < 0) curve%ix_ele_ref = 0
 
@@ -402,18 +403,24 @@ do k = 1, size(graph%curve)
     endif
 
     ! find which universe we're viewing
-
     ix_this = -1
-    do jj = 1, size(v1_ptr%v(1)%this)
-      if (v1_ptr%v(1)%this(jj)%ix_uni == s%global%u_view) ix_this = jj
-    enddo
-    if (ix_this == -1) then
+    v_loop: do iv = lbound(v1_ptr%v, 1), ubound(v1_ptr%v,1)
+      v_ptr => v1_ptr%v(iv)
+      if (.not. v_ptr%exists) cycle
+      do jj = 1, size(v_ptr%this)
+        if (v_ptr%this(jj)%ix_uni .eq. s%global%u_view) then
+          ix_this = jj
+          exit v_loop
+        endif
+      enddo
+    enddo v_loop
+    if (ix_this .eq. -1) then
       call out_io (s_error$, r_name, &
                      "This variable doesn't point to the currently displayed  universe.")
       graph%valid = .false.
       return
     endif
-      
+
     v1_ptr%v%good_plot = .true.
     eps = 1e-4 * (plot%x%max - plot%x%min)
     if (plot%x_axis_type == 'index') then
@@ -457,25 +464,34 @@ do k = 1, size(graph%curve)
     curve%y_symb = 0
 
     do m = 1, size(graph%who)
+
+      gs = graph%who(m)%sign
+
       select case (graph%who(m)%name)
       case (' ') 
         cycle
 
       ! set value to whatever it is in currently viewed universe
       case ('model') 
+        ic = 0
         do jj = lbound(v1_ptr%v,1), ubound(v1_ptr%v,1)
-          if (associated(v1_ptr%v(jj)%this(ix_this)%model_ptr)) &
-                      v1_ptr%v(jj)%plot_model_value = v1_ptr%v(jj)%this(ix_this)%model_ptr
+          v_ptr => v1_ptr%v(jj)
+          if (.not. v_ptr%useit_plot) cycle
+          ic = ic + 1
+          curve%y_symb(ic) = curve%y_symb(ic) + gs * v_ptr%this(ix_this)%model_ptr
         enddo
-        value => v1_ptr%v%plot_model_value
+        cycle
 
       ! set value to whatever it is in currently viewed universe
       case ('base')  
+        ic = 0
         do jj = lbound(v1_ptr%v,1), ubound(v1_ptr%v,1)
-          if (associated(v1_ptr%v(jj)%this(ix_this)%base_ptr)) &
-                      v1_ptr%v(jj)%plot_base_value = v1_ptr%v(jj)%this(ix_this)%base_ptr
+          v_ptr => v1_ptr%v(jj)
+          if (.not. v_ptr%useit_plot) cycle
+          ic = ic + 1
+          curve%y_symb(ic) = curve%y_symb(ic) + gs * v_ptr%this(ix_this)%base_ptr
         enddo
-        value => v1_ptr%v%plot_base_value
+        cycle
 
       case ('design')  
         value => v1_ptr%v%design_value
@@ -489,8 +505,8 @@ do k = 1, size(graph%curve)
         return
       end select
 
-      curve%y_symb = curve%y_symb + &
-                   graph%who(m)%sign * pack(value, mask = v1_ptr%v%useit_plot)
+      curve%y_symb = curve%y_symb + gs * pack(value, mask = v1_ptr%v%useit_plot)
+
     enddo
 
     if (curve%convert) curve%y_symb = curve%y_symb * &
@@ -655,7 +671,7 @@ do k = 1, size(graph%curve)
 ! Note: Since there is an arbitrary overall phase, the phase data 
 ! gets renormalized so that the average value is zero.
 
-  if (curve%data_type(1:6) == 'phase.' .and. n_dat /= 0 .and. curve%ele_ref_name == ' ') then
+  if (curve%data_type(1:6) == 'phase.' .and. n_dat /= 0 .and. curve%ele_ref_name == '-') then
     f = sum(curve%y_symb) / n_dat
     curve%y_symb = curve%y_symb - f
     curve%y_line = curve%y_line - f 
@@ -796,6 +812,18 @@ do ii = 1, size(curve%x_line)
   case ('cbar.22')
     call c_to_cbar (ele, cbar)
     value = cbar(2,2)
+  case ('coupling.11b')
+    call c_to_cbar (ele, cbar)
+    value = cbar(1,1) * sqrt(ele%x%beta/ele%y%beta) / ele%gamma_c
+  case ('coupling.12a')
+    call c_to_cbar (ele, cbar)
+    value = cbar(1,2) * sqrt(ele%y%beta/ele%x%beta) / ele%gamma_c
+  case ('coupling.12b')
+    call c_to_cbar (ele, cbar)
+    value = cbar(1,2) * sqrt(ele%x%beta/ele%y%beta) / ele%gamma_c
+  case ('coupling.22a')
+    call c_to_cbar (ele, cbar)
+    value = cbar(2,2)* sqrt(ele%y%beta/ele%x%beta) / ele%gamma_c
   case ('sigma.p_z')
     value = sqrt(bunch_params%sigma(s66$))
   case ('r.')
