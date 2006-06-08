@@ -619,9 +619,9 @@ plot beta and phase.
   place top beta
   place bottom phase
   plot all meas - model
-  change var quad\_k1 10 0.001
-  change var quad\_k1 21 -0.001
-  change var quad\_k1 67 -0.005
+  change var quad\_k1[10] 0.001
+  change var quad\_k1[21] -0.001
+  change var quad\_k1[67] -0.005
   scale
 \end{example}
 The lattice is now sufficiently screwed up.
@@ -711,6 +711,7 @@ adjusted. We can then specify these variables ranges.
   scale
   use var quad\_k1[8:12,20:25,65:70]
   run
+  show constraints
   sho var quad\_k1[8:12,20:25,65:70]
 \end{example}
 Different quadrupoles than the ones we initially changed were still

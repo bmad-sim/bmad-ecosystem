@@ -253,7 +253,7 @@ do i = 1, size(s%u)
 
     ie = data%ix_ele0
     if (ie < 1) then
-      con(nc)%loc0 = ' '
+      con(nc)%loc0 = '-'
     else
       con(nc)%loc0 = s%u(i)%model%lat%ele_(ie)%name
     endif
@@ -281,7 +281,7 @@ do i = 1, size(s%var(:))
   con(nc)%name       = var%name
   iu = var%this(1)%ix_uni
   con(nc)%loc1 = s%u(iu)%model%lat%ele_(var%this(1)%ix_ele)%name
-  con(nc)%loc0 = ' '
+  con(nc)%loc0 = '-'
   if (var%merit_type == 'target') then
     con(nc)%target_value = var%meas_value
   elseif (var%merit_type == 'limit') then
@@ -335,8 +335,8 @@ enddo
 
 l1 = 'Constraint'
 n=3+n_d2_d1_name+2+n_name; l1(n:) = 'Where0'
-n=len_trim(l1)+n_loc0-4;   l1(n:) = ' Where'
-n=len_trim(l1)+n_loc1-2;   l1(n:) = 'Target       Value     Merit   Max'
+n=len_trim(l1)+n_loc0-4;   l1(n:) = 'Where'
+n=len_trim(l1)+n_loc1-1;   l1(n:) = 'Target       Value     Merit   Max'
 
 nl=nl+1; line(nl) = ' '
 nl=nl+1; line(nl) = l1

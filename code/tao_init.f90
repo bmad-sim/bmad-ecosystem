@@ -49,8 +49,8 @@ subroutine tao_init (init_file)
   call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
   read (iu, nml = tao_start)
   close (iu)
-
   tao_com%init_name = init_name
+  bmad_status%exit_on_error = .false.
 
   if (associated(s%u)) call deallocate_everything ()
   allocate (s%u(n_universes))
