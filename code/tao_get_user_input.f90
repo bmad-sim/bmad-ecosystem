@@ -29,8 +29,8 @@ character(*) :: cmd_line
 character(*), optional :: prompt_str
 character(80) prompt_string
 
-character(3) :: str(9) = (/ '[1]', '[2]', '[3]', '[4]', '[5]', &
-                            '[6]', '[7]', '[8]', '[9]' /)
+character(5) :: sub_str(9) = (/ '[[1]]', '[[2]]', '[[3]]', '[[4]]', '[[5]]', &
+                            '[[6]]', '[[7]]', '[[8]]', '[[9]]' /)
 character(40) tag
 character(200), save :: saved_line
 
@@ -89,9 +89,9 @@ if (tao_com%nest_level /= 0) then
     ! replace argument variables
     if (cmd_line(1:5) == 'alias') return
     do i = 1, 9
-      ix = index (cmd_line, str(i))
+      ix = index (cmd_line, sub_str(i))
       if (ix /= 0) cmd_line = cmd_line(1:ix-1) // trim(tao_com%cmd_arg(i)) // &
-                              cmd_line(ix+3:)
+                              cmd_line(ix+5:)
     enddo
     
     write (*, '(3a)') trim(prompt_string), ': ', trim(cmd_line)
@@ -155,11 +155,11 @@ do i = 1, tao_com%n_alias
   cmd_line = tao_com%alias(i)%string
 
   do j = 1, 9
-    ix = index (cmd_line, str(j))
+    ix = index (cmd_line, sub_str(j))
     if (ix == 0) exit
     call string_trim (string(ic+1:), string, ic)
     cmd_line = cmd_line(1:ix-1) // &
-                          trim(string(1:ic)) // cmd_line(ix+3:)
+                          trim(string(1:ic)) // cmd_line(ix+5:)
   enddo
 
   ! append rest of string
