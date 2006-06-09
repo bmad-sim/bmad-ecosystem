@@ -812,8 +812,10 @@ else
     case ('abs_max')
       ix_m = maxloc (abs(vec(ix0:ix1)), 1) + ix0 - 1
     case default
-      call out_io (s_abort$, r_name, 'BAD MERIT_TYPE: ' // datum%merit_type, &
-                                   'FOR DATUM: ' // datum%data_type)
+      call out_io (s_abort$, r_name, &
+                    'SINCE THIS DATUM: ' // datum%data_type, &
+                    'SPECIFIES A RANGE OF ELEMENTS, THEN THIS MERIT_TYPE: ' // datum%merit_type, &
+                    'IS NOT VALID. VALID MERIT_TYPES ARE MIN, MAX, ABS_MIN, AND ABS_MAX.')
       call err_exit
     end select
 
