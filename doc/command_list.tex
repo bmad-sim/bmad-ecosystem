@@ -143,14 +143,14 @@ Examples:
     call my_cmd_file abc def 
 \end{example}
 In the above example the argument ``abc'' is substituted for any
-``[1]'' appearing the file and ``def'' is substituted for any
-``[2]''.
+``[[1]]'' appearing the file and ``def'' is substituted for any
+``[[2]]''.
 \Newline
 
 \begin{example}
   do i 1 100
-    call set_quad_misalignemnt [i] ! command file to misalign quadrupoles
-    zero_quad 1e-5*2^([i]-1) ! this would be some user supplied command to zero quad number [i]
+    call set_quad_misalignemnt [[i]] ! command file to misalign quadrupoles
+    zero_quad 1e-5*2^([[i]]-1) ! Some user supplied command to zero quad number [[i]]
   enddo
 \end{example}
 
