@@ -372,7 +372,7 @@ implicit none
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_real_array_struct), allocatable, save    :: r_dat(:), r_set(:)
 type (tao_logical_array_struct), allocatable, save :: l_dat(:), l_set(:)
-type (tao_var_array_struct), allocatable, save     :: v_array(:)
+type (tao_var_array_struct), allocatable, save     :: v_dat(:)
 
 real(rp), allocatable :: r_value(:)
 real(rp) value
@@ -407,7 +407,7 @@ endif
 
 ! select value and set.
 
-call tao_find_var (err, var_str, v_array = v_array, r_array=r_dat, &
+call tao_find_var (err, var_str, v_array = v_dat, r_array=r_dat, &
                                     l_array=l_dat, component = component)
 if (err) return
 
@@ -431,7 +431,7 @@ if (allocated(r_dat)) then
       value = r_value(i)
     endif
     r_dat(i)%r = value
-    if (component == 'model') call tao_set_var_model_value (v_array(i)%v, value)
+    if (component == 'model') call tao_set_var_model_value (v_dat(i)%v, value)
   enddo
 
 !
@@ -484,13 +484,14 @@ subroutine tao_set_data_cmd (data_str, set_str)
 implicit none
 
 type (tao_real_array_struct), allocatable, save    :: r_dat(:), r_set(:)
+type (tao_data_array_struct), allocatable, save    :: d_dat(:)
 type (tao_logical_array_struct), allocatable, save :: l_dat(:), l_set(:)
 
 real(rp), allocatable :: r_value(:)
 integer i
 
 character(*) data_str, set_str
-character(20) set_is
+character(20) set_is, component
 character(20) :: r_name = 'tao_set_data_cmd'
 
 logical err, l_value
@@ -518,7 +519,8 @@ endif
 
 ! select value and set.
 
-call tao_find_data (err, data_str, r_array=r_dat, l_array=l_dat)
+call tao_find_data (err, data_str, d_array = d_dat, r_array=r_dat, l_array=l_dat, &
+                                                        component = component)
 if (err) return
 
 if (allocated(r_dat)) then
@@ -540,6 +542,8 @@ if (allocated(r_dat)) then
     else
       r_dat(i)%r = r_value(i)
     endif
+    if (component == 'meas') d_dat(i)%d%good_meas = .true.
+    if (component == 'ref')  d_dat(i)%d%good_ref = .true.
   enddo
 
 !

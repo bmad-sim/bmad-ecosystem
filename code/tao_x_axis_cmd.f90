@@ -58,7 +58,7 @@ subroutine set_axis (plot)
 
 type (tao_plot_struct) plot
 type (tao_d1_data_struct), pointer :: d1_ptr
-integer iu, n, p1, p2
+integer iu, n, p1, p2, ig, ic
 real(rp) minn, maxx
 
 !
@@ -70,22 +70,32 @@ if (what == 's') then
   minn = s%u(iu)%model%lat%ele_(0)%s
   n = s%u(iu)%model%lat%n_ele_use
   maxx = s%u(iu)%model%lat%param%total_length
+
 elseif (what == 'ele_index') then
   minn = 0
   maxx = s%u(s%global%u_view)%model%lat%n_ele_use 
+
 elseif (what == 'index') then
-! if no curves to scale then can't scale to index
-  if (.not. associated(plot%graph(1)%curve)) then
-    plot%graph%valid = .false.
-    return
-  endif
-  iu = plot%graph(1)%curve(1)%ix_universe
-  call tao_find_data (err, &
-         plot%graph(1)%curve(1)%data_type, d1_ptr = d1_ptr, ix_uni = iu)
-  if (err) return
-  minn = lbound(d1_ptr%d, 1)
-  maxx = ubound(d1_ptr%d, 1)
+  plot%x%min = -1e30; plot%x%max = 1e30
+  do ig = 1, size(plot%graph)
+    call tao_graph_data_setup(plot, plot%graph(ig))
+  enddo
+  minn = 1e30; maxx = -1e30
+  do ig = 1, size(plot%graph)
+    plot%graph(ig)%valid = .false.
+    if (associated(plot%graph(ig)%curve)) then
+      plot%graph(ig)%valid = .true.
+      do ic = 1, size(plot%graph(ig)%curve)
+        minn = min(minn, plot%graph(ig)%curve(ic)%x_symb(1))
+        n = size(plot%graph(ig)%curve(ic)%x_symb)
+        maxx = max(maxx, plot%graph(ig)%curve(ic)%x_symb(n))
+      enddo
+    endif
+  enddo
+  if (all(.not. plot%graph%valid)) return
 endif
+
+!
 
 p1 = nint(0.7 * plot%x_divisions)  ! Used to be 8
 p2 = nint(1.3 * plot%x_divisions)  ! Used to be 15

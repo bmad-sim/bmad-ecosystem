@@ -15,14 +15,11 @@ use tao_mod
 implicit none
 
 type (tao_plot_struct), pointer :: plot
-type (tao_graph_struct), pointer :: graph
-type (tao_curve_struct), pointer :: curve
 type (ele_struct), pointer :: ele
 
 integer i, ii, k, m, n_dat, i_uni, ie, jj
 integer ix, ir, jg
 
-logical found
 character(20) :: r_name = 'tao_plot_data_setup'
 
 ! Find which elements are to be drawn for a lattice layout.
@@ -71,40 +68,61 @@ plot_loop: do ir = 1, size(s%plot_page%region)
 
 ! loop over all graphs and curves
 
-  graph_loop: do jg = 1, size(plot%graph)
+  do jg = 1, size(plot%graph)
+    call tao_graph_data_setup (plot, plot%graph(jg))
+  enddo
 
-    graph => plot%graph(jg)
-    graph%valid = .true.   ! assume everything OK
-    graph%legend = ' '
-
-    call tao_hook_graph_data_setup (plot, graph, found)
-    if (found) cycle
-
-    select case (graph%type)
-    case ('phase_space')
-      call tao_phase_space_plot_data_setup (plot, graph)
-    case ('data')
-      call tao_data_plot_data_setup(plot, graph)
-    end select
-
-    ! Renormalize and check for limited graph
-
-    if (associated (graph%curve)) then
-      do i = 1, size(graph%curve)
-        curve => graph%curve(i)
-        if (associated(curve%x_symb)) then
-            curve%x_symb = curve%x_symb * curve%x_axis_scale_factor
-            curve%y_symb = curve%y_symb * curve%y_axis_scale_factor
-        endif
-        if (associated(curve%x_line)) then
-          curve%x_line = curve%x_line * curve%x_axis_scale_factor
-          curve%y_line = curve%y_line * curve%y_axis_scale_factor
-        endif
-      enddo
-    endif
-
-  enddo graph_loop
 enddo plot_loop
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+
+subroutine tao_graph_data_setup (plot, graph)
+
+use tao_mod
+
+implicit none
+
+type (tao_plot_struct) plot
+type (tao_graph_struct) graph
+type (tao_curve_struct), pointer :: curve
+
+integer i
+logical found
+
+!
+
+graph%valid = .true.   ! assume everything OK
+graph%legend = ' '
+
+call tao_hook_graph_data_setup (plot, graph, found)
+if (found) return
+
+select case (graph%type)
+case ('phase_space')
+  call tao_phase_space_plot_data_setup (plot, graph)
+case ('data')
+  call tao_data_plot_data_setup(plot, graph)
+end select
+
+! Renormalize and check for limited graph
+
+if (associated (graph%curve)) then
+  do i = 1, size(graph%curve)
+    curve => graph%curve(i)
+    if (associated(curve%x_symb)) then
+        curve%x_symb = curve%x_symb * curve%x_axis_scale_factor
+        curve%y_symb = curve%y_symb * curve%y_axis_scale_factor
+    endif
+    if (associated(curve%x_line)) then
+      curve%x_line = curve%x_line * curve%x_axis_scale_factor
+      curve%y_line = curve%y_line * curve%y_axis_scale_factor
+    endif
+  enddo
+endif
 
 end subroutine
 
