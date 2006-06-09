@@ -148,6 +148,8 @@ do
     graph%clip = .true.
     graph%who%name  = ' '                               ! set default
     graph%who(1) = tao_plot_who_struct('model', +1)     ! set default
+    graph%box    = (/ 1, 1, 1, 1 /)
+    graph%margin = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
     do j = 1, size(curve)
       write (curve(j)%name, '(i0)') j
     enddo

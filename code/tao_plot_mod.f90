@@ -123,7 +123,7 @@ type (tao_var_struct), pointer :: var
 type (tao_keyboard_struct), pointer :: key
 
 integer i, j, k, n, m, p, j_ele, j_att, ix_var
-real(rp) :: y, norm, v
+real(rp) :: y_here, norm, v, x1, x2, y1, y2
 real(rp) :: dy_key, text_scale
 character(120) str, str2
 character(60) fmt, fmt2
@@ -136,6 +136,11 @@ character(24) :: r_name = 'tao_plot_key_table'
 
 j_ele = 4
 j_att = 5
+
+call qp_set_layout (box = graph%box, margin = graph%margin)
+
+call qp_get_layout_attrib ('GRAPH', x1, x2, y1, y2, 'POINTS/GRAPH')
+y_here = y2  ! start from the top of the graph
 
 call qp_get_qp_parameters (text_scale = text_scale)
 dy_key = 12 * text_scale
@@ -152,16 +157,16 @@ write (fmt, '(a, i5, a, i2, a)') &
                         '(4x, a, ', j_ele-2, 'x, a, ', j_att-1, 'x, a)'
 write (str, fmt) 'ix  Name', 'Attrib', &
                          'Value      Value0       Delta   Uni  useit_opt'
-y = 10 * dy_key + 5.0
-call qp_draw_text (str, 5.0_rp, y, 'POINTS/PAGE', &
+
+call qp_draw_text (str, 5.0_rp, y_here, 'POINTS/GRAPH', &
                              height = dy_key-1.0_rp, uniform_spacing = .true.)
   
 write (fmt, '(a, i2.2, a, i2.2, a)') &
         '(i2, 2x, a', j_ele, ', 2x, a', j_att, ', 3a12, 2x, a, 3x, l)'
 
 write (str, '(i2, a)') s%global%ix_key_bank/10, ':'
-y = 9 * dy_key + 5
-call qp_draw_text (str, 5.0_rp, y, 'POINTS/PAGE', &
+y_here = y_here - dy_key
+call qp_draw_text (str, 5.0_rp, y_here, 'POINTS/GRAPH', &
                           height = dy_key-1.0_rp, uniform_spacing = .true.)
 
 do i = 1, 10
@@ -207,9 +212,9 @@ do i = 1, 10
                         val0_str, delta_str, trim(str2), var%useit_opt
   endif
 
-  y = (10-i) * dy_key + 5
-  call qp_draw_text (str, 25.0_rp, y, 'POINTS/PAGE', &
+  call qp_draw_text (str, 25.0_rp, y_here, 'POINTS/GRAPH', &
                           height = dy_key-1.0_rp, uniform_spacing = .true.)
+  y_here = y_here - dy_key
 enddo
 
 end subroutine
@@ -237,7 +242,12 @@ character(16) shape
 ! Each graph is a separate lattice layout (presumably for different universes). 
 ! setup the placement of the graph on the plot page.
 
-call qp_set_layout (x_axis = plot%x, margin = graph%margin)
+call qp_set_layout (x_axis = plot%x, box = graph%box, margin = graph%margin)
+call qp_get_layout_attrib ('GRAPH', x1, x2, y1, y2, 'POINTS/GRAPH')
+y_bottom = -(y2 + 12 * (s%global%n_lat_layout_label_rows - 1)) / 2
+y_top = y_bottom + y2
+call qp_set_axis ('Y', y_bottom, y_top, 1, 0)
+  
 isu = graph%ix_universe
 ! if garph%ix_universe .eq. 0 then graph currently viewed universe
 if (isu .eq. 0) then
@@ -245,12 +255,6 @@ if (isu .eq. 0) then
 else
   lat => s%u(isu)%model%lat
 endif
-  
-call qp_set_layout (box = graph%box, margin = graph%margin)
-call qp_get_layout_attrib ('GRAPH', x1, x2, y1, y2, 'POINTS/GRAPH')
-y_bottom = -(y2 + 12 * (s%global%n_lat_layout_label_rows - 1)) / 2
-y_top = y_bottom + y2
-call qp_set_axis ('Y', y_bottom, y_top, 1, 0)
   
 ! Figure out x axis
 ! If it's not 's' then just draw a vertical line at the proper index
@@ -421,7 +425,8 @@ integer k
 
 call qp_set_layout (box = graph%box, margin = graph%margin)
 call qp_set_layout (x_axis = plot%x, x2_mirrors_x = .true.)
-call qp_set_layout (y_axis = graph%y, y2_axis = graph%y2, y2_mirrors_y = graph%y2_mirrors_y)
+call qp_set_layout (y_axis = graph%y, y2_axis = graph%y2, &
+                                                y2_mirrors_y = graph%y2_mirrors_y)
 call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
 call qp_draw_axes
 
