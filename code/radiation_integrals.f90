@@ -97,6 +97,7 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
   type (bmad_com_struct) bmad_com_save
   type (rad_int_cache_struct), pointer :: cache
   type (track_struct) track
+  type (ele_cache_struct), pointer :: cache_ele ! pointer to cache in use
 
   real(rp), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
   real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
@@ -109,7 +110,7 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
 
   character(20) :: r_name = 'radiation_integrals'
 
-  logical do_alloc
+  logical do_alloc, use_cache
   logical, parameter :: t = .true., f = .false.
 
 !---------------------------------------------------------------------
@@ -162,7 +163,7 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
 !---------------------------------------------------------------------
 ! Caching
 
-  ric%use_cache = .false.
+  use_cache = .false.
 
   if (present(ix_cache)) then
 
@@ -278,7 +279,7 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
 
     endif ! ix_cache /= 0
 
-    ric%use_cache = .true.
+    use_cache = .true.
 
   endif ! present(ix_cache)
 
@@ -291,8 +292,9 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
     ele => ring%ele_(ir)
     if (.not. ele%is_on) cycle
 
-    if (ric%use_cache) then
-      if (cache%ix_ele(ir) > 0) ric%cache_ele => cache%ele(cache%ix_ele(ir))
+    nullify (cache_ele)
+    if (use_cache) then
+      if (cache%ix_ele(ir) > 0) cache_ele => cache%ele(cache%ix_ele(ir))
     endif
 
     ele0 => ring%ele_(ir-1)
@@ -351,7 +353,7 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
       ric%pt%k1   = 0
       ric%pt%s1   = 0
 
-      call qromb_rad_int (ele0, ele, (/ F, F, F, F, F, T, T /), ir)
+      call qromb_rad_int (ele0, ele, (/ F, F, F, F, F, T, T /), ir, cache_ele)
       cycle
 
     endif
@@ -390,21 +392,19 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
 ! Edge effects for a bend. In this case we ignore any rolls.
 
     if (key == sbend$) then
-      call propagate_part_way (ele0, ele, runt, 0.0_rp, 1, 1)
+      call propagate_part_way (ele0, ele, runt, 0.0_rp, 1, 1, cache_ele)
       ric%i4a_(ir) = -ric%eta_a(1) * ric%pt%g2 * tan(ele%value(e1$))
       ric%i4b_(ir) = -ric%eta_b(1) * ric%pt%g2 * tan(ele%value(e1$))
-      call propagate_part_way (ele0, ele, runt, ll, 1, 2)
+      call propagate_part_way (ele0, ele, runt, ll, 1, 2, cache_ele)
       ric%i4a_(ir) = ric%i4a_(ir) - &
                            ric%eta_a(1) * ric%pt%g2 * tan(ele%value(e2$))
       ric%i4b_(ir) = ric%i4a_(ir) - &
                            ric%eta_b(1) * ric%pt%g2 * tan(ele%value(e2$))
     endif
 
-! Integrate for quads and bends
+! Integrate for quads, bends and nonzero kicks
 
-    if (ric%use_cache) ric%cache_ele => cache%ele(cache%ix_ele(ir))
-
-    call qromb_rad_int (ele0, ele, (/ T, F, F, T, T, T, T /), ir)
+    call qromb_rad_int (ele0, ele, (/ T, F, F, T, T, T, T /), ir, cache_ele)
 
   enddo
 
@@ -440,9 +440,7 @@ subroutine radiation_integrals (ring, orbit, mode, ix_cache)
     ric%eta_b1 = &
           matmul(v, (/ 0.0_rp, 0.0_rp, ele%y%eta, ele%y%etap /))
 
-    if (ric%use_cache) ric%cache_ele => cache%ele(cache%ix_ele(ir))
-
-    call qromb_rad_int (ele0, ele, (/ T, T, T, T, T, T, T /), ir) 
+    call qromb_rad_int (ele0, ele, (/ T, T, T, T, T, T, T /), ir, cache_ele) 
 
   enddo
 

@@ -46,7 +46,6 @@ type rad_int_common_struct
   type (ring_struct), pointer :: ring
   type (coord_struct), pointer :: orb0, orb1
   type (rad_int_cache_struct) cache(10)         ! up to 10 separate caches
-  type (ele_cache_struct), pointer :: cache_ele ! pointer to cache in use
   type (track_point_cache_struct) pt
   real(rp) eta_a(4), eta_b(4), eta_a0(4), eta_a1(4), eta_b0(4), eta_b1(4)
   real(rp), allocatable :: i1_(:) 
@@ -58,7 +57,6 @@ type rad_int_common_struct
   real(rp), allocatable :: i5b_(:) 
   real(rp), allocatable :: n_steps(:)      ! number of qromb steps needed
   real(rp) :: int_tot(7)
-  logical use_cache
 end type
 
 type (rad_int_common_struct), target, save :: ric
@@ -69,7 +67,7 @@ contains
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine qromb_rad_int(ele0, ele, do_int, ir)
+! Subroutine qromb_rad_int(ele0, ele, do_int, ir, cache_ele)
 !
 ! Function to do integration using Romberg's method on the 7 radiation 
 ! integrals.
@@ -86,7 +84,7 @@ contains
 ! not have to be done by this routine.
 !-
 
-subroutine qromb_rad_int (ele0, ele, do_int, ir)
+subroutine qromb_rad_int (ele0, ele, do_int, ir, cache_ele)
 
 use precision_def
 use nrtype
@@ -96,6 +94,7 @@ implicit none
 
 type (ele_struct) ele0, ele
 type (ele_struct), save :: runt
+type (ele_cache_struct), pointer :: cache_ele ! pointer to cache in use
 
 integer, parameter :: jmax = 14
 integer j, j0, n, n_pts, ir
@@ -153,7 +152,7 @@ do j = 1, jmax
 
   do n = 1, n_pts
     z_pos = l_ref + (n-1) * del_z
-    call propagate_part_way (ele0, ele, runt, z_pos, j, n)
+    call propagate_part_way (ele0, ele, runt, z_pos, j, n, cache_ele)
     i_sum(1) = i_sum(1) + ric%pt%g_x * (ric%eta_a(1) + ric%eta_b(1)) + &
                           ric%pt%g_y * (ric%eta_a(3) + ric%eta_b(3))
     i_sum(2) = i_sum(2) + ric%pt%g2
@@ -241,7 +240,7 @@ end subroutine
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 
-subroutine propagate_part_way (ele0, ele, runt, z_here, j_loop, n_pt)
+subroutine propagate_part_way (ele0, ele, runt, z_here, j_loop, n_pt, cache_ele)
 
 implicit none
 
@@ -249,6 +248,7 @@ type (coord_struct) orb, orb_0
 type (ele_struct) ele0, ele
 type (ele_struct) runt, e0, e1
 type (track_point_cache_struct) pt0, pt1
+type (ele_cache_struct), pointer :: cache_ele ! pointer to cache in use
 
 real(rp) z_here, v(4,4), v_inv(4,4), s1, s2, error
 real(rp) f0, f1, del_z, c, s, x, y
@@ -259,17 +259,17 @@ integer i, ix, j_loop, n_pt, n, n1, n2
 !--------------------------------------
 ! With caching
 
-if (ric%use_cache) then
+if (associated(cache_ele)) then
 
-  del_z = ric%cache_ele%del_z
+  del_z = cache_ele%del_z
   i0 = int(z_here/del_z)
   f1 = (z_here - del_z*i0) / del_z 
   f0 = 1 - f1
   if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$) i0 = modulo (i0, 10)
   i1 = i0 + 1
-  if (i1 > ubound(ric%cache_ele%pt, 1)) i1 = i0  ! can happen with roundoff
-  pt0 = ric%cache_ele%pt(i0)
-  pt1 = ric%cache_ele%pt(i1)
+  if (i1 > ubound(cache_ele%pt, 1)) i1 = i0  ! can happen with roundoff
+  pt0 = cache_ele%pt(i0)
+  pt1 = cache_ele%pt(i1)
 
   orb%vec = ric%orb0%vec * f0 + ric%orb1%vec * f1
 
