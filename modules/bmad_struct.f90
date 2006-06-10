@@ -614,11 +614,11 @@ type bmad_com_struct
   real(rp) :: grad_loss_sr_wake  = 0         ! Internal var for LCavities.
   real(rp) :: default_ds_step    = 0.2       ! Integration step size.  
 #if defined(CESR_F90_DOUBLE)
-  real(rp) :: rel_tollerance = 1e-5
-  real(rp) :: abs_tollerance = 1e-8
+  real(rp) :: rel_tolerance = 1e-5
+  real(rp) :: abs_tolerance = 1e-8
 #else
-  real(rp) :: rel_tollerance = 1e-3
-  real(rp) :: abs_tollerance = 1e-6
+  real(rp) :: rel_tolerance = 1e-3
+  real(rp) :: abs_tolerance = 1e-6
 #endif
   integer :: taylor_order = 3                ! 3rd order is default
   integer :: default_integ_order = 2         ! PTC integration order

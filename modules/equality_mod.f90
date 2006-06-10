@@ -364,8 +364,8 @@ logical is_eq
 is_eq = all(f1%d_orb == f2%d_orb) .and. &
       (f1%max_aperture_limit == f2%max_aperture_limit) .and. &
       (f1%grad_loss_sr_wake == f2%grad_loss_sr_wake) .and. &
-      (f1%rel_tollerance == f2%rel_tollerance) .and. &
-      (f1%abs_tollerance == f2%abs_tollerance) .and. &
+      (f1%rel_tolerance == f2%rel_tolerance) .and. &
+      (f1%abs_tolerance == f2%abs_tolerance) .and. &
       (f1%taylor_order == f2%taylor_order) .and. &
       (f1%default_integ_order == f2%default_integ_order) .and. &
       (f1%default_ds_step == f2%default_ds_step) .and.  &

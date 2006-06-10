@@ -168,7 +168,7 @@ subroutine closed_orbit_at_start (ring, co, i_dim, iterate)
       amp_co = sum(abs(co%vec(1:n)))
       amp_del = sum(abs(del_co%vec(1:n)))
 
-      if (amp_del < amp_co * bmad_com%rel_tollerance + bmad_com%abs_tollerance) exit
+      if (amp_del < amp_co * bmad_com%rel_tolerance + bmad_com%abs_tolerance) exit
 
     enddo
                               

@@ -12,7 +12,7 @@
 ! Input:
 !   start      -- Coord_struct: Starting coords.
 !   ele        -- Ele_struct
-!     %value(rel_tol$)    -- Real(rp): % Error tollerance. 
+!     %value(rel_tol$)    -- Real(rp): % Error tolerance. 
 !                             A good value would be, say, 1e-5.
 !     %value(abs_tol$)    -- Real(rp): absolute error. 
 !                             A good value would be, say, 1e-8.

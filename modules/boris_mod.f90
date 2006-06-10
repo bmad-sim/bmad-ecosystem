@@ -52,9 +52,9 @@ contains
 !                         field. Note: BMAD does no supply em_field_custom.
 !                           == custom$ then use em_field_custom
 !                           /= custom$ then use em_field
-!     %value(rel_tol$) -- Real: Relative error tollerance.
+!     %value(rel_tol$) -- Real: Relative error tolerance.
 !                           Default if zero: 1e-6.
-!     %value(abs_tol$) -- Real: Absolute error tollerance.
+!     %value(abs_tol$) -- Real: Absolute error tolerance.
 !                           Default if zero: 1e-7.
 !   param    -- Param_struct: Beam parameters.
 !     %particle    -- Particle type [positron$, or electron$]

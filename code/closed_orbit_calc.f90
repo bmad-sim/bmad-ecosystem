@@ -205,7 +205,7 @@ subroutine closed_orbit_calc (ring, closed_orb, i_dim, direction, exit_on_error)
     amp_co = sum(abs(start%vec(1:nc)))
     amp_del = sum(abs(del_co%vec(1:nc)))                                  
 
-    if (amp_del < amp_co * bmad_com%rel_tollerance + bmad_com%abs_tollerance) exit
+    if (amp_del < amp_co * bmad_com%rel_tolerance + bmad_com%abs_tolerance) exit
 
     if (amp_del < amp_del_old) then
       start%vec(1:nc) = start%vec(1:nc) + del_co%vec(1:nc)

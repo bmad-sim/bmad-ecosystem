@@ -16,7 +16,7 @@ contains
 ! Subroutine to do Runge Kutta tracking. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
 !
-! Notice that this routine has an two tollerance arguments rel_tol and abs_tol.
+! Notice that this routine has an two tolerance arguments rel_tol and abs_tol.
 ! Odein only has 1. rel_tol (essentually equivalent to eps in odeint) 
 ! is scalled by the step size to to able to relate it to the final accuracy.
 !

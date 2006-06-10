@@ -1358,7 +1358,7 @@ type (c_dummy_struct) c_bmad_com
 f = bmad_com
 call bmad_com_to_c2 (c_bmad_com, &
       f%max_aperture_limit, f%d_orb, f%grad_loss_sr_wake, &
-      f%default_ds_step, f%rel_tollerance, f%abs_tollerance, &
+      f%default_ds_step, f%rel_tolerance, f%abs_tolerance, &
       f%taylor_order, f%default_integ_order, &
       c_logic(f%canonical_coords), c_logic(f%use_liar_lcavity), &
       c_logic(f%sr_wakes_on), c_logic(f%lr_wakes_on), &
