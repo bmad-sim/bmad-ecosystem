@@ -114,6 +114,8 @@ n = size(s%u)
 do i = 1, size(s%u)
   call init_universe (s%u(i))
   s%u(i)%ix_uni = i
+  s%u(i)%do_synch_rad_int_calc = .false.
+  s%u(i)%do_chrom_calc         = .false.
 enddo
 
 if (associated(s%var)) deallocate (s%var)
@@ -846,9 +848,6 @@ u%d2_data(n_d2)%d1(i_d1)%d2 => u%d2_data(n_d2)
 if (allocated(found_one)) deallocate (found_one)  
 
 ! do we need to do the radiation integrals?
-
-u%do_synch_rad_int_calc = .false.
-u%do_chrom_calc         = .false.
 
 do j = lbound(u%data, 1), ubound(u%data, 1)
   if (u%data(j)%data_type(1:10) == 'emittance.') &

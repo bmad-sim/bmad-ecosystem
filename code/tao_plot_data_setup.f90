@@ -833,6 +833,12 @@ do ii = 1, size(curve%x_line)
     value = ele%x%etap
   case ('etap.b')
     value = ele%y%etap
+  case ('floor.x')
+    value = ele%floor%x
+  case ('floor.y')
+    value = ele%floor%y
+  case ('floor.z')
+    value = ele%floor%z
   case ('beam_energy')
     value = ele%value(beam_energy$) * (1 + here%vec(6))
   case ('%beam_energy')

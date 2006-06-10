@@ -53,17 +53,18 @@ character(100), pointer :: ptr_lines(:)
 character(100) file_name
 character(40) ele_name, name, sub_name
 
-character(16) :: show_names(15) = (/ &
+character(16) :: show_names(16) = (/ &
    'data        ', 'var         ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'ele         ', 'lattice     ', 'constraints ', 'plot        ', &
-   'write       ', 'hom         ', 'graph       ', 'curve       ', 'opt_vars    ' /)
+   'write       ', 'hom         ', 'graph       ', 'curve       ', 'opt_vars    ', &
+   'universe    ' /)
 
 character(200), allocatable, save :: lines(:)
 character(100) line1, line2
 character(9) angle
 
 integer :: data_number, ix_plane
-integer nl, loc, ixl, iu, nc, n_size
+integer nl, loc, ixl, iu, nc, n_size, ix_u, ios
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju
 integer num_locations
 integer, allocatable, save :: ix_ele(:)
@@ -806,6 +807,37 @@ case ('curve')
 case ('top10')
 
   call tao_top10_print ()
+
+!----------------------------------------------------------------------
+! universe
+    
+case ('universe')
+
+  if (word(1) == ' ') then
+    ix_u = s%global%u_view
+  else
+    read (word(1), *, iostat = ios) ix_u
+    if (ios /= 0) then
+      call out_io (s_error$, r_name, 'BAD UNIVERSE NUMBER')
+      return
+    endif
+    if (ix_u < 1 .or. ix_u > size(s%u)) then
+      call out_io (s_error$, r_name, 'UNIVERSE NUMBER OUT OF RANGE')
+      return
+    endif
+  endif
+
+  u => s%u(ix_u)
+
+  nl = 0
+  nl=nl+1; write(lines(nl), imt) '%ix_uni:                ', u%ix_uni
+  nl=nl+1; write(lines(nl), imt) '%n_d2_data_used:        ', u%n_d2_data_used
+  nl=nl+1; write(lines(nl), imt) '%n_data_used:           ', u%n_data_used
+  nl=nl+1; write(lines(nl), lmt) '%do_synch_rad_int_calc: ', u%do_synch_rad_int_calc
+  nl=nl+1; write(lines(nl), lmt) '%do_chrom_calc:         ', u%do_chrom_calc
+  nl=nl+1; write(lines(nl), lmt) '%is_on:                 ', u%is_on
+
+  call out_io (s_blank$, r_name, lines(1:nl)) 
 
 !----------------------------------------------------------------------
 ! variable

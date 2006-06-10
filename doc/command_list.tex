@@ -162,7 +162,7 @@ Format:
 \begin{example}
   change ele <name_or_number> <attribute> <number>
   change var <name> <locations> <number>
-  change beam_start <coordinate> <number>
+  change bunch_start <coordinate> <number>
 \end{example}
 
 \vskip 0.2in
@@ -182,7 +182,7 @@ value is used:
   set_value = design_value + <number>
 \end{example}
 
-For linear lattices, \vn{change beam_start <coordinate> <number>} 
+For linear lattices, \vn{change bunch_start <coordinate> <number>} 
 can be use to vary the starting coordinates where \vn{<coordinate>} is one of: 
 \begin{example}
   (x, p_x, y, p_y, z, p_z)
@@ -201,7 +201,7 @@ Examples:
   change ele q02w k1 d1.2e-2       ! set the k1 strength of q02w relative to the design
   change var steering[34:36] @1e-3 ! set the steering strength #34-36 to 0.001
   change var steering[*] @0.0      ! set all steering strengths to 0.0
-  change beam_start x @0.001       ! set beginning x position to 1 mm
+  change bunch_start x @0.001       ! set beginning x position to 1 mm
 \end{example}
 
 
