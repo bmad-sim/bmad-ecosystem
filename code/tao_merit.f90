@@ -120,7 +120,7 @@ do i = 1, size(s%u)
   call tao_find_data (err, 'phase.x', d1_ptr = d1, ix_uni = i, print_err = .false.)
   if (.not. err) then
     n = count(d1%d%useit_opt)
-    if (n /= 0) then
+    if (n /= 0 .and. all(d1%d%ele0_name == ' ')) then
       ave = sum(d1%d%delta_merit, mask = d1%d%useit_opt) / n
       d1%d%delta_merit = d1%d%delta_merit - ave
     endif
@@ -129,7 +129,7 @@ do i = 1, size(s%u)
   call tao_find_data (err, 'phase.y', d1_ptr = d1, ix_uni = i, print_err = .false.)
   if (.not. err) then
     n = count(d1%d%useit_opt)
-    if (n /= 0) then
+    if (n /= 0 .and. all(d1%d%ele0_name == ' ')) then
       ave = sum(d1%d%delta_merit, mask = d1%d%useit_opt) / count(d1%d%useit_opt)
       d1%d%delta_merit = d1%d%delta_merit - ave
     endif

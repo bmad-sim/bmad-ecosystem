@@ -272,7 +272,7 @@ integer ii, k, m, n_dat, i_uni, ie, jj, iv, ic
 integer ix, ir, jg, i, i_max, i_min, ix_this
 integer, allocatable, save :: ix_ele(:)
 
-logical err, smooth_curve, found
+logical err, smooth_curve, found, zero_average_phase
 
 character(12)  :: u_view_char
 character(30) :: r_name = 'tao_data_plot_data_setup'
@@ -316,9 +316,20 @@ do k = 1, size(graph%curve)
   if (curve%ix_universe /= 0) i_uni = curve%ix_universe 
   u => s%u(i_uni)
 
-  if (curve%ele_ref_name /= '-') call tao_locate_element (curve%ele_ref_name, i_uni, ix_ele, .true.)
-  curve%ix_ele_ref = ix_ele(1)
-  if (curve%ix_ele_ref < 0) curve%ix_ele_ref = 0
+  if (curve%ele_ref_name == ' ') then
+    zero_average_phase = .true.
+    curve%ix_ele_ref = 0
+  else
+    zero_average_phase = .false.
+    call tao_locate_element (curve%ele_ref_name, i_uni, ix_ele, .true.)
+    if (ix_ele(1) < 0) then
+      graph%valid = .false.
+      return
+    endif
+    curve%ix_ele_ref = ix_ele(1)
+  endif
+
+
 
 !----------------------------------------------------------------------------
 ! Calculate where the symbols are to be drawn on the graph.
@@ -335,6 +346,14 @@ do k = 1, size(graph%curve)
                 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
       graph%valid = .false.
       return
+    endif
+
+    if (d2_ptr%name == 'phase') then
+      if (all(d1_ptr%d%ele0_name == ' ')) then
+        zero_average_phase = .true.
+      else
+        zero_average_phase = .false.
+      endif
     endif
 
     d1_ptr%d%good_plot = .true.
@@ -689,7 +708,7 @@ do k = 1, size(graph%curve)
 ! Note: Since there is an arbitrary overall phase, the phase data 
 ! gets renormalized so that the average value is zero.
 
-  if (curve%data_type(1:6) == 'phase.' .and. n_dat /= 0 .and. curve%ele_ref_name == '-') then
+  if (curve%data_type(1:6) == 'phase.' .and. n_dat /= 0 .and. zero_average_phase) then
     f = sum(curve%y_symb) / n_dat
     curve%y_symb = curve%y_symb - f
     curve%y_line = curve%y_line - f 

@@ -245,8 +245,8 @@ The \vn{bmad_com_struct} holds bmad global variables.
   type bmad_com_struct
     real(rp) :: d_orb(6) = 1e-5  ! for the make_mat6_tracking routine
     real(rp) :: max_aperture_limit = 1e3    
-    real(rp) :: rel_tollerance = 1e-5
-    real(rp) :: abs_tollerance = 1e-8
+    real(rp) :: rel_tolerance = 1e-5
+    real(rp) :: abs_tolerance = 1e-8
     integer :: taylor_order = 3              ! 3rd order is default
     logical :: use_liar_lcavity = .false.    ! Liar like tracking?
     logical :: sr_wakes_on = .true.          ! Short range wakefields?
@@ -279,7 +279,7 @@ synchrotron radiation calculations.
 \label{s:coupled_uni}
 
 Universes can be coupled together. This can be useful, for example, to attach a
-damping ring a pre-acclerator to a linac. The syntax is as follows:
+damping ring a pre-accelerator to a linac. The syntax is as follows:
 \index{tao_coupled_uni_init}
 \index{coupled}
 \index{coupled!from_universe}
@@ -301,13 +301,13 @@ damping ring a pre-acclerator to a linac. The syntax is as follows:
 \vn{at_element}, \vn{at_ele_index} or \vn{at_s} must be specified but
 not more than one. These refer to the location in the lattice where
 the beam/particle is extracted into this universe.  The injection is
-always at the begining of the lattice \vn{i}. Setting
+always at the beginning of the lattice \vn{i}. Setting
 \vn{from_universe} = \vn{i} will not work to make a circular
 lattice. This must be set in the lattice file.  If there are more than
 one element named \vn{<ele_name>} then the last element named as such
 will be used. If \vn{ele_name = "end"} then the end of the injection
 lattice will be used as the coupling point. If \vn{universe_number =
-0} then universe \vn{i} is not injetced into from any other universe
+0} then universe \vn{i} is not injected into from any other universe
 
 \vn{match_to_design} will set up a coupling element that will match
 the design twiss parameters between the two lattices. This is
@@ -326,7 +326,7 @@ When using coupled lattices then statements in the lattice file for
 the lattice begin injected into that refer to the \vn{BEGINNING}
 element are only used when setting up the coupling element, otherwise
 the injected particle/beam is used to set up the \vn{BEGINNING}
-element. This goes for the \vn{tao_macro_init} namestruct in the
+element. This goes for the \vn{tao_macro_init} namelist in the
 initialization file also.
 
 Even if the coupling point is not the end of a lattice the standard lattice
@@ -409,7 +409,7 @@ $\vn{bunch_charge} / \vn{n_particle}$ and is used when calculating wakefield
 effects.
 
 The twiss parameters at the beginning of the lattice are used in
-intitiating the beam distribution.  For circular lattices the twiss
+initializing the beam distribution.  For circular lattices the twiss
 parameters will be found from the closed orbit, and the emittance will
 be calculated using the \bmad routine \vn{radiation_integrals} unless
 \vn{calc_emittance = F} in which case the emittance specified in the
@@ -476,7 +476,7 @@ The syntax is as follows:
 on what the \vn{macro_init} parameters refer to.
 
 The twiss parameters at the beginning of the lattice are used in
-intitiating the beam distribution.  For circular lattices the twiss
+initiating the beam distribution.  For circular lattices the twiss
 parameters will be found from the closed orbit, and the emittance will
 be calculated using the \bmad routine \vn{radiation_integrals} unless
 \vn{calc_emittance = F} in which case the emittance specified in the
@@ -576,7 +576,7 @@ runs from \vni{ix_min_var} to \vni{ix_max_var}. Each variable has a name
 \vn{var(i)%name} to which it can be refered to in \tao commands.  A
 lattice element name \vn{var(i)%ele_name} and the element's attribute
 to vary \vn{var(i)%attribute} needs to specified. Not all elements
-need to \vn{exist} and the element names of non--existant elements
+need to \vn{exist} and the element names of non--existent elements
 should be undefined or set to a name with only spaces in it. For those
 variables where \vn{var(i)%attribute} is not specified in the namelist
 the \vn{default_attribute} will be used.
@@ -682,7 +682,7 @@ will search for all quadrupole elements in the lattice.
 
 %-----------------------------------------------------------------
 \section{Initializing Data and
-Constraints}\index{Initialization!Data}\index{Initialization!Constaints}
+Constraints}\index{Initialization!Data}\index{Initialization!Constants}
 \label{s:init_data} 
 
 Data is initialized using the \vn{tao_d2_data} namelist block whose format is
@@ -735,7 +735,7 @@ details.\vni{default_data_noise} gives the RMS noise on \vn{bpm} and \vn{wire}
 data types. All other data types ignore this parameter.
 
 \vn{n_d1_data} defines how many \vn{d1_data} structures are associated
-with the \vn{d2_data} staructure. For each \vn{n_d1_data} structure
+with the \vn{d2_data} structure. For each \vn{n_d1_data} structure
 there must be a \vn{tao_d1_data} namelist which has the form:
 \index{tao_d1_data}
 \index{ix_d1_data}
@@ -785,7 +785,7 @@ For example:
     data(0:)%ele_name = "DET_00W", " ", "DET_02W", ...
   /
 \end{example}
-Alternatively one can specify a datum in a single line. For example:
+Alternatively, one can specify a datum in a single line. For example:
 \begin{example}
   !         name   data_      ele0_     ele_     merit_   meas_    weight good_
   !                  type       name      name     type     value           user
@@ -802,17 +802,37 @@ Alternatively one can specify a datum in a single line. For example:
 \vn{data(i)} structure array that is associated with the \vn{d1_data}
 structure. \vn{data(:)%name} gives the names of the data points and
 \vn{data(:)%ele_name} gives the lattice element names associated with
-the data points. A range of elements can be specified by giving an
-\vn{ele0_name} that is not a blank string. Thus, in the above example,
-the value of \vn{data(1)} is the maximum horizontal beta in the range
-between the end of element \vn{Q09_1} to the end of element \vn{Q16_1}.
-Certain data like the betatron \vn{phase} is measured with respect to 
-a reference point and in the example above \vn{data(2)} is the phase 
-advance from \vn{Q09_1} to \vn{Q16_1}. Some data types can be either 
+the data points. 
+
+A range of elements can be specified by giving an \vn{ele0_name} that
+is not a blank string. Thus, in the above example, the value of
+\vn{data(1)} is the maximum horizontal beta in the range between the
+end of element \vn{Q09_1} to the end of element \vn{Q16_1}.  Certain
+data types like the betatron \vn{phase} is measured with respect to a
+reference point and in the example above \vn{data(2)} is the phase
+advance from \vn{Q09_1} to \vn{Q16_1}.  Some data types can be either
 relative or absolute as in the above example where the value of
-\vn{data(3)} is the \vn{floor.x} position at element \vn{end} and the 
+\vn{data(3)} is the \vn{floor.x} position at element \vn{end} and the
 value of \vn{data(4)} is the \vn{floor.x} position at element \vn{B2}
 relative to element\vn{B1}.
+
+The relative data types are noted in Table~\ref{t:data_types}. With
+these relative data types if \vn{ele0_name} is left blank then the
+beginning of the lattice is assumed. For the particular case when a
+\vn{d1_data} structure has a \vn{d2_data.d1_data} name of \vn{phase.x}
+or \vn{phase.y} there is a subtle difference between using a blank
+\vn{ele0_name} and specifying \vn{ele0_name} to be \vn{BEGINNING}
+which is the name of the first element that is automatically inserted
+in all lattices. With a blank \vn{ele0_name} the average phase or
+phase difference for all the datums within a \vn{d1_data} array are
+set to zero by adding a fixed constant to all the datums. For example,
+in Figure~\ref{f:plot_page1}, the average phase in either of the two
+bottom plots is zero. This is done since, without a reference point
+that defines a zero phase, the overall average phase is arbitrary and
+so the overall phase is taken in \tao to be zero. If the
+\vn{BEGINNING} element is explicitly chosen as the reference element
+then the average phase is not adjusted. This distinction must be kept
+in mind when optimizing since it will affect the merit function.
 
 If elements in the \vn{data} array do not exist the
 corresponding \vn{var%name} and \vn{data%ele_name} should be left
@@ -1063,7 +1083,7 @@ the plot.
 \vn{n_graph} sets the number of graphs associated with the plot and
 each one needs a \vn{tao_template_graph} namelist to define it. These
 namelists should be placed directly after their respective
-\vn{tao_teamplate_graph} namelists. The general format of the
+\vn{tao_template_graph} namelists. The general format of the
 \vn{tao_template_graph} namelist is:
 \index{tao_template_graph}\index{graph!y}\index{curve!name}
 \index{graph_index}\index{graph}\index{graph!name}\index{curve}
@@ -1197,7 +1217,7 @@ For example:
 \begin{example}
   curve%data_type = "x-p_x"  ! x-axis - y-axis
 \end{example}
-The dash \vn{-} is manditory as the spearator between the plane names. 
+The dash \vn{-} is mandatory as the separator between the plane names. 
 
 \vn{curve%convert} is a logical that is only used
 with \vn{curve%data_name} = "coupling" and tells \tao to convert the
@@ -1328,7 +1348,7 @@ the element name is to be printed underneath the figure.
 \label{s:init_single} 
 
 For single mode the bindings of variables to keys is defined with a
-\vn{key_bindings} namelist. There is a maximun of 500 key bingdings.
+\vn{key_bindings} namelist. There is a maximum of 500 key bindings.
 The syntax is:
 \index{key_bindings}
 \index{key}
@@ -1348,7 +1368,7 @@ For example:
 \end{example}
 For the \vn{i}\Th key \vn{<ele_name>} is the name of a lattice element
 in universe \vn{<universe>} and \vn{<attrib_name>} is the attribute to
-be varied. If \vn{<unverse>} is ``0'' then the key will vary elements
+be varied. If \vn{<universe>} is ``0'' then the key will vary elements
 in all universes. \vn{<delta>} is the change in value when the
 appropriate key is depressed. \vn{<small_step>} establishes what a 
 ``small'' variation of the variable is. 
