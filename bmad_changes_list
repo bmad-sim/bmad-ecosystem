@@ -21,7 +21,7 @@ ptc_com_struct -> ptc_common_struct
 synch_rad_com_struct -> synch_rad_common_struct
 modes_struct -> normal_modes_struct
 mode_struct  -> normal_mode_struct
-
+param_struct -> lat_param_struct
 
 -----------------
 

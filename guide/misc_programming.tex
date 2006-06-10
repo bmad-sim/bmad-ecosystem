@@ -16,7 +16,7 @@ structure.
 
 \index{max_aperture_limit}\index{d_orb(6)}
 \index{grad_loss_sr_wake}\index{default_ds_step}
-\index{rel_tollerance}\index{abs_tollerance}
+\index{rel_tolerance}\index{abs_tolerance}
 \index{taylor_order}\index{default_integ_order}
 \index{canonical_coords}\index{use_liar_lcavity}
 \index{sr_wakes_on}\index{lr_wakes_on}
@@ -31,8 +31,8 @@ The \vn{bmad_com_struct} structure is:
     real(rp) :: d_orb(6)           = 1e-5      ! for the make_mat6_tracking routine.
     real(rp) :: grad_loss_sr_wake  = 0         ! Internal var for LCavities.
     real(rp) :: default_ds_step    = 0.2       ! Integration step size.  
-    real(rp) :: rel_tollerance = 1e-5
-    real(rp) :: abs_tollerance = 1e-8
+    real(rp) :: rel_tolerance = 1e-5
+    real(rp) :: abs_tolerance = 1e-8
     integer :: taylor_order = 3                ! 3rd order is default
     integer :: default_integ_order = 2         ! PTC integration order
     logical :: canonical_coords = .true.       ! Use (x, px) [not (x, x')]
