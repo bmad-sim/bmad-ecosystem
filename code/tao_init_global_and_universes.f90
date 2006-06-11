@@ -735,13 +735,6 @@ else
 
   do j = n1, n2
 
-    if (u%data(j)%data_type(1:10) == 'emittance.' .or. &
-        u%data(j)%data_type(1:6)  == 'chrom.' .or. &
-        u%data(j)%data_type(1:13) == 'unstable_ring') then
-      u%data(j)%exists = .true.
-      cycle
-    endif
-
     if (u%data(j)%ele_name == ' ') cycle
     call str_upcase (u%data(j)%ele_name, u%data(j)%ele_name)
     call element_locator (u%data(j)%ele_name, u%design%lat, ix)
@@ -849,11 +842,20 @@ if (allocated(found_one)) deallocate (found_one)
 
 ! do we need to do the radiation integrals?
 
-do j = lbound(u%data, 1), ubound(u%data, 1)
-  if (u%data(j)%data_type(1:10) == 'emittance.') &
-                                    u%do_synch_rad_int_calc = .true. 
-  if (u%data(j)%data_type(1:6) == 'chrom.') &
-                                    u%do_chrom_calc = .true.
+do j = n1, n2
+  if (u%data(j)%data_type(1:10) == 'emittance.') u%do_synch_rad_int_calc = .true. 
+  if (u%data(j)%data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
+  if (u%data(j)%data_type(1:10) == 'emittance.' .or. &
+          u%data(j)%data_type(1:6)  == 'chrom.' .or. &
+          u%data(j)%data_type(1:13) == 'unstable_ring') then
+    u%data(j)%exists = .true.
+    if (u%data(j)%ele_name /= ' ') then
+      call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // u%data(j)%data_type, &
+                        'CANNOT HAVE AN ASSOCIATED ELEMENT: ' // u%data(j)%ele_name)
+      call err_exit
+    endif
+    cycle
+  endif
 enddo
 
 end subroutine d1_data_stuffit
