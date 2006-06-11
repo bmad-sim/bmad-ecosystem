@@ -76,7 +76,7 @@ if (ele_name == 'BUNCH_START') then
   if (present(ix_attrib)) ix_attrib = ix
   call reallocate_arrays (1)
   ptr_array(1)%r => lat%bunch_start%vec(ix)
-  ix_eles(1) = -1
+  if (present(ix_eles)) ix_eles(1) = -1
   err_flag = .false.
   return
 endif

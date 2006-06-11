@@ -368,6 +368,7 @@ subroutine transfer_ring_parameters (ring_in, ring_out)
   ring_out%n_control_max =        ring_in%n_control_max
   ring_out%n_ic_max =             ring_in%n_ic_max
   ring_out%input_taylor_order =   ring_in%input_taylor_order
+  ring_out%bunch_start        =   ring_in%bunch_start
 
 end subroutine
 
