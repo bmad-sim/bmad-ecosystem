@@ -34,7 +34,7 @@ contains
 ! 
 ! Output:
 !   data_value(:)       -- Real, allocatable, optional: Data model values.
-!   data_weight(:)      -- Real, allocatable, optional: Data  weights in the merit function.
+!   data_weight(:)      -- Real, allocatable, optional: Data weights in the merit function.
 !   data_meas_value(:)  -- Real, allocatable, optional: Data values when the data was taken.
 !   data_ix_dModel(:)   -- Real, allocatable, optional: Data ix_dModel indices
 !-
@@ -726,7 +726,7 @@ case ('spin.polarity')
 case default
 
   call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
-  stop
+  call err_exit
 
 end select
 

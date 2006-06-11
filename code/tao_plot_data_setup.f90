@@ -139,13 +139,16 @@ implicit none
 type (tao_plot_struct) plot
 type (tao_graph_struct) graph
 type (tao_curve_struct), pointer :: curve
+type (tao_universe_struct), pointer :: u
+type (tao_d2_data_struct), pointer :: d2_ptr
+type (tao_d1_data_struct), pointer :: d1_x, d1_y
 
-integer k, n, m, ib, ix1_ax, ix2_ax, ix
+integer k, n, m, ib, ix1_ax, ix2_ax, ix, i_uni, i
 
 logical err
 
-character(40) name
-character(30) :: r_name = 'tao_phase_space_plot_data_setup'
+character(40) name, phase1_str, phase2_str
+character(40) :: r_name = 'tao_phase_space_plot_data_setup'
 
 ! Set up the graph suffix
 
@@ -166,10 +169,6 @@ graph%valid = .false.
 do k = 1, size(graph%curve)
 
   curve => graph%curve(k)
-  if (.not. associated(curve%beam%bunch)) then
-    call out_io (s_abort$, r_name, 'NO ASSOCIATED BEAM WITH PHASE_SPACE PLOTTING.')
-    return
-  endif
 
   ! find phase space axes to plot
 
@@ -180,30 +179,97 @@ do k = 1, size(graph%curve)
     call err_exit
   endif
   err = .false.
-  call tao_phase_space_axis (curve%data_type(:ix-1), ix1_ax, err); if (err) return
-  call tao_phase_space_axis (curve%data_type(ix+1:), ix2_ax, err); if (err) return
+  phase1_str = curve%data_type(:ix-1)
+  phase2_str = curve%data_type(ix+1:)
+  call tao_phase_space_axis (phase1_str, ix1_ax, err); if (err) return
+  call tao_phase_space_axis (phase2_str, ix2_ax, err); if (err) return
 
   ! fill the curve data arrays
 
   if (associated (curve%ix_symb)) deallocate (curve%ix_symb, curve%x_symb, curve%y_symb)
   if (associated (curve%x_line))  deallocate (curve%x_line, curve%y_line)
 
-  n = 0
-  do ib = 1,  size(curve%beam%bunch)
-    n = size(curve%beam%bunch(ib)%particle)
-  enddo
+  if (curve%data_source == 'beam_tracking') then
 
-  call re_associate (curve%ix_symb, n)
-  call re_associate (curve%x_symb, n)
-  call re_associate (curve%y_symb, n)
+    if (.not. associated(curve%beam%bunch)) then
+      call out_io (s_abort$, r_name, 'NO ASSOCIATED BEAM WITH PHASE_SPACE PLOTTING.')
+      return
+    endif
 
-  n = 0
-  do ib = 1, size(curve%beam%bunch)
-    m = size(curve%beam%bunch(ib)%particle)
-    curve%x_symb(n+1:n+m) = curve%beam%bunch(ib)%particle(:)%r%vec(ix1_ax)
-    curve%y_symb(n+1:n+m) = curve%beam%bunch(ib)%particle(:)%r%vec(ix2_ax)
-    n = n + m
-  enddo
+    n = 0
+    do ib = 1,  size(curve%beam%bunch)
+      n = size(curve%beam%bunch(ib)%particle)
+    enddo
+
+    call re_associate (curve%ix_symb, n)
+    call re_associate (curve%x_symb, n)
+    call re_associate (curve%y_symb, n)
+
+    n = 0
+    do ib = 1, size(curve%beam%bunch)
+      m = size(curve%beam%bunch(ib)%particle)
+      curve%x_symb(n+1:n+m) = curve%beam%bunch(ib)%particle(:)%r%vec(ix1_ax)
+      curve%y_symb(n+1:n+m) = curve%beam%bunch(ib)%particle(:)%r%vec(ix2_ax)
+      n = n + m
+    enddo
+
+  !----------------------------
+
+  elseif (curve%data_source == 'multi_turn_orbit') then
+    
+    i_uni = s%global%u_view  ! universe where the data comes from
+    if (curve%ix_universe /= 0) i_uni = curve%ix_universe 
+    u => s%u(i_uni)
+
+    call tao_find_data (err, curve%data_source, d2_ptr, ix_uni = i_uni)
+    if (err) then
+      call out_io (s_error$, r_name, &
+                'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
+      graph%valid = .false.
+      return
+    endif
+
+    nullify (d1_x, d1_y)
+    do i = 1, size(d2_ptr%d1)
+      if (phase1_str == d2_ptr%d1(i)%name) d1_x => d2_ptr%d1(i)
+      if (phase2_str == d2_ptr%d1(i)%name) d1_y => d2_ptr%d1(i)
+    enddo
+    if (.not. associated(d1_x)) then
+      call out_io (s_error$, r_name, &
+              'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // phase1_str, &
+              'FOR CURVE: ' // curve%name)
+      call err_exit
+    endif
+    if (.not. associated(d1_y)) then
+      call out_io (s_error$, r_name, &
+              'CANNOT FIND DATA FOR PHASE SPACE COORDINATE: ' // phase2_str, &
+              'FOR CURVE: ' // curve%name)
+      call err_exit
+    endif
+
+    if (lbound(d1_x%d, 1) /= lbound(d1_y%d, 1) .or. &
+                                        ubound(d1_x%d, 1) /= ubound(d1_y%d, 1)) then 
+      call out_io (s_error$, r_name, &
+              'BOUNDS FOR X-AXIS AND Y-AXIS DATA OF PHASE SPACE PLOTTING MISMATCHED.', &
+              'FOR CURVE: ' // curve%name)
+      call err_exit
+    endif
+
+    n = size(d1_x%d)
+    call re_associate (curve%ix_symb, n)
+    call re_associate (curve%x_symb, n)
+    call re_associate (curve%y_symb, n)
+
+    do ib = 1, n
+      i = ib + lbound(d1_x%d, 1) - 1
+      curve%x_symb(ib) = d1_x%d(i)%model_value
+      curve%y_symb(ib) = d1_y%d(i)%model_value
+    enddo
+
+  else
+    call out_io (s_abort$, r_name, 'INVALID CURVE%DATA_SOURCE: ' // curve%data_source)
+    call err_exit
+  endif
 
 enddo
 

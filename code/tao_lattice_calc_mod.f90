@@ -50,9 +50,12 @@ implicit none
 
 logical, optional :: init_design
 
-type (tao_lattice_struct), pointer :: this
+type (tao_universe_struct), pointer :: u
+type (tao_d2_data_struct), pointer :: d2_dat
+type (tao_d1_data_struct), pointer :: d1_dat
+type (coord_struct), allocatable, save :: orb(:)
 
-integer i, j
+integer i, j, ix, n_max, it, id
 real(rp) :: delta_e = 0
 
 character(20) :: r_name = "tao_lattice_calc"
@@ -71,17 +74,19 @@ hook_used(:) = .false.
 initing_design = logic_option (.false., init_design)
 
 ! make sure useit is up-to-date
+
 if (.not. initing_design) then
   call tao_set_var_useit_opt
   call tao_set_data_useit_opt
 endif
   
 ! do a custom lattice calculation if desired
+
 if (s%global%lattice_recalc) then
   do i = 1, size(s%u)
-    this => s%u(i)%model
-    call tao_lat_bookkeeper (s%u(i), this)
-    call tao_hook_lattice_calc (s%u(i), this, hook_used(i))
+    u => s%u(i)
+    call tao_lat_bookkeeper (u, u%model)
+    call tao_hook_lattice_calc (u, u%model, hook_used(i))
   enddo
   if (.not. any(.not. hook_used)) s%global%lattice_recalc = .false.
 endif
@@ -89,60 +94,91 @@ endif
 ! Closed orbit and Twiss calculation.
 ! This can be slow for large lattices so only do it if the lattice changed.
 
-if (s%global%lattice_recalc) then
+if (.not. s%global%lattice_recalc) return
 
-  do i = 1, size(s%u)
-    if (.not. s%u(i)%is_on .or. hook_used(i)) cycle
-    this => s%u(i)%model
-    ! zero data array
-    s%u(i)%data%model_value = tiny(1.0_rp)
-    do j = 1, 6
-      this%orb%vec(i) = 0.0
-    enddo
-    this%orb(0) = this%lat%bunch_start
-
-    ! set up matching element
-    if (initing_design) call tao_match_lats_init (s%u(i))
-
-    select case (s%global%track_type)
-    case ('single') 
-      call tao_inject_particle (s%u(i), this%lat, this%orb)
-      call tao_lat_bookkeeper (s%u(i), this)
-      call tao_single_track (i, this, this_calc_ok)
-    case ('beam') 
-      call tao_inject_beam (s%u(i), this%lat, this%orb)
-      call tao_lat_bookkeeper (s%u(i), this)
-      call tao_beam_track (i, this, this_calc_ok)
-    case ('macro')
-      call tao_inject_macro_beam (s%u(i), this%lat, this%orb)
-      call tao_lat_bookkeeper (s%u(i), this)
-      call tao_macro_track (i, this, this_calc_ok)
-    case default
-      call out_io (s_error$, r_name, &
-                     "This tracking type has yet to be implemented!")
-      call out_io (s_blank$, r_name, &
-                     "No tracking or twiss calculations will be perfomred.")
-    end select
-
-    if (this_calc_ok) then
-      if (s%u(i)%do_synch_rad_int_calc)  call radiation_integrals (this%lat, &
-                                           this%orb, this%modes, s%u(i)%ix_rad_int_cache)
-      if (s%u(i)%do_chrom_calc) call chrom_calc (this%lat, delta_e, &
-                                    this%a%chrom, this%b%chrom, exit_on_error = .false.)
-    else
-      calc_ok = .false.
-    endif
-
-    call tao_load_data_array (s%u(i), -1)
-
+do i = 1, size(s%u)
+  u => s%u(i)
+  if (.not. u%is_on .or. hook_used(i)) cycle
+  ! zero data array
+  u%data%model_value = tiny(1.0_rp)
+  do j = 1, 6
+    u%model%orb%vec(i) = 0.0
   enddo
+  u%model%orb(0) = u%model%lat%bunch_start
 
-  ! do any post-processing
+  ! set up matching element
+  if (initing_design) call tao_match_lats_init (u)
 
-  call tao_hook_post_process_data ()
-  s%global%lattice_recalc = .false.
+  select case (s%global%track_type)
+  case ('single') 
+    call tao_inject_particle (u, u%model%lat, u%model%orb)
+    call tao_lat_bookkeeper (u, u%model)
+    call tao_single_track (i, u%model, this_calc_ok)
+  case ('beam') 
+    call tao_inject_beam (u, u%model%lat, u%model%orb)
+    call tao_lat_bookkeeper (u, u%model)
+    call tao_beam_track (i, u%model, this_calc_ok)
+  case ('macro')
+    call tao_inject_macro_beam (u, u%model%lat, u%model%orb)
+    call tao_lat_bookkeeper (u, u%model)
+    call tao_macro_track (i, u%model, this_calc_ok)
+  case default
+    call out_io (s_error$, r_name, &
+                   "This tracking type has yet to be implemented!")
+    call out_io (s_blank$, r_name, &
+                   "No tracking or twiss calculations will be perfomred.")
+  end select
 
-endif
+  if (this_calc_ok) then
+    if (u%do_synch_rad_int_calc)  call radiation_integrals (u%model%lat, &
+                                         u%model%orb, u%model%modes, u%ix_rad_int_cache)
+    if (u%do_chrom_calc) call chrom_calc (u%model%lat, delta_e, &
+                                    u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)
+  else
+    calc_ok = .false.
+  endif
+
+  call tao_load_data_array (u, -1)
+
+  ! do multi-turn tracking if needed
+
+  if (associated(u%ix_data(-2)%ix_datum)) then
+    ix = u%ix_data(-2)%ix_datum(1)
+    d2_dat => u%data(ix)%d1%d2
+    n_max = 0
+    do id = 1, size(d2_dat%d1)
+      n_max = max(n_max, ubound(d2_dat%d1(id)%d, 1))
+    enddo
+    call reallocate_coord (orb, u%model%lat%n_ele_max)
+    orb(0) = u%model%lat%bunch_start
+    do it = 0, n_max
+      do id = 1, size(d2_dat%d1)
+        d1_dat => d2_dat%d1(id)
+        if (it >= lbound(d1_dat%d, 1) .and. it <= ubound(d1_dat%d, 1)) then
+          select case (d1_dat%name)
+          case ('x');   d1_dat%d(it)%model_value = orb(0)%vec(1)
+          case ('p_x'); d1_dat%d(it)%model_value = orb(0)%vec(2)
+          case ('y');   d1_dat%d(it)%model_value = orb(0)%vec(3)
+          case ('p_y'); d1_dat%d(it)%model_value = orb(0)%vec(4)
+          case ('z');   d1_dat%d(it)%model_value = orb(0)%vec(5)
+          case ('p_z'); d1_dat%d(it)%model_value = orb(0)%vec(6)
+          case default
+            call out_io (s_fatal$, r_name, 'BAD MULTI_TURN_ORBIT D1_DATA%NAME: ' // d1_dat%name)
+            call err_exit
+          end select
+        endif
+      enddo
+      call track_all (u%model%lat, orb)
+      orb(0) = orb(u%model%lat%n_ele_use)
+    enddo
+  endif
+
+enddo
+
+! do any post-processing
+
+call tao_hook_post_process_data ()
+s%global%lattice_recalc = .false.
 
 end subroutine tao_lattice_calc
 
@@ -326,6 +362,7 @@ endif
         if (graph%type /= 'phase_space') cycle
         do ic = 1, size(graph%curve)
           curve => graph%curve(ic)
+          if (curve%data_source /= 'beam_tracking') cycle
           i_uni = curve%ix_universe
           if (i_uni == 0) i_uni = s%global%u_view
           if (i_uni /= uni) cycle

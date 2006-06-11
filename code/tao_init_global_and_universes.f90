@@ -847,7 +847,8 @@ do j = n1, n2
   if (u%data(j)%data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
   if (u%data(j)%data_type(1:10) == 'emittance.' .or. &
           u%data(j)%data_type(1:6)  == 'chrom.' .or. &
-          u%data(j)%data_type(1:13) == 'unstable_ring') then
+          u%data(j)%data_type(1:13) == 'unstable_ring' .or. &
+          u%data(j)%data_type(1:17) == 'multi_turn_orbit.') then
     u%data(j)%exists = .true.
     if (u%data(j)%ele_name /= ' ') then
       call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // u%data(j)%data_type, &
@@ -1493,10 +1494,11 @@ subroutine init_ix_data (u)
 
 implicit none
 
-type (tao_universe_struct) u
+type (tao_universe_struct), target :: u
+type (tao_data_struct), pointer :: data
 
-integer, automatic :: n_data(-1:u%design%lat%n_ele_max)
-integer, automatic :: ix_next(-1:u%design%lat%n_ele_max)
+integer, automatic :: n_data(-2:u%design%lat%n_ele_max)
+integer, automatic :: ix_next(-2:u%design%lat%n_ele_max)
 
 integer j, k, ix_ele
 
@@ -1504,15 +1506,18 @@ n_data(:) = 0
 
 ! allocate the ix_data array
 if (associated(u%ix_data)) deallocate(u%ix_data)
-allocate(u%ix_data(-1:u%design%lat%n_ele_max))
+allocate(u%ix_data(-2:u%design%lat%n_ele_max))
 
 ! find number of datums at each element
 do j = 1, size(u%data)
-  if (.not. u%data(j)%exists) cycle
-  if (u%data(j)%ix_ele == -1) then
+  data => u%data(j)
+  if (.not. data%exists) cycle
+  if (data%data_type(1:17) == 'multi_turn_orbit.') then
+    ix_ele = -2
+  elseif (data%ix_ele == -1) then
     ix_ele = -1
   else
-    ix_ele = max(u%data(j)%ix_ele, u%data(j)%ix_ele0)
+    ix_ele = max(data%ix_ele, data%ix_ele0)
   endif
   n_data(ix_ele) = n_data(ix_ele) + 1
 enddo
@@ -1529,11 +1534,14 @@ ix_next(:) = 1
   
 ! setup ix_ele array for each element
 do j = 1, size(u%data)
-  if (.not. u%data(j)%exists) cycle
-  if (u%data(j)%ix_ele == -1) then
+  data => u%data(j)
+  if (.not. data%exists) cycle
+  if (data%data_type(1:17) == 'multi_turn_orbit.') then
+    ix_ele = -2
+  elseif (data%ix_ele == -1) then
     ix_ele = -1
   else
-    ix_ele = max(u%data(j)%ix_ele, u%data(j)%ix_ele0)
+    ix_ele = max(data%ix_ele, data%ix_ele0)
   endif
   u%ix_data(ix_ele)%ix_datum(ix_next(ix_ele)) = j
   ix_next(ix_ele) = ix_next(ix_ele) + 1
