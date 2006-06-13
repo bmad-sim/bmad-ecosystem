@@ -50,7 +50,6 @@ subroutine tao_init (init_file)
   read (iu, nml = tao_start)
   close (iu)
   tao_com%init_name = init_name
-  bmad_status%exit_on_error = .false.
 
   if (associated(s%u)) call deallocate_everything ()
   allocate (s%u(n_universes))
@@ -61,6 +60,8 @@ subroutine tao_init (init_file)
   call tao_init_global_and_universes (init_file, data_file, var_file)
   call tao_init_single_mode (single_mode_file)
   call tao_hook_init (init_file)
+
+  bmad_status%exit_on_error = .false.
 
 ! check variables
 ! check if vars are good
